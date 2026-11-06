@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Stage
 {
     /// <summary>
-    /// 1 つの層の中に「実画面いっぱい」と「中央の 1280×720 の舞台」の 2 つの子を作る。寸法と配置は UiStageFrame.uss が持つ
-    /// Builds the two children of one layer, the full-screen viewport and the centered 1280x720 stage; sizes and placement live in UiStageFrame.uss
+    /// 1層に実画面と舞台の2子を作る
+    /// Builds viewport and stage children of one layer
     /// </summary>
     public sealed class UiStageFrame
     {
@@ -23,8 +23,8 @@ namespace Client.Ui.Foundation.Stage
 
         public static UiStageFrame Build(VisualElement layerContainer)
         {
-            // 実画面の子を先、舞台を後に足す（同じ層の中では舞台が前面）
-            // Add the viewport child first and the stage after it (the stage is in front within a layer)
+            // 実画面を先、舞台を後に足す
+            // Add viewport first, stage after
             var viewport = CreateChild("viewport", ViewportClassName);
             var stage = CreateChild("stage", StageClassName);
             layerContainer.Add(viewport);
@@ -35,8 +35,8 @@ namespace Client.Ui.Foundation.Stage
 
             VisualElement CreateChild(string suffix, string className)
             {
-                // 族の子もクリックを受けず、空の場所はワールドへ抜ける
-                // Family children take no clicks either, so empty spots fall through to the world
+                // 族の子もクリックを受けない
+                // Family children take no clicks
                 var child = new VisualElement { name = $"{layerContainer.name}-{suffix}", pickingMode = PickingMode.Ignore };
                 child.AddToClassList(className);
                 return child;

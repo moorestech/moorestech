@@ -37,7 +37,7 @@
 /* Web options have no hover or press look, so cancel the default theme's changes */
 .mode-switch .mode-switch__option:hover,
 .mode-switch .mode-switch__option:active {
-    scale: 1 1;
+    translate: 0 0;
     border-color: var(--mode-switch-option-ring);
     background-color: var(--mode-switch-option-face);
 }

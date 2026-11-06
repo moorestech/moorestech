@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
-    // PanelActionButton の見本（通常の状態。ホバー・押下は C2 の部品レーンが足す）
-    // PanelActionButton sample (normal state; hover and pressed are added by the C2 component lanes)
+    // PanelActionButtonの見本（通常状態）
+    // PanelActionButton sample (normal state)
     public sealed class PanelActionButtonGalleryEntry : IUiGalleryEntry
     {
         public UiGalleryFamily Family => UiGalleryFamily.Controls;

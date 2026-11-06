@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Theme.Calc
 {
     /// <summary>
-    /// 変換で px に計算した calc のトークンを、USS 上の値で計算し直して宣言値と一致することを確かめる（L2・plan §3.5）
-    /// Recomputes calc-derived tokens from the values in USS and checks they match the declared px (L2, plan §3.5)
+    /// calcトークンの検算（L2）
+    /// Rechecks calc tokens (L2)
     /// </summary>
     public class CalcConstantRecheckTest
     {
@@ -43,6 +43,20 @@ namespace Client.Tests.Ui.Theme.Calc
             {
                 Assert.AreEqual(evaluator.Evaluate(expression), ParsePx(value), 0.01f, $"{name}: {value} != calc({expression})");
             }
+
+            #region Internal
+
+            float ParsePx(string value)
+            {
+                return float.Parse(value.Replace("px", ""), CultureInfo.InvariantCulture);
+            }
+
+            string RepositoryRoot()
+            {
+                return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
+            }
+
+            #endregion
         }
 
         [Test]
@@ -53,16 +67,6 @@ namespace Client.Tests.Ui.Theme.Calc
             Assert.AreEqual(5f, evaluator.Evaluate("(var(--a) - 8px) * 5 / 2"), 0.001f);
             Assert.AreEqual(10f, evaluator.Evaluate("0.625rem"), 0.001f);
             Assert.Throws<KeyNotFoundException>(() => evaluator.Evaluate("var(--missing) + 1px"));
-        }
-
-        private static float ParsePx(string value)
-        {
-            return float.Parse(value.Replace("px", ""), CultureInfo.InvariantCulture);
-        }
-
-        private static string RepositoryRoot()
-        {
-            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
         }
     }
 }

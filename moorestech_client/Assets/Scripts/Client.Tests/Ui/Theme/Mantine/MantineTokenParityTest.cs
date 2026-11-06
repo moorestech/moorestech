@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Theme.Mantine
 {
     /// <summary>
-    /// Web と UITK が参照する --mantine-* がすべて MantineTokens.uss か DerivedTokens.uss にあり、生成元の Mantine の版が lockfile と同じことを確かめる（L2・設計書 C4）
-    /// Verifies every --mantine-* referenced by the Web and UITK is declared in MantineTokens.uss or DerivedTokens.uss and the generated version matches the lockfile (L2, design C4)
+    /// --mantine-*の存在と版一致を確かめる（L2）
+    /// Verifies --mantine-* presence and version (L2)
     /// </summary>
     public class MantineTokenParityTest
     {
@@ -65,8 +65,8 @@ namespace Client.Tests.Ui.Theme.Mantine
 
         private static void AssertAllDeclared(IEnumerable<string> files)
         {
-            // 参照している名前のうち、生成物にも手書きの前計算にも無いものを並べる
-            // List referenced names declared in neither the generated file nor the hand-written derived tokens
+            // 未定義の名前を並べる
+            // List undeclared names
             var declared = DeclaredNames(MantineUssPath).Union(DeclaredNames(DerivedUssPath)).ToHashSet();
             var missing = files.SelectMany(path => MantineReference.Matches(File.ReadAllText(path)).Select(match => $"{match.Groups[1].Value} ({Path.GetFileName(path)})"))
                 .Where(entry => !declared.Contains(entry.Split(' ')[0])).Distinct().ToList();

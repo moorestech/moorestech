@@ -89,8 +89,8 @@ namespace Client.Tests.Ui.Text
         [Test]
         public void SetTextReplacesThePreviousKeyAndParams()
         {
-            // 後から入れた文が前のキーと引数を置き換え、言語変更でも後の文で解き直す
-            // A later text replaces the earlier key and params, and re-resolves to the later one on language change
+            // 後の文が前を置き換える
+            // A later text replaces the earlier
             var label = new LocalizedLabel();
             label.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
             label.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.BugReport));

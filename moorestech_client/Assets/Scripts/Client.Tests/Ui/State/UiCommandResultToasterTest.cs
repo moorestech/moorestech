@@ -10,8 +10,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State
 {
     /// <summary>
-    /// コマンドの結果のトーストの出し方を 1 か所で決める Toaster を確かめる（L0・設計書 A-15）
-    /// Verifies the toaster that decides in one place how command results become toasts (L0, design A-15)
+    /// Toasterの振り分けを確かめる（L0）
+    /// Verifies the toaster routing (L0)
     /// </summary>
     public class UiCommandResultToasterTest
     {
@@ -40,8 +40,8 @@ namespace Client.Tests.Ui.State
         [Test]
         public void RejectedLogsCommandAndWireCodeThenShowsTranslatedError()
         {
-            // 開発者にはコマンド名と失敗コード、利用者には理由ごとの翻訳文が届く
-            // Developers get the command name and failure code; players get the per-reason translated message
+            // 開発者向けログと利用者向け翻訳文
+            // Developer log and player translation
             var rejected = new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, "");
             LogAssert.Expect(LogType.Warning, $"[UiCommandResultToaster] localization.setLocale failed: {rejected.ToWireCode()}");
             _toaster.Report("localization.setLocale", rejected);

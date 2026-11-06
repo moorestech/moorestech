@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Conventions
 {
     /// <summary>
-    /// Client.Ui の層の参照の向き（設計書 §1.1）が守られていることを本番のソースで確かめる（L2）
-    /// Verifies the Client.Ui layer reference direction (design §1.1) on the production sources (L2)
+    /// 層の参照の向きを検査（L2）
+    /// Checks the layer reference direction (L2)
     /// </summary>
     public class UiLayerDependencyDirectionTest
     {
@@ -22,13 +22,22 @@ namespace Client.Tests.Ui.Conventions
                 .SelectMany(path => UiLayerDependencyRules.FindViolations(Path.GetRelativePath(root, path).Replace('\\', '/'), File.ReadAllText(path)))
                 .ToList();
             Assert.IsEmpty(violations, string.Join("\n", violations));
+
+            #region Internal
+
+            string RepositoryRoot()
+            {
+                return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
+            }
+
+            #endregion
         }
 
         [Test]
         public void RulesCatchUsingsAndQualifiedNamesButAllowExceptions()
         {
-            // using と完全修飾名の両方を拾い、Text・Routing の例外とコメントは拾わない
-            // Catches both usings and qualified names, but not the Text/Routing exceptions or comments
+            // usingと完全修飾名を拾う
+            // Catches usings and qualified names
             const string component = "using Client.Game.InGame;\nusing Client.Ui.State.Text;\n// Client.Ui.Screens in a comment\nclass A { Client.Ui.State.Toast.GameUiToast t; }";
             var componentViolations = UiLayerDependencyRules.FindViolations("Components/Controls/A/A.cs", component);
             Assert.AreEqual(2, componentViolations.Count, string.Join("\n", componentViolations));
@@ -39,11 +48,6 @@ namespace Client.Tests.Ui.Conventions
 
             Assert.IsEmpty(UiLayerDependencyRules.FindViolations("Screens/PauseMenu/C.cs", component));
             Assert.AreEqual(1, UiLayerDependencyRules.FindViolations("Content/D.cs", "using Client.Ui.Screens.Toast;").Count);
-        }
-
-        private static string RepositoryRoot()
-        {
-            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
         }
     }
 }

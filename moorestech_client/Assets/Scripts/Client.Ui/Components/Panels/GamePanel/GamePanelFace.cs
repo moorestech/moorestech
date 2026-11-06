@@ -5,13 +5,13 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Panels
 {
     /// <summary>
-    /// GamePanel の半透明ネイビーの面。上端の縦フェードと左右・下端のマスクを頂点カラーの格子で描く（Web の ::before）
-    /// Translucent navy face of GamePanel; draws the top fade and the side/bottom masks as a vertex-colored grid (the Web ::before)
+    /// 半透明ネイビーの面
+    /// Translucent navy face
     /// </summary>
     public class GamePanelFace : VisualElement
     {
-        // Web の linear-gradient(180deg, 透明 0, 面 11.742px) と mask の calc(100% - 12px)
-        // The Web linear-gradient(180deg, clear 0, face 11.742px) and the mask's calc(100% - 12px)
+        // Web gradientとmaskの値
+        // Web gradient and mask values
         private const float TopFadeLength = 11.742f;
         private const float BottomFadeLength = 12f;
         private const int GridLineCount = 4;
@@ -43,8 +43,8 @@ namespace Client.Ui.Components.Panels
             // silent-ok: トークンが読めない間は描かない / UssCustomStyleReader が読めなかったトークン名を LogError で出す
             if (!_hasTokens) return;
 
-            // 格子の線を置き、16 頂点に色、3×3 セルに三角 2 枚ずつを張る
-            // Place the grid lines, color 16 vertices and span two triangles per 3x3 cell
+            // 格子線を置き頂点に色を付ける
+            // Place grid lines and color vertices
             var width = contentRect.width;
             var height = contentRect.height;
             SetGridLines(width, height);
@@ -100,8 +100,8 @@ namespace Client.Ui.Components.Panels
                 }
             }
 
-            // 縦は上端の立ち上がりと下端の mask、横は左右の mask。Web の mask-composite: intersect と同じく積を取る
-            // Vertical is the top ramp times the bottom mask, horizontal the side masks; multiply like the Web mask-composite: intersect
+            // 縦横のmaskの積を取る
+            // Multiply the vertical and horizontal masks
             float VerticalWeight(float y)
             {
                 return Mathf.Clamp01(y / TopFadeLength) * Mathf.Clamp01((height - y) / BottomFadeLength);

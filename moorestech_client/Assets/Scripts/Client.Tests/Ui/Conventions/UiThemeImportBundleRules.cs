@@ -6,17 +6,17 @@ using System.Text.RegularExpressions;
 namespace Client.Tests.Ui.Conventions
 {
     /// <summary>
-    /// GameUiTheme.tss の束ね規約を検査し、違反を文で返す（L2・設計書 §1.4 C1・実行計画 E-1）
-    /// Checks the GameUiTheme.tss bundling conventions and returns violations as sentences (L2, design C1, execution plan E-1)
+    /// tssの束ね規約を検査（L2）
+    /// Checks the tss bundling rules (L2)
     /// </summary>
     public static class UiThemeImportBundleRules
     {
-        public const string UnityDefaultThemeUrl = "unity-theme://default";
+        private const string UnityDefaultThemeUrl = "unity-theme://default";
         private const string ProjectUrlPrefix = "project://database/";
         private const string ClientUiAssetPrefix = "Assets/Scripts/Client.Ui/";
 
-        // 族別区画の固定順。区画名は Client.Ui からの相対ディレクトリ
-        // Fixed order of family sections; a section name is a directory relative to Client.Ui
+        // 区画の固定順
+        // Fixed section order
         public static readonly string[] SectionOrder =
         {
             "Foundation/Theme", "Foundation/Stage",
@@ -52,8 +52,8 @@ namespace Client.Tests.Ui.Conventions
                 if (import.Success) CheckImport(import.Groups[1].Value, i + 1);
             }
 
-            // Client.Ui の USS は全部ちょうど 1 回束ねる
-            // Every Client.Ui USS is bundled exactly once
+            // USSは各1回束ねる
+            // Each USS is bundled once
             foreach (var path in clientUiUssAssetPaths)
             {
                 importCounts.TryGetValue(path, out var count);
@@ -75,8 +75,8 @@ namespace Client.Tests.Ui.Conventions
             void CheckImport(string url, int lineNumber)
             {
                 importIndex++;
-                // 先頭は Unity の既定テーマ。区画の外に置く
-                // The first import is Unity's default theme, outside any section
+                // 先頭は既定テーマ
+                // The first import is the default theme
                 if (importIndex == 1)
                 {
                     if (url != UnityDefaultThemeUrl) violations.Add($"line {lineNumber}: first import must be {UnityDefaultThemeUrl}");
@@ -98,8 +98,8 @@ namespace Client.Tests.Ui.Conventions
 
         public static List<string> CheckUniqueRootClasses(IReadOnlyDictionary<string, string> ussTextByAssetPath)
         {
-            // 部品と画面の USS は最初の規則のクラスがルート。ルートは全 USS で一意
-            // The first rule's class is the root of a component or screen USS; roots are unique across all USS
+            // ルートクラスは全USSで一意
+            // Root classes are unique across USS
             var violations = new List<string>();
             var ownerByRoot = new Dictionary<string, string>();
             foreach (var (path, text) in ussTextByAssetPath.OrderBy(pair => pair.Key, System.StringComparer.Ordinal))

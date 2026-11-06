@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Layers
 {
     /// <summary>
-    /// 各層の舞台が論理パネルの中央の 1280×720、実画面の子がパネル全面になることを 720p と 2560×1080 相当で確かめる（L1・設計書 C6）
-    /// Verifies each layer's stage is a centered 1280x720 and its viewport child fills the panel, at 720p and the 2560x1080 equivalent (L1, design C6)
+    /// 舞台とviewportの寸法を確かめる（L1）
+    /// Verifies stage and viewport sizes (L1)
     /// </summary>
     [TestFixture(1280f, 720f, 1f)]
     [TestFixture(1706.6666f, 720f, 1.5f)]
@@ -31,8 +31,8 @@ namespace Client.Tests.Ui.Layers
         [OneTimeSetUp]
         public void SetUpLogicalPanelSize()
         {
-            // 2560×1080 は Expand（1280×720 基準）で倍率 1.5・論理 1706.67×720 になる
-            // 2560x1080 under Expand (1280x720 reference) scales by 1.5 into a 1706.67x720 logical panel
+            // 2560×1080は倍率1.5
+            // 2560x1080 scales by 1.5
             panelSize = _logicalPanelSize;
         }
 
@@ -61,8 +61,8 @@ namespace Client.Tests.Ui.Layers
         [Test]
         public void ProductionPanelSettingsScaleLikeTheWebUiScale()
         {
-            // Web の --ui-scale = min(W/1280, H/720) と同じ式になる設定
-            // Settings equivalent to the Web's --ui-scale = min(W/1280, H/720)
+            // Webのui-scaleと同式
+            // Same formula as the Web ui-scale
             var settings = AssetDatabase.LoadAssetAtPath<PanelSettings>(GameUiPanelSettingsPath);
             Assert.IsNotNull(settings, GameUiPanelSettingsPath);
             Assert.AreEqual(PanelScaleMode.ScaleWithScreenSize, settings.scaleMode);

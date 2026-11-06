@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// 共通入力欄の全選択の抑止・値の購読・未確定文字列の下線・testid の付け先を実パネルで確かめる（L1）
-    /// Verifies the shared text field's no select-all, value stream, composition underline and testid placement on a real panel (L1)
+    /// 共通入力欄を実パネルで確かめる（L1）
+    /// Verifies the shared text field on a real panel (L1)
     /// </summary>
     public class GameTextFieldTest : UiTestHost
     {
@@ -53,8 +53,8 @@ namespace Client.Tests.Ui.Components.Controls
             simulate.Click(gameTextField.Field.worldBound.center);
             simulate.FrameUpdate();
 
-            // フォーカスは入ったが、選択範囲は空（selectIndex と cursorIndex が一致）
-            // Focus landed but the selection is empty (selectIndex equals cursorIndex)
+            // 選択範囲は空
+            // The selection is empty
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
             Assert.AreEqual(gameTextField.Field.textSelection.cursorIndex, gameTextField.Field.textSelection.selectIndex);
         }
@@ -93,8 +93,8 @@ namespace Client.Tests.Ui.Components.Controls
             // Hidden while not composing
             Assert.AreEqual(DisplayStyle.None, underline.resolvedStyle.display);
 
-            // 変換中は幅を持って出て、入力欄の文字色で塗られ、行の下端でキャレットを右端にする
-            // While composing it shows with width, is painted with the field's text colour and ends at the caret at the line bottom
+            // 変換中の下線の幅・色・位置
+            // Width, color and position of the composing underline
             gameTextField.ApplyComposition("abc");
             simulate.FrameUpdate();
             Assert.AreEqual(DisplayStyle.Flex, underline.resolvedStyle.display);
@@ -137,15 +137,15 @@ namespace Client.Tests.Ui.Components.Controls
             UnityEngine.Input.compositionCursorPos = Vector2.zero;
             simulate.FrameUpdate();
 
-            // フォーカス中の見張りが、キャレットのパネル座標をスクリーンのピクセルへ換算して書く
-            // The focused watcher writes the caret's panel point converted to screen pixels
+            // キャレット座標をピクセルへ換算
+            // Convert the caret point to pixels
             var caretPanelPoint = gameTextField.Field.Q<TextElement>().LocalToWorld(gameTextField.Field.textSelection.cursorPosition);
             var expected = ImeCaretScreenPosition.FromPanel(caretPanelPoint, panel.visualTree.layout.size, new Vector2(Screen.width, Screen.height), ImeCaretScreenPosition.PlatformOrigin);
             Assert.AreNotEqual(Vector2.zero, expected);
             Assert.AreEqual(expected, UnityEngine.Input.compositionCursorPos);
 
-            // フォーカスが外れたら見張りは止まり、書き換えない
-            // Once focus is lost the watcher stops and no longer writes
+            // 外れたら見張り停止
+            // Watcher stops on focus loss
             gameTextField.Field.Blur();
             UnityEngine.Input.compositionCursorPos = Vector2.zero;
             simulate.FrameUpdate();

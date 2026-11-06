@@ -14,7 +14,7 @@
 | `em` | 対象要素の font-size（px）を掛けて px にする（例 `GamePanel.uss` の 19px × 0.02em = 0.38px）。元の値をコメントに残す |
 | 定数だけの `calc()` | 計算済みの px にし、導出式をコメントに残す（`CalcConstantRecheckTest`〔F1〕が検算する）。例 `GamePanel.uss` の `top: -11.913894px;`（`calc(var(--panel-top, -8px) - 3.913894px)`） |
 | 要素・画面の寸法に依存する `calc()`・`%`・`vw`/`vh` | USS の `%`・中央寄せか、C# の幾何計算（`GeometryChangedEvent`）に置き換える。舞台の倍率は `UiStageFrame`〔F1〕が持つ |
-| `color-mix`・`rgb(from …)` | 事前に計算した色を `DerivedTokens.uss`〔F1〕（今は `ControlTokens.uss`）の 1 行にし、`/* web: 元の式 */` を付ける |
+| `color-mix`・`rgb(from …)` | 事前に計算した色を `DerivedTokens.uss`〔F1〕の 1 行にし、`/* web: 元の式 */` を付ける |
 | `var(--x, 既定値)` の既定値 | 部品の USS で既定値を明示して受け直す（例 `--game-panel-edge-fade: var(--panel-edge-fade);`） |
 
 ## 2. 選択子と状態
@@ -71,7 +71,7 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 
 - Web の α をそのまま使わない。UITK は Linear 色空間で混ぜるので、同じ指定が Chrome より薄く出る（実測: 背景 `#9c7b42` に黒 α0.6 が UITK `#664f29`、Chrome `#3e311a`）
 - 生成されるトークン（`Tokens.uss` 等）は変換スクリプト `tools/uitk/webTokens/translucency.mjs` が近似補正する（暗い色は `1-(1-α)^2.2`、明るい色は `α^2.2`）。結果の表は `docs/uitk/translucent-tokens.md`（生成物）
-- 手で書く半透明（`DerivedTokens.uss`〔F1〕・今は `ControlTokens.uss`）は、同じ近似補正か、背景が面の色に決まるなら「面色を背景にした厳密式」（前例 `--game-panel-rule-*`・`--game-panel-triangle-face`）で決め、行のコメントに Web の値と決め方を書く
+- 手で書く半透明（`DerivedTokens.uss`〔F1〕）は、同じ近似補正か、背景が面の色に決まるなら「面色を背景にした厳密式」（前例 `--game-panel-rule-*`・`--game-panel-triangle-face`）で決め、行のコメントに Web の値と決め方を書く
 - 最後は実機の撮影で決める。決め直したら決め方のコメントを「実機で据え置き（何を撮って決めたか）」へ書き換える（前例 `--surface-navy`・`--panel-action-hover-face`）
 
 ## 7. 動き

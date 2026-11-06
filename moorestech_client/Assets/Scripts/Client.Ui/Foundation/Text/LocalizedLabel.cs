@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Text
 {
     /// <summary>
-    /// UiText（キーと引数）を 1 つ持ち、パネルにいる間は言語変更で解決し直すラベル（plan.md §3.9・設計書 C9）
-    /// Label holding one UiText (key and params) that re-resolves on language change while on a panel (plan.md §3.9, design C9)
+    /// UiTextを持つ言語追従ラベル
+    /// Label holding UiText that follows language
     /// </summary>
     public class LocalizedLabel : Label
     {
@@ -36,8 +36,8 @@ namespace Client.Ui.Foundation.Text
 
         private void OnAttached()
         {
-            // 文が無いまま載ったら生の文言を出さず、開発者に知らせる
-            // Report a label attached without a text instead of showing raw text
+            // 文が無ければ警告
+            // Warn when no text
             if (_text == null) Debug.LogError($"[LocalizedLabel] attached without a text: {name}");
             _languageSubscription?.Dispose();
             _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => Resolve());

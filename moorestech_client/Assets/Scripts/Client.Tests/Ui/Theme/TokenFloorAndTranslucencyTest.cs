@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Theme
 {
     /// <summary>
-    /// 半透明トークンの表が USS と食い違わないことを確かめる（L2・S7）
-    /// Verifies that the translucent-token table matches the USS (L2, S7)
+    /// 半透明表がUSSと一致（L2）
+    /// Translucent table matches USS (L2)
     /// </summary>
     public class TokenFloorAndTranslucencyTest
     {
@@ -20,8 +20,8 @@ namespace Client.Tests.Ui.Theme
         [Test]
         public void GeneratedTokensCarryNoFontFloor()
         {
-            // 文字寸法は Web と同じ px。生成物に下限で上げた印が残っていない（設計書 A-39）
-            // Text sizes match the Web's px; generated files carry no floor-raised marks (design A-39)
+            // 文字寸法はWebと同じpx
+            // Text sizes match the Web px
             foreach (var path in UssFiles()) StringAssert.DoesNotContain("下限", File.ReadAllText(path), Path.GetFileName(path));
         }
 

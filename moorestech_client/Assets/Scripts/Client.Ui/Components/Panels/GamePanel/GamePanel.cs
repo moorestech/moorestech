@@ -3,8 +3,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Panels
 {
     /// <summary>
-    /// ゲームの窓枠（default）。半透明ネイビーの面・タイトル行と罫線・本文・下部の三角を持つ（plan.md §3.4）
-    /// Game window frame (default) with a translucent navy face, title row with rules, body and bottom triangles (plan.md §3.4)
+    /// ゲームの窓枠（default）
+    /// Game window frame (default)
     /// </summary>
     public class GamePanel : VisualElement
     {
@@ -19,13 +19,13 @@ namespace Client.Ui.Components.Panels
         {
             AddToClassList("game-panel");
 
-            // 面と三角は Web の z-index 0 なので本文より先（背後）に置く
-            // The face and triangles are z-index 0 on the Web, so they go first (behind the content)
+            // 面と三角は本文の背後
+            // Face and triangles sit behind content
             hierarchy.Add(new GamePanelFace());
             hierarchy.Add(new GamePanelBottomDeco());
 
-            // タイトル行は SetTitle まで隠し、罫線もそれに合わせる
-            // Keep the title row and its rules hidden until SetTitle
+            // タイトル行はSetTitleまで隠す
+            // Title row hidden until SetTitle
             _topDecoLine = new GamePanelDecoLine("game-panel__deco-line--top");
             _topDecoLine.style.display = DisplayStyle.None;
             hierarchy.Add(_topDecoLine);

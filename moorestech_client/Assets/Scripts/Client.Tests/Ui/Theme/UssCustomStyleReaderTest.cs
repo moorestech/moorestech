@@ -64,8 +64,8 @@ namespace Client.Tests.Ui.Theme
         [Test]
         public void 単位なしの数をfloatで読める()
         {
-            // DerivedTokens.uss の --title-scale-x（0.947）を CustomStyleResolvedEvent の中で読む
-            // Read --title-scale-x (0.947) from DerivedTokens.uss inside CustomStyleResolvedEvent
+            // --title-scale-x をCustomStyleResolvedEventで読む
+            // Read --title-scale-x in CustomStyleResolvedEvent
             var element = new VisualElement();
             element.AddToClassList("uss-custom-style-probe");
             var read = false;

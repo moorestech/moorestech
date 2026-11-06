@@ -7,8 +7,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State
 {
     /// <summary>
-    /// UiText が辞書キー・コンテンツ辞書キー・解決済みの文を種ごとの口で解くことを確かめる（設計書 A-40）
-    /// Verifies UiText resolves dictionary keys, content keys and verbatim text through the matching path (design A-40)
+    /// UiTextの種ごとの解決を確かめる
+    /// Verifies UiText resolution per kind
     /// </summary>
     public class UiTextTest
     {

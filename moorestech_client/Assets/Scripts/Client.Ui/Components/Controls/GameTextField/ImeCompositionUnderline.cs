@@ -3,8 +3,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// IME の未確定文字列の下に 1px の線を引く。キャレットを右端にして未確定文字列の幅だけ左へ伸ばす
-    /// Draws a 1px line under the IME composition string, ending at the caret and extending left by the composition width
+    /// 未確定文字列の下に1px線を引く
+    /// Draw a 1px line under the composition
     /// </summary>
     /// <remarks>
     /// 複数行で折り返しをまたぐ未確定文字列は、キャレットのある行ぶんだけ引く割り切り
@@ -36,8 +36,8 @@ namespace Client.Ui.Components.Controls
             _textElement.hierarchy.parent.Add(_line);
         }
 
-        // 前回見た未確定文字列から変わったときだけ引き直す（毎フレームの呼び出しを安くする）
-        // Redraw only when the observed composition changed since last time, keeping per-frame calls cheap
+        // 変化時のみ引き直す
+        // Redraw only on change
         public void Refresh(string observedComposition)
         {
             if (observedComposition == _lastObservedComposition) return;
@@ -61,14 +61,14 @@ namespace Client.Ui.Components.Controls
                 return;
             }
 
-            // 未確定文字列の幅を測り、行の下端を指すキャレットから左へ伸ばす。文字の領域より左にははみ出させない
-            // Measure the composition width and extend left from the caret (which points at the line bottom), never past the text area
+            // キャレットから左へ伸ばす
+            // Extend left from the caret
             var width = _textElement.MeasureTextSize(compositionString, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined).x;
             var caret = _field.textSelection.cursorPosition;
             var left = UnityEngine.Mathf.Max(_textElement.contentRect.xMin, caret.x - width);
 
-            // TextElement の座標を線の親の座標へ写す（単行の横スクロールもこの時点の位置で反映される）。absolute の left/top は親の枠線の内側から測るので枠線ぶん引く
-            // Map TextElement coordinates into the line's parent space (picks up the current single-line scroll offset); absolute left/top start inside the parent's border, so subtract it
+            // 親座標へ写す（枠線ぶん引く）
+            // Map to parent space minus the border
             var lineParent = _line.hierarchy.parent;
             var start = _textElement.ChangeCoordinatesTo(lineParent, new UnityEngine.Vector2(left, caret.y - Thickness));
             var end = _textElement.ChangeCoordinatesTo(lineParent, caret);
@@ -76,8 +76,8 @@ namespace Client.Ui.Components.Controls
             _line.style.top = start.y - lineParent.resolvedStyle.borderTopWidth;
             _line.style.width = end.x - start.x;
 
-            // 色はテーマや画面ごとに変わる文字色に合わせる（USS に currentColor が無いので解決済みの値を写す）
-            // Match the text colour, which varies by theme and screen (USS has no currentColor, so copy the resolved value)
+            // 解決済みの文字色を写す
+            // Copy the resolved text color
             _line.style.backgroundColor = _textElement.resolvedStyle.color;
             _line.style.display = DisplayStyle.Flex;
         }

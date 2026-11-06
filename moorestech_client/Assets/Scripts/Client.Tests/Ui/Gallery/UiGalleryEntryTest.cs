@@ -8,8 +8,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Gallery
 {
     /// <summary>
-    /// ギャラリーの見本が全部集まり、名前が族の中で一意で、本番のテーマのパネルで寸法を持って描けることを確かめる（L1・設計書 A-9）
-    /// Verifies all gallery entries are collected, names are unique per family, and each sample lays out with size on a production-themed panel (L1, design A-9)
+    /// 見本の集約・一意・寸法を確かめる（L1）
+    /// Verifies entry collection, uniqueness and size (L1)
     /// </summary>
     public class UiGalleryEntryTest : UiTestHost
     {
@@ -24,8 +24,8 @@ namespace Client.Tests.Ui.Gallery
             CollectionAssert.IsSubsetOf(new[] { "PanelActionButton", "ModeSwitch" }, entries.Select(entry => entry.ComponentName).ToList());
             Assert.AreEqual(entries.Count, entries.Select(entry => (entry.Family, entry.ComponentName)).Distinct().Count(), "duplicate gallery entry");
 
-            // 見本を載せ、テーマのトークンが効いて寸法が出ることを見る
-            // Mount each sample and check theme tokens give it a size
+            // 見本を載せて寸法を見る
+            // Mount each sample and check its size
             foreach (var entry in entries)
             {
                 var sample = entry.CreateSample();
@@ -40,8 +40,8 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void GalleryFamiliesMatchThemeComponentSections()
         {
-            // ギャラリーの族と tss の Components 区画が同じ 8 族・同じ順（片方だけ足すずれを止める）
-            // Gallery families match the tss Components sections in name and order, so neither can grow alone
+            // 族と区画が同じ順
+            // Families and sections share order
             var familySections = System.Enum.GetNames(typeof(UiGalleryFamily)).Select(name => $"Components/{name}").ToList();
             var themeSections = UiThemeImportBundleRules.SectionOrder.Where(section => section.StartsWith("Components/")).ToList();
             CollectionAssert.AreEqual(themeSections, familySections);

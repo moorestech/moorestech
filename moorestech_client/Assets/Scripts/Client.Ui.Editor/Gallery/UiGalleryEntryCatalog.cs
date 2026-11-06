@@ -5,8 +5,8 @@ using UnityEditor;
 
 namespace Client.Ui.Editor.Gallery
 {
-    // 見本を TypeCache で集める。部品レーンは IUiGalleryEntry を 1 つ足すだけでよい
-    // Collects entries through TypeCache, so a component lane only adds one IUiGalleryEntry
+    // 見本をTypeCacheで集める
+    // Collect entries through TypeCache
     public static class UiGalleryEntryCatalog
     {
         public static IReadOnlyList<IUiGalleryEntry> CreateAll()

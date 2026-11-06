@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 任意の値を択一で選ぶボタン列。選択の表示は SetSelected で外から入れ、押下は OnSelected で流す（Web の shared/ui/ModeSwitch）
-    /// Exclusive button row over arbitrary values; selection display is pushed in via SetSelected, presses flow out through OnSelected (Web shared/ui/ModeSwitch)
+    /// 択一ボタン列（SetSelectedで表示、OnSelectedで通知）
+    /// Exclusive button row; SetSelected shows, OnSelected notifies
     /// </summary>
     public sealed class ModeSwitch<TValue> : VisualElement
     {
@@ -35,8 +35,8 @@ namespace Client.Ui.Components.Controls
             }
         }
 
-        // 一致する選択肢が無ければ無選択にする（Web の value が options に無い場合と同じ）
-        // With no matching option the switch shows no selection (same as a Web value outside the options)
+        // 一致なしは無選択
+        // No match means no selection
         public void SetSelected(TValue value)
         {
             var comparer = EqualityComparer<TValue>.Default;
@@ -51,8 +51,8 @@ namespace Client.Ui.Components.Controls
             foreach (var button in _buttons) button.RemoveFromClassList(SelectedClass);
         }
 
-        // 無効な Button は clicked を出さないので、押しても OnSelected は流れない
-        // A disabled Button never raises clicked, so presses never reach OnSelected
+        // 無効ボタンはclickedなし
+        // Disabled buttons raise no clicked
         public void SetEnabledAll(bool enabled)
         {
             EnableInClassList("mode-switch--disabled", !enabled);
@@ -64,12 +64,12 @@ namespace Client.Ui.Components.Controls
             var button = new Button { name = option.Testid, focusable = false };
             button.AddToClassList("mode-switch__option");
 
-            // USS に gap と :first-child が使えないので、2 つ目以降に間隔のクラスを付ける
-            // USS lacks gap and :first-child is banned, so options after the first get the spacing class
+            // 2つ目以降に間隔クラス
+            // Spacing class after the first
             if (following) button.AddToClassList("mode-switch__option--following");
 
-            // 翻訳しない値はそのまま、キーは言語変更で解決し直すラベルで出す
-            // Untranslated values go in as-is; keys use a label that re-resolves on language change
+            // 値はそのまま、キーは再解決ラベル
+            // Values as-is, keys via re-resolving label
             if (option.LabelKey.HasValue)
             {
                 var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };

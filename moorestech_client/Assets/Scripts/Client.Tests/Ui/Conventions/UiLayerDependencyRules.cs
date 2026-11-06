@@ -6,8 +6,8 @@ using System.Text.RegularExpressions;
 namespace Client.Tests.Ui.Conventions
 {
     /// <summary>
-    /// Client.Ui の中の層（Foundation・Components・Content・Screens）の参照の向きを using と完全修飾名で検査する（L2・設計書 §1.1・A-1）
-    /// Checks the reference direction between layers inside Client.Ui (Foundation, Components, Content, Screens) by usings and qualified names (L2, design §1.1, A-1)
+    /// 層の参照の向きを検査（L2）
+    /// Checks the layer reference direction (L2)
     /// </summary>
     public static class UiLayerDependencyRules
     {
@@ -25,8 +25,8 @@ namespace Client.Tests.Ui.Conventions
             public string[] AllowedNamespaces { get; }
         }
 
-        // 層ごとの禁止 namespace と、禁止の中で許す例外（State の Text・Routing）
-        // Forbidden namespaces per layer, and allowed exceptions inside them (State's Text and Routing)
+        // 層別の禁止namespaceと例外
+        // Forbidden namespaces per layer and exceptions
         private static readonly LayerRule[] Rules =
         {
             new("Components/", new[] { "Client.Game", "Client.Ui.Screens", "Client.Ui.Content", "Client.Ui.State", "Core.Master", "Client.Network" }, new[] { "Client.Ui.State.Text" }),
@@ -45,8 +45,8 @@ namespace Client.Tests.Ui.Conventions
             var violations = new List<string>();
             if (rule == null) return violations;
 
-            // コメントと文字列を除いた本文の、ドット区切りの名前を全部見る
-            // Look at every dotted name in the body after removing comments and strings
+            // 本文のドット区切り名を全部見る
+            // Scan every dotted name in the body
             var code = StringLiteral.Replace(BlockComment.Replace(LineComment.Replace(sourceText, ""), ""), "\"\"");
             foreach (Match match in QualifiedName.Matches(code))
             {

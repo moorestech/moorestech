@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Layers
 {
     /// <summary>
-    /// ルート直下に層コンテナを enum 順で並べ、各層に舞台と実画面の 2 族の子を置いて、層と族で引けるようにする
-    /// Lays out one container per layer under the root in enum order, gives each the stage and viewport family children, and looks them up by layer and family
+    /// 層コンテナをenum順に並べ層と族で引く
+    /// Layer containers in enum order, looked up by layer and family
     /// </summary>
     public sealed class UiLayerStack
     {
@@ -43,8 +43,8 @@ namespace Client.Ui.Foundation.Layers
             VisualElement CreateLayerContainer(UiLayer layer)
             {
                 var container = new VisualElement { name = $"layer-{layer}", pickingMode = PickingMode.Ignore };
-                // 全面に広げて重ねる配置は UiStageFrame.uss の .game-ui-layer が持つ
-                // The full-root overlapping placement lives in .game-ui-layer of UiStageFrame.uss
+                // 配置はUSSが持つ
+                // Placement lives in USS
                 container.AddToClassList(LayerUssClassName);
                 return container;
             }

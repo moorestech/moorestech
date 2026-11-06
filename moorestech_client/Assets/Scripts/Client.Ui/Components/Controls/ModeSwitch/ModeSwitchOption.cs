@@ -10,8 +10,8 @@ namespace Client.Ui.Components.Controls
     }
 
     /// <summary>
-    /// ModeSwitch の選択肢 1 つ。ラベルはローカライズキーか、翻訳しない文字列（言語名・300m 等）のどちらか 1 つ
-    /// One ModeSwitch option; its label is either a localization key or an untranslated string (language names, 300m, ...), never both
+    /// 選択肢1つ（キーか生文字列）
+    /// One option (key or raw string)
     /// </summary>
     public sealed class ModeSwitchOption<TValue>
     {
@@ -22,8 +22,8 @@ namespace Client.Ui.Components.Controls
 
         public ModeSwitchOption(string testid, TValue value, LocalizationKey? labelKey, string literalLabel)
         {
-            // ラベルの出どころが 1 つに決まらない選択肢は作った時点で止める
-            // Stop at construction when the label source is not exactly one
+            // 出どころ不定は即停止
+            // Stop when the source is not exactly one
             var hasLiteral = literalLabel != null;
             if (labelKey.HasValue == hasLiteral) throw new ArgumentException($"[ModeSwitchOption] {testid} needs exactly one of labelKey or literalLabel");
 

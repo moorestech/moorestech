@@ -6,12 +6,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// GameUi 共通の入力欄。全選択の抑止・IME の未確定文字列の下線・候補窓のキャレット追従を持つ TextField の包み
-    /// Shared GameUi text field: wraps a TextField with no select-all, an IME composition underline and caret-following candidate window
+    /// 共通の入力欄（IME対応のTextFieldの包み）
+    /// Shared text field wrapping an IME-aware TextField
     /// </summary>
     /// <remarks>
-    /// 拡張点: 入力欄に共通する見た目・IME の振る舞いはここへ足す。文字数の検証や絞り込みなど画面固有の処理は OnValueChanged の購読側が持つ。ESC・フォーカス同期はルートの GameUiInputRules が受け持つ
-    /// Extension: add text-field-wide visuals and IME behaviour here; screen-specific logic (length checks, filtering) belongs to OnValueChanged subscribers, and ESC / focus sync belong to the root GameUiInputRules
+    /// 拡張点: 画面固有の処理は購読側が持つ
+    /// Extension point; screen-specific logic stays in subscribers
     /// </remarks>
     public sealed class GameTextField : VisualElement
     {
@@ -38,16 +38,16 @@ namespace Client.Ui.Components.Controls
             pickingMode = PickingMode.Ignore;
             AddToClassList(UssClassName);
 
-            // クリックでのフォーカスで本文を全選択しない（1 打で置き換わるのを防ぐ）
-            // Do not select everything on click-focus, so one keystroke cannot replace the whole text
+            // クリックで全選択しない
+            // No select-all on click focus
             Field = new UnityEngine.UIElements.TextField { name = testid, multiline = multiline };
             Field.selectAllOnFocus = false;
             Field.selectAllOnMouseUp = false;
             Field.RegisterValueChangedCallback(evt => _valueChanged.OnNext(evt.newValue));
             Add(Field);
 
-            // IME の状態はイベントが無いので、フォーカス中だけパネルのスケジューラで毎フレーム見る
-            // IME state has no events, so watch it every frame on the panel scheduler only while focused
+            // IME状態は毎フレーム見る（フォーカス中のみ）
+            // Watch IME state per frame while focused
             _textElement = Field.Q<TextElement>();
             _underline = new ImeCompositionUnderline(Field, _textElement);
             _focusedTick = Field.schedule.Execute(OnFocusedTick).Every(0);
@@ -82,8 +82,8 @@ namespace Client.Ui.Components.Controls
 
         private void OnFocusLost()
         {
-            // フォーカスが外れると変換は終わるので、見張りを止めて下線を消す
-            // Losing focus ends the composition, so stop watching and hide the underline
+            // 外れたら見張りと下線を止める
+            // Stop the watcher and underline on focus loss
             _focusedTick.Pause();
             _underline.Reset();
         }

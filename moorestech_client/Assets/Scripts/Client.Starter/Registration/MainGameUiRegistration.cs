@@ -26,8 +26,8 @@ namespace Client.Starter.Registration
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
             builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
 
-            // == 画面登録区画 == 画面レーンは Registration/GameUi/<機能>GameUiRegistration.cs を足し、ここへ 1 行ずつ呼び出しを足す（実行計画 E-1）
-            // == Screen registration section == screen lanes add Registration/GameUi/<Feature>GameUiRegistration.cs and append one call here each (execution plan E-1)
+            // 画面登録区画: 1行ずつ呼び出しを足す
+            // Screen registration section: add one call per line
             PauseMenuGameUiRegistration.Register(builder);
             ToastGameUiRegistration.Register(builder);
         }

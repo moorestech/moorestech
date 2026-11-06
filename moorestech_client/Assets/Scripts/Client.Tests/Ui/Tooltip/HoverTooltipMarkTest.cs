@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Tooltip
 {
     /// <summary>
-    /// ツールチップの印を付け外しし、子要素から最も近い印の付いた祖先を引けることを確かめる（L0・実行計画 E-6）
-    /// Verifies tooltip marks can be set and cleared and the nearest marked ancestor is found from a child (L0, execution plan E-6)
+    /// 印の付け外しと祖先の引きを確かめる（L0）
+    /// Verifies marking and ancestor lookup (L0)
     /// </summary>
     public class HoverTooltipMarkTest
     {
@@ -25,8 +25,6 @@ namespace Client.Tests.Ui.Tooltip
             HoverTooltipMark.Mark(outer, outerText);
             HoverTooltipMark.Mark(inner, innerText);
 
-            // 葉から上へ辿り、最も近い印の付いた要素と文を返す
-            // Walk up from the leaf and return the nearest marked element and its text
             Assert.IsTrue(HoverTooltipMark.TryFindMarked(leaf, out var marked, out var text));
             Assert.AreSame(inner, marked);
             Assert.AreSame(innerText, text);

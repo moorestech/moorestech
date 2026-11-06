@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
-    // ModeSwitch の見本（横 2 択で片方が選択。縦・無効は C3-b が足す）
-    // ModeSwitch sample (horizontal two options with one selected; vertical and disabled are added by C3-b)
+    // ModeSwitchの見本（横2択）
+    // ModeSwitch sample (horizontal two options)
     public sealed class ModeSwitchGalleryEntry : IUiGalleryEntry
     {
         public UiGalleryFamily Family => UiGalleryFamily.Controls;

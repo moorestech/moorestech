@@ -1,3 +1,4 @@
+using System;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.Foundation.Motion.Steps;
@@ -49,7 +50,7 @@ namespace Client.Ui.Screens.Toast
 
             // 透明で足してから濃くし、表示時間のあとに薄れて外す
             // Add it transparent and fade it in, then fade it out and remove it after the display time
-            var item = new ToastItem(toast.Text, toast.Variant == GameUiToastVariant.Error ? ToastItemTone.Error : ToastItemTone.Info);
+            var item = new ToastItem(toast.Text, ToneOf(toast.Variant));
             item.style.opacity = 0f;
             Add(item);
             Fade(item, 0f, 1f, _enterMilliseconds);
@@ -83,6 +84,18 @@ namespace Client.Ui.Screens.Toast
             var waiting = _toastsWaitingForStyle.ToArray();
             _toastsWaitingForStyle.Clear();
             foreach (var toast in waiting) Push(toast);
+        }
+
+        private static ToastItemTone ToneOf(GameUiToastVariant variant)
+        {
+            // 全値を列挙・未知は停止
+            // List every value; fail on unknown
+            return variant switch
+            {
+                GameUiToastVariant.Info => ToastItemTone.Info,
+                GameUiToastVariant.Error => ToastItemTone.Error,
+                _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null),
+            };
         }
 
         private static UiMotionHandle Fade(VisualElement target, float from, float to, float milliseconds)

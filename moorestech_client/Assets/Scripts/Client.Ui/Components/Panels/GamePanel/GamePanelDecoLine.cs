@@ -5,12 +5,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Panels
 {
     /// <summary>
-    /// タイトル行の上下の罫線。中央を保ち両端を透明へ落とす横グラデーションを Painter2D で塗る（Web の .decoLine）
-    /// Title-row rule above or below; paints a horizontal gradient that keeps the middle and fades both ends with Painter2D (the Web .decoLine)
+    /// タイトル行の上下の罫線
+    /// Rules above and below the title row
     /// </summary>
     /// <remarks>
-    /// USS に linear-gradient が無いため描画で塗る。停止位置は Web の 0%・5%・11%・89%・95%・100%
-    /// USS has no linear-gradient, so it is painted; the stops are the Web 0%, 5%, 11%, 89%, 95%, 100%
+    /// USSにgradientが無いので描画で塗る
+    /// USS has no gradient, so paint it
     /// </remarks>
     public class GamePanelDecoLine : VisualElement
     {
@@ -28,15 +28,15 @@ namespace Client.Ui.Components.Panels
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            // 色は 3 つとも同じ RGB で α だけ違う。RGB は中央の色から取る
-            // All three share one RGB and differ only in alpha; take the RGB from the middle color
+            // RGBは中央の色から取る
+            // Take the RGB from the middle color
             var hasStart = UssCustomStyleReader.TryReadColor(customStyle, "--game-panel-rule-start", out var start);
             var hasPeak = UssCustomStyleReader.TryReadColor(customStyle, "--game-panel-rule-peak", out var peak);
             var hasEnd = UssCustomStyleReader.TryReadColor(customStyle, "--game-panel-rule-end", out var end);
             _hasColors = hasStart && hasPeak && hasEnd;
 
-            // 読めなくなったときも描き直し、前回のグラデーションを残さない（BottomDeco・Face と同じ扱い）
-            // Repaint even when unreadable so the previous gradient never lingers (same as BottomDeco and Face)
+            // 読めなくても描き直す
+            // Repaint even when unreadable
             MarkDirtyRepaint();
             if (!_hasColors) return;
 

@@ -13,8 +13,8 @@ namespace Client.Ui.Components.Controls
     }
 
     /// <summary>
-    /// キャレットのパネル座標を、IME の候補窓位置（Input.compositionCursorPos）に書くスクリーンのピクセルへ換算する
-    /// Converts a caret's panel point into the screen pixels written to Input.compositionCursorPos for the IME candidate window
+    /// パネル座標→スクリーンpxへ換算
+    /// Convert panel point to screen pixels
     /// </summary>
     public static class ImeCaretScreenPosition
     {
@@ -23,8 +23,8 @@ namespace Client.Ui.Components.Controls
 
         public static Vector2 FromPanel(Vector2 panelPoint, Vector2 panelSize, Vector2 screenSize, ImeCursorOrigin origin)
         {
-            // RuntimePanelUtils.ScreenToPanel の逆で、軸ごとにスクリーン/パネルの比を掛ける（パネルは左上原点）
-            // Inverse of RuntimePanelUtils.ScreenToPanel: scale each axis by screen/panel (the panel is top-left origin)
+            // 軸ごとに画面/パネル比を掛ける
+            // Scale each axis by screen/panel
             var x = panelPoint.x * screenSize.x / panelSize.x;
             var yFromTop = panelPoint.y * screenSize.y / panelSize.y;
             return new Vector2(x, origin == ImeCursorOrigin.BottomLeft ? screenSize.y - yFromTop : yFromTop);

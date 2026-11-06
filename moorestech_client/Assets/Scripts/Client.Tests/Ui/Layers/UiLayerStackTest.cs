@@ -22,8 +22,8 @@ namespace Client.Tests.Ui.Layers
             var stack = UiLayerStack.Build(rootVisualElement);
             var layers = (UiLayer[])Enum.GetValues(typeof(UiLayer));
 
-            // ルート直下の子が enum と同じ順・同じ数で並び、各層は 2 つの族の子を持つ
-            // The root's children line up in enum order and count, and each layer holds the two family children
+            // 子はenum順・各層に2族
+            // Children follow enum order, two families per layer
             Assert.AreEqual(layers.Length, rootVisualElement.childCount);
             for (var i = 0; i < layers.Length; i++)
             {

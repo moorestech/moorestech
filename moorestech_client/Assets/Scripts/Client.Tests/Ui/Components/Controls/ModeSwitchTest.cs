@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// ModeSwitch の選択の流れ・選択表示・無選択・無効・縦横・選択肢のラベル規則を実パネルで確かめる（L1）
-    /// Verifies ModeSwitch selection stream, selected display, no selection, disabling, orientation and option label rules on a real panel (L1)
+    /// ModeSwitchを実パネルで確かめる（L1）
+    /// Verifies ModeSwitch on a real panel (L1)
     /// </summary>
     public class ModeSwitchTest : UiTestHost
     {
@@ -56,8 +56,8 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(1, selected.Count);
             Assert.AreEqual("option-c", selected[0].name);
 
-            // 選択肢の文字色が非選択と違う（部品 USS が既定テーマに勝っている）
-            // The selected text color differs from the unselected one (the component USS beats the default theme)
+            // 選択肢の文字色が非選択と違う
+            // Selected text color differs
             Assert.AreNotEqual(Option(modeSwitch, "option-a").resolvedStyle.color, selected[0].resolvedStyle.color);
         }
 

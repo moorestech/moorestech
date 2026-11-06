@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery
 {
     /// <summary>
-    /// ギャラリーの中身。族の見出しの下に、部品名と見本を 1 行ずつ並べる
-    /// Gallery contents: under each family heading, one row per component with its name and sample
+    /// 族の見出しの下に見本を並べる
+    /// Samples listed under each family heading
     /// </summary>
     public sealed class UiGalleryPage : VisualElement
     {

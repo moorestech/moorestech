@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Conventions
 {
     /// <summary>
-    /// 本番の tss が Client.Ui の USS を区画どおり 1 回ずつ束ね、部品・画面のルートクラスが重ならないことを確かめる（L2）
-    /// Verifies the production tss bundles each Client.Ui USS once in its section and component/screen root classes never collide (L2)
+    /// 束ねと重複を確かめる（L2）
+    /// Verifies bundling and collisions (L2)
     /// </summary>
     public class UiThemeImportBundleTest
     {
@@ -33,8 +33,8 @@ namespace Client.Tests.Ui.Conventions
         [Test]
         public void RulesReportMissingDuplicateMisplacedAndOutOfOrderImports()
         {
-            // 漏れ・重複・区画違い・区画の逆順・先頭違いをそれぞれ 1 つずつ含む tss
-            // A tss containing one each of: missing, duplicate, wrong section, reversed sections and wrong first import
+            // 各違反を1つずつ含むtss
+            // A tss with one of each violation
             const string a = "Assets/Scripts/Client.Ui/Components/Controls/A/A.uss";
             const string b = "Assets/Scripts/Client.Ui/Components/Panels/B/B.uss";
             const string c = "Assets/Scripts/Client.Ui/Screens/C/C.uss";
@@ -69,8 +69,8 @@ namespace Client.Tests.Ui.Conventions
 
         private static Dictionary<string, string> ClientUiUss()
         {
-            // アセットパス（Assets/…）→ 本文。区切りは / にそろえる
-            // Asset path (Assets/...) -> text, with / separators
+            // アセットパス→本文
+            // Asset path to text
             var root = RepositoryRoot();
             return Directory.GetFiles(Path.Combine(root, ClientUiDirectory), "*.uss", SearchOption.AllDirectories)
                 .ToDictionary(path => Path.GetRelativePath(Path.Combine(root, "moorestech_client"), path).Replace('\\', '/'), File.ReadAllText);

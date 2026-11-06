@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Theme.Knobs
 {
     /// <summary>
-    /// 画面のルートでつまみ（USS カスタムプロパティ）を上書きすると、子孫の部品にだけ効くことを実パネルで確かめる（L1・設計書 §3.2-3）
-    /// Verifies on a real panel that overriding a knob (USS custom property) at a screen root affects only descendant parts (L1, design §3.2-3)
+    /// つまみの上書きが子孫だけに効く（L1）
+    /// Knob override affects descendants only (L1)
     /// </summary>
     public class UssKnobInheritanceTest : UiTestHost
     {
@@ -22,8 +22,8 @@ namespace Client.Tests.Ui.Theme.Knobs
             Assert.IsNotNull(probe, ProbePath);
             rootVisualElement.styleSheets.Add(probe);
 
-            // 画面の中の子・孫と、画面の外の兄弟の 3 つの部品を置く
-            // Place three parts: a child and a grandchild inside the screen, and a sibling outside it
+            // 子・孫・外の兄弟を置く
+            // Place child, grandchild and outside sibling
             var screen = new VisualElement();
             screen.AddToClassList("knob-probe-screen");
             var child = Part();

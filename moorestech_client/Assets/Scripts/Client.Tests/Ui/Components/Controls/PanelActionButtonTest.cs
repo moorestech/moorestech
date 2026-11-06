@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// PanelActionButton のクリック・キーで押されないこと・フォーカスを持たないこと・Web の寸法を入力規則付きのパネルで確かめる（L1）
-    /// Verifies PanelActionButton clicks, no key presses, no focus and Web dimensions on a panel with the input rules (L1)
+    /// PanelActionButtonを実パネルで確かめる（L1）
+    /// Verifies PanelActionButton on a real panel (L1)
     /// </summary>
     public class PanelActionButtonTest : UiTestHost
     {
@@ -65,8 +65,8 @@ namespace Client.Tests.Ui.Components.Controls
         [Test]
         public void SpaceEnterAndSubmitDoNotPress()
         {
-            // クリックした後でもフォーカスを持たないので、キーと決定は届かない
-            // Even after a click it holds no focus, so keys and submit never reach it
+            // クリック後もフォーカスなし
+            // No focus even after a click
             simulate.Click(_button.worldBound.center);
             simulate.KeyPress(KeyCode.Space);
             simulate.KeyPress(KeyCode.Return);

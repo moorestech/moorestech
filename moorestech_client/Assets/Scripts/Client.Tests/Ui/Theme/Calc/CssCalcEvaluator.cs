@@ -7,8 +7,8 @@ using System.Text.RegularExpressions;
 namespace Client.Tests.Ui.Theme.Calc
 {
     /// <summary>
-    /// USS に宣言された値で calc の式を数へ評価する（px と単位なしは同じ数、rem は 16px。L2 の検算専用）
-    /// Evaluates a calc expression using values declared in USS (px and unitless are the same number, rem is 16px; for the L2 recheck only)
+    /// USS値でcalcを評価（L2検算専用）
+    /// Evaluates calc from USS values (L2 recheck only)
     /// </summary>
     public sealed class CssCalcEvaluator
     {
@@ -31,6 +31,24 @@ namespace Client.Tests.Ui.Theme.Calc
             var value = ParseSum();
             if (_position != _tokens.Count) throw new FormatException($"unexpected '{_tokens[_position]}' in '{expression}'");
             return value;
+
+            #region Internal
+
+            List<string> Tokenize(string expression)
+            {
+                var tokens = new List<string>();
+                var position = 0;
+                while (position < expression.Length)
+                {
+                    var match = TokenPattern.Match(expression, position);
+                    if (!match.Success || match.Index != position) throw new FormatException($"cannot read '{expression.Substring(position)}'");
+                    tokens.Add(match.Groups[1].Value);
+                    position += match.Length;
+                }
+                return tokens;
+            }
+
+            #endregion
         }
 
         private float ParseSum()
@@ -90,20 +108,6 @@ namespace Client.Tests.Ui.Theme.Calc
             if (!match.Success) throw new FormatException($"'{text}' is not a px, rem or unitless number");
             var number = float.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
             return match.Groups[2].Value == "rem" ? number * RemPx : number;
-        }
-
-        private static List<string> Tokenize(string expression)
-        {
-            var tokens = new List<string>();
-            var position = 0;
-            while (position < expression.Length)
-            {
-                var match = TokenPattern.Match(expression, position);
-                if (!match.Success || match.Index != position) throw new FormatException($"cannot read '{expression.Substring(position)}'");
-                tokens.Add(match.Groups[1].Value);
-                position += match.Length;
-            }
-            return tokens;
         }
     }
 }

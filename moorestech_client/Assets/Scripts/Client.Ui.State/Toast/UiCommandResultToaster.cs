@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Ui.State.Toast
 {
     /// <summary>
-    /// 型付きコマンドの結果をトーストへ振り分ける唯一の口。受理は何もせず、拒否はログへ残し、良性でなければ翻訳文を error で出す
-    /// The single place that routes typed command results to toasts: accepted does nothing, rejected is logged and, unless benign, shown as a translated error
+    /// コマンド結果のトースト振り分け口
+    /// Routes command results to toasts
     /// </summary>
     public sealed class UiCommandResultToaster
     {
@@ -19,12 +19,12 @@ namespace Client.Ui.State.Toast
 
         public void Report(string commandName, UiCommandResult result)
         {
-            // 受理の案内（送信完了など）は画面ごとの文なので、ここでは出さない
-            // Acceptance notices (such as "sent") are per-screen sentences, so none is shown here
+            // 受理の案内は画面側
+            // Acceptance notices are per screen
             if (result is not UiCommandRejected rejected) return;
 
-            // 開発者向けにコマンド名と失敗コードを必ず残す。良性の拒否はログだけで終える
-            // Always log the command name and failure code for developers; benign rejections stop at the log
+            // コマンド名と失敗コードをログへ
+            // Log command name and failure code
             Debug.LogWarning($"[UiCommandResultToaster] {commandName} failed: {rejected.ToWireCode()}");
             if (UiCommandRejectReasonTraits.IsBenign(rejected.Reason)) return;
             _toasts.Show(Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(rejected.Reason)), GameUiToastVariant.Error);

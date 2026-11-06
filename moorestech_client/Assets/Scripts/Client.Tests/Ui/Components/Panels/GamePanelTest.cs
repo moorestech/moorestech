@@ -13,15 +13,15 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
-    /// GamePanel（default）の構造・トークン由来の寸法・レイアウトを本番テーマのパネルで確かめる（L1）
-    /// Verifies GamePanel (default) structure, token-driven sizes and layout on a panel with the production theme (L1)
+    /// GamePanelを本番テーマで確かめる（L1）
+    /// Verifies GamePanel under the production theme (L1)
     /// </summary>
     public class GamePanelTest : UiTestHost
     {
         private const string TokensPath = "Assets/Scripts/Client.Ui/Foundation/Theme/Tokens.uss";
 
-        // Web の .panel の padding: 8px 10px 10px 28px の左右
-        // Left and right of the Web .panel padding: 8px 10px 10px 28px
+        // Web .panel の左右 padding
+        // Left and right padding of Web .panel
         private const float WebHorizontalPadding = 28f + 10f;
 
         private GamePanel _panel;

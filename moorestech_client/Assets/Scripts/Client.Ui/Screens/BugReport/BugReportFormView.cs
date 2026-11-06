@@ -125,8 +125,8 @@ namespace Client.Ui.Screens.BugReport
             var outcome = await _commands.SubmitBugReport(_draft.Description.Trim(), kind);
             _sending = false;
 
-            // 拒否は書きかけを残す。拒否のトーストは Toaster が決める（D-8・設計書 A-15）
-            // A rejection keeps the draft; the toaster decides the rejection toast (D-8, design A-15)
+            // トーストはToasterが決める
+            // The toaster decides the toast
             _toaster.Report(SubmitCommandName, outcome);
             if (outcome is UiCommandRejected)
             {

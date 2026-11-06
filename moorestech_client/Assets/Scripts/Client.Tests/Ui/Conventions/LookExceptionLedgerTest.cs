@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Conventions
 {
     /// <summary>
-    /// 台帳「見た目の例外」の ID とコードの look-exception の印の ID が過不足なく一致することを確かめる（L2・設計書 §3.4）
-    /// Verifies the IDs in the "look exceptions" ledger and the look-exception markers in code match exactly (L2, design §3.4)
+    /// 台帳IDと印のIDの一致を確かめる（L2）
+    /// Verifies ledger IDs match marker IDs (L2)
     /// </summary>
     public class LookExceptionLedgerTest
     {
@@ -33,17 +33,21 @@ namespace Client.Tests.Ui.Conventions
                 .SelectMany(path => Marker.Matches(File.ReadAllText(path)).Select(match => match.Groups[1].Value))
                 .ToHashSet();
             CollectionAssert.AreEquivalent(ledgerIds.ToHashSet(), markerIds, "ledger ids and look-exception markers differ");
-        }
 
-        private static string ReadSection()
-        {
-            // 見出しから次の ## 見出しの前まで
-            // From the heading up to the next ## heading
-            var text = File.ReadAllText(Path.Combine(RepositoryRoot(), LedgerPath));
-            var start = text.IndexOf(SectionHeading, System.StringComparison.Ordinal);
-            Assert.GreaterOrEqual(start, 0, $"{LedgerPath} has no {SectionHeading}");
-            var end = text.IndexOf("\n## ", start + SectionHeading.Length, System.StringComparison.Ordinal);
-            return end < 0 ? text.Substring(start) : text.Substring(start, end - start);
+            #region Internal
+
+            string ReadSection()
+            {
+                // 見出しから次の ## 見出しの前まで
+                // From the heading up to the next ## heading
+                var text = File.ReadAllText(Path.Combine(RepositoryRoot(), LedgerPath));
+                var start = text.IndexOf(SectionHeading, System.StringComparison.Ordinal);
+                Assert.GreaterOrEqual(start, 0, $"{LedgerPath} has no {SectionHeading}");
+                var end = text.IndexOf("\n## ", start + SectionHeading.Length, System.StringComparison.Ordinal);
+                return end < 0 ? text.Substring(start) : text.Substring(start, end - start);
+            }
+
+            #endregion
         }
 
         private static string RepositoryRoot()

@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// キャレットのパネル座標から候補窓のスクリーン座標への換算を固定する（L0）
-    /// Pins the conversion from a caret's panel point to the candidate window's screen point (L0)
+    /// 候補窓座標への換算を固定（L0）
+    /// Pins the candidate window conversion (L0)
     /// </summary>
     public class ImeCaretScreenPositionTest
     {
@@ -15,8 +15,8 @@ namespace Client.Tests.Ui.Components.Controls
         [Test]
         public void ScalesPanelPointToFullHdScreen()
         {
-            // S9 の Windows の形: 1280×720 のパネルを 1920×1080 に出すと 1.5 倍
-            // The S9 Windows case: a 1280x720 panel shown on 1920x1080 is scaled by 1.5
+            // 720p→1080pで1.5倍
+            // 720p to 1080p scales by 1.5
             var screen = ImeCaretScreenPosition.FromPanel(new Vector2(400, 300), new Vector2(1280, 720), new Vector2(1920, 1080), ImeCursorOrigin.TopLeft);
             AssertNear(new Vector2(600, 450), screen);
         }
@@ -24,8 +24,8 @@ namespace Client.Tests.Ui.Components.Controls
         [Test]
         public void ScalesUltraWideExpandPanelUniformly()
         {
-            // 21:9 の 2560×1080 では Expand でパネルが 1706.67×720 に広がり、倍率は x・y とも 1.5
-            // On a 21:9 2560x1080 screen Expand widens the panel to 1706.67x720, so both axes scale by 1.5
+            // 21:9は倍率x・yとも1.5
+            // 21:9 scales 1.5 on both axes
             var panelSize = new Vector2(2560f / 1.5f, 720);
             var screen = ImeCaretScreenPosition.FromPanel(new Vector2(1000, 300), panelSize, new Vector2(2560, 1080), ImeCursorOrigin.TopLeft);
             AssertNear(new Vector2(1500, 450), screen);
@@ -34,8 +34,8 @@ namespace Client.Tests.Ui.Components.Controls
         [Test]
         public void UsesEachAxisRatioInsteadOfSharedMinimum()
         {
-            // 縦横比の違うパネルでも、共通の min 倍率ではなく軸ごとの比を使う
-            // Even when the aspect ratios differ, each axis uses its own ratio rather than a shared minimum
+            // 軸ごとの比を使う
+            // Use the per-axis ratio
             var screen = ImeCaretScreenPosition.FromPanel(new Vector2(640, 360), new Vector2(1280, 720), new Vector2(2560, 1080), ImeCursorOrigin.TopLeft);
             AssertNear(new Vector2(1280, 540), screen);
         }
@@ -43,8 +43,8 @@ namespace Client.Tests.Ui.Components.Controls
         [Test]
         public void KeepsTopLeftOriginWithoutFlippingY()
         {
-            // 返り値は左上原点。パネルの上端は 0、下端はスクリーンの高さ
-            // The result is top-left origin: the panel top maps to 0 and the bottom to the screen height
+            // 左上原点で返す
+            // Returns top-left origin
             var panelSize = new Vector2(1280, 720);
             var screenSize = new Vector2(1920, 1080);
             AssertNear(new Vector2(0, 0), ImeCaretScreenPosition.FromPanel(new Vector2(0, 0), panelSize, screenSize, ImeCursorOrigin.TopLeft));

@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens
 {
     /// <summary>
-    /// 画面の L1 の土台。言語を英語に固定して TearDown で保存値ごと戻し、出たトーストを集める
-    /// Base for screen L1 tests: pins the language to English and restores it with the saved value in TearDown, and collects toasts
+    /// 画面L1の土台（言語固定・トースト収集）
+    /// Screen L1 base: pinned language, toast collection
     /// </summary>
     public abstract class ScreenTestHost : UiTestHost
     {

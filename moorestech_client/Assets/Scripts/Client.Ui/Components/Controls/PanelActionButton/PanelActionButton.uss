@@ -28,10 +28,10 @@
     background-color: var(--panel-action-button-face-hover);
 }
 
-/* Web には押下の縮みが無いので既定テーマの scale を打ち消す */
-/* The Web has no press shrink, so cancel the default theme's scale */
+/* Web には押下の沈みが無いので既定テーマの translate を打ち消す */
+/* The Web has no press sink, so cancel the default theme's translate */
 .panel-action-button.unity-button:active {
-    scale: 1 1;
+    translate: 0 0;
     background-color: var(--panel-action-button-face-hover);
 }
 

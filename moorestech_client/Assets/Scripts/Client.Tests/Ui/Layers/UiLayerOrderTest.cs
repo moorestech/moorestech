@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Layers
 {
     /// <summary>
-    /// UiLayer の並びが Web の tokens.css・skitTokens.css の --z-* が作る重なり順と一致することを確かめる（L0）
-    /// Verifies the UiLayer order matches the stacking order built from --z-* in the Web tokens.css and skitTokens.css (L0)
+    /// 層順とWebの--z-*の一致（L0）
+    /// UiLayer order matches Web --z-* (L0)
     /// </summary>
     public class UiLayerOrderTest
     {
@@ -21,8 +21,8 @@ namespace Client.Tests.Ui.Layers
         private static readonly Regex CommentPattern = new(@"/\*[\s\S]*?\*/");
         private static readonly Regex ZTokenPattern = new(@"(--z-[\w-]+)\s*:\s*(-?\d+)\s*;");
 
-        // Web の重なり文脈。viewport 直下・viewport の stage 枠内・stage の .viewportOverlay（31）の中・viewport 全体より前の portal
-        // Web stacking contexts: directly in viewport, inside viewport's stage slot, inside the stage's .viewportOverlay (31), and portal above the whole viewport
+        // Webの重なり文脈
+        // Web stacking contexts
         private enum StackingGroup
         {
             Viewport,
@@ -77,6 +77,31 @@ namespace Client.Tests.Ui.Layers
                 var current = CompositeKey(layers[i], zValues);
                 Assert.Less(previous.CompareTo(current), 0, $"{layers[i - 1]} {previous} is not below {layers[i]} {current}");
             }
+
+            #region Internal
+
+            Dictionary<string, int> ReadZTokens()
+            {
+                // --z宣言を2ファイルから拾う
+                // Pick --z declarations from both files
+                var values = new Dictionary<string, int>();
+                foreach (var relativePath in WebTokenCssPaths)
+                {
+                    var text = CommentPattern.Replace(File.ReadAllText(Path.Combine(RepositoryRoot(), relativePath)), "");
+                    foreach (Match match in ZTokenPattern.Matches(text))
+                    {
+                        Assert.IsTrue(values.TryAdd(match.Groups[1].Value, int.Parse(match.Groups[2].Value)), $"Duplicate {match.Groups[1].Value}");
+                    }
+                }
+                return values;
+            }
+
+            string RepositoryRoot()
+            {
+                return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
+            }
+
+            #endregion
         }
 
         private static (int portalRank, int viewportZ, int stageZ, int chromeZ) CompositeKey(UiLayer layer, Dictionary<string, int> zValues)
@@ -84,8 +109,8 @@ namespace Client.Tests.Ui.Layers
             var (group, token) = LayerTokens[layer];
             var z = ZValue(token, zValues);
 
-            // stage 群は viewport の stage 枠に入れ子、skit は stage の chrome（31）に封じ込め、portal 群は viewport 全体より前
-            // The stage group nests at the viewport's stage slot, skit is confined to the stage's chrome (31), and the portal group sits above the whole viewport
+            // stage群・skit・portalの入れ子
+            // Nesting of stage, skit and portal groups
             return group switch
             {
                 StackingGroup.Viewport => (0, z, 0, 0),
@@ -100,27 +125,6 @@ namespace Client.Tests.Ui.Layers
         {
             Assert.IsTrue(zValues.ContainsKey(token), $"{token} is not declared in {string.Join(", ", WebTokenCssPaths)}");
             return zValues[token];
-        }
-
-        private static Dictionary<string, int> ReadZTokens()
-        {
-            // コメントを除いてから「--z-name: 整数;」の宣言だけを 2 ファイルから拾う
-            // Strip comments, then pick only "--z-name: integer;" declarations from both files
-            var values = new Dictionary<string, int>();
-            foreach (var relativePath in WebTokenCssPaths)
-            {
-                var text = CommentPattern.Replace(File.ReadAllText(Path.Combine(RepositoryRoot(), relativePath)), "");
-                foreach (Match match in ZTokenPattern.Matches(text))
-                {
-                    Assert.IsTrue(values.TryAdd(match.Groups[1].Value, int.Parse(match.Groups[2].Value)), $"Duplicate {match.Groups[1].Value}");
-                }
-            }
-            return values;
-        }
-
-        private static string RepositoryRoot()
-        {
-            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
         }
     }
 }

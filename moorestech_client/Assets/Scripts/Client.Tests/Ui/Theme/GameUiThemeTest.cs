@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Theme
 {
     /// <summary>
-    /// 本番テーマで既定コントロールがMantine の暗色トークンに解決されることを確かめる（L1）
-    /// Verifies default controls resolve to the Mantine dark tokens under the production theme (L1)
+    /// 既定コントロールがMantine暗色に解決（L1）
+    /// Default controls resolve to Mantine dark (L1)
     /// </summary>
     public class GameUiThemeTest : UiTestHost
     {
@@ -20,8 +20,8 @@ namespace Client.Tests.Ui.Theme
             rootVisualElement.Add(field);
             simulate.FrameUpdate();
 
-            // MantineTokens.uss の --mantine-color-default（dark-6）
-            // --mantine-color-default (dark-6) from MantineTokens.uss
+            // --mantine-color-default（dark-6）
+            // --mantine-color-default (dark-6)
             AssertColor("#2e2e2e", button.resolvedStyle.backgroundColor);
             var input = field.Q(className: "unity-base-text-field__input");
             AssertColor("#2e2e2e", input.resolvedStyle.backgroundColor);
@@ -36,8 +36,8 @@ namespace Client.Tests.Ui.Theme
             // Only the single theme sheet from the base is on the root, no individual token USS
             Assert.AreEqual(1, rootVisualElement.styleSheets.count);
             Assert.AreSame(themeStyleSheet, rootVisualElement.styleSheets[0]);
-            // var() だけで色を書く Theme.uss の Button が --mantine-color-default に解決されている
-            // A Button using var() in Theme.uss resolves to --mantine-color-default
+            // Buttonがdefaultに解決
+            // Button resolves to default
             var button = new Button();
             rootVisualElement.Add(button);
             simulate.FrameUpdate();

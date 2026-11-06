@@ -40,8 +40,8 @@ namespace Client.Ui.Screens.Settings
             _languages.SetSelected(model.LanguageCode);
         }
 
-        // 結果のトーストは Toaster が決める（D-8・設計書 A-15）
-        // The toaster decides the result toast (D-8, design A-15)
+        // トーストはToasterが決める
+        // The toaster decides the toast
         private void OnLanguageSelected(string languageCode)
         {
             _toaster.Report(SetLocaleCommandName, _commands.SetLanguage(languageCode));

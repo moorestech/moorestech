@@ -100,10 +100,6 @@
     background-color: var(--bug-report-button-face-hover);
 }
 
-.bug-report .bug-report__button.unity-button:active {
-    scale: 1 1;
-}
-
 .bug-report .bug-report__button.unity-button:disabled {
     background-color: var(--bug-report-button-face-disabled);
     color: var(--bug-report-button-text-disabled);

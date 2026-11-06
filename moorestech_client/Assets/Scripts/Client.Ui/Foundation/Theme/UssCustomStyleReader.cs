@@ -37,8 +37,8 @@ namespace Client.Ui.Foundation.Theme
             return false;
         }
 
-        // 単位なしの数（倍率など）は float で読める（台帳「## 実測の結論」customStyle）
-        // Unitless numbers such as scales resolve as float (customStyle in the ledger's measurement table)
+        // 単位なしはfloatで読める
+        // Unitless numbers read as float
         public static bool TryReadNumber(ICustomStyle style, string propertyName, out float number)
         {
             if (style.TryGetValue(new CustomStyleProperty<float>(propertyName), out number)) return true;
