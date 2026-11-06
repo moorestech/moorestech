@@ -19,6 +19,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/IconButton/IconButton.uss");
 /* == section: Components/Gauges == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/ToastItem/ToastItem.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/GaugeBar/GaugeBar.uss");

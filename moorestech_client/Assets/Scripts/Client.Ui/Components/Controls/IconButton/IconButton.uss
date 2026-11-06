@@ -1,0 +1,45 @@
+/* web: moorestech_web/webui/src/shared/ui/IconButton/style.module.css（components.md §8.6）。寸法は置く側が --icon-button-* の上書きで変える */
+/* web: moorestech_web/webui/src/shared/ui/IconButton/style.module.css (components.md §8.6); callers resize it by overriding --icon-button-* */
+
+/* 既定テーマの .unity-button に勝つため 2 クラスで当てる。外側の余白と位置は置く側が決める */
+/* Two classes so these beat the default theme's .unity-button; the caller owns outer margin and position */
+.icon-button.unity-button {
+    width: var(--icon-button-size);
+    height: var(--icon-button-size);
+    padding: 0;
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
+    align-items: center;
+    justify-content: center;
+    transition-duration: 0s;
+}
+
+/* Web には面のホバーも押下の縮みも無いので既定テーマの変化を打ち消す */
+/* The Web has no face hover or press shrink, so cancel the default theme's changes */
+.icon-button.unity-button:hover,
+.icon-button.unity-button:active {
+    background-color: transparent;
+    scale: 1 1;
+}
+
+/* 図形の色と線幅（Web の color: var(--text-muted) と stroke-width: var(--bevel-1)）。図形が CustomStyleResolvedEvent で読む */
+/* Glyph colour and stroke (Web color: var(--text-muted) and stroke-width: var(--bevel-1)); the glyph reads them in CustomStyleResolvedEvent */
+.icon-button .icon-button__glyph {
+    --icon-button-glyph-color: var(--text-muted);
+    --icon-button-glyph-stroke: var(--bevel-1);
+}
+
+/* 有効なときだけホバーで持ち上げる（Web の .button:not(:disabled):hover） */
+/* Lift on hover only while enabled (Web .button:not(:disabled):hover) */
+.icon-button:hover:enabled .icon-button__glyph {
+    --icon-button-glyph-color: var(--text-high-contrast);
+}
+
+/* 既定の ×の大きさ（Web の .icon）。× は IconButton の中でだけ使う */
+/* Default cross size (Web .icon); the cross is only used inside IconButton */
+.icon-button .icon-button__close-glyph {
+    width: var(--icon-button-icon-size);
+    height: var(--icon-button-icon-size);
+    flex-shrink: 0;
+}
