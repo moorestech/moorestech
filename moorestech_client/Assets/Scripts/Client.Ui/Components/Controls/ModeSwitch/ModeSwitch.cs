@@ -4,7 +4,7 @@ using Client.Ui.Foundation.Text;
 using UniRx;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Controls
 {
     /// <summary>
     /// 任意の値を択一で選ぶボタン列。選択の表示は SetSelected で外から入れ、押下は OnSelected で流す（Web の shared/ui/ModeSwitch）

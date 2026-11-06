@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
-using Client.Ui.Components;
+using Client.Ui.Components.Controls;
 using Client.Ui.State.Settings;
 using Mooresmaster.Localization.Generated;
 using UniRx;

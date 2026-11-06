@@ -2,7 +2,7 @@ using Client.Ui.Foundation.Text;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Controls
 {
     /// <summary>
     /// パネル付随の副次アクション用の押しボタン。面と寸法だけを持ち、押下は Button.clicked で受ける（Web の shared/ui/PanelActionButton）

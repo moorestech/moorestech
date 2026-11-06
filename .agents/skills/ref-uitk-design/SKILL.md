@@ -73,7 +73,7 @@ public sealed class IconButton : VisualElement
 - `focusable = false`。フォーカスを持つのは入力欄だけ
 - 描くだけの子（Painter2D・頂点カラー・装飾）と文字だけの子は `pickingMode = PickingMode.Ignore`。押せる要素だけが Pick を受ける
 - 子を受ける部品（枠・スクロール）は `contentContainer` を返し、外は `Add` で入れる
-- 色・寸法を C# に書かない。描画で値が要るときは部品の USS で `--<部品>-<名>: var(--トークン);` と受け直し、`CustomStyleResolvedEvent` の中で `UssCustomStyleReader.TryReadColor`・`TryReadPixels` で読む（前例 `S/Client.Ui/Components/GamePanel/GamePanelFace.cs`）
+- 色・寸法を C# に書かない。描画で値が要るときは部品の USS で `--<部品>-<名>: var(--トークン);` と受け直し、`CustomStyleResolvedEvent` の中で `UssCustomStyleReader.TryReadColor`・`TryReadPixels` で読む（前例 `S/Client.Ui/Components/Panels/GamePanel/GamePanelFace.cs`）
 - `Update()` を使わない。変化は Set の呼び出しか Model の購読で受ける
 - AGENTS.md のとおり 1 ファイル 200 行・1 ディレクトリ 10 ファイル・`partial` と `Func<>` の禁止・日英 2 行のコメント
 

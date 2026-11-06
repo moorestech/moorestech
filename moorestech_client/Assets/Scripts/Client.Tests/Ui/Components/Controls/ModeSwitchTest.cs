@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Components;
+using Client.Ui.Components.Controls;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UniRx;
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Components
+namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
     /// ModeSwitch の選択の流れ・選択表示・無選択・無効・縦横・選択肢のラベル規則を実パネルで確かめる（L1）
@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.Components
     /// </summary>
     public class ModeSwitchTest : UiTestHost
     {
-        private const string StyleSheetPath = "Assets/Scripts/Client.Ui/Components/ModeSwitch/ModeSwitch.uss";
+        private const string StyleSheetPath = "Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss";
         private const string SelectedClass = "mode-switch__option--selected";
 
         private StyleSheet _sheet;

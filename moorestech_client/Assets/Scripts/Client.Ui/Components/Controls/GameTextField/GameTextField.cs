@@ -3,7 +3,7 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components.TextField
+namespace Client.Ui.Components.Controls
 {
     /// <summary>
     /// GameUi 共通の入力欄。全選択の抑止・IME の未確定文字列の下線・候補窓のキャレット追従を持つ TextField の包み

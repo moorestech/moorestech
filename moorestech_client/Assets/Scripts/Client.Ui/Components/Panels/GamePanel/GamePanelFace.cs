@@ -2,7 +2,7 @@ using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Panels
 {
     /// <summary>
     /// GamePanel の半透明ネイビーの面。上端の縦フェードと左右・下端のマスクを頂点カラーの格子で描く（Web の ::before）

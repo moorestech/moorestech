@@ -4,7 +4,7 @@
 
 目次: 1 単位と式 / 2 選択子と状態 / 3 配置と重なり / 4 文字 / 5 影・グラデ・マスク・図形 / 6 半透明 / 7 動き / 8 描画する子要素の型
 
-出所: 変換表は `origin/master:docs/uitk-migration/plan.md` §3.5、前例は `S/Client.Ui/Components/GamePanel/`（`S/` = `moorestech_client/Assets/Scripts/`）。
+出所: 変換表は `origin/master:docs/uitk-migration/plan.md` §3.5、前例は `S/Client.Ui/Components/Panels/GamePanel/`（`S/` = `moorestech_client/Assets/Scripts/`）。
 
 ## 1. 単位と式
 
@@ -127,4 +127,4 @@ public sealed class ExampleDecoration : VisualElement
 ```
 
 - 名前（`ExampleDecoration`・`--example-decoration-color`）は写す部品のものに置き換える
-- 実在の型は `S/Client.Ui/Components/GamePanel/GamePanelBottomDeco.cs`（三角）・`GamePanelDecoLine.cs`（横グラデ）・`GamePanelFace.cs`（頂点カラーの格子）を開いて合わせる
+- 実在の型は `S/Client.Ui/Components/Panels/GamePanel/GamePanelBottomDeco.cs`（三角）・`GamePanelDecoLine.cs`（横グラデ）・`GamePanelFace.cs`（頂点カラーの格子）を開いて合わせる

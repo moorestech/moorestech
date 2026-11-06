@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using Client.Input;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Components.TextField;
+using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Components
+namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
     /// 共通入力欄の全選択の抑止・値の購読・未確定文字列の下線・testid の付け先を実パネルで確かめる（L1）

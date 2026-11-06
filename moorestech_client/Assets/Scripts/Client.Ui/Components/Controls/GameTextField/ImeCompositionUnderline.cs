@@ -1,6 +1,6 @@
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components.TextField
+namespace Client.Ui.Components.Controls
 {
     /// <summary>
     /// IME の未確定文字列の下に 1px の線を引く。キャレットを右端にして未確定文字列の幅だけ左へ伸ばす

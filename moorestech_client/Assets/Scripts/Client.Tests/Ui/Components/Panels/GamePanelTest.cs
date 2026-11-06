@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Components;
+using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Theme;
 using NUnit.Framework;
 using UnityEditor;
@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Components
+namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
     /// GamePanel（default）の構造・トークン由来の寸法・レイアウトを本番テーマのパネルで確かめる（L1）
@@ -19,7 +19,7 @@ namespace Client.Tests.Ui.Components
     /// </summary>
     public class GamePanelTest : UiTestHost
     {
-        private const string PanelStyleSheetPath = "Assets/Scripts/Client.Ui/Components/GamePanel/GamePanel.uss";
+        private const string PanelStyleSheetPath = "Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanel.uss";
         private const string TokensPath = "Assets/Scripts/Client.Ui/Foundation/Theme/Tokens.uss";
 
         // Web の .panel の padding: 8px 10px 10px 28px の左右

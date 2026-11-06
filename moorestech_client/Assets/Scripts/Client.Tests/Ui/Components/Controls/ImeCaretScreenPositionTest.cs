@@ -1,8 +1,8 @@
-using Client.Ui.Components.TextField;
+using Client.Ui.Components.Controls;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.Ui.Components
+namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
     /// キャレットのパネル座標から候補窓のスクリーン座標への換算を固定する（L0）

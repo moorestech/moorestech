@@ -1,7 +1,7 @@
 using Client.Input;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Components;
+using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Text;
 using Mooresmaster.Localization.Generated;
@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Components
+namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
     /// PanelActionButton のクリック・キーで押されないこと・フォーカスを持たないこと・Web の寸法を入力規則付きのパネルで確かめる（L1）
@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.Components
     /// </summary>
     public class PanelActionButtonTest : UiTestHost
     {
-        private const string StyleSheetPath = "Assets/Scripts/Client.Ui/Components/PanelActionButton/PanelActionButton.uss";
+        private const string StyleSheetPath = "Assets/Scripts/Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.uss";
         private const string TestId = "panel-action-button-test";
 
         private PanelActionButton _button;

@@ -1,7 +1,7 @@
 using Client.Ui.State.Toast;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Gauges
 {
     /// <summary>
     /// トースト 1 件の小窓。Web の Mantine Notification の暗色に種別の色帯を付ける。文は呼び出し側で解決済み

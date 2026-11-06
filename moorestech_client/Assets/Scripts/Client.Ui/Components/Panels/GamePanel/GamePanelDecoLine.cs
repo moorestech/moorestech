@@ -2,7 +2,7 @@ using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Panels
 {
     /// <summary>
     /// タイトル行の上下の罫線。中央を保ち両端を透明へ落とす横グラデーションを Painter2D で塗る（Web の .decoLine）

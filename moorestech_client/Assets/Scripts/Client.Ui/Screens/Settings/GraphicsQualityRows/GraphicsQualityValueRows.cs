@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
-using Client.Ui.Components;
+using Client.Ui.Components.Controls;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.Screens.Settings.GraphicsQualityRows

@@ -1,7 +1,7 @@
 using System;
 using Mooresmaster.Localization.Generated;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Controls
 {
     public enum ModeSwitchOrientation
     {

@@ -1,6 +1,6 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Ui.Components;
+using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Assets;
 using Client.Ui.State.PauseMenu;

@@ -1,6 +1,6 @@
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Panels
 {
     /// <summary>
     /// ゲームの窓枠（default）。半透明ネイビーの面・タイトル行と罫線・本文・下部の三角を持つ（plan.md §3.4）

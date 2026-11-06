@@ -1,4 +1,4 @@
-using Client.Ui.Components;
+using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.Foundation.Motion.Steps;
 using Client.Ui.Foundation.Motion.Tween;

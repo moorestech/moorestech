@@ -2,7 +2,7 @@ using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components
+namespace Client.Ui.Components.Panels
 {
     /// <summary>
     /// GamePanel 下部の下向き三角 3 個。両端と中央に置き、下端 12px を透明へ落として Painter2D で塗る（Web の .bottomDeco span）
