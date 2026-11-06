@@ -119,6 +119,20 @@ namespace Client.Tests.Ui.Components.Text
         }
 
         [Test]
+        public void 行を0件にすると最大幅の固定が外れる()
+        {
+            var face = Mount(TooltipFaceLook.Hover);
+            face.SetText(new UiText(LocalizationKeys.Ui.Settings.GraphicsRecovered));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.IsTrue(face.ClassListContains("tooltip-face--wrapped"));
+
+            face.SetLines(new UiText[0]);
+            simulate.FrameUpdate();
+            Assert.IsFalse(face.ClassListContains("tooltip-face--wrapped"));
+        }
+
+        [Test]
         public void 言語を変えると行を解き直す()
         {
             var face = Mount(TooltipFaceLook.Hover);

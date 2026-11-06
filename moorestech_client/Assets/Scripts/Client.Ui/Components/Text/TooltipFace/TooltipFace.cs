@@ -58,6 +58,10 @@ namespace Client.Ui.Components.Text
                 label.RegisterCallback<GeometryChangedEvent>(_ => FillMaxWidthWhenWrapped());
                 Add(label);
             }
+
+            // 行が 0 件だと行側の GeometryChanged が来ないので、ここで折り返しの固定を外す
+            // With no lines no line GeometryChanged arrives, so release the wrapped pin here
+            if (lines.Count == 0) EnableInClassList("tooltip-face--wrapped", false);
         }
 
         private void FillMaxWidthWhenWrapped()
