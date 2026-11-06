@@ -80,11 +80,11 @@
 /* 送信・再送・書き出しは Mantine の Button（filled・高さ 36px・角丸 4px・14px）。無効は dark-6 の面に dark-3 の文字 */
 /* Send, resend and export are Mantine Button (filled, 36px tall, 4px radius, 14px); disabled is a dark-6 face with dark-3 text */
 .bug-report .bug-report__button.unity-button {
-    --bug-report-button-face: var(--color-accent);
-    --bug-report-button-face-hover: var(--color-accent-hover);
+    --bug-report-button-face: var(--mantine-color-blue-filled);
+    --bug-report-button-face-hover: var(--mantine-color-blue-filled-hover);
     --bug-report-button-text: var(--text-high-contrast);
-    --bug-report-button-face-disabled: var(--mantine-dark-6);
-    --bug-report-button-text-disabled: var(--mantine-dark-3);
+    --bug-report-button-face-disabled: var(--mantine-color-dark-6);
+    --bug-report-button-text-disabled: var(--mantine-color-dark-3);
     height: 36px;
     margin: 16px 0 0 0;
     padding: 0 18px;

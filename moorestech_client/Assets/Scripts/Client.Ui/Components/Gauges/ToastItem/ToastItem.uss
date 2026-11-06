@@ -4,11 +4,11 @@
 /* An opaque dark-6 face, a 1px dark-4 rule and 4px radius; the variant color is a rounded strip 4px in from the left, text is dark-0 14px */
 
 .toast-item {
-    --toast-item-face: var(--mantine-dark-6);
-    --toast-item-border: var(--mantine-dark-4);
-    --toast-item-text: var(--mantine-dark-0);
-    --toast-item-strip-info: var(--color-accent);
-    --toast-item-strip-error: var(--color-danger);
+    --toast-item-face: var(--mantine-color-dark-6);
+    --toast-item-border: var(--mantine-color-dark-4);
+    --toast-item-text: var(--mantine-color-dark-0);
+    --toast-item-strip-info: var(--mantine-color-blue-filled);
+    --toast-item-strip-error: var(--mantine-color-red-filled);
     flex-direction: row;
     align-items: center;
     max-width: 400px;

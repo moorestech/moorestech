@@ -6,13 +6,13 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Theme
 {
     /// <summary>
-    /// 本番テーマで既定コントロールが暗色トークンに解決されることを確かめる（L1）
-    /// Verifies default controls resolve to the dark control tokens under the production theme (L1)
+    /// 本番テーマで既定コントロールがMantine の暗色トークンに解決されることを確かめる（L1）
+    /// Verifies default controls resolve to the Mantine dark tokens under the production theme (L1)
     /// </summary>
     public class GameUiThemeTest : UiTestHost
     {
         [Test]
-        public void ButtonAndTextFieldUseControlTokens()
+        public void ButtonAndTextFieldUseMantineDefaultTokens()
         {
             var button = new Button { text = "x" };
             var field = new TextField();
@@ -20,11 +20,11 @@ namespace Client.Tests.Ui.Theme
             rootVisualElement.Add(field);
             simulate.FrameUpdate();
 
-            // ControlTokens.uss の --control-face と --control-input-face
-            // --control-face and --control-input-face from ControlTokens.uss
-            AssertColor("#353b45", button.resolvedStyle.backgroundColor);
+            // MantineTokens.uss の --mantine-color-default（dark-6）
+            // --mantine-color-default (dark-6) from MantineTokens.uss
+            AssertColor("#2e2e2e", button.resolvedStyle.backgroundColor);
             var input = field.Q(className: "unity-base-text-field__input");
-            AssertColor("#1f2329", input.resolvedStyle.backgroundColor);
+            AssertColor("#2e2e2e", input.resolvedStyle.backgroundColor);
         }
 
         [Test]
@@ -36,12 +36,12 @@ namespace Client.Tests.Ui.Theme
             // Only the single theme sheet from the base is on the root, no individual token USS
             Assert.AreEqual(1, rootVisualElement.styleSheets.count);
             Assert.AreSame(themeStyleSheet, rootVisualElement.styleSheets[0]);
-            // var() だけで色を書く Theme.uss の Button が --control-face に解決されている
-            // A Button using var() in Theme.uss resolves to --control-face
+            // var() だけで色を書く Theme.uss の Button が --mantine-color-default に解決されている
+            // A Button using var() in Theme.uss resolves to --mantine-color-default
             var button = new Button();
             rootVisualElement.Add(button);
             simulate.FrameUpdate();
-            AssertColor("#353b45", button.resolvedStyle.backgroundColor);
+            AssertColor("#2e2e2e", button.resolvedStyle.backgroundColor);
         }
 
         [Test]

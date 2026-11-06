@@ -62,6 +62,22 @@ namespace Client.Tests.Ui.Theme
         }
 
         [Test]
+        public void 単位なしの数をfloatで読める()
+        {
+            // DerivedTokens.uss の --title-scale-x（0.947）を CustomStyleResolvedEvent の中で読む
+            // Read --title-scale-x (0.947) from DerivedTokens.uss inside CustomStyleResolvedEvent
+            var element = new VisualElement();
+            element.AddToClassList("uss-custom-style-probe");
+            var read = false;
+            var scale = 0f;
+            element.RegisterCallback<CustomStyleResolvedEvent>(evt => read = UssCustomStyleReader.TryReadNumber(evt.customStyle, "--probe-title-scale", out scale));
+            rootVisualElement.Add(element);
+            simulate.FrameUpdate();
+            Assert.IsTrue(read);
+            Assert.AreEqual(0.947f, scale, 0.0001f);
+        }
+
+        [Test]
         public void RootTokenIsNotInheritedIntoChildCustomStyle()
         {
             // :root のトークンは子の customStyle に出ない（受け直しが要る根拠）

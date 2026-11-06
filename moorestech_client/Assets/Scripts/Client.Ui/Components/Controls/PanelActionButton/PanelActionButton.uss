@@ -1,7 +1,7 @@
 /* PanelActionButton。寸法と色は moorestech_web/webui/src/shared/ui/PanelActionButton/style.module.css を写す */
-/* Web の color-mix（ホバー面）は USS に無いので ControlTokens.uss の前計算トークンで受ける。4 方向 0.3px の text-shadow は文字の縁で近似する */
+/* Web の color-mix（ホバー面）は USS に無いので DerivedTokens.uss の前計算トークンで受ける。4 方向 0.3px の text-shadow は文字の縁で近似する */
 /* PanelActionButton; sizes and colors copy moorestech_web/webui/src/shared/ui/PanelActionButton/style.module.css */
-/* The Web color-mix (hover face) has no USS equivalent, so it comes from a precomputed ControlTokens.uss token; the four-way 0.3px text-shadow is approximated by a text outline */
+/* The Web color-mix (hover face) has no USS equivalent, so it comes from a precomputed DerivedTokens.uss token; the four-way 0.3px text-shadow is approximated by a text outline */
 
 /* 既定テーマの .unity-button より強くするため 2 クラスで当てる */
 /* Two classes so these beat the default theme's .unity-button */

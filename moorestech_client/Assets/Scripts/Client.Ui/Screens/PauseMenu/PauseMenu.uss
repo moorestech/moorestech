@@ -6,7 +6,7 @@
 /* 置き場は層いっぱいに広げ、枠を上下左右の中央へ置く */
 /* The host fills the layer and centers the frame both ways */
 .pause-menu {
-    --pause-menu-disconnected-text: var(--color-danger-text);
+    --pause-menu-disconnected-text: var(--mantine-color-red-text);
     position: absolute;
     left: 0;
     top: 0;

@@ -3,7 +3,7 @@
 :root {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatin%20SDF.asset");
     font-size: 14px;
-    color: var(--control-text);
+    color: var(--text-default);
 }
 
 .game-ui-locale--cjk {

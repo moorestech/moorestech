@@ -1,7 +1,7 @@
 /* ModeSwitch。寸法と色は moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css を写す */
-/* box-shadow のリングは USS に無いので bevel-1 幅の枠線で描く。選択面の color-mix は ControlTokens.uss の前計算トークンで受ける */
+/* box-shadow のリングは USS に無いので bevel-1 幅の枠線で描く。選択面の color-mix は DerivedTokens.uss の前計算トークンで受ける */
 /* ModeSwitch; sizes and colors copy moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css */
-/* USS has no box-shadow, so the ring is a bevel-1 border; the selected face's color-mix comes from a precomputed ControlTokens.uss token */
+/* USS has no box-shadow, so the ring is a bevel-1 border; the selected face's color-mix comes from a precomputed DerivedTokens.uss token */
 
 .mode-switch {
     flex-direction: row;
