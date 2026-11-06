@@ -532,7 +532,7 @@ AGENTS.md「失敗の扱い」に従い、「誰がどこで気づくか」を�
 **それ以外の CEF 由来の不具合は切替まで直さない**（2026-11-06 裁定）: UI 全停止・メモリの伸びなど、起動不能・データ消失を含めて直さない。CEF 由来でない Web 画面の不具合は従来どおり master で直す（その変更は追従の記帳の対象になる）。直さない理由は「切替の日に CEF ごと消えるので捨て作業になる」（agent の推測。ユーザーは理由を述べていない）
 
 **やること**（実装は `Client.WebUiHost`、バグ報告から見るインターフェースは `Client.Game`。撤去の 5a で消す）
-1. バグ報告の manifest に生の値を 3 つ入れる: Web ホスト起動の成否、CEF プロセスの生存、最後の WS 受信からの秒数。ADR 0057 の受け口から Mac mini に届く。bug-report-auto-fix の読み手も同じ PR で対応する
+1. バグ報告の manifest に生の値を 3 つ入れる: Web ホスト起動の成否、CEF プロセスの観測状態（`observedAfterBrowserStart` 等。生死は判定しない）、最後の WS 受信からの秒数。ADR 0057 の受け口から Mac mini に届き、プレイテストダッシュボードの報告詳細に出る（bug-report-auto-fix は `.decisions/2026-10-31-自動修正の基盤を消しプレイテスト生データの正本をR2だけにする.md` で削除済みで、読み手はダッシュボード）
 2. `WebUiStartup.cs` の LogWarning を LogError にする
 3. 最後の WS 受信から閾値（`webSocketClient.ts` の 15000ms を参照）を超えたら、入力排他の Web 側の値（文字入力フォーカス・pointerOverUi）を無視する（`feature/uitk` の段階 1 では UITK 側の値だけを使う形で作った）。L0 のテストで確かめる
 

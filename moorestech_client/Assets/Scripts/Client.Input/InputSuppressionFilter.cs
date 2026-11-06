@@ -1,5 +1,11 @@
 namespace Client.Input
 {
+    [System.Flags]
+    public enum InputSuppressionScope
+    {
+        Keyboard = 1,
+    }
+
     /// <summary>
     /// 入力の通過可否（抑止・ESCラッチ）の判定と抑止ログを 1 か所に集め、InputKey と HybridInput が同じ順序で使う
     /// Gathers the pass/block decision (suppression and ESC latch) and its logging so InputKey and HybridInput apply the same order

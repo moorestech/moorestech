@@ -1,0 +1,9 @@
+/* L1 のつまみ上書き検査用。チャレンジ HUD の罫線の幅と、既定と見分けられる寸法へ変える */
+/* For the L1 knob-override checks; switches to the challenge HUD rule width and sizes distinguishable from the defaults */
+
+.test-knob-hud-heading {
+    --hud-rule-width: 88px;
+    --hud-label-font-size: 17px;
+    --hud-label-rule-gap: 9px;
+    --hud-rule-list-gap: 3px;
+}

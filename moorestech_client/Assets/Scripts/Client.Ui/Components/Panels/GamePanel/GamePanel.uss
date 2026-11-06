@@ -1,56 +1,132 @@
-/* GamePanel の default variant。寸法と色は moorestech_web/webui/src/shared/ui/GamePanel/style.module.css を写す */
-/* box-shadow（外周の影）は USS に無いので描かない（判断記録 D-6）。グラデーションは C# の描画が受け直したトークンで塗る */
-/* Default variant of GamePanel; sizes and colors copy moorestech_web/webui/src/shared/ui/GamePanel/style.module.css */
-/* box-shadow (outer shadow) has no USS equivalent and is not drawn (decision D-6); gradients are painted in C# from re-declared tokens */
+/* web: moorestech_web/webui/src/shared/ui/GamePanel/style.module.css（ref-webui-design §2） */
+/* 枠付きパネルの default・craft。外周の box-shadow は Web でも mask に切られて画面に出ないので描かない（C2-a 判断記録 D-1） */
+/* web: moorestech_web/webui/src/shared/ui/GamePanel/style.module.css (ref-webui-design §2) */
+/* Framed panel default and craft; the outer box-shadow is clipped by the Web mask and never shows, so it is not drawn (C2-a decision D-1) */
 
 .game-panel {
     display: flex;
     flex-direction: column;
-    padding: 8px 10px 10px 28px;
     color: var(--game-panel-text);
-    --game-panel-face: var(--surface-navy);
-    --game-panel-edge-fade: var(--panel-edge-fade);
 }
 
-/* Web の ::before。top は calc(var(--panel-top, -8px) - 3.913894px) = -11.913894px、右・下・左は --panel-* の既定値 */
-/* The Web ::before; top is calc(var(--panel-top, -8px) - 3.913894px) = -11.913894px, the other sides use the --panel-* defaults */
+.game-panel--default {
+    padding: 8px 10px 10px 28px;
+}
+
+/* craft は透明 1px の枠で外寸を保つ（Web の border: 1px solid transparent）。面はパネル自身の背景で、UITK も枠の下まで塗る（Web の background は border-box） */
+/* 面を -1px の子要素で敷くと倍率 1.5 で枠が 1.333px に丸まり外周 1 物理画素が塗られないので、パネル自身の矩形に塗る */
+/* Craft keeps its outer size with a transparent 1px border (the Web border: 1px solid transparent); the face is the panel's own background, which UITK also paints under the border (the Web background is border-box) */
+/* A -1px child face leaves the outer device pixel unpainted at scale 1.5 where the border rounds to 1.333px, so the panel's own rect is painted */
+.game-panel--craft {
+    padding: 8px 15px 15px 10px;
+    border-width: 1px;
+    border-color: transparent;
+    background-color: var(--game-panel-craft-face);
+}
+
+/* Web の ::before。top の calc(var(--panel-top, -8px) - 3.913894px) を top と margin-top に分けて写す */
+/* The Web ::before; top's calc(var(--panel-top, -8px) - 3.913894px) is split into top and margin-top */
 .game-panel__face {
     position: absolute;
-    top: -11.913894px;
-    right: -3px;
-    bottom: -8px;
-    left: -3px;
+    top: var(--panel-top);
+    right: var(--panel-right);
+    bottom: var(--panel-bottom);
+    left: var(--panel-left);
+    margin-top: -3.913894px;
     --game-panel-face: var(--surface-navy);
     --game-panel-edge-fade: var(--panel-edge-fade);
+    --game-panel-top-fade: 11.742px;
+    --game-panel-bottom-fade: 12px;
 }
 
-/* タイトル行は高さ固定で、タイトルの拡大が罫線の位置を押し流さない */
-/* The title row has a fixed height so enlarging the title never pushes the rules */
+/* Web の inset 0 0 0 3.132px の暗い線（不透明）。UITK は枠幅を物理画素へ丸める（倍率 1 で 3px・1.5 で 3.333px） */
+/* The Web inset 0 0 0 3.132px dark line (opaque); UITK rounds border widths to device pixels (3px at scale 1, 3.333px at 1.5) */
+.game-panel__craft-line {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-width: 3.132px;
+    border-color: var(--game-panel-craft-line);
+}
+
+/* Web の inset 0 0 0 3.524px の明るい輪は不透明の線の外へ 0.392px（Web の倍率で 1 物理画素）だけ見える。見える帯だけを線の子として線の内縁に置く */
+/* 3.524px の枠のまま重ねると倍率 1.5 で線と同じ 3.333px に丸まり輪が消えるので、見える帯を別の枠にして常に 1 物理画素以上を残す */
+/* 線の子の inset 0 は丸めた線幅の内側が基準なので、パネルが端数の座標にあっても線と輪のあいだに隙間も重なりも出ない */
+/* The Web inset 0 0 0 3.524px light ring shows only 0.392px (one device pixel at the Web scale) past the opaque line; only that visible band sits on the line's inner edge as the line's child */
+/* Stacking a 3.524px border rounds to the line's 3.333px at scale 1.5 and the ring vanishes, so the visible band is its own border that keeps at least one device pixel */
+/* A child's inset 0 is measured from the line's rounded inner edge, so no gap or overlap appears even when the panel sits at fractional coordinates */
+.game-panel__craft-rim {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-width: 0.392px; /* look-exception: LX-4 */
+    border-color: var(--game-panel-craft-rim);
+}
+
+/* 右下グリップ。位置と寸法はトークン、ずらし（Web の translate）と色は C# が受け直したつまみで塗る */
+/* Bottom-right grip; position and size from tokens, the offset (Web translate) and color painted in C# from re-declared knobs */
+.game-panel__craft-grip {
+    position: absolute;
+    right: var(--craft-grip-inset);
+    bottom: var(--craft-grip-inset);
+    width: var(--craft-grip-size);
+    height: var(--craft-grip-size);
+    --game-panel-craft-grip-face: var(--craft-grip-face);
+    --game-panel-craft-grip-offset: var(--craft-grip-offset);
+}
+
+/* 題の行は高さ固定で、題の拡大が罫線の位置を押し流さない。SetTitle まで隠す */
+/* The title row has a fixed height so enlarging the title never pushes the rules; hidden until SetTitle */
 .game-panel__header {
+    display: none;
     flex-direction: row;
     align-items: center;
     height: 19px;
 }
 
-/* Web の letter-spacing 0.02em は 19px で 0.38px。line-height 1 は USS に無いので余白を 0 にして行高へ寄せる */
-/* The Web letter-spacing 0.02em is 0.38px at 19px; USS has no line-height, so zero spacing approximates line-height 1 */
+.game-panel--titled > .game-panel__header {
+    display: flex;
+}
+
+/* Web の letter-spacing 0.02em は 19px で字間 0.38px。UITK の letter-spacing は px と書いても字の大きさの 1/100 倍で効くので 2 と書く（"IIIIIIIIII" で 0→65px・2→68px・10→82px を実測）。transform は GamePanelTitle がつまみ --title-* から当てる */
+/* The Web letter-spacing 0.02em is a 0.38px gap at 19px. UITK applies letter-spacing as 1/100 of the font size even when written in px, so write 2 (measured "IIIIIIIIII": 0→65px, 2→68px, 10→82px). GamePanelTitle applies the transform from the --title-* knobs */
 .game-panel__title {
     margin: 0;
     padding: 0;
     font-size: 19px;
     -unity-font-style: normal;
-    letter-spacing: 0.38px;
+    letter-spacing: 2px;
     color: var(--color-content-primary);
     text-shadow: 0.3px 0.3px 0 var(--game-panel-title-shadow);
-    scale: 0.947 0.947;
     transform-origin: left center;
     white-space: nowrap;
     -unity-text-align: middle-left;
+    --game-panel-title-shift-x: var(--title-shift-x);
+    --game-panel-title-scale-x: var(--title-scale-x);
+    --game-panel-title-scale-y: var(--title-scale-y);
+}
+
+/* 副次アクションは題の行の右端へ。行の固定高と題の transform に影響させない */
+/* The title action hugs the row's right end without touching the fixed height or the title's transform */
+.game-panel__title-action {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    translate: 0 -50%;
 }
 
 .game-panel__deco-line {
+    display: none;
     height: 2px;
     margin: 4px 0;
+}
+
+.game-panel--titled > .game-panel__deco-line {
+    display: flex;
 }
 
 /* 上線だけ 4 物理 px（1.565749px）上へ寄せ、ヘッダーのフローは保つ */
@@ -81,8 +157,8 @@
     min-height: 0;
 }
 
-/* 下部の三角 3 個の帯。本文の背後に置き、下端はパネルの外へ 7px はみ出す */
-/* Band of three bottom triangles behind the body; its bottom pokes 7px outside the panel */
+/* default だけの下部の三角 3 個の帯。本文の背後に置き、下端はパネルの外へ 7px はみ出す */
+/* Band of three bottom triangles (default only) behind the body; its bottom pokes 7px outside the panel */
 .game-panel__bottom-deco {
     position: absolute;
     right: 8%;

@@ -121,26 +121,40 @@ unityプレイ録画テスト（入力排他という実行時の挙動に触れ
 
 ## 6. feature/uitk 側で二重にならない取り込み方
 
-方針: 二重は **master を feature/uitk へ取り込むとき（albof.20 または週 1 回の取り込み）に解消する**。feature/uitk 側で事前に revert はしない（段階 1 のレビュー済みの形が正本で、master 版はその縮退版だから）。取り込みの解決表:
+方針: 二重は **master を feature/uitk へ取り込むとき（albof.20 または週 1 回の取り込み）に解消する**。feature/uitk 側で事前に revert はしない。ただし W0-cef の最終レビューで、バグ報告側（webUiHealth を確保時に読む・writer の ctor）は master の形が正になった（W0-cef done.md「integrator への依頼」）。入力排他・WebUiHost は feature の形（型名 `UiInputExclusivity`・UITK の命綱前提のコメント）を採る。
 
-| パス | 取り込み時の状態（推測。§3.1 の blob 方針を守った場合） | 解決 |
+I-weekly-1（2026-11-06、master 0e81bbe3c3 の取り込み）で当てた実測の解決表:
+
+| パス | 実測の状態 | 解決 |
 |---|---|---|
-| `WebUiHealth/IWebUiHealthProbe.cs`・`WebUiHealthReading.cs`・`FixedWebUiHealthProbe.cs`・各 `.meta`・フォルダ `.meta` | 同一 blob の add/add なので衝突しない | 何もしない |
-| `Health/WebUiHealthRecorder.cs`・`WebUiHealthProbe.cs`・`Boot/WebUiSilenceWatcher.cs` | add/add で中身が違い、衝突する | feature 側（`--theirs` ではなく `git checkout origin/feature/uitk -- …` 相当）を採る |
-| `Client.Input/WebUiInputExclusivity.cs` | master が変更、feature が削除（改名済み）で modify/delete の衝突 | 削除を採る（`git rm`）。ただし消す前に、master 版で足した W0-cef 計画 D-17（最後の受信時刻を `long?` で持ち、時刻 0 を未受信の印に使わない）を `UiInputExclusivity.cs` へ写す（feature 版が 0 を未受信の印にしていれば `long?` へ直す。lock の下で読み書きする形は master 版に合わせる）。それ以外の中身は `UiInputExclusivity.cs` にすでにある |
-| `WebSocketMessageDispatcher.cs`・`WebUiStartup.cs`・`WebUiCefNavigator.cs`・`BugReportManifest.cs`・`BugReportBundleWriter.cs`・`CrashBundleWriter.cs`・`PlaytestRecordRegistration.cs`・既存テストの ctor 行・`developer-report-interrupt.cs` | 同じ箇所を両方が変えていて衝突する。行がまったく同じなら自動で解ける | feature 側を採る（型名 `UiInputExclusivity`、ctor 3 引数、コメントは UITK の命綱前提） |
-| `MainGameModelRegistration.cs`（master が登録を追加）と `MainGameUiRegistration.cs`（feature が登録済み） | 衝突せずに**二重登録**になる（`Observable.Interval` が 2 本走る。害は無いが重複） | master の 1 行を残し、`MainGameUiRegistration.cs` の行を消す（agent 既定。master と feature の差を減らすため）。逆でもよいが、どちらか 1 本にする |
-| `Client.Tests/Input/WebUiInputExclusivityWebSilenceTest.cs`（master） | 衝突せずに残り、消えた型 `WebUiInputExclusivity` を参照して**コンパイルが落ちる** | master 版の「時刻 0 の受信も受信として扱う」ケース（W0-cef 計画 D-17）を、型名を `UiInputExclusivity` に直して feature の `Ui/Input/UiInputExclusivityWebSilenceTest.cs` へ移してから削除する（それ以外のケースは feature 版が上位互換） |
-| `Client.Tests/BugReport/Bundle/CrashBundleWebUiHealthTest.cs`（master）と `LastSession/CrashBundleWebUiHealthTest.cs`（feature） | 両方が残る。master 版は 4 引数の `Write` を呼ぶのでコンパイルが落ちる | feature の `LastSession/` 版を消し、master 版を `TestBugReportOutboxRoot.Directory` の 5 引数へ直す（feature 側の 10 ファイル違反も解ける） |
+| `WebUiHealth/IWebUiHealthProbe.cs`・フォルダ `.meta` | 同一 blob で衝突しない | 何もしない |
+| `WebUiHealth/WebUiHealthReading.cs` | add/add で衝突（master が `UnknownForPreviousSession` の注記と綴りのコメントを足した） | master 側を採る |
+| `BugReportBundleWriter.cs` | 衝突。master は ctor 1 引数（identity）で webUiHealth を `BugReportCapturedData.WebUiHealth` から写し、無ければ LogError＋欠損＋unknown | master の本文を採り、ctor は feature の outbox 根の注入と合わせて `(IPlaytestSessionIdentity, IBugReportOutboxRoot)` の 2 引数にする（probe の引数とフィールドを消す） |
+| `BugReportManifest.cs` | コメントだけ衝突 | master 側を採る |
+| `Capture/*`・`CrashBundleWriter.cs`・`UncollectedBugReportCaptureSources.cs`・テストの capture 偽物 | 自動で解ける | 何もしない |
+| `PlaytestRecordRegistration.cs` | 自動で解けるが `IWebUiHealthProbe` の登録が 2 行になる（feature は writer 用に全起動で、master は確保を集める起動だけ） | feature 側の行を消し、master の位置（確保を集める起動だけ）の 1 行にする |
+| `Health/WebUiHealthRecorder.cs` | add/add で衝突（master は `internal` 化） | `internal` は master を採る（`Client.Tests`・`Client.Starter` へは `InternalsVisibleTo` 済み）。CEF 復旧断念の LogError のコメントは feature（命綱前提）を採る |
+| `Health/WebUiHealthProbe.cs`・`WebSocketMessageDispatcher.cs`・`WebUiStartup.cs` | 衝突（型名・コメント） | feature 側を採る（型名 `UiInputExclusivity`） |
+| `Boot/WebUiSilenceWatcher.cs` | add/add で衝突（master は `Scheduler.MainThreadIgnoreTimeScale`） | master 側を採り、型名だけ `UiInputExclusivity` へ直す |
+| `Client.Input/WebUiInputExclusivity.cs` | modify/delete | 削除を採る（`git rm`）。D-17（受信時刻を `long?` で持ち時刻 0 も受信とする・秒数の算出と印の書き込みを 1 回の lock に収める）を `UiInputExclusivity.cs` へ写す。200 行に収めるため `InputSuppressionScope` を `InputSuppressionFilter.cs` へ移した |
+| `MainGameModelRegistration.cs` | コメントだけ衝突（feature はすでに master と同じ位置に登録し `MainGameUiRegistration.cs` には無い） | feature 側を採る。登録は 1 本のまま |
+| `Client.Tests/Input/WebUiInputExclusivityWebSilenceTest.cs`（master） | 衝突せずに残り、コンパイルが落ちる | 「時刻 0 の受信も受信として扱う」ケースを `Ui/Input/UiInputExclusivityWebSilenceTest.cs` へ移して削除 |
+| `Client.Tests/WebUiHost/Transport/WebSocketMessageReceiptRecordTest.cs`（master の新規） | 衝突せずに入り、`WebUiInputExclusivity` を参照してコンパイルが落ちる | 型名を `UiInputExclusivity` へ直す |
+| `Client.Tests/BugReport/Bundle/FixedWebUiHealthProbe.cs`（feature だけ） | master で消えた | 削除する |
+| `Client.Tests/BugReport/Bundle/WebUiHealthManifestTest.cs` | add/add で衝突 | master 側を採り、writer の ctor に `new TestBugReportOutboxRoot()` を足す |
+| `BugReportBundleWriterIdentityTest.cs`・`DeveloperReportRealReceiverCheck.cs`・`Ui/State/PauseMenuCommandsTestFactory.cs` | 衝突（ctor 行） | master の確保データ（`WebUiHealth = new WebUiHealthReading()`）を採り、ctor は `(identity, new TestBugReportOutboxRoot())` |
+| `Client.Tests/BugReport/Bundle/CrashBundleWebUiHealthTest.cs`（master）と `LastSession/` 版（feature） | 両方残る | feature の `LastSession/` 版を消し、master 版を `TestBugReportOutboxRoot.Directory` の 5 引数へ直す |
+| シナリオ `developer-report-interrupt.cs` | 衝突（ctor 行）＋ master が足した待ちの行が `WebUiInputExclusivity` を参照 | master 側を採り、ctor に `new GameSystemBugReportOutboxRoot()` を足し、型名を `UiInputExclusivity` へ直す |
+| `localizationKeys.ts`・`Client.Localization/_CompileRequester.cs` | 生成物の衝突 | `node scripts/generate-localization-keys.mjs` で再生成。印は feature 側を採る |
 | `scripts/playtest/dashboard/*`・ADR 0057 | master だけが変える | そのまま入る |
 
 取り込み後の機械検査（取り込みの PR のタスクに入れる）:
-- `git grep -n "WebUiInputExclusivity" -- moorestech_client .agents` が 0 件
-- `git grep -c "RegisterEntryPoint<WebUiSilenceWatcher>"` の合計が 1
-- `git grep -n "class CrashBundleWebUiHealthTest\|class .*WebSilenceTest"` が各 1 件
+- `git grep -n "WebUiInputExclusivity" -- moorestech_client .agents` が、過去 PR のレビュー fixture（`.agents/skills/moores-code-review/tests/s5_shape/fixtures/pr-1457-*.md`。文書で、取り込み前から feature にある）を除いて 0 件
+- `git grep -c "RegisterEntryPoint<WebUiSilenceWatcher>" -- moorestech_client` の合計が 1
+- `git grep -n "class CrashBundleWebUiHealthTest\|class .*WebSilenceTest" -- moorestech_client` が各 1 件
 - `UiInputExclusivityWebSilenceTest` のケース数が取り込み前の feature 版より 1 件多く（時刻 0 のケース）、`git grep -n "long? \|long?>" -- moorestech_client/Assets/Scripts/Client.Input/UiInputExclusivity.cs` で最後の受信時刻が `long?` である
 - `uloop compile` が通り、§5 のフィルタのテストが緑
-- 台帳 `docs/uitk/TODO.md` の追従記録: この取り込みの差分には Web（`moorestech_web/`）の変更が無いので G1 の対象外（`check-uitk-web-follow.py` で件数 0 を確かめる）
+- 台帳 `docs/uitk/TODO.md` の追従記録: `check-uitk-web-follow.py --base origin/feature/uitk --head HEAD` で未記帳 0 件（I-weekly-1 では #1582 の `localizationKeys.ts` 再生成 1 件を記帳した）
 
 切替の日（撤去 5a）: `WebUiHealth/`・`Health/`・`WebUiSilenceWatcher`・`EvaluateWebSilence` 系・manifest の `webUiHealth` が一緒に消える（plan §3.11）。manifest から欄を消すときは v7 へ上げる（agent 既定。ADR 0057 の契約変更の作法）。
 
@@ -150,7 +164,7 @@ unityプレイ録画テスト（入力排他という実行時の挙動に触れ
 - **CEF のタイマー間引き（推測）**: Chromium は非表示のページで `setInterval` を間引くことがある。オフスクリーン描画の CEF でゲームウィンドウがフォーカスを失ったとき、ping 間隔が 15 秒を超えると、誤って「無応答」の印が立つおそれがある。印が立っても Web 側の抑止値を無視するだけで、Esc と移動が効くようになる方向（fail-open）なので、害は小さい。LogWarning が出るので気づける。実測していない
 - `CefProcessState` は「生死」ではなく「観測を始め、喪失通知が来ていない」ことを表す（D-3 の改名理由）。plan §3.11 の「CEF プロセスの生存」という言い方は manifest の値とずれているので、計画の文言を `observedAfterBrowserStart` に合わせる
 - §3.3 の読み手の対応（ダッシュボードへの表示）は agent 既定で、裁定は無い。表示しない選択肢もある（manifest.json を直接読めば足りる）
-- 取り込み時の衝突の形（§6 の 2 列目）は、blob 方針を守ったときの推測。実際の `git merge` は試していない（この worktree ではブランチ操作が禁止のため）
+- 取り込み時の衝突の形（§6 の 2 列目）は I-weekly-1 の実際の `git merge` で実測した値に置き換えた
 
 ## 8. 計画への反映案（レーンの形）
 

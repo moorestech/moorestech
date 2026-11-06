@@ -1,10 +1,10 @@
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Panels;
-using Client.Ui.Foundation.Theme;
+using Client.Ui.State.Text;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -13,15 +13,13 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
-    /// GamePanelを本番テーマで確かめる（L1）
-    /// Verifies GamePanel under the production theme (L1)
+    /// GamePanel（default）の構造・題・副次アクション・本文の寸法を本番テーマのパネルで確かめる（L1）
+    /// Verifies GamePanel (default) structure, title, title action and body size on a panel with the production theme (L1)
     /// </summary>
     public class GamePanelTest : UiTestHost
     {
-        private const string TokensPath = "Assets/Scripts/Client.Ui/Foundation/Theme/Tokens.uss";
-
-        // Web .panel の左右 padding
-        // Left and right padding of Web .panel
+        // Web の .panel の padding: 8px 10px 10px 28px の左右
+        // Left and right of the Web .panel padding: 8px 10px 10px 28px
         private const float WebHorizontalPadding = 28f + 10f;
 
         private GamePanel _panel;
@@ -29,68 +27,106 @@ namespace Client.Tests.Ui.Components.Panels
         [SetUp]
         public void AddPanel()
         {
-            _panel = new GamePanel();
+            // 題の文を解くため辞書を用意する（単独実行でも未初期化にしない）
+            // Prepare the dictionary to resolve titles, even when the test runs alone
+            Localize.Initialize();
+            _panel = new GamePanel("test-game-panel", GamePanelFrame.Default);
             _panel.style.width = 400;
             _panel.style.height = 300;
             rootVisualElement.Add(_panel);
         }
 
         [Test]
-        public void AddedChildGoesIntoBody()
+        public void 名前はtestidで本文に足した子は本文の箱に入る()
         {
             var child = new Label("body");
             _panel.Add(child);
-            // parent は contentContainer の持ち主（GamePanel）を返すので、物理の親を見る
-            // parent returns the contentContainer owner (GamePanel), so check the physical parent
+            Assert.AreEqual("test-game-panel", _panel.name);
+            // parent は contentContainer の持ち主を返すので、物理の親を見る
+            // parent returns the contentContainer owner, so check the physical parent
             Assert.IsTrue(child.hierarchy.parent.ClassListContains("game-panel__body"));
         }
 
         [Test]
-        public void TitleRowAndRulesAppearOnlyAfterSetTitle()
+        public void SetTitleまでは題の行と罫線を隠し付けると出す()
         {
             simulate.FrameUpdate();
-            var hidden = TitleRowElements();
-            Assert.IsTrue(hidden.All(element => element.resolvedStyle.display == DisplayStyle.None));
+            Assert.IsTrue(TitleRowElements().All(element => element.resolvedStyle.display == DisplayStyle.None));
 
-            _panel.SetTitle(new Label("ポーズ"));
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.PauseMenu.Title));
             simulate.FrameUpdate();
+            Assert.IsTrue(_panel.ClassListContains("game-panel--titled"));
             Assert.IsTrue(TitleRowElements().All(element => element.resolvedStyle.display == DisplayStyle.Flex));
-            Assert.AreEqual("ポーズ", _panel.Q<Label>(className: "game-panel__title").text);
         }
 
         [Test]
-        public void FaceReadsEdgeFadeFromTokens()
+        public void 題は渡したUiTextの文を出し2回目は差し替える()
         {
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.PauseMenu.Title));
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
             simulate.FrameUpdate();
-            var expected = float.Parse(ReadTokenBody("--panel-edge-fade").Replace("px", ""), CultureInfo.InvariantCulture);
-            var face = _panel.Q(className: "game-panel__face");
-            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(face.customStyle, "--game-panel-edge-fade", out var pixels));
-            Assert.AreEqual(expected, pixels, 0.0001f);
+            var titles = _panel.Query<Label>(className: "game-panel__title").ToList();
+            Assert.AreEqual(1, titles.Count);
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.Inventory.Title).Resolve(), titles[0].text);
         }
 
         [Test]
-        public void DecorationsIgnorePicking()
+        public void 副次アクションは題の行の右端で上下中央に寄る()
         {
-            Assert.AreEqual(PickingMode.Ignore, _panel.Q(className: "game-panel__face").pickingMode);
-            Assert.AreEqual(PickingMode.Ignore, _panel.Q(className: "game-panel__bottom-deco").pickingMode);
+            var action = SizedAction("test-title-action");
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
+            _panel.SetTitleAction(action);
+            simulate.FrameUpdate();
+            var header = _panel.Q(className: "game-panel__header");
+            Assert.AreEqual(header.worldBound.xMax, action.worldBound.xMax, 1f);
+            Assert.AreEqual(header.worldBound.center.y, action.worldBound.center.y, 1f);
         }
 
         [Test]
-        public void BodyTakesPanelWidthMinusWebPadding()
+        public void 副次アクションを2回渡すと前の要素を外す()
         {
-            _panel.SetTitle(new Label("ポーズ"));
+            var first = SizedAction("test-title-action-1");
+            var second = SizedAction("test-title-action-2");
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
+            _panel.SetTitleAction(first);
+            _panel.SetTitleAction(second);
+            Assert.IsNull(first.parent);
+            Assert.IsTrue(second.parent.ClassListContains("game-panel__title-action"));
+        }
+
+        [Test]
+        public void 題の無いパネルに副次アクションを渡すとエラーを出して載せない()
+        {
+            var action = SizedAction("test-title-action");
+            LogAssert.Expect(LogType.Error, new Regex("SetTitleAction は SetTitle の後に呼ぶ"));
+            _panel.SetTitleAction(action);
+            Assert.IsNull(action.parent);
+        }
+
+        [Test]
+        public void 面と三角と罫線は拾わない()
+        {
+            foreach (var className in new[] { "game-panel__face", "game-panel__bottom-deco", "game-panel__deco-line--top", "game-panel__deco-line--bottom" })
+            {
+                Assert.AreEqual(PickingMode.Ignore, _panel.Q(className: className).pickingMode, className);
+            }
+        }
+
+        [Test]
+        public void 本文の幅はパネル幅からWebの左右paddingを引いた値()
+        {
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.PauseMenu.Title));
             _panel.Add(new Label("line 1"));
             simulate.FrameUpdate();
             var body = _panel.Q(className: "game-panel__body");
-            Assert.Greater(body.layout.width, 0f);
             Assert.AreEqual(_panel.layout.width - WebHorizontalPadding, body.layout.width, 1f);
             Assert.Greater(body.layout.height, 0f);
         }
 
         [Test]
-        public void DrawingRaisesNoErrors()
+        public void 描画でエラーを出さない()
         {
-            _panel.SetTitle(new Label("ポーズ"));
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.PauseMenu.Title));
             _panel.Add(new Label("line 1"));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
@@ -107,12 +143,12 @@ namespace Client.Tests.Ui.Components.Panels
             };
         }
 
-        private static string ReadTokenBody(string tokenName)
+        private static VisualElement SizedAction(string testid)
         {
-            var text = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Application.dataPath), TokensPath));
-            var match = Regex.Match(text, Regex.Escape(tokenName) + @":\s*([^;]+);");
-            Assert.IsTrue(match.Success, tokenName);
-            return Regex.Replace(match.Groups[1].Value, @"/\*.*?\*/", "").Trim();
+            var action = new VisualElement { name = testid };
+            action.style.width = 40;
+            action.style.height = 12;
+            return action;
         }
     }
 }

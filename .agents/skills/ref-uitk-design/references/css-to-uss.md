@@ -58,7 +58,7 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 | CSS | 描き方 | 前例 |
 |---|---|---|
 | `linear-gradient`（面の縦フェード）と `mask`（4 辺のフェード） | 頂点カラーの格子（4×4 頂点・3×3 セル）。端の頂点の α を 0 にする | `GamePanelFace` |
-| 横の `linear-gradient`（罫線） | Painter2D の線に `Gradient`（停止位置は Web の % を逐語で） | `GamePanelDecoLine` |
+| 横の `linear-gradient`（罫線） | Painter2D の線に `Gradient`（停止位置は Web の % を逐語で） | `FadeGradientRule` |
 | 三角・矢印・SVG の `path` | Painter2D の `MoveTo`/`LineTo`/`Fill` | `GamePanelBottomDeco`・`ProgressArrowGlyph`〔C4-b〕 |
 | `box-shadow`（外側のにじみ） | 面の外周に、内側の α から外側の 0 へ落ちる頂点カラーの帯を張る | —（GamePanel の外周の影は Web でも出ないので描かない。設計書 [A-22]） |
 | `box-shadow: inset` 2 層（ベベル） | border の入れ子（子要素 2 つに border を 1 本ずつ） | `SlotFrame`〔C3-a〕 |
@@ -127,4 +127,4 @@ public sealed class ExampleDecoration : VisualElement
 ```
 
 - 名前（`ExampleDecoration`・`--example-decoration-color`）は写す部品のものに置き換える
-- 実在の型は `S/Client.Ui/Components/Panels/GamePanel/GamePanelBottomDeco.cs`（三角）・`GamePanelDecoLine.cs`（横グラデ）・`GamePanelFace.cs`（頂点カラーの格子）を開いて合わせる
+- 実在の型は `S/Client.Ui/Components/Panels/GamePanel/GamePanelBottomDeco.cs`（三角）・`FadeGradientRule.cs`（横グラデ）・`GamePanelFace.cs`（頂点カラーの格子）を開いて合わせる
