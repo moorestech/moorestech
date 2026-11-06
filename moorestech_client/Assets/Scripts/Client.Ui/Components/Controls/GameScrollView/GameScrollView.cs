@@ -51,6 +51,8 @@ namespace Client.Ui.Components.Controls
             // 読めないときは UssCustomStyleReader が LogError を出し、バーは Theme.uss の既定の幅のまま
             // When unreadable, UssCustomStyleReader logs an error and the bar keeps the Theme.uss default width
             if (!UssCustomStyleReader.TryReadPixels(customStyle, ScrollbarSizeProperty, out var size)) return;
+            // 内側の余白はレイアウトで整数 px に丸まる（look-exception: LX-42）
+            // The padding snaps to whole px in layout (look-exception: LX-42)
             var padding = size * ScrollbarPaddingRatio;
             verticalScroller.style.width = size;
             verticalScroller.style.paddingLeft = padding;

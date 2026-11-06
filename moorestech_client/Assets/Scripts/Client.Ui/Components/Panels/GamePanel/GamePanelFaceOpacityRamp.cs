@@ -23,6 +23,8 @@ namespace Client.Ui.Components.Panels
     {
         // S7 の α 補正の指数（暗い色の半透明）。生成器 translucency.mjs の darkExponent と同じ値にする
         // Exponent of the S7 alpha correction for dark translucency; keep it equal to darkExponent in the generator translucency.mjs
+        // 1 つの指数では地の明るさごとの差が残る（look-exception: LX-43）
+        // One exponent leaves a per-backdrop residual (look-exception: LX-43)
         private const float LinearBlendExponent = 1.85f;
 
         public static float VertexAlpha(float faceAlpha, float x, float y, float width, float height, float sideFade, float topFade, float bottomFade)
