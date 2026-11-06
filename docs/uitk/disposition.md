@@ -4,4 +4,4 @@
 
 | 束 | Web のファイル | Web のテスト名 | 処遇 | 証跡のパスか理由 | PR |
 |---|---|---|---|---|---|
-| 4 | `src/shared/itemMove/planDirectMoves.test.ts` | maxStack 不明時（マスタ未ロード）は同種探索をスキップし空スロットのみ使う | 捨てる | UITK はマスタを同期で持ち、スタック上限は `IItemStackLevelLookup.GetMaxStack` で常に引ける。Web の「マスタ未ロード（HTTP 取得前）」の状態が UITK に無い（設計書 [A-13] の ConnectingPlaceholder と同じ理由）。L0-s4a 判断記録 D-5 | L0-s4a |
+| 4 | `src/shared/itemMove/planDirectMoves.test.ts` | maxStack 不明時（マスタ未ロード）は同種探索をスキップし空スロットのみ使う | 捨てる | UITK はマスタを同期で持ち、スタック上限は `IItemStackLevelLookup.GetMaxStack` で常に引ける。Web の「マスタ未ロード（HTTP 取得前）」の状態が UITK に無い（設計書 [A-13] の ConnectingPlaceholder と同じ理由）。L0-s4a 判断記録 D-5 | #1598 |
