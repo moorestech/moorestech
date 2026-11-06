@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -12,6 +13,11 @@ namespace Client.Input
         private static PlayableInputManager playable;
         private static UIInputManager ui;
         private static MoorestechInputSettings _instance;
+        private static readonly Subject<bool> CursorLockChangedSubject = new();
+
+        // カーソルロックが変わった時に、新しいロック状態（true=ロック）を書き換えた後で流す
+        // Publishes the new lock state (true = locked) after writing it, whenever the cursor lock changes
+        public static IObservable<bool> OnCursorLockChanged => CursorLockChangedSubject;
         public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
         public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
         public static UIInputManager UI => ui ??= new UIInputManager(Instance);
@@ -34,8 +40,14 @@ namespace Client.Input
             // The cursor freezes while locked, so every lock path centers it first to match the crosshair
             if (!isVisible) WarpMouseCursorToScreenCenter();
 
+            var wasLocked = Cursor.lockState == CursorLockMode.Locked;
             Cursor.visible = isVisible;
             Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
+
+            // 同じ状態の再指定では流さない
+            // Re-applying the same state does not publish
+            var isLocked = !isVisible;
+            if (wasLocked != isLocked) CursorLockChangedSubject.OnNext(isLocked);
         }
 
         public static void WarpMouseCursorToScreenCenter()

@@ -30,6 +30,8 @@ namespace Client.Starter.Registration
             // Screen registration section: add one call per line
             PauseMenuGameUiRegistration.Register(builder);
             ToastGameUiRegistration.Register(builder);
+            ModeHudGameUiRegistration.Register(builder);
+            CursorTooltipGameUiRegistration.Register(builder);
         }
     }
 }
