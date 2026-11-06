@@ -13,7 +13,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         public void エントリの無いカテゴリを除き定義順のカテゴリ群を返す()
         {
             var groups = BuildMenuGrouping.Group(Categories, Entries);
-            CollectionAssert.AreEqual(new[] { Mining, Logistics }, groups.Select(g => g.CategoryGuid));
+            CollectionAssert.AreEqual(new[] { BuildMenuTestEntries.Mining, Logistics }, groups.Select(g => g.CategoryGuid));
         }
 
         /// <web-test file="src/features/buildMenu/logic/buildMenuGrouping.test.ts">各カテゴリ内はサブカテゴリ定義順で空サブカテゴリを除外する</web-test>
@@ -73,7 +73,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         {
             // 小文字化を落とすと iron が Iron Chest に一致せず検出漏れになる
             // Dropping the lower-casing would make "iron" miss "Iron Chest"
-            var english = new[] { Entry("70000000-0000-4000-8000-000000000003", Mining, MinerSub, "Iron Chest") };
+            var english = new[] { Entry("70000000-0000-4000-8000-000000000003", BuildMenuTestEntries.Mining, MinerSub, "Iron Chest") };
             CollectionAssert.AreEqual(new[] { "Iron Chest" }, BuildMenuGrouping.Search("iron", english).Select(e => e.DisplayLabel));
         }
 
@@ -96,7 +96,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         public void 絞り込んでから群にするとヒットの無いカテゴリが消える()
         {
             var groups = BuildMenuGrouping.Group(Categories, BuildMenuGrouping.Search("鉄", Entries));
-            CollectionAssert.AreEqual(new[] { Mining }, groups.Select(g => g.CategoryGuid));
+            CollectionAssert.AreEqual(new[] { BuildMenuTestEntries.Mining }, groups.Select(g => g.CategoryGuid));
         }
     }
 }

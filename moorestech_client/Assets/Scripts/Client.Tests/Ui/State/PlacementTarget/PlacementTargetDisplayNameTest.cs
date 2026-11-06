@@ -3,6 +3,7 @@ using System.IO;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.Localization;
 using Client.Localization;
+using Core.Master;
 using Game.Blueprint;
 using Mod.Loader;
 using Mooresmaster.Localization.Generated;

@@ -31,13 +31,13 @@ namespace Client.Tests.Ui.State.BuildMenu
         [Test]
         public void 足りない素材が無ければ不足の行は空()
         {
-            var entry = new BuildMenuCatalogEntry(Guid.NewGuid(), Mining, MinerSub, "x", new[] { Enough }, false);
+            var entry = new BuildMenuCatalogEntry(Guid.NewGuid(), BuildMenuTestEntries.Mining, MinerSub, "x", new[] { Enough }, false);
             Assert.AreEqual(0, BuildMenuShortage.InsufficientItems(entry).Count);
         }
 
         private static BuildMenuCatalogEntry EntryWith(bool paymentWaived)
         {
-            return new BuildMenuCatalogEntry(Guid.NewGuid(), Mining, MinerSub, "x", new[] { Lacking, Enough }, paymentWaived);
+            return new BuildMenuCatalogEntry(Guid.NewGuid(), BuildMenuTestEntries.Mining, MinerSub, "x", new[] { Lacking, Enough }, paymentWaived);
         }
     }
 }
