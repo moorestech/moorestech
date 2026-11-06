@@ -53,3 +53,7 @@
 | 1 | `src/features/settings/LanguageSelect.test.ts` | 一覧が届くまでは辞書非依存リテラルの読み込み中を出しModeSwitchを描かない | 捨てる | UITK の言語一覧は LanguageCatalog の静的な表で、配信待ちの状態が無い | #1596 |
 | 1 | `src/features/settings/SprintModeSelect.test.ts` | holdの初期表示からtoggleを選択できる | 写す予定 | moorestech-albof.21（hold で開いた画面から toggle を押して SetSprintInputMode(Toggle) が出ることを見るテストが無い） | #1596 |
 | 1 | `src/features/settings/SprintModeSelect.test.ts` | topic未着では選択を描かない | 捨てる | UITK の SettingsModel は生成時に設定値を同期で持ち、topic 未着の状態が無い | #1596 |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | blockInventoryレイヤーのEscapeでGameScreen遷移を要求する | 捨てる | UITK では UIState（`SubInventoryState` の `CloseUI`）が ESC で閉じる。Web は CEF がキーを取るために持つ判断（L0-s4b D-7） | — |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | modalレイヤーではEscapeでも遷移を要求しない | 捨てる | 同上。モーダル上の ESC は UIState の遷移規則が持つ（L0-s4b D-7） | — |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | gameレイヤーではEscapeでも遷移を要求しない | 捨てる | 同上（L0-s4b D-7） | — |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | blockInventoryレイヤーでもEscape以外では遷移を要求しない | 捨てる | 同上。テキスト欄フォーカス中の ESC は albof.12（L0-s4b D-7） | — |
