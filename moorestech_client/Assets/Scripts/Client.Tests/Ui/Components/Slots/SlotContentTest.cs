@@ -1,0 +1,110 @@
+using Client.Tests.Ui.TestHost;
+using Client.Ui.Components.Slots;
+using Client.Ui.Foundation.Icons;
+using Client.Ui.Foundation.Text;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine.TestTools;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Components.Slots
+{
+    /// <summary>
+    /// SlotContent のアイコンの余白と個数の位置・書体を既定とつまみの上書きで確かめる（L1）
+    /// Verifies SlotContent icon padding and count placement and type with defaults and knob overrides (L1)
+    /// </summary>
+    public class SlotContentTest : UiTestHost
+    {
+        private const string KnobPath = "Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss";
+
+        [TearDown]
+        public void NoUnexpectedLogs()
+        {
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void アイコンは枠いっぱいでicon_padの余白を取る()
+        {
+            var (frame, content) = Mount(null);
+            content.SetIcon(SlotTestIcons.WithTexture("1", "Iron"), GameIconFallback.IdText);
+            simulate.FrameUpdate();
+
+            var icon = content.Q(className: "slot-content__icon");
+            Assert.AreEqual(frame.layout.width, icon.layout.width, 0.5f);
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--icon-pad"), icon.resolvedStyle.paddingLeft, 0.01f);
+            Assert.AreEqual(PickingMode.Ignore, content.pickingMode);
+        }
+
+        [Test]
+        public void 祖先でicon_padを上書きすると余白が変わる()
+        {
+            var (_, content) = Mount("slot-knob-recipe-box");
+            content.SetIcon(SlotTestIcons.WithTexture("1", "Iron"), GameIconFallback.IdText);
+            simulate.FrameUpdate();
+
+            Assert.AreEqual(1f, content.Q(className: "slot-content__icon").resolvedStyle.paddingBottom, 0.01f);
+        }
+
+        [Test]
+        public void 個数は千区切りでMediumの右下に白い縁で出る()
+        {
+            var (frame, content) = Mount(null);
+            content.SetCount(1500);
+            simulate.FrameUpdate();
+
+            var count = content.Q<Label>(className: "slot-content__count");
+            Assert.AreEqual("1,500", count.text);
+            Assert.IsTrue(count.ClassListContains(UiTypographyClass.TextMedium));
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--count-font-size"), count.resolvedStyle.fontSize, 0.01f);
+            Assert.AreEqual(frame.layout.height - ThemeTokenFile.ResolvePixels("--count-bottom"), count.layout.yMax, 0.5f);
+            Assert.AreEqual(frame.layout.width - 2f, count.layout.xMax, 0.5f);
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), count.resolvedStyle.color, "count");
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--icon-text-stroke-width"), count.resolvedStyle.unityTextOutlineWidth, 0.01f);
+        }
+
+        [Test]
+        public void 祖先のつまみで個数の位置と大きさと字間が変わる()
+        {
+            var (frame, content) = Mount("slot-knob-item-list");
+            content.SetCount(12);
+            simulate.FrameUpdate();
+
+            var count = content.Q<Label>(className: "slot-content__count");
+            Assert.AreEqual(46.144f, frame.layout.width, 0.5f);
+            Assert.AreEqual(16f, count.resolvedStyle.fontSize, 0.01f);
+            Assert.AreEqual(frame.layout.height + 1f, count.layout.yMax, 0.5f);
+            Assert.AreEqual(12f, count.resolvedStyle.letterSpacing, 0.01f);
+        }
+
+        [Test]
+        public void 個数を消すと隠れる()
+        {
+            var (_, content) = Mount(null);
+            content.SetCount(3);
+            content.ClearCount();
+            simulate.FrameUpdate();
+
+            Assert.AreEqual(DisplayStyle.None, content.Q(className: "slot-content__count").resolvedStyle.display);
+        }
+
+        private (SlotFrame frame, SlotContent content) Mount(string knobClass)
+        {
+            var screen = new VisualElement();
+            if (knobClass != null)
+            {
+                var knobs = AssetDatabase.LoadAssetAtPath<StyleSheet>(KnobPath);
+                Assert.IsNotNull(knobs, KnobPath);
+                screen.styleSheets.Add(knobs);
+                screen.AddToClassList(knobClass);
+            }
+            var frame = new SlotFrame("slot");
+            var content = new SlotContent();
+            frame.Add(content);
+            screen.Add(frame);
+            rootVisualElement.Add(screen);
+            simulate.FrameUpdate();
+            return (frame, content);
+        }
+    }
+}

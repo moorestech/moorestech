@@ -1,0 +1,38 @@
+/* web: moorestech_web/webui/src/shared/ui/slotContent.module.css の .icon・.count と app/tokens.css の .iconTextOutlineLight を写す。line-height: 1 は Label の高さを字の大きさにそろえて写す */
+/* web: copies .icon and .count in moorestech_web/webui/src/shared/ui/slotContent.module.css and .iconTextOutlineLight in app/tokens.css; line-height: 1 maps to a Label as tall as the font size */
+.slot-content {
+    flex-grow: 1;
+}
+
+/* 絵は GameIcon の子が描くので、余白はこの包みに付けて絵を内側へ縮める */
+/* The picture is GameIcon's child, so the padding sits on this wrapper and shrinks the picture inward */
+.slot-content__icon {
+    width: 100%;
+    height: 100%;
+    padding-left: var(--icon-pad);
+    padding-top: var(--icon-pad);
+    padding-right: var(--icon-pad);
+    padding-bottom: var(--icon-pad);
+}
+
+.slot-content__count {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 2px;
+    bottom: var(--count-bottom);
+    height: var(--count-font-size);
+    margin: 0;
+    padding: 0;
+    font-size: var(--count-font-size);
+    letter-spacing: var(--count-letter-spacing);
+    color: var(--count-text);
+    -unity-text-align: lower-right;
+    white-space: nowrap;
+    -unity-text-outline-width: var(--icon-text-stroke-width);
+    -unity-text-outline-color: var(--icon-text-stroke-light);
+}
+
+.slot-content--counted > .slot-content__count {
+    display: flex;
+}
