@@ -76,6 +76,8 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | `FluidSlotRow` | 液体スロットの列＋進捗矢印 | `FluidSlotRow(string testid)`／`SetFluids(IReadOnlyList<FluidSlotContent> fluids)`／`SetProgress(float ratio01)`／`ClearProgress()` | — | blockInventory | C4-a | `W/shared/ui/FluidSlotRow` | 新規 |
 | `SlotAmountFormat`（static。`Client.Ui.State/Text/SlotAmountFormat.cs`） | 量の短縮表記 | `static string Format(double amount)` | — | research・blockInventory・液体スロット・素材ツールチップ | L0-s3 が作る（`slotAmountFormat.test.ts` 7 件も L0-s3）。C3-a は使うだけ `[A-19]` | `W/shared/ui/slotAmountFormat.ts` | 新規 |
 
+世界の上に直に置く画面（ホットバー）は、画面ルートで `--slot-frame-face` を世界の地向けの値に上書きし、opacity の減光も Linear 合成で淡く出る分を補正する。値はランタイムの PanelSettings に明るい地・暗い地を描いて Web と画素で照合して決める `[A-108]`。
+
 ## 4 操作部品族（`Components/Controls/`）
 
 | 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
@@ -122,6 +124,9 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | `LevelInheritanceBadge` | `Components/Recipe/` | `LevelInheritanceBadge()`／`SetBadge(LevelInheritanceBadgeContent content)` | 同上 | C4-c | `W/features/recipe/views/LevelInheritanceBadge.tsx` |
 | インベントリの列数 | トークン `--inventory-columns`（既存）を `UssCustomStyleReader` で読む | — | inventory・blockInventory | C4（画面） | `W/features/inventory/inventoryGridColumns.ts` |
 | ドラッグ源 | Foundation `UiDragDrop` | `UiDragDrop.MarkSource(VisualElement source, IUiDragPayload payload)`／`MarkTarget(VisualElement target, IUiDropTarget handler)`／`UnmarkTarget`／`TryFindTarget`。`IUiDragPayload { OnTapped(); OnDropped(IUiDropTarget); OnDroppedOutside(); }`。ゴーストは出さない `[A-78]` | hotbar・buildMenu | C3-b | `W/features/hotbar/useHotbarDragSource.ts` |
+| 配置対象の絵の出どころ | `Client.Ui.State/PlacementTarget/`（ID だけの判別 union と解き方）・`Client.Ui/Content/PlacementTargetIcons`（値への変換） | `PlacementTargetIcon`（`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`。値で等価）／`PlacementTargetIconResolver.Resolve(IPlacementTarget, IBlueprintThumbnailLookup)`／`PlacementTargetIcons.TryToUiIcon(PlacementTargetIcon, out UiIcon)`（名前だけ・絵の欠けは偽。面へ当てる分岐は画面が持つ） `[A-100]` | buildMenu・hotbar | S3-buildmenu（S3-hotbar-modal は使うだけ） | Web の橋 `BuildMenuEntryDtoFactory.ResolveIconUrl`（`HotbarTopic` も使う） |
+| ホットバーへの落としの受け口 | `Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver` | `void Receive(HotbarDragSource source)`（`IUiDropTarget` は継がない。ホットバーの枠の印が両方を実装し、断る理由のログは受け手）。源は落とし先がこれなら `Receive` を呼び、そうでなければ枠外と同じ扱い `[A-100]`・`[A-105]` | buildMenu（源）・hotbar（受け手） | S3-buildmenu が作り S3-hotbar-modal が実装する | `W/features/hotbar/useHotbarDragSource.ts` |
+| ホイール素通しの印 | Foundation `Input/WheelPassthroughMark` | Web の `data-wheel-passthrough` の写し。読む側（印の上のホイールをゲームへ素通す）は S4-inventory `[A-109]` | hotbar・inventory（装備） | S3-hotbar-modal | `W/shared/uiState/activeLayer.ts`・`HotbarPanel`・`EquipmentPanel` |
 | ノードグラフ | `Components/NodeGraph/` | `NodeGraphView(string testid)`／`SetGraph(NodeGraphContent)`／`CenterOn(string nodeKey)`／`IObservable<string> OnNodeTapped`（パン・ズーム・慣性は中で `UiPressGesture` と `UiInertiaAnimation`） | research（段階 4）・challenge（段階 5） | C4-d | `W/shared/treeView`・§8.5 |
 
 **1 feature だけが使うもの（`Screens/<機能>/` に置く）**: 通知の行（notification）、チュートリアルの枠とラベル・ドラッグガイド（tutorial）、ワールドピン、スキットの選択肢の板（並び・印・押下。面は `GamePanelSurface` の種別 `skit-choice` `[A-84]`）・ツールバーのアイコン群、削除モードの斜線帯（modeHud。plan §3.4 は段階 2 の部品に挙げるが使い手は 1 つ）、クロスヘア、`LackHighlightText`・`BlockItemGrid`・`details/rows/*`（blockInventory 内で共有）、`GrabOverlay`（inventory。描く層は Foundation の Grab）、全画面ゲートの外殻（eventLanguageGate）、研究ノードカード、チャレンジノードカード、画面の幕とヴィネット（`Screens/Shell/`。`ScreenBackdropPresenter` が `UiRoutingState` を購読し `UiScreenTraitsTable.Get(..).Backdrop` で幕 `name="screen-backdrop"`〈Web `rgb(0 0 0 / 42%)`。α は §3.1 の半透明の規則で補正〉を `UiLayer.Backdrop` の Viewport 族へ出し入れする。四辺の放射状のヴィネット〈`--screen-vignette-*`〉は同じ族の最背面に常時置き、頂点カラーで描く。Web `W/app/App.tsx:95-96`・`App.module.css:3-18,72-78`。S2-hud `[A-44]`）。2 機能目が現れたら §5.1 で昇格する。
@@ -139,7 +144,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | `shared/tutorialAnchor` | Foundation `Anchor/`（既存） | 済み |
 | `shared/uiScale` | Foundation `Stage/`（PanelSettings の倍率で置き換え、`--ui-scale` 相当は不要。Web で倍率を掛けない Portal〈Mantine Modal・eventLanguageGate〉だけは `UiScreenPixelScope` で倍率を打ち消す `[A-41]`） | F1（打ち消しは C3-b） |
 | `shared/uiState` | `Client.Ui.State/Routing/`（既存） | 済み |
-| `shared/placementTarget` | `Client.Ui.State/PlacementTarget/` | 3 |
+| `shared/placementTarget` | `Client.Ui.State/PlacementTarget/`（配置対象の絵の出どころ `PlacementTargetIcon`・`PlacementTargetIconResolver` は S3-buildmenu `[A-100]`） | 3 |
 | `shared/i18n` | `Localize`＋Foundation `Text/` | 済み |
 
 
