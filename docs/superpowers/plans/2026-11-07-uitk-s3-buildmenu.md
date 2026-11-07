@@ -167,8 +167,8 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 
 ## 設計検査記録
 
-- 配置検査: 未実施
-- Phase 2.6: 未実施
+- 配置検査: 実施済み / 違反4件・修正4件 / Content を値だけに・State から絵を外し ID の union へ・Screens から Game.PlacementTarget を外す・受け口を void Receive に
+- Phase 2.6: 実施済み / 強2・弱6・第3バケツ5 / 1 セット設置を union に・共有の置き場の出所を §5.1-1 へ、弱は判定の重複を 1 本に・空の表示名を LogError
 
 ## 死活表（Phase 2.5）
 
@@ -185,6 +185,11 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | 錨 `build-menu.entry-*` のチュートリアル強調 | S2-tutorial のマージ後に生きる | このレーンは `TutorialAnchor.Mark` で名前を付けるだけ。`TutorialAnchorCoveragePending.cs` に build menu の行があれば同じ PR で消す（Task 6 Step 6・Task 13 Step 2） |
 | 検索欄の入力中にゲームのキー（B で閉じる等）が動かない | C2-b の `GameTextField` のフォーカス中の入力遮断に依る | 確かめるのは S3-ladder（L1）。このレーンの録画は検索欄へ英字を打たず、L1 は `SetValueWithoutNotify`＋`OnValueChanged` で流す |
 | 録画 `building/blueprint-place-like-block` の BP 名入力（`modal-input`） | S3-hotbar-modal のマージまで死ぬ | BP 名のモーダルは S3-hotbar-modal の持ち物（W3 の順でこのレーンの後）。扱いは D-18 |
+| プレイテスト DSL の UI 経路（`p.ClickBuildMenuBlock`・`PlaytestBuildMenuOps` が待つ testid） | 生きる（確かめる） | DSL が待つ id は `build-menu-entry-<kind>-<TargetId>`。`BuildMenuEntrySlot.TestIdOf` の `TargetId` は配置対象の `Id`（Block は `BlockGuid`）と同値なので、DSL がマスタから引く Guid と一致する。Task 1 Step 1 で `PlaytestBuildMenuOps` の待つ id の組み立てを読んで照合し、録画 `misc/webui-buildmenu-click`・`uitk/uitk-build-menu` が通しで見る |
+| 開いたままの言語切替 | 生きる | Model が `Localize.OnLanguageChanged` で開いている間に VM を組み直し（Task 3）、見出しは `UiText`・ツールチップは組み直しで張り替わる（D-15）。L1 は持たず、Task 10 の撮影の後に言語を戻す操作で目視 |
+| パネルの上のホイールがカメラのズームへ漏れない | 生きる（C3-b・C2-b の入力の裁きに依る） | GameUi の入力の裁き（パネルの上のポインタはゲームのホイールを止める）に依る。このレーンは `GameScrollView` がホイールを受けることだけを使う。録画 `uitk/uitk-build-menu` の末尾ジャンプの後の手のスクロールで、カメラが動かないことを目視し `done.md` に書く |
+| 詳細の列の必要素材（`ItemSlot`）のツールチップ | 生きる | `ItemSlotShortage` に `MaterialTooltipText` を渡す（Task 6）。L1 は `BuildMenuDetailViewTest`（R-8） |
+| カテゴリ押下のジャンプ・スクロールスパイ・検索・閉じて開き直す復元 | 生きる | L1 の `BuildMenuScrollViewTest`・`BuildMenuSearchViewTest`・`BuildMenuRestoreTest`（R-3〜R-9）と録画 `uitk/uitk-build-menu` |
 
 ---
 
@@ -194,12 +199,12 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 |---|---|---|
 | `S/Client.Ui.State/BuildMenu/Entries/BuildMenuViewModel.cs` | 不変の ViewModel（カテゴリの並び・エントリの列・id 引き） | 新規 |
 | `S/Client.Ui.State/BuildMenu/Entries/BuildMenuEntryViewModel.cs` | エントリ 1 件（`Catalog`・`Kind`・`Icon`・`SetPlacement`・`Materials`） | 新規 |
-| `S/Client.Ui.State/BuildMenu/Entries/BuildMenuMaterialRow.cs` | 必要素材 1 行（`ItemId` と `BuildMenuRequiredItem`） | 新規 |
-| `S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs` | 配置対象の絵の出どころの判別 union（`PlacementTargetBlockIcon`・`PlacementTargetTextureIcon`・`PlacementTargetNameOnlyIcon`。値の等価）。最終の置き場・持ち主はこのレーン、S3-hotbar-modal は使うだけ | 新規 |
+| `S/Client.Ui.State/BuildMenu/Entries/BuildMenuMaterialRow.cs` | 必要素材 1 行（`ItemId` と `BuildMenuRequiredItem`）と、VM が不足を 1 回だけ判定した `BuildMenuMaterialLine` | 新規 |
+| `S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs` | 配置対象の絵の出どころの判別 union（ID だけ: Block・TrainCar・ConnectTool・撮影済み Blueprint・NameOnly。値の等価）。最終の置き場・持ち主はこのレーン | 新規 |
 | `S/Client.Ui.State/PlacementTarget/PlacementTargetIconResolver.cs` | 対象 → `PlacementTargetIcon`（橋 `ResolveIconUrl` の写し）。最終の置き場 | 新規 |
-| `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs` | ホットバーへの落としの受け口（`TryReceive(HotbarDragSource)`）。このレーンが作るのはこの 1 本、S3-hotbar-modal は枠の印で実装する | 新規 |
-| `S/Client.Ui/Content/PlacementTargetIcons.cs` | `PlacementTargetIcon` を面へ当てる `Apply`・詳細用の `TryToUiIcon`（null を返さない）。最終の置き場 | 新規 |
-| `S/Client.Ui.State/BuildMenu/Entries/BuildMenuSetPlacement.cs` | 1 セット設置の有無を型で持つ（`None`・`Of(perCost, remaining)`） | 新規 |
+| `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs` | ホットバーへの落としの受け口（`Receive(HotbarDragSource)`）。このレーンが作るのはこの 1 本、S3-hotbar-modal は枠の印で実装する | 新規 |
+| `S/Client.Ui/Content/PlacementTargetIcons.cs` | 絵の出どころ → `UiIcon` の値（DI の Singleton。面へ当てる分岐は Screens）。最終の置き場 | 新規 |
+| `S/Client.Ui.State/BuildMenu/Entries/BuildMenuSetPlacement.cs` | 1 セット設置の判別 union（`None`・`BuildMenuSetPlacementAvailable(perCost, remaining)`） | 新規 |
 | `S/Client.Ui.State/BuildMenu/Entries/BuildMenuEntryKindName.cs` | 種別 → Web の kind 文字列（testid・錨） | 新規 |
 | `S/Client.Ui.State/BuildMenu/Entries/BuildMenuShownList.cs` | 合成の結果（出す群・サイドバーの項目・該当なし） | 新規 |
 | `S/Client.Ui.State/BuildMenu/Entries/BuildMenuShownListComposer.cs` | VM と検索語から `BuildMenuShownList` を作る純関数 | 新規 |
@@ -228,8 +233,11 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `S/Client.Ui/Screens/BuildMenu/Parts/BuildMenuDetailSidebar.cs` | 詳細の sticky（ヒント・アイコン・名前・素材・残り） | 新規 |
 | `S/Client.Ui/Screens/BuildMenu/Parts/BuildMenuEntryDragPayload.cs` | `IUiDragPayload`（タップ＝選択・落としは `IHotbarDropReceiver` へ、それ以外は枠の外と同じく何もしない） | 新規 |
 | `S/Client.Ui/Screens/BuildMenu/Parts/IBuildMenuEntryHandler.cs` | マスから View への操作の口（選択・削除・ホバー） | 新規 |
-| `S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs` | Store・Model・Commands・Presenter の登録 | 新規 |
+| `S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs` | Store・Model・Commands・`PlacementTargetIcons`・Presenter の登録 | 新規 |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | 画面登録区画に 1 行 | 変更（共有区画） |
+| `S/Client.Starter/Registration/MainGameInteractionRegistration.cs` | `ClientBlueprintLibrary` の行に `.As<IBlueprintDeleteService>()` を 1 つ | 変更（共有ファイルの 1 行の追記） |
+| `S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs` | `TrainCarTexture`・`ConnectToolTexture` の 2 メソッド | 変更（C3-a のファイルへのこのレーンの追記。W3 に並走の持ち主なし） |
+| `S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` | 同じ 2 メソッド（`block` のテクスチャを返す） | 変更（同上） |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | `Screens` 区画に `@import` 1 行 | 変更（共有区画） |
 | `S/Client.Tests/Ui/State/BuildMenu/BuildMenuShownListComposerTest.cs` | 合成の L0 | 新規 |
 | `S/Client.Tests/Ui/State/BuildMenu/BuildMenuEntryFactoryTest.cs` | 種別・カテゴリ対・アイコン・1 セット設置・免除（テスト mod） | 新規 |
@@ -335,7 +343,7 @@ mkdir -p ../moorestech_logs/harness/uitk/S3-buildmenu
 ## 差の表
 ## 要裁定
 ## integrator への依頼
-- 作った・持ち主は S3-buildmenu: 落としの受け口 `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（`bool TryReceive(HotbarDragSource source)`）。`BuildMenuEntryDragPayload.OnDropped` は `target is IHotbarDropReceiver` なら `TryReceive` を呼んで終わり（断った理由のログは受け手）、それ以外は枠の外と同じく何もしない。S3-hotbar-modal は枠の印の型で `IUiDropTarget` と `IHotbarDropReceiver` を両方実装するだけ（D-16）
+- 作った・持ち主は S3-buildmenu: 落としの受け口 `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（`void Receive(HotbarDragSource source)`）。`BuildMenuEntryDragPayload.OnDropped` は `target is IHotbarDropReceiver` なら `Receive` を呼んで終わり（断った理由のログは受け手）、それ以外は枠の外と同じく何もしない。S3-hotbar-modal は枠の印の型で `IUiDropTarget` と `IHotbarDropReceiver` を両方実装するだけ（D-16）
 - 作った・持ち主は S3-buildmenu: 配置対象の絵の出どころ `S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs`・`PlacementTargetIconResolver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`。S3-hotbar-modal は使うだけ（D-29）
 - 設計書へ足す行の案（A-100〜A-104・§2・§4.1・A-47 の改め）: 判断記録の D-5・D-7・D-8・D-10・D-16・D-29 を元にした案を計画の「設計書へ足す行の案」に置いた
 ## 未確認
@@ -355,10 +363,10 @@ Expected: bd の ID が出る。以後 `<bd>` をその ID で読む
 - Consumes: L0-s3 の `BuildMenuCatalogEntry`・`BuildMenuRequiredItem`・`BuildMenuCategory`・`BuildMenuGrouping`
 - Produces:
   - `namespace Client.Ui.State.BuildMenu.Entries { public sealed class BuildMenuViewModel { public static readonly BuildMenuViewModel Empty; public BuildMenuViewModel(IReadOnlyList<BuildMenuCategory> categories, IReadOnlyDictionary<Guid, UiText> headingNames, IReadOnlyList<BuildMenuEntryViewModel> entries); public IReadOnlyList<BuildMenuCategory> Categories { get; } public IReadOnlyList<BuildMenuEntryViewModel> Entries { get; } public IReadOnlyList<BuildMenuCatalogEntry> CatalogEntries { get; } public UiText HeadingNameOf(Guid categoryOrSubCategoryGuid); public bool TryGetEntry(Guid targetId, out BuildMenuEntryViewModel entry); } }`（`headingNames` はカテゴリとサブカテゴリの Guid → 名前。Model はコンテンツ辞書キー、L1 は逐語の名前を入れる。D-2`
-  - `public sealed class BuildMenuEntryViewModel { public BuildMenuEntryViewModel(Guid targetId, PlacementTargetKind kind, Guid categoryGuid, Guid subCategoryGuid, string displayLabel, IReadOnlyList<BuildMenuMaterialRow> materials, bool paymentWaived, PlacementTargetIcon icon, BuildMenuSetPlacement setPlacement); public BuildMenuCatalogEntry Catalog { get; } public PlacementTargetKind Kind { get; } public IReadOnlyList<BuildMenuMaterialRow> Materials { get; } public PlacementTargetIcon Icon { get; } public BuildMenuSetPlacement SetPlacement { get; } }`
+  - `public sealed class BuildMenuEntryViewModel { public BuildMenuEntryViewModel(Guid targetId, PlacementTargetKind kind, Guid categoryGuid, Guid subCategoryGuid, string displayLabel, IReadOnlyList<BuildMenuMaterialRow> materials, bool paymentWaived, PlacementTargetIcon icon, BuildMenuSetPlacement setPlacement); public BuildMenuCatalogEntry Catalog { get; } public PlacementTargetKind Kind { get; } public string KindName { get; } public bool CanDeleteBlueprint { get; } public IReadOnlyList<BuildMenuMaterialLine> Materials { get; } public PlacementTargetIcon Icon { get; } public BuildMenuSetPlacement SetPlacement { get; } }`
   - `public sealed class BuildMenuMaterialRow { public BuildMenuMaterialRow(ItemId itemId, BuildMenuRequiredItem item); public ItemId ItemId { get; } public BuildMenuRequiredItem Item { get; } }`
-  - `namespace Client.Ui.State.PlacementTarget { public abstract class PlacementTargetIcon }`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTextureIcon(Texture2D)`・`PlacementTargetNameOnlyIcon.Instance`（Block と Texture は値の等価 `Equals`・`GetHashCode`。持ち主はこのレーン、S3-hotbar-modal は使うだけ）
-  - `public sealed class BuildMenuSetPlacement { public static readonly BuildMenuSetPlacement None; public static BuildMenuSetPlacement Of(int perCost, int remaining); public bool HasValue { get; } public int PerCost { get; } public int Remaining { get; } }`
+  - `namespace Client.Ui.State.PlacementTarget { public abstract class PlacementTargetIcon }`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`（ID だけ・値の等価。持ち主はこのレーン、S3-hotbar-modal は使うだけ）
+  - `public abstract class BuildMenuSetPlacement { public static readonly BuildMenuSetPlacement None; }`・`public sealed class BuildMenuSetPlacementAvailable : BuildMenuSetPlacement { public BuildMenuSetPlacementAvailable(int perCost, int remaining); public int PerCost { get; } public int Remaining { get; } }`（判別 union。Factory だけが Block のとき作る）
   - `public static class BuildMenuEntryKindName { public static string Of(PlacementTargetKind kind); }`
   - `public sealed class BuildMenuShownList { public IReadOnlyList<BuildMenuCategoryGroup> Groups { get; } public IReadOnlyList<Guid> SidebarCategories { get; } public bool IsCategoryEnabled(Guid categoryGuid); public bool ShowsNoResults { get; } public IReadOnlyList<Guid> ShownCategoryGuids { get; } }`
   - `public static class BuildMenuShownListComposer { public static BuildMenuShownList Compose(BuildMenuViewModel viewModel, string query); }`
@@ -370,6 +378,9 @@ Expected: bd の ID が出る。以後 `<bd>` をその ID で読む
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
+using Client.Tests.Ui.Content;
+using Client.Ui.Content;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Logic;
 using Client.Ui.State.PlacementTarget;
@@ -454,16 +465,16 @@ Expected: `BuildMenuShownListComposer` 等が無いコンパイルエラー（CS
 
 - [ ] **Step 3: 型を書く**
 
-`S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs`（配置対象の絵の出どころ。ビルドメニューとホットバーが使う最終の置き場。持ち主はこのレーン。判別 union を 1 ファイルに置く。前例 `HotbarDropAction.cs`）:
+`S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs`（配置対象の絵の出どころ。ビルドメニューとホットバーが使う最終の置き場。持ち主はこのレーン。State は Texture2D とアイコンの容器を持たず ID だけを持つ。判別 union を 1 ファイルに置く。前例 `HotbarDropAction.cs`）:
 ```csharp
+using System;
 using Core.Master;
-using UnityEngine;
 
 namespace Client.Ui.State.PlacementTarget
 {
     /// <summary>
-    /// 配置対象の絵の出どころ。State は UiIcon を作れないので、Client.Ui の PlacementTargetIcons が絵へ直す
-    /// Where a placement target's picture comes from; State cannot build a UiIcon, so Client.Ui PlacementTargetIcons turns it into one
+    /// 配置対象の絵の出どころ（ID だけ）。絵は Client.Ui の PlacementTargetIcons が引く
+    /// Where a placement target's picture comes from (IDs only); Client.Ui PlacementTargetIcons looks the picture up
     /// </summary>
     public abstract class PlacementTargetIcon
     {
@@ -472,8 +483,6 @@ namespace Client.Ui.State.PlacementTarget
         }
     }
 
-    // ブロックの絵（GameContentPresentation.Block で引く）。同じブロックなら等しい
-    // A block picture (looked up through GameContentPresentation.Block); equal for the same block
     public sealed class PlacementTargetBlockIcon : PlacementTargetIcon
     {
         public BlockId BlockId { get; }
@@ -487,22 +496,48 @@ namespace Client.Ui.State.PlacementTarget
         public override int GetHashCode() => BlockId.GetHashCode();
     }
 
-    // 車両・接続ツール・撮影済み BP の絵（Web の橋が配る URL の中身と同じテクスチャ）。同じテクスチャなら等しい
-    // Train car, connect tool and captured blueprint pictures (the texture behind the Web bridge URL); equal for the same texture
-    public sealed class PlacementTargetTextureIcon : PlacementTargetIcon
+    public sealed class PlacementTargetTrainCarIcon : PlacementTargetIcon
     {
-        public Texture2D Texture { get; }
+        public Guid TrainCarGuid { get; }
 
-        public PlacementTargetTextureIcon(Texture2D texture)
+        public PlacementTargetTrainCarIcon(Guid trainCarGuid)
         {
-            Texture = texture;
+            TrainCarGuid = trainCarGuid;
         }
 
-        public override bool Equals(object obj) => obj is PlacementTargetTextureIcon other && ReferenceEquals(other.Texture, Texture);
-        public override int GetHashCode() => Texture.GetInstanceID();
+        public override bool Equals(object obj) => obj is PlacementTargetTrainCarIcon other && other.TrainCarGuid == TrainCarGuid;
+        public override int GetHashCode() => TrainCarGuid.GetHashCode();
     }
 
-    // 絵が無く名前で描く（Web の iconUrl = null。未撮影の BP・BP コピー・絵の無い mod の対象）。1 つしか無いので参照の等価が値の等価
+    public sealed class PlacementTargetConnectToolIcon : PlacementTargetIcon
+    {
+        public Guid ConnectToolGuid { get; }
+
+        public PlacementTargetConnectToolIcon(Guid connectToolGuid)
+        {
+            ConnectToolGuid = connectToolGuid;
+        }
+
+        public override bool Equals(object obj) => obj is PlacementTargetConnectToolIcon other && other.ConnectToolGuid == ConnectToolGuid;
+        public override int GetHashCode() => ConnectToolGuid.GetHashCode();
+    }
+
+    // 撮影済みの BP だけ（未撮影は NameOnly）
+    // Captured blueprints only (uncaptured ones are NameOnly)
+    public sealed class PlacementTargetBlueprintIcon : PlacementTargetIcon
+    {
+        public Guid BlueprintGuid { get; }
+
+        public PlacementTargetBlueprintIcon(Guid blueprintGuid)
+        {
+            BlueprintGuid = blueprintGuid;
+        }
+
+        public override bool Equals(object obj) => obj is PlacementTargetBlueprintIcon other && other.BlueprintGuid == BlueprintGuid;
+        public override int GetHashCode() => BlueprintGuid.GetHashCode();
+    }
+
+    // 絵が無く名前で描く（Web の iconUrl = null。未撮影の BP・BP コピー）。1 つしか無いので参照の等価が値の等価
     // No picture, drawn by name (Web iconUrl = null); a singleton, so reference equality is value equality
     public sealed class PlacementTargetNameOnlyIcon : PlacementTargetIcon
     {
@@ -515,32 +550,36 @@ namespace Client.Ui.State.PlacementTarget
 }
 ```
 
-`BuildMenuSetPlacement.cs`:
+`BuildMenuSetPlacement.cs`（判別 union。Factory だけが Block のとき `Available` を作る）:
 ```csharp
 namespace Client.Ui.State.BuildMenu.Entries
 {
     /// <summary>
-    /// 1 コストで複数個置けるブロックの、1 セットの個数と残り設置数。無いことは None で表す
-    /// Pieces per cost and remaining placements for blocks placed in sets; absence is None
+    /// 1 コストで複数個置けるブロックの 1 セット設置。無いことは None で表す
+    /// Set placement for blocks placed several per cost; absence is None
     /// </summary>
-    public sealed class BuildMenuSetPlacement
+    public abstract class BuildMenuSetPlacement
     {
-        public static readonly BuildMenuSetPlacement None = new(false, 0, 0);
+        public static readonly BuildMenuSetPlacement None = new BuildMenuSetPlacementNone();
 
-        public bool HasValue { get; }
+        private protected BuildMenuSetPlacement()
+        {
+        }
+
+        private sealed class BuildMenuSetPlacementNone : BuildMenuSetPlacement
+        {
+        }
+    }
+
+    public sealed class BuildMenuSetPlacementAvailable : BuildMenuSetPlacement
+    {
         public int PerCost { get; }
         public int Remaining { get; }
 
-        private BuildMenuSetPlacement(bool hasValue, int perCost, int remaining)
+        public BuildMenuSetPlacementAvailable(int perCost, int remaining)
         {
-            HasValue = hasValue;
             PerCost = perCost;
             Remaining = remaining;
-        }
-
-        public static BuildMenuSetPlacement Of(int perCost, int remaining)
-        {
-            return new BuildMenuSetPlacement(true, perCost, remaining);
         }
     }
 }
@@ -568,6 +607,22 @@ namespace Client.Ui.State.BuildMenu.Entries
             Item = item;
         }
     }
+
+    // VM が持つ素材の行。不足は VM の ctor で 1 回だけ判定し、ツールチップと詳細はこの値を読む
+    // A material line held by the VM; shortage is judged once in the VM ctor and the tooltip and detail read this value
+    public sealed class BuildMenuMaterialLine
+    {
+        public ItemId ItemId { get; }
+        public BuildMenuRequiredItem Item { get; }
+        public bool IsInsufficient { get; }
+
+        public BuildMenuMaterialLine(BuildMenuMaterialRow row, bool isInsufficient)
+        {
+            ItemId = row.ItemId;
+            Item = row.Item;
+            IsInsufficient = isInsufficient;
+        }
+    }
 }
 ```
 
@@ -590,7 +645,9 @@ namespace Client.Ui.State.BuildMenu.Entries
     {
         public BuildMenuCatalogEntry Catalog { get; }
         public PlacementTargetKind Kind { get; }
-        public IReadOnlyList<BuildMenuMaterialRow> Materials { get; }
+        public string KindName { get; }
+        public bool CanDeleteBlueprint { get; }
+        public IReadOnlyList<BuildMenuMaterialLine> Materials { get; }
         public PlacementTargetIcon Icon { get; }
         public BuildMenuSetPlacement SetPlacement { get; }
 
@@ -600,7 +657,12 @@ namespace Client.Ui.State.BuildMenu.Entries
             // Required items are copied from a single list into Catalog, never held twice
             Catalog = new BuildMenuCatalogEntry(targetId, categoryGuid, subCategoryGuid, displayLabel, materials.Select(row => row.Item).ToList(), paymentWaived);
             Kind = kind;
-            Materials = materials;
+
+            // Screens が Game.PlacementTarget を見ずに済むよう、testid の種別名と BP 削除の可否をここで決める
+            // Decide the testid kind name and blueprint deletability here so Screens never look at Game.PlacementTarget
+            KindName = BuildMenuEntryKindName.Of(kind);
+            CanDeleteBlueprint = kind == PlacementTargetKind.Blueprint;
+            Materials = materials.Select(row => new BuildMenuMaterialLine(row, BuildMenuShortage.IsItemInsufficient(Catalog, row.Item))).ToList();
             Icon = icon;
             SetPlacement = setPlacement;
         }
@@ -782,7 +844,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Consumes: 「Model の源」、Task 2 の型、前例 `S/Client.Tests/WebUi/BuildMenuEntryDtoFactoryTest.cs`（テスト mod の立て方・`BlueprintLookupStub`・`BeltConveyorPlacementUnlockSourceMap`）
 - Produces:
   - `namespace Client.Ui.State.BuildMenu.Source { public static class BuildMenuEntryFactory { public static IReadOnlyList<BuildMenuEntryViewModel> CreateEntries(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems, IBlueprintThumbnailLookup thumbnails); public static IReadOnlyList<BuildMenuCategory> CreateCategories(); public static IReadOnlyDictionary<Guid, UiText> CreateHeadingNames(); } }`
-  - `namespace Client.Ui.State.PlacementTarget { public static class PlacementTargetIconResolver { public static PlacementTargetIcon Resolve(IPlacementTarget target, IBlueprintThumbnailLookup thumbnails); } }`（mod の絵が欠けたら名前で描く）
+  - `namespace Client.Ui.State.PlacementTarget { public static class PlacementTargetIconResolver { public static PlacementTargetIcon Resolve(IPlacementTarget target, IBlueprintThumbnailLookup thumbnails); } }`（BP の撮影済みかだけを thumbnails で見る）
   - `public sealed class BuildMenuModel : IInitializable, IDisposable { public BuildMenuModel(UIStateControl uiStateControl, PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, LocalPlayerInventoryController inventoryController, ClientBlueprintLibrary blueprintLibrary, IBlueprintThumbnailLookup thumbnails); public IReadOnlyReactiveProperty<BuildMenuViewModel> Current { get; } }`
 
 - [ ] **Step 1: 失敗するテストを書く（Web の橋と同じ値を出すことを突き合わせる）**
@@ -839,13 +901,13 @@ namespace Client.Tests.Ui.State.BuildMenu
                 Assert.AreEqual(dto.CategoryGuid, entry.Catalog.CategoryGuid.ToString("D"));
                 Assert.AreEqual(dto.SubCategoryGuid, entry.Catalog.SubCategoryGuid.ToString("D"));
                 Assert.AreEqual(dto.PaymentWaived, entry.Catalog.PaymentWaived);
-                Assert.AreEqual(dto.SetPlacement != null, entry.SetPlacement.HasValue, dto.Id);
+                Assert.AreEqual(dto.SetPlacement != null, entry.SetPlacement is BuildMenuSetPlacementAvailable, dto.Id);
                 CollectionAssert.AreEqual(dto.RequiredItems.Select(item => (item.ItemId, item.Count, item.Held, item.Lacking)), entry.Materials.Select(row => (row.ItemId.AsPrimitive(), row.Item.Count, row.Item.Held, row.Item.Lacking)), dto.Id);
             }
         }
 
         [Test]
-        public void 撮影済みBPだけテクスチャのアイコンを持ちBPコピーは名前で描く()
+        public void 撮影済みBPだけBPの絵を指しBPコピーは名前で描く()
         {
             var guid = Guid.NewGuid();
             var target = new BlueprintPlacementTarget(guid, "test", new BlueprintJsonObject());
@@ -853,7 +915,7 @@ namespace Client.Tests.Ui.State.BuildMenu
 
             Assert.AreSame(PlacementTargetNameOnlyIcon.Instance, PlacementTargetIconResolver.Resolve(target, thumbnails));
             thumbnails.Add(guid, Texture2D.whiteTexture);
-            Assert.AreSame(Texture2D.whiteTexture, ((PlacementTargetTextureIcon)PlacementTargetIconResolver.Resolve(target, thumbnails)).Texture);
+            Assert.AreEqual(new PlacementTargetBlueprintIcon(guid), PlacementTargetIconResolver.Resolve(target, thumbnails));
             Assert.AreSame(PlacementTargetNameOnlyIcon.Instance, PlacementTargetIconResolver.Resolve(new BlueprintCopyPlacementTarget(Guid.NewGuid()), thumbnails));
         }
 
@@ -874,8 +936,9 @@ namespace Client.Tests.Ui.State.BuildMenu
             // リストの差し替え判定（D-13）とホットバーの面の比較が作り直しのたびに別物と見なさないよう、値で等しい
             // Equal by value so the list's swap check (D-13) and the hotbar face comparison do not treat each rebuild as new
             Assert.AreEqual(new PlacementTargetBlockIcon(ForUnitTestModBlockId.BlockId), new PlacementTargetBlockIcon(ForUnitTestModBlockId.BlockId));
-            Assert.AreEqual(new PlacementTargetTextureIcon(Texture2D.whiteTexture), new PlacementTargetTextureIcon(Texture2D.whiteTexture));
-            Assert.AreNotEqual(new PlacementTargetTextureIcon(Texture2D.whiteTexture), new PlacementTargetTextureIcon(Texture2D.blackTexture));
+            var carGuid = Guid.NewGuid();
+            Assert.AreEqual(new PlacementTargetTrainCarIcon(carGuid), new PlacementTargetTrainCarIcon(carGuid));
+            Assert.AreNotEqual(new PlacementTargetTrainCarIcon(carGuid), new PlacementTargetConnectToolIcon(carGuid));
             Assert.AreNotEqual(PlacementTargetNameOnlyIcon.Instance, new PlacementTargetBlockIcon(ForUnitTestModBlockId.BlockId));
         }
 
@@ -945,49 +1008,32 @@ namespace Client.Ui.State.BuildMenu.Source
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Context;
-using UnityEngine;
 
 namespace Client.Ui.State.PlacementTarget
 {
     /// <summary>
-    /// 配置対象 → 絵の出どころ（Web の橋 ResolveIconUrl が指す絵と同じもの）
-    /// Placement target to picture source (the same picture the Web bridge ResolveIconUrl points at)
+    /// 配置対象 → 絵の出どころの ID（Web の橋 ResolveIconUrl が指す絵と同じもの）
+    /// Placement target to the picture-source ID (the same picture the Web bridge ResolveIconUrl points at)
     /// </summary>
     public static class PlacementTargetIconResolver
     {
         public static PlacementTargetIcon Resolve(IPlacementTarget target, IBlueprintThumbnailLookup thumbnails)
         {
-            switch (target)
+            return target switch
             {
-                case BlockPlacementTarget block:
-                    return new PlacementTargetBlockIcon(block.BlockId);
-                case TrainCarPlacementTarget trainCar:
-                    return FromTexture(ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid).ItemTexture);
-                case ConnectToolPlacementTarget connectTool:
-                    return FromTexture(ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid).ItemTexture);
-                case BlueprintPlacementTarget blueprint:
-                    // 未撮影の BP は名前で描く（Web の iconUrl = null）
-                    // An uncaptured blueprint is drawn by name (Web iconUrl = null)
-                    return thumbnails.TryGet(blueprint.BlueprintGuid, out var thumbnail) ? FromTexture(thumbnail) : PlacementTargetNameOnlyIcon.Instance;
-                case BlueprintCopyPlacementTarget:
-                    return PlacementTargetNameOnlyIcon.Instance;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(target), target, null);
-            }
-
-            #region Internal
-
-            // mod の絵はアセットのロード結果なので欠け得る。欠けたら名前で描く（Web の 404 → 名前と同じ見え方）
-            // Mod pictures are asset-load results and may be missing; a missing one is drawn by name (same as the Web 404 fallback)
-            PlacementTargetIcon FromTexture(Texture2D texture) => texture == null ? PlacementTargetNameOnlyIcon.Instance : new PlacementTargetTextureIcon(texture);
-
-            #endregion
+                BlockPlacementTarget block => new PlacementTargetBlockIcon(block.BlockId),
+                TrainCarPlacementTarget trainCar => new PlacementTargetTrainCarIcon(trainCar.TrainCarGuid),
+                ConnectToolPlacementTarget connectTool => new PlacementTargetConnectToolIcon(connectTool.ConnectToolGuid),
+                // 撮影済みかの判定だけに thumbnails を使う。未撮影は名前で描く（Web の iconUrl = null）
+                // thumbnails only answers whether it is captured; an uncaptured blueprint is drawn by name (Web iconUrl = null)
+                BlueprintPlacementTarget blueprint => thumbnails.Contains(blueprint.BlueprintGuid) ? new PlacementTargetBlueprintIcon(blueprint.BlueprintGuid) : PlacementTargetNameOnlyIcon.Instance,
+                BlueprintCopyPlacementTarget => PlacementTargetNameOnlyIcon.Instance,
+                _ => throw new ArgumentOutOfRangeException(nameof(target), target, null),
+            };
         }
     }
 }
 ```
-（`ClientContext.TrainCarImageContainer`・`ConnectToolImageContainer` の実物の名前は Task 3 Step 3 の前に `grep -n "TrainCarImageContainer\|ConnectToolImageContainer" moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientContext.cs` で確かめる）
 
 `BuildMenuMaterialRowsBuilder.cs`:
 ```csharp
@@ -1055,6 +1101,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Construction;
 using Mooresmaster.Localization.Generated;
+using UnityEngine;
 
 namespace Client.Ui.State.BuildMenu.Source
 {
@@ -1088,8 +1135,12 @@ namespace Client.Ui.State.BuildMenu.Source
 
                 // 1 セット設置は Block の財布の状態からだけ作る
                 // A set placement only comes from a block's wallet status
-                var setPlacement = walletStatus is { } status ? BuildMenuSetPlacement.Of(status.PlacementsPerCost, status.RemainingCount) : BuildMenuSetPlacement.None;
+                var setPlacement = walletStatus is { } status ? new BuildMenuSetPlacementAvailable(status.PlacementsPerCost, status.RemainingCount) : BuildMenuSetPlacement.None;
                 var icon = PlacementTargetIconResolver.Resolve(target, thumbnails);
+
+                // 表示名はマスタ由来で空にならない前提。空なら開発者へ知らせ、表示は Web と同じくそのまま（前例 ModeHudViewModelFactory）
+                // Display names come from the master and should never be empty; tell developers and display as is, like Web (precedent ModeHudViewModelFactory)
+                if (target.DisplayName.Length == 0) Debug.LogError($"[BuildMenu] empty DisplayName for placement target {target.Kind} {target.Id}");
                 return new BuildMenuEntryViewModel(target.Id, target.Kind, categoryGuid, subCategoryGuid, target.DisplayName, rows, paymentWaived, icon, setPlacement);
             }
 
@@ -1481,7 +1532,7 @@ namespace Client.Ui.State.BuildMenu.Commands
         {
             // メニューが先に閉じた・対象が消えた古いクリックは良性の拒否（トーストは Toaster が抑える）
             // Stale clicks after the menu closed or the target vanished are benign rejections (the toaster suppresses them)
-            if (_uiStateControl.CurrentState != UIStateEnum.BuildMenu) return new UiCommandRejected(UiCommandRejectReason.BuildMenuNotOpen, "");
+            if (!IsBuildMenuOpen()) return new UiCommandRejected(UiCommandRejectReason.BuildMenuNotOpen, "");
             if (!_placementTargetResolver.TryResolve(targetId, out var target)) return new UiCommandRejected(UiCommandRejectReason.UnknownBuildMenuEntry, "");
             _buildMenuSelection.SetSelectedTarget(target);
             return UiCommandAccepted.Instance;
@@ -1502,9 +1553,14 @@ namespace Client.Ui.State.BuildMenu.Commands
 
         public UiCommandResult Close()
         {
-            if (_uiStateControl.CurrentState != UIStateEnum.BuildMenu) return new UiCommandRejected(UiCommandRejectReason.BuildMenuNotOpen, "");
+            if (!IsBuildMenuOpen()) return new UiCommandRejected(UiCommandRejectReason.BuildMenuNotOpen, "");
             _uiStateControl.RequestTransition(UIStateEnum.GameScreen);
             return UiCommandAccepted.Instance;
+        }
+
+        private bool IsBuildMenuOpen()
+        {
+            return _uiStateControl.CurrentState == UIStateEnum.BuildMenu;
         }
     }
 }
@@ -1530,6 +1586,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Create: `S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`
+- Modify: `S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs`・`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs`（2 メソッドの追記）
 - Create: `S/Client.Ui/Screens/BuildMenu/Parts/IBuildMenuEntryHandler.cs`・`BuildMenuShortageTooltipText.cs`・`BuildMenuEntryDragPayload.cs`・`BuildMenuEntrySlot.cs`
 - Create: `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuSamples.cs`・`RecordingBuildMenuEntryHandler.cs`
 - Test: `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuSlotTooltipTest.cs`・`BuildMenuDragSourceTest.cs`
@@ -1538,9 +1595,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Consumes: Task 2 の型、C3-a の `SlotFrame`・`PlacementTargetFace`・`UiIcon`・`GameContentPresentation`、F1 の `HoverTooltipMark`、C3-b の `UiDragDrop`・`IUiDragPayload`、`TutorialAnchor`・`AnchorIds.BuildMenuEntry`、`MaterialTooltipText`、L0-s3 の `BuildMenuEntryDragSource`（`Client.Ui.State/Hotbar/Logic`）
 - Produces:
   - `namespace Client.Ui.Screens.BuildMenu.Parts { public interface IBuildMenuEntryHandler { void OnEntrySelected(Guid targetId); void OnBlueprintDeleteRequested(Guid targetId); void OnEntryHovered(Guid targetId); } }`
-  - `public sealed class BuildMenuEntrySlot { public const string EntryClass = "build-menu__entry"; public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, IBuildMenuEntryHandler handler); public SlotFrame Frame { get; } public Guid TargetId { get; } public void Render(BuildMenuEntryViewModel entry); public static string TestIdOf(BuildMenuEntryViewModel entry); }`
-  - `namespace Client.Ui.Content { public static class PlacementTargetIcons { public static void Apply(PlacementTargetFace face, PlacementTargetIcon icon, UiText displayName, GameContentPresentation content); public static bool TryToUiIcon(PlacementTargetIcon icon, GameContentPresentation content, out UiIcon uiIcon); } }`（null を返さない。NameOnly は `SetNameTarget`・`TryToUiIcon` は false。持ち主はこのレーン）
-  - `namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { bool TryReceive(HotbarDragSource source); } }`（S3-hotbar-modal が枠の印で `IUiDropTarget` と一緒に実装する）
+  - `public sealed class BuildMenuEntrySlot { public const string EntryClass = "build-menu__entry"; public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler); public SlotFrame Frame { get; } public Guid TargetId { get; } public void Render(BuildMenuEntryViewModel entry); public static string TestIdOf(BuildMenuEntryViewModel entry); }`
+  - `namespace Client.Ui.Content { public sealed class PlacementTargetIcons { public PlacementTargetIcons(GameContentPresentation content, IGameContentTextureSource textures, IBlueprintThumbnailLookup thumbnails); public bool TryToUiIcon(PlacementTargetIcon icon, out UiIcon uiIcon); } }`（値だけを返す。NameOnly と撮影の消えた BP で false。面へ当てる分岐は Screens）・`IGameContentTextureSource` に `Texture2D TrainCarTexture(Guid)`・`Texture2D ConnectToolTexture(Guid)`
+  - `namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { void Receive(HotbarDragSource source); } }`（S3-hotbar-modal が枠の印で `IUiDropTarget` と一緒に実装する）
   - `public static class BuildMenuShortageTooltipText { public static UiText Create(BuildMenuEntryViewModel entry, GameContentPresentation content); }`
   - `public sealed class BuildMenuEntryDragPayload : IUiDragPayload { public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler); public BuildMenuEntryDragSource Source { get; } }`
   - テスト補助 `BuildMenuSamples`（Task 6・7 も使う）: `public static readonly Guid Logistics, Transport, Blueprint, BuildingMaterials, EmptyCategory, Sub; public static readonly Guid WoodChest, IronChest, BeltConveyor, Rail, CargoCar, StarterBase; public static BuildMenuViewModel Create(); public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials); public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials, PlacementTargetIcon woodChestIcon); public static BuildMenuEntryViewModel Block(Guid id, Guid category, string label, IReadOnlyList<BuildMenuMaterialRow> materials, bool paymentWaived, BuildMenuSetPlacement setPlacement); public static BuildMenuMaterialRow Material(ItemId itemId, int count, int held);`
@@ -1606,7 +1663,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             {
                 new(WoodChest, PlacementTargetKind.Block, Logistics, Sub, "木のチェスト", materials, false, woodChestIcon, BuildMenuSetPlacement.None),
                 Block(IronChest, Logistics, "鉄のチェスト", Array.Empty<BuildMenuMaterialRow>(), false, BuildMenuSetPlacement.None),
-                Block(BeltConveyor, Logistics, "ベルトコンベア", materials, false, BuildMenuSetPlacement.Of(3, 2)),
+                Block(BeltConveyor, Logistics, "ベルトコンベア", materials, false, new BuildMenuSetPlacementAvailable(3, 2)),
                 Block(Rail, Transport, "鉄道レール", Array.Empty<BuildMenuMaterialRow>(), false, BuildMenuSetPlacement.None),
                 new(CargoCar, PlacementTargetKind.TrainCar, Transport, Sub, "貨車", Array.Empty<BuildMenuMaterialRow>(), false, PlacementTargetNameOnlyIcon.Instance, BuildMenuSetPlacement.None),
                 new(StarterBase, PlacementTargetKind.Blueprint, Blueprint, Sub, "スターター拠点", Array.Empty<BuildMenuMaterialRow>(), false, PlacementTargetNameOnlyIcon.Instance, BuildMenuSetPlacement.None),
@@ -1625,6 +1682,13 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             return new BuildMenuEntryViewModel(id, PlacementTargetKind.Block, category, Sub, label, materials, paymentWaived, PlacementTargetNameOnlyIcon.Instance, setPlacement);
         }
 
+        // 本番と同じ絵の引き方（テクスチャは白、撮影は空）
+        // Same picture lookup as production (white textures, no captures)
+        public static PlacementTargetIcons Icons(GameContentPresentation content)
+        {
+            return new PlacementTargetIcons(content, new FakeContentTextureSource(Texture2D.whiteTexture, Texture2D.whiteTexture, Texture2D.whiteTexture), new BlueprintThumbnailContainer());
+        }
+
         public static BuildMenuMaterialRow Material(ItemId itemId, int count, int held)
         {
             return new BuildMenuMaterialRow(itemId, new BuildMenuRequiredItem(Guid.NewGuid(), count, held, held < count));
@@ -1632,7 +1696,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
     }
 }
 ```
-（ブロックのアイコンを `PlacementTargetNameOnlyIcon` にして、L1 がマスタとテクスチャに頼らないようにする。木のチェストだけは中央寄せの L1 が `PlacementTargetTextureIcon(Texture2D.whiteTexture)` を渡せる。絵の経路は Task 3 の `BuildMenuEntryFactoryTest` と録画が持つ）
+（ブロックのアイコンを `PlacementTargetNameOnlyIcon` にして、L1 がマスタとテクスチャに頼らないようにする。木のチェストだけは中央寄せの L1 が `PlacementTargetBlockIcon(ForUnitTestModBlockId.BlockId)`〈白のテクスチャ〉を渡せる。絵の経路は Task 3 の `BuildMenuEntryFactoryTest` と録画が持つ）
 
 `Support/RecordingBuildMenuEntryHandler.cs`: `IBuildMenuEntryHandler` を実装し、`Selected`・`DeleteRequested`・`Hovered`（各 `List<Guid>`）へ積むだけの `internal sealed class`。
 
@@ -1712,7 +1776,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         private BuildMenuEntrySlot Mount(BuildMenuMaterialRow first, BuildMenuMaterialRow second, bool paymentWaived)
         {
             var entry = BuildMenuSamples.Block(Guid.NewGuid(), BuildMenuSamples.Logistics, "木のチェスト", new[] { first, second }, paymentWaived, BuildMenuSetPlacement.None);
-            var slot = new BuildMenuEntrySlot(entry, _content, new RecordingBuildMenuEntryHandler());
+            var slot = new BuildMenuEntrySlot(entry, _content, BuildMenuSamples.Icons(_content), new RecordingBuildMenuEntryHandler());
             rootVisualElement.Add(slot.Frame);
             simulate.FrameUpdate();
             return slot;
@@ -1726,8 +1790,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 - `左のタップは選択を要求する`: Block のマスを載せ、`UiDragDropTest` と同じ押下→解放（移動なし）を流す → `handler.Selected` が `[id]`、`DeleteRequested` が空
 - `BPの右押下だけ削除を要求する`: BP のマスと Block のマスに `SlotFrame` の右押下（`PointerDownEvent` の button 1。C3-a の `SlotFrameTest` の流し方を写す）→ `DeleteRequested` が BP の id だけ
 - `ホバーで詳細の対象を知らせる`: `PointerEnterEvent`（`SlotFrameTest` の HoverEnter の流し方）→ `Hovered` が `[id]`
-- `ホットバーの受け口へ落とすと源を1回渡す`: テストファイル内の `private sealed class RecordingHotbarReceiver : IUiDropTarget, IHotbarDropReceiver`（`List<HotbarDragSource> Received`・`TryReceive` は積んで、テストが決めた真偽を返す）へ `new BuildMenuEntryDragPayload(id, handler).OnDropped(receiver)` → `Received.Count == 1`・`((BuildMenuEntryDragSource)Received[0]).TargetId == id`・`LogAssert.NoUnexpectedReceived()`・`Selected` は空
-- `受け口でない落とし先と断られた落としは何もしない`: `private sealed class PlainTarget : IUiDropTarget` へ落とす → `Selected`・`DeleteRequested` が空、`LogAssert.NoUnexpectedReceived()`。`TryReceive` が false を返す受け口へ落とすと `TryReceive` が 1 回呼ばれ、源は何も足さない（断った理由のログは受け手が出す）
+- `ホットバーの受け口へ落とすと源を1回渡す`: テストファイル内の `private sealed class RecordingHotbarReceiver : IUiDropTarget, IHotbarDropReceiver`（`List<HotbarDragSource> Received`・`Receive` は積むだけ）へ `new BuildMenuEntryDragPayload(id, handler).OnDropped(receiver)` → `Received.Count == 1`・`((BuildMenuEntryDragSource)Received[0]).TargetId == id`・`LogAssert.NoUnexpectedReceived()`・`Selected` は空
+- `受け口でない落とし先と断られた落としは何もしない`: `private sealed class PlainTarget : IUiDropTarget` へ落とす → `Selected`・`DeleteRequested` が空、`LogAssert.NoUnexpectedReceived()`
 
 - [ ] **Step 3: テストが落ちることを確かめる**
 
@@ -1755,10 +1819,10 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 }
 ```
 
-`S/Client.Ui/Content/PlacementTargetIcons.cs`（最終の置き場。ホットバーの `PlacementTargetFace` も使う。持ち主はこのレーン。null を返さず、判別 union の分岐をここ 1 か所に閉じる）:
+`S/Client.Ui/Content/PlacementTargetIcons.cs`（最終の置き場。ホットバーも使う。持ち主はこのレーン。前例 `GameContentPresentation` と同じく値だけを返し、面へ当てる分岐は Screens が持つ。DI の Singleton）:
 ```csharp
 using System;
-using Client.Ui.Components.Slots;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Ui.Foundation.Icons;
 using Client.Ui.State.PlacementTarget;
 using Client.Ui.State.Text;
@@ -1766,53 +1830,79 @@ using Client.Ui.State.Text;
 namespace Client.Ui.Content
 {
     /// <summary>
-    /// 配置対象の絵の出どころ → 面の絵か名前（Block はコンテンツの表示素材、それ以外は配られたテクスチャ）
-    /// Placement-target picture source to a face picture or name (blocks use content presentation, the rest the delivered texture)
+    /// 配置対象の絵の出どころ → UiIcon（Block は表示素材、車両・接続ツールは素材の口、BP は撮影の口から引く）
+    /// Placement-target picture source to UiIcon (blocks via presentation, cars and connect tools via the texture source, blueprints via thumbnails)
     /// </summary>
-    public static class PlacementTargetIcons
+    public sealed class PlacementTargetIcons
     {
-        public static void Apply(PlacementTargetFace face, PlacementTargetIcon icon, UiText displayName, GameContentPresentation content)
+        private readonly GameContentPresentation _content;
+        private readonly IGameContentTextureSource _textures;
+        private readonly IBlueprintThumbnailLookup _thumbnails;
+
+        public PlacementTargetIcons(GameContentPresentation content, IGameContentTextureSource textures, IBlueprintThumbnailLookup thumbnails)
         {
-            if (TryToUiIcon(icon, content, out var uiIcon)) face.SetIconTarget(uiIcon, displayName);
-            else face.SetNameTarget(displayName);
+            _content = content;
+            _textures = textures;
+            _thumbnails = thumbnails;
         }
 
-        // 名前で描く対象（NameOnly）は false
-        // False for targets drawn by name (NameOnly)
-        public static bool TryToUiIcon(PlacementTargetIcon icon, GameContentPresentation content, out UiIcon uiIcon)
+        // 名前で描く対象（NameOnly）と、描く間に撮影が消えた BP は false。テクスチャの欠けは null のまま渡し、面が名前で描く
+        // False for NameOnly and for a blueprint whose capture vanished; a missing texture passes as null and the face draws the name
+        public bool TryToUiIcon(PlacementTargetIcon icon, out UiIcon uiIcon)
         {
-            switch (icon)
+            uiIcon = icon switch
             {
-                case PlacementTargetBlockIcon block:
-                    uiIcon = content.Block(block.BlockId);
-                    return true;
-                case PlacementTargetTextureIcon texture:
-                    // 名前は面と詳細が別に描くので、絵の代わりの文字は持たせない
-                    // The face and detail draw the name themselves, so no fallback text is carried
-                    uiIcon = new UiIcon(texture.Texture, texture.Texture.name, UiText.FromVerbatim(string.Empty));
-                    return true;
-                case PlacementTargetNameOnlyIcon:
-                    uiIcon = null;
-                    return false;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(icon), icon, null);
-            }
+                PlacementTargetBlockIcon block => _content.Block(block.BlockId),
+                PlacementTargetTrainCarIcon car => Textured(_textures.TrainCarTexture(car.TrainCarGuid), car.TrainCarGuid),
+                PlacementTargetConnectToolIcon tool => Textured(_textures.ConnectToolTexture(tool.ConnectToolGuid), tool.ConnectToolGuid),
+                PlacementTargetBlueprintIcon blueprint => _thumbnails.TryGet(blueprint.BlueprintGuid, out var thumbnail) ? Textured(thumbnail, blueprint.BlueprintGuid) : null,
+                PlacementTargetNameOnlyIcon => null,
+                _ => throw new ArgumentOutOfRangeException(nameof(icon), icon, null),
+            };
+            return uiIcon != null;
+        }
+
+        // 名前は面と詳細が別に描くので、絵の代わりの文字は持たせない
+        // The face and detail draw the name themselves, so no fallback text is carried
+        private static UiIcon Textured(UnityEngine.Texture2D texture, Guid id)
+        {
+            return new UiIcon(texture, id.ToString("D"), UiText.FromVerbatim(string.Empty));
         }
     }
 }
 ```
+
+`S/Client.Ui/Content/IGameContentTextureSource.cs` へ 2 メソッド足す（C3-a はマージ済みで、W3 にこのファイルを触る並走レーンは無い。このレーンの追記）:
+```csharp
+        Texture2D TrainCarTexture(Guid trainCarGuid);
+        Texture2D ConnectToolTexture(Guid connectToolGuid);
+```
+（`using System;` を足す）`ClientContextContentTextureSource.cs` に実装を足す（欠けは null。各容器が LogError を出す前例どおり）:
+```csharp
+        public Texture2D TrainCarTexture(Guid trainCarGuid)
+        {
+            return ClientContext.TrainCarImageContainer.GetTrainCarView(trainCarGuid)?.ItemTexture as Texture2D;
+        }
+
+        public Texture2D ConnectToolTexture(Guid connectToolGuid)
+        {
+            return ClientContext.ConnectToolImageContainer.GetConnectToolView(connectToolGuid)?.ItemTexture as Texture2D;
+        }
+```
+（容器の名前は `grep -n "TrainCarImageContainer\|ConnectToolImageContainer" moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientContext.cs` で実物に合わせる）。`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` の 2 メソッドは ctor の `block` のテクスチャを返す（L1 は絵の有無だけを見る）
+
 
 `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（ホットバーへの落としの受け口。このレーンが作るのはこの 1 本だけで、S3-hotbar-modal は枠の印の型で `IUiDropTarget` と一緒に実装する。State は `Client.Ui` を参照できないので `IUiDropTarget` は継がない）:
 ```csharp
 namespace Client.Ui.State.Hotbar.Logic
 {
     /// <summary>
-    /// ホットバーの落とし先が源を受け取る口。受けたら true（割当の要求まで済ませる）
-    /// Port through which a hotbar drop target receives a source; true when received (including sending the assignment request)
+    /// ホットバーの落とし先が源を受け取る口。割当の要求まで受け手が済ませ、断る理由のログも受け手が出す
+    /// Port through which a hotbar drop target receives a source; the receiver sends the assignment request and logs any refusal
     /// </summary>
     public interface IHotbarDropReceiver
     {
-        bool TryReceive(HotbarDragSource source);
+        void Receive(HotbarDragSource source);
     }
 }
 ```
@@ -1842,7 +1932,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             var lines = new List<string> { new UiText(LocalizationKeys.Ui.BuildMenu.MaterialShortageTitle).Resolve() };
             foreach (var row in entry.Materials)
             {
-                if (!BuildMenuShortage.IsItemInsufficient(entry.Catalog, row.Item)) continue;
+                if (!row.IsInsufficient) continue;
                 var itemName = content.ItemName(row.ItemId).Resolve();
                 lines.Add(MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuShortageLine, itemName, row.Item.Count, row.Item.Held).Resolve());
             }
@@ -1888,7 +1978,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             // Hand the source to the hotbar slot mark (S3-hotbar-modal implements both); the receiver logs why it declines (D-16)
             if (target is IHotbarDropReceiver receiver)
             {
-                receiver.TryReceive(Source);
+                receiver.Receive(Source);
                 return;
             }
 
@@ -1917,7 +2007,6 @@ using Client.Ui.Foundation.DragDrop;
 using Client.Ui.Foundation.Tooltip;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.Text;
-using Game.PlacementTarget;
 using UniRx;
 
 namespace Client.Ui.Screens.BuildMenu.Parts
@@ -1931,16 +2020,18 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         public const string EntryClass = "build-menu__entry";
 
         private readonly GameContentPresentation _content;
+        private readonly PlacementTargetIcons _icons;
         private readonly PlacementTargetFace _face = new();
 
         public SlotFrame Frame { get; }
         public Guid TargetId { get; }
 
-        public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, IBuildMenuEntryHandler handler)
+        public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
         {
             _content = content;
+            _icons = icons;
             TargetId = entry.Catalog.TargetId;
-            var kind = BuildMenuEntryKindName.Of(entry.Kind);
+            var kind = entry.KindName;
             Frame = new SlotFrame(TestIdOf(entry));
             Frame.AddToClassList(EntryClass);
             Frame.SetState(new SlotFrameState(false, true, false, false, false));
@@ -1950,7 +2041,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             // 左はドラッグ源（タップ＝選択）、右は BP だけ削除、ホバーは詳細の sticky
             // Left is the drag source (tap selects), right deletes blueprints only, hover feeds the sticky detail
             UiDragDrop.MarkSource(Frame, new BuildMenuEntryDragPayload(TargetId, handler));
-            var isBlueprint = entry.Kind == PlacementTargetKind.Blueprint;
+            var isBlueprint = entry.CanDeleteBlueprint;
             Frame.OnSlotGestured.Subscribe(gesture =>
             {
                 if (gesture.Kind == SlotGestureKind.HoverEnter) handler.OnEntryHovered(TargetId);
@@ -1961,12 +2052,16 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
         public static string TestIdOf(BuildMenuEntryViewModel entry)
         {
-            return $"build-menu-entry-{BuildMenuEntryKindName.Of(entry.Kind)}-{entry.Catalog.TargetId:D}";
+            return $"build-menu-entry-{entry.KindName}-{entry.Catalog.TargetId:D}";
         }
 
         public void Render(BuildMenuEntryViewModel entry)
         {
-            PlacementTargetIcons.Apply(_face, entry.Icon, UiText.FromVerbatim(entry.Catalog.DisplayLabel), _content);
+            // 絵があれば絵、無ければ名前（Web PlacementTargetFace の iconUrl の有無）
+            // A picture when there is one, otherwise the name (the Web PlacementTargetFace iconUrl check)
+            var name = UiText.FromVerbatim(entry.Catalog.DisplayLabel);
+            if (_icons.TryToUiIcon(entry.Icon, out var icon)) _face.SetIconTarget(icon, name);
+            else _face.SetNameTarget(name);
 
             // 不足があるときだけツールチップの印を付ける。枠は赤くしない（Web と同じ）
             // Mark the tooltip only when something is short; the frame never turns red (same as the Web)
@@ -1987,7 +2082,7 @@ Expected: `ErrorCount: 0`、8 件 PASS
 - [ ] **Step 6: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu/Parts moorestech_client/Assets/Scripts/Client.Ui/Content/PlacementTargetIcons.cs moorestech_client/Assets/Scripts/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu/Parts moorestech_client/Assets/Scripts/Client.Ui/Content moorestech_client/Assets/Scripts/Client.Tests/Ui/Content/FakeContentTextureSource.cs moorestech_client/Assets/Scripts/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu
 git commit -m "feat(uitk): ビルドメニューのエントリのマス（不足ツールチップ・ドラッグ源・錨）を足す（S3-buildmenu）
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
@@ -2004,9 +2099,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: Task 2・5 の型、C3-a の `SlotGrid`・`ItemSlot`・`GameIcon`、`FadeRule`・`LocalizedLabel`、C3-b の `ModeSwitch<Guid>`
 - Produces:
-  - `public sealed class BuildMenuCategoryList : VisualElement { public BuildMenuCategoryList(GameContentPresentation content, IBuildMenuEntryHandler handler); public VisualElement Spacer { get; } public void Render(IReadOnlyList<BuildMenuCategoryGroup> groups, BuildMenuViewModel viewModel); public void SetSpacerHeight(float height); public bool TryGetHeading(Guid categoryGuid, out VisualElement heading); public bool TryGetGroup(Guid categoryGuid, out VisualElement group); }`
+  - `public sealed class BuildMenuCategoryList : VisualElement { public BuildMenuCategoryList(GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler); public VisualElement Spacer { get; } public void Render(IReadOnlyList<BuildMenuCategoryGroup> groups, BuildMenuViewModel viewModel); public void SetSpacerHeight(float height); public bool TryGetHeading(Guid categoryGuid, out VisualElement heading); public bool TryGetGroup(Guid categoryGuid, out VisualElement group); }`
   - `public sealed class BuildMenuCategorySidebar : VisualElement { public BuildMenuCategorySidebar(); public IObservable<Guid> OnCategorySelected { get; } public void Render(BuildMenuShownList shown, BuildMenuViewModel viewModel); public void SetActive(Guid? categoryGuid); }`
-  - `public sealed class BuildMenuDetailSidebar : VisualElement { public BuildMenuDetailSidebar(GameContentPresentation content); public void ShowHint(); public void ShowEntry(BuildMenuEntryViewModel entry); }`
+  - `public sealed class BuildMenuDetailSidebar : VisualElement { public BuildMenuDetailSidebar(GameContentPresentation content, PlacementTargetIcons icons); public void ShowHint(); public void ShowEntry(BuildMenuEntryViewModel entry); }`
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -2029,7 +2124,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         {
             var viewModel = BuildMenuSamples.Create();
             var shown = BuildMenuShownListComposer.Compose(viewModel, "");
-            var list = Mount(new BuildMenuCategoryList(null, new RecordingBuildMenuEntryHandler()));
+            var list = Mount(new BuildMenuCategoryList(null, BuildMenuSamples.Icons(null), new RecordingBuildMenuEntryHandler()));
 
             list.Render(shown.Groups, viewModel);
             list.SetSpacerHeight(123f);
@@ -2051,7 +2146,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         [Test]
         public void 群が空でもスペーサだけを出す()
         {
-            var list = Mount(new BuildMenuCategoryList(null, new RecordingBuildMenuEntryHandler()));
+            var list = Mount(new BuildMenuCategoryList(null, BuildMenuSamples.Icons(null), new RecordingBuildMenuEntryHandler()));
 
             list.Render(System.Array.Empty<Client.Ui.State.BuildMenu.Logic.BuildMenuCategoryGroup>(), BuildMenuViewModel.Empty);
             list.SetSpacerHeight(42f);
@@ -2099,7 +2194,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 
         private BuildMenuDetailSidebar ShowEntry(BuildMenuMaterialRow material, bool paymentWaived)
         {
-            var detail = Mount(new BuildMenuDetailSidebar(_content));
+            var detail = Mount(new BuildMenuDetailSidebar(_content, BuildMenuSamples.Icons(_content)));
             detail.ShowEntry(BuildMenuSamples.Block(System.Guid.NewGuid(), BuildMenuSamples.Logistics, "木のチェスト", new[] { material }, paymentWaived, BuildMenuSetPlacement.None));
             simulate.FrameUpdate();
             return detail;
@@ -2138,7 +2233,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         private const int Columns = 8;
         private readonly List<BuildMenuEntrySlot> _slots = new();
 
-        public BuildMenuSectionView(BuildMenuSection section, BuildMenuViewModel viewModel, GameContentPresentation content, IBuildMenuEntryHandler handler)
+        public BuildMenuSectionView(BuildMenuSection section, BuildMenuViewModel viewModel, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
         {
             name = $"build-menu-section-{section.CategoryGuid:D}-{section.SubCategoryGuid:D}";
             AddToClassList("build-menu__section");
@@ -2157,7 +2252,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             grid.AddToClassList("build-menu__stacked");
             foreach (var catalog in section.Entries)
             {
-                var slot = new BuildMenuEntrySlot(EntryOf(viewModel, catalog.TargetId), content, handler);
+                var slot = new BuildMenuEntrySlot(EntryOf(viewModel, catalog.TargetId), content, icons, handler);
                 _slots.Add(slot);
                 grid.AddItem(slot.Frame);
             }
@@ -2205,18 +2300,22 @@ namespace Client.Ui.Screens.BuildMenu.Parts
     public sealed class BuildMenuCategoryList : VisualElement
     {
         private readonly GameContentPresentation _content;
+        private readonly PlacementTargetIcons _icons;
         private readonly IBuildMenuEntryHandler _handler;
         private readonly VisualElement _groupsRoot = new();
         private readonly Dictionary<Guid, VisualElement> _headings = new();
         private readonly Dictionary<Guid, VisualElement> _groups = new();
         private readonly List<(BuildMenuSection section, BuildMenuSectionView view)> _sections = new();
-        private string _structureKey = "";
+        // null は「まだ描いていない」。空の文字列は「群が 0 の構造」で、別の意味
+        // null means "not rendered yet"; the empty string is "a structure with no groups", a different meaning
+        private string _structureKey;
 
         public VisualElement Spacer { get; } = new();
 
-        public BuildMenuCategoryList(GameContentPresentation content, IBuildMenuEntryHandler handler)
+        public BuildMenuCategoryList(GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
         {
             _content = content;
+            _icons = icons;
             _handler = handler;
             AddToClassList("build-menu__list");
             name = "build-menu-sections";
@@ -2232,7 +2331,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             // 同じ構造（群・節・エントリの並び）なら中身だけ差し替え、スクロール位置と hover を保つ
             // For the same structure (groups, sections, entry order) only swap contents, keeping scroll and hover
             var key = string.Join("|", groups.SelectMany(g => g.Sections).SelectMany(s => s.Entries.Select(e => $"{s.CategoryGuid}/{s.SubCategoryGuid}/{e.TargetId}")));
-            if (key == _structureKey && groups.Count > 0)
+            if (key == _structureKey)
             {
                 var current = groups.SelectMany(g => g.Sections).ToList();
                 for (var i = 0; i < _sections.Count; i++) _sections[i].view.Render(current[i], viewModel);
@@ -2282,7 +2381,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 // Sections stack with 6px, and later sections add another 6px (Web .section + .section)
                 for (var s = 0; s < group.Sections.Count; s++)
                 {
-                    var view = new BuildMenuSectionView(group.Sections[s], viewModel, _content, _handler);
+                    var view = new BuildMenuSectionView(group.Sections[s], viewModel, _content, _icons, _handler);
                     view.AddToClassList("build-menu__stacked");
                     view.EnableInClassList("build-menu__section--following", s > 0);
                     _sections.Add((group.Sections[s], view));
@@ -2380,7 +2479,6 @@ using Client.Ui.State.BuildMenu.Logic;
 using Client.Ui.State.MaterialTooltip;
 using Client.Ui.State.Text;
 using Client.Localization;
-using Game.PlacementTarget;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -2394,10 +2492,12 @@ namespace Client.Ui.Screens.BuildMenu.Parts
     {
         private const int MaterialColumns = 3;
         private readonly GameContentPresentation _content;
+        private readonly PlacementTargetIcons _icons;
 
-        public BuildMenuDetailSidebar(GameContentPresentation content)
+        public BuildMenuDetailSidebar(GameContentPresentation content, PlacementTargetIcons icons)
         {
             _content = content;
+            _icons = icons;
             name = "build-menu-detail";
             AddToClassList("build-menu__detail");
         }
@@ -2412,14 +2512,14 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         {
             Clear();
 
-            // 絵 → 名前 → FadeRule → 素材 → 残り設置数（1 セット設置は Block だけ）
-            // Picture, name, FadeRule, materials, remaining placements (set placement is block-only)
-            if (PlacementTargetIcons.TryToUiIcon(entry.Icon, _content, out var icon)) Add(CreateIcon(icon));
+            // 絵 → 名前 → FadeRule → 素材 → 残り設置数（1 セット設置は Factory が Block のときだけ作る）
+            // Picture, name, FadeRule, materials, remaining placements (the factory makes set placements for blocks only)
+            if (_icons.TryToUiIcon(entry.Icon, out var icon)) Add(CreateIcon(icon));
             Add(Label("build-menu__detail-name", UiText.FromVerbatim(entry.Catalog.DisplayLabel)));
             Add(new FadeRule());
-            var setPlacement = entry.Kind == PlacementTargetKind.Block ? entry.SetPlacement : BuildMenuSetPlacement.None;
+            var setPlacement = entry.SetPlacement as BuildMenuSetPlacementAvailable;
             if (entry.Materials.Count > 0) AddMaterials(entry, setPlacement);
-            if (setPlacement.HasValue)
+            if (setPlacement != null)
             {
                 var remaining = Label("build-menu__detail-cost", new UiText(LocalizationKeys.Ui.BuildMenu.RemainingPlacementCount, new[] { new LocalizationTextParam("count", setPlacement.Remaining.ToString()) }));
                 remaining.name = "build-menu-remaining-placements";
@@ -2431,20 +2531,20 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             for (var i = 1; i < childCount; i++) this[i].AddToClassList("build-menu__detail-stacked");
         }
 
-        private void AddMaterials(BuildMenuEntryViewModel entry, BuildMenuSetPlacement setPlacement)
+        private void AddMaterials(BuildMenuEntryViewModel entry, BuildMenuSetPlacementAvailable setPlacement)
         {
-            var title = setPlacement.HasValue
+            var title = setPlacement != null
                 ? new UiText(LocalizationKeys.Ui.BuildMenu.RequiredItemsPerSet, new[] { new LocalizationTextParam("count", setPlacement.PerCost.ToString()) })
                 : new UiText(LocalizationKeys.Ui.BuildMenu.RequiredItems);
             Add(Label("build-menu__detail-cost", title));
 
-            // 不足は赤枠と所持/必要。免除中は赤くしない（BuildMenuShortage.IsItemInsufficient）
+            // 不足は赤枠と所持/必要。免除中は赤くしない（VM が 1 回だけ判定した IsInsufficient）
             // Shortages get the red ring and owned/required; never red while payment is waived
             var grid = new SlotGrid("build-menu-detail-materials", MaterialColumns);
             for (var i = 0; i < entry.Materials.Count; i++)
             {
                 var row = entry.Materials[i];
-                var lacking = BuildMenuShortage.IsItemInsufficient(entry.Catalog, row.Item);
+                var lacking = row.IsInsufficient;
                 var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuMaterial, _content.ItemName(row.ItemId).Resolve(), row.Item.Count, row.Item.Held);
                 var slot = new ItemSlot($"build-menu-detail-material-{i}");
                 slot.SetContent(new ItemSlotContent(_content.Item(row.ItemId), null, new ItemSlotMarks(false, false, lacking), new ItemSlotShortage(row.Item.Held, row.Item.Count, lacking, tooltip), null, null));
@@ -2508,7 +2608,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: Task 2〜6 の型、L0-s3 の `BuildMenuCategoryScrollTracker`・`IBuildMenuScrollViewport`・`BuildMenuSessionStore`、C3-b の `GameScrollView` の口（`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop`・`OnContentLayoutChanged`）、`UiMotionPlayer`・`UiTweenAnimation`・`ScrollOffsetTweenStep`、`GamePanel`・`IconButton`・`GameTextField`・`LocalizedLabel`、`UssCustomStyleReader`、`UiCommandResultToaster`
 - Produces:
-  - `namespace Client.Ui.Screens.BuildMenu { public sealed class BuildMenuView : VisualElement { public BuildMenuView(IBuildMenuCommands commands, GameContentPresentation content, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker); public void Render(BuildMenuViewModel viewModel); public void SetShown(bool shown); } }`（D-22）
+  - `namespace Client.Ui.Screens.BuildMenu { public sealed class BuildMenuView : VisualElement { public BuildMenuView(IBuildMenuCommands commands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker); public void Render(BuildMenuViewModel viewModel); public void SetShown(bool shown); } }`（D-22）
   - `public sealed class BuildMenuEntryActions : IBuildMenuEntryHandler { public BuildMenuEntryActions(IBuildMenuCommands commands, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuDetailSidebar detail); public void SetViewModel(BuildMenuViewModel viewModel); }`
   - `namespace Client.Ui.Screens.BuildMenu.CategoryScroll { public sealed class BuildMenuScrollViewport : IBuildMenuScrollViewport { public BuildMenuScrollViewport(GameScrollView scroll, BuildMenuCategoryList list, BuildMenuCategoryScrollTracker tracker); public void Freeze(); } public sealed class BuildMenuScrollBinding { public BuildMenuScrollBinding(GameScrollView scroll, BuildMenuCategoryList list, BuildMenuCategoryScrollTracker tracker); public void Attach(); public void Detach(); } public static class BuildMenuScrollClipInset { public static void Apply(GameScrollView scroll); } }`
   - `namespace Client.Ui.Screens.BuildMenu.Parts { public sealed class BuildMenuPanelSkeleton { public BuildMenuPanelSkeleton(BuildMenuCategorySidebar sidebar, BuildMenuCategoryList list, BuildMenuDetailSidebar detail); public VisualElement Band { get; } public IconButton CloseButton { get; } public GameTextField Search { get; } public GameScrollView Scroll { get; } public void SetNoResults(bool showsNoResults); } }`
@@ -2611,7 +2711,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             Commands = new RecordingBuildMenuCommands();
             Session = new BuildMenuSessionStore();
             Tracker = new BuildMenuCategoryScrollTracker(Session);
-            View = Mount(new BuildMenuView(Commands, Content, Toaster, Session, Tracker));
+            View = Mount(new BuildMenuView(Commands, Content, BuildMenuSamples.Icons(Content), Toaster, Session, Tracker));
         }
 
         // 本番の Presenter と同じ順（描いてから出す）で開く
@@ -2985,7 +3085,7 @@ using Client.Ui.Components.Slots;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.PlacementTarget;
 using NUnit.Framework;
-using UnityEngine;
+using Tests.Module.TestMod;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Screens.BuildMenu.Support.BuildMenuSamples;
 
@@ -3095,7 +3195,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         [Test]
         public void ビルドメニューのアイコンは枠の中央に描かれる()
         {
-            OpenMenu(Create(Array.Empty<BuildMenuMaterialRow>(), new PlacementTargetTextureIcon(Texture2D.whiteTexture)));
+            OpenMenu(Create(Array.Empty<BuildMenuMaterialRow>(), new PlacementTargetBlockIcon(ForUnitTestModBlockId.BlockId)));
             var slot = Entry("block", WoodChest).worldBound;
             var icon = Entry("block", WoodChest).Q(className: "placement-target-face__icon");
             Assert.AreEqual(DisplayStyle.Flex, icon.resolvedStyle.display);
@@ -3676,7 +3776,7 @@ namespace Client.Ui.Screens.BuildMenu
         private string _query;
         private bool _shown;
 
-        public BuildMenuView(IBuildMenuCommands commands, GameContentPresentation content, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker)
+        public BuildMenuView(IBuildMenuCommands commands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker)
         {
             _session = session;
             _tracker = tracker;
@@ -3686,9 +3786,9 @@ namespace Client.Ui.Screens.BuildMenu
 
             // 3 列の部品を作り、骨へ並べる
             // Build the three columns' parts and lay them on the skeleton
-            var detail = new BuildMenuDetailSidebar(content);
+            var detail = new BuildMenuDetailSidebar(content, icons);
             _actions = new BuildMenuEntryActions(commands, toaster, session, detail);
-            _list = new BuildMenuCategoryList(content, _actions);
+            _list = new BuildMenuCategoryList(content, icons, _actions);
             _skeleton = new BuildMenuPanelSkeleton(_sidebar, _list, detail);
             Add(_skeleton.Band);
             _scrollBinding = new BuildMenuScrollBinding(_skeleton.Scroll, _list, tracker);
@@ -3949,11 +4049,12 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Create: `S/Client.Ui/Screens/BuildMenu/BuildMenuScreenPresenter.cs`
 - Create: `S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs`
 - Modify: `S/Client.Starter/Registration/MainGameUiRegistration.cs`（画面登録区画の末尾に 1 行）
+- Modify: `S/Client.Starter/Registration/MainGameInteractionRegistration.cs`（`ClientBlueprintLibrary` の行に `.As<IBlueprintDeleteService>()` を 1 つ）
 - Modify: `docs/uitk/TODO.md`（「## 実測の結論」の末尾に 1 行）
 
 **Interfaces:**
-- Consumes: Task 3 の `BuildMenuModel`、Task 4 の `BuildMenuCommands`、Task 7 の `BuildMenuView`、前例 `PauseMenuScreenPresenter`・`PauseMenuGameUiRegistration`・`MainGameInteractionRegistration` の `Register<T>(resolver => …, Lifetime)`
-- Produces: `public sealed class BuildMenuScreenPresenter : IInitializable, IDisposable { public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, GameContentPresentation content, UiCommandResultToaster toaster, BuildMenuSessionStore session); }`。全体スイッチ UITK の起動で B のビルドメニューが UITK で出る
+- Consumes: Task 3 の `BuildMenuModel`、Task 4 の `BuildMenuCommands`、Task 7 の `BuildMenuView`、前例 `PauseMenuScreenPresenter`・`PauseMenuGameUiRegistration`・`MainGameInteractionRegistration` の `ClientBlueprintLibrary` の行
+- Produces: `public sealed class BuildMenuScreenPresenter : IInitializable, IDisposable { public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session); }`。全体スイッチ UITK の起動で B のビルドメニューが UITK で出る
 
 - [ ] **Step 1: Presenter を書く**
 
@@ -3986,19 +4087,21 @@ namespace Client.Ui.Screens.BuildMenu
         private readonly BuildMenuModel _model;
         private readonly IBuildMenuCommands _commands;
         private readonly GameContentPresentation _content;
+        private readonly PlacementTargetIcons _icons;
         private readonly UiCommandResultToaster _toaster;
         private readonly BuildMenuSessionStore _session;
         private readonly CompositeDisposable _subscriptions = new();
         private IDisposable _modelSubscription;
         private BuildMenuView _view;
 
-        public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, GameContentPresentation content, UiCommandResultToaster toaster, BuildMenuSessionStore session)
+        public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
             _model = model;
             _commands = commands;
             _content = content;
+            _icons = icons;
             _toaster = toaster;
             _session = session;
         }
@@ -4008,7 +4111,7 @@ namespace Client.Ui.Screens.BuildMenu
             // 載せるのはここで 1 回だけ。トラッカーは View と同じ寿命（D-22）
             // Mount exactly once here; the tracker lives as long as the view (D-22)
             var tracker = new BuildMenuCategoryScrollTracker(_session);
-            _view = new BuildMenuView(_commands, _content, _toaster, _session, tracker);
+            _view = new BuildMenuView(_commands, _content, _icons, _toaster, _session, tracker);
             _gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(_view);
             _routingState.Current.Select(snapshot => snapshot.Screen == UiScreen.BuildMenu).DistinctUntilChanged().Subscribe(SetShown).AddTo(_subscriptions);
         }
@@ -4037,7 +4140,7 @@ namespace Client.Ui.Screens.BuildMenu
 
 `BuildMenuGameUiRegistration.cs`:
 ```csharp
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Ui.Content;
 using Client.Ui.Screens.BuildMenu;
 using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.BuildMenu.Session;
@@ -4058,14 +4161,19 @@ namespace Client.Starter.Registration.GameUi
             builder.Register<BuildMenuSessionStore>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BuildMenuModel>().AsSelf();
 
-            // BP の削除の口は ClientBlueprintLibrary そのもの。共有の登録ファイルへ As を足さず、ここで引き当てる（前例 IPlayerObjectController。D-35）
-            // The blueprint delete port is the ClientBlueprintLibrary itself; resolve it here instead of adding As to the shared registration (precedent IPlayerObjectController, D-35)
-            builder.Register<IBlueprintDeleteService>(resolver => resolver.Resolve<ClientBlueprintLibrary>(), Lifetime.Singleton);
+            // 配置対象の絵の引き方（このレーンが持ち主。ホットバーも使う）。IBlueprintDeleteService は MainGameInteractionRegistration の As で引ける（D-35）
+            // Placement-target picture lookup (owned by this lane, also used by the hotbar); IBlueprintDeleteService comes from the As in MainGameInteractionRegistration (D-35)
+            builder.Register<PlacementTargetIcons>(Lifetime.Singleton);
             builder.Register<BuildMenuCommands>(Lifetime.Singleton).As<IBuildMenuCommands>();
             builder.RegisterEntryPoint<BuildMenuScreenPresenter>();
         }
     }
 }
+```
+
+`MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行（実物の 112 行目付近）に `.As<IBlueprintDeleteService>()` を 1 つ足す（共有ファイルの 1 行の追記。所有は File Structure）:
+```csharp
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton).AsSelf().As<IBlueprintLookup>().As<IBlueprintDeleteService>();
 ```
 
 `MainGameUiRegistration.cs` の画面登録区画の末尾（`CursorTooltipGameUiRegistration.Register(builder);` の下。並走レーンの行があればその下）に 1 行:
@@ -4107,6 +4215,8 @@ var session = Client.Game.InGame.Context.ClientDIContext.DIContainer.DIContainer
 return $"offset={scroll.scrollOffset.y} saved={session.Current.ScrollTop}";'
 ```
 Expected: 再オープン後の `offset` と `saved` が閉じる前の値（±1）。ログの `[L-3]` の行に、閉じたとき・開いたときに流れた値（0 を含むか・何フレーム目か）が並ぶ。0 が流れていても `saved` が保たれていれば、D-8 の転送の門が効いている（Web と同じく潰れる挙動は UITK では起きない）。`uloop get-logs` の `--search-text` が無ければ `--log-type Log` の出力を `grep "\[L-3\]"` で絞る。`saved` が 0 なら止め、`done.md` の「要裁定」に値を書いて指揮へ返す（D-8 の前提が崩れたため）
+
+分岐（N3）: 実測で、開くときに `OnScrollOffsetChanged(0)` が流れなかった、または流れても転送の門を外した状態で `saved` が潰れなかったと分かったら、門は要らない。そのときは `BuildMenuScrollViewport` から `_forwarding` を外して受動の転送（`OnScrollOffsetChanged.Subscribe(tracker.OnScrolled)`）にし、`BuildMenuRestoreTest` の 4 件目が緑のままであることを `$FILTER` で確かめて同じコミットに入れる。判断記録 D-8 の行に「実測で不要と分かり外した（`[L-3]` の値）」と書き足す。門を外した状態は、EDC で `_forwarding` を常に真にした視口を張り替えるのではなく、コードを変えて再コンパイルし Step 4 を流し直して確かめる
 
 - [ ] **Step 5: 台帳の「## 実測の結論」へ書く**
 
@@ -4181,6 +4291,7 @@ var resolver = Client.Game.InGame.Context.ClientDIContext.DIContainer.DIContaine
 var model = resolver.Resolve<Client.Ui.State.BuildMenu.Source.BuildMenuModel>();
 var commands = resolver.Resolve<Client.Ui.State.BuildMenu.Commands.IBuildMenuCommands>();
 var content = resolver.Resolve<Client.Ui.Content.GameContentPresentation>();
+var icons = resolver.Resolve<Client.Ui.Content.PlacementTargetIcons>();
 var toaster = resolver.Resolve<Client.Ui.State.Toast.UiCommandResultToaster>();
 foreach (var name in new[] { "s3bm-compare-1280", "s3bm-compare-2560" })
 {
@@ -4188,7 +4299,7 @@ foreach (var name in new[] { "s3bm-compare-1280", "s3bm-compare-2560" })
     document.rootVisualElement.Clear();
     var stage = Client.Ui.Foundation.Layers.UiLayerStack.Build(document.rootVisualElement).GetLayer(Client.Ui.Foundation.Layers.UiLayer.Screen, Client.Ui.Foundation.Stage.UiFamily.Stage);
     var session = new Client.Ui.State.BuildMenu.Session.BuildMenuSessionStore();
-    var view = new Client.Ui.Screens.BuildMenu.BuildMenuView(commands, content, toaster, session, new Client.Ui.Screens.BuildMenu.CategoryScroll.BuildMenuCategoryScrollTracker(session));
+    var view = new Client.Ui.Screens.BuildMenu.BuildMenuView(commands, content, icons, toaster, session, new Client.Ui.Screens.BuildMenu.CategoryScroll.BuildMenuCategoryScrollTracker(session));
     stage.Add(view);
     view.Render(model.Current.Value);
     view.SetShown(true);
@@ -4482,7 +4593,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 
 1. **Requirements coverage**: R-1 → Task 2・3、R-2 → Task 7（`BuildMenuLayoutTest` 7 件・USS）、R-3 → Task 6（サイドバー）・Task 7（`BuildMenuViewTest`・`BuildMenuSearchViewTest`・`BuildMenuLayoutTest`）、R-4 → Task 2（合成）・Task 7（検索）、R-5 → Task 6（リスト）・Task 7（視口・`BuildMenuScrollViewTest`）、R-6 → Task 5（マス・ツールチップ・錨）・Task 7（`--icon-pad`）、R-7 → Task 4（コマンド）・Task 7（`BuildMenuEntryActions`・トースト）、R-8 → Task 6・Task 7（`BuildMenuDetailStickyViewTest`）、R-9 → Task 7（`BuildMenuRestoreTest`）・Task 11、R-10 → Task 5（`BuildMenuDragSourceTest`。受け口へ 1 回渡す・Warning）・Task 1（作ったものの申告）、R-11 → L-1 Task 7（`BuildMenuScrollViewTest` 2 件目）・Task 11、L-2 Task 7（`BuildMenuRestoreTest` 2 件目）、L-3 Task 7（観測）・Task 8 Step 4・5、L-4 Task 7（`BuildMenuScrollBinding.Attach`・`BuildMenuRestoreTest` 3 件目）、L-5 Task 7（`BuildMenuSearchViewTest` 4 件目）、R-12 → Task 10、R-13 → Task 7 Step 6（tss）・Task 8（登録・PlayMode の Error 0）、R-14 → Task 11、R-15 → Task 12・13。完了条件の各句: 面の寸法（A-47 は D-5 で付け替え。面は `--icon-pad`、C# の導出はクリップの逃げ）・3 カラム・縦 `ModeSwitch`・`GameTextField`・スクロールスパイと smooth scroll（UiMotion）・詳細の sticky・BP 右クリック削除・不足ツールチップ・セッション復元・ドラッグ源・錨 `build-menu.entry-*`・P21（P20＋S3-hotbar-modal が写すホットバー側の 1）・C22（C9＋L0-s3 済み 13）・録画 7 本・[A-49] の `AppliedSpacerHeight`・L-1〜L-5。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<HEAD 10 桁>`・manifest の `<… のパス>`・台帳の実測の値・`<空きポート>` は実行時にしか決まらず、取り方（`bd create` の出力・`gh pr create`・`git rev-parse`・Task 8 Step 4 の EDC）を同じタスクに書いた。「TBD」「適切に」は無い。C3-b の API は Task 1 Step 1 で照合し、違えば読み替えて記録する手順を書いた。実物で確かめる括弧書き（`UiCommandRejected` の ctor・`FakeContentTextureSource` の名前空間・`PointerDownEvent` の送り方・`Escape` で PlaceBlock から戻るか・`LookExceptionLedgerTest` の照合範囲）は、確かめ方と違ったときの代わりを同じ箇所に書いた
-3. **Type consistency**: `BuildMenuViewModel(categories, headingNames, entries)`・`.HeadingNameOf`・`.TryGetEntry`・`.CatalogEntries`、`BuildMenuEntryViewModel(...)`・`.Catalog`・`.Kind`・`.Materials`・`.Icon`・`.SetPlacement`、`BuildMenuShownList.Groups`・`.SidebarCategories`・`.IsCategoryEnabled`・`.ShowsNoResults`・`.ShownCategoryGuids`、`BuildMenuShownListComposer.Compose`、`BuildMenuEntryFactory.CreateEntries`・`.CreateCategories`・`.CreateHeadingNames`、`BuildMenuModel.Current`、`IBuildMenuCommands.SelectEntry`・`DeleteBlueprint`・`Close`、`IBuildMenuEntryHandler.OnEntrySelected`・`OnBlueprintDeleteRequested`・`OnEntryHovered`、`BuildMenuEntrySlot(entry, content, handler)`・`.Frame`・`.Render`、`BuildMenuCategoryList(content, handler)`・`.Spacer`・`.Render(groups, viewModel)`・`.SetSpacerHeight`・`.TryGetHeading`・`.TryGetGroup`、`BuildMenuCategorySidebar.Render(shown, viewModel)`・`.SetActive`・`.OnCategorySelected`、`BuildMenuDetailSidebar(content)`・`.ShowHint`・`.ShowEntry`、`BuildMenuPanelSkeleton(sidebar, list, detail)`・`.Band`・`.CloseButton`・`.Search`・`.Scroll`・`.SetNoResults`、`BuildMenuScrollViewport(scroll, list, tracker)`・`.Freeze`、`BuildMenuScrollBinding(scroll, list, tracker)`・`.Attach`・`.Detach`、`BuildMenuScrollClipInset.Apply`、`BuildMenuEntryActions(commands, toaster, session, detail)`・`.SetViewModel`、`BuildMenuView(commands, content, toaster, session, tracker)`・`.Render`・`.SetShown`、`BuildMenuScreenPresenter(gameUiRoot, routingState, model, commands, content, toaster, session)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `build-menu`・`__band`・`__panel`・`__frame`・`__close`・`__columns`・`__column-following`・`__sidebar`・`__category-switch`・`__main`・`__search`・`__scroll`・`__list`・`__group`・`__group--following`・`__trailing-spacer`・`__trailing-spacer--following`・`__category-heading`・`__section`・`__section-heading`・`__stacked`・`__section--following`・`__entry`・`__detail`・`__detail-stacked`・`__detail-icon`・`__detail-name`・`__detail-hint`・`__detail-cost`・`__no-results`、つまみ `--build-menu-scroll-clip-inset`・`--mode-switch-option-height`・`--icon-pad` は C#・USS・テストで一致。testid は Web の `data-testid` と同名
+3. **Type consistency**: `BuildMenuViewModel(categories, headingNames, entries)`・`.HeadingNameOf`・`.TryGetEntry`・`.CatalogEntries`、`BuildMenuEntryViewModel(...)`・`.Catalog`・`.Kind`・`.KindName`・`.CanDeleteBlueprint`・`.Materials`（`BuildMenuMaterialLine`）・`BuildMenuSetPlacementAvailable`・`PlacementTargetIcons.TryToUiIcon`・`IHotbarDropReceiver.Receive`・`.Icon`・`.SetPlacement`、`BuildMenuShownList.Groups`・`.SidebarCategories`・`.IsCategoryEnabled`・`.ShowsNoResults`・`.ShownCategoryGuids`、`BuildMenuShownListComposer.Compose`、`BuildMenuEntryFactory.CreateEntries`・`.CreateCategories`・`.CreateHeadingNames`、`BuildMenuModel.Current`、`IBuildMenuCommands.SelectEntry`・`DeleteBlueprint`・`Close`、`IBuildMenuEntryHandler.OnEntrySelected`・`OnBlueprintDeleteRequested`・`OnEntryHovered`、`BuildMenuEntrySlot(entry, content, icons, handler)`・`.Frame`・`.Render`、`BuildMenuCategoryList(content, icons, handler)`・`.Spacer`・`.Render(groups, viewModel)`・`.SetSpacerHeight`・`.TryGetHeading`・`.TryGetGroup`、`BuildMenuCategorySidebar.Render(shown, viewModel)`・`.SetActive`・`.OnCategorySelected`、`BuildMenuDetailSidebar(content, icons)`・`.ShowHint`・`.ShowEntry`、`BuildMenuPanelSkeleton(sidebar, list, detail)`・`.Band`・`.CloseButton`・`.Search`・`.Scroll`・`.SetNoResults`、`BuildMenuScrollViewport(scroll, list, tracker)`・`.Freeze`、`BuildMenuScrollBinding(scroll, list, tracker)`・`.Attach`・`.Detach`、`BuildMenuScrollClipInset.Apply`、`BuildMenuEntryActions(commands, toaster, session, detail)`・`.SetViewModel`、`BuildMenuView(commands, content, icons, toaster, session, tracker)`・`.Render`・`.SetShown`、`BuildMenuScreenPresenter(gameUiRoot, routingState, model, commands, content, icons, toaster, session)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `build-menu`・`__band`・`__panel`・`__frame`・`__close`・`__columns`・`__column-following`・`__sidebar`・`__category-switch`・`__main`・`__search`・`__scroll`・`__list`・`__group`・`__group--following`・`__trailing-spacer`・`__trailing-spacer--following`・`__category-heading`・`__section`・`__section-heading`・`__stacked`・`__section--following`・`__entry`・`__detail`・`__detail-stacked`・`__detail-icon`・`__detail-name`・`__detail-hint`・`__detail-cost`・`__no-results`、つまみ `--build-menu-scroll-clip-inset`・`--mode-switch-option-height`・`--icon-pad` は C#・USS・テストで一致。testid は Web の `data-testid` と同名
 4. **保留・縮退経路**: (a) `BuildMenuEntryDragPayload.OnDropped` → 受け口でない落とし先は `OnDroppedOutside` と同じく何もしない（正常操作の無操作。`silent-ok`）、断られた落としのログは受け手（S3-hotbar-modal）が出す（D-16）、`PlacementTargetIconResolver` の欠けた絵 → 名前で描く（Web の 404 と同じ見え方。面に名前が出るので目で気づく）、`OnDroppedOutside` → `silent-ok`（Web と同じく何もしない）。(b) `BuildMenuScrollViewport` の凍結後の要求 → Warning（`WarnIfFrozen`）。(c) `BuildMenuScrollBinding.Detach` の未装着 → `silent-ok`（View の `_shown` で通常は来ない）。(d) `BuildMenuScrollClipInset` の読めないつまみ → `UssCustomStyleReader` の LogError、L1 の逃げの主張が赤。(e) `BuildMenuView.SetShown` の同値 → `silent-ok`。(f) `AppliedSpacerHeight` の NaN → 0（反映待ちとして扱われ、トラッカーが待ち続ける。コメントに理由）。(g) `BuildMenuSectionView` の VM 外のエントリ → `InvalidOperationException`（組み立ての誤り）。(h) Model・コマンドの拒否 → `UiCommandResultToaster.Report`（良性はログだけ）。(i) Task 1・8・10・11 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」）を書いた
 5. **「決定的にする」を根拠にした選択**: D-8（転送の門）は「Web と同挙動に潰れる」可能性を実機で測る前に塞ぐ選択で、根拠は L-3 の受け入れ基準（復元の主張が緑）と、潰れたときに利用者が失うもの（位置の復元）。決定性そのものは根拠にしていない。D-10（300ms・EaseOutCubic）は「ブラウザ任せの値を固定する」選択で、LX-71 に記帳した。ほかに無し
 6. **呼び出し側への責務漏出**: 合成（検索・群分け・サイドバーの無効）は `BuildMenuShownListComposer` の 1 か所、エントリの組み立ては `BuildMenuEntryFactory` の 1 か所、カテゴリ対・アイコンはそれぞれの Resolver の 1 か所。視口の寸法の読み・転送の門・介入・凍結は `BuildMenuScrollViewport` の 1 か所、張り替えの順（スペーサ → 視口 → 装着、保存 → 凍結）は `BuildMenuScrollBinding` の 1 か所で、View は順を知らない。クリップの逃げの導出は `BuildMenuScrollClipInset` の 1 か所。トーストの名前は `BuildMenuEntryActions` と View の定数。判定を返す新設 API は無い（`IsCategoryEnabled` は合成の結果の読み出し）
@@ -4496,7 +4607,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | ID | 判断 | 棄却した案と理由 | 出所 |
 |---|---|---|---|
 | D-1 | エントリの組み立ては Web の橋 `BuildMenuEntryDtoFactory`・`BuildMenuMaterialAvailability` の規則を State の `BuildMenuEntryFactory` へ写す。橋は変えず、重複は「本PR外のリファクタ提案」 | 橋を共有化して両系から使う: 橋は `Client.WebUiHost`（Web の系だけの asmdef）にあり、State から参照できない。橋を動かすと Web の系の PR になりこのレーンの範囲を超える | agent 既定（設計書 §1.1） |
-| D-2 | VM はアイコンを判別 union（`PlacementTargetBlockIcon`・`PlacementTargetTextureIcon`・`PlacementTargetNameOnlyIcon`。置き場は D-29）で持ち、見出しの名前を `UiText` の辞書で持つ。`UiIcon` は View が作る | VM に `UiIcon` を持たせる: State は `Client.Ui` を参照できない（層の向き）。カテゴリ名を View がコンテンツ辞書キーから作る: L1 が Web の英語名（最長 Building Materials）を逐語で入れられず、レイアウト 5 件目が空振りになる | agent 既定（設計書 §1.1・§2.8） |
+| D-2 | VM はアイコンを ID だけの判別 union（`PlacementTargetBlockIcon`・`TrainCarIcon`・`ConnectToolIcon`・`BlueprintIcon`・`NameOnlyIcon`。置き場は D-29）で持ち、見出しの名前を `UiText` の辞書で持つ。絵は `Client.Ui.Content.PlacementTargetIcons` が値として引き、面へ当てる分岐は Screens が持つ | VM に `UiIcon` か Texture2D を持たせる: State は `Client.Ui` を参照できず、テクスチャの容器（`ClientContext`）を State に持ち込むと Content 層（A-4）と二重になる。カテゴリ名を View がコンテンツ辞書キーから作る: L1 が Web の英語名（最長の Building Materials）を逐語で入れられず、レイアウトの 5 件目が空振りになる | 設計検査（配置 V1・V2）・設計書 §1.1・§2.8 |
 | D-3 | 検索・群分け・サイドバーの無効の合成は純関数 `BuildMenuShownListComposer`（State） | View の中で合成: L0 で試せず、Web の `BuildMenuPanel` の分岐（非検索時は絞り込みを省く）が View に散る | agent 既定 |
 | D-4 | 拒否理由を `UiCommandRejectReason` の末尾に 6 値足し、Web の wire code と良性の集合（`BENIGN_ERRORS`）を写す。CSV に `ui.commandRejected.*` を 6 行 | 画面固有の結果型: トーストの経路（`UiCommandResultToaster`）が 1 本でなくなる。前例 S2-skit が同じ共有区画へ足した | agent 既定（前例 S2-skit） |
 | D-5 | マスの面は `--icon-pad: 4px`（面 = `--slot-size` − 8px）で写し、[A-47] の「C# が導出する calc」は Web で生きている calc（`.scroll` の `margin: calc(-1 * var(--tutorial-anchor-clip-inset))`・viewport の padding・縦バーの inset）へ付け替えて `BuildMenuScrollClipInset` が導く。設計書の [A-47] の文言の直しは `done.md` の「integrator への依頼」と設計書行の案（A-100）へ | 完了条件の文言どおり `.slotIcon` の `calc(var(--slot-size) - 8px)` を C# で導く: Web の `.slotIcon`・`.slotLabel` は `BuildMenuSlot.tsx` から参照されない死んだ CSS で、実際の面は `PlacementTargetFace` の `--icon-pad` が決めている（grep で確認）。死んだ規則を写すと Web と違う物を作る | 本体（指揮代行）の決定で採用（Web の CSS と TSX の実物）。設計書行の案 A-101 に [A-47] の改めとして書いた |
@@ -4510,7 +4621,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-13 | リストは群・節・エントリの並びのキーが同じなら中身だけ差し替え、違えば作り直す | 毎回作り直す: 所持品の変化（毎秒あり得る）でスクロールの寸法が揺れ、ホバーとツールチップの印が外れる | agent 既定（Web の React の key と同じ効果） |
 | D-14 | 詳細は sticky。ホバーした id をセッションに保存し、VM の再配信のたびに引き直す。エントリが消えたらヒントへ戻す | 離れたら消す: Web の regression 8 件目（sticky）に反する | Web `BuildMenuPanel.tsx` |
 | D-15 | 不足ツールチップの文は題＋不足行を改行で結んだ逐語（`UiText.FromVerbatim`）で、言語の変化で作り直す | 行ごとの `UiText` の列: `HoverTooltipMark` は `UiText` 1 つを受ける（F1 の実物） | agent 既定（F1 の API） |
-| D-16 | 落としの受け口 `IHotbarDropReceiver`（State/Hotbar/Logic・`IUiDropTarget` は継がない）をこのレーンが作り、`OnDropped` は `target is IHotbarDropReceiver r` なら `r.TryReceive(Source)` を呼んで戻り値に関わらず終わる（断った理由のログは受け手が出す）。受け口でない落とし先は `OnDroppedOutside` と同じく何もしない。これは正常操作の無操作で、ガードの縮退ではない（Web と同じ） | Warning だけ置いて S3-hotbar-modal が本体を差し替える: 後のレーンがこのレーンのファイルを書き換え、所有が混ざる。このレーンで割当まで作る: 枠の印と割当は S3-hotbar-modal の持ち物。`IUiDropTarget` を継ぐ: State は `Client.Ui` を参照できない。断られた落としを源で Warning にする: 受け手と源の 2 か所でログが重なり、hotbar-modal 側の扱いとずれる | 本体（指揮代行）の決定 |
+| D-16 | 落としの受け口 `IHotbarDropReceiver`（State/Hotbar/Logic・`IUiDropTarget` は継がない）をこのレーンが作り、`OnDropped` は `target is IHotbarDropReceiver r` なら `r.Receive(Source)` を呼んで終わる（断った理由のログは受け手が出す）。受け口でない落とし先は `OnDroppedOutside` と同じく何もしない。これは正常操作の無操作で、ガードの縮退ではない（Web と同じ） | Warning だけ置いて S3-hotbar-modal が本体を差し替える: 後のレーンがこのレーンのファイルを書き換え、所有が混ざる。このレーンで割当まで作る: 枠の印と割当は S3-hotbar-modal の持ち物。`IUiDropTarget` を継ぐ: State は `Client.Ui` を参照できない。断られた落としを源で Warning にする: 受け手と源の 2 か所でログが重なり、hotbar-modal 側の扱いとずれる | 本体（指揮代行）の決定 |
 | D-17 | 1 セット設置（`setPlacement`）は Block だけ | 全種別: Web の橋も Block だけに付ける（`BuildMenuEntryDtoFactory`） | Web の橋の実物 |
 | D-18 | `building/blueprint-place-like-block` は GameUi で `modal-input` の待ちまでを確かめ、Web で通しを 1 回流して既存経路を守る。GameUi の通しは S3-ladder | GameUi で通しを完了条件にする: BP 名のモーダルは S3-hotbar-modal の持ち物で W3 の順ではこのレーンの後。完了条件から外す: 実行計画の文言にあり、ビルドメニューの経路（BP コピーの選択）はこのレーンで確かめられる | 本体（指揮代行）の決定で採用（実行計画 §1.4・死活表） |
 | D-19 | Model は開いている間、源の変化で同期的に VM を組み直す（A-57）。Presenter は出ている間だけ購読する | 間引く: Web の topic も変化ごとに送る。閉じている間も購読: 描かない画面に配る理由が無い（前例 PauseMenu） | 設計書 [A-57]・前例 `PauseMenuScreenPresenter` |
@@ -4523,14 +4634,19 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-26 | 部品のつまみは、部品の要素に足した画面のクラスで上書きする（`build-menu__category-switch`・`build-menu__entry`・`build-menu__scroll`） | 祖先で宣言: `customStyle` は祖先の宣言を読まない（C# で読むつまみが効かない） | ref-uitk-design・設計書 §3.2 |
 | D-27 | 閉じるの L1 はコマンドの呼び出し 1 回だけを見て、パネルが隠れることは録画で見る | L1 で routing まで組む: `UIStateControl` はシーンの component で L1 では遷移しない（前例 S2-mode-tooltip） | agent 既定 |
 | D-28 | 検索 0 件の該当なしはリストと入れ替える（リストを `display: none`） | リストの上に重ねる: Web は三項でリストを描かない | Web `BuildMenuPanel.tsx` |
-| D-29 | 配置対象の絵の出どころ（`PlacementTargetIcon` の union・`PlacementTargetIconResolver`・`PlacementTargetIcons.Apply`・`TryToUiIcon`）は最初から最終の置き場（`Client.Ui.State/PlacementTarget/`・`Client.Ui/Content/`）に作り、持ち主はこのレーン。ビルドメニューはマスと詳細から使うだけ。mod の絵が欠けたら Resolver が名前で描く側へ倒す。種別名 `BuildMenuEntryKindName` は BuildMenu の下に残す | BuildMenu の下に仮置きして後で昇格: S3-hotbar-modal が後からこのレーンのファイルを動かすことになる。新しい共有はレーンが作らない（設計書 §5.1-2）に従う: 先に走るこのレーンが作る方が書き換えが起きない（本体の決定で例外にした。設計書行の案 A-100） | 本体（指揮代行）の決定 |
+| D-29 | 配置対象の絵の出どころ（`PlacementTargetIcon` の union・`PlacementTargetIconResolver`・`PlacementTargetIcons`）は最初から最終の置き場（`Client.Ui.State/PlacementTarget/`・`Client.Ui/Content/`）に作り、持ち主はこのレーン。ビルドメニューはマスと詳細から使うだけ。車両・接続ツールの絵は C3-a の `IGameContentTextureSource` に 2 メソッドを足して引く（このレーンの追記。絵が欠けたら null を渡し、`PlacementTargetFace` が名前で描く）。種別名 `BuildMenuEntryKindName` は BuildMenu の下に残す | BuildMenu の下に仮置きして後で昇格: S3-hotbar-modal が後からこのレーンのファイルを動かすことになる | 設計書 §5.1-1（Web でビルドメニューとホットバーの 2 機能が既に `ResolveIconUrl` を共有）・本体の決定。設計書行の案 A-100 |
 | D-30 | 字間は足さない | 足す: Web のこの画面の CSS に字間が無い（I-fix1 の換算が要るのは字間を持つ画面だけ） | Web の CSS の実物 |
 | D-31 | 色の比較はランタイムの PanelSettings の複製で撮った RT で行い、ギャラリーの撮影では比べない | ギャラリー: sRGB の合成で半透明が淡く出る（I-fix1 の罠 b） | I-fix1（e26010aa0c） |
 | D-32 | Web テストの部分を写さないところ: `aria-pressed` は選択のクラス（`mode-switch__option--selected`）、`data-locale` 属性の確認は L1 の言語固定（`ScreenTestHost`）、Mantine の viewport のクラス名は `GameScrollView` の `contentViewport`、`expectNoVerticalOverflow` は実幅で測った文の高さが 1 行と同じこと、`fill` は `TextField.value` の代入 | DOM の属性を UITK に作る: 意味の無い写しで、テストの意図（選ばれている・言語が英語・溢れない）は同じ主張で守れる | agent 既定 |
 | D-33 | 新しいテストは `S/Client.Tests/Ui/Screens/BuildMenu/Views/`（namespace `…BuildMenu.Views`）と `Support/` に置く | 直下に置く: L0-s3 の 4 ファイルと合わせて 13 になり、1 ディレクトリ 10 ファイルの規約を超える | AGENTS.md |
 | D-34 | マスの操作の口（`IBuildMenuEntryHandler`）の実装を View から `BuildMenuEntryActions` へ分ける | View が実装する: View の公開面に操作の口が出て、200 行を超える | AGENTS.md（200 行） |
-| D-35 | `IBlueprintDeleteService` は登録ファイルで `Register<IBlueprintDeleteService>(resolver => resolver.Resolve<ClientBlueprintLibrary>(), Lifetime.Singleton)` で引き当てる | 共有の `MainGameInteractionRegistration` に `.As<IBlueprintDeleteService>()` を足す: 共有区画でない行を書き換える。`BuildMenuCommands` が `ClientBlueprintLibrary` を受ける: L0 で削除の結果を差し替えられない。ラムダは VContainer の登録 API の引数で、`Func<>` を設計に持ち込むものではない（前例 `IPlayerObjectController` の登録） | 前例 `MainGameInteractionRegistration` |
+| D-35 | `IBlueprintDeleteService` は `MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行に `.As<IBlueprintDeleteService>()` を 1 つ足して引く（共有ファイルの 1 行の追記として File Structure に書いた） | 登録ファイルで `Register<IBlueprintDeleteService>(resolver => …)` のラムダで引き当てる: 同じ実体を 2 つの登録で指すことになり、`As` 1 つで済む所に迂回を作る。`BuildMenuCommands` が `ClientBlueprintLibrary` を受ける: L0 で削除の結果を差し替えられない | 設計検査（N2）・本体の決定 |
 | D-36 | Web の `.main` の gap 8px は検索の下の余白（`.build-menu__search`）で写し、スクロールの負の上余白（−12）と足し合わせる | スクロールの上余白を `8 − inset` で C# が出す: クリップの逃げの導出に列の間隔が混ざり、`BuildMenuScrollClipInset` が Web の 1 規則の写しでなくなる | agent 既定 |
+| D-37 | `PlacementTargetIcons` は DI の Singleton で、`bool TryToUiIcon(PlacementTargetIcon, out UiIcon)` だけを持つ（値だけを返す）。面へ当てる分岐（真なら `SetIconTarget`、偽なら `SetNameTarget`）は `BuildMenuEntrySlot` と詳細の列が持つ | Content が面（`PlacementTargetFace`）を受けて当てる `Apply`: Content 層が Components を操作することになり、前例 `GameContentPresentation`（値だけを返す）から外れる | 設計検査（配置 V1）・本体の決定 |
+| D-38 | Screens は `Game.PlacementTarget` を参照しない。VM が `KindName`（`BuildMenuEntryKindName.Of` の結果）と `CanDeleteBlueprint` を持ち、詳細の列は `entry.SetPlacement` をそのまま使う | マスと詳細が `PlacementTargetKind` を見て分岐する: 種別の語彙が Screens に漏れ、同じ判定が 2 か所に散る | 設計検査（配置 V3） |
+| D-39 | 落としの受け口は `void Receive(HotbarDragSource)`（状態を書く口なので結果を返さない。断る理由のログは受け手が出す） | `bool TryReceive`: 源は戻り値を使わないので、bool は呼び手に何も伝えない | 設計検査（配置 V4）・本体の決定 |
+| D-40 | 1 セット設置は判別 union（`BuildMenuSetPlacement.None`・`BuildMenuSetPlacementAvailable(perCost, remaining)`）にし、Factory だけが Block のとき作る | `HasValue` 付きの 1 クラス: 値が無いのに `PerCost`・`Remaining` を読めてしまう。詳細の列で Kind を見て Block に限る: Factory と同じ判定が 2 か所になる | 設計検査（Phase 2.6 強） |
+| D-41 | 型の弱い指摘の扱い: (a) `CurrentState == BuildMenu` は `BuildMenuCommands` の private `IsBuildMenuOpen` の 1 か所にまとめる。Model の「閉じている間は組み直さない」は別の理由なので残す (b) 素材の不足は VM の ctor で 1 回だけ判定し、`BuildMenuMaterialLine.IsInsufficient` で持つ (c) 空の表示名は前例 `ModeHudViewModelFactory` と同じく `LogError` を出し、表示はそのまま (d) NameOnly のマスも `filled` にする（Web `BuildMenuSlot.tsx` は常に `filled`） (e) `_structureKey` は null を「まだ描いていない」にし、空の文字列（群が 0 の構造）と分ける (f) 合成の結果の bool（`IsCategoryEnabled`・`ShowsNoResults`）と `TryGet` が理由を返さないことはそのまま（呼び手が分岐するだけで、理由を出す先が無い） | 全部を型で塞ぐ: (f) は呼び手の分岐が 1 つずつで、理由を返しても読む所が無い | 設計検査（Phase 2.6 弱） |
 
 **未確認**（実装で確かめ、違えば `done.md` の「未確認」へ）:
 - C3-b の `ModeSwitch<TValue>`・`GameScrollView` の口・`UiDragDrop` の綴り（Task 1 Step 1 で照合）
@@ -4541,8 +4657,16 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 - `p.PressKey(Key.Escape)` で PlaceBlock から GameScreen へ戻るか（Task 11）
 - 2560×1080 の複製パネルで舞台の倍率が自動で入るか（Task 10 Step 2）
 
-**本PR外のリファクタ提案**:
-- 橋 `S/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuEntryDtoFactory.cs`・`BuildMenuMaterialAvailability.cs` と State の `BuildMenuEntryFactory`・`BuildMenuMaterialRowsBuilder` の規則の重複。Web を消す段（W 末）で橋ごと消えるので、それまでは両方を `BuildMenuEntryFactoryTest` の突き合わせ（橋の DTO と同じ値）で縛る
+**本PR外のリファクタ提案**（設計検査の第3バケツ 5 件。どれも Web の系と UITK の系の重複で、UITK へ切り替える日に Web の系を消すとき橋ごと消える。それまでは突き合わせのテストで縛る。設計検査の 5 件の原文はこの fork の手元に無いので、計画の中で分かる重複から書いた。指揮の控えと違えば差し替える）:
+
+| 既存側 | 新設側 | 根拠 |
+|---|---|---|
+| 橋 `S/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuEntryDtoFactory.cs` | `Client.Ui.State/BuildMenu/Source/BuildMenuEntryFactory.cs` | 種別・カテゴリ対・免除・1 セット設置の規則が同じ。`BuildMenuEntryFactoryTest` が橋の DTO と突き合わせる（D-1） |
+| 橋 `BuildMenuMaterialAvailability.cs` | `BuildMenuMaterialRowsBuilder.cs` | 必要素材の行と BP の貼り付け費用が同じ規則 |
+| 橋の `ResolveIconUrl` | `Client.Ui.State/PlacementTarget/PlacementTargetIconResolver.cs`・`Client.Ui/Content/PlacementTargetIcons.cs` | 絵の出どころの決め方が同じ（設計書 §5.1-1。ビルドメニューとホットバーの 2 機能が共有） |
+| 橋の `BuildMenuActions`・`UiStateActions` | `Client.Ui.State/BuildMenu/Commands/BuildMenuCommands.cs` | 選択・BP 削除・閉じるの前提と拒否理由が同じ（Web の wire code を `UiCommandRejectReason` へ写した。D-4） |
+| 橋のカテゴリ対の解決（`BuildMenuEntryDtoFactory` の内側） | `BuildMenuCategoryPairResolver.cs` | 対象 → カテゴリ・サブカテゴリの決め方が同じ |
+
 - `BuildMenuEntryKindName` の `Client.Ui.State/PlacementTarget/` への昇格（ホットバーの testid が種別の文字列を要るようになったら。絵の出どころは D-29 で最終の置き場に作った）
 
 ---
