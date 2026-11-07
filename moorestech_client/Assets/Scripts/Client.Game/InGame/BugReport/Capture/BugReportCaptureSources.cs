@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using Client.Common;
 using Client.Game.InGame.BugReport.Recording;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
@@ -27,16 +28,18 @@ namespace Client.Game.InGame.BugReport.Capture
         private readonly GameFrameRecorder _recorder;
         private readonly UnityLogRing _logRing;
         private readonly PlayerSystemContainer _playerSystemContainer;
+        private readonly IWebUiHealthProbe _webUiHealth;
 
         // 画面はUIStateControlを見に行かず押し込んでもらう。見に行くと確保元→UI状態機械→ポーズ→確保元で生成が循環する
         // The screen is pushed in rather than read from UIStateControl; reading it would loop sources to the UI state machine and back
         private UIStateEnum _currentUiState = UIStateEnum.GameScreen;
 
-        public BugReportCaptureSources(GameFrameRecorder recorder, UnityLogRing logRing, PlayerSystemContainer playerSystemContainer)
+        public BugReportCaptureSources(GameFrameRecorder recorder, UnityLogRing logRing, PlayerSystemContainer playerSystemContainer, IWebUiHealthProbe webUiHealth)
         {
             _recorder = recorder;
             _logRing = logRing;
             _playerSystemContainer = playerSystemContainer;
+            _webUiHealth = webUiHealth;
         }
 
         public void SetCurrentUiState(UIStateEnum uiState)
@@ -90,6 +93,11 @@ namespace Client.Game.InGame.BugReport.Capture
             var playerPosition = player == null ? Vector3.zero : player.Position;
 
             return new ClientStateSnapshot(cameraPosition, cameraEulerAngles, playerPosition, _currentUiState.ToString(), GameUpdater.CurrentTick, camera != null, player != null);
+        }
+
+        public WebUiHealthReading WebUiHealth()
+        {
+            return _webUiHealth.Read();
         }
 
         public async UniTask<string> CaptureScreenshot(string workDirectory)

@@ -5,5 +5,5 @@ public class CompileRequester
 {
 // スキーマ更新時はこの印もcommit
 // Commit this marker with schema changes
-    private const string dummyText = "A1-10-4D-00-00-00-00-00-00-00-00-00-00-00-00-01";
+    private const string dummyText = "57-16-D4-47-4A-D4-E1-8F-D9-AF-8F-2C-02-08-DE-A8";
 }

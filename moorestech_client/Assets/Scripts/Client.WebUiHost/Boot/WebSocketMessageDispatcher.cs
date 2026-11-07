@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Client.Input;
 using Client.WebUiHost.Common;
@@ -27,6 +28,9 @@ namespace Client.WebUiHost.Boot
         // Parse the received JSON and route by op; parse failure is caught at the boundary to keep the connection alive
         public async UniTask DispatchAsync(WebSocketConnection conn, string json)
         {
+            // 中身を問わず受信の事実を残す。JSが止まりWSだけ残る経路をここで見分ける（plan §3.11）
+            // Record every receipt regardless of content; this tells apart a stopped JS whose WS stays open (plan §3.11)
+            WebUiInputExclusivity.RecordWebMessageReceived(Stopwatch.GetTimestamp());
             if (!WebUiJson.TryDeserialize<WsClientMessage>(json, out var msg) || msg.Op == null) return;
 
             switch (msg.Op)
