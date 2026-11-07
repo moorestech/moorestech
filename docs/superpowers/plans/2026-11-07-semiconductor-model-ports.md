@@ -15,6 +15,7 @@
 - 空気清浄機を占有1×2×1へ収め、入力セル(0,0,0)の水平4方向入力を示し、出力に見える模型を残さない。
 - 化学プラントは占有6×16×11と、item入力(3,0,0)、fluid入力(3,1,0)/(2,1,0)、fluid出力(2,1,10)を部位別に照合し、欠落表示と突出を直す。
 - 回転4方向で模型と接続位置の一致を測定し、実ベルト・実パイプによる供給・加工・出力を録画で確かめる。
+- 生成アイコンは対象全体が画像内に収まり、口の表示を撮影対象レイヤーへ揃える。
 - 今回は模型とマスタの整合修正。ゲームバランス、工程、セーブ形式、共用ベルト資産そのものは変更しない。
 
 ## Global Constraints
@@ -49,6 +50,7 @@
 - Modify: `moorestech_client/Assets/AddressableResources/Block/CleanRoomAirFilter.prefab`
 - Modify: `moorestech_client/Assets/AddressableResources/Block/Chemical Plants.prefab`
 - Inspect and modify if required: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/IconCapture/BlockIconCaptureShot.cs`
 - Modify when external commit changes: `.moorestech-external-revisions.json`
 
 **Interfaces:**
@@ -62,6 +64,22 @@
 - [ ] **Step 5: 化学プラントを修正する。** scout.mdとUnityの本体/ポート計測を照合し、占有内へ本体を補正する。前面item1口、前面fluid2口、背面fluid1口をマスタ座標に表示する。論理定義が正しければ不用なmaster編集はしない。真の不整合があれば当該設備の定義だけをモデルと同時に更新し、レシピ量は変更しない。
 - [ ] **Step 6: 変更した全PrefabをUnityで再読込・再計測し、変更前後を3方向からレンダーする。** 数値は報告へ、画像は.superpowers/sdd/screenshots配下へ3枚以内で保存。
 - [ ] **Step 7: Task 1:をsubjectに含むコミットを作る。** マスタ変更時は別repoにもコミットし、報告に両SHAを書く。実装スクリプトは使い捨てEDCテキストとしてgitignore内へ置く。
+
+### Task 1 のQA追従: アイコンの全体表示
+
+- [ ] **Step 8: 共通アイコン撮影のフレームを外接球で保証する。** 空気清浄機の頂点は変更前画像内y93.1から変更後y-47.8へ出たことを独立検査で確認。Renderer中心の平均を使わず、union AABBの中心を使う。private AimCameraの中心引数と呼び出し側の平均計算を除く。camera角30/45は維持する。
+
+```csharp
+var center = (minPos + maxPos) * 0.5f;
+var radius = Vector3.Distance(minPos, maxPos) * 0.5f;
+var verticalHalfFov = blockImageCamera.fieldOfView * Mathf.Deg2Rad * 0.5f;
+var horizontalHalfFov = Mathf.Atan(Mathf.Tan(verticalHalfFov) * blockImageCamera.aspect);
+var distance = Mathf.Max(radius / Mathf.Sin(Mathf.Min(verticalHalfFov, horizontalHalfFov)) * 1.05f, radius + blockImageCamera.nearClipPlane);
+blockImageCamera.transform.position = center - blockImageCamera.transform.forward * distance;
+```
+
+- [ ] **Step 9: compileと6アイコンの実撮影を行う。** 画像端の切断がなく、入力面・液体口・専用4機の識別性が保たれることを確認。カメラのnear=.3/far=1000は対象寸法で足りる。全体を入れるため以前より小さめに写ることはagent前提のトレードオフで、共通撮影の責務内で直す。新しいプロダクトAPIや型は作らない。
+- [ ] **Step 10: Task 1:を含む修正コミットを作る。** レイヤー修正と撮影計算修正を区別して記録する。
 
 ## Task 2: unityプレイ録画テストで供給と占有を検証する
 
@@ -92,3 +110,5 @@
 - ユーザー裁定: 2026-11-07「じゃあそれでモデルとマスタを変更してほしい」。元の調査提案を実装する。詳細はdocs/adr/0097-semiconductor-model-footprints-and-connectors.md。
 - agent前提: 現行の占有・論理接続を基準に模型を修正し、正しいマスタ値へ見かけだけの変更は加えない。
 - agent前提: ランタイムの模型表示・接続体験に触れるためunityプレイ録画テストを必須にする。セーブ形式は変更しない。
+
+- agent前提（QA追従）: 新しい空気清浄機形状で露呈したアイコンの見切れは、既存BlockIconCaptureShotのフレーム責務で修正する。独立再現と型閉包検査0件。ソケットのレイヤー修正は26Rendererと親7件をBlockへ揃える既存契約への追従。
