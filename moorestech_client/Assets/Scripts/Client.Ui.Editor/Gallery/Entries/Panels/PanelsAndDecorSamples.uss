@@ -100,3 +100,25 @@
     width: var(--challenge-hud-content-width);
     margin-bottom: 12px;
 }
+
+/* 3-modal の幕（Web Modal.Overlay の #000・0.6 を α 補正した色）。枠を中央に置く */
+/* The 3-modal backdrop (Web Modal.Overlay #000 at 0.6, alpha corrected); centres the frame */
+.gallery-samples__modal-backdrop {
+    width: 560px;
+    height: 360px;
+    background-color: var(--modal-backdrop-face);
+    align-items: center;
+    justify-content: center;
+}
+
+/* 3-modal の説明文の下の間（Web の Text mb="lg"。部品は外側の margin を書かないので置く側が持つ） */
+/* The gap under the 3-modal description (Web Text mb="lg"; components write no outer margin, so the placer owns it) */
+.gallery-samples__dialog-message {
+    margin-bottom: var(--mantine-spacing-lg);
+}
+
+/* 3-modal の入力の下の間（Web の TextInput mb="lg"。部品は外側の margin を書かないので置く側が持つ） */
+/* The gap under the 3-modal input (Web TextInput mb="lg"; components write no outer margin, so the placer owns it) */
+.gallery-samples__dialog-input {
+    margin-bottom: var(--mantine-spacing-lg);
+}
