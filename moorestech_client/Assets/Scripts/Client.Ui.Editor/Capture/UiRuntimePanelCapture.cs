@@ -11,12 +11,16 @@ using Object = UnityEngine.Object;
 namespace Client.Ui.Editor.Capture
 {
     /// <summary>
-    /// 本番の PanelSettings の複製（Linear 合成・sRGB の RenderTexture）に要素を描いて画素を読む。色は Web とこれで比べる（設計書 A-74）
-    /// Draws elements on a copy of the production PanelSettings (Linear blend, sRGB RenderTexture) and reads pixels back; colors are compared to the Web with this (design A-74)
+    /// 本番 PanelSettings 複製に描いて画素を読む（A-74）
+    /// Draws on a copy of the production PanelSettings and reads pixels back (A-74)
     /// </summary>
     /// <remarks>
-    /// EditMode 専用。PlayMode の画面は ScreenCapture（DSL の Screenshot）で撮る。倍率は複製の ScaleWithScreenSize が width×height から決める（実機と同じ）。
-    /// EditMode only; PlayMode screens are taken with ScreenCapture (the DSL Screenshot). The scale comes from the copy's ScaleWithScreenSize for width x height (same as the game).
+    /// EditMode 専用
+        /// PlayMode は ScreenCapture で撮る
+        /// 倍率は複製の ScaleWithScreenSize が決める
+    /// EditMode only
+        /// PlayMode is captured with ScreenCapture
+        /// The scale comes from the copy's ScaleWithScreenSize
     /// </remarks>
     public static class UiRuntimePanelCapture
     {
@@ -24,13 +28,17 @@ namespace Client.Ui.Editor.Capture
         private static readonly string[] PanelPassNames = { "UpdatePanels", "RepaintPanels", "RenderOffscreenPanels" };
         private const int PanelPassCount = 3;
 
-        // 読める Texture2D を返す。呼び手が Object.DestroyImmediate で捨てる
-        // Returns a readable Texture2D; the caller disposes it with Object.DestroyImmediate
+        // 読める Texture2D を返す。破棄は呼び手
+        // Returns a readable Texture2D; the caller disposes it
         public static Texture2D Render(VisualElement content, int width, int height, Color ground)
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("[UiRuntimePanelCapture] EditMode only; use ScreenCapture in PlayMode");
             var source = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
             if (source == null) throw new InvalidOperationException($"[UiRuntimePanelCapture] missing {PanelSettingsPath}");
+
+            // 実行時パネルの描画口は internal なので反射で引く。一時リソースを作る前に解決し、見つからなければ Unity の更新で口が変わったので止める
+            // The runtime panel render entry points are internal, so resolve them via reflection before creating temp resources; stop if a Unity update renamed them
+            var passMethods = ResolvePassMethods();
 
             // 束縛付きの部品が辞書を引けるよう初期化する（ギャラリー窓と同じ）
             // Initialize the dictionary so bound components can resolve text (same as the gallery window)
@@ -60,6 +68,20 @@ namespace Client.Ui.Editor.Capture
 
             #region Internal
 
+            MethodInfo[] ResolvePassMethods()
+            {
+                var utility = typeof(VisualElement).Assembly.GetType("UnityEngine.UIElements.UIElementsRuntimeUtility");
+                if (utility == null) throw new InvalidOperationException("[UiRuntimePanelCapture] UIElementsRuntimeUtility not found");
+                return PanelPassNames.Select(FindPass).ToArray();
+
+                MethodInfo FindPass(string passName)
+                {
+                    var method = utility.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(m => m.Name == passName);
+                    if (method == null) throw new InvalidOperationException($"[UiRuntimePanelCapture] UIElementsRuntimeUtility.{passName} not found");
+                    return method;
+                }
+            }
+
             VisualElement CreateGround()
             {
                 var groundElement = new VisualElement();
@@ -71,24 +93,12 @@ namespace Client.Ui.Editor.Capture
 
             void RunPanelPasses()
             {
-                // 実行時パネルの描画口は internal なので反射で呼ぶ。見つからなければ Unity の更新で口が変わったので止める
-                // The runtime panel render entry points are internal, so call them via reflection; stop if a Unity update renamed them
-                var utility = typeof(VisualElement).Assembly.GetType("UnityEngine.UIElements.UIElementsRuntimeUtility");
-                if (utility == null) throw new InvalidOperationException("[UiRuntimePanelCapture] UIElementsRuntimeUtility not found");
-                var methods = PanelPassNames.Select(FindPass).ToArray();
                 for (var pass = 0; pass < PanelPassCount; pass++)
                 {
-                    foreach (var method in methods)
+                    foreach (var method in passMethods)
                     {
                         method.Invoke(null, method.GetParameters().Select(p => p.ParameterType == typeof(bool) ? (object)false : null).ToArray());
                     }
-                }
-
-                MethodInfo FindPass(string passName)
-                {
-                    var method = utility.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(m => m.Name == passName);
-                    if (method == null) throw new InvalidOperationException($"[UiRuntimePanelCapture] UIElementsRuntimeUtility.{passName} not found");
-                    return method;
                 }
             }
 
@@ -106,8 +116,8 @@ namespace Client.Ui.Editor.Capture
             #endregion
         }
 
-        // PNG に書いてそのパスを返す。読み戻しの上下は画面と同じ向き（C3-a 実測）
-        // Writes a PNG and returns its path; the read-back is upright like the screen (C3-a measurement)
+        // PNG に書いてパスを返す。上下は画面と同じ（C3-a）
+        // Writes a PNG and returns its path; upright like the screen (C3-a)
         public static string CaptureToPng(VisualElement content, int width, int height, Color ground, string pngPath)
         {
             var texture = Render(content, width, height, ground);

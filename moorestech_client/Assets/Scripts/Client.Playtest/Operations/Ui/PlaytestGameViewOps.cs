@@ -7,14 +7,14 @@ using UnityEngine;
 namespace Client.Playtest.Operations.Ui
 {
     /// <summary>
-    /// Game View の解像度をシナリオから切り替える（1280×720・2560×1080 の並べ比べ用）
-    /// Switches the Game View resolution from a scenario (for 1280x720 and 2560x1080 comparisons)
+    /// Game View の解像度をシナリオから切替
+    /// Switches the Game View resolution from a scenario
     /// </summary>
     public static class PlaytestGameViewOps
     {
         private const float ResolutionApplyTimeoutSeconds = 5f;
 
-        public static async UniTask SetResolution(int width, int height, CancellationToken token)
+        public static async UniTask SetResolution(CancellationToken cancellationToken, int width, int height)
         {
             var selected = GameViewResolution.Set(width, height);
             Debug.Log($"[PlaytestGameViewOps] Game View {width}x{height}: {selected}");
@@ -28,7 +28,7 @@ namespace Client.Playtest.Operations.Ui
                 {
                     throw new TimeoutException($"Game View did not reach {width}x{height} within {ResolutionApplyTimeoutSeconds}s (Screen {Screen.width}x{Screen.height})");
                 }
-                await UniTask.Yield(token);
+                await UniTask.Yield(cancellationToken);
             }
         }
     }

@@ -19,7 +19,7 @@ return PlaytestRunner.Run("uitk-gameview-resolution-switch", options, async p =>
     // 横長の 2560×1080 へ切り替えて撮る
     // Switch to the wide 2560x1080 and capture
     p.Note("Game View を 2560×1080 へ切り替える");
-    await PlaytestGameViewOps.SetResolution(2560, 1080, p.CancellationToken);
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 2560, 1080);
     await UniTask.DelayFrame(3);
     p.Assert(Screen.width == 2560 && Screen.height == 1080, $"Screen が 2560×1080 になった (実際 {Screen.width}x{Screen.height})");
     p.Assert(Mathf.Abs(GameUiScale() - 1.5f) < 0.01f, $"UITK のパネル倍率が 1.5 (実際 {GameUiScale()})");
@@ -28,7 +28,7 @@ return PlaytestRunner.Run("uitk-gameview-resolution-switch", options, async p =>
     // 1280×720 へ戻して撮る
     // Switch back to 1280x720 and capture
     p.Note("Game View を 1280×720 へ戻す");
-    await PlaytestGameViewOps.SetResolution(1280, 720, p.CancellationToken);
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     await UniTask.DelayFrame(3);
     p.Assert(Screen.width == 1280 && Screen.height == 720, $"Screen が 1280×720 に戻った (実際 {Screen.width}x{Screen.height})");
     p.Assert(Mathf.Abs(GameUiScale() - 1f) < 0.01f, $"UITK のパネル倍率が 1.0 (実際 {GameUiScale()})");

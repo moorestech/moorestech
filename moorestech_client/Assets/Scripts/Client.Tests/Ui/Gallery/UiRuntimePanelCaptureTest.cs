@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Gallery
 {
     /// <summary>
-    /// ランタイム撮影が本番の倍率で描いて画素を読めることを確かめる（L1）
-    /// Verifies the runtime capture draws at the production scale and reads pixels back (L1)
+    /// 本番倍率で描いて画素を読めるか確認（L1）
+    /// Verifies drawing at the production scale and reading pixels back (L1)
     /// </summary>
     public class UiRuntimePanelCaptureTest
     {
@@ -47,8 +47,8 @@ namespace Client.Tests.Ui.Gallery
             return box;
         }
 
-        // 画面座標（左上原点）の画素を読む。Texture2D は左下原点
-        // Reads a pixel in screen coordinates (top-left origin); Texture2D is bottom-left origin
+        // 画面座標（左上原点）の画素を読む
+        // Reads a pixel in screen coordinates; Texture2D is bottom-left origin
         private static Color32 ReadScreenPixel(Texture2D texture, int x, int y)
         {
             return texture.GetPixel(x, texture.height - 1 - y);
@@ -66,7 +66,7 @@ namespace Client.Tests.Ui.Gallery
             for (var x = 0; x < texture.width; x++)
             {
                 var pixel = ReadScreenPixel(texture, x, screenY);
-                if (pixel.r > 200 && pixel.g < 50) count++;
+                if (200 < pixel.r && pixel.g < 50) count++;
             }
             return count;
         }

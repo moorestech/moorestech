@@ -6,13 +6,17 @@
 export const darkExponent = 1.85;
 const lightExponent = 1.85;
 
+// 明暗を分ける最大成分の境（0〜1）
+// Largest-channel boundary between dark and light colors (0 to 1)
+export const lightDarkSplitChannel = 0.5;
+
 // 明暗は最大の成分で分ける。純色の赤（輝度 0.21）は暗い地の上で明るい色として振る舞い、輝度で分けると 87 段外れた（I-fix2 実測）
 // Light versus dark is split by the largest channel: pure red (luminance 0.21) behaves as a light color over dark ground and missed by 87 steps when split by luminance (I-fix2)
 export function correctAlphaForLinearBlend(red, green, blue, alpha) {
   if (alpha <= 0 || alpha >= 1) return alpha;
   const brightest = Math.max(red, green, blue) / 255;
-  const corrected = brightest < 0.5 ? 1 - Math.pow(1 - alpha, darkExponent) : Math.pow(alpha, lightExponent);
+  const corrected = brightest < lightDarkSplitChannel ? 1 - Math.pow(1 - alpha, darkExponent) : Math.pow(alpha, lightExponent);
   return Math.round(corrected * 10000) / 10000;
 }
 
-export const translucencyMethod = `α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^${darkExponent}・明るい色 α^${lightExponent}）`;
+export const translucencyMethod = `α 近似補正（S7。最大成分 ${lightDarkSplitChannel} 未満の暗い色 1-(1-α)^${darkExponent}・明るい色 α^${lightExponent}）`;

@@ -5,8 +5,8 @@ using UnityEditor;
 namespace Client.Ui.Editor.Capture
 {
     /// <summary>
-    /// Game View を固定解像度 W×H にする（無ければ足す）。並べ比べの 1280×720・2560×1080 の切り替えに使う
-    /// Sets the Game View to a fixed W x H resolution (adding it if missing); switches between 1280x720 and 2560x1080 for comparisons
+    /// Game View を固定解像度 W×H にする
+    /// Sets the Game View to a fixed W x H resolution (adding it if missing)
     /// </summary>
     public static class GameViewResolution
     {
@@ -25,16 +25,29 @@ namespace Client.Ui.Editor.Capture
             var sizeKindType = RequireType("UnityEditor.GameViewSizeType");
             var gameViewType = RequireType("UnityEditor.GameView");
 
-            var sizes = typeof(ScriptableSingleton<>).MakeGenericType(sizesType).GetProperty("instance").GetValue(null);
-            var groupKind = (int)sizesType.GetProperty("currentGroupType").GetValue(sizes);
-            var group = sizesType.GetMethod("GetGroup").Invoke(sizes, new object[] { groupKind });
+            // 反射で引く口はすべて AddFixedSize（永続設定の追加）より前に解決する
+            // Resolve every reflected member before AddFixedSize, which persists a user setting
+            var sizes = RequireProperty(typeof(ScriptableSingleton<>).MakeGenericType(sizesType), "instance", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy).GetValue(null);
+            var groupKind = (int)RequireProperty(sizesType, "currentGroupType", AnyInstance).GetValue(sizes);
+            var getGroup = RequireMethod(sizesType, "GetGroup", AnyInstance);
+            var group = getGroup.Invoke(sizes, new object[] { groupKind });
+            var groupType = group.GetType();
+            var getTotalCount = RequireMethod(groupType, "GetTotalCount", AnyInstance);
+            var getGameViewSize = RequireMethod(groupType, "GetGameViewSize", AnyInstance);
+            var addCustomSize = RequireMethod(groupType, "AddCustomSize", AnyInstance);
+            var widthProperty = RequireProperty(sizeType, "width", AnyInstance);
+            var heightProperty = RequireProperty(sizeType, "height", AnyInstance);
+            var sizeTypeProperty = RequireProperty(sizeType, "sizeType", AnyInstance);
+            var sizeConstructor = RequireConstructor(sizeType, new[] { sizeKindType, typeof(int), typeof(int), typeof(string) });
+            var selectSize = RequireMethod(gameViewType, "SizeSelectionCallback", AnyInstance);
+            var targetRenderSize = RequireProperty(gameViewType, "targetRenderSize", AnyInstance);
             var index = FindFixedSize() ?? AddFixedSize();
 
-            // Game View の窓を開いて（無ければ作って）その大きさを選ぶ
-            // Open the Game View window (creating it if needed) and select the size
+            // Game View を開いて大きさを選ぶ
+            // Open the Game View and select the size
             var gameView = EditorWindow.GetWindow(gameViewType, false, null, false);
-            gameViewType.GetMethod("SizeSelectionCallback", AnyInstance).Invoke(gameView, new object[] { index, null });
-            var renderSize = gameViewType.GetProperty("targetRenderSize", AnyInstance).GetValue(gameView);
+            selectSize.Invoke(gameView, new object[] { index, null });
+            var renderSize = targetRenderSize.GetValue(gameView);
             return $"index={index} target={renderSize}";
 
             #region Internal
@@ -46,15 +59,36 @@ namespace Client.Ui.Editor.Capture
                 return type;
             }
 
+            MethodInfo RequireMethod(Type owner, string name, BindingFlags flags)
+            {
+                var method = owner.GetMethod(name, flags);
+                if (method == null) throw new InvalidOperationException($"[GameViewResolution] {owner.Name}.{name} not found");
+                return method;
+            }
+
+            PropertyInfo RequireProperty(Type owner, string name, BindingFlags flags)
+            {
+                var property = owner.GetProperty(name, flags);
+                if (property == null) throw new InvalidOperationException($"[GameViewResolution] {owner.Name}.{name} not found");
+                return property;
+            }
+
+            ConstructorInfo RequireConstructor(Type owner, Type[] parameterTypes)
+            {
+                var constructor = owner.GetConstructor(parameterTypes);
+                if (constructor == null) throw new InvalidOperationException($"[GameViewResolution] {owner.Name} constructor not found");
+                return constructor;
+            }
+
             int? FindFixedSize()
             {
-                var total = (int)group.GetType().GetMethod("GetTotalCount").Invoke(group, null);
+                var total = (int)getTotalCount.Invoke(group, null);
                 for (var i = 0; i < total; i++)
                 {
-                    var size = group.GetType().GetMethod("GetGameViewSize").Invoke(group, new object[] { i });
-                    var sizeWidth = (int)sizeType.GetProperty("width").GetValue(size);
-                    var sizeHeight = (int)sizeType.GetProperty("height").GetValue(size);
-                    var kind = sizeType.GetProperty("sizeType").GetValue(size).ToString();
+                    var size = getGameViewSize.Invoke(group, new object[] { i });
+                    var sizeWidth = (int)widthProperty.GetValue(size);
+                    var sizeHeight = (int)heightProperty.GetValue(size);
+                    var kind = sizeTypeProperty.GetValue(size).ToString();
                     if (sizeWidth == width && sizeHeight == height && kind == FixedResolutionTypeName) return i;
                 }
                 return null;
@@ -62,10 +96,9 @@ namespace Client.Ui.Editor.Capture
 
             int AddFixedSize()
             {
-                var ctor = sizeType.GetConstructor(new[] { sizeKindType, typeof(int), typeof(int), typeof(string) });
-                var newSize = ctor.Invoke(new object[] { Enum.Parse(sizeKindType, FixedResolutionTypeName), width, height, $"{width}x{height}" });
-                group.GetType().GetMethod("AddCustomSize").Invoke(group, new[] { newSize });
-                return (int)group.GetType().GetMethod("GetTotalCount").Invoke(group, null) - 1;
+                var newSize = sizeConstructor.Invoke(new object[] { Enum.Parse(sizeKindType, FixedResolutionTypeName), width, height, $"{width}x{height}" });
+                addCustomSize.Invoke(group, new[] { newSize });
+                return (int)getTotalCount.Invoke(group, null) - 1;
             }
 
             #endregion
