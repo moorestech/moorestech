@@ -89,6 +89,16 @@ namespace Client.Tests.Ui.Theme
         }
 
         [Test]
+        public void ReadsPercentFromRedeclaredToken()
+        {
+            // customStyle は % を文字列でしか返さないので、受け直したトークンを比で読む
+            // customStyle returns percentages only as strings, so the re-declared token is read as a ratio
+            Assert.IsTrue(UssTokenValue.TryParsePercent(ReadTokenBody("--screen-vignette-width"), out var expected));
+            Assert.IsTrue(UssCustomStyleReader.TryReadPercent(_probe.customStyle, "--probe-vignette-width", out var ratio));
+            Assert.AreEqual(expected, ratio, 0.0001f);
+        }
+
+        [Test]
         public void キーワードを文字列で読める()
         {
             // 変種 A の前提

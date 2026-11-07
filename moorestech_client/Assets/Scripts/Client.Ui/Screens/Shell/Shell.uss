@@ -1,0 +1,35 @@
+/* web: moorestech_web/webui/src/app/App.module.css（.viewport の背景の radial-gradient・.backdrop） */
+/* ヴィネットは常に、幕は traits の Backdrop 列の画面だけ。どちらも実画面いっぱいで入力を奪わない。ヴィネットの形と色は C# が頂点カラーで描くので受け直す */
+/* web: moorestech_web/webui/src/app/App.module.css (.viewport background radial-gradient, .backdrop) */
+/* The vignette is always on and the dim only on screens with the traits Backdrop column; both fill the viewport and take no input; vignette shape and color are re-declared because C# draws them as vertex colors */
+
+.screen-shell {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.screen-shell__vignette {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --screen-shell-vignette-width: var(--screen-vignette-width);
+    --screen-shell-vignette-height: var(--screen-vignette-height);
+    --screen-shell-vignette-center-x: var(--screen-vignette-center-x);
+    --screen-shell-vignette-center-y: var(--screen-vignette-center-y);
+    --screen-shell-vignette-clear-stop: var(--screen-vignette-clear-stop);
+    --screen-shell-vignette-edge: var(--screen-vignette-edge);
+}
+
+.screen-shell__backdrop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--screen-backdrop-face);
+}
