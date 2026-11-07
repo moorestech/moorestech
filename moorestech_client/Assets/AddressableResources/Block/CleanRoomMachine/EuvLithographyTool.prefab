@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8711966922537565714}
   - component: {fileID: 1041606124079994616}
   - component: {fileID: 1004805745397701442}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: ItemInputFace
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -286,7 +286,7 @@ GameObject:
   - component: {fileID: 7524562881053103050}
   - component: {fileID: 3201848857373135430}
   - component: {fileID: 6064039019528900305}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SocketSleeve
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -870,7 +870,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5407084258135603660}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: FluidInput
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -905,7 +905,7 @@ GameObject:
   - component: {fileID: 5799827177188542672}
   - component: {fileID: 6641026145956558172}
   - component: {fileID: 3176896327565081466}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: ItemOutputFace
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -995,7 +995,7 @@ GameObject:
   - component: {fileID: 5858612936155788242}
   - component: {fileID: 7646578264259507936}
   - component: {fileID: 4202185664245191011}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: InputOutputMarker
   m_TagString: Untagged
   m_Icon: {fileID: 0}

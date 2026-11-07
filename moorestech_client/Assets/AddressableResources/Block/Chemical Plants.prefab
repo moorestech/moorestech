@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4430489833376321669}
   - component: {fileID: 6702057892928618480}
   - component: {fileID: 6604493734679160774}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SocketSleeve
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1096,7 +1096,7 @@ GameObject:
   - component: {fileID: 695302385861514547}
   - component: {fileID: 3085984441991740983}
   - component: {fileID: 6339993559924605196}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: InputOutputMarker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1276,7 +1276,7 @@ GameObject:
   - component: {fileID: 3807725112724444952}
   - component: {fileID: 1620586169116668144}
   - component: {fileID: 5823069802777395380}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SocketSleeve
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2626,7 +2626,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4713779554660710083}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: FluidInputTank0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3021,7 +3021,7 @@ GameObject:
   - component: {fileID: 1683590849445775386}
   - component: {fileID: 8508649367271174717}
   - component: {fileID: 3723291487591024406}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: InputOutputMarker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5492,7 +5492,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 377389135679592237}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: FluidOutputTank0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5797,7 +5797,7 @@ GameObject:
   - component: {fileID: 6005142906468051734}
   - component: {fileID: 792138857800383020}
   - component: {fileID: 8693442301969956655}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: InputOutputMarker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7719,7 +7719,7 @@ GameObject:
   - component: {fileID: 2277627941836630558}
   - component: {fileID: 2191842132322564808}
   - component: {fileID: 3826970359018225700}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SocketSleeve
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8257,7 +8257,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6596974777462086023}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: FluidInputTank1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
