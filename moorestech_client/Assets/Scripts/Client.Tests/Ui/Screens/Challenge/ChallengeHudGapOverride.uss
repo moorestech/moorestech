@@ -1,0 +1,6 @@
+/* L1 の間隔の局所上書き検査用。チャレンジ HUD の目標の間隔トークンを既定の 2px から見分けられる 7px へ変える */
+/* For the L1 local gap-override check; switches the challenge HUD objective-gap token from the default 2px to a distinguishable 7px */
+
+.challenge-hud-gap-override {
+    --challenge-hud-objective-gap: 7px;
+}

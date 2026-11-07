@@ -5,6 +5,7 @@
         "Client.Game",
         "Client.Input",
         "Client.PlaytestReceiver",
+        "Client.Skit",
         "Client.Localization",
         "Client.Network",
         "Core.Master",
