@@ -78,7 +78,7 @@ var distance = Mathf.Max(radius / Mathf.Sin(Mathf.Min(verticalHalfFov, horizonta
 blockImageCamera.transform.position = center - blockImageCamera.transform.forward * distance;
 ```
 
-- [ ] **Step 9: compileと6アイコンの実撮影を行う。** 画像端の切断がなく、入力面・液体口・専用4機の識別性が保たれることを確認。カメラのnear=.3/far=1000は対象寸法で足りる。全体を入れるため以前より小さめに写ることはagent前提のトレードオフで、共通撮影の責務内で直す。新しいプロダクトAPIや型は作らない。
+- [ ] **Step 9: compileと6アイコンと未変更の形状別代表（ベルト・石窯・電柱・電気精密組立機）の実撮影を行う。** 画像端の切断がなく、入力面・液体口・専用4機の識別性が保たれることを確認。カメラのnear=.3/far=1000は対象寸法で足りる。全体を入れるため以前より小さめに写ることはagent前提のトレードオフで、共通撮影の責務内で直す。新しいプロダクトAPIや型は作らない。
 - [ ] **Step 10: Task 1:を含む修正コミットを作る。** レイヤー修正と撮影計算修正を区別して記録する。
 
 ## Task 2: unityプレイ録画テストで供給と占有を検証する
