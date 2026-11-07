@@ -15,13 +15,15 @@ namespace Client.Tests.PlaceSystem.BeltRoute
     // Without slack (as ParamegaFactory) only the known gap (the shortest exists solely through an own slope head) is counted and tolerated; with slack zero gaps are required
     public class BeltRouteReferenceCrossCheckTest
     {
-        private const int Iterations = 1500;
+        // 回数は PR 追加テスト全体で 1 秒に収める裁定（2026-11-07）に合わせる
+        // The count follows the decision (2026-11-07) to keep the PR's tests within one second in total
+        private const int Iterations = 100;
         private const int Seed = 20261107;
         private const int ReportedDisagreements = 12;
 
-        // 余裕なしの既知の穴の上限。1461問で5件が実測（2026-11-06）。増えたら探索か組み立ての退行を疑う
-        // Cap on the known gap without slack: 5 of 1461 queries measured on 2026-11-06; growth points at a search or recovery regression
-        private const int KnownGapAllowed = 10;
+        // 余裕なしの既知の穴の上限。100問で1件（iteration 45）が実測（2026-11-07）。増えたら探索か組み立ての退行を疑う
+        // Cap on the known gap without slack: 1 of 100 queries (iteration 45) measured on 2026-11-07; growth points at a search or recovery regression
+        private const int KnownGapAllowed = 3;
 
         // 参照ソルバは総当たりなので箱とコスト上限を小さく保つ（上限50＝10セル）
         // The reference solver is exhaustive, so the box and the cost cap stay small (cap 50 = 10 cells)

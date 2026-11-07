@@ -8,15 +8,15 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 種を固定した乱数で障害・既存ベルト・地形を散らし、数千回の探索結果が全て不変条件を満たすことを確かめる
-    // Scatters obstacles, existing belts and terrain with a fixed seed and checks that thousands of search results all satisfy the invariants
+    // 種を固定した乱数で障害・既存ベルト・地形を散らし、五十回の探索結果が全て不変条件を満たすことを確かめる（回数は PR 追加テスト全体で 1 秒に収める裁定 2026-11-07 による）
+    // Scatters obstacles, existing belts and terrain with a fixed seed and checks that fifty search results all satisfy the invariants (the count keeps the PR's tests within one second in total, user decision 2026-11-07)
     public class BeltRouteRandomizedSearchTest
     {
-        private const int Iterations = 3000;
+        private const int Iterations = 50;
         private const int Seed = 20261106;
 
         [Test]
-        public void ThousandsOfRandomQueriesProduceOnlyValidRoutes()
+        public void RandomQueriesProduceOnlyValidRoutes()
         {
             var random = new System.Random(Seed);
             var found = 0;

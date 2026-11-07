@@ -1,22 +1,19 @@
-using System.Diagnostics;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
 using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 組み立て（終点から戻る深さ優先）が最悪になる配置を意図して作り、本番の Plan の時間を余裕なし・ありで測る
-    // Builds layouts that drive the recovery (depth-first walk back from the end) to its worst and times the production Plan with and without slack
+    // 組み立て（終点から戻る深さ優先）が最も苦手な配置で、余裕なし・ありの結果を確かめる
+    // Checks the planner's result with and without slack on the layouts hardest for recovery (the depth-first walk back from the end)
     // 形: 始点は囲いの中で、唯一の出口が幅1の廊下。廊下の先で向きを変えて廊下の上段（高さ1）を戻り、囲いの中の広場を渡って終点へ入る
     // Shape: the start sits inside an enclosure whose only exit is a one-wide corridor; the route turns around beyond it, returns on the corridor's upper level and crosses the enclosure's plaza to the end
-    // A* は廊下のセルを高さ0で使い回す経路を最短と見るが組めず、戻る走査は広場の同コスト経路を全部数えてから諦める
-    // A* takes the route that reuses the corridor cells at height 0 as shortest, which cannot be assembled, so the walk back enumerates every equal-cost plaza path before giving up
-    public class BeltRouteRecoveryWorstCaseTest
+    // A* は廊下のセルを高さ0で使い回す経路を最短と見るが組めないので、余裕なしは経路なし、余裕ありは予算内の遠回りを返す
+    // A* takes the route that reuses the corridor cells at height 0 as shortest, which cannot be assembled, so no slack yields no route and slack yields a detour within the budget
+    public class BeltRouteRecoveryCorridorLayoutTest
     {
-        private const int Runs = 3;
         private static readonly Vector3Int BoxSize = new(BeltRouteGrid.HorizontalSize, 6, BeltRouteGrid.HorizontalSize);
         private static readonly Vector3Int Start = new(20, 0, 28);
         private static readonly Vector3Int End = new(40, 1, 10);
@@ -30,7 +27,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         [TestCase(BeltRoutePlanner.DefaultRecoverySlack, true)]
         public void OpenPlazaBeyondCorridor(int recoverySlack, bool expectFound)
         {
-            var (result, searchCost) = Measure(BuildCompound(true), recoverySlack, "open plaza");
+            var (result, searchCost) = Plan(BuildCompound(true), recoverySlack, "open plaza");
             Assert.AreEqual(expectFound, result.HasPlan);
             if (expectFound) Assert.That(result.Plan.TotalCost, Is.GreaterThan(searchCost).And.LessThanOrEqualTo(searchCost + recoverySlack));
         }
@@ -41,39 +38,11 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         [TestCase(BeltRoutePlanner.DefaultRecoverySlack)]
         public void PocketBeyondCorridor(int recoverySlack)
         {
-            var (result, _) = Measure(BuildCompound(false), recoverySlack, "pocket");
+            var (result, _) = Plan(BuildCompound(false), recoverySlack, "pocket");
             Assert.IsFalse(result.HasPlan);
         }
 
-        // 本番の大きさの箱でランダムな障害と近接した終点を振り、余裕なし・ありの最悪時間を比べる
-        // Random obstacles and near ends in a production-sized box, comparing the worst time with and without slack
-        [TestCase(BeltRoutePlanner.NoRecoverySlack)]
-        [TestCase(BeltRoutePlanner.DefaultRecoverySlack)]
-        public void RandomLargeBoxesWithNearEnds(int recoverySlack)
-        {
-            var random = new System.Random(20261107);
-            var stopwatch = new Stopwatch();
-            var worst = 0.0;
-            var found = 0;
-            var compared = 0;
-            var worstLabel = "";
-            for (var i = 0; i < 200; i++)
-            {
-                var grid = BeltRouteRandomizedSearchTest.BuildRandomGrid(random, new Vector3Int(BeltRouteGrid.HorizontalSize, 12, BeltRouteGrid.HorizontalSize));
-                if (!BeltRouteReferenceCrossCheckTest.TryPickQuery(random, grid, out var query)) continue;
-                compared++;
-                var planner = new BeltRoutePlanner(grid, recoverySlack);
-                stopwatch.Restart();
-                var result = planner.Plan(query);
-                stopwatch.Stop();
-                if (result.HasPlan) found++;
-                if (worst < stopwatch.Elapsed.TotalMilliseconds) worstLabel = $"iteration {i} {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt} {(result.HasPlan ? $"found {result.Plan.TotalCost}" : $"no route {result.NoPathReason}")}";
-                worst = System.Math.Max(worst, stopwatch.Elapsed.TotalMilliseconds);
-            }
-            Debug.Log($"[BeltRouteRecoveryWorstCase] random large boxes slack {recoverySlack}: worst {worst:F1} ms over {compared} queries, found {found}, worst query {worstLabel}");
-        }
-
-        private static (BeltRoutePlanResult result, int searchCost) Measure(BeltRouteGrid grid, int recoverySlack, string label)
+        private static (BeltRoutePlanResult result, int searchCost) Plan(BeltRouteGrid grid, int recoverySlack, string label)
         {
             var query = new BeltRouteQuery(Start, BlockDirection.North, false, End, BlockDirection.South, true, false, BeltRouteStepPriority.Default);
             var rule = new BeltRouteTransitionRule(grid, query, BeltRouteObstacleMask.None);
@@ -81,22 +50,10 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             // 配置が狙いどおりか: A* 単体は終点へ届く
             // Sanity of the layout: A* alone reaches the end
             var search = new BeltRouteSearch(new BeltRouteStateCodec(grid));
-            Assert.IsTrue(search.Run(rule, BeltRouteReferenceSolver.StartStates(rule)), $"{label}: A* must reach the end for this layout to measure recovery");
+            Assert.IsTrue(search.Run(rule, BeltRouteReferenceSolver.StartStates(rule)), $"{label}: A* must reach the end for this layout to exercise recovery");
             var searchCost = search.BestCost(new BeltRouteState(End, BlockDirection.South, BeltRouteCellKind.Straight));
 
-            var planner = new BeltRoutePlanner(grid, recoverySlack);
-            var stopwatch = new Stopwatch();
-            var worst = 0.0;
-            BeltRoutePlanResult result = null;
-            for (var run = 0; run < Runs; run++)
-            {
-                stopwatch.Restart();
-                result = planner.Plan(query);
-                stopwatch.Stop();
-                worst = System.Math.Max(worst, stopwatch.Elapsed.TotalMilliseconds);
-            }
-            var outcome = result.HasPlan ? $"found cost {result.Plan.TotalCost}" : $"no route ({result.NoPathReason})";
-            Debug.Log($"[BeltRouteRecoveryWorstCase] {label} slack {recoverySlack}: worst {worst:F1} ms over {Runs} runs, A* goal cost {searchCost}, plan {outcome}");
+            var result = new BeltRoutePlanner(grid, recoverySlack).Plan(query);
             if (result.HasPlan) BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, label);
             return (result, searchCost);
         }
