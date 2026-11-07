@@ -186,19 +186,19 @@ namespace Client.Ui.State.SkitPresence { public sealed class BlockingSkitPresenc
 // ===== S3-buildmenu が作る（W3 で先に入る。指揮の決定どおりの形。Task 1 Step 1 で実物と照合）=====
 namespace Client.Ui.State.PlacementTarget
 {
-    public abstract class PlacementTargetIcon { }                                   // ID だけを持つ判別 union。値の等価つき（Texture は持たない）
+    public abstract class PlacementTargetIcon { }                                   // ID だけを持つ判別 union。BP 以外は値の等価つき（Texture は持たない）
     public sealed class PlacementTargetBlockIcon : PlacementTargetIcon { public PlacementTargetBlockIcon(BlockId blockId); public BlockId BlockId { get; } }
     public sealed class PlacementTargetTrainCarIcon : PlacementTargetIcon { public PlacementTargetTrainCarIcon(Guid trainCarGuid); }
     public sealed class PlacementTargetConnectToolIcon : PlacementTargetIcon { public PlacementTargetConnectToolIcon(Guid connectToolGuid); }
-    public sealed class PlacementTargetBlueprintIcon : PlacementTargetIcon { public PlacementTargetBlueprintIcon(Guid blueprintGuid); }
+    public sealed class PlacementTargetBlueprintIcon : PlacementTargetIcon { public PlacementTargetBlueprintIcon(Guid blueprintGuid); } // これだけ値の等価を持たない（参照の等価）。撮り直しのたびに組み直した VM が配られる
     public sealed class PlacementTargetNameOnlyIcon : PlacementTargetIcon { public static readonly PlacementTargetNameOnlyIcon Instance; }
     public static class PlacementTargetIconResolver { public static PlacementTargetIcon Resolve(IPlacementTarget target, IBlueprintThumbnailLookup thumbnails); }
 } // S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs・PlacementTargetIconResolver.cs
 namespace Client.Ui.Content
 {
-    public sealed class PlacementTargetIcons                                         // DI のクラス（S3-buildmenu が登録）。ctor は想定 (GameContentPresentation content, IBlueprintThumbnailLookup thumbnails)。Task 1 Step 1 で実物を読む
+    public sealed class PlacementTargetIcons                                         // DI のクラス。ContentGameUiRegistration が登録。ctor は 3 引数 (GameContentPresentation, IGameContentTextureSource, IBlueprintThumbnailLookup)。Task 1 Step 1 で実物と照合
     {
-        public bool TryToUiIcon(PlacementTargetIcon icon, out UiIcon uiIcon);        // 値だけ。NameOnly・絵の欠けで偽。面へ当てる分岐（真なら SetIconTarget、偽なら SetNameTarget）は使う画面が持つ
+        public bool TryToUiIcon(PlacementTargetIcon icon, out UiIcon uiIcon);        // 値だけ。NameOnly とテクスチャの欠けで偽（面は名前で描く）。面へ当てる分岐（真なら SetIconTarget、偽なら SetNameTarget）は使う画面が持つ
     }
 }
 namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { void Receive(HotbarDragSource source); } } // S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs。State なので IUiDropTarget は継がない。断る理由のログは受け手（このレーンの印）が出す
@@ -340,12 +340,12 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` | 良性の拒否理由の一覧に 2 値を足す | 変更 |
 | `S/Client.Tests/Ui/Screens/Hotbar/HotbarViewModelSamples.cs` | Web の fixture（枠 0 選択・絵あり、枠 4 未解決）の ViewModel | 新規 |
 | `S/Client.Tests/Ui/Screens/Hotbar/RecordingHotbarCommands.cs` | 操作を文字列で記録する偽（Web の `payloadsOf` に当たる） | 新規 |
-| `S/Client.Tests/Ui/Screens/Hotbar/HotbarTestPresentation.cs` | テスト用の `PlacementTargetIcons`（BP のサムネイルだけ偽）と正方の絵のある割当 | 新規 |
+| `S/Client.Tests/Ui/Screens/Hotbar/HotbarTestPresentation.cs` | テスト用の `PlacementTargetIcons`・撮り直せる偽のサムネイル `HotbarTestThumbnails`・正方の絵のある割当 | 新規 |
 | `S/Client.Tests/Ui/Screens/Hotbar/HotbarHudViewTest.cs` | 9 枠・選択・寸法・番号タブ・クリックの選択・スキットで退く（P6 1・2・5） | 新規 |
 | `S/Client.Tests/Ui/Screens/Hotbar/HotbarHudDropTest.cs` | 割当（本物のエントリの源を単独で置く）・未解決の減光と解除・枠外で解除・隙間は無操作（P6 3・4・6） | 新規 |
 | `S/Client.Tests/Ui/Screens/Hotbar/HotbarSlotDragGestureTest.cs` | タップとドラッグの分け方（C7 7 件） | 新規 |
 | `S/Client.Tests/Ui/Screens/Hotbar/HotbarHudPickingTest.cs` | 帯は拾わず列だけが拾い印を持つ（alwaysOnHudWheel 2 件） | 新規 |
-| `S/Client.Tests/Ui/Screens/Hotbar/HotbarIconCenteringTest.cs` | 絵が枠の中央（placementIconCentering 1 件） | 新規 |
+| `S/Client.Tests/Ui/Screens/Hotbar/HotbarIconCenteringTest.cs` | 絵が枠の中央（placementIconCentering 1 件）・同じ BP の撮り直しで絵が替わる | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/ModalRequestSamples.cs` | Web の fixture の要求（確認・BP 名・エラー） | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/RecordingModalCommands.cs` | 応答を記録する偽 | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/ModalViewTest.cs` | 描画・確定の可否と空白の除去・色・ID が変わると空にする（P4 1・4） | 新規 |
@@ -388,7 +388,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `e2e/tests/regression/placementIconCentering.spec.ts` | 2 | 1（ホットバー） | 1（ビルドメニューの件は S3-buildmenu が写す。D-14） | `HotbarIconCenteringTest` |
 | `src/features/commonHud/alwaysOnHudWheel.test.ts` | 1 行（`it.each` のホットバー帯）＋1 件 | 1 行＋1 件 | 0（他の行は S2-hud・S2-mode-tooltip・S2-tutorial、装備 HUD は S4-inventory。[A-58]） | `HotbarHudPickingTest` |
 
-合計: `<web-test>` の付く NUnit は 20 件（P6 6、C7 7、P4 4、placementIconCentering 1、alwaysOnHudWheel 2）。タグの無い NUnit（Web に無い主張）は `HotbarHudViewTest` 2・`HotbarHudDropTest` 1・L0 の `HotbarViewModelFactoryTest` 4・`ModalConfirmableTextTest` 2・`ModalCommandsTest` 2 と、モーダルの Task 8 の分（ESC の 1 件を含む）。
+合計: `<web-test>` の付く NUnit は 20 件（P6 6、C7 7、P4 4、placementIconCentering 1、alwaysOnHudWheel 2）。タグの無い NUnit（Web に無い主張）は `HotbarHudViewTest` 2・`HotbarHudDropTest` 1・`HotbarIconCenteringTest` 1（撮り直し）・L0 の `HotbarViewModelFactoryTest` 4・`ModalConfirmableTextTest` 2・`ModalCommandsTest` 2 と、モーダルの Task 8 の分（ESC の 1 件を含む）。
 
 ---
 ## Tasks
@@ -423,7 +423,7 @@ grep -rn "class BlockingSkitPresence\|IsBlocking" $S/Client.Ui.State/SkitPresenc
 grep -n "class PlacementTarget\(Block\|TrainCar\|ConnectTool\|Blueprint\|NameOnly\)\?Icon\b\|public override bool Equals" $S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs
 grep -n "public static PlacementTargetIcon Resolve(" $S/Client.Ui.State/PlacementTarget/PlacementTargetIconResolver.cs
 grep -n "public PlacementTargetIcons(\|public bool TryToUiIcon(" $S/Client.Ui/Content/PlacementTargetIcons.cs
-grep -rn "PlacementTargetIcons>" $S/Client.Starter/Registration/
+grep -n "PlacementTargetIcons" $S/Client.Starter/Registration/GameUi/ContentGameUiRegistration.cs
 # 段階 1 のコマンドの結果と入力
 grep -n "LanguageAlreadySelected\|public static bool IsBenign\|public static string ToWireCode\|public static LocalizationKey ToLocalizationKey" $S/Client.Ui.State/Commands/UiCommandRejectReason.cs
 grep -n "public void Report(\|Toaster" $S/Client.Ui.State/Toast/UiCommandResultToaster.cs $S/Client.Tests/Ui/Screens/ScreenTestHost.cs
@@ -443,7 +443,7 @@ ls $S/Client.Starter/Registration/GameUi/*.cs | wc -l
 ls $S/Client.Tests/Ui/State/Hotbar/*.cs $S/Client.Tests/Ui/State/Modal/*.cs | wc -l
 ls $S/Client.Ui/Foundation/Input/*.cs $S/Client.Ui.State/Modal/*.cs
 ```
-Expected: worktree の絶対パス。C3-a の 3 行は Global Constraints のとおり。C3-b の `MarkSource(VisualElement source, IUiDragPayload payload)`・`UiModalHost(StageScaleSource stageScale)`・`DialogFrame(string testid)`、S2-hud の `BlockingSkitPresence`・`IsBlocking`、S3-buildmenu の `PlacementTargetIcon` の 6 型（ID だけ）と値の等価・`PlacementTargetIconResolver.Resolve`・DI のクラス `PlacementTargetIcons` の ctor（`HotbarTestPresentation.CreateIcons` を実物の引数で組む）と `bool TryToUiIcon(PlacementTargetIcon, out UiIcon)`・その登録・`IHotbarDropReceiver.Receive`・`OnDropped` が `IHotbarDropReceiver` を読むこと・`BuildMenuEntryDragPayload(Guid, IBuildMenuEntryHandler)`・`RecordingBuildMenuEntryHandler`（`Selected`）が出る。トークン 7 つ・`--mantine-spacing-lg: 20px`・`--modal-size`・`--modal-backdrop-face`・`HotbarHud = "hotbar.hud"`・`/* == section: Screens == */` が出る。`Registration/GameUi/*.cs` が 8 以下（2 足して 10 以下）、State のテストが 7 以下。`UiCommandRejectReason` の 3 つの switch、`ScreenTestHost.Toaster`、ESC の印の 3 つ、`ClientGameUnlockStateDatastore` の ctor の購読（D-18 の順序の前提）が出る。`Foundation/Input/` の .cs が 9 以下、`State/Modal/` の .cs が 8 以下。
+Expected: worktree の絶対パス。C3-a の 3 行は Global Constraints のとおり。C3-b の `MarkSource(VisualElement source, IUiDragPayload payload)`・`UiModalHost(StageScaleSource stageScale)`・`DialogFrame(string testid)`、S2-hud の `BlockingSkitPresence`・`IsBlocking`、S3-buildmenu の `PlacementTargetIcon` の 6 型（ID だけ）と値の等価・`PlacementTargetIconResolver.Resolve`・DI のクラス `PlacementTargetIcons` の 3 引数の ctor（`HotbarTestPresentation.Create` を実物の引数の順で組む）と `bool TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`ContentGameUiRegistration` の登録・`IHotbarDropReceiver.Receive`・`OnDropped` が `IHotbarDropReceiver` を読むこと・`BuildMenuEntryDragPayload(Guid, IBuildMenuEntryHandler)`・`RecordingBuildMenuEntryHandler`（`Selected`）が出る。トークン 7 つ・`--mantine-spacing-lg: 20px`・`--modal-size`・`--modal-backdrop-face`・`HotbarHud = "hotbar.hud"`・`/* == section: Screens == */` が出る。`Registration/GameUi/*.cs` が 8 以下（2 足して 10 以下）、State のテストが 7 以下。`UiCommandRejectReason` の 3 つの switch、`ScreenTestHost.Toaster`、ESC の印の 3 つ、`ClientGameUnlockStateDatastore` の ctor の購読（D-18 の順序の前提）が出る。`Foundation/Input/` の .cs が 9 以下、`State/Modal/` の .cs が 8 以下。
 - どれかのファイルが無ければ、その依存（C3-b・S2-hud・S3-buildmenu）が未取り込みなので止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
 - 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。S3-buildmenu の型の名前・引数が違えば、Task 2・3・6・7 の該当箇所を実物に読み替える（S3-buildmenu のファイルは書き換えない。足りなければ止めて指揮へ）
 - `Registration/GameUi/*.cs` が 9 以上なら止めて指揮へ（サブディレクトリの切り方は共有区画の外）
@@ -586,6 +586,9 @@ namespace Client.Tests.Ui.State.Hotbar
             var renamed = Assigned(new HotbarAssignedSlot(targetId, "第二拠点", PlacementTargetNameOnlyIcon.Instance));
             Assert.AreEqual(nameOnly, sameNameOnly);
             Assert.AreNotEqual(nameOnly, captured);
+            // BP の絵は参照の等価なので、同じ BP でも組み直せば等しくない（撮り直しを描き直す前提。計画 D-19）
+            // A blueprint icon has reference equality, so the same blueprint rebuilt is unequal (the premise for redrawing a recapture; plan D-19)
+            Assert.AreNotEqual(captured, Assigned(new HotbarAssignedSlot(targetId, "参照拠点", new PlacementTargetBlueprintIcon(targetId))));
             Assert.AreNotEqual(nameOnly, renamed);
             Assert.IsTrue(nameOnly.Slots[4].IsAssigned);
             Assert.IsFalse(nameOnly.Slots[0].IsAssigned);
@@ -927,8 +930,8 @@ namespace Client.Ui.State.Hotbar
             Rebuild();
         }
 
-        // 値が同じなら ReactiveProperty が流さないので、源が続けて動いても描き直しは変化した分だけ
-        // ReactiveProperty skips equal values, so consecutive source changes only redraw on a real change
+        // 値が同じなら ReactiveProperty が流さない。BP の絵だけは参照の等価なので、BP の割当があれば組み直すたびに流れる（撮り直しの描き直しに要る）
+        // ReactiveProperty skips equal values; a blueprint icon has reference equality, so a slot with a blueprint pushes on every rebuild (needed to redraw a recapture)
         private void Rebuild()
         {
             _current.Value = Build();
@@ -964,7 +967,7 @@ namespace Client.Ui.State.Hotbar
 - [ ] **Step 2: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: `ErrorCount: 0`。ctor が `_current` を `Build()` で作るので、`Initialize` の最初の `Rebuild()` は同値で流れない（購読側は ctor の値で 1 回描く）。`Server.Event.EventReceive` が解けなければ `grep -rn "class UnlockedEventPacket" moorestech_server/Assets/Scripts` で namespace と asmdef を確かめ、`Client.Ui.State.asmdef` の参照（`Server.Event` は既存）と照らす。asmdef に足す要があれば足して `done.md` の「未確認」に 1 行書く
+Expected: `ErrorCount: 0`。ctor が `_current` を `Build()` で作るので、`Initialize` の最初の `Rebuild()` は BP の割当が無ければ同値で流れない（BP があれば 1 回多く描くだけ）。`Server.Event.EventReceive` が解けなければ `grep -rn "class UnlockedEventPacket" moorestech_server/Assets/Scripts` で namespace と asmdef を確かめ、`Client.Ui.State.asmdef` の参照（`Server.Event` は既存）と照らす。asmdef に足す要があれば足して `done.md` の「未確認」に 1 行書く
 
 - [ ] **Step 3: コミット**
 
@@ -1820,50 +1823,66 @@ namespace Client.Tests.Ui.Screens.Hotbar
     {
         public static readonly Guid PicturedBlueprintId = new("5f0b9a8e-1c2d-4e3f-8a9b-0c1d2e3f4a5b");
 
-        // ctor の引数は S3-buildmenu の実物に合わせる（Task 1 Step 1）。BP のサムネイルだけを偽で持つ
-        // Match the ctor arguments to the S3-buildmenu original (Task 1 Step 1); only blueprint thumbnails are faked
         public static PlacementTargetIcons Create()
         {
-            return new PlacementTargetIcons(new GameContentPresentation(new FakeContentTextureSource(null, null, null)), new SquareThumbnails());
+            return Create(new HotbarTestThumbnails());
         }
 
-        // Web の fixture の枠 0（正方の赤い SVG の絵）にあたる割当
-        // The assignment standing in for the Web fixture's slot 0 (a red square SVG)
+        // ctor の引数の順は S3-buildmenu の実物に合わせる（Task 1 Step 1）。BP のサムネイルだけを偽で持つ
+        // Match the ctor argument order to the S3-buildmenu original (Task 1 Step 1); only blueprint thumbnails are faked
+        public static PlacementTargetIcons Create(HotbarTestThumbnails thumbnails)
+        {
+            var textures = new FakeContentTextureSource(null, null, null);
+            return new PlacementTargetIcons(new GameContentPresentation(textures), textures, thumbnails);
+        }
+
+        // Web の fixture の枠 0（正方の赤い SVG の絵）にあたる割当。呼ぶたびに新しい絵の値（参照の等価）
+        // The assignment standing in for the Web fixture's slot 0 (a red square SVG); a new icon value (reference equality) per call
         public static HotbarAssignedSlot PicturedBlueprint()
         {
             return new HotbarAssignedSlot(PicturedBlueprintId, "参照拠点", new PlacementTargetBlueprintIcon(PicturedBlueprintId));
         }
+    }
 
-        /// <summary>
-        /// PicturedBlueprintId にだけ 256 角の単色を返すサムネイル（正方なので R-7 の中央の主張がそのまま効く）
-        /// Thumbnails returning a 256 square only for PicturedBlueprintId (square, so the R-7 centring claim applies directly)
-        /// </summary>
-        private sealed class SquareThumbnails : IBlueprintThumbnailLookup
+    /// <summary>
+    /// PicturedBlueprintId にだけ 256 角の単色を返すサムネイル。撮り直し（Recapture）で絵を替えられる
+    /// Thumbnails returning a 256 square only for PicturedBlueprintId; Recapture swaps the picture
+    /// </summary>
+    internal sealed class HotbarTestThumbnails : IBlueprintThumbnailLookup
+    {
+        private readonly Subject<Guid> _onThumbnailChanged = new();
+
+        public Texture2D Current { get; private set; } = CreateSquare(new Color32(204, 51, 51, 255));
+
+        public IObservable<Guid> OnThumbnailChanged => _onThumbnailChanged;
+
+        public bool Contains(Guid blueprintGuid)
         {
-            private readonly Texture2D _square = CreateSquare();
+            return blueprintGuid == HotbarTestPresentation.PicturedBlueprintId;
+        }
 
-            public IObservable<Guid> OnThumbnailChanged => Observable.Never<Guid>();
+        public bool TryGet(Guid blueprintGuid, out Texture2D thumbnail)
+        {
+            thumbnail = Contains(blueprintGuid) ? Current : null;
+            return thumbnail != null;
+        }
 
-            public bool Contains(Guid blueprintGuid)
-            {
-                return blueprintGuid == PicturedBlueprintId;
-            }
+        public void Recapture(Color32 color)
+        {
+            Current = CreateSquare(color);
+            _onThumbnailChanged.OnNext(HotbarTestPresentation.PicturedBlueprintId);
+        }
 
-            public bool TryGet(Guid blueprintGuid, out Texture2D thumbnail)
-            {
-                thumbnail = Contains(blueprintGuid) ? _square : null;
-                return thumbnail != null;
-            }
-
-            private static Texture2D CreateSquare()
-            {
-                var texture = new Texture2D(256, 256);
-                var pixels = new Color32[256 * 256];
-                for (var i = 0; i < pixels.Length; i++) pixels[i] = new Color32(204, 51, 51, 255);
-                texture.SetPixels32(pixels);
-                texture.Apply();
-                return texture;
-            }
+        // 正方なので枠の中央の主張（R-7）がそのまま効く
+        // Square, so the centring claim (R-7) applies directly
+        private static Texture2D CreateSquare(Color32 color)
+        {
+            var texture = new Texture2D(256, 256);
+            var pixels = new Color32[256 * 256];
+            for (var i = 0; i < pixels.Length; i++) pixels[i] = color;
+            texture.SetPixels32(pixels);
+            texture.Apply();
+            return texture;
         }
     }
 }
@@ -2355,9 +2374,34 @@ namespace Client.Tests.Ui.Screens.Hotbar
             Assert.Less(Mathf.Abs(top - bottom), 0.5f);
             Assert.Less(Mathf.Abs(left - top), 0.5f);
         }
+
+        [Test]
+        public void 同じBPの撮り直しで枠の絵が替わる()
+        {
+            // BP の絵は参照の等価なので、Model が組み直した VM は撮り直しのたびに配られる。ここでは配られた VM で絵が替わることを見る（計画 D-19）
+            // A blueprint icon has reference equality, so the model's rebuilt VM is pushed on each recapture; here we check the pushed VM swaps the picture (plan D-19)
+            var thumbnails = new HotbarTestThumbnails();
+            var view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(thumbnails), Toaster));
+            view.Render(HotbarViewModelSamples.WebFixture());
+            simulate.FrameUpdate();
+            var first = thumbnails.Current;
+            Assert.AreSame(first, IconTexture(view));
+
+            thumbnails.Recapture(new Color32(51, 153, 204, 255));
+            view.Render(HotbarViewModelSamples.WebFixture());
+            simulate.FrameUpdate();
+            Assert.AreNotSame(first, IconTexture(view));
+            Assert.AreSame(thumbnails.Current, IconTexture(view));
+        }
+
+        private Texture2D IconTexture(HotbarHudView view)
+        {
+            return Find<SlotFrame>(view, "hotbar-slot-0").Q(className: "placement-target-face__icon").resolvedStyle.backgroundImage.texture;
+        }
     }
 }
 ```
+（`WebFixture()` は呼ぶたびに `PicturedBlueprint()` で新しい絵の値を作る。絵の要素が `backgroundImage` でなく子の `Image` で描くなら、C3-a の `GameIcon` の実物の読み方に合わせる）
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: コンパイルエラー（`HotbarHudView` が無い）
@@ -2586,7 +2630,7 @@ namespace Client.Ui.Screens.Hotbar
 - [ ] **Step 5: 流して緑にする**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.(Hotbar|BuildMenu)|Conventions|Theme|Layers)\."`
-Expected: `ErrorCount: 0`、`HotbarHudViewTest` 5・`HotbarHudDropTest` 4・`HotbarSlotDragGestureTest` 7・`HotbarHudPickingTest` 2・`HotbarIconCenteringTest` 1 が PASS、L2 も PASS。赤のときの手順:
+Expected: `ErrorCount: 0`、`HotbarHudViewTest` 5・`HotbarHudDropTest` 4・`HotbarSlotDragGestureTest` 7・`HotbarHudPickingTest` 2・`HotbarIconCenteringTest` 2 が PASS、L2 も PASS。赤のときの手順:
 - 番号タブの `-16` が外れる → `HotbarCalcKnobs` の `CustomStyleResolvedEvent` が列に届いていない。`Debug.Log` で読めた値を出して原因を確かめる（テストの期待は変えない）
 - `slot1.resolvedStyle.backgroundColor` が `--hotbar-slot-frame-face` でない → `.hotbar-hud` の上書きが `SlotFrame.uss` の `var()` へ継承していない。`--slot-frame-face` を `.hotbar-hud__cell` へ移して試し、移した理由を `done.md` の「未確認」に書く
 - 番号タブの縁が黒くならない → 部分木の受け直しが効いていない。`.outlined-count-label--stroke` の color が `:root` の `--icon-text-stroke-light` で解けている。部品を書き換えずに止め、`done.md` の「要裁定」に「OutlinedCountLabel の縁の色のつまみが要る」と書いて指揮へ報告する（D-7 の代わりの手は部品の変更なので、このレーンでは取らない）
@@ -3213,7 +3257,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Modify: `S/Client.Starter/Registration/MainGameUiRegistration.cs`（画面登録区画に 2 行）
 
 **Interfaces:**
-- Consumes: Task 3・4・7・8 の型、C3-b の `UiModalHost`（`FoundationGameUiRegistration` が登録）、S3-buildmenu の `PlacementTargetIcons`（S3-buildmenu の登録。Task 1 Step 1 で見る）、段階 1 の `UiCommandResultToaster`（`MainGameUiRegistration` が登録）、S2-hud の `BlockingSkitPresence`
+- Consumes: Task 3・4・7・8 の型、C3-b の `UiModalHost`（`FoundationGameUiRegistration` が登録）、S3-buildmenu の `PlacementTargetIcons`（`ContentGameUiRegistration` が登録）、段階 1 の `UiCommandResultToaster`（`MainGameUiRegistration` が登録）、S2-hud の `BlockingSkitPresence`
 - Produces: 全体スイッチ UITK の起動でホットバーとモーダルが UITK で出る
 
 - [ ] **Step 1: 登録を書く**
@@ -3702,7 +3746,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-16 | `hotbar.spec.ts` 3 件目と C7 のエントリの件は、S3-buildmenu の本物の `BuildMenuEntryDragPayload` を単独で画面に置いて写す（使うだけ） | テスト用の代わりの源: 本物がマージ済みで、代わりは本物とずれ得る。ビルドメニューのパネルごと載せる: 横断は S3-ladder の持ち物 | 指揮の決定 |
 | D-17 | Model の配線の L1 は持たず録画で見る。解放パケットの直後に枠が解決済みになること（D-18 の順序）は、L1 でなく録画の 1 段（Task 12 流れ 8）でパケットの配送の中の値を読んで確かめる | 源の偽を全部作る L1: 源が Client.Game の具象（MonoBehaviour・ネットワークの購読を含む）で、偽ではパケットの配送の順を再現できない | agent 既定（前例 S2-mode-tooltip。指揮の「L1 に 1 件」を本物の源で満たす） |
 | D-18 | 源の変化ごとに同期で組み直す（間引きは持たない）。解放の事象の順は、解放状態の持ち主 `ClientGameUnlockStateData` が ctor で同じタグを先に購読しているので、Model が読む時点で更新済みの見込み（`ClientGameUnlockStateDatastore.cs:112`。推測で、録画の 1 段で確かめる）。崩れたら間引きを足さず `done.md` に実測付きで申告 | フレーム末に 1 回だけ組む（Web HotbarTopic の写し）: [A-57] の同期の組み直しと前例（`ModeHudModel`・`BuildMenuModel`）から外れ、順序の懸念は実測でない | agent 既定（[A-57]） |
-| D-19 | 絵と名前は ViewModel に値（ID・表示名・ID だけの `PlacementTargetIcon`）で運び、変化は値の等価の外れで描き直す。Texture は運ばない。版の数（`PresentationRevision`）は持たない | 版の数を足す: 値で運べば不要になり、増やし忘れの穴が残る | agent 既定 |
+| D-19 | 絵と名前は ViewModel に値（ID・表示名・ID だけの `PlacementTargetIcon`）で運び、変化は等価の外れで描き直す。Texture は運ばない。BP の絵だけは参照の等価（S3-buildmenu）で、`HotbarAssignedSlot.Equals` が `Icon.Equals` を比べるので、撮り直し（`OnThumbnailChanged` → 組み直し）のたびに等しくない VM が配られ絵が替わる（L0 の等価のテストと L1「同じBPの撮り直しで枠の絵が替わる」が固定）。版の数（`PresentationRevision`）は持たない | 版の数を足す: 値で運べば不要になり、増やし忘れの穴が残る | agent 既定 |
 | D-20 | 枠の源のタップは常に `Select` を呼び、受理は `HotbarCommands` が規則で決める。受けない状態は良性の拒否 `HotbarSelectNotAccepted`（wire `invalid_state`。Web `HotbarSelectActionHandler` と同じコード）を返し、源が `UiCommandResultToaster` へ渡す（良性なのでログだけ） | View が減光中はタップを出さない: 受理の判断が 2 か所になる。`void` のままログ: [A-8] のコマンドの形から外れる | agent 既定（[A-8]） |
 | D-21 | `WheelPassthroughMark` は最初から `Foundation/Input` に置き、印を付けるだけにする。読む側（装備のホイール）は S4-inventory | 画面内に置いて 2 機能目で昇格: Web で既に 2 機能（`activeLayer.ts:22`・HotbarPanel・EquipmentPanel）が使うので §5.1-1 に当たる。新規ファイルで他レーンと重ならない | agent 既定（§5.1-1・[A-58]） |
 | D-22 | 登録は画面ごとに 1 行（2 行）。`HotbarCommands` はホットバーの登録に入れる | State の登録へ入れる: GameUi の系でしか使わない | agent 既定（実行計画 §6.2） |
@@ -3730,7 +3774,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 ## 未確認
 
 - C3-b・S2-hud の公開 API と、S3-buildmenu が作る型（指揮の決定どおりの形。`PlacementTargetIcons` の ctor の引数は想定）・テストの補助（`RecordingBuildMenuEntryHandler`）は想定。Task 1 Step 1 で実物と照合する
-- BP のサムネイルの到着で `PlacementTargetIconResolver` が `NameOnly` → `BlueprintIcon(Guid)` に変わるか（変わらなければ、ID が同じで ViewModel が等しく、到着しても描き直らない）。Task 7 の L1 と Task 12 の録画で BP の絵が出ることを見て、出なければ `done.md` の「未確認」に書いて S3-buildmenu と突き合わせる（撮り直しで絵だけ替わる場合も同じ）
+- 撮り直しの描き直しは L1 で `Render` に新しい VM を渡して見る。Model が `OnThumbnailChanged` で組み直して配ることは Task 12 の録画（BP の絵が出る）で見る
 - 2 回目の ESC がフォーカス無しでパネルの根へ届くこと（Task 8 の L1 と Task 12 の録画で見る）
 - D-18 の順序（解放状態の更新がホットバーの組み直しより先）は推測。Task 12 の流れ 8 で実測する
 - `ui-modal-host--shown` が `modal-scope` に付くこと（C3-b の計画から写した）
