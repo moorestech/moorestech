@@ -81,8 +81,8 @@ await p.PrepareBlockForUiPlacement("ベルトコンベア", 15);
 await p.RoutePlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), BlockDirection.North, new Vector3Int(2, 32, 6), BlockDirection.North);
 // 録画に設置物を写す: 足場(y=32)を覆う地形オブジェクトを隠す
 p.HideMapObjects();
-// 分岐: Ctrl+クリックで既存の直線ベルトを分岐器に置き換え、横の出口から終点まで経路を置く
-await p.BranchPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 4), true, new Vector3Int(6, 32, 4), BlockDirection.East);
+// 分岐: Ctrl+クリックで既存のベルト（直線か L字の角）を分岐器に置き換え、指定した出口から終点まで経路を置く
+await p.BranchPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 4), false, BlockDirection.South, new Vector3Int(6, 32, 4), BlockDirection.East);
 // 単クリック設置: 向きはデフォルトNorth（回転キー注入は未実装）
 await p.PlaceBlockViaUi("木のコンベアチェスト", new Vector3Int(4, 32, 8), BlockDirection.North);
 await p.ExitToGameScreen();

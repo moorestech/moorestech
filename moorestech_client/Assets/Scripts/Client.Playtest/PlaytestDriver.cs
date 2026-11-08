@@ -150,7 +150,7 @@ namespace Client.Playtest
         // ベルトの2クリック設置と、Ctrl+クリックの分岐設置。手順はPlaytestBeltRouteOps
         // Two-click belt placement and Ctrl+click branch placement; the steps live in PlaytestBeltRouteOps
         public async UniTask RoutePlaceViaUi(string blockName, Vector3Int fromOrigin, BlockDirection startDirection, Vector3Int toOrigin, BlockDirection endDirection) => await PlaytestBeltRouteOps.RoutePlaceViaUi(this, blockName, fromOrigin, startDirection, toOrigin, endDirection);
-        public async UniTask BranchPlaceViaUi(string blockName, Vector3Int beltCell, bool sideIsRight, Vector3Int toOrigin, BlockDirection endDirection) => await PlaytestBeltRouteOps.BranchPlaceViaUi(this, blockName, beltCell, sideIsRight, toOrigin, endDirection);
+        public async UniTask BranchPlaceViaUi(string blockName, Vector3Int beltCell, bool useAlternateExit, BlockDirection exitDirection, Vector3Int toOrigin, BlockDirection endDirection) => await PlaytestBeltRouteOps.BranchPlaceViaUi(this, blockName, beltCell, useAlternateExit, exitDirection, toOrigin, endDirection);
         // 地形オブジェクトを隠す。足場(y=32)は地形の山の中にあり、そのままでは設置物が録画に写らない
         // Hides terrain objects; the scaffold (y=32) sits inside a terrain mound, so placed blocks would not show on recordings
         public void HideMapObjects()
