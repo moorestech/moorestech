@@ -7,54 +7,40 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
 {
     /// <summary>
-    ///     既存の直線ベルトを分岐の始点にできない理由
-    ///     Why an existing straight belt cannot become a branch start
-    /// </summary>
-    public enum BeltRouteBranchBlockReason
-    {
-        None,
-        NotStraightBelt,
-        NoSplitter,
-        SideInputOccupied,
-        OtherSideHasReceiver,
-    }
-
-    /// <summary>
-    ///     分岐の始点。既存ベルトは同じファミリーの分岐器へ置き換わり、経路は選んだ横の出口から出る
-    ///     A branch start: the existing belt becomes the family's splitter and the route leaves through the chosen side exit
+    ///     分岐の始点。既存ベルトは同じファミリーの分岐器へ置き換わり、経路は幾何が選んだ出口から出る
+    ///     A branch start: the existing belt becomes the family's splitter and the route leaves through the exit the geometry chose
     /// </summary>
     public sealed class BeltRouteBranchOrigin
     {
         public readonly BlockGameObject Belt;
         public readonly BlockId SplitterBlockId;
-        public readonly bool SideIsRight;
+        private readonly BeltRouteBranchShape _shape;
 
-        private BeltRouteBranchOrigin(BlockGameObject belt, BlockId splitterBlockId, bool sideIsRight)
+        private BeltRouteBranchOrigin(BlockGameObject belt, BlockId splitterBlockId, BeltRouteBranchShape shape)
         {
             Belt = belt;
             SplitterBlockId = splitterBlockId;
-            SideIsRight = sideIsRight;
+            _shape = shape;
         }
 
         public Vector3Int Cell => Belt.BlockPosInfo.OriginalPos;
-        public BlockDirection BeltFacing => Belt.BlockPosInfo.BlockDirection;
-        public BlockDirection SideDirection => SideIsRight ? BeltRouteDirection.Right(BeltFacing) : BeltRouteDirection.Left(BeltFacing);
-        public BlockDirection OtherSideDirection => SideIsRight ? BeltRouteDirection.Left(BeltFacing) : BeltRouteDirection.Right(BeltFacing);
+        public BlockDirection SplitterFacing => _shape.SplitterFacing;
+        public BlockDirection ExitDirection => _shape.BranchExit;
 
-        // 周囲の既存ブロックの入出力辺だけを小さな箱に写して、横入力と反対側の受け手を調べる
-        // Copies only the surrounding blocks' port edges into a tiny box to check side inputs and a receiver on the other side
-        public static BeltRouteBranchBlockReason Judge(BlockGameObjectDataStore blocks, BlockGameObject belt, BeltConveyorHoldingBlock holding, bool sideIsRight, out BeltRouteBranchOrigin origin)
+        // 周囲の既存ブロックの入出力辺だけを1セルの箱に写し、向きと出口の判断は幾何に任せる
+        // Copies only the surrounding blocks' port edges into a one-cell box and leaves the facing and exit decision to the geometry
+        public static BeltRouteBranchBlockReason Judge(BlockGameObjectDataStore blocks, BlockGameObject belt, BeltConveyorHoldingBlock holding, bool useAlternateExit, out BeltRouteBranchOrigin origin)
         {
             origin = null;
+            // silent-ok: 理由行「分岐は同じ種類の直線ベルトからだけ作れます」で分岐不可と分かる
             if (holding.IsSplitter || !IsStraightBeltOfFamily(belt, holding)) return BeltRouteBranchBlockReason.NotStraightBelt;
             // silent-ok: 候補0件や曖昧なマスタはBeltSplitterCounterpartがログに残す / 理由行で分岐不可と分かる
             if (!BeltSplitterCounterpart.TryGetSplitterBlockId(belt.BlockId, out var splitterBlockId)) return BeltRouteBranchBlockReason.NoSplitter;
 
-            var candidate = new BeltRouteBranchOrigin(belt, splitterBlockId, sideIsRight);
-            var cell = candidate.Cell;
+            var cell = belt.BlockPosInfo.OriginalPos;
             var edges = new BeltRouteGrid(cell, Vector3Int.one);
             foreach (var neighbour in blocks.BlockGameObjectDictionary.Values)
             {
@@ -62,12 +48,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 BeltRouteBlockEdgeScanner.Write(neighbour, edges);
             }
 
-            var leftFace = BeltRouteEdge.FromFace(cell, BeltRouteDirection.Left(candidate.BeltFacing), cell.y);
-            var rightFace = BeltRouteEdge.FromFace(cell, BeltRouteDirection.Right(candidate.BeltFacing), cell.y);
-            if (edges.HasOutputEdge(leftFace) || edges.HasOutputEdge(rightFace)) return BeltRouteBranchBlockReason.SideInputOccupied;
-            if (edges.HasInputEdge(BeltRouteEdge.FromFace(cell, candidate.OtherSideDirection, cell.y))) return BeltRouteBranchBlockReason.OtherSideHasReceiver;
+            var reason = BeltRouteBranchGeometry.Resolve(edges, cell, belt.BlockPosInfo.BlockDirection, useAlternateExit, out var shape);
+            // silent-ok: 幾何が返した理由はそのまま理由行になる
+            if (reason != BeltRouteBranchBlockReason.None) return reason;
 
-            origin = candidate;
+            origin = new BeltRouteBranchOrigin(belt, splitterBlockId, shape);
             return BeltRouteBranchBlockReason.None;
         }
 

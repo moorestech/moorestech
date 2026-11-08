@@ -7,7 +7,7 @@ using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
 {
     /// <summary>
     ///     分岐の確定。既存ベルトの撤去要求が受理されてから、分岐器と経路の設置要求を送る
