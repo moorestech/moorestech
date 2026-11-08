@@ -23,8 +23,8 @@ namespace Client.Playtest.Overlay
             if (_labelStyle == null) _labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft };
 
             var state = PlaytestOverlay.State;
-            if (state.ShowLogPanel) DrawLogPanel(state);
-            if (state.ShowInputPanel) DrawInputPanel(state);
+            DrawLogPanel(state);
+            DrawInputPanel(state);
             DrawCursor(state);
             GUI.color = Color.white;
         }
