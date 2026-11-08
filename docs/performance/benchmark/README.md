@@ -41,6 +41,7 @@
 - **ProfilerMarker は `perf/event-dispatch-profiler-markers` ブランチにしか無い。** マーカーの無いコミットを測ると `PacketExchange.*`・`BlockState.*` の行が「—」になる。fps・フレーム時間・イベント件数は、マーカーが無くても比較できる。
 - 計測中は Editor の作業用ワールドへの差し替え（環境変数 `MOORESTECH_DEFAULT_WORLD_DIRECTORY`）が有効になる。スクリプトの最後で解除するが、途中で止めた場合は `snippets/cleanup.cs` を実行して解除する。解除しないと、その Editor で以後に通常プレイしたとき作業用ワールドが読まれる。
 - Profiler の窓は短く保つ（このワールドで長く記録すると Editor がメモリ不足でクラッシュした実績がある）。
+- **Game ビューが別タブの裏にあるか、Editor が前面にないと、PlayMode の更新が約6fpsに間引かれる。** 2026-11-08 にタイトル画面で 5.8fps→59.6fps を確認した。`enter-world.cs` は開始時に両方を前に出す。計測中に別のウィンドウを前に出さないこと。
 - **fps は Editor の表示状態で大きく変わる。** 2026-10-22 のベースライン4回では、同じコード・同じワールドで 6.3〜6.5fps の回と 10.6〜11.1fps の回に分かれた。差は受信処理ではなく、表示待ちや PlayerLoop の外の Editor 処理（合わせて約50ms/フレーム）で、誰かが画面をリモートで見ていたかどうかなどが原因と推測している（未確認）。
 - 環境に左右されにくいのは「受信処理 µs/件（応答を除く）」（4回とも 30〜31µs）と「受信イベント 件/秒」。改善の効果はまずこの2つで判断し、fps は参考にする。
 - **ブロック状態の束ね（ADR 0091）の前後で、イベントの数え方が変わる。** 束ねた後は「受信イベント 件/秒」に束1件が1件として入り、「受信処理 µs/件」は束1件あたりの値になるので、束の前とは比べられない。前後の比較は「受信処理 ms/フレーム（応答を除く）」と「ブロック状態 件/秒」で行う。`snippets/events-start.cs` は束の型を参照するので、束の前のコミットを測るときは、そのコミットの時点の `events-start.cs` と `events-collect.cs` を使う（`git show <commit>:docs/performance/benchmark/snippets/events-start.cs`）。Profiler の `BlockState.Deserialize` は、束の前はブロック1件ごと、束の後は束1回ごとの計測になるので、ms は比べられるが calls は比べられない。
@@ -60,7 +61,7 @@
 ## スニペット一覧（`snippets/`）
 | ファイル | 役割 |
 |---|---|
-| `enter-world.cs` | 作業用ワールドへ差し替え、画面スリープを抑止して Editor ウィンドウを通常表示に戻し、前回クラッシュ報告を閉じてローカル開始 |
+| `enter-world.cs` | 作業用ワールドへ差し替え、画面スリープを抑止して Editor ウィンドウを通常表示・前面に戻し、Game ビューのタブを前に出し、前回クラッシュ報告を閉じてローカル開始 |
 | `scene-stats.cs` | 定常判定用の Renderer 数など |
 | `environment.cs` | 計測条件 |
 | `fps-start.cs` / `fps-collect.cs` | Profiler なしの fps 窓 |
@@ -93,6 +94,9 @@
 | 2026-10-30 14:00 r1 | tick-bundle | e20e74e495 | 25.41 | 33.2 | 51 | 1454.3 | ブロック状態を tick末尾に1イベントへ束ねる（ADR 0091）。受信処理 5.4→3.3 ms/フレーム、ブロック状態 3,520→3,212 件/秒。µs/件 は束1件あたりなので束の前と比べられない |
 | 2026-10-30 14:00 r2 | tick-bundle | e20e74e495 | 25.43 | 36.9 | 51 | 2059.0 | |
 | 2026-10-30 14:00 r3 | tick-bundle | e20e74e495 | 25.44 | 32.7 | 47 | 1320.0 | |
+| 2026-11-08 23:39 r1 | before-gameobject-reduction | b6b549239b | 18.43 | 40.9 | 49 | 1700.8 | GameObject 削減の前。Game ビューと Editor を前面に出す版の `enter-world.cs` で計測。`EditorLoop`・カメラ描画まで一様に遅く、環境差の疑い（[再計測ログ](../2026-11-08-world-load-remeasure/README.md#定常時before-gameobject-reductionについて)） |
+| 2026-11-08 23:39 r2 | before-gameobject-reduction | b6b549239b | 19.39 | 44.8 | 49 | 1827.9 | |
+| 2026-11-08 23:39 r3 | before-gameobject-reduction | b6b549239b | 19.12 | 48.8 | 45 | 2677.1 | |
 
 ### 2026-10-22 ブロック状態の束ね（ADR 0091）
 変更前は、2026-10-22 の `before-tick-bundle`（f17f162cb3）ではなく、それに今の master を足した `before-tick-bundle-on-master`（29d37feced）を使う。master のパイプの差分同期（ADR 0088）でブロック状態の件数が約1/5に減っており、古い変更前と比べると2つの変更の効果が混ざるため。6回とも表示待ちのマーカーが記録されていない（compare.py の警告）ので、fps は参考にとどめる。

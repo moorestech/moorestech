@@ -1,7 +1,8 @@
 // ベースライン複製ワールドを既定ワールドに差し替え、前回クラッシュ報告を閉じてローカル開始する
-// 表示状態でfpsが大きく変わるため、画面スリープの抑止とEditorウィンドウの通常表示化も行う
+// 表示状態でfpsが大きく変わるため、画面スリープの抑止とEditorウィンドウ・Game ビューの前面化も行う
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEditor;
 using System.Reflection;
 using System.Runtime.InteropServices;
 var bf = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -10,6 +11,10 @@ SetThreadExecutionState(0x80000003u);
 var editorWindow = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
 var wasMinimized = IsIconic(editorWindow);
 if (wasMinimized) ShowWindow(editorWindow, 9);
+// Game ビューが別タブの裏にあるか Editor が前面にないと PlayMode の更新が約6fpsに間引かれるので、両方を前に出す
+// PlayMode updates drop to ~6fps when the Game view tab is hidden or the Editor is in the background
+EditorWindow.GetWindow(typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView")).Focus();
+SetForegroundWindow(editorWindow);
 Game.Paths.GameSystemPaths.SetDefaultWorldDirectoryOverride(@"C:\moorestech-perf\work\current");
 var popup = Object.FindFirstObjectByType<Client.MainMenu.Playtest.CrashReportPopup>(FindObjectsInactive.Include);
 if (popup && popup.gameObject.activeInHierarchy)
@@ -26,3 +31,4 @@ return "started world=" + Game.Paths.GameSystemPaths.DefaultWorldDirectory + " w
 [DllImport("kernel32.dll")] static extern uint SetThreadExecutionState(uint flags);
 [DllImport("user32.dll")] static extern bool IsIconic(System.IntPtr hWnd);
 [DllImport("user32.dll")] static extern bool ShowWindow(System.IntPtr hWnd, int nCmdShow);
+[DllImport("user32.dll")] static extern bool SetForegroundWindow(System.IntPtr hWnd);
