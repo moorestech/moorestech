@@ -3,6 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
@@ -37,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private BeltConveyorHoldingBlock _holding;
         private BlockDirection _currentDirection = BlockDirection.North;
-        private bool _branchSideIsRight = true;
+        private bool _branchUseAlternateExit;
         private BeltRouteStepPriority _priority = BeltRouteStepPriority.Default;
         private BeltRouteSession _session;
         private bool _obstaclesDirty;
@@ -68,7 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             _session = null;
             _currentDirection = BlockDirection.North;
-            _branchSideIsRight = true;
+            _branchUseAlternateExit = false;
             _priority = BeltRouteStepPriority.Default;
         }
 
@@ -149,10 +150,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private void UpdateBranchCandidate(BlockGameObject belt, PlacementFeedback feedback)
         {
-            if (BeltRouteKeyInput.IsRotatePressed) _branchSideIsRight = !_branchSideIsRight;
+            // R は既定の出口（直線なら右、角なら正面）と残りの出口を切り替える
+            // R toggles between the default exit (right for a straight belt, front for a corner) and the other one
+            if (BeltRouteKeyInput.IsRotatePressed) _branchUseAlternateExit = !_branchUseAlternateExit;
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(belt.BlockPosInfo.OriginalPos)) { feedback.AddTooFar(); return; }
 
-            var reason = BeltRouteBranchOrigin.Judge(_blocks, belt, _holding, _branchSideIsRight, out var branch);
+            var reason = BeltRouteBranchOrigin.Judge(_blocks, belt, _holding, _branchUseAlternateExit, out var branch);
             if (reason != BeltRouteBranchBlockReason.None)
             {
                 feedback.Add(BeltRouteTooltipKey.BranchLine(reason));
@@ -160,13 +163,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 return;
             }
 
-            // 分岐器と、横の出口の先に出る最初のセルを候補として見せる
-            // Show the splitter and the first cell beyond the side exit as the candidate
-            ShowPreview(new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.SplitterInfo(branch, true), BeltRoutePlaceInfoBuilder.Single(branch.Cell + BeltRouteDirection.Forward(branch.SideDirection), branch.SideDirection, _holding.BlockId, true) });
+            ShowPreview(BeltRoutePlaceInfoBuilder.BuildBranchCandidate(branch, _holding));
             if (!BeltRouteKeyInput.IsConfirmPressed) return;
 
             _session = BeltRouteSession.CreateBranch(branch, _scanner);
-            _currentDirection = branch.SideDirection;
+            _currentDirection = branch.ExitDirection;
         }
 
         private void UpdateRouting(PlacementFeedback feedback)

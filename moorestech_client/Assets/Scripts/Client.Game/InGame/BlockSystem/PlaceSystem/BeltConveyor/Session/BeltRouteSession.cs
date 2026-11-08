@@ -2,6 +2,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Game.Block.Interface;
 using UnityEngine;
@@ -47,11 +48,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             return new BeltRouteSession(startCell, startDirection, null, BeltRouteTerrainProfile.Scan(startCell), scanner);
         }
 
-        // 分岐は既存ベルトのセルが始点で、向きは選んだ横の出口
-        // A branch starts at the existing belt's cell, heading out of the chosen side exit
+        // 分岐は既存ベルトのセルが始点で、向きは幾何が選んだ出口
+        // A branch starts at the existing belt's cell, heading out of the exit the geometry chose
         public static BeltRouteSession CreateBranch(BeltRouteBranchOrigin branch, BeltRouteWorldScanner scanner)
         {
-            return new BeltRouteSession(branch.Cell, branch.SideDirection, branch, BeltRouteTerrainProfile.Scan(branch.Cell), scanner);
+            return new BeltRouteSession(branch.Cell, branch.ExitDirection, branch, BeltRouteTerrainProfile.Scan(branch.Cell), scanner);
         }
 
         public bool IsNearBox(Vector3Int blockOrigin) => BeltRouteWorldScanner.IsNearBox(Grid, blockOrigin);

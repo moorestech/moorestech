@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
@@ -44,8 +45,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             {
                 BeltRouteBranchBlockReason.NotStraightBelt => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltBranchNotStraightBelt),
                 BeltRouteBranchBlockReason.NoSplitter => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltBranchNoSplitter),
-                BeltRouteBranchBlockReason.SideInputOccupied => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltBranchSideInputOccupied),
-                BeltRouteBranchBlockReason.OtherSideHasReceiver => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltBranchOtherSideHasReceiver),
+                BeltRouteBranchBlockReason.MultipleInputs => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltBranchMultipleInputs),
+                BeltRouteBranchBlockReason.UnusedExitHasReceiver => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltBranchUnusedExitHasReceiver),
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
 using Core.Master;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
@@ -52,9 +53,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             };
         }
 
+        // 分岐器と、選んだ出口の先に出る最初のセルを候補として見せる
+        // Shows the splitter and the first cell beyond the chosen exit as the candidate
+        public static List<PlaceInfo> BuildBranchCandidate(BeltRouteBranchOrigin branch, BeltConveyorHoldingBlock holding)
+        {
+            var firstCell = branch.Cell + BeltRouteDirection.Forward(branch.ExitDirection);
+            return new List<PlaceInfo> { SplitterInfo(branch, true), Single(firstCell, branch.ExitDirection, holding.BlockId, true) };
+        }
+
         public static PlaceInfo SplitterInfo(BeltRouteBranchOrigin branch, bool placeable)
         {
-            return Single(branch.Cell, branch.BeltFacing, branch.SplitterBlockId, placeable);
+            return Single(branch.Cell, branch.SplitterFacing, branch.SplitterBlockId, placeable);
         }
 
         private static BlockVerticalDirection ToVertical(BeltRouteCellKind kind)
