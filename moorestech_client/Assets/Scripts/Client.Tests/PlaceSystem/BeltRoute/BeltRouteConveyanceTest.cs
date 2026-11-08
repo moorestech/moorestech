@@ -2,18 +2,13 @@ using System;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
-using Core.Master;
-using Core.Update;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.World.Interface.DataStore;
 using NUnit.Framework;
-using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Client.Tests.PlaceSystem.BeltRoute.BeltRouteConveyanceWorld;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
@@ -21,9 +16,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
     // Places a searched route on the test server and checks items actually flow; a branch is checked the same way
     public class BeltRouteConveyanceTest
     {
-        private const int MaxTransportTicks = 600;
-        private static readonly ItemId TestItemId = new(1);
-
         [Test]
         public void RouteOverObstacleConveysItemToTheFarChest()
         {
@@ -87,65 +79,44 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(TickUntilDelivered(mainSink, 1, branchSink, 1), $"items did not reach both chests main:{CountOf(mainSink)} branch:{CountOf(branchSink)}");
         }
 
-        private static IWorldBlockDatastore BootWorld()
+        // 西から来て北へ曲がる角 (2,0,0) を分岐器に置き換える。分岐器は東向き、既定の出口は正面（東）
+        // Replace the corner at (2,0,0), fed from the west and turning north, with a splitter facing east whose default exit is the front (east)
+        [Test]
+        public void CornerBranchSplitsItemsToBothChests()
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            return ServerContext.WorldBlockDatastore;
-        }
+            var world = BootWorld();
+            var straight = ForUnitTestModBlockId.GetBlock("7b3e1a10-0001-4000-8000-000000000009");
+            var splitter = ForUnitTestModBlockId.GetBlock("7b3e1a10-0001-4000-8000-000000000012");
+            var corner = new Vector3Int(2, 0, 0);
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(0, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, corner, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(2, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(2, 0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
 
-        // サーバーの全ブロックを占有と入出力辺として箱へ写す。地形は無し
-        // Copies every server block into the box as occupancy and port edges; there is no terrain
-        private static BeltRouteGrid BuildGridFromWorld(IWorldBlockDatastore world)
-        {
-            var grid = new BeltRouteGrid(new Vector3Int(-8, 0, -8), new Vector3Int(24, 6, 24));
-            foreach (var data in world.BlockMasterDictionary.Values)
-            {
-                var position = data.BlockPositionInfo;
-                for (var x = position.MinPos.x; x <= position.MaxPos.x; x++)
-                for (var y = position.MinPos.y; y <= position.MaxPos.y; y++)
-                for (var z = position.MinPos.z; z <= position.MaxPos.z; z++)
-                    grid.MarkBlockCell(new Vector3Int(x, y, z));
-                BeltRouteBlockEdgeScanner.Write(data.Block.BlockMasterElement, data.Block.BlockId, position, grid);
-            }
-            return grid;
-        }
+            // 本番の Judge と同じ写し方（角自身を除いた隣の辺）で向きと出口を決める
+            // Decide the facing and exit from the same copy the production Judge makes (neighbours' edges, excluding the corner itself)
+            var reason = BeltRouteBranchGeometry.Resolve(BuildNeighbourEdges(world, corner), corner, BlockDirection.North, false, out var shape);
+            Assert.AreEqual(BeltRouteBranchBlockReason.None, reason);
+            Assert.AreEqual(BlockDirection.East, shape.SplitterFacing);
+            Assert.AreEqual(BlockDirection.East, shape.BranchExit);
 
-        private static BlockId ResolveFamilyBlock(BlockId straightId, BeltRouteCellKind kind)
-        {
-            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(straightId, out var family));
-            return kind switch
-            {
-                BeltRouteCellKind.Up => family.UpBlockId.Value,
-                BeltRouteCellKind.Down => family.DownBlockId.Value,
-                _ => family.StraightBlockId,
-            };
-        }
+            var query = new BeltRouteQuery(corner, shape.BranchExit, true, new Vector3Int(5, 0, 0), BlockDirection.East, true, false, BeltRouteStepPriority.Default);
+            var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
+            Assert.IsTrue(result.HasPlan, $"no route: {result.NoPathReason}");
+            BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "corner branch route");
 
-        private static IOpenableBlockInventoryComponent PlaceChest(IWorldBlockDatastore world, Vector3Int position)
-        {
-            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.ChestId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest), $"chest placement failed at {position}");
-            return chest.GetComponent<IOpenableBlockInventoryComponent>();
-        }
+            Assert.IsTrue(world.RemoveBlock(corner, BlockRemoveReason.ManualRemove));
+            Assert.IsTrue(world.TryAddBlock(splitter, corner, shape.SplitterFacing, Array.Empty<BlockCreateParam>(), out _));
+            foreach (var cell in result.Plan.Cells)
+                Assert.IsTrue(world.TryAddBlock(straight, cell.Cell, cell.Facing, Array.Empty<BlockCreateParam>(), out _), $"placement failed at {cell}");
 
-        // 片方だけ待つときはsecondをnullにする
-        // Pass null as second to wait for one chest only
-        private static bool TickUntilDelivered(IOpenableBlockInventoryComponent first, int firstMin, IOpenableBlockInventoryComponent second, int secondMin)
-        {
-            for (var tick = 0; tick < MaxTransportTicks; tick++)
-            {
-                GameUpdater.UpdateOneTick();
-                if (CountOf(first) < firstMin) continue;
-                if (second == null || secondMin <= CountOf(second)) return true;
-            }
-            return false;
-        }
+            var source = PlaceChest(world, new Vector3Int(-1, 0, 0));
+            var cornerSink = PlaceChest(world, new Vector3Int(2, 0, 3));
+            var branchSink = PlaceChest(world, new Vector3Int(6, 0, 0));
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(TestItemId, 6));
 
-        private static int CountOf(IOpenableBlockInventoryComponent inventory)
-        {
-            var count = 0;
-            for (var i = 0; i < inventory.GetSlotSize(); i++)
-                if (inventory.GetItem(i).Id == TestItemId) count += inventory.GetItem(i).Count;
-            return count;
+            Assert.IsTrue(TickUntilDelivered(cornerSink, 1, branchSink, 1), $"items did not reach both chests corner:{CountOf(cornerSink)} branch:{CountOf(branchSink)}");
         }
     }
 }
