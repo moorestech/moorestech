@@ -74,25 +74,29 @@ return PlaytestRunner.Run("belt-route-branch-via-ui", options, async p =>
     await p.ExitToGameScreen();
 
     // ---------------------------------------------------------------- 5. L字の角を分岐化
-    p.Note("フェーズ5: 西から来て北へ曲がる角(4,8)をCtrl+クリックすると、分岐器は東向きに置かれ、既定の出口（正面＝東）から(7,8)まで経路が出る");
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(2, 32, 8), BlockDirection.East);
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(3, 32, 8), BlockDirection.East);
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(4, 32, 8), BlockDirection.North);
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(4, 32, 9), BlockDirection.North);
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(4, 32, 10), BlockDirection.North);
-    await p.WaitBlockGameObject(new Vector3Int(4, 32, 8));
-    await p.BranchPlaceViaUi("ベルトコンベア", new Vector3Int(4, 32, 8), false, BlockDirection.East, new Vector3Int(7, 32, 8), BlockDirection.East);
-    await p.Until(() => NameAt(new Vector3Int(4, 32, 8)) == "ベルトコンベア分岐器", 15f, "(4,8)が分岐器へ置き換わる");
-    p.Assert(ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(4, 32, 8)) == BlockDirection.East, "角の分岐器は入ってくる向き（東）で置かれる");
-    p.Assert(Enumerable.Range(5, 3).All(x => p.GetBlock(new Vector3Int(x, 32, 8)) != null && ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(x, 32, 8)) == BlockDirection.East), "分岐の3セルが東向きに置かれる");
-    await p.WaitBlockGameObject(new Vector3Int(7, 32, 8));
+    // 本線(z=4)の北側を狙うとレイが手前の本線に当たって別のベルトを分岐化してしまうので、何も無い西側へ移って角を組む
+    // Aiming north of the main line (z=4) makes the ray hit the main line first and branch the wrong belt, so move west where nothing stands and build the corner there
+    p.WarpPlayer(new Vector3(-6f, 33.5f, 5f));
+    await UniTask.DelayFrame(10);
+    p.Note("フェーズ5: 西から来て北へ曲がる角(-6,13)をCtrl+クリックすると、分岐器は東向きに置かれ、既定の出口（正面＝東）から(-3,13)まで経路が出る");
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-8, 32, 13), BlockDirection.East);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-7, 32, 13), BlockDirection.East);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-6, 32, 13), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-6, 32, 14), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-6, 32, 15), BlockDirection.North);
+    await p.WaitBlockGameObject(new Vector3Int(-6, 32, 13));
+    await p.BranchPlaceViaUi("ベルトコンベア", new Vector3Int(-6, 32, 13), false, BlockDirection.East, new Vector3Int(-3, 32, 13), BlockDirection.East);
+    await p.Until(() => NameAt(new Vector3Int(-6, 32, 13)) == "ベルトコンベア分岐器", 15f, "(-6,13)が分岐器へ置き換わる");
+    p.Assert(ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(-6, 32, 13)) == BlockDirection.East, "角の分岐器は入ってくる向き（東）で置かれる");
+    p.Assert(Enumerable.Range(-5, 3).All(x => p.GetBlock(new Vector3Int(x, 32, 13)) != null && ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(x, 32, 13)) == BlockDirection.East), "分岐の3セルが東向きに置かれる");
+    await p.WaitBlockGameObject(new Vector3Int(-3, 32, 13));
     await p.ExitToGameScreen();
     await p.Screenshot("04-corner-branch");
 
     p.Note("フェーズ6: 角の手前から流すと、角の先（北）と分岐の先（東）の両方へ届く");
-    var cornerSource = await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(1, 32, 8), BlockDirection.East);
-    var cornerSink = await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(4, 32, 11), BlockDirection.North);
-    var cornerBranchSink = await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(8, 32, 8), BlockDirection.East);
+    var cornerSource = await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(-9, 32, 13), BlockDirection.East);
+    var cornerSink = await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(-6, 32, 16), BlockDirection.North);
+    var cornerBranchSink = await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(-2, 32, 13), BlockDirection.East);
     await p.RunOnServer("角の手前のチェストへ鉄インゴット6個", () => cornerSource.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 6)));
     await p.Until(() => 1 <= CountOf(cornerSink, itemId) && 1 <= CountOf(cornerBranchSink, itemId), 60f, "角の先と分岐の先の両方へ荷物が届く");
     await p.Screenshot("05-corner-flow-both");
