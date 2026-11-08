@@ -119,6 +119,7 @@ namespace Client.Input
             return keyCode switch
             {
                 KeyCode.B => Key.B,
+                KeyCode.C => Key.C,
                 KeyCode.A => Key.A,
                 KeyCode.D => Key.D,
                 KeyCode.E => Key.E,

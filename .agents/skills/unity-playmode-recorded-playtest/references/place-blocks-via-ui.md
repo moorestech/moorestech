@@ -1,7 +1,7 @@
 # ユースケース: UI経路（ビルドメニュー→プレビュー→クリック/ドラッグ）でブロックを設置する
 
 実プレイヤーと同じキーマウ経路で構築し、UI・操作系・設置プレビュー系のバグをE2Eで捕まえる。
-**実証済み手本**: UI経路でのブロック設置を通す同梱シナリオは `connect/gear-chain-pole-via-ui.cs`（ホットバー駆動）。ベルト構築の手本は direct 版 `building/belt-segment-flow.cs`。
+**実証済み手本**: UI経路でのブロック設置を通す同梱シナリオは `connect/gear-chain-pole-via-ui.cs`（ホットバー駆動）。ベルトの2クリック設置と分岐の手本は `building/belt-route-two-click-via-ui.cs` / `building/belt-route-branch-via-ui.cs`。
 
 ## 最小コード（このまま使う）
 
@@ -13,8 +13,8 @@ p.WarpPlayer(new Vector3(3.5f, 33.5f, -1f));       // 設置エリアの南側�
 // 遠いセルから設置する（手前の既設ブロックが奥セルへのレイを遮るため。単クリックは隣接が埋まる前に）
 // 単クリック設置: 向きはNorth固定
 await p.PlaceBlockViaUi("木のコンベアチェスト", new Vector3Int(4, 32, 8), BlockDirection.North);
-// ドラッグ設置: 向きは経路から自動解決（(2,2)→(2,6)なら北向き。ベルトのライン構築はこれ）
-await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
+// 2クリック設置: 始点クリック→終点クリックで最短経路が置かれる（ベルトのライン構築はこれ。向きはRの回転で合わせる）
+await p.RoutePlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), BlockDirection.North, new Vector3Int(2, 32, 6), BlockDirection.North);
 await p.ExitToGameScreen();
 ```
 
@@ -53,13 +53,13 @@ await p.ExitToGameScreen();
 | 制約 | 回避策 |
 |---|---|
 | 単クリック設置の向きはNorth固定（place system内部の`_currentBlockDirection`は外部から読めず回転キー注入は未対応） | 向きが要るラインはドラッグで組む／Northで成立する配置を選ぶ |
-| ベルトのドラッグは長尺バリアントに自動分解されることがある | セル単位のGetBlockは「そのセルを覆うブロック」を返すのでassertは通る |
+| ベルトの2クリック設置は始点から終点への最短経路（坂を含む）を自動で選ぶ。同コストの別経路はCで切り替わる | 途中セルの位置を決め打ちしない。始点・終点と「流れる」ことをassertする |
 | 注入が効くのはInputSystem/`Client.Input.HybridInput`経由のコードのみ | 駆動しない入力を見つけたらHybridInput化する（input-injection.md） |
 | 高さのあるブロック（石窯等・高さ2以上）の**隣接セルへ後から**設置すると、照準レイが既設ブロックの天面にヒットして上（y+段数）に誤設置される | **背の高いブロックを最後に設置**する（ベルト等の低いブロックを先に敷く） |
 | 電気系ブロック（電線コネクタ持ち）は建設コストだけではプレビューが赤のまま設置不能（`ElectricWireAutoConnectPreview.TrySelectWire`の在庫ガード＝既知の実バグ。非電気ブロックは影響なし） | 修正されるまで `GiveItem("<ブロック名>", 1)` でブロックアイテム自体を在庫へ足す（設置クリックはUI経路のまま保てる） |
 
 ## 検証の定石
 
-- 設置反映は `PlaceBlockViaUi`/`DragPlaceViaUi` にUntil内蔵。追加の目視用に `WaitBlockGameObject` → `Screenshot`
+- 設置反映は `PlaceBlockViaUi`/`RoutePlaceViaUi`/`BranchPlaceViaUi` にUntil内蔵。追加の目視用に `WaitBlockGameObject` → `Screenshot`
 - 搬送ラインは投入前に末端の `BlockConnectorComponent<IBlockInventory>.ConnectedTargets.Count` をassert
   （受け側の `inputConnects` が空のブロックは何をしても繋がらない。コンベアチェスト等を使う）

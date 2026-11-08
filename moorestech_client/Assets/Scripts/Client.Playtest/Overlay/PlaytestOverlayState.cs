@@ -40,6 +40,11 @@ namespace Client.Playtest.Overlay
         public bool LeftMouseHeld;
         public bool RightMouseHeld;
 
+        // ログ欄・入力欄の表示。画面を広く見せたい録画ではシナリオが隠す。カーソルは常に出す
+        // Visibility of the log and input panels; scenarios hide them for unobstructed footage, the cursor always shows
+        public bool ShowLogPanel { get; private set; } = true;
+        public bool ShowInputPanel { get; private set; } = true;
+
         public void Reset()
         {
             LogEntries.Clear();
@@ -49,6 +54,14 @@ namespace Client.Playtest.Overlay
             LastClickRealtime = -10f;
             LeftMouseHeld = false;
             RightMouseHeld = false;
+            ShowLogPanel = true;
+            ShowInputPanel = true;
+        }
+
+        public void SetPanelsVisible(bool showLogPanel, bool showInputPanel)
+        {
+            ShowLogPanel = showLogPanel;
+            ShowInputPanel = showInputPanel;
         }
 
         public PlaytestOverlayLogEntry PushLog(PlaytestOverlayLogKind kind, string text)
