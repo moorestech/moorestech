@@ -20,9 +20,9 @@ namespace Client.Ui.Screens.Tutorial.Anchor
             switch (resolution)
             {
                 case TutorialAnchorResolution.Missing:
-                    return new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing);
+                    return TutorialAnchorState.NotFound.Missing();
                 case TutorialAnchorResolution.Duplicate:
-                    return new TutorialAnchorState.NotFound(TutorialAnchorReason.DuplicateAnchor);
+                    return TutorialAnchorState.NotFound.DuplicateAnchor();
                 case TutorialAnchorResolution.Unique unique:
                     element = unique.Element;
                     break;
@@ -32,17 +32,17 @@ namespace Client.Ui.Screens.Tutorial.Anchor
 
             // 理由の順は Web resolveAnchor と同じ（表示 → 可視 → 面積 → 画面内）
             // Same reason order as Web resolveAnchor (display, visibility, area, viewport)
-            if (IsDisplayNoneInHierarchy(element)) return new TutorialAnchorState.Hidden(TutorialAnchorReason.DisplayNone);
-            if (element.resolvedStyle.visibility == Visibility.Hidden) return new TutorialAnchorState.Hidden(TutorialAnchorReason.VisibilityHidden);
+            if (IsDisplayNoneInHierarchy(element)) return TutorialAnchorState.Hidden.DisplayNone();
+            if (element.resolvedStyle.visibility == Visibility.Hidden) return TutorialAnchorState.Hidden.VisibilityHidden();
             // レイアウト前のアンカー・座標系は NaN になりうる。比較を NaN がすり抜けるので、面積 0 として先に返す（D-33）
             // The anchor or coordinate space can be NaN before layout; NaN slips past comparisons, so return zero area first (D-33)
             var world = element.worldBound;
-            if (HasNaN(world) || HasNaN(coordinateSpace.layout)) return new TutorialAnchorState.Hidden(TutorialAnchorReason.ZeroArea);
+            if (HasNaN(world) || HasNaN(coordinateSpace.layout)) return TutorialAnchorState.Hidden.ZeroArea();
             var bound = coordinateSpace.WorldToLocal(world);
             var rect = new TutorialClipRect(bound.xMin, bound.yMin, bound.xMax, bound.yMax);
-            if (rect.Width <= 0 || rect.Height <= 0) return new TutorialAnchorState.Hidden(TutorialAnchorReason.ZeroArea);
+            if (rect.Width <= 0 || rect.Height <= 0) return TutorialAnchorState.Hidden.ZeroArea();
             var viewport = new TutorialClipRect(0, 0, coordinateSpace.layout.width, coordinateSpace.layout.height);
-            if (rect.IsDisjoint(viewport)) return new TutorialAnchorState.Hidden(TutorialAnchorReason.OutsideViewport);
+            if (rect.IsDisjoint(viewport)) return TutorialAnchorState.Hidden.OutsideViewport();
             return new TutorialAnchorState.Ready(rect, TutorialAncestorClipWalker.ClipOf(element, coordinateSpace));
 
             #region Internal

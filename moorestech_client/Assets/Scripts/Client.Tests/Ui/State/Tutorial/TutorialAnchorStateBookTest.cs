@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.State.Tutorial
         {
             var book = new TutorialAnchorStateBook();
             book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(0, 0, 10, 10), Viewport));
-            book.ApplyIfChanged("pause.back", new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing));
+            book.ApplyIfChanged("pause.back", TutorialAnchorState.NotFound.Missing());
             book.KeepOnly(new[] { "pause.back" });
 
             Assert.IsFalse(book.TryGet("pause.save", out _));
@@ -48,8 +48,8 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 理由だけが変わった未解決も変化として扱う()
         {
             var book = new TutorialAnchorStateBook();
-            book.ApplyIfChanged("pause.save", new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing));
-            Assert.IsTrue(book.ApplyIfChanged("pause.save", new TutorialAnchorState.NotFound(TutorialAnchorReason.DuplicateAnchor)));
+            book.ApplyIfChanged("pause.save", TutorialAnchorState.NotFound.Missing());
+            Assert.IsTrue(book.ApplyIfChanged("pause.save", TutorialAnchorState.NotFound.DuplicateAnchor()));
         }
     }
 }

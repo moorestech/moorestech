@@ -36,7 +36,12 @@ namespace Client.Ui.State.Tutorial.Logic
 
         public sealed class NotFound : TutorialAnchorState
         {
-            public NotFound(TutorialAnchorReason reason) : base(reason) { }
+            // 種と理由の食い違いを作らせないため、生成は理由ごとの口に限る
+            // Construction goes only through per-reason factories so kind and reason can never disagree
+            public static NotFound Missing() => new(TutorialAnchorReason.Missing);
+            public static NotFound DuplicateAnchor() => new(TutorialAnchorReason.DuplicateAnchor);
+
+            private NotFound(TutorialAnchorReason reason) : base(reason) { }
 
             public override bool SameAs(TutorialAnchorState other)
             {
@@ -46,7 +51,12 @@ namespace Client.Ui.State.Tutorial.Logic
 
         public sealed class Hidden : TutorialAnchorState
         {
-            public Hidden(TutorialAnchorReason reason) : base(reason) { }
+            public static Hidden DisplayNone() => new(TutorialAnchorReason.DisplayNone);
+            public static Hidden VisibilityHidden() => new(TutorialAnchorReason.VisibilityHidden);
+            public static Hidden ZeroArea() => new(TutorialAnchorReason.ZeroArea);
+            public static Hidden OutsideViewport() => new(TutorialAnchorReason.OutsideViewport);
+
+            private Hidden(TutorialAnchorReason reason) : base(reason) { }
 
             public override bool SameAs(TutorialAnchorState other)
             {

@@ -24,7 +24,7 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 片方が未解決か起点の中心がclipの外なら置かない()
         {
             var to = new TutorialAnchorState.Ready(new TutorialClipRect(500, 300, 540, 340), Clip);
-            Assert.IsFalse(TutorialDragGuideGate.TryPlace(new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing), to, out _));
+            Assert.IsFalse(TutorialDragGuideGate.TryPlace(TutorialAnchorState.NotFound.Missing(), to, out _));
             var scrolledOut = new TutorialAnchorState.Ready(new TutorialClipRect(100, 40, 140, 80), new TutorialClipRect(0, 100, 1280, 720));
             Assert.IsFalse(TutorialDragGuideGate.TryPlace(scrolledOut, to, out _));
         }
