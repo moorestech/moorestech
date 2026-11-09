@@ -6131,6 +6131,7 @@ git commit -m "fix(uitk): 特殊族の並べ比べの差を直し、直せない
 // 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
 // Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
+using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
@@ -6138,12 +6139,17 @@ using Client.Playtest;
 using Client.Playtest.Operations.Ui;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Client.Ui.Foundation.Root;
+using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
 using Game.Context;
 using Game.Orbit;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
@@ -6206,7 +6212,9 @@ return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
 
     // 宇宙エレベーター: 群・状態区画・電力網が出る
     // Space elevator: groups, the state section and the network appear
-    var elevator = await Open("宇宙エレベーター基部", new Vector3Int(14, 32, 6), "space-elevator-view");
+    var elevatorPos = new Vector3Int(14, 32, 6);
+    await Open("宇宙エレベーター基部", elevatorPos, "space-elevator-view");
+    var elevator = ServerContext.WorldBlockDatastore.GetBlock(elevatorPos);
     await p.UntilUiElement("space-elevator-status", 15f);
     p.Note($"宇宙エレベーターの状態文={Text("space-elevator-status")}");
     await Capture("space-elevator");
@@ -6218,8 +6226,11 @@ return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
     await p.RunOnServer("ケーブル1便を軌道へ到着させる", () => ServerContext.GetService<IOrbitalArrivalService>().Arrive(cableId, cablesPerElevator));
     await p.UntilUiElement("space-elevator-connect", 10f);
     await p.ClickUi("space-elevator-connect");
-    await p.UntilUiElement("space-elevator-progress", 10f);
-    p.Note("宇宙エレベーターの接続を UI から押し、接続後の進みが出た");
+    await p.Until(() => Detail().IsConnected, 10f, "拠点が接続済みになった（サーバーの状態）");
+    // 進みのゲージは PickingMode.Ignore で UntilUiElement〈中心のヒットを待つ〉では待てないので、見つかって表示中かを読む
+    // The progress gauge ignores picking, so UntilUiElement (which waits for a centre hit) cannot wait on it; read found-and-shown instead
+    await p.Until(() => Shown("space-elevator-progress") && !Shown("space-elevator-connect"), 10f, "接続後の進みが出て接続ボタンが消えた");
+    p.Note("宇宙エレベーターの接続を UI から押し、サーバーが接続済みになり進みが出た");
     await Close();
 
     #region Internal
@@ -6252,13 +6263,32 @@ return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 
+    // 要素が見つかり、自分と祖先のどれも隠れていない（中心のヒットは問わない）
+    // The element exists and neither it nor any ancestor is hidden (no centre-hit requirement)
+    bool Shown(string testid)
+    {
+        var element = GameUiRoot.Instance.GetRootElement().Q<VisualElement>(testid);
+        if (element == null) return false;
+        for (var e = element; e != null; e = e.parent)
+        {
+            if (e.resolvedStyle.display == DisplayStyle.None) return false;
+        }
+        return true;
+    }
+
+    SpaceElevatorBaseStateDetail Detail()
+    {
+        var detail = elevator.GetComponent<SpaceElevatorClimberComponent>().GetBlockStateDetails().Single(d => d.Key == SpaceElevatorBaseStateDetail.BlockStateDetailKey);
+        return MessagePack.MessagePackSerializer.Deserialize<SpaceElevatorBaseStateDetail>(detail.Value);
+    }
+
     bool Selected(string testid) => PlaytestUiElements.HasClass(testid, "mode-switch__option--selected");
     string Text(string testid) => PlaytestUiElements.ReadText(testid);
 
     #endregion
 });
 ```
-（`PlaytestUiElements.HasClass`・`ReadText` は GameUi の要素を testid で読む DSL の実物の名前に合わせる〈無ければ `GameUiRoot.Instance.GetRootElement().Q<…>(testid)` で読む。前例 `uitk-grab-overlay.cs`〉。照準の位置は前例の `AimAtClickCollider` に合わせて直す。`PlaytestGameViewOps.SetResolution` は前例 `uitk/uitk-gameview-resolution-switch.cs` の書き方。宇宙エレベーターの状態文〈Note〉が「ケーブルが足りません」〈`insufficientCable`〉でなければ、Task 10 の行 11 を EditMode の撮影〈Step 3〉に回し、`done.md` に書く。`PlaceBlockDirect` がティックと競合して落ちる既知の不具合〈bd `moorestech-xyuaf.2.10`〉に当たったら、置いた後に `p.WaitSeconds(0.5f)` を挟み、それでも落ちれば `done.md` の「## 未確認」に書いて既存の 4 本で代える。ローカル関数の式本体は `Func` を使わない）
+（`UntilUiElement` は中心のヒット〈`GameUiElementQuery` の `IsClickable`〉まで待つので、拾わない要素〈`GaugeBar` は自身も子も `PickingMode.Ignore`〉には使わず `Shown` を `p.Until` で待つ。このシナリオで `UntilUiElement` を使う他の要素〈本文の根・区画の根・状態文の Label・接続ボタン〉は既定の拾い方で、中心のヒットが自分か子孫になる。`Detail()` は前例 `tier9-6-fusion-elevator` と同じ読み方。`PlaytestUiElements.HasClass`・`ReadText` は GameUi の要素を testid で読む DSL の実物の名前に合わせる〈無ければ `GameUiRoot.Instance.GetRootElement().Q<…>(testid)` で読む。前例 `uitk-grab-overlay.cs`〉。照準の位置は前例の `AimAtClickCollider` に合わせて直す。`PlaytestGameViewOps.SetResolution` は前例 `uitk/uitk-gameview-resolution-switch.cs` の書き方。宇宙エレベーターの状態文〈Note〉が「ケーブルが足りません」〈`insufficientCable`〉でなければ、Task 10 の行 11 を EditMode の撮影〈Step 3〉に回し、`done.md` に書く。`PlaceBlockDirect` がティックと競合して落ちる既知の不具合〈bd `moorestech-xyuaf.2.10`〉に当たったら、置いた後に `p.WaitSeconds(0.5f)` を挟み、それでも落ちれば `done.md` の「## 未確認」に書いて既存の 4 本で代える。ローカル関数の式本体は `Func` を使わない）
 
 - [ ] **Step 2: 5 本を流す**
 
