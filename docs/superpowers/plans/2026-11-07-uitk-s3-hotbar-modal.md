@@ -35,7 +35,7 @@
 
 **やらないこと（スコープ境界）**
 
-- 部品（`SlotFrame`・`PlacementTargetFace`・`OutlinedCountLabel`・`DialogFrame`・`FormButton`・`GameTextField`）・既存の Foundation（`UiDragDrop`・`UiModalHost`・`UiPressGesture`・`StageScaleSource`・`GameUiInputRules`。新規の `Foundation/Input/WheelPassthroughMark.cs` だけ足す。D-21）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`）・`UiLayer`・`UiScreenTraits`・`AnchorIds` は変えない。要るものは `done.md` の「integrator への依頼」に書く（`DerivedTokens.uss` は末尾の名札付きブロックを足す [A-52]）。例外は 1 つ: 部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke-color` を足す（`OutlinedCountLabel.uss` の縁の層の 2 行・`.cs` のコメント・`DerivedTokens.uss` の `--outlined-count-label-color` の次に既定 1 行。設計書 A-108・計画 D-7・Task 6 Step 3）
+- 部品（`SlotFrame`・`PlacementTargetFace`・`OutlinedCountLabel`・`DialogFrame`・`FormButton`・`GameTextField`）・既存の Foundation（`UiDragDrop`・`UiModalHost`・`UiPressGesture`・`StageScaleSource`・`GameUiInputRules`。新規の `Foundation/Input/WheelPassthroughMark.cs` だけ足す。D-21）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`）・`UiLayer`・`UiScreenTraits`・`AnchorIds` は変えない。要るものは `done.md` の「integrator への依頼」に書く（`DerivedTokens.uss` は末尾の名札付きブロックを足す [A-52]）。例外は 1 つ: 部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke` を足す（`OutlinedCountLabel.uss` の縁の層の 2 行・`.cs` のコメント・`DerivedTokens.uss` の `--outlined-count-label-color` の次に既定 1 行。設計書 A-108・計画 D-7・Task 6 Step 3）
 - ビルドメニューの画面と、その源（エントリのドラッグ・タップ）、配置対象の絵の出どころ（`PlacementTargetIcon` 系・`PlacementTargetIconResolver`・`PlacementTargetIcons`）、State の落とし先の口 `IHotbarDropReceiver` は作らない（S3-buildmenu が最終の置き場に作る。W3 で先に入る）。S3-buildmenu のファイルは書き換えない。ビルドメニューのパネルからホットバーへ通しで確かめる横断の L1 は S3-ladder。このレーンは本物のエントリの源（`BuildMenuEntryDragPayload`）を単独で置いて確かめる（使うだけ）
 - ホイールで装備を回す処理は作らない（S4-inventory。このレーンは列に素通しの印と、その判定 `WheelPassthroughMark.IsPassthrough` を作るまで）
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない。Web の系のモーダル（`ModalTopic`・`ModalActions`）はそのまま残る
@@ -72,7 +72,7 @@ namespace Client.Ui.Components.Slots
         public OutlinedCountLabel(VisualElement parent, string placementClass, params string[] layerClasses); // 縁の層 .outlined-count-label--stroke と字の層 --glyph を parent の子に足す
         public void SetText(UiText text);
     }
-    // 縁の色は .outlined-count-label--stroke の color・-unity-text-outline-color: var(--icon-text-stroke-light)（土台。Task 6 Step 3 がつまみ --outlined-count-label-stroke-color に替える）。字の色はつまみ --outlined-count-label-color、大きさは --outlined-count-label-size
+    // 縁の色は .outlined-count-label--stroke の color・-unity-text-outline-color: var(--icon-text-stroke-light)（土台。Task 6 Step 3 がつまみ --outlined-count-label-stroke に替える）。字の色はつまみ --outlined-count-label-color、大きさは --outlined-count-label-size
 }
 namespace Client.Ui.Foundation.Icons { public sealed class UiIcon { public Texture2D Texture { get; } public string IdText { get; } public UiText Label { get; } public UiIcon(Texture2D texture, string idText, UiText label); } }
 namespace Client.Ui.Content { public sealed class GameContentPresentation { public UiIcon Item(ItemId id); public UiIcon Block(BlockId id); public UiIcon Fluid(FluidId id); public UiText ItemName(ItemId id); } }
@@ -329,7 +329,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs` | 枠の落とし先の印（`IUiDropTarget`＋State の `IHotbarDropReceiver`。枠番号と操作を持ち、受けた源を解いて `Apply`） | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarRowGapDropMark.cs` | 列の隙間の印（`IUiDropTarget`＋`IHotbarDropReceiver`。受けて無操作） | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDragPayload.cs` | 枠の源（タップ → 選択・ドロップ → 解決） | 新規 |
-| `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`.cs` | 縁の色のつまみ `--outlined-count-label-stroke-color` を読む（.cs はコメントだけ。D-7） | 変更（C3-a の部品。C4-a が先に足していれば触らない。Task 6 Step 3 の分岐） |
+| `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`.cs` | 縁の色のつまみ `--outlined-count-label-stroke` を読む（.cs はコメントだけ。D-7） | 変更（C3-a の部品。C4-a が先に足していれば触らない。Task 6 Step 3 の分岐） |
 | `S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`・`SlotKnobOverrides.uss` | 縁の色のつまみの既定と上書きの L1 | 新規・変更 |
 | `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` | ホイール素通しの印と読み手の判定 `IsPassthrough`（Web `data-wheel-passthrough`・`isWheelPassthrough`。Web で 2 機能が使うので §5.1-1 で最初から Foundation） | 新規 |
 | `S/Client.Ui/Screens/Modal/ModalScreenPresenter.cs` | 保留の要求を View にして宿主へ `Show`/`Hide`（幕の押下は View へ渡す） | 新規 |
@@ -485,7 +485,7 @@ mkdir -p ../moorestech_logs/harness/uitk/S3-hotbar-modal
 ## 差の表
 ## 要裁定
 ## integrator への依頼
-- 縁の色のつまみ --outlined-count-label-stroke-color: <このレーンが足した | C4-a が先に足していたので使うだけ>（設計書 A-108・計画 D-7・Task 6 Step 3 の分岐）
+- 縁の色のつまみ --outlined-count-label-stroke: <このレーンが足した | C4-a が先に足していたので使うだけ>（設計書 A-108・計画 D-7・Task 6 Step 3 の分岐）
 ## 未確認
 ```
 Expected: bd の ID が出る。以後 `<bd>` をその ID で読む。`bd note <bd>` に上の 2 行と「integrator への依頼」の 1 行を同じ文で残す
@@ -1625,23 +1625,23 @@ namespace Client.Ui.Foundation.Input
 
 - [ ] **Step 3: 部品 `OutlinedCountLabel` に縁の色のつまみを足す**
 
-**先に分岐を見る**: 同じつまみは C4-a（Web の `FluidSlot` の暗い縁）も要り、先に入ったほうが足す（設計書 A-108・実行計画の C4-a 行）。まず `git grep -n "outlined-count-label-stroke-color" origin/feature/uitk -- moorestech_client/Assets/Scripts/Client.Ui` を流す。出たら（C4-a が先に足した）`OutlinedCountLabel.uss`・`.cs`・`DerivedTokens.uss` は書き換えず、下の USS・コメント・既定の行を飛ばし、`SlotKnobOverrides.uss` の `.slot-knob-dark-outline` と L1 `OutlinedCountLabelStrokeKnobTest` だけを足す（C4-a が同じ L1 を足していれば L1 も足さない。`git grep -n "OutlinedCountLabelStrokeKnobTest\|slot-knob-dark-outline" origin/feature/uitk` で見る）。つまみの名前・既定が下と違えば止めて指揮へ返す。出なければ以下のとおり足す
+**先に分岐を見る**: 同じつまみは C4-a（Web の `FluidSlot` の暗い縁）も要り、先に入ったほうが足す（設計書 A-108・実行計画の C4-a 行）。まず `git grep -n "outlined-count-label-stroke" origin/feature/uitk -- moorestech_client/Assets/Scripts/Client.Ui` を流す。出たら（C4-a が先に足した）`OutlinedCountLabel.uss`・`.cs`・`DerivedTokens.uss` は書き換えず、下の USS・コメント・既定の行を飛ばし、`SlotKnobOverrides.uss` の `.slot-knob-dark-outline` と L1 `OutlinedCountLabelStrokeKnobTest` だけを足す（C4-a が同じ L1 を足していれば L1 も足さない。`git grep -n "OutlinedCountLabelStrokeKnobTest\|slot-knob-dark-outline" origin/feature/uitk` で見る）。つまみの名前・既定が下と違えば止めて指揮へ返す。出なければ以下のとおり足す
 
-Web の `.iconTextOutlineDark`（`W/src/app/tokens.css:489`）は縁の色だけが `.iconTextOutlineLight` と違う。部品の縁の色は `--icon-text-stroke-light` の直書きなので、画面から暗い縁にする口が無い。部品につまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、番号タブはそのつまみだけを上書きする（設計書 §3.2「部品の見た目はつまみで変える」。共有トークン `--icon-text-stroke-light` を部分木で受け直すと、タブの中に後から置く他の部品の白い縁まで黒くなる）。C3-a はマージ済み。W3 で並走する C4-a（Web の `FluidSlot` も `.iconTextOutlineDark`。`W/src/shared/ui/FluidSlot/index.tsx:24,47`）も同じつまみを使い、先に入ったほうが足す（実行計画の C4-a 行に同じ形を書いた。S3-buildmenu の計画は `OutlinedCountLabel` を使わない）。
+Web の `.iconTextOutlineDark`（`W/src/app/tokens.css:489`）は縁の色だけが `.iconTextOutlineLight` と違う。部品の縁の色は `--icon-text-stroke-light` の直書きなので、画面から暗い縁にする口が無い。部品につまみ `--outlined-count-label-stroke`（既定 `--icon-text-stroke-light`）を足し、番号タブはそのつまみだけを上書きする（設計書 §3.2「部品の見た目はつまみで変える」。共有トークン `--icon-text-stroke-light` を部分木で受け直すと、タブの中に後から置く他の部品の白い縁まで黒くなる）。C3-a はマージ済み。W3 で並走する C4-a（Web の `FluidSlot` も `.iconTextOutlineDark`。`W/src/shared/ui/FluidSlot/index.tsx:24,47`）も同じつまみを使い、先に入ったほうが足す（実行計画の C4-a 行に同じ形を書いた。S3-buildmenu の計画は `OutlinedCountLabel` を使わない）。
 
 `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss` の `.outlined-count-label--stroke` を次に置き換える:
 ```css
 .outlined-count-label--stroke {
-    color: var(--outlined-count-label-stroke-color);
+    color: var(--outlined-count-label-stroke);
     -unity-text-outline-width: var(--icon-text-stroke-width);
-    -unity-text-outline-color: var(--outlined-count-label-stroke-color);
+    -unity-text-outline-color: var(--outlined-count-label-stroke);
 }
 ```
-同じファイルの冒頭の 2 行コメントの「大きさはつまみ --outlined-count-label-size で渡す」の後ろに日本語「、縁の色はつまみ --outlined-count-label-stroke-color（暗い縁 = Web .iconTextOutlineDark は置く側が --icon-text-stroke-dark を渡す）」、英語「; the outline color comes through the --outlined-count-label-stroke-color knob (the placing side passes --icon-text-stroke-dark for the Web .iconTextOutlineDark)」を足す。`OutlinedCountLabel.cs` の `<remarks>` の「字の色はつまみ --outlined-count-label-color」の文にも同じ趣旨で「縁の色はつまみ --outlined-count-label-stroke-color」を日英 1 句ずつ足す（コードは変えない）。
+同じファイルの冒頭の 2 行コメントの「大きさはつまみ --outlined-count-label-size で渡す」の後ろに日本語「、縁の色はつまみ --outlined-count-label-stroke（暗い縁 = Web .iconTextOutlineDark は置く側が --icon-text-stroke-dark を渡す）」、英語「; the outline color comes through the --outlined-count-label-stroke knob (the placing side passes --icon-text-stroke-dark for the Web .iconTextOutlineDark)」を足す。`OutlinedCountLabel.cs` の `<remarks>` の「字の色はつまみ --outlined-count-label-color」の文にも同じ趣旨で「縁の色はつまみ --outlined-count-label-stroke」を日英 1 句ずつ足す（コードは変えない）。
 
 `THEME/DerivedTokens.uss` の `--outlined-count-label-color` の行の次に:
 ```css
-    --outlined-count-label-stroke-color: var(--icon-text-stroke-light); /* web: .iconTextOutlineLight の縁の色。暗い縁（.iconTextOutlineDark）は置く側が --icon-text-stroke-dark で上書きする */
+    --outlined-count-label-stroke: var(--icon-text-stroke-light); /* web: .iconTextOutlineLight の縁の色。暗い縁（.iconTextOutlineDark）は置く側が --icon-text-stroke-dark で上書きする */
 ```
 
 `S/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss` の末尾に:
@@ -1649,7 +1649,7 @@ Web の `.iconTextOutlineDark`（`W/src/app/tokens.css:489`）は縁の色だけ
 /* W/app/tokens.css の .iconTextOutlineDark（ホットバーの番号タブ） */
 /* .iconTextOutlineDark in W/app/tokens.css (the hotbar number tab) */
 .slot-knob-dark-outline {
-    --outlined-count-label-stroke-color: var(--icon-text-stroke-dark);
+    --outlined-count-label-stroke: var(--icon-text-stroke-dark);
 }
 ```
 
@@ -1800,8 +1800,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
     /// The number tab overlapping the slot's top-left (Web .num; a 13px digit with a dark outline)
     /// </summary>
     /// <remarks>
-    /// 暗い縁はタブで部品のつまみ --outlined-count-label-stroke-color を上書きして出す（HotbarHud.uss。計画 D-7）。タブ自身は拾う（Web の pointer-events 既定。タブの上で離しても枠の落とし先になる）
-    /// The dark outline comes from overriding the part knob --outlined-count-label-stroke-color on the tab (HotbarHud.uss; plan D-7). The tab itself is pickable (Web default pointer-events; releasing on it still hits the slot)
+    /// 暗い縁はタブで部品のつまみ --outlined-count-label-stroke を上書きして出す（HotbarHud.uss。計画 D-7）。タブ自身は拾う（Web の pointer-events 既定。タブの上で離しても枠の落とし先になる）
+    /// The dark outline comes from overriding the part knob --outlined-count-label-stroke on the tab (HotbarHud.uss; plan D-7). The tab itself is pickable (Web default pointer-events; releasing on it still hits the slot)
     /// </remarks>
     public sealed class HotbarNumberTab : VisualElement
     {
@@ -2745,7 +2745,7 @@ namespace Client.Ui.Screens.Hotbar
     border-radius: 0;
     border-color: var(--hotbar-number-tab-border);
     background-color: var(--hotbar-number-tab-face);
-    --outlined-count-label-stroke-color: var(--icon-text-stroke-dark);
+    --outlined-count-label-stroke: var(--icon-text-stroke-dark);
     --outlined-count-label-size: 13px;
     --outlined-count-label-color: var(--hotbar-number-tab-text);
 }
@@ -2819,7 +2819,7 @@ Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --p
 Expected: `ErrorCount: 0`、`HotbarHudViewTest` 5・`HotbarHudDropTest` 4・`HotbarSlotDragGestureTest` 7・`HotbarHudPickingTest` 2・`HotbarIconCenteringTest` 2 が PASS、L2 も PASS。赤のときの手順:
 - 番号タブの `-16` が外れる → `HotbarCalcKnobs` の `CustomStyleResolvedEvent` が列に届いていない。`Debug.Log` で読めた値を出して原因を確かめる（テストの期待は変えない）
 - `slot1.resolvedStyle.backgroundColor` が `--hotbar-slot-frame-face` でない → `.hotbar-hud` の上書きが `SlotFrame.uss` の `var()` へ継承していない。`--slot-frame-face` を `.hotbar-hud__cell` へ移して試し、移した理由を `done.md` の「未確認」に書く
-- 番号タブの縁が黒くならない → タブの `--outlined-count-label-stroke-color` が効いていない。Task 6 Step 3 の部品の USS の置き換え（`color` と `-unity-text-outline-color` の両方がつまみを読む）と、`HotbarHud.uss` のタブの行を見る
+- 番号タブの縁が黒くならない → タブの `--outlined-count-label-stroke` が効いていない。Task 6 Step 3 の部品の USS の置き換え（`color` と `-unity-text-outline-color` の両方がつまみを読む）と、`HotbarHud.uss` のタブの行を見る
 - 絵の中央が 0.5px を超えてずれる → `--icon-pad` と `--bevel-inset: inset` の組み合わせを確かめ、Web の正方 SVG と同じ条件（256 角）であることを確かめてから USS を直す
 - 右ボタンで捕捉される → C3-b の `UiPressGesture` の誤り。止めて `done.md` の「integrator への依頼」に書く（Foundation はこのレーンの持ち物でない）
 
@@ -3949,7 +3949,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロックと `--outlined-count-label-color` の次の 1 行（`--outlined-count-label-stroke-color`。他レーンが同じ並びに行を足していれば両方採る）・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の表〈他レーンが足した行は採り、albof.30 の行は消えたままにする〉・`PauseMenuCommandsTest.cs` の `benign` の配列〈両方の値の和。片側だけを採ると良性の値が落ちる〉）の衝突は両方の行を採る。ただし縁の色のつまみは例外: 取り込みの後に `git grep -n "outlined-count-label-stroke-color\|OutlinedCountLabelStrokeKnobTest" origin/feature/uitk` を流し、C4-a が先に足していたら、このレーンが Task 6 Step 3 で足した 5 か所（`OutlinedCountLabel.uss` の 2 行とコメント・`.cs` のコメント・`DerivedTokens.uss` の既定 1 行・`SlotKnobOverrides.uss` の `.slot-knob-dark-outline`・`OutlinedCountLabelStrokeKnobTest.cs`）を捨てて相手の形を採る（両方採ると既定が 2 行・テストのクラスが二重になる）。名前や既定が違えば止めて指揮へ返す（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロックと `--outlined-count-label-color` の次の 1 行（`--outlined-count-label-stroke`。他レーンが同じ並びに行を足していれば両方採る）・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の表〈他レーンが足した行は採り、albof.30 の行は消えたままにする〉・`PauseMenuCommandsTest.cs` の `benign` の配列〈両方の値の和。片側だけを採ると良性の値が落ちる〉）の衝突は両方の行を採る。ただし縁の色のつまみは例外: 取り込みの後に `git grep -n "outlined-count-label-stroke\|OutlinedCountLabelStrokeKnobTest" origin/feature/uitk` を流し、C4-a が先に足していたら、このレーンが Task 6 Step 3 で足した 5 か所（`OutlinedCountLabel.uss` の 2 行とコメント・`.cs` のコメント・`DerivedTokens.uss` の既定 1 行・`SlotKnobOverrides.uss` の `.slot-knob-dark-outline`・`OutlinedCountLabelStrokeKnobTest.cs`）を捨てて相手の形を採る（両方採ると既定が 2 行・テストのクラスが二重になる）。名前や既定が違えば止めて指揮へ返す（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
 
 取り込みの後、1 つを見る（当たれば同じ PR へコミットして push し、`$FILTER` を回し直す）:
 - 錨の未移植の表: Task 7 Step 6 の `test -f … && grep …` を流し直し、`AnchorIds.HotbarHud` の行があれば消して `TutorialAnchorCoverageTest` を回す（S2-tutorial がこのレーンより後に入った場合）
@@ -4002,7 +4002,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-4 | 選択の受理の規則は State の `HotbarSelectRule` 1 か所で、Model の減光と `HotbarCommands` の受理が同じものを読む | View が受理を判断: Web は `uiStateAcceptsHotbarSelect` と `HotbarSelectActionHandler` に二重に持つ。UITK では 1 か所にする | agent 既定 |
 | D-5 | 落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`）は `Screens/Hotbar/Parts/` に置き、`IUiDropTarget` と State の `IHotbarDropReceiver`（S3-buildmenu が作る）の両方を実装する | Foundation/DragDrop へ置く: ホットバーの語彙で汎用基盤にドメイン語彙を入れることになる。ビルドメニューの側へ置く: 落とし先の持ち主はホットバー | agent 既定（設計書 §5.1-2・AGENTS.md の設計原則） |
 | D-6 | 配置対象の絵の出どころ（ID だけの `PlacementTargetIcon` 系・`PlacementTargetIconResolver`・DI のクラス `PlacementTargetIcons.TryToUiIcon`）と State の口 `IHotbarDropReceiver.Receive` は S3-buildmenu が最終の置き場に作り、このレーンは使うだけ。S3-buildmenu のファイルは書き換えない | このレーンが S3-buildmenu の型を `git mv` で昇格し呼び側を書き換える: 並走中の他レーンのファイルに手を入れ、取り込みの衝突と置き換え漏れの穴を作る。ホットバーに別の解き方を書く: 同じ規則（Web の橋 `ResolveIconUrl`）が 2 つになる | 指揮の決定 |
-| D-7 | 番号タブの暗い縁は、部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、タブでそのつまみを `--icon-text-stroke-dark` に上書きして出す。部品の L1（`OutlinedCountLabelStrokeKnobTest`）を同じタスクで足す。つまみの既定は末尾の名札付きブロックでなく、部品の既定の並び（`DerivedTokens.uss` の `--outlined-count-label-color` の次）に置く（部品の既定は部品の行の隣に置き、画面のブロックに部品の既定を混ぜない） | タブの部分木で共有トークン `--icon-text-stroke-light` を受け直す: トークンの意味（白い縁）を部分木で裏返し、タブの中に後から置く他の部品の縁まで黒くなる。画面 USS で `.outlined-count-label--stroke` を書く: 画面 USS に部品のクラスを書くのは規約違反。integrator へ依頼して待つ: 既存部品へのつまみ 1 つの追加で、C3-a はマージ済み。同じつまみが要る C4-a とは「先に入ったほうが足し、後は使うだけ」で衝突を避ける（設計書 A-108・実行計画の C4-a 行。Task 6 Step 3 の頭で `git grep` して分岐） | agent 既定（設計書 §3.2「部品の見た目はつまみで変える」） |
+| D-7 | 番号タブの暗い縁は、部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke`（既定 `--icon-text-stroke-light`）（C4-a 計画 D-5・設計書 A-97 と同じ名前・既定。どちらのレーンが先でも同じ 1 本になる）を足し、タブでそのつまみを `--icon-text-stroke-dark` に上書きして出す。部品の L1（`OutlinedCountLabelStrokeKnobTest`）を同じタスクで足す。つまみの既定は末尾の名札付きブロックでなく、部品の既定の並び（`DerivedTokens.uss` の `--outlined-count-label-color` の次）に置く（部品の既定は部品の行の隣に置き、画面のブロックに部品の既定を混ぜない） | タブの部分木で共有トークン `--icon-text-stroke-light` を受け直す: トークンの意味（白い縁）を部分木で裏返し、タブの中に後から置く他の部品の縁まで黒くなる。画面 USS で `.outlined-count-label--stroke` を書く: 画面 USS に部品のクラスを書くのは規約違反。integrator へ依頼して待つ: 既存部品へのつまみ 1 つの追加で、C3-a はマージ済み。同じつまみが要る C4-a とは「先に入ったほうが足し、後は使うだけ」で衝突を避ける（設計書 A-108・実行計画の C4-a 行。Task 6 Step 3 の頭で `git grep` して分岐） | agent 既定（設計書 §3.2「部品の見た目はつまみで変える」） |
 | D-8 | Web の `calc()`（タブの `top`）と `translateX`（列の横ずれ）は `HotbarCalcKnobs` が customStyle から読んで当てる | 換算値を USS に直書き: トークンの変更に追従しない | 設計書 [A-47] |
 | D-9 | albof.34 の照合は、複製した `GameUiPanelSettings` の RT（ランタイムと同じ Linear 合成）で明るい地と暗い地を描いて画素を読み、Web の sRGB 合成の式の値と比べる。明るい地で 7 段以内を合格とする | 部品ギャラリーで比べる: sRGB 合成なので差が出ない。Web を実際に撮って比べる: 世界の絵が地になり画素が定まらない | 指揮の判断（albof.34 の回送）→ agent 既定（C3-a の基準 7 段） |
 | D-10 | 退く間（blocking スキット・常駐 HUD を出さない画面）は帯ごと `display: none` にする | 子を消す: Web は `null` を返して木から外す。UITK は作り直しを避けて隠すだけで、見た目と入力は同じ | agent 既定 |
