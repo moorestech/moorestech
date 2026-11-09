@@ -249,7 +249,9 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuSamples.cs` | Web の fixture に合わせた VM（10 カテゴリ・名前・素材） | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Support/RecordingBuildMenuCommands.cs` | 呼び出しの記録 | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Support/RecordingBuildMenuEntryHandler.cs` | マスからの操作の記録 | 新規 |
-| `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuReferenceDemo.cs` | 参照キャプチャ `3-build-menu` と同じ中身の VM（並べ比べの撮影用） | 新規 |
+| `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuReferenceDemo.cs` | 参照キャプチャ `3-build-menu` と同じ中身の VM（並べ比べの撮影用。絵は mock-host の種番号） | 新規 |
+| `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuReferenceDemoTextures.cs` | 種番号の PNG を返す撮影専用の `IGameContentTextureSource` | 新規 |
+| `tools/uitk/render-mock-placeholder-icons.mjs` | mock-host の `placeholderIcon(n)` を Chromium で 64×64 の PNG にする（撮影の道具） | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuScreenTestHost.cs` | View・Store・Tracker の組み立てと表示の切り替え | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuViewTest.cs` | regression 1・2・3・9 件目 | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuSearchViewTest.cs` | regression 6・7・11 件目、L-5 | 新規 |
@@ -4300,7 +4302,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: 参照 `LOGS/uitk/reference-captures/web-869b2d4264/3-build-menu.png`（1280×720・日本語・mock-host の fixture）・`web-0e81bbe3c3-2560x1080/3-build-menu.png`、前例 S2-mode-tooltip Task 10 の撮影の口（`GameUiPanelSettings.asset` の複製＋RenderTexture）と S2-notification の `UiLayerStack.Build(document.rootVisualElement)`
 - Produces: 参照と同じ内容の DEMO の VM で撮った 1 状態 × 2 解像度の組と差の表、別の確認としての実ゲームの VM の撮影
-- Create: `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuReferenceDemo.cs`（`Support/` 4→5）
+- Create: `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuReferenceDemo.cs`・`BuildMenuReferenceDemoTextures.cs`（`Support/` 4→6）、`tools/uitk/render-mock-placeholder-icons.mjs`（mock-host の `placeholderIcon` を PNG にする撮影の道具）
 
 - [ ] **Step 1: 撮影の口を用意する（PlayMode・GameUi・日本語・複製した PanelSettings の RenderTexture）**
 
@@ -4308,7 +4310,7 @@ Task 8 Step 3 と同じく `GameUi` を確かめて PlayMode に入り、開幕�
 
 - [ ] **Step 2: 参照と同じ内容の VM を作る（mock-host の DEMO の写し）**
 
-参照 `3-build-menu.png` は `moorestech_web/webui/e2e/uitk-reference/referenceShots.ts` の `3-build-menu`（`ui("BuildMenu")` だけ）で、中身は mock-host の `e2e/mock-host/fixtures/buildMenuFixtures.ts` の `buildMenu` と `contentLocalizationFixtures.ts` の日本語の名前である。中身の差で見た目の比較を逃がさないよう、同じカテゴリ・エントリ・名前・選択状態（何も押していない＝先頭の物流が選択、詳細はヒント、検索は空）を VM に写して撮る。下のコードは Task 10 の時点の実物を `Read` して突き合わせ、違えば実物に合わせる（とくに 80 件の量産エントリの名前の出方と、アイコンが 404 のときの面の見え方は参照の png を見て決める。404 で名前が出ていれば `NameOnly`、絵の枠だけなら `Block` の白にする）
+参照 `3-build-menu.png` は `moorestech_web/webui/e2e/uitk-reference/referenceShots.ts` の `3-build-menu`（`ui("BuildMenu")` だけ）で、中身は mock-host の `e2e/mock-host/fixtures/buildMenuFixtures.ts` の `buildMenu` と `contentLocalizationFixtures.ts` の日本語の名前である。中身の差で見た目の比較を逃がさないよう、同じカテゴリ・エントリ・名前・選択状態（何も押していない＝先頭の物流が選択、詳細はヒント、検索は空）を VM に写して撮る。下のコードは Task 10 の時点の実物を `Read` して突き合わせ、違えば実物に合わせる（とくに 80 件の量産エントリの名前の出方は参照の png を見て合わせる）。絵は参照と同じものを出す: 参照は mock-host の DEMO モードで撮られ、ブロックの絵（`blockIconUrl(n)`）は実アセットが無いので `e2e/mock-host/assets/demoAssets.ts` の `placeholderIcon(n)`（色相 `(n*47)%360` の 64×64 の SVG。`iconEndpoints.ts` の `serveGameIcon`）が返る。fixture の `iconUrl` の番号はそのまま種になる: 木のチェスト 1・鉄のチェスト 2・ベルトコンベア 3・鉄道レール 4・貨物車両 5・電線接続ツール 6・量産 `8 + (i % 12)`・追加 7 カテゴリ 1。`iconUrl` の無い BP コピーと `starter-base` は名前で描く（`NameOnly`）。VM の絵は種 n を `PlacementTargetBlockIcon(new BlockId(n))`（車両は `PlacementTargetTrainCarIcon`、接続ツールは `PlacementTargetConnectToolIcon`）にし、絵そのものは Step 2b の PNG を返す撮影専用のテクスチャ源 `BuildMenuReferenceDemoTextures` で `PlacementTargetIcons` を組んで出す
 
 `Support/BuildMenuReferenceDemo.cs`:
 ```csharp
@@ -4362,18 +4364,18 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             // Entries in fixture order: 80 fillers under 輸送/車両 and one entry per extra category
             var entries = new List<BuildMenuEntryViewModel>
             {
-                Entry("53000000-0000-4000-8000-000000000001", PlacementTargetKind.Block, "01", "01", "木のチェスト", Rows(4, 4), false, BuildMenuSetPlacementNone.Instance),
-                Entry("53000000-0000-4000-8000-000000000002", PlacementTargetKind.Block, "01", "01", "鉄のチェスト", Rows(), false, BuildMenuSetPlacementNone.Instance),
-                Entry("53000000-0000-4000-8000-000000000003", PlacementTargetKind.Block, "01", "02", "ベルトコンベア", Rows(1, 1), true, new BuildMenuSetPlacementAvailable(3, 2)),
-                Entry("53000000-0000-4000-8000-000000000004", PlacementTargetKind.Block, "02", "03", "鉄道レール", Rows(), false, BuildMenuSetPlacementNone.Instance),
-                Entry("56000000-0000-4000-8000-000000000001", PlacementTargetKind.TrainCar, "02", "04", "貨物車両", Rows(), false, BuildMenuSetPlacementNone.Instance),
-                Entry("55000000-0000-4000-8000-000000000001", PlacementTargetKind.ConnectTool, "02", "03", "電線接続ツール", Rows(), false, BuildMenuSetPlacementNone.Instance),
-                Entry("58000000-0000-4000-8000-000000000001", PlacementTargetKind.BlueprintCopy, "03", "05", "ブループリントコピー", Rows(), false, BuildMenuSetPlacementNone.Instance),
-                Entry("3f6a9c1e-8b2d-4f7a-9e3c-1a2b3c4d5e6f", PlacementTargetKind.Blueprint, "03", "05", "starter-base", Rows(), false, BuildMenuSetPlacementNone.Instance),
+                Entry("53000000-0000-4000-8000-000000000001", PlacementTargetKind.Block, "01", "01", "木のチェスト", Rows(4, 4), false, BuildMenuSetPlacementNone.Instance, Seed(1)),
+                Entry("53000000-0000-4000-8000-000000000002", PlacementTargetKind.Block, "01", "01", "鉄のチェスト", Rows(), false, BuildMenuSetPlacementNone.Instance, Seed(2)),
+                Entry("53000000-0000-4000-8000-000000000003", PlacementTargetKind.Block, "01", "02", "ベルトコンベア", Rows(1, 1), true, new BuildMenuSetPlacementAvailable(3, 2), Seed(3)),
+                Entry("53000000-0000-4000-8000-000000000004", PlacementTargetKind.Block, "02", "03", "鉄道レール", Rows(), false, BuildMenuSetPlacementNone.Instance, Seed(4)),
+                Entry("56000000-0000-4000-8000-000000000001", PlacementTargetKind.TrainCar, "02", "04", "貨物車両", Rows(), false, BuildMenuSetPlacementNone.Instance, new PlacementTargetTrainCarIcon(G("56000000-0000-4000-8000-000000000001"))),
+                Entry("55000000-0000-4000-8000-000000000001", PlacementTargetKind.ConnectTool, "02", "03", "電線接続ツール", Rows(), false, BuildMenuSetPlacementNone.Instance, new PlacementTargetConnectToolIcon(G("55000000-0000-4000-8000-000000000001"))),
+                Entry("58000000-0000-4000-8000-000000000001", PlacementTargetKind.BlueprintCopy, "03", "05", "ブループリントコピー", Rows(), false, BuildMenuSetPlacementNone.Instance, PlacementTargetNameOnlyIcon.Instance),
+                Entry("3f6a9c1e-8b2d-4f7a-9e3c-1a2b3c4d5e6f", PlacementTargetKind.Blueprint, "03", "05", "starter-base", Rows(), false, BuildMenuSetPlacementNone.Instance, PlacementTargetNameOnlyIcon.Instance),
             };
-            for (var i = 0; i < 80; i++) entries.Add(Entry($"53000000-0000-4000-8000-0000000010{i:D2}", PlacementTargetKind.Block, "02", "04", FillerLabel(i), Rows(), false, BuildMenuSetPlacementNone.Instance));
+            for (var i = 0; i < 80; i++) entries.Add(Entry($"53000000-0000-4000-8000-0000000010{i:D2}", PlacementTargetKind.Block, "02", "04", FillerLabel(i), Rows(), false, BuildMenuSetPlacementNone.Instance, Seed(8 + i % 12)));
             var extras = new[] { ("05", "07", "05", "電動採掘機"), ("06", "08", "06", "石の加工台"), ("07", "09", "07", "動力シャフト"), ("08", "10", "08", "石炭発電機"), ("09", "11", "09", "銅パイプ"), ("10", "12", "10", "電線接続具"), ("11", "13", "11", "装飾パネル") };
-            foreach (var (category, sub, entry, label) in extras) entries.Add(Entry($"53000000-0000-4000-8000-0000000000{entry}", PlacementTargetKind.Block, category, sub, label, Rows(2, 2), false, BuildMenuSetPlacementNone.Instance));
+            foreach (var (category, sub, entry, label) in extras) entries.Add(Entry($"53000000-0000-4000-8000-0000000000{entry}", PlacementTargetKind.Block, category, sub, label, Rows(2, 2), false, BuildMenuSetPlacementNone.Instance, Seed(1)));
             return new BuildMenuViewModel(categories, names, entries);
         }
 
@@ -4381,10 +4383,14 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
         // Filler names are what mock-host shows for unnamed blocks (match the real thing at the start of Step 2)
         private static string FillerLabel(int index) => $"53000000-0000-4000-8000-0000000010{index:D2}";
 
-        private static BuildMenuEntryViewModel Entry(string id, PlacementTargetKind kind, string category, string sub, string label, IReadOnlyList<BuildMenuMaterialRow> rows, bool paymentWaived, BuildMenuSetPlacement setPlacement)
+        private static BuildMenuEntryViewModel Entry(string id, PlacementTargetKind kind, string category, string sub, string label, IReadOnlyList<BuildMenuMaterialRow> rows, bool paymentWaived, BuildMenuSetPlacement setPlacement, PlacementTargetIcon icon)
         {
-            return new BuildMenuEntryViewModel(G(id), kind, G($"51000000-0000-4000-8000-0000000000{category}"), G($"52000000-0000-4000-8000-0000000000{sub}"), label, rows, paymentWaived, PlacementTargetNameOnlyIcon.Instance, setPlacement);
+            return new BuildMenuEntryViewModel(G(id), kind, G($"51000000-0000-4000-8000-0000000000{category}"), G($"52000000-0000-4000-8000-0000000000{sub}"), label, rows, paymentWaived, icon, setPlacement);
         }
+
+        // fixture の blockIconUrl(n) の n。絵は BuildMenuReferenceDemoTextures が種 n の PNG を返す
+        // The n of fixture blockIconUrl(n); BuildMenuReferenceDemoTextures returns the seed-n PNG for it
+        private static PlacementTargetIcon Seed(int n) => new PlacementTargetBlockIcon(new BlockId(n));
 
         // 素材は fixtures の itemId 1（count・held）。詳細はヒントのままなので見た目には出ない
         // Materials use fixture itemId 1 (count, held); the detail stays on the hint, so they never show
@@ -4394,7 +4400,91 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
     }
 }
 ```
-（200 行未満。アイコンは参照の 404 の見え方に合わせて冒頭の注記どおりに決める。`BuildMenuRequiredItem` の第 1 引数の型は L0-s3 の実物に合わせる）
+（200 行未満。`BuildMenuRequiredItem` の第 1 引数の型は L0-s3 の実物に合わせる。`BlockId` は `Core.Master`）
+
+- [ ] **Step 2b: 参照と同じ絵を PNG にし、撮影専用のテクスチャ源を書く**
+
+`tools/uitk/render-mock-placeholder-icons.mjs`（mock-host の実物の `placeholderIcon` を import し、Chromium で 64×64 の PNG に描く。式を写さない）:
+```js
+// mock-host の DEMO が返すブロックの絵（placeholderIcon）を種番号ごとに PNG にする。UITK の並べ比べの撮影だけが使う
+// Renders the block pictures the mock-host DEMO serves (placeholderIcon) to PNG per seed; used only by UITK comparison captures
+import { mkdirSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { chromium } from "@playwright/test";
+import { placeholderIcon } from "../../moorestech_web/webui/e2e/mock-host/assets/demoAssets.ts";
+
+const [outDir, maxSeedText] = process.argv.slice(2);
+if (!outDir || !maxSeedText) throw new Error("usage: render-mock-placeholder-icons.mjs <outDir> <maxSeed>");
+mkdirSync(resolve(outDir), { recursive: true });
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 64, height: 64 } });
+for (let seed = 1; seed <= Number(maxSeedText); seed++) {
+  // 透明の地に SVG だけを置き、そのまま撮る
+  // Put only the SVG on a transparent page and capture it as is
+  await page.setContent(`<html><body style="margin:0;background:transparent">${placeholderIcon(seed)}</body></html>`);
+  await page.screenshot({ path: join(resolve(outDir), `block-${seed}.png`), omitBackground: true });
+}
+await browser.close();
+```
+Run:
+```bash
+pnpm --dir moorestech_web/webui install --frozen-lockfile
+pnpm --dir moorestech_web/webui exec playwright install chromium
+pnpm --dir moorestech_web/webui exec tsx ../../tools/uitk/render-mock-placeholder-icons.mjs "$PWD/moorestech_client/.uloop/outputs/compare/S3-buildmenu/demo-icons" 19
+ls moorestech_client/.uloop/outputs/compare/S3-buildmenu/demo-icons | wc -l
+```
+Expected: `19`（種 1〜19。量産の `8 + i % 12` の最大が 19）。1 枚を `Read` で開き、参照 `3-build-menu.png` のマスの絵と同じ色相・同じ帯の絵であることを確かめる（`tsx` の解決で `@playwright/test` が見つからなければ、`tools/uitk/` の他の `.mjs` の流し方〈`webTokens` の前例〉に揃える）
+
+`S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuReferenceDemoTextures.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Client.Ui.Content;
+using Core.Master;
+using UnityEngine;
+
+namespace Client.Tests.Ui.Screens.BuildMenu.Support
+{
+    /// <summary>
+    /// mock-host の DEMO の絵（種番号の PNG）を返すテクスチャ源。並べ比べの撮影だけが使う
+    /// Texture source returning the mock-host DEMO pictures (PNG per seed); used only by the comparison capture
+    /// </summary>
+    public sealed class BuildMenuReferenceDemoTextures : IGameContentTextureSource
+    {
+        // fixture の貨物車両は blockIconUrl(5)、電線接続ツールは blockIconUrl(6)
+        // The fixture cargo car uses blockIconUrl(5) and the wire connect tool blockIconUrl(6)
+        private const int TrainCarSeed = 5;
+        private const int ConnectToolSeed = 6;
+
+        private readonly Dictionary<int, Texture2D> _bySeed = new();
+
+        public BuildMenuReferenceDemoTextures(string directory, int maxSeed)
+        {
+            // 撮影の道具の出力が欠けていたら撮らずに止める（白や名前で代えると参照と違う絵で比べてしまう）
+            // Stop before capturing if the tool output is missing (substituting white or names would compare against different pictures)
+            for (var seed = 1; seed <= maxSeed; seed++)
+            {
+                var path = Path.Combine(directory, $"block-{seed}.png");
+                if (!File.Exists(path)) throw new FileNotFoundException("Run tools/uitk/render-mock-placeholder-icons.mjs first (Task 10 Step 2b)", path);
+                var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                texture.LoadImage(File.ReadAllBytes(path));
+                _bySeed[seed] = texture;
+            }
+        }
+
+        public Texture2D BlockTexture(BlockId id) => _bySeed[id.AsPrimitive()];
+        public Texture2D TrainCarTexture(Guid trainCarGuid) => _bySeed[TrainCarSeed];
+        public Texture2D ConnectToolTexture(Guid connectToolGuid) => _bySeed[ConnectToolSeed];
+
+        // ビルドメニューの面はアイテム・液体の絵を描かない。呼ばれたら撮影の前提が崩れている
+        // The build menu face draws no item or fluid picture; a call means the capture premise is broken
+        public Texture2D ItemTexture(ItemId id) => throw new NotSupportedException("The build menu comparison has no item pictures");
+        public Texture2D FluidTexture(FluidId id) => throw new NotSupportedException("The build menu comparison has no fluid pictures");
+    }
+}
+```
+（`BlockId(n)` の n は撮影時のマスタに要る。`GameContentPresentation.Block` は `MasterHolder.BlockMaster.GetBlockMaster(id)` を読むので、Step 3 の EDC の冒頭で `MasterHolder.BlockMaster` のブロック数が 19 以上であることを確かめ、足りなければ止めて `done.md` の「未確認」に書く。ファイルの読み込みはテスト側の撮影の道具で、本番の経路ではない）
 
 - [ ] **Step 3: DEMO の VM で 2 解像度を撮る（並べ比べの本体）**
 
@@ -4404,7 +4494,10 @@ uloop execute-dynamic-code --project-path ./moorestech_client --code '
 var resolver = Client.Game.InGame.Context.ClientDIContext.DIContainer.DIContainerResolver;
 var commands = resolver.Resolve<Client.Ui.State.BuildMenu.Commands.IBuildMenuCommands>();
 var content = resolver.Resolve<Client.Ui.Content.GameContentPresentation>();
-var icons = resolver.Resolve<Client.Ui.Content.PlacementTargetIcons>();
+var demoTextures = new Client.Tests.Ui.Screens.BuildMenu.Support.BuildMenuReferenceDemoTextures(System.IO.Path.GetFullPath("Assets/../.uloop/outputs/compare/S3-buildmenu/demo-icons"), 19);
+// 絵は参照と同じ種番号の PNG で組み、名前・素材は本番の GameContentPresentation の形のまま
+// Pictures come from the seed PNGs matching the reference; names and materials keep the production GameContentPresentation shape
+var icons = new Client.Ui.Content.PlacementTargetIcons(new Client.Ui.Content.GameContentPresentation(demoTextures), demoTextures, new Client.Game.InGame.Blueprint.BlueprintThumbnailContainer());
 var toaster = resolver.Resolve<Client.Ui.State.Toast.UiCommandResultToaster>();
 var demo = Client.Tests.Ui.Screens.BuildMenu.Support.BuildMenuReferenceDemo.Create();
 foreach (var name in new[] { "s3bm-compare-1280", "s3bm-compare-2560" })

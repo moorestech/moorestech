@@ -35,7 +35,7 @@
 
 **やらないこと（スコープ境界）**
 
-- 部品（`SlotFrame`・`PlacementTargetFace`・`OutlinedCountLabel`・`DialogFrame`・`FormButton`・`GameTextField`）・既存の Foundation（`UiDragDrop`・`UiModalHost`・`UiPressGesture`・`StageScaleSource`・`GameUiInputRules`。新規の `Foundation/Input/WheelPassthroughMark.cs` だけ足す。D-21）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`）・`UiLayer`・`UiScreenTraits`・`AnchorIds` は変えない。要るものは `done.md` の「integrator への依頼」に書く（`DerivedTokens.uss` は末尾の名札付きブロックだけ足す [A-52]）
+- 部品（`SlotFrame`・`PlacementTargetFace`・`OutlinedCountLabel`・`DialogFrame`・`FormButton`・`GameTextField`）・既存の Foundation（`UiDragDrop`・`UiModalHost`・`UiPressGesture`・`StageScaleSource`・`GameUiInputRules`。新規の `Foundation/Input/WheelPassthroughMark.cs` だけ足す。D-21）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`）・`UiLayer`・`UiScreenTraits`・`AnchorIds` は変えない。要るものは `done.md` の「integrator への依頼」に書く（`DerivedTokens.uss` は末尾の名札付きブロックを足す [A-52]）。例外は 1 つ: 部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke-color` を足す（`OutlinedCountLabel.uss` の縁の層の 2 行・`.cs` のコメント・`DerivedTokens.uss` の `--outlined-count-label-color` の次に既定 1 行。設計書 A-108・計画 D-7・Task 6 Step 3）
 - ビルドメニューの画面と、その源（エントリのドラッグ・タップ）、配置対象の絵の出どころ（`PlacementTargetIcon` 系・`PlacementTargetIconResolver`・`PlacementTargetIcons`）、State の落とし先の口 `IHotbarDropReceiver` は作らない（S3-buildmenu が最終の置き場に作る。W3 で先に入る）。S3-buildmenu のファイルは書き換えない。ビルドメニューのパネルからホットバーへ通しで確かめる横断の L1 は S3-ladder。このレーンは本物のエントリの源（`BuildMenuEntryDragPayload`）を単独で置いて確かめる（使うだけ）
 - ホイールで装備を回す処理は作らない（S4-inventory。このレーンは列に素通しの印と、その判定 `WheelPassthroughMark.IsPassthrough` を作るまで）
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない。Web の系のモーダル（`ModalTopic`・`ModalActions`）はそのまま残る
@@ -93,6 +93,7 @@ namespace Client.Ui.Foundation.DragDrop
     } // 解放点は panel.Pick → TryFindTarget。印が無ければ OnDroppedOutside。印のクラス ui-drag-source・ui-drop-target
 }
 namespace Client.Ui.Foundation.Stage.ScaleReading { public sealed class StageScaleSource { public StageScaleSource(IReadOnlyReactiveProperty<float> scale); public IReadOnlyReactiveProperty<float> Scale { get; } } }
+namespace Client.Ui.Foundation.Stage.ScaleReading { public static class StageScaleMeasure { public static bool TryRead(IPanel panel, out float scale); } } // 倍率の式の 1 本（設計書 A-75）。並べ比べの EDC だけが使う
 namespace Client.Ui.Foundation.Modal
 {
     public sealed class UiModalHost
@@ -259,7 +260,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 - **字間・色の罠（持ち越し）**: UITK の字間は字の大きさ/100 × 値（px のまま書くと 100/字の大きさ 倍に効く）。このレーンは字間を書かない（番号タブ・モーダルは Web も `normal`）。部品ギャラリーは sRGB 合成なので、色はランタイムの PanelSettings（Linear 合成）で比べる。暗い半透明の α は I-fix1（e26010aa0c）が指数 1.85 で選び直した（LX-43）が、明るい色の式（α^2.2）は実測されていない。このレーンの明るい半透明（番号タブの枠）は並べ比べで確かめ、外れたら `LX-77` に記帳する
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/{Hotbar,Modal}/`・`S/Client.Tests/Ui/State/{Hotbar,Modal}/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。`it.each` は第 1 引数の書式文字列そのまま。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(Hotbar|Modal)|State\.(Hotbar|Modal)|Conventions|Theme|Layers|Anchor|DragDrop|Modal|Content)\.`。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
 - **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` は Web で既に 2 機能（ホットバーの列・装備 HUD。`W/src/shared/uiState/activeLayer.ts:22`）が使うので §5.1-1 により最初から `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` に置く（新規ファイルで他レーンと重ならない。D-21）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。`IUiDropTarget` と State の `IHotbarDropReceiver` を実装）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
 - **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品」を見つけたら作らない。`LOGS/harness/uitk/S3-hotbar-modal/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) 無し（`OutlinedCountLabel` の縁の色のつまみは、既存部品へのつまみ 1 つの追加でこのレーンが足す。Task 6 Step 3・D-7）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-869b2d4264/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080）の `3-hotbar-equipment-empty.png`・`3-modal.png`。1920×1080 の `3-modal` は無いので Task 11 Step 1 で撮る
@@ -326,7 +327,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarRowGapDropMark.cs` | 列の隙間の印（`IUiDropTarget`＋`IHotbarDropReceiver`。受けて無操作） | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDragPayload.cs` | 枠の源（タップ → 選択・ドロップ → 解決） | 新規 |
 | `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`.cs` | 縁の色のつまみ `--outlined-count-label-stroke-color` を読む（.cs はコメントだけ。D-7） | 変更（C3-a の部品。他の W3 レーンは触らない） |
-| `S/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs`・`SlotKnobOverrides.uss` | 縁の色のつまみの既定と上書きの L1 | 新規・変更 |
+| `S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`・`SlotKnobOverrides.uss` | 縁の色のつまみの既定と上書きの L1 | 新規・変更 |
 | `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` | ホイール素通しの印と読み手の判定 `IsPassthrough`（Web `data-wheel-passthrough`・`isWheelPassthrough`。Web で 2 機能が使うので §5.1-1 で最初から Foundation） | 新規 |
 | `S/Client.Ui/Screens/Modal/ModalScreenPresenter.cs` | 保留の要求を View にして宿主へ `Show`/`Hide`（幕の押下は View へ渡す） | 新規 |
 | `S/Client.Ui/Screens/Modal/ModalView.cs` | `DialogFrame` の中身（本文・入力・ボタン）。確定・ESC 1 回・幕の押下（取消）を `IModalCommands.Respond` へ | 新規 |
@@ -420,7 +421,7 @@ grep -n "public OutlinedCountLabel(\|icon-text-stroke-light" $S/Client.Ui/Compon
 # C3-b（マージ後に実物と照合）
 grep -rn "public static void MarkSource\|public static void MarkTarget\|interface IUiDragPayload\|interface IUiDropTarget" $S/Client.Ui/Foundation/DragDrop/
 grep -rn "public UiModalHost(\|public void Show(\|public void Hide(\|OnBackdropClicked" $S/Client.Ui/Foundation/Modal/UiModalHost.cs
-grep -n "public StageScaleSource(" -r $S/Client.Ui/Foundation/Stage/
+grep -n "public StageScaleSource(\|public static bool TryRead(IPanel" -r $S/Client.Ui/Foundation/Stage/
 grep -n "public DialogFrame(\|public void SetTitle\|public void AddAction" $S/Client.Ui/Components/Panels/DialogFrame/DialogFrame.cs
 # S2-hud（マージ済み。念のため）・S3-buildmenu（マージ後に実物と照合）
 grep -rn "class BlockingSkitPresence\|IsBlocking" $S/Client.Ui.State/SkitPresence/
@@ -481,9 +482,10 @@ mkdir -p ../moorestech_logs/harness/uitk/S3-hotbar-modal
 ## 差の表
 ## 要裁定
 ## integrator への依頼
+- C4-a（FluidSlot の暗い縁 .iconTextOutlineDark）は、このレーンが OutlinedCountLabel に足す縁の色のつまみ --outlined-count-label-stroke-color を置き場のクラスで上書きして使い、OutlinedCountLabel.uss を書き換えない・別のつまみを足さない（設計書 A-108・計画 D-7）
 ## 未確認
 ```
-Expected: bd の ID が出る。以後 `<bd>` をその ID で読む。`bd note <bd>` に上の 2 行を同じ文で残す
+Expected: bd の ID が出る。以後 `<bd>` をその ID で読む。`bd note <bd>` に上の 2 行と「integrator への依頼」の 1 行を同じ文で残す
 
 ---
 
@@ -1096,10 +1098,10 @@ namespace Client.Tests.Ui.State.Modal
 }
 ```
 
-`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は言語の選択済みだけ」を次に置き換える（良性の一覧を固定するテストなので、足した 2 値をここで宣言する）:
+`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の一覧を固定するテスト（土台では「良性の拒否理由は言語の選択済みだけ」。他レーンが先に名前を変えていれば `grep -n "IsBenign" $S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` で実物を探す）を次に置き換える。名前は良性の値が増えても変えずに済む形にし、`benign` の配列は、その時点の `grep -n "=> true" $S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の値の全部にこのレーンの 2 値を足して書く:
 ```csharp
         [Test]
-        public void 良性の拒否理由は言語の選択済みとホットバーの受理外とモーダルの古い応答だけ()
+        public void 良性の拒否理由は宣言した一覧と一致する()
         {
             // 状態を変えない再送・受理外・古い応答は利用者に知らせない（ログだけ）
             // Resends, non-accepting taps and stale replies change no state, so players are not told (log only)
@@ -1136,7 +1138,7 @@ Expected: コンパイルエラー（`TryGetConfirmableText`・`ModalCommands`�
 ```
 `IsBenign` の上のコメント「選択済み再選択のみ良性」を「状態を変えない再選択・受理外のタップ・古い応答は良性」（英語行も同じ意味）に直す。wire の 2 つは Web の `HotbarSelectActionHandler`・`ModalRespondActionHandler` の失敗コードと同じ。
 
-`Localization/localization.csv` の `ui.commandRejected.languageAlreadySelected` の行の次に（良性なので表示されないが、`ToLocalizationKey` の switch が全値を要る）:
+`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾（その時点の群の最後の行の次。S3-buildmenu など他のレーンが先に足していればその後ろ）に（良性なので表示されないが、`ToLocalizationKey` の switch が全値を要る）:
 ```csv
 ui.commandRejected.hotbarSelectNotAccepted,The hotbar cannot be selected on this screen,The hotbar cannot be selected on this screen,この画面ではホットバーを選べません,Die Schnellleiste kann auf diesem Bildschirm nicht ausgewählt werden,이 화면에서는 단축바를 선택할 수 없습니다
 ui.commandRejected.modalResponseStale,This dialog is already closed,This dialog is already closed,このダイアログはすでに閉じています,Dieser Dialog ist bereits geschlossen,이 대화 상자는 이미 닫혔습니다
@@ -1406,7 +1408,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Create: `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs`・`HotbarRowGapDropMark.cs`・`HotbarSlotDragPayload.cs`・`HotbarCalcKnobs.cs`・`HotbarNumberTab.cs`・`HotbarCell.cs`、`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs`
 - Modify: `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`OutlinedCountLabel.cs`（コメントだけ）、`THEME/DerivedTokens.uss`（`--outlined-count-label-color` の次に 1 行）、`S/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss`（末尾に 1 ブロック）
-- Test: `S/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs`
+- Test: `S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`
 
 **Interfaces:**
 - Consumes: C3-b の `IUiDragPayload`・`IUiDropTarget`・`UiDragDrop`、C3-a の `SlotFrame`・`SlotFrameState`・`PlacementTargetFace`・`OutlinedCountLabel`、S3-buildmenu の `PlacementTargetIcons`（DI のクラス）・`IHotbarDropReceiver`、Task 2・4 の型、`UiCommandResultToaster`、`UssCustomStyleReader`
@@ -1414,10 +1416,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   ```csharp
   namespace Client.Ui.Screens.Hotbar.Parts
   {
-      public sealed class HotbarSlotDropMark : IUiDropTarget, IHotbarDropReceiver { public HotbarSlotDropMark(int slotIndex, IHotbarCommands commands); public int SlotIndex { get; } } // Receive で解いて Apply
+      public sealed class HotbarSlotDropMark : IUiDropTarget, IHotbarDropReceiver { public HotbarSlotDropMark(int slotIndex, IHotbarCommands commands); } // Receive で解いて Apply
       public sealed class HotbarRowGapDropMark : IUiDropTarget, IHotbarDropReceiver { public static readonly HotbarRowGapDropMark Instance; }   // 受けて無操作
       public sealed class HotbarSlotDragPayload : IUiDragPayload { public HotbarSlotDragPayload(int slotIndex, HotbarSlotViewModel slot, IHotbarCommands commands, UiCommandResultToaster toaster); }
-      public static class HotbarCalcKnobs { public const string RowOffsetProperty = "--hotbar-hud-row-offset"; public const string TabOverhangProperty = "--hotbar-hud-number-tab-overhang"; public static void Bind(VisualElement row); public static void Reapply(VisualElement row); }
+      public sealed class HotbarCalcKnobs { public const string RowOffsetProperty = "--hotbar-hud-row-offset"; public const string TabOverhangProperty = "--hotbar-hud-number-tab-overhang"; public HotbarCalcKnobs(VisualElement row); public void ApplyToRebuiltTabs(); } // スタイル解決の通知で読み、解決後に作り直したタブへは ApplyToRebuiltTabs で当てる
       public sealed class HotbarNumberTab : VisualElement { public const string ClassName = "hotbar-hud__number-tab"; public HotbarNumberTab(int slotIndex); }
       public sealed class HotbarCell : VisualElement { public HotbarCell(int slotIndex, IHotbarCommands commands, PlacementTargetIcons icons, UiCommandResultToaster toaster); public void Render(HotbarSlotViewModel slot, bool selected); }
   }
@@ -1442,11 +1444,11 @@ namespace Client.Ui.Screens.Hotbar.Parts
     {
         private readonly IHotbarCommands _commands;
 
-        public int SlotIndex { get; }
+        private readonly int _slotIndex;
 
         public HotbarSlotDropMark(int slotIndex, IHotbarCommands commands)
         {
-            SlotIndex = slotIndex;
+            _slotIndex = slotIndex;
             _commands = commands;
         }
 
@@ -1454,7 +1456,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
         // Slot drops resolve every pair by the L0-s3 rule (refused pairs become HotbarNoDropAction, taken as silent-ok by HotbarCommands)
         public void Receive(HotbarDragSource source)
         {
-            _commands.Apply(HotbarDropResolver.Resolve(source, new HotbarSlotDropTarget(SlotIndex)));
+            _commands.Apply(HotbarDropResolver.Resolve(source, new HotbarSlotDropTarget(_slotIndex)));
         }
     }
 }
@@ -1603,7 +1605,7 @@ namespace Client.Ui.Foundation.Input
 
 - [ ] **Step 3: 部品 `OutlinedCountLabel` に縁の色のつまみを足す**
 
-Web の `.iconTextOutlineDark`（`W/src/app/tokens.css:489`）は縁の色だけが `.iconTextOutlineLight` と違う。部品の縁の色は `--icon-text-stroke-light` の直書きなので、画面から暗い縁にする口が無い。部品につまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、番号タブはそのつまみだけを上書きする（設計書 §3.2「部品の見た目はつまみで変える」。共有トークン `--icon-text-stroke-light` を部分木で受け直すと、タブの中に後から置く他の部品の白い縁まで黒くなる）。C3-a はマージ済みで、このファイルを触る他の W3 レーンは無い（S3-buildmenu の計画は `OutlinedCountLabel` を使わない）。
+Web の `.iconTextOutlineDark`（`W/src/app/tokens.css:489`）は縁の色だけが `.iconTextOutlineLight` と違う。部品の縁の色は `--icon-text-stroke-light` の直書きなので、画面から暗い縁にする口が無い。部品につまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、番号タブはそのつまみだけを上書きする（設計書 §3.2「部品の見た目はつまみで変える」。共有トークン `--icon-text-stroke-light` を部分木で受け直すと、タブの中に後から置く他の部品の白い縁まで黒くなる）。C3-a はマージ済み。持ち主はこのレーン（設計書 A-108）で、W3 で並走する C4-a（Web の `FluidSlot` も `.iconTextOutlineDark`。`W/src/shared/ui/FluidSlot/index.tsx:24,47`）も同じつまみを使う。C4-a が `OutlinedCountLabel.uss` を書き換えたり別のつまみを足したりしないよう、Task 1 Step 3 の雛形の「integrator への依頼」と `bd note` に 1 行残す（S3-buildmenu の計画は `OutlinedCountLabel` を使わない）。
 
 `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss` の `.outlined-count-label--stroke` を次に置き換える:
 ```css
@@ -1629,7 +1631,7 @@ Web の `.iconTextOutlineDark`（`W/src/app/tokens.css:489`）は縁の色だけ
 }
 ```
 
-`S/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs`:
+`S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`:
 ```csharp
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Slots;
@@ -1639,7 +1641,7 @@ using UnityEditor;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Components.Slots
+namespace Client.Tests.Ui.Components.Slots.CountLabel
 {
     /// <summary>
     /// OutlinedCountLabel の縁の色のつまみを既定と祖先の上書きで確かめる（L1）
@@ -1694,7 +1696,7 @@ namespace Client.Tests.Ui.Components.Slots
     }
 }
 ```
-（`UiTestHost` が GameUiTheme を当てる前例は `SlotContentTest`。置き場のクラスは既存の `slot-content__count` を借りる。`UiText` の名前空間は `OutlinedCountLabel.cs` の `using Client.Ui.State.Text` に合わせる）
+（置き場は `Slots/CountLabel/`: `Slots/` 直下は既に `.cs` が 10 本あり、11 本目を置くと 1 ディレクトリ 10 ファイルの規約を破る。`using Client.Tests.Ui.Components;`〈`ThemeTokenFile`〉が要るなら足す。`UiTestHost` が GameUiTheme を当てる前例は `SlotContentTest`。置き場のクラスは既存の `slot-content__count` を借りる。`UiText` の名前空間は `OutlinedCountLabel.cs` の `using Client.Ui.State.Text` に合わせる）
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Components\.Slots\."`
 Expected: `ErrorCount: 0`、`OutlinedCountLabelStrokeKnobTest` 2 件と C3-a のスロット族の L1（`SlotContentTest`・`ItemSlotShortageTest` 等。既定の縁は白のまま）が PASS。赤のときの手順: 既定の件が赤 → `DerivedTokens.uss` の行が `:root` の中に入っているか。C3-a の既存の件が赤 → 置き換えた 2 行以外を触っていないか `git diff` で見る
@@ -1709,36 +1711,59 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Hotbar.Parts
 {
     /// <summary>
-    /// Web で calc()・transform を通る 2 つのつまみを customStyle から読んで当てる（設計書 A-47）
-    /// Reads the two knobs that go through calc() and transform on the Web from customStyle and applies them (design A-47)
+    /// Web で calc()・transform を通る 2 つのつまみを、列のスタイル解決の通知で読んで当てる（設計書 A-47）
+    /// Reads the two knobs that go through calc() and transform on the Web when the row's style resolves, and applies them (design A-47)
     /// </summary>
-    public static class HotbarCalcKnobs
+    /// <remarks>
+    /// customStyle は CustomStyleResolvedEvent の後でしか読めない（UssCustomStyleReader の前提。未解決で読むと LogError）。読めた値を持ち、解決の前に作った子は解決の通知で当てる
+    /// customStyle is readable only after CustomStyleResolvedEvent (the UssCustomStyleReader premise; reading early logs an error); keep the read values and apply them to children built before resolution when the notification arrives
+    /// </remarks>
+    public sealed class HotbarCalcKnobs
     {
         public const string RowOffsetProperty = "--hotbar-hud-row-offset";
         public const string TabOverhangProperty = "--hotbar-hud-number-tab-overhang";
 
-        public static void Bind(VisualElement row)
+        private readonly VisualElement _row;
+        private bool _overhangResolved;
+        private float _overhang;
+
+        public HotbarCalcKnobs(VisualElement row)
         {
-            row.RegisterCallback<CustomStyleResolvedEvent>(_ => Reapply(row));
+            _row = row;
+            row.RegisterCallback<CustomStyleResolvedEvent>(_ => ReadAndApply());
+        }
+
+        // 子（番号タブ）を作り直した後に呼ぶ。解決の前なら、解決の通知の ReadAndApply が当てる
+        // Call after rebuilding the children (number tabs); before resolution, ReadAndApply on the notification applies it
+        public void ApplyToRebuiltTabs()
+        {
+            // silent-ok: スタイル解決の前に作ったタブは解決の通知で当たる / HotbarHudViewTest（SetUp が解決の前に Render する。未解決で読めば LogError で Unity のテストが落ちる）のタブの -16 の主張が見る
+            if (!_overhangResolved) return;
+            ApplyOverhang();
         }
 
         // 列の横ずれ（Web .hotbarFrame の translateX）と、タブの上へのはみ出し（Web .num の top: calc(overhang * -1)）
         // The row's horizontal shift (Web .hotbarFrame translateX) and the tab's upward overhang (Web .num top: calc(overhang * -1))
-        public static void Reapply(VisualElement row)
+        private void ReadAndApply()
         {
             // 読めないつまみは UssCustomStyleReader が LogError を出す
             // An unreadable knob is logged as an error by UssCustomStyleReader
-            if (UssCustomStyleReader.TryReadPixels(row.customStyle, RowOffsetProperty, out var offset))
+            if (UssCustomStyleReader.TryReadPixels(_row.customStyle, RowOffsetProperty, out var offset))
             {
-                row.style.translate = new Translate(new Length(offset), new Length(0f));
+                _row.style.translate = new Translate(new Length(offset), new Length(0f));
             }
-            if (!UssCustomStyleReader.TryReadPixels(row.customStyle, TabOverhangProperty, out var overhang)) return;
-            row.Query(className: HotbarNumberTab.ClassName).ForEach(tab => tab.style.top = -overhang);
+            _overhangResolved = UssCustomStyleReader.TryReadPixels(_row.customStyle, TabOverhangProperty, out _overhang);
+            if (_overhangResolved) ApplyOverhang();
+        }
+
+        private void ApplyOverhang()
+        {
+            _row.Query(className: HotbarNumberTab.ClassName).ForEach(tab => tab.style.top = -_overhang);
         }
     }
 }
 ```
-（`Reapply` の 2 本目の早期 return は、`TryReadPixels` が偽のとき LogError を出し済みなので無音ではない。行に `// silent-ok:` は付けない）
+（つまみが読めないときの `_overhangResolved = false` は `TryReadPixels` が LogError を出し済みなので無音ではない）
 
 `S/Client.Ui/Screens/Hotbar/Parts/HotbarNumberTab.cs`:
 ```csharp
@@ -1864,7 +1889,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount: 0`（テストは Task 7 で View と一緒に書く）
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/WheelPassthroughMark.cs moorestech_client/Assets/Scripts/Client.Ui/Components/Slots/OutlinedCountLabel moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/WheelPassthroughMark.cs moorestech_client/Assets/Scripts/Client.Ui/Components/Slots/OutlinedCountLabel moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/CountLabel
 git commit -m "feat(uitk): ホットバーの枠・番号タブ・落とし先の印を足す（S3-hotbar-modal）
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
@@ -2572,6 +2597,7 @@ namespace Client.Ui.Screens.Hotbar
         private readonly PlacementTargetIcons _icons;
         private readonly UiCommandResultToaster _toaster;
         private readonly VisualElement _row;
+        private readonly HotbarCalcKnobs _calcKnobs;
         private readonly List<HotbarCell> _cells = new();
 
         public HotbarHudView(IHotbarCommands commands, PlacementTargetIcons icons, UiCommandResultToaster toaster)
@@ -2593,7 +2619,7 @@ namespace Client.Ui.Screens.Hotbar
             WheelPassthroughMark.Mark(_row);
             UiDragDrop.MarkTarget(_row, HotbarRowGapDropMark.Instance);
             TutorialAnchor.Mark(_row, AnchorIds.HotbarHud);
-            HotbarCalcKnobs.Bind(_row);
+            _calcKnobs = new HotbarCalcKnobs(_row);
             Add(_row);
         }
 
@@ -2620,7 +2646,7 @@ namespace Client.Ui.Screens.Hotbar
                 _cells.Add(cell);
                 _row.Add(cell);
             }
-            HotbarCalcKnobs.Reapply(_row);
+            _calcKnobs.ApplyToRebuiltTabs();
         }
     }
 }
@@ -3517,6 +3543,21 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 照合の考え方（D-9）: Web の Chromium は半透明と opacity を sRGB の値のまま混ぜる（`出力 = 地 × (1-α) + 色 × α`）。UITK のランタイムは Linear で混ぜるので、同じ α では明るい地の上で淡く出る。画素を実際のランタイムの PanelSettings で描かせ、Web の式の値と比べる。
 
+- [ ] **Step 0: 参照の列の周りの地の色を読む**
+
+参照 `3-hotbar-equipment-empty.png` の地は世界の絵で、列の周りは濃い橙（目視。上部の空に近い (240,203,166) と違う可能性がある）。照合の地に、参照で列のすぐ外の色を 3 つ目として足す:
+```bash
+uloop execute-dynamic-code --project-path ./moorestech_client --code '
+var bytes = System.IO.File.ReadAllBytes("<LOGS の絶対パス>/uitk/reference-captures/web-869b2d4264/3-hotbar-equipment-empty.png");
+var png = new UnityEngine.Texture2D(2, 2); png.LoadImage(bytes);
+// 列の左端の 40px 左・枠の高さの中ほど（参照の 1280×720 で列は y 646〜698。左下原点へ直す）
+// 40px left of the row and mid-height of the slots (the row spans y 646-698 in the 1280x720 reference; convert to bottom-left origin)
+var c = (UnityEngine.Color32)png.GetPixel(395, 720 - 672);
+return $"{c.r},{c.g},{c.b}";'
+```
+（`<LOGS の絶対パス>` は `realpath <LOGS>` の結果。Editor の作業ディレクトリは `moorestech_client` なので相対パスにしない）
+Expected: 3 つの数。読んだ点が列の枠やタブに掛かっていないことを、参照を `Read` して座標で確かめる（列の左端は参照の画素で読み直し、違えば x を直す）。以下の Step 1〜4 の `bright`・`dark` に `ref`（この色）を足して 3 地で回し、Step 4 の「明るい地で 7 段以内」は `ref` でも満たす値を採る（`bright` と `ref` で両立しなければ `ref` を優先し、`bright` の差を `done.md` の表に残す。参照の見た目に合わせるのがゴール）
+
 - [ ] **Step 1: Web の期待値を出す**
 
 `W/src/shared/ui/SlotFrame/style.module.css` を Read し、割当済み（`data-filled`）の面の色を読む（以下 `FILLED`）。Run（`FILLED` を読んだ値に替える）:
@@ -3524,7 +3565,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 node -e '
 const mix=(g,c,a)=>g.map((v,i)=>Math.round(v*(1-a)+c[i]*a));
 const FACE=[50,52,67], TAB=[50,52,67], FILLED=[/* SlotFrame の data-filled の面 */];
-for (const [label,g] of [["bright",[240,203,166]],["dark",[40,42,48]]]) {
+for (const [label,g] of [["bright",[240,203,166]],["dark",[40,42,48]],["ref",[/* Step 0 で読んだ 3 つの数 */]]]) {
   const empty=mix(g,FACE,0.5);
   console.log(label,"empty",empty,"tab",mix(g,TAB,0.68),"unresolved",mix(g,FILLED,0.4),"disabledEmpty",mix(g,empty,0.55));
 }'
@@ -3541,7 +3582,7 @@ var resolver = Client.Game.InGame.Context.ClientDIContext.DIContainer.DIContaine
 var commands = VContainer.IObjectResolverExtensions.Resolve<Client.Ui.State.Hotbar.IHotbarCommands>(resolver);
 var icons = VContainer.IObjectResolverExtensions.Resolve<Client.Ui.Content.PlacementTargetIcons>(resolver);
 var toaster = VContainer.IObjectResolverExtensions.Resolve<Client.Ui.State.Toast.UiCommandResultToaster>(resolver);
-foreach (var (label, ground) in new[] { ("bright", new UnityEngine.Color32(240, 203, 166, 255)), ("dark", new UnityEngine.Color32(40, 42, 48, 255)) })
+foreach (var (label, ground) in new[] { ("bright", new UnityEngine.Color32(240, 203, 166, 255)), ("dark", new UnityEngine.Color32(40, 42, 48, 255)), ("ref", new UnityEngine.Color32(/* Step 0 の r */ 0, /* g */ 0, /* b */ 0, 255)) })
 {
     var settings = UnityEngine.Object.Instantiate(source);
     settings.targetTexture = new UnityEngine.RenderTexture(1280, 720, 0, UnityEngine.RenderTextureFormat.ARGB32, UnityEngine.RenderTextureReadWrite.sRGB) { name = $"s3hm-rt-{label}" };
@@ -3566,7 +3607,7 @@ Expected: `ok`（`IObjectResolverExtensions` の呼び方・`ClientDIContext` �
 ```bash
 uloop execute-dynamic-code --project-path ./moorestech_client --code '
 var lines = new System.Collections.Generic.List<string>();
-foreach (var label in new[] { "bright", "dark" })
+foreach (var label in new[] { "bright", "dark", "ref" })
 {
     var document = UnityEngine.GameObject.Find($"s3hm-albof34-{label}").GetComponent<UnityEngine.UIElements.UIDocument>();
     var root = document.rootVisualElement;
@@ -3589,7 +3630,7 @@ return string.Join("\n", lines);'
 続けて 2 つの `s3hm-hotbar` を受理なしで描き直す（ctor は Task 2 の `HotbarViewModel(IReadOnlyList<HotbarSlotViewModel> slots, HotbarSelection selection, bool selectAccepted, bool visible)`）:
 ```bash
 uloop execute-dynamic-code --project-path ./moorestech_client --code '
-foreach (var label in new[] { "bright", "dark" })
+foreach (var label in new[] { "bright", "dark", "ref" })
 {
     var root = UnityEngine.GameObject.Find($"s3hm-albof34-{label}").GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement;
     var view = UnityEngine.UIElements.UQueryExtensions.Q<Client.Ui.Screens.Hotbar.HotbarHudView>(root, "s3hm-hotbar");
@@ -3658,7 +3699,7 @@ S2-mode-tooltip の Task 10 Step 2 と同じ手順で、`GameUiPanelSettings.ass
 
 - [ ] **Step 4: モーダルを撮り、実画面 px を測る（1280×720・1920×1080・2560×1080）**
 
-参照 `3-modal.png` を Read し、BP 名の要求（題「ブループリント名」・入力欄にフォーカスの青い輪・保存ボタンが押せない）であることを確かめる。EDC で各ルートに全画面の層を作り、`new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(<そのパネルの scaledPixelsPerPoint>)))` を `Mount` して `Show(new ModalView(<BP 名の要求>, <記録するだけの IModalCommands>, <UiCommandResultToaster>, Observable.Never<Unit>()))` で撮る（倍率はそのルートの `panel.scaledPixelsPerPoint` を 1 回目の EDC で読んで渡す。設計書 A-41）。2 回目の EDC で `modal` の `worldBound × scaledPixelsPerPoint` を実画面 px として出し、参照の画素で測った枠の左右端（720p は x 420〜860）と並べる。期待: 3 解像度とも幅 440 実画面 px・画面の中央・題の行の高さ 60・本文の余白 20・入力とボタンの高さが Web と同じ実画面 px（倍率で大きくならない）。外れたら `Modal.uss` か、部品の側なら `done.md` の「integrator への依頼」
+参照 `3-modal.png` を Read し、BP 名の要求（題「ブループリント名」・入力欄にフォーカスの青い輪・保存ボタンが押せない）であることを確かめる。EDC で各ルートに全画面の層を作り、`new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(<StageScaleMeasure で読んだ倍率>)))` を `Mount` して `Show(new ModalView(<BP 名の要求>, <記録するだけの IModalCommands>, <UiCommandResultToaster>, Observable.Never<Unit>()))` で撮る（倍率は本番と同じ式で取る: 1 回目の EDC でそのルートのパネルを `StageScaleMeasure.TryRead(root.panel, out var scale)` で読み、偽なら止めて `done.md` の「未確認」に書く。`scaledPixelsPerPoint` を直に読まない＝設計書 A-75。C3-b が変種 B を選んでいても本番と同じ倍率になる）。幅は書き出した PNG の画素で測る: 2 回目の EDC で RT を `EncodeToPNG` した画像の、枠の高さの中ほどの 1 行を左から右へ走査し、幕の色から枠の面の色へ変わる x と戻る x を出す（`worldBound` × 倍率の換算は使わない。換算が正しくても画像の幅を保証しないため）。参照の画素で同じ走査をした枠の左右端（720p は x 420〜860）と並べる。期待: 3 解像度とも幅 440 実画面 px・画面の中央・題の行の高さ 60・本文の余白 20・入力とボタンの高さが Web と同じ実画面 px（倍率で大きくならない）。外れたら `Modal.uss` か、部品の側なら `done.md` の「integrator への依頼」
 
 - [ ] **Step 5: 差の表を書き、口を片付ける**
 
@@ -3849,7 +3890,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロック・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の末尾）の衝突は両方の行を採る（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロックと `--outlined-count-label-color` の次の 1 行（`--outlined-count-label-stroke-color`。他レーンが同じ並びに行を足していれば両方採る）・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の末尾）の衝突は両方の行を採る（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
 
 取り込みの後、1 つを見る（当たれば同じ PR へコミットして push し、`$FILTER` を回し直す）:
 - 錨の未移植の表: Task 7 Step 6 の `test -f … && grep …` を流し直し、`AnchorIds.HotbarHud` の行があれば消して `TutorialAnchorCoverageTest` を回す（S2-tutorial がこのレーンより後に入った場合）
@@ -3881,12 +3922,12 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 
 ## Self-Review
 
-1. **Requirements coverage**: R-1 → Task 2・3（`HotbarViewModelFactoryTest`）、R-2 → Task 5・6・7（`HotbarHudViewTest`）、R-3 → Task 4・7（`HotbarHudViewTest`・`HotbarHudDropTest`）、R-4 → Task 6・7（`HotbarSlotDragGestureTest`・`HotbarHudDropTest`、本物のビルドメニューの源を使う）、R-5 → Task 6・7（`HotbarHudPickingTest`）、R-6 → Task 5・10、R-7 → Task 7（`HotbarIconCenteringTest`）、R-8 → Task 4・8、R-9 → Task 8（倍率 1.5）・Task 11 Step 4、R-10 → Task 11、R-11 → Task 4・7・8・9、R-12 → Task 12、R-13 → Task 13、R-14 → Task 14・15。完了条件の各句: ホットバー 9 枠（Task 7）・`SlotFrame` のベベル上書きと `--bevel-inset: inset`（Task 7 の USS・File Structure のつまみの表）・`PlacementTargetFace`（Task 6）・割当/入替/解除の落とし先（Task 6・7）・`wheel-passthrough`（Task 6・7）・床トークン（`--hotbar-bottom`・`--hotbar-slot-*`・`--hotbar-number-tab-overhang`・`--hotbar-horizontal-offset` を USS と `HotbarCalcKnobs` で使う。Task 1 Step 1 で実在を見る）、モーダル層と BP 名（Task 8・9・12）・描き手の一本化（Task 9。Web の系の登録は MainGameUiRegistration の分岐が持つ）・`UiText.FromVerbatim` [A-40]（Task 8）・実画面 px で 720p・1080p [A-41]（Task 8・11）、写す P6・C7・P4・`placementIconCentering`(2)・`alwaysOnHudWheel` の 1 件（Task 6〜8・13）、bd albof.30（Task 7・15）・albof.34（Task 5・10・15）。§6.2 の必須: 部品と公開 API（Global Constraints）・画面専用の部品の置き場（`Screens/Hotbar/Parts/`）・つまみの同名上書き（File Structure の表）・写すテスト名と件数と `<web-test>`（File Structure の表・各テスト）・撮影の解像度（Task 11）・録画（Task 12）・登録の行数 2（Task 9）・新しい共有部品の申告の手順（Global Constraints）。漏れなし
+1. **Requirements coverage**: R-1 → Task 2・3（`HotbarViewModelFactoryTest`）、R-2 → Task 5・6・7（`HotbarHudViewTest`）、R-3 → Task 4・7（`HotbarHudViewTest`・`HotbarHudDropTest`）、R-4 → Task 6・7（`HotbarSlotDragGestureTest`・`HotbarHudDropTest`、本物のビルドメニューの源を使う）、R-5 → Task 6・7（`HotbarHudPickingTest`）、R-6 → Task 5・10、R-7 → Task 7（`HotbarIconCenteringTest`）、R-8 → Task 4・8、R-9 → Task 8（倍率 1.5）・Task 11 Step 4、R-10 → Task 11、R-11 → Task 4・7・8・9、R-12 → Task 12、R-13 → Task 13、R-14 → Task 14・15。完了条件の各句: ホットバー 9 枠（Task 7）・`SlotFrame` のベベル上書きと `--bevel-inset: inset`（Task 7 の USS・File Structure のつまみの表）・`PlacementTargetFace`（Task 6）・割当/入替/解除の落とし先（Task 6・7）・`wheel-passthrough`（Task 6・7）・床トークン（`--hotbar-bottom`・`--hotbar-slot-*`・`--hotbar-number-tab-overhang`・`--hotbar-horizontal-offset` を USS と `HotbarCalcKnobs` で使う。Task 1 Step 1 で実在を見る）、モーダル層と BP 名（Task 8・9・12）・描き手の一本化（Task 9。Web の系の登録は MainGameUiRegistration の分岐が持つ）・`UiText.FromVerbatim` [A-40]（Task 8）・実画面 px で 720p・1080p [A-41]（Task 8・11）、写す P6・C7・P4・`placementIconCentering` のホットバーの 1 件（2 件のうち 1 件。もう 1 件は S3-buildmenu）・`alwaysOnHudWheel` の 1 件（Task 6〜8・13）、bd albof.30（Task 7・15）・albof.34（Task 5・10・15）。§6.2 の必須: 部品と公開 API（Global Constraints）・画面専用の部品の置き場（`Screens/Hotbar/Parts/`）・つまみの同名上書き（File Structure の表）・写すテスト名と件数と `<web-test>`（File Structure の表・各テスト）・撮影の解像度（Task 11）・録画（Task 12）・登録の行数 2（Task 9）・新しい共有部品の申告の手順（Global Constraints）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<PR番号>`・`<HEAD 10 桁>`・`<sha>`・`<空きポート>`・`<値>`・`<n>`・manifest の `<… のパス>`・`FILLED`（Web の CSS から読む）・`<ビルドメニューの件の第 1 引数>`（grep で読む）は実行時にしか決まらず、取り方を同じタスクに書いた。「TBD」「適切に」は無い。ビルドメニュー（S3-buildmenu。指揮の決定どおりの形）と C3-b・S2-hud の型は想定で、Task 1 Step 1 で実物と照合し、違えば読み替えて記録する手順を書いた
-3. **Type consistency**: `PlacementTargetIcon`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`・`PlacementTargetIconResolver.Resolve(IPlacementTarget, IBlueprintThumbnailLookup)`・`PlacementTargetIcons.TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`IHotbarDropReceiver.Receive(HotbarDragSource)`（以上 S3-buildmenu が作る）、`UiCommandResult`・`UiCommandRejectReason.HotbarSelectNotAccepted/ModalResponseStale`・`UiCommandResultToaster.Report`、`HotbarSlotViewModel`・`HotbarEmptySlot.Instance`・`HotbarUnresolvedSlot(Guid)`・`HotbarAssignedSlot(Guid, string, PlacementTargetIcon)`・`HotbarSelection.None/Of/FromOrigin/TryGetSlot/IsSlot`・`HotbarViewModel(IReadOnlyList<HotbarSlotViewModel>, HotbarSelection, bool, bool)`・`HotbarViewModelFactory.Create(slots, origin, uiState, screen, blockingSkit)`・`HotbarSelectRule.Accepts`・`HotbarModel.Current`・`IHotbarCommands.Select（UiCommandResult）/Apply`・`HotbarCommands(ClientHotbarDatastore, UIStateControl).SelectCommandName`、`HotbarSlotDropMark(int, IHotbarCommands)`・`HotbarRowGapDropMark.Instance`・`HotbarSlotDragPayload(int, HotbarSlotViewModel, IHotbarCommands, UiCommandResultToaster)`・`Foundation.Input.WheelPassthroughMark.ClassName/Mark`・`HotbarCalcKnobs.Bind/Reapply`・`HotbarNumberTab(int)`・`HotbarCell(int, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudView(IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudPresenter(GameUiRoot, HotbarModel, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`、`ModalLogic.TrimEnteredText/HasConfirmableText/CanConfirm`・`IModalCommands.Respond`・`ModalCommands(ModalRequestService).RespondCommandName`・`ModalView(ModalRequest, IModalCommands, UiCommandResultToaster)`・`ModalButtonVariants.From`・`ModalScreenPresenter(UiModalHost, ModalRequestService, IModalCommands, UiCommandResultToaster)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `hotbar-hud`・`__row`・`__row--select-disabled`・`__cell`・`__cell--first`・`__cell--unresolved`・`__number-tab`・`__number`・`modal-view`・`__message`・`__input`、つまみ `--hotbar-hud-row-offset`・`--hotbar-hud-number-tab-overhang` とトークン 8 つは C#・USS・テストで一致。testid（`hotbar-hud`・`hotbar-grid`・`hotbar-slot-{i}`・`modal`・`modal-title`・`modal-message`・`modal-input`・`modal-button`・`modal-backdrop`）は Web の `data-testid` と同名
-4. **保留・縮退経路**: (a) 選択を受けない UI 状態のタップ → `HotbarCommands.Select` が良性の拒否を返し、源が `UiCommandResultToaster` へ渡して LogWarning（D-20）。(b) 空き枠のドラッグ → `HotbarSlotDragPayload` が `silent-ok` 付きで何もしない（Web と同じ。テストが固定。D-26）。(c) 列の隙間の落とし → `HotbarRowGapDropMark.Receive` が `silent-ok` 付きで無操作（受けたので源は解除しない。テストが固定）。(d) 他の画面の印 → 枠外として解除（枠の源）・無操作（ビルドメニューの源。S3-buildmenu の `silent-ok`）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`HotbarCalcKnobs`）。(f) モーダルの空白だけの確定 → ボタンが押せず、それでも来たら `ModalView` が LogWarning（D-12）。(g) 古い応答 → `ModalCommands` が良性の拒否 `ModalResponseStale` を返しトースト口が LogWarning、保留無しの幕 → `ModalScreenPresenter` が LogWarning。(g2) このフレームで消費済みの ESC → `ModalView` が `silent-ok` で閉じない（消費は `UiInputExclusivity` の Debug.Log が記録）。(h) 同じ要求の通知の重なり → `silent-ok` 付きで描き直さない（D-13）。(i) Task 1・7・8・9・10・11・12 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
+3. **Type consistency**: `PlacementTargetIcon`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`・`PlacementTargetIconResolver.Resolve(IPlacementTarget, IBlueprintThumbnailLookup)`・`PlacementTargetIcons.TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`IHotbarDropReceiver.Receive(HotbarDragSource)`（以上 S3-buildmenu が作る）、`UiCommandResult`・`UiCommandRejectReason.HotbarSelectNotAccepted/ModalResponseStale`・`UiCommandResultToaster.Report`、`HotbarSlotViewModel`・`HotbarEmptySlot.Instance`・`HotbarUnresolvedSlot(Guid)`・`HotbarAssignedSlot(Guid, string, PlacementTargetIcon)`・`HotbarSelection.None/Of/FromOrigin/TryGetSlot/IsSlot`・`HotbarViewModel(IReadOnlyList<HotbarSlotViewModel>, HotbarSelection, bool, bool)`・`HotbarViewModelFactory.Create(slots, origin, uiState, screen, blockingSkit)`・`HotbarSelectRule.Accepts`・`HotbarModel.Current`・`IHotbarCommands.Select（UiCommandResult）/Apply`・`HotbarCommands(ClientHotbarDatastore, UIStateControl).SelectCommandName`、`HotbarSlotDropMark(int, IHotbarCommands)`・`HotbarRowGapDropMark.Instance`・`HotbarSlotDragPayload(int, HotbarSlotViewModel, IHotbarCommands, UiCommandResultToaster)`・`Foundation.Input.WheelPassthroughMark.ClassName/Mark/IsPassthrough`・`new HotbarCalcKnobs(VisualElement)`・`HotbarCalcKnobs.ApplyToRebuiltTabs`・`HotbarNumberTab(int)`・`HotbarCell(int, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudView(IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudPresenter(GameUiRoot, HotbarModel, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`、`ModalLogic.TryGetConfirmableText/HasConfirmableText/CanConfirm`・`IModalCommands.Respond`・`ModalCommands(ModalRequestService).RespondCommandName`・`ModalView(ModalRequest, IModalCommands, UiCommandResultToaster, IObservable<Unit>)`・`ModalButtonVariants.From`・`ModalScreenPresenter(UiModalHost, ModalRequestService, IModalCommands, UiCommandResultToaster)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `hotbar-hud`・`__row`・`__row--select-disabled`・`__cell`・`__cell--first`・`__cell--unresolved`・`__number-tab`・`__number`・`modal-view`・`__message`・`__input`、つまみ `--hotbar-hud-row-offset`・`--hotbar-hud-number-tab-overhang` とトークン 8 つは C#・USS・テストで一致。testid（`hotbar-hud`・`hotbar-grid`・`hotbar-slot-{i}`・`modal`・`modal-title`・`modal-message`・`modal-input`・`modal-button`・`modal-backdrop`）は Web の `data-testid` と同名
+4. **保留・縮退経路**: (a) 選択を受けない UI 状態のタップ → `HotbarCommands.Select` が良性の拒否を返し、源が `UiCommandResultToaster` へ渡して LogWarning（D-20）。(b) 空き枠のドラッグ → `HotbarSlotDragPayload` が `silent-ok` 付きで何もしない（Web と同じ。テストが固定。D-26）。(c) 列の隙間の落とし → `HotbarRowGapDropMark.Receive` が `silent-ok` 付きで無操作（受けたので源は解除しない。テストが固定）。(d) 他の画面の印 → 枠外として解除（枠の源）・無操作（ビルドメニューの源。S3-buildmenu の `silent-ok`）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`HotbarCalcKnobs`）。(f) モーダルの空白だけの確定 → ボタンが押せず、それでも来たら `ModalView` が LogWarning（D-12）。(g) 古い応答 → `ModalCommands` が良性の拒否 `ModalResponseStale` を返しトースト口が LogWarning。(g2) ESC 以外でフォーカスが外れた（欄の外の押下・閉じたときの外れ）→ `ModalView.CancelIfEscapeBlurred` が `silent-ok` で取り消さない（`ModalScreenPresenterTest` の「欄の外を押しても閉じない」が固定）。フォーカスの無い ESC は View が聞かず、既存のゲーム入力の経路が取り消す（D-11。録画の流れ 7b）。(h) 同じ要求の通知の重なり → `silent-ok` 付きで描き直さない（D-13）。(i) Task 1・7・8・9・10・11・12 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
 5. **「決定的にする」を根拠にした選択**: D-13（要求ごとに View を作り直す）は Web の `key={id}` の写し。D-18 は間引きを撤回し、順序は購読の順（実物の行）と録画の 1 段の実測で確かめる。ほかに無し
-6. **呼び出し側への責務漏出**: 選択の受理は `HotbarSelectRule` の 1 か所を Model（減光）と操作（受理）が読む（D-4）。落としの解き方は印（State の `IHotbarDropReceiver` を実装）が持ち、源はビルドメニューもホットバーも `Receive` を呼ぶだけ（D-33）。絵の出どころの解き方と絵への変換は S3-buildmenu が作る `PlacementTargetIconResolver`・`PlacementTargetIcons` の 1 か所をビルドメニューと共有（D-6）。確定の文の規則と空白の除去は `ModalLogic.HasConfirmableText`・`TrimEnteredText` の 1 か所を View・ブリッジが読み、View の可否は 1 回だけ導く（D-12・D-39）。応答と選択は [A-8] のコマンドで返し、拒否はトースト口 1 本（D-20・D-34）。ボタンの色の写しは `ModalButtonVariants` の 1 か所（[A-28]）。部品の見た目はつまみで変え、画面 USS は部品のクラスを書かない（番号タブの縁の色だけ部分木で受け直す。D-7。部品のつまみを integrator へ依頼）
+6. **呼び出し側への責務漏出**: 選択の受理は `HotbarSelectRule` の 1 か所を Model（減光）と操作（受理）が読む（D-4）。落としの解き方は印（State の `IHotbarDropReceiver` を実装）が持ち、源はビルドメニューもホットバーも `Receive` を呼ぶだけ（D-33）。絵の出どころの解き方と絵への変換は S3-buildmenu が作る `PlacementTargetIconResolver`・`PlacementTargetIcons` の 1 か所をビルドメニューと共有（D-6）。確定の文の規則と空白の除去は `ModalLogic.TryGetConfirmableText`・`HasConfirmableText` の 1 か所を View・ブリッジが読み、View の可否は 1 回だけ導く（D-12・D-39）。応答と選択は [A-8] のコマンドで返し、拒否はトースト口 1 本（D-20・D-34）。ボタンの色の写しは `ModalButtonVariants` の 1 か所（[A-28]）。部品の見た目はつまみで変え、画面 USS は部品のクラスを書かない（番号タブの暗い縁は、このレーンが部品に足す縁の色のつまみで渡す。D-7）
 
 ---
 
@@ -3902,12 +3943,12 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-4 | 選択の受理の規則は State の `HotbarSelectRule` 1 か所で、Model の減光と `HotbarCommands` の受理が同じものを読む | View が受理を判断: Web は `uiStateAcceptsHotbarSelect` と `HotbarSelectActionHandler` に二重に持つ。UITK では 1 か所にする | agent 既定 |
 | D-5 | 落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`）は `Screens/Hotbar/Parts/` に置き、`IUiDropTarget` と State の `IHotbarDropReceiver`（S3-buildmenu が作る）の両方を実装する | Foundation/DragDrop へ置く: ホットバーの語彙で汎用基盤にドメイン語彙を入れることになる。ビルドメニューの側へ置く: 落とし先の持ち主はホットバー | agent 既定（設計書 §5.1-2・AGENTS.md の設計原則） |
 | D-6 | 配置対象の絵の出どころ（ID だけの `PlacementTargetIcon` 系・`PlacementTargetIconResolver`・DI のクラス `PlacementTargetIcons.TryToUiIcon`）と State の口 `IHotbarDropReceiver.Receive` は S3-buildmenu が最終の置き場に作り、このレーンは使うだけ。S3-buildmenu のファイルは書き換えない | このレーンが S3-buildmenu の型を `git mv` で昇格し呼び側を書き換える: 並走中の他レーンのファイルに手を入れ、取り込みの衝突と置き換え漏れの穴を作る。ホットバーに別の解き方を書く: 同じ規則（Web の橋 `ResolveIconUrl`）が 2 つになる | 指揮の決定 |
-| D-7 | 番号タブの暗い縁は、部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、タブでそのつまみを `--icon-text-stroke-dark` に上書きして出す。部品の L1（`OutlinedCountLabelStrokeKnobTest`）を同じタスクで足す | タブの部分木で共有トークン `--icon-text-stroke-light` を受け直す: トークンの意味（白い縁）を部分木で裏返し、タブの中に後から置く他の部品の縁まで黒くなる。画面 USS で `.outlined-count-label--stroke` を書く: 画面 USS に部品のクラスを書くのは規約違反。integrator へ依頼して待つ: 既存部品へのつまみ 1 つの追加で、C3-a はマージ済み・他の W3 レーンはこのファイルを触らない | agent 既定（設計書 §3.2「部品の見た目はつまみで変える」） |
+| D-7 | 番号タブの暗い縁は、部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、タブでそのつまみを `--icon-text-stroke-dark` に上書きして出す。部品の L1（`OutlinedCountLabelStrokeKnobTest`）を同じタスクで足す。つまみの既定は末尾の名札付きブロックでなく、部品の既定の並び（`DerivedTokens.uss` の `--outlined-count-label-color` の次）に置く（部品の既定は部品の行の隣に置き、画面のブロックに部品の既定を混ぜない） | タブの部分木で共有トークン `--icon-text-stroke-light` を受け直す: トークンの意味（白い縁）を部分木で裏返し、タブの中に後から置く他の部品の縁まで黒くなる。画面 USS で `.outlined-count-label--stroke` を書く: 画面 USS に部品のクラスを書くのは規約違反。integrator へ依頼して待つ: 既存部品へのつまみ 1 つの追加で、C3-a はマージ済み・他の W3 レーンはこのファイルを触らない | agent 既定（設計書 §3.2「部品の見た目はつまみで変える」） |
 | D-8 | Web の `calc()`（タブの `top`）と `translateX`（列の横ずれ）は `HotbarCalcKnobs` が customStyle から読んで当てる | 換算値を USS に直書き: トークンの変更に追従しない | 設計書 [A-47] |
 | D-9 | albof.34 の照合は、複製した `GameUiPanelSettings` の RT（ランタイムと同じ Linear 合成）で明るい地と暗い地を描いて画素を読み、Web の sRGB 合成の式の値と比べる。明るい地で 7 段以内を合格とする | 部品ギャラリーで比べる: sRGB 合成なので差が出ない。Web を実際に撮って比べる: 世界の絵が地になり画素が定まらない | 指揮の判断（albof.34 の回送）→ agent 既定（C3-a の基準 7 段） |
 | D-10 | 退く間（blocking スキット・常駐 HUD を出さない画面）は帯ごと `display: none` にする | 子を消す: Web は `null` を返して木から外す。UITK は作り直しを避けて隠すだけで、見た目と入力は同じ | agent 既定 |
 | D-11 | モーダルは ESC 1 回で取り消す（Web の Mantine と同じ）。入力欄では `GameUiInputRules` が ESC を消費してフォーカスを外し、`ModalView` は入力欄の `FocusOutEvent` を、このフレームの ESC が消費済みのときだけ取消として読む（押下でフォーカスが外れただけなら閉じない）。フォーカスの無い ESC は View が聞かず、既存のゲーム入力の経路（`PlaceBlockState` の `CloseUI` → `TryCancelInProgressOperation` → `BlueprintNameInputState.Close` → ブリッジの `CancelPendingRequest`）が 1 回で取り消す。変換中の ESC は規則がフォーカスを外さないので閉じない | 1 回目はフォーカスだけ外し 2 回目で閉じる: Web と押す回数が違う（ゴールの操作面から外れる）うえ、入力欄の ESC は規則が Blur と `StopImmediatePropagation` をするので 2 回目の `KeyDownEvent` は View に届かない（`GameUiInputRules.cs` を読んで確かめた）。View がパネルの根で `KeyDownEvent` を聞く: GameUi は入力欄以外にフォーカスを持たせないので届かず、届いても入力の第 2 経路になる（設計書 A-83）。規則に「モーダルでは閉じる」を足す: Foundation の規則にモーダルの語彙を持ち込む | agent 既定（ゴールに合わせる・前例 A-83） |
-| D-12 | 確定の文の規則は `ModalLogic.TryGetConfirmableText`（可否と除去後の文を 1 回で導く）と `HasConfirmableText` の 1 か所。ブリッジは `HasConfirmableText` で二重に守り、空白の除去は状態側（`BlueprintNameInputState.Confirm`）の既存の `Trim` のまま | View だけで守る: ブリッジが別の描き手（Web）からの文も受ける | agent 既定 |
+| D-12 | 確定の文の規則は `ModalLogic.TryGetConfirmableText`（可否と除去後の文を 1 回で導く）と `HasConfirmableText` の 1 か所。ブリッジは `HasConfirmableText` で二重に守り、空白の除去は状態側（`BlueprintNameInputState.Confirm`）の既存の `Trim` のまま。負債が残る: 空白の規則が `ModalLogic` と `BlueprintNameInputState.Confirm`（`Client.Game`）の 2 か所にある。`Client.Game` は `Client.Ui.State` を参照できないので、このレーンで 1 か所に寄せられない。寄せるのは段階 7 の uGUI 撤去で `BlueprintNameInputState` を `Client.Ui.State` へ移すとき | View だけで守る: ブリッジが別の描き手（Web）からの文も受ける。状態側の検証を外す: ブリッジ以外の呼び手が無くても、状態の不変条件（空白の名前を確定しない）を状態自身が持たなくなる | agent 既定 |
 | D-13 | モーダルの View は要求 1 件につき 1 つ作り、入力の持ち越しを構造で無くす。入力付きは載った次のフレームでフォーカスする | 1 つの View を使い回して ID の変化で空にする: リセット漏れの分岐が要る。Web は `key={id}` で作り直す | agent 既定（Web の写し） |
 | D-14 | `placementIconCentering.spec.ts` はホットバーの件だけを写す。ビルドメニューの件は S3-buildmenu が写す | このレーンで写す: ビルドメニューの画面を組まないと主張が立たない | 指揮の決定 |
 | D-15 | `hotbar.spec.ts` 5 件目は、ホットバーが退く側だけ写す。会話窓が残る側は S2-skit | 両方写す: 会話窓は S2-skit の画面 | agent 既定 |
@@ -3956,7 +3997,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 - `ModalRespondActionHandler` も `IModalCommands` を受ければ、古い応答の写しが `ModalCommands` 1 本になる（前例 [A-84]）
 - `HotbarActions.cs:33`（Web の `HotbarSelectActionHandler` の受理の条件）と `HotbarSelectRule` が同じ規則を 2 か所に持つ。`HotbarSelectRule` の前例自体が Web 側の漏出形（ハンドラが状態を直に読む）なので、Web ホストのハンドラも `IHotbarCommands` を受ける形（前例 S2-skit [A-84] の `SkitActionHandlers`）にすれば 1 か所になる
 - `HotbarTopic.cs:111-130`（`ResolveSlotDto`）と `HotbarModel.ResolveSlot` が空き・未解決・解決済みの分け方を 2 か所に持つ。切替（5a）で Web の橋が消えるまで残る
-- `BlueprintNameInputState.cs:39-40` の空白の検証・除去と `ModalLogic.TryGetConfirmableText`・`HasConfirmableText` が同じ規則を 2 か所に持つ（ブリッジの `Trim` を含む）。状態側を `ModalLogic` に寄せれば 1 か所になる
+- `BlueprintNameInputState.cs:39-40`（`Client.Game`）の空白の検証・除去と `ModalLogic.TryGetConfirmableText`・`HasConfirmableText` が同じ規則を 2 か所に持つ。`Client.Game` から `Client.Ui.State` は参照できないので、1 か所にするには段階 7 の uGUI 撤去で `BlueprintNameInputState` を `Client.Ui.State` へ移す（D-12 の負債）
 - 絵か名前かを面へ当てる分岐（`TryToUiIcon` の真偽で `SetIconTarget`／`SetNameTarget`）が、ホットバーの `HotbarCell` とビルドメニューで同じ形になる。3 機能目が来たら 1 関数にまとめる
 
 レーンの起動は指揮が行う。
