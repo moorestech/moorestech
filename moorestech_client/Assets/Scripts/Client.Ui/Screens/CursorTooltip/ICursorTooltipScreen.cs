@@ -1,34 +1,21 @@
 using System;
 using UniRx;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.CursorTooltip
 {
     /// <summary>
-    /// 実画面への問い合わせの唯一の口。ポインタは実画面 px で持ち、置く時にいまの倍率でパネル座標へ直す
-    /// The only gateway to the real screen; pointers stay in screen px and are converted with the current scale when placing
+    /// ツールチップの指す点を決める口。ポインタの出所と換算は Foundation の IUiScreenPointer、倍率は StageScaleSource が持つ
+    /// Decides the point the tooltip anchors to; the pointer source and conversion belong to Foundation IUiScreenPointer, the scale to StageScaleSource
     /// </summary>
     public interface ICursorTooltipScreen
     {
-        // ロック中は中央、それ以外は渡されたポインタを、いまの倍率でパネル座標へ直す
-        // Centre while locked, otherwise the given pointer, converted to panel coordinates with the current scale
-        Vector2 ResolveAnchorInPanel(IPanel panel, Vector2 latestPointerOnScreen);
-
-        // 今のポインタの実画面 px（View が載った時の初期値）
-        // The current pointer in screen px (the initial value when the view attaches)
-        Vector2 CurrentPointerOnScreen();
-
-        // ポインタ移動を実画面 px で流す
-        // Publishes pointer moves in screen px
-        IObservable<Vector2> OnPointerMovedOnScreen { get; }
+        // ロック中は画面中央、それ以外は渡されたポインタ（どちらも実画面 px・左下原点）
+        // The screen centre while locked, otherwise the given pointer (both in screen px, bottom-left origin)
+        Vector2 AnchorOnScreen(Vector2 latestPointerOnScreen);
 
         // 指す点の決め方（ロック↔解除）が変わった時に流す
         // Publishes when the anchoring mode (locked vs unlocked) changes
         IObservable<Unit> OnAnchorModeChanged { get; }
-
-        // 実画面 px / パネル単位
-        // Screen pixels per panel unit
-        float ScreenPixelsPerPanelPixel(IPanel panel);
     }
 }

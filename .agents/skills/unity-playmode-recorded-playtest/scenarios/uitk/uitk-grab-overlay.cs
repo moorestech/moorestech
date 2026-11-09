@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.Pointer;
 // 掴み絵（GrabOverlay）・分割ドラッグ・舞台の上段 3 列を UITK（GameUi）で通す
 // Runs the grab picture (GrabOverlay), split drag and the top-row stage columns on UITK (GameUi)
 // 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
@@ -65,7 +66,7 @@ return PlaytestRunner.Run("uitk-grab-overlay", options, async p =>
 
     // C4-e の登録が本番コンテナで解決できる（解決できなければ例外で止まる）
     // The C4-e registrations resolve in the production container (an unresolved one throws and stops)
-    p.Note($"解決: {resolver.Resolve<PlayerGrabModel>().GetType().Name} {resolver.Resolve<GrabOverlayModel>().GetType().Name} {resolver.Resolve<IGrabOverlayPointer>().GetType().Name} {commands.GetType().Name} {button.GetType().Name} {resolver.Resolve<StageColumnsLayout>().GetType().Name}");
+    p.Note($"解決: {resolver.Resolve<PlayerGrabModel>().GetType().Name} {resolver.Resolve<GrabOverlayModel>().GetType().Name} {resolver.Resolve<IUiScreenPointer>().GetType().Name} {commands.GetType().Name} {button.GetType().Name} {resolver.Resolve<StageColumnsLayout>().GetType().Name}");
     var snapshot = operations.ReadSnapshot();
     var source = Enumerable.Range(0, snapshot.MainSlots.Count).First(i => snapshot.MainSlots[i].Count == GrabCount);
     var empties = Enumerable.Range(0, snapshot.MainSlots.Count).Where(i => snapshot.MainSlots[i].IsEmpty).Take(3).ToArray();

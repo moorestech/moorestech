@@ -22,7 +22,7 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         public void MountTooltip()
         {
             _screen = new FakeCursorTooltipScreen();
-            _view = Mount(new CursorTooltipView(_screen));
+            _view = Mount(new CursorTooltipView(_screen, _screen, _screen.StageScale));
         }
 
         [TearDown]

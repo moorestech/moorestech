@@ -1,4 +1,5 @@
 using Client.Ui.Components.Text;
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Foundation.Modal;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Foundation.Stage.ScaleReading;
@@ -20,6 +21,10 @@ namespace Client.Starter.Registration.GameUi
             // Only the watch reads the scale; the source wraps its stream for consumers
             builder.RegisterEntryPoint<GameUiStageScaleWatch>().AsSelf();
             builder.Register(resolver => new StageScaleSource(resolver.Resolve<GameUiStageScaleWatch>().Scale), Lifetime.Singleton);
+
+            // 画面を追う UI（掴み絵・カーソルツールチップ）が読むポインタは 1 個
+            // One pointer for screen-following UI (grab picture, cursor tooltip)
+            builder.Register<InputSystemUiScreenPointer>(Lifetime.Singleton).As<IUiScreenPointer>();
 
             // モーダルの宿主は画面が ctor で受け、入口が Modal 層へ置く
             // Screens take the modal host by ctor; the entry point mounts it in the Modal layer

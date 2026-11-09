@@ -23,7 +23,7 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         [SetUp]
         public void MountTooltip()
         {
-            _view = Mount(new CursorTooltipView(new FakeCursorTooltipScreen()));
+            _view = Mount(NewViewWithFakeScreen());
         }
 
         /// <web-test file="src/shared/tooltip/CursorTooltip.test.ts">interpolates textParams into the localized template</web-test>
@@ -105,6 +105,12 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
 
             _view.Render(CursorTooltipViewModel.Hidden);
             Assert.IsFalse(IsShown(face));
+        }
+
+        private static CursorTooltipView NewViewWithFakeScreen()
+        {
+            var screen = new FakeCursorTooltipScreen();
+            return new CursorTooltipView(screen, screen, screen.StageScale);
         }
     }
 }

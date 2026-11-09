@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.Pointer;
 using System;
 using Client.Ui.Screens.GrabOverlay;
 using UniRx;
@@ -10,7 +11,7 @@ namespace Client.Tests.Ui.Screens.GrabOverlay
     /// テストが動かすポインタ。画面 px ÷ 倍率をパネル座標として返す（左上原点で扱う）
     /// Test-driven pointer; returns screen px divided by the scale as panel coordinates (top-left origin)
     /// </summary>
-    public sealed class FakeGrabOverlayPointer : IGrabOverlayPointer
+    public sealed class FakeGrabOverlayPointer : IUiScreenPointer
     {
         private readonly Subject<Vector2> _onPointerMovedOnScreen = new();
         private readonly float _screenPixelsPerPanelPixel;

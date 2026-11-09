@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Input;
 using Client.Input.Pointer;
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Screens.CursorTooltip;
 using NUnit.Framework;
 using UniRx;
@@ -26,7 +27,7 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         {
             InputSystem.AddDevice<Mouse>();
             InputManager.MouseCursorVisible(true);
-            var screen = new UnityCursorTooltipScreen(new InputSystemPointerPositionStream());
+            var screen = new UnityCursorTooltipScreen();
             var lockStatesSeenOnNotify = new List<CursorLockMode>();
             screen.OnAnchorModeChanged.Subscribe(_ => lockStatesSeenOnNotify.Add(UnityEngine.Cursor.lockState));
 
@@ -44,14 +45,14 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         public void ポインタは実画面pxのまま流し今の位置も実画面pxで返す()
         {
             var mouse = InputSystem.AddDevice<Mouse>();
-            var screen = new UnityCursorTooltipScreen(new InputSystemPointerPositionStream());
+            var pointer = new InputSystemUiScreenPointer(new InputSystemPointerPositionStream());
             var received = new List<Vector2>();
-            screen.OnPointerMovedOnScreen.Subscribe(received.Add);
+            pointer.OnPointerMovedOnScreen.Subscribe(received.Add);
 
             Set(mouse.position, new Vector2(120f, 80f));
 
             Assert.AreEqual(new[] { new Vector2(120f, 80f) }, received.ToArray());
-            Assert.AreEqual(new Vector2(120f, 80f), screen.CurrentPointerOnScreen());
+            Assert.AreEqual(new Vector2(120f, 80f), pointer.CurrentPointerOnScreen());
         }
     }
 }

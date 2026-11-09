@@ -39,7 +39,7 @@ namespace Client.Tests.Ui.Screens.ModeHud
         [Test]
         public void カーソルツールチップは入力を奪わない()
         {
-            var view = Mount(new CursorTooltipView(new FakeCursorTooltipScreen()));
+            var view = Mount(NewViewWithFakeScreen());
             view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.WorldTarget)));
             simulate.FrameUpdate();
             AssertPassesThrough(view, Find<VisualElement>(view, "cursor-tooltip").worldBound.center);
@@ -51,6 +51,12 @@ namespace Client.Tests.Ui.Screens.ModeHud
             // Only things outside the screen are picked
             var picked = view.panel.Pick(point);
             Assert.IsFalse(picked == view || (picked != null && view.Contains(picked)), picked == null ? "null" : picked.name);
+        }
+
+        private static CursorTooltipView NewViewWithFakeScreen()
+        {
+            var screen = new FakeCursorTooltipScreen();
+            return new CursorTooltipView(screen, screen, screen.StageScale);
         }
     }
 }
