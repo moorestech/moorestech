@@ -34,7 +34,7 @@
 
 | レーン | 完了条件（計画から） | gamma へ回した件・gamma が拾う件 | gamma での扱い |
 |---|---|---|---|
-| S4-alpha | ブロック UI の汎用族の UITK 化（`block-inventory`・`block-inventory-panel`・`block-inventory-close`・`<testId>-slot-<index>`）、SubInventory で `StageColumn.Viewer` 列、SlotCommands（`Client.Ui.State/SlotCommands/`） | integrator への依頼 (a) `Registration/GameUi/` のサブディレクトリ化、(b) `GamePanel` の題の右の逃げ 99px、(c) `SlotCommands` を設計書 §2 の State の表へ（A-142 の下書き） | (a) Task 1 Step 4 で直下と `Screens/` の本数を数え、S4 の画面の登録が `Screens/` にあるかを見る（E-1）。外れていれば bd を立て I-fix へ回す（gamma は他レーンの登録ファイルを動かさない。D-4）。(b) Task 13 の比べ方で special のロケットの差として照合し、未処理なら LX の文面を書く。(c) 設計書の行の有無だけ確かめる |
+| S4-alpha | ブロック UI の汎用族の UITK 化（`block-inventory`・`block-inventory-panel`・`block-inventory-close`・`<testId>-slot-<index>`）、SubInventory で `StageColumn.Viewer` 列、SlotCommands（`Client.Ui.State/SlotCommands/`） | integrator への依頼 (a) `Registration/GameUi/` のサブディレクトリ化、(b) `GamePanel` の題の右の逃げ 99px、(c) `SlotCommands` を設計書 §2 の State の表へ（A-142 の下書き） | (a) Task 1 Step 4 で直下と `Screens/` の本数を数え、alpha の `BlockInventoryGameUiRegistration.cs` 以外の S4 の画面の登録が `Screens/` にあるかを見る（E-1）。外れていれば bd を立て I-fix へ回す（gamma は他レーンの登録ファイルを動かさない。D-4）。(b) Task 13 の比べ方で special のロケットの差として照合し、未処理なら LX の文面を書く。(c) 設計書の行の有無だけ確かめる |
 | S4-inventory | InventoryPanel・EquipmentPanel（`inventory-panel`・`inventory-sort`・`main-slot-<i>`・`equipment-slots`）、アンカーの印付け | 依頼 `TutorialAnchor.Unmark`（D-8）・`GameUiPointerProbe.PickAt`（D-11） | Foundation の口なので gamma は作らない。Task 11 で状態を確かめ、未処理なら bd を I-fix へ（無くても動く形で書かれているので段階 4 の完了は妨げない。帰結: 画面側の写しが 2 か所残る） |
 | S4-machine | 機械の詳細・清浄室・流体枠・レシピ選択（`MachineRecipeSelectionRow` 等） | 依頼: `Client.Ui.State.asmdef` の参照、撮影表への 15 枚の追加（E-22 の自撮り） | asmdef は取り込み済みかを見るだけ。撮影表への追加は integrator の共有区画なので Task 11 で `docs/uitk/TODO.md`「## 参照キャプチャ」に自撮りの置き場を 1 行で記す |
 | S4-train | 列車の本文（`train-tab-inventory`・`train-tab-timetable`）・時刻表の即時編集（適用ボタンを消し、保留中は `train-timetable-section--busy`）・駅名（`train-station-name-input`＋`train-station-name-apply`）・プラットフォーム。録画 `train-timetable-via-ui`・`train-station-default-name` を直す | integrator への依頼 (a) `PanelActionButton` の無効の見た目（画面のつまみで上書き中。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) `Registration/GameUi/` の再編先 | (a) Task 11 で状態を確かめ、未処理なら bd を I-fix へ。(b) Task 11 Step 2 の参照の記載に含める。(c) S4-alpha の (a) と同じ扱い。ラダー 5 は即時送信の形で書く（Task 6） |
@@ -105,6 +105,7 @@ Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot �
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / サーバーの値の直読み・品目と見え方の自前実装・アンカー照合の置き場・死活表の読み手 2 つを直した
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱3・第3バケツ0 / Key? の不在を判別子に使う形を直し、ADR との食い違い 3 件（LX の追記者・並べ比べの判定者・MarkClipContainer の義務）を D-17〜D-19 で裁き、弱 3 件は D-20 でこのまま。シミュレーター反映後に変えた範囲を fresh-context で再検査（強1・弱4）し、駅名の待ちを ServerSnapshots の前例の形へ、枠の測り方を自分の入れ物と切り抜き後の見える範囲へ、§3.3 の改め案を足して全件直した。独立評価 2 体（opus 7 件・codex 4 件）の指摘を直した範囲を fresh-context で再検査（Phase 1〜2.6 の発火 0、故障シナリオ強1・弱4: 比較元の引き方・分岐点の引き方・枠の session の入れ替わり・D-23 の前提・消える worktree への grep）し全件直した
 - 2 周目の独立評価の指摘（opus N1〜N4・codex 1〜2）と指揮の追加（登録ファイルの `Screens/`）を直した範囲を fresh-context で再検査: 6 件は実コードと照らして解消を確認、新規 1 件（参照の撮り直しで `capture.ts` の viewport が 1280×720 固定・node_modules 無し）を pnpm install/build・UITK_REFERENCE_OUT・使い捨て worktree 内だけの viewport 書き換えで直した
+- 3 周目の独立評価の指摘（codex: `resolvedStyle.overflow` が `IResolvedStyle` に無くコンパイルできない／opus: alpha の直下の 1 本の除外・`manifest.json` の viewport・`moores-wt rm` の名前と `--prune-branch`）を直した: 自前のクリップ判定を消して本番の `TutorialAncestorClipWalker.ClipOf`（public static）へ寄せ、`Client.Playtest.asmdef` に `Client.Ui.State` を足す（実物で公開範囲・asmdef の参照・循環の無さを確かめた）
 
 ---
 
@@ -132,6 +133,7 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 | `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestTrainLine.cs` | 新規 | 駅 2 基・結線・機関車の解放と設置・燃料・列車の取得（既存 `train-timetable-via-ui.cs` の準備の写し。駅名は付けない） |
 | `…/Operations/Ladder/PlaytestPanelCostRecorder.cs` | 新規 | `ProfilerRecorder` で UI のマーカーを N フレーム読み、平均・p95・最大を返す |
 | `…/Operations/ScenarioChecks/PlaytestAnchorChecks.cs` | 新規 | マスタの `uiHighLight` を集め、アンカーの解決と枠の位置を確かめる |
+| `moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef` | 変更 | references に `Client.Ui.State` を足す（アンカーの見える範囲を本番の `TutorialAncestorClipWalker` で求めるため） |
 | `…/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs` | 新規 | 駅名をサーバーの tick で読み、待つ（前例 `PlaytestTrainSnapshots`。起草時 8 本 → 9 本） |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs` | 新規 | ラダー 4 |
 | `…/scenarios/uitk/stage4/uitk-research-train.cs` | 新規 | ラダー 5 |
@@ -207,7 +209,7 @@ grep -n "\"石窯\"\|\"蒸気機関車駅\"" -r ../moorestech_master/server_v8/m
 grep -n "ProfilerRecorder\|UIElementsUpdatePanels\|RepaintPanels" -r docs/uitk-migration/poc | head -5
 git grep -n "MarkClipContainer" -- moorestech_client/Assets/Scripts/Client.Ui | head -5
 ```
-Expected: W4 以降の画面の登録ファイルは `Registration/GameUi/Screens/` に置く決まり（実行計画 E-1。S4-alpha で直下が 10 本になったため）。直下と `Screens/` がそれぞれ 10 本以下で、S4 のレーンが足した画面の登録ファイルが `Screens/` にあること。直下に S4 の画面の登録ファイルが増えている、またはどちらかが 10 を超えていれば bd を立てて I-fix へ回す（gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
+Expected: W4 以降の画面の登録ファイルは `Registration/GameUi/Screens/` に置く決まり（実行計画 E-1。S4-alpha で直下が 10 本になったため）。直下は S4-alpha の `BlockInventoryGameUiRegistration.cs` を含めて 10 本まで（E-1 が認めた 1 本）、`Screens/` も 10 本以下で、それ以外の S4 のレーンが足した画面の登録ファイルが `Screens/` にあること。alpha の 1 本の他に S4 の画面の登録ファイルが直下に増えている、またはどちらかが 10 を超えていれば bd を立てて I-fix へ回す（gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
 
 - [ ] **Step 5: bd と done.md の骨組みを作る**
 
@@ -601,9 +603,10 @@ git commit -m "test(uitk): 段階 4 の同時に出る組を実ゲームで巡�
 - Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestPanelCostRecorder.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef`（references に `"Client.Ui.State"` を 1 行足す）
 
 **Interfaces:**
-- Consumes: `PlaytestDriver`（`SetupFlatGround`・`WarpPlayer`・`PlaceBlockDirect`・`WaitBlockGameObject`・`GetBlock`・`RunOnServer`・`Until`・`Assert`・`GiveItemDirect`・`SendCommand`・`WaitSeconds`・`AimAt`）、`RailComponent`・`TrainStationComponent`・`StationNodeRole`、`ClientContext.VanillaApi.Response.PlaceTrainOnRail`、`ITrainUnitLookupDatastore`、`MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements`、`TutorialsElement.TutorialTypeConst.uiHighLight`・`UiHighLightTutorialParam.HighLightAnchorId`、`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`ITutorialView.CompleteTutorial()`、`TutorialAnchorRegistry.Resolve(VisualElement, string)`、`GameUiRoot.Instance.GetRootElement()`、`ProfilerRecorderHandle.GetAvailable`・`ProfilerRecorder.StartNew`
+- Consumes: `PlaytestDriver`（`SetupFlatGround`・`WarpPlayer`・`PlaceBlockDirect`・`WaitBlockGameObject`・`GetBlock`・`RunOnServer`・`Until`・`Assert`・`GiveItemDirect`・`SendCommand`・`WaitSeconds`・`AimAt`）、`RailComponent`・`TrainStationComponent`・`StationNodeRole`、`ClientContext.VanillaApi.Response.PlaceTrainOnRail`、`ITrainUnitLookupDatastore`、`MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements`、`TutorialsElement.TutorialTypeConst.uiHighLight`・`UiHighLightTutorialParam.HighLightAnchorId`、`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`ITutorialView.CompleteTutorial()`、`TutorialAnchorRegistry.Resolve(VisualElement, string)`、`TutorialAncestorClipWalker.ClipOf(VisualElement, VisualElement)` → `TutorialClipRect`（`ContainsRect`・`Left`/`Top`/`Right`/`Bottom`）、`GameUiRoot.Instance.GetRootElement()`、`ProfilerRecorderHandle.GetAvailable`・`ProfilerRecorder.StartNew`
 - Produces:
   - `PlaytestTrainLineSetup`（`IBlock StationA`・`IBlock StationB`・`Vector3Int StationAPosition`・`StationBPosition`・`TrainUnit Train`）、`PlaytestTrainLine.Build(PlaytestDriver p, Vector3Int stationAPosition, Vector3Int stationBPosition)` → `UniTask<PlaytestTrainLineSetup>`、`PlaytestTrainLine.AimAtCar(PlaytestDriver p)`、`PlaytestTrainLine.AimAtStation(PlaytestDriver p, Vector3Int stationPosition)`
   - `PlaytestTrainStationSnapshots.ReadStationName(this PlaytestDriver driver, IBlock station)` → `UniTask<string>`、`PlaytestTrainStationSnapshots.WaitForStationName(this PlaytestDriver driver, IBlock station, string expected, float timeoutSeconds, string label)`
@@ -871,6 +874,8 @@ using System.Linq;
 using Client.Game.InGame.Tutorial;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Screens.Tutorial.Anchor;
+using Client.Ui.State.Tutorial.Logic;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;
@@ -937,17 +942,20 @@ namespace Client.Playtest.Operations
             await p.Until(() => (own = root.Query(OutlineName).ToList().FirstOrDefault(e => !before.Contains(e))) != null, 5f, $"{anchor.AnchorId} の枠が 1 つ増える");
             await UniTask.DelayFrame(2);
             var ring = own.Q(className: OutlineRingClass);
-            var anchorBound = unique.Element.worldBound;
-            var visibleBound = VisibleRectOf(unique.Element);
-            var fullyVisible = visibleBound.width >= anchorBound.width - 0.5f && visibleBound.height >= anchorBound.height - 0.5f;
+
+            // 見える範囲は本番の枠と同じ判定（TutorialAncestorClipWalker）で根の座標に取り、アンカーが収まるときだけ中心を比べる
+            // Take the visible region with the production walker in root space and compare centers only when the anchor fits in it
+            var anchorBound = root.WorldToLocal(unique.Element.worldBound);
+            var visible = TutorialAncestorClipWalker.ClipOf(unique.Element, root);
+            var fullyVisible = visible.Expand(0.5f).ContainsRect(new TutorialClipRect(anchorBound.xMin, anchorBound.yMin, anchorBound.xMax, anchorBound.yMax));
             if (fullyVisible)
             {
-                var distance = Vector2.Distance(ring.worldBound.center, anchorBound.center);
+                var distance = Vector2.Distance(root.WorldToLocal(ring.worldBound).center, anchorBound.center);
                 p.Assert(distance <= CenterTolerancePx, $"{anchor.AnchorId} の枠の中心がアンカーの中心から {distance:F1}px（{CenterTolerancePx}px 以内）");
             }
             else
             {
-                p.Note($"{anchor.AnchorId} は画面外か切り抜きの容器で一部が隠れている（{anchorBound} のうち見える {visibleBound}）。枠の位置は見ない");
+                p.Note($"{anchor.AnchorId} は画面外か切り抜きの容器で一部が隠れている（{anchorBound} のうち見える範囲 {visible.Left:F0},{visible.Top:F0}-{visible.Right:F0},{visible.Bottom:F0}）。枠の位置は見ない");
             }
             await p.Screenshot($"anchor-{anchor.AnchorId}");
 
@@ -957,26 +965,10 @@ namespace Client.Playtest.Operations
             await p.Until(() => own.panel == null, 5f, $"{anchor.AnchorId} の自分の枠が消える");
             p.Assert(before.All(e => e.panel != null), $"{anchor.AnchorId} の完了で本番の枠を消していない");
         }
-
-        private static Rect VisibleRectOf(VisualElement element)
-        {
-            // 画面と、overflow で子を切る祖先の矩形を順に重ねた見える範囲（切り抜きの印 MarkClipContainer の容器も overflow: hidden）
-            // The visible rect after intersecting the screen and every overflow-clipping ancestor (MarkClipContainer holders are overflow: hidden too)
-            var rect = element.worldBound;
-            for (var current = element.parent; current != null; current = current.parent)
-            {
-                if (current.resolvedStyle.overflow != Overflow.Hidden && current.parent != null) continue;
-                var clip = current.worldBound;
-                var xMin = Mathf.Max(rect.xMin, clip.xMin);
-                var yMin = Mathf.Max(rect.yMin, clip.yMin);
-                rect = Rect.MinMaxRect(xMin, yMin, Mathf.Max(xMin, Mathf.Min(rect.xMax, clip.xMax)), Mathf.Max(yMin, Mathf.Min(rect.yMax, clip.yMax)));
-            }
-            return rect;
-        }
     }
 }
 ```
-`tutorial-outline` は大きさの無い absolute の入れ物で（`TutorialOverlay.uss`・`TutorialOverlayView.cs`）、箱の位置と大きさは子の `tutorial-outline__ring`（クラス）が持つ（`TutorialOutlineView.cs`。S2-tutorial のテストも子で測る）。出現・消滅は入れ物の有無で、中心は ring の `worldBound` で見る。`TutorialPresentationStateStore` の名前空間は `Client.Game.InGame.Tutorial`（起草時の実物）。
+見える範囲は自前で求めない（USS の `overflow` は `IResolvedStyle` に無く C# から読めない。設計書 component-architecture.md の MarkClipContainer の項）。本番の枠と同じ `TutorialAncestorClipWalker.ClipOf(VisualElement, VisualElement)`（public static。ScrollView の viewport・`MarkClipContainer` の印・インラインの `overflow` で判定）を使うので、`Client.Playtest.asmdef` の references に `Client.Ui.State`（`TutorialClipRect` の在りか）を足す。`tutorial-outline` は大きさの無い absolute の入れ物で（`TutorialOverlay.uss`・`TutorialOverlayView.cs`）、箱の位置と大きさは子の `tutorial-outline__ring`（クラス）が持つ（`TutorialOutlineView.cs`。S2-tutorial のテストも子で測る）。出現・消滅は入れ物の有無で、中心は ring の `worldBound` で見る。`TutorialPresentationStateStore` の名前空間は `Client.Game.InGame.Tutorial`（起草時の実物）。
 
 - [ ] **Step 4: コンパイルして行数を見る**
 
@@ -1909,7 +1901,7 @@ Expected: 2 行とも exit 0。各 run dir に 6 枚。`moorestech_client/Temp/u
 Web の見た目の正本は参照キャプチャ（設計書 §3.3）で、段の頭に integrator が撮り直す（実行計画「各段の頭」）。使う参照は次の順で決める:
 1. `ls ../moorestech_logs/uitk/reference-captures/` と台帳「## 参照キャプチャ」から、段 4 の頭に撮り直した `web-<sha>/`（720p）と `web-<sha>-2560x1080/` を引く（無ければ最新）
 2. `git merge-base --is-ancestor <Task 2 の束 4 の起点> <参照の sha>` が両方の解像度で真であることを見る（偽なら、その参照は束 4 の Web を全部は含まない）
-3. 偽なら、gamma（integrator）が起点以後の `origin/master` の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-ref --from origin/master --no-editor`）で撮り直す。新しい worktree には node_modules が無いので、先に `cd moorestech_web/webui && pnpm install && pnpm build` を流す。720p は `UITK_REFERENCE_OUT=<空のディレクトリ> UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/capture.ts`（ref-uitk-design `compare-procedure.md` の流し方）で撮る。`capture.ts` の画面の大きさは `shotRunner.ts:11` の `referenceViewport`（1280×720）に固定で外から変える口が無いので、2560×1080 はこの使い捨て worktree の中でだけ `referenceViewport` を `{ width: 2560, height: 1080 }` に書き換えて別の空のディレクトリへ撮り、コミットしない（口を足すのは束 5 の Web の撮影基盤の持ち物）。撮れた `index` の viewport が 1280x720・2560x1080 になっていることを見てから `moorestech_logs/uitk/reference-captures/web-<sha>/`・`web-<sha>-2560x1080/` に置き、台帳「## 参照キャプチャ」の撮影元を書き換える（台帳の運用）。撮り方（書き換えた行を含む）を `done.md` に書く。撮り終えたら worktree を `moores-wt rm --force` で畳む（書き換えは捨てる）
+3. 偽なら、gamma（integrator）が起点以後の `origin/master` の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-ref --from origin/master --no-editor`）で撮り直す。新しい worktree には node_modules が無いので、先に `cd moorestech_web/webui && pnpm install && pnpm build` を流す。720p は `UITK_REFERENCE_OUT=<空のディレクトリ> UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/capture.ts`（ref-uitk-design `compare-procedure.md` の流し方）で撮る。`capture.ts` の画面の大きさは `shotRunner.ts:11` の `referenceViewport`（1280×720）に固定で外から変える口が無いので、2560×1080 はこの使い捨て worktree の中でだけ `referenceViewport` を `{ width: 2560, height: 1080 }` に書き換えて別の空のディレクトリへ撮り、コミットしない（口を足すのは束 5 の Web の撮影基盤の持ち物）。撮れた `manifest.json` の `viewport`（`captureIndex.ts` が書く。`index.md` には無い）が 1280x720・2560x1080 になっていることを見てから `moorestech_logs/uitk/reference-captures/web-<sha>/`・`web-<sha>-2560x1080/` に置き、台帳「## 参照キャプチャ」の撮影元を書き換える（台帳の運用）。撮り方（書き換えた行を含む）を `done.md` に書く。撮り終えたら worktree を `moores-wt rm uitk-tmp/s4-gamma-ref --force --prune-branch` で畳む（書き換えは捨てる）
 
 撮影 id `4-player-inventory`・`4-research`・`4-block-machine-recipe-selection` を取り、`compare/` に「参照／Web 実ゲーム（CEF）／UITK 実ゲーム」の 3 列で並べる。使った参照の sha を `done.md` に書く（D-25）。
 
@@ -2071,7 +2063,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-1 | gamma は本番のコード（画面・部品・Foundation・State・登録）を 1 行も書かず、検査する側のファイルだけを足す。登録の 1 行は無い | 段の締めの役目は「段が揃ったことの証拠」で、直すのは持ち主（取り込み後は I-fix）。gamma が直すと他レーンの所有と重なり、レビューの責任が割れる（実行計画 §8 の所有） | gamma が見つけた不具合をその場で直す: 所有が重なり、持ち主のテストが付かないまま直る |
 | D-2 | L3 は `Ui/Stage4/` の新しいサブディレクトリに 3 ファイルで置く | `EditModeInPlayingTest/Ui/` は既に 10 ファイル（`.cs`）。面の読み方（Probe）と期待の表を分けると、Task 13 の撮影や後の段の締めが表を読める | `Ui/` 直下に 1 ファイル: 11 本目になる。1 ファイルに表と読み方を入れる: 200 行を超える見込み |
 | D-3 | 「ビューア＋機械 UI＋インベントリ」の L3 は同時表示でなく行き来で見る（PlayerInventory → … → SubInventory〈`釜`〉→ … → PlayerInventory）。特殊族は対象にしない | Web の `App.tsx` でビューアは playerInventory のときだけ出て、機械 UI（SubInventory）と同時には出ない（S4-recipe の重なりの表もそう書く）。壊れ方は「前の画面の面が残る・重なる」なので、行き来の後に残骸が無いことを見る。特殊族は同じ `block-inventory` の器で列の扱いが同じ | 3 つを同時に出す: 本番で起きない状態を作ることになる。特殊族を全部巡る: 族ごとの見た目は各レーンの L1 と録画が見ている |
-| D-4 | 登録ディレクトリ `Registration/GameUi/`（直下と、W4 以降の画面を置く `Screens/`。E-1）のどちらかが 10 を超えるか、S4 の画面の登録が直下にあっても gamma は動かさず、bd を I-fix へ回す | 中身は各レーンの登録ファイルで、動かすと他レーンのファイルを書く。alpha が依頼済みで、W4 の取り込みの前に integrator が入れる段取り | gamma が再編する: 所有が重なる。完了条件にする: 段階 4 の完了条件（plan §2.5）に無い |
+| D-4 | 登録ディレクトリ `Registration/GameUi/`（直下と、W4 以降の画面を置く `Screens/`。E-1）のどちらかが 10 を超えるか、S4-alpha の `BlockInventoryGameUiRegistration.cs`（E-1 が直下に認めた 1 本）の他に S4 の画面の登録が直下にあっても gamma は動かさず、bd を I-fix へ回す | 中身は各レーンの登録ファイルで、動かすと他レーンのファイルを書く。alpha が依頼済みで、W4 の取り込みの前に integrator が入れる段取り | gamma が再編する: 所有が重なる。完了条件にする: 段階 4 の完了条件（plan §2.5）に無い |
 | D-5 | 他レーンの名前が計画と違えば gamma のファイルの側を直し、相手に変更を求めない | 名前は画面の持ち主が Web の `data-testid` に合わせて決めたもので、gamma の検査はそれを読む側 | 計画の名前へ合わせるよう依頼する: マージ済みの画面を名前のためだけに直すことになる |
 | D-6 | 回ってきた依頼のうち Foundation の口（`TutorialAnchor.Unmark`・`GameUiPointerProbe.PickAt`・`GamePanel` の題の逃げ）と D-23・D-26 は、未処理でも段階 4 の完了を止めず bd を I-fix へ回すだけにする | 各レーンが「無くても動く形」で書いたと計画に書いている。gamma の完了条件（§1.4）に入っていない。帰結: 画面側の写しが残る（`done.md` に件ごとに書く） | 全部入るまで止める: 段階 5 の着手が理由無く遅れる |
 | D-7 | 持ち主の無い `e2e/mock-host/detailActions.test.ts` 3 件は処遇「捨てる」 | mock-host（偽ホスト）が detail action を受けて自分の状態を書き換える契約で、UITK に偽ホストが無い。機械のレシピ選択の振る舞いは S4-machine の State のテストが持つ | 写す予定: 写し先が無いので永遠に閉じない |
