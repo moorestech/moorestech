@@ -28,7 +28,7 @@ namespace Client.Tests.Ui.Screens.GrabOverlay
         private readonly Vector2 _logicalPanelSize;
         private readonly float _pixelsPerPoint;
         private static readonly Guid WoodGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
-        private FakeGrabOverlayPointer _pointer;
+        private FakeUiScreenPointer _pointer;
         private GameContentPresentation _content;
         private Texture2D _texture;
         private ItemId _wood;
@@ -49,7 +49,7 @@ namespace Client.Tests.Ui.Screens.GrabOverlay
         public void SetUp()
         {
             pixelsPerPoint = _pixelsPerPoint;
-            _pointer = new FakeGrabOverlayPointer(_pixelsPerPoint);
+            _pointer = new FakeUiScreenPointer(_pixelsPerPoint);
 
             // 絵は ID から中身を組むので、マスタはテスト用 mod、テクスチャは手元の 1 枚で Content を組む
             // The view builds content from an id, so Content uses the test mod master and a local texture

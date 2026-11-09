@@ -70,9 +70,22 @@ namespace Client.Ui.Foundation.DragDrop
             for (var current = from; current != null; current = current.parent)
             {
                 if (Marks<TTarget>.Targets.TryGetValue(current, out target)) return true;
+                LogIfMarkedWithImplementingType<TTarget>(current);
             }
             target = null;
             return false;
+        }
+
+        // 型引数を省いて具体型で印を付けると受け口の表に入らず枠外になるので、取り違えをログで知らせてから飛ばす
+        // Marking with an inferred concrete type misses the receiver's table and drops outside, so log the mix-up before skipping
+        private static void LogIfMarkedWithImplementingType<TTarget>(VisualElement element) where TTarget : class
+        {
+            if (!TargetTypesByElement.TryGetValue(element, out var types)) return;
+            foreach (var markedType in types)
+            {
+                if (markedType == typeof(TTarget) || !typeof(TTarget).IsAssignableFrom(markedType)) continue;
+                Debug.LogError($"[UiDragDrop] {element.name} is marked as {markedType.Name}, which implements {typeof(TTarget).Name}; mark it with MarkTarget<{typeof(TTarget).Name}>");
+            }
         }
 
         // 落とし先の型ごとの印の表

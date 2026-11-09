@@ -27,13 +27,22 @@ namespace Client.Tests.Ui.DragDrop
         }
     }
 
-    internal sealed class NamedDropTarget
+    internal class NamedDropTarget
     {
         public readonly string Name;
 
         public NamedDropTarget(string name)
         {
             Name = name;
+        }
+    }
+
+    // 受け口の派生型（型引数を省いて印を付ける取り違えの再現用）
+    // A subtype of the receiver (reproduces marking with an inferred type argument)
+    internal sealed class DerivedNamedDropTarget : NamedDropTarget
+    {
+        public DerivedNamedDropTarget(string name) : base(name)
+        {
         }
     }
 

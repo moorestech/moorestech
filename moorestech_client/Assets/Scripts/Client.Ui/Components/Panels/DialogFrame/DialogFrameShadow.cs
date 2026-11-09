@@ -90,10 +90,10 @@ namespace Client.Ui.Components.Panels
                 var y1 = frame.yMax + _offsetY[layer] + spread;
                 foreach (var y in ys)
                 {
-                    var coverageY = Mathf.Max(0f, GaussianEdgeCoverage.StandardNormalCdf((y - y0) / sigma) - GaussianEdgeCoverage.StandardNormalCdf((y - y1) / sigma));
+                    var coverageY = GaussianEdgeCoverage.BandCoverage(y, y0, y1, sigma);
                     foreach (var x in xs)
                     {
-                        var coverageX = Mathf.Max(0f, GaussianEdgeCoverage.StandardNormalCdf((x - x0) / sigma) - GaussianEdgeCoverage.StandardNormalCdf((x - x1) / sigma));
+                        var coverageX = GaussianEdgeCoverage.BandCoverage(x, x0, x1, sigma);
                         var tint = _color[layer];
                         tint.a = LinearBlendOpacity.OpacityAt(_color[layer].a, coverageX * coverageY);
                         mesh.SetNextVertex(new Vertex { position = new Vector3(x, y, Vertex.nearZ), tint = tint });

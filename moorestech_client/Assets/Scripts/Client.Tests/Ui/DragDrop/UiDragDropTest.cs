@@ -1,7 +1,9 @@
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.DragDrop;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.DragDrop
@@ -104,6 +106,19 @@ namespace Client.Tests.Ui.DragDrop
             UiDragDrop.MarkTarget(_slot, new OtherKindDropTarget());
             UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
             Assert.IsTrue(_slot.ClassListContains("ui-drop-target"));
+
+            Press(_source.worldBound.center, _slotIcon.worldBound.center);
+            CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
+        }
+
+        [Test]
+        public void 受け口の派生型で付けた印は飛ばしてエラーログで知らせる()
+        {
+            // 型引数を省くと派生型の表に入るので、受け口の型では見つからない
+            // Omitting the type argument files the mark under the subtype, so the receiver type cannot find it
+            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
+            UiDragDrop.MarkTarget(_slot, new DerivedNamedDropTarget("slot"));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[UiDragDrop\] .* is marked as DerivedNamedDropTarget"));
 
             Press(_source.worldBound.center, _slotIcon.worldBound.center);
             CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);

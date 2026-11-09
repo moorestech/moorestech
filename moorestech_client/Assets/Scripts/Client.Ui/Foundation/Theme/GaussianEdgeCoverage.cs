@@ -21,6 +21,13 @@ namespace Client.Ui.Foundation.Theme
             return StandardNormalCdf(-signedDistance / sigma);
         }
 
+        // 区間 [low, high] をぼかした帯の点 position での被覆率 Φ((p-low)/σ)-Φ((p-high)/σ)
+        // Coverage at position of the band [low, high] blurred by sigma: Phi((p-low)/sigma)-Phi((p-high)/sigma)
+        public static float BandCoverage(float position, float low, float high, float sigma)
+        {
+            return Mathf.Max(0f, StandardNormalCdf((position - low) / sigma) - StandardNormalCdf((position - high) / sigma));
+        }
+
         public static float StandardNormalCdf(float z)
         {
             var x = Mathf.Abs(z) / Mathf.Sqrt(2f);

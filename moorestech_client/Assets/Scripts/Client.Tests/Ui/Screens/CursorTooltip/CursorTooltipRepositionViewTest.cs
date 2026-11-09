@@ -77,5 +77,21 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             Assert.AreEqual(106f, face.worldBound.xMin, 0.5f);
             Assert.AreEqual(156f, face.worldBound.yMin, 0.5f);
         }
+
+        [Test]
+        public void 倍率だけが変わってもパネルの形の変化を待たず置き直す()
+        {
+            _screen.MovePointer(new Vector2(200f, 300f));
+            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.WorldTarget)));
+            simulate.FrameUpdate();
+            var face = Find<VisualElement>(_view, "cursor-tooltip");
+
+            // パネルの大きさは変えず倍率だけ流す。形の変化の通知が来ないので、置き直すのは倍率の購読だけ
+            // Push only the scale with the panel size unchanged; no geometry event fires, so only the scale subscription re-places it
+            _screen.SetScale(2f);
+            simulate.FrameUpdate();
+            Assert.AreEqual(106f, face.worldBound.xMin, 0.5f);
+            Assert.AreEqual(156f, face.worldBound.yMin, 0.5f);
+        }
     }
 }
