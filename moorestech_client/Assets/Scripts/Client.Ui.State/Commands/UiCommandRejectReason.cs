@@ -12,6 +12,10 @@ namespace Client.Ui.State.Commands
         BundleWriteFailed,
         UnknownLanguage,
         LanguageAlreadySelected,
+        ItemSourceSlotEmpty,
+        ItemSourceCountShort,
+        SplitGrabNotEmpty,
+        SplitDragNoValidSlots,
     }
 
     /// <summary>
@@ -20,8 +24,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 選択済み再選択のみ良性
-        // Only re-selecting a chosen language is benign
+        // 選択済み再選択と、Web の BENIGN_ERRORS にある持ち物の移動・分割の取りこぼしは良性
+        // Re-selecting a chosen language and the inventory move/split misses in Web BENIGN_ERRORS are benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch
@@ -32,6 +36,10 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BundleWriteFailed => false,
                 UiCommandRejectReason.UnknownLanguage => false,
                 UiCommandRejectReason.LanguageAlreadySelected => true,
+                UiCommandRejectReason.ItemSourceSlotEmpty => true,
+                UiCommandRejectReason.ItemSourceCountShort => true,
+                UiCommandRejectReason.SplitGrabNotEmpty => true,
+                UiCommandRejectReason.SplitDragNoValidSlots => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -55,6 +63,10 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BundleWriteFailed => LocalizationKeys.Ui.CommandRejected.BundleWriteFailed,
                 UiCommandRejectReason.UnknownLanguage => LocalizationKeys.Ui.CommandRejected.UnknownLanguage,
                 UiCommandRejectReason.LanguageAlreadySelected => LocalizationKeys.Ui.CommandRejected.LanguageAlreadySelected,
+                UiCommandRejectReason.ItemSourceSlotEmpty => LocalizationKeys.Ui.CommandRejected.ItemSourceSlotEmpty,
+                UiCommandRejectReason.ItemSourceCountShort => LocalizationKeys.Ui.CommandRejected.ItemSourceCountShort,
+                UiCommandRejectReason.SplitGrabNotEmpty => LocalizationKeys.Ui.CommandRejected.SplitGrabNotEmpty,
+                UiCommandRejectReason.SplitDragNoValidSlots => LocalizationKeys.Ui.CommandRejected.SplitDragNoValidSlots,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -71,6 +83,10 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.LanguageAlreadySelected => "already_selected",
                 UiCommandRejectReason.CaptureRefused => "capture_refused",
                 UiCommandRejectReason.BundleWriteFailed => BugReportSubmitResult.BundleWriteFailed,
+                UiCommandRejectReason.ItemSourceSlotEmpty => "empty_slot",
+                UiCommandRejectReason.ItemSourceCountShort => "insufficient_count",
+                UiCommandRejectReason.SplitGrabNotEmpty => "grab_not_empty",
+                UiCommandRejectReason.SplitDragNoValidSlots => "no_valid_slots",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

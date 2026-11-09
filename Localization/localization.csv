@@ -495,3 +495,7 @@ ui.commandRejected.captureRefused,Cannot send right now: the records are not rea
 ui.commandRejected.bundleWriteFailed,Could not write the bug report,Could not write the bug report,バグ報告を書き出せませんでした,Fehlerbericht konnte nicht geschrieben werden,버그 신고를 작성하지 못했습니다
 ui.commandRejected.unknownLanguage,This language cannot be selected,This language cannot be selected,この言語は選べません,Diese Sprache kann nicht ausgewählt werden,이 언어는 선택할 수 없습니다
 ui.commandRejected.languageAlreadySelected,The language is already selected,The language is already selected,言語はすでに選ばれています,Die Sprache ist bereits ausgewählt,언어가 이미 선택되어 있습니다
+ui.commandRejected.itemSourceSlotEmpty,The slot is already empty,The slot is already empty,スロットはすでに空です,Der Platz ist bereits leer,슬롯이 이미 비어 있습니다
+ui.commandRejected.itemSourceCountShort,Not enough items in the slot,Not enough items in the slot,スロットのアイテムが足りません,Nicht genug Gegenstände im Platz,슬롯의 아이템이 부족합니다
+ui.commandRejected.splitGrabNotEmpty,Put down the held items before splitting,Put down the held items before splitting,分ける前に持っているアイテムを置いてください,Lege die gehaltenen Gegenstände ab bevor du teilst,나누기 전에 들고 있는 아이템을 내려놓으세요
+ui.commandRejected.splitDragNoValidSlots,No slot can take the held items,No slot can take the held items,持っているアイテムを置けるスロットがありません,Kein Platz kann die gehaltenen Gegenstände aufnehmen,들고 있는 아이템을 놓을 수 있는 슬롯이 없습니다

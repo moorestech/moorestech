@@ -67,14 +67,9 @@ namespace Client.WebUiHost.Game.Actions
             if (!TryParseAreaSlot(payload["from"], out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (!TryParseAreaSlot(payload["to"], out var toType, out var toSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
-            // 同一スロットへの移動は MoveItem 内部でアイテムが消失するため no-op にする
-            // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
-            if (fromType == toType && fromSlot == toSlot) return UniTask.FromResult(ActionResult.Success());
-
-            // 実在・数量検証は controller に集約。block も MainOrSub 結合 index で移動する
-            // Presence/count validation lives in the controller; block moves also use the MainOrSub combined index
-            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(denyReason));
-            return UniTask.FromResult(ActionResult.Success());
+            // 実在・数量・同一スロット等の判定は controller に集約。block も MainOrSub 結合 index で移動する
+            // Presence, count and same-slot judgment live in the controller; block moves also use the MainOrSub combined index
+            return UniTask.FromResult(LocalItemMoveWireResult.ToActionResult(_controller.MoveItem(fromType, fromSlot, toType, toSlot, count)));
 
             #region Internal
 

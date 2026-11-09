@@ -32,14 +32,9 @@ namespace Client.WebUiHost.Game.Actions
             if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], mainSlotCount, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (!InventoryAreaMapper.TryParseSlotRef(payload["to"], mainSlotCount, out var toType, out var toSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
-            // 同一スロットへの移動はMoveItem内部でアイテムが消失するため no-op にする
-            // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
-            if (fromType == toType && fromSlot == toSlot) return UniTask.FromResult(ActionResult.Success());
-
-            // 実在・数量検証は controller に集約。拒否理由をそのままエラーコードに写す
-            // Presence/count validation lives in the controller; map the deny reason straight to the error code
-            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(denyReason));
-            return UniTask.FromResult(ActionResult.Success());
+            // 実在・数量・同一スロット等の判定は controller に集約。結果を Web の結果へ写す
+            // Presence, count and same-slot judgment live in the controller; map its result to the Web result
+            return UniTask.FromResult(LocalItemMoveWireResult.ToActionResult(_controller.MoveItem(fromType, fromSlot, toType, toSlot, count)));
         }
     }
 
@@ -112,7 +107,7 @@ namespace Client.WebUiHost.Game.Actions
             var count = CalculateCountPerSlot(_controller.GrabInventory.Count, destinations.Count);
             if (count <= 0) return UniTask.FromResult(ActionResult.Success());
             foreach (var (type, slot) in destinations)
-                _controller.TryMoveItem(LocalMoveInventoryType.Grab, 0, type, slot, count, out _);
+                _controller.MoveItem(LocalMoveInventoryType.Grab, 0, type, slot, count);
             return UniTask.FromResult(ActionResult.Success());
         }
     }
