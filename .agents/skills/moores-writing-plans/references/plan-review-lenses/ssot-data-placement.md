@@ -1,6 +1,5 @@
 ---
 applies: spec+plan
-model: opus
 ---
 
 # Lens: 真実源一元化（見た目Config却下・ベルト長導出却下・WorldDataDirectory由来）

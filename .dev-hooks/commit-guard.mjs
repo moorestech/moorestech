@@ -67,7 +67,7 @@ const EXEMPT = [/^\.dev-hooks\/commit-guard\.mjs$/, /^moorestech_client\/Assets\
 // ローカル専用としてgitignore済みのパスは、-f等での混入自体を拒否する
 // Paths already gitignored as local-only are denied outright even if forced in with -f.
 const FORBIDDEN =
-  /^(\.mso\/|\.claude\/memory\/|\.claude\/settings\.local\.json$|\.agents\/skills\/user-simulator\/datasets\/|\.agents\/skills\/moores-code-review\/records\/|TmpUnityPjt\/MapMaking\/RestoreManifest\/)/;
+  /^(\.mso\/|\.claude\/memory\/|\.claude\/settings\.local\.json$|\.agents\/skills\/moores-code-review\/records\/|TmpUnityPjt\/MapMaking\/RestoreManifest\/)/;
 
 const findings = [];
 for (const path of (git("diff", "--cached", "--name-only") ?? "").split("\n")) {

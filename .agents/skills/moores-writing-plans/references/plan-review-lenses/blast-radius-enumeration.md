@@ -1,6 +1,5 @@
 ---
 applies: plan
-model: sonnet
 ---
 
 # Lens: 波及棚卸し（DI427箇所・CleanRoom第2プロセッサ・マスタ再登録漏れ由来）

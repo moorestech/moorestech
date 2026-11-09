@@ -1,6 +1,5 @@
 ---
 applies: spec+plan
-model: sonnet
 ---
 
 # Lens: スコープ確定（向きコピーYAGNI却下・二経路併存却下・uGUI移行境界由来）
