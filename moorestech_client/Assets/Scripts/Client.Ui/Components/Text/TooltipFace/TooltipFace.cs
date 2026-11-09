@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Tooltip;
 using Client.Ui.State.Text;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,7 +12,7 @@ namespace Client.Ui.Components.Text
     /// ツールチップの面と行
     /// Tooltip face and lines
     /// </summary>
-    public sealed class TooltipFace : VisualElement
+    public sealed class TooltipFace : VisualElement, IHoverTooltipFace
     {
         private readonly string _lineName;
         private bool _unresolvedMaxWidthReported;
@@ -64,6 +65,13 @@ namespace Client.Ui.Components.Text
             // 行が 0 件だと行側の GeometryChanged が来ないので、ここで折り返しの固定を外す
             // With no lines no line GeometryChanged arrives, so release the wrapped pin here
             if (lines.Count == 0) EnableInClassList("tooltip-face--wrapped", false);
+        }
+
+        // ホバーの宿主（Foundation）が置き場所の箱へ自分を載せさせる
+        // Lets the hover host (Foundation) place this face into its anchor box
+        public void AttachTo(VisualElement parent)
+        {
+            parent.Add(this);
         }
 
         private void FillMaxWidthWhenWrapped()

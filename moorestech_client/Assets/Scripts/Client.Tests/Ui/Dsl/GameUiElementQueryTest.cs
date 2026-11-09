@@ -96,6 +96,16 @@ namespace Client.Tests.Ui.Dsl
         }
 
         [Test]
+        public void ButtonWithTextInChildLabelReadsChildText()
+        {
+            var button = Place(new Button { name = Testid });
+            button.Add(new Label("日本語"));
+            simulate.FrameUpdate();
+
+            Assert.AreEqual("日本語", Find().Text);
+        }
+
+        [Test]
         public void SetTextAssignsValueAndRaisesOneChangeEvent()
         {
             var field = Place(new TextField { name = Testid });

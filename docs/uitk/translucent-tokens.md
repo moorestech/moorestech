@@ -36,3 +36,7 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.029)` | 明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き |
 | `--screen-backdrop-face` | `rgb(0 0 0 / 42%)` | `rgba(0, 0, 0, 0.635)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（画面の幕。S2-hud・設計書 A-55） |
 | `--train-riding-hud-face` | `color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)` | `rgba(31, 31, 31, 0.9581)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55） |
+| `--modal-backdrop-face` | `Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)` | `rgba(0, 0, 0, 0.8164)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine Modal の幕。C3-b） |
+| `--modal-shadow-1-color` | `Mantine --mantine-shadow-xl 層 1 の rgba(0, 0, 0, 0.05)` | `rgba(0, 0, 0, 0.0905)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine Modal の影。C3-b） |
+| `--modal-shadow-2-color` | `Mantine --mantine-shadow-xl 層 2 の rgba(0, 0, 0, 0.05)` | `rgba(0, 0, 0, 0.0905)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine Modal の影。C3-b） |
+| `--modal-shadow-3-color` | `Mantine --mantine-shadow-xl 層 3 の rgba(0, 0, 0, 0.04)` | `rgba(0, 0, 0, 0.0727)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine Modal の影。C3-b） |

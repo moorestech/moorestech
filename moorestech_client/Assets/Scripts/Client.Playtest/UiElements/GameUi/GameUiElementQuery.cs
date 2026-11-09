@@ -33,10 +33,10 @@ namespace Client.Playtest.UiElements.GameUi
             string ReadText(VisualElement element)
             {
                 if (element is TextField field) return field.value;
-                if (element is TextElement textElement) return textElement.text;
+                if (element is TextElement textElement && !string.IsNullOrEmpty(textElement.text)) return textElement.text;
 
-                // 箱は子孫の文字を順に連結する（Web の textContent と同じ扱い）
-                // A container concatenates descendant texts in order, like the Web textContent
+                // 箱と、文字を子のラベルへ持つボタンは子孫の文字を順に連結する（Web の textContent と同じ扱い）
+                // A container or a button whose text lives in a child label concatenates descendant texts in order, like the Web textContent
                 var builder = new StringBuilder();
                 foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(descendant.text);
                 return builder.ToString();

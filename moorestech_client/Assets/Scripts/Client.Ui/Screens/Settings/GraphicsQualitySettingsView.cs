@@ -1,3 +1,4 @@
+using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Ui.Components.Controls;
@@ -32,8 +33,8 @@ namespace Client.Ui.Screens.Settings
             // カスタムはどの選択肢にも一致しないので無選択にし、1 行で知らせる
             // Custom matches no option, so it shows no selection plus a one-line notice
             Add(SettingsSectionParts.Caption(LocalizationKeys.Ui.Settings.GraphicsPreset));
-            _preset = new ModeSwitch<GraphicsQualityPreset>("graphics-preset", ModeSwitchOrientation.Horizontal, PresetOptions());
-            _preset.OnSelected.Subscribe(_commands.ApplyGraphicsPreset);
+            _preset = new ModeSwitch<GraphicsQualityPreset>("graphics-preset", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, PresetOptions());
+            _preset.OnOptionSelected.Subscribe(_commands.ApplyGraphicsPreset);
             Add(_preset);
             _custom = SettingsSectionParts.Note("graphics-preset-custom", LocalizationKeys.Ui.Settings.GraphicsPresetCustom);
             Add(_custom);
@@ -68,9 +69,9 @@ namespace Client.Ui.Screens.Settings
         {
             return new List<ModeSwitchOption<GraphicsQualityPreset>>
             {
-                new("graphics-preset-high", GraphicsQualityPreset.High, LocalizationKeys.Ui.Settings.GraphicsPresetHigh, null),
-                new("graphics-preset-medium", GraphicsQualityPreset.Medium, LocalizationKeys.Ui.Settings.GraphicsPresetMedium, null),
-                new("graphics-preset-low", GraphicsQualityPreset.Low, LocalizationKeys.Ui.Settings.GraphicsPresetLow, null),
+                new("graphics-preset-high", GraphicsQualityPreset.High, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetHigh)),
+                new("graphics-preset-medium", GraphicsQualityPreset.Medium, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetMedium)),
+                new("graphics-preset-low", GraphicsQualityPreset.Low, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetLow)),
             };
         }
     }
