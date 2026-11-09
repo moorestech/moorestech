@@ -12,10 +12,10 @@ using Tests.Module.TestMod;
 namespace Client.Tests.WebUi.WireContracts
 {
     /// <summary>
-    /// 検証つき移動の拒否理由が列挙になっても、inventory.move_item の Web の失敗コードの綴りは変わらない
-    /// The Web error codes of inventory.move_item keep their spelling after the validated move's deny reason became an enum
+    /// コントローラの移動の結果が列挙になっても、inventory.move_item の Web の結果（失敗コードの綴り・何もしない移動の成功）は変わらない
+    /// The Web results of inventory.move_item (error code spelling, success for no-effect moves) stay the same after the controller's move result became an enum
     /// </summary>
-    public class MoveItemDenyWireCodeTest
+    public class MoveItemWireResultTest
     {
         private const int MainSlot = 5;
         private static readonly Guid ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
@@ -43,23 +43,42 @@ namespace Client.Tests.WebUi.WireContracts
             Assert.AreEqual("insufficient_count", result.Error);
         }
 
-        [TestCase(LocalItemMoveDenyReason.SourceEmpty, "empty_slot")]
-        [TestCase(LocalItemMoveDenyReason.SourceCountShort, "insufficient_count")]
-        public void 拒否理由の全値がWebの失敗コードへ写る(LocalItemMoveDenyReason reason, string wireCode)
+        [Test]
+        public void 同じ枠への移動は空の枠でも成功になる()
         {
-            Assert.AreEqual(wireCode, LocalItemMoveDenyWireCode.From(reason));
-            Assert.AreEqual(Enum.GetValues(typeof(LocalItemMoveDenyReason)).Length, 2, "値を足したらこの表にも足す");
+            var (handler, _) = CreateHandler();
+
+            var result = handler.ExecuteAsync(Payload("main", MainSlot, 1)).GetAwaiter().GetResult();
+
+            Assert.IsTrue(result.Ok);
+        }
+
+        [TestCase(LocalItemMoveResult.Moved, true, null)]
+        [TestCase(LocalItemMoveResult.NoEffect, true, null)]
+        [TestCase(LocalItemMoveResult.SourceEmpty, false, "empty_slot")]
+        [TestCase(LocalItemMoveResult.SourceCountShort, false, "insufficient_count")]
+        public void 移動の結果の全値がWebの結果へ写る(LocalItemMoveResult moveResult, bool ok, string wireCode)
+        {
+            var result = LocalItemMoveWireResult.ToActionResult(moveResult);
+
+            Assert.AreEqual(ok, result.Ok);
+            Assert.AreEqual(wireCode, result.Error);
+            Assert.AreEqual(4, Enum.GetValues(typeof(LocalItemMoveResult)).Length, "値を足したらこの表にも足す");
         }
 
         private static ActionResult Execute(MoveItemActionHandler handler, int count)
         {
-            var payload = new JObject
+            return handler.ExecuteAsync(Payload("grab", 0, count)).GetAwaiter().GetResult();
+        }
+
+        private static JObject Payload(string toArea, int toSlot, int count)
+        {
+            return new JObject
             {
                 ["from"] = new JObject { ["area"] = "main", ["slot"] = MainSlot },
-                ["to"] = new JObject { ["area"] = "grab", ["slot"] = 0 },
+                ["to"] = new JObject { ["area"] = toArea, ["slot"] = toSlot },
                 ["count"] = count,
             };
-            return handler.ExecuteAsync(payload).GetAwaiter().GetResult();
         }
 
         private static (MoveItemActionHandler handler, LocalPlayerInventoryController controller) CreateHandler()

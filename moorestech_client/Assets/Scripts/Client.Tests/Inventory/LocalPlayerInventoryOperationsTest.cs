@@ -14,8 +14,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Inventory
 {
     /// <summary>
-    /// 本番の持ち物の口がコントローラの拒否理由と何もしない移動を移動の結果の列挙へ写すことを確かめる
-    /// Verifies the production inventory port maps the controller's deny reasons and no-effect moves to the move outcome enum
+    /// 本番の持ち物の口がコントローラの移動の結果（拒否と何もしない移動を含む）を移動の結果の列挙へ写すことを確かめる
+    /// Verifies the production inventory port maps the controller's move result (denials and no-effect moves included) to the move outcome enum
     /// </summary>
     public class LocalPlayerInventoryOperationsTest
     {
@@ -45,8 +45,8 @@ namespace Client.Tests.Inventory
         [Test]
         public void 別IDの枠への部分移動はNoEffectと警告で両方の枠は変わらない()
         {
-            // コントローラは黙って return するので、成功と区別して開発者ログへ出す
-            // The controller silently returns, so it is told apart from success and logged for developers
+            // コントローラが NoEffect を返すので、成功と区別して開発者ログへ出す
+            // The controller returns NoEffect, so it is told apart from success and logged for developers
             var operations = Create(out var controller);
             controller.SetMainItem(MainSlot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(ItemGuid), 10));
             controller.SetMainItem(OtherMainSlot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(OtherItemGuid), 3));
@@ -65,6 +65,19 @@ namespace Client.Tests.Inventory
             LogAssert.Expect(LogType.Warning, new Regex("move has no effect"));
 
             Assert.AreEqual(PlayerItemMoveOutcome.NoEffect, operations.MoveToGrab(PlayerSlotRef.Main(MainSlot), 0));
+            Assert.AreEqual(10, controller.LocalPlayerInventory[MainSlot].Count);
+        }
+
+        [Test]
+        public void 同じ枠への移動はNoEffectと警告で枠は変わらない()
+        {
+            // 加算の後の書き戻しでスタックが減るので、コントローラが何もしない移動として返す
+            // The add-then-write-back would shrink the stack, so the controller returns it as a no-effect move
+            var operations = Create(out var controller);
+            controller.SetMainItem(MainSlot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(ItemGuid), 10));
+            LogAssert.Expect(LogType.Warning, new Regex("move has no effect"));
+
+            Assert.AreEqual(PlayerItemMoveOutcome.NoEffect, operations.MoveBetweenSlots(PlayerSlotRef.Main(MainSlot), PlayerSlotRef.Main(MainSlot), 5));
             Assert.AreEqual(10, controller.LocalPlayerInventory[MainSlot].Count);
         }
 

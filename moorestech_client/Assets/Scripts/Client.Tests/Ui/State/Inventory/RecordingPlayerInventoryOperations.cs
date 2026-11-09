@@ -80,6 +80,7 @@ namespace Client.Tests.Ui.State.Inventory
         public PlayerItemMoveOutcome MoveBetweenSlots(PlayerSlotRef from, PlayerSlotRef to, int count)
         {
             Moves.Add($"{from}->{to} x{count}");
+            if (from == to) return PlayerItemMoveOutcome.NoEffect;
             return Move(Read(from), item => Write(from, item), Read(to), item => Write(to, item), count);
         }
 
@@ -93,8 +94,8 @@ namespace Client.Tests.Ui.State.Inventory
             Collects.Add(slot.ToString());
         }
 
-        // コントローラの TryMoveItem＋MoveItem と同じ: 空・不足は拒否、別 ID への全量は入れ替え、0 個以下・別 ID への部分は NoEffect、それ以外は加算
-        // Same as the controller's TryMoveItem+MoveItem: reject empty/short, swap a full move onto another id, NoEffect for count<=0 or a partial one, else add
+        // コントローラの MoveItem と同じ（同一スロットは MoveBetweenSlots で NoEffect）: 空・不足は拒否、別 ID への全量は入れ替え、0 個以下・別 ID への部分は NoEffect、それ以外は加算
+        // Same as the controller's MoveItem (a same-slot move is NoEffect in MoveBetweenSlots): reject empty/short, swap a full move onto another id, NoEffect for count<=0 or a partial one, else add
         private PlayerItemMoveOutcome Move(SlotItem source, Action<SlotItem> writeSource, SlotItem target, Action<SlotItem> writeTarget, int count)
         {
             if (source.IsEmpty) return PlayerItemMoveOutcome.SourceEmpty;

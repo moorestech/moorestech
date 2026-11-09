@@ -54,24 +54,19 @@ namespace Client.Game.InGame.UI.Inventory.Main
             };
         }
 
-        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count)
+        public LocalItemMoveResult MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count)
         {
-            MoveItem(from, fromSlot, to, toSlot, count, true);
+            return MoveItem(from, fromSlot, to, toSlot, count, true);
         }
 
-        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData)
+        public LocalItemMoveResult MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData)
         {
+            // 移動の可否と何もしない移動の判定はここ 1 か所（Web・UITK・uGUI 共通の口）
+            // The only place that judges denial and no-effect moves (shared entry for Web, UITK and uGUI)
             var fromInvItem = GetItem(from, fromSlot);
-
-            if (fromInvItem.Count < count) return;
-            // 空の移動元×count=0はswap分岐で行先スタックを空スロットへ吸い出してしまうため弾く
-            // Reject count<=0 or an empty source; otherwise the swap branch drains the target stack into an empty slot
-            if (count <= 0 || fromInvItem.Id == ItemMaster.EmptyItemId) return;
-
             var toInvItem = GetItem(to, toSlot);
-            // 別ID×部分移動は確定no-opなので送信自体を止める
-            // A different-id partial move is a guaranteed no-op; stop before dispatch, not inside SetInventory
-            if (toInvItem.Id != ItemMaster.EmptyItemId && toInvItem.Id != fromInvItem.Id && count != fromInvItem.Count) return;
+            var result = JudgeMove(from == to && fromSlot == toSlot, fromInvItem, toInvItem, count);
+            if (result != LocalItemMoveResult.Moved) return result;
 
             SetInventory();
 
@@ -82,6 +77,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             // サーバー送信は結合スロット→サーバースロット変換を担う専用クラスへ委譲する
             // Delegate server dispatch (combined-slot to server-slot conversion) to a dedicated class
             if (isMoveSendData) InventoryMoveServerDispatcher.SendMoveItemData(_subInventory, _localPlayerInventory.MainSlotCount, from, fromSlot, to, toSlot, count);
+            return LocalItemMoveResult.Moved;
 
             #region Internal
 
@@ -129,27 +125,19 @@ namespace Client.Game.InGame.UI.Inventory.Main
             #endregion
         }
 
-        public bool TryMoveItem(LocalMoveInventoryType fromType, int fromSlot, LocalMoveInventoryType toType, int toSlot, int count, out LocalItemMoveDenyReason denyReason)
+        private static LocalItemMoveResult JudgeMove(bool isSameSlot, IItemStack fromItem, IItemStack toItem, int count)
         {
-            // 移動元の実在・数量を検証してから MoveItem を呼ぶ（Web/uGUI 共通の検証口）
-            // Validate the source stack's presence and count before calling MoveItem (shared web/uGUI guard)
-            var fromItem = GetItem(fromType, fromSlot);
-            if (fromItem.Id == ItemMaster.EmptyItemId)
-            {
-                denyReason = LocalItemMoveDenyReason.SourceEmpty;
-                return false;
-            }
-            if (fromItem.Count < count)
-            {
-                denyReason = LocalItemMoveDenyReason.SourceCountShort;
-                return false;
-            }
+            // 同一スロットは加算の後の書き戻しでスタックが消えるので何もしない（Web では成功）
+            // A same-slot move would lose the stack in the add-then-write-back, so it does nothing (a success on Web)
+            if (isSameSlot) return LocalItemMoveResult.NoEffect;
+            if (fromItem.Id == ItemMaster.EmptyItemId) return LocalItemMoveResult.SourceEmpty;
+            if (fromItem.Count < count) return LocalItemMoveResult.SourceCountShort;
 
-            // 成功時の拒否理由は読まない（Try の慣例）
-            // The deny reason is not read on success (Try convention)
-            denyReason = default;
-            MoveItem(fromType, fromSlot, toType, toSlot, count);
-            return true;
+            // 0 個以下は swap 分岐で行先を空へ吸い出し、別 ID への部分移動は確定 no-op なので送らない
+            // count<=0 would drain the target via the swap branch and a partial move onto another id is a sure no-op, so neither is sent
+            if (count <= 0) return LocalItemMoveResult.NoEffect;
+            var isDifferentId = toItem.Id != ItemMaster.EmptyItemId && toItem.Id != fromItem.Id;
+            return isDifferentId && count != fromItem.Count ? LocalItemMoveResult.NoEffect : LocalItemMoveResult.Moved;
         }
 
         public void CollectItems(LocalMoveInventoryType targetType, int targetSlot)
