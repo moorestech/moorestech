@@ -25,13 +25,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
     {
         public readonly BlockDirection SplitterFacing;
         public readonly BlockDirection BranchExit;
-        public readonly BlockDirection UnusedExit;
 
-        public BeltRouteBranchShape(BlockDirection splitterFacing, BlockDirection branchExit, BlockDirection unusedExit)
+        public BeltRouteBranchShape(BlockDirection splitterFacing, BlockDirection branchExit)
         {
             SplitterFacing = splitterFacing;
             BranchExit = branchExit;
-            UnusedExit = unusedExit;
         }
     }
 
@@ -74,7 +72,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
             // silent-ok: 理由行「使わない出口の隣に受け手があります」で分岐不可と分かる
             if (edges.HasInputEdge(BeltRouteEdge.FromFace(cell, unusedExit, cell.y))) return BeltRouteBranchBlockReason.UnusedExitHasReceiver;
 
-            shape = new BeltRouteBranchShape(flow, branchExit, unusedExit);
+            shape = new BeltRouteBranchShape(flow, branchExit);
             return BeltRouteBranchBlockReason.None;
         }
 

@@ -19,11 +19,9 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BeltRouteBranchBlockReason.None, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.East, false, out var shape));
             Assert.AreEqual(BlockDirection.East, shape.SplitterFacing);
             Assert.AreEqual(BlockDirection.South, shape.BranchExit);
-            Assert.AreEqual(BlockDirection.North, shape.UnusedExit);
 
             Assert.AreEqual(BeltRouteBranchBlockReason.None, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.East, true, out shape));
             Assert.AreEqual(BlockDirection.North, shape.BranchExit);
-            Assert.AreEqual(BlockDirection.South, shape.UnusedExit);
         }
 
         [Test]
@@ -46,12 +44,10 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BeltRouteBranchBlockReason.None, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.North, false, out var shape));
             Assert.AreEqual(BlockDirection.East, shape.SplitterFacing);
             Assert.AreEqual(BlockDirection.East, shape.BranchExit);
-            Assert.AreEqual(BlockDirection.South, shape.UnusedExit);
 
             Assert.AreEqual(BeltRouteBranchBlockReason.None, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.North, true, out shape));
             Assert.AreEqual(BlockDirection.East, shape.SplitterFacing);
             Assert.AreEqual(BlockDirection.South, shape.BranchExit);
-            Assert.AreEqual(BlockDirection.East, shape.UnusedExit);
         }
 
         [Test]
@@ -62,7 +58,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BeltRouteBranchBlockReason.None, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.North, false, out var shape));
             Assert.AreEqual(BlockDirection.West, shape.SplitterFacing);
             Assert.AreEqual(BlockDirection.West, shape.BranchExit);
-            Assert.AreEqual(BlockDirection.South, shape.UnusedExit);
         }
 
         [Test]
@@ -94,6 +89,18 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BeltRouteBranchBlockReason.UnusedExitHasReceiver, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.North, false, out _));
             Assert.AreEqual(BeltRouteBranchBlockReason.None, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.North, true, out var shape));
             Assert.AreEqual(BlockDirection.South, shape.BranchExit);
+        }
+
+        // 直線で使わない出口（既定なら左）の先に受け手がいると分岐不可。Rで右左を入れ替えると成立する
+        // On a straight belt a receiver beyond the unused exit (left by default) blocks the branch; toggling the exit makes it valid
+        [Test]
+        public void StraightBeltReceiverBeyondUnusedExitBlocksOnlyThatChoice()
+        {
+            var edges = NewEdges();
+            AddReceiver(edges, BlockDirection.North);
+            Assert.AreEqual(BeltRouteBranchBlockReason.UnusedExitHasReceiver, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.East, false, out _));
+            Assert.AreEqual(BeltRouteBranchBlockReason.None, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.East, true, out var shape));
+            Assert.AreEqual(BlockDirection.North, shape.BranchExit);
         }
 
         private static BeltRouteGrid NewEdges()
