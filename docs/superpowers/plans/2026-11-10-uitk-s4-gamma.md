@@ -103,7 +103,7 @@ Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot �
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / サーバーの値の直読み・品目と見え方の自前実装・アンカー照合の置き場・死活表の読み手 2 つを直した
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱3・第3バケツ0 / Key? の不在を判別子に使う形を直し、ADR との食い違い 3 件（LX の追記者・並べ比べの判定者・MarkClipContainer の義務）を D-17〜D-19 で裁き、弱 3 件は D-20 でこのまま。シミュレーター反映後に変えた範囲を fresh-context で再検査（強1・弱4）し、駅名の待ちを ServerSnapshots の前例の形へ、枠の測り方を自分の入れ物と切り抜き後の見える範囲へ、§3.3 の改め案を足して全件直した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱3・第3バケツ0 / Key? の不在を判別子に使う形を直し、ADR との食い違い 3 件（LX の追記者・並べ比べの判定者・MarkClipContainer の義務）を D-17〜D-19 で裁き、弱 3 件は D-20 でこのまま。シミュレーター反映後に変えた範囲を fresh-context で再検査（強1・弱4）し、駅名の待ちを ServerSnapshots の前例の形へ、枠の測り方を自分の入れ物と切り抜き後の見える範囲へ、§3.3 の改め案を足して全件直した。独立評価 2 体（opus 7 件・codex 4 件）の指摘を直した範囲を fresh-context で再検査（Phase 1〜2.6 の発火 0、故障シナリオ強1・弱4: 比較元の引き方・分岐点の引き方・枠の session の入れ替わり・D-23 の前提・消える worktree への grep）し全件直した
 
 ---
 
@@ -257,8 +257,9 @@ Run:
 ```bash
 grep -n "束 4.*起点\|暗転の起点" ../moorestech_logs/harness/uitk/conductor.md | tail -3
 for lane in alpha inventory machine train research recipe special; do
-  m=$(git log --merges --format=%H origin/feature/uitk --grep "s4-$lane" | tail -1)
-  fork=$(git merge-base "$m^1" "$m^2")
+  m=$(git log --first-parent --merges --format=%H origin/feature/uitk --grep "from moorestech/uitk-lane/s4-$lane" | tail -1)
+  first=$(git rev-list --reverse --first-parent "$m^2" --not "$m^1" | head -1)
+  fork=$(git rev-parse "$first^")
   printf "%s\t%s\t%s\n" "$lane" "$(git merge-base "$fork" origin/master)" "$(git log -1 --format=%ci "$fork")"
 done | tee moorestech_client/Temp/s4-gamma-forks.tsv
 git merge-base --octopus $(cut -f2 moorestech_client/Temp/s4-gamma-forks.tsv) | cut -c1-10
@@ -1426,7 +1427,7 @@ return PlaytestRunner.Run("uitk-master-anchors", options, async p =>
 - [ ] **Step 2: 流す**
 
 Run: Task 5 Step 2 の 3 行の最後のパスを `uitk-master-anchors.cs` にして流す
-Expected: `Success: true`。Note に 9 行（上の「マスタのアンカー 9 件」の表と同じ）。落ちたら先に gamma の照合の誤りでないかを見る（自分の枠を取り違えていないか〈増えた 1 件の特定〉・アンカーの画面の開き方・名前の照合）。gamma の誤りなら gamma のファイルを直して流し直す。アンカーが `Missing`・`Duplicate` なら持ち主（`TutorialAnchorCoveragePending` の旧表の持ち主。取り込み済みなら I-fix）へ bd と依頼文で回して待つ。枠の中心が 5px を超えてずれたら S2-tutorial の枠の位置の不具合として同じく回す
+Expected: `Success: true`。Note に 9 行（上の「マスタのアンカー 9 件」の表と同じ）。落ちたら先に gamma の照合の誤りでないかを見る（自分の枠を取り違えていないか〈増えた 1 件の特定〉・照合の最中に本番のチャレンジが進んで枠の session が入れ替わっていないか〈`AddOutlineHighlight` は直近の `BeginSession` の session に入る。Note のチャレンジの進行と照らす〉・アンカーの画面の開き方・名前の照合）。gamma の誤りなら gamma のファイルを直して流し直す。アンカーが `Missing`・`Duplicate` なら持ち主（`TutorialAnchorCoveragePending` の旧表の持ち主。取り込み済みなら I-fix）へ bd と依頼文で回して待つ。枠の中心が 5px を超えてずれたら S2-tutorial の枠の位置の不具合として同じく回す
 
 - [ ] **Step 3: 表を done.md に写してコミットする**
 
@@ -1654,7 +1655,7 @@ Run:
 tools/uitk/list-recordings.sh Web > moorestech_client/Temp/uitk-recordings/list-web.txt 2> moorestech_client/Temp/uitk-recordings/list-web-excluded.txt
 ```
 のあと、Step 3 と同じ小分けで `Web` を `moorestech_client/Temp/uitk-recordings/web.tsv` へ流す（`scenarios/uitk/` は UITK 専用で外れる。D-23。Windows で流すなら `~/bin/winunity` の play で同じ一覧を回し、TSV を同じ形で作る）
-Expected: 終了コード 0 以外の行を、S4 前の feature/uitk（最初に入った S4 のマージの 1 番目の親: `git rev-parse "$(git log --merges --reverse --format=%H origin/feature/uitk --grep 's4-' | head -1)^1"`）の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-webbase --from <その SHA>`。Editor が 2 本を超えるなら winunity）で同じシナリオだけ Web で流し直し、`既存`（S4 前も落ちる）か `退行`（S4 前は通る）に分ける。S4 前のコミットに無いシナリオ（S4 のレーンが足したもの）は `比較不能（新設）` とし、その画面の持ち主の録画（PR の報告ページ）で見たことを書く。`退行` は Step 3 の `不具合` と同じ手順で回して待つ。使い捨て worktree は流し終えたら `moores-wt rm uitk-tmp/s4-gamma-webbase --prune-branch` で畳む
+Expected: 終了コード 0 以外の行を、S4 前の feature/uitk（最初に入った S4 のマージの 1 番目の親: `git rev-parse "$(git log --first-parent --merges --reverse --format=%H origin/feature/uitk --grep 'from moorestech/uitk-lane/s4-' | head -1)^1"`。レーン側の取り込みのマージに当たらないよう `--first-parent` と PR のマージの題で絞る）の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-webbase --from <その SHA>`。Editor が 2 本を超えるなら winunity）で同じシナリオだけ Web で流し直し、`既存`（S4 前も落ちる）か `退行`（S4 前は通る）に分ける。S4 前のコミットに無いシナリオ（S4 のレーンが足したもの）は `比較不能（新設）` とし、その画面の持ち主の録画（PR の報告ページ）で見たことを書く。`退行` は Step 3 の `不具合` と同じ手順で回して待つ。使い捨て worktree は流し終えたら `moores-wt rm uitk-tmp/s4-gamma-webbase --prune-branch` で畳む
 
 - [ ] **Step 5: 台帳と done.md に書く**
 
@@ -1686,7 +1687,7 @@ git commit -m "test(uitk): 全録画の 2 回目を UITK と Web で流し台帳
 - [ ] **Step 1: 今の差分を出す**
 
 Run: `node tools/uitk/test-name-parity.mjs --bundle 4 --emit-missing`
-Expected: 未対応は `e2e/mock-host/detailActions.test.ts` の 3 件だけ。ほかのファイルが残っていたら、残ったテスト名ごとに持ち主を決める（`grep -rn "<テスト名>" ../uitk-plan-w4a/docs/superpowers/plans docs/superpowers/plans` で各レーンの計画の写す表・`<web-test>` を引く。ファイル単位の表は分け合うファイルがあるので使わない）。持ち主のレーンの写し漏れなので、bd を `--parent <bd>` で立てて I-fix へ回し（gamma は他レーンのテストを書かない）、修正の取り込み後にもう一度流す
+Expected: 未対応は `e2e/mock-host/detailActions.test.ts` の 3 件だけ。ほかのファイルが残っていたら、残ったテスト名ごとに持ち主を決める（`grep -rn "<テスト名>" docs/superpowers/plans`（S4 の 7 計画はマージ済みでこの repo にある） で各レーンの計画の写す表・`<web-test>` を引く。ファイル単位の表は分け合うファイルがあるので使わない）。持ち主のレーンの写し漏れなので、bd を `--parent <bd>` で立てて I-fix へ回し（gamma は他レーンのテストを書かない）、修正の取り込み後にもう一度流す
 
 - [ ] **Step 2: 持ち主の無い 3 件に処遇を書く**
 
@@ -2068,7 +2069,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-20 | 型の弱い指摘（検査5 の弱 3 件）はこのままにする。(a) 面の列を `StageColumn` でなく名前の文字列で持つのは、L3 が木を名前で読む側で、enum から名前への写しは `StageColumnsLayout` の中にしか無いから（写しを作ると 2 か所になる）。空文字は「列の外」の 1 値だけで、`Stage4ExpectedSurfaces` の表の中に閉じる。(b) マーカー名・アンカー名の接頭辞の一致は、正本（Editor の版・マスタ）が文字列で、決め打ちしない方が版の違いで黙らない（D-13・A-178）。(c) `PlaceTrainOnRail` の応答の `?.` は Assert の文面の中だけで、null も失敗も同じ「設置失敗」で止まる。出所: 設計検査 Phase 2.6（弱）→ agent 既定 | — | 列を enum にする: 名前の写しが L3 に増える |
 | D-21 | ラダー 4 は青銅インゴットのレシピをサーバー直（`UnlockMachineRecipe`）で解放し、UI でレシピを選んでから入れる。出所: シミュレーター予測（ユーザー裁定 `.decisions/2026-08-30-レシピ未選択の機械は入力を一切受け入れない.md`・`機械入力スロットはサーバー側でもレシピ素材順に固定する.md` との照合）→ agent 既定 | 石窯のレシピは全部未解放で、未選択の機械は入力を受けない。plan §4.4 のラダー 4 の内容に研究は無く、研究の流れはラダー 5 が持つ。選択の操作は S4-machine の UI を踏むのでラダーに含める | 研究で解放する: ラダー 5 と流れが重なり、ラダー 4 が研究ツリーに依存する。初めから解放済みのマスタを使う: ピン先マスタと別のデータになる |
 | D-22 | 束 4 の暗転の起点は、S4 の 7 レーンのうち最も早く分岐したレーンの分岐点で取り込み済みだった master（指揮の記録があればそれ）。出所: 独立評価（opus 3） | 台帳の運用は「束のレーンを始めたときの最新の master」。S4 は alpha 列と research 列が並走し、どのレーンも暗転を書いていないので、最初に始めたレーンの時点が起点。後の点を取ると、その間に入った Web 変更が G1 の追従から漏れる | alpha のマージの直前の master: research 列が先に始めた分の Web 変更が漏れる |
-| D-23 | 全録画は系ごとに一覧を分ける。`scenarios/uitk/` 配下は UITK 専用（`WebUiHost.Hub == null` を要求する）として Web の一覧から外し、Web の退行の比較は S4 前のコミットにもあるシナリオだけで行う（無いものは「比較不能（新設）」）。wwxy の表から外すのは直すレーンが X-prerun の行と、ファイルが消えた行だけ。出所: 独立評価（codex 2・opus 5） | UITK 専用を Web で流すと正常な Web 起動を失敗にする。比較元に無いシナリオでは既存か退行かを分けられない。S2-ladder・S3-ladder が直した 8 本は表に残っても流すべき | 全本を両方の系で流す: 偽の失敗が出る。表の全行を外す: 直った 8 本が黙って抜ける |
+| D-23 | 全録画は系ごとに一覧を分ける。`scenarios/uitk/` 配下は UITK のレーンが全体スイッチ GameUi で流す前提で作ったもの（多くは `WebUiHost.Hub == null` を要求し、要求しないものも UITK のロケータの名前で書かれている）として Web の一覧から外し（外した本数と名前は `list-web-excluded.txt` から `done.md` へ）、Web の退行の比較は S4 前のコミットにもあるシナリオだけで行う（無いものは「比較不能（新設）」）。wwxy の表から外すのは直すレーンが X-prerun の行と、ファイルが消えた行だけ。出所: 独立評価（codex 2・opus 5） | UITK 専用を Web で流すと正常な Web 起動を失敗にする。比較元に無いシナリオでは既存か退行かを分けられない。S2-ladder・S3-ladder が直した 8 本は表に残っても流すべき | 全本を両方の系で流す: 偽の失敗が出る。表の全行を外す: 直った 8 本が黙って抜ける |
 | D-24 | gamma の新規シナリオ 5 本は `scenarios/uitk/stage4/` にまとめる。出所: 独立評価（codex 4） | AGENTS.md の 10 ファイル上限に、アセンブリに入らないことを理由にした例外は無い。`scenarios/uitk/` は起草時 10 本で、そこへ足すと超える。他レーンのファイルは動かさない | `scenarios/uitk/` 直下: 上限を超える（旧 D-8 は撤回） |
 | D-25 | 並べ比べの組は「参照キャプチャ（mock-host の正本）／Web の実ゲーム（CEF）／UITK の実ゲーム」の 3 列にし、CEF と参照が食い違う差は「CEF 由来」と分けて記録する。出所: 独立評価（opus 4） | 設計書 §3.3 で Web の見た目の正本は参照キャプチャ。CEF 由来の不具合は UITK 切替まで直さない裁定があり、CEF だけと比べると崩れを写したまま差 0 になる | CEF の実ゲームだけと比べる: 正本と結び付かない |
 
