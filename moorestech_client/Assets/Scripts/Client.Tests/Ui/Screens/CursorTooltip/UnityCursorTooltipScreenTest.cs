@@ -28,8 +28,8 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             InputSystem.AddDevice<Mouse>();
             InputManager.MouseCursorVisible(true);
             var screen = new UnityCursorTooltipScreen();
-            var lockStatesSeenOnNotify = new List<CursorLockMode>();
-            screen.OnAnchorModeChanged.Subscribe(_ => lockStatesSeenOnNotify.Add(UnityEngine.Cursor.lockState));
+            var lockStatesSeenOnNotify = new List<bool>();
+            screen.OnAnchorModeChanged.Subscribe(_ => lockStatesSeenOnNotify.Add(InputManager.IsCursorLocked));
 
             // 同じ状態の再指定は知らせない
             // Re-applying the same state does not notify
@@ -38,7 +38,9 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             InputManager.MouseCursorVisible(true);
             InputManager.MouseCursorVisible(true);
 
-            Assert.AreEqual(new[] { CursorLockMode.Locked, CursorLockMode.None }, lockStatesSeenOnNotify.ToArray());
+            // 読み口は書き手の持つ値なので、Cursor.lockState への代入を捨てる batchmode でも同じ
+            // The read port is the writer's own value, so batchmode (which drops Cursor.lockState writes) behaves the same
+            Assert.AreEqual(new[] { true, false }, lockStatesSeenOnNotify.ToArray());
         }
 
         [Test]
