@@ -701,41 +701,55 @@ git commit -m "feat(uitk): 解放状態つきの機械レシピ一覧の源を S
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Panel/BlockInventoryPanelCommands.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/SectionStack/SectionStackConfig.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/SectionStack/SectionStackConfigTable.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockInventoryPanelStateFactoryTest.cs`・`BlockInventoryPanelLayoutModelTest.cs`・`BlockInventoryPanelCommandsTest.cs`・`SectionStackConfigTableTest.cs`・`BlockRegistryCoverageTest.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Routing/IUiStateTransitionRequester.cs`・`UiStateControlTransitionRequester.cs`・`UiStateTransitionRules.cs`（閉じる要求の口。後続の画面も使う。D-12）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockInventoryPanelStateFactoryTest.cs`・`BlockInventoryPanelLayoutModelTest.cs`・`BlockInventoryPanelCommandsTest.cs`・`SectionStackConfigTableTest.cs`・`BlockRegistryCoverageTest.cs`・`FakePanelSource.cs`・`BlockInventoryTestPanels.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Routing/UiStateTransitionRulesTest.cs`
 
 **Interfaces:**
-- Consumes: `SubInventoryState`・`UIStateControl`・`OpenBlockDetailTracker`・`BlockComponentRegistry.Resolve`・`TrainSubInventorySource`・`TrainInventoryMessageType`・`InventoryRequestResult`
+- Consumes: `SubInventoryState`・`UiRoutingState.Current`（`UiRoutingSnapshot.Screen == UiScreen.SubInventory`）・`OpenBlockDetailTracker`・`BlockComponentRegistry.Resolve`・`TrainSubInventorySource`・`TrainInventoryMessageType`・`InventoryRequestResult`・`UIStateControl.CurrentState / RequestTransition / GetCurrentNestedPauseScreen`（遷移要求の本番実装だけ）
 - Produces（後続が使う）:
 ```csharp
 namespace Client.Ui.State.BlockInventory.Panel
-public abstract class BlockInventoryPanelState { public static readonly BlockInventoryPanelState Closed; }
+// 不変の識別子・エラー・枠だけを持つ union（Client.Game の生オブジェクトは持たない。D-19）
+public abstract class BlockInventoryPanelState
+{
+    public static readonly BlockInventoryPanelState Closed;
+    public abstract bool IsSamePanel(BlockInventoryPanelState other);   // 本文を作り直すかの唯一の判定（Web の key=identifier ＋エラーの有無）
+}
 public sealed class ClosedBlockInventoryPanel : BlockInventoryPanelState { }
 public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
 {
     public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }  public Vector3Int Position { get; }
     public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }  public BlockInventoryComponents Components { get; }
-    public BlockGameObject Block { get; }   // 区画が詳細を読む源（Web BlockDetailDtoBuilder が読む物）。L0/L1 テストでは null
-    public bool IsSamePanel(OpenBlockInventoryPanel other);   // 同じ位置・同じ blockGuid（Web の key=identifier）
-}
+}   // IsSamePanel: 同じ Position・BlockGuid・Error
 public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
 {
     public long TrainCarInstanceId { get; }  public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }
-    public TrainSubInventorySource Source { get; }   // 列車の本文が時刻表等を読む源。テストでは null
-}
+}   // IsSamePanel: 同じ TrainCarInstanceId・Error
 public enum BlockInventoryPanelError { None, OpenFailed, ContainerMissing, TrainCarMissing }
-public sealed class BlockInventoryPanelModel : IInitializable { public IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }
-public interface IBlockInventoryLargePanelRule { bool IsLargeMachinePanel(OpenBlockInventoryPanel panel); IObservable<Unit> OnRuleInputChanged { get; } }
-public readonly struct BlockInventoryPanelLayout { public readonly bool IsLarge; public readonly bool FillsPanelHeight; }
+public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }
+public sealed class BlockInventoryPanelModel : IBlockInventoryPanelSource, IInitializable { }
+public interface IBlockInventoryLargePanelRule { bool IsLargePanel(OpenBlockInventoryPanel panel); IObservable<Unit> OnRuleInputChanged { get; } }
+public readonly struct BlockInventoryPanelLayout { public readonly bool IsLarge; public readonly bool FillsPanelHeight; public static readonly BlockInventoryPanelLayout Natural; }
 public sealed class BlockInventoryPanelLayoutModel : IInitializable { public IReadOnlyReactiveProperty<BlockInventoryPanelLayout> Current { get; } }
 public interface IBlockInventoryPanelCommands { void Close(); }
+namespace Client.Ui.State.Routing
+public interface IUiStateTransitionRequester { bool RequestTransition(UIStateEnum requested); }   // 許可表で拒んだら false（理由はログ）
+public static class UiStateTransitionRules { public static bool IsAllowed(UIStateEnum current, UIStateEnum requested); }   // Web UiStateActions.IsAllowed の写し
 namespace Client.Ui.State.BlockInventory.SectionStack
-public sealed class SectionStackConfig { string ItemGridTestId /* null 可 */; string FluidRowTestId /* null 可 */; bool RenderEmptyGrid; bool ShowFluidProgress; bool ShowFluidDetails; }
+public abstract class SectionStackItemGrid { public static readonly SectionStackItemGrid Hidden; }
+public sealed class HiddenSectionStackItemGrid : SectionStackItemGrid { }
+public sealed class ShownSectionStackItemGrid : SectionStackItemGrid { public string GridId { get; }  public bool RenderEmpty { get; } }
+public abstract class SectionStackFluid { public static readonly SectionStackFluid Hidden; }
+public sealed class HiddenSectionStackFluid : SectionStackFluid { }
+public sealed class RowSectionStackFluid : SectionStackFluid { public string RowId { get; }  public bool ShowProgress { get; } }
+public sealed class DetailsSectionStackFluid : SectionStackFluid { public string RowId { get; } }
+public sealed class SectionStackConfig { public SectionStackItemGrid ItemGrid { get; }  public SectionStackFluid Fluid { get; } }
 public static class SectionStackConfigTable { public static SectionStackConfig Resolve(string blockType); }
 ```
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`BlockInventoryPanelStateFactoryTest.cs`（テスト用 mod のチェストを使う。6 件）:
+`BlockInventoryPanelStateFactoryTest.cs`（テスト用 mod のチェストを使う。5 メソッド・TestCase 展開で 8 件）:
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -771,7 +785,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         public void 取得成功のブロックはエラー無しでスロットと構成を持つ()
         {
             var slots = new[] { new SlotItem(new ItemId(1), 7) };
-            var state = BlockInventoryPanelStateFactory.FromBlock(true, slots, _chest, new Vector3Int(1, 2, 3), null);
+            var state = BlockInventoryPanelStateFactory.FromBlock(true, slots, _chest, new Vector3Int(1, 2, 3));
             var open = (OpenBlockInventoryPanel)state;
             Assert.AreEqual(BlockInventoryPanelError.None, open.Error);
             Assert.AreEqual(_chest.BlockGuid, open.BlockGuid);
@@ -783,7 +797,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [Test]
         public void 取得失敗のブロックはOpenFailed()
         {
-            var state = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, Vector3Int.zero, null);
+            var state = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, Vector3Int.zero);
             Assert.AreEqual(BlockInventoryPanelError.OpenFailed, state.Error);
         }
 
@@ -793,7 +807,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [TestCase(TrainInventoryMessageType.OpenFailed, BlockInventoryPanelError.OpenFailed)]
         public void 列車の開け失敗をエラーへ写す(TrainInventoryMessageType? message, BlockInventoryPanelError expected)
         {
-            var state = (OpenTrainInventoryPanel)BlockInventoryPanelStateFactory.FromTrain(5, Array.Empty<SlotItem>(), message, null);
+            var state = (OpenTrainInventoryPanel)BlockInventoryPanelStateFactory.FromTrain(5, Array.Empty<SlotItem>(), message);
             Assert.AreEqual(expected, state.Error);
             Assert.AreEqual(5, state.TrainCarInstanceId);
         }
@@ -801,17 +815,29 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [Test]
         public void 同じ位置と同じブロックは同じパネル()
         {
-            var a = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new Vector3Int(1, 0, 0), null);
-            var b = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, new[] { new SlotItem(new ItemId(1), 1) }, _chest, new Vector3Int(1, 0, 0), null);
-            var c = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new Vector3Int(2, 0, 0), null);
+            var a = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new Vector3Int(1, 0, 0));
+            var b = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, new[] { new SlotItem(new ItemId(1), 1) }, _chest, new Vector3Int(1, 0, 0));
+            var c = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new Vector3Int(2, 0, 0));
             Assert.IsTrue(a.IsSamePanel(b));
             Assert.IsFalse(a.IsSamePanel(c));
+            Assert.IsFalse(a.IsSamePanel(BlockInventoryPanelState.Closed));
+        }
+
+        [Test]
+        public void エラーの有無が変われば別のパネルで列車は車両とエラーで決まる()
+        {
+            var ok = BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, Vector3Int.zero);
+            var failed = BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, Vector3Int.zero);
+            Assert.IsFalse(ok.IsSamePanel(failed));
+            var train = BlockInventoryPanelStateFactory.FromTrain(5, Array.Empty<SlotItem>(), null);
+            Assert.IsTrue(train.IsSamePanel(BlockInventoryPanelStateFactory.FromTrain(5, new[] { new SlotItem(new ItemId(1), 1) }, null)));
+            Assert.IsFalse(train.IsSamePanel(BlockInventoryPanelStateFactory.FromTrain(5, Array.Empty<SlotItem>(), TrainInventoryMessageType.ContainerMissing)));
         }
     }
 }
 ```
 
-`BlockInventoryPanelLayoutModelTest.cs`（4 件: 閉は小・列車は大で高さ確定でない・寄与が無いブロックは小・寄与のどれかが真なら大で高さ確定、寄与の入力の変化で引き直す）:
+`BlockInventoryPanelLayoutModelTest.cs`（2 件。主張は 4 つ: 閉は小・列車は大で高さ確定でない／寄与が無いブロックは小・寄与のどれかが真なら大で高さ確定し、寄与の入力の変化で引き直す）:
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -828,7 +854,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         {
             public readonly Subject<Unit> Changed = new();
             public bool Large;
-            public bool IsLargeMachinePanel(OpenBlockInventoryPanel panel) => Large;
+            public bool IsLargePanel(OpenBlockInventoryPanel panel) => Large;
             public IObservable<Unit> OnRuleInputChanged => Changed;
         }
 
@@ -839,7 +865,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
             var model = new BlockInventoryPanelLayoutModel(new FakePanelSource(state), Array.Empty<IBlockInventoryLargePanelRule>());
             model.Initialize();
             Assert.IsFalse(model.Current.Value.IsLarge);
-            state.Value = BlockInventoryPanelStateFactory.FromTrain(1, Array.Empty<SlotItem>(), null, null);
+            state.Value = BlockInventoryPanelStateFactory.FromTrain(1, Array.Empty<SlotItem>(), null);
             Assert.IsTrue(model.Current.Value.IsLarge);
             Assert.IsFalse(model.Current.Value.FillsPanelHeight);
         }
@@ -863,9 +889,11 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 ```
 （Model の購読面を `IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }` に切り出し、`BlockInventoryPanelModel` がそれを実装する。偽物 `FakePanelSource(ReactiveProperty<BlockInventoryPanelState> state)`〈`Current => state`〉を `Client.Tests/Ui/State/BlockInventory/PanelModel/FakePanelSource.cs` に置き、Task 5・Screens の L1 でも使う。テスト用のパネルの組み立ては `Client.Tests/Ui/State/BlockInventory/PanelModel/BlockInventoryTestPanels.cs`〈`Chest()`・`ChestWithSlots(params SlotItem[])`・`OpenFailedChest()`・`Train(BlockInventoryPanelError)`〉に置き、Screens の L1 からも使う。ファイル一覧に足す）
 
-`BlockInventoryPanelCommandsTest.cs`（1 件: `Close` が遷移要求の口へ GameScreen を 1 回渡す。`IUiStateTransitionRequester` の偽物で受ける。D-12）
+`BlockInventoryPanelCommandsTest.cs`（2 件: `Close` が遷移要求の口へ GameScreen を 1 回渡す／口が false を返すと Warning ログ〈`LogAssert.Expect`〉。`IUiStateTransitionRequester` の偽物で受ける。D-12）
 
-`SectionStackConfigTableTest.cs`（3 件: Chest は `chest-grid`・空でも描く／未知は `generic-block-grid`・`generic-block-fluids`／FluidPipe は項目グリッド無しで液体の詳細）
+`UiStateTransitionRulesTest.cs`（2 件: Web `RequestUiStateActionHandler.IsAllowed` の表と同じ〈SubInventory→GameScreen は可・SubInventory→PlayerInventory は不可・同じ状態は可〉を `TestCase` で／`Story`・`Skit` など表に無い現状態からは拒む）
+
+`SectionStackConfigTableTest.cs`（3 件: Chest は `ShownSectionStackItemGrid("chest-grid", RenderEmpty: true)`・液体 Hidden／未知は `Shown("generic-block-grid", false)`・`RowSectionStackFluid("generic-block-fluids", ShowProgress: true)`／FluidPipe は項目グリッド Hidden・`DetailsSectionStackFluid("fluid-pipe-fluid-slots")`）
 
 `BlockRegistryCoverageTest.cs`:
 ```csharp
