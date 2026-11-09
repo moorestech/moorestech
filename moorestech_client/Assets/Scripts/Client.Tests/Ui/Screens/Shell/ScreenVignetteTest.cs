@@ -97,9 +97,9 @@ namespace Client.Tests.Ui.Screens.Shell
             // Solve the exponent back from the token alpha and check GamePanelFaceOpacityRamp corrects weight 0.5 with the same exponent
             var exponent = Mathf.Log(1f - edge.a) / Mathf.Log(1f - WebEdgeAlpha);
             Assert.Greater(exponent, 1f);
-            Assert.AreEqual(1f - Mathf.Pow(1f - WebEdgeAlpha * 0.5f, exponent), GamePanelFaceOpacityRamp.OpacityAt(edge.a, 0.5f), 1e-4f);
-            Assert.AreEqual(edge.a, GamePanelFaceOpacityRamp.OpacityAt(edge.a, 1f), 1e-4f);
-            Assert.AreEqual(0f, GamePanelFaceOpacityRamp.OpacityAt(edge.a, 0f), 1e-4f);
+            Assert.AreEqual(1f - Mathf.Pow(1f - WebEdgeAlpha * 0.5f, exponent), LinearBlendOpacity.OpacityAt(edge.a, 0.5f), 1e-4f);
+            Assert.AreEqual(edge.a, LinearBlendOpacity.OpacityAt(edge.a, 1f), 1e-4f);
+            Assert.AreEqual(0f, LinearBlendOpacity.OpacityAt(edge.a, 0f), 1e-4f);
         }
     }
 }

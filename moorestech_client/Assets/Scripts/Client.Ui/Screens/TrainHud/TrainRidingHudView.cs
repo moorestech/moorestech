@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Localization;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Routing;
@@ -65,7 +66,7 @@ namespace Client.Ui.Screens.TrainHud
 
             void IgnorePicking()
             {
-                this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
+                UiPickingIgnore.ApplyToSubtree(this);
             }
 
             #endregion

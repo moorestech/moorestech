@@ -1,4 +1,3 @@
-using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,8 +9,8 @@ namespace Client.Ui.Screens.CommonHud
     /// Draws the blurred shadow of box-shadow 0 0 blur color outside the crosshair circle as a vertex-colored ring
     /// </summary>
     /// <remarks>
-    /// 影は円と同じ大きさのガウスぼかし。円の縁から外向きの距離 d での濃さは半平面の被覆率 Φ(-d/σ)（σ=blur/2）で近似する。円の内側は白い点が覆うので描かない。α は GamePanelFaceOpacityRamp で Linear 合成用に補正する
-    /// The shadow is a Gaussian blur of a circle the same size; the shade at outward distance d from the edge approximates the half-plane coverage Phi(-d/sigma) with sigma = blur/2; the white dot covers the inside, so nothing is drawn there; alpha is corrected for Linear blending with GamePanelFaceOpacityRamp
+    /// 影は円と同じ大きさのガウスぼかし。円の縁から外向きの距離 d での濃さは半平面の被覆率 Φ(-d/σ)（σ=blur/2）で近似する。円の内側は白い点が覆うので描かない。α は LinearBlendOpacity で Linear 合成用に補正する
+    /// The shadow is a Gaussian blur of a circle the same size; the shade at outward distance d from the edge approximates the half-plane coverage Phi(-d/sigma) with sigma = blur/2; the white dot covers the inside, so nothing is drawn there; alpha is corrected for Linear blending with LinearBlendOpacity
     /// </remarks>
     internal sealed class CrosshairShadowRing : VisualElement
     {
@@ -81,7 +80,7 @@ namespace Client.Ui.Screens.CommonHud
                 {
                     var distance = DistancesInSigma[ring] * sigma;
                     var tint = _shadowColor;
-                    tint.a = GamePanelFaceOpacityRamp.OpacityAt(_shadowColor.a, CoverageAt(distance, sigma));
+                    tint.a = LinearBlendOpacity.OpacityAt(_shadowColor.a, CoverageAt(distance, sigma));
                     for (var segment = 0; segment < Segments; segment++)
                     {
                         var angle = segment * Mathf.PI * 2f / Segments;

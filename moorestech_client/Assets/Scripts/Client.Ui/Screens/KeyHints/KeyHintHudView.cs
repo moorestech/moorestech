@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Theme;
@@ -48,7 +49,7 @@ namespace Client.Ui.Screens.KeyHints
                 if (_hasTokens) row.SetRowHeight(_rowHeight);
                 _rows.AddItem(row);
             }
-            this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
+            UiPickingIgnore.ApplyToSubtree(this);
         }
 
         private void OnCustomStyleResolved()

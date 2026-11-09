@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using Client.Ui.Screens.ModeHud.Parts;
 using Client.Ui.State.ModeHud;
 using UnityEngine.UIElements;
@@ -19,10 +20,10 @@ namespace Client.Ui.Screens.ModeHud
             AddToClassList("mode-hud");
             // 拾わない指定は組み終えてから掛ける
             // Apply picking-ignore once the group is built
-            ModeHudPickingIgnore.Apply(this);
-            ModeHudPickingIgnore.Apply(_placement);
-            ModeHudPickingIgnore.Apply(_deleteBands);
-            ModeHudPickingIgnore.Apply(_deleteHeight);
+            UiPickingIgnore.ApplyToSubtree(this);
+            UiPickingIgnore.ApplyToSubtree(_placement);
+            UiPickingIgnore.ApplyToSubtree(_deleteBands);
+            UiPickingIgnore.ApplyToSubtree(_deleteHeight);
         }
 
         public void Render(ModeHudViewModel viewModel)

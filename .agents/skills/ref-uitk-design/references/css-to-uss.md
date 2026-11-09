@@ -37,7 +37,7 @@
 | `z-index`・`--z-*` | `UiLayer` の層に載せる。同じ層の中は子の順で決める |
 | `position: fixed` | 該当する層のルートに `position: absolute` で置く |
 | コンテナクエリ（`cqw`・`container-type`） | `GeometryChangedEvent` で幅を読み、つまみ（`--slot-size` 等）を C# から書く |
-| `pointer-events: none` | `pickingMode = PickingMode.Ignore` |
+| `pointer-events: none` | `pickingMode = PickingMode.Ignore`。UITK は子へ継承しないので、部分木ごと拾わなくするときは `UiPickingIgnore.ApplyToSubtree`（Foundation/Input）を組み終えた後・子を作り直した後に呼ぶ |
 | `overflow: hidden` での切り抜き | `overflow: hidden` は USS でも効く。角丸の切り抜きは `-unity-overflow-clip-box` を確かめてから使う |
 
 ## 4. 文字
@@ -54,7 +54,7 @@
 
 ## 5. 影・グラデ・マスク・図形
 
-USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ）か Painter2D で描く。描く子は `PickingMode.Ignore`、色と長さは部品の USS で受け直したトークンを `UssCustomStyleReader` で読む（§8）。
+USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ）か Painter2D で描く。描く子は `PickingMode.Ignore`、色と長さは部品の USS で受け直したトークンを `UssCustomStyleReader` で読む（§8）。頂点 α に縁の重みや被覆率を掛けるときは線形に掛けず `LinearBlendOpacity.OpacityAt`（Foundation/Theme）を通す（Linear 合成で Web の濃さの並びにするため）。
 
 | CSS | 描き方 | 前例 |
 |---|---|---|
