@@ -1,6 +1,5 @@
 ---
 applies: spec+plan
-model: opus
 ---
 
 # Lens: 複雑性の封じ込め

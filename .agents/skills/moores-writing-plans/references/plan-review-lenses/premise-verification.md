@@ -1,6 +1,5 @@
 ---
 applies: spec+plan
-model: opus
 ---
 
 # Lens: 前提裏取り

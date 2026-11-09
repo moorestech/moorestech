@@ -1,6 +1,5 @@
 ---
 applies: plan
-model: sonnet
 ---
 
 # Lens: 検証カバレッジ（web本番static無言フォールバック・train同期境界assert由来）

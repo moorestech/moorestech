@@ -8,20 +8,15 @@ description: |
   3. 「grillして」「grill-with-docsで」「ブレストして」と言われた時
   対象外: 調査・質問への回答・明示されたクラッシュ/コンパイルエラー修正・レビュー依頼
 hooks:
-  PostToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: "bash .claude/skills/user-simulator/scripts/shadow-gate.sh track"
   Stop:
     - hooks:
         - type: command
-          command: "bash .claude/skills/user-simulator/scripts/shadow-gate.sh stop"
+          command: "node .dev-hooks/logs-hook.mjs record-deviations"
 ---
 
 Run a `/grilling` session, using the `/domain-modeling` skill.
 
-設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する（旧brainstormingから移設。user-simulatorの知識indexも同ファイルを参照している）。
+設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する。
 
 ## HARD GATE（実装着手の禁止）
 
@@ -82,16 +77,8 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 ### 2. 出口の一本化（moores-writing-plans へ直行）
 
 設計・ADRが確定し、§1.7 の Codex 独立質問の消し込みと残問の裁定まで終えたら、終端状態は「**同一セッションでの moores-writing-plans スキル起動**」のみ。spec等の中間文書は書かない — 要件は会話コンテキスト経由でplan先頭の `## Requirements` セクションへ流れ込む。他スキル・実装への分岐は禁止。
-moores-writing-plans 側の user-simulator による plan review（sim-gate配線）は既存のまま維持する。
-設計フェーズでは user-simulator を自動起動しない（大きな設計で必要な場合のみユーザーが手動起動する）。
 
-### 3. セッション終了時の自動シャドー採点（shadow-gate配線）
+### 3. 推奨の印と、推奨から外れた回答の記録
 
-設計成果物（設計doc/plan）を書き終えたら、セッションを終える前に user-simulator の **shadowモード**
-（`.claude/skills/user-simulator/modes/shadow/protocol.md`）で自セッションのtranscriptを盲検採点する。
-インライン予測はしないので設計対話中の体感遅延はゼロ。採点はセッション末尾に1回だけ行う。
-
-- 発動はfrontmatter hooksの shadow-gate（Stop関所）が機械的に保証する。設計doc書き込みで武装し、
-  `user-simulator/datasets/` への格納で解除される（ブロックメッセージに自transcriptパスが入る）
-- 予測体は **model: opus必須明示**・1質問1エージェント・バックグラウンド起動可
-- 採点・永続化・misses.md記録まで shadowモード手順のとおり実施してからセッションを終了する
+- 推奨できる質問では、推奨の選択肢を先頭に置き、ラベル末尾に `(推奨)` を付ける。推奨を決められない質問には印を付けない（印の無い質問は外れの記録から外れる）
+- 推奨付き質問への回答と質問の拒否は、frontmatter の Stop hook（`record-deviations`）が logs repo に自動で記録する。外れがたまると別セッションが理由を推測し、質問の作り方の欠陥をこのスキル本文へ戻す。記録のためにセッション中で何かする必要は無い

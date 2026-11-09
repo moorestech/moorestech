@@ -2,22 +2,15 @@
 name: moores-writing-plans
 description: moorestech専用の実装計画。マルチステップタスクの設計（grillのADR）と要件が揃っていて、コードに着手する前に使う
 hooks:
-  PreToolUse:
-    - matcher: "AskUserQuestion"
-      hooks:
-        - type: command
-          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh preask"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
-        - type: command
-          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh track"
         - type: command
           command: "python3 .claude/skills/moores-code-review/scripts/ledger_gate.py track"
   Stop:
     - hooks:
         - type: command
-          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh stop"
+          command: "node .dev-hooks/logs-hook.mjs record-deviations"
         - type: command
           command: "python3 .claude/skills/moores-code-review/scripts/ledger_gate.py stop"
 ---
@@ -212,12 +205,12 @@ git commit -m "feat: <specific feature>"
 
 Self-Review（内容）の次に、このファイル後半の **spec-architecture-review** を plan に対して実行する。Phase 1〜2.5（配置検査。fresh-context subagent が違反を返し、本体がその場で直す）と **Phase 2.6（型閉包・重複・ADR矛盾。fresh-context subagent に委譲し、発火をユーザーへ質問する）** の両方が対象で、どちらも省略しない。どちらも全タスクを書き終えてから回す。検査後にタスクの追加・機構の変更をしたら、変えた範囲に両方を fresh-context で回し直す（本体の再照合で済ませない。書いた本人は自分の書いた前例引用を理由ごと読んで通すため）。終えたら plan の `## 設計検査記録` の2行を `実施済み` と件数・要約へ書き換える。
 
-## Simulator Review + 判断記録（ADR）— required, after 設計検査
+## 反証検査 + 判断記録（ADR）— required, after 設計検査
 
 設計検査を終えたら、Execution Handoff の**前**に必ず:
 
-1. **user-simulator スキルを実行する**（reviewモード）— `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。設計ADR（`docs/adr/`）とplanの判断記録をcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外し（追加指摘/誤検知）は即ハンドオフ発行。
-2. **plan末尾に `## 判断記録（ADR）` を置く** — 設計セッションのADR（`docs/adr/`）へのリンク＋planning中に新たに生じた判断（タスク分割・機構比較・シミュレーター裁定）を追記する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。
+1. **反証検査を fresh-context の subagent（opus）1 体に任せる** — 渡すのは plan のパス、設計 ADR（`docs/adr/`）と plan の判断記録（裁定済み事項として蒸し返させない）、`references/plan-review-lenses/` の 6 本。subagent は各レンズの「開くトリガー」に合うものだけ読み、リポジトリを Grep・実験して反証できた欠陥だけを返す。出力契約は「Critical（plan のタスクが壊れる・脱落する。根拠の実パス・ヒット数付き）／Warning（確信一段弱い）／設計判断（ユーザーにしか決められない分岐。選択肢付き）」の 3 節で、plan は書き換えない。本体は Critical と Warning をその場で plan に反映し、設計判断は AskUserQuestion へ回す。
+2. **plan末尾に `## 判断記録（ADR）` を置く** — 設計セッションのADR（`docs/adr/`）へのリンク＋planning中に新たに生じた判断（タスク分割・機構比較・反証検査で出た裁定）を追記する。
 
 ## Execution Handoff
 
