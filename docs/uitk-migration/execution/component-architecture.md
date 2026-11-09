@@ -359,7 +359,7 @@ public sealed class UiCommandResultToaster
 - **View がコマンドを直接呼ぶ**（段階 1 の PauseMenuView・BugReportFormView の前例）`[A-8]`。plan §3.1 は「Presenter が操作をコマンドへ渡す」と書くが、コマンドは既にインターフェースで、L1 では `CommandRecorder` で受けられる。Presenter を経由させても中継の配線が増えるだけなので、前例に合わせる
 - **Model の購読は Presenter**。View は `Render` で値を受けるだけ（購読の寿命を Presenter の表示・非表示に揃えるため）
 - **2 源を合成する表示の例**: `GrabOverlayModel`（掴みと画面の 2 源）→ `GrabOverlayPresenter` → `GrabOverlayView.Render`。ID→アイコンは View が `GameContentPresentation` で解く `[A-90]`
-- **`Update()` を使わない**。変化は Model の `ReactiveProperty`。毎フレームの物理（採掘進捗）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（同じフレームの描き直しは UITK が 1 回の描画にまとめる。Web の間引きは WebSocket の送り過ぎを抑えるためのもの）`[A-57]`
+- **`Update()` を使わない**。変化は Model の `ReactiveProperty`。毎フレームの物理（採掘進捗）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（同じフレームの描き直しは UITK が 1 回の描画にまとめる。Web の間引きは WebSocket の送り過ぎを抑えるためのもの）`[A-57]`。源に変化の通知が無い連続値（パイプの流体の複製 `FluidNetworkClientCache`）だけは、置換対象の Web ホストと同じ間隔（4 フレーム）で読み、値が変わったときだけ Model を書く（S4-machine 計画）
 - `UiCommandResultToaster`（`Report(string commandName, UiCommandResult result)`）は段階 1 の `GameUiToastFeed.ShowRejected` の呼び方を 1 つにまとめる F1 の追加 `[A-15]`。F1 で `ShowRejected` は消え、`GameUiToastFeed` は `Show(string, GameUiToastVariant)` だけを持つ。`commandName` はログ用のコマンド名（Web の失敗コードの綴り）で、利用者へ出す文は拒否理由ごとの翻訳文 `[A-18]`
 - **ビルドメニューの視口 `IBuildMenuScrollViewport`**（`Screens/BuildMenu/CategoryScroll/`。[A-20]）は `ScrollTop`・`ClientHeight`・`ScrollHeight` に加えて `AppliedSpacerHeight`（レイアウト確定後のスペーサの実寸。style に書いた値ではない）を返す。追跡器はこの実寸と要求値を 1px 許容で比べて反映済みを判定するので、View は実寸を返し、スペーサを当てた後の `GeometryChangedEvent` で `OnLayoutChanged()` を呼ぶ（style 値を返すと反映前に確定し、保存位置が潰れる）`[A-49]`
 
