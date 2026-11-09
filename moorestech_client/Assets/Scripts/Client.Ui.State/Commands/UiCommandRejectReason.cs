@@ -16,6 +16,7 @@ namespace Client.Ui.State.Commands
         ItemSourceCountShort,
         SplitGrabNotEmpty,
         SplitDragNoValidSlots,
+        BlockSlotUnavailable,
     }
 
     /// <summary>
@@ -40,6 +41,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.ItemSourceCountShort => true,
                 UiCommandRejectReason.SplitGrabNotEmpty => true,
                 UiCommandRejectReason.SplitDragNoValidSlots => false,
+                UiCommandRejectReason.BlockSlotUnavailable => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -67,6 +69,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.ItemSourceCountShort => LocalizationKeys.Ui.CommandRejected.ItemSourceCountShort,
                 UiCommandRejectReason.SplitGrabNotEmpty => LocalizationKeys.Ui.CommandRejected.SplitGrabNotEmpty,
                 UiCommandRejectReason.SplitDragNoValidSlots => LocalizationKeys.Ui.CommandRejected.SplitDragNoValidSlots,
+                UiCommandRejectReason.BlockSlotUnavailable => LocalizationKeys.Ui.CommandRejected.BlockSlotUnavailable,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -87,6 +90,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.ItemSourceCountShort => "insufficient_count",
                 UiCommandRejectReason.SplitGrabNotEmpty => "grab_not_empty",
                 UiCommandRejectReason.SplitDragNoValidSlots => "no_valid_slots",
+                UiCommandRejectReason.BlockSlotUnavailable => "invalid_slot",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
