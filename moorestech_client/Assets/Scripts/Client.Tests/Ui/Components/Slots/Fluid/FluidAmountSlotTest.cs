@@ -10,7 +10,7 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots.Fluid
 {
     /// <summary>
-    /// FluidAmountSlot の白面・絵・量の帯・ツールチップと、画面のつまみに負けない量の字を確かめる（L1）
+    /// FluidAmountSlot の描画を確かめる（L1）
     /// Verifies FluidAmountSlot white face, picture, amount band, tooltip and an amount face screens cannot override (L1)
     /// </summary>
     public class FluidAmountSlotTest : UiTestHost

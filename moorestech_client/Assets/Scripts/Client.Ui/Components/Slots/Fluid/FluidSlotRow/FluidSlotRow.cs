@@ -6,12 +6,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 液体のマスの横並びと任意の進捗の矢印（Web の FluidSlotRow）
+    /// 液体のマスの横並び＋任意の矢印
     /// A row of fluid cells with an optional progress arrow (the Web FluidSlotRow)
     /// </summary>
     public sealed class FluidSlotRow : VisualElement
     {
-        // Web の FluidSlot が固定で付ける testid
+        // マス共通の固定 testid
         // The testid the Web FluidSlot always sets
         private const string SlotTestid = "fluid-slot";
         private const string EmptyStateClass = "fluid-slot-row--empty";
@@ -36,7 +36,7 @@ namespace Client.Ui.Components.Slots
 
         public void SetFluids(IReadOnlyList<FluidSlotContent> fluids)
         {
-            // 位置ごとにマスを使い回し、足りなければ足し余れば外す（Web の key=i）
+            // 位置ごとにマスを使い回す（Web の key=i）
             // Reuse cells by position, adding or removing the difference (the Web key=i)
             ResizeSlots(fluids.Count);
             for (var i = 0; i < fluids.Count; i++) _slots[i].SetFluid(fluids[i]);
@@ -49,7 +49,7 @@ namespace Client.Ui.Components.Slots
                 // マスの数が同じなら矢印を入れ直さない（量の通知ごとの再取り付けを避ける）
                 // Skip re-adding the arrow when the cell count is unchanged
                 if (_slots.Count == count) return;
-                while (_slots.Count > count)
+                while (count < _slots.Count)
                 {
                     _slots[_slots.Count - 1].RemoveFromHierarchy();
                     _slots.RemoveAt(_slots.Count - 1);

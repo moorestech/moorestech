@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots.Fluid
 {
     /// <summary>
-    /// 液体の族の見本の入れ物。スロット族の入れ物に液体の画面のつまみの上書きを足す
+    /// 液体の族の見本の入れ物（つまみ上書き付き）
     /// Container for fluid-family samples: the slot-family container plus fluid screen knob overrides
     /// </summary>
     public static class FluidGallerySampleSheet

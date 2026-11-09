@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 液体 1 マス。背面のフィル・絵・量・名前のツールチップ（Web の FluidSlot）
+    /// 液体 1 マス（フィル・絵・量・ツールチップ）
     /// One fluid cell: back fill, picture, amount and name tooltip (the Web FluidSlot)
     /// </summary>
     public sealed class FluidSlot : VisualElement
@@ -26,7 +26,7 @@ namespace Client.Ui.Components.Slots
             name = testid;
             AddToClassList("fluid-slot");
 
-            // フィル → 絵 → 量の順に重ね、量を最前面に残す（Web の子の順）
+            // フィル・絵・量の順に重ねる（量が最前面）
             // Stack fill, picture, then amount so the amount stays frontmost (the Web child order)
             _fill = new VisualElement { pickingMode = PickingMode.Ignore };
             _fill.AddToClassList("fluid-slot__fill");
@@ -81,7 +81,7 @@ namespace Client.Ui.Components.Slots
 
             void ShowFilled(FilledFluidSlotContent filled)
             {
-                // 高さと色は Web と同じく動的な値をインラインで当てる
+                // 高さと色は動的値のためインラインで当てる
                 // Height and color are dynamic values applied inline, as on the Web
                 EnableInClassList(GhostStateClass, false);
                 EnableInClassList(FillShownStateClass, true);

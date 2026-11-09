@@ -18,7 +18,7 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Content
 {
     /// <summary>
-    /// GameContentPresentation が液体の背面の色をマスタから解き、液体名が言語に追従することを確かめる
+    /// 液体の色と名前の解決を確かめる
     /// Verifies GameContentPresentation resolves the fluid fill color from the master and fluid names follow the language
     /// </summary>
     public class FluidContentTest
@@ -31,7 +31,7 @@ namespace Client.Tests.Ui.Content
         [SetUp]
         public void SetUp()
         {
-            // 端末の保存言語を退避し、テスト用 mod のマスタと英語の辞書を組む
+            // 言語を退避し、mod と英語辞書を組む
             // Stash the device's saved language and load the test mod master with an English dictionary
             _hadSavedLanguage = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
             _savedLanguage = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
@@ -41,6 +41,27 @@ namespace Client.Tests.Ui.Content
             Localize.Initialize();
             Localize.TrySetChosenLanguage("english");
             MergeFluidNames();
+
+            #region Internal
+
+            // 辞書へ液体名キーを合成する（C3-a と同形）
+            // Compose the fluid-name derived key into a temporary mod dictionary (same shape as C3-a GameContentPresentationTest)
+            void MergeFluidNames()
+            {
+                var modDirectory = Path.Combine(_temporaryDirectory, "fluid-names-mod");
+                Directory.CreateDirectory(Path.Combine(modDirectory, "master"));
+                Directory.CreateDirectory(Path.Combine(modDirectory, "localization"));
+                File.WriteAllText(
+                    Path.Combine(modDirectory, "master", "modMeta.json"),
+                    "{\"id\":\"fluid-names\",\"name\":\"fluid-names\",\"version\":\"1.0\",\"author\":\"author\",\"description\":\"test\"}");
+                File.WriteAllText(
+                    Path.Combine(modDirectory, "localization", "localization.csv"),
+                    "key,Source,english,japanese\n" +
+                    $"{ContentLocalizationKeys.FluidName(WaterGuid).Key},Test Water,Test Water,テスト水\n");
+                Localize.MergeGameDictionaries(new ModsResource(_temporaryDirectory), new[] { new ModId("author:fluid-names") }, MasterSourceTextCollector.Collect());
+            }
+
+            #endregion
         }
 
         [TearDown]
@@ -78,7 +99,7 @@ namespace Client.Tests.Ui.Content
         [Test]
         public void 液体スロットの名前はGUIDから導いた辞書名で言語を切り替えると追従する()
         {
-            // 値を入れ直さずに言語だけを変え、印の文が解き直されることを見る
+            // 言語だけ変え、印の文の再解決を見る
             // Change only the language without resetting the value and check the mark's text re-resolves
             var content = new GameContentPresentation(new FakeContentTextureSource(null, null, null));
             var waterId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
@@ -89,23 +110,6 @@ namespace Client.Tests.Ui.Content
             Assert.AreEqual("Test Water", text.Resolve());
             Localize.TrySetChosenLanguage("japanese");
             Assert.AreEqual("テスト水", text.Resolve());
-        }
-
-        // 一時 mod の辞書へ液体名の導出キーを合成する（C3-a の GameContentPresentationTest と同じ形）
-        // Compose the fluid-name derived key into a temporary mod dictionary (same shape as C3-a GameContentPresentationTest)
-        private void MergeFluidNames()
-        {
-            var modDirectory = Path.Combine(_temporaryDirectory, "fluid-names-mod");
-            Directory.CreateDirectory(Path.Combine(modDirectory, "master"));
-            Directory.CreateDirectory(Path.Combine(modDirectory, "localization"));
-            File.WriteAllText(
-                Path.Combine(modDirectory, "master", "modMeta.json"),
-                "{\"id\":\"fluid-names\",\"name\":\"fluid-names\",\"version\":\"1.0\",\"author\":\"author\",\"description\":\"test\"}");
-            File.WriteAllText(
-                Path.Combine(modDirectory, "localization", "localization.csv"),
-                "key,Source,english,japanese\n" +
-                $"{ContentLocalizationKeys.FluidName(WaterGuid).Key},Test Water,Test Water,テスト水\n");
-            Localize.MergeGameDictionaries(new ModsResource(_temporaryDirectory), new[] { new ModId("author:fluid-names") }, MasterSourceTextCollector.Collect());
         }
     }
 }

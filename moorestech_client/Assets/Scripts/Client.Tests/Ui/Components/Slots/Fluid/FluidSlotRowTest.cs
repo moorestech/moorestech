@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots.Fluid
 {
     /// <summary>
-    /// FluidSlotRow がマスを xs の間隔で並べ、進捗の矢印を末尾に出し入れし、空の列を出さないことを確かめる（L1）
+    /// FluidSlotRow の並びと矢印を確かめる（L1）
     /// Verifies FluidSlotRow lays cells out at xs gap, toggles the progress arrow at the end, and hides an empty row (L1)
     /// </summary>
     public class FluidSlotRowTest : UiTestHost

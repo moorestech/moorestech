@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots.Fluid
 {
     /// <summary>
-    /// FluidSlot の見本。タンク・ポンプ・液体プラットフォーム（参照と同じ値）と、ゴースト・長い小数・欠けた絵
+    /// FluidSlot の見本（参照値の 3 種と補助の 3 状態）
     /// FluidSlot samples: tank, pump and fluid platform (reference values) plus ghost, long fraction and a missing picture
     /// </summary>
     public sealed class FluidSlotGalleryEntry : IUiGalleryEntry
@@ -24,7 +24,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots.Fluid
             Add(row, FluidSlotContent.Filled(water, 120, 200, FluidGallerySampleSheet.Water));
             Add(row, FluidSlotContent.Filled(water, 250, 1000, FluidGallerySampleSheet.Water));
 
-            // 参照と比べない見本: 空・ゴースト・長い小数・欠けた絵
+            // 参照なしの見本
             // Samples not compared with references: empty, ghost, long fraction, missing picture
             Add(row, FluidSlotContent.Empty);
             Add(row, FluidSlotContent.Ghost(water, 2));

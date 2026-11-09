@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots.Fluid
 {
     /// <summary>
-    /// FluidSlotRow の見本。タンクの 1 マスと矢印・機械の入出力・矢印なし
+    /// FluidSlotRow の見本（タンク・機械・矢印なし）
     /// FluidSlotRow samples: a tank cell with an arrow, machine input/output and no arrow
     /// </summary>
     public sealed class FluidSlotRowGalleryEntry : IUiGalleryEntry
@@ -17,7 +17,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots.Fluid
             var root = FluidGallerySampleSheet.CreateSampleRoot();
             var water = SlotGallerySampleSheet.Icon("10", "Water");
 
-            // 4-block-tank: 50% のマス・空のマスと矢印
+            // タンク: 50% と空のマス＋矢印
             // 4-block-tank: a 50% cell, an empty cell and the arrow
             var tank = new FluidSlotRow("gallery-fluid-row-tank");
             tank.SetFluids(new[] { FluidSlotContent.Filled(water, 500, 1000, FluidGallerySampleSheet.Water), FluidSlotContent.Empty });

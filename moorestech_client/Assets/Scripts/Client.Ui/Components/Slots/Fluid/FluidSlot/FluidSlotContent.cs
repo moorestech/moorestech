@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// FluidSlot に入れる中身。空・ゴースト・中身を sealed 派生で表し、各派生は自分に要る値だけを持つ
+    /// FluidSlot の中身（空・ゴースト・中身の派生）
     /// What a FluidSlot holds: empty, ghost and content as sealed subtypes, each carrying only its own values
     /// </summary>
     public abstract class FluidSlotContent

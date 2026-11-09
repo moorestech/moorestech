@@ -1,7 +1,7 @@
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 量の帯を出すかどうか。出さない側は量を持たない（Web の AmountBadge）
+    /// 量の帯の表示可否。非表示側は量を持たない
     /// Whether the amount band shows; the hidden side carries no amount (the Web AmountBadge)
     /// </summary>
     public abstract class SlotAmountBadge
@@ -12,8 +12,6 @@ namespace Client.Ui.Components.Slots
         {
         }
 
-        // 0 も 0 と描く
-        // Zero draws as 0
         public static ShownSlotAmountBadge Show(double amount)
         {
             return new ShownSlotAmountBadge(amount);

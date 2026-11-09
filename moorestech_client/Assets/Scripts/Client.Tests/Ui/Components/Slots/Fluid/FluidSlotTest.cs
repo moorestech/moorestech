@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots.Fluid
 {
     /// <summary>
-    /// FluidSlot の種類ごとのフィル・絵・量・ツールチップの出し分けを確かめる（L1）
+    /// FluidSlot の種類別の描画を確かめる（L1）
     /// Verifies FluidSlot shows fill, picture, amount and tooltip per content kind (L1)
     /// </summary>
     public class FluidSlotTest : UiTestHost

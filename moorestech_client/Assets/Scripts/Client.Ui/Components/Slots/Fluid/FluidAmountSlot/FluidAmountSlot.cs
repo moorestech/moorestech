@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 容量の無い液体 1 マス。アイテムと同じ白面の枠に絵と量の帯（Web の FluidAmountSlot）
+    /// 容量なしの液体 1 マス（白面の枠＋絵＋量の帯）
     /// One capacity-less fluid cell: the item's white frame with a picture and an amount band (the Web FluidAmountSlot)
     /// </summary>
     public sealed class FluidAmountSlot : VisualElement
@@ -22,7 +22,7 @@ namespace Client.Ui.Components.Slots
 
         public FluidAmountSlot(string frameTestid)
         {
-            // testid・印・ポインタは Web と同じく枠が持つ
+            // testid・印・ポインタは枠が持つ
             // The frame owns the testid, mark and pointer, as on the Web
             pickingMode = PickingMode.Ignore;
             AddToClassList("fluid-amount-slot");

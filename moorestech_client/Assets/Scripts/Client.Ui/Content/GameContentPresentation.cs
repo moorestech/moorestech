@@ -53,7 +53,7 @@ namespace Client.Ui.Content
 
         public Color FluidFace(FluidId id)
         {
-            // 空の液体（空タンク）は色を持たない。Fluid と同じくここで止める
+            // 空タンクは色なし。Fluid と同じく止める
             // An empty fluid (empty tank) has no color; stop here as Fluid does
             if (id == FluidMaster.EmptyFluidId) throw new ArgumentException("The empty fluid has no fill color; the screen must not ask for it", nameof(id));
             var master = MasterHolder.FluidMaster.GetFluidMaster(id);

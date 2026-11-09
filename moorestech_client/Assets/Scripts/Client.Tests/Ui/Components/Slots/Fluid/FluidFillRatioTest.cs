@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Components.Slots.Fluid
 {
     /// <summary>
-    /// 液体の量と容量からフィルの割合を出す規則（Web の fillRatio）を確かめる（L0）
+    /// フィルの割合の算出を確かめる（L0）
     /// Verifies the fill ratio rule from fluid amount and capacity (the Web fillRatio) (L0)
     /// </summary>
     public class FluidFillRatioTest

@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots.Fluid
 {
     /// <summary>
-    /// FluidAmountSlot の見本。既定の行と機械のレシピ選択の行
+    /// FluidAmountSlot の見本（既定行・レシピ行）
     /// FluidAmountSlot samples: a default row and the machine recipe selection row
     /// </summary>
     public sealed class FluidAmountSlotGalleryEntry : IUiGalleryEntry
@@ -20,7 +20,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots.Fluid
             var oil = SlotGallerySampleSheet.Icon("11", "Oil");
             var sampleIndex = 0;
 
-            // 既定のつまみ: 量・0・4 桁・量なし・欠けた絵
+            // 既定のつまみの各状態
             // Default knobs: amount, zero, four digits, hidden and a missing picture
             var plain = SlotGallerySampleSheet.AddPlainRow(root);
             Add(plain, oil, SlotAmountBadge.Show(10));

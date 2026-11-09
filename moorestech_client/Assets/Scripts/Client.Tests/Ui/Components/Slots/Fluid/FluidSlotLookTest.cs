@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots.Fluid
 {
     /// <summary>
-    /// FluidSlot の枠・量の書体と黒縁・基線・ゴーストの透けをトークンどおりに描くか確かめる（L1）
+    /// FluidSlot の見た目のトークン適用を確かめる（L1）
     /// Verifies FluidSlot frame, amount type with dark outline, baseline and ghost fade follow the tokens (L1)
     /// </summary>
     public class FluidSlotLookTest : UiTestHost
