@@ -48,6 +48,8 @@ namespace Client.Ui.Foundation.DragDrop
             source.AddToClassList(SourceClassName);
         }
 
+        // 型引数は受け口の型で明示する。受け口の派生型を別種の落とし先の型に使わない（取り違えとしてログが出る）
+        // Spell the type argument as the receiver type; never use a receiver subtype as another kind of target (it logs as a mix-up)
         public static void MarkTarget<TTarget>(VisualElement target, TTarget handler) where TTarget : class
         {
             Marks<TTarget>.Targets.AddOrUpdate(target, handler);
