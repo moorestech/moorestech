@@ -7,6 +7,7 @@ using Client.Ui.State.Items;
 using Core.Master;
 using NUnit.Framework;
 using UniRx;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BlockInventory
@@ -71,6 +72,37 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             var scroll = shell.View.Q<GameScrollView>(NaturalScrollName);
             Assert.Less(shell.Panel().layout.height, Band);
             Assert.LessOrEqual(scroll.GetContentHeight(), scroll.GetViewportHeight() + 0.01f);
+        }
+
+        [Test]
+        public void 別のチェストへ替えるとスクロール位置が先頭に戻り同じチェストの再描画では保たれる()
+        {
+            var slots = Enumerable.Repeat(new SlotItem(new ItemId(1), 1), 120).ToArray();
+            var state = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.ChestWithSlots(slots));
+            var shell = BlockInventoryTestShell.Create(this, state);
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            var scroll = shell.View.Q<GameScrollView>(NaturalScrollName);
+            scroll.SetScrollOffset(100000f);
+            simulate.FrameUpdate();
+            var scrolled = scroll.scrollOffset.y;
+            Assert.Greater(scrolled, 0f);
+
+            // 同じチェストの中身の更新では位置を保つ
+            // Updating the same chest keeps the position
+            state.Value = BlockInventoryTestPanels.ChestWithSlots(slots.Take(119).Append(new SlotItem(new ItemId(2), 1)).ToArray());
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.AreEqual(scrolled, shell.View.Q<GameScrollView>(NaturalScrollName).scrollOffset.y, 0.01f);
+
+            // 閉じてから別のチェストへ替えると先頭から（閉じている間は器が木から外れ寸法が確定しない）
+            // Closing then switching to another chest starts from the top (the holder is detached while closed, so it is never re-clamped)
+            state.Value = BlockInventoryPanelState.Closed;
+            simulate.FrameUpdate();
+            state.Value = BlockInventoryTestPanels.ChestAtPosition(new Vector3Int(9, 0, 0), slots);
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, shell.View.Q<GameScrollView>(NaturalScrollName).scrollOffset.y, 0.01f);
         }
 
         private BlockInventoryTestShell Open(int slotCount)

@@ -29,6 +29,11 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
             return BlockInventoryPanelStateFactory.FromBlock(true, slots, FindChest(), new BlockInstanceId(1), new Vector3Int(1, 0, 0));
         }
 
+        public static BlockInventoryPanelState ChestAtPosition(Vector3Int position, params SlotItem[] slots)
+        {
+            return BlockInventoryPanelStateFactory.FromBlock(true, slots, FindChest(), new BlockInstanceId(2), position);
+        }
+
         public static BlockInventoryPanelState OpenFailedChest()
         {
             return BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), FindChest(), new BlockInstanceId(1), new Vector3Int(1, 0, 0));

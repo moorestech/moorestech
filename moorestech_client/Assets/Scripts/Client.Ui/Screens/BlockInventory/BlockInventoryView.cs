@@ -137,6 +137,11 @@ namespace Client.Ui.Screens.BlockInventory
             _body.Add(body);
         }
 
+        public void RestartBodyScroll()
+        {
+            _naturalScroll.Root.SetScrollOffset(0f);
+        }
+
         public void ClearBody()
         {
             _naturalScroll.Unwrap();

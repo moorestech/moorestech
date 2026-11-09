@@ -27,10 +27,15 @@ namespace Client.Ui.Screens.BlockInventory
         {
             // 作り直すかは State の IsSamePanel と大きさの 2 つだけで決める
             // Rebuild is decided only by the State's IsSamePanel and the size
-            if (state.IsSamePanel(_state) && layout.Size == _layout.Size) return;
+            var samePanel = state.IsSamePanel(_state);
+            if (samePanel && layout.Size == _layout.Size) return;
             _state = state;
             _layout = layout;
             DetachAll();
+
+            // 別のパネル・エラーからの復帰では先頭から始める（Web の key={data.identifier} による再マウント）。同じパネルの大きさ変更では位置を保つ
+            // A different panel or recovery from an error starts from the top (Web key={data.identifier} remount); a resize of the same panel keeps the position
+            if (!samePanel) _view.RestartBodyScroll();
 
             // エラー中は何も載せない（Web の !error）。小型は自然高のスクロール器で包む（Web の !isLarge）
             // Nothing is mounted while erroring (Web !error); natural panels wrap the body in the natural-height scroller (Web !isLarge)
