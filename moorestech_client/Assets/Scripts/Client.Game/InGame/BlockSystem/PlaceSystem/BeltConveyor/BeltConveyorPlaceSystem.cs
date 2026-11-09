@@ -103,18 +103,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             }
             PlacementHeightKeyInput.Apply(_placementHeightOffset);
             _previewBlockController.SetActive(false);
-
             if (_session == null) UpdateStartSelection(feedback);
             else UpdateRouting(feedback);
         }
 
         // 始点選び中の毎フレームと確定の直前だけ呼ぶ。始点確定後は作り直しも再探索もしない
         // Called every start-selection frame and right before confirm only; no rebuild or re-search after the start is fixed
-        private void RefreshWorldIfChanged()
+        private bool RefreshWorldIfChanged()
         {
-            if (_worldRevision == _blocks.OccupancyRevision) return;
-            _world.Rebuild();
+            var changed = _worldRevision != _blocks.OccupancyRevision;
+            if (changed) _world.Rebuild();
             _worldRevision = _blocks.OccupancyRevision;
+            return changed;
         }
 
         private void UpdateStartSelection(PlacementFeedback feedback)
@@ -176,10 +176,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             ShowPreview(infos);
             if (!placeable || !BeltRouteKeyInput.IsConfirmPressed) return;
 
-            // 確定の瞬間に世界を読み直し、置けなくなっていたら送らずに始点選びへ戻す
-            // Re-read the world at confirm; if no longer placeable, send nothing and return to start selection
-            RefreshWorldIfChanged();
-            if (!BeltRouteConfirmCheck.IsStillPlaceable(_world, _blocks, _session, _holding, _branchUseAlternateExit, infos))
+            // 確定の瞬間に世界を読み直し、変わっていたら同じ終点で探索し直して照合し、置けなければ始点選びへ戻す
+            // Re-read the world at confirm; if changed, re-search the same end and compare; if unplaceable, return to start selection
+            var replanned = RefreshWorldIfChanged() ? BeltRouteRoutingFrame.ReplanForConfirm(_session, hit, _holding) : null;
+            if (!BeltRouteConfirmCheck.IsStillPlaceable(_world, _blocks, _session, _holding, _branchUseAlternateExit, infos, replanned))
             {
                 _worldChangedNoticeUntil = Time.unscaledTime + WorldChangedNoticeSeconds;
                 _session = null;

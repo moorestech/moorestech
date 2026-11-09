@@ -51,6 +51,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             return new BeltRouteSession(branch.Cell, branch.ExitDirection, branch, world);
         }
 
+        // 結果の使い回しを捨てて探索し直す。確定時に世界を読み直した後の再照合用
+        // Searches again, dropping the reused result; for the re-check after the world is re-read at confirm
+        public BeltRoutePlanResult PlanFresh(Vector3Int endCell, BlockDirection endDirection, BeltConveyorHoldingBlock holding)
+        {
+            _lastQuery = null;
+            return Plan(endCell, endDirection, holding);
+        }
+
         // カーソルか向きが変わったフレームだけ探索する
         // Searches only on frames where the cursor or heading changed
         public BeltRoutePlanResult Plan(Vector3Int endCell, BlockDirection endDirection, BeltConveyorHoldingBlock holding)

@@ -16,11 +16,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     /// </summary>
     public static class BeltRouteConfirmCheck
     {
-        public static bool IsStillPlaceable(IBeltRouteWorld world, BlockGameObjectDataStore blocks, BeltRouteSession session, BeltConveyorHoldingBlock holding, bool useAlternateExit, List<PlaceInfo> infos)
+        public static bool IsStillPlaceable(IBeltRouteWorld world, BlockGameObjectDataStore blocks, BeltRouteSession session, BeltConveyorHoldingBlock holding, bool useAlternateExit, List<PlaceInfo> infos, List<PlaceInfo> replannedInfos)
         {
             // 置けなければ送らずに始点選びへ戻るので、開発者向けに理由をログへ出す
             // A failure sends nothing and returns to start selection, so log it for developers
-            var placeable = (!session.IsBranch || IsBranchStillUsable()) && AreCellsStillFree();
+            var placeable = (!session.IsBranch || IsBranchStillUsable()) && AreCellsStillFree() && IsSameRouteWhenReplanned();
             if (!placeable) Debug.Log($"[BeltRoute] world changed before confirm; back to start selection start:{session.StartCell} end:{infos[infos.Count - 1].Position} branch:{session.IsBranch}");
             return placeable;
 
@@ -34,6 +34,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 {
                     if (session.IsBranch && info.Position == session.Branch.Cell) continue;
                     if (BeltRouteCellJudge.Judge(world, info.Position) != BeltRouteCellBlockReason.None) return false;
+                }
+                return true;
+            }
+
+            // 世界が作り直されていたら（null以外）、探索し直した経路が同じセル・向きであること
+            // When the world was rebuilt (non-null), the re-searched route must have the same cells and facings
+            bool IsSameRouteWhenReplanned()
+            {
+                if (replannedInfos == null) return true;
+                if (replannedInfos.Count != infos.Count) return false;
+                for (var i = 0; i < infos.Count; i++)
+                {
+                    if (replannedInfos[i].Position != infos[i].Position || replannedInfos[i].Direction != infos[i].Direction || replannedInfos[i].VerticalDirection != infos[i].VerticalDirection) return false;
                 }
                 return true;
             }

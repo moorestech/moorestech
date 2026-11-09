@@ -38,5 +38,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             placeable = true;
             return BeltRoutePlaceInfoBuilder.Build(result.Plan, holding, session.Branch);
         }
+
+        // 確定時に読み直した世界での経路。経路が無ければ空のリスト
+        // The route in the world re-read at confirm; an empty list when there is no route
+        public static List<PlaceInfo> ReplanForConfirm(BeltRouteSession session, BeltRouteCursorHit hit, BeltConveyorHoldingBlock holding)
+        {
+            if (!session.IsBranch && hit.Cell == session.StartCell) return new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.Single(hit.Cell, hit.Direction, holding.BlockId, true) };
+
+            var result = session.PlanFresh(hit.Cell, hit.Direction, holding);
+            return result.HasPlan ? BeltRoutePlaceInfoBuilder.Build(result.Plan, holding, session.Branch) : new List<PlaceInfo>();
+        }
     }
 }
