@@ -4,7 +4,7 @@
 
 **Goal:** Web 版の `features/hotbar`（9 枠・番号タブ・選択・未解決の減光・選択を受けない画面の減光・割当/入替/解除の落とし先・ホイール素通しの印）と `features/modal`（Mantine Modal の題・本文・BP 名の入力・確定ボタン・幕のクリックで取消）を、C3-a（`SlotFrame`・`PlacementTargetFace`）・C3-b（`UiDragDrop`・`UiModalHost`・`DialogFrame`）・C2-b（`FormButton`・`GameTextField`）の部品で Web と同じ見た目の UITK 画面にし、全体スイッチ UITK でモーダルの描き手を UITK 1 本にする。Model は Web の topic の源（`ClientHotbarDatastore`・`PlacementTargetResolver`・`PlaceSystemStateController`・`ModalRequestService`）から直に組み、L1・並べ比べ（720p・2560×1080、モーダルは 1080p も実画面 px で [A-41]）・録画 `uitk/uitk-hotbar-and-bp-modal` まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。ホットバーの Model（`Client.Ui.State/Hotbar`）は源を購読して不変の `HotbarViewModel` を `IReadOnlyReactiveProperty` で配り、View（`Client.Ui/Screens/Hotbar`）は `Render(HotbarViewModel)` で部品へ流す。Presenter が起動時に 1 回だけ View を `UiLayer.Chrome`・`UiFamily.Viewport`（Web の `.viewportOverlay` z31。前例 S2-mode-tooltip D-1）へ載せ、`_model.Current.Subscribe(view.Render)` で繋ぐ。ドラッグは C3-b の `UiDragDrop`（源が解く・ゴースト無し [A-78]）に、枠の印 `HotbarSlotDropMark`・列の隙間の印 `HotbarRowGapDropMark` と、L0-s3 の `HotbarDropResolver` を呼んで `IHotbarCommands` へ流す解き方 を画面内（`Screens/Hotbar/Parts/`）で与える。枠の印は `IUiDropTarget` と、S3-buildmenu が State に作る `IHotbarDropReceiver`（`void Receive(HotbarDragSource)`）の両方を実装し、操作（`IHotbarCommands`）を持って自分で解く。ビルドメニューの源（`BuildMenuEntryDragPayload`）は最初から `target is IHotbarDropReceiver r` なら `r.Receive(Source)` で落とすので、このレーンはビルドメニューのファイルを書き換えない。配置対象の絵の出どころ（`PlacementTargetIcon`・`PlacementTargetIconResolver`・`PlacementTargetIcons.TryToUiIcon`）も S3-buildmenu が最終の置き場に作り、ホットバーは使うだけ（面へ当てる分岐は枠が持つ）。選択を受ける画面の規則は `HotbarSelectRule` の 1 か所で、Model（減光）と `HotbarCommands`（受理）が同じものを読む。ホットバーの Model は源の変化ごとに同期で組み直す（[A-57]。前例 ModeHudModel・BuildMenuModel）。操作は `UiCommandResult` を返し、拒否は `UiCommandResultToaster` へ渡す（[A-8]）。モーダルは状態の正が既に `ModalRequestService` にあるので Model を作らず、`ModalScreenPresenter` が `OnPendingChanged` を購読して `ModalView`（`DialogFrame`＋`LocalizedLabel`＋`GameTextField(MantineInput)`＋`FormButton`）を C3-b の `UiModalHost` に `Show`/`Hide` する。確定・2 回目の ESC は View が、幕のクリックは Presenter が、同じ `IModalCommands.Respond`（[A-8]）を呼ぶ。見た目の値は Web と同名のトークン・つまみだけを使い、Web が直書きする色は `DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」に前計算して足す（[A-52]）。ホットバーは世界の上に直に置くので `--slot-frame-face` を画面ルートで世界の地向けの α に上書きし、列と未解決枠の減光（Web の opacity 0.55・0.4）はランタイムの PanelSettings（Linear 合成）で明るい地の画素を Web の sRGB 合成と照合して決める（bd `moorestech-albof.34`）。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。ホットバーの Model（`Client.Ui.State/Hotbar`）は源を購読して不変の `HotbarViewModel` を `IReadOnlyReactiveProperty` で配り、View（`Client.Ui/Screens/Hotbar`）は `Render(HotbarViewModel)` で部品へ流す。Presenter が起動時に 1 回だけ View を `UiLayer.Chrome`・`UiFamily.Viewport`（Web の `.viewportOverlay` z31。前例 S2-mode-tooltip D-1）へ載せ、`_model.Current.Subscribe(view.Render)` で繋ぐ。ドラッグは C3-b の `UiDragDrop`（源が解く・ゴースト無し [A-78]）に、枠の印 `HotbarSlotDropMark`・列の隙間の印 `HotbarRowGapDropMark` と、L0-s3 の `HotbarDropResolver` を呼んで `IHotbarCommands` へ流す解き方 を画面内（`Screens/Hotbar/Parts/`）で与える。枠の印は `IUiDropTarget` と、S3-buildmenu が State に作る `IHotbarDropReceiver`（`void Receive(HotbarDragSource)`）の両方を実装し、操作（`IHotbarCommands`）を持って自分で解く。ビルドメニューの源（`BuildMenuEntryDragPayload`）は最初から `target is IHotbarDropReceiver r` なら `r.Receive(Source)` で落とすので、このレーンはビルドメニューのファイルを書き換えない。配置対象の絵の出どころ（`PlacementTargetIcon`・`PlacementTargetIconResolver`・`PlacementTargetIcons.TryToUiIcon`）も S3-buildmenu が最終の置き場に作り、ホットバーは使うだけ（面へ当てる分岐は枠が持つ）。選択を受ける画面の規則は `HotbarSelectRule` の 1 か所で、Model（減光）と `HotbarCommands`（受理）が同じものを読む。ホットバーの Model は源の変化ごとに同期で組み直す（[A-57]。前例 ModeHudModel・BuildMenuModel）。操作は `UiCommandResult` を返し、拒否は `UiCommandResultToaster` へ渡す（[A-8]）。モーダルは状態の正が既に `ModalRequestService` にあるので Model を作らず、`ModalScreenPresenter` が `OnPendingChanged` を購読して `ModalView`（`DialogFrame`＋`LocalizedLabel`＋`GameTextField(MantineInput)`＋`FormButton`）を C3-b の `UiModalHost` に `Show`/`Hide` する。確定・ESC（1 回）・幕のクリックはどれも View が `IModalCommands.Respond`（[A-8]）を呼ぶ。見た目の値は Web と同名のトークン・つまみだけを使い、Web が直書きする色は `DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」に前計算して足す（[A-52]）。ホットバーは世界の上に直に置くので `--slot-frame-face` を画面ルートで世界の地向けの α に上書きし、列と未解決枠の減光（Web の opacity 0.55・0.4）はランタイムの PanelSettings（Linear 合成）で明るい地の画素を Web の sRGB 合成と照合して決める（bd `moorestech-albof.34`）。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`CustomStyleResolvedEvent`・`PointerDownEvent` 系・`panel.Pick`）、UniRx、UniTask、VContainer、NUnit＋`com.unity.ui.test-framework`（`UITestFixture`・`PanelSimulator`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（Web の参照キャプチャ・test-name-parity・`convert-web-tokens.mjs`）、gh CLI、bd（Beads）
 
@@ -25,11 +25,11 @@
 | R-5 | 入力の素通し: 帯は拾わず、列だけが拾い、列にホイール素通しの印（`WheelPassthroughMark`）がある（帯には無い） | `HotbarHudPickingTest` が緑（Web `alwaysOnHudWheel.test.ts` の「%s は入力を奪わない」ホットバー帯の行と「クリックを持つスロット列だけが入力を取り戻し…」。bd `moorestech-albof.30`） |
 | R-6 | 世界の上の色（bd `moorestech-albof.34`）: 画面ルートで `--slot-frame-face: var(--hotbar-slot-frame-face)`（α 0.7226）に上書きし、空き枠の面・番号タブの面・未解決と受理外の減光を、ランタイムの PanelSettings（Linear 合成）の明るい地 (240,203,166) と暗い地 (40,42,48) で Web の sRGB 合成と照合する。明るい地で RGB 7 段以内（C3-a の基準）にし、暗い地で外れる分は `LX-76` に記帳する | Task 10 の照合表（EDC の出力）が `done.md` にあり、明るい地の全行が 7 段以内 |
 | R-7 | アイコンが枠の中央に描かれる | `HotbarIconCenteringTest` が緑（Web `placementIconCentering.spec.ts`「ホットバーのアイコンは枠の中央に描かれる」） |
-| R-8 | モーダル: 全体スイッチ UITK では `ModalRequestService.Pending` を UITK だけが描く。`DialogFrame("modal")` に題（`UiText.FromVerbatim(Title)`）、本文（`modal-message`・`text--sm`・`text--dimmed`・下余白 lg）、入力付きなら `GameTextField("modal-input", false, MantineInput)`（下余白 lg・表示時にフォーカス）、`FormButton("modal-button", FromVerbatim(ButtonText), Blue→Filled／Red→Danger)`（入力付きで空白だけなら押せない）。確定は入力付きなら前後の空白を除いた文を、取消は文なしを `IModalCommands.Respond` へ返す。幕のクリックと、入力欄にフォーカスが無いときの ESC（2 回目の ESC）は取消。要求 ID が変わったら入力欄を空にする | `ModalViewTest`・`ModalScreenPresenterTest`・`ModalCommandsTest` が緑（Web `modal.spec.ts` 4 件と ESC の 1 件） |
+| R-8 | モーダル: 全体スイッチ UITK では `ModalRequestService.Pending` を UITK だけが描く。`DialogFrame("modal")` に題（`UiText.FromVerbatim(Title)`）、本文（`modal-message`・`text--sm`・`text--dimmed`・下余白 lg）、入力付きなら `GameTextField("modal-input", false, MantineInput)`（下余白 lg・表示時にフォーカス）、`FormButton("modal-button", FromVerbatim(ButtonText), Blue→Filled／Red→Danger)`（入力付きで空白だけなら押せない）。確定は入力付きなら前後の空白を除いた文を、取消は文なしを `IModalCommands.Respond` へ返す。幕のクリックと ESC 1 回（Web の Mantine と同じ。入力欄の変換中を除く。ESC はワールドへ渡さない）は取消。入力欄の外を押しただけでは閉じない。要求 ID が変わったら入力欄を空にする | `ModalViewTest`・`ModalScreenPresenterTest`・`ModalCommandsTest` が緑（Web `modal.spec.ts` 4 件と ESC・欄外の押下の 2 件） |
 | R-9 | モーダルは実画面 px で Web と同じ（[A-41]）: 720p・1080p・2560×1080 で幅 440 実画面 px・画面の中央 | `ModalScreenPresenterTest` の倍率 1.5 の主張が緑。並べ比べ（R-10）の 3 解像度 |
 | R-10 | 並べ比べ: 参照 `3-hotbar-equipment-empty`（1280×720・2560×1080）と `3-modal`（1280×720・1920×1080・2560×1080）を UITK と並べ、差の表を `done.md` に書く | 2 状態の組（ホットバー 2 解像度・モーダル 3 解像度）が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれかがある |
 | R-11 | 登録: `MainGameUiRegistration` の画面登録区画に 2 行（`HotbarGameUiRegistration.Register(builder);`・`ModalGameUiRegistration.Register(builder);`）。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行。BP 名のブリッジは確定の検証を `ModalLogic.HasConfirmableText` に委ねる | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が緑 |
-| R-12 | 録画 `uitk/uitk-hotbar-and-bp-modal`（全体スイッチ UITK）: 枠のクリックで建築モードへ入る・枠の入替・枠外へのドラッグで解除・BP コピーの名前入力をモーダルで打って確定し BP ができる。既存の `building/blueprint-copy-paste-via-ui` も全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（Note の `系=GameUi`）がある |
+| R-12 | 録画 `uitk/uitk-hotbar-and-bp-modal`（全体スイッチ UITK）: 枠のクリックで建築モードへ入る・枠の入替・枠外へのドラッグで解除・BP コピーの名前入力をモーダルで打って確定し BP ができる・ESC 1 回でモーダルが閉じ、ポーズも建築モードの解除も起きない（入力欄あり・なしの両方）。既存の `building/blueprint-copy-paste-via-ui` も全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（Note の `系=GameUi`）がある。録画に ESC 1 回でモーダルが閉じポーズが出ない段がある |
 | R-13 | 写さない Web テスト・一部だけ写す Web テストを `docs/uitk/disposition.md` に書く | `node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing` で、このレーンの持ち分（下の「写すテスト」の表）の未対応が 0 |
 | R-14 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd（レーン・`albof.30`・`albof.34`）を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
 
@@ -37,7 +37,7 @@
 
 - 部品（`SlotFrame`・`PlacementTargetFace`・`OutlinedCountLabel`・`DialogFrame`・`FormButton`・`GameTextField`）・既存の Foundation（`UiDragDrop`・`UiModalHost`・`UiPressGesture`・`StageScaleSource`・`GameUiInputRules`。新規の `Foundation/Input/WheelPassthroughMark.cs` だけ足す。D-21）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`）・`UiLayer`・`UiScreenTraits`・`AnchorIds` は変えない。要るものは `done.md` の「integrator への依頼」に書く（`DerivedTokens.uss` は末尾の名札付きブロックだけ足す [A-52]）
 - ビルドメニューの画面と、その源（エントリのドラッグ・タップ）、配置対象の絵の出どころ（`PlacementTargetIcon` 系・`PlacementTargetIconResolver`・`PlacementTargetIcons`）、State の落とし先の口 `IHotbarDropReceiver` は作らない（S3-buildmenu が最終の置き場に作る。W3 で先に入る）。S3-buildmenu のファイルは書き換えない。ビルドメニューのパネルからホットバーへ通しで確かめる横断の L1 は S3-ladder。このレーンは本物のエントリの源（`BuildMenuEntryDragPayload`）を単独で置いて確かめる（使うだけ）
-- ホイールで装備を回す処理は作らない（S4-inventory。このレーンは列に素通しの印を付けるだけ）
+- ホイールで装備を回す処理は作らない（S4-inventory。このレーンは列に素通しの印と、その判定 `WheelPassthroughMark.IsPassthrough` を作るまで）
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない。Web の系のモーダル（`ModalTopic`・`ModalActions`）はそのまま残る
 - L3（EditModeInPlayingTest）は持たない（段の締め S3-ladder）
 - `app/iconTextOutlineDesign.test.ts` は記帳しない（[A-54] で integrator が配る。配られたら「integrator への依頼」の返りとして写す）
@@ -46,7 +46,7 @@
 
 - **作業場所**: `moores-wt new uitk-lane/s3-hotbar-modal --from origin/feature/uitk`（Editor 要）。最初に `pwd` で worktree にいることを確かめる。Unity は自分の worktree の Editor だけを使い、起動・停止の前に `moores-wt status` で所有を確かめる
 - **依存**: C3-a（#1612・d4347f75ef。マージ済み）・C3-b・L0-s3（マージ済み）・S2-hud（`BlockingSkitPresence`）・S3-buildmenu（`PlacementTargetIcon` 系・`PlacementTargetIconResolver`・`PlacementTargetIcons`・`IHotbarDropReceiver`・`BuildMenuEntryDragPayload`・`IBuildMenuEntryHandler`。W3 の順で先に入る）。Task 1 Step 1 で全部の実物を確かめ、無ければ止めて指揮へ報告する
-- **使う部品と公開 API**。C3-a・C2-b・L0-s3・既存の State は `origin/feature/uitk` の実物から写した。C3-b・S2-hud・S3-buildmenu はそれぞれの計画の Produces から写したので「マージ後に実物と照合」（Task 1 Step 1 で grep し、名前が違えば以後を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く）
+- **使う部品と公開 API**。C3-a・C2-b・L0-s3・S2-hud（#1613・8369fc1f39）・既存の State は `origin/feature/uitk` の実物から写した。C3-b・S3-buildmenu はそれぞれの計画の Produces から写したので「マージ後に実物と照合」（Task 1 Step 1 で grep し、名前が違えば以後を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く）
 
 ```csharp
 // ===== C3-a（実物。S/Client.Ui/Components/Slots/・Foundation/Icons/・Content/）=====
@@ -72,7 +72,7 @@ namespace Client.Ui.Components.Slots
         public OutlinedCountLabel(VisualElement parent, string placementClass, params string[] layerClasses); // 縁の層 .outlined-count-label--stroke と字の層 --glyph を parent の子に足す
         public void SetText(UiText text);
     }
-    // 縁の色は .outlined-count-label--stroke の color・-unity-text-outline-color: var(--icon-text-stroke-light)。字の色はつまみ --outlined-count-label-color、大きさは --outlined-count-label-size
+    // 縁の色は .outlined-count-label--stroke の color・-unity-text-outline-color: var(--icon-text-stroke-light)（土台。Task 6 Step 3 がつまみ --outlined-count-label-stroke-color に替える）。字の色はつまみ --outlined-count-label-color、大きさは --outlined-count-label-size
 }
 namespace Client.Ui.Foundation.Icons { public sealed class UiIcon { public Texture2D Texture { get; } public string IdText { get; } public UiText Label { get; } public UiIcon(Texture2D texture, string idText, UiText label); } }
 namespace Client.Ui.Content { public sealed class GameContentPresentation { public UiIcon Item(ItemId id); public UiIcon Block(BlockId id); public UiIcon Fluid(FluidId id); public UiText ItemName(ItemId id); } }
@@ -180,8 +180,8 @@ namespace Client.Ui.State.Commands
 namespace Client.Ui.State.Toast { public sealed class UiCommandResultToaster { public void Report(string commandName, UiCommandResult result); } } // 拒否は LogWarning「[UiCommandResultToaster] <名> failed: <wire>」、良性でなければトースト。MainGameUiRegistration が登録・テストは ScreenTestHost.Toaster
 // 入力: Client.Input.UiInputExclusivity.ConsumeEscapeThisFrame()・IsEscapeConsumedThisFrame・SetGameUiTextInputFocused(bool)・ClearEscapeLatchForTest()。GameUiInputRules.Attach(root)（Foundation/Input。入力欄の ESC を TrickleDown で消費してフォーカスだけ外す）
 
-// ===== S2-hud（計画の Produces。マージ後に実物と照合）=====
-namespace Client.Ui.State.SkitPresence { public sealed class BlockingSkitPresence { public IReadOnlyReactiveProperty<bool> IsBlocking { get; } } } // MainGameUiRegistration の本体が登録（[A-56]）
+// ===== S2-hud（実物 origin/feature/uitk 8369fc1f39 の Client.Ui.State/SkitPresence/BlockingSkitPresence.cs から写した）=====
+namespace Client.Ui.State.SkitPresence { public sealed class BlockingSkitPresence { public IReadOnlyReactiveProperty<bool> IsBlocking => _isBlocking; public BlockingSkitPresence(SkitPresentationStateStore store); } } // MainGameUiRegistration の本体が登録済み（`builder.Register<BlockingSkitPresence>(Lifetime.Singleton)`。[A-56]）。テストでは `new BlockingSkitPresence(new SkitPresentationStateStore())` と `store.BeginBlocking(new SkitActionContext())`（前例 `Client.Tests/Ui/State/SkitPresence/BlockingSkitPresenceTest.cs`）
 
 // ===== S3-buildmenu が作る（W3 で先に入る。指揮の決定どおりの形。Task 1 Step 1 で実物と照合）=====
 namespace Client.Ui.State.PlacementTarget
@@ -261,7 +261,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(Hotbar|Modal)|State\.(Hotbar|Modal)|Conventions|Theme|Layers|Anchor|DragDrop|Modal|Content)\.`。ドメインリロード中のエラーは 45 秒待って再試行
 - **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
 - **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` は Web で既に 2 機能（ホットバーの列・装備 HUD。`W/src/shared/uiState/activeLayer.ts:22`）が使うので §5.1-1 により最初から `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` に置く（新規ファイルで他レーンと重ならない。D-21）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。`IUiDropTarget` と State の `IHotbarDropReceiver` を実装）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
-- **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品」を見つけたら作らない。`LOGS/harness/uitk/S3-hotbar-modal/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) `OutlinedCountLabel` の縁の色のつまみ（`--outlined-count-label-stroke-color`。暗い縁の Web `.iconTextOutlineDark`。このレーンは番号タブの部分木で `--icon-text-stroke-light` を暗い色に受け直して凌ぐ。D-7）
+- **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品」を見つけたら作らない。`LOGS/harness/uitk/S3-hotbar-modal/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) 無し（`OutlinedCountLabel` の縁の色のつまみは、既存部品へのつまみ 1 つの追加でこのレーンが足す。Task 6 Step 3・D-7）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-869b2d4264/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080）の `3-hotbar-equipment-empty.png`・`3-modal.png`。1920×1080 の `3-modal` は無いので Task 11 Step 1 で撮る
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/` に置き、`moorestech_logs` へ入れない。`moorestech_logs` へ書く前に `LOGS/README.md` を読む
 - **報告**: `LOGS/harness/uitk/S3-hotbar-modal/done.md`（1 行目「状態: 完了」。途中で止まるときは「状態: 停止（理由）」）。節は「証拠」「差の表」「要裁定」「integrator への依頼」「未確認」
@@ -270,6 +270,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 
 - 配置検査: 実施済み / 違反4件・修正4件 / 間引き撤回・Select と Modal を UiCommandResult のコマンドへ・WheelPassthroughMark を Foundation/Input へ
 - Phase 2.6: 実施済み / 強4・弱3・第3バケツ3 / 名前だけの絵を判別子で・payload に VM・表示名空の扱い・間引き撤回（A-57）、弱は重複の導出を 1 本に
+- 再検査（独立評価 1 巡目の後・fresh-context）: 実施済み / 違反3・強1・弱3・不一致1 / 全部反映（ESC を Web と同じ 1 回へ・幕の取消を View へ・`OutlinedCountLabel` の縁の色のつまみ・ホイール素通しの判定 `IsPassthrough`・確定の文を `TryGetConfirmableText` の 1 本に・`IsBenign` の一覧を全 true の腕に）
 
 ## 死活表（Phase 2.5）
 
@@ -284,6 +285,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | 割当・入替・解除の D&D | 生きる | 源 → 解放点の印（`IHotbarDropReceiver.Receive`）→ `HotbarDropResolver` → `HotbarCommands.Apply` → `RequestAssign/Swap/Clear`（Task 4・6・7）。ビルドメニューの源は S3-buildmenu が最初から同じ口で落とすので、このレーンのマージで割当が生きる。パネル越しの横断は S3-ladder |
 | 枠の上でのクリックがワールドの設置にならない | 生きる | 列と枠は `PickingMode.Position` で、`GameUiPointerProbe`→`UiPointerHitTest.IsPointerOverAnyUi` が真になり `PlaceBlockState` が設置を止める（Task 7 の Pick の L1、Task 12 の録画） |
 | 帯の何も無い所の入力の素通し | 生きる | 帯は `PickingMode.Ignore`（Task 7 の L1） |
+| 枠の上のホイールの素通し | 生きる（判定まで。使う側は S4-inventory） | 列に印、`WheelPassthroughMark.IsPassthrough` が枠の上で真・帯で偽（Task 7 の L1）。今のゲームで枠の上のホイールを読むのは装備の切り替えだけで、それは S4-inventory が `IsPassthrough` を読んで繋ぐ（Web `EquipmentPanel/index.tsx:60` と同じ形）。D-21 |
 | 列の上のホイールがゲーム側へ届く（装備の持ち替え） | S4-inventory のマージまで死ぬ | 列に印 `wheel-passthrough` は付けるが、`IsPointerOverAnyUi` の真で抑えられるホイールを印で素通す読み手は S4-inventory（[A-58]）。その間の装備の持ち替えは §4.4 の裁定「UITK の間、未実装の画面は使えない」で受け入れる。notes で指揮へ返す |
 | 錨 `hotbar.hud` のチュートリアル強調 | S2-tutorial の描き手が入っていれば生きる | `TutorialAnchor.Mark(row, AnchorIds.HotbarHud)` を付ける。`TutorialAnchorCoveragePending` に行があれば同じ PR で消す（Task 7 Step 6） |
 | BP 名の入力・確定・取消 | 生きる | `BlueprintNameInputModalBridge`（両系で登録）が `ModalRequestService` に要求を出し、UITK の `ModalScreenPresenter` だけが描き、`ModalView`・幕が `IModalCommands.Respond` を返す（Task 4・8・9） |
@@ -291,7 +293,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | 名前入力中のカーソル解放 | 生きる（このレーンの外） | `BlueprintNameInputCursorApplier`（Client.Game。`BlueprintNameInputState.OnOpenChanged` を購読）が両系で動き、UI の系を読まない |
 | 幕の上のクリックがワールドの設置にならない | 生きる | `UiModalHost` の幕は `PickingMode.Position` で `IsPointerOverAnyUi` が真になり、`PlaceBlockState` が設置を止める（Task 12 の幕で取消の段で BP もブロックも増えない） |
 | 右短押しで名前入力を閉じる | 生きる | `BlueprintCopySystem`（Client.Game）が `BlueprintNameInputState.Cancel` を呼び、ブリッジが `CancelPendingRequest` → `OnPendingChanged` → `Hide`（Task 12 で既存シナリオ `building/blueprint-copy-paste-via-ui` を通す） |
-| 入力欄の ESC | 生きる（1 回目の結果が Web と違う） | 既存の規則（`GameUiInputRules`・C2-b の albof.12 要件・実行計画 S3-ladder「ESC はフォーカスを外すだけ」）で 1 回目はフォーカスだけ外して消費する。2 回目（入力欄にフォーカスが無い ESC）は `ModalView` がモーダルを取り消す。Web の Mantine が ESC で閉じるのと同じ結果（BP の命名を取り消す）を 2 回で得る。Task 8 の L1 で 1 回目フォーカス解除・2 回目取消を見る。D-11 |
+| 入力欄の ESC | 生きる（Web と同じ 1 回で閉じる） | 既存の規則（`GameUiInputRules`・C2-b の albof.12 要件）は入力欄の ESC を消費してフォーカスを外す。`ModalView` はその外れ（`FocusOutEvent`）を、このフレームの ESC が消費済み（`UiInputExclusivity.IsEscapeConsumedThisFrame`）のときだけ取消として読む。規則は書き換えず、Web の Mantine と同じ 1 回で BP の命名を取り消す。変換中の ESC は規則がフォーカスを外さないので閉じない（albof.12）。ESC はワールドへ漏れない（消費済みの印を `InputSuppressionFilter` が読み、ポーズ・建築モードの `CloseUI` は立たない）。入力欄の無い確認モーダルとフォーカスの無い ESC は Task 8 Step 0 の実測で経路を決める。Task 8 の L1 と Task 12 の録画で見る。D-11 |
 | ゲーム終了での保留の取消 | 生きる | `ModalRequestService.Initialize` が `GameShutdownEvent` を購読（両系） |
 
 ---
@@ -308,11 +310,11 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Ui.State/Hotbar/HotbarModel.cs` | 源を購読し、変化ごとに同期で組み直して `Current` で配る（`IInitializable`。[A-57]） | 新規 |
 | `S/Client.Ui.State/Hotbar/IHotbarCommands.cs` | 画面から呼ぶ操作（`UiCommandResult Select`・`void Apply`。[A-8]） | 新規 |
 | `S/Client.Ui.State/Hotbar/HotbarCommands.cs` | 本番の実装（規則で受理を決め、受けない状態は良性の拒否 `HotbarSelectNotAccepted`。`ClientHotbarDatastore` へ積む） | 新規 |
-| `S/Client.Ui.State/Modal/Logic/ModalLogic.cs` | 空白の除去 `TrimEnteredText` を 1 か所に置き、`HasConfirmableText`・`CanConfirm` がそれを使う | 変更 |
+| `S/Client.Ui.State/Modal/Logic/ModalLogic.cs` | 可否と確定の文を 1 回で導く `TryGetConfirmableText` と、BP 名の書き戻しが読む `HasConfirmableText` を足し、空白の除去を private の 1 か所に置く（既存の `CanConfirm` も同じ規則へ） | 変更 |
 | `S/Client.Ui.State/Modal/IModalCommands.cs` | モーダルの応答の操作（`UiCommandResult Respond(ModalResponse)`。[A-8]） | 新規 |
 | `S/Client.Ui.State/Modal/ModalCommands.cs` | 本番の実装（`ModalRequestService.Respond`。古い応答は良性の拒否 `ModalResponseStale`） | 新規 |
 | `S/Client.Ui.State/Commands/UiCommandRejectReason.cs` | enum と 3 つの switch の末尾に 2 値（共有区画） | 変更（共有区画） |
-| `Localization/localization.csv`・`W/src/shared/i18n/generated/localizationKeys.ts` | 拒否理由の文言 2 行と再生成 | 変更（共有区画） |
+| `Localization/localization.csv`・`W/src/shared/i18n/generated/localizationKeys.ts`・`moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs` | 拒否理由の文言 2 行と再生成（`gen:i18n`・SchemaWatcher の印） | 変更（共有区画・生成物） |
 | `S/Client.Ui.State/Blueprint/BlueprintNameInputModalBridge.cs` | 確定の検証を `ModalLogic.HasConfirmableText` に委ねる | 変更 |
 | `S/Client.Ui/Screens/Hotbar/HotbarHudPresenter.cs` | View を Chrome/Viewport へ 1 回載せて繋ぐ | 新規 |
 | `S/Client.Ui/Screens/Hotbar/HotbarHudView.cs` | 帯・列・9 つの枠。`Render(HotbarViewModel)` | 新規 |
@@ -323,19 +325,21 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs` | 枠の落とし先の印（`IUiDropTarget`＋State の `IHotbarDropReceiver`。枠番号と操作を持ち、受けた源を解いて `Apply`） | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarRowGapDropMark.cs` | 列の隙間の印（`IUiDropTarget`＋`IHotbarDropReceiver`。受けて無操作） | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDragPayload.cs` | 枠の源（タップ → 選択・ドロップ → 解決） | 新規 |
-| `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` | ホイール素通しの印（Web `data-wheel-passthrough`。Web で 2 機能が使うので §5.1-1 で最初から Foundation） | 新規 |
-| `S/Client.Ui/Screens/Modal/ModalScreenPresenter.cs` | 保留の要求を View と宿主へ、幕の押下を `IModalCommands.Respond`（取消）へ | 新規 |
-| `S/Client.Ui/Screens/Modal/ModalView.cs` | `DialogFrame` の中身（本文・入力・ボタン）。確定と 2 回目の ESC（取消）を `IModalCommands.Respond` へ | 新規 |
+| `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`.cs` | 縁の色のつまみ `--outlined-count-label-stroke-color` を読む（.cs はコメントだけ。D-7） | 変更（C3-a の部品。他の W3 レーンは触らない） |
+| `S/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs`・`SlotKnobOverrides.uss` | 縁の色のつまみの既定と上書きの L1 | 新規・変更 |
+| `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` | ホイール素通しの印と読み手の判定 `IsPassthrough`（Web `data-wheel-passthrough`・`isWheelPassthrough`。Web で 2 機能が使うので §5.1-1 で最初から Foundation） | 新規 |
+| `S/Client.Ui/Screens/Modal/ModalScreenPresenter.cs` | 保留の要求を View にして宿主へ `Show`/`Hide`（幕の押下は View へ渡す） | 新規 |
+| `S/Client.Ui/Screens/Modal/ModalView.cs` | `DialogFrame` の中身（本文・入力・ボタン）。確定・ESC 1 回・幕の押下（取消）を `IModalCommands.Respond` へ | 新規 |
 | `S/Client.Ui/Screens/Modal/ModalButtonVariants.cs` | `ModalButtonTone` → `FormButtonVariant` の唯一の switch（[A-28]） | 新規 |
 | `S/Client.Ui/Screens/Modal/Modal.uss` | 画面の USS（本文と入力の下余白） | 新規 |
 | `S/Client.Starter/Registration/GameUi/HotbarGameUiRegistration.cs` | Model・操作・Presenter の登録 | 新規 |
 | `S/Client.Starter/Registration/GameUi/ModalGameUiRegistration.cs` | Presenter の登録 | 新規 |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | 画面登録区画に 2 行 | 変更（共有区画） |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | `Screens` 区画に `@import` 2 行 | 変更（共有区画） |
-| `THEME/DerivedTokens.uss` | 末尾に名札付きブロック「S3-hotbar-modal」（色 6・opacity 2） | 変更（共有区画 [A-52]） |
+| `THEME/DerivedTokens.uss` | 末尾に名札付きブロック「S3-hotbar-modal」（色 6・opacity 2）と、`--outlined-count-label-color` の次に部品のつまみの既定 1 行 | 変更（共有区画 [A-52]） |
 | `tools/uitk/webTokens/handWrittenDerivedRows.mjs`・`docs/uitk/translucent-tokens.md` | 半透明 3 行を前計算の表へ（再生成） | 変更（共有区画） |
 | `S/Client.Tests/Ui/State/Hotbar/HotbarViewModelFactoryTest.cs` | 選択・受理・表示・未解決の L0 | 新規 |
-| `S/Client.Tests/Ui/State/Modal/ModalConfirmableTextTest.cs` | `TrimEnteredText`・`HasConfirmableText` の L0 | 新規 |
+| `S/Client.Tests/Ui/State/Modal/ModalConfirmableTextTest.cs` | `TryGetConfirmableText`・`HasConfirmableText` の L0 | 新規 |
 | `S/Client.Tests/Ui/State/Modal/ModalCommandsTest.cs` | 保留への応答は受理、古い応答は良性の拒否（wire `no_pending_modal`） | 新規 |
 | `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` | 良性の拒否理由の一覧に 2 値を足す | 変更 |
 | `S/Client.Tests/Ui/Screens/Hotbar/HotbarViewModelSamples.cs` | Web の fixture（枠 0 選択・絵あり、枠 4 未解決）の ViewModel | 新規 |
@@ -349,7 +353,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Tests/Ui/Screens/Modal/ModalRequestSamples.cs` | Web の fixture の要求（確認・BP 名・エラー） | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/RecordingModalCommands.cs` | 応答を記録する偽 | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/ModalViewTest.cs` | 描画・確定の可否と空白の除去・色・ID が変わると空にする（P4 1・4） | 新規 |
-| `S/Client.Tests/Ui/Screens/Modal/ModalScreenPresenterTest.cs` | OK で確定して消える・幕で取消・ESC は 1 回目でフォーカス解除 2 回目で取消・実画面 px（P4 2・3、[A-41]） | 新規 |
+| `S/Client.Tests/Ui/Screens/Modal/ModalScreenPresenterTest.cs` | OK で確定して消える・幕で取消・入力欄の ESC 1 回で取消（ワールドへ渡さない）・欄の外の押下では閉じない・実画面 px（P4 2・3、[A-41]） | 新規 |
 | `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` | ホットバーの操作と BP 名のモーダルを UITK で通す録画 | 新規 |
 | `docs/uitk/disposition.md` | 「## 処遇」の末尾に一部だけ写す 3 行 | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.HotbarHud` の 1 行を消す | 変更（共有区画・在れば） |
@@ -418,7 +422,7 @@ grep -rn "public static void MarkSource\|public static void MarkTarget\|interfac
 grep -rn "public UiModalHost(\|public void Show(\|public void Hide(\|OnBackdropClicked" $S/Client.Ui/Foundation/Modal/UiModalHost.cs
 grep -n "public StageScaleSource(" -r $S/Client.Ui/Foundation/Stage/
 grep -n "public DialogFrame(\|public void SetTitle\|public void AddAction" $S/Client.Ui/Components/Panels/DialogFrame/DialogFrame.cs
-# S2-hud・S3-buildmenu（マージ後に実物と照合）
+# S2-hud（マージ済み。念のため）・S3-buildmenu（マージ後に実物と照合）
 grep -rn "class BlockingSkitPresence\|IsBlocking" $S/Client.Ui.State/SkitPresence/
 grep -n "class PlacementTarget\(Block\|TrainCar\|ConnectTool\|Blueprint\|NameOnly\)\?Icon\b\|public override bool Equals" $S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs
 grep -n "public static PlacementTargetIcon Resolve(" $S/Client.Ui.State/PlacementTarget/PlacementTargetIconResolver.cs
@@ -477,7 +481,6 @@ mkdir -p ../moorestech_logs/harness/uitk/S3-hotbar-modal
 ## 差の表
 ## 要裁定
 ## integrator への依頼
-- OutlinedCountLabel の縁の色のつまみ（--outlined-count-label-stroke-color。既定 --icon-text-stroke-light）／Web W/src/app/tokens.css の .iconTextOutlineDark／ホットバーの番号タブ（S3-hotbar-modal）・今後の暗い縁の数字／部品のファイルはこのレーンの持ち物でないため、番号タブの部分木で --icon-text-stroke-light を暗い色へ受け直して凌いだ（計画 D-7）
 ## 未確認
 ```
 Expected: bd の ID が出る。以後 `<bd>` をその ID で読む。`bd note <bd>` に上の 2 行を同じ文で残す
@@ -984,7 +987,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Create: `S/Client.Ui.State/Hotbar/IHotbarCommands.cs`・`HotbarCommands.cs`、`S/Client.Ui.State/Modal/IModalCommands.cs`・`ModalCommands.cs`
-- Modify: `S/Client.Ui.State/Modal/Logic/ModalLogic.cs`・`S/Client.Ui.State/Blueprint/BlueprintNameInputModalBridge.cs`・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs`（共有区画）・`Localization/localization.csv`（末尾 2 行）・`W/src/shared/i18n/generated/localizationKeys.ts`（再生成）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`
+- Modify: `S/Client.Ui.State/Modal/Logic/ModalLogic.cs`・`S/Client.Ui.State/Blueprint/BlueprintNameInputModalBridge.cs`・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs`（共有区画）・`Localization/localization.csv`（末尾 2 行）・`W/src/shared/i18n/generated/localizationKeys.ts`（再生成）・`moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs`（印。生成物）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`
 - Test: `S/Client.Tests/Ui/State/Modal/ModalConfirmableTextTest.cs`・`ModalCommandsTest.cs`
 
 **Interfaces:**
@@ -1001,7 +1004,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
       public interface IModalCommands { UiCommandResult Respond(ModalResponse response); }
       public sealed class ModalCommands : IModalCommands { public const string RespondCommandName = "ui.modal.respond"; public ModalCommands(ModalRequestService service); }
   }
-  namespace Client.Ui.State.Modal.Logic { public static class ModalLogic { public static string TrimEnteredText(string enteredText); public static bool HasConfirmableText(string enteredText); } } // null は ""。空白だけは偽
+  namespace Client.Ui.State.Modal.Logic { public static class ModalLogic { public static bool TryGetConfirmableText(ModalRequest request, string enteredText, out string confirmedText); public static bool HasConfirmableText(string enteredText); } } // 可否と確定の文を 1 回で導く（入力なしは常に真で文は null）。null は ""。空白だけは偽
   // UiCommandRejectReason に HotbarSelectNotAccepted（良性・wire invalid_state）・ModalResponseStale（良性・wire no_pending_modal）
   ```
 
@@ -1028,18 +1031,20 @@ namespace Client.Tests.Ui.State.Modal
             Assert.IsFalse(ModalLogic.HasConfirmableText(""));
             Assert.IsFalse(ModalLogic.HasConfirmableText(" \t　"));
             Assert.IsTrue(ModalLogic.HasConfirmableText("  参照拠点  "));
-            Assert.AreEqual("参照拠点", ModalLogic.TrimEnteredText("  参照拠点  "));
-            Assert.AreEqual("", ModalLogic.TrimEnteredText(null));
         }
 
         [Test]
-        public void 入力付きモーダルの可否は同じ規則に従い入力なしは常に確定できる()
+        public void 入力付きモーダルは可否と除いた文を1回で導き入力なしは常に確定できる()
         {
             var input = new ModalRequest { Id = "1", RequiresInput = true };
             var plain = new ModalRequest { Id = "2", RequiresInput = false };
-            Assert.IsFalse(ModalLogic.CanConfirm(input, "   "));
+            Assert.IsFalse(ModalLogic.TryGetConfirmableText(input, "   ", out _));
+            Assert.IsFalse(ModalLogic.TryGetConfirmableText(input, null, out _));
+            Assert.IsTrue(ModalLogic.TryGetConfirmableText(input, "  参照拠点  ", out var trimmed));
+            Assert.AreEqual("参照拠点", trimmed);
+            Assert.IsTrue(ModalLogic.TryGetConfirmableText(plain, "", out var none));
+            Assert.IsNull(none);
             Assert.IsTrue(ModalLogic.CanConfirm(input, " a "));
-            Assert.IsTrue(ModalLogic.CanConfirm(plain, ""));
         }
     }
 }
@@ -1105,10 +1110,10 @@ namespace Client.Tests.Ui.State.Modal
             }
         }
 ```
-（取り込み時に別レーン〈S2-skit 等〉が同じテストへ良性の値を足していたら、両方の値を `benign` に採る。良性でない値は足さない）
+（`benign` は、その時点の `UiCommandRejectReasonTraits.IsBenign` の `=> true` の腕の全部と一致させる。土台の取り込みのたびに `grep -n "=> true" $S/Client.Ui.State/Commands/UiCommandRejectReason.cs` を流し、別レーン〈S2-skit 等〉が足した良性の値も `benign` に採る。良性でない値は足さない）
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: コンパイルエラー（`TrimEnteredText`・`ModalCommands`・2 つの拒否理由が無い）
+Expected: コンパイルエラー（`TryGetConfirmableText`・`ModalCommands`・2 つの拒否理由が無い）
 
 - [ ] **Step 2: 拒否理由を共有区画に足す**
 
@@ -1136,8 +1141,13 @@ Expected: コンパイルエラー（`TrimEnteredText`・`ModalCommands`・2 つ
 ui.commandRejected.hotbarSelectNotAccepted,The hotbar cannot be selected on this screen,The hotbar cannot be selected on this screen,この画面ではホットバーを選べません,Die Schnellleiste kann auf diesem Bildschirm nicht ausgewählt werden,이 화면에서는 단축바를 선택할 수 없습니다
 ui.commandRejected.modalResponseStale,This dialog is already closed,This dialog is already closed,このダイアログはすでに閉じています,Dieser Dialog ist bereits geschlossen,이 대화 상자는 이미 닫혔습니다
 ```
-Run: `(cd moorestech_web/webui && npm run gen:i18n) && git diff --stat moorestech_web/webui/src/shared/i18n/generated/`
-Expected: `localizationKeys.ts` に 2 キーが増える（`contentKeys.ts` は変わらない）。台帳 `docs/uitk/TODO.md` の「## 追従記録」の末尾に、W0-merge の `3e946e4bd3` と同じ書き方で `写した`（写し先＝同じコミットの C# と CSV）を 1 行書く（コミットのハッシュは Step 6 の後に埋める）
+Run:
+```bash
+pnpm --dir moorestech_web/webui run gen:i18n
+uloop compile --project-path ./moorestech_client
+git diff --stat -- moorestech_web/webui/src/shared/i18n/generated/ moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs
+```
+Expected: `localizationKeys.ts` に 2 キーが増え（`contentKeys.ts` は変わらない）、`_CompileRequester.cs` の印（Editor の SchemaWatcher が CSV の変化で書き換える）が変わる。`_CompileRequester.cs` が変わっていなければ `uloop compile` をもう 1 回流してから見直す（コンパイルエラー自体は Step 1 の赤のままでよい）。台帳 `docs/uitk/TODO.md` の「## 追従記録」の末尾に、W0-merge の `3e946e4bd3` と同じ書き方で `写した`（写し先＝同じコミットの C# と CSV）を 1 行書く（コミットのハッシュは Step 6 の後に埋める）
 
 - [ ] **Step 3: 規則を 1 か所にし、ブリッジを委ねる**
 
@@ -1151,18 +1161,28 @@ Expected: `localizationKeys.ts` に 2 キーが増える（`contentKeys.ts` は�
             return HasConfirmableText(enteredText);
         }
 
-        // 空白の除去の唯一の置き場。確定の文と可否の両方がこれを通る（Web text.trim()）
-        // The only place that trims; both the confirmed text and eligibility go through it (Web text.trim())
-        public static string TrimEnteredText(string enteredText)
+        // 可否と確定の文を 1 回で導く。入力付きは前後の空白を除いた文、入力なしは文を運ばない（Web text.trim()）
+        // Derive eligibility and the confirmed text in one pass; input modals carry the trimmed text, others carry none (Web text.trim())
+        public static bool TryGetConfirmableText(ModalRequest request, string enteredText, out string confirmedText)
         {
-            return enteredText == null ? "" : enteredText.Trim();
+            confirmedText = null;
+            if (!request.RequiresInput) return true;
+            var trimmed = Trim(enteredText);
+            if (trimmed.Length == 0) return false;
+            confirmedText = trimmed;
+            return true;
         }
 
-        // 空白だけでない文か。モーダルの確定の可否と BP 名の書き戻しが同じ規則を読む
-        // Whether the text is more than whitespace; the modal's eligibility and the blueprint-name write-back read the same rule
+        // 空白だけでない文か。BP 名の書き戻しが同じ規則を読む
+        // Whether the text is more than whitespace; the blueprint-name write-back reads the same rule
         public static bool HasConfirmableText(string enteredText)
         {
-            return 0 < TrimEnteredText(enteredText).Length;
+            return 0 < Trim(enteredText).Length;
+        }
+
+        private static string Trim(string enteredText)
+        {
+            return enteredText == null ? "" : enteredText.Trim();
         }
 ```
 
@@ -1176,7 +1196,7 @@ Expected: `localizationKeys.ts` に 2 キーが増える（`contentKeys.ts` は�
                     return;
                 }
 ```
-（ブリッジの既存の `Trim` は Web の描き手から来た文にも掛かる書き戻しの整形なので残し、本PR外のリファクタ提案に書く）
+（ブリッジ自身は `IsNullOrWhiteSpace` で弾くだけで、空白の除去は `BlueprintNameInputState.Confirm` の `Trim` にある。状態側の除去は Web の描き手から来た文にも掛かる整形なので残し、本PR外のリファクタ提案に書く）
 
 - [ ] **Step 4: 操作を書く**
 
@@ -1318,7 +1338,7 @@ Expected: `ErrorCount: 0`、`ModalConfirmableTextTest` 2・`ModalCommandsTest` 2
 - [ ] **Step 6: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui.State moorestech_client/Assets/Scripts/Client.Tests/Ui/State Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts
+git add moorestech_client/Assets/Scripts/Client.Ui.State moorestech_client/Assets/Scripts/Client.Tests/Ui/State Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs
 git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandResult で返し、確定の規則を 1 本にする（S3-hotbar-modal）
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
@@ -1355,7 +1375,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 2: 前計算の表へ載せて再生成する**
 
-`tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾（`--mantine-color-blue-light-hover` の行の次）に:
+`tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾（その時点の最後の行の次。S3-buildmenu など他のレーンが先に足していればその後ろ）に:
 ```js
   { name: "--hotbar-slot-frame-face", web: "rgb(50 52 67 / 50%)", formula: [50, 52, 67, 0.5], method: `${translucencyMethod}（ホットバーの空き枠の面。世界の地の上。S3-hotbar-modal・bd albof.34）` },
   { name: "--hotbar-number-tab-face", web: "rgb(50 52 67 / 68%)", formula: [50, 52, 67, 0.68], method: `${translucencyMethod}（ホットバーの番号タブの面。S3-hotbar-modal）` },
@@ -1385,6 +1405,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Create: `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs`・`HotbarRowGapDropMark.cs`・`HotbarSlotDragPayload.cs`・`HotbarCalcKnobs.cs`・`HotbarNumberTab.cs`・`HotbarCell.cs`、`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs`
+- Modify: `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`OutlinedCountLabel.cs`（コメントだけ）、`THEME/DerivedTokens.uss`（`--outlined-count-label-color` の次に 1 行）、`S/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss`（末尾に 1 ブロック）
+- Test: `S/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs`
 
 **Interfaces:**
 - Consumes: C3-b の `IUiDragPayload`・`IUiDropTarget`・`UiDragDrop`、C3-a の `SlotFrame`・`SlotFrameState`・`PlacementTargetFace`・`OutlinedCountLabel`、S3-buildmenu の `PlacementTargetIcons`（DI のクラス）・`IHotbarDropReceiver`、Task 2・4 の型、`UiCommandResultToaster`、`UssCustomStyleReader`
@@ -1399,7 +1421,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
       public sealed class HotbarNumberTab : VisualElement { public const string ClassName = "hotbar-hud__number-tab"; public HotbarNumberTab(int slotIndex); }
       public sealed class HotbarCell : VisualElement { public HotbarCell(int slotIndex, IHotbarCommands commands, PlacementTargetIcons icons, UiCommandResultToaster toaster); public void Render(HotbarSlotViewModel slot, bool selected); }
   }
-  namespace Client.Ui.Foundation.Input { public static class WheelPassthroughMark { public const string ClassName = "wheel-passthrough"; public static void Mark(VisualElement element); } }
+  namespace Client.Ui.Foundation.Input { public static class WheelPassthroughMark { public const string ClassName = "wheel-passthrough"; public static void Mark(VisualElement element); public static bool IsPassthrough(VisualElement target); } }
   ```
 
 - [ ] **Step 1: 落とし先の印を書く**
@@ -1549,8 +1571,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// 実 UI だがホイールだけはゲームへ素通す印（Web の data-wheel-passthrough）。読むのは装備のホイール（S4-inventory）
-    /// Mark for real UI that still lets the wheel through to the game (the Web data-wheel-passthrough); the equipment wheel (S4-inventory) reads it
+    /// 実 UI だがホイールだけはゲームへ素通す印と、その判定（Web の data-wheel-passthrough・isWheelPassthrough）。判定を使うのは装備のホイール（S4-inventory）
+    /// Mark for real UI that still lets the wheel through to the game, and its check (the Web data-wheel-passthrough and isWheelPassthrough); the equipment wheel (S4-inventory) uses the check
     /// </summary>
     /// <remarks>
     /// Web で既に 2 機能（ホットバーの列・装備 HUD）が使うので Foundation に置く（設計書 §5.1-1。計画 D-21）
@@ -1564,11 +1586,120 @@ namespace Client.Ui.Foundation.Input
         {
             element.AddToClassList(ClassName);
         }
+
+        // 印の付いた祖先を持つか（Web の closest("[data-wheel-passthrough]")）
+        // Whether a marked ancestor exists (the Web closest("[data-wheel-passthrough]"))
+        public static bool IsPassthrough(VisualElement target)
+        {
+            for (var element = target; element != null; element = element.parent)
+            {
+                if (element.ClassListContains(ClassName)) return true;
+            }
+            return false;
+        }
     }
 }
 ```
 
-- [ ] **Step 3: calc() のつまみと番号タブを書く**
+- [ ] **Step 3: 部品 `OutlinedCountLabel` に縁の色のつまみを足す**
+
+Web の `.iconTextOutlineDark`（`W/src/app/tokens.css:489`）は縁の色だけが `.iconTextOutlineLight` と違う。部品の縁の色は `--icon-text-stroke-light` の直書きなので、画面から暗い縁にする口が無い。部品につまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、番号タブはそのつまみだけを上書きする（設計書 §3.2「部品の見た目はつまみで変える」。共有トークン `--icon-text-stroke-light` を部分木で受け直すと、タブの中に後から置く他の部品の白い縁まで黒くなる）。C3-a はマージ済みで、このファイルを触る他の W3 レーンは無い（S3-buildmenu の計画は `OutlinedCountLabel` を使わない）。
+
+`S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss` の `.outlined-count-label--stroke` を次に置き換える:
+```css
+.outlined-count-label--stroke {
+    color: var(--outlined-count-label-stroke-color);
+    -unity-text-outline-width: var(--icon-text-stroke-width);
+    -unity-text-outline-color: var(--outlined-count-label-stroke-color);
+}
+```
+同じファイルの冒頭の 2 行コメントの「大きさはつまみ --outlined-count-label-size で渡す」の後ろに日本語「、縁の色はつまみ --outlined-count-label-stroke-color（暗い縁 = Web .iconTextOutlineDark は置く側が --icon-text-stroke-dark を渡す）」、英語「; the outline color comes through the --outlined-count-label-stroke-color knob (the placing side passes --icon-text-stroke-dark for the Web .iconTextOutlineDark)」を足す。`OutlinedCountLabel.cs` の `<remarks>` の「字の色はつまみ --outlined-count-label-color」の文にも同じ趣旨で「縁の色はつまみ --outlined-count-label-stroke-color」を日英 1 句ずつ足す（コードは変えない）。
+
+`THEME/DerivedTokens.uss` の `--outlined-count-label-color` の行の次に:
+```css
+    --outlined-count-label-stroke-color: var(--icon-text-stroke-light); /* web: .iconTextOutlineLight の縁の色。暗い縁（.iconTextOutlineDark）は置く側が --icon-text-stroke-dark で上書きする */
+```
+
+`S/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss` の末尾に:
+```css
+/* W/app/tokens.css の .iconTextOutlineDark（ホットバーの番号タブ） */
+/* .iconTextOutlineDark in W/app/tokens.css (the hotbar number tab) */
+.slot-knob-dark-outline {
+    --outlined-count-label-stroke-color: var(--icon-text-stroke-dark);
+}
+```
+
+`S/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs`:
+```csharp
+using Client.Tests.Ui.TestHost;
+using Client.Ui.Components.Slots;
+using Client.Ui.State.Text;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine.TestTools;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Components.Slots
+{
+    /// <summary>
+    /// OutlinedCountLabel の縁の色のつまみを既定と祖先の上書きで確かめる（L1）
+    /// Verifies the OutlinedCountLabel outline-color knob with its default and an ancestor override (L1)
+    /// </summary>
+    public class OutlinedCountLabelStrokeKnobTest : UiTestHost
+    {
+        private const string KnobPath = "Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss";
+
+        [TearDown]
+        public void NoUnexpectedLogs()
+        {
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void 縁の色は既定で白い縁のトークンになる()
+        {
+            var stroke = MountStroke(null);
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-light"), stroke.resolvedStyle.color, "stroke");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-light"), stroke.resolvedStyle.unityTextOutlineColor, "outline");
+        }
+
+        [Test]
+        public void 祖先で縁の色のつまみを上書きすると暗い縁になり字の色は変わらない()
+        {
+            var stroke = MountStroke("slot-knob-dark-outline");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-dark"), stroke.resolvedStyle.color, "stroke");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-dark"), stroke.resolvedStyle.unityTextOutlineColor, "outline");
+            var glyph = stroke.parent.Q<Label>(className: "outlined-count-label--glyph");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), glyph.resolvedStyle.color, "glyph");
+        }
+
+        private Label MountStroke(string knobClass)
+        {
+            // 置く側の要素に祖先のつまみを当て、2 層の数字を足す
+            // Apply the ancestor knob to the placing element and add the two-layer number
+            var screen = new VisualElement();
+            if (knobClass != null)
+            {
+                var knobs = AssetDatabase.LoadAssetAtPath<StyleSheet>(KnobPath);
+                Assert.IsNotNull(knobs, KnobPath);
+                screen.styleSheets.Add(knobs);
+                screen.AddToClassList(knobClass);
+            }
+            var label = new OutlinedCountLabel(screen, "slot-content__count");
+            label.SetText(UiText.FromVerbatim("1"));
+            rootVisualElement.Add(screen);
+            simulate.FrameUpdate();
+            return screen.Q<Label>(className: "outlined-count-label--stroke");
+        }
+    }
+}
+```
+（`UiTestHost` が GameUiTheme を当てる前例は `SlotContentTest`。置き場のクラスは既存の `slot-content__count` を借りる。`UiText` の名前空間は `OutlinedCountLabel.cs` の `using Client.Ui.State.Text` に合わせる）
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Components\.Slots\."`
+Expected: `ErrorCount: 0`、`OutlinedCountLabelStrokeKnobTest` 2 件と C3-a のスロット族の L1（`SlotContentTest`・`ItemSlotShortageTest` 等。既定の縁は白のまま）が PASS。赤のときの手順: 既定の件が赤 → `DerivedTokens.uss` の行が `:root` の中に入っているか。C3-a の既存の件が赤 → 置き換えた 2 行以外を触っていないか `git diff` で見る
+
+- [ ] **Step 4: calc() のつまみと番号タブを書く**
 
 `S/Client.Ui/Screens/Hotbar/Parts/HotbarCalcKnobs.cs`:
 ```csharp
@@ -1622,8 +1753,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
     /// The number tab overlapping the slot's top-left (Web .num; a 13px digit with a dark outline)
     /// </summary>
     /// <remarks>
-    /// 縁の色は部品のつまみが無いので、タブの部分木で --icon-text-stroke-light を暗い色に受け直す（HotbarHud.uss。計画 D-7）。タブ自身は拾う（Web の pointer-events 既定。タブの上で離しても枠の落とし先になる）
-    /// The outline color has no part knob, so the tab subtree rebinds --icon-text-stroke-light to the dark color (HotbarHud.uss; plan D-7). The tab itself is pickable (Web default pointer-events; releasing on it still hits the slot)
+    /// 暗い縁はタブで部品のつまみ --outlined-count-label-stroke-color を上書きして出す（HotbarHud.uss。計画 D-7）。タブ自身は拾う（Web の pointer-events 既定。タブの上で離しても枠の落とし先になる）
+    /// The dark outline comes from overriding the part knob --outlined-count-label-stroke-color on the tab (HotbarHud.uss; plan D-7). The tab itself is pickable (Web default pointer-events; releasing on it still hits the slot)
     /// </remarks>
     public sealed class HotbarNumberTab : VisualElement
     {
@@ -1639,7 +1770,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 }
 ```
 
-- [ ] **Step 4: 1 枠を書く**
+- [ ] **Step 5: 1 枠を書く**
 
 `S/Client.Ui/Screens/Hotbar/Parts/HotbarCell.cs`:
 ```csharp
@@ -1728,12 +1859,12 @@ namespace Client.Ui.Screens.Hotbar.Parts
 }
 ```
 
-- [ ] **Step 5: コンパイルしてコミット**
+- [ ] **Step 6: コンパイルしてコミット**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount: 0`（テストは Task 7 で View と一緒に書く）
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/WheelPassthroughMark.cs
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/WheelPassthroughMark.cs moorestech_client/Assets/Scripts/Client.Ui/Components/Slots/OutlinedCountLabel moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/OutlinedCountLabelStrokeKnobTest.cs
 git commit -m "feat(uitk): ホットバーの枠・番号タブ・落とし先の印を足す（S3-hotbar-modal）
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
@@ -2324,6 +2455,12 @@ namespace Client.Tests.Ui.Screens.Hotbar
             Assert.IsTrue(row.ClassListContains(WheelPassthroughMark.ClassName));
             Assert.IsFalse(_view.ClassListContains(WheelPassthroughMark.ClassName));
 
+            // 読み手の判定: 枠の上（列の子孫）は素通し、帯そのものは素通しでない（Web isWheelPassthrough の closest）
+            // The reader's check: over a slot (a row descendant) passes through, the band itself does not (the Web isWheelPassthrough closest)
+            Assert.IsTrue(WheelPassthroughMark.IsPassthrough(Find<VisualElement>(_view, "hotbar-slot-1")));
+            Assert.IsFalse(WheelPassthroughMark.IsPassthrough(_view));
+            Assert.IsFalse(WheelPassthroughMark.IsPassthrough(null));
+
             // 枠の隙間も列が拾う（Web の .hotbarFrame は pointer-events: auto）
             // The row also picks the gaps between slots (the Web .hotbarFrame is pointer-events: auto)
             var gap = new Vector2(Find<VisualElement>(_view, "hotbar-slot-1").worldBound.xMax + 2.5f, row.worldBound.center.y);
@@ -2546,8 +2683,8 @@ namespace Client.Ui.Screens.Hotbar
     opacity: var(--hotbar-unresolved-opacity);
 }
 
-/* 番号タブ: 角張った 15px 角・細い明るい枠・半透明の面。縁取りは暗い色（Web .iconTextOutlineDark。部品のつまみが無いので部分木で受け直す。計画 D-7） */
-/* Number tab: an angular 15px square with a thin light border and translucent face; the outline is dark (Web .iconTextOutlineDark; no part knob, so rebound in the subtree; plan D-7) */
+/* 番号タブ: 角張った 15px 角・細い明るい枠・半透明の面。縁取りは暗い色（Web .iconTextOutlineDark。部品の縁の色のつまみで渡す。計画 D-7） */
+/* Number tab: an angular 15px square with a thin light border and translucent face; the outline is dark (Web .iconTextOutlineDark; passed through the part's outline-color knob; plan D-7) */
 .hotbar-hud__number-tab {
     position: absolute;
     left: 17px;
@@ -2559,7 +2696,7 @@ namespace Client.Ui.Screens.Hotbar
     border-radius: 0;
     border-color: var(--hotbar-number-tab-border);
     background-color: var(--hotbar-number-tab-face);
-    --icon-text-stroke-light: var(--icon-text-stroke-dark);
+    --outlined-count-label-stroke-color: var(--icon-text-stroke-dark);
     --outlined-count-label-size: 13px;
     --outlined-count-label-color: var(--hotbar-number-tab-text);
 }
@@ -2633,7 +2770,7 @@ Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --p
 Expected: `ErrorCount: 0`、`HotbarHudViewTest` 5・`HotbarHudDropTest` 4・`HotbarSlotDragGestureTest` 7・`HotbarHudPickingTest` 2・`HotbarIconCenteringTest` 2 が PASS、L2 も PASS。赤のときの手順:
 - 番号タブの `-16` が外れる → `HotbarCalcKnobs` の `CustomStyleResolvedEvent` が列に届いていない。`Debug.Log` で読めた値を出して原因を確かめる（テストの期待は変えない）
 - `slot1.resolvedStyle.backgroundColor` が `--hotbar-slot-frame-face` でない → `.hotbar-hud` の上書きが `SlotFrame.uss` の `var()` へ継承していない。`--slot-frame-face` を `.hotbar-hud__cell` へ移して試し、移した理由を `done.md` の「未確認」に書く
-- 番号タブの縁が黒くならない → 部分木の受け直しが効いていない。`.outlined-count-label--stroke` の color が `:root` の `--icon-text-stroke-light` で解けている。部品を書き換えずに止め、`done.md` の「要裁定」に「OutlinedCountLabel の縁の色のつまみが要る」と書いて指揮へ報告する（D-7 の代わりの手は部品の変更なので、このレーンでは取らない）
+- 番号タブの縁が黒くならない → タブの `--outlined-count-label-stroke-color` が効いていない。Task 6 Step 3 の部品の USS の置き換え（`color` と `-unity-text-outline-color` の両方がつまみを読む）と、`HotbarHud.uss` のタブの行を見る
 - 絵の中央が 0.5px を超えてずれる → `--icon-pad` と `--bevel-inset: inset` の組み合わせを確かめ、Web の正方 SVG と同じ条件（256 角）であることを確かめてから USS を直す
 - 右ボタンで捕捉される → C3-b の `UiPressGesture` の誤り。止めて `done.md` の「integrator への依頼」に書く（Foundation はこのレーンの持ち物でない）
 
@@ -2666,12 +2803,20 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   ```csharp
   namespace Client.Ui.Screens.Modal
   {
-      public sealed class ModalView : VisualElement { public ModalView(ModalRequest request, IModalCommands commands, UiCommandResultToaster toaster); } // 要求 1 件につき 1 つ（Web の key={id}）。確定と 2 回目の ESC を Respond へ
+      public sealed class ModalView : VisualElement { public ModalView(ModalRequest request, IModalCommands commands, UiCommandResultToaster toaster, IObservable<Unit> backdropClicked); } // 要求 1 件につき 1 つ（Web の key={id}）。確定・ESC（1 回）・幕の押下を自分で Respond へ（A-8）
       public static class ModalButtonVariants { public static FormButtonVariant From(ModalButtonTone tone); }                 // Blue→Filled・Red→Danger（[A-28]）
       public sealed class ModalScreenPresenter : IInitializable { public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, UiCommandResultToaster toaster); }
   }
   ```
   要素名（Web の testid と同名）: 枠 `modal`・題 `modal-title`（DialogFrame が付ける）・本文 `modal-message`・入力 `modal-input`（`GameTextField.Field`）・ボタン `modal-button`・幕 `modal-backdrop`（`UiModalHost`）。USS のクラス: `modal-view`・`__message`・`__input`
+
+- [ ] **Step 0: フォーカスの無い ESC がどこへ届くかを実測し、取り消しの経路を決める**
+
+入力欄の ESC は `GameUiInputRules` が消費してフォーカスを外すので、View は入力欄の `FocusOutEvent` と `UiInputExclusivity.IsEscapeConsumedThisFrame` で 1 回で取り消す（変換中の ESC は `GameUiInputRules` がフォーカスを外さないので取り消さない＝albof.12 の例外）。決まっていないのは、入力欄の無い確認モーダルと、欄の外を押してフォーカスが無いときの ESC がどこへ届くか。全体スイッチ UITK の PlayMode で、`ModalRequestService.RequestModal` を EDC から出した状態で ESC を `SemanticInput` で 1 回注入し、次の 3 つをログで読む: (a) `GameUiRoot` のパネルの `visualTree` に `KeyDownEvent` が届くか（EDC で一時的に `RegisterCallback<KeyDownEvent>` を付けて `Debug.Log`）(b) 同じフレームで `PlaceBlockState`・ポーズが `InputManager.UI.CloseUI.GetKeyDown` を真と読むか（`UiInputExclusivity` の `ProbeSuppressed` ログと UIState の遷移ログ）(c) 届く順（UITK のイベント処理と UIState の Update のどちらが先か）
+- (a) が届き、`ConsumeEscapeThisFrame` が (b) より先に立つ → 計画のコードどおり `CancelOnUnfocusedEscape` を根で聞く
+- (a) が届かない、または (b) が先に読む → 根の聞き取りを消し、表示中の View の枠 `modal`（`focusable = true`・`tabIndex = 0`）へ表示時にフォーカスを置いて `KeyDownEvent` を受ける。`GameUiInputRules.BlurNonTextFieldFocus` が入力欄以外のフォーカスを外すなら、`GameUiInputRules` に「モーダルの枠は外さない」の 1 行を足す代わりに、`done.md` の「integrator への依頼」に書いて止める（Foundation の規則の変更はこのレーンの持ち物でない）
+- どちらでも、ESC 1 回でモーダルが閉じ、ポーズが開かず、建築モードを抜けず、背後の画面が変わらないことを Task 12 の録画の 1 段で確かめる
+結果（届いたか・順序・選んだ経路）を `done.md` の「## 証拠」に 1 行で書く。
 
 - [ ] **Step 1: 要求の見本を書く**
 
@@ -2735,11 +2880,13 @@ namespace Client.Tests.Ui.Screens.Modal
 
 `S/Client.Tests/Ui/Screens/Modal/ModalViewTest.cs`:
 ```csharp
+using System;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.Modal;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Modal.Logic;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.Modal
@@ -2754,7 +2901,7 @@ namespace Client.Tests.Ui.Screens.Modal
         [Test]
         public void 確認の要求は題と本文とボタンを描き入力欄を持たない()
         {
-            var view = Mount(new ModalView(ModalRequestSamples.Confirm(), new RecordingModalCommands(), Toaster));
+            var view = Mount(new ModalView(ModalRequestSamples.Confirm(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>()));
             simulate.FrameUpdate();
             Assert.IsTrue(IsShown(Find<VisualElement>(view, "modal")));
             StringAssert.EndsWith("確認", Find<Label>(view, "modal-title").text);
@@ -2770,7 +2917,7 @@ namespace Client.Tests.Ui.Screens.Modal
         public void BP名の入力は空のうち押せず前後の空白を除いた名前で確定する()
         {
             var commands = new RecordingModalCommands();
-            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), commands, Toaster));
+            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), commands, Toaster, Observable.Never<Unit>()));
             var responses = commands.Responses;
             simulate.FrameUpdate();
 
@@ -2794,7 +2941,7 @@ namespace Client.Tests.Ui.Screens.Modal
         public void 空白だけの入力では押せず押しても確定を流さない()
         {
             var commands = new RecordingModalCommands();
-            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), commands, Toaster));
+            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), commands, Toaster, Observable.Never<Unit>()));
             var responses = commands.Responses;
             simulate.FrameUpdate();
 
@@ -2811,7 +2958,7 @@ namespace Client.Tests.Ui.Screens.Modal
         {
             // Web の TextInput autoFocus。パネルに載った次のフレームで当てる（計画 D-13）
             // Web TextInput autoFocus; applied on the frame after attaching to the panel (plan D-13)
-            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Toaster));
+            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>()));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             var input = Find<TextField>(view, "modal-input");
@@ -2826,7 +2973,7 @@ namespace Client.Tests.Ui.Screens.Modal
             // The colour mapping lives only in ModalButtonVariants (design A-28)
             Assert.AreEqual(FormButtonVariant.Filled, ModalButtonVariants.From(ModalButtonTone.Blue));
             Assert.AreEqual(FormButtonVariant.Danger, ModalButtonVariants.From(ModalButtonTone.Red));
-            var error = Mount(new ModalView(ModalRequestSamples.Error(), new RecordingModalCommands(), Toaster));
+            var error = Mount(new ModalView(ModalRequestSamples.Error(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>()));
             simulate.FrameUpdate();
             Assert.IsTrue(Find<FormButton>(error, "modal-button").ClassListContains(FormButton.DangerUssClassName));
         }
@@ -2953,30 +3100,33 @@ namespace Client.Tests.Ui.Screens.Modal
         }
 
         [Test]
-        public void 入力欄のESCは1回目でフォーカスだけ外し2回目で取り消す()
+        public void 入力欄のESCは1回で取り消しワールド側へESCを渡さない()
         {
-            // 1 回目は GameUiInputRules がフォーカスを外して消費する。2 回目は Web の Mantine の ESC と同じく閉じる（計画 D-11）
-            // The first ESC is consumed by GameUiInputRules to drop focus; the second closes, like Mantine's ESC on the Web (plan D-11)
+            // Web の Mantine と同じく ESC 1 回で閉じる。GameUiInputRules がフォーカスを外して消費し、その外れで View が取り消す（計画 D-11）
+            // One ESC closes, as Mantine on the Web; GameUiInputRules drops focus and consumes it, and the view cancels on that blur (plan D-11)
             var (_, response) = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
             simulate.FrameUpdate();
             simulate.FrameUpdate();
-            var input = Find<TextField>(_layer, "modal-input");
-            input.value = "途中の名前";
+            Find<TextField>(_layer, "modal-input").value = "途中の名前";
 
-            simulate.KeyDown(KeyCode.Escape);
-            simulate.FrameUpdate();
-            Assert.IsNull(_layer.focusController.focusedElement);
-            Assert.AreEqual(UniTaskStatus.Pending, response.Status);
-            Assert.IsTrue(Shown());
-
-            // 実機ではフレームが進んで ESC の消費の印が外れる。EditMode はフレームが進まないので手で外す
-            // In play the frame advances and clears the ESC latch; EditMode does not advance frames, so clear it by hand
-            UiInputExclusivity.ClearEscapeLatchForTest();
             simulate.KeyDown(KeyCode.Escape);
             simulate.FrameUpdate();
             Assert.AreEqual(UniTaskStatus.Succeeded, response.Status);
             Assert.AreEqual(ModalResult.Cancel, response.GetAwaiter().GetResult().result);
             Assert.IsFalse(Shown());
+            Assert.IsTrue(UiInputExclusivity.IsEscapeConsumedThisFrame);
+        }
+
+        [Test]
+        public void 入力欄の外を押してフォーカスが外れても閉じない()
+        {
+            var (_, response) = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            simulate.Click(Find<Label>(_layer, "modal-message").worldBound.center);
+            simulate.FrameUpdate();
+            Assert.AreEqual(UniTaskStatus.Pending, response.Status);
+            Assert.IsTrue(Shown());
         }
 
         private bool Shown()
@@ -3024,6 +3174,7 @@ namespace Client.Ui.Screens.Modal
 
 `S/Client.Ui/Screens/Modal/ModalView.cs`:
 ```csharp
+using System;
 using Client.Input;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
@@ -3039,23 +3190,26 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Modal
 {
     /// <summary>
-    /// モーダル 1 件の中身（Web ModalBody）。要求ごとに作り直し、入力の持ち越しを構造で無くす（Web の key={id}）
-    /// One modal's contents (Web ModalBody); rebuilt per request so input never carries over (Web key={id})
+    /// モーダル 1 件の中身（Web ModalBody）。要求ごとに作り直し、入力の持ち越しを構造で無くす（Web の key={id}）。確定・ESC・幕の押下をすべて自分で IModalCommands へ返す（設計書 A-8）
+    /// One modal's contents (Web ModalBody); rebuilt per request so input never carries over (Web key={id}). It returns confirm, ESC and backdrop presses to IModalCommands itself (design A-8)
     /// </summary>
     public sealed class ModalView : VisualElement
     {
         private readonly ModalRequest _request;
         private readonly IModalCommands _commands;
         private readonly UiCommandResultToaster _toaster;
+        private readonly IObservable<Unit> _backdropClicked;
         private readonly FormButton _button;
-        private string _enteredText = "";
         private bool _confirmable;
+        private string _confirmedText;
+        private IDisposable _backdropSubscription;
 
-        public ModalView(ModalRequest request, IModalCommands commands, UiCommandResultToaster toaster)
+        public ModalView(ModalRequest request, IModalCommands commands, UiCommandResultToaster toaster, IObservable<Unit> backdropClicked)
         {
             _request = request;
             _commands = commands;
             _toaster = toaster;
+            _backdropClicked = backdropClicked;
             AddToClassList("modal-view");
 
             // 題・本文（Web Modal.Title fz=h4・Text size=sm c=dimmed mb=lg）。文は要求側が解いた文なので FromVerbatim（A-40）
@@ -3078,10 +3232,10 @@ namespace Client.Ui.Screens.Modal
             frame.AddAction(_button);
             SetEnteredText("");
 
-            // 2 回目の ESC（入力欄にフォーカスが無い ESC）はパネルの根へ届くので、載っている間だけ根で聞く
-            // The second ESC (no text field focused) reaches the panel root, so listen there only while attached
-            RegisterCallback<AttachToPanelEvent>(e => e.destinationPanel.visualTree.RegisterCallback<KeyDownEvent>(CancelOnEscape));
-            RegisterCallback<DetachFromPanelEvent>(e => e.originPanel.visualTree.UnregisterCallback<KeyDownEvent>(CancelOnEscape));
+            // 幕の押下と、フォーカスの無い ESC（Task 8 Step 0 の実測で根へ届くと分かった場合）は、載っている間だけ聞く
+            // Listen for backdrop presses and focus-less ESC (if Task 8 Step 0 measured it reaching the root) only while attached
+            RegisterCallback<AttachToPanelEvent>(OnAttached);
+            RegisterCallback<DetachFromPanelEvent>(OnDetached);
         }
 
         private GameTextField CreateInput()
@@ -3090,23 +3244,37 @@ namespace Client.Ui.Screens.Modal
             input.AddToClassList("modal-view__input");
             input.OnValueChanged.Subscribe(SetEnteredText);
 
+            // 入力欄の ESC は GameUiInputRules が消費してフォーカスを外す。その外れを見て 1 回で取り消す（Web の Mantine と同じ 1 回。計画 D-11）
+            // GameUiInputRules consumes ESC in the field and drops focus; seeing that blur, cancel in one press (one press like Mantine on the Web; plan D-11)
+            input.Field.RegisterCallback<FocusOutEvent>(_ => CancelIfEscapeBlurred());
+
             // 表示時に入力欄へフォーカス（Web autoFocus）。載った直後はスタイルが未解決なので次のフレームで当てる
             // Focus the field when shown (Web autoFocus); styles are unresolved right after attaching, so apply next frame
             input.RegisterCallback<AttachToPanelEvent>(_ => input.schedule.Execute(() => input.Field.Focus()));
             return input;
         }
 
-        // 確定の可否は文の変化ごとに 1 回だけ導き、ボタンと確定の両方がそれを読む
-        // Derive confirmability once per text change; both the button and Confirm read it
+        private void OnAttached(AttachToPanelEvent evt)
+        {
+            _backdropSubscription = _backdropClicked.Subscribe(_ => Respond(ModalResponse.Cancel(_request)));
+            evt.destinationPanel.visualTree.RegisterCallback<KeyDownEvent>(CancelOnUnfocusedEscape);
+        }
+
+        private void OnDetached(DetachFromPanelEvent evt)
+        {
+            _backdropSubscription?.Dispose();
+            _backdropSubscription = null;
+            evt.originPanel.visualTree.UnregisterCallback<KeyDownEvent>(CancelOnUnfocusedEscape);
+        }
+
+        // 可否と確定の文は文の変化ごとに 1 回だけ導き、ボタンと確定の両方がそれを読む（ModalLogic.TryGetConfirmableText）
+        // Derive eligibility and the confirmed text once per text change; both the button and Confirm read it (ModalLogic.TryGetConfirmableText)
         private void SetEnteredText(string text)
         {
-            _enteredText = text;
-            _confirmable = ModalLogic.CanConfirm(_request, text);
+            _confirmable = ModalLogic.TryGetConfirmableText(_request, text, out _confirmedText);
             _button.SetEnabled(_confirmable);
         }
 
-        // 確定は入力付きなら前後の空白を除いた文を運ぶ（除去は ModalLogic.TrimEnteredText の 1 か所。入力なしは ModalResponse が文を落とす）
-        // Confirm carries the trimmed text for input modals (trimming lives only in ModalLogic.TrimEnteredText; ModalResponse drops text for non-input ones)
         private void Confirm()
         {
             if (!_confirmable)
@@ -3114,18 +3282,25 @@ namespace Client.Ui.Screens.Modal
                 Debug.LogWarning($"[Modal] confirm ignored for request {_request.Id}: entered text is whitespace only");
                 return;
             }
-            Respond(ModalResponse.Confirm(_request, ModalLogic.TrimEnteredText(_enteredText)));
+            Respond(ModalResponse.Confirm(_request, _confirmedText));
         }
 
-        private void CancelOnEscape(KeyDownEvent evt)
+        private void CancelIfEscapeBlurred()
+        {
+            // silent-ok: ESC 以外のフォーカスの外れ（クリック・閉じたときの外れ）は取り消さない / ModalScreenPresenterTest「入力欄のESCは1回で取り消す」と「欄の外を押しても閉じない」が見る
+            if (!UiInputExclusivity.IsEscapeConsumedThisFrame) return;
+            Respond(ModalResponse.Cancel(_request));
+        }
+
+        private void CancelOnUnfocusedEscape(KeyDownEvent evt)
         {
             if (evt.keyCode != KeyCode.Escape) return;
 
-            // silent-ok: このフレームの ESC は入力欄が使った（1 回目のフォーカス解除・変換の取消）ので閉じない / GameUiInputRules と UiInputExclusivity の Debug.Log が消費を記録する
+            // silent-ok: このフレームの ESC は入力欄が使った（CancelIfEscapeBlurred が取り消し済み・変換の取消）ので重ねない / GameUiInputRules と UiInputExclusivity の Debug.Log が消費を記録する
             if (UiInputExclusivity.IsEscapeConsumedThisFrame) return;
 
-            // 取消はワールド側（ポーズ）へ渡さない
-            // The cancel is not passed on to the world side (pause)
+            // 取消はワールド側（ポーズ・建築モード）へ渡さない
+            // The cancel is not passed on to the world side (pause, build mode)
             UiInputExclusivity.ConsumeEscapeThisFrame();
             evt.StopPropagation();
             Respond(ModalResponse.Cancel(_request));
@@ -3138,6 +3313,7 @@ namespace Client.Ui.Screens.Modal
     }
 }
 ```
+（`CancelOnUnfocusedEscape` は Step 0 の実測で「フォーカスの無い ESC が `visualTree` へ届く」と分かった場合の形。届かなかった場合は Step 0 の分岐どおりに差し替える）
 
 `S/Client.Ui/Screens/Modal/Modal.uss`:
 ```css
@@ -3160,17 +3336,15 @@ namespace Client.Ui.Screens.Modal
 ```csharp
 using Client.Ui.Foundation.Modal;
 using Client.Ui.State.Modal;
-using Client.Ui.State.Modal.Logic;
 using Client.Ui.State.Toast;
 using UniRx;
-using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.Screens.Modal
 {
     /// <summary>
-    /// 保留の要求を宿主へ出し、幕の押下を取消として IModalCommands へ返す（Web ModalHost と ui.modal.respond）
-    /// Shows the pending request in the host and returns backdrop presses as cancel to IModalCommands (Web ModalHost and ui.modal.respond)
+    /// 保留の要求を宿主へ出し入れするだけ（Web ModalHost）。応答は View が IModalCommands へ返す（設計書 §4.2・A-8）
+    /// Only shows and hides the pending request in the host (Web ModalHost); the view returns replies to IModalCommands (design §4.2, A-8)
     /// </summary>
     public sealed class ModalScreenPresenter : IInitializable
     {
@@ -3190,10 +3364,9 @@ namespace Client.Ui.Screens.Modal
 
         public void Initialize()
         {
-            // 状態の正は ModalRequestService。変化の通知で描き分け、幕の押下は取消として返す（宿主は知らせるだけで閉じない）
-            // ModalRequestService owns the state; redraw on its change notice and return backdrop presses as cancel (the host only reports)
+            // 状態の正は ModalRequestService。変化の通知で出し入れする
+            // ModalRequestService owns the state; show or hide on its change notice
             _service.OnPendingChanged.Subscribe(_ => Sync());
-            _host.OnBackdropClicked.Subscribe(_ => CancelByBackdrop());
             Sync();
         }
 
@@ -3210,23 +3383,12 @@ namespace Client.Ui.Screens.Modal
             // silent-ok: 同じ要求の通知の重なりは描き直さない（入力中の文を守る） / 新しい要求は ID が変わるので ModalScreenPresenterTest「新しい要求は…」が見る
             if (pending.Id == _shownRequestId) return;
             _shownRequestId = pending.Id;
-            _host.Show(new ModalView(pending, _commands, _toaster));
-        }
-
-        private void CancelByBackdrop()
-        {
-            var pending = _service.Pending;
-            if (pending == null)
-            {
-                Debug.LogWarning("[Modal] backdrop pressed with no pending request; nothing to cancel");
-                return;
-            }
-            _toaster.Report(ModalCommands.RespondCommandName, _commands.Respond(ModalResponse.Cancel(pending)));
+            _host.Show(new ModalView(pending, _commands, _toaster, _host.OnBackdropClicked));
         }
     }
 }
 ```
-（ゲームの寿命で 1 つなので購読の Dispose は持たない。前の要求の View の購読は View と一緒に捨てられる）
+（Presenter はゲームの寿命で 1 つなので購読の Dispose は持たない。View の幕の購読は載っている間だけで、外れたときに Dispose する）
 
 `GameUiTheme.tss` の `Screens` 区画の末尾（Task 7 の行の次）に:
 ```css
@@ -3236,8 +3398,9 @@ namespace Client.Ui.Screens.Modal
 - [ ] **Step 5: 流して緑にしてコミット**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.Modal|State\.Modal|Modal|Conventions|Theme)\."`
-Expected: `ErrorCount: 0`、`ModalViewTest` 5・`ModalScreenPresenterTest` 5 と C3-b の `UiModalHostTest`・L2 が PASS。赤のときの手順:
-- 2 回目の ESC で閉じない → `simulate.KeyDown` の配送先（フォーカス無しでパネルの根に届くか）を `Debug.Log` で出す。根に届かないなら `ModalView` の聞き先を実物の配送先（`GameUiRoot` の根）に替え、替えた理由を `done.md` の「未確認」に書く。1 回目で閉じてしまう → `GameUiInputRules` が `_layer` に付いていない（TrickleDown の消費の前に根の BubbleUp は走らない）
+Expected: `ErrorCount: 0`、`ModalViewTest` 5・`ModalScreenPresenterTest` 6 と C3-b の `UiModalHostTest`・L2 が PASS。赤のときの手順:
+- 入力欄の ESC で閉じない → `GameUiInputRules` が `_layer` に付いているか、`FocusOutEvent` が `input.Field`（内側の入力要素ではなく `TextField`）で受けられているかを `Debug.Log` で出す。フォーカスが内側の要素に入るなら `TextField` 側で `FocusOutEvent` を TrickleDown で受ける
+- 欄の外を押しただけで閉じる → `CancelIfEscapeBlurred` の ESC の印の判定が抜けている
 - フォーカスが入らない → `focusController.focusedElement` を `Debug.Log` で出し、`TextField` の内側の要素なら主張は既に `Contains` で受けている。null なら `schedule.Execute` を `ExecuteLater(1)` に替えて確かめ、それでも入らなければ `done.md` の「未確認」に書いて主張を外さずに止める（Web の autoFocus は R-8 の一部）
 - 幕の押下で取消が返らない → `OnBackdropClicked` の購読より前に `Show` していないかを見る。C3-b の宿主の誤りなら `done.md` の「integrator への依頼」に書く
 - `modal-title` が見つからない → C3-b の `DialogFrame` の題の名前を実物で読み、Task 1 Step 1 の読み替えに足す
@@ -3432,7 +3595,20 @@ foreach (var label in new[] { "bright", "dark" })
 }
 return string.Join("\n", lines);'
 ```
-続けて 2 つの `s3hm-hotbar` を受理なし（`new HotbarViewModel(slots, HotbarSelection.None, false, true)`）で描き直す EDC を流し、1 フレーム置いてから同じ読み取りの EDC で `empty` を読む（`disabledEmpty`）。
+続けて 2 つの `s3hm-hotbar` を受理なしで描き直す（ctor は Task 2 の `HotbarViewModel(IReadOnlyList<HotbarSlotViewModel> slots, HotbarSelection selection, bool selectAccepted, bool visible)`）:
+```bash
+uloop execute-dynamic-code --project-path ./moorestech_client --code '
+foreach (var label in new[] { "bright", "dark" })
+{
+    var root = UnityEngine.GameObject.Find($"s3hm-albof34-{label}").GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement;
+    var view = UnityEngine.UIElements.UQueryExtensions.Q<Client.Ui.Screens.Hotbar.HotbarHudView>(root, "s3hm-hotbar");
+    var slots = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Repeat<Client.Ui.State.Hotbar.HotbarSlotViewModel>(Client.Ui.State.Hotbar.HotbarEmptySlot.Instance, 9));
+    slots[4] = new Client.Ui.State.Hotbar.HotbarUnresolvedSlot(System.Guid.NewGuid());
+    view.Render(new Client.Ui.State.Hotbar.HotbarViewModel(slots, Client.Ui.State.Hotbar.HotbarSelection.None, false, true));
+}
+return "ok";'
+```
+1 フレーム置いてから（`uloop control-play-mode --project-path ./moorestech_client --action Status` を 1 回挟む）同じ読み取りの EDC を流し、`empty` を `disabledEmpty` として読む。
 Expected: 2 地 × 4 値。Step 1 の期待と並べた表（列: 地・要素・Web 期待・UITK 実測・差の最大 RGB 段）を `done.md` の「## 証拠」に書く。読む点がタブの数字や枠のベベルに掛かっていないことを、同じ RT を `EncodeToPNG` して `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/albof34-<地>.png` に書き Read で確かめる
 
 - [ ] **Step 4: 明るい地で 7 段を超える値を直す**
@@ -3491,7 +3667,7 @@ S2-mode-tooltip の Task 10 Step 2 と同じ手順で、`GameUiPanelSettings.ass
 
 - [ ] **Step 4: モーダルを撮り、実画面 px を測る（1280×720・1920×1080・2560×1080）**
 
-参照 `3-modal.png` を Read し、BP 名の要求（題「ブループリント名」・入力欄にフォーカスの青い輪・保存ボタンが押せない）であることを確かめる。EDC で各ルートに全画面の層を作り、`new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(<そのパネルの scaledPixelsPerPoint>)))` を `Mount` して `Show(new ModalView(<BP 名の要求>))` で撮る（倍率はそのルートの `panel.scaledPixelsPerPoint` を 1 回目の EDC で読んで渡す。設計書 A-41）。2 回目の EDC で `modal` の `worldBound × scaledPixelsPerPoint` を実画面 px として出し、参照の画素で測った枠の左右端（720p は x 420〜860）と並べる。期待: 3 解像度とも幅 440 実画面 px・画面の中央・題の行の高さ 60・本文の余白 20・入力とボタンの高さが Web と同じ実画面 px（倍率で大きくならない）。外れたら `Modal.uss` か、部品の側なら `done.md` の「integrator への依頼」
+参照 `3-modal.png` を Read し、BP 名の要求（題「ブループリント名」・入力欄にフォーカスの青い輪・保存ボタンが押せない）であることを確かめる。EDC で各ルートに全画面の層を作り、`new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(<そのパネルの scaledPixelsPerPoint>)))` を `Mount` して `Show(new ModalView(<BP 名の要求>, <記録するだけの IModalCommands>, <UiCommandResultToaster>, Observable.Never<Unit>()))` で撮る（倍率はそのルートの `panel.scaledPixelsPerPoint` を 1 回目の EDC で読んで渡す。設計書 A-41）。2 回目の EDC で `modal` の `worldBound × scaledPixelsPerPoint` を実画面 px として出し、参照の画素で測った枠の左右端（720p は x 420〜860）と並べる。期待: 3 解像度とも幅 440 実画面 px・画面の中央・題の行の高さ 60・本文の余白 20・入力とボタンの高さが Web と同じ実画面 px（倍率で大きくならない）。外れたら `Modal.uss` か、部品の側なら `done.md` の「integrator への依頼」
 
 - [ ] **Step 5: 差の表を書き、口を片付ける**
 
@@ -3531,6 +3707,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 5. 枠外で解除: 枠 2 の中心から画面の上 1/3 へ同じドラッグ → `Assignments[2] == Guid.Empty`。`p.Screenshot("04-clear")`
 6. BP 名のモーダル: `p.Hotbar.UnlockBlueprint()`、前例と同じく木のチェストを置き、`checks.SelectEntry(ToolCategory, CopyToolEntry)` で BP コピーを選び、始点・終点をクリック → `p.UntilUiElement("modal-input", 10f)` → `FindUi("modal-button")` が押せない（`Clickable` でなく disabled の状態名で見る）→ `p.SetText("modal-input", "  uitk-bp  ")` → `p.ClickUi("modal-button")` → `p.WaitForBlueprint("uitk-bp", true, 15f, "BP『uitk-bp』が前後の空白を除いた名前で登録される")` → `FindUi("modal")` が見つからない。`p.Screenshot("05-bp-modal")`（入力の直後にも 1 枚）
 7. 幕で取消: もう一度始点・終点 → モーダル → 幕の左上（`FindUi("modal-backdrop").ScreenRect` の左上から内側へ 5px）をクリック → `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま、BP もブロックも増えない（幕の上のクリックが設置にならない）。名前を打つ間（流れ 6）にプレイヤーの位置が動かないことも `p.Note` に出して見る
+7b. ESC 1 回で取消（D-11・Task 8 Step 0）: もう一度始点・終点 → `p.UntilUiElement("modal-input", 10f)` → `p.SetText("modal-input", "途中")` → `p.PressKey(Key.Escape)` を 1 回 → 次のフレームで `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま（建築モードを抜けない）、ポーズの UI が出ない（`p.Assert(uiStateControl.CurrentState != UIStateEnum.PauseMenu, …)`）、BP が増えない。`p.Screenshot("07b-esc-once")`。続けて確認モーダル（入力欄なし）を EDC と同じ形で `ModalRequestService.RequestModal(<題>, <本文>, <ボタン文>, ModalVariant.Info)` で出し、何も押さずに `p.PressKey(Key.Escape)` 1 回 → 閉じて、ポーズが出ないことを同じ Assert で見る（Step 0 で選んだ経路の録画での確かめ。`RequestModal` の引数は `ModalRequestService` の実物に合わせる）
 8. 解放の直後の解決（D-18）: `IGameUnlockStateData.BlockUnlockStateInfos` から未解放のブロックを 1 つ選ぶ（無ければ止めて `done.md` の「未確認」に書く）。`ClientHotbarDatastore.RequestAssign(8, その BlockGuid)` → `p.Until` で `Assignments[8]` が一致 → `HotbarModel.Current.Value.Slots[8] is HotbarUnresolvedSlot` を Assert。次に `ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => resolvedAtPacket = model.Current.Value.Slots[8] is HotbarAssignedSlot)` を購読し（`HotbarModel` より後の購読なので同じ配送の中で組み直しの後に走る）、`PlaytestBlockOps.UnlockBlockServerSide(ct, 名前)` → `p.Assert(resolvedAtPacket, "解放パケットの配送の中で枠 8 が解決済みになる（間引き無しの同期の組み直し）")`。偽なら間引きを足さず、購読の順とパケットの時点の値を `done.md` に実測付きで申告して止める
 ファイルは 200 行未満、`#region Internal` にローカル関数（ドラッグ・枠の中心）をまとめる
 
@@ -3607,7 +3784,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 1: 必ず moores-code-review スキルで全ブランチレビューを実行する（自動実行・ゴール文言による省略不可）**
 
-対象は `origin/feature/uitk...HEAD`。レビューが裁定・設計書と食い違う直し（Web と違う見た目へ寄せる・画面 USS に部品のクラスを書く・色を C# に書く・Foundation や部品を書き換える・ESC を Mantine と同じ 1 回で閉じる〈D-11〉・ホットバーの語彙を Foundation へ上げる〈D-5〉・S3-buildmenu のファイルを書き換える〈D-6〉）を提案したら採らず、`done.md` の「要裁定」に書く
+対象は `origin/feature/uitk...HEAD`。レビューが裁定・設計書と食い違う直し（Web と違う見た目へ寄せる・画面 USS に部品のクラスを書く・色を C# に書く・Foundation や部品を書き換える・ESC で入力欄の規則〈`GameUiInputRules`〉を書き換える〈D-11〉・ホットバーの語彙を Foundation へ上げる〈D-5〉・S3-buildmenu のファイルを書き換える〈D-6〉）を提案したら採らず、`done.md` の「要裁定」に書く
 
 - [ ] **Step 2: 自動適用があれば検査と録画を回し直してコミットする**
 
@@ -3734,12 +3911,12 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-4 | 選択の受理の規則は State の `HotbarSelectRule` 1 か所で、Model の減光と `HotbarCommands` の受理が同じものを読む | View が受理を判断: Web は `uiStateAcceptsHotbarSelect` と `HotbarSelectActionHandler` に二重に持つ。UITK では 1 か所にする | agent 既定 |
 | D-5 | 落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`）は `Screens/Hotbar/Parts/` に置き、`IUiDropTarget` と State の `IHotbarDropReceiver`（S3-buildmenu が作る）の両方を実装する | Foundation/DragDrop へ置く: ホットバーの語彙で汎用基盤にドメイン語彙を入れることになる。ビルドメニューの側へ置く: 落とし先の持ち主はホットバー | agent 既定（設計書 §5.1-2・AGENTS.md の設計原則） |
 | D-6 | 配置対象の絵の出どころ（ID だけの `PlacementTargetIcon` 系・`PlacementTargetIconResolver`・DI のクラス `PlacementTargetIcons.TryToUiIcon`）と State の口 `IHotbarDropReceiver.Receive` は S3-buildmenu が最終の置き場に作り、このレーンは使うだけ。S3-buildmenu のファイルは書き換えない | このレーンが S3-buildmenu の型を `git mv` で昇格し呼び側を書き換える: 並走中の他レーンのファイルに手を入れ、取り込みの衝突と置き換え漏れの穴を作る。ホットバーに別の解き方を書く: 同じ規則（Web の橋 `ResolveIconUrl`）が 2 つになる | 指揮の決定 |
-| D-7 | 番号タブの暗い縁は、タブの部分木で `--icon-text-stroke-light` を `var(--icon-text-stroke-dark)` に受け直して出す。部品の縁の色のつまみは integrator へ依頼 | `OutlinedCountLabel` を書き換える: 部品はこのレーンの持ち物でない。画面 USS で `.outlined-count-label--stroke` を書く: 画面 USS に部品のクラスを書くのは規約違反 | agent 既定（指揮が採用） |
+| D-7 | 番号タブの暗い縁は、部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke-color`（既定 `--icon-text-stroke-light`）を足し、タブでそのつまみを `--icon-text-stroke-dark` に上書きして出す。部品の L1（`OutlinedCountLabelStrokeKnobTest`）を同じタスクで足す | タブの部分木で共有トークン `--icon-text-stroke-light` を受け直す: トークンの意味（白い縁）を部分木で裏返し、タブの中に後から置く他の部品の縁まで黒くなる。画面 USS で `.outlined-count-label--stroke` を書く: 画面 USS に部品のクラスを書くのは規約違反。integrator へ依頼して待つ: 既存部品へのつまみ 1 つの追加で、C3-a はマージ済み・他の W3 レーンはこのファイルを触らない | agent 既定（設計書 §3.2「部品の見た目はつまみで変える」） |
 | D-8 | Web の `calc()`（タブの `top`）と `translateX`（列の横ずれ）は `HotbarCalcKnobs` が customStyle から読んで当てる | 換算値を USS に直書き: トークンの変更に追従しない | 設計書 [A-47] |
 | D-9 | albof.34 の照合は、複製した `GameUiPanelSettings` の RT（ランタイムと同じ Linear 合成）で明るい地と暗い地を描いて画素を読み、Web の sRGB 合成の式の値と比べる。明るい地で 7 段以内を合格とする | 部品ギャラリーで比べる: sRGB 合成なので差が出ない。Web を実際に撮って比べる: 世界の絵が地になり画素が定まらない | 指揮の判断（albof.34 の回送）→ agent 既定（C3-a の基準 7 段） |
 | D-10 | 退く間（blocking スキット・常駐 HUD を出さない画面）は帯ごと `display: none` にする | 子を消す: Web は `null` を返して木から外す。UITK は作り直しを避けて隠すだけで、見た目と入力は同じ | agent 既定 |
-| D-11 | モーダルの入力欄の ESC は 1 回目でフォーカスだけ外して消費し、2 回目（入力欄にフォーカスが無い ESC）でモーダルを取り消す。Web の Mantine の ESC で閉じるのと同じ結果（BP の命名を取り消す）を 2 回で得る。2 回目は `ModalView` が載っている間だけパネルの根で聞き、このフレームの ESC が既に消費されていれば何もしない | 1 回で閉じる: 既存の規則（`GameUiInputRules`・C2-b の albof.12 要件・実行計画 S3-ladder「ESC はフォーカスを外すだけ」）を画面ごとに破る。2 回目も閉じない: Web で閉じられた操作が UITK で閉じられなくなる | agent 既定（既存の規則） |
-| D-12 | 確定の文の規則は `ModalLogic.HasConfirmableText` 1 か所。空白の除去は View が行い、ブリッジは同じ規則で二重に守る | View だけで守る: ブリッジが別の描き手（Web）からの文も受ける | agent 既定 |
+| D-11 | モーダルは ESC 1 回で取り消す（Web の Mantine と同じ）。入力欄では `GameUiInputRules` が ESC を消費してフォーカスを外し、`ModalView` は入力欄の `FocusOutEvent` を、このフレームの ESC が消費済みのときだけ取消として読む（押下でフォーカスが外れただけなら閉じない）。フォーカスの無い ESC（確認モーダル・欄の外を押した後）は Task 8 Step 0 の実測で、パネルの根で聞くか枠にフォーカスを置くかを決める。変換中の ESC は規則がフォーカスを外さないので閉じない | 1 回目はフォーカスだけ外し 2 回目で閉じる: Web と押す回数が違う（ゴール「WebUI と同じ見た目」の操作面から外れる）うえ、入力欄の ESC は規則が Blur と `StopImmediatePropagation` をするので 2 回目の `KeyDownEvent` は View に届かない（`GameUiInputRules.cs` を読んで確かめた）。規則に「モーダルでは閉じる」を足す: Foundation の規則にモーダルの語彙を持ち込む | agent 既定（ゴールに合わせる） |
+| D-12 | 確定の文の規則は `ModalLogic.TryGetConfirmableText`（可否と除去後の文を 1 回で導く）と `HasConfirmableText` の 1 か所。ブリッジは `HasConfirmableText` で二重に守り、空白の除去は状態側（`BlueprintNameInputState.Confirm`）の既存の `Trim` のまま | View だけで守る: ブリッジが別の描き手（Web）からの文も受ける | agent 既定 |
 | D-13 | モーダルの View は要求 1 件につき 1 つ作り、入力の持ち越しを構造で無くす。入力付きは載った次のフレームでフォーカスする | 1 つの View を使い回して ID の変化で空にする: リセット漏れの分岐が要る。Web は `key={id}` で作り直す | agent 既定（Web の写し） |
 | D-14 | `placementIconCentering.spec.ts` はホットバーの件だけを写す。ビルドメニューの件は S3-buildmenu が写す | このレーンで写す: ビルドメニューの画面を組まないと主張が立たない | 指揮の決定 |
 | D-15 | `hotbar.spec.ts` 5 件目は、ホットバーが退く側だけ写す。会話窓が残る側は S2-skit | 両方写す: 会話窓は S2-skit の画面 | agent 既定 |
@@ -3748,7 +3925,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-18 | 源の変化ごとに同期で組み直す（間引きは持たない）。解放の事象の順は、解放状態の持ち主 `ClientGameUnlockStateData` が ctor で同じタグを先に購読しているので、Model が読む時点で更新済みの見込み（`ClientGameUnlockStateDatastore.cs:112`。推測で、録画の 1 段で確かめる）。崩れたら間引きを足さず `done.md` に実測付きで申告 | フレーム末に 1 回だけ組む（Web HotbarTopic の写し）: [A-57] の同期の組み直しと前例（`ModeHudModel`・`BuildMenuModel`）から外れ、順序の懸念は実測でない | agent 既定（[A-57]） |
 | D-19 | 絵と名前は ViewModel に値（ID・表示名・ID だけの `PlacementTargetIcon`）で運び、変化は等価の外れで描き直す。Texture は運ばない。BP の絵だけは参照の等価（S3-buildmenu）で、`HotbarAssignedSlot.Equals` が `Icon.Equals` を比べるので、撮り直し（`OnThumbnailChanged` → 組み直し）のたびに等しくない VM が配られ絵が替わる（L0 の等価のテストと L1「同じBPの撮り直しで枠の絵が替わる」が固定）。版の数（`PresentationRevision`）は持たない | 版の数を足す: 値で運べば不要になり、増やし忘れの穴が残る | agent 既定 |
 | D-20 | 枠の源のタップは常に `Select` を呼び、受理は `HotbarCommands` が規則で決める。受けない状態は良性の拒否 `HotbarSelectNotAccepted`（wire `invalid_state`。Web `HotbarSelectActionHandler` と同じコード）を返し、源が `UiCommandResultToaster` へ渡す（良性なのでログだけ） | View が減光中はタップを出さない: 受理の判断が 2 か所になる。`void` のままログ: [A-8] のコマンドの形から外れる | agent 既定（[A-8]） |
-| D-21 | `WheelPassthroughMark` は最初から `Foundation/Input` に置き、印を付けるだけにする。読む側（装備のホイール）は S4-inventory | 画面内に置いて 2 機能目で昇格: Web で既に 2 機能（`activeLayer.ts:22`・HotbarPanel・EquipmentPanel）が使うので §5.1-1 に当たる。新規ファイルで他レーンと重ならない | agent 既定（§5.1-1・[A-58]） |
+| D-21 | `WheelPassthroughMark` は最初から `Foundation/Input` に置き、印（`Mark`）と読み手の判定（`IsPassthrough`。Web `isWheelPassthrough` の `closest`）を同じファイルに持つ。判定を使う装備のホイールは S4-inventory | 画面内に置いて 2 機能目で昇格: Web で既に 2 機能（`activeLayer.ts:22`・HotbarPanel・EquipmentPanel）が使うので §5.1-1 に当たる。印だけ置いて判定は S4-inventory: 読み手の無い印は L1 が印の有無しか見られず、Web の判定（祖先をたどる）と同じかを確かめる場所が無い。新規ファイルで他レーンと重ならない | agent 既定（§5.1-1・[A-58]） |
 | D-22 | 登録は画面ごとに 1 行（2 行）。`HotbarCommands` はホットバーの登録に入れる | State の登録へ入れる: GameUi の系でしか使わない | agent 既定（実行計画 §6.2） |
 | D-23 | モーダルの並べ比べは 720p・1080p・2560×1080。1080p の Web 参照は master の worktree で撮る | 1080p を省く: 完了条件が 720p・1080p を名指す | 完了条件（[A-41]） |
 | D-24 | L3（EditModeInPlayingTest）は持たない | — | 実行計画（段の締め S3-ladder） |
@@ -3761,21 +3938,21 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-31 | 並べ比べの地は参照から読んだ単色にする | 実ゲームの世界を地にする: 世界の絵が参照と違い差の判定ができない | 前例 S2-mode-tooltip |
 | D-32 | 半透明 3 色は `handWrittenDerivedRows.mjs` の前計算の表へ載せて再生成し、照合で決め直したら `uss:` と決め方の文に書き換える | 手で書くだけ: 生成器の照合から外れる | 前例 S2-hud [A-55]・`--slot-frame-face` |
 | D-33 | 落としは印が `IHotbarDropReceiver.Receive` で受けて自分で解き、操作（`IHotbarCommands`）は印が持つ。断る組は印の側（`HotbarNoDropAction` を `HotbarCommands` が silent-ok で受ける）。枠の源は印がホットバーの口でなければ自分で枠外の解除をする。隙間の印は受けて無操作 | 源が操作を持って解く: ビルドメニューの源にホットバーの操作を渡すことになる。解き方の中継（`HotbarDropDispatch`）を挟む: 口が State にあれば型の判定 1 行で済む | 指揮の決定 → agent 既定 |
-| D-34 | モーダルの応答は `Client.Ui.State/Modal/IModalCommands`（`UiCommandResult Respond(ModalResponse)`）にし、`ModalView` が確定と 2 回目の ESC で直接呼ぶ。幕の取消は Presenter が同じコマンドを呼ぶ。古い応答は良性の拒否 `ModalResponseStale`（wire `no_pending_modal`。Web `ModalRespondActionHandler` と同じ）でトースト口がログに残す | View の `OnResponded` を Presenter が `ModalRequestService.Respond` へ渡す: [A-8] のコマンドの形から外れ、取消と確定で返し方が 2 本になる | agent 既定（[A-8]） |
+| D-34 | モーダルの応答は `Client.Ui.State/Modal/IModalCommands`（`UiCommandResult Respond(ModalResponse)`）にし、`ModalView` が確定・ESC・幕の押下（`UiModalHost.OnBackdropClicked` を ctor で受けて購読）で直接呼ぶ。Presenter は表示と撤去だけ。古い応答は良性の拒否 `ModalResponseStale`（wire `no_pending_modal`。Web `ModalRespondActionHandler` と同じ）でトースト口がログに残す | View の `OnResponded` を Presenter が `ModalRequestService.Respond` へ渡す: [A-8] のコマンドの形から外れ、取消と確定で返し方が 2 本になる。幕だけ Presenter が呼ぶ: 応答の呼び手が 2 か所になる | agent 既定（[A-8]） |
 | D-35 | 未解決の割当は ID だけを持ち、名前を出さない | 前の名前を覚えて出す: Web も出さない（`unresolved` は id だけ） | Web の写し |
 | D-36 | 名前だけの絵は判別子で描き分ける。`PlacementTargetIcons.TryToUiIcon` が偽（NameOnly・絵の欠け）なら枠が `SetNameTarget`、真なら `SetIconTarget`。null の判定は持たない | `UiIcon` の null で分ける: 判別子で決まることを値の有無で読み直す | 指揮の決定（S3-buildmenu の API） |
 | D-37 | 枠の源には bool の割当の有無でなく `HotbarSlotViewModel` を渡し、掴める物の判定は `TryGetDragSource` の 1 か所に置く | `bool assigned` を渡して `OnDropped`・`OnDroppedOutside` で 2 回判定: 同じ判定が 2 か所になる | agent 既定 |
 | D-38 | 表示名が空の対象は、Web と同じく空の名前をそのまま出す（代わりの文を出さない）。Web は `HotbarTopic` が BP だけ原文を運び、他はクライアントが GUID のキーで引き、`PlacementTargetFace` は `displayName` をそのまま描く | 代わりの文（ID 等）を出す: Web と違う見た目になり、空の名前は BP 名の確定規則（空白だけを弾く）で通常は起きない | Web の写し |
-| D-39 | モーダルの確定の可否は文の変化ごとに 1 回だけ導き（`_confirmable`）、ボタンと確定の両方が読む。空白の除去は `ModalLogic.TrimEnteredText` の 1 か所 | View が `Trim` と `CanConfirm` を別々に呼ぶ: 同じ導出が 2 本になる | agent 既定 |
+| D-39 | モーダルの確定の可否は文の変化ごとに `ModalLogic.TryGetConfirmableText` で 1 回だけ導き（`_confirmable`・`_confirmedText`）、ボタンと確定の両方が読む。空白の除去は `ModalLogic` の private `Trim` の 1 か所 | View が `Trim` と `CanConfirm` を別々に呼ぶ: 同じ導出が 2 本になる | agent 既定 |
 | D-40 | `HotbarCell` の面へ当てる分岐（絵か名前か）は枠が持ち、`PlacementTargetIcons` は値（`UiIcon`）を返すだけ | Content が面に当てる: Content が部品の面を知ることになる | 指揮の決定（S3-buildmenu の API） |
 
 ---
 
 ## 未確認
 
-- C3-b・S2-hud の公開 API と、S3-buildmenu が作る型（指揮の決定どおりの形。`PlacementTargetIcons` の ctor の引数は想定）・テストの補助（`RecordingBuildMenuEntryHandler`）は想定。Task 1 Step 1 で実物と照合する
+- C3-b の公開 API と、S3-buildmenu が作る型（指揮の決定どおりの形。`PlacementTargetIcons` の ctor の引数は想定）・テストの補助（`RecordingBuildMenuEntryHandler`）は想定。Task 1 Step 1 で実物と照合する
 - 撮り直しの描き直しは L1 で `Render` に新しい VM を渡して見る。Model が `OnThumbnailChanged` で組み直して配ることは Task 12 の録画（BP の絵が出る）で見る
-- 2 回目の ESC がフォーカス無しでパネルの根へ届くこと（Task 8 の L1 と Task 12 の録画で見る）
+- フォーカスの無い ESC（確認モーダル・欄の外を押した後）がパネルの根へ届き、ワールド側（ポーズ・建築モード）より先に消費されるか（Task 8 Step 0 で実測し、届かなければ枠へのフォーカスへ切り替える）
 - D-18 の順序（解放状態の更新がホットバーの組み直しより先）は推測。Task 12 の流れ 8 で実測する
 - `ui-modal-host--shown` が `modal-scope` に付くこと（C3-b の計画から写した）
 - `TextField.Focus()` の後の `focusController.focusedElement` が `TextField` か内側の要素か（主張は両方を受ける）
@@ -3788,8 +3965,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 - `ModalRespondActionHandler` も `IModalCommands` を受ければ、古い応答の写しが `ModalCommands` 1 本になる（前例 [A-84]）
 - `HotbarActions.cs:33`（Web の `HotbarSelectActionHandler` の受理の条件）と `HotbarSelectRule` が同じ規則を 2 か所に持つ。`HotbarSelectRule` の前例自体が Web 側の漏出形（ハンドラが状態を直に読む）なので、Web ホストのハンドラも `IHotbarCommands` を受ける形（前例 S2-skit [A-84] の `SkitActionHandlers`）にすれば 1 か所になる
 - `HotbarTopic.cs:111-130`（`ResolveSlotDto`）と `HotbarModel.ResolveSlot` が空き・未解決・解決済みの分け方を 2 か所に持つ。切替（5a）で Web の橋が消えるまで残る
-- `BlueprintNameInputState.cs:39-40` の空白の検証・除去と `ModalLogic.HasConfirmableText`・`TrimEnteredText` が同じ規則を 2 か所に持つ（ブリッジの `Trim` を含む）。状態側を `ModalLogic` に寄せれば 1 か所になる
-- `OutlinedCountLabel` に縁の色のつまみ（`--outlined-count-label-stroke-color`）を足せば、番号タブの部分木の受け直し（D-7）が消える（integrator への依頼に記載）
+- `BlueprintNameInputState.cs:39-40` の空白の検証・除去と `ModalLogic.TryGetConfirmableText`・`HasConfirmableText` が同じ規則を 2 か所に持つ（ブリッジの `Trim` を含む）。状態側を `ModalLogic` に寄せれば 1 か所になる
 - 絵か名前かを面へ当てる分岐（`TryToUiIcon` の真偽で `SetIconTarget`／`SetNameTarget`）が、ホットバーの `HotbarCell` とビルドメニューで同じ形になる。3 機能目が来たら 1 関数にまとめる
 
 レーンの起動は指揮が行う。
