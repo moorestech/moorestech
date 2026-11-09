@@ -77,7 +77,7 @@ namespace Client.Ui.Screens.CursorTooltip
             // ロック↔解除はポインタが動かなくても指す点を変えるので、通知で置き直す
             // Lock toggles change the anchor even without pointer motion, so re-place on notification
             var anchorModeSubscription = _screen.OnAnchorModeChanged.Subscribe(_ => Reposition());
-            // 舞台の倍率が変わったら、保存した実画面 px をいまの倍率で置き直す
+            // 倍率変更時、保存した実画面 px を置き直す
             // When the stage scale changes, re-place the stored screen px with the current scale
             var scaleSubscription = _stageScale.Scale.Subscribe(_ => Reposition());
             _screenSubscriptions = new CompositeDisposable(pointerSubscription, anchorModeSubscription, scaleSubscription);
@@ -97,7 +97,7 @@ namespace Client.Ui.Screens.CursorTooltip
                 return;
             }
 
-            // 指す点は実画面が決め、パネル座標への換算は共有のポインタが持つ
+            // 指す点は実画面、換算は共有ポインタ
             // The screen decides the point; the shared pointer owns the conversion to panel coordinates
             var anchor = _pointer.ScreenToPanel(panel, _screen.AnchorOnScreen(_pointerOnScreen));
             var placed = CursorTooltipPlacement.PlaceInPanel(anchor, _face.layout.size, layout.size, scale);

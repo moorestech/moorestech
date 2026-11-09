@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Client.Tests.Ui.Screens.CursorTooltip
 {
     /// <summary>
-    /// 本番の実画面が指す点: ロック中は中央、解除中はポインタ（どちらも左下原点の実画面 px。L0）
+    /// ロック中は中央、解除中はポインタを指す（左下原点の実画面 px。L0）
     /// The production anchor: centre while locked, the pointer while unlocked (both bottom-left screen px; L0)
     /// </summary>
     public class CursorTooltipScreenAnchorTest

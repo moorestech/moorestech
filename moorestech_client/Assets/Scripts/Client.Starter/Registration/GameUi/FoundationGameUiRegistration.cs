@@ -22,7 +22,7 @@ namespace Client.Starter.Registration.GameUi
             builder.RegisterEntryPoint<GameUiStageScaleWatch>().AsSelf();
             builder.Register(resolver => new StageScaleSource(resolver.Resolve<GameUiStageScaleWatch>().Scale), Lifetime.Singleton);
 
-            // 画面を追う UI（掴み絵・カーソルツールチップ）が読むポインタは 1 個
+            // 画面追従 UI 共通のポインタ（1個）
             // One pointer for screen-following UI (grab picture, cursor tooltip)
             builder.Register<InputSystemUiScreenPointer>(Lifetime.Singleton).As<IUiScreenPointer>();
 

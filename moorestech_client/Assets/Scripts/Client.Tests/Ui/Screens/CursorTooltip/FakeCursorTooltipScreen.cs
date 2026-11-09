@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.CursorTooltip
 {
-    // 偽の実画面とポインタと倍率。中央・倍率・ポインタ（実画面 px）をテストが決め、パネル座標は倍率で割って返す
+    // テストが決める偽の実画面・ポインタ・倍率
     // Fake screen, pointer and scale; the test decides centre, scale and pointer (screen px), and panel coordinates are screen px divided by the scale
     public sealed class FakeCursorTooltipScreen : ICursorTooltipScreen, IUiScreenPointer
     {

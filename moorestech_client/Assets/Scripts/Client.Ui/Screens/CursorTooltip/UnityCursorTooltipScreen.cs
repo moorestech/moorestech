@@ -17,7 +17,7 @@ namespace Client.Ui.Screens.CursorTooltip
 
         public Vector2 AnchorOnScreen(Vector2 latestPointerOnScreen)
         {
-            // ロックは書き手の InputManager が持つ値を読む（前例 UiPointerHitTest と同じ）
+            // ロックは InputManager の値を読む
             // Read the lock from its writer InputManager (same as the UiPointerHitTest precedent)
             return CursorTooltipScreenAnchor.AnchorOnScreen(InputManager.IsCursorLocked, latestPointerOnScreen, ScreenCenter.GetPosition());
         }

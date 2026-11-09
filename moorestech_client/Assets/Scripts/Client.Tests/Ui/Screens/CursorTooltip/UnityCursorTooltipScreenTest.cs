@@ -38,7 +38,7 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             InputManager.MouseCursorVisible(true);
             InputManager.MouseCursorVisible(true);
 
-            // 読み口は書き手の持つ値なので、Cursor.lockState への代入を捨てる batchmode でも同じ
+            // 読み口は書き手の値なので batchmode でも同じ
             // The read port is the writer's own value, so batchmode (which drops Cursor.lockState writes) behaves the same
             Assert.AreEqual(new[] { true, false }, lockStatesSeenOnNotify.ToArray());
         }

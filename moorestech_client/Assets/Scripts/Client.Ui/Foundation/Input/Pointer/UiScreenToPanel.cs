@@ -7,7 +7,7 @@ namespace Client.Ui.Foundation.Input.Pointer
     /// 実画面 px（左下原点）からパネル座標への換算の唯一の式
     /// The only formula converting screen px (bottom-left origin) to panel coordinates
     /// </summary>
-    public static class UiScreenToPanel
+    internal static class UiScreenToPanel
     {
         public static Vector2 FromBottomLeft(IPanel panel, Vector2 bottomLeftScreenPosition)
         {

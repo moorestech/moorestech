@@ -38,7 +38,7 @@ namespace Client.Ui.Foundation.DragDrop
 
         public void OnDragEnded(Vector2 panelPosition)
         {
-            // 解放点の要素から最寄りの同じ型の落とし先を引き、無ければ枠外とする（Web の elementFromPoint→closest）
+            // 最寄りの同型の落とし先を引く。無ければ枠外
             // Find the nearest target of this type from the element under the release point, else outside (Web elementFromPoint -> closest)
             var picked = _source.panel.Pick(panelPosition);
             if (picked != null && UiDragDrop.TryFindTarget<TTarget>(picked, out var target))

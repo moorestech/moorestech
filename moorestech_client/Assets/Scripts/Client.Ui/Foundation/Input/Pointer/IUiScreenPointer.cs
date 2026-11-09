@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input.Pointer
 {
     /// <summary>
-    /// 画面を追う UI が読むポインタ（実画面 px・左下原点）とパネル座標への換算の唯一の口
+    /// 実画面ポインタとパネル座標換算の唯一の口
     /// The only port for the pointer that screen-following UI reads (screen px, bottom-left origin) and its conversion to panel coordinates
     /// </summary>
     public interface IUiScreenPointer
