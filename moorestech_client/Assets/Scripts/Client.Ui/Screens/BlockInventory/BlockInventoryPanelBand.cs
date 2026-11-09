@@ -63,6 +63,14 @@ namespace Client.Ui.Screens.BlockInventory
             // Band = stage height − upper safe area (the stage's padding-top) − lower safe area
             var style = _stage.resolvedStyle;
             var band = style.height - style.paddingTop - _menuLower;
+
+            // 舞台が安全帯より狭いと帯が負になる。負の高さは当てず 0 で止め、狭すぎることを Warning で知らせる
+            // A stage narrower than the safe areas makes the band negative; clamp to 0 instead of applying it and warn that it is too small
+            if (band < 0)
+            {
+                UnityEngine.Debug.LogWarning($"[BlockInventoryPanelBand] stage height {style.height} is below the safe areas (top {style.paddingTop}, bottom {_menuLower}); band clamped to 0");
+                band = 0;
+            }
             _shell.style.maxHeight = band;
             _shell.style.height = _large ? new StyleLength(band) : new StyleLength(StyleKeyword.Auto);
 

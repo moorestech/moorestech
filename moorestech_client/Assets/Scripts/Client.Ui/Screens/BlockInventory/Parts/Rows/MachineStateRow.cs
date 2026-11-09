@@ -1,6 +1,7 @@
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.Text;
+using UnityEngine;
 
 namespace Client.Ui.Screens.BlockInventory.Parts.Rows
 {
@@ -29,6 +30,13 @@ namespace Client.Ui.Screens.BlockInventory.Parts.Rows
 
         public void Render(MachineProcessDisplayState state, double currentPower, double requestPower, bool highlightPowerShortage)
         {
+            // 電力率の出し入れは親へ頼むので、MountInto より先の Render は呼び順の誤り。NRE にせず理由を出して描かない
+            // Showing the power rate goes through the parent, so Render before MountInto is a call-order bug; log why and skip instead of an NRE
+            if (_parent == null)
+            {
+                Debug.LogError("[MachineStateRow] Render was called before MountInto; call MountInto(parent) first");
+                return;
+            }
             var display = BlockDetailStateDisplay.Machine(state);
             _state.Render(new UiText(display.LabelKey), display.Insufficient);
             // 隠すときも文は先に入れる（文無しの LocalizedLabel が載ると LogError）

@@ -122,6 +122,7 @@ return PlaytestRunner.Run("uitk-block-inventory", new PlaytestRunOptions { Recor
         // UITK の shiftKey は PanelEventHandler が IMGUI の Event 列から読み InputSystem の注入では立たないので、押下の間だけ同じ静的値へ Shift を置く
         // UITK's shiftKey comes from PanelEventHandler's IMGUI event queue, not injected InputSystem keys, so hold Shift in that static only during the press
         var uitkModifiers = typeof(PanelEventHandler).GetField("s_Modifiers", BindingFlags.NonPublic | BindingFlags.Static);
+        if (uitkModifiers == null) throw new System.InvalidOperationException("PanelEventHandler.s_Modifiers が見つからない（Unity の版で内部名が変わった）ので Shift を注入できない");
         SemanticInput.KeyDown(Key.LeftShift);
         uitkModifiers.SetValue(null, EventModifiers.Shift);
         await p.ClickUi("chest-grid-slot-0");
@@ -151,19 +152,11 @@ return PlaytestRunner.Run("uitk-block-inventory", new PlaytestRunOptions { Recor
 
     #region Internal
 
-    int Slot(int index)
-    {
-        var operations = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IBlockInventoryOperations>();
-        return operations.TryReadBlockSlots(out var slots) && index < slots.Count ? slots[index].Count : -1;
-    }
+    int Slot(int index) => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IBlockInventoryOperations>().TryReadBlockSlots(out var slots) && index < slots.Count ? slots[index].Count : -1;
 
     int Grab() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IPlayerInventoryOperations>().ReadGrab().Count;
 
-    int MainWood()
-    {
-        var woodId = PlaytestItemOps.ResolveItemId("原木");
-        return ClientDIContext.DIContainer.DIContainerResolver.Resolve<IPlayerInventoryOperations>().ReadSnapshot().MainSlots.Where(s => s.ItemId == woodId).Sum(s => s.Count);
-    }
+    int MainWood() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IPlayerInventoryOperations>().ReadSnapshot().MainSlots.Where(s => s.ItemId == PlaytestItemOps.ResolveItemId("原木")).Sum(s => s.Count);
 
     // 掴み・枠 0・枠 1（-1 は見ない）がクライアントで揃い、サーバーの実在庫も同じになるまで待つ
     // Wait until grab, slot 0 and slot 1 (-1 = ignored) match on the client and the server stock agrees

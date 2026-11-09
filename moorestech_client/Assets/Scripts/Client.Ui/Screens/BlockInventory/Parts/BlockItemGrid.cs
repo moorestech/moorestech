@@ -60,7 +60,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
             // 並ぶ枠の番号が変わったときだけ作り直し、同じなら中身だけ差し替える
             // Rebuild only when the slot indices change; otherwise just swap contents
             if (!SameIndices(slotIndices)) Rebuild(slotIndices);
-            foreach (var (index, slot) in _slots) slot.SetContent(ToContent(itemSlots[index]));
+            foreach (var (index, slot) in _slots) slot.SetContent(ToContent(ReadSlot(index)));
             ApplyColumns();
 
             #region Internal
@@ -90,6 +90,15 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                 // 並びが変わったので列数を当て直す
                 // The layout changed, so apply the column count again
                 _appliedColumns = 0;
+            }
+
+            // 枠の番号が枠数を超えるのは呼び手（区画）の誤り。購読を例外で止めず空きで描き、LogError で知らせる
+            // An index beyond the slot count is the caller's (section's) bug; draw it empty instead of killing the subscription, and LogError
+            SlotItem ReadSlot(int index)
+            {
+                if (0 <= index && index < itemSlots.Count) return itemSlots[index];
+                UnityEngine.Debug.LogError($"[BlockItemGrid] {_testId}: slot index {index} is out of range (slot count {itemSlots.Count}); drawn as empty");
+                return default;
             }
 
             ItemSlotContent ToContent(SlotItem item)
