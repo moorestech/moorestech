@@ -19,7 +19,7 @@
 | ID | 要件 | 受け入れ基準 |
 |---|---|---|
 | R-1 | State の源: クラフトレシピは `MasterHolder.CraftRecipeMaster.GetAllCraftRecipes()` を `IGameUnlockStateData.CraftRecipeUnlockStateInfos[guid].IsUnlocked` で絞った `CraftRecipeData` の列（Web `CraftingRecipesTopic` の写し）。アイテム一覧は `MasterHolder.ItemMaster.GetItemAllIds()` を `ItemRecipeViewerDataContainer.EvaluateVisibility` が `Show` のものに絞った列（`RecipeViewerItemListTopic` の写し。`UnknownType` は 1 回だけ警告ログ）。機械レシピは S4-alpha の源（`Client.Ui.State/Recipe/Source/`）から受ける。持ち数は `IPlayerInventoryOperations.ReadSnapshot().MainSlots` を `OwnedItemCounts.Build` で数える | `CraftRecipeCatalogTest`・`RecipeViewerItemCatalogTest`（L0。テスト mod のマスタ）が緑 |
-| R-2 | State の組み立て: 選択なしは `RecipeViewerNoSelection`、選択ありは `RecipeViewerItemSelected(itemId, entries)`。entries は `CraftLogic.BuildRecipeEntries` の順（クラフト優先の単一列）で、クラフトは素材ごとの所持・必要・不足とクラフト可否（`CraftLogic.Craftable`）、先頭がクラフトならその 1 件だけ `CarriesTutorialAnchor`。一覧は `CraftLogic.CraftableResultCounts` の数を各セルへ。解放イベント・製作上限の解放・持ち物の変化・選択・言語の変化で同期に組み直す（[A-57]） | `RecipeViewModelFactoryTest`・`RecipeScreenModelTest` が緑（Web `RecipeContent.test.ts` 2 件） |
+| R-2 | State の組み立て: 選択なしは `RecipeViewerNoSelection`、選択ありは `RecipeViewerItemSelected(itemId, entries)`。entries は `CraftLogic.BuildRecipeEntries` の順（クラフト優先の単一列）で、クラフトは素材ごとの所持・必要・不足とクラフト可否（`CraftLogic.Craftable`）、先頭がクラフトならその 1 件だけ `CarriesTutorialAnchor`。一覧は `CraftLogic.CraftableResultCounts` の数を各セルへ。解放イベント・製作上限の解放・持ち物の変化・選択・言語の変化で同期に組み直す（[A-57]）。解放済みクラフトと一覧のアイテムの 2 つの列は解放イベントでだけ組み、VM は `PlayerInventory` の表示中だけ組み直して、閉じている間の変化は表示の突入で 1 回組む（D-38） | `RecipeViewModelFactoryTest`・`RecipeItemSelectionTest` が緑（Web `RecipeContent.test.ts` 2 件）。Model の購読と表示中だけ組むことは Task 10・Task 12 Step 3 の EDC と録画 R-13 で見る（Model の L0 は持たない。D-37） |
 | R-3 | 操作: `IRecipeCommands.Craft(Guid)` は未知の GUID を `CraftRecipeUnknown`（wire `invalid_recipe`）、未解放を `CraftRecipeLocked`（`recipe_locked`）で断り（どちらも良性でない。トースト）、通れば `ICraftRequestSender.Send(guid)`（本番は `ClientContext.VanillaApi.SendOnly.Craft`）。View は拒否を `UiCommandResultToaster.Report("recipe.craft", result)` へ渡す | `RecipeCommandsTest` が緑。`UiCommandRejectReason` の 3 つの switch が網羅（既存の `UiCommandRejectReasonTest` 系が緑） |
 | R-4 | アイテム一覧の見た目: `GamePanel("item-list-panel", Default)`、題 `ui.recipe.catalogTitle`、幅 378・高 452・`Items` 列の右上寄せ、つまみ `--panel-top -6.821px`・`--panel-bottom -9.17px`・`--panel-left -1.04px`・`--title-shift-x 1.57px`・`--title-scale-x 0.963`・`--title-scale-y 0.861` を画面の USS で同名上書き（[A-25]）。中に `GameScrollView("item-list-scroll")`（バー 4px・溝は透明・つまみは白 88%・縦だけ）と `SlotGrid("item-list-grid", 6)`（`--slot-size 46.144px`・`--slot-grid-gap 8.656px`・`--slot-grid-row-gap 8.896px`・`--icon-pad 5px`・`--count-bottom -1px`・`--count-font-size 16px`・`--count-letter-spacing 0.12em`）。各セルは `ItemSlot`（catalog・数はクラフト可能数。0 ならバッジ無し）にアンカー `recipe.item-<itemId>` | `ItemListViewTest`・`ItemListScrollGeometryTest` が緑（Web `recipe.spec.ts` 8 件目・`itemListScroll.spec.ts` 1・2・6 件目）。並べ比べ（R-12） |
 | R-5 | 一覧の操作: セルのタップ（実画面 5px 未満）でそのアイテムを選ぶ。5px を超えて動かすとスクロール（`NextScrollTop`）し、離しても選ばない | `ItemListDragScrollTest`（Web `useDragScroll.test.ts` 2 件）・`ItemListViewTest`（Web `recipe.spec.ts` 4 件目）が緑 |
@@ -262,7 +262,7 @@ namespace Client.Ui.State.Recipe.Source
 | 同上 | クリップ境界はエントリからハイライトの逃げぶん離れ、最下段までスクロールしても保たれる | `RecipeTutorialClipTest` | 10 |
 | `e2e/tests/recipe/slotTooltip.spec.ts`(2) | ツールチップはMantine既定の白い角丸ではなくCursorTooltipと同じ面を使う／祖先のスクロールでツールチップを引っ込め、ポインタを動かせば開き直す | `RecipeSlotTooltipTest` | 10 |
 
-計: P19（9＋6＋2＋2）・C8（2＋3＋1＋2）・I1 = 28。写す 28（Enter の長押しは Task 6 の `CraftHoldKeyTest`。D-31）。recipe 全体の台帳は L24 と合わせて 52 で、R-15 の突き合わせは 52 を見る。自前のテスト（タグなし）: `CraftRecipeCatalogTest`・`RecipeViewerItemCatalogTest`・`RecipeCommandsTest`・`RecipeScreenModelTest`・`RecipeSelectionCloseResetTest`・`RecipeDurationTextTest`・`GameScrollViewKnobTest`。Presenter の結線（列へ載せる・画面で出し入れ）は Task 10 の EDC と録画で見る（前例 S2-hud の Presenter）。
+計: P19（9＋6＋2＋2）・C8（2＋3＋1＋2）・I1 = 28。写す 28（Enter の長押しは Task 6 の `CraftHoldKeyTest`。D-31）。recipe 全体の台帳は L24 と合わせて 52 で、R-15 の突き合わせは 52 を見る。自前のテスト（タグなし）: `CraftRecipeCatalogTest`・`RecipeViewerItemCatalogTest`・`RecipeCommandsTest`・`RecipeItemSelectionTest`・`RecipeSelectionCloseResetTest`・`RecipeDurationTextTest`・`GameScrollViewKnobTest`。Presenter の結線（列へ載せる・画面で出し入れ）と `RecipeScreenModel` の源の購読は Task 10・Task 12 の EDC と録画で見る（前例 S2-hud の Presenter・兄弟 `ResearchTreeModel`。D-15・D-37）。
 
 ## File Structure
 
@@ -277,8 +277,7 @@ namespace Client.Ui.State.Recipe.Source
 | `S/Client.Ui.State/Recipe/Screen/RecipeViewerViewModel.cs` | ビューアの VM の判別 union（`RecipeViewerNoSelection`・`RecipeViewerItemSelected`） | 新規 |
 | `S/Client.Ui.State/Recipe/Screen/RecipeEntryViewModel.cs` | エントリの VM（`CraftRecipeEntryViewModel`・`MachineRecipeEntryViewModel`・`RecipeMaterialViewModel`） | 新規 |
 | `S/Client.Ui.State/Recipe/Screen/RecipeViewModelFactory.cs` | 純関数の組み立て（データ・持ち数・選択 → 2 つの VM） | 新規 |
-| `S/Client.Ui.State/Recipe/Screen/RecipeScreenModel.cs` | 源を購読して同期に組み直し `ItemList`・`Viewer` を配る | 新規 |
-| `S/Client.Ui.State/Recipe/Screen/{IRecipeScreenSignals.cs,GameRecipeScreenSignals.cs}` | 解放イベントと持ち物の変化の合図（本番は ClientContext と持ち物のコントローラ） | 新規 |
+| `S/Client.Ui.State/Recipe/Screen/RecipeScreenModel.cs` | 源（解放イベント・持ち物・機械レシピ・選択・言語・画面）を `Initialize` で直に購読し、表示中だけ同期に組み直して `ItemList`・`Viewer` を配る（`IInitializable`。D-37・D-38） | 新規 |
 | `S/Client.Ui/Screens/Recipe/Input/{IUiCloseKeyProbe.cs,InputManagerCloseKeyProbe.cs,RecipeSelectionCloseReset.cs}` | 遷移と同じフレームの CloseUI で選択を外す（画面のキー処理なので State でなく画面の層。ref-uitk-design §10「画面のキー処理は Presenter か UIState」・前例 `PauseMenuScreenPresenter` の開閉に連動するリセット。D-22） | 新規 |
 | `S/Client.Ui.State/Recipe/Commands/{IRecipeCommands.cs,RecipeCommands.cs,ICraftRequestSender.cs,VanillaApiCraftRequestSender.cs}` | クラフトの操作（検証して送る）とサーバーへの口 | 新規 |
 | `S/Client.Ui.State/Commands/UiCommandRejectReason.cs` | 末尾 2 値（`CraftRecipeUnknown`・`CraftRecipeLocked`）と 3 switch | 変更（共有区画） |
@@ -300,7 +299,7 @@ namespace Client.Ui.State.Recipe.Source
 | `S/Client.Ui/Foundation/Theme/DerivedTokens.uss` | 末尾の名札付きブロック「S4-recipe」 | 変更（共有区画） |
 | `tools/uitk/webTokens/handWrittenDerivedRows.mjs`・`docs/uitk/translucent-tokens.md` | 半透明の行と再生成 | 変更（共有区画） |
 | `S/Client.Tests/Ui/State/Recipe/Catalog/{CraftRecipeCatalogTest.cs,RecipeViewerItemCatalogTest.cs}` | L0（テスト mod のマスタ） | 新規 |
-| `S/Client.Tests/Ui/State/Recipe/Screen/{RecipeViewModelFactoryTest.cs,RecipeScreenModelTest.cs,RecipeCommandsTest.cs,RecipeDurationTextTest.cs,RecordingCraftRequestSender.cs}` | L0 と偽 | 新規 |
+| `S/Client.Tests/Ui/State/Recipe/Screen/{RecipeViewModelFactoryTest.cs,RecipeItemSelectionTest.cs,RecipeCommandsTest.cs,RecipeDurationTextTest.cs,RecordingCraftRequestSender.cs}` | L0 と偽 | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/Input/{RecipeSelectionCloseResetTest.cs,FakeCloseKeyProbe.cs}` | Esc の選択解除の L0 と偽（前例 `ICursorTooltipScreen` と偽を同じ画面の層に置く） | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/{RecipeScreenFixtures.cs,RecordingRecipeCommands.cs}` | 画面 L1 の共通の材料 | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/Viewer/{RecipeViewerViewTest.cs,CraftRecipeEntryViewTest.cs,CraftHoldTest.cs,CraftHoldKeyTest.cs,MachineRecipeEntryViewTest.cs}` | ビューアの L1 | 新規 |
@@ -317,7 +316,7 @@ namespace Client.Ui.State.Recipe.Source
 | `docs/uitk/TODO.md`・`docs/uitk/disposition.md` | 実測の結論・LX-131〜135・追従記録（`disposition.md` は部分移植の行があるときだけ） | 変更（共有区画） |
 | `LOGS/harness/uitk/S4-recipe/done.md` | 作業報告（repo 外） | 新規 |
 
-ディレクトリのファイル数: `Recipe/Screen/` 9・`Screens/Recipe/Input/` 3・`Recipe/Commands/` 4・`Recipe/Catalog/` 2・`Recipe/Logic/` 5（既存 4＋1）・`Screens/Recipe/` 5＋`Parts/`・`Screens/Recipe/Parts/` 9（`RecipeEntryPartsContext` は `CraftRecipeEntryView.cs` に同居）・`Client.Tests/Ui/State/Recipe/Screen/` 5・`Client.Tests/Ui/Screens/Recipe/Input/` 2・`Client.Tests/Ui/Screens/Recipe/` 2＋3 サブディレクトリ。`Registration/GameUi/Screens/` はこのレーン 1 本＋同じ W4 の S4-alpha・S4-research・S4-special などの 1 本ずつ（`GameUi/` 直下は S4-alpha で 10 本に達するので数えない。E-1）。取り込み時点の実数で数え直す（Task 1 Step 1・Task 15 Step 2 の関門）。ほかはどれも 10 以下。このレーンが書くのは上の表のファイルだけで、他の S4 レーンの持ち物（`Screens/BlockInventory/**`・`Screens/Inventory/**`・`Screens/Research/**`・`Client.Ui.State/Recipe/Source/**`）は書かない。
+ディレクトリのファイル数: `Recipe/Screen/` 7・`Screens/Recipe/Input/` 3・`Recipe/Commands/` 4・`Recipe/Catalog/` 2・`Recipe/Logic/` 5（既存 4＋1）・`Screens/Recipe/` 5＋`Parts/`・`Screens/Recipe/Parts/` 9（`RecipeEntryPartsContext` は `CraftRecipeEntryView.cs` に同居）・`Client.Tests/Ui/State/Recipe/Screen/` 5・`Client.Tests/Ui/Screens/Recipe/Input/` 2・`Client.Tests/Ui/Screens/Recipe/` 2＋3 サブディレクトリ。`Registration/GameUi/Screens/` はこのレーン 1 本＋同じ W4 の S4-alpha・S4-research・S4-special などの 1 本ずつ（`GameUi/` 直下は S4-alpha で 10 本に達するので数えない。E-1）。取り込み時点の実数で数え直す（Task 1 Step 1・Task 15 Step 2 の関門）。ほかはどれも 10 以下。このレーンが書くのは上の表のファイルだけで、他の S4 レーンの持ち物（`Screens/BlockInventory/**`・`Screens/Inventory/**`・`Screens/Research/**`・`Client.Ui.State/Recipe/Source/**`）は書かない。
 
 ## Tasks
 
@@ -561,14 +560,14 @@ git commit -m "feat(uitk): レシピ画面の源（解放済みクラフトレ�
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Recipe/Screen/{RecipeSelection.cs,RecipeItemSelection.cs,ItemListViewModel.cs,RecipeViewerViewModel.cs,RecipeEntryViewModel.cs,RecipeViewModelFactory.cs}`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Recipe/Logic/RecipeDurationText.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Recipe/Screen/{RecipeViewModelFactoryTest.cs,RecipeDurationTextTest.cs}`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Recipe/Screen/{RecipeViewModelFactoryTest.cs,RecipeItemSelectionTest.cs,RecipeDurationTextTest.cs}`
 
 **Interfaces:**
 - Consumes: `CraftLogic`・`OwnedItemCounts`・`CraftRecipeData`・`MachineRecipeData`・`RecipeFixtures`（L0-s4a）
 - Produces:
   - `public abstract class RecipeSelection { public static readonly RecipeSelection None; public static RecipeSelection Of(ItemId itemId); public abstract bool SameAs(RecipeSelection other); }`、`public sealed class NoRecipeSelection : RecipeSelection`、`public sealed class ItemRecipeSelection : RecipeSelection { public ItemId ItemId { get; } }`
   - `public sealed class RecipeItemSelection { public IReadOnlyReactiveProperty<RecipeSelection> Current { get; } public void Select(ItemId itemId); public void Clear(); }`
-  - `public sealed class ItemListCell { public ItemListCell(ItemId itemId, int craftableCount); public ItemId ItemId { get; } public int CraftableCount { get; } }`、`public sealed class ItemListViewModel { public ItemListViewModel(IReadOnlyList<ItemListCell> cells); public IReadOnlyList<ItemListCell> Cells { get; } }`
+  - `public sealed class ItemListCell { public ItemListCell(ItemId itemId, int craftableCount); public ItemId ItemId { get; } public int CraftableCount { get; } }`、`public sealed class ItemListViewModel { public static readonly ItemListViewModel Empty; public ItemListViewModel(IReadOnlyList<ItemListCell> cells); public IReadOnlyList<ItemListCell> Cells { get; } }`（`Empty` はセル 0 件。Model の初回の組み立て前に Presenter が購読しても null を渡さないため。前例 `ResearchTreeViewModel.Empty`）
   - `public abstract class RecipeViewerViewModel`、`public sealed class RecipeViewerNoSelection : RecipeViewerViewModel { public static readonly RecipeViewerNoSelection Instance; }`、`public sealed class RecipeViewerItemSelected : RecipeViewerViewModel { public RecipeViewerItemSelected(ItemId itemId, IReadOnlyList<RecipeEntryViewModel> entries); public ItemId ItemId { get; } public IReadOnlyList<RecipeEntryViewModel> Entries { get; } }`
   - `public abstract class RecipeEntryViewModel { public abstract Guid RecipeGuid { get; } }`、`public sealed class CraftRecipeEntryViewModel : RecipeEntryViewModel { public CraftRecipeEntryViewModel(CraftRecipeData recipe, IReadOnlyList<RecipeMaterialViewModel> materials, bool craftable, bool carriesTutorialAnchor); public CraftRecipeData Recipe { get; } public IReadOnlyList<RecipeMaterialViewModel> Materials { get; } public bool Craftable { get; } public bool CarriesTutorialAnchor { get; } }`、`public sealed class MachineRecipeEntryViewModel : RecipeEntryViewModel { public MachineRecipeEntryViewModel(MachineRecipeData recipe); public MachineRecipeData Recipe { get; } }`、`public sealed class RecipeMaterialViewModel { public RecipeMaterialViewModel(ItemId itemId, int required, int owned, bool lacking); public ItemId ItemId { get; } public int Required { get; } public int Owned { get; } public bool Lacking { get; } }`
   - `public static class RecipeViewModelFactory { public static ItemListViewModel BuildItemList(IReadOnlyList<ItemId> items, IReadOnlyList<CraftRecipeData> craftRecipes, IReadOnlyDictionary<ItemId, int> owned); public static RecipeViewerViewModel BuildViewer(RecipeSelection selection, IReadOnlyList<CraftRecipeData> craftRecipes, IReadOnlyList<MachineRecipeData> machineRecipes, IReadOnlyDictionary<ItemId, int> owned); }`
@@ -649,6 +648,42 @@ namespace Client.Tests.Ui.State.Recipe.Screen
 ```
 
 （`CraftableResultCounts` の数の意味は L0-s4a の `CraftLogicTest` が正。6〈3 回 × 結果 2〉にならなければ実物の意味に合わせて期待値を直し、理由を `done.md` に 1 行）
+
+`RecipeItemSelectionTest.cs`（Model の L0 を置かない代わりに、Model が頼る「同じ選択では配り直さない」をここで固定する。D-37）:
+
+```csharp
+using Client.Ui.State.Recipe.Screen;
+using Core.Master;
+using NUnit.Framework;
+using UniRx;
+
+namespace Client.Tests.Ui.State.Recipe.Screen
+{
+    /// <summary>
+    /// 選択の持ち主は同じ選択の再設定を通知しない（L0）
+    /// The selection owner does not notify when the same selection is set again (L0)
+    /// </summary>
+    public class RecipeItemSelectionTest
+    {
+        [Test]
+        public void 同じアイテムを選び直しても未選択を重ねても通知しない()
+        {
+            var selection = new RecipeItemSelection();
+            var count = 0;
+            selection.Current.Skip(1).Subscribe(_ => count++);
+
+            // 選ぶ・同じものを選ぶ・外す・また外す の 4 回で通知は 2 回
+            // Select, reselect the same, clear, clear again: four calls, two notifications
+            selection.Select(new ItemId(1));
+            selection.Select(new ItemId(1));
+            selection.Clear();
+            selection.Clear();
+
+            Assert.AreEqual(2, count);
+        }
+    }
+}
+```
 
 `RecipeDurationTextTest.cs`（SetUp/TearDown で言語を english に固定して戻す。手順は `ScreenTestHost` の SetUp/TearDown と同じ）:
 
@@ -853,7 +888,7 @@ namespace Client.Ui.State.Recipe.Logic
 - [ ] **Step 3: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.State.Recipe"`
-Expected: ErrorCount 0 / 新規 7 件と L0-s4a の既存が PASS
+Expected: ErrorCount 0 / 新規 8 件と L0-s4a の既存が PASS
 
 - [ ] **Step 4: コミットする**
 
@@ -1015,58 +1050,17 @@ git commit -m "feat(uitk): クラフトの操作と拒否の理由 2 つを足�
 ### Task 5: 画面のモデルと Esc での選択解除
 
 **Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Recipe/Screen/{RecipeScreenModel.cs,IRecipeScreenSignals.cs,GameRecipeScreenSignals.cs}`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Recipe/Screen/RecipeScreenModel.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/Input/{IUiCloseKeyProbe.cs,InputManagerCloseKeyProbe.cs,RecipeSelectionCloseReset.cs}`（画面の層。`Client.Ui` は `Client.Input` を参照済み。D-22）
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Recipe/Screen/RecipeScreenModelTest.cs`・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/Input/{RecipeSelectionCloseResetTest.cs,FakeCloseKeyProbe.cs}`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/Input/{RecipeSelectionCloseResetTest.cs,FakeCloseKeyProbe.cs}`（`RecipeScreenModel` の L0 は持たない。組み立ては Task 3 の純関数 `RecipeViewModelFactoryTest`・選択の重複止めは `RecipeItemSelectionTest`・解放の絞り込みは Task 2 の `CraftRecipeCatalogTest` が見て、源の購読と表示中だけ組むことは Task 10 の EDC・Task 12 Step 3 の EDC・録画 R-13 で見る。D-37）
 
 **Interfaces:**
-- Consumes: Task 2〜3 の Produces、S4-alpha の `UnlockedMachineRecipeSource.Current`（S4-alpha 計画（feature/uitk・#1630）の Produces 一覧。Task 1 で実物と照合）、`LocalPlayerInventoryController`（`LocalPlayerInventory.OnItemChange`・`OnInventoryRefreshed`。前例 `ResearchNodeStateStore`）、`IPlayerInventoryOperations.ReadSnapshot()`、`Localize.OnLanguageChanged`（前例 `ModeHudModel`）、`UiRoutingState.Current`
+- Consumes: Task 2〜3 の Produces、S4-alpha の `UnlockedMachineRecipeSource.Current`（S4-alpha 計画（feature/uitk・#1630）の Produces 一覧。Task 1 で実物と照合）、`IVanillaApiEvent`（`UnlockedEventPacket.EventTag`。前例 `ResearchNodeStateStore`・`NotificationFeed`・Web の `CraftingRecipesTopic`）、`LocalPlayerInventoryController`（`LocalPlayerInventory.OnItemChange`・`OnInventoryRefreshed`。前例 `ResearchNodeStateStore`）、`IPlayerInventoryOperations.ReadSnapshot()`、`Localize.OnLanguageChanged`（前例 `ModeHudModel`）、`UiRoutingState.Current`（表示中か。前例 `GrabOverlayModel`）
 - Produces:
-  - `public interface IRecipeScreenSignals { IObservable<Unit> OnRecipesUnlocked { get; } IObservable<Unit> OnInventoryChanged { get; } }`、本番 `GameRecipeScreenSignals(IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController inventoryController) : IInitializable`（解放イベントは `Initialize` で購読。前例 `ResearchNodeStateStore`・`NotificationFeed`）
-  - `public sealed class RecipeScreenModel { public RecipeScreenModel(IGameUnlockStateData unlockState, RecipeViewerItemCatalog itemCatalog, UnlockedMachineRecipeSource machineRecipes, IRecipeScreenSignals signals, IPlayerInventoryOperations inventory, RecipeItemSelection selection); public IReadOnlyReactiveProperty<ItemListViewModel> ItemList { get; } public IReadOnlyReactiveProperty<RecipeViewerViewModel> Viewer { get; } }`
+  - `public sealed class RecipeScreenModel : IInitializable { public RecipeScreenModel(IGameUnlockStateData unlockState, RecipeViewerItemCatalog itemCatalog, UnlockedMachineRecipeSource machineRecipes, IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController inventoryController, IPlayerInventoryOperations inventory, RecipeItemSelection selection, UiRoutingState routing); public void Initialize(); public IReadOnlyReactiveProperty<ItemListViewModel> ItemList { get; } public IReadOnlyReactiveProperty<RecipeViewerViewModel> Viewer { get; } }`（源は ctor で直に受け `Initialize` で購読する。前例の Model と兄弟 `ResearchTreeModel`・`SpecialBlockDetailModel` と同じ形。解放済みクラフトと一覧のアイテムの 2 つの列は `Initialize` と解放イベントでだけ組み、VM は `PlayerInventory` の表示中だけ組み直し、閉じている間の変化は捨てて表示の突入で 1 回組む。前例 `ResearchNodeStateStore.RefreshWhileResearchScreenActive`。D-37・D-38）
   - `public interface IUiCloseKeyProbe { bool WasPressedThisFrame(); }`、`public sealed class RecipeSelectionCloseReset : IInitializable, IDisposable { public RecipeSelectionCloseReset(IReadOnlyReactiveProperty<UiRoutingSnapshot> routing, IUiCloseKeyProbe closeKey, RecipeItemSelection selection); }`（登録で `UiRoutingState.Current` を渡す）
 
 - [ ] **Step 1: テストを書く**
-
-`RecipeScreenModelTest.cs`（Task 2 と同じマスタの SetUp。持ち物は既存の偽 `S/Client.Tests/Ui/State/Inventory/RecordingPlayerInventoryOperations.cs` の主枠を書き換える〈書き換えの口が無ければこのテストの中に `IPlayerInventoryOperations` の最小の偽を置く〉。合図は `Subject<Unit>` 2 本を持つ偽 `IRecipeScreenSignals`。機械の源は S4-alpha の実物の作り方で空の列にする）:
-
-```csharp
-[Test]
-public void 持ち物の合図で一覧の数とビューアの可否が組み直される()
-{
-    var recipe = FirstUnlockedRecipe();
-    _selection.Select(recipe.ResultItemId);
-    Assert.IsFalse(HeadCraft().Craftable);
-
-    _inventory.SetMainSlots(EnoughFor(recipe, 2));
-    _signals.InventoryChanged.OnNext(Unit.Default);
-
-    Assert.IsTrue(HeadCraft().Craftable);
-    Assert.AreEqual(2 * recipe.ResultCount, CellOf(recipe.ResultItemId).CraftableCount);
-}
-
-[Test]
-public void 解放の合図で新しいレシピがビューアに入る()
-{
-    var locked = FirstLockedRecipe();
-    _selection.Select(locked.ResultItemId);
-    var before = EntryGuids();
-    _unlock.UnlockCraftRecipe(locked.RecipeGuid);
-    _signals.RecipesUnlocked.OnNext(Unit.Default);
-    CollectionAssert.DoesNotContain(before, locked.RecipeGuid);
-    CollectionAssert.Contains(EntryGuids(), locked.RecipeGuid);
-}
-
-[Test]
-public void 同じアイテムを選び直してもビューアを配り直さない()
-{
-    var count = 0;
-    _model.Viewer.Skip(1).Subscribe(_ => count++);
-    _selection.Select(new ItemId(1));
-    _selection.Select(new ItemId(1));
-    Assert.AreEqual(1, count);
-}
-```
 
 `RecipeSelectionCloseResetTest.cs`:
 
@@ -1097,72 +1091,18 @@ public void CloseUIなしで閉じたときは選択を残す()
 `RecipeScreenModel.cs`:
 
 ```csharp
+using System.Collections.Generic;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Localization;
+using Client.Network.API;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Items;
 using Client.Ui.State.Recipe.Catalog;
+using Client.Ui.State.Recipe.Data;
 using Client.Ui.State.Recipe.Source;
+using Client.Ui.State.Routing;
+using Core.Master;
 using Game.UnlockState;
-using UniRx;
-
-namespace Client.Ui.State.Recipe.Screen
-{
-    /// <summary>
-    /// レシピ画面の源を購読し、変化ごとに一覧とビューアの VM を同期に組み直す（A-57）
-    /// Subscribes to the recipe screen sources and rebuilds the list and viewer VMs synchronously on each change (A-57)
-    /// </summary>
-    public sealed class RecipeScreenModel
-    {
-        private readonly IGameUnlockStateData _unlockState;
-        private readonly RecipeViewerItemCatalog _itemCatalog;
-        private readonly UnlockedMachineRecipeSource _machineRecipes;
-        private readonly IPlayerInventoryOperations _inventory;
-        private readonly RecipeItemSelection _selection;
-        private readonly ReactiveProperty<ItemListViewModel> _itemList = new();
-        private readonly ReactiveProperty<RecipeViewerViewModel> _viewer = new(RecipeViewerNoSelection.Instance);
-
-        public IReadOnlyReactiveProperty<ItemListViewModel> ItemList => _itemList;
-        public IReadOnlyReactiveProperty<RecipeViewerViewModel> Viewer => _viewer;
-
-        public RecipeScreenModel(IGameUnlockStateData unlockState, RecipeViewerItemCatalog itemCatalog, UnlockedMachineRecipeSource machineRecipes, IRecipeScreenSignals signals, IPlayerInventoryOperations inventory, RecipeItemSelection selection)
-        {
-            _unlockState = unlockState;
-            _itemCatalog = itemCatalog;
-            _machineRecipes = machineRecipes;
-            _inventory = inventory;
-            _selection = selection;
-
-            // 源の変化ごとに組み直す。言語は素材の名前と秒数を View が描き直すため
-            // Rebuild on every source change; language too, so the View redraws material names and seconds
-            signals.OnRecipesUnlocked.Subscribe(_ => Rebuild());
-            signals.OnInventoryChanged.Subscribe(_ => Rebuild());
-            machineRecipes.Current.Skip(1).Subscribe(_ => Rebuild());
-            selection.Current.Skip(1).Subscribe(_ => Rebuild());
-            Localize.OnLanguageChanged.Subscribe(_ => Rebuild());
-            Rebuild();
-        }
-
-        private void Rebuild()
-        {
-            // 持ち数はメインの枠だけで数える（Web の inventory.mainSlots）
-            // Owned counts use only the main slots (the Web inventory.mainSlots)
-            var owned = OwnedItemCounts.Build(_inventory.ReadSnapshot().MainSlots);
-            var crafts = CraftRecipeCatalog.BuildUnlocked(_unlockState);
-            _itemList.Value = RecipeViewModelFactory.BuildItemList(_itemCatalog.BuildVisibleItems(), crafts, owned);
-            _viewer.Value = RecipeViewModelFactory.BuildViewer(_selection.Current.Value, crafts, _machineRecipes.Current.Value, owned);
-        }
-    }
-}
-```
-
-（`ReactiveProperty` は同じ参照なら通知しないが VM は毎回新しい参照なので必ず流れる。View 側は GUID で要素を使い回すので描き直しのたびに作り直さない〈Task 8 `RecipeEntryList`〉。同じ選択で配り直さないテストは `RecipeItemSelection` が重複を止めることで満たす）
-
-`GameRecipeScreenSignals.cs`:
-
-```csharp
-using System;
-using Client.Game.InGame.UI.Inventory.Main;
-using Client.Network.API;
 using Server.Event.EventReceive;
 using UniRx;
 using VContainer.Unity;
@@ -1170,31 +1110,107 @@ using VContainer.Unity;
 namespace Client.Ui.State.Recipe.Screen
 {
     /// <summary>
-    /// 本番の合図（解放イベント・持ち物の変化）。前例 ResearchNodeStateStore・CraftingRecipesTopic と同じ源
-    /// Production signals (unlock event, inventory change); the same sources as ResearchNodeStateStore and CraftingRecipesTopic
+    /// レシピ画面の源を直に購読し、表示中だけ一覧とビューアの VM を同期に組み直す（A-57）
+    /// Subscribes to the recipe screen sources directly and rebuilds the list and viewer VMs synchronously while shown (A-57)
     /// </summary>
-    public sealed class GameRecipeScreenSignals : IRecipeScreenSignals, IInitializable
+    public sealed class RecipeScreenModel : IInitializable
     {
+        private readonly IGameUnlockStateData _unlockState;
+        private readonly RecipeViewerItemCatalog _itemCatalog;
+        private readonly UnlockedMachineRecipeSource _machineRecipes;
         private readonly IVanillaApiEvent _vanillaApiEvent;
-        private readonly Subject<Unit> _recipesUnlocked = new();
-        public IObservable<Unit> OnRecipesUnlocked => _recipesUnlocked;
-        public IObservable<Unit> OnInventoryChanged { get; }
+        private readonly LocalPlayerInventoryController _inventoryController;
+        private readonly IPlayerInventoryOperations _inventory;
+        private readonly RecipeItemSelection _selection;
+        private readonly UiRoutingState _routing;
+        private readonly ReactiveProperty<ItemListViewModel> _itemList = new(ItemListViewModel.Empty);
+        private readonly ReactiveProperty<RecipeViewerViewModel> _viewer = new(RecipeViewerNoSelection.Instance);
+        private IReadOnlyList<CraftRecipeData> _unlockedCrafts;
+        private IReadOnlyList<ItemId> _visibleItems;
+        private bool _screenShown;
 
-        public GameRecipeScreenSignals(IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController inventoryController)
+        public IReadOnlyReactiveProperty<ItemListViewModel> ItemList => _itemList;
+        public IReadOnlyReactiveProperty<RecipeViewerViewModel> Viewer => _viewer;
+
+        public RecipeScreenModel(IGameUnlockStateData unlockState, RecipeViewerItemCatalog itemCatalog, UnlockedMachineRecipeSource machineRecipes, IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController inventoryController, IPlayerInventoryOperations inventory, RecipeItemSelection selection, UiRoutingState routing)
         {
+            _unlockState = unlockState;
+            _itemCatalog = itemCatalog;
+            _machineRecipes = machineRecipes;
             _vanillaApiEvent = vanillaApiEvent;
-            OnInventoryChanged = inventoryController.LocalPlayerInventory.OnItemChange.AsUnitObservable().Merge(inventoryController.OnInventoryRefreshed.AsUnitObservable());
+            _inventoryController = inventoryController;
+            _inventory = inventory;
+            _selection = selection;
+            _routing = routing;
         }
 
         public void Initialize()
         {
+            // 2 つの列は解放でしか変わらないので、ここと解放イベントでだけ組む
+            // The two lists change only on unlocks, so build them here and on the unlock event only
+            RebuildUnlockedLists();
+            Rebuild();
+
             // 解放イベントは Initialize で購読する。VContainer は全 IInitializable を作ってから Initialize を回すので、ClientGameUnlockStateData の ctor の購読が先に走り更新後の表を読める（前例 ResearchNodeStateStore・NotificationFeed）
             // Subscribe to unlock events in Initialize; VContainer builds every IInitializable first, so ClientGameUnlockStateData's ctor subscription runs earlier and the table is updated (precedent ResearchNodeStateStore, NotificationFeed)
-            _vanillaApiEvent.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => _recipesUnlocked.OnNext(Unit.Default));
+            _vanillaApiEvent.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => OnRecipesUnlocked());
+
+            // 持ち物・機械レシピ・選択・言語の変化は表示中だけ組み直す（言語は素材の名前と秒数を View が描き直すため）
+            // Inventory, machine recipe, selection and language changes rebuild only while shown (language so the View redraws names and seconds)
+            _inventoryController.LocalPlayerInventory.OnItemChange.Subscribe(_ => RebuildWhileShown());
+            _inventoryController.OnInventoryRefreshed.Subscribe(_ => RebuildWhileShown());
+            _machineRecipes.Current.Skip(1).Subscribe(_ => RebuildWhileShown());
+            _selection.Current.Skip(1).Subscribe(_ => RebuildWhileShown());
+            Localize.OnLanguageChanged.Subscribe(_ => RebuildWhileShown());
+            _routing.Current.Subscribe(OnScreenChanged);
+
+            #region Internal
+
+            void OnRecipesUnlocked()
+            {
+                RebuildUnlockedLists();
+                RebuildWhileShown();
+            }
+
+            void OnScreenChanged(UiRoutingSnapshot snapshot)
+            {
+                // 表示の突入で 1 回組む（閉じている間に捨てた変化をここで取り込む）
+                // Build once on entering the screen (picks up the changes dropped while closed)
+                _screenShown = snapshot.Screen == UiScreen.PlayerInventory;
+                if (!_screenShown) return; // silent-ok: 閉画面では組まない / 次の表示の突入で最新を組み、録画 R-13 の再度開く段が見る
+                Rebuild();
+            }
+
+            #endregion
+        }
+
+        // 閉画面の変化は捨てる（前例 ResearchNodeStateStore.RefreshWhileResearchScreenActive）
+        // Drop changes while closed (precedent ResearchNodeStateStore.RefreshWhileResearchScreenActive)
+        private void RebuildWhileShown()
+        {
+            if (!_screenShown) return; // silent-ok: 閉画面では組まない / 次の表示の突入で最新を組み、録画 R-13 の再度開く段が見る
+            Rebuild();
+        }
+
+        private void RebuildUnlockedLists()
+        {
+            _unlockedCrafts = CraftRecipeCatalog.BuildUnlocked(_unlockState);
+            _visibleItems = _itemCatalog.BuildVisibleItems();
+        }
+
+        private void Rebuild()
+        {
+            // 持ち数はメインの枠だけで数える（Web の inventory.mainSlots）
+            // Owned counts use only the main slots (the Web inventory.mainSlots)
+            var owned = OwnedItemCounts.Build(_inventory.ReadSnapshot().MainSlots);
+            _itemList.Value = RecipeViewModelFactory.BuildItemList(_visibleItems, _unlockedCrafts, owned);
+            _viewer.Value = RecipeViewModelFactory.BuildViewer(_selection.Current.Value, _unlockedCrafts, _machineRecipes.Current.Value, owned);
         }
     }
 }
 ```
+
+（`ReactiveProperty` は同じ参照なら通知しないが VM は毎回新しい参照なので必ず流れる。View 側は GUID で要素を使い回すので描き直しのたびに作り直さない〈Task 8 `RecipeEntryList`〉。同じ選択で配り直さないのは `RecipeItemSelection` が重複を止めるからで、Task 3 の `RecipeItemSelectionTest` が見る。`Initialize` の初回の `Rebuild` は閉画面でも 1 回だけ組む〈Presenter が載せた直後の中身。表示の突入でもう 1 回組み直す〉。Presenter と Model のどちらの `Initialize` が先でも、Presenter は初期値〈`ItemListViewModel.Empty`・`RecipeViewerNoSelection`〉を受けてから組んだ VM を受ける。`IVanillaApiEvent`・`UnlockedEventPacket` の名前空間は既存の購読 `Client.Game/InGame/UnlockState/ClientGameUnlockStateDatastore.cs` の using に合わせる）
 
 `RecipeSelectionCloseReset.cs`:
 
@@ -3161,17 +3177,16 @@ namespace Client.Starter.Registration.GameUi.Screens
     {
         public static void Register(IContainerBuilder builder)
         {
-            // State: 選択・カタログ・合図・モデル・操作
-            // State: selection, catalog, signals, model and commands
+            // State: 選択・カタログ・モデル・操作。モデルは Initialize で購読するので entry point（前例 HudGameUiRegistration の Model）
+            // State: selection, catalog, model and commands; the model subscribes in Initialize, so it is an entry point (precedent: the models in HudGameUiRegistration)
             builder.Register<RecipeItemSelection>(Lifetime.Singleton);
             builder.Register<RecipeViewerItemCatalog>(Lifetime.Singleton);
-            builder.Register<GameRecipeScreenSignals>(Lifetime.Singleton).AsImplementedInterfaces();
-            builder.Register<RecipeScreenModel>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<RecipeScreenModel>().AsSelf();
             builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
             builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();
 
-            // Esc での選択解除は画面の遷移を購読する（routing の Current を渡す。前例 FoundationGameUiRegistration の StageScaleSource）
-            // Esc clearing subscribes to screen transitions (pass routing.Current; precedent StageScaleSource in FoundationGameUiRegistration)
+            // Esc での選択解除は routing の Current を工場で渡す（前例 StageScaleSource）。VContainer 1.10 の RegisterEntryPoint は工場を取らないので、その中身と同じ AsImplementedInterfaces で IInitializable に載せる
+            // Esc clearing gets routing.Current via a factory (precedent StageScaleSource); VContainer 1.10 RegisterEntryPoint takes no factory, so use AsImplementedInterfaces exactly as it does internally
             builder.Register<InputManagerCloseKeyProbe>(Lifetime.Singleton).As<IUiCloseKeyProbe>();
             builder.Register(resolver => new RecipeSelectionCloseReset(resolver.Resolve<UiRoutingState>().Current, resolver.Resolve<IUiCloseKeyProbe>(), resolver.Resolve<RecipeItemSelection>()), Lifetime.Singleton).AsImplementedInterfaces();
 
@@ -3182,7 +3197,7 @@ namespace Client.Starter.Registration.GameUi.Screens
 }
 ```
 
-（`RegisterEntryPoint` か `Register(...).AsImplementedInterfaces()` かは既存の `*GameUiRegistration` の前例に合わせる。S4-alpha の `UnlockedMachineRecipeSource` は S4-alpha の登録が持つので、ここでは登録しない〈Task 1 で登録の有無を確かめ、全体スイッチ UITK で S4-alpha の登録が先に呼ばれることを確かめる〉）
+（登録の形は決めてある: `IInitializable` の Model と Presenter は前例どおり `RegisterEntryPoint<X>()`（Model は Presenter が受けるので `.AsSelf()`。前例 `HudGameUiRegistration` の `KeyHintHudModel` 等・兄弟 `ResearchTreeModel`）。`RecipeSelectionCloseReset` は L0 のため `UiRoutingState` でなく `IReadOnlyReactiveProperty<UiRoutingSnapshot>` を受ける（`UiRoutingState` は `UIStateControl` を要し L0 で作れない。D-15）ので、工場の登録（前例 `FoundationGameUiRegistration` の `StageScaleSource`）に `.AsImplementedInterfaces()` を付ける。VContainer 1.10 の `RegisterEntryPoint<T>` は `EnsureDispatcherRegistered` の後に `Register<T>(lifetime).AsImplementedInterfaces()` を返すだけ（`ContainerBuilderUnityExtensions.cs` の `RegisterEntryPoint`）で、工場の多重定義を持たない。同じ登録の `RegisterEntryPoint<RecipeScreenPresenter>()` が dispatcher を入れるので、工場の登録の `Initialize` も回る。S4-alpha の `UnlockedMachineRecipeSource` は S4-alpha の登録が持つので、ここでは登録しない〈Task 1 で登録の有無を確かめ、全体スイッチ UITK で S4-alpha の登録が先に呼ばれることを確かめる〉）
 
 `MainGameUiRegistration.cs` の画面登録区画（「画面登録区画: 1行ずつ呼び出しを足す」の下）に 1 行（namespace が `Client.Starter.Registration.GameUi.Screens` なので、ファイル先頭に `using Client.Starter.Registration.GameUi.Screens;` が無ければ足す。先に入った W4 レーンが足していれば足さない）:
 
@@ -3285,9 +3300,9 @@ SKILL=.agents/skills/unity-playmode-recorded-playtest
 ```
 Expected: `result.json` が `Success: true`、Note に `系=GameUi`、録画 mp4 がある。失敗したら `result.json` と `uloop get-logs --project-path ./moorestech_client --log-type Error` を読み、原因を `done.md` に書いて直す（直したら L1 を回し、このステップの 2 行目から流し直す）
 
-- [ ] **Step 3: 解放の合図で一覧が増えることを EDC で 1 回見る**
+- [ ] **Step 3: 解放イベントと持ち物の変化で組み直り、閉画面では組まないことを EDC で 1 回見る**
 
-録画と同じ PlayMode で、未解放のクラフトレシピを 1 本選び（`IGameUnlockStateData`）、サーバー側で解放（前例 `PlaytestBlockOps.UnlockBlockServerSide` と同じ層の API。無ければ debug コマンド）→ 1 秒後に `RecipeScreenModel.ItemList.Value.Cells` にその結果アイテムが入る（`RecipeViewerItemCatalog` の表示判定で `Show` になるもの）ことを EDC で読み、`done.md` の「## 証拠」に値を書く
+`RecipeScreenModel` は L0 を持たない（D-37）ので、源の購読と表示中だけ組むこと（D-38）をここで見る。録画と同じ PlayMode で、(1) インベントリを閉じたまま、未解放のクラフトレシピを 1 本選び（`IGameUnlockStateData`）、サーバー側で解放（前例 `PlaytestBlockOps.UnlockBlockServerSide` と同じ層の API。無ければ debug コマンド）→ 1 秒後の `RecipeScreenModel.ItemList.Value` が解放前と同じ参照のまま（閉画面では組まない）であることを読む。(2) Tab で開く → 同じフレームの後に `ItemList.Value.Cells` にその結果アイテムが入る（`RecipeViewerItemCatalog` の表示判定で `Show` になるもの）。(3) 開いたまま、その素材を `GiveItemDirect` 相当で持たせる → `ItemList.Value` の結果アイテムのセルの `CraftableCount` が増える。3 つの値を `done.md` の「## 証拠」に書く
 
 - [ ] **Step 4: 証拠を書いてコミット**
 
@@ -3452,13 +3467,15 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-26 `RecipeItemSelection` は読み書きを 1 つの class に持つ**: Web の zustand ストアの写しで、サーバーを通らない画面ローカルの状態。書き手は画面の部品だけ、受理の規則も無い（Hotbar の A-106 と違う）ので、`I*Lookup`／`I*Mutation` に分けても 2 つ目の実装が無い（Phase 2.6 5-D。agent 既定）
 - **D-27 名前の解決に欠損の分岐を置かない**: `GameContentPresentation.ItemName`・`Block(id).Label` はマスタの ID から引き、ID はマスタ由来のカタログからしか来ない（null チェックはマスタのコアに不要という AGENTS の規則）。欠損は `MasterHolder` の例外でテストと録画に出る（Phase 2.6 5-I。agent 既定）
 - **D-28 ビューアの 3 状態は VM の union と件数で分ける**: 未選択（`RecipeViewerNoSelection`）・選択あり（`RecipeViewerItemSelected`）は判別 union で、レシピ無しは `Entries.Count == 0`（Web の `entries.length === 0` と同じ）。列挙型を足すと VM と二重になる（Phase 2.6 5-C 弱。agent 既定）
-- **D-30 シミュレーターの指摘で直したもの**: Enter 長押しに 2026-10-01 裁定（残す）を引いた（その後 D-31 で確定）／`GameRecipeScreenSignals` を `IInitializable` にして `IVanillaApiEvent` を注入し、未使用の `IGameUnlockStateData` を外した（前例 `ResearchNodeStateStore`・`NotificationFeed`。VContainer は全 IInitializable を作ってから Initialize を回すので解放表の更新が先）／`CloseUI.GetKeyDown` はプロパティ／長押しのテスト名から 0.25 秒の値を外した（出所: シミュレーター予測。ユーザー承認は未取得）
+- **D-30 シミュレーターの指摘で直したもの**: Enter 長押しに 2026-10-01 裁定（残す）を引いた（その後 D-31 で確定）／解放イベントは `IVanillaApiEvent` を注入して `Initialize` で購読する（前例 `ResearchNodeStateStore`・`NotificationFeed`。VContainer は全 IInitializable を作ってから Initialize を回すので解放表の更新が先。当時は合図の口 `GameRecipeScreenSignals` に置いたが D-37 で口ごと消し、`RecipeScreenModel.Initialize` へ移した）／`CloseUI.GetKeyDown` はプロパティ／長押しのテスト名から 0.25 秒の値を外した（出所: シミュレーター予測。ユーザー承認は未取得）
 - **D-31 Enter の長押しを写す（`RecipeActionButton` のインスタンスだけ画面側で `focusable=true`）**: ユーザー裁定 2026-10-01（`.decisions/2026-10-01-クラフトボタンはSpaceに反応させずジャンプ専用にする.md`「キーボードでのクラフトは Enter 長押しのみ」）とゴール（Web と同じ）が同じ向き。`focusable=false` は段階 1 の agent 規則（設計書 §1.2）でユーザー裁定ではないので、その例外にする。部品（C4-c の持ち物）は書き換えず `CraftRecipeEntryView` がインスタンスに立てる。部品の既定を変える必要が出たら `done.md` の「integrator への依頼」に書く。フォーカスを持つボタンが UITK の Tab のフォーカス移動に食われず、ゲームの Tab（インベントリの開閉）が先に効くことは録画の段 9 で確かめる（出所: 指揮の裁定。agent 既定）
 - **D-32 フォーカスを保つ印と `GameScrollView` のつまみはこのレーンが基盤に入れる（E-19 の前例）**: `GameUiInputRules` は入力欄以外のフォーカスを次のスケジュールで外すので（`GameUiInputRules.cs:32-48`・`88-93`）、`focusable=true` だけでは Enter が届く前にフォーカスが外れる（指揮の再現で確認）。`Foundation/Input/UiKeyFocusKeepMark`（クラス `ui-key-focus-keep`。前例 `HoverTooltipMark` の静的な印）を足し、規則の Blur と警告の対象から印付きを外す。`GameScrollView` のつまみの既定は要素自身に書くと祖先の上書きを潰すので（指揮の再現で確認）、`DerivedTokens.uss` の `:root` に置く。どちらも画面レーンが最初の使い手になる小さな基盤の変更で、E-19 の前例どおり使い手のレーンが持つ。W4 の兄弟の計画（S4-alpha・S4-inventory・S4-train・S4-research・S4-special）は 2 本のファイルを書かないことを起草時に grep で確かめた（S4-machine・S4-gamma は Task 1 で確かめる）。受動的統合案（A-83 のスキットと同じく `InputManager.UI` に Enter のアクションを足し、クリックで「武装」し他所のクリック・閉じる・別の操作で解く状態を画面側に持つ）と比べた: Web の Enter 長押しはボタンのフォーカスに結び付いており（フォーカス中だけ・Blur で止まる）、受動案はフォーカスと同じ意味の状態を画面側に複製する（他所のクリック・パネルを閉じる・別のボタンを押すの全経路で解く判定を自前で持つ）。A-83 が UITK のキーイベントを却下した理由は「入力欄以外にフォーカスを持たせないので届かない」で、印付きにはフォーカスが残るので入力欄と同じ経路で `KeyDownEvent` が届く（`GameUiInputRules` の ESC の処理が入力欄のフォーカス中に `KeyDownEvent` を受けている）。よって規則に印の例外を 1 つ足す能動案を選ぶ。届くことは Task 6 Step 0 の EDC で先に実測し、届かなければ受動案へ切り替えて `done.md` に書く（出所: 指揮の裁定。agent 既定）。Tab でフォーカスを乗せる経路は写さない（Web はクリックと Tab の両方で乗るが、ゲームの Tab はインベントリの開閉で、`GameUiInputRules` が `NavigationMoveEvent` を打ち消す。クリックで乗る経路だけを写す）
 - **D-33 ビューアは最新の VM を覚え、出し直すときにそれで組む**: 閉じたら中身を捨てる（D-23）ので、開き直しで別の契機（持ち物の再取得）を待たずに組むため。隠れている間の `Render` は覚えるだけ
 - **D-34 エントリは GUID の辞書で使い回す**: 解放で並びが変わっても既存の要素を残す（Web の React key）。C4-c の `SetEntries` は一度外して付け直すが、外れている間はスケジューラが止まるだけで長押しの状態は要素に残るので、長押しの部品は木から外れたときに止めない（捨てた要素は参照が切れる）。付け直しで Enter のフォーカスは外れて止まる（Web より狭いが、解放と Enter の長押しが重なるときだけ）
 - **D-35 見出しの名前の影は右だけ・字の太さは `.text--medium`**: UITK の text-shadow は 1 本なので Web の左右 2 本のうち右の `0.3px 0 0` を写し、左の差は LX-135 の記帳候補。`--font-medium` は無いので `UiTypographyClass.TextMedium`（ラテンと CJK の両方）
 - **D-36 アンカーは `Render` で付け外しし、要素を作り直さない（`TutorialAnchor.Unmark` を足す）**: 解放で先頭のクラフトが変わると旧先頭からアンカーを外し新しい先頭に付ける。作り直すと長押し中の B の保持が切れる（Web は key を保って属性だけ変える）。`TutorialAnchor` は状態の無いクラス名の印なので `Unmark` はその逆の 1 本。Foundation の小さな変更で E-19 の前例どおりこのレーンが持つ（W4 の兄弟の計画は `TutorialAnchor.cs` を書かない。S2-tutorial の `MarkClipContainer` は依存として先に入る）
+- **D-37 `RecipeScreenModel` は `IInitializable` で源を ctor で直に受け、`Initialize` で購読する（合図の口を置かない）**: 前例の UITK の Model 13 本（`HudGameUiRegistration`・`MainGameUiStateRegistration` 等の `RegisterEntryPoint<X>().AsSelf()`）と兄弟の `ResearchTreeModel`（S4-research）・`SpecialBlockDetailModel`（S4-special）に形を揃える。登録は `RegisterEntryPoint<RecipeScreenModel>().AsSelf()`。そのため `RecipeScreenModel` の L0 は持たず、組み立ては純関数の `RecipeViewModelFactoryTest`、同じ選択で配り直さないことは `RecipeItemSelectionTest`、解放の絞り込みは `CraftRecipeCatalogTest` へ寄せ、源の購読（解放イベント・持ち物の変化）と表示中だけ組むことは Task 10 Step 3 の EDC・Task 12 Step 3 の EDC・録画 R-13 で見る（D-15 の Presenter と同じ扱い）。却下: 案 B「合図の口 `IRecipeScreenSignals`（`OnRecipesUnlocked`・`OnInventoryChanged`）と本番の `GameRecipeScreenSignals` を置き、Model の L0 で `Subject<Unit>` の偽を差す」— Model の L0 は得られるが、UITK の Model のうち recipe だけが源を口で差し替える形になり、Model の L0 がある画面と無い画面が混ざって後続のレーンがどちらを真似るか割れる。L0 が見るのは「合図で組み直す」だけで、組み立ての中身は純関数の L0 が既に見ており、口を通しても本番の源（`IVanillaApiEvent`・`LocalPlayerInventoryController`）の結線は L0 に入らない（本番の結線は結局 EDC と録画で見る）。口 1 本と本番実装 1 本の 2 ファイルを足す得が無い（出所: moores-code-review の設計判断 D-1。agent 既定）
+- **D-38 閉画面では組まず、表示の突入で 1 回組む**: 持ち物の枠 1 つの変化ごとに全アイテムの一覧と全レシピのビューアを組むと、インベントリを閉じている間も回る。解放済みクラフト（`CraftRecipeCatalog.BuildUnlocked`）と一覧のアイテム（`BuildVisibleItems`）の 2 つの列は解放でしか変わらないので `Initialize` と解放イベントでだけ組み、VM は `UiRoutingState` が `PlayerInventory` の間だけ組み直す。閉じている間の変化は捨て、表示の突入で 1 回組む（前例 `ResearchNodeStateStore.RefreshWhileResearchScreenActive`。画面の判定は兄弟の UITK の Model と同じ `UiRoutingState`〈前例 `GrabOverlayModel`〉）。閉じた後の View は古い VM を覚えているが（D-33）、出し直しと同じ突入で Model が組み直して流すので、表示中に古い VM は残らない。却下: 毎回組む — 閉画面の持ち物の変化（採掘・搬入）ごとに全アイテムを数え直す。列を持ち物の変化でも組む — 解放でしか変わらない列を作り直すだけ（出所: moores-code-review の Warning〈rev-core-any-efficiency〉。agent 既定）
 - **D-29 解放の判定と素材の左押下は 2 か所のまま**: カタログは「無い・未解放」を 1 つに畳んで落とし、コマンドは 2 つの拒否の理由に分ける（目的が違う）。素材の左押下→選択はクラフトと機械のエントリに 1 行ずつで、共通の口を作るほどの量でない（Phase 2.6 検査6 弱 2 件。`Client.Ui.State` を Contract へ出す 5-G 弱も設計どおりの向きなので据え置き。agent 既定）
 
 ## 要裁定
@@ -3471,7 +3488,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - Button の `Clickable` が押下で捕捉しているときに `PointerLeaveEvent` が来るか（来なくても `CraftHoldInput` の位置判定で止まる。`CraftHoldTest` で見る）
 - `UiPressGesture` を一覧の視口に付けたとき、セルの `ItemSlot` の `OnSlotGestured`（LeftDown）やホバーのツールチップと干渉しないか（`ItemListViewTest`・`RecipeSlotTooltipTest` で見る）
 - 明るい半透明（白 88%・(132,137,151) 78%）を式 1.85 で描いたときの参照との差（Task 11 Step 2。残れば LX-132・133）
-- C4-c・C4-a・S2-tutorial・S4-alpha の API 名（Task 1 Step 1 で照合）。S4-alpha の機械レシピの源は S4-alpha 計画（feature/uitk・#1630。実装のマージ後に実物と照合）の Produces 一覧から写した（`Current`。初回の組み立ては `Initialize`〈IInitializable〉なので、`RecipeScreenModel` の ctor より後に来ても `Skip(1)` の後の値で組み直る）
+- C4-c・C4-a・S2-tutorial・S4-alpha の API 名（Task 1 Step 1 で照合）。S4-alpha の機械レシピの源は S4-alpha 計画（feature/uitk・#1630。実装のマージ後に実物と照合）の Produces 一覧から写した（`Current`。初回の組み立ては `Initialize`〈IInitializable〉なので、`RecipeScreenModel.Initialize` より後に来ても `Skip(1)` の後の値で組み直る〈閉画面なら表示の突入で組む〉）
 - `ItemRecipeViewerDataContainer` の ctor・`IGameUnlockStateDataController.UnlockCraftRecipe` の名前（Task 1 Step 1）
 - Web の素材スロットの `count`（必要数を渡すか未指定か）と `lacking` の式（Task 3・6 の着手時に `CraftRecipeEntry.tsx` を読む）
 
@@ -3488,7 +3505,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 
 | ID | 決定 | 却下した案と理由 |
 |---|---|---|
-| A-165 | レシピ画面（ビューア・アイテム一覧）の State は `Client.Ui.State/Recipe/` の `Catalog/`（解放済みクラフトレシピ・一覧のアイテムを Web の topic と同じ源から組む）・`Screen/`（選択 `RecipeItemSelection`・判別 union の VM・純関数の `RecipeViewModelFactory`・同期に組み直す `RecipeScreenModel`）・`Commands/`（`IRecipeCommands.Craft(Guid)`。拒否 `CraftRecipeUnknown`・`CraftRecipeLocked` は良性でない）。Esc の選択解除は画面のキー処理なので `Client.Ui/Screens/Recipe/Input/` に置く。機械レシピの解放済み一覧の源は S4-alpha が `Recipe/Source/` に作り、S4-recipe・S4-machine が使う。Presenter 1 本が 2 つの View を `Viewer`・`Items` 列へ載せ、`PlayerInventory` のときだけ出す（S4-recipe 計画 D-1〜D-3・D-15） | Web の橋の DTO を読む: 切替で消える。画面ごとに Presenter を分ける: 同じ条件と同じモデルの購読が 2 か所に分かれる。機械レシピの源を S4-recipe が持つ: S4-machine が 2 機能目で、持ち物の中核（S4-alpha）の中立の置き場が先に入る |
+| A-165 | レシピ画面（ビューア・アイテム一覧）の State は `Client.Ui.State/Recipe/` の `Catalog/`（解放済みクラフトレシピ・一覧のアイテムを Web の topic と同じ源から組む）・`Screen/`（選択 `RecipeItemSelection`・判別 union の VM・純関数の `RecipeViewModelFactory`・同期に組み直す `RecipeScreenModel`。Model は前例の Model と同じく `IInitializable` で源を ctor で直に受けて `Initialize` で購読し、登録は `RegisterEntryPoint<RecipeScreenModel>().AsSelf()`。解放済みクラフトと一覧のアイテムの列は解放イベントでだけ組み、VM は `PlayerInventory` の表示中だけ組み直して閉画面の変化は表示の突入で 1 回組む）・`Commands/`（`IRecipeCommands.Craft(Guid)`。拒否 `CraftRecipeUnknown`・`CraftRecipeLocked` は良性でない）。Esc の選択解除は画面のキー処理なので `Client.Ui/Screens/Recipe/Input/` に置く。機械レシピの解放済み一覧の源は S4-alpha が `Recipe/Source/` に作り、S4-recipe・S4-machine が使う。Presenter 1 本が 2 つの View を `Viewer`・`Items` 列へ載せ、`PlayerInventory` のときだけ出す（S4-recipe 計画 D-1〜D-3・D-15・D-37・D-38） | Web の橋の DTO を読む: 切替で消える。Model の源を合図の口（`IRecipeScreenSignals`）で受けて Model の L0 で偽を差す: recipe だけが前例の Model と違う形になって後続のレーンの真似る先が割れ、本番の源の結線は口を通しても EDC と録画で見ることになる。閉画面でも組み直す: 持ち物の枠 1 つの変化ごとに全アイテムと全レシピを組み直す。画面ごとに Presenter を分ける: 同じ条件と同じモデルの購読が 2 か所に分かれる。機械レシピの源を S4-recipe が持つ: S4-machine が 2 機能目で、持ち物の中核（S4-alpha）の中立の置き場が先に入る |
 | A-166 | 長押しクラフトは画面の部品（`Screens/Recipe/Parts/CraftHoldDriver`・`CraftHoldInput`）が持つ。経過はパネルのスケジューラ（`schedule.Execute().Every(0)` の `TimerState.deltaTime`、1 フレーム 0.25 秒で頭打ち）で `HoldCraftLogic` を回し、押下・離し・外れ（位置でも判定）・取消で止める。フォーカス中の Enter も押している間だけ長押しにし（Space は何もしない）、そのため `RecipeActionButton` のインスタンスだけ画面側で `focusable=true` にし、`Foundation/Input/UiKeyFocusKeepMark` の印を付けて `GameUiInputRules` に外させない（§1.2「入力欄だけがフォーカスを持つ」の例外。フォーカスはクリックで乗り、Tab では乗らない。ユーザー裁定 2026-10-01）（S4-recipe 計画 D-5・D-19・D-31・D-32） | `UiPressGesture` を重ねる（C4-c の申し送り）: タップとドラッグの分類が Web の長押しに無く、外れで中断しない。`Update()`: 画面に毎フレームの処理を持たせない規則。Enter を写さない: ユーザー裁定 2026-10-01 とゴールに反する。部品の既定を `focusable=true` にする: 他の画面のボタンまでフォーカスを持つ。`focusable=true` だけ: 規則が次のスケジュールで外し Enter が届かない |
 | A-167 | `GameScrollView` に溝・つまみの色と縦バーの位置のつまみ `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right`・`--game-scroll-view-scrollbar-padding-ratio`（バーの内側余白＝幅×比。`GameScrollView.cs` の定数 0.2 を置き換える）を足す（既定は今の値で `DerivedTokens.uss` の `:root` に置き、`.game-scroll-view` 自身には宣言しない＝祖先の上書きが継承で届く）。画面は Web の局所上書き（透明の溝・白いつまみ・チュートリアルの逃げ 12）をつまみで書く（S4-recipe 計画 D-9） | 画面の USS で `.unity-scroll-view__vertical-scroller` を書く: 部品のクラスを画面が書かない規則。画面ごとに別のスクロール部品: 同じ部品が 2 つになる |
 | A-168 | レシピの列はエントリを GUID で使い回し、持ち物の変化の描き直しで長押しを切らない。別のアイテムを選んだら中身を作り直してスクロールを先頭へ戻す（Web の `key`）。画面を閉じたらビューアの中身を捨て一覧のスクロールを先頭へ戻す（Web のアンマウント）（S4-recipe 計画 D-6・D-23） | VM ごとに作り直す: 長押しの経過とスケジューラが消える |
