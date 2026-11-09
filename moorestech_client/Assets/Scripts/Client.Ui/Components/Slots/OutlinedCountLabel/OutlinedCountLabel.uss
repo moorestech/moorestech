@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/app/tokens.css の .iconTextOutlineLight を写す。置き場・字間は置く側（SlotContent の個数・ItemSlot の所持/必要）が置き場のクラスで当て、大きさはつまみ --outlined-count-label-size で渡す（高さを字の大きさにそろえる＝Web の line-height: 1） */
-/* web: copies .iconTextOutlineLight in moorestech_web/webui/src/app/tokens.css; the placing side (SlotContent count, ItemSlot owned/required) sets position and letter spacing through the placement class and passes the size through the --outlined-count-label-size knob (height equals font size = the Web line-height: 1) */
+/* web: moorestech_web/webui/src/app/tokens.css の .iconTextOutlineLight を写す。置き場・字間は置く側（SlotContent の個数・ItemSlot の所持/必要）が置き場のクラスで当て、大きさはつまみ --outlined-count-label-size で渡す（高さを字の大きさにそろえる＝Web の line-height: 1）。縁の色をつまみで受け .iconTextOutlineDark も写す */
+/* web: copies .iconTextOutlineLight in moorestech_web/webui/src/app/tokens.css; the placing side (SlotContent count, ItemSlot owned/required) sets position and letter spacing through the placement class and passes the size through the --outlined-count-label-size knob (height equals font size = the Web line-height: 1); the outline color knob also covers .iconTextOutlineDark */
 .outlined-count-label {
     /* Web の line-height: 1 は基線を箱の下から (1 - 上昇 + 下降) / 2 = 0.112em に置く（NotoSans の hhea 2189・600 / 2048）。UITK の下揃えは下降 0.293em に置くので差の 0.181em（箱の高さ＝字の大きさの 18.1%）だけ下げる */
     /* The Web line-height: 1 puts the baseline (1 - ascent + descent) / 2 = 0.112em above the box bottom (NotoSans hhea 2189/600 of 2048); UITK lower alignment puts it at the 0.293em descent, so shift down the 0.181em gap (18.1% of the font-size-tall box) */
@@ -14,10 +14,12 @@
 
 /* Web の -webkit-text-stroke は paint-order: stroke fill で縁を字の外側だけに見せる。UITK の縁は字の内外へ半分ずつ掛かるので縁だけの層にする */
 /* The Web -webkit-text-stroke with paint-order: stroke fill shows the stroke only outside the glyph; a UITK outline straddles the edge, so it is a stroke-only layer */
+/* 縁の色はつまみ --outlined-count-label-stroke（既定は白。Web の .iconTextOutlineDark の置き場は黒に上書きする） */
+/* The outline color is the --outlined-count-label-stroke knob (white by default; .iconTextOutlineDark placements override it to black) */
 .outlined-count-label--stroke {
-    color: var(--icon-text-stroke-light);
-    -unity-text-outline-width: var(--icon-text-stroke-width);
-    -unity-text-outline-color: var(--icon-text-stroke-light);
+    color: var(--outlined-count-label-stroke);
+    -unity-text-outline-width: var(--icon-text-stroke-width); /* look-exception: LX-69 */
+    -unity-text-outline-color: var(--outlined-count-label-stroke);
 }
 
 .outlined-count-label--glyph {
