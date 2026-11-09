@@ -1,6 +1,5 @@
 using System;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Tutorial.Logic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -44,10 +43,7 @@ namespace Client.Ui.Screens.Tutorial.Anchor
             if (rect.Width <= 0 || rect.Height <= 0) return TutorialAnchorState.Hidden.ZeroArea();
             var viewport = new TutorialClipRect(0, 0, coordinateSpace.layout.width, coordinateSpace.layout.height);
             if (rect.IsDisjoint(viewport)) return TutorialAnchorState.Hidden.OutsideViewport();
-            // 地は祖先の面の印で決める（アンカー自身は数えない。グローは外側に出る。A-136）
-            // The ground comes from a surface mark on an ancestor (not the anchor itself; the glow lies outside; A-136)
-            var ground = UiSurface.HasSurfaceAncestor(element) ? TutorialAnchorGround.OverSurface : TutorialAnchorGround.OverWorld;
-            return new TutorialAnchorState.Ready(rect, TutorialAncestorClipWalker.ClipOf(element, coordinateSpace), ground);
+            return new TutorialAnchorState.Ready(rect, TutorialAncestorClipWalker.ClipOf(element, coordinateSpace));
 
             #region Internal
 

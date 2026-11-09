@@ -29,9 +29,9 @@ namespace Client.Tests.Ui.Components.Controls
             var field = Add(GameTextFieldLook.GaugeInset, true);
             var input = field.Field.Q(className: InputClassName);
 
-            // --gauge-track = --surface-navy（α 補正後 rgba(10, 14, 27, 0.9491)）・--bevel-c1 rgb(56 58 72)・--text-default #eee
-            // --gauge-track = --surface-navy (alpha-corrected rgba(10, 14, 27, 0.9491)), --bevel-c1 rgb(56 58 72), --text-default #eee
-            AssertColor(Rgba(10, 14, 27, 0.9491f), input.resolvedStyle.backgroundColor, "face");
+            // --gauge-track = --surface-navy（Web の rgba(10, 14, 27, 0.8)）・--bevel-c1 rgb(56 58 72)・--text-default #eee
+            // --gauge-track = --surface-navy (the Web rgba(10, 14, 27, 0.8)), --bevel-c1 rgb(56 58 72), --text-default #eee
+            AssertColor(Rgba(10, 14, 27, 0.8f), input.resolvedStyle.backgroundColor, "face");
             AssertColor(Rgba(56, 58, 72, 1f), input.resolvedStyle.borderTopColor, "border");
             AssertColor(Hex("#EEEEEE"), input.resolvedStyle.color, "text");
             Assert.AreEqual(0.782875f, input.resolvedStyle.borderTopWidth, 0.25f);

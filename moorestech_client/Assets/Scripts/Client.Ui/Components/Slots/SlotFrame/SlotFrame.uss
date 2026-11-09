@@ -93,5 +93,5 @@
 /* ゴーストは面とリングをそのままに中身だけを透かす */
 /* A ghost keeps face and ring and fades only the content */
 .slot-frame--ghost > .slot-frame__content {
-    opacity: var(--slot-frame-ghost-opacity);
+    opacity: var(--slot-ghost-opacity);
 }

@@ -48,7 +48,11 @@ namespace Client.Ui.Editor.Capture
             // Mount a temporary UIDocument on a copy of the production settings (the asset is never modified)
             var settings = Object.Instantiate(source);
             settings.hideFlags = HideFlags.DontSave;
-            var target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { hideFlags = HideFlags.DontSave };
+            // 本番が sRGB の値のまま描く設定なら RT も sRGB 変換なしにし、読み戻した値が画面と同じ sRGB の値になるようにする（A-180）
+            // When production renders as sRGB values, use an RT without sRGB conversion so the read-back values are the screen's sRGB values (A-180)
+            var srgbValueRendering = source.forceGammaRendering;
+            var readWrite = srgbValueRendering ? RenderTextureReadWrite.Linear : RenderTextureReadWrite.sRGB;
+            var target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, readWrite) { hideFlags = HideFlags.DontSave };
             settings.targetTexture = target;
             var host = new GameObject("UiRuntimePanelCapture") { hideFlags = HideFlags.DontSave };
             var document = host.AddComponent<UIDocument>();
@@ -106,7 +110,7 @@ namespace Client.Ui.Editor.Capture
             {
                 var previous = RenderTexture.active;
                 RenderTexture.active = target;
-                var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                var texture = new Texture2D(width, height, TextureFormat.RGBA32, false, srgbValueRendering);
                 texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                 texture.Apply();
                 RenderTexture.active = previous;

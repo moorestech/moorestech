@@ -29,6 +29,13 @@ namespace Client.Ui.Foundation.Root
             _layers = UiLayerStack.Build(root);
         }
 
+        // パネルの描き先を差し替える口（sRGB 合成の RT。A-180）
+        // Where the panel's render target is swapped (the sRGB composite RT, A-180)
+        public UIDocument GetPanelDocument()
+        {
+            return uiDocument;
+        }
+
         // ルート共通の入力規則とポインタ判定を付ける先
         // Where the root-wide input rules and the pointer probe attach
         public VisualElement GetRootElement()

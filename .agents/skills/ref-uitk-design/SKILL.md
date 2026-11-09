@@ -100,7 +100,7 @@ public sealed class IconButton : VisualElement
 
 - 部品・画面の USS の色は `var(--…)` だけ。`#hex`・`rgb()` は `UiStyleConventionTest` が落とす。新しい色が要るときは `DerivedTokens.uss`〔F1〕に元の式と決め方を付けて足す
 - 寸法は Web がトークンで書く値はトークン、Web が直書きする値は同じ直書きで写す
-- 半透明は Web の α をそのまま使わない（UITK は Linear 色空間で混ぜるので薄く出る）。決め方は `references/css-to-uss.md` の「半透明」
+- 半透明は Web の α・opacity をそのまま使う（GameUi は sRGB 空間で合成する。A-180〜A-184）。決め方は `references/css-to-uss.md` の「半透明」
 - 文字の大きさは Web と同じ px にする。13px 下限は外す（設計書 [A-39]。`TokenFloorAndTranslucencyTest` の下限は F1 が外す〔F1〕。F1 の取り込み前は下限テストが残る）
 - フォントは `Typography.uss` が当てる SDF だけを使う。合成の太字（`-unity-font-style: bold`）は使わない
 
@@ -127,7 +127,6 @@ public sealed class IconButton : VisualElement
 - 出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める
 - 毎フレームの値（採掘の進捗など）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（設計書 A-57）。View は `Update()` を持たない
 - USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける。付けないと、その中のアンカーを指すチュートリアル枠が容器の外へはみ出して描かれる（祖先クリップの判定は印のある容器しか見ない。設計書 A-65）
-- 面（パネル・紙）を張る部品を新しく作るとき、また画面が背景色を持つ枠を手で組むとき（例: ポーズメニューの `.pause-menu__panel`）は `UiSurface.Mark` を付ける。付けないと、その面の上のアンカーを指すチュートリアル枠のグローが世界の上の色（明るい地用）で描かれる（設計書 A-136）
 
 ## 9. 動き
 

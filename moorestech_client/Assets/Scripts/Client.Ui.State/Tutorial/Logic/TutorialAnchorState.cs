@@ -1,8 +1,8 @@
 namespace Client.Ui.State.Tutorial.Logic
 {
     /// <summary>
-    /// 1 つのアンカーの解決結果。ready だけが矩形と祖先クリップと地を持ち、未解決は理由だけを持つ
-    /// One anchor's resolution; only Ready carries the rect, ancestor clip and ground, unresolved states carry only a reason
+    /// 1 つのアンカーの解決結果。ready だけが矩形と祖先クリップを持ち、未解決は理由だけを持つ
+    /// One anchor's resolution; only Ready carries the rect and ancestor clip, unresolved states carry only a reason
     /// </summary>
     public abstract class TutorialAnchorState
     {
@@ -13,26 +13,24 @@ namespace Client.Ui.State.Tutorial.Logic
             Reason = reason;
         }
 
-        // ready は矩形と clip まで、未解決は種と理由まで比べる（Web の isSameAnchor）。UITK は地も比べる（グローの色が地で変わる。LX-38）
-        // Ready compares rect and clip, unresolved states compare kind and reason (Web isSameAnchor); UITK also compares the ground (glow color depends on it; LX-38)
+        // ready は矩形と clip まで、未解決は種と理由まで比べる（Web の isSameAnchor）
+        // Ready compares rect and clip, unresolved states compare kind and reason (Web isSameAnchor)
         public abstract bool SameAs(TutorialAnchorState other);
 
         public sealed class Ready : TutorialAnchorState
         {
             public readonly TutorialClipRect Rect;
             public readonly TutorialClipRect Clip;
-            public readonly TutorialAnchorGround Ground;
 
-            public Ready(TutorialClipRect rect, TutorialClipRect clip, TutorialAnchorGround ground) : base(TutorialAnchorReason.Mounted)
+            public Ready(TutorialClipRect rect, TutorialClipRect clip) : base(TutorialAnchorReason.Mounted)
             {
                 Rect = rect;
                 Clip = clip;
-                Ground = ground;
             }
 
             public override bool SameAs(TutorialAnchorState other)
             {
-                return other is Ready ready && ready.Rect.Equals(Rect) && ready.Clip.Equals(Clip) && ready.Ground == Ground;
+                return other is Ready ready && ready.Rect.Equals(Rect) && ready.Clip.Equals(Clip);
             }
         }
 

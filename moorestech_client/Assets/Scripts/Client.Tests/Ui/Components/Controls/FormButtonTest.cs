@@ -128,8 +128,8 @@ namespace Client.Tests.Ui.Components.Controls
             var button = AddButton(FormButtonVariant.Danger);
             AssertColor(Hex("#E03131"), button.resolvedStyle.backgroundColor, "face");
 
-            // Subtle は面が透明・文字が blue-light-color（blue-3 #74c0fc）・ホバーで blue-light-hover（rgba(34, 139, 230, 0.2) の α 補正値）
-            // Subtle has a clear face, blue-light-color text (blue-3 #74c0fc) and blue-light-hover on hover (alpha-corrected rgba(34, 139, 230, 0.2))
+            // Subtle は面が透明・文字が blue-light-color（blue-3 #74c0fc）・ホバーで blue-light-hover（rgba(34, 139, 230, 0.2)）
+            // Subtle has a clear face, blue-light-color text (blue-3 #74c0fc) and blue-light-hover on hover (rgba(34, 139, 230, 0.2))
             button.SetVariant(FormButtonVariant.Subtle);
             simulate.FrameUpdate();
             Assert.IsFalse(button.ClassListContains(FormButton.DangerUssClassName));

@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.Components.Gauges
 
             Assert.AreEqual(8f, gauge.worldBound.height, 0.01f);
             Assert.AreEqual(0.782875f, gauge.resolvedStyle.borderTopLeftRadius, 0.001f);
-            AssertColor(Rgba(10, 14, 27, 0.9491f), gauge.resolvedStyle.backgroundColor, "track");
+            AssertColor(Rgba(10, 14, 27, 0.8f), gauge.resolvedStyle.backgroundColor, "track");
             var outline = gauge.Q(className: "gauge-bar__outline");
             Assert.AreEqual(1f, outline.resolvedStyle.borderTopWidth, 0.001f);
             AssertColor(Rgba(56, 58, 72, 1f), outline.resolvedStyle.borderTopColor, "outline");
