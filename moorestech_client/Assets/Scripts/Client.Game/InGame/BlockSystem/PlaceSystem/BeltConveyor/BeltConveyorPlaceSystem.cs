@@ -119,7 +119,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _obstaclesDirty = false;
             if (_session == null) return;
             _session.RebuildObstacles();
-            if (_session.IsStartUsable(_blocks)) return;
+            if (_session.IsStartUsable(_blocks, _holding, _branchUseAlternateExit)) return;
 
             Debug.Log($"[BeltRoute] start at {_session.StartCell} became unusable after a block change; back to start selection");
             _session = null;

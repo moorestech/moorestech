@@ -68,11 +68,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 
         // 作り直しで始点が使えなくなったら始点の選び直しへ戻す
         // When the rebuild invalidates the start, the caller returns to start selection
-        public bool IsStartUsable(BlockGameObjectDataStore blocks)
+        public bool IsStartUsable(BlockGameObjectDataStore blocks, BeltConveyorHoldingBlock holding, bool useAlternateExit)
         {
             if (IsBranch)
             {
-                return blocks.TryGetBlockGameObject(Branch.Cell, out var current) && current.BlockInstanceId.Equals(Branch.Belt.BlockInstanceId);
+                // 同じ個体でも隣接変化で分岐器の向き・出口が変わっていたら使えない
+                // Even for the same belt, a changed splitter facing or exit makes the start unusable
+                if (!blocks.TryGetBlockGameObject(Branch.Cell, out var current) || !current.BlockInstanceId.Equals(Branch.Belt.BlockInstanceId)) return false;
+                var reason = BeltRouteBranchOrigin.Judge(blocks, current, holding, useAlternateExit, out var rejudged);
+                return reason == BeltRouteBranchBlockReason.None && rejudged.SplitterFacing == Branch.SplitterFacing && rejudged.ExitDirection == Branch.ExitDirection;
             }
             return BeltRouteCellCheck.JudgeInGrid(Grid, StartCell) == BeltRouteCellBlockReason.None;
         }
