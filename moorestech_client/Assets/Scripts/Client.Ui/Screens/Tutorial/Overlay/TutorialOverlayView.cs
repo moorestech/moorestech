@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Screens.Tutorial.Anchor;
 using Client.Ui.Screens.Tutorial.DragGuide;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Tutorial.Logic;
@@ -16,6 +17,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
     public sealed class TutorialOverlayView : VisualElement
     {
         private readonly ITutorialAnchorStateLookup _anchors;
+        private readonly ITutorialAnchorGroundLookup _grounds;
         private readonly Dictionary<string, TutorialOutlineView> _outlines = new();
         private readonly Dictionary<string, TutorialDragGuideView> _dragGuides = new();
         private readonly TutorialPulseBinding _pulse;
@@ -25,12 +27,13 @@ namespace Client.Ui.Screens.Tutorial.Overlay
         private float _ringRadius;
         private bool _knobsResolved;
 
-        public TutorialOverlayView(ITutorialAnchorStateLookup anchors)
+        public TutorialOverlayView(ITutorialAnchorStateLookup anchors, ITutorialAnchorGroundLookup grounds)
         {
             name = "tutorial-overlay";
             AddToClassList("tutorial-overlay");
             pickingMode = PickingMode.Ignore;
             _anchors = anchors;
+            _grounds = grounds;
             _pulse = new TutorialPulseBinding(this);
             RegisterCallback<CustomStyleResolvedEvent>(evt => ReadKnobs(evt.customStyle));
         }
@@ -132,7 +135,10 @@ namespace Client.Ui.Screens.Tutorial.Overlay
                 view.HideRing();
                 return;
             }
-            view.ShowRing(box, inset, _glowWidth, _ringRadius);
+            // ready のアンカーは追跡器が必ず地を記録している。グローの色は地で選ぶ（LX-38）
+            // A ready anchor always has its ground recorded by the tracker; the glow color is chosen by ground (LX-38)
+            var overWorld = _grounds.TryGetGround(cue.AnchorId, out var ground) && ground == TutorialAnchorGround.OverWorld;
+            view.ShowRing(box, inset, _glowWidth, _ringRadius, overWorld);
             // ラベルはアンカー自身がクリップに収まる時だけ出す（Web renderOutline）
             // Show the label only while the anchor itself fits the clip (Web renderOutline)
             if (cue is TutorialOutlineCue.Labeled labeled && TutorialHighlightLabelPlacement.ShowsLabel(ready.Rect, ready.Clip)) view.ShowLabel(labeled.Label, box, ready.Clip, _labelGap);

@@ -32,4 +32,4 @@ export function correctBlackDimAlpha(alpha) {
   return Math.round((1 - Math.pow(1 - alpha, blackDimExponent)) * 10000) / 10000;
 }
 
-export const blackDimMethod = `黒の幕の α 補正（1-(1-α)^${blackDimExponent}。地に比を掛けるだけの黒の全面の幕に限る）`;
+export const blackDimMethod = `黒の幕の α 補正（1-(1-α)^${blackDimExponent}。地に比を掛けるだけの色に限る: 黒の全面の幕、世界の地の上の純赤のグローの G・B）`;

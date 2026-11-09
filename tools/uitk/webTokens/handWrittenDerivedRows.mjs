@@ -28,6 +28,7 @@ const rowSources = [
   { name: "--screen-backdrop-face", web: "rgb(0 0 0 / 42%)", blackDimAlpha: 0.42, method: `${blackDimMethod}（画面の幕。S2-hud・設計書 A-55・A-130）` },
   { name: "--train-riding-hud-face", web: "color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)", formula: [31, 31, 31, 0.82], method: `${translucencyMethod}（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55）` },
   { name: "--modal-backdrop-face", web: "Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)", blackDimAlpha: 0.6, method: `${blackDimMethod}（Mantine Modal の幕。C3-b・A-130）` },
+  { name: "--tutorial-attention-glow-over-world", web: "TutorialOverlay.module.css .highlight の box-shadow 0 0 0 4px rgba(255, 0, 0, 0.24)（世界の地の上）", blackDimAlpha: 0.24, blackDimColor: [255, 0, 0], method: `${blackDimMethod}（純赤のグローは地の G・B に 1-α を掛けるだけなので幕と同じ式。暗い面の上は --tutorial-attention-glow。S2-tutorial LX-38・I-fix3）` },
   { name: "--modal-shadow-1-color", web: "Mantine --mantine-shadow-xl 層 1 の rgba(0, 0, 0, 0.05)", formula: [0, 0, 0, 0.05], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
   { name: "--modal-shadow-2-color", web: "Mantine --mantine-shadow-xl 層 2 の rgba(0, 0, 0, 0.05)", formula: [0, 0, 0, 0.05], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
   { name: "--modal-shadow-3-color", web: "Mantine --mantine-shadow-xl 層 3 の rgba(0, 0, 0, 0.04)", formula: [0, 0, 0, 0.04], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
@@ -36,10 +37,13 @@ const rowSources = [
 
 export const handWrittenDerivedRows = rowSources.map((row) => ({ name: row.name, web: row.web, uss: row.uss ?? derivedValue(row), method: row.method }));
 
-// formula は S7 の式、blackDimAlpha は黒の幕の式で値を出す
-// formula uses the S7 formula and blackDimAlpha the black-dim formula
+// formula は S7 の式、blackDimAlpha は黒の幕の式で値を出す（色は blackDimColor、既定は黒）
+// formula uses the S7 formula and blackDimAlpha the black-dim formula (color from blackDimColor, black by default)
 function derivedValue(row) {
-  if (row.blackDimAlpha !== undefined) return formatColor({ r: 0, g: 0, b: 0, a: correctBlackDimAlpha(row.blackDimAlpha) });
+  if (row.blackDimAlpha !== undefined) {
+    const [red, green, blue] = row.blackDimColor ?? [0, 0, 0];
+    return formatColor({ r: red, g: green, b: blue, a: correctBlackDimAlpha(row.blackDimAlpha) });
+  }
   return formulaValue(row.formula);
 }
 

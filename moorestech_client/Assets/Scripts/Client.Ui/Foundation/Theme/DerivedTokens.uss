@@ -100,6 +100,7 @@
     --dialog-frame-body-padding: var(--mantine-spacing-lg); /* web: ModalHost の Modal.Body p="lg" */
     --dialog-frame-face: var(--mantine-color-body); /* web: Mantine ModalBase の content の背景（参照 3-modal の面 rgb(36,36,36)） */
     --modal-backdrop-face: rgba(0, 0, 0, 0.8605); /* web: Modal.Overlay backgroundOpacity={0.6} の #000 を黒の幕の式 1-(1-α)^2.15 で α 補正（A-130。handWrittenDerivedRows.mjs の blackDimAlpha 行が値を照合する） */ /* look-exception: LX-46 */
+    --tutorial-attention-glow-over-world: rgba(255, 0, 0, 0.4457); /* web: TutorialOverlay .highlight の box-shadow rgba(255, 0, 0, 0.24) を世界の地の上用に黒の幕の式 1-(1-α)^2.15 で α 補正（地の G・B に 1-α を掛けるだけなので幕と同じ。暗い面の上は --tutorial-attention-glow） */ /* look-exception: LX-38 */
     --modal-shadow-1-y: 1px; /* web: Mantine Modal の box-shadow（--mantine-shadow-xl）の層 1「0 1px 3px rgba(0,0,0,0.05)」（@mantine/core 8.3.18 の既定・--mantine-scale 1） */
     --modal-shadow-1-blur: 3px;
     --modal-shadow-1-spread: 0px;
