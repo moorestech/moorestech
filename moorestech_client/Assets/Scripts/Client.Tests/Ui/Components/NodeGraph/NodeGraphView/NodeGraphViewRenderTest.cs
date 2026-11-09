@@ -57,5 +57,22 @@ namespace Client.Tests.Ui.Components.NodeGraph
             Assert.AreEqual(400f, CanvasOf(view).resolvedStyle.width, 0.5f, "canvas width follows the new bounds");
             Assert.AreEqual(500f, CanvasOf(view).resolvedStyle.height, 0.5f, "canvas height follows the new bounds");
         }
+
+        [Test]
+        public void SetGraphで組んだ線は子の点を始点に親へ向かう1本になる()
+        {
+            var view = MountView(MountHost(400f, 300f));
+            view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, Card("card-a")), Node("b", 100f, 0f, Card("card-b"), "a") }, NodeGraphFocus.None));
+            simulate.FrameUpdate();
+
+            // 線は 1 本で、始点は b のキャンバス点、長さは 100、向きは左（180 度）
+            // One line starting at b's canvas point, 100 long, pointing left (180 degrees)
+            var lines = ((NodeGraphEdgeLayer)CanvasOf(view)[0]).Lines;
+            Assert.AreEqual(1, lines.Count);
+            Assert.AreEqual(300f, lines[0].Origin.x, 0.01f);
+            Assert.AreEqual(200f, lines[0].Origin.y, 0.01f);
+            Assert.AreEqual(100f, lines[0].Length, 0.01f);
+            Assert.AreEqual(180f, Mathf.Abs(lines[0].AngleDegrees), 0.01f);
+        }
     }
 }

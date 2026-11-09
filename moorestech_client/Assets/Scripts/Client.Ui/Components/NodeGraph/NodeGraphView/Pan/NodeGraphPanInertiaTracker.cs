@@ -30,7 +30,7 @@ namespace Client.Ui.Components.NodeGraph
             var gapMs = nowMs - _lastMoveAtMs;
             _lastMoveAtMs = nowMs;
             _hasLastMove = true;
-            if (!hadLastMove || gapMs < 0 || gapMs > NodeGraphPanVelocity.SampleMaxGapMs)
+            if (!hadLastMove || gapMs < 0 || NodeGraphPanVelocity.SampleMaxGapMs < gapMs)
             {
                 _velocity = Vector2.zero;
                 return;
@@ -43,8 +43,8 @@ namespace Client.Ui.Components.NodeGraph
             // 止まってから離した・遅すぎる速度は滑走させない
             // No glide after holding still before release, or below the fling speed
             velocity = NodeGraphPanVelocity.Clamp(_velocity);
-            if (!_hasLastMove || releasedAtMs - _lastMoveAtMs > NodeGraphPanVelocity.ReleaseStallMs) return false;
-            return velocity.magnitude >= NodeGraphPanVelocity.MinFlingSpeed;
+            if (!_hasLastMove || NodeGraphPanVelocity.ReleaseStallMs < releasedAtMs - _lastMoveAtMs) return false;
+            return NodeGraphPanVelocity.MinFlingSpeed <= velocity.magnitude;
         }
     }
 }

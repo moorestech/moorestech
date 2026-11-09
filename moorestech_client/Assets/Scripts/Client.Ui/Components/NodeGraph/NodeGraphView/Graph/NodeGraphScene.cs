@@ -23,7 +23,7 @@ namespace Client.Ui.Components.NodeGraph
             ApplyBounds(NodeGraphGeometry.ComputeCanvasBounds(Array.Empty<Vector2>(), NodeGraphGeometry.CanvasPadding));
         }
 
-        public bool HasNodes => _keyByWrapper.Count > 0;
+        public bool HasNodes => 0 < _keyByWrapper.Count;
 
         public void Rebuild(IReadOnlyList<NodeGraphNode> nodes)
         {

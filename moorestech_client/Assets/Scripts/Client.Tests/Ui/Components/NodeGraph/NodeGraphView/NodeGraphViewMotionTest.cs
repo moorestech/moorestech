@@ -106,7 +106,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
                 var x = ReadViewport(view).X;
                 stillFrames = Mathf.Approximately(x, previous) ? stillFrames + 1 : 0;
                 previous = x;
-                if (stillFrames >= 3) return frame;
+                if (3 <= stillFrames) return frame;
             }
             return MaxFrames;
         }

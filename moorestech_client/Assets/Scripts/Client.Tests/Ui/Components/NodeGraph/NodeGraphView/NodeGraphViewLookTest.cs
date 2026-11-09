@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.Components;
 using Client.Ui.Components.NodeGraph;
+using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Theme;
 using NUnit.Framework;
@@ -28,6 +29,13 @@ namespace Client.Tests.Ui.Components.NodeGraph
             Assert.AreEqual(300f, view.contentRect.height, 0.5f);
             Assert.AreEqual(inset, view.resolvedStyle.paddingLeft, 0.5f);
             Assert.AreEqual(-inset, view.resolvedStyle.marginTop, 0.5f);
+        }
+
+        [Test]
+        public void ビューポートはチュートリアルの切る容器として印が付く()
+        {
+            var view = MountView(MountHost(400f, 300f));
+            Assert.IsTrue(view.ClassListContains(TutorialAnchor.ClipContainerClassName));
         }
 
         [Test]

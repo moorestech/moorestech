@@ -15,7 +15,7 @@ namespace Client.Ui.Components.NodeGraph
         private const string EdgeColorProperty = "--node-graph-edge-color";
         private const string EdgeWidthProperty = "--node-graph-edge-width";
 
-        private IReadOnlyList<NodeGraphLine> _lines = Array.Empty<NodeGraphLine>();
+        internal IReadOnlyList<NodeGraphLine> Lines { get; private set; } = Array.Empty<NodeGraphLine>();
         private Color _edgeColor;
         private float _edgeWidth;
         private bool _hasStroke;
@@ -30,7 +30,7 @@ namespace Client.Ui.Components.NodeGraph
 
         public void SetLines(IReadOnlyList<NodeGraphLine> lines)
         {
-            _lines = lines;
+            Lines = lines;
             MarkDirtyRepaint();
         }
 
@@ -63,7 +63,7 @@ namespace Client.Ui.Components.NodeGraph
             painter.lineWidth = _edgeWidth;
             painter.lineCap = LineCap.Butt;
             painter.BeginPath();
-            foreach (var line in _lines)
+            foreach (var line in Lines)
             {
                 var start = StrokeStart(line, _edgeWidth);
                 var radians = line.AngleDegrees * Mathf.Deg2Rad;

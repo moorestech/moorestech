@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Theme;
 using UniRx;
@@ -44,6 +45,9 @@ namespace Client.Ui.Components.NodeGraph
             // Build the root, the canvas and the edge/node scene
             name = $"{testIdPrefix}-viewport";
             AddToClassList("node-graph");
+            // USS の overflow:hidden で子を切るので、チュートリアルの枠を切る容器として印を付ける
+            // The USS overflow:hidden clips children, so mark this as a clip container for tutorial anchors
+            TutorialAnchor.MarkClipContainer(this);
             _canvas = new VisualElement { name = $"{testIdPrefix}-canvas" };
             _canvas.AddToClassList("node-graph__canvas");
             Add(_canvas);
@@ -108,7 +112,7 @@ namespace Client.Ui.Components.NodeGraph
             var size = contentRect.size;
             // silent-ok: 0 へ縮む回（display: none の祖先）は追従も記録もしない / 開き直した寸法で次の回から追従する
             if (size.x <= 0f || size.y <= 0f) return;
-            var keepsCenter = !_restored && _hasClipInset && _lastContentSize.x > 0f && _lastContentSize.y > 0f && size != _lastContentSize;
+            var keepsCenter = !_restored && _hasClipInset && 0f < _lastContentSize.x && 0f < _lastContentSize.y && size != _lastContentSize;
             if (keepsCenter) SetViewport(NodeGraphViewportMath.ShiftForResize(_viewport, _lastContentSize, size));
             if (_hasClipInset) _lastContentSize = size;
             CenterOnInitialFocusOnce();

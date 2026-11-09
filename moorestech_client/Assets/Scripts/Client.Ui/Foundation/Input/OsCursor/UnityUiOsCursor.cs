@@ -20,6 +20,19 @@ namespace Client.Ui.Foundation.Input.OsCursor
         {
             _grab = LoadRequired("UiOsCursor/grab");
             _grabbing = LoadRequired("UiOsCursor/grabbing");
+
+            #region Internal
+
+            Texture2D LoadRequired(string resourcePath)
+            {
+                // 絵が欠けたら最初に使う時点で止める（矢印のまま黙って続けない）
+                // Stop on first use when a picture is missing (never silently stay on the arrow)
+                var texture = Resources.Load<Texture2D>(resourcePath);
+                if (texture == null) throw new InvalidOperationException($"[UiOsCursor] missing cursor texture Resources/{resourcePath}.png");
+                return texture;
+            }
+
+            #endregion
         }
 
         public void SetShape(UiOsCursorShape shape)
@@ -32,19 +45,14 @@ namespace Client.Ui.Foundation.Input.OsCursor
                 case UiOsCursorShape.Grabbing:
                     UnityEngine.Cursor.SetCursor(_grabbing, HandHotspot, CursorMode.Auto);
                     return;
-                default:
+                case UiOsCursorShape.Default:
                     UnityEngine.Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
                     return;
+                default:
+                    // 未対応の形は黙って矢印にせず止める
+                    // Stop on an unhandled shape instead of silently falling back to the arrow
+                    throw new ArgumentOutOfRangeException(nameof(shape), shape, "[UiOsCursor] unhandled cursor shape");
             }
-        }
-
-        private static Texture2D LoadRequired(string resourcePath)
-        {
-            // 絵が欠けたら最初に使う時点で止める（矢印のまま黙って続けない）
-            // Stop on first use when a picture is missing (never silently stay on the arrow)
-            var texture = Resources.Load<Texture2D>(resourcePath);
-            if (texture == null) throw new InvalidOperationException($"[UiOsCursor] missing cursor texture Resources/{resourcePath}.png");
-            return texture;
         }
     }
 }
