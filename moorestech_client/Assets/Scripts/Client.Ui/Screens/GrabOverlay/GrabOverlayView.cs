@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.State.Inventory.Grab;
@@ -28,7 +29,7 @@ namespace Client.Ui.Screens.GrabOverlay
             name = "grab-overlay";
             AddToClassList(RootClass);
             Add(_slot);
-            GrabOverlayPickingIgnore.Apply(this);
+            UiSubtreePickingIgnore.Apply(this);
 
             // 入力のイベントと同じフレームで位置を書く（PointerMoveEvent は拾わない所で届かない。D-2）
             // Write the position in the same frame as the input event (PointerMoveEvent misses non-pickable areas; D-2)
@@ -47,7 +48,7 @@ namespace Client.Ui.Screens.GrabOverlay
             // 中身の差し替えで子が増えても拾わないよう毎回かけ直す
             // Re-apply after each content change so newly created children never pick
             _slot.SetContent(new ItemSlotContent(_content.Item(holding.ItemId), holding.Count, new ItemSlotMarks(false, false, false), null, null, null));
-            GrabOverlayPickingIgnore.Apply(this);
+            UiSubtreePickingIgnore.Apply(this);
             var appearing = !_shown;
             _shown = true;
             EnableInClassList(ShownClass, true);

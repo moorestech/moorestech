@@ -8,7 +8,9 @@ namespace Client.Ui.Screens.GrabOverlay
 {
     /// <summary>
     /// 本番のポインタ。InputSystem のイベントと同じフレームで流し、左上原点へ直してパネル座標へ換算する
+    /// 換算は UnityCursorTooltipScreen と同じ中身で、Foundation/Input への共通化は integrator へ依頼中（bd moorestech-albof.40）
     /// Production pointer; publishes in the same frame as InputSystem events and converts to panel coordinates via a top-left origin
+    /// The conversion duplicates UnityCursorTooltipScreen; sharing it in Foundation/Input is requested from the integrator (bd moorestech-albof.40)
     /// </summary>
     public sealed class InputSystemGrabOverlayPointer : IGrabOverlayPointer
     {
