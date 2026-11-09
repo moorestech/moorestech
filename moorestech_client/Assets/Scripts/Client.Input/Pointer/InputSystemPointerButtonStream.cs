@@ -17,19 +17,19 @@ namespace Client.Input.Pointer
 
         public IObservable<Unit> OnPrimaryButtonReleased => _onPrimaryButtonReleased;
 
-        // 最後に届いたイベントでの左ボタンの押下（同じフレームの押下と解放の後先を分割ドラッグが確かめる。D-20）
-        // Left button state as of the last event (split-drag checks press/release ordering within a frame; D-20)
-        public bool IsPrimaryButtonPressed()
-        {
-            return _wasPressed;
-        }
-
         public InputSystemPointerButtonStream()
         {
             // マウス無しなら理由を警告
             // Warn why when there is no mouse
             if (Mouse.current == null) Debug.LogWarning("[InputSystemPointerButtonStream] Mouse.current is null; no button release will be published until a mouse sends events");
             InputSystem.onEvent += OnInputEvent;
+        }
+
+        // 最後に届いたイベントでの左ボタンの押下（同じフレームの押下と解放の後先を分割ドラッグが確かめる。D-20）
+        // Left button state as of the last event (split-drag checks press/release ordering within a frame; D-20)
+        public bool IsPrimaryButtonPressed()
+        {
+            return _wasPressed;
         }
 
         private void OnInputEvent(InputEventPtr eventPtr, InputDevice device)

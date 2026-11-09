@@ -33,59 +33,59 @@ namespace Client.Ui.State.Inventory.Actions
     public sealed class PickUpToGrabAction : PlayerItemAction
     {
         public PlayerSlotRef From { get; }
-        public int Count { get; }
+        private readonly int _count;
 
         public PickUpToGrabAction(PlayerSlotRef from, int count)
         {
             From = from;
-            Count = count;
+            _count = count;
         }
 
-        internal override UiCommandResult Run(IPlayerInventoryOperations operations) => FromOutcome(operations.MoveToGrab(From, Count));
+        internal override UiCommandResult Run(IPlayerInventoryOperations operations) => FromOutcome(operations.MoveToGrab(From, _count));
     }
 
     public sealed class PlaceFromGrabAction : PlayerItemAction
     {
         public PlayerSlotRef To { get; }
-        public int Count { get; }
+        private readonly int _count;
 
         public PlaceFromGrabAction(PlayerSlotRef to, int count)
         {
             To = to;
-            Count = count;
+            _count = count;
         }
 
-        internal override UiCommandResult Run(IPlayerInventoryOperations operations) => FromOutcome(operations.MoveFromGrab(To, Count));
+        internal override UiCommandResult Run(IPlayerInventoryOperations operations) => FromOutcome(operations.MoveFromGrab(To, _count));
     }
 
     public sealed class MoveBetweenSlotsAction : PlayerItemAction
     {
-        public PlayerSlotRef From { get; }
-        public PlayerSlotRef To { get; }
-        public int Count { get; }
+        private readonly PlayerSlotRef _from;
+        private readonly PlayerSlotRef _to;
+        private readonly int _count;
 
         public MoveBetweenSlotsAction(PlayerSlotRef from, PlayerSlotRef to, int count)
         {
-            From = from;
-            To = to;
-            Count = count;
+            _from = from;
+            _to = to;
+            _count = count;
         }
 
         internal override UiCommandResult Run(IPlayerInventoryOperations operations)
         {
             // silent-ok: 同じ枠への移動はホストと同じく成功の何もしない / 枠が変わらないことはプレイヤーが画面で見る
-            if (From == To) return UiCommandAccepted.Instance;
-            return FromOutcome(operations.MoveBetweenSlots(From, To, Count));
+            if (_from == _to) return UiCommandAccepted.Instance;
+            return FromOutcome(operations.MoveBetweenSlots(_from, _to, _count));
         }
     }
 
     public sealed class SplitToGrabAction : PlayerItemAction
     {
-        public PlayerSlotRef From { get; }
+        private readonly PlayerSlotRef _from;
 
         public SplitToGrabAction(PlayerSlotRef from)
         {
-            From = from;
+            _from = from;
         }
 
         internal override UiCommandResult Run(IPlayerInventoryOperations operations)
@@ -94,33 +94,33 @@ namespace Client.Ui.State.Inventory.Actions
             // Reject while holding, reject an empty slot, and treat a zero half as a successful no-op (host order)
             var snapshot = operations.ReadSnapshot();
             if (!snapshot.Grab.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.SplitGrabNotEmpty, "");
-            if (!snapshot.TryResolveSlot(From.ToItemMoveSlotRef(), out var slot))
+            if (!snapshot.TryResolveSlot(_from.ToItemMoveSlotRef(), out var slot))
             {
-                Debug.LogWarning($"[PlayerItemAction] split on stale slot {From} ignored");
+                Debug.LogWarning($"[PlayerItemAction] split on stale slot {_from} ignored");
                 return UiCommandAccepted.Instance;
             }
             if (slot.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, "");
             var half = slot.Count / 2;
             // silent-ok: 1 個の分割は半分が 0 でホストと同じ成功の何もしない / grab が空のままなのはプレイヤーが掴み絵の無いことで見る
             if (half <= 0) return UiCommandAccepted.Instance;
-            return FromOutcome(operations.MoveToGrab(From, half));
+            return FromOutcome(operations.MoveToGrab(_from, half));
         }
     }
 
     public sealed class CollectAction : PlayerItemAction
     {
-        public PlayerSlotRef Clicked { get; }
+        private readonly PlayerSlotRef _clicked;
 
         public CollectAction(PlayerSlotRef clicked)
         {
-            Clicked = clicked;
+            _clicked = clicked;
         }
 
         internal override UiCommandResult Run(IPlayerInventoryOperations operations)
         {
             // 集め先は今の grab で決める（ホストの ResolveCollectTarget と同じ）
             // The target follows the current grab (same as the host's ResolveCollectTarget)
-            if (operations.ReadGrab().IsEmpty) operations.CollectToSlot(Clicked);
+            if (operations.ReadGrab().IsEmpty) operations.CollectToSlot(_clicked);
             else operations.CollectToGrab();
             return UiCommandAccepted.Instance;
         }

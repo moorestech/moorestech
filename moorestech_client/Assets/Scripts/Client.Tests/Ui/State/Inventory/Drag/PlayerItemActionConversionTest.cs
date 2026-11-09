@@ -22,9 +22,22 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         [Test]
         public void 枠どうしの移動と分割と集めを写す()
         {
-            Assert.IsInstanceOf<MoveBetweenSlotsAction>(Convert(PlannedItemAction.MoveItem(ItemMoveSlotRef.Equipment(0), ItemMoveSlotRef.Main(3), 2)));
+            // 写した行為を実行の記録で検証し、番地・個数・クリック枠の取り違えを赤にする
+            // Verify converted actions through the execution record so swapped slots, counts or clicked slot turn red
+            var operations = new RecordingPlayerInventoryOperations(9, 2);
+            var actions = new[]
+            {
+                Convert(PlannedItemAction.MoveItem(ItemMoveSlotRef.Equipment(0), ItemMoveSlotRef.Main(3), 2)),
+                Convert(PlannedItemAction.Collect(ItemMoveSlotRef.Main(0))),
+            };
+            Assert.IsInstanceOf<MoveBetweenSlotsAction>(actions[0]);
+            Assert.IsInstanceOf<CollectAction>(actions[1]);
             Assert.IsInstanceOf<SplitToGrabAction>(Convert(PlannedItemAction.Split(ItemMoveSlotRef.Main(0))));
-            Assert.IsInstanceOf<CollectAction>(Convert(PlannedItemAction.Collect(ItemMoveSlotRef.Main(0))));
+
+            new PlayerItemActionExecutor(operations).Execute(actions);
+
+            Assert.AreEqual(new[] { $"{PlayerSlotRef.Equipment(0)}->{PlayerSlotRef.Main(3)} x2" }, operations.Moves.ToArray());
+            Assert.AreEqual(new[] { PlayerSlotRef.Main(0).ToString() }, operations.Collects.ToArray());
         }
 
         [Test]
