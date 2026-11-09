@@ -51,7 +51,7 @@
 
 - **作業場所**: `moores-wt new uitk-lane/s4-alpha --from origin/feature/uitk`（Editor 要）。最初に `pwd` で worktree にいることを確かめる。Unity は自分の worktree の Editor だけを使い、起動・停止の前に `moores-wt status` で所有を確かめる。Mac mini の Editor は同時 2 本まで。Mac が逼迫したら Windows の `~/bin/winunity`（compile/test/play を ssh で回す）も使える
 - **依存**: C4-e・C3-a・C3-b・L0-s4a・L0-s4b が入った `origin/feature/uitk`（全部マージ済み。Task 1 Step 1 で確かめる）。**C3-b を依存に足す**（E-22）: `ItemSlot` の名前ツールチップは F1 の `HoverTooltipMark` を印に C3-b の `GameUiHoverTooltipInstaller`（`HoverTooltipHost`）が出し、自然高のスクロール器 `GameScrollView` の `OnScrollOffsetChanged`・`OnContentLayoutChanged` も C3-b の口。C4-a・C4-c・C4-d は使わない（ゲージ・液体の部品は S4-machine）
-- **登録の本数と置き場**: `S/Client.Starter/Registration/GameUi/` は今 8 本（`.cs`）。alpha の 1 本で 9 本。後続の S4-inventory・S4-machine・S4-train・S4-special で 10 本を超えるので、Task 1 で integrator へ再編の依頼を出す（alpha 自身は 9 本目で止まらない）。複数レーンが ctor で受ける共有サービス（パネルの状態・遷移要求・スロット操作の型付きコマンドとその実行器・ブロックの枠の並びの工場・解放済み機械レシピの源）は E-1・A-56 どおり `MainGameUiRegistration` の共有サービスの並びに、`IItemStackLevelLookup` は `MainGameModelRegistration.cs:105` の隣に置く（D-14・D-22）。画面だけが使うものは `BlockInventoryGameUiRegistration`
+- **登録の本数と置き場**: `S/Client.Starter/Registration/GameUi/` は今 9 本（`.cs`。Content・CursorTooltip・Foundation・Grab・Hud・ModeHud・PauseMenu・Toast・Tutorial）。alpha の 1 本で 10 本。後続の S4-inventory・S4-machine・S4-train・S4-special の 4 本で 14 本になるので、Task 1 で integrator へ再編の依頼を出す（alpha 自身は 10 本目で止まらない）。複数レーンが ctor で受ける共有サービス（パネルの状態・遷移要求・スロット操作の型付きコマンドとその実行器・ブロックの枠の並びの工場・解放済み機械レシピの源）は E-1・A-56 どおり `MainGameUiRegistration` の共有サービスの並びに、`IItemStackLevelLookup` は `MainGameModelRegistration.cs:105` の隣に置く（D-14・D-22）。画面だけが使うものは `BlockInventoryGameUiRegistration`
 - **購読の持ち主**: Model の購読は Presenter。View は `Render` で値を受けるだけ（設計書 §4.2・A-57）。差し込む部分も「Presenter ＋ View」で、パネルの状態は識別子・エラー・枠だけを運ぶ（D-19）。画面の出し分けは `UiRoutingState.Current` だけで決める（§4.4。D-21）
 - **`:root` のトークンを C# で読むとき**は、読む要素のクラスで `--<部品>-<名前>: var(--token)` と受け直し、C# は受け直した名前を読む（`UssCustomStyleReader.cs:10-13`。前例 `GaugeBar.uss:6`。D-8）
 - **規約**: 1 ファイル 200 行以下・1 ディレクトリ 10 ファイル以下（`.meta` を除く）・partial 禁止・`Func<>` 禁止・イベントは UniRx（`Action` 禁止）・try-catch 禁止（このレーンに外部境界は無い）・日英 2 行コメント・デフォルト引数禁止・単純 getter/setter 禁止（`{ get; private set; }` と式本体の計算プロパティは可）・初期化は `Initialize`・null チェックは外部データだけ・fail-closed の経路は開発者ログ・意図して黙る行は `silent-ok: <理由> / <誰が気づくか>`・`#region Internal` はメソッド内のローカル関数だけ・`.meta` を手で作らない・Prefab/シーンを手で編集しない・`Update()` で同値判定しない（購読）
@@ -182,6 +182,7 @@ ClientLocalNotificationSource                                                   
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強3・弱3・第3バケツ5 / Error の null 比較・SectionStackConfig の null を判別 union へ・共有サービスの登録先を E-1 へ（agent 既定で裁定）
 - 配置検査 r2（反映後の再検査）: 実施済み / 違反1・修正1 / 閉じるの結線を `OnClicked.Subscribe` へ（V-1）。注目点 N-2・N-3 は D-40・D-41、N-7 は Task 8 で `GrabGameUiRegistration.cs` のコメントを直す
 - Phase 2.6 r2: 実施済み / 強7・弱7・第3バケツ6 / 強: null と None の二重を空の部分へ（D-35）・種別ごとの例外 3 か所を型と Try へ（D-36）・「開いている」の導出を 1 本へ（D-37）・大きさを判別子へ（D-38）、ID→アイコンの欠損は再現せず（`GameContentPresentation` が例外で止める）、ADR 食い違い 2 件は ADR 側を直した（945a356987）。弱は 1 件直し 6 件見送り（D-39）。第3バケツ新規 1 件を「本 PR 外のリファクタ提案」へ（agent 既定で裁定）
+- r3 の差分検査: 配置 違反0 / Phase 2.6 強0・弱2 / 弱 2 件（`TryReadBlockSlots` の false の 2 理由・内部の null を合図にする Try）は、ログの文を直し、新しく書く Try 2 か所を switch 文の形へ直し、`TryConvert` は前例と対で残す（D-39）。レビュー r3 の 10 件と D-37 の先書きの窓は D-37・D-42〜D-46 で反映（agent 既定で裁定）
 
 ## 写すテスト
 
@@ -313,7 +314,7 @@ ls moorestech_client/Assets/Scripts/Client.Ui.State/Inventory/Actions/PlayerItem
 ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc -l
 moores-wt status
 ```
-Expected: worktree のパス、5 ファイルが全部ある、`GameUi/` の `.cs` が 8 本（他レーンが先に入っていれば多い）。足りなければ止めて指揮へ返す。`GameUi/` が 9 本以上なら Step 3 の依頼に「alpha の登録で 10 本を超える」と書き、再編が入るまで Task 8 の登録だけを保留して他を進める
+Expected: worktree のパス、5 ファイルが全部ある、`GameUi/` の `.cs` が 9 本（他レーンが先に入っていれば多い）。足りなければ止めて指揮へ返す。`GameUi/` が 10 本以上なら Step 3 の依頼に「alpha の登録で 11 本以上になる」と書き、再編が入るまで Task 8 の登録だけを保留して他を進める
 
 - [ ] **Step 2: bd を作り、done.md の骨組みを書く**
 
@@ -334,7 +335,7 @@ Run: `bd create "UITK S4-alpha: ブロックインベントリの外殻・拡張
 - [ ] **Step 3: integrator への依頼を先に出す**
 
 `done.md`「## integrator への依頼」に次を書き、指揮へも同じ文を返す（`cmux` の依頼口か指揮のスレッド）:
-- `Client.Starter/Registration/GameUi/` は alpha で 9 本、S4-inventory・S4-machine・S4-train・S4-special が 1 本ずつ足すと 13 本になる。`GameUi/Screens/`・`GameUi/BlockInventory/` 等への再編を W4 の取り込みの前に入れてほしい（alpha は 9 本目のまま進める）
+- `Client.Starter/Registration/GameUi/` は今 9 本で alpha で 10 本、S4-inventory・S4-machine・S4-train・S4-special が 1 本ずつ足すと 14 本になる。`GameUi/Screens/`・`GameUi/BlockInventory/` 等への再編を W4 の取り込みの前に入れてほしい（alpha は 10 本目のまま止めずに進める）
 - `SlotCommands`（`Client.Ui.State/SlotCommands/`）は持ち物・ブロック・機械・特殊族が共有する。昇格の対象ではないが、設計書 §2 の State の表に A-142 の行を足してほしい（下書きは計画末尾）
 - `GamePanel` が題の操作（`SetTitleAction`）を持つとき、題に右の逃げ `calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))`（12px。計 99px）を足す口がほしい（Web は `BlockInventoryPanel.tsx` が題の `paddingRight` で持つ。UITK では題の要素が部品の中にあり画面 USS から当てられない）。使うのは S4-special のロケットだけなので、alpha は器を渡すまでで止める
 
@@ -1103,14 +1104,25 @@ namespace Client.Ui.State.BlockInventory.Panel
         // None gives false (no error row); the shell's error row is shown or hidden by this return value alone (D-36)
         public static bool TryGetLocalizationKey(BlockInventoryPanelError error, out LocalizationKey key)
         {
-            key = error switch
+            switch (error)
             {
-                BlockInventoryPanelError.OpenFailed => LocalizationKeys.Ui.BlockInventory.InventoryOpenFailed,
-                BlockInventoryPanelError.ContainerMissing => LocalizationKeys.Ui.BlockInventory.TrainNoItemContainer,
-                BlockInventoryPanelError.TrainCarMissing => LocalizationKeys.Ui.BlockInventory.TrainNotFound,
-                _ => default,
-            };
-            return error != BlockInventoryPanelError.None;
+                case BlockInventoryPanelError.None:
+                    key = default;
+                    return false;
+                case BlockInventoryPanelError.OpenFailed:
+                    key = LocalizationKeys.Ui.BlockInventory.InventoryOpenFailed;
+                    return true;
+                case BlockInventoryPanelError.ContainerMissing:
+                    key = LocalizationKeys.Ui.BlockInventory.TrainNoItemContainer;
+                    return true;
+                case BlockInventoryPanelError.TrainCarMissing:
+                    key = LocalizationKeys.Ui.BlockInventory.TrainNotFound;
+                    return true;
+                default:
+                    // enum に値を足して文言を足し忘れた開発時の誤り（空の文で出さない）
+                    // A dev-time mistake: a new enum value without text (never show an empty row)
+                    throw new ArgumentOutOfRangeException(nameof(error), error, null);
+            }
         }
     }
 }
@@ -1640,7 +1652,7 @@ git commit -m "feat(uitk): ブロックインベントリのパネルの状態�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/SlotCommands/RecordingBlockInventoryOperations.cs`・`BlockItemActionExecutorTest.cs`・`BlockSlotCommandsTest.cs`
 
 **Interfaces:**
-- Consumes: `LocalPlayerInventoryController.MoveItem/CollectItems/GrabInventory/LocalPlayerInventory.MainSlotCount`、Task 3 の `IBlockInventoryPanelSource`（開いているかと枠）、C4-e の `IPlayerInventoryOperations`・`PlayerItemActionExecutor`・`PlayerItemActionConversion.TryConvert`、L0-s4a の `BlockSlotPlanner`・`PlannedItemAction`、`IItemStackLevelLookup`
+- Consumes: `LocalPlayerInventoryController.MoveItem/CollectItems/GrabInventory/LocalPlayerInventory.MainSlotCount`、Task 3 の `IBlockInventoryPanelSource`（開いているか）、`SubInventoryState.CurrentSubInventory.SubInventory`（枠の生の値）、C4-e の `IPlayerInventoryOperations`・`PlayerItemActionExecutor`・`PlayerItemActionConversion.TryConvert`、L0-s4a の `BlockSlotPlanner`・`PlannedItemAction`、`IItemStackLevelLookup`
 - Produces（後続が使う）:
 ```csharp
 namespace Client.Ui.State.SlotCommands.Block
@@ -1652,7 +1664,7 @@ public interface IBlockSlotCommands
 }
 public interface IBlockInventoryOperations
 {
-    bool TryReadBlockSlots(out IReadOnlyList<SlotItem> slots);      // IBlockInventoryPanelSource がエラー無しのブロック／列車でなければ false
+    bool TryReadBlockSlots(out IReadOnlyList<SlotItem> slots);      // 開閉は IBlockInventoryPanelSource（エラー無しのブロック／列車でなければ false）、枠は押下の瞬間の SubInventoryState の生の値
     PlayerItemMoveOutcome Move(ItemMoveSlotRef from, ItemMoveSlotRef to, int count);  // 片側が Block の移動
     void CollectToGrab();
     void CollectToBlockSlot(int blockSlot);
@@ -1673,9 +1685,10 @@ public const string BlockSlotCommandName = "block_inventory.slot";   // BlockSlo
 
 - [ ] **Step 2: 失敗するテストを書く**
 
-`RecordingBlockInventoryOperations.cs`（ブロックの枠を持ち、移動と集めを記録する。移動は記録だけで在庫は動かさない）:
+`RecordingBlockInventoryOperations.cs`（ブロックの枠を持ち、移動と集めを記録する。移動は既定では記録だけで、`WriteThrough` のときだけブロック側の枠へ即時に書く）:
 ```csharp
 using System.Collections.Generic;
+using Core.Master;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Items;
 using Client.Ui.State.ItemMove;
@@ -1694,6 +1707,8 @@ namespace Client.Tests.Ui.State.SlotCommands
         public SlotItem[] Slots = new SlotItem[0];
         public bool Open = true;
         public PlayerItemMoveOutcome NextOutcome = PlayerItemMoveOutcome.Moved;
+        public bool WriteThrough;              // 真なら移動を Slots に即時に書く（コントローラの先書きの再現。D-37）
+        public ItemId WriteThroughItemId;      // 先書きで枠へ入るアイテム
 
         public bool TryReadBlockSlots(out IReadOnlyList<SlotItem> slots)
         {
@@ -1704,7 +1719,18 @@ namespace Client.Tests.Ui.State.SlotCommands
         public PlayerItemMoveOutcome Move(ItemMoveSlotRef from, ItemMoveSlotRef to, int count)
         {
             Moves.Add((from, to, count));
+            if (WriteThrough) ApplyToSlots(from, to, count);
             return NextOutcome;
+        }
+
+        // ブロックの枠の増減だけを書く（grab・main 側は呼び手の記録係が持つ）
+        // Writes only the block-slot side (grab/main are owned by the caller's recorder)
+        private void ApplyToSlots(ItemMoveSlotRef from, ItemMoveSlotRef to, int count)
+        {
+            var copy = (SlotItem[])Slots.Clone();
+            if (from.Area == ItemMoveArea.Block) copy[from.Slot] = new SlotItem(copy[from.Slot].ItemId, copy[from.Slot].Count - count);
+            if (to.Area == ItemMoveArea.Block) copy[to.Slot] = new SlotItem(WriteThroughItemId, copy[to.Slot].Count + count);
+            Slots = copy;
         }
 
         public void CollectToGrab() => Collects.Add("grab");
@@ -1797,6 +1823,21 @@ namespace Client.Tests.Ui.State.SlotCommands
         }
 
         [Test]
+        public void イベント無しで続けて押すと先書き後の枠の値で計画する()
+        {
+            // 置いた直後（OnSubInventoryUpdated 無し）の右押下は、置いた後の生の値 10 の半分を掴む（D-37）
+            // A right press right after placing (no OnSubInventoryUpdated) takes half of the raw post-write 10 (D-37)
+            _block.WriteThrough = true;
+            _block.WriteThroughItemId = _wood;
+            _block.Slots = new[] { default(SlotItem), default(SlotItem) };
+            _player.SetGrab(new SlotItem(_wood, 10));
+            _commands.LeftDown(0, false);
+            _player.SetGrab(default);
+            _commands.RightDown(0);
+            Assert.AreEqual((ItemMoveSlotRef.Block(0), ItemMoveSlotRef.Grab, 5), _block.Moves[1]);
+        }
+
+        [Test]
         public void 閉じたあとの古い押下は良性の拒否で何も動かさない()
         {
             _block.Open = false;
@@ -1856,6 +1897,7 @@ namespace Client.Ui.State.SlotCommands.Block
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState.State;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Items;
@@ -1872,26 +1914,39 @@ namespace Client.Ui.State.SlotCommands.Block
     {
         private readonly LocalPlayerInventoryController _controller;
         private readonly IBlockInventoryPanelSource _panel;
+        private readonly SubInventoryState _subInventoryState;
 
-        public LocalBlockInventoryOperations(LocalPlayerInventoryController controller, IBlockInventoryPanelSource panel)
+        public LocalBlockInventoryOperations(LocalPlayerInventoryController controller, IBlockInventoryPanelSource panel, SubInventoryState subInventoryState)
         {
             _controller = controller;
             _panel = panel;
+            _subInventoryState = subInventoryState;
         }
 
         public bool TryReadBlockSlots(out IReadOnlyList<SlotItem> slots)
         {
-            // 「開いている」は表示と同じパネルの状態 1 本から導く（エラー無しのブロックか列車だけ。D-37）
-            // "Open" derives from the same panel state the screen shows (error-free block or train only; D-37)
-            slots = _panel.Current.Value switch
+            // 開閉は表示と同じパネルの状態から、枠の値は押下の瞬間の生の値（コントローラの先書き込み）から読む（D-37。ホストの BlockAreaSlotParser と同じ）
+            // Open/closed comes from the panel state the screen shows; slot values are read raw at press time, including the controller's local pre-write (D-37; same as the host BlockAreaSlotParser)
+            if (!IsOpenWithoutError(_panel.Current.Value))
             {
-                OpenBlockInventoryPanel block when block.Error == BlockInventoryPanelError.None => block.ItemSlots,
-                OpenTrainInventoryPanel train when train.Error == BlockInventoryPanelError.None => train.ItemSlots,
-                _ => null,
-            };
-            if (slots != null) return true;
-            slots = Array.Empty<SlotItem>();
-            return false;
+                slots = Array.Empty<SlotItem>();
+                return false;
+            }
+            slots = BlockInventoryPanelStateFactory.ToSlotItems(_subInventoryState.CurrentSubInventory.SubInventory);
+            return true;
+        }
+
+        private static bool IsOpenWithoutError(BlockInventoryPanelState state)
+        {
+            switch (state)
+            {
+                case OpenBlockInventoryPanel block:
+                    return block.Error == BlockInventoryPanelError.None;
+                case OpenTrainInventoryPanel train:
+                    return train.Error == BlockInventoryPanelError.None;
+                default:
+                    return false;
+            }
         }
 
         public PlayerItemMoveOutcome Move(ItemMoveSlotRef from, ItemMoveSlotRef to, int count)
@@ -2102,7 +2157,7 @@ namespace Client.Ui.State.SlotCommands.Block
         {
             // 閉じた・枠が減った後の古い計画は良性の拒否（ホストの invalid_slot）
             // A stale plan after closing or shrinking is a benign rejection (the host's invalid_slot)
-            if (!_block.TryReadBlockSlots(out var slots)) return Unavailable("block inventory is not open");
+            if (!_block.TryReadBlockSlots(out var slots)) return Unavailable("block inventory is closed or in error");
             if (!action.IsInRange(slots)) return Unavailable($"block slot out of range: {action}");
             return action.Run(_block, slots, _player.ReadGrab().IsEmpty);
         }
@@ -2545,14 +2600,22 @@ namespace Client.Ui.State.SlotCommands.Player
 
         private static bool TryGetMessageId(ShiftMoveRefusalReason reason, out string messageId)
         {
-            messageId = reason switch
+            switch (reason)
             {
-                ShiftMoveRefusalReason.NoAcceptingBlockSlot => "denied.inventoryMoveSlotRejected",
-                ShiftMoveRefusalReason.InventoryOpenFailed => "denied.inventoryOpenFailed",
-                ShiftMoveRefusalReason.DetailLoading => "denied.inventoryDetailLoading",
-                _ => null,
-            };
-            return messageId != null;
+                case ShiftMoveRefusalReason.NoAcceptingBlockSlot:
+                    messageId = "denied.inventoryMoveSlotRejected";
+                    return true;
+                case ShiftMoveRefusalReason.InventoryOpenFailed:
+                    messageId = "denied.inventoryOpenFailed";
+                    return true;
+                case ShiftMoveRefusalReason.DetailLoading:
+                    messageId = "denied.inventoryDetailLoading";
+                    return true;
+                default:
+                    // silent-ok: DestinationFull は Web に messageId が無い / 呼び手の Warning ログで開発者が気づく
+                    messageId = "";
+                    return false;
+            }
         }
 
         private static string ToLogName(ShiftMoveRefusalReason reason)
@@ -2866,10 +2929,10 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 }
 ```
 
-`Parts.uss`（先頭に出所の 1 行）:
+`Parts.uss`（先頭に出所の 2 行）:
 ```css
 /* web: features/blockInventory/details/LackHighlightText/style.module.css .text（本文色）と [data-insufficient="true"]（警告色）、BlockItemGrid.tsx の BlockItemGridGroup（Stack gap 4・ラベル --text-muted）を写す */
-/* ports .text (body colour) and [data-insufficient="true"] (warning colour) from LackHighlightText, and BlockItemGridGroup (Stack gap 4, label --text-muted) from BlockItemGrid.tsx */
+/* web: ports .text (body colour) and [data-insufficient="true"] (warning colour) from LackHighlightText, and BlockItemGridGroup (Stack gap 4, label --text-muted) from BlockItemGrid.tsx */
 .lack-highlight-text {
     color: var(--text-default);
 }
@@ -2883,7 +2946,6 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 }
 
 /* :root の列数を BlockItemGrid の customStyle で読めるよう自クラスで受け直す（前例 GaugeBar.uss） */
-
 /* re-declare the :root column count on the grid's own class so its customStyle can read it (precedent GaugeBar.uss) */
 .block-item-grid {
     --block-item-grid-inventory-columns: var(--inventory-columns);
@@ -3671,7 +3733,7 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
 `SectionStack.uss`:
 ```css
 /* web: features/blockInventory/style.module.css .fillPanelHeight（flex: 1; min-height: 0）を標準の本文の高さ確定に写す */
-/* ports .fillPanelHeight (flex: 1; min-height: 0) onto the standard body's fixed-height mode */
+/* web: ports .fillPanelHeight (flex: 1; min-height: 0) onto the standard body's fixed-height mode */
 .section-stack--fill-panel-height {
     flex-grow: 1;
     flex-shrink: 1;
@@ -3708,6 +3770,7 @@ git commit -m "feat(uitk): ブロックインベントリの拡張口・レジ�
 - Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/BlockInventoryGameUiRegistration.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（共有サービスの並び〈`InputSystemPointerPositionStream` の下〉にブロックインベントリの共有サービスを足し、画面登録区画の末尾に 1 行。E-1・A-56）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/GrabGameUiRegistration.cs`（11 行のコメント「押下の配線とブロック側の実行器は S4-alpha が足す」を「ブロック側の実行器とスロット操作は S4-alpha が MainGameUiRegistration の共有サービスの並びに足す」に直すだけ。コードは変えない）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs`（`{ AnchorIds.InventoryCloseButton, "S4-alpha" },` の行を消す。印と保留表の両方にあると `TutorialAnchorCoverageTest` が赤になる。E-1）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs`（105 行 `IItemStackLevelUnlocker` の隣に `IItemStackLevelLookup` を 1 行）
 - Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（`/* == section: Screens == */` の末尾に `@import` 3 行）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/` の `BlockInventoryPanelFlowTest.cs`・`BlockInventoryDesignTest.cs`・`BlockInventoryLocalizationTest.cs`・`BlockInventoryPanelErrorTest.cs`・`BlockInventoryPanelBandTest.cs`・`BlockInventoryTitleActionTest.cs`・`BlockInventoryNaturalScrollTest.cs`（`BlockInventoryTestFixtures.cs` に `BlockInventoryTestShell` を足す）、`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockInventoryScreenVisibilityTest.cs`
@@ -3802,6 +3865,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         public void 画面のUSSは色を直書きせずトークンだけを使う(string relativePath)
         // 中身: ファイルを読み、#rgb・rgb(・rgba( の直書きが無く、color 系の値が var(--…) だけであること
 
+        /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">%sから禁止Mantine部品とテーマ色を除去する</web-test>
+        [Test]
+        public void 本文の木の操作の要素は共通部品だけで素の操作部品を含まない()
+        // 中身: 項目グリッドのチェストを開き、block-inventory の木を Query<VisualElement>() で全走査する。Button・Toggle・RadioButton・Slider・ProgressBar（UnityEngine.UIElements の型そのもの、または共通部品でない派生）が無いこと。共通部品（IconButton・PanelActionButton・ModeSwitch・GameTextField・ItemSlot 等。判定は Client.Ui.Components 名前空間の型か）は許す。Web blockInventoryDesign.test.ts:6-25,41-44 がコンポーネントのソースで禁止部品を見るのの写し（D-46）
+
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">パネル面と閉じる操作をshared uiへ集約する</web-test>
         [Test]
         public void パネル面はGamePanelで閉じるはIconButtonでチュートリアルの錨が付く()
@@ -3834,13 +3902,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory
 
 `BlockInventoryLocalizationTest.cs`（3 件。「blockGuidの導出キーを…」は Web `BlockInventoryPanel.localization.test.ts:52-77` と同じ 3 段: 前例 `PlacementNameTestDictionary` と同形の一時辞書で言語を japanese に固定し、導出キー `ContentLocalizationKeys.BlockName(guid)` の行を (1) english だけに "Fallback Machine" → (2) japanese に "対象言語の機械" → (3) Source だけに "Source Machine" の順に `Merge` し、各段の後に `simulate.FrameUpdate()` して題がその段の文になることを主張する（解決順は `LocalizationTextResolver.cs:15-17` の「対象言語 → english → Source」。(3) は対象言語と english を空にした行で流す）。3 件目「言語を切り替えると題が描き直される」は english → japanese へ言語を変えて題が変わることを見る（Web に対応が無いので `<web-test>` を付けない）。「取得失敗は…」は `BlockInventoryTestPanels.OpenFailedChest()` で `block-inventory-error` の文が `ui.blockInventory.inventoryOpenFailed` の英語文・`chest-grid` が無い・題の操作の器が空）
 
-`BlockInventoryPanelErrorTest.cs`（4 件: 列車の ContainerMissing / TrainCarMissing / OpenFailed で `train-inventory-error` の文が各キー／列車の本文の登録が無いときは題とエラー行だけで警告ログ 1 回〈`LogAssert.Expect`〉／`正常からエラーへ移ると本文を外しエラーが解けると本文が戻る`〈`Chest()` → `OpenFailedChest()` → `Chest()` の順に流し、`chest-grid` が 有 → 無 → 有、`block-inventory-error` が 無 → 有 → 無〉）
+`BlockInventoryPanelErrorTest.cs`（5 件: `None以外のエラーはすべて文言のキーを持つ`〈`Enum.GetValues` の None 以外で `TryGetLocalizationKey` が真・キーが既定値でない。None は偽〉／ 列車の ContainerMissing / TrainCarMissing / OpenFailed で `train-inventory-error` の文が各キー／列車の本文の登録が無いときは題とエラー行だけで警告ログ 1 回〈`LogAssert.Expect`〉／`正常からエラーへ移ると本文を外しエラーが解けると本文が戻る`〈`Chest()` → `OpenFailedChest()` → `Chest()` の順に流し、`chest-grid` が 有 → 無 → 有、`block-inventory-error` が 無 → 表示 → 要素は残り `resolvedStyle.display == None`〈一度作ったエラー行は外さず隠す〉〉）
 
 `BlockInventoryPanelBandTest.cs`（1 件: 舞台の要素の大きさを変えると次のフレームで帯と大型の幅を当て直す。期待値は舞台の要素の寸法から同じ式で出し、解像度の名前は付けない。2560×1080 での見え方は並べ比べ〈Task 10〉で論理 482・740.1 の拡大になることを見る）
 
-`BlockInventoryTitleActionTest.cs`（3 件: 題の操作の偽工場を `BlockInventoryTitleActionKind.RocketLaunchPadCommand` に登録し、その blockType で器に要素が入る／エラー中は器が空／別の blockType へ替えると前の部分の `Detach` が 1 回呼ばれ器が空になる。blockType と Kind の組は L0-s4b の `BlockComponentRegistry` の実物から引く）
+`BlockInventoryTitleActionTest.cs`（3 件: 題の操作の偽工場を `BlockInventoryTitleActionKind.RocketLaunchPadCommand` に登録し、その blockType で器に要素が入る／エラー中は器が空／操作の無い別の blockType へ替えると前の部分の `Detach` が 1 回呼ばれ、器に前の操作の要素が無い〈器の子は空の部分の Root 1 つ〉。blockType と Kind の組は L0-s4b の `BlockComponentRegistry` の実物から引く）
 
-`BlockInventoryNaturalScrollTest.cs`（4 件: 小型では本文が `block-inventory-natural-scroll` の中にあり、外側の負マージンが −8・内側の逃げが 8／大型では本文がスクロール器を通らず直下にある／`帯を超える中身はスクロール器の中で流れる`〈枠 120 個〈12 行。グリッドは 12×48＋11×6.8＝650.8px〉のチェストで `block-inventory-panel` の高さ＝帯〈`BlockInventoryPanelBandTest` と同じ式で舞台から求める。1280×720 で 482〉、かつスクロール器の `GetContentHeight() > GetViewportHeight()`。60 枠は 6 行で外殻込み 373.6px〈計算〉に収まり帯を超えないので使わない〉／`短い本文は内容の高さでスクロールしない`〈枠 10 個で、パネルの高さ＜帯、かつ `GetContentHeight() <= GetViewportHeight()`〉）
+`BlockInventoryNaturalScrollTest.cs`（5 件: `高さ確定の本文はパネルの本文いっぱいに伸びる`〈`LargeFilledBody` のとき、`section-stack--fill-panel-height` を持つ偽の本文の高さ＝`GamePanel` の body の高さ〉／ 小型では本文が `block-inventory-natural-scroll` の中にあり、外側の負マージンが −8・内側の逃げが 8／大型では本文がスクロール器を通らず直下にある／`帯を超える中身はスクロール器の中で流れる`〈枠 120 個〈12 行。グリッドは 12×48＋11×6.8＝650.8px〉のチェストで `block-inventory-panel` の高さ＝帯〈`BlockInventoryPanelBandTest` と同じ式で舞台から求める。1280×720 で 482〉、かつスクロール器の `GetContentHeight() > GetViewportHeight()`。60 枠は 6 行で外殻込み 373.6px〈計算〉に収まり帯を超えないので使わない〉／`短い本文は内容の高さでスクロールしない`〈枠 10 個で、パネルの高さ＜帯、かつ `GetContentHeight() <= GetViewportHeight()`〉）
 
 - [ ] **Step 2: 失敗を確かめる**
 
@@ -4036,6 +4104,7 @@ namespace Client.Ui.Screens.BlockInventory
             // エラー行 _error は文を持つまで作らない（文無しの LocalizedLabel を載せると LogError。前例 GamePanel.cs:96 の題の遅延生成）
             // The error row _error is created only once it has text (a text-less LocalizedLabel logs an error; precedent: GamePanel.cs:96 lazy title)
             _body = new VisualElement { name = "block-inventory-body" };
+            _body.AddToClassList("block-inventory__body");   // GamePanel の body いっぱいに伸ばす（高さ確定の本文が伸びる余地）
             _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph());
             _close.AddToClassList("block-inventory__close");
             TutorialAnchor.Mark(_close, AnchorIds.InventoryCloseButton);
@@ -4121,7 +4190,7 @@ namespace Client.Ui.Screens.BlockInventory
 `BlockInventory.uss`:
 ```css
 /* web: features/blockInventory/style.module.css .panel / .panelLarge / .naturalBodyScroll（composes panelBodyScrollArea.module.css .scroll）と BlockInventoryPanel.tsx の GamePanel style（paddingBottom・小型だけの paddingRight）・閉じるの absolute 位置を写す。calc() の寸法と bleed の負マージンは C# が解く */
-/* ports .panel, .panelLarge, .naturalBodyScroll (composing .scroll) and the GamePanel inline style (paddingBottom, small-only paddingRight) plus the close button's absolute position; calc() sizes and the negative bleed margin are solved in C# */
+/* web: ports .panel, .panelLarge, .naturalBodyScroll (composing .scroll) and the GamePanel inline style (paddingBottom, small-only paddingRight) plus the close button's absolute position; calc() sizes and the negative bleed margin are solved in C# */
 .block-inventory {
     align-self: flex-start;
     flex-direction: column;
@@ -4144,6 +4213,13 @@ namespace Client.Ui.Screens.BlockInventory
 
 .block-inventory--large .block-inventory__panel {
     height: 100%;
+}
+
+.block-inventory__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    flex-direction: column;
 }
 
 .block-inventory__close {
@@ -4228,7 +4304,7 @@ namespace Client.Starter.Registration.GameUi
 
 - [ ] **Step 4: テストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.Screens.BlockInventory|Client.Tests.Ui.State.BlockInventory|Client.Tests.Ui.State.SlotCommands|Client.Tests.Ui.State.Recipe|Client.Tests.Ui.State.Routing|PauseMenuCommandsTest|UiThemeImportBundleTest|UiStyleConventionTest|UiLayerDependencyDirectionTest|LookExceptionLedgerTest"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.Screens.BlockInventory|Client.Tests.Ui.State.BlockInventory|Client.Tests.Ui.State.SlotCommands|Client.Tests.Ui.State.Recipe|Client.Tests.Ui.State.Routing|PauseMenuCommandsTest|TutorialAnchorCoverageTest|UiThemeImportBundleTest|UiStyleConventionTest|UiLayerDependencyDirectionTest|LookExceptionLedgerTest"`
 Expected: `ErrorCount: 0`、全件 PASS。続けて `uloop get-logs --project-path ./moorestech_client --log-type Error` が 0 件（受け直したトークンが読めていれば `UssCustomStyleReader` の LogError は出ない）
 
 - [ ] **Step 5: 全体スイッチ UITK での起動を確かめる**
@@ -4281,14 +4357,14 @@ git commit -m "docs(uitk): ブロックインベントリの文言の再生成�
 
 - [ ] **Step 1: 撮る**
 
-参照 `4-block-chest`・`4-block-generic`・`4-block-tank`・`4-block-trainError`（基準 web-869b2d4264 は 1280×720、web-0e81bbe3c3-2560x1080 は 2560×1080）と同じ場面を UITK で撮る。場面の組み方と撮り方は ref-uitk-design スキルの「比べ方」節（`references/` の比較の手順）に従い、同じスキルの比較ツールで並べ比べの画像を作る
+参照 `4-block-chest`・`4-block-generic`・`4-block-tank`・`4-block-trainError`（基準 web-869b2d4264 は 1280×720、web-0e81bbe3c3-2560x1080 は 2560×1080）と同じ場面を UITK で撮る。状態は参照の fixture と同じものを、使い捨ての撮影スクリプトで `IBlockInventoryPanelSource` の代わりに流して作る（本番コードには入れない。比べ方の正本 `compare-procedure.md:39`「参照キャプチャと同じ状態を作る」）: chest は Web `e2e/mock-host/fixtures.ts:47-58` の `blockChest`＝blockType `Chest`・9 枠（7・4・空 7）、generic は `logisticsFixtures.ts:9-18`＝未登録の blockType・項目 1 枠。実マスタの木のチェスト〈30 枠〉では撮らない。場面の組み方と撮り方は ref-uitk-design スキルの「比べ方」節（`references/` の比較の手順）に従い、同じスキルの比較ツールで並べ比べの画像を作る
 
 - [ ] **Step 2: 差の表を書く**
 
 | 参照 | 見る点 | 予想 |
 |---|---|---|
 | 4-block-chest | 外殻の x 位置 | 他レーン持ち（参照は左に持ち物パネル〈x≈45〜510〉があり x≈533 から。UITK は Inv 列が空で x＝40＋0＋16＝56〈計算〉。持ち物パネルは S4-inventory） |
-| 4-block-chest | 幅・高さ・上端 168・題・閉じる・列数 10 の枠・下の安全帯 | 同じ（比べる撮影だけ、使い捨ての撮影スクリプトで Inv 列に幅 `--inventory-panel-width` の空の箱を置く。本番コードには入れない） |
+| 4-block-chest | 幅・高さ・上端 168・題・閉じる・列数 9・1 行の枠・下の安全帯 | 同じ（比べる撮影だけ、使い捨ての撮影スクリプトで Inv 列に幅 `--inventory-panel-width` の空の箱を置く。本番コードには入れない） |
 | 4-block-generic | 未知の blockType の汎用グリッド（x 位置は chest と同じ扱い） | 同じ |
 | 4-block-generic | 項目の枠の下の液体の行（Web `SectionStackView.tsx:45-47` `generic-block-fluids`・`showFluidProgress`） | 他レーン持ち（区画が空。S4-machine） |
 | 4-block-tank | 題と外殻のみ。液体の行は S4-machine の区画が空なので出ない | 他レーン持ち（区画が空）。LX に書かない |
@@ -4320,7 +4396,7 @@ git commit -m "docs(uitk): ブロックインベントリの並べ比べの差�
 2. `PressInteract` → `WaitUiState(UIStateEnum.SubInventory)` → `block-inventory` が出る・題がチェストの名前（`Screenshot`）
 3. `chest-grid-slot-0` を左押下 → 掴みに 10・枠が空（`PlayerGrabModel`）、`grab-overlay` が `grab-overlay--shown` を持ち display Flex（Web `blockInventory.spec` 2 件目の「grab オーバーレイが出る」を主張する。前例 `uitk-grab-overlay.cs:113`）→ 同じ枠へ左押下で戻す
 4. 右押下 → 掴みに 5（分割）→ 右押下で 1 個置く → 左押下で残りを置く
-5. `chest-grid-slot-0` を右押下で半分（5）掴み、`chest-grid-slot-1` へ左押下で置く（枠 0 が 5・枠 1 が 5・掴み 0）→ `chest-grid-slot-0` をダブルクリック → 掴み 0・枠 0 が 10・枠 1 が空（ダブルクリックは押下 2 回〈全量掴み → 全量置き〉の後に `DoubleClick` が来て、空手なのでその枠へ集める。`SlotFrame.cs:55-61,98-103`・`BlockSlotPlanner.cs:22`）
+5. （この手順の押下はイベントを待たずに続けて押す。先書き後の生の値で動くことの確認。D-37）`chest-grid-slot-0` を右押下で半分（5）掴み、`chest-grid-slot-1` へ左押下で置く（枠 0 が 5・枠 1 が 5・掴み 0）→ `chest-grid-slot-0` をダブルクリック → 掴み 0・枠 0 が 10・枠 1 が空（ダブルクリックは押下 2 回〈全量掴み → 全量置き〉の後に `DoubleClick` が来て、空手なのでその枠へ集める。`SlotFrame.cs:55-61,98-103`・`BlockSlotPlanner.cs:22`）
 6. 前提「掴み 0・枠 0 に 10」（手順 5 の主張）で Shift＋左押下 → main へ配分（チェストの枠が空・main に入る）。main の枠からの Shift は UITK の持ち物画面〈S4-inventory〉が無いので alpha の録画では押さない（L0 の `PlayerSlotCommandsTest` が持つ。UI からの確認は S4-inventory の完了条件。D-33）
 7. `block-inventory-close` を押す → `WaitUiState(UIStateEnum.GameScreen)` → `block-inventory` が隠れる
 8. 途中で `uloop get-logs --log-type Error` 相当（DSL の `AssertNoErrorLogs`）が 0 件
@@ -4377,7 +4453,7 @@ pr-create スキルで base `feature/uitk` の PR を作る。本文の先頭行
 git fetch origin
 git merge origin/feature/uitk
 ```
-共有区画（`MainGameUiRegistration` の共有サービスの並びと画面登録区画・`MainGameModelRegistration`・`GameUiTheme.tss` の `Screens` 区画・`docs/uitk/TODO.md`・`UiCommandRejectReason`・`localization.csv`）の衝突は両側の行を残して解く。取り込み後に `moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` があれば（S2-tutorial が先にマージした場合）`inventory.close-button` の行を消す（E-1。alpha が `TutorialAnchor.Mark` を足したので保留表から外す）。続けて `uloop compile` と Task 8 Step 4 のテスト（ファイルがあれば `TutorialAnchorCoverage` を含めて）を回し、緑を確かめて push
+共有区画（`MainGameUiRegistration` の共有サービスの並びと画面登録区画・`MainGameModelRegistration`・`GameUiTheme.tss` の `Screens` 区画・`docs/uitk/TODO.md`・`UiCommandRejectReason`・`localization.csv`）の衝突は両側の行を残して解く。取り込みで `TutorialAnchorCoveragePending.cs` が衝突したら、`InventoryCloseButton` の行が無い側を取る（行は Task 8 で消し済み）。続けて `uloop compile` と Task 8 Step 4 のテスト（`TutorialAnchorCoverageTest` を含む）を回し、緑を確かめて push
 
 - [ ] **Step 3: G1 を待ってマージする**
 
@@ -4430,7 +4506,7 @@ git merge origin/feature/uitk
 | D-22 | 複数レーンが ctor で受ける共有サービス（`IBlockInventoryPanelSource`・`IUiStateTransitionRequester`・`UnlockedMachineRecipeSource`・スロット操作の型付きコマンドとその実行器・`BlockItemGridFactory`）は `MainGameUiRegistration` の共有サービスの並びに登録し、画面だけのものを `BlockInventoryGameUiRegistration` に置く。出所: レビュー | E-1・A-56「作るレーンが本体の共有サービスの並びに登録する」。専用の登録口だと他レーンがその登録に依存し未マージの worktree で解決例外になる | すべて画面の登録ファイルに置く（ADR と食い違う） |
 | D-23 | 大型パネルは右の余白を上書きしない（`GamePanel` 既定 10px）。右の安全帯 `--block-panel-right-safe-area` は小型（`block-inventory--natural`）だけ。テストの期待値も大型 10。出所: レビュー | Web `BlockInventoryPanel.tsx:62-66` は大型で paddingRight を書かず、`GamePanel` の `.panel { padding: 8px 10px 10px 28px }` が残る | 大型で 0 にする（本文が右へ 10px 広がり、テストがその誤りを固定する） |
 | D-24 | 題の右の逃げは `calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))`（12px・計 99px）で integrator へ依頼する。出所: レビュー | Web `BlockInventoryPanel.tsx:55`、UITK `MantineTokens.uss:82` `--mantine-spacing-sm: 12px` | `+ 8px`（ロケットの題で 4px ずれる） |
-| D-25 | 写した 23 件は `docs/uitk/disposition.md` に書かない（E-1・設計書と一致。ADR 側は 945a356987 で「写したテストは `<web-test>` だけ・disposition には写さない処遇だけ」に直った）。R-16 は「alpha のファイルの未対応 0 かつ終了コード ≠ 2」。`localizationKeys.ts` の再生成は `docs/uitk/TODO.md`「## 追従記録」に記帳する（Task 9）。`TutorialAnchorCoveragePending.cs` があれば `inventory.close-button` の行を消す（Task 13）。出所: レビュー | `compareBundles.mjs:88` は `<web-test>` で写したテストに処遇の行があると誤りにし終了コード 2。E-1 は再生成の記帳と保留表の行の削除を同じ PR に求める | 写した件も処遇の表に書く（parity が落ちる） |
+| D-25 | 写した 23 件は `docs/uitk/disposition.md` に書かない（E-1・設計書と一致。ADR 側は 945a356987 で「写したテストは `<web-test>` だけ・disposition には写さない処遇だけ」に直った）。R-16 は「alpha のファイルの未対応 0 かつ終了コード ≠ 2」。`localizationKeys.ts` の再生成は `docs/uitk/TODO.md`「## 追従記録」に記帳する（Task 9）。`TutorialAnchorCoveragePending.cs` の `InventoryCloseButton` の行は錨を付けるのと同じ Task 8 で消す（D-45）。出所: レビュー | `compareBundles.mjs:88` は `<web-test>` で写したテストに処遇の行があると誤りにし終了コード 2。E-1 は再生成の記帳と保留表の行の削除を同じ PR に求める | 写した件も処遇の表に書く（parity が落ちる） |
 | D-26 | `regression/sectionStack` の FilterSplitter のケースは S4-special が写す。alpha は「未登録の本文 Kind は標準の本文へ逃げて警告を 1 回」を別名のテスト（`BlockInventoryPartRegistryTest`）で持つ。出所: レビュー | FilterSplitter は設定表に行が無く Generic に解決されるので、alpha の逃げの状態では `generic-block-grid` が出て Web の期待（専用本文）と食い違う | alpha のテストで期待 null のまま持つ（期待値が矛盾する） |
 | D-27 | `blockInventory.spec` 2 件目の「grab オーバーレイが出る」は、送る移動を `BlockSlotCommandsTest` が、絵の表示を録画 `uitk-block-inventory` 手順 3 が主張し、写すテスト表に紐付ける。出所: レビュー | L1 で掴み絵まで組むには C4-e の `GrabOverlayModel`・ポインタ・実在庫が要り、録画の前例 `uitk-grab-overlay.cs:113` が同じ主張を持つ | 移動の記録だけで写したことにする（元テストの主張が落ちる） |
 | D-28 | 区画の出し入れは区画の Presenter が `IReadOnlyReactiveProperty<bool> IsApplicable` で通知し、`SectionStackBody` が購読して `UiStack.SetItemShown` で出し入れと先頭の間隔を組み直す。出所: レビュー（PLAN-W4b の S4-special D-23 の申し出） | 網の集約・ベルトの統計はパネルの組み直しの外で届く。区画が自分で display を触ると `UiGapContainer` の先頭の間隔が崩れる | パネルの Render のときだけ `IsApplicable` を聞く／区画が自分の display を切り替える |
@@ -4442,11 +4518,16 @@ git merge origin/feature/uitk
 | D-34 | `UiCommandRejectReason.BlockSlotUnavailable` を足すのと同じ Task で `PauseMenuCommandsTest` の網羅テストの `benign` 配列とメソッド名を無条件に直し、Step の絞り込みに含める。出所: レビュー | 全列挙と固定配列の照合なので、直さないと CI で初めて赤になる（Task 4 の絞り込みに入っていなかった） | 「配列を持つなら足す」の条件文 |
 | D-35 | 題の操作・列車の本文の「無い」は判別子 `BlockInventoryTitleActionKind.None` 1 本で表し、工場は null の代わりに空の部分（Null Object `EmptyBlockInventoryPart`／`EmptyTrainInventoryPart`）を返す。名前は `CreateTitleAction`／`CreateTrainBody`。BodyHost の null 分岐を消し、View は `ClearTitleAction()` で器を空にする。出所: 型閉包検査 r2 | 同じ「無い」を enum と null の 2 通りで持つと、呼び手に内部値の null 分岐が散る（Global Constraints「null チェックは外部データだけ」と食い違う） | `TryCreate…(out)` に戻す（呼び手の分岐が残る）／enum だけにして未登録で例外（S4-train 未着の間に列車を開くと落ちる） |
 | D-36 | 種別ごとの例外 3 か所をなくす。(1) ブロック側の計画は `BlockItemActionConversion.TryConvert` で種類ごとの型（`BlockMoveItemAction`・`BlockSplitToGrabAction`・`BlockCollectAction`。前例 `PlayerItemAction`）へ写してから実行器へ渡し、Runner は「プレイヤーへ写す → ブロックへ写す → どちらも不可は Error ログ＋拒否」。(2) `BlockInventoryPanelErrorText.TryGetLocalizationKey`（None は false）をエラー行の出し入れの唯一の分岐にする。(3) `ShiftMoveRefusalNotifier.TryGetMessageId`（DestinationFull は false）を通知の early return 1 本にする。出所: 型閉包検査 r2 | 例外は前段の分岐に頼っており、前段を変えると実行時に落ちる。型か戻り値で受けられない入力を閉じれば例外が要らない | 例外を残して前段の分岐にコメントを足す（型で閉じない） |
-| D-37 | 「ブロックインベントリが開いている」は表示側のパネルの状態 1 本から導く。`LocalBlockInventoryOperations.TryReadBlockSlots` は `IBlockInventoryPanelSource.Current` がエラー無しの `OpenBlockInventoryPanel`／`OpenTrainInventoryPanel` のときだけ真で、その `ItemSlots` を返す。番地は `MainSlotCount + slot` のまま。出所: 型閉包検査 r2 | 操作側が `SubInventoryState` を別に読むと、表示が閉で操作が開く窓（追跡ブロック未解決・SubInventory 以外の画面）が型の上で残る。今届く入力は無いが、導出を 1 本にすれば窓そのものが無くなる | 表示側に行を足して 2 本のまま揃える（同じ規則を 2 か所で保つ） |
+| D-37 | 「ブロックインベントリが開いている」は表示側のパネルの状態 1 本から導く（`IBlockInventoryPanelSource.Current` がエラー無しの `OpenBlockInventoryPanel`／`OpenTrainInventoryPanel`）。枠の値は押下の瞬間に `SubInventoryState.CurrentSubInventory.SubInventory` の生の値（コントローラの先書き込みを含む）を `ToSlotItems` で写す。番地は `MainSlotCount + slot` のまま。出所: 型閉包検査 r2、枠の値はレビュー r3 | 開閉の導出が 2 本だと表示が閉で操作が開く窓が型の上で残る。一方パネルの状態の枠は `OnSubInventoryUpdated`（サーバーのイベント）でしか組み直されず、先書きの後 1 往復は古い。イベント前に続けて押すと誤った断り・誤った分割量になる（Web ホスト `BlockAreaSlotParser`・`BlockSplitGrabActionHandler` は生の値を読む） | 開閉も枠もパネルの状態から読む（先書きの窓で誤動作）／パネルのモデルに `OnItemChange` の購読を足して組み直す（表示が Web より先に変わり、メイン側の変化でも毎回組み直す） |
 | D-38 | `BlockInventoryPanelLayout` は判別子 `BlockInventoryPanelSize`（Natural・LargeNaturalBody＝列車・LargeFilledBody＝寄与の大型）を持ち、ctor を private にして 3 つの static だけを公開する。`IsLarge`・`FillsPanelHeight` は判別子からの計算プロパティ。出所: 型閉包検査 r2 | bool 2 個の公開 ctor では意味の無い (小型, 高さ確定) が作れる。読み手の形は変えずに作り手を閉じる | 公開 ctor の bool 2 個のまま（不正値が作れる） |
-| D-39 | 型閉包検査 r2 の弱 7 件: 「`CreateTitleActionOrNull` が null 制約と矛盾」は D-35 で直した。残り 6 件は見送る — `SectionStackItemGridSection` の bool 合成（1 式で読め、出所の Web も同じ合成）／`BlockSlotCommands.TryReadSlot` の 2 理由（どちらも良性の `BlockSlotUnavailable` で扱いが同じ。ログに出し分けは不要）／SubInventory の判定 2 回（D-41）／「開いていて範囲内」の 2 回（コマンドは計画を組む前、実行器は実行の瞬間に読む別の時点の確認で、D-31 で述語は 1 か所）／`Error == None` の散在（判定は enum の比較 1 つで、規則が分かれる余地が無い）／`MachineRecipeLevelInheritanceConversion` の 2 case の同形（case ごとに形の読み方が変わる余地を残す 2 行で、関数化しても行数が減らない）。出所: 型閉包検査 r2 | 拾う価値は故障シナリオを作れるかで決めた | すべて直す（差分が増え、故障を防がない） |
+| D-39 | 型閉包検査 r2 の弱 7 件: 「`CreateTitleActionOrNull` が null 制約と矛盾」は D-35 で直した。残り 6 件は見送る — `SectionStackItemGridSection` の bool 合成（1 式で読め、出所の Web も同じ合成）／`BlockSlotCommands.TryReadSlot` の 2 理由（どちらも良性の `BlockSlotUnavailable` で扱いが同じ。ログに出し分けは不要）／SubInventory の判定 2 回（D-41）／「開いていて範囲内」の 2 回（コマンドは計画を組む前、実行器は実行の瞬間に読む別の時点の確認で、D-31 で述語は 1 か所）／`Error == None` の散在（判定は enum の比較 1 つで、規則が分かれる余地が無い）／`MachineRecipeLevelInheritanceConversion` の 2 case の同形（case ごとに形の読み方が変わる余地を残す 2 行で、関数化しても行数が減らない）。r3 の弱 2 件: `TryReadBlockSlots` の false の 2 理由（閉・エラー中）は扱いが同じ良性の `BlockSlotUnavailable` なので型は分けず、ログの文を `closed or in error` にした。内部の null を合図にする Try は、新しく書く `TryGetMessageId`・`TryReadBlockSlots`（の開閉判定）を switch 文で各腕が out と真偽を返す形に直し、`BlockItemActionConversion.TryConvert` は前例 `PlayerItemActionConversion.TryConvert`（`_ => null`）と対になる形を優先して残す。出所: 型閉包検査 r2・r3 | 拾う価値は故障シナリオを作れるかで決めた | すべて直す（差分が増え、故障を防がない） |
 | D-40 | スロット操作は `Client.Ui.State/SlotCommands/`（Player・Block）に置き、C4-e の `Inventory/Drag`・`Inventory/Actions` に足さない。出所: 配置検査 r2 N-2 | ブロック側とプレイヤー側の押下と、両者をまたぐ Runner を 1 か所にまとめる。`Inventory/` に足すとブロックの語彙が持ち物の機能へ入る | `Inventory/Commands/` と `BlockInventory/Actions/` に分ける（Runner の置き場が決まらない） |
 | D-41 | SubInventory の判定は Model（閉を返す）と `BlockInventoryScreenVisibility`（画面ルータと閉でないこと）の 2 か所に残す。出所: 配置検査 r2 N-3 | Model 側の判定は操作の口（D-37）が閉を読むために要る。画面の出し分けは前例 `PauseMenuScreenPresenter.cs:61-64` と同じく画面ルータから直接読む形にそろえる（D-21）。重なりは同じ enum の比較 1 つで、規則が分かれる余地が無い | Visibility を `!(state is Closed)` だけにする（画面の出し分けがパネルの状態の内部規則に依存し、前例と形が変わる） |
+| D-42 | 本文の器 `block-inventory-body` に `block-inventory__body`（`flex-grow:1; flex-shrink:1; min-height:0; flex-direction:column`）を付け、`GamePanel` の body いっぱいに伸ばす。出所: レビュー r3 | 器が既定の `flex-grow:0` だと高さ確定の本文（`section-stack--fill-panel-height`）が伸びる余地が無く、S4-machine の「フッタは見えたまま」が成り立たない。Web は本文を GamePanel の body の直下に置く | 器を作らず本文を GamePanel の body へ直に載せる（スクロール器の包み替えの置き場が無くなる） |
+| D-43 | 並べ比べの状態は参照の fixture と同じものを使い捨ての撮影スクリプトで流して作る（chest＝`Chest`・9 枠〈7・4・空 7〉、generic＝未登録の blockType・1 枠）。差の表は列数 9・1 行。出所: レビュー r3 | 比べ方の正本 `compare-procedure.md:39`。実マスタの木のチェストは 30 枠で 10 列×3 行になり、参照と状態が違う | 実マスタのまま撮って差を「他レーン持ち」で閉じる（比べになっていない） |
+| D-44 | `BlockInventoryPanelErrorText.TryGetLocalizationKey` は switch 文で各腕が key と真偽を返し、未知の値は例外で止める。enum の網羅テストを 1 件足す。出所: レビュー r3 | 戻り値をキーと別の式で決めると、enum に値を足したとき空のキーで真になりエラー行が空のまま出る。未知の値は開発時の誤りなので止める | `_ => default` のまま（空の行が出る） |
+| D-45 | `TutorialAnchorCoveragePending.cs` の `InventoryCloseButton` の行は、錨を付けるのと同じ Task 8 で消し、Step 4 の絞り込みに `TutorialAnchorCoverageTest` を入れる。出所: レビュー r3 | 保留表の行は feature/uitk にすでにあり、印と両方あるとテストが赤になる。消すのを Task 13 に回すと Task 8〜13 の間赤のまま進む | Task 13 で「あれば」消す（条件が実物と合わない） |
+| D-46 | `%sから禁止Mantine部品とテーマ色を除去する` の写しは、USS の色の直書きが無いことに加えて、本文の木の操作の要素がすべて共通部品で素の `Button`・`Toggle`・`RadioButton`・`Slider`・`ProgressBar` を含まないことも主張する。後続レーンも同じ形で写す（Produces に書く）。出所: レビュー r3 | Web `blockInventoryDesign.test.ts:6-25,41-44` はコンポーネントのソースで禁止部品を見ている。色だけでは元テストの主張の半分が落ちる | 色だけを見る（元テストの主張が落ちる） |
 
 ---
 
@@ -4686,6 +4767,8 @@ public static class MachineRecipeSummaryConversion { public static IReadOnlyList
 - `IBlockInventoryOperations.TryReadBlockSlots` は `IBlockInventoryPanelSource` がエラー無しのブロック／列車のときだけ真（表示と同じ状態から導く。D-37）。ブロック側の計画は `BlockItemActionConversion.TryConvert` で `BlockItemAction` に写してから `BlockItemActionExecutor.Execute` へ渡す（D-36）。`BlockInventoryPanelLayout` は 3 つの static だけで作る（D-38）。レジストリの題の操作・列車の本文は null を返さず空の部分を返す（D-35）
 - 画面だけのもの（LayoutModel・閉じる・レジストリ・ScreenPresenter）は `BlockInventoryGameUiRegistration`。後続は自分の登録ファイルを作り、画面登録区画に 1 行足す。`Registration/GameUi/` は alpha で 9 ファイル、後続で 10 を超えるので integrator にサブディレクトリ化を依頼済み
 - USS は自分の画面の USS を `GameUiTheme.tss` の `Screens` 区画に `@import` する。色は `--text-*` 等のトークンだけ。`:root` のトークンを C# で読むなら自分のクラスで受け直す（D-8）。「色を直書きしない」の確認は alpha の `BlockInventoryDesignTest` に足さず、自分のテストファイルに同じタグ（`%sから禁止Mantine部品とテーマ色を除去する`）で写す
+- 同じタグでは、USS の色の直書きが無いことに加えて、自分の本文・区画の木の操作の要素がすべて共通部品（`PanelActionButton`・`ModeSwitch`・`IconButton`・`GameTextField` 等。`Client.Ui.Components` の型）で、素の `Button`・`Toggle`・`RadioButton`・`Slider`・`ProgressBar` を含まないことも主張する（alpha の `本文の木の操作の要素は共通部品だけで素の操作部品を含まない` と同じ形。D-46）
+- `IBlockInventoryOperations.TryReadBlockSlots` の枠の値は押下の瞬間の `SubInventoryState` の生の値（先書き込みを含む）で、パネルの状態の `ItemSlots` とは 1 往復ずれうる。操作の計画はパネルの状態ではなくこの口から読む（D-37）
 
 ---
 
@@ -4700,7 +4783,7 @@ public static class MachineRecipeSummaryConversion { public static IReadOnlyList
 - **通知の messageId**: `denied.inventoryMoveSlotRejected`・`denied.inventoryOpenFailed`・`denied.inventoryDetailLoading` は Web と同じ id を `ClientLocalNotificationSource` へ流す。UITK の通知レーンがこの id を文言へ解決できるかは通知レーン側の確認事項
 - **C3-b の型（E-22）**: 使う。`ItemSlot` の名前ツールチップが `GameUiHoverTooltipInstaller`（C3-b）経由で出るのと、`GameScrollView`（自然高のスクロール器）。Global Constraints の依存に C3-b を足した（マージ済み）
 - **Web の外殻から写さなかったもの**: `data-large` 属性はクラス `block-inventory--large`（小型は `block-inventory--natural`）で表す
-- 設計検査は 2 本とも実施済み、反映後の r2 の再検査も実施済み（記録は「## 設計検査記録」）。r2 の指摘 C1〜C5・O1・O2・O4・V-1・T1〜T3・T5 は反映済み（D-35〜D-41）
+- 設計検査は 2 本とも実施済み、反映後の r2 の再検査も実施済み（記録は「## 設計検査記録」）。r2 の指摘 C1〜C5・O1・O2・O4・V-1・T1〜T3・T5 は反映済み（D-35〜D-41）。r3 の 10 件・D-37 の先書きの窓・禁止部品の主張は反映済み（D-37・D-39・D-42〜D-46）
 
 ---
 
