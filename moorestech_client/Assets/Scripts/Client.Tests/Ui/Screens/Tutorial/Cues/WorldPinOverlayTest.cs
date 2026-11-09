@@ -23,17 +23,17 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
             _view = WorldPinPresenter.Mount(rootVisualElement, _model.Current);
         }
 
-        private static WorldPinPresentationData Pins(params WorldPinData[] pins)
+        internal static WorldPinPresentationData Pins(params WorldPinData[] pins)
         {
             return new WorldPinPresentationData { Revision = 1, Pins = pins };
         }
 
-        private static WorldPinData Pin(string pinId, float screenX, float screenY)
+        internal static WorldPinData Pin(string pinId, float screenX, float screenY)
         {
             return new WorldPinData { PinId = pinId, TutorialGuid = TutorialOverlayProjectionTest.LabelGuid.ToString(), ScreenX = screenX, ScreenY = screenY, OnScreen = true };
         }
 
-        private static WorldPinData EdgePin(string pinId, float directionX, float directionY)
+        internal static WorldPinData EdgePin(string pinId, float directionX, float directionY)
         {
             return new WorldPinData { PinId = pinId, TutorialGuid = TutorialOverlayProjectionTest.LabelGuid.ToString(), OnScreen = false, DirectionX = directionX, DirectionY = directionY };
         }

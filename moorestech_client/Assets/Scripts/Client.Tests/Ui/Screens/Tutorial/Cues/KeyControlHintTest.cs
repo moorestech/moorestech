@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
             _view = KeyControlHintPresenter.Mount(rootVisualElement, _model.Current);
         }
 
-        private static TutorialKeyControlElementData Hint(string elementId, string keyName, string uiState)
+        internal static TutorialKeyControlElementData Hint(string elementId, string keyName, string uiState)
         {
             return new TutorialKeyControlElementData { ElementId = elementId, TutorialGuid = TutorialOverlayProjectionTest.LabelGuid.ToString(), KeyName = keyName, UiState = uiState };
         }
