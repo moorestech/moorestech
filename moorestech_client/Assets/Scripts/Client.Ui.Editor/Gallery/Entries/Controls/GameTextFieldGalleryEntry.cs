@@ -9,9 +9,9 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
     // GameTextField samples (multiline, search, MantineInput)
     public sealed class GameTextFieldGalleryEntry : IUiGalleryEntry
     {
-        // バグ報告の記述欄 356×72・ビルドメニューの検索 452px・モーダルの入力 400px（Web の参照キャプチャの実寸）
-        // Bug-report textarea 356x72, build-menu search 452px, modal input 400px (actual sizes in the Web reference captures)
-        private const float TextAreaWidth = 356f;
+        // バグ報告の記述欄 354×72・ビルドメニューの検索 452px・モーダルの入力 400px（Web の参照キャプチャの実寸）
+        // Bug-report textarea 354x72, build-menu search 452px, modal input 400px (actual sizes in the Web reference captures)
+        private const float TextAreaWidth = 354f;
         private const float TextAreaHeight = 72f;
         private const float SearchWidth = 452f;
         private const float MantineInputWidth = 400f;

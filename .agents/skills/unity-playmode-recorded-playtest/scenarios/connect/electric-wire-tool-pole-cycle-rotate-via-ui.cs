@@ -24,7 +24,6 @@ using Game.UnlockState;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options, async p =>
@@ -80,7 +79,9 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.45f));
     await UniTask.DelayFrame(3);
     var controlBefore = equipment.SelectedIndex;
-    await InjectScroll(120f);
+    // Web の装備切替は 100px で 1 段（equipmentLogic.ts）、DSL の CEF 転送は 1 ノッチ 60px なので 2 ノッチ回す
+    // The Web equipment switch steps per 100px (equipmentLogic.ts) and the DSL CEF forward sends 60px per notch, so turn 2 notches
+    await InjectScroll(2f);
     var controlDeadline = Time.realtimeSinceStartup + 6f;
     while (Time.realtimeSinceStartup < controlDeadline && equipment.SelectedIndex == controlBefore) await UniTask.DelayFrame(5);
     p.Assert(equipment.SelectedIndex != controlBefore, $"対照実験: ゲーム画面のホイールで装備選択が変わる (前={controlBefore} 後={equipment.SelectedIndex})");
@@ -113,7 +114,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     // ===== スクロール1回目: 電柱種が次へサイクルし、装備は動かない =====
     // ===== First wheel notch: the pole type cycles and equipment stays put =====
     p.Note("スクロールを1ノッチ回す（電柱種は次へ、装備は不変のはず）");
-    await InjectScroll(120f);
+    await InjectScroll(1f);
     await p.Until(() => SelectedPoleName() != poleNameBefore, 10f, "受け入れ4: スクロールで電柱種が切り替わる");
     var poleNameSecond = SelectedPoleName();
     p.Note($"電柱種: {poleNameBefore} → {poleNameSecond} / 装備選択: {equipmentBefore} → {equipment.SelectedIndex}");
@@ -125,7 +126,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     // ===== スクロール2回目: さらに次の電柱種へ =====
     // ===== Second notch: cycle once more =====
     p.Note("さらにスクロールし3種目の電柱へ切り替える");
-    await InjectScroll(120f);
+    await InjectScroll(1f);
     await p.Until(() => SelectedPoleName() != poleNameSecond, 10f, "受け入れ4: もう1ノッチで次の電柱種へ切り替わる");
     var poleNameThird = SelectedPoleName();
     p.Note($"電柱種: {poleNameSecond} → {poleNameThird} / 装備選択: {equipment.SelectedIndex}");
@@ -135,7 +136,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     // ===== 逆スクロールで前の電柱種へ戻る =====
     // ===== Reverse wheel returns to the previous pole type =====
     p.Note("逆方向にスクロールして前の電柱種へ戻す");
-    await InjectScroll(-120f);
+    await InjectScroll(-1f);
     await p.Until(() => SelectedPoleName() == poleNameSecond, 10f, "逆スクロールで前の電柱種へ戻る");
     p.Assert(equipment.SelectedIndex == equipmentBefore, "受け入れ4: 逆スクロールでも装備は切り替わらない");
     // ===== Rキーで向きが変わる =====
@@ -159,24 +160,20 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.45f));
     await UniTask.DelayFrame(3);
     var postControlBefore = equipment.SelectedIndex;
-    await InjectScroll(120f);
+    // 対照と同じく装備切替には 2 ノッチ（1 ノッチ 60px・切替は 100px）
+    // As in the control, the equipment switch needs 2 notches (60px per notch, a switch per 100px)
+    await InjectScroll(2f);
     var postDeadline = Time.realtimeSinceStartup + 6f;
     while (Time.realtimeSinceStartup < postDeadline && equipment.SelectedIndex == postControlBefore) await UniTask.DelayFrame(5);
     p.Assert(equipment.SelectedIndex != postControlBefore, $"後対照: ツール解除後は同じホイールで装備が切り替わる (前={postControlBefore} 後={equipment.SelectedIndex})");
     p.Note($"後対照の結果: 装備選択 {postControlBefore} → {equipment.SelectedIndex}（抑止はツール使用中に限定されている）");
     await p.Screenshot("07-post-control-equipment-switched");
     #region Internal
-    // InputSystemのMouseStateへscrollを直接積む（SemanticInputはscrollを持たないため）
-    // Queue a MouseState carrying scroll directly (SemanticInput has no scroll API)
-    async UniTask InjectScroll(float scrollY)
+    // ホイールをノッチ数（正で上・負で下）で注入する。SemanticInput.MouseWheel は実マウスと同じ 1 ノッチ＝1 の値を入れる
+    // Inject wheel notches (positive up, negative down); SemanticInput.MouseWheel queues the same 1-per-notch value a real mouse gives
+    async UniTask InjectScroll(float notches)
     {
-        var mouse = Mouse.current;
-        InputSystem.QueueStateEvent(mouse, new MouseState
-        {
-            position = mouse.position.ReadValue(),
-            delta = Vector2.zero,
-            scroll = new Vector2(0f, scrollY),
-        });
+        SemanticInput.MouseWheel(notches);
         await UniTask.DelayFrame(4);
         await p.WaitSeconds(0.5f);
     }

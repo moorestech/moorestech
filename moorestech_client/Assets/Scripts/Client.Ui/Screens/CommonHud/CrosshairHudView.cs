@@ -1,5 +1,6 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.CommonHud
@@ -26,7 +27,7 @@ namespace Client.Ui.Screens.CommonHud
 
             // 常駐 HUD はどの要素も入力を奪わない（Web の pointer-events: none）
             // No element of a resident HUD takes input (Web pointer-events: none)
-            this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
+            UiPickingIgnore.ApplyToSubtree(this);
             SetShown(false);
         }
 

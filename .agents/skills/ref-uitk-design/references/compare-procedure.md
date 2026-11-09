@@ -39,7 +39,18 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 - **画面**: PlayMode・全体スイッチ〔W0-switch〕UITK（今は所有表で UITK 所有にした画面）で、参照キャプチャと同じ状態を DSL のシナリオで作り、ScreenCapture で 1280×720 と 2560×1080 の 2 種を撮る。フレーム番号の透かしを入れて古いフレームを見ないようにする
 - `--capture-mode rendering`（PlayMode の既定）には UITK が写らない。撮れた画像は結果の `ImagePath` を開く（ディレクトリの新しい順で拾わない）
 - 画面の ScreenCapture も同じ `moorestech_client/.uloop/outputs/compare/<レーンID>/` に置く
-- **色はランタイムの PanelSettings で比べる**: 部品ギャラリー（EditorWindow）は sRGB のまま合成するので、Linear 用に α を補正したトークン（`docs/uitk/translucent-tokens.md`）が Web より淡く出る。半透明・α 補正の色は、`PanelSettings` を作って `targetTexture`（`RenderTextureReadWrite.sRGB` の RenderTexture）に描き、読み戻した画素を Web の色と比べる（PlayMode の画面の撮影でもよい）。ギャラリーの撮影で比べるのは配置・寸法・装飾の有無だけ（設計書 [A-74]・台帳「実測の結論」の C2-a ギャラリーの半透明）
+- **色はランタイムの PanelSettings で比べる**: 部品ギャラリー（EditorWindow）は sRGB のまま合成するので、Linear 用に α を補正したトークン（`docs/uitk/translucent-tokens.md`）が Web より淡く出る。半透明・α 補正の色は下の撮影道具（本番の PanelSettings の複製・`targetTexture` は sRGB の RenderTexture）で描き、読み戻した画素を Web の色と比べる（PlayMode の画面の撮影でもよい）。ギャラリーの撮影で比べるのは配置・寸法・装飾の有無だけ（設計書 [A-74]・台帳「実測の結論」の C2-a ギャラリーの半透明）
+
+### 撮影の道具（使い捨ての手順を書かない）
+
+- **部品をランタイムの合成で PNG にする**（EditMode。PlayMode 中は止める）: `Client.Ui.Editor.Capture.UiRuntimePanelCapture`。倍率は本番の ScaleWithScreenSize が幅×高さから決める（2560×1080 なら 1.5）。地の色は参照の画素を 1 色で渡す。画素を数で見たいときは `Render(...)` が読める `Texture2D` を返す（左下原点。捨てるのは呼び手）
+
+```bash
+uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.UiRuntimePanelCapture.CaptureToPng(new Client.Ui.Editor.Gallery.Entries.Slots.ItemSlotGalleryEntry().CreateSample(), 2560, 1080, new UnityEngine.Color32(35, 29, 30, 255), "<worktree の絶対パス>/moorestech_client/.uloop/outputs/compare/<レーンID>/itemslot-2560x1080.png");'
+```
+
+- **Game View の解像度を切り替える**: uloop では `uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.GameViewResolution.Set(2560, 1080);'`（無ければ固定解像度を足して選ぶ。撮り終えたら 1280×720 へ戻す）。録画 DSL では `await PlaytestGameViewOps.SetResolution(p.CancellationToken, 2560, 1080);`（`using Client.Playtest.Operations.Ui;`。`Screen` が追いつくまで待つ）。例は `scenarios/uitk/uitk-gameview-resolution-switch.cs`
+- 2560×1080 の Web の参照は `web-0e81bbe3c3-2560x1080`（台帳「## 参照キャプチャ」）。撮り直すときは capture の前に `pnpm build` が要る
 
 ## 4. 並べ比べの載せ方
 

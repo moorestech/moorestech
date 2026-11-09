@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Localization;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Routing;
@@ -59,16 +60,7 @@ namespace Client.Ui.Screens.TrainHud
 
             // 常駐 HUD はどの要素も入力を奪わない（Web の pointer-events: none）。SetItemShown が作り直す包みも含める
             // No element of a resident HUD takes input (Web pointer-events: none), including wrappers SetItemShown rebuilds
-            IgnorePicking();
-
-            #region Internal
-
-            void IgnorePicking()
-            {
-                this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
-            }
-
-            #endregion
+            UiPickingIgnore.ApplyToSubtree(this);
         }
     }
 }

@@ -21,8 +21,8 @@
     --pause-menu-face: rgba(16, 20, 28, 0.9907); /* web: rgb(16 20 28 / 92%) α補正 */
     --pause-menu-border: rgb(73, 76, 82); /* web: rgb(255 255 255 / 24%) over (16,20,28) */
 
-    /* Mantine ScrollArea の暗色のつまみ。Web: rgba(255, 255, 255, 0.4) を明るい色の α 補正（α^2.2）で写す */
-    --theme-scroller-thumb-face: rgba(255, 255, 255, 0.1332); /* web: rgba(255, 255, 255, 0.4) α補正 */
+    /* Mantine ScrollArea の暗色のつまみ。Web: rgba(255, 255, 255, 0.4) を明るい色の α 補正（α^1.85）で写す */
+    --theme-scroller-thumb-face: rgba(255, 255, 255, 0.1836); /* look-exception: LX-81 */ /* web: rgba(255, 255, 255, 0.4) α補正 */
 
     /* C2-a: 面・装飾（Panels・Decor）。つまみの既定は Web の var() のフォールバックか Mantine の既定、色は Web の CSS module の直書きを前計算した値（設計書 A-23・A-24・A-25） */
     /* C2-a: surfaces and decor (Panels, Decor); knob defaults are the Web var() fallbacks or Mantine defaults, colors precompute literals in the Web CSS modules (design A-23, A-24, A-25) */
@@ -35,7 +35,7 @@
     --title-scale-y: 0.947; /* web: .title の var(--title-scale-y, 0.947) */
     --game-panel-craft-face: rgba(7, 9, 18, 0.9491); /* web: .craft の background rgb(7 9 18 / 80%) α補正（S7 の近似式 1-(1-α)^1.85） */
     --game-panel-craft-line: rgb(40, 42, 53); /* web: .craft の inset 0 0 0 3.132px rgb(40 42 53) */
-    --game-panel-craft-rim: rgba(146, 148, 167, 0.2684); /* web: .craft の inset 0 0 0 3.524px rgb(146 148 167 / 55%) α補正（S7 の近似式 α^2.2） */
+    --game-panel-craft-rim: rgba(146, 148, 167, 0.3309); /* web: .craft の inset 0 0 0 3.524px rgb(146 148 167 / 55%) α補正（S7 の近似式 α^1.85） */
     --paper-face: var(--mantine-color-body); /* web: Mantine Paper の background-color。Web に局所変数は無く、画面は background を直に上書きする（設計書 A-23） */
     --paper-radius: var(--mantine-radius-sm); /* web: Mantine Paper の --paper-radius: var(--mantine-radius-default)。8.3.18 の既定 theme では sm と同じ 0.25rem */
     --hud-label-font-size: var(--challenge-hud-label-font-size); /* web: CurrentChallengeHud.module.css .label。PlacementModeHud の --operation-hud-* は同値 */
@@ -46,7 +46,11 @@
 
     /* C2-b: Mantine Button の Subtle のホバー。生成器は半透明で止まるのでここに Web と同名で手書きする */
     /* C2-b: Mantine Button Subtle hover; the generator stops on translucent values, so it is hand-written here under the Web name */
-    --mantine-color-blue-light-hover: rgba(34, 139, 230, 0.029); /* web: dark の rgba(34, 139, 230, 0.2) を明るい色の α 補正（α^2.2。--theme-scroller-thumb-face と同じ） */
+    --mantine-color-blue-light-hover: rgba(34, 139, 230, 0.0509); /* web: dark の rgba(34, 139, 230, 0.2) を明るい色の α 補正（α^1.85。--theme-scroller-thumb-face と同じ） */
+
+    /* I-fix2: 通知の文字影。Web は notification/style.module.css:38 に直書きでトークンが無い。値はキーヒントの影と同じで α も同じく補正しない（設計書 A-112） */
+    /* I-fix2: notification text shadow; the Web writes it inline in notification/style.module.css:38 with no token. Same value as the key-hint shadow, likewise without alpha correction (design A-112) */
+    --notification-text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8); /* web: 0.35px 0.35px 0 rgb(0 0 0 / 80%) */
 
     /* C2-c: GameScrollView のバーの幅（Mantine ScrollArea の既定 0.75rem）・つまみのホバー・ShortcutHintLabel の kbd と文の間（設計書 A-34・A-35） */
     /* C2-c: GameScrollView bar width (Mantine ScrollArea default 0.75rem), thumb hover, and the kbd-to-text gap of ShortcutHintLabel (design A-34, A-35) */
