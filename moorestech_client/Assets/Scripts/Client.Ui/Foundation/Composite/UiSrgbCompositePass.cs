@@ -9,10 +9,10 @@ namespace Client.Ui.Foundation.Composite
     /// Writes the sRGB-space over of the world intermediate colour and the UI panel RT into the final screen
     /// </summary>
     /// <remarks>
-    /// AfterRendering に置くのは、描画解像度を下げたときの拡大（final blit）より後の、画面と同じ解像度で UI を重ねるため
+    /// URP の final blit（AfterRendering + 1）より後に置くのは、描画解像度を下げたときの拡大より後の、画面と同じ解像度で UI を重ねるため。書き先は final blit と同じカメラの最終ターゲット
     /// 中間色は描画解像度のままなので、UI が半透明の画素だけ双線形で拡大して読む。UI が無い画素は URP の結果を残す
     /// 本 repo の URP は互換モード（URP_COMPATIBILITY_MODE）で動くので Execute だけを持つ。Render Graph に切り替えると URP が「RecordRenderGraph が無い」と毎フレーム警告する
-    /// It runs at AfterRendering so the UI is composited at screen resolution, after the final blit that upscales a reduced render scale
+    /// It runs after URP's final blit (AfterRendering + 1) so the UI is composited at screen resolution after the upscale of a reduced render scale, writing to the same final camera target as the final blit
     /// The intermediate colour stays at render resolution, so only pixels under translucent UI read it bilinearly; pixels without UI keep URP's result
     /// This repo runs URP in compatibility mode (URP_COMPATIBILITY_MODE), so only Execute exists; switching to Render Graph makes URP warn every frame that RecordRenderGraph is missing
     /// </remarks>
@@ -24,15 +24,21 @@ namespace Client.Ui.Foundation.Composite
 
         private readonly Material _material;
         private readonly UiSrgbWorldColorCapturePass _worldColorCapture;
+        private readonly RTHandle _cameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         public UiSrgbCompositePass(Material material, UiSrgbWorldColorCapturePass worldColorCapture)
         {
             _material = material;
             _worldColorCapture = worldColorCapture;
-            renderPassEvent = RenderPassEvent.AfterRendering;
+            renderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRendering + 2);
             // 世界を中間テクスチャに描かせ、最後に読めるようにする
             // Make URP render the world into an intermediate texture so it can be read at the end
             requiresIntermediateTexture = true;
+        }
+
+        public void Dispose()
+        {
+            RTHandles.Release(_cameraTarget);
         }
 
 #if URP_COMPATIBILITY_MODE
@@ -60,7 +66,7 @@ namespace Client.Ui.Foundation.Composite
                 _material.SetFloat(OutputSrgbEncodedId, Display.main.requiresSrgbBlitToBackbuffer ? 1f : 0f);
                 // 上下の反転は URP の final blit と同じ判定（RenderingUtils.GetFinalBlitScaleBias）。書き先が反転しない画面なら uv を反転する
                 // Y flip uses the same test as URP's final blit (RenderingUtils.GetFinalBlitScaleBias): flip the uv when the target is the unflipped screen
-                var screen = cameraData.renderer.cameraColorTargetHandle;
+                var screen = _cameraTarget;
                 var scale = world.useScaling ? world.rtHandleProperties.rtHandleScale : Vector4.one;
                 var scaleBias = cameraData.IsRenderTargetProjectionMatrixFlipped(screen) ? new Vector4(scale.x, scale.y, 0, 0) : new Vector4(scale.x, -scale.y, 0, scale.y);
 

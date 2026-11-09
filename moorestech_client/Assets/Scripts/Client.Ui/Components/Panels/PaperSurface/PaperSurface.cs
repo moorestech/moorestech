@@ -1,4 +1,3 @@
-using Client.Ui.Foundation.Theme;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Panels

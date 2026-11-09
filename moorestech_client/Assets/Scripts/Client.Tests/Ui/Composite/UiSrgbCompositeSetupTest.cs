@@ -40,15 +40,15 @@ namespace Client.Tests.Ui.Composite
             }
         }
 
-        // Web の α のまま描いた半透明が、地との sRGB の over（Chrome と同じ式）と ±1 で一致する
-        // Translucency drawn with the Web alpha matches the sRGB over with the ground (Chrome's formula) within 1
+        // UI の面の上の半透明は Web の α のまま描いて、地との sRGB の over（Chrome と同じ式）と ±1 で一致する（世界の上は UiSrgbCompositeShaderTest が受け持つ）
+        // Translucency over a UI surface drawn with the Web alpha matches the sRGB over (Chrome's formula) within 1 (over the world is covered by UiSrgbCompositeShaderTest)
         [TestCase(0f, 0f, 0f, 0.6f, 128)]
         [TestCase(0f, 0f, 0f, 0.42f, 30)]
         [TestCase(1f, 0f, 0f, 0.24f, 30)]
         [TestCase(1f, 0f, 0f, 0.24f, 180)]
         [TestCase(1f, 1f, 1f, 0.22f, 16)]
         [TestCase(10f / 255f, 14f / 255f, 27f / 255f, 0.8f, 243)]
-        public void 半透明はWebの式と同じ色になる(float red, float green, float blue, float alpha, int ground)
+        public void UIの面の上の半透明はWebの式と同じ色になる(float red, float green, float blue, float alpha, int ground)
         {
             var swatch = new VisualElement();
             swatch.style.width = 40;

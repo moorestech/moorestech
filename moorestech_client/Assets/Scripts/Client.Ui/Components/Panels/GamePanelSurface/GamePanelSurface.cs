@@ -1,4 +1,3 @@
-using Client.Ui.Foundation.Theme;
 using System;
 using UnityEngine.UIElements;
 

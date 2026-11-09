@@ -12,6 +12,7 @@ namespace Client.Ui.Foundation.Composite
         private static RenderTexture _texture;
         private static int _chosenFrame = -1;
         private static Camera _chosenCamera;
+        private static bool _reportedNoCamera;
         private static readonly Camera[] CameraBuffer = new Camera[32];
 
         public static void SetTexture(RenderTexture texture)
@@ -38,6 +39,7 @@ namespace Client.Ui.Foundation.Composite
             {
                 _chosenFrame = Time.frameCount;
                 _chosenCamera = ChooseLastScreenCamera();
+                ReportWhenNoCameraChosen();
             }
             return camera == _chosenCamera || IsOverlayOf(camera);
 
@@ -46,15 +48,26 @@ namespace Client.Ui.Foundation.Composite
             Camera ChooseLastScreenCamera()
             {
                 var count = Camera.GetAllCameras(CameraBuffer);
+                if (count >= CameraBuffer.Length) Debug.LogError($"[UiSrgbCompositeSource] {count} or more cameras are enabled; cameras beyond {CameraBuffer.Length} are ignored when choosing the UI composite camera");
                 Camera last = null;
                 for (var i = 0; i < count; i++)
                 {
                     var candidate = CameraBuffer[i];
                     if (candidate.targetTexture != null || candidate.cameraType != CameraType.Game) continue;
                     if (candidate.TryGetComponent<UniversalAdditionalCameraData>(out var data) && data.renderType != CameraRenderType.Base) continue;
-                    if (last == null || candidate.depth >= last.depth) last = candidate;
+                    if (last == null || last.depth <= candidate.depth) last = candidate;
                 }
                 return last;
+            }
+
+            // 重ねるカメラが無い状態へ入った瞬間に 1 回だけ知らせる（UI が画面から消えるため）
+            // Report once on entering the no-camera state (the UI disappears from the screen)
+            void ReportWhenNoCameraChosen()
+            {
+                if (_chosenCamera != null) { _reportedNoCamera = false; return; }
+                if (_texture == null || _reportedNoCamera) return;
+                _reportedNoCamera = true;
+                Debug.LogError("[UiSrgbCompositeSource] no screen camera to composite the UI panel onto; the UI is not shown");
             }
 
             // 重ねるカメラのスタックの最後の overlay カメラが代わりに重ねる

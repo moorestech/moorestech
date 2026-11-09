@@ -102,7 +102,7 @@
 }
 
 /* 3-modal の幕（Web Modal.Overlay の #000・0.6）。枠を中央に置く */
-/* The 3-modal backdrop (Web Modal.Overlay #000 at 0.6, alpha corrected); centres the frame */
+/* The 3-modal backdrop (Web Modal.Overlay #000 at 0.6, Web value as is); centres the frame */
 .gallery-samples__modal-backdrop {
     width: 560px;
     height: 360px;

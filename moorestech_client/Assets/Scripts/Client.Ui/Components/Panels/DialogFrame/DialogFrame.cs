@@ -1,6 +1,5 @@
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Text;
-using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Text;
 using UnityEngine.UIElements;
 

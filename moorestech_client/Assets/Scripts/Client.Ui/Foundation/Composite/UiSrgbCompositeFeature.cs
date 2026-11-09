@@ -46,6 +46,7 @@ namespace Client.Ui.Foundation.Composite
 
         protected override void Dispose(bool disposing)
         {
+            _pass?.Dispose();
             CoreUtils.Destroy(_material);
         }
     }

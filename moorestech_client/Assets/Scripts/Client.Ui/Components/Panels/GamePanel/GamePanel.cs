@@ -1,4 +1,3 @@
-using Client.Ui.Foundation.Theme;
 using System;
 using Client.Ui.Components.Decor;
 using Client.Ui.State.Text;

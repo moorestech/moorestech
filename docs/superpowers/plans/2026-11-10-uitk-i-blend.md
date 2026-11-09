@@ -130,7 +130,7 @@ pr-createスキルでPRを作成（base=feature/uitk）し、origin/feature/uitk
 ## 判断記録（ADR）
 
 - D-1（A-180）合成方式は「パネルを sRGB 変換なしの RT に `forceGammaRendering` で描き、URP の最後に世界を sRGB にして over で重ねる」。比べた案: (b) RT なしで `forceGammaRendering` だけ → 二重に sRGB 化され最大 67 段外れる。(c) 現状維持（トークンごとの α 補正）→ 最大 50 段（ゴースト・グロー）。採った (a) は世界の上・面の上とも最大 2 段（I-blend 実測）。出所: agent 既定（指揮「UI を Web と同じ sRGB 空間で合成できるかを調べる」）
-- D-2（A-181）合成は AfterRendering（final blit の後）で画面の解像度で行う。AfterRenderingPostProcessing で中間色へ重ねると描画解像度を下げたとき（画質設定の 50%・75%）UI まで拡大されてぼける。世界の色は AfterRenderingPostProcessing のパスで控えたハンドルを読む（AfterRendering では URP のハンドルが画面側に切り替わる）。UI が無い画素は捨てて URP の結果を残すので、3D は描画解像度を下げても URP の拡大のまま。UI が半透明の画素だけ世界を双線形で拡大して読む
+- D-2（A-181）合成は URP の final blit（AfterRendering + 1）より後（AfterRendering + 2）で、final blit と同じカメラの最終ターゲットへ、画面の解像度で行う。AfterRenderingPostProcessing で中間色へ重ねると描画解像度を下げたとき（画質設定の 50%・75%）UI まで拡大されてぼける。世界の色は AfterRenderingPostProcessing のパスで控えたハンドルを読む（AfterRendering では URP のハンドルが画面側に切り替わる）。code-review 指摘（C-1）で final blit より前だった配置を直した。直した後の既定画質・「低」(50%) での再実測は未実施。UI が無い画素は捨てて URP の結果を残すので、3D は描画解像度を下げても URP の拡大のまま。UI が半透明の画素だけ世界を双線形で拡大して読む
 - D-3（A-182）renderer feature は Client.Ui（Foundation/Composite）に置き、URP Data と URP Data - Skit の両方に載せる。互換モード（`URP_COMPATIBILITY_MODE`）なので Execute だけ実装する。Render Graph へ切り替えたら URP が毎フレーム「Execute/RecordRenderGraph が無い」と警告し UI が出ないので気づける（silent-ok ではない）
 - D-4（A-183）重ねるカメラは「画面へ出す base カメラのうち depth 最大」1 台（スタックの最後の overlay を含む）。二度重ねると半透明が濃くなる
 - D-5 画面の大きさの追従は `GameUiRoot.Update` で `Screen.width/height` と RT を比べる。Unity に画面の大きさの変化通知が無く、RT の大きさが変わらないとパネルの `GeometryChangedEvent` も起きないため（設計原則「Update で同値判定をしない」の例外）

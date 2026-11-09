@@ -1,6 +1,5 @@
 using System;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Tutorial.Logic;
 using UnityEngine;
 using UnityEngine.UIElements;

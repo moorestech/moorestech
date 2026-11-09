@@ -1,6 +1,5 @@
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.Screens.Tutorial.Overlay;
-using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.Overlay;
 using Client.Ui.State.Tutorial.Overlay;
 using NUnit.Framework;

@@ -36,10 +36,12 @@ namespace Client.Ui.Foundation.Composite
         // Recreate the RT when the screen size changed (Unity has no screen-size change notification)
         public void SyncToScreenSize()
         {
+            // silent-ok: 最小化中は描く物が無く前の RT を使い続けてよい / 復帰時に通常経路で作り直す
+            if (Screen.width <= 0 || Screen.height <= 0) return;
             if (_texture != null && _texture.width == Screen.width && _texture.height == Screen.height) return;
             var previous = _texture;
             _texture = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
-            _texture.Create();
+            if (!_texture.Create()) throw new InvalidOperationException($"[UiSrgbPanelTarget] failed to create the {Screen.width}x{Screen.height} panel RT");
             _settings.targetTexture = _texture;
             UiSrgbCompositeSource.SetTexture(_texture);
             if (previous != null) Release(previous);
