@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.UI.UIState;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Panel;
@@ -85,6 +86,21 @@ namespace Client.Tests.Ui.Screens.Inventory
 
             CollectionAssert.Contains(_fixture.Operations.Moves, "Equipment:0->Grab x1");
             Assert.IsEmpty(_fixture.Equipment.Selections);
+        }
+
+        /// <web-test file="e2e/tests/inventory/equipment.spec.ts">装備へ移したアイテムをホイールで選択できる</web-test>
+        [Test]
+        public void 装備へ移したアイテムをホイールで選べる()
+        {
+            MoveMainOneToEquipmentOne();
+            var host = new GameObject("equipment-wheel");
+            new EquipmentWheelRouterFixture(host, UIStateEnum.GameScreen, _fixture.Equipment).Router.Route(100, WheelDeltaUnit.Pixel, false);
+            simulate.FrameUpdate();
+            UnityEngine.Object.DestroyImmediate(host);
+
+            // 選択の Fake の合図が持ち物の合図へ繋がっているので、HUD の選択枠が移る
+            // The selection fake joins the inventory signal, so the HUD's selected frame moves
+            Assert.IsTrue(Find<VisualElement>(_equipment, "equipment-slot-1").ClassListContains("slot-frame--selected"));
         }
 
         private void MoveMainOneToEquipmentOne()
