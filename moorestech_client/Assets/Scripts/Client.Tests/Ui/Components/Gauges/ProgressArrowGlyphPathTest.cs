@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// 矢印の SVG path の当てはめ・ずらし・塗りの三角を Web の ARROW_PATH と viewBox の値で確かめる
-    /// Checks fitting, offsetting and fill triangles of the arrow against the Web ARROW_PATH and viewBox values
+    /// 矢印 path の当てはめ・ずらし・三角
+    /// Arrow path fitting, offsetting, triangles
     /// </summary>
     public class ProgressArrowGlyphPathTest
     {

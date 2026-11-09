@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) を写す輪のメッシュの形・向き・濃さを既定寸法の値で確かめる
-    /// Checks the shape, winding and alpha of the ring mesh copying drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) at the default size
+    /// 影メッシュの形・向き・濃さ
+    /// Shadow mesh shape, winding, alpha
     /// </summary>
     public class ProgressArrowGlyphShadowMeshTest
     {

@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Gauges
 {
     /// <summary>
-    /// ProgressArrowBar の見本。空・タンクの参照（0.5）・採掘機の参照（0.66）・満杯・NaN を縦に並べる
-    /// ProgressArrowBar sample stacking empty, the tank reference (0.5), the miner reference (0.66), full and NaN
+    /// ProgressArrowBar 見本: 空・0.5・0.66・満杯・NaN
+    /// ProgressArrowBar sample: empty, 0.5, 0.66, full, NaN
     /// </summary>
     public sealed class ProgressArrowBarGalleryEntry : IUiGalleryEntry
     {

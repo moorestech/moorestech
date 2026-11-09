@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// ProgressArrowGlyph の充填の切り抜き・層の並び・静止表示・寸法を Web の shared/ui/ProgressArrowGlyph と照らす
-    /// Checks the fill clip, layer order, static form and size of ProgressArrowGlyph against Web shared/ui/ProgressArrowGlyph
+    /// 充填の切り抜き / 層の並び / 寸法
+    /// Fill clip, layer order, size
     /// </summary>
     public class ProgressArrowGlyphTest : UiTestHost
     {

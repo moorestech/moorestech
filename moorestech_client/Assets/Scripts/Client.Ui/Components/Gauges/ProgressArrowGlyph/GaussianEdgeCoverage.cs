@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// ガウスでぼかした形の、縁から符号付き距離（外が正）の点の被覆率 Φ(-d/σ)
-    /// Coverage Φ(-d/σ) of a Gaussian-blurred shape at a signed distance from its edge (outside positive)
+    /// 縁から距離 d の点のガウス被覆率 Φ(-d/σ)
+    /// Gaussian coverage Φ(-d/σ) at distance d from the edge
     /// </summary>
     /// <remarks>
     /// CSS の drop-shadow の第 3 値は標準偏差 σ そのもの（Filter Effects 1 の等価 SVG は feGaussianBlur stdDeviation=radius。box-shadow の σ=ぼかし/2 とは違う）。直線の縁の被覆率はその累積分布になる。

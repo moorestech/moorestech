@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 矢印の drop-shadow を、線の外縁を下へずらした縁の内外 2σ を刻む輪の頂点カラーのメッシュとして組む
-    /// Builds the arrow drop-shadow as a vertex-colored mesh of rings spanning 2σ inside and outside the stroke's outer edge shifted down
+    /// 縁の内外 2σ を刻む輪の頂点カラーメッシュ
+    /// Vertex-colored ring mesh spanning 2σ inside and outside the edge
     /// </summary>
     /// <remarks>
     /// 輪 0（内端）の内側は芯として輪 0 の濃さで塗る。輪 k は縁からの距離 (2k/8-1)·2σ にあり、濃さは Web の α に被覆率を掛けて
@@ -20,8 +20,8 @@ namespace Client.Ui.Components.Gauges
         public const int VertexCount = (RingCount + 1) * ProgressArrowGlyphPath.VertexCount;
         public const int IndexCount = ProgressArrowGlyphPath.FillTriangleIndexCount + RingCount * ProgressArrowGlyphPath.VertexCount * 6;
 
-        // にじみを刻む幅（片側 2σ で被覆率は 2.3% まで落ちる）
-        // Span of the blur on each side (coverage falls to 2.3% at 2σ)
+        // にじみの刻み幅（片側 2σ）
+        // Blur span (2σ each side)
         private const float SigmaSpan = 2f;
 
         public static void Build(float scale, float silhouetteOutset, float offsetY, float blur, Color shadowColor, Vertex[] vertices, ushort[] indices)
@@ -37,8 +37,8 @@ namespace Client.Ui.Components.Gauges
 
             #region Internal
 
-            // 輪ごとに縁からの距離で形をずらし、その距離の被覆率から濃さを決める
-            // Offset the shape by each ring's distance from the edge and derive its alpha from the coverage there
+            // 輪ごとにずらし、被覆率から濃さを決める
+            // Offset per ring; alpha from coverage
             void WriteRingVertices()
             {
                 for (var k = 0; k <= RingCount; k++)
@@ -79,14 +79,14 @@ namespace Client.Ui.Components.Gauges
                 }
             }
 
-            // 画面座標（y 下向き）で時計回りになる順に入れ替えて書く（GamePanelFace と同じ向き）
-            // Write in the order that winds clockwise in screen space (y down), the same as GamePanelFace
+            // 時計回り（y 下向き）の順で書く
+            // Write in clockwise order (y down)
             void WriteClockwise(ushort a, ushort b, ushort c)
             {
                 var pa = vertices[a].position;
                 var pb = vertices[b].position;
                 var pc = vertices[c].position;
-                var clockwise = (pb.x - pa.x) * (pc.y - pa.y) - (pb.y - pa.y) * (pc.x - pa.x) > 0f;
+                var clockwise = 0f < (pb.x - pa.x) * (pc.y - pa.y) - (pb.y - pa.y) * (pc.x - pa.x);
                 indices[cursor++] = a;
                 indices[cursor++] = clockwise ? b : c;
                 indices[cursor++] = clockwise ? c : b;

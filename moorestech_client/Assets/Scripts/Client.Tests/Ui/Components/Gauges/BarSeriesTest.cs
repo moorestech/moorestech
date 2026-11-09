@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// BarSeries の並び・クランプ・空の棒・寸法・色・つまみを Web の shared/ui/BarSeries と照らす
-    /// Checks BarSeries order, clamping, empty bars, size, colors and knobs against Web shared/ui/BarSeries
+    /// BarSeries を Web と照らす: 並び / クランプ / 寸法・色
+    /// Checks BarSeries against the Web: order, clamping, size, colors
     /// </summary>
     public class BarSeriesTest : UiTestHost
     {

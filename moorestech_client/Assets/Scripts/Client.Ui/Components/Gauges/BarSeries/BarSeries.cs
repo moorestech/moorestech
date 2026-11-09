@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 0〜1 の値を古い順に縦棒で並べる読み取り専用の時系列（Web の shared/ui/BarSeries）。null の棒は溝だけ
-    /// Read-only time series of zero-to-one values as vertical bars, oldest first (Web shared/ui/BarSeries); a null bar draws only its track
+    /// 古い順の縦棒の時系列（Web の BarSeries）。null は溝だけ
+    /// Oldest-first vertical-bar time series (Web BarSeries); null draws only the track
     /// </summary>
     public sealed class BarSeries : VisualElement
     {
@@ -63,8 +63,8 @@ namespace Client.Ui.Components.Gauges
                 _fills.RemoveAt(last);
             }
 
-            // null は溝だけなので 0、値は NaN と範囲外を 0..1 へ丸める（Web の index.tsx の式）
-            // Null draws only the track so it is 0; values clamp NaN and out-of-range to 0..1 (the Web index.tsx expression)
+            // null は 0、NaN・範囲外は 0..1 へ丸める
+            // Null is 0; NaN and out-of-range clamp to 0..1
             float ClampedRatio(float? ratio)
             {
                 return ratio.HasValue ? GaugeRatio.Clamp01(ratio.Value) : 0f;

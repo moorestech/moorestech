@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 矢印の path の輪郭の層（Web の .outline。miter・miterlimit 4 は SVG の既定）
-    /// Outline layer of the arrow path (the Web .outline; miter and miterlimit 4 are SVG defaults)
+    /// 矢印 path の輪郭の層（miter・limit 4 は SVG 既定）
+    /// Arrow path outline layer (miter, limit 4 are SVG defaults)
     /// </summary>
     internal sealed class ProgressArrowGlyphOutline : VisualElement
     {

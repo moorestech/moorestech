@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Gauges
 {
     /// <summary>
-    /// ProgressArrowGlyph の見本。静止・0・機械の参照（0.42）・0.5・満杯を横に並べる
-    /// ProgressArrowGlyph sample lining up static, zero, the machine reference (0.42), half and full
+    /// ProgressArrowGlyph 見本: 静止・0・0.42・0.5・満杯
+    /// ProgressArrowGlyph sample: static, 0, 0.42, 0.5, full
     /// </summary>
     public sealed class ProgressArrowGlyphGalleryEntry : IUiGalleryEntry
     {

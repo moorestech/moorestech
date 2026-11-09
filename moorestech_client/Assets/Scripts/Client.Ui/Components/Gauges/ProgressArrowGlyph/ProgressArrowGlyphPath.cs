@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// Web の矢印の SVG path（M2 27H69V2L119 39L69 76V51H2Z・viewBox 121×78）の頂点と当てはめ・ずらし
-    /// Vertices, fitting and offsetting of the Web arrow SVG path (M2 27H69V2L119 39L69 76V51H2Z, viewBox 121x78)
+    /// Web の矢印 path の頂点・当てはめ・ずらし
+    /// Web arrow path vertices, fitting, offsetting
     /// </summary>
     internal static class ProgressArrowGlyphPath
     {
@@ -17,8 +17,8 @@ namespace Client.Ui.Components.Gauges
         public const int VertexCount = 7;
         public const int FillTriangleIndexCount = 9;
 
-        // path の頂点を画面座標（y 下向き）の時計回りに並べる（Web の ARROW_PATH と同じ順）
-        // Path vertices clockwise in screen space (y down), in the Web ARROW_PATH order
+        // 頂点を時計回り（y 下向き）で並べる
+        // Vertices clockwise (y down)
         private static readonly Vector2[] Vertices = { new(2f, 27f), new(69f, 27f), new(69f, 2f), new(119f, 39f), new(69f, 76f), new(69f, 51f), new(2f, 51f) };
 
         // 軸の長方形 2 枚と先端の三角 1 枚。ずらしても x=69 の 4 頂点が一直線に並び続けるので有効なまま
@@ -30,8 +30,8 @@ namespace Client.Ui.Components.Gauges
             return FillTriangles[position];
         }
 
-        // SVG の既定 preserveAspectRatio（xMidYMid meet）の倍率
-        // The scale of the SVG default preserveAspectRatio (xMidYMid meet)
+        // xMidYMid meet の倍率
+        // Scale of xMidYMid meet
         public static float ScaleOf(Vector2 size)
         {
             return Mathf.Min(size.x / ViewBoxWidth, size.y / ViewBoxHeight);
@@ -45,8 +45,8 @@ namespace Client.Ui.Components.Gauges
             return new Rect((size.x - width) / 2f, (size.y - height) / 2f, width, height);
         }
 
-        // 倍率を掛けた path を Painter2D に閉じた多角形として描き込む（塗りと輪郭が共有する）
-        // Trace the scaled path into Painter2D as a closed polygon (shared by fill and outline)
+        // 倍率付き path を閉多角形で描く
+        // Trace the scaled path as a closed polygon
         public static void Trace(Painter2D painter, float scale)
         {
             painter.BeginPath();
@@ -57,8 +57,8 @@ namespace Client.Ui.Components.Gauges
 
         public static void WriteOffset(float scale, float distance, Vector2 shift, Vector2[] destination)
         {
-            // 各頂点を前後の辺の外向き法線の和の向きへ、辺が distance だけ平行に動く長さ（miter）で動かす
-            // Move each vertex along the sum of its two edges' outward normals by the miter length that shifts each edge by distance
+            // 頂点を前後の辺の法線和の向きへ miter 分動かす
+            // Move each vertex by the miter along the summed edge normals
             for (var i = 0; i < VertexCount; i++)
             {
                 var incoming = OutwardNormal(Vertices[(i + VertexCount - 1) % VertexCount], Vertices[i]);

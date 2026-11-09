@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 矢印の path を 1 色で塗る層（Web の .track と .fill の path）。色は層のクラスが --progress-arrow-glyph-layer-face で渡す
-    /// Layer filling the arrow path with one color (the Web .track and .fill paths); the layer class passes it as --progress-arrow-glyph-layer-face
+    /// 矢印 path を 1 色で塗る層（色は層クラスが渡す）
+    /// Layer filling the arrow path with one color (the layer class passes it)
     /// </summary>
     internal sealed class ProgressArrowGlyphFace : VisualElement
     {
@@ -36,8 +36,8 @@ namespace Client.Ui.Components.Gauges
             // silent-ok: draw nothing until the color resolves / UssCustomStyleReader logs an error if it never does
             if (!_hasStyle) return;
 
-            // 層の箱は viewBox に当たるので、その倍率で path を拡げて塗る
-            // The layer box is the viewBox, so scale the path by its ratio and fill it
+            // 箱の倍率で path を拡げて塗る
+            // Scale the path by the box ratio and fill
             var painter = context.painter2D;
             painter.fillColor = _faceColor;
             ProgressArrowGlyphPath.Trace(painter, ProgressArrowGlyphPath.ScaleOf(contentRect.size));

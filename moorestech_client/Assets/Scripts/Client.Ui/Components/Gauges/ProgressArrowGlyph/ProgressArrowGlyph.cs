@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 矢印形の進捗ゲージ（Web の shared/ui/ProgressArrowGlyph）。溝・充填・輪郭の 3 層と drop-shadow を viewBox の箱に重ねる
-    /// Arrow-shaped progress gauge (Web shared/ui/ProgressArrowGlyph); stacks track, fill, outline and the drop-shadow in the viewBox box
+    /// 矢印形の進捗ゲージ: 溝・充填・輪郭 3 層 + 影
+    /// Arrow progress gauge: track, fill, outline layers plus shadow
     /// </summary>
     /// <remarks>
     /// 作った直後は静止表示（Web の value=null。充填層を持たない）。SetProgress(0) は幅 0 の充填を持つ進捗で静止とは別。
@@ -27,8 +27,8 @@ namespace Client.Ui.Components.Gauges
             pickingMode = PickingMode.Ignore;
             AddToClassList("progress-arrow-glyph");
 
-            // Web の SVG と同じ順に重ねる: 影（filter）→ 溝 → 充填の切り抜き → 切り抜きの外の輪郭
-            // Stack in the Web SVG order: shadow (filter), track, the fill clip, then the outline outside the clip
+            // SVG と同順: 影→溝→充填→輪郭
+            // Same order as the SVG: shadow, track, fill, outline
             _viewBox = NewPart("progress-arrow-glyph__view-box");
             Add(_viewBox);
             _viewBox.Add(new ProgressArrowGlyphShadow());
@@ -60,8 +60,8 @@ namespace Client.Ui.Components.Gauges
 
         private void FitViewBox()
         {
-            // NaN と負の寸法はトークンの誤りなので知らせる
-            // NaN or negative sizes are token mistakes, so report them
+            // NaN・負の寸法はトークン誤りで通知
+            // NaN or negative size is a token mistake; report
             var size = contentRect.size;
             if (float.IsNaN(size.x) || float.IsNaN(size.y) || size.x < 0f || size.y < 0f)
             {
@@ -74,8 +74,8 @@ namespace Client.Ui.Components.Gauges
             if (size.x <= 0f || size.y <= 0f) return;
             var box = ProgressArrowGlyphPath.FitViewBox(size);
 
-            // 箱を xMidYMid meet の位置に置き、切り抜きの中の充填の面を viewBox の原点と幅にそろえる
-            // Place the box at the xMidYMid meet position and align the fill face inside the clip to the viewBox origin and width
+            // meet 位置に箱を置き充填面を原点へ揃える
+            // Place box at meet position; align fill face to origin
             _viewBox.style.left = box.x;
             _viewBox.style.top = box.y;
             _viewBox.style.width = box.width;

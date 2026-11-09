@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// ProgressArrowBar の名前・寸法・色・重なり・クランプ・つまみを Web の shared/ui/ProgressArrowBar と照らす（Web に vitest は無い）
-    /// Checks ProgressArrowBar name, size, colors, layering, clamping and knobs against Web shared/ui/ProgressArrowBar (the Web has no vitest)
+    /// Web と照らす: 寸法・色 / クランプ / つまみ
+    /// Checks against the Web: size, colors, clamping, knobs
     /// </summary>
     public class ProgressArrowBarTest : UiTestHost
     {

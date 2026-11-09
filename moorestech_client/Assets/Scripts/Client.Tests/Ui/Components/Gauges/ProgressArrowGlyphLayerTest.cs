@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// ProgressArrowGlyph の各層が USS から受け取る色・線幅・影の値と、層の箱・非表示から戻したときの当てはめ直しを確かめる
-    /// Checks the colors, stroke width and shadow values each layer receives from USS, the layer boxes, and refitting after being hidden
+    /// 層の USS 値 / 非表示からの復帰
+    /// Layer USS values and recovery from hidden
     /// </summary>
     public class ProgressArrowGlyphLayerTest : UiTestHost
     {

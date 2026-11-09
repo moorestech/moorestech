@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// GaugeRatio.Clamp01 を Web の shared/clamp01 のテストで確かめる
-    /// Checks GaugeRatio.Clamp01 against the Web shared/clamp01 tests
+    /// Clamp01 を Web と照らす
+    /// Checks Clamp01 against the Web
     /// </summary>
     public class GaugeRatioTest
     {

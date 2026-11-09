@@ -3,8 +3,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 0〜1 を幅で満たす帯状の進捗ゲージ（Web の shared/ui/ProgressArrowBar。名前に反して矢印形ではない）
-    /// Bar-shaped progress gauge filled by width (Web shared/ui/ProgressArrowBar; not arrow-shaped despite the name)
+    /// 帯状の進捗ゲージ（名前に反し矢印形でない）
+    /// Bar-shaped progress gauge (not arrow-shaped despite the name)
     /// </summary>
     public sealed class ProgressArrowBar : VisualElement
     {

@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 矢印の drop-shadow の層。線の外縁を影の形として、ずらしてにじませた輪のメッシュを描く（設計書 A-88）
-    /// Drop-shadow layer of the arrow; draws the shifted, blurred ring mesh using the stroke's outer edge as the shadow shape (design A-88)
+    /// 矢印の drop-shadow 層（輪のメッシュ・A-88）
+    /// Arrow drop-shadow layer (ring mesh, A-88)
     /// </summary>
     internal sealed class ProgressArrowGlyphShadow : VisualElement
     {
