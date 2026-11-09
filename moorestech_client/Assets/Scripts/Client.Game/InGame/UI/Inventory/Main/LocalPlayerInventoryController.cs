@@ -25,6 +25,11 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public IObservable<Unit> OnInventoryRefreshed => _onInventoryRefreshed;
         private readonly Subject<Unit> _onInventoryRefreshed = new();
 
+        // grab の書き換えだけを知らせる。OnInventoryRefreshed の既存の購読者（研究の取り直し等）に要求を増やさないため別の流れにする
+        // Notifies only grab rewrites; kept separate so existing OnInventoryRefreshed subscribers (research refetch, etc.) get no extra requests
+        public IObservable<Unit> OnGrabChanged => _onGrabChanged;
+        private readonly Subject<Unit> _onGrabChanged = new();
+
         private readonly LocalPlayerInventory _localPlayerInventory;
         private readonly LocalPlayerEquipment _localPlayerEquipment;
         private ISubInventory _subInventory;
@@ -69,6 +74,10 @@ namespace Client.Game.InGame.UI.Inventory.Main
             if (toInvItem.Id != ItemMaster.EmptyItemId && toInvItem.Id != fromInvItem.Id && count != fromInvItem.Count) return;
 
             SetInventory();
+
+            // grab はインデクサを通らないので、書き換えたら掴みの流れで知らせる
+            // Grab bypasses the indexer, so announce rewrites on the grab stream
+            if (from == LocalMoveInventoryType.Grab || to == LocalMoveInventoryType.Grab) _onGrabChanged.OnNext(Unit.Default);
 
             // サーバー送信は結合スロット→サーバースロット変換を担う専用クラスへ委譲する
             // Delegate server dispatch (combined-slot to server-slot conversion) to a dedicated class
@@ -162,6 +171,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             GrabInventory = itemStack;
             _onInventoryRefreshed.OnNext(Unit.Default);
+            _onGrabChanged.OnNext(Unit.Default);
         }
         
         public void SetMainItem(int slot, IItemStack itemStack)
@@ -183,12 +193,5 @@ namespace Client.Game.InGame.UI.Inventory.Main
             _localPlayerInventory.SetMainInventory(inventoryMainInventory);
             _onInventoryRefreshed.OnNext(Unit.Default);
         }
-    }
-    
-    public enum LocalMoveInventoryType
-    {
-        MainOrSub, //メインインベントリとサブインベントリの両方（ドラッグアンドドロップなどでは統一して扱うから
-        Grab, //持ち手のインベントリ
-        Equipment, //装備インベントリ（slotはそのまま装備スロット番号）
     }
 }
