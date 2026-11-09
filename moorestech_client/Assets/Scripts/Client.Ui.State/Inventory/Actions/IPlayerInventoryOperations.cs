@@ -15,6 +15,10 @@ namespace Client.Ui.State.Inventory.Actions
         // Signal that the grab may have changed (re-read with ReadGrab)
         IObservable<Unit> OnGrabChanged { get; }
 
+        // main・装備の中身と装備の選択が変わったかもしれない合図（値は ReadSnapshot で読み直す）
+        // Signal that main/equipment contents or the equipment selection may have changed (re-read with ReadSnapshot)
+        IObservable<Unit> OnSnapshotChanged { get; }
+
         PlayerInventorySnapshot ReadSnapshot();
         SlotItem ReadGrab();
         PlayerItemMoveOutcome MoveToGrab(PlayerSlotRef from, int count);
