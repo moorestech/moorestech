@@ -145,6 +145,8 @@ namespace Client.Tests.Ui.Components.Slots.Fluid
             Assert.IsFalse(slot.ClassListContains("fluid-slot--ghost"));
             Assert.AreEqual(1f, slot.Q(className: "fluid-slot__icon").resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(DisplayStyle.Flex, slot.Q(className: "fluid-slot__fill").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.Flex, slot.Q(className: "game-icon__image").resolvedStyle.display);
+            Assert.AreEqual("500", Glyph(slot).text);
         }
 
         [Test]
