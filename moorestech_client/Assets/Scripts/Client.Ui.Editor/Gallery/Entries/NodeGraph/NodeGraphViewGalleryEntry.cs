@@ -1,6 +1,7 @@
 using Client.Ui.Components.NodeGraph;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Input.OsCursor;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,10 +13,7 @@ namespace Client.Ui.Editor.Gallery.Entries.NodeGraph
     /// </summary>
     public sealed class NodeGraphViewGalleryEntry : IUiGalleryEntry
     {
-        // 研究のノードカードの幅（Web ResearchTreePanel の .node width 132px）と見本の高さ
-        // Research node card width (Web ResearchTreePanel .node width 132px) and the sample card height
-        private const float CardWidth = 132f;
-        private const float CardHeight = 56f;
+        private const string SheetPath = "Assets/Scripts/Client.Ui.Editor/Gallery/Entries/NodeGraph/NodeGraphGallerySamples.uss";
 
         public UiGalleryFamily Family => UiGalleryFamily.NodeGraph;
         public string ComponentName => "NodeGraphView";
@@ -25,12 +23,12 @@ namespace Client.Ui.Editor.Gallery.Entries.NodeGraph
             // 640×360 の枠いっぱいにビューポートを置き、根の右に水平・右下に斜めの子を並べる
             // Fill a 640×360 frame with the viewport; children sit to the right (horizontal) and lower right (diagonal) of the root
             var frame = new VisualElement();
-            frame.style.width = 640;
-            frame.style.height = 360;
-            frame.style.flexDirection = FlexDirection.Column;
-            // 面が窓の地と同色のため、研究画面の地（--mantine-color-dark-8 #1f1f1f）を枠に敷く
-            // The card face matches the window backdrop, so lay the research screen backdrop (--mantine-color-dark-8 #1f1f1f) under the frame
-            frame.style.backgroundColor = new Color(31f / 255f, 31f / 255f, 31f / 255f, 1f);
+            frame.AddToClassList("gallery-node-graph");
+            // 寸法と地が欠けると参照と比べられないので、開発者へ知らせて素の枠で続ける
+            // Without the sizes and backdrop nothing can be compared, so tell the developer and continue unstyled
+            var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(SheetPath);
+            if (sheet == null) Debug.LogError($"[UiGallery] sample sheet not found: {SheetPath}");
+            else frame.styleSheets.Add(sheet);
             var view = new NodeGraphView("gallery-node-graph", new UnityUiOsCursor());
             frame.Add(view);
             view.SetGraph(new NodeGraphContent(new[]
@@ -46,9 +44,7 @@ namespace Client.Ui.Editor.Gallery.Entries.NodeGraph
         private static NodeGraphNode SampleNode(string key, float x, float y, params string[] previousKeys)
         {
             var card = new PaperSurface($"gallery-node-{key}");
-            card.style.width = CardWidth;
-            card.style.height = CardHeight;
-            card.style.translate = new Translate(Length.Percent(-50f), Length.Percent(-50f));
+            card.AddToClassList("gallery-node-graph__card");
             return new NodeGraphNode(key, new Vector2(x, y), previousKeys, card);
         }
     }
