@@ -49,7 +49,7 @@
 ## Global Constraints
 
 - **作業場所**: `moores-wt new uitk-lane/s3-buildmenu --from origin/feature/uitk`（Editor 要）。最初に `pwd` で worktree にいることを確かめる。Unity は自分の worktree の Editor だけを使い、起動・停止の前に `moores-wt status` で所有を確かめる
-- **依存**: C3-a（#1612・d4347f75ef。マージ済み）・C3-b（未マージ）・L0-s3（マージ済み）が入った `origin/feature/uitk`。C3-b のマージ前には着手しない（Task 1 Step 1 で確かめ、無ければ止める）
+- **依存**: C3-a（#1612・d4347f75ef。マージ済み）・C3-b（未マージ）・L0-s3（マージ済み）が入った `origin/feature/uitk`。C3-b のマージ前には着手しない（Task 1 Step 1 で確かめ、無ければ止める）。`Registration/GameUi/` は今 6 本で、先に入る C3-b・S2-notification・S2-skit・S2-tutorial が 1 本ずつ足すと 10 本になり、このレーンの 1 本で 11 本になる見込みが高い（推測）。Task 1 Step 1 の `ls` で 10 本以上なら、着手の最初に integrator へ再編の依頼を出す（S3-hotbar-modal と同じ依頼文にまとめる）。再編が入るまでは Task 8 の登録だけを保留して他の Task を進め、入ったら取り込んで登録を足す
 - **使う部品と公開 API**（C3-a・既存は `origin/feature/uitk` の実物から写した。**C3-b の分だけ**は C3-b 計画 `docs/superpowers/plans/2026-11-07-uitk-c3-b.md` の Produces から写したので、Task 1 Step 1 で実物と照合し、違えば名前だけ読み替えて `done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く）
 
 ```csharp
@@ -4415,10 +4415,10 @@ Run:
 ```bash
 node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing > moorestech_client/.uloop/outputs/s3bm-parity-3.txt; echo "exit3=$?"
 node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing > moorestech_client/.uloop/outputs/s3bm-parity-5.txt; echo "exit5=$?"
-grep -E "regression/buildMenu(Layout)?\.spec\.ts|features/buildMenu/views/|ビルドメニューのアイコンは枠の中央に描かれる" moorestech_client/.uloop/outputs/s3bm-parity-3.txt || true
-grep -E "regression/buildMenuRestore\.spec\.ts" moorestech_client/.uloop/outputs/s3bm-parity-5.txt || true
+grep -E "regression/buildMenu(Layout)?\.spec\.ts|features/buildMenu/views/" moorestech_client/.uloop/outputs/s3bm-parity-3.txt || true
+grep -E "regression/(buildMenuRestore|placementIconCentering)\.spec\.ts" moorestech_client/.uloop/outputs/s3bm-parity-5.txt | grep -v "ホットバー" || true
 ```
-Expected: `exit3`・`exit5` が 0 か 1（2 は実行不能・書式・整合の誤りで、出たら grep の結果を信じず止めて直す）。そのうえで 3・4 行目の grep に何も出ない（P20・C9 の全件が `<web-test>` で対応。`placementIconCentering.spec.ts` の束は台帳「## 行」で読み、束 3 でなければその束の行で同じ grep を流す）。終了コード 1 は他レーンの未対応が残るためでよい（束の差分 0 は ladder が締める）。2 なら `<web-test>` の綴り（`file` のパス・テスト名の全角/半角・読点）を Web の実物と突き合わせて直す。`buildMenuRestore.spec.ts` が束 5 でなく束 3 に出たら、台帳「## 行」の持ち主の束の読み違いなので D-23 を直し、`done.md` の「未確認」に書く
+Expected: `exit3`・`exit5` が 0 か 1（2 は実行不能・書式・整合の誤りで、出たら grep の結果を信じず止めて直す）。そのうえで 3・4 行目の grep に何も出ない（P20・C9 の全件が `<web-test>` で対応。`placementIconCentering.spec.ts` は台帳で `e2e/` を持つ行の束 5 に数える〈名指しの行が無い〉。ホットバー側の 1 件「ホットバーのアイコンは枠の中央に描かれる」は S3-hotbar-modal の持ち物なので束 5 に残ってよい）。終了コード 1 は他レーンの未対応が残るためでよい（束の差分 0 は ladder が締める）。2 なら `<web-test>` の綴り（`file` のパス・テスト名の全角/半角・読点）を Web の実物と突き合わせて直す。`buildMenuRestore.spec.ts` が束 5 でなく束 3 に出たら、台帳「## 行」の持ち主の束の読み違いなので D-23 を直し、`done.md` の「未確認」に書く
 
 - [ ] **Step 2: 直しがあればコミット**
 
@@ -4668,7 +4668,7 @@ Expected: `95`（8＋80＋7）。`uloop focus-window` の後、S2-mode-tooltip T
 参照と UITK（DEMO）を `Read` で並べ、`done.md` の「## 差の表」に compare-procedure §4 の表（位置・寸法／色／装飾の有無／文字の段組〈折り返し・行数〉）を両解像度で書く。中身は同じにしたので、カテゴリ名・エントリ名・件数・選択状態の差は「捨てる」にせず、出たらこのレーンの不具合として直す（背景が世界でなく単色〈S2 の前例の `#9c7b42`〉であることだけは表の注に書く）。見る点:
 - 帯とパネル: 上 168・下 70 の安全帯の間、幅 886、水平中央（2560×1080 は 1.5 倍で幅 1329・上 252）
 - 列: サイドバー 160・詳細 188・列の間と右の余白 16・下の余白 58。サイドバーのボタン 33px・選択の面（明るい半透明 `--mode-switch-selected-face` は α の換算が未実測。罠 c）
-- 検索: 面の色（`--gauge-track`）・線・置き文字の色、下の 8px
+- 検索: 面の色（`--gauge-track`）・線・置き文字の色、下の 8px、外形の高さ（参照 720p で約 35px。参照の画素で上下の縁を探して測り、2px 以内。外れたら `.build-menu__search` に高さを置き、値の出どころを `/* web: */` に書く。`GameTextField` は寸法を持たず置く側が決める）
 - リスト: 大見出し 14px（本文色・行の高さ 21.7）と小見出し 12px（muted・行の高さ 18.6）の段差、FadeRule、節の間 12・群の間 20、マス 48 の面 40（`--icon-pad: 4px`）、右のバーの帯 12 と inset 12、クリップの逃げ 12
 - 詳細: ヒントの muted、上の逃げ 33.57。文の大きさと行数: 詳細の名前・ヒント・素材の見出し・該当なしが 16px で折り返し、行の高さ 24.8px。参照のヒントは 2 行。撮った後に EDC で `build-menu__detail-hint` の `resolvedStyle.fontSize`（期待 16）と `Mathf.RoundToInt(layout.height / resolvedStyle.minHeight.value)`（同じ要素の 1 行の高さで割るので舞台の倍率に依らない。期待 2）を両解像度の View で出して `done.md` の差の表の「文字の段組」行に書き、参照の行数と合わなければ USS を直して撮り直す（該当なしは検索に `zzzz` を入れて 1 枚撮り、1 行であることを同じ式で見る）
 - 閉じる: 本文（`GamePanel` の `contentContainer`。題と罫線の下）の右上から `--bevel-3`・`--panel-edge-fade`。参照の × は題の罫線の下（720p で y≈222）。額縁の上端や題の行に乗っていれば親の取り違え
@@ -4983,7 +4983,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-20 | 登録は `BuildMenuGameUiRegistration` 1 ファイルと `MainGameUiRegistration` の 1 行 | 共有の `MainGameUiStateRegistration` に Model を足す: GameUi の系だけが使う（Web は橋が同じ規則で動く。前例 S2-mode-tooltip D-19） | 前例 S2-mode-tooltip |
 | D-21 | `Client.Ui.State.asmdef` に `Common.Debug`・`Game.Construction`・`Client.Mod` を足す（CS0246/CS0012 が出たものだけ） | 規則を写さず橋を呼ぶ: D-1 と同じ理由で参照できない | 前例 S2-mode-tooltip D-38 |
 | D-22 | View の ctor は 6 引数（コマンド・コンテンツ・絵の出どころ `PlacementTargetIcons`・トースト・セッション・トラッカー）。トラッカーは Presenter が作り View と同じ寿命 | View がトラッカーを作る: L1 がトラッカーの `SpacerHeight` を読めない。DI で登録: 画面 1 つにしか使わない状態を共有へ出す理由が無い | agent 既定 |
-| D-23 | `buildMenuRestore.spec.ts` は test-name-parity の束 5 に数える | 束 3: 台帳「## 行」でそのファイルを持つ行の最大の束が 5（Task 9 Step 1 で読み違いなら直す） | `docs/uitk/disposition.md` の書式 |
+| D-23 | `buildMenuRestore.spec.ts` と `placementIconCentering.spec.ts`（`e2e/` を持つ行）は test-name-parity の束 5 に数える | 束 3: 台帳「## 行」でそのファイルを持つ行の最大の束が 5（Task 9 Step 1 で読み違いなら直す） | `docs/uitk/disposition.md` の書式 |
 | D-24 | L3（EditModeInPlayingTest）は持たない | 足す: 段の締め S3-ladder の持ち物（実行計画） | 実行計画 §1.4 |
 | D-25 | 並べ比べは、参照キャプチャと同じ中身（mock-host の DEMO の `buildMenuFixtures` と日本語の名前・選択なし・詳細はヒント）を写した `BuildMenuReferenceDemo` の VM を、複製した PanelSettings の RT へ載せて両解像度で撮る。差の表の行は「同じ／直した／LX-n」だけで、中身の差を理由に捨てない。実ゲームの VM の撮影は崩れの確認として別に 1 枚撮る。色の差は所有レーンの直しを取り込んで撮り直すか LX に記帳するまで完了・マージしない | 実ゲームの VM で撮って中身の差を一律に捨てる: 名前の長さ・件数・行数の差に隠れて、寸法・折り返し・行数・色の差を見逃す（独立評価の指摘）。色の差を「未確認＋integrator 依頼」で進める: 直ったことを誰も確かめないまま出荷される | 独立評価（Codex C1・C2）・本体の決定 |
 | D-26 | 部品のつまみは、部品の要素に足した画面のクラスで上書きする（`build-menu__category-switch`・`build-menu__entry`・`build-menu__scroll`） | 祖先で宣言: `customStyle` は祖先の宣言を読まない（C# で読むつまみが効かない） | ref-uitk-design・設計書 §3.2 |
