@@ -1,4 +1,3 @@
-using Client.Input.Pointer;
 using Client.Ui.Screens.CursorTooltip;
 using Client.Ui.State.CursorTooltip;
 using VContainer;
@@ -13,7 +12,6 @@ namespace Client.Starter.Registration.GameUi
         public static void Register(ContainerBuilder builder)
         {
             builder.RegisterEntryPoint<CursorTooltipModel>().AsSelf();
-            builder.Register<InputSystemPointerPositionStream>(Lifetime.Singleton);
             builder.Register<UnityCursorTooltipScreen>(Lifetime.Singleton).As<ICursorTooltipScreen>();
             builder.RegisterEntryPoint<CursorTooltipPresenter>();
         }

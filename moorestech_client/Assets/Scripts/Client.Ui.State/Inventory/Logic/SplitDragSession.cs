@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Client.Ui.State.ItemMove;
+using Client.Ui.State.Inventory.Actions;
 
 namespace Client.Ui.State.Inventory.Logic
 {
@@ -10,18 +10,18 @@ namespace Client.Ui.State.Inventory.Logic
     /// </summary>
     public sealed class SplitDragSession
     {
-        private readonly List<ItemMoveSlotRef> _slots = new();
+        private readonly List<PlayerSlotRef> _slots = new();
 
         public bool IsActive { get; private set; }
 
-        public void Begin(ItemMoveSlotRef slot)
+        public void Begin(PlayerSlotRef slot)
         {
             IsActive = true;
             _slots.Clear();
             _slots.Add(slot);
         }
 
-        public void Enter(ItemMoveSlotRef slot)
+        public void Enter(PlayerSlotRef slot)
         {
             // silent-ok: ドラッグ外のホバーと同じスロットへの再進入は行き先に足さない仕様 / 配り先の数は離した後の配分結果で見える
             if (!IsActive || _slots.Contains(slot)) return;
@@ -30,9 +30,9 @@ namespace Client.Ui.State.Inventory.Logic
 
         // 離したときの行き先。ドラッグしていなければ空（配分の数はコマンドが現在の持ち手と行き先数から決める）
         // Destinations on release; empty when not dragging (the command derives the share from the current grab and count)
-        public IReadOnlyList<ItemMoveSlotRef> End()
+        public IReadOnlyList<PlayerSlotRef> End()
         {
-            if (!IsActive) return Array.Empty<ItemMoveSlotRef>();
+            if (!IsActive) return Array.Empty<PlayerSlotRef>();
             IsActive = false;
             var released = _slots.ToArray();
             _slots.Clear();

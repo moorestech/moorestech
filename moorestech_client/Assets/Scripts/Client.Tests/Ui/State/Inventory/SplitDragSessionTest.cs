@@ -1,6 +1,6 @@
 using Client.Ui.State.Inventory.Logic;
 using NUnit.Framework;
-using SlotRef = Client.Ui.State.ItemMove.ItemMoveSlotRef;
+using SlotRef = Client.Ui.State.Inventory.Actions.PlayerSlotRef;
 
 namespace Client.Tests.Ui.State.Inventory
 {
