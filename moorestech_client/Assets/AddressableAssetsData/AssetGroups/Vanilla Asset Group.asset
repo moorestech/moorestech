@@ -470,11 +470,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 30fc330d1db5340948640944990d01e3
-    m_Address: Vanilla/Material/ElectricPrecisionAssembler/EPA_Input
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 31921bb203774452b9150cc2fdd02a34
     m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_5
     m_ReadOnly: 0
@@ -1030,11 +1025,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6e5697c157ea34831804b3c6e4272b3a
-    m_Address: Vanilla/Material/ElectricPrecisionAssembler/EPA_Body
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6f610d170621d471b8853814e08b71ec
     m_Address: Vanilla/Environment/Rock/Oasis/RubbleSparse_3
     m_ReadOnly: 0
@@ -1392,11 +1382,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 91a734989a1ae40aaafc6a377e2b1b29
     m_Address: Vanilla/Skit/i18n/english
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 91c7016566f104426a9018957349c536
-    m_Address: Vanilla/Material/ElectricPrecisionAssembler/EPA_Output
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
