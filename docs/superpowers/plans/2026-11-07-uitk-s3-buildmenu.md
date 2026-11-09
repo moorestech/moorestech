@@ -262,13 +262,13 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuDetailStickyViewTest.cs` | regression 8・10 件目（画面） | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuSlotTooltipTest.cs` | `BuildMenuSlot.test.ts` 4 件 | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuLayoutTest.cs` | `buildMenuLayout.spec.ts` 7 件・`placementIconCentering.spec.ts` のビルドメニュー側 1 件 | 新規 |
-| `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuRestoreTest.cs` | `buildMenuRestore.spec.ts` 1 件、L-2・L-4・L-3 の観測（D-8） | 新規 |
+| `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuRestoreTest.cs` | `buildMenuRestore.spec.ts` 1 件、L-2・L-4・L-3 の観測（D-8）、末尾の群が視口より高い（スペーサ 0）ときの復元（D-43） | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuDragSourceTest.cs` | タップ＝選択・受け口へ 1 回渡す・受け口でない落とし先は何もしない | 新規 |
 | `SKILL/scenarios/uitk/uitk-build-menu.cs` | 末尾ジャンプ・検索・閉じて開き直す復元・選択を UITK で通す録画 | 新規 |
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（L-3 の観測）、要れば「## 見た目の例外」末尾（LX-71〜LX-75） | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば build menu の行を消す | 変更（共有区画・在れば） |
 
-ディレクトリのファイル数（.cs と .uss）: `State/BuildMenu/Entries/` 7・`Source/` 4・`State/PlacementTarget/` 2（新設）・`State/Hotbar/Logic/` 4→5・`Ui/Content/` 3→4・`Commands/` 2（既存 `Logic/` 9・`Session/` 2 は変えない）、`Screens/BuildMenu/` 4・`CategoryScroll/` 4→7・`Parts/` 9、`Tests/.../Screens/BuildMenu/` は既存の L0-s3 の 4 のまま（新しいテストは `Views/` 10・`Support/` 5〈Task 10 の `BuildMenuReferenceDemo` を含む〉へ置く。直下に足すと 13 になるため）・`State/BuildMenu/` 4＋既存（Task 1 Step 1 で `ls` して 10 以下を確かめる。超えるなら `State/BuildMenu/Screen/` へ分ける）。`Registration/GameUi/` は実物が 6（Content・CursorTooltip・Hud・ModeHud・PauseMenu・Toast）で 6→7。W3〜S2 の他レーンも同じ置き場に足すので、Task 1 Step 1 の `ls` で数え、このレーンの 1 本を足すと 11 本以上になるなら、足す前に止めて指揮へ報告し、`done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方（例 `GameUi/Screens/`）」を書く（置き場の再編は共有の構造の変更で integrator の持ち物。S3-hotbar-modal と同じ扱い）。integrator の再編が `origin/feature/uitk` に入り、取り込んで 10 本以下の置き場へ足せるまで、このレーンは完了にせずマージもしない（AGENTS.md の 1 ディレクトリ 10 ファイル）。ほかはすべて 10 以下。
+ディレクトリのファイル数（.cs と .uss）: `State/BuildMenu/Entries/` 7・`Source/` 4・`State/PlacementTarget/` 2（新設）・`State/Hotbar/Logic/` 4→5・`Ui/Content/` 3→4・`Commands/` 2（既存 `Logic/` 9・`Session/` 2 は変えない）、`Screens/BuildMenu/` 4・`CategoryScroll/` 4→7・`Parts/` 9、`Tests/.../Screens/BuildMenu/` は既存の L0-s3 の 4 のまま（新しいテストは `Views/` 10・`Support/` 6〈Task 10 の `BuildMenuReferenceDemo`・`BuildMenuReferenceDemoTextures` を含む。`BuildMenuLayoutProbe` を出せば 7〉へ置く。直下に足すと 13 になるため）・`State/BuildMenu/` 4＋既存（Task 1 Step 1 で `ls` して 10 以下を確かめる。超えるなら `State/BuildMenu/Screen/` へ分ける）。`Registration/GameUi/` は実物が 6（Content・CursorTooltip・Hud・ModeHud・PauseMenu・Toast）で 6→7。W3〜S2 の他レーンも同じ置き場に足すので、Task 1 Step 1 の `ls` で数え、このレーンの 1 本を足すと 11 本以上になるなら、足す前に止めて指揮へ報告し、`done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方（例 `GameUi/Screens/`）」を書く（置き場の再編は共有の構造の変更で integrator の持ち物。S3-hotbar-modal と同じ扱い）。integrator の再編が `origin/feature/uitk` に入り、取り込んで 10 本以下の置き場へ足せるまで、このレーンは完了にせずマージもしない（AGENTS.md の 1 ディレクトリ 10 ファイル）。ほかはすべて 10 以下。
 
 **写すテストの件数（Web の実物を grep して数え直した。tests-ladder と同じ）**
 
@@ -1628,7 +1628,7 @@ git commit -m "feat(uitk): ビルドメニューのコマンド（選択・BP �
   - `public sealed class BuildMenuEntrySlot { public const string EntryClass = "build-menu__entry"; public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler); public SlotFrame Frame { get; } public Guid TargetId { get; } public void Render(BuildMenuEntryViewModel entry); public static string TestIdOf(BuildMenuEntryViewModel entry); }`
   - `namespace Client.Ui.Content { public sealed class PlacementTargetIcons { public PlacementTargetIcons(GameContentPresentation content, IGameContentTextureSource textures, IBlueprintThumbnailLookup thumbnails); public bool TryToUiIcon(PlacementTargetIcon icon, out UiIcon uiIcon); } }`（値だけを返す。NameOnly と撮影の消えた BP で false。面へ当てる分岐は Screens）・`IGameContentTextureSource` に `Texture2D TrainCarTexture(Guid)`・`Texture2D ConnectToolTexture(Guid)`
   - `namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { void Receive(HotbarDragSource source); } }`（S3-hotbar-modal が枠の印で `IUiDropTarget` と一緒に実装する）
-  - `public static class BuildMenuShortageTooltipText { public static UiText Create(BuildMenuEntryViewModel entry, GameContentPresentation content); }`
+  - `public static class BuildMenuShortageTooltipText { public static bool TryCreate(BuildMenuEntryViewModel entry, GameContentPresentation content, out UiText text); }`
   - `public sealed class BuildMenuEntryDragPayload : IUiDragPayload { public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler); public BuildMenuEntryDragSource Source { get; } }`
   - テスト補助 `BuildMenuSamples`（Task 6・7 も使う）: `public static readonly Guid Logistics, Transport, Blueprint, BuildingMaterials, EmptyCategory, Sub; public static readonly Guid WoodChest, IronChest, BeltConveyor, Rail, CargoCar, StarterBase; public static BuildMenuViewModel Create(); public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials); public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials, PlacementTargetIcon woodChestIcon); public static BuildMenuEntryViewModel Block(Guid id, Guid category, string label, IReadOnlyList<BuildMenuMaterialRow> materials, bool paymentWaived, BuildMenuSetPlacement setPlacement); public static BuildMenuMaterialRow Material(ItemId itemId, int count, int held);`
 
@@ -1957,10 +1957,11 @@ namespace Client.Ui.Screens.BuildMenu.Parts
     /// </summary>
     public static class BuildMenuShortageTooltipText
     {
-        // 不足が無ければ null（印を付けない）
-        // Null when nothing is short (no mark)
-        public static UiText Create(BuildMenuEntryViewModel entry, GameContentPresentation content)
+        // 不足が無ければ偽（印を付けない。前例 PlacementTargetIcons.TryToUiIcon の形）
+        // False when nothing is short (no mark; same shape as PlacementTargetIcons.TryToUiIcon)
+        public static bool TryCreate(BuildMenuEntryViewModel entry, GameContentPresentation content, out UiText text)
         {
+            text = null;
             var lines = new List<string> { new UiText(LocalizationKeys.Ui.BuildMenu.MaterialShortageTitle).Resolve() };
             foreach (var row in entry.Materials)
             {
@@ -1968,7 +1969,9 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 var itemName = content.ItemName(row.ItemId).Resolve();
                 lines.Add(MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuShortageLine, itemName, row.Item.Count, row.Item.Held).Resolve());
             }
-            return lines.Count == 1 ? null : UiText.FromVerbatim(string.Join("\n", lines));
+            if (lines.Count == 1) return false;
+            text = UiText.FromVerbatim(string.Join("\n", lines));
+            return true;
         }
     }
 }
@@ -2097,9 +2100,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
             // 不足があるときだけツールチップの印を付ける。枠は赤くしない（Web と同じ）
             // Mark the tooltip only when something is short; the frame never turns red (same as the Web)
-            var tooltip = BuildMenuShortageTooltipText.Create(entry, _content);
-            if (tooltip == null) HoverTooltipMark.Unmark(Frame);
-            else HoverTooltipMark.Mark(Frame, tooltip);
+            if (BuildMenuShortageTooltipText.TryCreate(entry, _content, out var tooltip)) HoverTooltipMark.Mark(Frame, tooltip);
+            else HoverTooltipMark.Unmark(Frame);
         }
     }
 }
@@ -3311,7 +3313,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
     }
 }
 ```
-（ホットバー側の 1 件「ホットバーのアイコンは枠の中央に描かれる」は S3-hotbar-modal が写す。このファイルが 200 行を超えたら `TokenPixels` と `AssertCategoryLabelsStayOneLine` を `Support/BuildMenuLayoutProbe.cs`〈`Support/` 5〉へ出す。L1 のパネルは舞台の枠を持たない 1280×720 なので、舞台の座標とパネルの座標が一致する。Web の `expectNoVerticalOverflow` は DOM の溢れで見るので、UITK は「実幅で測った高さが 1 行と同じ」で写す〈D-32〉）
+（ホットバー側の 1 件「ホットバーのアイコンは枠の中央に描かれる」は S3-hotbar-modal が写す。このファイルが 200 行を超えたら `TokenPixels` と `AssertCategoryLabelsStayOneLine` を `Support/BuildMenuLayoutProbe.cs`〈Task 7 の時点で `Support/` 4→5、Task 10 の後は 7〉へ出す。L1 のパネルは舞台の枠を持たない 1280×720 なので、舞台の座標とパネルの座標が一致する。Web の `expectNoVerticalOverflow` は DOM の溢れで見るので、UITK は「実幅で測った高さが 1 行と同じ」で写す〈D-32〉）
 
 `BuildMenuRestoreTest.cs`:
 ```csharp
@@ -3361,6 +3363,27 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             Settle();
             var saved = Scroll.scrollOffset.y;
             Assert.Greater(Tracker.SpacerHeight.Value, 0f);
+            CloseMenu();
+
+            OpenMenu(Create());
+
+            Assert.AreEqual(saved, Scroll.scrollOffset.y, 0.5f);
+            Assert.AreEqual(saved, Session.Current.ScrollTop, 0.5f);
+        }
+
+        [Test]
+        public void 末尾の群が視口より高くても閉じて開き直すと保存位置へ戻る()
+        {
+            // スペーサが 0 のままの構成。閉じた後の高さ 0 を実測と取り違えると、復元を 0 で確定して保存位置まで潰す
+            // A layout whose spacer stays 0; mistaking the post-hide 0 height for a measurement settles the restore at 0 and overwrites the saved position
+            OpenMenu(Create());
+            var lastGroup = Find<VisualElement>(View, $"build-menu-category-{CategoryButtons().Last().name.Replace("build-menu-category-", "")}-group");
+            lastGroup.style.minHeight = Scroll.contentViewport.layout.height * 2f;
+            Settle();
+            Assert.AreEqual(0f, Tracker.SpacerHeight.Value, 0.01f);
+            var saved = HeadingTop(Transport) + 10f;
+            Scroll.SetScrollOffset(saved);
+            Settle();
             CloseMenu();
 
             OpenMenu(Create());
@@ -3542,16 +3565,18 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         // A pre-layout NaN means "not applied yet", expressed as 0 (the tracker compares it with the request and keeps waiting)
         public float AppliedSpacerHeight => float.IsNaN(_list.Spacer.layout.height) ? 0f : _list.Spacer.layout.height;
 
+        // 今の表示でまだ視口がレイアウトされていない間（閉じた後の 0 の高さを含む）は測れないとする。0 を実測と取り違えると復元位置を 0 へ潰す
+        // Unmeasurable until the viewport is laid out in this showing (including the 0 height left from hiding); mistaking 0 for a measurement flattens the restore target
         public bool TryGetHeadingTop(Guid categoryGuid, out float top)
         {
             top = 0f;
-            return _list.TryGetHeading(categoryGuid, out var heading) && !float.IsNaN(heading.layout.height) && _scroll.TryGetContentTop(heading, out top);
+            return ClientHeight > 0f && _list.TryGetHeading(categoryGuid, out var heading) && !float.IsNaN(heading.layout.height) && _scroll.TryGetContentTop(heading, out top);
         }
 
         public bool TryGetGroupHeight(Guid categoryGuid, out float height)
         {
             height = 0f;
-            if (!_list.TryGetGroup(categoryGuid, out var group) || float.IsNaN(group.layout.height)) return false;
+            if (ClientHeight <= 0f || !_list.TryGetGroup(categoryGuid, out var group) || float.IsNaN(group.layout.height)) return false;
             height = group.layout.height;
             return true;
         }
@@ -3710,15 +3735,10 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             panel.AddToClassList("build-menu__panel");
             Band.Add(panel);
 
-            // 額縁の後に閉じるを足して前面へ重ねる（Web の z-index の代わり）
-            // Add the close button after the frame so it draws in front (instead of the Web z-index)
             var frame = new GamePanel("build-menu-frame", GamePanelFrame.Default);
             frame.AddToClassList("build-menu__frame");
             frame.SetTitle(new UiText(LocalizationKeys.Ui.BuildMenu.Title));
             panel.Add(frame);
-            CloseButton = new IconButton("build-menu-close", new IconButtonCloseGlyph());
-            CloseButton.AddToClassList("build-menu__close");
-            panel.Add(CloseButton);
 
             // 中央の列: 検索 → スクロール（該当なしとリストを入れ替える）
             // Center column: search, then the scroll (the no-results label swaps with the list)
@@ -3746,6 +3766,12 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             columns.Add(main);
             columns.Add(detail);
             frame.Add(columns);
+
+            // 閉じるは Web と同じく GamePanel の本文の子（top・right は題の下の本文から測る）。列の後に足して前面へ重ねる（Web の z-index の代わり）
+            // The close button is a child of the GamePanel body as on the Web (top/right measured from the body under the title); added after the columns so it draws in front (instead of the Web z-index)
+            CloseButton = new IconButton("build-menu-close", new IconButtonCloseGlyph());
+            CloseButton.AddToClassList("build-menu__close");
+            frame.Add(CloseButton);
             SetNoResults(false);
         }
 
@@ -4134,7 +4160,7 @@ namespace Client.Ui.Screens.BuildMenu
 - [ ] **Step 7: テストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`（`$FILTER` は Global Constraints の値）
-Expected: `ErrorCount: 0`。`Views` の 40 件（Task 5 の 8・Task 6 の 5・この Task の 27）・L0-s3 の `CategoryScroll` 系・State の BuildMenu・L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が全件 PASS。`BuildMenuRestoreTest` の「復元の前に流れた…」の出力行 `[L-3] offsets emitted while opening: …` を TestResults の xml から写して `done.md` の「## 証拠」に書く（L1 の観測。実機は Task 8 Step 4）。新しいファイルが 200 行未満で、`ls` で `Screens/BuildMenu/` 4・`CategoryScroll/` 7・`Parts/` 9・`Tests/.../Views/` 10・`Support/` 4（Task 10 で 5）を確かめる
+Expected: `ErrorCount: 0`。`Views` の 41 件（Task 5 の 8・Task 6 の 5・この Task の 28）・L0-s3 の `CategoryScroll` 系・State の BuildMenu・L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が全件 PASS。`BuildMenuRestoreTest` の「復元の前に流れた…」の出力行 `[L-3] offsets emitted while opening: …` を TestResults の xml から写して `done.md` の「## 証拠」に書く（L1 の観測。実機は Task 8 Step 4）。新しいファイルが 200 行未満で、`ls` で `Screens/BuildMenu/` 4・`CategoryScroll/` 7・`Parts/` 9・`Tests/.../Views/` 10・`Support/` 4（Probe を出したら 5。Task 10 で +2）を確かめる
 
 落ちたときの見方（推測で直さず、値を出してから直す）:
 - 末尾ジャンプが手前で止まる → `Tracker.SpacerHeight.Value` と `Find(View, "build-menu-trailing-spacer").layout.height` と `Scroll.GetContentHeight()` を `TestContext.WriteLine` で出す。スペーサの `GeometryChangedEvent` が来ていなければ D-9 の経路の欠け
@@ -4621,7 +4647,7 @@ Expected: `95`（8＋80＋7）。`uloop focus-window` の後、S2-mode-tooltip T
 - 検索: 面の色（`--gauge-track`）・線・置き文字の色、下の 8px
 - リスト: 大見出し 14px（本文色）と小見出し 12px（muted）の段差、FadeRule、節の間 12・群の間 20、マス 48 の面 40（`--icon-pad: 4px`）、右のバーの帯 12 と inset 12、クリップの逃げ 12
 - 詳細: ヒントの muted、上の逃げ 33.57。文の大きさと行数: 詳細の名前・ヒント・素材の見出し・該当なしが 16px で折り返し、行の高さ 24.8px。参照のヒントは 2 行。撮った後に EDC で `build-menu__detail-hint` の `resolvedStyle.fontSize`（期待 16）と `Mathf.RoundToInt(layout.height / resolvedStyle.minHeight.value)`（同じ要素の 1 行の高さで割るので舞台の倍率に依らない。期待 2）を両解像度の View で出して `done.md` の差の表の「文字の段組」行に書き、参照の行数と合わなければ USS を直して撮り直す（該当なしは検索に `zzzz` を入れて 1 枚撮り、1 行であることを同じ式で見る）
-- 閉じる: 右上 `--bevel-3`・`--panel-edge-fade`
+- 閉じる: 本文（`GamePanel` の `contentContainer`。題と罫線の下）の右上から `--bevel-3`・`--panel-edge-fade`。参照の × は題の罫線の下（720p で y≈222）。額縁の上端や題の行に乗っていれば親の取り違え
 
 一目で分かる差は `BuildMenu.uss` で直して撮り直す。字間を足すときは I-fix1 の換算トークンを `var()` で使う（罠 a）。同じにするのが大きくて差が一目で分からないものだけ、台帳「## 見た目の例外」の末尾へ `LX-72`〜`LX-75` で記帳し（`LX-71` は D-10 の smooth scroll の長さと緩急）、該当行に `/* look-exception: LX-n */` を付ける（`LookExceptionLedgerTest` が照合する）。足りなければ止めて指揮へ番号を求める。色の差（明るい半透明の `--mode-switch-selected-face` を含む）は「未確認」で進めない。2 択で閉じる: (1) 直す。トークン USS はこのレーンの持ち物でないので、所有レーン（integrator）へ直しを頼み、その直しを `origin/feature/uitk` から取り込んで撮り直し、一致を確かめる。(2) LX に記帳できる性質のもの（UITK の合成の仕組みで Web と同じにできない等）は `LX-72`〜`LX-75` に理由を付けて記帳する。どちらかが済むまで、このレーンは完了にせず Task 13 のマージもしない（R-12）。撮り終えたら `s3bm-compare-*` の GameObject を `Object.Destroy` し、RT を `Release` して、言語を元へ戻す。`git status` で `GameUiPanelSettings.asset` に変更が無いことを見る
 
@@ -4952,6 +4978,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-39 | 落としの受け口は `void Receive(HotbarDragSource)`（状態を書く口なので結果を返さない。断る理由のログは受け手が出す） | `bool TryReceive`: 源は戻り値を使わないので、bool は呼び手に何も伝えない | 設計検査（配置 V4）・本体の決定 |
 | D-40 | 1 セット設置は判別 union（`BuildMenuSetPlacementNone.Instance`・`BuildMenuSetPlacementAvailable(perCost, remaining)`）にし、Factory だけが Block のとき作る | `HasValue` 付きの 1 クラス: 値が無いのに `PerCost`・`Remaining` を読めてしまう。詳細の列で Kind を見て Block に限る: Factory と同じ判定が 2 か所になる | 設計検査（Phase 2.6 強） |
 | D-41 | 型の弱い指摘の扱い: (a) `CurrentState == BuildMenu` は `BuildMenuCommands` の private `IsBuildMenuOpen` の 1 か所にまとめる。Model の「閉じている間は組み直さない」は別の理由なので残す (b) 素材の不足は VM の ctor で 1 回だけ判定し、`BuildMenuMaterialLine.IsInsufficient` で持つ (c) 空の表示名は前例 `ModeHudViewModelFactory` と同じく `LogError` を出し、表示はそのまま (d) NameOnly のマスも `filled` にする（Web `BuildMenuSlot.tsx` は常に `filled`） (e) `_structureKey` は null を「まだ描いていない」にし、空の文字列（群が 0 の構造）と分ける (f) 合成の結果の bool（`IsCategoryEnabled`・`ShowsNoResults`）と `TryGet` が理由を返さないことはそのまま（呼び手が分岐するだけで、理由を出す先が無い） | 全部を型で塞ぐ: (f) は呼び手の分岐が 1 つずつで、理由を返しても読む所が無い | 設計検査（Phase 2.6 弱） |
+| D-44 | 独立評価 4 巡目の反映: (a) 閉じるボタンは Web と同じく `GamePanel` の本文の子（`frame.Add`。top・right は題の下の本文から測る）にし、Task 10 で × の位置を見る (b) 視口の `TryGetHeadingTop`・`TryGetGroupHeight` は今の表示で視口が未レイアウト（`ClientHeight <= 0`。閉じた後の 0 を含む）なら測れないとし、`BuildMenuRestoreTest`「末尾の群が視口より高くても…」で確かめる (c) `Support/` の本数を実数に (d) using と `BlueprintThumbnailContainer` の完全修飾名 | (a) 外側のパネルの子: × が題の行に乗り参照より約 45px 上 (b) NaN だけを未計測とする: 閉じた後の 0 を実測と取り違え、スペーサ 0 の構成で保存位置を 0 に潰す（推測。L1 で赤を確かめる） | agent 既定（Codex 4 巡目・opus 4 巡目） |
 | D-43 | 独立評価 3 巡目と再検査 2 の反映: (a) 詳細の名前・ヒント・素材の見出し・該当なしは Web の本文〈継承 16px・行の高さ 1.55＝24.8px・折り返す〉を `BuildMenu.uss` で明示し、Task 10 で両解像度の行数を測る（UITK の既定 14px・折り返さないのままだと参照の 2 行のヒントが崩れる） (b) 各カテゴリ群の `GeometryChangedEvent` を `BuildMenuCategoryList.OnGroupGeometryChanged` で追跡器へ流す（Web の群ごとの ResizeObserver。全体の高さが同じまま配分だけ変わる場合）と L1 `BuildMenuScrollViewTest` 4 件目 (c) `Registration/GameUi/` が 11 本以上になるなら足す前に止め、integrator の再編が入るまで完了・マージしない (d) 撮影用の絵の描画スクリプトは `createRequire` で webui の `@playwright/test` を解決 (e) `PauseMenuCommandsTest` を共有ファイル・`$FILTER`・取り込みの衝突の一覧へ（S3-hotbar-modal と同じテスト。`benign` は和を採る） | (a) 色だけ写す: 文字の大きさと行数が参照と合わない (b) 中身全体の通知だけ: 配分の変化でハイライトが古いまま (c) 11 本目のまま進める: AGENTS.md の 10 ファイルに反する | agent 既定（Codex 3 巡目・opus 3 巡目・再検査 2） |
 | D-42 | 再検査の反映: (a) `PlacementTargetIcons` の登録は Content 層の登録の置き場 `ContentGameUiRegistration.cs` の末尾へ 1 行（C3-a のファイルへの追記） (b) `TryToUiIcon` はテクスチャの欠けでも false（[A-100] どおり。面は名前で描き、詳細の列は絵を足さない） (c) `BuildMenuSetPlacementNone` を public sealed の `.Instance` にし、使う側は switch で分ける (d) VM の公開面から `Kind` を外し、`KindName`・`CanDeleteBlueprint` だけにする（Factory の内側では使う） (e) `PlacementTargetBlueprintIcon` は値の等価を持たず参照の等価のまま。State はテクスチャを持たないので Guid の等価では撮り直しを見分けられず、等価にすると撮り直し後の VM が同じ物と見なされて絵が古いまま残る。他の union は値の等価のまま (f) 再検査の弱1・弱3 は指揮の決定どおり据え置く | (a) 画面の登録ファイルに置く: Content 層の型をビルドメニューの寿命に結びつけ、ホットバーが画面の登録に依存する (b) 欠けた絵の `UiIcon` を渡して面に任せる: 詳細の列が空の絵を足す (c) `as … != null`: union の網羅が型で見えない | 設計検査の再検査（違反1・強3・弱4）・本体の決定 |
 
