@@ -267,7 +267,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（L-3 の観測）、要れば「## 見た目の例外」末尾（LX-71〜LX-75） | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば build menu の行を消す | 変更（共有区画・在れば） |
 
-ディレクトリのファイル数（.cs と .uss）: `State/BuildMenu/Entries/` 7・`Source/` 4・`State/PlacementTarget/` 2（新設）・`State/Hotbar/Logic/` 4→5・`Ui/Content/` 3→4・`Commands/` 2（既存 `Logic/` 9・`Session/` 2 は変えない）、`Screens/BuildMenu/` 4・`CategoryScroll/` 4→7・`Parts/` 9、`Tests/.../Screens/BuildMenu/` は既存の L0-s3 の 4 のまま（新しいテストは `Views/` 10・`Support/` 5〈Task 10 の `BuildMenuReferenceDemo` を含む〉へ置く。直下に足すと 13 になるため）・`State/BuildMenu/` 4＋既存（Task 1 Step 1 で `ls` して 10 以下を確かめる。超えるなら `State/BuildMenu/Screen/` へ分ける）。`Registration/GameUi/` は 5→6。すべて 10 以下。
+ディレクトリのファイル数（.cs と .uss）: `State/BuildMenu/Entries/` 7・`Source/` 4・`State/PlacementTarget/` 2（新設）・`State/Hotbar/Logic/` 4→5・`Ui/Content/` 3→4・`Commands/` 2（既存 `Logic/` 9・`Session/` 2 は変えない）、`Screens/BuildMenu/` 4・`CategoryScroll/` 4→7・`Parts/` 9、`Tests/.../Screens/BuildMenu/` は既存の L0-s3 の 4 のまま（新しいテストは `Views/` 10・`Support/` 5〈Task 10 の `BuildMenuReferenceDemo` を含む〉へ置く。直下に足すと 13 になるため）・`State/BuildMenu/` 4＋既存（Task 1 Step 1 で `ls` して 10 以下を確かめる。超えるなら `State/BuildMenu/Screen/` へ分ける）。`Registration/GameUi/` は実物が 6（Content・CursorTooltip・Hud・ModeHud・PauseMenu・Toast）で 6→7。W3〜S2 の他レーンも同じ置き場に足すので、Task 1 Step 1 の `ls` で数え、このレーンの 1 本で 10 を超えるなら自分で分けず、`done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方（例 `GameUi/Screens/`）」を書いて 11 本目のまま進める（置き場の再編は共有の構造の変更で、integrator の持ち物）。ほかはすべて 10 以下。
 
 **写すテストの件数（Web の実物を grep して数え直した。tests-ladder と同じ）**
 
@@ -317,7 +317,7 @@ grep -n "AppliedSpacerHeight" $S/Client.Ui/Screens/BuildMenu/CategoryScroll/IBui
 grep -n "BuildMenuEntry(" $S/Client.Game/InGame/Tutorial/UIHighlight/AnchorIds.cs
 grep -n "section: Screens" "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
 git merge-base --is-ancestor e26010aa0c origin/feature/uitk && echo i-fix1-in
-ls $S/Client.Ui.State/BuildMenu $S/Client.Tests/Ui/State/BuildMenu 2>/dev/null
+ls $S/Client.Ui.State/BuildMenu $S/Client.Tests/Ui/State/BuildMenu $S/Client.Starter/Registration/GameUi 2>/dev/null
 ```
 Expected: worktree の絶対パス。C3-b の 5 つの grep がそれぞれ当たる（`ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options)`・`OnOptionSelected`・`SetOptionEnabled`・`ModeSwitchOption(string testid, TValue value, UiText label)`・GameScrollView の口 4 つ・`MarkSource`・`IUiDragPayload`・`IUiDropTarget`・`HoverTooltipHost.cs`）。C3-a・L0-s3 の行が出る。`section: Screens` と `i-fix1-in` が出る。C3-b の grep が 1 つでも 0 件なら「C3-b 未取り込み」として `done.md` の 1 行目を「状態: 停止（C3-b 未取り込み）」にして止め、指揮へ報告する。名前だけ違うものは以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。最後の `ls` で `Client.Tests/Ui/State/BuildMenu` の既存ファイル数を数え、この計画の 4 本（テスト 3・補助 1）を足して 10 を超えるなら、足す 4 本を `Client.Tests/Ui/State/BuildMenu/Screen/`（namespace `Client.Tests.Ui.State.BuildMenu.Screen`）へ置く
 
@@ -831,7 +831,7 @@ Expected: `ErrorCount: 0`、L0-s3 の既存分を含め全件 PASS
 git add moorestech_client/Assets/Scripts/Client.Ui.State/BuildMenu/Entries moorestech_client/Assets/Scripts/Client.Ui.State/PlacementTarget moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BuildMenu
 git commit -m "feat(uitk): ビルドメニューの ViewModel と表示リストの合成を足す（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -1173,7 +1173,7 @@ namespace Client.Ui.State.BuildMenu.Source
     }
 }
 ```
-（表示名は Web の Block では辞書の解決名、BP では `target.DisplayName`。UITK は全種別で `IPlacementTarget.DisplayName`〈C# の表示名の正。S2-mode-tooltip D-8〉を使い、言語の変化で組み直す。`DisplayName` が今の言語の名前を返すことは Task 8 Step 4 で実画面の検索〈「鉄」〉で確かめる）
+（表示名は Web の Block では辞書の解決名、BP では `target.DisplayName`。UITK は全種別で `IPlacementTarget.DisplayName`〈C# の表示名の正。S2-mode-tooltip D-8〉を使い、言語の変化で組み直す。実物の `DisplayName` はコンテンツ辞書の解決名〈`BlockPlacementTarget.cs:26` の `Localize.GetContent(ContentLocalizationKeys.BlockName(BlockGuid))`。車両・接続ツールも同じ形〉で、Web と同じ名前になる）
 
 `BuildMenuModel.cs`:
 ```csharp
@@ -1274,7 +1274,7 @@ Expected: 初回は `Common.Debug`・`Game.Construction`・`Client.Mod`（`ItemV
 git add moorestech_client/Assets/Scripts/Client.Ui.State/BuildMenu/Source moorestech_client/Assets/Scripts/Client.Ui.State/PlacementTarget moorestech_client/Assets/Scripts/Client.Ui.State/Client.Ui.State.asmdef moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BuildMenu
 git commit -m "feat(uitk): ビルドメニューの Model を源の購読で組む（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -1286,6 +1286,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Modify: `S/Client.Ui.State/Commands/UiCommandRejectReason.cs`（enum の末尾に 6 値、`IsBenign`・`ToLocalizationKey`・`ToWireCode` の末尾に各 6 腕。前例 S2-skit）
 - Modify: `Localization/localization.csv`（`ui.commandRejected.*` の末尾 6 行）
 - Modify（生成物）: `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`（`gen:i18n`）・`moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs`（印）
+- Modify: `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（良性の一覧を固定するテスト。良性を 3 値足すので一覧を直す）
 - Test: `S/Client.Tests/Ui/State/BuildMenu/BuildMenuCommandsTest.cs`
 
 **Interfaces:**
@@ -1297,7 +1298,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`BuildMenuCommandsTest.cs`（`UIStateControl` の状態は前例 `S/Client.Tests/WebUi/BuildMenuActionsTest.cs` と同じく reflection で `CurrentState` を置く。`BlueprintDeleteServiceStub` は前例と同じ形をこのファイルの private class に書く。`BuildMenuCommands` の第 4 引数は `IBlueprintDeleteService` で受ける〈本番の DI は `ClientBlueprintLibrary` を `As<IBlueprintDeleteService>` で足さず、登録ファイルで `resolver => resolver.Resolve<ClientBlueprintLibrary>()` を渡す。Task 8〉）:
+`BuildMenuCommandsTest.cs`（`UIStateControl` の状態は前例 `S/Client.Tests/WebUi/BuildMenuActionsTest.cs` と同じく reflection で `CurrentState` を置く。`BlueprintDeleteServiceStub` は前例と同じ形をこのファイルの private class に書く。`BuildMenuCommands` の第 4 引数は `IBlueprintDeleteService` で受ける〈本番の DI は D-35 のとおり `MainGameInteractionRegistration` の `ClientBlueprintLibrary` の登録に `.As<IBlueprintDeleteService>()` を足して引く。Task 8〉）:
 ```csharp
 using System;
 using System.Linq;
@@ -1449,6 +1450,22 @@ Expected: `BuildMenuCommands` が無いコンパイルエラー
                 UiCommandRejectReason.BlueprintDeleteRequestFailed => false,
                 UiCommandRejectReason.BlueprintDeleteUnknown => false,
 ```
+`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の一覧を固定するテスト（土台では「良性の拒否理由は言語の選択済みだけ」。S3-hotbar-modal などが先に名前を変えていれば `grep -n "IsBenign" $S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` で探す）を次に置き換える。全 enum 値を走査して良性の一覧を固定するので、良性を足すとこのテストが赤になる。`benign` の配列は、その時点の `grep -n "=> true" $S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の値の全部（他レーンが足した良性を含む）にこのレーンの 3 値を足して書く:
+```csharp
+        [Test]
+        public void 良性の拒否理由は宣言した一覧と一致する()
+        {
+            // 状態を変えない再送・閉じた後の選択・消えた BP の削除は利用者に知らせない（ログだけ）
+            // Resends, selections after close and deletes of vanished blueprints change no state, so players are not told (log only)
+            var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.BuildMenuNotOpen, UiCommandRejectReason.UnknownBuildMenuEntry, UiCommandRejectReason.BlueprintDeleteNotFound };
+            foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
+            {
+                Assert.AreEqual(System.Array.IndexOf(benign, reason) >= 0, UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
+            }
+        }
+```
+（S3-hotbar-modal も同じ名前へ置き換える。取り込みで衝突したら `benign` を両方の値の和にする）
+
 `ToLocalizationKey` の末尾に:
 ```csharp
                 UiCommandRejectReason.BuildMenuNotOpen => LocalizationKeys.Ui.CommandRejected.BuildMenuNotOpen,
@@ -1573,8 +1590,8 @@ namespace Client.Ui.State.BuildMenu.Commands
 
 - [ ] **Step 5: テストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.State\.(BuildMenu|Commands)\.|UiCommandRejectReason"`
-Expected: `ErrorCount: 0`、全件 PASS（既存の `UiCommandRejectReason` の網羅テストがあれば、追加 6 値でも緑）
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.State\.(BuildMenu|Commands)\.|UiCommandRejectReason|PauseMenuCommandsTest"`
+Expected: `ErrorCount: 0`、全件 PASS（`PauseMenuCommandsTest` の「良性の拒否理由は宣言した一覧と一致する」を含む）
 
 CSV の生成物を作り直す（前例 S2-skit・commit 42279a73e4）:
 ```bash
@@ -1586,10 +1603,10 @@ Expected: 2 ファイルとも差分あり（`localizationKeys.ts` に `ui.comma
 - [ ] **Step 6: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui.State/BuildMenu/Commands moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BuildMenu
+git add moorestech_client/Assets/Scripts/Client.Tests/Ui/State/PauseMenuCommandsTest.cs moorestech_client/Assets/Scripts/Client.Ui.State/BuildMenu/Commands moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BuildMenu
 git commit -m "feat(uitk): ビルドメニューのコマンド（選択・BP 削除・閉じる）と拒否理由を足す（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -2099,7 +2116,7 @@ Expected: `ErrorCount: 0`、8 件 PASS
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu/Parts moorestech_client/Assets/Scripts/Client.Ui/Content moorestech_client/Assets/Scripts/Client.Tests/Ui/Content/FakeContentTextureSource.cs moorestech_client/Assets/Scripts/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu
 git commit -m "feat(uitk): ビルドメニューのエントリのマス（不足ツールチップ・ドラッグ源・錨）を足す（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -2610,7 +2627,7 @@ Expected: 何も出ないか、build menu の行が出る。出たらその行�
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu/Parts moorestech_client/Assets/Scripts/Client.Tests/Ui
 git commit -m "feat(uitk): ビルドメニューのリスト・サイドバー・詳細の部品を足す（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -3325,11 +3342,20 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             Assert.Greater(requested, 0f);
             CloseMenu();
 
+            // 閉じている間にスペーサを未適用へ戻す（要求値は変えないので購読は再通知しない）。張り替えの当て直しだけが高さを戻せる
+            // Reset the spacer to unapplied while closed (the request is unchanged, so the subscription never re-fires); only the re-apply on attach can restore it
+            var spacer = Find<VisualElement>(View, "build-menu-trailing-spacer");
+            spacer.style.minHeight = StyleKeyword.Null;
+            spacer.style.height = StyleKeyword.Null;
+            simulate.FrameUpdate();
+            Assert.AreEqual(requested, Tracker.SpacerHeight.Value, 0.01f);
+            Assert.Less(spacer.layout.height, requested - 0.5f);
+
             OpenMenu(Create());
 
-            // 新しい視口の AppliedSpacerHeight が要求値と同じ（L-4）
-            // The new viewport's applied spacer height matches the request (L-4)
-            Assert.AreEqual(requested, Find<VisualElement>(View, "build-menu-trailing-spacer").layout.height, 0.5f);
+            // 新しい視口の AppliedSpacerHeight が要求値と同じ（L-4。Attach の当て直しを消すとここで赤）
+            // The new viewport's applied spacer height matches the request (L-4; removing the re-apply in Attach turns this red)
+            Assert.AreEqual(requested, spacer.layout.height, 0.5f);
         }
 
         [Test]
@@ -3420,6 +3446,7 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.Foundation.Motion.Steps;
 using Client.Ui.Foundation.Motion.Tween;
+using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.BuildMenu.Parts;
 using UniRx;
 using UnityEngine;
@@ -3433,9 +3460,9 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
     /// </summary>
     public sealed class BuildMenuScrollViewport : IBuildMenuScrollViewport
     {
-        // Web の scrollTo({ behavior: "smooth" }) の代わり。長さと緩急はブラウザ任せの値を固定した（LX-71。D-10）
-        // Stands in for the Web scrollTo({ behavior: "smooth" }); duration and easing pin what the browser decides (LX-71, D-10)
-        private static readonly UiMotionSpec SmoothScrollSpec = new(300f, 0f, UiEasing.EaseOutCubic, UiMotionLoop.Once);
+        // Web の scrollTo({ behavior: "smooth" }) の代わり。長さは USS のつまみ、緩急は C#（前例 ToastHostView。LX-71。D-10）
+        // Stands in for the Web scrollTo({ behavior: "smooth" }); duration is a USS knob, easing stays in C# (precedent ToastHostView; LX-71, D-10)
+        private const string SmoothScrollDurationProperty = "--build-menu-smooth-scroll-duration";
 
         private readonly GameScrollView _scroll;
         private readonly BuildMenuCategoryList _list;
@@ -3502,8 +3529,16 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         {
             if (WarnIfFrozen(nameof(ScrollSmoothlyTo))) return;
             _motion?.Cancel();
+            // 長さが読めなければ（UssCustomStyleReader が LogError を出す）動きを付けずに飛ぶ。位置は Web と同じに着く
+            // If the duration is unreadable (UssCustomStyleReader logs an error), jump without motion; the position still lands as on the Web
+            if (!UssCustomStyleReader.TryReadMilliseconds(_scroll.customStyle, SmoothScrollDurationProperty, out var durationMs))
+            {
+                SetScrollTopImmediately(scrollTop);
+                return;
+            }
             var from = _scroll.scrollOffset;
-            _motion = UiMotionPlayer.Play(_scroll, new UiTweenAnimation(SmoothScrollSpec, new ScrollOffsetTweenStep(_scroll, from, new Vector2(from.x, scrollTop))));
+            var spec = new UiMotionSpec(durationMs, 0f, UiEasing.EaseOutCubic, UiMotionLoop.Once);
+            _motion = UiMotionPlayer.Play(_scroll, new UiTweenAnimation(spec, new ScrollOffsetTweenStep(_scroll, from, new Vector2(from.x, scrollTop))));
         }
 
         // 隠す直前に位置を写し取り、以後は ScrollView から何も受けない（D-7）
@@ -3965,6 +4000,7 @@ namespace Client.Ui.Screens.BuildMenu
 
 .build-menu__scroll {
     --build-menu-scroll-clip-inset: var(--tutorial-anchor-clip-inset);
+    --build-menu-smooth-scroll-duration: 300ms; /* look-exception: LX-71。Web は scrollTo smooth の長さをブラウザが決める。300ms を固定した（D-10） */
 }
 
 .build-menu__list {
@@ -4058,7 +4094,7 @@ Expected: `ErrorCount: 0`。`Views` の 39 件（Task 5 の 8・Task 6 の 5・�
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
 git commit -m "feat(uitk): ビルドメニューの View・視口・USS と画面の L1 を足す（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -4257,7 +4293,7 @@ uloop control-play-mode --project-path ./moorestech_client --action Stop
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu moorestech_client/Assets/Scripts/Client.Starter/Registration docs/uitk/TODO.md
 git commit -m "feat(uitk): ビルドメニューを GameUi の系へ登録し復元前の位置通知を実測する（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -4288,7 +4324,7 @@ uloop compile --project-path ./moorestech_client
 git add moorestech_client/Assets/Scripts/Client.Tests/Ui
 git commit -m "test(uitk): ビルドメニューの Web テスト名の綴りを突き合わせに合わせる（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 （直しが無ければコミットしない）
 
@@ -4535,7 +4571,7 @@ Expected: `95`（8＋80＋7）。`uloop focus-window` の後、S2-mode-tooltip T
 ```markdown
 | LX-71 | S3-buildmenu | ビルドメニューのサイドバーのジャンプの smooth scroll | Web は `scrollTo({ behavior: "smooth" })` の長さと緩急をブラウザ（CEF）が決める。UITK は `UiMotion` で 300ms・EaseOutCubic に固定した | 動きの長さの差は録画で見て、見て分かる差があれば値を直す | `S/Client.Ui/Screens/BuildMenu/CategoryScroll/BuildMenuScrollViewport.cs` |
 ```
-（C# の該当行〈`SmoothScrollSpec`〉に `// look-exception: LX-71` を付ける。`LookExceptionLedgerTest` が USS だけを照合するなら C# の印は付けず、台帳の行だけにする〈実物の照合範囲を読んで決める〉）
+（印 `/* look-exception: LX-71 */` は `BuildMenu.uss` の `--build-menu-smooth-scroll-duration` の行に付いている。緩急〈EaseOutCubic〉は C# の `ScrollSmoothlyTo` にあり、台帳の行に「緩急は C#」と書く）
 
 - [ ] **Step 6: 直しがあればコミット**
 
@@ -4546,7 +4582,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu/Support docs/uitk/TODO.md
 git commit -m "fix(uitk): ビルドメニューを Web との並べ比べで揃え、smooth scroll の例外を記帳する（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -4694,7 +4730,7 @@ Expected: BP 名の入力（`modal-input`）は S3-hotbar-modal の持ち物な�
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios
 git commit -m "test(uitk): ビルドメニューの末尾ジャンプ・検索・復元・選択を UITK の録画で通す（S3-buildmenu）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -4720,7 +4756,7 @@ Expected: `ErrorCount: 0`、全件 PASS。自動適用が `BuildMenuView`・`Bui
 git add -A moorestech_client/Assets/Scripts "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss" Localization moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts docs/uitk .agents/skills/unity-playmode-recorded-playtest/scenarios
 git commit -m "fix(uitk): S3-buildmenu の moores-code-review 反映
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 （自動適用が無ければコミットしない）
 
@@ -4796,7 +4832,7 @@ bd close <bd> --reason "PR #<番号> を feature/uitk へマージ（ビルド�
 git status --short
 git log origin/uitk-lane/s3-buildmenu..HEAD
 ```
-Expected: closed、`git status --short` と `git log` が空。テストで `Saves/` に作ったワールドがあれば `list-work-saves.sh` で探して消す。`done.md` の 1 行目を「状態: 完了」にし、「## 証拠」に PR 番号・マージコミット・G1 のジョブ URL・各テストと録画の結果・報告ページの URL を足す。worktree の片付け（`moores-wt rm`）は指揮が行う
+Expected: closed、`git status --short` と `git log` が空。テストで `Saves/` に作ったワールドがあれば `list-work-saves.sh` で探して消す。`done.md` の 1 行目を「状態: 完了」にし、「## 証拠」に PR 番号・マージコミット・G1 のジョブ URL・各テストと録画の結果・報告ページの URL を足す。最後に実行計画 §4.3 手順 5 のとおり `moores-wt rm uitk-lane/s3-buildmenu --prune-branch` で worktree と Editor を畳む（依頼文で指揮が片付けると言っていればそれに従い、畳まない）
 
 ---
 
@@ -4826,8 +4862,8 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-7 | 隠すときは「位置の保存 → 視口の凍結 → `display: none`」、出すときは「検索語の復元 → `display: flex` → 合成 → スペーサ高の当て直し → 新しい視口の装着」。視口は表示ごとに作り直す | 視口を 1 つ使い回す: トラッカーの `AttachViewport` は同じインスタンスに冪等で、保存位置からの復元（`_scrollRestored` の巻き戻し）が起きない。隠した ScrollView の位置をそのまま読む: `display: none` の間の位置が保たれる保証が無い | agent 既定（L0-s3 の `AttachViewport` の実物） |
 | D-8 | 視口は最初の `SetScrollTopImmediately` まで位置の通知をトラッカーへ流さない（転送の門） | Web と同じく全部流す: L0-s3 が「Web と同挙動に潰れ得る」と申し送った経路（L-3）を開けたままにする。門は L1 で記録し、実機の観測は Task 8 Step 4 | agent 既定（L0-s3「後段レーンへ渡すもの」L-3） |
 | D-9 | スペーサは `SpacerHeight` の購読で `minHeight` を当て、`AppliedSpacerHeight` は `Spacer.layout.height`（NaN は 0）。スペーサの `GeometryChangedEvent` と `OnContentLayoutChanged` の両方で `OnLayoutChanged` を呼ぶ | `OnContentLayoutChanged` だけ: スペーサの反映で中身の高さが変わらない（末尾群が長い等）とき引き直しが来ず、末尾ジャンプが手前で止まる（L-1） | agent 既定（L0-s3 の L-1・[A-49]） |
-| D-10 | smooth scroll は `UiMotionPlayer`＋`ScrollOffsetTweenStep`、300ms・EaseOutCubic。見た目の例外 LX-71 | UITK の `ScrollView.ScrollTo`: 即時で滑らかに動かない。CEF の実測値に合わせる: ブラウザの smooth の長さは仕様で決まらず、測っても版で変わる | agent 既定（完了条件「smooth scroll（UiMotion）」） |
-| D-11 | ホイール・押下・キー（TrickleDown）でモーションを止め `OnUserIntervened` を呼ぶ | 押下だけ: Web は wheel・pointerdown・keydown の 3 つで固定を解く | agent 既定（Web `useBuildMenuCategoryScroll.ts`） |
+| D-10 | smooth scroll は `UiMotionPlayer`＋`ScrollOffsetTweenStep`、300ms・EaseOutCubic。見た目の例外 LX-71。長さは `BuildMenu.uss` の `.build-menu__scroll` のつまみ `--build-menu-smooth-scroll-duration: 300ms` を `UssCustomStyleReader.TryReadMilliseconds` で読む（前例 `ToastHostView` の `--toast-host-enter-duration`。ref-uitk-design「尺はトークン」）。緩急は C# | UITK の `ScrollView.ScrollTo`: 即時で滑らかに動かない。CEF の実測値に合わせる: ブラウザの smooth の長さは仕様で決まらず、測っても版で変わる | agent 既定（完了条件「smooth scroll（UiMotion）」） |
+| D-11 | ホイール・押下・キー（TrickleDown）でモーションを止め `OnUserIntervened` を呼ぶ | 押下だけ: Web は wheel・touchstart・pointerdown・keydown の 4 つで固定を解く（`useBuildMenuCategoryScroll.ts:22`。UITK のデスクトップでは touchstart は押下に畳まれる） | agent 既定（Web `useBuildMenuCategoryScroll.ts`） |
 | D-12 | サイドバーは項目の並びが変わったときだけ `ModeSwitch<Guid>` を作り直し、無効は `SetOptionEnabled` | 毎回作り直す: 押下中の状態・フォーカスが消え、検索の打鍵ごとに木が揺れる | agent 既定 |
 | D-13 | リストは群・節・エントリの並びのキーが同じなら中身だけ差し替え、違えば作り直す | 毎回作り直す: 所持品の変化（毎秒あり得る）でスクロールの寸法が揺れ、ホバーとツールチップの印が外れる | agent 既定（Web の React の key と同じ効果） |
 | D-14 | 詳細は sticky。ホバーした id をセッションに保存し、VM の再配信のたびに引き直す。エントリが消えたらヒントへ戻す | 離れたら消す: Web の regression 8 件目（sticky）に反する | Web `BuildMenuPanel.tsx` |
@@ -4835,10 +4871,10 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-16 | 落としの受け口 `IHotbarDropReceiver`（State/Hotbar/Logic・`IUiDropTarget` は継がない）をこのレーンが作り、`OnDropped` は `target is IHotbarDropReceiver r` なら `r.Receive(Source)` を呼んで終わる（断った理由のログは受け手が出す）。受け口でない落とし先は `OnDroppedOutside` と同じく何もしない。これは正常操作の無操作で、ガードの縮退ではない（Web と同じ） | Warning だけ置いて S3-hotbar-modal が本体を差し替える: 後のレーンがこのレーンのファイルを書き換え、所有が混ざる。このレーンで割当まで作る: 枠の印と割当は S3-hotbar-modal の持ち物。`IUiDropTarget` を継ぐ: State は `Client.Ui` を参照できない。断られた落としを源で Warning にする: 受け手と源の 2 か所でログが重なり、hotbar-modal 側の扱いとずれる | 本体（指揮代行）の決定 |
 | D-17 | 1 セット設置（`setPlacement`）は Block だけ | 全種別: Web の橋も Block だけに付ける（`BuildMenuEntryDtoFactory`） | Web の橋の実物 |
 | D-18 | `building/blueprint-place-like-block` は GameUi で `modal-input` の待ちまでを確かめ、Web で通しを 1 回流して既存経路を守る。GameUi の通しは S3-ladder | GameUi で通しを完了条件にする: BP 名のモーダルは S3-hotbar-modal の持ち物で W3 の順ではこのレーンの後。完了条件から外す: 実行計画の文言にあり、ビルドメニューの経路（BP コピーの選択）はこのレーンで確かめられる | 本体（指揮代行）の決定で採用（実行計画 §1.4・死活表） |
-| D-19 | Model は開いている間、源の変化で同期的に VM を組み直す（A-57）。Presenter は出ている間だけ購読する | 間引く: Web の topic も変化ごとに送る。閉じている間も購読: 描かない画面に配る理由が無い（前例 PauseMenu） | 設計書 [A-57]・前例 `PauseMenuScreenPresenter` |
+| D-19 | Model は開いている間、源の変化で同期的に VM を組み直す（A-57）。Presenter は出ている間だけ購読する | 間引く: Web の topic も変化ごとに送る。閉じている間も購読: 描かない画面に配る理由が無く、開く直前に最新の VM で Render する順を作れる | 設計書 [A-57]・agent 既定（表示中だけの購読の前例は無い。`PauseMenuScreenPresenter` 等は `Initialize` で 1 回購読する。判定の元〈Model は UIState・Presenter はルータの Screen〉が違う点は D-41(a)） |
 | D-20 | 登録は `BuildMenuGameUiRegistration` 1 ファイルと `MainGameUiRegistration` の 1 行 | 共有の `MainGameUiStateRegistration` に Model を足す: GameUi の系だけが使う（Web は橋が同じ規則で動く。前例 S2-mode-tooltip D-19） | 前例 S2-mode-tooltip |
 | D-21 | `Client.Ui.State.asmdef` に `Common.Debug`・`Game.Construction`・`Client.Mod` を足す（CS0246/CS0012 が出たものだけ） | 規則を写さず橋を呼ぶ: D-1 と同じ理由で参照できない | 前例 S2-mode-tooltip D-38 |
-| D-22 | View の ctor は 5 引数（コマンド・コンテンツ・トースト・セッション・トラッカー）。トラッカーは Presenter が作り View と同じ寿命 | View がトラッカーを作る: L1 がトラッカーの `SpacerHeight` を読めない。DI で登録: 画面 1 つにしか使わない状態を共有へ出す理由が無い | agent 既定 |
+| D-22 | View の ctor は 6 引数（コマンド・コンテンツ・絵の出どころ `PlacementTargetIcons`・トースト・セッション・トラッカー）。トラッカーは Presenter が作り View と同じ寿命 | View がトラッカーを作る: L1 がトラッカーの `SpacerHeight` を読めない。DI で登録: 画面 1 つにしか使わない状態を共有へ出す理由が無い | agent 既定 |
 | D-23 | `buildMenuRestore.spec.ts` は test-name-parity の束 5 に数える | 束 3: 台帳「## 行」でそのファイルを持つ行の最大の束が 5（Task 9 Step 1 で読み違いなら直す） | `docs/uitk/disposition.md` の書式 |
 | D-24 | L3（EditModeInPlayingTest）は持たない | 足す: 段の締め S3-ladder の持ち物（実行計画） | 実行計画 §1.4 |
 | D-25 | 並べ比べは、参照キャプチャと同じ中身（mock-host の DEMO の `buildMenuFixtures` と日本語の名前・選択なし・詳細はヒント）を写した `BuildMenuReferenceDemo` の VM を、複製した PanelSettings の RT へ載せて両解像度で撮る。差の表の行は「同じ／直した／LX-n」だけで、中身の差を理由に捨てない。実ゲームの VM の撮影は崩れの確認として別に 1 枚撮る。色の差は所有レーンの直しを取り込んで撮り直すか LX に記帳するまで完了・マージしない | 実ゲームの VM で撮って中身の差を一律に捨てる: 名前の長さ・件数・行数の差に隠れて、寸法・折り返し・行数・色の差を見逃す（独立評価の指摘）。色の差を「未確認＋integrator 依頼」で進める: 直ったことを誰も確かめないまま出荷される | 独立評価（Codex C1・C2）・本体の決定 |

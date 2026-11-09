@@ -843,7 +843,7 @@ Expected: `ErrorCount: 0`、`HotbarViewModelFactoryTest` 4 件と既存 `HotbarD
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Hotbar moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Hotbar
 git commit -m "feat(uitk): ホットバーの ViewModel と選択の規則を足す（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -980,7 +980,7 @@ Expected: `ErrorCount: 0`。ctor が `_current` を `Build()` で作るので、
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Hotbar
 git commit -m "feat(uitk): ホットバーの Model を源の購読で組む（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -1343,7 +1343,7 @@ Expected: `ErrorCount: 0`、`ModalConfirmableTextTest` 2・`ModalCommandsTest` 2
 git add moorestech_client/Assets/Scripts/Client.Ui.State moorestech_client/Assets/Scripts/Client.Tests/Ui/State Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs
 git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandResult で返し、確定の規則を 1 本にする（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 台帳の追従記録の 1 行にこのコミットのハッシュを書き、`git add docs/uitk/TODO.md && git commit -m "docs(uitk): 拒否理由の文言の再生成を追従記録へ（S3-hotbar-modal）"`（末尾に Co-Authored-By の行）
 
@@ -1399,7 +1399,7 @@ Expected: PASS（トークンの書式・`look-exception` の照合・tss の束
 git add moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss tools/uitk/webTokens/handWrittenDerivedRows.mjs docs/uitk/translucent-tokens.md
 git commit -m "feat(uitk): ホットバーの前計算色と減光のトークンを足す（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -1892,7 +1892,7 @@ Expected: `ErrorCount: 0`（テストは Task 7 で View と一緒に書く）
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/WheelPassthroughMark.cs moorestech_client/Assets/Scripts/Client.Ui/Components/Slots/OutlinedCountLabel moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/CountLabel
 git commit -m "feat(uitk): ホットバーの枠・番号タブ・落とし先の印を足す（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -2812,7 +2812,7 @@ test -f $F && grep -n "AnchorIds.HotbarHud" $F || echo "no-pending-row"
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
 git commit -m "feat(uitk): ホットバーの View・USS・Presenter と L1 を足す（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -3425,7 +3425,7 @@ Expected: `ErrorCount: 0`、`ModalViewTest` 5・`ModalScreenPresenterTest` 6 と
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Modal moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Modal "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
 git commit -m "feat(uitk): モーダルの View・Presenter と L1 を足し、描き手を UITK に一本化する（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -3526,7 +3526,7 @@ uloop control-play-mode --project-path ./moorestech_client --action Stop
 git add moorestech_client/Assets/Scripts/Client.Starter/Registration
 git commit -m "feat(uitk): ホットバーとモーダルを全体スイッチ UITK の画面登録区画へ足す（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -3659,7 +3659,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git add moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss tools/uitk/webTokens/handWrittenDerivedRows.mjs docs/uitk/translucent-tokens.md docs/uitk/TODO.md
 git commit -m "fix(uitk): ホットバーの世界の地の上の面と減光をランタイムの画素で Web に合わせる（S3-hotbar-modal・albof.34）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 Expected: `LookExceptionLedgerTest` を含めて PASS。`bd note moorestech-albof.34 "<台帳に書いた 1 行>"`
 
@@ -3714,7 +3714,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens docs/uitk/TODO.md
 git commit -m "fix(uitk): ホットバーとモーダルを Web との並べ比べで揃える（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 （直しが無ければコミットしない）
 
@@ -3762,7 +3762,7 @@ Expected: 2 本とも `result.json` が `Success: true`、Note に `系=GameUi`�
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-hotbar-and-bp-modal.cs
 git commit -m "test(uitk): ホットバーの操作と BP 名のモーダルを UITK の録画で通す（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -3800,7 +3800,7 @@ Expected: 1 行目にこのレーンの持ち分（`hotbar.spec.ts` 6・`useHotb
 git add docs/uitk/disposition.md
 git commit -m "docs(uitk): ホットバーの一部だけ写す Web テストの処遇を書く（S3-hotbar-modal）
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 
 ---
@@ -3826,7 +3826,7 @@ Expected: `ErrorCount: 0`、全件 PASS。自動適用が `HotbarModel`・`Hotba
 git add -A moorestech_client/Assets/Scripts "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss" docs/uitk tools/uitk .agents/skills/unity-playmode-recorded-playtest/scenarios
 git commit -m "fix(uitk): S3-hotbar-modal の moores-code-review 反映
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
 （自動適用が無ければコミットしない）
 
