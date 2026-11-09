@@ -19,7 +19,7 @@
 |---|---|---|
 | R-1 | 機械の詳細: `CommonMachineBlockStateDetail` と `MachineBlockStateDetail` が揃い `BlockParam is IMachineParam` のブロックだけを機械とする（Web ホスト `BlockDetailDtoBuilder` と同じ）。状態の文字列（`idle`・`processing`・`halted`）→ `MachineProcessDisplayState`、選択レシピの文字列 → `MachineRecipeSelection`（`Guid.Empty` は未選択）、加工中レシピの秒と出力、選択レシピからの束縛（入力 i＝素材 i〈`MachineRecipeSlotBindingUtil.GetAcceptedInputItemIds`〉・出力 j＝`InputSlotCount + j`・タンク出力 j＝`InputTankCount + j`）、歯車駆動（`GearStateDetail` の有無）。読めない文字列は機械の区画を出さず Error ログ（fail-closed） | `MachineDetailConversionTest`・`MachineRecipeSelectionTest`・`MachineStateTypeConversionTest` が緑 |
 | R-2 | 採掘機・ポンプ・発電機の詳細: 採掘機は `CommonMinerBlockStateDetail`＋common＋`IMinerParam`（採掘中の品だけ・毎分 = 60 / MiningSeconds）、ポンプは `PumpBlockStateDetail`＋param（`ElectricPumpBlockParam` は common の状態と電力つき、`GearPumpBlockParam` は電力なし、他は Error ログで区画を出さない〈D-6〉）、発電機は `PowerGeneratorStateDetail`（鍵は `PowerGeneratorStateDetail.StateDetailKey`。他の詳細の `BlockStateDetailKey` と名前が違う） | `FamilyDetailConversionTest` が緑 |
-| R-3 | 液体の列: `FluidMachineInventoryStateDetail` の入力→出力の順、パイプは `FluidNetworkClientCache.TryGetNodeIndex` の複製（`FluidUnits.ToAmount`）。空の液体は `BlockFluidSlotState.Empty(capacity)`。液体プラットフォームもブロックで `FluidMachineInventoryStateDetail` を出すので同じ経路、貨車は追跡ブロックでないので空。パイプは複製に変化の通知が無いので、追跡ブロックが複製に節を持つ間だけ 4 フレームごとに読み、量か液体 id が変わったときだけ配り直す（Web ホスト `BlockInventoryRepublishPolicy` と同じ間隔。設計書 §4.2・D-20） | `BlockFluidSlotConversionTest`・`BlockFluidSlotsModelTest` が緑 |
+| R-3 | 液体の列: `FluidMachineInventoryStateDetail` の入力→出力の順、パイプは `FluidNetworkClientCache.TryGetNodeIndex` の複製（`FluidUnits.ToAmount`）。空の液体は `BlockFluidSlotState.Empty(capacity)`。液体プラットフォームもブロックで `FluidMachineInventoryStateDetail` を出すので同じ経路、貨車は追跡ブロックでないので空。パイプは複製の変化の通知（`FluidNetworkClientCache.OnReplicaVersionChanged`。このレーンが `ApplyFullState`・`ApplyTickDiff` の直後に流すよう足す）を、追跡ブロックが複製に節を持つ間だけ購読し、量か液体 id が変わったときだけ配り直す（設計書 §4.2 [A-57]・D-20・D-36） | `BlockFluidSlotConversionTest`・`BlockFluidSlotsModelTest`・`FluidNetworkClientCacheNotificationTest` が緑 |
 | R-4 | 文脈の 3 欄: 部屋欄（`CleanRoomTarget != None`。未取得は `clean-room-fetch-state` の 1 行、取得済みは見出し・空気・清浄機ごと・清浄機なし・停止理由）、抽選の中身（室内機械だけ。未取得 `clean-room-yield-fetch-state`、取得済みは `CleanRoomYieldLogic.Lines` の行、NoRole/NotOperable は欄ごと無し）、搬入停止（機械だけ。未取得 `machine-input-stall-fetch-state`、停止中は `machine-input-stall` の赤字に品名、NotStalled は欄ごと無し）。並びは部屋 → 抽選 → 停止、`UiStack(Sm)`。機械以外では区画列の先頭（`SectionStackSlot.Context`）、機械では機械の区画の本文の器の先頭（alpha D-3）。1 秒ポーリングの更新（`BlockNetworkInfoCache.OnUpdated`）で `BlockContextModel` が配り直し、Presenter が描き直す | `CleanRoomSectionTest` 4・`CleanRoomYieldSectionTest` 3・`MachineInputStallSectionTest` 3・`ContextSectionOrderTest` 4 が緑 |
 | R-5 | 機械のインベントリモード: `machine-section`（`UiStack(Sm)`）＝本文（大型は `GameScrollView(machine-inventory-scroll)` の中・自然高は素のまま）＋フッタ。本文＝文脈 → 選択中レシピのヘッダ（選択行があるとき）→ `machine-inventory-body`（加工行〈入力 `machine-input-slots`・`ProgressArrowGlyph(machine-progress-arrow)`・出力 `machine-output-slots` を左右等幅の 3 列で矢印を中央固定、列の間 16px〉・モジュール帯〈module>0。`machine-module-label`・`machine-module-stack-limit`・`machine-module-slots`〉・液体の行 `machine-fluid-slots`〈ゴーストつき・進捗なし〉・出力ごとの `machine-items-per-minute`）。入力枠は所持/必要（`ItemSlotShortage`。つまみ `--shortage-count-right: 2px`・`-bottom: -3px`・`-font-size: 15px` を入力側で上書き）、出力・モジュールは必要数なし。ゴーストは束縛から | `MachineInventoryBodyTest`（machineRequiredCount 4）・`MachineDesignTest`（加工行・モジュール帯）が緑 |
 | R-6 | フッタ: `UiGroup(Xs)`（`UiLayoutClass.GroupJustifyCenter`）＝`MachineStateRow(machine-state-label, machine-power-rate)`（歯車駆動は不足赤を出さない。ADR 0056）＋出力空き不足のときだけ `LackHighlightText(machine-wait-reason, Sm)`（`ui.blockInventory.machineWaitOutputSpaceShort`・不足トーン）。選択モードでもインベントリモードでも同じ高さに出る | `MachineSectionTest`（停止中・歯車駆動・出力空き不足 2 件）が緑 |
@@ -47,6 +47,7 @@
 - 部品（`ItemSlot`・`SlotGrid`・`FluidSlotRow`・`FluidAmountSlot`・`RecipeRow`・`RecipeListScrollView`・`LevelInheritanceBadge`・`ProgressArrowGlyph`・`ProgressArrowBar`・`GaugeBar`・`GameScrollView`・`GameIcon`）・Foundation・トークン USS は変えない。足りないものは `done.md`「integrator への依頼」と指揮へ
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は変えない。Web ホストの導出の重複は D-3 に記す
 - サーバーのプロトコル・状態詳細は変えない（既存の `MachineBlockStateDetail` 等と `MachineRecipeSelectionProtocol` で足りる）。セーブ形式も変えない
+- `Client.Game` は `FluidNetworkClientCache` に変化の通知 `OnReplicaVersionChanged` を 1 本足すだけ変える（設計書 [A-57]・D-36）
 - `e2e/mock-host/detailActions.test.ts` 3 件（mock-host 自身の契約）と `ModuleSlotStackLimitText.test.ts`「上限の配信が届くまでは何も描かない」は捨てる（D-10・D-11）
 
 ## Global Constraints
@@ -193,7 +194,7 @@ CommonMinerBlockStateDetail { float MiningSeconds; List<ItemId> GetCurrentMining
 FluidMachineInventoryStateDetail { List<FluidMessagePack> InputTanks; OutputTanks }   FluidMessagePack { int FluidId; double Amount; double MaxCapacity }   GearStateDetail（Game.Gear.Common）
 CleanRoomOperabilityStateDetail { CleanRoomOperability Operability /* NotEnclosed, ClassOut, Operable */ }
 BlockNetworkInfoCache { CleanRoomDetailTarget CleanRoomTarget /* None, AirFilter, Machine */; bool IsTrackingMachineInputStall; IObservable<Unit> OnUpdated; BlockInfoFetchState GetCleanRoom(out CleanRoomInfoView); GetCleanRoomYield(out CleanRoomYieldView); GetMachineInputStall(out MachineInputStallView); }   // DI 登録済み
-FluidNetworkClientCache { bool TryGetNodeIndex(Vector3Int pos, out int node); Replica.Network { NodeFluidIds; NodeAmounts; NodeCapacities } }   // DI 登録済み
+FluidNetworkClientCache { bool TryGetNodeIndex(Vector3Int pos, out int node); Replica.Network { NodeFluidIds; NodeAmounts; NodeCapacities }; int ReplicaVersion; void ApplyFullState(FluidNetworkFullState); bool ApplyTickDiff(FluidTickDiff); }   // DI 登録済み。変化の通知は無い（このレーンが OnReplicaVersionChanged を足す。D-36）
 IModuleSlotStackLimitLookup { int CurrentStackLimit; IObservable<int> OnStackLimitChanged; }   // DI 登録済み（MainGameModelRegistration）
 IGameUnlockStateData { IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos; }   // DI 登録済み
 ClientContext.VanillaApi.Response.Block.SendMachineRecipeSelectionRequest(MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest.CreateSetRecipeRequest(Vector3Int, Guid), CancellationToken) → UniTask<MachineRecipeSelectionResponse{ bool Success; FailureReason }>
@@ -226,7 +227,7 @@ ClientContext.VanillaApi.Response.Block.SendMachineRecipeSelectionRequest(Machin
 | モジュールの上限の更新 | 生きる | R-8 `OnStackLimitChanged` |
 | 採掘機・ポンプ・発電機の表示と更新 | 生きる | R-10、Task 3・8 |
 | タンク・液体プラットフォーム（機械の液体を含む）の量の更新 | 生きる | `FluidMachineInventoryStateDetail` の状態変化 |
-| パイプを開いたまま量・種類が更新される | 生きる | R-3・D-20。4 フレームごとに複製を読み、変わった回だけ配り直す（Web ホストと同じ間隔）。`BlockFluidSlotsModelTest` |
+| パイプを開いたまま量・種類が更新される | 生きる | R-3・D-20・D-36。複製の変化の通知を購読し、変わった回だけ配り直す。`BlockFluidSlotsModelTest` |
 | 清浄室の部屋欄・抽選・搬入停止の 1 秒更新 | 生きる | R-4 `BlockNetworkInfoCache.OnUpdated` の購読 |
 | 低いウィンドウ・清浄機の多い部屋での本文のスクロールとフッタ | 生きる（600・1080 は録画で見る） | R-15・D-15、Task 11・15 |
 | 開いたまま言語を変える | 生きる（「取得できない」行は最大 1 秒遅れる） | D-13 |
@@ -357,8 +358,9 @@ State（`Client.Ui.State/BlockInventory/`）
 - `Family/Models/IMinerDetailModel.cs`・`MinerDetailModel.cs`・`IPumpDetailModel.cs`・`PumpDetailModel.cs`・`IGeneratorDetailModel.cs`・`GeneratorDetailModel.cs` — 族ごとに 1 本の `Current` を配る（IInitializable。設計書 §4.1 の Model の型・`FakeModel<T>` の約束）
 - `Fluid/BlockFluidSlotConversion.cs` — タンクとパイプ → `BlockFluidSlotState` の列
 - `Fluid/BlockFluidSlotReading.cs` — 追跡ブロックの詳細とパイプの網の複製から液体の列を読む入口（Model とテストが共有）
-- `Fluid/BlockFluidSlotsViewModel.cs`・`Fluid/IBlockFluidSlotsModel.cs`・`Fluid/BlockFluidSlotsModel.cs` — 液体の列と進捗を配る（パイプは 4 フレームごとに複製を読む。共有サービス）
-- `Fluid/IFluidReplicaReader.cs`・`Fluid/FluidNetworkReplicaReader.cs` — パイプの流体複製の読み手の口と本番実装（`FluidNetworkClientCache` を読む。共有サービス。L1 は偽に差し替える）
+- `Fluid/BlockFluidSlotsViewModel.cs`・`Fluid/IBlockFluidSlotsModel.cs`・`Fluid/BlockFluidSlotsModel.cs` — 液体の列と進捗を配る（パイプは複製の変化の通知を購読する。共有サービス）
+- `Fluid/IFluidReplicaReader.cs`・`Fluid/FluidNetworkReplicaReader.cs` — パイプの流体複製の読み手の口と本番実装（`FluidNetworkClientCache` の節と変化の通知を読む。共有サービス。L1 は偽に差し替える）
+- `S/Client.Game/InGame/FluidNetwork/FluidNetworkClientCache.cs`（変更）— 複製の変化の通知 `OnReplicaVersionChanged` を足す（`ApplyFullState`・`ApplyTickDiff` の直後。設計書 [A-57]・D-36）
 - `Fluid/FluidRowVisibility.cs` — 液体の行の区画を出すかの判断（`Shows(BlockFluidSlotsViewModel fluids, bool isMachine)`。Presenter は呼ぶだけ）
 - `Context/BlockContextEntries.cs` — 3 欄それぞれの「無し／未取得／取得済み」
 - `Context/BlockContextViewModel.cs`・`Context/IBlockContextModel.cs`・`Context/BlockContextModel.cs` — 3 欄を配る
@@ -801,7 +803,8 @@ git commit -m "feat(uitk): 機械の詳細を状態詳細から組み、未選�
 - Create: `S/Client.Ui.State/BlockInventory/Family/MinerDetail.cs`・`PumpDetail.cs`・`GeneratorDetail.cs`・`FamilyDetailConversion.cs`・`PumpDetailConversion.cs`
 - Create: `S/Client.Ui.State/BlockInventory/Family/Models/IMinerDetailModel.cs`・`MinerDetailModel.cs`・`IPumpDetailModel.cs`・`PumpDetailModel.cs`・`IGeneratorDetailModel.cs`・`GeneratorDetailModel.cs`
 - Create: `S/Client.Ui.State/BlockInventory/Fluid/BlockFluidSlotConversion.cs`・`BlockFluidSlotReading.cs`・`BlockFluidSlotsViewModel.cs`・`IBlockFluidSlotsModel.cs`・`BlockFluidSlotsModel.cs`・`FluidRowVisibility.cs`・`IFluidReplicaReader.cs`・`FluidNetworkReplicaReader.cs`
-- Test: `S/Client.Tests/Ui/State/BlockInventory/Family/FamilyDetailConversionTest.cs`・`BlockFluidSlotConversionTest.cs`・`BlockFluidSlotsModelTest.cs`・`FakeFamilyModels.cs`
+- Modify: `S/Client.Game/InGame/FluidNetwork/FluidNetworkClientCache.cs`（変化の通知 `OnReplicaVersionChanged` を足す。D-36）
+- Test: `S/Client.Tests/Ui/State/BlockInventory/Family/FamilyDetailConversionTest.cs`・`BlockFluidSlotConversionTest.cs`・`BlockFluidSlotsModelTest.cs`・`FakeFamilyModels.cs`、`S/Client.Tests/FluidNetwork/FluidNetworkClientCacheNotificationTest.cs`
 
 **Interfaces:**
 - Consumes: `OpenBlockDetailTracker`（`TrackedBlock`・`OnTrackedBlockChanged`・`OnTrackedBlockStateChanged`）、`FluidNetworkClientCache`、`BlockFluidSlotState`、Task 2 の `SectionContent<T>`
@@ -835,11 +838,14 @@ public static class BlockFluidSlotConversion { static IReadOnlyList<BlockFluidSl
 - 入力 2 → 出力 1 の順で 3 件、空の液体（`FluidMaster.EmptyFluidId`）は `Empty(capacity)`、中身ありは `Filled(id, amount, capacity)`
 - パイプの節は `FromPipeNode(空の id, 0, 100)` が `Empty(100)`
 
-`BlockFluidSlotsModelTest.cs`（追跡と複製は偽の読み手〈`IFluidReplicaReader { bool TryReadNode(Vector3Int pos, out int fluidId, out double amount, out double capacity); }` を `BlockFluidSlotReading` の入口に挟む。本番は `FluidNetworkClientCache` を読む実装〉と、フレームの代わりに手で進める `Subject<long>` の刻み〈ctor で `IObservable<long>` を受け、本番の登録は `Observable.IntervalFrame(4)`〉で）:
-- 「複製の量が変わるとパイプの行が描き直される」: パイプを追跡 → 量 40 → 刻み → `Current` の量 40、量 60 → 刻み → 60、変わらないまま刻み → `Current` は流れない
+`BlockFluidSlotsModelTest.cs`（追跡と複製は偽の読み手〈`IFluidReplicaReader { IObservable<Unit> OnReplicaChanged { get; } bool TryReadNode(Vector3Int pos, out int fluidId, out double amount, out double capacity); }` を `BlockFluidSlotReading` の入口に挟む。本番は `FluidNetworkClientCache` の節と `OnReplicaVersionChanged` を読む実装。偽は手で流す `Subject<Unit>` を持つ〉で）:
+- 「複製の量が変わるとパイプの行が描き直される」: パイプを追跡 → 量 40 → 通知 → `Current` の量 40、量 60 → 通知 → 60、変わらないまま通知 → `Current` は流れない
 - 液体プラットフォーム（`FluidMachineInventoryStateDetail` を持つブロック）は入力→出力の列を配る
 - 貨車（追跡ブロックなし）と閉は空の列・進捗なし
-- パイプでないブロックを追跡している間は刻みを購読しない（刻みを流しても `Current` が流れない）
+- パイプでないブロックを追跡している間は通知を購読しない（通知を流しても `Current` が流れない）
+
+`S/Client.Tests/FluidNetwork/FluidNetworkClientCacheNotificationTest.cs`（`FluidNetworkClientCache` を直に作る。全量は `FluidSyncPacketTestUtil` 等の既存の組み立てを `FluidNetworkEventNetworkHandlerTest` から借りる）:
+- 「全量の適用と差分の適用のたびに版の通知が 1 回流れる」: `ApplyFullState` → 通知 1 回（値は `ReplicaVersion`）、`ApplyTickDiff` → 2 回目、通知の値が `ReplicaVersion` と一致
 
 `FluidRowVisibility`（機械なら偽・0 件なら偽・他は真）は `BlockFluidSlotsModelTest` に 1 件で足す
 
@@ -934,9 +940,13 @@ namespace Client.Ui.State.BlockInventory.Fluid
 - ポンプ: `PumpBlockStateDetail` があれば `PumpDetailConversion.TryBuild(pump, param, common, out detail)`
 - 発電機: `PowerGeneratorStateDetail`（鍵は `PowerGeneratorStateDetail.StateDetailKey`。他の詳細の `BlockStateDetailKey` と名前が違う）があれば `FamilyDetailConversion.Generator`
 
-`BlockFluidSlotsModel.cs`（IInitializable。ctor `(OpenBlockDetailTracker tracker, IFluidReplicaReader replica, IObservable<long> sampleTicks)`。登録は `MainGameUiRegistration` の共有サービスの並びで `sampleTicks` に `Observable.IntervalFrame(4)` を渡す〈S4-train も ctor で受ける。E-1〉）:
+`FluidNetworkClientCache.cs`（変更。`private readonly Subject<int> _replicaVersionChanged = new();`・`public IObservable<int> OnReplicaVersionChanged => _replicaVersionChanged;` を足し、`ApplyFullState`・`ApplyTickDiff` で `ReplicaVersion++` の直後に `_replicaVersionChanged.OnNext(ReplicaVersion)`。`ReplicaVersion` の注記「表示側は購読でなく…」は「パイプの水位の表示は描画更新の順番の中で版を見る。UI は `OnReplicaVersionChanged` を購読する」に直す。設計書 [A-57]・D-36）
+
+`FluidNetworkReplicaReader.cs`（`IFluidReplicaReader` の本番。`OnReplicaChanged => _cache.OnReplicaVersionChanged.AsUnitObservable()`、`TryReadNode` は `TryGetNodeIndex` と `Replica.Network` の節を `FluidUnits.ToAmount` して返す）
+
+`BlockFluidSlotsModel.cs`（IInitializable。ctor `(OpenBlockDetailTracker tracker, IFluidReplicaReader replica)`。登録は `MainGameUiRegistration` の共有サービスの並び〈S4-train も ctor で受ける。E-1〉）:
 - 追跡の 2 つの購読で `Rebuild()`: `BlockFluidSlotReading.Read(block, replica)`＝`FluidMachineInventoryStateDetail` があれば `FromTanks`（機械・タンク・液体プラットフォーム）、`replica.TryReadNode(block.BlockPosInfo.OriginalPos, ...)` が真なら `FromPipeNode`（量と容量は `FluidUnits.ToAmount` 済みの値）を足す。進捗は `MachineBlockStateDetail.ProcessingRate`、無ければ採掘機の `CommonMachineBlockStateDetail.ProcessingRate`（Web の `dto.Progress` を立てるのは機械と採掘機だけ）、どちらも無ければ `HasProgress = false`
-- パイプ（複製に節がある）を追跡している間だけ `sampleTicks` を購読し、節の液体 id と量が前回と違う回だけ `Rebuild()`。追跡替えで購読を張り替える。複製には変化の通知が無く（`FluidNetworkClientCache` の公開は `Replica`・`ReplicaVersion` 等だけ。実測）、Web ホストも `BlockInventoryTopic` の `IntervalFrame(4)`＋`BlockInventoryRepublishPolicy.HasPipeContentsChanged` で同じ間隔で出し直す（設計書 §4.2・D-20）
+- パイプ（複製に節がある）を追跡している間だけ `replica.OnReplicaChanged` を購読し、節の液体 id と量が前回と違う回だけ `Rebuild()`（毎 tick の通知を、変わった回だけに絞る。Web ホスト `BlockInventoryRepublishPolicy.HasPipeContentsChanged` と同じ比べ方）。追跡替えで購読を張り替える（設計書 §4.2 [A-57]・D-20・D-36）
 - 閉・貨車（追跡ブロックなし）は空の列・進捗なし
 
 `FluidRowVisibility.cs`（`Shows(fluids, isMachine) => !isMachine && 0 < fluids.Slots.Count`。機械は本体の中に液体の行を持つ）
@@ -1437,7 +1447,7 @@ namespace Client.Ui.State.BlockInventory.Machine
     }
 }
 ```
-（`BlockFluidSlotReading.Read(BlockGameObject, IFluidReplicaReader)` は Task 3 の液体の読み手を静的関数にしたもので、`BlockFluidSlotsModel` と共有する。機械は液体の行を状態詳細のタンクから読むので、パイプの 4 フレームの刻みは要らない）
+（`BlockFluidSlotReading.Read(BlockGameObject, IFluidReplicaReader)` は Task 3 の液体の読み手を静的関数にしたもので、`BlockFluidSlotsModel` と共有する。機械は液体の行を状態詳細のタンクから読むので、パイプの複製の通知は要らない）
 
 `RecipeMachineLargePanelRule.cs`:
 ```csharp
@@ -2590,9 +2600,9 @@ namespace Client.Starter.Registration.GameUi.Screens
 `MainGameUiRegistration.cs` の共有サービスの並びの末尾（alpha の `BlockItemGridFactory` 等の後）に:
 ```csharp
 builder.Register<FluidNetworkReplicaReader>(Lifetime.Singleton).As<IFluidReplicaReader>();
-builder.Register<BlockFluidSlotsModel>(Lifetime.Singleton).As<IBlockFluidSlotsModel>().AsImplementedInterfaces().WithParameter<IObservable<long>>(Observable.IntervalFrame(4));
+builder.Register<BlockFluidSlotsModel>(Lifetime.Singleton).As<IBlockFluidSlotsModel>().AsImplementedInterfaces();
 ```
-（刻みは VContainer の `WithParameter` で渡し、テストは手で進める `Subject<long>` を ctor へ渡す。`IntervalFrame(4)` は Web ホスト `BlockInventoryTopic` と同じ間隔〈設計書 §4.2〉）。画面登録区画の末尾（alpha の `BlockInventoryGameUiRegistration.Register(builder);` の後）に `BlockInventoryMachineGameUiRegistration.Register(builder);`（`using Client.Starter.Registration.GameUi.Screens;` を足す。S4-inventory の登録と同じ名前空間）。`GameUiTheme.tss` の `Screens` 区画の末尾に:
+（パイプの変化は `IFluidReplicaReader.OnReplicaChanged` で届き、刻みは渡さない〈設計書 [A-57]・D-36〉）。画面登録区画の末尾（alpha の `BlockInventoryGameUiRegistration.Register(builder);` の後）に `BlockInventoryMachineGameUiRegistration.Register(builder);`（`using Client.Starter.Registration.GameUi.Screens;` を足す。S4-inventory の登録と同じ名前空間）。`GameUiTheme.tss` の `Screens` 区画の末尾に:
 ```css
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/Machine.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Family/Family.uss");
@@ -3057,7 +3067,7 @@ git merge origin/feature/uitk
 | D-17 | 選択モードの状態（開いた・要求した GUID）は Presenter が持つ `MachineSelectionModeState` に置く | Web の `useState` と同じく区画が開いている間だけの状態。Model に置くと別のブロックを開いたときに残る | Model に置く |
 | D-18 | 加工行の grid（`1fr auto 1fr`）は左右の器を `flex-grow: 1; flex-basis: 0` にして写す | UITK に grid が無い。等幅の伸縮列で矢印が中央に固定される | 左右に固定幅を置く（枠の数で崩れる） |
 | D-19 | 選択行の `outline: 1px solid var(--select-cyan)` は、拾わない絶対配置の枠（border 1px）で写す | UITK に outline が無い。border を行に直接付けると寸法が 2px 変わる | 行に border を付ける |
-| D-20 | パイプの液体は、追跡ブロックが複製に節を持つ間だけ 4 フレームごとに `FluidNetworkClientCache` の複製を読み、液体 id か量が変わった回だけ配り直す（出所: レビュー r1） | 実測: 複製には変化の通知が無い（公開は `Replica`・`ReplicaVersion`・`ApplyFullState`・`ApplyTickDiff`・`CurrentHash`・`TryGetNodeIndex`）。Web ホストは `BlockInventoryTopic` の `IntervalFrame(4)`＋`BlockInventoryRepublishPolicy.HasPipeContentsChanged` で同じ間隔で出し直す。設計書 §4.2 に「通知の無い連続値は置換対象の Web ホストと同じ間隔で読む」が入った（876b3229e5） | 状態詳細の更新だけを待つ（r0。パイプを開いたまま量が止まる退化）／`FluidNetworkClientCache` に通知を足す（`Client.Game` を変える） |
+| D-20 | パイプの液体は、追跡ブロックが複製に節を持つ間だけ `FluidNetworkClientCache` の複製を読み直し、液体 id か量が変わった回だけ配り直す。読み直しの契機は D-36 で 4 フレームの刻みから複製の変化の通知へ改めた（出所: レビュー r1） | 実測: 複製には変化の通知が無い（公開は `Replica`・`ReplicaVersion`・`ApplyFullState`・`ApplyTickDiff`・`CurrentHash`・`TryGetNodeIndex`）。Web ホストは `BlockInventoryTopic` の `IntervalFrame(4)`＋`BlockInventoryRepublishPolicy.HasPipeContentsChanged` で同じ間隔で出し直す。r1 の時点では刻みで読んだが、設計書 [A-57] が「源に変化通知の無い連続値は、変化を起こす操作の直後に通知を足して購読する」に改まったので D-36 で通知に寄せた | 状態詳細の更新だけを待つ（r0。パイプを開いたまま量が止まる退化） |
 | D-21 | 機械の枠の testid（`machine-input-slot-<i>` 等）と採掘中の品の枠の testid は Web に無いものを付ける | UITK の `ItemSlot` は frame の testid が要る。録画とテストの照準に使う | testid 無しで子の順で引く（並びの変更で壊れる） |
 | D-22 | 自分の View は `VisualElement` を継承し、中に `UiStack`／`UiGroup` を 1 つ持つ。揃え・折り返しは `UiLayoutClass`（`GroupJustifyCenter`・`GroupNoWrap`・`StackAlignCenter`）で付け、子の追加の余白（モジュール帯の `mt=xs`）は器に包んで器の `padding-top` で付ける（出所: レビュー r1） | `UiStack`・`UiGroup` は sealed。`UiGroup` の子は内側の行に入るので外側の USS は効かない。`UiStack` は非先頭の子の `marginTop` を gap で上書きする | 基盤の sealed を外す（Foundation の変更）／画面 USS で外側に `justify-content`・`margin-top` を書く（効かない） |
 | D-23 | 採掘機・ポンプ・発電機の Model は族ごとに分け、それぞれ `Current` 1 本を配る（`Family/Models/`）（出所: レビュー r1） | 設計書 §4.1 の Model の型と `FakeModel<T>` の remarks「複数の値を並べない」。区画の Presenter（`DetailSectionPresenter<T>`）も RP 1 本を受ける | 1 つの Model に RP を 3 本並べる（r0） |
@@ -3073,6 +3083,7 @@ git merge origin/feature/uitk
 | D-34 | 登録ファイルは `Client.Starter/Registration/GameUi/Screens/BlockInventoryMachineGameUiRegistration.cs`（名前空間 `Client.Starter.Registration.GameUi.Screens`）。ディレクトリが無ければ本レーンが作る（出所: レビュー r4） | E-1（ad92a44777）「W4 以降の画面レーンの登録は `GameUi/Screens/`。最初に要したレーンが作る」。`GameUi/` 直下は alpha で 10 本になる。S4-inventory も同じ置き場 | `GameUi/` 直下に置き integrator の再編を待つ（r3。再編は予定されず置き場が決まらない） |
 | D-35 | 設計検査 r4 の弱のうち 2 件は直さない: (a)「開いた機械か」をコマンドがパネル源と機械の Model の 2 源から読む — パネル源は送れるかの検査、機械の Model は選択中のレシピを読むためで役割が違い、述語を 1 本にする口は alpha の `IBlockInventoryPanelSource` 側の話で本レーンの範囲外。(b) `Detail` の空文字で `ToWireCode()` の出所が切り替わる — 既存の `UiCommandRejected` の形で、本レーンは使う側（出所: レビュー r4） | 前例どおりの使い方で、故障の入力を組めない | 本レーンで alpha の口や `UiCommandRejected` を変える（他レーンの持ち物） |
 | D-31 | 設定が合わない FluidRow・FluidDetails の工場は、`IsApplicable` が常に偽の `NotApplicableSection`（`Fluid/` に 1 本）を返す（出所: レビュー r1） | alpha の `ISectionStackSectionFactory.Create` は null を返せない口。2 つの工場で同じ型を private に 2 つ作らない | 工場ごとに private の入れ子クラス（r0） |
+| D-36 | パイプの読み直しの契機を 4 フレームの刻み（`Observable.IntervalFrame(4)`）から、`FluidNetworkClientCache` に足す変化の通知 `OnReplicaVersionChanged`（`ApplyFullState`・`ApplyTickDiff` の直後に流す）の購読へ改める。`IFluidReplicaReader` は `OnReplicaChanged` を持ち、`BlockFluidSlotsModel` は刻みを ctor で受けない（出所: 設計書 [A-57] の改め。S4-alpha 計画 D-57〈moores-code-review〉が A-57 の例外文を差し替えたのを feature/uitk の取り込みで受けた） | 4 フレーム周期の同値読みは AGENTS.md「状態変化の検知は購読で」に反し、正本に残ると列車・特殊族の連続値へ前例として広がる。変化を起こす操作が `ApplyFullState`・`ApplyTickDiff` の 2 つに限られ、直後に流せば取りこぼしが無い。パイプの水位の表示（`FluidPipeWaterLevelPresenter`）は描画更新の順番の中で `ReplicaVersion` を見るまま変えない | 4 フレームの刻みのまま（D-20 の r1 案。設計書 A-57 と食い違う）／毎フレーム `ReplicaVersion` を見る（同じく同値読み） |
 
 ---
 
