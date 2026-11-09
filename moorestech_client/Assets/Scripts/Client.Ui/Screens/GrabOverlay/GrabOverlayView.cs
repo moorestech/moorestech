@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
@@ -17,12 +18,12 @@ namespace Client.Ui.Screens.GrabOverlay
         private const string RootClass = "grab-overlay";
         private const string ShownClass = "grab-overlay--shown";
 
-        private readonly IGrabOverlayPointer _pointer;
+        private readonly IUiScreenPointer _pointer;
         private readonly GameContentPresentation _content;
         private readonly ItemSlot _slot = new("grab-overlay-slot");
         private bool _shown;
 
-        public GrabOverlayView(IGrabOverlayPointer pointer, GameContentPresentation content)
+        public GrabOverlayView(IUiScreenPointer pointer, GameContentPresentation content)
         {
             _pointer = pointer;
             _content = content;

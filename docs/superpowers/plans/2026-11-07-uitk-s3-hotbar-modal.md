@@ -4,7 +4,7 @@
 
 **Goal:** Web 版の `features/hotbar`（9 枠・番号タブ・選択・未解決の減光・選択を受けない画面の減光・割当/入替/解除の落とし先・ホイール素通しの印）と `features/modal`（Mantine Modal の題・本文・BP 名の入力・確定ボタン・幕のクリックで取消）を、C3-a（`SlotFrame`・`PlacementTargetFace`）・C3-b（`UiDragDrop`・`UiModalHost`・`DialogFrame`）・C2-b（`FormButton`・`GameTextField`）の部品で Web と同じ見た目の UITK 画面にし、全体スイッチ UITK でモーダルの描き手を UITK 1 本にする。Model は Web の topic の源（`ClientHotbarDatastore`・`PlacementTargetResolver`・`PlaceSystemStateController`・`ModalRequestService`）から直に組み、L1・並べ比べ（720p・2560×1080、モーダルは 1080p も実画面 px で [A-41]）・録画 `uitk/uitk-hotbar-and-bp-modal` まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。ホットバーの Model（`Client.Ui.State/Hotbar`）は源を購読して不変の `HotbarViewModel` を `IReadOnlyReactiveProperty` で配り、View（`Client.Ui/Screens/Hotbar`）は `Render(HotbarViewModel)` で部品へ流す。Presenter が起動時に 1 回だけ View を `UiLayer.Chrome`・`UiFamily.Viewport`（Web の `.viewportOverlay` z31。前例 S2-mode-tooltip D-1）へ載せ、`_model.Current.Subscribe(view.Render)` で繋ぐ。ドラッグは C3-b の `UiDragDrop`（源が解く・ゴースト無し [A-78]）に、枠の印 `HotbarSlotDropMark`・列の隙間の印 `HotbarRowGapDropMark` と、L0-s3 の `HotbarDropResolver` を呼んで `IHotbarCommands` へ流す解き方 を画面内（`Screens/Hotbar/Parts/`）で与える。枠の印は `IUiDropTarget` と、S3-buildmenu が State に作る `IHotbarDropReceiver`（`void Receive(HotbarDragSource)`）の両方を実装し、操作（`IHotbarCommands`）を持って自分で解く。ビルドメニューの源（`BuildMenuEntryDragPayload`）は最初から `target is IHotbarDropReceiver r` なら `r.Receive(Source)` で落とすので、このレーンはビルドメニューのファイルを書き換えない。配置対象の絵の出どころ（`PlacementTargetIcon`・`PlacementTargetIconResolver`・`PlacementTargetIcons.TryToUiIcon`）も S3-buildmenu が最終の置き場に作り、ホットバーは使うだけ（面へ当てる分岐は枠が持つ）。選択を受ける画面の規則は `HotbarSelectRule` の 1 か所で、Model（減光）と `HotbarCommands`（受理）が同じものを読む。ホットバーの Model は源の変化ごとに同期で組み直す（[A-57]。前例 ModeHudModel・BuildMenuModel）。操作は `UiCommandResult` を返し、拒否は `UiCommandResultToaster` へ渡す（[A-8]）。モーダルは状態の正が既に `ModalRequestService` にあるので Model を作らず、`ModalScreenPresenter` が `OnPendingChanged` を購読して `ModalView`（`DialogFrame`＋`LocalizedLabel`＋`GameTextField(MantineInput)`＋`FormButton`）を C3-b の `UiModalHost` に `Show`/`Hide` する。確定・ESC（1 回）・幕のクリックはどれも View が `IModalCommands.Respond`（[A-8]）を呼ぶ。見た目の値は Web と同名のトークン・つまみだけを使い、Web が直書きする色は `DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」に前計算して足す（[A-52]）。ホットバーは世界の上に直に置くので `--slot-frame-face` を画面ルートで世界の地向けの α に上書きし、列と未解決枠の減光（Web の opacity 0.55・0.4）はランタイムの PanelSettings（Linear 合成）で明るい地の画素を Web の sRGB 合成と照合して決める（bd `moorestech-albof.34`）。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。ホットバーの Model（`Client.Ui.State/Hotbar`）は源を購読して不変の `HotbarViewModel` を `IReadOnlyReactiveProperty` で配り、View（`Client.Ui/Screens/Hotbar`）は `Render(HotbarViewModel)` で部品へ流す。Presenter が起動時に 1 回だけ View を `UiLayer.Chrome`・`UiFamily.Viewport`（Web の `.viewportOverlay` z31。前例 S2-mode-tooltip D-1）へ載せ、`_model.Current.Subscribe(view.Render)` で繋ぐ。ドラッグは C3-b の `UiDragDrop`（源が解く・ゴースト無し [A-78]）に、枠の印 `HotbarSlotDropMark`・列の隙間の印 `HotbarRowGapDropMark` と、L0-s3 の `HotbarDropResolver` を呼んで `IHotbarCommands` へ流す解き方 を画面内（`Screens/Hotbar/Parts/`）で与える。枠の印は S3-buildmenu が State に作る `IHotbarDropReceiver`（`void Receive(HotbarDragSource)`）だけを実装して `UiDragDrop.MarkTarget<IHotbarDropReceiver>` で付き、操作（`IHotbarCommands`）を持って自分で解く。源はどちらも `IUiDragPayload<IHotbarDropReceiver>` で、Foundation は解放点から同じ型の最寄りの印だけを渡し、別の型の印は飛ばす（[A-132]）。ビルドメニューの源（`BuildMenuEntryDragPayload`）は最初から `OnDropped(IHotbarDropReceiver receiver)` で `receiver.Receive(Source)` を呼ぶので、このレーンはビルドメニューのファイルを書き換えない。配置対象の絵の出どころ（`PlacementTargetIcon`・`PlacementTargetIconResolver`・`PlacementTargetIcons.TryToUiIcon`）も S3-buildmenu が最終の置き場に作り、ホットバーは使うだけ（面へ当てる分岐は枠が持つ）。選択を受ける画面の規則は `HotbarSelectRule` の 1 か所で、Model（減光）と `HotbarCommands`（受理）が同じものを読む。ホットバーの Model は源の変化ごとに同期で組み直す（[A-57]。前例 ModeHudModel・BuildMenuModel）。操作は `UiCommandResult` を返し、拒否は `UiCommandResultToaster` へ渡す（[A-8]）。モーダルは状態の正が既に `ModalRequestService` にあるので Model を作らず、`ModalScreenPresenter` が `OnPendingChanged` を購読して `ModalView`（`DialogFrame`＋`LocalizedLabel`＋`GameTextField(MantineInput)`＋`FormButton`）を C3-b の `UiModalHost` に `Show`/`Hide` する。確定・ESC（1 回）・幕のクリックはどれも View が `IModalCommands.Respond`（[A-8]）を呼ぶ。見た目の値は Web と同名のトークン・つまみだけを使い、Web が直書きする色は `DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」に前計算して足す（[A-52]）。ホットバーは世界の上に直に置くので `--slot-frame-face` を画面ルートで世界の地向けの α に上書きし、列と未解決枠の減光（Web の opacity 0.55・0.4）はランタイムの PanelSettings（Linear 合成）で明るい地の画素を Web の sRGB 合成と照合して決める（bd `moorestech-albof.34`）。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`CustomStyleResolvedEvent`・`PointerDownEvent` 系・`panel.Pick`）、UniRx、UniTask、VContainer、NUnit＋`com.unity.ui.test-framework`（`UITestFixture`・`PanelSimulator`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（Web の参照キャプチャ・test-name-parity・`convert-web-tokens.mjs`）、gh CLI、bd（Beads）
 
@@ -82,15 +82,14 @@ namespace Client.Ui.Content { public sealed class GameContentPresentation { publ
 // ===== C3-b（計画 2026-11-07-uitk-c3-b.md の Produces。マージ後に実物と照合）=====
 namespace Client.Ui.Foundation.DragDrop
 {
-    public interface IUiDragPayload { void OnTapped(); void OnDropped(IUiDropTarget target); void OnDroppedOutside(); }
-    public interface IUiDropTarget { }
+    public interface IUiDragPayload<in TTarget> where TTarget : class { void OnTapped(); void OnDropped(TTarget target); void OnDroppedOutside(); }
     public static class UiDragDrop
     {
-        public static void MarkSource(VisualElement source, IUiDragPayload payload);   // 2 度目は payload を差し替える。左押下だけ・実画面 5px を超えたらドラッグ・右は捕捉しない（UiPressGesture）
-        public static void MarkTarget(VisualElement target, IUiDropTarget handler);
-        public static void UnmarkTarget(VisualElement target);
-        public static bool TryFindTarget(VisualElement from, out IUiDropTarget target); // from から祖先へ最寄りの印
-    } // 解放点は panel.Pick → TryFindTarget。印が無ければ OnDroppedOutside。印のクラス ui-drag-source・ui-drop-target
+        public static void MarkSource<TTarget>(VisualElement source, IUiDragPayload<TTarget> payload) where TTarget : class;   // 同じ型での 2 度目は payload を差し替え、別の型での 2 度目は LogError で無視。左押下だけ・実画面 5px を超えたらドラッグ・右は捕捉しない（UiPressGesture）
+        public static void MarkTarget<TTarget>(VisualElement target, TTarget handler) where TTarget : class;            // 印は型ごとの表に入る
+        public static void UnmarkTarget<TTarget>(VisualElement target) where TTarget : class;                          // クラス ui-drop-target は全部の型の印が外れたときだけ消える
+        internal static bool TryFindTarget<TTarget>(VisualElement from, out TTarget target) where TTarget : class;     // from から祖先へ同じ型の最寄りの印。別の型の印は飛ばす
+    } // 解放点は panel.Pick → TryFindTarget<源の型>。印が無ければ OnDroppedOutside。印のクラス ui-drag-source・ui-drop-target（設計書 A-132）
 }
 namespace Client.Ui.Foundation.Stage.ScaleReading { public sealed class StageScaleSource { public StageScaleSource(IReadOnlyReactiveProperty<float> scale); public IReadOnlyReactiveProperty<float> Scale { get; } } }
 namespace Client.Ui.Foundation.Stage.ScaleReading { public static class StageScaleMeasure { public static bool TryRead(IPanel panel, out float scale); } } // 倍率の式の 1 本（設計書 A-75）。並べ比べの EDC だけが使う
@@ -202,15 +201,15 @@ namespace Client.Ui.Content
         public bool TryToUiIcon(PlacementTargetIcon icon, out UiIcon uiIcon);        // 値だけ。NameOnly とテクスチャの欠けで偽（面は名前で描く）。面へ当てる分岐（真なら SetIconTarget、偽なら SetNameTarget）は使う画面が持つ
     }
 }
-namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { void Receive(HotbarDragSource source); } } // S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs。State なので IUiDropTarget は継がない。断る理由のログは受け手（このレーンの印）が出す
+namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { void Receive(HotbarDragSource source); } } // S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs。印は MarkTarget<IHotbarDropReceiver> で付ける。断る理由のログは受け手（このレーンの印）が出す
 namespace Client.Ui.Screens.BuildMenu.Parts
 {
     public interface IBuildMenuEntryHandler { void OnEntrySelected(Guid targetId); void OnBlueprintDeleteRequested(Guid targetId); void OnEntryHovered(Guid targetId); }
-    public sealed class BuildMenuEntryDragPayload : IUiDragPayload
+    public sealed class BuildMenuEntryDragPayload : IUiDragPayload<IHotbarDropReceiver>
     {
         public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler);
         public BuildMenuEntryDragSource Source { get; }
-        // OnTapped → handler.OnEntrySelected。OnDropped は target が IHotbarDropReceiver なら Receive(Source)（他の印は無操作）。OnDroppedOutside は silent-ok の無操作
+        // OnTapped → handler.OnEntrySelected。OnDropped(IHotbarDropReceiver receiver) は receiver.Receive(Source) だけ（別の型の印は Foundation が飛ばし OnDroppedOutside）。OnDroppedOutside は silent-ok の無操作
     }
 }
 // テストの補助: S/Client.Tests/Ui/Screens/BuildMenu/Support/RecordingBuildMenuEntryHandler.cs（internal sealed。Selected・DeleteRequested・Hovered の List<Guid>。namespace Client.Tests.Ui.Screens.BuildMenu.Support）
@@ -261,7 +260,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/{Hotbar,Modal}/`・`S/Client.Tests/Ui/State/{Hotbar,Modal}/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。`it.each` は第 1 引数の書式文字列そのまま。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(Hotbar|Modal)|State\.(Hotbar|Modal|PauseMenuCommandsTest)|Conventions|Theme|Layers|Anchor|DragDrop|Modal|Content)\.`（`PauseMenuCommandsTest` は namespace `Client.Tests.Ui.State` 直下なので名指しで入れる。S3-buildmenu と共有のテスト）。ドメインリロード中のエラーは 45 秒待って再試行
 - **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の albof.30 の行の削除（行は足さない）、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
-- **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` は Web で既に 2 機能（ホットバーの列・装備 HUD。`W/src/shared/uiState/activeLayer.ts:22`）が使うので §5.1-1 により最初から `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` に置く（新規ファイルで他レーンと重ならない。D-21）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。`IUiDropTarget` と State の `IHotbarDropReceiver` を実装）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
+- **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` は Web で既に 2 機能（ホットバーの列・装備 HUD。`W/src/shared/uiState/activeLayer.ts:22`）が使うので §5.1-1 により最初から `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` に置く（新規ファイルで他レーンと重ならない。D-21）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。State の `IHotbarDropReceiver` だけを実装し `MarkTarget<IHotbarDropReceiver>` で付く）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
 - **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品」を見つけたら作らない。`LOGS/harness/uitk/S3-hotbar-modal/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) 無し（`OutlinedCountLabel` の縁の色のつまみは、既存部品へのつまみ 1 つの追加でこのレーンが足す。Task 6 Step 3・D-7）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-869b2d4264/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080）の `3-hotbar-equipment-empty.png`・`3-modal.png`。1920×1080 の `3-modal` は無いので Task 11 Step 1 で撮る
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/` に置き、`moorestech_logs` へ入れない。`moorestech_logs` へ書く前に `LOGS/README.md` を読む
@@ -326,8 +325,8 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarCell.cs` | 1 枠（番号タブ＋`SlotFrame`＋`PlacementTargetFace`）。落とし先の印と源の印 | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarNumberTab.cs` | 番号タブ（暗い縁の 13px の数字） | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarCalcKnobs.cs` | calc() を通る 2 つのつまみ（タブのはみ出し・列の横ずれ）を customStyle から読んで当てる（[A-47]） | 新規 |
-| `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs` | 枠の落とし先の印（`IUiDropTarget`＋State の `IHotbarDropReceiver`。枠番号と操作を持ち、受けた源を解いて `Apply`） | 新規 |
-| `S/Client.Ui/Screens/Hotbar/Parts/HotbarRowGapDropMark.cs` | 列の隙間の印（`IUiDropTarget`＋`IHotbarDropReceiver`。受けて無操作） | 新規 |
+| `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs` | 枠の落とし先の印（State の `IHotbarDropReceiver`。`MarkTarget<IHotbarDropReceiver>` で付く。枠番号と操作を持ち、受けた源を解いて `Apply`） | 新規 |
+| `S/Client.Ui/Screens/Hotbar/Parts/HotbarRowGapDropMark.cs` | 列の隙間の印（`IHotbarDropReceiver`。`MarkTarget<IHotbarDropReceiver>` で付く。受けて無操作） | 新規 |
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDragPayload.cs` | 枠の源（タップ → 選択・ドロップ → 解決） | 新規 |
 | `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`.cs` | 縁の色のつまみ `--outlined-count-label-stroke` を読む（.cs はコメントだけ。D-7） | 変更（C3-a の部品。C4-a が先に足していれば触らない。Task 6 Step 3 の分岐） |
 | `S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`・`SlotKnobOverrides.uss` | 縁の色のつまみの既定と上書きの L1 | 新規・変更 |
@@ -422,7 +421,7 @@ grep -n "public SlotFrame(\|public void SetState" $S/Client.Ui/Components/Slots/
 grep -n "public void SetIconTarget\|public void SetNameTarget" $S/Client.Ui/Components/Slots/PlacementTargetFace/PlacementTargetFace.cs
 grep -n "public OutlinedCountLabel(\|icon-text-stroke-light" $S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.cs $S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss
 # C3-b（マージ後に実物と照合）
-grep -rn "public static void MarkSource\|public static void MarkTarget\|interface IUiDragPayload\|interface IUiDropTarget" $S/Client.Ui/Foundation/DragDrop/
+grep -rn "public static void MarkSource<TTarget>\|public static void MarkTarget<TTarget>\|interface IUiDragPayload<in TTarget>" $S/Client.Ui/Foundation/DragDrop/
 grep -rn "public UiModalHost(\|public void Show(\|public void Hide(\|OnBackdropClicked" $S/Client.Ui/Foundation/Modal/UiModalHost.cs
 grep -n "public StageScaleSource(\|public static bool TryRead(IPanel" -r $S/Client.Ui/Foundation/Stage/
 grep -n "public DialogFrame(\|public void SetTitle\|public void AddAction" $S/Client.Ui/Components/Panels/DialogFrame/DialogFrame.cs
@@ -451,7 +450,7 @@ ls $S/Client.Starter/Registration/GameUi/*.cs | wc -l
 ls $S/Client.Tests/Ui/State/Hotbar/*.cs $S/Client.Tests/Ui/State/Modal/*.cs | wc -l
 ls $S/Client.Ui/Foundation/Input/*.cs $S/Client.Ui.State/Modal/*.cs
 ```
-Expected: worktree の絶対パス。C3-a の 3 行は Global Constraints のとおり。C3-b の `MarkSource(VisualElement source, IUiDragPayload payload)`・`UiModalHost(StageScaleSource stageScale)`・`DialogFrame(string testid)`、S2-hud の `BlockingSkitPresence`・`IsBlocking`、S3-buildmenu の `PlacementTargetIcon` の 6 型（ID だけ）と値の等価・`PlacementTargetIconResolver.Resolve`・DI のクラス `PlacementTargetIcons` の 3 引数の ctor（`HotbarTestPresentation.Create` を実物の引数の順で組む）と `bool TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`ContentGameUiRegistration` の登録・`IHotbarDropReceiver.Receive`・`OnDropped` が `IHotbarDropReceiver` を読むこと・`BuildMenuEntryDragPayload(Guid, IBuildMenuEntryHandler)`・`RecordingBuildMenuEntryHandler`（`Selected`）が出る。トークン 7 つ・`--mantine-spacing-lg: 20px`・`--modal-size`・`--modal-backdrop-face`・`HotbarHud = "hotbar.hud"`・`/* == section: Screens == */` が出る。`Registration/GameUi/*.cs` が 8 以下（2 足して 10 以下）、State のテストが 7 以下。`UiCommandRejectReason` の 3 つの switch、`ScreenTestHost.Toaster`、ESC の印の 3 つ、`ClientGameUnlockStateDatastore` の ctor の購読（D-18 の順序の前提）が出る。`Foundation/Input/` の .cs が 9 以下、`State/Modal/` の .cs が 8 以下。
+Expected: worktree の絶対パス。C3-a の 3 行は Global Constraints のとおり。C3-b の `MarkSource<TTarget>(VisualElement source, IUiDragPayload<TTarget> payload)`・`MarkTarget<TTarget>(VisualElement target, TTarget handler)`・`interface IUiDragPayload<in TTarget>`・`UiModalHost(StageScaleSource stageScale)`・`DialogFrame(string testid)`、S2-hud の `BlockingSkitPresence`・`IsBlocking`、S3-buildmenu の `PlacementTargetIcon` の 6 型（ID だけ）と値の等価・`PlacementTargetIconResolver.Resolve`・DI のクラス `PlacementTargetIcons` の 3 引数の ctor（`HotbarTestPresentation.Create` を実物の引数の順で組む）と `bool TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`ContentGameUiRegistration` の登録・`IHotbarDropReceiver.Receive`・`BuildMenuEntryDragPayload : IUiDragPayload<IHotbarDropReceiver>` と `OnDropped(IHotbarDropReceiver receiver)`・`BuildMenuEntryDragPayload(Guid, IBuildMenuEntryHandler)`・`RecordingBuildMenuEntryHandler`（`Selected`）が出る。トークン 7 つ・`--mantine-spacing-lg: 20px`・`--modal-size`・`--modal-backdrop-face`・`HotbarHud = "hotbar.hud"`・`/* == section: Screens == */` が出る。`Registration/GameUi/*.cs` が 8 以下（2 足して 10 以下）、State のテストが 7 以下。`UiCommandRejectReason` の 3 つの switch、`ScreenTestHost.Toaster`、ESC の印の 3 つ、`ClientGameUnlockStateDatastore` の ctor の購読（D-18 の順序の前提）が出る。`Foundation/Input/` の .cs が 9 以下、`State/Modal/` の .cs が 8 以下。
 - どれかのファイルが無ければ、その依存（C3-b・S2-hud・S3-buildmenu）が未取り込みなので止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
 - 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。S3-buildmenu の型の名前・引数が違えば、Task 2・3・6・7 の該当箇所を実物に読み替える（S3-buildmenu のファイルは書き換えない。足りなければ止めて指揮へ）
 - `Registration/GameUi/*.cs` が 9 以上なら（このレーンの 2 本で 11 以上）止めて指揮へ。`done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方」を書く（サブディレクトリの切り方は共有区画の外で integrator の持ち物。S3-buildmenu と同じ扱い）。再編が `origin/feature/uitk` に入り、取り込んで 10 本以下の置き場へ足せるまで、このレーンは完了にせずマージもしない（AGENTS.md の 1 ディレクトリ 10 ファイル）。再編後は File Structure と Task 9 の登録のパスを新しいサブディレクトリへ読み替え、読み替えたことを `done.md` に書く
@@ -1429,14 +1428,14 @@ git commit -m "feat(uitk): ホットバーの前計算色と減光のトーク�
 - Test: `S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`
 
 **Interfaces:**
-- Consumes: C3-b の `IUiDragPayload`・`IUiDropTarget`・`UiDragDrop`、C3-a の `SlotFrame`・`SlotFrameState`・`PlacementTargetFace`・`OutlinedCountLabel`、S3-buildmenu の `PlacementTargetIcons`（DI のクラス）・`IHotbarDropReceiver`、Task 2・4 の型、`UiCommandResultToaster`、`UssCustomStyleReader`
+- Consumes: C3-b の `IUiDragPayload<in TTarget>`・`UiDragDrop`（`MarkSource<TTarget>`・`MarkTarget<TTarget>`）、C3-a の `SlotFrame`・`SlotFrameState`・`PlacementTargetFace`・`OutlinedCountLabel`、S3-buildmenu の `PlacementTargetIcons`（DI のクラス）・`IHotbarDropReceiver`、Task 2・4 の型、`UiCommandResultToaster`、`UssCustomStyleReader`
 - Produces:
   ```csharp
   namespace Client.Ui.Screens.Hotbar.Parts
   {
-      public sealed class HotbarSlotDropMark : IUiDropTarget, IHotbarDropReceiver { public HotbarSlotDropMark(int slotIndex, IHotbarCommands commands); } // Receive で解いて Apply
-      public sealed class HotbarRowGapDropMark : IUiDropTarget, IHotbarDropReceiver { public static readonly HotbarRowGapDropMark Instance; }   // 受けて無操作
-      public sealed class HotbarSlotDragPayload : IUiDragPayload { public HotbarSlotDragPayload(int slotIndex, HotbarSlotViewModel slot, IHotbarCommands commands, UiCommandResultToaster toaster); }
+      public sealed class HotbarSlotDropMark : IHotbarDropReceiver { public HotbarSlotDropMark(int slotIndex, IHotbarCommands commands); } // MarkTarget<IHotbarDropReceiver> で付く。Receive で解いて Apply
+      public sealed class HotbarRowGapDropMark : IHotbarDropReceiver { public static readonly HotbarRowGapDropMark Instance; }   // MarkTarget<IHotbarDropReceiver> で付く。受けて無操作
+      public sealed class HotbarSlotDragPayload : IUiDragPayload<IHotbarDropReceiver> { public HotbarSlotDragPayload(int slotIndex, HotbarSlotViewModel slot, IHotbarCommands commands, UiCommandResultToaster toaster); }
       public sealed class HotbarCalcKnobs { public const string RowOffsetProperty = "--hotbar-hud-row-offset"; public const string TabOverhangProperty = "--hotbar-hud-number-tab-overhang"; public HotbarCalcKnobs(VisualElement row); public void ApplyToRebuiltTabs(); } // スタイル解決の通知で読み、解決後に作り直したタブへは ApplyToRebuiltTabs で当てる
       public sealed class HotbarNumberTab : VisualElement { public const string ClassName = "hotbar-hud__number-tab"; public HotbarNumberTab(int slotIndex); }
       public sealed class HotbarCell : VisualElement { public HotbarCell(int slotIndex, IHotbarCommands commands, PlacementTargetIcons icons, UiCommandResultToaster toaster); public void Render(HotbarSlotViewModel slot, bool selected); }
@@ -1448,7 +1447,6 @@ git commit -m "feat(uitk): ホットバーの前計算色と減光のトーク�
 
 `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs`:
 ```csharp
-using Client.Ui.Foundation.DragDrop;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
 
@@ -1458,7 +1456,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
     /// 枠の落とし先の印（Web の data-hotbar-slot-index）。受けた源を L0-s3 の規則で解いて操作へ流す
     /// Drop-target mark for a slot (the Web data-hotbar-slot-index); resolves the received source by the L0-s3 rule and sends the operation
     /// </summary>
-    public sealed class HotbarSlotDropMark : IUiDropTarget, IHotbarDropReceiver
+    public sealed class HotbarSlotDropMark : IHotbarDropReceiver
     {
         private readonly IHotbarCommands _commands;
 
@@ -1482,7 +1480,6 @@ namespace Client.Ui.Screens.Hotbar.Parts
 
 `S/Client.Ui/Screens/Hotbar/Parts/HotbarRowGapDropMark.cs`:
 ```csharp
-using Client.Ui.Foundation.DragDrop;
 using Client.Ui.State.Hotbar.Logic;
 
 namespace Client.Ui.Screens.Hotbar.Parts
@@ -1491,7 +1488,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
     /// 列の枠の間の隙間の印（Web の data-hotbar-row。ここで離すと受けて無操作）
     /// Mark for the gap between slots in the row (the Web data-hotbar-row; releasing here is received and does nothing)
     /// </summary>
-    public sealed class HotbarRowGapDropMark : IUiDropTarget, IHotbarDropReceiver
+    public sealed class HotbarRowGapDropMark : IHotbarDropReceiver
     {
         public static readonly HotbarRowGapDropMark Instance = new();
 
@@ -1524,7 +1521,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
     /// 枠の源。タップは選択、ドロップは割当の入替・解除（Web HotbarCell の useHotbarDragSource）
     /// A slot as a source: a tap selects, a drop swaps or clears the assignment (Web HotbarCell useHotbarDragSource)
     /// </summary>
-    public sealed class HotbarSlotDragPayload : IUiDragPayload
+    public sealed class HotbarSlotDragPayload : IUiDragPayload<IHotbarDropReceiver>
     {
         private readonly int _slotIndex;
         private readonly HotbarSlotViewModel _slot;
@@ -1546,18 +1543,13 @@ namespace Client.Ui.Screens.Hotbar.Parts
             _toaster.Report(HotbarCommands.SelectCommandName, _commands.Select(_slotIndex));
         }
 
-        public void OnDropped(IUiDropTarget target)
+        public void OnDropped(IHotbarDropReceiver receiver)
         {
             // silent-ok: 空き枠は掴む物が無い（Web の source === null） / HotbarSlotDragGestureTest「空き枠を引きずって…」が固定する
             if (!TryGetDragSource(out var source)) return;
-            // ホットバーの印なら印が受けて解く。他の画面の印は Web の closest が枠も列も返さない場合と同じく枠外
-            // A hotbar mark receives and resolves it; another screen's mark is outside, as when the Web closest finds neither slot nor row
-            if (target is IHotbarDropReceiver receiver)
-            {
-                receiver.Receive(source);
-                return;
-            }
-            ClearAsDroppedOutside(source);
+            // ホットバーの印（枠・列の隙間）だけがここへ来て、入替か無操作かは受け手が解く。他の画面の印は Foundation が飛ばし OnDroppedOutside になる
+            // Only hotbar marks (slot, row gap) arrive here and the receiver resolves swap or no-op; other screens' marks are skipped by Foundation into OnDroppedOutside
+            receiver.Receive(source);
         }
 
         public void OnDroppedOutside()
@@ -1825,6 +1817,7 @@ using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.State.Hotbar;
+using Client.Ui.State.Hotbar.Logic;
 using Client.Ui.State.Text;
 using Client.Ui.State.Toast;
 using UnityEngine.UIElements;
@@ -1865,7 +1858,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 
             // 落とし先の印は枠の箱に付ける（Web の data-hotbar-slot-index は .cell。枠もタブもここへ辿る）
             // The drop mark goes on the cell box (the Web data-hotbar-slot-index is on .cell; frame and tab both walk up to it)
-            UiDragDrop.MarkTarget(this, new HotbarSlotDropMark(slotIndex, commands));
+            UiDragDrop.MarkTarget<IHotbarDropReceiver>(this, new HotbarSlotDropMark(slotIndex, commands));
         }
 
         public void Render(HotbarSlotViewModel slot, bool selected)
@@ -2603,6 +2596,7 @@ using Client.Ui.Foundation.DragDrop;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Screens.Hotbar.Parts;
 using Client.Ui.State.Hotbar;
+using Client.Ui.State.Hotbar.Logic;
 using Client.Ui.State.Toast;
 using UnityEngine.UIElements;
 
@@ -2640,7 +2634,7 @@ namespace Client.Ui.Screens.Hotbar
             _row = new VisualElement { name = "hotbar-grid" };
             _row.AddToClassList("hotbar-hud__row");
             WheelPassthroughMark.Mark(_row);
-            UiDragDrop.MarkTarget(_row, HotbarRowGapDropMark.Instance);
+            UiDragDrop.MarkTarget<IHotbarDropReceiver>(_row, HotbarRowGapDropMark.Instance);
             TutorialAnchor.Mark(_row, AnchorIds.HotbarHud);
             _calcKnobs = new HotbarCalcKnobs(_row);
             Add(_row);
@@ -3984,7 +3978,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 1. **Requirements coverage**: R-1 → Task 2・3（`HotbarViewModelFactoryTest`）、R-2 → Task 5・6・7（`HotbarHudViewTest`）、R-3 → Task 4・7（`HotbarHudViewTest`・`HotbarHudDropTest`）、R-4 → Task 6・7（`HotbarSlotDragGestureTest`・`HotbarHudDropTest`、本物のビルドメニューの源を使う）、R-5 → Task 6・7（`HotbarHudPickingTest`）、R-6 → Task 5・10、R-7 → Task 7（`HotbarIconCenteringTest`）、R-8 → Task 4・8、R-9 → Task 8（倍率 1.5）・Task 11 Step 4、R-10 → Task 11、R-11 → Task 4・7・8・9、R-12 → Task 12、R-13 → Task 13、R-14 → Task 14・15。完了条件の各句: ホットバー 9 枠（Task 7）・`SlotFrame` のベベル上書きと `--bevel-inset: inset`（Task 7 の USS・File Structure のつまみの表）・`PlacementTargetFace`（Task 6）・割当/入替/解除の落とし先（Task 6・7）・`wheel-passthrough`（Task 6・7）・床トークン（`--hotbar-bottom`・`--hotbar-slot-*`・`--hotbar-number-tab-overhang`・`--hotbar-horizontal-offset` を USS と `HotbarCalcKnobs` で使う。Task 1 Step 1 で実在を見る）、モーダル層と BP 名（Task 8・9・12）・描き手の一本化（Task 9。Web の系の登録は MainGameUiRegistration の分岐が持つ）・`UiText.FromVerbatim` [A-40]（Task 8）・実画面 px で 720p・1080p [A-41]（Task 8・11）、写す P6・C7・P4・`placementIconCentering` のホットバーの 1 件（2 件のうち 1 件。もう 1 件は S3-buildmenu）・`alwaysOnHudWheel` の 1 件（Task 6〜8・13）、bd albof.30（Task 7・15）・albof.34（Task 5・10・15）。§6.2 の必須: 部品と公開 API（Global Constraints）・画面専用の部品の置き場（`Screens/Hotbar/Parts/`）・つまみの同名上書き（File Structure の表）・写すテスト名と件数と `<web-test>`（File Structure の表・各テスト）・撮影の解像度（Task 11）・録画（Task 12）・登録の行数 2（Task 9）・新しい共有部品の申告の手順（Global Constraints）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<PR番号>`・`<HEAD 10 桁>`・`<sha>`・`<空きポート>`・`<値>`・`<n>`・manifest の `<… のパス>`・`FILLED`（Web の CSS から読む）・`<ビルドメニューの件の第 1 引数>`（grep で読む）は実行時にしか決まらず、取り方を同じタスクに書いた。「TBD」「適切に」は無い。ビルドメニュー（S3-buildmenu。指揮の決定どおりの形）と C3-b・S2-hud の型は想定で、Task 1 Step 1 で実物と照合し、違えば読み替えて記録する手順を書いた
 3. **Type consistency**: `PlacementTargetIcon`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`・`PlacementTargetIconResolver.Resolve(IPlacementTarget, IBlueprintThumbnailLookup)`・`PlacementTargetIcons.TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`IHotbarDropReceiver.Receive(HotbarDragSource)`（以上 S3-buildmenu が作る）、`UiCommandResult`・`UiCommandRejectReason.HotbarSelectNotAccepted/ModalResponseStale`・`UiCommandResultToaster.Report`、`HotbarSlotViewModel`・`HotbarEmptySlot.Instance`・`HotbarUnresolvedSlot(Guid)`・`HotbarAssignedSlot(Guid, string, PlacementTargetIcon)`・`HotbarSelection.None/Of/FromOrigin/TryGetSlot/IsSlot`・`HotbarViewModel(IReadOnlyList<HotbarSlotViewModel>, HotbarSelection, bool, bool)`・`HotbarViewModelFactory.Create(slots, origin, uiState, screen, blockingSkit)`・`HotbarSelectRule.Accepts`・`HotbarModel.Current`・`IHotbarCommands.Select（UiCommandResult）/Apply`・`HotbarCommands(ClientHotbarDatastore, UIStateControl).SelectCommandName`、`HotbarSlotDropMark(int, IHotbarCommands)`・`HotbarRowGapDropMark.Instance`・`HotbarSlotDragPayload(int, HotbarSlotViewModel, IHotbarCommands, UiCommandResultToaster)`・`Foundation.Input.WheelPassthroughMark.ClassName/Mark/IsPassthrough`・`new HotbarCalcKnobs(VisualElement)`・`HotbarCalcKnobs.ApplyToRebuiltTabs`・`HotbarNumberTab(int)`・`HotbarCell(int, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudView(IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudPresenter(GameUiRoot, HotbarModel, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`、`ModalLogic.TryGetConfirmableText/HasConfirmableText`・`IModalCommands.Respond`・`ModalCommands(ModalRequestService).RespondCommandName`・`ModalView(ModalRequest, IModalCommands, UiCommandResultToaster, IObservable<Unit>)`・`ModalButtonVariants.From`・`ModalScreenPresenter(UiModalHost, ModalRequestService, IModalCommands, UiCommandResultToaster)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `hotbar-hud`・`__row`・`__row--select-disabled`・`__cell`・`__cell--first`・`__cell--unresolved`・`__number-tab`・`__number`・`modal-view`・`__message`・`__input`、つまみ `--hotbar-hud-row-offset`・`--hotbar-hud-number-tab-overhang` とトークン 8 つは C#・USS・テストで一致。testid（`hotbar-hud`・`hotbar-grid`・`hotbar-slot-{i}`・`modal`・`modal-title`・`modal-message`・`modal-input`・`modal-button`・`modal-backdrop`）は Web の `data-testid` と同名
-4. **保留・縮退経路**: (a) 選択を受けない UI 状態のタップ → `HotbarCommands.Select` が良性の拒否を返し、源が `UiCommandResultToaster` へ渡して LogWarning（D-20）。(b) 空き枠のドラッグ → `HotbarSlotDragPayload` が `silent-ok` 付きで何もしない（Web と同じ。テストが固定。D-26）。(c) 列の隙間の落とし → `HotbarRowGapDropMark.Receive` が `silent-ok` 付きで無操作（受けたので源は解除しない。テストが固定）。(d) 他の画面の印 → 枠外として解除（枠の源）・無操作（ビルドメニューの源。S3-buildmenu の `silent-ok`）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`HotbarCalcKnobs`）。(f) モーダルの空白だけの確定 → ボタンが押せず、それでも来たら `ModalView` が LogWarning（D-12）。(g) 古い応答 → `ModalCommands` が良性の拒否 `ModalResponseStale` を返しトースト口が LogWarning。(g2) ESC 以外でフォーカスが外れた（欄の外の押下・閉じたときの外れ）→ `ModalView.CancelIfEscapeBlurred` が `silent-ok` で取り消さない（`ModalScreenPresenterTest` の「欄の外を押しても閉じない」が固定）。フォーカスの無い ESC は View が聞かず、既存のゲーム入力の経路が取り消す（D-11。録画の流れ 7b）。(h) 同じ要求の通知の重なり → `silent-ok` 付きで描き直さない（D-13）。(i) Task 1・7・8・9・10・11・12 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
+4. **保留・縮退経路**: (a) 選択を受けない UI 状態のタップ → `HotbarCommands.Select` が良性の拒否を返し、源が `UiCommandResultToaster` へ渡して LogWarning（D-20）。(b) 空き枠のドラッグ → `HotbarSlotDragPayload` が `silent-ok` 付きで何もしない（Web と同じ。テストが固定。D-26）。(c) 列の隙間の落とし → `HotbarRowGapDropMark.Receive` が `silent-ok` 付きで無操作（受けたので源は解除しない。テストが固定）。(d) 他の画面の印 → 型が `IHotbarDropReceiver` でないので Foundation が飛ばし `OnDroppedOutside` になり、枠外として解除（枠の源）・無操作（ビルドメニューの源。S3-buildmenu の `silent-ok`）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`HotbarCalcKnobs`）。(f) モーダルの空白だけの確定 → ボタンが押せず、それでも来たら `ModalView` が LogWarning（D-12）。(g) 古い応答 → `ModalCommands` が良性の拒否 `ModalResponseStale` を返しトースト口が LogWarning。(g2) ESC 以外でフォーカスが外れた（欄の外の押下・閉じたときの外れ）→ `ModalView.CancelIfEscapeBlurred` が `silent-ok` で取り消さない（`ModalScreenPresenterTest` の「欄の外を押しても閉じない」が固定）。フォーカスの無い ESC は View が聞かず、既存のゲーム入力の経路が取り消す（D-11。録画の流れ 7b）。(h) 同じ要求の通知の重なり → `silent-ok` 付きで描き直さない（D-13）。(i) Task 1・7・8・9・10・11・12 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
 5. **「決定的にする」を根拠にした選択**: D-13（要求ごとに View を作り直す）は Web の `key={id}` の写し。D-18 は間引きを撤回し、順序は購読の順（実物の行）と録画の 1 段の実測で確かめる。ほかに無し
 6. **呼び出し側への責務漏出**: 選択の受理は `HotbarSelectRule` の 1 か所を Model（減光）と操作（受理）が読む（D-4）。落としの解き方は印（State の `IHotbarDropReceiver` を実装）が持ち、源はビルドメニューもホットバーも `Receive` を呼ぶだけ（D-33）。絵の出どころの解き方と絵への変換は S3-buildmenu が作る `PlacementTargetIconResolver`・`PlacementTargetIcons` の 1 か所をビルドメニューと共有（D-6）。確定の文の規則と空白の除去は `ModalLogic.TryGetConfirmableText`・`HasConfirmableText` の 1 か所を View・ブリッジが読み、View の可否は 1 回だけ導く（D-12・D-39）。応答と選択は [A-8] のコマンドで返し、拒否はトースト口 1 本（D-20・D-34）。ボタンの色の写しは `ModalButtonVariants` の 1 か所（[A-28]）。部品の見た目はつまみで変え、画面 USS は部品のクラスを書かない（番号タブの暗い縁は、このレーンが部品に足す縁の色のつまみで渡す。D-7）
 
@@ -4000,7 +3994,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-2 | モーダルは Model を作らず、`ModalRequestService` の `OnPendingChanged` を Presenter が購読する | `ModalModel` を挟む: 状態の正が既に State にあり、写すだけの層になる | agent 既定（[A-57]・[A-8]） |
 | D-3 | 枠の中身は判別 union（空き・未解決・解決済み）で持つ | `Guid?` と bool の組: 未解決と空きの白面の違いを分岐で読み直すことになる | agent 既定（前例 `HotbarDropAction.cs`） |
 | D-4 | 選択の受理の規則は State の `HotbarSelectRule` 1 か所で、Model の減光と `HotbarCommands` の受理が同じものを読む | View が受理を判断: Web は `uiStateAcceptsHotbarSelect` と `HotbarSelectActionHandler` に二重に持つ。UITK では 1 か所にする | agent 既定 |
-| D-5 | 落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`）は `Screens/Hotbar/Parts/` に置き、`IUiDropTarget` と State の `IHotbarDropReceiver`（S3-buildmenu が作る）の両方を実装する | Foundation/DragDrop へ置く: ホットバーの語彙で汎用基盤にドメイン語彙を入れることになる。ビルドメニューの側へ置く: 落とし先の持ち主はホットバー | agent 既定（設計書 §5.1-2・AGENTS.md の設計原則） |
+| D-5 | 落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`）は `Screens/Hotbar/Parts/` に置き、State の `IHotbarDropReceiver`（S3-buildmenu が作る）だけを実装して `UiDragDrop.MarkTarget<IHotbarDropReceiver>` で付ける。枠の源 `HotbarSlotDragPayload` も `IUiDragPayload<IHotbarDropReceiver>` で、`OnDropped` はホットバーの印にだけ来るので `receiver.Receive(source)` を呼ぶだけ（入替か無操作かは受け手の多態で解く）。他の画面の印は Foundation が飛ばし `OnDroppedOutside`（解除）になる | Foundation/DragDrop へ置く: ホットバーの語彙で汎用基盤にドメイン語彙を入れることになる。ビルドメニューの側へ置く: 落とし先の持ち主はホットバー。中身の無い印 interface と `IHotbarDropReceiver` を両方実装し源が `is` で確かめる: 外れたら黙って枠外になる（A-132） | agent 既定（設計書 §5.1-2・AGENTS.md の設計原則）。I-fix3 で C3-b 要裁定 3 を推奨 A で反映（設計書 A-132） |
 | D-6 | 配置対象の絵の出どころ（ID だけの `PlacementTargetIcon` 系・`PlacementTargetIconResolver`・DI のクラス `PlacementTargetIcons.TryToUiIcon`）と State の口 `IHotbarDropReceiver.Receive` は S3-buildmenu が最終の置き場に作り、このレーンは使うだけ。S3-buildmenu のファイルは書き換えない | このレーンが S3-buildmenu の型を `git mv` で昇格し呼び側を書き換える: 並走中の他レーンのファイルに手を入れ、取り込みの衝突と置き換え漏れの穴を作る。ホットバーに別の解き方を書く: 同じ規則（Web の橋 `ResolveIconUrl`）が 2 つになる | 指揮の決定 |
 | D-7 | 番号タブの暗い縁は、部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke`（既定 `--icon-text-stroke-light`）（C4-a 計画 D-5・設計書 A-97 と同じ名前・既定。どちらのレーンが先でも同じ 1 本になる）を足し、タブでそのつまみを `--icon-text-stroke-dark` に上書きして出す。部品の L1（`OutlinedCountLabelStrokeKnobTest`）を同じタスクで足す。つまみの既定は末尾の名札付きブロックでなく、部品の既定の並び（`DerivedTokens.uss` の `--outlined-count-label-color` の次）に置く（部品の既定は部品の行の隣に置き、画面のブロックに部品の既定を混ぜない） | タブの部分木で共有トークン `--icon-text-stroke-light` を受け直す: トークンの意味（白い縁）を部分木で裏返し、タブの中に後から置く他の部品の縁まで黒くなる。画面 USS で `.outlined-count-label--stroke` を書く: 画面 USS に部品のクラスを書くのは規約違反。integrator へ依頼して待つ: 既存部品へのつまみ 1 つの追加で、C3-a はマージ済み。同じつまみが要る C4-a とは「先に入ったほうが足し、後は使うだけ」で衝突を避ける（設計書 A-108・実行計画の C4-a 行。Task 6 Step 3 の頭で `git grep` して分岐） | agent 既定（設計書 §3.2「部品の見た目はつまみで変える」） |
 | D-8 | Web の `calc()`（タブの `top`）と `translateX`（列の横ずれ）は `HotbarCalcKnobs` が customStyle から読んで当てる | 換算値を USS に直書き: トークンの変更に追従しない | 設計書 [A-47] |

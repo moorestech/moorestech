@@ -61,7 +61,7 @@ namespace Client.Tests.Ui.Modal
             Assert.AreEqual(_layer.worldBound.width, backdrop.worldBound.width, 0.5f);
             Assert.AreEqual(_layer.worldBound.height, backdrop.worldBound.height, 0.5f);
             Assert.AreEqual(Color.black.r, backdrop.resolvedStyle.backgroundColor.r, 0.001f);
-            Assert.AreEqual(0.8164f, backdrop.resolvedStyle.backgroundColor.a, 0.01f, "--modal-backdrop-face");
+            Assert.AreEqual(0.8605f, backdrop.resolvedStyle.backgroundColor.a, 0.01f, "--modal-backdrop-face");
         }
 
         [Test]

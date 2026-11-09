@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Shell
@@ -13,15 +14,18 @@ namespace Client.Ui.Screens.Shell
         public ScreenBackdropView()
         {
             AddToClassList("screen-shell");
-            pickingMode = PickingMode.Ignore;
 
             // ヴィネットを奥に、幕をその手前に置く（Web は幕が .viewport の背景の上に重なる）
             // Vignette at the back and the dim in front (on the Web the dim lies over the .viewport background)
             Add(new ScreenVignette());
-            _backdrop = new VisualElement { name = "screen-backdrop", pickingMode = PickingMode.Ignore };
+            _backdrop = new VisualElement { name = "screen-backdrop" };
             _backdrop.AddToClassList("screen-shell__backdrop");
             _backdrop.style.display = DisplayStyle.None;
             Add(_backdrop);
+
+            // 部分木ごと入力を取らない（Web の .viewport と .backdrop は pointer-events: none）
+            // The whole subtree takes no input (the Web .viewport and .backdrop are pointer-events: none)
+            UiPickingIgnore.ApplyToSubtree(this);
         }
 
         // 受け身。どの画面で出すかは ScreenBackdropPresenter が決める（設計書 §4.4・A-44）

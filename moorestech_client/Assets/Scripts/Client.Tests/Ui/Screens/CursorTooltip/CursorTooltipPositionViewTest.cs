@@ -21,7 +21,7 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         public void MountTooltip()
         {
             _screen = new FakeCursorTooltipScreen();
-            _view = Mount(new CursorTooltipView(_screen));
+            _view = Mount(new CursorTooltipView(_screen, _screen, _screen.StageScale));
         }
 
         /// <web-test file="src/shared/tooltip/CursorTooltip.test.ts">positions from the latest pointer when the tooltip first appears without further pointer moves</web-test>
@@ -69,7 +69,7 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         public void 載った時は今のポインタを初期位置にする()
         {
             _screen.SetCurrentPointer(new Vector2(100f, 200f));
-            var view = Mount(new CursorTooltipView(_screen));
+            var view = Mount(new CursorTooltipView(_screen, _screen, _screen.StageScale));
             view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.WorldTarget)));
             simulate.FrameUpdate();
             Assert.AreEqual(112f, view.Q<VisualElement>("cursor-tooltip").worldBound.xMin, 0.5f);

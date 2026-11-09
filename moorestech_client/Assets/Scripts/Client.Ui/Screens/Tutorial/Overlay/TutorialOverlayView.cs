@@ -132,7 +132,9 @@ namespace Client.Ui.Screens.Tutorial.Overlay
                 view.HideRing();
                 return;
             }
-            view.ShowRing(box, inset, _glowWidth, _ringRadius);
+            // グローの色は測った地で選ぶ（LX-38）
+            // The glow color is chosen by the measured ground (LX-38)
+            view.ShowRing(box, inset, _glowWidth, _ringRadius, ready.Ground == TutorialAnchorGround.OverWorld);
             // ラベルはアンカー自身がクリップに収まる時だけ出す（Web renderOutline）
             // Show the label only while the anchor itself fits the clip (Web renderOutline)
             if (cue is TutorialOutlineCue.Labeled labeled && TutorialHighlightLabelPlacement.ShowsLabel(ready.Rect, ready.Clip)) view.ShowLabel(labeled.Label, box, ready.Clip, _labelGap);

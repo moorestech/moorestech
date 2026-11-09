@@ -39,7 +39,7 @@ namespace Client.Tests.Ui.Screens.GrabOverlay
         private PlayerSlotDragCommands _commands;
         private PlayerGrabModel _grab;
         private UiScreen _screen;
-        private FakeGrabOverlayPointer _pointer;
+        private FakeUiScreenPointer _pointer;
         private GrabOverlayView _view;
         private Texture2D _texture;
         private ItemId _wood;
@@ -61,7 +61,7 @@ namespace Client.Tests.Ui.Screens.GrabOverlay
             _grab = new PlayerGrabModel(_operations);
             _grab.Initialize();
             _screen = UiScreen.PlayerInventory;
-            _pointer = new FakeGrabOverlayPointer(1f);
+            _pointer = new FakeUiScreenPointer(1f);
             _view = new GrabOverlayView(_pointer, new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture)));
             UiLayerStack.Build(rootVisualElement).GetLayer(UiLayer.Grab, UiFamily.Viewport).Add(_view);
 

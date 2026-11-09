@@ -42,17 +42,6 @@ namespace Client.Ui.Components.Panels
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
         }
 
-        // 標準正規分布の累積分布 Φ(z)。erf は Abramowitz-Stegun 7.1.26（誤差 1.5e-7）
-        // Standard normal CDF Phi(z); erf is Abramowitz-Stegun 7.1.26 (error 1.5e-7)
-        private static float NormalCdf(float z)
-        {
-            var x = Mathf.Abs(z) / Mathf.Sqrt(2f);
-            var t = 1f / (1f + 0.3275911f * x);
-            var poly = t * (0.254829592f + t * (-0.284496736f + t * (1.421413741f + t * (-1.453152027f + t * 1.061405429f))));
-            var erf = 1f - poly * Mathf.Exp(-x * x);
-            return 0f <= z ? 0.5f * (1f + erf) : 0.5f * (1f - erf);
-        }
-
         private void OnCustomStyleResolved()
         {
             _hasTokens = true;
@@ -101,10 +90,10 @@ namespace Client.Ui.Components.Panels
                 var y1 = frame.yMax + _offsetY[layer] + spread;
                 foreach (var y in ys)
                 {
-                    var coverageY = Mathf.Max(0f, NormalCdf((y - y0) / sigma) - NormalCdf((y - y1) / sigma));
+                    var coverageY = GaussianEdgeCoverage.BandCoverage(y, y0, y1, sigma);
                     foreach (var x in xs)
                     {
-                        var coverageX = Mathf.Max(0f, NormalCdf((x - x0) / sigma) - NormalCdf((x - x1) / sigma));
+                        var coverageX = GaussianEdgeCoverage.BandCoverage(x, x0, x1, sigma);
                         var tint = _color[layer];
                         tint.a = LinearBlendOpacity.OpacityAt(_color[layer].a, coverageX * coverageY);
                         mesh.SetNextVertex(new Vertex { position = new Vector3(x, y, Vertex.nearZ), tint = tint });
