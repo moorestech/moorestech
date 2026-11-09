@@ -37,7 +37,7 @@
 
 **やらないこと（スコープ境界）**
 
-- 部品（`RecipeRow`・`RecipeActionButton`・`RecipeListScrollView`・`LevelInheritanceBadge`〈C4-c〉、`ItemSlot`・`SlotGrid`〈C3-a〉、`FluidAmountSlot`〈C4-a〉、`GamePanel`〈C2-a〉）と Foundation（`StageColumnsLayout`・`UiPressGesture`・`HoverTooltip*`・`TutorialAnchor`・`AnchorIds`）は変えない。例外は 1 つ: `GameScrollView.uss` に溝・つまみの色と縦バーの上下右の位置のつまみ 5 本を既定値＝今の値で足す（D-9・A-167。見た目は変わらない）。ほかに要るものは `done.md` の「integrator への依頼」に書く
+- 部品（`RecipeRow`・`RecipeActionButton`・`RecipeListScrollView`・`LevelInheritanceBadge`〈C4-c〉、`ItemSlot`・`SlotGrid`〈C3-a〉、`FluidAmountSlot`〈C4-a〉、`GamePanel`〈C2-a〉）と Foundation（`StageColumnsLayout`・`UiPressGesture`・`HoverTooltip*`・`TutorialAnchor`・`AnchorIds`）は変えない。例外は 3 つ（どれも E-19 の前例で最初の使い手のこのレーンが持つ。D-32）: (1) `GameScrollView.uss` に溝・つまみの色と縦バーの上下右の位置のつまみ 5 本を足し、既定＝今の値は `DerivedTokens.uss` の `:root` に置く（D-9・A-167。見た目は変わらない）(2) `Foundation/Input/UiKeyFocusKeepMark` の新設と `GameUiInputRules` の印の例外（D-32）(3) `Foundation/Anchor/TutorialAnchor` に `Unmark` を足す（D-36）。ほかに要るものは `done.md` の「integrator への依頼」に書く
 - 機械レシピの解放済み一覧の源（`Client.Ui.State/Recipe/Source/`）は作らない（S4-alpha。D-3）。機械画面のレシピ選択（`MachineRecipeSelectionRow` 等）は S4-machine、インベントリ・装備（`Inv` 列）は S4-inventory、ビューア＋機械 UI＋インベントリの同時表示の L3 は S4-gamma が持つ。重なりは下の「他レーンとの重なり」の表
 - `BlockInventoryPanel`（S4-alpha）も `Viewer` 列へ載るが画面 `SubInventory` のときだけで、このレーンの View は `PlayerInventory` のときだけ出す。列そのもの（`StageColumnsLayout`）は触らない
 - ボタンの `title`（`holdToCraft`）と掴み中のカーソル `grabbing` は写さない（CEF の画面描画にツールチップとカーソルの受け手が無く、ゲーム内の Web では出ていない。D-12）
@@ -60,7 +60,7 @@
 
 - **作業場所**: `moores-wt new uitk-lane/s4-recipe --from origin/feature/uitk`（Editor 要）。最初に `pwd` で worktree にいることを確かめる。Unity は自分の worktree の Editor だけを使い、起動・停止の前に `moores-wt status` で所有を確かめる
 - **依存**: C4-c・C4-e（`StageColumnsLayout`。マージ済み #1626）・L0-s4a（マージ済み）・C3-b（`UiPressGesture`・`HoverTooltipHost`。マージ済み）・L0-s3（`UiDragThreshold`。マージ済み）・**C4-a**（`FluidAmountSlot`。機械レシピの液体）・**S2-tutorial**（`TutorialAnchor.MarkClipContainer`・`TutorialAnchorCoveragePending`・測定の関数）・**S4-alpha**（機械レシピの源）。Task 1 Step 1 で全部の実物を確かめ、無ければ止めて指揮へ報告する（実行計画 §1.4 の改め案は末尾）
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有区画は `GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`MainGameUiRegistration` の画面登録区画の 1 行、`DerivedTokens.uss` 末尾の名札付きブロック「S4-recipe」、`tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の行と再生成した `docs/uitk/translucent-tokens.md`、`Localization/localization.csv` の追記と `W/src/shared/i18n/generated/localizationKeys.ts` の再生成（台帳「## 追従記録」に 1 行）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（LX-131〜135）「## 追従記録」の末尾、`docs/uitk/disposition.md` の行、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の末尾 2 値と 3 switch、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の自分の 2 行の削除。宣言した部品の変更は `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss` のつまみ 5 本だけ
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有区画は `GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`MainGameUiRegistration` の画面登録区画の 1 行、`DerivedTokens.uss` 末尾の名札付きブロック「S4-recipe」、`tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の行と再生成した `docs/uitk/translucent-tokens.md`、`Localization/localization.csv` の追記と `W/src/shared/i18n/generated/localizationKeys.ts` の再生成（台帳「## 追従記録」に 1 行）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（LX-131〜135）「## 追従記録」の末尾、`docs/uitk/disposition.md` の行、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の末尾 2 値と 3 switch、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の自分の 2 行の削除。宣言した部品・Foundation の変更は `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss` のつまみ 5 本、`S/Client.Ui/Foundation/Input/{UiKeyFocusKeepMark.cs,GameUiInputRules.cs}`、`S/Client.Ui/Foundation/Anchor/TutorialAnchor.cs` の `Unmark` だけ
 - **規約**（AGENTS.md）: 1 ファイル 200 行未満・1 ディレクトリ 10 ファイルまで・partial 禁止・`Func<>` 禁止・イベントは UniRx（`Action` で発火しない）・try-catch 禁止（外部境界のみ）・主要処理に日英 2 行コメント・デフォルト引数禁止・初期化は `Initialize`（ctor → `Initialize`）・単純な getter/setter プロパティ禁止（`{ get; private set; }` は可）・`[SerializeField]` は使わない・fail-closed（拒否・保留・無視）の経路は開発者が読めるログへ理由を出す・`Update()` を使わない（購読と変化の直後のプッシュ）・null チェックは外部データと非同期ロードだけ
 - **USS の規則**（ref-uitk-design）: 画面の USS は自分のルートのクラスから書き、ほかの部品のクラスを書かない（部品の見た目はつまみの上書きだけ）。色は `var()` だけ（直書き禁止。Web が直書きする色は `DerivedTokens.uss` の「S4-recipe」ブロックへ）。`gap`・`z-index` は使わない。各 USS の先頭に `/* web: <Web のファイル> */`。calc() が要る値は C# が `UssCustomStyleReader` で読む。字間は UITK では「字の大きさ/100 × 値」で効く（px で書いても同じ。em は生成器の換算に合わせる）
 - **色の比較**はランタイムの PanelSettings（Linear 合成）で撮る（ギャラリーは sRGB 合成で半透明が淡く出る）。半透明の α は明暗とも指数 1.85 の式（`correctAlphaForLinearBlend`。明るい色も同じ式でトークンごとに α を選ばない＝A-113）。明るい 2 本（白 88% のつまみ・`rgb(132 137 151 / 78%)` の線）も式の値で、Task 11 で参照と比べて 2px・RGB の差が残れば LX に記帳する（LX-81 の中〜明るい地の残差と同じ扱い）
@@ -195,13 +195,13 @@ namespace Client.Ui.Components.Slots
 // Client.Ui.State.Tutorial.Logic.TutorialHighlightClip.TryComputeInset(TutorialClipRect box, TutorialClipRect clip, float outset, out TutorialClipInset inset) : bool
 // S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs の Owners に { AnchorIds.RecipeCraftButton, "S4-recipe" }・{ AnchorIds.RecipeItemPrefix, "S4-recipe" }
 
-// ===== S4-alpha（出所: S4-alpha 計画 14a85b146c の末尾「## 後続レーンへの Produces 一覧」。レビュー中で変わりうる。マージ後に実物と照合）=====
+// ===== S4-alpha（出所: S4-alpha 計画 85f905aa3d（再検査中で細部は変わりうる） の末尾「## 後続レーンへの Produces 一覧」。レビュー中で変わりうる。マージ後に実物と照合）=====
 // MachineRecipeData は Client.Ui.State.Recipe.Data（既存）。Client.Ui.State.asmdef への Game.UnlockState 参照は S4-alpha が足す（このレーンのカタログ・コマンドもそれに乗る。Task 1 で asmdef に参照があることを確かめる）
 namespace Client.Ui.State.Recipe.Source
 {
     // 解放済みの機械レシピ（Web Topics.machineRecipes の源。マスタ＋解放状態＋製作上限で組み直し、変化で配り直す）
     // ctor(IGameUnlockStateData, ILevelInheritanceCraftCapLookup, IVanillaApiEvent)。IInitializable の Initialize で初回の組み立てと購読（S4-alpha の登録が持つ）
-    public sealed class UnlockedMachineRecipeSource : IInitializable { public IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>> Current { get; } }   // DI 登録済み（AsSelf。S4-alpha の登録ファイル）
+    public sealed class UnlockedMachineRecipeSource : IInitializable { public IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>> Current { get; } }   // 共有サービス（AsSelf。MainGameUiRegistration の共有サービスの並びに S4-alpha が登録）
 }
 ```
 
@@ -306,6 +306,10 @@ namespace Client.Ui.State.Recipe.Source
 | `S/Client.Tests/Ui/Screens/Recipe/ItemList/{ItemListViewTest.cs,ItemListScrollGeometryTest.cs,ItemListDragScrollTest.cs}` | 一覧の L1 | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/Overlay/{RecipeTutorialClipTest.cs,RecipeSlotTooltipTest.cs}` | チュートリアルの切り抜きとツールチップの L1 | 新規 |
 | `S/Client.Tests/Ui/Components/Controls/GameScrollViewKnobTest.cs` | 追加つまみの効き（L1） | 新規 |
+| `S/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs` | フォーカスを保ってよい印 | 新規（Foundation。E-19 の前例。D-32） |
+| `S/Client.Ui/Foundation/Input/GameUiInputRules.cs` | 印付きをフォーカス拒否の対象から外す | 変更（Foundation。E-19 の前例。D-32） |
+| `S/Client.Ui/Foundation/Anchor/TutorialAnchor.cs` | `Unmark` を足す（アンカーの付け替え） | 変更（Foundation。E-19 の前例。D-36。S2-tutorial の `MarkClipContainer` と同じファイルなので取り込み時は両方を採る） |
+| `S/Client.Tests/Ui/Input/GameUiInputRulesTest.cs` | 印付きの要素の L1 を 1 件 | 変更 |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 自分の 2 行を消す | 変更（共有区画） |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-recipe-craft.cs` | 録画のシナリオ | 新規 |
 | `docs/uitk/TODO.md`・`docs/uitk/disposition.md` | 実測の結論・LX-131〜135・追従記録（`disposition.md` は部分移植の行があるときだけ） | 変更（共有区画） |
@@ -1014,7 +1018,7 @@ git commit -m "feat(uitk): クラフトの操作と拒否の理由 2 つを足�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Recipe/Screen/RecipeScreenModelTest.cs`・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/Input/{RecipeSelectionCloseResetTest.cs,FakeCloseKeyProbe.cs}`
 
 **Interfaces:**
-- Consumes: Task 2〜3 の Produces、S4-alpha の `UnlockedMachineRecipeSource.Current`（S4-alpha 計画 14a85b146c の Produces 一覧。レビュー中で変わりうる。Task 1 で実物と照合）、`LocalPlayerInventoryController`（`LocalPlayerInventory.OnItemChange`・`OnInventoryRefreshed`。前例 `ResearchNodeStateStore`）、`IPlayerInventoryOperations.ReadSnapshot()`、`Localize.OnLanguageChanged`（前例 `ModeHudModel`）、`UiRoutingState.Current`
+- Consumes: Task 2〜3 の Produces、S4-alpha の `UnlockedMachineRecipeSource.Current`（S4-alpha 計画 85f905aa3d（再検査中で細部は変わりうる） の Produces 一覧。レビュー中で変わりうる。Task 1 で実物と照合）、`LocalPlayerInventoryController`（`LocalPlayerInventory.OnItemChange`・`OnInventoryRefreshed`。前例 `ResearchNodeStateStore`）、`IPlayerInventoryOperations.ReadSnapshot()`、`Localize.OnLanguageChanged`（前例 `ModeHudModel`）、`UiRoutingState.Current`
 - Produces:
   - `public interface IRecipeScreenSignals { IObservable<Unit> OnRecipesUnlocked { get; } IObservable<Unit> OnInventoryChanged { get; } }`、本番 `GameRecipeScreenSignals(IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController inventoryController) : IInitializable`（解放イベントは `Initialize` で購読。前例 `ResearchNodeStateStore`・`NotificationFeed`）
   - `public sealed class RecipeScreenModel { public RecipeScreenModel(IGameUnlockStateData unlockState, RecipeViewerItemCatalog itemCatalog, UnlockedMachineRecipeSource machineRecipes, IRecipeScreenSignals signals, IPlayerInventoryOperations inventory, RecipeItemSelection selection); public IReadOnlyReactiveProperty<ItemListViewModel> ItemList { get; } public IReadOnlyReactiveProperty<RecipeViewerViewModel> Viewer { get; } }`
@@ -1256,12 +1260,14 @@ git commit -m "feat(uitk): レシピ画面のモデルと Esc での選択解除
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/Viewer/{CraftRecipeEntryViewTest.cs,CraftHoldTest.cs,CraftHoldKeyTest.cs}`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs`（フォーカスを保ってよい印。D-32・E-19 の前例でこのレーンが持つ）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs`（`OnFocusIn`・`BlurNonTextFieldFocus` の対象から印付きを外す）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Anchor/TutorialAnchor.cs`（`Unmark` を足す。D-36）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Input/GameUiInputRulesTest.cs`（印付きの要素の L1 を 1 件足す。既存の `ButtonFocusIsBlurredWithWarning` は印の無いボタンのまま残す）
 
 **Interfaces:**
 - Consumes: C4-c の `RecipeRow`・`RecipeActionButton`、C3-a の `ItemSlot`、Task 3〜4 の `CraftRecipeEntryViewModel`・`RecipeItemSelection`・`IRecipeCommands`・`RecipeDurationText`、`MaterialTooltipText`、`GameContentPresentation`、`UiCommandResultToaster`
 - Produces:
-  - `public sealed class CraftRecipeEntryView : VisualElement { public CraftRecipeEntryView(CraftRecipeEntryViewModel first, RecipeEntryPartsContext context); public bool CarriesTutorialAnchor { get; } public void Render(CraftRecipeEntryViewModel vm); }`（name `craft-recipe-entry-<guid>`。アンカーは ctor の `first.CarriesTutorialAnchor` で 1 回だけ付け、外す口は無いので、アンカーの有無が変わったエントリは `RecipeEntryList` が作り直す。D-34）
+  - `public sealed class CraftRecipeEntryView : VisualElement { public CraftRecipeEntryView(CraftRecipeEntryViewModel first, RecipeEntryPartsContext context); public void Render(CraftRecipeEntryViewModel vm); }`（name `craft-recipe-entry-<guid>`。アンカーは `Render` のたびに `vm.CarriesTutorialAnchor` に合わせて `TutorialAnchor.Mark`／`Unmark` で付け外しし、要素は作り直さない。D-36）
+  - `namespace Client.Ui.Foundation.Anchor { public static class TutorialAnchor { public static void Unmark(VisualElement element, params string[] ids); } }`（足すのは `Unmark` だけ。`ids` のクラスと `tutorial-anchor` を外す。`Mark` と同じく状態を持たない。1 つの要素に 1 つの id だけを付ける使い方に限る）
   - `public sealed class RecipeEntryPartsContext { public RecipeEntryPartsContext(GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection); public GameContentPresentation Content { get; } public IRecipeCommands Commands { get; } public UiCommandResultToaster Toaster { get; } public RecipeItemSelection Selection { get; } }`（エントリの包みが共通で受ける依存の束。`Parts/` 内の `CraftRecipeEntryView.cs` の下に置く）
   - `public sealed class CraftHoldDriver { public CraftHoldDriver(VisualElement scheduleOwner, RecipeRow row, IRecipeCommands commands, UiCommandResultToaster toaster); public void SetRecipe(Guid recipeGuid, double craftTime, bool craftable); public void Start(); public void Stop(); }`
   - `public sealed class CraftHoldInput { public CraftHoldInput(VisualElement button, CraftHoldDriver driver); }`（ポインタの押下・離し・外れ・取消と、フォーカス中の Enter の押下・離し・フォーカス外れを長押しへ渡す。`focusable=true` と印は置く側〈`CraftRecipeEntryView`〉がインスタンスに立てる）
@@ -1269,7 +1275,7 @@ git commit -m "feat(uitk): レシピ画面のモデルと Esc での選択解除
 
 - [ ] **Step 0: 印付きのボタンに Enter の `KeyDownEvent` が届くかを実測する（関門）**
 
-`uloop control-play-mode --project-path ./moorestech_client --action Play` の後、EDC で GameUi のルートに `focusable=true`・`UiKeyFocusKeepMark` 相当（クラス `ui-key-focus-keep` を付けるだけ。印のコードはこの Task で書くので、ここでは規則を一時的に通すため `GameUiInputRules` を変えたブランチでなく、`RegisterCallback<FocusInEvent>` で `StopImmediatePropagation` する仮の器で代用する）のボタンを 1 つ置いて `Focus()` し、`KeyDownEvent` の数を数える callback を付ける。プレイテスト DSL の `SemanticInput` で Enter を InputSystem へ注入し、callback の数を `done.md` の「## 証拠」に書く。1 以上なら以降へ進む。0 なら Enter を UITK のキーイベントで受ける形をやめ、D-32 の受動案（`InputManager.UI` の Enter アクション＋画面側の武装状態）で `CraftHoldInput` の Enter の部分を書き直し、`UiKeyFocusKeepMark`・`GameUiInputRules` の変更は入れない（`done.md` に切り替えを書いて指揮へ報告）
+Step 2 の `UiKeyFocusKeepMark.cs` と `GameUiInputRules.cs` の変更を先に書いてコンパイルする（仮の器では代用しない。規則は GameUi のルートに TrickleDown で付いているので、子孫で止めてもルートが先に Blur を予約する）。`uloop control-play-mode --project-path ./moorestech_client --action Play` の後、EDC で本番の GameUi のルートに `focusable=true` と `UiKeyFocusKeepMark.Mark` を付けたボタンを 1 つ置いて `Focus()` し、3 フレーム後もフォーカスが残ることと、`KeyDownEvent` の数を数える callback を付ける。プレイテスト DSL の `SemanticInput` で Enter を InputSystem へ注入し、callback の数を `done.md` の「## 証拠」に書く。1 以上なら以降へ進む。0 なら 2 本の変更を `git checkout -- <2 本のパス>` で戻し、D-32 の受動案（`InputManager.UI` の Enter アクション＋画面側の武装状態）で `CraftHoldInput` の Enter の部分を書き直す（`done.md` に切り替えを書いて指揮へ報告）
 
 - [ ] **Step 1: テストを書く**
 
@@ -1490,6 +1496,18 @@ namespace Client.Ui.Foundation.Input
         }
     }
 }
+```
+
+`TutorialAnchor.cs` に足す（`Mark` の下）:
+
+```csharp
+        public static void Unmark(VisualElement element, params string[] ids)
+        {
+            // Mark の逆。1 要素 1 id の使い方に限るので印のクラスも外す
+            // Inverse of Mark; limited to one id per element, so the marker class goes too
+            element.RemoveFromClassList(MarkerClassName);
+            foreach (var id in ids) element.RemoveFromClassList(id);
+        }
 ```
 
 `GameUiInputRules.cs` の変更（3 か所と述語 1 本。クラスの summary の「入力欄以外のフォーカス拒否」を「入力欄と印付き以外のフォーカス拒否」へ、`OnFocusIn` の警告の文も合わせる。ほかは今のまま）:
@@ -1744,8 +1762,7 @@ namespace Client.Ui.Screens.Recipe.Parts
         private readonly CraftHoldDriver _hold;
         private readonly ItemSlot[] _materialSlots;
         private readonly ItemSlot _resultSlot;
-
-        public bool CarriesTutorialAnchor { get; }
+        private bool _anchored;
         private ItemId[] _materialItemIds;
 
         public CraftRecipeEntryView(CraftRecipeEntryViewModel first, RecipeEntryPartsContext context)
@@ -1759,8 +1776,6 @@ namespace Client.Ui.Screens.Recipe.Parts
             _row = new RecipeRow($"craft-recipe-box-{guid}", $"craft-progress-arrow-{guid}");
             _row.SetDuration(RecipeDurationText.Create(first.Recipe.CraftTime));
             _button = new RecipeActionButton($"craft-button-{guid}", new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionLabelWeight.Medium);
-            CarriesTutorialAnchor = first.CarriesTutorialAnchor;
-            if (CarriesTutorialAnchor) TutorialAnchor.Mark(_button, AnchorIds.RecipeCraftButton);
             _row.SetAction(_button);
 
             // Enter の長押しのためこのインスタンスだけフォーカスを持ち、規則に外されない印を付ける（部品の既定 focusable=false の画面側の例外。D-31・D-32）
@@ -1782,6 +1797,15 @@ namespace Client.Ui.Screens.Recipe.Parts
 
         public void Render(CraftRecipeEntryViewModel vm)
         {
+            // アンカーは先頭のクラフトだけ。解放で先頭が変わったら付け替え、要素は作り直さない（長押しを保つ。Web は key を保って属性だけ変える。D-36）
+            // Only the first craft carries the anchor; on an unlock move it without rebuilding (keeps the hold; Web keeps the key and updates the attribute; D-36)
+            if (vm.CarriesTutorialAnchor != _anchored)
+            {
+                if (vm.CarriesTutorialAnchor) TutorialAnchor.Mark(_button, AnchorIds.RecipeCraftButton);
+                else TutorialAnchor.Unmark(_button, AnchorIds.RecipeCraftButton);
+                _anchored = vm.CarriesTutorialAnchor;
+            }
+
             // 素材の所持・不足とツールチップ、結果の数、ボタンの可否、長押しの可否を当て直す
             // Re-apply material owned/lacking and tooltips, result count, button state and hold eligibility
             _materialItemIds = new ItemId[vm.Materials.Count];
@@ -1823,7 +1847,7 @@ Expected: ErrorCount 0 / 新規 10 件（エントリ 3・長押し 3・キー 3
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/Parts moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Input/GameUiInputRulesTest.cs
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/Parts moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs moorestech_client/Assets/Scripts/Client.Ui/Foundation/Anchor/TutorialAnchor.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Input/GameUiInputRulesTest.cs
 git commit -m "feat(uitk): クラフトのエントリと長押しクラフト（マウスと Enter）を画面の部品で作り、フォーカスを保つ印を足す（S4-recipe）"
 ```
 
@@ -1876,6 +1900,9 @@ public void 機械名と秒数は言語に追従しアイコンが無ければID
 
 [Test]
 public void 継承バッジは継承するレシピだけに出る() { /* RecipeLevelInheritance.Inherit(...) で name machine-recipe-level-inheritance-<guid> のラベルがある・None では無い */ }
+
+[Test]
+public void 機械の情報欄はアイコン名前バッジの間が2px() { /* FrameUpdate 後、名前の worldBound.yMin − アイコンの yMax ≈ 2。継承ありはバッジの yMin − 名前の yMax ≈ 2、None ではバッジが display:none で情報欄の高さが 2 と バッジの高さの分だけ小さい（Web MachineRecipeEntry.tsx の Stack gap={2}） */ }
 ```
 
 （`MachineWithFluids` はテストの中の helper: `new MachineRecipeData(guid, new BlockId(1), 2.5, [Amount(1,1)], [Amount(2,1)], [new RecipeFluidAmount(new FluidId(1), 10)], [new RecipeFluidAmount(new FluidId(1), 5)], RecipeLevelInheritance.None)`。機械名の言語追従を見るには `ContentLocalizationKeys.BlockName` の辞書が要るので、前例 `ModeHudPlacementNameTest` の `PlacementNameTestDictionary` の手順で英日の名前を合成する）
@@ -1886,6 +1913,7 @@ public void 継承バッジは継承するレシピだけに出る() { /* Recipe
 using System.Collections.Generic;
 using Client.Ui.Components.Recipe;
 using Client.Ui.Components.Slots;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Recipe.Data;
 using Client.Ui.State.Recipe.Logic;
@@ -1919,7 +1947,9 @@ namespace Client.Ui.Screens.Recipe.Parts
 
             // 操作の欄: 機械のアイコン・名前・継承バッジ
             // Action column: machine icon, name and inheritance badge
-            var info = new VisualElement();
+            // Web は <Stack gap={2}>（アイコン・名前・バッジの間 2px）
+            // Web uses <Stack gap={2}> (2px between icon, name and badge)
+            var info = new UiStack(UiGap.Px2);
             info.AddToClassList("machine-recipe-entry__info");
             var icon = new GameIcon();
             icon.AddToClassList("machine-recipe-entry__block-icon");
@@ -1928,9 +1958,9 @@ namespace Client.Ui.Screens.Recipe.Parts
             blockName.AddToClassList("machine-recipe-entry__block-name");
             blockName.SetText(context.Content.Block(recipe.BlockId).Label);
             _badge = new LevelInheritanceBadge($"machine-recipe-level-inheritance-{guid}");
-            info.Add(icon);
-            info.Add(blockName);
-            info.Add(_badge);
+            info.AddItem(icon);
+            info.AddItem(blockName);
+            info.AddItem(_badge);
             row.SetAction(info);
             Add(row);
             Render(first);
@@ -1981,7 +2011,7 @@ namespace Client.Ui.Screens.Recipe.Parts
 - [ ] **Step 3: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.Recipe.Viewer.MachineRecipeEntryViewTest"`
-Expected: ErrorCount 0 / 3 件 PASS
+Expected: ErrorCount 0 / 4 件 PASS
 
 - [ ] **Step 4: コミットする**
 
@@ -2091,14 +2121,14 @@ public void 同じ選択のままレシピ0件から1件になると列が出る
 }
 
 [Test]
-public void 最初のエントリは見出しの装飾線の下12pxに来る()
+public void 最初のエントリは見出しの装飾線の下にgapと列のbleedの分だけ空く()
 {
     var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
     view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 2, true, false, Material(1, 1, 3))));
     simulate.FrameUpdate();
     var ruleBottom = view.Q<ItemHeaderRule>().worldBound.yMax;
     var entryTop = view.Q($"craft-recipe-entry-{RecipeFixtures.RecipeGuid(1)}").worldBound.yMin;
-    Assert.AreEqual(12f, entryTop - ruleBottom, 0.5f);                   // Web の Stack gap sm（-12 の margin と 12 の padding は打ち消し合う）
+    Assert.AreEqual(17f, entryTop - ruleBottom, 0.5f);                   // Web: Stack gap sm 12 − margin 12 ＋ 視口の padding 12 ＋ 列の bleed 5（C4-c の --recipe-entry-bleed）
 }
 
 [Test]
@@ -2117,14 +2147,25 @@ public void 解放で並びが変わっても既存のエントリは同じ要�
 }
 
 [Test]
-public void 解放で先頭のクラフトが変わってもアンカーは1件で新しい先頭に付く()
+public void 解放で先頭のクラフトが変わってもアンカーは新しい先頭へ移り長押し中の要素は作り直さない()
 {
+    // 本番の組み立て（RecipeViewModelFactory.BuildViewer）で「B だけ → A・B」の VM を作る。A は B より前に並ぶレシピ
+    // Build "B only -> A and B" with the production factory; A sorts before B
     var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
-    var second = RecipeFixtures.RecipeGuid(2);
-    view.Render(Selected(7, CraftVm(second, 1, true, true, Material(1, 1, 9))));
-    view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 1, true, true, Material(1, 1, 9)), CraftVm(second, 1, true, false, Material(1, 1, 9))));
+    var a = RecipeFixtures.Craft(RecipeFixtures.RecipeGuid(1), 7, 1, 0.4, RecipeFixtures.Amount(1, 1));   // 引数は L0-s4a の RecipeFixtures の実物に合わせる
+    var b = RecipeFixtures.Craft(RecipeFixtures.RecipeGuid(2), 7, 1, 0.4, RecipeFixtures.Amount(1, 1));
+    var owned = new Dictionary<ItemId, int> { { new ItemId(1), 9 } };
+    view.Render(RecipeViewModelFactory.BuildViewer(RecipeSelection.Of(new ItemId(7)), new[] { b }, Array.Empty<MachineRecipeData>(), owned));
+    var bEntry = view.Q($"craft-recipe-entry-{b.RecipeGuid}");
+    PointerDown(view.Q<RecipeActionButton>($"craft-button-{b.RecipeGuid}"));
+    for (var i = 0; i < 3; i++) simulate.FrameUpdateMs(100);
+
+    view.Render(RecipeViewModelFactory.BuildViewer(RecipeSelection.Of(new ItemId(7)), new[] { a, b }, Array.Empty<MachineRecipeData>(), owned));
+    Assert.AreSame(bEntry, view.Q($"craft-recipe-entry-{b.RecipeGuid}"));
     var resolved = TutorialAnchorRegistry.Resolve(view, AnchorIds.RecipeCraftButton);   // F1 の実物の戻り値で Unique と要素を読む
-    Assert.AreEqual(view.Q($"craft-button-{RecipeFixtures.RecipeGuid(1)}"), UniqueElementOf(resolved));
+    Assert.AreEqual(view.Q($"craft-button-{a.RecipeGuid}"), UniqueElementOf(resolved));
+    for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);             // 合計 0.5 秒 → B が 1 回（長押しが続いた）
+    CollectionAssert.AreEqual(new[] { b.RecipeGuid }, _commands.Crafted);
 }
 
 [Test]
@@ -2327,12 +2368,10 @@ namespace Client.Ui.Screens.Recipe.Parts
             foreach (var entry in entries)
             {
                 kept.Add(entry.RecipeGuid);
-                // アンカーの有無が変わったクラフトは作り直す（TutorialAnchor に外す口が無く、使い回すと先頭が 2 件になる）
-                // Recreate a craft entry whose anchor flag changed (TutorialAnchor cannot unmark; reuse would leave two anchors)
-                if (!_viewsByGuid.TryGetValue(entry.RecipeGuid, out var view) || AnchorChanged(view, entry))
+                if (!_viewsByGuid.TryGetValue(entry.RecipeGuid, out var view))
                 {
                     view = Create(entry);
-                    _viewsByGuid[entry.RecipeGuid] = view;
+                    _viewsByGuid.Add(entry.RecipeGuid, view);
                 }
                 next.Add(view);
             }
@@ -2346,11 +2385,6 @@ namespace Client.Ui.Screens.Recipe.Parts
             // SetEntries（C4-c）は一度外して付け直す。外れている間は長押しのスケジューラが止まり、同じフレームで付け直すので経過は保たれる（CraftHoldDriver。D-34）
             // SetEntries (C4-c) detaches and re-attaches; the hold scheduler pauses while detached and resumes in the same frame, so progress is kept (CraftHoldDriver; D-34)
             _scroll.SetEntries(next);
-        }
-
-        private static bool AnchorChanged(VisualElement view, RecipeEntryViewModel entry)
-        {
-            return view is CraftRecipeEntryView craftView && entry is CraftRecipeEntryViewModel craft && craftView.CarriesTutorialAnchor != craft.CarriesTutorialAnchor;
         }
 
         private VisualElement Create(RecipeEntryViewModel entry)
@@ -2444,7 +2478,7 @@ namespace Client.Ui.Screens.Recipe.Parts
 ```css
 /* web: src/features/recipe/panels/RecipeViewer.tsx（style）・RecipeViewer.module.css・views/ItemHeader.module.css・views/CraftRecipeEntry.tsx（素材スロットの style） */
 .recipe-viewer {
-    --recipe-viewer-stack-gap: 12px;   /* web: RecipeContent の <Stack gap="sm">（Mantine 既定 0.75rem） */
+    --recipe-viewer-stack-gap: var(--mantine-spacing-sm);   /* web: RecipeContent の <Stack gap="sm">（12px） */
     align-self: flex-start;
     align-items: center;
     margin-top: 2px;
@@ -2527,7 +2561,7 @@ namespace Client.Ui.Screens.Recipe.Parts
 }
 ```
 
-（USS は `calc()` を持たない。`margin: calc(...)` と viewport の padding は C# で `UssCustomStyleReader` が `--tutorial-anchor-clip-inset` と `--recipe-viewer-stack-gap` を読んで `RecipeEntryList` の `style.marginLeft/Right/Bottom = -inset`・`style.marginTop = gap - inset`（見出しと列の間の Stack gap sm 12px。最初のエントリは見出しの下 12px）と `RecipeListScrollView` の視口の padding へ当てる形に直す〈Task 8 の着手時。前例 C4-e の列の余白〉。名前の字の太さは `ItemHeaderView` が名前のラベルに `UiTypographyClass.TextMedium` を付ける（`Typography.uss` の `.text--medium` がラテンと CJK の両方を持つ。`--font-medium` は無い）。`translate`・`rotate` の書き方は既存の画面 USS の実物に合わせ、`gap`・`z-index` は使わない。字間 0.01em は 19.75px で 0.1975px＝UITK の「大きさ/100 × 値」で 1 を書く〈生成器の換算に合わせ、Task 10 の実測で決める〉）
+（USS は `calc()` を持たない。`margin: calc(...)` と viewport の padding は C# で `UssCustomStyleReader` が `--tutorial-anchor-clip-inset` と `--recipe-viewer-stack-gap` を読んで `RecipeEntryList` の `style.marginLeft/Right/Bottom = -inset`・`style.marginTop = gap - inset`（見出しと列の間の Stack gap sm 12px。最初のエントリは見出しの下に 12＋C4-c の列の bleed 5＝17px。Web と同じ）と `RecipeListScrollView` の視口の padding へ当てる形に直す〈Task 8 の着手時。前例 C4-e の列の余白〉。名前の字の太さは `ItemHeaderView` が名前のラベルに `UiTypographyClass.TextMedium` を付ける（`Typography.uss` の `.text--medium` がラテンと CJK の両方を持つ。`--font-medium` は無い）。`translate`・`rotate` の書き方は既存の画面 USS の実物に合わせ、`gap`・`z-index` は使わない。字間 0.01em は 19.75px で 0.1975px＝UITK の「大きさ/100 × 値」で 1 を書く〈生成器の換算に合わせ、Task 10 の実測で決める〉）
 
 `DerivedTokens.uss` の末尾（`/* S4-recipe: … */` の日英 2 行の名札の下）:
 
@@ -3359,7 +3393,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-3 機械レシピの源は S4-alpha が作り、このレーンは使うだけ**: 指揮の割り当て（S4-machine も同じ源を使う 2 機能目のため中立の置き場 `Client.Ui.State/Recipe/Source/`）。製作上限の解放（`ILevelInheritanceCraftCapLookup.OnCraftCapUnlocked`）での組み直しも源の側が持つ
 - **D-4 依存に C4-a・S2-tutorial・S4-alpha を足す**: 機械レシピの液体（`FluidAmountSlot`）、`TutorialAnchorCoveragePending` の自分の行・切り抜きの判定（テスト）、機械レシピの源。実行計画 §1.4 の改め案に書く
 - **D-5 長押しは `UiPressGesture` でなく画面の部品 `CraftHoldInput` で受ける**: C4-c の申し送りは「`UiPressGesture` を重ねる」だが、Web の長押しは押下・離し・外れ・取消の 4 事象だけで、タップとドラッグの分類（5px）が無い。`UiPressGesture` は押下で捕捉し、ボタンの外へ出ても中断しない（Web は外れで止める＝`recipe.spec.ts` 5 件目）。Button の `Clickable` が捕捉しているときは Leave が来ないので、移動の位置でも外れを読む
-- **D-6 エントリは GUID で使い回し、別のアイテムを選んだら作り直す**: 持ち物の変化ごとに VM が来るので、作り直すと長押しのスケジューラと経過が消える（Web は React の key で使い回す）。選択の切り替えは Web の `key={selectedItemId}` の再マウント（スクロールが先頭へ）と同じく作り直す。GUID の並びが変わる（解放で増える）ときも作り直す（Web は key の一致する要素を残すが、解放とクラフトの同時は起きにくく差は長押しの中断だけ）
+- **D-6 エントリは GUID で使い回し、別のアイテムを選んだら作り直す**: 持ち物の変化ごとに VM が来るので、作り直すと長押しのスケジューラと経過が消える（Web は React の key で使い回す）。選択の切り替えは Web の `key={selectedItemId}` の再マウント（スクロールが先頭へ）と同じく作り直す。GUID の並びが変わる（解放で増える）ときは GUID の辞書で既存の要素を使い回す（D-34）
 - **D-7 Esc の選択解除は「画面の遷移と同じフレームの CloseUI」**: 入力欄・印付き以外にフォーカスが無いとき UITK のキーイベントは届かない（A-83）。Web はゲーム層の keydown の Escape で外すが、ゲーム層の Esc はインベントリを閉じる（遷移する）ので、遷移と CloseUI の組で同じ時点になる。`Update()` を足さない
 - **D-8 拒否の理由 2 つは良性でない**: UI からは解放済みのレシピしか出ないので、起きたら不整合。トーストとログで気づかせる（Web の橋も `invalid_recipe`・`recipe_locked` をエラーで返す）
 - **D-9 `GameScrollView.uss` につまみ 5 本を足す（宣言した部品の変更）**: 一覧は溝が透明・つまみが白 88%・縦バーの上下に 12 の逃げ、レシピ列は上下右に 12 の逃げ（Web の局所上書き）。画面の USS は部品のクラス（`.unity-scroll-view__vertical-scroller` 等）を書けないので、部品につまみが要る。既定は今の値なので他の画面の見た目は変わらない。2 機能目は S4-machine のレシピ選択の列（同じ逃げ）になりうるので、`done.md` の「integrator への依頼」に「つまみ 5 本を足した。設計書 §2.4 の GameScrollView 行へ」と書く（前例: S3-hotbar-modal の `OutlinedCountLabel` の縁の色のつまみ A-108）
@@ -3388,6 +3422,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-33 ビューアは最新の VM を覚え、出し直すときにそれで組む**: 閉じたら中身を捨てる（D-23）ので、開き直しで別の契機（持ち物の再取得）を待たずに組むため。隠れている間の `Render` は覚えるだけ
 - **D-34 エントリは GUID の辞書で使い回す**: 解放で並びが変わっても既存の要素を残す（Web の React key）。C4-c の `SetEntries` は一度外して付け直すが、外れている間はスケジューラが止まるだけで長押しの状態は要素に残るので、長押しの部品は木から外れたときに止めない（捨てた要素は参照が切れる）。付け直しで Enter のフォーカスは外れて止まる（Web より狭いが、解放と Enter の長押しが重なるときだけ）
 - **D-35 見出しの名前の影は右だけ・字の太さは `.text--medium`**: UITK の text-shadow は 1 本なので Web の左右 2 本のうち右の `0.3px 0 0` を写し、左の差は LX-135 の記帳候補。`--font-medium` は無いので `UiTypographyClass.TextMedium`（ラテンと CJK の両方）
+- **D-36 アンカーは `Render` で付け外しし、要素を作り直さない（`TutorialAnchor.Unmark` を足す）**: 解放で先頭のクラフトが変わると旧先頭からアンカーを外し新しい先頭に付ける。作り直すと長押し中の B の保持が切れる（Web は key を保って属性だけ変える）。`TutorialAnchor` は状態の無いクラス名の印なので `Unmark` はその逆の 1 本。Foundation の小さな変更で E-19 の前例どおりこのレーンが持つ（W4 の兄弟の計画は `TutorialAnchor.cs` を書かない。S2-tutorial の `MarkClipContainer` は依存として先に入る）
 - **D-29 解放の判定と素材の左押下は 2 か所のまま**: カタログは「無い・未解放」を 1 つに畳んで落とし、コマンドは 2 つの拒否の理由に分ける（目的が違う）。素材の左押下→選択はクラフトと機械のエントリに 1 行ずつで、共通の口を作るほどの量でない（Phase 2.6 検査6 弱 2 件。`Client.Ui.State` を Contract へ出す 5-G 弱も設計どおりの向きなので据え置き。agent 既定）
 
 ## 要裁定
@@ -3400,7 +3435,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - Button の `Clickable` が押下で捕捉しているときに `PointerLeaveEvent` が来るか（来なくても `CraftHoldInput` の位置判定で止まる。`CraftHoldTest` で見る）
 - `UiPressGesture` を一覧の視口に付けたとき、セルの `ItemSlot` の `OnSlotGestured`（LeftDown）やホバーのツールチップと干渉しないか（`ItemListViewTest`・`RecipeSlotTooltipTest` で見る）
 - 明るい半透明（白 88%・(132,137,151) 78%）を式 1.85 で描いたときの参照との差（Task 11 Step 2。残れば LX-132・133）
-- C4-c・C4-a・S2-tutorial・S4-alpha の API 名（Task 1 Step 1 で照合）。S4-alpha の機械レシピの源は S4-alpha 計画 14a85b146c（レビュー中で変わりうる。マージ後に実物と照合）の Produces 一覧から写した（`Current`。初回の組み立ては `Initialize`〈IInitializable〉なので、`RecipeScreenModel` の ctor より後に来ても `Skip(1)` の後の値で組み直る）
+- C4-c・C4-a・S2-tutorial・S4-alpha の API 名（Task 1 Step 1 で照合）。S4-alpha の機械レシピの源は S4-alpha 計画 85f905aa3d（再検査中で細部は変わりうる）（レビュー中で変わりうる。マージ後に実物と照合）の Produces 一覧から写した（`Current`。初回の組み立ては `Initialize`〈IInitializable〉なので、`RecipeScreenModel` の ctor より後に来ても `Skip(1)` の後の値で組み直る）
 - `ItemRecipeViewerDataContainer` の ctor・`IGameUnlockStateDataController.UnlockCraftRecipe` の名前（Task 1 Step 1）
 - Web の素材スロットの `count`（必要数を渡すか未指定か）と `lacking` の式（Task 3・6 の着手時に `CraftRecipeEntry.tsx` を読む）
 
