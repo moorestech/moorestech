@@ -1,0 +1,66 @@
+/* 矢印形の進捗ゲージ。web: moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css の .arrow / .glyph / .track / .fill / .outline を写す（components.md §8.13） */
+/* SVG の層は __view-box の子で、C# が読む値は層のクラスで受け直す（:root の変数は子の customStyle に入らない）。線幅・影のずれ・ぼかしは Web の CSS module の直書きなのでルートで宣言する */
+/* 充填は --gauge-fill でなく本文の白（§8.13 のユーザー裁定）。静止（Web の value=null）は --idle で切り抜きごと隠す */
+/* Arrow-shaped progress gauge copying .arrow / .glyph / .track / .fill / .outline in web: moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css (components.md §8.13) */
+/* SVG layers are __view-box children and the values C# reads are re-declared on layer classes (:root variables do not reach a child's customStyle); stroke width, shadow offset and blur are literals in the Web CSS module, so the root declares them */
+/* The fill is the content white, not --gauge-fill (the §8.13 user ruling); the static form (Web value=null) hides the whole clip through --idle */
+.progress-arrow-glyph {
+    --progress-arrow-glyph-stroke-width: 2px;
+    --progress-arrow-glyph-shadow-offset-y: 1px;
+    --progress-arrow-glyph-shadow-blur: 1px;
+    width: var(--craft-arrow-width);
+    height: var(--craft-arrow-height);
+}
+
+.progress-arrow-glyph__view-box {
+    position: absolute;
+}
+
+.progress-arrow-glyph__shadow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --progress-arrow-glyph-layer-shadow: var(--progress-arrow-glyph-shadow);
+    --progress-arrow-glyph-layer-shadow-offset-y: var(--progress-arrow-glyph-shadow-offset-y);
+    --progress-arrow-glyph-layer-shadow-blur: var(--progress-arrow-glyph-shadow-blur);
+    --progress-arrow-glyph-layer-stroke-width: var(--progress-arrow-glyph-stroke-width);
+}
+
+.progress-arrow-glyph__track {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --progress-arrow-glyph-layer-face: var(--gauge-track);
+}
+
+.progress-arrow-glyph__fill-clip {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.progress-arrow-glyph__fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    --progress-arrow-glyph-layer-face: var(--color-content-primary);
+}
+
+.progress-arrow-glyph__outline {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --progress-arrow-glyph-layer-stroke: var(--craft-arrow-outline);
+    --progress-arrow-glyph-layer-stroke-width: var(--progress-arrow-glyph-stroke-width);
+}
+
+.progress-arrow-glyph--idle .progress-arrow-glyph__fill-clip {
+    display: none;
+}
