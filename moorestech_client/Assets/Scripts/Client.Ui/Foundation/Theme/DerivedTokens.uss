@@ -130,4 +130,8 @@
     --fluid-slot-ghost-opacity: 0.16;
     --fluid-slot-fill-bottom-radius: 3px; /* web: FluidSlot .slot の overflow: hidden が切る枠の内側の角丸。--mantine-radius-sm 4px − 線 1px */
     --fluid-slot-amount-bottom: 3.3px; /* web: FluidSlot .amount の bottom: 0。行高は本文の --mantine-line-height-md 1.55 で、OutlinedCountLabel は行高 1 の基線で置くので、半行間の差 (1.55 - 1) / 2 × 12px = 3.3px だけ箱を上げる */
+
+    /* ── S4-inventory: 持ち物のグリッドの枠の内側の色（Web GRID_STYLE の --face-inset-color。画面 USS に色を直書きしないためトークンにする） */
+    /* ── S4-inventory: inner face colour of inventory grid slots (Web GRID_STYLE --face-inset-color; a token so the screen USS holds no colour literal) */
+    --inventory-slot-face-inset-color: rgb(50, 52, 67); /* web: InventoryPanel GRID_STYLE "--face-inset-color": "rgb(50 52 67)" */
 }

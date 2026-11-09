@@ -68,7 +68,6 @@
 | 2 | `src/features/commonHud/alwaysOnHudWheel.test.ts` | クリックを持つスロット列だけが入力を取り戻し、ホイールは素通しの印を持つ | 写す予定 | moorestech-albof.30（ホットバーのスロット列が UITK に入る S3-hotbar-modal で、クリックを持つスロット列だけが入力を取りホイールを素通すことを NUnit で見る） | — |
 | 2 | `src/features/commonHud/alwaysOnHudWheel.test.ts` | 装備HUDは実UIのままホイールだけ素通す | 写す予定 | moorestech-albof.31（装備 HUD が UITK に入る S4-inventory で、装備 HUD が実 UI のままホイールだけ素通すことを NUnit で見る） | — |
 | 5 | `src/shared/ui/BlockSlot/index.test.ts` | nameが無ければホバーTooltipを出さない | 捨てる | UITK の `BlockSlot.SetBlock(UiIcon, UiText name)` は名前を必須で受ける（唯一の使い手の研究も常に名前を渡す。設計書 A-50）。名前の無い BlockSlot が作れない | — |
-| 4 | `e2e/tests/regression/itemSlot.spec.ts` | インベントリスロットがマスタGuidの辞書名をtooltip表示する | 写す予定 | moorestech-albof.29（S4-inventory が写す。ホバーの宿主 C3-b と持ち物画面が揃ってから。C3-a 計画 D-20） | — |
 | 5 | `src/shared/ui/iconEndpointArchitecture.test.ts` | * | 捨てる | UITK はアイコンを HTTP（`/api/*-icons/`）で配らず、Content 層（`GameContentPresentation`）がテクスチャを直に `UiIcon` へ渡す（設計書 A-4）。エンドポイントの構造が無い | — |
 | 2 | `src/shared/tooltip/CursorTooltip.test.ts` | resolves a content key from the dictionary without a raw-text fallback | 捨てる | UITK の CursorTooltip は `MouseCursorTooltipState` の `TooltipLine`（型付きの `LocalizationKey` だけ）を受け、Web の topic の contentKey（文字列のキー）の経路が無い。内容辞書の解決は `UiText.FromContent` と `LocalizationTextResolver` の既存 L1 が持つ | #1611 |
 | 2 | `src/features/modeHud/modeHudDesign.test.ts` | 警告色のコントラスト改善を既存consumerへ共有する | 捨てる | UITK の操作モード HUD は置けない理由の警告の行を持たない（C# に書き手が無く、Web の橋も常に空文字。Web の mock だけが流す。D-7）。他の consumer（通知・列車の網・不足の強調）はそれぞれの画面レーンが写す | #1611 |

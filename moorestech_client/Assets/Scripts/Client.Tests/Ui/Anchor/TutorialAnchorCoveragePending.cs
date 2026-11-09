@@ -16,7 +16,6 @@ namespace Client.Tests.Ui.Anchor
             { AnchorIds.EquipmentHud, "S4-inventory" },
             { AnchorIds.EquipmentSelectedSlot, "S4-inventory" },
             { AnchorIds.EquipmentSlotPrefix, "S4-inventory" },
-            { AnchorIds.InventoryItemPrefix, "S4-inventory" },
             { AnchorIds.RecipeCraftButton, "S4-recipe" },
             { AnchorIds.RecipeItemPrefix, "S4-recipe" },
             { AnchorIds.ResearchNodePrefix, "S4-research" },
