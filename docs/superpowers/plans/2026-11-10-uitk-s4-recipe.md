@@ -213,6 +213,7 @@ namespace Client.Ui.State.Recipe.Source
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / Esc の選択解除を State から画面の層 `Screens/Recipe/Input/` へ移した（D-22）・Enter の長押しを計画内で確定しない形にした（その後、指揮の裁定で写すを agent 既定として確定。D-31）。注目点から開き直しの初期化を死活表と View に足した（D-23）
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強6・弱4・第3バケツ4 / 修正: `_shownSelection` の null を判別 union へ、明るい半透明を A-113 の式の値へ（D-24）。質問しない指示のため残りは D-25〜D-29 に agent 既定で記録。第3バケツ 2 件を「本PR外のリファクタ提案」へ追記
+- 再検査（独立評価の指摘を直した範囲。fresh-context opus 1 体で Phase 1〜2.5 と 2.6）: 実施済み / 配置 違反1件・2.6 強1・弱3・第3バケツ0・バグ4件、全件修正 / 印の能動案に受動案（A-83 の InputManager 経路）との比較と Task 6 Step 0 の到達の実測関門を足し D-7 の文言を直した、アンカーの有無が変わったエントリを作り直す、並べ直しで Enter の保持を解く、ビューアの表示済み状態の書き手を 1 本に、つまみのテストの空振りを直した
 
 ---
 
@@ -1260,11 +1261,15 @@ git commit -m "feat(uitk): レシピ画面のモデルと Esc での選択解除
 **Interfaces:**
 - Consumes: C4-c の `RecipeRow`・`RecipeActionButton`、C3-a の `ItemSlot`、Task 3〜4 の `CraftRecipeEntryViewModel`・`RecipeItemSelection`・`IRecipeCommands`・`RecipeDurationText`、`MaterialTooltipText`、`GameContentPresentation`、`UiCommandResultToaster`
 - Produces:
-  - `public sealed class CraftRecipeEntryView : VisualElement { public CraftRecipeEntryView(CraftRecipeEntryViewModel first, RecipeEntryPartsContext context); public void Render(CraftRecipeEntryViewModel vm); }`（name `craft-recipe-entry-<guid>`。アンカーは ctor の `first.CarriesTutorialAnchor` で 1 回だけ付ける）
+  - `public sealed class CraftRecipeEntryView : VisualElement { public CraftRecipeEntryView(CraftRecipeEntryViewModel first, RecipeEntryPartsContext context); public bool CarriesTutorialAnchor { get; } public void Render(CraftRecipeEntryViewModel vm); }`（name `craft-recipe-entry-<guid>`。アンカーは ctor の `first.CarriesTutorialAnchor` で 1 回だけ付け、外す口は無いので、アンカーの有無が変わったエントリは `RecipeEntryList` が作り直す。D-34）
   - `public sealed class RecipeEntryPartsContext { public RecipeEntryPartsContext(GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection); public GameContentPresentation Content { get; } public IRecipeCommands Commands { get; } public UiCommandResultToaster Toaster { get; } public RecipeItemSelection Selection { get; } }`（エントリの包みが共通で受ける依存の束。`Parts/` 内の `CraftRecipeEntryView.cs` の下に置く）
   - `public sealed class CraftHoldDriver { public CraftHoldDriver(VisualElement scheduleOwner, RecipeRow row, IRecipeCommands commands, UiCommandResultToaster toaster); public void SetRecipe(Guid recipeGuid, double craftTime, bool craftable); public void Start(); public void Stop(); }`
   - `public sealed class CraftHoldInput { public CraftHoldInput(VisualElement button, CraftHoldDriver driver); }`（ポインタの押下・離し・外れ・取消と、フォーカス中の Enter の押下・離し・フォーカス外れを長押しへ渡す。`focusable=true` と印は置く側〈`CraftRecipeEntryView`〉がインスタンスに立てる）
   - `namespace Client.Ui.Foundation.Input { public static class UiKeyFocusKeepMark { public static void Mark(VisualElement element); public static bool IsMarked(VisualElement element); } }`（クラス `ui-key-focus-keep` で印を付ける。`GameUiInputRules` は印付きの要素からフォーカスを外さず警告も出さない）
+
+- [ ] **Step 0: 印付きのボタンに Enter の `KeyDownEvent` が届くかを実測する（関門）**
+
+`uloop control-play-mode --project-path ./moorestech_client --action Play` の後、EDC で GameUi のルートに `focusable=true`・`UiKeyFocusKeepMark` 相当（クラス `ui-key-focus-keep` を付けるだけ。印のコードはこの Task で書くので、ここでは規則を一時的に通すため `GameUiInputRules` を変えたブランチでなく、`RegisterCallback<FocusInEvent>` で `StopImmediatePropagation` する仮の器で代用する）のボタンを 1 つ置いて `Focus()` し、`KeyDownEvent` の数を数える callback を付ける。プレイテスト DSL の `SemanticInput` で Enter を InputSystem へ注入し、callback の数を `done.md` の「## 証拠」に書く。1 以上なら以降へ進む。0 なら Enter を UITK のキーイベントで受ける形をやめ、D-32 の受動案（`InputManager.UI` の Enter アクション＋画面側の武装状態）で `CraftHoldInput` の Enter の部分を書き直し、`UiKeyFocusKeepMark`・`GameUiInputRules` の変更は入れない（`done.md` に切り替えを書いて指揮へ報告）
 
 - [ ] **Step 1: テストを書く**
 
@@ -1487,7 +1492,7 @@ namespace Client.Ui.Foundation.Input
 }
 ```
 
-`GameUiInputRules.cs` の変更（2 か所。ほかは今のまま）:
+`GameUiInputRules.cs` の変更（3 か所と述語 1 本。クラスの summary の「入力欄以外のフォーカス拒否」を「入力欄と印付き以外のフォーカス拒否」へ、`OnFocusIn` の警告の文も合わせる。ほかは今のまま）:
 
 ```csharp
         private static void OnFocusIn(FocusInEvent evt)
@@ -1501,16 +1506,23 @@ namespace Client.Ui.Foundation.Input
 
             // 印付き（キーで操作するボタン）はフォーカスを保つ。入力欄ではないので入力中の旗は立てない
             // Marked elements (key-operated buttons) keep focus; they are not text fields, so the text-input flag stays down
-            if (UiKeyFocusKeepMark.IsMarked(element)) return;
+            if (MayKeepFocus(element)) return;
 
-            // （以下は今のまま: 警告と次のスケジュールでの Blur）
+            // （以下は今のまま: 警告と次のスケジュールでの Blur。警告の文は「non text-field, unmarked element took focus …」へ直し、既存テストの正規表現も合わせる）
+        }
+
+        // 入力欄と印付きだけがフォーカスを保ってよい
+        // Only text fields and marked elements may keep focus
+        private static bool MayKeepFocus(VisualElement element)
+        {
+            return IsInsideTextField(element) || UiKeyFocusKeepMark.IsMarked(element);
         }
 
         private static void BlurNonTextFieldFocus(VisualElement root)
         {
             // silent-ok: 外す前にフォーカスが入力欄・印付き・無しへ移っていれば外すものが無い / 入力欄以外へのフォーカスは OnFocusIn の LogWarning で既に記録済み
             // silent-ok: if focus already moved to a text field, a marked element or nowhere there is nothing to blur / the non-text-field focus was already logged by OnFocusIn
-            if (root.focusController?.focusedElement is not VisualElement focused || IsInsideTextField(focused) || UiKeyFocusKeepMark.IsMarked(focused)) return;
+            if (root.focusController?.focusedElement is not VisualElement focused || MayKeepFocus(focused)) return;
             focused.Blur();
         }
 ```
@@ -1643,6 +1655,10 @@ namespace Client.Ui.Screens.Recipe.Parts
             button.RegisterCallback<KeyDownEvent>(OnKeyDown);
             button.RegisterCallback<KeyUpEvent>(OnKeyUp);
             button.RegisterCallback<BlurEvent>(_ => ReleaseEnter());
+
+            // 並べ直しで木から外れるとフォーカスが失われ KeyUp も届かないので、Enter の保持だけ解く（ポインタの保持は付け直しで続く。D-34）
+            // Detaching on relayout drops focus and no KeyUp arrives, so release only the Enter hold (a pointer hold resumes on re-attach; D-34)
+            button.RegisterCallback<DetachFromPanelEvent>(_ => { if (_enterHeld) ReleaseEnter(); });
         }
 
         private void OnKeyDown(KeyDownEvent evt)
@@ -1728,6 +1744,8 @@ namespace Client.Ui.Screens.Recipe.Parts
         private readonly CraftHoldDriver _hold;
         private readonly ItemSlot[] _materialSlots;
         private readonly ItemSlot _resultSlot;
+
+        public bool CarriesTutorialAnchor { get; }
         private ItemId[] _materialItemIds;
 
         public CraftRecipeEntryView(CraftRecipeEntryViewModel first, RecipeEntryPartsContext context)
@@ -1741,7 +1759,8 @@ namespace Client.Ui.Screens.Recipe.Parts
             _row = new RecipeRow($"craft-recipe-box-{guid}", $"craft-progress-arrow-{guid}");
             _row.SetDuration(RecipeDurationText.Create(first.Recipe.CraftTime));
             _button = new RecipeActionButton($"craft-button-{guid}", new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionLabelWeight.Medium);
-            if (first.CarriesTutorialAnchor) TutorialAnchor.Mark(_button, AnchorIds.RecipeCraftButton);
+            CarriesTutorialAnchor = first.CarriesTutorialAnchor;
+            if (CarriesTutorialAnchor) TutorialAnchor.Mark(_button, AnchorIds.RecipeCraftButton);
             _row.SetAction(_button);
 
             // Enter の長押しのためこのインスタンスだけフォーカスを持ち、規則に外されない印を付ける（部品の既定 focusable=false の画面側の例外。D-31・D-32）
@@ -2096,6 +2115,32 @@ public void 解放で並びが変わっても既存のエントリは同じ要�
     for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);             // 合計 0.5 秒 → 1 回（経過を保った）
     CollectionAssert.AreEqual(new[] { guid }, _commands.Crafted);
 }
+
+[Test]
+public void 解放で先頭のクラフトが変わってもアンカーは1件で新しい先頭に付く()
+{
+    var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+    var second = RecipeFixtures.RecipeGuid(2);
+    view.Render(Selected(7, CraftVm(second, 1, true, true, Material(1, 1, 9))));
+    view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 1, true, true, Material(1, 1, 9)), CraftVm(second, 1, true, false, Material(1, 1, 9))));
+    var resolved = TutorialAnchorRegistry.Resolve(view, AnchorIds.RecipeCraftButton);   // F1 の実物の戻り値で Unique と要素を読む
+    Assert.AreEqual(view.Q($"craft-button-{RecipeFixtures.RecipeGuid(1)}"), UniqueElementOf(resolved));
+}
+
+[Test]
+public void Enterで長押し中に並びが変わると止まる()
+{
+    var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));          // CraftHoldKeyTest と同じ規則つきの器
+    var guid = RecipeFixtures.RecipeGuid(2);
+    view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));
+    var button = view.Q<RecipeActionButton>($"craft-button-{guid}");
+    simulate.Click(button.worldBound.center);
+    SendKeyDown(button, KeyCode.Return);
+    for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);
+    view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 0.4, true, false, Material(1, 1, 9)), CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));
+    for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+    Assert.IsFalse(_commands.Crafted.Contains(guid));                     // KeyUp が届かなくても保持し続けない
+}
 ```
 
 （`Selected(itemId, params RecipeEntryViewModel[])`・`ManyCrafts(n)` は `RecipeScreenFixtures` に足す。`TutorialAnchorRegistry.Resolve` は F1 の実物）
@@ -2166,14 +2211,14 @@ namespace Client.Ui.Screens.Recipe
             _content.style.display = selected == null ? DisplayStyle.None : DisplayStyle.Flex;
             if (selected == null)
             {
-                _shownSelection = RecipeSelection.None;
+                ForgetShownContent();
                 return;
             }
 
             // 別のアイテム、または「レシピ無し」と列の境をまたいだら作り直す（Web は key の再マウントと entries.length の枝の決め直し）
             // Rebuild for a different item or when crossing between "no recipes" and the list (Web remounts by key and re-picks the entries.length branch)
             var hasRecipes = selected.Entries.Count > 0;
-            if (!_shownSelection.SameAs(RecipeSelection.Of(selected.ItemId)) || hasRecipes != _shownHasRecipes) RebuildContent(selected);
+            if (!_shownSelection.SameAs(RecipeSelection.Of(selected.ItemId)) || hasRecipes != _shownHasRecipes) RebuildContent(selected, hasRecipes);
             if (hasRecipes) _list.Render(selected.Entries);
         }
 
@@ -2191,24 +2236,31 @@ namespace Client.Ui.Screens.Recipe
 
             // 閉じたら中身を捨てる（Web は画面を出るとアンマウント＝長押しが止まり、開き直すとスクロールが先頭）
             // Drop the content on hide (Web unmounts: the hold stops and the scroll is at the top on reopen)
+            ForgetShownContent();
+        }
+
+        // 表示済みの中身と、それを表す状態をまとめて捨てる（書き手を 1 本にする）
+        // Drop the shown content and the state describing it together (single writer)
+        private void ForgetShownContent()
+        {
             _content.Clear();
             _list = null;
             _shownSelection = RecipeSelection.None;
+            _shownHasRecipes = false;
         }
 
-        private void RebuildContent(RecipeViewerItemSelected selected)
+        private void RebuildContent(RecipeViewerItemSelected selected, bool hasRecipes)
         {
+            ForgetShownContent();
             _shownSelection = RecipeSelection.Of(selected.ItemId);
-            _shownHasRecipes = selected.Entries.Count > 0;
-            _content.Clear();
-            _list = null;
+            _shownHasRecipes = hasRecipes;
             _header = new ItemHeaderView();
             _header.SetName(_context.Content.ItemName(selected.ItemId));
             _content.Add(_header);
 
             // レシピが無ければ「レシピ無し」、あれば列（Web の Stack gap sm）
             // "No recipes" when empty, otherwise the list (the Web Stack gap sm)
-            if (selected.Entries.Count == 0)
+            if (!hasRecipes)
             {
                 _noRecipes = new LocalizedLabel { name = "recipe-viewer-no-recipes" };
                 _noRecipes.AddToClassList(UiTypographyClass.TextSm);
@@ -2275,10 +2327,12 @@ namespace Client.Ui.Screens.Recipe.Parts
             foreach (var entry in entries)
             {
                 kept.Add(entry.RecipeGuid);
-                if (!_viewsByGuid.TryGetValue(entry.RecipeGuid, out var view))
+                // アンカーの有無が変わったクラフトは作り直す（TutorialAnchor に外す口が無く、使い回すと先頭が 2 件になる）
+                // Recreate a craft entry whose anchor flag changed (TutorialAnchor cannot unmark; reuse would leave two anchors)
+                if (!_viewsByGuid.TryGetValue(entry.RecipeGuid, out var view) || AnchorChanged(view, entry))
                 {
                     view = Create(entry);
-                    _viewsByGuid.Add(entry.RecipeGuid, view);
+                    _viewsByGuid[entry.RecipeGuid] = view;
                 }
                 next.Add(view);
             }
@@ -2292,6 +2346,11 @@ namespace Client.Ui.Screens.Recipe.Parts
             // SetEntries（C4-c）は一度外して付け直す。外れている間は長押しのスケジューラが止まり、同じフレームで付け直すので経過は保たれる（CraftHoldDriver。D-34）
             // SetEntries (C4-c) detaches and re-attaches; the hold scheduler pauses while detached and resumes in the same frame, so progress is kept (CraftHoldDriver; D-34)
             _scroll.SetEntries(next);
+        }
+
+        private static bool AnchorChanged(VisualElement view, RecipeEntryViewModel entry)
+        {
+            return view is CraftRecipeEntryView craftView && entry is CraftRecipeEntryViewModel craft && craftView.CarriesTutorialAnchor != craft.CarriesTutorialAnchor;
         }
 
         private VisualElement Create(RecipeEntryViewModel entry)
@@ -2440,7 +2499,7 @@ namespace Client.Ui.Screens.Recipe.Parts
     margin: calc(-1 * var(--tutorial-anchor-clip-inset));   /* 上だけ calc(gap - clip-inset)。下の注 */
 }
 .recipe-viewer #recipe-viewer-no-recipes {
-    margin-top: 12px;   /* web: Stack gap sm */
+    margin-top: var(--recipe-viewer-stack-gap);   /* web: Stack gap sm */
 }
 .recipe-viewer .recipe-list-scroll-view {
     --game-scroll-view-scrollbar-inset-top: var(--tutorial-anchor-clip-inset);
@@ -2484,7 +2543,7 @@ namespace Client.Ui.Screens.Recipe.Parts
 - [ ] **Step 3: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.Recipe.Viewer.RecipeViewerViewTest"`
-Expected: ErrorCount 0 / 9 件 PASS（USS は Task 10 の tss 登録前なので、テストは `UiTestHost` の本番 tss に加えて `RecipeViewer.uss` を `styleSheets.Add` する。前例は既存の画面 L1 の SetUp を grep して合わせる）
+Expected: ErrorCount 0 / 11 件 PASS（USS は Task 10 の tss 登録前なので、テストは `UiTestHost` の本番 tss に加えて `RecipeViewer.uss` を `styleSheets.Add` する。前例は既存の画面 L1 の SetUp を grep して合わせる）
 
 - [ ] **Step 4: コミットする**
 
@@ -2601,7 +2660,8 @@ public void つまみの既定は今の値で上書きすると溝つまみの�
     simulate.FrameUpdate();
     Assert.AreEqual(12f, scroller.resolvedStyle.top);
     Assert.AreEqual(12f, scroller.resolvedStyle.right);
-    Assert.AreEqual(new Color(0, 0, 0, 0), scroller.Q(className: "unity-base-slider__tracker").resolvedStyle.backgroundColor);
+    Assert.AreEqual(new Color(0, 0, 0, 0), scroller.resolvedStyle.backgroundColor);                                         // 溝（縦バー自身の面）
+    Assert.AreEqual(Color.white, scroller.Q(className: "unity-base-slider__dragger").resolvedStyle.backgroundColor);          // つまみ（プローブで白にする）
 }
 
 [Test]
@@ -3300,7 +3360,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-4 依存に C4-a・S2-tutorial・S4-alpha を足す**: 機械レシピの液体（`FluidAmountSlot`）、`TutorialAnchorCoveragePending` の自分の行・切り抜きの判定（テスト）、機械レシピの源。実行計画 §1.4 の改め案に書く
 - **D-5 長押しは `UiPressGesture` でなく画面の部品 `CraftHoldInput` で受ける**: C4-c の申し送りは「`UiPressGesture` を重ねる」だが、Web の長押しは押下・離し・外れ・取消の 4 事象だけで、タップとドラッグの分類（5px）が無い。`UiPressGesture` は押下で捕捉し、ボタンの外へ出ても中断しない（Web は外れで止める＝`recipe.spec.ts` 5 件目）。Button の `Clickable` が捕捉しているときは Leave が来ないので、移動の位置でも外れを読む
 - **D-6 エントリは GUID で使い回し、別のアイテムを選んだら作り直す**: 持ち物の変化ごとに VM が来るので、作り直すと長押しのスケジューラと経過が消える（Web は React の key で使い回す）。選択の切り替えは Web の `key={selectedItemId}` の再マウント（スクロールが先頭へ）と同じく作り直す。GUID の並びが変わる（解放で増える）ときも作り直す（Web は key の一致する要素を残すが、解放とクラフトの同時は起きにくく差は長押しの中断だけ）
-- **D-7 Esc の選択解除は「画面の遷移と同じフレームの CloseUI」**: UITK のキーイベントは届かない（A-83）。Web はゲーム層の keydown の Escape で外すが、ゲーム層の Esc はインベントリを閉じる（遷移する）ので、遷移と CloseUI の組で同じ時点になる。`Update()` を足さない
+- **D-7 Esc の選択解除は「画面の遷移と同じフレームの CloseUI」**: 入力欄・印付き以外にフォーカスが無いとき UITK のキーイベントは届かない（A-83）。Web はゲーム層の keydown の Escape で外すが、ゲーム層の Esc はインベントリを閉じる（遷移する）ので、遷移と CloseUI の組で同じ時点になる。`Update()` を足さない
 - **D-8 拒否の理由 2 つは良性でない**: UI からは解放済みのレシピしか出ないので、起きたら不整合。トーストとログで気づかせる（Web の橋も `invalid_recipe`・`recipe_locked` をエラーで返す）
 - **D-9 `GameScrollView.uss` につまみ 5 本を足す（宣言した部品の変更）**: 一覧は溝が透明・つまみが白 88%・縦バーの上下に 12 の逃げ、レシピ列は上下右に 12 の逃げ（Web の局所上書き）。画面の USS は部品のクラス（`.unity-scroll-view__vertical-scroller` 等）を書けないので、部品につまみが要る。既定は今の値なので他の画面の見た目は変わらない。2 機能目は S4-machine のレシピ選択の列（同じ逃げ）になりうるので、`done.md` の「integrator への依頼」に「つまみ 5 本を足した。設計書 §2.4 の GameScrollView 行へ」と書く（前例: S3-hotbar-modal の `OutlinedCountLabel` の縁の色のつまみ A-108）
 - **D-10 掴みスクロールはパネル px で送る**: Web は `clientY`（実画面 px）の移動を `scrollTop`（CSS px）へそのまま足すので、倍率が 1 でない画面では内容が指より速く／遅く動く。UITK は `UiPressMove.FromStart`（パネル px）を当てて内容を指に付ける。720p（倍率 1）では同じ。閾値（実画面 5px）は `UiPressGesture` が Web と同じに判定する
@@ -3324,7 +3384,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-28 ビューアの 3 状態は VM の union と件数で分ける**: 未選択（`RecipeViewerNoSelection`）・選択あり（`RecipeViewerItemSelected`）は判別 union で、レシピ無しは `Entries.Count == 0`（Web の `entries.length === 0` と同じ）。列挙型を足すと VM と二重になる（Phase 2.6 5-C 弱。agent 既定）
 - **D-30 シミュレーターの指摘で直したもの**: Enter 長押しに 2026-10-01 裁定（残す）を引いた（その後 D-31 で確定）／`GameRecipeScreenSignals` を `IInitializable` にして `IVanillaApiEvent` を注入し、未使用の `IGameUnlockStateData` を外した（前例 `ResearchNodeStateStore`・`NotificationFeed`。VContainer は全 IInitializable を作ってから Initialize を回すので解放表の更新が先）／`CloseUI.GetKeyDown` はプロパティ／長押しのテスト名から 0.25 秒の値を外した（出所: シミュレーター予測。ユーザー承認は未取得）
 - **D-31 Enter の長押しを写す（`RecipeActionButton` のインスタンスだけ画面側で `focusable=true`）**: ユーザー裁定 2026-10-01（`.decisions/2026-10-01-クラフトボタンはSpaceに反応させずジャンプ専用にする.md`「キーボードでのクラフトは Enter 長押しのみ」）とゴール（Web と同じ）が同じ向き。`focusable=false` は段階 1 の agent 規則（設計書 §1.2）でユーザー裁定ではないので、その例外にする。部品（C4-c の持ち物）は書き換えず `CraftRecipeEntryView` がインスタンスに立てる。部品の既定を変える必要が出たら `done.md` の「integrator への依頼」に書く。フォーカスを持つボタンが UITK の Tab のフォーカス移動に食われず、ゲームの Tab（インベントリの開閉）が先に効くことは録画の段 9 で確かめる（出所: 指揮の裁定。agent 既定）
-- **D-32 フォーカスを保つ印と `GameScrollView` のつまみはこのレーンが基盤に入れる（E-19 の前例）**: `GameUiInputRules` は入力欄以外のフォーカスを次のスケジュールで外すので（`GameUiInputRules.cs:32-48`・`88-93`）、`focusable=true` だけでは Enter が届く前にフォーカスが外れる（指揮の再現で確認）。`Foundation/Input/UiKeyFocusKeepMark`（クラス `ui-key-focus-keep`。前例 `HoverTooltipMark` の静的な印）を足し、規則の Blur と警告の対象から印付きを外す。`GameScrollView` のつまみの既定は要素自身に書くと祖先の上書きを潰すので（指揮の再現で確認）、`DerivedTokens.uss` の `:root` に置く。どちらも画面レーンが最初の使い手になる小さな基盤の変更で、E-19 の前例どおり使い手のレーンが持つ。W4 の兄弟の計画（S4-alpha・S4-inventory・S4-train・S4-research・S4-special）は 2 本のファイルを書かないことを起草時に grep で確かめた（S4-machine・S4-gamma は Task 1 で確かめる）。Tab でフォーカスを乗せる経路は写さない（Web はクリックと Tab の両方で乗るが、ゲームの Tab はインベントリの開閉で、`GameUiInputRules` が `NavigationMoveEvent` を打ち消す。クリックで乗る経路だけを写す）
+- **D-32 フォーカスを保つ印と `GameScrollView` のつまみはこのレーンが基盤に入れる（E-19 の前例）**: `GameUiInputRules` は入力欄以外のフォーカスを次のスケジュールで外すので（`GameUiInputRules.cs:32-48`・`88-93`）、`focusable=true` だけでは Enter が届く前にフォーカスが外れる（指揮の再現で確認）。`Foundation/Input/UiKeyFocusKeepMark`（クラス `ui-key-focus-keep`。前例 `HoverTooltipMark` の静的な印）を足し、規則の Blur と警告の対象から印付きを外す。`GameScrollView` のつまみの既定は要素自身に書くと祖先の上書きを潰すので（指揮の再現で確認）、`DerivedTokens.uss` の `:root` に置く。どちらも画面レーンが最初の使い手になる小さな基盤の変更で、E-19 の前例どおり使い手のレーンが持つ。W4 の兄弟の計画（S4-alpha・S4-inventory・S4-train・S4-research・S4-special）は 2 本のファイルを書かないことを起草時に grep で確かめた（S4-machine・S4-gamma は Task 1 で確かめる）。受動的統合案（A-83 のスキットと同じく `InputManager.UI` に Enter のアクションを足し、クリックで「武装」し他所のクリック・閉じる・別の操作で解く状態を画面側に持つ）と比べた: Web の Enter 長押しはボタンのフォーカスに結び付いており（フォーカス中だけ・Blur で止まる）、受動案はフォーカスと同じ意味の状態を画面側に複製する（他所のクリック・パネルを閉じる・別のボタンを押すの全経路で解く判定を自前で持つ）。A-83 が UITK のキーイベントを却下した理由は「入力欄以外にフォーカスを持たせないので届かない」で、印付きにはフォーカスが残るので入力欄と同じ経路で `KeyDownEvent` が届く（`GameUiInputRules` の ESC の処理が入力欄のフォーカス中に `KeyDownEvent` を受けている）。よって規則に印の例外を 1 つ足す能動案を選ぶ。届くことは Task 6 Step 0 の EDC で先に実測し、届かなければ受動案へ切り替えて `done.md` に書く（出所: 指揮の裁定。agent 既定）。Tab でフォーカスを乗せる経路は写さない（Web はクリックと Tab の両方で乗るが、ゲームの Tab はインベントリの開閉で、`GameUiInputRules` が `NavigationMoveEvent` を打ち消す。クリックで乗る経路だけを写す）
 - **D-33 ビューアは最新の VM を覚え、出し直すときにそれで組む**: 閉じたら中身を捨てる（D-23）ので、開き直しで別の契機（持ち物の再取得）を待たずに組むため。隠れている間の `Render` は覚えるだけ
 - **D-34 エントリは GUID の辞書で使い回す**: 解放で並びが変わっても既存の要素を残す（Web の React key）。C4-c の `SetEntries` は一度外して付け直すが、外れている間はスケジューラが止まるだけで長押しの状態は要素に残るので、長押しの部品は木から外れたときに止めない（捨てた要素は参照が切れる）。付け直しで Enter のフォーカスは外れて止まる（Web より狭いが、解放と Enter の長押しが重なるときだけ）
 - **D-35 見出しの名前の影は右だけ・字の太さは `.text--medium`**: UITK の text-shadow は 1 本なので Web の左右 2 本のうち右の `0.3px 0 0` を写し、左の差は LX-135 の記帳候補。`--font-medium` は無いので `UiTypographyClass.TextMedium`（ラテンと CJK の両方）
