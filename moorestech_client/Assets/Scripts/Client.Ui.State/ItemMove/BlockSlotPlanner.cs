@@ -18,12 +18,20 @@ namespace Client.Ui.State.ItemMove
             var blockRef = ItemMoveSlotRef.Block(index);
             // uGUI どおりサブ→メインだけ。ホットバーは宛先に含めない
             // Sub to main only, like uGUI; the hotbar is never a destination
-            if (shiftKey && grabCount == 0 && !slot.IsEmpty) return MovesOrDestinationFull(DirectMovePlanner.PlanMoveActions(blockRef, slot, ItemMoveArea.Main, mainSlots, DirectMovePlanner.AllIndicesOf(mainSlots), stackLevels));
+            if (shiftKey && grabCount == 0 && !slot.IsEmpty) return PlanShiftIntoMain();
             if (0 < grabCount) return BlockSlotLeftClickPlan.Send(new[] { PlannedItemAction.MoveItem(ItemMoveSlotRef.Grab, blockRef, grabCount) });
             if (!slot.IsEmpty) return BlockSlotLeftClickPlan.Send(new[] { PlannedItemAction.MoveItem(blockRef, ItemMoveSlotRef.Grab, slot.Count) });
             return BlockSlotLeftClickPlan.Send(Array.Empty<PlannedItemAction>());
 
             #region Internal
+
+            // 未知の ID は最大スタックが引けず DirectMovePlanner が例外になるので、配分せず断る（D-65）
+            // An unknown ID has no max stack and would make DirectMovePlanner throw, so refuse instead of allocating (D-65)
+            BlockSlotLeftClickPlan PlanShiftIntoMain()
+            {
+                if (!stackLevels.ExistsItem(slot.ItemId)) return BlockSlotLeftClickPlan.Refused(ShiftMoveRefusalReason.UnknownItem);
+                return MovesOrDestinationFull(DirectMovePlanner.PlanMoveActions(blockRef, slot, ItemMoveArea.Main, mainSlots, DirectMovePlanner.AllIndicesOf(mainSlots), stackLevels));
+            }
 
             // main が満杯で 1 件も配分できないときは、空の列でなく満杯の断りにする（Web は何も送らない。D-10）
             // When main is full and nothing can be allocated, refuse as full instead of an empty list (the Web sends nothing; D-10)

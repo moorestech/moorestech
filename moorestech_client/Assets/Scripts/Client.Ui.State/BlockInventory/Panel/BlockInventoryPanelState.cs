@@ -23,6 +23,10 @@ namespace Client.Ui.State.BlockInventory.Panel
         // 本文を作り直すかの唯一の判定（Web の key=identifier にエラーの有無を足す）
         // The single rule for rebuilding the body (Web key=identifier plus error presence)
         public abstract bool IsSamePanel(BlockInventoryPanelState other);
+
+        // 開いていてエラーが無い（本文を載せ枠を操作できる）の唯一の判定
+        // The single rule for open without error (the body mounts and slots are operable)
+        public abstract bool IsOpenWithoutError { get; }
     }
 
     public sealed class ClosedBlockInventoryPanel : BlockInventoryPanelState
@@ -35,6 +39,8 @@ namespace Client.Ui.State.BlockInventory.Panel
         {
             return other is ClosedBlockInventoryPanel;
         }
+
+        public override bool IsOpenWithoutError => false;
     }
 
     /// <summary>
@@ -51,6 +57,8 @@ namespace Client.Ui.State.BlockInventory.Panel
             ItemSlots = itemSlots;
             Error = error;
         }
+
+        public sealed override bool IsOpenWithoutError => Error == BlockInventoryPanelError.None;
     }
 
     public sealed class OpenBlockInventoryPanel : OpenInventoryPanel

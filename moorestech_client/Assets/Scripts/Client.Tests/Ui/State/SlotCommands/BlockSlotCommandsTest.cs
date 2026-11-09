@@ -25,6 +25,7 @@ namespace Client.Tests.Ui.State.SlotCommands
         private RecordingBlockInventoryOperations _block;
         private BlockSlotCommands _commands;
         private ItemId _wood;
+        private FixedMaxStackLookup _stackLevels;
 
         [SetUp]
         public void SetUp()
@@ -34,7 +35,8 @@ namespace Client.Tests.Ui.State.SlotCommands
             _player = new RecordingPlayerInventoryOperations(36, 2);
             _block = new RecordingBlockInventoryOperations { Slots = new[] { new SlotItem(_wood, 7), new SlotItem(_wood, 3) } };
             var runner = new PlannedItemActionRunner(new PlayerItemActionExecutor(_player), new BlockItemActionExecutor(_block, _player));
-            _commands = new BlockSlotCommands(_block, _player, runner, new FixedMaxStackLookup(64));
+            _stackLevels = new FixedMaxStackLookup(64);
+            _commands = new BlockSlotCommands(_block, _player, runner, _stackLevels);
         }
 
         /// <web-test file="e2e/tests/block/blockInventory.spec.ts">filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る</web-test>
@@ -85,9 +87,10 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void 未知のItemIdの枠はShift配分へ渡さずエラーログと拒否で止める()
         {
-            // D-11・D-1: DirectMovePlanner が最大スタックで例外を投げる前に、元の枠の ID を検査して断る
-            // D-11, D-1: refuse on the source slot's ID before DirectMovePlanner throws on the max-stack lookup
+            // D-65: 計画器が未知の ID の配分を断り、呼び手はその理由を拒否とエラーログで知らせる
+            // D-65: the planner refuses allocating an unknown ID; the caller reports it as a rejection and an error log
             var unknown = new ItemId(9999);
+            _stackLevels.SetUnknown(unknown);
             _block.Slots = new[] { new SlotItem(unknown, 5), new SlotItem(_wood, 3) };
             LogAssert.Expect(LogType.Error, $"[BlockSlotCommands] unknown ItemId {unknown} reached the slot planner; the allocation is skipped (client and server masters may differ)");
             var result = _commands.LeftDown(0, true);
@@ -98,9 +101,10 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void 未知のItemIdの枠でもShift以外の左押下は掴む()
         {
-            // D-1: 検査は Shift 配分の腕だけ。普通の左押下まで止めない
-            // D-1: the check guards only the Shift allocation; a plain left press is not stopped
+            // D-65: 断るのは Shift 配分の腕だけ。普通の左押下まで止めない
+            // D-65: only the Shift allocation arm refuses; a plain left press is not stopped
             var unknown = new ItemId(9999);
+            _stackLevels.SetUnknown(unknown);
             _block.Slots = new[] { new SlotItem(unknown, 5), new SlotItem(_wood, 3) };
             Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(0, false));
             Assert.AreEqual((ItemMoveSlotRef.Block(0), ItemMoveSlotRef.Grab, 5), _block.Moves[0]);
@@ -112,7 +116,7 @@ namespace Client.Tests.Ui.State.SlotCommands
             // D-10: main が全枠スタック上限なら配分は空。Web と同じく何も送らず開発者ログだけ残す
             // D-10: with every main slot at the stack limit the allocation is empty; send nothing like the Web and only log
             for (var i = 0; i < 36; i++) _player.SetMain(i, new SlotItem(_wood, 64));
-            LogAssert.Expect(LogType.Warning, $"[block_inventory.shift_move] not sent: DestinationFull block slot=0 item={_wood}");
+            LogAssert.Expect(LogType.Warning, $"[block_inventory.shift_move] not sent: destinationFull block slot=0 item={_wood}");
             var result = _commands.LeftDown(0, true);
             Assert.IsInstanceOf<UiCommandAccepted>(result);
             CollectionAssert.IsEmpty(_block.Moves);

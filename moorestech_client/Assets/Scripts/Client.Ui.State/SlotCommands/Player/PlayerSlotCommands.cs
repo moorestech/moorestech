@@ -34,12 +34,11 @@ namespace Client.Ui.State.SlotCommands.Player
 
         public UiCommandResult LeftDown(PlayerSlotRef slot, bool shift)
         {
-            // 全入力を押下の瞬間に読む。未知の ID は Shift 配分（空手・中身あり）の計画へだけ渡さず断る（D-11・D-1）
-            // Read every input at gesture time; refuse to hand an unknown ID to the Shift allocation (empty-handed, filled) only (D-11, D-1)
+            // 全入力を押下の瞬間に読む（D-11）
+            // Read every input at gesture time (D-11)
             var inventory = _player.ReadSnapshot();
             if (!inventory.TryResolveSlot(slot.ToItemMoveSlotRef(), out var clicked)) return Ignore(new StaleSlotIgnoredPlan(slot.ToItemMoveSlotRef()));
-            if (shift && inventory.Grab.Count == 0 && !KnownItemSlots.IsKnownOrEmpty(clicked, nameof(PlayerSlotCommands))) return new UiCommandRejected(UiCommandRejectReason.ItemUnknownInSlot, "");
-            var plan = PlayerSlotActionPlanner.PlanLeftDown(_context.Read(inventory, clicked.ItemId), slot.ToItemMoveSlotRef(), shift);
+            var plan = PlayerSlotActionPlanner.PlanLeftDown(_context.Read(inventory, clicked.ItemId, shift), slot.ToItemMoveSlotRef(), shift);
             return Apply(plan, slot, clicked);
         }
 
@@ -72,6 +71,10 @@ namespace Client.Ui.State.SlotCommands.Player
                 case BeginSplitDragPlan:
                     _drag.BeginSplitDrag(slot);
                     return UiCommandAccepted.Instance;
+                case ShiftMoveRefusedPlan { Reason: ShiftMoveRefusalReason.UnknownItem }:
+                    // 未知の ID の配分は計画器が断る。通知でなく拒否で知らせる（D-65）
+                    // The planner refuses allocating an unknown ID; report it as a rejection, not a notification (D-65)
+                    return UnknownItemRejection.Reject(nameof(PlayerSlotCommands), clicked.ItemId);
                 case ShiftMoveRefusedPlan refused:
                     _refusals.Notify(refused.Reason, clicked.ItemId, _context.DescribeOpenBlock());
                     return UiCommandAccepted.Instance;

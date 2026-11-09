@@ -127,6 +127,20 @@ namespace Client.Tests.Ui.State.ItemMove
             Assert.AreEqual(ShiftMoveRefusalReason.DestinationFull, ((ShiftMoveRefusedPlan)plan).Reason);
         }
 
+        [Test]
+        public void 未知のIDのShiftは配分する腕でだけ未知の断りを返す()
+        {
+            // D-65: 断るのは DirectMovePlanner を呼ぶ腕だけ。ブロック閉の main 起点は配分先が無いので何もしない
+            // D-65: only arms that call DirectMovePlanner refuse; a main source with the block closed has no destination and does nothing
+            var stack = new FixedMaxStackLookup(100);
+            stack.SetUnknown(new Core.Master.ItemId(9));
+            var open = PlayerSlotContext.WithBlockOpen(PlayerInventory(0), new[] { Slot(0, 0) }, BlockSlotRestriction.Unrestricted, stack);
+            var closed = PlayerSlotContext.WithBlockClosed(PlayerInventory(0), stack);
+            Assert.AreEqual(ShiftMoveRefusalReason.UnknownItem, ((ShiftMoveRefusedPlan)PlayerSlotPlanner.PlanLeftClick(SlotRef.Main(0), Slot(9, 5), true, open)).Reason);
+            Assert.AreEqual(ShiftMoveRefusalReason.UnknownItem, ((ShiftMoveRefusedPlan)PlayerSlotPlanner.PlanLeftClick(SlotRef.Equipment(0), Slot(9, 5), true, closed)).Reason);
+            ItemMoveAssert.PlanActions(PlayerSlotPlanner.PlanLeftClick(SlotRef.Main(0), Slot(9, 5), true, closed));
+        }
+
         // 枠数が縮んだ直後の古い束縛は例外にせず、古い番地として無視する
         // A stale binding right after the slot count shrank is ignored as a stale ref instead of throwing
         [Test]

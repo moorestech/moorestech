@@ -22,7 +22,7 @@ namespace Client.Ui.State.SlotCommands.Block
 
         public bool TryRead(out IReadOnlyList<SlotItem> slots)
         {
-            if (!(_panel.Current.Value is OpenInventoryPanel open && open.Error == BlockInventoryPanelError.None))
+            if (!_panel.Current.Value.IsOpenWithoutError)
             {
                 slots = Array.Empty<SlotItem>();
                 return false;

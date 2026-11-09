@@ -39,6 +39,7 @@ namespace Client.Tests.Ui.State.SlotCommands
         private ClientLocalNotificationSource _notifications;
         private PlayerSlotCommands _commands;
         private ItemId _wood;
+        private FixedMaxStackLookup _stackLevels;
 
         [SetUp]
         public void SetUp()
@@ -50,8 +51,9 @@ namespace Client.Tests.Ui.State.SlotCommands
             _drag = new RecordingPlayerSlotDrag();
             _panel = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed);
             _notifications = new ClientLocalNotificationSource();
+            _stackLevels = new FixedMaxStackLookup(64);
             var runner = new PlannedItemActionRunner(new PlayerItemActionExecutor(_player), new BlockItemActionExecutor(_block, _player));
-            var reader = new PlayerSlotContextReader(new FakePanelSource(_panel), _block, new BlockSlotRestrictionInputBuilder(Array.Empty<IBlockSlotRestrictionContributor>()), new FixedMaxStackLookup(64));
+            var reader = new PlayerSlotContextReader(new FakePanelSource(_panel), _block, new BlockSlotRestrictionInputBuilder(Array.Empty<IBlockSlotRestrictionContributor>()), _stackLevels);
             _commands = new PlayerSlotCommands(_player, _drag, runner, reader, new ShiftMoveRefusalNotifier(_notifications));
         }
 
@@ -110,9 +112,10 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void 未知のItemIdの枠のShift押下はエラーログと拒否で止め通常の左押下は掴む()
         {
-            // D-1: 検査は Shift 配分の腕だけ。断った時は拒否を返しトーストで知らせる
-            // D-1: the check guards only the Shift allocation; a refusal returns a rejection the toast reports
+            // D-65: 計画器が配分の腕でだけ断る。断った時は拒否を返しトーストで知らせる
+            // D-65: the planner refuses only in the allocation arm; a refusal returns a rejection the toast reports
             var unknown = new ItemId(9999);
+            _stackLevels.SetUnknown(unknown);
             _panel.Value = BlockInventoryTestPanels.ChestWithSlots(new SlotItem(default, 0), new SlotItem(default, 0));
             _player.SetMain(1, new SlotItem(unknown, 5));
             LogAssert.Expect(LogType.Error, new Regex(@"\[PlayerSlotCommands\] unknown ItemId"));
@@ -121,6 +124,32 @@ namespace Client.Tests.Ui.State.SlotCommands
             CollectionAssert.IsEmpty(_block.Moves);
             Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(PlayerSlotRef.Main(1), false));
             CollectionAssert.AreEqual(new[] { $"{PlayerSlotRef.Main(1)}->Grab x5" }, _player.Moves);
+        }
+
+        [Test]
+        public void ブロックが閉じていればメインの未知のIDのShift押下は拒否せず何もしない()
+        {
+            // D-65: ブロック閉の main 起点の Shift は配分先が無く計画器が何もしない。未知の ID でも拒否トーストを出さない
+            // D-65: with the block closed a main-source Shift has no destination; even an unknown ID shows no rejection toast
+            var unknown = new ItemId(9999);
+            _stackLevels.SetUnknown(unknown);
+            _player.SetMain(1, new SlotItem(unknown, 5));
+            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(PlayerSlotRef.Main(1), true));
+            CollectionAssert.IsEmpty(_player.Moves);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void エラー中の列車を開いたままのShiftなしの左押下は列車のワーニングを出さない()
+        {
+            // Shift 配分の無い押下では列車のエラーを言わない（言うのは Shift の押下だけ）
+            // A press without a Shift allocation does not report the train error (only Shift presses do)
+            _panel.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.ContainerMissing);
+            _block.Open = false;
+            _player.SetMain(1, new SlotItem(_wood, 5));
+            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(PlayerSlotRef.Main(1), false));
+            CollectionAssert.AreEqual(new[] { $"{PlayerSlotRef.Main(1)}->Grab x5" }, _player.Moves);
+            LogAssert.NoUnexpectedReceived();
         }
 
         [Test]
@@ -151,24 +180,6 @@ namespace Client.Tests.Ui.State.SlotCommands
             var result = _commands.LeftDown(PlayerSlotRef.Main(99), false);
             Assert.IsInstanceOf<UiCommandAccepted>(result);
             CollectionAssert.IsEmpty(_player.Moves);
-        }
-    }
-
-    // 分割ドラッグの口の記録係
-    // Recorder for the split-drag port
-    internal sealed class RecordingPlayerSlotDrag : IPlayerSlotDragCommands
-    {
-        public readonly List<PlayerSlotRef> Begun = new();
-        public readonly List<PlayerSlotRef> LeftEntered = new();
-        public readonly List<PlayerSlotRef> RightEntered = new();
-
-        public void BeginSplitDrag(PlayerSlotRef slot) => Begun.Add(slot);
-        public void EnterWithLeftButton(PlayerSlotRef slot) => LeftEntered.Add(slot);
-
-        public UiCommandResult EnterWithRightButton(PlayerSlotRef slot)
-        {
-            RightEntered.Add(slot);
-            return UiCommandAccepted.Instance;
         }
     }
 }

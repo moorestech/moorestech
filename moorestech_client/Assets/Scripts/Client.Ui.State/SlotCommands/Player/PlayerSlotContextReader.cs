@@ -30,7 +30,7 @@ namespace Client.Ui.State.SlotCommands.Player
             _stackLevels = stackLevels;
         }
 
-        public PlayerSlotContext Read(PlayerInventorySnapshot inventory, ItemId clickedItem)
+        public PlayerSlotContext Read(PlayerInventorySnapshot inventory, ItemId clickedItem, bool shiftPressed)
         {
             // 列車は束縛なし（Web は source が block のときだけ束縛を引く）。束縛の入力は枠数しか読まないのでパネルの状態のまま
             // Trains are unrestricted (the Web resolves bindings only for block sources); the binding input reads only the slot count, so it stays on the panel state
@@ -51,11 +51,11 @@ namespace Client.Ui.State.SlotCommands.Player
                 return _block.TryReadBlockSlots(out var slots) ? slots : panelSlots;
             }
 
-            // 列車には取得失敗の断りが無く、エラー中は状態の枠で計画して実行器が拒否する。理由が残らないのでここで知らせる
-            // Trains have no fetch-failure refusal: while erroring the plan uses the state slots and the executor rejects it, so report why here
+            // 列車には取得失敗の断りが無く、エラー中の Shift は状態の枠で計画される。実行器の拒否ログは列車のエラーを言わず、計画器が満杯等で断ると実行器まで届かないので、Shift の押下でだけここで知らせる
+            // Trains have no fetch-failure refusal, so an erroring train's Shift plans on state slots; the executor log omits the train error and planner refusals never reach it, so report here on Shift presses only
             IReadOnlyList<SlotItem> TrainDestinationSlots(OpenTrainInventoryPanel train)
             {
-                if (train.Error != BlockInventoryPanelError.None) Debug.LogWarning($"[inventory.shift_move] train car {train.TrainCarInstanceId} is in error ({train.Error}); planning against its last panel slots, block-side moves will be rejected");
+                if (shiftPressed && train.Error != BlockInventoryPanelError.None) Debug.LogWarning($"[inventory.shift_move] train car {train.TrainCarInstanceId} is in error ({train.Error}); planning against its last panel slots, block-side moves will be rejected");
                 return DestinationSlots(train.ItemSlots);
             }
 

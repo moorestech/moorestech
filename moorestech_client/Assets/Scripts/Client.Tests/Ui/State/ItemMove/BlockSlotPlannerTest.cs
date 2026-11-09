@@ -54,6 +54,19 @@ namespace Client.Tests.Ui.State.ItemMove
             CollectionAssert.IsEmpty(plan.Actions);
         }
 
+        [Test]
+        public void 左_未知のIDのShiftは配分せず未知の断りを返し通常の左は掴む()
+        {
+            // D-65: 最大スタックの引けない ID は計画器が断る。Shift 以外の腕は ID を引かないので通す
+            // D-65: the planner refuses an ID without a max stack; other arms never look the ID up, so they go through
+            var stack = new FixedMaxStackLookup(100);
+            stack.SetUnknown(new Core.Master.ItemId(9));
+            var plan = BlockSlotPlanner.PlanLeftClick(4, Slot(9, 7), true, 0, EmptyMain, stack);
+            Assert.AreEqual(ShiftMoveRefusalReason.UnknownItem, plan.Refusal);
+            CollectionAssert.IsEmpty(plan.Actions);
+            ItemMoveAssert.Actions(BlockSlotPlanner.PlanLeftClick(4, Slot(9, 7), false, 0, EmptyMain, stack).Actions, PlannedItemAction.MoveItem(SlotRef.Block(4), SlotRef.Grab, 7));
+        }
+
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">grab保持中の Shift は通常の置きと同じ（uGUI同様 grab が優先）</web-test>
         [Test]
         public void 左_掴み中のShiftは通常の置きと同じ()

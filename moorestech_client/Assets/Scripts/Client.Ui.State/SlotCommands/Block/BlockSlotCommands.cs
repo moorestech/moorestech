@@ -2,6 +2,7 @@ using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.ItemMove;
 using Client.Ui.State.Items;
+using Client.Ui.State.SlotCommands.Player;
 using Core.Item.Interface;
 using UnityEngine;
 
@@ -32,17 +33,14 @@ namespace Client.Ui.State.SlotCommands.Block
         {
             if (!TryReadSlot(blockSlot, out var slot)) return Unavailable(blockSlot);
             var player = _player.ReadSnapshot();
-
-            // 未知の ID は Shift 配分（DirectMovePlanner が例外を投げる腕）の入力にだけ渡さない。それ以外の押下は通す（D-1）
-            // Keep an unknown ID out of the Shift allocation only (the arm where DirectMovePlanner throws); other presses go through (D-1)
-            if (shift && player.Grab.Count == 0 && !KnownItemSlots.IsKnownOrEmpty(slot, nameof(BlockSlotCommands))) return new UiCommandRejected(UiCommandRejectReason.ItemUnknownInSlot, "");
             var plan = BlockSlotPlanner.PlanLeftClick(blockSlot, slot, shift, player.Grab.Count, player.MainSlots, _stackLevels);
 
-            // 計画器が断った Shift 配分は Web と同じく何も送らない。開発者ログだけ残す（D-10）
-            // A Shift allocation the planner refused sends nothing like the Web; leave only a developer log (D-10)
+            // 未知の ID で断った配分は拒否で知らせる。ほかの断りは Web と同じく何も送らず開発者ログだけ残す（D-65・D-10）
+            // A refusal for an unknown ID is a rejection; other refusals send nothing like the Web and only log (D-65, D-10)
             if (plan.Refusal is { } refusal)
             {
-                Debug.LogWarning($"[block_inventory.shift_move] not sent: {refusal} block slot={blockSlot} item={slot.ItemId}");
+                if (refusal == ShiftMoveRefusalReason.UnknownItem) return UnknownItemRejection.Reject(nameof(BlockSlotCommands), slot.ItemId);
+                Debug.LogWarning($"[block_inventory.shift_move] not sent: {ShiftMoveRefusalNotifier.ToLogName(refusal)} block slot={blockSlot} item={slot.ItemId}");
                 return UiCommandAccepted.Instance;
             }
             return _runner.Execute(plan.Actions);

@@ -39,7 +39,7 @@ namespace Client.Ui.Screens.BlockInventory
 
             // エラー中は何も載せない（Web の !error）。小型は自然高のスクロール器で包む（Web の !isLarge）
             // Nothing is mounted while erroring (Web !error); natural panels wrap the body in the natural-height scroller (Web !isLarge)
-            var mountable = state is OpenInventoryPanel open && open.Error == BlockInventoryPanelError.None;
+            var mountable = state.IsOpenWithoutError;
             if (mountable && state is OpenBlockInventoryPanel block)
             {
                 _body = _parts.CreateBody(block, new BlockInventoryBodyMount(layout.FillsPanelHeight));

@@ -50,6 +50,10 @@ namespace Client.Ui.State.SlotCommands.Player
                         // silent-ok: DestinationFull は Web に messageId が無い / 呼び手の Warning ログで開発者が気づく
                         id = "";
                         return false;
+                    case ShiftMoveRefusalReason.UnknownItem:
+                        // 未知の ID は呼び手が ItemUnknownInSlot の拒否で返す。ここへ来たら配線の誤り（D-65）
+                        // Callers return an ItemUnknownInSlot rejection for an unknown ID; reaching here is a wiring mistake (D-65)
+                        throw new ArgumentException("UnknownItem は通知でなく ItemUnknownInSlot の拒否で返す", nameof(refusal));
                     default:
                         // enum に値を足して対応を足し忘れた開発時の誤り（D-44 と同じ扱い）
                         // A dev-time mistake: a new enum value without a mapping (same as D-44)
@@ -57,19 +61,22 @@ namespace Client.Ui.State.SlotCommands.Player
                 }
             }
 
-            string ToLogName(ShiftMoveRefusalReason refusal)
-            {
-                return refusal switch
-                {
-                    ShiftMoveRefusalReason.NoAcceptingBlockSlot => "noAcceptingBlockSlot",
-                    ShiftMoveRefusalReason.InventoryOpenFailed => "inventoryOpenFailed",
-                    ShiftMoveRefusalReason.DetailLoading => "detailLoading",
-                    ShiftMoveRefusalReason.DestinationFull => "destinationFull",
-                    _ => throw new ArgumentOutOfRangeException(nameof(refusal), refusal, null),
-                };
-            }
-
             #endregion
+        }
+
+        // 断り理由のログ名（Web の reason 文字列と同じ camelCase）。プレイヤー側とブロック側のログで共有する
+        // Log name of a refusal reason (camelCase like the Web reason string), shared by player-side and block-side logs
+        internal static string ToLogName(ShiftMoveRefusalReason refusal)
+        {
+            return refusal switch
+            {
+                ShiftMoveRefusalReason.NoAcceptingBlockSlot => "noAcceptingBlockSlot",
+                ShiftMoveRefusalReason.InventoryOpenFailed => "inventoryOpenFailed",
+                ShiftMoveRefusalReason.DetailLoading => "detailLoading",
+                ShiftMoveRefusalReason.DestinationFull => "destinationFull",
+                ShiftMoveRefusalReason.UnknownItem => "unknownItem",
+                _ => throw new ArgumentOutOfRangeException(nameof(refusal), refusal, null),
+            };
         }
     }
 }
