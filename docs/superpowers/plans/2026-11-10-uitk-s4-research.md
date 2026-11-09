@@ -180,7 +180,7 @@ namespace Client.Ui.Components.Controls
 - **字間・色の罠（持ち越し）**: UITK の字間は字の大きさ/100 × 値（px のまま書くと 100/字の大きさ 倍に効く）。このレーンは字間を書かない（研究ボタンは C4-c の `--recipe-action-letter-spacing: 0px` を当てるだけ）。部品ギャラリーは sRGB 合成なので、色はランタイムの PanelSettings（Linear 合成）で比べる。暗い半透明の α は I-fix1 が指数 1.85 で選び直した。明るい色の α は未実測。このレーンの減光（ロックのカード `opacity: .45`）は要素ごとの opacity で、暗い面の上に明るい字と枠が乗る。前例 `--slot-frame-insufficient-opacity`（Web 0.4 → Linear 合成で明るい中身が淡く残るので 0.2 へ下げた。C3-a Task 8）のとおり、暗い半透明の色の式（1.85）は当てはまらない。初期値は Web と同じ 0.45 にし、Task 11 Step 3 で字・枠・面の画素を Web と比べて RGB 7 段以内になる値に決める（決められなければ `LX-136`）
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/Research/`・`S/Client.Tests/Ui/State/Research/`（既存 4 本と同じ所）、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。`it.each` は第 1 引数の書式文字列そのままで展開しない。1 つの NUnit が複数の Web テストを写したら行を並べる。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.Research|State\.(Research|PauseMenuCommandsTest)|Conventions|Theme|Layers|Anchor|Routing|Components\.(NodeGraph|Controls))\.`。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 1 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S4-research」（[A-52]。opacity の 1 行だけで、色の前計算の表 `handWrittenDerivedRows.mjs` は色の行しか持たないので触らない）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-136`〜`LX-140`）「## 追従記録」の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾 6 行、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.ResearchNodePrefix` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `ResearchFailed` を 1 行ずつ）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（良性でない値なので一覧は変わらないが、全値の網羅の行があれば 1 つ足す）、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 1 行（`ui.commandRejected.researchFailed`）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行）・`S/Client.Localization/_CompileRequester.cs`（生成の印）、`S/Client.Ui.State/Client.Ui.State.asmdef` の `references` に `Core.Item` の 1 行。シナリオ `SKILL/scenarios/uitk/uitk-research-tree.cs` はこのレーンが持つ。他の S4 レーン（S4-alpha・S4-inventory・S4-machine・S4-train・S4-recipe・S4-special・S4-gamma）のファイルは書かない
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 1 行（と `using Client.Starter.Registration.GameUi.Screens;` が無ければ using の並びに 1 行。他レーンと同じ行が衝突したら 1 行に畳む）、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S4-research」（[A-52]。opacity の 1 行だけで、色の前計算の表 `handWrittenDerivedRows.mjs` は色の行しか持たないので触らない）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-136`〜`LX-140`）「## 追従記録」の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾 6 行、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.ResearchNodePrefix` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `ResearchFailed` を 1 行ずつ）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（良性でない値なので一覧は変わらないが、全値の網羅の行があれば 1 つ足す）、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 1 行（`ui.commandRejected.researchFailed`）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行）・`S/Client.Localization/_CompileRequester.cs`（生成の印）、`S/Client.Ui.State/Client.Ui.State.asmdef` の `references` に `Core.Item` の 1 行。シナリオ `SKILL/scenarios/uitk/uitk-research-tree.cs` はこのレーンが持つ。他の S4 レーン（S4-alpha・S4-inventory・S4-machine・S4-train・S4-recipe・S4-special・S4-gamma）のファイルは書かない
 - **画面専用の部品の置き場**（設計書 §2.7・§5.1-2）: ノードカード・カードの集合・詳細ペイン・研究ボタンの行・消費アイテムの節・解放物の節・calc の受け直しは 1 機能目なので `S/Client.Ui/Screens/Research/Parts/` に置く。チャレンジ（S5-challenge）と共有しうるもの（`NodeGraphView` の切り口の印・カードの選択の輪）は作らず宣言だけする（D-9・D-6）
 - **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品・Foundation の口」を見つけたら作らない。`LOGS/harness/uitk/S4-research/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) `NodeGraphView` の切り口（`overflow: hidden`）に `TutorialAnchor.MarkClipContainer` を部品が自分で付ける（研究・チャレンジの 2 機能。D-9）(2) `Registration/GameUi/` が 10 ファイルを超えるならサブディレクトリの切り方（Task 1 Step 1）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-a9d5123537/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080。座標は `x' = 320 + 1.5x`・`y' = 1.5y`）の `4-research.png`（状態の出所は `W/e2e/uitk-reference/referenceShots.ts:112` の controls: topic `researchOwnedItems`・ui `ResearchTree`。`manifest.json` は id・bundle・ledgerRow・file・kind しか持たない。参照で見えるノードは 3 つ〈研究可能・素材不足・ロック〉で、完了の `1111…` は持ち物の背後の左へ切れている〈線だけが左端へ出る〉。差の表はこれを前提に比べる）・`5-tutorial-research-node.png`（`referenceShots.ts:118` の topic `tutorialResearchNode`）。詳細ペインの 3 状態は参照に無いので Task 11 Step 1 で master の mock-host で撮る（E-22。C4-c が Task 8 Step 2 で撮った `web-research-*.png` があればそれを先に使う）
@@ -254,7 +254,7 @@ namespace Client.Ui.Components.Controls
 | `S/Client.Ui/Screens/Research/Parts/ResearchUnlockSectionKind.cs` | 解放物の種類 → 節（見出しのキー・testid・枠の列で包むか）の唯一の switch | 新規 |
 | `S/Client.Ui/Screens/Research/Parts/ResearchUnlockEntryElements.cs` | 解放物 1 件を枠か文の行にして節へ足す（種類ごとの switch） | 新規 |
 | `S/Client.Ui/Screens/Research/Parts/ResearchCalcKnobs.cs` | calc() の 2 つ（エリアの `left`・スクロールの逃げ）を customStyle から読んで当てる（[A-47]） | 新規 |
-| `S/Client.Starter/Registration/GameUi/ResearchGameUiRegistration.cs` | 定義・選択・Model・操作・Presenter の登録 | 新規 |
+| `S/Client.Starter/Registration/GameUi/Screens/ResearchGameUiRegistration.cs` | 定義・選択・Model・操作・Presenter の登録（W4 以降の画面の登録は `GameUi/Screens/`。実行計画 E-1） | 新規 |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | 画面登録区画に 1 行 | 変更（共有区画） |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | `Screens` 区画に `@import` 2 行 | 変更（共有区画） |
 | `THEME/DerivedTokens.uss` | 末尾に名札付きブロック「S4-research」（ロックの減光 1 行） | 変更（共有区画 [A-52]） |
@@ -273,7 +273,7 @@ namespace Client.Ui.Components.Controls
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.ResearchNodePrefix` の 1 行を消す | 変更（共有区画・在れば） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」（ロックの減光）・「## 見た目の例外」（`LX-136`〜`LX-140`）・「## 追従記録」（gen:i18n）の末尾 | 変更（共有区画） |
 
-ディレクトリのファイル数（.cs と .uss）: `State/Research/` 既存 1（`ResearchNodeStateStore.cs`）＋サブディレクトリ、`State/Research/Catalog/` 4、`State/Research/Tree/` 7、`State/Research/Commands/` 2、`Screens/Research/` 4、`Screens/Research/Parts/` 9、`Tests/.../Screens/Research/` 7、`Tests/.../State/Research/` 既存 4＋3＝7。`Registration/GameUi/` は 1 増える（Task 1 Step 1 で 10 以下を確かめる。超えるなら止めて指揮へ）。
+ディレクトリのファイル数（.cs と .uss）: `State/Research/` 既存 1（`ResearchNodeStateStore.cs`）＋サブディレクトリ、`State/Research/Catalog/` 4、`State/Research/Tree/` 7、`State/Research/Commands/` 2、`Screens/Research/` 4、`Screens/Research/Parts/` 9、`Tests/.../Screens/Research/` 7、`Tests/.../State/Research/` 既存 4＋3＝7。`Registration/GameUi/Screens/` は 1 増える（実行計画 E-1: W4 以降の画面の登録ファイルは `GameUi/Screens/` に置き、無ければ最初に要したレーンが作る。`GameUi/` 直下は数えない。Task 1 Step 1 で 10 以下を確かめる。超えるなら止めて指揮へ）。
 
 **MainGameUiRegistration の画面登録区画に足す行**: 1 行（`ResearchGameUiRegistration.Register(builder);`）。
 
@@ -355,14 +355,14 @@ grep -n "research-node-face\|research-node-border\|research-detail-slots-bleed\|
 grep -n "section: Screens" "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
 test -f $S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs && grep -n "ResearchNodePrefix" $S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
 # ディレクトリのファイル数（10 以下）
-ls $S/Client.Starter/Registration/GameUi/*.cs | wc -l
+ls $S/Client.Starter/Registration/GameUi/Screens/*.cs 2>/dev/null | wc -l
 ls $S/Client.Tests/Ui/State/Research/*.cs | wc -l
 ```
-Expected: worktree の絶対パス。C4-d の 4 行・3 行（`NodeGraphView(string testIdPrefix)`・`OnNodeTapped`・`SetGraph(NodeGraphContent)`・`RestoreViewport`、`NodeGraphContent(IReadOnlyList<NodeGraphNode>, NodeGraphFocus)`・`NodeGraphNode(string, Vector2, IReadOnlyList<string>, VisualElement)`・`NodeGraphFocus.At/None`）と `NodeGraphTestStage.cs`、C4-c の `RecipeActionButton(string, UiText, RecipeActionLabelWeight)`・`--research-action-disabled-face`・`--research-action-disabled-opacity`・研究の上書きの組（Global Constraints と同じ 13 行）、`GetRecipeElement` の 1 行、実物の 10 行、トークン 9 つ、`/* == section: Screens == */`。`Registration/GameUi/*.cs` が 9 以下（1 足して 10 以下）、State の Research のテストが 7 以下。
+Expected: worktree の絶対パス。C4-d の 4 行・3 行（`NodeGraphView(string testIdPrefix)`・`OnNodeTapped`・`SetGraph(NodeGraphContent)`・`RestoreViewport`、`NodeGraphContent(IReadOnlyList<NodeGraphNode>, NodeGraphFocus)`・`NodeGraphNode(string, Vector2, IReadOnlyList<string>, VisualElement)`・`NodeGraphFocus.At/None`）と `NodeGraphTestStage.cs`、C4-c の `RecipeActionButton(string, UiText, RecipeActionLabelWeight)`・`--research-action-disabled-face`・`--research-action-disabled-opacity`・研究の上書きの組（Global Constraints と同じ 13 行）、`GetRecipeElement` の 1 行、実物の 10 行、トークン 9 つ、`/* == section: Screens == */`。`Registration/GameUi/Screens/*.cs` が 9 以下（ディレクトリが無ければ 0 で、このレーンが Task 10 で作る。1 足して 10 以下）、State の Research のテストが 7 以下。
 - C4-d・C4-c のどれかのファイルが無ければ、その依存が未取り込みなので止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
 - 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。機械レシピの出力はこのレーンがマスタから読む（D-13。S4-alpha の `UnlockedMachineRecipeSource` は解放済みだけなので使わない）
 - `NO-CLIP-MARK` 以外（`NodeGraphView` か S2-tutorial が切り口の印をすでに付けている）なら、Task 1 Step 3 の「integrator への依頼」の (1) を書かない
-- `Registration/GameUi/*.cs` が 10 以上なら止めて指揮へ。`done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方」を書く（サブディレクトリの切り方は integrator の持ち物）。再編が `origin/feature/uitk` に入るまでこのレーンは完了にせずマージもしない。再編後は File Structure と Task 10 の登録のパスを読み替え、`done.md` に書く
+- `Registration/GameUi/Screens/*.cs` が 10 以上なら止めて指揮へ。`done.md` の「integrator への依頼」に「`Registration/GameUi/Screens/` の分け方」を書く（サブディレクトリの切り方は integrator の持ち物）。再編が `origin/feature/uitk` に入るまでこのレーンは完了にせずマージもしない。再編後は File Structure と Task 10 の登録のパスを読み替え、`done.md` に書く
 
 - [ ] **Step 2: 使う文言が揃っていることを確かめる**
 
@@ -3697,8 +3697,8 @@ git commit -m "feat(uitk): 研究エリアの View・Presenter と描画・視�
 ### Task 10: 登録と全体スイッチ UITK での起動
 
 **Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/ResearchGameUiRegistration.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（画面登録区画に 1 行）
+- Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/ResearchGameUiRegistration.cs`（`GameUi/Screens/` が無ければこのレーンが作る。実行計画 E-1）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（画面登録区画に 1 行。`using Client.Starter.Registration.GameUi.Screens;` が無ければ using の並びに 1 行）
 - Modify（在るときだけ）: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs`（`AnchorIds.ResearchNodePrefix` の 1 行を消す）
 
 **Interfaces:**
@@ -3716,7 +3716,7 @@ using Client.Ui.State.Research.Tree;
 using VContainer;
 using VContainer.Unity;
 
-namespace Client.Starter.Registration.GameUi
+namespace Client.Starter.Registration.GameUi.Screens
 {
     // 研究ツリー（GameUi）の登録。状態の源 ResearchNodeStateStore は両系の登録が持つ
     // Registers the GameUi research tree; the ResearchNodeStateStore source belongs to the shared registration
@@ -3734,7 +3734,9 @@ namespace Client.Starter.Registration.GameUi
 }
 ```
 
-`MainGameUiRegistration.cs` の画面登録区画の末尾（その時点の最後の `…GameUiRegistration.Register(builder);` の次）に:
+（namespace は既存の登録ファイルの規則〈ディレクトリと同じ。`GameUi/` 直下は `Client.Starter.Registration.GameUi`〉に合わせる）
+
+`MainGameUiRegistration.cs` の using の並びに `using Client.Starter.Registration.GameUi.Screens;` が無ければ足し（他レーンが先に足していれば足さない）、画面登録区画の末尾（その時点の最後の `…GameUiRegistration.Register(builder);` の次）に:
 ```csharp
             ResearchGameUiRegistration.Register(builder);
 ```
@@ -4087,6 +4089,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
   - 5-F（`ApplyNodeStates` の書き手が 2 つ）→ このままでよい。Web の橋 `ResearchCompleteActionHandler` と同じ書き手で、研究画面へ入った直後の取り直しの古い応答が研究の完了より後に届く競合は Web と同じく残る（次の取り直し〈持ち物の変化・入り直し〉で直る）。直すなら `ResearchNodeStateStore` の持ち主の改修で、このレーンの外
   - 検査6（研究画面の表示中の判定 3 か所・GUID とキーの変換）→ このままでよい。判定は経路の値の比較 1 式で、持ち主（選択の破棄・組み直しの抑止・表示）が別。GUID の文字列は C4-d のキーの形
 - **D-25 研究の実行の手続きは Web の橋と 2 か所に残す**: 前例（`PauseMenuCommands` を両系で登録し、Web の橋が委ねる）に合わせるなら `ResearchCompleteActionHandler` を `ResearchTreeCommands` へ委ねる形に変えるが、Web の橋（`Client.WebUiHost/**`）を変えない範囲を守る（橋の DTO の突き合わせは Task 2 の L0 が縛る）。帰結: CEF の撤去まで同じ手続きが 2 か所に残る（負債が残る）。本PR外のリファクタ提案に載せた。設計検査 Phase 1〜2.5 の指摘
+- **D-28 実行計画 E-1 の W4 追記（ad92a44777）の当てはめ**: 登録ファイルは `Client.Starter/Registration/GameUi/Screens/` に置き、namespace はディレクトリに合わせて `Client.Starter.Registration.GameUi.Screens`。マージ済みレーンの State の口への追記（合図・読み口）は、このレーンでは要らない（所持数は C4-e の `IPlayerInventoryOperations.ReadSnapshot` の既存の口で足りる。D-2）。足すことになったら、その口の本番と記録係の実装を同じ PR で全部直す。ホイール 1 ノッチの px（A-71）は、このレーンでは `NodeGraphView` の中（C4-d）とテストの `WheelEvent.scrollDeltaPerTick` だけで使い、`GameScrollView` の外で使う所が無いので Foundation へ上げない
 - **D-27 閉じて同じノードを開き直すと説明のスクロールを頭へ戻す**: Web は閉じるとペインを破棄し（`ResearchTreePanel.tsx` の条件付き描画）、`ScrollArea` は `key={guid}`。UITK はペインを使い回すので、`ResearchDetailPane.Hide` が次の `Render` で頭へ戻す印を立てる。表示中の同じノードの描き直し（所持数の変化）では保つ。`ResearchDetailPaneTest` で固定。独立評価（codex）の指摘
 - **D-26 Web の橋の DTO と定義を L0 で突き合わせる**: `ResearchCatalogFromMasterTest` の 5 本目が、テスト mod の全ノードで `ResearchNodeDtoFactory.Create` の結果とアイコン・前提・消費（受け付ける上位レベル）・解放物 8 種を比べる（前例 [A-102]）。設計検査 Phase 1〜2.5 の指摘
 - **要裁定**: なし（ゴール・裁定から外れる判断は無い。見た目の差が残れば `LX-136`〜`LX-140` に記帳し、§3 の例外として扱う）
