@@ -15,7 +15,7 @@
 | # | 要件 | 受け入れ基準 |
 |---|---|---|
 | R-1 | 同時に出る組の L3 | `Stage4ScreenSetGameUiTest` が全体スイッチ UITK の実ゲームで GameScreen → PlayerInventory → GameScreen → ResearchTree → GameScreen → SubInventory（`釜`を F で開く）→ GameScreen → PlayerInventory を巡り、各画面で「出るべき面だけが見え（表の通り）・各面が期待の列の子孫にあり・同名の面が 1 つだけで・面の中心を `panel.Pick` すると自分か子孫が拾われる」こと、ResearchTree で `research-tree` の左端が `inventory-panel` の右端以上で、左余白を畳むクラス `stage-columns--left-padding-collapsed` が付くこと、巡る間の LogError と例外が 0 件であることを PASS |
-| R-2 | ラダー 4 `uitk-production-loop` を作る | 全体スイッチ UITK・Web ホスト無しで、Tab → アイテム一覧で木の板を選ぶ → クラフトを長押しして木の板が 2 枚以上増える → 石窯を置き F で開く → 原木を掴んで入力枠へ置く・Shift＋クリックで青銅鉱石の粉を入れる・右ドラッグで手持ちの空き枠へ配る → 開いたまま青銅インゴットが出力枠に現れる（機械 UI を開いたまま中身が更新される録画。§2.5）→ Shift で取り出す → 整理、が `result.json` `Success: true`。録画 mp4 がある |
+| R-2 | ラダー 4 `uitk-production-loop` を作る | 全体スイッチ UITK・Web ホスト無しで、Tab → アイテム一覧で木の板を選ぶ → クラフトを長押しして木の板が 2 枚以上増える → 青銅インゴットのレシピをサーバー直で解放し、石窯を置き F で開いてレシピを選ぶ → Shift＋クリックで青銅鉱石の粉を入れる・原木を右クリックで半分掴んで入力枠へ置く・右ドラッグで手持ちの空き枠へ配る → 開いたまま青銅インゴットが出力枠に現れる（機械 UI を開いたまま中身が更新される録画。§2.5）→ Shift で取り出す → 整理、が `result.json` `Success: true`。録画 mp4 がある |
 | R-3 | ラダー 5 `uitk-research-train` を作る | 全体スイッチ UITK で、研究素材を渡す → 研究ツリーを開き `原始研究1` のノード → 研究ボタンで完了（サーバーの完了を待つ）→ 駅 2 基の線を準備 → 駅を F で開き駅名を日本語で `SetText`・確定し、サーバーの駅名が変わる → 機関車を開き時刻表に 2 駅を足し（サーバー 2 件）・自動運転を入れて走り出す、が `Success: true` |
 | R-4 | ラダー 1〜4 が UITK で緑 | `uitk-lifeline`・`uitk-opening-hud`・`uitk-build-bp`・`uitk-production-loop` の 4 本が同じ HEAD の全体スイッチ UITK で `Success: true`。`uitk-research-train` も緑（§2.5 の「ラダー 2 本」） |
 | R-5 | 全録画の 2 回目 | `scenarios/` の全本を UITK 側で流し、1 本 1 行の結果（exit・秒・run dir）と分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）を `done.md` と台帳「## 実測の結論」に残す。不具合 0 件（見つかったものは持ち主の修正が入って再走で PASS）。Web 側も全本を流し、段階の前と同じ合否（S4 前のコミットとの差分 0。落ちたものは既存か退行かを分けて記録） |
@@ -86,7 +86,7 @@ Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot �
 
 ## Global Constraints
 
-- 土台: `origin/feature/uitk`（起草時 0a94c9b96b）。S4 の 7 レーン・S2-tutorial（PR #1627）・S2-ladder・S3-ladder が入っていることが着手の前提（Task 1 Step 1）。worktree は `moores-wt new uitk-lane/s4-gamma --from origin/feature/uitk`（環境ローカル規約）
+- 土台: `origin/feature/uitk`（起草時 635d55f8e4。S2-tutorial #1627 は入っている）。ラダーの番号はこの計画では plan §4.4 の表の順（1 lifeline・2 opening-hud・3 build-bp・4 production-loop・5 research-train・6 challenge-gate）で呼ぶ。plan §2.6 は challenge-gate を「ラダー 5」と呼ぶので、食い違うときはシナリオ名が正。S4 の 7 レーン・S2-tutorial（PR #1627）・S2-ladder・S3-ladder が入っていることが着手の前提（Task 1 Step 1）。worktree は `moores-wt new uitk-lane/s4-gamma --from origin/feature/uitk`（環境ローカル規約）
 - Editor: Mac mini で同時 2 本まで（conductor.md）。自分の worktree の Editor だけを使い、起動・停止前に `moores-wt status` で所有者を確かめる。Web 側の全録画は Windows の `~/bin/winunity`（compile・test・play を ssh で回す）でも流してよい
 - 全体スイッチ: PlayMode を止めてから `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'`（Web 側は `UiSystem.Web`）。値は起動ごとに 1 回読まれ、Editor を閉じると Web に戻る
 - 受け口: 録画の前に Editor プロセスへ `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` を立てる（`uitk-lifeline` の冒頭の検査がこれを要求する。本番の受け口へ送らない）
@@ -141,7 +141,7 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 | `docs/uitk/TODO.md` | 変更（共有区画） | 束 4 の行（暗転・起点）、「## 追従記録」の束 4 の行、「## 実測の結論」の 3 行（CPU・全録画 UITK・全録画 Web）、「## 参照キャプチャ」の自撮りの置き場 |
 | `docs/uitk/disposition.md` | 変更（共有区画） | `detailActions.test.ts` 3 件の処遇の行、「## 突き合わせの記録」の 1 行 |
 
-ディレクトリのファイル数: `Ui/Stage4/` 3、`Operations/Ladder/` 2、`Operations/ScenarioChecks/` 1→2、`scenarios/uitk/` は起草時 12 本＋S2〜S4 の各レーンが足す分＋この 5 本（シナリオは C# のアセンブリに入らないファイルで、10 ファイルの規則は `.cs` のコードのディレクトリに当てる前例どおり既存の 12 本が既に超えている。D-8）。`tools/uitk/` は Task 1 Step 4 で数え、10 を超えるなら `tools/uitk/recordings/` へ 2 本を置く。
+ディレクトリのファイル数: `Ui/Stage4/` 3、`Operations/Ladder/` 2、`Operations/ScenarioChecks/` 1→2、`scenarios/uitk/` は起草時 10 本＋S2〜S4 の各レーンが足す分＋この 5 本（シナリオは C# のアセンブリに入らないファイルで、10 ファイルの規則は `.cs` のコードのディレクトリに当てる前例どおり既存の 12 本が既に超えている。D-8）。`tools/uitk/` は Task 1 Step 4 で数え、10 を超えるなら `tools/uitk/recordings/` へ 2 本を置く。
 
 **他レーンとの所有の境界**: L3 は他レーンの View・USS を読むだけ（名前とクラス）。シナリオは他レーンの testid を `ClickUi`・`UntilUiElement` で使うだけ。名前が計画と違っていたら Task 1 Step 2 の照合表で読み替え、gamma のファイルの側を直す（他レーンへ名前の変更を求めない。D-5）。
 
@@ -204,7 +204,7 @@ grep -n "\"石窯\"\|\"蒸気機関車駅\"" -r ../moorestech_master/server_v8/m
 grep -n "ProfilerRecorder\|UIElementsUpdatePanels\|RepaintPanels" -r docs/uitk-migration/poc | head -5
 git grep -n "MarkClipContainer" -- moorestech_client/Assets/Scripts/Client.Ui | head -5
 ```
-Expected: 登録ファイルが 10 以下（超えていれば bd を立てて I-fix へ回す。gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
+Expected: 登録ファイルは起草時に既に 9 本で、S4 の 7 レーンが足すと 10 を超えているはず。再編（alpha の依頼）が入っていなければ bd を立てて I-fix へ回す（gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
 
 - [ ] **Step 5: bd と done.md の骨組みを作る**
 
@@ -406,7 +406,7 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
-using Client.Tests.EditModeInPlayingTest.BlockInventory.Scene;
+using Client.Tests.EditModeInPlayingTest.BlockInventory;
 using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -858,6 +858,7 @@ namespace Client.Playtest.Operations
     public static class PlaytestAnchorChecks
     {
         private const string OutlineName = "tutorial-outline";
+        private const string OutlineRingClass = "tutorial-outline__ring";
         private const float CenterTolerancePx = 5f;
 
         public static IReadOnlyList<PlaytestMasterAnchor> CollectUiHighlightAnchors()
@@ -889,12 +890,12 @@ namespace Client.Playtest.Operations
             var view = TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchor.AnchorId, anchor.TutorialGuid);
             await p.Until(() => root.Q(OutlineName) != null, 5f, $"{anchor.AnchorId} の枠が出る");
             await UniTask.DelayFrame(2);
-            var outline = root.Q(OutlineName);
+            var ring = root.Q(className: OutlineRingClass);
             var anchorBound = unique.Element.worldBound;
             var onScreen = root.worldBound.Overlaps(anchorBound);
             if (onScreen)
             {
-                var distance = Vector2.Distance(outline.worldBound.center, anchorBound.center);
+                var distance = Vector2.Distance(ring.worldBound.center, anchorBound.center);
                 p.Assert(distance <= CenterTolerancePx, $"{anchor.AnchorId} の枠の中心がアンカーの中心から {distance:F1}px（{CenterTolerancePx}px 以内）");
             }
             else
@@ -911,7 +912,7 @@ namespace Client.Playtest.Operations
     }
 }
 ```
-枠の要素名 `tutorial-outline` は S2-tutorial の実物で Task 1 Step 2 の照合表から読み替える（枠が名前でなくクラスなら `root.Q(className: …)`）。`TutorialPresentationStateStore` の名前空間は `Client.Game.InGame.Tutorial`（起草時の実物）。
+`tutorial-outline` は大きさの無い absolute の入れ物で（`TutorialOverlay.uss`・`TutorialOverlayView.cs`）、箱の位置と大きさは子の `tutorial-outline__ring`（クラス）が持つ（`TutorialOutlineView.cs`。S2-tutorial のテストも子で測る）。出現・消滅は入れ物の有無で、中心は ring の `worldBound` で見る。`TutorialPresentationStateStore` の名前空間は `Client.Game.InGame.Tutorial`（起草時の実物）。
 
 - [ ] **Step 4: コンパイルして行数を見る**
 
@@ -937,10 +938,10 @@ git commit -m "feat(playtest): ラダー用の列車線・CPU 時間・アンカ
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-production-loop.cs`
 
 **Interfaces:**
-- Consumes: Task 1 の照合表の名前（`item-list-cell-<id>`・`craft-button-<guid>`・`machine-input-slots`・`machine-output-slots`・`main-slot-<i>`・`inventory-sort`・`block-inventory-close`）、`PlaytestUiElementOps.FindUi(string)`（`ScreenRect`）、`SemanticInput`、`ILocalPlayerInventory`、`PlaytestItemOps.CountItemClientSide(ItemId)`、`IOpenableBlockInventoryComponent.InventoryItems`
+- Consumes: Task 1 の照合表の名前（`item-list-cell-<id>`・`craft-button-<guid>`・`machine-recipe-<guid>`・`machine-input-slots`・`machine-input-slot-<i>`・`machine-output-slots`・`machine-output-slot-<i>`・`main-slot-<i>`・`inventory-sort`・`block-inventory-close`）、`PlaytestUiElementOps.FindUi(string)`（`ScreenRect`）、`SemanticInput`、`ILocalPlayerInventory`、`PlaytestItemOps.CountItemClientSide(ItemId)`・`ResolveItemId(string)`、`PlaytestBlockSnapshots.WaitForItemCount`、`IGameUnlockStateDataController.UnlockMachineRecipe(Guid)`・`IGameUnlockStateData.MachineRecipeUnlockStateInfos`
 - Produces: シナリオ `uitk-production-loop`（Task 12 の通しが使う）
 
-マスタの値（e0c913033c）: 木の板 ← 原木×1（0.75s、craftRecipeGuid `37623c6d-e1cf-4985-abfb-8239e6e33981`）。石窯（`26096ad0-d355-4e2c-9e45-a5c5e91856e0`、ElectricMachine、requiredPower 0、入力 2・出力 1）のレシピ 青銅鉱石の粉 1＋原木 1 → 青銅インゴット 1（3s）。
+マスタの値（e0c913033c）: 木の板 ← 原木×1（0.75s、craftRecipeGuid `37623c6d-e1cf-4985-abfb-8239e6e33981`）。石窯（`26096ad0-d355-4e2c-9e45-a5c5e91856e0`、ElectricMachine、requiredPower 0、入力 2・出力 1）のレシピ `af78bd9a-39c9-440a-9b43-61dca495f8fb` 青銅鉱石の粉 1＋原木 1 → 青銅インゴット 1（3s。`initialUnlocked: false`、原始研究 2 で解放）。
 
 - [ ] **Step 1: シナリオを書く**
 
@@ -962,6 +963,8 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Context;
+using Game.UnlockState;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -1005,8 +1008,15 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
-    // 石窯を置いて F で開く
-    // Place a stone kiln and open it with F
+    // 青銅インゴットのレシピをサーバー直で解放する（未解放・未選択の機械は入力を受けない。研究の流れはラダー 5 が持つ）
+    // Unlock the bronze ingot recipe server-side (a locked or unselected machine takes no input; ladder 5 owns the research flow)
+    var bronzeRecipe = Guid.Parse("af78bd9a-39c9-440a-9b43-61dca495f8fb");
+    var clientUnlock = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
+    await p.RunOnServer("青銅インゴットのレシピを解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockMachineRecipe(bronzeRecipe));
+    await p.Until(() => clientUnlock.MachineRecipeUnlockStateInfos.TryGetValue(bronzeRecipe, out var info) && info.IsUnlocked, 10f, "レシピの解放がクライアントへ届く");
+
+    // 石窯を置いて F で開き、レシピを選ぶ
+    // Place a stone kiln, open it with F and select the recipe
     var kilnPos = new Vector3Int(10, 32, 10);
     await p.SetupFlatGround();
     await p.PlaceBlockDirect("石窯", kilnPos, BlockDirection.North);
@@ -1017,17 +1027,19 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.AimAt(kilnBounds.center);
     await p.PressInteract();
     await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+    await p.Screenshot("02-kiln-recipe-select");
+    await p.ClickUi($"machine-recipe-{bronzeRecipe}");
     await p.UntilUiElement("machine-input-slots", 10f);
-    await p.Screenshot("02-kiln-open");
+    await p.Screenshot("03-kiln-open");
 
-    // 原木を掴んで入力枠へ置き、Shift＋クリックで粉を入れる
-    // Grab logs into an input slot, then Shift-click the dust in
-    p.Note("掴んで置く・Shiftで入れる");
-    await p.ClickUi(MainSlotOf(log));
-    await p.ClickUi("machine-input-slots-slot-0");
+    // Shift＋クリックで粉を入れ、原木は右クリックで半分掴んで素材順の 2 枠目へ置く（入力枠はレシピの素材順に固定）
+    // Shift-click the dust in, then right-click to grab half the logs and drop them in the second slot (inputs follow recipe order)
+    p.Note("Shiftで入れる・半分掴んで置く");
     SemanticInput.KeyDown(Key.LeftShift);
     await p.ClickUi(MainSlotOf(bronzeDust));
     SemanticInput.KeyUp(Key.LeftShift);
+    await RightClickOn(MainSlotOf(log));
+    await p.ClickUi("machine-input-slot-1");
     var kilnInventory = p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>();
     await p.WaitForItemCount(kilnInventory, log, 1, null, 10f, "石窯の入力に原木が入る（サーバー）");
     await p.WaitForItemCount(kilnInventory, bronzeDust, 1, null, 10f, "石窯の入力に粉が入る（サーバー）");
@@ -1035,24 +1047,25 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // 残りの原木を掴み右ドラッグで空き 3 枠へ配る
     // Grab the remaining logs and right-drag them across three empty slots
     p.Note("右ドラッグで配る");
+    p.Assert(Enumerable.Range(0, Local().MainSlotCount).Any(i => Local()[i].Id == log), "半分掴みの後も手持ちに原木が残る");
     await p.ClickUi(MainSlotOf(log));
     var empties = EmptyMainSlots(3);
     await DragWithButton(1, empties);
     p.Assert(empties.All(i => Local()[i].Id == log), "右ドラッグで空き3枠に原木が配られる");
-    await p.Screenshot("03-right-drag");
+    await p.Screenshot("04-right-drag");
     await p.ClickUi(MainSlotOf(log));
 
     // 開いたまま出来上がりが出力枠に出るのを見る（機械 UI を開いたまま中身が更新される録画）
     // Watch the ingot appear in the output while the UI stays open
     await p.WaitForItemCount(kilnInventory, ingot, 1, null, 20f, "石窯で青銅インゴットができる（サーバー）");
     await PlaytestUiElementOps.WaitUiTextContains("machine-output-slots", "1", 10f);
-    await p.Screenshot("04-output-while-open");
+    await p.Screenshot("05-output-while-open");
 
     // Shift で取り出し、閉じて整理する
     // Shift-take the output, close and sort
     var ingotsBefore = PlaytestItemOps.CountItemClientSide(ingot);
     SemanticInput.KeyDown(Key.LeftShift);
-    await p.ClickUi("machine-output-slots-slot-0");
+    await p.ClickUi("machine-output-slot-0");
     SemanticInput.KeyUp(Key.LeftShift);
     await p.Until(() => ingotsBefore < PlaytestItemOps.CountItemClientSide(ingot), 10f, "Shiftで青銅インゴットを取り出す");
     await p.ClickUi("block-inventory-close");
@@ -1061,7 +1074,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
     await p.ClickUi("inventory-sort");
     await p.Until(() => Local()[0].Id != ItemMaster.EmptyItemId, 10f, "整理で先頭の枠が埋まる");
-    await p.Screenshot("05-sorted");
+    await p.Screenshot("06-sorted");
 
     #region Internal
 
@@ -1078,6 +1091,15 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
         SemanticInput.MouseButtonUp(0);
     }
 
+    async UniTask RightClickOn(string testid)
+    {
+        SemanticInput.MouseMoveTo((await PlaytestUiElementOps.FindUi(testid)).ScreenRect.center);
+        SemanticInput.MouseButtonDown(1);
+        await p.WaitSeconds(0.1f);
+        SemanticInput.MouseButtonUp(1);
+        await p.WaitSeconds(0.3f);
+    }
+
     async UniTask DragWithButton(int button, int[] slots)
     {
         var first = (await PlaytestUiElementOps.FindUi($"main-slot-{slots[0]}")).ScreenRect.center;
@@ -1091,7 +1113,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     #endregion
 });
 ```
-石窯の中身は既存の `PlaytestBlockSnapshots.WaitForItemCount`（サーバーのスレッドで複製して読む）で待つ。`ItemId.AsPrimitive()`（PlaytestItemOps と同じ）・`ItemMaster.EmptyItemId` の綴りは Task 1 Step 2 で `item-list-cell-` の作り方と一緒に確かめる。`machine-input-slots-slot-0`・`machine-output-slots-slot-0` は照合表の実物の名前へ読み替える
+石窯の中身は既存の `PlaytestBlockSnapshots.WaitForItemCount`（サーバーのスレッドで複製して読む）で待つ。`ItemId.AsPrimitive()`（PlaytestItemOps と同じ）・`ItemMaster.EmptyItemId` の綴りは Task 1 Step 2 で `item-list-cell-` の作り方と一緒に確かめる。入力・出力の枠の名前 `machine-input-slot-<i>`・`machine-output-slot-<i>` とレシピ選択の行 `machine-recipe-<guid>` は S4-machine の起草版（R-5・R-14）の名前で、照合表の実物へ読み替える。石窯のレシピ（e0c913033c）は 6 本とも `initialUnlocked: false`、青銅インゴット `af78bd9a` の `inputItems` は [青銅鉱石の粉, 原木] の順。未選択の機械は入力を受けず（`.decisions/2026-08-30-レシピ未選択の機械は入力を一切受け入れない.md`）、入力枠はレシピの素材順に固定される（`.decisions/2026-08-30-機械入力スロットはサーバー側でもレシピ素材順に固定する.md`）ので、解放 → 選択 → 粉を 1 枠目・原木を 2 枠目の順にする（D-21）。左クリックの掴みは全量なので、原木は右クリックの半分掴みで置き、右ドラッグ配りの分を手持ちに残す
 
 - [ ] **Step 2: 系を UITK にして流す**
 
@@ -1945,7 +1967,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-5 | 他レーンの名前が計画と違えば gamma のファイルの側を直し、相手に変更を求めない | 名前は画面の持ち主が Web の `data-testid` に合わせて決めたもので、gamma の検査はそれを読む側 | 計画の名前へ合わせるよう依頼する: マージ済みの画面を名前のためだけに直すことになる |
 | D-6 | 回ってきた依頼のうち Foundation の口（`TutorialAnchor.Unmark`・`GameUiPointerProbe.PickAt`・`GamePanel` の題の逃げ）と D-23・D-26 は、未処理でも段階 4 の完了を止めず bd を I-fix へ回すだけにする | 各レーンが「無くても動く形」で書いたと計画に書いている。gamma の完了条件（§1.4）に入っていない。帰結: 画面側の写しが残る（`done.md` に件ごとに書く） | 全部入るまで止める: 段階 5 の着手が理由無く遅れる |
 | D-7 | 持ち主の無い `e2e/mock-host/detailActions.test.ts` 3 件は処遇「捨てる」 | mock-host（偽ホスト）が detail action を受けて自分の状態を書き換える契約で、UITK に偽ホストが無い。機械のレシピ選択の振る舞いは S4-machine の State のテストが持つ | 写す予定: 写し先が無いので永遠に閉じない |
-| D-8 | 新しいシナリオ 5 本は `scenarios/uitk/` に置く | ラダー 1〜3 と同じ置き場で、ラダーの一覧（plan §4.4）を 1 か所で引ける。シナリオは C# のアセンブリに入らず、既存の `scenarios/uitk/` は 12 本で 10 ファイルの規則を当てていない | `scenarios/uitk/ladder/` を作る: 既存のラダー 1〜3 と置き場が割れる |
+| D-8 | 新しいシナリオ 5 本は `scenarios/uitk/` に置く | ラダー 1〜3 と同じ置き場で、ラダーの一覧（plan §4.4）を 1 か所で引ける。シナリオは C# のアセンブリに入らず、既存の `scenarios/uitk/` は起草時 10 本で、S2〜S4 のレーンが足すと 10 を超える。シナリオには 10 ファイルの規則を当てていない（`scenarios/` の他の置き場も 10 を超えている） | `scenarios/uitk/ladder/` を作る: 既存のラダー 1〜3 と置き場が割れる |
 | D-9 | 石窯を置いて狙って開く 4 行（Task 5・13）は共通化しない | シナリオ間の共有は DSL の口になり、2 か所のために `Ladder/` に 4 本目を足すのは YAGNI。違いが出たら（狙いの位置）片方だけ直せる | `PlaytestKilnOps` を足す: 2 か所のための口 |
 | D-10 | 全録画は小分けの前景の呼び出し（3 本ずつ）で流し、バックグラウンドで待たない | 依頼の規則（前景で実行）と Bash の前景の上限 600 秒。小分けでも TSV に追記するので途中から再開できる | 1 回で全本: 前景の上限を超える。バックグラウンドで流してポーリング: 規則に反する |
 | D-11 | Web 側の失敗は S4 前のコミットで流し直して「既存」と「退行」に分ける | plan §2.0 の「Web 側は段階の前と同じ合否」は差分で見るもので、S4 前から落ちるものを gamma の不具合にしない | Web 側の失敗を全部不具合にする: 段階と無関係の既存の失敗を抱える |
@@ -1958,6 +1980,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-18 | codex-audit を回し、指摘を再現して処理の案を付けるまでが gamma、直すか例外にするかの判定は指揮。出所: 設計検査 Phase 2.6（検査7。設計書 §3.3「指揮（判定）」と実行計画 §5「段の締めで codex-audit」の食い違い） | 両方を満たす読み方: 回すのは段の締め（§5・§1.4）、判定は指揮（§3.3）。gamma は int のレーンで指揮と同じ場にいるので判定待ちは短い | gamma が判定まで持つ: §3.3 と食い違う |
 | D-19 | `MarkClipContainer`（研究の視口に子を切る容器の印）は D-6 から外し、無ければ I-fix へ回して入るまで止まる。出所: 設計検査 Phase 2.6（検査7。E-1・A-65 の義務） | 印が無いと、研究ノードのアンカーが視口で切られて見えなくても枠が出る（チュートリアルの枠の前提を欠く）。R-6 の判定の前提なので完了条件に入る | 未処理でも進める: A-65 の義務を段の締めで見逃す |
 | D-20 | 型の弱い指摘（検査5 の弱 3 件）はこのままにする。(a) 面の列を `StageColumn` でなく名前の文字列で持つのは、L3 が木を名前で読む側で、enum から名前への写しは `StageColumnsLayout` の中にしか無いから（写しを作ると 2 か所になる）。空文字は「列の外」の 1 値だけで、`Stage4ExpectedSurfaces` の表の中に閉じる。(b) マーカー名・アンカー名の接頭辞の一致は、正本（Editor の版・マスタ）が文字列で、決め打ちしない方が版の違いで黙らない（D-13・A-178）。(c) `PlaceTrainOnRail` の応答の `?.` は Assert の文面の中だけで、null も失敗も同じ「設置失敗」で止まる。出所: 設計検査 Phase 2.6（弱）→ agent 既定 | — | 列を enum にする: 名前の写しが L3 に増える |
+| D-21 | ラダー 4 は青銅インゴットのレシピをサーバー直（`UnlockMachineRecipe`）で解放し、UI でレシピを選んでから入れる。出所: シミュレーター予測（ユーザー裁定 `.decisions/2026-08-30-レシピ未選択の機械は入力を一切受け入れない.md`・`機械入力スロットはサーバー側でもレシピ素材順に固定する.md` との照合）→ agent 既定 | 石窯のレシピは全部未解放で、未選択の機械は入力を受けない。plan §4.4 のラダー 4 の内容に研究は無く、研究の流れはラダー 5 が持つ。選択の操作は S4-machine の UI を踏むのでラダーに含める | 研究で解放する: ラダー 5 と流れが重なり、ラダー 4 が研究ツリーに依存する。初めから解放済みのマスタを使う: ピン先マスタと別のデータになる |
 
 ランタイムの挙動（UI・入力）を確かめるので、unityプレイ録画テスト（Task 5・6・7・9・12）と EditModeInPlayingTest（Task 3）を入れた。
 
@@ -1965,7 +1988,6 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 
 - S4-train の駅名の確定（`train-station-name-apply`）と時刻表の即時送信・保留の印（`train-timetable-section--busy`）は起草版の計画から写した。マージ後の実物で Task 1 Step 2 の照合をする
 - S2-ladder・S3-ladder の計画は未起草（§1.4 で ○）。ラダー 2・3 のシナリオ名（`uitk-opening-hud`・`uitk-build-bp`）は plan §4.4 の名前で、実物は Task 1 Step 1 で確かめる
-- `tutorial-outline` が要素名かクラスか（S2-tutorial の PR #1627 は未マージ）。Task 4 Step 3 のコードは名前で引く形で、Task 1 Step 2 の照合で読み替える
 - `UIElementsUpdatePanels`・`UIElementsRepaintPanels` の実際のマーカー名（Editor の版で `UIElements.UpdatePanels` のように変わりうる）。Task 4 は名前に「UIElements」と「UpdatePanels／RepaintPanels」を含むものを拾い、0 本なら一覧を出して止まる
 - 石窯の入力・出力の枠の名前（`machine-input-slots` の子のスロットの名前）。S4-machine のマージ後に照合
 - 研究ツリーを開くキーが `R` か（`uitk-research-tree` の録画の操作を Task 1 Step 3 で読む）
