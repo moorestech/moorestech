@@ -42,9 +42,18 @@ namespace Client.Tests.PlaceSystem.Feedback
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid)), feedback.Lines[0].TextParams[0]);
-            Assert.AreEqual("0", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("11", feedback.Lines[0].TextParams[2]);
+            var line = feedback.Lines[0];
+            var itemName = Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid));
+            CollectionAssert.AreEqual(new[] { new LocalizationTextParam("itemName", itemName),
+                new LocalizationTextParam("ownedCount", "0"), new LocalizationTextParam("requiredCount", "11") }, line.TextParams);
+            // 実辞書の全枠を生成値で埋める
+            // Fill every real-dictionary placeholder with generated values
+            var template = Localize.Get(line.Key);
+            StringAssert.Contains("{itemName}", template);
+            StringAssert.Contains("{ownedCount}", template);
+            StringAssert.Contains("{requiredCount}", template);
+            Assert.AreEqual(template.Replace("{itemName}", itemName).Replace("{ownedCount}", "0").Replace("{requiredCount}", "11"),
+                Localize.GetFormatted(line.Key, line.TextParams));
         }
 
         [Test]
@@ -59,7 +68,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             feedback.AddMaterialShortages(new[] { new ConstructionMaterialShortage(itemId, 0, 10) });
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual("11", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("11", feedback.Lines[0].TextParams[2].Value);
         }
 
         [Test]
@@ -81,10 +90,10 @@ namespace Client.Tests.PlaceSystem.Feedback
             // 鉄板は先に積んだ位置のまま8へ書き換わり、別素材の行はその後に続く
             // The plate keeps its original position and is rewritten to 8, with the other material following it
             Assert.AreEqual(2, feedback.Lines.Count);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid)), feedback.Lines[0].TextParams[0]);
-            Assert.AreEqual("8", feedback.Lines[0].TextParams[2]);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material2Guid)), feedback.Lines[1].TextParams[0]);
-            Assert.AreEqual("12", feedback.Lines[1].TextParams[2]);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid)), feedback.Lines[0].TextParams[0].Value);
+            Assert.AreEqual("8", feedback.Lines[0].TextParams[2].Value);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material2Guid)), feedback.Lines[1].TextParams[0].Value);
+            Assert.AreEqual("12", feedback.Lines[1].TextParams[2].Value);
         }
 
         [Test]
@@ -99,7 +108,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             feedback.AddMaterialShortages(new[] { new ConstructionMaterialShortage(itemId, 2, 10) });
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual("2", feedback.Lines[0].TextParams[1]);
+            Assert.AreEqual("2", feedback.Lines[0].TextParams[1].Value);
         }
 
         [Test]
@@ -128,7 +137,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             feedback.AddMaterialShortages(new[] { new ConstructionMaterialShortage(itemId, 0, 4) });
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual("4", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("4", feedback.Lines[0].TextParams[2].Value);
         }
     }
 }

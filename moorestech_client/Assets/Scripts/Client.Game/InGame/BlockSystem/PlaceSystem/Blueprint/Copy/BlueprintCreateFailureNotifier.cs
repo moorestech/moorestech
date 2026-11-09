@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.UI.Notification;
 using Server.Event.Notification;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
             // 未解放の拒否はサーバーが denied.blueprint.NotUnlocked で通知するため、二重に出さずログだけにする
             // The server already notifies a locked rejection as denied.blueprint.NotUnlocked, so log only and never show it twice
             if (result.Failure == BlueprintCreateFailure.NotUnlocked) return;
-            source.Notify(NotificationMessagePack.CreateOperationDenied($"denied.blueprintCreate.{result.Failure}", Array.Empty<string>()));
+            source.Notify(NotificationMessagePack.CreateOperationDenied($"denied.blueprintCreate.{result.Failure}", new Dictionary<string, string>()));
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using Game.Block.Interface;
@@ -70,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var notified = GearChain.GearChainEditTestWorld.TakeDenied(sink).Where(n => n.MessageId == "denied.undoRestoreSkipped").ToList();
             Assert.AreEqual(expectedNotified, notified.Count);
-            if (expectedNotified == 1) CollectionAssert.AreEqual(new[] { "1" }, notified[0].MessageParams);
+            if (expectedNotified == 1) CollectionAssert.AreEqual(new Dictionary<string, string> { ["count"] = "1" }, notified[0].MessageParams);
         }
     }
 }

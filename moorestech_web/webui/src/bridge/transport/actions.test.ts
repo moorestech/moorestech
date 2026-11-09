@@ -160,7 +160,7 @@ describe("rocket command transport deadlines", () => {
     let socket: SocketStub;
     vi.stubGlobal("WebSocket", SocketStub);
     vi.stubGlobal("window", globalThis);
-    vi.stubGlobal("location", { protocol: "http:", host: "example.test" });
+    vi.stubGlobal("location", { protocol: "http:", host: "example.test", hash: "" });
     const { initBridge } = await import("./webSocketClient");
     const { dispatchActionOutcome: dispatch } = await import("./actions");
     initBridge();

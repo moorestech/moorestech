@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Client.Ui.State.BlockDetail;
 
 namespace Client.Tests.BlockInfoPolling
 {

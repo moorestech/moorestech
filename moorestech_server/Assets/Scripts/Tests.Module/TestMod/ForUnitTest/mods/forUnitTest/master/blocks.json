@@ -8118,6 +8118,127 @@
         "connectionRange": 30,
         "connectionHeightRange": 20
       }
+    },
+    {
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestFuelMachineWithoutWire",
+      "openable": true,
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "moduleSlotCount": 4,
+        "requiredPower": 0,
+        "idlePowerRate": 0.25,
+        "outputSlotCount": 3,
+        "inputSlotCount": 2,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "0c1e0000-0000-4000-8000-000000000120"
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "0c1e0000-0000-4000-8000-000000000121"
+            }
+          ]
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 0,
+        "connectionRange": 9,
+        "connectionHeightRange": 9,
+        "allowQualityModule": true
+      },
+      "blockGuid": "00000000-0000-0000-0000-000000000120",
+      "category": "テスト",
+      "subCategory": "ElectricMachine",
+      "placementsPerCost": 1
     }
   ],
   "connectorSettings": {

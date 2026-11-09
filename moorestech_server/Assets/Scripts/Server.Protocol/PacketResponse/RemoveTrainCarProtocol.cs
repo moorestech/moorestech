@@ -45,7 +45,7 @@ namespace Server.Protocol.PacketResponse
             if (!_trainUnitLookupDatastore.TryGetTrainUnitByCar(trainCarInstanceId, out var requestTrainUnit))
             {
                 Debug.LogWarning($"Remove train car failed. Train not found. \ncarId: {trainCarInstanceId}");
-                return null;
+                return new RemoveTrainCarResponseMessagePack(false, RemoveTrainCarFailureReason.TrainNotFound);
             }
 
             // 削除対象の車両を特定し、返却アイテム(車両ブロック本体＋積載アイテム)を組み立てる
@@ -54,7 +54,7 @@ namespace Server.Protocol.PacketResponse
             if (targetCar == null)
             {
                 Debug.LogWarning($"Remove train car failed. Car not found in train unit. \ncarId: {trainCarInstanceId}");
-                return null;
+                return new RemoveTrainCarResponseMessagePack(false, RemoveTrainCarFailureReason.CarNotFound);
             }
             var refundItems = BuildRefundItems(targetCar);
 
@@ -64,10 +64,10 @@ namespace Server.Protocol.PacketResponse
             if (!playerMainInventory.InsertionCheck(refundItems))
             {
                 Debug.LogWarning($"Remove train car aborted. Player inventory is full. \ncarId: {trainCarInstanceId}");
-                // 高価な車両が無言で消えない事故を防ぐため満杯を通知する
-                // Notify inventory-full so an expensive car never silently refuses to be removed
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.removeTrainCarInventoryFull", Array.Empty<string>()));
-                return null;
+                // 要求ごとの確定は応答で返し、トーストでも満杯を告げて撤去拒否を無言にしない
+                // Settle each request by response and also toast inventory-full so a refusal is never silent
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.removeTrainCarInventoryFull", new Dictionary<string, string>()));
+                return new RemoveTrainCarResponseMessagePack(false, RemoveTrainCarFailureReason.PlayerInventoryFull);
             }
 
             // 削除の実行
@@ -122,7 +122,7 @@ namespace Server.Protocol.PacketResponse
             // 2nd create
             foreach (var trainUnit in createList)
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(trainUnit);
-            return null;
+            return new RemoveTrainCarResponseMessagePack(true, RemoveTrainCarFailureReason.None);
 
             #region Internal
 
@@ -150,6 +150,31 @@ namespace Server.Protocol.PacketResponse
             }
 
             #endregion
+        }
+
+        public enum RemoveTrainCarFailureReason
+        {
+            None,
+            TrainNotFound,
+            CarNotFound,
+            PlayerInventoryFull,
+        }
+
+        [MessagePackObject]
+        public class RemoveTrainCarResponseMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public bool IsSuccess { get; set; }
+            [Key(3)] public RemoveTrainCarFailureReason FailureReason { get; set; }
+
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RemoveTrainCarResponseMessagePack() { Tag = ProtocolTag; }
+
+            public RemoveTrainCarResponseMessagePack(bool isSuccess, RemoveTrainCarFailureReason failureReason)
+            {
+                Tag = ProtocolTag;
+                IsSuccess = isSuccess;
+                FailureReason = failureReason;
+            }
         }
 
         [MessagePackObject]

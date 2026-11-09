@@ -3,7 +3,7 @@ import type { BlockInventoryOpen } from "@/bridge";
 import { ItemSlot, SlotGrid, ProgressArrowGlyph, FluidSlotRow } from "@/shared/ui";
 import { useBlockSlotGestures } from "../../useBlockSlotGestures";
 import { itemsPerMinute, splitSlotIndices } from "../detailLogic";
-import { buildMachineSlotView, type GhostItem } from "./machineSlotGhosts";
+import { buildMachineSlotView, machineInputRequirement, type GhostItem } from "./machineSlotGhosts";
 import { L, useI18n } from "@/shared/i18n";
 import styles from "./machineInventoryBody.module.css";
 import ModuleSlotStackLimitText from "./ModuleSlotStackLimitText";
@@ -25,14 +25,18 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
   const outputSlots = view.outputs;
   const fluids = view.fluids.map((f) => ({ fluid: data.fluidSlots[f.index], ghost: f.ghost }));
 
-  const slotAt = ({ index, ghost }: { index: number; ghost: GhostItem | undefined }) => {
+  // 素材スロットは実物入りでも必要数を出す
+  // Material slots show the requirement even when filled
+  const slotAt = ({ index, ghost }: { index: number; ghost: GhostItem | undefined }, showsRequirement: boolean) => {
     const slot = data.itemSlots[index];
+    const requirement = showsRequirement ? machineInputRequirement(slot, ghost) : undefined;
     return (
       <ItemSlot
         key={index}
         itemId={slot.itemId}
         count={slot.count}
         ghost={ghost}
+        shortage={requirement && { ...requirement, tooltipKey: null }}
         onLeftDown={(shiftKey) => gestures.onLeftDown(index, shiftKey)}
         onRightDown={() => gestures.onRightDown(index)}
         onDoubleClick={() => gestures.onDoubleClick(index)}
@@ -44,11 +48,11 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
     <Stack gap="xs" align="center" data-testid="machine-inventory-body">
       <div className={styles.processRow}>
         <div className={styles.inputSide}>
-          <SlotGrid cols={Math.max(1, inputSlots.length)} testId="machine-input-slots">{inputSlots.map(slotAt)}</SlotGrid>
+          <SlotGrid cols={Math.max(1, inputSlots.length)} testId="machine-input-slots">{inputSlots.map((bound) => slotAt(bound, true))}</SlotGrid>
         </div>
         <ProgressArrowGlyph value={data.progress ?? 0} testId="machine-progress-arrow" />
         <div className={styles.outputSide}>
-          <SlotGrid cols={Math.max(1, outputSlots.length)} testId="machine-output-slots">{outputSlots.map(slotAt)}</SlotGrid>
+          <SlotGrid cols={Math.max(1, outputSlots.length)} testId="machine-output-slots">{outputSlots.map((bound) => slotAt(bound, false))}</SlotGrid>
         </div>
       </div>
       {/* モジュールスロットは加工行から1段下げ、ラベルを添えて入出力と区別する */}
@@ -59,7 +63,7 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
             {t(L.ui.blockInventory.upgradeSlots)}
           </Text>
           <ModuleSlotStackLimitText />
-          <SlotGrid cols={module.length} testId="machine-module-slots">{module.map((i) => slotAt({ index: i, ghost: undefined }))}</SlotGrid>
+          <SlotGrid cols={module.length} testId="machine-module-slots">{module.map((i) => slotAt({ index: i, ghost: undefined }, false))}</SlotGrid>
         </Stack>
       )}
       {/* 機械の流体行は従来どおり矢印なし（加工進捗は入出力グリッド間の矢印が担う） */}

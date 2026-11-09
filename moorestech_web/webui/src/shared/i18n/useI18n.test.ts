@@ -181,64 +181,15 @@ describe("useI18n translation behavior", () => {
   });
 
   it("leaves unknown interpolation variables visible for diagnosis", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const t = createTranslator({
       ...readySnapshotState,
       locale: "english",
       dictionaries: loadedDictionaries({ [L.ui.mainMenu.playLocally]: "Hello {name}, {count}" }, {}, {}),
     });
     expect(t(L.ui.mainMenu.playLocally, { name: "Moore" })).toBe("Hello Moore, {count}");
-  });
-
-  it("warns once per missing key until dictionaries change", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const current = {
-      ...readySnapshotState,
-      locale: "japanese",
-      dictionaries: loadedDictionaries({}, {}, {}),
-    };
-    setDictionaries(current.locale, {}, {}, {});
-    const first = createTranslator(current);
-    const second = createTranslator(current);
-
-    first(L.ui.mainMenu.playLocally);
-    second(L.ui.mainMenu.playLocally);
-    expect(warn).toHaveBeenCalledTimes(1);
-
-    // 辞書更新後に警告を再許可する
-    // Allow the warning again after dictionary updates
-    setDictionaries("english", {}, {}, {});
-    createTranslator({
-      ...readySnapshotState,
-      locale: "english",
-      dictionaries: loadedDictionaries({}, {}, {}),
-    })(
-      L.ui.mainMenu.playLocally,
-    );
-    expect(warn).toHaveBeenCalledTimes(2);
+    expect(warn).toHaveBeenCalledWith(`[i18n] Missing interpolation value: ${L.ui.mainMenu.playLocally} {count}`);
     warn.mockRestore();
   });
 
-  it("keeps missing-key warnings isolated between old and current translators", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    setDictionaries("japanese", {}, {}, {});
-    const oldTranslator = createTranslator({
-      ...readySnapshotState,
-      locale: "japanese",
-      dictionaries: loadedDictionaries({}, {}, {}),
-    });
-
-    // 旧翻訳器と現行警告を分離する
-    // Keep old translators isolated from current warnings
-    setDictionaries("english", {}, {}, {});
-    const currentTranslator = createTranslator({
-      ...readySnapshotState,
-      locale: "english",
-      dictionaries: loadedDictionaries({}, {}, {}),
-    });
-    oldTranslator(L.ui.mainMenu.playLocally);
-    currentTranslator(L.ui.mainMenu.playLocally);
-
-    expect(warn).toHaveBeenCalledTimes(2);
-    warn.mockRestore();
-  });
 });

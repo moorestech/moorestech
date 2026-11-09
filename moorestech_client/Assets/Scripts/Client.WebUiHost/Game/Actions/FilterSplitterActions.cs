@@ -3,7 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
-using Client.WebUiHost.Game.Topics;
+using Client.Ui.State.BlockDetail;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.FilterSplitter;
@@ -21,12 +21,12 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "filter_splitter.set_mode";
 
         private readonly SubInventoryState _subInventoryState;
-        private readonly BlockInventoryTopic _blockInventoryTopic;
+        private readonly BlockNetworkInfoCache _networkCache;
 
-        public FilterSplitterSetModeActionHandler(SubInventoryState subInventoryState, BlockInventoryTopic blockInventoryTopic)
+        public FilterSplitterSetModeActionHandler(SubInventoryState subInventoryState, BlockNetworkInfoCache networkCache)
         {
             _subInventoryState = subInventoryState;
-            _blockInventoryTopic = blockInventoryTopic;
+            _networkCache = networkCache;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -43,7 +43,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 応答スナップショットをキャッシュへ反映し topic を再配信する（D2: state は topic 一本）
             // Apply the response snapshot to the cache and republish the topic (D2: state flows only via topics)
-            _blockInventoryTopic.NetworkCache.ApplyFilterSplitterSnapshot(response);
+            _networkCache.ApplyFilterSplitterSnapshot(response);
             return ActionResult.Success();
         }
 
@@ -70,13 +70,13 @@ namespace Client.WebUiHost.Game.Actions
 
         private readonly SubInventoryState _subInventoryState;
         private readonly LocalPlayerInventoryController _controller;
-        private readonly BlockInventoryTopic _blockInventoryTopic;
+        private readonly BlockNetworkInfoCache _networkCache;
 
-        public FilterSplitterSetFilterItemActionHandler(SubInventoryState subInventoryState, LocalPlayerInventoryController controller, BlockInventoryTopic blockInventoryTopic)
+        public FilterSplitterSetFilterItemActionHandler(SubInventoryState subInventoryState, LocalPlayerInventoryController controller, BlockNetworkInfoCache networkCache)
         {
             _subInventoryState = subInventoryState;
             _controller = controller;
-            _blockInventoryTopic = blockInventoryTopic;
+            _networkCache = networkCache;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -94,7 +94,7 @@ namespace Client.WebUiHost.Game.Actions
             var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, CancellationToken.None);
             if (response == null || !response.Success) return ActionResult.Fail("filter_request_failed");
 
-            _blockInventoryTopic.NetworkCache.ApplyFilterSplitterSnapshot(response);
+            _networkCache.ApplyFilterSplitterSnapshot(response);
             return ActionResult.Success();
         }
     }

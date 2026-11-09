@@ -114,7 +114,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var message = EnumerateBlueprintDenials()
                 .Single(e => e.MessageId == $"denied.blueprint.{reason}");
-            if (0 <= count) Assert.AreEqual(count.ToString(), message.MessageParams[0]);
+            if (0 <= count) Assert.AreEqual(count.ToString(), message.MessageParams["count"]);
         }
 
         private IEnumerable<NotificationMessagePack> EnumerateBlueprintDenials()

@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
@@ -16,7 +17,7 @@ namespace Client.Tests.Interact
 
         public InputKey Key { get; }
         public LocalizationKey HintKey { get; }
-        public IReadOnlyList<string> HintParams => Array.Empty<string>();
+        public IReadOnlyList<LocalizationTextParam> HintParams => Array.Empty<LocalizationTextParam>();
         public int ExecutedCount { get; private set; }
 
         public StubTapInteractAction(InputKey key, LocalizationKey hintKey, UIStateEnum nextState)

@@ -61,8 +61,8 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     await Refuel();
     await WaitPlaced(reactorPos);
     await OpenBlock(reactorPos, 9.5f);
-    await p.UntilWebUiElement("generator-section", 15f);
-    await p.UntilWebUiElement("generator-fluid-slots", 15f);
+    await p.UntilUiElement("generator-section", 15f);
+    await p.UntilUiElement("generator-fluid-slots", 15f);
     await p.Screenshot("01-fusion-reactor-operating");
     await CloseUi();
 
@@ -84,9 +84,9 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // ケーブルが無いと接続できず理由が出る
     // Without cables the base cannot connect and shows why
     await OpenBlock(elevatorPos, 4.5f);
-    await p.UntilWebUiElement("space-elevator-section", 15f);
+    await p.UntilUiElement("space-elevator-section", 15f);
     await p.Until(() => Detail().Status == SpaceElevatorBaseStatus.InsufficientCable, 10f, "サーバーがケーブル不足と判定した");
-    await p.UntilWebUiElement("space-elevator-status", 15f);
+    await p.UntilUiElement("space-elevator-status", 15f);
     await p.Screenshot("02-elevator-not-enough-cable");
 
     // ケーブル1便の軌道到着でプールを満たし、接続する（本物の打ち上げは段4で確かめた）
@@ -95,7 +95,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     p.Note($"グラフェンケーブル1便（{cablesPerElevator}本）の軌道到着をサーバーで起こし、接続ボタンを押す");
     await p.RunOnServer("ケーブル1便を軌道へ到着させる", () => ServerContext.GetService<IOrbitalArrivalService>().Arrive(cableId, cablesPerElevator));
     await p.Until(() => Detail().CablePoolAmount == cablesPerElevator, 10f, $"プールが{cablesPerElevator}本になった");
-    await p.ClickWebUi("space-elevator-connect");
+    await p.ClickUi("space-elevator-connect");
     await p.Until(() => Detail().IsConnected, 10f, "拠点が接続済みになった");
     await p.WaitForCableCount(0, 10f, "プールから1エレベーター分が引かれた");
     var cableObject = elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Cable").gameObject;
@@ -132,7 +132,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     }
     await p.Until(Delivered, 0f, "昇り切って出口に成果が出た");
     await OpenBlock(elevatorPos, 4.5f);
-    await p.UntilWebUiElement("space-elevator-output-grid", 10f);
+    await p.UntilUiElement("space-elevator-output-grid", 10f);
     await p.Screenshot("05-elevator-delivered");
     await CloseUi();
 
@@ -185,12 +185,12 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement("block-inventory-close", 10f);
     }
 
     async UniTask CloseUi()
     {
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 

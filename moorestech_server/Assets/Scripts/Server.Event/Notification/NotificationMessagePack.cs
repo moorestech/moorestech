@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Master;
 using MessagePack;
 
@@ -23,7 +24,7 @@ namespace Server.Event.Notification
         // Event MessagePacks do not inherit ProtocolMessagePackBase; keys start at 0
         [Key(0)] public NotificationCategory Category { get; set; }
         [Key(1)] public string MessageId { get; set; }
-        [Key(2)] public string[] MessageParams { get; set; }
+        [Key(2)] public Dictionary<string, string> MessageParams { get; set; }
         [Key(3)] public ItemId ItemId { get; set; }
         [Key(4)] public int Count { get; set; }
 
@@ -32,7 +33,7 @@ namespace Server.Event.Notification
 
         // 生成はstatic factory経由のみ。カテゴリごとの必要フィールドを型で明示する
         // Construction goes through static factories so each category's required fields are explicit
-        private NotificationMessagePack(NotificationCategory category, string messageId, string[] messageParams, ItemId itemId, int count)
+        private NotificationMessagePack(NotificationCategory category, string messageId, Dictionary<string, string> messageParams, ItemId itemId, int count)
         {
             Category = category;
             MessageId = messageId;
@@ -41,13 +42,13 @@ namespace Server.Event.Notification
             Count = count;
         }
 
-        public static NotificationMessagePack CreateAchievement(string messageId, string[] messageParams)
+        public static NotificationMessagePack CreateAchievement(string messageId, Dictionary<string, string> messageParams)
             => new(NotificationCategory.Achievement, messageId, messageParams, ItemMaster.EmptyItemId, 0);
 
-        public static NotificationMessagePack CreateAchievementWithItem(string messageId, string[] messageParams, ItemId itemId)
+        public static NotificationMessagePack CreateAchievementWithItem(string messageId, Dictionary<string, string> messageParams, ItemId itemId)
             => new(NotificationCategory.Achievement, messageId, messageParams, itemId, 0);
 
-        public static NotificationMessagePack CreateOperationDenied(string messageId, string[] messageParams)
+        public static NotificationMessagePack CreateOperationDenied(string messageId, Dictionary<string, string> messageParams)
             => new(NotificationCategory.OperationDenied, messageId, messageParams, ItemMaster.EmptyItemId, 0);
 
         // 0個獲得・アイテム無しの獲得は存在しない結果なので生成時点で弾く
@@ -56,14 +57,19 @@ namespace Server.Event.Notification
         {
             if (count < 1) throw new ArgumentOutOfRangeException(nameof(count), count, null);
             if (itemId == ItemMaster.EmptyItemId) throw new ArgumentException("itemId must not be empty", nameof(itemId));
-            return new NotificationMessagePack(NotificationCategory.ItemEarned, ItemEarnedMessageId, Array.Empty<string>(), itemId, count);
+            return new NotificationMessagePack(NotificationCategory.ItemEarned, ItemEarnedMessageId, new Dictionary<string, string>(), itemId, count);
         }
 
         // 除去件数はロード時に確定する3つの数。Web側が文言を持つのでIDと数だけを送る
         // The three counts settle at load time; only the id and the numbers travel since the web owns the wording
         public static NotificationMessagePack CreateSaveMigrationPruned(int removedBlockCount, int emptiedItemStackCount, int removedResearchCount)
             => new(NotificationCategory.SaveMigration, "saveMigration.missingMasterPruned",
-                new[] { removedBlockCount.ToString(), emptiedItemStackCount.ToString(), removedResearchCount.ToString() },
+                new Dictionary<string, string>
+                {
+                    ["blockCount"] = removedBlockCount.ToString(),
+                    ["itemStackCount"] = emptiedItemStackCount.ToString(),
+                    ["researchCount"] = removedResearchCount.ToString(),
+                },
                 ItemMaster.EmptyItemId, 0);
     }
 }

@@ -21,6 +21,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         public const string TopicName = "build_menu.entries";
 
+        private readonly IDisposable _uiStateSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
@@ -48,7 +49,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
             // 入場・BP更新・残数変化で再配信
             // Republish on entry, BP updates, and remaining-count changes
-            _uiStateControl.OnStateChanged += OnStateChanged;
+            _uiStateSubscription = _uiStateControl.OnStateChanged.Subscribe(OnStateChanged);
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());
             _thumbnailSubscription = _thumbnails.OnThumbnailChanged.Subscribe(_ => SchedulePublish());
             _remainingSubscription = _constructionWalletQuery.OnWalletChanged.Subscribe(_ => SchedulePublish());
@@ -68,7 +69,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public void Dispose()
         {
             _disposed = true;
-            _uiStateControl.OnStateChanged -= OnStateChanged;
+            _uiStateSubscription.Dispose();
             _librarySubscription.Dispose();
             _thumbnailSubscription.Dispose();
             _remainingSubscription.Dispose();

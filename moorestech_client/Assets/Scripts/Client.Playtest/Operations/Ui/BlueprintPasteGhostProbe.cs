@@ -1,3 +1,4 @@
+using Client.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
@@ -94,7 +95,7 @@ namespace Client.Playtest.Operations.Ui
             return count;
         }
 
-        public List<IReadOnlyList<string>> MaterialShortageLines()
+        public List<IReadOnlyList<LocalizationTextParam>> MaterialShortageLines()
         {
             return _tooltip.GetPresentation().Lines
                 .Where(line => line.Key.Key == LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key)

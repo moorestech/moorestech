@@ -1,3 +1,4 @@
+using Client.Ui.State.Train;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;

@@ -1,0 +1,122 @@
+{
+    "RunName": "uitk-s3-s15",
+    "Success": false,
+    "Error": "",
+    "StartedAt": "2026-10-26T01:14:12.2085730+09:00",
+    "FinishedAt": "2026-10-26T01:14:40.9470160+09:00",
+    "Asserts": [
+        {
+            "Label": "A locked: pointerdown reached UITK button",
+            "Passed": false,
+            "Message": "assertion failed"
+        },
+        {
+            "Label": "A locked: click reached UITK button",
+            "Passed": false,
+            "Message": "assertion failed"
+        },
+        {
+            "Label": "B alt-free: pointerdown reached UITK button",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "B alt-free: click reached UITK button",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "hotbar-slot-8 resolved",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "ack root-none",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "ack restore",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "ack all-none-important",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "ack restore",
+            "Passed": true,
+            "Message": "condition met"
+        }
+    ],
+    "Timeline": [
+        "    0.3s [NOTE] [Playtest] env config: FreeBlockPlacement=True, CreateFlatGround=True, SpawnPosition=(0.00, 33.50, 0.00)",
+        "    0.3s [STEP] デバッグ環境をセットアップ",
+        "    1.1s [STEP] 開幕スキットを再生中なら飛ばす",
+        "    6.4s [WAIT] 1秒",
+        "    8.1s [NOTE] A locked hover button: lock=Locked IsPointerOverGameObject=False UiPointerHitTest=False webPointerOverUi=False mouse=(1143.00, 399.00) F1362",
+        "    8.4s [FAIL] A locked: pointerdown reached UITK button",
+        "    8.4s [FAIL] A locked: click reached UITK button",
+        "    8.4s [NOTE] A locked: screen=(1143.00, 399.00) expectedPanel=(1714.50, 481.50) screenToPanel=(1714.50, 481.50) eventPanel=none downs=0 clicks=0",
+        "    8.4s [STEP] スクリーンショット: s3_a_locked",
+        "    9.3s [NOTE] B alt-free hover button: lock=None IsPointerOverGameObject=True UiPointerHitTest=True webPointerOverUi=False mouse=(1143.00, 399.00) F1399",
+        "    9.6s [PASS] B alt-free: pointerdown reached UITK button",
+        "    9.6s [PASS] B alt-free: click reached UITK button",
+        "    9.6s [NOTE] B alt-free: screen=(1143.00, 399.00) expectedPanel=(1714.50, 481.50) screenToPanel=(1714.50, 481.50) eventPanel=(1714.50, 481.50) downs=1 clicks=1",
+        "    9.6s [STEP] スクリーンショット: s3_b_altfree",
+        "   10.3s [NOTE] B empty world: lock=None IsPointerOverGameObject=False UiPointerHitTest=False webPointerOverUi=False mouse=(640.00, 396.00) F1429",
+        "   11.0s [NOTE] B over UITK front plate (picking ignore): lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(640.00, 36.00) F1449",
+        "   11.1s [PASS] hotbar-slot-8 resolved",
+        "   11.9s [NOTE] S15 baseline moved to empty world: lock=None IsPointerOverGameObject=False UiPointerHitTest=False webPointerOverUi=False mouse=(640.00, 396.00) F1476",
+        "   12.8s [NOTE] S15 baseline hover slot9: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1502",
+        "   12.9s [WAIT] 0.8秒",
+        "   13.8s [NOTE] S15 baseline: actions on click=1 [[PocActionLog] type=hotbar.select] ack=",
+        "   13.8s [STEP] スクリーンショット: s15_baseline",
+        "   13.8s [WAIT] ack root-none",
+        "   13.8s [PASS] ack root-none",
+        "   14.2s [NOTE] S15 root-none after toggle, pointer not moved: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1543",
+        "   15.1s [NOTE] S15 root-none moved to empty world: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(640.00, 396.00) F1567",
+        "   16.4s [NOTE] S15 root-none hover slot9: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1596",
+        "   16.7s [WAIT] 0.8秒",
+        "   17.4s [NOTE] S15 root-none: actions on click=1 [[PocActionLog] type=hotbar.select] ack={\"requestId\":\"c22de46e-106b-4aca-995a-6841a38bfcb1\",\"mode\":\"root-none\",\"elementsStillHittable\":32}",
+        "   17.4s [STEP] スクリーンショット: s15_root-none",
+        "   17.5s [WAIT] ack restore",
+        "   17.6s [PASS] ack restore",
+        "   17.9s [NOTE] S15 restore after toggle, pointer not moved: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1637",
+        "   18.7s [NOTE] S15 restore moved to empty world: lock=None IsPointerOverGameObject=False UiPointerHitTest=False webPointerOverUi=False mouse=(640.00, 396.00) F1662",
+        "   19.6s [NOTE] S15 restore hover slot9: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1689",
+        "   19.8s [WAIT] 0.8秒",
+        "   20.6s [NOTE] S15 restore: actions on click=1 [[PocActionLog] type=hotbar.select] ack={\"requestId\":\"49ed58d3-10a4-486e-beaa-99dd7cc5dd1f\",\"mode\":\"restore\",\"elementsStillHittable\":106}",
+        "   20.6s [STEP] スクリーンショット: s15_restore",
+        "   20.6s [WAIT] ack all-none-important",
+        "   20.7s [PASS] ack all-none-important",
+        "   21.0s [NOTE] S15 all-none-important after toggle, pointer not moved: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1730",
+        "   21.9s [NOTE] S15 all-none-important moved to empty world: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(640.00, 396.00) F1754",
+        "   22.8s [NOTE] S15 all-none-important hover slot9: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1781",
+        "   22.9s [WAIT] 0.8秒",
+        "   23.7s [NOTE] S15 all-none-important: actions on click=0 [] ack={\"requestId\":\"d8ce9405-0f71-426f-91a4-9a52d555b1b1\",\"mode\":\"all-none-important\",\"elementsStillHittable\":0}",
+        "   23.7s [STEP] スクリーンショット: s15_all-none-important",
+        "   23.8s [WAIT] ack restore",
+        "   23.8s [PASS] ack restore",
+        "   24.2s [NOTE] S15 restore after toggle, pointer not moved: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1822",
+        "   25.0s [NOTE] S15 restore moved to empty world: lock=None IsPointerOverGameObject=False UiPointerHitTest=False webPointerOverUi=False mouse=(640.00, 396.00) F1847",
+        "   25.9s [NOTE] S15 restore hover slot9: lock=None IsPointerOverGameObject=False UiPointerHitTest=True webPointerOverUi=True mouse=(867.46, 27.84) F1874",
+        "   26.0s [WAIT] 0.8秒",
+        "   26.9s [NOTE] S15 restore: actions on click=1 [[PocActionLog] type=hotbar.select] ack={\"requestId\":\"9194d2a1-f903-4965-bc65-cb1c7aae6c9d\",\"mode\":\"restore\",\"elementsStillHittable\":106}",
+        "   26.9s [STEP] スクリーンショット: s15_restore",
+        "   27.0s [WAIT] 0.5秒"
+    ],
+    "ErrorLogs": [],
+    "Screenshots": [
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/s3_a_locked.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/s3_b_altfree.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/s15_baseline.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/s15_root-none.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/s15_restore.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/s15_all-none-important.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/s15_restore.png"
+    ],
+    "RecordingPath": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_011324/uitk-s3-s15/recording.mp4"
+}

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { setSkitStage, setTopicScenario, setUiState } from "../support/mockControl";
 import { expectAbove, expectSeparatedHorizontally, expectWithinViewport } from "../support/layoutAssertions";
 import { expectChallengeHudPresentation, readChallengeHudPresentation, readChallengeHudTokens } from "../support/challengeHudAssertions";
@@ -145,4 +145,26 @@ test("背景スキット中は進行中チャレンジの描画契約を維持�
   await setSkitStage(page, "background");
   await expect(page.getByTestId("background-skit")).toBeVisible();
   await expectChallengeHudPresentation(page, worldPresentation);
+});
+
+// ノード中心とビューポート中心の距離
+// Distance between node center and viewport center
+async function expectCenteredInChallengeViewport(page: Page, nodeTestId: string) {
+  const viewportBox = await page.getByTestId("challenge-viewport").boundingBox();
+  const nodeBox = await page.getByTestId(nodeTestId).boundingBox();
+  expect(viewportBox).not.toBeNull();
+  expect(nodeBox).not.toBeNull();
+  expect(Math.abs(nodeBox!.x + nodeBox!.width / 2 - (viewportBox!.x + viewportBox!.width / 2))).toBeLessThanOrEqual(1.5);
+  expect(Math.abs(nodeBox!.y + nodeBox!.height / 2 - (viewportBox!.y + viewportBox!.height / 2))).toBeLessThanOrEqual(1.5);
+}
+
+test("チャレンジ画面は進行中のチャレンジを中央にして開き、カテゴリ切替でもその進行中へ寄せる", async ({ page }) => {
+  await setUiState(page, "ChallengeList");
+  await page.goto("/");
+  await expect(page.getByTestId("challenge-node-82000000-0000-4000-8000-000000000002")).toBeVisible();
+  await expectCenteredInChallengeViewport(page, "challenge-node-82000000-0000-4000-8000-000000000002");
+
+  await page.getByTestId("challenge-category-81000000-0000-4000-8000-000000000002").click();
+  await expect(page.getByTestId("challenge-node-82000000-0000-4000-8000-00000000000c")).toBeVisible();
+  await expectCenteredInChallengeViewport(page, "challenge-node-82000000-0000-4000-8000-00000000000c");
 });

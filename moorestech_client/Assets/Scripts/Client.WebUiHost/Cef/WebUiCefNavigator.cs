@@ -1,4 +1,5 @@
 using CefUnity.Runtime;
+using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -42,17 +43,24 @@ namespace Client.WebUiHost.Cef
                 var url = Boot.WebUiHost.WebUiUrl;
                 if (string.IsNullOrEmpty(url)) return;
 
+                // ホストが起動しブラウザを生成した後でだけ CEF プロセスの観測を始める。起動失敗時は notObserved のまま残す
+                // Start observing the CEF process only after the host started and the browser exists; a failed startup stays notObserved
+                WebUiHealthRecorder.ObserveCefRuntime();
+
                 var browser = GetComponent<CefUnityBrowserSample>();
+                var hub = Boot.WebUiHost.Hub;
+                var navigationId = WebUiCefConnection.BeginNavigation(hub);
+                var cefUrl = url + "#cefNavigation=" + navigationId;
 
                 // 初期ナビゲーションと競合すると LoadUrl が無言で負けるため、ページの WS 接続が確立するまで再発行する
                 // LoadUrl can silently lose against the in-flight initial navigation; re-issue until the page's WS connection is up
                 for (var attempt = 1; attempt <= MaxNavigateAttempts; attempt++)
                 {
                     Debug.Log($"[WebUiHost] CEF LoadUrl attempt {attempt}: {url}");
-                    browser.LoadUrl(url);
+                    browser.LoadUrl(cefUrl);
 
                     await UniTask.Delay(attempt * 1000);
-                    if (Boot.WebUiHost.Hub is { HasConnections: true }) return;
+                    if (WebUiCefConnection.TryGetConnection(hub, out _)) return;
                 }
                 Debug.LogWarning($"[WebUiHost] CEF navigation unconfirmed after {MaxNavigateAttempts} attempts (no WS connection)");
             }

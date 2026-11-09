@@ -1,0 +1,7 @@
+Mono path[0] = '<scratchpad>/builds/mac/moorestech.app/Contents/Resources/Data/Managed'
+Mono config path = '<scratchpad>/builds/mac/moorestech.app/Contents/MonoBleedingEdge/etc'
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+No GlobalGameManagers file was found at <scratchpad>/builds/mac/moorestech.app/Contents/Resources/Data, quitting player!
+Failed to initialize engine

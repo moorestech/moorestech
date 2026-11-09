@@ -41,7 +41,7 @@ async function main() {
   // Push each id straight onto the notification topic
   const pushAll = async () => {
     for (const [i, messageId] of MESSAGE_IDS.entries()) {
-      const data = { seq: 100 + i, category: "operationDenied" as const, messageId, messageParams: ["3"], itemId: null };
+      const data = { seq: 100 + i, category: "operationDenied" as const, messageId, messageParams: { count: "3" }, itemId: null };
       for (const ws of topicSubscribers.get(Topics.notification) ?? []) send(ws, { op: "event", topic: Topics.notification, data });
     }
     await page.getByTestId("notification-row").nth(MESSAGE_IDS.length - 1).waitFor();
