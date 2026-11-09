@@ -7,11 +7,19 @@ namespace Client.Ui.Foundation.Anchor
     public static class TutorialAnchor
     {
         public const string MarkerClassName = "tutorial-anchor";
+        public const string ClipContainerClassName = "tutorial-anchor-clip";
 
         public static void Mark(VisualElement element, params string[] ids)
         {
             element.AddToClassList(MarkerClassName);
             foreach (var id in ids) element.AddToClassList(id);
+        }
+
+        // USS の overflow: hidden で子を切る要素に付ける。C# は USS 由来の overflow を読めないので、祖先クリップの判定はこの印で行う（ADR 0024）
+        // Put on elements whose USS overflow: hidden clips children; C# cannot read USS overflow, so the ancestor clip walk uses this mark (ADR 0024)
+        public static void MarkClipContainer(VisualElement element)
+        {
+            element.AddToClassList(ClipContainerClassName);
         }
     }
 }

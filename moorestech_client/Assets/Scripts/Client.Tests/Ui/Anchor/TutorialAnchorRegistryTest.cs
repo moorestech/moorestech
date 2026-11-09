@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Anchor;
@@ -15,11 +14,6 @@ namespace Client.Tests.Ui.Anchor
     /// </summary>
     public class TutorialAnchorRegistryTest : UiTestHost
     {
-        private static void ExpectRegistryWarning()
-        {
-            LogAssert.Expect(LogType.Warning, new Regex("TutorialAnchorRegistry"));
-        }
-
         [Test]
         public void MarkedElementResolvesAsUnique()
         {
@@ -43,7 +37,6 @@ namespace Client.Tests.Ui.Anchor
             rootVisualElement.Add(element);
             element.RemoveFromHierarchy();
 
-            ExpectRegistryWarning();
             Assert.IsInstanceOf<TutorialAnchorResolution.Missing>(TutorialAnchorRegistry.Resolve(rootVisualElement, "pause.menu"));
         }
 
@@ -57,7 +50,6 @@ namespace Client.Tests.Ui.Anchor
             rootVisualElement.Add(first);
             rootVisualElement.Add(second);
 
-            ExpectRegistryWarning();
             var result = TutorialAnchorRegistry.Resolve(rootVisualElement, "pause.menu");
 
             Assert.IsInstanceOf<TutorialAnchorResolution.Duplicate>(result);
@@ -85,8 +77,34 @@ namespace Client.Tests.Ui.Anchor
             rootVisualElement.Add(parent);
             parent.RemoveFromHierarchy();
 
-            ExpectRegistryWarning();
             Assert.IsInstanceOf<TutorialAnchorResolution.Missing>(TutorialAnchorRegistry.Resolve(rootVisualElement, "pause.back"));
+        }
+
+        [Test]
+        public void 解決はログを出さず状態の遷移の報告を呼ぶ側に任せる()
+        {
+            var first = new VisualElement();
+            var second = new VisualElement();
+            TutorialAnchor.Mark(first, AnchorIds.PauseMenu);
+            TutorialAnchor.Mark(second, AnchorIds.PauseMenu);
+            rootVisualElement.Add(first);
+            rootVisualElement.Add(second);
+
+            // 毎フレームの追跡で呼ばれるので、0 件・複数件でも Resolve 自身は黙る
+            // Called every frame by the tracker, so Resolve stays silent even for zero or multiple matches
+            TutorialAnchorRegistry.Resolve(rootVisualElement, "pause.menu");
+            TutorialAnchorRegistry.Resolve(rootVisualElement, "pause.save");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void クリップ容器の印は専用のクラスを付ける()
+        {
+            var container = new VisualElement();
+            TutorialAnchor.MarkClipContainer(container);
+
+            Assert.IsTrue(container.ClassListContains(TutorialAnchor.ClipContainerClassName));
+            Assert.IsFalse(container.ClassListContains(TutorialAnchor.MarkerClassName));
         }
     }
 }

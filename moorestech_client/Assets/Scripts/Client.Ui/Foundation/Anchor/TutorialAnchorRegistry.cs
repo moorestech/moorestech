@@ -1,4 +1,3 @@
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Anchor
@@ -20,18 +19,10 @@ namespace Client.Ui.Foundation.Anchor
                 count++;
             }
 
-            // 0件と複数件は開発者ログへ出す（呼び出し側のチュートリアルが枠を出せない原因になる）
-            // Log zero and multiple matches for developers (they explain why a tutorial cannot show its frame)
-            if (count == 0)
-            {
-                Debug.LogWarning($"[TutorialAnchorRegistry] anchor is missing: {anchorId}");
-                return new TutorialAnchorResolution.Missing();
-            }
-            if (1 < count)
-            {
-                Debug.LogWarning($"[TutorialAnchorRegistry] anchor is duplicated ({count}): {anchorId}");
-                return new TutorialAnchorResolution.Duplicate(count);
-            }
+            // 0件・複数件の報告は、状態の遷移を知っている呼ぶ側（TutorialAnchorTracker）が出す。毎フレーム呼ばれるのでここでは黙る
+            // Callers that know state transitions (TutorialAnchorTracker) report zero or multiple matches; this runs every frame so it stays silent
+            if (count == 0) return new TutorialAnchorResolution.Missing();
+            if (1 < count) return new TutorialAnchorResolution.Duplicate(count);
             return new TutorialAnchorResolution.Unique(found);
         }
     }
