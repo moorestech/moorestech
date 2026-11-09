@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Tutorial.Logic;
 using UniRx;
 using UnityEngine;
@@ -20,12 +19,11 @@ namespace Client.Ui.Screens.Tutorial.Anchor
     /// The per-frame measure runs on the scheduler (before layout) and catches transforms such as scrolling and inline display toggles.
     /// Layout changes such as moves and display: none are re-measured from GeometryChangedEvent within the same frame.
     /// </remarks>
-    public sealed class TutorialAnchorTracker : ITutorialAnchorStateLookup, ITutorialAnchorGroundLookup
+    public sealed class TutorialAnchorTracker : ITutorialAnchorStateLookup
     {
         private readonly VisualElement _searchRoot;
         private readonly VisualElement _coordinateSpace;
         private readonly TutorialAnchorStateBook _book = new();
-        private readonly Dictionary<string, TutorialAnchorGround> _grounds = new();
         private readonly TutorialAnchorGeometryWatch _geometryWatch;
         private readonly Subject<string> _onAnchorChanged = new();
         private string[] _subscribed = Array.Empty<string>();
@@ -47,7 +45,6 @@ namespace Client.Ui.Screens.Tutorial.Anchor
             // Swapping subscriptions keeps continuing anchors and drops only the removed ones
             _subscribed = new HashSet<string>(anchorIds).ToArray();
             _book.KeepOnly(anchorIds);
-            foreach (var removed in _grounds.Keys.Except(_subscribed).ToArray()) _grounds.Remove(removed);
             MeasureAll();
             // 購読がある間だけ毎フレーム測る（plan §4.5。木の変化を待たずスクロール・移動にも追従する）
             // Measure every frame only while something is subscribed (plan §4.5; follows scroll and moves too)
@@ -62,7 +59,6 @@ namespace Client.Ui.Screens.Tutorial.Anchor
             // Once the screen detaches, stop measuring and drop states (the Presenter resubscribes on re-attach; D-32)
             _subscribed = Array.Empty<string>();
             _book.KeepOnly(Array.Empty<string>());
-            _grounds.Clear();
             _geometryWatch.Clear();
             _poll?.Pause();
         }
@@ -70,11 +66,6 @@ namespace Client.Ui.Screens.Tutorial.Anchor
         public bool TryGet(string anchorId, out TutorialAnchorState state)
         {
             return _book.TryGet(anchorId, out state);
-        }
-
-        public bool TryGetGround(string anchorId, out TutorialAnchorGround ground)
-        {
-            return _grounds.TryGetValue(anchorId, out ground);
         }
 
         private void MeasureAll()
@@ -92,14 +83,7 @@ namespace Client.Ui.Screens.Tutorial.Anchor
                 // 変わった時だけ記帳・報告・通知する
                 // Record, report and notify only on change
                 var state = TutorialAnchorMeasure.Measure(resolution, _coordinateSpace);
-                var groundChanged = RecordGround(anchorId, resolution);
-                if (!_book.ApplyIfChanged(anchorId, state))
-                {
-                    // 矩形が同じでも地が変われば描き直す（グローの色が地で変わる）
-                    // Redraw when only the ground changed (the glow color depends on it)
-                    if (groundChanged) _onAnchorChanged.OnNext(anchorId);
-                    continue;
-                }
+                if (!_book.ApplyIfChanged(anchorId, state)) continue;
                 ReportTransition(anchorId, resolution, state);
                 _onAnchorChanged.OnNext(anchorId);
             }
@@ -108,16 +92,6 @@ namespace Client.Ui.Screens.Tutorial.Anchor
             if (subscribed == _subscribed) _geometryWatch.EndCollect();
 
             #region Internal
-
-            bool RecordGround(string anchorId, TutorialAnchorResolution resolution)
-            {
-                // silent-ok: 見つからないアンカーには地が無い（枠を出さない） / 理由は ReportTransition が遷移時に出す
-                if (resolution is not TutorialAnchorResolution.Unique unique) return _grounds.Remove(anchorId);
-                var ground = UiSurface.HasSurfaceAncestor(unique.Element) ? TutorialAnchorGround.OverSurface : TutorialAnchorGround.OverWorld;
-                if (_grounds.TryGetValue(anchorId, out var previous) && previous == ground) return false;
-                _grounds[anchorId] = ground;
-                return true;
-            }
 
             void ReportTransition(string anchorId, TutorialAnchorResolution resolution, TutorialAnchorState state)
             {

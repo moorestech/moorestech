@@ -294,7 +294,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | C2-c | A-31〜A-37 | LX-16〜21（LX-1 は C2-c が消す） |
 | S5-crosscut | A-38 | — |
 | S2-mode-tooltip（`P/2026-11-07-uitk-s2-mode-tooltip.md`） | A-60〜A-62 | LX-32〜34 |
-| S2-tutorial（`P/2026-11-07-uitk-s2-tutorial.md`） | A-63〜A-66 | LX-35〜38・LX-86（自レーンの範囲を使い切ったため、未割当の LX-86 をキー操作ヒントの字の太さ・影に使った） |
+| S2-tutorial（`P/2026-11-07-uitk-s2-tutorial.md`） | A-63〜A-66 | LX-35〜38・LX-86（自レーンの範囲を使い切ったため、未割当の LX-86 をキー操作ヒントの字の太さ・影に使った。PLAN-W3c の C4-d 計画の LX-86〜90 と重なるが LX-86 はこちらが持ち、C4-d 側の読み替えは C4-d レーンが行う） |
 | S2-notification（`P/2026-11-07-uitk-s2-notification.md`） | A-67〜A-69 | LX-39〜41 |
 | C3-b（`P/2026-11-07-uitk-c3-b.md`） | A-75〜A-79 | LX-46〜50 |
 | S2-skit（`P/2026-11-07-uitk-s2-skit.md`） | A-80〜A-84 | LX-51〜55（51 タイプライタの配置固定・52 ツールの影のぼかし無し・53 送りの印の線の端・54 打ち出しの途中で Ctrl+U を往復したときの本文・55 予備） |

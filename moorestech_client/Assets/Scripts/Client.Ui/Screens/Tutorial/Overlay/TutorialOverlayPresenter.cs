@@ -37,7 +37,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
         public static TutorialOverlayView Mount(VisualElement layer, VisualElement searchRoot, IReadOnlyReactiveProperty<TutorialOverlayViewModel> model)
         {
             var tracker = new TutorialAnchorTracker(searchRoot, layer);
-            var view = new TutorialOverlayView(tracker, tracker);
+            var view = new TutorialOverlayView(tracker);
             layer.Add(view);
             tracker.OnAnchorStateChanged.Subscribe(view.RedrawAnchor);
             model.Subscribe(OnModelChanged);
