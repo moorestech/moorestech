@@ -234,7 +234,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 注目点6件（矢印キーの前例・区画の display の書き手 2 人・開いたブロックの源 3 つ・依存の束・State からサーバー実装への依存・死活表の欠け）を D-7・D-23・D-25・D-26 と死活表の 2 行に反映
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 注目点6件（矢印キーの前例・区画の display の書き手 2 人・開いたブロックの源 3 つ・依存の束・State からサーバー実装への依存・死活表の欠け）を D-7・D-23・D-25・D-26 と死活表の 2 行に反映。検査後の修正（D-27 の Details の列挙を internal にした所）は fresh-context の再検査を回していない
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱3・第3バケツ2 / 強 2 件（VM の任意の詳細・送信の結果）はシミュレーター予測でこのまま（D-28・D-29）、弱は D-30・D-31 とベルトの 2 度引きの修正、層の外の指摘（Screens へのサーバーの列挙）を D-27 で修正、第3バケツは「本PR外のリファクタ提案」へ
 
 ---
@@ -257,7 +257,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 | 発射台・宇宙エレベーターへの Shift の入れ口の絞り | alpha のマージ後に生きる | `SpecialInletBindingContributor` が alpha の拡張口 (6) `IBlockSlotRestrictionContributor` で入れ口を寄与（Task 3・9）。口が実物に無ければ Task 1 Step 2 の分岐 B |
 | 宇宙エレベーターの接続 | 生きる | `SpaceElevatorSectionView` → `ConnectSpaceElevator`（Task 4・8） |
 | 機械・発電機など標準の本文の中の歯車・電力網・歯車網の区画（S4-machine の本文にも同じ区画が差し込まれる） | alpha のマージ後に生きる | 区画は alpha の拡張口 (3) の Slot に 1 本ずつ登録し、どの blockType の標準の本文にも同じ工場が差し込まれる。出すかは詳細の有無（`HasDetail`）で決まる（Task 6・9） |
-| ベルトを開いて ←/→ を押してもプレイヤーが動かない | 生きる | ←/→ は Player/Move にも割り当て済みだが、ブロックインベントリを開いている間（`UIStateEnum.SubInventory`）はプレイヤーの移動が止まる既存の扱い（Web の系と同じ）。録画（Task 11 のベルトの段）で位置が変わらないことを Note に残す |
+| ベルトを開いて ←/→ を押すと窓の切り替えとプレイヤーの横移動が同時に起きる | Web と同じ（変えない） | ←/→ は Player/Move にも割り当て済み（`moorestechInputSettings.inputactions`）、`SubInventoryState.LocksPlayerMovement()` は false、Keyboard の抑止は入力欄のフォーカス中だけ（`UiInputExclusivity`）。Web の系も同じ割り当て・同じロックなので振る舞いは同じ（コード読み。D-32） |
 | 合図の重ね押し・接続済みの再押下が誤報にならない | 生きる | 良性の拒否 `SpecialBlockCommandStale`（Task 4） |
 | 特殊族の Web の CEF 側の表示 | GameUi では描かない（裁定どおり） | 全体スイッチ 1 つ（`.decisions/2026-11-06-長命ブランチの中は全体スイッチ1つ`）。Web の系は変えない |
 
@@ -5395,7 +5395,7 @@ return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
     await p.Screenshot("electric-pole");
     await Close();
 
-    // ベルト: ←/→ で窓が切り替わる
+    // ベルト: ←/→ で窓が切り替わる（←/→ は Player/Move でもあり横に動くので押下は短く、離れてパネルが閉じないようにする。D-32）
     // Belt: ←/→ switch the window
     await Open("ベルトコンベア", new Vector3Int(8, 32, 6), "belt-throughput-section");
     var before = Text("belt-throughput-window");
@@ -5567,7 +5567,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-4 適合の層 1 つ**: `SpecialDetailAdapter` が alpha の本文・題の操作・区画の 3 つの口を 1 つで実装し、View は `ISpecialDetailRenderer` だけを知る。alpha の口の形が変わったときの直し所を `Registration/` に閉じる
 - **D-5 操作は非同期・楽観更新なし**: 結果はサーバーの応答と後続の状態で表示が変わる（Web の dispatchAction と同じ）。`SpecialViewKit.Run` が結果をトーストの係へ渡す
 - **D-6 拒否理由 4 つ**: `SpecialBlockNotOpen`・`SpecialBlockRequestFailed`（良性でない）・`SpecialBlockCommandStale`・`FilterSplitterGrabEmpty`（良性。Web の BENIGN_ERRORS と noop）。wire は Web と同じ文字列
-- **D-7 矢印キーの流れを `Client.Input/ArrowKeys` に**: `Client.Ui` は Input System を直に読まない。前例 `InputSystemPointerButtonStream`（E-19）。namespace を `Client.Input.Keyboard` にしない（`UnityEngine.InputSystem.Keyboard` とぶつかる）。比べた案: `InputManager.UI` に `InputKey` を足して `moorestechInputSettings` の UI マップへ ←/→ を割り当てる案。却下の理由は、生成物の入力設定（共有の資産）を書き換えることになり、←/→ は Player/Move と同じキーで UI マップの抑止（`InputSuppressionScope`）の意味が合わないこと。Web は window の keydown をマップに依らず聞き、入力欄と層だけで絞っていたので、それと同じ判定（`UiInputExclusivity.IsTextInputFocused`・表示中か）を受け手に置く。前例 `InputSystemPointerButtonStream` から借りるのは「縁を流す・リセットで記憶を下ろす」の形だけで、役割（UI のキー操作）の前例は UITK に無い新規パターンとして扱う
+- **D-7 矢印キーの流れを `Client.Input/ArrowKeys` に**: `Client.Ui` は Input System を直に読まない。前例 `InputSystemPointerButtonStream`（E-19）。namespace を `Client.Input.Keyboard` にしない（`UnityEngine.InputSystem.Keyboard` とぶつかる）。比べた案: `InputManager.UI` に `InputKey` を足して `moorestechInputSettings` の UI マップへ ←/→ を割り当てる案。却下の理由は、生成物の入力設定（共有の資産）を書き換えることになり、←/→ は Player/Move と同じキーで UI マップの抑止（`InputSuppressionScope`）の意味が合わないこと。Web は window の keydown をマップに依らず聞き、入力欄と層だけで絞っていたので、それと同じ判定（`UiInputExclusivity.IsTextInputFocused`・表示中か）を受け手に置く。前例 `InputSystemPointerButtonStream` は interface を持たず具象を ctor で注入しているが、ここは区画の L1 で偽物に差し替えるため `IHorizontalArrowKeySource` を切る。前例から借りるのは「縁を流す・リセットで記憶を下ろす」の形だけで、役割（UI のキー操作）の前例は UITK に無い新規パターンとして扱う
 - **D-8 asmdef の参照 4 つ**: `Client.Ui.State` に `Game.Block`・`Game.Gear`・`Core.BeltTransport`・`Core.Update`（Web の橋 `Client.WebUiHost.asmdef` が同じ源を読むための参照と同じ）
 - **D-9 フィルタの択一の選択肢の testid**: `filter-mode-{d}-{mode}`（Web は名前で押すが UITK の L1 は testid で押す）。掴みが空の左押下は View でなく Commands が良性に断る（D-6）
 - **D-10 ベルトの窓の選択は View が持つ**: Web の `useState` と同じく区画の寿命の状態（`BeltWindowCursor`）。パネルから外れたら既定 180 へ戻る（Web の破棄と同じ）
@@ -5580,7 +5580,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-17 Shift の入れ口**: alpha の拡張口 (6) `IBlockSlotRestrictionContributor` に `SpecialInletBindingContributor` を差し込む（分岐 A）。口が実物に無ければ分岐 B（静的な判断だけ作り integrator へ依頼）。L0 は判断まで、送らない・通知は alpha と録画
 - **D-18 新しい汎用部品を作らない**: 使う部品は既存の `ModeSwitch`・`GaugeBar`・`BarSeries`・`PanelActionButton`・`ItemSlot` と alpha の `Parts/`
 - **D-19 L3 を持たない**: 段の締め（S4-gamma）が持つ
-- **D-20 登録の置き場の数**: `Registration/GameUi/` が 10 本を超える。作業は止めずに進め、再編が `origin/feature/uitk` に入るまでマージしない（alpha も integrator へ依頼済み）
+- **D-20 登録の置き場の数**: `Registration/GameUi/` は起草時 8 本。alpha と special で 10 本ちょうどなら規約内、machine・train・inventory が先に入って 10 本を超えたら、作業は止めずに進め、再編が `origin/feature/uitk` に入るまでマージしない（alpha も integrator へ依頼済み）
 - **D-21 回転生成機の択一はモードの一覧が変わったときだけ作り直す**: 毎回作るとフォーカスと押下が切れる。`ElectricToGearDetail.HasSameModes` で比べる
 - **D-22 合図の古い拒否は良性**: 成功の後に段階の更新が遅れた二度目の押下の拒否をトーストしない（Web の「%sの成功後topicが遅れても二度目の拒否を誤報しない」）
 - **D-23 区画の出し入れ**: alpha の `SectionStackBody` は `IsApplicable` をパネルの `Render` のときにしか聞かない。網の集約・ベルトの統計はその外で届くので、区画の View が自分の `display` を切り替える。代償は、組み直しの外で出し入れが変わったときに `UiStack` の先頭の間隔が次の組み直しまでずれうること。alpha に「出し入れのやり直しを求める口」を足してもらうのが本筋なので integrator への依頼にする（要裁定ではない: 目的・裁定から外れない）。却下: 区画が親の `UiGapContainer.SetItemShown` を直に呼ぶ（alpha の内部の形に依る）
@@ -5592,7 +5592,8 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-29 送信の結果 `SpecialBlockRequestOutcome` は Kind＋WireCode のまま**: 結果は `SpecialBlockCommands` の 1 関数の中だけで `UiCommandResult` へ写され、Accepted の `WireCode` を読む所が無い（Phase 2.6 の 5-B。シミュレーター予測「このままでよい」。読む所が増えたら型を分ける）
 - **D-30 失敗理由を畳む Try 3 つは畳んだまま**: `TryGetInletBindings`（固定でない・未着・param の食い違い）・`IOpenSpecialBlock.TryGet`（開いていない・識別の未着）・`SpecialBlockCommands.TryOpen`（開いていない・種別違い）。どれも分けた理由で呼び手の分岐が変わらず、種別違いと param の食い違いは別にログか wire で区別している（Phase 2.6 の 5-C・弱）
 - **D-31 発射台・宇宙エレベーターの判定が Reader と入れ口の寄与に 2 回出る**: 入れ口は要求の品（マスタの `RequirementAt`）が要り、詳細の型は品を持たないので導出を 1 本にできない。重複は param の型の判定と状態の在否の 2 行に留める（Phase 2.6 の検査 6・弱）。ベルトの窓の 2 度引きはコードを 1 回に直した
-- **シミュレーター予測**: user-simulator の review の予測と適用は「## 設計検査記録」の下の記録に書く（このレーンはユーザーへ質問しない。指揮の指示）
+- **D-32 ブロックインベントリ中の ←/→ の横移動は据え置く**: ←/→ は Player/Move と同じキーで、SubInventory は移動をロックしない（Web の系も同じ）。このレーンでは変えない。出所: シミュレーター予測（(a) Web と同じとして据え置く。根拠: 2026-11-06 裁定「Web と同じ振る舞い」「CEF 由来の不具合は直さない」）。移動を止めるなら `SubInventoryState.LocksPlayerMovement()` と `UIStateMovementLockDeclarationTest` の別件
+- **シミュレーター予測（review 実施済み）**: 適用推奨 1 件（死活表の ←/→ の行の前提の誤り）を適用、Warning 3 件（D-20 の条件文・D-7 の前例との形の違い・電柱は無印だけ openable）のうち前 2 件を適用、電柱は Task 11 が無印を使うので変更なし。裁定候補 1 件（←/→ の横移動）は予測 (a) で D-32 に記録（ゴール・裁定から外れないので要裁定 0）
 
 ## 本PR外のリファクタ提案
 
