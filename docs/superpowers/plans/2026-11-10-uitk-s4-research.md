@@ -1620,7 +1620,7 @@ git commit -m "feat(uitk): 研究ノードのロックの減光のトークン�
 `ResearchTree.uss`:
 ```css
 /* web: moorestech_web/webui/src/features/research/style.module.css（.researchArea〜.nodeState のエリアとカード。詳細ペインは ResearchDetailPane.uss）。data 属性は修飾クラス、gap は子の margin、calc() は ResearchCalcKnobs、outline は拾わない子の輪で写す */
-/* web: moorestech_web/webui/src/features/research/style.module.css (.researchArea to .unlockFluidAmount); data attributes become modifier classes, gap becomes child margins, calc() goes to ResearchCalcKnobs, and the outline is a non-picking child ring */
+/* web: moorestech_web/webui/src/features/research/style.module.css (.researchArea to .nodeState: area and cards; the detail pane is in ResearchDetailPane.uss); data attributes become modifier classes, gap becomes child margins, calc() goes to ResearchCalcKnobs, and the outline is a non-picking child ring */
 
 /* 研究エリア: 上右下は舞台の端、left は C# が持ち物の幅と列の間隔の和で当てる（A-92） */
 /* Research area: top/right/bottom at the stage edges; C# sets left to inventory width plus column gap (A-92) */
@@ -3797,7 +3797,7 @@ git commit -m "feat(uitk): 研究ツリーを全体スイッチ UITK の画面�
 moores-wt new uitk-ref-research-s4r --from origin/master --no-editor
 cd <作られた worktree の絶対パス>/moorestech_web/webui && pnpm install
 ```
-`e2e/uitk-reference/referenceShots.ts` の `4-research` の行を写した 3 行（id `4-research-detail-ready`・`4-research-detail-lacking`・`4-research-detail-completed`。controls は `4-research` と同じ topic `researchOwnedItems`・ui `ResearchTree`、steps の先頭に研究可能 `3333…`・素材不足 `7777…`・完了 `1111…` のノードのクリック 1 つと `expectVisible: research-detail-pane`）を一時的に足し、1280×720 と 2560×1080 で撮る:
+`e2e/uitk-reference/referenceShots.ts` の `4-research` の行を写した 3 行（id `4-research-detail-ready`・`4-research-detail-lacking`・`4-research-detail-completed`。controls は `4-research` と同じ topic `researchOwnedItems`・ui `ResearchTree`、steps の先頭に研究可能 `3333…`・素材不足 `7777…`・完了 `1111…` のノードのクリック 1 つと `expectVisible: research-detail-pane`）を一時的に足し、1280×720 と 2560×1080 で撮る。完了 `1111…` は fixture の x=0 で、初期の注目 `3333…`（x=600）へ中央寄せした視野の左外（持ち物の背後）にあり、そのままではクリックできない（`W/e2e/mock-host/researchFixtures.ts:18`・`:53`、`W/src/shared/treeView/TreeView.tsx:76-84`）。`shotRunner.ts` の手順は `click` だけでパンが無いので、使い捨ての worktree の中だけで `ShotStep` に `{ kind: "drag"; testId: string; dx: number; dy: number }` を足し、`runStep` に「`testId` の要素の右下から内へ 40px の空の背景で `page.mouse.move` → `down` → `move(+dx, +dy, { steps: 10 })` → `up`」を足す。完了の行だけ steps を `drag(research-viewport, +400, 0)`・`click(research-node-1111…)`・`expectVisible(research-detail-pane)` にする（両解像度とも css px で +400。カードが詳細ペインの左に見えることを撮った png で確かめ、隠れていれば dx を変えて撮り直し、使った dx を `done.md` の「## 証拠」に書く）:
 ```bash
 SHA=$(git rev-parse --short=10 HEAD)
 UITK_REFERENCE_OUT=<moorestech_logs の絶対パス>/uitk/reference-captures/web-$SHA-research-detail \
@@ -3820,7 +3820,7 @@ S3-hotbar-modal の Task 11 Step 2 と同じ手順で、`GameUiPanelSettings.ass
 1. `4-research`: 参照を Read し、4 ノードの位置・枠の色（完了 `--text-default`・研究可能 `--select-cyan`・素材不足は素の枠・前提未達はロックの減光）・状態ラベル・線・パネルの題と飾りを確かめ、選択なしの ViewModel で撮る。視野の中央寄せの差（研究可能が中央）を見る
 2. ロックの減光: 前提未達のカード（`2222…`）の面・枠・名前の字の画素を 3 点ずつ参照と UITK で読み、RGB の差が 7 段以内か見る。外れたら `DerivedTokens.uss` の `--research-node-locked-opacity` を 0.05 刻みで下げて撮り直し（前例 `--slot-frame-insufficient-opacity` 0.4 → 0.2）、3 点の最大差が最小になる値に決める。7 段に入らなければ最小の値で `LX-136` に記帳する。台帳「## 実測の結論」の末尾に「研究ノードのロックの減光: Web 0.45 → UITK <値>（面・枠・字の最大差 <n> 段。Linear 合成）」を 1 行
 3. `5-tutorial-research-node`: 参照の強調の枠（チュートリアルの描き手）は S2-tutorial の持ち物。UITK ではカードに `research.node-<guid>` のアンカーがあり `TutorialAnchorRegistry.Resolve` が `Unique` を返すことだけを見て、強調の描画は差の表で「捨てる（S2-tutorial の描き手。integrator への依頼 D-9）」とする。研究ツリーの残り（題・カード）は 1. と同じ見方
-4. 詳細ペインの 3 状態: Step 1 の参照と同じノードを選択した ViewModel で撮る。見る点: 右上 12px・幅 300・`GamePanel(craft)` の枠と飾り・名前 16px・閉じる「×」・説明 13px・消費アイテムの枠と所持/必要（素材不足は赤の強調）・解放物の節の見出し 12px と枠・研究ボタンの面のグラデ・無効の面 `rgb(50 52 67)` と淡さ・文言「研究／完了済み」・理由 12px。研究ボタンの高さは参照のボタンの上端・下端の行を画素で探して実画面 px を出し、`ResearchDetailPane.uss` の `--recipe-action-height` をその値（2560×1080 は 1.5 倍で割る）に直す。幅も同じく画素で測り、本文の幅（1280×720 で 253）と合うことを確かめる
+4. 詳細ペインの 3 状態: Step 1 の参照と同じノードを選択した ViewModel で撮る。完了の組は Web と同じ視野にそろえる: 描いた後に視野の空の背景を Step 1 と同じ dx（パネルの論理 px で +400）だけドラッグする（EDC の中で `PointerDownEvent`・`PointerMoveEvent`・`PointerUpEvent` を viewport へ送る。送り方は C4-d の `NodeGraphViewGestureTest` に合わせる。C4-d に視野を読んで当て直す公開 API〈`RestoreViewport` 等〉があればそれで同じ平行移動を当ててよい）。完了のカードの中心が参照の png と 1280×720・2560×1080 の両方で 2px（2560×1080 は 3px）以内に来ることを画素で確かめてから比べる。見る点: 右上 12px・幅 300・`GamePanel(craft)` の枠と飾り・名前 16px・閉じる「×」・説明 13px・消費アイテムの枠と所持/必要（素材不足は赤の強調）・解放物の節の見出し 12px と枠・研究ボタンの面のグラデ・無効の面 `rgb(50 52 67)` と淡さ・文言「研究／完了済み」・理由 12px。研究ボタンの高さは参照のボタンの上端・下端の行を画素で探して実画面 px を出し、`ResearchDetailPane.uss` の `--recipe-action-height` をその値（2560×1080 は 1.5 倍で割る）に直す。幅も同じく画素で測り、本文の幅（1280×720 で 253）と合うことを確かめる
 
 - [ ] **Step 4: 差の表を書き、口を片付ける**
 
