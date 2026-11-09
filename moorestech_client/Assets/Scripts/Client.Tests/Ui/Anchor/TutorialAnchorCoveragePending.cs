@@ -13,7 +13,6 @@ namespace Client.Tests.Ui.Anchor
         {
             { AnchorIds.HotbarHud, "S3-hotbar-modal" },
             { AnchorIds.BuildMenuEntryPrefix, "S3-buildmenu" },
-            { AnchorIds.InventoryCloseButton, "S4-alpha" },
             { AnchorIds.EquipmentHud, "S4-inventory" },
             { AnchorIds.EquipmentSelectedSlot, "S4-inventory" },
             { AnchorIds.EquipmentSlotPrefix, "S4-inventory" },

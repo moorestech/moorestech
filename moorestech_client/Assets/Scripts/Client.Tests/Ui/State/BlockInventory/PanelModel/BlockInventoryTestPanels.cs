@@ -15,6 +15,10 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
     /// </summary>
     public static class BlockInventoryTestPanels
     {
+        // テスト用 mod の最初のチェストの名前（題に出る）
+        // Name of the test mod's first chest (shown as the title)
+        public const string ChestName = "TestChest";
+
         public static BlockInventoryPanelState Chest()
         {
             return ChestWithSlots(Array.Empty<SlotItem>());

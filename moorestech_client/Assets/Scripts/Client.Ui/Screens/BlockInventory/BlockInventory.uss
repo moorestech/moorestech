@@ -1,0 +1,45 @@
+/* web: features/blockInventory/style.module.css の .panel・.panelLarge・.naturalBodyScroll（.scroll を合成）と BlockInventoryPanel.tsx の GamePanel の style（paddingBottom・小型だけの paddingRight）・閉じるの absolute 位置を写す。calc() の寸法と bleed の負マージンは C# が解く */
+/* web: ports .panel, .panelLarge, .naturalBodyScroll (composing .scroll) and the GamePanel inline style (paddingBottom, small-only paddingRight) plus the close button's absolute position; calc() sizes and the negative bleed margin are solved in C# */
+.block-inventory {
+    align-self: flex-start;
+    flex-direction: column;
+    /* :root のトークンを C# が読めるよう受け直す（前例 GaugeBar.uss） */
+    /* re-declare :root tokens so C# can read them (precedent GaugeBar.uss) */
+    --block-inventory-menu-lower-safe-area: var(--menu-lower-safe-area);
+    --block-inventory-inventory-panel-width: var(--inventory-panel-width);
+    --block-inventory-stage-column-gap: var(--stage-column-gap);
+}
+
+.block-inventory__panel {
+    padding-bottom: var(--block-panel-bottom-safe-area);
+    min-height: 0;
+    flex-shrink: 1;
+}
+
+.block-inventory--natural .block-inventory__panel {
+    padding-right: var(--block-panel-right-safe-area);
+}
+
+.block-inventory--large .block-inventory__panel {
+    height: 100%;
+}
+
+.block-inventory__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.block-inventory__close {
+    position: absolute;
+    top: var(--bevel-3);
+    right: var(--panel-edge-fade);
+}
+
+.block-inventory__natural-scroll {
+    --block-inventory-body-bleed: var(--block-panel-body-bleed);
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}

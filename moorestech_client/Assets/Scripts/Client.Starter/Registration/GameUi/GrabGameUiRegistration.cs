@@ -8,8 +8,8 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi
 {
-    // 掴み・分割ドラッグ・掴み絵（GameUi）の登録。押下の配線とブロック側の実行器は S4-alpha が足す
-    // Registers grab, split drag and the grab picture for GameUi; press wiring and the block-side executor are added by S4-alpha
+    // 掴み・分割ドラッグ・掴み絵（GameUi）の登録。ブロック側の実行器とスロット操作は S4-alpha が MainGameUiRegistration の共有サービスの並びに足す
+    // Registers grab, split drag and the grab picture for GameUi; the block-side executor and slot commands are added by S4-alpha to MainGameUiRegistration's shared service list
     internal static class GrabGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)
