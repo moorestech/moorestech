@@ -15,7 +15,7 @@ namespace Client.Tests.Ui.State.ItemMove
         [Test]
         public void 左_掴み中は掴みの全量をブロックスロットへ置く()
         {
-            var actions = BlockSlotPlanner.PlanLeftClick(1, Slot(0, 0), false, 4, EmptyMain, Stack100);
+            var actions = BlockSlotPlanner.PlanLeftClick(1, Slot(0, 0), false, 4, EmptyMain, Stack100).Actions;
             ItemMoveAssert.Actions(actions, PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Block(1), 4));
         }
 
@@ -23,7 +23,7 @@ namespace Client.Tests.Ui.State.ItemMove
         [Test]
         public void 左_空手で中身があれば全量を掴む()
         {
-            var actions = BlockSlotPlanner.PlanLeftClick(2, Slot(10, 6), false, 0, EmptyMain, Stack100);
+            var actions = BlockSlotPlanner.PlanLeftClick(2, Slot(10, 6), false, 0, EmptyMain, Stack100).Actions;
             ItemMoveAssert.Actions(actions, PlannedItemAction.MoveItem(SlotRef.Block(2), SlotRef.Grab, 6));
         }
 
@@ -31,24 +31,47 @@ namespace Client.Tests.Ui.State.ItemMove
         [Test]
         public void 左_空手で空スロットなら何もしない()
         {
-            ItemMoveAssert.Actions(BlockSlotPlanner.PlanLeftClick(3, Slot(0, 0), false, 0, EmptyMain, Stack100));
+            ItemMoveAssert.Actions(BlockSlotPlanner.PlanLeftClick(3, Slot(0, 0), false, 0, EmptyMain, Stack100).Actions);
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">Shift+クリックは main の同種スタック→空きの順に配分する</web-test>
         [Test]
         public void 左_Shiftはメインへ同種スタックから空きの順に配分する()
         {
-            var actions = BlockSlotPlanner.PlanLeftClick(4, Slot(1, 7), true, 0, new[] { Slot(1, 98), Slot(0, 0) }, Stack100);
+            var actions = BlockSlotPlanner.PlanLeftClick(4, Slot(1, 7), true, 0, new[] { Slot(1, 98), Slot(0, 0) }, Stack100).Actions;
             ItemMoveAssert.Actions(actions,
                 PlannedItemAction.MoveItem(SlotRef.Block(4), SlotRef.Main(0), 2),
                 PlannedItemAction.MoveItem(SlotRef.Block(4), SlotRef.Main(1), 5));
+        }
+
+        [Test]
+        public void 左_Shiftの配分先が満杯なら行為を持たず満杯の断りを返す()
+        {
+            // D-4: 送らない理由は計画器が返す。呼び手は条件を写さない
+            // D-4: the planner returns why nothing is sent; callers never re-derive the condition
+            var plan = BlockSlotPlanner.PlanLeftClick(4, Slot(1, 7), true, 0, new[] { Slot(1, 100) }, Stack100);
+            Assert.AreEqual(ShiftMoveRefusalReason.DestinationFull, plan.Refusal);
+            CollectionAssert.IsEmpty(plan.Actions);
+        }
+
+        [Test]
+        public void 左_未知のIDのShiftは配分せず未知の断りを返し通常の左は掴む()
+        {
+            // D-65: 最大スタックの引けない ID は計画器が断る。Shift 以外の腕は ID を引かないので通す
+            // D-65: the planner refuses an ID without a max stack; other arms never look the ID up, so they go through
+            var stack = new FixedMaxStackLookup(100);
+            stack.SetUnknown(new Core.Master.ItemId(9));
+            var plan = BlockSlotPlanner.PlanLeftClick(4, Slot(9, 7), true, 0, EmptyMain, stack);
+            Assert.AreEqual(ShiftMoveRefusalReason.UnknownItem, plan.Refusal);
+            CollectionAssert.IsEmpty(plan.Actions);
+            ItemMoveAssert.Actions(BlockSlotPlanner.PlanLeftClick(4, Slot(9, 7), false, 0, EmptyMain, stack).Actions, PlannedItemAction.MoveItem(SlotRef.Block(4), SlotRef.Grab, 7));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">grab保持中の Shift は通常の置きと同じ（uGUI同様 grab が優先）</web-test>
         [Test]
         public void 左_掴み中のShiftは通常の置きと同じ()
         {
-            var actions = BlockSlotPlanner.PlanLeftClick(0, Slot(1, 7), true, 4, EmptyMain, Stack100);
+            var actions = BlockSlotPlanner.PlanLeftClick(0, Slot(1, 7), true, 4, EmptyMain, Stack100).Actions;
             ItemMoveAssert.Actions(actions, PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Block(0), 4));
         }
 

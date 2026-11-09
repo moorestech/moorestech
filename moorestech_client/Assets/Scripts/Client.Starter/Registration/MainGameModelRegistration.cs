@@ -103,6 +103,7 @@ namespace Client.Starter.Registration
             builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);
             builder.RegisterEntryPoint<EquipmentHeldItemModel>();
             builder.RegisterInstance(ServerContext.GetService<IItemStackLevelUnlocker>());
+            builder.RegisterInstance(ServerContext.GetService<IItemStackLevelLookup>());
             builder.RegisterEntryPoint<ItemStackLevelEventHandler>();
 
             // presenterと索引cacheを登録

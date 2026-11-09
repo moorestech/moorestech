@@ -13,6 +13,7 @@ namespace Client.Ui.State.ItemMove
         InventoryOpenFailed,
         DetailLoading,
         DestinationFull,
+        UnknownItem,
     }
 
     /// <summary>

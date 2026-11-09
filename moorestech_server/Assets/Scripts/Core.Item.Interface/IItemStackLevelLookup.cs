@@ -14,6 +14,10 @@ namespace Core.Item.Interface
         
         IObservable<(Guid itemGuid, int level)> OnStackLevelUnlocked { get; }
 
+        // GetMaxStack は未知の ID で例外になるので、マスタに無い ID を扱いうる側は先にこれで確かめる
+        // GetMaxStack throws on an unknown ID; callers that may hold IDs absent from the master check here first
+        bool ExistsItem(ItemId itemId);
+
         int GetMaxStack(ItemId itemId);
 
         int GetUnlockedLevel(Guid itemGuid);

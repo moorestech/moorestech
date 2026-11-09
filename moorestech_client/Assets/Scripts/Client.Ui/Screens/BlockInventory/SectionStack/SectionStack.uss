@@ -1,0 +1,7 @@
+/* web: features/blockInventory/style.module.css .fillPanelHeight（flex: 1; min-height: 0）を標準の本文の高さ確定に写す */
+/* web: ports .fillPanelHeight (flex: 1; min-height: 0) onto the standard body's fixed-height mode */
+.section-stack--fill-panel-height {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}

@@ -1,0 +1,19 @@
+/* web: features/blockInventory/details/LackHighlightText/style.module.css .text（本文色）と [data-insufficient="true"]（警告色）、rows/PerMinuteRateRow.tsx の文字色、BlockItemGrid.tsx の列数を写す */
+/* web: ports .text (body colour) and [data-insufficient="true"] (warning colour) from LackHighlightText, the text colour of rows/PerMinuteRateRow.tsx and the column count of BlockItemGrid.tsx */
+.lack-highlight-text {
+    color: var(--text-default);
+}
+
+.lack-highlight-text--insufficient {
+    color: var(--text-insufficient);
+}
+
+.per-minute-rate-row__text {
+    color: var(--text-default);
+}
+
+/* :root の列数を BlockItemGrid の customStyle で読めるよう自クラスで受け直す（前例 GaugeBar.uss） */
+/* re-declare the :root column count on the grid's own class so its customStyle can read it (precedent GaugeBar.uss) */
+.block-item-grid {
+    --block-item-grid-inventory-columns: var(--inventory-columns);
+}
