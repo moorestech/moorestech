@@ -30,14 +30,14 @@
 
 ### 束ねる完了条件と回ってきた件
 
-各レーンの計画（`docs/superpowers/plans/2026-11-10-uitk-s4-<lane>.md`。alpha・inventory・machine・train は PLAN-W4a の worktree で起草、recipe・research・special はこの worktree）から写した。train の計画は起草中（172 行時点）で、「当該計画のマージ後に照合」とした行は Task 1 Step 3 でマージ済みの `done.md` から埋める。
+各レーンの計画（`docs/superpowers/plans/2026-11-10-uitk-s4-<lane>.md`。alpha・inventory・machine・train は PLAN-W4a の worktree〈de6f077a83 以降〉で起草、recipe・research・special はこの worktree）から写した。どれもマージ前の計画なので、Task 1 Step 3 でマージ済みの `done.md` と照らして差を足す。
 
 | レーン | 完了条件（計画から） | gamma へ回した件・gamma が拾う件 | gamma での扱い |
 |---|---|---|---|
 | S4-alpha | ブロック UI の汎用族の UITK 化（`block-inventory`・`block-inventory-panel`・`block-inventory-close`・`<testId>-slot-<index>`）、SubInventory で `StageColumn.Viewer` 列、SlotCommands（`Client.Ui.State/SlotCommands/`） | integrator への依頼 (a) `Registration/GameUi/` のサブディレクトリ化、(b) `GamePanel` の題の右の逃げ 99px、(c) `SlotCommands` を設計書 §2 の State の表へ（A-142 の下書き） | (a) Task 1 Step 4 で本数を数える。10 を超えていれば bd を立て I-fix へ回す（gamma は他レーンの登録ファイルを動かさない。D-4）。(b) Task 13 の比べ方で special のロケットの差として照合し、未処理なら LX の文面を書く。(c) 設計書の行の有無だけ確かめる |
 | S4-inventory | InventoryPanel・EquipmentPanel（`inventory-panel`・`inventory-sort`・`main-slot-<i>`・`equipment-slots`）、アンカーの印付け | 依頼 `TutorialAnchor.Unmark`（D-8）・`GameUiPointerProbe.PickAt`（D-11） | Foundation の口なので gamma は作らない。Task 11 で状態を確かめ、未処理なら bd を I-fix へ（無くても動く形で書かれているので段階 4 の完了は妨げない。帰結: 画面側の写しが 2 か所残る） |
 | S4-machine | 機械の詳細・清浄室・流体枠・レシピ選択（`MachineRecipeSelectionRow` 等） | 依頼: `Client.Ui.State.asmdef` の参照、撮影表への 15 枚の追加（E-22 の自撮り） | asmdef は取り込み済みかを見るだけ。撮影表への追加は integrator の共有区画なので Task 11 で `docs/uitk/TODO.md`「## 参照キャプチャ」に自撮りの置き場を 1 行で記す |
-| S4-train | 駅名（`train-station-name-input`・`-apply`）・時刻表（`train-tab-timetable`・`train-timetable-station-{x}_{y}_{z}-add`・`train-timetable-stop-{i}`・`train-timetable-auto-run-on`）。適用ボタンを消して即送信 | 当該計画のマージ後に照合（起草中） | Task 1 Step 3 で `done.md` の「gamma へ」「integrator への依頼」を読み、この表に足す |
+| S4-train | 列車の本文（`train-tab-inventory`・`train-tab-timetable`）・時刻表の即時編集（適用ボタンを消し、保留中は `train-timetable-section--busy`）・駅名（`train-station-name-input`＋`train-station-name-apply`）・プラットフォーム。録画 `train-timetable-via-ui`・`train-station-default-name` を直す | integrator への依頼 (a) `PanelActionButton` の無効の見た目（画面のつまみで上書き中。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) `Registration/GameUi/` の再編先 | (a) Task 11 で状態を確かめ、未処理なら bd を I-fix へ。(b) Task 11 Step 2 の参照の記載に含める。(c) S4-alpha の (a) と同じ扱い。ラダー 5 は即時送信の形で書く（Task 6） |
 | S4-research | 研究ツリー（`research-tree`・`research-panel`・`research-viewport`・`research-node-<guid>`・`research-button-<guid>`・`research-detail-pane`）、録画 `uitk-research-tree`・`tier9-5` | L3 は「S4-ladder」＝gamma。D-9 `NodeGraphView` の `MarkClipContainer` は integrator への依頼。tier9-5 が Web 前提の操作で落ちたら既存シナリオの横断は gamma。詳細ペインの自撮りの参照の台帳記載 | L3 は Task 3。`MarkClipContainer` は Task 11 で状態を確かめ未処理なら bd。tier9-5 は Task 9 の全録画で分類（不具合なら research か I-fix へ）。参照の記載は Task 11 |
 | S4-recipe | ビューア・アイテム一覧（`recipe-viewer`・`item-list-panel`・`item-list-scroll`・`item-list-cell-<id>`・`craft-button-<guid>`・`craft-recipe-box-<guid>`・`recipe-entry-list`）、長押しクラフト、アンカー `recipe.craft-button`・`recipe.item-<itemId>` | D-20: ビューア＋機械 UI＋インベントリの L3 は gamma。D-9 `GameScrollView` のつまみ 5 本を設計書へ。自撮りの参照の台帳記載。部分移植の残り（`MachineRecipeEntry` の alt・`slotTooltip`） | L3 は Task 3（同時には出ないので、画面を行き来して残骸が出ないことで見る。D-3）。つまみは末尾の「設計書へ反映する行」に 1 行。参照は Task 11。部分移植の残りは Task 10 の parity で処遇の表にあるかを見る |
 | S4-special | 特殊族（電柱・歯車変換・フィルター分配・ロケット・宇宙エレベーター・ベルト） | D-19: L3 は gamma。D-23（alpha の「出し入れをやり直す口」）・D-26（パネルの InstanceId）は integrator への依頼。部分移植の残り（filterSplitter の 3 件目など） | 特殊族は同時に出る組の L3 の対象外（SubInventory の 1 例として `釜` を見る。D-3）。D-23・D-26 は Task 11 で状態を確かめ未処理なら bd。部分移植の残りは Task 10 |
@@ -177,7 +177,7 @@ for n in inventory-panel inventory-sort equipment-slots recipe-viewer item-list-
 done
 grep -rn "item-list-cell-\|main-slot-\|-slot-\"" moorestech_client/Assets/Scripts/Client.Ui/Screens | head
 ```
-Expected: 各名前が 1 か所以上で見つかる。見つからない名前は実物の名前を探し、`done.md`「## 照合表」に「計画の名前 → 実物の名前（ファイル:行）」で書き、Task 3〜8 のコード片を実物の名前で写す（gamma のファイルの側を直す。D-5）。S4-train が適用ボタンを消していれば `train-station-name-apply` は無く、駅名は `SetText` の後に Enter か欄の外のクリックで送る形になる（S4-train の `done.md` の操作の記述に合わせて Task 6 の該当行を読み替える）
+Expected: 各名前が 1 か所以上で見つかる。見つからない名前は実物の名前を探し、`done.md`「## 照合表」に「計画の名前 → 実物の名前（ファイル:行）」で書き、Task 3〜8 のコード片を実物の名前で写す（gamma のファイルの側を直す。D-5）。時刻表の適用ボタン `train-timetable-apply` は S4-train が消している（起草版 R-9。在れば Task 6 の即時送信の待ちは不要になるので S4-train の `done.md` と照らす）
 
 - [ ] **Step 3: 各レーンの `done.md` から回ってきた件を集める**
 
@@ -1188,9 +1188,12 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     var a = line.StationAPosition;
     var b = line.StationBPosition;
     await p.ClickUi($"train-timetable-station-{a.x}_{a.y}_{a.z}-add");
+    await p.WaitForTrainState(line.Train, 1, null, null, 10f, "サーバーの時刻表が1駅になる");
+    await WaitTimetableIdle();
     await p.ClickUi($"train-timetable-station-{b.x}_{b.y}_{b.z}-add");
-    await p.UntilUiElement("train-timetable-stop-1", 5f);
     await p.WaitForTrainState(line.Train, 2, null, null, 10f, "サーバーの時刻表が2駅になる");
+    await p.UntilUiElement("train-timetable-stop-1", 5f);
+    await WaitTimetableIdle();
     await p.ClickUi("train-timetable-auto-run-on");
     await p.WaitForTrainState(line.Train, null, true, null, 10f, "サーバーの自動運転がON");
     await p.Screenshot("03-timetable");
@@ -1199,9 +1202,26 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     await p.WaitForTrainState(line.Train, null, null, true, 15f, "列車が走り出す");
     await p.WaitSeconds(2f);
     await p.Screenshot("04-running");
+
+    #region Internal
+
+    // 即時送信の保留（--busy）が解けるまで待つ。保留中の追加は捨てられる（S4-train R-9）
+    // Wait until the immediate-send hold (--busy) clears; additions during the hold are dropped (S4-train R-9)
+    async UniTask WaitTimetableIdle()
+    {
+        for (var i = 0; i < 50; i++)
+        {
+            var section = await PlaytestUiElementOps.FindUi("train-timetable-section");
+            if (section.IsFound && !section.HasStateFlag("train-timetable-section--busy")) return;
+            await p.WaitSeconds(0.2f);
+        }
+        p.Assert(false, "時刻表の保留が10秒で解けない");
+    }
+
+    #endregion
 });
 ```
-`TrainStationComponent.StationName` の綴り、研究ツリーを開くキー（`R`）、駅名の確定の操作（S4-train が適用ボタンを消していれば `train-station-name-apply` の行を、S4-train の `done.md` に書かれた確定の操作〈Enter なら `await p.PressKey(Key.Enter);`〉に置き換える）、時刻表の追加が即送信か（適用ボタンが残っていれば `train-timetable-apply` を押す行を足す）は Task 1 Step 2・3 の照合表で決める。サーバーの駅名の読みで tick と競合したら `p.RunOnServer` で包む
+S4-train の計画（PLAN-W4a の起草版）では、駅名は `GameTextField(train-station-name-input)`＋`PanelActionButton(train-station-name-apply)` で送り（R-12）、時刻表は適用ボタンを消して追加ごとに即送信し、保留中は `train-timetable-section--busy` で次の追加を捨てる（R-9）。上のコードはその形。`TrainStationComponent.StationName`（起草時の実物）、研究ツリーを開くキー（`R`）、`HasStateFlag` がクラスの印を状態として返すかは Task 1 Step 2・3 の照合表で確かめる。サーバーの駅名の読みで tick と競合したら `p.RunOnServer` で包む
 
 - [ ] **Step 2: 系を UITK にして流す**
 
@@ -1919,7 +1939,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 
 ## 未確認
 
-- S4-train の計画は起草中（172 行時点）で、駅名の確定の操作（適用ボタンの有無）と時刻表の即送信の形を計画から読めていない。Task 1 Step 2・3 で `done.md` から読み、Task 6 を読み替える
+- S4-train の駅名の確定（`train-station-name-apply`）と時刻表の即時送信・保留の印（`train-timetable-section--busy`）は起草版の計画から写した。マージ後の実物で Task 1 Step 2 の照合をする
 - S2-ladder・S3-ladder の計画は未起草（§1.4 で ○）。ラダー 2・3 のシナリオ名（`uitk-opening-hud`・`uitk-build-bp`）は plan §4.4 の名前で、実物は Task 1 Step 1 で確かめる
 - `tutorial-outline` が要素名かクラスか（S2-tutorial の PR #1627 は未マージ）。Task 4 Step 3 のコードは名前で引く形で、Task 1 Step 2 の照合で読み替える
 - `UIElementsUpdatePanels`・`UIElementsRepaintPanels` の実際のマーカー名（Editor の版で `UIElements.UpdatePanels` のように変わりうる）。Task 4 は名前に「UIElements」と「UpdatePanels／RepaintPanels」を含むものを拾い、0 本なら一覧を出して止まる
