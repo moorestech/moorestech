@@ -762,9 +762,9 @@ public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
     public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }  public BlockInstanceId BlockInstanceId { get; }  public Vector3Int Position { get; }
     public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }  public BlockInventoryComponents Components { get; }
 }   // IsSamePanel: 同じ Position・BlockGuid・BlockInstanceId・Error
-public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
+public sealed class OpenTrainInventoryPanel : OpenInventoryPanel
 {
-    public long TrainCarInstanceId { get; }  public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }
+    public long TrainCarInstanceId { get; }   // ItemSlots・Error は OpenInventoryPanel から（D-67）
 }   // IsSamePanel: 同じ TrainCarInstanceId・Error
 public enum BlockInventoryPanelError { None, OpenFailed, ContainerMissing, TrainCarMissing }
 public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }
@@ -4710,6 +4710,11 @@ git merge origin/feature/uitk
 | D-62 | Requirements 冒頭の「完了条件の原文」の引用を、同じ PR で直した実行計画 §1.4 の文（`SectionStackView.test`(8)・`blockInventoryDesign`(S16)・`LackHighlightText/index.test`(2)・`DestinationFull` の扱い）に揃え、「写すテスト」の前置きと起草メモの申告も追随させる | 出所: moores-code-review（removed-invariant の Warning）。原文と称して旧件数 7・S15 を引くと、実行計画と計画のどちらが正か読み手が迷う | 引用は起草時の原文のまま残す（同じ PR の中で数が 2 通りになる） |
 | D-63 | `BlockInventoryPanelModel` の `OnTrackedBlockStateChanged` の購読は外さず据え置く（負債が残る: 稼働中の機械を開いている間は状態変化のたびに全枠コピー・Layout の再計算・`ItemSlot.SetContent` の同値描き直しが走る） | 出所: moores-code-review（efficiency の Warning）。外すと枠の表示更新が `OnSubInventoryUpdated` だけで足りるかが未確認で、Web ホスト `BlockInventoryTopic` と再計算の契機が割れる（R-1 は契機をホストと同じにすると決めている）。下流は `BlockItemGrid.Render` が同じ枠番号なら作り直さず、BodyHost が `IsSamePanel` で畳むので故障は無い | 購読を外し R-1 の契機の記述を直す（ホストと契機が割れ、外した後の更新漏れが未確認） |
 | D-64 | 共有サービスの読み面の非対称（`BlockInventoryPanelModel` だけ読み面 interface `IBlockInventoryPanelSource` を切り、`UnlockedMachineRecipeSource` は具象のまま）は直さず据え置く（負債が残る:「Source」の語が読み面 interface・具象 Model・`Client.Game` の `ISubInventorySource` の 3 役に使われたまま） | 出所: moores-code-review（precedent-alignment の Warning）。パネルの源は L0 の偽物（`FakePanelSource`）を Task 3〜8 のテストが広く使うので interface が要り、機械レシピの源はテストが純関数 `UnlockedMachineRecipeListBuilder` を直接叩くので要らない。故障シナリオは無く、名前の揃えは後続の追加で interface が要ったときに行う | どちらかに揃える（今は差し替えの必要が無い型に interface を足すか、テストが使う偽物を消すことになる） |
+| D-65 | 未知の ItemId の枠の検査（`KnownItemSlots.IsKnownOrEmpty`）を Shift 配分の腕（Shift・空手・中身あり）だけに狭め、止めたら `UiCommandRejectReason.ItemUnknownInSlot`（非良性・`ui.commandRejected.itemUnknownInSlot`・wire `unknown_item`）で拒否する（`BlockSlotCommands.LeftDown`・`PlayerSlotCommands.LeftDown`）。**D-11 の止める範囲を Shift 配分だけに狭める** | 出所: moores-code-review 最終レビュー（agent 既定）。検査の目的は `DirectMovePlanner` の例外回避で Shift 配分だけに要る。入口で効かせると普通の左押下まで成功扱いの無反応になり、右押下・ダブルとも不揃い | 検査を狭めて Accepted のまま（Shift の無反応が残る）／入口の検査のまま拒否を返す（Shift 以外が止まる不揃いが残る） |
+| D-66 | 実行器の無い計画（プレイヤーにもブロックにも写せない `PlannedItemAction`）は `PlannedItemActionRunner` で `InvalidOperationException` にする | 出所: moores-code-review 最終レビュー（agent 既定）。計画器の誤りを `BlockSlotUnavailable` に相乗りさせると、ブロックを開いていない場面で「ブロックの枠がもうありません」が出て古い押下と区別できない。`BlockInventoryPanelErrorText`・`ShiftMoveRefusalNotifier` の default 腕と同じ「開発時の誤りは止める」 | 専用の理由 `UnplannableAction` を足して拒否する（出荷後も気づく経路がトーストだけで、開発時に止まらない） |
+| D-67 | 開いたパネル 2 種の共通の値（`ItemSlots`・`Error`）を抽象 `OpenInventoryPanel : BlockInventoryPanelState` に持たせ、`OpenBlockInventoryPanel`・`OpenTrainInventoryPanel` はそれを継ぐ。View の決め打ちキャストと `BlockSlotReader`・`BlockInventoryBodyHost` の型分けは共通部を読む。**D-39 の一部（`Error == None` の散在を見送る）を覆す** | 出所: moores-code-review 最終レビュー（agent 既定）。開いたパネルの第 3 種を足すと View が InvalidCastException、`BlockSlotReader` は閉扱いで全スロット操作を黙って拒否する。公開メンバー名は不変 | View のキャストを switch＋throw にするだけ（型分けの散在が残る） |
+| D-68 | `BlockSlotPlanner.PlanLeftClick` の戻り値を `BlockSlotLeftClickPlan`（行為の列 `Actions`＋拒否理由 `ShiftMoveRefusalReason? Refusal`）にし、Shift→main が満杯で空のときは `DestinationFull` を返す。`BlockSlotCommands` は条件を写さず `Refusal` を見て Warning ログを出す。**D-10 の検出位置を呼び手から計画器へ移す** | 出所: moores-code-review 最終レビュー（agent 既定。負債を据え置かない）。呼び手が計画器の分岐条件を写して空計画の理由を推定すると、条件が変わったとき誤った理由のログが出る。前例はプレイヤー側の `ShiftMoveRefusedPlan` | 呼び手の条件式のままログ書式だけ `ShiftMoveRefusalNotifier` に寄せる（条件の二重持ちが残る） |
+| D-69 | 本番の使い手が居ない Produces（`BlockItemGridGroup`・`MachineStateRow`・`PerMinuteRateRow`・`MachineRecipeSummaryConversion.ToSummaries`・`UnlockedMachineRecipeSource.Current`・`OpenBlockInventoryPanel.BlockId`・`IPlayerSlotCommands`）は据え置き、Produces 一覧に「alpha 時点ではテストだけが使う」を書く（負債が残る: 後続レーンが着くまで本番で通らない部品が保守対象に残る） | 出所: moores-code-review 最終レビュー（agent 既定）。拡張口の型は Produces 一覧と一致させる制約があり、削除すると後続 4 レーンの計画の前提が崩れる | alpha から外し後続が消費者と一緒に足す（後続レーンの計画の前提が崩れる） |
 
 ---
 
@@ -4727,6 +4732,8 @@ git merge origin/feature/uitk
 ## 後続レーンへの Produces 一覧
 
 S4-inventory・S4-machine・S4-train・S4-special・S4-recipe はこの節だけを読んで自分の計画を書く（S4-research は使う型が無い）。型名・シグネチャはこの計画の Task 2〜8 のコードと同じ綴り。すべて `moorestech_client/Assets/Scripts/` の下。
+
+- alpha 時点ではテストだけが使う（本番の使い手は後続レーンが着くまで居ない。D-69）: `BlockItemGridGroup`・`MachineStateRow`・`PerMinuteRateRow`・`MachineRecipeSummaryConversion.ToSummaries`・`UnlockedMachineRecipeSource.Current`・`OpenBlockInventoryPanel.BlockId`・`IPlayerSlotCommands`
 
 ### 差し込みの形（全拡張口で共通。D-1・D-19）
 
@@ -4828,9 +4835,9 @@ public interface ITrainInventoryPart                    // Presenter
     void Detach();
 }
 namespace Client.Ui.State.BlockInventory.Panel
-public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
+public sealed class OpenTrainInventoryPanel : OpenInventoryPanel
 {
-    public long TrainCarInstanceId { get; }  public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }
+    public long TrainCarInstanceId { get; }   // ItemSlots・Error は OpenInventoryPanel から（D-67）
 }
 ```
 - 列車は常に大型（`IsLarge == true`・`FillsPanelHeight == false`）。題（`ui.blockInventory.trainInventory`）・閉じる・エラー行（`train-inventory-error`）は alpha の外殻が描く。エラー中は本文を作らない
@@ -4912,11 +4919,15 @@ public sealed class PerMinuteRateRow : VisualElement { public PerMinuteRateRow(V
 namespace Client.Ui.State.BlockInventory.Panel
 public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }   // 共有サービス（BlockInventoryPanelModel）
 public abstract class BlockInventoryPanelState { public static readonly BlockInventoryPanelState Closed; public abstract bool IsSamePanel(BlockInventoryPanelState other); }
-public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
+public abstract class OpenInventoryPanel : BlockInventoryPanelState   // 開いたパネルの共通の値。種類で分けずにここを読む（D-67）
+{
+    public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }
+}
+public sealed class OpenBlockInventoryPanel : OpenInventoryPanel
 {
     public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }
     public BlockInstanceId BlockInstanceId { get; }  public Vector3Int Position { get; }       // 区画の Model が開いたブロックを引く鍵
-    public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }  public BlockInventoryComponents Components { get; }
+    public BlockInventoryComponents Components { get; }
 }
 public enum BlockInventoryPanelError { None, OpenFailed, ContainerMissing, TrainCarMissing }   // 「エラー無し」は == None で判定する（null と比べない）
 ```
