@@ -13,9 +13,8 @@ namespace Client.Ui.Foundation.Composite
         private static int _chosenFrame = -1;
         private static Camera _chosenCamera;
         private static bool _reportedNotComposited;
-        private static bool _reportedCameraOverflow;
         private static int _lastCompositedFrame;
-        private static readonly Camera[] CameraBuffer = new Camera[32];
+        private static Camera[] _cameraBuffer = new Camera[32];
 
         public static void SetTexture(RenderTexture texture)
         {
@@ -66,28 +65,19 @@ namespace Client.Ui.Foundation.Composite
 
             Camera ChooseLastScreenCamera()
             {
-                var count = Camera.GetAllCameras(CameraBuffer);
-                ReportWhenCamerasOverflow();
+                // 配列が足りないと GetAllCameras が例外を投げるので先に広げる
+                // GetAllCameras throws when the array is too small, so grow it first
+                if (_cameraBuffer.Length < Camera.allCamerasCount) _cameraBuffer = new Camera[Camera.allCamerasCount];
+                var count = Camera.GetAllCameras(_cameraBuffer);
                 Camera last = null;
                 for (var i = 0; i < count; i++)
                 {
-                    var candidate = CameraBuffer[i];
+                    var candidate = _cameraBuffer[i];
                     if (candidate.targetTexture != null || candidate.cameraType != CameraType.Game) continue;
                     if (candidate.TryGetComponent<UniversalAdditionalCameraData>(out var data) && data.renderType != CameraRenderType.Base) continue;
                     if (last == null || last.depth <= candidate.depth) last = candidate;
                 }
                 return last;
-            }
-
-            // 有効カメラがバッファより多いときに 1 回だけ知らせる（超えた分は選定から漏れる）
-            // Report once when enabled cameras exceed the buffer (the excess is left out of the choice)
-            void ReportWhenCamerasOverflow()
-            {
-                var overflow = Camera.allCamerasCount > CameraBuffer.Length;
-                if (!overflow) { _reportedCameraOverflow = false; return; }
-                if (_reportedCameraOverflow) return;
-                _reportedCameraOverflow = true;
-                Debug.LogError($"[UiSrgbCompositeSource] more than {CameraBuffer.Length} cameras are enabled; cameras beyond that are ignored when choosing the UI composite camera");
             }
 
             // 最後の overlay カメラが代わりに重ねる

@@ -31,12 +31,16 @@ namespace Client.Ui.Foundation.Composite
         // No screen-size change notification exists, so compare every frame (precedent ScreenFrameReader)
         public void Tick()
         {
+            // silent-ok: 生成失敗は Initialize の例外として VContainer が LogException 済み / 開発者は Console の最初の例外で気づく
+            if (_panelTarget == null) return;
             _panelTarget.SyncToScreenSize();
             UiSrgbCompositeSource.ReportWhenNotComposited();
         }
 
         public void Dispose()
         {
+            // silent-ok: 生成失敗は Initialize の例外として VContainer が LogException 済み / 開発者は Console の最初の例外で気づく
+            if (_panelTarget == null) return;
             _panelTarget.Dispose();
         }
     }

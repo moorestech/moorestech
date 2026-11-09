@@ -20,8 +20,8 @@ namespace Client.Ui.Foundation.Composite
 
         public UiSrgbPanelTarget(UIDocument document)
         {
-            // sRGB の値のまま合成する設定がアセットから外れていたら起動で止める（黙って Linear 合成に戻るのを防ぐ）
-            // Stop at startup when the asset lost the sRGB-value blending setting (prevents silently falling back to Linear blending)
+            // sRGB の値のまま合成する設定がアセットから外れていたら生成時に例外で知らせる（黙って Linear 合成に戻るのを防ぐ）
+            // Throw at construction when the asset lost the sRGB-value blending setting (prevents silently falling back to Linear blending)
             var source = document.panelSettings;
             if (!source.forceGammaRendering) throw new InvalidOperationException($"[UiSrgbPanelTarget] {source.name} must have forceGammaRendering on");
             _settings = Object.Instantiate(source);
