@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Tutorial.WorldPin;
 using UnityEngine;
@@ -20,14 +21,12 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
         public WorldPinMarkerView()
         {
             AddToClassList("world-pin");
-            pickingMode = PickingMode.Ignore;
             _label.AddToClassList("world-pin__label");
-            _label.pickingMode = PickingMode.Ignore;
             _marker.AddToClassList("world-pin__marker");
-            _marker.pickingMode = PickingMode.Ignore;
             _marker.generateVisualContent += DrawMarker;
             Add(_label);
             Add(_marker);
+            UiPickingIgnore.ApplyToSubtree(this);
         }
 
         public void Show(WorldPinCue cue)

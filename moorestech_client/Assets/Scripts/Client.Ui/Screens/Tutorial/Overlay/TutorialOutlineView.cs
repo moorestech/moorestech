@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Text;
 using Client.Ui.State.Tutorial.Logic;
@@ -22,14 +23,15 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             _pulse = pulse;
             name = "tutorial-outline";
             AddToClassList("tutorial-outline");
-            pickingMode = PickingMode.Ignore;
             _clip.AddToClassList("tutorial-outline__clip");
             _glow.AddToClassList("tutorial-outline__glow");
             _ring.AddToClassList("tutorial-outline__ring");
-            foreach (var element in new[] { _clip, _glow, _ring }) element.pickingMode = PickingMode.Ignore;
             _clip.Add(_glow);
             _clip.Add(_ring);
             Add(_clip);
+            // 枠は入力を奪わない（ラベルは自分で拾わなくする）
+            // The outline never takes input (the label turns its own picking off)
+            UiPickingIgnore.ApplyToSubtree(this);
             // ラベルは文を当ててから木に載せる（文の無い LocalizedLabel は 1 フレーム後に LogError。mode-tooltip D-28 と同形）
             // Attach the label only after its text is set (a text-less LocalizedLabel logs an error a frame later; same as mode-tooltip D-28)
             // 枠は 1.03 で脈動し、ラベルは脈動しない（Web tutorialAttentionDesign）

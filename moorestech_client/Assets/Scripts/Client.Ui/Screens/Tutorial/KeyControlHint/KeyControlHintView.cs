@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Ui.Components.Text;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.Pulse;
@@ -54,7 +55,7 @@ namespace Client.Ui.Screens.Tutorial.KeyControlHint
                 _pulse.Attach(row, TutorialAttentionPulse.StrongScale);
                 // pickingMode は継承されないので、部品の内側まで拾わなくする（Web pointer-events: none。D-36）
                 // pickingMode is not inherited, so stop picking inside the part too (Web pointer-events: none; D-36)
-                row.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
+                UiPickingIgnore.ApplyToSubtree(row);
             }
 
             void RemoveLastRow()

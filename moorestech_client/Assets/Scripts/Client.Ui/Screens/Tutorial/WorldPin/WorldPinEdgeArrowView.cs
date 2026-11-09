@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Tutorial.Logic;
 using UnityEngine;
@@ -22,11 +23,10 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
         {
             _pulse = pulse;
             AddToClassList("world-pin__arrow");
-            pickingMode = PickingMode.Ignore;
             _glyph.AddToClassList("world-pin__arrow-glyph");
-            _glyph.pickingMode = PickingMode.Ignore;
             _glyph.generateVisualContent += DrawArrow;
             Add(_glyph);
+            UiPickingIgnore.ApplyToSubtree(this);
             // 位置と回転は親のインライン、脈動は子の矢印本体だけ（ADR 0039）
             // Position and rotation live inline on the parent; only the child glyph pulses (ADR 0039)
             pulse.Attach(_glyph, TutorialAttentionPulse.StrongScale);
