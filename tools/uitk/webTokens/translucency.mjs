@@ -20,3 +20,16 @@ export function correctAlphaForLinearBlend(red, green, blue, alpha) {
 }
 
 export const translucencyMethod = `α 近似補正（S7。最大成分 ${lightDarkSplitChannel} 未満の暗い色 1-(1-α)^${darkExponent}・明るい色 α^${lightExponent}）`;
+
+// 全面に敷く黒の幕は地に一定の比を掛けるだけなので、地の明るさに依らず 1 つの指数で寄せられる。参照 3-modal と 2-game-hud の同じ画素 400 点で最大差・平均差が最小の指数（I-fix3 実測。1.85 は最大 16 段・平均 8.5 段、2.15 は最大 6 段・平均 2.4 段）
+// A full-screen black dim only multiplies the ground by a constant, so one exponent fits regardless of ground brightness; this exponent minimised the max and mean error over 400 matching pixels of references 3-modal and 2-game-hud (I-fix3: 1.85 gave max 16 / mean 8.5 steps, 2.15 gives max 6 / mean 2.4)
+// 最大差が 2 段に入らないのは、Linear 合成の 1 つの α では sRGB の掛け算を暗い地（sRGB の直線部）と明るい地で同時に再現できないため（look-exception: LX-46）
+// The max error cannot reach 2 steps because a single alpha under Linear blending cannot reproduce an sRGB multiply on both dark grounds (the linear toe) and bright ones (look-exception: LX-46)
+export const blackDimExponent = 2.15;
+
+export function correctBlackDimAlpha(alpha) {
+  if (alpha <= 0 || alpha >= 1) return alpha;
+  return Math.round((1 - Math.pow(1 - alpha, blackDimExponent)) * 10000) / 10000;
+}
+
+export const blackDimMethod = `黒の幕の α 補正（1-(1-α)^${blackDimExponent}。地に比を掛けるだけの黒の全面の幕に限る）`;
