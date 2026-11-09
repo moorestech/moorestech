@@ -1,7 +1,9 @@
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.DragDrop;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.DragDrop
@@ -90,8 +92,34 @@ namespace Client.Tests.Ui.DragDrop
         [Test]
         public void 印を外した落とし先は最寄りから外れクラスも消える()
         {
-            UiDragDrop.UnmarkTarget(_slot);
+            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
             Assert.IsFalse(_slot.ClassListContains("ui-drop-target"));
+            Press(_source.worldBound.center, _slotIcon.worldBound.center);
+            CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
+        }
+
+        [Test]
+        public void 源と違う型の落とし先は飛ばして同じ型の祖先へ落とす()
+        {
+            // 枠の印を別の型に替える。クラスは別の型の印が残る間は消えない
+            // Swap the slot's mark for another type; the class stays while that other mark remains
+            UiDragDrop.MarkTarget(_slot, new OtherKindDropTarget());
+            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
+            Assert.IsTrue(_slot.ClassListContains("ui-drop-target"));
+
+            Press(_source.worldBound.center, _slotIcon.worldBound.center);
+            CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
+        }
+
+        [Test]
+        public void 受け口の派生型で付けた印は飛ばしてエラーログで知らせる()
+        {
+            // 型引数を省くと派生型の表に入るので、受け口の型では見つからない
+            // Omitting the type argument files the mark under the subtype, so the receiver type cannot find it
+            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
+            UiDragDrop.MarkTarget(_slot, new DerivedNamedDropTarget("slot"));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[UiDragDrop\] .* is marked as DerivedNamedDropTarget"));
+
             Press(_source.worldBound.center, _slotIcon.worldBound.center);
             CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
         }

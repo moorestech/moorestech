@@ -18,6 +18,10 @@ namespace Client.Input
         // カーソルロックが変わった時に、新しいロック状態（true=ロック）を書き換えた後で流す
         // Publishes the new lock state (true = locked) after writing it, whenever the cursor lock changes
         public static IObservable<bool> OnCursorLockChanged => CursorLockChangedSubject;
+
+        // ロック状態の正本。唯一の書き手 MouseCursorVisible が書いた値を持つ（batchmode は Cursor.lockState への代入を捨て None のまま返すため、Cursor から読み戻さない）
+        // Source of truth for the lock; holds what the only writer MouseCursorVisible wrote (batchmode drops writes to Cursor.lockState and keeps returning None, so it is never read back from Cursor)
+        public static bool IsCursorLocked { get; private set; }
         public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
         public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
         public static UIInputManager UI => ui ??= new UIInputManager(Instance);
@@ -40,13 +44,14 @@ namespace Client.Input
             // The cursor freezes while locked, so every lock path centers it first to match the crosshair
             if (!isVisible) WarpMouseCursorToScreenCenter();
 
-            var wasLocked = Cursor.lockState == CursorLockMode.Locked;
+            var wasLocked = IsCursorLocked;
+            var isLocked = !isVisible;
             Cursor.visible = isVisible;
-            Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.lockState = isLocked ? CursorLockMode.Locked : CursorLockMode.None;
+            IsCursorLocked = isLocked;
 
             // 同じ状態の再指定では流さない
             // Re-applying the same state does not publish
-            var isLocked = !isVisible;
             if (wasLocked != isLocked) CursorLockChangedSubject.OnNext(isLocked);
         }
 

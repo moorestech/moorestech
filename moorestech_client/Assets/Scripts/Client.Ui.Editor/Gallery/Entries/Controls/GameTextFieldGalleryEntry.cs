@@ -40,6 +40,9 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
 
             GameTextField Sized(GameTextField field, float width, float height)
             {
+                // 見本は Web の実寸を見せるので潰さない（窓の既定幅 320 で複数行 2 本が潰れると文字の測定が戻らず Editor が固まった）
+                // Samples show the Web's actual sizes, so never shrink them (two multiline fields squeezed at the window's default 320 width hung the Editor in text measurement)
+                field.style.flexShrink = 0;
                 field.style.width = width;
                 if (!float.IsNaN(height)) field.style.height = height;
                 field.style.marginRight = 16;

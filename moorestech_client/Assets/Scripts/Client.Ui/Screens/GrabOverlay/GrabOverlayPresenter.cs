@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
@@ -15,11 +16,11 @@ namespace Client.Ui.Screens.GrabOverlay
     public sealed class GrabOverlayPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
-        private readonly IGrabOverlayPointer _pointer;
+        private readonly IUiScreenPointer _pointer;
         private readonly GrabOverlayModel _model;
         private readonly GameContentPresentation _content;
 
-        public GrabOverlayPresenter(GameUiRoot gameUiRoot, IGrabOverlayPointer pointer, GrabOverlayModel model, GameContentPresentation content)
+        public GrabOverlayPresenter(GameUiRoot gameUiRoot, IUiScreenPointer pointer, GrabOverlayModel model, GameContentPresentation content)
         {
             _gameUiRoot = gameUiRoot;
             _pointer = pointer;

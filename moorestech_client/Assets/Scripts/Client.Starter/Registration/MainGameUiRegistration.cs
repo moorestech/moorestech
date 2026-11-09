@@ -31,8 +31,8 @@ namespace Client.Starter.Registration
             builder.RegisterInstance(SkitPresentationStateStore.Instance);
             builder.Register<BlockingSkitPresence>(Lifetime.Singleton);
             FoundationGameUiRegistration.Register(builder);
-            // ポインタの位置の流れは CursorTooltip と掴み絵が共有する（2 機能目で基盤へ上げた）
-            // The pointer position stream is shared by CursorTooltip and the grab picture (promoted to the base on its second user)
+            // ポインタの位置の流れは画面ポインタ（InputSystemUiScreenPointer）が読む
+            // The pointer position stream is read by the screen pointer (InputSystemUiScreenPointer)
             builder.Register<InputSystemPointerPositionStream>(Lifetime.Singleton);
 
             // 画面登録区画: 1行ずつ呼び出しを足す
@@ -43,6 +43,7 @@ namespace Client.Starter.Registration
             ContentGameUiRegistration.Register(builder);
             ModeHudGameUiRegistration.Register(builder);
             CursorTooltipGameUiRegistration.Register(builder);
+            TutorialGameUiRegistration.Register(builder);
             GrabGameUiRegistration.Register(builder);
         }
     }
