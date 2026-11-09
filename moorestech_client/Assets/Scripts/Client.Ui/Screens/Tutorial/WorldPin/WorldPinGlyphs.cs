@@ -41,7 +41,7 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             // 影は blur を持てないので 2px 下の写しで近似し（LX-36）、縁を塗りの下に描く（paint-order: stroke fill）
             // Approximate the blurred shadow with a copy 2px down (LX-36), then paint the stroke under the fill (paint-order: stroke fill)
             var unit = size / ViewBox;
-            Trace(painter, unit, new Vector2(0f, 2f));
+            Trace(painter, unit, new Vector2(0f, 2f)); // look-exception: LX-36
             painter.fillColor = shadow;
             painter.Fill();
             Trace(painter, unit, Vector2.zero);

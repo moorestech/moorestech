@@ -38,7 +38,7 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
 
             float Ease(float t)
             {
-                return UiEasingFunctions.Evaluate(UiEasing.EaseInOutSine, t);
+                return UiEasingFunctions.Evaluate(UiEasing.EaseInOutSine, t); // look-exception: LX-37
             }
 
             #endregion

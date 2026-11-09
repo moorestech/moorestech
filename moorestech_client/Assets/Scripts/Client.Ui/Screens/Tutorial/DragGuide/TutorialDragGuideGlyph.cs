@@ -52,7 +52,7 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
             var painter = context.painter2D;
             // 影は blur を持てないので 1px 下へずらした写しで近似する（LX-35）
             // Painter2D has no blur, so approximate the drop shadow with a copy shifted 1px down (LX-35)
-            FillPath(painter, unit, new Vector2(0f, 1f), _shadow);
+            FillPath(painter, unit, new Vector2(0f, 1f), _shadow); // look-exception: LX-35
             FillPath(painter, unit, Vector2.zero, _fill);
         }
 

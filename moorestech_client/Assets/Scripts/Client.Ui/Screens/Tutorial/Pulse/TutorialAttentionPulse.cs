@@ -21,7 +21,7 @@ namespace Client.Ui.Screens.Tutorial.Pulse
         {
             // 0%・100% が 1、50% が頂点の ease-in-out を、半周期の往復（EaseInOutSine）で写す
             // Copy the ease-in-out 1 → peak → 1 keyframes as a half-period ping-pong with EaseInOutSine
-            var spec = new UiMotionSpec(periodMilliseconds / 2f, 0f, UiEasing.EaseInOutSine, UiMotionLoop.PingPong);
+            var spec = new UiMotionSpec(periodMilliseconds / 2f, 0f, UiEasing.EaseInOutSine, UiMotionLoop.PingPong); // look-exception: LX-37
             return UiMotionPlayer.Play(target, new UiTweenAnimation(spec, new ScaleTweenStep(target, 1f, peakScale)));
         }
     }
