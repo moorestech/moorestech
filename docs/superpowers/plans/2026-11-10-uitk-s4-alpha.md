@@ -4,7 +4,7 @@
 
 **Goal:** Web 版の `features/blockInventory` の外殻（`BlockInventoryPanel.tsx`: viewer 枠の上端揃え・大型パネル・自然高のスクロール器・`--block-panel-*` の余白・閉じるボタンと tutorial anchor・取得失敗と列車のエラー文）と、blockType → 本文の解決（`blockComponentRegistry`）、標準の本文 `SectionStackView`（区画の固定順）、`BlockItemGrid`・`LackHighlightText`・rows、スロット操作の解釈（ブロック側とプレイヤー側の両方）を、C3-a・C3-b・C4-e の部品と口、L0-s4a・L0-s4b のロジックで Web と同じ見た目・同じ操作の UITK 画面にする。後続の S4-inventory・S4-machine・S4-train・S4-special が自分のディレクトリと自分の登録ファイルだけで差し込める拡張口 6 つ（本文・題の操作・区画・列車の本文・大型パネル判定の寄与・Shift 配分の宛先の束縛の寄与）と、型付きのスロット操作コマンド（`IPlayerSlotCommands`・`IBlockSlotCommands`）、解放状態つきの機械レシピ一覧の源（`UnlockedMachineRecipeSource`）を作り、L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-block-inventory`・`uitk/uitk-lifeline`）まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State`）に 4 つの塊を置く。(1) パネルの状態 `BlockInventoryPanelModel`（`SubInventoryState`・`UIStateControl`・`OpenBlockDetailTracker` を購読し、Web ホスト `BlockInventoryTopic`・`BlockInventoryDtoFactory`・`TrainInventoryDtoFactory` と同じ規則で開閉・source・エラー・スロットを組む。`Client.WebUiHost` は参照しない）と大きさの判定 `BlockInventoryPanelLayoutModel`（列車は常に大、ブロックは寄与の口 `IBlockInventoryLargePanelRule` のどれかが真なら大）。(2) スロット操作: ブロック側は L0-s4a の `BlockSlotPlanner` の計画を、プレイヤー側は C4-e の `PlayerSlotActionPlanner` の計画を、`PlannedItemActionRunner` が `PlayerItemActionConversion.TryConvert` で振り分け、true は C4-e の `PlayerItemActionExecutor`、false は新設のブロック側実行器 `BlockItemActionExecutor`（`IBlockInventoryOperations` の本番 `LocalBlockInventoryOperations` が結合インベントリの番地 `MainSlotCount + slot` でコントローラを呼ぶ。Web ホスト `BlockInventoryActions.cs` と同じ規則）へ渡す。Shift の断りは Web と同じ messageId で `ClientLocalNotificationSource` へ通知し開発者ログへも出す。(3) Shift 配分の宛先の束縛は L0-s4b の `BlockSlotRestrictionResolver` に、寄与の口 `IBlockSlotRestrictionContributor`（機械・ロケット・宇宙エレベーターの束縛は持ち主のレーンが足す）で組んだ入力を渡す。(4) 機械レシピの源 `UnlockedMachineRecipeSource`（`Client.Ui.State/Recipe/Source/`。Web ホスト `MachineRecipesTopic` と同じ規則・同じ再構築の契機）。View 側（`Client.Ui/Screens/BlockInventory/`）は Presenter が起動時に 1 回だけ外殻 View を `StageColumnsLayout.Get(StageColumn.Viewer)` へ載せ [A-45]、Model の状態（開閉は Model が `UIStateControl` で決める）と大きさで出し入れする。本文は `BlockInventoryPartRegistry` が `BlockComponentRegistry.Resolve(blockType).Body` で引き、無ければ alpha の既定 `SectionStackBody`。拡張口は VContainer の同一インターフェイスの複数登録を `IReadOnlyList<T>` で受ける形（前例 `INestedPauseScreenState`・`ITutorialViewManager`。D-1）。見た目の値は Web と同名のトークン（`--block-panel-bottom-safe-area`・`--block-panel-right-safe-area`・`--block-panel-body-bleed`・`--menu-upper-safe-area`・`--menu-lower-safe-area`・`--inventory-panel-width`・`--stage-column-gap`・`--stage-padding-left/right`・`--panel-edge-fade`・`--bevel-3`・`--panel-action-button-width`）だけを使い、`calc()` の寸法（帯の高さ 482・大型の幅 740.108753）は View の C# が舞台の寸法とトークンから導く [A-47]。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State`）に 4 つの塊を置く。(1) パネルの状態 `BlockInventoryPanelModel`（`SubInventoryState`・`UiRoutingState`・`OpenBlockDetailTracker` を購読し、識別子・エラー・枠だけの不変 union を配る、Web ホスト `BlockInventoryTopic`・`BlockInventoryDtoFactory`・`TrainInventoryDtoFactory` と同じ規則で開閉・source・エラー・スロットを組む。`Client.WebUiHost` は参照しない）と大きさの判定 `BlockInventoryPanelLayoutModel`（列車は常に大、ブロックは寄与の口 `IBlockInventoryLargePanelRule` のどれかが真なら大）。(2) スロット操作: ブロック側は L0-s4a の `BlockSlotPlanner` の計画を、プレイヤー側は C4-e の `PlayerSlotActionPlanner` の計画を、`PlannedItemActionRunner` が `PlayerItemActionConversion.TryConvert` で振り分け、true は C4-e の `PlayerItemActionExecutor`、false は新設のブロック側実行器 `BlockItemActionExecutor`（`IBlockInventoryOperations` の本番 `LocalBlockInventoryOperations` が結合インベントリの番地 `MainSlotCount + slot` でコントローラを呼ぶ。Web ホスト `BlockInventoryActions.cs` と同じ規則）へ渡す。Shift の断りは Web と同じ messageId で `ClientLocalNotificationSource` へ通知し開発者ログへも出す。(3) Shift 配分の宛先の束縛は L0-s4b の `BlockSlotRestrictionResolver` に、寄与の口 `IBlockSlotRestrictionContributor`（機械・ロケット・宇宙エレベーターの束縛は持ち主のレーンが足す）で組んだ入力を渡す。(4) 機械レシピの源 `UnlockedMachineRecipeSource`（`Client.Ui.State/Recipe/Source/`。Web ホスト `MachineRecipesTopic` と同じ規則・同じ再構築の契機）。View 側（`Client.Ui/Screens/BlockInventory/`）は `BlockInventoryScreenPresenter` が起動時に 1 回だけ外殻 `BlockInventoryView` を `StageColumnsLayout.Get(StageColumn.Viewer)` へ載せ [A-45]、`UiRoutingState.Current` とパネルの状態で出し入れし（前例 `PauseMenuScreenPresenter`）、大きさで寸法を変える。差し込む部分は「Presenter ＋ View」で、Presenter が自分の Model を購読する（§4.2）。本文は `BlockInventoryPartRegistry` が `BlockComponentRegistry.Resolve(blockType).Body` で引き、無ければ alpha の既定 `SectionStackBody`。拡張口は VContainer の同一インターフェイスの複数登録を `IReadOnlyList<T>` で受ける形（前例 `INestedPauseScreenState`・`ITutorialViewManager`。D-1）。見た目の値は Web と同名のトークン（`--block-panel-bottom-safe-area`・`--block-panel-right-safe-area`・`--block-panel-body-bleed`・`--menu-upper-safe-area`・`--menu-lower-safe-area`・`--inventory-panel-width`・`--stage-column-gap`・`--stage-padding-left/right`・`--panel-edge-fade`・`--bevel-3`・`--panel-action-button-width`）だけを使い、`calc()` の寸法（帯の高さ 482・大型の幅 740.108753）は C# が舞台の寸法と、画面のクラスで受け直したトークンから導く [A-47]。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`GeometryChangedEvent`・`CustomStyleResolvedEvent`）、UniRx、VContainer 1.10（コレクション解決）、NUnit＋`com.unity.ui.test-framework`、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（test-name-parity）、gh CLI、bd（Beads）
 
@@ -17,28 +17,28 @@
 
 | ID | 要件 | 受け入れ基準 |
 |---|---|---|
-| R-1 | パネルの状態: `UIStateControl.CurrentState == SubInventory` かつ `SubInventoryState.CurrentSubInventory != null` のときだけ開く。source が列車（`TrainSubInventorySource`）なら `OpenTrainInventoryPanel`（エラーは `LastOpenMessage` から ContainerMissing / TrainCarMissing / OpenFailed）、ブロックなら `OpenBlockDetailTracker.TrackedBlock` から `OpenBlockInventoryPanel`（`SubInventoryModel.Result != Success` で OpenFailed。blockType・blockGuid・BlockId・位置・スロット・`BlockComponentRegistry.Resolve` の結果）。追跡ブロックが無ければ閉。再計算の契機は Web ホストと同じ（状態遷移・`OnSubInventoryUpdated`・追跡替え・追跡ブロックの状態変化） | `BlockInventoryPanelStateFactoryTest` が緑。録画 `uitk/uitk-block-inventory` で開閉が主張どおり |
-| R-2 | 外殻: `StageColumnsLayout.Get(StageColumn.Viewer)` へ載る `block-inventory`（`data-large` 相当のクラス `block-inventory--large`）。`GamePanel(block-inventory-panel, Default)`。下の余白 `--block-panel-bottom-safe-area`、小型は右の余白 `--block-panel-right-safe-area`、最大高は帯の高さ（舞台の高さ − `--menu-upper-safe-area` − `--menu-lower-safe-area`）、大型は幅 = 舞台の幅 − `--stage-padding-left` − `--stage-padding-right` − `--inventory-panel-width` − `--stage-column-gap`・高さ = 帯の高さ。寸法は C# が導く [A-47] | `BlockInventoryDesignTest`（alpha 分 6 件）・`BlockInventoryPanelBandTest` が緑。並べ比べ R-14 |
-| R-3 | 題: ブロックは `ContentLocalizationKeys.BlockName(blockGuid)`、列車は `ui.blockInventory.trainInventory`。言語を変えると題が描き直される。題の操作（ロケット）はブロック・エラー無し・登録ありのときだけ `GamePanel.SetTitleAction` で出す（器 `block-inventory-title-action` を 1 回渡して中身を付け替える。D-17）。題の右の逃げ `calc(--panel-action-button-width + 8px)` は `GamePanel` に口が無いので integrator へ依頼する（Task 1 Step 3） | `BlockInventoryLocalizationTest`「blockGuidの導出キーを…」と `BlockInventoryTitleActionTest` が緑 |
-| R-4 | 閉じる: `IconButton(block-inventory-close, IconButtonCloseGlyph)`、位置は top `--bevel-3`・right `--panel-edge-fade`、錨 `AnchorIds.InventoryCloseButton`（`TutorialAnchor.Mark`）。押すと `IBlockInventoryPanelCommands.Close()` が `UIStateControl.RequestTransition(GameScreen)` を呼ぶ（Web `ui_state.request gameScreen`） | `BlockInventoryPanelFlowTest`「ブロックを閉じると panel が消える」と `BlockInventoryPanelCommandsTest` が緑 |
-| R-5 | エラー行: ブロック `block-inventory-error`・列車 `train-inventory-error`。文言 OpenFailed→`ui.blockInventory.inventoryOpenFailed`、ContainerMissing→`ui.blockInventory.trainNoItemContainer`、TrainCarMissing→`ui.blockInventory.trainNotFound`。エラー中は本文と題の操作を出さない | `BlockInventoryLocalizationTest`「取得失敗はブロック本文を隠し、失敗文を表示する」と `BlockInventoryPanelErrorTest` が緑 |
-| R-6 | 本文: 大型は本文をそのまま（機械の大型なら `FillsPanelHeight`）、小型は自然高のスクロール器（`GameScrollView(block-inventory-natural-scroll)`。外側の負マージン `--block-panel-body-bleed`・内側の逃げ同値）で包む。本文は `BlockComponentRegistry.Resolve(blockType).Body` の `IBlockInventoryBodyFactory` を引き、`SectionStack` か未登録なら alpha の `SectionStackBody`（未登録の Kind は警告ログを 1 回）。列車は `ITrainInventoryBodyFactory`（未登録なら警告ログ） | `BlockInventoryPartRegistryTest`・`BlockInventoryNaturalScrollTest` が緑 |
-| R-7 | `SectionStackBody`: Web `SectionStackView` の順（Context → 項目グリッド → Machine → Miner → Pump → Generator → GearToElectric → BeltThroughput → Gear → ElectricNetwork → GearNetwork → FluidDetails → FluidRow）を `UiStack(UiGap.Sm)` で固定し、項目グリッドは alpha（`configByBlockType` の写し `SectionStackConfigTable`。`renderEmptyGrid || slots>0` で出す）、残りは `ISectionStackSectionFactory` の差し込み（`IsApplicable` が偽なら隠す）。液体の 2 区画は S4-machine が埋める空き区画 | `SectionStackViewTest`（alpha 分 3 件）・`SectionStackRegressionTest`（alpha 分 1 件）が緑 |
+| R-1 | パネルの状態: `UiRoutingState.Current.Value.Screen == UiScreen.SubInventory` かつ `SubInventoryState.CurrentSubInventory != null` のときだけ開く。source が列車（`TrainSubInventorySource`）なら `OpenTrainInventoryPanel`（エラーは `LastOpenMessage` から ContainerMissing / TrainCarMissing / OpenFailed）、ブロックなら `OpenBlockDetailTracker.TrackedBlock` から `OpenBlockInventoryPanel`（`SubInventoryModel.Result != Success` で OpenFailed。blockType・blockGuid・BlockId・BlockInstanceId・位置・スロット・`BlockComponentRegistry.Resolve` の結果。`BlockGameObject` や列車の源は載せない）。追跡ブロックが無ければ閉。再計算の契機は Web ホストと同じ（状態遷移・`OnSubInventoryUpdated`・追跡替え・追跡ブロックの状態変化） | `BlockInventoryPanelStateFactoryTest` が緑。録画 `uitk/uitk-block-inventory` で開閉が主張どおり |
+| R-2 | 外殻: `StageColumnsLayout.Get(StageColumn.Viewer)` へ載る `block-inventory`（`data-large` 相当のクラス `block-inventory--large`）。`GamePanel(block-inventory-panel, Default)`。下の余白 `--block-panel-bottom-safe-area`、小型は右の余白 `--block-panel-right-safe-area`、最大高は帯の高さ（舞台の高さ − `--menu-upper-safe-area` − `--menu-lower-safe-area`）、大型は右の余白を上書きせず（`GamePanel` 既定の 10px）、幅 = 舞台の幅 − `--stage-padding-left` − `--stage-padding-right` − `--inventory-panel-width` − `--stage-column-gap`・高さ = 帯の高さ。寸法は C# が `.block-inventory` で受け直したトークンから導く [A-47]。出し分けは `BlockInventoryScreenPresenter` が `UiRoutingState` で `SetShown` | `BlockInventoryDesignTest`（alpha 分 6 件）・`BlockInventoryPanelBandTest` が緑。並べ比べ R-14 |
+| R-3 | 題: ブロックは `ContentLocalizationKeys.BlockName(blockGuid)`、列車は `ui.blockInventory.trainInventory`。言語を変えると題が描き直される。題の操作（ロケット）はブロック・エラー無し・登録ありのときだけ `GamePanel.SetTitleAction` で出す（器 `block-inventory-title-action` を 1 回渡して中身を付け替える。D-17）。題の右の逃げ `calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))`（12px。計 99px）は `GamePanel` に口が無いので integrator へ依頼する（Task 1 Step 3） | `BlockInventoryLocalizationTest`「blockGuidの導出キーを…」と `BlockInventoryTitleActionTest` が緑 |
+| R-4 | 閉じる: `IconButton(block-inventory-close, IconButtonCloseGlyph)`、位置は top `--bevel-3`・right `--panel-edge-fade`、錨 `AnchorIds.InventoryCloseButton`（`TutorialAnchor.Mark`）。押すと `IBlockInventoryPanelCommands.Close()` が `Client.Ui.State/Routing/` の `IUiStateTransitionRequester.RequestTransition(GameScreen)` を呼ぶ（Web `ui_state.request gameScreen` と同じ許可表・入れ子ポーズの扱い） | `BlockInventoryPanelFlowTest`「ブロックを閉じると panel が消える」・`BlockInventoryPanelCommandsTest`・`UiStateTransitionRulesTest` が緑 |
+| R-5 | エラー行: ブロック `block-inventory-error`・列車 `train-inventory-error`。文言 OpenFailed→`ui.blockInventory.inventoryOpenFailed`、ContainerMissing→`ui.blockInventory.trainNoItemContainer`、TrainCarMissing→`ui.blockInventory.trainNotFound`。エラー中は本文と題の操作を出さず、エラーが解けると戻す（判定は `Error == BlockInventoryPanelError.None`） | `BlockInventoryLocalizationTest`「取得失敗はブロック本文を隠し、失敗文を表示する」と `BlockInventoryPanelErrorTest`（正常→エラー→正常を含む）が緑 |
+| R-6 | 本文: 大型は本文をそのまま（機械の大型なら `FillsPanelHeight`）、小型は自然高のスクロール器（`GameScrollView(block-inventory-natural-scroll)`。外側の負マージン `--block-panel-body-bleed`・内側の逃げ同値・Web `.scroll` の `flex: 1; min-height: 0`）で包み、帯を超える中身はスクロールする。本文は `BlockComponentRegistry.Resolve(blockType).Body` の `IBlockInventoryBodyFactory` を引き、`SectionStack` か未登録なら alpha の `SectionStackBody`（未登録の Kind は警告ログを 1 回）。列車は `ITrainInventoryBodyFactory`（未登録なら警告ログ） | `BlockInventoryPartRegistryTest`・`BlockInventoryNaturalScrollTest` が緑 |
+| R-7 | `SectionStackBody`: Web `SectionStackView` の順（Context → 項目グリッド → Machine → Miner → Pump → Generator → GearToElectric → BeltThroughput → Gear → ElectricNetwork → GearNetwork → FluidDetails → FluidRow）を `UiStack(UiGap.Sm)` で固定し、項目グリッドは alpha（`configByBlockType` の写し `SectionStackConfigTable`。`ShownSectionStackItemGrid` で `RenderEmpty || 枠数>0` なら出す）、残りは `ISectionStackSectionFactory` の差し込み（区画の Presenter の `IsApplicable`〈`IReadOnlyReactiveProperty<bool>`〉を購読して出し入れと間隔を組み直す。パネルの組み直しの外の変化でも効く）。液体の 2 区画は S4-machine が埋める空き区画 | `SectionStackViewTest`（alpha 分 3 件＋出し入れの 1 件）・`SectionStackRegressionTest`（alpha 分 1 件）が緑 |
 | R-8 | `BlockItemGrid`: 列数 `min(10, max(1, 枠数))`・枠 `ItemSlot(<testId>-slot-<index>)`、押下・右押下・ダブルクリックを `IBlockSlotCommands` へ。`BlockItemGridGroup`（ラベル `text--sm text--muted`・間 4px）。`LackHighlightText`（`data-insufficient` 相当のクラス `lack-highlight-text--insufficient`・色 `--text-default` / `--text-insufficient`）・`MachineStateRow`・`PerMinuteRateRow`・`PowerRateText` | `LackHighlightTextTest` 2 件・`BlockInventoryDesignTest`「ブロックスロットの列数を…」・`BlockInventoryRowsTest` が緑 |
 | R-9 | ブロック側のスロット操作: 左＝`BlockSlotPlanner.PlanLeftClick`（Shift・空手・中身ありは main へ配分、掴み中は全量置き、中身ありは全量掴み）、右＝`PlanRightClick`（掴み中は 1 個置き、空手は分割）、ダブル＝`PlanDoubleClick`（集める先は持ち手の有無で決める）。計画は操作の瞬間の在庫で組む。ブロック側の計画は `BlockItemActionExecutor` が実行（分割: 掴み中は `SplitGrabNotEmpty`・空は `ItemSourceSlotEmpty`・半分 0 は何もしない成功。移動の結果は A-94 の理由へ） | `BlockSlotCommandsTest`（Web `blockInventoryGestures` 1〜4 件目・`blockInventory.spec` 2 件目）・`BlockItemActionExecutorTest` が緑 |
 | R-10 | プレイヤー側の型付きコマンド `IPlayerSlotCommands`（LeftDown/RightDown/DoubleClick/LeftEnter/RightEnter）を InventoryPanel（S4-inventory）向けに出す。ブロックが開いていれば `PlayerSlotContext.WithBlockOpen`（スロット・`BlockSlotRestrictionResolver` の束縛）、閉なら `WithBlockClosed`。`BeginSplitDragPlan`→`IPlayerSlotDragCommands.BeginSplitDrag`、進入は C4-e の口へ素通し | `PlayerSlotCommandsTest`（Web `blockInventoryGestures` 5 件目）が緑 |
 | R-11 | Shift の断り: NoAcceptingBlockSlot→`denied.inventoryMoveSlotRejected`・InventoryOpenFailed→`denied.inventoryOpenFailed`・DetailLoading→`denied.inventoryDetailLoading` を `ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied(id, 空))` で出し、`[inventory.shift_move] not sent: <reason> block=<id|(closed)> item=<id>` を Warning ログ。`DestinationFull`（Web に無い）は通知せず Warning ログだけ（D-9）。`BlockSlotPlanner` の Shift→main が満杯で空配列のときも Warning ログ（D-10）。`DirectMovePlanner` へは既知の ItemId のスロットだけ渡し、未知 ID は Error ログで止める（D-11） | `ShiftMoveRefusalNotifierTest`・`PlayerSlotCommandsTest`・`BlockSlotCommandsTest` の該当件が緑 |
 | R-12 | 機械レシピの源: `UnlockedMachineRecipeSource`（`Client.Ui.State/Recipe/Source/`）が解放済みの機械レシピ（`MachineRecipeData` の列。レベル継承つき）を `IReadOnlyReactiveProperty` で配る。再構築は `UnlockedEventPacket` と `ILevelInheritanceCraftCapLookup.OnCraftCapUnlocked`（Web `MachineRecipesTopic` と同じ）。要約への変換 `MachineRecipeSummaryConversion` も出す | `UnlockedMachineRecipeListBuilderTest`・`MachineRecipeSummaryConversionTest` が緑 |
-| R-13 | 拡張口 6 つ（本文・題の操作・区画・列車の本文・大型パネル判定・Shift 配分の束縛）を VContainer の複数登録で受ける。登録 0 本でも起動し（VContainer 1.10 は空のコレクションを返す）、同じ Kind / Slot の二重登録は起動時に例外で止める | `BlockInventoryPartRegistryTest`・`SectionStackSlotRegistryTest`・`BlockInventoryPanelLayoutModelTest`・`BlockSlotRestrictionInputBuilderTest` が緑。末尾「## 後続レーンへの Produces 一覧」がこの計画の型と一致 |
+| R-13 | 拡張口 6 つ（本文・題の操作・区画・列車の本文・大型パネル判定・Shift 配分の束縛）を VContainer の複数登録で受ける。本文・題の操作・区画・列車の本文の工場が作るのは「Presenter（`Attach` で自分の Model を購読し View へ・`Detach` で切る）＋ View（`Root`）」。登録 0 本でも起動し（VContainer 1.10 は空のコレクションを返す）、同じ Kind / Slot の二重登録は起動時に例外で止める | `BlockInventoryPartRegistryTest`・`SectionStackSlotRegistryTest`・`BlockInventoryPanelLayoutModelTest`・`BlockSlotRestrictionInputBuilderTest` が緑。末尾「## 後続レーンへの Produces 一覧」がこの計画の型と一致 |
 | R-14 | 並べ比べ: 参照 `4-block-chest`・`4-block-generic`・`4-block-tank`（液体の区画が空なので差は液体の行だけ。LX に記帳しない・S4-machine の比較へ回す）・`4-block-trainError` を 1280×720・2560×1080 で撮り、差の表を `done.md` に書く | 差の表の全行が「同じ／直した／LX-106〜LX-110／他レーン持ち（区画が空）」のどれか |
-| R-15 | 登録: `MainGameUiRegistration` の画面登録区画に `BlockInventoryGameUiRegistration.Register(builder);` を 1 行、`GameUiTheme.tss` の `Screens` 区画に `@import` を 1 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
-| R-16 | 写すテスト（実物で数え直した alpha 分 23 件。下の「写すテスト」表）・`docs/uitk/disposition.md` の行・`node tools/uitk/test-name-parity.mjs --bundle 4` で alpha のファイルの未対応 0（他レーンの持ち分は「写す予定」で残ってよい） | parity の出力に alpha のファイル（`blockInventory.spec.ts`・`blockInventoryGestures.spec.ts`・`blockRegistryCoverage.spec.ts`・`BlockInventoryPanel.localization.test.ts`・`LackHighlightText/index.test.ts`）の未対応が無い |
-| R-17 | 録画: `uitk/uitk-block-inventory`（新設。チェストを開く・左で掴む・右で分割・ダブルで集める・Shift で main へ・main の Shift でブロックへ・閉じる・エラー無し）と `uitk/uitk-lifeline` を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-15 | 登録: `MainGameUiRegistration` の共有サービスの並びにブロックインベントリの共有サービス、画面登録区画に `BlockInventoryGameUiRegistration.Register(builder);` を 1 行、`MainGameModelRegistration` に `IItemStackLevelLookup` を 1 行、`GameUiTheme.tss` の `Screens` 区画に `@import` を 3 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
+| R-16 | 写すテスト（実物で数え直した alpha 分 23 件。下の「写すテスト」表）を `<web-test>` で写す。写した件は `docs/uitk/disposition.md` に書かない（書くと parity が終了コード 2）。`node tools/uitk/test-name-parity.mjs --bundle 4` で alpha のファイルの未対応 0（他レーンの持ち分は未対応のまま残ってよい） | parity の終了コードが 2 でなく、出力に alpha のファイル（`blockInventory.spec.ts`・`blockInventoryGestures.spec.ts`・`blockRegistryCoverage.spec.ts`・`BlockInventoryPanel.localization.test.ts`・`LackHighlightText/index.test.ts`）の未対応が無い |
+| R-17 | 録画: `uitk/uitk-block-inventory`（新設。チェストを開く・左で掴む〈`grab-overlay` が出る〉・右で分割・ダブルで集める・Shift で main へ・閉じる・エラー無し。ブロック側の枠の操作で完結し、main の枠の Shift は S4-inventory の完了条件へ渡す）と `uitk/uitk-lifeline` を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-18 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`LOGS/harness/uitk/S4-alpha/done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
 
-- 機械・採掘機・ポンプ・発電機・清浄室・入力の詰まりの区画、液体の行と詳細（`FluidInventoryContents`・`FluidSlotRow`。S4-machine が `Screens/BlockInventory/Fluid/` に作る）、機械のレシピ選択と大型パネルの判定の実装（`IBlockInventoryLargePanelRule` の実装は S4-machine）、機械の Shift 束縛の寄与（S4-machine）
+- 区画・本文の詳細の Model（各レーンの State に置き、`OpenBlockDetailTracker` 等を購読する）、機械・採掘機・ポンプ・発電機・清浄室・入力の詰まりの区画、液体の行と詳細（`FluidInventoryContents`・`FluidSlotRow`。S4-machine が `Screens/BlockInventory/Fluid/` に作る）、機械のレシピ選択と大型パネルの判定の実装（`IBlockInventoryLargePanelRule` の実装は S4-machine）、機械の Shift 束縛の寄与（S4-machine）
 - 特殊族の本文と区画（FilterSplitter・ElectricToGear・GearToElectric・ElectricPole・Gear・ベルトの流量・電力網・歯車網・宇宙エレベーター・ロケットと題の操作・入れ口の束縛の寄与。S4-special）
 - 列車の本文（`TrainInventoryBody`・時刻表・駅名・プラットフォーム。S4-train）
 - InventoryPanel・EquipmentPanel（S4-inventory。alpha は `IPlayerSlotCommands` を出すだけ）
@@ -51,7 +51,9 @@
 
 - **作業場所**: `moores-wt new uitk-lane/s4-alpha --from origin/feature/uitk`（Editor 要）。最初に `pwd` で worktree にいることを確かめる。Unity は自分の worktree の Editor だけを使い、起動・停止の前に `moores-wt status` で所有を確かめる。Mac mini の Editor は同時 2 本まで。Mac が逼迫したら Windows の `~/bin/winunity`（compile/test/play を ssh で回す）も使える
 - **依存**: C4-e・C3-a・C3-b・L0-s4a・L0-s4b が入った `origin/feature/uitk`（全部マージ済み。Task 1 Step 1 で確かめる）。**C3-b を依存に足す**（E-22）: `ItemSlot` の名前ツールチップは F1 の `HoverTooltipMark` を印に C3-b の `GameUiHoverTooltipInstaller`（`HoverTooltipHost`）が出し、自然高のスクロール器 `GameScrollView` の `OnScrollOffsetChanged`・`OnContentLayoutChanged` も C3-b の口。C4-a・C4-c・C4-d は使わない（ゲージ・液体の部品は S4-machine）
-- **登録の本数**: `S/Client.Starter/Registration/GameUi/` は今 8 本（`.cs`）。alpha の 1 本で 9 本。後続の S4-inventory・S4-machine・S4-train・S4-special で 10 本を超えるので、Task 1 で integrator へ再編の依頼を出す（alpha 自身は 9 本目で止まらない）
+- **登録の本数と置き場**: `S/Client.Starter/Registration/GameUi/` は今 8 本（`.cs`）。alpha の 1 本で 9 本。後続の S4-inventory・S4-machine・S4-train・S4-special で 10 本を超えるので、Task 1 で integrator へ再編の依頼を出す（alpha 自身は 9 本目で止まらない）。複数レーンが ctor で受ける共有サービス（パネルの状態・遷移要求・スロット操作の型付きコマンドとその実行器・ブロックの枠の並びの工場・解放済み機械レシピの源）は E-1・A-56 どおり `MainGameUiRegistration` の共有サービスの並びに、`IItemStackLevelLookup` は `MainGameModelRegistration.cs:105` の隣に置く（D-14・D-22）。画面だけが使うものは `BlockInventoryGameUiRegistration`
+- **購読の持ち主**: Model の購読は Presenter。View は `Render` で値を受けるだけ（設計書 §4.2・A-57）。差し込む部分も「Presenter ＋ View」で、パネルの状態は識別子・エラー・枠だけを運ぶ（D-19）。画面の出し分けは `UiRoutingState.Current` だけで決める（§4.4。D-21）
+- **`:root` のトークンを C# で読むとき**は、読む要素のクラスで `--<部品>-<名前>: var(--token)` と受け直し、C# は受け直した名前を読む（`UssCustomStyleReader.cs:10-13`。前例 `GaugeBar.uss:6`。D-8）
 - **規約**: 1 ファイル 200 行以下・1 ディレクトリ 10 ファイル以下（`.meta` を除く）・partial 禁止・`Func<>` 禁止・イベントは UniRx（`Action` 禁止）・try-catch 禁止（このレーンに外部境界は無い）・日英 2 行コメント・デフォルト引数禁止・単純 getter/setter 禁止（`{ get; private set; }` と式本体の計算プロパティは可）・初期化は `Initialize`・null チェックは外部データだけ・fail-closed の経路は開発者ログ・意図して黙る行は `silent-ok: <理由> / <誰が気づくか>`・`#region Internal` はメソッド内のローカル関数だけ・`.meta` を手で作らない・Prefab/シーンを手で編集しない・`Update()` で同値判定しない（購読）
 - **State は `Client.WebUiHost` を参照しない**。Web ホストにしかない規則（ブロック側の分割・集める先・結合インベントリの番地・機械レシピの一覧）は State に写し直す。重複は D-5・D-6 に記録（C4-e D-5 と同じ扱い）
 - **USS**: 画面 USS の先頭に出所の 1 行（日英。`/* web: features/blockInventory/style.module.css .panel …（日本語の要約） / (English) */`）。色はトークン経由だけ。部品のクラスを画面 USS に書かない。部品のつまみの上書きは画面のルートで（このレーンでは上書き無し）
@@ -143,19 +145,41 @@ SubInventoryState { SubInventoryModel CurrentSubInventory; ISubInventorySource C
 SubInventoryModel { List<IItemStack> SubInventory; InventoryRequestResult Result; int Count; }                                                 // Client.Game.InGame.UI.Inventory
 TrainSubInventorySource { long TrainCarInstanceId; TrainInventoryMessageType? LastOpenMessage; }                                                // TrainInventoryMessageType { ContainerMissing, TrainCarMissing, OpenFailed }
 OpenBlockDetailTracker { BlockGameObject TrackedBlock; BlockSubInventorySource TrackedSource; IObservable<BlockGameObject> OnTrackedBlockChanged; IObservable<Unit> OnTrackedBlockStateChanged; } // Client.Ui.State.BlockDetail。DI 登録済み（MainGameUiStateRegistration）
-UIStateControl { IObservable<UIStateEnum> OnStateChanged; UIStateEnum CurrentState; void RequestTransition(UIStateEnum nextState); }
+UIStateControl { IObservable<UIStateEnum> OnStateChanged; UIStateEnum CurrentState; void RequestTransition(UIStateEnum nextState); INestedPauseScreenState GetCurrentNestedPauseScreen(); }   // 遷移要求の本番実装だけが使う
+UiRoutingState { IReadOnlyReactiveProperty<UiRoutingSnapshot> Current; }   // Client.Ui.State.Routing。DI 登録済み（MainGameUiStateRegistration.cs:53）。UiRoutingSnapshot { UiScreen Screen; UiRoutingSnapshot(UiScreen) }・UiScreen.SubInventory
+BlockGameObject { BlockInstanceId BlockInstanceId; BlockMasterElement BlockMasterElement; }   // 追跡器から識別子を取るだけ。パネルの状態には載せない
 LocalPlayerInventoryController { LocalItemMoveResult MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count); void CollectItems(LocalMoveInventoryType targetType, int targetSlot); IItemStack GrabInventory; LocalPlayerInventory LocalPlayerInventory /* MainSlotCount・this[int] */; }
 ClientLocalNotificationSource { void Notify(NotificationMessagePack message); }   // NotificationMessagePack.CreateOperationDenied(string messageId, Dictionary<string,string> messageParams)
 IGameUnlockStateData { IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos; }  // Game.UnlockState。DI 登録済み（MainGameInteractionRegistration）
 ILevelInheritanceCraftCapLookup { IObservable<(Guid familyBaseItemGuid, int level)> OnCraftCapUnlocked; }        // Game.Block.Interface.MachineUpgrade。DI 登録済み（MainGameModelRegistration）
 IVanillaApiEvent { IDisposable SubscribeEventResponse(string tag, Action<byte[]> responseAction); }               // Client.Network.API
-IItemStackLevelLookup                                                                                                 // Core.Item.Interface。クライアント DI 未登録 → alpha が ServerContext.GetService で登録（前例 MainGameModelRegistration の IItemStackLevelUnlocker）
+IItemStackLevelLookup                                                                                                 // Core.Item.Interface。クライアント DI 未登録 → alpha が MainGameModelRegistration.cs:105 の IItemStackLevelUnlocker の隣に ServerContext.GetService で登録
+ClientLocalNotificationSource                                                                                         // DI 登録済み（MainGameInteractionRegistration.cs:166）
 ```
+
+## 死活表（移行で触る操作が計画後も生きるか）
+
+触る機構: `MainGameUiRegistration`（GameUi のときだけ。Web なら早く return する `MainGameUiRegistration.cs:23`）・`MainGameModelRegistration`（両系で登録。`IItemStackLevelLookup` を 1 行足すだけ）・`GameUiTheme.tss`・`UiCommandRejectReason`（Settings・PauseMenu・分割ドラッグ・持ち物の移動も使う）・`localization.csv`・`Client.Ui.State.asmdef`・`StageColumnsLayout` の Viewer 列・`UIStateControl.RequestTransition`・`ClientLocalNotificationSource`・`UnlockedEventPacket` の購読
+
+| 操作 | 計画後 | 根拠 |
+|---|---|---|
+| Web 系: ブロック／列車インベントリの開閉・枠の操作・Shift 配分・ESC | 生きる | Web の系では Client.Ui を 1 つも登録しない（`MainGameUiRegistration.cs:23`）。`Client.WebUiHost/**` は変えない。`IItemStackLevelLookup` の登録は Web 系でも増えるが、読み手が増えるだけで既存の解決は変わらない |
+| UITK 系: チェストを開いてパネルを出す | 新しく使える | 裁定「未実装の画面は使えない」から実装済みになる |
+| UITK 系: ESC で閉じる | 生きる | UIState の遷移が持つ（やらないことにある） |
+| UITK 系: 閉じるボタン・ブロックの枠の左／右／ダブル／Shift | 新しく使える | Task 4・8 |
+| UITK 系: メインの枠の Shift→ブロック | まだ使えない（退化ではない） | InventoryPanel は S4-inventory。alpha は `IPlayerSlotCommands` を出すだけで、UI からの確認は S4-inventory の完了条件へ渡す（D-33）。今までも使えなかった |
+| UITK 系: 掴み絵（C4-e） | 生きる | `GrabOverlayModel` は掴みの変化で出す。源が増えるだけ |
+| UITK 系: ブロックから掴んだまま閉じる | 要確認（Task 1 Step 5） | UITK に main の受け皿の画面がまだ無い。閉じた後の掴みの行き先（サーバーかコントローラが閉じるときに戻すのか、掴みに残るのか）を実物で確かめ、残るなら後続が揃うまでの振る舞いとして `done.md`「未確認」と起草メモの申告に書く |
+| 既存の拒否理由（Settings・PauseMenu・分割ドラッグ） | 生きる | enum と同じファイルの switch の末尾への追記だけ。網羅テスト `PauseMenuCommandsTest` の配列も同じ Task で直す |
+| ホットバー・HUD・他の常駐表示 | 生きる | 触らない。Viewer 列には今ほかの画面が無いので衝突しない |
+| 解放イベントで動く既存の購読（`ClientGameUnlockStateData`・Web の各 Topic） | 生きる | 購読を 1 本足すだけで既存のハンドラは変えない |
+
+判定: 死ぬ・退化する操作は無い。要確認 1 行は Task 1 Step 5 で実物を読む。
 
 ## 設計検査記録
 
-- 配置検査: 未実施
-- Phase 2.6: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / 区画の購読を Presenter へ・出し分けを UiRoutingState へ・命名・Lookup の登録先・死活表
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強3・弱3・第3バケツ5 / Error の null 比較・SectionStackConfig の null を判別 union へ・共有サービスの登録先を E-1 へ（agent 既定で裁定）
 
 ## 写すテスト
 
@@ -164,7 +188,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | Web ファイル（`W/` から） | テスト名（第 1 引数） | 写す人 | alpha の NUnit |
 |---|---|---|---|
 | `e2e/tests/block/blockInventory.spec.ts` | chest の block inventory パネルが描画される | alpha | `BlockInventoryPanelFlowTest` |
-| 同 | filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る | alpha | `BlockSlotCommandsTest`（掴み絵は C4-e の `GrabOverlayModel` が掴み手の変化で出す。押下 → 移動 → 掴みの中身までを主張） |
+| 同 | filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る | alpha | `BlockSlotCommandsTest`（送る移動）＋録画 `uitk/uitk-block-inventory` 手順 3（`grab-overlay` が `grab-overlay--shown` で display Flex・掴みが 10。Task 11） |
 | 同 | ブロックを閉じると panel が消える | alpha | `BlockInventoryPanelFlowTest` |
 | `e2e/tests/block/blockInventoryGestures.spec.ts` | 空手の右クリックで block_inventory.split を送り grab に半分入る | alpha | `BlockSlotCommandsTest` |
 | 同 | grab 保持中の右クリックで block スロットへ1個置く | alpha | `BlockSlotCommandsTest` |
@@ -172,7 +196,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | 同 | Shift+クリックで block→main へ配分移動する | alpha | `BlockSlotCommandsTest` |
 | 同 | block 開時は main の Shift+クリックが block へ配分移動する | alpha | `PlayerSlotCommandsTest` |
 | `e2e/tests/block/blockRegistryCoverage.spec.ts` | v8マスタで専用UIを持つ全blockTypeがレジストリまたは意図的Genericに分類される | alpha | `BlockRegistryCoverageTest` |
-| `e2e/tests/regression/sectionStack.spec.ts` | `${entry.type}は対応セクションだけを表示する` | alpha（項目グリッドの id）＋ machine・special（区画の id） | `SectionStackRegressionTest` |
+| `e2e/tests/regression/sectionStack.spec.ts` | `${entry.type}は対応セクションだけを表示する` | alpha（項目グリッドの id。FilterSplitter を除く 6 ケース）＋ machine・special（区画の id）＋ special（FilterSplitter の専用本文のケース） | `SectionStackRegressionTest` |
 | `src/features/blockInventory/views/__tests__/SectionStackView.test.tsx` | %s の既存表示を保つ | alpha（項目グリッド）＋ machine（液体の行） | `SectionStackViewTest` |
 | 同 | パイプは液体だけを進捗なしで描画する | machine | — |
 | 同 | 空のパイプは名前や容量を表示せず空スロットを残す | machine | — |
@@ -181,7 +205,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | 同 | 搬入停止欄は機械欄より上に赤字で描く | machine | — |
 | 同 | 抽選の中身欄は部屋欄のすぐ下に描く | machine | — |
 | 同 | 照会欄の無い payload では3欄とも描かず、取得中の欄は取得状態の行だけを描く | machine | — |
-| `src/features/blockInventory/blockInventoryDesign.test.ts` | %sから禁止Mantine部品とテーマ色を除去する | alpha（外殻・BlockItemGrid・rows の USS に色の直書きが無い）＋ machine・special・train（各自の USS） | `BlockInventoryDesignTest` |
+| `src/features/blockInventory/blockInventoryDesign.test.ts` | %sから禁止Mantine部品とテーマ色を除去する | alpha（外殻・BlockItemGrid・rows の USS に色の直書きが無い）＋ machine・special・train（各自の USS を各自のテストファイルに同じタグで） | `BlockInventoryDesignTest` |
 | 同 | パネル面と閉じる操作をshared uiへ集約する | alpha | `BlockInventoryDesignTest` |
 | 同 | ブロックパネルをviewer領域へ上端揃えで配置する | alpha | `BlockInventoryDesignTest` |
 | 同 | ブロックパネルだけに下部装飾の安全帯を確保する | alpha | `BlockInventoryDesignTest` |
@@ -202,7 +226,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | `src/features/blockInventory/details/LackHighlightText/index.test.ts` | 現在値と要求値を表示し、通常状態をdata属性で公開する | alpha（§1.4 に無いが alpha の部品） | `LackHighlightTextTest` |
 | 同 | 不足状態をdata属性で公開する | alpha | `LackHighlightTextTest` |
 
-alpha のタグ付き NUnit は 23 件（3＋5＋1＋1＋3＋6＋2＋2）。タグ無しの自前テスト（Model・実行器・口・源）は Task ごとに書く。
+alpha のタグ付き NUnit は 23 件（3＋5＋1＋1＋3＋6＋2＋2。`blockInventory.spec` 2 件目の「grab オーバーレイが出る」は `BlockSlotCommandsTest` が送る移動を、録画 `uitk-block-inventory` 手順 3 が絵の表示を主張する）。タグ無しの自前テスト（Model・実行器・口・源・区画の出し入れ・エラーからの復帰）は Task ごとに書く。後続レーンは alpha のテストファイルへ足さず、自分のテストファイルに同じタグで写す（同タグの NUnit が複数になってよい）。
 
 ## File Structure
 
@@ -217,7 +241,9 @@ State（`Client.Ui.State/`）
 - `BlockInventory/Panel/BlockInventoryPanelLayout.cs` — 大型・高さ確定の値
 - `BlockInventory/Panel/BlockInventoryPanelLayoutModel.cs` — 状態と寄与から大きさを配る
 - `BlockInventory/Panel/IBlockInventoryPanelCommands.cs`・`BlockInventoryPanelCommands.cs` — 閉じる
-- `BlockInventory/SectionStack/SectionStackConfig.cs`・`SectionStackConfigTable.cs` — Web `configByBlockType` の写し
+- `BlockInventory/Panel/BlockInventoryScreenVisibility.cs` — 画面ルータとパネルの状態から出すかを決める
+- `BlockInventory/SectionStack/SectionStackConfig.cs`・`SectionStackConfigTable.cs` — Web `configByBlockType` の写し（項目グリッドと液体の判別 union）
+- `Routing/IUiStateTransitionRequester.cs`・`UiStateControlTransitionRequester.cs`・`UiStateTransitionRules.cs` — 遷移要求の口と許可表（後続の画面も使う）
 - `BlockInventory/SlotRestriction/IBlockSlotRestrictionContributor.cs` — 拡張口 (6)
 - `BlockInventory/SlotRestriction/BlockSlotRestrictionInputBuilder.cs` — パネル状態＋寄与 → L0-s4b の入力
 - `SlotCommands/PlannedItemActionRunner.cs` — 計画を TryConvert で振り分ける
@@ -227,21 +253,22 @@ State（`Client.Ui.State/`）
 - `Recipe/Source/UnlockedMachineRecipeSource.cs`・`UnlockedMachineRecipeListBuilder.cs`・`MachineRecipeLevelInheritanceConversion.cs`・`MachineRecipeSummaryConversion.cs`
 
 Client.Ui（`Client.Ui/Screens/BlockInventory/`）
-- `BlockInventoryPresenter.cs` — 起動時に 1 回載せ、出し入れと購読
-- `BlockInventoryPanelView.cs` — 外殻（GamePanel・題・閉じる・エラー行・本文の器）
+- `BlockInventoryScreenPresenter.cs` — 起動時に 1 回載せ、画面ルータ・状態・大きさを購読して出し入れ
+- `BlockInventoryView.cs` — 外殻（GamePanel・題・閉じる・エラー行・本文の器。購読しない）
 - `BlockInventoryPanelBand.cs` — 帯の高さと大型の幅を舞台とトークンから導く [A-47]
 - `BlockInventoryNaturalScroll.cs` — 自然高のスクロール器（負マージンと内側の逃げ）
-- `BlockInventoryBodyHost.cs` — 本文・題の操作・列車の本文の付け替え
+- `BlockInventoryBodyHost.cs` — 本文・題の操作・列車の本文の Presenter の付け替え（`IsSamePanel` と大きさで決める）
 - `BlockInventory.uss`
 - `Registry/IBlockInventoryPart.cs`・`IBlockInventoryBodyFactory.cs`・`IBlockInventoryTitleActionFactory.cs`・`ITrainInventoryBodyFactory.cs`・`BlockInventoryBodyMount.cs`・`BlockInventoryPartRegistry.cs`
 - `SectionStack/SectionStackSlot.cs`・`IBlockInventorySection.cs`・`ISectionStackSectionFactory.cs`・`SectionStackSectionMount.cs`・`SectionStackSlotRegistry.cs`・`SectionStackBody.cs`・`SectionStackBodyFactory.cs`・`SectionStackItemGridSection.cs`・`SectionStack.uss`
 - `Parts/LackHighlightText.cs`・`BlockItemGrid.cs`・`BlockItemGridGroup.cs`・`BlockItemGridFactory.cs`・`Parts.uss`
 - `Parts/Rows/MachineStateRow.cs`・`PerMinuteRateRow.cs`・`PowerRateText.cs`
 
-登録（`Client.Starter/Registration/GameUi/BlockInventoryGameUiRegistration.cs`）
+登録（`Client.Starter/Registration/GameUi/BlockInventoryGameUiRegistration.cs`。共有サービスは `MainGameUiRegistration` の共有サービスの並び）
 
 テスト（`Client.Tests/Ui/`）
-- `State/BlockInventory/PanelModel/BlockInventoryPanelStateFactoryTest.cs`・`BlockInventoryPanelLayoutModelTest.cs`・`BlockInventoryPanelCommandsTest.cs`・`SectionStackConfigTableTest.cs`・`BlockRegistryCoverageTest.cs`・`FakePanelSource.cs`・`BlockInventoryTestPanels.cs`
+- `State/BlockInventory/PanelModel/BlockInventoryPanelStateFactoryTest.cs`・`BlockInventoryPanelLayoutModelTest.cs`・`BlockInventoryPanelCommandsTest.cs`・`SectionStackConfigTableTest.cs`・`BlockRegistryCoverageTest.cs`・`FakePanelSource.cs`・`BlockInventoryTestPanels.cs`・`BlockInventoryScreenVisibilityTest.cs`
+- `State/Routing/UiStateTransitionRulesTest.cs`
 - `State/SlotCommands/BlockItemActionExecutorTest.cs`・`BlockSlotCommandsTest.cs`・`PlayerSlotCommandsTest.cs`・`ShiftMoveRefusalNotifierTest.cs`・`BlockSlotRestrictionInputBuilderTest.cs`・`RecordingBlockInventoryOperations.cs`
 - `State/Recipe/Source/UnlockedMachineRecipeListBuilderTest.cs`・`MachineRecipeSummaryConversionTest.cs`・`FakeGameUnlockStateData.cs`
 - `Screens/BlockInventory/BlockInventoryPanelFlowTest.cs`・`BlockInventoryDesignTest.cs`・`BlockInventoryLocalizationTest.cs`・`BlockInventoryPanelErrorTest.cs`・`BlockInventoryPanelBandTest.cs`・`BlockInventoryPartRegistryTest.cs`・`BlockInventoryTitleActionTest.cs`・`BlockInventoryNaturalScrollTest.cs`・`BlockInventoryTestFixtures.cs`
@@ -251,14 +278,16 @@ Client.Ui（`Client.Ui/Screens/BlockInventory/`）
 録画: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-inventory.cs`
 
 変更（共有区画への追記だけ）:
-- `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs` — 画面登録区画の末尾に 1 行
+- `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs` — 共有サービスの並びにブロックインベントリの共有サービス、画面登録区画の末尾に 1 行
+- `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs` — `IItemStackLevelUnlocker` の隣に `IItemStackLevelLookup` を 1 行
+- `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` — 良性の拒否理由の網羅テストの配列に `BlockSlotUnavailable`
 - `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` — `Screens` 区画の末尾に `@import` を 3 行（`BlockInventory.uss`・`SectionStack/SectionStack.uss`・`Parts/Parts.uss`）
 - `moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs` — enum と 3 つの switch の末尾に `BlockSlotUnavailable`
 - `moorestech_client/Assets/Scripts/Client.Ui.State/Client.Ui.State.asmdef` — 参照に `Game.UnlockState` を足す
 - `Localization/localization.csv` — `ui.commandRejected.blockSlotUnavailable` を 1 行（と生成物の再生成）
-- `docs/uitk/disposition.md`・`docs/uitk/TODO.md`（見た目の例外を使ったときだけ）— 末尾に追記
+- `docs/uitk/TODO.md` — 「## 追従記録」に 1 行、見た目の例外を使ったときだけ「## 見た目の例外」に追記（`docs/uitk/disposition.md` は書かない）
 
-ディレクトリのファイル数（`.cs`・`.uss`）: `Client.Ui.State/BlockInventory/Panel/` 9・`SlotCommands/` 2＋`Block/` 5＋`Player/` 4・`Recipe/Source/` 4・`Screens/BlockInventory/` 6・`Registry/` 6・`SectionStack/` 9・`Parts/` 5＋`Rows/` 3。すべて 10 以下。
+ディレクトリのファイル数（`.cs`・`.uss`）: `Client.Ui.State/BlockInventory/Panel/` 10・`Routing/` 4＋3＝7・`SlotCommands/` 2＋`Block/` 5＋`Player/` 4・`Recipe/Source/` 4・`Screens/BlockInventory/` 6・`Registry/` 6・`SectionStack/` 9・`Parts/` 5＋`Rows/` 3。すべて 10 以下。
 
 ## Tasks
 
@@ -305,9 +334,17 @@ Run: `bd create "UITK S4-alpha: ブロックインベントリの外殻・拡張
 `done.md`「## integrator への依頼」に次を書き、指揮へも同じ文を返す（`cmux` の依頼口か指揮のスレッド）:
 - `Client.Starter/Registration/GameUi/` は alpha で 9 本、S4-inventory・S4-machine・S4-train・S4-special が 1 本ずつ足すと 13 本になる。`GameUi/Screens/`・`GameUi/BlockInventory/` 等への再編を W4 の取り込みの前に入れてほしい（alpha は 9 本目のまま進める）
 - `SlotCommands`（`Client.Ui.State/SlotCommands/`）は持ち物・ブロック・機械・特殊族が共有する。昇格の対象ではないが、設計書 §2 の State の表に A-142 の行を足してほしい（下書きは計画末尾）
-- `GamePanel` が題の操作（`SetTitleAction`）を持つとき、題に右の逃げ `calc(--panel-action-button-width + 8px)` を足す口がほしい（Web は `BlockInventoryPanel.tsx` が題の `paddingRight` で持つ。UITK では題の要素が部品の中にあり画面 USS から当てられない）。使うのは S4-special のロケットだけなので、alpha は器を渡すまでで止める
+- `GamePanel` が題の操作（`SetTitleAction`）を持つとき、題に右の逃げ `calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))`（12px。計 99px）を足す口がほしい（Web は `BlockInventoryPanel.tsx` が題の `paddingRight` で持つ。UITK では題の要素が部品の中にあり画面 USS から当てられない）。使うのは S4-special のロケットだけなので、alpha は器を渡すまでで止める
 
-- [ ] **Step 4: コミットは無し**（記録は repo 外）
+- [ ] **Step 4: 共有の登録の行き先を確かめる**
+
+`grep -rn "IItemStackLevelLookup" moorestech_client/Assets/Scripts/Client.Starter` が 0 件（起草時は 0 件）であることと、`MainGameModelRegistration.cs` の `IItemStackLevelUnlocker` の行番号を確かめる。他レーンが先に足していれば Task 8 の該当行は足さず `done.md`「証拠」に書く
+
+- [ ] **Step 5: 「掴んだまま閉じる」の行き先を実物で読む（死活表の要確認）**
+
+`UIStateControl` の SubInventory からの退出（`SubInventoryState` の `OnExit` 相当）と `LocalPlayerInventoryController` を読み、ブロックから掴んだまま閉じたときに掴みが main へ戻るのか・サーバーへ何を送るのかを確かめる。結論と根拠の行（ファイル:行）を `done.md`「証拠」へ。掴みに残るなら、UITK で main の受け皿〈S4-inventory〉が揃うまでの振る舞いとして `done.md`「未確認」と指揮への申告に書く（このレーンでは直さない）
+
+- [ ] **Step 6: コミットは無し**（記録は repo 外）
 
 ---
 
@@ -323,7 +360,7 @@ Run: `bd create "UITK S4-alpha: ブロックインベントリの外殻・拡張
 
 **Interfaces:**
 - Consumes: `MasterHolder.MachineRecipesMaster.MachineRecipes.Data`（`MachineRecipeMasterElement`: `MachineRecipeGuid`・`BlockGuid`・`Time`・`InputItems[i].ItemGuid/Count`・`OutputItems`・`InputFluids[i].FluidGuid/Amount`・`OutputFluids`・`LevelInheritance`）、`MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out LevelInheritanceShape)`・`GetMaxCraftableLevel(shape, lookup)`、`IGameUnlockStateData.MachineRecipeUnlockStateInfos`、`ILevelInheritanceCraftCapLookup.OnCraftCapUnlocked`、`IVanillaApiEvent.SubscribeEventResponse(UnlockedEventPacket.EventTag, …)`、既存の `MachineRecipeData`・`RecipeLevelInheritance`・`ItemAmount`・`RecipeFluidAmount`・`MachineRecipeSummary`・`RecipeOutputItem`・`RecipeOutputFluid`
-- Produces: `UnlockedMachineRecipeSource.Current : IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>>`、`UnlockedMachineRecipeListBuilder.Build(IGameUnlockStateData, ILevelInheritanceCraftCapLookup)`、`MachineRecipeSummaryConversion.ToSummaries(IReadOnlyList<MachineRecipeData>)`（S4-machine・S4-recipe・S4-research が使う）
+- Produces: `UnlockedMachineRecipeSource.Current : IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>>`、`UnlockedMachineRecipeListBuilder.Build(IGameUnlockStateData, ILevelInheritanceCraftCapLookup)`、`MachineRecipeSummaryConversion.ToSummaries(IReadOnlyList<MachineRecipeData>)`（S4-machine・S4-recipe と大型パネル判定の寄与の実装が使う。S4-research は未解放も引くのでマスタから直接読み、使わない）
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -503,6 +540,7 @@ namespace Client.Ui.State.Recipe.Source
             {
                 // silent-ok: 解放表に無いレシピはロック扱い（ホストと同じ） / 解放されると UnlockedEventPacket で作り直され一覧に出る
                 if (!unlockInfos.TryGetValue(recipe.MachineRecipeGuid, out var unlockInfo)) continue;
+                // silent-ok: 未解放のレシピは一覧に出さない（ホストと同じ） / 解放されると UnlockedEventPacket で作り直され一覧に出る
                 if (!unlockInfo.IsUnlocked) continue;
                 recipes.Add(ToData(recipe));
             }
@@ -718,7 +756,7 @@ public abstract class BlockInventoryPanelState
 public sealed class ClosedBlockInventoryPanel : BlockInventoryPanelState { }
 public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
 {
-    public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }  public Vector3Int Position { get; }
+    public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }  public BlockInstanceId BlockInstanceId { get; }  public Vector3Int Position { get; }
     public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }  public BlockInventoryComponents Components { get; }
 }   // IsSamePanel: 同じ Position・BlockGuid・Error
 public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
@@ -760,6 +798,7 @@ using Client.Ui.State.Items;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
+using Game.Block.Interface;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -785,19 +824,20 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         public void 取得成功のブロックはエラー無しでスロットと構成を持つ()
         {
             var slots = new[] { new SlotItem(new ItemId(1), 7) };
-            var state = BlockInventoryPanelStateFactory.FromBlock(true, slots, _chest, new Vector3Int(1, 2, 3));
+            var state = BlockInventoryPanelStateFactory.FromBlock(true, slots, _chest, new BlockInstanceId(1), new Vector3Int(1, 2, 3));
             var open = (OpenBlockInventoryPanel)state;
             Assert.AreEqual(BlockInventoryPanelError.None, open.Error);
             Assert.AreEqual(_chest.BlockGuid, open.BlockGuid);
             Assert.AreEqual(BlockMasterElement.BlockTypeConst.Chest, open.BlockType);
             Assert.AreEqual(BlockComponentRegistry.Resolve(open.BlockType).Body, open.Components.Body);
             Assert.AreEqual(7, open.ItemSlots[0].Count);
+            Assert.AreEqual(new BlockInstanceId(1), open.BlockInstanceId);
         }
 
         [Test]
         public void 取得失敗のブロックはOpenFailed()
         {
-            var state = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, Vector3Int.zero);
+            var state = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, new BlockInstanceId(1), Vector3Int.zero);
             Assert.AreEqual(BlockInventoryPanelError.OpenFailed, state.Error);
         }
 
@@ -815,9 +855,9 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [Test]
         public void 同じ位置と同じブロックは同じパネル()
         {
-            var a = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new Vector3Int(1, 0, 0));
-            var b = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, new[] { new SlotItem(new ItemId(1), 1) }, _chest, new Vector3Int(1, 0, 0));
-            var c = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new Vector3Int(2, 0, 0));
+            var a = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new BlockInstanceId(1), new Vector3Int(1, 0, 0));
+            var b = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, new[] { new SlotItem(new ItemId(1), 1) }, _chest, new BlockInstanceId(1), new Vector3Int(1, 0, 0));
+            var c = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new BlockInstanceId(1), new Vector3Int(2, 0, 0));
             Assert.IsTrue(a.IsSamePanel(b));
             Assert.IsFalse(a.IsSamePanel(c));
             Assert.IsFalse(a.IsSamePanel(BlockInventoryPanelState.Closed));
@@ -826,8 +866,8 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [Test]
         public void エラーの有無が変われば別のパネルで列車は車両とエラーで決まる()
         {
-            var ok = BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, Vector3Int.zero);
-            var failed = BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, Vector3Int.zero);
+            var ok = BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new BlockInstanceId(1), Vector3Int.zero);
+            var failed = BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, new BlockInstanceId(1), Vector3Int.zero);
             Assert.IsFalse(ok.IsSamePanel(failed));
             var train = BlockInventoryPanelStateFactory.FromTrain(5, Array.Empty<SlotItem>(), null);
             Assert.IsTrue(train.IsSamePanel(BlockInventoryPanelStateFactory.FromTrain(5, new[] { new SlotItem(new ItemId(1), 1) }, null)));
@@ -942,15 +982,14 @@ Expected: Panel の型が無いコンパイルエラー
 
 - [ ] **Step 3: 実装する**
 
-`BlockInventoryPanelState.cs`:
+`BlockInventoryPanelState.cs`（識別子・エラー・枠だけの不変 union。区画・本文の詳細は持ち主のレーンの State の詳細 Model が `OpenBlockDetailTracker` 等を購読して配る。D-19）:
 ```csharp
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Block;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.Items;
 using Core.Master;
+using Game.Block.Interface;
 using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Panel
@@ -966,6 +1005,10 @@ namespace Client.Ui.State.BlockInventory.Panel
         private protected BlockInventoryPanelState()
         {
         }
+
+        // 本文を作り直すかの唯一の判定（Web の key=identifier にエラーの有無を足す）
+        // The single rule for rebuilding the body (Web key=identifier plus error presence)
+        public abstract bool IsSamePanel(BlockInventoryPanelState other);
     }
 
     public sealed class ClosedBlockInventoryPanel : BlockInventoryPanelState
@@ -973,58 +1016,58 @@ namespace Client.Ui.State.BlockInventory.Panel
         internal ClosedBlockInventoryPanel()
         {
         }
+
+        public override bool IsSamePanel(BlockInventoryPanelState other)
+        {
+            return other is ClosedBlockInventoryPanel;
+        }
     }
 
     public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
     {
-        public string BlockType { get; }
-        public Guid BlockGuid { get; }
-        public BlockId BlockId { get; }
-        public Vector3Int Position { get; }
-        public IReadOnlyList<SlotItem> ItemSlots { get; }
-        public BlockInventoryPanelError Error { get; }
-        public BlockInventoryComponents Components { get; }
+        public string BlockType { get; private set; }
+        public Guid BlockGuid { get; private set; }
+        public BlockId BlockId { get; private set; }
+        public BlockInstanceId BlockInstanceId { get; private set; }
+        public Vector3Int Position { get; private set; }
+        public IReadOnlyList<SlotItem> ItemSlots { get; private set; }
+        public BlockInventoryPanelError Error { get; private set; }
+        public BlockInventoryComponents Components { get; private set; }
 
-        // 区画が詳細を読む源（Web の BlockDetailDtoBuilder が読む物）。L0/L1 では null
-        // Source the sections read details from (what the Web BlockDetailDtoBuilder reads); null in L0/L1
-        public BlockGameObject Block { get; }
-
-        internal OpenBlockInventoryPanel(string blockType, Guid blockGuid, BlockId blockId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error, BlockGameObject block)
+        internal OpenBlockInventoryPanel(string blockType, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error)
         {
             BlockType = blockType;
             BlockGuid = blockGuid;
             BlockId = blockId;
+            BlockInstanceId = blockInstanceId;
             Position = position;
             ItemSlots = itemSlots;
             Error = error;
             Components = BlockComponentRegistry.Resolve(blockType);
-            Block = block;
         }
 
-        // 同じ位置・同じブロックなら本文を作り直さず描き直す（Web の key=identifier）
-        // Same position and block keep the body and only re-render (the Web key=identifier)
-        public bool IsSamePanel(OpenBlockInventoryPanel other)
+        public override bool IsSamePanel(BlockInventoryPanelState other)
         {
-            return Position == other.Position && BlockGuid == other.BlockGuid;
+            return other is OpenBlockInventoryPanel block && Position == block.Position && BlockGuid == block.BlockGuid && Error == block.Error;
         }
     }
 
     public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
     {
-        public long TrainCarInstanceId { get; }
-        public IReadOnlyList<SlotItem> ItemSlots { get; }
-        public BlockInventoryPanelError Error { get; }
+        public long TrainCarInstanceId { get; private set; }
+        public IReadOnlyList<SlotItem> ItemSlots { get; private set; }
+        public BlockInventoryPanelError Error { get; private set; }
 
-        // 列車の本文が時刻表などを読む源。L0/L1 では null
-        // Source the train body reads the timetable etc. from; null in L0/L1
-        public TrainSubInventorySource Source { get; }
-
-        internal OpenTrainInventoryPanel(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error, TrainSubInventorySource source)
+        internal OpenTrainInventoryPanel(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error)
         {
             TrainCarInstanceId = trainCarInstanceId;
             ItemSlots = itemSlots;
             Error = error;
-            Source = source;
+        }
+
+        public override bool IsSamePanel(BlockInventoryPanelState other)
+        {
+            return other is OpenTrainInventoryPanel train && TrainCarInstanceId == train.TrainCarInstanceId && Error == train.Error;
         }
     }
 }
@@ -1071,9 +1114,7 @@ namespace Client.Ui.State.BlockInventory.Panel
 `BlockInventoryPanelStateFactory.cs`:
 ```csharp
 using System.Collections.Generic;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Train;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Ui.State.Items;
 using Core.Item.Interface;
 using Core.Master;
@@ -1088,14 +1129,14 @@ namespace Client.Ui.State.BlockInventory.Panel
     /// </summary>
     public static class BlockInventoryPanelStateFactory
     {
-        public static BlockInventoryPanelState FromBlock(bool fetchSucceeded, IReadOnlyList<SlotItem> itemSlots, BlockMasterElement master, Vector3Int position, BlockGameObject block)
+        public static BlockInventoryPanelState FromBlock(bool fetchSucceeded, IReadOnlyList<SlotItem> itemSlots, BlockMasterElement master, BlockInstanceId blockInstanceId, Vector3Int position)
         {
             var error = fetchSucceeded ? BlockInventoryPanelError.None : BlockInventoryPanelError.OpenFailed;
             var blockId = MasterHolder.BlockMaster.GetBlockId(master.BlockGuid);
-            return new OpenBlockInventoryPanel(master.BlockType, master.BlockGuid, blockId, position, itemSlots, error, block);
+            return new OpenBlockInventoryPanel(master.BlockType, master.BlockGuid, blockId, blockInstanceId, position, itemSlots, error);
         }
 
-        public static BlockInventoryPanelState FromTrain(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, TrainInventoryMessageType? lastOpenMessage, TrainSubInventorySource source)
+        public static BlockInventoryPanelState FromTrain(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, TrainInventoryMessageType? lastOpenMessage)
         {
             // 未知の理由は OpenFailed に倒す（ホストの ResolveError と同じ）
             // Unknown reasons fall to OpenFailed (same as the host ResolveError)
@@ -1106,7 +1147,7 @@ namespace Client.Ui.State.BlockInventory.Panel
                 TrainInventoryMessageType.TrainCarMissing => BlockInventoryPanelError.TrainCarMissing,
                 _ => BlockInventoryPanelError.OpenFailed,
             };
-            return new OpenTrainInventoryPanel(trainCarInstanceId, itemSlots, error, source);
+            return new OpenTrainInventoryPanel(trainCarInstanceId, itemSlots, error);
         }
 
         public static IReadOnlyList<SlotItem> ToSlotItems(IReadOnlyList<IItemStack> stacks)
@@ -1121,10 +1162,10 @@ namespace Client.Ui.State.BlockInventory.Panel
 
 `BlockInventoryPanelModel.cs`（`IBlockInventoryPanelSource` も同じファイルの先頭に置く。200 行以内）:
 ```csharp
-using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Ui.State.BlockDetail;
+using Client.Ui.State.Routing;
 using Server.Protocol.PacketResponse;
 using UniRx;
 using VContainer.Unity;
@@ -1144,25 +1185,25 @@ namespace Client.Ui.State.BlockInventory.Panel
     /// </summary>
     public sealed class BlockInventoryPanelModel : IBlockInventoryPanelSource, IInitializable
     {
-        private readonly UIStateControl _uiStateControl;
+        private readonly UiRoutingState _routing;
         private readonly SubInventoryState _subInventoryState;
         private readonly OpenBlockDetailTracker _tracker;
         private readonly ReactiveProperty<BlockInventoryPanelState> _current = new(BlockInventoryPanelState.Closed);
 
         public IReadOnlyReactiveProperty<BlockInventoryPanelState> Current => _current;
 
-        public BlockInventoryPanelModel(UIStateControl uiStateControl, SubInventoryState subInventoryState, OpenBlockDetailTracker tracker)
+        public BlockInventoryPanelModel(UiRoutingState routing, SubInventoryState subInventoryState, OpenBlockDetailTracker tracker)
         {
-            _uiStateControl = uiStateControl;
+            _routing = routing;
             _subInventoryState = subInventoryState;
             _tracker = tracker;
         }
 
         public void Initialize()
         {
-            // 遷移・スロット更新・追跡替え・追跡ブロックの状態変化で組み直す（ホストと同じ契機。連続値は各区画が自分で購読する）
-            // Rebuild on transitions, slot updates, tracking changes and tracked-block state changes (host triggers; continuous values are each section's own subscription)
-            _uiStateControl.OnStateChanged.Subscribe(_ => Rebuild());
+            // 画面の切替・スロット更新・追跡替え・追跡ブロックの状態変化で組み直す（ホストと同じ契機。区画の詳細は各レーンの詳細 Model が配る）
+            // Rebuild on screen changes, slot updates, tracking changes and tracked-block state changes (host triggers; section details come from each lane's detail model)
+            _routing.Current.Subscribe(_ => Rebuild());
             _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Rebuild());
             _tracker.OnTrackedBlockChanged.Subscribe(_ => Rebuild());
             _tracker.OnTrackedBlockStateChanged.Subscribe(_ => Rebuild());
@@ -1177,18 +1218,18 @@ namespace Client.Ui.State.BlockInventory.Panel
 
             BlockInventoryPanelState Read()
             {
-                // SubInventory かつサブインベントリがあるときだけ開く
-                // Open only in SubInventory with a sub-inventory present
+                // 画面の判定は UiRoutingState に一本化する。SubInventory かつサブインベントリがあるときだけ開く
+                // Screen decisions go through UiRoutingState only; open only in SubInventory with a sub-inventory present
                 var sub = _subInventoryState.CurrentSubInventory;
-                if (_uiStateControl.CurrentState != UIStateEnum.SubInventory || sub == null) return BlockInventoryPanelState.Closed;
+                if (_routing.Current.Value.Screen != UiScreen.SubInventory || sub == null) return BlockInventoryPanelState.Closed;
                 var slots = BlockInventoryPanelStateFactory.ToSlotItems(sub.SubInventory);
-                if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource train) return BlockInventoryPanelStateFactory.FromTrain(train.TrainCarInstanceId, slots, train.LastOpenMessage, train);
+                if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource train) return BlockInventoryPanelStateFactory.FromTrain(train.TrainCarInstanceId, slots, train.LastOpenMessage);
 
                 // silent-ok: 追跡ブロックが未解決（撤去直後など）は閉と同じ見え方（ホストと同じ） / 追跡替えの購読で直ちに組み直す
                 var block = _tracker.TrackedBlock;
                 if (block == null) return BlockInventoryPanelState.Closed;
                 var succeeded = sub.Result == InventoryRequestResult.Success;
-                return BlockInventoryPanelStateFactory.FromBlock(succeeded, slots, block.BlockMasterElement, _tracker.TrackedSource.BlockPosition, block);
+                return BlockInventoryPanelStateFactory.FromBlock(succeeded, slots, block.BlockMasterElement, block.BlockInstanceId, _tracker.TrackedSource.BlockPosition);
             }
 
             #endregion
@@ -1196,7 +1237,7 @@ namespace Client.Ui.State.BlockInventory.Panel
     }
 }
 ```
-（`sub.SubInventory` は `List<IItemStack>` で `IReadOnlyList<IItemStack>` として渡せる。`UIStateEnum`・`InventoryRequestResult` の名前空間は実物で確かめる。同じ値の再代入は `ReactiveProperty` が流さないので、状態は毎回新しいインスタンスにして流す〈`SetValueAndForceNotify` は使わない。新インスタンスは参照が違うので必ず流れる〉）
+（`sub.SubInventory` は `List<IItemStack>` で `IReadOnlyList<IItemStack>` として渡せる。`InventoryRequestResult` の名前空間は実物で確かめる。`UiRoutingState` は `MainGameUiStateRegistration.cs:53` で登録済み。同じ値の再代入は `ReactiveProperty` が流さないので、状態は毎回新しいインスタンスにして流す〈`SetValueAndForceNotify` は使わない。新インスタンスは参照が違うので必ず流れる〉）
 
 `IBlockInventoryLargePanelRule.cs`・`BlockInventoryPanelLayout.cs`・`BlockInventoryPanelLayoutModel.cs`:
 ```csharp
@@ -1206,14 +1247,14 @@ using UniRx;
 namespace Client.Ui.State.BlockInventory.Panel
 {
     /// <summary>
-    /// 大型パネル判定の寄与の口（Web isLargeMachinePanel。実装は S4-machine が UnlockedMachineRecipeSource で書く）
-    /// Contribution port for the large-panel decision (Web isLargeMachinePanel; S4-machine implements it with UnlockedMachineRecipeSource)
+    /// 大型パネル判定の寄与の口（Web isLargeMachinePanel を中立名で。どの blockType を大型にするかは寄与する側が持つ。D-16）
+    /// Contribution port for the large-panel decision (Web isLargeMachinePanel under a neutral name; the contributor owns which block types go large, D-16)
     /// </summary>
     public interface IBlockInventoryLargePanelRule
     {
-        // 開いているブロックが「レシピ有り機械の大型パネル」か
-        // Whether the open block is a recipe-capable machine's large panel
-        bool IsLargeMachinePanel(OpenBlockInventoryPanel panel);
+        // 開いているブロックを大型パネル（本文の高さ確定）にするか
+        // Whether the open block uses the large panel (with a fixed body height)
+        bool IsLargePanel(OpenBlockInventoryPanel panel);
 
         // 判定の入力（レシピの解放・選択など）が変わったら流す
         // Fires when the decision's inputs (recipe unlocks, selection, ...) change
@@ -1260,7 +1301,7 @@ namespace Client.Ui.State.BlockInventory.Panel
         private readonly IReadOnlyList<IBlockInventoryLargePanelRule> _rules;
         private readonly ReactiveProperty<BlockInventoryPanelLayout> _current = new(BlockInventoryPanelLayout.Natural);
 
-        public IReadOnlyReactiveProperty<BlockInventoryPanelLayout> Current => _current;
+        public IReadOnlyReactiveProperty<BlockInventoryPanelLayout> Current => _current;   // 型を狭める公開（前例 SettingsModel.Current）
 
         public BlockInventoryPanelLayoutModel(IBlockInventoryPanelSource panel, IReadOnlyList<IBlockInventoryLargePanelRule> rules)
         {
@@ -1289,7 +1330,7 @@ namespace Client.Ui.State.BlockInventory.Panel
             {
                 foreach (var rule in _rules)
                 {
-                    if (rule.IsLargeMachinePanel(block)) return true;
+                    if (rule.IsLargePanel(block)) return true;
                 }
                 return false;
             }
@@ -1301,7 +1342,7 @@ namespace Client.Ui.State.BlockInventory.Panel
 ```
 （構造体は既定の等値なので同じ大きさの再代入は流れない。View は大きさの変化だけで寸法を当て直せばよい）
 
-`IBlockInventoryPanelCommands.cs`・`BlockInventoryPanelCommands.cs`（D-12: 遷移要求は `UIStateControl.RequestTransition` を薄い口 `IUiStateTransitionRequester` 越しに呼ぶ。口と本番実装 `UiStateControlTransitionRequester` は同じ `BlockInventoryPanelCommands.cs` に置く）:
+`IBlockInventoryPanelCommands.cs`・`BlockInventoryPanelCommands.cs`（D-12: 閉じるは `Client.Ui.State/Routing/` の遷移要求の口 `IUiStateTransitionRequester` を通す。口は後続の画面〈持ち物・研究・チャレンジの閉じる〉も使う。D-12・D-29）:
 ```csharp
 namespace Client.Ui.State.BlockInventory.Panel
 {
@@ -1317,31 +1358,11 @@ namespace Client.Ui.State.BlockInventory.Panel
 ```
 ```csharp
 using Client.Game.InGame.UI.UIState;
+using Client.Ui.State.Routing;
+using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Panel
 {
-    // UI の遷移要求の口（テストで偽物に替える）
-    // Port for UI transition requests (replaced by a fake in tests)
-    public interface IUiStateTransitionRequester
-    {
-        void RequestTransition(UIStateEnum nextState);
-    }
-
-    public sealed class UiStateControlTransitionRequester : IUiStateTransitionRequester
-    {
-        private readonly UIStateControl _uiStateControl;
-
-        public UiStateControlTransitionRequester(UIStateControl uiStateControl)
-        {
-            _uiStateControl = uiStateControl;
-        }
-
-        public void RequestTransition(UIStateEnum nextState)
-        {
-            _uiStateControl.RequestTransition(nextState);
-        }
-    }
-
     public sealed class BlockInventoryPanelCommands : IBlockInventoryPanelCommands
     {
         private readonly IUiStateTransitionRequester _requester;
@@ -1351,46 +1372,179 @@ namespace Client.Ui.State.BlockInventory.Panel
             _requester = requester;
         }
 
-        // SubInventory からの GameScreen 要求はホストの許可表でも通る遷移
-        // GameScreen from SubInventory is an allowed transition in the host's table too
         public void Close()
         {
-            _requester.RequestTransition(UIStateEnum.GameScreen);
+            // 許可表で拒まれた閉じるは何もしない。理由は開発者ログへ（口の側でも現状態をログに出す）
+            // A close refused by the allow table does nothing; the reason goes to the developer log (the port logs the current state too)
+            if (!_requester.RequestTransition(UIStateEnum.GameScreen)) Debug.LogWarning("[BlockInventoryPanelCommands] close refused by UiStateTransitionRules");
+        }
+    }
+}
+```
+`Client.Ui.State/Routing/IUiStateTransitionRequester.cs`・`UiStateTransitionRules.cs`・`UiStateControlTransitionRequester.cs`（Web ホスト `RequestUiStateActionHandler.RequestState` の現状態の検査と入れ子ポーズの扱いを 1 本に写す。Web の文字列の検査〈GameScreen / PlayerInventory 以外は unsupported_state〉は型で閉じているので写さない）:
+```csharp
+using Client.Game.InGame.UI.UIState;
+
+namespace Client.Ui.State.Routing
+{
+    // UITK 起点の UI 状態の遷移要求の口。拒んだら false（理由は実装がログへ出す）
+    // Port for UITK-initiated UI-state transition requests; false when refused (the implementation logs why)
+    public interface IUiStateTransitionRequester
+    {
+        bool RequestTransition(UIStateEnum requested);
+    }
+}
+```
+```csharp
+using Client.Game.InGame.UI.UIState;
+
+namespace Client.Ui.State.Routing
+{
+    /// <summary>
+    /// 現状態から要求できる遷移の表（Web ホスト RequestUiStateActionHandler.IsAllowed の写し。重複は D-5 と同じ扱い）
+    /// Table of transitions requestable from the current state (port of the Web host IsAllowed; duplication handled as in D-5)
+    /// </summary>
+    public static class UiStateTransitionRules
+    {
+        public static bool IsAllowed(UIStateEnum current, UIStateEnum requested)
+        {
+            if (current == requested) return true;
+            return current switch
+            {
+                UIStateEnum.GameScreen => requested == UIStateEnum.PlayerInventory,
+                UIStateEnum.PlayerInventory => requested == UIStateEnum.GameScreen,
+                UIStateEnum.SubInventory => requested == UIStateEnum.GameScreen,
+                UIStateEnum.BuildMenu => requested == UIStateEnum.GameScreen,
+                UIStateEnum.ResearchTree => requested == UIStateEnum.GameScreen,
+                UIStateEnum.ChallengeList => requested == UIStateEnum.GameScreen,
+                UIStateEnum.PauseMenu => requested == UIStateEnum.GameScreen,
+                _ => false,
+            };
+        }
+    }
+}
+```
+```csharp
+using Client.Game.InGame.UI.UIState;
+using UnityEngine;
+
+namespace Client.Ui.State.Routing
+{
+    /// <summary>
+    /// 遷移要求を UIStateControl へ渡す本番実装。入れ子ポーズの画面では入れ子だけを閉じ、表に無い遷移は拒む（Web ホストと同じ順）
+    /// Production requester forwarding to UIStateControl; on nested-pause screens it closes only the nested pause, and refuses transitions outside the table (same order as the Web host)
+    /// </summary>
+    public sealed class UiStateControlTransitionRequester : IUiStateTransitionRequester
+    {
+        private readonly UIStateControl _uiStateControl;
+
+        public UiStateControlTransitionRequester(UIStateControl uiStateControl)
+        {
+            _uiStateControl = uiStateControl;
+        }
+
+        public bool RequestTransition(UIStateEnum requested)
+        {
+            // 入れ子ポーズを持つ画面の GameScreen 要求は入れ子だけを閉じる（ADR 0035）
+            // A GameScreen request on a nested-pause screen closes only the nested pause (ADR 0035)
+            if (requested == UIStateEnum.GameScreen && _uiStateControl.GetCurrentNestedPauseScreen() is { } nested) return nested.RequestClosePauseMenu() || Refuse("nested pause had nothing to close");
+
+            if (!UiStateTransitionRules.IsAllowed(_uiStateControl.CurrentState, requested)) return Refuse($"{_uiStateControl.CurrentState} -> {requested} is not allowed");
+            _uiStateControl.RequestTransition(requested);
+            return true;
+        }
+
+        private static bool Refuse(string reason)
+        {
+            Debug.LogWarning($"[UiStateControlTransitionRequester] transition refused: {reason}");
+            return false;
         }
     }
 }
 ```
 
-`SectionStackConfig.cs`・`SectionStackConfigTable.cs`（Web `SectionStackView.tsx` の `configByBlockType` と `genericConfig` を 1 行ずつ写す。キーは `BlockMasterElement.BlockTypeConst.*`）:
+`SectionStackConfig.cs`・`SectionStackConfigTable.cs`（Web `SectionStackView.tsx` の `configByBlockType` と `genericConfig` を 1 行ずつ写す。null と bool の組を判別 union に替える〈D-20。前例 `CleanRoomYieldLogic` の `RowId`〉。キーは `BlockMasterElement.BlockTypeConst.*`）:
 ```csharp
 namespace Client.Ui.State.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 標準の本文の blockType ごとの設定（Web SectionStackViewConfig の写し。testid が null の区画は出さない）
-    /// Per-blockType standard-body settings (port of Web SectionStackViewConfig; a null testid hides that section)
+    /// 標準の本文の blockType ごとの設定。項目グリッドと液体の出し方をそれぞれ判別 union で持つ（Web SectionStackViewConfig の写し）
+    /// Per-blockType standard-body settings; the item grid and fluids each use a discriminated union (port of Web SectionStackViewConfig)
     /// </summary>
     public sealed class SectionStackConfig
     {
-        public string ItemGridTestId { get; }
-        public string FluidRowTestId { get; }
-        public bool RenderEmptyGrid { get; }
-        public bool ShowFluidProgress { get; }
-        public bool ShowFluidDetails { get; }
+        public SectionStackItemGrid ItemGrid { get; private set; }
+        public SectionStackFluid Fluid { get; private set; }
 
-        public SectionStackConfig(string itemGridTestId, string fluidRowTestId, bool renderEmptyGrid, bool showFluidProgress, bool showFluidDetails)
+        public SectionStackConfig(SectionStackItemGrid itemGrid, SectionStackFluid fluid)
         {
-            ItemGridTestId = itemGridTestId;
-            FluidRowTestId = fluidRowTestId;
-            RenderEmptyGrid = renderEmptyGrid;
-            ShowFluidProgress = showFluidProgress;
-            ShowFluidDetails = showFluidDetails;
+            ItemGrid = itemGrid;
+            Fluid = fluid;
         }
+    }
 
-        public bool HasItemGrid => ItemGridTestId != null;
-        public bool HasFluidRow => FluidRowTestId != null;
+    // 項目グリッド: 出さない／出す（GridId は Web の itemGridTestId と同じ綴り。RenderEmpty は空でも出すか）
+    // Item grid: hidden, or shown (GridId spells the Web itemGridTestId; RenderEmpty draws it even when empty)
+    public abstract class SectionStackItemGrid
+    {
+        public static readonly SectionStackItemGrid Hidden = new HiddenSectionStackItemGrid();
+        private protected SectionStackItemGrid() { }
+    }
+
+    public sealed class HiddenSectionStackItemGrid : SectionStackItemGrid
+    {
+        internal HiddenSectionStackItemGrid() { }
+    }
+
+    public sealed class ShownSectionStackItemGrid : SectionStackItemGrid
+    {
+        public string GridId { get; private set; }
+        public bool RenderEmpty { get; private set; }
+
+        public ShownSectionStackItemGrid(string gridId, bool renderEmpty)
+        {
+            GridId = gridId;
+            RenderEmpty = renderEmpty;
+        }
+    }
+
+    // 液体: 出さない／行（機械以外。ShowProgress は進捗を出すか）／詳細（Web showFluidDetails）
+    // Fluids: hidden, a row (non-machines; ShowProgress draws progress), or details (Web showFluidDetails)
+    public abstract class SectionStackFluid
+    {
+        public static readonly SectionStackFluid Hidden = new HiddenSectionStackFluid();
+        private protected SectionStackFluid() { }
+    }
+
+    public sealed class HiddenSectionStackFluid : SectionStackFluid
+    {
+        internal HiddenSectionStackFluid() { }
+    }
+
+    public sealed class RowSectionStackFluid : SectionStackFluid
+    {
+        public string RowId { get; private set; }
+        public bool ShowProgress { get; private set; }
+
+        public RowSectionStackFluid(string rowId, bool showProgress)
+        {
+            RowId = rowId;
+            ShowProgress = showProgress;
+        }
+    }
+
+    public sealed class DetailsSectionStackFluid : SectionStackFluid
+    {
+        public string RowId { get; private set; }
+
+        public DetailsSectionStackFluid(string rowId)
+        {
+            RowId = rowId;
+        }
     }
 }
 ```
+（1 ファイル 200 行に収まらなければ `SectionStackItemGrid.cs`・`SectionStackFluid.cs` に割る〈`SectionStack/` は 4 ファイル〉）
 ```csharp
 using System.Collections.Generic;
 using Mooresmaster.Model.BlocksModule;
@@ -1404,44 +1558,47 @@ namespace Client.Ui.State.BlockInventory.SectionStack
     /// </summary>
     public static class SectionStackConfigTable
     {
-        public static readonly SectionStackConfig Generic = new("generic-block-grid", "generic-block-fluids", false, true, false);
+        public static readonly SectionStackConfig Generic = new(Grid("generic-block-grid", false), Row("generic-block-fluids", true));
 
         private static readonly Dictionary<string, SectionStackConfig> ByBlockType = new()
         {
-            [T.FluidPipe] = new SectionStackConfig(null, "fluid-pipe-fluid-slots", false, false, true),
-            [T.Chest] = new SectionStackConfig("chest-grid", null, true, true, false),
-            [T.ElectricMachine] = new SectionStackConfig(null, "machine-fluid-slots", false, false, false),
-            [T.GearMachine] = new SectionStackConfig(null, "machine-fluid-slots", false, false, false),
-            [T.ElectricGenerator] = new SectionStackConfig("generator-fuel-grid", "generator-fluid-slots", false, false, false),
-            [T.FuelGearGenerator] = new SectionStackConfig("generator-fuel-grid", null, true, true, false),
-            [T.SimpleGearGenerator] = new SectionStackConfig("generator-fuel-grid", null, true, true, false),
-            [T.GearToElectricGenerator] = new SectionStackConfig(null, null, false, false, false),
-            [T.ElectricMiner] = new SectionStackConfig("miner-output-grid", null, true, true, false),
-            [T.GearMiner] = new SectionStackConfig("gear-miner-output-grid", null, true, true, false),
-            [T.ElectricPump] = new SectionStackConfig(null, "pump-fluid-slots", false, false, false),
-            [T.GearPump] = new SectionStackConfig(null, "pump-fluid-slots", false, false, false),
-            [T.CleanRoomMachine] = new SectionStackConfig(null, "machine-fluid-slots", false, false, false),
-            [T.CleanRoomAirFilter] = new SectionStackConfig("clean-room-filter-grid", null, true, false, false),
+            [T.FluidPipe] = new SectionStackConfig(SectionStackItemGrid.Hidden, new DetailsSectionStackFluid("fluid-pipe-fluid-slots")),
+            [T.Chest] = new SectionStackConfig(Grid("chest-grid", true), SectionStackFluid.Hidden),
+            [T.ElectricMachine] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("machine-fluid-slots", false)),
+            [T.GearMachine] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("machine-fluid-slots", false)),
+            [T.ElectricGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", false), Row("generator-fluid-slots", false)),
+            [T.FuelGearGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", true), SectionStackFluid.Hidden),
+            [T.SimpleGearGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", true), SectionStackFluid.Hidden),
+            [T.GearToElectricGenerator] = new SectionStackConfig(SectionStackItemGrid.Hidden, SectionStackFluid.Hidden),
+            [T.ElectricMiner] = new SectionStackConfig(Grid("miner-output-grid", true), SectionStackFluid.Hidden),
+            [T.GearMiner] = new SectionStackConfig(Grid("gear-miner-output-grid", true), SectionStackFluid.Hidden),
+            [T.ElectricPump] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("pump-fluid-slots", false)),
+            [T.GearPump] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("pump-fluid-slots", false)),
+            [T.CleanRoomMachine] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("machine-fluid-slots", false)),
+            [T.CleanRoomAirFilter] = new SectionStackConfig(Grid("clean-room-filter-grid", true), SectionStackFluid.Hidden),
         };
 
         public static SectionStackConfig Resolve(string blockType)
         {
             return ByBlockType.TryGetValue(blockType, out var config) ? config : Generic;
         }
+
+        private static SectionStackItemGrid Grid(string gridId, bool renderEmpty) => new ShownSectionStackItemGrid(gridId, renderEmpty);
+        private static SectionStackFluid Row(string rowId, bool showProgress) => new RowSectionStackFluid(rowId, showProgress);
     }
 }
 ```
-（`BlockTypeConst` に無い名前があればコンパイルで分かるので、Web の文字列と同じ定数に読み替える。無ければ文字列で書き、起草メモの照合に足す）
+（Web で `fluidRowTestId` が null の行の `showFluidProgress` は描かれないので落とす。`BlockTypeConst` に無い名前があればコンパイルで分かるので、Web の文字列と同じ定数に読み替える。無ければ文字列で書き、起草メモの照合に足す）
 
 - [ ] **Step 4: テストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.State.BlockInventory"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.State.BlockInventory|Client.Tests.Ui.State.Routing"`
 Expected: `ErrorCount: 0`、新しい件と L0-s4b の既存件が PASS
 
 - [ ] **Step 5: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel
+git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory moorestech_client/Assets/Scripts/Client.Ui.State/Routing moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Routing
 git commit -m "feat(uitk): ブロックインベントリのパネルの状態・大きさの判定・閉じるを State に足す（S4-alpha）
 
 <実行ホストの指示する帰属行>"
@@ -1460,6 +1617,7 @@ git commit -m "feat(uitk): ブロックインベントリのパネルの状態�
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/SlotCommands/KnownItemSlots.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs`（enum と `IsBenign`・`ToLocalizationKey`・`ToWireCode` の末尾に `BlockSlotUnavailable`）
 - Modify: `Localization/localization.csv`（`ui.commandRejected.blockSlotUnavailable`）＋ `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` の再生成と `moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs` の印
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（`良性の拒否理由は…` の `benign` 配列に `UiCommandRejectReason.BlockSlotUnavailable` を足し、名前を `良性の拒否理由は言語の選択済みと持ち物の移動と分割とブロックの枠の取りこぼしだけ` に直す）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/SlotCommands/RecordingBlockInventoryOperations.cs`・`BlockItemActionExecutorTest.cs`・`BlockSlotCommandsTest.cs`
 
 **Interfaces:**
@@ -1488,7 +1646,9 @@ public const string BlockSlotCommandName = "block_inventory.slot";   // BlockSlo
 
 - [ ] **Step 1: 拒否の理由を足す**
 
-`UiCommandRejectReason` の enum 末尾に `BlockSlotUnavailable,`、`IsBenign` に `UiCommandRejectReason.BlockSlotUnavailable => true,`（操作の瞬間にパネルが閉じた・枠が減った古いクリック。プレイヤーには閉じたのが見えている）、`ToLocalizationKey` に `LocalizationKeys.Ui.CommandRejected.BlockSlotUnavailable`、`ToWireCode` に `"invalid_slot"`（Web ホストの `BlockAreaSlotParser` の失敗と同じ）。`localization.csv` の `ui.commandRejected.*` の末尾に 1 行（英「The block slot is no longer available」・日「ブロックの枠がもうありません」。列の並びは既存の `ui.commandRejected.splitDragNoValidSlots` 行に揃える）。続けて `pnpm --dir moorestech_web/webui run gen:i18n` で `localizationKeys.ts` を作り直し、Editor の SchemaWatcher が書き換えた `_CompileRequester.cs` と一緒にこの Task のコミットへ入れる（台帳「## 追従記録」へ `写した` を 1 行。Task 9）
+`UiCommandRejectReason` の enum 末尾に `BlockSlotUnavailable,`、`IsBenign` に `UiCommandRejectReason.BlockSlotUnavailable => true,`（操作の瞬間にパネルが閉じた・枠が減った古いクリック。プレイヤーには閉じたのが見えている）、`ToLocalizationKey` に `LocalizationKeys.Ui.CommandRejected.BlockSlotUnavailable`、`ToWireCode` に `"invalid_slot"`（Web ホストの `BlockAreaSlotParser` の失敗と同じ）。`localization.csv` の `ui.commandRejected.*` の末尾に 1 行（英「The block slot is no longer available」・日「ブロックの枠がもうありません」。列の並びは既存の `ui.commandRejected.splitDragNoValidSlots` 行に揃える）。続けて `pnpm --dir moorestech_web/webui run gen:i18n` で `localizationKeys.ts` を作り直し、Editor の SchemaWatcher が書き換えた `_CompileRequester.cs` と一緒にこの Task のコミットへ入れる（台帳「## 追従記録」への記帳は Task 9 Step 2）
+
+同じ Step で `PauseMenuCommandsTest.cs` の網羅テストの `benign` 配列に `UiCommandRejectReason.BlockSlotUnavailable` を足し、メソッド名を上の Files のとおりに直す（直さないと全列挙の照合で赤になる）
 
 - [ ] **Step 2: 失敗するテストを書く**
 
@@ -1657,6 +1817,16 @@ namespace Client.Ui.State.SlotCommands.Block
         void CollectToGrab();
         void CollectToBlockSlot(int blockSlot);
     }
+
+    // ブロックの枠の番号の範囲判定（実行器とコマンドが共有する 1 か所）
+    // Range check for block slot indices (the single place shared by the executor and the commands)
+    public static class BlockSlotIndex
+    {
+        public static bool IsInRange(IReadOnlyList<SlotItem> slots, int blockSlot)
+        {
+            return 0 <= blockSlot && blockSlot < slots.Count;
+        }
+    }
 }
 ```
 
@@ -1780,6 +1950,7 @@ namespace Client.Ui.State.SlotCommands.Block
             // A stale plan after closing or shrinking is a benign rejection (the host's invalid_slot)
             if (!_block.TryReadBlockSlots(out var slots)) return Unavailable("block inventory is not open");
             if (!InRange(action.From) || !InRange(action.To)) return Unavailable($"block slot out of range: {action}");
+            var grabEmpty = _player.ReadGrab().IsEmpty;
 
             return action.Kind switch
             {
@@ -1793,14 +1964,14 @@ namespace Client.Ui.State.SlotCommands.Block
 
             bool InRange(ItemMoveSlotRef slot)
             {
-                return slot.Area != ItemMoveArea.Block || (0 <= slot.Slot && slot.Slot < slots.Count);
+                return slot.Area != ItemMoveArea.Block || BlockSlotIndex.IsInRange(slots, slot.Slot);
             }
 
             UiCommandResult Split()
             {
                 // 半分の計算はホストの SplitGrabActionHandler と同じ床関数。1 個以下は成功扱いの何もしない
                 // Half uses the same floor as the host; a stack of one or less is a successful no-op
-                if (!_player.ReadGrab().IsEmpty) return new UiCommandRejected(UiCommandRejectReason.SplitGrabNotEmpty, "grab is not empty");
+                if (!grabEmpty) return new UiCommandRejected(UiCommandRejectReason.SplitGrabNotEmpty, "grab is not empty");
                 var slot = slots[action.From.Slot];
                 if (slot.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, $"block slot {action.From.Slot} is empty");
                 var half = slot.Count / 2;
@@ -1813,7 +1984,7 @@ namespace Client.Ui.State.SlotCommands.Block
             {
                 // 集める先は操作の瞬間の持ち手で決める（ホストの ResolveCollectTarget と同じ）
                 // The target follows the grab at gesture time (same as the host ResolveCollectTarget)
-                if (_player.ReadGrab().IsEmpty) _block.CollectToBlockSlot(action.From.Slot);
+                if (grabEmpty) _block.CollectToBlockSlot(action.From.Slot);
                 else _block.CollectToGrab();
                 return UiCommandAccepted.Instance;
             }
@@ -1985,7 +2156,7 @@ namespace Client.Ui.State.SlotCommands.Block
         private bool TryReadSlot(int blockSlot, out Items.SlotItem slot)
         {
             slot = default;
-            if (!_block.TryReadBlockSlots(out var slots) || blockSlot < 0 || slots.Count <= blockSlot) return false;
+            if (!_block.TryReadBlockSlots(out var slots) || !BlockSlotIndex.IsInRange(slots, blockSlot)) return false;
             slot = slots[blockSlot];
             return true;
         }
@@ -2002,8 +2173,8 @@ namespace Client.Ui.State.SlotCommands.Block
 
 - [ ] **Step 5: テストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.State.(SlotCommands|Inventory|ItemMove|Commands)"`
-Expected: `ErrorCount: 0`、新しい件と C4-e・L0-s4a の既存件（`UiCommandRejectReason` の網羅テストを含む）が PASS。網羅テストが `benign` の配列を持つなら `BlockSlotUnavailable` を足す
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.State.(SlotCommands|Inventory|ItemMove|Commands)|PauseMenuCommandsTest"`
+Expected: `ErrorCount: 0`、新しい件と C4-e・L0-s4a の既存件・`PauseMenuCommandsTest`（`UiCommandRejectReason` の網羅テスト）が PASS
 
 - [ ] **Step 6: コミット**
 
@@ -2595,6 +2766,11 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 .per-minute-rate-row__text {
     color: var(--text-default);
 }
+
+/* :root の列数を BlockItemGrid の customStyle で読めるよう自クラスで受け直す（前例 GaugeBar.uss） / re-declare the :root column count on the grid's own class so its customStyle can read it (precedent GaugeBar.uss) */
+.block-item-grid {
+    --block-item-grid-inventory-columns: var(--inventory-columns);
+}
 ```
 （グループのラベル色は `UiTypographyClass.TextMuted` を付けて画面 USS に書かない。間は `UiStack(UiGap.Px4)`）
 
@@ -2619,7 +2795,8 @@ namespace Client.Ui.Screens.BlockInventory.Parts
     /// </summary>
     public sealed class BlockItemGrid : VisualElement
     {
-        private const string InventoryColumnsProperty = "--inventory-columns";
+        private const string ClassName = "block-item-grid";
+        private const string InventoryColumnsProperty = "--block-item-grid-inventory-columns";
 
         private readonly string _testId;
         private readonly IBlockSlotCommands _commands;
@@ -2637,9 +2814,10 @@ namespace Client.Ui.Screens.BlockInventory.Parts
             _toaster = toaster;
             _grid = new SlotGrid(testId, 1);
             Add(_grid);
+            AddToClassList(ClassName);
 
-            // 列数の上限は持ち物と同じトークン（Web INVENTORY_GRID_COLUMNS）。C# に数を持たない
-            // The column cap is the inventory's own token (Web INVENTORY_GRID_COLUMNS); no number lives in C#
+            // 列数の上限は持ち物と同じトークン（Web INVENTORY_GRID_COLUMNS）。:root の値は子へ継承されないので自クラスで受け直した名前を読む
+            // The column cap is the inventory's own token (Web INVENTORY_GRID_COLUMNS); :root values do not inherit, so read the name re-declared on this class
             RegisterCallback<CustomStyleResolvedEvent>(_ => ReadColumns());
         }
 
@@ -2711,15 +2889,14 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 
         private void ApplyColumns()
         {
-            // トークンが未解決の間は列数を決めない（解決時に CustomStyleResolvedEvent で当て直す）
-            // Hold the column count until the token resolves (re-applied on CustomStyleResolvedEvent)
+            // silent-ok: 最初のスタイル解決の前は列数を決めない / CustomStyleResolvedEvent で当て直し、読めなければ UssCustomStyleReader が LogError を出す
             if (_inventoryColumns <= 0) return;
             _grid.SetColumns(System.Math.Min(_inventoryColumns, System.Math.Max(1, _slots.Count)));
         }
     }
 }
 ```
-（`UiCommandResultToaster` の名前空間は実物〈`Client.Ui.State.Toast` か `Client.Ui.Foundation.Toast`〉で確かめる。`--inventory-columns` がテストのパネルで解決されないなら `UiTestHost` のテーマ読み込みで解決されることを Step 4 で確かめ、されなければ Task の `done.md`「未確認」に書いて `ApplyColumns` の待ちを `Render` 側の既定 10 に替えず、テーマの読み込みを直す依頼を integrator へ出す）
+（`UiCommandResultToaster` は `Client.Ui.State.Toast`〈`ScreenTestHost` の using で確かめた〉。`:root` のトークンは当てた要素の `customStyle` にしか出ず子へ継承されないので〈`UssCustomStyleReader.cs:10-13` の remarks〉、`Parts.uss` の `.block-item-grid` で `--block-item-grid-inventory-columns: var(--inventory-columns)` と受け直し、C# はその名前を読む〈前例 `GaugeBar.uss:6`・`GaugeBar.cs:12`。D-8〉）
 
 `BlockItemGridGroup.cs`（`UiStack(UiGap.Px4)` を継がず中に持つ。ラベルは `LocalizedLabel` に `text--sm`・`text--muted`）、`BlockItemGridFactory.cs`（ctor で `IBlockSlotCommands`・`GameContentPresentation`・`UiCommandResultToaster` を受け、`Create(testId)` で `BlockItemGrid` を返す）
 
@@ -2846,24 +3023,31 @@ git commit -m "feat(uitk): ブロックインベントリの部品（不足強�
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/SectionStack/SectionStackBodyFactory.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/SectionStack/SectionStackItemGridSection.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/SectionStack/SectionStack.uss`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/SectionStack/FakeSection.cs`・`SectionStackViewTest.cs`・`SectionStackRegressionTest.cs`・`SectionStackSlotRegistryTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/BlockInventoryPartRegistryTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/SectionStack/FakeSection.cs`・`SectionStackViewTest.cs`・`SectionStackRegressionTest.cs`・`SectionStackSlotRegistryTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/BlockInventoryPartRegistryTest.cs`・`BlockInventoryTestFixtures.cs`
 
 **Interfaces:**
-- Consumes: Task 3 の `OpenBlockInventoryPanel`・`OpenTrainInventoryPanel`・`SectionStackConfigTable`、Task 6 の `BlockItemGridFactory`、L0-s4b の `BlockInventoryBodyKind`・`BlockInventoryTitleActionKind`・`BlockDetailMath.AllSlotIndices`
-- Produces: 末尾「## 後続レーンへの Produces 一覧」の (1)〜(4) と同じ型（本文・題の操作・区画・列車の本文）
+- Consumes: Task 3 の `OpenBlockInventoryPanel`・`OpenTrainInventoryPanel`・`BlockInventoryPanelState.IsSamePanel`・`IBlockInventoryPanelSource`・`SectionStackConfigTable`・`ShownSectionStackItemGrid`、Task 6 の `BlockItemGridFactory`、L0-s4b の `BlockInventoryBodyKind`・`BlockInventoryTitleActionKind`・`BlockDetailMath.AllSlotIndices(int) : int[]`、`UiStack(UiGap)`・`UiGapContainer.AddItem / SetItemShown`
+- Produces: 末尾「## 後続レーンへの Produces 一覧」の (1)〜(4) と同じ型
+
+**口の形（設計書 §4.2・A-57。D-19）:** 差し込む部分は「Presenter ＋ View」。工場が作る `IBlockInventoryPart` は Presenter で、`Root` が View。`Attach(panel)` で Presenter が自分の Model（各レーンの State の詳細 Model。`OpenBlockDetailTracker` 等を購読する）を購読して View の `Render` へ流し、`Detach()` で購読を切る。View は購読しない。パネルの状態（`OpenBlockInventoryPanel`）は識別子・エラー・枠だけで、区画の詳細の源ではない。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`FakeSection.cs`（区画の偽物: 固定の testid の `VisualElement` を持ち、`IsApplicable` の真偽と `Render` の回数を記録する。偽の工場 `FakeSectionFactory(SectionStackSlot slot, string testid, bool applicable)` も同じファイル）
+`FakeSection.cs`（区画の偽 Presenter: 固定の name を持つ `VisualElement` を `Root` にし、`IsApplicable` を外から書ける `ReactiveProperty<bool>` で持ち、`Attach`・`Detach` の回数を数える。偽の工場 `FakeSectionFactory(SectionStackSlot slot, bool applicable)`〈name は `fake-<Slot>`〉と、全 Slot〈`ItemGrid` を除く〉を返す `FakeSectionFactory.AllSlots(bool applicable)` も同じファイル）
 
-`SectionStackViewTest.cs`（alpha 分 3 件。項目グリッドは本物の `BlockItemGridFactory`〈コマンドは記録係〉、他の区画は偽物）:
+`BlockInventoryTestFixtures.cs`（`BlockInventoryTestBodies.SectionStack(FakePanelSource source, string blockType, params ISectionStackSectionFactory[] plugged)` — 本物の `BlockItemGridFactory`〈コマンドは記録係〉・`SectionStackSlotRegistry(plugged)`・`SectionStackBodyFactory` で標準の本文を作って返す。`BlockInventoryTestPanels.OfType(blockType, params SlotItem[])` は Task 3 の `BlockInventoryTestPanels.cs` に足す。マスタの無い blockType〈"unknown"〉も組めるよう `OpenBlockInventoryPanel` の internal ctor を呼ぶ〈`Client.Ui.State/AssemblyInfo.cs` に `[assembly: InternalsVisibleTo("Client.Tests")]` があることを起草時に確かめた〉）
+
+`SectionStackViewTest.cs`（alpha 分 3 件＋出し入れの 1 件。区画の出し入れは区画ルートの display で見る。`SetItemShown` が当たるのは区画のルートなので、中の `SlotGrid` の親ではなく `section-stack-item-grid` の display を見る）:
 ```csharp
 using System.Linq;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
-using Client.Ui.Screens.BlockInventory.Registry;
+using Client.Ui.Components.Slots;
 using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
+using Core.Master;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
@@ -2874,6 +3058,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
     /// </summary>
     public class SectionStackViewTest : ScreenTestHost
     {
+        private const string ItemGridSectionName = "section-stack-item-grid";
+
         /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">%s の既存表示を保つ</web-test>
         [TestCase("Chest", "chest-grid", true)]
         [TestCase("ElectricMachine", null, false)]
@@ -2886,54 +3072,82 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         [TestCase("CleanRoomMachine", null, false)]
         [TestCase("CleanRoomAirFilter", "clean-room-filter-grid", true)]
         [TestCase("unknown", "generic-block-grid", false)]
-        public void 項目グリッドは設定どおり空でも出すか中身があるときだけ出す(string blockType, string gridTestId, bool renderEmptyGrid)
+        public void 項目グリッドは設定どおり空でも出すか枠があるときだけ出す(string blockType, string gridId, bool renderEmptyGrid)
         {
-            var body = BlockInventoryTestBodies.SectionStack(blockType);
-            Mount((VisualElement)body.Root);
-            body.Render(BlockInventoryTestPanels.OfType(blockType));
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(blockType)));
+            var body = BlockInventoryTestBodies.SectionStack(source, blockType);
+            Mount(body.Root);
+            body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
-            Assert.AreEqual(renderEmptyGrid ? new[] { gridTestId } : new string[0], ShownGridIds(body.Root));
+            Assert.AreEqual(gridId != null && renderEmptyGrid, IsShown(body.Root, ItemGridSectionName));
 
-            body.Render(BlockInventoryTestPanels.OfType(blockType, new SlotItem(new Core.Master.ItemId(1), 1)));
+            source.State.Value = BlockInventoryTestPanels.OfType(blockType, new SlotItem(new ItemId(1), 1));
             simulate.FrameUpdate();
-            Assert.AreEqual(gridTestId == null ? new string[0] : new[] { gridTestId }, ShownGridIds(body.Root));
+            Assert.AreEqual(gridId != null, IsShown(body.Root, ItemGridSectionName));
+            if (gridId != null) Assert.AreEqual(gridId, body.Root.Q(ItemGridSectionName).Q<SlotGrid>().name);
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">親から状態・供給・歯車・電力網・歯車網を順に描画する</web-test>
         [Test]
         public void 区画は固定の順に並ぶ()
         {
-            var body = BlockInventoryTestBodies.SectionStackWithFakes("GearToElectricGenerator", FakeSectionFactory.AllSlotsApplicable());
-            Mount((VisualElement)body.Root);
-            body.Render(BlockInventoryTestPanels.OfType("GearToElectricGenerator"));
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator")));
+            var body = BlockInventoryTestBodies.SectionStack(source, "GearToElectricGenerator", FakeSectionFactory.AllSlots(true));
+            Mount(body.Root);
+            body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
-            var order = body.Root.Query(className: FakeSection.ClassName).ToList().Where(e => e.resolvedStyle.display == DisplayStyle.Flex).Select(e => e.name).ToArray();
-            CollectionAssert.AreEqual(new[] { "fake-Context", "fake-Machine", "fake-Miner", "fake-Pump", "fake-Generator", "fake-GearToElectric", "fake-BeltThroughput", "fake-Gear", "fake-ElectricNetwork", "fake-GearNetwork", "fake-FluidDetails", "fake-FluidRow" }, order);
+            CollectionAssert.AreEqual(new[] { "fake-Context", "fake-Machine", "fake-Miner", "fake-Pump", "fake-Generator", "fake-GearToElectric", "fake-BeltThroughput", "fake-Gear", "fake-ElectricNetwork", "fake-GearNetwork", "fake-FluidDetails", "fake-FluidRow" }, ShownNames(body.Root));
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">部屋欄はセクション列の先頭に描く</web-test>
         [Test]
         public void 文脈の区画は項目グリッドより上に来る()
         {
-            var body = BlockInventoryTestBodies.SectionStackWithFakes("CleanRoomAirFilter", FakeSectionFactory.AllSlotsApplicable());
-            Mount((VisualElement)body.Root);
-            body.Render(BlockInventoryTestPanels.OfType("CleanRoomAirFilter", new SlotItem(new Core.Master.ItemId(12), 5)));
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("CleanRoomAirFilter", new SlotItem(new ItemId(12), 5))));
+            var body = BlockInventoryTestBodies.SectionStack(source, "CleanRoomAirFilter", new FakeSectionFactory(SectionStackSlot.Context, true));
+            Mount(body.Root);
+            body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
-            var children = body.Root.Children().Where(e => e.resolvedStyle.display == DisplayStyle.Flex).Select(e => e.name).ToArray();
-            Assert.AreEqual("fake-Context", children[0]);
-            Assert.AreEqual("clean-room-filter-grid", children[1].Replace("section-stack-item-grid:", ""));
+            CollectionAssert.AreEqual(new[] { "fake-Context", ItemGridSectionName }, ShownNames(body.Root));
+            Assert.AreEqual("clean-room-filter-grid", body.Root.Q(ItemGridSectionName).Q<SlotGrid>().name);
         }
 
-        private static string[] ShownGridIds(VisualElement root)
+        [Test]
+        public void 区画の出し入れはパネルの描き直し無しで変わり先頭の間隔が詰まる()
         {
-            return root.Query<Client.Ui.Components.Slots.SlotGrid>().ToList().Where(g => g.parent.resolvedStyle.display == DisplayStyle.Flex).Select(g => g.name).ToArray();
+            // 網の集約・ベルトの統計のようにパネルの組み直しの外で届く変化でも、区画の通知だけで出し入れと間隔が組み直される
+            // Even for changes arriving outside panel rebuilds (network totals, belt stats), the section's own signal re-lays visibility and gaps
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator")));
+            var context = new FakeSectionFactory(SectionStackSlot.Context, false);
+            var machine = new FakeSectionFactory(SectionStackSlot.Machine, true);
+            var body = BlockInventoryTestBodies.SectionStack(source, "GearToElectricGenerator", context, machine);
+            Mount(body.Root);
+            body.Attach((OpenBlockInventoryPanel)source.Current.Value);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, machine.Created.Root.resolvedStyle.marginTop);
+
+            context.Created.Applicable.Value = true;
+            simulate.FrameUpdate();
+            CollectionAssert.AreEqual(new[] { "fake-Context", "fake-Machine" }, ShownNames(body.Root));
+            Assert.AreEqual(0f, context.Created.Root.resolvedStyle.marginTop);
+            Assert.Less(0f, machine.Created.Root.resolvedStyle.marginTop);   // UiGap.Sm の実値（UiStack の USS）
+        }
+
+        private static bool IsShown(VisualElement root, string name)
+        {
+            return root.Q(name) is { } section && section.resolvedStyle.display == DisplayStyle.Flex;
+        }
+
+        private static string[] ShownNames(VisualElement root)
+        {
+            return root.Children().Where(e => e.resolvedStyle.display == DisplayStyle.Flex).Select(e => e.name).ToArray();
         }
     }
 }
 ```
-（`BlockInventoryTestBodies`〈`SectionStack(blockType)`・`SectionStackWithFakes(blockType, factories)`〉は `Client.Tests/Ui/Screens/BlockInventory/BlockInventoryTestFixtures.cs` に置き、`BlockInventoryTestPanels.OfType(blockType, params SlotItem[])` は Task 3 の `BlockInventoryTestPanels.cs` に足す。マスタの無い blockType〈"unknown"〉も組めるよう、`OfType` は `BlockInventoryPanelStateFactory` を通さず `OpenBlockInventoryPanel` の internal ctor を呼ぶ〈`Client.Ui.State/AssemblyInfo.cs` に `[assembly: InternalsVisibleTo("Client.Tests")]` が既にあることを起草時に確かめた〉。項目グリッドの区画の要素名は `section-stack-item-grid` にし、中の `SlotGrid` の name が Web の testid になる。テストの 2 件目の比較は区画の要素名ではなく中の `SlotGrid.name` で見る形に揃えてよい）
+（`FakePanelSource` に書き換え用の `State`〈`ReactiveProperty`〉を公開する。`FakeSectionFactory.Created` は最後に作った `FakeSection`）
 
-`SectionStackRegressionTest.cs`（alpha 分 1 件。Web の 12 ケースのうち項目グリッドの id だけを主張する。区画の id は持ち主のレーンが同じタグで足す）:
+`SectionStackRegressionTest.cs`（alpha 分 1 件。Web の 12 ケースのうち項目グリッドの id だけを主張する。区画の id は持ち主のレーンが自分のテストファイルに同じタグで写す。専用本文の FilterSplitter のケースは S4-special が写す〈写す予定の持ち主。「写すテスト」表〉）:
 ```csharp
         /// <web-test file="e2e/tests/regression/sectionStack.spec.ts">${entry.type}は対応セクションだけを表示する</web-test>
         [TestCase("Chest", "chest-grid")]
@@ -2941,15 +3155,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         [TestCase("GearMiner", "gear-miner-output-grid")]
         [TestCase("ElectricGenerator", "generator-fuel-grid")]
         [TestCase("FuelGearGenerator", "generator-fuel-grid")]
-        [TestCase("FilterSplitter", null)]
         [TestCase("unknown", "generic-block-grid")]
-        public void 項目グリッドは対応するblockTypeだけに出る(string blockType, string gridTestId)
+        public void 項目グリッドは対応するblockTypeだけに出る(string blockType, string gridId)
 ```
-（Web の `tank` は液体だけで項目グリッド無し、`gearGenerator` は空の燃料グリッドが残る〈`renderedEmptyByType`〉。中身ありの枠 1 つで `Render` し、`gridTestId` が null なら項目グリッドが 1 つも出ないことを見る。FilterSplitter は専用本文なので `BlockInventoryPartRegistry` 経由で本文を作り、登録の無いいまは警告ログと標準の本文への逃げになる〈`LogAssert.Expect(LogType.Warning, …)`〉。S4-special が本文を足したらこのケースは special のテストへ移す）
+（枠 1 つの中身ありで `Attach` し、`gridId` が null なら `section-stack-item-grid` が出ない、あれば出て中の `SlotGrid.name == gridId`）
 
 `SectionStackSlotRegistryTest.cs`（3 件: 同じ Slot の二重登録は例外／`ItemGrid` の外部登録は例外／空きの Slot は起動時に 1 回だけ情報ログ）
 
-`BlockInventoryPartRegistryTest.cs`（4 件: `SectionStack` の Kind は標準の本文／登録のある Kind はその工場／登録の無い Kind は警告ログ 1 回と標準の本文〈2 回目は出さない〉／同じ Kind の二重登録と `SectionStack` の外部登録は例外）
+`BlockInventoryPartRegistryTest.cs`（5 件: `SectionStack` の Kind は標準の本文／登録のある Kind はその工場／`未登録の本文Kindは標準の本文へ逃げて警告を1回だけ出す`〈FilterSplitter のパネルで `LogAssert.Expect(LogType.Warning, …)`、2 回目は出ない〉／同じ Kind の二重登録と `SectionStack` の外部登録は例外／列車の本文の 2 本目は例外）
 
 - [ ] **Step 2: 失敗を確かめる**
 
@@ -2966,13 +3179,16 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Registry
 {
     /// <summary>
-    /// パネルへ差し込む部分（本文・題の操作・区画）。同じパネルのあいだは Render を繰り返し、外すとき Detach を 1 回呼ぶ
-    /// A part plugged into the panel (body, title action, section); Render repeats while the same panel stays, Detach runs once on removal
+    /// パネルへ差し込む部分の Presenter（本文・題の操作・区画）。Root が View。Attach で自分の Model を購読して View へ流し、Detach で切る
+    /// Presenter of a part plugged into the panel (body, title action, section); Root is the view. Attach subscribes its own model into the view, Detach unsubscribes
     /// </summary>
     public interface IBlockInventoryPart
     {
         VisualElement Root { get; }
-        void Render(OpenBlockInventoryPanel panel);
+
+        // 同じパネル（BlockInventoryPanelState.IsSamePanel）のあいだは 1 回だけ。別のパネルでは Detach の後に新しい部分で呼ばれる
+        // Called once per same panel (BlockInventoryPanelState.IsSamePanel); a different panel gets a fresh part after Detach
+        void Attach(OpenBlockInventoryPanel panel);
         void Detach();
     }
 }
@@ -3026,12 +3242,12 @@ namespace Client.Ui.Screens.BlockInventory.Registry
         ITrainInventoryPart Create();
     }
 
-    // 列車の本文。同じ車両のあいだは Render を繰り返し、外すとき Detach を 1 回呼ぶ
-    // Train body; Render repeats while the same car stays, Detach runs once on removal
+    // 列車の本文の Presenter。Attach で列車の詳細 Model（S4-train の State）を購読し View へ流す
+    // Train body presenter; Attach subscribes the train detail model (S4-train State) into the view
     public interface ITrainInventoryPart
     {
         VisualElement Root { get; }
-        void Render(OpenTrainInventoryPanel panel);
+        void Attach(OpenTrainInventoryPanel panel);
         void Detach();
     }
 }
@@ -3040,12 +3256,12 @@ namespace Client.Ui.Screens.BlockInventory.Registry
 namespace Client.Ui.Screens.BlockInventory.Registry
 {
     /// <summary>
-    /// 本文を作るときの条件（Web の fillsPanelHeight。機械の大型パネルだけ真）
-    /// Conditions when creating a body (Web fillsPanelHeight; true only on a machine's large panel)
+    /// 本文を作るときの条件（Web の fillsPanelHeight。大型パネルだけ真）
+    /// Conditions when creating a body (Web fillsPanelHeight; true only on the large panel)
     /// </summary>
     public sealed class BlockInventoryBodyMount
     {
-        public bool FillsPanelHeight { get; }
+        public bool FillsPanelHeight { get; private set; }
 
         public BlockInventoryBodyMount(bool fillsPanelHeight)
         {
@@ -3080,7 +3296,7 @@ namespace Client.Ui.Screens.BlockInventory.Registry
 
         public BlockInventoryPartRegistry(IReadOnlyList<IBlockInventoryBodyFactory> bodies, IReadOnlyList<IBlockInventoryTitleActionFactory> titleActions, IReadOnlyList<ITrainInventoryBodyFactory> trainBodies, SectionStackBodyFactory sectionStack)
         {
-            // 二重登録と既定の本文の上書きは起動時に止める（どのレーンの登録が衝突したかを例外の文で示す）
+            // 二重登録と既定の本文の上書きは起動時に止める（どの登録が衝突したかを例外の文で示す）
             // Stop at startup on duplicates or an override of the default body (the message names the colliding registration)
             foreach (var body in bodies)
             {
@@ -3099,26 +3315,28 @@ namespace Client.Ui.Screens.BlockInventory.Registry
         public IBlockInventoryPart CreateBody(OpenBlockInventoryPanel panel, BlockInventoryBodyMount mount)
         {
             var kind = panel.Components.Body;
-            if (kind != BlockInventoryBodyKind.SectionStack && _bodies.TryGetValue(kind, out var factory)) return factory.Create(mount);
-            if (kind != BlockInventoryBodyKind.SectionStack) WarnOnce($"body:{kind}", $"[BlockInventory] 本文 {kind} の登録が無いので標準の本文で描く（blockType={panel.BlockType}）");
+            if (kind == BlockInventoryBodyKind.SectionStack) return _sectionStack.Create(panel.BlockType, mount);
+            if (_bodies.TryGetValue(kind, out var factory)) return factory.Create(mount);
+            WarnOnce($"body:{kind}", $"[BlockInventory] 本文 {kind} の登録が無いので標準の本文で描く（blockType={panel.BlockType}）");
             return _sectionStack.Create(panel.BlockType, mount);
         }
 
-        public bool TryCreateTitleAction(BlockInventoryTitleActionKind kind, out IBlockInventoryPart part)
+        // 題の操作を持たない（None）か登録が無ければ null。登録漏れだけ警告する
+        // Null when the kind is None or unregistered; only a missing registration warns
+        public IBlockInventoryPart CreateTitleActionOrNull(BlockInventoryTitleActionKind kind)
         {
-            part = null;
             // silent-ok: 題の操作を持たない blockType が大半（Web も描かない） / 登録漏れは下の警告で出る
-            if (kind == BlockInventoryTitleActionKind.None) return false;
-            if (_titleActions.TryGetValue(kind, out var factory)) part = factory.Create();
-            else WarnOnce($"title:{kind}", $"[BlockInventory] 題の操作 {kind} の登録が無いので出さない");
-            return part != null;
+            if (kind == BlockInventoryTitleActionKind.None) return null;
+            if (_titleActions.TryGetValue(kind, out var factory)) return factory.Create();
+            WarnOnce($"title:{kind}", $"[BlockInventory] 題の操作 {kind} の登録が無いので出さない");
+            return null;
         }
 
-        public bool TryCreateTrainBody(out ITrainInventoryPart part)
+        public ITrainInventoryPart CreateTrainBodyOrNull()
         {
-            part = _trainBody?.Create();
-            if (part == null) WarnOnce("train", "[BlockInventory] 列車の本文の登録が無いので題とエラー行だけを出す");
-            return part != null;
+            if (_trainBody != null) return _trainBody.Create();
+            WarnOnce("train", "[BlockInventory] 列車の本文の登録が無いので題とエラー行だけを出す");
+            return null;
         }
 
         private void WarnOnce(string key, string message)
@@ -3150,8 +3368,8 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
         Gear,             // S4-special
         ElectricNetwork,  // S4-special
         GearNetwork,      // S4-special
-        FluidDetails,     // S4-machine（Fluid/。showFluidDetails && fluidRowTestId）
-        FluidRow,         // S4-machine（Fluid/。fluidRowTestId && !machine && !showFluidDetails）
+        FluidDetails,     // S4-machine（Fluid/。Config.Fluid が DetailsSectionStackFluid）
+        FluidRow,         // S4-machine（Fluid/。Config.Fluid が RowSectionStackFluid で機械以外）
     }
 }
 ```
@@ -3159,17 +3377,19 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
 `IBlockInventorySection.cs`・`ISectionStackSectionFactory.cs`・`SectionStackSectionMount.cs`:
 ```csharp
 using Client.Ui.Screens.BlockInventory.Registry;
-using Client.Ui.State.BlockInventory.Panel;
+using UniRx;
 
 namespace Client.Ui.Screens.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 標準の本文の 1 区画。描くかどうかは区画が持つ（Web の各 Section が null を返す条件）
-    /// One section of the standard body; the section owns whether it draws (the condition each Web Section returns null on)
+    /// 標準の本文の 1 区画の Presenter。描くかどうかは区画が自分の Model から決めて通知する（Web の各 Section が null を返す条件）
+    /// Presenter of one standard-body section; the section decides from its own model whether it draws and signals it (the condition each Web Section returns null on)
     /// </summary>
     public interface IBlockInventorySection : IBlockInventoryPart
     {
-        bool IsApplicable(OpenBlockInventoryPanel panel);
+        // Attach 後に有効。パネルの組み直しの外（網の集約・ベルトの統計）で変わってよく、SectionStackBody が購読して出し入れと間隔を組み直す
+        // Valid after Attach; may change outside panel rebuilds (network totals, belt stats); SectionStackBody subscribes to re-lay visibility and gaps
+        IReadOnlyReactiveProperty<bool> IsApplicable { get; }
     }
 }
 ```
@@ -3198,8 +3418,8 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
     /// </summary>
     public sealed class SectionStackSectionMount
     {
-        public SectionStackConfig Config { get; }
-        public bool FillsPanelHeight { get; }
+        public SectionStackConfig Config { get; private set; }
+        public bool FillsPanelHeight { get; private set; }
 
         public SectionStackSectionMount(SectionStackConfig config, bool fillsPanelHeight)
         {
@@ -3209,118 +3429,124 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
     }
 }
 ```
-（名前空間 `Client.Ui.State.BlockInventory.SectionStack` と `Client.Ui.Screens.BlockInventory.SectionStack` は別アセンブリで衝突しない。読みにくければ State 側を `using SectionStackConfig = …` で別名にする）
+（名前空間 `Client.Ui.State.BlockInventory.SectionStack` と `Client.Ui.Screens.BlockInventory.SectionStack` は別アセンブリで衝突しない）
 
-`SectionStackSlotRegistry.cs`（ctor で `IReadOnlyList<ISectionStackSectionFactory>` を Slot で索引し、二重・`ItemGrid` は例外、空きの Slot を 1 回 `Debug.Log` で並べる。`IBlockInventorySection CreateOrNull(SectionStackSlot slot, SectionStackSectionMount mount)` は空きなら null〈`silent-ok: 担当レーンが未マージの区画は Web の null と同じ見え方 / 起動時の情報ログに空きが並ぶ`〉）
+`SectionStackSlotRegistry.cs`（ctor で `IReadOnlyList<ISectionStackSectionFactory>` を Slot で索引し、二重・`ItemGrid` は例外、空きの Slot を起動時に 1 回 `Debug.Log` で並べる。`IBlockInventorySection CreateOrNull(SectionStackSlot slot, SectionStackSectionMount mount)` は空きなら null〈直前の行に `// silent-ok: 担当レーンが未マージの区画は Web の null と同じ見え方 / 起動時の情報ログに空きの Slot が並ぶ`〉）
 
-`SectionStackItemGridSection.cs`:
+`SectionStackItemGridSection.cs`（区画の Presenter。データはパネルの枠なので `IBlockInventoryPanelSource` を購読する）:
 ```csharp
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SectionStack;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 標準の本文の項目グリッド（Web の showItemGrid。testid は blockType の設定から）
-    /// The standard body's item grid (Web showItemGrid; the testid comes from the blockType settings)
+    /// 標準の本文の項目グリッドの Presenter（Web の showItemGrid）。同じパネルのあいだ枠の変化を BlockItemGrid へ流す
+    /// Presenter of the standard body's item grid (Web showItemGrid); streams slot changes into BlockItemGrid while the panel stays the same
     /// </summary>
     public sealed class SectionStackItemGridSection : IBlockInventorySection
     {
-        private readonly SectionStackConfig _config;
+        private readonly SectionStackItemGrid _config;
+        private readonly IBlockInventoryPanelSource _panels;
         private readonly BlockItemGrid _grid;
-        private readonly VisualElement _root = new() { name = "section-stack-item-grid" };
+        private readonly ReactiveProperty<bool> _isApplicable = new(false);
+        private readonly CompositeDisposable _subscriptions = new();
 
-        public VisualElement Root => _root;
+        public VisualElement Root { get; private set; }
+        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;   // 型を狭める公開（前例 SettingsModel.Current）
 
-        public SectionStackItemGridSection(SectionStackConfig config, BlockItemGridFactory grids)
+        public SectionStackItemGridSection(SectionStackItemGrid config, BlockItemGridFactory grids, IBlockInventoryPanelSource panels)
         {
             _config = config;
-            // 項目グリッドの無い設定でも器は作り、IsApplicable が常に偽になる
-            // Build the holder even for settings without a grid; IsApplicable then stays false
-            _grid = grids.Create(config.HasItemGrid ? config.ItemGridTestId : "section-stack-no-item-grid");
-            _root.Add(_grid);
+            _panels = panels;
+            Root = new VisualElement { name = "section-stack-item-grid" };
+            // 出さない設定でも器は作り、IsApplicable が偽のまま
+            // Build the holder even when hidden by settings; IsApplicable stays false
+            _grid = grids.Create(config is ShownSectionStackItemGrid shown ? shown.GridId : "section-stack-no-item-grid");
+            Root.Add(_grid);
         }
 
-        public bool IsApplicable(OpenBlockInventoryPanel panel)
+        public void Attach(OpenBlockInventoryPanel panel)
         {
-            return _config.HasItemGrid && (_config.RenderEmptyGrid || 0 < panel.ItemSlots.Count);
-        }
-
-        public void Render(OpenBlockInventoryPanel panel)
-        {
-            _grid.Render(panel.ItemSlots, BlockDetailMath.AllSlotIndices(panel.ItemSlots.Count));
+            _panels.Current.Subscribe(current =>
+            {
+                // silent-ok: 別のパネルへ替わる途中の値は描かない / BodyHost が同じフレームで Detach して新しい区画を作る
+                if (!(current is OpenBlockInventoryPanel open) || !open.IsSamePanel(panel)) return;
+                _isApplicable.Value = _config is ShownSectionStackItemGrid shown && (shown.RenderEmpty || 0 < open.ItemSlots.Count);
+                if (_isApplicable.Value) _grid.Render(open.ItemSlots, BlockDetailMath.AllSlotIndices(open.ItemSlots.Count));
+            }).AddTo(_subscriptions);
         }
 
         public void Detach()
         {
+            _subscriptions.Clear();
         }
     }
 }
 ```
-（`AllSlotIndices(int)` は `int[]` を返す〈実物で確かめた〉。`Detach` が空なのは購読を持たないから。グリッドの購読は要素と一緒に捨てられる）
 
 `SectionStackBody.cs`:
 ```csharp
 using System.Collections.Generic;
 using Client.Ui.Foundation.Layout;
-using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Panel;
-using Client.Ui.State.BlockInventory.SectionStack;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 標準の本文。固定順の区画を UiStack(Sm) に並べ、描くかどうかは各区画に聞く（Web SectionStackView の写し）
-    /// The standard body: fixed-order sections in a UiStack(Sm), each section deciding whether it draws (port of Web SectionStackView)
+    /// 標準の本文の Presenter。固定順の区画を UiStack(Sm) に並べ、各区画の IsApplicable を購読して出し入れと間隔を組み直す（Web SectionStackView の写し）
+    /// Standard-body presenter: fixed-order sections in a UiStack(Sm), subscribing each section's IsApplicable to re-lay visibility and gaps (port of Web SectionStackView)
     /// </summary>
     public sealed class SectionStackBody : IBlockInventoryPart
     {
         public const string FillPanelHeightClassName = "section-stack--fill-panel-height";
 
         private readonly UiStack _stack = new(UiGap.Sm) { name = "section-stack" };
-        private readonly List<IBlockInventorySection> _sections = new();
+        private readonly IReadOnlyList<IBlockInventorySection> _sections;
+        private readonly CompositeDisposable _subscriptions = new();
 
-        public VisualElement Root => _stack;
+        public VisualElement Root { get; private set; }
 
-        public SectionStackBody(SectionStackConfig config, BlockInventoryBodyMount mount, BlockItemGridFactory grids, SectionStackSlotRegistry slots)
+        public SectionStackBody(IReadOnlyList<IBlockInventorySection> sections, bool fillsPanelHeight)
         {
             // 高さ確定の面でだけ伸ばす（高さ自動の面で伸ばすと子が内容高より縮む経路が開く）
             // Stretch only on the height-determining panel (on auto-height panels it would let children shrink below content)
-            _stack.EnableInClassList(FillPanelHeightClassName, mount.FillsPanelHeight);
-            var sectionMount = new SectionStackSectionMount(config, mount.FillsPanelHeight);
-            foreach (SectionStackSlot slot in System.Enum.GetValues(typeof(SectionStackSlot)))
+            Root = _stack;
+            _stack.EnableInClassList(FillPanelHeightClassName, fillsPanelHeight);
+            _sections = sections;
+            foreach (var section in sections)
             {
-                var section = slot == SectionStackSlot.ItemGrid ? new SectionStackItemGridSection(config, grids) : slots.CreateOrNull(slot, sectionMount);
-                if (section == null) continue;
-                _sections.Add(section);
                 _stack.AddItem(section.Root);
+                _stack.SetItemShown(section.Root, false);
             }
         }
 
-        public void Render(OpenBlockInventoryPanel panel)
+        public void Attach(OpenBlockInventoryPanel panel)
         {
             foreach (var section in _sections)
             {
-                var shown = section.IsApplicable(panel);
-                _stack.SetItemShown(section.Root, shown);
-                if (shown) section.Render(panel);
+                section.Attach(panel);
+                section.IsApplicable.Subscribe(shown => _stack.SetItemShown(section.Root, shown)).AddTo(_subscriptions);
             }
         }
 
         public void Detach()
         {
+            _subscriptions.Clear();
             foreach (var section in _sections) section.Detach();
         }
     }
 }
 ```
 
-`SectionStackBodyFactory.cs`（ctor で `BlockItemGridFactory`・`SectionStackSlotRegistry`、`Create(string blockType, BlockInventoryBodyMount mount)` が `SectionStackConfigTable.Resolve(blockType)` で `SectionStackBody` を返す）
+`SectionStackBodyFactory.cs`（ctor で `BlockItemGridFactory`・`SectionStackSlotRegistry`・`IBlockInventoryPanelSource`。`Create(string blockType, BlockInventoryBodyMount mount)` が `SectionStackConfigTable.Resolve(blockType)` から `SectionStackSectionMount` を作り、`SectionStackSlot` の列挙順に `ItemGrid` は `new SectionStackItemGridSection(config.ItemGrid, grids, panels)`、他は `slots.CreateOrNull(slot, sectionMount)`〈null は飛ばす〉で区画の列を組んで `new SectionStackBody(sections, mount.FillsPanelHeight)` を返す）
 
 `SectionStack.uss`:
 ```css
@@ -3347,27 +3573,34 @@ git commit -m "feat(uitk): ブロックインベントリの拡張口・レジ�
 ```
 
 ---
-### Task 8: 外殻 View・Presenter・登録（`Screens/BlockInventory/`・`Client.Starter/Registration/GameUi/`）
+
+### Task 8: 外殻 View・ScreenPresenter・登録（`Screens/BlockInventory/`・`Client.Starter/Registration/`）
 
 **Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventoryPanelView.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventoryView.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventoryPanelBand.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventoryNaturalScroll.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventoryBodyHost.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventoryPresenter.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventoryScreenPresenter.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventory.uss`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Panel/BlockInventoryScreenVisibility.cs`（`Panel/` は 10 ファイル）
 - Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/BlockInventoryGameUiRegistration.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（画面登録区画の末尾 `GrabGameUiRegistration.Register(builder);` の下に 1 行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（共有サービスの並び〈`InputSystemPointerPositionStream` の下〉にブロックインベントリの共有サービスを足し、画面登録区画の末尾に 1 行。E-1・A-56）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs`（105 行 `IItemStackLevelUnlocker` の隣に `IItemStackLevelLookup` を 1 行）
 - Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（`/* == section: Screens == */` の末尾に `@import` 3 行）
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/` の `BlockInventoryTestFixtures.cs`・`BlockInventoryPanelFlowTest.cs`・`BlockInventoryDesignTest.cs`・`BlockInventoryLocalizationTest.cs`・`BlockInventoryPanelErrorTest.cs`・`BlockInventoryPanelBandTest.cs`・`BlockInventoryTitleActionTest.cs`・`BlockInventoryNaturalScrollTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/` の `BlockInventoryPanelFlowTest.cs`・`BlockInventoryDesignTest.cs`・`BlockInventoryLocalizationTest.cs`・`BlockInventoryPanelErrorTest.cs`・`BlockInventoryPanelBandTest.cs`・`BlockInventoryTitleActionTest.cs`・`BlockInventoryNaturalScrollTest.cs`（`BlockInventoryTestFixtures.cs` に `BlockInventoryTestShell` を足す）、`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockInventoryScreenVisibilityTest.cs`
 
 **Interfaces:**
-- Consumes: `GamePanel(string, GamePanelFrame)`・`SetTitle(UiText)`・`SetTitleAction(VisualElement)`（題の操作は 1 つの器を 1 回だけ渡し、中身を器の中で付け替える。`GamePanel` に外す API が無いため）、`IconButton(string, VisualElement)`・`OnClicked`、`IconButtonCloseGlyph`、`GameScrollView(string)`、`TutorialAnchor.Mark(VisualElement, params string[])`、`AnchorIds.InventoryCloseButton`、`StageColumnsLayout.Get(StageColumn.Viewer)`、`UiRoutingState`（使わない。開閉は Task 3 の Model が `UIStateControl` で決める）、`ContentLocalizationKeys.BlockName(Guid)`、`LocalizationKeys.Ui.BlockInventory.TrainInventory`、Task 3 の `IBlockInventoryPanelSource`・`BlockInventoryPanelLayoutModel`・`IBlockInventoryPanelCommands`・`BlockInventoryPanelErrorText`、Task 7 の `BlockInventoryPartRegistry`
+- Consumes: `GamePanel(string, GamePanelFrame)`・`SetTitle(UiText)`・`SetTitleAction(VisualElement)`（題の操作は 1 つの器を 1 回だけ渡し、中身を器の中で付け替える。`GamePanel` に外す API が無いため。D-17）、`IconButton(string, VisualElement)`・`OnClicked`、`IconButtonCloseGlyph`、`GameScrollView(string)`、`TutorialAnchor.Mark(VisualElement, params string[])`、`AnchorIds.InventoryCloseButton`、`StageColumnsLayout.Get(StageColumn.Viewer)`、`UiRoutingState.Current : IReadOnlyReactiveProperty<UiRoutingSnapshot>`（`UiRoutingSnapshot(UiScreen)`・`.Screen`）、`UssCustomStyleReader.TryReadPixels`、`ContentLocalizationKeys.BlockName(Guid)`、`LocalizationKeys.Ui.BlockInventory.TrainInventory`、Task 3 の `IBlockInventoryPanelSource`・`BlockInventoryPanelLayoutModel`・`IBlockInventoryPanelCommands`・`BlockInventoryPanelErrorText`・`BlockInventoryPanelState.IsSamePanel`、Task 7 の `BlockInventoryPartRegistry`
 - Produces: `BlockInventoryGameUiRegistration.Register(ContainerBuilder)`（MainGameUiRegistration が呼ぶ）。View の要素名 `block-inventory`・`block-inventory-panel`・`block-inventory-close`・`block-inventory-error`・`train-inventory-error`・`block-inventory-natural-scroll`・`block-inventory-title-action`（録画・後続のテストが引く）
+
+**出し分け（設計書 §4.4。D-21）:** `BlockInventoryScreenPresenter` が `UiRoutingState.Current` とパネルの状態を購読し、`BlockInventoryScreenVisibility.IsShown(snapshot, state)`（`Screen == UiScreen.SubInventory` かつ閉でない。閉は Web の `return null`）で `View.SetShown` する（前例 `PauseMenuScreenPresenter`）。Model 側の SubInventory 判定も `UiRoutingState`（Task 3）で、画面の判定の源は 1 つ。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`BlockInventoryTestFixtures.cs`（`BlockInventoryTestBodies` と、外殻一式を組む `BlockInventoryTestShell.Create(ReactiveProperty<BlockInventoryPanelState> state, params object[] plugged)` — 偽の Source・本物の LayoutModel〈寄与は `plugged` から〉・記録係の `RecordingPanelCommands`・本物の `BlockInventoryPartRegistry` で `BlockInventoryPanelView` を組み、舞台 1280×720 の `StageColumnsLayout` の Viewer 列へ載せて返す。トークンは `UiTestHost` のテーマが解決する）
+`BlockInventoryScreenVisibilityTest.cs`（L0・3 件: SubInventory かつブロック開で出す／SubInventory でも閉なら出さない／GameScreen ではブロック開の値が残っていても出さない）
+
+`BlockInventoryTestFixtures.cs` に足す `BlockInventoryTestShell.Create(ScreenTestHost host, ReactiveProperty<BlockInventoryPanelState> state, params object[] plugged)`（形はこの 1 本だけ）: 偽の Source・本物の `BlockInventoryPanelLayoutModel`〈寄与は `plugged` の `IBlockInventoryLargePanelRule`〉・記録係の `RecordingPanelCommands`・本物の `BlockInventoryPartRegistry`〈`plugged` の工場〉で `BlockInventoryView` と `BlockInventoryBodyHost` を組み、1280×720 の `StageColumnsLayout` の Viewer 列へ載せ、`state`・大きさの変化を Presenter と同じ順〈`View.Render` → `BodyHost.Apply`〉で流す。出し分けは L0 の `BlockInventoryScreenVisibility` が持つので、Shell は `IsShown` を `UiScreen.SubInventory` 固定で呼ぶ。返り値は `View`・`Commands`・`TitleText()`
 
 `BlockInventoryPanelFlowTest.cs`（alpha 分 2 件）:
 ```csharp
@@ -3394,11 +3627,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             state.Value = BlockInventoryTestPanels.Chest();
             simulate.FrameUpdate();
 
-            var root = shell.View;
-            Assert.AreEqual(DisplayStyle.Flex, root.resolvedStyle.display);
-            Assert.IsNotNull(root.Q("block-inventory-panel"));
-            Assert.IsNotNull(root.Q("chest-grid"));
-            Assert.IsNotNull(root.Q("chest-grid-slot-0"));
+            Assert.AreEqual(DisplayStyle.Flex, shell.View.resolvedStyle.display);
+            Assert.IsNotNull(shell.View.Q("block-inventory-panel"));
+            Assert.IsNotNull(shell.View.Q("chest-grid"));
+            Assert.IsNotNull(shell.View.Q("chest-grid-slot-0"));
             Assert.AreEqual("Wooden Chest", shell.TitleText());   // テスト用 mod の英語名。実物の英語名に合わせる
         }
 
@@ -3420,21 +3652,21 @@ namespace Client.Tests.Ui.Screens.BlockInventory
     }
 }
 ```
-（`Click` は `UiTestHost` の既存の押下ヘルパーの実名に合わせる。閉じる → 遷移 → Model が閉にする鎖は Task 3 の `BlockInventoryPanelCommandsTest` と `BlockInventoryPanelStateFactoryTest` が持つので、ここは View の 2 つの端を見る）
+（`Click` は `UiTestHost` の既存の押下ヘルパーの実名に合わせる）
 
-`BlockInventoryDesignTest.cs`（alpha 分 6 件。寸法は 1280×720 の舞台で）:
+`BlockInventoryDesignTest.cs`（alpha 分 6 件。寸法は 1280×720 の舞台で。後続レーンはこのファイルに足さず、自分のテストファイルに同じタグで写す）:
 ```csharp
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">%sから禁止Mantine部品とテーマ色を除去する</web-test>
         [TestCase("BlockInventory/BlockInventory.uss")]
         [TestCase("BlockInventory/SectionStack/SectionStack.uss")]
         [TestCase("BlockInventory/Parts/Parts.uss")]
         public void 画面のUSSは色を直書きせずトークンだけを使う(string relativePath)
-        // 中身: ファイルを読み、#rgb・rgb(・rgba( の直書きが無く、color 系の値が var(--…) だけであること（UiStyleConventionTest の規則を画面単位で再確認）
+        // 中身: ファイルを読み、#rgb・rgb(・rgba( の直書きが無く、color 系の値が var(--…) だけであること
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">パネル面と閉じる操作をshared uiへ集約する</web-test>
         [Test]
         public void パネル面はGamePanelで閉じるはIconButtonでチュートリアルの錨が付く()
-        // 中身: block-inventory-panel が GamePanel（game-panel--default）、block-inventory-close が IconButton で IconButtonCloseGlyph を持ち、TutorialAnchor の印に AnchorIds.InventoryCloseButton。閉じるの位置 top = --bevel-3・right = --panel-edge-fade
+        // 中身: block-inventory-panel が GamePanel（game-panel--default）、block-inventory-close が IconButton で IconButtonCloseGlyph を持ち、TutorialAnchor の印に AnchorIds.InventoryCloseButton。閉じるの位置 top = --bevel-3・right = --panel-edge-fade の実値
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">ブロックパネルをviewer領域へ上端揃えで配置する</web-test>
         [Test]
@@ -3443,8 +3675,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">ブロックパネルだけに下部装飾の安全帯を確保する</web-test>
         [Test]
-        public void 下の余白は安全帯で小型だけ右の余白を持つ()
-        // 中身: 小型で paddingBottom == 58・paddingRight == 28、大型で paddingRight == 0・paddingBottom == 58
+        public void 下の余白は安全帯で小型だけ右の安全帯を持つ()
+        // 中身: 小型で paddingBottom == 58・paddingRight == 28、大型で paddingBottom == 58・paddingRight == 10（GamePanel 既定のまま。Web の大型は右を上書きしない）
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">ブロックスロットの列数を1列から持ち物と同じ列数の範囲で内容に追従させる</web-test>
         [TestCase(1, 1)]
@@ -3452,24 +3684,24 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         [TestCase(10, 10)]
         [TestCase(27, 10)]
         public void 項目グリッドの列数は枠数に追従し持ち物の列数で止まる(int slotCount, int expectedColumns)
-        // 中身: 枠数 slotCount のチェストを開き、1 行目の枠の数（worldBound.yMin が先頭と同じ枠の数）が expectedColumns
+        // 中身: 枠数 slotCount のチェストを開き、1 行目の枠の数（worldBound.yMin が先頭と同じ枠の数）が expectedColumns。Error ログ 0 件（受け直したトークンが読めている）
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">レシピ有り機械だけviewer〜items占有の大型パネルへ広げる</web-test>
         [Test]
         public void 寄与が真のときだけ大型の寸法になる()
         // 中身: 寄与 FakeRule(Large=false) で小型（幅は内容なり・高さ ≤ 482）、Large=true にして OnRuleInputChanged を流すと 幅 == 740.108753（±0.01）・高さ == 482・block-inventory--large
 ```
-（各件の本体は上のコメントの主張をそのまま `Assert` に書く。`%s` の it.each は Web では部品ファイルの一覧。alpha の USS 3 本を写し、machine・special・train は各自の USS を同じタグの `TestCase` で足す）
+（各件の本体は上のコメントの主張をそのまま `Assert` に書く）
 
 `BlockInventoryLocalizationTest.cs`（2 件。「blockGuidの導出キーを…」は英語 → 日本語へ言語を変え、`simulate.FrameUpdate()` の後に題が日本語名へ変わる。「取得失敗は…」は `BlockInventoryTestPanels.OpenFailedChest()` で `block-inventory-error` の文が `ui.blockInventory.inventoryOpenFailed` の英語文・`chest-grid` が無い・題の操作の器が空）
 
-`BlockInventoryPanelErrorTest.cs`（3 件: 列車の ContainerMissing / TrainCarMissing / OpenFailed で `train-inventory-error` の文が各キー、列車の本文の登録が無いときは題とエラー行だけで警告ログ 1 回〈`LogAssert.Expect`〉）
+`BlockInventoryPanelErrorTest.cs`（4 件: 列車の ContainerMissing / TrainCarMissing / OpenFailed で `train-inventory-error` の文が各キー／列車の本文の登録が無いときは題とエラー行だけで警告ログ 1 回〈`LogAssert.Expect`〉／`正常からエラーへ移ると本文を外しエラーが解けると本文が戻る`〈`Chest()` → `OpenFailedChest()` → `Chest()` の順に流し、`chest-grid` が 有 → 無 → 有、`block-inventory-error` が 無 → 有 → 無〉）
 
-`BlockInventoryPanelBandTest.cs`（2 件: 2560×1080 の舞台で帯 = 1080 − 168 − 70 = 842・大型の幅 = 2560 − 40 − 10 − 473.891247 − 16 = 2020.108753／舞台の大きさが変わると次のフレームで当て直す）
+`BlockInventoryPanelBandTest.cs`（1 件: 舞台の要素の大きさを変えると次のフレームで帯と大型の幅を当て直す。期待値は舞台の要素の寸法から同じ式で出し、解像度の名前は付けない。2560×1080 での見え方は並べ比べ〈Task 10〉で論理 482・740.1 の拡大になることを見る）
 
-`BlockInventoryTitleActionTest.cs`（3 件: 題の操作の偽工場を `BlockInventoryTitleActionKind` の 1 つに登録し、その blockType で器に要素が入る／エラー中は器が空／別の blockType へ替えると前の部分の `Detach` が 1 回呼ばれ器が空になる。blockType と Kind の組は L0-s4b の `BlockComponentRegistry` の実物から引く）
+`BlockInventoryTitleActionTest.cs`（3 件: 題の操作の偽工場を `BlockInventoryTitleActionKind.RocketLaunchPadCommand` に登録し、その blockType で器に要素が入る／エラー中は器が空／別の blockType へ替えると前の部分の `Detach` が 1 回呼ばれ器が空になる。blockType と Kind の組は L0-s4b の `BlockComponentRegistry` の実物から引く）
 
-`BlockInventoryNaturalScrollTest.cs`（2 件: 小型では本文が `block-inventory-natural-scroll` の中にあり、外側の左右・上下の負マージンが −8・内側の逃げが 8／大型では本文がスクロール器を通らず直下にある）
+`BlockInventoryNaturalScrollTest.cs`（3 件: 小型では本文が `block-inventory-natural-scroll` の中にあり、外側の負マージンが −8・内側の逃げが 8／大型では本文がスクロール器を通らず直下にある／`帯を超える中身はスクロール器の中で流れる`〈枠 60 個のチェストで `block-inventory-panel` の高さ ≤ 482、かつスクロール器の `GetContentHeight() > GetViewportHeight()`〉）
 
 - [ ] **Step 2: 失敗を確かめる**
 
@@ -3477,6 +3709,26 @@ Run: `uloop compile --project-path ./moorestech_client`
 Expected: 外殻の型が無いコンパイルエラー
 
 - [ ] **Step 3: 実装する**
+
+`BlockInventoryScreenVisibility.cs`（State）:
+```csharp
+using Client.Ui.State.Routing;
+
+namespace Client.Ui.State.BlockInventory.Panel
+{
+    /// <summary>
+    /// ブロックインベントリの画面を出すか（画面ルータが SubInventory で、パネルが閉でない。閉は Web の return null）
+    /// Whether to show the block-inventory screen (router on SubInventory and the panel not closed; closed is the Web return null)
+    /// </summary>
+    public static class BlockInventoryScreenVisibility
+    {
+        public static bool IsShown(UiRoutingSnapshot snapshot, BlockInventoryPanelState state)
+        {
+            return snapshot.Screen == UiScreen.SubInventory && !(state is ClosedBlockInventoryPanel);
+        }
+    }
+}
+```
 
 `BlockInventoryPanelBand.cs`:
 ```csharp
@@ -3492,23 +3744,27 @@ namespace Client.Ui.Screens.BlockInventory
     /// </summary>
     public sealed class BlockInventoryPanelBand
     {
-        private const string MenuLowerSafeArea = "--menu-lower-safe-area";
-        private const string InventoryPanelWidth = "--inventory-panel-width";
-        private const string StageColumnGap = "--stage-column-gap";
+        // :root のトークンは子へ継承されないので、.block-inventory で受け直した名前を読む（BlockInventory.uss）
+        // :root tokens do not inherit, so read the names re-declared on .block-inventory (BlockInventory.uss)
+        private const string MenuLowerSafeArea = "--block-inventory-menu-lower-safe-area";
+        private const string InventoryPanelWidth = "--block-inventory-inventory-panel-width";
+        private const string StageColumnGap = "--block-inventory-stage-column-gap";
 
         private readonly StageColumnsLayout _stage;
-        private readonly VisualElement _panel;
+        private readonly VisualElement _shell;
         private float _menuLower;
         private float _inventoryWidth;
         private float _columnGap;
-        private bool _tokensResolved;
+        private bool _menuLowerResolved;
+        private bool _inventoryWidthResolved;
+        private bool _columnGapResolved;
         private bool _large;
 
-        public BlockInventoryPanelBand(StageColumnsLayout stage, VisualElement panel)
+        public BlockInventoryPanelBand(StageColumnsLayout stage, VisualElement shell)
         {
             _stage = stage;
-            _panel = panel;
-            panel.RegisterCallback<CustomStyleResolvedEvent>(_ => ReadTokens());
+            _shell = shell;
+            shell.RegisterCallback<CustomStyleResolvedEvent>(_ => ReadTokens());
             stage.RegisterCallback<GeometryChangedEvent>(_ => Apply());
         }
 
@@ -3520,108 +3776,91 @@ namespace Client.Ui.Screens.BlockInventory
 
         private void ReadTokens()
         {
-            // 3 つ揃ったときだけ確定する（欠けは UssCustomStyleReader が LogError で知らせる）
-            // Settle only when all three resolve (a missing one is reported by UssCustomStyleReader with LogError)
-            _tokensResolved = UssCustomStyleReader.TryReadPixels(_panel.customStyle, MenuLowerSafeArea, out _menuLower)
-                && UssCustomStyleReader.TryReadPixels(_panel.customStyle, InventoryPanelWidth, out _inventoryWidth)
-                && UssCustomStyleReader.TryReadPixels(_panel.customStyle, StageColumnGap, out _columnGap);
+            // 3 つを別々に持つ。欠けは UssCustomStyleReader が LogError で知らせる
+            // Keep the three separately; a missing one is reported by UssCustomStyleReader with LogError
+            _menuLowerResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, MenuLowerSafeArea, out _menuLower);
+            _inventoryWidthResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, InventoryPanelWidth, out _inventoryWidth);
+            _columnGapResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, StageColumnGap, out _columnGap);
             Apply();
         }
 
         private void Apply()
         {
-            // silent-ok: 最初のレイアウト前はトークンも舞台の寸法も無い / 解決した時点の CustomStyleResolvedEvent・GeometryChangedEvent で当て直す
-            if (!_tokensResolved || float.IsNaN(_stage.resolvedStyle.height)) return;
+            // silent-ok: 最初のレイアウト前は舞台の寸法もトークンも無い / 解決時の CustomStyleResolvedEvent・GeometryChangedEvent で当て直し、トークン欠けは LogError
+            if (!_menuLowerResolved || float.IsNaN(_stage.resolvedStyle.height)) return;
 
             // 帯 = 舞台の高さ − 上の安全帯（舞台の padding-top）− 下の安全帯
             // Band = stage height − upper safe area (the stage's padding-top) − lower safe area
             var style = _stage.resolvedStyle;
             var band = style.height - style.paddingTop - _menuLower;
-            _panel.style.maxHeight = band;
-            _panel.style.height = _large ? band : StyleKeyword.Auto;
-            _panel.style.width = _large ? style.width - style.paddingLeft - style.paddingRight - _inventoryWidth - _columnGap : StyleKeyword.Auto;
+            _shell.style.maxHeight = band;
+            _shell.style.height = _large ? band : StyleKeyword.Auto;
+
+            // silent-ok: 幅のトークンが未解決の間は大型の幅を当てない / 同上の再適用と LogError
+            if (!_inventoryWidthResolved || !_columnGapResolved) return;
+            _shell.style.width = _large ? style.width - style.paddingLeft - style.paddingRight - _inventoryWidth - _columnGap : StyleKeyword.Auto;
         }
     }
 }
 ```
-（上の安全帯は舞台の `padding-top` が `--menu-upper-safe-area` そのもの〈`StageColumnsLayout.uss`〉なのでトークンを二重に読まない。左右も舞台の padding を読む。研究画面で左が畳まれる経路は SubInventory では起きない）
+（上の安全帯は舞台の `padding-top` が `--menu-upper-safe-area` そのもの〈`StageColumnsLayout.uss`〉なのでトークンを二重に読まない。左右も舞台の padding を読む）
 
-`BlockInventoryNaturalScroll.cs`（`GameScrollView("block-inventory-natural-scroll")` を持つ箱。`Wrap(VisualElement body)`・`Unwrap()`。負マージンと内側の逃げは USS〈`.block-inventory__natural-scroll`〉で `--block-panel-body-bleed` を使う）
+`BlockInventoryNaturalScroll.cs`（`GameScrollView("block-inventory-natural-scroll")` を持つ箱。クラス `block-inventory__natural-scroll` を付け、`CustomStyleResolvedEvent` で受け直した `--block-inventory-body-bleed` を `UssCustomStyleReader.TryReadPixels` で読み、`style.margin*` に負号付き・`contentContainer.style.padding*` に正で当てる〈UITK の USS に `calc()` は無い〉。`Wrap(VisualElement body)`・`Unwrap()`）
 
-`BlockInventoryBodyHost.cs`:
+`BlockInventoryBodyHost.cs`（Presenter 側の補助。本文・題の操作・列車の本文の Presenter を付け替える）:
 ```csharp
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Panel;
-using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory
 {
     /// <summary>
-    /// 本文・題の操作・列車の本文を付け替える。同じパネル（ブロックは位置と種類、列車は車両）のあいだは作り直さず Render だけ
-    /// Swaps the body, title action and train body; while the panel stays the same (block position and type, or train car) it only re-renders
+    /// 本文・題の操作・列車の本文の Presenter を付け替える。同じパネル（IsSamePanel）かつ同じ大きさのあいだは何もしない（各部分が自分で購読している）
+    /// Swaps the body, title-action and train-body presenters; does nothing while the panel (IsSamePanel) and size stay the same (each part follows its own subscriptions)
     /// </summary>
     public sealed class BlockInventoryBodyHost
     {
         private readonly BlockInventoryPartRegistry _parts;
-        private readonly VisualElement _bodyContainer;
-        private readonly VisualElement _titleActionContainer;
-        private readonly BlockInventoryNaturalScroll _naturalScroll;
+        private readonly BlockInventoryView _view;
         private IBlockInventoryPart _body;
         private IBlockInventoryPart _titleAction;
         private ITrainInventoryPart _trainBody;
-        private object _identity;
+        private BlockInventoryPanelState _state = BlockInventoryPanelState.Closed;
+        private BlockInventoryPanelLayout _layout = BlockInventoryPanelLayout.Natural;
 
-        public BlockInventoryBodyHost(BlockInventoryPartRegistry parts, VisualElement bodyContainer, VisualElement titleActionContainer, BlockInventoryNaturalScroll naturalScroll)
+        public BlockInventoryBodyHost(BlockInventoryPartRegistry parts, BlockInventoryView view)
         {
             _parts = parts;
-            _bodyContainer = bodyContainer;
-            _titleActionContainer = titleActionContainer;
-            _naturalScroll = naturalScroll;
+            _view = view;
         }
 
-        public void Render(BlockInventoryPanelState state, BlockInventoryPanelLayout layout)
+        public void Apply(BlockInventoryPanelState state, BlockInventoryPanelLayout layout)
         {
-            // 別のパネルか大きさが変わったら外して作り直す。エラー中は何も載せない（Web の !error）
-            // Detach and rebuild when the panel or size changes; nothing is mounted while erroring (Web !error)
-            var identity = IdentityOf(state, layout);
-            if (!Equals(identity, _identity)) Rebuild(state, layout);
-            _identity = identity;
-            if (state is OpenBlockInventoryPanel block && block.Error == null)
+            // 作り直すかは State の IsSamePanel と大きさの 2 つだけで決める
+            // Rebuild is decided only by the State's IsSamePanel and the size
+            if (state.IsSamePanel(_state) && layout.Equals(_layout)) return;
+            _state = state;
+            _layout = layout;
+            DetachAll();
+
+            // エラー中は何も載せない（Web の !error）
+            // Nothing is mounted while erroring (Web !error)
+            if (state is OpenBlockInventoryPanel block && block.Error == BlockInventoryPanelError.None)
             {
-                _body?.Render(block);
-                _titleAction?.Render(block);
+                _body = _parts.CreateBody(block, new BlockInventoryBodyMount(layout.FillsPanelHeight));
+                _view.PlaceBody(_body.Root, !layout.IsLarge);
+                _body.Attach(block);
+                _titleAction = _parts.CreateTitleActionOrNull(block.Components.TitleAction);
+                _view.PlaceTitleAction(_titleAction?.Root);
+                _titleAction?.Attach(block);
             }
-            if (state is OpenTrainInventoryPanel train && train.Error == null) _trainBody?.Render(train);
-
-            #region Internal
-
-            void Rebuild(BlockInventoryPanelState next, BlockInventoryPanelLayout nextLayout)
+            if (state is OpenTrainInventoryPanel train && train.Error == BlockInventoryPanelError.None)
             {
-                DetachAll();
-                if (next is OpenBlockInventoryPanel openBlock && openBlock.Error == null)
-                {
-                    _body = _parts.CreateBody(openBlock, new BlockInventoryBodyMount(nextLayout.FillsPanelHeight));
-                    Place(_body.Root, !nextLayout.IsLarge);
-                    if (_parts.TryCreateTitleAction(openBlock.Components.TitleAction, out var action))
-                    {
-                        _titleAction = action;
-                        _titleActionContainer.Add(action.Root);
-                    }
-                }
-                if (next is OpenTrainInventoryPanel openTrain && openTrain.Error == null && _parts.TryCreateTrainBody(out var trainBody))
-                {
-                    _trainBody = trainBody;
-                    Place(trainBody.Root, !nextLayout.IsLarge);
-                }
+                _trainBody = _parts.CreateTrainBodyOrNull();
+                if (_trainBody == null) return;
+                _view.PlaceBody(_trainBody.Root, !layout.IsLarge);
+                _trainBody.Attach(train);
             }
-
-            void Place(VisualElement root, bool natural)
-            {
-                if (natural) _bodyContainer.Add(_naturalScroll.Wrap(root));
-                else _bodyContainer.Add(root);
-            }
-
-            #endregion
         }
 
         private void DetachAll()
@@ -3632,91 +3871,86 @@ namespace Client.Ui.Screens.BlockInventory
             _body = null;
             _titleAction = null;
             _trainBody = null;
-            _naturalScroll.Unwrap();
-            _bodyContainer.Clear();
-            _titleActionContainer.Clear();
-        }
-
-        private static object IdentityOf(BlockInventoryPanelState state, BlockInventoryPanelLayout layout)
-        {
-            // 同じパネルの判定は State の IsSamePanel と同じ材料（ブロックは種類と位置、列車は車両）に大きさとエラーの有無を足す
-            // Same-panel identity uses the State's IsSamePanel inputs (block type and position, or train car) plus size and error presence
-            return state switch
-            {
-                OpenBlockInventoryPanel b => (b.BlockType, b.Position, b.Error == null, layout),
-                OpenTrainInventoryPanel t => (t.TrainCarInstanceId, t.Error, layout),
-                _ => null,
-            };
+            _view.ClearBody();
+            _view.PlaceTitleAction(null);
         }
     }
 }
 ```
-（`BlockInventoryPanelLayout` は readonly struct なので組の等価で比べられる。列車のエラーは本文の有無に効くので識別に含める。小型＝自然高のスクロール器で包む〈Web の `!isLarge`〉）
+（小型＝自然高のスクロール器で包む〈Web の `!isLarge`〉。列車は常に大型）
 
-`BlockInventoryPanelView.cs`（約 150 行。骨子）:
+`BlockInventoryView.cs`（約 150 行。購読しない。骨子）:
 ```csharp
-    public sealed class BlockInventoryPanelView : VisualElement
+    public sealed class BlockInventoryView : VisualElement
     {
         public const string LargeClassName = "block-inventory--large";
+        public const string NaturalClassName = "block-inventory--natural";
 
-        public BlockInventoryPanelView(StageColumnsLayout stage, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands)
+        public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands)
         {
             // 外殻: block-inventory（Viewer 列の子）> GamePanel(block-inventory-panel, Default) > [エラー行, 本文の器]、閉じるは GamePanel の hierarchy に絶対配置
             // Shell: block-inventory (Viewer column child) > GamePanel(block-inventory-panel, Default) > [error row, body container]; close is absolutely placed in the GamePanel hierarchy
             name = "block-inventory";
             AddToClassList("block-inventory");
             _panel = new GamePanel("block-inventory-panel", GamePanelFrame.Default);
+            _panel.AddToClassList("block-inventory__panel");
             _titleActionContainer = new VisualElement { name = "block-inventory-title-action" };
             _error = new LocalizedLabel();          // 名前は Render で block-inventory-error / train-inventory-error に付け替える
             _body = new VisualElement { name = "block-inventory-body" };
             _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph());
+            _close.AddToClassList("block-inventory__close");
             TutorialAnchor.Mark(_close, AnchorIds.InventoryCloseButton);
-            _close.OnClicked.Subscribe(_ => commands.Close());
+            _close.clicked += commands.Close;        // 自要素のクリックの結線（購読ではない。IconButton.OnClicked の実物の形に合わせる）
             _band = new BlockInventoryPanelBand(stage, this);
-            _host = new BlockInventoryBodyHost(parts, _body, _titleActionContainer, new BlockInventoryNaturalScroll());
-            ...
+            _naturalScroll = new BlockInventoryNaturalScroll();
+            style.display = DisplayStyle.None;      // 生成直後は隠し、Presenter の SetShown が出す（前例 PauseMenuView）
         }
 
+        public void SetShown(bool shown) { ... }
         public void Render(BlockInventoryPanelState state, BlockInventoryPanelLayout layout)
         {
-            // 閉なら隠すだけ（Web は null を返す。部分は外す）
-            // Closed just hides (the Web returns null; parts are detached)
             // 題: ブロックは BlockName(blockGuid)、列車は ui.blockInventory.trainInventory。題の操作の器は題の後に 1 回だけ SetTitleAction
             // Title: BlockName(blockGuid) for blocks, ui.blockInventory.trainInventory for trains; the action holder goes in once via SetTitleAction after the title
-            // エラー行: BlockInventoryPanelErrorText のキー。エラーが無ければ隠す
-            // Error row: the BlockInventoryPanelErrorText key; hidden without an error
-            // 大きさ: LargeClassName と _band.SetLarge、本文は _host.Render
-            // Size: LargeClassName and _band.SetLarge; the body goes through _host.Render
+            // エラー行: Error != None のとき BlockInventoryPanelErrorText のキー。None なら隠す
+            // Error row: the BlockInventoryPanelErrorText key when Error != None; hidden on None
+            // 大きさ: LargeClassName / NaturalClassName と _band.SetLarge
+            // Size: LargeClassName / NaturalClassName and _band.SetLarge
         }
+        public void PlaceBody(VisualElement body, bool natural) { ... }      // natural なら _naturalScroll.Wrap(body) を本文の器へ
+        public void ClearBody() { ... }
+        public void PlaceTitleAction(VisualElement actionOrNull) { ... }     // 器の中身を差し替える（null で空）
     }
 ```
-（200 行を超えそうなら題とエラー行の描画を `BlockInventoryPanelHeader.cs` へ出す〈`Screens/BlockInventory/` は 7 ファイルになる〉）
+（`OnClicked` が UniRx の `IObservable<Unit>` なら、View の ctor で `Subscribe(_ => commands.Close())` の 1 本だけを持つ〈自分の子のクリックの結線で、Model の購読ではない〉。200 行を超えそうなら題とエラー行の描画を `BlockInventoryPanelHeader.cs` へ出す〈`Screens/BlockInventory/` は 7 ファイル〉）
 
-`BlockInventoryPresenter.cs`:
+`BlockInventoryScreenPresenter.cs`:
 ```csharp
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Routing;
 using UniRx;
 using VContainer.Unity;
 
 namespace Client.Ui.Screens.BlockInventory
 {
     /// <summary>
-    /// 外殻を Viewer 列へ 1 回だけ載せ、パネルの状態と大きさの変化で描き直す（前例 GrabOverlayPresenter）
-    /// Mounts the shell on the Viewer column once and re-renders on panel state and size changes (precedent GrabOverlayPresenter)
+    /// 外殻を Viewer 列へ 1 回だけ載せ、画面ルータとパネルの状態・大きさで出し入れと描き直しをする（前例 PauseMenuScreenPresenter）
+    /// Mounts the shell on the Viewer column once and shows/re-renders from the screen router, panel state and size (precedent PauseMenuScreenPresenter)
     /// </summary>
-    public sealed class BlockInventoryPresenter : IInitializable
+    public sealed class BlockInventoryScreenPresenter : IInitializable
     {
         private readonly StageColumnsLayout _stage;
+        private readonly UiRoutingState _routing;
         private readonly IBlockInventoryPanelSource _panel;
         private readonly BlockInventoryPanelLayoutModel _layout;
         private readonly BlockInventoryPartRegistry _parts;
         private readonly IBlockInventoryPanelCommands _commands;
 
-        public BlockInventoryPresenter(StageColumnsLayout stage, IBlockInventoryPanelSource panel, BlockInventoryPanelLayoutModel layout, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands)
+        public BlockInventoryScreenPresenter(StageColumnsLayout stage, UiRoutingState routing, IBlockInventoryPanelSource panel, BlockInventoryPanelLayoutModel layout, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands)
         {
             _stage = stage;
+            _routing = routing;
             _panel = panel;
             _layout = layout;
             _parts = parts;
@@ -3725,11 +3959,19 @@ namespace Client.Ui.Screens.BlockInventory
 
         public void Initialize()
         {
-            // 状態と大きさは同じフレームで両方変わりうるので、組にして 1 回だけ描く
-            // State and size may both change in one frame, so render once from the pair
-            var view = new BlockInventoryPanelView(_stage, _parts, _commands);
+            var view = new BlockInventoryView(_stage, _commands);
+            var host = new BlockInventoryBodyHost(_parts, view);
             _stage.Get(StageColumn.Viewer).Add(view);
-            _panel.Current.CombineLatest(_layout.Current, (state, layout) => (state, layout)).Subscribe(pair => view.Render(pair.state, pair.layout));
+
+            // 画面・状態・大きさは同じフレームで変わりうるので、組にして 1 回だけ描く。隠れている間は部分を外す
+            // Screen, state and size may change in one frame, so render once from the triple; parts are detached while hidden
+            _routing.Current.CombineLatest(_panel.Current, _layout.Current, (snapshot, state, layout) => (snapshot, state, layout)).Subscribe(t =>
+            {
+                var shown = BlockInventoryScreenVisibility.IsShown(t.snapshot, t.state);
+                view.SetShown(shown);
+                view.Render(t.state, t.layout);
+                host.Apply(shown ? t.state : BlockInventoryPanelState.Closed, t.layout);
+            });
         }
     }
 }
@@ -3738,21 +3980,27 @@ namespace Client.Ui.Screens.BlockInventory
 
 `BlockInventory.uss`:
 ```css
-/* web: features/blockInventory/style.module.css .panel / .panelLarge / .naturalBodyScroll と BlockInventoryPanel.tsx の GamePanel style（paddingBottom・paddingRight）・閉じるの absolute 位置を写す。calc() の寸法は BlockInventoryPanelBand.cs が解く / ports .panel, .panelLarge, .naturalBodyScroll and the GamePanel inline style (paddingBottom, paddingRight) plus the close button's absolute position from BlockInventoryPanel.tsx; calc() sizes are solved in BlockInventoryPanelBand.cs */
+/* web: features/blockInventory/style.module.css .panel / .panelLarge / .naturalBodyScroll（composes panelBodyScrollArea.module.css .scroll）と BlockInventoryPanel.tsx の GamePanel style（paddingBottom・小型だけの paddingRight）・閉じるの absolute 位置を写す。calc() の寸法と bleed の負マージンは C# が解く / ports .panel, .panelLarge, .naturalBodyScroll (composing .scroll) and the GamePanel inline style (paddingBottom, small-only paddingRight) plus the close button's absolute position; calc() sizes and the negative bleed margin are solved in C# */
 .block-inventory {
     align-self: flex-start;
     flex-direction: column;
+    /* :root のトークンを C# が読めるよう受け直す（前例 GaugeBar.uss） / re-declare :root tokens so C# can read them (precedent GaugeBar.uss) */
+    --block-inventory-menu-lower-safe-area: var(--menu-lower-safe-area);
+    --block-inventory-inventory-panel-width: var(--inventory-panel-width);
+    --block-inventory-stage-column-gap: var(--stage-column-gap);
 }
 
 .block-inventory__panel {
     padding-bottom: var(--block-panel-bottom-safe-area);
-    padding-right: var(--block-panel-right-safe-area);
     min-height: 0;
     flex-shrink: 1;
 }
 
+.block-inventory--natural .block-inventory__panel {
+    padding-right: var(--block-panel-right-safe-area);
+}
+
 .block-inventory--large .block-inventory__panel {
-    padding-right: 0;
     height: 100%;
 }
 
@@ -3761,45 +4009,51 @@ namespace Client.Ui.Screens.BlockInventory
     top: var(--bevel-3);
     right: var(--panel-edge-fade);
 }
-```
-（部品のクラス〈`.game-panel` 等〉は画面 USS に書かない〈Global Constraints〉。`GamePanel` には View で `AddToClassList("block-inventory__panel")`、閉じるの `IconButton` には `block-inventory__close` を足し、画面のクラスで書く。UITK の USS に `calc()` は無いので、自然高のスクロール器の負マージン〈Web `margin: calc(var(--block-panel-body-bleed) * -1)`〉と内側の逃げは `BlockInventoryNaturalScroll` が `CustomStyleResolvedEvent` で `--block-panel-body-bleed` を `UssCustomStyleReader.TryReadPixels` で読み、`style.margin*` に負号付き・`contentContainer.style.padding*` に正で当てる〈Tokens.uss は変えない〉。閉じるは `GamePanel.hierarchy` へ足して面の上に絶対配置する）
 
-`BlockInventoryGameUiRegistration.cs`:
+.block-inventory__natural-scroll {
+    --block-inventory-body-bleed: var(--block-panel-body-bleed);
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+```
+（部品のクラス〈`.game-panel` 等〉は画面 USS に書かない〈Global Constraints〉。大型の右は `GamePanel` 既定の 10px のまま〈Web の大型は右を上書きしない〉。Web `.scroll` の viewport の `flex: 1; min-height: 0` は `GameScrollView` の既定で足りるか Step 4 の `帯を超える中身は…` で確かめ、足りなければ `.block-inventory__natural-scroll` の子孫ではなく `GameScrollView` のつまみで当てる〈部品のクラスを書かない〉）
+
+`BlockInventoryGameUiRegistration.cs`（画面だけが使うもの）:
 ```csharp
 using Client.Ui.Screens.BlockInventory;
-using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Panel;
-using Client.Ui.State.BlockInventory.SlotRestriction;
-using Client.Ui.State.Recipe.Source;
-using Client.Ui.State.SlotCommands;
-using Client.Ui.State.SlotCommands.Block;
-using Client.Ui.State.SlotCommands.Player;
-using Game.Context;
-using Game.Item.Interface;
 using VContainer;
 using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi
 {
-    // ブロックインベントリ（GameUi）の登録。差し込み口は後続レーンが自分の登録ファイルで同じインターフェイスを足す（D-1）
-    // Registers the block inventory for GameUi; later lanes add the same interfaces from their own registration files (D-1)
+    // ブロックインベントリ画面（GameUi）の登録。後続レーンが ctor で受ける共有サービスは MainGameUiRegistration の共有サービスの並びにある（E-1・A-56）。差し込み口は後続レーンが自分の登録ファイルで同じインターフェイスを足す（D-1）
+    // Registers the block-inventory screen for GameUi; services other lanes take in their ctors live in MainGameUiRegistration's shared list (E-1, A-56); later lanes add the port interfaces from their own registration files (D-1)
     internal static class BlockInventoryGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)
         {
-            // 源と状態（解放済みの機械レシピ・パネル・大きさ・閉じる）
-            // Sources and state (unlocked machine recipes, panel, size, close)
-            builder.RegisterEntryPoint<UnlockedMachineRecipeSource>().AsSelf();
-            builder.RegisterEntryPoint<BlockInventoryPanelModel>().As<IBlockInventoryPanelSource>();
             builder.RegisterEntryPoint<BlockInventoryPanelLayoutModel>().AsSelf();
-            builder.Register<UiStateControlTransitionRequester>(Lifetime.Singleton).As<IUiStateTransitionRequester>();
             builder.Register<BlockInventoryPanelCommands>(Lifetime.Singleton).As<IBlockInventoryPanelCommands>();
+            builder.Register<SectionStackSlotRegistry>(Lifetime.Singleton);
+            builder.Register<SectionStackBodyFactory>(Lifetime.Singleton);
+            builder.Register<BlockInventoryPartRegistry>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<BlockInventoryScreenPresenter>();
+        }
+    }
+}
+```
 
-            // スロット操作（ブロック側の実行器・振り分け・型付きコマンド・Shift の断り）
-            // Slot operations (block-side executor, routing, typed commands, Shift refusals)
-            builder.RegisterInstance(ServerContext.GetService<IItemStackLevelLookup>());
+`MainGameUiRegistration.cs`（共有サービスの並び〈`InputSystemPointerPositionStream` の行の下〉に足す。複数レーンが ctor で受けるので E-1・A-56 どおり本体に置く）:
+```csharp
+            // ブロックインベントリの共有サービス: パネルの状態・遷移要求・スロット操作の型付きコマンド・ブロックの枠の並び・解放済み機械レシピ（S4 の各レーンが ctor で受ける）
+            // Block-inventory shared services: panel state, transition requests, typed slot commands, block slot grids and unlocked machine recipes (taken by the S4 lanes' ctors)
+            builder.RegisterEntryPoint<BlockInventoryPanelModel>().As<IBlockInventoryPanelSource>();
+            builder.Register<UiStateControlTransitionRequester>(Lifetime.Singleton).As<IUiStateTransitionRequester>();
+            builder.RegisterEntryPoint<UnlockedMachineRecipeSource>().AsSelf();
             builder.Register<LocalBlockInventoryOperations>(Lifetime.Singleton).As<IBlockInventoryOperations>();
             builder.Register<BlockItemActionExecutor>(Lifetime.Singleton);
             builder.Register<PlannedItemActionRunner>(Lifetime.Singleton);
@@ -3808,24 +4062,19 @@ namespace Client.Starter.Registration.GameUi
             builder.Register<ShiftMoveRefusalNotifier>(Lifetime.Singleton);
             builder.Register<BlockSlotCommands>(Lifetime.Singleton).As<IBlockSlotCommands>();
             builder.Register<PlayerSlotCommands>(Lifetime.Singleton).As<IPlayerSlotCommands>();
-
-            // 画面（部品の工場・標準の本文・レジストリ・Presenter）
-            // Screen (part factories, standard body, registry, presenter)
             builder.Register<BlockItemGridFactory>(Lifetime.Singleton);
-            builder.Register<SectionStackSlotRegistry>(Lifetime.Singleton);
-            builder.Register<SectionStackBodyFactory>(Lifetime.Singleton);
-            builder.Register<BlockInventoryPartRegistry>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<BlockInventoryPresenter>();
-        }
-    }
-}
 ```
-（`IItemStackLevelLookup` の名前空間・`ServerContext` の置き場は実物で確かめる〈前例 `MainGameModelRegistration` の `IItemStackLevelUnlocker` 行〉。既に誰かが `IItemStackLevelLookup` を登録していれば〈C4-e 等〉この行は足さない — 二重登録は VContainer で最後勝ちになり気づけないので、Step 0 で `grep -rn "IItemStackLevelLookup" moorestech_client/Assets/Scripts/Client.Starter` を見る。`ClientLocalNotificationSource` が DI に無ければ同じく前例から登録する）
-
-`MainGameUiRegistration.cs`（画面登録区画の末尾）:
+画面登録区画の末尾:
 ```csharp
             GrabGameUiRegistration.Register(builder);
             BlockInventoryGameUiRegistration.Register(builder);
+```
+（`PlayerItemActionExecutor`・`IPlayerInventoryOperations`・`IPlayerSlotDragCommands` は C4-e の `GrabGameUiRegistration` が登録済み、`ClientLocalNotificationSource` は `MainGameInteractionRegistration.cs:166` で登録済み。共有の並びは画面登録区画より前で、VContainer は登録順に依らず解決するので問題ない。`MainGameUiRegistration.cs` は 200 行以内に収まる）
+
+`MainGameModelRegistration.cs`（105 行の隣。同じ `ItemStackLevelDataStore` の面で、State の `BlockSlotPlanner`・`DirectMovePlanner`・`PlayerSlotContext` が使う。D-14）:
+```csharp
+            builder.RegisterInstance(ServerContext.GetService<IItemStackLevelUnlocker>());
+            builder.RegisterInstance(ServerContext.GetService<IItemStackLevelLookup>());
 ```
 
 `GameUiTheme.tss`（`Screens` 区画の末尾。パスは既存の `GrabOverlay.uss` の行と同じ書き方に揃える）:
@@ -3837,43 +4086,45 @@ namespace Client.Starter.Registration.GameUi
 
 - [ ] **Step 4: テストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.Screens.BlockInventory|Client.Tests.Ui.State.BlockInventory|Client.Tests.Ui.State.SlotCommands|Client.Tests.Ui.State.Recipe|UiThemeImportBundleTest|UiStyleConventionTest|UiLayerDependencyDirectionTest|LookExceptionLedgerTest"`
-Expected: `ErrorCount: 0`、全件 PASS。続けて `uloop get-logs --project-path ./moorestech_client --log-type Error` が 0 件
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.Screens.BlockInventory|Client.Tests.Ui.State.BlockInventory|Client.Tests.Ui.State.SlotCommands|Client.Tests.Ui.State.Recipe|Client.Tests.Ui.State.Routing|PauseMenuCommandsTest|UiThemeImportBundleTest|UiStyleConventionTest|UiLayerDependencyDirectionTest|LookExceptionLedgerTest"`
+Expected: `ErrorCount: 0`、全件 PASS。続けて `uloop get-logs --project-path ./moorestech_client --log-type Error` が 0 件（受け直したトークンが読めていれば `UssCustomStyleReader` の LogError は出ない）
 
 - [ ] **Step 5: 全体スイッチ UITK での起動を確かめる**
 
-`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)` → PlayMode → チェストを置いて開く（録画の DSL を使ってよい）→ `uloop get-logs --log-type Error` 0 件、`uloop screenshot` 1 枚を `done.md`「証拠」へ。VContainer の解決失敗（未登録の依存）はここで出る
+`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)` → PlayMode → チェストを置いて開く（録画の DSL を使ってよい）→ `uloop get-logs --log-type Error` 0 件、`uloop screenshot` 1 枚を `done.md`「証拠」へ。VContainer の解決失敗（未登録の依存）と、拡張口が登録 0 本で空の列になること（D-1 の前提の実測）はここで出る。`[SectionStackSlotRegistry]` の空き Slot の情報ログが 1 回出ることも見る
 
 - [ ] **Step 6: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory moorestech_client/Assets/Scripts/Client.Starter/Registration "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
-git commit -m "feat(uitk): ブロックインベントリの外殻・Presenter・登録を足す（S4-alpha）
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Panel moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel moorestech_client/Assets/Scripts/Client.Starter/Registration "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
+git commit -m "feat(uitk): ブロックインベントリの外殻・ScreenPresenter・登録を足す（S4-alpha）
 
 <実行ホストの指示する帰属行>"
 ```
 
 ---
 
-### Task 9: 名前の対応・処分表
+### Task 9: 名前の対応・追従記録
 
 **Files:**
-- Modify: `docs/uitk/disposition.md`（末尾に追記）
+- Modify: `docs/uitk/TODO.md`（「## 追従記録」の末尾へ 1 行）
 
 - [ ] **Step 1: 対応を確かめる**
 
-Run: `node tools/uitk/test-name-parity.mjs --bundle 4`
-Expected: alpha のファイル（`blockInventory.spec.ts`・`blockInventoryGestures.spec.ts`・`blockRegistryCoverage.spec.ts`・`BlockInventoryPanel.localization.test.ts`・`LackHighlightText/index.test.ts`）に未対応が無い。`SectionStackView.test.tsx`・`blockInventoryDesign.test.ts`・`regression/sectionStack.spec.ts` は alpha の名前が対応済みで、残りは「写す表」の持ち主の名前だけ
+Run: `node tools/uitk/test-name-parity.mjs --bundle 4; echo "exit=$?"`
+Expected: 終了コードが 2 でない。alpha のファイル（`blockInventory.spec.ts`・`blockInventoryGestures.spec.ts`・`blockRegistryCoverage.spec.ts`・`BlockInventoryPanel.localization.test.ts`・`LackHighlightText/index.test.ts`）に未対応が無い。`SectionStackView.test.tsx`・`blockInventoryDesign.test.ts`・`regression/sectionStack.spec.ts` は alpha が写した名前が対応済みで、残りは「写すテスト」表の持ち主の名前だけが未対応
 
-- [ ] **Step 2: 処分表に書く**
+写した 23 件は `docs/uitk/disposition.md` に書かない（処遇の表は写さないテスト用で、`<web-test>` で写したテストに処遇の行があると `compareBundles.mjs:88` が誤りにして終了コード 2）。後続レーンの持ち分も alpha は書かない（`写す予定` の証跡は各レーンの bd ID が要る）
 
-`docs/uitk/disposition.md` の末尾へ、上の「写すテスト」表の alpha の行を 1 件 1 行で（書式は同ファイルの既存の行に合わせる。持ち主が別レーンの行は「写す予定: S4-machine」等で足し、後続が自分の行で置き換える）
+- [ ] **Step 2: 追従記録を書く（E-1）**
+
+Task 4 Step 1 で `localizationKeys.ts` を作り直したので、`docs/uitk/TODO.md`「## 追従記録」の末尾へ、その再生成コミットを `写した`（写し先＝同じコミットの C# と CSV）で 1 行足す。書式は同節の既存の行に揃える
 
 - [ ] **Step 3: コミット**
 
 ```bash
-git add docs/uitk/disposition.md
-git commit -m "docs(uitk): ブロックインベントリの写したテストを処分表に足す（S4-alpha）
+git add docs/uitk/TODO.md
+git commit -m "docs(uitk): ブロックインベントリの文言の再生成を追従記録に書く（S4-alpha）
 
 <実行ホストの指示する帰属行>"
 ```
@@ -3899,7 +4150,7 @@ git commit -m "docs(uitk): ブロックインベントリの写したテスト�
 | 4-block-tank | 題と外殻のみ。液体の行は S4-machine の区画が空なので出ない | 他レーン持ち（区画が空）。LX に書かない |
 | 4-block-trainError | 列車の題と `train-inventory-error` の文。列車の本文は S4-train が空 | 同じ（エラー中は本文を出さないので Web と一致する） |
 
-差は 1 件ずつ「同じ／直した／LX-n／他レーン持ち」で閉じる。LX は `docs/uitk/TODO.md`「## 見た目の例外」に LX-106 から順に使い、USS に `/* look-exception: LX-n */` を付ける。見込みの例外: 題の操作の右の逃げ（R-3。`GamePanel` に口が無い。alpha の参照に題の操作は出ないので、この場面では差にならない → 起草メモへ）
+差は 1 件ずつ「同じ／直した／LX-n／他レーン持ち」で閉じる。LX は `docs/uitk/TODO.md`「## 見た目の例外」に LX-106 から順に使い、USS に `/* look-exception: LX-n */` を付ける。見込みの例外: 題の操作の右の逃げ（R-3。Web は `--panel-action-button-width + --mantine-spacing-sm`＝99px。`GamePanel` に口が無い。alpha の参照に題の操作は出ないので、この場面では差にならない → 起草メモへ）。2560×1080 では帯・大型の幅が論理 482・740.1 の拡大で出ることを見る（舞台は 1280×720 固定で、倍率は PanelSettings が持つ）
 
 - [ ] **Step 3: コミット**
 
@@ -3923,10 +4174,10 @@ git commit -m "docs(uitk): ブロックインベントリの並べ比べの差�
 前例 `scenarios/uitk/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContainer` から型を引く）に従い、次を順に主張する:
 1. `SetupFlatGround` → `PlaceBlockDirect("木のチェスト", pos, BlockDirection.North)` → `WaitBlockGameObject` → チェストへ `GiveItem` で木材 10 を入れる〈ブロックのインベントリへ直接入れる DSL が無ければ、main へ渡して Shift で入れる〉
 2. `PressInteract` → `WaitUiState(UIStateEnum.SubInventory)` → `block-inventory` が出る・題がチェストの名前（`Screenshot`）
-3. `chest-grid-slot-0` を左押下 → 掴みに 10・枠が空（`PlayerGrabModel`）→ 同じ枠へ左押下で戻す
+3. `chest-grid-slot-0` を左押下 → 掴みに 10・枠が空（`PlayerGrabModel`）、`grab-overlay` が `grab-overlay--shown` を持ち display Flex（Web `blockInventory.spec` 2 件目の「grab オーバーレイが出る」を主張する。前例 `uitk-grab-overlay.cs:113`）→ 同じ枠へ左押下で戻す
 4. 右押下 → 掴みに 5（分割）→ 右押下で 1 個置く → 左押下で残りを置く
 5. 掴みを空にして `chest-grid-slot-0` をダブルクリック → 集める（掴みの中身が増える）
-6. Shift＋左押下 → main へ配分（チェストの枠が空・main に入る）→ main の枠を Shift＋左押下 → チェストへ戻る
+6. Shift＋左押下 → main へ配分（チェストの枠が空・main に入る）。main の枠からの Shift は UITK の持ち物画面〈S4-inventory〉が無いので alpha の録画では押さない（L0 の `PlayerSlotCommandsTest` が持つ。UI からの確認は S4-inventory の完了条件。D-33）
 7. `block-inventory-close` を押す → `WaitUiState(UIStateEnum.GameScreen)` → `block-inventory` が隠れる
 8. 途中で `uloop get-logs --log-type Error` 相当（DSL の `AssertNoErrorLogs`）が 0 件
 
@@ -3982,7 +4233,7 @@ pr-create スキルで base `feature/uitk` の PR を作る。本文の先頭行
 git fetch origin
 git merge origin/feature/uitk
 ```
-共有区画（`MainGameUiRegistration` の画面登録区画・`GameUiTheme.tss` の `Screens` 区画・`docs/uitk/disposition.md`・`docs/uitk/TODO.md`・`UiCommandRejectReason`・`localization.csv`）の衝突は両側の行を残して解く。取り込み後に `uloop compile` と Task 8 Step 4 のテストを回し、緑を確かめて push
+共有区画（`MainGameUiRegistration` の共有サービスの並びと画面登録区画・`MainGameModelRegistration`・`GameUiTheme.tss` の `Screens` 区画・`docs/uitk/TODO.md`・`UiCommandRejectReason`・`localization.csv`）の衝突は両側の行を残して解く。取り込み後に `moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` があれば（S2-tutorial が先にマージした場合）`inventory.close-button` の行を消す（E-1。alpha が `TutorialAnchor.Mark` を足したので保留表から外す）。続けて `uloop compile` と Task 8 Step 4 のテスト（ファイルがあれば `TutorialAnchorCoverage` を含めて）を回し、緑を確かめて push
 
 - [ ] **Step 3: G1 を待ってマージする**
 
@@ -4000,8 +4251,9 @@ git merge origin/feature/uitk
 ## Self-Review
 
 - Requirements R-1〜R-18 はそれぞれ Task に当たる: R-1・R-2〜R-6（State 側）→ Task 3、R-2〜R-6（View 側）→ Task 8、R-7 → Task 7、R-8 → Task 6、R-9 → Task 4、R-10・R-11 → Task 5（D-9・D-10・D-11 は Task 4・5）、R-12 → Task 2、R-13 → Task 3・5・7、R-14 → Task 10、R-15 → Task 8、R-16 → Task 6〜9、R-17 → Task 11、R-18 → Task 12・13
-- 写すテスト 23 件の所在: Task 3（blockRegistryCoverage 1）・Task 4（gestures 4・spec 1）・Task 5（gestures 1）・Task 6（LackHighlightText 2）・Task 7（SectionStackView 3・regression 1）・Task 8（spec 2・design 6・localization 2）＝ 23
-- 型の一致: Produces 一覧の型名・メソッド名は Task 3〜7 のコードと同じ綴り（`IBlockInventoryPart.Render(OpenBlockInventoryPanel)`・`ISectionStackSectionFactory.Create(SectionStackSectionMount)`・`IBlockInventoryLargePanelRule.IsLargeMachinePanel`・`IBlockSlotRestrictionContributor.Contribute` 等）
+- 写すテスト 23 件の所在: Task 3（blockRegistryCoverage 1）・Task 4（gestures 4・spec 1）・Task 5（gestures 1）・Task 6（LackHighlightText 2）・Task 7（SectionStackView 3・regression 1）・Task 8（spec 2・design 6・localization 2）＝ 23。spec 2 件目の掴み絵の表示は Task 11 の録画
+- 型の一致: Produces 一覧の型名・メソッド名は Task 3〜8 のコードと同じ綴り（`IBlockInventoryPart.Attach(OpenBlockInventoryPanel)`・`Detach()`・`IBlockInventorySection.IsApplicable`・`ISectionStackSectionFactory.Create(SectionStackSectionMount)`・`IBlockInventoryLargePanelRule.IsLargePanel`・`BlockInventoryPanelState.IsSamePanel`・`IBlockSlotRestrictionContributor.Contribute`・`IUiStateTransitionRequester.RequestTransition`）
+- レビュー反映: `Error` の比較はすべて `== BlockInventoryPanelError.None`（`grep -n "Error == null"` が 0 件）。`:root` のトークンを C# で読む 3 か所は受け直した名前を読む
 - プレースホルダ: 「実物に合わせる」と書いた箇所は、起草時に実物の型が確定していない名前（C4-e の記録係・`Click` ヘルパー・`LocalizationTextParam` の ctor）だけ。挙動の空白は無い
 
 ---
@@ -4017,17 +4269,33 @@ git merge origin/feature/uitk
 | D-5 | ブロック側の在庫操作の規則（結合インベントリの番地 `MainSlotCount + slot`・コントローラの呼び方）は Web ホスト `BlockInventoryActions.cs` と同じものを State に写す | UITK は `Client.WebUiHost` を参照しない（依頼の制約）。規則を写して双方に置く | WebUiHost を参照する／規則を共通の下位層へ移す（Web 側を変えることになり範囲外） |
 | D-6 | 移動の結果から A-94 の理由への写しも Web ホストと同じ表を State に置く | D-5 と同じ | — |
 | D-7 | 帯の高さと大型の幅は `BlockInventoryPanelBand` が舞台の resolvedStyle とトークンから解く。上の安全帯と左右の余白は舞台の padding を読む | UITK の USS に `calc()` が無い [A-47]。舞台の padding がトークンそのものなので二重に読まない | 数（482・740.108753）を C# に書く（舞台の大きさが変わると壊れる） |
-| D-8 | 項目グリッドの列数の上限は `--inventory-columns` を `UssCustomStyleReader.TryReadNumber` で読む | Web は `INVENTORY_GRID_COLUMNS` で持ち物と同じ数。トークンが既にある | C# の定数 10 |
+| D-8 | `:root` のトークン（列数・帯・大型の幅・bleed）は読む要素のクラスで `--<部品>-<名前>: var(--token)` と受け直し、C# は受け直した名前を `UssCustomStyleReader` で読む（`.block-item-grid`・`.block-inventory`・`.block-inventory__natural-scroll`）。出所: レビュー | `:root` の値は当てた要素の customStyle にしか出ず子へ継承されない（`UssCustomStyleReader.cs:10-13`・`docs/uitk/TODO.md:167` の実測）。前例 `GaugeBar.uss:6`・`GaugeBar.cs:12` | 子から `--inventory-columns` 等を直に読む（読めず LogError、列数・寸法が当たらない）／テーマの読み込みを直す依頼を integrator へ出す（原因と違う）／C# の定数 10 |
 | D-9 | `DestinationFull`（Web に無い断り）は通知せず Warning ログだけ | Web に無い通知を UITK だけで出すと見た目が分かれる。開発者は気づける | 新しい messageId を足す（Web にも足すことになり範囲外） |
 | D-10 | `BlockSlotPlanner` の Shift→main が満杯で空の計画になったときは Warning ログ | fail-closed の経路は開発者が読めるログへ出す（AGENTS.md） | 黙って何もしない |
 | D-11 | `DirectMovePlanner` へは既知の ItemId の枠だけ渡し、未知の ID は Error ログで止める | マスタに無い ID の最大スタック数を既定値で埋めない（必須値の欠落は止める） | 最大スタック 1 で埋める |
-| D-12 | 閉じるの遷移要求は `IUiStateTransitionRequester` を挟み、本番は `UIStateControl.RequestTransition(GameScreen)` | `UIStateControl` は MonoBehaviour でテストで組めない | テストで `UIStateControl` を組む |
+| D-12 | 閉じるの遷移要求は `Client.Ui.State/Routing/` の `IUiStateTransitionRequester` を挟む。本番 `UiStateControlTransitionRequester` は Web ホスト `RequestUiStateActionHandler` の入れ子ポーズの扱いと許可表 `UiStateTransitionRules.IsAllowed` を写し、拒んだら false とログ。出所: レビュー | `UIStateControl` は MonoBehaviour でテストで組めない。口は後続の画面（持ち物・研究・チャレンジの閉じる）も使うので画面の下でなく Routing に置く。Web は「別経路から状態機械へ書くと現 state の検査を素通りする」として全遷移を 1 本に集めている | `BlockInventory/Panel/` に置き `RequestTransition` を素通しする（後続が同じ口を別に作る・許可表を素通りする） |
 | D-13 | Shift の断りの通知は `ClientLocalNotificationSource` へ Web と同じ messageId で出す | Web と同じ文言・同じ経路。文言の解決は UITK の通知レーンが持つ | 画面のトーストへ直接出す（通知の経路が 2 つになる） |
-| D-14 | `IItemStackLevelLookup` は `ServerContext.GetService` のインスタンスを登録する | 前例 `MainGameModelRegistration` の `IItemStackLevelUnlocker` | クライアント側で最大スタック数を計算し直す |
-| D-15 | 解放済みの機械レシピの源は `Client.Ui.State/Recipe/Source/` に alpha が置き、`Game.UnlockState` を asmdef 参照に足す | 本体の追加決定。machine・recipe・research が使うだけにする | 各レーンが自分で組む（3 重になる） |
-| D-16 | 大型パネルの判定は寄与の口 `IBlockInventoryLargePanelRule` にし、実装は S4-machine | 「レシピ有り機械」は機械の語彙。基盤は寄与の真偽だけを知る | alpha が機械レシピの源を見て判定する（機械の語彙が基盤に入る） |
+| D-14 | `IItemStackLevelLookup` は `ServerContext.GetService` のインスタンスを `MainGameModelRegistration.cs:105`（`IItemStackLevelUnlocker`）の隣に確定の 1 行で登録する。出所: レビュー | 同じ `ItemStackLevelDataStore` の面で、State の `BlockSlotPlanner`・`DirectMovePlanner`・`PlayerSlotContext` が使う共有のコアサービス。`Client.Starter` に登録は 0 件（起草時に grep） | 画面の登録ファイルに置く（持ち主が画面になる）／「既に登録されていれば足さない」の条件文（二重登録は最後勝ちで気づけない） |
+| D-15 | 解放済みの機械レシピの源は `Client.Ui.State/Recipe/Source/` に alpha が置き、`Game.UnlockState` を asmdef 参照に足す | 本体の追加決定。machine・recipe と大型パネル判定の寄与（`IBlockInventoryLargePanelRule` の実装）が使うだけにする。S4-research は未解放のレシピも引くのでマスタから直接読み、この源を使わない（PLAN-W4b の訂正） | 各レーンが自分で組む（2 重になる） |
+| D-16 | 大型パネルの判定は寄与の口 `IBlockInventoryLargePanelRule.IsLargePanel` にし、実装は S4-machine（`UnlockedMachineRecipeSource` を ctor で受けて組める）。名前は中立にする。出所: レビュー | 「レシピ有り機械」は機械の語彙。基盤は寄与の真偽だけを知る | alpha が機械レシピの源を見て判定する（機械の語彙が基盤に入る）／Web の名前 `IsLargeMachinePanel` を写す（基盤の型名に機械が入る） |
 | D-17 | 題の操作は 1 つの器（`block-inventory-title-action`）を `SetTitleAction` で 1 回渡し、中身を器の中で付け替える | `GamePanel` に題の操作を外す API が無い。部品を変えない | `GamePanel` に Clear を足す（部品の変更は integrator） |
-| D-18 | 写すテストは区画の持ち主ごとに分け、同じタグの NUnit を複数レーンが持つ | 区画の中身は後続レーンの型でしか主張できない。alpha は外殻・順・項目グリッドの面だけ | alpha が偽の区画で全件を写す（中身の主張が空になる） |
+| D-18 | 写すテストは区画の持ち主ごとに分け、同じタグの NUnit を複数レーンが持つ。後続は alpha のテストファイル（`BlockInventoryDesignTest` 等）へ足さず、自分のテストファイルに同じタグで写す。出所: レビュー（後半） | 区画の中身は後続レーンの型でしか主張できない。alpha のファイルは E-1 の共有区画ではなく、後続の追記が 1 メソッドに集まると衝突する | alpha が偽の区画で全件を写す（中身の主張が空になる）／後続が alpha の `TestCase` に行を足す |
+| D-19 | パネルの状態は識別子（blockType・Guid・BlockId・BlockInstanceId・位置・列車の車両 ID）・エラー・枠だけの不変 union にし、`BlockGameObject`・`TrainSubInventorySource` を載せない。差し込む部分は「Presenter（`Attach(panel)` で自分の Model を購読し View の `Render` へ・`Detach()` で切る）＋ View（`Root`）」。区画・本文の詳細は各レーンの State の詳細 Model（`OpenBlockDetailTracker`・poll 源を購読）が配る。「同じパネル」の判定は `BlockInventoryPanelState.IsSamePanel`（位置・Guid・エラー、列車は車両・エラー）の 1 本で、BodyHost はそれと大きさだけで作り直す。出所: レビュー | 設計書 §1.1（ViewModel は不変 sealed）・§4.2「Model の購読は Presenter。View は Render で値を受けるだけ」・A-57。前例 `ProgressHudPresenter`・`GrabOverlayViewModel`・State の `OpenBlockDetailTracker`。BlockInstanceId は `BlockGameObject` を外す代わりに区画の Model が対象を引く鍵（PLAN-W4b の S4-special の申し出） | パネルの状態に `BlockGameObject` を載せ区画（View）が自分で購読する（§4.2 に反し、詳細の規則が各区画へ散る）／`IsSamePanel` と BodyHost の `IdentityOf` を別々に持つ（材料が食い違っていた） |
+| D-20 | `SectionStackConfig` の null と bool の組を判別 union にする（項目グリッド Hidden / Shown(GridId, RenderEmpty)、液体 Hidden / Row(RowId, ShowProgress) / Details(RowId)）。置き場は State のまま。出所: レビュー | 不在と判別子の 2 表現を 1 本にし、液体の「行か詳細か」を型で閉じる。State が Web と同じ綴りの行 id を持つ前例 `CleanRoomYieldLogic` の `RowId` | null 可の testid と bool 3 つ（「null なら出さない」を全使い手が覚える）／Screens へ移す（L0 の表のテストが Screens に寄る） |
+| D-21 | 画面の出し分けは `BlockInventoryScreenPresenter` が `UiRoutingState.Current` とパネルの状態を購読し `BlockInventoryScreenVisibility.IsShown`（SubInventory かつ閉でない）で `View.SetShown`。Model の SubInventory 判定も `UiRoutingState` にする。名前は `BlockInventoryScreenPresenter`・`BlockInventoryView`。出所: レビュー | 設計書 §4.4「画面の出し分けは UiRoutingState と UiScreenTraitsTable だけで決める」・§1.3 の命名。前例 `PauseMenuScreenPresenter.cs:56-66` | Model が `UIStateControl.CurrentState` で決める（判定の源が 2 つ）／`GrabOverlayPresenter` の形（ルータで出し分けない層の前例） |
+| D-22 | 複数レーンが ctor で受ける共有サービス（`IBlockInventoryPanelSource`・`IUiStateTransitionRequester`・`UnlockedMachineRecipeSource`・スロット操作の型付きコマンドとその実行器・`BlockItemGridFactory`）は `MainGameUiRegistration` の共有サービスの並びに登録し、画面だけのものを `BlockInventoryGameUiRegistration` に置く。出所: レビュー | E-1・A-56「作るレーンが本体の共有サービスの並びに登録する」。専用の登録口だと他レーンがその登録に依存し未マージの worktree で解決例外になる | すべて画面の登録ファイルに置く（ADR と食い違う） |
+| D-23 | 大型パネルは右の余白を上書きしない（`GamePanel` 既定 10px）。右の安全帯 `--block-panel-right-safe-area` は小型（`block-inventory--natural`）だけ。テストの期待値も大型 10。出所: レビュー | Web `BlockInventoryPanel.tsx:62-66` は大型で paddingRight を書かず、`GamePanel` の `.panel { padding: 8px 10px 10px 28px }` が残る | 大型で 0 にする（本文が右へ 10px 広がり、テストがその誤りを固定する） |
+| D-24 | 題の右の逃げは `calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))`（12px・計 99px）で integrator へ依頼する。出所: レビュー | Web `BlockInventoryPanel.tsx:55`、UITK `MantineTokens.uss:82` `--mantine-spacing-sm: 12px` | `+ 8px`（ロケットの題で 4px ずれる） |
+| D-25 | 写した 23 件は `docs/uitk/disposition.md` に書かない。R-16 は「alpha のファイルの未対応 0 かつ終了コード ≠ 2」。`localizationKeys.ts` の再生成は `docs/uitk/TODO.md`「## 追従記録」に記帳する（Task 9）。`TutorialAnchorCoveragePending.cs` があれば `inventory.close-button` の行を消す（Task 13）。出所: レビュー | `compareBundles.mjs:88` は `<web-test>` で写したテストに処遇の行があると誤りにし終了コード 2。E-1 は再生成の記帳と保留表の行の削除を同じ PR に求める | 写した件も処遇の表に書く（parity が落ちる） |
+| D-26 | `regression/sectionStack` の FilterSplitter のケースは S4-special が写す。alpha は「未登録の本文 Kind は標準の本文へ逃げて警告を 1 回」を別名のテスト（`BlockInventoryPartRegistryTest`）で持つ。出所: レビュー | FilterSplitter は設定表に行が無く Generic に解決されるので、alpha の逃げの状態では `generic-block-grid` が出て Web の期待（専用本文）と食い違う | alpha のテストで期待 null のまま持つ（期待値が矛盾する） |
+| D-27 | `blockInventory.spec` 2 件目の「grab オーバーレイが出る」は、送る移動を `BlockSlotCommandsTest` が、絵の表示を録画 `uitk-block-inventory` 手順 3 が主張し、写すテスト表に紐付ける。出所: レビュー | L1 で掴み絵まで組むには C4-e の `GrabOverlayModel`・ポインタ・実在庫が要り、録画の前例 `uitk-grab-overlay.cs:113` が同じ主張を持つ | 移動の記録だけで写したことにする（元テストの主張が落ちる） |
+| D-28 | 区画の出し入れは区画の Presenter が `IReadOnlyReactiveProperty<bool> IsApplicable` で通知し、`SectionStackBody` が購読して `UiStack.SetItemShown` で出し入れと先頭の間隔を組み直す。出所: レビュー（PLAN-W4b の S4-special D-23 の申し出） | 網の集約・ベルトの統計はパネルの組み直しの外で届く。区画が自分で display を触ると `UiGapContainer` の先頭の間隔が崩れる | パネルの Render のときだけ `IsApplicable` を聞く／区画が自分の display を切り替える |
+| D-29 | `UnlockedMachineRecipeSource` は `IGameUnlockStateData` の更新後に `UnlockedEventPacket` を受ける順に頼る。ctor 注入で `ClientGameUnlockStateData` が先に構築され、その ctor が先に購読する（`ClientGameUnlockStateDatastore.cs:112`）。Web ホスト `MachineRecipesTopic.cs:36-39` も同じ順に頼る。出所: レビュー | `IGameUnlockStateData` に変化通知が無いので、前例と同じ形にする | 源が自分で解放表を持ち直す（同じ規則の 3 か所目） |
+| D-30 | 素通し getter（`Root => _root` 等）は `{ get; private set; }` に畳む。`IReadOnlyReactiveProperty<…> Current => _current` は型を狭める公開として残す。出所: レビュー | AGENTS.md「バッキングフィールド＋素通しプロパティの二重保持はこの形に畳む」。型を狭める公開は前例 `SettingsModel.cs:17` | 素通しのまま（規約違反）／`ReactiveProperty` をそのまま公開（外から書ける） |
+| D-31 | 弱の重複のうち、ブロックの枠の範囲判定は `BlockSlotIndex.IsInRange` の 1 か所へ、実行器の掴みの空き判定は `Execute` の先頭で 1 回読む形へ寄せる。`KnownItemSlots` の呼び出し 2 か所・`ToSlotItems` 2 か所は呼び出し側の文脈が違うので残す。出所: レビュー | 同じ判定を 2 か所で書くと片方だけ直る | すべて残す |
+| D-32 | `TryCreateTitleAction`・`TryCreateTrainBody` の bool＋out を `CreateTitleActionOrNull`・`CreateTrainBodyOrNull` にし、「無い」理由のうち登録漏れだけを警告する。帯のトークンは 3 つを別々の解決済みフラグで持つ。出所: レビュー（弱） | 失敗の理由を 1 つの bool に畳まない | 理由を戻り値の型で区別する（使い手が null 以外を見ない） |
+| D-33 | 録画の「main の枠を Shift」は alpha から外し、UI からの確認を S4-inventory の完了条件へ渡す（Produces 一覧に書く）。alpha の録画はブロック側の枠の操作で完結する。出所: レビュー | alpha の UITK に main の持ち物の画面が無く、UI から押せない | DSL でコマンドを直接叩いて main の Shift を録る（UI の確認にならない） |
+| D-34 | `UiCommandRejectReason.BlockSlotUnavailable` を足すのと同じ Task で `PauseMenuCommandsTest` の網羅テストの `benign` 配列とメソッド名を無条件に直し、Step の絞り込みに含める。出所: レビュー | 全列挙と固定配列の照合なので、直さないと CI で初めて赤になる（Task 4 の絞り込みに入っていなかった） | 「配列を持つなら足す」の条件文 |
 
 ---
 
@@ -4035,20 +4303,23 @@ git merge origin/feature/uitk
 
 本体が設計書・実行計画へ写す下書き（ID は A-140〜A-144）:
 
-- A-140: ブロックインベントリの拡張口は 6 つ（本文 `IBlockInventoryBodyFactory`・題の操作 `IBlockInventoryTitleActionFactory`・区画 `ISectionStackSectionFactory`・列車の本文 `ITrainInventoryBodyFactory`・大型パネル判定 `IBlockInventoryLargePanelRule`・Shift 配分の束縛 `IBlockSlotRestrictionContributor`）。VContainer の複数登録で受け、二重登録は起動時に例外。後続レーンは自分の `*GameUiRegistration` で足す（D-1）
+- A-140: ブロックインベントリの拡張口は 6 つ。本文・題の操作・区画・列車の本文の工場は「Presenter（`Attach` で自分の Model を購読・`Detach` で切る）＋ View」を返し、パネルの状態は識別子・エラー・枠だけ（D-19）（本文 `IBlockInventoryBodyFactory`・題の操作 `IBlockInventoryTitleActionFactory`・区画 `ISectionStackSectionFactory`・列車の本文 `ITrainInventoryBodyFactory`・大型パネル判定 `IBlockInventoryLargePanelRule`・Shift 配分の束縛 `IBlockSlotRestrictionContributor`）。VContainer の複数登録で受け、二重登録は起動時に例外。後続レーンは自分の `*GameUiRegistration` で足す（D-1）
 - A-141: 標準の本文の区画の順は `SectionStackSlot` の列挙が正本（Web `SectionStackView` の JSX の順）。液体の 2 区画（FluidDetails・FluidRow）は S4-machine が `Screens/BlockInventory/Fluid/` から差し込む
 - A-142: スロット操作の型付きコマンドはブロック側 `IBlockSlotCommands`（`block_inventory.slot`）とプレイヤー側 `IPlayerSlotCommands`（`inventory.slot`）。InventoryPanel（S4-inventory）は `IPlayerSlotCommands` だけを呼ぶ
-- A-143: 解放済みの機械レシピの源 `UnlockedMachineRecipeSource`（`Client.Ui.State/Recipe/Source/`）を S4-alpha が置き、machine・recipe・research は使うだけ
+- A-143: 解放済みの機械レシピの源 `UnlockedMachineRecipeSource`（`Client.Ui.State/Recipe/Source/`）を S4-alpha が置き、machine・recipe と大型パネル判定の寄与の実装が使う（S4-research は未解放も引くためマスタから直接読み、使わない）
 - A-144: 実行計画 §1.4 の S4-alpha 行の数を実物に直す: `SectionStackView.test`(7) → 8（alpha 3・machine 5）、`blockInventoryDesign`(S15) → 16（alpha 6・他 10）。§1.4 に無い `LackHighlightText/index.test.ts`(2) を alpha に足す
 
 ---
 ## 後続レーンへの Produces 一覧
 
-S4-inventory・S4-machine・S4-train・S4-special・S4-recipe・S4-research はこの節だけを読んで自分の計画を書く。型名・シグネチャはこの計画の Task 2〜8 のコードと同じ綴り。すべて `moorestech_client/Assets/Scripts/` の下。
+S4-inventory・S4-machine・S4-train・S4-special・S4-recipe はこの節だけを読んで自分の計画を書く（S4-research は使う型が無い）。型名・シグネチャはこの計画の Task 2〜8 のコードと同じ綴り。すべて `moorestech_client/Assets/Scripts/` の下。
 
-### 差し込みの DI の形（全拡張口で共通。D-1）
+### 差し込みの形（全拡張口で共通。D-1・D-19）
 
-各レーンは自分の `Client.Starter/Registration/GameUi/<レーン>GameUiRegistration.cs` で、口のインターフェイスとして登録するだけ。alpha の登録ファイルは触らない。
+- 差し込む部分は「**Presenter ＋ View**」。工場が作る `IBlockInventoryPart`（列車は `ITrainInventoryPart`）が Presenter で、`Root` が View。Presenter は `Attach(panel)` で**自分のレーンの State の詳細 Model**（`OpenBlockDetailTracker`・poll 源・`SubInventoryState` 等を購読して ViewModel を配る）を購読し、View の `Render(viewModel)` へ流す。`Detach()` で購読を切る。**View は購読しない**（設計書 §4.2・A-57）
+- パネルの状態（`OpenBlockInventoryPanel`・`OpenTrainInventoryPanel`）は識別子・エラー・枠だけで、`BlockGameObject` や列車の源は載らない。区画の Model が対象を引く鍵は `BlockInstanceId`・`Position`・`BlockGuid`（列車は `TrainCarInstanceId`）
+- 呼ばれ方: 同じパネル（`BlockInventoryPanelState.IsSamePanel`: ブロックは位置・Guid・エラー、列車は車両・エラー）かつ同じ大きさのあいだは何も呼ばれない。変わると旧部分の `Detach` → 新しく `Create` → `Attach`。画面が隠れると `Detach`
+- 登録は各レーンの `Client.Starter/Registration/GameUi/<レーン>GameUiRegistration.cs` で口のインターフェイスとして登録するだけ。alpha の登録ファイルは触らない
 
 ```csharp
 builder.Register<MachineSectionFactory>(Lifetime.Singleton).As<ISectionStackSectionFactory>();
@@ -4059,25 +4330,24 @@ builder.Register<RecipeMachineLargePanelRule>(Lifetime.Singleton).As<IBlockInven
 - 同じ Kind / Slot の二重登録、`BlockInventoryBodyKind.SectionStack` と `SectionStackSlot.ItemGrid` の外部登録、列車の本文の 2 本目は起動時に `InvalidOperationException`
 - 未登録の本文 Kind は標準の本文へ逃げて警告 1 回、未登録の区画 Slot は起動時の情報ログに並ぶだけ（何も描かない）
 
-### (1) blockType ごとの本文（S4-special・S4-machine が専用本文を持つなら）
+### (1) blockType ごとの本文（S4-special・専用本文を持つレーン）
 
 ```csharp
 namespace Client.Ui.Screens.BlockInventory.Registry
-public interface IBlockInventoryPart
+public interface IBlockInventoryPart                    // Presenter
 {
-    VisualElement Root { get; }
-    void Render(OpenBlockInventoryPanel panel);   // 同じパネルのあいだ、状態が変わるたびに呼ぶ
-    void Detach();                                 // 別のパネル・大きさの変化・閉で 1 回。購読はここで切る
+    VisualElement Root { get; }                         // View
+    void Attach(OpenBlockInventoryPanel panel);         // 自分の Model を購読し View.Render へ流し始める
+    void Detach();                                      // 購読を切る
 }
 public interface IBlockInventoryBodyFactory
 {
-    BlockInventoryBodyKind Kind { get; }           // Client.Ui.State.BlockInventory.Logic.Panel（L0-s4b。blockType → Kind は BlockComponentRegistry）
+    BlockInventoryBodyKind Kind { get; }                // Client.Ui.State.BlockInventory.Logic.Panel（L0-s4b。blockType → Kind は BlockComponentRegistry）
     IBlockInventoryPart Create(BlockInventoryBodyMount mount);
 }
-public sealed class BlockInventoryBodyMount { public bool FillsPanelHeight { get; } }   // 機械の大型パネルだけ真（Web fillsPanelHeight）
+public sealed class BlockInventoryBodyMount { public bool FillsPanelHeight { get; private set; } }   // 大型パネルだけ真（Web fillsPanelHeight）
 ```
 - 小型では本文は自然高のスクロール器（`block-inventory-natural-scroll`）の中、大型では器の直下に置かれる。本文は自分でスクロール器を持たない（大型の高さ確定のときだけ持ってよい）
-- 呼ばれ方: パネルが変わる（種類・位置・エラーの有無・大きさ）と旧部分の `Detach` → 新しく `Create` → `Render`。同じパネルでは `Render` だけ
 
 ### (2) 題の操作（S4-special のロケット）
 
@@ -4085,12 +4355,12 @@ public sealed class BlockInventoryBodyMount { public bool FillsPanelHeight { get
 namespace Client.Ui.Screens.BlockInventory.Registry
 public interface IBlockInventoryTitleActionFactory
 {
-    BlockInventoryTitleActionKind Kind { get; }    // 現状 RocketLaunchPadCommand
-    IBlockInventoryPart Create();
+    BlockInventoryTitleActionKind Kind { get; }         // 現状 RocketLaunchPadCommand
+    IBlockInventoryPart Create();                       // Presenter ＋ View。Attach/Detach は (1) と同じ
 }
 ```
 - ブロック・エラー無しのときだけ作られ、`GamePanel` の題の操作の器（`block-inventory-title-action`）に入る
-- 題の右の逃げ（Web `calc(--panel-action-button-width + 8px)`）は alpha が integrator へ依頼済み。S4-special はロケットの並べ比べでこの差を確かめ、依頼が未処理なら LX に記帳する
+- 題の右の逃げ（Web `calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))`＝99px）は alpha が integrator へ依頼済み。S4-special はロケットの並べ比べでこの差を確かめ、依頼が未処理なら LX に記帳する
 
 ### (3) 標準の本文の固定順の区画（S4-machine・S4-special）
 
@@ -4104,7 +4374,9 @@ public enum SectionStackSlot
 }
 public interface IBlockInventorySection : IBlockInventoryPart
 {
-    bool IsApplicable(OpenBlockInventoryPanel panel);   // 偽なら隠し Render を呼ばない（Web の各 Section が null を返す条件）
+    // Attach 後に有効。区画の Presenter が自分の Model の変化で書く（パネルの組み直しの外〈網の集約・ベルトの統計〉で変わってよい）。
+    // SectionStackBody が購読して出し入れと UiStack の先頭の間隔を組み直す。区画は自分の display を触らない
+    IReadOnlyReactiveProperty<bool> IsApplicable { get; }
 }
 public interface ISectionStackSectionFactory
 {
@@ -4113,37 +4385,42 @@ public interface ISectionStackSectionFactory
 }
 public sealed class SectionStackSectionMount
 {
-    public SectionStackConfig Config { get; }        // Client.Ui.State.BlockInventory.SectionStack（Web configByBlockType の写し）
-    public bool FillsPanelHeight { get; }
+    public SectionStackConfig Config { get; private set; }   // Client.Ui.State.BlockInventory.SectionStack
+    public bool FillsPanelHeight { get; private set; }
 }
-namespace Client.Ui.State.BlockInventory.SectionStack
-public sealed class SectionStackConfig { string ItemGridTestId; string FluidRowTestId; bool RenderEmptyGrid; bool ShowFluidProgress; bool ShowFluidDetails; bool HasItemGrid; }
+namespace Client.Ui.State.BlockInventory.SectionStack   // Web configByBlockType の写し（判別 union。D-20）
+public sealed class SectionStackConfig { public SectionStackItemGrid ItemGrid { get; }  public SectionStackFluid Fluid { get; } }
+public abstract class SectionStackItemGrid { public static readonly SectionStackItemGrid Hidden; }
+public sealed class ShownSectionStackItemGrid : SectionStackItemGrid { public string GridId { get; }  public bool RenderEmpty { get; } }
+public abstract class SectionStackFluid { public static readonly SectionStackFluid Hidden; }
+public sealed class RowSectionStackFluid : SectionStackFluid { public string RowId { get; }  public bool ShowProgress { get; } }
+public sealed class DetailsSectionStackFluid : SectionStackFluid { public string RowId { get; } }
 public static class SectionStackConfigTable { public static SectionStackConfig Resolve(string blockType); }
 ```
 - 持ち主: Context・Machine・Miner・Pump・Generator・FluidDetails・FluidRow → S4-machine（液体の 2 区画の部品は `Screens/BlockInventory/Fluid/`）。GearToElectric・BeltThroughput・Gear・ElectricNetwork・GearNetwork → S4-special
-- Web の条件の写し: FluidDetails は `Config.ShowFluidDetails && Config.FluidRowTestId != null`、FluidRow は `Config.FluidRowTestId != null && !機械 && !Config.ShowFluidDetails`、Context は `!機械`（機械では Machine 区画の先頭に置く。D-3）。機械かどうかの判定は machine 側で持つ
+- Web の条件の写し: FluidDetails は `Config.Fluid is DetailsSectionStackFluid`、FluidRow は `Config.Fluid is RowSectionStackFluid && !機械`、Context は `!機械`（機械では Machine 区画の先頭に置く。D-3）。機械かどうかの判定は machine 側で持つ
 - 区画の間は `UiStack(UiGap.Sm)`（Web `Stack gap="sm"`）。区画は自分の外側の余白を持たない
-- 区画の詳細の源は `OpenBlockInventoryPanel.Block`（`BlockGameObject`。L0/L1 テストでは null）
+- テストの形の手本: `SectionStackViewTest` の「区画の出し入れはパネルの描き直し無しで変わり先頭の間隔が詰まる」
 
 ### (4) source=train の本文（S4-train）
 
 ```csharp
 namespace Client.Ui.Screens.BlockInventory.Registry
 public interface ITrainInventoryBodyFactory { ITrainInventoryPart Create(); }   // 登録は 1 本だけ
-public interface ITrainInventoryPart
+public interface ITrainInventoryPart                    // Presenter
 {
-    VisualElement Root { get; }
-    void Render(OpenTrainInventoryPanel panel);   // 同じ車両のあいだ繰り返す
+    VisualElement Root { get; }                         // View
+    void Attach(OpenTrainInventoryPanel panel);         // 列車の詳細 Model（S4-train の State。SubInventoryState の TrainSubInventorySource 等を購読）を購読
     void Detach();
 }
 namespace Client.Ui.State.BlockInventory.Panel
 public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
 {
-    public long TrainCarInstanceId { get; }  public IReadOnlyList<SlotItem> ItemSlots { get; }
-    public BlockInventoryPanelError Error { get; }  public TrainSubInventorySource Source { get; }
+    public long TrainCarInstanceId { get; }  public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }
 }
 ```
-- 列車は常に大型（`BlockInventoryPanelLayout.IsLarge == true`・`FillsPanelHeight == false`）。題（`ui.blockInventory.trainInventory`）・閉じる・エラー行（`train-inventory-error`）は alpha の外殻が描く。エラー中は本文を作らない
+- 列車は常に大型（`IsLarge == true`・`FillsPanelHeight == false`）。題（`ui.blockInventory.trainInventory`）・閉じる・エラー行（`train-inventory-error`）は alpha の外殻が描く。エラー中は本文を作らない
+- `TrainSubInventorySource`（時刻表等の源）はパネルの状態に載らない。列車の詳細 Model が `SubInventoryState.CurrentSubInventorySource` から自分で引く
 
 ### (5) 大型パネル判定の寄与（S4-machine）
 
@@ -4151,13 +4428,13 @@ public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
 namespace Client.Ui.State.BlockInventory.Panel
 public interface IBlockInventoryLargePanelRule
 {
-    bool IsLargeMachinePanel(OpenBlockInventoryPanel panel);   // どれか 1 つが真なら大型・FillsPanelHeight も真
-    IObservable<Unit> OnRuleInputChanged { get; }              // 判定の材料が変わったら流す（LayoutModel が再計算する）
+    bool IsLargePanel(OpenBlockInventoryPanel panel);   // どれか 1 つが真なら大型・FillsPanelHeight も真
+    IObservable<Unit> OnRuleInputChanged { get; }       // 判定の材料が変わったら流す（LayoutModel が再計算する）
 }
 public readonly struct BlockInventoryPanelLayout { public readonly bool IsLarge; public readonly bool FillsPanelHeight; public static readonly BlockInventoryPanelLayout Natural; }
 public sealed class BlockInventoryPanelLayoutModel : IInitializable { public IReadOnlyReactiveProperty<BlockInventoryPanelLayout> Current { get; } }
 ```
-- 「レシピ有り機械」の判定は下の機械レシピの源をコンストラクタで受けて組める: `IsLargeMachinePanel` は blockGuid で `UnlockedMachineRecipeSource.Current.Value` を引き、`OnRuleInputChanged` は `source.Current.AsUnitObservable()`
+- 「レシピ有り機械」の判定は下の機械レシピの源をコンストラクタで受けて組める: `IsLargePanel` は blockGuid で `UnlockedMachineRecipeSource.Current.Value` を引き、`OnRuleInputChanged` は `source.Current.AsUnitObservable()`
 
 ### (6) Shift 配分の束縛の寄与（S4-machine・S4-special）
 
@@ -4169,7 +4446,7 @@ public interface IBlockSlotRestrictionContributor
     OpenBlockSlotInput Contribute(OpenBlockInventoryPanel panel, OpenBlockSlotInput input);   // input.WithMachine(...) / input.WithInletBindings(...) を返す
 }
 ```
-- 寄与が無いブロックは無制限（チェスト等）。`AppliesTo` が真の寄与を登録順に重ねる。結果は L0-s4b の `BlockSlotRestrictionResolver.Resolve` に渡る
+- 寄与が無いブロックは無制限（チェスト等）。`AppliesTo` が真の寄与を登録順に重ねる。結果は L0-s4b の `BlockSlotRestrictionResolver.Resolve` に渡る。束縛の詳細は寄与の実装が自分の State の Model から読む（パネルの状態には載らない）
 
 ### スロット操作の型付きコマンド（S4-inventory・ブロックの枠を自前で描く後続）
 
@@ -4195,8 +4472,9 @@ public sealed class BlockSlotCommands : IBlockSlotCommands { public const string
 ```
 - 押下の写し（`ItemSlot.OnSlotGestured` の `SlotGestureKind` → コマンド）: プレイヤーの枠は LeftDown→`LeftDown(slot, gesture.Shift)`・RightDown→`RightDown`・DoubleClick→`DoubleClick`・LeftEnter→`LeftEnter`・RightEnter→`RightEnter`。ブロックの枠は LeftDown・RightDown・DoubleClick だけ（進入は使わない。Web と同じ）
 - 結果は呼び手が `UiCommandResultToaster.Report(<CommandName>, result)` へ渡す
-- ブロックの枠を自前で並べる本文（機械の入力帯等）は `BlockItemGridFactory.Create(testId)` の `BlockItemGrid.Render(itemSlots, slotIndices)` を使えば押下の配線まで済む
+- ブロックの枠を自前で並べる本文（機械の入力帯等）は `BlockItemGridFactory.Create(testId)` の `BlockItemGrid.Render(itemSlots, slotIndices)` を使えば押下の配線まで済む（`Render` は区画の Presenter が呼ぶ）
 - 分割ドラッグの確定・掴みの中身は C4-e（`IPlayerSlotDragCommands`・`PlayerGrabModel`）が持つ。InventoryPanel は `IPlayerSlotCommands` 以外を呼ばない
+- **S4-inventory へ渡す完了条件**（D-33）: 「ブロックを開いた状態で main の枠を Shift＋左押下するとブロックへ配分される」を UITK の持ち物画面から録画で確かめる（alpha の録画はブロック側の枠で完結し、main 側は L0 の `PlayerSlotCommandsTest` だけ）
 
 ### 画面の部品（`Client.Ui.Screens.BlockInventory.Parts`）
 
@@ -4205,34 +4483,42 @@ public enum LackHighlightTextSize { Xs, Sm }
 public sealed class LackHighlightText : LocalizedLabel { public LackHighlightText(string testid, LackHighlightTextSize size); public void Render(UiText text, bool insufficient); }
 public sealed class BlockItemGrid : VisualElement { public void Render(IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<int> slotIndices); }
 public sealed class BlockItemGridGroup : VisualElement { public BlockItemGridGroup(LocalizationKey label, BlockItemGrid grid); }
-public sealed class BlockItemGridFactory { public BlockItemGrid Create(string testId); }
+public sealed class BlockItemGridFactory { public BlockItemGrid Create(string testId); }   // 共有サービス（MainGameUiRegistration）
 namespace Client.Ui.Screens.BlockInventory.Parts.Rows
 public sealed class PowerRateText : VisualElement { public PowerRateText(string testid); public void Render(double currentPower, double requestPower, bool highlightShortage); }
 public sealed class MachineStateRow { public MachineStateRow(string stateTestId, string powerRateTestId); public void MountInto(UiGapContainer parent); public void Render(MachineProcessDisplayState state, double currentPower, double requestPower, bool highlightPowerShortage); }
 public sealed class PerMinuteRateRow : VisualElement { public PerMinuteRateRow(VisualElement leading); public void Render(double amountPerMinute); }
 ```
 
-### パネルの状態（区画・本文が読む）
+### パネルの状態（区画・本文の Presenter が識別に読む）
 
 ```csharp
 namespace Client.Ui.State.BlockInventory.Panel
-public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }   // DI 登録済み（BlockInventoryPanelModel）
+public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }   // 共有サービス（BlockInventoryPanelModel）
+public abstract class BlockInventoryPanelState { public static readonly BlockInventoryPanelState Closed; public abstract bool IsSamePanel(BlockInventoryPanelState other); }
 public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
 {
-    public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }  public Vector3Int Position { get; }
+    public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }
+    public BlockInstanceId BlockInstanceId { get; }  public Vector3Int Position { get; }       // 区画の Model が開いたブロックを引く鍵
     public IReadOnlyList<SlotItem> ItemSlots { get; }  public BlockInventoryPanelError Error { get; }  public BlockInventoryComponents Components { get; }
-    public BlockGameObject Block { get; }
-    public bool IsSamePanel(OpenBlockInventoryPanel other);
 }
-public enum BlockInventoryPanelError { None, OpenFailed, ContainerMissing, TrainCarMissing }
+public enum BlockInventoryPanelError { None, OpenFailed, ContainerMissing, TrainCarMissing }   // 「エラー無し」は == None で判定する（null と比べない）
 ```
-- テストでパネルを組むときは `Client.Tests.Ui.State.BlockInventory.PanelModel.BlockInventoryTestPanels`（`Chest()`・`ChestWithSlots(...)`・`OpenFailedChest()`・`Train(error)`・`OfType(blockType, ...)`）と `FakePanelSource` を使う
+- テストでパネルを組むときは `Client.Tests.Ui.State.BlockInventory.PanelModel.BlockInventoryTestPanels`（`Chest()`・`ChestWithSlots(...)`・`OpenFailedChest()`・`Train(error)`・`OfType(blockType, ...)`）と `FakePanelSource`（`State` で書き換え）を使う
 
-### 解放済みの機械レシピの源（S4-machine・S4-recipe・S4-research）
+### 遷移要求の口（閉じるを持つ後続の画面）
+
+```csharp
+namespace Client.Ui.State.Routing
+public interface IUiStateTransitionRequester { bool RequestTransition(UIStateEnum requested); }   // 共有サービス。入れ子ポーズは入れ子だけ閉じ、許可表に無い遷移は false＋Warning ログ
+public static class UiStateTransitionRules { public static bool IsAllowed(UIStateEnum current, UIStateEnum requested); }   // Web UiStateActions.IsAllowed の写し
+```
+
+### 解放済みの機械レシピの源（S4-machine・S4-recipe と大型パネル判定の寄与の実装。S4-research は未解放も引くのでマスタから直接読み、使わない）
 
 ```csharp
 namespace Client.Ui.State.Recipe.Source
-public sealed class UnlockedMachineRecipeSource : IInitializable   // DI 登録済み（AsSelf）
+public sealed class UnlockedMachineRecipeSource : IInitializable   // 共有サービス（AsSelf）
 {
     public UnlockedMachineRecipeSource(IGameUnlockStateData unlockState, ILevelInheritanceCraftCapLookup craftCapLookup, IVanillaApiEvent vanillaApiEvent);
     public IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>> Current { get; }   // 解放済み・レベル継承つき。UnlockedEventPacket と OnCraftCapUnlocked で組み直す
@@ -4244,19 +4530,33 @@ public static class MachineRecipeSummaryConversion { public static IReadOnlyList
 
 ### 登録・共有区画
 
-- alpha の登録: `Client.Starter/Registration/GameUi/BlockInventoryGameUiRegistration.cs`（MainGameUiRegistration の画面登録区画から 1 行で呼ぶ）。後続は自分の登録ファイルを作り、同じ区画に 1 行足す。`Registration/GameUi/` は alpha で 9 ファイル、後続で 10 を超えるので integrator にサブディレクトリ化を依頼済み
-- USS は自分の画面の USS を `GameUiTheme.tss` の `Screens` 区画に `@import` する。区画の USS の色は `--text-*` 等のトークンだけ（`BlockInventoryDesignTest` の色の件に自分の USS を `TestCase` で足す）
+- 共有サービス（後続が ctor で受けてよい）は `MainGameUiRegistration` の共有サービスの並びにある: `IBlockInventoryPanelSource`・`IUiStateTransitionRequester`・`UnlockedMachineRecipeSource`・`IBlockInventoryOperations`・`BlockItemActionExecutor`・`PlannedItemActionRunner`・`BlockSlotRestrictionInputBuilder`・`PlayerSlotContextReader`・`ShiftMoveRefusalNotifier`・`IBlockSlotCommands`・`IPlayerSlotCommands`・`BlockItemGridFactory`。`IItemStackLevelLookup` は `MainGameModelRegistration`。後続が新しく複数レーンで共有するサービスを作るときも同じ並びに足す（E-1・A-56）
+- 画面だけのもの（LayoutModel・閉じる・レジストリ・ScreenPresenter）は `BlockInventoryGameUiRegistration`。後続は自分の登録ファイルを作り、画面登録区画に 1 行足す。`Registration/GameUi/` は alpha で 9 ファイル、後続で 10 を超えるので integrator にサブディレクトリ化を依頼済み
+- USS は自分の画面の USS を `GameUiTheme.tss` の `Screens` 区画に `@import` する。色は `--text-*` 等のトークンだけ。`:root` のトークンを C# で読むなら自分のクラスで受け直す（D-8）。「色を直書きしない」の確認は alpha の `BlockInventoryDesignTest` に足さず、自分のテストファイルに同じタグ（`%sから禁止Mantine部品とテーマ色を除去する`）で写す
 
 ---
 
 ## 起草メモ（本体向け）
 
+- **レビュー反映（19 項目＋追加 3 件）**: 判断記録 D-8・D-12・D-14・D-16・D-18 を直し、D-19〜D-34 を足した（すべて「出所: レビュー」）。Error の null 比較・トークンの受け直し・大型の右余白・題の逃げ 12px・処分表・区画と本文の口の形・出し分け・共有サービスの登録先・網羅テスト・FilterSplitter・掴み絵・録画の main Shift・後続のテスト追記・素通し getter・判別 union・中立名・遷移要求の置き場・死活表・軽微 5 件。追加: S4-research は機械レシピの源を使わない、区画の出し入れの通知（`IsApplicable`）、`BlockInstanceId` の公開
 - **数の食い違い（申告）**: 実行計画 §1.4 の `SectionStackView.test`(7)・`blockInventoryDesign`(S15) は実物で 8・16。区画の中身にかかる件は持ち主（machine・special・train）へ割り振った（「写すテスト」表）。§1.4 に無い `LackHighlightText/index.test.ts`(2) を alpha に足した。反映の下書きは A-144
-- **本体の追加決定 2 件の反映**: 機械レシピの源は Task 2（`Client.Ui.State/Recipe/Source/`・alpha の登録ファイル・asmdef に `Game.UnlockState`）。液体の 2 区画は `SectionStackSlot.FluidDetails`・`FluidRow` の空き区画として S4-machine に渡す
-- **integrator への依頼（Task 1 で done.md に書く）**: (a) `Registration/GameUi/` のファイル数が後続で 10 を超える → サブディレクトリ化、(b) `GamePanel` が題の操作を持つときの題の右の逃げ（Web は画面側の paddingRight。UITK は題の要素が部品の中にあり画面 USS から当てられない）、(c) `SlotCommands/` を後続が増やすなら置き場の整理
+- **本体の追加決定の反映**: 機械レシピの源は Task 2（共有サービスの並びに登録・asmdef に `Game.UnlockState`）。使うのは machine・recipe と大型パネル判定の寄与の実装（research は使わない）。液体の 2 区画は `SectionStackSlot.FluidDetails`・`FluidRow` の空き区画として S4-machine に渡す
+- **integrator への依頼（Task 1 で done.md に書く）**: (a) `Registration/GameUi/` のファイル数が後続で 10 を超える → サブディレクトリ化、(b) `GamePanel` が題の操作を持つときの題の右の逃げ（`--panel-action-button-width + --mantine-spacing-sm`＝99px。Web は画面側の paddingRight。UITK は題の要素が部品の中にあり画面 USS から当てられない）、(c) 設計書 §2 の State の表に `SlotCommands/` と `Routing/` の遷移要求の口（A-142）
 - **要裁定: なし**。目的・裁定から外れる判断は無い。D-9（`DestinationFull` は通知せずログだけ）は Web に無い断りの扱いで、文言を足すなら Web 側も足すことになるため後送り
-- **未確認（実装時に確かめる）**: `UiCommandResultToaster`・`LocalizationTextParam`・`UiTestHost` の押下ヘルパーの実名、C4-e の記録係の名前、`ClientLocalNotificationSource` と `IItemStackLevelLookup` が既に DI 登録されているか（二重登録は最後勝ちで気づけないので先に grep）、`.game-panel` を画面 USS から子孫選択してよいか（`UiStyleConventionTest`）、`OpenBlockInventoryPanel.Block` が L1 で null のときに区画が落ちないか（区画側の責務）、`UnlockedMachineRecipeSource` の購読順（`IVanillaApiEvent` の購読が `IGameUnlockStateData` の更新より後に走る前提）
+- **残った問題・未確認（実装時に確かめる）**: 「掴んだまま閉じる」の掴みの行き先（死活表の要確認。Task 1 Step 5）。`LocalizationTextParam`・`UiTestHost` の押下ヘルパー・`IconButton.OnClicked` の結線の実名。`BlockInstanceId` の ctor の公開範囲（テストで `new BlockInstanceId(1)` を使う）。D-1 の「VContainer 1.10 は登録 0 本で空の列」は前例がどれも 1 本以上なので Task 8 Step 5 で実測する。`GameScrollView` の viewport が Web `.scroll` の `flex: 1; min-height: 0` 相当に縮むか（`BlockInventoryNaturalScrollTest` の 3 件目で確かめる）
 - **通知の messageId**: `denied.inventoryMoveSlotRejected`・`denied.inventoryOpenFailed`・`denied.inventoryDetailLoading` は Web と同じ id を `ClientLocalNotificationSource` へ流す。UITK の通知レーンがこの id を文言へ解決できるかは通知レーン側の確認事項
 - **C3-b の型（E-22）**: 使う。`ItemSlot` の名前ツールチップが `GameUiHoverTooltipInstaller`（C3-b）経由で出るのと、`GameScrollView`（自然高のスクロール器）。Global Constraints の依存に C3-b を足した（マージ済み）
-- **Web の外殻から写さなかったもの**: `data-large` 属性はクラス `block-inventory--large` で表す。Web の ScrollArea の `type="auto"` 相当は `GameScrollView` の既定に任せる
-- 設計検査記録は未実施のまま
+- **Web の外殻から写さなかったもの**: `data-large` 属性はクラス `block-inventory--large`（小型は `block-inventory--natural`）で表す
+- 設計検査は 2 本とも実施済み（記録は「## 設計検査記録」）。反映後の fresh-context の再検査は回していない
+
+---
+
+## 本 PR 外のリファクタ提案
+
+Phase 2.6 の第 3 バケツ。このレーンのタスクにはしない（人へ 1 行ずつ）。
+
+- 既存 `Client.Ui.State/Inventory/Actions/PlayerItemAction.cs`（`FromOutcome`・`SplitToGrabAction`・`CollectAction`）と新設 `Client.Ui.State/SlotCommands/Block/BlockItemActionExecutor.cs`（`ToResult`・`Split`・`Collect`）: 移動の結果を A-94 の理由へ写す switch・半分の床関数・集める先の規則が同じ State 層に 2 本ある（D-6）
+- 既存 `Client.Ui.State/Inventory/Actions/LocalPlayerInventoryOperations.cs`（`Move` の結果の switch・`ToSlotItem`）と新設 `LocalBlockInventoryOperations.Move`・`BlockInventoryPanelStateFactory.ToSlotItems`: 結果の写しと `IItemStack`→`SlotItem` の変換が同じ式で、既存側が private のため写している
+- 既存 `Client.WebUiHost/Game/Actions/Inventory/BlockInventoryActions.cs`（`BlockAreaSlotParser`・`MainSlotCount + slot`・ブロックの分割）・`InventoryActions.cs`（`ResolveCollectTarget`）と新設 `LocalBlockInventoryOperations`・`BlockItemActionExecutor`: 開いている判定・結合インベントリの番地・分割と集める先を同じ規則で写している（D-5）
+- 既存 `Client.WebUiHost/Game/Topics/MachineRecipesTopic.cs`・`MachineUpgrade/MachineRecipeLevelInheritanceDtoBuilder.cs` と新設 `Client.Ui.State/Recipe/Source/UnlockedMachineRecipeListBuilder.cs`・`MachineRecipeLevelInheritanceConversion.cs`: 解放済みの機械レシピの列挙と levelInheritance の網羅 switch が同じ規則
+- 既存 `Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs`・`Inventory/BlockInventoryDtoFactory.cs`・`TrainInventoryDtoFactory.cs` と新設 `BlockInventoryPanelModel`・`BlockInventoryPanelStateFactory`: パネルの開閉条件・再計算の契機・取得失敗と列車エラーの写しが同じ規則（あわせて `RequestUiStateActionHandler.IsAllowed` と新設 `UiStateTransitionRules` も同じ表）
