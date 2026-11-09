@@ -25,7 +25,12 @@ namespace Client.Ui.Components.Controls
 
         private readonly Subject<float> _onScrollOffsetChanged = new();
 
+        private readonly Subject<Unit> _onContentLayoutChanged = new();
+        private float _publishedContentHeight = float.NaN;
+        private float _publishedViewportHeight = float.NaN;
+
         public IObservable<float> OnScrollOffsetChanged => _onScrollOffsetChanged;
+        public IObservable<Unit> OnContentLayoutChanged => _onContentLayoutChanged;
 
         public GameScrollView(string testid) : base(ScrollViewMode.Vertical)
         {
@@ -45,6 +50,11 @@ namespace Client.Ui.Components.Controls
             verticalScroller.valueChanged += offset => _onScrollOffsetChanged.OnNext(offset);
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
 
+            // 中身と視口の寸法の変化をスクロールスパイへ知らせる（スクロールでも事象が来る場合に備え、高さの比較で重複を落とす）
+            // Tell the scroll spy about content and viewport size changes (heights are compared to drop duplicates in case scrolling also raises the event)
+            contentContainer.RegisterCallback<GeometryChangedEvent>(_ => PublishWhenHeightsChanged());
+            contentViewport.RegisterCallback<GeometryChangedEvent>(_ => PublishWhenHeightsChanged());
+
             #region Internal
 
             void UpdateVerticalScrollerVisibility()
@@ -53,12 +63,48 @@ namespace Client.Ui.Components.Controls
                 verticalScrollerVisibility = overflows ? ScrollerVisibility.AlwaysVisible : ScrollerVisibility.Hidden;
             }
 
+            void PublishWhenHeightsChanged()
+            {
+                var contentHeight = GetContentHeight();
+                var viewportHeight = GetViewportHeight();
+                if (Mathf.Approximately(contentHeight, _publishedContentHeight) && Mathf.Approximately(viewportHeight, _publishedViewportHeight)) return;
+                _publishedContentHeight = contentHeight;
+                _publishedViewportHeight = viewportHeight;
+                _onContentLayoutChanged.OnNext(Unit.Default);
+            }
+
             #endregion
         }
 
         public void SetScrollOffset(float y)
         {
             scrollOffset = new Vector2(scrollOffset.x, y);
+        }
+
+        public float GetViewportHeight()
+        {
+            return contentViewport.layout.height;
+        }
+
+        public float GetContentHeight()
+        {
+            return contentContainer.layout.height;
+        }
+
+        // 中身の上端からの距離。スクロールの平行移動は両者に同じく掛かるので打ち消し合う
+        // Distance from the content top; the scroll translation applies to both and cancels out
+        public bool TryGetContentTop(VisualElement descendant, out float top)
+        {
+            // 中身の外の要素は基準が違う。取り違えを黙って 0 にせず知らせる
+            // An element outside the content has another origin; report the mix-up instead of silently returning 0
+            if (!contentContainer.Contains(descendant))
+            {
+                Debug.LogError($"[GameScrollView] {name}: {descendant.name} is not inside the content");
+                top = 0f;
+                return false;
+            }
+            top = descendant.ChangeCoordinatesTo(contentContainer, Vector2.zero).y;
+            return true;
         }
 
         private void OnCustomStyleResolved()

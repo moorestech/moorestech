@@ -10,10 +10,16 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Layout.uss");
 /* == section: Foundation/Stage == */
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/UiStageFrame.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/UiScreenPixelScope.uss");
+/* == section: Foundation/Tooltip == */
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Tooltip/HoverTooltipHost.uss");
+/* == section: Foundation/Modal == */
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Modal/UiModalHost.uss");
 /* == section: Components/Panels == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanel.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanelSurface/GamePanelSurface.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/PaperSurface/PaperSurface.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/DialogFrame/DialogFrame.uss");
 /* == section: Components/Slots == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/GameIcon/GameIcon.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/SlotFrame/SlotFrame.uss");

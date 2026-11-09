@@ -22,9 +22,9 @@
     --mode-switch-option-text-selected: var(--text-high-contrast);
     flex-grow: 1;
     flex-shrink: 1;
-    /* Web の選択肢の高さ＝padding-block 5px×2＋本文の行 16px×1.55（輪は box-shadow で場所を取らない）。UITK は枠線と字の自然な高さで 34〜36px になるので固定する */
-    /* Web option height = padding-block 5px x 2 + the 16px x 1.55 body line (the ring is a box-shadow and takes no space); UITK's border and natural glyph height give 34-36px, so fix it */
-    height: 34.8px;
+    /* Web の縦の高さは var(--mode-switch-option-height, auto)。auto の実寸 34.8px を既定に置き、横も同じ高さで揃える（UITK は枠線と字の自然な高さで 34〜36px になるため） */
+    /* The Web vertical height is var(--mode-switch-option-height, auto); default the knob to auto's real 34.8px and use it for horizontal too (UITK's border and glyph height give 34-36px otherwise) */
+    height: var(--mode-switch-option-height);
     margin: 0;
     padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
     border-width: var(--bevel-1); /* look-exception: LX-3 */
@@ -70,16 +70,26 @@
     color: var(--mode-switch-option-text-selected);
 }
 
-/* 全体の無効は選択中も含めて従属テキストへ減衰させる。既定テーマの半透明化はしない */
-/* Disabling the whole switch fades every option, selected included, to secondary text without the default theme's translucency */
+/* 全体の無効は選択中も含めて、選択肢ごとの無効はその 1 つだけを従属テキストへ減衰させる。既定テーマの半透明化はしない */
+/* Whole-switch disabling fades every option (selected included) and per-option disabling fades just that one to secondary text, without the default theme's translucency */
 .mode-switch--disabled .mode-switch__option,
-.mode-switch--disabled .mode-switch__option--selected {
+.mode-switch--disabled .mode-switch__option--selected,
+.mode-switch .mode-switch__option--option-disabled,
+.mode-switch .mode-switch__option--option-disabled:hover,
+.mode-switch .mode-switch__option--option-disabled:active {
     color: var(--mode-switch-option-text);
     opacity: 1;
+}
+
+/* タブの役（§8.22）は本文との間を 1 段空ける。Web は margin-bottom だが、部品は外側の margin を書かない（設計書 A-30）ので、面を持たない根の下の余白で同じ見え方にする */
+/* The tablist role (§8.22) leaves one step below; the Web uses margin-bottom, but components write no outer margin (design A-30), so use bottom padding on the faceless root for the same look */
+.mode-switch--tablist {
+    padding-bottom: var(--mode-switch-padding-block);
 }
 
 .mode-switch__label {
     margin: 0;
     padding: 0;
     -unity-text-align: middle-center;
+    font-size: var(--mantine-font-size-md); /* web: .option の font: inherit で Mantine の body（--mantine-font-size-md）を継ぐ（参照 1-settings・3-build-menu・4-block-train-timetable-tab の実測 16px。--mode-switch-option-height の 16px×1.55 と同じ前提） */
 }

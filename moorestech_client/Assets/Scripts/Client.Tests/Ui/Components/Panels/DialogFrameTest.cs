@@ -1,0 +1,93 @@
+using Client.Localization;
+using Client.Tests.Ui.TestHost;
+using Client.Ui.Components.Controls;
+using Client.Ui.Components.Panels;
+using Client.Ui.State.Text;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Components.Panels
+{
+    /// <summary>
+    /// DialogFrame の寸法を実寸で固定（L1）
+    /// Pins DialogFrame sizes at real size (L1)
+    /// </summary>
+    public class DialogFrameTest : UiTestHost
+    {
+        [SetUp]
+        public void LoadDictionary()
+        {
+            Localize.Initialize();
+        }
+
+        [Test]
+        public void 幅は440で題の行は高さ60と左右16で本文は20空ける()
+        {
+            var frame = new DialogFrame("dialog-frame-test");
+            frame.SetTitle(UiText.FromVerbatim("Blueprint name"));
+            var body = new VisualElement { name = "dialog-frame-test-body" };
+            body.style.height = 36;
+            frame.Add(body);
+            rootVisualElement.Add(frame);
+            simulate.FrameUpdate();
+
+            var header = frame.Q(className: "dialog-frame__header");
+            var title = frame.Q<Label>("dialog-frame-test-title");
+            Assert.AreEqual(440f, frame.worldBound.width, 0.1f, "--modal-size");
+            Assert.AreEqual(60f, header.worldBound.height, 0.1f, "--dialog-frame-header-min-height");
+            Assert.AreEqual(frame.worldBound.xMin + 16f, title.worldBound.xMin, 0.5f, "--mb-padding");
+            Assert.AreEqual(frame.worldBound.xMin + 20f, body.worldBound.xMin, 0.5f, "--dialog-frame-body-padding");
+            Assert.AreEqual(header.worldBound.yMax + 20f, body.worldBound.yMin, 0.5f);
+            Assert.AreSame(body.hierarchy.parent, frame.contentContainer, "Add goes into the content");
+
+            // 角丸で切る面が題の行と本文を持ち、外側の箱の直下にある（影は外側の箱に置けば切られない）
+            // The clipping surface holds the title row and body directly under the outer box (a shadow on the outer box is not clipped)
+            var surface = frame.Q(className: "dialog-frame__surface");
+            Assert.AreSame(frame, surface.hierarchy.parent);
+            Assert.IsTrue(surface.Contains(header) && surface.Contains(body));
+        }
+
+        [Test]
+        public void 影は切られない外側の箱で面の奥に置かれクリックを受けない()
+        {
+            var frame = new DialogFrame("dialog-frame-shadow");
+            frame.SetTitle(UiText.FromVerbatim("Blueprint name"));
+            frame.style.position = Position.Absolute;
+            frame.style.left = 100;
+            frame.style.top = 100;
+            rootVisualElement.Add(frame);
+            simulate.FrameUpdate();
+
+            // 影は外側の箱の最初の子（面より奥）で、角丸で切る面の中に無い
+            // The shadow is the outer box's first child (behind the surface) and not inside the clipping surface
+            var shadow = frame.Q(className: "dialog-frame__shadow");
+            var surface = frame.Q(className: "dialog-frame__surface");
+            Assert.IsNotNull(shadow);
+            Assert.AreSame(frame, shadow.hierarchy.parent);
+            Assert.AreSame(shadow, frame.hierarchy[0]);
+            Assert.IsFalse(surface.Contains(shadow));
+            Assert.AreEqual(PickingMode.Ignore, shadow.pickingMode);
+
+            // 枠のすぐ下（層 2 の広がり y + spread + blur = 36 - 7 + 28 = 57px の内側）を押しても影は拾われない
+            // A press just below the frame (inside layer 2's reach y + spread + blur = 36 - 7 + 28 = 57px) never picks the shadow
+            var below = new UnityEngine.Vector2(frame.worldBound.center.x, frame.worldBound.yMax + 20f);
+            Assert.AreNotSame(shadow, frame.panel.Pick(below));
+            Assert.AreNotSame(shadow, frame.panel.Pick(frame.worldBound.center));
+        }
+
+        [Test]
+        public void 操作のボタンは本文の幅いっぱいに伸び題の無い枠は題の行を持たない()
+        {
+            var frame = new DialogFrame("dialog-frame-actions");
+            frame.Add(new VisualElement { name = "dialog-frame-actions-body" });
+            var save = new FormButton("dialog-frame-save", UiText.FromVerbatim("Save"), FormButtonVariant.Filled);
+            frame.AddAction(save);
+            rootVisualElement.Add(frame);
+            simulate.FrameUpdate();
+
+            Assert.IsNull(frame.Q(className: "dialog-frame__header"));
+            Assert.IsTrue(save.ClassListContains("dialog-frame__action"));
+            Assert.AreEqual(400f, save.worldBound.width, 0.5f, "440 - 20 x 2");
+        }
+    }
+}
