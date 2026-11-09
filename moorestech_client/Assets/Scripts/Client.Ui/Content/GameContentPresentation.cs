@@ -3,6 +3,7 @@ using Client.Ui.Foundation.Icons;
 using Client.Ui.State.Text;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
+using UnityEngine;
 
 namespace Client.Ui.Content
 {
@@ -48,6 +49,18 @@ namespace Client.Ui.Content
             // An empty ID is not display material (the screen nulls the icon)
             if (id == ItemMaster.EmptyItemId) throw new ArgumentException("The empty item has no display material; pass a null icon to ItemSlotContent instead", nameof(id));
             return UiText.FromContent(ContentLocalizationKeys.ItemName(MasterHolder.ItemMaster.GetItemGuid(id)));
+        }
+
+        public Color FluidFace(FluidId id)
+        {
+            // 空の液体（空タンク）は色を持たない。Fluid と同じくここで止める
+            // An empty fluid (empty tank) has no color; stop here as Fluid does
+            if (id == FluidMaster.EmptyFluidId) throw new ArgumentException("The empty fluid has no fill color; the screen must not ask for it", nameof(id));
+            var master = MasterHolder.FluidMaster.GetFluidMaster(id);
+            // 色の形式はロード時に FluidMasterUtil.Validate が検証済みなので、解けない色には到達しない（来たら検証の穴として止める）
+            // FluidMasterUtil.Validate checked the format at load, so an unparsable color is unreachable (if it comes, stop on the validation hole)
+            if (!ColorUtility.TryParseHtmlString(master.Color, out var face)) throw new InvalidOperationException($"Fluid {master.Name} has color '{master.Color}' that passed master validation but cannot be parsed");
+            return face;
         }
     }
 }
