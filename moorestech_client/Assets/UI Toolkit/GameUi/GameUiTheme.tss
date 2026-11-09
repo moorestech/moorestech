@@ -32,6 +32,7 @@
 /* == section: Components/Gauges == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/ToastItem/ToastItem.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/GaugeBar/GaugeBar.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/ProgressArrowBar/ProgressArrowBar.uss");
 /* == section: Components/Text == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Text/TooltipFace/TooltipFace.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Text/KeyCap/KeyCap.uss");
