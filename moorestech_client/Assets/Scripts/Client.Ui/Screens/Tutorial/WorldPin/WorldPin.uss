@@ -1,0 +1,46 @@
+/* web: W/features/tutorial/worldPin.module.css（.overlay・.pin・.label・.marker・.arrow・.arrow svg）。scale(var(--ui-scale)) はパネル単位＝stage px なので要らない */
+/* web: W/features/tutorial/worldPin.module.css (.overlay, .pin, .label, .marker, .arrow, .arrow svg); no --ui-scale since panel units are stage px */
+.world-pin-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --world-pin-view-edge-margin: var(--world-pin-edge-margin);
+    --world-pin-view-arrow-size: var(--world-pin-arrow-size);
+    --world-pin-view-face: var(--world-pin-face);
+    --world-pin-view-stroke: var(--text-high-contrast);
+    --world-pin-view-arrow-fill: var(--tutorial-attention-red);
+    --world-pin-view-arrow-shadow: var(--world-pin-arrow-shadow);
+    --tutorial-attention-pulse-period: var(--tutorial-pulse-duration);
+}
+
+.world-pin {
+    position: absolute;
+    flex-direction: column;
+    align-items: center;
+    translate: -50% -100%;
+}
+
+.world-pin__label {
+    margin: 0 0 2px 0;
+    padding: var(--label-face-padding);
+    color: var(--text-high-contrast);
+    background-color: var(--world-pin-face);
+    white-space: nowrap;
+    font-size: var(--label-face-font-size);
+}
+
+.world-pin__marker {
+    width: 20px;
+    height: 20px;
+}
+
+.world-pin__arrow {
+    position: absolute;
+}
+
+.world-pin__arrow-glyph {
+    width: 100%;
+    height: 100%;
+}

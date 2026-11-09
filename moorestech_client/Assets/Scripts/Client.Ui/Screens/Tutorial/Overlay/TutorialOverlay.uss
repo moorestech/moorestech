@@ -1,0 +1,50 @@
+/* web: moorestech_web/webui/src/features/tutorial/overlay/style.module.css（.overlay・.highlight・.highlightLabel）。--ui-scale の掛け算はパネル単位＝stage px なので要らない */
+/* web: moorestech_web/webui/src/features/tutorial/overlay/style.module.css (.overlay, .highlight, .highlightLabel); no --ui-scale since panel units are stage px */
+.tutorial-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --tutorial-overlay-glow-width: var(--tutorial-highlight-glow);
+    --tutorial-overlay-label-gap: var(--tutorial-highlight-label-gap);
+    --tutorial-overlay-ring-radius: 8px;
+    --tutorial-attention-pulse-period: var(--tutorial-pulse-duration);
+}
+
+.tutorial-outline {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+/* Web の clip-path の代わりに、箱を inset で縮めた容器で切る。拡縮は容器ごと（ADR 0039 の「clip も一緒に呼吸する」） */
+/* Instead of Web's clip-path, clip with a container shrunk by the inset; it scales as a whole (ADR 0039: the clip breathes too) */
+.tutorial-outline__clip {
+    position: absolute;
+    overflow: hidden;
+}
+
+.tutorial-outline__ring {
+    position: absolute;
+    border-width: 3px;
+    border-color: var(--tutorial-attention-red);
+    border-radius: var(--tutorial-overlay-ring-radius);
+}
+
+/* box-shadow の spread の代わりに、外側へ glow 幅の枠を重ねる。幅と角丸は C# が --tutorial-overlay-glow-width から当てる */
+/* Instead of a box-shadow spread, overlay an outer border of the glow width; C# sets width and radius from --tutorial-overlay-glow-width */
+.tutorial-outline__glow {
+    position: absolute;
+    border-color: var(--tutorial-attention-glow); /* look-exception: LX-38 */
+}
+
+.tutorial-highlight-label {
+    position: absolute;
+    padding: var(--label-face-padding);
+    color: var(--text-high-contrast);
+    background-color: var(--world-pin-face);
+    font-size: var(--label-face-font-size);
+    white-space: normal;
+    margin: 0;
+}
