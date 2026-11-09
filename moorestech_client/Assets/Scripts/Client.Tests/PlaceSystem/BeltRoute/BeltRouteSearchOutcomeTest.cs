@@ -2,8 +2,10 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
 using Client.Tests.PlaceSystem.BeltRoute.World;
 using Game.Block.Interface;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
@@ -51,6 +53,23 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
             Assert.AreEqual(BeltRouteSearchOutcome.Exhausted, outcome);
             Assert.Less(search.Expansions, 1000000);
+        }
+
+        // 壁の向こうの終点は囲まれ判定を抜け、本番の Planner が探索量の上限で経路なしにする
+        // An end beyond a wall passes the enclosure probe, and the production planner gives up at the expansion cap
+        [Test]
+        public void PlannerGivesUpAtTheExpansionCapBehindAWall()
+        {
+            var grid = FlatGrid(200);
+            for (var z = 0; z < 200; z++)
+            for (var y = 0; y < 3; y++)
+                grid.MarkBlockCell(new Vector3Int(100, y, z));
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(190, 0, 190), BlockDirection.East, true, false);
+
+            LogAssert.Expect(LogType.Log, new Regex($"CapReached expansions:{BeltRoutePlanner.MaxExpansions}"));
+            var result = new BeltRoutePlanner(grid, BeltRoutePlanner.DefaultRecoverySlack).Plan(query);
+
+            Assert.IsFalse(result.HasPlan);
         }
 
         [Test]

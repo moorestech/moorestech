@@ -300,6 +300,7 @@ ui.tooltip.placeChainBlocked,Space for the connected layout is blocked,Space for
 ui.tooltip.placeChainGroundNotFound,No ground under the connected layout,No ground under the connected layout,接続先に地面がありません,Kein Boden unter der verbundenen Anordnung,연결된 배치 아래에 지면이 없습니다
 ui.tooltip.placeChainGroundHeightMismatch,The connected layout does not sit level with the ground,The connected layout does not sit level with the ground,接続先の地面の高さが合っていません,Die verbundene Anordnung liegt nicht eben auf dem Boden,연결된 배치가 지면과 수평이 아닙니다
 ui.tooltip.placeBeltRouteNotFound,No route found,No route found,経路が見つかりません,Keine Strecke gefunden,경로를 찾을 수 없습니다
+ui.tooltip.placeBeltRouteWorldChanged,Blocks changed. Pick the start again,Blocks changed. Pick the start again,周りが変わりました。始点から選び直してください,Blöcke haben sich geändert. Wählen Sie den Start erneut,블록이 바뀌었습니다. 시작점을 다시 선택하세요
 ui.tooltip.placeBeltRouteSlopeHead,Cannot place directly above a slope,Cannot place directly above a slope,坂の真上には置けません,Direkt über einem Schrägband nicht möglich,경사 바로 위에는 설치할 수 없습니다
 ui.tooltip.placeBeltBranchNotStraightBelt,Branch only from a straight belt of the same family,Branch only from a straight belt of the same family,分岐は同じ種類の直線ベルトからだけ作れます,Abzweig nur von einem geraden Band derselben Baureihe,같은 계열의 직선 벨트에서만 분기할 수 있습니다
 ui.tooltip.placeBeltBranchNoSplitter,No splitter for this belt family,No splitter for this belt family,このベルトには分岐器がありません,Für diese Baureihe gibt es keinen Verteiler,이 벨트 계열에는 분배기가 없습니다

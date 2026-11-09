@@ -11,11 +11,12 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Tooltip;
 using Common.Debug;
 using Game.Block.Interface;
 using Game.Construction;
+using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse;
-using UniRx;
 using UnityEngine;
 using static Client.Game.DebugConst;
 
@@ -24,6 +25,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
     /// <summary>
     ///     2クリックでベルト設置。経路を毎フレーム表示
     ///     Two-click belt placement; the route is previewed every frame
+    ///     世界は始点選び中に改訂番号で作り直し、始点確定後は確定の瞬間にだけ読み直して検査する（ADR 0099）
+    ///     The world is rebuilt by revision during start selection; after the start is fixed it is re-read only at confirm to check (ADR 0099)
     /// </summary>
     public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
@@ -33,12 +36,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly PlacementHeightOffset _placementHeightOffset;
+        private readonly BeltRouteLiveWorld _world;
+        private ulong _worldRevision;
 
         private BeltConveyorHoldingBlock _holding;
         private BlockDirection _currentDirection = BlockDirection.North;
         private bool _branchUseAlternateExit;
         private BeltRouteSession _session;
-        private bool _obstaclesDirty;
 
         public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery, PlacementHeightOffset placementHeightOffset)
         {
@@ -48,11 +52,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
             _placementHeightOffset = placementHeightOffset;
-
-            // ブロックが置かれた・撤去されたら次フレームで占有と辺を作り直す（箱が無いので位置で絞らない）
-            // A block placed or removed rebuilds occupancy and edges on the next frame (no box, so no filtering by position)
-            blockGameObjectDataStore.OnBlockPlaced.Subscribe(_ => MarkObstaclesDirty());
-            blockGameObjectDataStore.OnBlockRemoved.Subscribe(_ => MarkObstaclesDirty());
+            _world = new BeltRouteLiveWorld(blockGameObjectDataStore);
+            _worldRevision = blockGameObjectDataStore.OccupancyRevision;
         }
 
         // Q/Eで動かす設置高さを読む系
@@ -97,31 +98,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             }
             PlacementHeightKeyInput.Apply(_placementHeightOffset);
             _previewBlockController.SetActive(false);
-            RefreshObstaclesIfDirty();
 
             if (_session == null) UpdateStartSelection(feedback);
             else UpdateRouting(feedback);
         }
 
-        private void MarkObstaclesDirty()
+        // 始点選び中の毎フレームと確定の直前だけ呼ぶ。始点確定後は作り直しも再探索もしない
+        // Called every start-selection frame and right before confirm only; no rebuild or re-search after the start is fixed
+        private void RefreshWorldIfChanged()
         {
-            if (_session != null) _obstaclesDirty = true;
-        }
-
-        private void RefreshObstaclesIfDirty()
-        {
-            if (!_obstaclesDirty) return;
-            _obstaclesDirty = false;
-            if (_session == null) return;
-            _session.RebuildObstacles();
-            if (_session.IsStartUsable(_blocks, _holding, _branchUseAlternateExit)) return;
-
-            Debug.Log($"[BeltRoute] start at {_session.StartCell} became unusable after a block change; back to start selection");
-            _session = null;
+            if (_worldRevision == _blocks.OccupancyRevision) return;
+            _world.Rebuild();
+            _worldRevision = _blocks.OccupancyRevision;
         }
 
         private void UpdateStartSelection(PlacementFeedback feedback)
         {
+            RefreshWorldIfChanged();
             if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, feedback, out var hit)) return;
 
             // Ctrlを押したまま既存ベルトを狙うと分岐の始点候補になる
@@ -135,12 +128,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             if (BeltRouteKeyInput.IsRotatePressed) _currentDirection = _currentDirection.HorizonRotation();
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(hit.Cell)) { feedback.AddTooFar(); return; }
 
-            var reason = BeltRouteCellCheck.JudgeInWorld(_blocks, hit.Cell);
+            var reason = BeltRouteCellJudge.Judge(_world, hit.Cell);
             var placeable = reason == BeltRouteCellBlockReason.None;
             if (!placeable) feedback.Add(BeltRouteTooltipKey.CellLine(reason));
             ShowPreview(new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.Single(hit.Cell, _currentDirection, _holding.BlockId, placeable) });
 
-            if (placeable && BeltRouteKeyInput.IsConfirmPressed) _session = BeltRouteSession.CreateAtCell(hit.Cell, _currentDirection, _blocks);
+            if (placeable && BeltRouteKeyInput.IsConfirmPressed) _session = BeltRouteSession.CreateAtCell(hit.Cell, _currentDirection, _world);
         }
 
         private void UpdateBranchCandidate(BlockGameObject belt, PlacementFeedback feedback)
@@ -161,7 +154,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             ShowPreview(BeltRoutePlaceInfoBuilder.BuildBranchCandidate(branch, _holding));
             if (!BeltRouteKeyInput.IsConfirmPressed) return;
 
-            _session = BeltRouteSession.CreateBranch(branch, _blocks);
+            _session = BeltRouteSession.CreateBranch(branch, _world);
             _currentDirection = branch.ExitDirection;
         }
 
@@ -175,6 +168,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             if (placeable) placeable = BeltRouteCostGate.Apply(infos, _constructionWalletQuery, _localPlayerInventory, feedback);
             ShowPreview(infos);
             if (!placeable || !BeltRouteKeyInput.IsConfirmPressed) return;
+
+            // 確定の瞬間に世界を読み直し、置けなくなっていたら送らずに始点選びへ戻す
+            // Re-read the world at confirm; if no longer placeable, send nothing and return to start selection
+            RefreshWorldIfChanged();
+            if (!BeltRouteConfirmCheck.IsStillPlaceable(_world, _blocks, _session, _holding, _branchUseAlternateExit, infos))
+            {
+                Debug.Log($"[BeltRoute] world changed before confirm; back to start selection start:{_session.StartCell} end:{hit.Cell} branch:{_session.IsBranch}");
+                feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteWorldChanged));
+                _session = null;
+                return;
+            }
 
             if (_session.IsBranch) BeltRouteBranchReplaceSender.ReplaceAndPlace(_session.Branch, infos);
             else PlaceBlockProtocolSender.SendPlaceBlockProtocol(infos);

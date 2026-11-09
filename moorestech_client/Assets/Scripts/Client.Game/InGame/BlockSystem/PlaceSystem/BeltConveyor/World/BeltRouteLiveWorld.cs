@@ -30,8 +30,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
             Rebuild();
         }
 
-        // 設置・撤去時に呼ぶ。地形は保持
-        // Call on place or removal; terrain is kept
+        // ブロックの改訂番号が変わったとき設置システムが呼ぶ。地形は保持
+        // Called by the place system when the block revision changed; terrain is kept
         public void Rebuild()
         {
             _blockCells.Clear();
@@ -74,7 +74,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
             {
                 var column = new Vector2Int(x, z);
                 if (_groundMaxHeights.TryGetValue(column, out var cached)) return cached;
-                // silent-ok: 地表が無い列は下限なし/ プレビューでそのセルが埋まらないことが見える
+                // silent-ok: 地表が無い列は下限なし（ADR 0081と同じ扱い）/ プレビューでそのセルが埋まらないことが見える
+                // silent-ok: a column with no ground has no floor (the same treatment as ADR 0081); the preview shows that cell stays unburied
                 var max = GroundHeightProbe.TryGetFootprintMaxGroundHeight(new Vector3Int(x, 0, z), BlockDirection.North, Vector3Int.one, out var probed) ? probed : NoGround;
                 _groundMaxHeights[column] = max;
                 return max;

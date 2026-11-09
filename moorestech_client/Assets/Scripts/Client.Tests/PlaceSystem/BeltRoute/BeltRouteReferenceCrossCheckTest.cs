@@ -12,6 +12,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
     // Cross-checks production search against the exhaustive reference (existence, cost bound)
     // 参照が見つけたら本番も見つける。コストは参照×W＋余裕以内
     // When the reference finds a route production must too, within W times the reference plus slack
+    // ランダム試験は見つけた経路の形だけを検査し「経路なし」は素通りするので、存在はここで守る
+    // The randomized test only inspects found routes and lets "no route" pass, so existence is guarded here
     public class BeltRouteReferenceCrossCheckTest
     {
         // 回数は PR 追加テスト全体で 1 秒に収める裁定（2026-11-07）に合わせる
