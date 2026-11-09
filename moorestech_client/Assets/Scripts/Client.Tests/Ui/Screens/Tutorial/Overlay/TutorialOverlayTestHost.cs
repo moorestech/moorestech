@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Anchor;
 using Client.Ui.Screens.Tutorial.Anchor;
 using Client.Ui.State.Tutorial.Overlay;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.Tutorial.Overlay
@@ -60,6 +61,13 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             // 周期のトークンは "1200ms" の形で書かれている
             // Duration tokens are written like "1200ms"
             return float.Parse(ThemeTokenFile.Resolve(tokenName).Replace("ms", string.Empty), CultureInfo.InvariantCulture);
+        }
+
+        protected static Rect UnpulsedWorldBound(VisualElement element)
+        {
+            // 脈動の拡縮を除いた矩形で見る（worldBound は scale を含み、脈動の位相で揺れる）
+            // Read the rect without the pulse scale (worldBound includes scale and sways with the pulse phase)
+            return element.parent.LocalToWorld(element.layout);
         }
 
         protected static IReadOnlyCollection<string> Ids(params string[] anchorIds)
