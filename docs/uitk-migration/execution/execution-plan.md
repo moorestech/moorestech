@@ -315,7 +315,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 
 - **書く時期**: 依存レーンが `feature/uitk` にマージされた直後（C3 は C2 の 3 本、C4 は自分の行の依存に挙がる C3〈C4-e は C3-a だけ。E-22〉、S2 は C2、S3 は C3＋L0-s3、S4 は C4＋L0-s4、S5 は C4-d・C3-b・S4-gamma、撤去は S5-ladder）
 - **書き方**: 指揮が Editor 不要の枠で起草エージェント（Claude Code opus、moores-writing-plans）を起こす。入力は §1 のこのレーンの行・設計書の該当部品・マージ済みの部品の公開 API（`feature/uitk` の実物）・写すテストのファイル一覧（tests-ladder 付録）・参照キャプチャの該当画面
-- **計画に必ず書くこと**: 使う部品と公開 API（実物から写す）、画面だけの部品の置き場（`Screens/<機能>/Parts/`）、つまみの上書き（Web の局所上書き変数と同名）、写すテストの名前と件数・`/// <web-test>`、比較の撮影（720p と 2560×1080）、録画、`MainGameUiRegistration` の画面登録区画に足す 1 行、新しい共有を見つけたら自分で作らず申告する手順
+- **計画に必ず書くこと**: 使う部品と公開 API（実物から写す）、画面だけの部品の置き場（`Screens/<機能>/Parts/`）、つまみの上書き（Web の局所上書き変数と同名）、写すテストの名前と件数・`/// <web-test>`、比較の撮影（720p と 2560×1080。撮り方は `compare-procedure.md` §3「撮影の道具」の `UiRuntimePanelCapture`〈部品・EditMode〉と `GameViewResolution`／`PlaytestGameViewOps.SetResolution`〈画面・PlayMode〉を使い、使い捨ての撮影スクリプトを書かない。道具で撮れない状態は計画に理由を書いて integrator へ道具の拡張を申告する）、録画、`MainGameUiRegistration` の画面登録区画に足す 1 行、新しい共有を見つけたら自分で作らず申告する手順
 - 書いたら §5 のレビューフローを通し、docs PR で `feature/uitk` へ入れてから §4.1 で起こす
 
 ---

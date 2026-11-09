@@ -43,6 +43,8 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 
 ### 撮影の道具（使い捨ての手順を書かない）
 
+- 計画を書くときは、比較の撮影の手順にこの節の道具を名指しで書く（実行計画 §6.2「計画に必ず書くこと」）。道具で撮れない状態（例: Web の参照の組に無い掴み絵）だけ、計画に理由を書いて使い捨てで撮り、道具の拡張を integrator へ依頼する
+
 - **部品をランタイムの合成で PNG にする**（EditMode。PlayMode 中は止める）: `Client.Ui.Editor.Capture.UiRuntimePanelCapture`。倍率は本番の ScaleWithScreenSize が幅×高さから決める（2560×1080 なら 1.5）。地の色は参照の画素を 1 色で渡す。画素を数で見たいときは `Render(...)` が読める `Texture2D` を返す（左下原点。捨てるのは呼び手）
 
 ```bash
