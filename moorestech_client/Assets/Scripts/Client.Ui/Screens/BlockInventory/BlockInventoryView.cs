@@ -109,8 +109,11 @@ namespace Client.Ui.Screens.BlockInventory
                 }
                 if (_error == null)
                 {
+                    // Web は素の div なので本文の既定（Mantine md 16px・行 1.55・余白 0）を当てる
+                    // The Web uses a bare div, so apply the body default (Mantine md 16px, line 1.55, no margin)
                     _error = new LocalizedLabel();
                     _error.AddToClassList("block-inventory__error");
+                    _error.AddToClassList(UiTypographyClass.TextMd);
                 }
                 _error.name = state is OpenTrainInventoryPanel ? TrainErrorName : BlockErrorName;
                 _error.SetKey(key);

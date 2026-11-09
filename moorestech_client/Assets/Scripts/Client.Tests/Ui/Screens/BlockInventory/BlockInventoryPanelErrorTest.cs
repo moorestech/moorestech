@@ -40,8 +40,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             simulate.FrameUpdate();
 
             BlockInventoryPanelErrorText.TryGetLocalizationKey(error, out var key);
-            Assert.AreEqual(new UiText(key).Resolve(), Find<Label>(shell.View, "train-inventory-error").text);
+            var row = Find<Label>(shell.View, "train-inventory-error");
+            Assert.AreEqual(new UiText(key).Resolve(), row.text);
             Assert.IsNull(shell.View.Q("block-inventory-error"));
+            // Web の素の div と同じ本文の既定（16px・左の余白 0）で題の左端に揃う
+            // Same body default as the Web bare div (16px, no left inset), aligned with the title's left edge
+            Assert.AreEqual(16f, row.resolvedStyle.fontSize, 0.01f);
+            Assert.AreEqual(0f, row.resolvedStyle.marginLeft + row.resolvedStyle.paddingLeft, 0.01f);
         }
 
         [Test]
