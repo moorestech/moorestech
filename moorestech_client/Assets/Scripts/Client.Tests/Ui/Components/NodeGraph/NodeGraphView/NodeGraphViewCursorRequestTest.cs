@@ -1,3 +1,4 @@
+using System;
 using Client.Ui.Components.NodeGraph;
 using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
@@ -7,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// OS カーソルの要求の積み上げ（中断・外側の要求・非表示）で形が正しく戻ることを固定する
-    /// Pins that the OS cursor shape returns correctly across aborts, outer requests and hiding
+    /// OS カーソルの要求の積み上げ（中断・外側の要求・カードの要素の層・非表示）で形が正しく戻ることを固定する
+    /// Pins that the OS cursor shape returns correctly across aborts, outer requests, the card element layer and hiding
     /// </summary>
     public class NodeGraphViewCursorRequestTest : NodeGraphTestStage
     {
@@ -22,7 +23,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
             simulate.MouseDown(inside, MouseButton.LeftMouse);
             simulate.MouseMove(inside + new Vector2(20f, 10f));
             Assert.IsTrue(view.ClassListContains("node-graph--panning"));
-            Assert.AreEqual(UiOsCursorShape.Grabbing, OsCursor.Current);
+            Assert.AreEqual(UiOsCursorShape.Grabbing, AppliedCursor.Current);
 
             // 別の要素に捕捉を奪わせて中断を起こす
             // Let another element steal the capture to trigger the abort
@@ -33,24 +34,78 @@ namespace Client.Tests.Ui.Components.NodeGraph
             simulate.FrameUpdate();
             thief.ReleasePointer(PointerId.mousePointerId);
             Assert.IsFalse(view.ClassListContains("node-graph--panning"), "class removed on abort");
-            Assert.AreEqual(UiOsCursorShape.Grab, OsCursor.Current, "back to the grab hand");
-            Assert.AreEqual(1, OsCursor.LiveRequestCount, "only the hover request remains");
+            Assert.AreEqual(UiOsCursorShape.Grab, AppliedCursor.Current, "back to the grab hand");
+
+            // 外へ出ると既定へ戻る（握った手の要求が残っていない）
+            // Leaving returns to the default (no grabbing request is left)
+            simulate.MouseMove(new Vector2(5f, 5f));
+            simulate.FrameUpdate();
+            Assert.AreEqual(UiOsCursorShape.Default, AppliedCursor.Current, "only the hover request remained");
         }
 
         [Test]
-        public void 画面側の要求が積まれていてもビューポートを出ると画面の要求の形へ戻る()
+        public void 画面側の地の要求が積まれていてもビューポートを出ると画面の要求の形へ戻る()
         {
             var view = MountView(MountHost(400f, 300f));
             var inside = ContentOrigin(view) + new Vector2(10f, 10f);
-            using (OsCursor.Request(UiOsCursorShape.Grab))
+            using (OsCursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Surface))
             {
                 simulate.MouseMove(new Vector2(5f, 5f));
                 simulate.MouseMove(inside);
+                Assert.AreEqual(UiOsCursorShape.Grab, AppliedCursor.Current, "the viewport grab is the later surface request");
                 simulate.MouseMove(new Vector2(5f, 5f));
                 simulate.FrameUpdate();
-                Assert.AreEqual(UiOsCursorShape.Grab, OsCursor.Current, "the outer request is still live");
-                Assert.AreEqual(1, OsCursor.LiveRequestCount);
+                Assert.AreEqual(UiOsCursorShape.Pointer, AppliedCursor.Current, "back to the outer request");
             }
+            Assert.AreEqual(UiOsCursorShape.Default, AppliedCursor.Current);
+        }
+
+        [Test]
+        public void カード上で押して外へ出しカード上で離すとカードの指が地の掴む手に勝つ()
+        {
+            var view = MountView(MountHost(400f, 300f));
+            var card = Card("card-a");
+            RequestPointerWhileHovered(card);
+            view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, card) }, NodeGraphFocus.None));
+            simulate.FrameUpdate();
+            var onCard = card.worldBound.center;
+            var outside = new Vector2(5f, 5f);
+
+            // 地の掴む手 → カードの指 → パン中の握った手
+            // Surface grab, then the card pointer, then the grabbing hand while panning
+            simulate.MouseMove(outside);
+            simulate.MouseMove(ContentOrigin(view) + new Vector2(10f, 10f));
+            simulate.MouseMove(onCard);
+            Assert.AreEqual(UiOsCursorShape.Pointer, AppliedCursor.Current, "card pointer over the surface grab");
+            simulate.MouseDown(onCard, MouseButton.LeftMouse);
+            simulate.MouseMove(onCard + new Vector2(20f, 10f));
+            Assert.AreEqual(UiOsCursorShape.Grabbing, AppliedCursor.Current, "grabbing while panning");
+
+            // 捕捉したまま外へ出て、押した点へ戻る（カードはパンで指に付いてくるのでカードの上）と離す
+            // Leave while captured, return to the press point (the card follows the pan, so it is under the pointer), then release
+            simulate.MouseMove(outside);
+            Assert.AreEqual(UiOsCursorShape.Grabbing, AppliedCursor.Current, "still grabbing outside");
+            simulate.MouseMove(onCard);
+            Assert.IsTrue(card.worldBound.Contains(onCard), "the card followed the pan back under the pointer");
+            simulate.MouseUp(onCard, MouseButton.LeftMouse);
+            simulate.FrameUpdate();
+            Assert.AreEqual(UiOsCursorShape.Pointer, AppliedCursor.Current, "the card pointer beats the re-taken surface grab");
+        }
+
+        [Test]
+        public void 先に取った要素の層の指はビューポートが後から取った掴む手に勝つ()
+        {
+            // 要素の層の要求が先に生きていても、ビューポートの掴む手は地の層なので指が残る
+            // An element-layer request taken first keeps the pointer, since the viewport grab is on the surface layer
+            var view = MountView(MountHost(400f, 300f));
+            using (OsCursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Element))
+            {
+                simulate.MouseMove(new Vector2(5f, 5f));
+                simulate.MouseMove(ContentOrigin(view) + new Vector2(10f, 10f));
+                simulate.FrameUpdate();
+                CollectionAssert.AreEqual(new[] { UiOsCursorShape.Pointer }, AppliedCursor.AppliedShapes, "the later surface grab never overrides the element pointer");
+            }
+            Assert.AreEqual(UiOsCursorShape.Grab, AppliedCursor.Current, "the grab hand once the element pointer is withdrawn");
         }
 
         [Test]
@@ -60,13 +115,29 @@ namespace Client.Tests.Ui.Components.NodeGraph
             var view = MountView(host);
             simulate.MouseMove(new Vector2(5f, 5f));
             simulate.MouseMove(ContentOrigin(view) + new Vector2(10f, 10f));
-            Assert.AreEqual(UiOsCursorShape.Grab, OsCursor.Current);
+            Assert.AreEqual(UiOsCursorShape.Grab, AppliedCursor.Current);
 
             host.style.display = DisplayStyle.None;
             simulate.FrameUpdate();
             simulate.FrameUpdate();
-            Assert.AreEqual(UiOsCursorShape.Default, OsCursor.Current);
-            Assert.AreEqual(0, OsCursor.LiveRequestCount);
+            Assert.AreEqual(UiOsCursorShape.Default, AppliedCursor.Current);
+        }
+
+        private void RequestPointerWhileHovered(VisualElement card)
+        {
+            // 画面側のカードと同じく、乗っている間だけ要素の層で指を要求する
+            // Like a screen's card, request the pointer on the element layer only while hovered
+            IDisposable request = null;
+            card.RegisterCallback<PointerEnterEvent>(evt =>
+            {
+                if (evt.target == card) request ??= OsCursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            });
+            card.RegisterCallback<PointerLeaveEvent>(evt =>
+            {
+                if (evt.target != card) return;
+                request?.Dispose();
+                request = null;
+            });
         }
     }
 }

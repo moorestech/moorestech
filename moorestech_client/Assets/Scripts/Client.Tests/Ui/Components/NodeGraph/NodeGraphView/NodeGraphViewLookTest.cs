@@ -123,7 +123,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
             simulate.MouseMove(inside);
             simulate.MouseDown(inside, MouseButton.LeftMouse);
             simulate.MouseMove(inside + new Vector2(20f, 10f));
-            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing }, OsCursor.AppliedShapes);
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing }, AppliedCursor.AppliedShapes);
 
             // 中で離すと掴む手へ戻り、外へ出ると既定へ戻る
             // Releasing inside returns to grab; leaving returns to the default
@@ -131,7 +131,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
             simulate.FrameUpdate();
             simulate.MouseMove(outside);
             simulate.FrameUpdate();
-            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing, UiOsCursorShape.Grab, UiOsCursorShape.Default }, OsCursor.AppliedShapes);
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing, UiOsCursorShape.Grab, UiOsCursorShape.Default }, AppliedCursor.AppliedShapes);
         }
 
         [Test]
@@ -148,13 +148,13 @@ namespace Client.Tests.Ui.Components.NodeGraph
             simulate.MouseDown(inside, MouseButton.LeftMouse);
             simulate.MouseMove(inside + new Vector2(20f, 10f));
             simulate.MouseMove(outside);
-            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing }, OsCursor.AppliedShapes);
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing }, AppliedCursor.AppliedShapes);
 
             // 外で離すと既定へ戻る
             // Releasing outside returns to the default
             simulate.MouseUp(outside, MouseButton.LeftMouse);
             simulate.FrameUpdate();
-            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing, UiOsCursorShape.Default }, OsCursor.AppliedShapes);
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing, UiOsCursorShape.Default }, AppliedCursor.AppliedShapes);
         }
 
         [Test]

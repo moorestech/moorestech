@@ -7,6 +7,7 @@ namespace Client.Ui.Foundation.Input.OsCursor
     public enum UiOsCursorShape
     {
         Default,
+        Pointer,
         Grab,
         Grabbing,
     }

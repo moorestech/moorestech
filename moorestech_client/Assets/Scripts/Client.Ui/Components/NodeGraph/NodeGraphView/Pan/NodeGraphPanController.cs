@@ -16,17 +16,17 @@ namespace Client.Ui.Components.NodeGraph
     internal sealed class NodeGraphPanController : IUiPressGestureHandler
     {
         private readonly NodeGraphView _view;
-        private readonly NodeGraphCursorSwitcher _cursor;
+        private readonly NodeGraphPointerFeedback _pointerFeedback;
         private readonly NodeGraphPanInertiaTracker _tracker = new();
         private UiMotionHandle _glide;
         private long _lastPointerTimestamp;
         private VisualElement _lastPointerDownTarget;
         private string _pressedNodeKey;
 
-        public NodeGraphPanController(NodeGraphView view, NodeGraphCursorSwitcher cursor)
+        public NodeGraphPanController(NodeGraphView view, NodeGraphPointerFeedback pointerFeedback)
         {
             _view = view;
-            _cursor = cursor;
+            _pointerFeedback = pointerFeedback;
 
             // 同じ要素の同じ相の受け手は登録順に走るので、記録と滑走の停止を先に登録する
             // Callbacks on the same element and phase run in registration order, so recording and glide stop go first
@@ -56,7 +56,7 @@ namespace Client.Ui.Components.NodeGraph
         {
             // パン中は握った手のカーソルとクラスにする（Web の :active の grabbing）
             // Show the grabbing cursor and class while panning (the Web :active grabbing)
-            _cursor.StartPanning();
+            _pointerFeedback.StartPanning();
 
             // 座標はパネル px（＝ビューポートの局所の px）なので、そのまま速度とパンに使う
             // Coordinates are panel px (= viewport-local px), so they feed velocity and pan as-is
@@ -66,7 +66,7 @@ namespace Client.Ui.Components.NodeGraph
 
         public void OnDragEnded(Vector2 panelPosition)
         {
-            _cursor.EndPanning(panelPosition);
+            _pointerFeedback.EndPanning(panelPosition);
             // silent-ok: 止まってから離した・遅い回は Web と同じく滑走しない / 正常系で知らせる相手はいない
             if (!_tracker.TryStartFling(_lastPointerTimestamp, out var velocity)) return;
             _glide = UiMotionPlayer.Play(_view, NodeGraphPanVelocity.CreateGlide(velocity.magnitude, new NodeGraphGlideStep(_view, velocity.normalized)));
@@ -81,7 +81,7 @@ namespace Client.Ui.Components.NodeGraph
         {
             // 取消・捕捉の喪失はドラッグ済みでも滑走させず、握った手を戻す
             // A cancel or lost capture never glides, even after dragging, and drops the grabbing cursor
-            _cursor.AbortPanning();
+            _pointerFeedback.AbortPanning();
             _tracker.Reset();
             CancelGlide();
         }

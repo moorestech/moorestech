@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.NodeGraph;
+using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
@@ -18,7 +20,8 @@ namespace Client.Tests.Ui.Components.NodeGraph
         protected const float CardWidth = 60f;
         protected const float CardHeight = 40f;
 
-        protected FakeUiOsCursor OsCursor { get; private set; }
+        protected UiOsCursorRequestStack OsCursor { get; private set; }
+        protected FakeUiOsCursorApplier AppliedCursor { get; private set; }
 
         [SetUp]
         public void ZeroSimulatedFrameTime()
@@ -26,7 +29,10 @@ namespace Client.Tests.Ui.Components.NodeGraph
             // 事象ごとの自動加算（既定 200ms）を 0 にし、ポインタの時刻を FrameUpdateMs だけで進める
             // Zero the per-event auto increment (default 200 ms) so pointer timestamps advance only by FrameUpdateMs
             simulate.timePerSimulatedFrameMs = 0;
-            OsCursor = new FakeUiOsCursor();
+            // 要求スタックは本物、当て先だけ記録する偽物にする
+            // Use the real request stack with a recording fake applier
+            AppliedCursor = new FakeUiOsCursorApplier();
+            OsCursor = new UiOsCursorRequestStack(AppliedCursor);
         }
 
         [TearDown]

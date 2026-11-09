@@ -6,10 +6,10 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ビューポートの上では掴む手、パン中は握った手を OS カーソルへ要求し、パン中のクラスも同じ所で付け外す。web: TreeView.module.css の .viewport { cursor: grab } と :active の grabbing
-    /// Requests the grab hand over the viewport and the grabbing hand while panning from the OS cursor and toggles the panning class in the same place; web: TreeView.module.css .viewport cursor grab and :active grabbing
+    /// ポインタへの見た目の手応え。ビューポートの上では地の層で掴む手、パン中はドラッグの層で握った手を OS カーソルへ要求し、パン中のクラスも付け外す。カードの指は画面側が要素の層で要求し、地の掴む手に勝つ。web: TreeView.module.css の .viewport { cursor: grab } と :active の grabbing
+    /// Pointer feedback: requests the grab hand on the surface layer over the viewport and the grabbing hand on the drag layer while panning, and toggles the panning class; screens request the card pointer on the element layer, which beats the surface grab; web: TreeView.module.css .viewport cursor grab and :active grabbing
     /// </summary>
-    internal sealed class NodeGraphCursorSwitcher
+    internal sealed class NodeGraphPointerFeedback
     {
         private const string PanningClass = "node-graph--panning";
 
@@ -18,7 +18,7 @@ namespace Client.Ui.Components.NodeGraph
         private IDisposable _hoverRequest;
         private IDisposable _panRequest;
 
-        public NodeGraphCursorSwitcher(VisualElement viewport, IUiOsCursor osCursor)
+        public NodeGraphPointerFeedback(VisualElement viewport, IUiOsCursor osCursor)
         {
             _viewport = viewport;
             _osCursor = osCursor;
@@ -35,7 +35,7 @@ namespace Client.Ui.Components.NodeGraph
             // silent-ok: 握った手は取得済み（ドラッグ中は毎回呼ばれる） / 正常系
             if (_panRequest != null) return;
             _viewport.AddToClassList(PanningClass);
-            _panRequest = _osCursor.Request(UiOsCursorShape.Grabbing);
+            _panRequest = _osCursor.Request(UiOsCursorShape.Grabbing, UiOsCursorLayer.Drag);
         }
 
         public void EndPanning(Vector2 panelPosition)
@@ -73,14 +73,14 @@ namespace Client.Ui.Components.NodeGraph
         {
             // silent-ok: 子の出入りの事象は無視する / 中に居る間の正常系
             if (evt.target != _viewport) return;
-            // パン中（捕捉中）は握った手の要求が上にあるので、外へ出ても握った手のまま
-            // While panning (captured) the grabbing request is on top, so it stays grabbing outside
+            // パン中（捕捉中）は握った手がドラッグの層にあるので、外へ出ても握った手のまま
+            // While panning (captured) the grabbing hand sits on the drag layer, so it stays grabbing outside
             ReleaseHover();
         }
 
         private void RequestHover()
         {
-            _hoverRequest ??= _osCursor.Request(UiOsCursorShape.Grab);
+            _hoverRequest ??= _osCursor.Request(UiOsCursorShape.Grab, UiOsCursorLayer.Surface);
         }
 
         private void ReleaseHover()

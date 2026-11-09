@@ -26,7 +26,7 @@ namespace Client.Ui.Components.NodeGraph
         private readonly VisualElement _canvas;
         private readonly NodeGraphScene _scene;
         private readonly NodeGraphPanController _pan;
-        private readonly NodeGraphCursorSwitcher _cursor;
+        private readonly NodeGraphPointerFeedback _pointerFeedback;
         private readonly Subject<string> _onNodeTapped = new();
         private readonly Subject<NodeGraphViewport> _onViewportChanged = new();
         private bool _restored;
@@ -58,8 +58,8 @@ namespace Client.Ui.Components.NodeGraph
 
             // 押下とパンは Foundation の UiPressGesture、手のカーソルは Foundation の OS カーソル、ホイール・寸法・つまみは自分で受ける
             // Press and pan use Foundation UiPressGesture, the hand cursor the Foundation OS cursor; wheel, size and knobs are handled here
-            _cursor = new NodeGraphCursorSwitcher(this, osCursor);
-            _pan = new NodeGraphPanController(this, _cursor);
+            _pointerFeedback = new NodeGraphPointerFeedback(this, osCursor);
+            _pan = new NodeGraphPanController(this, _pointerFeedback);
             RegisterCallback<WheelEvent>(OnWheel);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
@@ -129,7 +129,7 @@ namespace Client.Ui.Components.NodeGraph
             // A shrink to 0 (display: none ancestor) sends no PointerLeave, so release the hand cursor and neither follow nor record; reopening follows from the pre-hide size
             if (size.x <= 0f || size.y <= 0f)
             {
-                _cursor.ReleaseAll();
+                _pointerFeedback.ReleaseAll();
                 return;
             }
             var keepsCenter = !_restored && _hasClipInset && 0f < _lastContentSize.x && 0f < _lastContentSize.y && size != _lastContentSize;
