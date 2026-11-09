@@ -3717,7 +3717,7 @@ Expected: `web-<sha>-1920x1080/3-modal.png` と `manifest.json`。worktree が�
 
 - [ ] **Step 2: 撮影の口を用意する（PlayMode・GameUi・言語・複製した PanelSettings の RenderTexture）**
 
-S2-mode-tooltip の Task 10 Step 2 と同じ手順で、`GameUiPanelSettings.asset` の複製に 1280×720・1920×1080・2560×1080 の sRGB ARGB32 RenderTexture を付けた UIDocument（名前 `s3hm-compare-<w>`）を作り、言語を参照（`manifest.json` と png を Read して確かめる）に揃え、ロケールのクラスを当てる。ルートの背景は参照の画面から読んだ単色（ホットバーは枠の周りの地、モーダルは幕の外の世界の色。D-31）にし、差の表に「背景は世界でなく単色」と書く。撮るたびに `uloop focus-window` の後の EDC で `RenderTexture.active` → `ReadPixels` → `EncodeToPNG` で `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/uitk-<撮影 id>-<w>x<h>.png` へ書く
+S2-mode-tooltip の Task 10 Step 2 と同じ手順で、`GameUiPanelSettings.asset` の複製に 1280×720・1920×1080・2560×1080 の sRGB ARGB32 RenderTexture を付けた UIDocument（名前 `s3hm-compare-<w>`）を作り、言語を参照（`manifest.json` と png を Read して確かめる）に揃え、ロケールのクラスを当てる。ルートの背景は参照の画面から読んだ単色（ホットバーは枠の周りの地。モーダルは幕の無い `2-game-hud.png` の (640,150) の色〈rgb(243,191,136)〉の全面にし、その上に `UiModalHost` の幕を描く。`3-modal.png` は幕が掛かった後の色なので背景に使うと二重に暗くなる。前例 C3-b 計画 Task の並べ比べの (640,150)。D-31）にし、差の表に「背景は世界でなく単色」と書く。撮るたびに `uloop focus-window` の後の EDC で `RenderTexture.active` → `ReadPixels` → `EncodeToPNG` で `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/uitk-<撮影 id>-<w>x<h>.png` へ書く
 
 - [ ] **Step 3: ホットバーを撮る（1280×720・2560×1080）**
 
