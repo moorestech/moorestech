@@ -1,0 +1,109 @@
+using Client.Ui.Components.Gauges;
+using Client.Ui.Components.Panels;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Components.Gauges
+{
+    /// <summary>
+    /// drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) を写す輪のメッシュの形・向き・濃さを既定寸法の値で確かめる
+    /// Checks the shape, winding and alpha of the ring mesh copying drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) at the default size
+    /// </summary>
+    public class ProgressArrowGlyphShadowMeshTest
+    {
+        // 既定寸法の倍率・線の外縁（線幅 2 の半分×倍率）・影の色（DerivedTokens の値）
+        // Default-size scale, stroke outer edge (half of width 2 times scale) and the shadow color (the DerivedTokens value)
+        private const float Scale = 30.53f / 78f;
+
+        // 輪ごとの頂点の数。頂点の添字は 輪×Corners＋角
+        // Vertices per ring; a vertex index is ring times Corners plus corner
+        private const int Corners = ProgressArrowGlyphPath.VertexCount;
+        private static readonly Color ShadowColor = new(0f, 0f, 0f, 0.6691f);
+
+        // Vertex.tint は Color32 なので α を 255 で割って比べ、計算の丸め 0.002 に 8 bit の量子化 1/255 を足す
+        // Vertex.tint is Color32, so compare alpha divided by 255 with 0.002 rounding plus the 1/255 8-bit quantum
+        private const float AlphaTolerance = 0.002f + 1f / 255f;
+
+        private readonly Vertex[] _vertices = new Vertex[ProgressArrowGlyphShadowMesh.VertexCount];
+        private readonly ushort[] _indices = new ushort[ProgressArrowGlyphShadowMesh.IndexCount];
+
+        [SetUp]
+        public void BuildDefault()
+        {
+            ProgressArrowGlyphShadowMesh.Build(Scale, Scale, 1f, 1f, ShadowColor, _vertices, _indices);
+        }
+
+        [Test]
+        public void 頂点は9本の輪で添字は芯と8本の帯の三角を全部指す()
+        {
+            Assert.AreEqual(63, ProgressArrowGlyphShadowMesh.VertexCount);
+            Assert.AreEqual(9 + 8 * 7 * 6, ProgressArrowGlyphShadowMesh.IndexCount);
+            foreach (var index in _indices) Assert.Less(index, ProgressArrowGlyphShadowMesh.VertexCount);
+        }
+
+        [Test]
+        public void 三角は全部画面座標で時計回り()
+        {
+            for (var i = 0; i < _indices.Length; i += 3)
+            {
+                var a = _vertices[_indices[i]].position;
+                var b = _vertices[_indices[i + 1]].position;
+                var c = _vertices[_indices[i + 2]].position;
+                var cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+                Assert.Greater(cross, 0f, $"triangle {i / 3}");
+            }
+        }
+
+        [Test]
+        public void 真ん中の輪は線の外縁を1px下げた位置で濃さは半分を補正した値()
+        {
+            // 輪 4 は縁そのもの（d=0）。被覆率 0.5 を暗い色の式で Linear 合成用に直すと 0.376
+            // Ring 4 is the edge itself (d=0); coverage 0.5 corrected for Linear blending by the dark formula is 0.376
+            var tip = _vertices[4 * Corners + 3];
+            Assert.AreEqual(119f * Scale + Scale * 1.6810f, tip.position.x, 0.001f);
+            Assert.AreEqual(39f * Scale + 1f, tip.position.y, 0.001f);
+            Assert.AreEqual(Vertex.nearZ, tip.position.z);
+            Assert.AreEqual(0.376f, tip.tint.a / 255f, AlphaTolerance);
+        }
+
+        [Test]
+        public void 輪は外へ行くほど薄くなり縁から1px外は標準偏差1pxの被覆率()
+        {
+            // ぼかし 1px は σ=1px。縁から 1px 外（輪 6）の被覆率は Φ(-1)=0.158655、外端（輪 8）は縁から 2px 外
+            // A 1px blur is σ=1px; ring 6 (1px outside the edge) has coverage Φ(-1)=0.158655 and ring 8 sits 2px outside
+            Assert.AreEqual(0.158655f, GaussianEdgeCoverage.At(1f, 1f), 1e-5f);
+            Assert.AreEqual(0.658f, _vertices[0].tint.a / 255f, AlphaTolerance);
+            Assert.AreEqual(0.128f, _vertices[6 * Corners].tint.a / 255f, AlphaTolerance);
+            Assert.Less(_vertices[8 * Corners].tint.a / 255f, 0.019f + AlphaTolerance);
+            Assert.AreEqual(119f * Scale + (Scale + 2f) * 1.6810f, _vertices[8 * Corners + 3].position.x, 0.001f);
+            for (var ring = 1; ring <= ProgressArrowGlyphShadowMesh.RingCount; ring++)
+                Assert.Less(_vertices[ring * Corners].tint.a, _vertices[(ring - 1) * Corners].tint.a, $"ring {ring}");
+        }
+
+        [Test]
+        public void 影の色のトークンは暗い色の式でWebのα045へ逆に解ける()
+        {
+            // OpacityAt はトークンの α が暗い色の式 1-(1-α)^1.85 で補正済みである前提で逆に解く。値を実測で選び直しても前提はここで守る
+            // OpacityAt inverts assuming the token alpha is corrected by the dark formula 1-(1-α)^1.85; this guards the premise even after re-measuring
+            var tokenAlpha = ThemeTokenFile.ResolveColor("--progress-arrow-glyph-shadow").a;
+            var webAlpha = 1f - Mathf.Pow(1f - tokenAlpha, 1f / 1.85f);
+            // Web の影の実効 α は 0.45×描いた画素の α（溝だけ 0.36・線だけ 0.315・重なり 0.423）なので、選び直しはこの範囲に入る
+            // The Web effective shadow alpha is 0.45 times the drawn pixel alpha (track 0.36, stroke 0.315, overlap 0.423), so re-measured values stay in range
+            Assert.That(webAlpha, Is.InRange(0.30f, 0.50f), $"token alpha {tokenAlpha} is not a dark-corrected Web shadow alpha");
+            Assert.AreEqual(tokenAlpha, GamePanelFaceOpacityRamp.OpacityAt(tokenAlpha, 1f), 1e-4f);
+        }
+
+        [Test]
+        public void 色は影の色のままで輪ごとに同じ濃さ()
+        {
+            for (var ring = 0; ring <= ProgressArrowGlyphShadowMesh.RingCount; ring++)
+            for (var corner = 0; corner < Corners; corner++)
+            {
+                var tint = _vertices[ring * Corners + corner].tint;
+                Assert.AreEqual(0, tint.r + tint.g + tint.b);
+                Assert.AreEqual(_vertices[ring * Corners].tint.a, tint.a, $"ring {ring} corner {corner}");
+            }
+        }
+    }
+}
