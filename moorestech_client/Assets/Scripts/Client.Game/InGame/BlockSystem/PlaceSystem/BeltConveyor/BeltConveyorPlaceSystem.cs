@@ -150,8 +150,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private void UpdateBranchCandidate(BlockGameObject belt, PlacementFeedback feedback)
         {
-            // R は既定の出口（直線なら右、角なら正面）と残りの出口を切り替える
-            // R toggles between the default exit (right for a straight belt, front for a corner) and the other one
+            // R で既定の出口と残りを切替
+            // R toggles between the default exit and the other one
             if (BeltRouteKeyInput.IsRotatePressed) _branchUseAlternateExit = !_branchUseAlternateExit;
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(belt.BlockPosInfo.OriginalPos)) { feedback.AddTooFar(); return; }
 

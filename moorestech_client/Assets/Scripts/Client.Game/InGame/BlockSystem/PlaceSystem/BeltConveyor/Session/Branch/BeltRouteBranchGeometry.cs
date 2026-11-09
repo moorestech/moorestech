@@ -18,8 +18,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
     }
 
     /// <summary>
-    ///     分岐器の向きと出口の割り当て。向きはアイテムが入ってくる向き、出口は新しい経路が出るものと残り
-    ///     The splitter's facing and exit assignment: the facing is where items come in from, the exits are the branch's and the remaining one
+    ///     分岐器の向きと出口の割り当て
+    ///     向き=入ってくる向き
+    ///     出口=新経路と残り
+    ///     The splitter's facing and exit assignment
+    ///     Facing = where items come in from
+    ///     Exits = the new route's and the remaining one
     /// </summary>
     public readonly struct BeltRouteBranchShape
     {
@@ -34,8 +38,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
     }
 
     /// <summary>
-    ///     周囲の入出力辺だけから分岐器の向きと出口を決める。世界には触れない
-    ///     Decides the splitter's facing and exits from the surrounding port edges alone; never touches the world
+    ///     入出力辺だけから向きと出口を決める
+    ///     Decides the facing and exits from port edges alone
     /// </summary>
     public static class BeltRouteBranchGeometry
     {

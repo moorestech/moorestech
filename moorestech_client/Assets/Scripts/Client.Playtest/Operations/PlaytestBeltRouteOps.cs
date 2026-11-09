@@ -29,10 +29,10 @@ namespace Client.Playtest.Operations
             await driver.Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UI経路設置反映: {blockName} {fromOrigin}->{toOrigin}");
         }
 
-        // Ctrlを押したまま既存のベルトをクリックして分岐器へ置き換え、exitDirection の出口から終点まで経路を置く
-        // Click an existing belt with Ctrl held to replace it with a splitter and route from the exitDirection exit to the end
-        // exitDirection は呼び手が配置から決める（直線の既定は右、角の既定は正面。useAlternateExit で残りの出口）
-        // The caller derives exitDirection from the layout (a straight belt defaults to right, a corner to front; useAlternateExit picks the other exit)
+        // Ctrl+クリックで分岐器へ置換し、出口から終点まで経路設置
+        // Ctrl+click replaces the belt with a splitter and routes from the exit to the end
+        // exitDirection は呼び手が配置から決める
+        // The caller derives exitDirection from the layout
         public static async UniTask BranchPlaceViaUi(PlaytestDriver driver, string blockName, Vector3Int beltCell, bool useAlternateExit, BlockDirection exitDirection, Vector3Int toOrigin, BlockDirection endDirection)
         {
             await driver.OpenBuildMenuAndSelectBlock(blockName);
@@ -55,16 +55,16 @@ namespace Client.Playtest.Operations
             for (var i = 0; i < presses; i++) await driver.PressKey(Key.R);
         }
 
-        // 既存ベルトをCtrl+クリックして分岐の始点にする。始点確定後の向きは出口の向きになる（終点の向き回転の起点）
-        // Fixes a branch start by Ctrl+clicking an existing belt; the facing after confirmation is the exit heading, the base for rotating the end facing
+        // Ctrl+クリックで分岐の始点にする（始点確定後の向きは出口の向き）
+        // Ctrl+click fixes a branch start (the facing afterwards is the exit heading)
         private static async UniTask BranchStart(PlaytestDriver driver, Vector3Int beltCell, bool useAlternateExit)
         {
             // ベルトの箱の内側を狙えば、カメラからのレイは必ずその境界箱の面に当たる
             // Aiming inside the belt's box guarantees the camera ray hits that bounding box's face first
             SemanticInput.KeyDown(Key.LeftCtrl);
             await driver.AimAt(new Vector3(beltCell.x + 0.5f, beltCell.y + 0.5f, beltCell.z + 0.5f));
-            // 既定の出口は直線なら右、角なら正面。R で残りの出口へ切り替える
-            // The default exit is right for a straight belt and front for a corner; R switches to the other exit
+            // 既定は直線=右・角=正面、R で残り
+            // Default is right on a straight, front on a corner; R picks the other
             if (useAlternateExit) await driver.PressKey(Key.R);
             await driver.ClickPlace();
             SemanticInput.KeyUp(Key.LeftCtrl);

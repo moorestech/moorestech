@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 周囲の入出力辺だけから分岐器の向きと出口が決まることを確かめる（ADR 0097「既存ベルトからの分岐」2026-11-09）
-    // Checks that the splitter's facing and exits follow from the surrounding port edges alone (ADR 0097, branch section, 2026-11-09)
+    // 入出力辺だけで向きと出口が決まることを確認（ADR 0097）
+    // Checks the facing and exits follow from port edges alone (ADR 0097)
     public class BeltRouteBranchGeometryTest
     {
         private static readonly Vector3Int Cell = new(10, 3, 10);
@@ -34,8 +34,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BlockDirection.South, shape.BranchExit);
         }
 
-        // 北向きのベルトが西から受けている角: 分岐器は東向き、既定の出口は正面（東）、R で空いている横（南）
-        // A north-facing belt fed from the west: the splitter faces east, the default exit is the front (east), R switches to the free side (south)
+        // 北向き角を西から受ける: 分岐器は東向き・既定東・Rで南
+        // North-facing corner fed from the west: splitter faces east, default east, R gives south
         [Test]
         public void CornerFedFromLeftFacesTheFeederAndDefaultsToFront()
         {
@@ -78,8 +78,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BeltRouteBranchBlockReason.MultipleInputs, BeltRouteBranchGeometry.Resolve(edges, Cell, BlockDirection.North, false, out _));
         }
 
-        // 使わない出口の先に受け手がいると分岐不可。出口を切り替えて受け手側を分岐にすれば成立する
-        // A receiver beyond the unused exit blocks the branch; switching the exit so the receiver's side becomes the branch makes it valid
+        // 使わない出口の先に受け手がいると不可、出口切替で成立
+        // A receiver beyond the unused exit blocks it; switching the exit makes it valid
         [Test]
         public void ReceiverBeyondUnusedExitBlocksOnlyThatChoice()
         {
@@ -91,8 +91,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BlockDirection.South, shape.BranchExit);
         }
 
-        // 直線で使わない出口（既定なら左）の先に受け手がいると分岐不可。Rで右左を入れ替えると成立する
-        // On a straight belt a receiver beyond the unused exit (left by default) blocks the branch; toggling the exit makes it valid
+        // 直線の未使用出口の先に受け手があると不可、R で成立
+        // On a straight belt a receiver beyond the unused exit blocks it; R makes it valid
         [Test]
         public void StraightBeltReceiverBeyondUnusedExitBlocksOnlyThatChoice()
         {

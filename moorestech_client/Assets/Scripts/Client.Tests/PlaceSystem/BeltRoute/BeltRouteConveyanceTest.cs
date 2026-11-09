@@ -79,8 +79,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(TickUntilDelivered(mainSink, 1, branchSink, 1), $"items did not reach both chests main:{CountOf(mainSink)} branch:{CountOf(branchSink)}");
         }
 
-        // 西から来て北へ曲がる角 (2,0,0) を分岐器に置き換える。分岐器は東向き、既定の出口は正面（東）
-        // Replace the corner at (2,0,0), fed from the west and turning north, with a splitter facing east whose default exit is the front (east)
+        // 西から北へ曲がる角 (2,0,0) を分岐器へ置換（東向き、既定は東）
+        // Replace the west-to-north corner at (2,0,0) with a splitter (faces east, default exit east)
         [Test]
         public void CornerBranchSplitsItemsToBothChests()
         {
@@ -94,8 +94,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(2, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
             Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(2, 0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
 
-            // 本番の Judge と同じ写し方（角自身を除いた隣の辺）で向きと出口を決める
-            // Decide the facing and exit from the same copy the production Judge makes (neighbours' edges, excluding the corner itself)
+            // 本番 Judge と同じ写し方で向きと出口を決める
+            // Decide the facing and exit from the same copy the production Judge makes
             var reason = BeltRouteBranchGeometry.Resolve(BuildNeighbourEdges(world, corner), corner, BlockDirection.North, false, out var shape);
             Assert.AreEqual(BeltRouteBranchBlockReason.None, reason);
             Assert.AreEqual(BlockDirection.East, shape.SplitterFacing);

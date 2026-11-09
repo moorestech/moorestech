@@ -15,8 +15,14 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 搬送試験が共有するテスト用サーバーの組み立てと観測。箱への写し取り・チェスト・tick 回し
-    // Test-server setup and observation shared by the conveyance tests: copying into the box, chests, ticking
+    // 搬送試験が共有する
+    // ・テスト用サーバー組み立て
+    // ・箱への写し取り
+    // ・チェスト・tick 回し
+    // Shared by the conveyance tests:
+    // - test-server setup
+    // - copying into the box
+    // - chests and ticking
     public static class BeltRouteConveyanceWorld
     {
         private const int MaxTransportTicks = 600;
@@ -28,8 +34,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return ServerContext.WorldBlockDatastore;
         }
 
-        // サーバーの全ブロックを占有と入出力辺として箱へ写す。地形は無し
-        // Copies every server block into the box as occupancy and port edges; there is no terrain
+        // 全ブロックを占有・入出力辺として箱へ写す（地形なし）
+        // Copies every block into the box as occupancy and port edges (no terrain)
         public static BeltRouteGrid BuildGridFromWorld(IWorldBlockDatastore world)
         {
             var grid = new BeltRouteGrid(new Vector3Int(-8, 0, -8), new Vector3Int(24, 6, 24));
@@ -45,8 +51,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return grid;
         }
 
-        // 本番の Judge と同じく、対象セルのブロック自身を除いた隣の辺だけを1セルの箱へ写す
-        // Like the production Judge, copies only the neighbours' edges into a one-cell box, excluding the block on the target cell
+        // 本番 Judge と同じく自身を除いた隣の辺を箱へ写す
+        // Like the production Judge, copies the neighbours' edges into the box, excluding the cell itself
         public static BeltRouteGrid BuildNeighbourEdges(IWorldBlockDatastore world, Vector3Int cell)
         {
             var edges = new BeltRouteGrid(cell, Vector3Int.one);

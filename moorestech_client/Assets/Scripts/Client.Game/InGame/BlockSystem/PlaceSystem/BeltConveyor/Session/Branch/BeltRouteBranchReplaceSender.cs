@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
 {
     /// <summary>
-    ///     分岐の確定。既存ベルトの撤去要求が受理されてから、分岐器と経路の設置要求を送る
-    ///     Commits a branch: sends the placement of the splitter and route only after the existing belt's removal request is accepted
+    ///     撤去受理後に分岐器と経路を設置要求
+    ///     Requests the splitter and route placement after the removal is accepted
     /// </summary>
     public static class BeltRouteBranchReplaceSender
     {

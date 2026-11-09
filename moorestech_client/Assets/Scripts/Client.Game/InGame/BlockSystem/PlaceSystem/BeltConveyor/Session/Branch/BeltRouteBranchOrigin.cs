@@ -10,8 +10,12 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
 {
     /// <summary>
-    ///     分岐の始点。既存ベルトは同じファミリーの分岐器へ置き換わり、経路は幾何が選んだ出口から出る
-    ///     A branch start: the existing belt becomes the family's splitter and the route leaves through the exit the geometry chose
+    ///     分岐の始点
+    ///     既存ベルトを同ファミリー分岐器へ置換
+    ///     幾何が選んだ出口から経路
+    ///     A branch start
+    ///     The existing belt is replaced by the family's splitter
+    ///     The route leaves through the exit the geometry chose
     /// </summary>
     public sealed class BeltRouteBranchOrigin
     {
@@ -30,8 +34,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
         public BlockDirection SplitterFacing => _shape.SplitterFacing;
         public BlockDirection ExitDirection => _shape.BranchExit;
 
-        // 周囲の既存ブロックの入出力辺だけを1セルの箱に写し、向きと出口の判断は幾何に任せる
-        // Copies only the surrounding blocks' port edges into a one-cell box and leaves the facing and exit decision to the geometry
+        // 隣の入出力辺を1セルの箱へ写す
+        // Copies the neighbours' port edges into a one-cell box
         public static BeltRouteBranchBlockReason Judge(BlockGameObjectDataStore blocks, BlockGameObject belt, BeltConveyorHoldingBlock holding, bool useAlternateExit, out BeltRouteBranchOrigin origin)
         {
             origin = null;
