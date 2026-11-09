@@ -935,15 +935,13 @@ public void 未知のGUIDと未解放は送らずに良性でない拒否を返�
     var lockedResult = (UiCommandRejected)commands.Craft(locked.CraftRecipeGuid);
 
     Assert.AreEqual(UiCommandRejectReason.CraftRecipeUnknown, unknown.Reason);
-    Assert.AreEqual("invalid_recipe", UiCommandRejectReasons.ToWireCode(unknown.Reason));
+    Assert.AreEqual("invalid_recipe", UiCommandRejectReasonTraits.ToWireCode(unknown.Reason));
     Assert.AreEqual(UiCommandRejectReason.CraftRecipeLocked, lockedResult.Reason);
-    Assert.AreEqual("recipe_locked", UiCommandRejectReasons.ToWireCode(lockedResult.Reason));
-    Assert.IsFalse(UiCommandRejectReasons.IsBenign(UiCommandRejectReason.CraftRecipeLocked));
+    Assert.AreEqual("recipe_locked", UiCommandRejectReasonTraits.ToWireCode(lockedResult.Reason));
+    Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.CraftRecipeLocked));
     Assert.IsEmpty(sender.Sent);
 }
 ```
-
-（`UiCommandRejectReasons` は `UiCommandRejectReason.cs` の 3 switch を持つ静的クラスの実名に合わせる）
 
 `RecordingCraftRequestSender.cs`: `public sealed class RecordingCraftRequestSender : ICraftRequestSender { public List<Guid> Sent { get; } = new(); public void Send(Guid recipeGuid) { Sent.Add(recipeGuid); } }`
 
@@ -989,7 +987,7 @@ namespace Client.Ui.State.Recipe.Commands
             UiCommandResult Reject(UiCommandRejectReason reason)
             {
                 Debug.LogWarning($"[RecipeCommands] クラフトを断った reason={reason} recipe={recipeGuid}");
-                return new UiCommandRejected(reason, recipeGuid.ToString());
+                return new UiCommandRejected(reason, "");
             }
 
             #endregion
@@ -1932,6 +1930,7 @@ using Client.Ui.Components.Recipe;
 using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
+using Client.Ui.State.Items;
 using Client.Ui.State.Recipe.Data;
 using Client.Ui.State.Recipe.Logic;
 using Client.Ui.State.Recipe.Screen;
@@ -2605,7 +2604,7 @@ git commit -m "feat(uitk): レシピビューアのパネル（見出しの装�
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/ItemListView.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/ItemList.uss`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/Parts/{ItemListCellView.cs,ItemListDragScroll.cs}`
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss`（つまみ 5 本を参照するだけ。既定は要素に書かない）・`moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs`（バーの内側余白の比 0.2 を定数でなくつまみ `--game-scroll-view-scrollbar-padding-ratio` から読む）・`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss`（「S4-recipe」ブロックに 5 本の既定＝今の値を `:root` で置く。D-32）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss`（つまみ 5 本を参照するだけ。既定は `:root`。C# が読む比だけ要素で `-resolved` に受け直す）・`moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs`（バーの内側余白の比 0.2 を定数でなくつまみ `--game-scroll-view-scrollbar-padding-ratio` から読む）・`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss`（「S4-recipe」ブロックに 5 本の既定＝今の値を `:root` で置く。D-32）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/ItemList/{ItemListViewTest.cs,ItemListScrollGeometryTest.cs,ItemListDragScrollTest.cs}`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Controls/GameScrollViewKnobTest.cs`
 
@@ -2749,7 +2748,7 @@ public void 祖先の要素で上書きしても中のGameScrollViewのバーの
 `GameScrollView.cs` の変更（`ScrollbarPaddingRatio` の定数をつまみに置き換える。ほかは今のまま）:
 
 ```csharp
-        private static readonly CustomStyleProperty<float> ScrollbarPaddingRatioProperty = new("--game-scroll-view-scrollbar-padding-ratio");
+        private static readonly CustomStyleProperty<float> ScrollbarPaddingRatioProperty = new("--game-scroll-view-scrollbar-padding-ratio-resolved");
 
         private void OnCustomStyleResolved()
         {
@@ -2776,9 +2775,12 @@ public void 祖先の要素で上書きしても中のGameScrollViewのバーの
         }
 ```
 
-`GameScrollView.uss` の変更（`.game-scroll-view` には何も足さず、縦バーと溝・つまみがつまみを参照する）:
+`GameScrollView.uss` の変更（`.game-scroll-view` には C# が読む比だけ受け直しを足し〔`:root` の変数は要素自身の customStyle にしか出ず子へ継承されないため。`--game-scroll-view-scrollbar-size` と同じ形〕、縦バーと溝・つまみがつまみを参照する）:
 
 ```css
+.game-scroll-view {
+    --game-scroll-view-scrollbar-padding-ratio-resolved: var(--game-scroll-view-scrollbar-padding-ratio);
+}
 .game-scroll-view .unity-scroll-view__vertical-scroller {
     top: var(--game-scroll-view-scrollbar-inset-top);
     right: var(--game-scroll-view-scrollbar-inset-right);
@@ -3165,6 +3167,7 @@ using Client.Ui.State.Recipe.Commands;
 using Client.Ui.Screens.Recipe.Input;
 using Client.Ui.State.Recipe.Screen;
 using Client.Ui.State.Routing;
+using VContainer.Unity;
 using VContainer;
 
 namespace Client.Starter.Registration.GameUi.Screens
@@ -3507,7 +3510,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 |---|---|---|
 | A-165 | レシピ画面（ビューア・アイテム一覧）の State は `Client.Ui.State/Recipe/` の `Catalog/`（解放済みクラフトレシピ・一覧のアイテムを Web の topic と同じ源から組む）・`Screen/`（選択 `RecipeItemSelection`・判別 union の VM・純関数の `RecipeViewModelFactory`・同期に組み直す `RecipeScreenModel`。Model は前例の Model と同じく `IInitializable` で源を ctor で直に受けて `Initialize` で購読し、登録は `RegisterEntryPoint<RecipeScreenModel>().AsSelf()`。解放済みクラフトと一覧のアイテムの列は解放イベントでだけ組み、VM は `PlayerInventory` の表示中だけ組み直して閉画面の変化は表示の突入で 1 回組む）・`Commands/`（`IRecipeCommands.Craft(Guid)`。拒否 `CraftRecipeUnknown`・`CraftRecipeLocked` は良性でない）。Esc の選択解除は画面のキー処理なので `Client.Ui/Screens/Recipe/Input/` に置く。機械レシピの解放済み一覧の源は S4-alpha が `Recipe/Source/` に作り、S4-recipe・S4-machine が使う。Presenter 1 本が 2 つの View を `Viewer`・`Items` 列へ載せ、`PlayerInventory` のときだけ出す（S4-recipe 計画 D-1〜D-3・D-15・D-37・D-38） | Web の橋の DTO を読む: 切替で消える。Model の源を合図の口（`IRecipeScreenSignals`）で受けて Model の L0 で偽を差す: recipe だけが前例の Model と違う形になって後続のレーンの真似る先が割れ、本番の源の結線は口を通しても EDC と録画で見ることになる。閉画面でも組み直す: 持ち物の枠 1 つの変化ごとに全アイテムと全レシピを組み直す。画面ごとに Presenter を分ける: 同じ条件と同じモデルの購読が 2 か所に分かれる。機械レシピの源を S4-recipe が持つ: S4-machine が 2 機能目で、持ち物の中核（S4-alpha）の中立の置き場が先に入る |
 | A-166 | 長押しクラフトは画面の部品（`Screens/Recipe/Parts/CraftHoldDriver`・`CraftHoldInput`）が持つ。経過はパネルのスケジューラ（`schedule.Execute().Every(0)` の `TimerState.deltaTime`、1 フレーム 0.25 秒で頭打ち）で `HoldCraftLogic` を回し、押下・離し・外れ（位置でも判定）・取消で止める。フォーカス中の Enter も押している間だけ長押しにし（Space は何もしない）、そのため `RecipeActionButton` のインスタンスだけ画面側で `focusable=true` にし、`Foundation/Input/UiKeyFocusKeepMark` の印を付けて `GameUiInputRules` に外させない（§1.2「入力欄だけがフォーカスを持つ」の例外。フォーカスはクリックで乗り、Tab では乗らない。ユーザー裁定 2026-10-01）（S4-recipe 計画 D-5・D-19・D-31・D-32） | `UiPressGesture` を重ねる（C4-c の申し送り）: タップとドラッグの分類が Web の長押しに無く、外れで中断しない。`Update()`: 画面に毎フレームの処理を持たせない規則。Enter を写さない: ユーザー裁定 2026-10-01 とゴールに反する。部品の既定を `focusable=true` にする: 他の画面のボタンまでフォーカスを持つ。`focusable=true` だけ: 規則が次のスケジュールで外し Enter が届かない |
-| A-167 | `GameScrollView` に溝・つまみの色と縦バーの位置のつまみ `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right`・`--game-scroll-view-scrollbar-padding-ratio`（バーの内側余白＝幅×比。`GameScrollView.cs` の定数 0.2 を置き換える）を足す（既定は今の値で `DerivedTokens.uss` の `:root` に置き、`.game-scroll-view` 自身には宣言しない＝祖先の上書きが継承で届く）。画面は Web の局所上書き（透明の溝・白いつまみ・チュートリアルの逃げ 12）をつまみで書く（S4-recipe 計画 D-9） | 画面の USS で `.unity-scroll-view__vertical-scroller` を書く: 部品のクラスを画面が書かない規則。画面ごとに別のスクロール部品: 同じ部品が 2 つになる |
+| A-167 | `GameScrollView` に溝・つまみの色と縦バーの位置のつまみ `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right`・`--game-scroll-view-scrollbar-padding-ratio`（バーの内側余白＝幅×比。`GameScrollView.cs` の定数 0.2 を置き換える）を足す（既定は今の値で `DerivedTokens.uss` の `:root` に置き、`.game-scroll-view` 自身には宣言せず、C# が読む比だけ要素で `--game-scroll-view-scrollbar-padding-ratio-resolved` に受け直す＝祖先の上書きは var で届く）。画面は Web の局所上書き（透明の溝・白いつまみ・チュートリアルの逃げ 12）をつまみで書く（S4-recipe 計画 D-9） | 画面の USS で `.unity-scroll-view__vertical-scroller` を書く: 部品のクラスを画面が書かない規則。画面ごとに別のスクロール部品: 同じ部品が 2 つになる |
 | A-168 | レシピの列はエントリを GUID で使い回し、持ち物の変化の描き直しで長押しを切らない。別のアイテムを選んだら中身を作り直してスクロールを先頭へ戻す（Web の `key`）。画面を閉じたらビューアの中身を捨て一覧のスクロールを先頭へ戻す（Web のアンマウント）（S4-recipe 計画 D-6・D-23） | VM ごとに作り直す: 長押しの経過とスケジューラが消える |
 | A-169 | Esc での選択解除は「画面の遷移と同じフレームに `InputManager.UI.CloseUI` が押されていた」で読む（Tab で閉じたときは残す。Web のゲーム層の Escape と同じ時点）（S4-recipe 計画 D-7・D-16） | UITK のキーイベント: 届かない（A-83）。遷移で常に外す: Tab で閉じたときも消えて Web と違う |
 

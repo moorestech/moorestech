@@ -6136,6 +6136,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
+using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Core.Master;
 using Cysharp.Threading.Tasks;

@@ -1972,6 +1972,7 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Research.Tree;
 using Client.Ui.State.Text;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
