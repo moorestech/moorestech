@@ -1,0 +1,44 @@
+/* web: moorestech_web/webui/src/features/commonHud/style.module.css（.crosshair） */
+/* 舞台の中央に 6px の白い円と 2px のぼかし影。影は C# が頂点カラーで描くので、ぼかしと色を受け直す */
+/* web: moorestech_web/webui/src/features/commonHud/style.module.css (.crosshair) */
+/* A 6px white circle with a 2px blurred shadow at the stage center; C# draws the shadow as vertex colors, so blur and color are re-declared */
+
+.crosshair-hud {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.crosshair-hud__crosshair {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    translate: -50% -50%;
+}
+
+.crosshair-hud__shadow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --crosshair-hud-shadow-blur: 2px;
+    --crosshair-hud-shadow-color: var(--mantine-color-black);
+}
+
+.crosshair-hud__dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--mantine-color-white);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}

@@ -1,0 +1,32 @@
+/* web: moorestech_web/webui/src/shared/ui/PlacementTargetFace/style.module.css の .icon（slotContent の .icon）と .label を写す。word-break: break-all は UITK に無い（台帳の見た目の例外の候補） */
+/* web: copies .icon (slotContent .icon) and .label in moorestech_web/webui/src/shared/ui/PlacementTargetFace/style.module.css; word-break: break-all has no UITK equivalent (a look-exception candidate) */
+.placement-target-face {
+    flex-grow: 1;
+}
+
+.placement-target-face__icon {
+    display: none;
+    width: 100%;
+    height: 100%;
+    padding-left: var(--icon-pad);
+    padding-top: var(--icon-pad);
+    padding-right: var(--icon-pad);
+    padding-bottom: var(--icon-pad);
+}
+
+.placement-target-face--icon > .placement-target-face__icon {
+    display: flex;
+}
+
+.placement-target-face__label {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    color: var(--text-default);
+    white-space: normal;
+    -unity-text-align: upper-center;
+}
+
+.placement-target-face--icon > .placement-target-face__label {
+    display: none;
+}

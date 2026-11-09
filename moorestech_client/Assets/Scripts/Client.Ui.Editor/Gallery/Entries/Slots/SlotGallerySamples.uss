@@ -1,0 +1,76 @@
+/* スロット族の見本の並びと、参照キャプチャの画面が当てている Web の上書き値（calc は前計算） */
+/* Layout for the slot-family samples and the Web override values the reference screens apply (calc precomputed) */
+.slot-gallery {
+    padding: 16px;
+}
+
+.slot-gallery__row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.slot-gallery__cell {
+    margin-right: 12px;
+}
+
+/* 4-player-inventory の持ち物（InventoryPanel の --inventory-slot-base-* × --inventory-slot-scale） */
+/* The 4-player-inventory inventory (InventoryPanel --inventory-slot-base-* × --inventory-slot-scale) */
+.slot-gallery__inventory {
+    --slot-size: 35.178px;
+    --slot-grid-gap: 7.082px;
+    --slot-grid-row-gap: 7.082px;
+    --filled-face-inset: 1.565749px;
+    --face-inset-color: rgb(50, 52, 67);
+    --icon-pad: 1px;
+    --count-bottom: -1px;
+    --count-font-size: 12.338px;
+    --count-letter-spacing: 12px;
+}
+
+/* 4-block-machine の入力の素材（machineInventoryBody.module.css の .inputSide） */
+/* Machine input materials in 4-block-machine (.inputSide in machineInventoryBody.module.css) */
+.slot-gallery__machine-input {
+    --shortage-count-right: 2px;
+    --shortage-count-bottom: -3px;
+    --shortage-count-font-size: 15px;
+}
+
+/* ホットバー（W/features/hotbar/HotbarPanel/style.module.css の .cell をそのまま写す） */
+/* The hotbar (copies .cell in W/features/hotbar/HotbarPanel/style.module.css) */
+.slot-gallery__hotbar {
+    --slot-size: var(--hotbar-slot-size);
+    --icon-pad: 5px;
+    --bevel-inset: inset;
+    --face-inset: 0px;
+    --bevel-1: 0.782875px;
+    --bevel-2: 1.565749px;
+    --bevel-3: 1.565749px;
+    --bevel-c1: rgb(125, 127, 133);
+    --bevel-c2: rgb(116, 118, 125);
+    --bevel-c3: rgb(116, 118, 125);
+    --selected-face-ring-inset: 1.565749px;
+    --selected-face-bottom-trim: 0.78px;
+    --sel-c1: var(--select-cyan);
+    --sel-c2: var(--select-cyan);
+    --sel-c3: var(--select-cyan);
+    --count-bottom: -1px;
+}
+
+/* 4-item-list-large・4-player-inventory のクラフトレシピ（ItemListPanel の GRID_STYLE。0.12em は 12px） */
+/* The craft recipe list in 4-item-list-large and 4-player-inventory (ItemListPanel GRID_STYLE; 0.12em is 12px) */
+.slot-gallery__item-list {
+    --slot-size: 46.144px;
+    --slot-grid-gap: 8.656px;
+    --slot-grid-row-gap: 8.896px;
+    --count-bottom: -1px;
+    --count-font-size: 16px;
+    --count-letter-spacing: 12px;
+}
+
+/* 3-build-menu（BuildMenuSlot の ICON_PAD_STYLE） */
+/* 3-build-menu (BuildMenuSlot ICON_PAD_STYLE) */
+.slot-gallery__build-menu {
+    --icon-pad: 4px;
+}

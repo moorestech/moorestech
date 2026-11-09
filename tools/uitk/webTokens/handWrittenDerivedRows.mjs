@@ -23,7 +23,10 @@ const rowSources = [
   { name: "--theme-scroller-thumb-face", web: "rgba(255, 255, 255, 0.4)", formula: [255, 255, 255, 0.4], method: `${translucencyMethod}（Mantine ScrollArea の暗色のつまみ）` },
   { name: "--game-panel-craft-face", web: "rgb(7 9 18 / 80%)", formula: [7, 9, 18, 0.8], method: `${translucencyMethod}（GamePanel craft の面。C2-a・I-fix1 のランタイム実測）` },
   { name: "--game-panel-craft-rim", web: "rgb(146 148 167 / 55%)", formula: [146, 148, 167, 0.55], method: `${translucencyMethod}（GamePanel craft の内周。C2-a）` },
+  { name: "--slot-frame-face", web: "rgb(50 52 67 / 50%)", uss: "rgba(50, 52, 67, 0.42)", method: "ランタイムの Linear 合成で持ち物の空きマスを Web の画素と比べて選んだ（C3-a Task 8。地 (36,31,34) で Web (43,41,50)・UITK (42,40,49)。面が地より明るいので暗い色の式 0.7226 は (46,47,59) に外れる。台帳 LX-23）" },
   { name: "--mantine-color-blue-light-hover", web: "rgba(34, 139, 230, 0.2)", uss: "rgba(34, 139, 230, 0.029)", method: "明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き" },
+  { name: "--screen-backdrop-face", web: "rgb(0 0 0 / 42%)", formula: [0, 0, 0, 0.42], method: `${translucencyMethod}（画面の幕。S2-hud・設計書 A-55）` },
+  { name: "--train-riding-hud-face", web: "color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)", formula: [31, 31, 31, 0.82], method: `${translucencyMethod}（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55）` },
 ];
 
 export const handWrittenDerivedRows = rowSources.map((row) => ({ name: row.name, web: row.web, uss: row.uss ?? formulaValue(row.formula), method: row.method }));

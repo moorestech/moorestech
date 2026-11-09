@@ -15,6 +15,13 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanelSurface/GamePanelSurface.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/PaperSurface/PaperSurface.uss");
 /* == section: Components/Slots == */
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/GameIcon/GameIcon.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/SlotFrame/SlotFrame.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/SlotContent/SlotContent.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/PlacementTargetFace/PlacementTargetFace.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/ItemSlot/ItemSlot.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/SlotGrid/SlotGrid.uss");
 /* == section: Components/Controls == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.uss");
@@ -39,5 +46,11 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/PauseMenu/PauseMenu.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Settings/Settings.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Toast/ToastHost.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Shell/Shell.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/CommonHud/CommonHud.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/KeyHints/KeyHintHud.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Progress/ProgressHud.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Challenge/CurrentHud/CurrentChallengeHud.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/TrainHud/TrainRidingHud.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/ModeHud/ModeHud.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/CursorTooltip/CursorTooltip.uss");
