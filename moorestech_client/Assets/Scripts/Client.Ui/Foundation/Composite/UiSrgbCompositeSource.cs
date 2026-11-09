@@ -12,12 +12,32 @@ namespace Client.Ui.Foundation.Composite
         private static RenderTexture _texture;
         private static int _chosenFrame = -1;
         private static Camera _chosenCamera;
-        private static bool _reportedNoCamera;
+        private static bool _reportedNotComposited;
+        private static bool _reportedCameraOverflow;
+        private static int _lastCompositedFrame;
         private static readonly Camera[] CameraBuffer = new Camera[32];
 
         public static void SetTexture(RenderTexture texture)
         {
             _texture = texture;
+            _lastCompositedFrame = Time.frameCount;
+            _reportedNotComposited = false;
+        }
+
+        public static void MarkComposited()
+        {
+            _lastCompositedFrame = Time.frameCount;
+            _reportedNotComposited = false;
+        }
+
+        // パネル RT があるのに数フレーム合成パスが走っていない状態へ入った瞬間に 1 回だけ知らせる（カメラ 0 台・全 RT 出力などで UI が画面から消える）
+        // Report once on entering the state where a panel RT exists but the composite pass has not run for several frames (no screen camera etc.; the UI disappears)
+        public static void ReportWhenNotComposited()
+        {
+            if (_texture == null || _reportedNotComposited) return;
+            if (Time.frameCount - _lastCompositedFrame <= 3) return;
+            _reportedNotComposited = true;
+            Debug.LogError("[UiSrgbCompositeSource] the UI composite pass has not run for several frames (no screen camera to composite onto?); the UI is not shown");
         }
 
         public static void ClearTexture(RenderTexture texture)
@@ -39,7 +59,6 @@ namespace Client.Ui.Foundation.Composite
             {
                 _chosenFrame = Time.frameCount;
                 _chosenCamera = ChooseLastScreenCamera();
-                ReportWhenNoCameraChosen();
             }
             return camera == _chosenCamera || IsOverlayOf(camera);
 
@@ -48,7 +67,7 @@ namespace Client.Ui.Foundation.Composite
             Camera ChooseLastScreenCamera()
             {
                 var count = Camera.GetAllCameras(CameraBuffer);
-                if (count >= CameraBuffer.Length) Debug.LogError($"[UiSrgbCompositeSource] {count} or more cameras are enabled; cameras beyond {CameraBuffer.Length} are ignored when choosing the UI composite camera");
+                ReportWhenCamerasOverflow();
                 Camera last = null;
                 for (var i = 0; i < count; i++)
                 {
@@ -60,14 +79,15 @@ namespace Client.Ui.Foundation.Composite
                 return last;
             }
 
-            // 重ねるカメラが無い状態へ入った瞬間に 1 回だけ知らせる（UI が画面から消えるため）
-            // Report once on entering the no-camera state (the UI disappears from the screen)
-            void ReportWhenNoCameraChosen()
+            // 有効カメラがバッファより多いときに 1 回だけ知らせる（超えた分は選定から漏れる）
+            // Report once when enabled cameras exceed the buffer (the excess is left out of the choice)
+            void ReportWhenCamerasOverflow()
             {
-                if (_chosenCamera != null) { _reportedNoCamera = false; return; }
-                if (_texture == null || _reportedNoCamera) return;
-                _reportedNoCamera = true;
-                Debug.LogError("[UiSrgbCompositeSource] no screen camera to composite the UI panel onto; the UI is not shown");
+                var overflow = Camera.allCamerasCount > CameraBuffer.Length;
+                if (!overflow) { _reportedCameraOverflow = false; return; }
+                if (_reportedCameraOverflow) return;
+                _reportedCameraOverflow = true;
+                Debug.LogError($"[UiSrgbCompositeSource] more than {CameraBuffer.Length} cameras are enabled; cameras beyond that are ignored when choosing the UI composite camera");
             }
 
             // 重ねるカメラのスタックの最後の overlay カメラが代わりに重ねる

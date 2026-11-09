@@ -118,7 +118,7 @@ public void TranslucentOverOpaqueMatchesTheWebFormula(...) { /* UiRuntimePanelCa
 ### Task 6: 並べ比べの撮り直しと unityプレイ録画テスト
 
 - [x] Step 1: 不透明な部品（ItemSlot・GamePanel・FormButton・TooltipFace）を `UiRuntimePanelCapture` で Web 参照（`web-a9d5123537`）と同じ地で撮り、旧方式（feature/uitk の done.md の表）と色の差を比べる
-- [x] Step 2: unityプレイ録画テスト: `uitk-i-blend-measure`・`uitk-i-blend-perf`・`uitk-hud`・`uitk-grab-overlay`・`uitk-tutorial-cues`・`uitk-lifeline`・`uitk-gameview-resolution-switch`。全合格・エラーログ 0
+- [ ] Step 2: unityプレイ録画テスト（C-1 で合成パスを final blit 後・backbuffer 書き込みへ変えたため既定画質と「低」(50%) で再実測するまで未完）: `uitk-i-blend-measure`・`uitk-i-blend-perf`・`uitk-hud`・`uitk-grab-overlay`・`uitk-tutorial-cues`・`uitk-lifeline`・`uitk-gameview-resolution-switch`。全合格・エラーログ 0
 - [x] Step 3: 2-game-hud・3-modal・チュートリアル枠を PlayMode で撮り、Web 参照と並べる
 
 ### Task 7: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）

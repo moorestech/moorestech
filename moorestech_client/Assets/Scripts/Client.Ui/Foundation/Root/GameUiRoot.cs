@@ -37,6 +37,7 @@ namespace Client.Ui.Foundation.Root
         private void Update()
         {
             _srgbPanelTarget.SyncToScreenSize();
+            UiSrgbCompositeSource.ReportWhenNotComposited();
         }
 
         private void OnDestroy()
