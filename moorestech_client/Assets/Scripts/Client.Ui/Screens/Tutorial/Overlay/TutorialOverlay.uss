@@ -36,13 +36,7 @@
 /* Instead of a box-shadow spread, overlay an outer border of the glow width; C# sets width and radius from --tutorial-overlay-glow-width */
 .tutorial-outline__glow {
     position: absolute;
-    border-color: var(--tutorial-attention-glow); /* look-exception: LX-38 */
-}
-
-/* 世界の地の上のグローは明るい地に合わせた α（暗い面の上は既定の --tutorial-attention-glow） */
-/* Glow over the world uses the alpha fitted to bright ground (over dark surfaces the default --tutorial-attention-glow) */
-.tutorial-outline__glow--over-world {
-    border-color: var(--tutorial-attention-glow-over-world); /* look-exception: LX-38 */
+    border-color: var(--tutorial-attention-glow);
 }
 
 .tutorial-highlight-label {

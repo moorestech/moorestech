@@ -50,7 +50,6 @@ namespace Client.Ui.Screens.PauseMenu
             pickingMode = PickingMode.Ignore;
             var panel = new VisualElement { name = "pause-menu" };
             panel.AddToClassList("pause-menu__panel");
-            UiSurface.Mark(panel);
             TutorialAnchor.Mark(panel, AnchorIds.PauseMenu);
             Add(panel);
 

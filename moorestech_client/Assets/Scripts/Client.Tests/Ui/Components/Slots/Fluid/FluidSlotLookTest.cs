@@ -88,7 +88,7 @@ namespace Client.Tests.Ui.Components.Slots.Fluid
         {
             var slot = Mount(FluidSlotContent.Ghost(SlotTestIcons.WithTexture("10", "Water"), 2));
 
-            var opacity = float.Parse(ThemeTokenFile.Resolve("--fluid-slot-ghost-opacity"), System.Globalization.CultureInfo.InvariantCulture);
+            var opacity = float.Parse(ThemeTokenFile.Resolve("--slot-ghost-opacity"), System.Globalization.CultureInfo.InvariantCulture);
             Assert.AreEqual(1f, slot.resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(opacity, slot.Q(className: "fluid-slot__icon").resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(opacity, Layer(slot, "outlined-count-label--glyph").resolvedStyle.opacity, 0.001f);

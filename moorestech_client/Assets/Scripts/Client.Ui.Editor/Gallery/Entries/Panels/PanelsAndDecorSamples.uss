@@ -101,7 +101,7 @@
     margin-bottom: 12px;
 }
 
-/* 3-modal の幕（Web Modal.Overlay の #000・0.6 を α 補正した色）。枠を中央に置く */
+/* 3-modal の幕（Web Modal.Overlay の #000・0.6）。枠を中央に置く */
 /* The 3-modal backdrop (Web Modal.Overlay #000 at 0.6, alpha corrected); centres the frame */
 .gallery-samples__modal-backdrop {
     width: 560px;

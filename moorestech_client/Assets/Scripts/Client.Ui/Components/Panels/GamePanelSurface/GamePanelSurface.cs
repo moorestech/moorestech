@@ -18,7 +18,6 @@ namespace Client.Ui.Components.Panels
         {
             name = testid;
             AddToClassList("game-panel-surface");
-            UiSurface.Mark(this);
             AddToClassList(KindClassName(kind));
 
             // 面は本文の背後。色とフェードは種類のクラスが USS で渡す

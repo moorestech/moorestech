@@ -44,9 +44,9 @@ namespace Client.Tests.Ui.Components.Text
             face.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.Settings));
             simulate.FrameUpdate();
 
-            AssertColor(Rgba(16, 20, 28, 0.9945f), face.resolvedStyle.backgroundColor, "face");
+            AssertColor(Rgba(16, 20, 28, 0.94f), face.resolvedStyle.backgroundColor, "face");
             Assert.AreEqual(1f, face.resolvedStyle.borderTopWidth, 0.001f);
-            AssertColor(Rgba(255, 255, 255, 0.0607f), face.resolvedStyle.borderTopColor, "border");
+            AssertColor(Rgba(255, 255, 255, 0.22f), face.resolvedStyle.borderTopColor, "border");
             Assert.AreEqual(6f, face.resolvedStyle.paddingTop, 0.001f);
             Assert.AreEqual(10f, face.resolvedStyle.paddingLeft, 0.001f);
             var line = face.Q<Label>("tooltip-line");

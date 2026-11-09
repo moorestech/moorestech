@@ -10,14 +10,14 @@ namespace Client.Ui.Components.Panels
     /// </summary>
     /// <remarks>
     /// 色とフェード幅は持ち主の USS が --game-panel-face・--game-panel-edge-fade（左右）・--game-panel-top-fade・--game-panel-bottom-fade で渡す。0px の辺はフェードしない。
-    /// フェードの帯は細かく刻み、各頂点の α を GamePanelFaceOpacityRamp で Linear 合成用に補正する（頂点間の線形補間で Web と同じ濃さの並びにするため）。
+    /// フェードの帯は細かく刻み、各頂点の α を GamePanelFaceOpacityRamp で決める（頂点間の線形補間で Web の mask と同じ濃さの並びにするため）。
     /// The owner USS passes color and spans as --game-panel-face, --game-panel-edge-fade (sides), --game-panel-top-fade and --game-panel-bottom-fade; a 0px side does not fade.
-    /// Fade bands are finely subdivided and each vertex alpha is corrected for Linear blending by GamePanelFaceOpacityRamp, so linear interpolation between vertices keeps the Web run of shades.
+    /// Fade bands are finely subdivided and each vertex alpha comes from GamePanelFaceOpacityRamp, so linear interpolation between vertices keeps the Web mask's run of shades.
     /// </remarks>
     internal sealed class GamePanelFace : VisualElement
     {
-        // フェード 1 本を刻む数。8 で補正後の曲線と折れ線の差が 1 段未満になる
-        // Segments per fade span; 8 keeps the polyline within one shade of the corrected curve
+        // フェード 1 本を刻む数。隅の 2 辺の積の曲面を 8 段で 1 段未満に近似する
+        // Segments per fade span; 8 keeps the corner product of two sides within one shade
         private const int SegmentsPerFade = 8;
         private const int GridLineCount = (SegmentsPerFade + 1) * 2;
 
@@ -81,8 +81,8 @@ namespace Client.Ui.Components.Panels
                 }
             }
 
-            // 頂点 α は縁の mask と Linear 合成用の補正を GamePanelFaceOpacityRamp でまとめて決める
-            // GamePanelFaceOpacityRamp decides vertex alpha from the edge mask and the Linear-blend correction together
+            // 頂点 α は縁の mask を GamePanelFaceOpacityRamp で掛けて決める
+            // GamePanelFaceOpacityRamp decides vertex alpha by applying the edge mask
             void WriteVertices()
             {
                 for (var row = 0; row < GridLineCount; row++)

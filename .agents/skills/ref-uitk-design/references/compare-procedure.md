@@ -39,7 +39,7 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 - **画面**: PlayMode・全体スイッチ〔W0-switch〕UITK（今は所有表で UITK 所有にした画面）で、参照キャプチャと同じ状態を DSL のシナリオで作り、ScreenCapture で 1280×720 と 2560×1080 の 2 種を撮る。フレーム番号の透かしを入れて古いフレームを見ないようにする
 - `--capture-mode rendering`（PlayMode の既定）には UITK が写らない。撮れた画像は結果の `ImagePath` を開く（ディレクトリの新しい順で拾わない）
 - 画面の ScreenCapture も同じ `moorestech_client/.uloop/outputs/compare/<レーンID>/` に置く
-- **色はランタイムの PanelSettings で比べる**: 部品ギャラリー（EditorWindow）は sRGB のまま合成するので、Linear 用に α を補正したトークン（`docs/uitk/translucent-tokens.md`）が Web より淡く出る。半透明・α 補正の色は下の撮影道具（本番の PanelSettings の複製・`targetTexture` は sRGB の RenderTexture）で描き、読み戻した画素を Web の色と比べる（PlayMode の画面の撮影でもよい）。ギャラリーの撮影で比べるのは配置・寸法・装飾の有無だけ（設計書 [A-74]・台帳「実測の結論」の C2-a ギャラリーの半透明）
+- **色はランタイムの PanelSettings で比べる**: GameUi は Web と同じ sRGB 空間で合成する（パネルを `forceGammaRendering` で RT に描き URP の最後に世界へ重ねる。設計書 [A-180]）ので、トークンの α は Web の値そのもの。色は下の撮影道具（本番の PanelSettings の複製を撮る）か PlayMode の画面の撮影で Web と比べる。部品ギャラリー（EditorWindow）も sRGB 合成で同じ見え方になるが、本番の設定を写さないので色の合否はランタイムで出す（設計書 [A-185]）
 
 ### 撮影の道具（使い捨ての手順を書かない）
 
@@ -76,7 +76,7 @@ uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Cli
 ## 5. 合否の目安
 
 - 1280×720 で位置・寸法の差が 2px 以内
-- 色はトークン経由で同じ値（α 補正の行は補正後の値）
+- 色はトークン経由で同じ値
 - 装飾（罫線・三角・影・ベベル・グラデ）の有無が同じ
 - 文字の段組（折り返し・行数）が同じ
 - 字形の差（Chrome と TextCore の描き方）は差に数えない

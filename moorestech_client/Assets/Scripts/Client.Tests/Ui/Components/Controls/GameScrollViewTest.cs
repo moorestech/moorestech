@@ -104,7 +104,7 @@ namespace Client.Tests.Ui.Components.Controls
             var scroller = _view.verticalScroller;
             var dragger = scroller.Q(className: "unity-base-slider__dragger");
 
-            AssertColor(Rgba(10, 14, 27, 0.9491f), scroller.resolvedStyle.backgroundColor, "track");
+            AssertColor(Rgba(10, 14, 27, 0.8f), scroller.resolvedStyle.backgroundColor, "track");
             AssertColor(Rgba(104, 106, 120, 1f), dragger.resolvedStyle.backgroundColor, "thumb");
             Assert.AreEqual(0f, dragger.resolvedStyle.borderTopLeftRadius, 0.001f);
         }

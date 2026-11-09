@@ -10,9 +10,9 @@ namespace Client.Ui.Components.Gauges
     /// </summary>
     /// <remarks>
     /// 輪 0（内端）の内側は芯として輪 0 の濃さで塗る。輪 k は縁からの距離 (2k/8-1)·2σ にあり、濃さは Web の α に被覆率を掛けて
-    /// LinearBlendOpacity.OpacityAt で Linear 合成用に補正する。8 段は GamePanelFace の SegmentsPerFade と同じ刻み。
+    /// 色の α に被覆率を掛ける。8 段は GamePanelFace の SegmentsPerFade と同じ刻み。
     /// The inside of ring 0 (inner end) fills as the core at ring 0's alpha. Ring k sits at (2k/8-1)·2σ from the edge; its alpha multiplies the Web alpha by coverage
-    /// and is corrected for Linear blending through LinearBlendOpacity.OpacityAt. Eight steps match GamePanelFace.SegmentsPerFade.
+    /// multiplied into the colour alpha. Eight steps match GamePanelFace.SegmentsPerFade.
     /// </remarks>
     internal static class ProgressArrowGlyphShadowMesh
     {
@@ -57,7 +57,7 @@ namespace Client.Ui.Components.Gauges
                     var tint = shadowColor;
                     // 濃さは形全体で一律の Web α（Web は描いた画素の α で溝・線の下が淡い。look-exception: LX-57）
                     // One Web alpha over the whole shape (Web is lighter under the groove and stroke; look-exception: LX-57)
-                    tint.a = LinearBlendOpacity.OpacityAt(shadowColor.a, GaussianEdgeCoverage.At(fromEdge, sigma));
+                    tint.a = shadowColor.a * GaussianEdgeCoverage.At(fromEdge, sigma);
                     for (var corner = 0; corner < ring.Length; corner++)
                         vertices[k * ring.Length + corner] = new Vertex { position = new Vector3(ring[corner].x, ring[corner].y, Vertex.nearZ), tint = tint };
                 }

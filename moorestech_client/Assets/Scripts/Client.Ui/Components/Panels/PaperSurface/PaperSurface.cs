@@ -17,7 +17,6 @@ namespace Client.Ui.Components.Panels
         {
             name = testid;
             AddToClassList("paper-surface");
-            UiSurface.Mark(this);
         }
     }
 }

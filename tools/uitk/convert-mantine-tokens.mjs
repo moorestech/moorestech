@@ -42,9 +42,6 @@ for (const name of mantineTokenNames()) {
 }
 lines.push("}");
 
-// 半透明は Linear 合成で薄く出るので、生成せず DerivedTokens に手で書く（plan §3.5）
-// Translucent values blend lighter in Linear space, so they are hand-written in DerivedTokens instead (plan §3.5)
-if (converter.translucentRows.length > 0) throw new Error(`translucent Mantine tokens must be hand-written in DerivedTokens.uss: ${converter.translucentRows.map((row) => row.name).join(", ")}`);
 if (lines.length > maxLinesPerFile) throw new Error(`${outputPath} would have ${lines.length} lines (max ${maxLinesPerFile})`);
 writeFileSync(join(repositoryRoot, outputPath), `${lines.join("\n")}\n`);
 console.log(`wrote ${outputPath} (${lines.length} lines)`);

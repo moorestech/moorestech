@@ -90,16 +90,9 @@ namespace Client.Tests.Ui.Screens.Shell
             Assert.AreEqual(1f, shape.EdgeWeightAt(cx + rx, cy, width, height), 1e-4f);
             Assert.AreEqual(1f, shape.EdgeWeightAt(cx - rx * 1.2f, cy, width, height), 1e-4f);
 
-            // 縁の α は面の補正と同じ指数で Web の 0.16 に戻る。重み 1 でトークンの α、0 で透明
-            // The edge alpha returns to the Web 0.16 under the same exponent as the face correction; weight one yields the token alpha and zero is clear
-            var edge = ThemeTokenFile.ResolveColor("--screen-vignette-edge");
-            // トークンの α から指数を逆に解き、LinearBlendOpacity が同じ指数で重み 0.5 を補正することを確かめる
-            // Solve the exponent back from the token alpha and check LinearBlendOpacity corrects weight 0.5 with the same exponent
-            var exponent = Mathf.Log(1f - edge.a) / Mathf.Log(1f - WebEdgeAlpha);
-            Assert.Greater(exponent, 1f);
-            Assert.AreEqual(1f - Mathf.Pow(1f - WebEdgeAlpha * 0.5f, exponent), LinearBlendOpacity.OpacityAt(edge.a, 0.5f), 1e-4f);
-            Assert.AreEqual(edge.a, LinearBlendOpacity.OpacityAt(edge.a, 1f), 1e-4f);
-            Assert.AreEqual(0f, LinearBlendOpacity.OpacityAt(edge.a, 0f), 1e-4f);
+            // 縁のトークンは Web の α 0.16 のままで、重みを線形に掛ける（A-180）
+            // The edge token keeps the Web alpha 0.16 and the weight is multiplied linearly (A-180)
+            Assert.AreEqual(WebEdgeAlpha, ThemeTokenFile.ResolveColor("--screen-vignette-edge").a, 1e-4f);
         }
     }
 }

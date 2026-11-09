@@ -19,7 +19,7 @@ namespace Client.Tests.Ui.Components.Gauges
         // 輪ごとの頂点数（添字=輪×Corners＋角）
         // Vertices per ring (index = ring*Corners + corner)
         private const int Corners = ProgressArrowGlyphPath.VertexCount;
-        private static readonly Color ShadowColor = new(0f, 0f, 0f, 0.6691f);
+        private static readonly Color ShadowColor = new(0f, 0f, 0f, 0.45f);
 
         // Vertex.tint は Color32 なので α を 255 で割って比べ、計算の丸め 0.002 に 8 bit の量子化 1/255 を足す
         // Vertex.tint is Color32, so compare alpha divided by 255 with 0.002 rounding plus the 1/255 8-bit quantum
@@ -56,15 +56,15 @@ namespace Client.Tests.Ui.Components.Gauges
         }
 
         [Test]
-        public void 真ん中の輪は線の外縁を1px下げた位置で濃さは半分を補正した値()
+        public void 真ん中の輪は線の外縁を1px下げた位置で濃さはWebのαの半分()
         {
-            // 輪 4 は縁そのもの（d=0）。被覆率 0.5 を暗い色の式で Linear 合成用に直すと 0.376
-            // Ring 4 is the edge itself (d=0); coverage 0.5 corrected for Linear blending by the dark formula is 0.376
+            // 輪 4 は縁そのもの（d=0）。被覆率 0.5 を Web の α 0.45 に掛けて 0.225
+            // Ring 4 is the edge itself (d=0); coverage 0.5 times the Web alpha 0.45 is 0.225
             var tip = _vertices[4 * Corners + 3];
             Assert.AreEqual(119f * Scale + Scale * 1.6810f, tip.position.x, 0.001f);
             Assert.AreEqual(39f * Scale + 1f, tip.position.y, 0.001f);
             Assert.AreEqual(Vertex.nearZ, tip.position.z);
-            Assert.AreEqual(0.376f, tip.tint.a / 255f, AlphaTolerance);
+            Assert.AreEqual(0.225f, tip.tint.a / 255f, AlphaTolerance);
         }
 
         [Test]
@@ -73,8 +73,8 @@ namespace Client.Tests.Ui.Components.Gauges
             // ぼかし 1px は σ=1px。縁から 1px 外（輪 6）の被覆率は Φ(-1)=0.158655、外端（輪 8）は縁から 2px 外
             // A 1px blur is σ=1px; ring 6 (1px outside the edge) has coverage Φ(-1)=0.158655 and ring 8 sits 2px outside
             Assert.AreEqual(0.158655f, GaussianEdgeCoverage.At(1f, 1f), 1e-5f);
-            Assert.AreEqual(0.658f, _vertices[0].tint.a / 255f, AlphaTolerance);
-            Assert.AreEqual(0.128f, _vertices[6 * Corners].tint.a / 255f, AlphaTolerance);
+            Assert.AreEqual(0.45f * 0.97725f, _vertices[0].tint.a / 255f, AlphaTolerance);
+            Assert.AreEqual(0.45f * 0.158655f, _vertices[6 * Corners].tint.a / 255f, AlphaTolerance);
             Assert.Less(_vertices[8 * Corners].tint.a / 255f, 0.019f + AlphaTolerance);
             Assert.AreEqual(119f * Scale + (Scale + 2f) * 1.6810f, _vertices[8 * Corners + 3].position.x, 0.001f);
             for (var ring = 1; ring <= ProgressArrowGlyphShadowMesh.RingCount; ring++)
@@ -82,16 +82,11 @@ namespace Client.Tests.Ui.Components.Gauges
         }
 
         [Test]
-        public void 影の色のトークンは暗い色の式でWebのα045へ逆に解ける()
+        public void 影の色のトークンはWebのα045のまま()
         {
-            // OpacityAt はトークンの α が暗い色の式 1-(1-α)^1.85 で補正済みである前提で逆に解く。値を実測で選び直しても前提はここで守る
-            // OpacityAt inverts assuming the token alpha is corrected by the dark formula 1-(1-α)^1.85; this guards the premise even after re-measuring
-            var tokenAlpha = ThemeTokenFile.ResolveColor("--progress-arrow-glyph-shadow").a;
-            var webAlpha = 1f - Mathf.Pow(1f - tokenAlpha, 1f / 1.85f);
-            // Web の影の実効 α は 0.45×描いた画素の α（溝だけ 0.36・線だけ 0.315・重なり 0.423）なので、選び直しはこの範囲に入る
-            // The Web effective shadow alpha is 0.45 times the drawn pixel alpha (track 0.36, stroke 0.315, overlap 0.423), so re-measured values stay in range
-            Assert.That(webAlpha, Is.InRange(0.30f, 0.50f), $"token alpha {tokenAlpha} is not a dark-corrected Web shadow alpha");
-            Assert.AreEqual(tokenAlpha, LinearBlendOpacity.OpacityAt(tokenAlpha, 1f), 1e-4f);
+            // UI は Web と同じ sRGB 空間で合成するので、drop-shadow の色の α は Web の 0.45 そのもの（A-180）
+            // The UI blends in sRGB space like the Web, so the drop-shadow colour alpha is the Web 0.45 itself (A-180)
+            Assert.AreEqual(0.45f, ThemeTokenFile.ResolveColor("--progress-arrow-glyph-shadow").a, 1e-4f);
         }
 
         [Test]

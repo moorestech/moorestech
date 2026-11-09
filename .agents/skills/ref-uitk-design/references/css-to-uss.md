@@ -54,7 +54,7 @@
 
 ## 5. 影・グラデ・マスク・図形
 
-USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ）か Painter2D で描く。描く子は `PickingMode.Ignore`、色と長さは部品の USS で受け直したトークンを `UssCustomStyleReader` で読む（§8）。頂点 α に縁の重みや被覆率を掛けるときは線形に掛けず `LinearBlendOpacity.OpacityAt`（Foundation/Theme）を通す（Linear 合成で Web の濃さの並びにするため）。
+USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ）か Painter2D で描く。描く子は `PickingMode.Ignore`、色と長さは部品の USS で受け直したトークンを `UssCustomStyleReader` で読む（§8）。頂点 α には Web と同じく縁の重みや被覆率を線形に掛ける（UI は sRGB 空間で合成するので補正は要らない。設計書 [A-184]）。
 
 | CSS | 描き方 | 前例 |
 |---|---|---|
@@ -70,10 +70,9 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 
 ## 6. 半透明
 
-- Web の α をそのまま使わない。UITK は Linear 色空間で混ぜるので、同じ指定が Chrome より薄く出る（実測: 背景 `#9c7b42` に黒 α0.6 が UITK `#664f29`、Chrome `#3e311a`）
-- 生成されるトークン（`Tokens.uss` 等）は変換スクリプト `tools/uitk/webTokens/translucency.mjs` が近似補正する（暗い色は `1-(1-α)^1.85`〈ランタイムの PanelSettings でゲームの地に載せて合わせた指数。設計書 [A-72]〉、明るい色は `α^2.2`）。結果の表は `docs/uitk/translucent-tokens.md`（生成物）
-- 手で書く半透明（`DerivedTokens.uss`〔F1〕）は、同じ近似補正か、背景が面の色に決まるなら「面色を背景にした厳密式」（前例 `--game-panel-rule-*`・`--game-panel-triangle-face`）で決め、行のコメントに Web の値と決め方を書く。近似補正で決めた行は `tools/uitk/webTokens/handWrittenDerivedRows.mjs` に Web の色で登録すると、生成器が値を計算して `DerivedTokens.uss` と照合する（設計書 [A-73]）
-- 色の比べ方: ランタイムの PanelSettings（Linear 合成）で比べる。部品ギャラリーは sRGB 合成で淡く出る（`compare-procedure.md` §3）
+- Web の α・opacity をそのまま書く。GameUi のパネルは `forceGammaRendering` で sRGB の値のまま RT に描き、URP の最後（`Foundation/Composite` の `UiSrgbCompositeFeature`）に世界を sRGB にしてから重ねるので、Chrome と同じ sRGB 空間の合成になる（設計書 [A-180]〜[A-184]）。地の明るさで値を選び分けたり、α を式で補正したりしない
+- 生成されるトークン（`Tokens.uss` 等）は Web の値をそのまま写す。手で書く半透明（`DerivedTokens.uss`）も行のコメントに Web の値の出所を書き、同じ値を書く
+- 色の比べ方: ランタイムの PanelSettings（`UiRuntimePanelCapture`）か PlayMode の画面の撮影で比べる（`compare-procedure.md` §3）
 - 最後は実機の撮影で決める。決め直したら決め方のコメントを「実機で据え置き（何を撮って決めたか）」へ書き換える（前例 `--panel-action-hover-face`）
 
 ## 7. 動き

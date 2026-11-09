@@ -4,7 +4,6 @@ import { evaluateCalc, numberWithUnit } from "./evaluateCalc.mjs";
 import { formatColor, parseColor } from "./cssColors.mjs";
 import { formatNumber } from "./parseCssTokens.mjs";
 import { convertCompound } from "./compoundTokens.mjs";
-import { postProcessToken } from "./postProcessToken.mjs";
 
 const viewportReason = "実行時の寸法: USS の配置か C# の幾何";
 const viewportNamePattern = /^--ui-(stage|viewport)-/;
@@ -12,11 +11,10 @@ const viewportNamePattern = /^--ui-(stage|viewport)-/;
 export function createTokenConverter(rawByName) {
   const baseResults = new Map();
   const finalResults = new Map();
-  const translucentRows = [];
-  return { convert, translucentRows };
+  return { convert };
 
-  // 出力用。参照解決は補正前の base を使い、補正を二重に掛けない
-  // For output; reference resolution uses the uncorrected base so corrections never apply twice
+  // 出力用。半透明の α は Web の値のまま（UI は Web と同じ sRGB 空間で合成する。A-180）
+  // For output; translucent alpha stays the Web value (the UI blends in sRGB space like the Web, A-180)
   function convert(name) {
     if (!finalResults.has(name)) finalResults.set(name, finalize(name, convertBase(name)));
     return finalResults.get(name);
@@ -24,10 +22,7 @@ export function createTokenConverter(rawByName) {
 
   function finalize(name, base) {
     if (base.excluded) return { ...base, reason: rewriteExclusionReason(name, base.reason) };
-    if (base.derived !== undefined) {
-      return { ...base, derived: base.derived.map((token) => ({ ...token, ...postProcessToken(token.name, token, translucentRows) })) };
-    }
-    return postProcessToken(name, base, translucentRows);
+    return base;
   }
 
   function convertBase(name) {

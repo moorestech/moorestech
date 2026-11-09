@@ -114,7 +114,7 @@ namespace Client.Tests.Ui.Components.Slots
             // The values are tokens that make the Web 0.4 and 0.35 look the same under Linear blending
             Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), insufficient.resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(1f, ghost.resolvedStyle.opacity, 0.001f);
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-ghost-opacity")), ghost.Q(className: "slot-frame__content").resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-ghost-opacity")), ghost.Q(className: "slot-frame__content").resolvedStyle.opacity, 0.001f);
         }
 
         [Test]

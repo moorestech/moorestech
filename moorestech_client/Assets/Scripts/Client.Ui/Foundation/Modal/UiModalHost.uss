@@ -10,8 +10,8 @@
     display: flex;
 }
 
-/* 幕は画面いっぱい。色は Web Modal.Overlay の #000・0.6 を α 補正したつまみ */
-/* The backdrop fills the screen; its color is the knob holding the alpha-corrected Web Modal.Overlay #000 at 0.6 */
+/* 幕は画面いっぱい。色は Web Modal.Overlay の #000・0.6 のつまみ */
+/* The backdrop fills the screen; its color is the knob holding the Web Modal.Overlay #000 at 0.6 */
 .ui-modal-host__backdrop {
     position: absolute;
     left: 0;

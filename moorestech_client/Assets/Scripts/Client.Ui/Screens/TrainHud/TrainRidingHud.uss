@@ -1,7 +1,7 @@
 /* web: moorestech_web/webui/src/features/trainHud/style.module.css（.hud） */
-/* 舞台の下端から 7rem・左右中央。Paper の面と文字色はつまみで上書きする（面は α 補正したトークン） */
+/* 舞台の下端から 7rem・左右中央。Paper の面と文字色はつまみで上書きする */
 /* web: moorestech_web/webui/src/features/trainHud/style.module.css (.hud) */
-/* 7rem above the stage bottom, centered; the Paper face and text color are knob overrides (the face is an alpha-corrected token) */
+/* 7rem above the stage bottom, centered; the Paper face and text color are knob overrides */
 
 .train-riding-hud {
     position: absolute;
