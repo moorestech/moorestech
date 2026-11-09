@@ -61,5 +61,5 @@ ADR 0097 の探索は、始点クリック時に X64×Z64 の箱を固定し、�
 - 本番は `BeltRouteLiveWorld` を使う。`BeltRouteGrid`（配列の箱）はテストアセンブリへ移してテスト用の世界にし、本番には残さない（デバッグ/テスト専用 public を本番に残さない規約）。分岐判定が隣の辺を写す1セル箱は `BeltRouteNeighbourEdges`（辺の有無だけ）に置き換える。両世界は `IBeltRouteWorld`（地形・占有・坂の真上・入出力辺の面ビット）を実装し、面ビットの立て方は `BeltRouteFaceBits` の1本に集める。
 - `BeltRouteTerrainProfile`・`BeltRouteWorldScanner`・`BeltRouteReachability`・`BeltRouteCostBuckets`・`BeltRouteStateCodec`・`BeltRouteObstacleMask`・`BeltRouteStepPriority`・`BeltRouteEdgeTable` を削除する。
 - 参照ソルバ突き合わせ（`BeltRouteReferenceCrossCheckTest`）は「最短性」ではなく「存在」（参照が見つけたら本番も見つける）と「コストが参照の W 倍＋余裕以内」を確かめる形に変わる。余裕なしの比較は意味を失うので本番の余裕だけで回す。
-- 実測（2026-11-09。計画 Task 4 で記入）: 手元 EditMode の開けた平地 207 セル / 壁で遠回り / 囲まれた終点（上限到達）の各探索時間と展開数、録画シナリオの最悪フレーム時間（開けた遠距離と、実機で囲まれた終点を狙ったとき）。
+- 実測（2026-11-09。計画 Task 4 で記入）: 手元 EditMode（`BeltRoutePlanner.Plan` を10回回した中央値）で、開けた平地 120×3×120 の (2,0,2)→(110,0,100)（207 セル）が 0.44 ms・展開 207、同じ平地の x=60 列に高さ3の壁（z=0〜110）を置いた遠回り（231 セル）が 8.71 ms・展開 6,457、囲まれた終点（40×3×40、上限到達）が 28.44 ms・展開 20,000。録画シナリオ `belt-route-two-click-via-ui` の最悪フレーム時間は、開けた遠距離（51 セル）を狙ったとき 43.9 ms、実機で囲まれた終点を狙ったとき（上限到達、展開 20,000）36.5 ms。録画中のフレームで、照準の移動が終わった後の数フレームを測った値。150 ms を下回ったので `MaxExpansions` = 20,000 は据え置く。
 - 録画シナリオ `belt-route-two-click-via-ui.cs` の C キーのフェーズは、旧箱（±32）を超える遠距離の経路のフェーズに置き換える。

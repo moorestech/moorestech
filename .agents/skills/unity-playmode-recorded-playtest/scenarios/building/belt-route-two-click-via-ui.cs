@@ -1,11 +1,10 @@
-// ベルトの2クリック設置（ADR 0097）の通し検証。平地のL字、チェストの壁の乗り越え、Cキーの同コスト経路切り替え、
+// ベルトの2クリック設置（ADR 0097）の通し検証。平地のL字、チェストの壁の乗り越え、旧箱を超える遠距離の経路が置けること・囲まれた終点で経路なしになること、
 // 置いた経路で荷物が実際に流れることを、実プレイヤーと同じキーマウス経路で確かめる
-// End-to-end check of two-click belt placement (ADR 0097): an L on flat ground, climbing over a wall of chests, switching
-// equal-cost routes with C, and items actually flowing along the placed route, all through the real key/mouse path
-using System.Collections.Generic;
+// End-to-end check of two-click belt placement (ADR 0097): an L on flat ground, climbing over a wall of chests, placing a long route beyond the old box
+// and getting no route for an enclosed end, and items actually flowing along the placed route, all through the real key/mouse path
 using System.Linq;
-using System.Reflection;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Playtest;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
@@ -17,6 +16,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
@@ -56,19 +56,19 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
     await p.ExitToGameScreen();
     await p.Screenshot("02-over-wall");
 
-    // ---------------------------------------------------------------- 3. Cで別経路
-    p.Note("フェーズ3: 始点を決めてからCを押すと同コストの別経路へ切り替わる");
-    p.WarpPlayer(new Vector3(14f, 33.5f, -3f));
+    // ---------------------------------------------------------------- 3. 旧箱を超える遠距離
+    p.Note("フェーズ3: 足場の南端から北端近くまで（z 距離 44。旧箱の ±32 を超える）を2クリックで置く");
+    p.WarpPlayer(new Vector3(-20f, 33.5f, -25f));
     await p.WaitSeconds(0.5f);
+    var beltsBefore = CountBelts();
     await p.OpenBuildMenuAndSelectBlock("ベルトコンベア");
-    await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", new Vector3Int(12, 32, 2), BlockDirection.North));
-    await p.PressKey(Key.R);
+    await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", new Vector3Int(-20, 32, -22), BlockDirection.North));
     await p.ClickPlace();
 
     // 遠い終点を何か所か指して、経路探索中の最悪フレーム時間を実機で測る
     // Sweep a few far targets while routing to measure the worst frame time on the real build
     var worstFrameMs = 0f;
-    foreach (var target in new[] { new Vector3Int(17, 32, 9), new Vector3Int(12, 32, 9), new Vector3Int(18, 32, 1), new Vector3Int(17, 32, 7) })
+    foreach (var target in new[] { new Vector3Int(-14, 32, 22), new Vector3Int(-24, 32, 20), new Vector3Int(-5, 32, 15), new Vector3Int(-14, 32, 22) })
     {
         await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", target, BlockDirection.North));
         for (var frame = 0; frame < 3; frame++)
@@ -77,18 +77,47 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
             worstFrameMs = Mathf.Max(worstFrameMs, Time.unscaledDeltaTime * 1000f);
         }
     }
-    p.Note($"経路探索中の最悪フレーム時間: {worstFrameMs:F1} ms");
-
-    var before = PreviewPositions();
-    await p.Screenshot("03-route-a");
-    await p.PressKey(Key.C);
-    var after = PreviewPositions();
-    p.Assert(before.Count == after.Count && before.Count == 11, $"同コスト経路はセル数が同じ（{before.Count} / {after.Count}）");
-    p.Assert(!before.SequenceEqual(after), "Cで経路の形が変わる");
-    await p.Screenshot("04-route-b");
+    p.Note($"開けた遠距離の経路探索中の最悪フレーム時間: {worstFrameMs:F1} ms");
+    await p.Screenshot("03-long-route");
     await p.ClickPlace();
-    await p.Until(() => p.GetBlock(new Vector3Int(17, 32, 7)) != null, 15f, "Cで切り替えた経路が置かれる");
-    await p.WaitBlockGameObject(new Vector3Int(17, 32, 7));
+    await p.Until(() => p.GetBlock(new Vector3Int(-14, 32, 22)) != null, 15f, "遠距離の終点が置かれる");
+    p.Assert(CountBelts() - beltsBefore == 51, $"開けた平地では最短（44+6+1=51 セル）が置かれる（実際 {CountBelts() - beltsBefore}）");
+    await p.WaitBlockGameObject(new Vector3Int(-14, 32, 22));
+    await p.ExitToGameScreen();
+
+    // ---------------------------------------------------------------- 3b. 囲まれた終点（探索上限の実測）
+    p.Note("フェーズ3b: 高さ2のチェストの輪で囲んだ (-8,32,-10) を終点に狙うと「経路が見つかりません」が出る。探索上限に達するときの最悪フレーム時間を測る");
+    for (var dx = -1; dx <= 1; dx++)
+    for (var dz = -1; dz <= 1; dz++)
+    {
+        if (dx == 0 && dz == 0) continue;
+        await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(-8 + dx, 32, -10 + dz), BlockDirection.North);
+        await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(-8 + dx, 33, -10 + dz), BlockDirection.North);
+    }
+    await p.WaitBlockGameObject(new Vector3Int(-7, 33, -9));
+    // 地面からでは輪の上端より低い視点になり穴の中を狙えないので、南側の輪の上に立って見下ろす
+    // From the ground the camera sits below the ring top and cannot see into the hole, so stand on the south ring and look down
+    p.WarpPlayer(new Vector3(-7.5f, 35.5f, -10.5f));
+    await p.WaitSeconds(0.5f);
+    await p.OpenBuildMenuAndSelectBlock("ベルトコンベア");
+    // 始点は輪の北の地面。フェーズ3のベルト（x=-20 列と z=22 付近）とは離れている
+    // The start is on the ground north of the ring, away from the phase-3 belts (the x=-20 column and around z=22)
+    await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", new Vector3Int(-13, 32, -4), BlockDirection.North));
+    await p.ClickPlace();
+    // 穴の床は輪に隠れて狙えない。北側の輪の内側の面の上段（y=33）を狙い、Qで設置高さを1つ下げて穴の床 (-8,32,-10) を終点にする
+    // The hole floor is hidden by the ring; aim at the upper level (y=33) of the north ring's inner face and lower the placement height once with Q to land on (-8,32,-10)
+    await p.PressKey(Key.Q);
+    await p.AimAt(new Vector3(-7.5f, 33.8f, -9f));
+    var enclosedWorstMs = 0f;
+    for (var frame = 0; frame < 5; frame++)
+    {
+        await UniTask.Yield();
+        enclosedWorstMs = Mathf.Max(enclosedWorstMs, Time.unscaledDeltaTime * 1000f);
+    }
+    p.Note($"囲まれた終点の経路探索中の最悪フレーム時間: {enclosedWorstMs:F1} ms");
+    p.Assert(HasTooltipKey("ui.tooltip.placeBeltRouteNotFound"), "囲まれた終点では「経路が見つかりません」の理由行が出る");
+    await p.Screenshot("04-enclosed-not-found");
+    await p.PressKey(Key.E);
     await p.ExitToGameScreen();
 
     // ---------------------------------------------------------------- 4. 流れる
@@ -113,14 +142,10 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
         return ServerContext.WorldBlockDatastore.BlockMasterDictionary.Values.Any(data => data.Block.BlockMasterElement.Name == name);
     }
 
-    // 本番のプレビュー実体の位置を読み取り専用で観測する（検証用APIを増やさない）
-    // Observe the production preview objects' positions read-only without adding a testing API
-    List<Vector3Int> PreviewPositions()
+    bool HasTooltipKey(string key)
     {
-        var controller = Object.FindFirstObjectByType<PlacementPreviewBlockGameObjectController>();
-        var field = typeof(PlacementPreviewBlockGameObjectController).GetField("_activePreviewBlocks", BindingFlags.Instance | BindingFlags.NonPublic);
-        var blocks = (List<BlockPreviewObject>)field.GetValue(controller);
-        return blocks.Select(block => Vector3Int.RoundToInt(block.transform.position)).ToList();
+        var presentation = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>().GetPresentation();
+        return presentation.Visible && presentation.Lines.Any(line => line.Key.Key == key);
     }
 
     int CountOf(IBlock chest, ItemId targetItemId)

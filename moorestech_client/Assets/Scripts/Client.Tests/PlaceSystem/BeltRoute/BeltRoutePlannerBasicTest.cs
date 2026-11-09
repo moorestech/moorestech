@@ -21,6 +21,15 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return grid;
         }
 
+        private static BeltRouteGrid FlatGrid(int size)
+        {
+            var grid = new BeltRouteGrid(Vector3Int.zero, new Vector3Int(size, 3, size));
+            for (var x = 0; x < size; x++)
+            for (var z = 0; z < size; z++)
+                grid.SetColumnFloor(x, z, 0);
+            return grid;
+        }
+
         // 通常ベルト・坂ありの問い合わせ
         // A query for a normal belt with slopes
         private static BeltRouteQuery Query(Vector3Int start, BlockDirection startDirection, Vector3Int end, BlockDirection endDirection)
@@ -113,7 +122,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(result.HasPlan);
             BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "existing output");
             Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(4, 0, 2)));
-            Assert.GreaterOrEqual(result.Plan.Cells.Count, 8);
+            Assert.LessOrEqual(result.Plan.Cells.Count, 8 * BeltRouteSearch.HeuristicWeight);
         }
 
         [Test]
@@ -155,6 +164,37 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "end above start");
             Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Kind.IsSlope() && cell.Cell + Vector3Int.up == query.EndCell), "a slope sits right under the end");
             Assert.LessOrEqual(result.Plan.TotalCost, expectedCost * BeltRouteSearch.HeuristicWeight);
+        }
+
+        // 旧箱（X64×Z64）を超える距離。開けた平地では重み付きでも最短のまま（ADR 0099）
+        // Farther than the old 64x64 box; on open ground the weighted search still returns the shortest (ADR 0099)
+        [Test]
+        public void LongOpenRunBeyondTheOldBoxIsStraightAndShortest()
+        {
+            var grid = FlatGrid(120);
+            var query = Query(new Vector3Int(2, 0, 2), BlockDirection.East, new Vector3Int(110, 0, 100), BlockDirection.North);
+            var result = new BeltRoutePlanner(grid, BeltRoutePlanner.DefaultRecoverySlack).Plan(query);
+
+            Assert.IsTrue(result.HasPlan);
+            BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "long run");
+            Assert.AreEqual(207, result.Plan.Cells.Count);
+            Assert.AreEqual(207 * BeltRouteCellKindExtension.StraightCost, result.Plan.TotalCost);
+            Assert.IsTrue(result.Plan.Cells.All(cell => cell.Kind == BeltRouteCellKind.Straight));
+        }
+
+        // 囲まれた終点は経路なし（待ち行列が尽きるか展開数の上限で止まる）
+        // An enclosed end yields no route (the queue drains or the expansion cap stops the search)
+        [Test]
+        public void EnclosedEndYieldsNoRoute()
+        {
+            var grid = FlatGrid(40);
+            for (var dx = -1; dx <= 1; dx++)
+            for (var dz = -1; dz <= 1; dz++)
+            for (var y = 0; y < 3; y++)
+                if (dx != 0 || dz != 0) grid.MarkBlockCell(new Vector3Int(30 + dx, y, 30 + dz));
+            var result = new BeltRoutePlanner(grid, BeltRoutePlanner.DefaultRecoverySlack).Plan(Query(new Vector3Int(2, 0, 2), BlockDirection.East, new Vector3Int(30, 0, 30), BlockDirection.East));
+
+            Assert.IsFalse(result.HasPlan);
         }
     }
 }

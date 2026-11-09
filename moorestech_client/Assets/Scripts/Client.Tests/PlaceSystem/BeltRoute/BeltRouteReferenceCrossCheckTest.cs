@@ -44,7 +44,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 compared++;
                 var label = $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt}";
 
-                var result = new BeltRoutePlanner(grid, BeltRoutePlanner.DefaultRecoverySlack).Plan(query);
+                var result = new BeltRoutePlanner(grid, recoverySlack).Plan(query);
                 var rule = new BeltRouteTransitionRule(grid, query);
                 var referenceCost = new BeltRouteReferenceSolver(rule, CostCap, true).Solve();
                 if (referenceCost != BeltRouteReferenceSolver.NotFound) referenceFound++;
