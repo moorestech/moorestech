@@ -103,6 +103,11 @@ namespace Client.Ui.Components.NodeGraph
             return NodeGraphGeometry.ToCanvasPoint(treePoint, _bounds);
         }
 
+        public bool ContainsKey(string key)
+        {
+            return _keyByWrapper.ContainsValue(key);
+        }
+
         public bool TryFindNodeKey(VisualElement pressTarget, out string key)
         {
             // 押下の対象から親を辿り、最初に見つかった包みのキーを返す（Web の closest）

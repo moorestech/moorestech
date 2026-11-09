@@ -1,3 +1,4 @@
+using System;
 using Client.Ui.Foundation.Input.OsCursor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -5,16 +6,17 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ビューポートの上では掴む手、パン中は握った手を OS カーソルへ当てる。web: TreeView.module.css の .viewport { cursor: grab } と :active の grabbing
-    /// Applies the grab hand over the viewport and the grabbing hand while panning to the OS cursor; web: TreeView.module.css .viewport cursor grab and :active grabbing
+    /// ビューポートの上では掴む手、パン中は握った手を OS カーソルへ要求し、パン中のクラスも同じ所で付け外す。web: TreeView.module.css の .viewport { cursor: grab } と :active の grabbing
+    /// Requests the grab hand over the viewport and the grabbing hand while panning from the OS cursor and toggles the panning class in the same place; web: TreeView.module.css .viewport cursor grab and :active grabbing
     /// </summary>
     internal sealed class NodeGraphCursorSwitcher
     {
+        private const string PanningClass = "node-graph--panning";
+
         private readonly VisualElement _viewport;
         private readonly IUiOsCursor _osCursor;
-        private UiOsCursorShape _applied = UiOsCursorShape.Default;
-        private bool _hovering;
-        private bool _panning;
+        private IDisposable _hoverRequest;
+        private IDisposable _panRequest;
 
         public NodeGraphCursorSwitcher(VisualElement viewport, IUiOsCursor osCursor)
         {
@@ -25,65 +27,73 @@ namespace Client.Ui.Components.NodeGraph
             // Only the viewport's own enter and leave count (moving among children stays inside)
             viewport.RegisterCallback<PointerEnterEvent>(OnPointerEnter);
             viewport.RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
-            viewport.RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+            viewport.RegisterCallback<DetachFromPanelEvent>(_ => ReleaseAll());
         }
 
         public void StartPanning()
         {
-            _panning = true;
-            Apply(UiOsCursorShape.Grabbing);
+            // silent-ok: 握った手は取得済み（ドラッグ中は毎回呼ばれる） / 正常系
+            if (_panRequest != null) return;
+            _viewport.AddToClassList(PanningClass);
+            _panRequest = _osCursor.Request(UiOsCursorShape.Grabbing);
         }
 
         public void EndPanning(Vector2 panelPosition)
         {
-            // 離した位置がビューポートの上なら掴む手、外なら既定へ戻す
-            // Return to the grab hand when released over the viewport, otherwise to the default
-            _panning = false;
-            _hovering = _viewport.worldBound.Contains(panelPosition);
-            Apply(_hovering ? UiOsCursorShape.Grab : UiOsCursorShape.Default);
+            // 離した位置がビューポートの上なら掴む手を残し、外なら外す。先に掴む手を決めてから握った手を外す
+            // Keep the grab hand when released over the viewport, drop it outside; settle the grab hand before dropping the grabbing one
+            if (_viewport.worldBound.Contains(panelPosition)) RequestHover();
+            else ReleaseHover();
+            StopPanning();
         }
 
         public void AbortPanning()
         {
-            // silent-ok: パン前の取消は形を変えていない / 正常系
-            if (!_panning) return;
-            _panning = false;
-            Apply(_hovering ? UiOsCursorShape.Grab : UiOsCursorShape.Default);
+            // silent-ok: パン前の取消は形もクラスも変えていない / 正常系
+            if (_panRequest == null) return;
+            StopPanning();
+        }
+
+        // 非表示や取り外しで PointerLeave が来ない経路のため、要求を全部放して既定へ戻す
+        // Releases every request and returns to the default for paths without a PointerLeave, such as hiding or detaching
+        internal void ReleaseAll()
+        {
+            ReleaseHover();
+            StopPanning();
         }
 
         private void OnPointerEnter(PointerEnterEvent evt)
         {
             // silent-ok: 子の出入りの事象は無視する / 中に居る間の正常系
             if (evt.target != _viewport) return;
-            _hovering = true;
-            if (!_panning) Apply(UiOsCursorShape.Grab);
+            RequestHover();
         }
 
         private void OnPointerLeave(PointerLeaveEvent evt)
         {
             // silent-ok: 子の出入りの事象は無視する / 中に居る間の正常系
             if (evt.target != _viewport) return;
-            // パン中（捕捉中）は外へ出ても握った手のまま。離した時に決める
-            // While panning (captured) keep the grabbing hand outside; release decides
-            _hovering = false;
-            if (!_panning) Apply(UiOsCursorShape.Default);
+            // パン中（捕捉中）は握った手の要求が上にあるので、外へ出ても握った手のまま
+            // While panning (captured) the grabbing request is on top, so it stays grabbing outside
+            ReleaseHover();
         }
 
-        private void OnDetachFromPanel(DetachFromPanelEvent evt)
+        private void RequestHover()
         {
-            // 外された部品が手の形を残さないよう既定へ戻す
-            // Return to the default so a detached view never leaves a hand shape behind
-            _hovering = false;
-            _panning = false;
-            Apply(UiOsCursorShape.Default);
+            _hoverRequest ??= _osCursor.Request(UiOsCursorShape.Grab);
         }
 
-        private void Apply(UiOsCursorShape shape)
+        private void ReleaseHover()
         {
-            // silent-ok: 同じ形は当て直さない（他の部品が当てた既定を上書きしないため） / 正常系
-            if (shape == _applied) return;
-            _applied = shape;
-            _osCursor.SetShape(shape);
+            _hoverRequest?.Dispose();
+            _hoverRequest = null;
+        }
+
+        private void StopPanning()
+        {
+            _viewport.RemoveFromClassList(PanningClass);
+            _panRequest?.Dispose();
+            _panRequest = null;
         }
     }
 }

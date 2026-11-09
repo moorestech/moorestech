@@ -13,8 +13,8 @@ namespace Client.Ui.Components.NodeGraph
     /// Node graph with pan, zoom and inertia (research tree, challenge list); web: moorestech_web/webui/src/shared/treeView/TreeView.tsx
     /// </summary>
     /// <remarks>
-    /// ビューポートの保持は画面が持つ。変化は OnViewportChanged で流し、作り直した直後に RestoreViewport で戻すと初回の中央寄せと寸法の追従をしない
-    /// The screen keeps the viewport; changes flow out on OnViewportChanged, and RestoreViewport right after rebuilding skips initial centering and resize-follow
+    /// ビューポートの保持は画面が持つ。変化は OnViewportChanged で流し、作り直した直後に RestoreViewport で戻すと初回の中央寄せと寸法の追従をしない。カードは押下を捕まえない・止めない（Button・Clickable を使わない）ので、カード上の押下もパンになり、タップは OnNodeTapped で受ける（Web TreeView.tsx と同じ）
+    /// The screen keeps the viewport; changes flow out on OnViewportChanged, and RestoreViewport right after rebuilding skips initial centering and resize-follow. Cards never capture or stop presses (do not use Button or Clickable), so a press on a card also pans and taps arrive on OnNodeTapped (same as the Web TreeView.tsx)
     /// </remarks>
     public sealed class NodeGraphView : VisualElement
     {
@@ -26,6 +26,7 @@ namespace Client.Ui.Components.NodeGraph
         private readonly VisualElement _canvas;
         private readonly NodeGraphScene _scene;
         private readonly NodeGraphPanController _pan;
+        private readonly NodeGraphCursorSwitcher _cursor;
         private readonly Subject<string> _onNodeTapped = new();
         private readonly Subject<NodeGraphViewport> _onViewportChanged = new();
         private bool _restored;
@@ -57,7 +58,8 @@ namespace Client.Ui.Components.NodeGraph
 
             // 押下とパンは Foundation の UiPressGesture、手のカーソルは Foundation の OS カーソル、ホイール・寸法・つまみは自分で受ける
             // Press and pan use Foundation UiPressGesture, the hand cursor the Foundation OS cursor; wheel, size and knobs are handled here
-            _pan = new NodeGraphPanController(this, new NodeGraphCursorSwitcher(this, osCursor));
+            _cursor = new NodeGraphCursorSwitcher(this, osCursor);
+            _pan = new NodeGraphPanController(this, _cursor);
             RegisterCallback<WheelEvent>(OnWheel);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
@@ -84,11 +86,24 @@ namespace Client.Ui.Components.NodeGraph
             SetViewport(new NodeGraphViewport(_viewport.X + delta.x, _viewport.Y + delta.y, _viewport.Scale));
         }
 
-        internal void TapAt(VisualElement pressTarget)
+        internal string FindNodeKey(VisualElement pressTarget)
         {
             // silent-ok: ノードの外の押下は Web と同じく何も選ばない / 押下の対象にノードが無いだけで異常ではない
-            if (!_scene.TryFindNodeKey(pressTarget, out var key)) return;
-            _onNodeTapped.OnNext(key);
+            return _scene.TryFindNodeKey(pressTarget, out var key) ? key : null;
+        }
+
+        internal void TapNode(string pressedKey)
+        {
+            // silent-ok: ノードの外の押下は何も選ばない / FindNodeKey が null を返す正常系
+            if (pressedKey == null) return;
+            if (!_scene.ContainsKey(pressedKey))
+            {
+                // 押している間に SetGraph でそのキーが無くなった。無いノードへは流さず知らせる
+                // The key vanished through SetGraph during the press; do not tap a missing node and report it
+                Debug.LogWarning($"[NodeGraphView] tap dropped: node '{pressedKey}' is no longer in the graph");
+                return;
+            }
+            _onNodeTapped.OnNext(pressedKey);
         }
 
         private void OnWheel(WheelEvent evt)
@@ -110,8 +125,13 @@ namespace Client.Ui.Components.NodeGraph
             // 復元しなかったときだけ、寸法の変化で中央に見えていた点を保つ（0 からの初回は動かさない。Web useKeepViewCenterOnResize）
             // Only when not restored, keep the centered point across size changes (not from zero; the Web useKeepViewCenterOnResize)
             var size = contentRect.size;
-            // silent-ok: 0 へ縮む回（display: none の祖先）は追従も記録もしない / 開き直した寸法で次の回から追従する
-            if (size.x <= 0f || size.y <= 0f) return;
+            // 0 へ縮む回（display: none の祖先）は PointerLeave が来ないので手のカーソルを放し、追従も記録もしない。開き直した回に隠す前の寸法との差で追従する
+            // A shrink to 0 (display: none ancestor) sends no PointerLeave, so release the hand cursor and neither follow nor record; reopening follows from the pre-hide size
+            if (size.x <= 0f || size.y <= 0f)
+            {
+                _cursor.ReleaseAll();
+                return;
+            }
             var keepsCenter = !_restored && _hasClipInset && 0f < _lastContentSize.x && 0f < _lastContentSize.y && size != _lastContentSize;
             if (keepsCenter) SetViewport(NodeGraphViewportMath.ShiftForResize(_viewport, _lastContentSize, size));
             if (_hasClipInset) _lastContentSize = size;

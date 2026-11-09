@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Client.Ui.Components.NodeGraph;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Components.NodeGraph
@@ -94,6 +96,35 @@ namespace Client.Tests.Ui.Components.NodeGraph
 
             CollectionAssert.IsEmpty(_taps);
             AssertViewport(0f, 0f, 1f, ReadViewport(_view));
+        }
+
+        [Test]
+        public void 押している間に同じキーの新しいカードでSetGraphし直しても離すとそのキーのタップが流れる()
+        {
+            var start = _card.worldBound.center;
+            simulate.MouseDown(start, MouseButton.LeftMouse);
+
+            // 押下中に研究の更新でカードが作り直される（古いカードは外れる）
+            // The cards are rebuilt by a research update during the press (the old card is detached)
+            _view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, Card("card-a2")) }, NodeGraphFocus.None));
+            simulate.FrameUpdate();
+            Assert.IsNull(_card.panel, "the pressed card is gone");
+            simulate.MouseUp(start, MouseButton.LeftMouse);
+            simulate.FrameUpdate();
+            CollectionAssert.AreEqual(new[] { "a" }, _taps);
+        }
+
+        [Test]
+        public void 押している間にそのキーが場面から消えたら離してもタップは流れない()
+        {
+            var start = _card.worldBound.center;
+            simulate.MouseDown(start, MouseButton.LeftMouse);
+            _view.SetGraph(new NodeGraphContent(new[] { Node("b", 0f, 0f, Card("card-b")) }, NodeGraphFocus.None));
+            simulate.FrameUpdate();
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[NodeGraphView\] tap dropped: node 'a'"));
+            simulate.MouseUp(start, MouseButton.LeftMouse);
+            simulate.FrameUpdate();
+            CollectionAssert.IsEmpty(_taps);
         }
 
         /// <web-test file="src/shared/treeView/TreeViewNodeGesture.test.ts">ignores a secondary button release and keeps the press alive</web-test>
