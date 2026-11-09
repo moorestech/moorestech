@@ -131,12 +131,12 @@ namespace Client.Ui.State.Inventory.Drag
                 // silent-ok: 1 か所あたり 0 個はホストと同じ成功の何もしない / grab が残ったままなのはプレイヤーが掴み絵で見る
                 if (share.CountPerSlot <= 0) return UiCommandAccepted.Instance;
 
-                // ホストと同じく 1 か所の失敗で残りを止めない。失敗は開発者向けのログへ
-                // Like the host, one failure does not stop the rest; failures go to the developer log
+                // ホストと同じく 1 か所の失敗で残りを止めない。拒否は開発者向けのログへ（何もしない移動の警告は持ち物の口が出す）
+                // Like the host, one failure does not stop the rest; denials go to the developer log (the inventory port warns on no-effect moves)
                 foreach (var destination in share.Destinations)
                 {
                     var outcome = _operations.MoveFromGrab(destination, share.CountPerSlot);
-                    if (outcome != PlayerItemMoveOutcome.Moved) Debug.LogWarning($"[PlayerSlotDragCommands] split-drag move to {destination} denied: {outcome}");
+                    if (outcome is PlayerItemMoveOutcome.SourceEmpty or PlayerItemMoveOutcome.SourceCountShort) Debug.LogWarning($"[PlayerSlotDragCommands] split-drag move to {destination} denied: {outcome}");
                 }
                 return UiCommandAccepted.Instance;
             }
