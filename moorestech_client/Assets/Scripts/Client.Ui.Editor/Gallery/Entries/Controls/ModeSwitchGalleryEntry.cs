@@ -14,8 +14,8 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
 
         public VisualElement CreateSample()
         {
-            // 横（設定のスプリント）・縦で 1 つ無効（ビルドメニューの分類）・タブ（列車の時刻表）の 3 本
-            // Horizontal (settings sprint), vertical with one disabled option (build menu categories), tablist (train timetable)
+            // 横・縦（1 つ無効）・タブの 3 本
+            // Horizontal, vertical (one disabled), and tablist
             var column = new VisualElement();
             var horizontal = new ModeSwitch<string>("gallery-mode-switch", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, Options("gallery-mode-switch"));
             horizontal.SetSelected("a");

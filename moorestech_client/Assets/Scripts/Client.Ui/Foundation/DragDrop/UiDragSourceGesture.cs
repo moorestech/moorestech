@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.DragDrop
 {
     /// <summary>
-    /// 源の押下の分類を、タップ・落とし先へのドロップ・枠外へのドロップに直す（Web useHotbarDragSource の汎用部分）
-    /// Turns a source's press classification into tap, drop on a target, or drop outside (the generic part of Web useHotbarDragSource)
+    /// 源の押下をタップ・ドロップへ分類する
+    /// Classifies source presses into tap or drop
     /// </summary>
     internal sealed class UiDragSourceGesture : IUiPressGestureHandler
     {

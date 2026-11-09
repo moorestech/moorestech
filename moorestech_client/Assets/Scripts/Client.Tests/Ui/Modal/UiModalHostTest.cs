@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Modal
 {
     /// <summary>
-    /// モーダルの宿主が倍率 1.5 でも中身を実画面 px で中央に置き、幕の押下を知らせ、表示を差し替えることを確かめる（L1）
-    /// Verifies the modal host centres contents in real-screen px at scale 1.5, reports backdrop presses and replaces what it shows (L1)
+    /// モーダル宿主の配置と幕を確かめる（L1）
+    /// Verifies modal host placement and scrim (L1)
     /// </summary>
     public class UiModalHostTest : UiTestHost
     {

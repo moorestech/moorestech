@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
-    /// DialogFrame の寸法を参照 3-modal（Web ModalHost の BP 名の画面）の実寸で固定する（L1。倍率 1 のパネル）
-    /// Pins DialogFrame dimensions to the real sizes of reference 3-modal (the Web ModalHost blueprint-name dialog) (L1; panel at scale 1)
+    /// DialogFrame の寸法を実寸で固定（L1）
+    /// Pins DialogFrame sizes at real size (L1)
     /// </summary>
     public class DialogFrameTest : UiTestHost
     {

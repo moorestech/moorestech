@@ -10,8 +10,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.Stage
 {
     /// <summary>
-    /// 倍率の見張りが 16:9 のまま倍率だけ変わる変更を拾い、変わったときだけ流すことを確かめる（L1。S2-notification の停止条件 (b)）
-    /// Verifies the scale watch catches a scale-only change at an unchanged 16:9 panel and publishes only on change (L1; S2-notification stop condition (b))
+    /// 倍率の見張りの検知と通知を確かめる（L1）
+    /// Verifies scale watch detection and notification (L1)
     /// </summary>
     public class StageScaleWatchTest : UiTestHost
     {

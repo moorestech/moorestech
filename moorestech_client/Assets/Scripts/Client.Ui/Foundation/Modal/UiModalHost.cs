@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Modal
 {
     /// <summary>
-    /// モーダルの宿主（Web features/modal/ModalHost の Mantine Modal の Portal）。幕と中央の中身を実画面 px で置く。同時 1 件
-    /// Modal host (the Mantine Modal portal of Web features/modal/ModalHost); places the backdrop and the centred contents in real-screen px, one at a time
+    /// モーダルの宿主（同時 1 件）
+    /// Modal host (one at a time)
     /// </summary>
     /// <remarks>
     /// フォーカスは閉じ込めない（Web trapFocus={false}）。ESC と幕の押下で閉じるかは画面の状態が決める

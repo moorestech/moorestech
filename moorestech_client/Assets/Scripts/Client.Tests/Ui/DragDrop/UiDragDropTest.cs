@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.DragDrop
 {
     /// <summary>
-    /// ドラッグの源と落とし先を実パネルで確かめる（L1。Web features/hotbar/useHotbarDragSource の一般化。ホットバーの解決は S3-hotbar-modal）
-    /// Verifies drag sources and drop targets on a real panel (L1; generalises Web useHotbarDragSource; hotbar resolution is S3-hotbar-modal)
+    /// ドラッグの源と落とし先を確かめる（L1）
+    /// Verifies drag sources and drop targets (L1)
     /// </summary>
     public class UiDragDropTest : UiTestHost
     {
@@ -22,8 +22,8 @@ namespace Client.Tests.Ui.DragDrop
         [SetUp]
         public void MountSourceAndTargets()
         {
-            // 上段に源、下段に「列（隙間）＞枠＞絵」の入れ子の落とし先、右下に印の無い場所を置く
-            // Put the source on top, a nested target "row (gap) > slot > icon" below, and an unmarked area at the bottom right
+            // 上に源、下に入れ子の落とし先を置く
+            // Put the source on top, a nested target below
             _source = Box("drag-source", 60, 60);
             _row = Box("drop-row", 300, 80);
             _row.style.flexDirection = FlexDirection.Row;
@@ -85,6 +85,15 @@ namespace Client.Tests.Ui.DragDrop
             Press(_source.worldBound.center, _slot.worldBound.center);
             CollectionAssert.IsEmpty(_payload.Calls);
             CollectionAssert.AreEqual(new[] { "drop:slot" }, replaced.Calls);
+        }
+
+        [Test]
+        public void 印を外した落とし先は最寄りから外れクラスも消える()
+        {
+            UiDragDrop.UnmarkTarget(_slot);
+            Assert.IsFalse(_slot.ClassListContains("ui-drop-target"));
+            Press(_source.worldBound.center, _slotIcon.worldBound.center);
+            CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
         }
 
         private void Press(Vector2 from, Vector2 to)

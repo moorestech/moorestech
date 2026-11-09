@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls.GameScrollViewSpy
 {
     /// <summary>
-    /// スクロールスパイの口（見出しの位置・高さ・レイアウトの変化）を確かめる（L1。使い手は S3-buildmenu の IBuildMenuScrollViewport）
-    /// Verifies the scroll-spy port (heading position, heights, layout changes) (L1; the consumer is S3-buildmenu's IBuildMenuScrollViewport)
+    /// スクロールスパイの口を確かめる（L1）
+    /// Verifies the scroll-spy port (L1)
     /// </summary>
     public class GameScrollViewSpyPortTest : UiTestHost
     {

@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Panels
 {
     /// <summary>
-    /// DialogFrame の見本。参照 3-modal（BP 名の画面）と同じ題・説明文・入力・保存のボタンを、幕の色の地の上に置く
-    /// DialogFrame sample: the title, description, input and save button of reference 3-modal (blueprint name dialog) on a backdrop-colored ground
+    /// DialogFrame の見本（幕の色の地に置く）
+    /// DialogFrame sample (placed on the scrim color)
     /// </summary>
     public sealed class DialogFrameGalleryEntry : IUiGalleryEntry
     {

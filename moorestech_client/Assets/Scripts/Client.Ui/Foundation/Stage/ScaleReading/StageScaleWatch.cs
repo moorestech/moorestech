@@ -13,6 +13,7 @@ namespace Client.Ui.Foundation.Stage.ScaleReading
     {
         private readonly VisualElement _root;
         private readonly ReactiveProperty<float> _scale = new(1f);
+        private bool _unreadableReported;
 
         public IReadOnlyReactiveProperty<float> Scale => _scale;
 
@@ -35,8 +36,15 @@ namespace Client.Ui.Foundation.Stage.ScaleReading
 
         private void ReadOnce()
         {
-            // silent-ok: 読めないのは初回のレイアウト前の数フレームだけ（変種 B） / 読めないまま続くと UiScreenPixelScope の中身が倍率 1 のままになり、並べ比べの 2560×1080 と録画で気づく
-            if (!StageScaleMeasure.TryRead(_root.panel, out var scale)) return;
+            if (!StageScaleMeasure.TryRead(_root.panel, out var scale))
+            {
+                // 読めない状態は毎フレーム続きうるので、最初の 1 回だけ開発者へ知らせる
+                // An unreadable state can last every frame, so tell the developer only the first time
+                if (_unreadableReported) return;
+                _unreadableReported = true;
+                Debug.LogError($"[StageScale] stage scale is unreadable; keeping {_scale.Value:0.###}");
+                return;
+            }
             if (Mathf.Approximately(_scale.Value, scale)) return;
 
             // 解像度の変更は稀なので、変化を開発者のログに残す（録画の確認にも使う）

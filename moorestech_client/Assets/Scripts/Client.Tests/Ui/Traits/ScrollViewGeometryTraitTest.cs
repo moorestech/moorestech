@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Traits
 {
     /// <summary>
-    /// ScrollView のスクロールで中身に GeometryChangedEvent が来るかを実測する（L1。スクロールスパイの口の設計が頼る）
-    /// Measures whether scrolling a ScrollView raises GeometryChangedEvent on its contents (L1; the scroll-spy port relies on it)
+    /// スクロール時の GeometryChanged を実測（L1）
+    /// Measures GeometryChanged on scroll (L1)
     /// </summary>
     public class ScrollViewGeometryTraitTest : UiTestHost
     {

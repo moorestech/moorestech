@@ -17,8 +17,8 @@ namespace Client.Ui.Components.Controls
     }
 
     /// <summary>
-    /// 選択肢 1 つ。文は UiText（辞書のキー・コンテンツのキー・翻訳しない生の文）
-    /// One option; its label is a UiText (dictionary key, content key, or verbatim untranslated text)
+    /// 選択肢 1 つ（文は UiText）
+    /// One option (text is UiText)
     /// </summary>
     public sealed class ModeSwitchOption<TValue>
     {

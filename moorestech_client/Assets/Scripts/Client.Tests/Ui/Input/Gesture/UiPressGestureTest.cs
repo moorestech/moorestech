@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Input.Gesture
 {
     /// <summary>
-    /// 押下の状態機械を実パネルで確かめる（L1。Web shared/pointerGesture/usePressGesture の写し。倍率 1 のパネル）
-    /// Verifies the press state machine on a real panel (L1; copy of Web shared/pointerGesture/usePressGesture; scale-1 panel)
+    /// 押下の状態機械を確かめる（L1）
+    /// Verifies the press state machine (L1)
     /// </summary>
     public class UiPressGestureTest : UiTestHost
     {

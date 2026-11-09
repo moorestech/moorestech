@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Tooltip
 {
     /// <summary>
-    /// ポインタの下の対象を含む ScrollView だけのスクロールを知らせる（無関係なパネルのスクロールは見ない。Web の scroll の target.contains(node)）
-    /// Reports scrolls only of ScrollViews containing the element under the pointer (unrelated panels are ignored; Web scroll target.contains(node))
+    /// 対象を含む ScrollView のスクロール通知
+    /// Scroll notifications of the ScrollView containing the target
     /// </summary>
     internal sealed class HoverTooltipScrollWatch
     {

@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.DragDrop
 {
     /// <summary>
-    /// ドラッグの源と落とし先の印。源は押下を UiPressGesture で分類し、解放点から最寄りの落とし先を引く（設計書 §1.2 DragDrop・§2.7）
-    /// Marks for drag sources and drop targets; a source classifies presses with UiPressGesture and finds the nearest target from the release point (design §1.2 DragDrop, §2.7)
+    /// ドラッグの源と落とし先の印
+    /// Marks for drag sources and drop targets
     /// </summary>
     public static class UiDragDrop
     {
@@ -47,7 +47,7 @@ namespace Client.Ui.Foundation.DragDrop
             target.RemoveFromClassList(TargetClassName);
         }
 
-        public static bool TryFindTarget(VisualElement from, out IUiDropTarget target)
+        internal static bool TryFindTarget(VisualElement from, out IUiDropTarget target)
         {
             for (var current = from; current != null; current = current.parent)
             {

@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Panels
 {
     /// <summary>
-    /// Mantine Modal の影（box-shadow: var(--mantine-shadow-xl) の 3 層）を枠の外へ頂点カラーで描く。枠の面の奥に置く
-    /// Draws the Mantine Modal shadow (the three layers of box-shadow: var(--mantine-shadow-xl)) outside the frame with vertex colors, behind the frame surface
+    /// Mantine Modal の影を頂点カラーで描く
+    /// Draws the Mantine Modal shadow with vertex colors
     /// </summary>
     /// <remarks>
     /// 層ごとに枠の矩形を y だけ下げ spread だけ広げた形を σ=blur/2 のガウスでぼかす。矩形のぼかしは横と縦の被覆率の積
@@ -50,7 +50,7 @@ namespace Client.Ui.Components.Panels
             var t = 1f / (1f + 0.3275911f * x);
             var poly = t * (0.254829592f + t * (-0.284496736f + t * (1.421413741f + t * (-1.453152027f + t * 1.061405429f))));
             var erf = 1f - poly * Mathf.Exp(-x * x);
-            return z >= 0f ? 0.5f * (1f + erf) : 0.5f * (1f - erf);
+            return 0f <= z ? 0.5f * (1f + erf) : 0.5f * (1f - erf);
         }
 
         private void OnCustomStyleResolved()

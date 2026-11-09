@@ -10,13 +10,11 @@ namespace Client.Ui.Foundation.Input.Gesture
     {
         public Vector2 FromStart { get; }
         public Vector2 SinceLast { get; }
-        public Vector2 PanelPosition { get; }
 
-        public UiPressMove(Vector2 fromStart, Vector2 sinceLast, Vector2 panelPosition)
+        public UiPressMove(Vector2 fromStart, Vector2 sinceLast)
         {
             FromStart = fromStart;
             SinceLast = sinceLast;
-            PanelPosition = panelPosition;
         }
     }
 }

@@ -4,17 +4,17 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Stage.ScaleReading
 {
     /// <summary>
-    /// 舞台の倍率（パネル 1px が実画面の何 px か）を読む唯一の式。式は C3-b の実測で選んだ（台帳「舞台の倍率の読み口」）
-    /// The single formula reading the stage scale (real-screen px per panel px); chosen by the C3-b measurement (ledger row on the stage scale)
+    /// 舞台の倍率を読む唯一の式
+    /// The only formula that reads the stage scale
     /// </summary>
-    public static class StageScaleMeasure
+    internal static class StageScaleMeasure
     {
         public static bool TryRead(IPanel panel, out float scale)
         {
             // PanelSettings（ScaleWithScreenSize・Expand）の倍率と一致した値をそのまま使う
             // Use the value that matched the PanelSettings scale (ScaleWithScreenSize, Expand)
             scale = panel.scaledPixelsPerPoint;
-            return scale > 0f;
+            return 0f < scale;
         }
 
         // 押下の時点で 1 回だけ読む口（DI の外で new される UiPressGesture 用）。読めなければ開発者へ知らせ 1 で続ける

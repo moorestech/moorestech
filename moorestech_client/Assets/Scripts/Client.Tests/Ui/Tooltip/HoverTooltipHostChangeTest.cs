@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Tooltip
 {
     /// <summary>
-    /// ポインタが止まったまま起きる変化（捕捉の始まり・ホバー中の印の変化・木からの取り外し）で宿主が移動を待たずに追うことを確かめる（L1。A-43 の「捕捉中は出さない」と Web のラベルの変化）
-    /// Verifies the host follows changes that happen while the pointer rests (capture start, hovered mark change, removal from the tree) without waiting for a move (L1; A-43 "hidden while captured" and the Web label change)
+    /// 静止中の変化への追従を確かめる（L1）
+    /// Verifies following changes while the pointer rests (L1)
     /// </summary>
     public class HoverTooltipHostChangeTest : UiTestHost
     {
@@ -127,6 +127,22 @@ namespace Client.Tests.Ui.Tooltip
             _stage.List.Remove(_stage.Wood);
             simulate.FrameUpdate();
             Assert.IsFalse(_stage.IsShown());
+        }
+
+        [Test]
+        public void 印の親を残して下の子だけが外れたら消す()
+        {
+            var child = new VisualElement { name = "wood-child" };
+            child.style.width = 20;
+            child.style.height = 20;
+            _stage.Wood.Add(child);
+            simulate.FrameUpdate();
+            Hover(child.worldBound.center);
+            Assert.IsTrue(_stage.IsShown(), "shown over the marked parent via its child");
+
+            child.RemoveFromHierarchy();
+            simulate.FrameUpdate();
+            Assert.IsFalse(_stage.IsShown(), "hidden when only the pointed child detached");
         }
 
         private void Hover(Vector2 point)

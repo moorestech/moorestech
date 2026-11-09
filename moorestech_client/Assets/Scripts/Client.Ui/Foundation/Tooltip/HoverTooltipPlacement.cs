@@ -3,17 +3,17 @@ using UnityEngine;
 namespace Client.Ui.Foundation.Tooltip
 {
     /// <summary>
-    /// ツールチップの置き場所。Mantine Tooltip の既定（position top・offset 5・flip・shift の padding 8）を写す
-    /// Tooltip placement copying the Mantine Tooltip defaults (position top, offset 5, flip, shift padding 8)
+    /// ツールチップの置き場所（Mantine 既定）
+    /// Tooltip placement (Mantine default)
     /// </summary>
-    public static class HoverTooltipPlacement
+    internal static class HoverTooltipPlacement
     {
         // Mantine の offset と shift の padding は Portal の中の実画面 px（--ui-scale を掛けない。padding は use-tooltip.mjs の shift({ padding: 8 })）
         // The Mantine offset and shift padding are real-screen px inside the portal (no --ui-scale; padding is shift({ padding: 8 }) in use-tooltip.mjs)
-        public const float OffsetScreenPx = 5f;
-        public const float ShiftPaddingScreenPx = 8f;
+        internal const float OffsetScreenPx = 5f;
+        internal const float ShiftPaddingScreenPx = 8f;
 
-        public static Vector2 Place(Rect target, Vector2 faceSize, Rect bounds, float offset, float shiftPadding)
+        internal static Vector2 Place(Rect target, Vector2 faceSize, Rect bounds, float offset, float shiftPadding)
         {
             // 対象の上に中央をそろえ、入らなければ下へ反転する
             // Center above the target and flip below when it does not fit

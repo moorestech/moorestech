@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Stage
 {
     /// <summary>
-    /// 倍率を打ち消す箱が中身を実画面 px で置き、見かけは親いっぱいになることを確かめる（L1。設計書 A-41）
-    /// Verifies the scale-cancelling box lays contents out in real-screen px while looking parent-sized (L1; design A-41)
+    /// 実画面 px の箱を確かめる（L1）
+    /// Verifies the real-screen px box (L1)
     /// </summary>
     public class UiScreenPixelScopeTest : UiTestHost
     {

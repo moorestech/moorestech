@@ -6,8 +6,8 @@ using VContainer.Unity;
 namespace Client.Ui.Foundation.Modal
 {
     /// <summary>
-    /// GameUi の Modal 層（Viewport の族。Web の Portal は --ui-scale の外）に宿主を置く（DI の入口）
-    /// Places the host in the GameUi Modal layer (Viewport family; the Web portal sits outside --ui-scale) (DI entry)
+    /// Modal 層へ宿主を置く入口
+    /// Entry point that mounts the host in the Modal layer
     /// </summary>
     public sealed class GameUiModalHostInstaller : IInitializable
     {

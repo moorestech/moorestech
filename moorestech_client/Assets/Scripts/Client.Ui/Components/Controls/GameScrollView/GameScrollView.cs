@@ -63,6 +63,16 @@ namespace Client.Ui.Components.Controls
                 verticalScrollerVisibility = overflows ? ScrollerVisibility.AlwaysVisible : ScrollerVisibility.Hidden;
             }
 
+            void PublishWhenHeightsChanged()
+            {
+                var contentHeight = GetContentHeight();
+                var viewportHeight = GetViewportHeight();
+                if (Mathf.Approximately(contentHeight, _publishedContentHeight) && Mathf.Approximately(viewportHeight, _publishedViewportHeight)) return;
+                _publishedContentHeight = contentHeight;
+                _publishedViewportHeight = viewportHeight;
+                _onContentLayoutChanged.OnNext(Unit.Default);
+            }
+
             #endregion
         }
 
@@ -95,16 +105,6 @@ namespace Client.Ui.Components.Controls
             }
             top = descendant.ChangeCoordinatesTo(contentContainer, Vector2.zero).y;
             return true;
-        }
-
-        private void PublishWhenHeightsChanged()
-        {
-            var contentHeight = GetContentHeight();
-            var viewportHeight = GetViewportHeight();
-            if (Mathf.Approximately(contentHeight, _publishedContentHeight) && Mathf.Approximately(viewportHeight, _publishedViewportHeight)) return;
-            _publishedContentHeight = contentHeight;
-            _publishedViewportHeight = viewportHeight;
-            _onContentLayoutChanged.OnNext(Unit.Default);
         }
 
         private void OnCustomStyleResolved()

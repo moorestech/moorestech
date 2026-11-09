@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input.Gesture
 {
     /// <summary>
-    /// 押下をタップ・ドラッグ・中断に分ける状態機械（Web shared/pointerGesture/usePressGesture）。閾値は実画面 5px、移動量はパネル px で渡す
-    /// Press state machine splitting tap, drag and abort (Web shared/pointerGesture/usePressGesture); the threshold is 5 real-screen px and moves are panel px
+    /// 押下をタップ・ドラッグ・中断に分ける
+    /// Splits a press into tap, drag, or cancel
     /// </summary>
     public sealed class UiPressGesture
     {
@@ -32,7 +32,7 @@ namespace Client.Ui.Foundation.Input.Gesture
 
         // Web の clientX は実画面 px なので、パネル px の移動量に倍率を掛けて同じ 5px で比べる
         // The Web clientX is real-screen px, so multiply the panel-px delta by the scale and compare with the same 5px
-        public static bool ExceedsOnScreen(Vector2 panelDelta, float stageScale)
+        internal static bool ExceedsOnScreen(Vector2 panelDelta, float stageScale)
         {
             return UiDragThreshold.Exceeded(panelDelta.x * stageScale, panelDelta.y * stageScale);
         }
@@ -47,17 +47,21 @@ namespace Client.Ui.Foundation.Input.Gesture
             // 押下を受けたら捕捉し、終わりの事象を取りこぼさない
             // Capture on an accepted press so the end events are never missed
             Vector2 position = evt.position;
-            _handler.OnPressStarted(position);
             _element.CapturePointer(evt.pointerId);
             // 倍率は押下の時点で 1 回だけ読む（DI の外で new されるので StageScaleSource を受けない。D-2）
             // Read the scale once at press time (built outside DI, so it takes no StageScaleSource; D-2)
             var stageScale = StageScaleMeasure.ReadOrUnit(_element.panel, $"UiPressGesture {_element.name}");
             _press = new LivePress(evt.pointerId, position, evt.target as VisualElement, stageScale);
+
+            // 押下の確定後に受け手を呼ぶ。受け手の中で要素が外れても通常の中断として片付く
+            // Call the handler after the press is committed so a detach inside it ends as a normal abort
+            _handler.OnPressStarted(position);
         }
 
         private void OnPointerMove(PointerMoveEvent evt)
         {
-            if (_press == null || _press.PointerId != evt.pointerId) return;
+            var live = _press;
+            if (live == null || live.PointerId != evt.pointerId) return;
             Vector2 position = evt.position;
 
             // 他ボタンを押したままの主ボタン解放は PointerUp でなく chorded な PointerMove で届くので、ここでも押下を終える
@@ -70,13 +74,14 @@ namespace Client.Ui.Foundation.Input.Gesture
 
             // 閾値を超えた回で初めてドラッグにし、その回は押下点からの全量を渡して指へぴったり追わせる
             // Commit to a drag only past the threshold; that move hands the whole delta from the press point so content tracks the pointer
-            if (!_press.Dragged)
+            if (!live.Dragged)
             {
-                if (!ExceedsOnScreen(position - _press.Start, _press.StageScale)) return;
-                _press.Dragged = true;
+                if (!ExceedsOnScreen(position - live.Start, live.StageScale)) return;
+                live.Dragged = true;
             }
-            _handler.OnDragMoved(new UiPressMove(position - _press.Start, position - _press.Last, position));
-            _press.Last = position;
+            var move = new UiPressMove(position - live.Start, position - live.Last);
+            live.Last = position;
+            _handler.OnDragMoved(move);
         }
 
         private void OnPointerUp(PointerUpEvent evt)

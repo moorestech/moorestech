@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Input.Gesture
 {
     /// <summary>
-    /// 閾値はパネル px を実画面 px に直して Web と同じ 5px で判定することを確かめる（L0）
-    /// Verifies the threshold converts panel px to real-screen px and compares with the Web's 5px (L0)
+    /// 押下の閾値 5px 判定を確かめる（L0）
+    /// Verifies the 5px press threshold (L0)
     /// </summary>
     public class UiPressGestureThresholdTest
     {

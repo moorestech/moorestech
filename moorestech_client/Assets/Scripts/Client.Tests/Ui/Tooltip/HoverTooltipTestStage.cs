@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Tooltip
 {
     /// <summary>
-    /// ホバーの宿主の L1 が使う舞台（印の付いた一覧・無関係なパネル・印の無い場所・最前の層と宿主）を組む
-    /// Builds the stage for the hover host L1 tests (a marked list, an unrelated panel, an unmarked area, a front layer and the host)
+    /// ホバー宿主 L1 用の舞台を組む
+    /// Builds the stage for hover host L1 tests
     /// </summary>
     public sealed class HoverTooltipTestStage
     {
@@ -31,8 +31,8 @@ namespace Client.Tests.Ui.Tooltip
             FillParent(pointerRoot);
             testRoot.Add(pointerRoot);
 
-            // 左に印の付いたセルの一覧、右に無関係なパネル、下に印の無い場所
-            // A list of marked cells on the left, an unrelated panel on the right, an unmarked area below
+            // 左に一覧、右に別パネル、下に空き地
+            // A list on the left, another panel on the right, empty ground below
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
             List = Scroll("tooltip-list");

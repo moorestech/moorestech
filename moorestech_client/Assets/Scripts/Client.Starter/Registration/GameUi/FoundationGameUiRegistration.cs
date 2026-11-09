@@ -8,8 +8,8 @@ using VContainer.Unity;
 namespace Client.Starter.Registration.GameUi
 {
     /// <summary>
-    /// GameUi の土台（舞台の倍率・モーダルの宿主・ホバーのツールチップの宿主）を登録する
-    /// Registers the GameUi foundation (stage scale, modal host, hover tooltip host)
+    /// GameUi の土台サービスを登録
+    /// Registers the GameUi foundation services
     /// </summary>
     internal static class FoundationGameUiRegistration
     {

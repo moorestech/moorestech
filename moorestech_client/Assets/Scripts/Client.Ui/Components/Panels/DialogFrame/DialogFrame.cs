@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Panels
 {
     /// <summary>
-    /// Mantine Modal の枠（題の行・本文・幅いっぱいの操作）。Web features/modal/ModalHost の content・header・body の写し
-    /// Mantine Modal frame (title row, body, full-width actions); copies the content, header and body of Web features/modal/ModalHost
+    /// モーダルの枠（題の行・本文・操作）
+    /// Modal frame (title row, body, actions)
     /// </summary>
     /// <remarks>
     /// 幅は Mantine の --modal-size（md 440px）。Web の w={320} は content の flex-basis に負けて効かない。画面は祖先で --modal-size を上書きする
@@ -36,8 +36,8 @@ namespace Client.Ui.Components.Panels
             _surface.AddToClassList("dialog-frame__surface");
             hierarchy.Add(_surface);
 
-            // 本文の中に中身と操作の列を縦に積む（Web は Stack の中に TextInput と Button）
-            // Stack the contents and the action column inside the body (the Web stacks TextInput and Button)
+            // 本文に中身と操作を縦に積む
+            // Stack contents and actions vertically in the body
             var body = new VisualElement();
             body.AddToClassList("dialog-frame__body");
             _content = new VisualElement();
@@ -55,24 +55,28 @@ namespace Client.Ui.Components.Panels
         {
             if (_title == null) _title = CreateTitleRow();
             _title.SetText(title);
+
+            #region Internal
+
+            LocalizedLabel CreateTitleRow()
+            {
+                var header = new VisualElement();
+                header.AddToClassList("dialog-frame__header");
+                var created = new LocalizedLabel { name = $"{_testid}-title" };
+                created.AddToClassList(UiTypographyClass.TitleOrder4);
+                created.AddToClassList("dialog-frame__title");
+                header.Add(created);
+                _surface.Insert(0, header);
+                return created;
+            }
+
+            #endregion
         }
 
         public void AddAction(FormButton button)
         {
             button.AddToClassList("dialog-frame__action");
             _actions.Add(button);
-        }
-
-        private LocalizedLabel CreateTitleRow()
-        {
-            var header = new VisualElement();
-            header.AddToClassList("dialog-frame__header");
-            var title = new LocalizedLabel { name = $"{_testid}-title" };
-            title.AddToClassList(UiTypographyClass.TitleOrder4);
-            title.AddToClassList("dialog-frame__title");
-            header.Add(title);
-            _surface.Insert(0, header);
-            return title;
         }
     }
 }

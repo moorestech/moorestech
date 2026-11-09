@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Tooltip
 {
     /// <summary>
-    /// ホバーのツールチップの宿主（Tooltip 層に 1 つ）。ポインタの下の対象から最寄りの印を引いて出し、祖先のスクロールと捕捉で引っ込め、座標が実際に動いたら開き直す（Web shared/ui/HoverTooltip・設計書 A-43）
-    /// Hover tooltip host (one in the Tooltip layer); shows the nearest mark of the element under the pointer, retracts on an ancestor scroll or a capture and reopens on real pointer movement (Web shared/ui/HoverTooltip, design A-43)
+    /// ホバーのツールチップの宿主（Tooltip 層に 1 つ）
+    /// Hover tooltip host (one in the Tooltip layer)
     /// </summary>
     public sealed class HoverTooltipHost
     {
@@ -53,8 +53,8 @@ namespace Client.Ui.Foundation.Tooltip
 
         public void Attach(VisualElement pointerRoot, VisualElement layer)
         {
-            // 何も拾えない場所の移動も木の根は通るので、根で TrickleDown に受ける。捕捉の始まりも同じ根で受ける
-            // Moves over nothing pickable still pass the tree root, so receive them there with TrickleDown; capture starts arrive at the same root
+            // 空き地へ出た移動は根の PointerLeaveEvent で受ける（空き地の中の移動は届かない。台帳の実測）。移動と捕捉の始まりは根で TrickleDown に受ける
+            // A move out to empty space arrives as the root PointerLeaveEvent (moves inside empty space never arrive; ledger measurement); moves and capture starts are received at the root with TrickleDown
             _layer = layer;
             layer.Add(_anchor);
             pointerRoot.RegisterCallback<PointerMoveEvent>(OnPointerMove, TrickleDown.TrickleDown);
@@ -87,7 +87,11 @@ namespace Client.Ui.Foundation.Tooltip
             // Watch scrolls on the pointed element's ancestors regardless of marks, so a scroll while unmarked still retracts (the Web subscribes by hover even while disabled)
             if (pointed != _pointed)
             {
+                // 取り外しの見張りは _pointed にも張る（_tracked は _pointed 自身か祖先なので、子だけが外れる場合も拾える）
+                // Watch _pointed for detach too (_tracked is _pointed or an ancestor, so a child-only detach is caught)
+                _pointed?.UnregisterCallback<DetachFromPanelEvent>(OnPointedDetached);
                 _pointed = pointed;
+                _pointed?.RegisterCallback<DetachFromPanelEvent>(OnPointedDetached);
                 if (_pointed == null) _scrollWatch.Clear();
                 else _scrollWatch.Watch(_pointed);
             }
@@ -126,6 +130,11 @@ namespace Client.Ui.Foundation.Tooltip
         }
 
         private void OnTrackedDetached(DetachFromPanelEvent evt)
+        {
+            ForgetPointed();
+        }
+
+        private void OnPointedDetached(DetachFromPanelEvent evt)
         {
             ForgetPointed();
         }

@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Traits
 {
     /// <summary>
-    /// ホバーの宿主と押下の分類が頼るポインタの性質を実測する（L1。結果は台帳「実測の結論」）
-    /// Measures the pointer traits the hover host and press classifier rely on (L1; results go to the ledger's measured conclusions)
+    /// ポインタの性質を実測（L1）
+    /// Measures pointer traits (L1)
     /// </summary>
     public class UiPointerTraitTest : UiTestHost
     {
@@ -21,8 +21,8 @@ namespace Client.Tests.Ui.Traits
         [SetUp]
         public void MountThreeCells()
         {
-            // 横に 3 マス（各 100×100）を並べ、進入を名前で記録する
-            // Lay three 100x100 cells in a row and record entries by name
+            // 3 マスを並べ進入を記録する
+            // Lay three cells in a row and record entries
             _entered.Clear();
             _row = new VisualElement();
             _row.style.flexDirection = FlexDirection.Row;

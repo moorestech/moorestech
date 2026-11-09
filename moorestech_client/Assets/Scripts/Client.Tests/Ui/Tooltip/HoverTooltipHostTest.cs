@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Tooltip
 {
     /// <summary>
-    /// ホバーの宿主が Web HoverTooltip の意図どおり出し入れすることを確かめる（L1。設計書 A-43。e2e slotTooltip.spec は S4-recipe が写す）
-    /// Verifies the hover host shows and hides as the Web HoverTooltip intends (L1; design A-43; e2e slotTooltip.spec is copied by S4-recipe)
+    /// ホバー宿主の出し入れを確かめる（L1）
+    /// Verifies hover host show and hide (L1)
     /// </summary>
     public class HoverTooltipHostTest : UiTestHost
     {

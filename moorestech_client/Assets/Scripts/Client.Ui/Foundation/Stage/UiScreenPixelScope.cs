@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Stage
 {
     /// <summary>
-    /// 舞台の倍率を打ち消し、中身を実画面 px で置く箱。Web で --ui-scale を掛けない Portal（Mantine Modal・言語ゲート）の中身を入れる（設計書 A-41）
-    /// A box cancelling the stage scale so its contents sit in real-screen px; holds the contents of Web portals without --ui-scale (Mantine Modal, the language gate) (design A-41)
+    /// 倍率を打ち消し実画面 px で置く箱
+    /// Box that cancels scale and places in real-screen px
     /// </summary>
     public sealed class UiScreenPixelScope : VisualElement
     {

@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Tooltip
 {
     /// <summary>
-    /// ツールチップの置き方が Mantine Tooltip の既定（上・間隔・入らなければ下へ反転・横は枠から 8px 内へ押し戻す）と同じことを確かめる（L0）
-    /// Verifies tooltip placement matches the Mantine Tooltip default (top, offset, flip below when it does not fit, shift to 8px inside the bounds) (L0)
+    /// ツールチップの置き方を確かめる（L0）
+    /// Verifies tooltip placement (L0)
     /// </summary>
     public class HoverTooltipPlacementTest
     {

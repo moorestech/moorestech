@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 択一のボタン列（Web shared/ui/ModeSwitch）。SetSelected で表示し、OnOptionSelected で押された値を知らせる
-    /// Exclusive button row (Web shared/ui/ModeSwitch); SetSelected shows the selection and OnOptionSelected reports the pressed value
+    /// 択一のボタン列（Web ModeSwitch の写し）
+    /// Single-choice button row (copy of Web ModeSwitch)
     /// </summary>
     public sealed class ModeSwitch<TValue> : VisualElement
     {

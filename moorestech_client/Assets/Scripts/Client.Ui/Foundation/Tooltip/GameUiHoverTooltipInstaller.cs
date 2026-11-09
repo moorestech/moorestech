@@ -8,8 +8,8 @@ using VContainer.Unity;
 namespace Client.Ui.Foundation.Tooltip
 {
     /// <summary>
-    /// GameUi の Tooltip 層に宿主を 1 つ置き、パネルの木の根で移動を受ける（DI の入口）
-    /// Places one host in the GameUi Tooltip layer and receives moves at the panel tree root (DI entry)
+    /// Tooltip 層へ宿主を置く入口
+    /// Entry point that mounts the host in the Tooltip layer
     /// </summary>
     public sealed class GameUiHoverTooltipInstaller : IInitializable
     {

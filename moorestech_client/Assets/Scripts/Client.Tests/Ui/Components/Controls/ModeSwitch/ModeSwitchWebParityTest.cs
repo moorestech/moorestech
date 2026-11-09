@@ -13,8 +13,8 @@ using ModeSwitchString = Client.Ui.Components.Controls.ModeSwitch<string>;
 namespace Client.Tests.Ui.Components.Controls.ModeSwitch
 {
     /// <summary>
-    /// Web の ModeSwitch のテスト 6 件を写す（L1。data 属性は状態のクラス、disabled 属性は enabledSelf、role はタブのクラスで見る）
-    /// Copies the six Web ModeSwitch tests (L1; data attributes become state classes, disabled becomes enabledSelf, role becomes the tablist class)
+    /// Web ModeSwitch のテスト 6 件の写し（L1）
+    /// Copy of the six Web ModeSwitch tests (L1)
     /// </summary>
     public class ModeSwitchWebParityTest : UiTestHost
     {
