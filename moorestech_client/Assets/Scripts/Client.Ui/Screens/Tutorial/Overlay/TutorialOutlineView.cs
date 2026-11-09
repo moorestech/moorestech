@@ -48,7 +48,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             _pulse.Detach(_clip);
         }
 
-        public void ShowRing(TutorialClipRect box, TutorialClipInset inset, float glowWidth, float ringRadius)
+        public void ShowRing(TutorialClipRect box, TutorialClipInset inset, float glowWidth, float ringRadius, bool glowOverWorld)
         {
             // 容器は箱を inset で縮めた矩形。負の inset は外へ広げてグローを残す（Web clipPathInset）
             // The container is the box shrunk by the inset; negative insets widen it to keep the glow (Web clipPathInset)
@@ -58,6 +58,9 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             SetRect(_ring, box.Left - left, box.Top - top, box.Width, box.Height);
             SetRect(_glow, box.Left - left - glowWidth, box.Top - top - glowWidth, box.Width + glowWidth * 2f, box.Height + glowWidth * 2f);
             SetBorder(_glow, glowWidth, ringRadius + glowWidth);
+            // 世界の地の上では明るい地に合わせた α に替える（1 つの α では暗い面と明るい地を両立できない。LX-38）
+            // Over the world switch to the alpha fitted to bright ground (one alpha cannot serve dark surfaces and bright ground; LX-38)
+            _glow.EnableInClassList("tutorial-outline__glow--over-world", glowOverWorld);
             // 拡縮の中心は箱の中心（Web は .highlight 自身の中心）
             // Scale around the box center (Web scales .highlight around its own center)
             _clip.style.transformOrigin = new TransformOrigin(new Length(box.CenterX - left), new Length(box.CenterY - top));

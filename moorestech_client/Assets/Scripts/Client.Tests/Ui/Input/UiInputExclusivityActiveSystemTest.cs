@@ -23,6 +23,21 @@ namespace Client.Tests.Ui.Input
             UiInputExclusivity.SetGameUiTextInputFocused(false);
             UiInputExclusivity.SetGameUiPointerProbe(null);
             UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
+            InputManager.MouseCursorVisible(true);
+        }
+
+        [Test]
+        public void ロック中はUIの上に乗っていても乗っていないと答える()
+        {
+            // 判定はロック状態の正本を読む。batchmode でも Cursor.lockState を読まないので CI で効く
+            // The check reads the lock-state source of truth, so it holds in batchmode CI where Cursor.lockState stays None
+            UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
+            UiInputExclusivity.SetState(true, false);
+            InputManager.MouseCursorVisible(false);
+            Assert.IsFalse(UiPointerHitTest.IsPointerOverAnyUi());
+
+            InputManager.MouseCursorVisible(true);
+            Assert.IsTrue(UiPointerHitTest.IsPointerOverAnyUi());
         }
 
         [Test]

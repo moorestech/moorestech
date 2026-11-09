@@ -24,7 +24,6 @@ namespace Client.Starter.Registration.GameUi
             // 解放の購読（確定の持ち主）と S4-alpha が呼ぶ口を同じ 1 個にする（D-26）
             // The release subscription (commit owner) and the port S4-alpha calls are the same single instance (D-26)
             builder.RegisterEntryPoint<PlayerSlotDragCommands>().As<IPlayerSlotDragCommands>();
-            builder.Register<InputSystemGrabOverlayPointer>(Lifetime.Singleton).As<IGrabOverlayPointer>();
             builder.RegisterEntryPoint<GrabOverlayPresenter>();
         }
     }

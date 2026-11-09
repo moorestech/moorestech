@@ -1,4 +1,5 @@
 using Client.Input;
+using Client.Ui.Foundation.Input.Pointer;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -19,10 +20,7 @@ namespace Client.Ui.Foundation.Input
 
         public bool IsPointerOverGameUi(Vector2 screenPosition)
         {
-            // Unity のスクリーン座標は左下原点、パネル換算は左上原点のスクリーン座標を受ける
-            // Unity screen space is bottom-left origin while the panel conversion expects top-left screen coordinates
-            var topLeftScreenPosition = new Vector2(screenPosition.x, Screen.height - screenPosition.y);
-            var panelPosition = RuntimePanelUtils.ScreenToPanel(_panel, topLeftScreenPosition);
+            var panelPosition = UiScreenToPanel.FromBottomLeft(_panel, screenPosition);
             return IsPickableAt(panelPosition);
         }
 

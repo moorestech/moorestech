@@ -41,10 +41,14 @@ namespace Client.Tests.Ui.Screens.Tutorial.Design
             var glow = ThemeTokenFile.ResolveColor("--tutorial-attention-glow");
             Assert.AreEqual((red.r, red.g, red.b), (glow.r, glow.g, glow.b));
             Assert.AreEqual(1f, glow.r, 0.001f);
+            // 世界の地の上のグロー（LX-38）も赤と同じ RGB で、α だけが違う
+            // The over-world glow (LX-38) shares the red RGB and differs only in alpha
+            var glowOverWorld = ThemeTokenFile.ResolveColor("--tutorial-attention-glow-over-world");
+            Assert.AreEqual((red.r, red.g, red.b), (glowOverWorld.r, glowOverWorld.g, glowOverWorld.b));
             foreach (var path in UssFiles.Concat(TutorialDesignSource.ListScreenFiles("", "*.cs")))
             {
                 var text = TutorialDesignSource.ReadScreenFile(path);
-                var withoutReference = text.Replace("var(--tutorial-attention-glow)", "");
+                var withoutReference = text.Replace("var(--tutorial-attention-glow)", "").Replace("var(--tutorial-attention-glow-over-world)", "");
                 StringAssert.DoesNotContain("--tutorial-attention-glow", withoutReference, path);
                 Assert.IsFalse(Regex.IsMatch(text, @"0\.3981|0\.24"), path);
             }

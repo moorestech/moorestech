@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Input;
 using Client.Input.Pointer;
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Screens.CursorTooltip;
 using NUnit.Framework;
 using UniRx;
@@ -26,9 +27,9 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         {
             InputSystem.AddDevice<Mouse>();
             InputManager.MouseCursorVisible(true);
-            var screen = new UnityCursorTooltipScreen(new InputSystemPointerPositionStream());
-            var lockStatesSeenOnNotify = new List<CursorLockMode>();
-            screen.OnAnchorModeChanged.Subscribe(_ => lockStatesSeenOnNotify.Add(UnityEngine.Cursor.lockState));
+            var screen = new UnityCursorTooltipScreen();
+            var lockStatesSeenOnNotify = new List<bool>();
+            screen.OnAnchorModeChanged.Subscribe(_ => lockStatesSeenOnNotify.Add(InputManager.IsCursorLocked));
 
             // 同じ状態の再指定は知らせない
             // Re-applying the same state does not notify
@@ -37,21 +38,23 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             InputManager.MouseCursorVisible(true);
             InputManager.MouseCursorVisible(true);
 
-            Assert.AreEqual(new[] { CursorLockMode.Locked, CursorLockMode.None }, lockStatesSeenOnNotify.ToArray());
+            // 読み口は書き手の値なので batchmode でも同じ
+            // The read port is the writer's own value, so batchmode (which drops Cursor.lockState writes) behaves the same
+            Assert.AreEqual(new[] { true, false }, lockStatesSeenOnNotify.ToArray());
         }
 
         [Test]
         public void ポインタは実画面pxのまま流し今の位置も実画面pxで返す()
         {
             var mouse = InputSystem.AddDevice<Mouse>();
-            var screen = new UnityCursorTooltipScreen(new InputSystemPointerPositionStream());
+            var pointer = new InputSystemUiScreenPointer(new InputSystemPointerPositionStream());
             var received = new List<Vector2>();
-            screen.OnPointerMovedOnScreen.Subscribe(received.Add);
+            pointer.OnPointerMovedOnScreen.Subscribe(received.Add);
 
             Set(mouse.position, new Vector2(120f, 80f));
 
             Assert.AreEqual(new[] { new Vector2(120f, 80f) }, received.ToArray());
-            Assert.AreEqual(new Vector2(120f, 80f), screen.CurrentPointerOnScreen());
+            Assert.AreEqual(new Vector2(120f, 80f), pointer.CurrentPointerOnScreen());
         }
     }
 }
