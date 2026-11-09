@@ -4,7 +4,7 @@
 
 **Goal:** Web 版の `features/blockInventory` のうち、機械（`MachineSection`: レシピ選択モードとインベントリモードの往復・選択中レシピのヘッダ・加工行・モジュール帯・液体の行・分間生産数・共通フッタ）、採掘機・ポンプ・発電機の区画、文脈の 3 欄（清浄室の部屋欄・抽選の中身・搬入停止の理由）、液体の行と液体の詳細（`FluidSlotRow`・`FluidInventoryContents`）を、S4-alpha の拡張口（区画・大型パネル判定の寄与・Shift 配分の束縛の寄与）と型付きのスロット操作、C4-a の液体部品、C4-b のゲージ、C4-c の `RecipeRow`、L0-s4b のロジックで、Web と同じ見た目・同じ操作の UITK 画面にする。Web ホストにしかない詳細の導出（機械・採掘機・ポンプ・発電機・液体・部屋・抽選・詰まり）を State に写し直し、L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-machine-ui` と既存の機械系）まで済ませて `feature/uitk` へ取り込む。S4-train が使う液体の部品（`Screens/BlockInventory/Fluid/`）もここで作る。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。設計書 §4.2「Model の購読は Presenter、View は Render だけ」と alpha の改訂（`OpenBlockInventoryPanel` は `BlockGameObject` を持たず、区画の工場は「区画の Presenter＋View」の組を作る）に従う。State（`Client.Ui.State/BlockInventory/`）に族ごとの詳細 Model を置き、各 Model は `OpenBlockDetailTracker`（追跡替え・状態変化）ほかを購読して `IReadOnlyReactiveProperty<…ViewModel>` を配る。(1) `Machine/`: `MachineSectionModel`（追跡ブロックの状態詳細とマスタから `MachineDetail` を組み〈選択レシピは `MachineRecipeSelection` の union〈未選択／選択中〉へ境界 1 か所で解く。L0-s4b D-27〉、alpha の `UnlockedMachineRecipeSource`・`IModuleSlotStackLimitLookup`・パネルの枠・液体の列と合わせて `MachineSectionViewModel` を配る）、選ぶコマンド `IMachineRecipeSelectCommand`（解放の検査 → `MachineRecipeSelectionProtocol` の送信。失敗はログ）、alpha の口への寄与（大型パネル判定 `RecipeMachineLargePanelRule`・Shift 配分の束縛 `MachineSlotRestrictionContributor`。どちらも機械の Model を読む）。(2) `Family/`: `BlockFamilyDetailModel`（採掘機・ポンプ〈電気／歯車の union〉・発電機）。(3) `Fluid/`: `BlockFluidSlotsModel`（タンクの入力→出力と、パイプはクライアントの流体複製。進捗つき）。(4) `Context/`: `BlockContextModel`（`BlockNetworkInfoCache` の部屋・抽選・詰まりを L0-s4b の入力型と未取得の状態へ写し、1 秒ポーリングの `OnUpdated` で配り直す）。状態詳細 → 値の写しは `BlockGameObject` を取らない純関数（状態詳細の型とマスタの param を引数に取る）にして L0 で試す。Client.Ui（`Screens/BlockInventory/`）は `Machine/`（機械の区画の Presenter・View。選択モードの局所状態 `MachineSelectionModeState` は Presenter が持つ）・`Machine/RecipeSelection/`（選択リスト。C4-c の `RecipeRow`・`RecipeListScrollView`）・`Context/`（文脈の 3 欄と `BlockInfoUnavailableLine`）・`Family/`（採掘機・ポンプ・発電機）・`Fluid/`（液体の 2 区画と `FluidInventoryContents`。S4-train も View を使う）を置き、各区画は alpha の区画の工場の口として自分の登録ファイル `BlockInventoryMachineGameUiRegistration` から差し込む。Presenter は Attach で自分の Model（と区画の出し入れに要る他族の Model）を購読して View.Render と表示の真偽へ流し、Detach で切る。View は自分で購読しない。L1 は Model の口（`IMachineSectionModel` 等）を偽の `ReactiveProperty` に差し替えて Presenter＋View を試す。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。設計書 §4.2「Model の購読は Presenter、View は Render だけ」と alpha の拡張口（alpha 計画「## 後続レーンへの Produces 一覧」: `OpenBlockInventoryPanel` は識別子・エラー・枠だけで `BlockGameObject` を持たず、区画の工場は「区画の Presenter〈`IBlockInventorySection`〉＋View」の組を作る）に従う。State（`Client.Ui.State/BlockInventory/`）に族ごとの詳細 Model を置き、各 Model は `OpenBlockDetailTracker`（追跡替え・状態変化）ほかを購読して `IReadOnlyReactiveProperty<…ViewModel>` を配る。(1) `Machine/`: `MachineSectionModel`（追跡ブロックの状態詳細とマスタから `MachineDetail` を組み〈選択レシピは `MachineRecipeSelection` の union〈未選択／選択中〉へ境界 1 か所で解く。L0-s4b D-27〉、alpha の `UnlockedMachineRecipeSource`・`IModuleSlotStackLimitLookup`・パネルの枠・液体の列と合わせて `MachineSectionViewModel` を配る）、選ぶコマンド `IMachineRecipeSelectCommand`（解放の検査 → `MachineRecipeSelectionProtocol` の送信。失敗はログ）、alpha の口への寄与（大型パネル判定 `RecipeMachineLargePanelRule`・Shift 配分の束縛 `MachineSlotRestrictionContributor`。どちらも機械の Model を読む）。(2) `Family/`: `BlockFamilyDetailModel`（採掘機・ポンプ〈電気／歯車の union〉・発電機）。(3) `Fluid/`: `BlockFluidSlotsModel`（タンクの入力→出力と、パイプはクライアントの流体複製。進捗つき）。(4) `Context/`: `BlockContextModel`（`BlockNetworkInfoCache` の部屋・抽選・詰まりを L0-s4b の入力型と未取得の状態へ写し、1 秒ポーリングの `OnUpdated` で配り直す）。状態詳細 → 値の写しは `BlockGameObject` を取らない純関数（状態詳細の型とマスタの param を引数に取る）にして L0 で試す。Client.Ui（`Screens/BlockInventory/`）は `Machine/`（機械の区画の Presenter・View。選択モードの局所状態 `MachineSelectionModeState` は Presenter が持つ）・`Machine/RecipeSelection/`（選択リスト。C4-c の `RecipeRow`・`RecipeListScrollView`）・`Context/`（文脈の 3 欄と `BlockInfoUnavailableLine`）・`Family/`（採掘機・ポンプ・発電機）・`Fluid/`（液体の 2 区画と `FluidInventoryContents`。S4-train も View を使う）を置き、各区画は alpha の区画の工場の口として自分の登録ファイル `BlockInventoryMachineGameUiRegistration` から差し込む。Presenter は Attach で自分の Model（と区画の出し入れに要る他族の Model）を購読して View.Render と `IsApplicable` へ流し、Detach で切る。View は自分で購読しない。L1 は Model の口（`IMachineSectionModel` 等）を偽の `ReactiveProperty` に差し替えて Presenter＋View を試す。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`GeometryChangedEvent`・`CustomStyleResolvedEvent`）、UniRx、UniTask、VContainer 1.10（コレクション解決）、NUnit＋`com.unity.ui.test-framework`、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（test-name-parity）、gh CLI、bd（Beads）
 
@@ -27,7 +27,7 @@
 | R-8 | モジュールの上限 `machine-module-stack-limit`（`moduleSlotStackLimit {limit}`・`text--xs text--dimmed`）を `IModuleSlotStackLimitLookup.CurrentStackLimit` から同期で描き、`OnStackLimitChanged` で描き直す | `ModuleSlotStackLimitTextTest` 1 が緑。「配信が届くまでは何も描かない」は捨てる（D-10） |
 | R-9 | 機械の枠の操作: 入力・出力・モジュールの各 `ItemSlot` の LeftDown（Shift つき）・RightDown・DoubleClick を alpha の `IBlockSlotCommands` へブロックのスロット番号で渡し、結果を `UiCommandResultToaster.Report(BlockSlotCommands.CommandName, result)` へ。必要数の数字の上で押しても枠の操作になる | `MachineGesturesTest` 3・`MachineInventoryBodyTest`「必要数の数字の上で右クリックしても split を送る」が緑 |
 | R-10 | 採掘機 `miner-section`（`ProgressArrowBar`→`PowerRateText(miner-power-rate)`〈歯車採掘機は赤なし〉→`miner-mining-items` に `PerMinuteRateRow(ItemSlot)`）、ポンプ `pump-section`（電気ポンプだけ `MachineStateRow(pump-state-label, pump-power-rate)` 赤可 → 汲み上げ対象があれば `pump-pumping-fluids` に `PerMinuteRateRow(GameIcon)`〈`--slot-size` 四方・縦横比を保つ〉、無ければ `LackHighlightText(pump-no-vein, Sm)` 不足）、発電機 `generator-section`（`GaugeBar(generator-fuel-progress)` に `FuelRatio`→`generator-operating-rate`〈`round(rate*100)`・`text--sm`・`--text-default`〉） | `BlockDetailsFamilyTest`（blockDetails の採掘機・ポンプ・発電機の件）が緑 |
-| R-11 | 液体の 2 区画（`Screens/BlockInventory/Fluid/`）: FluidRow（`Config.FluidRowTestId != null && !機械 && !Config.ShowFluidDetails`）は `FluidSlotRow(<FluidRowTestId>)` に列を写し、`Config.ShowFluidProgress` かつ進捗があれば矢印、FluidDetails（`Config.ShowFluidDetails && Config.FluidRowTestId != null`）は `FluidInventoryContents(<FluidRowTestId>)`（0 件で何も描かない・行ごとに `FluidSlotRow(<id>-slot-<i>)`＋中身ありなら液体名と `量 / 容量`）。液体の写しは「中身あり→Filled・空でゴーストあり→Ghost・それ以外→Empty」 | `FluidSectionsTest`（SectionStackView 3 件）・`FluidSlotTest`（fluidSlot 5）が緑 |
+| R-11 | 液体の 2 区画（`Screens/BlockInventory/Fluid/`）: FluidRow（`Config.Fluid is RowSectionStackFluid` かつ `!機械`）は `FluidSlotRow(<RowId>)` に列を写し、`ShowProgress` かつ進捗があれば矢印、FluidDetails（`Config.Fluid is DetailsSectionStackFluid`）は `FluidInventoryContents(<RowId>)`（0 件で何も描かない・行ごとに `FluidSlotRow(<id>-slot-<i>)`＋中身ありなら液体名と `量 / 容量`）。液体の写しは「中身あり→Filled・空でゴーストあり→Ghost・それ以外→Empty」 | `FluidSectionsTest`（SectionStackView 3 件）・`FluidSlotTest`（fluidSlot 5）が緑 |
 | R-12 | 大型パネル判定の寄与 `RecipeMachineLargePanelRule`: 機械かつ `MachineRecipeSelectionLogic.BuildRows(要約, blockGuid)` が 1 行以上なら真。`OnRuleInputChanged` は `UnlockedMachineRecipeSource.Current` の変化 | `RecipeMachineLargePanelRuleTest`・`MachineRecipeLayoutTest`「レシピ無しブロックは小型パネルのまま」が緑 |
 | R-13 | Shift 配分の束縛の寄与 `MachineSlotRestrictionContributor`: 機械なら `input.WithMachine(detail.Binding)` | `MachineSlotRestrictionContributorTest`・`MachineGesturesTest`「機械入力スロットの Shift+クリックで main へ配分移動する」が緑 |
 | R-14 | レシピ選択モード（C4-c 依存。最後の実装タスク）: `showSelection = 行>0 && (未選択 || 選択行なし || (開いた && !(要求あり && 選択==要求)))`。リスト `machine-recipe-selection`（`RecipeListScrollView`・行の間は祖先のクラスで `--recipe-list-gap: var(--machine-recipe-row-gap)`・文脈を前置）、行 `machine-recipe-<guid>`（名前 `-name`・継承バッジ `-level-inheritance`・`RecipeRow(-row)` 静止矢印 `-arrow`・素材/結果の枠の testid・選択中は内側 1px の `--select-cyan` 枠）。行押下: 選択中と同じなら送らず閉じるだけ、違えば `IMachineRecipeSelectCommand.Select` を送り要求 GUID を覚える。レシピ 0 件はヘッダもリストも出さない | `MachineSectionTest`（選択の 3 件・レシピ 0 件）・`MachineRecipeSelectionRowTest` 5・`MachineRecipeLayoutTest`（machineRecipe 10）・`MachineSelectionModeStateTest` が緑 |
@@ -59,33 +59,39 @@
 - **共有ファイルは追記だけ**: `GameUiTheme.tss` の `Screens` 区画の `@import`・`MainGameUiRegistration` の画面登録区画・`localization.csv`（このレーンは足さない見込み）・`docs/uitk/disposition.md` と `docs/uitk/TODO.md` の末尾・`Client.Ui.State.asmdef` の参照の末尾
 - **USS**: 画面 USS の先頭に出所の 1 行（日英。`/* web: features/blockInventory/details/machine/machineInventoryBody.module.css …（日本語の要約） / (English) */`）。色はトークン経由だけ。部品のクラスを画面 USS に書かない。部品のつまみの上書きは画面のルート（入力側の器・選択リストの器）で Web と同じ名前で
 - **Web テストのタグ**: `/// <web-test file="<webui からの相対パス>"><it/test の第 1 引数></web-test>`。it.each・テンプレート文字列は展開しない（`${type}` はそのまま書く）
-- **区画の形（本体の予告 2026-11-10）**: 区画の工場は Presenter＋View の組を作る。Presenter は Attach で Model を購読し、Detach で切る。View は `Render(<ViewModel>)` だけを持ち購読しない。区画のデータの源は `OpenBlockInventoryPanel` ではなく本レーンの詳細 Model。alpha の改訂版 Produces が来たら型名を合わせる（Task 1 Step 1 で照合）
+- **区画の形（alpha D-1・D-19）**: 区画の工場 `ISectionStackSectionFactory` は Presenter＋View の組（`IBlockInventorySection`。`Root` が View）を作る。Presenter は `Attach(panel)` で本レーンの詳細 Model を購読して View の `Render` と `IsApplicable` へ流し、`Detach()` で切る。View は `Render(<ViewModel>)` と押下の `IObservable` だけを持ち購読しない。区画のデータの源は `OpenBlockInventoryPanel`（識別子・エラー・枠だけ）ではなく本レーンの詳細 Model。区画は自分の display を触らない（出し入れは `SectionStackBody` が `IsApplicable` で行う）
 - **トークンを C# で読むとき**は、読む要素のクラスで `--<部品>-<名>: var(--token)` と受け直してから `UssCustomStyleReader` で読む（同クラスの remarks。`:root` の値を直接は読めない）
 - **処分表**: `docs/uitk/disposition.md` には `<web-test>` タグで写したテストの行を書かない（`compareBundles.mjs` が誤りにする）。書くのは捨てる・録画・目視の行だけ。alpha の `BlockInventoryDesignTest` 等には追記せず、自分のテストファイルに同じタグで写す
 - **新しい共有部品は作らない**。要ると分かったら `done.md`「integrator への依頼」と指揮へ報告する（`BlockInfoUnavailableLine` は Web の使い手が文脈の 3 欄だけなので本レーンの `Context/` に置く。D-14）
 - **使う部品と公開 API**（alpha・C4-a・C4-c は計画の Produces から、他は `origin/feature/uitk` の実物から写した。alpha・C4-a は Task 1 で、C4-c は Task 12 の冒頭で実物と照合する）
 
 ```csharp
-// ── S4-alpha（計画 docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md の Produces。区画の口はレビューで改訂中＝下の「仮名」は alpha 改訂版の Produces が来たら綴りを合わせる。形は本体の予告どおり）
+// ── S4-alpha（計画 docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md「## 後続レーンへの Produces 一覧」〈85f905aa3d〉の綴り）
+namespace Client.Ui.Screens.BlockInventory.Registry
+public interface IBlockInventoryPart { VisualElement Root { get; } void Attach(OpenBlockInventoryPanel panel); void Detach(); }   // Presenter。Root が View
 namespace Client.Ui.Screens.BlockInventory.SectionStack
-public enum SectionStackSlot { Context, ItemGrid, Machine, Miner, Pump, Generator, GearToElectric, BeltThroughput, Gear, ElectricNetwork, GearNetwork, FluidDetails, FluidRow }
-// 仮名: 区画の Presenter。Attach で Model を購読して View.Render と出し入れへ流し、Detach で切る。View は購読しない
-public interface ISectionStackSectionPresenter { VisualElement Root { get; } IReadOnlyReactiveProperty<bool> IsShown { get; } void Attach(); void Detach(); }
-// 仮名: 区画の工場。Slot ごとに 1 本。Presenter＋View の組を作る
-public interface ISectionStackSectionFactory { SectionStackSlot Slot { get; } ISectionStackSectionPresenter Create(SectionStackSectionMount mount); }
-public sealed class SectionStackSectionMount { public SectionStackConfig Config { get; } public bool FillsPanelHeight { get; } }
-namespace Client.Ui.State.BlockInventory.SectionStack
-public sealed class SectionStackConfig { string ItemGridTestId; string FluidRowTestId; bool RenderEmptyGrid; bool ShowFluidProgress; bool ShowFluidDetails; bool HasItemGrid; }
+public enum SectionStackSlot { Context, ItemGrid /* alpha 専有 */, Machine, Miner, Pump, Generator, GearToElectric, BeltThroughput, Gear, ElectricNetwork, GearNetwork, FluidDetails, FluidRow }
+// 区画の Presenter。IsApplicable は Attach 後に有効で、SectionStackBody が購読して出し入れと先頭の間隔を組み直す（区画は自分の display を触らない）
+public interface IBlockInventorySection : IBlockInventoryPart { IReadOnlyReactiveProperty<bool> IsApplicable { get; } }
+public interface ISectionStackSectionFactory { SectionStackSlot Slot { get; } IBlockInventorySection Create(SectionStackSectionMount mount); }
+public sealed class SectionStackSectionMount { public SectionStackConfig Config { get; private set; } public bool FillsPanelHeight { get; private set; } }
+namespace Client.Ui.State.BlockInventory.SectionStack   // Web configByBlockType の写し（判別 union。alpha D-20）
+public sealed class SectionStackConfig { public SectionStackItemGrid ItemGrid { get; } public SectionStackFluid Fluid { get; } }
+public abstract class SectionStackFluid { public static readonly SectionStackFluid Hidden; }
+public sealed class RowSectionStackFluid : SectionStackFluid { public string RowId { get; } public bool ShowProgress { get; } }
+public sealed class DetailsSectionStackFluid : SectionStackFluid { public string RowId { get; } }
 public static class SectionStackConfigTable { public static SectionStackConfig Resolve(string blockType); }
 namespace Client.Ui.State.BlockInventory.Panel
-public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }
-// 改訂: BlockGameObject を持たない。位置・Guid・blockType・エラー・枠だけ
-public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState { string BlockType; Guid BlockGuid; BlockId BlockId; Vector3Int Position; IReadOnlyList<SlotItem> ItemSlots; BlockInventoryPanelError Error; BlockInventoryComponents Components; bool IsSamePanel(OpenBlockInventoryPanel other); }
-public interface IBlockInventoryLargePanelRule { bool IsLargeMachinePanel(OpenBlockInventoryPanel panel); IObservable<Unit> OnRuleInputChanged { get; } }
+public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }   // 共有サービス
+public abstract class BlockInventoryPanelState { public static readonly BlockInventoryPanelState Closed; public abstract bool IsSamePanel(BlockInventoryPanelState other); }
+// 識別子・エラー・枠だけ（BlockGameObject は載らない）。区画の Model が開いたブロックを引く鍵は BlockInstanceId・Position・BlockGuid
+public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState { string BlockType; Guid BlockGuid; BlockId BlockId; BlockInstanceId BlockInstanceId; Vector3Int Position; IReadOnlyList<SlotItem> ItemSlots; BlockInventoryPanelError Error; BlockInventoryComponents Components; }
+public enum BlockInventoryPanelError { None, OpenFailed, ContainerMissing, TrainCarMissing }   // エラー無しは == None
+public interface IBlockInventoryLargePanelRule { bool IsLargePanel(OpenBlockInventoryPanel panel); IObservable<Unit> OnRuleInputChanged { get; } }
 namespace Client.Ui.State.BlockInventory.SlotRestriction
 public interface IBlockSlotRestrictionContributor { bool AppliesTo(OpenBlockInventoryPanel panel); OpenBlockSlotInput Contribute(OpenBlockInventoryPanel panel, OpenBlockSlotInput input); }
 namespace Client.Ui.State.SlotCommands.Block
-public interface IBlockSlotCommands { UiCommandResult LeftDown(int blockSlot, bool shift); UiCommandResult RightDown(int blockSlot); UiCommandResult DoubleClick(int blockSlot); }
+public interface IBlockSlotCommands { UiCommandResult LeftDown(int blockSlot, bool shift); UiCommandResult RightDown(int blockSlot); UiCommandResult DoubleClick(int blockSlot); }   // 共有サービス
 public sealed class BlockSlotCommands : IBlockSlotCommands { public const string CommandName = "block_inventory.slot"; }
 namespace Client.Ui.Screens.BlockInventory.Parts
 public enum LackHighlightTextSize { Xs, Sm }
@@ -95,10 +101,12 @@ public sealed class PowerRateText : VisualElement { public PowerRateText(string 
 public sealed class MachineStateRow { public MachineStateRow(string stateTestId, string powerRateTestId); public void MountInto(UiGapContainer parent); public void Render(MachineProcessDisplayState state, double currentPower, double requestPower, bool highlightPowerShortage); }
 public sealed class PerMinuteRateRow : VisualElement { public PerMinuteRateRow(VisualElement leading); public void Render(double amountPerMinute); }
 namespace Client.Ui.State.Recipe.Source
-public sealed class UnlockedMachineRecipeSource : IInitializable { public IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>> Current { get; } }   // DI 登録済み（AsSelf）
+public sealed class UnlockedMachineRecipeSource : IInitializable { public IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>> Current { get; } }   // 共有サービス（AsSelf）
 public static class MachineRecipeSummaryConversion { public static IReadOnlyList<MachineRecipeSummary> ToSummaries(IReadOnlyList<MachineRecipeData> recipes); }
-// テスト補助（alpha）: Client.Tests.Ui.State.BlockInventory.PanelModel.BlockInventoryTestPanels.OfType(string blockType, params SlotItem[] slots)・FakePanelSource
-//                    Client.Tests.Ui.Screens.BlockInventory.BlockInventoryTestBodies.SectionStackWithFakes(blockType, factories)・BlockInventoryTestShell.Create(host, state, params object[] plugged)（舞台 1280×720）
+// 共有サービス（MainGameUiRegistration の並び。本レーンは ctor で受けるだけで登録しない）: IBlockInventoryPanelSource・UnlockedMachineRecipeSource・IBlockSlotCommands・BlockItemGridFactory
+// テスト補助（alpha）: Client.Tests.Ui.State.BlockInventory.PanelModel.BlockInventoryTestPanels.OfType(string blockType, params SlotItem[] slots)・FakePanelSource（State で書き換え）
+//                    Client.Tests.Ui.Screens.BlockInventory.BlockInventoryTestBodies.SectionStack(FakePanelSource source, string blockType, params ISectionStackSectionFactory[] plugged)
+//                    BlockInventoryTestShell.Create(ScreenTestHost host, ReactiveProperty<BlockInventoryPanelState> state, params object[] plugged)（舞台 1280×720 固定。plugged に工場と IBlockInventoryLargePanelRule）
 
 // ── C4-a（計画 2026-11-07-uitk-c4-a.md の Produces）namespace Client.Ui.Components.Slots
 public abstract class FluidSlotContent { public static readonly FluidSlotContent Empty; public static FluidSlotContent Ghost(UiIcon icon, double amount); public static FluidSlotContent Filled(UiIcon icon, double amount, double capacity, Color face); }
@@ -361,7 +369,7 @@ Client.Ui（`Client.Ui/Screens/BlockInventory/`）
 
 **Interfaces:**
 - Consumes: `origin/feature/uitk`（S4-alpha・C4-a・C4-b・C3-a・C3-b・L0-s4a・L0-s4b）
-- Produces: bd の issue・`done.md` の骨組み・alpha 改訂版との照合表・integrator への依頼
+- Produces: bd の issue・`done.md` の骨組み・alpha の実物との照合結果・integrator への依頼
 
 - [ ] **Step 1: worktree と依存を確かめる**
 
@@ -381,18 +389,15 @@ moores-wt status
 ```
 Expected: alpha の 4 ファイルがある、C4-a の 3 つが見つかる。C4-c の 3 つは無くてよい（Task 12 だけが要る）。alpha か C4-a が無ければ止めて指揮へ返す
 
-- [ ] **Step 2: alpha 改訂版の区画の口と照合する**
+- [ ] **Step 2: alpha の実物の口を確かめる**
 
-alpha の改訂版 Produces（本体の予告: `OpenBlockInventoryPanel` は `BlockGameObject` を持たない・区画の工場は Presenter＋View の組）と、Global Constraints の「仮名」を突き合わせ、`done.md`「未確認」に対応表を書く:
-
-| この計画の仮名 | alpha の実名 | 差（引数・戻り値・呼ばれ方） |
-|---|---|---|
-| `ISectionStackSectionPresenter`（`Root`・`IsShown`・`Attach`・`Detach`） | | |
-| `ISectionStackSectionFactory.Create(SectionStackSectionMount)` | | |
-| `OpenBlockInventoryPanel`（`BlockGuid`・`ItemSlots`・`Error`） | | |
-| `BlockInventoryTestShell.Create`・`BlockInventoryTestBodies.SectionStackWithFakes` | | |
-
-以降のタスクのコードは、型名・メソッド名だけを実名に置き換えて書く（挙動は変えない）。区画の出し入れを alpha の本文が Presenter の何で読むか（`IsShown` の購読か、`Render` の戻り値か）が違えば、Task 6〜9 の Presenter の `IsShown` を実物の形に合わせる
+Run:
+```bash
+grep -rn "interface IBlockInventoryPart\|interface IBlockInventorySection\|interface ISectionStackSectionFactory\|interface IBlockInventoryLargePanelRule\|interface IBlockSlotRestrictionContributor" moorestech_client/Assets/Scripts/Client.Ui moorestech_client/Assets/Scripts/Client.Ui.State
+grep -rn "class RowSectionStackFluid\|class DetailsSectionStackFluid\|BlockInstanceId BlockInstanceId" moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory
+grep -rn "static .* SectionStack(\|static .* Create(ScreenTestHost" moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory
+```
+Expected: Global Constraints の alpha の綴り（alpha 計画「## 後続レーンへの Produces 一覧」）と一致。違えば型名・引数だけを実物に合わせて書き（挙動は変えない）、差を `done.md`「未確認」に書く
 
 - [ ] **Step 3: bd を作り、done.md の骨組みを書く**
 
@@ -1386,7 +1391,7 @@ namespace Client.Ui.State.BlockInventory.Machine
             _model = model;
         }
 
-        public bool IsLargeMachinePanel(OpenBlockInventoryPanel panel)
+        public bool IsLargePanel(OpenBlockInventoryPanel panel)
         {
             var current = _model.Current.Value;
             return current.IsPresent && current.Value.BlockGuid == panel.BlockGuid && 0 < current.Value.Rows.Count;
@@ -1531,7 +1536,7 @@ public sealed class FluidRowView : VisualElement { public FluidRowView(string te
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`FluidSectionsTest.cs`（`ScreenTestHost`。alpha の `BlockInventoryTestBodies.SectionStackWithFakes(blockType, factories)` に本レーンの `FluidRowSectionFactory`・`FluidDetailsSectionFactory`〈偽の `FakeBlockFluidSlotsModel`・`FakeMachineSectionModel` を ctor で渡す〉を差して組む）:
+`FluidSectionsTest.cs`（`ScreenTestHost`。alpha の `BlockInventoryTestBodies.SectionStack(source, blockType, factories)`〈`source` は `FakePanelSource` に `BlockInventoryTestPanels.OfType(blockType)`〉に本レーンの `FluidRowSectionFactory`・`FluidDetailsSectionFactory`〈偽の `FakeBlockFluidSlotsModel`・`FakeMachineSectionModel` を ctor で渡す〉を差して組む）:
 ```csharp
 /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">%s の既存表示を保つ</web-test>
 [TestCase("FluidPipe", "fluid-pipe-fluid-slots", false)]
@@ -1664,6 +1669,7 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
 ```csharp
 using System;
 using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.SectionStack;
@@ -1676,27 +1682,27 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
     /// 液体の行の区画。機械でなく詳細でない blockType で、液体が 1 件以上あるときだけ出す（Web SectionStackView の 13 番）
     /// The fluid-row section: shown for non-machine, non-detail block types with at least one fluid (Web SectionStackView slot 13)
     /// </summary>
-    public sealed class FluidRowSectionPresenter : ISectionStackSectionPresenter
+    public sealed class FluidRowSectionPresenter : IBlockInventorySection
     {
-        private readonly SectionStackConfig _config;
+        private readonly RowSectionStackFluid _fluid;
         private readonly FluidRowView _view;
         private readonly IBlockFluidSlotsModel _fluids;
         private readonly IMachineSectionModel _machine;
-        private readonly ReactiveProperty<bool> _isShown = new(false);
+        private readonly ReactiveProperty<bool> _isApplicable = new(false);
         private IDisposable _subscription;
 
         public VisualElement Root => _view;
-        public IReadOnlyReactiveProperty<bool> IsShown => _isShown;
+        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
 
-        public FluidRowSectionPresenter(SectionStackConfig config, FluidRowView view, IBlockFluidSlotsModel fluids, IMachineSectionModel machine)
+        public FluidRowSectionPresenter(RowSectionStackFluid fluid, FluidRowView view, IBlockFluidSlotsModel fluids, IMachineSectionModel machine)
         {
-            _config = config;
+            _fluid = fluid;
             _view = view;
             _fluids = fluids;
             _machine = machine;
         }
 
-        public void Attach()
+        public void Attach(OpenBlockInventoryPanel panel)
         {
             _subscription = _fluids.Current.CombineLatest(_machine.Current, (fluids, machine) => (fluids, machine)).Subscribe(pair => Apply(pair.fluids, pair.machine.IsPresent));
         }
@@ -1711,15 +1717,15 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
             // 機械は本体の中に液体の行を持つので出さない
             // Machines carry their own fluid row inside the body, so this one stays hidden
             var shown = !isMachine && 0 < fluids.Slots.Count;
-            if (shown) _view.Render(fluids, _config.ShowFluidProgress);
-            _isShown.Value = shown;
+            if (shown) _view.Render(fluids, _fluid.ShowProgress);
+            _isApplicable.Value = shown;
         }
     }
 }
 ```
 （`CombineLatest` の 2 引数版は UniRx の `Func` を取る拡張。Web の画面コードの `Func<>` 禁止はシグネチャに `Func<>` を書くことの禁止で、ラムダを UniRx へ渡すのは前例どおり可〈`grep -rn "CombineLatest(" moorestech_client/Assets/Scripts/Client.Ui` で前例を確かめる。無ければ 2 本を別々に購読し、最後の値を覚えて `Apply` を呼ぶ形にする〉）
 
-`FluidRowSectionFactory.cs`（`Slot => SectionStackSlot.FluidRow`。`Create(mount)` は `mount.Config.FluidRowTestId == null || mount.Config.ShowFluidDetails` なら「出さない Presenter」〈`IsShown` が常に偽。alpha の改訂版に「作らない」の戻し方があればそれに合わせる〉、それ以外は `new FluidRowSectionPresenter(mount.Config, new FluidRowView(mount.Config.FluidRowTestId, _content), _fluids, _machine)`）。`FluidDetailsSectionFactory`／`Presenter` も同じ形（`Slot => FluidDetails`、`Config.ShowFluidDetails && Config.FluidRowTestId != null` のときだけ、液体 1 件以上で出す。機械かどうかは見ない〈Web と同じ〉）
+`FluidRowSectionFactory.cs`（`Slot => SectionStackSlot.FluidRow`。`Create(mount)` は `mount.Config.Fluid is RowSectionStackFluid row` なら `new FluidRowSectionPresenter(row, new FluidRowView(row.RowId, _content), _fluids, _machine)`、それ以外は `IsApplicable` が常に偽の `NotApplicableSection`〈`Root` は空の `VisualElement`。`Fluid/` に置かず `FluidRowSectionFactory.cs` の中の private sealed class にする〉。alpha の `ISectionStackSectionFactory.Create` は null を返せない口なので、出さない区画もこの形で返す）。`FluidDetailsSectionFactory`／`Presenter` も同じ形（`Slot => FluidDetails`、`mount.Config.Fluid is DetailsSectionStackFluid details` のときだけ `FluidInventoryContents(details.RowId, _content)` を作り、液体 1 件以上で `IsApplicable` を真にする。機械かどうかは見ない〈Web と同じ〉）
 
 `Fluid.uss`:
 ```css
@@ -1774,7 +1780,7 @@ public void 密閉済みの部屋は見出し空気清浄機停止理由の順()
 ```
 残り 3 件（清浄機なし → `clean-room-no-filter` が赤／隙間 → 見出しだけ赤・空気と清浄機の行なし／未取得〈`Unavailable(NotFetched)`〉→ `clean-room-fetch-state` の 1 行だけで、文が `BlockInfoFetchStateLogic` の文言に `{target}`＝`cleanRoomInfoLabel`）。`CleanRoomYieldSectionTest` 3 件（層 → `clean-room-yield-layer-fail-rate` だけ／ダイシング → 品質 Tier・損失率・0 でないレベル割合・失敗割合の RowId の順／未取得〈`Unreadable`〉→ `clean-room-yield-fetch-state` だけ）。`MachineInputStallSectionTest` 3 件（`MixedLevel` → `machine-input-stall` が赤で文に品名〈`GameContentPresentation.ItemName` の解決結果〉／`AboveCraftCap` → 製作上限の文言／未取得 → `machine-input-stall-fetch-state` が赤でない）
 
-`ContextSectionOrderTest.cs`（alpha の `SectionStackWithFakes` に本レーンの `ContextSectionFactory`・`MachineSectionFactory`〈Task 9 で足す件だけ〉と偽の Model を差す）:
+`ContextSectionOrderTest.cs`（alpha の `BlockInventoryTestBodies.SectionStack(source, blockType, factories)` に本レーンの `ContextSectionFactory`・`MachineSectionFactory`〈Task 9 で足す件だけ〉と偽の Model を差す）:
 - 「部屋欄はセクション列の先頭に描く」: CleanRoomAirFilter で部屋欄が項目グリッド（alpha）より上
 - 「抽選の中身欄は部屋欄のすぐ下に描く」: 部屋・抽選の 2 欄が順に並ぶ
 - 「照会欄の無い payload では3欄とも描かず、取得中の欄は取得状態の行だけを描く」: `BlockContextViewModel.None` で文脈の区画が隠れる／部屋だけ未取得で `clean-room-fetch-state` だけ
@@ -1928,6 +1934,7 @@ Run: `uloop compile --project-path ./moorestech_client` → Expected: 型が無�
 ```csharp
 using System;
 using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Common;
 using UniRx;
 using UnityEngine.UIElements;
@@ -1938,15 +1945,15 @@ namespace Client.Ui.Screens.BlockInventory.Family
     /// 1 つの Model の値を 1 つの View へ流す区画の Presenter。値が無ければ隠す
     /// A section presenter feeding one model's value into one view; hidden when absent
     /// </summary>
-    public sealed class DetailSectionPresenter<T> : ISectionStackSectionPresenter
+    public sealed class DetailSectionPresenter<T> : IBlockInventorySection
     {
         private readonly IReadOnlyReactiveProperty<SectionContent<T>> _source;
         private readonly IDetailSectionView<T> _view;
-        private readonly ReactiveProperty<bool> _isShown = new(false);
+        private readonly ReactiveProperty<bool> _isApplicable = new(false);
         private IDisposable _subscription;
 
         public VisualElement Root => _view.Root;
-        public IReadOnlyReactiveProperty<bool> IsShown => _isShown;
+        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
 
         public DetailSectionPresenter(IReadOnlyReactiveProperty<SectionContent<T>> source, IDetailSectionView<T> view)
         {
@@ -1954,7 +1961,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
             _view = view;
         }
 
-        public void Attach()
+        public void Attach(OpenBlockInventoryPanel panel)
         {
             _subscription = _source.Subscribe(Apply);
         }
@@ -1967,7 +1974,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
         private void Apply(SectionContent<T> content)
         {
             if (content.IsPresent) _view.Render(content.Value);
-            _isShown.Value = content.IsPresent;
+            _isApplicable.Value = content.IsPresent;
         }
     }
 }
@@ -2299,6 +2306,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 using System;
 using Client.Ui.Screens.BlockInventory.Machine.Slots;
 using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Selection;
@@ -2311,18 +2319,18 @@ namespace Client.Ui.Screens.BlockInventory.Machine
     /// 機械の区画の Presenter。機械と文脈の Model を購読して View へ流し、押下をコマンドへ渡す
     /// The machine section presenter: subscribes the machine and context models into the view and routes presses to commands
     /// </summary>
-    public sealed class MachineSectionPresenter : ISectionStackSectionPresenter
+    public sealed class MachineSectionPresenter : IBlockInventorySection
     {
         private readonly MachineSectionView _view;
         private readonly IMachineSectionModel _machine;
         private readonly IBlockContextModel _context;
         private readonly BlockSlotGestureRouter _router;
         private readonly MachineSelectionModeState _mode = new();
-        private readonly ReactiveProperty<bool> _isShown = new(false);
+        private readonly ReactiveProperty<bool> _isApplicable = new(false);
         private readonly CompositeDisposable _subscriptions = new();
 
         public VisualElement Root => _view.Root;
-        public IReadOnlyReactiveProperty<bool> IsShown => _isShown;
+        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
 
         public MachineSectionPresenter(MachineSectionView view, IMachineSectionModel machine, IBlockContextModel context, BlockSlotGestureRouter router)
         {
@@ -2332,7 +2340,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _router = router;
         }
 
-        public void Attach()
+        public void Attach(OpenBlockInventoryPanel panel)
         {
             // 値の変化と押下を購読する（Detach で全部切る）
             // Subscribe value changes and presses (all released on Detach)
@@ -2355,7 +2363,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         {
             var machine = _machine.Current.Value;
             if (machine.IsPresent) _view.Render(machine.Value, _context.Current.Value, _mode.ShowsSelection(machine.Value));
-            _isShown.Value = machine.IsPresent;
+            _isApplicable.Value = machine.IsPresent;
         }
     }
 }
@@ -2532,7 +2540,7 @@ namespace Client.Starter.Registration.GameUi
 [TestCase("FluidPipe", new[] { "fluid-pipe-fluid-slots" })]
 public void 対応する区画だけを出す(string blockType, string[] expectedSectionIds)
 ```
-（alpha の `SectionStackWithFakes` に本レーンの 7 工場と偽の Model を差し、Web の regression の entry と同じ詳細だけを Present にする。本レーンの区画の id のうち表示中のものが `expectedSectionIds` と一致〈項目グリッドの id は alpha、特殊族は S4-special の NUnit が見る〉）
+（alpha の `BlockInventoryTestBodies.SectionStack(source, blockType, factories)` に本レーンの 7 工場と偽の Model を差し、Web の regression の entry と同じ詳細だけを Present にする。本レーンの区画の id のうち表示中のものが `expectedSectionIds` と一致〈項目グリッドの id は alpha、特殊族は S4-special の NUnit が見る〉）
 
 `MachineDesignTest.cs` に 2 件:「%sから禁止Mantine部品とテーマ色を除去する」＝本レーンの USS 4 本（`Machine.uss`・`MachineRecipeSelection.uss`〈Task 12 で足す前は 3 本〉・`Family.uss`・`Fluid.uss`）に `#`・`rgb(`・`rgba(` の直書きが無い（alpha の `BlockInventoryDesignTest` の色の件と同じ判定を自分のファイルに書く）／「レシピ有り機械だけviewer〜items占有の大型パネルへ広げる」＝ alpha の `BlockInventoryTestShell.Create` に本レーンの `RecipeMachineLargePanelRule`（偽の機械の Model で行 1 以上）を `plugged` で渡すと外殻が `block-inventory--large`、行 0 では付かない
 
@@ -2561,9 +2569,9 @@ git commit -m "feat(uitk): 機械と汎用族の区画を登録し、回帰と�
 - Consumes: alpha の `BlockInventoryTestShell.Create`（舞台 1280×720）、Task 6〜10 の区画、C2-c の `GameScrollView`（`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop`）
 - Produces: なし
 
-- [ ] **Step 1: 舞台の高さを変えられるかを確かめる**
+- [ ] **Step 1: 舞台の高さで分ける**
 
-`BlockInventoryTestShell.Create` が舞台の大きさを受けるか読む。受けなければ 720 の件だけを L1 で写し、600・1080 の件は Task 15 の録画（`uitk-gameview-resolution-switch.cs` の前例で Game View を 1280×600・1920×1080 に切り替える）で見て、`docs/uitk/disposition.md` に「録画」で書かない（タグで写した件は処分表に書かない）→ 録画の証拠を `done.md`「証拠」に書く（D-15）
+alpha の `BlockInventoryTestShell.Create` の舞台は 1280×720 固定（alpha の Produces）。720 の件だけを L1 で写し、600・1080 の件は Task 15 の録画（`uitk-gameview-resolution-switch.cs` の前例で Game View を 1280×600・1920×1080 に切り替える）で見る。`docs/uitk/disposition.md` には書かず（タグで写した件は処分表に書かない）、録画の証拠を `done.md`「証拠」に書く（D-15）
 
 - [ ] **Step 2: 写す**
 
@@ -2929,7 +2937,7 @@ git merge origin/feature/uitk
 - 写すテストの所在: 「写すテスト」表の各行の最右列が Task 番号。タグ付き NUnit 82 件（P 37・C 27・alpha 割り当て 18）は Task 2〜12 に、捨てる 4 件は Task 13 に、S4-special へ渡す 1 件は Task 13 Step 1 の `done.md` に出る
 - 型の一致: Produces の型名・メソッド名（`SectionContent<T>`・`MachineRecipeSelection`・`IMachineSectionModel.Current`・`MachineSelectionModeState.ShowsSelection`/`OpenSelection`/`Request`・`IMachineRecipeSelectCommand.Select`・`BlockContextSectionsView.Render`・`FluidSlotContentMapper.Map`/`MapWithGhost`・`DetailSectionPresenter<T>`・`BlockSlotGesture`）は Task 2〜12 のコードと同じ綴り
 - 区画の口の形: どの区画も「工場が Presenter＋View の組を作り、Presenter が Attach で Model を購読して `View.Render` へ流し、Detach で切る。View は購読しない」（設計書 §4.2）。View が外へ出すのは押下の `IObservable` だけで、それを購読するのも Presenter
-- プレースホルダ: 「実物に合わせる」と書いた箇所は、起草時に実物が無い名前（alpha 改訂版の区画の口・テスト補助、C4-c の 4 部品、`UiIcon` の名前の公開名、`ItemSlot` の所持/必要の要素の引き方）だけ。挙動の空白は無い
+- プレースホルダ: 「実物に合わせる」と書いた箇所は、起草時に実物が無い名前（C4-c の 4 部品、`UiIcon` の名前の公開名、`ItemSlot` の所持/必要の要素の引き方）だけ。挙動の空白は無い
 - 200 行: 最大は `MachineSectionView`（約 110 行・Task 12 の追加後に約 150 行）。超えそうなら選択リストとインベントリの付け替えを `MachineSectionModeSwitcher` へ切り出す（`Machine/` が 10 本になる。11 本目が要れば `Machine/Shell/` を切る）
 
 ---
@@ -2939,7 +2947,7 @@ git merge origin/feature/uitk
 | ID | 判断 | 理由 | 却下した案 |
 |---|---|---|---|
 | D-1 | 区画は「詳細 Model（State）→ 区画の Presenter → View」の 3 段。Model は `OpenBlockDetailTracker` 等を購読して `IReadOnlyReactiveProperty<SectionContent<…ViewModel>>` を配り、Presenter は Attach／Detach で購読を持ち、View は `Render` と押下の `IObservable` だけを持つ | 設計書 §4.2「Model の購読は Presenter、View は Render だけ」と alpha の改訂（`OpenBlockInventoryPanel` は `BlockGameObject` を持たない） | View が Model を購読する（§4.2 違反）／工場が `BlockGameObject` を直に読む（alpha 改訂で口が無い） |
-| D-2 | 値の有無は `SectionContent<T>`（Absent／Present）の union で配り、null を使わない | Nullチェックの指針（外部データ以外で null 前提を作らない）。Presenter の `IsShown` が `IsPresent` 1 つで決まる | `T` を null 許容で配る |
+| D-2 | 値の有無は `SectionContent<T>`（Absent／Present）の union で配り、null を使わない | Nullチェックの指針（外部データ以外で null 前提を作らない）。Presenter の `IsApplicable` が `IsPresent` 1 つで決まる | `T` を null 許容で配る |
 | D-3 | Web ホストにしかない導出（`BlockDetailDtoBuilder`・`MachineSlotBindingDtoBuilder`・`MinerDetailDtoBuilder`・`PumpDetailDtoBuilder`・`CleanRoom*DtoBuilder`・`MachineInputStall*`）は State に写して二重に持つ | UITK は `Client.WebUiHost` を参照しない（依頼の制約・alpha D-5 と同じ）。Web は UITK 切替後に消えるので共通化の先が無い | 共通の下位層へ移す（Web 側を変える。範囲外） |
 | D-4 | 選択レシピは `MachineRecipeSelection`（Unselected／Selected(guid)）の union で持ち、サーバーの文字列から解くのは `MachineRecipeSelection.Parse` の 1 か所 | L0-s4b D-27 の境界（空 GUID＝未選択）。比較の取り違え（空 GUID と選択中の一致）を型で防ぐ | `Guid` のまま持ち `Guid.Empty` で判定する |
 | D-5 | asmdef `Client.Ui.State` に `Game.Block`・`Game.Fluid`・`Game.Gear` を足す（`Game.UnlockState` は alpha） | 本体の決定。`IMachineParam`・`ElectricPumpBlockParam`・`FluidUnits`・`GearStateDetail` を読む | Web ホストの DTO を経由する（D-3 で参照しない） |
@@ -2952,7 +2960,7 @@ git merge origin/feature/uitk
 | D-12 | 文脈の区画（機械以外）は `CleanRoomTarget != None` のときだけ出す。機械は自分の区画の本文の先頭に同じ `BlockContextSectionsView` を置く | `BlockNetworkInfoCache.Track` がブロックごとに CleanRoomTarget を決め、搬入停止は `IMachineParam` だけが対象。Web の `leadingContent`（alpha D-3: 基盤は機械を知らない） | alpha の `SectionStackBody` に機械の分岐を置く |
 | D-13 | 「取得できない」行の `{target}` の入れ子の文言は描画時に解き、言語の変化は 1 秒ごとの照会の再描画で追う | `LocalizationTextParam` は文字列の値を取る。入れ子の再解決の仕組みを足すより、既にある再描画で足りる | 入れ子の `UiText` を受ける引数を部品に足す（共有部品の変更） |
 | D-14 | `BlockInfoUnavailableLine` は本レーンの `Screens/BlockInventory/Context/` に置く | Web の使い手は文脈の 3 欄だけ。新しい共有部品は作らない | `Components/` に置く（integrator の持ち分） |
-| D-15 | 配置の写しのうち舞台の高さ 600・1080 の件は、alpha の `BlockInventoryTestShell` が舞台の大きさを受けなければ録画で見る | L1 の舞台は 1280×720 固定。Game View の解像度の切り替えは録画の前例（`uitk-gameview-resolution-switch.cs`）がある | テスト用の舞台の大きさの口を alpha のシェルに足す（他レーンの部品の変更） |
+| D-15 | 配置の写しのうち舞台の高さ 600・1080 の件は録画で見る（alpha の `BlockInventoryTestShell` の舞台は 1280×720 固定） | L1 の舞台は 1280×720 固定。Game View の解像度の切り替えは録画の前例（`uitk-gameview-resolution-switch.cs`）がある | テスト用の舞台の大きさの口を alpha のシェルに足す（他レーンの部品の変更） |
 | D-16 | レシピを選ぶコマンドの送信失敗（未解放・機械でない）は `UiCommandRejected` を返して Error ログ、通知は出さない | Web ホストは `machine_recipe.select` の結果を捨てている。UITK だけ通知を出すと見た目が分かれる。fail-closed は開発者ログへ出す | 通知を出す（Web に無い文言） |
 | D-17 | 選択モードの状態（開いた・要求した GUID）は Presenter が持つ `MachineSelectionModeState` に置く | Web の `useState` と同じく区画が開いている間だけの状態。Model に置くと別のブロックを開いたときに残る | Model に置く |
 | D-18 | 加工行の grid（`1fr auto 1fr`）は左右の器を `flex-grow: 1; flex-basis: 0` にして写す | UITK に grid が無い。等幅の伸縮列で矢印が中央に固定される | 左右に固定幅を置く（枠の数で崩れる） |
@@ -2976,20 +2984,75 @@ git merge origin/feature/uitk
 
 ## 起草メモ（本体向け）
 
-- **alpha 改訂版と照合（要）**: 区画の口は改訂の予告に合わせた仮名で書いた。`ISectionStackSectionPresenter { VisualElement Root; IReadOnlyReactiveProperty<bool> IsShown; void Attach(); void Detach(); }`・`ISectionStackSectionFactory { SectionStackSlot Slot; ISectionStackSectionPresenter Create(SectionStackSectionMount) }`・`SectionStackSectionMount.Config`/`FillsPanelHeight`・`OpenBlockDetailTracker`・テスト補助 `BlockInventoryTestBodies.SectionStackWithFakes`・`BlockInventoryTestShell.Create`。「出さない」を Presenter の `IsShown` で返す形にした（`UiGapContainer` の隙間は `SetItemShown` だけに従うため）。alpha が「工場が null／作らない」を返す形にしたなら FluidRow・FluidDetails の工場の分岐だけを合わせる。Task 1 に照合表の手順がある
+- **alpha の口は改訂版（85f905aa3d）の Produces 一覧に合わせた**: 区画は `IBlockInventorySection`（`Root`・`Attach(OpenBlockInventoryPanel)`・`Detach`・`IsApplicable`）、工場は `ISectionStackSectionFactory.Create(SectionStackSectionMount)`、液体の設定は `SectionStackConfig.Fluid` の union（`RowSectionStackFluid`・`DetailsSectionStackFluid`）、大型の寄与は `IsLargePanel`、テスト補助は `BlockInventoryTestBodies.SectionStack`・`BlockInventoryTestShell.Create`。工場は null を返せないので、設定が合わない FluidRow・FluidDetails は `IsApplicable` が常に偽の区画を返す。残るのは alpha マージ後の実物の綴りの確認（Task 1 Step 2）だけ
 - **C4-c マージ後に実物と照合（要）**: `RecipeRow`・`LevelInheritanceBadge`・`RecipeListScrollView` は PLAN-W3c の C4-c 計画の Produces を写した（`RecipeActionButton` は機械では使わない）。レシピ選択モードは Task 12（最後の実装 Task）に隔離し、C4-c 未マージなら Task 13〜15 の選択に関わらない部分を先に進めて待つ
 - **PLAN-W3c への要件は C4-c 計画で既に満たされている**: 下調べで挙げた 6 点（呼び手が作る枠ごとの testid・静止矢印の testid・アクション欄なし・秒の testid `<testid>-duration`・`SlotAmountBadge.Show`・つまみ `--recipe-list-gap`/`--recipe-row-padding-block`/`--recipe-slot-size-max` の上書き）は全部 C4-c の Produces にある。行の間は祖先のクラスで `--recipe-list-gap: var(--machine-recipe-row-gap)` と受け直す（C# でトークンを読まない）。残るのは実物との照合だけ
 - **設計書 §1.4 の漏れ**: `MachineRecipeSelectionRow.test` の 5 件が §1.4 の写す表に無い。本体の決定どおり本レーンが写す（Task 12）。設計書の表への追記は本体へ
 - **asmdef**: `Game.Block`・`Game.Fluid`・`Game.Gear` を `Client.Ui.State` に足す。S4-special も `Game.Gear` を足す見込みなので、取り込みで同じ行が衝突したら 1 行に畳む
 - **S4-special と分け合うもの**: `blockDetails.spec.ts` のタグは両レーンの NUnit に分かれる（本レーンは機械・採掘機・ポンプ・発電機の区画の件、歯車の行は S4-special）。「歯車発電機は発生トルクと現在RPMだけを出す」は S4-special へ渡す。`4-block-gear*` の参照の歯車の行も S4-special の差
-- **登録のディレクトリ**: `Client.Starter/Registration/GameUi/` は alpha・後続レーンの登録ファイルで 10 本を超える見込み。超えたら integrator がサブディレクトリを切る（本レーンは 1 本足すだけ）
+- **登録のディレクトリ**: `Client.Starter/Registration/GameUi/` は後続レーンの登録ファイルで 10 本を超える。サブディレクトリ化は alpha が integrator へ依頼済み（本レーンは 1 本足すだけ。移動後のパスに合わせる）
 - **E-22 の自前撮影**: 1280×720 の参照に無い `machineShortInput`・`machineFilledOutput`・清浄室 13 の計 15 枚を Task 14 で自分で撮る。撮影表への追加は integrator へ依頼
 - **規約の遵守**: `disposition.md` には捨てる 4 件だけを書き、`<web-test>` で写した件の行を書かない。alpha の `BlockInventoryDesignTest` には追記せず、同じタグを `MachineDesignTest`・`FamilyDesignTest` に置く
 - **要裁定**: なし
 - **未確認（実装時に実物で確かめる）**:
   - L1 のテストでマスタ（機械の param・レシピ）をロードできるか。できなければ偽の要約で組み、マスタを読む件は録画へ
   - `FluidNetworkClientCache` に変化の通知があるか（D-20）
-  - alpha の `BlockInventoryTestShell` が舞台の大きさを受けるか（D-15）
   - `SubInventoryState` を L1 で組めるか（組めなければ `ISubInventorySourceReader` を挟む）
   - C3-a の `ItemSlot` が所持/必要の表示のとき個数バッジを隠すか（隠さなければ `MachineSlotContents` で count を null にする）
   - `CombineLatest` の前例が `Client.Ui` にあるか（無ければ 2 本を別々に購読する）
+
+---
+
+## 後続レーンへの Produces 一覧
+
+S4-train はこの節だけを読んで液体の表示を使う（E-23: 部品の持ち主は S4-machine、S4-train は使うだけ）。型名・シグネチャはこの計画の Task 3・Task 6 のコードと同じ綴り。すべて `moorestech_client/Assets/Scripts/` の下。
+
+### 液体の詳細の View（`Client.Ui.Screens.BlockInventory.Fluid`）
+
+```csharp
+namespace Client.Ui.Screens.BlockInventory.Fluid
+public sealed class FluidInventoryContents : UiStack   // Web FluidInventoryContents。Stack gap=xs
+{
+    public FluidInventoryContents(string testid, GameContentPresentation content);   // name = testid
+    public void Render(IReadOnlyList<BlockFluidSlotState> fluids);                     // 呼ぶたびに行を組み直す。0 件で子なし
+}
+public sealed class FluidRowView : VisualElement       // 液体の横 1 行（進捗の矢印つき可）
+{
+    public FluidRowView(string testid, GameContentPresentation content);
+    public void Render(BlockFluidSlotsViewModel viewModel, bool showProgress);
+}
+public static class FluidSlotContentMapper
+{
+    public static FluidSlotContent Map(BlockFluidSlotState slot, GameContentPresentation content);                          // 中身あり→Filled・それ以外→Empty
+    public static FluidSlotContent MapWithGhost(BlockFluidSlotState slot, BoundFluidSlot bound, GameContentPresentation content); // 空でゴーストあり→Ghost
+}
+```
+- `FluidInventoryContents` の要素: 行 i は `UiGroup(Sm)`（クラス `fluid-inventory-contents__row`・中央揃え・折り返しなし）に `FluidSlotRow($"{testid}-slot-{i}")`（C4-a。枠 1 つ）、中身ありならその右に `UiStack(None)` で液体名（`text--sm`）と `"<量> / <容量>"`（`SlotAmountFormat.Format`・`text--sm`）。空の液体は枠だけ（名前と容量を出さない）
+- View は購読しない。`Render` は使う側の Presenter が自分の Model の変化で呼ぶ（量の再取得で描き直すのも呼び直すだけ）
+- 見た目の USS は `Fluid.uss`（本レーンが `GameUiTheme.tss` に `@import` 済み）。使う側は USS を足さなくてよい
+- 押下は持たない（Web と同じ。液体の枠に操作は無い）
+- テストの手本: `Client.Tests/Ui/Screens/BlockInventory/Fluid/FluidSectionsTest.cs`（「パイプは液体だけを進捗なしで描画する」「空のパイプは名前や容量を表示せず空スロットを残す」）
+
+### 液体の列の値と読み手（`Client.Ui.State.BlockInventory.Fluid`）
+
+```csharp
+namespace Client.Ui.State.BlockInventory.Logic.Common     // L0-s4b（既存）
+public abstract class BlockFluidSlotState { double Capacity; abstract bool HasRealFluid; static BlockFluidSlotState Empty(double capacity); static BlockFluidSlotState Filled(FluidId fluidId, double amount, double capacity); }
+public sealed class EmptyBlockFluidSlotState : BlockFluidSlotState { }
+public sealed class FilledBlockFluidSlotState : BlockFluidSlotState { FluidId FluidId; double Amount; }
+namespace Client.Ui.State.BlockInventory.Fluid
+public static class BlockFluidSlotConversion
+{
+    public static IReadOnlyList<BlockFluidSlotState> FromTanks(IReadOnlyList<FluidMessagePack> inputTanks, IReadOnlyList<FluidMessagePack> outputTanks);   // 入力→出力の順。FluidMaster.EmptyFluidId は Empty(容量)、他は Filled
+    public static BlockFluidSlotState FromPipeNode(int fluidId, double amount, double capacity);
+}
+public sealed class BlockFluidSlotsViewModel { IReadOnlyList<BlockFluidSlotState> Slots; bool HasProgress; float Progress; }
+public interface IBlockFluidSlotsModel { IReadOnlyReactiveProperty<BlockFluidSlotsViewModel> Current { get; } }   // 追跡ブロック（タンク・パイプ）の液体。閉・列車では空の列・進捗なし
+```
+- 列車の液体（貨車・液体プラットフォーム）は `IBlockFluidSlotsModel` の対象外（追跡ブロックの読み手で、列車では空）。S4-train は自分の Model で `SubInventoryModel.Fluids`（`FluidMessagePack`）を `BlockFluidSlotConversion.FromTanks(fluids, Array.Empty<FluidMessagePack>())` で `BlockFluidSlotState` の列へ写し、`FluidInventoryContents.Render` へ渡す
+- テストの偽: `Client.Tests/Ui/State/BlockInventory/Family/FakeFamilyModels.cs` の `FakeBlockFluidSlotsModel`（`ReactiveProperty<BlockFluidSlotsViewModel>` を書き換える）
+
+### 区画（S4-train は差し込まない）
+
+- `FluidRowSectionFactory`（`SectionStackSlot.FluidRow`）・`FluidDetailsSectionFactory`（`SectionStackSlot.FluidDetails`）は標準の本文の区画で、列車の本文（`ITrainInventoryBodyFactory`）には入らない。列車の本文は上の View を自分の本文の中で直に使う
+- 依存の順: S4-train は本レーンのマージ（`origin/feature/uitk`）を待つ。`FluidInventoryContents` の綴りの照合は S4-train の Task 1 で `grep -n "public FluidInventoryContents(\|public void Render" moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Fluid/FluidInventoryContents.cs`
