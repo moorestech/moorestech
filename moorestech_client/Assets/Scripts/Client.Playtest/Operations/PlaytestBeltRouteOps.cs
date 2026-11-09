@@ -2,6 +2,7 @@ using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Game.Context;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -40,7 +41,10 @@ namespace Client.Playtest.Operations
             await driver.AimAt(PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North));
             await RotateTo(driver, exitDirection, endDirection);
             await driver.ClickPlace();
-            await driver.Until(() => PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UI分岐設置反映: {blockName} {beltCell}->{toOrigin}");
+            // 置かれただけでなく終点の向きまで見て、出口の取り違えを黙って通さない
+            // Check the end facing, not just presence, so a mixed-up exit fails instead of passing silently
+            await driver.Until(() => PlaytestBlockOps.GetBlock(toOrigin) != null && ServerContext.WorldBlockDatastore.GetBlockDirection(toOrigin) == endDirection, 15f,
+                $"UI分岐設置反映: {blockName} {beltCell}->{toOrigin}:{endDirection}（向きが違えば exitDirection={exitDirection}/useAlternateExit={useAlternateExit} の取り違え）");
         }
 
         // Rは時計回りに90度ずつ回す。現在の向きから目標までの押下回数を求めて注入する
@@ -53,7 +57,7 @@ namespace Client.Playtest.Operations
 
         // 既存ベルトをCtrl+クリックして分岐の始点にする。始点確定後の向きは出口の向きになる（終点の向き回転の起点）
         // Fixes a branch start by Ctrl+clicking an existing belt; the facing after confirmation is the exit heading, the base for rotating the end facing
-        public static async UniTask BranchStart(PlaytestDriver driver, Vector3Int beltCell, bool useAlternateExit)
+        private static async UniTask BranchStart(PlaytestDriver driver, Vector3Int beltCell, bool useAlternateExit)
         {
             // ベルトの箱の内側を狙えば、カメラからのレイは必ずその境界箱の面に当たる
             // Aiming inside the belt's box guarantees the camera ray hits that bounding box's face first

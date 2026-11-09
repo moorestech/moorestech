@@ -19,7 +19,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
     // Test-server setup and observation shared by the conveyance tests: copying into the box, chests, ticking
     public static class BeltRouteConveyanceWorld
     {
-        public const int MaxTransportTicks = 600;
+        private const int MaxTransportTicks = 600;
         public static readonly ItemId TestItemId = new(1);
 
         public static IWorldBlockDatastore BootWorld()
