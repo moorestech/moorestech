@@ -30,3 +30,19 @@
     margin-top: 12px;
     margin-left: -0.549px;
 }
+
+.equipment-hud {
+    position: absolute;
+    right: var(--equipment-right);
+    bottom: var(--equipment-bottom);
+    flex-direction: column;
+    min-width: var(--equipment-slot-size);
+    min-height: var(--equipment-slot-size);
+    --slot-size: var(--equipment-slot-size);
+}
+
+/* web: gap: var(--equipment-slot-gap)。USS に gap が無いので 2 枠目から上の余白で写す */
+/* web: gap: var(--equipment-slot-gap); USS has no gap, so slots after the first get a top margin */
+.equipment-hud__slot--after-first {
+    margin-top: var(--equipment-slot-gap);
+}
