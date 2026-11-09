@@ -1,4 +1,7 @@
+using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
+using Client.Ui.State.Items;
+using Core.Master;
 using Client.Ui.State.ItemMove;
 using NUnit.Framework;
 
@@ -25,18 +28,23 @@ namespace Client.Tests.Ui.State.Inventory.Drag
             // 写した行為を実行の記録で検証し、番地・個数・クリック枠の取り違えを赤にする
             // Verify converted actions through the execution record so swapped slots, counts or clicked slot turn red
             var operations = new RecordingPlayerInventoryOperations(9, 2);
+            var wood = new ItemId(1);
+            operations.SetEquipment(0, new SlotItem(wood, 5));
+            operations.SetMain(1, new SlotItem(wood, 9));
             var actions = new[]
             {
                 Convert(PlannedItemAction.MoveItem(ItemMoveSlotRef.Equipment(0), ItemMoveSlotRef.Main(3), 2)),
+                Convert(PlannedItemAction.Split(ItemMoveSlotRef.Main(1))),
                 Convert(PlannedItemAction.Collect(ItemMoveSlotRef.Main(0))),
             };
             Assert.IsInstanceOf<MoveBetweenSlotsAction>(actions[0]);
-            Assert.IsInstanceOf<CollectAction>(actions[1]);
-            Assert.IsInstanceOf<SplitToGrabAction>(Convert(PlannedItemAction.Split(ItemMoveSlotRef.Main(0))));
+            Assert.IsInstanceOf<SplitToGrabAction>(actions[1]);
+            Assert.IsInstanceOf<CollectAction>(actions[2]);
 
-            new PlayerItemActionExecutor(operations).Execute(actions);
+            var result = new PlayerItemActionExecutor(operations).Execute(actions);
 
-            Assert.AreEqual(new[] { $"{PlayerSlotRef.Equipment(0)}->{PlayerSlotRef.Main(3)} x2" }, operations.Moves.ToArray());
+            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual(new[] { $"{PlayerSlotRef.Equipment(0)}->{PlayerSlotRef.Main(3)} x2", $"{PlayerSlotRef.Main(1)}->Grab x4" }, operations.Moves.ToArray());
             Assert.AreEqual(new[] { PlayerSlotRef.Main(0).ToString() }, operations.Collects.ToArray());
         }
 

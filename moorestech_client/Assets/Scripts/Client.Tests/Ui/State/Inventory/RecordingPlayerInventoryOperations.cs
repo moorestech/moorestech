@@ -39,6 +39,11 @@ namespace Client.Tests.Ui.State.Inventory
             _main[slot] = item;
         }
 
+        public void SetEquipment(int slot, SlotItem item)
+        {
+            _equipment[slot] = item;
+        }
+
         public void SetGrab(SlotItem item)
         {
             _grab = item;
