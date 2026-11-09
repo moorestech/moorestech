@@ -47,6 +47,10 @@ return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
     // Challenge 1's world pin (on screen, then the edge arrow after turning around)
     p.Note("チャレンジ 1 のワールドピン");
     await p.Until(() => WorldPinStateStore.Instance.GetCurrent().Pins.Length > 0, 20f, "ワールドピンの射影が store に来た");
+    // 戻った直後はカメラが落ち着かずピンが画面内外を行き来するので、1s 変わらなくなるまで待つ
+    // Right after returning the camera still settles and the pin flips on/off screen, so wait until it holds for 1s
+    var (pinOnScreen, pinSince) = (WorldPinStateStore.Instance.GetCurrent().Pins[0].OnScreen, Time.realtimeSinceStartup);
+    await p.Until(() => { var now = WorldPinStateStore.Instance.GetCurrent().Pins[0].OnScreen; if (now != pinOnScreen) (pinOnScreen, pinSince) = (now, Time.realtimeSinceStartup); return Time.realtimeSinceStartup - pinSince > 1f; }, 10f, "ピンの画面内外が 1s 変わらない");
     await TurnUntilPin(true);
     await p.Until(() => IsShown("world-pin"), 10f, "画面内のピンが出た");
     var (markerMin, markerMax) = await ScaleRange("world-pin__marker", 1.3f);
@@ -95,9 +99,12 @@ return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
     var samples = new System.Collections.Generic.List<(float t, float opacity, float y)>();
     var frameStart = Time.frameCount;
     var sampleStart = Time.realtimeSinceStartup;
-    while (Time.realtimeSinceStartup - sampleStart < 3.4f)
+    // 動きはパネルの時計（録画中は Recorder の固定 30fps に従う）で進むので、標本の時刻も同じ unscaledTime で取る
+    // Motion runs on the panel clock (fixed 30fps under the Recorder), so sample times use the same unscaledTime
+    var guideClockStart = Time.unscaledTime;
+    while (Time.unscaledTime - guideClockStart < 3.4f)
     {
-        samples.Add((Time.realtimeSinceStartup - sampleStart, guide.resolvedStyle.opacity, guide.resolvedStyle.translate.y));
+        samples.Add((Time.unscaledTime - guideClockStart, guide.resolvedStyle.opacity, guide.resolvedStyle.translate.y));
         await UniTask.Yield();
     }
     var fps = (Time.frameCount - frameStart) / (Time.realtimeSinceStartup - sampleStart);
@@ -188,6 +195,5 @@ return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
             await UniTask.DelayFrame(40);
         }
     }
-
     #endregion
 });
