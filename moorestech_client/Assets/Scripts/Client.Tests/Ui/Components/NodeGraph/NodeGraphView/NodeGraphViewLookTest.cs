@@ -165,6 +165,14 @@ namespace Client.Tests.Ui.Components.NodeGraph
             view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, Card("card-a")), Node("b", 100f, 0f, Card("card-b"), "a", "ghost") }, NodeGraphFocus.None));
             simulate.FrameUpdate();
             Assert.AreEqual(2, CanvasOf(view).Query(className: "node-graph__node").ToList().Count);
+
+            // 欠けた親は飛ばし、正しい親 a への 1 本だけが残る
+            // The missing parent is skipped; only the line to a remains
+            var lines = ((NodeGraphEdgeLayer)CanvasOf(view)[0]).Lines;
+            Assert.AreEqual(1, lines.Count);
+            Assert.AreEqual(300f, lines[0].Origin.x, 0.01f);
+            Assert.AreEqual(200f, lines[0].Origin.y, 0.01f);
+            Assert.AreEqual(100f, lines[0].Length, 0.01f);
         }
 
         [Test]
