@@ -8,8 +8,8 @@
     --progress-arrow-glyph-stroke-width: 2px;
     --progress-arrow-glyph-shadow-offset-y: 1px;
     --progress-arrow-glyph-shadow-blur: 1px;
-    width: var(--craft-arrow-width);
-    height: var(--craft-arrow-height);
+    width: var(--craft-arrow-width); /* look-exception: LX-59 */
+    height: var(--craft-arrow-height); /* look-exception: LX-59 */
 }
 
 .progress-arrow-glyph__view-box {
@@ -41,7 +41,7 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    overflow: hidden;
+    overflow: hidden; /* look-exception: LX-58 */
 }
 
 .progress-arrow-glyph__fill {

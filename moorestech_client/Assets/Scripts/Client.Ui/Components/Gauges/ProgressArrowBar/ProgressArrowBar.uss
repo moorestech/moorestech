@@ -5,7 +5,7 @@
 .progress-arrow-bar {
     width: var(--progress-arrow-width);
     height: var(--progress-arrow-height);
-    overflow: hidden;
+    overflow: hidden; /* look-exception: LX-60 */
     border-radius: var(--bevel-1);
     background-color: var(--gauge-track);
 }
@@ -16,7 +16,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    border-width: var(--gauge-outline-width);
+    border-width: var(--gauge-outline-width); /* look-exception: LX-60 */
     border-color: var(--bevel-c1);
     border-radius: var(--bevel-1);
 }

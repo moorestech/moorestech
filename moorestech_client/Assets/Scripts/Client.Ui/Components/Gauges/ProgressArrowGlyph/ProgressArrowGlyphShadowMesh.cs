@@ -44,8 +44,12 @@ namespace Client.Ui.Components.Gauges
                 for (var k = 0; k <= RingCount; k++)
                 {
                     var fromEdge = (2f * k / RingCount - 1f) * SigmaSpan * sigma;
+                    // 縁を輪で刻む近似で、先端の角は丸まらず 2σ の外の裾も無い（look-exception: LX-56）
+                    // Ring approximation of the edge: the tip corner is not rounded and there is no tail beyond 2σ (look-exception: LX-56)
                     ProgressArrowGlyphPath.WriteOffset(scale, silhouetteOutset + fromEdge, new Vector2(0f, offsetY), ring);
                     var tint = shadowColor;
+                    // 濃さは形全体で一律の Web α（Web は描いた画素の α で溝・線の下が淡い。look-exception: LX-57）
+                    // One Web alpha over the whole shape (Web is lighter under the groove and stroke; look-exception: LX-57)
                     tint.a = GamePanelFaceOpacityRamp.OpacityAt(shadowColor.a, GaussianEdgeCoverage.At(fromEdge, sigma));
                     for (var corner = 0; corner < ring.Length; corner++)
                         vertices[k * ring.Length + corner] = new Vertex { position = new Vector3(ring[corner].x, ring[corner].y, Vertex.nearZ), tint = tint };
