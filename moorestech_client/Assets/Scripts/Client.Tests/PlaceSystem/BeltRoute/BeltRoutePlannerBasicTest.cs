@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 平地・坂・障害・終点の前・既存出力口・分岐・分岐器手持ち・Cキーの切り替えを個別に確かめる
-    // Checks flat runs, slopes, obstacles, the cell in front of the end, existing outputs, branches, splitter holding and the C-key cycle one by one
+    // 平地・坂・障害・終点の前・既存出力口・分岐・分岐器手持ちを個別に確かめる
+    // Checks flat runs, slopes, obstacles, the cell in front of the end, existing outputs, branches and splitter holding one by one
     public class BeltRoutePlannerBasicTest
     {
         private static BeltRouteGrid FlatGrid()
@@ -47,25 +47,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         }
 
         [Test]
-        public void CyclingPriorityYieldsDifferentEqualCostRoutes()
-        {
-            var grid = FlatGrid();
-            var planner = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack);
-            var routes = Enumerable.Range(0, BeltRouteStepPriority.PermutationCount).Select(priority =>
-            {
-                var query = Query(new Vector3Int(2, 0, 2), BlockDirection.East, new Vector3Int(7, 0, 7), BlockDirection.North, priority);
-                var result = planner.Plan(query);
-                Assert.IsTrue(result.HasPlan, $"priority {priority}");
-                BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, $"priority {priority}");
-                return string.Join("|", result.Plan.Cells.Select(cell => cell.Cell.ToString()));
-            }).ToList();
-
-            // 同コストで形の違う経路がCで出る
-            // C yields routes of equal cost but different shape
-            Assert.Greater(routes.Distinct().Count(), 1, "cycling priority never changed the route");
-        }
-
-        [Test]
         public void ClimbUsesUpSlopesWithoutPeaks()
         {
             var grid = FlatGrid();
@@ -79,7 +60,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         }
 
         [Test]
-        public void WallOfBlocksIsReportedAsExistingBlockObstacle()
+        public void WallOfBlocksYieldsNoRoute()
         {
             var grid = FlatGrid();
             for (var z = 0; z < 16; z++)
@@ -88,27 +69,24 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(Query(new Vector3Int(2, 0, 2), BlockDirection.East, new Vector3Int(10, 0, 2), BlockDirection.East));
 
             Assert.IsFalse(result.HasPlan);
-            Assert.AreEqual(BeltRouteNoPathReason.ExistingBlock, result.NoPathReason);
         }
 
         [Test]
-        public void TerrainRidgeIsReportedAsTerrainObstacle()
+        public void TerrainRidgeYieldsNoRoute()
         {
             var grid = FlatGrid();
             for (var z = 0; z < 16; z++) grid.SetColumnFloor(6, z, 5);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(Query(new Vector3Int(2, 0, 2), BlockDirection.East, new Vector3Int(10, 0, 2), BlockDirection.East));
 
             Assert.IsFalse(result.HasPlan);
-            Assert.AreEqual(BeltRouteNoPathReason.Terrain, result.NoPathReason);
         }
 
         [Test]
-        public void EndOutsideBoxIsOutOfRange()
+        public void EndOutsideTheTestWorldYieldsNoRoute()
         {
             var result = new BeltRoutePlanner(FlatGrid(), BeltRoutePlanner.NoRecoverySlack).Plan(Query(new Vector3Int(2, 0, 2), BlockDirection.East, new Vector3Int(40, 0, 2), BlockDirection.East));
 
             Assert.IsFalse(result.HasPlan);
-            Assert.AreEqual(BeltRouteNoPathReason.OutOfRange, result.NoPathReason);
         }
 
         [Test]
@@ -139,7 +117,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(result.HasPlan);
             BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "existing output");
             Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(4, 0, 2)));
-            Assert.AreEqual(8, result.Plan.Cells.Count);
+            Assert.GreaterOrEqual(result.Plan.Cells.Count, 8);
         }
 
         [Test]
@@ -177,24 +155,10 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var grid = FlatGrid();
             var query = Query(new Vector3Int(4, 0, 4), BlockDirection.North, new Vector3Int(endX, endY, endZ), BlockDirection.South);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
-            Assert.IsTrue(result.HasPlan, $"end {query.EndCell}: {result.NoPathReason}");
+            Assert.IsTrue(result.HasPlan, $"end {query.EndCell}: no route");
             BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "end above start");
             Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Kind.IsSlope() && cell.Cell + Vector3Int.up == query.EndCell), "a slope sits right under the end");
-            Assert.AreEqual(expectedCost, result.Plan.TotalCost);
-        }
-
-        [Test]
-        public void ReplacedGridWithSameBoxIsAccepted()
-        {
-            var planner = new BeltRoutePlanner(FlatGrid(), BeltRoutePlanner.NoRecoverySlack);
-            var replaced = FlatGrid();
-            replaced.MarkBlockCell(new Vector3Int(5, 0, 2));
-            planner.ReplaceGrid(replaced);
-
-            var query = Query(new Vector3Int(2, 0, 2), BlockDirection.East, new Vector3Int(8, 0, 2), BlockDirection.East);
-            var result = planner.Plan(query);
-            Assert.IsTrue(result.HasPlan);
-            Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(5, 0, 2)));
+            Assert.LessOrEqual(result.Plan.TotalCost, expectedCost * BeltRouteSearch.HeuristicWeight);
         }
     }
 }

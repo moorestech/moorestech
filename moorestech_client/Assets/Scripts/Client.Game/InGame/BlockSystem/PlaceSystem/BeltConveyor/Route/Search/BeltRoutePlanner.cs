@@ -1,97 +1,81 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 {
     /// <summary>
-    ///     1つの探索箱に対する経路計画の入口。塗りつぶしで届かなければ即経路なし、届けば探索→組み立て
-    ///     The entry for planning routes within one search box: an unreachable flood means no route at once, otherwise search then recovery
-    ///     経路なしの理由は地形・既存ブロックを片方ずつ無視した塗りつぶしで分ける（本探索を繰り返すと経路なしのたびに引っかかる）
-    ///     The no-route reason comes from floods that ignore terrain or blocks one at a time; repeating the real search would hitch on every miss
+    ///     経路計画の入口。世界をその場で読む重み付き探索→組み立て。箱も範囲の上限も無く、探索量の上限だけで経路なしを決める（ADR 0099）
+    ///     The entry for route planning: a weighted search reading the world on demand, then recovery; no box or range limit, only the expansion cap decides no-route (ADR 0099)
     /// </summary>
     public sealed class BeltRoutePlanner
     {
-        private readonly BeltRouteStateCodec _codec;
-        private readonly BeltRouteSearch _search;
-        private readonly BeltRouteRecovery _recovery;
-        private readonly BeltRouteReachability _reachability;
-        private BeltRouteGrid _grid;
-
-        // 最短コストで組めないとき、総コストをここまで余分に許して組み直す。0なら最短ちょうどだけ（ParamegaFactory と同じ）
-        // Extra total cost allowed when the shortest cannot be assembled; 0 walks the shortest cost only (as ParamegaFactory does)
-        private readonly int _recoverySlack;
         public const int NoRecoverySlack = 0;
 
-        // 本番の余裕。直線4セル分。最短が自分の坂の真上を通る形しか無い配置は2セル分の遠回りで組めるのが実測で、その倍を見ている
-        // The production slack: four straight cells; layouts whose shortest exists only through an own slope head assemble with a two-cell detour by measurement, so twice that is allowed
+        // 本番の余裕。直線4セル分。最短が自分の坂の真上を通る形しか無い配置は2セル分の遠回りで組めるのが実測で、その倍を見ている（ADR 0097）
+        // The production slack: four straight cells; layouts whose shortest exists only through an own slope head assemble with a two-cell detour by measurement, so twice that is allowed (ADR 0097)
         public const int DefaultRecoverySlack = 20;
 
-        public BeltRoutePlanner(BeltRouteGrid grid, int recoverySlack)
+        // 探索量の上限。囲まれた終点・遠すぎる終点はここで止まる。手元で約 100 ms に収まる見込みの値（実測は ADR 0099）
+        // The expansion cap; enclosed or far-away ends stop here. Chosen to stay around 100 ms locally (measurements in ADR 0099)
+        public const int MaxExpansions = 20000;
+
+        // 最短で組めないとき、組み立ての代替候補を増やすために追加で展開する数
+        // Extra expansions run when the shortest cannot be assembled, so recovery sees more alternatives
+        private const int RecoveryExtraExpansions = 4000;
+
+        private readonly int _recoverySlack;
+        private readonly BeltRouteSearch _search = new();
+        private readonly BeltRouteRecovery _recovery;
+        private IBeltRouteWorld _world;
+
+        public BeltRoutePlanner(IBeltRouteWorld world, int recoverySlack)
         {
-            _grid = grid;
+            _world = world;
             _recoverySlack = recoverySlack;
-            _codec = new BeltRouteStateCodec(grid);
-            _search = new BeltRouteSearch(_codec);
             _recovery = new BeltRouteRecovery(_search);
-            _reachability = new BeltRouteReachability(grid.CellCount);
         }
 
-        public BeltRouteGrid Grid => _grid;
-
-        // 箱の位置と大きさが同じ障害情報へ差し替える。探索配列は箱の大きさで確保しているので使い回せる
-        // Swaps in obstacle data for the same box; the search arrays are sized by the box, so they are reused
-        public void ReplaceGrid(BeltRouteGrid grid)
+        // 世界を差し替える（Task 3 で BeltRouteSession が BeltRouteLiveWorld を持つまでの暫定。Task 3 で削除）
+        // Swaps the world (interim until BeltRouteSession owns a BeltRouteLiveWorld in Task 3; removed there)
+        public void ReplaceWorld(IBeltRouteWorld world)
         {
-            if (!_codec.IsSameBox(grid)) throw new System.ArgumentException($"BeltRoutePlanner: grid box differs. expected min:{_codec.Min} size:{_codec.Size} actual min:{grid.Min} size:{grid.Size}");
-            _grid = grid;
+            _world = world;
         }
 
         // 始点・終点のセル自体の可否は呼び出し側（セッション）が先に確かめている
         // The start and end cells themselves are validated beforehand by the caller (the session)
         public BeltRoutePlanResult Plan(BeltRouteQuery query)
         {
-            if (!_grid.Contains(query.EndCell)) return BeltRoutePlanResult.NotFound(BeltRouteNoPathReason.OutOfRange);
-
-            // セル単位で届かない終点は本探索を回さない（囲われた終点で箱全体を舐めるのを避ける）
-            // An end the flood cannot touch skips the real search, so an enclosed end never sweeps the whole box
-            var rule = new BeltRouteTransitionRule(_grid, query, BeltRouteObstacleMask.None);
-            if (!_reachability.CanReach(rule, _grid)) return BeltRoutePlanResult.NotFound(JudgeNoPathReason(query));
-
-            var plan = TryPlan(query, rule);
-            if (plan != null) return BeltRoutePlanResult.Found(plan);
-            return BeltRoutePlanResult.NotFound(JudgeNoPathReason(query));
-        }
-
-        // 片方だけ無視して届けばそれが障害。両方届く（坂の規則だけで届かない）・両方届かないは「両方」
-        // Reaching with one kind ignored names that kind; reaching both ways (only slope rules block) or neither is "both"
-        private BeltRouteNoPathReason JudgeNoPathReason(BeltRouteQuery query)
-        {
-            var reachableWithoutTerrain = _reachability.CanReach(new BeltRouteTransitionRule(_grid, query, BeltRouteObstacleMask.IgnoreTerrain), _grid);
-            var reachableWithoutBlocks = _reachability.CanReach(new BeltRouteTransitionRule(_grid, query, BeltRouteObstacleMask.IgnoreBlocks), _grid);
-            if (reachableWithoutTerrain && !reachableWithoutBlocks) return BeltRouteNoPathReason.Terrain;
-            if (reachableWithoutBlocks && !reachableWithoutTerrain) return BeltRouteNoPathReason.ExistingBlock;
-            return BeltRouteNoPathReason.Both;
-        }
-
-        private BeltRoutePlan TryPlan(BeltRouteQuery query, BeltRouteTransitionRule rule)
-        {
+            var rule = new BeltRouteTransitionRule(_world, query);
             var startStates = BuildStartStates(query, rule);
-            if (startStates.Count == 0) return null;
-            if (!_search.Run(rule, startStates)) return null;
+            if (startStates.Count == 0) return NotFound(query, "no start state");
 
-            // まず最短コストちょうどで組む。組めなければ予算を余裕ぶん広げ、その範囲の状態を正確なコストにしてから組み直す
-            // Assemble at exactly the shortest cost first; if that fails, widen the budget by the slack, settle states up to it and assemble again
-            var shortest = _search.BestCost(new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight));
-            var plan = _recovery.Recover(rule, startStates, shortest);
-            if (plan != null || _recoverySlack == NoRecoverySlack) return plan;
-            _search.SettleUpTo(shortest + _recoverySlack);
-            plan = _recovery.Recover(rule, startStates, shortest + _recoverySlack);
-            // silent-ok: 予算内で組める経路が無いのは仕様上の「経路なし」 / 赤いゴーストと理由行で分かる
-            return plan;
+            var outcome = _search.Run(rule, startStates, MaxExpansions);
+            if (outcome != BeltRouteSearchOutcome.Reached) return NotFound(query, outcome.ToString());
+
+            // まず届いたコストちょうどで組む。組めなければ少し探索を進め、余裕ぶん広げて組み直す
+            // Assemble at exactly the reached cost first; if that fails, search a little further and assemble again with the slack
+            var reached = _search.BestCost(new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight));
+            var plan = _recovery.Recover(rule, startStates, reached);
+            if (plan == null && _recoverySlack != NoRecoverySlack)
+            {
+                _search.ExpandMore(RecoveryExtraExpansions);
+                plan = _recovery.Recover(rule, startStates, reached + _recoverySlack);
+            }
+            return plan == null ? NotFound(query, "recovery failed") : BeltRoutePlanResult.Found(plan);
         }
 
-        // 通常ベルトは直線か上りで出発、分岐器は背面入力のまま3方向へ、分岐の始点は既存ベルトの横出口（置かないのでコスト0）
-        // A normal belt starts straight or rising, a splitter keeps its back entry and exits three ways, and a branch start is the existing belt's side exit (cost 0, never placed)
+        // 利用者には理由行「経路が見つかりません」、開発者には出どころと展開数をログで
+        // The user sees the "no route found" line; developers get the origin and the expansion count in the log
+        private BeltRoutePlanResult NotFound(BeltRouteQuery query, string origin)
+        {
+            Debug.Log($"[BeltRoute] no route {query.StartCell}->{query.EndCell}: {origin} expansions:{_search.Expansions}");
+            return BeltRoutePlanResult.NotFound();
+        }
+
+        // 通常ベルトは直線か上りで出発、分岐器は背面入力のまま3方向へ、分岐の始点は既存ベルトの出口（置かないのでコスト0）
+        // A normal belt starts straight or rising, a splitter keeps its back entry and exits three ways, and a branch start is the existing belt's exit (cost 0, never placed)
         private static List<(BeltRouteState state, int cost)> BuildStartStates(BeltRouteQuery query, BeltRouteTransitionRule rule)
         {
             var starts = new List<(BeltRouteState, int)>(3);

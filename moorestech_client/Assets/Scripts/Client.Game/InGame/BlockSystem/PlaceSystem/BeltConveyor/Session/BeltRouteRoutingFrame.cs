@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Server.Protocol.PacketResponse;
 
@@ -36,7 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             var result = session.Plan(endCell, endDirection, priority, holding);
             if (!result.HasPlan)
             {
-                feedback.Add(BeltRouteTooltipKey.NoPathLine(result.NoPathReason));
+                feedback.Add(BeltRouteTooltipKey.NoPathLine());
                 placeable = false;
                 return BeltRoutePlaceInfoBuilder.BuildEndpointGhosts(session, endCell, endDirection, holding);
             }

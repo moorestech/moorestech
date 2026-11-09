@@ -87,7 +87,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 var kind = (BeltRouteCellKind)k;
                 if (kind.IsSlope() && !_query.AllowSlopes) continue;
                 var nextCell = new Vector3Int(nextColumn.x, current.ExitHeight - kind.EntryHeightOffset(), nextColumn.z);
-                if (!_rule.IsInsideBox(nextCell)) continue;
+                if (!_rule.IsCellFree(nextCell)) continue;
                 foreach (var outgoing in OutgoingOptions(current.Outgoing, kind)) Step(current, new BeltRouteState(nextCell, outgoing, kind), cost);
             }
         }

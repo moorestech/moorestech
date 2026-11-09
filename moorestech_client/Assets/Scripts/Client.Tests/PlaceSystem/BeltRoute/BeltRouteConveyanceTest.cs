@@ -26,7 +26,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             // Plan a route over the obstacle with the production search
             var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, true, false, BeltRouteStepPriority.Default);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
-            Assert.IsTrue(result.HasPlan, $"no route: {result.NoPathReason}");
+            Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "obstacle route");
             Assert.IsTrue(result.Plan.Cells.Any(cell => cell.Kind == BeltRouteCellKind.Up), "route should climb over the obstacle");
             Debug.Log("route: " + string.Join(" ", result.Plan.Cells));
@@ -61,7 +61,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             // Branch from the east-facing belt at (2,0,0) to its right (south)
             var query = new BeltRouteQuery(new Vector3Int(2, 0, 0), BlockDirection.South, true, new Vector3Int(2, 0, -3), BlockDirection.South, true, false, BeltRouteStepPriority.Default);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
-            Assert.IsTrue(result.HasPlan, $"no route: {result.NoPathReason}");
+            Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "branch route");
 
             // 置き換えは撤去と設置の2段
@@ -103,7 +103,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
             var query = new BeltRouteQuery(corner, shape.BranchExit, true, new Vector3Int(5, 0, 0), BlockDirection.East, true, false, BeltRouteStepPriority.Default);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
-            Assert.IsTrue(result.HasPlan, $"no route: {result.NoPathReason}");
+            Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "corner branch route");
 
             Assert.IsTrue(world.RemoveBlock(corner, BlockRemoveReason.ManualRemove));

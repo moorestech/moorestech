@@ -24,7 +24,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(query.EndDirection, cells[^1].Facing, $"{label}: last facing");
             Assert.AreEqual(BeltRouteCellKind.Straight, cells[^1].Kind, $"{label}: last kind");
 
-            var rule = new BeltRouteTransitionRule(grid, query, BeltRouteObstacleMask.None);
+            var rule = new BeltRouteTransitionRule(grid, query);
             var used = new HashSet<Vector3Int>();
             var slopeHeads = new HashSet<Vector3Int>();
             var totalCost = 0;

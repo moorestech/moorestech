@@ -41,35 +41,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
     }
 
     /// <summary>
-    ///     経路が組めなかった理由。地形と既存ブロックを片方ずつ無視した到達可否で分ける
-    ///     Why no route could be built, split by reachability when terrain or existing blocks are ignored one at a time
-    /// </summary>
-    public enum BeltRouteNoPathReason
-    {
-        Terrain,
-        ExistingBlock,
-        Both,
-        OutOfRange,
-    }
-
-    /// <summary>
-    ///     探索の結果。経路があればPlan、無ければ理由
-    ///     The search outcome: a plan when a route exists, otherwise the reason
+    ///     探索の結果。経路があればPlan、無ければ経路なし（利用者向けの理由は「見つかりません」の1つ。ADR 0099）
+    ///     The search outcome: a plan when a route exists, otherwise no route (the single user-facing reason is "not found", ADR 0099)
     /// </summary>
     public sealed class BeltRoutePlanResult
     {
         public readonly BeltRoutePlan Plan;
-        public readonly BeltRouteNoPathReason NoPathReason;
 
         public bool HasPlan => Plan != null;
 
-        private BeltRoutePlanResult(BeltRoutePlan plan, BeltRouteNoPathReason noPathReason)
+        private BeltRoutePlanResult(BeltRoutePlan plan)
         {
             Plan = plan;
-            NoPathReason = noPathReason;
         }
 
-        public static BeltRoutePlanResult Found(BeltRoutePlan plan) => new(plan, BeltRouteNoPathReason.Both);
-        public static BeltRoutePlanResult NotFound(BeltRouteNoPathReason reason) => new(null, reason);
+        public static BeltRoutePlanResult Found(BeltRoutePlan plan) => new(plan);
+        public static BeltRoutePlanResult NotFound() => new(null);
     }
 }

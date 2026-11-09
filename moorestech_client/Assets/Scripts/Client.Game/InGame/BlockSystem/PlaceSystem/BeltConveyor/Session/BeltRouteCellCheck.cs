@@ -9,19 +9,6 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 {
     /// <summary>
-    ///     始点・終点のセルが置けない理由。途中セルの判定は探索規則が持つ
-    ///     Why a start or end cell cannot take a belt; mid-route cells are judged by the search rule
-    /// </summary>
-    public enum BeltRouteCellBlockReason
-    {
-        None,
-        ExistingBlock,
-        Terrain,
-        SlopeHead,
-        OutOfRange,
-    }
-
-    /// <summary>
     ///     端点セルの可否を、箱がある間は箱から、箱が無い間は実ワールドから判定する
     ///     Judges endpoint cells from the box while one exists, and from the live world before the start is fixed
     /// </summary>
@@ -29,11 +16,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     {
         public static BeltRouteCellBlockReason JudgeInGrid(BeltRouteGrid grid, Vector3Int cell)
         {
-            if (!grid.Contains(cell)) return BeltRouteCellBlockReason.OutOfRange;
-            if (grid.IsBlockedByBlock(cell)) return BeltRouteCellBlockReason.ExistingBlock;
-            if (grid.IsBlockedByTerrain(cell)) return BeltRouteCellBlockReason.Terrain;
-            if (grid.IsSlopeHead(cell)) return BeltRouteCellBlockReason.SlopeHead;
-            return BeltRouteCellBlockReason.None;
+            return BeltRouteCellJudge.Judge(grid, cell);
         }
 
         // 始点確定前はまだ箱が無いので、重なり・埋まり・真下の坂を実ワールドで見る

@@ -1,6 +1,6 @@
 using System;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
@@ -13,16 +13,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     /// </summary>
     public static class BeltRouteTooltipKey
     {
-        public static TooltipLine NoPathLine(BeltRouteNoPathReason reason)
+        public static TooltipLine NoPathLine()
         {
-            return reason switch
-            {
-                BeltRouteNoPathReason.Terrain => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteBlockedByTerrain),
-                BeltRouteNoPathReason.ExistingBlock => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteBlockedByExistingBlock),
-                BeltRouteNoPathReason.Both => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteBlockedByBoth),
-                BeltRouteNoPathReason.OutOfRange => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteOutOfRange),
-                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
-            };
+            return new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteBlockedByBoth);
         }
 
         // 共有原因は共有の文言、ベルト固有の原因だけ専用の文言
@@ -34,7 +27,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 BeltRouteCellBlockReason.ExistingBlock => PlacementFeedback.BlockedByExistingBlockLine(),
                 BeltRouteCellBlockReason.Terrain => PlacementFeedback.BlockedByTerrainLine(),
                 BeltRouteCellBlockReason.SlopeHead => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteSlopeHead),
-                BeltRouteCellBlockReason.OutOfRange => new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteOutOfRange),
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

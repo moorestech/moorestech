@@ -25,6 +25,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
         private readonly BeltRouteTerrainProfile _terrain;
         private readonly BeltRouteWorldScanner _scanner;
         private readonly BeltRoutePlanner _planner;
+        private BeltRouteGrid _grid;
         private BeltRouteQuery _lastQuery;
         private BeltRoutePlanResult _lastResult;
 
@@ -35,11 +36,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             Branch = branch;
             _terrain = terrain;
             _scanner = scanner;
-            _planner = new BeltRoutePlanner(scanner.Build(terrain), BeltRoutePlanner.DefaultRecoverySlack);
+            _grid = scanner.Build(terrain);
+            _planner = new BeltRoutePlanner(_grid, BeltRoutePlanner.DefaultRecoverySlack);
         }
 
         public bool IsBranch => Branch != null;
-        public BeltRouteGrid Grid => _planner.Grid;
+        public BeltRouteGrid Grid => _grid;
 
         // 始点確定時に地形を測って箱を固定する
         // Measures the terrain at start selection and fixes the box
@@ -61,7 +63,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
         // Rebuilds occupancy after a block is placed or removed; the terrain stays as measured at start selection
         public void RebuildObstacles()
         {
-            _planner.ReplaceGrid(_scanner.Build(_terrain));
+            _grid = _scanner.Build(_terrain);
+            _planner.ReplaceWorld(_grid);
             _lastQuery = null;
             _lastResult = null;
         }
