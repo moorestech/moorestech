@@ -81,8 +81,8 @@ namespace Client.Ui.Components.Panels
                 }
             }
 
-            // 頂点 α は縁の mask を GamePanelFaceOpacityRamp で掛けて決める
-            // GamePanelFaceOpacityRamp decides vertex alpha by applying the edge mask
+            // 縁の mask を掛けて頂点 α を決める
+            // Apply the edge mask to decide vertex alpha
             void WriteVertices()
             {
                 for (var row = 0; row < GridLineCount; row++)

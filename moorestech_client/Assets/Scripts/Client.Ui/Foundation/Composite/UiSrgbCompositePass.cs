@@ -5,8 +5,8 @@ using UnityEngine.Rendering.Universal;
 namespace Client.Ui.Foundation.Composite
 {
     /// <summary>
-    /// 最終の画面へ、世界の中間色と UI のパネル RT を読んで sRGB 空間の over を書く
-    /// Writes the sRGB-space over of the world intermediate colour and the UI panel RT into the final screen
+    /// 世界色と UI RT を sRGB で over 合成
+    /// Composites world colour and UI RT with sRGB-space over
     /// </summary>
     /// <remarks>
     /// URP の final blit（AfterRendering + 1）より後に置くのは、描画解像度を下げたときの拡大より後の、画面と同じ解像度で UI を重ねるため。書き先は final blit と同じカメラの最終ターゲット
@@ -31,8 +31,8 @@ namespace Client.Ui.Foundation.Composite
             _material = material;
             _worldColorCapture = worldColorCapture;
             renderPassEvent = (RenderPassEvent)((int)RenderPassEvent.AfterRendering + 2);
-            // 世界を中間テクスチャに描かせ、最後に読めるようにする
-            // Make URP render the world into an intermediate texture so it can be read at the end
+            // 世界を中間テクスチャへ描かせる
+            // Make URP render the world into an intermediate texture
             requiresIntermediateTexture = true;
         }
 

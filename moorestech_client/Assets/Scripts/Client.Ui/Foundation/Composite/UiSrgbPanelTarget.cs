@@ -6,8 +6,8 @@ using Object = UnityEngine.Object;
 namespace Client.Ui.Foundation.Composite
 {
     /// <summary>
-    /// GameUi のパネルを画面と同じ大きさの RT（sRGB 変換なし）へ sRGB の値のまま描かせ、URP の差し込み口へ渡す（A-180）
-    /// Makes the GameUi panel draw, blending as sRGB values, into a screen-sized RT without sRGB conversion and hands it to the URP hook (A-180)
+    /// パネルを sRGB 変換なしの RT へ描き渡す
+    /// Draws the panel into an RT without sRGB conversion and hands it over
     /// </summary>
     /// <remarks>
     /// PanelSettings は複製に当てる（本番のアセットを実行時に書き換えない。前例 RenderPipelineQualityApplier）

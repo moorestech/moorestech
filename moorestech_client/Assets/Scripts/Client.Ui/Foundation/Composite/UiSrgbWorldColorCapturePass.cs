@@ -4,8 +4,8 @@ using UnityEngine.Rendering.Universal;
 namespace Client.Ui.Foundation.Composite
 {
     /// <summary>
-    /// ポスト処理を終えた世界の色（中間テクスチャ）のハンドルを、最後に UI を重ねるパスへ渡す
-    /// Hands the handle of the post-processed world colour (intermediate texture) to the pass that composites the UI at the end
+    /// 世界色のハンドルを合成パスへ渡す
+    /// Hands the world colour handle to the composite pass
     /// </summary>
     /// <remarks>
     /// AfterRendering では URP のハンドルが画面側へ切り替わって中間テクスチャを指さない。ここに 1 つパスがあると URP はポスト処理の結果を中間テクスチャへ書く

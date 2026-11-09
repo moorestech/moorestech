@@ -4,8 +4,8 @@ using UnityEngine.Rendering.Universal;
 namespace Client.Ui.Foundation.Composite
 {
     /// <summary>
-    /// URP の差し込み口が読む、いま画面へ重ねる UI のパネル RT と、重ねるカメラの選び方
-    /// The UI panel RT the URP hook composites now, and which camera composites it
+    /// 合成する UI の RT とカメラの選定
+    /// The UI RT to composite and the camera selection
     /// </summary>
     internal static class UiSrgbCompositeSource
     {
@@ -90,8 +90,8 @@ namespace Client.Ui.Foundation.Composite
                 Debug.LogError($"[UiSrgbCompositeSource] more than {CameraBuffer.Length} cameras are enabled; cameras beyond that are ignored when choosing the UI composite camera");
             }
 
-            // 重ねるカメラのスタックの最後の overlay カメラが代わりに重ねる
-            // The last overlay camera of the compositing camera's stack composites instead
+            // 最後の overlay カメラが代わりに重ねる
+            // The last overlay camera composites instead
             bool IsOverlayOf(Camera overlay)
             {
                 if (_chosenCamera == null || !_chosenCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data)) return false;

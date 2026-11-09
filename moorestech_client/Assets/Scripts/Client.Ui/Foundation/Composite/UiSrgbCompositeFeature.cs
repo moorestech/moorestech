@@ -5,8 +5,8 @@ using UnityEngine.Rendering.Universal;
 namespace Client.Ui.Foundation.Composite
 {
     /// <summary>
-    /// 画面へ出すカメラの最後に、UI のパネル RT を sRGB 空間で世界へ重ねる URP の差し込み口（A-180）
-    /// URP hook that composites the UI panel RT over the world in sRGB space at the end of the camera drawing to the screen (A-180)
+    /// UI の RT を sRGB で世界へ重ねる差し込み口
+    /// URP hook compositing the UI RT over the world in sRGB
     /// </summary>
     /// <remarks>
     /// URP Data・URP Data - Skit の renderer に 1 つずつ載る。パネル RT が無い間（GameUi を使っていない間）は何も足さない
