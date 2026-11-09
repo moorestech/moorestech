@@ -20,7 +20,7 @@
 | R-1 | 列車の本文の器: `UiStack` に `ModeSwitch<TrainInventoryTab>(train-tabs, Horizontal, Tablist)`（`train-tab-inventory` 持ち物 / `train-tab-timetable` 時刻表）と `GameScrollView(train-body-scroll)`。間は `--mode-switch-gap`。開いた直後は持ち物タブ。同じ車両のあいだタブは保たれる（`TrainInventoryTabModel` がパネルの `IsSamePanel` で判定）。タブの押下は View が `ITrainInventoryTabModel.SelectTab` を直接呼ぶ | `TrainInventoryBodyTest`「asks C# to fetch only when the timetable tab is selected」・`TrainInventoryTabModelTest` が緑 |
 | R-2 | 持ち物タブ: 器 `train-inventory-contents` の中に、液体があれば `FluidInventoryContents(train-inventory-fluids)`（S4-machine）、無ければ `BlockItemGrid(train-inventory-slots)`（alpha。押下は `IBlockSlotCommands`）。スロットは alpha のパネルの源（エラー無しの `OpenTrainInventoryPanel.ItemSlots`）から読む。液体貨車は名前と `量 / 容量`、再取得した量へ描き直す | `TrainInventoryBodyTest`「液体貨車は名前と量容量を表示し、再取得した量へ更新する」・`TrainInventoryFlowTest`「貨車スロットとコンテナ不在エラーを表示する」が緑 |
 | R-3 | 時刻表タブ: Loading は `train-timetable-loading`（`ui.blockInventory.timetableLoading`）、Unavailable は `train-timetable-unavailable`（`timetableUnavailable`）、Ready は `TrainTimetableSection`。Ready の区画は持ち物タブのあいだも作ったまま隠す（`display:none`。Web は hidden で保つ）。区画は `TrainUnitInstanceId` ごとに作り直す（Web の key） | `TrainInventoryBodyTest`「shows loading and unavailable as distinct states without warning」が緑 |
-| R-4 | 取得の依頼: 時刻表タブへ切り替えた瞬間と、時刻表タブのあいだに Loading が届くたびに `TrainInventoryTabModel` が `ITrainTimetableCommands.RequestOpen()` を呼ぶ。取得中の表示は Fetcher の開始の通知（`OnFetchStateChanged`）を Tracker 経由で `TrainTimetableModel` が受けて組み直す（D-20。本番の RequestOpen は `OpenTrainUnitResolver` で列車を引き `TrainTimetableFetcher.RequestForOpenedTab`、引けなければ `MarkTabOpenedWithoutTrain`。Web ホスト `TrainTimetableOpenActionHandler` と同じ）。Ready でもタブ選択では依頼する | `TrainInventoryBodyTest` の fetch 3 件・`TrainInventoryTabModelTest`・Hostless の `TimetableStateProbe`（開始の通知が 1 回）が緑。録画 `train/train-timetable-via-ui` で `[TrainTimetableFetcher] requesting timetable` が開いた直後 0・タブ選択で 1 |
+| R-4 | 取得の依頼: 時刻表タブへ切り替えた瞬間と、時刻表タブのあいだに Loading が届くたびに `TrainInventoryTabModel` が `ITrainTimetableCommands.RequestOpen()` を呼ぶ。取得中の表示は Fetcher の開始の合図（`OnFetchStarted`）を `TrainTimetableModel` が購読して組み直す（D-20。Web ホストは購読しない。本番の RequestOpen は `OpenTrainUnitResolver` で列車を引き `TrainTimetableFetcher.RequestForOpenedTab`、引けなければ `MarkTabOpenedWithoutTrain`。Web ホスト `TrainTimetableOpenActionHandler` と同じ）。Ready でもタブ選択では依頼する | `TrainInventoryBodyTest` の fetch 3 件・`TrainInventoryTabModelTest`・Hostless の `TimetableStateProbe`（開始の通知が 1 回）が緑。録画 `train/train-timetable-via-ui` で `[TrainTimetableFetcher] requesting timetable` が開いた直後 0・タブ選択で 1 |
 | R-5 | 時刻表の状態: Web ホスト `TrainTimetableDtoBuilder.Build` と同じ優先（所有列車が引けない→Unavailable〈警告〉・`IsUnavailable`→Unavailable・`IsFetchInFlight`→Loading・キャッシュ無し→Loading・Ready）。駅一覧は `GetBlocksByBlockType(TrainStation)` の位置と `TrainStationNameStateDetail.StationName`（無ければ空）を x→z→y で整列。停車駅の名前は駅一覧から引き、引けない位置の集合が前回と変わったときだけ警告。未知の Side があれば Error ログで Unavailable。同じ状態（Ready は中身）は流し直さない（D-6） | `TrainTimetableReadyDataFactoryTest`・`TrainTimetableStationCatalogTest` が緑 |
 | R-6 | 時刻表の区画: `UiStack(Xs)`（`train-timetable-section`。保留中は `train-timetable-section--busy`）。自動運転の行（`ui.blockInventory.timetableAutoRun` ＋ `ModeSwitch<bool>(train-timetable-auto-run, Horizontal, Group)` の `-on` / `-off`）。on は保留中かサーバーの停車駅が 0 件で無効、off は保留中で無効。押すと楽観更新なしで View が `ITrainTimetableEditModel.SetAutoRun` を直接呼び即送信。停車駅が 0 件なら `timetableAutoRunUnavailable` を出す。Mantine `Text size="sm"` の 9 か所は `UiTypographyClass.TextSm`、停車駅・駅一覧の行ラベルは Mantine の body 16px（`--mantine-font-size-md`）（D-22） | `TrainTimetableSectionViewTest`「blocks auto-run until an added stop is authoritative and sends toggles immediately」が緑 |
 | R-7 | 停車駅: `GamePanel(train-timetable-stops-panel, Craft)` の題 `timetableStops`＋`FadeRule`。0 件は文言 `train-timetable-stops`（`timetableStopsEmpty`）、それ以外は `train-timetable-stops` の列に行 `train-timetable-stop-{i}`（現在位置は `train-timetable-stop--current`＝`--text-high-contrast`。表示中の並びがサーバーの並びと同じときだけ。現在位置は `int?`）。行のラベルは `timetableStopLabel`（`{index}. {station}`）。操作 `-up`（先頭で無効）・`-down`（末尾で無効）・`-remove`（保留中は全部無効）。押下は View が `ITrainTimetableEditModel.Move`・`Remove` を直接呼ぶ | `TrainTimetableSectionViewTest`「disables moves past either end and follows remote changes when idle」が緑 |
@@ -41,19 +41,19 @@
 - 外殻（題・閉じる・エラー行 `train-inventory-error`・大型の寸法・自然高のスクロール器）と拡張口そのもの（S4-alpha）
 - 液体の中身表示 `FluidInventoryContents`・`FluidSlotRow`・ブロックの液体の読み手（S4-machine が `Screens/BlockInventory/Fluid/` と State に作る。S4-train は使うだけ）
 - 乗車 HUD（S2-hud 済み。`train.spec.ts` の「乗車HUD…」は写さない）
-- 時刻表の編集ロジック `TimetableEditLogic`（L0-s4b 済み）・`TrainTimetableFetcher`・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver`（既存。変えない）
+- 時刻表の編集ロジック `TimetableEditLogic`（L0-s4b 済み）・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver`（既存。変えない）。`TrainTimetableFetcher` には取得の開始の合図 `OnFetchStarted` だけを足す（既存の通知・振る舞いは変えない。D-20）
 - 部品（`ModeSwitch`・`PanelActionButton`・`GameTextField`・`GameScrollView`・`GamePanel`・`FadeRule`）と Foundation は変えない。要るものは `done.md`「integrator への依頼」へ
-- Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は変えない。例外は `localization.csv` の行を足したときの生成物の再生成だけ（E-1）。Web ホストにしかない導出を State へ 1 本にまとめる作り直しも本 PR ではしない（C4-e の agent 既定と同じ据え置き。D-2・「## 本 PR 外のリファクタ提案」）。State の既存 `TrainTimetableFetcher`・`OpenTrainTimetableTracker` には取得の開始の通知を足す（E-1 の State の口への追記。D-20）
+- Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は変えない。例外は `localization.csv` の行を足したときの生成物の再生成だけ（E-1）。Web ホストにしかない導出を State へ 1 本にまとめる作り直しも本 PR ではしない（C4-e の agent 既定と同じ据え置き。D-2・「## 本 PR 外のリファクタ提案」）。State の既存 `TrainTimetableFetcher` には取得の開始の合図を足すだけで、Tracker と Web ホストの購読は変えない（E-1 の State の口への追記。D-20）
 - 録画 `train/train-station-default-name`（Web 系の既定名の初期同期の主張のまま。D-13）
 - 出発条件の UI（Web にも無い。固定の `WaitForTicks` 1 秒）
 
 ## 死活表
 
-触る機構: `MainGameUiRegistration`（GameUi の系だけで登録。Web の系は登録の頭で return）・既存の `TrainTimetableFetcher`／`OpenTrainTimetableTracker`（取得の開始の通知を足す。D-20）・`Client.Ui.State.asmdef`・`UiCommandRejectReason`（Settings・PauseMenu・分割ドラッグ・持ち物の移動・alpha のブロックの枠も使う）・`localization.csv`（Web の `localizationKeys.ts` も再生成）・`GameUiTheme.tss`・既存の `OpenTrainUnitResolver`／`SubInventoryState`／`OpenBlockDetailTracker`／`UIStateControl`（呼ぶ・読むだけ）・alpha の `IBlockInventoryPanelSource` と S4-machine の `IBlockFluidSlotsModel`（購読するだけ）・録画シナリオ `train/train-timetable-via-ui`（直す）と `uitk/uitk-train-inventory`（新設）。`Client.WebUiHost/**` は変えない（D-2）
+触る機構: `MainGameUiRegistration`（GameUi の系だけで登録。Web の系は登録の頭で return）・既存の `TrainTimetableFetcher`（取得の開始の合図 `OnFetchStarted` を足し、取得ラッチを別クラスへ出す。購読は `TrainTimetableModel` だけ。D-20）・`Client.Ui.State.asmdef`・`UiCommandRejectReason`（Settings・PauseMenu・分割ドラッグ・持ち物の移動・alpha のブロックの枠も使う）・`localization.csv`（Web の `localizationKeys.ts` も再生成）・`GameUiTheme.tss`・既存の `OpenTrainTimetableTracker`／`OpenTrainUnitResolver`／`SubInventoryState`／`OpenBlockDetailTracker`／`UIStateControl`（呼ぶ・読むだけ）・alpha の `IBlockInventoryPanelSource` と S4-machine の `IBlockFluidSlotsModel`（購読するだけ）・録画シナリオ `train/train-timetable-via-ui`（直す）と `uitk/uitk-train-inventory`（新設）。`Client.WebUiHost/**` は変えない（D-2）
 
 | 操作 | 計画後 | 根拠 |
 |---|---|---|
-| Web 系: 列車インベントリの開閉・貨車の枠・時刻表タブ・即時編集・自動運転 | 生きる | Web の系では Client.Ui を登録しない。`Client.WebUiHost/**` は変えない。Fetcher の失敗の通知を「開始と失敗」に広げるので、`BlockInventoryTopic` は取得の開始でも 1 回多く配る（中身は同じ規則の取得中。依頼の直後に読込中が届くだけ）。Task 3 Step 4 の Hostless のプローブと Task 11 Step 3 の Web 系の録画で確かめる |
+| Web 系: 列車インベントリの開閉・貨車の枠・時刻表タブ・即時編集・自動運転 | 生きる（不変） | Web の系では Client.Ui を登録しない。`Client.WebUiHost/**` も Tracker も変えない。Fetcher には UITK だけが購読する開始の合図を足し、取得ラッチの分割は振る舞いを変えない（既存の `TrainTimetableFetcherTest`・Hostless のプローブ・Task 11 Step 3 の Web 系の録画で確かめる） |
 | Web 系: 駅名の入力・決定、PF の積込/卸し | 生きる | 同上 |
 | Web 系: 新しい文言キー | 生きる | キーが 1 つ増えるだけで、Web では使わない |
 | UITK 系: 貨車を開いて本文を出す（持ち物タブ・液体貨車） | 新しく使える | Task 5・7・8 |
@@ -63,7 +63,7 @@
 | UITK 系: 液体 PF の液体 | 新しく使える | 追跡ブロックの `FluidMachineInventoryStateDetail` を S4-machine の `IBlockFluidSlotsModel` が読む（D-17）。Task 1 Step 2 で空でないことを確かめる |
 | UITK 系: テキスト欄にフォーカスがあるときの E・ESC での閉じる | 要確認 | C2-b の `UiInputExclusivity` の範囲。入力欄が閉じるキーを食えば閉じられなくなる（退化）。録画 `uitk/uitk-train-inventory` 手順 3（Task 7 Step 5・Task 11 Step 2）で確かめ、食うなら C2-b の持ち主へ上げる |
 | 乗車 HUD（S2-hud） | 生きる | `TrainRidingHudModel` を触らない。Fetcher・Tracker の購読が増えるだけ |
-| 既存の拒否理由（Settings・PauseMenu・分割ドラッグ・ブロックの枠） | 生きる | enum と switch の末尾に足すだけ（E-1）。非良性なので `PauseMenuCommandsTest` の benign 配列は変わらない |
+| 既存の拒否理由（Settings・PauseMenu・分割ドラッグ・ブロックの枠） | 生きる | enum と switch の末尾に足すだけ（E-1）。`TrainEditRejected` は非良性、`TrainBlockNotOpen` は良性なので `PauseMenuCommandsTest` の benign 配列に 1 つ足す（D-26） |
 | 録画 `train/train-timetable-via-ui`（Web 系。X-prerun で回す） | 今は壊れている → 直る | 押していた `train-timetable-apply` は Web にも無い（`TrainTimetableImmediate.test.ts:38`）。押下を消し、待ちをサーバーとクライアントの時刻表の駅数だけにする（系ごとの保留の印は読まない）。Task 11 Step 1・Step 3 で Web 系でも回す |
 | 録画 `train/train-timetable-via-ui`（UITK 系） | 新しく通る | 同上 |
 | 録画 `train/train-station-default-name` | 生きる | 触らない（D-13）。UITK の駅名の入力・決定は新設の `uitk/uitk-train-inventory` が持つ。Task 11 Step 3 で Web 系でも回す |
@@ -77,8 +77,8 @@
 - **依存**: S4-alpha（拡張口・`BlockItemGrid`・`IBlockSlotCommands`・パネルの状態）と **S4-machine**（`FluidInventoryContents`・ブロックの液体の読み手）が `origin/feature/uitk` に入っていること（Task 1 Step 1 で確かめ、無ければ待つ）。ほかに C3-a（`GamePanel`・`FadeRule`・`PanelActionButton`）・C3-b（`GameScrollView`）・C4-c 系の `ModeSwitch`・`GameTextField`・L0-s4b（`TimetableEditLogic`・`BlockComponentRegistry`）。すべてマージ済み
 - **登録の置き場**: W4 以降の画面レーンの登録ファイルは `S/Client.Starter/Registration/GameUi/Screens/` に置く（E-1 ad92a44777。`GameUi/` 直下は S4-alpha で 10 本になり上限に達する）。最初に要したレーンがディレクトリを作るので、Task 1 Step 3 で有無を確かめ、無ければこのレーンが作る
 - **規約**: 1 ファイル 200 行以下・1 ディレクトリ 10 ファイル以下（`.meta` を除く）・partial 禁止・`Func<>` 禁止・イベントは UniRx（`Action` 禁止）・try-catch 禁止（このレーンに外部境界は無い。ネットワークの失敗は API が null を返す）・日英 2 行コメント・デフォルト引数禁止・単純 getter/setter 禁止（`{ get; private set; }` と式本体の計算プロパティは可）・初期化は `Initialize`・null チェックは外部データ（サーバー応答・StateDetail）だけ・fail-closed の経路は開発者ログ・意図して黙る行は `silent-ok: <理由> / <誰が気づくか>`・`#region Internal` はメソッド内のローカル関数だけ・`.meta` を手で作らない・Prefab/シーンを手で編集しない・`Update()` で同値判定しない（購読）
-- **Model / Presenter / View（設計書 §4.2・A-8）**: Model（State）だけが源を購読し `IReadOnlyReactiveProperty<…>` を配る。判断・セッションの寿命・下書きも State の Model が持つ。Presenter（Screens）は `Attach` で Model の `Current` を購読して `View.Render` へ流し、`Detach` で全部切る（中継・判断はしない）。非表示の間は描かない: 時刻表タブの中身は表示中だけ購読する（設計書 §4.2 の SetShown の注記「出し入れだけ。描かないのは Presenter が表示中だけ購読して守る」。D-27）。View は Model を購読しない。押下は View が自分の子の部品の `OnClicked`・`OnOptionSelected`・`OnValueChanged` から State の型付きの口（`ITrainInventoryTabModel`・`ITrainTimetableEditModel`・`ITrainPlatformEditModel`）を直接呼ぶ。言語の変化は `LocalizedLabel` が自分で描き直し、解決済みの文字列を埋めた所だけ Presenter が描き直す（D-10）
-- **State は `Client.WebUiHost` を参照しない**。Web ホストにしかない導出（駅一覧の整列・名前の補完・状態の優先・未知の Side・出発条件・`AppliedIsAutoRun` の照合・プラットフォーム/駅の詳細）は State に同じ規則でもう 1 本持つ（`moorestech_logs/harness/uitk/C4-e/done.md` 要裁定 1 と同じ agent 既定の据え置き。指揮の裁定ではない。負債が残る〈CEF 撤去の日に `Client.WebUiHost` 側を消す〉。D-2）。Web ホストが既に呼んでいる State の口（`TrainTimetableFetcher`・`OpenTrainUnitResolver`）は UITK もそのまま使う。重複の一覧は「## 本 PR 外のリファクタ提案」
+- **Model / Presenter / View（設計書 §4.2・A-8）**: Model（State）だけが源を購読し `IReadOnlyReactiveProperty<…>` を配る。判断・セッションの寿命・下書きも State の Model が持つ。Presenter（Screens）は `Attach` で Model の `Current` を購読して `View.Render` へ流し、`Detach` で全部切る（中継・判断はしない）。非表示の間は描かない: 持ち物タブの中身も時刻表タブの中身も表示中だけ購読する（設計書 §4.2 の SetShown の注記「出し入れだけ。描かないのは Presenter が表示中だけ購読して守る」。D-27）。View は Model を購読しない。押下は View が自分の子の部品の `OnClicked`・`OnOptionSelected`・`OnValueChanged` から State の型付きの口（`ITrainInventoryTabModel`・`ITrainTimetableEditModel`・`ITrainPlatformEditModel`）を直接呼ぶ。言語の変化は `LocalizedLabel` が自分で描き直し、解決済みの文字列を埋めた所だけ Presenter が描き直す（D-10）
+- **State は `Client.WebUiHost` を参照しない**。Web ホストにしかない導出（駅一覧の整列・名前の補完・状態の優先・未知の Side・出発条件・`AppliedIsAutoRun` の照合・プラットフォーム/駅の詳細）は State に同じ規則でもう 1 本持つ（`moorestech_logs/harness/uitk/C4-e/done.md` 要裁定 1 と同じ agent 既定の据え置き。指揮の裁定ではない。負債が残る〈CEF 撤去の日に `Client.WebUiHost` 側を消す〉。D-2）。Web ホストが既に呼んでいる State の口（`TrainTimetableFetcher`・`OpenTrainUnitResolver`）は UITK も使い、Fetcher には取得の開始の合図だけを足す（D-20）。重複の一覧は「## 本 PR 外のリファクタ提案」
 - **asmdef**: `S/Client.Ui.State/Client.Ui.State.asmdef` に要るのは `Game.Block`（`TrainStationNameStateDetail`・`TrainPlatformTransferStateDetail`・`TrainPlatformTransferComponent`）と `Core.Update`（`GameUpdater.TicksPerSecond`）。Task 2 Step 3 で grep し、無いものだけ末尾に足す（S4-machine の後なら `Core.Update` だけの見込み）。取り込みで同じ参照が衝突したら 1 行に畳む（E-1）。`Client.Ui` には足さない（View は State の `TrainPlatformTransferMode` を使う。D-8）
 - **USS**: 画面 USS の先頭に出所の 2 行（日本語 1 行 `/* web: features/blockInventory/train/style.module.css …（日本語の要約） */` → 英語 1 行 `/* web: … (English) */`。1 行に日英を混ぜない）。行の中の間は画面のクラス（`train-timetable__row-end`・`train-station-name__row-end`）を右の子に付けて 1 本の規則で取る（D-22）。色はトークン経由だけ。部品のクラスを画面 USS の選択子の主語にしない。部品のつまみの上書きは画面のルートのクラスの下で（このレーンでは `--panel-action-button-text` の無効時の上書き 1 件。D-11）。`:root` のトークンを C# で読むときは読む要素のクラスで `--<部品>-<名>: var(--token)` と受け直す（`UssCustomStyleReader` の remarks。このレーンでは読まない）
 - **計画の Produces と実物の照合**: alpha（改訂版 85f905aa3d）と S4-machine（09b9a73226）の型は計画から写した。両レーンの実装で綴りが変わっていれば Task 1 Step 2 で合わせる
@@ -192,6 +192,8 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 - Phase 2.6（型閉包・重複・ADR 矛盾）: 実施済み（レビュー r1）/ 強 7・弱 9・第 3 バケツ 8 / 強: 編集セッションの null＋bool（5-A1 → D-18）・`-1` の番兵（5-B1 → D-19）・PF の描画値の判別子と片側の値の同居（5-B3・5-C2 → D-19）・Presenter の中継と ADR A-8 の矛盾（7-1 → 設計書 A-8 に合わせて State に編集の Model を置いた。D-12）は直した。D-2 の根拠と ADR の矛盾（7-1）は C4-e の要裁定 1 と同じ据え置きにし、誤った根拠「E-1 に反する」を書き直した（D-2。呼び名は r2 で agent 既定に直した）。`Localize.Get` の素通し（5-I6）は再現せず直していない。弱: bool の合成（5-C1）・blockType の部分分岐（5-I3）・判定と表示の別入力（6-1）は D-19・D-21 の組み替えで解消し、移送モードの写しの 2 か所（6-4）は `TrainPlatformTransferModeConversion` 1 本にした（D-8）。空名（5-B2）・失敗理由の畳み（5-C3）・`response?.FailureReason`（5-C4）・理由の enum と Detail（5-I2）は Web ホストと同じ形なので見送り、応答の判定の繰り返し（6-4）は D-2 の据え置きの負債として残す。第 3 バケツ 8 件は「## 本 PR 外のリファクタ提案」へ
 - 配置検査 r2（差分検査）: 実施済み / 違反 2 件・修正 2 件 / View が列車の型 `TrainUnitInstanceId`（`Game.Block.Interface`。`Client.Ui.asmdef` に参照が無くコンパイルできない）を持つ（V-r2-1 → State の `ReadyTrainTimetableArea.IsSameTrain` で比べる。D-28）・D-21 の「駅の判定は 1 か所」が実物（Reader と `TrainBlockCommands.SetStationName` の 2 か所）と違う（V-r2-2 → D-21 の記述を実物に合わせた）。注目点の D-20 の手呼び（N-1）は Fetcher の開始の通知を購読する形に直した（D-20）
 - Phase 2.6 r2（差分検査）: 実施済み / 強 4・弱 11・第 3 バケツ新規 1 / 強: View が列車の型を持つ（7-1 → D-28）・`_session` と `_server` の組（5-A1 → セッションが `Server` を持つ。D-30）・D-2 の根拠の呼び名（「本体の裁定」→ C4-e の `done.md` 要裁定 1 と同じ agent 既定。D-2）は直した。`Localize.Get` の素通し（5-I6）は r1 と同じく再現せず直していない。弱: `SameItems` の自前の比べ（N-7 → `SequenceEqual`。D-30）と D-20 の手呼び（N-1 → 購読。D-20）は直した。編集 Model の口が void（N-2）・液体の有無の出し分け（N-3）・Commands が `SubInventoryState` を読む（N-4）・フォーカス中の E/Esc（N-5。未確認に既載）・実時間の時間切れ（N-6。A-156 に既載）・`ReceivePanel` の 2 か所ほか検査 6 の 4 件は、故障シナリオが無いか r1・D-2 の据え置きの範囲なので見送った。第 3 バケツ新規: 移送モードの写しが Web ホストと 2 系統 → 「## 本 PR 外のリファクタ提案」に足した
+- 配置検査 r3（差分検査）: 実施済み / 違反 1 件・修正 1 件 / 既存の `OnFetchFailed` を「開始と失敗」に広げて Tracker 経由で Web ホストの配信を毎回 Ready→Loading→Ready にしていた（V-r3-1 → 開始の合図 `OnFetchStarted` を別に足し `TrainTimetableModel` だけが購読、Tracker と Web は不変、Fetcher の 200 行は取得ラッチの分割で守る。D-20）。codex の指摘（持ち物タブも非表示の間に描いていた）も直した（D-27 を両タブに広げ L0 を 1 件）
+- Phase 2.6 r3（差分検査）: 実施済み / 強 1・弱 4 / 強: E-1 は「足す」だけを許すのに既存の合図を変えていた（7-1 → V-r3-1 と同じ直しで解消。D-20）。弱: Global Constraints の「そのまま使う」（7-2 → 「Fetcher には開始の合図だけ足す」に）・Web ホストのコメントが古くなる（7-3 → Tracker を変えないので解消）・`TrainBlockNotOpen` と `MachineRecipeBlockNotOpen` の重複（N-r3-1 → D-26 に 1 行、integrator への依頼 (e)）・D-29 の却下理由の比べ方の片寄り（N-r3-2 → 閉じの入力が選んだ案でも 2 系統なことを書いた）。opus の軽微 4 件（良性の配列の食い違いと Task 2 のコミット漏れ・対象外の節の「変えない」・csv の行数・液体の写しの枠内の数字と名前の消去）も直した
 
 ## 写すテスト
 
@@ -263,7 +265,7 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 | ファイル | 責務 |
 |---|---|
 | `Train/TrainInventoryBodyFactory.cs` | `ITrainInventoryBodyFactory` の実装 |
-| `Train/TrainInventoryBodyPresenter.cs` | タブ・中身の Model と、時刻表タブの表示中だけ時刻表の Model を購読して View へ流す |
+| `Train/TrainInventoryBodyPresenter.cs` | タブの Model と、表示中のタブの Model（中身か時刻表）だけを購読して View へ流す |
 | `Train/TrainInventoryBodyView.cs` | タブ＋スクロール器＋中身＋時刻表の器。タブの押下は `ITrainInventoryTabModel` を直接呼ぶ |
 | `Train/TrainInventoryContentsView.cs` | スロットか液体か（`train-inventory-contents`） |
 | `Train/TrainPlatformBodyFactory.cs` | `IBlockInventoryBodyFactory`（Kind `TrainPlatform`） |
@@ -300,7 +302,7 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 | `State/Train/Fakes/ManualTrainTimetableWaitTimer.cs` | 手で発火する時間切れ |
 | `State/Train/Fakes/FakeTrainSources.cs` | 3 つの源の偽物 |
 | `State/Train/Fakes/TrainTestData.cs` | 駅・停車駅（`TimetableEditLogic` で組む）・Ready の組み立て |
-| `Screens/BlockInventory/Train/TrainInventoryBodyTest.cs` | タブと取得 4 件＋液体貨車 1 件 |
+| `Screens/BlockInventory/Train/TrainInventoryBodyTest.cs` | タブと取得 4 件＋液体貨車 1 件＋非表示のタブを描かない 1 件（D-27） |
 | `Screens/BlockInventory/Train/TrainInventoryFlowTest.cs` | alpha の外殻ごと（`train.spec`） |
 | `Screens/BlockInventory/Train/TrainTimetableFlowTest.cs` | `timetable.spec` 2 件 |
 | `Screens/BlockInventory/Train/TrainPlatformBodyTest.cs` | `trainPlatform.spec` 2・PF 1・駅名 1 |
@@ -366,7 +368,8 @@ Expected: `TrainTimetableSnapshot` と `TrainUnitInstanceId` のコンストラ�
 **Files:**
 - Modify: `S/Client.Ui.State/Commands/UiCommandRejectReason.cs`
 - Modify: `S/Client.Ui.State/Client.Ui.State.asmdef`
-- Modify: `Localization/localization.csv`（`ui.commandRejected.*` の末尾に 1 行）
+- Modify: `Localization/localization.csv`（`ui.commandRejected.*` の末尾に 2 行）
+- Modify: `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（良性の配列に `TrainBlockNotOpen`、テスト名「良性の拒否理由は言語の選択済みと持ち物の移動と分割の取りこぼしだけ」を「…と開いていないブロックへの列車の操作だけ」に。alpha・S4-machine も名前を直すので、取り込みで衝突したら配列は両方残し名前は 1 つに畳む）
 - 再生成: `pnpm --dir moorestech_web/webui run gen:i18n` の生成物
 - Modify: `docs/uitk/TODO.md`「追従記録」に 1 行
 - Create: `S/Client.Ui.State/Train/TrainCommandRejection.cs`
@@ -432,11 +435,11 @@ namespace Client.Ui.State.Train
 
 - [ ] **Step 5: compile とコミット**
 
-Run: `uloop compile --project-path ./moorestech_client`
-Expected: `ErrorCount: 0`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.State.PauseMenuCommandsTest"`
+Expected: `ErrorCount: 0`、`PauseMenuCommandsTest` が全件 PASS（良性の配列と全列挙の一致・翻訳文）
 
 ```bash
-git add Localization/localization.csv moorestech_web/webui moorestech_client/Assets/Scripts/Client.Ui.State docs/uitk/TODO.md
+git add Localization/localization.csv moorestech_web/webui moorestech_client/Assets/Scripts/Client.Ui.State moorestech_client/Assets/Scripts/Client.Tests/Ui/State/PauseMenuCommandsTest.cs docs/uitk/TODO.md
 git commit -m "feat(uitk): 列車の設定変更の拒否理由と文言・asmdef 参照を足す（S4-train）
 
 <実行ホストの指示する帰属行>"
@@ -449,7 +452,9 @@ git commit -m "feat(uitk): 列車の設定変更の拒否理由と文言・asmde
 **Files:**
 - Create: `S/Client.Ui.State/Train/Timetable/` の 6 本
 - Create: `S/Client.Tests/Ui/State/Train/Timetable/TrainTimetableStationCatalogTest.cs`・`TrainTimetableReadyDataFactoryTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/TrainTestData.cs`
-- Modify（E-1: マージ済みの State の口への追記）: `S/Client.Ui.State/Train/TrainTimetableFetcher.cs`・`OpenTrainTimetableTracker.cs`（取得の開始の通知。D-20）、`S/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs`
+- Modify（E-1: マージ済みの State の口への追記）: `S/Client.Ui.State/Train/TrainTimetableFetcher.cs`（取得の開始の合図。D-20）
+- Create: `S/Client.Ui.State/Train/TrainTimetableFetchLatch.cs`（Fetcher から出す取得ラッチ。振る舞いは変えない）
+- Modify: `S/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs`
 
 **Interfaces:**
 - Consumes: `TrainTimetableFetcher`・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver`（既存。Web ホストも使っている State の口をそのまま使う）、`TrainTimetableStation`・`TimetableEditStop`・`TimetableEditLogic`（L0-s4b）
@@ -461,7 +466,7 @@ public sealed class ReadyTrainTimetableViewState : TrainTimetableViewState { pub
 public sealed class TrainTimetableReadyData { TrainUnitInstanceId; IsAutoRun; CurrentIndex; Stops; Stations; bool HasSameContent(TrainTimetableReadyData other); }
 public interface ITrainTimetableSource { IReadOnlyReactiveProperty<TrainTimetableViewState> Current { get; } }
 public sealed class TrainTimetableModel : ITrainTimetableSource, IInitializable   // ctor に UIStateControl（閉じたことを Web ホストと同じ契機で拾う）
-// 既存への追記（E-1: マージ済みの State の口へ合図を足す）: TrainTimetableFetcher.OnFetchFailed → OnFetchStateChanged（取得の開始と失敗の両方で流す）。購読は OpenTrainTimetableTracker の 1 か所だけ
+// 既存への追記（E-1: マージ済みの State の口へ合図を足す）: TrainTimetableFetcher.OnFetchStarted : IObservable<UniRx.Unit>（取得中を立てた直後に流す）。購読は TrainTimetableModel だけ。既存の OnFetchFailed と Tracker は変えない
 ```
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -878,9 +883,10 @@ namespace Client.Ui.State.Train.Timetable
             _uiStateControl.OnStateChanged.Subscribe(_ => Refresh());
             _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Refresh());
             _timetables.OnTimetableUpdated.Subscribe(_ => Refresh());
-            // トラッカーの再公開要求は所属列車の変化と、取得の開始・失敗（Fetcher.OnFetchStateChanged）を運ぶ。D-20
-            // Tracker requests carry owning-train changes and fetch start/failure (Fetcher.OnFetchStateChanged); D-20
             _tracker.OnRepublishRequested.Subscribe(_ => Refresh());
+            // 取得の開始は UITK だけが拾い、依頼の直後に読込中を出す（Web ホストの配信は変えない。D-20）
+            // Only UITK picks up fetch start to show Loading right after the request (the Web host publishing is unchanged; D-20)
+            _fetcher.OnFetchStarted.Subscribe(_ => Refresh());
             Refresh();
         }
 
@@ -927,27 +933,25 @@ namespace Client.Ui.State.Train.Timetable
 }
 ```
 
-- [ ] **Step 3: 取得の開始を通知に載せる（既存の Fetcher・Tracker・プローブへの追記）**
+- [ ] **Step 3: 取得の開始の合図を足す（既存の Fetcher・プローブへの追記）**
 
-`S/Client.Ui.State/Train/TrainTimetableFetcher.cs`（今 198 行。通知を 1 本足すと 200 行を超えるので、失敗の通知を「取得の状態が替わった」の 1 本に広げる）:
-- `_onFetchFailed` → `_onFetchStateChanged`、`public IObservable<UniRx.Unit> OnFetchFailed` → `OnFetchStateChanged`（直前の 2 行コメントを「取得の開始と失敗で流す」に替える）
-- `RequestForOpenedTab` の `_isFetchInFlight = true;` の直後に `_onFetchStateChanged.OnNext(UniRx.Unit.Default);`（取得中を立てた後なので、購読側が組み直すと読込中になる）
-- `MarkUnavailable` の `_onFetchFailed.OnNext` を `_onFetchStateChanged.OnNext` に
+`S/Client.Ui.State/Train/TrainTimetableFetcher.cs` は今 198 行で、合図を足すと 200 行を超える。先に取得ラッチを `S/Client.Ui.State/Train/TrainTimetableFetchLatch.cs`（新設。`_requestedTrainUnitInstanceId`・`_unavailableTrainUnitInstanceId`・`_isFetchInFlight`・`_retriedForRequestedTrain` と、それを読む `IsUnavailable`・`IsFetchInFlight`、`Close` の中のラッチの初期化）へ出し、Fetcher はラッチを 1 つ持って委ねる（公開の口と振る舞いは変えない。Fetcher の `IsUnavailable`・`IsFetchInFlight` はラッチへの素通しの式本体にする）。そのうえで:
+- `private readonly Subject<UniRx.Unit> _onFetchStarted = new();` と `public IObservable<UniRx.Unit> OnFetchStarted => _onFetchStarted;`（直前に「取得中を立てた直後に流す。購読は UITK の TrainTimetableModel だけ」の日英 2 行）
+- `RequestForOpenedTab` で取得中を立てた直後に `_onFetchStarted.OnNext(UniRx.Unit.Default);`（購読側が組み直すと読込中になる）
+- `OnFetchFailed`・`OpenTrainTimetableTracker`・`Client.WebUiHost/**` は変えない（Web の配信の契機は今のまま）
 
-`S/Client.Ui.State/Train/OpenTrainTimetableTracker.cs`: `_fetcher.OnFetchFailed.Subscribe(_onRepublishRequested.OnNext);` を `_fetcher.OnFetchStateChanged.Subscribe(_onRepublishRequested.OnNext);` にし、直前のコメントを「時刻表更新・取得の開始と失敗で再配信」／「Republish on timetable updates and fetch start/failure」にする。Web ホスト `BlockInventoryTopic` も同じ要求で 1 回多く配る（取得中の表示が依頼の直後に届く。死活表）
-
-`S/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs`: `fetcher.RequestForOpenedTab(unknownTrain);` の前で `var stateChanges = 0; using var counting = fetcher.OnFetchStateChanged.Subscribe(_ => stateChanges++);` を取り、直後に `Assert.AreEqual(1, stateChanges, "取得の開始が通知されない");`（本番の Fetcher は送信境界に触れるので L0 では試せない。前例のプローブの中で確かめる）
+`S/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs`: `fetcher.RequestForOpenedTab(unknownTrain);` の前で `var starts = 0; using var counting = fetcher.OnFetchStarted.Subscribe(_ => starts++);` を取り、直後に `Assert.AreEqual(1, starts, "取得の開始が通知されない");`（本番の Fetcher は送信境界に触れるので L0 では試せない。前例のプローブの中で確かめる）
 
 - [ ] **Step 4: テストを回す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableStationCatalogTest|TrainTimetableReadyDataFactoryTest|TrainTimetableFetcherTest|WebUiHostlessStateAvailabilityTest"`
-Expected: `ErrorCount: 0`、全件 PASS（State 4 件・既存の Fetcher 3 件・Hostless のプローブ）。Hostless は PlayMode へ遷移するので、終わったらドメインリロードの待ちを入れる
+Expected: `ErrorCount: 0`、全件 PASS（State 4 件・既存の Fetcher 3 件〈ラッチの分割で振る舞いが変わらない〉・Hostless のプローブ）。`wc -l` で Fetcher とラッチがどちらも 200 行以下。Hostless は PlayMode へ遷移するので、終わったらドメインリロードの待ちを入れる
 
 - [ ] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Train moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Train moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs
-git commit -m "feat(uitk): 時刻表の状態の Model を足し、取得の開始を通知に載せる（S4-train）
+git commit -m "feat(uitk): 時刻表の状態の Model を足し、取得の開始の合図を足す（S4-train）
 
 <実行ホストの指示する帰属行>"
 ```
@@ -2181,8 +2185,8 @@ namespace Client.Tests.Ui.State.Train.Inventory
         [Test]
         public void 使えないの間でもタブを選ぶと取得を1回頼む()
         {
-            // 取得中の表示は Fetcher の開始の通知が運ぶ（Tracker 経由。Hostless のプローブで確かめる）。ここは頼む回数だけ
-            // Loading is carried by the Fetcher start notification (via the tracker; checked in the Hostless probe); here only the request count
+            // 取得中の表示は Fetcher の開始の合図を TrainTimetableModel が拾って出す（Hostless のプローブで確かめる）。ここは頼む回数だけ
+            // Loading comes from TrainTimetableModel picking up the Fetcher start signal (checked in the Hostless probe); here only the request count
             _sources.SetTimetable(TrainTimetableViewState.Unavailable);
             _model.SelectTab(TrainInventoryTab.Timetable);
             Assert.AreEqual(1, _commands.OpenRequestCount);
@@ -2620,7 +2624,7 @@ namespace Client.Ui.State.Train.Inventory
             _tab.Value = TrainInventoryTab.Inventory;
         }
 
-        // 取得中の表示は Fetcher の開始の通知で源が組み直して出す（D-20）。重複の依頼は Fetcher が畳む
+        // 取得中の表示は Fetcher の開始の合図で源が組み直して出す（D-20）。重複の依頼は Fetcher が畳む
         // Loading shows when the source rebuilds on the Fetcher's start notification (D-20); the Fetcher folds duplicates
         private void RequestOpen()
         {
@@ -2629,7 +2633,7 @@ namespace Client.Ui.State.Train.Inventory
     }
 }
 ```
-（開始の通知で読込中が配られると上の購読がもう一度 `RequestOpen` を呼ぶ。Web も同じく 2 回送り、`TrainTimetableFetcher.RequestForOpenedTab` が同じ列車の依頼を畳む〈開始の通知も出ない〉ので通信は 1 回。D-20）
+（開始の合図で読込中が配られると上の購読がもう一度 `RequestOpen` を呼ぶ。Web も同じく 2 回送り、`TrainTimetableFetcher.RequestForOpenedTab` が同じ列車の依頼を畳む〈開始の合図も出ない〉ので通信は 1 回。D-20）
 
 - [ ] **Step 3: プラットフォーム側の値と源を書く**
 
@@ -3840,7 +3844,7 @@ namespace Client.Ui.Screens.BlockInventory.Train
         private readonly ITrainInventoryBodySource _body;
         private readonly ITrainTimetableEditModel _timetable;
         private readonly CompositeDisposable _subscriptions = new();
-        private readonly SerialDisposable _timetableWhileShown = new();
+        private readonly SerialDisposable _shownTabSubscription = new();
 
         public VisualElement Root => _view;
 
@@ -3857,21 +3861,25 @@ namespace Client.Ui.Screens.BlockInventory.Train
         public void Attach(OpenTrainInventoryPanel panel)
         {
             _tab.Tab.Subscribe(RenderTab).AddTo(_subscriptions);
-            _body.Current.Subscribe(_view.Contents.Render).AddTo(_subscriptions);
         }
 
         public void Detach()
         {
             _subscriptions.Clear();
-            _timetableWhileShown.Disposable = null;
+            _shownTabSubscription.Disposable = null;
         }
 
-        // 時刻表は表示中だけ購読する。非表示の間に描かないのは Presenter の購読で守る（設計書 §4.2 の SetShown の注記。購読の頭で最新値を 1 回描く）
-        // Subscribe the timetable only while shown; the Presenter's subscription keeps it from drawing while hidden (design doc §4.2 SetShown note; the latest value draws once on subscribe)
+        // 表示中のタブの Model だけを購読する。非表示の間に描かないのは Presenter の購読で守る（設計書 §4.2 の SetShown の注記。購読の頭で最新値を 1 回描く）
+        // Subscribe only the shown tab's model; the Presenter's subscription keeps hidden tabs from drawing (design doc §4.2 SetShown note; the latest value draws once on subscribe)
         private void RenderTab(TrainInventoryTab tab)
         {
             _view.RenderTab(tab);
-            _timetableWhileShown.Disposable = tab == TrainInventoryTab.Timetable ? SubscribeTimetable() : null;
+            _shownTabSubscription.Disposable = tab == TrainInventoryTab.Timetable ? SubscribeTimetable() : SubscribeContents();
+        }
+
+        private IDisposable SubscribeContents()
+        {
+            return _body.Current.Subscribe(_view.Contents.Render);
         }
 
         private IDisposable SubscribeTimetable()
@@ -4305,7 +4313,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     /// </summary>
     public static class TrainTestText
     {
-        // 要素とその子孫の文字を空白でつなぐ（量・容量の文は枠の兄弟なので、液体の器から読む）
+        // 要素とその子孫の文字を空白でつなぐ（量・容量の文は枠の兄弟なので液体の器から、枠内の数字は枠の要素から読む）
         // Joins the texts of an element and its descendants (amount text is a sibling of the slot, so read from the fluid container)
         public static string TextsUnder(VisualElement root)
         {
@@ -4331,7 +4339,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
 ```
 （`UiIcon` の名前の綴り〈`Name.Resolve()`〉とアイコンの要素のクラス名〈`fluid-amount-slot__icon`〉は、C4-a の `FluidAmountSlot`・`FluidSlotTest` と S4-machine の `FluidInventoryContents` の実物に Task 1 Step 2 の「名前の合わせ」で合わせる）
 
-`TrainInventoryBodyTest.cs`（5 件）:
+`TrainInventoryBodyTest.cs`（6 件。最後の 1 件は Web の写しではなく D-27 の主張）:
 
 ```csharp
 using System.Collections.Generic;
@@ -4451,6 +4459,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             _bodies.Sources.SetBody(new TrainInventoryBodyViewModel(new List<SlotItem>(), new[] { BlockFluidSlotState.Filled(water, 90, 1000) }));
             simulate.FrameUpdate();
             StringAssert.Contains("90 / 1,000", FluidTexts());
+            StringAssert.Contains("90", TrainTestText.TextsUnder(_body.Root.Q("train-inventory-fluids-slot-0")));
 
             // 空になると枠は残り、名前・量・アイコンは消える
             // When emptied the slot stays while name, amount and icon disappear
@@ -4460,6 +4469,25 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             Assert.IsFalse(TrainTestText.HasFluidIcon(_body.Root.Q("train-inventory-fluids-slot-0")));
             StringAssert.DoesNotContain(" / ", FluidTexts());
             StringAssert.DoesNotContain(TrainTestText.FluidName(water), FluidTexts());
+        }
+
+        [Test]
+        public void 時刻表タブの間の中身の更新は描かず持ち物へ戻すと最新を描く()
+        {
+            // 非表示の持ち物タブは購読しないので、時刻表タブの間の更新は木に出ない（D-27）
+            // The hidden inventory tab is not subscribed, so updates during the timetable tab do not reach the tree (D-27)
+            var water = MasterHolder.FluidMaster.GetFluidId(ForUnitTestFluidGuids.Water);
+            simulate.Click(Find<Button>(_body.Root, "train-tab-timetable"));
+            _bodies.Sources.SetBody(new TrainInventoryBodyViewModel(new List<SlotItem>(), new[] { BlockFluidSlotState.Filled(water, 10, 1000) }));
+            simulate.FrameUpdate();
+            Assert.IsNull(_body.Root.Q("train-inventory-fluids-slot-0"));
+
+            // 戻すと購読の頭で最新値を 1 回描く
+            // Switching back draws the latest value once on subscribe
+            simulate.Click(Find<Button>(_body.Root, "train-tab-inventory"));
+            simulate.FrameUpdate();
+            Assert.IsNotNull(_body.Root.Q("train-inventory-fluids-slot-0"));
+            StringAssert.Contains("10 / 1,000", FluidTexts());
         }
 
         // 液体名と量・容量の文は枠の兄弟なので、FluidInventoryContents の器（testid）から読む
@@ -4568,6 +4596,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             bodies.Sources.SetPlatform(new OpenTrainPlatformBody(null, null, new[] { BlockFluidSlotState.Filled(water, 700, 1000) }, TrainPlatformTransferMode.UnloadToPlatform));
             simulate.FrameUpdate();
             StringAssert.Contains("700 / 1,000", FluidTexts(body));
+            StringAssert.Contains("700", TrainTestText.TextsUnder(body.Root.Q("train-platform-fluid-slots-slot-0")));
 
             // 空でも枠は 1 つ残り、アイコンと文は消える
             // Even when empty one slot stays while the icon and texts disappear
@@ -4577,6 +4606,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             Assert.IsNull(body.Root.Q("train-platform-fluid-slots-slot-1"));
             Assert.IsFalse(TrainTestText.HasFluidIcon(body.Root.Q("train-platform-fluid-slots-slot-0")));
             StringAssert.DoesNotContain(" / ", FluidTexts(body));
+            StringAssert.DoesNotContain(TrainTestText.FluidName(water), FluidTexts(body));
             body.Detach();
         }
 
@@ -5020,7 +5050,7 @@ uloop compile --project-path ./moorestech_client
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\.(State|Screens\.BlockInventory)\.Train\.|PauseMenuCommandsTest|UiThemeImportBundleTest|UiStyleConventionTest|UiLayerDependencyDirectionTest|LookExceptionLedgerTest|BlockInventory"
 uloop get-logs --project-path ./moorestech_client --log-type Error
 ```
-Expected: `ErrorCount: 0`、全件 PASS（State 23・Screens 16・`PauseMenuCommandsTest`〈`UiCommandRejectReason` の全列挙を回す 2 件。良性の配列に `TrainBlockNotOpen` を足した〉・L2・alpha の `BlockInventory*`）。全体スイッチ UITK（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`）で PlayMode を起動し、列車・駅を開いて Error ログ 0 件
+Expected: `ErrorCount: 0`、全件 PASS（State 23・Screens 17・`PauseMenuCommandsTest`〈`UiCommandRejectReason` の全列挙を回す 2 件。良性の配列に `TrainBlockNotOpen` を足した〉・L2・alpha の `BlockInventory*`）。全体スイッチ UITK（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`）で PlayMode を起動し、列車・駅を開いて Error ログ 0 件
 
 - [ ] **Step 4: コミット**
 
@@ -5200,9 +5230,9 @@ git merge origin/feature/uitk
 
 - 写すテスト 20 件（＋共有 2 件）は Task 4（6）・Task 7（2＋5＋4）・Task 8（1＋2＋共有 2）に全部ある。数: 6＋2＋5＋4＋1＋2 = 20（`train.spec` 1・`timetable.spec` 2・`TrainTimetableImmediate` 8・`TrainTimetableSection` 5・`TrainInventoryBody` 1・`trainPlatform.spec` 2・`TrainPlatformInventory` 1）
 - R-1〜R-18 は Task 1〜13 のどこかに受け入れ基準の主張がある。R-15 は Task 10、R-17 は Task 11、R-18 は Task 12〜13
-- 型の綴り: `TrainTimetableViewState.IsSameState`・`TrainTimetableReadyData.HasSameContent`・`TrainTimetableFetcher.OnFetchStateChanged`・`TrainTimetableEditSession.Server / DisplayedStops / IsPending / OnDisplayChanged / ReceiveServer / Replace / Close`・`TrainTimetableSectionViewModel.Build / HasSameContent / CurrentIndex(int?)`・`TrainTimetableAreaViewModel.IsSameArea`・`ReadyTrainTimetableArea.IsSameTrain`・`TrainCommandRejection.BlockNotOpen`・`TrainTestText.TextsUnder / FluidName / HasFluidIcon`・`ITrainTimetableEditModel.Add / Move / Remove / SetAutoRun`・`ITrainInventoryTabModel.Tab / SelectTab`・`ITrainPlatformEditModel.StationNameInput / EditStationName / ApplyStationName / SelectTransferMode`・`OpenTrainPlatformBody.StationName / ItemSlots / Fluids / Mode`・`TrainPlatformDetailReader.Read(blockType, param, …)` は定義・テスト・View で一致
+- 型の綴り: `TrainTimetableViewState.IsSameState`・`TrainTimetableReadyData.HasSameContent`・`TrainTimetableFetcher.OnFetchStarted`・`TrainTimetableEditSession.Server / DisplayedStops / IsPending / OnDisplayChanged / ReceiveServer / Replace / Close`・`TrainTimetableSectionViewModel.Build / HasSameContent / CurrentIndex(int?)`・`TrainTimetableAreaViewModel.IsSameArea`・`ReadyTrainTimetableArea.IsSameTrain`・`TrainCommandRejection.BlockNotOpen`・`TrainTestText.TextsUnder / FluidName / HasFluidIcon`・`ITrainTimetableEditModel.Add / Move / Remove / SetAutoRun`・`ITrainInventoryTabModel.Tab / SelectTab`・`ITrainPlatformEditModel.StationNameInput / EditStationName / ApplyStationName / SelectTransferMode`・`OpenTrainPlatformBody.StationName / ItemSlots / Fluids / Mode`・`TrainPlatformDetailReader.Read(blockType, param, …)` は定義・テスト・View で一致
 - ディレクトリの本数: State `Timetable/` 6・`TimetableEdit/` 10・`Inventory/` 8・`Platform/` 7＋`Platform/Edit/` 5、View `Train/` 8・`Train/Timetable/` 6・`Train/Parts/` 2、テスト `State/Train/Fakes/` 5・`State/Train/Platform/` 3・`Screens/BlockInventory/Train/` 7、登録 `Client.Starter/Registration/GameUi/Screens/` 1 本以上。どれも 10 以下
-- 層: Presenter は Model の `Current` を購読して `Render` へ流すだけ（時刻表は表示中だけ。D-27）。View はサーバーの型を持たない（D-28）。押下は View が State の型付きの口を直接呼ぶ（A-8）。判断・セッションの寿命・下書きは State の Model が持つ
+- 層: Presenter は Model の `Current` を購読して `Render` へ流すだけ（表示中のタブだけ。D-27）。View はサーバーの型を持たない（D-28）。押下は View が State の型付きの口を直接呼ぶ（A-8）。判断・セッションの寿命・下書きは State の Model が持つ
 - alpha・S4-machine の型は計画の Produces から写し、実物との差は Task 1 Step 2 で合わせる。合わせた結果の形の違いは D-n で足す
 - 規約: `Action` のコールバックは使っていない（押下は `OnClicked.Subscribe` で State の口を呼ぶ）。`Func<>`・partial・try-catch・デフォルト引数は無い。黙る経路は `silent-ok` 6 か所（並びの同じ編集・同じ中身の再配信 2・同じパネルの再配信 2・追跡が遅れた一瞬）と、ログつきの捨て（保留中の編集・閉じた後の結果・開いていない操作・下書きが作り直された後の駅名の拒否・良性の `block_not_open`）
 
@@ -5229,16 +5259,16 @@ git merge origin/feature/uitk
 | D-17 | 液体 PF の液体は S4-machine の `IBlockFluidSlotsModel` を読む。出所: レビュー r1 | サーバー `TrainPlatformFluidContainerComponent.cs:172-173` が `FluidMachineInventoryStateDetail` を出し、S4-machine の `BlockFluidSlotsModel` は追跡ブロックのその StateDetail を読む（machine R-3）。`SubInventoryModel.SetFluids` を呼ぶのは `TrainSubInventorySource.cs:59` だけなので、液体 PF（ブロック）では `SubInventoryModel.Fluids` は空のまま。Web ホスト `BlockDetailDtoBuilder.cs:104-109` も同じ StateDetail から組む。Task 1 Step 2 で液体 PF を追跡しているあいだ `Slots` が空でないことを確かめる | `SubInventoryModel.Fluids` を読む（液体 PF の行が空になる） |
 | D-18 | 編集セッションの段階は private な判別 union（`Idle`・`Sending(stops)`・`AwaitingPublication(stops, timeout)`）1 本で持つ。`_closed` は寿命なので別。表示は `DisplayedStops`・`IsPending` と変化の通知 `OnDisplayChanged` 1 本で出す。出所: レビュー r1 | null の `_pendingStops` と bool の `_accepted` の組では「受理済みなのに並びが無い」等のありえない組が書ける。通知を 1 本にすると、並びと保留の片方だけが替わった途中の値を配らない | null と bool の組（旧版） |
 | D-19 | 描画値は有無を型で表す: 貨車の本文の値から `TrainCarInstanceId`（-1 で閉）を消し（識別はパネルの状態が持つ）、区画の現在位置は `int?`、PF の本文は `ClosedTrainPlatformBody`／`OpenTrainPlatformBody`（駅名の部分・スロット・モードは「無ければ null」）にする。View は「null でなければ出す」の 1 規則で描く。出所: レビュー r1 | 数値の番兵と、判別 bool と片側だけで意味のある値の同居をやめる。Web の `trainStation?`・`trainPlatform?` の省略可能な詳細と同じ形 | `-1`・`IsStation`＋`StationName ""`・`HasTransferMode`＋既定の `LoadToTrain`（旧版） |
-| D-20 | 取得の依頼の直後の読込中は、既存 `TrainTimetableFetcher` の通知 `OnFetchFailed` を `OnFetchStateChanged`（取得の開始と失敗）に広げ、`OpenTrainTimetableTracker` の再公開要求を経て `TrainTimetableModel` が組み直して出す。`ITrainTimetableSource` から `Refresh` を外し、`TrainInventoryTabModel` は頼むだけにする。開始の通知は Hostless の `TimetableStateProbe` で確かめる（本番の Fetcher は送信境界に触れるので L0 では試せない）。出所: レビュー r1・レビュー r2（手呼びから購読へ） | AGENTS.md「状態変化の検知は購読で」。取得中を立てる場所（Fetcher）が知らせれば、源の読み手が誰でも `Refresh` を呼べる口が要らない。E-1（ad92a44777）がマージ済みの State の口へ合図を足すことを許す。Fetcher は 198 行で通知を 1 本足すと 200 行を超えるので、既存の失敗の通知を広げて 1 本に保つ。Web ホストも開始で 1 回多く配るが、中身は同じ規則の取得中（死活表） | `TrainInventoryTabModel` が `ITrainTimetableSource.Refresh()` を手で呼ぶ（r1。源の読み手なら誰でも呼べる口になる）／`OnFetchStarted` を別に足す（Fetcher が 200 行を超え、分割が要る）／`TrainTimetableCommands.RequestOpen` の中で呼ぶ |
+| D-20 | 取得の依頼の直後の読込中は、既存 `TrainTimetableFetcher` に開始の合図 `OnFetchStarted`（取得中を立てた直後に流す）を足し、`TrainTimetableModel` だけが購読して組み直して出す。`ITrainTimetableSource` から `Refresh` を外し、`TrainInventoryTabModel` は頼むだけにする。既存の `OnFetchFailed`・`OpenTrainTimetableTracker`・Web ホストは変えない。Fetcher の 200 行は取得ラッチを `TrainTimetableFetchLatch` へ出して守る。開始の合図は Hostless の `TimetableStateProbe` で確かめる（本番の Fetcher は送信境界に触れるので L0 では試せない）。出所: レビュー r1・r2（手呼びから購読へ）・r3（既存の通知を広げず別に足す） | AGENTS.md「状態変化の検知は購読で」。取得中を立てる場所（Fetcher）が知らせれば、源の読み手が誰でも `Refresh` を呼べる口が要らない。E-1（ad92a44777）はマージ済みの State の口へ合図を「足す」ことを許す | 既存通知 `OnFetchFailed` の意味を「開始と失敗」に広げる（r2。Tracker 経由で Web ホストの配信が毎回 Ready→Loading→Ready になり、区画が作り直されて Web の挙動が変わる。既存の合図を変えるので E-1 の「足す」を越える）／`TrainInventoryTabModel` が `ITrainTimetableSource.Refresh()` を手で呼ぶ（r1。源の読み手なら誰でも呼べる口になる）／`TrainTimetableCommands.RequestOpen` の中で呼ぶ |
 | D-21 | 駅・PF の描画値の組み立て `TrainPlatformDetailReader.Read` は `BlockGameObject` を取らない純関数にし、StateDetail と BlockParam の取り出しは `TrainPlatformBodyModel` の 1 か所に置く。本文の種類は `BlockComponentRegistry`（Model はパネルの `Components.Body`、Commands は `Resolve(blockType).Body`）で判定し、駅かどうかは `BlockTypeConst.TrainStation` との比較で、Reader（表示の導出）と `TrainBlockCommands.SetStationName`（送信の門。Web ホスト `TrainStationActions` と同じ）の 2 か所（役割が違い、同じ定数との比較なので食い違わない。レビュー r2 で記述を実物に合わせた）。駅一覧の整列も `TrainTimetableStation` の列を受ける。出所: レビュー r1 | S4-machine の「状態詳細 → 値の写しは `BlockGameObject` を取らない純関数で L0 で試す」に揃える。3 つの blockType の列挙を自前で持たない（alpha の登録表と食い違わない） | `Read(BlockGameObject, …)` と `IsTrainPlatformBlock`（旧版） |
 | D-22 | 見た目の直し: Mantine `Text size="sm"` の 9 か所（自動運転の見出し・自動運転不可の文・停車駅と駅一覧の見出し・空の文 2・読込中・使えない・駅名の見出し）に `UiTypographyClass.TextSm`。停車駅・駅一覧の行ラベル（Web は型の付かない `<span>` で Mantine の body 16px を継ぐ）は `--mantine-font-size-md`。見出しの内側余白は器（`train-timetable__section-heading`）に、文字の型はラベルに付ける。駅のラベル（Web は継承の `<span>`）は `margin: 0; padding: 0`。行の右の子（停車駅の操作・駅一覧の `+`・自動運転の `ModeSwitch`、駅名の入力欄と決定）に画面のクラス `…__row-end` を付けて間を 1 本の規則で取る。駅名の入力欄は伸ばさない。USS の出所のコメントは日本語 1 行 → 英語 1 行。UITK の USS に兄弟の結合子が無いので、2 個目以降の操作・2 行目以降の行は C# が `--following` のクラスを付ける（前例 `ModeSwitch`）。駅名の入力欄には幅の当て先 `train-station-name__input` を付ける。出所: レビュー r1・レビュー r2（数・行ラベルの字・結合子・入力欄のクラス） | 部品のクラスを画面 USS の主語にしない規約のまま、Web の `gap` を全行で抜けなく写す。Web の入力欄は `flex-grow` を持たない | 見出しの器とラベルに同じクラス（`padding: 0` と取り合う）／`train-timetable__controls` だけに間（自動運転の行・駅一覧の行で抜ける） |
 | D-23 | 共有テスト「%sから禁止Mantine部品とテーマ色を除去する」は、(a) USS の色の直書きが無いことを規約検査と同じ `UiStyleConventionRules.CheckUss` の `ColorLiteral` で、(b) 列車・駅の本文の木の操作の要素がすべて共通部品（`ModeSwitch`・`PanelActionButton`・`IconButton`・`GameTextField`・`BlockItemGrid`・`FluidInventoryContents`）で素の `Button`・`Toggle`・`RadioButton`・`Slider`・`ProgressBar`・`TextField` を画面が作らないことを主張する。出所: レビュー r1 | Web の元テストはソースに禁止部品のタグとテーマ色が無いことの 2 つを見る。仮の正規表現は規約検査と判定がずれる | USS の色だけを見る（旧版。素の `Button` を使っても通る） |
-| D-24 | R-13 の受け入れは既存の `PauseMenuCommandsTest`（`UiCommandRejectReason` の全列挙を回す良性の配列とトースト用の翻訳文の 2 件）にする。`TrainEditRejected` は非良性なので良性の配列は変えない。出所: レビュー r1 | 旧版が挙げた `UiCommandRejectReasonTraitsTest`・`LocalizationKeysTest` は実在しない | 新しいテストを作る（同じ全列挙が 2 本になる） |
+| D-24 | R-13 の受け入れは既存の `PauseMenuCommandsTest`（`UiCommandRejectReason` の全列挙を回す良性の配列とトースト用の翻訳文の 2 件）にする。`TrainEditRejected` は非良性、`TrainBlockNotOpen` は良性なので良性の配列に足し、テスト名を良性の範囲に合わせて直す（D-26）。出所: レビュー r1・r3 | 旧版が挙げた `UiCommandRejectReasonTraitsTest`・`LocalizationKeysTest` は実在しない | 新しいテストを作る（同じ全列挙が 2 本になる） |
 | D-25 | 駅名の拒否で戻すのは、送った回の下書き（`ApplyStationName` で取った参照）が今の下書きと同じときだけ。下書きは閉じる・別のパネルのたびに作り直すので開閉の世代も兼ねる。出所: レビュー r2 | `IsSamePanel` は位置・ブロック・エラーだけを比べるので、送る → 閉じる → 同じ駅を開いて打ち直す、で旧要求の拒否が新しい入力を消していた。Web は送った回のコンポーネントの `setName` を呼ぶだけで、開き直した欄は触られない | パネルの識別で比べる（r1。同じ駅を開き直すと見分けられない）／開閉の世代の数を別に持つ（下書きの参照で足りる） |
-| D-26 | 駅・PF の「開いていない」は良性の `TrainBlockNotOpen`（wire `block_not_open`）で返し、トーストに出さず Warning ログだけ。良性の配列（`PauseMenuCommandsTest`）に足す。時刻表の `train_not_open` は変えない（閉じると編集の Model がセッションを閉じ、送る前にログつきで捨てる）。出所: レビュー r2（S4-machine と揃える） | 開いた直後・閉じた直後の押下で起きうる取りこぼしで、利用者に知らせることが無い。S4-machine D-16 の `MachineRecipeBlockNotOpen` と同じ扱い | 非良性の `TrainEditRejected`（Web に無いトーストが出る） |
-| D-27 | `TrainInventoryBodyPresenter` は時刻表の Model と言語の変化を、時刻表タブの表示中だけ購読する（タブの購読の中で張り替える）。区画は持ち物タブのあいだも作ったまま（D-5）。出所: ADR の更新（ad92a44777 の §4.2 SetShown の注記） | 設計書 §4.2「SetShown は出し入れだけ。非表示の間に描かないのは Presenter が表示中だけ Model を購読して守る（購読時に最新値で 1 回描かれる）」 | 常に購読して非表示の区画も描く（注記に反し、中身の更新のたびに隠れた行を作り直す） |
+| D-26 | 駅・PF の「開いていない」は良性の `TrainBlockNotOpen`（wire `block_not_open`）で返し、トーストに出さず Warning ログだけ。良性の配列（`PauseMenuCommandsTest`）に足す。時刻表の `train_not_open` は変えない（閉じると編集の Model がセッションを閉じ、送る前にログつきで捨てる）。出所: レビュー r2（S4-machine と揃える） | 開いた直後・閉じた直後の押下で起きうる取りこぼしで、利用者に知らせることが無い。S4-machine D-16 の `MachineRecipeBlockNotOpen` と同じ扱い。`TrainBlockNotOpen` は S4-machine の `MachineRecipeBlockNotOpen` と同じ意味（良性・wire `block_not_open`）。先にマージしたレーンの値を後のレーンが使うかは integrator 判断 | 非良性の `TrainEditRejected`（Web に無いトーストが出る） |
+| D-27 | `TrainInventoryBodyPresenter` は表示中のタブの Model だけを購読する（持ち物タブなら中身、時刻表タブなら時刻表と言語の変化。タブの購読の中で張り替え、購読の頭で最新値を 1 回描く）。区画と中身の要素は非表示のあいだも作ったまま（D-5）。出所: ADR の更新（ad92a44777 の §4.2 SetShown の注記）・レビュー r3（持ち物タブにも広げた） | 設計書 §4.2「SetShown は出し入れだけ。非表示の間に描かないのは Presenter が表示中だけ Model を購読して守る」。中身の Model はスロットの更新のたびに配り直す（D-16）。Web も持ち物タブ以外では中身を mount しない | 常に購読して非表示の区画・中身も描く（注記に反し、時刻表タブの間の貨物の更新で隠れた枠を描き直す）／時刻表だけ表示中購読（r2。持ち物側が却下した形のまま） |
 | D-28 | View は列車の型（`TrainUnitInstanceId`。`Game.Block.Interface`）を持たず、区画の作り直しは State の `ReadyTrainTimetableArea.IsSameTrain` で決める。出所: レビュー r2 | `Client.Ui.asmdef` は `Game.Block.Interface` を参照せず（asmdef の参照は推移しない）、D-8 も View にサーバーの型を持たせない | `Client.Ui.asmdef` に参照を足す（D-8 に反する） |
-| D-29 | 閉じたことは `TrainTimetableModel` が `UIStateControl.OnStateChanged` を購読して組み直し、使えないへ倒して編集の Model に伝える（編集の Model はセッションを閉じ、遅れて戻った受理・拒否を捨てる）。L0 は編集の Model の約束（源が使えない → 捨てる）を、本番の通知経路は録画 `uitk/uitk-train-inventory` 手順 6 で確かめる。出所: レビュー r2 | `SubInventoryState` は開閉で `OnSubInventoryUpdated` を出さず、Tracker の開閉の購読も再公開を出さないので、閉じても Ready のまま編集が続き、閉じた後に拒否のトーストと巻き戻し・受理の 5000ms の時間切れが走っていた。Web ホスト `BlockInventoryTopic` も `UIStateControl.OnStateChanged` で配り直す | 編集の Model がパネルの源を購読して閉じる（閉じの判定が 2 か所になる）／`TrainTimetableModel` を L0 で組む（`UIStateControl` は MonoBehaviour で組めない） |
+| D-29 | 閉じたことは `TrainTimetableModel` が `UIStateControl.OnStateChanged` を購読して組み直し、使えないへ倒して編集の Model に伝える（編集の Model はセッションを閉じ、遅れて戻った受理・拒否を捨てる）。L0 は編集の Model の約束（源が使えない → 捨てる）を、本番の通知経路は録画 `uitk/uitk-train-inventory` 手順 6 で確かめる。出所: レビュー r2 | `SubInventoryState` は開閉で `OnSubInventoryUpdated` を出さず、Tracker の開閉の購読も再公開を出さないので、閉じても Ready のまま編集が続き、閉じた後に拒否のトーストと巻き戻し・受理の 5000ms の時間切れが走っていた。Web ホスト `BlockInventoryTopic` も `UIStateControl.OnStateChanged` で配り直す | 編集の Model がパネルの源を購読して閉じる（時刻表の源は Ready のまま残るので、閉じた後に同じ列車を開き直すと同じ中身の Ready が配り直されずセッションが開かない。源と編集の Model の閉じの入力がずれる窓ができる。なお選んだ案でも State の閉じの入力は 2 系統〈時刻表は `UIStateControl.OnStateChanged`、本文・PF・駅名の下書きは alpha のパネルの源の `Closed`〉で、どちらが先に倒れても源が使えなくなった時点で閉じるので食い違いは起きない）／`TrainTimetableModel` を L0 で組む（`UIStateControl` は MonoBehaviour で組めない） |
 | D-30 | 編集セッションはサーバーの時刻表（`TrainTimetableReadyData`）を `Server` として持ち、編集の Model は `_session` 1 本にする。値の列の比べは `Enumerable.SequenceEqual`（自前の `SameItems` を消す）。出所: レビュー r2（5-A1・N-7） | 組で立てる・倒す 2 つのフィールド（`_session` と `_server`）を言葉の注で保証する形をやめる。`SequenceEqual` は既定の比較子（値の構造体の `Equals`）で同じ判定（前例 `CursorTooltipViewModel`） | 2 フィールドのまま注で保証する（r1）／`TrainTimetableValueEquality` を残す |
 
 ## 設計書・実行計画へ反映する行
@@ -5273,9 +5303,10 @@ Phase 2.6 の第 3 バケツ。このレーンのタスクにはしない。ど�
 - **レビュー r1 の反映**: 再現した・一部の節を推奨どおりに直した（D-6・D-8・D-12・D-13・D-16 を直し、D-17〜D-24 を足した。どれも「出所: レビュー r1」）。§15 は A-8 に合わせて State に編集の Model 3 つを置き、Presenter を購読だけにした。§16 は推奨と違い、C4-e の要裁定 1 と同じく重複を据え置いて（r2 で「agent 既定」と呼び名を直した） D-2 の根拠を書き直し、重複を「## 本 PR 外のリファクタ提案」に並べた。§14 は Web 系の録画を退化させず、UITK の録画を `uitk/` に新設し、壊れていた `train-timetable-via-ui` は両系で通る形に直した。§20（`Localize.Get` の欠損）は再現しなかったので直していない。別に見つかった `IsSelected` の 1 引数の呼び方 5 か所は `IsSelected(root, optionTestid)` に直した
 - **S4-machine の型**: 計画（2f48c85880）の Produces から写した: `FluidInventoryContents : VisualElement`（中に `UiStack(Xs)`。文は行の兄弟）・`FluidInventoryContents(testid, GameContentPresentation)`・`Render(IReadOnlyList<BlockFluidSlotState>)`、液体の Model `IBlockFluidSlotsModel`（液体 PF の液体はこれを購読。D-17。machine の R-3 も「液体プラットフォームもブロックで同じ経路、貨車は空」に直っている）、`BlockFluidSlotConversion.FromTanks`（貨車の液体の変換に入力側だけで使う）。貨車の液体は `IBlockFluidSlotsModel` の対象外なので `SubInventoryState` の `Fluids` を `TrainInventoryBodyModel` が読む
 - **alpha の型**: 改訂版（85f905aa3d・44c416e9e4）の Produces から写した（`ITrainInventoryPart`・`IBlockInventoryPart`・`Attach`/`Detach`・`BlockInventoryBodyMount(bool)`・`IBlockInventoryPanelSource`）。スロットはパネルの源を Model が購読して読む（D-16）。`IBlockInventoryOperations.TryReadBlockSlots` はエラー無しのブロック／列車のときだけ真（alpha D-37）で、貨車の枠の押下もこの条件で通る。列車の本文の工場が未登録のあいだ alpha は空の部分を返す（alpha D-35）。`BlockInventoryPanelLayout` は 3 つの static でしか作れないが、このレーンは大型パネルの寄与を足さないので触らない。テストの外殻は `BlockInventoryTestShell.Create(this, state, plugged)`
-- **共有ファイルへの追記（E-1。fce54ea0b5 の決まり）**: `Client.Ui.State.asmdef` は無い参照だけを足し、取り込みで同じ参照が衝突したら 1 行に畳む。`UiCommandRejectReason` は列挙と switch 3 本の末尾に 1 行ずつ足し、`PauseMenuCommandsTest` を同じ PR で緑にする。`localization.csv` に 1 行（`gen:i18n` の再生成と追従記録）。`MainGameUiRegistration` に 1 行・`GameUiTheme.tss` に 2 行
-- **integrator への依頼（Task 1 で done.md に書く）**: (a) `PanelActionButton` の無効の見た目（今は画面のつまみの上書きで Web に合わせた。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) 登録ファイルは E-1（ad92a44777）の `Registration/GameUi/Screens/` に置く（先に作ったレーンが無ければこのレーンが作る）、(d) 駅名の入力欄の幅のトークンを足したときはその名札付きブロック（Task 10）。共有の新部品は作っていない
+- **共有ファイルへの追記（E-1。fce54ea0b5 の決まり）**: `Client.Ui.State.asmdef` は無い参照だけを足し、取り込みで同じ参照が衝突したら 1 行に畳む。`UiCommandRejectReason` は列挙と switch 3 本の末尾に 2 行ずつ足し、`PauseMenuCommandsTest` の良性の配列に 1 つ足して同じ PR で緑にする。`localization.csv` に 2 行（`gen:i18n` の再生成と追従記録）。`MainGameUiRegistration` に 1 行・`GameUiTheme.tss` に 2 行
+- **integrator への依頼（Task 1 で done.md に書く）**: (a) `PanelActionButton` の無効の見た目（今は画面のつまみの上書きで Web に合わせた。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) 登録ファイルは E-1（ad92a44777）の `Registration/GameUi/Screens/` に置く（先に作ったレーンが無ければこのレーンが作る）、(d) 駅名の入力欄の幅のトークンを足したときはその名札付きブロック（Task 10）、(e) `TrainBlockNotOpen` と S4-machine の `MachineRecipeBlockNotOpen` は同じ意味。後にマージするレーンが先の値を使う形に寄せるかの判断（D-26）。共有の新部品は作っていない
 - **設計書との食い違い**: 設計書は `GameScrollView.ScrollTo` を書いているが実物に無い（`SetScrollOffset` 等だけ）。S4-train は使わないので影響は無い
 - **レビュー r2 の反映**: 成り立った 17 件を各節の既定案どおりに直した（D-2・D-20・D-21・D-22 を直し、D-25〜D-30 を足した。どれも「出所: レビュー r2」）。成り立たなかった 5-I6 と、拾わない弱い 9 件は直していない。ADR の更新（ad92a44777）に合わせ、登録ファイルを `Registration/GameUi/Screens/` に置き、時刻表は表示中だけ購読する（D-27）。`block_not_open` は S4-machine と揃えて良性にした（D-26）
+- **レビュー r3 の反映**: 成り立った 11 件を既定案どおりに直した（D-20・D-24・D-26・D-27・D-29 を書き直した）
 - **要裁定: なし**。D-2 の据え置きは C4-e の agent 既定に揃えたもので、指揮が done.md の要裁定に上げる
-- **未確認（実装時に確かめる）**: `PanelActionButton` に既定テーマの無効の不透明度が乗るか（D-11 で `opacity: 1` を当てた）、テキスト欄にフォーカスがあるあいだ E や閉じるキーが入力欄へ食われず UI の閉じが効くか（死活表の要確認。Task 11 Step 2 手順 3）、alpha の大型パネルの中で本文が縦に伸びるか（`.train-body` の `flex-grow`）、駅名の入力欄の自然な幅（Task 10 で Web と測り比べる）、`border-top-width: var()` が UITK で効くか（Task 6 の注の代替あり）、`UiIcon` の名前の綴りと液体のアイコンの要素のクラス名（`TrainTestText`。Task 1 Step 2 で合わせる）、取得の開始で Web ホストが 1 回多く配っても Web の表示が変わらないか（死活表。Task 11 Step 3）、`UniTaskCompletionSource` の継続が同期で走るか（Task 4・7 の注の代替あり）、`OpenTrainTimetableTracker.OnRepublishRequested` が駅名の変化を運ぶか、`TrainTimetableSnapshot`・`TrainUnitInstanceId` をテストで組めるか、`BlockInventoryTestPanels.Train(error)` が毎回同じ車両で組むか（`TrainInventoryTabModelTest`）
+- **未確認（実装時に確かめる）**: `PanelActionButton` に既定テーマの無効の不透明度が乗るか（D-11 で `opacity: 1` を当てた）、テキスト欄にフォーカスがあるあいだ E や閉じるキーが入力欄へ食われず UI の閉じが効くか（死活表の要確認。Task 11 Step 2 手順 3）、alpha の大型パネルの中で本文が縦に伸びるか（`.train-body` の `flex-grow`）、駅名の入力欄の自然な幅（Task 10 で Web と測り比べる）、`border-top-width: var()` が UITK で効くか（Task 6 の注の代替あり）、`UiIcon` の名前の綴りと液体のアイコンの要素のクラス名（`TrainTestText`。Task 1 Step 2 で合わせる）、取得ラッチの分割で Fetcher の振る舞いが変わらないか（Task 3 Step 4・Task 11 Step 3）、`UniTaskCompletionSource` の継続が同期で走るか（Task 4・7 の注の代替あり）、`OpenTrainTimetableTracker.OnRepublishRequested` が駅名の変化を運ぶか、`TrainTimetableSnapshot`・`TrainUnitInstanceId` をテストで組めるか、`BlockInventoryTestPanels.Train(error)` が毎回同じ車両で組むか（`TrainInventoryTabModelTest`）
