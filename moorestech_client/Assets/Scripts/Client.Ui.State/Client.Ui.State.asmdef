@@ -12,6 +12,7 @@
         "Core.Item.Interface",
         "Game.Block.Interface",
         "Game.PlacementTarget",
+        "Game.UnlockState",
         "Game.Research",
         "Game.Train",
         "Server.Event",

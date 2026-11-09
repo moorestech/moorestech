@@ -16,21 +16,7 @@ namespace Client.Ui.State.Inventory.Actions
 
         internal abstract UiCommandResult Run(IPlayerInventoryOperations operations);
 
-        // 移動の結果を拒否理由へ（失敗の写しはここ 1 か所）
-        // Maps a move outcome to a reject reason (the only place this mapping lives)
-        private protected static UiCommandResult FromOutcome(PlayerItemMoveOutcome outcome)
-        {
-            return outcome switch
-            {
-                PlayerItemMoveOutcome.Moved => UiCommandAccepted.Instance,
-                PlayerItemMoveOutcome.SourceEmpty => new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, ""),
-                PlayerItemMoveOutcome.SourceCountShort => new UiCommandRejected(UiCommandRejectReason.ItemSourceCountShort, ""),
-                // 何もしない移動は Web と同じく成功（警告ログは持ち物の口が出す）
-                // A no-effect move is accepted like Web (the inventory port logs the warning)
-                PlayerItemMoveOutcome.NoEffect => UiCommandAccepted.Instance,
-                _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null),
-            };
-        }
+        private protected static UiCommandResult FromOutcome(PlayerItemMoveOutcome outcome) => PlayerItemMoveOutcomeConversion.ToCommandResult(outcome);
     }
 
     public sealed class PickUpToGrabAction : PlayerItemAction

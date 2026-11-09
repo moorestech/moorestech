@@ -40,7 +40,7 @@ namespace Client.Ui.State.ItemMove
                 if (from.Area != ItemMoveArea.Equipment) return ItemActionsPlan.Empty;
 
                 var mainSlots = context.Inventory.MainSlots;
-                return MovesOrDestinationFull(DirectMovePlanner.PlanMoveActions(from, source, ItemMoveArea.Main, mainSlots, DirectMovePlanner.AllIndicesOf(mainSlots), context.StackLevels));
+                return PlanAllocation(from, source, ItemMoveArea.Main, mainSlots, DirectMovePlanner.AllIndicesOf(mainSlots));
             }
 
             PlayerSlotActionPlan PlanShiftIntoBlock(ItemMoveSlotRef from, SlotItem source, BlockOpenSlotContext openContext)
@@ -70,7 +70,7 @@ namespace Client.Ui.State.ItemMove
                     default:
                         throw new ArgumentOutOfRangeException(nameof(openContext.Restriction), openContext.Restriction, "未知のブロックスロット制約。PlanShiftIntoBlock に分岐を足すこと");
                 }
-                return MovesOrDestinationFull(DirectMovePlanner.PlanMoveActions(from, source, ItemMoveArea.Block, openContext.BlockItemSlots, candidateIndices, context.StackLevels));
+                return PlanAllocation(from, source, ItemMoveArea.Block, openContext.BlockItemSlots, candidateIndices);
             }
 
             // 枠数が縮んだ直後の古い制約は、範囲外の候補番号を持つ
@@ -89,10 +89,15 @@ namespace Client.Ui.State.ItemMove
                 return false;
             }
 
-            // 宛先が全部埋まって 1 件も配分できないときは、無音にせず満杯の断りにする
-            // When the destination is full and nothing can be allocated, refuse as full instead of staying silent
-            PlayerSlotActionPlan MovesOrDestinationFull(IReadOnlyList<PlannedItemAction> moves)
+            // 配分の唯一の入口。未知の ID は最大スタックが引けず DirectMovePlanner が例外になるので断る（D-65）
+            // The single allocation entry: refuse an unknown ID, which has no max stack and would make DirectMovePlanner throw (D-65)
+            PlayerSlotActionPlan PlanAllocation(ItemMoveSlotRef from, SlotItem source, ItemMoveArea targetArea, IReadOnlyList<SlotItem> targetSlots, IReadOnlyList<int> candidateIndices)
             {
+                if (!context.StackLevels.ExistsItem(source.ItemId)) return new ShiftMoveRefusedPlan(ShiftMoveRefusalReason.UnknownItem);
+
+                // 宛先が全部埋まって 1 件も配分できないときは、無音にせず満杯の断りにする
+                // When the destination is full and nothing can be allocated, refuse as full instead of staying silent
+                var moves = DirectMovePlanner.PlanMoveActions(from, source, targetArea, targetSlots, candidateIndices, context.StackLevels);
                 if (moves.Count == 0) return new ShiftMoveRefusedPlan(ShiftMoveRefusalReason.DestinationFull);
                 return new ItemActionsPlan(moves);
             }

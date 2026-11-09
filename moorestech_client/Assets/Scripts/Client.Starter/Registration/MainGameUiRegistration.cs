@@ -6,7 +6,15 @@ using Client.Ui.Foundation.Composite;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.SlotRestriction;
+using Client.Ui.State.Recipe.Source;
+using Client.Ui.State.Routing;
 using Client.Ui.State.SkitPresence;
+using Client.Ui.State.SlotCommands;
+using Client.Ui.State.SlotCommands.Block;
+using Client.Ui.State.SlotCommands.Player;
 using Client.Ui.State.Toast;
 using VContainer;
 using VContainer.Unity;
@@ -39,6 +47,23 @@ namespace Client.Starter.Registration
             // The pointer position stream is read by the screen pointer (InputSystemUiScreenPointer)
             builder.Register<InputSystemPointerPositionStream>(Lifetime.Singleton);
 
+            // ブロックインベントリの共有サービス: パネルの状態・遷移要求・スロット操作の型付きコマンド・ブロックの枠の並び・解放済み機械レシピ（S4 の各レーンが ctor で受ける）
+            // Block-inventory shared services: panel state, transition requests, typed slot commands, block slot grids and unlocked machine recipes (taken by the S4 lanes' ctors)
+            builder.RegisterEntryPoint<BlockInventoryPanelModel>().As<IBlockInventoryPanelSource>();
+            builder.Register<UiStateControlTransitionRequester>(Lifetime.Singleton).As<IUiStateTransitionRequester>();
+            builder.RegisterEntryPoint<UnlockedMachineRecipeSource>().AsSelf();
+            builder.Register<SubInventoryRawSlots>(Lifetime.Singleton).As<IRawSubInventorySlots>();
+            builder.Register<BlockSlotReader>(Lifetime.Singleton);
+            builder.Register<LocalBlockInventoryOperations>(Lifetime.Singleton).As<IBlockInventoryOperations>();
+            builder.Register<BlockItemActionExecutor>(Lifetime.Singleton);
+            builder.Register<PlannedItemActionRunner>(Lifetime.Singleton);
+            builder.Register<BlockSlotRestrictionInputBuilder>(Lifetime.Singleton);
+            builder.Register<PlayerSlotContextReader>(Lifetime.Singleton);
+            builder.Register<ShiftMoveRefusalNotifier>(Lifetime.Singleton);
+            builder.Register<BlockSlotCommands>(Lifetime.Singleton).As<IBlockSlotCommands>();
+            builder.Register<PlayerSlotCommands>(Lifetime.Singleton).As<IPlayerSlotCommands>();
+            builder.Register<BlockItemGridFactory>(Lifetime.Singleton);
+
             // 画面登録区画: 1行ずつ呼び出しを足す
             // Screen registration section: add one call per line
             PauseMenuGameUiRegistration.Register(builder);
@@ -49,6 +74,7 @@ namespace Client.Starter.Registration
             CursorTooltipGameUiRegistration.Register(builder);
             TutorialGameUiRegistration.Register(builder);
             GrabGameUiRegistration.Register(builder);
+            BlockInventoryGameUiRegistration.Register(builder);
         }
     }
 }

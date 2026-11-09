@@ -28,6 +28,11 @@ namespace Core.Item
             Instance = this;
         }
 
+        public bool ExistsItem(ItemId itemId)
+        {
+            return MasterHolder.ItemMaster.ExistItemId(itemId);
+        }
+
         public int GetMaxStack(ItemId itemId)
         {
             var element = MasterHolder.ItemMaster.GetItemMaster(itemId);
