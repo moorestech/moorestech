@@ -345,7 +345,7 @@ public sealed class BuildMenuView : VisualElement
 {
     public BuildMenuView(IBuildMenuCommands commands, GameContentPresentation content, UiCommandResultToaster toaster) { … }
     public void Render(BuildMenuViewModel viewModel);
-    public void SetShown(bool shown);   // 非表示の間は描かない。表示するとき最新値で 1 回描く（plan §3.2）
+    public void SetShown(bool shown);   // 出し入れだけ。非表示の間に描かないのは、Presenter が表示中だけ Model を購読して守る（購読時に最新値で 1 回描かれる。plan §3.2）
 }
 
 // コマンドの結果をトーストへ。良性の拒否は出さない（UiCommandRejectReasonTraits.IsBenign）
