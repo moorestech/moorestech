@@ -9,10 +9,10 @@ namespace Client.Ui.Foundation.Theme
     /// <remarks>
     /// Web は重み m を sRGB 合成の α に線形に掛ける。Linear 合成で α を線形に掛けると、暗い色が明るい地の上で縁から遅れて濃くなる。
     /// そこで補正済みの α を S7 の式 1-(1-a)^1.85 の逆で Web の α に戻し、重みを掛けてから同じ式で補正し直す。重み 1 では元の α に戻る。
-    /// 面・ヴィネット・クロスヘアの影・ダイアログの影が使う。トークンの α か指数を変えたら、使い手ごとの縁の濃さを Web と並べて再実測する。
+    /// 面・ヴィネット・クロスヘアの影・ダイアログの影・矢印の影が使う。トークンの α か指数を変えたら、使い手ごとの縁の濃さを Web と並べて再実測する。
     /// The Web multiplies the weight m linearly into the sRGB-blend alpha; doing so under Linear blending makes a dark color over a bright
     /// backdrop darken late from the edge. So invert the S7 formula 1-(1-a)^1.85 to recover the Web alpha, apply the weight, and correct
-    /// again with the same formula; a weight of 1 returns the original alpha. Faces, the vignette, the crosshair shadow and dialog shadows
+    /// again with the same formula; a weight of 1 returns the original alpha. Faces, the vignette, the crosshair shadow, dialog shadows and the arrow shadow
     /// use it; if a token alpha or the exponent changes, re-measure each user's edge shades against the Web.
     /// </remarks>
     internal static class LinearBlendOpacity

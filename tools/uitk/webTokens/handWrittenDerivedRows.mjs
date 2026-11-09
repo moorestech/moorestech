@@ -31,6 +31,7 @@ const rowSources = [
   { name: "--modal-shadow-1-color", web: "Mantine --mantine-shadow-xl 層 1 の rgba(0, 0, 0, 0.05)", formula: [0, 0, 0, 0.05], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
   { name: "--modal-shadow-2-color", web: "Mantine --mantine-shadow-xl 層 2 の rgba(0, 0, 0, 0.05)", formula: [0, 0, 0, 0.05], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
   { name: "--modal-shadow-3-color", web: "Mantine --mantine-shadow-xl 層 3 の rgba(0, 0, 0, 0.04)", formula: [0, 0, 0, 0.04], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
+  { name: "--progress-arrow-glyph-shadow", web: "drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色", formula: [0, 0, 0, 0.45], method: `${translucencyMethod}（ProgressArrowGlyph の drop-shadow。輪の頂点ごとの濃さは部品が OpacityAt で解き直す。C4-b）` },
 ];
 
 export const handWrittenDerivedRows = rowSources.map((row) => ({ name: row.name, web: row.web, uss: row.uss ?? formulaValue(row.formula), method: row.method }));

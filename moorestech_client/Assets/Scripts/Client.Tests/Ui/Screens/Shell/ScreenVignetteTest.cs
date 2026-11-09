@@ -93,8 +93,8 @@ namespace Client.Tests.Ui.Screens.Shell
             // 縁の α は面の補正と同じ指数で Web の 0.16 に戻る。重み 1 でトークンの α、0 で透明
             // The edge alpha returns to the Web 0.16 under the same exponent as the face correction; weight one yields the token alpha and zero is clear
             var edge = ThemeTokenFile.ResolveColor("--screen-vignette-edge");
-            // トークンの α から指数を逆に解き、GamePanelFaceOpacityRamp が同じ指数で重み 0.5 を補正することを確かめる
-            // Solve the exponent back from the token alpha and check GamePanelFaceOpacityRamp corrects weight 0.5 with the same exponent
+            // トークンの α から指数を逆に解き、LinearBlendOpacity が同じ指数で重み 0.5 を補正することを確かめる
+            // Solve the exponent back from the token alpha and check LinearBlendOpacity corrects weight 0.5 with the same exponent
             var exponent = Mathf.Log(1f - edge.a) / Mathf.Log(1f - WebEdgeAlpha);
             Assert.Greater(exponent, 1f);
             Assert.AreEqual(1f - Mathf.Pow(1f - WebEdgeAlpha * 0.5f, exponent), LinearBlendOpacity.OpacityAt(edge.a, 0.5f), 1e-4f);

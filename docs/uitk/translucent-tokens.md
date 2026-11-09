@@ -40,3 +40,4 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--modal-shadow-1-color` | `Mantine --mantine-shadow-xl 層 1 の rgba(0, 0, 0, 0.05)` | `rgba(0, 0, 0, 0.0905)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Modal の影。C3-b） |
 | `--modal-shadow-2-color` | `Mantine --mantine-shadow-xl 層 2 の rgba(0, 0, 0, 0.05)` | `rgba(0, 0, 0, 0.0905)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Modal の影。C3-b） |
 | `--modal-shadow-3-color` | `Mantine --mantine-shadow-xl 層 3 の rgba(0, 0, 0, 0.04)` | `rgba(0, 0, 0, 0.0727)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Modal の影。C3-b） |
+| `--progress-arrow-glyph-shadow` | `drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色` | `rgba(0, 0, 0, 0.6691)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（ProgressArrowGlyph の drop-shadow。輪の頂点ごとの濃さは部品が OpacityAt で解き直す。C4-b） |

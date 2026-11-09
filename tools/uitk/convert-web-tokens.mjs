@@ -10,7 +10,7 @@ import { createTokenConverter } from "./webTokens/convertTokenValue.mjs";
 import { darkExponent, translucencyMethod } from "./webTokens/translucency.mjs";
 import { handWrittenDerivedRows } from "./webTokens/handWrittenDerivedRows.mjs";
 
-const rampSourcePath = "moorestech_client/Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanelFaceOpacityRamp.cs";
+const linearBlendOpacitySourcePath = "moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/LinearBlendOpacity.cs";
 
 const repositoryRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const sourceDirectory = "moorestech_web/webui/src/app";
@@ -99,10 +99,10 @@ function verifyHandWrittenRowsMatchDerivedTokens() {
     if (declaration === null) throw new Error(`${row.name} is not declared in DerivedTokens.uss`);
     if (declaration[1].trim() !== row.uss) throw new Error(`${row.name}: hand-written row says '${row.uss}' but DerivedTokens.uss says '${declaration[1].trim()}'`);
   }
-  // 縁フェードの逆算が使う C# 側の指数を生成器の指数と揃える（片方だけ直すと中間の濃さが黙ってずれる）
-  // Keep the C# exponent used by the edge-fade inversion equal to the generator's (a one-sided edit would silently skew midtones)
-  const ramp = readFileSync(join(repositoryRoot, rampSourcePath), "utf8");
-  if (!ramp.includes(`LinearBlendExponent = ${darkExponent}f;`)) throw new Error(`${rampSourcePath} must declare LinearBlendExponent = ${darkExponent}f`);
+  // C# 側の LinearBlendOpacity が使う指数を生成器の指数と揃える（片方だけ直すと中間の濃さが黙ってずれる）
+  // Keep the exponent used by the C# LinearBlendOpacity equal to the generator's (a one-sided edit would silently skew midtones)
+  const linearBlendSource = readFileSync(join(repositoryRoot, linearBlendOpacitySourcePath), "utf8");
+  if (!linearBlendSource.includes(`LinearBlendExponent = ${darkExponent}f;`)) throw new Error(`${linearBlendOpacitySourcePath} must declare LinearBlendExponent = ${darkExponent}f`);
 }
 
 function writeTranslucentTable(rows) {

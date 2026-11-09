@@ -112,4 +112,8 @@
     --modal-shadow-3-blur: 17px;
     --modal-shadow-3-spread: -7px;
     --modal-shadow-3-color: rgba(0, 0, 0, 0.0727); /* web: rgba(0,0,0,0.04) を暗い色の式で α 補正（A-72） */
+
+    /* C4-b: 進捗の部品（Gauges）。ProgressArrowGlyph の drop-shadow の色。影の濃さの分布は部品が Linear 合成用に頂点ごとに解き直す（設計書 A-88） */
+    /* C4-b: progress parts (Gauges); the ProgressArrowGlyph drop-shadow color, whose falloff the part re-solves per vertex for Linear blending (design A-88) */
+    --progress-arrow-glyph-shadow: rgba(0, 0, 0, 0.6691); /* web: ProgressArrowGlyph .glyph の drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色。暗い色の式 1-(1-α)^1.85 */
 }
