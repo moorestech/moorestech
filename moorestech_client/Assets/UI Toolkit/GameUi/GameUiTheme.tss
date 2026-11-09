@@ -64,3 +64,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/TrainHud/TrainRidingHud.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/ModeHud/ModeHud.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/CursorTooltip/CursorTooltip.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/GrabOverlay/GrabOverlay.uss");
