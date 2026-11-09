@@ -27,6 +27,10 @@ const rowSources = [
   { name: "--mantine-color-blue-light-hover", web: "rgba(34, 139, 230, 0.2)", formula: [34, 139, 230, 0.2], method: `${translucencyMethod}（Mantine Button Subtle のホバー。C2-b。明暗を最大成分で分けるようにして式の行にした。I-fix2）` },
   { name: "--screen-backdrop-face", web: "rgb(0 0 0 / 42%)", formula: [0, 0, 0, 0.42], method: `${translucencyMethod}（画面の幕。S2-hud・設計書 A-55）` },
   { name: "--train-riding-hud-face", web: "color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)", formula: [31, 31, 31, 0.82], method: `${translucencyMethod}（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55）` },
+  { name: "--modal-backdrop-face", web: "Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)", formula: [0, 0, 0, 0.6], method: `${translucencyMethod}（Mantine Modal の幕。C3-b）` },
+  { name: "--modal-shadow-1-color", web: "Mantine --mantine-shadow-xl 層 1 の rgba(0, 0, 0, 0.05)", formula: [0, 0, 0, 0.05], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
+  { name: "--modal-shadow-2-color", web: "Mantine --mantine-shadow-xl 層 2 の rgba(0, 0, 0, 0.05)", formula: [0, 0, 0, 0.05], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
+  { name: "--modal-shadow-3-color", web: "Mantine --mantine-shadow-xl 層 3 の rgba(0, 0, 0, 0.04)", formula: [0, 0, 0, 0.04], method: `${translucencyMethod}（Mantine Modal の影。C3-b）` },
 ];
 
 export const handWrittenDerivedRows = rowSources.map((row) => ({ name: row.name, web: row.web, uss: row.uss ?? formulaValue(row.formula), method: row.method }));

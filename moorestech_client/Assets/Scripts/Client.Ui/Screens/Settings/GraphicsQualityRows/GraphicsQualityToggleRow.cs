@@ -1,3 +1,4 @@
+using Client.Ui.State.Text;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
@@ -28,8 +29,8 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
         // The testid word uses the same spelling as Web GraphicsQualitySettings.tsx
         public GraphicsQualityToggleRow(GraphicsQualityToggle toggle, LocalizationKey caption, string testidWord) : base(caption, $"graphics-{testidWord}", new List<ModeSwitchOption<bool>>
         {
-            new($"graphics-{testidWord}-on", true, LocalizationKeys.Ui.Settings.On, null),
-            new($"graphics-{testidWord}-off", false, LocalizationKeys.Ui.Settings.Off, null),
+            new($"graphics-{testidWord}-on", true, new UiText(LocalizationKeys.Ui.Settings.On)),
+            new($"graphics-{testidWord}-off", false, new UiText(LocalizationKeys.Ui.Settings.Off)),
         })
         {
             _toggle = toggle;

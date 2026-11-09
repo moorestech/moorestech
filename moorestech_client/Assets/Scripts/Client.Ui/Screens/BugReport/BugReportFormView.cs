@@ -51,8 +51,8 @@ namespace Client.Ui.Screens.BugReport
             kindCaption.AddToClassList("bug-report__field-label");
             kindCaption.SetKey(LocalizationKeys.Ui.Playtest.ReportKind.Label);
             Add(kindCaption);
-            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, KindOptions());
-            _kindSwitch.OnSelected.Subscribe(OnKindSelected);
+            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, KindOptions());
+            _kindSwitch.OnOptionSelected.Subscribe(OnKindSelected);
             Add(_kindSwitch);
 
             // 本文は書きかけから復元し、打鍵ごとに書きかけへ戻す
@@ -186,8 +186,8 @@ namespace Client.Ui.Screens.BugReport
         {
             return new List<ModeSwitchOption<PlaytestReportKind>>
             {
-                new("bug-report-kind-bug", PlaytestReportKind.Bug, LocalizationKeys.Ui.Playtest.ReportKind.Bug, null),
-                new("bug-report-kind-feedback", PlaytestReportKind.Feedback, LocalizationKeys.Ui.Playtest.ReportKind.Feedback, null),
+                new("bug-report-kind-bug", PlaytestReportKind.Bug, new UiText(LocalizationKeys.Ui.Playtest.ReportKind.Bug)),
+                new("bug-report-kind-feedback", PlaytestReportKind.Feedback, new UiText(LocalizationKeys.Ui.Playtest.ReportKind.Feedback)),
             };
         }
     }

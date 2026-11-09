@@ -29,6 +29,7 @@ namespace Client.Starter.Registration
             builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
             builder.RegisterInstance(SkitPresentationStateStore.Instance);
             builder.Register<BlockingSkitPresence>(Lifetime.Singleton);
+            FoundationGameUiRegistration.Register(builder);
 
             // 画面登録区画: 1行ずつ呼び出しを足す
             // Screen registration section: add one call per line

@@ -1,3 +1,4 @@
+using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Input;
 using Client.Ui.Components.Controls;
@@ -26,11 +27,11 @@ namespace Client.Ui.Screens.Settings
 
             var options = new List<ModeSwitchOption<SprintInputMode>>
             {
-                new("sprint-mode-option-toggle", SprintInputMode.Toggle, LocalizationKeys.Ui.Settings.SprintModeToggle, null),
-                new("sprint-mode-option-hold", SprintInputMode.Hold, LocalizationKeys.Ui.Settings.SprintModeHold, null),
+                new("sprint-mode-option-toggle", SprintInputMode.Toggle, new UiText(LocalizationKeys.Ui.Settings.SprintModeToggle)),
+                new("sprint-mode-option-hold", SprintInputMode.Hold, new UiText(LocalizationKeys.Ui.Settings.SprintModeHold)),
             };
-            _modes = new ModeSwitch<SprintInputMode>("sprint-mode-select", ModeSwitchOrientation.Horizontal, options);
-            _modes.OnSelected.Subscribe(commands.SetSprintInputMode);
+            _modes = new ModeSwitch<SprintInputMode>("sprint-mode-select", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options);
+            _modes.OnOptionSelected.Subscribe(commands.SetSprintInputMode);
             Add(_modes);
             Apply(initial);
         }

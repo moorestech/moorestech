@@ -4,12 +4,14 @@ using System.Linq;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine.UIElements;
+using ModeSwitchInt = Client.Ui.Components.Controls.ModeSwitch<int>;
 
-namespace Client.Tests.Ui.Components.Controls
+namespace Client.Tests.Ui.Components.Controls.ModeSwitch
 {
     /// <summary>
     /// ModeSwitchを実パネルで確かめる（L1）
@@ -107,26 +109,19 @@ namespace Client.Tests.Ui.Components.Controls
             var buttons = modeSwitch.Query<Button>().ToList();
             CollectionAssert.AreEqual(new[] { "option-a", "option-b", "option-c" }, buttons.Select(button => button.name));
             Assert.IsTrue(buttons.All(button => !button.focusable));
-            Assert.AreEqual("300m", Option(modeSwitch, "option-c").text);
+            Assert.AreEqual("300m", Option(modeSwitch, "option-c").Q<Label>().text);
         }
 
-        [Test]
-        public void OptionNeedsExactlyOneLabelSource()
-        {
-            Assert.Throws<ArgumentException>(() => new ModeSwitchOption<int>("both", 1, LocalizationKeys.Ui.PauseMenu.Back, "300m"));
-            Assert.Throws<ArgumentException>(() => new ModeSwitchOption<int>("neither", 1, null, null));
-        }
-
-        private ModeSwitch<int> AddSwitch(ModeSwitchOrientation orientation)
+        private ModeSwitchInt AddSwitch(ModeSwitchOrientation orientation)
         {
             var options = new List<ModeSwitchOption<int>>
             {
-                new("option-a", 1, LocalizationKeys.Ui.PauseMenu.Settings, null),
-                new("option-b", 2, LocalizationKeys.Ui.PauseMenu.Back, null),
-                new("option-c", 3, null, "300m"),
+                new("option-a", 1, new UiText(LocalizationKeys.Ui.PauseMenu.Settings)),
+                new("option-b", 2, new UiText(LocalizationKeys.Ui.PauseMenu.Back)),
+                new("option-c", 3, UiText.FromVerbatim("300m")),
             };
-            var modeSwitch = new ModeSwitch<int>("mode-switch-test", orientation, options);
-            _subscription = modeSwitch.OnSelected.Subscribe(value => _selected.Add(value));
+            var modeSwitch = new ModeSwitchInt("mode-switch-test", orientation, ModeSwitchRole.Group, options);
+            _subscription = modeSwitch.OnOptionSelected.Subscribe(value => _selected.Add(value));
             rootVisualElement.Add(modeSwitch);
             simulate.FrameUpdate();
             return modeSwitch;

@@ -1,3 +1,4 @@
+using Client.Ui.State.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Components.Controls;
@@ -29,8 +30,8 @@ namespace Client.Ui.Screens.Settings
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.Language));
 
-            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, LanguageOptions());
-            _languages.OnSelected.Subscribe(OnLanguageSelected);
+            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, LanguageOptions());
+            _languages.OnOptionSelected.Subscribe(OnLanguageSelected);
             Add(_languages);
             Apply(initial);
         }
@@ -50,7 +51,7 @@ namespace Client.Ui.Screens.Settings
         private static IReadOnlyList<ModeSwitchOption<string>> LanguageOptions()
         {
             return LanguageCatalog.Languages
-                .Select(language => new ModeSwitchOption<string>($"language-select-option-{language.Code}", language.Code, null, language.DisplayName))
+                .Select(language => new ModeSwitchOption<string>($"language-select-option-{language.Code}", language.Code, UiText.FromVerbatim(language.DisplayName)))
                 .ToList();
         }
     }

@@ -1,0 +1,5 @@
+/* テスト専用: 画面が祖先でつまみを上書きする形（Web features/buildMenu/style.module.css の --mode-switch-option-height: var(--build-menu-category-height)） */
+/* Test only: a screen overriding the knob on an ancestor (Web features/buildMenu/style.module.css --mode-switch-option-height: var(--build-menu-category-height)) */
+.mode-switch-knob-override {
+    --mode-switch-option-height: var(--build-menu-category-height);
+}
