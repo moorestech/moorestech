@@ -240,7 +240,7 @@ ClientContext.VanillaApi.Response.Block.SendMachineRecipeSelectionRequest(Machin
 
 ## 写すテスト
 
-Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`。for・it.each は展開しない）。§1.4 の数は P 38・C 23 とも実物と一致。§1.4 に無い `MachineRecipeSelectionRow.test.ts`(5) を本体の決定 3 で足した。alpha の持ち主表で machine に割り振られた件（`SectionStackView.test` 7・`regression/sectionStack` 1・`blockInventoryDesign` 10）は、alpha のテストファイルに追記せず本レーンのファイルに同じタグで写す。`blockDetails`(8) は実行計画 §1.4（876b3229e5）どおり分ける: 本レーンが写すのは 6 名（うち `renders ${type}` と「歯車ポンプは電力行を持たず歯車行を出す」の 2 名は S4-special と分け合い、本レーンは機械・採掘機・ポンプ・発電機の区画の面だけを主張し、S4-special が歯車・フィルタの面を同じタグで別 NUnit に写す）。「歯車機械は消費トルクと基準付きRPMを赤なしで出し、網の需給行を持つ」「歯車発電機は発生トルクと現在RPMだけを出す」の 2 名は S4-special だけが写す。
+Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`。for・it.each は展開しない）。§1.4 の数は P 38・C 23 とも実物と一致。`MachineRecipeSelectionRow.test.ts`(5) は本体の決定 3 で足し、§1.4 にも C4-c の記帳（[A-127]）で入った。alpha の持ち主表で machine に割り振られた件は、alpha のテストファイルに追記せず本レーンのファイルに同じタグで写す: `SectionStackView.test` 7（machine だけの 5〈§1.4 の S4-alpha 行の「machine 5」〉＋alpha と分け合う 2〈「%s の既存表示を保つ」の液体の行・「部屋欄はセクション列の先頭に描く」の中身〉）・`regression/sectionStack` 1（alpha・special と分け合う）・`blockInventoryDesign` 10（machine だけの 7＋分け合う 3〈「%sから禁止Mantine部品…」と「レシピ有り機械だけ…大型パネル」は alpha と、「ゲージとモード切替…」は special・train と〉）。`blockDetails`(8) は実行計画 §1.4（876b3229e5）どおり分ける: 本レーンが写すのは 6 名（うち `renders ${type}` と「歯車ポンプは電力行を持たず歯車行を出す」の 2 名は S4-special と分け合い、本レーンは機械・採掘機・ポンプ・発電機の区画の面だけを主張し、S4-special が歯車・フィルタの面を同じタグで別 NUnit に写す）。「歯車機械は消費トルクと基準付きRPMを赤なしで出し、網の需給行を持つ」「歯車発電機は発生トルクと現在RPMだけを出す」の 2 名は S4-special だけが写す。
 
 | Web ファイル（`W/` から） | テスト名（第 1 引数） | 本レーンの NUnit | Task |
 |---|---|---|---|
