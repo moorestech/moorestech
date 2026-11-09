@@ -159,7 +159,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 - **申し送りの罠**（I-fix1・C3-a からの実測）: (a) 字間は px 表記でも UITK では「字の大きさ / 100 × 値」で効く。この画面の Web の CSS に字間は無いが、足すときは I-fix1 の換算トークンを `var()` で使い、換算値を直書きしない (b) ギャラリーの撮影は sRGB 合成で半透明が淡く出るので、色はランタイムの PanelSettings（`GameUiPanelSettings.asset` の複製）で撮って比べる（Task 10） (c) 暗い半透明の α は I-fix1（e26010aa0c）で指数 1.85 に選び直し済み。明るい半透明（`--mode-switch-selected-face` 等）は未実測なので、差の表で見た差を「未確認」に書き、直すなら integrator へ依頼する（トークン USS はこのレーンの持ち物でない）
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/BuildMenu/`（補助は `Support/`）・`S/Client.Tests/Ui/State/BuildMenu/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。テンプレート文字列も展開しない。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.(Ui\.(Screens\.BuildMenu|State\.BuildMenu|Conventions|Theme|Layers|Anchor|State\.Commands|State\.PauseMenuCommandsTest)|WebUi\.BuildMenuActionsTest)\.`（`PauseMenuCommandsTest` は namespace `Client.Tests.Ui.State` 直下なので名指しで入れる。S3-hotbar-modal と共有のテスト）。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは `GameUiTheme.tss` の `Screens` 区画の `@import` 1 行・`MainGameUiRegistration.cs` の画面登録区画の 1 行・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の enum 末尾と 3 つの switch の末尾（前例 S2-skit）・`Localization/localization.csv` の `ui.commandRejected.*` の末尾 6 行とその生成物 2 つ（`localizationKeys.ts`・`_CompileRequester.cs`。再生成だけ）・`S/Client.Ui.State/Client.Ui.State.asmdef` の参照 3 つ・`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の build menu の行の削除（在るときだけ）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の一覧のテスト（S3-hotbar-modal も同じテストを同じ名前へ置き換える。取り込みの衝突は `benign` の値の和を採る）・`MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行への `.As<IBlueprintDeleteService>()` 1 つ（D-35）・`ContentGameUiRegistration.cs` の末尾の `PlacementTargetIcons` の登録 1 行（D-42）・`S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs`・`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` への `TrainCarTexture`・`ConnectToolTexture` の追記（D-29。C3-a はマージ済みで W3 で後に走る C4-a〈液体の絵の出どころ〉が同じインターフェースへ追記しうる。取り込みの衝突は両方のメソッドを採る）。新設して持ち主になる共有の置き場は `S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（A-100）。持ち物は File Structure の「新規」の行と同じ: `S/Client.Ui/Screens/BuildMenu/**`・`S/Client.Ui.State/BuildMenu/**` への追加・`S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Tests/Ui/Screens/BuildMenu/**`・`S/Client.Tests/Ui/State/BuildMenu/**`・`S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs`・シナリオ `SKILL/scenarios/uitk/uitk-build-menu.cs`
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは `GameUiTheme.tss` の `Screens` 区画の `@import` 1 行・`MainGameUiRegistration.cs` の画面登録区画の 1 行・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の enum 末尾と 3 つの switch の末尾（前例 S2-skit）・`Localization/localization.csv` の `ui.commandRejected.*` の末尾 6 行とその生成物 2 つ（`localizationKeys.ts`・`_CompileRequester.cs`。再生成だけ）・`S/Client.Ui.State/Client.Ui.State.asmdef` の参照 3 つ・`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の build menu の行の削除（在るときだけ）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の一覧のテスト（S3-hotbar-modal も同じテストを同じ名前へ置き換える。取り込みの衝突は `benign` の値の和を採る）・`MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行への `.As<IBlueprintDeleteService>()` 1 つ（D-35）・`ContentGameUiRegistration.cs` の末尾の `PlacementTargetIcons` の登録 1 行（D-42）・`S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs`・`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` への `TrainCarTexture`・`ConnectToolTexture` の追記（D-29。C3-a はマージ済みで W3 で後に走る C4-a〈液体の絵の出どころ〉が同じインターフェースへ追記しうる。取り込みの衝突は両方のメソッドを採る）。新設して持ち主になる共有の置き場は `S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（A-100）。持ち物は File Structure の「新規」の行と同じ: `S/Client.Ui/Screens/BuildMenu/**`・`S/Client.Ui.State/BuildMenu/**` への追加・`S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Tests/Ui/Screens/BuildMenu/**`・`S/Client.Tests/Ui/State/BuildMenu/**`・`S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs`・`tools/uitk/render-mock-placeholder-icons.mjs`（撮影の道具）・シナリオ `SKILL/scenarios/uitk/uitk-build-menu.cs`
 - **新しい共有の申告**（設計書 §5.1-2）: 新しい共有の型（他の画面も使う型・Foundation・Components）が要ると分かったら自分で作らず、`done.md` の「## integrator への依頼」に「<種別>: <名前>・使う画面・API 案・このレーンでの仮置き」を書く。例外（本体の決定）: 配置対象の絵の出どころ（`State/PlacementTarget/PlacementTargetIcon.cs`・`PlacementTargetIconResolver.cs`・`Ui/Content/PlacementTargetIcons.cs`）と落としの受け口（`State/Hotbar/Logic/IHotbarDropReceiver.cs`）は、S3-hotbar-modal が後からこのレーンのファイルを書き換えないよう、先に走るこのレーンが最終の置き場に作る。持ち主はこのレーン、S3-hotbar-modal は使うだけ。`done.md` には「作った・持ち主は S3-buildmenu」と書く（Task 1 Step 3 で雛形に書く: (1) 落としの受け口 `IHotbarDropReceiver`〈D-16〉 (2) 絵の出どころ 3 ファイル〈D-29〉 (3) 2560×1080 の参照の台帳記載〈撮ったときだけ〉）
 - **参照キャプチャ**: 1280×720 は `LOGS/uitk/reference-captures/web-869b2d4264/3-build-menu.png`（最新の 720p。`manifest.json`・`index.md`）、2560×1080 は `LOGS/uitk/reference-captures/web-0e81bbe3c3-2560x1080/3-build-menu.png`
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S3-buildmenu/` に置き、`moorestech_logs` へ入れない。`moorestech_logs` へ書く前に `LOGS/README.md` を読む
@@ -2126,7 +2126,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 - [ ] **Step 5: テストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.BuildMenu\."`
-Expected: `ErrorCount: 0`、8 件 PASS
+Expected: `ErrorCount: 0`、9 件 PASS（ドラッグ源 5・`BuildMenuSlot.test.ts` の写し 4）
 
 - [ ] **Step 6: コミット**
 
@@ -2640,7 +2640,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 - [ ] **Step 5: テストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.BuildMenu\."`
-Expected: `ErrorCount: 0`、13 件 PASS（USS が未登録なので寸法の主張はまだ持たない。`minHeight` は inline style なので解決される）
+Expected: `ErrorCount: 0`、14 件 PASS（USS が未登録なので寸法の主張はまだ持たない。`minHeight` は inline style なので解決される）
 
 - [ ] **Step 6: 錨の未移植の表を確かめ、コミット**
 
@@ -4183,7 +4183,7 @@ namespace Client.Ui.Screens.BuildMenu
 - [ ] **Step 7: テストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`（`$FILTER` は Global Constraints の値）
-Expected: `ErrorCount: 0`。`Views` の 41 件（Task 5 の 8・Task 6 の 5・この Task の 28）・L0-s3 の `CategoryScroll` 系・State の BuildMenu・L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が全件 PASS。`BuildMenuRestoreTest` の「復元の前に流れた…」の出力行 `[L-3] offsets emitted while opening: …` を TestResults の xml から写して `done.md` の「## 証拠」に書く（L1 の観測。実機は Task 8 Step 4）。新しいファイルが 200 行未満で、`ls` で `Screens/BuildMenu/` 4・`CategoryScroll/` 7・`Parts/` 9・`Tests/.../Views/` 10・`Support/` 4（Probe を出したら 5。Task 10 で +2）を確かめる
+Expected: `ErrorCount: 0`。`Views` の 42 件（Task 5 の 9・Task 6 の 5・この Task の 28）・L0-s3 の `CategoryScroll` 系・State の BuildMenu・L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が全件 PASS。`BuildMenuRestoreTest` の「復元の前に流れた…」の出力行 `[L-3] offsets emitted while opening: …` を TestResults の xml から写して `done.md` の「## 証拠」に書く（L1 の観測。実機は Task 8 Step 4）。新しいファイルが 200 行未満で、`ls` で `Screens/BuildMenu/` 4・`CategoryScroll/` 7・`Parts/` 9・`Tests/.../Views/` 10・`Support/` 4（Probe を出したら 5。Task 10 で +2）を確かめる
 
 落ちたときの見方（推測で直さず、値を出してから直す）:
 - 末尾ジャンプが手前で止まる → `Tracker.SpacerHeight.Value` と `Find(View, "build-menu-trailing-spacer").layout.height` と `Scroll.GetContentHeight()` を `TestContext.WriteLine` で出す。スペーサの `GeometryChangedEvent` が来ていなければ D-9 の経路の欠け
@@ -4687,7 +4687,7 @@ Expected: `95`（8＋80＋7）。`uloop focus-window` の後、S2-mode-tooltip T
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop compile --project-path ./moorestech_client
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu/Support docs/uitk/TODO.md
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BuildMenu moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu/Support docs/uitk/TODO.md tools/uitk/render-mock-placeholder-icons.mjs
 git commit -m "fix(uitk): ビルドメニューを Web との並べ比べで揃え、smooth scroll の例外を記帳する（S3-buildmenu）
 
 <実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
@@ -4901,7 +4901,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
   ],
   "verification": [
     "Unityコンパイル: エラー0",
-    "L0/L1: State.BuildMenu（合成・エントリの工場・コマンド）と Screens.BuildMenu.Views 39 件・L0-s3 の CategoryScroll 系 PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
+    "L0/L1: State.BuildMenu（合成・エントリの工場・コマンド）と Screens.BuildMenu.Views 42 件・L0-s3 の CategoryScroll 系 PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
     "test-name-parity: 束 3 の buildMenu の 5 ファイルと束 5 の buildMenuRestore.spec.ts の未対応 0",
     "unityプレイ録画テスト: uitk-build-menu・webui-buildmenu-click・electric-wire-tool-* 5 本 PASS（全体スイッチ GameUi）、blueprint-place-like-block は D-18 の扱い"
   ],

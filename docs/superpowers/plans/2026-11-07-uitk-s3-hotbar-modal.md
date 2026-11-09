@@ -3472,7 +3472,7 @@ namespace Client.Ui.Screens.Modal
 - [ ] **Step 5: 流して緑にしてコミット**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.Modal|State\.Modal|Modal|Conventions|Theme)\."`
-Expected: `ErrorCount: 0`、`ModalViewTest` 5・`ModalScreenPresenterTest` 6 と C3-b の `UiModalHostTest`・L2 が PASS。赤のときの手順:
+Expected: `ErrorCount: 0`、`ModalViewTest` 5・`ModalScreenPresenterTest` 7 と C3-b の `UiModalHostTest`・L2 が PASS。赤のときの手順:
 - 入力欄の ESC で閉じない → `GameUiInputRules` が `_layer` に付いているか、`FocusOutEvent` が `input.Field`（内側の入力要素ではなく `TextField`）で受けられているかを `Debug.Log` で出す。フォーカスが内側の要素に入るなら `TextField` 側で `FocusOutEvent` を TrickleDown で受ける
 - 欄の外を押しただけで閉じる → `CancelIfEscapeBlurred` の ESC の印の判定が抜けている
 - フォーカスが入らない → `focusController.focusedElement` を `Debug.Log` で出し、`TextField` の内側の要素なら主張は既に `Contains` で受けている。null なら `schedule.Execute` を `ExecuteLater(1)` に替えて確かめ、それでも入らなければ `done.md` の「未確認」に書いて主張を外さずに止める（Web の autoFocus は R-8 の一部）
