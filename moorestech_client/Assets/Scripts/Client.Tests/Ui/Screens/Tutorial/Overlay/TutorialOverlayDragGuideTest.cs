@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Client.Ui.Screens.Tutorial.DragGuide;
 using Client.Ui.Screens.Tutorial.Overlay;
+using Client.Ui.State.Tutorial.Logic;
 using Client.Ui.State.Tutorial.Overlay;
 using NUnit.Framework;
 using UnityEngine;
@@ -134,6 +135,29 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             Assert.AreEqual(1, ShownGuides());
             Assert.AreEqual(0f, guide.resolvedStyle.translate.x, 0.5f);
             Assert.AreEqual(0f, guide.resolvedStyle.opacity, 0.05f);
+        }
+
+        [Test]
+        public void パネルから外れている間にShowされても載せ直せば流れ始める()
+        {
+            MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
+            MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
+            _model.Set(Guide(1));
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(0);
+            var guide = _view.Q<TutorialDragGuideView>();
+            var parent = guide.parent;
+
+            // 外れている間の Show は始めるものが無い（ここでは取消済みハンドルを残さず、載せ直しの解決が始める）
+            // Show while detached has nothing to start (leave no cancelled handle; the re-attach resolution starts it)
+            guide.HideGuide();
+            guide.RemoveFromHierarchy();
+            guide.Show(new TutorialDragGuidePlacement(120f, 120f, 400f, 200f));
+            parent.Add(guide);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs((long)(Ms("--tutorial-drag-guide-duration") / 2f));
+            Assert.Greater(guide.resolvedStyle.translate.x, 1f);
         }
     }
 }

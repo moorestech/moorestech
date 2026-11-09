@@ -73,6 +73,8 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
             StopLoop();
             // silent-ok: 周期の解決前は OnCustomStyleResolved が始める / 読めなければ UssCustomStyleReader が LogError
             if (_duration <= 0f) return;
+            // silent-ok: パネルから外れている間は始めない（取消済みハンドルが残ると載せ直しで始め直せない） / 載せ直しの解決が始める
+            if (panel == null) return;
             // 最初の更新までの 1 フレームに前の周の位置が残らないよう、始めの姿（透明・起点）を先に当てる
             // Apply the starting pose (transparent, at the origin) first so the previous loop's pose does not linger for a frame
             _step.Apply(0f);
