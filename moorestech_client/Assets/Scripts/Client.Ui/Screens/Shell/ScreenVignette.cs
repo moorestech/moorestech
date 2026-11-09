@@ -1,4 +1,3 @@
-using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,8 +9,8 @@ namespace Client.Ui.Screens.Shell
     /// Persistent vignette that darkens every viewport edge, drawn as a vertex-colored grid of the elliptical gradient (Web .viewport radial-gradient)
     /// </summary>
     /// <remarks>
-    /// 形と色は Shell.uss が --screen-shell-vignette-* で受け直したトークンから読む。頂点の α は面と同じく GamePanelFaceOpacityRamp で Linear 合成用に補正する（縁のトークンは S7 の式で補正済み）
-    /// Shape and color come from tokens Shell.uss re-declares as --screen-shell-vignette-*; vertex alpha is corrected for Linear blending with GamePanelFaceOpacityRamp like the panel face (the edge token is S7-corrected)
+    /// 形と色は Shell.uss が --screen-shell-vignette-* で受け直したトークンから読む。頂点の α は面と同じく LinearBlendOpacity で Linear 合成用に補正する（縁のトークンは S7 の式で補正済み）
+    /// Shape and color come from tokens Shell.uss re-declares as --screen-shell-vignette-*; vertex alpha is corrected for Linear blending with LinearBlendOpacity like the panel face (the edge token is S7-corrected)
     /// </remarks>
     internal sealed class ScreenVignette : VisualElement
     {
@@ -74,7 +73,7 @@ namespace Client.Ui.Screens.Shell
                     var x = width * column / Columns;
                     var y = height * row / Rows;
                     var tint = _edgeColor;
-                    tint.a = GamePanelFaceOpacityRamp.OpacityAt(_edgeColor.a, _shape.EdgeWeightAt(x, y, width, height));
+                    tint.a = LinearBlendOpacity.OpacityAt(_edgeColor.a, _shape.EdgeWeightAt(x, y, width, height));
                     mesh.SetNextVertex(new Vertex { position = new Vector3(x, y, Vertex.nearZ), tint = tint });
                 }
             }

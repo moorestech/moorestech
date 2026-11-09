@@ -144,9 +144,9 @@
   --panel-action-button-height: 28.609px;
   --panel-action-button-font-size: 15px;
   --panel-action-button-hover-mix: 22%;
-  /* ポーズメニューのバグ報告記述欄。パネル内幅（420−32×2）と3行ぶんを固定長で持つ */
-  /* Bug-report textarea in the pause menu; fixed lengths for the inner panel width (420−32×2) and three lines */
-  --bug-report-textarea-width: 356px;
+  /* ポーズメニューのバグ報告記述欄。パネル内幅（420−1×2−32×2。枠線1pxと左右padding32px）と3行ぶんを固定長で持つ */
+  /* Bug-report textarea in the pause menu; fixed lengths for the inner panel width (420−1×2−32×2: 1px border and 32px side padding) and three lines */
+  --bug-report-textarea-width: 354px;
   --bug-report-textarea-height: 72px;
   /* ポーズメニュー枠の最大高。stage上下に40pxずつ残し、超えた本文は枠内でスクロールさせる */
   /* Max height of the pause-menu frame: leaves 40px above and below in the stage; overflowing body scrolls inside it */

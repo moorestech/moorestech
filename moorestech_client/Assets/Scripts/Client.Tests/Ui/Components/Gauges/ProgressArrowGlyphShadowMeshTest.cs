@@ -1,5 +1,5 @@
 using Client.Ui.Components.Gauges;
-using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Theme;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,12 +12,12 @@ namespace Client.Tests.Ui.Components.Gauges
     /// </summary>
     public class ProgressArrowGlyphShadowMeshTest
     {
-        // 既定寸法の倍率・線の外縁（線幅 2 の半分×倍率）・影の色（DerivedTokens の値）
-        // Default-size scale, stroke outer edge (half of width 2 times scale) and the shadow color (the DerivedTokens value)
+        // 既定寸法の倍率・線の外縁・影の色
+        // Default-size scale, stroke outer edge and shadow color
         private const float Scale = 30.53f / 78f;
 
-        // 輪ごとの頂点の数。頂点の添字は 輪×Corners＋角
-        // Vertices per ring; a vertex index is ring times Corners plus corner
+        // 輪ごとの頂点数（添字=輪×Corners＋角）
+        // Vertices per ring (index = ring*Corners + corner)
         private const int Corners = ProgressArrowGlyphPath.VertexCount;
         private static readonly Color ShadowColor = new(0f, 0f, 0f, 0.6691f);
 
@@ -91,7 +91,7 @@ namespace Client.Tests.Ui.Components.Gauges
             // Web の影の実効 α は 0.45×描いた画素の α（溝だけ 0.36・線だけ 0.315・重なり 0.423）なので、選び直しはこの範囲に入る
             // The Web effective shadow alpha is 0.45 times the drawn pixel alpha (track 0.36, stroke 0.315, overlap 0.423), so re-measured values stay in range
             Assert.That(webAlpha, Is.InRange(0.30f, 0.50f), $"token alpha {tokenAlpha} is not a dark-corrected Web shadow alpha");
-            Assert.AreEqual(tokenAlpha, GamePanelFaceOpacityRamp.OpacityAt(tokenAlpha, 1f), 1e-4f);
+            Assert.AreEqual(tokenAlpha, LinearBlendOpacity.OpacityAt(tokenAlpha, 1f), 1e-4f);
         }
 
         [Test]

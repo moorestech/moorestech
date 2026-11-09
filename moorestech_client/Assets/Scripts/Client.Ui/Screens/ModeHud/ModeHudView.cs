@@ -20,10 +20,10 @@ namespace Client.Ui.Screens.ModeHud
             AddToClassList("mode-hud");
             // 拾わない指定は組み終えてから掛ける
             // Apply picking-ignore once the group is built
-            UiSubtreePickingIgnore.Apply(this);
-            UiSubtreePickingIgnore.Apply(_placement);
-            UiSubtreePickingIgnore.Apply(_deleteBands);
-            UiSubtreePickingIgnore.Apply(_deleteHeight);
+            UiPickingIgnore.ApplyToSubtree(this);
+            UiPickingIgnore.ApplyToSubtree(_placement);
+            UiPickingIgnore.ApplyToSubtree(_deleteBands);
+            UiPickingIgnore.ApplyToSubtree(_deleteHeight);
         }
 
         public void Render(ModeHudViewModel viewModel)
