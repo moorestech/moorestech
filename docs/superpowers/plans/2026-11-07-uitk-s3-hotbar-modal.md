@@ -1548,6 +1548,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 
         public void OnDropped(IUiDropTarget target)
         {
+            // silent-ok: 空き枠は掴む物が無い（Web の source === null） / HotbarSlotDragGestureTest「空き枠を引きずって…」が固定する
             if (!TryGetDragSource(out var source)) return;
             // ホットバーの印なら印が受けて解く。他の画面の印は Web の closest が枠も列も返さない場合と同じく枠外
             // A hotbar mark receives and resolves it; another screen's mark is outside, as when the Web closest finds neither slot nor row
@@ -1561,6 +1562,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 
         public void OnDroppedOutside()
         {
+            // silent-ok: 空き枠は掴む物が無い（Web の source === null） / HotbarSlotDragGestureTest「空き枠を引きずって…」が固定する
             if (!TryGetDragSource(out var source)) return;
             ClearAsDroppedOutside(source);
         }
@@ -3202,6 +3204,22 @@ namespace Client.Tests.Ui.Screens.Modal
             Assert.IsTrue(Shown());
         }
 
+        [Test]
+        public void 入力欄にフォーカスがあるまま外から取り消されてもゲームのキー入力を止めたままにしない()
+        {
+            // 右短押し・要求の差し替えはブリッジの CancelPendingRequest で閉じ、入力欄のフォーカスが外れる前に View が外れる
+            // Right short-press and request replacement close through the bridge's CancelPendingRequest, detaching the view before the field loses focus
+            _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
+
+            _service.CancelPendingRequest();
+            simulate.FrameUpdate();
+            Assert.IsFalse(Shown());
+            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
+        }
+
         private bool Shown()
         {
             // C3-b の UiModalHostTest.ScopeShown と同じ式
@@ -3211,7 +3229,7 @@ namespace Client.Tests.Ui.Screens.Modal
     }
 }
 ```
-（`ui-modal-host--shown` が `modal-scope` に付くことは C3-b の計画の `UiModalHostTest` から写した。実物で付く先が違えば `UiModalHostTest` の式に揃える）
+（`ui-modal-host--shown` が `modal-scope` に付くことは C3-b の計画の `UiModalHostTest` から写した。実物で付く先が違えば `UiModalHostTest` の式に揃える。「外から取り消されても…」が赤なら、`ModalView` の外れで `FocusOutEvent` が出ていない〈`GameUiInputRules` が戻すのは FocusOut だけ〉。`IsTextInputFocused` の値と、外れの前後で `focusController.focusedElement` を `TestContext.WriteLine` で出して確かめてから、`ModalView` に `RegisterCallback<DetachFromPanelEvent>` を足し、パネルから外れる前に入力欄を `Blur()` する形で直す〈Blur は ESC の印が無いので取消を二重に出さない〉）
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: コンパイルエラー（`ModalView` 等が無い）
@@ -3589,9 +3607,9 @@ git commit -m "feat(uitk): ホットバーとモーダルを全体スイッチ U
 uloop execute-dynamic-code --project-path ./moorestech_client --code '
 var bytes = System.IO.File.ReadAllBytes("<LOGS の絶対パス>/uitk/reference-captures/web-869b2d4264/3-hotbar-equipment-empty.png");
 var png = new UnityEngine.Texture2D(2, 2); png.LoadImage(bytes);
-// 列の左端の 40px 左・枠の高さの中ほど（参照の 1280×720 で列は y 646〜698。左下原点へ直す）
-// 40px left of the row and mid-height of the slots (the row spans y 646-698 in the 1280x720 reference; convert to bottom-left origin)
-var c = (UnityEngine.Color32)png.GetPixel(395, 720 - 672);
+// 列の左端の 40px 左・枠の高さの中ほど（参照の 1280×720 で列は x 388〜893・枠は y 666〜718。左下原点へ直す）
+// 40px left of the row and mid-height of the slots (the row spans x 388-893 and the slots y 666-718 in the 1280x720 reference; convert to bottom-left origin)
+var c = (UnityEngine.Color32)png.GetPixel(348, 720 - 692);
 return $"{c.r},{c.g},{c.b}";'
 ```
 （`<LOGS の絶対パス>` は `realpath <LOGS>` の結果。Editor の作業ディレクトリは `moorestech_client` なので相対パスにしない）
@@ -3690,7 +3708,8 @@ Expected: 3 地 × 6 値（受理ありの `empty`・`tab`・`unresolved` と、
 
 明るい地で 7 段を超えた行だけ直す（C3-a の基準）:
 - `empty`・`tab` の面: α を上げ下げして合わせる。`α_uitk` を 0.01 刻みで変えて Step 2〜3 を回し、明るい地で 7 段以内かつ暗い地の差が最小の値を採る。採った値を `DerivedTokens.uss` に書き、`handWrittenDerivedRows.mjs` の該当行を `formula` から `uss: "<値>"` と決め方の文（「明るい地 (240,203,166) のランタイム画素で Web の sRGB 合成に 7 段以内で合わせた。bd albof.34」）へ書き換えて `node tools/uitk/convert-web-tokens.mjs` で再生成する（前例 `--slot-frame-face`）
-- `unresolved`・`disabledEmpty`（opacity）: `--hotbar-unresolved-opacity`・`--hotbar-select-disabled-opacity` を 0.01 刻みで変えて同じく合わせる。opacity は前計算の表の対象ではないので、`DerivedTokens.uss` の行のコメントに「明るい地のランタイム画素で Web の opacity <元の値> に合わせた（bd albof.34・LX-23 の「## 実測の結論」）」と書く
+- 決める順: 面の α を `empty`・`tab` の行で先に決め、次に `--hotbar-unresolved-opacity` を `unresolved` の行で、最後に `--hotbar-select-disabled-opacity` を受理外の 3 行（`disabledEmpty`・`disabledFilled`・`disabledUnresolved`）の最大差が最小になる値で決める（後の値は前の値を前提にするので順を変えない）。どの行かが明るい地（と `ref`）で 7 段を超えるなら基準を緩めず、完了にせず、差と候補の値を `done.md` の「要裁定」に書いて止める
+- `unresolved`・`disabled*`（opacity）: `--hotbar-unresolved-opacity`・`--hotbar-select-disabled-opacity` を 0.01 刻みで変えて同じく合わせる。opacity は前計算の表の対象ではないので、`DerivedTokens.uss` の行のコメントに「明るい地のランタイム画素で Web の opacity <元の値> に合わせた（bd albof.34・LX-23 の「## 実測の結論」）」と書く
 - 直したら `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.Hotbar|Theme|Conventions)\."`（`HotbarHudViewTest`・`HotbarHudDropTest` はトークンを読むので期待を書き換えない）
 
 - [ ] **Step 5: 台帳に書き、口を片付けてコミット**
@@ -3930,7 +3949,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロックと `--outlined-count-label-color` の次の 1 行（`--outlined-count-label-stroke-color`。他レーンが同じ並びに行を足していれば両方採る）・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の表〈他レーンが足した行は採り、albof.30 の行は消えたままにする〉・`PauseMenuCommandsTest.cs` の `benign` の配列〈両方の値の和。片側だけを採ると良性の値が落ちる〉）の衝突は両方の行を採る（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロックと `--outlined-count-label-color` の次の 1 行（`--outlined-count-label-stroke-color`。他レーンが同じ並びに行を足していれば両方採る）・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の表〈他レーンが足した行は採り、albof.30 の行は消えたままにする〉・`PauseMenuCommandsTest.cs` の `benign` の配列〈両方の値の和。片側だけを採ると良性の値が落ちる〉）の衝突は両方の行を採る。ただし縁の色のつまみは例外: 取り込みの後に `git grep -n "outlined-count-label-stroke-color\|OutlinedCountLabelStrokeKnobTest" origin/feature/uitk` を流し、C4-a が先に足していたら、このレーンが Task 6 Step 3 で足した 5 か所（`OutlinedCountLabel.uss` の 2 行とコメント・`.cs` のコメント・`DerivedTokens.uss` の既定 1 行・`SlotKnobOverrides.uss` の `.slot-knob-dark-outline`・`OutlinedCountLabelStrokeKnobTest.cs`）を捨てて相手の形を採る（両方採ると既定が 2 行・テストのクラスが二重になる）。名前や既定が違えば止めて指揮へ返す（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
 
 取り込みの後、1 つを見る（当たれば同じ PR へコミットして push し、`$FILTER` を回し直す）:
 - 錨の未移植の表: Task 7 Step 6 の `test -f … && grep …` を流し直し、`AnchorIds.HotbarHud` の行があれば消して `TutorialAnchorCoverageTest` を回す（S2-tutorial がこのレーンより後に入った場合）
@@ -4016,6 +4035,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-37 | 枠の源には bool の割当の有無でなく `HotbarSlotViewModel` を渡し、掴める物の判定は `TryGetDragSource` の 1 か所に置く | `bool assigned` を渡して `OnDropped`・`OnDroppedOutside` で 2 回判定: 同じ判定が 2 か所になる | agent 既定 |
 | D-38 | 表示名が空の対象は、Web と同じく空の名前をそのまま出す（代わりの文を出さない）。Web は `HotbarTopic` が BP だけ原文を運び、他はクライアントが GUID のキーで引き、`PlacementTargetFace` は `displayName` をそのまま描く | 代わりの文（ID 等）を出す: Web と違う見た目になり、空の名前は BP 名の確定規則（空白だけを弾く）で通常は起きない | Web の写し |
 | D-39 | モーダルの確定の可否は文の変化ごとに `ModalLogic.TryGetConfirmableText` で 1 回だけ導き（`_confirmable`・`_confirmedText`）、ボタンと確定の両方が読む。空白の除去は `ModalLogic` の private `Trim` の 1 か所 | View が `Trim` と `CanConfirm` を別々に呼ぶ: 同じ導出が 2 本になる | agent 既定 |
+| D-44 | 独立評価 5 巡目（opus）の反映: (a) Task 15 の取り込みの後に縁の色のつまみの分岐を確かめ直し、C4-a が先に入っていたら自分の 5 か所を捨てて相手の形を採る（両方は採らない） (b) 参照の地を読む点を列の外（348,692）へ (c) 空き枠の early return 2 か所の直前に silent-ok (d) 入力欄にフォーカスがあるまま外から閉じたときにゲームのキー入力が戻ることを L1 で主張 (e) 減光の値は α → 未解決の opacity → 受理外の opacity の順で決め、7 段を超えたら止める | — | agent 既定（opus 5 巡目） |
 | D-43 | 再検査 3 の反映: `ModalLogic.CanConfirm` は本番の呼び手がテストだけなので消し（デバッグ/テスト専用 public を残さない）、既存の `ModalLogicTest` 2 件を `TryGetConfirmableText` で書き換える。空白の判定は private `IsConfirmable` の 1 か所、`Trim` は 1 経路 1 回 | `CanConfirm` を委譲で残す: テスト専用の public が残る | agent 既定（再検査 3） |
 | D-42 | 独立評価 4 巡目の反映: (a) 縁の色のつまみは C4-a と先に入ったほうが足し、後は使うだけ（Task 6 Step 3 の頭で `git grep` して分岐。実行計画の C4-a 行と設計書 A-108 に同じ規則） (b) 解放の録画の流れ 8 は無料設置を切ってから未解決を作る (c) 減光の照合を空き枠・割当済みの白面・未解決の重なりの 3 つで測る (d) `Registration/GameUi/` が 11 本以上なら integrator の再編が入るまで完了・マージしない (e) 録画が 200 行を超えたら流れ 8 を別シナリオへ (f) 番号タブの数字の縦位置を並べ比べで 1px 以内 | (a) このレーンだけが足す: 先に走る C4-a が同じ部品の同じ行を書いてぶつかる (b) 既定の無料設置のまま: 未解放のブロックも解決され、未解決の枠が作れない | agent 既定（Codex 4 巡目・opus 4 巡目） |
 | D-41 | 独立評価 3 巡目と再検査 2 の反映: (a) 一部だけ写した 2 件は `<web-test>` だけを付け、処遇の表に行を足さない。残りの範囲は `done.md` の「## 部分移植の残り」（処遇の語は 4 つだけで、タグと処遇の行の併存は整合の誤り） (b) albof.30 の「写す予定」の行は、`HotbarHudPickingTest` にタグを付ける Task 7 のコミットで消し、束 2・3 の突き合わせで終了コード 2 が無いことを完了の条件にする (c) `ModalLogic.CanConfirm` は `TryGetConfirmableText` に委ね、`TryGetConfirmableText` は `HasConfirmableText` を通す（空白の規則を 1 か所に。Phase 2.6 弱 1 件の採用） (d) `PauseMenuCommandsTest` を `$FILTER` と取り込みの衝突の一覧へ | (a) 処遇「一部」: ツールが書式の誤りで落とす (c) 判定を 2 本のまま: 片方だけ直すと食い違う | agent 既定（Codex 3 巡目・再検査 2） |
