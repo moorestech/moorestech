@@ -196,12 +196,13 @@ namespace Client.Ui.Components.Slots
 // Client.Ui.State.Tutorial.Logic.TutorialHighlightClip.TryComputeInset(TutorialClipRect box, TutorialClipRect clip, float outset, out TutorialClipInset inset) : bool
 // S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs の Owners に { AnchorIds.RecipeCraftButton, "S4-recipe" }・{ AnchorIds.RecipeItemPrefix, "S4-recipe" }
 
-// ===== S4-alpha（PLAN-W4a の計画 docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md の Task 2 Produces・末尾「## 後続レーンへの Produces 一覧」から写す。マージ後に実物と照合）=====
+// ===== S4-alpha（出所: S4-alpha 計画 14a85b146c の末尾「## 後続レーンへの Produces 一覧」。レビュー中で変わりうる。マージ後に実物と照合）=====
+// MachineRecipeData は Client.Ui.State.Recipe.Data（既存）。Client.Ui.State.asmdef への Game.UnlockState 参照は S4-alpha が足す（このレーンのカタログ・コマンドもそれに乗る。Task 1 で asmdef に参照があることを確かめる）
 namespace Client.Ui.State.Recipe.Source
 {
     // 解放済みの機械レシピ（Web Topics.machineRecipes の源。マスタ＋解放状態＋製作上限で組み直し、変化で配り直す）
     // ctor(IGameUnlockStateData, ILevelInheritanceCraftCapLookup, IVanillaApiEvent)。IInitializable の Initialize で初回の組み立てと購読（S4-alpha の登録が持つ）
-    public sealed class UnlockedMachineRecipeSource : IInitializable { public IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>> Current { get; } }
+    public sealed class UnlockedMachineRecipeSource : IInitializable { public IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>> Current { get; } }   // DI 登録済み（AsSelf。S4-alpha の登録ファイル）
 }
 ```
 
@@ -334,6 +335,7 @@ grep -rn "class FluidAmountSlot\b\|class SlotAmountBadge\b" $S/Client.Ui/Compone
 grep -rn "MarkClipContainer\|class TutorialAnchorMeasure\b\|ShowsLabel" $S/Client.Ui $S/Client.Ui.State                                 # S2-tutorial（3 件以上）
 grep -n "RecipeCraftButton\|RecipeItemPrefix" $S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs                                  # 2 行
 ls $S/Client.Ui.State/Recipe/Source/ && grep -rn "MachineRecipeData" $S/Client.Ui.State/Recipe/Source/                                     # S4-alpha
+grep -n "Game.UnlockState" $S/Client.Ui.State/Client.Ui.State.asmdef                                                       # S4-alpha が足す asmdef 参照
 grep -rn "public" $S/Client.Ui/Components/Recipe $S/Client.Ui/Components/Controls/RecipeAction* | grep -v "//"
 grep -rn "public ItemRecipeViewerDataContainer(\|void UnlockCraftRecipe" $S/Client.Game ../moorestech_server/Assets/Scripts/Game.UnlockState 2>/dev/null
 ```
@@ -1011,7 +1013,7 @@ git commit -m "feat(uitk): クラフトの操作と拒否の理由 2 つを足�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Recipe/Screen/RecipeScreenModelTest.cs`・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/Input/{RecipeSelectionCloseResetTest.cs,FakeCloseKeyProbe.cs}`
 
 **Interfaces:**
-- Consumes: Task 2〜3 の Produces、S4-alpha の `UnlockedMachineRecipeSource.Current`（S4-alpha 計画の Task 2 Produces。Task 1 で実物と照合）、`LocalPlayerInventoryController`（`LocalPlayerInventory.OnItemChange`・`OnInventoryRefreshed`。前例 `ResearchNodeStateStore`）、`IPlayerInventoryOperations.ReadSnapshot()`、`Localize.OnLanguageChanged`（前例 `ModeHudModel`）、`UiRoutingState.Current`
+- Consumes: Task 2〜3 の Produces、S4-alpha の `UnlockedMachineRecipeSource.Current`（S4-alpha 計画 14a85b146c の Produces 一覧。レビュー中で変わりうる。Task 1 で実物と照合）、`LocalPlayerInventoryController`（`LocalPlayerInventory.OnItemChange`・`OnInventoryRefreshed`。前例 `ResearchNodeStateStore`）、`IPlayerInventoryOperations.ReadSnapshot()`、`Localize.OnLanguageChanged`（前例 `ModeHudModel`）、`UiRoutingState.Current`
 - Produces:
   - `public interface IRecipeScreenSignals { IObservable<Unit> OnRecipesUnlocked { get; } IObservable<Unit> OnInventoryChanged { get; } }`、本番 `GameRecipeScreenSignals(IGameUnlockStateData unlockState, LocalPlayerInventoryController inventoryController)`
   - `public sealed class RecipeScreenModel { public RecipeScreenModel(IGameUnlockStateData unlockState, RecipeViewerItemCatalog itemCatalog, UnlockedMachineRecipeSource machineRecipes, IRecipeScreenSignals signals, IPlayerInventoryOperations inventory, RecipeItemSelection selection); public IReadOnlyReactiveProperty<ItemListViewModel> ItemList { get; } public IReadOnlyReactiveProperty<RecipeViewerViewModel> Viewer { get; } }`
@@ -3052,7 +3054,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - Button の `Clickable` が押下で捕捉しているときに `PointerLeaveEvent` が来るか（来なくても `CraftHoldPointerInput` の位置判定で止まる。`CraftHoldTest` で見る）
 - `UiPressGesture` を一覧の視口に付けたとき、セルの `ItemSlot` の `OnSlotGestured`（LeftDown）やホバーのツールチップと干渉しないか（`ItemListViewTest`・`RecipeSlotTooltipTest` で見る）
 - 明るい半透明（白 88%・(132,137,151) 78%）を式 1.85 で描いたときの参照との差（Task 11 Step 2。残れば LX-132・133）
-- C4-c・C4-a・S2-tutorial・S4-alpha の API 名（Task 1 Step 1 で照合）。S4-alpha の機械レシピの源は S4-alpha 計画の Task 2 から写した（`Current`。初回の組み立ては `Initialize`〈IInitializable〉なので、`RecipeScreenModel` の ctor より後に来ても `Skip(1)` の後の値で組み直る）
+- C4-c・C4-a・S2-tutorial・S4-alpha の API 名（Task 1 Step 1 で照合）。S4-alpha の機械レシピの源は S4-alpha 計画 14a85b146c（レビュー中で変わりうる。マージ後に実物と照合）の Produces 一覧から写した（`Current`。初回の組み立ては `Initialize`〈IInitializable〉なので、`RecipeScreenModel` の ctor より後に来ても `Skip(1)` の後の値で組み直る）
 - `ItemRecipeViewerDataContainer` の ctor・`IGameUnlockStateDataController.UnlockCraftRecipe` の名前（Task 1 Step 1）
 - Web の素材スロットの `count`（必要数を渡すか未指定か）と `lacking` の式（Task 3・6 の着手時に `CraftRecipeEntry.tsx` を読む）
 
