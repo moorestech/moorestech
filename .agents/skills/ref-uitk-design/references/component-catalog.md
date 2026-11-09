@@ -94,9 +94,9 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
 |---|---|---|---|---|---|---|---|
 | `GaugeBar` | 0..1 の横ゲージ | `GaugeBar(string testid)`／`SetValue(float ratio01)` | 高 `--slot-size/6`（C# が祖先のつまみから割る `[A-47]`。C2-c 計画 Task 5）。つまみ `--gauge-fill`（progress が白へ上書き。§8.18） | blockInventory・progress | C2-c | `W/shared/ui/GaugeBar`・§8.6 | 新規 |
-| `BarSeries` | 棒の並び（null は溝だけ） | `BarSeries(string testid, int barCount)`／`SetValues(IReadOnlyList<float?> ratios01)` | `--empty`。`--bar-series-*` | blockInventory（ベルト搬出量） | C4-b | `W/shared/ui/BarSeries`・§8.23 | 新規 |
-| `ProgressArrowGlyph` | 矢印そのものがゲージ（null で静止） | `ProgressArrowGlyph(string testid)`／`SetProgress(float ratio01)`／`SetIdle()` | Painter2D で SVG path を写す。輪郭 `--craft-arrow-outline` 2px。drop-shadow は頂点カラーのにじみで描く | blockInventory・recipe | C4-b | `W/shared/ui/ProgressArrowGlyph`・§8.13 | 新規 |
-| `ProgressArrowBar` | 細い矢印形のゲージ | `ProgressArrowBar(string testid)`／`SetValue(float ratio01)` | `--progress-arrow-*` | blockInventory・FluidSlotRow | C4-b | `W/shared/ui/ProgressArrowBar` | 新規 |
+| `BarSeries` | 0..1 の値を古い順に縦棒で並べる時系列（null は溝だけ） | `BarSeries(string testid)`／`SetValues(IReadOnlyList<float?> ratios01)`（棒の数は値の数に合わせる。NaN と範囲外は 0..1 へ丸める）`[A-85]` | 棒は `GaugeBar` と同じ器（`--gauge-track`・内周の線 `--gauge-outline-width`／`--bevel-c1`・充填 `--gauge-fill` を底から高さ %）。null の棒は `bar-series__bar--empty`（印だけ）、隙間は先頭以外の左の margin（先頭は `--leading`）。つまみ `--bar-series-height`・`--bar-series-bar-width`・`--bar-series-gap` | blockInventory（ベルト搬出量） | C4-b | `W/shared/ui/BarSeries`・§8.6・§8.23 | 新規（`Gauges/BarSeries/`） |
+| `ProgressArrowGlyph` | 矢印そのものがゲージ（作った直後と `SetIdle` は静止） | `ProgressArrowGlyph(string testid)`／`SetProgress(float ratio01)`／`SetIdle()`。`SetProgress(0)` は静止でなく幅 0 の進捗 `[A-87]` | 寸法 `--craft-arrow-width`×`--craft-arrow-height` を部品だけが持ち viewBox 121×78 を `xMidYMid meet` で当てはめる。`__view-box` の中に影・溝（`--gauge-track`）・充填の切り抜き（中に `--color-content-primary`。`--gauge-fill` に従わない）・輪郭（`--craft-arrow-outline`・viewBox の 2 単位・miter）の順。path は Painter2D、drop-shadow は輪の頂点カラー（`--progress-arrow-glyph-shadow`）`[A-88]`。静止は `--idle` で切り抜きを隠す | blockInventory（機械の加工行）・recipe（`RecipeRow`） | C4-b | `W/shared/ui/ProgressArrowGlyph`・§8.13 | 新規（`Gauges/ProgressArrowGlyph/`） |
+| `ProgressArrowBar` | 0..1 を幅で満たす帯状のゲージ（名前に反して矢印形ではない） | `ProgressArrowBar()`／`SetValue(float ratio01)`。`name` は Web が固定で付ける `progress-arrow-bar` `[A-86]` | 幅 `--progress-arrow-width`・高 `--progress-arrow-height`、器は `GaugeBar` と同じ（`--gauge-track`・内周の線・`--gauge-fill` を幅 %）。出し入れは使い手 | blockInventory（採掘機）・`FluidSlotRow` | C4-b | `W/shared/ui/ProgressArrowBar` | 新規（`Gauges/ProgressArrowBar/`） |
 | `Spinner` | Mantine `Loader` の写し | `Spinner()` | UiMotion の回転 | Web の 1 か所（レーンで出所を確かめる） | 使う段のレーン | Mantine Loader | 新規 |
 | `ToastItem` | Mantine Notification の写し | `ToastItem(string text, ToastItemTone tone)`（`Client.Ui.State.Toast` を知らない）`[A-18]` | `ToastItem.uss`（`.toast-host` は `Screens/Toast/ToastHost.uss`） | toast | 済み → F1 | Mantine Notification | 改修 |
 
@@ -134,6 +134,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 |---|---|---|
 | `shared/itemMove`（クリック計画の純ロジック） | `Client.Ui.State/ItemMove/`（L0 で 33 件を写す） | 4 |
 | `shared/pointerGesture` | Foundation `Input/Gesture/UiPressGesture` | 3 |
+| `shared/clamp01`（ゲージの値の丸め） | `Components/Gauges/GaugeBar/GaugeRatio`（Gauges の internal。使い手が Gauges の部品だけのため。`[A-89]`） | 4（C4-b） |
 | `shared/tooltip`（CursorTooltip） | `Screens/CursorTooltip/`＋`TooltipFace`（位置の純関数 `CursorTooltipPlacement` は `Client.Ui.State/CursorTooltip/`。`[A-60]`） | 2 |
 | `shared/treeView` | `Components/NodeGraph/` | 4 |
 | `shared/tutorialAnchor` | Foundation `Anchor/`（既存） | 済み |
