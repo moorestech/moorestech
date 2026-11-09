@@ -1,0 +1,7 @@
+/* 祖先でトークンを上書きした場合の列の位置の確認用（テスト専用） */
+/* Test-only: checks the columns follow tokens overridden on an ancestor */
+.stage-columns-test-override {
+    --stage-padding-left: 24px;
+    --stage-column-gap: 8px;
+    --menu-upper-safe-area: 100px;
+}
