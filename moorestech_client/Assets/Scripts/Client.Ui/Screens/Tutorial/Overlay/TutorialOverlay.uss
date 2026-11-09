@@ -36,7 +36,7 @@
 /* Instead of a box-shadow spread, overlay an outer border of the glow width; C# sets width and radius from --tutorial-overlay-glow-width */
 .tutorial-outline__glow {
     position: absolute;
-    border-color: var(--tutorial-attention-glow);
+    border-color: var(--tutorial-attention-glow); /* look-exception: LX-38 */
 }
 
 .tutorial-highlight-label {
