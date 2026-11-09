@@ -38,7 +38,7 @@
 | S4-inventory | InventoryPanel・EquipmentPanel（`inventory-panel`・`inventory-sort`・`main-slot-<i>`・`equipment-slots`）、アンカーの印付け | 依頼 `TutorialAnchor.Unmark`（D-8）・`GameUiPointerProbe.PickAt`（D-11） | Foundation の口なので gamma は作らない。Task 11 で状態を確かめ、未処理なら bd を I-fix へ（無くても動く形で書かれているので段階 4 の完了は妨げない。帰結: 画面側の写しが 2 か所残る） |
 | S4-machine | 機械の詳細・清浄室・流体枠・レシピ選択（`MachineRecipeSelectionRow` 等） | 依頼: `Client.Ui.State.asmdef` の参照、撮影表への 15 枚の追加（E-22 の自撮り） | asmdef は取り込み済みかを見るだけ。撮影表への追加は integrator の共有区画なので Task 11 で `docs/uitk/TODO.md`「## 参照キャプチャ」に自撮りの置き場を 1 行で記す |
 | S4-train | 列車の本文（`train-tab-inventory`・`train-tab-timetable`）・時刻表の即時編集（適用ボタンを消し、保留中は `train-timetable-section--busy`）・駅名（`train-station-name-input`＋`train-station-name-apply`）・プラットフォーム。録画 `train-timetable-via-ui`・`train-station-default-name` を直す | integrator への依頼 (a) `PanelActionButton` の無効の見た目（画面のつまみで上書き中。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) `Registration/GameUi/` の再編先 | (a) Task 11 で状態を確かめ、未処理なら bd を I-fix へ。(b) Task 11 Step 2 の参照の記載に含める。(c) S4-alpha の (a) と同じ扱い。ラダー 5 は即時送信の形で書く（Task 6） |
-| S4-research | 研究ツリー（`research-tree`・`research-panel`・`research-viewport`・`research-node-<guid>`・`research-button-<guid>`・`research-detail-pane`）、録画 `uitk-research-tree`・`tier9-5` | L3 は「S4-ladder」＝gamma。D-9 `NodeGraphView` の `MarkClipContainer` は integrator への依頼。tier9-5 が Web 前提の操作で落ちたら既存シナリオの横断は gamma。詳細ペインの自撮りの参照の台帳記載 | L3 は Task 3。`MarkClipContainer` は Task 11 で状態を確かめ未処理なら bd。tier9-5 は Task 9 の全録画で分類（不具合なら research か I-fix へ）。参照の記載は Task 11 |
+| S4-research | 研究ツリー（`research-tree`・`research-panel`・`research-viewport`・`research-node-<guid>`・`research-button-<guid>`・`research-detail-pane`）、録画 `uitk-research-tree`・`tier9-5` | L3 は「S4-ladder」＝gamma。D-9 `NodeGraphView` の `MarkClipContainer` は integrator への依頼（E-1・A-65 で子を切る容器へ印を付けるのは画面のレーンの義務）。tier9-5 が Web 前提の操作で落ちたら既存シナリオの横断は gamma。詳細ペインの自撮りの参照の台帳記載 | L3 は Task 3。`MarkClipContainer` は義務（E-1・A-65）なので、Task 11 Step 1 で研究の視口に印が無ければ bd を I-fix へ回し、入るまで「状態: 停止」で待つ（研究ノードのアンカーの画面外・切り抜きの判定の前提。D-19）。tier9-5 は Task 9 の全録画で分類（不具合なら research か I-fix へ）。参照の記載は Task 11 |
 | S4-recipe | ビューア・アイテム一覧（`recipe-viewer`・`item-list-panel`・`item-list-scroll`・`item-list-cell-<id>`・`craft-button-<guid>`・`craft-recipe-box-<guid>`・`recipe-entry-list`）、長押しクラフト、アンカー `recipe.craft-button`・`recipe.item-<itemId>` | D-20: ビューア＋機械 UI＋インベントリの L3 は gamma。D-9 `GameScrollView` のつまみ 5 本を設計書へ。自撮りの参照の台帳記載。部分移植の残り（`MachineRecipeEntry` の alt・`slotTooltip`） | L3 は Task 3（同時には出ないので、画面を行き来して残骸が出ないことで見る。D-3）。つまみは末尾の「設計書へ反映する行」に 1 行。参照は Task 11。部分移植の残りは Task 10 の parity で処遇の表にあるかを見る |
 | S4-special | 特殊族（電柱・歯車変換・フィルター分配・ロケット・宇宙エレベーター・ベルト） | D-19: L3 は gamma。D-23（alpha の「出し入れをやり直す口」）・D-26（パネルの InstanceId）は integrator への依頼。部分移植の残り（filterSplitter の 3 件目など） | 特殊族は同時に出る組の L3 の対象外（SubInventory の 1 例として `釜` を見る。D-3）。D-23・D-26 は Task 11 で状態を確かめ未処理なら bd。部分移植の残りは Task 10 |
 | C4-e（申し送り） | 掴み・分割ドラッグの State | D-5（Web ホストと State が持ち物の規則を二重に持つ。撤去まで据え置き）、D-8 `IPlayerSlotDragCommands`、D-29（LateTick で確定）、D-36（`BeginSplitDrag` の先行確定で計画の snapshot がずれうる。alpha の着地で表に出る）、D-37（マウスのリセットで session を捨てる）、bug-pass の Warning (a)〜(e)、`DiscardStaleSession`、outbox の箱、albof.40、掴み絵の撮影 id | D-36・Warning (a)(b)(e) は Task 5 の右ドラッグ配りと連続の分割で観察し、`done.md`「## 回ってきた件」に「再現した／しなかった（証拠）」で書く。再現したら bd を I-fix へ。D-5 は据え置き（帰結: 撤去 5c まで規則が 2 か所。X レーンで Web 側ごと消える）。albof.40・撮影 id は状態を確かめるだけ |
@@ -102,8 +102,8 @@ Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot �
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / サーバーの値の直読み・品目と見え方の自前実装・アンカー照合の置き場・死活表の読み手 2 つを直した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱3・第3バケツ0 / Key? の不在を判別子に使う形を直し、ADR との食い違い 3 件（LX の追記者・並べ比べの判定者・MarkClipContainer の義務）を D-17〜D-19 で裁き、弱 3 件は D-20 でこのまま
 
 ---
 
@@ -202,8 +202,9 @@ ls tools/uitk/ | wc -l
 ls moorestech_client/Assets/Scripts/Client.Playtest/Operations/
 grep -n "\"石窯\"\|\"蒸気機関車駅\"" -r ../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json | head -3
 grep -n "ProfilerRecorder\|UIElementsUpdatePanels\|RepaintPanels" -r docs/uitk-migration/poc | head -5
+git grep -n "MarkClipContainer" -- moorestech_client/Assets/Scripts/Client.Ui | head -5
 ```
-Expected: 登録ファイルが 10 以下（超えていれば bd を立てて I-fix へ回す。gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）
+Expected: 登録ファイルが 10 以下（超えていれば bd を立てて I-fix へ回す。gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
 
 - [ ] **Step 5: bd と done.md の骨組みを作る**
 
@@ -1398,27 +1399,28 @@ return PlaytestRunner.Run("uitk-stage4-panel-cost", options, async p =>
 
     // 3 画面で測り、Note に 1 行ずつ出す
     // Measure on three screens and note one line each
-    await MeasureOn("GameScreen", null);
-    await MeasureOn("PlayerInventory", Key.Tab);
-    await MeasureOn("ResearchTree", Key.R);
+    await MeasureCurrent(UIStateEnum.GameScreen);
+    await MeasureOpened(UIStateEnum.PlayerInventory, Key.Tab);
+    await MeasureOpened(UIStateEnum.ResearchTree, Key.R);
 
     #region Internal
 
-    async UniTask MeasureOn(string label, Key? openKey)
+    async UniTask MeasureOpened(UIStateEnum state, Key openKey)
     {
-        if (openKey.HasValue)
-        {
-            await p.PressKey(openKey.Value);
-            await p.WaitUiState(label == "ResearchTree" ? UIStateEnum.ResearchTree : UIStateEnum.PlayerInventory, 10f);
-        }
+        // キーで開いて測り、Esc でゲーム画面へ戻る
+        // Open with the key, measure, then return to the game screen with Esc
+        await p.PressKey(openKey);
+        await p.WaitUiState(state, 10f);
+        await MeasureCurrent(state);
+        await p.PressKey(Key.Escape);
+        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    }
+
+    async UniTask MeasureCurrent(UIStateEnum state)
+    {
         await p.WaitSeconds(1f);
         var cost = await PlaytestPanelCostRecorder.Measure(markers, 240);
-        p.Note($"panel-cost {label} {Screen.width}x{Screen.height} frames={cost.Frames} mean={cost.MeanMs:F3}ms p95={cost.P95Ms:F3}ms max={cost.MaxMs:F3}ms markers={cost.Markers}");
-        if (openKey.HasValue)
-        {
-            await p.PressKey(Key.Escape);
-            await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-        }
+        p.Note($"panel-cost {state} {Screen.width}x{Screen.height} frames={cost.Frames} mean={cost.MeanMs:F3}ms p95={cost.P95Ms:F3}ms max={cost.MaxMs:F3}ms markers={cost.Markers}");
     }
 
     #endregion
@@ -1628,7 +1630,7 @@ git grep -n "panel-action-button-width" -- "moorestech_client/Assets/UI Toolkit"
 ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc -l
 grep -n "A-142\|SlotCommands" docs/uitk-migration/execution/component-architecture.md | head -3
 ```
-Expected: 各件が入っているかが分かる。「束ねる完了条件と回ってきた件」の表の行ごとに、`done.md`「## 回ってきた件」へ「済み（ファイル:行）」か「未処理 → bd <id>（I-fix へ。帰結: …）」を書く。未処理のものは段階 4 の完了条件に入らない（ラダー・L3・録画が緑なら完了）ので、gamma は止まらず bd を立てるだけにする（D-6）
+Expected: 各件が入っているかが分かる。「束ねる完了条件と回ってきた件」の表の行ごとに、`done.md`「## 回ってきた件」へ「済み（ファイル:行）」か「未処理 → bd <id>（I-fix へ。帰結: …）」を書く。未処理のものは段階 4 の完了条件に入らない（ラダー・L3・録画が緑なら完了）ので、gamma は止まらず bd を立てるだけにする（D-6）。ただし `MarkClipContainer` は Task 1 Step 4 で見た義務で、ここでは入っていることを確かめ直すだけ（D-19）
 
 - [ ] **Step 2: 自撮りの参照の置き場を台帳に記す**
 
@@ -1793,7 +1795,7 @@ codex-audit スキル（既定 gpt-6-astra）に、Step 2 の 6 組と Step 3 �
 
 - [ ] **Step 5: 指摘を再現してから回す**
 
-指摘ごとに、別の subagent（fresh-context）に該当の組の画像と指摘文だけを渡し「この差は画像で確かめられるか。px で測って」と再現させ、再現できたものだけを `done.md`「## 差の表」に「画面 / 差 / 測った値 / 持ち主 / 処理」で残す。処理は (1) 直す → 持ち主（I-fix）への bd と依頼文、(2) 例外にする（「同じにするための対応が大きいか、ブラウザの癖の再現が要り、かつ差が一目で分からない」ものだけ。台帳の運用）→ LX-141〜145 の文面（ID・画面・差・同じにしない理由・推奨案・撮影・出所）を `done.md` に書いて I-fix へ渡す（台帳の行とコード側の印 `/* look-exception: LX-n */` は差のあるファイルを直す I-fix が両方置く。LookExceptionLedgerTest が照合する）。再現しなかったものは「再現せず」と 1 行で残す。直すものが残る間は「状態: 停止」で待ち、入ったら Step 2 を流し直して該当の組だけ再判定する
+指摘ごとに、別の subagent（fresh-context）に該当の組の画像と指摘文だけを渡し「この差は画像で確かめられるか。px で測って」と再現させ、再現できたものだけを `done.md`「## 差の表」に「画面 / 差 / 測った値 / 持ち主 / 処理の案」で残し、指揮へ判定を求める（設計書 §3.3: 並べ比べの判定は指揮。gamma は codex-audit を回して再現と案までを持つ。D-18）。指揮の判定ごとに、(1) 直す → 持ち主（I-fix）への bd と依頼文、(2) 例外にする（「同じにするための対応が大きいか、ブラウザの癖の再現が要り、かつ差が一目で分からない」ものだけ。台帳の運用）→ gamma の範囲の LX-141〜145 から番号を取り、文面（ID・画面・差・同じにしない理由・推奨案・撮影・出所）を `done.md` に書いて I-fix へ渡す。台帳の行とコード側の印 `/* look-exception: LX-n */` は、`LookExceptionLedgerTest` が両方の一致を同じ HEAD で見るので、差のあるファイルを直す I-fix の PR で一緒に入れる（D-17）。再現しなかったものは「再現せず」と 1 行で残す。直すものが残る間は「状態: 停止」で待ち、入ったら Step 2 を流し直して該当の組だけ再判定する
 
 - [ ] **Step 6: コミットする**
 
@@ -1924,7 +1926,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 1. **Requirements coverage**: R-1 → Task 3（`Stage4ScreenSetGameUiTest`）・Task 12 Step 3、R-2 → Task 5、R-3 → Task 4 Step 1・Task 6、R-4 → Task 12 Step 2、R-5 → Task 9、R-6 → Task 4 Step 3・Task 7、R-7 → Task 4 Step 2・Task 8、R-8 → Task 10、R-9 → Task 2・Task 15 Step 2、R-10 → Task 13、R-11 → Task 1 Step 3・Task 5 Step 3・Task 11、R-12 → 末尾の節、R-13 → Task 14・15。§1.4 の句: 同時に出る組の L3（Task 3）・ラダー 2 本（Task 5・6）・ラダー 1〜4 緑（Task 12）・全録画の 2 回目（Task 9）・アンカー 9 件（Task 7）・CPU の台帳 1 回（Task 8）・束 4 差分 0（Task 10）・G1 0（Task 2・15）・codex-audit（Task 13）。plan §2.5 の「機械 UI を開いたまま中身が更新される録画」は Task 5 の 04、「UITK の掴みのコードが Web に依存しない」は Task 5 が Web ホスト無し（`WebUiHost.Hub == null`）で掴み・Shift・右ドラッグを通すことで見る。§6.2 の必須: 使う部品と API（Global Constraints・各 Task の Interfaces）、つまみ（gamma は部品のつまみを使わない。recipe D-9 の 5 本は末尾の設計書の行）、写すテストと `<web-test>`（gamma が写すテストは無い。持ち主の無い 3 件は処遇「捨てる」。D-7）、720p と 2560×1080（Task 13）、録画（Task 5・6・7・9）、登録の 1 行（gamma は登録しない。D-1）、新しい共有の申告（Global Constraints）、File Structure（他レーンと重ねない）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<PR番号>`・`<番号>`・`<HEAD 10 桁>`・`<起点>`・`<SHA 10 桁>`・`<n>`・`<x>`・`<y>`・`<置き場>`・manifest の `<… のパス>` は実行時にしか決まらず、取り方を同じタスクに書いた。他レーンの名前（testid・USS のクラス・スロットの名前）は計画から写した想定で、Task 1 Step 2 の照合表で実物に読み替える手順を書いた。「TBD」「適切に」は無い
 3. **Type consistency**: `Stage4Surface(string, string)`・`Stage4ExpectedSurfaces.Expected(UIStateEnum)`・`All`・`Inventory`/`RecipeViewer`/`ItemList`/`BlockInventory`/`ResearchTree`/`Equipment`/`Backdrop`、`Stage4ScreenSetProbe.CountByName`・`IsVisible`・`ColumnNameOf`・`IsPickedAtCenter`・`DescribePicked`、`PlaytestTrainLineSetup`（`StationA`・`StationB`・`StationAPosition`・`StationBPosition`・`Train`）・`PlaytestTrainLine.Build`・`AimAtCar`・`AimAtStation`、`PlaytestPanelCost`（`Frames`・`MeanMs`・`P95Ms`・`MaxMs`・`Markers`）・`PlaytestPanelCostRecorder.FindPanelMarkers`・`ListUiElementsMarkerNames`・`Measure`、`PlaytestMasterAnchor`（`AnchorId`・`TutorialGuid`・`ChallengeGuid`・`ChallengeTitle`）・`PlaytestAnchorChecks.CollectUiHighlightAnchors`・`CheckOutlineOnAnchor` は定義（Task 3・4）と使用（Task 5〜8・13）で同じ綴り。スクリプトの引数 `<GameUi|Web> <list> <out> <start> <count>` は Task 9・12・13 で同じ
-4. **保留・縮退経路**: (a) 前提のレーンが欠ける → Task 1 Step 1 で「状態: 停止」と指揮への返却（解消の主体は指揮。最小構成: S2-ladder・S3-ladder が DAG に無く着手時に未マージ → 改め案で辺を足す）。(b) 不具合・退行・写し漏れ → bd と依頼文で I-fix へ、「状態: 停止」で待ち、取り込み後に該当分だけ再走（解消の主体は I-fix。gamma は直さないので、待つ間に gamma が自分で解消できる経路は無いことを明記した）。(c) マーカー 0 本 → シナリオが一覧を Note に出して `Success: false`（気づく経路は result.json）。(d) 依頼の未処理（Foundation の口・登録の再編）→ 完了条件に入れず bd だけ（D-6。帰結を `done.md` に書く）。(e) 系の切替の失敗 → TSV に `switch-failed` 行（スクリプトの `silent-ok` は止める PlayMode が無いときの `Stop` の失敗だけ）。(f) 1ms 超 → 合否にせず bd と「未確認」（plan §2.5 の目安）
+4. **保留・縮退経路**: (a) 前提のレーンが欠ける → Task 1 Step 1 で「状態: 停止」と指揮への返却（解消の主体は指揮。最小構成: S2-ladder・S3-ladder が DAG に無く着手時に未マージ → 改め案で辺を足す）。(b) 不具合・退行・写し漏れ → bd と依頼文で I-fix へ、「状態: 停止」で待ち、取り込み後に該当分だけ再走（解消の主体は I-fix。gamma は直さないので、待つ間に gamma が自分で解消できる経路は無いことを明記した）。(c) マーカー 0 本 → シナリオが一覧を Note に出して `Success: false`（気づく経路は result.json）。(d) 依頼の未処理（Foundation の口・登録の再編）→ 完了条件に入れず bd だけ（D-6。帰結を `done.md` に書く）。`MarkClipContainer` だけは義務なので止まって待つ（D-19）。(e) 系の切替の失敗 → TSV に `switch-failed` 行（スクリプトの `silent-ok` は止める PlayMode が無いときの `Stop` の失敗だけ）。(f) 1ms 超 → 合否にせず bd と「未確認」（plan §2.5 の目安）
 5. **「決定的にする」を根拠にした選択**: 無し（全録画の順はファイル名順だが、各本の前で PlayMode を止めて系を立て直すので順に依らない）
 6. **呼び出し側への責務漏出**: アンカーの集め方と照合は `PlaytestAnchorChecks` の 1 か所、列車線の準備は `PlaytestTrainLine` の 1 か所、CPU の測り方は `PlaytestPanelCostRecorder` の 1 か所、面の読み方は `Stage4ScreenSetProbe` の 1 か所。石窯を狙って開く 4 行は Task 5 と Task 13 の 2 か所に現れる（D-9 で据え置きの理由を書いた）
 
@@ -1941,7 +1943,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-3 | 「ビューア＋機械 UI＋インベントリ」の L3 は同時表示でなく行き来で見る（PlayerInventory → … → SubInventory〈`釜`〉→ … → PlayerInventory）。特殊族は対象にしない | Web の `App.tsx` でビューアは playerInventory のときだけ出て、機械 UI（SubInventory）と同時には出ない（S4-recipe の重なりの表もそう書く）。壊れ方は「前の画面の面が残る・重なる」なので、行き来の後に残骸が無いことを見る。特殊族は同じ `block-inventory` の器で列の扱いが同じ | 3 つを同時に出す: 本番で起きない状態を作ることになる。特殊族を全部巡る: 族ごとの見た目は各レーンの L1 と録画が見ている |
 | D-4 | 登録ディレクトリ `Registration/GameUi/` が 10 を超えていても gamma は動かさず、bd を I-fix へ回す | 中身は各レーンの登録ファイルで、動かすと他レーンのファイルを書く。alpha が依頼済みで、W4 の取り込みの前に integrator が入れる段取り | gamma が再編する: 所有が重なる。完了条件にする: 段階 4 の完了条件（plan §2.5）に無い |
 | D-5 | 他レーンの名前が計画と違えば gamma のファイルの側を直し、相手に変更を求めない | 名前は画面の持ち主が Web の `data-testid` に合わせて決めたもので、gamma の検査はそれを読む側 | 計画の名前へ合わせるよう依頼する: マージ済みの画面を名前のためだけに直すことになる |
-| D-6 | 回ってきた依頼のうち Foundation の口（`TutorialAnchor.Unmark`・`GameUiPointerProbe.PickAt`・`MarkClipContainer`・`GamePanel` の題の逃げ）と D-23・D-26 は、未処理でも段階 4 の完了を止めず bd を I-fix へ回すだけにする | 各レーンが「無くても動く形」で書いたと計画に書いている。gamma の完了条件（§1.4）に入っていない。帰結: 画面側の写しが残る（`done.md` に件ごとに書く） | 全部入るまで止める: 段階 5 の着手が理由無く遅れる |
+| D-6 | 回ってきた依頼のうち Foundation の口（`TutorialAnchor.Unmark`・`GameUiPointerProbe.PickAt`・`GamePanel` の題の逃げ）と D-23・D-26 は、未処理でも段階 4 の完了を止めず bd を I-fix へ回すだけにする | 各レーンが「無くても動く形」で書いたと計画に書いている。gamma の完了条件（§1.4）に入っていない。帰結: 画面側の写しが残る（`done.md` に件ごとに書く） | 全部入るまで止める: 段階 5 の着手が理由無く遅れる |
 | D-7 | 持ち主の無い `e2e/mock-host/detailActions.test.ts` 3 件は処遇「捨てる」 | mock-host（偽ホスト）が detail action を受けて自分の状態を書き換える契約で、UITK に偽ホストが無い。機械のレシピ選択の振る舞いは S4-machine の State のテストが持つ | 写す予定: 写し先が無いので永遠に閉じない |
 | D-8 | 新しいシナリオ 5 本は `scenarios/uitk/` に置く | ラダー 1〜3 と同じ置き場で、ラダーの一覧（plan §4.4）を 1 か所で引ける。シナリオは C# のアセンブリに入らず、既存の `scenarios/uitk/` は 12 本で 10 ファイルの規則を当てていない | `scenarios/uitk/ladder/` を作る: 既存のラダー 1〜3 と置き場が割れる |
 | D-9 | 石窯を置いて狙って開く 4 行（Task 5・13）は共通化しない | シナリオ間の共有は DSL の口になり、2 か所のために `Ladder/` に 4 本目を足すのは YAGNI。違いが出たら（狙いの位置）片方だけ直せる | `PlaytestKilnOps` を足す: 2 か所のための口 |
@@ -1952,6 +1954,10 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-14 | `recipe.item-<itemId>` はマスタ外の 1 件として 9 件と分けて見る | 統合計画 §4.5 の追加の ID で、マスタは今使っていない。`AnchorIds.RecipeItem(int)` の書式が解決することだけを見る | 見ない: 追加の ID の解決が誰にも確かめられない |
 | D-15 | ラダーとアンカー・撮影は録画の DSL、同時に出る組は L3 で見る | 同時に出る組は「木の構造（列・数・Pick）」の照合で、L3 が速く CI でも回る。ラダーは実操作の流れで、録画が要る（unityプレイ録画テスト） | 全部を録画で: CI で回らない。全部を L3 で: 掴み・長押し・F の流れの録画が残らない |
 | D-16 | 列車線の準備と CPU 時間の計測は `Operations/Ladder/`（新しい役割のサブディレクトリ。名前空間は平らな `Client.Playtest.Operations`）、アンカーの照合は前例の `ScenarioChecks/`、サーバーの値は既存の `ServerSnapshots/` の待ち（`WaitForItemCount`）か `RunOnServer` で読む。品目は `PlaytestItemOps.ResolveItemId`、見えるかは `GameUiElementQuery.IsVisible` を使う。出所: 設計検査（Phase 1〜2.5） | 既存のサブディレクトリは役割で分かれ（`ServerSnapshots`・`ScenarioChecks`・`Ui`）、準備と計測はどれにも当たらない。`Operations/` 直下は既に 10 本。サーバーの値をメインスレッドから読むと tick と競合する（bd moorestech-xyuaf.2.10） | 全部 `Ladder/` に置く: アンカーの照合は `ScenarioChecks` と同じ役割。`Operations/` 直下に置く: 11 本目になる。品目と見え方を自前で書く: 既存の 1 か所と判定が割れる |
+| D-17 | LX の番号は gamma の範囲（LX-141〜145）から取るが、台帳の行は gamma でなく差のあるファイルを直す I-fix がコードの印と同じ PR で入れる。出所: 設計検査 Phase 2.6（検査7。設計書 §3.4「台帳の末尾へレーンが追記」との食い違い） | `LookExceptionLedgerTest` は「印の ID が台帳にある」「台帳の ID が印のどこかにある」を同じ HEAD で照合するので、行だけ先に入れると gamma の PR が赤になる。gamma は差のあるファイル（他レーンの画面）を書かない（D-1）。§3.4 の「レーン」を「印を置くレーン」と読む改め案を末尾の設計書の行に足す | gamma が台帳の行だけ入れる: 照合テストが落ちる。gamma が印も置く: 他レーンのファイルを書く |
+| D-18 | codex-audit を回し、指摘を再現して処理の案を付けるまでが gamma、直すか例外にするかの判定は指揮。出所: 設計検査 Phase 2.6（検査7。設計書 §3.3「指揮（判定）」と実行計画 §5「段の締めで codex-audit」の食い違い） | 両方を満たす読み方: 回すのは段の締め（§5・§1.4）、判定は指揮（§3.3）。gamma は int のレーンで指揮と同じ場にいるので判定待ちは短い | gamma が判定まで持つ: §3.3 と食い違う |
+| D-19 | `MarkClipContainer`（研究の視口に子を切る容器の印）は D-6 から外し、無ければ I-fix へ回して入るまで止まる。出所: 設計検査 Phase 2.6（検査7。E-1・A-65 の義務） | 印が無いと、研究ノードのアンカーが視口で切られて見えなくても枠が出る（チュートリアルの枠の前提を欠く）。R-6 の判定の前提なので完了条件に入る | 未処理でも進める: A-65 の義務を段の締めで見逃す |
+| D-20 | 型の弱い指摘（検査5 の弱 3 件）はこのままにする。(a) 面の列を `StageColumn` でなく名前の文字列で持つのは、L3 が木を名前で読む側で、enum から名前への写しは `StageColumnsLayout` の中にしか無いから（写しを作ると 2 か所になる）。空文字は「列の外」の 1 値だけで、`Stage4ExpectedSurfaces` の表の中に閉じる。(b) マーカー名・アンカー名の接頭辞の一致は、正本（Editor の版・マスタ）が文字列で、決め打ちしない方が版の違いで黙らない（D-13・A-178）。(c) `PlaceTrainOnRail` の応答の `?.` は Assert の文面の中だけで、null も失敗も同じ「設置失敗」で止まる。出所: 設計検査 Phase 2.6（弱）→ agent 既定 | — | 列を enum にする: 名前の写しが L3 に増える |
 
 ランタイムの挙動（UI・入力）を確かめるので、unityプレイ録画テスト（Task 5・6・7・9・12）と EditModeInPlayingTest（Task 3）を入れた。
 
@@ -1983,9 +1989,9 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | A-176 | マスタのアンカーの確かめは、シナリオがピン先マスタの `uiHighLight` を集めて件数を assert し、画面ごとに `TutorialAnchorRegistry.Resolve` が `Unique` で、`AddOutlineHighlight` の枠の中心がアンカーの中心から 5px 以内（画面内のとき）で、`CompleteTutorial` で消えることを見る（S4-gamma） | アンカーの文字列をテストに並べる: ピンの変更で黙って古くなる。Resolve だけを見る: 枠が別の位置に出るずれを見逃す |
 | A-177 | 全録画（段階 1・4 の終わり・切替 PR）の結果は 1 本 1 行の TSV（scenario・system・exit・seconds・run_dir）に残し、PASS／束 5 未移植（段階 4 のとき）／wwxy／前提つき／Web 専用／不具合 の 6 つに分ける。Web 側の失敗は段階の前のコミットで流し直して既存と退行に分ける。不具合と退行は持ち主へ回して 0 にしてから段を締める（S4-gamma） | 失敗を全部不具合にする: 段と無関係の既存の失敗を抱える。分類を書かない: 次の全録画で同じ切り分けをやり直す |
 | A-178 | UI の CPU 時間は `ProfilerRecorder` で名前に `UIElements` と `UpdatePanels`／`RepaintPanels` を含むマーカーを拾って和を取り、Editor の PlayMode・1920×1080 で画面ごとに 240 フレームの平均・p95・最大を台帳に書く。1ms は目安で合否にしない（S4-gamma） | マーカー名を決め打ちする: Editor の版で名前が変わると 0 を測って気づかない。合否にする: plan §2.5 は目安 |
-| A-179 | 段の締めの並べ比べは、各レーンの報告ページの Web／UITK の組と、締めのレーンが同じ実ゲームの状態を両方の系で撮った組（同時に出る画面 × 1280×720・2560×1080）を codex-audit にかけ、記帳済みの LX を除いて差を出させ、別の subagent が画像で再現した差だけを持ち主へ回す。例外にする差は締めのレーンが LX の文面を書き、台帳の行とコードの印は差のあるファイルを直すレーン（I-fix）が置く（S4-gamma） | mock-host の参照だけと比べる: 実ゲームの同時表示の重なりが見えない。指摘をそのまま回す: 再現しない指摘で持ち主の手が止まる |
+| A-179 | 段の締めの並べ比べは、各レーンの報告ページの Web／UITK の組と、締めのレーンが同じ実ゲームの状態を両方の系で撮った組（同時に出る画面 × 1280×720・2560×1080）を codex-audit にかけ、記帳済みの LX を除いて差を出させ、別の subagent が画像で再現した差だけを持ち主へ回す。直すか例外にするかは指揮が判定し、例外にする差は締めのレーンが範囲の番号で LX の文面を書き、台帳の行とコードの印は差のあるファイルを直すレーン（I-fix）が同じ PR で置く（S4-gamma） | mock-host の参照だけと比べる: 実ゲームの同時表示の重なりが見えない。指摘をそのまま回す: 再現しない指摘で持ち主の手が止まる |
 
-§3.3（比べ方）に A-179 を 1 行で足す案: 「段の締めは、同じ実ゲームの状態を両方の系で撮る撮影シナリオ（`scenarios/uitk/uitk-stage<N>-wave-shots.cs`）を持つ」。
+§3.4 の「`LX-n` の番号は…台帳「## 見た目の例外」の末尾へレーンが追記する」に「（段の締めが範囲を持つ例外は、印を置くレーン〈I-fix〉が台帳の行と印を同じ PR で入れる。`LookExceptionLedgerTest` が同じ HEAD で両方を照合するため）」を足す案（D-17）。§3.3（比べ方）に A-179 を 1 行で足す案: 「段の締めは、同じ実ゲームの状態を両方の系で撮る撮影シナリオ（`scenarios/uitk/uitk-stage<N>-wave-shots.cs`）を持つ」。
 
 S4-recipe の D-9（`GameScrollView` のつまみ 5 本）は S4-recipe の計画の「設計書へ」の行が正本で、gamma は写すだけ（指揮が S4-recipe の割り当て行と一緒に入れる）。
 
