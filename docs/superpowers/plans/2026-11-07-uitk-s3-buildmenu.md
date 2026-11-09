@@ -9,7 +9,7 @@
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`GeometryChangedEvent`・`CustomStyleResolvedEvent`）、UniRx、UniTask、VContainer、NUnit＋`com.unity.ui.test-framework`（`UITestFixture`・`simulate.FrameUpdateMs`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（test-name-parity）、gh CLI、bd（Beads）
 
 - **パスの略記**: `S/` = `moorestech_client/Assets/Scripts/`、`W/` = `moorestech_web/webui/`、`LOGS` = `../moorestech_logs`（repo の兄弟）、`SKILL` = `.agents/skills/unity-playmode-recorded-playtest`。Files 節と各コマンドはリポジトリ相対の完全なパスで書く
-- **正本**: 裁定 `.decisions/2026-11-06-*`（とくに「段階2以降の画面もWeb版と同じ見た目にする」「長命ブランチの中は全体スイッチ1つ」「UITK切替までCEF由来の不具合は直さない」）、設計書 `docs/uitk-migration/execution/component-architecture.md`（§1.1・§2.3・§2.4・§2.7・§2.8・§3・§4.1・§4.2・§4.3・§5.1・§7.1 の A-20・A-47・A-49・A-50・A-57・A-78・A-79）、実行計画 `docs/uitk-migration/execution/execution-plan.md`（§1.4 の S3-buildmenu 行・§4.3・§5・§6.2・E-1・E-13・E-20）、L0-s3 計画 `docs/superpowers/plans/2026-11-06-uitk-l0-s3.md` の「後段レーンへ渡すもの」。食い違ったら 裁定 → 統合計画 → 設計書 → 実行計画 → この計画 の順で上が勝つ。この計画が設計書・完了条件と違う所は判断記録（D-5・D-18）に書き、設計書へ足す行の案は `done.md` の「integrator への依頼」へ写す
+- **正本**: 裁定 `.decisions/2026-11-06-*`（とくに「段階2以降の画面もWeb版と同じ見た目にする」「長命ブランチの中は全体スイッチ1つ」「UITK切替までCEF由来の不具合は直さない」）、設計書 `docs/uitk-migration/execution/component-architecture.md`（§1.1・§2.3・§2.4・§2.7・§2.8・§3・§4.1・§4.2・§4.3・§5.1・§7.1 の A-20・A-47・A-49・A-50・A-57・A-78・A-79）、実行計画 `docs/uitk-migration/execution/execution-plan.md`（§1.4 の S3-buildmenu 行・§4.3・§5・§6.2・E-1・E-13・E-20）、L0-s3 計画 `docs/superpowers/plans/2026-11-06-uitk-l0-s3.md` の「後段レーンへ渡すもの」。食い違ったら 裁定 → 統合計画 → 設計書 → 実行計画 → この計画 の順で上が勝つ。この計画が設計書・完了条件と違う所は判断記録（D-5・D-18）に書いた。設計書の A-100〜A-105 は計画の段階で反映済み
 
 ## Requirements
 
@@ -158,8 +158,8 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 - **USS の規約**（ref-uitk-design・設計書 §3.2）: 画面 USS はルートのクラス `.build-menu` で始まり、画面のクラスは `build-menu__*`。部品のクラス（`.slot-frame`・`.mode-switch`・`.game-scroll-view` 等）を書かない。部品の見た目は、部品の要素に画面のクラスを足してそのクラスでつまみを上書きする（`customStyle` は祖先の宣言を当てにしない。D-26）。色は `var()` だけ、`z-index`・構造擬似クラス・合成の太字を使わない。USS の先頭に `/* web: <Web の CSS> */` を日英で書く
 - **申し送りの罠**（I-fix1・C3-a からの実測）: (a) 字間は px 表記でも UITK では「字の大きさ / 100 × 値」で効く。この画面の Web の CSS に字間は無いが、足すときは I-fix1 の換算トークンを `var()` で使い、換算値を直書きしない (b) ギャラリーの撮影は sRGB 合成で半透明が淡く出るので、色はランタイムの PanelSettings（`GameUiPanelSettings.asset` の複製）で撮って比べる（Task 10） (c) 暗い半透明の α は I-fix1（e26010aa0c）で指数 1.85 に選び直し済み。明るい半透明（`--mode-switch-selected-face` 等）は未実測なので、差の表で見た差を「未確認」に書き、直すなら integrator へ依頼する（トークン USS はこのレーンの持ち物でない）
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/BuildMenu/`（補助は `Support/`）・`S/Client.Tests/Ui/State/BuildMenu/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。テンプレート文字列も展開しない。実行計画 E-13）
-- **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.(Ui\.(Screens\.BuildMenu|State\.BuildMenu|Conventions|Theme|Layers|Anchor|State\.Commands)|WebUi\.BuildMenuActionsTest)\.`。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは `GameUiTheme.tss` の `Screens` 区画の `@import` 1 行・`MainGameUiRegistration.cs` の画面登録区画の 1 行・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の enum 末尾と 3 つの switch の末尾（前例 S2-skit）・`Localization/localization.csv` の `ui.commandRejected.*` の末尾 6 行とその生成物 2 つ（`localizationKeys.ts`・`_CompileRequester.cs`。再生成だけ）・`S/Client.Ui.State/Client.Ui.State.asmdef` の参照 3 つ・`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の build menu の行の削除（在るときだけ）・`MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行への `.As<IBlueprintDeleteService>()` 1 つ（D-35）・`ContentGameUiRegistration.cs` の末尾の `PlacementTargetIcons` の登録 1 行（D-42）・`S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs`・`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` への `TrainCarTexture`・`ConnectToolTexture` の追記（D-29。C3-a はマージ済みで W3 に並走の持ち主なし）。新設して持ち主になる共有の置き場は `S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（A-100）。持ち物は File Structure の「新規」の行と同じ: `S/Client.Ui/Screens/BuildMenu/**`・`S/Client.Ui.State/BuildMenu/**` への追加・`S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Tests/Ui/Screens/BuildMenu/**`・`S/Client.Tests/Ui/State/BuildMenu/**`・`S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs`・シナリオ `SKILL/scenarios/uitk/uitk-build-menu.cs`
+- **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.(Ui\.(Screens\.BuildMenu|State\.BuildMenu|Conventions|Theme|Layers|Anchor|State\.Commands|State\.PauseMenuCommandsTest)|WebUi\.BuildMenuActionsTest)\.`（`PauseMenuCommandsTest` は namespace `Client.Tests.Ui.State` 直下なので名指しで入れる。S3-hotbar-modal と共有のテスト）。ドメインリロード中のエラーは 45 秒待って再試行
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは `GameUiTheme.tss` の `Screens` 区画の `@import` 1 行・`MainGameUiRegistration.cs` の画面登録区画の 1 行・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の enum 末尾と 3 つの switch の末尾（前例 S2-skit）・`Localization/localization.csv` の `ui.commandRejected.*` の末尾 6 行とその生成物 2 つ（`localizationKeys.ts`・`_CompileRequester.cs`。再生成だけ）・`S/Client.Ui.State/Client.Ui.State.asmdef` の参照 3 つ・`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の build menu の行の削除（在るときだけ）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の一覧のテスト（S3-hotbar-modal も同じテストを同じ名前へ置き換える。取り込みの衝突は `benign` の値の和を採る）・`MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行への `.As<IBlueprintDeleteService>()` 1 つ（D-35）・`ContentGameUiRegistration.cs` の末尾の `PlacementTargetIcons` の登録 1 行（D-42）・`S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs`・`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` への `TrainCarTexture`・`ConnectToolTexture` の追記（D-29。C3-a はマージ済みで W3 に並走の持ち主なし）。新設して持ち主になる共有の置き場は `S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（A-100）。持ち物は File Structure の「新規」の行と同じ: `S/Client.Ui/Screens/BuildMenu/**`・`S/Client.Ui.State/BuildMenu/**` への追加・`S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Tests/Ui/Screens/BuildMenu/**`・`S/Client.Tests/Ui/State/BuildMenu/**`・`S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs`・シナリオ `SKILL/scenarios/uitk/uitk-build-menu.cs`
 - **新しい共有の申告**（設計書 §5.1-2）: 新しい共有の型（他の画面も使う型・Foundation・Components）が要ると分かったら自分で作らず、`done.md` の「## integrator への依頼」に「<種別>: <名前>・使う画面・API 案・このレーンでの仮置き」を書く。例外（本体の決定）: 配置対象の絵の出どころ（`State/PlacementTarget/PlacementTargetIcon.cs`・`PlacementTargetIconResolver.cs`・`Ui/Content/PlacementTargetIcons.cs`）と落としの受け口（`State/Hotbar/Logic/IHotbarDropReceiver.cs`）は、S3-hotbar-modal が後からこのレーンのファイルを書き換えないよう、先に走るこのレーンが最終の置き場に作る。持ち主はこのレーン、S3-hotbar-modal は使うだけ。`done.md` には「作った・持ち主は S3-buildmenu」と書く（Task 1 Step 3 で雛形に書く: (1) 落としの受け口 `IHotbarDropReceiver`〈D-16〉 (2) 絵の出どころ 3 ファイル〈D-29〉 (3) 2560×1080 の参照の台帳記載〈撮ったときだけ〉）
 - **参照キャプチャ**: 1280×720 は `LOGS/uitk/reference-captures/web-869b2d4264/3-build-menu.png`（最新の 720p。`manifest.json`・`index.md`）、2560×1080 は `LOGS/uitk/reference-captures/web-0e81bbe3c3-2560x1080/3-build-menu.png`
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S3-buildmenu/` に置き、`moorestech_logs` へ入れない。`moorestech_logs` へ書く前に `LOGS/README.md` を読む
@@ -169,6 +169,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 
 - 配置検査: 実施済み / 違反4件・修正4件 / Content を値だけに・State から絵を外し ID の union へ・Screens から Game.PlacementTarget を外す・受け口を void Receive に。再検査: 違反1・強3・弱4、全部反映
 - Phase 2.6: 実施済み / 強2・弱6・第3バケツ5 / 1 セット設置を union に・共有の置き場の出所を §5.1-1 へ、弱は判定の重複を 1 本に・空の表示名を LogError。再検査: 違反1・強3・弱4、全部反映
+- 再検査 2（独立評価 2 巡目の後の変更範囲・fresh-context）: 実施済み / 違反2・強0・弱0 / 全部反映（撮影用スクリプトの Playwright を webui から解決・`Registration/GameUi/` の 11 本目で止める）
 
 ## 死活表（Phase 2.5）
 
@@ -255,7 +256,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuScreenTestHost.cs` | View・Store・Tracker の組み立てと表示の切り替え | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuViewTest.cs` | regression 1・2・3・9 件目 | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuSearchViewTest.cs` | regression 6・7・11 件目、L-5 | 新規 |
-| `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuScrollViewTest.cs` | regression 4・5 件目（5 件目が L-1）、ジャンプ中の介入（D-11） | 新規 |
+| `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuScrollViewTest.cs` | regression 4・5 件目（5 件目が L-1）、ジャンプ中の介入（D-11）、群の高さの配分だけが変わったときのハイライトの引き直し（D-9） | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuCategoryListTest.cs` | `BuildMenuCategoryList.test.ts` 2 件 | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuDetailViewTest.cs` | `BuildMenuDetailSidebar.test.ts` 3 件（部品） | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuDetailStickyViewTest.cs` | regression 8・10 件目（画面） | 新規 |
@@ -267,7 +268,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（L-3 の観測）、要れば「## 見た目の例外」末尾（LX-71〜LX-75） | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば build menu の行を消す | 変更（共有区画・在れば） |
 
-ディレクトリのファイル数（.cs と .uss）: `State/BuildMenu/Entries/` 7・`Source/` 4・`State/PlacementTarget/` 2（新設）・`State/Hotbar/Logic/` 4→5・`Ui/Content/` 3→4・`Commands/` 2（既存 `Logic/` 9・`Session/` 2 は変えない）、`Screens/BuildMenu/` 4・`CategoryScroll/` 4→7・`Parts/` 9、`Tests/.../Screens/BuildMenu/` は既存の L0-s3 の 4 のまま（新しいテストは `Views/` 10・`Support/` 5〈Task 10 の `BuildMenuReferenceDemo` を含む〉へ置く。直下に足すと 13 になるため）・`State/BuildMenu/` 4＋既存（Task 1 Step 1 で `ls` して 10 以下を確かめる。超えるなら `State/BuildMenu/Screen/` へ分ける）。`Registration/GameUi/` は実物が 6（Content・CursorTooltip・Hud・ModeHud・PauseMenu・Toast）で 6→7。W3〜S2 の他レーンも同じ置き場に足すので、Task 1 Step 1 の `ls` で数え、このレーンの 1 本で 10 を超えるなら自分で分けず、`done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方（例 `GameUi/Screens/`）」を書いて 11 本目のまま進める（置き場の再編は共有の構造の変更で、integrator の持ち物）。ほかはすべて 10 以下。
+ディレクトリのファイル数（.cs と .uss）: `State/BuildMenu/Entries/` 7・`Source/` 4・`State/PlacementTarget/` 2（新設）・`State/Hotbar/Logic/` 4→5・`Ui/Content/` 3→4・`Commands/` 2（既存 `Logic/` 9・`Session/` 2 は変えない）、`Screens/BuildMenu/` 4・`CategoryScroll/` 4→7・`Parts/` 9、`Tests/.../Screens/BuildMenu/` は既存の L0-s3 の 4 のまま（新しいテストは `Views/` 10・`Support/` 5〈Task 10 の `BuildMenuReferenceDemo` を含む〉へ置く。直下に足すと 13 になるため）・`State/BuildMenu/` 4＋既存（Task 1 Step 1 で `ls` して 10 以下を確かめる。超えるなら `State/BuildMenu/Screen/` へ分ける）。`Registration/GameUi/` は実物が 6（Content・CursorTooltip・Hud・ModeHud・PauseMenu・Toast）で 6→7。W3〜S2 の他レーンも同じ置き場に足すので、Task 1 Step 1 の `ls` で数え、このレーンの 1 本を足すと 11 本以上になるなら、足す前に止めて指揮へ報告し、`done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方（例 `GameUi/Screens/`）」を書く（置き場の再編は共有の構造の変更で integrator の持ち物。S3-hotbar-modal と同じ扱い）。integrator の再編が `origin/feature/uitk` に入り、取り込んで 10 本以下の置き場へ足せるまで、このレーンは完了にせずマージもしない（AGENTS.md の 1 ディレクトリ 10 ファイル）。ほかはすべて 10 以下。
 
 **写すテストの件数（Web の実物を grep して数え直した。tests-ladder と同じ）**
 
@@ -351,7 +352,7 @@ mkdir -p ../moorestech_logs/harness/uitk/S3-buildmenu
 ## integrator への依頼
 - 作った・持ち主は S3-buildmenu: 落としの受け口 `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（`void Receive(HotbarDragSource source)`）。`BuildMenuEntryDragPayload.OnDropped` は `target is IHotbarDropReceiver` なら `Receive` を呼んで終わり（断った理由のログは受け手）、それ以外は枠の外と同じく何もしない。S3-hotbar-modal は枠の印の型で `IUiDropTarget` と `IHotbarDropReceiver` を両方実装するだけ（D-16）
 - 作った・持ち主は S3-buildmenu: 配置対象の絵の出どころ `S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs`・`PlacementTargetIconResolver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`。S3-hotbar-modal は使うだけ（D-29）
-- 設計書へ足す行の案（A-100〜A-104・§2・§4.1・A-47 の改め）: 判断記録の D-5・D-7・D-8・D-10・D-16・D-29 を元にした案を計画の「設計書へ足す行の案」に置いた
+- 設計書: A-100〜A-105 は計画の段階で `component-architecture.md` に反映済み（依頼なし）。実装で設計書と違う形が要ると分かったときだけ、ここへ案を書く
 ## 未確認
 - 実行計画の L30 と Web の実物の L31（logic 27〈buildMenuGrouping 15・buildMenuScrollSpy 12〉＋sessionState 4）の差。L0-s3 が写し済みなので、このレーンでは数え直しの記録だけ
 ```
@@ -1298,7 +1299,7 @@ git commit -m "feat(uitk): ビルドメニューの Model を源の購読で組�
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`BuildMenuCommandsTest.cs`（`UIStateControl` の状態は前例 `S/Client.Tests/WebUi/BuildMenuActionsTest.cs` と同じく reflection で `CurrentState` を置く。`BlueprintDeleteServiceStub` は前例と同じ形をこのファイルの private class に書く。`BuildMenuCommands` の第 4 引数は `IBlueprintDeleteService` で受ける〈本番の DI は D-35 のとおり `MainGameInteractionRegistration` の `ClientBlueprintLibrary` の登録に `.As<IBlueprintDeleteService>()` を足して引く。Task 8〉）:
+`BuildMenuCommandsTest.cs`（`UIStateControl` の状態は前例 `S/Client.Tests/WebUi/BuildMenu/BuildMenuActionsTest.cs` と同じく reflection で `CurrentState` を置く。`BlueprintDeleteServiceStub` は前例と同じ形をこのファイルの private class に書く。`BuildMenuCommands` の第 4 引数は `IBlueprintDeleteService` で受ける〈本番の DI は D-35 のとおり `MainGameInteractionRegistration` の `ClientBlueprintLibrary` の登録に `.As<IBlueprintDeleteService>()` を足して引く。Task 8〉）:
 ```csharp
 using System;
 using System.Linq;
@@ -2130,7 +2131,7 @@ git commit -m "feat(uitk): ビルドメニューのエントリのマス（不�
 **Interfaces:**
 - Consumes: Task 2・5 の型、C3-a の `SlotGrid`・`ItemSlot`・`GameIcon`、`FadeRule`・`LocalizedLabel`、C3-b の `ModeSwitch<Guid>`
 - Produces:
-  - `public sealed class BuildMenuCategoryList : VisualElement { public BuildMenuCategoryList(GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler); public VisualElement Spacer { get; } public void Render(IReadOnlyList<BuildMenuCategoryGroup> groups, BuildMenuViewModel viewModel); public void SetSpacerHeight(float height); public bool TryGetHeading(Guid categoryGuid, out VisualElement heading); public bool TryGetGroup(Guid categoryGuid, out VisualElement group); }`
+  - `public sealed class BuildMenuCategoryList : VisualElement { public BuildMenuCategoryList(GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler); public VisualElement Spacer { get; } public void Render(IReadOnlyList<BuildMenuCategoryGroup> groups, BuildMenuViewModel viewModel); public void SetSpacerHeight(float height); public bool TryGetHeading(Guid categoryGuid, out VisualElement heading); public bool TryGetGroup(Guid categoryGuid, out VisualElement group); public IObservable<Unit> OnGroupGeometryChanged { get; } }`
   - `public sealed class BuildMenuCategorySidebar : VisualElement { public BuildMenuCategorySidebar(); public IObservable<Guid> OnCategorySelected { get; } public void Render(BuildMenuShownList shown, BuildMenuViewModel viewModel); public void SetActive(Guid? categoryGuid); }`
   - `public sealed class BuildMenuDetailSidebar : VisualElement { public BuildMenuDetailSidebar(GameContentPresentation content, PlacementTargetIcons icons); public void ShowHint(); public void ShowEntry(BuildMenuEntryViewModel entry); }`
 
@@ -2320,6 +2321,7 @@ using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Logic;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BuildMenu.Parts
@@ -2340,8 +2342,13 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         // null は「まだ描いていない」。空の文字列は「群が 0 の構造」で、別の意味
         // null means "not rendered yet"; the empty string is "a structure with no groups", a different meaning
         private string _structureKey;
+        private readonly Subject<Unit> _groupGeometryChanged = new();
 
         public VisualElement Spacer { get; } = new();
+
+        // どれかの群の寸法が変わった（Web は群ごとに ResizeObserver。全体の高さが同じまま配分だけ変わる場合も拾う。D-9）
+        // Some group's size changed (the Web observes each group; catches redistribution with an unchanged total height, D-9)
+        public IObservable<Unit> OnGroupGeometryChanged => _groupGeometryChanged;
 
         public BuildMenuCategoryList(GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
         {
@@ -2399,6 +2406,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             {
                 var root = new VisualElement { name = $"build-menu-category-{group.CategoryGuid:D}-group" };
                 root.AddToClassList("build-menu__group");
+                root.RegisterCallback<GeometryChangedEvent>(_ => _groupGeometryChanged.OnNext(Unit.Default));
                 root.EnableInClassList("build-menu__group--following", following);
                 var heading = new LocalizedLabel { name = $"build-menu-category-heading-{group.CategoryGuid:D}" };
                 heading.AddToClassList("build-menu__category-heading");
@@ -3052,6 +3060,32 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             Assert.Greater(Scroll.scrollOffset.y, 0f);
             Assert.Less(Scroll.scrollOffset.y, target - 1f);
         }
+
+        [Test]
+        public void 全体の高さが同じまま群の高さの配分が変わってもハイライトを引き直す()
+        {
+            OpenMenu(Create());
+            Scroll.SetScrollOffset(HeadingTop(Transport) + 1f);
+            Settle();
+            Assert.IsTrue(IsSelected(View, $"build-menu-category-{Transport:D}"));
+            var contentHeight = Scroll.contentContainer.layout.height;
+
+            // 先頭の群を伸ばし 2 つ目の群を同じだけ縮める。末尾群とスペーサは変わらず、中身の高さの通知は来ない（D-9）
+            // Grow the first group and shrink the second by the same amount; the last group and spacer stay, so no content-height notification comes (D-9)
+            const float shift = 40f;
+            var first = Find<VisualElement>(View, $"build-menu-category-{Logistics:D}-group");
+            var second = Find<VisualElement>(View, $"build-menu-category-{Transport:D}-group");
+            Assert.Greater(second.layout.height, shift * 2f);
+            first.style.height = first.layout.height + shift;
+            second.style.height = second.layout.height - shift;
+            second.style.overflow = Overflow.Hidden;
+            Settle();
+
+            // 見出しが下へずれたので、同じ位置では先頭のカテゴリが選ばれる
+            // The heading moved down, so the same offset now selects the first category
+            Assert.AreEqual(contentHeight, Scroll.contentContainer.layout.height, 0.5f);
+            Assert.IsTrue(IsSelected(View, $"build-menu-category-{Logistics:D}"));
+        }
     }
 }
 ```
@@ -3487,6 +3521,10 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             // Content, viewport and spacer size changes go to the tracker (L-1, D-9)
             scroll.OnContentLayoutChanged.Subscribe(_ => tracker.OnLayoutChanged()).AddTo(_subscriptions);
             list.Spacer.RegisterCallback<GeometryChangedEvent>(OnSpacerGeometryChanged);
+
+            // 各カテゴリ群の寸法の変化もトラッカーへ（Web useBuildMenuCategoryScroll の群ごとの監視。D-9）
+            // Each category group's size change also goes to the tracker (the Web per-group observation; D-9)
+            list.OnGroupGeometryChanged.Subscribe(_ => tracker.OnLayoutChanged()).AddTo(_subscriptions);
 
             // ホイール・押下・キーはジャンプの固定を解く（Web の wheel・pointerdown・keydown。D-11）
             // Wheel, press and key input release the jump pin (the Web wheel, pointerdown and keydown; D-11)
@@ -4061,6 +4099,20 @@ namespace Client.Ui.Screens.BuildMenu
     height: var(--slot-size);
 }
 
+/* 詳細の文と該当なしは Web の本文（継承の 16px・行の高さ 1.55＝24.8px）で折り返す。UITK の既定は 14px・折り返さない（Typography.uss）ので明示する。行送りは LocalizedLabel のつまみ（前例 .mode-hud__detail） */
+/* Detail text and no-results use the Web body text (inherited 16px, line-height 1.55 = 24.8px) and wrap; UITK defaults to 14px without wrapping (Typography.uss), so state it; the pitch uses the LocalizedLabel knob (precedent .mode-hud__detail) */
+.build-menu__detail-name,
+.build-menu__detail-hint,
+.build-menu__detail-cost,
+.build-menu__no-results {
+    margin: 0;
+    padding: 0;
+    font-size: var(--mantine-font-size-md);
+    white-space: normal;
+    --localized-label-line-height: 24.8px;
+    min-height: 24.8px;
+}
+
 .build-menu__detail-name {
     color: var(--text-default);
 }
@@ -4081,7 +4133,7 @@ namespace Client.Ui.Screens.BuildMenu
 - [ ] **Step 7: テストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`（`$FILTER` は Global Constraints の値）
-Expected: `ErrorCount: 0`。`Views` の 39 件（Task 5 の 8・Task 6 の 5・この Task の 26）・L0-s3 の `CategoryScroll` 系・State の BuildMenu・L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が全件 PASS。`BuildMenuRestoreTest` の「復元の前に流れた…」の出力行 `[L-3] offsets emitted while opening: …` を TestResults の xml から写して `done.md` の「## 証拠」に書く（L1 の観測。実機は Task 8 Step 4）。新しいファイルが 200 行未満で、`ls` で `Screens/BuildMenu/` 4・`CategoryScroll/` 7・`Parts/` 9・`Tests/.../Views/` 10・`Support/` 4（Task 10 で 5）を確かめる
+Expected: `ErrorCount: 0`。`Views` の 40 件（Task 5 の 8・Task 6 の 5・この Task の 27）・L0-s3 の `CategoryScroll` 系・State の BuildMenu・L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が全件 PASS。`BuildMenuRestoreTest` の「復元の前に流れた…」の出力行 `[L-3] offsets emitted while opening: …` を TestResults の xml から写して `done.md` の「## 証拠」に書く（L1 の観測。実機は Task 8 Step 4）。新しいファイルが 200 行未満で、`ls` で `Screens/BuildMenu/` 4・`CategoryScroll/` 7・`Parts/` 9・`Tests/.../Views/` 10・`Support/` 4（Task 10 で 5）を確かめる
 
 落ちたときの見方（推測で直さず、値を出してから直す）:
 - 末尾ジャンプが手前で止まる → `Tracker.SpacerHeight.Value` と `Find(View, "build-menu-trailing-spacer").layout.height` と `Scroll.GetContentHeight()` を `TestContext.WriteLine` で出す。スペーサの `GeometryChangedEvent` が来ていなければ D-9 の経路の欠け
@@ -4445,9 +4497,14 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
 // mock-host の DEMO が返すブロックの絵（placeholderIcon）を種番号ごとに PNG にする。UITK の並べ比べの撮影だけが使う
 // Renders the block pictures the mock-host DEMO serves (placeholderIcon) to PNG per seed; used only by UITK comparison captures
 import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
-import { chromium } from "@playwright/test";
 import { placeholderIcon } from "../../moorestech_web/webui/e2e/mock-host/assets/demoAssets.ts";
+
+// tools/uitk/ には node_modules が無いので、Playwright は webui の依存から解決する（bare import はこのファイルの位置から解決されるため）
+// tools/uitk/ has no node_modules, so resolve Playwright from webui's dependencies (bare imports resolve from this file's location)
+const webuiRequire = createRequire(new URL("../../moorestech_web/webui/package.json", import.meta.url));
+const { chromium } = webuiRequire("@playwright/test");
 
 const [outDir, maxSeedText] = process.argv.slice(2);
 if (!outDir || !maxSeedText) throw new Error("usage: render-mock-placeholder-icons.mjs <outDir> <maxSeed>");
@@ -4469,7 +4526,7 @@ pnpm --dir moorestech_web/webui exec playwright install chromium
 pnpm --dir moorestech_web/webui exec tsx ../../tools/uitk/render-mock-placeholder-icons.mjs "$PWD/moorestech_client/.uloop/outputs/compare/S3-buildmenu/demo-icons" 19
 ls moorestech_client/.uloop/outputs/compare/S3-buildmenu/demo-icons | wc -l
 ```
-Expected: `19`（種 1〜19。量産の `8 + i % 12` の最大が 19）。1 枚を `Read` で開き、参照 `3-build-menu.png` のマスの絵と同じ色相・同じ帯の絵であることを確かめる（`tsx` の解決で `@playwright/test` が見つからなければ、`tools/uitk/` の他の `.mjs` の流し方〈`webTokens` の前例〉に揃える）
+Expected: `19`（種 1〜19。量産の `8 + i % 12` の最大が 19）。1 枚を `Read` で開き、参照 `3-build-menu.png` のマスの絵と同じ色相・同じ帯の絵であることを確かめる（`ERR_MODULE_NOT_FOUND` が出たら、出たモジュール名を見る。`@playwright/test` なら `pnpm --dir moorestech_web/webui install --frozen-lockfile` が済んでいるかを確かめる。`.ts` の相対 import なら `tsx` で流しているかを確かめる）
 
 `S/Client.Tests/Ui/Screens/BuildMenu/Support/BuildMenuReferenceDemoTextures.cs`:
 ```csharp
@@ -4562,7 +4619,7 @@ Expected: `95`（8＋80＋7）。`uloop focus-window` の後、S2-mode-tooltip T
 - 列: サイドバー 160・詳細 188・列の間と右の余白 16・下の余白 58。サイドバーのボタン 33px・選択の面（明るい半透明 `--mode-switch-selected-face` は α の換算が未実測。罠 c）
 - 検索: 面の色（`--gauge-track`）・線・置き文字の色、下の 8px
 - リスト: 大見出し 14px（本文色）と小見出し 12px（muted）の段差、FadeRule、節の間 12・群の間 20、マス 48 の面 40（`--icon-pad: 4px`）、右のバーの帯 12 と inset 12、クリップの逃げ 12
-- 詳細: ヒントの muted、上の逃げ 33.57
+- 詳細: ヒントの muted、上の逃げ 33.57。文の大きさと行数: 詳細の名前・ヒント・素材の見出し・該当なしが 16px で折り返し、行の高さ 24.8px。参照のヒントは 2 行。撮った後に EDC で `build-menu__detail-hint` の `resolvedStyle.fontSize`（期待 16）と `Mathf.RoundToInt(layout.height / resolvedStyle.minHeight.value)`（同じ要素の 1 行の高さで割るので舞台の倍率に依らない。期待 2）を両解像度の View で出して `done.md` の差の表の「文字の段組」行に書き、参照の行数と合わなければ USS を直して撮り直す（該当なしは検索に `zzzz` を入れて 1 枚撮り、1 行であることを同じ式で見る）
 - 閉じる: 右上 `--bevel-3`・`--panel-edge-fade`
 
 一目で分かる差は `BuildMenu.uss` で直して撮り直す。字間を足すときは I-fix1 の換算トークンを `var()` で使う（罠 a）。同じにするのが大きくて差が一目で分からないものだけ、台帳「## 見た目の例外」の末尾へ `LX-72`〜`LX-75` で記帳し（`LX-71` は D-10 の smooth scroll の長さと緩急）、該当行に `/* look-exception: LX-n */` を付ける（`LookExceptionLedgerTest` が照合する）。足りなければ止めて指揮へ番号を求める。色の差（明るい半透明の `--mode-switch-selected-face` を含む）は「未確認」で進めない。2 択で閉じる: (1) 直す。トークン USS はこのレーンの持ち物でないので、所有レーン（integrator）へ直しを頼み、その直しを `origin/feature/uitk` から取り込んで撮り直し、一致を確かめる。(2) LX に記帳できる性質のもの（UITK の合成の仕組みで Web と同じにできない等）は `LX-72`〜`LX-75` に理由を付けて記帳する。どちらかが済むまで、このレーンは完了にせず Task 13 のマージもしない（R-12）。撮り終えたら `s3bm-compare-*` の GameObject を `Object.Destroy` し、RT を `Release` して、言語を元へ戻す。`git status` で `GameUiPanelSettings.asset` に変更が無いことを見る
@@ -4813,7 +4870,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`UiCommandRejectReason.cs` の enum と switch の末尾・`localization.csv` の `ui.commandRejected.*` の末尾・`Client.Ui.State.asmdef` の参照・`docs/uitk/TODO.md` の 3 節の末尾）の衝突は両方の行を採る（並走の S3-hotbar-modal も同じ区画に行を足す）。`localization.csv` が衝突したら両方の行を採ったうえで、生成物（`localizationKeys.ts`・`_CompileRequester.cs`）は手で合わせず `pnpm --dir moorestech_web/webui run gen:i18n` と `uloop compile` で作り直して同じマージコミットに入れる。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・入力の裁き・`GameScrollView`・`UiDragDrop` に触れていれば Task 11 Step 2 の 7 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`UiCommandRejectReason.cs` の enum と switch の末尾・`localization.csv` の `ui.commandRejected.*` の末尾・`Client.Ui.State.asmdef` の参照・`docs/uitk/TODO.md` の 3 節の末尾・`PauseMenuCommandsTest.cs` の `benign` の配列〈両方の値の和。片側だけを採ると良性の値が落ちる〉）の衝突は両方の行を採る（並走の S3-hotbar-modal も同じ区画に行を足す）。`localization.csv` が衝突したら両方の行を採ったうえで、生成物（`localizationKeys.ts`・`_CompileRequester.cs`）は手で合わせず `pnpm --dir moorestech_web/webui run gen:i18n` と `uloop compile` で作り直して同じマージコミットに入れる。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・入力の裁き・`GameScrollView`・`UiDragDrop` に触れていれば Task 11 Step 2 の 7 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
 
 取り込みの後、2 つを見る（当たれば同じ PR へコミットして push し、`$FILTER` を回し直す）:
 - 錨の未移植の表: Task 6 Step 6 の `test -f … && grep …` を流し直し、build menu の行があれば消して `TutorialAnchorCoverageTest` を回す（S2-tutorial がこのレーンより後に入った場合）
@@ -4861,7 +4918,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-6 | 画面は `UiLayer.Screen`・`UiFamily.Stage`。帯は `top: --menu-upper-safe-area`・`bottom: --menu-lower-safe-area` で作る | `--menu-content-height` のトークンを足す: Tokens.uss に無く、トークン USS はこのレーンの持ち物でない。舞台は 720 固定なので top/bottom で同じ高さになる | agent 既定（Web の `.panelBand`・`--z-stage-screen`） |
 | D-7 | 隠すときは「位置の保存 → 視口の凍結 → `display: none`」、出すときは「検索語の復元 → `display: flex` → 合成 → スペーサ高の当て直し → 新しい視口の装着」。視口は表示ごとに作り直す | 視口を 1 つ使い回す: トラッカーの `AttachViewport` は同じインスタンスに冪等で、保存位置からの復元（`_scrollRestored` の巻き戻し）が起きない。隠した ScrollView の位置をそのまま読む: `display: none` の間の位置が保たれる保証が無い | agent 既定（L0-s3 の `AttachViewport` の実物） |
 | D-8 | 視口は最初の `SetScrollTopImmediately` まで位置の通知をトラッカーへ流さない（転送の門） | Web と同じく全部流す: L0-s3 が「Web と同挙動に潰れ得る」と申し送った経路（L-3）を開けたままにする。門は L1 で記録し、実機の観測は Task 8 Step 4 | agent 既定（L0-s3「後段レーンへ渡すもの」L-3） |
-| D-9 | スペーサは `SpacerHeight` の購読で `minHeight` を当て、`AppliedSpacerHeight` は `Spacer.layout.height`（NaN は 0）。スペーサの `GeometryChangedEvent` と `OnContentLayoutChanged` の両方で `OnLayoutChanged` を呼ぶ | `OnContentLayoutChanged` だけ: スペーサの反映で中身の高さが変わらない（末尾群が長い等）とき引き直しが来ず、末尾ジャンプが手前で止まる（L-1） | agent 既定（L0-s3 の L-1・[A-49]） |
+| D-9 | スペーサは `SpacerHeight` の購読で `minHeight` を当て、`AppliedSpacerHeight` は `Spacer.layout.height`（NaN は 0）。スペーサの `GeometryChangedEvent`・`OnContentLayoutChanged`・各カテゴリ群の `GeometryChangedEvent`（`BuildMenuCategoryList.OnGroupGeometryChanged`。Web `useBuildMenuCategoryScroll.ts` の群ごとの ResizeObserver の写し）の 3 つで `OnLayoutChanged` を呼ぶ | `OnContentLayoutChanged` だけ: スペーサの反映で中身の高さが変わらない（末尾群が長い等）とき引き直しが来ず、末尾ジャンプが手前で止まる（L-1） | agent 既定（L0-s3 の L-1・[A-49]） |
 | D-10 | smooth scroll は `UiMotionPlayer`＋`ScrollOffsetTweenStep`、300ms・EaseOutCubic。見た目の例外 LX-71。長さは `BuildMenu.uss` の `.build-menu__scroll` のつまみ `--build-menu-smooth-scroll-duration: 300ms` を `UssCustomStyleReader.TryReadMilliseconds` で読む（前例 `ToastHostView` の `--toast-host-enter-duration`。ref-uitk-design「尺はトークン」）。緩急は C# | UITK の `ScrollView.ScrollTo`: 即時で滑らかに動かない。CEF の実測値に合わせる: ブラウザの smooth の長さは仕様で決まらず、測っても版で変わる | agent 既定（完了条件「smooth scroll（UiMotion）」） |
 | D-11 | ホイール・押下・キー（TrickleDown）でモーションを止め `OnUserIntervened` を呼ぶ | 押下だけ: Web は wheel・touchstart・pointerdown・keydown の 4 つで固定を解く（`useBuildMenuCategoryScroll.ts:22`。UITK のデスクトップでは touchstart は押下に畳まれる） | agent 既定（Web `useBuildMenuCategoryScroll.ts`） |
 | D-12 | サイドバーは項目の並びが変わったときだけ `ModeSwitch<Guid>` を作り直し、無効は `SetOptionEnabled` | 毎回作り直す: 押下中の状態・フォーカスが消え、検索の打鍵ごとに木が揺れる | agent 既定 |
@@ -4894,6 +4951,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-39 | 落としの受け口は `void Receive(HotbarDragSource)`（状態を書く口なので結果を返さない。断る理由のログは受け手が出す） | `bool TryReceive`: 源は戻り値を使わないので、bool は呼び手に何も伝えない | 設計検査（配置 V4）・本体の決定 |
 | D-40 | 1 セット設置は判別 union（`BuildMenuSetPlacementNone.Instance`・`BuildMenuSetPlacementAvailable(perCost, remaining)`）にし、Factory だけが Block のとき作る | `HasValue` 付きの 1 クラス: 値が無いのに `PerCost`・`Remaining` を読めてしまう。詳細の列で Kind を見て Block に限る: Factory と同じ判定が 2 か所になる | 設計検査（Phase 2.6 強） |
 | D-41 | 型の弱い指摘の扱い: (a) `CurrentState == BuildMenu` は `BuildMenuCommands` の private `IsBuildMenuOpen` の 1 か所にまとめる。Model の「閉じている間は組み直さない」は別の理由なので残す (b) 素材の不足は VM の ctor で 1 回だけ判定し、`BuildMenuMaterialLine.IsInsufficient` で持つ (c) 空の表示名は前例 `ModeHudViewModelFactory` と同じく `LogError` を出し、表示はそのまま (d) NameOnly のマスも `filled` にする（Web `BuildMenuSlot.tsx` は常に `filled`） (e) `_structureKey` は null を「まだ描いていない」にし、空の文字列（群が 0 の構造）と分ける (f) 合成の結果の bool（`IsCategoryEnabled`・`ShowsNoResults`）と `TryGet` が理由を返さないことはそのまま（呼び手が分岐するだけで、理由を出す先が無い） | 全部を型で塞ぐ: (f) は呼び手の分岐が 1 つずつで、理由を返しても読む所が無い | 設計検査（Phase 2.6 弱） |
+| D-43 | 独立評価 3 巡目と再検査 2 の反映: (a) 詳細の名前・ヒント・素材の見出し・該当なしは Web の本文〈継承 16px・行の高さ 1.55＝24.8px・折り返す〉を `BuildMenu.uss` で明示し、Task 10 で両解像度の行数を測る（UITK の既定 14px・折り返さないのままだと参照の 2 行のヒントが崩れる） (b) 各カテゴリ群の `GeometryChangedEvent` を `BuildMenuCategoryList.OnGroupGeometryChanged` で追跡器へ流す（Web の群ごとの ResizeObserver。全体の高さが同じまま配分だけ変わる場合）と L1 `BuildMenuScrollViewTest` 4 件目 (c) `Registration/GameUi/` が 11 本以上になるなら足す前に止め、integrator の再編が入るまで完了・マージしない (d) 撮影用の絵の描画スクリプトは `createRequire` で webui の `@playwright/test` を解決 (e) `PauseMenuCommandsTest` を共有ファイル・`$FILTER`・取り込みの衝突の一覧へ（S3-hotbar-modal と同じテスト。`benign` は和を採る） | (a) 色だけ写す: 文字の大きさと行数が参照と合わない (b) 中身全体の通知だけ: 配分の変化でハイライトが古いまま (c) 11 本目のまま進める: AGENTS.md の 10 ファイルに反する | agent 既定（Codex 3 巡目・opus 3 巡目・再検査 2） |
 | D-42 | 再検査の反映: (a) `PlacementTargetIcons` の登録は Content 層の登録の置き場 `ContentGameUiRegistration.cs` の末尾へ 1 行（C3-a のファイルへの追記） (b) `TryToUiIcon` はテクスチャの欠けでも false（[A-100] どおり。面は名前で描き、詳細の列は絵を足さない） (c) `BuildMenuSetPlacementNone` を public sealed の `.Instance` にし、使う側は switch で分ける (d) VM の公開面から `Kind` を外し、`KindName`・`CanDeleteBlueprint` だけにする（Factory の内側では使う） (e) `PlacementTargetBlueprintIcon` は値の等価を持たず参照の等価のまま。State はテクスチャを持たないので Guid の等価では撮り直しを見分けられず、等価にすると撮り直し後の VM が同じ物と見なされて絵が古いまま残る。他の union は値の等価のまま (f) 再検査の弱1・弱3 は指揮の決定どおり据え置く | (a) 画面の登録ファイルに置く: Content 層の型をビルドメニューの寿命に結びつけ、ホットバーが画面の登録に依存する (b) 欠けた絵の `UiIcon` を渡して面に任せる: 詳細の列が空の絵を足す (c) `as … != null`: union の網羅が型で見えない | 設計検査の再検査（違反1・強3・弱4）・本体の決定 |
 
 **未確認**（実装で確かめ、違えば `done.md` の「未確認」へ）:

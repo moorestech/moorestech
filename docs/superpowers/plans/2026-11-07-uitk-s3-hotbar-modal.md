@@ -30,7 +30,7 @@
 | R-10 | 並べ比べ: 参照 `3-hotbar-equipment-empty`（1280×720・2560×1080）と `3-modal`（1280×720・1920×1080・2560×1080）を UITK と並べ、差の表を `done.md` に書く | 2 状態の組（ホットバー 2 解像度・モーダル 3 解像度）が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれかがある |
 | R-11 | 登録: `MainGameUiRegistration` の画面登録区画に 2 行（`HotbarGameUiRegistration.Register(builder);`・`ModalGameUiRegistration.Register(builder);`）。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行。BP 名のブリッジは確定の検証を `ModalLogic.HasConfirmableText` に委ねる | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が緑 |
 | R-12 | 録画 `uitk/uitk-hotbar-and-bp-modal`（全体スイッチ UITK）: 枠のクリックで建築モードへ入る・枠の入替・枠外へのドラッグで解除・BP コピーの名前入力をモーダルで打って確定し BP ができる・ESC 1 回でモーダルが閉じ、ポーズも建築モードの解除も起きない（入力欄にフォーカスがあるとき・無いときの両方）。既存の `building/blueprint-copy-paste-via-ui` も全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（Note の `系=GameUi`）がある。録画に ESC 1 回でモーダルが閉じポーズが出ない段がある |
-| R-13 | 写さない Web テスト・一部だけ写す Web テストを `docs/uitk/disposition.md` に書く | `node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing` で、このレーンの持ち分（下の「写すテスト」の表）の未対応が 0 |
+| R-13 | 写した Web テストは `<web-test>` だけで示し、処遇の表（`docs/uitk/disposition.md`）には行を足さない。一部だけ写した 2 件の残りの範囲と持ち主は `done.md` の「## 部分移植の残り」に書く。移植で処遇の表の「写す予定」（albof.30 の行）が要らなくなるので、その行を移植と同じコミットで消す | `node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing` で、このレーンの持ち分（下の「写すテスト」の表）の未対応が 0。`--bundle 2` と `--bundle 3` の終了コードが 2 でない（書式・整合の誤りなし） |
 | R-14 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd（レーン・`albof.30`・`albof.34`）を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -259,8 +259,8 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 - **calc() の写し**（[A-47]）: Web の `top: calc(var(--hotbar-number-tab-overhang) * -1)` と `transform: translateX(var(--hotbar-horizontal-offset))` は画面内の `HotbarCalcKnobs` が customStyle から読んで inline で当てる。換算値を USS に直書きしない
 - **字間・色の罠（持ち越し）**: UITK の字間は字の大きさ/100 × 値（px のまま書くと 100/字の大きさ 倍に効く）。このレーンは字間を書かない（番号タブ・モーダルは Web も `normal`）。部品ギャラリーは sRGB 合成なので、色はランタイムの PanelSettings（Linear 合成）で比べる。暗い半透明の α は I-fix1（e26010aa0c）が指数 1.85 で選び直した（LX-43）が、明るい色の式（α^2.2）は実測されていない。このレーンの明るい半透明（番号タブの枠）は並べ比べで確かめ、外れたら `LX-77` に記帳する
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/{Hotbar,Modal}/`・`S/Client.Tests/Ui/State/{Hotbar,Modal}/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。`it.each` は第 1 引数の書式文字列そのまま。実行計画 E-13）
-- **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(Hotbar|Modal)|State\.(Hotbar|Modal)|Conventions|Theme|Layers|Anchor|DragDrop|Modal|Content)\.`。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
+- **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(Hotbar|Modal)|State\.(Hotbar|Modal|PauseMenuCommandsTest)|Conventions|Theme|Layers|Anchor|DragDrop|Modal|Content)\.`（`PauseMenuCommandsTest` は namespace `Client.Tests.Ui.State` 直下なので名指しで入れる。S3-buildmenu と共有のテスト）。ドメインリロード中のエラーは 45 秒待って再試行
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の albof.30 の行の削除（行は足さない）、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
 - **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` は Web で既に 2 機能（ホットバーの列・装備 HUD。`W/src/shared/uiState/activeLayer.ts:22`）が使うので §5.1-1 により最初から `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` に置く（新規ファイルで他レーンと重ならない。D-21）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。`IUiDropTarget` と State の `IHotbarDropReceiver` を実装）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
 - **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品」を見つけたら作らない。`LOGS/harness/uitk/S3-hotbar-modal/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) 無し（`OutlinedCountLabel` の縁の色のつまみは、既存部品へのつまみ 1 つの追加でこのレーンが足す。Task 6 Step 3・D-7）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-869b2d4264/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080）の `3-hotbar-equipment-empty.png`・`3-modal.png`。1920×1080 の `3-modal` は無いので Task 11 Step 1 で撮る
@@ -271,6 +271,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 
 - 配置検査: 実施済み / 違反4件・修正4件 / 間引き撤回・Select と Modal を UiCommandResult のコマンドへ・WheelPassthroughMark を Foundation/Input へ
 - Phase 2.6: 実施済み / 強4・弱3・第3バケツ3 / 名前だけの絵を判別子で・payload に VM・表示名空の扱い・間引き撤回（A-57）、弱は重複の導出を 1 本に
+- 再検査 2（独立評価 2 巡目の後の変更範囲・fresh-context）: 実施済み / 違反0・強0・弱1・第3バケツ1 / 弱（`ModalLogic` の判定の重複）は採って 1 本に（D-41）。第3バケツ（`BlueprintNameInputState.Confirm` の空白の規則）は既存の「本PR外のリファクタ提案」と D-12 のまま
 - 再検査（独立評価 1 巡目の後・fresh-context）: 実施済み / 違反3・強1・弱3・不一致1 / 全部反映（ESC を Web と同じ 1 回へ・幕の取消を View へ・`OutlinedCountLabel` の縁の色のつまみ・ホイール素通しの判定 `IsPassthrough`・確定の文を `TryGetConfirmableText` の 1 本に・`IsBenign` の一覧を全 true の腕に）
 
 ## 死活表（Phase 2.5）
@@ -356,7 +357,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Tests/Ui/Screens/Modal/ModalViewTest.cs` | 描画・確定の可否と空白の除去・色・ID が変わると空にする（P4 1・4） | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/ModalScreenPresenterTest.cs` | OK で確定して消える・幕で取消・入力欄の ESC 1 回で取消（ワールドへ渡さない）・欄の外の押下では閉じない・実画面 px（P4 2・3、[A-41]） | 新規 |
 | `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` | ホットバーの操作と BP 名のモーダルを UITK で通す録画 | 新規 |
-| `docs/uitk/disposition.md` | 「## 処遇」の末尾に一部だけ写す 3 行 | 変更（共有区画） |
+| `docs/uitk/disposition.md` | 「## 処遇」の albof.30 の「写す予定」の行（`alwaysOnHudWheel.test.ts`「クリックを持つスロット列だけが…」）を消す（Task 7 で `<web-test>` を付けるのと同じコミット）。行は足さない | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.HotbarHud` の 1 行を消す | 変更（共有区画・在れば） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（世界の地の減光の照合）、要れば「## 見た目の例外」末尾（`LX-76`〜`LX-80`） | 変更（共有区画） |
 
@@ -385,7 +386,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 
 | Web のファイル（`W/` から） | 件数 | 写す | 写さない・一部（処遇） | 写し先 |
 |---|---|---|---|---|
-| `e2e/tests/hotbar/hotbar.spec.ts`（P） | 6 | 6 | 一部 2 件: 3 件目はビルドメニューのパネルを通さず本物のエントリの源を単独で置く（パネル越しは S3-ladder。D-16）、5 件目は会話窓の残りを S2-skit へ（D-15） | `HotbarHudViewTest`・`HotbarHudDropTest` |
+| `e2e/tests/hotbar/hotbar.spec.ts`（P） | 6 | 6 | 一部 2 件（処遇の表には書かず `<web-test>` だけ付ける。残りの範囲は `done.md` の「## 部分移植の残り」）: 3 件目はビルドメニューのパネルを通さず本物のエントリの源を単独で置く（パネル越しは S3-ladder。D-16）、5 件目は会話窓の残りを S2-skit へ（D-15） | `HotbarHudViewTest`・`HotbarHudDropTest` |
 | `src/features/hotbar/useHotbarDragSource.test.ts`（C） | 7 | 7 | 0 | `HotbarSlotDragGestureTest` |
 | `src/features/hotbar/hotbarDnd.test.ts`（L） | — | — | L0-s3 で写し済み | — |
 | `e2e/tests/modal.spec.ts`（P） | 4 | 4 | 0 | `ModalViewTest`・`ModalScreenPresenterTest` |
@@ -1157,10 +1158,11 @@ Expected: `localizationKeys.ts` に 2 キーが増え（`contentKeys.ts` は変�
 ```csharp
         // 入力付きモーダルは空白だけの文を確定させない（uGUI BlueprintNameInputView と同じ検証）
         // An input modal rejects whitespace-only text (same validation as uGUI BlueprintNameInputView)
+        // 可否は確定の文の導出に委ねる（規則を 1 か所に置く）
+        // Eligibility delegates to the confirmed-text derivation (one place for the rule)
         public static bool CanConfirm(ModalRequest request, string enteredText)
         {
-            if (!request.RequiresInput) return true;
-            return HasConfirmableText(enteredText);
+            return TryGetConfirmableText(request, enteredText, out _);
         }
 
         // 可否と確定の文を 1 回で導く。入力付きは前後の空白を除いた文、入力なしは文を運ばない（Web text.trim()）
@@ -1169,9 +1171,8 @@ Expected: `localizationKeys.ts` に 2 キーが増え（`contentKeys.ts` は変�
         {
             confirmedText = null;
             if (!request.RequiresInput) return true;
-            var trimmed = Trim(enteredText);
-            if (trimmed.Length == 0) return false;
-            confirmedText = trimmed;
+            if (!HasConfirmableText(enteredText)) return false;
+            confirmedText = Trim(enteredText);
             return true;
         }
 
@@ -1904,6 +1905,7 @@ git commit -m "feat(uitk): ホットバーの枠・番号タブ・落とし先�
 - Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（`Screens` 区画の末尾に 1 行）
 - Test: `S/Client.Tests/Ui/Screens/Hotbar/HotbarViewModelSamples.cs`・`RecordingHotbarCommands.cs`・`HotbarTestPresentation.cs`・`HotbarHudViewTest.cs`・`HotbarHudDropTest.cs`・`HotbarSlotDragGestureTest.cs`・`HotbarHudPickingTest.cs`・`HotbarIconCenteringTest.cs`
 - Modify（在れば）: `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs`
+- Modify: `docs/uitk/disposition.md`（albof.30 の「写す予定」の行を消す。Step 6）
 
 **Interfaces:**
 - Consumes: Task 2・4・5・6 の型とトークン、S3-buildmenu の `BuildMenuEntryDragPayload`・テストの `RecordingBuildMenuEntryHandler`、`GameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport)`、`TutorialAnchor.Mark`、`ScreenTestHost`（`Mount`・`Find`・`IsShown`・`simulate`・`Toaster`）、`ThemeTokenFile`、`FakeContentTextureSource`
@@ -2808,8 +2810,26 @@ F=moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoverage
 test -f $F && grep -n "AnchorIds.HotbarHud" $F || echo "no-pending-row"
 ```
 行が出たらその 1 行を消し、`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Anchor\."` を回して PASS を見る（印済みの錨が未移植の表に残ると `TutorialAnchorCoverageTest` が赤になる）。`no-pending-row` ならそのまま
+
+`HotbarHudPickingTest` が `alwaysOnHudWheel.test.ts`「クリックを持つスロット列だけが入力を取り戻し、ホイールは素通しの印を持つ」に `<web-test>` を付けたので、処遇の表に残る同じテストの「写す予定」の行（albof.30）を同じコミットで消す。タグと処遇の行が並ぶと突き合わせが整合の誤りで落ちる（`compareBundles.mjs` の「`<web-test>` で写したテストに処遇の行もある」）:
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
+D=docs/uitk/disposition.md
+grep -n "alwaysOnHudWheel.test.ts\` | クリックを持つスロット列だけが入力を取り戻し、ホイールは素通しの印を持つ | 写す予定" $D
+python3 - "$D" <<'PY'
+import sys
+path = sys.argv[1]
+lines = open(path, encoding="utf-8").read().split("\n")
+key = "| `src/features/commonHud/alwaysOnHudWheel.test.ts` | クリックを持つスロット列だけが入力を取り戻し、ホイールは素通しの印を持つ | 写す予定 |"
+kept = [line for line in lines if key not in line]
+if len(lines) - len(kept) != 1:
+    raise SystemExit(f"expected exactly one albof.30 row, removed {len(lines) - len(kept)}")
+open(path, "w", encoding="utf-8").write("\n".join(kept))
+PY
+node tools/uitk/test-name-parity.mjs --bundle 2; echo "exit=$?"
+```
+Expected: `grep` が 1 行（消す前）、python が例外なく終わり、`exit=` が 0 か 1（2 は書式・整合の誤り。出たら出力の行番号の行を直す）。出力に `disposition` の行番号を含む誤りが無い。albof.31（装備 HUD）の行は S4-inventory の持ち物なので残す
+```bash
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss" docs/uitk/disposition.md
 git commit -m "feat(uitk): ホットバーの View・USS・Presenter と L1 を足す（S3-hotbar-modal）
 
 <実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
@@ -3767,23 +3787,24 @@ git commit -m "test(uitk): ホットバーの操作と BP 名のモーダルを 
 
 ---
 
-### Task 13: 一部だけ写す Web テストの処遇と名前の突き合わせ
+### Task 13: 部分移植の範囲の記録と名前の突き合わせ
 
 **Files:**
-- Modify: `docs/uitk/disposition.md`（「## 処遇」の表の末尾に 2 行）
+- Modify: なし（記録は `../moorestech_logs/harness/uitk/S3-hotbar-modal/done.md`。処遇の表には行を足さない）
 
 **Interfaces:**
 - Consumes: Task 2〜8 の `<web-test>`、`tools/uitk/test-name-parity.mjs`
-- Produces: 束 3 のこのレーンの持ち分（File Structure の「写すテストの件数」の表）の未対応 0
+- Produces: 束 3 のこのレーンの持ち分（File Structure の「写すテスト」の表）の未対応 0、束 2・3 の書式・整合の誤り 0
 
-- [ ] **Step 1: 処遇の行を足す**
+- [ ] **Step 1: 一部だけ写した 2 件の残りを done.md に書く**
 
-`docs/uitk/disposition.md` の「## 処遇」の表の末尾に:
+処遇の表は「目視・録画・捨てる・写す予定」の 4 語しか受けず（`tools/uitk/testNameParity/disposition.mjs`）、`<web-test>` を付けたテストに処遇の行があると整合の誤りになる（`compareBundles.mjs`）。一部だけ写した 2 件は `<web-test>` だけで写したことを示し、残りの範囲と持ち主は処遇の表の外、`done.md` の「## 部分移植の残り」に書く:
 ```markdown
-| 3 | `e2e/tests/hotbar/hotbar.spec.ts` | ビルドメニューエントリを空き枠へドラッグするとhotbar.assign{slot,id}を送る | 一部 | 本物のエントリの源（`BuildMenuEntryDragPayload`）を単独で置いて写した（`HotbarHudDropTest`）。ビルドメニューのパネル越しの通しは S3-ladder の横断 | #<PR> |
-| 3 | `e2e/tests/hotbar/hotbar.spec.ts` | blockingスキット中はホットバーHUDだけが退き、会話窓は残る | 一部 | ホットバーが退く側を写した（`HotbarHudViewTest`）。会話窓が残る側は S2-skit の持ち物 | #<PR> |
+## 部分移植の残り
+- `e2e/tests/hotbar/hotbar.spec.ts`「ビルドメニューエントリを空き枠へドラッグするとhotbar.assign{slot,id}を送る」: 本物のエントリの源（`BuildMenuEntryDragPayload`）を単独で置いて写した（`HotbarHudDropTest`）。残り＝ビルドメニューのパネル越しの通しは S3-ladder の横断（D-16）
+- `e2e/tests/hotbar/hotbar.spec.ts`「blockingスキット中はホットバーHUDだけが退き、会話窓は残る」: ホットバーが退く側を写した（`HotbarHudViewTest`）。残り＝会話窓が残る側は S2-skit の持ち物（D-15）
 ```
-（`#<PR>` は Task 15 Step 1 の後に PR 番号へ書き換える。処遇の語〈一部〉が表の既存の語に無ければ既存の語に合わせ、`test-name-parity.mjs` が受ける語を Step 2 で確かめる。`placementIconCentering.spec.ts` のビルドメニューの件は S3-buildmenu が写すので、このレーンは処遇の行を書かない）
+（同じ 2 行を `done.md` の「integrator への依頼」に「S3-ladder の横断で 1 件目の残りを通す」の 1 行として足す。`placementIconCentering.spec.ts` のビルドメニューの件は S3-buildmenu が写す）
 
 - [ ] **Step 2: 名前を突き合わせる**
 
@@ -3791,17 +3812,13 @@ Run:
 ```bash
 node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing | grep -E "hotbar|modal|placementIconCentering|alwaysOnHudWheel" || true
 node tools/uitk/test-name-parity.mjs --bundle 3; echo "exit=$?"
+node tools/uitk/test-name-parity.mjs --bundle 2; echo "exit=$?"
 ```
-Expected: 1 行目にこのレーンの持ち分（`hotbar.spec.ts` 6・`useHotbarDragSource.test.ts` 7・`modal.spec.ts` 4・`placementIconCentering.spec.ts` のホットバーの件・`alwaysOnHudWheel.test.ts` のホットバー帯の行と「クリックを持つスロット列だけが…」）の行が出ない。`alwaysOnHudWheel.test.ts` の他の行（S2-hud・S2-mode-tooltip・S2-tutorial・S4-inventory）は束が違えば出ない、同じ束なら出てよい。2 行目の終了コードは 1 でよい（束 3 の他レーンの未対応が残る。束の差分 0 は S3-ladder が締める）。終了コード 2（書式の誤り）なら `<web-test>` の綴りを直す。`alwaysOnHudWheel.test.ts` が束 2 に数えられていれば `--bundle 2` でも同じ grep を流す
+Expected: 1 行目にこのレーンの持ち分（`hotbar.spec.ts` 6・`useHotbarDragSource.test.ts` 7・`modal.spec.ts` 4・`placementIconCentering.spec.ts` のホットバーの件・`alwaysOnHudWheel.test.ts` のホットバー帯の行と「クリックを持つスロット列だけが…」）の行が出ない。`alwaysOnHudWheel.test.ts` の他の行（S2-hud・S2-mode-tooltip・S2-tutorial・S4-inventory）は束が違えば出ない、同じ束なら出てよい。2・3 行目の終了コードは 0 か 1（他レーンの未対応・写す予定が残る。束の差分 0 は ladder が締める）。どちらかが 2（書式・整合の誤り）なら完了にしない: `<web-test>` の綴りか、タグと処遇の行の重複（Task 7 Step 6 で albof.30 の行を消したか）を直して流し直す。`alwaysOnHudWheel.test.ts` は束 2 なので `--bundle 2 --emit-missing` でも同じ grep を流し、ホットバーの 2 行が出ないことを見る
 
-- [ ] **Step 3: コミット**
+- [ ] **Step 3: done.md をコミットする**
 
-```bash
-git add docs/uitk/disposition.md
-git commit -m "docs(uitk): ホットバーの一部だけ写す Web テストの処遇を書く（S3-hotbar-modal）
-
-<実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
-```
+`../moorestech_logs` の `README.md` の手順で `harness/uitk/S3-hotbar-modal/done.md` をコミット・push する（このレーンの repo には変更が無い。`<web-test>` の綴りを直したときだけ、そのテストのファイルを repo でコミットする）
 
 ---
 
@@ -3835,7 +3852,7 @@ git commit -m "fix(uitk): S3-hotbar-modal の moores-code-review 反映
 ### Task 15: feature/uitk への PR・取り込み・片付け（必須）
 
 **Files:**
-- Modify: `docs/uitk/disposition.md`（Task 13 の 2 行の PR 列）
+- Modify: なし（Task 14 後の HEAD をそのまま出す）
 
 **Interfaces:**
 - Consumes: Task 14 後の HEAD
@@ -3870,14 +3887,14 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
   "verification": [
     "Unityコンパイル: エラー0",
     "L0/L1: State.Hotbar・State.PlacementTarget・State.Modal・Screens.Hotbar・Screens.Modal の件数と PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
-    "test-name-parity 束 3: このレーンの持ち分の未対応 0（一部 2）",
+    "test-name-parity 束 3: このレーンの持ち分の未対応 0・束 2/3 とも書式・整合の誤りなし（一部だけ写した 2 件の残りは done.md）",
     "albof.34: 明るい地の最大差 <n> 段（7 段以内）・暗い地 <n> 段",
     "unityプレイ録画テスト: uitk-hotbar-and-bp-modal PASS・blueprint-copy-paste-via-ui PASS（全体スイッチ GameUi）"
   ],
   "notes": ["差の表と照合表は moorestech_logs/harness/uitk/S3-hotbar-modal/done.md"]
 }
 ```
-`python3 ~/hermes-agent/data/services/pr-review/publish/publish_pr_report.py <PR番号> <manifest.json>` が失敗したら、報告 URL 無しで完了にしない。PR 番号が決まったら `docs/uitk/disposition.md` の Task 13 の 2 行の PR 列を `#<番号>` にしてコミット・push する
+`python3 ~/hermes-agent/data/services/pr-review/publish/publish_pr_report.py <PR番号> <manifest.json>` が失敗したら、報告 URL 無しで完了にしない
 
 - [ ] **Step 2: feature/uitk の進みを取り込み、G1 緑を見る**
 
@@ -3890,7 +3907,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロックと `--outlined-count-label-color` の次の 1 行（`--outlined-count-label-stroke-color`。他レーンが同じ並びに行を足していれば両方採る）・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の末尾）の衝突は両方の行を採る（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`DerivedTokens.uss` の名札付きブロックと `--outlined-count-label-color` の次の 1 行（`--outlined-count-label-stroke-color`。他レーンが同じ並びに行を足していれば両方採る）・`handWrittenDerivedRows.mjs` の末尾・`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の処遇の表〈他レーンが足した行は採り、albof.30 の行は消えたままにする〉・`PauseMenuCommandsTest.cs` の `benign` の配列〈両方の値の和。片側だけを採ると良性の値が落ちる〉）の衝突は両方の行を採る（`translucent-tokens.md` は採った後に `node tools/uitk/convert-web-tokens.mjs` で作り直す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Chrome/Modal 層の載せ方・`UiDragDrop`・入力の裁きに触れていれば Task 12 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
 
 取り込みの後、1 つを見る（当たれば同じ PR へコミットして push し、`$FILTER` を回し直す）:
 - 錨の未移植の表: Task 7 Step 6 の `test -f … && grep …` を流し直し、`AnchorIds.HotbarHud` の行があれば消して `TutorialAnchorCoverageTest` を回す（S2-tutorial がこのレーンより後に入った場合）
@@ -3976,6 +3993,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-37 | 枠の源には bool の割当の有無でなく `HotbarSlotViewModel` を渡し、掴める物の判定は `TryGetDragSource` の 1 か所に置く | `bool assigned` を渡して `OnDropped`・`OnDroppedOutside` で 2 回判定: 同じ判定が 2 か所になる | agent 既定 |
 | D-38 | 表示名が空の対象は、Web と同じく空の名前をそのまま出す（代わりの文を出さない）。Web は `HotbarTopic` が BP だけ原文を運び、他はクライアントが GUID のキーで引き、`PlacementTargetFace` は `displayName` をそのまま描く | 代わりの文（ID 等）を出す: Web と違う見た目になり、空の名前は BP 名の確定規則（空白だけを弾く）で通常は起きない | Web の写し |
 | D-39 | モーダルの確定の可否は文の変化ごとに `ModalLogic.TryGetConfirmableText` で 1 回だけ導き（`_confirmable`・`_confirmedText`）、ボタンと確定の両方が読む。空白の除去は `ModalLogic` の private `Trim` の 1 か所 | View が `Trim` と `CanConfirm` を別々に呼ぶ: 同じ導出が 2 本になる | agent 既定 |
+| D-41 | 独立評価 3 巡目と再検査 2 の反映: (a) 一部だけ写した 2 件は `<web-test>` だけを付け、処遇の表に行を足さない。残りの範囲は `done.md` の「## 部分移植の残り」（処遇の語は 4 つだけで、タグと処遇の行の併存は整合の誤り） (b) albof.30 の「写す予定」の行は、`HotbarHudPickingTest` にタグを付ける Task 7 のコミットで消し、束 2・3 の突き合わせで終了コード 2 が無いことを完了の条件にする (c) `ModalLogic.CanConfirm` は `TryGetConfirmableText` に委ね、`TryGetConfirmableText` は `HasConfirmableText` を通す（空白の規則を 1 か所に。Phase 2.6 弱 1 件の採用） (d) `PauseMenuCommandsTest` を `$FILTER` と取り込みの衝突の一覧へ | (a) 処遇「一部」: ツールが書式の誤りで落とす (c) 判定を 2 本のまま: 片方だけ直すと食い違う | agent 既定（Codex 3 巡目・再検査 2） |
 | D-40 | `HotbarCell` の面へ当てる分岐（絵か名前か）は枠が持ち、`PlacementTargetIcons` は値（`UiIcon`）を返すだけ | Content が面に当てる: Content が部品の面を知ることになる | 指揮の決定（S3-buildmenu の API） |
 
 ---
