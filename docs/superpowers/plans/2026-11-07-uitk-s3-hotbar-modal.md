@@ -20,7 +20,7 @@
 |---|---|---|
 | R-1 | ホットバーの Model: 割当（`ClientHotbarDatastore.Assignments`）を枠ごとに `HotbarEmptySlot`（未割当）・`HotbarUnresolvedSlot`（割当はあるが `PlacementTargetResolver.TryResolve` が偽）・`HotbarAssignedSlot`（解決済みの対象の ID・表示名・`PlacementTargetIcon`）の判別 union にし、選択枠（`PlaceSystemStateController.CurrentOrigin.TryGetHotbarSlot`）を `HotbarSelection`（`None`／`Of(i)`）、選択の受理（`HotbarSelectRule.Accepts(UIStateControl.CurrentState)`＝`GameScreen`・`PlaceBlock` だけ）、表示（`UiScreenTraitsTable.Get(UiRoutingState.Current.Value.Screen).AlwaysOnHud` ∧ ¬`BlockingSkitPresence.IsBlocking`）を `HotbarViewModel` にまとめる。割当・BP ライブラリ・サムネイル・設置対象・解放（`UnlockedEventPacket`）・UI 状態・画面・スキット・言語の変化で組み直す | `HotbarViewModelFactoryTest`（L0）が緑。録画（R-12）の主張 |
 | R-2 | ホットバーの見た目: 帯 `.hotbar-hud`（実画面の下端から `--hotbar-bottom`、中央寄せ、拾わない）の中に列 `hotbar-grid`（拾う・枠間 `--hotbar-slot-gap`・`--hotbar-horizontal-offset` だけ右へ）、9 つの枠 `hotbar-slot-{i}`（`SlotFrame`。`--slot-size: var(--hotbar-slot-size)`、Web `.cell` の局所上書き変数を同名で上書き、`--bevel-inset: inset` [A-42]）と番号タブ（左 17・上へ `--hotbar-number-tab-overhang`・15×15・枠 1px・暗い縁取りの 13px の数字）。選択枠は `slot-frame--selected`、割当済みは `--filled`、絵は `PlacementTargetFace` | `HotbarHudViewTest` が緑（Web `hotbar.spec.ts` 1 件目）。並べ比べ（R-10） |
-| R-3 | 未解決の割当枠は白面（filled）のまま中身を出さず、枠ごと `--hotbar-unresolved-opacity` で減光する。選択を受けない画面では列ごと `--hotbar-select-disabled-opacity` で減光し、タップの選択は `HotbarCommands.Select` が良性の拒否 `HotbarSelectNotAccepted`（wire `invalid_state`。Web `HotbarSelectActionHandler` と同じ）を返し、源が `UiCommandResultToaster` へ渡す（良性なのでログだけ）。D&D はどちらでも成立する | `HotbarHudViewTest`・`HotbarHudDropTest` が緑（Web `hotbar.spec.ts` 2・4 件目） |
+| R-3 | 未解決の割当枠は白面（filled）のまま中身を出さず、枠ごと `--hotbar-unresolved-opacity` で減光する。選択を受けない画面では列ごと `--hotbar-select-disabled-opacity` で減光し、タップの選択は `HotbarCommands.Select` が良性の拒否 `HotbarSelectNotAccepted`（wire `invalid_state`）を返し、源が `UiCommandResultToaster` へ渡す（良性なのでログだけ。クリックごとに警告ログが 1 行出る）。Web の画面は受けないときタップを送らず、橋の `HotbarSelectActionHandler` が同じ規則で `invalid_state` を返す。UITK は規則を 1 か所（A-106）にするため操作側で断る。選ばれない結果は Web と同じ。D&D はどちらでも成立する | `HotbarHudViewTest`・`HotbarHudDropTest` が緑（Web `hotbar.spec.ts` 2・4 件目） |
 | R-4 | ドラッグ: 枠を源（`UiDragDrop.MarkSource`）にし、タップは `IHotbarCommands.Select(i)`、枠へ落とすと入替（自分自身は無操作）、列の隙間は無操作、それ以外（他の画面の落とし先・何も無い所）は解除。空き枠は掴む物が無いのでドラッグ後は何もせずタップにも落とさない。右ボタンは無視（捕捉しない）。ビルドメニューの源（S3-buildmenu の `BuildMenuEntryDragPayload`）は State の `IHotbarDropReceiver` で枠の印へ落とし、空き枠なら割当になる（このレーンはビルドメニューを書き換えない） | `HotbarSlotDragGestureTest`（Web `useHotbarDragSource.test.ts` 7 件）・`HotbarHudDropTest`（Web `hotbar.spec.ts` 3・4・6 件目）が緑 |
 | R-5 | 入力の素通し: 帯は拾わず、列だけが拾い、列にホイール素通しの印（`WheelPassthroughMark`）がある（帯には無い） | `HotbarHudPickingTest` が緑（Web `alwaysOnHudWheel.test.ts` の「%s は入力を奪わない」ホットバー帯の行と「クリックを持つスロット列だけが入力を取り戻し…」。bd `moorestech-albof.30`） |
 | R-6 | 世界の上の色（bd `moorestech-albof.34`）: 画面ルートで `--slot-frame-face: var(--hotbar-slot-frame-face)`（α 0.7226）に上書きし、空き枠の面・番号タブの面・未解決と受理外の減光を、ランタイムの PanelSettings（Linear 合成）の明るい地 (240,203,166) と暗い地 (40,42,48) で Web の sRGB 合成と照合する。明るい地で RGB 7 段以内（C3-a の基準）にし、暗い地で外れる分は `LX-76` に記帳する | Task 10 の照合表（EDC の出力）が `done.md` にあり、明るい地の全行が 7 段以内 |
@@ -357,7 +357,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Tests/Ui/Screens/Modal/ModalRequestSamples.cs` | Web の fixture の要求（確認・BP 名・エラー） | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/RecordingModalCommands.cs` | 応答を記録する偽 | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/ModalViewTest.cs` | 描画・確定の可否と空白の除去・色・ID が変わると空にする（P4 1・4） | 新規 |
-| `S/Client.Tests/Ui/Screens/Modal/ModalScreenPresenterTest.cs` | OK で確定して消える・幕で取消・入力欄の ESC 1 回で取消（ワールドへ渡さない）・欄の外の押下では閉じない・実画面 px（P4 2・3、[A-41]） | 新規 |
+| `S/Client.Tests/Ui/Screens/Modal/ModalScreenPresenterTest.cs` | OK で確定して消える・幕で取消・入力欄の ESC 1 回で取消（ワールドへ渡さない）・欄の外の押下では閉じない・入力欄にフォーカスがあるまま外から取り消されてもゲームのキー入力を止めたままにしない・実画面 px（P4 2・3、[A-41]）の 7 件 | 新規 |
 | `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` | ホットバーの操作と BP 名のモーダルを UITK で通す録画 | 新規 |
 | `docs/uitk/disposition.md` | 「## 処遇」の albof.30 の「写す予定」の行（`alwaysOnHudWheel.test.ts`「クリックを持つスロット列だけが…」）を消す（Task 7 で `<web-test>` を付けるのと同じコミット）。行は足さない | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.HotbarHud` の 1 行を消す | 変更（共有区画・在れば） |
@@ -2750,8 +2750,8 @@ namespace Client.Ui.Screens.Hotbar
     --outlined-count-label-color: var(--hotbar-number-tab-text);
 }
 
-/* 字の 2 層をタブの内側いっぱいに重ね、中央に置く（Web の text-align: center・line-height 13px） */
-/* Stack both glyph layers across the tab's inside and centre them (Web text-align: center, line-height 13px) */
+/* 字の 2 層をタブの内側いっぱいに重ね、中央に置く（Web の text-align: center・line-height 13px）。中央寄せは行の箱を中央に置くので基線は Web の line-height:1 と同じ 0.112em に来る。部品の translate 18.1% の下げは要らない（Task 11 Step 3 の数字の縦位置で確かめる） */
+/* Stack both glyph layers across the tab's inside and centre them (Web text-align: center, line-height 13px); centring the line box puts the baseline at 0.112em like the Web line-height:1, so the component's 18.1% translate is not needed (checked by the digit position in Task 11 Step 3) */
 .hotbar-hud__number-tab .hotbar-hud__number {
     position: absolute;
     left: 0;
