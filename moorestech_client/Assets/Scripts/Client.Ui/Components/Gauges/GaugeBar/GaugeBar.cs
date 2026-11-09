@@ -1,5 +1,4 @@
 using Client.Ui.Foundation.Theme;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Gauges
@@ -39,9 +38,7 @@ namespace Client.Ui.Components.Gauges
 
         public void SetValue(float ratio01)
         {
-            // NaN は 0 として描く（Web の Number.isNaN の分岐）
-            // NaN draws as 0 (the Web's Number.isNaN branch)
-            var clamped = float.IsNaN(ratio01) ? 0f : Mathf.Clamp01(ratio01);
+            var clamped = GaugeRatio.Clamp01(ratio01);
             _fill.style.width = Length.Percent(clamped * 100f);
         }
 
