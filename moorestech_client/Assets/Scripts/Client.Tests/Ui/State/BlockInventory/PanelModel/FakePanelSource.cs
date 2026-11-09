@@ -16,6 +16,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
             _state = state;
         }
 
+        public ReactiveProperty<BlockInventoryPanelState> State => _state;
         public IReadOnlyReactiveProperty<BlockInventoryPanelState> Current => _state;
     }
 }
