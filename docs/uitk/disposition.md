@@ -25,6 +25,8 @@
 | 2026-11-06 | 1 | ef796d7551 | 66 | 40 | 8 | 18 | 0 |
 | 2026-11-06 | 3 | ca052a7c04 | 99 | 55 | 0 | 0 | 44 |
 | 2026-11-06 | 4 | e23c6fd597 | 457 | 87 | 5 | 0 | 365 |
+| 2026-11-10 | 4 | 91e3f7f5c5 | 457 | 189 | 9 | 1 | 258 |
+| 2026-11-10 | 5 | 91e3f7f5c5 | 528 | 132 | 4 | 0 | 392 |
 
 ## 処遇
 
@@ -72,3 +74,5 @@
 | 2 | `src/features/modeHud/modeHudDesign.test.ts` | 警告色のコントラスト改善を既存consumerへ共有する | 捨てる | UITK の操作モード HUD は置けない理由の警告の行を持たない（C# に書き手が無く、Web の橋も常に空文字。Web の mock だけが流す。D-7）。他の consumer（通知・列車の網・不足の強調）はそれぞれの画面レーンが写す | #1611 |
 | 5 | `src/features/tutorial/overlay/TutorialOverlay.test.ts` | item master未ロード中は所持アンカーのackを送らず、到着後に送り直す | 捨てる | ack は越境の通知で、C# の受け手 `TutorialAnchorAckAction` は検証して返すだけ（store・サーバー・ログに効果が無い）。UITK は解決する側が C# 自身なので ack を作らない。加えて UITK は `MasterHolder` がゲーム開始前に読み終わっており、マスタ未ロードの状態が無い | #1627 |
 | 5 | `src/features/tutorial/overlay/TutorialOverlay.test.ts` | 同一anchorを共有する全highlightへackを配る | 捨てる | ack は越境の通知で、C# の受け手 `TutorialAnchorAckAction` は検証して返すだけ（store・サーバー・ログに効果が無い）。UITK は解決する側が C# 自身なので ack を作らない。同じアンカーを共有する全ての枠を描くことは L1 `TutorialOverlayAnchorTest` と `TutorialStageCueTest` が見る | #1627 |
+| 5 | `src/shared/ui/FluidSlot/FluidSlot.icon.test.ts` | 液体マスタ未取得の間はフィルを描かない（フォールバック色を使わない） | 捨てる | UITK にマスタ未取得の時間が無く、液体の色はサーバーのマスタのロード時に `#RRGGBB` を検証して起動で止める（`FluidMasterUtil.Validate`。C4-a 計画 D-15）ので、色の欠けた中身が作れない | #1633 |
+| 5 | `src/shared/ui/FluidAmountSlot/index.test.ts` | 液体名が辞書に無ければツールチップのラベルを持たない | 捨てる | UITK の液体名は `GameContentPresentation.Fluid` が `UiText.FromContent` で作り、辞書はマスタの name を原文に合成する（`MasterSourceTextCollector`）ので、解けない名前が無い（C4-a 計画 D-9） | #1633 |

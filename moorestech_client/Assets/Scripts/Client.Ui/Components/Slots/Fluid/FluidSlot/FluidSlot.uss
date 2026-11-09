@@ -1,0 +1,60 @@
+/* web: moorestech_web/webui/src/shared/ui/FluidSlot/style.module.css の .slot・.fill・.icon・.amount・[data-ghost] と app/tokens.css の .iconTextOutlineDark を写す。フィルの高さと色は Web と同じくインライン */
+/* web: copies .slot, .fill, .icon, .amount and [data-ghost] in moorestech_web/webui/src/shared/ui/FluidSlot/style.module.css and .iconTextOutlineDark in app/tokens.css; fill height and color are inline as on the Web */
+.fluid-slot {
+    width: 48px;
+    height: 48px;
+    border-width: 1px;
+    border-color: var(--mantine-color-dark-4);
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--mantine-color-dark-8);
+    overflow: hidden;
+}
+
+.fluid-slot__fill {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    /* UITK の overflow は角丸の内側を切らないので、Web で枠に切られる下の 2 角をフィル自身が丸める */
+    /* UITK overflow does not clip inside the rounded corners, so the fill rounds the bottom two corners the Web frame clips */
+    border-bottom-left-radius: var(--fluid-slot-fill-bottom-radius);
+    border-bottom-right-radius: var(--fluid-slot-fill-bottom-radius); /* look-exception: LX-67 */
+}
+
+.fluid-slot--fill-shown > .fluid-slot__fill {
+    display: flex;
+}
+
+/* 絵は枠いっぱいで余白なし（slotContent の .icon は composes しない） */
+/* The picture fills the frame with no padding (does not compose slotContent .icon) */
+.fluid-slot__icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* 白字・黒縁・12px。基線の補正は OutlinedCountLabel、本文の行高との差は --fluid-slot-amount-bottom が持つ */
+/* White, dark outline, 12px; OutlinedCountLabel shifts the baseline and --fluid-slot-amount-bottom covers the body line-height gap */
+.fluid-slot__amount {
+    display: none;
+    position: absolute;
+    right: 2px;
+    bottom: var(--fluid-slot-amount-bottom);
+    --outlined-count-label-size: 12px;
+    --outlined-count-label-color: var(--mantine-color-white);
+    --outlined-count-label-stroke: var(--icon-text-stroke-dark);
+}
+
+.fluid-slot--amount-shown > .fluid-slot__amount {
+    display: flex;
+}
+
+/* ゴーストは絵と量だけを透かす（枠・フィルは無し） */
+/* A ghost fades only the picture and amount (no frame change, no fill) */
+.fluid-slot--ghost > .fluid-slot__icon,
+.fluid-slot--ghost > .fluid-slot__amount {
+    opacity: var(--fluid-slot-ghost-opacity);
+}

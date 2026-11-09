@@ -1,4 +1,5 @@
 using Client.Ui.Components.Text;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Foundation.Modal;
 using Client.Ui.Foundation.Stage.Columns;
@@ -25,6 +26,10 @@ namespace Client.Starter.Registration.GameUi
             // 画面追従 UI 共通のポインタ（1個）
             // One pointer for screen-following UI (grab picture, cursor tooltip)
             builder.Register<InputSystemUiScreenPointer>(Lifetime.Singleton).As<IUiScreenPointer>();
+
+            // OS カーソルの形を要求する口。1 本であることは ProcessUiOsCursor の static が保証する。画面が ctor で受けて部品へ渡す
+            // Port requesting the OS cursor shape; ProcessUiOsCursor's static guarantees one stack; screens take it by ctor and pass it to parts
+            builder.Register<ProcessUiOsCursor>(Lifetime.Singleton).As<IUiOsCursor>();
 
             // モーダルの宿主は画面が ctor で受け、入口が Modal 層へ置く
             // Screens take the modal host by ctor; the entry point mounts it in the Modal layer
