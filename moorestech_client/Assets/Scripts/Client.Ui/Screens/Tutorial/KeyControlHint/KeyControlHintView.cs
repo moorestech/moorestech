@@ -38,7 +38,7 @@ namespace Client.Ui.Screens.Tutorial.KeyControlHint
             // 行の数を ViewModel に合わせ、各行へ kbd と文を渡す
             // Match the row count to the view model and hand each row its kbd and sentence
             while (_rows.Count < model.Hints.Count) AddRow();
-            while (_rows.Count > model.Hints.Count) RemoveLastRow();
+            while (model.Hints.Count < _rows.Count) RemoveLastRow();
             for (var i = 0; i < model.Hints.Count; i++) _rows[i].SetHint(model.Hints[i].Text, model.Hints[i].KeyName);
             ApplyRowGap();
             style.display = model.Hints.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;

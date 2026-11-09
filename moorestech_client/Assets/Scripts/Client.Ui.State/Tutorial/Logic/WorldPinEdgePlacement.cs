@@ -17,8 +17,8 @@ namespace Client.Ui.State.Tutorial.Logic
             // Clamp the direction to inside the screen edge margin
             var maxX = width / 2f - edgeMargin;
             var maxY = height / 2f - edgeMargin;
-            var scaleX = Math.Abs(directionX) > 0.001f ? maxX / Math.Abs(directionX) : float.MaxValue;
-            var scaleY = Math.Abs(directionY) > 0.001f ? maxY / Math.Abs(directionY) : float.MaxValue;
+            var scaleX = 0.001f < Math.Abs(directionX) ? maxX / Math.Abs(directionX) : float.MaxValue;
+            var scaleY = 0.001f < Math.Abs(directionY) ? maxY / Math.Abs(directionY) : float.MaxValue;
             var scale = Math.Min(scaleX, scaleY);
             var angle = (float)(Math.Atan2(directionY, directionX) * 180.0 / Math.PI);
             spot = new WorldPinEdgeSpot(width / 2f + directionX * scale, height / 2f + directionY * scale, angle);

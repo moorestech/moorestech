@@ -13,13 +13,13 @@ namespace Client.Ui.State.Tutorial.Logic
             // 既定は枠の下。下に収まらず上に収まる時だけ上へ反転する（ユーザー裁定 2026-08-22）
             // Below the ring by default; flip above only when it does not fit below and does fit above (user ruling 2026-08-22)
             var fitsBelow = box.Bottom + gap + faceHeight <= clip.Bottom;
-            var fitsAbove = box.Top - gap - faceHeight >= clip.Top;
+            var fitsAbove = clip.Top <= box.Top - gap - faceHeight;
             var flipped = !fitsBelow && fitsAbove;
             var top = flipped ? box.Top - gap - faceHeight : box.Bottom + gap;
             // 横は反転先が無いので右端で押し戻し、器より広ければ左端に揃える
             // Horizontally there is no flip side, so push back from the right and settle at the left when wider
             var left = Math.Max(clip.Left, Math.Min(box.Left, clip.Right - faceWidth));
-            return new TutorialLabelPosition(left, top, flipped);
+            return new TutorialLabelPosition(left, top);
         }
 
         // アンカー自身がクリップで欠けていればラベルを出さない（Web renderOutline）
@@ -34,13 +34,11 @@ namespace Client.Ui.State.Tutorial.Logic
     {
         public readonly float Left;
         public readonly float Top;
-        public readonly bool FlippedAbove;
 
-        public TutorialLabelPosition(float left, float top, bool flippedAbove)
+        public TutorialLabelPosition(float left, float top)
         {
             Left = left;
             Top = top;
-            FlippedAbove = flippedAbove;
         }
     }
 }

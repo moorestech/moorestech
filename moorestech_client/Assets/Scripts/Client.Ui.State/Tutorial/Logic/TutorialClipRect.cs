@@ -40,17 +40,17 @@ namespace Client.Ui.State.Tutorial.Logic
         // Like Web's isDisjoint, touching edges count as disjoint
         public bool IsDisjoint(TutorialClipRect other)
         {
-            return other.Right <= Left || other.Left >= Right || other.Bottom <= Top || other.Top >= Bottom;
+            return other.Right <= Left || Right <= other.Left || other.Bottom <= Top || Bottom <= other.Top;
         }
 
         public bool Contains(float x, float y)
         {
-            return x >= Left && x <= Right && y >= Top && y <= Bottom;
+            return Left <= x && x <= Right && Top <= y && y <= Bottom;
         }
 
         public bool ContainsRect(TutorialClipRect inner)
         {
-            return inner.Left >= Left && inner.Right <= Right && inner.Top >= Top && inner.Bottom <= Bottom;
+            return Left <= inner.Left && inner.Right <= Right && Top <= inner.Top && inner.Bottom <= Bottom;
         }
 
         public bool Equals(TutorialClipRect other)

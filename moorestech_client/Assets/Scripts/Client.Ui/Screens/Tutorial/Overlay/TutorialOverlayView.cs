@@ -23,6 +23,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
         private float _glowWidth;
         private float _labelGap;
         private float _ringRadius;
+        private bool _knobsResolved;
 
         public TutorialOverlayView(ITutorialAnchorStateLookup anchors)
         {
@@ -37,10 +38,52 @@ namespace Client.Ui.Screens.Tutorial.Overlay
         public void Render(TutorialOverlayViewModel model)
         {
             _current = model;
-            ReconcileOutlines(model);
-            ReconcileDragGuides(model);
+            ReconcileOutlines();
+            ReconcileDragGuides();
             foreach (var outline in model.Outlines) Redraw(outline);
             foreach (var guide in model.DragGuides) RedrawGuide(guide);
+
+            #region Internal
+
+            void ReconcileOutlines()
+            {
+                // 消えた枠を外し、新しい枠だけ作る（続く枠は脈動の位相を保つ）
+                // Remove vanished outlines and create only new ones (continuing outlines keep their pulse phase)
+                var live = new HashSet<string>(model.Outlines.Select(outline => outline.Key));
+                foreach (var key in _outlines.Keys.Where(key => !live.Contains(key)).ToList())
+                {
+                    _outlines[key].Discard();
+                    _outlines.Remove(key);
+                }
+                foreach (var outline in model.Outlines)
+                {
+                    if (_outlines.ContainsKey(outline.Key)) continue;
+                    var view = new TutorialOutlineView(_pulse);
+                    _outlines.Add(outline.Key, view);
+                    Add(view);
+                }
+            }
+
+            void ReconcileDragGuides()
+            {
+                // 消えた誘導を外し、新しい誘導だけ作る（続く誘導はループの位相を保つ）
+                // Remove vanished guides and create only new ones (continuing guides keep their loop phase)
+                var live = new HashSet<string>(model.DragGuides.Select(guide => guide.Key));
+                foreach (var key in _dragGuides.Keys.Where(key => !live.Contains(key)).ToList())
+                {
+                    _dragGuides[key].RemoveFromHierarchy();
+                    _dragGuides.Remove(key);
+                }
+                foreach (var guide in model.DragGuides)
+                {
+                    if (_dragGuides.ContainsKey(guide.Key)) continue;
+                    var view = new TutorialDragGuideView();
+                    _dragGuides.Add(guide.Key, view);
+                    Add(view);
+                }
+            }
+
+            #endregion
         }
 
         public void RedrawAnchor(string anchorId)
@@ -68,6 +111,12 @@ namespace Client.Ui.Screens.Tutorial.Overlay
         private void Redraw(TutorialOutlineCue cue)
         {
             var view = _outlines[cue.Key];
+            // silent-ok: つまみの解決前は 0 寸法の壊れた枠を描かない / 読めなければ UssCustomStyleReader が LogError を出し、解決時の ReadKnobs が描き直す
+            if (!_knobsResolved)
+            {
+                view.HideRing();
+                return;
+            }
             // ready で、箱がクリップの内に残るときだけ枠を出す（ready 以外は仕様どおりの非表示で、理由は追跡器が遷移時に出す）
             // Show the ring only when ready and the box survives the clip (non-ready is a spec'd hide; the tracker reports reasons)
             if (!_anchors.TryGet(cue.AnchorId, out var state) || state is not TutorialAnchorState.Ready ready)
@@ -90,52 +139,14 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             else view.Label.HideLabel();
         }
 
-        private void ReconcileOutlines(TutorialOverlayViewModel model)
-        {
-            // 消えた枠を外し、新しい枠だけ作る（続く枠は脈動の位相を保つ）
-            // Remove vanished outlines and create only new ones (continuing outlines keep their pulse phase)
-            var live = new HashSet<string>(model.Outlines.Select(outline => outline.Key));
-            foreach (var key in _outlines.Keys.Where(key => !live.Contains(key)).ToList())
-            {
-                _outlines[key].RemoveFromHierarchy();
-                _outlines[key].ReleasePulse();
-                _outlines.Remove(key);
-            }
-            foreach (var outline in model.Outlines)
-            {
-                if (_outlines.ContainsKey(outline.Key)) continue;
-                var view = new TutorialOutlineView(_pulse);
-                _outlines.Add(outline.Key, view);
-                Add(view);
-            }
-        }
-
-        private void ReconcileDragGuides(TutorialOverlayViewModel model)
-        {
-            // 消えた誘導を外し、新しい誘導だけ作る（続く誘導はループの位相を保つ）
-            // Remove vanished guides and create only new ones (continuing guides keep their loop phase)
-            var live = new HashSet<string>(model.DragGuides.Select(guide => guide.Key));
-            foreach (var key in _dragGuides.Keys.Where(key => !live.Contains(key)).ToList())
-            {
-                _dragGuides[key].RemoveFromHierarchy();
-                _dragGuides.Remove(key);
-            }
-            foreach (var guide in model.DragGuides)
-            {
-                if (_dragGuides.ContainsKey(guide.Key)) continue;
-                var view = new TutorialDragGuideView();
-                _dragGuides.Add(guide.Key, view);
-                Add(view);
-            }
-        }
-
         private void ReadKnobs(ICustomStyle customStyle)
         {
             // 寸法はトークンを画面ルートで受け直した変数から読み、読めたら描き直す（読めなければ Reader が LogError）
             // Read sizes from the screen root's re-declared tokens and redraw (the reader logs an error when unreadable)
-            UssCustomStyleReader.TryReadPixels(customStyle, "--tutorial-overlay-glow-width", out _glowWidth);
-            UssCustomStyleReader.TryReadPixels(customStyle, "--tutorial-overlay-label-gap", out _labelGap);
-            UssCustomStyleReader.TryReadPixels(customStyle, "--tutorial-overlay-ring-radius", out _ringRadius);
+            var hasGlow = UssCustomStyleReader.TryReadPixels(customStyle, "--tutorial-overlay-glow-width", out _glowWidth);
+            var hasGap = UssCustomStyleReader.TryReadPixels(customStyle, "--tutorial-overlay-label-gap", out _labelGap);
+            var hasRadius = UssCustomStyleReader.TryReadPixels(customStyle, "--tutorial-overlay-ring-radius", out _ringRadius);
+            _knobsResolved = hasGlow && hasGap && hasRadius;
             Render(_current);
         }
     }

@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [Test]
         public void 画面内のピンはマーカーの先端を射影座標に置く()
         {
-            _model.Set(WorldPinViewModel.From(Pins(Pin("p1", 0.5f, 0.4f)), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.5f, 0.4f)), false));
             simulate.FrameUpdate();
 
             var pin = Find<VisualElement>(_view, "world-pin-p1");
@@ -54,9 +54,9 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [Test]
         public void 射影が更新されるとピンが追従する()
         {
-            _model.Set(WorldPinViewModel.From(Pins(Pin("p1", 0.5f, 0.4f)), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.5f, 0.4f)), false));
             simulate.FrameUpdate();
-            _model.Set(WorldPinViewModel.From(Pins(Pin("p1", 0.25f, 0.75f)), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.25f, 0.75f)), false));
             simulate.FrameUpdate();
 
             var pin = Find<VisualElement>(_view, "world-pin-p1");
@@ -68,7 +68,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [Test]
         public void 画面外のピンは端に56pxの矢印を出す()
         {
-            _model.Set(WorldPinViewModel.From(Pins(EdgePin("p1", 1f, 0f)), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(EdgePin("p1", 1f, 0f)), false));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -83,7 +83,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [Test]
         public void 斜めの方向は角の領域へ向き角度も回す()
         {
-            _model.Set(WorldPinViewModel.From(Pins(EdgePin("p1", 0.7071f, 0.7071f)), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(EdgePin("p1", 0.7071f, 0.7071f)), false));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -100,7 +100,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [TestCase(-1f, -1f)]
         public void 四隅の斜め方向でも矢印は画面内に収まる(float dx, float dy)
         {
-            _model.Set(WorldPinViewModel.From(Pins(EdgePin("p1", dx * 0.7071f, dy * 0.7071f)), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(EdgePin("p1", dx * 0.7071f, dy * 0.7071f)), false));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -115,11 +115,52 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [Test]
         public void ピンが0件になるとオーバーレイごと消える()
         {
-            _model.Set(WorldPinViewModel.From(Pins(Pin("p1", 0.5f, 0.5f)), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.5f, 0.5f)), false));
             simulate.FrameUpdate();
-            _model.Set(WorldPinViewModel.From(Pins(), false));
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(), false));
             simulate.FrameUpdate();
             Assert.IsFalse(IsShown(_view));
+        }
+
+        [Test]
+        public void 画面内から画面外へ切り替わったピンはマーカーを外して矢印を出す()
+        {
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.5f, 0.4f)), false));
+            simulate.FrameUpdate();
+            Assert.IsNotNull(_view.Q("world-pin-p1"));
+
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(EdgePin("p1", 1f, 0f)), false));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            Assert.IsNull(_view.Q("world-pin-p1"));
+            Assert.IsTrue(IsShown(_view.Q("world-pin-arrow-p1")));
+        }
+
+        [Test]
+        public void 消えたピンのマーカーだけが外れる()
+        {
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.5f, 0.4f), Pin("p2", 0.2f, 0.2f)), false));
+            simulate.FrameUpdate();
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p2", 0.2f, 0.2f)), false));
+            simulate.FrameUpdate();
+
+            Assert.IsNull(_view.Q("world-pin-p1"));
+            Assert.IsNotNull(_view.Q("world-pin-p2"));
+        }
+
+        [Test]
+        public void 同じピンIDでも読めなかったGUIDの後に正しいGUIDが来ればピンが出る()
+        {
+            var projection = new WorldPinViewModelProjection();
+            var broken = Pin("p1", 0.5f, 0.4f);
+            broken.TutorialGuid = "not-a-guid";
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("tutorialGuid is not a GUID: 'not-a-guid'"));
+            _model.Set(projection.Project(Pins(broken), false));
+            _model.Set(projection.Project(Pins(Pin("p1", 0.5f, 0.4f)), false));
+            simulate.FrameUpdate();
+
+            Assert.IsNotNull(_view.Q("world-pin-p1"));
         }
     }
 }

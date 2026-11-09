@@ -8,6 +8,7 @@ namespace Client.Ui.State.Tutorial.WorldPin
     public sealed class WorldPinModel : IInitializable
     {
         private readonly BlockingSkitPresence _blockingSkit;
+        private readonly WorldPinViewModelProjection _projection = new();
         private readonly ReactiveProperty<WorldPinViewModel> _current = new(WorldPinViewModel.Empty);
 
         public IReadOnlyReactiveProperty<WorldPinViewModel> Current => _current;
@@ -31,7 +32,7 @@ namespace Client.Ui.State.Tutorial.WorldPin
 
         private void Rebuild()
         {
-            _current.Value = WorldPinViewModel.From(WorldPinStateStore.Instance.GetCurrent(), _blockingSkit.IsBlocking.Value);
+            _current.Value = _projection.Project(WorldPinStateStore.Instance.GetCurrent(), _blockingSkit.IsBlocking.Value);
         }
     }
 }

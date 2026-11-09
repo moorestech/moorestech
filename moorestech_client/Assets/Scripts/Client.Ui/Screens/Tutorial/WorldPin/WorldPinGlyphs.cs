@@ -51,14 +51,18 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             painter.Stroke();
             painter.fillColor = fill;
             painter.Fill();
-        }
 
-        private static void Trace(Painter2D painter, float unit, Vector2 offset)
-        {
-            painter.BeginPath();
-            painter.MoveTo(ArrowPath[0] * unit + offset);
-            for (var i = 1; i < ArrowPath.Length; i++) painter.LineTo(ArrowPath[i] * unit + offset);
-            painter.ClosePath();
+            #region Internal
+
+            void Trace(Painter2D target, float scale, Vector2 offset)
+            {
+                target.BeginPath();
+                target.MoveTo(ArrowPath[0] * scale + offset);
+                for (var i = 1; i < ArrowPath.Length; i++) target.LineTo(ArrowPath[i] * scale + offset);
+                target.ClosePath();
+            }
+
+            #endregion
         }
     }
 }

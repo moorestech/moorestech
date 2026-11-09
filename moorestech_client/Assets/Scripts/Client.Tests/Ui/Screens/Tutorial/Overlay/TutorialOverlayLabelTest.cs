@@ -64,13 +64,13 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             MountAnchor(rootVisualElement, "pause.save", 1220, 100, 40, 40);
             var shortText = new TutorialOutlineCue.Labeled("s1", "o1", "pause.save", 8, UiText.FromVerbatim("右端のラベル"));
-            _model.Set(new TutorialOverlayViewModel(1, new[] { shortText }, System.Array.Empty<TutorialDragGuideCue>()));
+            _model.Set(new TutorialOverlayViewModel(new[] { shortText }, System.Array.Empty<TutorialDragGuideCue>()));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             Assert.LessOrEqual(Shown<TutorialHighlightLabelView>().Single().worldBound.xMax, 1280.5f);
 
             var longText = new TutorialOutlineCue.Labeled("s1", "o1", "pause.save", 8, UiText.FromVerbatim(string.Concat(Enumerable.Repeat("とても長いチュートリアルの説明文", 12))));
-            _model.Set(new TutorialOverlayViewModel(2, new[] { longText }, System.Array.Empty<TutorialDragGuideCue>()));
+            _model.Set(new TutorialOverlayViewModel(new[] { longText }, System.Array.Empty<TutorialDragGuideCue>()));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             var wrapped = Shown<TutorialHighlightLabelView>().Single();
@@ -101,6 +101,26 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             simulate.FrameUpdate();
             var label = Shown<TutorialHighlightLabelView>().Single();
             Assert.AreEqual((4f, 10f, 4f, 10f), (label.resolvedStyle.paddingTop, label.resolvedStyle.paddingRight, label.resolvedStyle.paddingBottom, label.resolvedStyle.paddingLeft));
+        }
+
+        [Test]
+        public void ラベルを隠した後に同じ位置で出し直すとラベルが見える()
+        {
+            var anchor = MountAnchor(rootVisualElement, "pause.save", 100, 100, 200, 40);
+            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.AreEqual(1, Shown<TutorialHighlightLabelView>().Count);
+
+            anchor.style.display = DisplayStyle.None;
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.AreEqual(0, Shown<TutorialHighlightLabelView>().Count);
+
+            anchor.style.display = DisplayStyle.Flex;
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.AreEqual(1, Shown<TutorialHighlightLabelView>().Count);
         }
 
         private List<T> Shown<T>() where T : VisualElement

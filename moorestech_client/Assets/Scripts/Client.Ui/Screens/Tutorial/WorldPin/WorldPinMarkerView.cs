@@ -29,7 +29,7 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             UiPickingIgnore.ApplyToSubtree(this);
         }
 
-        public void Show(WorldPinCue cue)
+        public void Show(WorldPinCue.OnScreen cue)
         {
             // 位置は層に対する割合（Web の left/top %）、下端中央への吊り下げは USS の translate
             // Position as a fraction of the layer (Web left/top %); the bottom-center hang is the USS translate

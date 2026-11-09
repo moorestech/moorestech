@@ -28,7 +28,7 @@ namespace Client.Ui.State.Tutorial.Overlay
                     }
                 }
             }
-            return new TutorialOverlayViewModel(data.Revision, outlines, dragGuides);
+            return new TutorialOverlayViewModel(outlines, dragGuides);
 
             #region Internal
 

@@ -42,8 +42,8 @@ namespace Client.Ui.Screens.Tutorial.Pulse
 
         public void Detach(VisualElement target)
         {
-            // 流しを止めて管理から外す。載せ直されても Start は管理外の子を流さない
-            // Stop the pulse and forget the target; Start never pulses an untracked target even if re-attached
+            // 流しを止めて辞書から外す。Attach のコールバックは要素に残るが、載せ直されても Start は管理外の子を流さない
+            // Stop the pulse and drop it from the dictionaries; Attach callbacks stay on the element but Start never pulses an untracked target
             Stop(target);
             _peakScales.Remove(target);
         }

@@ -54,16 +54,20 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
             // Painter2D has no blur, so approximate the drop shadow with a copy shifted 1px down (LX-35)
             FillPath(painter, unit, new Vector2(0f, 1f), _shadow); // look-exception: LX-35
             FillPath(painter, unit, Vector2.zero, _fill);
-        }
 
-        private static void FillPath(Painter2D painter, float unit, Vector2 offset, Color color)
-        {
-            painter.fillColor = color;
-            painter.BeginPath();
-            painter.MoveTo(CursorPath[0] * unit + offset);
-            for (var i = 1; i < CursorPath.Length; i++) painter.LineTo(CursorPath[i] * unit + offset);
-            painter.ClosePath();
-            painter.Fill();
+            #region Internal
+
+            void FillPath(Painter2D target, float scale, Vector2 offset, Color color)
+            {
+                target.fillColor = color;
+                target.BeginPath();
+                target.MoveTo(CursorPath[0] * scale + offset);
+                for (var i = 1; i < CursorPath.Length; i++) target.LineTo(CursorPath[i] * scale + offset);
+                target.ClosePath();
+                target.Fill();
+            }
+
+            #endregion
         }
     }
 }

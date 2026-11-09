@@ -19,17 +19,17 @@ namespace Client.Ui.Screens.Tutorial.Anchor
     /// The per-frame measure runs on the scheduler (before layout) and catches transforms such as scrolling and inline display toggles.
     /// Layout changes such as moves and display: none are re-measured from GeometryChangedEvent within the same frame.
     /// </remarks>
-    public sealed class TutorialAnchorTracker : ITutorialAnchorStateLookup, ITutorialAnchorSubscriptions
+    public sealed class TutorialAnchorTracker : ITutorialAnchorStateLookup
     {
         private readonly VisualElement _searchRoot;
         private readonly VisualElement _coordinateSpace;
         private readonly TutorialAnchorStateBook _book = new();
         private readonly TutorialAnchorGeometryWatch _geometryWatch;
-        private readonly Subject<TutorialAnchorChange> _onAnchorChanged = new();
+        private readonly Subject<string> _onAnchorChanged = new();
         private string[] _subscribed = Array.Empty<string>();
         private IVisualElementScheduledItem _poll;
 
-        public IObservable<TutorialAnchorChange> OnAnchorChanged => _onAnchorChanged;
+        public IObservable<string> OnAnchorStateChanged => _onAnchorChanged;
 
         public TutorialAnchorTracker(VisualElement searchRoot, VisualElement coordinateSpace)
         {
@@ -85,26 +85,29 @@ namespace Client.Ui.Screens.Tutorial.Anchor
                 var state = TutorialAnchorMeasure.Measure(resolution, _coordinateSpace);
                 if (!_book.ApplyIfChanged(anchorId, state)) continue;
                 ReportTransition(anchorId, resolution, state);
-                _onAnchorChanged.OnNext(new TutorialAnchorChange(anchorId, state));
+                _onAnchorChanged.OnNext(anchorId);
             }
             // 入れ替えられた回は見張りの集計を確定しない（入れ替え側の回が確定済み）
             // A swapped pass leaves the watch alone (the swapping pass already settled it)
             if (subscribed == _subscribed) _geometryWatch.EndCollect();
-        }
 
-        private void ReportTransition(string anchorId, TutorialAnchorResolution resolution, TutorialAnchorState state)
-        {
-            // 遷移した時だけ開発者へ出す。重複は印の付け間違いなのでエラー、未発見は未移植の画面でも起きるので警告
-            // Report only on transitions; duplicates are marking bugs (error), missing can be an unported screen (warning)
-            if (state.Reason == TutorialAnchorReason.DuplicateAnchor)
+            #region Internal
+
+            void ReportTransition(string anchorId, TutorialAnchorResolution resolution, TutorialAnchorState state)
             {
-                // 件数は状態に持たせず（比較は理由で足りる）、測った時の引きから読む
-                // The count is not kept in the state (the reason suffices for comparison); read it from this pass's resolution
-                var count = resolution is TutorialAnchorResolution.Duplicate duplicate ? duplicate.Count : 0;
-                Debug.LogError($"[TutorialAnchorTracker] anchor is duplicated ({count}): {anchorId}");
+                // 遷移した時だけ開発者へ出す。重複は印の付け間違いなのでエラー、未発見は未移植の画面でも起きるので警告
+                // Report only on transitions; duplicates are marking bugs (error), missing can be an unported screen (warning)
+                if (state.Reason == TutorialAnchorReason.DuplicateAnchor)
+                {
+                    // 件数は状態に持たせず（比較は理由で足りる）、測った時の引きから読む
+                    // The count is not kept in the state (the reason suffices for comparison); read it from this pass's resolution
+                    var count = resolution is TutorialAnchorResolution.Duplicate duplicate ? duplicate.Count : 0;
+                    Debug.LogError($"[TutorialAnchorTracker] anchor is duplicated ({count}): {anchorId}");
+                }
+                if (state.Reason == TutorialAnchorReason.Missing) Debug.LogWarning($"[TutorialAnchorTracker] anchor is missing: {anchorId}");
             }
-            if (state.Reason == TutorialAnchorReason.Missing) Debug.LogWarning($"[TutorialAnchorTracker] anchor is missing: {anchorId}");
+
+            #endregion
         }
     }
-
 }

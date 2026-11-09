@@ -26,9 +26,9 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             _view = TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, _model.Current);
         }
 
-        private static TutorialOverlayViewModel Guide(int revision)
+        private static TutorialOverlayViewModel Guide()
         {
-            return new TutorialOverlayViewModel(revision, System.Array.Empty<TutorialOutlineCue>(), new[] { new TutorialDragGuideCue("s1:d1", "pause.save", "pause.settings") });
+            return new TutorialOverlayViewModel(System.Array.Empty<TutorialOutlineCue>(), new[] { new TutorialDragGuideCue("s1:d1", "pause.save", "pause.settings") });
         }
 
         private int ShownGuides()
@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
             LogAssert.Expect(LogType.Warning, new Regex("anchor is missing: pause.settings"));
-            _model.Set(Guide(1));
+            _model.Set(Guide());
             simulate.FrameUpdate();
             Assert.AreEqual(0, ShownGuides());
 
@@ -63,7 +63,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             // 両端のレイアウトを先に済ませ、Set の同期の測定で ready にして寸法の解決前の Show を起こす
             // Lay out both ends first so Set's synchronous measurement is ready and Show runs before the size resolves
             simulate.FrameUpdate();
-            _model.Set(Guide(1));
+            _model.Set(Guide());
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -82,7 +82,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             scroll.Add(content);
             MountAnchor(content, "pause.save", 50, 20, 40, 40);
             MountAnchor(rootVisualElement, "pause.settings", 600, 300, 40, 40);
-            _model.Set(Guide(1));
+            _model.Set(Guide());
             simulate.FrameUpdate();
             Assert.AreEqual(1, ShownGuides());
 
@@ -98,7 +98,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
             var to = MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
-            _model.Set(Guide(1));
+            _model.Set(Guide());
             simulate.FrameUpdate();
             Assert.AreEqual(1, ShownGuides());
 
@@ -113,7 +113,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
             var to = MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
-            _model.Set(Guide(1));
+            _model.Set(Guide());
             // 寸法・周期の解決と、ループの最初の更新（その時刻が起点）を済ませてから半周進める
             // Resolve size and duration and run the loop's first update (its head time) before advancing half a loop
             simulate.FrameUpdateMs(0);
@@ -142,7 +142,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
             MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
-            _model.Set(Guide(1));
+            _model.Set(Guide());
             simulate.FrameUpdateMs(0);
             simulate.FrameUpdateMs(0);
             var guide = _view.Q<TutorialDragGuideView>();
@@ -158,6 +158,20 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             simulate.FrameUpdateMs(0);
             simulate.FrameUpdateMs((long)(Ms("--tutorial-drag-guide-duration") / 2f));
             Assert.Greater(guide.resolvedStyle.translate.x, 1f);
+        }
+
+        [Test]
+        public void モデルから誘導が消えると誘導のViewも消える()
+        {
+            MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
+            MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
+            _model.Set(Guide());
+            simulate.FrameUpdate();
+            Assert.AreEqual(1, _view.Query<TutorialDragGuideView>().ToList().Count);
+
+            _model.Set(TutorialOverlayViewModel.Empty);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0, _view.Query<TutorialDragGuideView>().ToList().Count);
         }
     }
 }

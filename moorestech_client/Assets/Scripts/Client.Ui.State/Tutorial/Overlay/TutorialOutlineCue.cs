@@ -9,16 +9,12 @@ namespace Client.Ui.State.Tutorial.Overlay
     public abstract class TutorialOutlineCue
     {
         public readonly string Key;
-        public readonly string SessionId;
-        public readonly string ElementId;
         public readonly string AnchorId;
         public readonly int PaddingPx;
 
         private TutorialOutlineCue(string sessionId, string elementId, string anchorId, int paddingPx)
         {
             Key = TutorialElementKey.Of(sessionId, elementId);
-            SessionId = sessionId;
-            ElementId = elementId;
             AnchorId = anchorId;
             PaddingPx = paddingPx;
         }

@@ -40,10 +40,11 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             HideRing();
         }
 
-        public void ReleasePulse()
+        public void Discard()
         {
-            // 外す枠の clip を脈動の管理から外す（辞書とコールバックを残さない）
-            // Drop the removed outline's clip from pulse bookkeeping (leave no dictionary entry or callback)
+            // 木から外し、clip を脈動の管理辞書から外す（Attach のコールバックは要素に残るが Start は管理外を流さない）
+            // Remove from the tree and drop the clip from the pulse dictionary (Attach callbacks stay on the element but Start never pulses an untracked target)
+            RemoveFromHierarchy();
             _pulse.Detach(_clip);
         }
 

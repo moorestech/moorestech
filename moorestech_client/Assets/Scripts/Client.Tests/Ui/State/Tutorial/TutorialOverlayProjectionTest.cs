@@ -36,7 +36,6 @@ namespace Client.Tests.Ui.State.Tutorial
             Assert.AreEqual(1, model.Outlines.Count);
             Assert.AreEqual(0, model.DragGuides.Count);
             Assert.AreEqual("s1:o1", model.Outlines[0].Key);
-            Assert.AreEqual(3, model.Revision);
         }
 
         [Test]

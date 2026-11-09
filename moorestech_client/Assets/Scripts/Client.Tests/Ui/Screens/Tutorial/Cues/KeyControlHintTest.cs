@@ -85,7 +85,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
 
             // 行と部品の内側（kbd・文）のどの中心を拾っても、ヒントの要素は当たらない（Web の pointer-events: none。D-36）
             // Picking at the center of the row or any part inside it (kbd, text) never hits a hint element (Web pointer-events: none; D-36)
-            var parts = Hints().Single().Query<VisualElement>().Where(part => IsShown(part) && part.worldBound.width > 0).ToList();
+            var parts = Hints().Single().Query<VisualElement>().Where(part => IsShown(part) && 0 < part.worldBound.width).ToList();
             Assert.IsNotEmpty(parts);
             foreach (var part in parts)
             {
@@ -109,6 +109,21 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
             // Rows stack at the Web 30px line box plus the 6px gap (not widened by the 37px glyph; measured on layout, free of the pulse scale)
             Assert.AreEqual(30f, hints[0].layout.height, 0.5f);
             Assert.AreEqual(36f, hints[1].layout.y - hints[0].layout.y, 0.5f);
+        }
+
+        [Test]
+        public void ヒントが減ると残った行は残ったヒントのキーを示す()
+        {
+            _model.Set(_projection.Project(TutorialOverlayProjectionTest.Data(1, Hint("k1", "Tab", "GameScreen"), Hint("k2", "E", "GameScreen")), UIStateEnum.GameScreen, false));
+            simulate.FrameUpdate();
+            Assert.AreEqual(2, Hints().Count);
+
+            _model.Set(_projection.Project(TutorialOverlayProjectionTest.Data(2, Hint("k2", "E", "GameScreen")), UIStateEnum.GameScreen, false));
+            simulate.FrameUpdate();
+
+            var hints = Hints();
+            Assert.AreEqual(1, hints.Count);
+            Assert.AreEqual("E", hints[0].Q<KeyCap>().text);
         }
     }
 }

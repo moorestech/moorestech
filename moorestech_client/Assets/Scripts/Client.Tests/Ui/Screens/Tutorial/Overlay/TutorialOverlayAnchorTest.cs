@@ -82,5 +82,33 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             simulate.FrameUpdate();
             Assert.AreEqual(DisplayStyle.None, clip.style.display.value);
         }
+
+        [Test]
+        public void モデルから枠が消えると枠のViewも消える()
+        {
+            MountAnchor(rootVisualElement, "pause.save", 100, 100, 200, 40);
+            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", null))));
+            simulate.FrameUpdate();
+            Assert.AreEqual(1, _view.Query<TutorialOutlineView>().ToList().Count);
+
+            _model.Set(TutorialOverlayViewModel.Empty);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0, _view.Query<TutorialOutlineView>().ToList().Count);
+        }
+
+        [Test]
+        public void 画面が外れている間のモデル更新では追跡を再開せず載せ直すと今の値で追従する()
+        {
+            _view.RemoveFromHierarchy();
+            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", null))));
+            simulate.FrameUpdate();
+            // 外れている間は測らないので未発見の Warning は出ない（D-32）
+            // No missing Warning while detached because nothing is measured (D-32)
+            LogAssert.NoUnexpectedReceived();
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"anchor is missing: pause\.save"));
+            rootVisualElement.Add(_view);
+            simulate.FrameUpdate();
+        }
     }
 }

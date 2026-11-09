@@ -15,21 +15,21 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 既定は枠の下に隙間を空けて置く()
         {
             var position = TutorialHighlightLabelPlacement.Place(new TutorialClipRect(100, 100, 300, 140), Clip, 4f, 120f, 26f);
-            Assert.AreEqual((100f, 144f, false), (position.Left, position.Top, position.FlippedAbove));
+            Assert.AreEqual((100f, 144f), (position.Left, position.Top));
         }
 
         [Test]
         public void 下に収まらず上に収まるときだけ上へ反転する()
         {
             var position = TutorialHighlightLabelPlacement.Place(new TutorialClipRect(100, 680, 300, 710), Clip, 4f, 120f, 26f);
-            Assert.AreEqual((650f, true), (position.Top, position.FlippedAbove));
+            Assert.AreEqual(650f, position.Top);
         }
 
         [Test]
         public void 上にも下にも収まらなければ下に置く()
         {
             var position = TutorialHighlightLabelPlacement.Place(new TutorialClipRect(100, 10, 300, 700), new TutorialClipRect(0, 0, 1280, 720), 4f, 120f, 26f);
-            Assert.AreEqual((704f, false), (position.Top, position.FlippedAbove));
+            Assert.AreEqual(704f, position.Top);
         }
 
         [Test]

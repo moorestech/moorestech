@@ -39,7 +39,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             var tracker = new TutorialAnchorTracker(searchRoot, layer);
             var view = new TutorialOverlayView(tracker);
             layer.Add(view);
-            tracker.OnAnchorChanged.Subscribe(change => view.RedrawAnchor(change.AnchorId));
+            tracker.OnAnchorStateChanged.Subscribe(view.RedrawAnchor);
             model.Subscribe(OnModelChanged);
             // 外れている間は毎フレームの測定を止め、載せ直したら今の ViewModel で購読し直す（D-32）
             // Stop per-frame measuring while detached; resubscribe with the current view model on re-attach (D-32)
@@ -51,6 +51,9 @@ namespace Client.Ui.Screens.Tutorial.Overlay
 
             void OnModelChanged(TutorialOverlayViewModel current)
             {
+                // 外れている間は tracker も Render も触らない（再 attach の AttachToPanelEvent が今の値で入り直す）
+                // While detached, touch neither tracker nor Render (re-attach re-enters with the current value)
+                if (view.panel == null) return;
                 // 購読を差し替えてから描く（差し替えの同期の測定で出た変化は直後の Render が描き直す）
                 // Swap subscriptions, then draw (the following Render redraws changes from the synchronous measurement)
                 tracker.SetSubscribedAnchors(AnchorIdsOf(current));

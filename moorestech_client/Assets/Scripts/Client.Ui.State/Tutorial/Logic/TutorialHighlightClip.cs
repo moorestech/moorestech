@@ -22,7 +22,7 @@ namespace Client.Ui.State.Tutorial.Logic
             var bottom = Math.Max(-outset, box.Bottom - clip.Bottom);
             var left = Math.Max(-outset, clip.Left - box.Left);
             // silent-ok: 切った後に面積が残らない枠は Web と同じく出さない仕様 / L1 TutorialOverlayClipTest が見る
-            if (top + bottom >= box.Height || left + right >= box.Width) return false;
+            if (box.Height <= top + bottom || box.Width <= left + right) return false;
             inset = new TutorialClipInset(top, right, bottom, left);
             return true;
         }

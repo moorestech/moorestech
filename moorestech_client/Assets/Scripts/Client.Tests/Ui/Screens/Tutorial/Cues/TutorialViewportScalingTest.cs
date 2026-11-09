@@ -51,7 +51,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [Test]
         public void ワールドピンの先端はどの解像度でも射影座標に留まる()
         {
-            _pins.Set(WorldPinViewModel.From(Pins(Pin("p1", 0.3f, 0.6f)), false));
+            _pins.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.3f, 0.6f)), false));
             simulate.FrameUpdate();
             var pin = Find<VisualElement>(_pinView, "world-pin-p1").worldBound;
             Assert.AreEqual(_logicalSize.x * 0.3f, pin.center.x, 1f);
@@ -76,7 +76,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         [Test]
         public void 画面端の矢印はどの解像度でも余白を保って画面内に収まる()
         {
-            _pins.Set(WorldPinViewModel.From(Pins(EdgePin("p1", 1f, 0f)), false));
+            _pins.Set(new WorldPinViewModelProjection().Project(Pins(EdgePin("p1", 1f, 0f)), false));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             var arrow = Find<VisualElement>(_pinView, "world-pin-arrow-p1").worldBound;

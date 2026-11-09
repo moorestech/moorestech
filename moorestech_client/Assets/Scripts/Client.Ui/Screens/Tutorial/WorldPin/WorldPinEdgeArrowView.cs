@@ -51,10 +51,11 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             style.display = DisplayStyle.None;
         }
 
-        public void ReleasePulse()
+        public void Discard()
         {
-            // 外す矢印の本体を脈動の管理から外す（辞書とコールバックを残さない）
-            // Drop the removed arrow's glyph from pulse bookkeeping (leave no dictionary entry or callback)
+            // 木から外し、矢印本体を脈動の管理辞書から外す（Attach のコールバックは要素に残るが Start は管理外を流さない）
+            // Remove from the tree and drop the glyph from the pulse dictionary (Attach callbacks stay on the element but Start never pulses an untracked target)
+            RemoveFromHierarchy();
             _pulse.Detach(_glyph);
         }
 
