@@ -62,15 +62,14 @@ namespace Client.Tests.Ui.State.Tutorial
         }
 
         [Test]
-        public void 読めないラベルのGUIDはデータが変わって組み直してもLogErrorを1回だけ出す()
+        public void 読めないラベルのGUIDはデータが変わって組み直してもラベル無しの枠のまま()
         {
-            // 同じ射影で 2 回組み直しても、同じ GUID の LogError は初回だけ
-            // Rebuilding twice with the same projection logs the same GUID's error only the first time
+            // 1 回だけ LogError する仕組みは TutorialTextFactoryTest が持つ。ここは 2 回目も Plain で出ることだけ見る
+            // TutorialTextFactoryTest covers the log-once rule; here we only check the rebuild still yields Plain
             var projection = new TutorialOverlayProjection();
             UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("tutorialGuid is not a GUID: 'not-a-guid'"));
             projection.Project(Data(1, Outline("o1", "pause.save", "not-a-guid")));
             var rebuilt = projection.Project(Data(2, Outline("o1", "pause.save", "not-a-guid"), Outline("o2", "pause.back", null)));
-            UnityEngine.TestTools.LogAssert.NoUnexpectedReceived();
             Assert.AreEqual(2, rebuilt.Outlines.Count);
             Assert.IsInstanceOf<TutorialOutlineCue.Plain>(rebuilt.Outlines[0]);
         }

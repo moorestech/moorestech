@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Skit.UI;
+using Client.Tests.Common;
 using Client.Tests.UIState.Fakes;
 using Client.Ui.State.SkitPresence;
 using Client.Ui.State.Tutorial.KeyControlHint;
@@ -57,8 +57,7 @@ namespace Client.Tests.Ui.State.Tutorial
         private static UIStateDictionary CreateDictionary()
         {
             var result = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
-            var field = typeof(UIStateDictionary).GetField("_stateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
-            var states = (Dictionary<UIStateEnum, IUIState>)field.GetValue(result);
+            var states = TestReflection.GetField<Dictionary<UIStateEnum, IUIState>>(result, "_stateDictionary");
             states[UIStateEnum.GameScreen] = new IdleUIState();
             states[UIStateEnum.TrainHUDScreen] = new IdleUIState();
             return result;

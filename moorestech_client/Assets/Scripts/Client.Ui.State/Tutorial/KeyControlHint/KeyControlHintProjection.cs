@@ -13,7 +13,7 @@ namespace Client.Ui.State.Tutorial.KeyControlHint
     public sealed class KeyControlHintProjection
     {
         private readonly HashSet<string> _warnedUiStates = new();
-        private readonly HashSet<string> _warnedTextKeys = new();
+        private readonly TutorialTextFactory _textFactory = new();
 
         public KeyControlHintViewModel Project(TutorialPresentationData data, UIStateEnum current, bool blockingSkit)
         {
@@ -27,13 +27,9 @@ namespace Client.Ui.State.Tutorial.KeyControlHint
                 {
                     if (element is not TutorialKeyControlElementData keyControl || !Matches(keyControl.UiState)) continue;
                     var key = TutorialElementKey.Of(session.TutorialSessionId, element.ElementId);
-                    // silent-ok: 読めないと分かった文は再検証の LogError を出し直さない / 初回に TutorialTextFactory が LogError を出した
-                    if (_warnedTextKeys.Contains(key)) continue;
-                    if (!TutorialTextFactory.TryCreate(keyControl.TutorialGuid, $"keyControl {key}", out var text))
-                    {
-                        _warnedTextKeys.Add(key);
-                        continue;
-                    }
+                    // 読めない GUID のヒントは外す（LogError は TutorialTextFactory が GUID ごとに 1 回）
+                    // Drop a hint with an unreadable GUID (TutorialTextFactory logs once per GUID)
+                    if (!_textFactory.TryCreate(keyControl.TutorialGuid, $"keyControl {key}", out var text)) continue;
                     hints.Add(new KeyControlHintCue(keyControl.KeyName, text));
                 }
             }

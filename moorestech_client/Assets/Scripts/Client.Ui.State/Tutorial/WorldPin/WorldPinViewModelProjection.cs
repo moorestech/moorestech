@@ -9,7 +9,7 @@ namespace Client.Ui.State.Tutorial.WorldPin
     /// </summary>
     public sealed class WorldPinViewModelProjection
     {
-        private readonly HashSet<string> _invalidGuids = new();
+        private readonly TutorialTextFactory _textFactory = new();
 
         public WorldPinViewModel Project(WorldPinPresentationData data, bool blockingSkit)
         {
@@ -19,13 +19,9 @@ namespace Client.Ui.State.Tutorial.WorldPin
             var pins = new List<WorldPinCue>(data.Pins.Length);
             foreach (var pin in data.Pins)
             {
-                // silent-ok: 読めないと分かった GUID は LogError を出し直さない（毎フレーム埋まるため） / 同じ GUID は初回に TutorialTextFactory が LogError を出した
-                if (_invalidGuids.Contains(pin.TutorialGuid)) continue;
-                if (!TutorialTextFactory.TryCreate(pin.TutorialGuid, $"worldPin {pin.PinId}", out var label))
-                {
-                    _invalidGuids.Add(pin.TutorialGuid);
-                    continue;
-                }
+                // 読めない GUID のピンは外す（LogError は TutorialTextFactory が GUID ごとに 1 回）
+                // Drop a pin with an unreadable GUID (TutorialTextFactory logs once per GUID)
+                if (!_textFactory.TryCreate(pin.TutorialGuid, $"worldPin {pin.PinId}", out var label)) continue;
                 if (pin.OnScreen) pins.Add(new WorldPinCue.OnScreen(pin.PinId, label, pin.ScreenX, pin.ScreenY));
                 else pins.Add(new WorldPinCue.OffScreen(pin.PinId, label, pin.DirectionX, pin.DirectionY));
             }
