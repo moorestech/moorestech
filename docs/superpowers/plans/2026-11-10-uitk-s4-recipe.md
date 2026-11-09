@@ -214,6 +214,7 @@ namespace Client.Ui.State.Recipe.Source
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / Esc の選択解除を State から画面の層 `Screens/Recipe/Input/` へ移した（D-22）・Enter の長押しを計画内で確定しない形にした（その後、指揮の裁定で写すを agent 既定として確定。D-31）。注目点から開き直しの初期化を死活表と View に足した（D-23）
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強6・弱4・第3バケツ4 / 修正: `_shownSelection` の null を判別 union へ、明るい半透明を A-113 の式の値へ（D-24）。質問しない指示のため残りは D-25〜D-29 に agent 既定で記録。第3バケツ 2 件を「本PR外のリファクタ提案」へ追記
 - 再検査（独立評価の指摘を直した範囲。fresh-context opus 1 体で Phase 1〜2.5 と 2.6）: 実施済み / 配置 違反1件・2.6 強1・弱3・第3バケツ0・バグ4件、全件修正 / 印の能動案に受動案（A-83 の InputManager 経路）との比較と Task 6 Step 0 の到達の実測関門を足し D-7 の文言を直した、アンカーの有無が変わったエントリを作り直す、並べ直しで Enter の保持を解く、ビューアの表示済み状態の書き手を 1 本に、つまみのテストの空振りを直した
+- 再検査 2（2 周目の独立評価の指摘を直した範囲。fresh-context opus 1 体）: 実施済み / 配置 違反0件・2.6 強0・弱1・第3バケツ0・バグ2件、全件修正 / Step 0 の戻し方を未追跡ファイルの削除と checkout の 2 手に、並べ替えで長押しが続くテストを押している要素の動かない形へ分け、`Unmark` は id だけを外して印のクラスを残す
 
 ---
 
@@ -1267,7 +1268,7 @@ git commit -m "feat(uitk): レシピ画面のモデルと Esc での選択解除
 - Consumes: C4-c の `RecipeRow`・`RecipeActionButton`、C3-a の `ItemSlot`、Task 3〜4 の `CraftRecipeEntryViewModel`・`RecipeItemSelection`・`IRecipeCommands`・`RecipeDurationText`、`MaterialTooltipText`、`GameContentPresentation`、`UiCommandResultToaster`
 - Produces:
   - `public sealed class CraftRecipeEntryView : VisualElement { public CraftRecipeEntryView(CraftRecipeEntryViewModel first, RecipeEntryPartsContext context); public void Render(CraftRecipeEntryViewModel vm); }`（name `craft-recipe-entry-<guid>`。アンカーは `Render` のたびに `vm.CarriesTutorialAnchor` に合わせて `TutorialAnchor.Mark`／`Unmark` で付け外しし、要素は作り直さない。D-36）
-  - `namespace Client.Ui.Foundation.Anchor { public static class TutorialAnchor { public static void Unmark(VisualElement element, params string[] ids); } }`（足すのは `Unmark` だけ。`ids` のクラスと `tutorial-anchor` を外す。`Mark` と同じく状態を持たない。1 つの要素に 1 つの id だけを付ける使い方に限る）
+  - `namespace Client.Ui.Foundation.Anchor { public static class TutorialAnchor { public static void Unmark(VisualElement element, params string[] ids); } }`（足すのは `Unmark` だけ。`ids` のクラスだけを外し、印のクラス `tutorial-anchor` は残す〈Registry は印と id の両方で引くので、残った印は無害で、同じ要素の別の id も消えない〉。`Mark` と同じく状態を持たない）
   - `public sealed class RecipeEntryPartsContext { public RecipeEntryPartsContext(GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection); public GameContentPresentation Content { get; } public IRecipeCommands Commands { get; } public UiCommandResultToaster Toaster { get; } public RecipeItemSelection Selection { get; } }`（エントリの包みが共通で受ける依存の束。`Parts/` 内の `CraftRecipeEntryView.cs` の下に置く）
   - `public sealed class CraftHoldDriver { public CraftHoldDriver(VisualElement scheduleOwner, RecipeRow row, IRecipeCommands commands, UiCommandResultToaster toaster); public void SetRecipe(Guid recipeGuid, double craftTime, bool craftable); public void Start(); public void Stop(); }`
   - `public sealed class CraftHoldInput { public CraftHoldInput(VisualElement button, CraftHoldDriver driver); }`（ポインタの押下・離し・外れ・取消と、フォーカス中の Enter の押下・離し・フォーカス外れを長押しへ渡す。`focusable=true` と印は置く側〈`CraftRecipeEntryView`〉がインスタンスに立てる）
@@ -1275,7 +1276,7 @@ git commit -m "feat(uitk): レシピ画面のモデルと Esc での選択解除
 
 - [ ] **Step 0: 印付きのボタンに Enter の `KeyDownEvent` が届くかを実測する（関門）**
 
-Step 2 の `UiKeyFocusKeepMark.cs` と `GameUiInputRules.cs` の変更を先に書いてコンパイルする（仮の器では代用しない。規則は GameUi のルートに TrickleDown で付いているので、子孫で止めてもルートが先に Blur を予約する）。`uloop control-play-mode --project-path ./moorestech_client --action Play` の後、EDC で本番の GameUi のルートに `focusable=true` と `UiKeyFocusKeepMark.Mark` を付けたボタンを 1 つ置いて `Focus()` し、3 フレーム後もフォーカスが残ることと、`KeyDownEvent` の数を数える callback を付ける。プレイテスト DSL の `SemanticInput` で Enter を InputSystem へ注入し、callback の数を `done.md` の「## 証拠」に書く。1 以上なら以降へ進む。0 なら 2 本の変更を `git checkout -- <2 本のパス>` で戻し、D-32 の受動案（`InputManager.UI` の Enter アクション＋画面側の武装状態）で `CraftHoldInput` の Enter の部分を書き直す（`done.md` に切り替えを書いて指揮へ報告）
+Step 2 の `UiKeyFocusKeepMark.cs` と `GameUiInputRules.cs` の変更を先に書いてコンパイルする（仮の器では代用しない。規則は GameUi のルートに TrickleDown で付いているので、子孫で止めてもルートが先に Blur を予約する）。`uloop control-play-mode --project-path ./moorestech_client --action Play` の後、EDC で本番の GameUi のルートに `focusable=true` と `UiKeyFocusKeepMark.Mark` を付けたボタンを 1 つ置いて `Focus()` し、3 フレーム後もフォーカスが残ることと、`KeyDownEvent` の数を数える callback を付ける。プレイテスト DSL の `SemanticInput` で Enter を InputSystem へ注入し、callback の数を `done.md` の「## 証拠」に書く。1 以上なら以降へ進む。0 なら `git checkout -- moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` と `rm moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs.meta` の 2 手で戻し（新規ファイルは未追跡なので checkout では消えない）、`git status --short moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input` が空であることを確かめてから、D-32 の受動案（`InputManager.UI` の Enter アクション＋画面側の武装状態）で `CraftHoldInput` の Enter の部分を書き直す（`done.md` に切り替えを書いて指揮へ報告）
 
 - [ ] **Step 1: テストを書く**
 
@@ -1503,9 +1504,8 @@ namespace Client.Ui.Foundation.Input
 ```csharp
         public static void Unmark(VisualElement element, params string[] ids)
         {
-            // Mark の逆。1 要素 1 id の使い方に限るので印のクラスも外す
-            // Inverse of Mark; limited to one id per element, so the marker class goes too
-            element.RemoveFromClassList(MarkerClassName);
+            // Mark の逆。id だけを外し、印のクラスは同じ要素の別の id のために残す（印だけでは Registry に引かれない）
+            // Inverse of Mark; remove only the ids and keep the marker for other ids on the same element (the marker alone never resolves)
             foreach (var id in ids) element.RemoveFromClassList(id);
         }
 ```
@@ -2140,14 +2140,14 @@ public void 解放で並びが変わっても既存のエントリは同じ要�
     var entry = view.Q($"craft-recipe-entry-{guid}");
     PointerDown(entry.Q<RecipeActionButton>());
     for (var i = 0; i < 3; i++) simulate.FrameUpdateMs(100);
-    view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 0.4, true, false, Material(1, 1, 9)), CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));   // 先頭に別レシピが解放された
+    view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), CraftVm(RecipeFixtures.RecipeGuid(3), 0.4, true, false, Material(1, 1, 9))));   // 後ろに別レシピが解放された（押している要素の位置は動かない）
     Assert.AreSame(entry, view.Q($"craft-recipe-entry-{guid}"));
-    for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);             // 合計 0.5 秒 → 1 回（経過を保った）
+    for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);             // 合計 0.5 秒 → 1 回（SetEntries の付け外しを越えて経過を保った）
     CollectionAssert.AreEqual(new[] { guid }, _commands.Crafted);
 }
 
 [Test]
-public void 解放で先頭のクラフトが変わってもアンカーは新しい先頭へ移り長押し中の要素は作り直さない()
+public void 解放で先頭のクラフトが変わってもアンカーは新しい先頭へ移り旧先頭の要素は作り直さない()
 {
     // 本番の組み立て（RecipeViewModelFactory.BuildViewer）で「B だけ → A・B」の VM を作る。A は B より前に並ぶレシピ
     // Build "B only -> A and B" with the production factory; A sorts before B
@@ -2157,15 +2157,11 @@ public void 解放で先頭のクラフトが変わってもアンカーは新�
     var owned = new Dictionary<ItemId, int> { { new ItemId(1), 9 } };
     view.Render(RecipeViewModelFactory.BuildViewer(RecipeSelection.Of(new ItemId(7)), new[] { b }, Array.Empty<MachineRecipeData>(), owned));
     var bEntry = view.Q($"craft-recipe-entry-{b.RecipeGuid}");
-    PointerDown(view.Q<RecipeActionButton>($"craft-button-{b.RecipeGuid}"));
-    for (var i = 0; i < 3; i++) simulate.FrameUpdateMs(100);
 
     view.Render(RecipeViewModelFactory.BuildViewer(RecipeSelection.Of(new ItemId(7)), new[] { a, b }, Array.Empty<MachineRecipeData>(), owned));
-    Assert.AreSame(bEntry, view.Q($"craft-recipe-entry-{b.RecipeGuid}"));
+    Assert.AreSame(bEntry, view.Q($"craft-recipe-entry-{b.RecipeGuid}"));   // 作り直さない（要素に載った長押しの状態が残る。長押しが続くことは位置の動かない上の件で見る）
     var resolved = TutorialAnchorRegistry.Resolve(view, AnchorIds.RecipeCraftButton);   // F1 の実物の戻り値で Unique と要素を読む
     Assert.AreEqual(view.Q($"craft-button-{a.RecipeGuid}"), UniqueElementOf(resolved));
-    for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);             // 合計 0.5 秒 → B が 1 回（長押しが続いた）
-    CollectionAssert.AreEqual(new[] { b.RecipeGuid }, _commands.Crafted);
 }
 
 [Test]
