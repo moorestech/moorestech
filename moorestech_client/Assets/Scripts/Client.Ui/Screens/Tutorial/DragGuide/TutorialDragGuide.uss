@@ -1,0 +1,14 @@
+/* web: W/features/tutorial/overlay/style.module.css（.dragGuide・.dragGuide svg・@keyframes drag-guide-loop） */
+/* web: W/features/tutorial/overlay/style.module.css (.dragGuide, .dragGuide svg, @keyframes drag-guide-loop) */
+.tutorial-drag-guide {
+    position: absolute;
+    --tutorial-drag-guide-view-size: var(--tutorial-drag-guide-size);
+    --tutorial-drag-guide-view-duration: var(--tutorial-drag-guide-duration);
+}
+
+.tutorial-drag-guide__glyph {
+    width: 100%;
+    height: 100%;
+    --tutorial-drag-guide-glyph-fill: var(--text-high-contrast);
+    --tutorial-drag-guide-glyph-shadow: var(--tutorial-drag-guide-shadow);
+}

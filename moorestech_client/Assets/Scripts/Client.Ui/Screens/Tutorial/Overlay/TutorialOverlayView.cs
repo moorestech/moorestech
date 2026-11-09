@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Screens.Tutorial.DragGuide;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Tutorial.Logic;
 using Client.Ui.State.Tutorial.Overlay;
@@ -16,6 +17,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
     {
         private readonly ITutorialAnchorStateLookup _anchors;
         private readonly Dictionary<string, TutorialOutlineView> _outlines = new();
+        private readonly Dictionary<string, TutorialDragGuideView> _dragGuides = new();
         private readonly TutorialPulseBinding _pulse;
         private TutorialOverlayViewModel _current = TutorialOverlayViewModel.Empty;
         private float _glowWidth;
@@ -36,7 +38,9 @@ namespace Client.Ui.Screens.Tutorial.Overlay
         {
             _current = model;
             ReconcileOutlines(model);
+            ReconcileDragGuides(model);
             foreach (var outline in model.Outlines) Redraw(outline);
+            foreach (var guide in model.DragGuides) RedrawGuide(guide);
         }
 
         public void RedrawAnchor(string anchorId)
@@ -45,6 +49,20 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             {
                 if (outline.AnchorId == anchorId && _outlines.ContainsKey(outline.Key)) Redraw(outline);
             }
+            foreach (var guide in _current.DragGuides)
+            {
+                if ((guide.FromAnchorId == anchorId || guide.ToAnchorId == anchorId) && _dragGuides.ContainsKey(guide.Key)) RedrawGuide(guide);
+            }
+        }
+
+        private void RedrawGuide(TutorialDragGuideCue cue)
+        {
+            var view = _dragGuides[cue.Key];
+            // 両端の状態がそろい起点が見えている時だけ出す（Web DragGuide。隠すのは仕様どおりで、理由は追跡器が遷移時に出す）
+            // Show only when both ends are known and the origin is visible (Web DragGuide; reasons are reported by the tracker)
+            if (_anchors.TryGet(cue.FromAnchorId, out var from) && _anchors.TryGet(cue.ToAnchorId, out var to) && TutorialDragGuideGate.TryPlace(from, to, out var placement)) view.Show(placement);
+            // silent-ok: 端が未解決・起点が見えない間は Web と同じく出さない仕様 / 未解決の理由は TutorialAnchorTracker が遷移時に出し、L1 TutorialOverlayDragGuideTest が見る
+            else view.HideGuide();
         }
 
         private void Redraw(TutorialOutlineCue cue)
@@ -88,6 +106,25 @@ namespace Client.Ui.Screens.Tutorial.Overlay
                 if (_outlines.ContainsKey(outline.Key)) continue;
                 var view = new TutorialOutlineView(_pulse);
                 _outlines.Add(outline.Key, view);
+                Add(view);
+            }
+        }
+
+        private void ReconcileDragGuides(TutorialOverlayViewModel model)
+        {
+            // 消えた誘導を外し、新しい誘導だけ作る（続く誘導はループの位相を保つ）
+            // Remove vanished guides and create only new ones (continuing guides keep their loop phase)
+            var live = new HashSet<string>(model.DragGuides.Select(guide => guide.Key));
+            foreach (var key in _dragGuides.Keys.Where(key => !live.Contains(key)).ToList())
+            {
+                _dragGuides[key].RemoveFromHierarchy();
+                _dragGuides.Remove(key);
+            }
+            foreach (var guide in model.DragGuides)
+            {
+                if (_dragGuides.ContainsKey(guide.Key)) continue;
+                var view = new TutorialDragGuideView();
+                _dragGuides.Add(guide.Key, view);
                 Add(view);
             }
         }
