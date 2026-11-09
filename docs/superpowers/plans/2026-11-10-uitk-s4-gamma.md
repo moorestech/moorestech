@@ -34,7 +34,7 @@
 
 | レーン | 完了条件（計画から） | gamma へ回した件・gamma が拾う件 | gamma での扱い |
 |---|---|---|---|
-| S4-alpha | ブロック UI の汎用族の UITK 化（`block-inventory`・`block-inventory-panel`・`block-inventory-close`・`<testId>-slot-<index>`）、SubInventory で `StageColumn.Viewer` 列、SlotCommands（`Client.Ui.State/SlotCommands/`） | integrator への依頼 (a) `Registration/GameUi/` のサブディレクトリ化、(b) `GamePanel` の題の右の逃げ 99px、(c) `SlotCommands` を設計書 §2 の State の表へ（A-142 の下書き） | (a) Task 1 Step 4 で本数を数える。10 を超えていれば bd を立て I-fix へ回す（gamma は他レーンの登録ファイルを動かさない。D-4）。(b) Task 13 の比べ方で special のロケットの差として照合し、未処理なら LX の文面を書く。(c) 設計書の行の有無だけ確かめる |
+| S4-alpha | ブロック UI の汎用族の UITK 化（`block-inventory`・`block-inventory-panel`・`block-inventory-close`・`<testId>-slot-<index>`）、SubInventory で `StageColumn.Viewer` 列、SlotCommands（`Client.Ui.State/SlotCommands/`） | integrator への依頼 (a) `Registration/GameUi/` のサブディレクトリ化、(b) `GamePanel` の題の右の逃げ 99px、(c) `SlotCommands` を設計書 §2 の State の表へ（A-142 の下書き） | (a) Task 1 Step 4 で直下と `Screens/` の本数を数え、S4 の画面の登録が `Screens/` にあるかを見る（E-1）。外れていれば bd を立て I-fix へ回す（gamma は他レーンの登録ファイルを動かさない。D-4）。(b) Task 13 の比べ方で special のロケットの差として照合し、未処理なら LX の文面を書く。(c) 設計書の行の有無だけ確かめる |
 | S4-inventory | InventoryPanel・EquipmentPanel（`inventory-panel`・`inventory-sort`・`main-slot-<i>`・`equipment-slots`）、アンカーの印付け | 依頼 `TutorialAnchor.Unmark`（D-8）・`GameUiPointerProbe.PickAt`（D-11） | Foundation の口なので gamma は作らない。Task 11 で状態を確かめ、未処理なら bd を I-fix へ（無くても動く形で書かれているので段階 4 の完了は妨げない。帰結: 画面側の写しが 2 か所残る） |
 | S4-machine | 機械の詳細・清浄室・流体枠・レシピ選択（`MachineRecipeSelectionRow` 等） | 依頼: `Client.Ui.State.asmdef` の参照、撮影表への 15 枚の追加（E-22 の自撮り） | asmdef は取り込み済みかを見るだけ。撮影表への追加は integrator の共有区画なので Task 11 で `docs/uitk/TODO.md`「## 参照キャプチャ」に自撮りの置き場を 1 行で記す |
 | S4-train | 列車の本文（`train-tab-inventory`・`train-tab-timetable`）・時刻表の即時編集（適用ボタンを消し、保留中は `train-timetable-section--busy`）・駅名（`train-station-name-input`＋`train-station-name-apply`）・プラットフォーム。録画 `train-timetable-via-ui`・`train-station-default-name` を直す | integrator への依頼 (a) `PanelActionButton` の無効の見た目（画面のつまみで上書き中。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) `Registration/GameUi/` の再編先 | (a) Task 11 で状態を確かめ、未処理なら bd を I-fix へ。(b) Task 11 Step 2 の参照の記載に含める。(c) S4-alpha の (a) と同じ扱い。ラダー 5 は即時送信の形で書く（Task 6） |
@@ -104,6 +104,7 @@ Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot �
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / サーバーの値の直読み・品目と見え方の自前実装・アンカー照合の置き場・死活表の読み手 2 つを直した
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱3・第3バケツ0 / Key? の不在を判別子に使う形を直し、ADR との食い違い 3 件（LX の追記者・並べ比べの判定者・MarkClipContainer の義務）を D-17〜D-19 で裁き、弱 3 件は D-20 でこのまま。シミュレーター反映後に変えた範囲を fresh-context で再検査（強1・弱4）し、駅名の待ちを ServerSnapshots の前例の形へ、枠の測り方を自分の入れ物と切り抜き後の見える範囲へ、§3.3 の改め案を足して全件直した。独立評価 2 体（opus 7 件・codex 4 件）の指摘を直した範囲を fresh-context で再検査（Phase 1〜2.6 の発火 0、故障シナリオ強1・弱4: 比較元の引き方・分岐点の引き方・枠の session の入れ替わり・D-23 の前提・消える worktree への grep）し全件直した
+- 2 周目の独立評価の指摘（opus N1〜N4・codex 1〜2）と指揮の追加（登録ファイルの `Screens/`）を直した範囲を fresh-context で再検査: 6 件は実コードと照らして解消を確認、新規 1 件（参照の撮り直しで `capture.ts` の viewport が 1280×720 固定・node_modules 無し）を pnpm install/build・UITK_REFERENCE_OUT・使い捨て worktree 内だけの viewport 書き換えで直した
 
 ---
 
@@ -199,13 +200,14 @@ Expected: 各レーンが「状態: 完了」。「束ねる完了条件と回�
 Run:
 ```bash
 ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc -l
+ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l
 ls tools/uitk/ | wc -l
 ls moorestech_client/Assets/Scripts/Client.Playtest/Operations/
 grep -n "\"石窯\"\|\"蒸気機関車駅\"" -r ../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json | head -3
 grep -n "ProfilerRecorder\|UIElementsUpdatePanels\|RepaintPanels" -r docs/uitk-migration/poc | head -5
 git grep -n "MarkClipContainer" -- moorestech_client/Assets/Scripts/Client.Ui | head -5
 ```
-Expected: 登録ファイルは起草時に既に 9 本で、S4 の 7 レーンが足すと 10 を超えているはず。再編（alpha の依頼）が入っていなければ bd を立てて I-fix へ回す（gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
+Expected: W4 以降の画面の登録ファイルは `Registration/GameUi/Screens/` に置く決まり（実行計画 E-1。S4-alpha で直下が 10 本になったため）。直下と `Screens/` がそれぞれ 10 本以下で、S4 のレーンが足した画面の登録ファイルが `Screens/` にあること。直下に S4 の画面の登録ファイルが増えている、またはどちらかが 10 を超えていれば bd を立てて I-fix へ回す（gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
 
 - [ ] **Step 5: bd と done.md の骨組みを作る**
 
@@ -927,10 +929,8 @@ namespace Client.Playtest.Operations
             p.Assert(unique != null, $"{anchor.ChallengeTitle}: {anchor.AnchorId} が 1 つに解決する（{resolution.GetType().Name}）");
             if (unique == null) return;
 
-            // 本番と同じ入口で枠を出し、画面内のアンカーなら中心が合うことを見る
-            // Show the frame through the production entry and, for on-screen anchors, check the centers match
-            // 本番の進行中のチャレンジが既に枠を出している（例 challenge.current-hud）ので、足す前の枠を控え、増えた 1 件だけを自分の枠とする
-            // Production may already show frames (e.g. challenge.current-hud), so snapshot them first and treat only the added one as ours
+            // 本番と同じ入口で枠を出す。本番のチャレンジが既に枠を出しうるので、足す前の枠を控えて増えた 1 件だけを自分の枠とする
+            // Show the frame via the production entry; production may already show frames, so snapshot first and take only the added one
             var before = new HashSet<VisualElement>(root.Query(OutlineName).ToList());
             var view = TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchor.AnchorId, anchor.TutorialGuid);
             VisualElement own = null;
@@ -1027,6 +1027,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.UnlockState;
 using UnityEngine;
@@ -1475,20 +1476,28 @@ return PlaytestRunner.Run("uitk-stage4-panel-cost", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
-    await PlaytestGameViewOps.SetResolution(CancellationToken.None, 1920, 1080);
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1920, 1080);
 
     // マーカーが見つからなければ名前の一覧を残して止める
     // Leave the marker name list and stop when no marker is found
     var markers = PlaytestPanelCostRecorder.FindPanelMarkers();
     if (markers.Count == 0) p.Note($"UIElements のマーカー一覧: {string.Join(", ", PlaytestPanelCostRecorder.ListUiElementsMarkerNames())}");
     p.Assert(0 < markers.Count, $"パネル更新と描画のマーカーが見つかる（{markers.Count} 本）");
-    if (markers.Count == 0) return;
+    if (markers.Count == 0)
+    {
+        await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
+        return;
+    }
 
     // 3 画面で測り、Note に 1 行ずつ出す
     // Measure on three screens and note one line each
     await MeasureCurrent(UIStateEnum.GameScreen);
     await MeasureOpened(UIStateEnum.PlayerInventory, Key.Tab);
     await MeasureOpened(UIStateEnum.ResearchTree, Key.R);
+
+    // Game View の解像度は PlayMode の後も残るので 1280x720 へ戻す
+    // The Game View resolution outlives PlayMode, so restore 1280x720
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
 
     #region Internal
 
@@ -1655,14 +1664,14 @@ Run:
 tools/uitk/list-recordings.sh Web > moorestech_client/Temp/uitk-recordings/list-web.txt 2> moorestech_client/Temp/uitk-recordings/list-web-excluded.txt
 ```
 のあと、Step 3 と同じ小分けで `Web` を `moorestech_client/Temp/uitk-recordings/web.tsv` へ流す（`scenarios/uitk/` は UITK 専用で外れる。D-23。Windows で流すなら `~/bin/winunity` の play で同じ一覧を回し、TSV を同じ形で作る）
-Expected: 終了コード 0 以外の行を、S4 前の feature/uitk（最初に入った S4 のマージの 1 番目の親: `git rev-parse "$(git log --first-parent --merges --reverse --format=%H origin/feature/uitk --grep 'from moorestech/uitk-lane/s4-' | head -1)^1"`。レーン側の取り込みのマージに当たらないよう `--first-parent` と PR のマージの題で絞る）の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-webbase --from <その SHA>`。Editor が 2 本を超えるなら winunity）で同じシナリオだけ Web で流し直し、`既存`（S4 前も落ちる）か `退行`（S4 前は通る）に分ける。S4 前のコミットに無いシナリオ（S4 のレーンが足したもの）は `比較不能（新設）` とし、その画面の持ち主の録画（PR の報告ページ）で見たことを書く。`退行` は Step 3 の `不具合` と同じ手順で回して待つ。使い捨て worktree は流し終えたら `moores-wt rm uitk-tmp/s4-gamma-webbase --prune-branch` で畳む
+Expected: 終了コード 0 以外の行を、S4 前の feature/uitk（最初に入った S4 のマージの 1 番目の親: `git rev-parse "$(git log --first-parent --merges --reverse --format=%H origin/feature/uitk --grep 'from moorestech/uitk-lane/s4-' | head -1)^1"`。レーン側の取り込みのマージに当たらないよう `--first-parent` と PR のマージの題で絞る）の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-webbase --from <その SHA>`。Editor が 2 本を超えるなら winunity）で同じシナリオだけ Web で流し直し、`既存`（S4 前も落ちる）か `退行`（S4 前は通る）に分ける。S4 前のコミットに無いシナリオ（S4 のレーンが足したもの）は `比較不能（新設）`、あるが中身が変わったもの（`git diff --quiet <比較元> HEAD -- <シナリオ>` が差ありを返す。S4 のレーンがロケータ等を書き換えた）は `比較不能（変更）` とし、その画面の持ち主の録画（PR の報告ページ）で見たことを書く。`退行` は Step 3 の `不具合` と同じ手順で回して待つ。使い捨て worktree は流し終えたら `moores-wt rm uitk-tmp/s4-gamma-webbase --prune-branch` で畳む
 
 - [ ] **Step 5: 台帳と done.md に書く**
 
 `done.md`「## 全録画の結果」に 2 つの TSV を「シナリオ / UITK の分類 / Web の分類 / 秒」の表で写す（run dir は書かない）。台帳「## 実測の結論」の末尾に 2 行:
 ```markdown
 - 全録画の 2 回目・UITK 側（S4-gamma、<HEAD 10 桁>、全体スイッチ GameUi）: <n> 本中 PASS <a>・束 5 未移植 <b>・前提つき（流し直して PASS）<c>・Web 専用 <d>・不具合 0（途中で見つけた <k> 件は bd <ids> で直して再走 PASS）。X-prerun が直す wwxy の <w> 本は対象外（名前は list-excluded.txt）
-- 全録画の 2 回目・Web 側（S4-gamma、<HEAD 10 桁>、`scenarios/uitk/` の UITK 専用は除く）: <n> 本中 PASS <a>・既存の失敗 <e>（S4 前 <SHA 10 桁> でも落ちる: <シナリオ名>）・比較不能（新設）<f>・退行 0
+- 全録画の 2 回目・Web 側（S4-gamma、<HEAD 10 桁>、`scenarios/uitk/` の UITK 専用は除く）: <n> 本中 PASS <a>・既存の失敗 <e>（S4 前 <SHA 10 桁> でも落ちる: <シナリオ名>）・比較不能（新設）<f>・比較不能（変更）<g>・退行 0
 ```
 `Saves/` に作ったワールドを `list-work-saves.sh` で探して消す
 
@@ -1732,6 +1741,7 @@ git grep -n "PickAt" -- moorestech_client/Assets/Scripts/Client.Ui/Foundation | 
 git grep -n "MarkClipContainer" -- moorestech_client/Assets/Scripts/Client.Ui | head -3
 git grep -n "panel-action-button-width" -- "moorestech_client/Assets/UI Toolkit" moorestech_client/Assets/Scripts/Client.Ui/Components | head -3
 ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc -l
+ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l
 grep -n "A-142\|SlotCommands" docs/uitk-migration/execution/component-architecture.md | head -3
 ```
 Expected: 各件が入っているかが分かる。「束ねる完了条件と回ってきた件」の表の行ごとに、`done.md`「## 回ってきた件」へ「済み（ファイル:行）」か「未処理 → bd <id>（I-fix へ。帰結: …）」を書く。未処理のものは段階 4 の完了条件に入らない（ラダー・L3・録画が緑なら完了）ので、gamma は止まらず bd を立てるだけにする（D-6）。ただし `MarkClipContainer` は Task 1 Step 4 で見た義務で、ここでは入っていることを確かめ直すだけ（D-19）
@@ -1848,11 +1858,15 @@ return PlaytestRunner.Run("uitk-stage4-wave-shots", options, async p =>
     await ShootAll(1280, 720);
     await ShootAll(2560, 1080);
 
+    // Game View の解像度は PlayMode の後も残るので、後に流すシナリオのために 1280x720 へ戻す（前例 uitk-gameview-resolution-switch）
+    // The Game View resolution outlives PlayMode, so restore 1280x720 for later scenarios (as uitk-gameview-resolution-switch does)
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
+
     #region Internal
 
     async UniTask ShootAll(int width, int height)
     {
-        await PlaytestGameViewOps.SetResolution(CancellationToken.None, width, height);
+        await PlaytestGameViewOps.SetResolution(p.CancellationToken, width, height);
         await p.WaitSeconds(1f);
         var suffix = $"{width}x{height}";
 
@@ -1892,7 +1906,14 @@ Expected: 2 行とも exit 0。各 run dir に 6 枚。`moorestech_client/Temp/u
 
 - [ ] **Step 2b: 正本の参照キャプチャを並べる**
 
-Web の見た目の正本は参照キャプチャ（設計書 §3.3）。同じ画面の撮影 id `4-player-inventory`・`4-research`・`4-block-machine-recipe-selection` を、1280×720 は `moorestech_logs/uitk/reference-captures/web-a9d5123537/`、2560×1080 は `web-0e81bbe3c3-2560x1080/` から取り（撮影 id は台帳「## 行」の参照キャプチャの列と照らす）、`compare/` に「参照／Web 実ゲーム（CEF）／UITK 実ゲーム」の 3 列で並べる（D-25）
+Web の見た目の正本は参照キャプチャ（設計書 §3.3）で、段の頭に integrator が撮り直す（実行計画「各段の頭」）。使う参照は次の順で決める:
+1. `ls ../moorestech_logs/uitk/reference-captures/` と台帳「## 参照キャプチャ」から、段 4 の頭に撮り直した `web-<sha>/`（720p）と `web-<sha>-2560x1080/` を引く（無ければ最新）
+2. `git merge-base --is-ancestor <Task 2 の束 4 の起点> <参照の sha>` が両方の解像度で真であることを見る（偽なら、その参照は束 4 の Web を全部は含まない）
+3. 偽なら、gamma（integrator）が起点以後の `origin/master` の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-ref --from origin/master --no-editor`）で撮り直す。新しい worktree には node_modules が無いので、先に `cd moorestech_web/webui && pnpm install && pnpm build` を流す。720p は `UITK_REFERENCE_OUT=<空のディレクトリ> UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/capture.ts`（ref-uitk-design `compare-procedure.md` の流し方）で撮る。`capture.ts` の画面の大きさは `shotRunner.ts:11` の `referenceViewport`（1280×720）に固定で外から変える口が無いので、2560×1080 はこの使い捨て worktree の中でだけ `referenceViewport` を `{ width: 2560, height: 1080 }` に書き換えて別の空のディレクトリへ撮り、コミットしない（口を足すのは束 5 の Web の撮影基盤の持ち物）。撮れた `index` の viewport が 1280x720・2560x1080 になっていることを見てから `moorestech_logs/uitk/reference-captures/web-<sha>/`・`web-<sha>-2560x1080/` に置き、台帳「## 参照キャプチャ」の撮影元を書き換える（台帳の運用）。撮り方（書き換えた行を含む）を `done.md` に書く。撮り終えたら worktree を `moores-wt rm --force` で畳む（書き換えは捨てる）
+
+撮影 id `4-player-inventory`・`4-research`・`4-block-machine-recipe-selection` を取り、`compare/` に「参照／Web 実ゲーム（CEF）／UITK 実ゲーム」の 3 列で並べる。使った参照の sha を `done.md` に書く（D-25）。
+
+参照は mock-host の高密度の fixture（例 `4-block-machine-recipe-selection` は `referenceShots.ts` の `machineRecipesOverflow` で大量のレシピを入れ `machine-selected-recipe` を押した状態）で、実ゲームの撮影（石窯を開くだけ）とデータの状態が違う。組ごとに状態の差（行数・スクロールの有無・選択の有無・中身）を `compare/states.md` に先に書き出し、参照との比較は状態に依らない配置・色の系統・装飾・文字の大きさ・余白だけにする。CEF と UITK の実ゲームの組は同じ状態なので、そこでは状態に依るものも含めて全部比べる
 
 - [ ] **Step 3: 各レーンの組を集める**
 
@@ -1900,7 +1921,7 @@ Web の見た目の正本は参照キャプチャ（設計書 §3.3）。同じ�
 
 - [ ] **Step 4: codex-audit にかける**
 
-codex-audit スキル（既定 gpt-6-astra）に、Step 2b の 3 列の組と Step 3 の組の画像を渡し、次を頼む:「段階 4（持ち物・掴み・レシピ・ブロック UI 全族・研究）の参照キャプチャ（mock-host で撮った意図した見た目の正本）・Web の実ゲーム（CEF）・UITK の実ゲームを並べた。正本と UITK の差を挙げ、CEF が正本と違う箇所は『CEF 由来』と分けて。配置・色の系統・装飾の有無・文字の大きさ・欠けている要素・重なり・はみ出しの差を、組ごとに『差／重さ（一目で分かるか）／どちらが正しいか』で挙げて。台帳の見た目の例外 LX-106〜LX-140 の文面（添付）に当たる差は『記帳済み LX-n』と書いて除いて。合否の目安は 720p で 2px」。台帳「## 見た目の例外」の LX-106〜140 の行を本文に添える
+codex-audit スキル（既定 gpt-6-astra）に、Step 2b の 3 列の組と Step 3 の組の画像を渡し、次を頼む:「段階 4（持ち物・掴み・レシピ・ブロック UI 全族・研究）の参照キャプチャ（mock-host で撮った意図した見た目の正本）・Web の実ゲーム（CEF）・UITK の実ゲームを並べた。(1) 参照と UITK の差は、添付の状態の差（compare/states.md）に依らない配置・色の系統・装飾・文字の大きさ・余白だけを挙げて。(2) CEF と UITK の差（同じ実ゲームの状態）を全部挙げて。(3) 分け方: CEF と UITK が揃って参照と違うものは『参照の版の差か状態の差』、CEF だけが参照とも UITK とも違うものは『CEF 由来の候補』（同じ状態の CEF と UITK の組で裏取りできたものだけを CEF 由来とする）、UITK だけが違うものは『UITK の差』。配置・色の系統・装飾の有無・文字の大きさ・欠けている要素・重なり・はみ出しの差を、組ごとに『差／重さ（一目で分かるか）／どちらが正しいか』で挙げて。台帳の見た目の例外 LX-106〜LX-140 の文面（添付）に当たる差は『記帳済み LX-n』と書いて除いて。合否の目安は 720p で 2px」。台帳「## 見た目の例外」の LX-106〜140 の行を本文に添える
 
 - [ ] **Step 5: 指摘を再現してから回す**
 
@@ -2050,7 +2071,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-1 | gamma は本番のコード（画面・部品・Foundation・State・登録）を 1 行も書かず、検査する側のファイルだけを足す。登録の 1 行は無い | 段の締めの役目は「段が揃ったことの証拠」で、直すのは持ち主（取り込み後は I-fix）。gamma が直すと他レーンの所有と重なり、レビューの責任が割れる（実行計画 §8 の所有） | gamma が見つけた不具合をその場で直す: 所有が重なり、持ち主のテストが付かないまま直る |
 | D-2 | L3 は `Ui/Stage4/` の新しいサブディレクトリに 3 ファイルで置く | `EditModeInPlayingTest/Ui/` は既に 10 ファイル（`.cs`）。面の読み方（Probe）と期待の表を分けると、Task 13 の撮影や後の段の締めが表を読める | `Ui/` 直下に 1 ファイル: 11 本目になる。1 ファイルに表と読み方を入れる: 200 行を超える見込み |
 | D-3 | 「ビューア＋機械 UI＋インベントリ」の L3 は同時表示でなく行き来で見る（PlayerInventory → … → SubInventory〈`釜`〉→ … → PlayerInventory）。特殊族は対象にしない | Web の `App.tsx` でビューアは playerInventory のときだけ出て、機械 UI（SubInventory）と同時には出ない（S4-recipe の重なりの表もそう書く）。壊れ方は「前の画面の面が残る・重なる」なので、行き来の後に残骸が無いことを見る。特殊族は同じ `block-inventory` の器で列の扱いが同じ | 3 つを同時に出す: 本番で起きない状態を作ることになる。特殊族を全部巡る: 族ごとの見た目は各レーンの L1 と録画が見ている |
-| D-4 | 登録ディレクトリ `Registration/GameUi/` が 10 を超えていても gamma は動かさず、bd を I-fix へ回す | 中身は各レーンの登録ファイルで、動かすと他レーンのファイルを書く。alpha が依頼済みで、W4 の取り込みの前に integrator が入れる段取り | gamma が再編する: 所有が重なる。完了条件にする: 段階 4 の完了条件（plan §2.5）に無い |
+| D-4 | 登録ディレクトリ `Registration/GameUi/`（直下と、W4 以降の画面を置く `Screens/`。E-1）のどちらかが 10 を超えるか、S4 の画面の登録が直下にあっても gamma は動かさず、bd を I-fix へ回す | 中身は各レーンの登録ファイルで、動かすと他レーンのファイルを書く。alpha が依頼済みで、W4 の取り込みの前に integrator が入れる段取り | gamma が再編する: 所有が重なる。完了条件にする: 段階 4 の完了条件（plan §2.5）に無い |
 | D-5 | 他レーンの名前が計画と違えば gamma のファイルの側を直し、相手に変更を求めない | 名前は画面の持ち主が Web の `data-testid` に合わせて決めたもので、gamma の検査はそれを読む側 | 計画の名前へ合わせるよう依頼する: マージ済みの画面を名前のためだけに直すことになる |
 | D-6 | 回ってきた依頼のうち Foundation の口（`TutorialAnchor.Unmark`・`GameUiPointerProbe.PickAt`・`GamePanel` の題の逃げ）と D-23・D-26 は、未処理でも段階 4 の完了を止めず bd を I-fix へ回すだけにする | 各レーンが「無くても動く形」で書いたと計画に書いている。gamma の完了条件（§1.4）に入っていない。帰結: 画面側の写しが残る（`done.md` に件ごとに書く） | 全部入るまで止める: 段階 5 の着手が理由無く遅れる |
 | D-7 | 持ち主の無い `e2e/mock-host/detailActions.test.ts` 3 件は処遇「捨てる」 | mock-host（偽ホスト）が detail action を受けて自分の状態を書き換える契約で、UITK に偽ホストが無い。機械のレシピ選択の振る舞いは S4-machine の State のテストが持つ | 写す予定: 写し先が無いので永遠に閉じない |
@@ -2071,7 +2092,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-22 | 束 4 の暗転の起点は、S4 の 7 レーンのうち最も早く分岐したレーンの分岐点で取り込み済みだった master（指揮の記録があればそれ）。出所: 独立評価（opus 3） | 台帳の運用は「束のレーンを始めたときの最新の master」。S4 は alpha 列と research 列が並走し、どのレーンも暗転を書いていないので、最初に始めたレーンの時点が起点。後の点を取ると、その間に入った Web 変更が G1 の追従から漏れる | alpha のマージの直前の master: research 列が先に始めた分の Web 変更が漏れる |
 | D-23 | 全録画は系ごとに一覧を分ける。`scenarios/uitk/` 配下は UITK のレーンが全体スイッチ GameUi で流す前提で作ったもの（多くは `WebUiHost.Hub == null` を要求し、要求しないものも UITK のロケータの名前で書かれている）として Web の一覧から外し（外した本数と名前は `list-web-excluded.txt` から `done.md` へ）、Web の退行の比較は S4 前のコミットにもあるシナリオだけで行う（無いものは「比較不能（新設）」）。wwxy の表から外すのは直すレーンが X-prerun の行と、ファイルが消えた行だけ。出所: 独立評価（codex 2・opus 5） | UITK 専用を Web で流すと正常な Web 起動を失敗にする。比較元に無いシナリオでは既存か退行かを分けられない。S2-ladder・S3-ladder が直した 8 本は表に残っても流すべき | 全本を両方の系で流す: 偽の失敗が出る。表の全行を外す: 直った 8 本が黙って抜ける |
 | D-24 | gamma の新規シナリオ 5 本は `scenarios/uitk/stage4/` にまとめる。出所: 独立評価（codex 4） | AGENTS.md の 10 ファイル上限に、アセンブリに入らないことを理由にした例外は無い。`scenarios/uitk/` は起草時 10 本で、そこへ足すと超える。他レーンのファイルは動かさない | `scenarios/uitk/` 直下: 上限を超える（旧 D-8 は撤回） |
-| D-25 | 並べ比べの組は「参照キャプチャ（mock-host の正本）／Web の実ゲーム（CEF）／UITK の実ゲーム」の 3 列にし、CEF と参照が食い違う差は「CEF 由来」と分けて記録する。出所: 独立評価（opus 4） | 設計書 §3.3 で Web の見た目の正本は参照キャプチャ。CEF 由来の不具合は UITK 切替まで直さない裁定があり、CEF だけと比べると崩れを写したまま差 0 になる | CEF の実ゲームだけと比べる: 正本と結び付かない |
+| D-25 | 並べ比べの組は「参照キャプチャ（mock-host の正本。束 4 の起点を含む段 4 の頭の撮り直し、無ければ gamma が撮り直す）／Web の実ゲーム（CEF）／UITK の実ゲーム」の 3 列にする。参照とは状態に依らない配置・装飾だけを比べ、状態に依る差は同じ状態の CEF と UITK の組で比べる。「CEF 由来」はその組で裏取りできた差に限る。出所: 独立評価（opus 4・2 周目 opus N1・codex 2） | 設計書 §3.3 で Web の見た目の正本は参照キャプチャ。CEF 由来の不具合は UITK 切替まで直さない裁定があり、CEF だけと比べると崩れを写したまま差 0 になる | CEF の実ゲームだけと比べる: 正本と結び付かない |
 
 ランタイムの挙動（UI・入力）を確かめるので、unityプレイ録画テスト（Task 5・6・7・9・12）と EditModeInPlayingTest（Task 3）を入れた。
 
