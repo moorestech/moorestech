@@ -114,6 +114,40 @@ namespace Client.Tests.Ui.Components.Slots.Fluid
         }
 
         [Test]
+        public void 同じスロットで中身からゴーストへ変わるとフィルが消える()
+        {
+            var slot = Mount();
+            var icon = SlotTestIcons.WithTexture("10", "Water");
+            slot.SetFluid(FluidSlotContent.Filled(icon, 500, 1000, WaterFace));
+            simulate.FrameUpdate();
+            Assert.AreEqual(DisplayStyle.Flex, slot.Q(className: "fluid-slot__fill").resolvedStyle.display);
+
+            slot.SetFluid(FluidSlotContent.Ghost(icon, 2));
+            simulate.FrameUpdate();
+
+            Assert.IsTrue(slot.ClassListContains("fluid-slot--ghost"));
+            Assert.AreEqual(DisplayStyle.None, slot.Q(className: "fluid-slot__fill").resolvedStyle.display);
+            Assert.AreEqual("2", Glyph(slot).text);
+        }
+
+        [Test]
+        public void 同じスロットでゴーストから中身へ変わると透けが外れ絵の不透明度が1に戻る()
+        {
+            var slot = Mount();
+            var icon = SlotTestIcons.WithTexture("10", "Water");
+            slot.SetFluid(FluidSlotContent.Ghost(icon, 2));
+            simulate.FrameUpdate();
+            Assert.Less(slot.Q(className: "fluid-slot__icon").resolvedStyle.opacity, 1f);
+
+            slot.SetFluid(FluidSlotContent.Filled(icon, 500, 1000, WaterFace));
+            simulate.FrameUpdate();
+
+            Assert.IsFalse(slot.ClassListContains("fluid-slot--ghost"));
+            Assert.AreEqual(1f, slot.Q(className: "fluid-slot__icon").resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(DisplayStyle.Flex, slot.Q(className: "fluid-slot__fill").resolvedStyle.display);
+        }
+
+        [Test]
         public void 子は全部ポインタを受けずルートだけが受ける()
         {
             var slot = Mount();

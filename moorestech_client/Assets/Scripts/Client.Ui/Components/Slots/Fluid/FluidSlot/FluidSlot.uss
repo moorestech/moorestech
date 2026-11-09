@@ -7,7 +7,7 @@
     border-color: var(--mantine-color-dark-4);
     border-radius: var(--mantine-radius-sm);
     background-color: var(--mantine-color-dark-8);
-    overflow: hidden; /* look-exception: LX-67 */
+    overflow: hidden;
 }
 
 .fluid-slot__fill {
@@ -16,6 +16,10 @@
     left: 0;
     bottom: 0;
     width: 100%;
+    /* UITK の overflow は角丸の内側を切らないので、Web で枠に切られる下の 2 角をフィル自身が丸める */
+    /* UITK overflow does not clip inside the rounded corners, so the fill rounds the bottom two corners the Web frame clips */
+    border-bottom-left-radius: var(--fluid-slot-fill-bottom-radius);
+    border-bottom-right-radius: var(--fluid-slot-fill-bottom-radius); /* look-exception: LX-67 */
 }
 
 .fluid-slot--fill-shown > .fluid-slot__fill {

@@ -32,8 +32,21 @@ namespace Client.Tests.Ui.Components.Slots.Fluid
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-dark-4"), slot.resolvedStyle.borderTopColor, "border");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-dark-8"), slot.resolvedStyle.backgroundColor, "face");
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--mantine-radius-sm"), slot.resolvedStyle.borderTopLeftRadius, 0.01f);
-            // はみ出しの切り抜き（overflow: hidden）は IResolvedStyle に無い（設計書 A-65）ので、Task 7 Step 3 のフィルの角の画素で見る
-            // Overflow clipping is not on IResolvedStyle (design A-65), so Task 7 Step 3 checks it on the fill-corner pixels
+        }
+
+        [Test]
+        public void フィルの下の2角は枠の内側の角丸で丸め上の2角は丸めない()
+        {
+            var slot = Mount(FluidSlotContent.Filled(SlotTestIcons.WithTexture("10", "Water"), 500, 1000, Color.blue));
+
+            // UITK の overflow は角丸の内側を切らないので、Web で枠に切られる下の角をフィルが持つ（LX-67）
+            // UITK overflow does not clip inside rounded corners, so the fill carries the bottom corners the Web frame clips (LX-67)
+            var fill = slot.Q(className: "fluid-slot__fill");
+            var innerRadius = ThemeTokenFile.ResolvePixels("--mantine-radius-sm") - slot.resolvedStyle.borderBottomWidth;
+            Assert.AreEqual(innerRadius, fill.resolvedStyle.borderBottomLeftRadius, 0.01f);
+            Assert.AreEqual(innerRadius, fill.resolvedStyle.borderBottomRightRadius, 0.01f);
+            Assert.AreEqual(0f, fill.resolvedStyle.borderTopLeftRadius, 0.01f);
+            Assert.AreEqual(0f, fill.resolvedStyle.borderTopRightRadius, 0.01f);
         }
 
         /// <web-test file="src/app/iconTextOutlineDesign.test.ts">白文字2系統が黒縁の共有クラスを持ち、擬似縁を残さない</web-test>
