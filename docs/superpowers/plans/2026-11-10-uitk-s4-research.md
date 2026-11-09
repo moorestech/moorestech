@@ -4,7 +4,7 @@
 
 **Goal:** Web 版の `features/research`（`ResearchTreePanel`・`ResearchNodeCard`・`ResearchDetailPane`・`unlock/*`）を、C4-d の `NodeGraphView`・C4-c の `RecipeActionButton`・C3-a の `ItemSlot`/`BlockSlot`・C2 の `GamePanel`/`GameScrollView` で Web と同じ見た目の UITK 画面にし、Model は Web の topic の源（`ResearchNodeStateStore`・研究マスタ・持ち物）から直に組み、L0/L1・並べ比べ（720p・2560×1080）・録画 `uitk/uitk-research-tree` と既存 `tier9/tier9-5-compute-research` まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Research/`）は研究マスタを静的な定義の列 `ResearchNodeCatalog` に 1 回だけ写し（機械レシピの出力は Web の橋と同じく機械レシピのマスタから引く。D-13）、`ResearchTreeModel` が定義・サーバーの状態（`ResearchNodeStateStore`）・持ち物の所持数・選択（`ResearchSelectionStore`）を購読して、研究画面の表示中だけ同期で `ResearchTreeViewModel` を組み直す（[A-57]）。View（`Client.Ui/Screens/Research/`）は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`）へ Presenter が 1 回だけ載せ、表示は経路（`UiRoutingState`）で `SetShown` する。ツリーは常駐の `NodeGraphView` 1 つにカードを使い回して渡し、ノードの集合か注目点が変わったときだけ `SetGraph` を呼ぶ（閉じて開き直しても視野が残る。C4-d D-23(3)）。詳細ペインは研究エリアの右上に浮かべ、研究ボタンは `RecipeActionButton` を画面 USS の祖先で研究の組に上書きする（[A-46]）。操作は `IResearchTreeCommands`（選択の切り替え・閉じる・研究の実行 `UniTask<UiCommandResult>`）で、失敗は `UiCommandResultToaster` の 1 本へ渡す。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Research/`）は研究マスタを静的な定義の列 `ResearchNodeCatalog` に 1 回だけ写し（機械レシピの出力は Web の橋と同じく機械レシピのマスタから引く。D-13）、`ResearchTreeModel` が定義・サーバーの状態（`ResearchNodeStateStore`）・持ち物の所持数・選択（`ResearchSelectionStore`）を購読して、同期で `ResearchTreeViewModel` を組み直す（[A-57]）。View（`Client.Ui/Screens/Research/`）は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`）へ Presenter が 1 回だけ載せ、表示は経路（`UiRoutingState`）で `SetShown` する。ツリーは常駐の `NodeGraphView` 1 つにカードを使い回して渡し、ノードの集合か注目点が変わったときだけ `SetGraph` を呼ぶ（閉じて開き直しても視野が残る。C4-d D-23(3)）。詳細ペインは研究エリアの右上に浮かべ、研究ボタンは `RecipeActionButton` を画面 USS の祖先で研究の組に上書きする（[A-46]）。操作は `IResearchTreeCommands`（選択の切り替え・閉じる・研究の実行 `UniTask<UiCommandResult>`）で、失敗は `UiCommandResultToaster` の 1 本へ渡す。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`CustomStyleResolvedEvent`・`PointerDownEvent` 系・`panel.Pick`）、UniRx、UniTask、VContainer、NUnit＋`com.unity.ui.test-framework`（`UITestFixture`・`PanelSimulator`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（Web の参照キャプチャ・test-name-parity・`convert-web-tokens.mjs`・`gen:i18n`）、gh CLI、bd（Beads）
 
@@ -20,7 +20,7 @@
 |---|---|---|
 | R-1 | 静的な定義: 研究マスタの全ノードを `ResearchNodeDefinition`（GUID・アイコンの `ItemId`・ツリー座標 Y 上向き・前提 GUID の列・消費アイテム〈受け付ける上位レベルの ID 込み〉・解放物 `ResearchUnlockSet`）へ 1 回写す。解放物は Web の `ResearchNodeDtoFactory` と同じ 8 種（報酬・アイテムのレシピ表示・ブロック・機械レシピ〈アイテムと液体の両方の出力〉・接続ツール・車両・モジュール枠の上限〈レベルでなく上限値〉・製作上限）で、機械レシピの出力は `MasterHolder.MachineRecipesMaster` から引く（D-13） | `ResearchCatalogFromMasterTest`（L0・テスト mod）が緑 |
 | R-2 | ViewModel: 定義・サーバーの状態（無いノードは `UnresearchableAllReasons`）・所持数（持ち物のメインの枠）・選択から、カード（4 状態・状態ラベルのキー・選択）・初期の注目点（`ResearchLogic.TryFindInitialFocusNode`）・詳細（ボタンの状態・消費アイテムの割当と不足・解放物の列）を組む純関数 | `ResearchTreeViewModelFactoryTest`（L0）が緑 |
-| R-3 | Model: 状態の通知・選択・持ち物の変化・経路・言語で、研究画面の表示中だけ同期で組み直す。表示外は組まず、入った時に組む | `ResearchTreeViewModelFactoryTest` と録画（R-13）の主張 |
+| R-3 | Model: 状態の通知・選択・持ち物の変化・言語で同期で組み直す（表示の有無は Presenter と View。所持はメインの枠を `IPlayerInventoryOperations.ReadSnapshot()` から） | `ResearchTreeViewModelFactoryTest` と録画（R-13）の主張 |
 | R-4 | 選択: 同じノードの再タップで閉じる切り替え、閉じるボタン、画面を離れたら選択を捨てる（Web はパネルのアンマウントで消える） | `ResearchSelectionTest`（L0）・`ResearchTreeViewTest`（Web `ResearchTreePanel.test.ts` 1 件目）が緑。離脱で消えることは録画 |
 | R-5 | 研究エリア: `research-tree` が `OverlayPanel`/`Stage` 層で、上・右・下 0、`left` = `--inventory-panel-width` + `--stage-column-gap`（画面 USS で受け直し C# で足す [A-47]・[A-92]）。中に題「研究」の `GamePanel`（高さいっぱい）と `NodeGraphView("research")`（`research-viewport`・`research-canvas`） | `ResearchTreeViewTest`（Web `research.spec.ts`「研究パネルは持ち物の右隣から…」）が緑。並べ比べ（R-12） |
 | R-6 | ノードカード: `research-node-<guid>`・幅 132・縦積み（名前 14px 省略・アイコン `ItemSlot`・状態ラベル 12px 省略 `research-node-state-<guid>`）・面 `--research-node-face`・枠 1px `--research-node-border`。完了は枠 `--text-default`、研究可能は枠 `--select-cyan`、前提未達はロックで減光（Web `opacity: .45` を Linear 合成で補正した `--research-node-locked-opacity`）、選択は外へ 2px の `--text-high-contrast` の輪。アンカー `research.node-<guid>` を付ける | `ResearchTreeViewTest`（Web `research.spec.ts`「ノードカードが4状態の…」・`ResearchNodeCard.test.ts` 2 件）が緑 |
@@ -189,8 +189,8 @@ namespace Client.Ui.Components.Controls
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / 所持の読み口を既存の `ReadSnapshot` へ・Model は常に組む形へ・橋の DTO との突き合わせ L0 を追加・死活表に 4 行・研究の実行の二重は帰結を D-25 に記録
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱2・第3バケツ4 / 検査7（未対応の GameActionType）を ADR どおり例外へ直し、他は「このままでよい」を D-24 に記録、第3バケツは本PR外のリファクタ提案へ
 
 ## 死活表（Phase 2.5）
 
@@ -211,6 +211,10 @@ namespace Client.Ui.Components.Controls
 | チャレンジ HUD・キーヒントが研究エリアに遮られない | 生きる | 研究エリアは `OverlayPanel` 層、HUD は `Chrome` 層（上）。録画で `panel.Pick` が HUD 自身を返すことを見る（Task 12） |
 | チュートリアルの研究ノードの強調（マスタ 7 件） | S2-tutorial の描き手が入っていれば生きる | カードに `TutorialAnchor.Mark(card, AnchorIds.ResearchNode(guid))`（Task 7）。録画で 7 件の ID の要素が引けることを見る（Task 12）。切り口の印は integrator への依頼（D-9） |
 | 研究ノードの上のクリックがワールドに抜けない | 生きる | 研究エリアは `GamePanel`（拾う）で覆い、`UiPointerHitTest.IsPointerOverAnyUi` が真になる（エリアの根は拾わない。Task 9 の L1 で Pick） |
+| ホバーのツールチップ（カードのアイコンの名前・消費アイテムの所持/必要・解放物の枠の名前） | 生きる | 部品 `ItemSlot`（C3-a）が Foundation の `HoverTooltipHost` へ渡す。カードのアイコンは拾う（D-8）。拡大縮小したキャンバスと `GameScrollView` の中で出ることは録画の流れ 6b で見る |
+| 研究パネルの外の右短押しで閉じる・パネルの上では閉じない | 生きる | `ResearchTreeState` が `UiPointerHitTest.IsPointerOverAnyUi` で判定（既存。UI の系を読まない）。研究エリアは `GamePanel` が拾うのでパネルの上は UI。録画の流れ 9 でパネルの上の右短押しで閉じないことを見る |
+| Tab で持ち物へ移る | 生きる（このレーンの外） | `ResearchTreeState` の遷移（既存）。View は経路で `SetShown(false)` になる（Task 9）。録画の流れ 9 で状態の遷移を見る |
+| 研究画面での掴み絵（持ち物から掴んだアイテム） | このレーンの外（C4-e の掴み絵・S4-inventory の持ち物） | 研究エリアは `OverlayPanel` 層で、掴み絵は `Grab` 層（上）。研究エリアは掴みの落とし先を持たない（Web と同じ） |
 
 ---
 
@@ -227,7 +231,7 @@ namespace Client.Ui.Components.Controls
 | `S/Client.Ui.State/Research/Tree/ResearchDetailViewModel.cs` | 詳細の表示（ボタンの状態・消費の枠 `ResearchConsumeSlotViewModel`・解放物の列）。消費の枠の型も同じファイル | 新規 |
 | `S/Client.Ui.State/Research/Tree/ResearchTreeViewModel.cs` | 画面の不変の ViewModel（カードの列・注目点・詳細） | 新規 |
 | `S/Client.Ui.State/Research/Tree/ResearchTreeViewModelFactory.cs` | 定義・状態・所持数・選択から ViewModel を組む純関数 | 新規 |
-| `S/Client.Ui.State/Research/Tree/ResearchTreeModel.cs` | 源を購読し、表示中だけ同期で組み直して `Current` で配る（`IInitializable`） | 新規 |
+| `S/Client.Ui.State/Research/Tree/ResearchTreeModel.cs` | 源を購読し、変化のたびに同期で組み直して `Current` で配る（`IInitializable`） | 新規 |
 | `S/Client.Ui.State/Research/Tree/ResearchSelectionStore.cs` | 選択を持ち、研究画面を離れたら捨てる（`IInitializable`） | 新規 |
 | `S/Client.Ui.State/Research/Commands/IResearchTreeCommands.cs` | 画面から呼ぶ操作（[A-8]） | 新規 |
 | `S/Client.Ui.State/Research/Commands/ResearchTreeCommands.cs` | 本番の実装（選択・研究の実行と状態の反映・失敗の拒否） | 新規 |
@@ -413,10 +417,15 @@ Expected: bd の ID が出る。以後 `<bd>` をその ID で読む。`bd note 
 `ResearchCatalogFromMasterTest.cs`:
 ```csharp
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Client.Ui.State.Research.Catalog;
+using Client.Ui.State.Research.Logic;
+using Client.WebUiHost.Game.Topics;
 using Core.Master;
 using Game.Block.Interface.MachineUpgrade;
+using Game.Research;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -491,9 +500,45 @@ namespace Client.Tests.Ui.State.Research
             Assert.Greater(unlocks.RewardItems[0].Count, 0);
         }
 
+        [Test]
+        public void 全ノードがWebの橋のDTOと同じアイコンと前提と消費と解放物を持つ()
+        {
+            // Web の橋 ResearchNodeDtoFactory の写しなので、橋の読み方の変更や種別の追加の取りこぼしをここで捕まえる（前例 設計書 A-102）
+            // This copies the Web bridge ResearchNodeDtoFactory, so catch missed reading changes or new kinds here (precedent design A-102)
+            var noStates = new Dictionary<Guid, ResearchNodeState>();
+            foreach (var definition in ResearchNodeDefinitionsFromMaster.Build())
+            {
+                var dto = ResearchNodeDtoFactory.Create(MasterHolder.ResearchMaster.GetResearch(definition.Guid), noStates);
+                var label = definition.Guid.ToString();
+                Assert.AreEqual(dto.IconItemId, definition.IconItemId.AsPrimitive(), label);
+                CollectionAssert.AreEqual(dto.PrevGuids, definition.PreviousGuids.Select(guid => guid.ToString()).ToList(), label);
+                CollectionAssert.AreEqual(dto.ConsumeItems.Select(c => Join(c.ItemId, c.Count, Join(c.AcceptedItemIds.ToArray()))), definition.ConsumeItems.Select(c => Join(c.ItemId.AsPrimitive(), c.Count, Join(c.AcceptedItemIds.Select(id => id.AsPrimitive()).ToArray()))), label);
+                AssertSameUnlocks(dto, definition.Unlocks, label);
+            }
+        }
+
         #region Helpers
 
-        private static Client.Ui.State.Research.Logic.ResearchUnlockSet UnlocksOf(Guid researchGuid)
+        private static void AssertSameUnlocks(ResearchNodeDto dto, ResearchUnlockSet unlocks, string label)
+        {
+            // 8 種を種類ごとに同じ並び・同じ値で比べる
+            // Compare all eight kinds in the same order with the same values
+            CollectionAssert.AreEqual(dto.RewardItems.Select(r => Join(r.ItemId, r.Count)), unlocks.RewardItems.Select(r => Join(r.ItemId.AsPrimitive(), r.Count)), $"{label} reward");
+            CollectionAssert.AreEqual(dto.UnlockItemRecipeViewItemIds, unlocks.ItemRecipeViewItemIds.Select(id => id.AsPrimitive()), $"{label} itemRecipeView");
+            CollectionAssert.AreEqual(dto.UnlockBlocks.Select(b => b.BlockId), unlocks.Blocks.Select(b => b.BlockId.AsPrimitive()), $"{label} block");
+            CollectionAssert.AreEqual(dto.UnlockMachineRecipes.Select(r => Join(r.RecipeGuid, Join(r.OutputItemIds.ToArray()), Join(r.OutputFluids.Select(f => Join(f.FluidId, f.Amount)).ToArray()))), unlocks.MachineRecipes.Select(r => Join(r.RecipeGuid.ToString(), Join(r.OutputItemIds.Select(id => id.AsPrimitive()).ToArray()), Join(r.OutputFluids.Select(f => Join(f.FluidId.AsPrimitive(), f.Amount)).ToArray()))), $"{label} machineRecipe");
+            CollectionAssert.AreEqual(dto.UnlockConnectToolGuids, unlocks.ConnectToolGuids.Select(guid => guid.ToString()), $"{label} connectTool");
+            CollectionAssert.AreEqual(dto.UnlockTrainCarGuids, unlocks.TrainCarGuids.Select(guid => guid.ToString()), $"{label} trainCar");
+            CollectionAssert.AreEqual(dto.UnlockModuleSlotStackLimits, unlocks.ModuleSlotStackLimits, $"{label} moduleSlot");
+            CollectionAssert.AreEqual(dto.UnlockLevelInheritanceCraftCaps.Select(c => Join(c.ItemId, c.Level)), unlocks.LevelInheritanceCraftCaps.Select(c => Join(c.ItemId.AsPrimitive(), c.Level)), $"{label} craftCap");
+        }
+
+        private static string Join(params object[] parts)
+        {
+            return string.Join("|", parts.Select(part => Convert.ToString(part, CultureInfo.InvariantCulture)));
+        }
+
+        private static ResearchUnlockSet UnlocksOf(Guid researchGuid)
         {
             return ResearchNodeDefinitionsFromMaster.Build().Single(node => node.Guid == researchGuid).Unlocks;
         }
@@ -509,7 +554,7 @@ namespace Client.Tests.Ui.State.Research
     }
 }
 ```
-（`#region Helpers` はクラス直下の private メソッドを囲う `Internal` ではないので規約に触れない。`Tests.Module.TestMod`・`Server.Boot` の namespace は前例 `S/Client.Tests/Ui/Screens/GrabOverlay/GrabOverlayViewTest.cs` の using に合わせる）
+（`#region Helpers` はクラス直下の private メソッドを囲う `Internal` ではないので規約に触れない。L0-s4b の型のメンバー名〈`AcceptedItemIds`・`BlockId`・`RecipeGuid`・`FluidId`・`Amount`・`Level`〉と DTO のフィールド名は実物の `S/Client.Ui.State/Research/Logic/**`・`S/Client.WebUiHost/Game/Topics/Research/ResearchTopicDtos.cs` に合わせ、違えばコンパイルで読み替える。`Client.Tests` は `Client.WebUiHost` を参照済み。`Tests.Module.TestMod`・`Server.Boot` の namespace は前例 `S/Client.Tests/Ui/Screens/GrabOverlay/GrabOverlayViewTest.cs` の using に合わせる）
 
 - [ ] **Step 2: 定義の型を書く**
 
@@ -651,6 +696,19 @@ namespace Client.Ui.State.Research.Catalog
     /// </summary>
     public static class ResearchUnlockSetFromMaster
     {
+        // 解放はされるが研究画面に出さない種別（Web の ResearchUnlockGameActionCoverageTest の非表示台帳と同じ 7 種）
+        // Kinds unlocked but not shown on the research screen (same seven as the Web ResearchUnlockGameActionCoverageTest hidden ledger)
+        private static readonly HashSet<string> HiddenGameActionTypes = new()
+        {
+            GameActionElement.GameActionTypeConst.unlockCraftRecipe,
+            GameActionElement.GameActionTypeConst.unlockChallengeCategory,
+            GameActionElement.GameActionTypeConst.unlockItemStackLevel,
+            GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel,
+            GameActionElement.GameActionTypeConst.unlockBlueprint,
+            GameActionElement.GameActionTypeConst.playSkit,
+            GameActionElement.GameActionTypeConst.playBackgroundSkit,
+        };
+
         public static ResearchUnlockSet Build(ResearchNodeMasterElement master)
         {
             var blocks = new List<UnlockBlock>();
@@ -696,8 +754,10 @@ namespace Client.Ui.State.Research.Catalog
                     case UnlockLevelInheritanceCraftLevelGameActionParam craftCap:
                         foreach (var itemGuid in craftCap.TargetItemGuids) craftCaps.Add(new LevelInheritanceCraftCap(MasterHolder.ItemMaster.GetItemId(itemGuid), craftCap.Level));
                         break;
-                    // silent-ok: 表示 8 種の外のアクション（スタック上限・インベントリ枠等）は詳細ペインに出さない / 種別の追加は既存の ResearchUnlockGameActionCoverageTest が Web の橋の側で検知する
                     default:
+                        // 出さないと決めた 7 種だけ通し、それ以外は表示の裁定が要るので止める（.decisions 2026-08-19「研究の未対応GameActionTypeは例外で落とす」）
+                        // Only the seven decided-hidden kinds pass; anything else needs a show-or-hide decision, so stop (.decisions 2026-08-19)
+                        if (!HiddenGameActionTypes.Contains(action.GameActionType)) throw new InvalidOperationException($"[ResearchUnlockSetFromMaster] 研究 {master.ResearchNodeGuid} の未対応の GameActionType {action.GameActionType}");
                         break;
                 }
             }
@@ -731,7 +791,7 @@ namespace Client.Ui.State.Research.Catalog
 - [ ] **Step 4: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.State.Research.ResearchCatalogFromMasterTest"`
-Expected: ErrorCount 0 / 4 PASS。`IconItem` が空のノード（テスト mod）は `GetItemId(Guid.Empty)` が空の ID を返すので落ちない（`ItemMaster.GetItemId` の実物 73 行目）
+Expected: ErrorCount 0 / 5 PASS。`IconItem` が空のノード（テスト mod）は `GetItemId(Guid.Empty)` が空の ID を返すので落ちない（`ItemMaster.GetItemId` の実物 73 行目）
 
 - [ ] **Step 5: コミットする**
 
@@ -1228,10 +1288,10 @@ git commit -m "feat(uitk): 研究ツリーの選択と ViewModel を組む純関
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Research/Tree/ResearchTreeModel.cs`
 
 **Interfaces:**
-- Consumes: Task 2 の `ResearchNodeCatalog.Nodes`、Task 3 の `ResearchTreeViewModelFactory.Create`・`ResearchSelection`、`ResearchNodeStateStore`・`LocalPlayerInventoryController`・`UiRoutingState`・`OwnedItemCounts.Build`・`Localize.OnLanguageChanged`
+- Consumes: Task 2 の `ResearchNodeCatalog.Nodes`、Task 3 の `ResearchTreeViewModelFactory.Create`・`ResearchSelection`、`ResearchNodeStateStore`・`LocalPlayerInventoryController`（変化の通知だけ）・`IPlayerInventoryOperations.ReadSnapshot().MainSlots`（所持の読み口。GameUi で `GrabGameUiRegistration` が登録済み）・`UiRoutingState`（選択の持ち主だけ）・`OwnedItemCounts.Build`・`Localize.OnLanguageChanged`
 - Produces:
   - `public sealed class ResearchSelectionStore : IInitializable { public IReadOnlyReactiveProperty<ResearchSelection> Current { get; } public ResearchSelectionStore(UiRoutingState routing); public void Toggle(Guid researchGuid); public void Clear(); }`（研究画面を離れたら `None` へ戻す）
-  - `public sealed class ResearchTreeModel : IInitializable { public IReadOnlyReactiveProperty<ResearchTreeViewModel> Current { get; } public ResearchTreeModel(ResearchNodeCatalog catalog, ResearchNodeStateStore store, ResearchSelectionStore selection, LocalPlayerInventoryController inventory, UiRoutingState routing); }`（研究画面の表示中だけ組み直す。前例 `S/Client.Ui.State/Hotbar/HotbarModel.cs` の同期の組み直し [A-57]）
+  - `public sealed class ResearchTreeModel : IInitializable { public IReadOnlyReactiveProperty<ResearchTreeViewModel> Current { get; } public ResearchTreeModel(ResearchNodeCatalog catalog, ResearchNodeStateStore store, ResearchSelectionStore selection, LocalPlayerInventoryController inventory, IPlayerInventoryOperations inventoryOperations); }`（源の変化のたびに同期で組み直す。表示の有無は Presenter と View が持つ。前例 `S/Client.Ui.State/Challenge/CurrentChallengeHudModel.cs`・`Inventory/Grab/GrabOverlayModel.cs` [A-57]）
 
 - [ ] **Step 1: 選択の持ち主を書く**
 
@@ -1287,20 +1347,19 @@ namespace Client.Ui.State.Research.Tree
 
 `ResearchTreeModel.cs`:
 ```csharp
-using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Localization;
+using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Items;
 using Client.Ui.State.Research.Catalog;
-using Client.Ui.State.Routing;
 using UniRx;
 using VContainer.Unity;
 
 namespace Client.Ui.State.Research.Tree
 {
     /// <summary>
-    /// 研究ツリーの表示を源から組み、研究画面の表示中だけ同期で組み直して配る（A-57）
-    /// Builds the research tree display from its sources and rebuilds it synchronously only while the screen is shown (A-57)
+    /// 研究ツリーの表示を源から組み、源が動くたびに同期で組み直して配る（A-57）。表示の有無は Presenter と View が持つ
+    /// Builds the research tree display from its sources and rebuilds it synchronously on every change (A-57); showing is owned by the Presenter and View
     /// </summary>
     public sealed class ResearchTreeModel : IInitializable
     {
@@ -1308,47 +1367,37 @@ namespace Client.Ui.State.Research.Tree
         private readonly ResearchNodeStateStore _store;
         private readonly ResearchSelectionStore _selection;
         private readonly LocalPlayerInventoryController _inventory;
-        private readonly UiRoutingState _routing;
+        private readonly IPlayerInventoryOperations _inventoryOperations;
         private readonly ReactiveProperty<ResearchTreeViewModel> _current = new(ResearchTreeViewModel.Empty);
 
         public IReadOnlyReactiveProperty<ResearchTreeViewModel> Current => _current;
 
-        public ResearchTreeModel(ResearchNodeCatalog catalog, ResearchNodeStateStore store, ResearchSelectionStore selection, LocalPlayerInventoryController inventory, UiRoutingState routing)
+        public ResearchTreeModel(ResearchNodeCatalog catalog, ResearchNodeStateStore store, ResearchSelectionStore selection, LocalPlayerInventoryController inventory, IPlayerInventoryOperations inventoryOperations)
         {
             _catalog = catalog;
             _store = store;
             _selection = selection;
             _inventory = inventory;
-            _routing = routing;
+            _inventoryOperations = inventoryOperations;
         }
 
         public void Initialize()
         {
-            // 状態・選択・所持・経路・言語のどれが動いても組み直す
-            // Rebuild when state, selection, inventory, routing or language changes
-            _store.OnNodeStatesChanged.Subscribe(_ => RebuildWhileShown());
-            _selection.Current.Subscribe(_ => RebuildWhileShown());
-            _inventory.LocalPlayerInventory.OnItemChange.Subscribe(_ => RebuildWhileShown());
-            _inventory.OnInventoryRefreshed.Subscribe(_ => RebuildWhileShown());
-            _routing.Current.Subscribe(_ => RebuildWhileShown());
-            Localize.OnLanguageChanged.Subscribe(_ => RebuildWhileShown());
+            // 状態・選択・所持・言語のどれが動いても組み直す（選択の購読が初回の 1 回も組む）
+            // Rebuild when state, selection, inventory or language changes (the selection subscription also builds the first one)
+            _store.OnNodeStatesChanged.Subscribe(_ => Rebuild());
+            _inventory.LocalPlayerInventory.OnItemChange.Subscribe(_ => Rebuild());
+            _inventory.OnInventoryRefreshed.Subscribe(_ => Rebuild());
+            Localize.OnLanguageChanged.Subscribe(_ => Rebuild());
+            _selection.Current.Subscribe(_ => Rebuild());
         }
 
-        private void RebuildWhileShown()
+        private void Rebuild()
         {
-            // silent-ok: 研究画面の外では描かないので組まない / 入った時の経路の通知で組み直し、録画 uitk-research-tree が開いた直後のノードを見る
-            if (_routing.Current.Value.Screen != UiScreen.ResearchTree) return;
-            _current.Value = ResearchTreeViewModelFactory.Create(_catalog.Nodes, _store.NodeStates, OwnedItemCounts.Build(MainSlots()), _selection.Current.Value);
-        }
-
-        // 所持数はメインの枠だけで数える（Web の buildOwnedCounts(inventory.mainSlots)）
-        // Owned counts come from the main slots only (the Web buildOwnedCounts(inventory.mainSlots))
-        private IReadOnlyList<SlotItem> MainSlots()
-        {
-            var inventory = _inventory.LocalPlayerInventory;
-            var slots = new SlotItem[inventory.MainSlotCount];
-            for (var i = 0; i < slots.Length; i++) slots[i] = new SlotItem(inventory[i].Id, inventory[i].Count);
-            return slots;
+            // 所持数はメインの枠だけで数える（Web の buildOwnedCounts(inventory.mainSlots)。読み口は持ち物の操作と同じ）
+            // Owned counts come from the main slots only (the Web buildOwnedCounts(inventory.mainSlots); same read port as inventory operations)
+            var owned = OwnedItemCounts.Build(_inventoryOperations.ReadSnapshot().MainSlots);
+            _current.Value = ResearchTreeViewModelFactory.Create(_catalog.Nodes, _store.NodeStates, owned, _selection.Current.Value);
         }
     }
 }
@@ -1357,7 +1406,7 @@ namespace Client.Ui.State.Research.Tree
 - [ ] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: ErrorCount 0（Model の振る舞いは Task 3 の純関数の L0 と Task 12 の録画が見る。経路と持ち物の源は MonoBehaviour と通信を要するので L0 を持たない）
+Expected: ErrorCount 0（Model の振る舞いは Task 3 の純関数の L0 と Task 12 の録画が見る。持ち物の源は MonoBehaviour と通信を要するので L0 を持たない。`OwnedItemCounts.Build` の引数の型が `IReadOnlyList<SlotItem>` でなければ実物に合わせる）
 
 - [ ] **Step 4: コミットする**
 
@@ -3735,9 +3784,11 @@ git commit -m "fix(uitk): 研究ツリーを Web との並べ比べで揃え、�
 4. マスタの研究ノードのアンカー: `TutorialAnchorRegistry.Resolve(GameUiRoot.Instance.GetRootElement(), AnchorIds.ResearchNode(guid))` が全ノードで `Unique`（チュートリアルが指す 7 件〈`challenges.json` の `research.node-*`〉を含む）。件数を `p.Note` に出す
 5. 遮られない: `FindUi("challenge-hud")`・`FindUi("key-hints")` の中心で `GameUiRoot.Instance.GetRootElement().panel.Pick(<パネル座標>)` が各 HUD の部分木の要素を返す（研究エリアの要素を返さない）。採掘の進捗バーの行は、`FindUi("mining-progress")` が見つかったときだけ同じく見る（見つからなければ `p.Note` に「採掘中でないので見ない」）
 6. タップで詳細: ステップ 2 のノードのカードを `p.ClickUi($"research-node-{guid}")` → `p.UntilUiElement("research-detail-pane", 5f)`、`research-button-{guid}` が押せる。`p.Screenshot("02-detail")`
+6b. ホバーのツールチップ: マウスをカードのアイコン（`research-node-icon-{guid}`）の中心へ動かして 1 秒待ち、`GameUiRoot.Instance.GetLayer(UiLayer.Tooltip, …)`（`HoverTooltipHost` の載る層。実物の家族は `GameUiHoverTooltipInstaller` を読む）に表示中の子があることを `p.Assert`。続けて消費アイテムの枠 `research-consume-slot-0` の上でも同じ。`p.Screenshot("02b-tooltip")`
 7. 研究の実行: `p.ClickUi($"research-button-{guid}")` → `p.WaitForResearch(new[] { guid }, Array.Empty<Guid>(), 10f, "UI から研究した")` → カードに `research-tree__card--completed`（`FindUi` の状態名。名前の実物は `UiElementSnapshot.StateFlags` を Note に出して合わせる）、ボタンの文言が完了済み。`p.Screenshot("03-completed")`
 8. 視野と選択: 空の背景（ビューポートの右下から内へ 40px）を `MouseMoveTo`・`MouseButtonDown(0)`・`MouseGlideTo(-60, +30 の先, 0.4f)`・`MouseButtonUp(0)` でパンし、カードの中心の位置を控える → `p.PressKey(Key.Escape)` → `GameScreen` → `p.PressKey(Key.R)` → `ResearchTree` → カードの中心が控えた位置から 1px 以内、`FindUi("research-detail-pane")` が見えない（選択が消えた）。`p.Screenshot("04-reopen-kept")`
-ファイルは 200 行未満、`#region Internal` にローカル関数（前提の閉包・空の背景の点・中心の読み）をまとめる
+9. 右短押しと Tab: 研究画面で空の背景の上を右短押し（`MouseButtonDown(1)`・`MouseButtonUp(1)` を短く）→ 0.5 秒後も `ResearchTree` のまま。`p.PressKey(Key.Tab)` → `p.WaitUiState(UIStateEnum.PlayerInventory, 10f)` → `FindUi("research-tree")` が見えない
+ファイルは 200 行未満、`#region Internal` にローカル関数（前提の閉包・空の背景の点・中心の読み）をまとめる。超えるなら流れ 6b・9 を `uitk-research-tree-input.cs` に分け（流れ 2〜3 の準備を写す）、Step 2 で 3 本を回す
 
 - [ ] **Step 2: 全体スイッチが GameUi であることを確かめてから 2 本を回す**
 
@@ -3921,7 +3972,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 1. **Requirements coverage**: R-1 → Task 2（`ResearchCatalogFromMasterTest`）、R-2 → Task 3（`ResearchTreeViewModelFactoryTest`）、R-3 → Task 4・Task 12（流れ 8 の開き直し）、R-4 → Task 3・4・8・9（`ResearchSelectionTest`・`ResearchTreeViewTest`・閉じるの `ResearchDetailPaneTest`・録画の流れ 8）、R-5 → Task 7・9（`ResearchTreeViewTest` のエリアの寸法）、R-6 → Task 6・7・9（4 状態の `[TestCase]`・状態ラベル・減光は Task 11）、R-7 → Task 9（`ResearchTreeViewportTest` 5 本）、R-8 → Task 7・8（`ResearchDetailPaneTest`）、R-9 → Task 3・8（消費の 4 本）、R-10 → Task 8（`ResearchUnlockSectionsTest` 5 本）、R-11 → Task 5・8・11・12、R-12 → Task 11、R-13 → Task 12、R-14 → Task 7・10、R-15 → Task 8・9・13、R-16 → Task 14・15。完了条件の各句: ResearchTreePanel（`NodeGraphView`。Task 9）・ノードカード 4 状態（Task 7・9）・詳細ペイン（Task 8）・解放物（Task 2・8）・研究ボタンの無効の面 [A-46]（Task 7 の USS・C4-c の `--research-action-disabled-face`）・左余白 0（C4-e 済み。Task 9 の `ResearchStageLayoutTest`）・アンカー 7 件（Task 7・12）・写す 33 件（File Structure の表・Task 8・9・13）・録画 tier9-5（Task 12）・右の領域の `left` は画面 USS（Task 7・9）。§6.2 の必須: 部品と公開 API（Global Constraints）・画面専用の部品の置き場（`Screens/Research/Parts/`）・つまみの同名上書き（File Structure の表）・写すテスト名と件数と `<web-test>`・撮影の解像度（Task 11）・録画（Task 12）・登録の行数 1（Task 10）・新しい共有部品の申告の手順（Global Constraints）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<PR番号>`・`<HEAD 10 桁>`・`<sha>`・`<空きポート>`・`<値>`・`<n>`・`<h>`・manifest の `<… のパス>`・`<自動適用が触ったファイル>` は実行時にしか決まらず、取り方を同じタスクに書いた。「TBD」「適切に」は無い。C4-d・C4-c の型は計画の Produces からの想定で、Task 1 Step 1 で実物と照合し、違えば読み替えて記録する手順を書いた
 3. **Type consistency**: `ResearchNodeDefinition(Guid, ItemId, Vector2, IReadOnlyList<Guid>, IReadOnlyList<ResearchConsumeItem>, ResearchUnlockSet)`・`ResearchNodeCatalog.Nodes`・`ResearchNodeDefinitionsFromMaster.Build()`・`ResearchSelection.None/Of/Is/TryGetGuid/Toggled`・`ResearchNodeCardViewModel`（`Guid`・`IconItemId`・`TreePosition`・`PreviousGuids`・`CardState`・`StateLabelKey`・`Selected`）・`ResearchConsumeSlotViewModel(ItemId, int, int, bool)`・`ResearchDetailViewModel`（`Guid`・`Button`・`ConsumeSlots`・`Unlocks`）・`ResearchTreeViewModel.Create/CreateWithDetail/TryGetInitialFocus/TryGetDetail/Nodes/Empty`・`ResearchFocusPoint.None/At/TryGetPoint`・`ResearchTreeViewModelFactory.Create(definitions, states, owned, selection)`・`ResearchSelectionStore.Current/Toggle/Clear`・`ResearchTreeModel.Current`・`IResearchTreeCommands.ToggleNodeSelection/CloseDetail/CompleteResearch`・`ResearchTreeCommands.CompleteResearchCommandName`・`UiCommandRejectReason.ResearchFailed`・`ResearchCalcKnobs.ApplyAreaLeft/ApplyScrollBleed`・`ResearchNodeCard(Guid).Render(vm, content)`・`ResearchNodeCardSet.RenderCards/BuildContent`・`ResearchDetailPane(commands, content, toaster).Render`・`ResearchDetailActions.Render(Guid, ResearchButtonState)`・`ResearchConsumeItemsSection.Render`・`ResearchUnlockSections.Render(IReadOnlyList<UnlockEntry>)`・`ResearchUnlockSectionKinds.Of/LabelKey/Testid/WrapsInSlotsRow`・`ResearchUnlockEntryElements.AddTo`・`ResearchTreeView(commands, content, toaster).Render/SetShown`・`ResearchTreePresenter(GameUiRoot, ResearchTreeModel, UiRoutingState, IResearchTreeCommands, GameContentPresentation, UiCommandResultToaster)`・`ResearchScreenTestKit.Tree/Detail/NoUnlocks/Unlocks/MasterUnlocks/LoadMasterAndContent`・`RecordingResearchTreeCommands.SetCompleteResult` は定義と使用（テスト・View・Presenter・登録・録画）で同じ綴り。USS のクラス `research-tree`・`__panel`・`__graph`・`__card`（`--completed/--ready/--locked/--selected`）・`__card-name/-icon/-state/-ring`・`__detail-host`・`__detail`・`__detail-panel`・`__detail-body`・`__detail-header`・`__detail-name`・`__detail-close`・`__detail-close-symbol`・`__detail-scroll`・`__detail-scroll-content`・`__detail-description`・`__section`・`__section-label`・`__slots`・`__slot`・`__unlock-other`・`__unlock-fluid`・`__actions`・`__reason` は C#・USS・テストで一致。testid（`research-tree`・`research-panel`・`research-viewport`・`research-node-<guid>`・`research-node-state-<guid>`・`research-detail-pane`・`research-detail-close`・`research-detail-scroll`・`research-consume-items`・`research-consume-slot-<i>`・`research-unlock-blocks/-machine-recipes/-items/-others`・`research-reward-items`・`research-unlock-fluid`・`research-unlock-module-slot-stack-limit`・`research-unlock-craft-cap-<itemId>`・`research-button-<guid>`・`research-detail-reason`）は Web の `data-testid` と同名
-4. **保留・縮退経路**: (a) 研究の応答なし → `ResearchTreeCommands` が LogWarning と `Rejected(ResearchFailed)`、トースト口が良性でないトーストを出す（`ResearchDetailPaneTest` の失敗のトーストが固定）。(b) 応答ありで `Success` が偽 → 状態は入れたうえで同じ拒否。(c) 研究画面の外の通知 → Model が `silent-ok` で組まない（入り直しの経路の購読で必ず組む。解消の条件は経路の `ResearchTree` 入り。最小構成〈起動直後に一度も入っていない〉でも初回の入りで組む。録画の流れ 3 が初回の入りを見る）。(d) 機械レシピの GUID が源に無い → `ResearchUnlockSetFromMaster` が LogError で知らせてその 1 件を落とす（マスタの検証の漏れを開発者のログへ）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`ResearchCalcKnobs`）。(f) 解放物の種類の追加 → `ResearchUnlockSectionKinds.Of`・`ResearchUnlockEntryElements.AddTo` が例外で止める（.decisions 2026-08-19「研究の未対応GameActionTypeは例外で落とす」と同じ）。(g) Task 1・10・11・12 の「止める」経路は、解消の主体（指揮・integrator・S4-alpha）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
+4. **保留・縮退経路**: (a) 研究の応答なし → `ResearchTreeCommands` が LogWarning と `Rejected(ResearchFailed)`、トースト口が良性でないトーストを出す（`ResearchDetailPaneTest` の失敗のトーストが固定）。(b) 応答ありで `Success` が偽 → 状態は入れたうえで同じ拒否。(c) 研究画面の外の通知 → Model は組み直すが View は `display: none` で描かない（表示の有無は Presenter が経路で持つ）。(d) 機械レシピの GUID が源に無い → `ResearchUnlockSetFromMaster` が LogError で知らせてその 1 件を落とす（マスタの検証の漏れを開発者のログへ）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`ResearchCalcKnobs`）。(f) 解放物の種類の追加 → マスタの写しは出さない 7 種以外の `GameActionType` で例外（`ResearchUnlockSetFromMaster`。起動時の定義の組み立てで止まる）、`ResearchUnlockSectionKinds.Of`・`ResearchUnlockEntryElements.AddTo` も未知の型で例外（.decisions 2026-08-19「研究の未対応GameActionTypeは例外で落とす」と同じ）。(g) Task 1・10・11・12 の「止める」経路は、解消の主体（指揮・integrator・S4-alpha）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
 5. **「決定的にする」を根拠にした選択**: 初期の注目点は L0-s4b の `TryFindInitialFocusNode`（Web と同じ規則）をそのまま使い、選び方を足さない。解放物の節の並びは初出順（Web と同じ）。ほかに無し
 6. **呼び出し側への責務漏出**: 状態→カードの 4 状態・ラベル・ボタン・不足の判定は L0-s4b の `ResearchLogic` の 1 か所を Factory が読み、View は ViewModel の値を当てるだけ。解放物の種類→節の写像は `ResearchUnlockSectionKinds` の 1 か所（節の見出し・testid・枠の列の有無を同じ switch 群で持つ）。研究の実行と状態の反映と失敗の写しは `ResearchTreeCommands` の 1 か所で、View は結果をトースト口へ渡すだけ。選択の切り替えと離脱で消すのは `ResearchSelectionStore` の 1 か所
 
@@ -3932,7 +3983,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 設計の正本: 設計書 `docs/uitk-migration/execution/component-architecture.md`（[A-8]・[A-13]・[A-45]・[A-46]・[A-47]・[A-52]・[A-57]・[A-92]）、実行計画 §1.4・§4.3・§6.2・E-1・E-13・E-22、裁定 `.decisions/2026-11-06-*`、`.decisions/2026-08-19-研究の未対応GameActionTypeは例外で落とす.md`・`2026-08-26-ツリーのノード押下もパンにし閾値未満だけ選択とする.md`・`2026-08-30-研究ノード状態ラベル写像は網羅Recordで持つ.md`。この計画で新たに決めたもの（agent 既定。出所はすべて起草役の判断。ユーザーへの質問は user-simulator の予測で代えた）:
 
 - **D-1 State の 3 区分**: `Research/Catalog`（マスタから 1 回だけ組む静的な定義）・`Research/Tree`（選択・ViewModel・Model）・`Research/Commands`。マスタはゲーム中に変わらないので、定義は DI のシングルトンが ctor で組む。棄却: Model が毎回マスタを読む（同じ写しを状態の通知のたびに繰り返す）
-- **D-2 Model は研究画面の表示中だけ同期で組み直す**（前例 `HotbarModel` [A-57]）。表示外は直前の値のまま組まず、経路の入りで組む。棄却: 常に組む（持ち物の変化のたびに全ノードの割当を回す）
+- **D-2 Model は源の変化のたびに同期で組み直し、表示の有無で止めない**（前例 `CurrentChallengeHudModel`・`GrabOverlayModel` [A-57]。設計書 §4.2 は表示の判断を Presenter と View に置く）。所持はメインの枠を既存の読み口 `IPlayerInventoryOperations.ReadSnapshot()` から読む（同じ数え方を 2 か所に書かない）。設計検査 Phase 1〜2.5 の指摘で、表示中だけ組む案（研究画面の判定が 4 か所に散る）から直した
 - **D-3 `NodeGraphView` は常駐 1 つ**で、`SetGraph` はノードの並びか注目点が変わったときだけ呼ぶ。隠すのは `display: none` で要素を残す（C4-d D-23(3) の「祖先が display: none の間は視野を動かさない」に乗る）。`RestoreViewport` は使わない。棄却: 開くたびに View を作り直して視野を外に保存する（Presenter が視野の値を持つことになり、C4-d の口を使うだけの利点が無い）
 - **D-4 ViewModel は等値比較を持たない**。Model は変化ごとに新しい ViewModel を配り、View はカードを GUID で使い回して描き直す（Web の再描画と同じ粒度）。解放物の節は数件なので描くたびに組み直す
 - **D-5 選択の持ち主は State の `ResearchSelectionStore`** で、経路が研究画面を離れたら `None` へ戻す（Web はパネルのアンマウントで `useState` が消える）。棄却: View が選択を持つ（Model が詳細を組めない）
@@ -3954,6 +4005,15 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 - **D-21 研究ボタンの幅 280・高さ 36 は初期値**で、Task 11 Step 3 で Web の画素から決め直す（C4-c は研究の組の幅と高さをこのレーンに残した）
 - **D-22 Web の `gap` は子の margin で写す**（USS の規約）。カードは名前とアイコンの下 6px、詳細の本文は見出しとスクロールの下 8px・理由の上 8px、節は上 8px、枠は右と下 4px
 - **D-23 録画を持つ**: ランタイムの挙動（入力・UI）に触れるので、unityプレイ録画テスト 2 本（`uitk/uitk-research-tree` 新規・`tier9/tier9-5-compute-research` 既存）を Task 12 に置く。L3（EditModeInPlayingTest）は持たない（段の締め S4-ladder）
+- **D-24 設計検査 Phase 2.6 の裁定（user-simulator の予測で代えた。出所: 起草役の既定）**:
+  - 5-A（private ctor の null・`ItemSlotContent` の null）→ このままでよい。`ResearchTreeViewModel` の null は private ctor の内側に閉じ、公開面は `TryGetDetail` と生成の別（`Create`／`CreateWithDetail`）で表す。`ItemSlotContent` の null は C3-a の部品の API の「無い」の書き方で、このレーンは部品を変えない
+  - 5-D（`ResearchSelectionStore` の読み書きの未分離）→ このままでよい。書き手は `ResearchTreeCommands` 1 つ、読み手は Model 1 つで、画面の内の UI 状態（前例 `HotbarModel` 周りも interface を分けない）。2 人目の書き手が出たら分ける
+  - 5-I（名前の解決の欠損）→ このままでよい。`GameContentPresentation`・`UiText.Resolve` はマスタ由来の ID だけを受け、辞書の欠けは補間器が LogError で知らせる（[A-114]）
+  - 検査7（解放物の写しの `default` と ADR 2026-08-19）→ ADR に合わせて直した。出さない 7 種を明示し、それ以外の `GameActionType` は例外（Task 2）。Web の橋は素通し＋網羅テストへ変わったが、その網羅テストは Web の橋の撤去で消えるので、UITK 側は ADR の形で閉じる
+  - 5-F（`ApplyNodeStates` の書き手が 2 つ）→ このままでよい。Web の橋 `ResearchCompleteActionHandler` と同じ書き手で、研究画面へ入った直後の取り直しの古い応答が研究の完了より後に届く競合は Web と同じく残る（次の取り直し〈持ち物の変化・入り直し〉で直る）。直すなら `ResearchNodeStateStore` の持ち主の改修で、このレーンの外
+  - 検査6（研究画面の表示中の判定 3 か所・GUID とキーの変換）→ このままでよい。判定は経路の値の比較 1 式で、持ち主（選択の破棄・組み直しの抑止・表示）が別。GUID の文字列は C4-d のキーの形
+- **D-25 研究の実行の手続きは Web の橋と 2 か所に残す**: 前例（`PauseMenuCommands` を両系で登録し、Web の橋が委ねる）に合わせるなら `ResearchCompleteActionHandler` を `ResearchTreeCommands` へ委ねる形に変えるが、Web の橋（`Client.WebUiHost/**`）を変えない範囲を守る（橋の DTO の突き合わせは Task 2 の L0 が縛る）。帰結: CEF の撤去まで同じ手続きが 2 か所に残る（負債が残る）。本PR外のリファクタ提案に載せた。設計検査 Phase 1〜2.5 の指摘
+- **D-26 Web の橋の DTO と定義を L0 で突き合わせる**: `ResearchCatalogFromMasterTest` の 5 本目が、テスト mod の全ノードで `ResearchNodeDtoFactory.Create` の結果とアイコン・前提・消費（受け付ける上位レベル）・解放物 8 種を比べる（前例 [A-102]）。設計検査 Phase 1〜2.5 の指摘
 - **要裁定**: なし（ゴール・裁定から外れる判断は無い。見た目の差が残れば `LX-136`〜`LX-140` に記帳し、§3 の例外として扱う）
 
 ## 未確認
@@ -3967,6 +4027,10 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 
 - 既存側 `moorestech_client/Assets/Scripts/Client.WebUiHost/**/ResearchNodeDtoFactory.cs` ／新設側 `Client.Ui.State/Research/Catalog/ResearchNodeDefinitionsFromMaster.cs`・`ResearchUnlockSetFromMaster.cs` ／同じ研究マスタから座標・前提・消費（上位レベル込み）・解放物 8 種を写す同じ役割。Web の撤去（CEF 停止）で前者が消えるまで 2 か所になる
 
+- 既存側 `S/Client.WebUiHost/Game/Actions/ResearchActions.cs`（`ResearchCompleteActionHandler`）／新設側 `Client.Ui.State/Research/Commands/ResearchTreeCommands.cs` ／同じ API を呼び `ApplyNodeStates` で反映し、応答なしと拒否を同じ失敗にする同じ役割
+- 既存側 `S/Client.Ui.State/Inventory/Actions/LocalPlayerInventoryOperations.cs:33-35` ／新設側 `ResearchTreeModel.MainSlots()` ／持ち物のメインの枠を `SlotItem` の列へ写す同じ導出
+- 既存側 `S/Client.Ui.State/Research/ResearchNodeStateStore.cs` の `_researchScreenActive`（`UIStateControl` から）／新設側 `ResearchSelectionStore`・`ResearchTreeModel`・`ResearchTreePresenter` の `UiScreen.ResearchTree` 判定（`UiRoutingState` から）／同じ「研究画面の表示中か」を別の源から導いている
+
 ---
 
 ## 設計書・実行計画へ反映する行
@@ -3975,7 +4039,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 
 | ID | 判断 | 棄却した案と理由 |
 |---|---|---|
-| A-170 | 研究ツリーの State は `Research/Catalog`（研究マスタから 1 回だけ組む静的な定義 `ResearchNodeCatalog`。機械レシピの出力も機械レシピのマスタから読む。解放済みだけを配る S4-alpha の源は使わない）・`Research/Tree`（`ResearchSelectionStore`・`ResearchTreeViewModelFactory`・`ResearchTreeModel`）・`Research/Commands` に分け、Model は研究画面の表示中だけ同期で組み直す（S4-research） | Model が毎回マスタを読む: 同じ写しを状態の通知のたびに繰り返す。常に組む: 持ち物の変化のたびに全ノードの割当を回す |
+| A-170 | 研究ツリーの State は `Research/Catalog`（研究マスタから 1 回だけ組む静的な定義 `ResearchNodeCatalog`。機械レシピの出力も機械レシピのマスタから読む。解放済みだけを配る S4-alpha の源は使わない）・`Research/Tree`（`ResearchSelectionStore`・`ResearchTreeViewModelFactory`・`ResearchTreeModel`）・`Research/Commands` に分け、Model は源の変化のたびに同期で組み直し、表示の有無は Presenter と View が持つ（S4-research） | Model が毎回マスタを読む: 同じ写しを状態の通知のたびに繰り返す。表示中だけ組む: 研究画面の判定が Model・選択・Presenter に散り、前例（`CurrentChallengeHudModel`）とも違う |
 | A-171 | 研究エリアは `UiLayer.OverlayPanel`・`UiFamily.Stage` に Presenter が 1 回載せ、`left` は画面 USS で受け直した `--inventory-panel-width` と `--stage-column-gap` の和を C# が当てる（[A-47]・[A-92]）。表示は経路で `display` を切り替え、要素は残す（S4-research） | 舞台の列に入れる: Web も列でなく絶対配置で、持ち物の右から画面端までを占める。開くたびに作り直す: `NodeGraphView` の視野を外に保存する口が要る |
 | A-172 | 研究ツリーは常駐の `NodeGraphView` 1 つにカードを GUID で使い回して渡し、`SetGraph` はノードの並びか初期の注目点が変わったときだけ呼ぶ（C4-d D-23(3) に乗り、開き直しても視野が残る）。カードの文字は拾わず、アイコンはホバーの名前のために拾い、押下はカードの包みへ浮かぶ（S4-research） | 毎回 `SetGraph`: 組み直しのたびに包みが作り直され、カードの状態だけの変化で無駄に組む。カードの子をすべて拾わない: Web の `ItemSlot` のホバーの名前が出ない |
 | A-173 | 研究ノードのロックの減光は要素の opacity のトークン `--research-node-locked-opacity`（`DerivedTokens.uss` の「S4-research」）で持ち、値はランタイムの PanelSettings の画素で Web と比べて決める（前例 `--slot-frame-insufficient-opacity`）。研究ボタンは `RecipeActionButton(Regular)` を画面 USS の `.research-tree__detail-body` で研究の組に上書きし、幅と高さはこのレーンが撮って決める（[A-46]）（S4-research） | Web の 0.45 のまま: Linear 合成で明るい字と枠が淡く残る。暗い半透明の式（指数 1.85）: 要素の opacity は下の色を混ぜる式が違う |
