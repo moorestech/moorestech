@@ -32,5 +32,8 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--theme-scroller-thumb-face` | `rgba(255, 255, 255, 0.4)` | `rgba(255, 255, 255, 0.1332)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine ScrollArea の暗色のつまみ） |
 | `--game-panel-craft-face` | `rgb(7 9 18 / 80%)` | `rgba(7, 9, 18, 0.9491)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の面。C2-a・I-fix1 のランタイム実測） |
 | `--game-panel-craft-rim` | `rgb(146 148 167 / 55%)` | `rgba(146, 148, 167, 0.2684)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の内周。C2-a） |
+| `--slot-frame-face` | `rgb(50 52 67 / 50%)` | `rgba(50, 52, 67, 0.42)` | ランタイムの Linear 合成で持ち物の空きマスを Web の画素と比べて選んだ（C3-a Task 8。地 (36,31,34) で Web (43,41,50)・UITK (42,40,49)。面が地より明るいので暗い色の式 0.7226 は (46,47,59) に外れる。台帳 LX-23） |
 | `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.029)` | 明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き |
+| `--screen-backdrop-face` | `rgb(0 0 0 / 42%)` | `rgba(0, 0, 0, 0.635)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（画面の幕。S2-hud・設計書 A-55） |
+| `--train-riding-hud-face` | `color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)` | `rgba(31, 31, 31, 0.9581)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55） |
 | `--modal-backdrop-face` | `Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)` | `rgba(0, 0, 0, 0.8164)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine Modal の幕。C3-b） |

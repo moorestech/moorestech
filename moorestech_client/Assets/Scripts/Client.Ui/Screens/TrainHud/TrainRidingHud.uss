@@ -1,0 +1,28 @@
+/* web: moorestech_web/webui/src/features/trainHud/style.module.css（.hud） */
+/* 舞台の下端から 7rem・左右中央。Paper の面と文字色はつまみで上書きする（面は α 補正したトークン） */
+/* web: moorestech_web/webui/src/features/trainHud/style.module.css (.hud) */
+/* 7rem above the stage bottom, centered; the Paper face and text color are knob overrides (the face is an alpha-corrected token) */
+
+.train-riding-hud {
+    position: absolute;
+    left: 50%;
+    bottom: 112px;
+    translate: -50% 0;
+}
+
+.train-riding-hud__paper {
+    padding-top: 12px;
+    padding-right: 16px;
+    padding-bottom: 12px;
+    padding-left: 16px;
+    color: var(--mantine-color-gray-1);
+    --paper-face: var(--train-riding-hud-face);
+}
+
+.train-riding-hud__title {
+    margin: 0;
+}
+
+.train-riding-hud__branch {
+    margin: 0;
+}

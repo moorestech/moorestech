@@ -1,0 +1,56 @@
+/* スロット族の L1 だけが当てる祖先のつまみの上書き。画面が自分のルートでつまみを上書きする形を写す（値は Web の画面 CSS） */
+/* Ancestor knob overrides applied only by the slot-family L1 tests; mirrors a screen overriding knobs at its root (values from the Web screen CSS) */
+
+/* W/features/hotbar/HotbarPanel/style.module.css の .cell（色はホットバーのトークンが無いので sel だけ） */
+/* .cell in W/features/hotbar/HotbarPanel/style.module.css (only sel colors, since hotbar tokens do not exist yet) */
+.slot-knob-hotbar {
+    --slot-size: var(--hotbar-slot-size);
+    --bevel-inset: inset;
+    --selected-face-ring-inset: 1.565749px;
+    --selected-face-bottom-trim: 0.78px;
+    --sel-c1: var(--select-cyan);
+    --sel-c2: var(--select-cyan);
+    --sel-c3: var(--select-cyan);
+    --count-bottom: -1px;
+}
+
+.slot-knob-filled-inset {
+    --filled-face-inset: 2px;
+    --face-inset-color: var(--select-cyan);
+}
+
+/* W/features/recipe/views/RecipeBox の --icon-pad: 1px */
+/* --icon-pad: 1px from W/features/recipe/views/RecipeBox */
+.slot-knob-recipe-box {
+    --icon-pad: 1px;
+}
+
+/* W/features/recipe/panels/ItemListPanel.tsx の GRID_STYLE（0.12em は UITK で 12px） */
+/* GRID_STYLE in W/features/recipe/panels/ItemListPanel.tsx (0.12em is 12px in UITK) */
+.slot-knob-item-list {
+    --slot-size: 46.144px;
+    --slot-grid-gap: 8.656px;
+    --slot-grid-row-gap: 8.896px;
+    --count-bottom: -1px;
+    --count-font-size: 16px;
+    --count-letter-spacing: 12px;
+}
+
+.slot-knob-shortage {
+    --shortage-count-right: 3px;
+    --shortage-count-bottom: 2px;
+    --shortage-count-font-size: 13px;
+}
+
+/* W/features/inventory/InventoryPanel は間隔のうち --slot-grid-gap だけを上書きする（ほかに --slot-size・--filled-face-inset・--face-inset-color・--icon-pad・--count-* も上書きするが、ここでは間隔の追従だけを見る） */
+/* W/features/inventory/InventoryPanel overrides only --slot-grid-gap among the gaps (it also overrides --slot-size, --filled-face-inset, --face-inset-color, --icon-pad and --count-*; only gap follow-through is checked here) */
+.slot-knob-gap-only {
+    --slot-grid-gap: 10px;
+}
+
+/* 1 層目は読めて 3 層目が読めない上書き。帯を新旧混在で書かないことを確かめる */
+/* Layer 1 reads but layer 3 does not; checks that bands are never written half old, half new */
+.slot-knob-broken-bevel {
+    --bevel-1: 5px;
+    --bevel-3: wide;
+}
