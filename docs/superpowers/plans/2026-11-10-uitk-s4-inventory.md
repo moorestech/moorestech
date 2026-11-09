@@ -4,7 +4,7 @@
 
 **Goal:** Web 版の `features/inventory` の `InventoryPanel`（持ち物パネル: 題・整理ボタン・10 列のスロット・所持品のアンカー）と `EquipmentPanel`（装備 HUD: 右下の縦列・選択枠・アンカー・掴める画面だけのクリック・ホイールでの装備の循環）を、C3-a・C3-b・C4-e の部品と口、L0-s4a のロジック、S4-alpha の `IPlayerSlotCommands`、S3-hotbar-modal の `WheelPassthroughMark` で Web と同じ見た目・同じ操作の UITK 画面にする。ホイールでの装備の循環は C# の 1 か所（State の `EquipmentWheelSelector`＋判定 `EquipmentWheelGate`）に置き、Web の未確認 FIFO と同じ規則で古いエコーに巻き戻されないようにする。L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-inventory-equipment`）まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Inventory/`）に 2 つの塊を足す。(1) `Panel/`: C4-e の持ち物の口 `IPlayerInventoryOperations` に中身の変化の合図 `OnSnapshotChanged` を足し（本番は `LocalPlayerInventory.OnItemChange`・`LocalPlayerInventoryController.OnInventoryRefreshed`・`LocalPlayerEquipment.OnSlotsOrSelectionChanged` の 3 つを束ねる。Web ホスト `InventoryTopic` と同じ源）、それを購読して `ReadSnapshot()` から不変の `PlayerInventoryViewModel`（main・装備・選択・所持品のアンカー表）を組む `PlayerInventoryPanelModel`、整理の型付きコマンド `IInventorySortCommands`。(2) `Equipment/`: 装備の選択の口 `IEquipmentSelectionPort`（本番は `LocalPlayerEquipment`）、ホイールの累積・循環・未確認 FIFO を持つ `EquipmentWheelSelector`、層・UI の上・ツールの占有で止める純関数 `EquipmentWheelGate`、画面・モーダル・ツールの占有を State の実物から読んで判定し選択へ流す `EquipmentWheelRouter`。入力は `Client.Input/Pointer/InputSystemPointerWheelStream`（`InputSystem.onEvent` のホイールのノッチを流す。Editor の更新で届いたものは Game View の外の操作なので流さない。前例 `InputSystemPointerPositionStream`）。Client.Ui（`Screens/Inventory/`）は `Panel/`（`InventoryView`・Presenter。`StageColumnsLayout.Get(StageColumn.Inv)` へ載せる [A-92]）、`Equipment/`（`EquipmentHudView`・Presenter。`UiLayer.Chrome`・`UiFamily.Viewport` へ）、`Parts/`（`SlotGesture` → `IPlayerSlotCommands` の振り分けと、スロットの中身の写し）、`Wheel/`（ホイールの流れを購読し、ノッチを A-71 と同じ 60px〈このレーンが `GameScrollView` の private 定数から Foundation の共有の定数 `WebWheelScale.PixelsPerNotch` へ上げる。E-1〉へ直し、パネルで拾った要素と `WheelPassthroughMark` から「UI の上か」を bool にしてルーターへ渡す `IInitializable`）。登録は `Client.Starter/Registration/GameUi/Screens/InventoryGameUiRegistration.cs` の 1 本（E-1 の W4 以降の置き場）と、`MainGameUiRegistration` の画面登録区画の 1 行。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Inventory/`）に 2 つの塊を足す。(1) `Panel/`: C4-e の持ち物の口 `IPlayerInventoryOperations` に中身の変化の合図 `OnSnapshotChanged` を足し（本番は `LocalPlayerInventory.OnItemChange`・`LocalPlayerInventoryController.OnInventoryRefreshed`・`LocalPlayerEquipment.OnSlotsOrSelectionChanged` の 3 つを束ねる。Web ホスト `InventoryTopic` と同じ源）、それを購読して `ReadSnapshot()` から不変の `PlayerInventoryViewModel`（main・装備・選択・所持品の GUID の表）を組む `PlayerInventoryPanelModel`、整理の型付きコマンド `IInventorySortCommands`。(2) `Equipment/`: 装備の選択の口 `IEquipmentSelectionPort`（本番は `LocalPlayerEquipment`）、ホイールの累積・循環・未確認 FIFO を持つ `EquipmentWheelSelector`、層・UI の上・ツールの占有で止める純関数 `EquipmentWheelGate`、画面・モーダル・ツールの占有を State の実物から読んで判定し選択へ流す `EquipmentWheelRouter`。入力は `Client.Input/Pointer/InputSystemPointerWheelStream`（`InputSystem.onEvent` のホイールのノッチを流す。Editor の更新で届いたものは Game View の外の操作なので流さない。前例 `InputSystemPointerPositionStream`）。Client.Ui（`Screens/Inventory/`）は `Panel/`（`InventoryView`・Presenter。`StageColumnsLayout.Get(StageColumn.Inv)` へ載せる [A-92]）、`Equipment/`（`EquipmentHudView`・Presenter。`UiLayer.Chrome`・`UiFamily.Viewport` へ）、`Parts/`（`SlotGesture` → `IPlayerSlotCommands` の振り分けと、スロットの中身の写し）、`Wheel/`（ホイールの流れを購読し、ノッチを A-71 と同じ 60px〈このレーンが `GameScrollView` の private 定数から Foundation の共有の定数 `WebWheelScale.PixelsPerNotch` へ上げる。E-1〉へ直し、パネルで拾った要素と `WheelPassthroughMark` から「UI の上か」を bool にしてルーターへ渡す `IInitializable`）。登録は `Client.Starter/Registration/GameUi/Screens/InventoryGameUiRegistration.cs` の 1 本（E-1 の W4 以降の置き場）と、`MainGameUiRegistration` の画面登録区画の 1 行。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`CustomStyleResolvedEvent`・`IPanel.Pick`）、Input System（`InputSystem.onEvent` の `Mouse.scroll`。`InputSettings.scrollDeltaBehavior` は既定の Uniform）、UniRx、VContainer 1.10、NUnit＋`com.unity.ui.test-framework`、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（test-name-parity）、gh CLI、bd（Beads）
 
@@ -17,7 +17,7 @@
 
 | ID | 要件 | 受け入れ基準 |
 |---|---|---|
-| R-1 | 持ち物の状態: `PlayerInventoryPanelModel` が `IPlayerInventoryOperations.OnSnapshotChanged` を購読し、変化のたびに同期で `PlayerInventoryViewModel`（main の全スロット・装備の全スロット・選択中の装備・所持品のアンカー表）を配る。`Client.WebUiHost` を参照しない | `PlayerInventoryPanelModelTest` が緑 |
+| R-1 | 持ち物の状態: `PlayerInventoryPanelModel` が `IPlayerInventoryOperations.OnSnapshotChanged` を購読し、変化のたびに同期で `PlayerInventoryViewModel`（main の全スロット・装備の全スロット・選択中の装備・所持品の GUID の表）を配る。`Client.WebUiHost` を参照しない | `PlayerInventoryPanelModelTest` が緑 |
 | R-2 | 所持品のアンカー: 同じ ItemId を持つスロットのうち先頭（空・個数 0 は数えない。`OwnedItemCounts.FirstSlotIndexByItemId`）にだけ `AnchorIds.InventoryItem(<guid>)`（小文字）を付ける。描き直しで外れたスロットからは id のクラスと印のクラスを外す | `InventoryViewTest`（Web `InventoryPanel/index.test.ts` 2 件）が緑 |
 | R-3 | 持ち物パネル: `GamePanel(inventory-panel, Default)`・題 `ui.inventory.title`・題の操作 `PanelActionButton(inventory-sort, ui.inventory.sort)`（押すと `IInventorySortCommands.Sort()`、結果は `UiCommandResultToaster.Report("inventory.sort", …)`）。本文 `SlotGrid(main-grid)`（列数は `--inventory-columns`）に `ItemSlot(main-slot-<i>)`。パネルの寸法・題のつまみ（幅 `--inventory-panel-width`・最小高 452.391px・`translate` 0.783px・`--panel-left/right` -2.22px・`--title-shift-x` -1.96px・`--title-scale-x/y` 0.919/0.924）とグリッドのつまみ（`--slot-size` 35.1776394px・`--slot-grid-gap` 7.0815392px・`--count-font-size` 12.337807px・`--filled-face-inset` 1.565749px・`--face-inset-color` rgb(50 52 67)・`--icon-pad` 1px・`--count-bottom` -1px・`--count-letter-spacing` 0.12em→12・上 12px・左 -0.549px）は Web の `GRID_STYLE` と同値 | `InventoryViewTest`（Web `inventory.spec`「接続後にインベントリが描画される」）と `InventoryGridKnobTest` が緑 |
 | R-4 | 出し入れ: 持ち物パネルは `UiScreenTraitsTable.Get(screen).Grab` が真の画面だけ（Web `screenAllowsGrab(screen) && <InventoryPanel/>`）。装備 HUD は `AlwaysOnHud` が真の画面だけ（blocking スキット中も隠さない。Web は `screenShowsAlwaysOnHud` だけで決め、ホットバーと違ってスキットで隠れない）。判定は各 Presenter のローカル関数が traits を読む（前例 `PauseMenuScreenPresenter`） | `InventoryScreenVisibilityTest`（Presenter の L1。Web `App.tsx` の代表行: 持ち物は持ち物画面・研究で出て建築メニューで出ない、装備 HUD は研究で隠れ建築メニューで出る、装備のクリックは持ち物画面だけ）が緑 |
@@ -182,6 +182,8 @@ public sealed class HotbarHudView : VisualElement { public HotbarHudView(IHotbar
 - Phase 2.6: 実施済み / 強1・弱4・第3バケツ1 / 強1（状況の bool 化）は型を変えず理由を D-11 に 1 行（ルーターが State を読むので境界を越える bool は `overBlockingUi` 1 つ）、弱4 の重複 3 か所を直し（D-21・D-23）、弱1〜3 は再現せず据え置き（弱3 は `Unmark` 依頼で解く）、第3バケツは「本 PR 外のリファクタ提案」へ
 - 配置検査（r2 差分）: 実施済み / 違反0件 / 注目点 N-1（C4-e の口への追記の根拠）・N-4（integrator 待ち）は E-1 の追記（ad92a44777）に合わせ、D-18 の前例を E-1 に差し替え、60px の格上げと登録の置き場（`GameUi/Screens/`）をこのレーンが持って待ちを外した（D-10・D-27）。N-3（Components と Content の取り違え）は語を直した（D-23）
 - Phase 2.6（r2 差分）: 実施済み / 強2・弱3・第3バケツ2 / 強（モーダルの保留を bool にして Gate へ渡す）は r1 の強1 と同じ系統で既決（D-11）。強（D-23 と §4.2・§5.1-2）は §4.2 の注記を ad92a44777 で直し、D-23 に §5.1-2 の例外の理由を足した。弱1（ロックと拾いの合成）は再現せず据え置き。弱2（選択の変化が合図に乗る前提）は `LocalPlayerInventoryOperationsTest` に 1 件足した（Task 3）。弱3（Presenter の同じ判定と 4 行）は D-21・D-23 で既決。第3バケツ T-1・T-2 は「本 PR 外のリファクタ提案」へ（T-2 は bd に起票）。評価の要修正 2 件は D-25（Editor の更新のホイール）・D-26（所持品のアンカーの id の組み立て）
+- 配置検査（r3 差分）: 実施済み / 違反0件 / 注目点 N-1（ボタンの流れを揃えない理由）は D-25 の却下案に 1 行足し第 3 バケツへ、N-2（E-23 の置き場の食い違い）は ADR 側で 9103676cbb に直った、N-3（D-8・D-11 の「Foundation は変えない」）は「E-1 が許す A-71 の定数を除き」を足した。備考の「アンカー表」の古い言い方 3 か所を「所持品の GUID の表」に直した。評価の要修正 1 件（`InputTestFixture.runtime` が internal）は Task 7 の補助 `InputTestDriver` の反射にまとめた
+- Phase 2.6（r3 差分）: 実施済み / 強0・弱0・第3バケツ1 / T-3（`InputSystemPointerButtonStream` の更新の種類）は「本 PR 外のリファクタ提案」へ（揃えない理由つき）
 
 ## 写すテスト
 
@@ -257,7 +259,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | `S/Client.Tests/Ui/State/Inventory/Panel/`（`PlayerInventoryPanelModelTest`・`InventoryItemGuidTableTest`・`RecordingInventorySortCommands`） | L0 | 新規 |
 | `S/Client.Tests/Inventory/LocalPlayerInventoryOperationsTest.cs` | 装備の選択の変化が本番の合図に乗ることを 1 件 | 変更 |
 | `S/Client.Tests/Ui/State/Inventory/Equipment/`（`EquipmentWheelSelectorTest`・`EquipmentWheelGateTest`・`FakeEquipmentSelectionPort`） | L0 | 新規 |
-| `S/Client.Tests/Input/Pointer/`（`InputSystemPointerWheelStreamTest`・`ScrollDeltaBehaviorSettingTest`・`InputUpdateRunner`） | L0（流れと、入力設定が Uniform であることの固定）と、更新の種類を選んで回す土台 | 新規 |
+| `S/Client.Tests/Input/Pointer/`（`InputSystemPointerWheelStreamTest`・`ScrollDeltaBehaviorSettingTest`・`InputTestDriver`） | L0（流れと、入力設定が Uniform であることの固定）と、更新の種類を選んで回す土台 | 新規 |
 | `S/Client.Tests/Ui/Screens/Inventory/`（`InventoryViewTest`・`InventoryPanelTooltipTest`・`InventoryGridKnobTest`・`InventoryScreenVisibilityTest`・`InventoryPanelGestureTest`・`InventoryEquipmentFlowTest`・`EquipmentHudViewTest`・`EquipmentHudFloorTokenTest`・`EquipmentWheelFlowTest`・`EquipmentWheelPassthroughTest`） | L1 | 新規 |
 | `S/Client.Tests/Ui/Screens/Inventory/Support/`（`RecordingPlayerSlotCommands`・`InventoryScreenFixture`・`UiRoutingStateTestFactory`・`GameUiRootTestFactory`・`EquipmentWheelRouterFixture`・`FakeEquipmentWheelPointerPicker`） | L1 の土台 | 新規 |
 | `S/Client.Tests/Ui/Screens/Inventory/Wheel/EquipmentWheelInputFlowTest.cs` | L1（流れ → 入力 → ルーター。Editor の更新を除く。本体のディレクトリが 10 本なので下に分ける） | 新規 |
@@ -2536,7 +2538,7 @@ git commit -m "test(uitk): 持ち物と装備の身振りを本物のスロッ�
 **Files:**
 - Create: `S/Client.Ui/Foundation/Input/WebWheelScale.cs`、`S/Client.Input/Pointer/InputSystemPointerWheelStream.cs`、`S/Client.Ui/Screens/Inventory/Wheel/EquipmentWheelPickJudge.cs`・`IEquipmentWheelPointerPicker.cs`・`EquipmentWheelPointerPicker.cs`・`EquipmentWheelNotchScale.cs`・`EquipmentWheelInput.cs`
 - Modify: `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs`（private 定数を共有の定数の読みに置き換える。E-1）
-- Test: `S/Client.Tests/Input/Pointer/InputSystemPointerWheelStreamTest.cs`・`ScrollDeltaBehaviorSettingTest.cs`・`InputUpdateRunner.cs`、`S/Client.Tests/Ui/Screens/Inventory/EquipmentWheelFlowTest.cs`・`Wheel/EquipmentWheelInputFlowTest.cs`・`Support/UiRoutingStateTestFactory.cs`・`Support/EquipmentWheelRouterFixture.cs`・`Support/FakeEquipmentWheelPointerPicker.cs`、`InventoryEquipmentFlowTest.cs` に 1 件足す
+- Test: `S/Client.Tests/Input/Pointer/InputSystemPointerWheelStreamTest.cs`・`ScrollDeltaBehaviorSettingTest.cs`・`InputTestDriver.cs`、`S/Client.Tests/Ui/Screens/Inventory/EquipmentWheelFlowTest.cs`・`Wheel/EquipmentWheelInputFlowTest.cs`・`Support/UiRoutingStateTestFactory.cs`・`Support/EquipmentWheelRouterFixture.cs`・`Support/FakeEquipmentWheelPointerPicker.cs`、`InventoryEquipmentFlowTest.cs` に 1 件足す
 
 **Interfaces:**
 - Consumes: Task 2 の `EquipmentWheelRouter`、`UiRoutingState`・`ModalRequestService`・`PlaceSystemStateController`・`GameUiRoot`・`InputSystemPointerPositionStream`・`HybridInput`、`CrosshairHudView`（S2-hud の実物）、InputSystem の `InputState.currentUpdateType`、前例 `DeleteInputFixture.Frame`（更新の種類を選んで回す反射）・`IGrabOverlayPointer`／`FakeGrabOverlayPointer`（パネル座標の変換を口の外へ出す）
@@ -2635,9 +2637,9 @@ namespace Client.Tests.Input.Pointer
 
             // Game View にフォーカスが無いと、ポインタのイベントは Editor の更新で処理される（InputManager.cs:3320-3345）
             // Without Game View focus, pointer events are processed in the Editor update (InputManager.cs:3320-3345)
-            runtime.PlayerFocusLost();
+            InputTestDriver.LoseGameFocus(this);
             InputSystem.QueueStateEvent(mouse, new MouseState { scroll = new Vector2(0f, -1f) });
-            InputUpdateRunner.Run(InputUpdateType.Editor);
+            InputTestDriver.RunUpdate(InputUpdateType.Editor);
 
             // 前提: 生の onEvent は Editor の更新で受けた（受けていなければこの件は何も試していない）
             // Premise: the raw onEvent saw it in an Editor update (otherwise this case tests nothing)
@@ -2691,7 +2693,7 @@ namespace Client.Tests.Input.Pointer
 }
 ```
 
-`S/Client.Tests/Input/Pointer/InputUpdateRunner.cs`（更新の種類を選んで InputSystem を 1 回回す。`InputSystem.Update(InputUpdateType)` は internal なので、前例 `DeleteInputFixture.Frame` と同じ反射で呼ぶ）:
+`S/Client.Tests/Input/Pointer/InputTestDriver.cs`（InputSystem 1.18.0 で internal の 2 つ〈`InputSystem.Update(InputUpdateType)` と `InputTestFixture.runtime`〉を、テスト専用のこの補助の反射にまとめる。前例 `DeleteInputFixture.Frame`）:
 ```csharp
 using System.Reflection;
 using UnityEngine.InputSystem;
@@ -2699,15 +2701,28 @@ using UnityEngine.InputSystem.LowLevel;
 
 namespace Client.Tests.Input.Pointer
 {
-    public static class InputUpdateRunner
+    /// <summary>
+    /// テストから internal の InputSystem の操作（更新の種類を選んで回す・Game View の焦点を外す）を呼ぶ
+    /// Calls internal InputSystem operations from tests (run a chosen update type, drop Game View focus)
+    /// </summary>
+    public static class InputTestDriver
     {
-        public static void Run(InputUpdateType updateType)
+        public static void RunUpdate(InputUpdateType updateType)
         {
             typeof(InputSystem).GetMethod("Update", BindingFlags.Static | BindingFlags.NonPublic, null, new[] { typeof(InputUpdateType) }, null).Invoke(null, new object[] { updateType });
+        }
+
+        public static void LoseGameFocus(InputTestFixture fixture)
+        {
+            // runtime も InputTestRuntime も internal なので、取り出しと呼び出しの両方を反射で行う
+            // Both runtime and InputTestRuntime are internal, so fetch and call through reflection
+            var runtime = typeof(InputTestFixture).GetProperty("runtime", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(fixture);
+            runtime.GetType().GetMethod("PlayerFocusLost", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(runtime, null);
         }
     }
 }
 ```
+（`runtime` がプロパティかフィールドか、`PlayerFocusLost` の綴りは InputSystem 1.18.0 の `InputTestFixture.cs`・`InputTestRuntime.cs` で確かめ、違えば合わせる）
 （Editor の更新でイベントが処理される条件〈フォーカス・`editorInputBehaviorInPlayMode`・`backgroundBehavior`〉は InputSystem 1.18.0 の `InputManager.cs:3320-3345` に合わせて実物で確かめる。前提の assert〈生の onEvent が Editor で受けた〉が赤なら、条件の与え方を直す。前提の assert は外さない）
 
 `Support/FakeEquipmentWheelPointerPicker.cs`（パネル座標の変換はテストのパネルで動かないので口の外に出す。前例 `FakeGrabOverlayPointer`）:
@@ -2785,7 +2800,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
         {
             // Inspector などにフォーカスがあるとき、ポインタのイベントは Editor の更新で届く
             // With focus on e.g. the Inspector, pointer events arrive in the Editor update
-            _input.runtime.PlayerFocusLost();
+            InputTestDriver.LoseGameFocus(_input);
             WheelDownOneNotch(InputUpdateType.Editor);
             WheelDownOneNotch(InputUpdateType.Editor);
 
@@ -2805,7 +2820,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
         private void WheelDownOneNotch(InputUpdateType updateType)
         {
             InputSystem.QueueStateEvent(_mouse, new MouseState { scroll = new Vector2(0f, -1f) });
-            InputUpdateRunner.Run(updateType);
+            InputTestDriver.RunUpdate(updateType);
         }
 
         private void RecordRawWheelUpdate(InputEventPtr eventPtr, InputDevice device)
@@ -3983,8 +3998,8 @@ git merge origin/feature/uitk
 
 - Requirements はそれぞれ Task に当たる: R-1・R-2（表）→ Task 3、R-2（View）・R-3 → Task 4、R-4 → Task 8（Presenter のローカル関数と L1）、R-5 → Task 4〜6、R-6 → Task 5、R-7・R-8 → Task 2・Task 7、R-9 → Task 7・Task 11、R-10・R-11 → Task 9、R-12 → Task 4、R-13 → Task 10、R-14 → Task 4・Task 8、R-15 → Task 2〜9、R-16 → Task 11、R-17 → Task 12・13
 - 写すテスト 34 件の所在: Task 2（Selector 4・Gate 4）・Task 4（inventory.spec 1・InventoryPanel 2・itemSlot 1）・Task 5（EquipmentPanel 4・equipment.spec 1）・Task 6（inventory.spec 3・equipment.spec 2）・Task 7（equipment.spec 5・inputLayer 1）・Task 8（処分 2）・Task 9（equipment.spec 3・alwaysOnHudWheel 1）＝ 8＋4＋5＋5＋6＋2＋4 ＝ 34
-- 型の一致: `PlayerInventoryViewModel`（Task 3）を Task 4・5・8・9 が同じ ctor（main・装備・選択・アンカー表）で使う。`PlayerInventoryPanelModel(IPlayerInventoryOperations, IEquipmentSelectionPort)` は Task 3・6・8 で同じ。`EquipmentWheelSituation` の引数順（screen, modalPending, overBlockingUi, toolOwnsWheel）は Task 2 の Gate とルーターの中だけ。`EquipmentWheelRouter.Route(delta, unit, overBlockingUi)` は Task 7・9 で同じ（L1 は `EquipmentWheelRouterFixture` で本物の State を組む）。`EquipmentWheelInput(wheel, positions, IEquipmentWheelPointerPicker, router)` は Task 7 の本番・L1 と Task 8 の登録で同じ。`PlayerInventoryViewModel.MainSlotItemGuids` と `InventorySlotAnchorMarks.Apply(slots, itemGuids)` は Task 3・4 で同じ。`PlayerSlotGestureRouter(IPlayerSlotCommands, UiCommandResultToaster)` は Task 4・5・8・9 で同じ
-- プレースホルダ: 「実物で確かめる」と書いた箇所は、起草時に実物が無い型（S4-alpha のテスト用の部品・S3-hotbar-modal の型）と、実物の綴りを確かめていない小物（`ItemMaster.EmptyItemId`・石の GUID・`CssCalcEvaluator` の可視性・`UIStateDictionary` の ctor の引数の数・`ModalRequestService.Initialize` の要否）と、Editor の更新でイベントが処理される条件の与え方（Task 7 の `InputUpdateRunner` の注。前提の assert で空振りを捕まえる）だけ。挙動の空白は無い
+- 型の一致: `PlayerInventoryViewModel`（Task 3）を Task 4・5・8・9 が同じ ctor（main・装備・選択・所持品の GUID の表）で使う。`PlayerInventoryPanelModel(IPlayerInventoryOperations, IEquipmentSelectionPort)` は Task 3・6・8 で同じ。`EquipmentWheelSituation` の引数順（screen, modalPending, overBlockingUi, toolOwnsWheel）は Task 2 の Gate とルーターの中だけ。`EquipmentWheelRouter.Route(delta, unit, overBlockingUi)` は Task 7・9 で同じ（L1 は `EquipmentWheelRouterFixture` で本物の State を組む）。`EquipmentWheelInput(wheel, positions, IEquipmentWheelPointerPicker, router)` は Task 7 の本番・L1 と Task 8 の登録で同じ。`PlayerInventoryViewModel.MainSlotItemGuids` と `InventorySlotAnchorMarks.Apply(slots, itemGuids)` は Task 3・4 で同じ。`PlayerSlotGestureRouter(IPlayerSlotCommands, UiCommandResultToaster)` は Task 4・5・8・9 で同じ
+- プレースホルダ: 「実物で確かめる」と書いた箇所は、起草時に実物が無い型（S4-alpha のテスト用の部品・S3-hotbar-modal の型）と、実物の綴りを確かめていない小物（`ItemMaster.EmptyItemId`・石の GUID・`CssCalcEvaluator` の可視性・`UIStateDictionary` の ctor の引数の数・`ModalRequestService.Initialize` の要否）と、Editor の更新でイベントが処理される条件の与え方（Task 7 の `InputTestDriver` の注。前提の assert で空振りを捕まえる）だけ。挙動の空白は無い
 
 ---
 
@@ -3999,10 +4014,10 @@ git merge origin/feature/uitk
 | D-5 | `EquipmentPanel/index.test.ts` の「action失敗時は…」「再接続開始時に…」を処分表へ書き、残り 12 件を写す。世代の巻き戻りで未確認を捨てる規則は `TrimConfirmed` に残す | C# の選択は `SendOnly` で失敗が返らず、UITK に WebSocket の再接続が無い。世代の巻き戻りは C# では起きないが、Web の規則を外す理由も無く、1 行で済む | 失敗の経路を作って写す: 存在しない失敗のためにコマンドに戻り値と待ちを足すことになる |
 | D-6 | `equipment.spec`「持ち物画面の一覧スクロールでは装備が持ち替わらない」は S4-inventory が持ち、一覧（S4-recipe の `ItemListPanel`）の代わりに素通しの印の無い `GameScrollView` を立てて L1 で写す。S4-recipe の一覧は `WheelPassthroughMark` を付けない（付けないのが既定なので S4-recipe の作業は無い）。順序は独立で、どちらが先にマージしてもよい。S4-recipe の計画へは「一覧に素通しの印を付けない」1 行の申し送りだけを出す | テストの主題は「素通しでない UI の上のホイールは装備に回さない」で、判定はこのレーンの `EquipmentWheelGate` と `EquipmentWheelPickJudge` にある。一覧の実物を待つと S4-recipe → S4-inventory の辺が増える | S4-recipe が写す: 判定の持ち主でないレーンが装備の切り替えを確かめることになり、判定を変えたときに別レーンのテストが壊れる。S4-recipe を待つ: クリティカルパスの S4-inventory が W4b を待つ |
 | D-7 | `EquipmentPanel/index.test.ts` の「接続ツール」「BPコピー」「block選択」の 3 件は、同じ入力（占有＝偽）の 1 件に 3 行のタグで写す | Web のテストの主題は「topic の `wheelOwnedByTool` をそのまま読み、配置対象の種別から導き直さない」。C# の判定は bool 1 つを読むだけで、種別ごとに占有を決めるのは各配置システム（このレーンの外）。3 件を別々に書いても入力が同じになる | 配置システムを組んで種別ごとに占有を作る: このレーンの判定でなく配置システムの挙動を確かめることになる |
-| D-8 | 所持品のアンカーは描き直しのたびに `InventorySlotAnchorMarks` が付け替え、古い id と印のクラスを自分で外す。`TutorialAnchor.Unmark` を integrator へ依頼する | `TutorialAnchor` に外す口が無い。Foundation はこのレーンで変えない（スコープ境界） | Foundation に `Unmark` を足す: 部品・Foundation を画面レーンが変えることになる。枠を毎回作り直す: スロットの購読と見た目の状態が描き直しのたびに捨てられる |
+| D-8 | 所持品のアンカーは描き直しのたびに `InventorySlotAnchorMarks` が付け替え、古い id と印のクラスを自分で外す。`TutorialAnchor.Unmark` を integrator へ依頼する | `TutorialAnchor` に外す口が無い。E-1 が許す A-71 の定数を除き、Foundation はこのレーンで変えない（スコープ境界） | Foundation に `Unmark` を足す: E-1 が許す A-71 の定数を除き、部品・Foundation を画面レーンが変えることになる。枠を毎回作り直す: スロットの購読と見た目の状態が描き直しのたびに捨てられる |
 | D-9 | ホイールの循環は State の `EquipmentWheelSelector` 1 か所に置き、Web と同じ未確認 FIFO を持つ。口 `IEquipmentSelectionPort` の本番は `LocalPlayerEquipment` | C# の `SetSelectedIndex` は楽観で選択を変えるが、`ApplySelected` のエコーは古い値で巻き戻す。速い 2 ノッチの間に古いエコーが来ると、FIFO 無しでは選択が戻る（Web と同じ理由）。§1.4「ホイール循環を C# 1 か所へ」 | `LocalPlayerEquipment.SelectedIndex` だけを起点にする: 古いエコーで巻き戻る |
 | D-10 | 入力は `InputSystemPointerWheelStream` の縦のノッチ（Uniform 設定で 1＝1 ノッチ。上が正）を A-71 と同じ 1 ノッチ＝60px（下が正）に直し、`WheelDeltaUnit.Pixel` で渡す。Web の本番と同じく 1 ノッチ目では進まず 2 ノッチ目で 1 段進む。換算は `EquipmentWheelNotchScale` の 1 か所で、60 は Foundation の共有の定数 `WebWheelScale.PixelsPerNotch` を読む。この定数はこのレーンが `GameScrollView` の private 定数から上げ、`GameScrollView` もそれを読むよう直す（E-1〈反映済み ad92a44777〉が「`GameScrollView` の外で最初に要したレーンが上げてよい」とする。Task 7 Step 1）。カーソルがロック中は UI の上でない。出所: レビュー r1（opus-1。旧案は Page で 1 ノッチ＝1 段）・r2（N-4。旧案は integrator が上げるのを待つ） | InputSystem の値は入力設定 `scrollDeltaBehavior` の既定 Uniform（`StarterAssets.inputsettings.asset` に値が無く既定。InputSettings.cs の `m_ScrollDeltaBehavior`）で [-1,1] に正規化され、1 ノッチ＝1（Windows の 120 も 1 に直る）。`ScrollDeltaBehaviorSettingTest` が固定する。Web（CEF）の本番は 1 ノッチを 60px で送り（CefUnity `ScrollInputPipeline.WheelPixelsPerStep`）、装備は 100px で 1 段・段が出たら端数を捨てる（`equipmentLogic.ts`）。A-71（4ec5ce2dc7 で全読み手へ広げ済み）が UITK のノッチ→px を 60 に揃えている。ロック中はカーソルが画面中央に固定され、Web でもクロスヘアの上（拾わない）と同じ扱い。`ElectricWirePoleSelection.cs` の `/100f` は Uniform と合わない古い前提で反証にならない | Page で 1 ノッチ＝1 段: Web の本番より倍速くなり、根拠にした「Web の 100px＝1 段」は e2e の `wheel(0, 100)` の約束事で本番の CEF の量ではない。1 ノッチ＝1 段が望ましいなら Web との差なので要裁定へ上げる（今は上げていない）。60 をこのレーンに書く: A-71 の値が 2 か所になり片方だけ変わる。integrator が上げるのを待つ（r1 の案）: クリティカルパス上の Task 7 が待ちになり、待ちの持ち主もいない。実機で値を測る: 設定の既定で閉じられ、録画は定義上 1 を注入するので測れない |
-| D-11 | 拾いは `EquipmentWheelPointerPicker` が `GameUiPointerProbe` と同じ座標変換で `panel.Pick` を呼んで要素を返す。integrator へ `PickAt` と、Screens の既存の 2 つの変換（GrabOverlay・CursorTooltip。bd `moorestech-albof.40`）の寄せを依頼し、入ったら置き換える bd を `--parent` で残す。「UI の上か」は Client.Ui が `EquipmentWheelPickJudge` で bool にしてルーターへ渡し、型は変えない（出所: レビュー r1・Phase 2.6 強1。agent 既定） | 判定に要素（素通しの印の祖先）が要るが、`GameUiPointerProbe` は bool しか返さない。Foundation はこのレーンで変えない。bool にするのは State が UIElements を知らないため（`UiLayerDependencyRules` の向き）で、Web も `isPointerOverWebUi(e.target) && !isWheelPassthrough(e.target)` を bool にしてから判断する。ルーターが画面・モーダル・占有を State から読むので（D-20）、境界を越える bool は `overBlockingUi` 1 つだけになる | `UiInputExclusivity.IsPointerOverGameUi` を使う: 素通しを見られず、装備 HUD の上で止まる。拾った要素を State へ渡す: State が UIElements を参照することになる |
+| D-11 | 拾いは `EquipmentWheelPointerPicker` が `GameUiPointerProbe` と同じ座標変換で `panel.Pick` を呼んで要素を返す。integrator へ `PickAt` と、Screens の既存の 2 つの変換（GrabOverlay・CursorTooltip。bd `moorestech-albof.40`）の寄せを依頼し、入ったら置き換える bd を `--parent` で残す。「UI の上か」は Client.Ui が `EquipmentWheelPickJudge` で bool にしてルーターへ渡し、型は変えない（出所: レビュー r1・Phase 2.6 強1。agent 既定） | 判定に要素（素通しの印の祖先）が要るが、`GameUiPointerProbe` は bool しか返さない。E-1 が許す A-71 の定数を除き、Foundation はこのレーンで変えない。bool にするのは State が UIElements を知らないため（`UiLayerDependencyRules` の向き）で、Web も `isPointerOverWebUi(e.target) && !isWheelPassthrough(e.target)` を bool にしてから判断する。ルーターが画面・モーダル・占有を State から読むので（D-20）、境界を越える bool は `overBlockingUi` 1 つだけになる | `UiInputExclusivity.IsPointerOverGameUi` を使う: 素通しを見られず、装備 HUD の上で止まる。拾った要素を State へ渡す: State が UIElements を参照することになる |
 | D-12 | 持ち物のグリッドの面の内側の色 rgb(50 52 67) は `THEME/DerivedTokens.uss` の名札付きブロック「S4-inventory」のトークン `--inventory-slot-face-inset-color` にする | `UiStyleConventionTest` が画面 USS の色の直書きを拒む。名札付きブロックは A-52 の共有区画（画面レーンも足してよいことは 4ec5ce2dc7 で A-52・E-1 に反映済み）で、前例 S3-hotbar-modal Task 5 と S2-hud（A-55・マージ済みの `DerivedTokens.uss`「S2-hud」ブロック） | 既存の同色のトークン（`--slot-frame-selected-trim-face`）を借りる: 意味の違う名前を読むことになり、片方を変えるともう片方が壊れる（同じ源・同じ地のトークンを借りる場合は D-22） |
 | D-13 | S3-hotbar-modal の型（`WheelPassthroughMark`・`HotbarHudView`・`--hotbar-slot-frame-face`）を使う作業は Task 9 に寄せ、Task 7 の判定は印を見ない形で先に作る | 起草時に S3-hotbar-modal が未マージ。依存の辺は E-23 にあり、先の Task を止めずに済む | 全部を S3-hotbar-modal のマージ後に始める: クリティカルパスの S4-inventory が W2 の画面レーンを待つ |
 | D-14 | 装備の縦の間は 2 枠目からの上の余白（クラス `equipment-hud__slot--after-first`）で写す | USS に `gap` が無い（`SlotGrid` も余白で写している） | 枠の下に余白: 最後の枠の下に余白が残り、床の位置が変わる |
@@ -4016,7 +4031,7 @@ git merge origin/feature/uitk
 | D-22 | 装備 HUD の世界の上の枠の面はホットバーの `--hotbar-slot-frame-face` を借りる。名前は integrator へ世界の地の意味の名前（例 `--world-slot-frame-face`）への改名を依頼する（S3-hotbar-modal のトークンなのでこのレーンは改名しない）。出所: レビュー r1（配置検査 N-3） | 装備 HUD はホットバーと同じ源（Web `SlotFrame .slot` の `rgb(50 52 67 / 50%)` を世界の上で使う。`EquipmentPanel/style.module.css`「ホットバー同様に面を持たない浮遊HUD」）・同じ地（世界）なので、ホットバー側の α を Task 10 で決め直したら装備も一緒に変わるのが正しい。D-12 の却下は意味の違う名前の場合 | 装備用の同値のトークンを足す: 同じ源の値が 2 つになり、片方だけ直る |
 | D-23 | `SlotItem` → `ItemSlotContent` の写しは `Screens/Inventory/Parts/PlayerSlotContent.From` に 1 つ置き、2 つの View が使う。S4-alpha の `BlockItemGrid` の同じ式との統合は integrator へ Content（`Client.Ui/Content`）への統合を依頼する。§5.1-2 の例外: 1 機能目（alpha）の式は `BlockItemGrid` のローカル関数で外から呼べる口が無く、E-23 で alpha のファイルを書けないため、申告したうえで自分の `Parts/` に写す（統合は integrator）。View は最新値を覚えず「隠れている間は描かない」を持たない（`Render` は受けたら描き、`SetShown` は出し入れだけ）。「表示中だけ購読」は Presenter に残し、2 つの Presenter の同じ 4 行は共通化しない。§4.2 の View の雛形の注記は ad92a44777 で「出し入れだけ。描かないのは Presenter が表示中だけ購読して守る」に直った。出所: レビュー r1（Phase 2.6 弱4）・r2（検査7。§5.1-2 の例外の理由と、Components の語の取り違え N-3） | 同じ式が View 2 つ（と alpha）にあった。ReactiveProperty は購読時に今の値を流すので、View の `_latest` は Presenter の購読と二重の仕組みで、出すたびに古い値で 1 回描いた直後にもう 1 回描いていた | View ごとに式を持つ: 空きマスの扱いを変えると片方だけ直る。Presenter の 4 行を基底へ上げる: 2 本だけで、前例の Presenter に基底が無い |
 | D-24 | `PlayerInventoryPanelModel` は初期値を ctor で組み、`Initialize` は購読と購読までの間の変化の取り込みだけをする。出所: レビュー r1（usersim W3） | 起動時の画面 None は `AlwaysOnHud` が真で、装備 HUD の Presenter は `Initialize` で即 Model を購読する。初期値が null だと登録の順に依って `Render(null)` で落ちる。前例 `PlayerGrabModel`・`ModeHudModel` は ctor で初期値を持つ | 登録の順（Model を Presenter より先に）に頼り、判断記録に書く: VContainer の初期化順に依る形が残る |
-| D-25 | `InputSystemPointerWheelStream` は流れの頭で `InputState.currentUpdateType == InputUpdateType.Editor` を除く（`silent-ok` 付き）。L0 の `InputSystemPointerWheelStreamTest` と、流れ → `EquipmentWheelInput` → ルーターを通す L1 の `EquipmentWheelInputFlowTest`（Editor の更新では選択要求 0 件、ゲームの更新では 2 ノッチで 1 段）で確かめる。拾いは口 `IEquipmentWheelPointerPicker` 越しにし、L1 は Fake で通す（前例 `IGrabOverlayPointer`）。録画の頭で入力設定を焦点無視にする（前例 `blueprint-place-like-block`）。出所: レビュー r2（codex C-1） | プロジェクトの入力設定（`StarterAssets.inputsettings.asset`。`m_BackgroundBehavior: 0`・`m_EditorInputBehaviorInPlayMode: 0`）では、PlayMode で Game View にフォーカスが無いときポインタのイベントが Editor の更新で処理され、`onEvent` の購読者にも届く（InputManager.cs:3320-3345・3456-3457）。除かないと Inspector の上でホイールを回しただけで装備が替わる。テストの土台は既定でプレイヤーの更新を回すので、更新の種類を選んで回さないと赤にならない | ルーターや Gate で止める: 更新の種類は入力の層の事情で、State に持ち込む理由が無い。位置の流れ（`InputSystemPointerPositionStream`）も同時に直す: 既存の他レーンのファイルで、位置だけなら害が小さい（第 3 バケツへ） |
+| D-25 | `InputSystemPointerWheelStream` は流れの頭で `InputState.currentUpdateType == InputUpdateType.Editor` を除く（`silent-ok` 付き）。L0 の `InputSystemPointerWheelStreamTest` と、流れ → `EquipmentWheelInput` → ルーターを通す L1 の `EquipmentWheelInputFlowTest`（Editor の更新では選択要求 0 件、ゲームの更新では 2 ノッチで 1 段）で確かめる。拾いは口 `IEquipmentWheelPointerPicker` 越しにし、L1 は Fake で通す（前例 `IGrabOverlayPointer`）。録画の頭で入力設定を焦点無視にする（前例 `blueprint-place-like-block`）。出所: レビュー r2（codex C-1） | プロジェクトの入力設定（`StarterAssets.inputsettings.asset`。`m_BackgroundBehavior: 0`・`m_EditorInputBehaviorInPlayMode: 0`）では、PlayMode で Game View にフォーカスが無いときポインタのイベントが Editor の更新で処理され、`onEvent` の購読者にも届く（InputManager.cs:3320-3345・3456-3457）。除かないと Inspector の上でホイールを回しただけで装備が替わる。テストの土台は既定でプレイヤーの更新を回すので、更新の種類を選んで回さないと赤にならない | ルーターや Gate で止める: 更新の種類は入力の層の事情で、State に持ち込む理由が無い。位置の流れ（`InputSystemPointerPositionStream`）も同時に直す: 既存の他レーンのファイルで、位置だけなら害が小さい（第 3 バケツへ）。ボタンの流れ（`InputSystemPointerButtonStream`）を揃える: ボタンの解放は焦点の外（Inspector の上）でも通さないと掴みが解けなくなるので、揃えない（第 3 バケツへ。出所: レビュー r3 N-1） |
 | D-26 | 所持品の表は State の `InventoryItemGuidTable`（スロット → 小文字の GUID 文字列）にし、アンカー id は Mark を呼ぶ Client.Ui の `InventorySlotAnchorMarks` が `AnchorIds.InventoryItem(guid)` で組む。出所: レビュー r2（opus O-1） | 網羅テスト `TutorialAnchorCoverageTest` は `Scripts/Client.Ui` の下で `TutorialAnchor.Mark(` を含むファイルからだけ `AnchorIds.` を拾う。id を State で組むと `InventoryItemPrefix` が拾われず、保留の行を消した Task 6 で赤になる | 保留の行を残す: このレーンのアンカーが網羅テストの外に出たままになる。網羅テストの走査を `Client.Ui.State` へ広げる: S2-tutorial の Foundation のテストを画面レーンが変えることになる |
 | D-27 | 登録は `Client.Starter/Registration/GameUi/Screens/InventoryGameUiRegistration.cs` に置き、`Screens/` が無ければこのレーンが作る。integrator の再編は待たない。出所: レビュー r2（O-2・N-4） | `GameUi/` 直下は S4-alpha で 10 本の上限に達し、このレーンの 1 本で規約に反する。E-1（反映済み ad92a44777）が W4 以降の画面レーンの置き場を `GameUi/Screens/` に決め、最初に要したレーンが作るとした | 直下に置いて再編を待つ（r1 の案）: 11 本目で規約に反し、Task 8 の登録がクリティカルパス上で integrator 待ちになる |
 
@@ -4057,7 +4072,7 @@ git merge origin/feature/uitk
 - **共有区画**: `THEME/DerivedTokens.uss` に名札付きブロック「S4-inventory」を 1 行足す（D-12）。alpha 計画は「トークン USS は変えない」としているが、色の直書きが規約で拒まれるため、前例 S3-hotbar-modal と同じ名札付きブロックの形を取った
 - **S2-tutorial**: S2-tutorial（#1627）は `origin/feature/uitk` にマージ済みで、`Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` に S4-inventory 持ちの 4 行がある。このレーンが同じ PR で消し、網羅テスト（`Client.Tests.Ui.Anchor`）を Task 6・8・12 の絞り込みで回す（Task 6 Step 3）
 - **指揮の共通の注意の反映**: `:root` のトークンを C# で読むのは `--inventory-columns` だけで、グリッドのクラスで `--inventory-view-columns: var(--inventory-columns)` と受け直して読む。`disposition.md` には処分した 2 行だけを書き、写したテストの行は書かない（albof.29・albof.31 の「写す予定」の行はタグを足すコミットで消す。albof.29 は Task 4、albof.31 は Task 9）。`UiCommandRejectReason` に値は足さない（D-15）。素通しの getter は書いていない（式本体は別オブジェクトの値の読み替えか、`ReactiveProperty` を読み取り専用の型で出す前例の形だけ）
-- **未確認（実装時に測る）**: `inputLayer.spec.ts` の束（5 と見た。Task 8 Step 4 で確かめる）。テストの土台で Editor の更新にイベントを処理させる条件（`runtime.PlayerFocusLost()` で足りるか。Task 7 の前提の assert が確かめる）。Editor の更新の除外（D-25）はコードを読んだ判定で、実機の Inspector の上のホイールでは再現していない。CefUnity の本番のスムーザが 60px を複数フレームに分けて送るので、本番の Web の平均の刻みは 2 ノッチより少し速い（約 1.67 ノッチ/段）と読める（推測。コードを読んだだけで実測していない。UITK は 1 イベントで 60px なので毎回ちょうど 2 ノッチ）
+- **未確認（実装時に測る）**: `inputLayer.spec.ts` の束（5 と見た。Task 8 Step 4 で確かめる）。テストの土台で Editor の更新にイベントを処理させる条件（`InputTestDriver.LoseGameFocus` で足りるか。Task 7 の前提の assert が確かめる）。Editor の更新の除外（D-25）はコードを読んだ判定で、実機の Inspector の上のホイールでは再現していない。CefUnity の本番のスムーザが 60px を複数フレームに分けて送るので、本番の Web の平均の刻みは 2 ノッチより少し速い（約 1.67 ノッチ/段）と読める（推測。コードを読んだだけで実測していない。UITK は 1 イベントで 60px なので毎回ちょうど 2 ノッチ）
 - **要裁定**: なし
 
 ---
@@ -4070,3 +4085,4 @@ git merge origin/feature/uitk
 - 既存側 `moorestech_client/Assets/Scripts/Client.Input/Pointer/InputSystemPointerPositionStream.cs`（`InputSystem.onEvent` の購読で、更新の種類を見ない）／新設側 `InputSystemPointerWheelStream` の Editor の更新の除外（D-25）／同役割と判断した根拠: 同じ `onEvent` の購読で、Game View の外の位置も Editor の更新で流れる。位置だけなら害は小さいが、同じ規則に揃えるかを決める
 - 既存側 `moorestech_client/Assets/Scripts/Client.Playtest/WebUi/CefInputForwarder.cs:86`（`ScrollInputPipeline.WheelPixelsPerStep` を直接読む）／新設側 `Client.Ui/Foundation/Input/WebWheelScale.PixelsPerNotch`（D-10）／同役割と判断した根拠: どちらも 1 ノッチ＝60px（CefUnity の正本）。共有の定数が正本と同じ値であることを `GameScrollViewTest:171` と同じくリテラルで照合するかを決める。CefInputForwarder は正本を読むので触らない
 - 既存側 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ElectricWireConnect/Parts/ElectricWirePoleSelection.cs:89-93`（毎フレーム `Mouse.current.scroll.ReadValue().y / 100f`＋`UiPointerHitTest.IsPointerOverAnyUi()`）／新設側 `InputSystemPointerWheelStream`＋`EquipmentWheelInput`／同役割と判断した根拠: どちらも「UI の上でなければホイールの段で循環する」。電柱の側は Uniform の入力設定では 1 ノッチ＝0.01 で、計算上 100 ノッチで 1 段になる（推定。実機では測っていない）。bd `moorestech-9a7t9` に起票済み（このレーンの外）
+- 既存側 `moorestech_client/Assets/Scripts/Client.Input/Pointer/InputSystemPointerButtonStream.cs`（`InputSystem.onEvent` を購読し、更新の種類を見ずに左ボタンの解放の縁を流す）／新設側 `InputSystemPointerWheelStream` の Editor の更新の除外（D-25）／同役割と判断した根拠: 同じディレクトリで同じ `onEvent` を購読する入力の流れ。ただしボタンの解放は焦点の外でも通さないと掴みが解けなくなるので、このレーンの判断は「揃えない」（D-25）。族の規則として明文化するかを決める
