@@ -104,6 +104,11 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
             var hints = Hints();
             Assert.AreEqual(2, hints.Count);
             Assert.Less(hints[0].worldBound.yMax, hints[1].worldBound.yMin + 0.5f);
+
+            // 行は Web の行箱 30px と gap 6px の間隔で積む（字の自然な高さ 37px で広がらない。脈動の拡縮を含まない layout で測る）
+            // Rows stack at the Web 30px line box plus the 6px gap (not widened by the 37px glyph; measured on layout, free of the pulse scale)
+            Assert.AreEqual(30f, hints[0].layout.height, 0.5f);
+            Assert.AreEqual(36f, hints[1].layout.y - hints[0].layout.y, 0.5f);
         }
     }
 }

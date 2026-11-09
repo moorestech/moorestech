@@ -18,7 +18,9 @@
 
 /* 文の色と行の高さ。Web の .hint { color } と、key-hint-text の 25px × line-height 1.2 の行箱（2 件積んだときの行間を Web に合わせる） */
 /* Sentence color and row height; Web .hint { color } and the 25px x line-height 1.2 line box (matches Web spacing when two rows stack) */
+/* 25px の字の自然な高さ（37px）は行箱を超えるので、min ではなく固定の高さにして字を行の中央へ置く（S2-hud の KeyHintRow と同じ） */
+/* A 25px glyph is naturally taller (37px) than the line box, so fix the height instead of min to center glyphs (same as S2-hud KeyHintRow) */
 .key-control-hint .key-control-hint__item {
     color: var(--tutorial-key-hint-color);
-    min-height: 30px;
+    height: 30px;
 }
