@@ -375,7 +375,7 @@ Expected: bd の ID が出る。以後 `<bd>` をその ID で読む
   - `public sealed class BuildMenuEntryViewModel { public BuildMenuEntryViewModel(Guid targetId, PlacementTargetKind kind, Guid categoryGuid, Guid subCategoryGuid, string displayLabel, IReadOnlyList<BuildMenuMaterialRow> materials, bool paymentWaived, PlacementTargetIcon icon, BuildMenuSetPlacement setPlacement); public BuildMenuCatalogEntry Catalog { get; } public string KindName { get; } public bool CanDeleteBlueprint { get; } public IReadOnlyList<BuildMenuMaterialLine> Materials { get; } public PlacementTargetIcon Icon { get; } public BuildMenuSetPlacement SetPlacement { get; } }`
   - `public sealed class BuildMenuMaterialRow { public BuildMenuMaterialRow(ItemId itemId, BuildMenuRequiredItem item); public ItemId ItemId { get; } public BuildMenuRequiredItem Item { get; } }`
   - `namespace Client.Ui.State.PlacementTarget { public abstract class PlacementTargetIcon }`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`（ID だけ・Blueprint 以外は値の等価。持ち主はこのレーン、S3-hotbar-modal は使うだけ）
-  - `public abstract class BuildMenuSetPlacement { public static readonly BuildMenuSetPlacement None; }`・`public sealed class BuildMenuSetPlacementAvailable : BuildMenuSetPlacement { public BuildMenuSetPlacementAvailable(int perCost, int remaining); public int PerCost { get; } public int Remaining { get; } }`（判別 union。Factory だけが Block のとき作る）
+  - `public abstract class BuildMenuSetPlacement`・`public sealed class BuildMenuSetPlacementNone : BuildMenuSetPlacement { public static readonly BuildMenuSetPlacementNone Instance; }`・`public sealed class BuildMenuSetPlacementAvailable : BuildMenuSetPlacement { public BuildMenuSetPlacementAvailable(int perCost, int remaining); public int PerCost { get; } public int Remaining { get; } }`（判別 union。Factory だけが Block のとき作る）
   - `public static class BuildMenuEntryKindName { public static string Of(PlacementTargetKind kind); }`
   - `public sealed class BuildMenuShownList { public IReadOnlyList<BuildMenuCategoryGroup> Groups { get; } public IReadOnlyList<Guid> SidebarCategories { get; } public bool IsCategoryEnabled(Guid categoryGuid); public bool ShowsNoResults { get; } public IReadOnlyList<Guid> ShownCategoryGuids { get; } }`
   - `public static class BuildMenuShownListComposer { public static BuildMenuShownList Compose(BuildMenuViewModel viewModel, string query); }`
@@ -1141,7 +1141,7 @@ namespace Client.Ui.State.BuildMenu.Source
 
                 // 1 セット設置は Block の財布の状態からだけ作る
                 // A set placement only comes from a block's wallet status
-                var setPlacement = walletStatus is { } status ? new BuildMenuSetPlacementAvailable(status.PlacementsPerCost, status.RemainingCount) : BuildMenuSetPlacementNone.Instance;
+                BuildMenuSetPlacement setPlacement = walletStatus is { } status ? new BuildMenuSetPlacementAvailable(status.PlacementsPerCost, status.RemainingCount) : BuildMenuSetPlacementNone.Instance;
                 var icon = PlacementTargetIconResolver.Resolve(target, thumbnails);
 
                 // 表示名はマスタ由来で空にならない前提。空なら開発者へ知らせ、表示は Web と同じくそのまま（前例 ModeHudViewModelFactory）
@@ -1209,6 +1209,8 @@ namespace Client.Ui.State.BuildMenu.Source
         private readonly IBlueprintThumbnailLookup _thumbnails;
         private readonly ReactiveProperty<BuildMenuViewModel> _current = new(BuildMenuViewModel.Empty);
         private readonly CompositeDisposable _subscriptions = new();
+        private bool _rebuildScheduled;
+        private bool _disposed;
 
         public IReadOnlyReactiveProperty<BuildMenuViewModel> Current => _current;
 
@@ -1229,11 +1231,11 @@ namespace Client.Ui.State.BuildMenu.Source
             _uiStateControl.OnStateChanged.Where(state => state == UIStateEnum.BuildMenu).Subscribe(_ =>
             {
                 _blueprintLibrary.Refresh(CancellationToken.None).Forget();
-                Rebuild();
+                ScheduleRebuild();
             }).AddTo(_subscriptions);
 
-            // 源の変化は開いている間だけ組み直す。フレーム末への間引きはしない（設計書 A-57）
-            // Source changes rebuild only while open, without end-of-frame batching (design A-57)
+            // 源の変化は開いている間だけ組み直す。同じフレームの多発はフレーム末の 1 回に畳む（橋 BuildMenuTopic.SchedulePublish と同じ。D-19）
+            // Source changes rebuild only while open; bursts within a frame fold into one end-of-frame rebuild (same as the bridge's SchedulePublish; D-19)
             _blueprintLibrary.OnChanged.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
             _thumbnails.OnThumbnailChanged.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
             _walletQuery.OnWalletChanged.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
@@ -1244,6 +1246,7 @@ namespace Client.Ui.State.BuildMenu.Source
 
         public void Dispose()
         {
+            _disposed = true;
             _subscriptions.Dispose();
         }
 
@@ -1252,7 +1255,30 @@ namespace Client.Ui.State.BuildMenu.Source
             // silent-ok: 閉じている間の変化は捨てる / 次に開いたとき Initialize の購読が組み直す
             // silent-ok: changes while closed are dropped / the next open rebuilds through the Initialize subscription
             if (_uiStateControl.CurrentState != UIStateEnum.BuildMenu) return;
-            Rebuild();
+            ScheduleRebuild();
+        }
+
+        private void ScheduleRebuild()
+        {
+            // silent-ok: 予約済みなら同じフレーム末の 1 回が最新の源で組む / 取りこぼしは無い
+            // silent-ok: an already scheduled rebuild reads the latest sources at end of frame / nothing is lost
+            if (_rebuildScheduled) return;
+            _rebuildScheduled = true;
+            RebuildAtEndOfFrame().Forget();
+
+            #region Internal
+
+            async UniTaskVoid RebuildAtEndOfFrame()
+            {
+                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+                _rebuildScheduled = false;
+                // silent-ok: 破棄後（ゲーム終了時だけ）は組まない / 誰も購読していない
+                // silent-ok: after dispose (only at game exit) skip the rebuild / no one is subscribed
+                if (_disposed) return;
+                Rebuild();
+            }
+
+            #endregion
         }
 
         private void Rebuild()
@@ -4285,8 +4311,8 @@ namespace Client.Ui.Screens.BuildMenu
 
         private void SetShown(bool shown)
         {
-            // 出ている間だけ購読する。Subscribe が今の値を先に流すので、出す前に最新の VM で描かれる（D-19）
-            // Subscribe only while shown; Subscribe replays the current value, so the view renders the latest model before it shows (D-19)
+            // 出ている間だけ購読する。開いた直後は前回の VM を 1 回描き、同じフレーム末の組み直しで最新に描き直す（D-19）
+            // Subscribe only while shown; on open it renders the previous model once, then the same frame's end-of-frame rebuild redraws the latest (D-19)
             _modelSubscription?.Dispose();
             _modelSubscription = shown ? _model.Current.Subscribe(_view.Render) : null;
             _view.SetShown(shown);
@@ -4979,7 +5005,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-16 | 落としの受け口 `IHotbarDropReceiver`（State/Hotbar/Logic・`IUiDropTarget` は継がない）をこのレーンが作り、`OnDropped` は `target is IHotbarDropReceiver r` なら `r.Receive(Source)` を呼んで終わる（断った理由のログは受け手が出す）。受け口でない落とし先は `OnDroppedOutside` と同じく何もしない。これは正常操作の無操作で、ガードの縮退ではない（Web と同じ） | Warning だけ置いて S3-hotbar-modal が本体を差し替える: 後のレーンがこのレーンのファイルを書き換え、所有が混ざる。このレーンで割当まで作る: 枠の印と割当は S3-hotbar-modal の持ち物。`IUiDropTarget` を継ぐ: State は `Client.Ui` を参照できない。断られた落としを源で Warning にする: 受け手と源の 2 か所でログが重なり、hotbar-modal 側の扱いとずれる | 本体（指揮代行）の決定 |
 | D-17 | 1 セット設置（`setPlacement`）は Block だけ | 全種別: Web の橋も Block だけに付ける（`BuildMenuEntryDtoFactory`） | Web の橋の実物 |
 | D-18 | `building/blueprint-place-like-block` は GameUi で `modal-input` の待ちまでを確かめ、Web で通しを 1 回流して既存経路を守る。GameUi の通しは S3-ladder | GameUi で通しを完了条件にする: BP 名のモーダルは S3-hotbar-modal の持ち物で W3 の順ではこのレーンの後。完了条件から外す: 実行計画の文言にあり、ビルドメニューの経路（BP コピーの選択）はこのレーンで確かめられる | 本体（指揮代行）の決定で採用（実行計画 §1.4・死活表） |
-| D-19 | Model は開いている間、源の変化で同期的に VM を組み直す（A-57）。Presenter は出ている間だけ購読する | 間引く: Web の topic も変化ごとに送る。閉じている間も購読: 描かない画面に配る理由が無く、開く直前に最新の VM で Render する順を作れる | 設計書 [A-57]・agent 既定（表示中だけの購読の前例は無い。`PauseMenuScreenPresenter` 等は `Initialize` で 1 回購読する。判定の元〈Model は UIState・Presenter はルータの Screen〉が違う点は D-41(a)） |
+| D-19 | Model は開いている間、源の変化をフレーム末（`PlayerLoopTiming.PostLateUpdate`）の 1 回に畳んで VM を組み直す。開いたときも同じ予約で組む。設計書 A-57 の「フレーム末への間引きはしない」の例外（A-57 の理由〈同じフレームの描き直しは UITK が 1 回の描画にまとめる〉は描画の回数の話で、全エントリの VM と全マスの組み直しの回数は減らさない。done.md の要裁定に載せる）。Presenter は出ている間だけ購読し、開いた直後は前回の VM を同じフレーム内で 1 回描く | 同期で組み直す: スロット通知 1 件ごとに全マスを組み直して描くことになり、橋の実物 `BuildMenuTopic.SchedulePublish`（同フレーム多発をフレーム末の 1 回に畳む）とも違う。開いた瞬間に同期で組む口（`RebuildOnOpen`）を足す: 前回 VM の描画は同フレーム内で上書きされ画面に出ないので、型を増やす理由が無い。閉じている間も購読: 描かない画面に配る理由が無い | moores-code-review 設計判断 D1（推奨案 A を agent 既定で採用。無人実行）・前例 `BuildMenuTopic.SchedulePublish`・設計書 [A-57]（表示中だけの購読の前例は無い。`PauseMenuScreenPresenter` 等は `Initialize` で 1 回購読する。判定の元〈Model は UIState・Presenter はルータの Screen〉が違う点は D-41(a)） |
 | D-20 | 登録は `BuildMenuGameUiRegistration` 1 ファイルと `MainGameUiRegistration` の 1 行 | 共有の `MainGameUiStateRegistration` に Model を足す: GameUi の系だけが使う（Web は橋が同じ規則で動く。前例 S2-mode-tooltip D-19） | 前例 S2-mode-tooltip |
 | D-21 | `Client.Ui.State.asmdef` に `Common.Debug`・`Game.Construction`・`Client.Mod` を足す（CS0246/CS0012 が出たものだけ） | 規則を写さず橋を呼ぶ: D-1 と同じ理由で参照できない | 前例 S2-mode-tooltip D-38 |
 | D-22 | View の ctor は 6 引数（コマンド・コンテンツ・絵の出どころ `PlacementTargetIcons`・トースト・セッション・トラッカー）。トラッカーは Presenter が作り View と同じ寿命 | View がトラッカーを作る: L1 がトラッカーの `SpacerHeight` を読めない。DI で登録: 画面 1 つにしか使わない状態を共有へ出す理由が無い | agent 既定 |
