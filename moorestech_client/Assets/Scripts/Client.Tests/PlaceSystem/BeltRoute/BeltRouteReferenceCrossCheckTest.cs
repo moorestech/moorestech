@@ -23,6 +23,10 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // 参照ソルバは総当たりなので箱とコスト上限を小さく保つ（上限50＝10セル）
         // The reference solver is exhaustive, so the box and the cost cap stay small (cap 50 = 10 cells)
         private const int CostCap = 50;
+
+        // 本番と同じ余裕。探索の生成と食い違いの上限の両方がこの1本を使う
+        // The production slack; both the planner construction and the disagreement bound use this one value
+        private const int RecoverySlack = BeltRoutePlanner.DefaultRecoverySlack;
         private static readonly Vector3Int BoxSize = new(6, 3, 6);
 
         // 始点の真上や隣など近接した終点は探索と組み立ての食い違いが出やすいので、半分は始点の±2以内に終点を置く
@@ -32,7 +36,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         [Test]
         public void RandomSmallBoxesAgreeWithTheExhaustiveReference()
         {
-            const int recoverySlack = BeltRoutePlanner.DefaultRecoverySlack;
             var random = new System.Random(Seed);
             var compared = 0;
             var referenceFound = 0;
@@ -44,7 +47,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 compared++;
                 var label = $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt}";
 
-                var result = new BeltRoutePlanner(grid, recoverySlack).Plan(query);
+                var result = new BeltRoutePlanner(grid, RecoverySlack).Plan(query);
                 var rule = new BeltRouteTransitionRule(grid, query);
                 var referenceCost = new BeltRouteReferenceSolver(rule, CostCap, true).Solve();
                 if (referenceCost != BeltRouteReferenceSolver.NotFound) referenceFound++;
@@ -52,7 +55,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 var disagreement = Disagreement(result, referenceCost);
                 if (disagreement != null) disagreements.Add($"{label}: {disagreement}");
             }
-            Debug.Log($"[BeltRouteReferenceCrossCheck] slack {recoverySlack}: compared {compared} queries, reference found {referenceFound} routes within cost {CostCap}, disagreements {disagreements.Count}");
+            Debug.Log($"[BeltRouteReferenceCrossCheck] slack {RecoverySlack}: compared {compared} queries, reference found {referenceFound} routes within cost {CostCap}, disagreements {disagreements.Count}");
             Assert.Greater(referenceFound, Iterations / 10, "too few routes within the cap; the cross-check is not exercising the search");
             Assert.AreEqual(0, disagreements.Count, $"{disagreements.Count} disagreements, first {ReportedDisagreements}:\n{string.Join("\n", disagreements.GetRange(0, Mathf.Min(ReportedDisagreements, disagreements.Count)))}");
         }
@@ -67,7 +70,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 return null;
             }
             if (!result.HasPlan) return $"reference found a route of cost {referenceCost} but production found none";
-            var bound = referenceCost * BeltRouteSearch.HeuristicWeight + BeltRoutePlanner.DefaultRecoverySlack;
+            var bound = referenceCost * BeltRouteSearch.HeuristicWeight + RecoverySlack;
             if (bound < result.Plan.TotalCost) return $"production cost {result.Plan.TotalCost} exceeds the bound {bound} (reference {referenceCost})";
             return null;
         }

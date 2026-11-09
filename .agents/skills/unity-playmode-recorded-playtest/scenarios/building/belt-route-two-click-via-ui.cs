@@ -6,6 +6,7 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Core.Master;
@@ -65,19 +66,15 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
     await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", new Vector3Int(-20, 32, -22), BlockDirection.North));
     await p.ClickPlace();
 
-    // 遠い終点を何か所か指して、経路探索中の最悪フレーム時間を実機で測る
-    // Sweep a few far targets while routing to measure the worst frame time on the real build
+    // 遠い終点を何か所か指し、各終点で R による再探索のフレーム時間を実機で測る
+    // Sweep a few far targets and measure the re-search frame triggered by R at each on the real build
     var worstFrameMs = 0f;
     foreach (var target in new[] { new Vector3Int(-14, 32, 22), new Vector3Int(-24, 32, 20), new Vector3Int(-5, 32, 15), new Vector3Int(-14, 32, 22) })
     {
         await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", target, BlockDirection.North));
-        for (var frame = 0; frame < 3; frame++)
-        {
-            await UniTask.Yield();
-            worstFrameMs = Mathf.Max(worstFrameMs, Time.unscaledDeltaTime * 1000f);
-        }
+        worstFrameMs = Mathf.Max(worstFrameMs, await MeasureResearchFramesMs(Key.R, Key.R));
     }
-    p.Note($"開けた遠距離の経路探索中の最悪フレーム時間: {worstFrameMs:F1} ms");
+    p.Note($"開けた遠距離の探索フレームの最悪時間（R で再探索させた直後）: {worstFrameMs:F1} ms");
     await p.Screenshot("03-long-route");
     await p.ClickPlace();
     await p.Until(() => p.GetBlock(new Vector3Int(-14, 32, 22)) != null, 15f, "遠距離の終点が置かれる");
@@ -108,13 +105,10 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
     // The hole floor is hidden by the ring; aim at the upper level (y=33) of the north ring's inner face and lower the placement height once with Q to land on (-8,32,-10)
     await p.PressKey(Key.Q);
     await p.AimAt(new Vector3(-7.5f, 33.8f, -9f));
-    var enclosedWorstMs = 0f;
-    for (var frame = 0; frame < 5; frame++)
-    {
-        await UniTask.Yield();
-        enclosedWorstMs = Mathf.Max(enclosedWorstMs, Time.unscaledDeltaTime * 1000f);
-    }
-    p.Note($"囲まれた終点の経路探索中の最悪フレーム時間: {enclosedWorstMs:F1} ms");
+    // 面ヒットの終点は向きが面で決まり R では問い合わせが変わらない。E/Q で終点を y=33 と y=32 の間で動かして再探索させる（どちらも輪の内側）
+    // A face-hit end takes its facing from the face, so R does not change the query; toggle the end between y=33 and y=32 with E/Q to re-search (both inside the ring)
+    var enclosedWorstMs = await MeasureResearchFramesMs(Key.E, Key.Q);
+    p.Note($"囲まれた終点の探索フレームの最悪時間（E/Q で再探索させた直後）: {enclosedWorstMs:F1} ms");
     p.Assert(HasTooltipKey("ui.tooltip.placeBeltRouteNotFound"), "囲まれた終点では「経路が見つかりません」の理由行が出る");
     await p.Screenshot("04-enclosed-not-found");
     await p.PressKey(Key.E);
@@ -131,6 +125,28 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
     await p.Screenshot("05-flow");
 
     #region Internal
+
+    // 2つのキーを交互に計4回押して問い合わせを変え（R×4 は元の向き、E/Q×2 は元の高さに戻る）、毎回の再探索が走ったフレームの最悪時間を返す
+    // Press two keys alternately four times to change the query (R x4 returns to the facing, E/Q x2 to the height) and return the worst re-search frame time
+    async UniTask<float> MeasureResearchFramesMs(Key oddKey, Key evenKey)
+    {
+        var worstMs = 0f;
+        for (var press = 0; press < 4; press++)
+        {
+            var key = press % 2 == 0 ? oddKey : evenKey;
+            // PressKey は押下後に0.5秒待つので探索のフレームを過ぎてしまう。押下を直接入れ、直後の数フレームの unscaledDeltaTime を読む
+            // PressKey waits 0.5s after the press and would skip the search frame, so press directly and read unscaledDeltaTime for the next few frames
+            SemanticInput.KeyDown(key);
+            for (var frame = 0; frame < 4; frame++)
+            {
+                await UniTask.Yield();
+                worstMs = Mathf.Max(worstMs, Time.unscaledDeltaTime * 1000f);
+            }
+            SemanticInput.KeyUp(key);
+            await p.WaitSeconds(0.5f);
+        }
+        return worstMs;
+    }
 
     int CountBelts()
     {

@@ -182,8 +182,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(result.Plan.Cells.All(cell => cell.Kind == BeltRouteCellKind.Straight));
         }
 
-        // 囲まれた終点は経路なし（待ち行列が尽きるか展開数の上限で止まる）
-        // An enclosed end yields no route (the queue drains or the expansion cap stops the search)
+        // 囲まれた終点は経路なし。40×3×40 の閉じた箱なので待ち行列の枯渇で止まることもある。上限到達は録画の囲まれた終点とログで確かめる
+        // An enclosed end yields no route; the closed 40x3x40 box may stop by draining the queue, so the cap itself is checked by the recording and its log
         [Test]
         public void EnclosedEndYieldsNoRoute()
         {
