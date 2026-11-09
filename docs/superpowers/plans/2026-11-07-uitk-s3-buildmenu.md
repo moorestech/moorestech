@@ -2714,6 +2714,7 @@ using System;
 using System.Linq;
 using Client.Tests.Ui.Content;
 using Client.Ui.Components.Controls;
+using Client.Ui.Content;
 using Client.Ui.Screens.BuildMenu;
 using Client.Ui.Screens.BuildMenu.CategoryScroll;
 using Client.Ui.State.BuildMenu.Entries;
@@ -4590,7 +4591,7 @@ var content = resolver.Resolve<Client.Ui.Content.GameContentPresentation>();
 var demoTextures = new Client.Tests.Ui.Screens.BuildMenu.Support.BuildMenuReferenceDemoTextures(System.IO.Path.GetFullPath("Assets/../.uloop/outputs/compare/S3-buildmenu/demo-icons"), 19);
 // 絵は参照と同じ種番号の PNG で組み、名前・素材は本番の GameContentPresentation の形のまま
 // Pictures come from the seed PNGs matching the reference; names and materials keep the production GameContentPresentation shape
-var icons = new Client.Ui.Content.PlacementTargetIcons(new Client.Ui.Content.GameContentPresentation(demoTextures), demoTextures, new Client.Game.InGame.Blueprint.BlueprintThumbnailContainer());
+var icons = new Client.Ui.Content.PlacementTargetIcons(new Client.Ui.Content.GameContentPresentation(demoTextures), demoTextures, new Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail.BlueprintThumbnailContainer());
 var toaster = resolver.Resolve<Client.Ui.State.Toast.UiCommandResultToaster>();
 var demo = Client.Tests.Ui.Screens.BuildMenu.Support.BuildMenuReferenceDemo.Create();
 foreach (var name in new[] { "s3bm-compare-1280", "s3bm-compare-2560" })

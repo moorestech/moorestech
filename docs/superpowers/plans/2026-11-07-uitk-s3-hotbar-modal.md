@@ -3587,10 +3587,11 @@ const mix=(g,c,a)=>g.map((v,i)=>Math.round(v*(1-a)+c[i]*a));
 const FACE=[50,52,67], TAB=[50,52,67], FILLED=[/* SlotFrame の data-filled の面 */];
 for (const [label,g] of [["bright",[240,203,166]],["dark",[40,42,48]],["ref",[/* Step 0 で読んだ 3 つの数 */]]]) {
   const empty=mix(g,FACE,0.5);
-  console.log(label,"empty",empty,"tab",mix(g,TAB,0.68),"unresolved",mix(g,FILLED,0.4),"disabledEmpty",mix(g,empty,0.55));
+  const filled=mix(g,FILLED,1), unresolved=mix(g,FILLED,0.4);
+  console.log(label,"empty",empty,"tab",mix(g,TAB,0.68),"unresolved",unresolved,"disabledEmpty",mix(g,empty,0.55),"disabledFilled",mix(g,filled,0.55),"disabledUnresolved",mix(g,unresolved,0.55));
 }'
 ```
-Expected: 明るい地と暗い地の 4 値ずつ。`done.md` の「## 証拠」に貼る（`disabledEmpty` は列の opacity 0.55 が空き枠の面ごと地へ混ざる値）
+Expected: 地ごとに 6 値。`done.md` の「## 証拠」に貼る（`disabled*` は列の opacity 0.55 が枠の面ごと地へ混ざる値。未解決の枠は自分の 0.4 と列の 0.55 が重なる〈Web `SlotFrame/style.module.css` の白面と `HotbarPanel/style.module.css` の列の opacity〉）
 
 - [ ] **Step 2: ランタイムの PanelSettings で描く口を作る（PlayMode・GameUi）**
 
@@ -3656,12 +3657,15 @@ foreach (var label in new[] { "bright", "dark", "ref" })
     var view = UnityEngine.UIElements.UQueryExtensions.Q<Client.Ui.Screens.Hotbar.HotbarHudView>(root, "s3hm-hotbar");
     var slots = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Repeat<Client.Ui.State.Hotbar.HotbarSlotViewModel>(Client.Ui.State.Hotbar.HotbarEmptySlot.Instance, 9));
     slots[4] = new Client.Ui.State.Hotbar.HotbarUnresolvedSlot(System.Guid.NewGuid());
+    // 割当済みの白面も減光の下で読む（枠 7。名前だけの絵で面を出す）
+    // Also read an assigned white face under the dim (slot 7; a name-only icon shows the face)
+    slots[7] = new Client.Ui.State.Hotbar.HotbarAssignedSlot(System.Guid.NewGuid(), "albof34", Client.Ui.State.PlacementTarget.PlacementTargetNameOnlyIcon.Instance);
     view.Render(new Client.Ui.State.Hotbar.HotbarViewModel(slots, Client.Ui.State.Hotbar.HotbarSelection.None, false, true));
 }
 return "ok";'
 ```
-1 フレーム置いてから（`uloop control-play-mode --project-path ./moorestech_client --action Status` を 1 回挟む）同じ読み取りの EDC を流し、`empty` を `disabledEmpty` として読む。
-Expected: 2 地 × 4 値。Step 1 の期待と並べた表（列: 地・要素・Web 期待・UITK 実測・差の最大 RGB 段）を `done.md` の「## 証拠」に書く。読む点がタブの数字や枠のベベルに掛かっていないことを、同じ RT を `EncodeToPNG` して `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/albof34-<地>.png` に書き Read で確かめる
+1 フレーム置いてから（`uloop control-play-mode --project-path ./moorestech_client --action Status` を 1 回挟む）同じ読み取りの EDC を流し、`empty` を `disabledEmpty`、`unresolved` を `disabledUnresolved` として読み、`hotbar-slot-7` の面（`worldBound` の左上から内側へ 6px。名前の文字・タブ・ベベルに掛からない点）を `disabledFilled` として読む（読み取りの EDC の `lines.Add` に `filled={At(new UnityEngine.Vector2(root.Q("hotbar-slot-7").worldBound.xMin + 6f, root.Q("hotbar-slot-7").worldBound.yMin + 6f))}` を足す）。
+Expected: 3 地 × 6 値（受理ありの `empty`・`tab`・`unresolved` と、受理なしの `disabledEmpty`・`disabledUnresolved`・`disabledFilled`。Step 1 の `filled` は期待の計算だけに使い、受理ありの 1 回目では枠 7 が空きなので読まない）。どれも明るい地で 7 段以内が合格（Step 4。空き枠だけで合わせた補正が白面・未解決の重なりで外れたら、その行も Step 4 で直す）。Step 1 の期待と並べた表（列: 地・要素・Web 期待・UITK 実測・差の最大 RGB 段）を `done.md` の「## 証拠」に書く。読む点がタブの数字や枠のベベルに掛かっていないことを、同じ RT を `EncodeToPNG` して `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/albof34-<地>.png` に書き Read で確かめる
 
 - [ ] **Step 4: 明るい地で 7 段を超える値を直す**
 
@@ -3760,7 +3764,7 @@ git commit -m "fix(uitk): ホットバーとモーダルを Web との並べ比�
 6. BP 名のモーダル: `p.Hotbar.UnlockBlueprint()`、前例と同じく木のチェストを置き、`checks.SelectEntry(ToolCategory, CopyToolEntry)` で BP コピーを選び、始点・終点をクリック → `p.UntilUiElement("modal-input", 10f)` → `FindUi("modal-button")` が押せない（`Clickable` でなく disabled の状態名で見る）→ `p.SetText("modal-input", "  uitk-bp  ")` → `p.ClickUi("modal-button")` → `p.WaitForBlueprint("uitk-bp", true, 15f, "BP『uitk-bp』が前後の空白を除いた名前で登録される")` → `FindUi("modal")` が見つからない。`p.Screenshot("05-bp-modal")`（入力の直後にも 1 枚）
 7. 幕で取消: もう一度始点・終点 → モーダル → 幕の左上（`FindUi("modal-backdrop").ScreenRect` の左上から内側へ 5px）をクリック → `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま、BP もブロックも増えない（幕の上のクリックが設置にならない）。名前を打つ間（流れ 6）にプレイヤーの位置が動かないことも `p.Note` に出して見る
 7b. ESC 1 回で取消（D-11・Task 8 Step 0）: もう一度始点・終点 → `p.UntilUiElement("modal-input", 10f)` → `p.SetText("modal-input", "途中")` → `p.PressKey(Key.Escape)` を 1 回 → 次のフレームで `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま（建築モードを抜けない）、ポーズが出ない（`p.Assert(uiStateControl.CurrentState != UIStateEnum.PauseMenu, …)`）、BP が増えない。`p.Screenshot("07b-esc-in-field")`。続けてもう一度始点・終点 → モーダル → 本文 `modal-message` をクリックして入力欄のフォーカスを外し（閉じないことを Assert）→ `p.PressKey(Key.Escape)` を 1 回 → モーダルが消え、`PlaceBlock` のまま・ポーズが出ない（既存のゲーム入力の経路での取消）。`p.Screenshot("07b-esc-unfocused")`
-8. 解放の直後の解決（D-18）: `IGameUnlockStateData.BlockUnlockStateInfos` から未解放のブロックを 1 つ選ぶ（無ければ止めて `done.md` の「未確認」に書く）。`ClientHotbarDatastore.RequestAssign(8, その BlockGuid)` → `p.Until` で `Assignments[8]` が一致 → `HotbarModel.Current.Value.Slots[8] is HotbarUnresolvedSlot` を Assert。次に `ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => resolvedAtPacket = model.Current.Value.Slots[8] is HotbarAssignedSlot)` を購読し（`HotbarModel` より後の購読なので同じ配送の中で組み直しの後に走る）、`PlaytestBlockOps.UnlockBlockServerSide(ct, 名前)` → `p.Assert(resolvedAtPacket, "解放パケットの配送の中で枠 8 が解決済みになる（間引き無しの同期の組み直し）")`。偽なら間引きを足さず、購読の順とパケットの時点の値を `done.md` に実測付きで申告して止める
+8. 解放の直後の解決（D-18）: 流れ 2 の `PlaytestEnvironmentConfig()` は `FreeBlockPlacement = true` で、解決器（`PlacementTargetResolver.UnlockedEntries`）が未解放のブロックも解決するので、まず無料設置を切る: `p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, CreateFlatGround = false, SpawnPosition = <今のプレイヤーの位置> })`（足場は流れ 2 で作り済み。前例 `building/placement-reason-tooltip.cs` の `FreeBlockPlacement = false`）。`IGameUnlockStateData.BlockUnlockStateInfos` から未解放のブロックを 1 つ選ぶ（無ければ止めて `done.md` の「未確認」に書く）。`ClientHotbarDatastore.RequestAssign(8, その BlockGuid)` → `p.Until` で `Assignments[8]` が一致 → `HotbarModel.Current.Value.Slots[8] is HotbarUnresolvedSlot` を Assert（偽なら、無料設置の値 `DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)` と枠 8 の型を `p.Note` に出して止める。流れ 8 の主張を外して通さない）。次に `ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => resolvedAtPacket = model.Current.Value.Slots[8] is HotbarAssignedSlot)` を購読し（`HotbarModel` より後の購読なので同じ配送の中で組み直しの後に走る）、`PlaytestBlockOps.UnlockBlockServerSide(ct, 名前)` → `p.Assert(resolvedAtPacket, "解放パケットの配送の中で枠 8 が解決済みになる（間引き無しの同期の組み直し）")`。偽なら間引きを足さず、購読の順とパケットの時点の値を `done.md` に実測付きで申告して止める
 ファイルは 200 行未満、`#region Internal` にローカル関数（ドラッグ・枠の中心）をまとめる
 
 - [ ] **Step 2: 全体スイッチが GameUi であることを確かめてから 2 本を回す**
