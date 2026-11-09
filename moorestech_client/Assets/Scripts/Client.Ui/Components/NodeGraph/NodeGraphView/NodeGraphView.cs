@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Theme;
 using UniRx;
 using UnityEngine;
@@ -37,7 +38,7 @@ namespace Client.Ui.Components.NodeGraph
         public IObservable<string> OnNodeTapped => _onNodeTapped;
         public IObservable<NodeGraphViewport> OnViewportChanged => _onViewportChanged;
 
-        public NodeGraphView(string testIdPrefix)
+        public NodeGraphView(string testIdPrefix, IUiOsCursor osCursor)
         {
             // 根とキャンバスと線・ノードの場面を作る
             // Build the root, the canvas and the edge/node scene
@@ -50,9 +51,9 @@ namespace Client.Ui.Components.NodeGraph
             _viewport = NodeGraphViewport.Identity;
             ApplyViewport();
 
-            // 押下とパンは Foundation の UiPressGesture、ホイール・寸法・つまみは自分で受ける
-            // Press and pan go through Foundation UiPressGesture; wheel, size and knobs are handled here
-            _pan = new NodeGraphPanController(this);
+            // 押下とパンは Foundation の UiPressGesture、手のカーソルは Foundation の OS カーソル、ホイール・寸法・つまみは自分で受ける
+            // Press and pan use Foundation UiPressGesture, the hand cursor the Foundation OS cursor; wheel, size and knobs are handled here
+            _pan = new NodeGraphPanController(this, new NodeGraphCursorSwitcher(this, osCursor));
             RegisterCallback<WheelEvent>(OnWheel);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);

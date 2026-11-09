@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.Components;
 using Client.Ui.Components.NodeGraph;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Theme;
 using NUnit.Framework;
 using UnityEditor;
@@ -99,6 +100,53 @@ namespace Client.Tests.Ui.Components.NodeGraph
             simulate.MouseUp(from + new Vector2(20f, 10f), MouseButton.LeftMouse);
             simulate.FrameUpdate();
             Assert.IsFalse(view.ClassListContains("node-graph--panning"), "after release");
+        }
+
+        [Test]
+        public void ビューポートに入ると掴む手_パン中は握った手_離すと掴む手_出ると既定()
+        {
+            var view = MountView(MountHost(400f, 300f));
+            var outside = new Vector2(5f, 5f);
+            var inside = ContentOrigin(view) + new Vector2(10f, 10f);
+
+            // 外から入ると掴む手、閾値を越えたドラッグで握った手
+            // Entering from outside shows grab; a drag past the threshold shows grabbing
+            simulate.MouseMove(outside);
+            simulate.MouseMove(inside);
+            simulate.MouseDown(inside, MouseButton.LeftMouse);
+            simulate.MouseMove(inside + new Vector2(20f, 10f));
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing }, OsCursor.AppliedShapes);
+
+            // 中で離すと掴む手へ戻り、外へ出ると既定へ戻る
+            // Releasing inside returns to grab; leaving returns to the default
+            simulate.MouseUp(inside + new Vector2(20f, 10f), MouseButton.LeftMouse);
+            simulate.FrameUpdate();
+            simulate.MouseMove(outside);
+            simulate.FrameUpdate();
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing, UiOsCursorShape.Grab, UiOsCursorShape.Default }, OsCursor.AppliedShapes);
+        }
+
+        [Test]
+        public void パン中に外へ出ても握った手のまま_外で離すと既定()
+        {
+            var view = MountView(MountHost(400f, 300f));
+            var outside = new Vector2(5f, 5f);
+            var inside = ContentOrigin(view) + new Vector2(10f, 10f);
+
+            // 捕捉中に外へ出ても握った手を保つ
+            // Keep grabbing while captured even outside
+            simulate.MouseMove(outside);
+            simulate.MouseMove(inside);
+            simulate.MouseDown(inside, MouseButton.LeftMouse);
+            simulate.MouseMove(inside + new Vector2(20f, 10f));
+            simulate.MouseMove(outside);
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing }, OsCursor.AppliedShapes);
+
+            // 外で離すと既定へ戻る
+            // Releasing outside returns to the default
+            simulate.MouseUp(outside, MouseButton.LeftMouse);
+            simulate.FrameUpdate();
+            CollectionAssert.AreEqual(new[] { UiOsCursorShape.Grab, UiOsCursorShape.Grabbing, UiOsCursorShape.Default }, OsCursor.AppliedShapes);
         }
 
         [Test]

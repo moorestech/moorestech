@@ -18,12 +18,15 @@ namespace Client.Tests.Ui.Components.NodeGraph
         protected const float CardWidth = 60f;
         protected const float CardHeight = 40f;
 
+        protected FakeUiOsCursor OsCursor { get; private set; }
+
         [SetUp]
         public void ZeroSimulatedFrameTime()
         {
             // 事象ごとの自動加算（既定 200ms）を 0 にし、ポインタの時刻を FrameUpdateMs だけで進める
             // Zero the per-event auto increment (default 200 ms) so pointer timestamps advance only by FrameUpdateMs
             simulate.timePerSimulatedFrameMs = 0;
+            OsCursor = new FakeUiOsCursor();
         }
 
         [TearDown]
@@ -48,14 +51,14 @@ namespace Client.Tests.Ui.Components.NodeGraph
 
         protected NodeGraphView MountView(VisualElement host)
         {
-            return Settle(host, new NodeGraphView("test-graph"));
+            return Settle(host, new NodeGraphView("test-graph", OsCursor));
         }
 
         protected NodeGraphView MountRestoredView(VisualElement host, NodeGraphViewport stored, List<NodeGraphViewport> emitted)
         {
             // 画面の作り直しと同じく、作った直後に購読し、載せる前に保持した値へ戻す
             // As a screen rebuilds: subscribe right after creation, then restore the held value before mounting
-            var view = new NodeGraphView("test-graph");
+            var view = new NodeGraphView("test-graph", OsCursor);
             view.OnViewportChanged.Subscribe(emitted.Add);
             view.RestoreViewport(stored);
             return Settle(host, view);
