@@ -19,6 +19,8 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
         private TutorialDragGuidePlacement _placement;
         private UiMotionHandle _loop;
         private float _size;
+        private float _duration;
+        private bool _shown;
 
         public TutorialDragGuideView()
         {
@@ -37,11 +39,18 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
             _placement = placement;
             style.display = DisplayStyle.Flex;
             ApplyPlacement();
+            // 隠れていた後の表示は 1 周の始めから流す（Web は出し直しで keyframes が 0% から始まる）
+            // After being hidden, start the loop from its beginning (Web restarts the keyframes at 0% on re-show)
+            if (_shown) return;
+            _shown = true;
+            StartLoop();
         }
 
         public void HideGuide()
         {
+            _shown = false;
             style.display = DisplayStyle.None;
+            StopLoop();
         }
 
         private void OnCustomStyleResolved(ICustomStyle customStyle)
@@ -54,12 +63,20 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
                 style.height = _size;
                 ApplyPlacement();
             }
-            // 周期が読めたら 1 周のループを 1 回だけ始める（外れたら止め、載せ直しの解決で始め直す）
-            // Start the loop once the duration is read (stopped on detach, restarted on the re-attach resolution)
-            if (_loop == null && UssCustomStyleReader.TryReadMilliseconds(customStyle, DurationProperty, out var duration))
-            {
-                _loop = UiMotionPlayer.Play(this, new UiTweenAnimation(new UiMotionSpec(duration, 0f, UiEasing.Linear, UiMotionLoop.Repeat), _step));
-            }
+            // 周期が読めたら、出ている間だけループを始める（外れたら止め、載せ直しの解決で始め直す）
+            // Once the duration is read, run the loop only while shown (stopped on detach, restarted on the re-attach resolution)
+            if (UssCustomStyleReader.TryReadMilliseconds(customStyle, DurationProperty, out _duration) && _shown && _loop == null) StartLoop();
+        }
+
+        private void StartLoop()
+        {
+            StopLoop();
+            // silent-ok: 周期の解決前は OnCustomStyleResolved が始める / 読めなければ UssCustomStyleReader が LogError
+            if (_duration <= 0f) return;
+            // 最初の更新までの 1 フレームに前の周の位置が残らないよう、始めの姿（透明・起点）を先に当てる
+            // Apply the starting pose (transparent, at the origin) first so the previous loop's pose does not linger for a frame
+            _step.Apply(0f);
+            _loop = UiMotionPlayer.Play(this, new UiTweenAnimation(new UiMotionSpec(_duration, 0f, UiEasing.Linear, UiMotionLoop.Repeat), _step));
         }
 
         private void ApplyPlacement()

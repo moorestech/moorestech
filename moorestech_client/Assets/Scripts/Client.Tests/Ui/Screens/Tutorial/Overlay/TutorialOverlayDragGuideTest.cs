@@ -106,5 +106,34 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             simulate.FrameUpdate();
             Assert.AreEqual(0, ShownGuides());
         }
+
+        [Test]
+        public void 隠して出し直すと1周の始めから動く()
+        {
+            MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
+            var to = MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
+            _model.Set(Guide(1));
+            // 寸法・周期の解決と、ループの最初の更新（その時刻が起点）を済ませてから半周進める
+            // Resolve size and duration and run the loop's first update (its head time) before advancing half a loop
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs((long)(Ms("--tutorial-drag-guide-duration") / 2f));
+            var guide = _view.Q<TutorialDragGuideView>();
+            Assert.Greater(guide.resolvedStyle.translate.x, 1f);
+
+            // 終点が消えて隠れた後に戻ると、途中の位相ではなく起点・透明から流れ直す（Web は 0% から）
+            // When the target returns after hiding, restart at the origin and transparent, not mid-phase (Web restarts at 0%)
+            LogAssert.Expect(LogType.Warning, new Regex("anchor is missing: pause.settings"));
+            to.RemoveFromHierarchy();
+            simulate.FrameUpdate();
+            Assert.AreEqual(0, ShownGuides());
+            simulate.FrameUpdateMs((long)(Ms("--tutorial-drag-guide-duration") / 4f));
+            rootVisualElement.Add(to);
+            simulate.FrameUpdateMs(0);
+            Assert.AreEqual(1, ShownGuides());
+            Assert.AreEqual(0f, guide.resolvedStyle.translate.x, 0.5f);
+            Assert.AreEqual(0f, guide.resolvedStyle.opacity, 0.05f);
+        }
     }
 }
