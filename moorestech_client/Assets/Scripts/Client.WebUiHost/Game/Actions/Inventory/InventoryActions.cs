@@ -36,9 +36,9 @@ namespace Client.WebUiHost.Game.Actions
             // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
             if (fromType == toType && fromSlot == toSlot) return UniTask.FromResult(ActionResult.Success());
 
-            // 実在・数量検証は controller に集約。拒否理由をそのままエラーコードに写す
-            // Presence/count validation lives in the controller; map the deny reason straight to the error code
-            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(denyReason));
+            // 実在・数量検証は controller に集約。拒否理由を Web のエラーコードへ写す
+            // Presence/count validation lives in the controller; map the deny reason to the Web error code
+            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(LocalItemMoveDenyWireCode.From(denyReason)));
             return UniTask.FromResult(ActionResult.Success());
         }
     }

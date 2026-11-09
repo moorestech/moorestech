@@ -129,23 +129,25 @@ namespace Client.Game.InGame.UI.Inventory.Main
             #endregion
         }
 
-        public bool TryMoveItem(LocalMoveInventoryType fromType, int fromSlot, LocalMoveInventoryType toType, int toSlot, int count, out string denyReason)
+        public bool TryMoveItem(LocalMoveInventoryType fromType, int fromSlot, LocalMoveInventoryType toType, int toSlot, int count, out LocalItemMoveDenyReason denyReason)
         {
             // 移動元の実在・数量を検証してから MoveItem を呼ぶ（Web/uGUI 共通の検証口）
             // Validate the source stack's presence and count before calling MoveItem (shared web/uGUI guard)
             var fromItem = GetItem(fromType, fromSlot);
             if (fromItem.Id == ItemMaster.EmptyItemId)
             {
-                denyReason = "empty_slot";
+                denyReason = LocalItemMoveDenyReason.SourceEmpty;
                 return false;
             }
             if (fromItem.Count < count)
             {
-                denyReason = "insufficient_count";
+                denyReason = LocalItemMoveDenyReason.SourceCountShort;
                 return false;
             }
 
-            denyReason = null;
+            // 成功時の拒否理由は読まない（Try の慣例）
+            // The deny reason is not read on success (Try convention)
+            denyReason = default;
             MoveItem(fromType, fromSlot, toType, toSlot, count);
             return true;
         }

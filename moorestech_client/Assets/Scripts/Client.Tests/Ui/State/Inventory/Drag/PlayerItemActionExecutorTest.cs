@@ -38,6 +38,21 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         }
 
         [Test]
+        public void 別IDの枠への部分移動は何もせず受理する()
+        {
+            // 持ち物の口が NoEffect を返し（警告は口が出す）、Web と同じく拒否にはしない
+            // The port returns NoEffect (it logs the warning) and, like Web, this is not a rejection
+            _operations.SetMain(0, new SlotItem(Wood, 10));
+            _operations.SetMain(1, new SlotItem(new ItemId(2), 3));
+
+            var result = _executor.Execute(new PlayerItemAction[] { new MoveBetweenSlotsAction(PlayerSlotRef.Main(0), PlayerSlotRef.Main(1), 4) });
+
+            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual(10, _operations.ReadMain(0).Count);
+            Assert.AreEqual(3, _operations.ReadMain(1).Count);
+        }
+
+        [Test]
         public void 枠からgrabへ掴む()
         {
             _operations.SetMain(0, new SlotItem(Wood, 10));

@@ -73,7 +73,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 実在・数量検証は controller に集約。block も MainOrSub 結合 index で移動する
             // Presence/count validation lives in the controller; block moves also use the MainOrSub combined index
-            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(denyReason));
+            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(LocalItemMoveDenyWireCode.From(denyReason)));
             return UniTask.FromResult(ActionResult.Success());
 
             #region Internal

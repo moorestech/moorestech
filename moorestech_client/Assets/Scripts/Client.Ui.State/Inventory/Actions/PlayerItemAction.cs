@@ -25,6 +25,9 @@ namespace Client.Ui.State.Inventory.Actions
                 PlayerItemMoveOutcome.Moved => UiCommandAccepted.Instance,
                 PlayerItemMoveOutcome.SourceEmpty => new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, ""),
                 PlayerItemMoveOutcome.SourceCountShort => new UiCommandRejected(UiCommandRejectReason.ItemSourceCountShort, ""),
+                // 何もしない移動は Web と同じく成功（警告ログは持ち物の口が出す）
+                // A no-effect move is accepted like Web (the inventory port logs the warning)
+                PlayerItemMoveOutcome.NoEffect => UiCommandAccepted.Instance,
                 _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null),
             };
         }

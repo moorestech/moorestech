@@ -93,14 +93,15 @@ namespace Client.Tests.Ui.State.Inventory
             Collects.Add(slot.ToString());
         }
 
-        // コントローラの TryMoveItem＋MoveItem と同じ: 空・不足は拒否、別 ID への全量は入れ替え、別 ID への部分は何もしない、それ以外は加算
-        // Same as the controller's TryMoveItem+MoveItem: reject empty/short, swap a full move onto another id, ignore a partial one, else add
+        // コントローラの TryMoveItem＋MoveItem と同じ: 空・不足は拒否、別 ID への全量は入れ替え、0 個以下・別 ID への部分は NoEffect、それ以外は加算
+        // Same as the controller's TryMoveItem+MoveItem: reject empty/short, swap a full move onto another id, NoEffect for count<=0 or a partial one, else add
         private PlayerItemMoveOutcome Move(SlotItem source, Action<SlotItem> writeSource, SlotItem target, Action<SlotItem> writeTarget, int count)
         {
             if (source.IsEmpty) return PlayerItemMoveOutcome.SourceEmpty;
             if (source.Count < count) return PlayerItemMoveOutcome.SourceCountShort;
+            if (count <= 0) return PlayerItemMoveOutcome.NoEffect;
             var differentId = !target.IsEmpty && target.ItemId != source.ItemId;
-            if (differentId && count != source.Count) return PlayerItemMoveOutcome.Moved;
+            if (differentId && count != source.Count) return PlayerItemMoveOutcome.NoEffect;
             if (differentId)
             {
                 writeTarget(source);

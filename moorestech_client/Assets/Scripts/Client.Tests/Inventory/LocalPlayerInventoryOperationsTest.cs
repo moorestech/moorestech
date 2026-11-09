@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Ui.State.Inventory.Actions;
@@ -7,17 +8,21 @@ using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Inventory
 {
     /// <summary>
-    /// 本番の持ち物の口がコントローラの拒否コードを移動の結果の列挙へ写すことを確かめる
-    /// Verifies the production inventory port maps the controller's deny codes to the move outcome enum
+    /// 本番の持ち物の口がコントローラの拒否理由と何もしない移動を移動の結果の列挙へ写すことを確かめる
+    /// Verifies the production inventory port maps the controller's deny reasons and no-effect moves to the move outcome enum
     /// </summary>
     public class LocalPlayerInventoryOperationsTest
     {
         private const int MainSlot = 5;
+        private const int OtherMainSlot = 6;
         private static readonly Guid ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        private static readonly Guid OtherItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
 
         [Test]
         public void 空の枠から掴むとSourceEmptyになる()
@@ -34,6 +39,32 @@ namespace Client.Tests.Inventory
             controller.SetMainItem(MainSlot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(ItemGuid), 10));
 
             Assert.AreEqual(PlayerItemMoveOutcome.SourceCountShort, operations.MoveToGrab(PlayerSlotRef.Main(MainSlot), 11));
+            Assert.AreEqual(10, controller.LocalPlayerInventory[MainSlot].Count);
+        }
+
+        [Test]
+        public void 別IDの枠への部分移動はNoEffectと警告で両方の枠は変わらない()
+        {
+            // コントローラは黙って return するので、成功と区別して開発者ログへ出す
+            // The controller silently returns, so it is told apart from success and logged for developers
+            var operations = Create(out var controller);
+            controller.SetMainItem(MainSlot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(ItemGuid), 10));
+            controller.SetMainItem(OtherMainSlot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(OtherItemGuid), 3));
+            LogAssert.Expect(LogType.Warning, new Regex("move has no effect"));
+
+            Assert.AreEqual(PlayerItemMoveOutcome.NoEffect, operations.MoveBetweenSlots(PlayerSlotRef.Main(MainSlot), PlayerSlotRef.Main(OtherMainSlot), 4));
+            Assert.AreEqual(10, controller.LocalPlayerInventory[MainSlot].Count);
+            Assert.AreEqual(3, controller.LocalPlayerInventory[OtherMainSlot].Count);
+        }
+
+        [Test]
+        public void 零個の移動はNoEffectと警告になる()
+        {
+            var operations = Create(out var controller);
+            controller.SetMainItem(MainSlot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(ItemGuid), 10));
+            LogAssert.Expect(LogType.Warning, new Regex("move has no effect"));
+
+            Assert.AreEqual(PlayerItemMoveOutcome.NoEffect, operations.MoveToGrab(PlayerSlotRef.Main(MainSlot), 0));
             Assert.AreEqual(10, controller.LocalPlayerInventory[MainSlot].Count);
         }
 
