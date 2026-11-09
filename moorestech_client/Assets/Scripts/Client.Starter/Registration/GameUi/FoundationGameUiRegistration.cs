@@ -1,5 +1,6 @@
 using Client.Ui.Components.Text;
 using Client.Ui.Foundation.Modal;
+using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Foundation.Tooltip;
 using VContainer;
@@ -29,6 +30,11 @@ namespace Client.Starter.Registration.GameUi
             // The hover face is the Components TooltipFace (Foundation only knows the interface)
             builder.RegisterInstance<IHoverTooltipFace>(new TooltipFace("hover-tooltip", TooltipFaceLook.Hover));
             builder.RegisterEntryPoint<GameUiHoverTooltipInstaller>();
+
+            // 舞台の上段 3 列は画面が ctor で受けて列へ載せ、入口が舞台の Screen 層へ置く
+            // Screens take the stage columns by ctor and add into a column; the entry point mounts it on the stage Screen layer
+            builder.Register<StageColumnsLayout>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<GameUiStageColumnsInstaller>();
         }
     }
 }

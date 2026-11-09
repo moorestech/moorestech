@@ -43,7 +43,6 @@ namespace Client.Starter.Registration
             ContentGameUiRegistration.Register(builder);
             ModeHudGameUiRegistration.Register(builder);
             CursorTooltipGameUiRegistration.Register(builder);
-            StageColumnsGameUiRegistration.Register(builder);
             GrabGameUiRegistration.Register(builder);
         }
     }

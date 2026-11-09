@@ -1,14 +1,13 @@
-using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.State.Routing;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.Layers
+namespace Client.Tests.Ui.Routing
 {
     /// <summary>
-    /// 左の余白を畳むのは研究画面だけ（Web の .stageResearch）
-    /// Only the research screen collapses the left padding (Web .stageResearch)
+    /// 画面の性質の表で舞台の左の余白を畳むのは研究画面だけ（Web の .stageResearch）
+    /// In the screen-trait table only the research screen collapses the stage left padding (Web .stageResearch)
     /// </summary>
-    public class StageColumnsRoutingTest
+    public class UiScreenTraitsStageLeftPaddingTest
     {
         [TestCase(UiScreen.None, false)]
         [TestCase(UiScreen.PlayerInventory, false)]
@@ -22,7 +21,7 @@ namespace Client.Tests.Ui.Layers
         [TestCase(UiScreen.SkitPause, false)]
         public void 研究画面だけが左の余白を畳む(UiScreen screen, bool expected)
         {
-            Assert.AreEqual(expected, StageColumnsRouting.CollapsesLeftPadding(screen));
+            Assert.AreEqual(expected, UiScreenTraitsTable.Get(screen).CollapsesStageLeftPadding);
         }
     }
 }
