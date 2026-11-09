@@ -6,15 +6,21 @@ namespace Client.Ui.State.Tutorial.Overlay
 {
     public sealed class TutorialOverlayModel : IInitializable
     {
+        private readonly TutorialPresentationStateStore _store;
         private readonly ReactiveProperty<TutorialOverlayViewModel> _current = new(TutorialOverlayViewModel.Empty);
 
         public IReadOnlyReactiveProperty<TutorialOverlayViewModel> Current => _current;
+
+        public TutorialOverlayModel(TutorialPresentationStateStore store)
+        {
+            _store = store;
+        }
 
         public void Initialize()
         {
             // 演出データが変わるたび枠と DragGuide を組み直す
             // Rebuild outlines and drag guides whenever the presentation data changes
-            TutorialPresentationStateStore.Instance.ObserveChanged().Subscribe(_ => Rebuild());
+            _store.ObserveChanged().Subscribe(_ => Rebuild());
 
             // ctor から購読までの間の変化を取り込む
             // Pick up any change made between construction and subscription
@@ -23,7 +29,7 @@ namespace Client.Ui.State.Tutorial.Overlay
 
         private void Rebuild()
         {
-            _current.Value = TutorialOverlayProjection.Project(TutorialPresentationStateStore.Instance.GetCurrent());
+            _current.Value = TutorialOverlayProjection.Project(_store.GetCurrent());
         }
     }
 }
