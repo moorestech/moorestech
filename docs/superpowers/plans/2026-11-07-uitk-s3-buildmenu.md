@@ -1094,6 +1094,7 @@ namespace Client.Ui.State.BuildMenu.Source
 
 `BuildMenuEntryFactory.cs`:
 ```csharp
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
