@@ -73,13 +73,14 @@ namespace Client.Tests.Ui.State
         }
 
         [Test]
-        public void 良性の拒否理由は言語の選択済みだけ()
+        public void 良性の拒否理由は言語の選択済みと持ち物の移動と分割の取りこぼしだけ()
         {
-            // 二重クリック・再送の選択済みは言語を変えないので利用者に知らせない
-            // An already-selected double click or resend changes no language, so players are not told
+            // 選択済みの再送と、Web の BENIGN_ERRORS にある持ち物の取りこぼしは利用者に知らせない
+            // An already-selected resend and the inventory misses in Web BENIGN_ERRORS are not told to players
+            var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.ItemSourceSlotEmpty, UiCommandRejectReason.ItemSourceCountShort, UiCommandRejectReason.SplitGrabNotEmpty };
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
-                Assert.AreEqual(reason == UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
+                Assert.AreEqual(0 <= System.Array.IndexOf(benign, reason), UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
             }
         }
 

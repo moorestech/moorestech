@@ -55,10 +55,10 @@ namespace Client.Ui.Components.Text
 
         public void SetHint(UiText sentence, string shortcutText)
         {
-            // {shortcut} に印を入れた文を渡す。呼び出し側が shortcut を渡しても印に置き換わる
-            // Hand over the sentence with the marker in {shortcut}; a caller-supplied shortcut is replaced by the marker
+            // inline だけ {shortcut} に印を入れる。prefix は割らないので印は要らず、辞書キー以外の文もそのまま渡せる
+            // Only inline puts the marker in {shortcut}; prefix never splits, so any text source passes through as is
             _keyCap.SetKeyText(shortcutText);
-            _sentence.SetText(sentence.WithLeadingParam(ShortcutHintSegments.ParamName, ShortcutHintSegments.Marker));
+            _sentence.SetText(_layout == ShortcutHintLayout.Inline ? sentence.WithLeadingParam(ShortcutHintSegments.ParamName, ShortcutHintSegments.Marker) : sentence);
         }
 
         private void ShowResolved(string resolved)
