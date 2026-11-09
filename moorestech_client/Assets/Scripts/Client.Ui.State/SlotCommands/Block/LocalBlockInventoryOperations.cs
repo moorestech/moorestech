@@ -33,15 +33,7 @@ namespace Client.Ui.State.SlotCommands.Block
             var (fromType, fromSlot) = ToLocal(from);
             var (toType, toSlot) = ToLocal(to);
             var result = _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
-            if (result == LocalItemMoveResult.NoEffect) Debug.LogWarning($"[LocalBlockInventoryOperations] move has no effect: {from} -> {to} x{count}");
-            return result switch
-            {
-                LocalItemMoveResult.Moved => PlayerItemMoveOutcome.Moved,
-                LocalItemMoveResult.NoEffect => PlayerItemMoveOutcome.NoEffect,
-                LocalItemMoveResult.SourceEmpty => PlayerItemMoveOutcome.SourceEmpty,
-                LocalItemMoveResult.SourceCountShort => PlayerItemMoveOutcome.SourceCountShort,
-                _ => throw new ArgumentOutOfRangeException(nameof(result), result, "LocalItemMoveResult の未知の値。PlayerItemMoveOutcome に足すこと"),
-            };
+            return PlayerItemMoveOutcomeConversion.FromController(result, nameof(LocalBlockInventoryOperations), $"{from} -> {to} x{count}");
         }
 
         public void CollectToGrab()

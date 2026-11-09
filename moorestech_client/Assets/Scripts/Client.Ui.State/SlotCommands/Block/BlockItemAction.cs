@@ -25,19 +25,7 @@ namespace Client.Ui.State.SlotCommands.Block
             return slot.Area != ItemMoveArea.Block || BlockSlotIndex.IsInRange(slots, slot.Slot);
         }
 
-        // 移動の結果を A-94 の理由へ写す（PlayerItemAction.FromOutcome と同じ対応）
-        // Map move outcomes to the A-94 reasons (same mapping as PlayerItemAction.FromOutcome)
-        private protected static UiCommandResult FromOutcome(PlayerItemMoveOutcome outcome)
-        {
-            return outcome switch
-            {
-                PlayerItemMoveOutcome.Moved => UiCommandAccepted.Instance,
-                PlayerItemMoveOutcome.NoEffect => UiCommandAccepted.Instance,
-                PlayerItemMoveOutcome.SourceEmpty => new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, ""),
-                PlayerItemMoveOutcome.SourceCountShort => new UiCommandRejected(UiCommandRejectReason.ItemSourceCountShort, ""),
-                _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null),
-            };
-        }
+        private protected static UiCommandResult FromOutcome(PlayerItemMoveOutcome outcome) => PlayerItemMoveOutcomeConversion.ToCommandResult(outcome);
     }
 
     public sealed class BlockMoveItemAction : BlockItemAction
@@ -55,6 +43,7 @@ namespace Client.Ui.State.SlotCommands.Block
 
         internal override bool IsInRange(IReadOnlyList<SlotItem> slots) => InRange(slots, _from) && InRange(slots, _to);
         internal override UiCommandResult Run(IBlockInventoryOperations block, IReadOnlyList<SlotItem> slots, bool grabEmpty) => FromOutcome(block.Move(_from, _to, _count));
+        public override string ToString() => $"BlockMoveItemAction({_from} -> {_to} x{_count})";
     }
 
     public sealed class BlockSplitToGrabAction : BlockItemAction
@@ -67,6 +56,7 @@ namespace Client.Ui.State.SlotCommands.Block
         }
 
         internal override bool IsInRange(IReadOnlyList<SlotItem> slots) => BlockSlotIndex.IsInRange(slots, _blockSlot);
+        public override string ToString() => $"BlockSplitToGrabAction(slot={_blockSlot})";
 
         internal override UiCommandResult Run(IBlockInventoryOperations block, IReadOnlyList<SlotItem> slots, bool grabEmpty)
         {
@@ -92,6 +82,7 @@ namespace Client.Ui.State.SlotCommands.Block
         }
 
         internal override bool IsInRange(IReadOnlyList<SlotItem> slots) => BlockSlotIndex.IsInRange(slots, _blockSlot);
+        public override string ToString() => $"BlockCollectAction(slot={_blockSlot})";
 
         internal override UiCommandResult Run(IBlockInventoryOperations block, IReadOnlyList<SlotItem> slots, bool grabEmpty)
         {

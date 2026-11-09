@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Ui.State.Inventory.Actions
 {
     /// <summary>
-    /// 本番の持ち物の口。コントローラの移動（サーバーへ送る）と集めを呼び、その結果の列挙はここで 1 回だけ移動の結果へ写す
-    /// Production inventory port; calls the controller's move (sent to the server) and collect, mapping its result enum to the move outcome once here
+    /// 本番の持ち物の口。コントローラの移動（サーバーへ送る）と集めを呼び、結果の列挙は共有の変換で移動の結果へ写す
+    /// Production inventory port; calls the controller's move (sent to the server) and collect, mapping its result enum through the shared conversion
     /// </summary>
     public sealed class LocalPlayerInventoryOperations : IPlayerInventoryOperations
     {
@@ -70,21 +70,10 @@ namespace Client.Ui.State.Inventory.Actions
 
         private PlayerItemMoveOutcome Move(LocalMoveInventoryType fromType, int fromSlot, LocalMoveInventoryType toType, int toSlot, int count)
         {
-            // 判定はコントローラの MoveItem 1 か所。何もしない移動は送られないので開発者ログへ出して成功と区別する
-            // The controller's MoveItem is the sole judge; a no-effect move is not sent, so it is logged for developers apart from success
+            // 判定はコントローラの MoveItem 1 か所。結果の写しは共有の変換へ
+            // The controller's MoveItem is the sole judge; the result mapping is the shared conversion
             var result = _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
-            if (result == LocalItemMoveResult.NoEffect) Debug.LogWarning($"[LocalPlayerInventoryOperations] move has no effect: {fromType}:{fromSlot} -> {toType}:{toSlot} x{count}");
-
-            // コントローラの結果を移動の結果へ写すのはここだけ
-            // The only place the controller's result becomes a move outcome
-            return result switch
-            {
-                LocalItemMoveResult.Moved => PlayerItemMoveOutcome.Moved,
-                LocalItemMoveResult.NoEffect => PlayerItemMoveOutcome.NoEffect,
-                LocalItemMoveResult.SourceEmpty => PlayerItemMoveOutcome.SourceEmpty,
-                LocalItemMoveResult.SourceCountShort => PlayerItemMoveOutcome.SourceCountShort,
-                _ => throw new ArgumentOutOfRangeException(nameof(result), result, "LocalItemMoveResult の未知の値。PlayerItemMoveOutcome に足すこと"),
-            };
+            return PlayerItemMoveOutcomeConversion.FromController(result, nameof(LocalPlayerInventoryOperations), $"{fromType}:{fromSlot} -> {toType}:{toSlot} x{count}");
         }
 
         private static LocalMoveInventoryType ToLocalType(PlayerSlotRef slot)
