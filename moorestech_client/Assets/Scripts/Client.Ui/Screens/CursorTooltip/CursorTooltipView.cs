@@ -1,4 +1,5 @@
 using Client.Ui.Components.Text;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.State.CursorTooltip;
@@ -27,12 +28,12 @@ namespace Client.Ui.Screens.CursorTooltip
             _screen = screen;
             _pointer = pointer;
             _stageScale = stageScale;
-            pickingMode = PickingMode.Ignore;
             AddToClassList("cursor-tooltip");
             _face = new TooltipFace("cursor-tooltip", TooltipFaceLook.Cursor);
             _face.AddToClassList("cursor-tooltip__face");
             _face.style.display = DisplayStyle.None;
             Add(_face);
+            IgnorePicking();
 
             // 寸法・倍率が変わったら置き直す。保存ポインタは実画面 px なので、いまの倍率で換算し直される
             // Re-place when size or scale changes; the stored pointer is in screen px, so it is re-converted with the current scale
@@ -48,7 +49,15 @@ namespace Client.Ui.Screens.CursorTooltip
             _face.style.display = _visible ? DisplayStyle.Flex : DisplayStyle.None;
             if (!_visible) return;
             _face.SetLines(viewModel.Lines);
+            IgnorePicking();
             Reposition();
+        }
+
+        // 部分木ごと入力を取らない（Web の .tooltip は pointer-events: none で子へ継承する）。行を作り直したら掛け直す
+        // The whole subtree takes no input (the Web .tooltip is pointer-events: none, inherited by children); reapply after rebuilding lines
+        private void IgnorePicking()
+        {
+            UiPickingIgnore.ApplyToSubtree(this);
         }
 
         private void SetPointer(Vector2 screenPosition)
