@@ -25,7 +25,16 @@ namespace Client.Ui.Screens.Tutorial.Pulse
         {
             // 載っている間だけ流す。載る前・外した後には Play しない（UiMotionPlayer はパネル外で LogError）
             // Pulse only while attached; never Play before attach or after removal (UiMotionPlayer logs off-panel)
+            var alreadyAttached = _peakScales.ContainsKey(target);
             _peakScales[target] = peakScale;
+            // 2 回目の Attach は振幅だけ差し替えて流し直す（コールバックを二重に張らない）
+            // A repeated Attach swaps the amplitude and restarts without registering callbacks twice
+            if (alreadyAttached)
+            {
+                Stop(target);
+                if (target.panel != null) Start(target);
+                return;
+            }
             target.RegisterCallback<AttachToPanelEvent>(_ => Start(target));
             target.RegisterCallback<DetachFromPanelEvent>(_ => Stop(target));
             if (target.panel != null) Start(target);

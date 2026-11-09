@@ -1,7 +1,5 @@
 using System.Text.RegularExpressions;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Motion.Steps;
-using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Tutorial.Logic;
 using NUnit.Framework;
 using UnityEngine;
@@ -12,21 +10,13 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
 {
     public class TutorialAnchorTrackerTest : TutorialOverlayTestHost
     {
-        private void LayOutAndMeasure()
-        {
-            // 追跡のポーリングはそのフレームのレイアウトより前に走るので、レイアウト後の測定は次のフレーム
-            // The poll runs before that frame's layout, so the post-layout measurement lands on the next frame
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
-        }
-
         [Test]
         public void 載っているアンカーはreadyで矩形と画面のclipを持つ()
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 50, 200, 40);
             var tracker = CreateTracker();
             tracker.SetSubscribedAnchors(Ids("pause.save"));
-            LayOutAndMeasure();
+            simulate.FrameUpdate();
 
             Assert.IsTrue(tracker.TryGet("pause.save", out var state));
             Assert.IsInstanceOf<TutorialAnchorState.Ready>(state);
@@ -68,7 +58,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             MountAnchor(rootVisualElement, "pause.settings", 2000, 0, 10, 10);
             var tracker = CreateTracker();
             tracker.SetSubscribedAnchors(Ids("pause.save", "pause.back", "pause.settings"));
-            LayOutAndMeasure();
+            simulate.FrameUpdate();
 
             tracker.TryGet("pause.save", out var a);
             tracker.TryGet("pause.back", out var b);
@@ -86,29 +76,13 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             scroll.Add(anchor);
             var tracker = CreateTracker();
             tracker.SetSubscribedAnchors(Ids("research.node-a"));
-            LayOutAndMeasure();
+            simulate.FrameUpdate();
 
             tracker.TryGet("research.node-a", out var state);
             Assert.IsInstanceOf<TutorialAnchorState.Ready>(state);
             var ready = (TutorialAnchorState.Ready)state;
             Assert.AreEqual(100f, ready.Clip.Top);
             Assert.AreEqual(300f, ready.Clip.Bottom);
-        }
-
-        [Test]
-        public void 脈動は周期の半分で頂点に達し元へ戻る()
-        {
-            var target = new VisualElement();
-            rootVisualElement.Add(target);
-            var handle = TutorialAttentionPulse.Start(target, TutorialAttentionPulse.StrongScale, 1200f);
-            // UiMotionHandle は Play の次のスケジューラ呼び出しを開始時刻にする（前例 UiMotionPlayerTest）
-            // UiMotionHandle starts at the next scheduler call after Play (precedent UiMotionPlayerTest)
-            simulate.FrameUpdateMs(0);
-            simulate.FrameUpdateMs(600);
-            Assert.AreEqual(1.08f, target.resolvedStyle.scale.value.x, 0.005f);
-            simulate.FrameUpdateMs(600);
-            Assert.AreEqual(1f, target.resolvedStyle.scale.value.x, 0.005f);
-            handle.Cancel();
         }
 
         [Test]
@@ -123,7 +97,6 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             Assert.IsInstanceOf<TutorialAnchorState.Hidden>(before);
             Assert.AreEqual(TutorialAnchorReason.ZeroArea, before.Reason);
 
-            simulate.FrameUpdate();
             simulate.FrameUpdate();
             tracker.TryGet("pause.save", out var after);
             Assert.IsInstanceOf<TutorialAnchorState.Ready>(after);

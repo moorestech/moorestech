@@ -1,6 +1,7 @@
 using System;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.State.Tutorial.Logic;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Tutorial.Anchor
@@ -11,10 +12,12 @@ namespace Client.Ui.Screens.Tutorial.Anchor
     /// </summary>
     public static class TutorialAnchorMeasure
     {
-        public static TutorialAnchorState Measure(VisualElement searchRoot, VisualElement coordinateSpace, string anchorId)
+        public static TutorialAnchorState Measure(TutorialAnchorResolution resolution, VisualElement coordinateSpace)
         {
+            // 引きは呼ぶ側が済ませる（追跡器は同じ引きで GeometryChangedEvent の見張りも張る）
+            // The caller resolves first (the tracker reuses that resolution to watch GeometryChangedEvent)
             VisualElement element;
-            switch (TutorialAnchorRegistry.Resolve(searchRoot, anchorId))
+            switch (resolution)
             {
                 case TutorialAnchorResolution.Missing:
                     return new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing);
@@ -24,17 +27,17 @@ namespace Client.Ui.Screens.Tutorial.Anchor
                     element = unique.Element;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(anchorId), $"unknown resolution for {anchorId}");
+                    throw new ArgumentOutOfRangeException(nameof(resolution), $"unknown resolution: {resolution.GetType().Name}");
             }
 
             // 理由の順は Web resolveAnchor と同じ（表示 → 可視 → 面積 → 画面内）
             // Same reason order as Web resolveAnchor (display, visibility, area, viewport)
             if (IsDisplayNoneInHierarchy(element)) return new TutorialAnchorState.Hidden(TutorialAnchorReason.DisplayNone);
             if (element.resolvedStyle.visibility == Visibility.Hidden) return new TutorialAnchorState.Hidden(TutorialAnchorReason.VisibilityHidden);
-            // レイアウト前の worldBound は NaN になりうる。比較 <= 0 を NaN がすり抜けるので、面積 0 として先に返す（D-33）
-            // worldBound can be NaN before layout; NaN slips past the <= 0 check, so return zero area first (D-33)
+            // レイアウト前のアンカー・座標系は NaN になりうる。比較を NaN がすり抜けるので、面積 0 として先に返す（D-33）
+            // The anchor or coordinate space can be NaN before layout; NaN slips past comparisons, so return zero area first (D-33)
             var world = element.worldBound;
-            if (float.IsNaN(world.x) || float.IsNaN(world.y) || float.IsNaN(world.width) || float.IsNaN(world.height)) return new TutorialAnchorState.Hidden(TutorialAnchorReason.ZeroArea);
+            if (HasNaN(world) || HasNaN(coordinateSpace.layout)) return new TutorialAnchorState.Hidden(TutorialAnchorReason.ZeroArea);
             var bound = coordinateSpace.WorldToLocal(world);
             var rect = new TutorialClipRect(bound.xMin, bound.yMin, bound.xMax, bound.yMax);
             if (rect.Width <= 0 || rect.Height <= 0) return new TutorialAnchorState.Hidden(TutorialAnchorReason.ZeroArea);
@@ -46,13 +49,18 @@ namespace Client.Ui.Screens.Tutorial.Anchor
 
             bool IsDisplayNoneInHierarchy(VisualElement target)
             {
-                // 祖先の display: none では子の layout が残るので、祖先まで辿って見る
-                // An ancestor's display: none leaves the child's layout stale, so walk up to check
+                // 祖先の display: none では子自身の display は Flex のまま（layout は 0 になる）なので、祖先まで辿って理由を分ける
+                // Under an ancestor's display: none the child's own display stays Flex (its layout zeroes), so walk up to tell the reason
                 for (var node = target; node != null; node = node.hierarchy.parent)
                 {
                     if (node.resolvedStyle.display == DisplayStyle.None) return true;
                 }
                 return false;
+            }
+
+            bool HasNaN(Rect area)
+            {
+                return float.IsNaN(area.x) || float.IsNaN(area.y) || float.IsNaN(area.width) || float.IsNaN(area.height);
             }
 
             #endregion
