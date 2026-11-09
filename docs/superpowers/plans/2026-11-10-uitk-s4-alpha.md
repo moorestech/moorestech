@@ -26,7 +26,7 @@
 | R-7 | `SectionStackBody`: Web `SectionStackView` の順（Context → 項目グリッド → Machine → Miner → Pump → Generator → GearToElectric → BeltThroughput → Gear → ElectricNetwork → GearNetwork → FluidDetails → FluidRow）を `UiStack(UiGap.Sm)` で固定し、項目グリッドは alpha（`configByBlockType` の写し `SectionStackConfigTable`。`ShownSectionStackItemGrid` で `RenderEmpty || 枠数>0` なら出す）、残りは `ISectionStackSectionFactory` の差し込み（区画の Presenter の `IsApplicable`〈`IReadOnlyReactiveProperty<bool>`〉を購読して出し入れと間隔を組み直す。パネルの組み直しの外の変化でも効く）。液体の 2 区画は S4-machine が埋める空き区画 | `SectionStackViewTest`（alpha 分 3 件＋出し入れの 1 件）・`SectionStackRegressionTest`（alpha 分 1 件）が緑 |
 | R-8 | `BlockItemGrid`: 列数 `min(10, max(1, 枠数))`・枠 `ItemSlot(<testId>-slot-<index>)`、押下・右押下・ダブルクリックを `IBlockSlotCommands` へ。`BlockItemGridGroup`（ラベル `text--sm text--muted`・間 4px）。`LackHighlightText`（`data-insufficient` 相当のクラス `lack-highlight-text--insufficient`・色 `--text-default` / `--text-insufficient`）・`MachineStateRow`・`PerMinuteRateRow`・`PowerRateText` | `LackHighlightTextTest` 2 件・`BlockInventoryDesignTest`「ブロックスロットの列数を…」・`BlockInventoryRowsTest` が緑 |
 | R-9 | ブロック側のスロット操作: 左＝`BlockSlotPlanner.PlanLeftClick`（Shift・空手・中身ありは main へ配分、掴み中は全量置き、中身ありは全量掴み）、右＝`PlanRightClick`（掴み中は 1 個置き、空手は分割）、ダブル＝`PlanDoubleClick`（集める先は持ち手の有無で決める）。計画は操作の瞬間の在庫で組む。ブロック側の計画は `BlockItemActionExecutor` が実行（分割: 掴み中は `SplitGrabNotEmpty`・空は `ItemSourceSlotEmpty`・半分 0 は何もしない成功。移動の結果は A-94 の理由へ） | `BlockSlotCommandsTest`（Web `blockInventoryGestures` 1〜4 件目・`blockInventory.spec` 2 件目）・`BlockItemActionExecutorTest` が緑 |
-| R-10 | プレイヤー側の型付きコマンド `IPlayerSlotCommands`（LeftDown/RightDown/DoubleClick/LeftEnter/RightEnter）を InventoryPanel（S4-inventory）向けに出す。ブロックが開いていれば `PlayerSlotContext.WithBlockOpen`（スロット・`BlockSlotRestrictionResolver` の束縛）、閉なら `WithBlockClosed`。`BeginSplitDragPlan`→`IPlayerSlotDragCommands.BeginSplitDrag`、進入は C4-e の口へ素通し | `PlayerSlotCommandsTest`（Web `blockInventoryGestures` 5 件目）が緑 |
+| R-10 | プレイヤー側の型付きコマンド `IPlayerSlotCommands`（LeftDown/RightDown/DoubleClick/LeftEnter/RightEnter）を InventoryPanel（S4-inventory）向けに出す。ブロックが開いていれば `PlayerSlotContext.WithBlockOpen`（スロットはエラー無しなら `IBlockInventoryOperations.TryReadBlockSlots` の押下の瞬間の生の値〈D-37〉・`BlockSlotRestrictionResolver` の束縛）、閉なら `WithBlockClosed`。`BeginSplitDragPlan`→`IPlayerSlotDragCommands.BeginSplitDrag`、進入は C4-e の口へ素通し | `PlayerSlotCommandsTest`（Web `blockInventoryGestures` 5 件目と、通知前に続けて押した Shift の宛先が生の値で分かれる件）が緑 |
 | R-11 | Shift の断り: NoAcceptingBlockSlot→`denied.inventoryMoveSlotRejected`・InventoryOpenFailed→`denied.inventoryOpenFailed`・DetailLoading→`denied.inventoryDetailLoading` を `ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied(id, 空))` で出し、`[inventory.shift_move] not sent: <reason> block=<id|(closed)> item=<id>` を Warning ログ。`DestinationFull`（Web に無い）は通知せず Warning ログだけ（D-9）。`BlockSlotPlanner` の Shift→main が満杯で空配列のときも Warning ログ（D-10）。`DirectMovePlanner` へは既知の ItemId のスロットだけ渡し、未知 ID は Error ログで止める（D-11） | `ShiftMoveRefusalNotifierTest`・`PlayerSlotCommandsTest`・`BlockSlotCommandsTest` の該当件が緑 |
 | R-12 | 機械レシピの源: `UnlockedMachineRecipeSource`（`Client.Ui.State/Recipe/Source/`）が解放済みの機械レシピ（`MachineRecipeData` の列。レベル継承つき）を `IReadOnlyReactiveProperty` で配る。再構築は `UnlockedEventPacket` と `ILevelInheritanceCraftCapLookup.OnCraftCapUnlocked`（Web `MachineRecipesTopic` と同じ）。要約への変換 `MachineRecipeSummaryConversion` も出す | `UnlockedMachineRecipeListBuilderTest`・`MachineRecipeSummaryConversionTest` が緑 |
 | R-13 | 拡張口 6 つ（本文・題の操作・区画・列車の本文・大型パネル判定・Shift 配分の束縛）を VContainer の複数登録で受ける。本文・題の操作・区画・列車の本文の工場が作るのは「Presenter（`Attach` で自分の Model を購読し View へ・`Detach` で切る）＋ View（`Root`）」。登録 0 本でも起動し（VContainer 1.10 は空のコレクションを返す）、同じ Kind / Slot の二重登録は起動時に例外で止める | `BlockInventoryPartRegistryTest`・`SectionStackSlotRegistryTest`・`BlockInventoryPanelLayoutModelTest`・`BlockSlotRestrictionInputBuilderTest` が緑。末尾「## 後続レーンへの Produces 一覧」がこの計画の型と一致 |
@@ -1137,6 +1137,7 @@ using Client.Game.InGame.UI.Inventory.Train;
 using Client.Ui.State.Items;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
@@ -2107,8 +2108,8 @@ namespace Client.Ui.State.SlotCommands.Block
             {
                 PlayerItemMoveOutcome.Moved => UiCommandAccepted.Instance,
                 PlayerItemMoveOutcome.NoEffect => UiCommandAccepted.Instance,
-                PlayerItemMoveOutcome.SourceEmpty => new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, "source slot is empty"),
-                PlayerItemMoveOutcome.SourceCountShort => new UiCommandRejected(UiCommandRejectReason.ItemSourceCountShort, "source count is short"),
+                PlayerItemMoveOutcome.SourceEmpty => new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, ""),
+                PlayerItemMoveOutcome.SourceCountShort => new UiCommandRejected(UiCommandRejectReason.ItemSourceCountShort, ""),
                 _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null),
             };
         }
@@ -2146,9 +2147,9 @@ namespace Client.Ui.State.SlotCommands.Block
         {
             // 半分の計算はホストの SplitGrabActionHandler と同じ床関数。1 個以下は成功扱いの何もしない
             // Half uses the same floor as the host; a stack of one or less is a successful no-op
-            if (!grabEmpty) return new UiCommandRejected(UiCommandRejectReason.SplitGrabNotEmpty, "grab is not empty");
+            if (!grabEmpty) return new UiCommandRejected(UiCommandRejectReason.SplitGrabNotEmpty, "");
             var slot = slots[_blockSlot];
-            if (slot.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, $"block slot {_blockSlot} is empty");
+            if (slot.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, "");
             var half = slot.Count / 2;
             // silent-ok: 1 個の枠の右押下は Web と同じく何もしない / 枠に 1 個残っているのがプレイヤーに見えている
             if (half == 0) return UiCommandAccepted.Instance;
@@ -2241,13 +2242,15 @@ namespace Client.Ui.State.SlotCommands.Block
 
         private static UiCommandResult Unavailable(string detail)
         {
+            // 説明文はログだけへ。Detail は失敗コードの欄なので空（UiCommandResult の契約。ToWireCode が "invalid_slot" を返す）
+            // The description goes to the log only; Detail is the failure-code field and stays empty (UiCommandResult contract; ToWireCode returns "invalid_slot")
             Debug.LogWarning($"[BlockItemActionExecutor] {detail}");
-            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, detail);
+            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
         }
     }
 }
 ```
-（C4-e の `PlayerItemAction` 側の写しと詳細文を揃える。実物の文言を見て同じ文にする）
+（`UiCommandRejected` の `Detail` は「送信手続きの失敗コード等。無ければ空文字」で、非空なら `ToWireCode()` がそれを返す。C4-e の `PlayerItemAction` と同じく全部 `""` にし、説明文は Warning ログへ出す）
 
 `PlannedItemActionRunner.cs`:
 ```csharp
@@ -2292,7 +2295,7 @@ namespace Client.Ui.State.SlotCommands
             if (PlayerItemActionConversion.TryConvert(action, out var playerAction)) return _player.Execute(new[] { playerAction });
             if (BlockItemActionConversion.TryConvert(action, out var blockAction)) return _block.Execute(blockAction);
             Debug.LogError($"[PlannedItemActionRunner] plan has no executor: {action}");
-            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, $"plan has no executor: {action}");
+            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
         }
     }
 }
@@ -2408,7 +2411,7 @@ namespace Client.Ui.State.SlotCommands.Block
         private static UiCommandResult Unavailable(int blockSlot)
         {
             Debug.LogWarning($"[{CommandName}] stale press ignored: block slot {blockSlot} is not available");
-            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, $"block slot {blockSlot}");
+            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
         }
     }
 }
@@ -2443,7 +2446,7 @@ git commit -m "feat(uitk): ブロック側の実行器とブロックの枠の�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/SlotCommands/PlayerSlotCommandsTest.cs`・`ShiftMoveRefusalNotifierTest.cs`・`BlockSlotRestrictionInputBuilderTest.cs`
 
 **Interfaces:**
-- Consumes: Task 3 の `IBlockInventoryPanelSource`、Task 4 の `PlannedItemActionRunner`・`KnownItemSlots`、C4-e の `PlayerSlotActionPlanner`・`IPlayerSlotDragCommands`、L0-s4a の `PlayerSlotContext`、L0-s4b の `BlockSlotRestrictionInput`・`BlockSlotRestrictionResolver`、`ClientLocalNotificationSource`
+- Consumes: Task 3 の `IBlockInventoryPanelSource`、Task 4 の `IBlockInventoryOperations`（Shift 配分の宛先の枠を押下の瞬間に読む。D-37）・`PlannedItemActionRunner`・`KnownItemSlots`、C4-e の `PlayerSlotActionPlanner`・`IPlayerSlotDragCommands`、L0-s4a の `PlayerSlotContext`、L0-s4b の `BlockSlotRestrictionInput`・`BlockSlotRestrictionResolver`、`ClientLocalNotificationSource`
 - Produces（S4-inventory が InventoryPanel・EquipmentPanel・ホットバーの枠から使う）:
 ```csharp
 namespace Client.Ui.State.SlotCommands.Player
@@ -2466,7 +2469,7 @@ public interface IBlockSlotRestrictionContributor
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`PlayerSlotCommandsTest.cs`（5 件。パネルの状態は Task 3 の `BlockInventoryTestPanels`、分割ドラッグは C4-e の `RecordingPlayerSlotDragCommands`〈無ければこのファイルに `IPlayerSlotDragCommands` の記録係を `internal sealed class` で置く〉）:
+`PlayerSlotCommandsTest.cs`（6 件。パネルの状態は Task 3 の `BlockInventoryTestPanels`、分割ドラッグは C4-e の `RecordingPlayerSlotDragCommands`〈無ければこのファイルに `IPlayerSlotDragCommands` の記録係を `internal sealed class` で置く〉）:
 ```csharp
 using System;
 using Client.Game.InGame.UI.Notification;
@@ -2515,7 +2518,7 @@ namespace Client.Tests.Ui.State.SlotCommands
             _panel = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed);
             _notifications = new ClientLocalNotificationSource();
             var runner = new PlannedItemActionRunner(new PlayerItemActionExecutor(_player), new BlockItemActionExecutor(_block, _player));
-            var reader = new PlayerSlotContextReader(new FakePanelSource(_panel), new BlockSlotRestrictionInputBuilder(Array.Empty<IBlockSlotRestrictionContributor>()), new FixedMaxStackLookup(64));
+            var reader = new PlayerSlotContextReader(new FakePanelSource(_panel), _block, new BlockSlotRestrictionInputBuilder(Array.Empty<IBlockSlotRestrictionContributor>()), new FixedMaxStackLookup(64));
             _commands = new PlayerSlotCommands(_player, _drag, runner, reader, new ShiftMoveRefusalNotifier(_notifications));
         }
 
@@ -2531,9 +2534,29 @@ namespace Client.Tests.Ui.State.SlotCommands
         }
 
         [Test]
-        public void 空手で中身のある枠の左押下は分割ドラッグを始める()
+        public void サーバーの通知前に続けてShift押下しても宛先は口の生の値で空き枠へ分かれる()
         {
-            _player.SetMain(0, new SlotItem(_wood, 4));
+            // パネルの状態は 2 枠とも空のまま、口だけが先書きで埋まる（読み元がパネルの ItemSlots に戻れば 2 回とも枠 0 で赤。D-37）
+            // The panel state keeps both slots empty while only the port is pre-written (reading the panel ItemSlots again sends both to slot 0 and fails; D-37)
+            var stone = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000002"));
+            _panel.Value = BlockInventoryTestPanels.ChestWithSlots(new SlotItem(default, 0), new SlotItem(default, 0));
+            _block.Slots = new[] { new SlotItem(default, 0), new SlotItem(default, 0) };
+            _block.WriteThrough = true;
+            _block.WriteThroughItemId = _wood;
+            _player.SetMain(1, new SlotItem(_wood, 5));
+            _player.SetMain(2, new SlotItem(stone, 3));
+            _commands.LeftDown(PlayerSlotRef.Main(1), true);
+            _commands.LeftDown(PlayerSlotRef.Main(2), true);
+            Assert.AreEqual(ItemMoveSlotRef.Block(0), _block.Moves[0].To);
+            Assert.AreEqual(ItemMoveSlotRef.Block(1), _block.Moves[1].To);
+        }
+
+        [Test]
+        public void 掴み中に空の枠を左押下すると分割ドラッグを始める()
+        {
+            // 分割ドラッグの開始は「掴み中・非 Shift・空の枠」だけ（C4-e の PlayerSlotPlanner。空手で中身ありは全量掴み）
+            // Split-drag starts only while holding, without Shift, on an empty slot (C4-e PlayerSlotPlanner; empty-handed on a filled slot picks it all up)
+            _player.SetGrab(new SlotItem(_wood, 4));
             _commands.LeftDown(PlayerSlotRef.Main(0), false);
             Assert.AreEqual(PlayerSlotRef.Main(0), _drag.Begun[0]);
         }
@@ -2716,10 +2739,13 @@ namespace Client.Ui.State.SlotCommands.Player
 
 `PlayerSlotContextReader.cs`:
 ```csharp
+using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
+using Client.Ui.State.Items;
 using Client.Ui.State.ItemMove;
+using Client.Ui.State.SlotCommands.Block;
 using Core.Item.Interface;
 using Core.Master;
 
@@ -2732,26 +2758,36 @@ namespace Client.Ui.State.SlotCommands.Player
     public sealed class PlayerSlotContextReader
     {
         private readonly IBlockInventoryPanelSource _panel;
+        private readonly IBlockInventoryOperations _block;
         private readonly BlockSlotRestrictionInputBuilder _restrictionInput;
         private readonly IItemStackLevelLookup _stackLevels;
 
-        public PlayerSlotContextReader(IBlockInventoryPanelSource panel, BlockSlotRestrictionInputBuilder restrictionInput, IItemStackLevelLookup stackLevels)
+        public PlayerSlotContextReader(IBlockInventoryPanelSource panel, IBlockInventoryOperations block, BlockSlotRestrictionInputBuilder restrictionInput, IItemStackLevelLookup stackLevels)
         {
             _panel = panel;
+            _block = block;
             _restrictionInput = restrictionInput;
             _stackLevels = stackLevels;
         }
 
         public PlayerSlotContext Read(PlayerInventorySnapshot inventory, ItemId clickedItem)
         {
-            // 列車は束縛なし（Web は source が block のときだけ束縛を引く）
-            // Trains are unrestricted (the Web resolves bindings only for block sources)
+            // 列車は束縛なし（Web は source が block のときだけ束縛を引く）。束縛の入力は枠数しか読まないのでパネルの状態のまま
+            // Trains are unrestricted (the Web resolves bindings only for block sources); the binding input reads only the slot count, so it stays on the panel state
             return _panel.Current.Value switch
             {
-                OpenBlockInventoryPanel block => PlayerSlotContext.WithBlockOpen(inventory, block.ItemSlots, BlockSlotRestrictionResolver.Resolve(_restrictionInput.Build(block), clickedItem), _stackLevels),
-                OpenTrainInventoryPanel train => PlayerSlotContext.WithBlockOpen(inventory, train.ItemSlots, BlockSlotRestriction.Unrestricted, _stackLevels),
+                OpenBlockInventoryPanel block => PlayerSlotContext.WithBlockOpen(inventory, DestinationSlots(block.ItemSlots), BlockSlotRestrictionResolver.Resolve(_restrictionInput.Build(block), clickedItem), _stackLevels),
+                OpenTrainInventoryPanel train => PlayerSlotContext.WithBlockOpen(inventory, DestinationSlots(train.ItemSlots), BlockSlotRestriction.Unrestricted, _stackLevels),
                 _ => PlayerSlotContext.WithBlockClosed(inventory, _stackLevels),
             };
+        }
+
+        // 宛先の枠はブロック側の操作と同じ口から押下の瞬間の生の値で読む（先書き後の古い写しで宛先を選ばない。D-37）
+        // Destination slots are read raw at press time from the same port as block-side commands (never pick a target from a stale copy after a pre-write; D-37)
+        private IReadOnlyList<SlotItem> DestinationSlots(IReadOnlyList<SlotItem> panelSlots)
+        {
+            // silent-ok: 口が偽になるのはエラー中のパネルだけで、ブロックは束縛の入力が取得失敗の断りを返し、列車は従来どおり状態の枠で計画する / 断りは通知と Warning ログで出る
+            return _block.TryReadBlockSlots(out var slots) ? slots : panelSlots;
         }
 
         // ログに出すブロックの識別（Web の block.identifier）
@@ -4601,7 +4637,7 @@ git merge origin/feature/uitk
 | D-34 | `UiCommandRejectReason.BlockSlotUnavailable` を足すのと同じ Task で `PauseMenuCommandsTest` の網羅テストの `benign` 配列とメソッド名を無条件に直し、Step の絞り込みに含める。出所: レビュー | 全列挙と固定配列の照合なので、直さないと CI で初めて赤になる（Task 4 の絞り込みに入っていなかった） | 「配列を持つなら足す」の条件文 |
 | D-35 | 題の操作・列車の本文の「無い」は判別子 `BlockInventoryTitleActionKind.None` 1 本で表し、工場は null の代わりに空の部分（Null Object `EmptyBlockInventoryPart`／`EmptyTrainInventoryPart`）を返す。名前は `CreateTitleAction`／`CreateTrainBody`。BodyHost の null 分岐を消し、View は `ClearTitleAction()` で器を空にする。出所: 型閉包検査 r2 | 同じ「無い」を enum と null の 2 通りで持つと、呼び手に内部値の null 分岐が散る（Global Constraints「null チェックは外部データだけ」と食い違う） | `TryCreate…(out)` に戻す（呼び手の分岐が残る）／enum だけにして未登録で例外（S4-train 未着の間に列車を開くと落ちる） |
 | D-36 | 種別ごとの例外 3 か所をなくす。(1) ブロック側の計画は `BlockItemActionConversion.TryConvert` で種類ごとの型（`BlockMoveItemAction`・`BlockSplitToGrabAction`・`BlockCollectAction`。前例 `PlayerItemAction`）へ写してから実行器へ渡し、Runner は「プレイヤーへ写す → ブロックへ写す → どちらも不可は Error ログ＋拒否」。(2) `BlockInventoryPanelErrorText.TryGetLocalizationKey`（None は false）をエラー行の出し入れの唯一の分岐にする。(3) `ShiftMoveRefusalNotifier.TryGetMessageId`（DestinationFull は false）を通知の early return 1 本にする。出所: 型閉包検査 r2 | 例外は前段の分岐に頼っており、前段を変えると実行時に落ちる。型か戻り値で受けられない入力を閉じれば例外が要らない | 例外を残して前段の分岐にコメントを足す（型で閉じない） |
-| D-37 | 「ブロックインベントリが開いている」は表示側のパネルの状態 1 本から導く（`IBlockInventoryPanelSource.Current` がエラー無しの `OpenBlockInventoryPanel`／`OpenTrainInventoryPanel`）。枠の値は押下の瞬間に `SubInventoryState.CurrentSubInventory.SubInventory` の生の値（コントローラの先書き込みを含む）を `ToSlotItems` で写す。番地は `MainSlotCount + slot` のまま。出所: 型閉包検査 r2、枠の値はレビュー r3 | 開閉の導出が 2 本だと表示が閉で操作が開く窓が型の上で残る。一方パネルの状態の枠は `OnSubInventoryUpdated`（サーバーのイベント）でしか組み直されず、先書きの後 1 往復は古い。イベント前に続けて押すと誤った断り・誤った分割量になる（Web ホスト `BlockAreaSlotParser`・`BlockSplitGrabActionHandler` は生の値を読む） | 開閉も枠もパネルの状態から読む（先書きの窓で誤動作）／パネルのモデルに `OnItemChange` の購読を足して組み直す（表示が Web より先に変わり、メイン側の変化でも毎回組み直す） |
+| D-37 | 「ブロックインベントリが開いている」は表示側のパネルの状態 1 本から導く（`IBlockInventoryPanelSource.Current` がエラー無しの `OpenBlockInventoryPanel`／`OpenTrainInventoryPanel`）。枠の値は押下の瞬間に `SubInventoryState.CurrentSubInventory.SubInventory` の生の値（コントローラの先書き込みを含む）を `ToSlotItems` で写す。番地は `MainSlotCount + slot` のまま。プレイヤー側の Shift 配分の宛先の枠も同じ口（`IBlockInventoryOperations.TryReadBlockSlots`）から読む（`PlayerSlotContextReader`。moores-code-review C1）。出所: 型閉包検査 r2、枠の値はレビュー r3 | 開閉の導出が 2 本だと表示が閉で操作が開く窓が型の上で残る。一方パネルの状態の枠は `OnSubInventoryUpdated`（サーバーのイベント）でしか組み直されず、先書きの後 1 往復は古い。イベント前に続けて押すと誤った断り・誤った分割量になる（Web ホスト `BlockAreaSlotParser`・`BlockSplitGrabActionHandler` は生の値を読む） | 開閉も枠もパネルの状態から読む（先書きの窓で誤動作）／パネルのモデルに `OnItemChange` の購読を足して組み直す（表示が Web より先に変わり、メイン側の変化でも毎回組み直す） |
 | D-38 | `BlockInventoryPanelLayout` は判別子 `BlockInventoryPanelSize`（Natural・LargeNaturalBody＝列車・LargeFilledBody＝寄与の大型）を持ち、ctor を private にして 3 つの static だけを公開する。`IsLarge`・`FillsPanelHeight` は判別子からの計算プロパティ。出所: 型閉包検査 r2 | bool 2 個の公開 ctor では意味の無い (小型, 高さ確定) が作れる。読み手の形は変えずに作り手を閉じる | 公開 ctor の bool 2 個のまま（不正値が作れる） |
 | D-39 | 型閉包検査 r2 の弱 7 件: 「`CreateTitleActionOrNull` が null 制約と矛盾」は D-35 で直した。残り 6 件は見送る — `SectionStackItemGridSection` の bool 合成（1 式で読め、出所の Web も同じ合成）／`BlockSlotCommands.TryReadSlot` の 2 理由（どちらも良性の `BlockSlotUnavailable` で扱いが同じ。ログに出し分けは不要）／SubInventory の判定 2 回（D-41）／「開いていて範囲内」の 2 回（コマンドは計画を組む前、実行器は実行の瞬間に読む別の時点の確認で、D-31 で述語は 1 か所）／`Error == None` の散在（判定は enum の比較 1 つで、規則が分かれる余地が無い）／`MachineRecipeLevelInheritanceConversion` の 2 case の同形（case ごとに形の読み方が変わる余地を残す 2 行で、関数化しても行数が減らない）。r3 の弱 2 件: `TryReadBlockSlots` の false の 2 理由（閉・エラー中）は扱いが同じ良性の `BlockSlotUnavailable` なので型は分けず、ログの文を `closed or in error` にした。内部の null を合図にする Try は、新しく書く `TryGetMessageId`・`TryReadBlockSlots`（の開閉判定）を switch 文で各腕が out と真偽を返す形に直し、`BlockItemActionConversion.TryConvert` は前例 `PlayerItemActionConversion.TryConvert`（`_ => null`）と対になる形を優先して残す。出所: 型閉包検査 r2・r3 | 拾う価値は故障シナリオを作れるかで決めた | すべて直す（差分が増え、故障を防がない） |
 | D-40 | スロット操作は `Client.Ui.State/SlotCommands/`（Player・Block）に置き、C4-e の `Inventory/Drag`・`Inventory/Actions` に足さない。出所: 配置検査 r2 N-2 | ブロック側とプレイヤー側の押下と、両者をまたぐ Runner を 1 か所にまとめる。`Inventory/` に足すとブロックの語彙が持ち物の機能へ入る | `Inventory/Commands/` と `BlockInventory/Actions/` に分ける（Runner の置き場が決まらない） |
@@ -4614,6 +4650,11 @@ git merge origin/feature/uitk
 | D-47 | 枠の生の値の読み口 `IRawSubInventorySlots`（本番 `SubInventoryRawSlots`）と、開閉と値を合わせて読む `BlockSlotReader` を切り出し、`LocalBlockInventoryOperations.TryReadBlockSlots` は読み手へ委ねる。`BlockSlotReaderTest` で「パネルの枠が古く生の値が新しいとき生の値を返す」を主張し、`BlockSlotCommandsTest` の続けて押す件は「押すたびに口を読み直す」確認に名前を直す。出所: レビュー r4 | `SubInventoryState` は ctor が `ClientContext` を要し L0 で組めない。記録係だけのテストと 0.5 秒を挟む録画では、読み元がパネルの状態へ戻っても赤にならない | 読み元は機械で確かめず未確認に書く（戻りを検出できない） |
 | D-48 | `TryReadBlockSlots` に「生の値が null なら閉扱い」の分岐は足さない。出所: レビュー r4 | `UIStateControl.Update` は `OnExit`（`CurrentSubInventory = null`）→ `EnterState` → `_onStateChanged.OnNext` → `UiRoutingState.Refresh` → パネルの Model が閉へ組み直す、を 1 回の Update の中で同期に続けて行う（origin/feature/uitk の `UIStateControl.cs` の Update・`UiRoutingState.cs:32`）。UITK の押下はこの間に割り込めないので、パネルが開で生の値が null の窓は無い（`Refresh` は `ReactiveProperty` へ同期に代入。同じ状態への要求は `ConsumeWebRequest` が捨てる）。開く側も `OnExit` で null の後は `OnSubInventoryUpdated` までパネルが閉（Model の `sub == null`） | 防御の null 分岐とテストを足す（届かない分岐。null チェックは外部データだけの制約にも反する） |
 | D-49 | `ShiftMoveRefusalNotifier.TryGetMessageId` は DestinationFull を明示の腕（false）にし、未知の値は例外で止める。網羅テストは足さない。出所: レビュー r4（弱） | `TryGetLocalizationKey`（D-44）と未知の値の扱いを揃える。今ある 4 値は `ShiftMoveRefusalNotifierTest` が全部押さえている | default で false（enum に値を足しても無音で通知が落ちる） |
+| D-50 | プレイヤー側の Shift 配分の宛先の枠も `IBlockInventoryOperations.TryReadBlockSlots`（押下の瞬間の生の値）から読む。`PlayerSlotContextReader` の ctor に `IBlockInventoryOperations` を足し、エラー中のパネル（口が偽）は状態の枠のまま（取得失敗の断りの経路を保つ）。束縛の入力は枠数しか読まないのでパネルの状態のまま。`PlayerSlotCommandsTest` に「通知前に続けて Shift 押下しても宛先が空き枠へ分かれる」を 1 件足す（5→6 件） | 出所: moores-code-review。C1（Codex 3 ジョブ一致）。D-37 自身が「先書きの後 1 往復は古い」と書くのに、プレイヤー側だけパネルの写しを読んでいた。空き 2 枠のチェストへ木材と石材を続けて Shift すると、2 回目も枠 0 を選び既存コントローラが入れ替えとして処理する | パネルの `ItemSlots` のまま（先書きの窓で誤った宛先）／パネルのモデルを先書きで組み直す（D-37 で却下済み） |
+| D-51 | `PlayerSlotCommandsTest` の分割ドラッグの件は「掴み中に空の枠を左押下すると分割ドラッグを始める」に直す | 出所: moores-code-review。C2。`origin/feature/uitk` の `PlayerSlotPlanner.PlanLeftClick` は `BeginSplitDragPlan` を「掴み中・非 Shift・空の枠」でだけ返し、空手で中身ありは全量掴み。計画どおり書くと `_drag.Begun[0]` が範囲外で赤のまま止まる | 計画器を書き換えてテストに合わせる（C4-e の挙動を壊す） |
+| D-52 | `BlockInventoryPanelStateFactory.cs` の例に `using Game.Block.Interface;` を足す | 出所: moores-code-review。C3。`BlockInstanceId` は `Game.Block.Interface` にあり、写すとコンパイルエラー。同型掃引で実害はこの 1 か所 | — |
+| D-53 | 実行計画 §1.4 の S4-alpha 行の依存に C3-b（E-22）を足し、拡張口を 6 つ（Shift 配分の束縛を含む）にする。DAG に C3-b から S4-alpha への辺（ラベル `HoverTooltipHost E-22`）を足す | 出所: moores-code-review。C4。この計画の Global Constraints は C3-b を依存に足しているが、実行計画の行と DAG が追随しておらず、E-22 は C4-e の依存から C3-b を外したので推移でも届かない | 実行計画は直さない（実行計画を正本に並走を組む integrator が C3-b 未マージの基点で始め得る） |
+| D-54 | `UiCommandRejected` の `Detail` は全部 `""` にし、説明文は Warning ログへ出す（`BlockItemAction.FromOutcome`・`BlockSplitToGrabAction`・`BlockItemActionExecutor.Unavailable`・`PlannedItemActionRunner`・`BlockSlotCommands.Unavailable` の 7 か所） | 出所: moores-code-review。C5。既存の契約は「Detail＝送信手続きの失敗コード等。無ければ空文字」で、非空なら `ToWireCode()` がそれを返す。説明文を入れると範囲外の押下で `"invalid_slot"` でなく自由文が失敗コードになる。C4-e の `PlayerItemAction.FromOutcome` も `""` | 説明文を Detail に残す（失敗コードの照合が壊れる） |
 
 ---
 
@@ -4854,7 +4895,7 @@ public static class MachineRecipeSummaryConversion { public static IReadOnlyList
 - 画面だけのもの（LayoutModel・閉じる・レジストリ・ScreenPresenter）は `BlockInventoryGameUiRegistration`。後続は自分の登録ファイルを作り、画面登録区画に 1 行足す。`Registration/GameUi/` は alpha で 9 ファイル、後続で 10 を超えるので integrator にサブディレクトリ化を依頼済み
 - USS は自分の画面の USS を `GameUiTheme.tss` の `Screens` 区画に `@import` する。色は `--text-*` 等のトークンだけ。`:root` のトークンを C# で読むなら自分のクラスで受け直す（D-8）。「色を直書きしない」の確認は alpha の `BlockInventoryDesignTest` に足さず、自分のテストファイルに同じタグ（`%sから禁止Mantine部品とテーマ色を除去する`）で写す
 - 同じタグでは、USS の色の直書きが無いことに加えて、自分の本文・区画の木の操作の要素がすべて共通部品（`PanelActionButton`・`ModeSwitch`・`IconButton`・`GameTextField` 等。`Client.Ui.Components` の型）で、素の `Button`・`Toggle`・`RadioButton`・`Slider`・`ProgressBar` を含まないことも主張する。たどるときは `Client.Ui.Components` の型（`GameScrollView` を含む）に当たったら内部へ降りず、その `contentContainer` に自分が足した子だけ続けてたどる（`GameScrollView` が中に持つ `Scroller`・`Slider` で赤にしない。alpha の `本文の木の操作の要素は共通部品だけで素の操作部品を含まない` と同じ形。D-46）
-- `IBlockInventoryOperations.TryReadBlockSlots` の枠の値は押下の瞬間の `SubInventoryState` の生の値（先書き込みを含む）で、パネルの状態の `ItemSlots` とは 1 往復ずれうる。操作の計画はパネルの状態ではなくこの口から読む（D-37）
+- `IBlockInventoryOperations.TryReadBlockSlots` の枠の値は押下の瞬間の `SubInventoryState` の生の値（先書き込みを含む）で、パネルの状態の `ItemSlots` とは 1 往復ずれうる。操作の計画はパネルの状態ではなくこの口から読む。プレイヤー側の Shift 配分の宛先（`PlayerSlotContextReader`）も同じ口から読む（D-37）
 
 ---
 
