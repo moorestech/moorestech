@@ -80,8 +80,8 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         [Test]
         public void 解放を取りこぼした分割ドラッグは次の左操作で捨てて配らない()
         {
-            // ウィンドウ外で離すと解放が届かず、ボタンは上がったまま session だけ残る
-            // Releasing outside the window loses the release, leaving the button up with the session alive
+            // フォーカス喪失のデバイスリセット等で解放が流れず、本番の押下（マウスの実状態）だけが下りて session が残る
+            // A device reset on focus loss etc. emits no release; only the production pressed state (actual mouse) goes up, leaving the session
             _operations.SetGrab(new SlotItem(Wood, 10));
             _commands.BeginSplitDrag(PlayerSlotRef.Main(3));
             _commands.EnterWithLeftButton(PlayerSlotRef.Main(4));

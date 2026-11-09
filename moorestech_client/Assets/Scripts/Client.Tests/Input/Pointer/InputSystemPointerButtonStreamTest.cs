@@ -28,7 +28,7 @@ namespace Client.Tests.Input.Pointer
         }
 
         [Test]
-        public void 押下の状態を最後のイベントの値で答える()
+        public void 押下の状態をマウスの実状態で答える()
         {
             var mouse = InputSystem.AddDevice<Mouse>();
             var stream = new InputSystemPointerButtonStream();
@@ -38,6 +38,21 @@ namespace Client.Tests.Input.Pointer
             Assert.IsTrue(stream.IsPrimaryButtonPressed(), "押下後");
             Release(mouse.leftButton);
             Assert.IsFalse(stream.IsPrimaryButtonPressed(), "解放後");
+        }
+
+        [Test]
+        public void 解放を流さずにデバイスがリセットされると押下はfalseに戻る()
+        {
+            // フォーカス喪失のデバイスリセット等で解放を取りこぼしても、押下は実状態を答える
+            // Even if a release is missed through a device reset on focus loss, the pressed state reports the actual state
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var stream = new InputSystemPointerButtonStream();
+            Press(mouse.leftButton);
+            Assert.IsTrue(stream.IsPrimaryButtonPressed(), "押下後");
+
+            InputSystem.ResetDevice(mouse);
+
+            Assert.IsFalse(stream.IsPrimaryButtonPressed());
         }
 
         [Test]

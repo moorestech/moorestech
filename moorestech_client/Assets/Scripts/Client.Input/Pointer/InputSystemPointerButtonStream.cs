@@ -25,11 +25,13 @@ namespace Client.Input.Pointer
             InputSystem.onEvent += OnInputEvent;
         }
 
-        // 最後に届いたイベントでの左ボタンの押下（同じフレームの押下と解放の後先を分割ドラッグが確かめる。D-20）
-        // Left button state as of the last event (split-drag checks press/release ordering within a frame; D-20)
+        // 今のマウスの左ボタンの実状態。解放を取りこぼしても（フォーカス喪失のデバイスリセット等）実状態へ戻る（D-20・D-30）
+        // The mouse's actual left button state; it recovers even when a release was missed (device reset on focus loss, etc.; D-20, D-30)
         public bool IsPrimaryButtonPressed()
         {
-            return _wasPressed;
+            // silent-ok: マウスが無ければ押していない扱い / 生成時の警告（Mouse.current is null）で開発者が気づく
+            if (Mouse.current == null) return false;
+            return Mouse.current.leftButton.isPressed;
         }
 
         private void OnInputEvent(InputEventPtr eventPtr, InputDevice device)
