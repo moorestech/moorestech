@@ -1,0 +1,15 @@
+/* Gauges の部品 L1 だけが当てる祖先のつまみの上書き。画面が自分のルートでつまみを上書きする形を写す（設計書 §3.2-3） */
+/* 値は既定とも ProgressArrowGlyph の充填の白とも見分けが付くように選んだもので、Web の画面の値ではない */
+/* Ancestor knob overrides applied only by Gauges component L1 tests; mirrors a screen overriding knobs at its root (design §3.2-3) */
+/* Values are chosen to differ from the defaults and from the ProgressArrowGlyph white fill; they are not Web screen values */
+.gauge-knob-probe {
+    --gauge-fill: var(--bevel-c1);
+    --gauge-track: var(--color-content-primary);
+    --bar-series-height: 40px;
+    --bar-series-bar-width: 6px;
+    --bar-series-gap: 5px;
+    --progress-arrow-width: 100px;
+    --progress-arrow-height: 20px;
+    --craft-arrow-width: 107.244px;
+    --craft-arrow-height: 61.06px;
+}

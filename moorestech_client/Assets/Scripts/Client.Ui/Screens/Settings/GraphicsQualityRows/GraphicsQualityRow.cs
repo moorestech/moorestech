@@ -1,3 +1,4 @@
+using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Ui.Components.Controls;
@@ -46,7 +47,7 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
 
         public IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands)
         {
-            return new GraphicsQualityRowSwitch<TValue>(this, new ModeSwitch<TValue>(Testid, ModeSwitchOrientation.Horizontal, Options), commands);
+            return new GraphicsQualityRowSwitch<TValue>(this, new ModeSwitch<TValue>(Testid, ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, Options), commands);
         }
     }
 
@@ -65,7 +66,7 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
 
             // 項目の変更は今の設定値の 1 項目だけを差し替えて渡す
             // An item change hands over the current settings with only that item replaced
-            _switch.OnSelected.Subscribe(value => commands.SetGraphicsQuality(_row.With(_current, value)));
+            _switch.OnOptionSelected.Subscribe(value => commands.SetGraphicsQuality(_row.With(_current, value)));
         }
 
         public void Apply(GraphicsQualitySettings settings)

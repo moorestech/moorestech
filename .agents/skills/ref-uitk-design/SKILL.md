@@ -70,6 +70,7 @@ public sealed class IconButton : VisualElement
 - ctor は `(string testid, …)` で `name = testid`（Web の `data-testid` と同じ綴り。DSL のシナリオがそのまま動く）。装飾だけの部品と、他の部品の中身として置かれ Web も `data-testid` を付けない部品（`SlotContent`・`KeyCap` 等。ctor はカタログどおり）は testid を取らない。デフォルト引数を使わない
 - 表示する値は `SetXxx(値)` で受ける。値を返す素通しのプロパティを作らない（`{ get; private set; }` は可）
 - 操作は `IObservable<T> On<変化対象><過去分詞>`（中は UniRx の `Subject`）で出す。`Button.clicked`・`Action`・`event`・コールバック引数で外へ出さない。素の `Button` を中で使うなら `clicked` は部品の中で `Subject` へ流すだけにする
+- 部品は `VisualElement` 派生にする。例外は `OutlinedCountLabel`（置く側の要素へ Label 2 枚を兄弟で足す。箱に入れると幅の丸めが変わり字の画素が Web からずれた。設計書 [A-110]）
 - `focusable = false`。フォーカスを持つのは入力欄だけ
 - 描くだけの子（Painter2D・頂点カラー・装飾）と文字だけの子は `pickingMode = PickingMode.Ignore`。押せる要素だけが Pick を受ける
 - 子を受ける部品（枠・スクロール）は `contentContainer` を返し、外は `Add` で入れる

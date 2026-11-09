@@ -132,7 +132,7 @@ namespace Client.Tests.Ui.Components.Controls
         private GameTextField Add(GameTextFieldLook look, bool multiline)
         {
             var field = new GameTextField(TestId, multiline, look);
-            field.style.width = 356;
+            field.style.width = 354;
             if (multiline) field.style.height = 72;
             return Mount(field);
         }

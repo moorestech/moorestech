@@ -29,8 +29,10 @@ namespace Client.Tests.Ui.Conventions
         // Forbidden namespaces per layer and exceptions
         private static readonly LayerRule[] Rules =
         {
-            new("Components/", new[] { "Client.Game", "Client.Ui.Screens", "Client.Ui.Content", "Client.Ui.State", "Core.Master", "Client.Network" }, new[] { "Client.Ui.State.Text" }),
-            new("Foundation/", new[] { "Client.Ui.Components", "Client.Ui.Content", "Client.Ui.Screens", "Client.Ui.State" }, new[] { "Client.Ui.State.Text", "Client.Ui.State.Routing" }),
+            new("Components/", new[] { "Client.Game", "Client.Ui.Screens", "Client.Ui.Content", "Client.Ui.State", "Core.Master", "Client.Network", "Client.Mod" }, new[] { "Client.Ui.State.Text" }),
+            // マスタとMod（ID→表示素材の解決）はContentだけが読む。asmdefは同じClient.Uiなのでここで止める
+            // Only Content reads masters and mods (ID-to-material resolution); they share the Client.Ui asmdef, so this rule stops it
+            new("Foundation/", new[] { "Client.Ui.Components", "Client.Ui.Content", "Client.Ui.Screens", "Client.Ui.State", "Core.Master", "Client.Mod" }, new[] { "Client.Ui.State.Text", "Client.Ui.State.Routing" }),
             new("Content/", new[] { "Client.Ui.Screens" }, new string[0]),
         };
 

@@ -1,3 +1,4 @@
+using Client.Ui.State.Text;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
@@ -27,7 +28,7 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
             foreach (GraphicsDrawDistance value in Enum.GetValues(typeof(GraphicsDrawDistance)))
             {
                 var meters = (int)value.ToMeters();
-                options.Add(new ModeSwitchOption<GraphicsDrawDistance>($"{RowTestid}-{meters}", value, null, $"{meters}m"));
+                options.Add(new ModeSwitchOption<GraphicsDrawDistance>($"{RowTestid}-{meters}", value, UiText.FromVerbatim($"{meters}m")));
             }
             return options;
         }
@@ -52,7 +53,7 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
             foreach (GraphicsRenderScale value in Enum.GetValues(typeof(GraphicsRenderScale)))
             {
                 var percent = value.ToPercent();
-                options.Add(new ModeSwitchOption<GraphicsRenderScale>($"{RowTestid}-{percent}", value, null, $"{percent}%"));
+                options.Add(new ModeSwitchOption<GraphicsRenderScale>($"{RowTestid}-{percent}", value, UiText.FromVerbatim($"{percent}%")));
             }
             return options;
         }
@@ -62,8 +63,8 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
     {
         public GraphicsTerrainDetailRow() : base(LocalizationKeys.Ui.Settings.GraphicsTerrainDetail, "graphics-terrain", new List<ModeSwitchOption<GraphicsTerrainDetail>>
         {
-            new("graphics-terrain-fine", GraphicsTerrainDetail.Fine, LocalizationKeys.Ui.Settings.GraphicsTerrainFine, null),
-            new("graphics-terrain-coarse", GraphicsTerrainDetail.Coarse, LocalizationKeys.Ui.Settings.GraphicsTerrainCoarse, null),
+            new("graphics-terrain-fine", GraphicsTerrainDetail.Fine, new UiText(LocalizationKeys.Ui.Settings.GraphicsTerrainFine)),
+            new("graphics-terrain-coarse", GraphicsTerrainDetail.Coarse, new UiText(LocalizationKeys.Ui.Settings.GraphicsTerrainCoarse)),
         })
         {
         }

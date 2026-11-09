@@ -41,10 +41,10 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         {
             // UITK の補間は解くたびに出す（Web は 1 回だけ）。差は判断記録 D-13
             // UITK interpolation logs on every resolve (Web logs once); the difference is decision D-13
-            // 引数 0 件の UiText は Localize.Get だけを通り補間に入らない（UiText.cs:84）。別名の引数を 1 つ持たせて補間に入れ、count の欠けを出す
-            // A UiText with zero params skips interpolation (UiText.cs:84); carry one unrelated param so interpolation runs and reports the missing count
+            // 引数 0 件でも補間を通り、欠けた count は補間器がエラーログで知らせる
+            // Even with zero params interpolation runs, and the interpolator reports the missing count as an error
             LogAssert.Expect(LogType.Error, new Regex(@"no value for placeholder \{count\}"));
-            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { new LocalizationTextParam("unrelated", "1") })));
+            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost)));
             simulate.FrameUpdate();
             Assert.AreEqual(TooltipFaceTest.LineHeightTag + "Wire x{count}", Find<Label>(_view, "cursor-tooltip-line").text);
 

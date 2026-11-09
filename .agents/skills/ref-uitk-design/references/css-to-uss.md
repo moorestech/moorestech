@@ -37,14 +37,14 @@
 | `z-index`・`--z-*` | `UiLayer` の層に載せる。同じ層の中は子の順で決める |
 | `position: fixed` | 該当する層のルートに `position: absolute` で置く |
 | コンテナクエリ（`cqw`・`container-type`） | `GeometryChangedEvent` で幅を読み、つまみ（`--slot-size` 等）を C# から書く |
-| `pointer-events: none` | `pickingMode = PickingMode.Ignore` |
+| `pointer-events: none` | `pickingMode = PickingMode.Ignore`。UITK は子へ継承しないので、部分木ごと拾わなくするときは `UiPickingIgnore.ApplyToSubtree`（Foundation/Input）を組み終えた後・子を作り直した後に呼ぶ |
 | `overflow: hidden` での切り抜き | `overflow: hidden` は USS でも効く。角丸の切り抜きは `-unity-overflow-clip-box` を確かめてから使う |
 
 ## 4. 文字
 
 | CSS | USS での扱い |
 |---|---|
-| `-webkit-text-stroke`（アイコン上の数の縁、ADR 0033） | `-unity-text-outline-width`・`-unity-text-outline-color`。値は `--icon-text-stroke-*` |
+| `-webkit-text-stroke`（アイコン上の数の縁、ADR 0033） | `Components/Slots/OutlinedCountLabel` を使う（縁だけの Label を後ろに敷き、縁の無い字の Label を上に重ねる 2 層）。`-unity-text-outline` は字の内外に半分ずつ掛かり 12〜19px の細い字を塗りつぶすので、字の上に直に掛けない。縁の値は `--icon-text-stroke-*`（設計書 [A-110]） |
 | `text-shadow` | 単一の影は `text-shadow` でそのまま写す（前例 `GamePanel.uss` の題）。USS の text-shadow は 1 本だけなので、複数方向の影は `-unity-text-outline` で近似し例外に記帳する（前例 `PanelActionButton`。F1 が `LX-n` に記帳する） |
 | `font-weight: bold`・`font-synthesis` | 合成の太字は使わない。Web が単一ウェイトなので同じ |
 | `font-size`（Mantine の `size`） | Web と同じ px。13px 下限は外す（設計書 [A-39]。F1 が下限テストを外す〔F1〕） |
@@ -54,7 +54,7 @@
 
 ## 5. 影・グラデ・マスク・図形
 
-USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ）か Painter2D で描く。描く子は `PickingMode.Ignore`、色と長さは部品の USS で受け直したトークンを `UssCustomStyleReader` で読む（§8）。
+USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ）か Painter2D で描く。描く子は `PickingMode.Ignore`、色と長さは部品の USS で受け直したトークンを `UssCustomStyleReader` で読む（§8）。頂点 α に縁の重みや被覆率を掛けるときは線形に掛けず `LinearBlendOpacity.OpacityAt`（Foundation/Theme）を通す（Linear 合成で Web の濃さの並びにするため）。
 
 | CSS | 描き方 | 前例 |
 |---|---|---|

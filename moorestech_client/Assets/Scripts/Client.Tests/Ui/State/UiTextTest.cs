@@ -1,8 +1,11 @@
 using System;
+using System.Text.RegularExpressions;
 using Client.Localization;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.State
 {
@@ -54,6 +57,9 @@ namespace Client.Tests.Ui.State
 
             var expected = new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", "X") });
             Assert.AreEqual(expected.Resolve(), added.Resolve());
+            // 足す前の文は引数が無く枠が残るので、補間器のエラーログを期待する
+            // The text before adding has no params and keeps its slot, so expect the interpolator's error log
+            LogAssert.Expect(LogType.Error, new Regex(@"no value for placeholder \{itemId\}"));
             Assert.AreNotEqual(original.Resolve(), added.Resolve());
         }
 
@@ -71,6 +77,17 @@ namespace Client.Tests.Ui.State
         public void 辞書キー以外に引数を足すと止める()
         {
             Assert.Throws<InvalidOperationException>(() => UiText.FromVerbatim("a").WithLeadingParam("itemId", "X"));
+        }
+
+        [Test]
+        public void 引数の無い辞書の文に枠が残ればエラーログを出す()
+        {
+            // {itemId} を持つ文を引数なしで解くと、枠は残り開発者が読めるエラーログが出る
+            // Resolving a text with {itemId} and no params keeps the slot and logs an error a developer can read
+            var text = new UiText(LocalizationKeys.Ui.Common.ItemFallback);
+
+            LogAssert.Expect(LogType.Error, new Regex(@"no value for placeholder \{itemId\}"));
+            StringAssert.Contains("{itemId}", text.Resolve());
         }
     }
 }

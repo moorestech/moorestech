@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Challenge;
@@ -55,7 +56,7 @@ namespace Client.Ui.Screens.Challenge.CurrentHud
         // No element of a resident HUD takes input (Web pointer-events: none), including the components' insides
         private void IgnorePicking()
         {
-            this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
+            UiPickingIgnore.ApplyToSubtree(this);
         }
     }
 }

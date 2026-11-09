@@ -1,0 +1,41 @@
+/* 棒の時系列。web: moorestech_web/webui/src/shared/ui/BarSeries/style.module.css（components.md §8.6・§8.23）の .series / .bar / .fill を写す */
+/* 各棒は GaugeBar と同じ器（溝の面・内周の線の子・充填の子）。gap は先頭以外の棒の左の margin で表す。--empty は Web の data-empty と同じく印だけで見た目の規則を持たない */
+/* Bar series copying .series / .bar / .fill in web: moorestech_web/webui/src/shared/ui/BarSeries/style.module.css (components.md §8.6, §8.23) */
+/* Each bar is the GaugeBar vessel (track face, inset outline child, fill child); the gap is the left margin of every bar but the first; --empty is a marker with no look, like the Web data-empty */
+.bar-series {
+    flex-direction: row;
+    align-items: flex-end;
+    height: var(--bar-series-height);
+}
+
+.bar-series__bar {
+    width: var(--bar-series-bar-width);
+    height: 100%;
+    margin-left: var(--bar-series-gap);
+    overflow: hidden;
+    border-radius: var(--bevel-1);
+    background-color: var(--gauge-track);
+}
+
+.bar-series__bar--leading {
+    margin-left: 0;
+}
+
+.bar-series__bar-outline {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: var(--gauge-outline-width);
+    border-color: var(--bevel-c1);
+    border-radius: var(--bevel-1);
+}
+
+.bar-series__bar-fill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--gauge-fill);
+}

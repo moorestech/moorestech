@@ -1,0 +1,30 @@
+/* 帯状の進捗ゲージ。web: moorestech_web/webui/src/shared/ui/ProgressArrowBar/style.module.css の .track / .fill を写す */
+/* 内側の box-shadow は線の子で描き、充填が上に重なる（GaugeBar と同じ写し方。border: 0 と position: relative は UITK の既定） */
+/* Bar-shaped progress gauge copying .track / .fill in web: moorestech_web/webui/src/shared/ui/ProgressArrowBar/style.module.css */
+/* The inset box-shadow is an outline child and the fill draws over it (the same copy as GaugeBar; border: 0 and position: relative are UITK defaults) */
+.progress-arrow-bar {
+    width: var(--progress-arrow-width);
+    height: var(--progress-arrow-height);
+    overflow: hidden; /* look-exception: LX-60 */
+    border-radius: var(--bevel-1);
+    background-color: var(--gauge-track);
+}
+
+.progress-arrow-bar__outline {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: var(--gauge-outline-width); /* look-exception: LX-60 */
+    border-color: var(--bevel-c1);
+    border-radius: var(--bevel-1);
+}
+
+.progress-arrow-bar__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: var(--gauge-fill);
+}
