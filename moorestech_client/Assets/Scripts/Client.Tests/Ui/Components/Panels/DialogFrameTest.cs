@@ -48,6 +48,34 @@ namespace Client.Tests.Ui.Components.Panels
         }
 
         [Test]
+        public void 影は切られない外側の箱で面の奥に置かれクリックを受けない()
+        {
+            var frame = new DialogFrame("dialog-frame-shadow");
+            frame.SetTitle(UiText.FromVerbatim("Blueprint name"));
+            frame.style.position = Position.Absolute;
+            frame.style.left = 100;
+            frame.style.top = 100;
+            rootVisualElement.Add(frame);
+            simulate.FrameUpdate();
+
+            // 影は外側の箱の最初の子（面より奥）で、角丸で切る面の中に無い
+            // The shadow is the outer box's first child (behind the surface) and not inside the clipping surface
+            var shadow = frame.Q(className: "dialog-frame__shadow");
+            var surface = frame.Q(className: "dialog-frame__surface");
+            Assert.IsNotNull(shadow);
+            Assert.AreSame(frame, shadow.hierarchy.parent);
+            Assert.AreSame(shadow, frame.hierarchy[0]);
+            Assert.IsFalse(surface.Contains(shadow));
+            Assert.AreEqual(PickingMode.Ignore, shadow.pickingMode);
+
+            // 枠のすぐ下（層 2 の広がり y + spread + blur = 36 - 7 + 28 = 57px の内側）を押しても影は拾われない
+            // A press just below the frame (inside layer 2's reach y + spread + blur = 36 - 7 + 28 = 57px) never picks the shadow
+            var below = new UnityEngine.Vector2(frame.worldBound.center.x, frame.worldBound.yMax + 20f);
+            Assert.AreNotSame(shadow, frame.panel.Pick(below));
+            Assert.AreNotSame(shadow, frame.panel.Pick(frame.worldBound.center));
+        }
+
+        [Test]
         public void 操作のボタンは本文の幅いっぱいに伸び題の無い枠は題の行を持たない()
         {
             var frame = new DialogFrame("dialog-frame-actions");

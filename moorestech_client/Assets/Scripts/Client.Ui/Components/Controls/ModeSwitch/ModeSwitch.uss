@@ -91,4 +91,5 @@
     margin: 0;
     padding: 0;
     -unity-text-align: middle-center;
+    font-size: var(--mantine-font-size-md); /* web: .option の font: inherit で Mantine の body（--mantine-font-size-md）を継ぐ（参照 1-settings・3-build-menu・4-block-train-timetable-tab の実測 16px。--mode-switch-option-height の 16px×1.55 と同じ前提） */
 }

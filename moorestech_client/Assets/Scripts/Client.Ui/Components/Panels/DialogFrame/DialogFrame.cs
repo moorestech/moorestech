@@ -31,6 +31,7 @@ namespace Client.Ui.Components.Panels
 
             // 角丸で中身を切る面と、幅だけを持つ外側の箱を分ける（外側は切らないので、影を面の奥に置いても枠の外へ出せる）
             // Separate the rounded clipping surface from the width-only outer box (the outer box does not clip, so a shadow behind the surface can extend outside)
+            hierarchy.Add(new DialogFrameShadow());
             _surface = new VisualElement();
             _surface.AddToClassList("dialog-frame__surface");
             hierarchy.Add(_surface);
