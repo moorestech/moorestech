@@ -2,13 +2,13 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** S4 の 7 レーン（alpha・inventory・machine・train・research・recipe・special）が `feature/uitk` に入った後、全体スイッチ UITK で「持ち物・研究・機械が同時に出る組」が実ゲームで正しい列に 1 つずつ出て覆い合わないことを L3 で固定し、ラダー `uitk-production-loop`・`uitk-research-train` を作ってラダー 1〜4 を緑にし、全録画（全本の 2 回目）を UITK 側と Web 側で流して分類し、マスタのアンカー 9 件の実ゲームでの解決・`UIElementsUpdatePanels`＋`UIElementsRepaintPanels` の CPU 時間・束 4 の突き合わせ差分 0・G1 未記帳 0・波の並べ比べの codex-audit を台帳と `done.md` に残して `feature/uitk` へ取り込む。
+**Goal:** S4 の 7 レーン（alpha・inventory・machine・train・research・recipe・special）が `feature/uitk` に入った後、全体スイッチ UITK で「持ち物・研究・機械が同時に出る組」が実ゲームで正しい列に 1 つずつ出て覆い合わないことを L3 で固定し、ラダー `uitk-production-loop`・`uitk-research-train` を作ってラダー 1〜5 を緑にし、全録画（全本の 2 回目）を UITK 側と Web 側で流して分類し、マスタのアンカー 9 件の実ゲームでの解決・`UIElementsUpdatePanels`＋`UIElementsRepaintPanels` の CPU 時間・束 4 の突き合わせ差分 0・G1 未記帳 0・波の並べ比べの codex-audit を台帳と `done.md` に残して `feature/uitk` へ取り込む。
 
 **Architecture:** integrator のレーン（`int`。Editor 要）。新しく書くのは「検査する側」だけで、画面・部品・Foundation・State のコードは書かない。L3 は `Client.Tests/EditModeInPlayingTest/Ui/Stage4/` に、面の見え方を読む純粋な関数 `Stage4ScreenSetProbe` と期待の表 `Stage4ExpectedSurfaces` を置き、`Stage4ScreenSetGameUiTest` が本番の遷移（`UIStateControl.RequestTransition`・F キーの注入）で画面を巡って照合する。ラダー・アンカー・CPU・撮影は DSL のシナリオ（`scenarios/uitk/`）で、列車線の準備だけ `Client.Playtest/Operations/Ladder/PlaytestTrainLine` に切り出す（シナリオを 200 行未満に保つため）。全録画は `tools/uitk/run-all-recordings.sh` が 1 本ずつ `run-scenario.sh` を回して TSV に残し、分類と持ち主への回送は人手（このレーンの subagent）が `done.md` に書く。不具合は直さず、持ち主のレーン（取り込み済みなら I-fix）へ bd と依頼文で回して待つ。
 
 **Tech Stack:** Unity 6 / UI Toolkit（`Client.Ui`・`Client.Ui.State`）、NUnit（EditModeInPlayingTest）、プレイテスト DSL（`Client.Playtest`・`.agents/skills/unity-playmode-recorded-playtest`）、`Unity.Profiling.ProfilerRecorder`、Node（`tools/uitk/test-name-parity.mjs`）、Python（`.github/scripts/check-uitk-web-follow.py`）、bash、codex-audit（gpt-6-astra）、bd。
 
-設計の出所: 実行計画 `docs/uitk-migration/execution/execution-plan.md` §1.4 の S4-gamma 行（完了条件の原文:「同時に出る組（playerInventory・subInventory・researchTree）の L3、ラダー `uitk-production-loop`・`uitk-research-train` を作りラダー 1〜4 緑、UITK 側で全録画（全本の 2 回目）、マスタのアンカー 9 件が実ゲームで解決、`UIElementsUpdatePanels`＋`RepaintPanels` を台帳に 1 回記録、束 4 の突き合わせ差分 0・G1 0・codex-audit」、依存「S4-* 全部」）、統合計画 `docs/uitk-migration/plan.md` §2.0・§2.5・§4.4・§4.5・§4.7、設計書 `docs/uitk-migration/execution/component-architecture.md` §3.3・§3.4。
+設計の出所: 実行計画 `docs/uitk-migration/execution/execution-plan.md` §1.4 の S4-gamma 行（完了条件の原文:「同時に出る組（playerInventory・subInventory・researchTree）の L3、ラダー `uitk-production-loop`・`uitk-research-train` を作りラダー 1〜5 緑（4 が production-loop・5 が research-train）、UITK 側で全録画（全本の 2 回目）、マスタのアンカー 9 件が実ゲームで解決、`UIElementsUpdatePanels`＋`RepaintPanels` を台帳に 1 回記録、束 4 の突き合わせ差分 0・G1 0・codex-audit」、依存「S4-* 全部」）、統合計画 `docs/uitk-migration/plan.md` §2.0・§2.5・§4.4・§4.5・§4.7、設計書 `docs/uitk-migration/execution/component-architecture.md` §3.3・§3.4。
 
 ## Requirements
 
@@ -17,7 +17,7 @@
 | R-1 | 同時に出る組の L3 | `Stage4ScreenSetGameUiTest` が全体スイッチ UITK の実ゲームで GameScreen → PlayerInventory → GameScreen → ResearchTree → GameScreen → SubInventory（`釜`を F で開く）→ GameScreen → PlayerInventory を巡り、各画面で「出るべき面だけが見え（表の通り）・各面が期待の列の子孫にあり・同名の面が 1 つだけで・面の中心を `panel.Pick` すると自分か子孫が拾われる」こと、ResearchTree で `research-tree` の左端が `inventory-panel` の右端以上で、左余白を畳むクラス `stage-columns--left-padding-collapsed` が付くこと、巡る間の LogError と例外が 0 件であることを PASS |
 | R-2 | ラダー 4 `uitk-production-loop` を作る | 全体スイッチ UITK・Web ホスト無しで、Tab → アイテム一覧で木の板を選ぶ → クラフトを長押しして木の板が 2 枚以上増える → 青銅インゴットのレシピをサーバー直で解放し、石窯を置き F で開いてレシピを選ぶ → Shift＋クリックで青銅鉱石の粉を入れる・原木を右クリックで半分掴んで入力枠へ置く・右ドラッグで手持ちの空き枠へ配る → 開いたまま青銅インゴットが出力枠に現れる（機械 UI を開いたまま中身が更新される録画。§2.5）→ Shift で取り出す → 整理、が `result.json` `Success: true`。録画 mp4 がある |
 | R-3 | ラダー 5 `uitk-research-train` を作る | 全体スイッチ UITK で、研究素材を渡す → 研究ツリーを開き `原始研究1` のノード → 研究ボタンで完了（サーバーの完了を待つ）→ 駅 2 基の線を準備 → 駅を F で開き駅名を日本語で `SetText`・確定し、サーバーの駅名が変わる → 機関車を開き時刻表に 2 駅を足し（サーバー 2 件）・自動運転を入れて走り出す、が `Success: true` |
-| R-4 | ラダー 1〜4 が UITK で緑 | `uitk-lifeline`・`uitk-opening-hud`・`uitk-build-bp`・`uitk-production-loop` の 4 本が同じ HEAD の全体スイッチ UITK で `Success: true`。`uitk-research-train` も緑（§2.5 の「ラダー 2 本」） |
+| R-4 | ラダー 1〜5 が UITK で緑 | `uitk-lifeline`・`uitk-opening-hud`・`uitk-build-bp`・`uitk-production-loop`・`uitk-research-train` の 5 本が同じ HEAD の全体スイッチ UITK で `Success: true`（4 と 5 が §2.5 の「ラダー 2 本」） |
 | R-5 | 全録画の 2 回目 | `scenarios/` の全本を UITK 側で流し、1 本 1 行の結果（exit・秒・run dir）と分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）を `done.md` と台帳「## 実測の結論」に残す。不具合 0 件（見つかったものは持ち主の修正が入って再走で PASS）。Web 側も全本を流し、段階の前と同じ合否（S4 前のコミットとの差分 0。落ちたものは既存か退行かを分けて記録） |
 | R-6 | マスタのアンカー 9 件が実ゲームで解決 | `uitk-master-anchors` がピン先マスタの `uiHighLight` を集めて 9 件であることを確かめ、各アンカーをその画面で `TutorialAnchorRegistry.Resolve` が `Unique` で引け、`AddOutlineHighlight` の枠（`tutorial-outline`）がアンカーの中心から 5px 以内に出て、`CompleteTutorial` で消えることを PASS。`recipe.item-<itemId>` も 1 件見る |
 | R-7 | CPU 時間を台帳に 1 回記録 | `uitk-stage4-panel-cost` が GameScreen・PlayerInventory・ResearchTree の各 240 フレームで `UIElementsUpdatePanels`＋`UIElementsRepaintPanels` の平均・p95・最大を Note に出し、台帳「## 実測の結論」へ 1 行（HEAD・Editor/プレイヤーの別・解像度・値・目安 1ms 以下か）を書く。1ms を超えたら要裁定ではなく「未確認」と bd に記録（目安であって合否ではない。plan §2.5） |
@@ -133,7 +133,7 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 | `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestTrainLine.cs` | 新規 | 駅 2 基・結線・機関車の解放と設置・燃料・列車の取得（既存 `train-timetable-via-ui.cs` の準備の写し。駅名は付けない） |
 | `…/Operations/Ladder/PlaytestPanelCostRecorder.cs` | 新規 | `ProfilerRecorder` で UI のマーカーを N フレーム読み、平均・p95・最大を返す |
 | `…/Operations/ScenarioChecks/PlaytestAnchorChecks.cs` | 新規 | マスタの `uiHighLight` を集め、アンカーの解決と枠の位置を確かめる |
-| `moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef` | 変更 | references に `Client.Ui.State` を足す（アンカーの見える範囲を本番の `TutorialAncestorClipWalker` で求めるため） |
+| `moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef` | 変更 | references に `Client.Ui.State` を足す（アンカーの見える範囲を本番の `TutorialAncestorClipWalker.ClipOf` で求め、その戻り値の型 `TutorialClipRect` が `Client.Ui.State` にあるため。Task 4 Step 3 の注記） |
 | `…/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs` | 新規 | 駅名をサーバーの tick で読み、待つ（前例 `PlaytestTrainSnapshots`。起草時 8 本 → 9 本） |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs` | 新規 | ラダー 4 |
 | `…/scenarios/uitk/stage4/uitk-research-train.cs` | 新規 | ラダー 5 |
@@ -172,7 +172,7 @@ git log --oneline --merges origin/feature/uitk | grep -E "s4-(alpha|inventory|ma
 ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ | grep -E "uitk-(lifeline|opening-hud|build-bp)\.cs"
 test -f moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs && grep -c "S4-" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
 ```
-Expected: マージコミットが 10 本（S4 の 7・S2-tutorial・S2-ladder・S3-ladder）、ラダーのシナリオ 3 本がある、`TutorialAnchorCoveragePending.cs` に `S4-` の持ち主の行が 0（S4 の各レーンが自分の行を消している）。どれかが欠けていたら `done.md` の 1 行目を「状態: 停止」にし、欠けたものを書いて指揮へ返す（S2-ladder・S3-ladder は実行計画の DAG で S4-gamma の依存に無いが、ラダー 1〜4 緑に要る。末尾の §1.4 の改め案）。Pending の行が残っていたら、その持ち主のレーンへの依頼として `done.md`「integrator への依頼」に書き、Task 7 はその行のアンカーを「持ち主の未処理」として扱う
+Expected: マージコミットが 10 本（S4 の 7・S2-tutorial・S2-ladder・S3-ladder）、ラダーのシナリオ 3 本がある、`TutorialAnchorCoveragePending.cs` に `S4-` の持ち主の行が 0（S4 の各レーンが自分の行を消している）。どれかが欠けていたら `done.md` の 1 行目を「状態: 停止」にし、欠けたものを書いて指揮へ返す（S2-ladder・S3-ladder は実行計画の DAG で S4-gamma の依存に無いが、ラダー 1〜5 緑に要る。末尾の §1.4 の改め案）。Pending の行が残っていたら、その持ち主のレーンへの依頼として `done.md`「integrator への依頼」に書き、Task 7 はその行のアンカーを「持ち主の未処理」として扱う
 
 - [ ] **Step 2: 計画の名前と実物の名前を照合する**
 
@@ -293,7 +293,7 @@ git commit -m "docs(uitk): 束 4 を暗転にして追従を記帳する（S4-ga
 
 **Interfaces:**
 - Consumes: `GameUiRoot.Instance.GetRootElement()`、`UIStateControl.RequestTransition(UIStateEnum)`・`CurrentState`、`InteractKeyBlockOpener.PlaceNearPlayerAndOpen(string)`・`CloseToGameScreen()`、`UiSystemPlayModeTestBase.SelectUiSystemBeforePlayMode(UiSystem)`、`EditModeInPlayingTestUtil.LoadMainGame()`・`EnterPlayModeUtil()`
-- Produces: `Stage4ExpectedSurfaces.Expected(UIStateEnum)`（`IReadOnlyList<Stage4Surface>`）・`Stage4ExpectedSurfaces.All`、`Stage4Surface(string Name, string ColumnName)`、`Stage4ScreenSetProbe.IsVisible(VisualElement)`・`VisibleByName(VisualElement root, string name)`（`List<VisualElement>`）・`ColumnNameOf(VisualElement)`・`CountByName(VisualElement root, string name)`・`IsPickedAtCenter(VisualElement)`
+- Produces: `Stage4ExpectedSurfaces.Expected(UIStateEnum)`（`IReadOnlyList<Stage4Surface>`）・`Stage4ExpectedSurfaces.All`、`Stage4Surface.InColumn(string name, string columnName)`・`Stage4Surface.OutsideColumns(string name)`（`Name`・`ExpectsColumn`・`ColumnName`）、`Stage4ScreenSetProbe.IsVisible(VisualElement)`・`VisibleByName(VisualElement root, string name)`（`List<VisualElement>`）・`TryGetColumnName(VisualElement, out string)`・`CountByName(VisualElement root, string name)`・`IsPickedAtCenter(VisualElement)`
 
 期待の表は Web の `App.tsx`（InventoryPanel は `screenAllowsGrab`、RecipeViewer と ItemListPanel は `playerInventory`、ResearchTreePanel は `researchTree`、BlockInventoryPanel は SubInventory、Equipment は `alwaysOnHud`）と `UiScreenTraitsTable`（PlayerInventory・SubInventory は grab・backdrop・alwaysOnHud、ResearchTree は grab・backdrop で alwaysOnHud なし、GameScreen は alwaysOnHud）から写す。列の名前の空文字は「どの列の子孫でもない」（研究エリアは `OverlayPanel`/`Stage` 層、装備は `Chrome`/`Viewport` 層、幕は幕の層）。
 
@@ -305,17 +305,31 @@ using Client.Game.InGame.UI.UIState;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
 {
-    // 面の名前と、その面が載るべき列の名前（列の外なら空）
-    // A surface name and the stage column it must live in (empty when outside every column)
+    // 面の名前と、その面が載るべき列（列の外に出る面は ExpectsColumn が偽。空文字で表さず書き忘れと区別する）
+    // A surface name and its stage column (ExpectsColumn is false outside every column; no empty string, so a missing name is distinguishable)
     public readonly struct Stage4Surface
     {
         public readonly string Name;
+        public readonly bool ExpectsColumn;
         public readonly string ColumnName;
 
-        public Stage4Surface(string name, string columnName)
+        private Stage4Surface(string name, bool expectsColumn, string columnName)
         {
             Name = name;
+            ExpectsColumn = expectsColumn;
             ColumnName = columnName;
+        }
+
+        public static Stage4Surface InColumn(string name, string columnName)
+        {
+            return new Stage4Surface(name, true, columnName);
+        }
+
+        // 列の外の面。ColumnName は読まない（ExpectsColumn が偽のとき AssertScreenSet は列が無いことだけを見る）
+        // A surface outside every column; ColumnName is never read (AssertScreenSet only checks that no column holds it)
+        public static Stage4Surface OutsideColumns(string name)
+        {
+            return new Stage4Surface(name, false, null);
         }
     }
 
@@ -323,13 +337,13 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
     // Which surfaces each screen shows (copied from the web App.tsx and UiScreenTraitsTable)
     public static class Stage4ExpectedSurfaces
     {
-        public static readonly Stage4Surface Inventory = new("inventory-panel", "stage-column-inv");
-        public static readonly Stage4Surface RecipeViewer = new("recipe-viewer", "stage-column-viewer");
-        public static readonly Stage4Surface ItemList = new("item-list-panel", "stage-column-items");
-        public static readonly Stage4Surface BlockInventory = new("block-inventory", "stage-column-viewer");
-        public static readonly Stage4Surface ResearchTree = new("research-tree", "");
-        public static readonly Stage4Surface Equipment = new("equipment-slots", "");
-        public static readonly Stage4Surface Backdrop = new("screen-backdrop", "");
+        public static readonly Stage4Surface Inventory = Stage4Surface.InColumn("inventory-panel", "stage-column-inv");
+        public static readonly Stage4Surface RecipeViewer = Stage4Surface.InColumn("recipe-viewer", "stage-column-viewer");
+        public static readonly Stage4Surface ItemList = Stage4Surface.InColumn("item-list-panel", "stage-column-items");
+        public static readonly Stage4Surface BlockInventory = Stage4Surface.InColumn("block-inventory", "stage-column-viewer");
+        public static readonly Stage4Surface ResearchTree = Stage4Surface.OutsideColumns("research-tree");
+        public static readonly Stage4Surface Equipment = Stage4Surface.OutsideColumns("equipment-slots");
+        public static readonly Stage4Surface Backdrop = Stage4Surface.OutsideColumns("screen-backdrop");
 
         public static readonly IReadOnlyList<Stage4Surface> All = new[] { Inventory, RecipeViewer, ItemList, BlockInventory, ResearchTree, Equipment, Backdrop };
 
@@ -387,15 +401,18 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
             return GameUiElementQuery.IsVisible(element);
         }
 
-        public static string ColumnNameOf(VisualElement element)
+        public static bool TryGetColumnName(VisualElement element, out string columnName)
         {
-            // 祖先の列の名前を返し、列の外なら空を返す
-            // Return the ancestor column name, or empty outside every column
+            // 祖先の列を探し、列の外なら偽を返す（空文字を「列の外」の合図に使わない）
+            // Find the ancestor column; return false outside every column (no empty string as the outside signal)
             for (var current = element.parent; current != null; current = current.parent)
             {
-                if (current.name != null && current.name.StartsWith(ColumnNamePrefix)) return current.name;
+                if (current.name == null || !current.name.StartsWith(ColumnNamePrefix)) continue;
+                columnName = current.name;
+                return true;
             }
-            return "";
+            columnName = null;
+            return false;
         }
 
         public static bool IsPickedAtCenter(VisualElement element)
@@ -515,18 +532,22 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
             #endregion
         }
 
+        // 開閉の動きが落ち着くまで待つ上限のフレーム数（動きは数十フレームで終わるので余裕を持たせた値）
+        // Frame cap for waiting until open/close animations settle (they finish in tens of frames, so this leaves headroom)
+        private const int MaxSettleFrames = 120;
+
         private static async UniTask WaitScreenSettled(VisualElement root, UIStateEnum state)
         {
             // 開閉の動きの途中は不透明度が 0 と 1 の間なので、出る面が見え出ない面が消えるまで待つ
             // Mid open/close animations sit between 0 and 1 opacity, so wait until shown surfaces appear and hidden ones vanish
             var expected = Stage4ExpectedSurfaces.Expected(state);
-            for (var i = 0; i < 120; i++)
+            for (var i = 0; i < MaxSettleFrames; i++)
             {
                 var settled = Stage4ExpectedSurfaces.All.All(s => Stage4ScreenSetProbe.VisibleByName(root, s.Name).Count == (expected.Contains(s) ? 1 : 0));
                 if (settled) return;
                 await UniTask.Yield();
             }
-            // silent-ok: 120 フレームで落ち着かなくても続ける / 直後の AssertScreenSet がどの面かを名前付きで落とす
+            // silent-ok: MaxSettleFrames で落ち着かなくても続ける / 直後の AssertScreenSet がどの面かを名前付きで落とす
         }
 
         private static void AssertScreenSet(VisualElement root, UIStateEnum state)
@@ -546,13 +567,27 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 }
                 Assert.AreEqual(1, visible.Count, $"{state}: 見える {surface.Name} が {visible.Count} 個（全件 {Stage4ScreenSetProbe.CountByName(root, surface.Name)}）");
                 var shown = visible[0];
-                Assert.AreEqual(surface.ColumnName, Stage4ScreenSetProbe.ColumnNameOf(shown), $"{state}: {surface.Name} の列が違う");
+                AssertColumn(state, surface, shown);
 
                 // 幕は入力を素通しするので Pick の照合から外す
                 // The backdrop lets input through, so skip it in the pick check
                 if (surface.Name == Stage4ExpectedSurfaces.Backdrop.Name) continue;
                 Assert.IsTrue(Stage4ScreenSetProbe.IsPickedAtCenter(shown), $"{state}: {surface.Name} の中心で {Stage4ScreenSetProbe.DescribePicked(shown)} が拾われた（覆われている）");
             }
+        }
+
+        // 列に載るべき面はその列の子孫に、列の外の面はどの列の子孫でもないことを見る
+        // A column surface must sit under its column; an outside surface must sit under no column
+        private static void AssertColumn(UIStateEnum state, Stage4Surface surface, VisualElement shown)
+        {
+            var inColumn = Stage4ScreenSetProbe.TryGetColumnName(shown, out var columnName);
+            if (!surface.ExpectsColumn)
+            {
+                Assert.IsFalse(inColumn, $"{state}: {surface.Name} は列の外のはずが {columnName} にある");
+                return;
+            }
+            Assert.IsTrue(inColumn, $"{state}: {surface.Name} がどの列にも無い（期待 {surface.ColumnName}）");
+            Assert.AreEqual(surface.ColumnName, columnName, $"{state}: {surface.Name} の列が違う");
         }
 
         private static void AssertResearchTreeRightOfInventory(VisualElement root)
@@ -2045,9 +2080,9 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 
 ## Self-Review
 
-1. **Requirements coverage**: R-1 → Task 3（`Stage4ScreenSetGameUiTest`）・Task 12 Step 3、R-2 → Task 5、R-3 → Task 4 Step 1・Task 6、R-4 → Task 12 Step 2、R-5 → Task 9、R-6 → Task 4 Step 3・Task 7、R-7 → Task 4 Step 2・Task 8、R-8 → Task 10、R-9 → Task 2・Task 15 Step 2、R-10 → Task 13、R-11 → Task 1 Step 3・Task 5 Step 3・Task 11、R-12 → 末尾の節、R-13 → Task 14・15。§1.4 の句: 同時に出る組の L3（Task 3）・ラダー 2 本（Task 5・6）・ラダー 1〜4 緑（Task 12）・全録画の 2 回目（Task 9）・アンカー 9 件（Task 7）・CPU の台帳 1 回（Task 8）・束 4 差分 0（Task 10）・G1 0（Task 2・15）・codex-audit（Task 13）。plan §2.5 の「機械 UI を開いたまま中身が更新される録画」は Task 5 の 04、「UITK の掴みのコードが Web に依存しない」は Task 5 が Web ホスト無し（`WebUiHost.Hub == null`）で掴み・Shift・右ドラッグを通すことで見る。§6.2 の必須: 使う部品と API（Global Constraints・各 Task の Interfaces）、つまみ（gamma は部品のつまみを使わない。recipe D-9 の 5 本は末尾の設計書の行）、写すテストと `<web-test>`（gamma が写すテストは無い。持ち主の無い 3 件は処遇「捨てる」。D-7）、720p と 2560×1080（Task 13）、録画（Task 5・6・7・9）、登録の 1 行（gamma は登録しない。D-1）、新しい共有の申告（Global Constraints）、File Structure（他レーンと重ねない）。漏れなし
+1. **Requirements coverage**: R-1 → Task 3（`Stage4ScreenSetGameUiTest`）・Task 12 Step 3、R-2 → Task 5、R-3 → Task 4 Step 1・Task 6、R-4 → Task 12 Step 2、R-5 → Task 9、R-6 → Task 4 Step 3・Task 7、R-7 → Task 4 Step 2・Task 8、R-8 → Task 10、R-9 → Task 2・Task 15 Step 2、R-10 → Task 13、R-11 → Task 1 Step 3・Task 5 Step 3・Task 11、R-12 → 末尾の節、R-13 → Task 14・15。§1.4 の句: 同時に出る組の L3（Task 3）・ラダー 2 本（Task 5・6）・ラダー 1〜5 緑（Task 12）・全録画の 2 回目（Task 9）・アンカー 9 件（Task 7）・CPU の台帳 1 回（Task 8）・束 4 差分 0（Task 10）・G1 0（Task 2・15）・codex-audit（Task 13）。plan §2.5 の「機械 UI を開いたまま中身が更新される録画」は Task 5 の 04、「UITK の掴みのコードが Web に依存しない」は Task 5 が Web ホスト無し（`WebUiHost.Hub == null`）で掴み・Shift・右ドラッグを通すことで見る。§6.2 の必須: 使う部品と API（Global Constraints・各 Task の Interfaces）、つまみ（gamma は部品のつまみを使わない。recipe D-9 の 5 本は末尾の設計書の行）、写すテストと `<web-test>`（gamma が写すテストは無い。持ち主の無い 3 件は処遇「捨てる」。D-7）、720p と 2560×1080（Task 13）、録画（Task 5・6・7・9）、登録の 1 行（gamma は登録しない。D-1）、新しい共有の申告（Global Constraints）、File Structure（他レーンと重ねない）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<PR番号>`・`<番号>`・`<HEAD 10 桁>`・`<起点>`・`<SHA 10 桁>`・`<n>`・`<x>`・`<y>`・`<置き場>`・manifest の `<… のパス>` は実行時にしか決まらず、取り方を同じタスクに書いた。他レーンの名前（testid・USS のクラス・スロットの名前）は計画から写した想定で、Task 1 Step 2 の照合表で実物に読み替える手順を書いた。「TBD」「適切に」は無い
-3. **Type consistency**: `Stage4Surface(string, string)`・`Stage4ExpectedSurfaces.Expected(UIStateEnum)`・`All`・`Inventory`/`RecipeViewer`/`ItemList`/`BlockInventory`/`ResearchTree`/`Equipment`/`Backdrop`、`Stage4ScreenSetProbe.CountByName`・`VisibleByName`・`IsVisible`・`ColumnNameOf`・`IsPickedAtCenter`・`DescribePicked`、`PlaytestTrainLineSetup`（`StationA`・`StationB`・`StationAPosition`・`StationBPosition`・`Train`）・`PlaytestTrainLine.Build`・`AimAtCar`・`AimAtStation`、`PlaytestTrainStationSnapshots.ReadStationName`・`WaitForStationName`、`PlaytestPanelCost`（`Frames`・`MeanMs`・`P95Ms`・`MaxMs`・`Markers`）・`PlaytestPanelCostRecorder.FindPanelMarkers`・`ListUiElementsMarkerNames`・`Measure`、`PlaytestMasterAnchor`（`AnchorId`・`TutorialGuid`・`ChallengeGuid`・`ChallengeTitle`）・`PlaytestAnchorChecks.CollectUiHighlightAnchors`・`CheckOutlineOnAnchor` は定義（Task 3・4）と使用（Task 5〜8・13）で同じ綴り。スクリプトの引数 `run-all-recordings.sh <GameUi|Web> <list> <out> <start> <count>`・`list-recordings.sh <GameUi|Web>` は Task 9・12・13 で同じ。全シナリオの `using` に、拡張メソッド（`PressInteract`・`WaitForItemCount` 等）と口の名前空間 `Client.Playtest.Operations` がある
+3. **Type consistency**: `Stage4Surface.InColumn(string, string)`・`Stage4Surface.OutsideColumns(string)`・`Stage4ExpectedSurfaces.Expected(UIStateEnum)`・`All`・`Inventory`/`RecipeViewer`/`ItemList`/`BlockInventory`/`ResearchTree`/`Equipment`/`Backdrop`、`Stage4ScreenSetProbe.CountByName`・`VisibleByName`・`IsVisible`・`TryGetColumnName`・`IsPickedAtCenter`・`DescribePicked`、`PlaytestTrainLineSetup`（`StationA`・`StationB`・`StationAPosition`・`StationBPosition`・`Train`）・`PlaytestTrainLine.Build`・`AimAtCar`・`AimAtStation`、`PlaytestTrainStationSnapshots.ReadStationName`・`WaitForStationName`、`PlaytestPanelCost`（`Frames`・`MeanMs`・`P95Ms`・`MaxMs`・`Markers`）・`PlaytestPanelCostRecorder.FindPanelMarkers`・`ListUiElementsMarkerNames`・`Measure`、`PlaytestMasterAnchor`（`AnchorId`・`TutorialGuid`・`ChallengeGuid`・`ChallengeTitle`）・`PlaytestAnchorChecks.CollectUiHighlightAnchors`・`CheckOutlineOnAnchor` は定義（Task 3・4）と使用（Task 5〜8・13）で同じ綴り。スクリプトの引数 `run-all-recordings.sh <GameUi|Web> <list> <out> <start> <count>`・`list-recordings.sh <GameUi|Web>` は Task 9・12・13 で同じ。全シナリオの `using` に、拡張メソッド（`PressInteract`・`WaitForItemCount` 等）と口の名前空間 `Client.Playtest.Operations` がある
 4. **保留・縮退経路**: (a) 前提のレーンが欠ける → Task 1 Step 1 で「状態: 停止」と指揮への返却（解消の主体は指揮。最小構成: S2-ladder・S3-ladder が DAG に無く着手時に未マージ → 改め案で辺を足す）。(b) 不具合・退行・写し漏れ → bd と依頼文で I-fix へ、「状態: 停止」で待ち、取り込み後に該当分だけ再走（解消の主体は I-fix。gamma は直さないので、待つ間に gamma が自分で解消できる経路は無いことを明記した）。(c) マーカー 0 本 → シナリオが一覧を Note に出して `Success: false`（気づく経路は result.json）。(d) 依頼の未処理（Foundation の口・登録の再編）→ 完了条件に入れず bd だけ（D-6。帰結を `done.md` に書く）。`MarkClipContainer` だけは義務なので止まって待つ（D-19）。(e) 系の切替の失敗 → TSV に `switch-failed` 行（スクリプトの `silent-ok` は止める PlayMode が無いときの `Stop` の失敗だけ）。(f) 1ms 超 → 合否にせず bd と「未確認」（plan §2.5 の目安）
 5. **「決定的にする」を根拠にした選択**: 無し（全録画の順はファイル名順だが、各本の前で PlayMode を止めて系を立て直すので順に依らない）
 6. **呼び出し側への責務漏出**: アンカーの集め方と照合は `PlaytestAnchorChecks` の 1 か所、列車線の準備は `PlaytestTrainLine` の 1 か所、CPU の測り方は `PlaytestPanelCostRecorder` の 1 か所、面の読み方は `Stage4ScreenSetProbe` の 1 か所。石窯を狙って開く 4 行は Task 5 と Task 13 の 2 か所に現れる（D-9 で据え置きの理由を書いた）
@@ -2127,7 +2162,7 @@ S4-recipe の D-9（`GameScrollView` のつまみ 5 本）は S4-recipe の計�
 
 ### 実行計画 §1.4 の S4-gamma 行の改め案
 
-依存の列を「S4-* 全部・S2-ladder・S3-ladder（ラダー 1〜4 緑に `uitk-opening-hud`・`uitk-build-bp` が要る）・S2-tutorial（アンカーの枠）」に改め、DAG に `S2L --> G`・`S3L --> G` の辺を足す。完了条件の列は今の原文のまま、末尾に「（全録画の 2 回目は UITK と Web の両方。Web 側は S4 前のコミットと比べて退行 0）」を足す（plan §2.0-2 の写し）。
+依存の列を「S4-* 全部・S2-ladder・S3-ladder（ラダー 1〜5 緑に `uitk-opening-hud`・`uitk-build-bp` が要る）・S2-tutorial（アンカーの枠）」に改め、DAG に `S2L --> G`・`S3L --> G` の辺を足す。完了条件の列は「ラダー 1〜5 緑（4 が production-loop・5 が research-train）」（R-4・Task 12。実行計画 §1.4 へ反映済み）とし、末尾に「（全録画の 2 回目は UITK と Web の両方。Web 側は S4 前のコミットと比べて退行 0）」を足す（plan §2.0-2 の写し）。
 
 ### 統合計画 §4.4 のラダー 4 の文言の改め案
 
