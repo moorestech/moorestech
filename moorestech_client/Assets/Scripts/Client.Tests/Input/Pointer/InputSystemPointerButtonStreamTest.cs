@@ -56,6 +56,26 @@ namespace Client.Tests.Input.Pointer
         }
 
         [Test]
+        public void マウスがリセットされるとリセットを1回流し押下を忘れる()
+        {
+            // リセット後の押下なしの状態イベントで解放を流さないことも見る（押下の記憶が下りている）
+            // Also checks a later unpressed state event emits no release (the remembered press was dropped)
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var stream = new InputSystemPointerButtonStream();
+            var reset = new int[1];
+            stream.OnPrimaryButtonReset.Subscribe(_ => reset[0]++);
+            Press(mouse.leftButton);
+            var released = Count(stream);
+
+            InputSystem.ResetDevice(mouse);
+            Assert.AreEqual(1, reset[0]);
+            Assert.IsFalse(stream.IsPrimaryButtonPressed());
+            Set(mouse.position, new Vector2(10f, 20f));
+
+            Assert.AreEqual(0, released[0], "リセットの後に解放は流れない");
+        }
+
+        [Test]
         public void 位置だけの変化と右ボタンでは流さない()
         {
             var mouse = InputSystem.AddDevice<Mouse>();

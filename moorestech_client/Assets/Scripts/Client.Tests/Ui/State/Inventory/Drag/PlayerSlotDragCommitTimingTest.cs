@@ -129,6 +129,25 @@ namespace Client.Tests.Ui.State.Inventory.Drag
             Assert.AreEqual(new[] { "Grab->Main:6 x10" }, _operations.Moves.ToArray());
         }
 
+        [Test]
+        public void マウスがリセットされた分割ドラッグは後の解放で配らない()
+        {
+            // 解放を取りこぼした後に枠以外をクリックして離しても、古い session の枠へ配らない
+            // Even if the player clicks and releases outside slots after the missed release, the old session's slots get nothing
+            _operations.SetGrab(new SlotItem(Wood, 10));
+            _commands.BeginSplitDrag(PlayerSlotRef.Main(3));
+            _commands.EnterWithLeftButton(PlayerSlotRef.Main(4));
+            LogAssert.Expect(LogType.Warning, new Regex(@"split-drag session discarded on mouse reset"));
+            _button.Reset();
+            _commands.LateTick();
+
+            _button.SetPressed(true);
+            ReleaseAndLateTick();
+
+            Assert.IsEmpty(_operations.Moves);
+            Assert.IsEmpty(_shownToasts);
+        }
+
         private void ReleaseAndLateTick()
         {
             _button.Release();

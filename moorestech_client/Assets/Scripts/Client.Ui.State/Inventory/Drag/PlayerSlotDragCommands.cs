@@ -40,6 +40,9 @@ namespace Client.Ui.State.Inventory.Drag
             // どこで左ボタンを離しても確定を待たせる（Web の window mouseup → session.end）。解放は UITK の進入より先に流れる
             // Wherever the left button is released, mark the commit pending (Web window mouseup -> session.end); release runs before UITK enters
             _button.OnReleased.Subscribe(_ => _commitPending = true);
+            // 解放を流さずにマウスがリセットされたら、残った session を配らずに捨てる（D-37）
+            // When the mouse is reset without a release, drop the remaining session without distributing (D-37)
+            _button.OnReset.Subscribe(_ => DiscardSessionOnButtonReset());
         }
 
         public void LateTick()
@@ -112,6 +115,15 @@ namespace Client.Ui.State.Inventory.Drag
             if (!_session.IsActive || _button.IsPressed() || _commitPending) return;
             _session.End();
             Debug.LogWarning("[PlayerSlotDragCommands] stale split-drag session discarded");
+        }
+
+        private void DiscardSessionOnButtonReset()
+        {
+            _commitPending = false;
+            // silent-ok: 分割ドラッグ外のリセットは捨てる物が無い / ドラッグ中なら下の警告で開発者が気づく
+            if (!_session.IsActive) return;
+            _session.End();
+            Debug.LogWarning("[PlayerSlotDragCommands] split-drag session discarded on mouse reset");
         }
 
         private void CommitSplitDrag()

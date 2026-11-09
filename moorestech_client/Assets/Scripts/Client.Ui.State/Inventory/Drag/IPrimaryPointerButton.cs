@@ -10,6 +10,9 @@ namespace Client.Ui.State.Inventory.Drag
     public interface IPrimaryPointerButton
     {
         IObservable<Unit> OnReleased { get; }
+        // マウスのリセット・取り外し等で押下が解放を流さずに消えたとき
+        // When the press vanished without a release (mouse reset, removal, etc.)
+        IObservable<Unit> OnReset { get; }
         bool IsPressed();
     }
 }

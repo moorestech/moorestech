@@ -11,9 +11,11 @@ namespace Client.Tests.Ui.State.Inventory.Drag
     public sealed class FakePrimaryPointerButton : IPrimaryPointerButton
     {
         private readonly Subject<Unit> _onReleased = new();
+        private readonly Subject<Unit> _onReset = new();
         private bool _pressed;
 
         public IObservable<Unit> OnReleased => _onReleased;
+        public IObservable<Unit> OnReset => _onReset;
 
         public FakePrimaryPointerButton(bool pressed)
         {
@@ -31,6 +33,14 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         {
             _pressed = false;
             _onReleased.OnNext(Unit.Default);
+        }
+
+        // 解放を流さずに押下を下ろしてリセットを流す（本番のマウスのリセットと同じ）
+        // Drops the press without a release and emits a reset (same as a production mouse reset)
+        public void Reset()
+        {
+            _pressed = false;
+            _onReset.OnNext(Unit.Default);
         }
 
         public bool IsPressed()
