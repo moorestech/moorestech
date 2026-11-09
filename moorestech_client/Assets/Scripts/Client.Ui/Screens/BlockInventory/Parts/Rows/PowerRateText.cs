@@ -27,10 +27,10 @@ namespace Client.Ui.Screens.BlockInventory.Parts.Rows
             // 百分率は JS の Math.round と同じく 0.5 を切り上げる（C# の既定は偶数丸め）
             // The percentage rounds half up like JS Math.round (C# defaults to banker's rounding)
             var rate = BlockDetailMath.ComputePowerRate(currentPower, requestPower);
-            var percent = (long)Math.Floor(rate * 100 + 0.5);
+            var percent = UiNumberFormat.RoundHalfUp(rate * 100);
             var text = new UiText(LocalizationKeys.Ui.BlockInventory.PowerRateSummary, new[]
             {
-                new LocalizationTextParam("rate", percent.ToString(CultureInfo.InvariantCulture)),
+                new LocalizationTextParam("rate", UiNumberFormat.Integer(percent)),
                 new LocalizationTextParam("current", currentPower.ToString(CultureInfo.InvariantCulture)),
                 new LocalizationTextParam("required", requestPower.ToString(CultureInfo.InvariantCulture)),
             });

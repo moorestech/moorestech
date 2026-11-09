@@ -39,14 +39,18 @@ namespace Client.Ui.State.SlotCommands.Player
                 OpenTrainInventoryPanel train => PlayerSlotContext.WithBlockOpen(inventory, DestinationSlots(train.ItemSlots), BlockSlotRestriction.Unrestricted, _stackLevels),
                 _ => PlayerSlotContext.WithBlockClosed(inventory, _stackLevels),
             };
-        }
 
-        // 宛先の枠はブロック側の操作と同じ口から押下の瞬間の生の値で読む（先書き後の古い写しで宛先を選ばない。D-37）
-        // Destination slots are read raw at press time from the same port as block-side commands (never pick a target from a stale copy after a pre-write; D-37)
-        private IReadOnlyList<SlotItem> DestinationSlots(IReadOnlyList<SlotItem> panelSlots)
-        {
-            // silent-ok: 口が偽になるのはエラー中のパネルだけで、ブロックは束縛の入力が取得失敗の断りを返し、列車は従来どおり状態の枠で計画する / 断りは通知と Warning ログで出る
-            return _block.TryReadBlockSlots(out var slots) ? slots : panelSlots;
+            #region Internal
+
+            // 宛先の枠はブロック側の操作と同じ口から押下の瞬間の生の値で読む（先書き後の古い写しで宛先を選ばない。D-37）
+            // Destination slots are read raw at press time from the same port as block-side commands (never pick a target from a stale copy after a pre-write; D-37)
+            IReadOnlyList<SlotItem> DestinationSlots(IReadOnlyList<SlotItem> panelSlots)
+            {
+                // silent-ok: 口が偽になるのはエラー中のパネルだけで、ブロックは束縛の入力が取得失敗の断りを返し、列車は従来どおり状態の枠で計画する / 断りは通知と Warning ログで出る
+                return _block.TryReadBlockSlots(out var slots) ? slots : panelSlots;
+            }
+
+            #endregion
         }
 
         // ログに出すブロックの識別（Web の block.identifier）

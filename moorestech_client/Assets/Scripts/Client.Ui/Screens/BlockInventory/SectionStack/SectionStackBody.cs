@@ -13,7 +13,7 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
     /// </summary>
     public sealed class SectionStackBody : IBlockInventoryPart
     {
-        public const string FillPanelHeightClassName = "section-stack--fill-panel-height";
+        internal const string FillPanelHeightClassName = "section-stack--fill-panel-height";
 
         private readonly UiStack _stack = new(UiGap.Sm) { name = "section-stack" };
         private readonly IReadOnlyList<IBlockInventorySection> _sections;

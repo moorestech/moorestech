@@ -32,21 +32,25 @@ namespace Client.Ui.Screens.BlockInventory
             _shell = shell;
             shell.RegisterCallback<CustomStyleResolvedEvent>(_ => ReadTokens());
             stage.RegisterCallback<GeometryChangedEvent>(_ => Apply());
+
+            #region Internal
+
+            void ReadTokens()
+            {
+                // 3 つを別々に持つ。欠けは UssCustomStyleReader が LogError で知らせる
+                // Keep the three separately; a missing one is reported by UssCustomStyleReader with LogError
+                _menuLowerResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, MenuLowerSafeArea, out _menuLower);
+                _inventoryWidthResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, InventoryPanelWidth, out _inventoryWidth);
+                _columnGapResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, StageColumnGap, out _columnGap);
+                Apply();
+            }
+
+            #endregion
         }
 
         public void SetLarge(bool large)
         {
             _large = large;
-            Apply();
-        }
-
-        private void ReadTokens()
-        {
-            // 3 つを別々に持つ。欠けは UssCustomStyleReader が LogError で知らせる
-            // Keep the three separately; a missing one is reported by UssCustomStyleReader with LogError
-            _menuLowerResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, MenuLowerSafeArea, out _menuLower);
-            _inventoryWidthResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, InventoryPanelWidth, out _inventoryWidth);
-            _columnGapResolved = UssCustomStyleReader.TryReadPixels(_shell.customStyle, StageColumnGap, out _columnGap);
             Apply();
         }
 

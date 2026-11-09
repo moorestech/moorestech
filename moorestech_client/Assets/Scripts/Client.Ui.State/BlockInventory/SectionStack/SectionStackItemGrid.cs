@@ -11,7 +11,7 @@ namespace Client.Ui.State.BlockInventory.SectionStack
         }
     }
 
-    public sealed class HiddenSectionStackItemGrid : SectionStackItemGrid
+    internal sealed class HiddenSectionStackItemGrid : SectionStackItemGrid
     {
         internal HiddenSectionStackItemGrid()
         {

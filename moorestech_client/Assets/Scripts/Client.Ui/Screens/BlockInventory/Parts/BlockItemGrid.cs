@@ -43,6 +43,16 @@ namespace Client.Ui.Screens.BlockInventory.Parts
             // 列数の上限は持ち物と同じトークン（Web INVENTORY_GRID_COLUMNS）。:root の値は子へ継承されないので自クラスで受け直した名前を読む
             // The column cap is the inventory's own token (Web INVENTORY_GRID_COLUMNS); :root values do not inherit, so read the name re-declared on this class
             RegisterCallback<CustomStyleResolvedEvent>(_ => ReadColumns());
+
+            #region Internal
+
+            void ReadColumns()
+            {
+                if (UssCustomStyleReader.TryReadNumber(customStyle, InventoryColumnsProperty, out var columns)) _inventoryColumns = (int)columns;
+                ApplyColumns();
+            }
+
+            #endregion
         }
 
         public void Render(IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<int> slotIndices)
@@ -91,29 +101,23 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                 return new ItemSlotContent(icon, count, new ItemSlotMarks(false, false, false), null, null, null);
             }
 
-            #endregion
-        }
-
-        private void OnGestured(int index, SlotGesture gesture)
-        {
-            // ブロックの枠は押下・右押下・ダブルクリックだけ（Web useBlockSlotGestures）
-            // Block slots react to press, right press and double click only (Web useBlockSlotGestures)
-            UiCommandResult result;
-            switch (gesture.Kind)
+            void OnGestured(int index, SlotGesture gesture)
             {
-                case SlotGestureKind.LeftDown: result = _commands.LeftDown(index, gesture.Shift); break;
-                case SlotGestureKind.RightDown: result = _commands.RightDown(index); break;
-                case SlotGestureKind.DoubleClick: result = _commands.DoubleClick(index); break;
-                // silent-ok: 進入とホバーはブロックの枠では使わない（Web と同じ） / 名前のツールチップは ItemSlot が出す
-                default: return;
+                // ブロックの枠は押下・右押下・ダブルクリックだけ（Web useBlockSlotGestures）
+                // Block slots react to press, right press and double click only (Web useBlockSlotGestures)
+                UiCommandResult result;
+                switch (gesture.Kind)
+                {
+                    case SlotGestureKind.LeftDown: result = _commands.LeftDown(index, gesture.Shift); break;
+                    case SlotGestureKind.RightDown: result = _commands.RightDown(index); break;
+                    case SlotGestureKind.DoubleClick: result = _commands.DoubleClick(index); break;
+                    // silent-ok: 進入とホバーはブロックの枠では使わない（Web と同じ） / 名前のツールチップは ItemSlot が出す
+                    default: return;
+                }
+                _toaster.Report(BlockSlotCommands.CommandName, result);
             }
-            _toaster.Report(BlockSlotCommands.CommandName, result);
-        }
 
-        private void ReadColumns()
-        {
-            if (UssCustomStyleReader.TryReadNumber(customStyle, InventoryColumnsProperty, out var columns)) _inventoryColumns = (int)columns;
-            ApplyColumns();
+            #endregion
         }
 
         private void ApplyColumns()

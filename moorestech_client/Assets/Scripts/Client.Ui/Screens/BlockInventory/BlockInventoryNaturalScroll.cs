@@ -23,6 +23,24 @@ namespace Client.Ui.Screens.BlockInventory
             // USS に calc() が無いので、受け直した逃げの幅を C# で負号付きのマージンと正の内側余白に当てる
             // USS has no calc(), so C# applies the re-declared bleed as a negative margin and a positive inner padding
             Root.RegisterCallback<CustomStyleResolvedEvent>(_ => ApplyBleed());
+
+            #region Internal
+
+            void ApplyBleed()
+            {
+                // silent-ok: 読めなければ逃げ無しのまま / UssCustomStyleReader が LogError で知らせる
+                if (!UssCustomStyleReader.TryReadPixels(Root.customStyle, BodyBleedProperty, out var bleed)) return;
+                Root.style.marginTop = -bleed;
+                Root.style.marginRight = -bleed;
+                Root.style.marginBottom = -bleed;
+                Root.style.marginLeft = -bleed;
+                Root.contentContainer.style.paddingTop = bleed;
+                Root.contentContainer.style.paddingRight = bleed;
+                Root.contentContainer.style.paddingBottom = bleed;
+                Root.contentContainer.style.paddingLeft = bleed;
+            }
+
+            #endregion
         }
 
         public void Wrap(VisualElement body)
@@ -35,20 +53,6 @@ namespace Client.Ui.Screens.BlockInventory
         {
             Root.Clear();
             Root.RemoveFromHierarchy();
-        }
-
-        private void ApplyBleed()
-        {
-            // silent-ok: 読めなければ逃げ無しのまま / UssCustomStyleReader が LogError で知らせる
-            if (!UssCustomStyleReader.TryReadPixels(Root.customStyle, BodyBleedProperty, out var bleed)) return;
-            Root.style.marginTop = -bleed;
-            Root.style.marginRight = -bleed;
-            Root.style.marginBottom = -bleed;
-            Root.style.marginLeft = -bleed;
-            Root.contentContainer.style.paddingTop = bleed;
-            Root.contentContainer.style.paddingRight = bleed;
-            Root.contentContainer.style.paddingBottom = bleed;
-            Root.contentContainer.style.paddingLeft = bleed;
         }
     }
 }

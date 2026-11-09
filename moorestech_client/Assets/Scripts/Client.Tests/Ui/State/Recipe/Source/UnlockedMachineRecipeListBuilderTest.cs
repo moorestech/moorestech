@@ -40,7 +40,7 @@ namespace Client.Tests.Ui.State.Recipe.Source
         [Test]
         public void 入出力と時間とブロックをマスタから写す()
         {
-            var master = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.OutputItems.Length > 0);
+            var master = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => 0 < r.OutputItems.Length);
             var unlock = new FakeGameUnlockStateData();
             unlock.SetMachineRecipe(master.MachineRecipeGuid, true);
 

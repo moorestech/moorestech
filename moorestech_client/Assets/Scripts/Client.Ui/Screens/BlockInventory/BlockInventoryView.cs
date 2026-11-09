@@ -18,8 +18,8 @@ namespace Client.Ui.Screens.BlockInventory
     /// </summary>
     public sealed class BlockInventoryView : VisualElement
     {
-        public const string LargeClassName = "block-inventory--large";
-        public const string NaturalClassName = "block-inventory--natural";
+        internal const string LargeClassName = "block-inventory--large";
+        private const string NaturalClassName = "block-inventory--natural";
         private const string BlockErrorName = "block-inventory-error";
         private const string TrainErrorName = "train-inventory-error";
 

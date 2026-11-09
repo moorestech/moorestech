@@ -30,42 +30,46 @@ namespace Client.Ui.State.SlotCommands.Player
             // silent-ok: DestinationFull は Web も無音 / 上の Warning ログで開発者が気づく
             if (!TryGetMessageId(reason, out var messageId)) return;
             _notifications.Notify(NotificationMessagePack.CreateOperationDenied(messageId, new Dictionary<string, string>()));
-        }
 
-        private static bool TryGetMessageId(ShiftMoveRefusalReason reason, out string messageId)
-        {
-            switch (reason)
+            #region Internal
+
+            bool TryGetMessageId(ShiftMoveRefusalReason refusal, out string id)
             {
-                case ShiftMoveRefusalReason.NoAcceptingBlockSlot:
-                    messageId = "denied.inventoryMoveSlotRejected";
-                    return true;
-                case ShiftMoveRefusalReason.InventoryOpenFailed:
-                    messageId = "denied.inventoryOpenFailed";
-                    return true;
-                case ShiftMoveRefusalReason.DetailLoading:
-                    messageId = "denied.inventoryDetailLoading";
-                    return true;
-                case ShiftMoveRefusalReason.DestinationFull:
-                    // silent-ok: DestinationFull は Web に messageId が無い / 呼び手の Warning ログで開発者が気づく
-                    messageId = "";
-                    return false;
-                default:
-                    // enum に値を足して対応を足し忘れた開発時の誤り（D-44 と同じ扱い）
-                    // A dev-time mistake: a new enum value without a mapping (same as D-44)
-                    throw new ArgumentOutOfRangeException(nameof(reason), reason, null);
+                switch (refusal)
+                {
+                    case ShiftMoveRefusalReason.NoAcceptingBlockSlot:
+                        id = "denied.inventoryMoveSlotRejected";
+                        return true;
+                    case ShiftMoveRefusalReason.InventoryOpenFailed:
+                        id = "denied.inventoryOpenFailed";
+                        return true;
+                    case ShiftMoveRefusalReason.DetailLoading:
+                        id = "denied.inventoryDetailLoading";
+                        return true;
+                    case ShiftMoveRefusalReason.DestinationFull:
+                        // silent-ok: DestinationFull は Web に messageId が無い / 呼び手の Warning ログで開発者が気づく
+                        id = "";
+                        return false;
+                    default:
+                        // enum に値を足して対応を足し忘れた開発時の誤り（D-44 と同じ扱い）
+                        // A dev-time mistake: a new enum value without a mapping (same as D-44)
+                        throw new ArgumentOutOfRangeException(nameof(refusal), refusal, null);
+                }
             }
-        }
 
-        private static string ToLogName(ShiftMoveRefusalReason reason)
-        {
-            return reason switch
+            string ToLogName(ShiftMoveRefusalReason refusal)
             {
-                ShiftMoveRefusalReason.NoAcceptingBlockSlot => "noAcceptingBlockSlot",
-                ShiftMoveRefusalReason.InventoryOpenFailed => "inventoryOpenFailed",
-                ShiftMoveRefusalReason.DetailLoading => "detailLoading",
-                ShiftMoveRefusalReason.DestinationFull => "destinationFull",
-                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
-            };
+                return refusal switch
+                {
+                    ShiftMoveRefusalReason.NoAcceptingBlockSlot => "noAcceptingBlockSlot",
+                    ShiftMoveRefusalReason.InventoryOpenFailed => "inventoryOpenFailed",
+                    ShiftMoveRefusalReason.DetailLoading => "detailLoading",
+                    ShiftMoveRefusalReason.DestinationFull => "destinationFull",
+                    _ => throw new ArgumentOutOfRangeException(nameof(refusal), refusal, null),
+                };
+            }
+
+            #endregion
         }
     }
 }

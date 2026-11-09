@@ -37,11 +37,15 @@ namespace Client.Ui.State.Recipe.Source
             Rebuild();
             _vanillaApiEvent.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => Rebuild());
             _craftCapLookup.OnCraftCapUnlocked.Subscribe(_ => Rebuild());
-        }
 
-        private void Rebuild()
-        {
-            _current.Value = UnlockedMachineRecipeListBuilder.Build(_unlockState, _craftCapLookup);
+            #region Internal
+
+            void Rebuild()
+            {
+                _current.Value = UnlockedMachineRecipeListBuilder.Build(_unlockState, _craftCapLookup);
+            }
+
+            #endregion
         }
     }
 }

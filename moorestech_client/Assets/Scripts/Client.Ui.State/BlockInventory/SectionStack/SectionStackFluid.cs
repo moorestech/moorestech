@@ -11,7 +11,7 @@ namespace Client.Ui.State.BlockInventory.SectionStack
         }
     }
 
-    public sealed class HiddenSectionStackFluid : SectionStackFluid
+    internal sealed class HiddenSectionStackFluid : SectionStackFluid
     {
         internal HiddenSectionStackFluid()
         {

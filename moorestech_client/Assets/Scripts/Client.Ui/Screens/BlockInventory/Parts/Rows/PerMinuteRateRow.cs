@@ -1,4 +1,3 @@
-using System.Globalization;
 using Client.Localization;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
@@ -31,7 +30,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts.Rows
         {
             // 小数 1 桁（Web の toFixed(1)）
             // One decimal place (the Web toFixed(1))
-            var perMinute = amountPerMinute.ToString("F1", CultureInfo.InvariantCulture);
+            var perMinute = UiNumberFormat.Fixed(amountPerMinute, 1);
             _text.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.ItemsPerMinute, new[] { new LocalizationTextParam("itemsPerMinute", perMinute) }));
         }
     }

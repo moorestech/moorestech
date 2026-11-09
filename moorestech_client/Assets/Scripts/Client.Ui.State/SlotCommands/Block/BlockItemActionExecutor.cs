@@ -26,14 +26,18 @@ namespace Client.Ui.State.SlotCommands.Block
             if (!_block.TryReadBlockSlots(out var slots)) return Unavailable("block inventory is closed or in error");
             if (!action.IsInRange(slots)) return Unavailable($"block slot out of range: {action}");
             return action.Run(_block, slots, _player.ReadGrab().IsEmpty);
-        }
 
-        private static UiCommandResult Unavailable(string detail)
-        {
-            // 説明文はログだけへ。Detail は失敗コードの欄なので空（UiCommandResult の契約。ToWireCode が "invalid_slot" を返す）
-            // The description goes to the log only; Detail is the failure-code field and stays empty (UiCommandResult contract; ToWireCode returns "invalid_slot")
-            Debug.LogWarning($"[BlockItemActionExecutor] {detail}");
-            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
+            #region Internal
+
+            UiCommandResult Unavailable(string detail)
+            {
+                // 説明文はログだけへ。Detail は失敗コードの欄なので空（UiCommandResult の契約。ToWireCode が "invalid_slot" を返す）
+                // The description goes to the log only; Detail is the failure-code field and stays empty (UiCommandResult contract; ToWireCode returns "invalid_slot")
+                Debug.LogWarning($"[BlockItemActionExecutor] {detail}");
+                return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
+            }
+
+            #endregion
         }
     }
 }

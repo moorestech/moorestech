@@ -16,7 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
     public sealed class LackHighlightText : LocalizedLabel
     {
         public const string ClassName = "lack-highlight-text";
-        public const string InsufficientClassName = "lack-highlight-text--insufficient";
+        internal const string InsufficientClassName = "lack-highlight-text--insufficient";
 
         public LackHighlightText(string testid, LackHighlightTextSize size)
         {

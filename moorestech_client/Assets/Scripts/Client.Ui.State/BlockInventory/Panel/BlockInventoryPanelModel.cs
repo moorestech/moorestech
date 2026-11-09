@@ -44,13 +44,13 @@ namespace Client.Ui.State.BlockInventory.Panel
             _tracker.OnTrackedBlockChanged.Subscribe(_ => Rebuild());
             _tracker.OnTrackedBlockStateChanged.Subscribe(_ => Rebuild());
             Rebuild();
-        }
-
-        private void Rebuild()
-        {
-            _current.Value = Read();
 
             #region Internal
+
+            void Rebuild()
+            {
+                _current.Value = Read();
+            }
 
             BlockInventoryPanelState Read()
             {

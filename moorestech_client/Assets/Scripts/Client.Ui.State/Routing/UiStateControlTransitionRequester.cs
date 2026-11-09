@@ -25,12 +25,16 @@ namespace Client.Ui.State.Routing
             if (!UiStateTransitionRules.IsAllowed(_uiStateControl.CurrentState, requested)) return Refuse($"{_uiStateControl.CurrentState} -> {requested} is not allowed");
             _uiStateControl.RequestTransition(requested);
             return true;
-        }
 
-        private static bool Refuse(string reason)
-        {
-            Debug.LogWarning($"[UiStateControlTransitionRequester] transition refused: {reason}");
-            return false;
+            #region Internal
+
+            bool Refuse(string reason)
+            {
+                Debug.LogWarning($"[UiStateControlTransitionRequester] transition refused: {reason}");
+                return false;
+            }
+
+            #endregion
         }
     }
 }

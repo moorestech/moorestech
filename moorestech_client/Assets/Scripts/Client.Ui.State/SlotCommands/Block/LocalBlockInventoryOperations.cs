@@ -34,6 +34,24 @@ namespace Client.Ui.State.SlotCommands.Block
             var (toType, toSlot) = ToLocal(to);
             var result = _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
             return PlayerItemMoveOutcomeConversion.FromController(result, nameof(LocalBlockInventoryOperations), $"{from} -> {to} x{count}");
+
+            #region Internal
+
+            // 番地の写しはここ 1 か所。ブロックは MainSlotCount を足した結合の番地
+            // The only address mapping; block refs add MainSlotCount for the combined index
+            (LocalMoveInventoryType type, int slot) ToLocal(ItemMoveSlotRef slot)
+            {
+                return slot.Area switch
+                {
+                    ItemMoveArea.Grab => (LocalMoveInventoryType.Grab, 0),
+                    ItemMoveArea.Main => (LocalMoveInventoryType.MainOrSub, slot.Slot),
+                    ItemMoveArea.Equipment => (LocalMoveInventoryType.Equipment, slot.Slot),
+                    ItemMoveArea.Block => (LocalMoveInventoryType.MainOrSub, _controller.LocalPlayerInventory.MainSlotCount + slot.Slot),
+                    _ => throw new ArgumentOutOfRangeException(nameof(slot), slot.Area, null),
+                };
+            }
+
+            #endregion
         }
 
         public void CollectToGrab()
@@ -44,20 +62,6 @@ namespace Client.Ui.State.SlotCommands.Block
         public void CollectToBlockSlot(int blockSlot)
         {
             _controller.CollectItems(LocalMoveInventoryType.MainOrSub, _controller.LocalPlayerInventory.MainSlotCount + blockSlot);
-        }
-
-        // 番地の写しはここ 1 か所。ブロックは MainSlotCount を足した結合の番地
-        // The only address mapping; block refs add MainSlotCount for the combined index
-        private (LocalMoveInventoryType type, int slot) ToLocal(ItemMoveSlotRef slot)
-        {
-            return slot.Area switch
-            {
-                ItemMoveArea.Grab => (LocalMoveInventoryType.Grab, 0),
-                ItemMoveArea.Main => (LocalMoveInventoryType.MainOrSub, slot.Slot),
-                ItemMoveArea.Equipment => (LocalMoveInventoryType.Equipment, slot.Slot),
-                ItemMoveArea.Block => (LocalMoveInventoryType.MainOrSub, _controller.LocalPlayerInventory.MainSlotCount + slot.Slot),
-                _ => throw new ArgumentOutOfRangeException(nameof(slot), slot.Area, null),
-            };
         }
     }
 }

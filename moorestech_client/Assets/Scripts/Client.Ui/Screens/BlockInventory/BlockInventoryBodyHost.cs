@@ -57,18 +57,22 @@ namespace Client.Ui.Screens.BlockInventory
                 _view.PlaceBody(_trainBody.Root, !layout.IsLarge);
                 _trainBody.Attach(train);
             }
-        }
 
-        private void DetachAll()
-        {
-            _body?.Detach();
-            _titleAction?.Detach();
-            _trainBody?.Detach();
-            _body = null;
-            _titleAction = null;
-            _trainBody = null;
-            _view.ClearBody();
-            _view.ClearTitleAction();
+            #region Internal
+
+            void DetachAll()
+            {
+                _body?.Detach();
+                _titleAction?.Detach();
+                _trainBody?.Detach();
+                _body = null;
+                _titleAction = null;
+                _trainBody = null;
+                _view.ClearBody();
+                _view.ClearTitleAction();
+            }
+
+            #endregion
         }
     }
 }
