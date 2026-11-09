@@ -1,0 +1,115 @@
+using System;
+using System.IO;
+using Client.Game.Localization;
+using Client.Localization;
+using Client.Ui.Components.Slots;
+using Client.Ui.Content;
+using Client.Ui.Foundation.Tooltip;
+using Core.Master;
+using Mod.Loader;
+using Mooresmaster.Localization.Generated;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UnityEngine;
+using UnityEngine.TestTools;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Content
+{
+    /// <summary>
+    /// 液体の色と名前の解決を確かめる
+    /// Verifies GameContentPresentation resolves the fluid fill color from the master and fluid names follow the language
+    /// </summary>
+    public class FluidContentTest
+    {
+        private static readonly Guid WaterGuid = new("00000000-0000-0000-1234-000000000001");
+        private bool _hadSavedLanguage;
+        private string _savedLanguage;
+        private string _temporaryDirectory;
+
+        [SetUp]
+        public void SetUp()
+        {
+            // 言語を退避し、mod と英語辞書を組む
+            // Stash the device's saved language and load the test mod master with an English dictionary
+            _hadSavedLanguage = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
+            _savedLanguage = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
+            _temporaryDirectory = Path.Combine(Path.GetTempPath(), $"fluid-content-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(_temporaryDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            Localize.Initialize();
+            Localize.TrySetChosenLanguage("english");
+            MergeFluidNames();
+
+            #region Internal
+
+            // 辞書へ液体名キーを合成する（C3-a と同形）
+            // Compose the fluid-name derived key into a temporary mod dictionary (same shape as C3-a GameContentPresentationTest)
+            void MergeFluidNames()
+            {
+                var modDirectory = Path.Combine(_temporaryDirectory, "fluid-names-mod");
+                Directory.CreateDirectory(Path.Combine(modDirectory, "master"));
+                Directory.CreateDirectory(Path.Combine(modDirectory, "localization"));
+                File.WriteAllText(
+                    Path.Combine(modDirectory, "master", "modMeta.json"),
+                    "{\"id\":\"fluid-names\",\"name\":\"fluid-names\",\"version\":\"1.0\",\"author\":\"author\",\"description\":\"test\"}");
+                File.WriteAllText(
+                    Path.Combine(modDirectory, "localization", "localization.csv"),
+                    "key,Source,english,japanese\n" +
+                    $"{ContentLocalizationKeys.FluidName(WaterGuid).Key},Test Water,Test Water,テスト水\n");
+                Localize.MergeGameDictionaries(new ModsResource(_temporaryDirectory), new[] { new ModId("author:fluid-names") }, MasterSourceTextCollector.Collect());
+            }
+
+            #endregion
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // 言語の復元を先に済ませ、検証が失敗しても英語固定を残さない
+            // Restore the language first so a failed assertion never leaves English pinned
+            if (_hadSavedLanguage) PlayerPrefs.SetString(Localize.LanguagePreferenceKey, _savedLanguage);
+            else PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
+            PlayerPrefs.Save();
+            if (Directory.Exists(_temporaryDirectory)) Directory.Delete(_temporaryDirectory, true);
+            Localize.Initialize();
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void 液体の背面の色はマスタの色()
+        {
+            var content = new GameContentPresentation(new FakeContentTextureSource(null, null, null));
+
+            var face = content.FluidFace(MasterHolder.FluidMaster.GetFluidId(WaterGuid));
+
+            Assert.AreEqual((Color)new Color32(0x33, 0x99, 0xFF, 0xFF), face);
+        }
+
+        [Test]
+        public void 空の液体は色を引かずに止める()
+        {
+            var content = new GameContentPresentation(new FakeContentTextureSource(null, null, null));
+
+            Assert.Throws<ArgumentException>(() => content.FluidFace(FluidMaster.EmptyFluidId));
+        }
+
+        /// <web-test file="src/shared/ui/FluidSlot/FluidSlot.localization.test.ts">fluidGuidの導出キーを辞書解決し、言語切替でラベルが追従する</web-test>
+        [Test]
+        public void 液体スロットの名前はGUIDから導いた辞書名で言語を切り替えると追従する()
+        {
+            // 言語だけ変え、印の文の再解決を見る
+            // Change only the language without resetting the value and check the mark's text re-resolves
+            var content = new GameContentPresentation(new FakeContentTextureSource(null, null, null));
+            var waterId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
+            var slot = new FluidSlot("fluid-slot");
+            slot.SetFluid(FluidSlotContent.Filled(content.Fluid(waterId), 500, 1000, content.FluidFace(waterId)));
+
+            Assert.IsTrue(HoverTooltipMark.TryFindMarked(slot.Q(className: "fluid-slot__icon"), out _, out var text));
+            Assert.AreEqual("Test Water", text.Resolve());
+            Localize.TrySetChosenLanguage("japanese");
+            Assert.AreEqual("テスト水", text.Resolve());
+        }
+    }
+}

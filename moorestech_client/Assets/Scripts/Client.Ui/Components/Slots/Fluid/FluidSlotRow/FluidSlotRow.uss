@@ -1,0 +1,5 @@
+/* web: moorestech_web/webui/src/shared/ui/FluidSlotRow/index.tsx の Group gap="xs" align="center" と fluids.length === 0 の null を写す。並びと間隔は UiGroup が持つ */
+/* web: copies Group gap="xs" align="center" and the null for fluids.length === 0 in moorestech_web/webui/src/shared/ui/FluidSlotRow/index.tsx; UiGroup owns the flow and gap */
+.fluid-slot-row--empty {
+    display: none;
+}

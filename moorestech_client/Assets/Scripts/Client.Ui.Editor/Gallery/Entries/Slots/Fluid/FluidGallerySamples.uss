@@ -1,0 +1,12 @@
+/* 液体の族の見本だけが当てる画面のつまみの上書き（値は Web の画面 CSS） */
+/* Screen knob overrides applied only by fluid-family samples (values from the Web screen CSS) */
+
+/* 機械のレシピ選択の行（4-block-machine-recipe-selection）。--slot-size は W/features/blockInventory/details/machine/recipeSelection/machineRecipeSelectionList.module.css の --recipe-slot-size-max: 2rem が recipeSlotLayout.ts の min() で勝った値（参照の白面を画素で測って 32px・2560 で 48px）。ほかは W/features/recipe/views/RecipeBox.module.css の上書き（0.12em は UITK で 12px。A-70） */
+/* Machine recipe selection row (4-block-machine-recipe-selection); --slot-size is --recipe-slot-size-max: 2rem from machineRecipeSelectionList.module.css winning recipeSlotLayout.ts's min() (measured 32px white face, 48px at 2560); the rest are RecipeBox.module.css overrides (0.12em is 12px in UITK, A-70) */
+.fluid-gallery__recipe-row {
+    --slot-size: 32px;
+    --icon-pad: 1px;
+    --count-bottom: -1px;
+    --count-font-size: 16px;
+    --count-letter-spacing: 12px;
+}
