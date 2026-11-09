@@ -27,19 +27,21 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         {
             // 写した行為を実行の記録で検証し、番地・個数・クリック枠の取り違えを赤にする
             // Verify converted actions through the execution record so swapped slots, counts or clicked slot turn red
+            // 集めは grab が空のときだけクリック枠へ集めるので、分割で grab が埋まる前に置く
+            // Collect targets the clicked slot only while grab is empty, so it runs before the split fills grab
             var operations = new RecordingPlayerInventoryOperations(9, 2);
             var wood = new ItemId(1);
             operations.SetEquipment(0, new SlotItem(wood, 5));
             operations.SetMain(1, new SlotItem(wood, 9));
             var actions = new[]
             {
+                Convert(PlannedItemAction.Collect(ItemMoveSlotRef.Main(0))),
                 Convert(PlannedItemAction.MoveItem(ItemMoveSlotRef.Equipment(0), ItemMoveSlotRef.Main(3), 2)),
                 Convert(PlannedItemAction.Split(ItemMoveSlotRef.Main(1))),
-                Convert(PlannedItemAction.Collect(ItemMoveSlotRef.Main(0))),
             };
-            Assert.IsInstanceOf<MoveBetweenSlotsAction>(actions[0]);
-            Assert.IsInstanceOf<SplitToGrabAction>(actions[1]);
-            Assert.IsInstanceOf<CollectAction>(actions[2]);
+            Assert.IsInstanceOf<CollectAction>(actions[0]);
+            Assert.IsInstanceOf<MoveBetweenSlotsAction>(actions[1]);
+            Assert.IsInstanceOf<SplitToGrabAction>(actions[2]);
 
             var result = new PlayerItemActionExecutor(operations).Execute(actions);
 
