@@ -1,13 +1,13 @@
 namespace Client.Ui.Foundation.DragDrop
 {
     /// <summary>
-    /// ドラッグの源が持つ値と押下の受け手
-    /// Value held by a drag source and its press receiver
+    /// ドラッグ源の値。落とし先の型を型引数で閉じる
+    /// Value held by a drag source and its press receiver; the drop target type is closed by the type argument so receivers get the concrete type
     /// </summary>
-    public interface IUiDragPayload
+    public interface IUiDragPayload<in TTarget> where TTarget : class
     {
         void OnTapped();
-        void OnDropped(IUiDropTarget target);
+        void OnDropped(TTarget target);
         void OnDroppedOutside();
     }
 }

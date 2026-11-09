@@ -1,5 +1,6 @@
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.Screens.Tutorial.Overlay;
+using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.Overlay;
 using Client.Ui.State.Tutorial.Overlay;
 using NUnit.Framework;
@@ -25,22 +26,44 @@ namespace Client.Tests.Ui.Screens.Tutorial.Design
         // Task 10 のレビューの穴: 解決後の枠線の赤とグローの色を実画面で見る（Web の expectAttentionGlow 相当）
         // Gap from the Task 10 review: check the resolved ring red and glow color on the real panel (Web expectAttentionGlow)
         [Test]
-        public void 描かれた枠線は赤でグローは赤から導いた色になる()
+        public void 描かれた枠線は赤で面の上のグローは暗い面に合わせた色になる()
         {
-            var model = new FakeTutorialOverlayModel();
-            var view = TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, model.Current);
-            MountAnchor(rootVisualElement, "research.node-a", 100, 100, 120, 60);
-            model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "research.node-a", null))));
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
+            // アンカーをパネルの面の中に置く（グローは暗い面の上に載る）
+            // Put the anchor inside a panel surface (the glow lands on the dark surface)
+            var surface = new VisualElement { name = "surface" };
+            surface.style.position = Position.Absolute;
+            surface.style.width = 400;
+            surface.style.height = 300;
+            UiSurface.Mark(surface);
+            rootVisualElement.Add(surface);
+            var (view, ring, glow) = MountOutline(surface);
 
-            var ring = view.Q(className: "tutorial-outline__ring").resolvedStyle;
-            var glow = view.Q(className: "tutorial-outline__glow").resolvedStyle;
             var red = ThemeTokenFile.ResolveColor("--tutorial-attention-red");
             Assert.AreEqual(UnityEngine.Color.red, red);
             ThemeTokenFile.AssertSameColor(red, ring.borderTopColor, "ring");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--tutorial-attention-glow"), glow.borderTopColor, "glow");
             Assert.Greater(glow.borderTopWidth, 0f);
+            Assert.IsNotNull(view);
+        }
+
+        // 1 つの α では暗い面と明るい世界の地を両立できないので、世界の上は明るい地に合わせた色へ替える（LX-38）
+        // One alpha cannot serve dark surfaces and the bright world, so over the world switch to the bright-ground color (LX-38)
+        [Test]
+        public void 世界の上のグローは明るい地に合わせた色になる()
+        {
+            var (_, _, glow) = MountOutline(rootVisualElement);
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--tutorial-attention-glow-over-world"), glow.borderTopColor, "glow over world");
+        }
+
+        private (TutorialOverlayView view, IResolvedStyle ring, IResolvedStyle glow) MountOutline(VisualElement anchorParent)
+        {
+            var model = new FakeTutorialOverlayModel();
+            var view = TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, model.Current);
+            MountAnchor(anchorParent, "research.node-a", 100, 100, 120, 60);
+            model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "research.node-a", null))));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            return (view, view.Q(className: "tutorial-outline__ring").resolvedStyle, view.Q(className: "tutorial-outline__glow").resolvedStyle);
         }
 
         /// <web-test file="src/features/tutorial/tutorialAttentionDesign.test.ts">拡縮は1.03で、内側ノードを足さず既存の.highlight自身に付ける</web-test>

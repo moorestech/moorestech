@@ -4,6 +4,7 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
@@ -49,6 +50,7 @@ namespace Client.Ui.Screens.PauseMenu
             pickingMode = PickingMode.Ignore;
             var panel = new VisualElement { name = "pause-menu" };
             panel.AddToClassList("pause-menu__panel");
+            UiSurface.Mark(panel);
             TutorialAnchor.Mark(panel, AnchorIds.PauseMenu);
             Add(panel);
 

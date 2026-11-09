@@ -119,9 +119,9 @@ public enum ModeSwitchOrientation { Horizontal, Vertical }  public enum ModeSwit
 // つまみ --mode-switch-option-height（既定 34.8px）。選択のクラス mode-switch__option--selected、無効は Button.SetEnabled(false)
 // GameScrollView に足される口: float GetViewportHeight()・float GetContentHeight()・bool TryGetContentTop(VisualElement descendant, out float top)・IObservable<Unit> OnContentLayoutChanged
 // namespace Client.Ui.Foundation.DragDrop
-public interface IUiDragPayload { void OnTapped(); void OnDropped(IUiDropTarget target); void OnDroppedOutside(); }
-public interface IUiDropTarget { }
-public static class UiDragDrop { public static void MarkSource(VisualElement source, IUiDragPayload payload); public static void MarkTarget(VisualElement target, IUiDropTarget handler); public static void UnmarkTarget(VisualElement target); }
+public interface IUiDragPayload<in TTarget> where TTarget : class { void OnTapped(); void OnDropped(TTarget target); void OnDroppedOutside(); }
+public static class UiDragDrop { public static void MarkSource<TTarget>(VisualElement source, IUiDragPayload<TTarget> payload) where TTarget : class; public static void MarkTarget<TTarget>(VisualElement target, TTarget handler) where TTarget : class; public static void UnmarkTarget<TTarget>(VisualElement target) where TTarget : class; }
+// 印は落とし先の型ごとの表。解放点から源と同じ型の最寄りの印を引き、別の型の印は飛ばす（無ければ OnDroppedOutside）。同じ源を 2 つ目の型で印すると LogError で無視。クラス ui-drop-target は全部の型の印が外れたときだけ消える（設計書 A-132）
 // HoverTooltipHost は GameUiHoverTooltipInstaller が全体に 1 つ据える（画面は HoverTooltipMark で印を付けるだけ）
 ```
 
@@ -235,7 +235,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `S/Client.Ui/Screens/BuildMenu/Parts/BuildMenuEntrySlot.cs` | エントリ 1 マス（枠・面・錨・ツールチップの印・ドラッグ源・身振り） | 新規 |
 | `S/Client.Ui/Screens/BuildMenu/Parts/BuildMenuShortageTooltipText.cs` | 不足ツールチップの文（題＋不足行を改行で結ぶ） | 新規 |
 | `S/Client.Ui/Screens/BuildMenu/Parts/BuildMenuDetailSidebar.cs` | 詳細の sticky（ヒント・アイコン・名前・素材・残り） | 新規 |
-| `S/Client.Ui/Screens/BuildMenu/Parts/BuildMenuEntryDragPayload.cs` | `IUiDragPayload`（タップ＝選択・落としは `IHotbarDropReceiver` へ、それ以外は枠の外と同じく何もしない） | 新規 |
+| `S/Client.Ui/Screens/BuildMenu/Parts/BuildMenuEntryDragPayload.cs` | `IUiDragPayload<IHotbarDropReceiver>`（タップ＝選択・落としは `IHotbarDropReceiver` へ。別の型の落とし先は Foundation が飛ばして `OnDroppedOutside` になり、枠の外と同じく何もしない） | 新規 |
 | `S/Client.Ui/Screens/BuildMenu/Parts/IBuildMenuEntryHandler.cs` | マスから View への操作の口（選択・削除・ホバー） | 新規 |
 | `S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs` | Store・Model・Commands・Presenter の登録 | 新規 |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | 画面登録区画に 1 行 | 変更（共有区画） |
@@ -309,7 +309,7 @@ S=moorestech_client/Assets/Scripts
 grep -n "public ModeSwitch(\|OnOptionSelected\|SetOptionEnabled" $S/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.cs
 grep -rn "enum ModeSwitchRole\|public ModeSwitchOption(" $S/Client.Ui/Components/Controls/ModeSwitch/
 grep -n "GetViewportHeight\|GetContentHeight\|TryGetContentTop\|OnContentLayoutChanged" $S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs
-grep -rn "public static void MarkSource\|interface IUiDragPayload\|interface IUiDropTarget" $S/Client.Ui/Foundation/DragDrop/
+grep -rn "public static void MarkSource<TTarget>\|interface IUiDragPayload<in TTarget>\|public static void MarkTarget<TTarget>" $S/Client.Ui/Foundation/DragDrop/
 grep -rln "class HoverTooltipHost\|class GameUiHoverTooltipInstaller" $S/Client.Ui/Foundation/Tooltip/
 # C3-a・L0-s3・既存
 grep -n "public SlotFrame(\|public PlacementTargetFace(\|public SlotGrid(\|public ItemSlot(" -r $S/Client.Ui/Components/Slots/ | head
@@ -321,7 +321,7 @@ grep -n "section: Screens" "moorestech_client/Assets/UI Toolkit/GameUi/GameUiThe
 git merge-base --is-ancestor e26010aa0c origin/feature/uitk && echo i-fix1-in
 ls $S/Client.Ui.State/BuildMenu $S/Client.Tests/Ui/State/BuildMenu $S/Client.Starter/Registration/GameUi 2>/dev/null
 ```
-Expected: worktree の絶対パス。C3-b の 5 つの grep がそれぞれ当たる（`ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options)`・`OnOptionSelected`・`SetOptionEnabled`・`ModeSwitchOption(string testid, TValue value, UiText label)`・GameScrollView の口 4 つ・`MarkSource`・`IUiDragPayload`・`IUiDropTarget`・`HoverTooltipHost.cs`）。C3-a・L0-s3 の行が出る。`section: Screens` と `i-fix1-in` が出る。C3-b の grep が 1 つでも 0 件なら「C3-b 未取り込み」として `done.md` の 1 行目を「状態: 停止（C3-b 未取り込み）」にして止め、指揮へ報告する。名前だけ違うものは以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。最後の `ls` で `Client.Tests/Ui/State/BuildMenu` の既存ファイル数を数え、この計画の 4 本（テスト 3・補助 1）を足して 10 を超えるなら、足す 4 本を `Client.Tests/Ui/State/BuildMenu/Screen/`（namespace `Client.Tests.Ui.State.BuildMenu.Screen`）へ置く
+Expected: worktree の絶対パス。C3-b の 5 つの grep がそれぞれ当たる（`ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options)`・`OnOptionSelected`・`SetOptionEnabled`・`ModeSwitchOption(string testid, TValue value, UiText label)`・GameScrollView の口 4 つ・`MarkSource<TTarget>`・`IUiDragPayload<in TTarget>`・`MarkTarget<TTarget>`・`HoverTooltipHost.cs`）。C3-a・L0-s3 の行が出る。`section: Screens` と `i-fix1-in` が出る。C3-b の grep が 1 つでも 0 件なら「C3-b 未取り込み」として `done.md` の 1 行目を「状態: 停止（C3-b 未取り込み）」にして止め、指揮へ報告する。名前だけ違うものは以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。最後の `ls` で `Client.Tests/Ui/State/BuildMenu` の既存ファイル数を数え、この計画の 4 本（テスト 3・補助 1）を足して 10 を超えるなら、足す 4 本を `Client.Tests/Ui/State/BuildMenu/Screen/`（namespace `Client.Tests.Ui.State.BuildMenu.Screen`）へ置く
 
 - [ ] **Step 2: 使う文言が辞書と生成キーにあることを確かめる**
 
@@ -351,7 +351,7 @@ mkdir -p ../moorestech_logs/harness/uitk/S3-buildmenu
 ## 差の表
 ## 要裁定
 ## integrator への依頼
-- 作った・持ち主は S3-buildmenu: 落としの受け口 `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（`void Receive(HotbarDragSource source)`）。`BuildMenuEntryDragPayload.OnDropped` は `target is IHotbarDropReceiver` なら `Receive` を呼んで終わり（断った理由のログは受け手）、それ以外は枠の外と同じく何もしない。S3-hotbar-modal は枠の印の型で `IUiDropTarget` と `IHotbarDropReceiver` を両方実装するだけ（D-16）
+- 作った・持ち主は S3-buildmenu: 落としの受け口 `S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（`void Receive(HotbarDragSource source)`）。`BuildMenuEntryDragPayload` は `IUiDragPayload<IHotbarDropReceiver>` で、`OnDropped(IHotbarDropReceiver receiver)` は `receiver.Receive(Source)` を呼ぶだけ（断った理由のログは受け手）。別の型の落とし先は Foundation が飛ばして `OnDroppedOutside` になり、枠の外と同じく何もしない。S3-hotbar-modal は枠の印で `IHotbarDropReceiver` を実装し `UiDragDrop.MarkTarget<IHotbarDropReceiver>` で付けるだけ（D-16）
 - 作った・持ち主は S3-buildmenu: 配置対象の絵の出どころ `S/Client.Ui.State/PlacementTarget/PlacementTargetIcon.cs`・`PlacementTargetIconResolver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`。S3-hotbar-modal は使うだけ（D-29）
 - 設計書: A-100〜A-105 は計画の段階で `component-architecture.md` に反映済み（依頼なし）。実装で設計書と違う形が要ると分かったときだけ、ここへ案を書く
 ## 未確認
@@ -1669,9 +1669,9 @@ Task 13 Step 2 の取り込みで `localization.csv` が衝突し、生成物を
   - `namespace Client.Ui.Screens.BuildMenu.Parts { public interface IBuildMenuEntryHandler { void OnEntrySelected(Guid targetId); void OnBlueprintDeleteRequested(Guid targetId); void OnEntryHovered(Guid targetId); } }`
   - `public sealed class BuildMenuEntrySlot { public const string EntryClass = "build-menu__entry"; public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler); public SlotFrame Frame { get; } public Guid TargetId { get; } public void Render(BuildMenuEntryViewModel entry); public static string TestIdOf(BuildMenuEntryViewModel entry); }`
   - `namespace Client.Ui.Content { public sealed class PlacementTargetIcons { public PlacementTargetIcons(GameContentPresentation content, IGameContentTextureSource textures, IBlueprintThumbnailLookup thumbnails); public bool TryToUiIcon(PlacementTargetIcon icon, out UiIcon uiIcon); } }`（値だけを返す。NameOnly と撮影の消えた BP で false。面へ当てる分岐は Screens）・`IGameContentTextureSource` に `Texture2D TrainCarTexture(Guid)`・`Texture2D ConnectToolTexture(Guid)`
-  - `namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { void Receive(HotbarDragSource source); } }`（S3-hotbar-modal が枠の印で `IUiDropTarget` と一緒に実装する）
+  - `namespace Client.Ui.State.Hotbar.Logic { public interface IHotbarDropReceiver { void Receive(HotbarDragSource source); } }`（S3-hotbar-modal が枠の印で実装し、`UiDragDrop.MarkTarget<IHotbarDropReceiver>` で付ける）
   - `public static class BuildMenuShortageTooltipText { public static bool TryCreate(BuildMenuEntryViewModel entry, GameContentPresentation content, out UiText text); }`
-  - `public sealed class BuildMenuEntryDragPayload : IUiDragPayload { public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler); public BuildMenuEntryDragSource Source { get; } }`
+  - `public sealed class BuildMenuEntryDragPayload : IUiDragPayload<IHotbarDropReceiver> { public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler); public BuildMenuEntryDragSource Source { get; } }`
   - テスト補助 `BuildMenuSamples`（Task 6・7 も使う）: `public static readonly Guid Logistics, Transport, Blueprint, BuildingMaterials, EmptyCategory, Sub; public static readonly Guid WoodChest, IronChest, BeltConveyor, Rail, CargoCar, StarterBase; public static BuildMenuViewModel Create(); public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials); public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials, PlacementTargetIcon woodChestIcon); public static BuildMenuEntryViewModel Block(Guid id, Guid category, string label, IReadOnlyList<BuildMenuMaterialRow> materials, bool paymentWaived, BuildMenuSetPlacement setPlacement); public static BuildMenuMaterialRow Material(ItemId itemId, int count, int held);`
 
 - [ ] **Step 1: テスト補助を書く**
@@ -1862,8 +1862,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 - `左のタップは選択を要求する`: Block のマスを載せ、`UiDragDropTest` と同じ押下→解放（移動なし）を流す → `handler.Selected` が `[id]`、`DeleteRequested` が空
 - `BPの右押下だけ削除を要求する`: BP のマスと Block のマスに `SlotFrame` の右押下（`PointerDownEvent` の button 1。C3-a の `SlotFrameTest` の流し方を写す）→ `DeleteRequested` が BP の id だけ
 - `ホバーで詳細の対象を知らせる`: `PointerEnterEvent`（`SlotFrameTest` の HoverEnter の流し方）→ `Hovered` が `[id]`
-- `ホットバーの受け口へ落とすと源を1回渡す`: テストファイル内の `private sealed class RecordingHotbarReceiver : IUiDropTarget, IHotbarDropReceiver`（`List<HotbarDragSource> Received`・`Receive` は積むだけ）へ `new BuildMenuEntryDragPayload(id, handler).OnDropped(receiver)` → `Received.Count == 1`・`((BuildMenuEntryDragSource)Received[0]).TargetId == id`・`LogAssert.NoUnexpectedReceived()`・`Selected` は空
-- `受け口でない落とし先と断られた落としは何もしない`: `private sealed class PlainTarget : IUiDropTarget` へ落とす → `Selected`・`DeleteRequested` が空、`LogAssert.NoUnexpectedReceived()`
+- `ホットバーの受け口へ落とすと源を1回渡す`: テストファイル内の `private sealed class RecordingHotbarReceiver : IHotbarDropReceiver`（`List<HotbarDragSource> Received`・`Receive` は積むだけ）へ `new BuildMenuEntryDragPayload(id, handler).OnDropped(receiver)` → `Received.Count == 1`・`((BuildMenuEntryDragSource)Received[0]).TargetId == id`・`LogAssert.NoUnexpectedReceived()`・`Selected` は空
+- `受け口でない落とし先と断られた落としは何もしない`: テストファイル内の中身の無い別の型 `private sealed class PlainTarget { }` を、Block のマスの横に置いた箱へ `UiDragDrop.MarkTarget<PlainTarget>(box, new PlainTarget())` で付け、マスから箱へ `UiDragDropTest` と同じ押下→移動→解放を流す。印の型（`PlainTarget`）が源の型（`IHotbarDropReceiver`）と違うので Foundation が飛ばし、枠の外と同じく `OnDroppedOutside` になる → `Selected`・`DeleteRequested` が空、`LogAssert.NoUnexpectedReceived()`
 
 - [ ] **Step 3: テストが落ちることを確かめる**
 
@@ -1966,7 +1966,7 @@ namespace Client.Ui.Content
 （容器の名前は `grep -n "TrainCarImageContainer\|ConnectToolImageContainer" moorestech_client/Assets/Scripts/Client.Game/InGame/Context/ClientContext.cs` で実物に合わせる）。`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` の 2 メソッドは ctor の `block` のテクスチャを返す（L1 は絵の有無だけを見る）
 
 
-`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（ホットバーへの落としの受け口。このレーンが作るのはこの 1 本だけで、S3-hotbar-modal は枠の印の型で `IUiDropTarget` と一緒に実装する。State は `Client.Ui` を参照できないので `IUiDropTarget` は継がない）:
+`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（ホットバーへの落としの受け口。このレーンが作るのはこの 1 本だけで、S3-hotbar-modal は枠の印で実装し `UiDragDrop.MarkTarget<IHotbarDropReceiver>` で付ける。State は `Client.Ui` を参照できないが、落とし先の型は源の型引数で閉じるので Foundation の型を継ぐ必要は無い）:
 ```csharp
 namespace Client.Ui.State.Hotbar.Logic
 {
@@ -2032,7 +2032,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
     /// エントリのドラッグ源。タップは選択、落としはホットバーの受け口（IHotbarDropReceiver）へ渡す
     /// Drag source of an entry; a tap selects, and a drop goes to the hotbar receiver (IHotbarDropReceiver)
     /// </summary>
-    public sealed class BuildMenuEntryDragPayload : IUiDragPayload
+    public sealed class BuildMenuEntryDragPayload : IUiDragPayload<IHotbarDropReceiver>
     {
         private readonly IBuildMenuEntryHandler _handler;
 
@@ -2049,19 +2049,11 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             _handler.OnEntrySelected(Source.TargetId);
         }
 
-        public void OnDropped(IUiDropTarget target)
+        public void OnDropped(IHotbarDropReceiver receiver)
         {
-            // ホットバーの枠の印（S3-hotbar-modal が IUiDropTarget と IHotbarDropReceiver を両方実装する）へ源を渡す。断った理由のログは受け手が出す（D-16）
-            // Hand the source to the hotbar slot mark (S3-hotbar-modal implements both); the receiver logs why it declines (D-16)
-            if (target is IHotbarDropReceiver receiver)
-            {
-                receiver.Receive(Source);
-                return;
-            }
-
-            // 受け口でない落とし先は枠の外と同じ扱い
-            // A non-receiver target is treated like a drop outside
-            OnDroppedOutside();
+            // ホットバーの印へ源を渡す。別の型の落とし先は Foundation が飛ばし OnDroppedOutside になる。断った理由のログは受け手が出す（D-16）
+            // Hand the source to the hotbar mark; other target types are skipped by Foundation into OnDroppedOutside; the receiver logs any refusal (D-16)
+            receiver.Receive(Source);
         }
 
         public void OnDroppedOutside()
@@ -4976,7 +4968,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 1. **Requirements coverage**: R-1 → Task 2・3、R-2 → Task 7（`BuildMenuLayoutTest` 7 件・USS）、R-3 → Task 6（サイドバー）・Task 7（`BuildMenuViewTest`・`BuildMenuSearchViewTest`・`BuildMenuLayoutTest`）、R-4 → Task 2（合成）・Task 7（検索）、R-5 → Task 6（リスト）・Task 7（視口・`BuildMenuScrollViewTest`）、R-6 → Task 5（マス・ツールチップ・錨）・Task 7（`--icon-pad`）、R-7 → Task 4（コマンド）・Task 7（`BuildMenuEntryActions`・トースト）、R-8 → Task 6・Task 7（`BuildMenuDetailStickyViewTest`）、R-9 → Task 7（`BuildMenuRestoreTest`）・Task 11、R-10 → Task 5（`BuildMenuDragSourceTest`。受け口へ 1 回渡す・Warning）・Task 1（作ったものの申告）、R-11 → L-1 Task 7（`BuildMenuScrollViewTest` 2 件目）・Task 11、L-2 Task 7（`BuildMenuRestoreTest` 2 件目）、L-3 Task 7（観測）・Task 8 Step 4・5、L-4 Task 7（`BuildMenuScrollBinding.Attach`・`BuildMenuRestoreTest` 3 件目）、L-5 Task 7（`BuildMenuSearchViewTest` 4 件目）、R-12 → Task 10、R-13 → Task 7 Step 6（tss）・Task 8（登録・PlayMode の Error 0）、R-14 → Task 11、R-15 → Task 12・13。完了条件の各句: 面の寸法（A-47 は D-5 で付け替え。面は `--icon-pad`、C# の導出はクリップの逃げ）・3 カラム・縦 `ModeSwitch`・`GameTextField`・スクロールスパイと smooth scroll（UiMotion）・詳細の sticky・BP 右クリック削除・不足ツールチップ・セッション復元・ドラッグ源・錨 `build-menu.entry-*`・P21（P20＋S3-hotbar-modal が写すホットバー側の 1）・C22（C9＋L0-s3 済み 13）・録画 7 本・[A-49] の `AppliedSpacerHeight`・L-1〜L-5。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<HEAD 10 桁>`・manifest の `<… のパス>`・台帳の実測の値・`<空きポート>` は実行時にしか決まらず、取り方（`bd create` の出力・`gh pr create`・`git rev-parse`・Task 8 Step 4 の EDC）を同じタスクに書いた。「TBD」「適切に」は無い。C3-b の API は Task 1 Step 1 で照合し、違えば読み替えて記録する手順を書いた。実物で確かめる括弧書き（`UiCommandRejected` の ctor・`FakeContentTextureSource` の名前空間・`PointerDownEvent` の送り方・`Escape` で PlaceBlock から戻るか・`LookExceptionLedgerTest` の照合範囲）は、確かめ方と違ったときの代わりを同じ箇所に書いた
 3. **Type consistency**: `BuildMenuViewModel(categories, headingNames, entries)`・`.HeadingNameOf`・`.TryGetEntry`・`.CatalogEntries`、`BuildMenuEntryViewModel(...)`・`.Catalog`・`.KindName`・`.CanDeleteBlueprint`・`.Materials`（`BuildMenuMaterialLine`）・`BuildMenuSetPlacementAvailable`・`PlacementTargetIcons.TryToUiIcon`・`IHotbarDropReceiver.Receive`・`.Icon`・`.SetPlacement`、`BuildMenuShownList.Groups`・`.SidebarCategories`・`.IsCategoryEnabled`・`.ShowsNoResults`・`.ShownCategoryGuids`、`BuildMenuShownListComposer.Compose`、`BuildMenuEntryFactory.CreateEntries`・`.CreateCategories`・`.CreateHeadingNames`、`BuildMenuModel.Current`、`IBuildMenuCommands.SelectEntry`・`DeleteBlueprint`・`Close`、`IBuildMenuEntryHandler.OnEntrySelected`・`OnBlueprintDeleteRequested`・`OnEntryHovered`、`BuildMenuEntrySlot(entry, content, icons, handler)`・`.Frame`・`.Render`、`BuildMenuCategoryList(content, icons, handler)`・`.Spacer`・`.Render(groups, viewModel)`・`.SetSpacerHeight`・`.TryGetHeading`・`.TryGetGroup`、`BuildMenuCategorySidebar.Render(shown, viewModel)`・`.SetActive`・`.OnCategorySelected`、`BuildMenuDetailSidebar(content, icons)`・`.ShowHint`・`.ShowEntry`、`BuildMenuPanelSkeleton(sidebar, list, detail)`・`.Band`・`.CloseButton`・`.Search`・`.Scroll`・`.SetNoResults`、`BuildMenuScrollViewport(scroll, list, tracker)`・`.Freeze`、`BuildMenuScrollBinding(scroll, list, tracker)`・`.Attach`・`.Detach`、`BuildMenuScrollClipInset.Apply`、`BuildMenuEntryActions(commands, toaster, session, detail)`・`.SetViewModel`、`BuildMenuView(commands, content, icons, toaster, session, tracker)`・`.Render`・`.SetShown`、`BuildMenuScreenPresenter(gameUiRoot, routingState, model, commands, content, icons, toaster, session)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `build-menu`・`__band`・`__panel`・`__frame`・`__close`・`__columns`・`__column-following`・`__sidebar`・`__category-switch`・`__main`・`__search`・`__scroll`・`__list`・`__group`・`__group--following`・`__trailing-spacer`・`__trailing-spacer--following`・`__category-heading`・`__section`・`__section-heading`・`__stacked`・`__section--following`・`__entry`・`__detail`・`__detail-stacked`・`__detail-icon`・`__detail-name`・`__detail-hint`・`__detail-cost`・`__no-results`、つまみ `--build-menu-scroll-clip-inset`・`--mode-switch-option-height`・`--icon-pad` は C#・USS・テストで一致。testid は Web の `data-testid` と同名
-4. **保留・縮退経路**: (a) `BuildMenuEntryDragPayload.OnDropped` → 受け口でない落とし先は `OnDroppedOutside` と同じく何もしない（正常操作の無操作。`silent-ok`）、断られた落としのログは受け手（S3-hotbar-modal）が出す（D-16）、`PlacementTargetIconResolver` の欠けた絵 → 名前で描く（Web の 404 と同じ見え方。面に名前が出るので目で気づく）、`OnDroppedOutside` → `silent-ok`（Web と同じく何もしない）。(b) `BuildMenuScrollViewport` の凍結後の要求 → Warning（`WarnIfFrozen`）。(c) `BuildMenuScrollBinding.Detach` の未装着 → `silent-ok`（View の `_shown` で通常は来ない）。(d) `BuildMenuScrollClipInset` の読めないつまみ → `UssCustomStyleReader` の LogError、L1 の逃げの主張が赤。(e) `BuildMenuView.SetShown` の同値 → `silent-ok`。(f) `AppliedSpacerHeight` の NaN → 0（反映待ちとして扱われ、トラッカーが待ち続ける。コメントに理由）。(g) `BuildMenuSectionView` の VM 外のエントリ → `InvalidOperationException`（組み立ての誤り）。(h) Model・コマンドの拒否 → `UiCommandResultToaster.Report`（良性はログだけ）。(i) Task 1・8・10・11 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」）を書いた
+4. **保留・縮退経路**: (a) `BuildMenuEntryDragPayload` → 受け口でない落とし先（別の型の印）は Foundation が飛ばして `OnDroppedOutside` になり何もしない（正常操作の無操作。`silent-ok`）、断られた落としのログは受け手（S3-hotbar-modal）が出す（D-16）、`PlacementTargetIconResolver` の欠けた絵 → 名前で描く（Web の 404 と同じ見え方。面に名前が出るので目で気づく）、`OnDroppedOutside` → `silent-ok`（Web と同じく何もしない）。(b) `BuildMenuScrollViewport` の凍結後の要求 → Warning（`WarnIfFrozen`）。(c) `BuildMenuScrollBinding.Detach` の未装着 → `silent-ok`（View の `_shown` で通常は来ない）。(d) `BuildMenuScrollClipInset` の読めないつまみ → `UssCustomStyleReader` の LogError、L1 の逃げの主張が赤。(e) `BuildMenuView.SetShown` の同値 → `silent-ok`。(f) `AppliedSpacerHeight` の NaN → 0（反映待ちとして扱われ、トラッカーが待ち続ける。コメントに理由）。(g) `BuildMenuSectionView` の VM 外のエントリ → `InvalidOperationException`（組み立ての誤り）。(h) Model・コマンドの拒否 → `UiCommandResultToaster.Report`（良性はログだけ）。(i) Task 1・8・10・11 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」）を書いた
 5. **「決定的にする」を根拠にした選択**: D-8（転送の門）は「Web と同挙動に潰れる」可能性を実機で測る前に塞ぐ選択で、根拠は L-3 の受け入れ基準（復元の主張が緑）と、潰れたときに利用者が失うもの（位置の復元）。決定性そのものは根拠にしていない。D-10（300ms・EaseOutCubic）は「ブラウザ任せの値を固定する」選択で、LX-71 に記帳した。ほかに無し
 6. **呼び出し側への責務漏出**: 合成（検索・群分け・サイドバーの無効）は `BuildMenuShownListComposer` の 1 か所、エントリの組み立ては `BuildMenuEntryFactory` の 1 か所、カテゴリ対・アイコンはそれぞれの Resolver の 1 か所。視口の寸法の読み・転送の門・介入・凍結は `BuildMenuScrollViewport` の 1 か所、張り替えの順（スペーサ → 視口 → 装着、保存 → 凍結）は `BuildMenuScrollBinding` の 1 か所で、View は順を知らない。クリップの逃げの導出は `BuildMenuScrollClipInset` の 1 か所。トーストの名前は `BuildMenuEntryActions` と View の定数。判定を返す新設 API は無い（`IsCategoryEnabled` は合成の結果の読み出し）
 
@@ -5003,7 +4995,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-13 | リストは群・節・エントリの並びのキーが同じなら中身だけ差し替え、違えば作り直す | 毎回作り直す: 所持品の変化（毎秒あり得る）でスクロールの寸法が揺れ、ホバーとツールチップの印が外れる | agent 既定（Web の React の key と同じ効果） |
 | D-14 | 詳細は sticky。ホバーした id をセッションに保存し、VM の再配信のたびに引き直す。エントリが消えたらヒントへ戻す | 離れたら消す: Web の regression 8 件目（sticky）に反する | Web `BuildMenuPanel.tsx` |
 | D-15 | 不足ツールチップの文は題＋不足行を改行で結んだ逐語（`UiText.FromVerbatim`）で、言語の変化で作り直す | 行ごとの `UiText` の列: `HoverTooltipMark` は `UiText` 1 つを受ける（F1 の実物） | agent 既定（F1 の API） |
-| D-16 | 落としの受け口 `IHotbarDropReceiver`（State/Hotbar/Logic・`IUiDropTarget` は継がない）をこのレーンが作り、`OnDropped` は `target is IHotbarDropReceiver r` なら `r.Receive(Source)` を呼んで終わる（断った理由のログは受け手が出す）。受け口でない落とし先は `OnDroppedOutside` と同じく何もしない。これは正常操作の無操作で、ガードの縮退ではない（Web と同じ） | Warning だけ置いて S3-hotbar-modal が本体を差し替える: 後のレーンがこのレーンのファイルを書き換え、所有が混ざる。このレーンで割当まで作る: 枠の印と割当は S3-hotbar-modal の持ち物。`IUiDropTarget` を継ぐ: State は `Client.Ui` を参照できない。断られた落としを源で Warning にする: 受け手と源の 2 か所でログが重なり、hotbar-modal 側の扱いとずれる | 本体（指揮代行）の決定 |
+| D-16 | 落としの受け口 `IHotbarDropReceiver`（State/Hotbar/Logic）をこのレーンが作り、源は `BuildMenuEntryDragPayload : IUiDragPayload<IHotbarDropReceiver>` で、`OnDropped(IHotbarDropReceiver receiver)` は `receiver.Receive(Source)` を呼ぶだけ（型の判定とキャストは書かない。断った理由のログは受け手が出す）。ホットバーの印は `MarkTarget<IHotbarDropReceiver>` で付き、受け口でない落とし先（別の型の印）は Foundation が飛ばして `OnDroppedOutside` になり何もしない。これは正常操作の無操作で、ガードの縮退ではない（Web と同じ） | Warning だけ置いて S3-hotbar-modal が本体を差し替える: 後のレーンがこのレーンのファイルを書き換え、所有が混ざる。このレーンで割当まで作る: 枠の印と割当は S3-hotbar-modal の持ち物。中身の無い印 interface を受け手に継がせて源がキャストする: 外れたら黙って枠外になり、State は `Client.Ui` を参照できない（A-132）。断られた落としを源で Warning にする: 受け手と源の 2 か所でログが重なり、hotbar-modal 側の扱いとずれる | 本体（指揮代行）の決定。I-fix3 で C3-b 要裁定 3 を推奨 A で反映（設計書 A-132） |
 | D-17 | 1 セット設置（`setPlacement`）は Block だけ | 全種別: Web の橋も Block だけに付ける（`BuildMenuEntryDtoFactory`） | Web の橋の実物 |
 | D-18 | `building/blueprint-place-like-block` は GameUi で `modal-input` の待ちまでを確かめ、Web で通しを 1 回流して既存経路を守る。GameUi の通しは S3-ladder | GameUi で通しを完了条件にする: BP 名のモーダルは S3-hotbar-modal の持ち物で W3 の順ではこのレーンの後。完了条件から外す: 実行計画の文言にあり、ビルドメニューの経路（BP コピーの選択）はこのレーンで確かめられる | 本体（指揮代行）の決定で採用（実行計画 §1.4・死活表） |
 | D-19 | Model は開いている間、源の変化をフレーム末（`PlayerLoopTiming.PostLateUpdate`）の 1 回に畳んで VM を組み直す。開いたときも同じ予約で組む。設計書 A-57 の「フレーム末への間引きはしない」の例外（A-57 の理由〈同じフレームの描き直しは UITK が 1 回の描画にまとめる〉は描画の回数の話で、全エントリの VM と全マスの組み直しの回数は減らさない。done.md の要裁定に載せる）。Presenter は出ている間だけ購読し、開いた直後は前回の VM を同じフレーム内で 1 回描く | 同期で組み直す: スロット通知 1 件ごとに全マスを組み直して描くことになり、橋の実物 `BuildMenuTopic.SchedulePublish`（同フレーム多発をフレーム末の 1 回に畳む）とも違う。開いた瞬間に同期で組む口（`RebuildOnOpen`）を足す: 前回 VM の描画は同フレーム内で上書きされ画面に出ないので、型を増やす理由が無い。閉じている間も購読: 描かない画面に配る理由が無い | moores-code-review 設計判断 D1（推奨案 A を agent 既定で採用。無人実行）・前例 `BuildMenuTopic.SchedulePublish`・設計書 [A-57]（表示中だけの購読の前例は無い。`PauseMenuScreenPresenter` 等は `Initialize` で 1 回購読する。判定の元〈Model は UIState・Presenter はルータの Screen〉が違う点は D-41(a)） |

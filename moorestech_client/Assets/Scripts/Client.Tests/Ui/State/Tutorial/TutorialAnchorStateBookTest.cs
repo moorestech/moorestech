@@ -16,8 +16,8 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 同じ矩形とclipの再解決は変化として扱わない()
         {
             var book = new TutorialAnchorStateBook();
-            Assert.IsTrue(book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport)));
-            Assert.IsFalse(book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport)));
+            Assert.IsTrue(book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport, TutorialAnchorGround.OverWorld)));
+            Assert.IsFalse(book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport, TutorialAnchorGround.OverWorld)));
         }
 
         /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">rectが同値でもclipが変われば再描画する</web-test>
@@ -26,8 +26,19 @@ namespace Client.Tests.Ui.State.Tutorial
         {
             var book = new TutorialAnchorStateBook();
             var rect = new TutorialClipRect(10, 20, 110, 60);
-            book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, Viewport));
-            Assert.IsTrue(book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, new TutorialClipRect(0, 30, 1280, 720))));
+            book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, Viewport, TutorialAnchorGround.OverWorld));
+            Assert.IsTrue(book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, new TutorialClipRect(0, 30, 1280, 720), TutorialAnchorGround.OverWorld)));
+        }
+
+        // 地はグローの色を決めるので、矩形と clip が同じでも地が変われば描き直す（LX-38。Web には無い比較項目）
+        // The ground picks the glow color, so a ground change alone is a change (LX-38; a comparison the Web lacks)
+        [Test]
+        public void 矩形とclipが同じでも地が変われば変化として扱う()
+        {
+            var book = new TutorialAnchorStateBook();
+            var rect = new TutorialClipRect(10, 20, 110, 60);
+            book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, Viewport, TutorialAnchorGround.OverSurface));
+            Assert.IsTrue(book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, Viewport, TutorialAnchorGround.OverWorld)));
         }
 
         /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">購読対象外になったanchorの解決状態は落とす</web-test>
@@ -35,7 +46,7 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 購読から外れたアンカーの状態は捨てる()
         {
             var book = new TutorialAnchorStateBook();
-            book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(0, 0, 10, 10), Viewport));
+            book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(0, 0, 10, 10), Viewport, TutorialAnchorGround.OverWorld));
             book.ApplyIfChanged("pause.back", TutorialAnchorState.NotFound.Missing());
             book.KeepOnly(new[] { "pause.back" });
 
