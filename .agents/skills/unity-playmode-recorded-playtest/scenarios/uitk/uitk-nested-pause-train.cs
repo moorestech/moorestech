@@ -48,6 +48,7 @@ return PlaytestRunner.Run("uitk-nested-pause-train", options, async p =>
     var car = await PrepareAndRideTrain();
     var trainHud = resolver.Resolve<UIStateDictionary>().GetState(UIStateEnum.TrainHUDScreen) as TrainHUDScreenState;
     await p.Until(() => p.CurrentUiState == UIStateEnum.TrainHUDScreen && trainHud.IsRiding, 15f, "列車HUDで乗車済み");
+    await p.Until(() => PlaytestUiElementOps.FindUi("train-riding-hud").GetAwaiter().GetResult().IsFound, 10f, "train-riding-hud が出た");
     await p.Screenshot("00-riding");
 
     // Escで入れ子ポーズ（UITK）を開く

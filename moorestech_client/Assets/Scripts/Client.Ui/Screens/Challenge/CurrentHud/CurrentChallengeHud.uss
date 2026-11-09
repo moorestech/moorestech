@@ -1,0 +1,26 @@
+/* web: moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css（.hud・.rule・.objectives・.objective） */
+/* 位置決めと文字の色・影だけを持ち、面は GamePanelSurface(hud)、題と罫線は HudSectionHeading が持つ。罫線の幅だけつまみで縮める */
+/* web: moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css (.hud, .rule, .objectives, .objective) */
+/* Owns only placement, text color and shadow; GamePanelSurface(hud) supplies the face and HudSectionHeading the title and rule, with only the rule width narrowed by its knob */
+
+.current-challenge-hud {
+    position: absolute;
+    top: var(--challenge-hud-top);
+    left: var(--challenge-hud-left);
+    width: var(--challenge-hud-width);
+    color: var(--text-high-contrast);
+    text-shadow: var(--challenge-hud-text-shadow);
+    --hud-rule-width: var(--challenge-hud-rule-width);
+}
+
+.current-challenge-hud .current-challenge-hud__objectives {
+    --ui-gap: var(--challenge-hud-objective-gap);
+}
+
+.current-challenge-hud__objective {
+    margin: 0;
+    padding: 0;
+    font-size: var(--challenge-hud-objective-font-size);
+    white-space: normal;
+    --localized-label-line-height: var(--challenge-hud-objective-line-height);
+}

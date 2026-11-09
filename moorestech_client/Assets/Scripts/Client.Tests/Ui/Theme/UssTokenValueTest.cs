@@ -30,5 +30,23 @@ namespace Client.Tests.Ui.Theme
         {
             Assert.IsFalse(UssTokenValue.TryParsePixels(text, out _));
         }
+
+        [TestCase("82%", 0.82f)]
+        [TestCase("46%", 0.46f)]
+        [TestCase("0%", 0f)]
+        public void ParsesPercent(string text, float expected)
+        {
+            Assert.IsTrue(UssTokenValue.TryParsePercent(text, out var ratio));
+            Assert.AreEqual(expected, ratio, 0.0001f);
+        }
+
+        [TestCase("82")]
+        [TestCase("82px")]
+        [TestCase("%")]
+        [TestCase("")]
+        public void RejectsNonPercent(string text)
+        {
+            Assert.IsFalse(UssTokenValue.TryParsePercent(text, out _));
+        }
     }
 }

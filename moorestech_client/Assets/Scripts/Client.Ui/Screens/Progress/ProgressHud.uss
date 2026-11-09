@@ -1,0 +1,19 @@
+/* web: moorestech_web/webui/src/features/progress/style.module.css（.wrapper） */
+/* ホットバーの番号タブの上へ幅と中心を揃える。充填だけ白へ逸脱する（ユーザー裁定。世界の上では寒色グレーが沈むため） */
+/* web: moorestech_web/webui/src/features/progress/style.module.css (.wrapper) */
+/* Aligned in width and center above the hotbar number tabs; only the fill deviates to white (user ruling: the cool gray sinks into the world) */
+
+.progress-hud {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--hotbar-floor-offset);
+    align-items: center;
+    --gauge-fill: var(--color-content-primary);
+}
+
+.progress-hud__column {
+    width: var(--hotbar-width);
+    margin-bottom: var(--progress-hotbar-gap);
+    left: var(--hotbar-horizontal-offset);
+}

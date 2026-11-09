@@ -4,6 +4,10 @@ namespace Client.Skit.UI
 {
     public class SkitPresentationData
     {
+        // blocking スキット（会話の演出が画面を持つ）のモード名。判定する側もこの定数を読む
+        // Mode name of a blocking skit (the dialogue owns the screen); consumers compare against this constant too
+        public const string BlockingMode = "blocking";
+
         public string SessionId;
         public int SceneRevision;
         public SkitPresentationState PresentationState;
@@ -26,7 +30,7 @@ namespace Client.Skit.UI
             bool uiHidden, string revealMode, int intervalMs, string[] allowedIntents)
         {
             return CreateBlocking(sessionId, revision, speaker, body, choices, textAreaVisible, transitionVisible,
-                autoEnabled, skipActive, uiHidden, revealMode, intervalMs, allowedIntents, "blocking");
+                autoEnabled, skipActive, uiHidden, revealMode, intervalMs, allowedIntents, BlockingMode);
         }
 
         public SkitPresentationData CopyWith(int revision, string[] allowedIntents)
