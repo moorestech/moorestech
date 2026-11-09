@@ -56,3 +56,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/CursorTooltip/CursorTooltip.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Tutorial/Overlay/TutorialOverlay.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Tutorial/DragGuide/TutorialDragGuide.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Tutorial/KeyControlHint/KeyControlHint.uss");
