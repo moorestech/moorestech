@@ -39,6 +39,12 @@
     border-color: var(--tutorial-attention-glow); /* look-exception: LX-38 */
 }
 
+/* 世界の地の上のグローは明るい地に合わせた α（暗い面の上は既定の --tutorial-attention-glow） */
+/* Glow over the world uses the alpha fitted to bright ground (over dark surfaces the default --tutorial-attention-glow) */
+.tutorial-outline__glow--over-world {
+    border-color: var(--tutorial-attention-glow-over-world); /* look-exception: LX-38 */
+}
+
 .tutorial-highlight-label {
     position: absolute;
     padding: var(--label-face-padding);

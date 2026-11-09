@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Theme;
 using System;
 using Client.Ui.Components.Decor;
 using Client.Ui.State.Text;
@@ -27,6 +28,7 @@ namespace Client.Ui.Components.Panels
         {
             name = testid;
             AddToClassList("game-panel");
+            UiSurface.Mark(this);
             _header = new VisualElement();
             _header.AddToClassList("game-panel__header");
             _titleAction = new VisualElement { pickingMode = PickingMode.Ignore };

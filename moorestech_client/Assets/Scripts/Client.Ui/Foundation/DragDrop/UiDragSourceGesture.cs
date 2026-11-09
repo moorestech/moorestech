@@ -8,18 +8,18 @@ namespace Client.Ui.Foundation.DragDrop
     /// 源の押下をタップ・ドロップへ分類する
     /// Classifies source presses into tap or drop
     /// </summary>
-    internal sealed class UiDragSourceGesture : IUiPressGestureHandler
+    internal sealed class UiDragSourceGesture<TTarget> : IUiPressGestureHandler where TTarget : class
     {
         private readonly VisualElement _source;
-        private IUiDragPayload _payload;
+        private IUiDragPayload<TTarget> _payload;
 
-        public UiDragSourceGesture(VisualElement source, IUiDragPayload payload)
+        public UiDragSourceGesture(VisualElement source, IUiDragPayload<TTarget> payload)
         {
             _source = source;
             _payload = payload;
         }
 
-        public void SetPayload(IUiDragPayload payload)
+        public void SetPayload(IUiDragPayload<TTarget> payload)
         {
             _payload = payload;
         }
@@ -38,10 +38,10 @@ namespace Client.Ui.Foundation.DragDrop
 
         public void OnDragEnded(Vector2 panelPosition)
         {
-            // 解放点の要素から最寄りの印の落とし先を引き、無ければ枠外とする（Web の elementFromPoint→closest）
-            // Find the nearest marked target from the element under the release point, else outside (Web elementFromPoint -> closest)
+            // 最寄りの同型の落とし先を引く。無ければ枠外
+            // Find the nearest target of this type from the element under the release point, else outside (Web elementFromPoint -> closest)
             var picked = _source.panel.Pick(panelPosition);
-            if (picked != null && UiDragDrop.TryFindTarget(picked, out var target))
+            if (picked != null && UiDragDrop.TryFindTarget<TTarget>(picked, out var target))
             {
                 _payload.OnDropped(target);
                 return;

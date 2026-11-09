@@ -81,14 +81,14 @@ namespace Client.Tests.Ui.Screens.Shell
             var vignette = _view.Q("screen-vignette");
             var backdrop = _view.Q("screen-backdrop");
 
-            // 後に足した子が前。幕の色は α 補正したトークン（A-52 の 1.85 で 0.42 → 0.635）
+            // 後に足した子が前。幕の色は黒の幕の式で補正したトークン（A-130 の 2.15 で 0.42 → 0.69）
             // Later children draw in front; the dim color is the alpha-corrected token
             Assert.Less(_view.IndexOf(vignette), _view.IndexOf(backdrop));
             Assert.AreEqual(rootVisualElement.worldBound.width, backdrop.worldBound.width, 0.05f);
             Assert.AreEqual(rootVisualElement.worldBound.height, backdrop.worldBound.height, 0.05f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--screen-backdrop-face"), backdrop.resolvedStyle.backgroundColor, "backdrop face");
-            Assert.AreEqual(0.635f, backdrop.resolvedStyle.backgroundColor.a, 1e-3f);
-            Assert.AreEqual(0.42f, 1f - Mathf.Pow(1f - backdrop.resolvedStyle.backgroundColor.a, 1f / 1.85f), 0.001f);
+            Assert.AreEqual(0.69f, backdrop.resolvedStyle.backgroundColor.a, 1e-3f);
+            Assert.AreEqual(0.42f, 1f - Mathf.Pow(1f - backdrop.resolvedStyle.backgroundColor.a, 1f / 2.15f), 0.001f);
             foreach (var element in _view.Query<VisualElement>().ToList()) Assert.AreEqual(PickingMode.Ignore, element.pickingMode, element.name);
         }
     }

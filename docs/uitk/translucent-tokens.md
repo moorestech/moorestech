@@ -34,9 +34,10 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--game-panel-craft-rim` | `rgb(146 148 167 / 55%)` | `rgba(146, 148, 167, 0.3309)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（GamePanel craft の内周。C2-a） |
 | `--slot-frame-face` | `rgb(50 52 67 / 50%)` | `rgba(50, 52, 67, 0.42)` | ランタイムの Linear 合成で持ち物の空きマスを Web の画素と比べて選んだ（C3-a Task 8。地 (36,31,34) で Web (43,41,50)・UITK (42,40,49)。面が地より明るいので暗い色の式 0.7226 は (46,47,59) に外れる。台帳 LX-23） |
 | `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.0509)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Button Subtle のホバー。C2-b。明暗を最大成分で分けるようにして式の行にした。I-fix2） |
-| `--screen-backdrop-face` | `rgb(0 0 0 / 42%)` | `rgba(0, 0, 0, 0.635)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（画面の幕。S2-hud・設計書 A-55） |
+| `--screen-backdrop-face` | `rgb(0 0 0 / 42%)` | `rgba(0, 0, 0, 0.69)` | 黒の幕の α 補正（1-(1-α)^2.15。地に比を掛けるだけの色に限る: 黒の全面の幕、世界の地の上の純赤のグローの G・B）（画面の幕。S2-hud・設計書 A-55・A-130） |
 | `--train-riding-hud-face` | `color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)` | `rgba(31, 31, 31, 0.9581)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55） |
-| `--modal-backdrop-face` | `Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)` | `rgba(0, 0, 0, 0.8164)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Modal の幕。C3-b） |
+| `--modal-backdrop-face` | `Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)` | `rgba(0, 0, 0, 0.8605)` | 黒の幕の α 補正（1-(1-α)^2.15。地に比を掛けるだけの色に限る: 黒の全面の幕、世界の地の上の純赤のグローの G・B）（Mantine Modal の幕。C3-b・A-130） |
+| `--tutorial-attention-glow-over-world` | `TutorialOverlay.module.css .highlight の box-shadow 0 0 0 4px rgba(255, 0, 0, 0.24)（世界の地の上）` | `rgba(255, 0, 0, 0.4457)` | 黒の幕の α 補正（1-(1-α)^2.15。地に比を掛けるだけの色に限る: 黒の全面の幕、世界の地の上の純赤のグローの G・B）（純赤のグローは地の G・B に 1-α を掛けるだけなので幕と同じ式。暗い面の上は --tutorial-attention-glow。S2-tutorial LX-38・I-fix3） |
 | `--modal-shadow-1-color` | `Mantine --mantine-shadow-xl 層 1 の rgba(0, 0, 0, 0.05)` | `rgba(0, 0, 0, 0.0905)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Modal の影。C3-b） |
 | `--modal-shadow-2-color` | `Mantine --mantine-shadow-xl 層 2 の rgba(0, 0, 0, 0.05)` | `rgba(0, 0, 0, 0.0905)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Modal の影。C3-b） |
 | `--modal-shadow-3-color` | `Mantine --mantine-shadow-xl 層 3 の rgba(0, 0, 0, 0.04)` | `rgba(0, 0, 0, 0.0727)` | α 近似補正（S7。最大成分 0.5 未満の暗い色 1-(1-α)^1.85・明るい色 α^1.85）（Mantine Modal の影。C3-b） |
