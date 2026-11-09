@@ -10,28 +10,38 @@ namespace Client.Ui.Foundation.Input.OsCursor
     public sealed class ProcessUiOsCursor : IUiOsCursor
     {
         private static UiOsCursorRequestStack _processStack;
+        private static int _generation;
+        private static IUiOsCursorApplier _applierOverride;
 
         public ProcessUiOsCursor()
         {
+            // 生成時に既定を当てて OS カーソルと記録を揃える
+            // Apply the default at creation so the OS cursor and the record agree
             _processStack ??= CreateProcessStack();
-
-            #region Internal
-
-            UiOsCursorRequestStack CreateProcessStack()
-            {
-                // 最初のインスタンスで絵を読み、既定を当ててから記録（既定）と揃えたスタックを作る
-                // On the first instance load the pictures, apply the default, then create a stack whose record (default) matches
-                var applier = new UnityUiOsCursorApplier();
-                applier.Apply(UiOsCursorShape.Default);
-                return new UiOsCursorRequestStack(applier);
-            }
-
-            #endregion
         }
 
         public IDisposable Request(UiOsCursorShape shape, UiOsCursorLayer layer)
         {
-            return _processStack.Request(shape, layer);
+            // 捨てた後に生き残ったインスタンスの要求でも落とさないよう、無ければここで作る
+            // Create the stack here when missing so a request from an instance surviving a drop does not throw
+            _processStack ??= CreateProcessStack();
+            return new GenerationGuardedRequest(_generation, _processStack.Request(shape, layer));
+        }
+
+        private static UiOsCursorRequestStack CreateProcessStack()
+        {
+            // 絵を読み、既定を当ててから記録（既定）と揃えたスタックを作る
+            // Load the pictures, apply the default, then create a stack whose record (default) matches
+            var applier = _applierOverride ?? new UnityUiOsCursorApplier();
+            applier.Apply(UiOsCursorShape.Default);
+            return new UiOsCursorRequestStack(applier);
+        }
+
+        // 次に作るスタックの当て先を差し替える（テスト用・内部のみ）
+        // Replace the applier of the next stack (tests only, internal)
+        internal static void UseApplierForNextProcessStack(IUiOsCursorApplier applier)
+        {
+            _applierOverride = applier;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -39,14 +49,34 @@ namespace Client.Ui.Foundation.Input.OsCursor
         {
             // ドメインリロード無しの設定でも前の要求を持ち越さない。終了（Editor では PlayMode を出る時）にも捨てる
             // Carry no earlier requests even without a domain reload; also drop on quit (leaving PlayMode in the Editor)
-            _processStack = null;
+            DropProcessStack();
             Application.quitting -= DropProcessStack;
             Application.quitting += DropProcessStack;
         }
 
-        private static void DropProcessStack()
+        internal static void DropProcessStack()
         {
             _processStack = null;
+            _generation++;
+        }
+
+        private sealed class GenerationGuardedRequest : IDisposable
+        {
+            private readonly int _requestGeneration;
+            private readonly IDisposable _inner;
+
+            public GenerationGuardedRequest(int requestGeneration, IDisposable inner)
+            {
+                _requestGeneration = requestGeneration;
+                _inner = inner;
+            }
+
+            public void Dispose()
+            {
+                // silent-ok: 捨てたスタックの要求は新しい記録を変えないよう無視する / 捨てた側の要求は新しいスタックの記録に関係せず、気づく相手はいない
+                if (_requestGeneration != _generation) return;
+                _inner.Dispose();
+            }
         }
     }
 }
