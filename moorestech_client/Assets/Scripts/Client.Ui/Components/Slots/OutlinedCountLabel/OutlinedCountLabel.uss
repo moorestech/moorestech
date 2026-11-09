@@ -18,7 +18,7 @@
 /* The outline color is the --outlined-count-label-stroke knob (white by default; .iconTextOutlineDark placements override it to black) */
 .outlined-count-label--stroke {
     color: var(--outlined-count-label-stroke);
-    -unity-text-outline-width: var(--icon-text-stroke-width);
+    -unity-text-outline-width: var(--icon-text-stroke-width); /* look-exception: LX-69 */
     -unity-text-outline-color: var(--outlined-count-label-stroke);
 }
 

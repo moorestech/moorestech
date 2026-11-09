@@ -125,6 +125,6 @@
     /* C4-a: 液体のスロット族（Slots/Fluid）。縁の色のつまみ・ゴーストの透け・量の基線（設計書 A-97・A-99） */
     /* C4-a: fluid slot family (Slots/Fluid); outline color knob, ghost fade and amount baseline (design A-97, A-99) */
     --outlined-count-label-stroke: var(--icon-text-stroke-light); /* web: .iconTextOutlineLight の -webkit-text-stroke の色。.iconTextOutlineDark の置き場（FluidSlot の量・ホットバーの番号）が --icon-text-stroke-dark に上書きする */
-    --fluid-slot-ghost-opacity: var(--slot-frame-ghost-opacity); /* web: FluidSlot .slot[data-ghost] > * の opacity: var(--slot-ghost-opacity) 0.35。SlotFrame と同じ Linear 合成の補正を共有し、dark-8 の面の上の実測で合わなければ C4-a Task 7 で値を選び直す */
+    --fluid-slot-ghost-opacity: 0.16; /* look-exception: LX-66 */ /* web: FluidSlot .slot[data-ghost] > * の opacity: var(--slot-ghost-opacity) 0.35。dark-8 の面の上の白字と絵が sRGB 合成の 0.35 と RGB 5 段以内になる値（dark-8 の面の上の実測で選んだ。C4-a Task 7）。SlotFrame の 0.18 では 11 段明るい */
     --fluid-slot-amount-bottom: 3.3px; /* web: FluidSlot .amount の bottom: 0。行高は本文の --mantine-line-height-md 1.55 で、OutlinedCountLabel は行高 1 の基線で置くので、半行間の差 (1.55 - 1) / 2 × 12px = 3.3px だけ箱を上げる */
 }
