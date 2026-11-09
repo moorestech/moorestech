@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Composite;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Stage;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace Client.Ui.Foundation.Root
         [SerializeField] private UIDocument uiDocument;
 
         private UiLayerStack _layers;
+        private UiSrgbPanelTarget _srgbPanelTarget;
 
         private void Awake()
         {
@@ -25,8 +27,21 @@ namespace Client.Ui.Foundation.Root
             // 必須参照が欠けたら起動の段階で止める
             // Stop at startup when a required reference is missing
             if (uiDocument == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
+            // UI 同士・UI と世界の半透明を Web と同じ sRGB 空間で合成する（A-180）
+            // Blend translucency among UI and over the world in sRGB space like the Web (A-180)
+            _srgbPanelTarget = new UiSrgbPanelTarget(uiDocument);
             var root = uiDocument.rootVisualElement;
             _layers = UiLayerStack.Build(root);
+        }
+
+        private void Update()
+        {
+            _srgbPanelTarget.SyncToScreenSize();
+        }
+
+        private void OnDestroy()
+        {
+            _srgbPanelTarget.Dispose();
         }
 
         // ルート共通の入力規則とポインタ判定を付ける先
