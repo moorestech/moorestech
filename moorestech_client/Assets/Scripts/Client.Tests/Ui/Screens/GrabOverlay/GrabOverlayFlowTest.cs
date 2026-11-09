@@ -117,6 +117,7 @@ namespace Client.Tests.Ui.Screens.GrabOverlay
             _commands.EnterWithLeftButton(PlayerSlotRef.Main(4));
             _commands.EnterWithLeftButton(PlayerSlotRef.Main(5));
             _button.Release();
+            _commands.LateTick();
             simulate.FrameUpdate();
 
             Assert.AreEqual(3, _operations.ReadMain(3).Count);

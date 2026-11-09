@@ -12,9 +12,11 @@ namespace Client.Ui.State.Inventory.Drag
 {
     /// <summary>
     /// 進入と分割ドラッグの実行。確定（配る副作用とその結果のトースト）の持ち主はこのクラスの CommitSplitDrag 1 か所
+    /// 解放は確定待ちの印だけ立て、同じフレームの UITK の進入が届き終わった LateTick で確定する
     /// Runs enters and split drag; the commit (distribution side effect and its toast) is owned solely by CommitSplitDrag here
+    /// A release only marks the commit as pending; it runs in LateTick after this frame's UITK enters have been delivered
     /// </summary>
-    public sealed class PlayerSlotDragCommands : IPlayerSlotDragCommands, IInitializable
+    public sealed class PlayerSlotDragCommands : IPlayerSlotDragCommands, IInitializable, ILateTickable
     {
         private const string SplitDragCommandName = "inventory.split_drag";
 
@@ -23,6 +25,7 @@ namespace Client.Ui.State.Inventory.Drag
         private readonly IPrimaryPointerButton _button;
         private readonly UiCommandResultToaster _toaster;
         private readonly SplitDragSession _session = new();
+        private bool _commitPending;
 
         public PlayerSlotDragCommands(IPlayerInventoryOperations operations, PlayerItemActionExecutor executor, IPrimaryPointerButton button, UiCommandResultToaster toaster)
         {
@@ -34,22 +37,32 @@ namespace Client.Ui.State.Inventory.Drag
 
         public void Initialize()
         {
-            // どこで左ボタンを離しても確定する（Web の window mouseup → session.end）
-            // Commit wherever the left button is released (Web window mouseup -> session.end)
-            _button.OnReleased.Subscribe(_ => CommitSplitDrag());
+            // どこで左ボタンを離しても確定を待たせる（Web の window mouseup → session.end）。解放は UITK の進入より先に流れる
+            // Wherever the left button is released, mark the commit pending (Web window mouseup -> session.end); release runs before UITK enters
+            _button.OnReleased.Subscribe(_ => _commitPending = true);
+        }
+
+        public void LateTick()
+        {
+            // silent-ok: 解放の無いフレームは確定しない / 確定の結果はプレイヤーが画面とトーストで見る
+            if (!_commitPending) return;
+            _commitPending = false;
+            CommitSplitDrag();
         }
 
         public void BeginSplitDrag(PlayerSlotRef slot)
         {
+            DiscardStaleSession();
             _session.Begin(slot);
 
-            // 同じフレームで解放が先に流れていたら、この開始の解放は来ないのでここで確定する（D-20）
-            // If the release already ran earlier in this frame, no release will follow this begin, so commit here (D-20)
-            if (!_button.IsPressed()) CommitSplitDrag();
+            // 同じフレームで解放が先に流れていたら、この開始の解放は来ないので LateTick で確定させる
+            // If the release already ran earlier in this frame, no release will follow this begin, so commit in LateTick
+            if (!_button.IsPressed()) _commitPending = true;
         }
 
         public void EnterWithLeftButton(PlayerSlotRef slot)
         {
+            DiscardStaleSession();
             // silent-ok: 分割ドラッグ外の左ボタンの進入は Web の session.enter と同じく何もしない / 配りが起きないことはプレイヤーが画面で見る
             if (!_session.IsActive) return;
             var plan = PlayerSlotActionPlanner.PlanLeftEnter(_operations.ReadSnapshot(), slot.ToItemMoveSlotRef());
@@ -83,6 +96,15 @@ namespace Client.Ui.State.Inventory.Drag
             }
 
             #endregion
+        }
+
+        private void DiscardStaleSession()
+        {
+            // 押していないのに確定待ちでもない session は解放を取りこぼした残り。次の左操作で配らずに捨てる
+            // A session alive while the button is up and no commit is pending missed its release; drop it without distributing
+            if (!_session.IsActive || _button.IsPressed() || _commitPending) return;
+            _session.End();
+            Debug.LogWarning("[PlayerSlotDragCommands] stale split-drag session discarded");
         }
 
         private void CommitSplitDrag()

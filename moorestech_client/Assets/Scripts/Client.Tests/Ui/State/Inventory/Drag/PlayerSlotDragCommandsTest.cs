@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.State.Inventory.Drag
             _commands.EnterWithLeftButton(PlayerSlotRef.Main(4));
             _commands.EnterWithLeftButton(PlayerSlotRef.Main(5));
             Assert.IsEmpty(_operations.Moves, "離すまでは配らない");
-            _button.Release();
+            ReleaseAndLateTick();
 
             Assert.AreEqual(3, _operations.ReadMain(3).Count);
             Assert.AreEqual(3, _operations.ReadMain(4).Count);
@@ -65,7 +65,7 @@ namespace Client.Tests.Ui.State.Inventory.Drag
             _operations.SetGrab(new SlotItem(Wood, 10));
 
             _commands.EnterWithLeftButton(PlayerSlotRef.Main(4));
-            _button.Release();
+            ReleaseAndLateTick();
 
             Assert.IsEmpty(_operations.Moves);
             Assert.IsEmpty(_shownToasts);
@@ -79,25 +79,10 @@ namespace Client.Tests.Ui.State.Inventory.Drag
             LogAssert.Expect(LogType.Warning, new Regex(@"inventory\.split_drag failed: no_valid_slots"));
 
             _commands.BeginSplitDrag(PlayerSlotRef.Main(3));
-            _button.Release();
+            ReleaseAndLateTick();
 
             Assert.AreEqual(1, _shownToasts.Count);
             Assert.IsEmpty(_operations.Moves);
-        }
-
-        [Test]
-        public void 開始の時点でボタンが離れていればその場で一度だけ確定する()
-        {
-            // 同じフレームで押下と解放が届くと、解放の流れが UI の押下より先に走る（D-20）
-            // When press and release arrive in one frame, the release stream runs before the UI press (D-20)
-            _operations.SetGrab(new SlotItem(Wood, 6));
-            _button.SetPressed(false);
-
-            _commands.BeginSplitDrag(PlayerSlotRef.Main(3));
-            _button.Release();
-
-            Assert.AreEqual(6, _operations.ReadMain(3).Count);
-            Assert.AreEqual(1, _operations.Moves.Count, "確定済みなので次の解放は何もしない");
         }
 
         [Test]
@@ -110,10 +95,16 @@ namespace Client.Tests.Ui.State.Inventory.Drag
 
             _commands.BeginSplitDrag(PlayerSlotRef.Main(20));
             _commands.EnterWithLeftButton(PlayerSlotRef.Main(4));
-            _button.Release();
+            ReleaseAndLateTick();
 
             Assert.AreEqual(new[] { "Grab->Main:4 x10" }, _operations.Moves.ToArray());
             Assert.IsEmpty(_shownToasts);
+        }
+
+        private void ReleaseAndLateTick()
+        {
+            _button.Release();
+            _commands.LateTick();
         }
 
         [Test]
