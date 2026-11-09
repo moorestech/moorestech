@@ -134,6 +134,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 |---|---|---|
 | `shared/itemMove`（クリック計画の純ロジック） | `Client.Ui.State/ItemMove/`（L0 で 33 件を写す） | 4 |
 | `shared/pointerGesture` | Foundation `Input/Gesture/UiPressGesture` | 3 |
+| `shared/clamp01`（ゲージの値の丸め） | `Components/Gauges/GaugeBar/GaugeRatio`（Gauges の internal。使い手が Gauges の部品だけのため。`[A-89]`） | 4（C4-b） |
 | `shared/tooltip`（CursorTooltip） | `Screens/CursorTooltip/`＋`TooltipFace`（位置の純関数 `CursorTooltipPlacement` は `Client.Ui.State/CursorTooltip/`。`[A-60]`） | 2 |
 | `shared/treeView` | `Components/NodeGraph/` | 4 |
 | `shared/tutorialAnchor` | Foundation `Anchor/`（既存） | 済み |
