@@ -93,17 +93,20 @@ return PlaytestRunner.Run("uitk-grab-overlay", options, async p =>
     p.Assert(await IsCenteredAsync(pointC, "C"), "絵が比べる点 C へ付いて来る");
     await p.Screenshot("grab-compare");
 
-    // 左ボタンを押したまま 3 枠を通り、注入した解放で等分が確定する（52 ÷ 3 = 17、端数 1）
-    // Hold the left button through three slots; the injected release commits the share (52 / 3 = 17, remainder 1)
+    // 左ボタンを押したまま 3 枠を通り、注入した解放の同じフレームの LateTick で等分が確定する（52 ÷ 3 = 17、端数 1。D-29）
+    // Hold the left button through three slots; the share commits in LateTick of the injected release's frame (52 / 3 = 17, remainder 1; D-29)
     SemanticInput.MouseButtonDown(0);
     await p.WaitSeconds(0.2f);
-    p.Assert(button.IsPressed(), "BeginSplitDrag の時点で左ボタンが押されている（即確定に退化しない。D-20）");
+    p.Assert(button.IsPressed(), "BeginSplitDrag の時点で左ボタンが押されている（離れていれば Begin が確定待ちに入り 1 枠で確定する。D-29）");
     commands.BeginSplitDrag(PlayerSlotRef.Main(empties[0]));
     commands.EnterWithLeftButton(PlayerSlotRef.Main(empties[1]));
     commands.EnterWithLeftButton(PlayerSlotRef.Main(empties[2]));
-    p.Assert(operations.ReadGrab().Count == GrabCount, "解放の前は確定せず grab は 52 のまま");
+    // 何フレームか LateTick を通しても、解放が無ければ確定しない
+    // Even after several LateTicks, nothing commits without a release
+    await p.WaitSeconds(0.2f);
+    p.Assert(operations.ReadGrab().Count == GrabCount, "解放の前は LateTick を通っても確定せず grab は 52 のまま");
     SemanticInput.MouseButtonUp(0);
-    await p.Until(() => operations.ReadGrab().Count == GrabCount % 3, 5f, $"分割ドラッグの確定で grab に端数 {GrabCount % 3}");
+    await p.Until(() => operations.ReadGrab().Count == GrabCount % 3, 5f, $"解放の後の LateTick の確定で grab に端数 {GrabCount % 3}");
     var after = operations.ReadSnapshot();
     p.Assert(empties.All(i => after.MainSlots[i].Count == GrabCount / 3), $"通った 3 枠に {GrabCount / 3} 個ずつ");
     await p.Screenshot("split-drag-done");
