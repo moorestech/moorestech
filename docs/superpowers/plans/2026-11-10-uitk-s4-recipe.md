@@ -294,7 +294,7 @@ namespace Client.Ui.State.Recipe.Source
 | `S/Client.Ui/Screens/Recipe/Parts/MachineRecipeEntryView.cs` | 機械の 1 件（液体・機械名・継承バッジ） | 新規 |
 | `S/Client.Ui/Screens/Recipe/Parts/{ItemListCellView.cs,ItemListDragScroll.cs}` | 一覧の 1 セル（`ItemSlot`・アイテム ID・アンカー）／掴みスクロールとタップの選択 | 新規 |
 | `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss` | 溝・つまみの色と縦バーの位置のつまみ 5 本（既定＝今の値） | 変更（宣言した部品の変更） |
-| `S/Client.Starter/Registration/GameUi/RecipeGameUiRegistration.cs` | DI 登録（Model・Commands・Presenter 等） | 新規 |
+| `S/Client.Starter/Registration/GameUi/Screens/RecipeGameUiRegistration.cs` | DI 登録（Model・Commands・Presenter 等）。W4 以降の画面の登録は `GameUi/Screens/` に置く（E-1）。namespace は `Client.Starter.Registration.GameUi.Screens` | 新規（`Screens/` が無ければこのレーンが作る） |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | 画面登録区画に 1 行 | 変更（共有区画） |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | `Screens` 区画に `@import` 2 行 | 変更（共有区画） |
 | `S/Client.Ui/Foundation/Theme/DerivedTokens.uss` | 末尾の名札付きブロック「S4-recipe」 | 変更（共有区画） |
@@ -317,7 +317,7 @@ namespace Client.Ui.State.Recipe.Source
 | `docs/uitk/TODO.md`・`docs/uitk/disposition.md` | 実測の結論・LX-131〜135・追従記録（`disposition.md` は部分移植の行があるときだけ） | 変更（共有区画） |
 | `LOGS/harness/uitk/S4-recipe/done.md` | 作業報告（repo 外） | 新規 |
 
-ディレクトリのファイル数: `Recipe/Screen/` 9・`Screens/Recipe/Input/` 3・`Recipe/Commands/` 4・`Recipe/Catalog/` 2・`Recipe/Logic/` 5（既存 4＋1）・`Screens/Recipe/` 5＋`Parts/`・`Screens/Recipe/Parts/` 9（`RecipeEntryPartsContext` は `CraftRecipeEntryView.cs` に同居）・`Client.Tests/Ui/State/Recipe/Screen/` 5・`Client.Tests/Ui/Screens/Recipe/Input/` 2・`Client.Tests/Ui/Screens/Recipe/` 2＋3 サブディレクトリ。`Registration/GameUi/` は起草時点の実物 8 本＋このレーン 1 本。同じ W4 の S4-alpha・S4-research・S4-special なども 1 本ずつ足すので、取り込み時点の実数で数え直す（Task 1 Step 1・Task 15 Step 2 の関門）。ほかはどれも 10 以下。このレーンが書くのは上の表のファイルだけで、他の S4 レーンの持ち物（`Screens/BlockInventory/**`・`Screens/Inventory/**`・`Screens/Research/**`・`Client.Ui.State/Recipe/Source/**`）は書かない。
+ディレクトリのファイル数: `Recipe/Screen/` 9・`Screens/Recipe/Input/` 3・`Recipe/Commands/` 4・`Recipe/Catalog/` 2・`Recipe/Logic/` 5（既存 4＋1）・`Screens/Recipe/` 5＋`Parts/`・`Screens/Recipe/Parts/` 9（`RecipeEntryPartsContext` は `CraftRecipeEntryView.cs` に同居）・`Client.Tests/Ui/State/Recipe/Screen/` 5・`Client.Tests/Ui/Screens/Recipe/Input/` 2・`Client.Tests/Ui/Screens/Recipe/` 2＋3 サブディレクトリ。`Registration/GameUi/Screens/` はこのレーン 1 本＋同じ W4 の S4-alpha・S4-research・S4-special などの 1 本ずつ（`GameUi/` 直下は S4-alpha で 10 本に達するので数えない。E-1）。取り込み時点の実数で数え直す（Task 1 Step 1・Task 15 Step 2 の関門）。ほかはどれも 10 以下。このレーンが書くのは上の表のファイルだけで、他の S4 レーンの持ち物（`Screens/BlockInventory/**`・`Screens/Inventory/**`・`Screens/Research/**`・`Client.Ui.State/Recipe/Source/**`）は書かない。
 
 ## Tasks
 
@@ -349,7 +349,7 @@ grep -rn "public ItemRecipeViewerDataContainer(\|void UnlockCraftRecipe" $S/Clie
 Expected: 全部が見つかる。どれかが無ければ実装に入らず、`done.md` に「状態: 依存待ち（<レーン>）」と書いて指揮へ報告して止める。名前・引数が Global Constraints と違えば以後を実物で読み替え、`done.md` の「未確認」に `API 名の読み替え: <旧> → <実物>` を 1 行ずつ書く。S4-alpha の機械レシピの源は PLAN-W4a の計画 `docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md` 末尾「## 後続レーンへの Produces 一覧」とも照らし、配り方が計画どおりの `Current : IReadOnlyReactiveProperty<IReadOnlyList<MachineRecipeData>>` でなければ Task 5 の購読の 1 行と `Rebuild` の読み 1 行をその形へ読み替える。
 
 
-登録の本数の関門: `ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc -l` を数え、このレーンの 1 本を足して 10 を超えるなら `done.md` の「integrator への依頼」に「`Registration/GameUi/` の分け方（サブディレクトリの切り方は integrator の持ち物）」を書き、`bd note` にも残して指揮へ報告する。作業は進めてよいが、再編が `origin/feature/uitk` に入るまでこのレーンはマージしない（S4-research・S4-special と同じ関門）。再編後は File Structure と Task 10 の登録のパスを読み替えて `done.md` に書く。あわせて W4 の他レーンが `GameUiInputRules.cs`・`GameScrollView.uss` を書いていないことを `git log origin/feature/uitk --oneline -- <2 本のパス>` と兄弟の計画の grep で確かめる（D-32）。
+登録の本数の関門: W4 以降の画面の登録は `Client.Starter/Registration/GameUi/Screens/` に置く（E-1）。`ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/*.cs 2>/dev/null | wc -l` を数える（`Screens/` が無ければ Task 10 でこのレーンが作る。`.meta` は Unity に任せる）。このレーンの 1 本を足して 10 を超えるなら `done.md` の「integrator への依頼」に「`Registration/GameUi/Screens/` の分け方（サブディレクトリの切り方は integrator の持ち物）」を書き、`bd note` にも残して指揮へ報告する。作業は進めてよいが、再編が `origin/feature/uitk` に入るまでこのレーンはマージしない（S4-research・S4-special と同じ関門）。再編後は File Structure と Task 10 の登録のパスを読み替えて `done.md` に書く。あわせて W4 の他レーンが `GameUiInputRules.cs`・`GameScrollView.uss` を書いていないことを `git log origin/feature/uitk --oneline -- <2 本のパス>` と兄弟の計画の grep で確かめる（D-32）。
 
 - [ ] **Step 2: 自前の Editor とコンパイルの疎通**
 
@@ -3026,7 +3026,7 @@ git commit -m "feat(uitk): アイテム一覧のパネルと掴みスクロー�
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/RecipeScreenPresenter.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/RecipeGameUiRegistration.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/RecipeGameUiRegistration.cs`（`Screens/` が無ければ作る。E-1）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（画面登録区画に 1 行）
 - Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（`Screens` 区画に 2 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs`（自分の 2 行を消す）
@@ -3151,7 +3151,7 @@ using Client.Ui.State.Recipe.Screen;
 using Client.Ui.State.Routing;
 using VContainer;
 
-namespace Client.Starter.Registration.GameUi
+namespace Client.Starter.Registration.GameUi.Screens
 {
     /// <summary>
     /// レシピ画面（ビューアと一覧）の登録。全体スイッチ UITK のときだけ MainGameUiRegistration から呼ばれる
@@ -3184,7 +3184,7 @@ namespace Client.Starter.Registration.GameUi
 
 （`RegisterEntryPoint` か `Register(...).AsImplementedInterfaces()` かは既存の `*GameUiRegistration` の前例に合わせる。S4-alpha の `UnlockedMachineRecipeSource` は S4-alpha の登録が持つので、ここでは登録しない〈Task 1 で登録の有無を確かめ、全体スイッチ UITK で S4-alpha の登録が先に呼ばれることを確かめる〉）
 
-`MainGameUiRegistration.cs` の画面登録区画（「画面登録区画: 1行ずつ呼び出しを足す」の下）に 1 行:
+`MainGameUiRegistration.cs` の画面登録区画（「画面登録区画: 1行ずつ呼び出しを足す」の下）に 1 行（namespace が `Client.Starter.Registration.GameUi.Screens` なので、ファイル先頭に `using Client.Starter.Registration.GameUi.Screens;` が無ければ足す。先に入った W4 レーンが足していれば足さない）:
 
 ```csharp
             RecipeGameUiRegistration.Register(builder);
@@ -3207,7 +3207,7 @@ Expected: ErrorCount 0 / 全部 PASS / Error ログ 0 件。EDC で `StageColumn
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/RecipeScreenPresenter.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/RecipeGameUiRegistration.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/Overlay
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/RecipeScreenPresenter.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/RecipeGameUiRegistration.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/Overlay
 git commit -m "feat(uitk): レシピ画面を舞台の列へ載せて登録し、チュートリアルとツールチップの L1 を足す（S4-recipe）"
 ```
 
@@ -3389,7 +3389,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
 
 - [ ] **Step 2: feature/uitk の進みを取り込み、compile・テストを回して G1 緑を見る**
 
-取り込み後に登録の本数を数え直す（`ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc -l`）。10 を超えていれば integrator の再編が入るまで Step 3 のマージをしない（Task 1 Step 1 の関門と同じ）。
+取り込み後に登録の本数を数え直す（`ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l`。E-1）。10 を超えていれば integrator の再編が入るまで Step 3 のマージをしない（Task 1 Step 1 の関門と同じ）。
 
 ```bash
 git fetch origin
