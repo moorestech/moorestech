@@ -169,6 +169,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 
 - 配置検査: 実施済み / 違反4件・修正4件 / Content を値だけに・State から絵を外し ID の union へ・Screens から Game.PlacementTarget を外す・受け口を void Receive に。再検査: 違反1・強3・弱4、全部反映
 - Phase 2.6: 実施済み / 強2・弱6・第3バケツ5 / 1 セット設置を union に・共有の置き場の出所を §5.1-1 へ、弱は判定の重複を 1 本に・空の表示名を LogError。再検査: 違反1・強3・弱4、全部反映
+- 再検査 3（独立評価 3〜4 巡目の後の変更範囲・fresh-context）: 実施済み / 違反1・強0・弱2・第3バケツ0 / 全部反映（詳細の文は既存の `UiTypographyClass.TextMd` を付けて USS は行送りだけ・視口の未レイアウト判定を private の 1 述語に・設計書 A-103 に群の寸法変化と未レイアウトの扱いを追記）
 - 再検査 2（独立評価 2 巡目の後の変更範囲・fresh-context）: 実施済み / 違反2・強0・弱0 / 全部反映（撮影用スクリプトの Playwright を webui から解決・`Registration/GameUi/` の 11 本目で止める）
 
 ## 死活表（Phase 2.5）
@@ -2626,6 +2627,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         private static LocalizedLabel Label(string className, UiText text)
         {
             var label = new LocalizedLabel();
+            label.AddToClassList(UiTypographyClass.TextMd);
             label.AddToClassList(className);
             label.SetText(text);
             return label;
@@ -3573,6 +3575,10 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 
         public float ScrollTop => _frozen ? _frozenScrollTop : _scroll.scrollOffset.y;
         public float ClientHeight => _scroll.GetViewportHeight();
+
+        // 初回レイアウト前の NaN も閉じた後の 0 も「未レイアウト」（NaN との比較は偽）
+        // Both the pre-layout NaN and the post-hide 0 count as not laid out (comparisons with NaN are false)
+        private bool IsViewportLaidOut => ClientHeight > 0f;
         public float ScrollHeight => _scroll.GetContentHeight();
 
         // レイアウト前の NaN は「まだ当たっていない」を 0 で表す（トラッカーは要求値と比べて反映待ちを続ける）
@@ -3584,13 +3590,13 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         public bool TryGetHeadingTop(Guid categoryGuid, out float top)
         {
             top = 0f;
-            return ClientHeight > 0f && _list.TryGetHeading(categoryGuid, out var heading) && !float.IsNaN(heading.layout.height) && _scroll.TryGetContentTop(heading, out top);
+            return IsViewportLaidOut && _list.TryGetHeading(categoryGuid, out var heading) && !float.IsNaN(heading.layout.height) && _scroll.TryGetContentTop(heading, out top);
         }
 
         public bool TryGetGroupHeight(Guid categoryGuid, out float height)
         {
             height = 0f;
-            if (ClientHeight <= 0f || !_list.TryGetGroup(categoryGuid, out var group) || float.IsNaN(group.layout.height)) return false;
+            if (!IsViewportLaidOut || !_list.TryGetGroup(categoryGuid, out var group) || float.IsNaN(group.layout.height)) return false;
             height = group.layout.height;
             return true;
         }
@@ -3761,6 +3767,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             Search.SetPlaceholder(new UiText(LocalizationKeys.Ui.BuildMenu.SearchPlaceholder));
             Scroll = new GameScrollView("build-menu-scroll-area");
             Scroll.AddToClassList("build-menu__scroll");
+            _noResults.AddToClassList(UiTypographyClass.TextMd);
             _noResults.AddToClassList("build-menu__no-results");
             _noResults.SetText(new UiText(LocalizationKeys.Ui.BuildMenu.NoResults));
             Scroll.Add(_noResults);
@@ -4147,18 +4154,13 @@ namespace Client.Ui.Screens.BuildMenu
     height: var(--slot-size);
 }
 
-/* 詳細の文と該当なしは Web の本文（継承の 16px・行の高さ 1.55＝24.8px）で折り返す。UITK の既定は 14px・折り返さない（Typography.uss）ので明示する。行送りは LocalizedLabel のつまみ（前例 .mode-hud__detail） */
-/* Detail text and no-results use the Web body text (inherited 16px, line-height 1.55 = 24.8px) and wrap; UITK defaults to 14px without wrapping (Typography.uss), so state it; the pitch uses the LocalizedLabel knob (precedent .mode-hud__detail) */
+/* 詳細の文と該当なしは Web の本文（継承の 16px・行の高さ 1.55）。大きさ・1 行の高さ・折り返しは C# が付ける UiTypographyClass.TextMd（.text--md）が持ち、ここは 2 行目以降の行送りだけ（前例 .mode-hud__detail） */
+/* Detail text and no-results use the Web body text (inherited 16px, line-height 1.55); size, one-line height and wrapping come from UiTypographyClass.TextMd (.text--md) added in C#, and this only sets the pitch of later lines (precedent .mode-hud__detail) */
 .build-menu__detail-name,
 .build-menu__detail-hint,
 .build-menu__detail-cost,
 .build-menu__no-results {
-    margin: 0;
-    padding: 0;
-    font-size: var(--mantine-font-size-md);
-    white-space: normal;
     --localized-label-line-height: 24.8px;
-    min-height: 24.8px;
 }
 
 .build-menu__detail-name {
@@ -5000,6 +5002,7 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-39 | 落としの受け口は `void Receive(HotbarDragSource)`（状態を書く口なので結果を返さない。断る理由のログは受け手が出す） | `bool TryReceive`: 源は戻り値を使わないので、bool は呼び手に何も伝えない | 設計検査（配置 V4）・本体の決定 |
 | D-40 | 1 セット設置は判別 union（`BuildMenuSetPlacementNone.Instance`・`BuildMenuSetPlacementAvailable(perCost, remaining)`）にし、Factory だけが Block のとき作る | `HasValue` 付きの 1 クラス: 値が無いのに `PerCost`・`Remaining` を読めてしまう。詳細の列で Kind を見て Block に限る: Factory と同じ判定が 2 か所になる | 設計検査（Phase 2.6 強） |
 | D-41 | 型の弱い指摘の扱い: (a) `CurrentState == BuildMenu` は `BuildMenuCommands` の private `IsBuildMenuOpen` の 1 か所にまとめる。Model の「閉じている間は組み直さない」は別の理由なので残す (b) 素材の不足は VM の ctor で 1 回だけ判定し、`BuildMenuMaterialLine.IsInsufficient` で持つ (c) 空の表示名は前例 `ModeHudViewModelFactory` と同じく `LogError` を出し、表示はそのまま (d) NameOnly のマスも `filled` にする（Web `BuildMenuSlot.tsx` は常に `filled`） (e) `_structureKey` は null を「まだ描いていない」にし、空の文字列（群が 0 の構造）と分ける (f) 合成の結果の bool（`IsCategoryEnabled`・`ShowsNoResults`）と `TryGet` が理由を返さないことはそのまま（呼び手が分岐するだけで、理由を出す先が無い） | 全部を型で塞ぐ: (f) は呼び手の分岐が 1 つずつで、理由を返しても読む所が無い | 設計検査（Phase 2.6 弱） |
+| D-46 | 再検査 3 の反映: 詳細の文・該当なしは既存の `UiTypographyClass.TextMd`（`.text--md`。16px・1 行 24.8px・折り返し）を C# で付け、画面 USS は 2 行目以降の行送り `--localized-label-line-height` だけを持つ。視口の未レイアウト判定は private `IsViewportLaidOut`（NaN も 0 も偽）の 1 か所 | 画面 USS に同じ値を書き直す: 部品カタログの「`UiTypographyClass` を付ける」に反し、値が 2 か所に分かれる | agent 既定（再検査 3） |
 | D-45 | 独立評価 5 巡目の反映: (a) Task 4 Step 7 で gen:i18n の再生成コミットを台帳「## 追従記録」へ記帳（E-1。無いと G1 の未記帳が 1 残りマージ条件を満たせない） (b) 大見出し・小見出しに Web の継承 line-height 1.55 を min-height で写す (c) 突き合わせは束ごとの終了コードを見て 2 なら止める (d) テクスチャ源のインターフェースは C4-a と衝突しうるので取り込みで両方を採る | — | agent 既定（Codex 5 巡目・opus 5 巡目） |
 | D-44 | 独立評価 4 巡目の反映: (a) 閉じるボタンは Web と同じく `GamePanel` の本文の子（`frame.Add`。top・right は題の下の本文から測る）にし、Task 10 で × の位置を見る (b) 視口の `TryGetHeadingTop`・`TryGetGroupHeight` は今の表示で視口が未レイアウト（`ClientHeight <= 0`。閉じた後の 0 を含む）なら測れないとし、`BuildMenuRestoreTest`「末尾の群が視口より高くても…」で確かめる (c) `Support/` の本数を実数に (d) using と `BlueprintThumbnailContainer` の完全修飾名 | (a) 外側のパネルの子: × が題の行に乗り参照より約 45px 上 (b) NaN だけを未計測とする: 閉じた後の 0 を実測と取り違え、スペーサ 0 の構成で保存位置を 0 に潰す（推測。L1 で赤を確かめる） | agent 既定（Codex 4 巡目・opus 4 巡目） |
 | D-43 | 独立評価 3 巡目と再検査 2 の反映: (a) 詳細の名前・ヒント・素材の見出し・該当なしは Web の本文〈継承 16px・行の高さ 1.55＝24.8px・折り返す〉を `BuildMenu.uss` で明示し、Task 10 で両解像度の行数を測る（UITK の既定 14px・折り返さないのままだと参照の 2 行のヒントが崩れる） (b) 各カテゴリ群の `GeometryChangedEvent` を `BuildMenuCategoryList.OnGroupGeometryChanged` で追跡器へ流す（Web の群ごとの ResizeObserver。全体の高さが同じまま配分だけ変わる場合）と L1 `BuildMenuScrollViewTest` 4 件目 (c) `Registration/GameUi/` が 11 本以上になるなら足す前に止め、integrator の再編が入るまで完了・マージしない (d) 撮影用の絵の描画スクリプトは `createRequire` で webui の `@playwright/test` を解決 (e) `PauseMenuCommandsTest` を共有ファイル・`$FILTER`・取り込みの衝突の一覧へ（S3-hotbar-modal と同じテスト。`benign` は和を採る） | (a) 色だけ写す: 文字の大きさと行数が参照と合わない (b) 中身全体の通知だけ: 配分の変化でハイライトが古いまま (c) 11 本目のまま進める: AGENTS.md の 10 ファイルに反する | agent 既定（Codex 3 巡目・opus 3 巡目・再検査 2） |

@@ -166,7 +166,7 @@ namespace Client.Ui.State.Modal
 }
 namespace Client.Ui.State.Modal.Logic
 {
-    public static class ModalLogic { public static bool CanConfirm(ModalRequest request, string enteredText); public static ModalButtonTone ConfirmButtonTone(ModalVariant variant); }
+    public static class ModalLogic { public static bool TryGetConfirmableText(ModalRequest request, string enteredText, out string confirmedText); public static bool HasConfirmableText(string enteredText); public static ModalButtonTone ConfirmButtonTone(ModalVariant variant); }（既存の `CanConfirm` は本番の呼び手がテストだけなので Task 4 で消す）
     public enum ModalButtonTone { Blue, Red }
     public sealed class ModalResponse { public string RequestId { get; } public ModalResult Result { get; } public string Text { get; } public static ModalResponse Confirm(ModalRequest request, string enteredText); public static ModalResponse Cancel(ModalRequest request); }
 }
@@ -271,6 +271,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 
 - 配置検査: 実施済み / 違反4件・修正4件 / 間引き撤回・Select と Modal を UiCommandResult のコマンドへ・WheelPassthroughMark を Foundation/Input へ
 - Phase 2.6: 実施済み / 強4・弱3・第3バケツ3 / 名前だけの絵を判別子で・payload に VM・表示名空の扱い・間引き撤回（A-57）、弱は重複の導出を 1 本に
+- 再検査 3（独立評価 3〜4 巡目の後の変更範囲・fresh-context）: 実施済み / 違反1・強0・弱1・第3バケツ0 / 全部反映（テストだけが呼ぶ `ModalLogic.CanConfirm` を消し既存テストを書き換え・空白の判定を private の 1 か所に。部分移植の残りを done.md に置く形は新規パターンとして done.md の要裁定でなく判断記録 D-41 に理由付きで残す）
 - 再検査 2（独立評価 2 巡目の後の変更範囲・fresh-context）: 実施済み / 違反0・強0・弱1・第3バケツ1 / 弱（`ModalLogic` の判定の重複）は採って 1 本に（D-41）。第3バケツ（`BlueprintNameInputState.Confirm` の空白の規則）は既存の「本PR外のリファクタ提案」と D-12 のまま
 - 再検査（独立評価 1 巡目の後・fresh-context）: 実施済み / 違反3・強1・弱3・不一致1 / 全部反映（ESC を Web と同じ 1 回へ・幕の取消を View へ・`OutlinedCountLabel` の縁の色のつまみ・ホイール素通しの判定 `IsPassthrough`・確定の文を `TryGetConfirmableText` の 1 本に・`IsBenign` の一覧を全 true の腕に）
 
@@ -312,7 +313,8 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Ui.State/Hotbar/HotbarModel.cs` | 源を購読し、変化ごとに同期で組み直して `Current` で配る（`IInitializable`。[A-57]） | 新規 |
 | `S/Client.Ui.State/Hotbar/IHotbarCommands.cs` | 画面から呼ぶ操作（`UiCommandResult Select`・`void Apply`。[A-8]） | 新規 |
 | `S/Client.Ui.State/Hotbar/HotbarCommands.cs` | 本番の実装（規則で受理を決め、受けない状態は良性の拒否 `HotbarSelectNotAccepted`。`ClientHotbarDatastore` へ積む） | 新規 |
-| `S/Client.Ui.State/Modal/Logic/ModalLogic.cs` | 可否と確定の文を 1 回で導く `TryGetConfirmableText` と、BP 名の書き戻しが読む `HasConfirmableText` を足し、空白の除去を private の 1 か所に置く（既存の `CanConfirm` も同じ規則へ） | 変更 |
+| `S/Client.Ui.State/Modal/Logic/ModalLogic.cs` | 可否と確定の文を 1 回で導く `TryGetConfirmableText` と、BP 名の書き戻しが読む `HasConfirmableText` を足し、空白の除去を private の 1 か所に置く。既存の `CanConfirm`（本番の呼び手 0・テストだけ）は消す | 変更 |
+| `S/Client.Tests/Ui/State/Modal/ModalLogicTest.cs` | `CanConfirm` を読む既存の 2 件（Web `modalLogic.test.ts` の写し。名前とタグは変えない）を `TryGetConfirmableText` の真偽へ書き換える | 変更 |
 | `S/Client.Ui.State/Modal/IModalCommands.cs` | モーダルの応答の操作（`UiCommandResult Respond(ModalResponse)`。[A-8]） | 新規 |
 | `S/Client.Ui.State/Modal/ModalCommands.cs` | 本番の実装（`ModalRequestService.Respond`。古い応答は良性の拒否 `ModalResponseStale`） | 新規 |
 | `S/Client.Ui.State/Commands/UiCommandRejectReason.cs` | enum と 3 つの switch の末尾に 2 値（共有区画） | 変更（共有区画） |
@@ -991,7 +993,7 @@ git commit -m "feat(uitk): ホットバーの Model を源の購読で組む（S
 **Files:**
 - Create: `S/Client.Ui.State/Hotbar/IHotbarCommands.cs`・`HotbarCommands.cs`、`S/Client.Ui.State/Modal/IModalCommands.cs`・`ModalCommands.cs`
 - Modify: `S/Client.Ui.State/Modal/Logic/ModalLogic.cs`・`S/Client.Ui.State/Blueprint/BlueprintNameInputModalBridge.cs`・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs`（共有区画）・`Localization/localization.csv`（末尾 2 行）・`W/src/shared/i18n/generated/localizationKeys.ts`（再生成）・`moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs`（印。生成物）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`
-- Test: `S/Client.Tests/Ui/State/Modal/ModalConfirmableTextTest.cs`・`ModalCommandsTest.cs`
+- Test: `S/Client.Tests/Ui/State/Modal/ModalConfirmableTextTest.cs`・`ModalCommandsTest.cs`、変更 `S/Client.Tests/Ui/State/Modal/ModalLogicTest.cs`（`CanConfirm` の 2 件の本体）
 
 **Interfaces:**
 - Consumes: `HotbarSelectRule`、L0-s3 の `HotbarDropAction` 群・`ModalResponse`、`ClientHotbarDatastore`、`UIStateControl`、`ModalRequestService`、段階 1 の `UiCommandResult` 系
@@ -1047,7 +1049,6 @@ namespace Client.Tests.Ui.State.Modal
             Assert.AreEqual("参照拠点", trimmed);
             Assert.IsTrue(ModalLogic.TryGetConfirmableText(plain, "", out var none));
             Assert.IsNull(none);
-            Assert.IsTrue(ModalLogic.CanConfirm(input, " a "));
         }
     }
 }
@@ -1154,25 +1155,17 @@ Expected: `localizationKeys.ts` に 2 キーが増え（`contentKeys.ts` は変�
 
 - [ ] **Step 3: 規則を 1 か所にし、ブリッジを委ねる**
 
-`S/Client.Ui.State/Modal/Logic/ModalLogic.cs` の `CanConfirm` を次に置き換え、下に 2 つを足す:
+`S/Client.Ui.State/Modal/Logic/ModalLogic.cs` の `CanConfirm` を消し（本番の呼び手は 0。`git grep -n "ModalLogic.CanConfirm" origin/feature/uitk` でテスト以外に無いことを確かめる。あれば `TryGetConfirmableText(request, text, out _)` へ書き換える）、次の 3 つを置く:
 ```csharp
-        // 入力付きモーダルは空白だけの文を確定させない（uGUI BlueprintNameInputView と同じ検証）
-        // An input modal rejects whitespace-only text (same validation as uGUI BlueprintNameInputView)
-        // 可否は確定の文の導出に委ねる（規則を 1 か所に置く）
-        // Eligibility delegates to the confirmed-text derivation (one place for the rule)
-        public static bool CanConfirm(ModalRequest request, string enteredText)
-        {
-            return TryGetConfirmableText(request, enteredText, out _);
-        }
-
-        // 可否と確定の文を 1 回で導く。入力付きは前後の空白を除いた文、入力なしは文を運ばない（Web text.trim()）
-        // Derive eligibility and the confirmed text in one pass; input modals carry the trimmed text, others carry none (Web text.trim())
+        // 可否と確定の文を 1 回で導く。入力付きは空白だけを弾き前後の空白を除いた文、入力なしは文を運ばない（Web text.trim()・uGUI と同じ検証）
+        // Derive eligibility and the confirmed text in one pass; input modals reject whitespace-only and carry the trimmed text, others carry none (Web text.trim(), same as uGUI)
         public static bool TryGetConfirmableText(ModalRequest request, string enteredText, out string confirmedText)
         {
             confirmedText = null;
             if (!request.RequiresInput) return true;
-            if (!HasConfirmableText(enteredText)) return false;
-            confirmedText = Trim(enteredText);
+            var trimmed = Trim(enteredText);
+            if (!IsConfirmable(trimmed)) return false;
+            confirmedText = trimmed;
             return true;
         }
 
@@ -1180,7 +1173,12 @@ Expected: `localizationKeys.ts` に 2 キーが増え（`contentKeys.ts` は変�
         // Whether the text is more than whitespace; the blueprint-name write-back reads the same rule
         public static bool HasConfirmableText(string enteredText)
         {
-            return 0 < Trim(enteredText).Length;
+            return IsConfirmable(Trim(enteredText));
+        }
+
+        private static bool IsConfirmable(string trimmed)
+        {
+            return 0 < trimmed.Length;
         }
 
         private static string Trim(string enteredText)
@@ -1188,6 +1186,25 @@ Expected: `localizationKeys.ts` に 2 キーが増え（`contentKeys.ts` は変�
             return enteredText == null ? "" : enteredText.Trim();
         }
 ```
+
+`S/Client.Tests/Ui/State/Modal/ModalLogicTest.cs` の `CanConfirm` を読む 2 件を、名前と `<web-test>` を変えずに本体だけ書き換える（`Request(id, requiresInput)` は同じファイルの既存の補助）:
+```csharp
+        /// <web-test file="src/features/modal/modalLogic.test.ts">非inputモーダルは常に確定可</web-test>
+        [Test]
+        public void 入力なしのモーダルは常に確定できる()
+        {
+            Assert.IsTrue(ModalLogic.TryGetConfirmableText(Request("m1", false), "", out _));
+        }
+
+        /// <web-test file="src/features/modal/modalLogic.test.ts">inputモーダルは空白のみを確定不可にする</web-test>
+        [Test]
+        public void 入力付きモーダルは空白だけの文では確定できない()
+        {
+            Assert.IsFalse(ModalLogic.TryGetConfirmableText(Request("m1", true), "   ", out _));
+            Assert.IsTrue(ModalLogic.TryGetConfirmableText(Request("m1", true), " 家 ", out _));
+        }
+```
+（`git grep -n "CanConfirm" -- moorestech_client` が 0 件になることを Step 5 の前に見る）
 
 `S/Client.Ui.State/Blueprint/BlueprintNameInputModalBridge.cs` の確定の分岐を次に置き換え、`using Client.Ui.State.Modal.Logic;` を足す:
 ```csharp
@@ -3947,7 +3964,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 
 1. **Requirements coverage**: R-1 → Task 2・3（`HotbarViewModelFactoryTest`）、R-2 → Task 5・6・7（`HotbarHudViewTest`）、R-3 → Task 4・7（`HotbarHudViewTest`・`HotbarHudDropTest`）、R-4 → Task 6・7（`HotbarSlotDragGestureTest`・`HotbarHudDropTest`、本物のビルドメニューの源を使う）、R-5 → Task 6・7（`HotbarHudPickingTest`）、R-6 → Task 5・10、R-7 → Task 7（`HotbarIconCenteringTest`）、R-8 → Task 4・8、R-9 → Task 8（倍率 1.5）・Task 11 Step 4、R-10 → Task 11、R-11 → Task 4・7・8・9、R-12 → Task 12、R-13 → Task 13、R-14 → Task 14・15。完了条件の各句: ホットバー 9 枠（Task 7）・`SlotFrame` のベベル上書きと `--bevel-inset: inset`（Task 7 の USS・File Structure のつまみの表）・`PlacementTargetFace`（Task 6）・割当/入替/解除の落とし先（Task 6・7）・`wheel-passthrough`（Task 6・7）・床トークン（`--hotbar-bottom`・`--hotbar-slot-*`・`--hotbar-number-tab-overhang`・`--hotbar-horizontal-offset` を USS と `HotbarCalcKnobs` で使う。Task 1 Step 1 で実在を見る）、モーダル層と BP 名（Task 8・9・12）・描き手の一本化（Task 9。Web の系の登録は MainGameUiRegistration の分岐が持つ）・`UiText.FromVerbatim` [A-40]（Task 8）・実画面 px で 720p・1080p [A-41]（Task 8・11）、写す P6・C7・P4・`placementIconCentering` のホットバーの 1 件（2 件のうち 1 件。もう 1 件は S3-buildmenu）・`alwaysOnHudWheel` の 1 件（Task 6〜8・13）、bd albof.30（Task 7・15）・albof.34（Task 5・10・15）。§6.2 の必須: 部品と公開 API（Global Constraints）・画面専用の部品の置き場（`Screens/Hotbar/Parts/`）・つまみの同名上書き（File Structure の表）・写すテスト名と件数と `<web-test>`（File Structure の表・各テスト）・撮影の解像度（Task 11）・録画（Task 12）・登録の行数 2（Task 9）・新しい共有部品の申告の手順（Global Constraints）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<PR番号>`・`<HEAD 10 桁>`・`<sha>`・`<空きポート>`・`<値>`・`<n>`・manifest の `<… のパス>`・`FILLED`（Web の CSS から読む）・`<ビルドメニューの件の第 1 引数>`（grep で読む）は実行時にしか決まらず、取り方を同じタスクに書いた。「TBD」「適切に」は無い。ビルドメニュー（S3-buildmenu。指揮の決定どおりの形）と C3-b・S2-hud の型は想定で、Task 1 Step 1 で実物と照合し、違えば読み替えて記録する手順を書いた
-3. **Type consistency**: `PlacementTargetIcon`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`・`PlacementTargetIconResolver.Resolve(IPlacementTarget, IBlueprintThumbnailLookup)`・`PlacementTargetIcons.TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`IHotbarDropReceiver.Receive(HotbarDragSource)`（以上 S3-buildmenu が作る）、`UiCommandResult`・`UiCommandRejectReason.HotbarSelectNotAccepted/ModalResponseStale`・`UiCommandResultToaster.Report`、`HotbarSlotViewModel`・`HotbarEmptySlot.Instance`・`HotbarUnresolvedSlot(Guid)`・`HotbarAssignedSlot(Guid, string, PlacementTargetIcon)`・`HotbarSelection.None/Of/FromOrigin/TryGetSlot/IsSlot`・`HotbarViewModel(IReadOnlyList<HotbarSlotViewModel>, HotbarSelection, bool, bool)`・`HotbarViewModelFactory.Create(slots, origin, uiState, screen, blockingSkit)`・`HotbarSelectRule.Accepts`・`HotbarModel.Current`・`IHotbarCommands.Select（UiCommandResult）/Apply`・`HotbarCommands(ClientHotbarDatastore, UIStateControl).SelectCommandName`、`HotbarSlotDropMark(int, IHotbarCommands)`・`HotbarRowGapDropMark.Instance`・`HotbarSlotDragPayload(int, HotbarSlotViewModel, IHotbarCommands, UiCommandResultToaster)`・`Foundation.Input.WheelPassthroughMark.ClassName/Mark/IsPassthrough`・`new HotbarCalcKnobs(VisualElement)`・`HotbarCalcKnobs.ApplyToRebuiltTabs`・`HotbarNumberTab(int)`・`HotbarCell(int, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudView(IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudPresenter(GameUiRoot, HotbarModel, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`、`ModalLogic.TryGetConfirmableText/HasConfirmableText/CanConfirm`・`IModalCommands.Respond`・`ModalCommands(ModalRequestService).RespondCommandName`・`ModalView(ModalRequest, IModalCommands, UiCommandResultToaster, IObservable<Unit>)`・`ModalButtonVariants.From`・`ModalScreenPresenter(UiModalHost, ModalRequestService, IModalCommands, UiCommandResultToaster)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `hotbar-hud`・`__row`・`__row--select-disabled`・`__cell`・`__cell--first`・`__cell--unresolved`・`__number-tab`・`__number`・`modal-view`・`__message`・`__input`、つまみ `--hotbar-hud-row-offset`・`--hotbar-hud-number-tab-overhang` とトークン 8 つは C#・USS・テストで一致。testid（`hotbar-hud`・`hotbar-grid`・`hotbar-slot-{i}`・`modal`・`modal-title`・`modal-message`・`modal-input`・`modal-button`・`modal-backdrop`）は Web の `data-testid` と同名
+3. **Type consistency**: `PlacementTargetIcon`・`PlacementTargetBlockIcon(BlockId)`・`PlacementTargetTrainCarIcon(Guid)`・`PlacementTargetConnectToolIcon(Guid)`・`PlacementTargetBlueprintIcon(Guid)`・`PlacementTargetNameOnlyIcon.Instance`・`PlacementTargetIconResolver.Resolve(IPlacementTarget, IBlueprintThumbnailLookup)`・`PlacementTargetIcons.TryToUiIcon(PlacementTargetIcon, out UiIcon)`・`IHotbarDropReceiver.Receive(HotbarDragSource)`（以上 S3-buildmenu が作る）、`UiCommandResult`・`UiCommandRejectReason.HotbarSelectNotAccepted/ModalResponseStale`・`UiCommandResultToaster.Report`、`HotbarSlotViewModel`・`HotbarEmptySlot.Instance`・`HotbarUnresolvedSlot(Guid)`・`HotbarAssignedSlot(Guid, string, PlacementTargetIcon)`・`HotbarSelection.None/Of/FromOrigin/TryGetSlot/IsSlot`・`HotbarViewModel(IReadOnlyList<HotbarSlotViewModel>, HotbarSelection, bool, bool)`・`HotbarViewModelFactory.Create(slots, origin, uiState, screen, blockingSkit)`・`HotbarSelectRule.Accepts`・`HotbarModel.Current`・`IHotbarCommands.Select（UiCommandResult）/Apply`・`HotbarCommands(ClientHotbarDatastore, UIStateControl).SelectCommandName`、`HotbarSlotDropMark(int, IHotbarCommands)`・`HotbarRowGapDropMark.Instance`・`HotbarSlotDragPayload(int, HotbarSlotViewModel, IHotbarCommands, UiCommandResultToaster)`・`Foundation.Input.WheelPassthroughMark.ClassName/Mark/IsPassthrough`・`new HotbarCalcKnobs(VisualElement)`・`HotbarCalcKnobs.ApplyToRebuiltTabs`・`HotbarNumberTab(int)`・`HotbarCell(int, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudView(IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`・`HotbarHudPresenter(GameUiRoot, HotbarModel, IHotbarCommands, PlacementTargetIcons, UiCommandResultToaster)`、`ModalLogic.TryGetConfirmableText/HasConfirmableText`・`IModalCommands.Respond`・`ModalCommands(ModalRequestService).RespondCommandName`・`ModalView(ModalRequest, IModalCommands, UiCommandResultToaster, IObservable<Unit>)`・`ModalButtonVariants.From`・`ModalScreenPresenter(UiModalHost, ModalRequestService, IModalCommands, UiCommandResultToaster)` は定義と使用（テスト・View・Presenter・登録・EDC・録画）で同じ綴り。USS のクラス `hotbar-hud`・`__row`・`__row--select-disabled`・`__cell`・`__cell--first`・`__cell--unresolved`・`__number-tab`・`__number`・`modal-view`・`__message`・`__input`、つまみ `--hotbar-hud-row-offset`・`--hotbar-hud-number-tab-overhang` とトークン 8 つは C#・USS・テストで一致。testid（`hotbar-hud`・`hotbar-grid`・`hotbar-slot-{i}`・`modal`・`modal-title`・`modal-message`・`modal-input`・`modal-button`・`modal-backdrop`）は Web の `data-testid` と同名
 4. **保留・縮退経路**: (a) 選択を受けない UI 状態のタップ → `HotbarCommands.Select` が良性の拒否を返し、源が `UiCommandResultToaster` へ渡して LogWarning（D-20）。(b) 空き枠のドラッグ → `HotbarSlotDragPayload` が `silent-ok` 付きで何もしない（Web と同じ。テストが固定。D-26）。(c) 列の隙間の落とし → `HotbarRowGapDropMark.Receive` が `silent-ok` 付きで無操作（受けたので源は解除しない。テストが固定）。(d) 他の画面の印 → 枠外として解除（枠の源）・無操作（ビルドメニューの源。S3-buildmenu の `silent-ok`）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`HotbarCalcKnobs`）。(f) モーダルの空白だけの確定 → ボタンが押せず、それでも来たら `ModalView` が LogWarning（D-12）。(g) 古い応答 → `ModalCommands` が良性の拒否 `ModalResponseStale` を返しトースト口が LogWarning。(g2) ESC 以外でフォーカスが外れた（欄の外の押下・閉じたときの外れ）→ `ModalView.CancelIfEscapeBlurred` が `silent-ok` で取り消さない（`ModalScreenPresenterTest` の「欄の外を押しても閉じない」が固定）。フォーカスの無い ESC は View が聞かず、既存のゲーム入力の経路が取り消す（D-11。録画の流れ 7b）。(h) 同じ要求の通知の重なり → `silent-ok` 付きで描き直さない（D-13）。(i) Task 1・7・8・9・10・11・12 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
 5. **「決定的にする」を根拠にした選択**: D-13（要求ごとに View を作り直す）は Web の `key={id}` の写し。D-18 は間引きを撤回し、順序は購読の順（実物の行）と録画の 1 段の実測で確かめる。ほかに無し
 6. **呼び出し側への責務漏出**: 選択の受理は `HotbarSelectRule` の 1 か所を Model（減光）と操作（受理）が読む（D-4）。落としの解き方は印（State の `IHotbarDropReceiver` を実装）が持ち、源はビルドメニューもホットバーも `Receive` を呼ぶだけ（D-33）。絵の出どころの解き方と絵への変換は S3-buildmenu が作る `PlacementTargetIconResolver`・`PlacementTargetIcons` の 1 か所をビルドメニューと共有（D-6）。確定の文の規則と空白の除去は `ModalLogic.TryGetConfirmableText`・`HasConfirmableText` の 1 か所を View・ブリッジが読み、View の可否は 1 回だけ導く（D-12・D-39）。応答と選択は [A-8] のコマンドで返し、拒否はトースト口 1 本（D-20・D-34）。ボタンの色の写しは `ModalButtonVariants` の 1 か所（[A-28]）。部品の見た目はつまみで変え、画面 USS は部品のクラスを書かない（番号タブの暗い縁は、このレーンが部品に足す縁の色のつまみで渡す。D-7）
@@ -3999,6 +4016,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-37 | 枠の源には bool の割当の有無でなく `HotbarSlotViewModel` を渡し、掴める物の判定は `TryGetDragSource` の 1 か所に置く | `bool assigned` を渡して `OnDropped`・`OnDroppedOutside` で 2 回判定: 同じ判定が 2 か所になる | agent 既定 |
 | D-38 | 表示名が空の対象は、Web と同じく空の名前をそのまま出す（代わりの文を出さない）。Web は `HotbarTopic` が BP だけ原文を運び、他はクライアントが GUID のキーで引き、`PlacementTargetFace` は `displayName` をそのまま描く | 代わりの文（ID 等）を出す: Web と違う見た目になり、空の名前は BP 名の確定規則（空白だけを弾く）で通常は起きない | Web の写し |
 | D-39 | モーダルの確定の可否は文の変化ごとに `ModalLogic.TryGetConfirmableText` で 1 回だけ導き（`_confirmable`・`_confirmedText`）、ボタンと確定の両方が読む。空白の除去は `ModalLogic` の private `Trim` の 1 か所 | View が `Trim` と `CanConfirm` を別々に呼ぶ: 同じ導出が 2 本になる | agent 既定 |
+| D-43 | 再検査 3 の反映: `ModalLogic.CanConfirm` は本番の呼び手がテストだけなので消し（デバッグ/テスト専用 public を残さない）、既存の `ModalLogicTest` 2 件を `TryGetConfirmableText` で書き換える。空白の判定は private `IsConfirmable` の 1 か所、`Trim` は 1 経路 1 回 | `CanConfirm` を委譲で残す: テスト専用の public が残る | agent 既定（再検査 3） |
 | D-42 | 独立評価 4 巡目の反映: (a) 縁の色のつまみは C4-a と先に入ったほうが足し、後は使うだけ（Task 6 Step 3 の頭で `git grep` して分岐。実行計画の C4-a 行と設計書 A-108 に同じ規則） (b) 解放の録画の流れ 8 は無料設置を切ってから未解決を作る (c) 減光の照合を空き枠・割当済みの白面・未解決の重なりの 3 つで測る (d) `Registration/GameUi/` が 11 本以上なら integrator の再編が入るまで完了・マージしない (e) 録画が 200 行を超えたら流れ 8 を別シナリオへ (f) 番号タブの数字の縦位置を並べ比べで 1px 以内 | (a) このレーンだけが足す: 先に走る C4-a が同じ部品の同じ行を書いてぶつかる (b) 既定の無料設置のまま: 未解放のブロックも解決され、未解決の枠が作れない | agent 既定（Codex 4 巡目・opus 4 巡目） |
 | D-41 | 独立評価 3 巡目と再検査 2 の反映: (a) 一部だけ写した 2 件は `<web-test>` だけを付け、処遇の表に行を足さない。残りの範囲は `done.md` の「## 部分移植の残り」（処遇の語は 4 つだけで、タグと処遇の行の併存は整合の誤り） (b) albof.30 の「写す予定」の行は、`HotbarHudPickingTest` にタグを付ける Task 7 のコミットで消し、束 2・3 の突き合わせで終了コード 2 が無いことを完了の条件にする (c) `ModalLogic.CanConfirm` は `TryGetConfirmableText` に委ね、`TryGetConfirmableText` は `HasConfirmableText` を通す（空白の規則を 1 か所に。Phase 2.6 弱 1 件の採用） (d) `PauseMenuCommandsTest` を `$FILTER` と取り込みの衝突の一覧へ | (a) 処遇「一部」: ツールが書式の誤りで落とす (c) 判定を 2 本のまま: 片方だけ直すと食い違う | agent 既定（Codex 3 巡目・再検査 2） |
 | D-40 | `HotbarCell` の面へ当てる分岐（絵か名前か）は枠が持ち、`PlacementTargetIcons` は値（`UiIcon`）を返すだけ | Content が面に当てる: Content が部品の面を知ることになる | 指揮の決定（S3-buildmenu の API） |
