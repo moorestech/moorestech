@@ -793,7 +793,7 @@ namespace Client.Ui.State.Research.Catalog
 - [ ] **Step 4: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.State.Research.ResearchCatalogFromMasterTest"`
-Expected: ErrorCount 0 / 5 PASS。`IconItem` が空のノード（テスト mod）は `GetItemId(Guid.Empty)` が空の ID を返すので落ちない（`ItemMaster.GetItemId` の実物 73 行目）
+Expected: ErrorCount 0 / 5 PASS。`IconItem` が空のノード（テスト mod）は `GetItemId(Guid.Empty)` が空の ID を返すので落ちない（`ItemMaster.GetItemId` の実物 73 行目）。描画側は空の ID を null のアイコンにする（`ResearchNodeCard`）
 
 - [ ] **Step 5: コミットする**
 
@@ -1980,7 +1980,10 @@ namespace Client.Ui.Screens.Research.Parts
             EnableInClassList("research-tree__card--locked", card.CardState.Locked);
             EnableInClassList("research-tree__card--selected", card.Selected);
             _name.SetText(UiText.FromContent(ContentLocalizationKeys.ResearchName(card.Guid)));
-            _icon.SetContent(new ItemSlotContent(content.Item(card.IconItemId), null, new ItemSlotMarks(false, false, false), null, null, null));
+            // アイコン未設定のノードは空の ID なので null のアイコンにする（Item は空の ID で例外）
+            // A node without an icon has the empty id, so pass a null icon (Item throws on it)
+            var icon = card.IconItemId == ItemMaster.EmptyItemId ? null : content.Item(card.IconItemId);
+            _icon.SetContent(new ItemSlotContent(icon, null, new ItemSlotMarks(false, false, false), null, null, null));
             _state.SetText(new UiText(card.StateLabelKey));
         }
     }

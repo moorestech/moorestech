@@ -982,8 +982,8 @@ Expected: `ErrorCount: 0`、3 本とも 200 行未満。`Func<>`・`partial`・`
 - [ ] **Step 5: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs
-git commit -m "feat(playtest): ラダー用の列車線・駅名の待ち・CPU 時間・アンカー照合の口を足す（S4-gamma）" -- moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots
+git add moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs
+git commit -m "feat(playtest): ラダー用の列車線・駅名の待ち・CPU 時間・アンカー照合の口を足す（S4-gamma）" -- moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots
 ```
 
 ---
