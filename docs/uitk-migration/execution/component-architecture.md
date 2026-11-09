@@ -289,7 +289,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | Web の参照キャプチャ | integrator（(b) は I-follow のレーンが撮り直して並べ比べる） | (a) 段の頭（その段の画面を撮り直す）、(b) master の取り込みで、移し終えた画面に効く Web 変更が入ったとき（I-follow-n の完了条件。実行計画 §1.6）、(c) 撤去の前（X-prerun で全画面） | master の worktree で `W/../e2e/uitk-reference/referenceShots.ts` を回し、`moorestech_logs/uitk/reference-captures/web-<master の短い sha>/` に置く（既存 2 組の続き）。feature/uitk の Web には手を入れない（plan §3.3 R3）。部品だけの参照は、画面の参照から切り抜く（Web に部品の見本ページは無く、作ると Web の変更になる）。参照の組に無い状態（例: 掴み絵）を比べる部品・画面レーンは、同じ撮り方（mock-host・`shotRunner.ts` の `prepareShot`）の使い捨てのスクリプトで自分で撮って比べ、撮影表へ足すことは integrator へ依頼する（完了は integrator の撮影を待たない。実行計画 E-22） |
 | UITK の部品の見本 | 部品レーン | 部品を作り終えたら（L1 が通った後） | `Client.Ui.Editor` の **部品ギャラリー**（EditorWindow。本番の tss を当て、部品ごとに全状態を並べる。各部品レーンが `IUiGalleryEntry` を 1 つ足す）を `uloop screenshot` の window モードで撮る（rendering モードには UITK が写らない。plan §3.12）`[A-9]` |
 | UITK の画面 | 画面レーン | 画面の L1 が通り、L3/L4 に入る前 | PlayMode・全体スイッチ UITK で、参照キャプチャと同じ状態（Web のフィクスチャ名と同じ状態を作る DSL シナリオ）を ScreenCapture で 720p と 2560×1080 の 2 種撮る。フレーム番号の透かしを入れる |
-| 並べ比べ | 作ったレーン（自己確認）→ 指揮（判定） | レーンの完了報告の前 → 波の取り込みの前・I-follow の後・X-prerun（切替前に全画面を最新の参照と） | 左 Web・右 UITK の比較 HTML の原本は worktree の gitignore 下に置き、PR の報告ページに載せる（`moorestech_logs` にはスクショ 3 枚程度まで）。レーンは「位置・寸法・色・文字の段組・装飾の有無」の差を表にする。指揮は波ごとに codex-audit（画像付き）にかける（plan §4.6）。差は Web へ寄せて直すか、§3.4 の例外に記帳する |
+| 並べ比べ | 作ったレーン（自己確認）→ 指揮（判定） | レーンの完了報告の前 → 波の取り込みの前・I-follow の後・X-prerun（切替前に全画面を最新の参照と） | 左 Web・右 UITK の比較 HTML の原本は worktree の gitignore 下に置き、PR の報告ページに載せる（`moorestech_logs` にはスクショ 3 枚程度まで）。レーンは「位置・寸法・色・文字の段組・装飾の有無」の差を表にする。段の締めのレーンが波ごとに codex-audit（画像付き）を回し、別の subagent が画像で再現した差と処理の案を出し、指揮が判定する（plan §4.6・`[A-179]`）。段の締めは同じ実ゲームの状態を両方の系で撮る撮影シナリオ（`scenarios/uitk/stage<N>/`）を持つ。差は Web へ寄せて直すか、§3.4 の例外に記帳する |
 | ユーザーの目視 | ユーザー | 切替 PR の検証ビルドで 1 回（plan §2.0・§4.6。段階ごとの staging は棄却済み） | — |
 
 合否の目安（agent 既定 `[A-14]`）: 720p で位置・寸法の差が 2px 以内、色はトークン経由で同じ値（α 補正の行は補正後）、装飾（罫線・三角・ベベル・グラデ）の有無が同じ（`GamePanel` の外周の影は Web でも出ないので描かない `[A-22]`）、文字の段組（折返し・行数）が同じ。文字の字形の差（Chrome と TextCore）は差に数えない。
@@ -301,7 +301,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 - **コードに印を残す**: 例外の USS 行・C# 行に `/* look-exception: LX-n */` を付ける。L2 で「印の ID が台帳にある」「台帳の ID が印のどこかにある」を照合する
 - **文字の大きさは Web と同じ px にする**。GameUi のフォントの字幅が Web と違うぶんは letter-spacing で寄せ、字の大きさ（px）は変えない `[A-37]`。寄せても並べ比べで差が一目で分かるときは例外にせず `[Q-n]` で上げる
 - 段階 1 で既にある差（題 34px → 32px のフォント幅の補正、`PanelActionButton` の text-shadow → outline 近似、`ModeSwitch` の ring → border 近似）は、F1 で `LX-1..3` として記帳する。`LX-1` は C2-c が Title を Web と同じ px＋letter-spacing へ直すときに台帳と印ごと消す `[A-37]`
-- `LX-n` の番号は実行計画 §6.1 の割り当て（レーンごとの範囲）から取り、台帳「## 見た目の例外」の末尾へレーンが追記する（実行計画 E-1）
+- `LX-n` の番号は実行計画 §6.1 の割り当て（レーンごとの範囲）から取り、台帳「## 見た目の例外」の末尾へレーンが追記する（実行計画 E-1）。段の締めが範囲を持つ例外は、印を置くレーン（I-fix）が台帳の行と印を同じ PR で入れる（`LookExceptionLedgerTest` が同じ HEAD で両方を照合するため。`[A-179]`）
 
 ---
 
@@ -598,6 +598,11 @@ SKILL.md の目次:
 | A-172 | 研究ツリーは常駐の `NodeGraphView` 1 つにカードを GUID で使い回して渡し、`SetGraph` はノードの並びか初期の注目点が変わったときだけ呼ぶ（C4-d D-23(3) に乗り、開き直しても視野が残る）。カードの文字は拾わず、アイコンはホバーの名前のために拾い、押下はカードの包みへ浮かぶ（S4-research） | 毎回 `SetGraph`: 組み直しのたびに包みが作り直され、カードの状態だけの変化で無駄に組む。カードの子をすべて拾わない: Web の `ItemSlot` のホバーの名前が出ない |
 | A-173 | 研究ノードのロックの減光は要素の opacity のトークン `--research-node-locked-opacity`（`DerivedTokens.uss` の「S4-research」）で持ち、値はランタイムの PanelSettings の画素で Web と比べて決める（前例 `--slot-frame-insufficient-opacity`）。研究ボタンは `RecipeActionButton(Regular)` を画面 USS の `.research-tree__detail-body` で研究の組に上書きし、幅と高さはこのレーンが撮って決める（[A-46]）（S4-research） | Web の 0.45 のまま: Linear 合成で明るい字と枠が淡く残る。暗い半透明の式（指数 1.85）: 要素の opacity は下の色を混ぜる式が違う |
 | A-174 | 研究の実行の失敗（応答なし・サーバーの拒否）は新しい拒否理由 `UiCommandRejectReason.ResearchFailed`（良性でない・wire `research_failed`・文言 `ui.commandRejected.researchFailed`）で `UiCommandResultToaster` の 1 本へ渡す。応答があれば状態は先に `ResearchNodeStateStore.ApplyNodeStates` へ入れる（S4-research） | 既存の汎用の理由: トーストの文言が研究と分からない。View が失敗を直接トーストする: 拒否の口が 2 本になる（[A-8]） |
+| A-175 | 段の締めの「同時に出る組」の L3 は、面の名前と載る列の名前の表（Web の `App.tsx` と `UiScreenTraitsTable` から写す）を持ち、本番の遷移で画面を巡って「出るべき面だけが見え・期待の列の子孫にあり・同名が 1 つで・中心の `panel.Pick` が自分か子孫を拾う」を照合する。同時に出ない組（ビューアと機械 UI）は行き来の後の残骸で見る（S4-gamma） | 画面ごとの L1 に任せる: L1 は 1 画面のパネルで、列の取り合い・重なり・前の画面の残骸が見えない。同時に出ない組を同時に出す: 本番で起きない状態を作る |
+| A-176 | マスタのアンカーの確かめは、シナリオがピン先マスタの `uiHighLight` を集めて件数を assert し、画面ごとに `TutorialAnchorRegistry.Resolve` が `Unique` で、`AddOutlineHighlight` の枠の中心がアンカーの中心から 5px 以内（画面内のとき）で、`CompleteTutorial` で消えることを見る（S4-gamma） | アンカーの文字列をテストに並べる: ピンの変更で黙って古くなる。Resolve だけを見る: 枠が別の位置に出るずれを見逃す |
+| A-177 | 全録画（段階 1・4 の終わり・切替 PR）の結果は 1 本 1 行の TSV（scenario・system・exit・seconds・run_dir）に残し、PASS／束 5 未移植（段階 4 のとき）／wwxy／前提つき／Web 専用／不具合 の 6 つに分ける。Web 側の失敗は段階の前のコミットで流し直して既存と退行に分ける。不具合と退行は持ち主へ回して 0 にしてから段を締める（S4-gamma） | 失敗を全部不具合にする: 段と無関係の既存の失敗を抱える。分類を書かない: 次の全録画で同じ切り分けをやり直す |
+| A-178 | UI の CPU 時間は `ProfilerRecorder` で名前に `UIElements` と `UpdatePanels`／`RepaintPanels` を含むマーカーを拾って和を取り、Editor の PlayMode・1920×1080 で画面ごとに 240 フレームの平均・p95・最大を台帳に書く。1ms は目安で合否にしない（S4-gamma） | マーカー名を決め打ちする: Editor の版で名前が変わると 0 を測って気づかない。合否にする: plan §2.5 は目安 |
+| A-179 | 段の締めの並べ比べは、各レーンの報告ページの Web／UITK の組と、締めのレーンが同じ実ゲームの状態を両方の系で撮った組（同時に出る画面 × 1280×720・2560×1080）を codex-audit にかけ、記帳済みの LX を除いて差を出させ、別の subagent が画像で再現した差だけを持ち主へ回す。直すか例外にするかは指揮が判定し、例外にする差は締めのレーンが範囲の番号で LX の文面を書き、台帳の行とコードの印は差のあるファイルを直すレーン（I-fix）が同じ PR で置く（S4-gamma） | mock-host の参照だけと比べる: 実ゲームの同時表示の重なりが見えない。指摘をそのまま回す: 再現しない指摘で持ち主の手が止まる |
 
 ### 7.2 ユーザーに上げるもの
 
