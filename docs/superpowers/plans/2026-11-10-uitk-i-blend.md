@@ -118,7 +118,7 @@ public void TranslucentOverOpaqueMatchesTheWebFormula(...) { /* UiRuntimePanelCa
 ### Task 6: 並べ比べの撮り直しと unityプレイ録画テスト
 
 - [x] Step 1: 不透明な部品（ItemSlot・GamePanel・FormButton・TooltipFace）を `UiRuntimePanelCapture` で Web 参照（`web-a9d5123537`）と同じ地で撮り、旧方式（feature/uitk の done.md の表）と色の差を比べる
-- [ ] Step 2: unityプレイ録画テスト（C-1 で合成パスを final blit 後・backbuffer 書き込みへ変えたため既定画質と「低」(50%) で再実測するまで未完）: `uitk-i-blend-measure`・`uitk-i-blend-perf`・`uitk-hud`・`uitk-grab-overlay`・`uitk-tutorial-cues`・`uitk-lifeline`・`uitk-gameview-resolution-switch`。全合格・エラーログ 0
+- [x] Step 2: unityプレイ録画テスト（C-1 で合成パスを final blit 後へ移した後に既定画質と描画解像度 50% で再実測済み。既定: 世界・面とも最大 1 段。50%: 面は最大 1 段、世界は平均 0.3〜0.8 段で、地平線の細部の行だけ 2% の画素が 5〜96 段ずれる〈URP の拡大と合成の双線形読みの差〉）: `uitk-i-blend-measure`・`uitk-i-blend-perf`・`uitk-hud`・`uitk-grab-overlay`・`uitk-tutorial-cues`・`uitk-lifeline`・`uitk-gameview-resolution-switch`。全合格・エラーログ 0
 - [x] Step 3: 2-game-hud・3-modal・チュートリアル枠を PlayMode で撮り、Web 参照と並べる
 
 ### Task 7: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）
@@ -130,12 +130,14 @@ pr-createスキルでPRを作成（base=feature/uitk）し、origin/feature/uitk
 ## 判断記録（ADR）
 
 - D-1（A-180）合成方式は「パネルを sRGB 変換なしの RT に `forceGammaRendering` で描き、URP の最後に世界を sRGB にして over で重ねる」。比べた案: (b) RT なしで `forceGammaRendering` だけ → 二重に sRGB 化され最大 67 段外れる。(c) 現状維持（トークンごとの α 補正）→ 最大 50 段（ゴースト・グロー）。採った (a) は世界の上・面の上とも最大 2 段（I-blend 実測）。出所: agent 既定（指揮「UI を Web と同じ sRGB 空間で合成できるかを調べる」）
-- D-2（A-181）合成は URP の final blit（AfterRendering + 1）より後（AfterRendering + 2）で、final blit と同じカメラの最終ターゲットへ、画面の解像度で行う。AfterRenderingPostProcessing で中間色へ重ねると描画解像度を下げたとき（画質設定の 50%・75%）UI まで拡大されてぼける。世界の色は AfterRenderingPostProcessing のパスで控えたハンドルを読む（AfterRendering では URP のハンドルが画面側に切り替わる）。code-review 指摘（C-1）で final blit より前だった配置を直した。直した後の既定画質・「低」(50%) での再実測は未実施。UI が無い画素は捨てて URP の結果を残すので、3D は描画解像度を下げても URP の拡大のまま。UI が半透明の画素だけ世界を双線形で拡大して読む
+- D-2（A-181）合成は URP の final blit（AfterRendering + 1）より後（AfterRendering + 2）で、final blit と同じカメラの最終ターゲットへ、画面の解像度で行う。AfterRenderingPostProcessing で中間色へ重ねると描画解像度を下げたとき（画質設定の 50%・75%）UI まで拡大されてぼける。世界の色は AfterRenderingPostProcessing のパスで控えたハンドルを読む（AfterRendering では URP のハンドルが画面側に切り替わる）。code-review 指摘（C-1）で final blit より前だった配置を直した。直した後に既定画質と描画解像度 50% で再実測した（Task 6 Step 2）。UI が無い画素は捨てて URP の結果を残すので、3D は描画解像度を下げても URP の拡大のまま。UI が半透明の画素だけ世界を双線形で拡大して読む
 - D-3（A-182）renderer feature は Client.Ui（Foundation/Composite）に置き、URP Data と URP Data - Skit の両方に載せる。互換モード（`URP_COMPATIBILITY_MODE`）なので Execute だけ実装する。Render Graph へ切り替えたら URP が毎フレーム「Execute/RecordRenderGraph が無い」と警告し UI が出ないので気づける（silent-ok ではない）
 - D-4（A-183）重ねるカメラは「画面へ出す base カメラのうち depth 最大」1 台（スタックの最後の overlay を含む）。二度重ねると半透明が濃くなる
-- D-5 画面の大きさの追従は `GameUiRoot.Update` で `Screen.width/height` と RT を比べる。Unity に画面の大きさの変化通知が無く、RT の大きさが変わらないとパネルの `GeometryChangedEvent` も起きないため（設計原則「Update で同値判定をしない」の例外）
+- D-5 RT の生成と画面の大きさの追従は GameUi の系でだけ登録する `GameUiSrgbCompositeInstaller`（IInitializable・ITickable。root.panel を控える入口より先に登録）の Tick で `Screen.width/height` と RT を比べる。Unity に画面の大きさの変化通知が無く、RT の大きさが変わらないとパネルの `GeometryChangedEvent` も起きないため（設計原則「Update で同値判定をしない」の例外）
 - D-6 `UiSrgbCompositeSource` の RT が null なのは GameUi を使っていない間だけ（作り損ねは `UiSrgbPanelTarget` の生成時に例外。シェーダ欠落は feature の Create で例外。世界の色を控え損ねたフレームは `Debug.LogError`）
 - D-7（A-184）α 補正の仕組みを全部撤去する: 生成器 `translucency.mjs`・`handWrittenDerivedRows.mjs`・半透明の表 `docs/uitk/translucent-tokens.md`、`LinearBlendOpacity`、グローの地の選び分け（`TutorialAnchorGround`・`UiSurface`・`--tutorial-attention-glow-over-world`。A-136 を覆す）、手合わせの値（LX-23 のスロット 0.42・0.2・0.18、LX-66 のゴースト 0.16、`--game-panel-rule-*` の面色の厳密式）。トークンの α は Web の値そのもの
 - D-8（A-185）部品ギャラリー（EditorWindow）は Editor のパネルで sRGB のまま合成するので、ランタイムと同じ見え方になる。compare-procedure の「色はランタイムの PanelSettings で比べる」は残す（撮影の道具が本番の設定を写すため）
 - D-9 ランタイム挙動（描画・入力）に触れるので unityプレイ録画テストを Task 6 に入れる
 - D-10 user-simulator のレビューと Execution Handoff は、指揮の依頼（このセッションで実行・§5 の独立評価不要）により行わない
+- D-11 code-review 設計判断 1（推奨 A を採用）: パネル RT と合成パスは GameUi の系でだけ作る。`GameUiRoot.Awake/Update` に置くと既定の Web 起動でも画面大の RT・中間テクスチャ・2 パスが毎フレーム走るため、`GameUiSrgbCompositeInstaller`（IInitializable・ITickable・IDisposable）を `MainGameUiRegistration` の `RegisterComponent(gameUiRoot)` 直後に登録する（パネルを差し替えるので root.panel を控える `GameUiInputInstaller` より先）。出所: moores-code-review の design.md 推奨（指揮の自律実行の依頼により agent 採用）
+- D-12 code-review 設計判断 2（推奨 A を採用）: GameUi はカメラの最後で世界へ重なるので uGUI の Screen Space Overlay（CEF を含む）より常に下に出る。仕様として `docs/uitk/TODO.md` の S1 行と A-180 に書き、コードは変えない

@@ -157,7 +157,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 
 | 実測 | 中身 | 担当 | 結論 |
 |---|---|---|---|
-| S1 | CEF と UITK の前後 | bd `moorestech-albof.1` | 合格。PanelSettings.sortingOrder で前後を決められ、背面パネルも置ける（-1 で背面、1 以上で前面、同値 0 は UITK が前）。PR #1558・`docs/uitk-migration/poc/stage0-measurements/` |
+| S1 | CEF と UITK の前後 | bd `moorestech-albof.1` | 合格。PanelSettings.sortingOrder で前後を決められ、背面パネルも置ける（-1 で背面、1 以上で前面、同値 0 は UITK が前）。PR #1558・`docs/uitk-migration/poc/stage0-measurements/` **I-blend 以降の GameUi は URP のカメラの最後で世界へ重ねるので、uGUI の Screen Space Overlay（CEF を含む）より常に下に出る。sortingOrder で前に出せず、背面パネルも使えない（A-180）。** |
 | S2 | 録画とバグ報告動画への写り込み | bd `moorestech-albof.1` | 合格。Recorder・ScreenCapture・ScreenFrameReader のいずれにも UITK と CEF が写る。同上 |
 | S3 | 入力注入 | bd `moorestech-albof.1` | 合格。注入クリックが InputSystemUIInputModule→PanelEventHandler で UITK に届き座標往復が一致、IsPointerOverGameObject も UITK を拾う。同上 |
 | S15 | 委譲中の Web の入力停止 | bd `moorestech-albof.1` | 不可。action は止まるが Web の pointerOverUi が true のまま固着する。UITK が主パネルかモーダルを出すあいだ Web を全面オフにする（R1） |

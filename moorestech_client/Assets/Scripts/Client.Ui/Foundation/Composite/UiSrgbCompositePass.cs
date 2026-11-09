@@ -46,7 +46,6 @@ namespace Client.Ui.Foundation.Composite
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (!UiSrgbCompositeSource.TryGetTexture(out var uiTexture)) return;
-            UiSrgbCompositeSource.MarkComposited();
             var cameraData = renderingData.cameraData;
             // 同じカメラのポスト処理の後に控えた世界の色を読み、次のカメラへ持ち越さない
             // Read the world colour captured after this camera's post-processing and do not carry it over to the next camera
@@ -77,6 +76,7 @@ namespace Client.Ui.Foundation.Composite
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+            UiSrgbCompositeSource.MarkComposited();
         }
 #endif
     }

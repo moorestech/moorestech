@@ -30,14 +30,14 @@ namespace Client.Ui.Foundation.Composite
             _reportedNotComposited = false;
         }
 
-        // パネル RT があるのに数フレーム合成パスが走っていない状態へ入った瞬間に 1 回だけ知らせる（カメラ 0 台・全 RT 出力などで UI が画面から消える）
-        // Report once on entering the state where a panel RT exists but the composite pass has not run for several frames (no screen camera etc.; the UI disappears)
+        // RT があるのに合成が数フレーム走らない状態へ入ったら 1 回知らせる。Game ビューが隠れた PlayMode や batchmode でも起きるので警告にする
+        // Warn once when the RT exists but compositing has not run for frames; a hidden Game view or batchmode also causes it, so it is a warning
         public static void ReportWhenNotComposited()
         {
             if (_texture == null || _reportedNotComposited) return;
             if (Time.frameCount - _lastCompositedFrame <= 3) return;
             _reportedNotComposited = true;
-            Debug.LogError("[UiSrgbCompositeSource] the UI composite pass has not run for several frames (no screen camera to composite onto?); the UI is not shown");
+            Debug.LogWarning("[UiSrgbCompositeSource] the UI composite pass has not run for several frames (no screen camera to composite onto?); the UI is not shown");
         }
 
         public static void ClearTexture(RenderTexture texture)
