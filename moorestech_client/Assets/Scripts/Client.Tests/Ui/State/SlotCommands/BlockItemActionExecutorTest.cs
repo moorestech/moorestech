@@ -61,7 +61,7 @@ namespace Client.Tests.Ui.State.SlotCommands
         }
 
         [Test]
-        public void 1個の枠の分割は何も動かさず成功する()
+        public void 一個の枠の分割は何も動かさず成功する()
         {
             var result = Run(PlannedItemAction.Split(ItemMoveSlotRef.Block(2)));
             Assert.IsInstanceOf<UiCommandAccepted>(result);
