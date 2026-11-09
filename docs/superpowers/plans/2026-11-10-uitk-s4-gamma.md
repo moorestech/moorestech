@@ -462,10 +462,13 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 // 持ち物 → 研究 → 機械 → 持ち物の順に本番の遷移で巡る
                 // Walk inventory -> research -> machine -> inventory through production transitions
                 await TransitionTo(uiStateControl, UIStateEnum.PlayerInventory);
+                await WaitScreenSettled(root, UIStateEnum.PlayerInventory);
                 AssertScreenSet(root, UIStateEnum.PlayerInventory);
                 await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
+                await WaitScreenSettled(root, UIStateEnum.GameScreen);
                 AssertScreenSet(root, UIStateEnum.GameScreen);
                 await TransitionTo(uiStateControl, UIStateEnum.ResearchTree);
+                await WaitScreenSettled(root, UIStateEnum.ResearchTree);
                 AssertScreenSet(root, UIStateEnum.ResearchTree);
                 AssertResearchTreeRightOfInventory(root);
                 await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
@@ -473,10 +476,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 // 機械は F キーの注入で開き、閉じた後の持ち物に残骸が無いことを見る
                 // Open the machine by injected F and check the inventory has no leftovers after closing
                 await InteractKeyBlockOpener.PlaceNearPlayerAndOpen(MachineBlockName);
-                await UniTask.DelayFrame(3);
+                await WaitScreenSettled(root, UIStateEnum.SubInventory);
                 AssertScreenSet(root, UIStateEnum.SubInventory);
                 await InteractKeyBlockOpener.CloseToGameScreen();
                 await TransitionTo(uiStateControl, UIStateEnum.PlayerInventory);
+                await WaitScreenSettled(root, UIStateEnum.PlayerInventory);
                 AssertScreenSet(root, UIStateEnum.PlayerInventory);
 
                 Application.logMessageReceived -= CollectErrors;
@@ -489,6 +493,20 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
             }
 
             #endregion
+        }
+
+        private static async UniTask WaitScreenSettled(VisualElement root, UIStateEnum state)
+        {
+            // 開閉の動きの途中は不透明度が 0 と 1 の間なので、出る面が見え出ない面が消えるまで待つ
+            // Mid open/close animations sit between 0 and 1 opacity, so wait until shown surfaces appear and hidden ones vanish
+            var expected = Stage4ExpectedSurfaces.Expected(state);
+            for (var i = 0; i < 120; i++)
+            {
+                var settled = Stage4ExpectedSurfaces.All.All(s => expected.Contains(s) == (root.Q(s.Name) is { } e && Stage4ScreenSetProbe.IsVisible(e)));
+                if (settled) return;
+                await UniTask.Yield();
+            }
+            // silent-ok: 120 フレームで落ち着かなくても続ける / 直後の AssertScreenSet がどの面かを名前付きで落とす
         }
 
         private static void AssertScreenSet(VisualElement root, UIStateEnum state)
