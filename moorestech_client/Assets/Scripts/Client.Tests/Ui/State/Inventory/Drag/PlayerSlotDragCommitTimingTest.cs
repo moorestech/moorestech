@@ -78,6 +78,24 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         }
 
         [Test]
+        public void 同じフレームで前の解放の後に次の開始が届くと前のsessionを先に確定する()
+        {
+            // 低 fps では前のドラッグの解放と次の押下が同じフレームに届き、解放が UI の押下より先に流れる
+            // At low fps the previous drag's release and the next press share a frame, and the release runs before the UI press
+            _operations.SetGrab(new SlotItem(Wood, 10));
+            _commands.BeginSplitDrag(PlayerSlotRef.Main(3));
+            _commands.EnterWithLeftButton(PlayerSlotRef.Main(4));
+            _button.Release();
+            _button.SetPressed(true);
+
+            _commands.BeginSplitDrag(PlayerSlotRef.Main(6));
+            Assert.AreEqual(new[] { "Grab->Main:3 x5", "Grab->Main:4 x5" }, _operations.Moves.ToArray(), "前の session の枠へ配る");
+            _commands.LateTick();
+
+            Assert.AreEqual(2, _operations.Moves.Count, "押したままの新しい session は LateTick で確定しない");
+        }
+
+        [Test]
         public void 解放を取りこぼした分割ドラッグは次の左操作で捨てて配らない()
         {
             // フォーカス喪失のデバイスリセット等で解放が流れず、本番の押下（マウスの実状態）だけが下りて session が残る

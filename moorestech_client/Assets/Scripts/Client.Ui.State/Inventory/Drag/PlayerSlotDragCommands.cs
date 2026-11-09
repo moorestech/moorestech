@@ -52,6 +52,13 @@ namespace Client.Ui.State.Inventory.Drag
 
         public void BeginSplitDrag(PlayerSlotRef slot)
         {
+            // 同じフレームで前のドラッグの解放が先に届いていたら、前の session を先に確定してから始める
+            // If the previous drag's release already arrived this frame, commit that session before starting
+            if (_commitPending)
+            {
+                _commitPending = false;
+                CommitSplitDrag();
+            }
             DiscardStaleSession();
             _session.Begin(slot);
 
