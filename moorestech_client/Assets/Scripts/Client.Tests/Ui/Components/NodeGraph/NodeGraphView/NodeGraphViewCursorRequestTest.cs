@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Components.NodeGraph;
 using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
@@ -65,7 +64,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
         {
             var view = MountView(MountHost(400f, 300f));
             var card = Card("card-a");
-            RequestPointerWhileHovered(card);
+            new UiOsCursorHoverRequest(card, OsCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
             view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, card) }, NodeGraphFocus.None));
             simulate.FrameUpdate();
             var onCard = card.worldBound.center;
@@ -123,21 +122,32 @@ namespace Client.Tests.Ui.Components.NodeGraph
             Assert.AreEqual(UiOsCursorShape.Default, AppliedCursor.Current);
         }
 
-        private void RequestPointerWhileHovered(VisualElement card)
+        [Test]
+        public void カードの指に乗ったまま祖先を非表示にすると要求が外れて既定へ戻る()
         {
-            // 画面側のカードと同じく、乗っている間だけ要素の層で指を要求する
-            // Like a screen's card, request the pointer on the element layer only while hovered
-            IDisposable request = null;
-            card.RegisterCallback<PointerEnterEvent>(evt =>
+            // 画面を閉じる（祖先が display:none）と、乗ったままでも部品が指も掴む手も外す
+            // Closing the screen (display:none ancestor) while hovered makes the part withdraw both the pointer and the grab
+            var host = MountHost(400f, 300f);
+            var view = MountView(host);
+            var card = Card("card-a");
+            new UiOsCursorHoverRequest(card, OsCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, card) }, NodeGraphFocus.None));
+            simulate.FrameUpdate();
+            simulate.MouseMove(new Vector2(5f, 5f));
+            simulate.MouseMove(card.worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Pointer, AppliedCursor.Current, "the card pointer while hovered");
+
+            host.style.display = DisplayStyle.None;
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.AreEqual(UiOsCursorShape.Default, AppliedCursor.Current, "no leaked element request after hiding");
+
+            // 外し損ねが無ければ、後から別の地の要求が当たる
+            // With nothing leaked, a later surface request applies
+            using (OsCursor.Request(UiOsCursorShape.Grab, UiOsCursorLayer.Surface))
             {
-                if (evt.target == card) request ??= OsCursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
-            });
-            card.RegisterCallback<PointerLeaveEvent>(evt =>
-            {
-                if (evt.target != card) return;
-                request?.Dispose();
-                request = null;
-            });
+                Assert.AreEqual(UiOsCursorShape.Grab, AppliedCursor.Current, "a later surface request is not beaten by a leaked pointer");
+            }
         }
     }
 }
