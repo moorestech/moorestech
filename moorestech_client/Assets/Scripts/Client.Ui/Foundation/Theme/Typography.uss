@@ -110,7 +110,7 @@
     font-size: var(--key-hint-font-size);
     letter-spacing: var(--key-hint-letter-spacing);
     color: var(--text-high-contrast);
-    text-shadow: var(--key-hint-text-shadow);
+    text-shadow: var(--key-hint-text-shadow-face); /* look-exception: LX-86 */
 }
 
 /* Mantine の Title（700）と fw={500}/{700}、keyHintText（500）の太さ。合成の太字は使わず太さ違いの字形を当てる（設計書 A-36） */
