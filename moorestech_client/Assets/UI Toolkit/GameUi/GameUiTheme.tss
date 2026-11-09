@@ -51,6 +51,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Decor/HudSectionHeading/HudSectionHeading.uss");
 /* == section: Components/Recipe == */
 /* == section: Components/NodeGraph == */
+@import url("project://database/Assets/Scripts/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.uss");
 /* == section: Screens == */
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BugReport/BugReport.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/PauseMenu/PauseMenu.uss");
