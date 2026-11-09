@@ -37,7 +37,7 @@
 
 **やらないこと（スコープ境界）**
 
-- 部品（`RecipeRow`・`RecipeActionButton`・`RecipeListScrollView`・`LevelInheritanceBadge`〈C4-c〉、`ItemSlot`・`SlotGrid`〈C3-a〉、`FluidAmountSlot`〈C4-a〉、`GamePanel`〈C2-a〉）と Foundation（`StageColumnsLayout`・`UiPressGesture`・`HoverTooltip*`・`TutorialAnchor`・`AnchorIds`）は変えない。例外は 3 つ（どれも E-19 の前例で最初の使い手のこのレーンが持つ。D-32）: (1) `GameScrollView.uss` に溝・つまみの色と縦バーの上下右の位置のつまみ 5 本を足し、既定＝今の値は `DerivedTokens.uss` の `:root` に置く（D-9・A-167。見た目は変わらない）(2) `Foundation/Input/UiKeyFocusKeepMark` の新設と `GameUiInputRules` の印の例外（D-32）(3) `Foundation/Anchor/TutorialAnchor` に `Unmark` を足す（D-36）。ほかに要るものは `done.md` の「integrator への依頼」に書く
+- 部品（`RecipeRow`・`RecipeActionButton`・`RecipeListScrollView`・`LevelInheritanceBadge`〈C4-c〉、`ItemSlot`・`SlotGrid`〈C3-a〉、`FluidAmountSlot`〈C4-a〉、`GamePanel`〈C2-a〉）と Foundation（`StageColumnsLayout`・`UiPressGesture`・`HoverTooltip*`・`TutorialAnchor`・`AnchorIds`）は変えない。例外は 3 つ（どれも E-19 の前例で最初の使い手のこのレーンが持つ。D-32）: (1) `GameScrollView.uss` に溝・つまみの色と縦バーの上下右の位置のつまみ 5 本を足し、`GameScrollView.cs` のバーの内側余白の比を定数からつまみ `--game-scroll-view-scrollbar-padding-ratio` へ移す。既定＝今の値（比 0.2）は `DerivedTokens.uss` の `:root` に置く（D-9・A-167。見た目は変わらない）(2) `Foundation/Input/UiKeyFocusKeepMark` の新設と `GameUiInputRules` の印の例外（D-32）(3) `Foundation/Anchor/TutorialAnchor` に `Unmark` を足す（D-36）。ほかに要るものは `done.md` の「integrator への依頼」に書く
 - 機械レシピの解放済み一覧の源（`Client.Ui.State/Recipe/Source/`）は作らない（S4-alpha。D-3）。機械画面のレシピ選択（`MachineRecipeSelectionRow` 等）は S4-machine、インベントリ・装備（`Inv` 列）は S4-inventory、ビューア＋機械 UI＋インベントリの同時表示の L3 は S4-gamma が持つ。重なりは下の「他レーンとの重なり」の表
 - `BlockInventoryPanel`（S4-alpha）も `Viewer` 列へ載るが画面 `SubInventory` のときだけで、このレーンの View は `PlayerInventory` のときだけ出す。列そのもの（`StageColumnsLayout`）は触らない
 - ボタンの `title`（`holdToCraft`）と掴み中のカーソル `grabbing` は写さない（CEF の画面描画にツールチップとカーソルの受け手が無く、ゲーム内の Web では出ていない。D-12）
@@ -60,7 +60,7 @@
 
 - **作業場所**: `moores-wt new uitk-lane/s4-recipe --from origin/feature/uitk`（Editor 要）。最初に `pwd` で worktree にいることを確かめる。Unity は自分の worktree の Editor だけを使い、起動・停止の前に `moores-wt status` で所有を確かめる
 - **依存**: C4-c・C4-e（`StageColumnsLayout`。マージ済み #1626）・L0-s4a（マージ済み）・C3-b（`UiPressGesture`・`HoverTooltipHost`。マージ済み）・L0-s3（`UiDragThreshold`。マージ済み）・**C4-a**（`FluidAmountSlot`。機械レシピの液体）・**S2-tutorial**（`TutorialAnchor.MarkClipContainer`・`TutorialAnchorCoveragePending`・測定の関数）・**S4-alpha**（機械レシピの源）。Task 1 Step 1 で全部の実物を確かめ、無ければ止めて指揮へ報告する（実行計画 §1.4 の改め案は末尾）
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有区画は `GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`MainGameUiRegistration` の画面登録区画の 1 行、`DerivedTokens.uss` 末尾の名札付きブロック「S4-recipe」、`tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の行と再生成した `docs/uitk/translucent-tokens.md`、`Localization/localization.csv` の追記と `W/src/shared/i18n/generated/localizationKeys.ts` の再生成（台帳「## 追従記録」に 1 行）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（LX-131〜135）「## 追従記録」の末尾、`docs/uitk/disposition.md` の行、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の末尾 2 値と 3 switch、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の自分の 2 行の削除。宣言した部品・Foundation の変更は `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss` のつまみ 5 本、`S/Client.Ui/Foundation/Input/{UiKeyFocusKeepMark.cs,GameUiInputRules.cs}`、`S/Client.Ui/Foundation/Anchor/TutorialAnchor.cs` の `Unmark` だけ
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有区画は `GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`MainGameUiRegistration` の画面登録区画の 1 行、`DerivedTokens.uss` 末尾の名札付きブロック「S4-recipe」、`tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の行と再生成した `docs/uitk/translucent-tokens.md`、`Localization/localization.csv` の追記と `W/src/shared/i18n/generated/localizationKeys.ts` の再生成（台帳「## 追従記録」に 1 行）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（LX-131〜135）「## 追従記録」の末尾、`docs/uitk/disposition.md` の行、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の末尾 2 値と 3 switch、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の自分の 2 行の削除。宣言した部品・Foundation の変更は `S/Client.Ui/Components/Controls/GameScrollView/{GameScrollView.uss,GameScrollView.cs}` のつまみ 6 本（色・位置 5 本と内側余白の比）、`S/Client.Ui/Foundation/Input/{UiKeyFocusKeepMark.cs,GameUiInputRules.cs}`、`S/Client.Ui/Foundation/Anchor/TutorialAnchor.cs` の `Unmark` だけ
 - **規約**（AGENTS.md）: 1 ファイル 200 行未満・1 ディレクトリ 10 ファイルまで・partial 禁止・`Func<>` 禁止・イベントは UniRx（`Action` で発火しない）・try-catch 禁止（外部境界のみ）・主要処理に日英 2 行コメント・デフォルト引数禁止・初期化は `Initialize`（ctor → `Initialize`）・単純な getter/setter プロパティ禁止（`{ get; private set; }` は可）・`[SerializeField]` は使わない・fail-closed（拒否・保留・無視）の経路は開発者が読めるログへ理由を出す・`Update()` を使わない（購読と変化の直後のプッシュ）・null チェックは外部データと非同期ロードだけ
 - **USS の規則**（ref-uitk-design）: 画面の USS は自分のルートのクラスから書き、ほかの部品のクラスを書かない（部品の見た目はつまみの上書きだけ）。色は `var()` だけ（直書き禁止。Web が直書きする色は `DerivedTokens.uss` の「S4-recipe」ブロックへ）。`gap`・`z-index` は使わない。各 USS の先頭に `/* web: <Web のファイル> */`。calc() が要る値は C# が `UssCustomStyleReader` で読む。字間は UITK では「字の大きさ/100 × 値」で効く（px で書いても同じ。em は生成器の換算に合わせる）
 - **色の比較**はランタイムの PanelSettings（Linear 合成）で撮る（ギャラリーは sRGB 合成で半透明が淡く出る）。半透明の α は明暗とも指数 1.85 の式（`correctAlphaForLinearBlend`。明るい色も同じ式でトークンごとに α を選ばない＝A-113）。明るい 2 本（白 88% のつまみ・`rgb(132 137 151 / 78%)` の線）も式の値で、Task 11 で参照と比べて 2px・RGB の差が残れば LX に記帳する（LX-81 の中〜明るい地の残差と同じ扱い）
@@ -303,10 +303,11 @@ namespace Client.Ui.State.Recipe.Source
 | `S/Client.Tests/Ui/State/Recipe/Screen/{RecipeViewModelFactoryTest.cs,RecipeScreenModelTest.cs,RecipeCommandsTest.cs,RecipeDurationTextTest.cs,RecordingCraftRequestSender.cs}` | L0 と偽 | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/Input/{RecipeSelectionCloseResetTest.cs,FakeCloseKeyProbe.cs}` | Esc の選択解除の L0 と偽（前例 `ICursorTooltipScreen` と偽を同じ画面の層に置く） | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/{RecipeScreenFixtures.cs,RecordingRecipeCommands.cs}` | 画面 L1 の共通の材料 | 新規 |
-| `S/Client.Tests/Ui/Screens/Recipe/Viewer/{RecipeViewerViewTest.cs,CraftRecipeEntryViewTest.cs,CraftHoldTest.cs,MachineRecipeEntryViewTest.cs}` | ビューアの L1 | 新規 |
+| `S/Client.Tests/Ui/Screens/Recipe/Viewer/{RecipeViewerViewTest.cs,CraftRecipeEntryViewTest.cs,CraftHoldTest.cs,CraftHoldKeyTest.cs,MachineRecipeEntryViewTest.cs}` | ビューアの L1 | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/ItemList/{ItemListViewTest.cs,ItemListScrollGeometryTest.cs,ItemListDragScrollTest.cs}` | 一覧の L1 | 新規 |
 | `S/Client.Tests/Ui/Screens/Recipe/Overlay/{RecipeTutorialClipTest.cs,RecipeSlotTooltipTest.cs}` | チュートリアルの切り抜きとツールチップの L1 | 新規 |
 | `S/Client.Tests/Ui/Components/Controls/GameScrollViewKnobTest.cs` | 追加つまみの効き（L1） | 新規 |
+| `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs` | バーの内側余白の比をつまみから読む | 変更（部品。E-19 の前例。D-9） |
 | `S/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs` | フォーカスを保ってよい印 | 新規（Foundation。E-19 の前例。D-32） |
 | `S/Client.Ui/Foundation/Input/GameUiInputRules.cs` | 印付きをフォーカス拒否の対象から外す | 変更（Foundation。E-19 の前例。D-32） |
 | `S/Client.Ui/Foundation/Anchor/TutorialAnchor.cs` | `Unmark` を足す（アンカーの付け替え） | 変更（Foundation。E-19 の前例。D-36。S2-tutorial の `MarkClipContainer` と同じファイルなので取り込み時は両方を採る） |
@@ -316,7 +317,7 @@ namespace Client.Ui.State.Recipe.Source
 | `docs/uitk/TODO.md`・`docs/uitk/disposition.md` | 実測の結論・LX-131〜135・追従記録（`disposition.md` は部分移植の行があるときだけ） | 変更（共有区画） |
 | `LOGS/harness/uitk/S4-recipe/done.md` | 作業報告（repo 外） | 新規 |
 
-ディレクトリのファイル数: `Recipe/Screen/` 9・`Screens/Recipe/Input/` 3・`Recipe/Commands/` 4・`Recipe/Catalog/` 2・`Recipe/Logic/` 5（既存 4＋1）・`Screens/Recipe/` 5＋`Parts/`・`Screens/Recipe/Parts/` 10・`Client.Tests/Ui/State/Recipe/Screen/` 5・`Client.Tests/Ui/Screens/Recipe/Input/` 2・`Client.Tests/Ui/Screens/Recipe/` 2＋3 サブディレクトリ。`Registration/GameUi/` は起草時点の実物 8 本＋このレーン 1 本。同じ W4 の S4-alpha・S4-research・S4-special なども 1 本ずつ足すので、取り込み時点の実数で数え直す（Task 1 Step 1・Task 15 Step 2 の関門）。ほかはどれも 10 以下。このレーンが書くのは上の表のファイルだけで、他の S4 レーンの持ち物（`Screens/BlockInventory/**`・`Screens/Inventory/**`・`Screens/Research/**`・`Client.Ui.State/Recipe/Source/**`）は書かない。
+ディレクトリのファイル数: `Recipe/Screen/` 9・`Screens/Recipe/Input/` 3・`Recipe/Commands/` 4・`Recipe/Catalog/` 2・`Recipe/Logic/` 5（既存 4＋1）・`Screens/Recipe/` 5＋`Parts/`・`Screens/Recipe/Parts/` 9（`RecipeEntryPartsContext` は `CraftRecipeEntryView.cs` に同居）・`Client.Tests/Ui/State/Recipe/Screen/` 5・`Client.Tests/Ui/Screens/Recipe/Input/` 2・`Client.Tests/Ui/Screens/Recipe/` 2＋3 サブディレクトリ。`Registration/GameUi/` は起草時点の実物 8 本＋このレーン 1 本。同じ W4 の S4-alpha・S4-research・S4-special なども 1 本ずつ足すので、取り込み時点の実数で数え直す（Task 1 Step 1・Task 15 Step 2 の関門）。ほかはどれも 10 以下。このレーンが書くのは上の表のファイルだけで、他の S4 レーンの持ち物（`Screens/BlockInventory/**`・`Screens/Inventory/**`・`Screens/Research/**`・`Client.Ui.State/Recipe/Source/**`）は書かない。
 
 ## Tasks
 
@@ -1276,7 +1277,7 @@ git commit -m "feat(uitk): レシピ画面のモデルと Esc での選択解除
 
 - [ ] **Step 0: 印付きのボタンに Enter の `KeyDownEvent` が届くかを実測する（関門）**
 
-Step 2 の `UiKeyFocusKeepMark.cs` と `GameUiInputRules.cs` の変更を先に書いてコンパイルする（仮の器では代用しない。規則は GameUi のルートに TrickleDown で付いているので、子孫で止めてもルートが先に Blur を予約する）。`uloop control-play-mode --project-path ./moorestech_client --action Play` の後、EDC で本番の GameUi のルートに `focusable=true` と `UiKeyFocusKeepMark.Mark` を付けたボタンを 1 つ置いて `Focus()` し、3 フレーム後もフォーカスが残ることと、`KeyDownEvent` の数を数える callback を付ける。プレイテスト DSL の `SemanticInput` で Enter を InputSystem へ注入し、callback の数を `done.md` の「## 証拠」に書く。1 以上なら以降へ進む。0 なら `git checkout -- moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` と `rm moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs.meta` の 2 手で戻し（新規ファイルは未追跡なので checkout では消えない）、`git status --short moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input` が空であることを確かめてから、D-32 の受動案（`InputManager.UI` の Enter アクション＋画面側の武装状態）で `CraftHoldInput` の Enter の部分を書き直す（`done.md` に切り替えを書いて指揮へ報告）
+Step 2 の `UiKeyFocusKeepMark.cs` と `GameUiInputRules.cs` の変更を先に書いてコンパイルする（仮の器では代用しない。規則は GameUi のルートに TrickleDown で付いているので、子孫で止めてもルートが先に Blur を予約する）。`uloop control-play-mode --project-path ./moorestech_client --action Play` の後、EDC で本番の GameUi のルートに `focusable=true` と `UiKeyFocusKeepMark.Mark` を付けたボタンを 1 つ置いて `Focus()` し、3 フレーム後もフォーカスが残ることと、`KeyDownEvent` の数を数える callback を付ける。プレイテスト DSL の `SemanticInput` で Enter を InputSystem へ注入し、callback の数を `done.md` の「## 証拠」に書く。1 以上なら以降へ進む。0 なら `git checkout -- moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` と `rm moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/UiKeyFocusKeepMark.cs.meta` の 2 手で戻し（新規ファイルは未追跡なので checkout では消えない）、`git status --short moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input` が空であることを確かめて、Task 6 をそこで止めて指揮へ戻す。受動案（D-32）へ切り替えると `CraftRecipeEntryView` の `focusable=true` と `UiKeyFocusKeepMark.Mark`、`CraftHoldInput` の Enter の部分、`CraftHoldKeyTest` 3 件、`GameUiInputRulesTest` に足す 1 件、`RecipeViewerViewTest` の `Enterで長押し中に並びが変わると止まる` の書き直しと件数（R-15 の 52 は Web のタグが同じなので変わらない）が連鎖して変わるので、計画の改訂として指揮が決める。`done.md` の「## 証拠」に測った数を書く
 
 - [ ] **Step 1: テストを書く**
 
@@ -2588,7 +2589,7 @@ git commit -m "feat(uitk): レシピビューアのパネル（見出しの装�
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/ItemListView.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/ItemList.uss`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe/Parts/{ItemListCellView.cs,ItemListDragScroll.cs}`
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss`（つまみ 5 本を参照するだけ。既定は要素に書かない）・`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss`（「S4-recipe」ブロックに 5 本の既定＝今の値を `:root` で置く。D-32）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss`（つまみ 5 本を参照するだけ。既定は要素に書かない）・`moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs`（バーの内側余白の比 0.2 を定数でなくつまみ `--game-scroll-view-scrollbar-padding-ratio` から読む）・`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss`（「S4-recipe」ブロックに 5 本の既定＝今の値を `:root` で置く。D-32）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/ItemList/{ItemListViewTest.cs,ItemListScrollGeometryTest.cs,ItemListDragScrollTest.cs}`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Controls/GameScrollViewKnobTest.cs`
 
@@ -2675,6 +2676,9 @@ public void パネルを超える件数で初めて縦バーが出て横は出�
 /// <web-test file="e2e/tests/recipe/itemListScroll.spec.ts">7段は溢れず、最下段までスクロールしても最終段に逃げが残る</web-test>
 [Test]
 public void 七段は溢れず最下段までスクロールしても最終段の下に逃げが残る() { /* 42 件で溢れない。60 件で最下段までスクロールして viewport.yMax − 最終段のセル.yMax ≥ 12 */ }
+
+[Test]
+public void 一覧のつまみ本体は幅4でホバーしても白のまま() { /* 60 件で dragger の resolvedStyle.width ≈ 4（内側余白 0）、背景色が --item-list-scroll-thumb-face の値。simulate.MouseMove で dragger の中心へ乗せ :hover にしても同じ色（GameScrollView の既定のホバー灰に変わらない） */ }
 ```
 
 `GameScrollViewKnobTest.cs`:
@@ -2693,6 +2697,9 @@ public void つまみの既定は今の値で上書きすると溝つまみの�
     Assert.AreEqual(new Color(0, 0, 0, 0), scroller.resolvedStyle.backgroundColor);                                         // 溝（縦バー自身の面）
     Assert.AreEqual(Color.white, scroller.Q(className: "unity-base-slider__dragger").resolvedStyle.backgroundColor);          // つまみ（プローブで白にする）
 }
+
+[Test]
+public void 内側余白の比のつまみでつまみ本体の幅が変わる() { /* 既定（比 0.2・幅 4）でつまみ本体の resolvedStyle.width ≈ 4 − 2×0.8 の丸め（LX-42）。プローブで比 0 にすると dragger の幅 ≈ 4 = バーの幅 */ }
 
 [Test]
 public void 祖先の要素で上書きしても中のGameScrollViewのバーの位置が変わる()
@@ -2720,6 +2727,37 @@ public void 祖先の要素で上書きしても中のGameScrollViewのバーの
     --game-scroll-view-scrollbar-inset-top: 0px;             /* 縦バーの上の逃げの既定 */
     --game-scroll-view-scrollbar-inset-bottom: 0px;
     --game-scroll-view-scrollbar-inset-right: 0px;
+    --game-scroll-view-scrollbar-padding-ratio: 0.2;         /* 縦バーの内側余白＝幅×比（Mantine ScrollArea の padding。今の定数 0.2） */
+```
+
+`GameScrollView.cs` の変更（`ScrollbarPaddingRatio` の定数をつまみに置き換える。ほかは今のまま）:
+
+```csharp
+        private static readonly CustomStyleProperty<float> ScrollbarPaddingRatioProperty = new("--game-scroll-view-scrollbar-padding-ratio");
+
+        private void OnCustomStyleResolved()
+        {
+            // 読めないときは UssCustomStyleReader が LogError を出し、バーは Theme.uss の既定の幅のまま
+            // When unreadable, UssCustomStyleReader logs an error and the bar keeps the Theme.uss default width
+            if (!UssCustomStyleReader.TryReadPixels(customStyle, ScrollbarSizeProperty, out var size)) return;
+
+            // 内側余白の比もつまみで受ける（一覧は Web と同じく 0）。読めなければ開発者へ知らせて前の値のまま
+            // The padding ratio is a knob too (0 for the item list, as in Web); if unreadable, tell developers and keep the previous value
+            if (!customStyle.TryGetValue(ScrollbarPaddingRatioProperty, out var ratio))
+            {
+                Debug.LogError($"[GameScrollView] {name}: --game-scroll-view-scrollbar-padding-ratio を読めない");
+                return;
+            }
+
+            // 内側の余白はレイアウトで整数 px に丸まる（look-exception: LX-42）
+            // The padding snaps to whole px in layout (look-exception: LX-42)
+            var padding = size * ratio;
+            verticalScroller.style.width = size;
+            verticalScroller.style.paddingLeft = padding;
+            verticalScroller.style.paddingRight = padding;
+            verticalScroller.style.paddingTop = padding;
+            verticalScroller.style.paddingBottom = padding;
+        }
 ```
 
 `GameScrollView.uss` の変更（`.game-scroll-view` には何も足さず、縦バーと溝・つまみがつまみを参照する）:
@@ -2952,6 +2990,8 @@ namespace Client.Ui.Screens.Recipe
     --scrollarea-scrollbar-size: 4px;
     --game-scroll-view-track-face: rgba(0, 0, 0, 0);
     --game-scroll-view-thumb-face: var(--item-list-scroll-thumb-face);
+    --game-scroll-view-thumb-hover: var(--item-list-scroll-thumb-face);   /* web はホバーでも白 88% のまま */
+    --game-scroll-view-scrollbar-padding-ratio: 0;                        /* web: ItemListPanel の scrollbar padding 0 */
     --game-scroll-view-scrollbar-inset-top: var(--tutorial-anchor-clip-inset);
     --game-scroll-view-scrollbar-inset-bottom: var(--tutorial-anchor-clip-inset);
     margin-right: 4.435px;
@@ -2973,12 +3013,12 @@ namespace Client.Ui.Screens.Recipe
 - [ ] **Step 3: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client.Tests.Ui.Screens.Recipe.ItemList|GameScrollView"`
-Expected: ErrorCount 0 / 新規 11 件（一覧 9・つまみ 2）と既存の `GameScrollViewTest` が PASS
+Expected: ErrorCount 0 / 新規 13 件（一覧 10・つまみ 3）と既存の `GameScrollViewTest` が PASS（既定の比 0.2 で今の幅のまま）
 
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/ItemList moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Controls/GameScrollViewKnobTest.cs
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Recipe moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Recipe/ItemList moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Controls/GameScrollViewKnobTest.cs
 git commit -m "feat(uitk): アイテム一覧のパネルと掴みスクロールを作り、GameScrollView に溝・つまみ・位置のつまみを足す（S4-recipe）"
 ```
 
@@ -3200,7 +3240,7 @@ S3-hotbar-modal の Task 11 Step 2 と同じ手順で、`GameUiPanelSettings.ass
 
 - [ ] **Step 3: 4 状態を撮り、差の表を書く**
 
-EDC で各ルートに 1280×720 の舞台と `StageColumnsLayout` を置き、`RecipeViewerView`・`ItemListView` を `Viewer`・`Items` 列へ載せ、PlayMode のマスタで参照と同じ状態の VM（`4-player-inventory`: 未選択・一覧は参照と同じ件数で溢れる・バッジ無し／`4-item-list-large`／`5-tutorial-recipe-item`: 一覧の 1 セルにアンカー〈S2-tutorial の枠が入っていれば枠ごと〉／`4-recipe-selected-*`・`4-recipe-holding`）を `Render` して撮る。見る点: パネルの外枠の位置（C4-e の実測でビューアの左端 x=530・上 168/169.6 at 720p。`translate(0.391px, -0.391px)` を含む）・幅 337.2/378・高さ 300/432.983/452・題の字の拡縮・グリッドの 6 列と隙間・バッジの字間・つまみの太さ 4 と位置（上下 12 の逃げ）・見出しの名前の字の太さと影・装飾線の消え方と菱形・エントリの間隔 10・矢印の上の秒数・ボタンの面と無効・機械名の省略。720p で 2px を超える差は直すか `LX-131`〜`LX-135` に記帳し、該当行に `/* look-exception: LX-n */`。範囲を超えるなら止めて指揮へ番号を求める。2560×1080 は `x' = 320 + 1.5x`・`y' = 1.5y` で 720p の位置と照合する
+EDC で各ルートに 1280×720 の舞台と `StageColumnsLayout` を置き、`RecipeViewerView`・`ItemListView` を `Viewer`・`Items` 列へ載せ、PlayMode のマスタで参照と同じ状態の VM（`4-player-inventory`: 未選択・一覧は参照と同じ件数で溢れる・バッジ無し／`4-item-list-large`／`5-tutorial-recipe-item`: 一覧の 1 セルにアンカー〈S2-tutorial の枠が入っていれば枠ごと〉／`4-recipe-selected-*`・`4-recipe-holding`）を `Render` して撮る。見る点: パネルの外枠の位置（C4-e の実測でビューアの左端 x=530・上 168/169.6 at 720p。`translate(0.391px, -0.391px)` を含む）・幅 337.2/378・高さ 300/432.983/452・題の字の拡縮・グリッドの 6 列と隙間・バッジの字間・つまみの太さ 4（バーの外枠でなくつまみ本体の幅。内側余白 0）と通常・ホバーの色（ホバーしても白 88% の補正値のまま）と位置（上下 12 の逃げ）・見出しの名前の字の太さと影・装飾線の消え方と菱形・エントリの間隔 10・矢印の上の秒数・ボタンの面と無効・機械名の省略。720p で 2px を超える差は直すか `LX-131`〜`LX-135` に記帳し、該当行に `/* look-exception: LX-n */`。範囲を超えるなら止めて指揮へ番号を求める。2560×1080 は `x' = 320 + 1.5x`・`y' = 1.5y` で 720p の位置と照合する
 
 - [ ] **Step 4: 直しがあればテストを回してコミット**
 
@@ -3450,7 +3490,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 |---|---|---|
 | A-165 | レシピ画面（ビューア・アイテム一覧）の State は `Client.Ui.State/Recipe/` の `Catalog/`（解放済みクラフトレシピ・一覧のアイテムを Web の topic と同じ源から組む）・`Screen/`（選択 `RecipeItemSelection`・判別 union の VM・純関数の `RecipeViewModelFactory`・同期に組み直す `RecipeScreenModel`）・`Commands/`（`IRecipeCommands.Craft(Guid)`。拒否 `CraftRecipeUnknown`・`CraftRecipeLocked` は良性でない）。Esc の選択解除は画面のキー処理なので `Client.Ui/Screens/Recipe/Input/` に置く。機械レシピの解放済み一覧の源は S4-alpha が `Recipe/Source/` に作り、S4-recipe・S4-machine が使う。Presenter 1 本が 2 つの View を `Viewer`・`Items` 列へ載せ、`PlayerInventory` のときだけ出す（S4-recipe 計画 D-1〜D-3・D-15） | Web の橋の DTO を読む: 切替で消える。画面ごとに Presenter を分ける: 同じ条件と同じモデルの購読が 2 か所に分かれる。機械レシピの源を S4-recipe が持つ: S4-machine が 2 機能目で、持ち物の中核（S4-alpha）の中立の置き場が先に入る |
 | A-166 | 長押しクラフトは画面の部品（`Screens/Recipe/Parts/CraftHoldDriver`・`CraftHoldInput`）が持つ。経過はパネルのスケジューラ（`schedule.Execute().Every(0)` の `TimerState.deltaTime`、1 フレーム 0.25 秒で頭打ち）で `HoldCraftLogic` を回し、押下・離し・外れ（位置でも判定）・取消で止める。フォーカス中の Enter も押している間だけ長押しにし（Space は何もしない）、そのため `RecipeActionButton` のインスタンスだけ画面側で `focusable=true` にし、`Foundation/Input/UiKeyFocusKeepMark` の印を付けて `GameUiInputRules` に外させない（§1.2「入力欄だけがフォーカスを持つ」の例外。フォーカスはクリックで乗り、Tab では乗らない。ユーザー裁定 2026-10-01）（S4-recipe 計画 D-5・D-19・D-31・D-32） | `UiPressGesture` を重ねる（C4-c の申し送り）: タップとドラッグの分類が Web の長押しに無く、外れで中断しない。`Update()`: 画面に毎フレームの処理を持たせない規則。Enter を写さない: ユーザー裁定 2026-10-01 とゴールに反する。部品の既定を `focusable=true` にする: 他の画面のボタンまでフォーカスを持つ。`focusable=true` だけ: 規則が次のスケジュールで外し Enter が届かない |
-| A-167 | `GameScrollView` に溝・つまみの色と縦バーの位置のつまみ `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right` を足す（既定は今の値で `DerivedTokens.uss` の `:root` に置き、`.game-scroll-view` 自身には宣言しない＝祖先の上書きが継承で届く）。画面は Web の局所上書き（透明の溝・白いつまみ・チュートリアルの逃げ 12）をつまみで書く（S4-recipe 計画 D-9） | 画面の USS で `.unity-scroll-view__vertical-scroller` を書く: 部品のクラスを画面が書かない規則。画面ごとに別のスクロール部品: 同じ部品が 2 つになる |
+| A-167 | `GameScrollView` に溝・つまみの色と縦バーの位置のつまみ `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right`・`--game-scroll-view-scrollbar-padding-ratio`（バーの内側余白＝幅×比。`GameScrollView.cs` の定数 0.2 を置き換える）を足す（既定は今の値で `DerivedTokens.uss` の `:root` に置き、`.game-scroll-view` 自身には宣言しない＝祖先の上書きが継承で届く）。画面は Web の局所上書き（透明の溝・白いつまみ・チュートリアルの逃げ 12）をつまみで書く（S4-recipe 計画 D-9） | 画面の USS で `.unity-scroll-view__vertical-scroller` を書く: 部品のクラスを画面が書かない規則。画面ごとに別のスクロール部品: 同じ部品が 2 つになる |
 | A-168 | レシピの列はエントリを GUID で使い回し、持ち物の変化の描き直しで長押しを切らない。別のアイテムを選んだら中身を作り直してスクロールを先頭へ戻す（Web の `key`）。画面を閉じたらビューアの中身を捨て一覧のスクロールを先頭へ戻す（Web のアンマウント）（S4-recipe 計画 D-6・D-23） | VM ごとに作り直す: 長押しの経過とスケジューラが消える |
 | A-169 | Esc での選択解除は「画面の遷移と同じフレームに `InputManager.UI.CloseUI` が押されていた」で読む（Tab で閉じたときは残す。Web のゲーム層の Escape と同じ時点）（S4-recipe 計画 D-7・D-16） | UITK のキーイベント: 届かない（A-83）。遷移で常に外す: Tab で閉じたときも消えて Web と違う |
 
@@ -3458,7 +3498,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 
 - §1.2 の「ボタン類は focusable=false。入力欄だけがフォーカスを持つ」に例外を 1 行: 「キーで操作するボタン（S4-recipe のクラフトボタンの Enter 長押し）は置く側がインスタンスに `focusable=true` と `UiKeyFocusKeepMark` を付け、`GameUiInputRules` はそれを外さない。フォーカスはクリックで乗り Tab では乗らない（A-166）」
 - §2 の Foundation/Input の表に `UiKeyFocusKeepMark`（`Mark`・`IsMarked`。S4-recipe が足す）を足す
-- §2.4 `GameScrollView` 行の「つまみ」の欄に `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right`（既定は今の値で `:root`。要素に書かない。A-167）を足す。「使う画面」に recipe（アイテム一覧・レシピ列）を足す
+- §2.4 `GameScrollView` 行の「つまみ」の欄に `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right`・`--game-scroll-view-scrollbar-padding-ratio`（既定は今の値で `:root`。要素に書かない。A-167）を足す。「使う画面」に recipe（アイテム一覧・レシピ列）を足す
 - §2.4 `RecipeActionButton` 行の注記に「長押しは置く側の画面の部品（S4-recipe は `CraftHoldInput`。`UiPressGesture` ではない）。クラフトのボタンは Enter の長押しのため置く側がインスタンスに `focusable=true` を立てる（§1.2 の例外。部品の既定は false のまま。A-166）」を足す
 
 ### 実行計画 §1.4 の S4-recipe 行の改め案
