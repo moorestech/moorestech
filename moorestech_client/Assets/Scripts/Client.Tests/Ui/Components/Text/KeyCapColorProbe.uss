@@ -1,0 +1,5 @@
+/* KeyCap の色のつまみを祖先で上書きするテスト専用の probe（共有の ComponentTokenProbe.uss は書き換えない） */
+/* Test-only probe overriding the KeyCap color knob at an ancestor (the shared ComponentTokenProbe.uss stays untouched) */
+.key-cap-color-probe {
+    --key-cap-color: rgb(255, 0, 0);
+}

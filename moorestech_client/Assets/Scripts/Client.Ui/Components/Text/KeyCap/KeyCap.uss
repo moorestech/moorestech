@@ -1,9 +1,15 @@
 /* moorestech_client/Assets/Scripts/Client.Ui/Components/Text/KeyCap/KeyCap.uss */
-/* kbd。Web は font: inherit で枠を持たず、色だけ --text-high-contrast（置く側が文の色を変えても kbd は白） */
-/* kbd; the Web uses font: inherit with no box and only sets --text-high-contrast (the kbd stays white even when the host recolors the sentence) */
+/* 色のつまみの既定。画面ルートでの上書きは継承で勝つ（D-31） */
+/* Default of the color knob; an override at a screen root wins through inheritance (D-31) */
+:root {
+    --key-cap-color: var(--text-high-contrast);
+}
+
+/* kbd。Web は font: inherit で枠を持たない。色は置く側が --key-cap-color で上書きできる。既定は --text-high-contrast（置く側が文の色を変えても kbd は白） */
+/* kbd; the Web uses font: inherit with no box. The host may override the color via --key-cap-color; default --text-high-contrast (the kbd stays white even when the host recolors the sentence) */
 .key-cap {
     margin: 0;
     padding: 0;
-    color: var(--text-high-contrast);
+    color: var(--key-cap-color);
     -unity-text-align: middle-left;
 }
