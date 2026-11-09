@@ -263,7 +263,7 @@ Client.Ui（`Client.Ui/Screens/BlockInventory/`）
 - `BlockInventoryNaturalScroll.cs` — 自然高のスクロール器（負マージンと内側の逃げ）
 - `BlockInventoryBodyHost.cs` — 本文・題の操作・列車の本文の Presenter の付け替え（`IsSamePanel` と大きさで決める）
 - `BlockInventory.uss`
-- `Registry/IBlockInventoryPart.cs`・`IBlockInventoryBodyFactory.cs`・`IBlockInventoryTitleActionFactory.cs`・`ITrainInventoryBodyFactory.cs`・`BlockInventoryBodyMount.cs`・`BlockInventoryPartRegistry.cs`
+- `Registry/IBlockInventoryPart.cs`・`IBlockInventoryBodyFactory.cs`・`IBlockInventoryTitleActionFactory.cs`・`ITrainInventoryBodyFactory.cs`・`BlockInventoryBodyMount.cs`・`BlockInventoryPartRegistry.cs`・`EmptyBlockInventoryParts.cs`
 - `SectionStack/SectionStackSlot.cs`・`IBlockInventorySection.cs`・`ISectionStackSectionFactory.cs`・`SectionStackSectionMount.cs`・`SectionStackSlotRegistry.cs`・`SectionStackBody.cs`・`SectionStackBodyFactory.cs`・`SectionStackItemGridSection.cs`・`SectionStack.uss`
 - `Parts/LackHighlightText.cs`・`BlockItemGrid.cs`・`BlockItemGridGroup.cs`・`BlockItemGridFactory.cs`・`Parts.uss`
 - `Parts/Rows/MachineStateRow.cs`・`PerMinuteRateRow.cs`・`PowerRateText.cs`
@@ -273,7 +273,7 @@ Client.Ui（`Client.Ui/Screens/BlockInventory/`）
 テスト（`Client.Tests/Ui/`）
 - `State/BlockInventory/PanelModel/BlockInventoryPanelStateFactoryTest.cs`・`BlockInventoryPanelLayoutModelTest.cs`・`BlockInventoryPanelCommandsTest.cs`・`SectionStackConfigTableTest.cs`・`BlockRegistryCoverageTest.cs`・`FakePanelSource.cs`・`BlockInventoryTestPanels.cs`・`BlockInventoryScreenVisibilityTest.cs`
 - `State/Routing/UiStateTransitionRulesTest.cs`
-- `State/SlotCommands/BlockItemActionExecutorTest.cs`・`BlockSlotCommandsTest.cs`・`PlayerSlotCommandsTest.cs`・`ShiftMoveRefusalNotifierTest.cs`・`BlockSlotRestrictionInputBuilderTest.cs`・`RecordingBlockInventoryOperations.cs`
+- `State/SlotCommands/BlockItemActionExecutorTest.cs`・`BlockSlotCommandsTest.cs`・`BlockSlotReaderTest.cs`・`PlayerSlotCommandsTest.cs`・`ShiftMoveRefusalNotifierTest.cs`・`BlockSlotRestrictionInputBuilderTest.cs`・`RecordingBlockInventoryOperations.cs`・`FixedRawSubInventorySlots.cs`
 - `State/Recipe/Source/UnlockedMachineRecipeListBuilderTest.cs`・`MachineRecipeSummaryConversionTest.cs`・`FakeGameUnlockStateData.cs`
 - `Screens/BlockInventory/BlockInventoryPanelFlowTest.cs`・`BlockInventoryDesignTest.cs`・`BlockInventoryLocalizationTest.cs`・`BlockInventoryPanelErrorTest.cs`・`BlockInventoryPanelBandTest.cs`・`BlockInventoryPartRegistryTest.cs`・`BlockInventoryTitleActionTest.cs`・`BlockInventoryNaturalScrollTest.cs`・`BlockInventoryTestFixtures.cs`
 - `Screens/BlockInventory/SectionStack/SectionStackViewTest.cs`・`SectionStackRegressionTest.cs`・`SectionStackSlotRegistryTest.cs`・`FakeSection.cs`
@@ -291,7 +291,7 @@ Client.Ui（`Client.Ui/Screens/BlockInventory/`）
 - `Localization/localization.csv` — `ui.commandRejected.blockSlotUnavailable` を 1 行（と生成物の再生成）
 - `docs/uitk/TODO.md` — 「## 追従記録」に 1 行、見た目の例外を使ったときだけ「## 見た目の例外」に追記（`docs/uitk/disposition.md` は書かない）
 
-ディレクトリのファイル数（`.cs`・`.uss`）: `Client.Ui.State/BlockInventory/Panel/` 10・`Routing/` 4＋3＝7・`SlotCommands/` 2＋`Block/` 5＋`Player/` 4・`Recipe/Source/` 4・`Screens/BlockInventory/` 6・`Registry/` 6・`SectionStack/` 9・`Parts/` 5＋`Rows/` 3。すべて 10 以下。
+ディレクトリのファイル数（`.cs`・`.uss`）: `Client.Ui.State/BlockInventory/Panel/` 10・`BlockInventory/SectionStack/` 2・`BlockInventory/SlotRestriction/` 2・`Routing/` 4＋3＝7・`SlotCommands/` 2＋`Block/` 10＋`Player/` 4・`Recipe/Source/` 4・`Screens/BlockInventory/` 6・`Registry/` 7・`SectionStack/` 9・`Parts/` 5＋`Rows/` 3。テストの `State/SlotCommands/` 8。すべて 10 以下（`Panel/`・`SlotCommands/Block/` は上限ちょうどなので、足すならサブディレクトリを切る）。
 
 ## Tasks
 
@@ -1950,8 +1950,8 @@ using Client.Ui.State.Items;
 namespace Client.Ui.State.SlotCommands.Block
 {
     /// <summary>
-    /// ブロックの枠を読む。開閉は表示と同じパネルの状態から、枠の値は押下の瞬間の生の値から（D-37。ホストの BlockAreaSlotParser と同じ）
-    /// Reads block slots: open/closed from the panel state the screen shows, values raw at press time (D-37; same as the host BlockAreaSlotParser)
+    /// ブロックの枠を読む。開閉は表示と同じパネルの状態から（ホストと違う。D-37）、枠の値は押下の瞬間の生の値から（値の読み方はホストの BlockAreaSlotParser と同じ）
+    /// Reads block slots: open/closed from the panel state the screen shows (unlike the host; D-37), values raw at press time (the value read matches the host BlockAreaSlotParser)
     /// </summary>
     public sealed class BlockSlotReader
     {
@@ -4613,6 +4613,7 @@ git merge origin/feature/uitk
 | D-46 | `%sから禁止Mantine部品とテーマ色を除去する` の写しは、USS の色の直書きが無いことに加えて、本文の木の操作の要素がすべて共通部品で素の `Button`・`Toggle`・`RadioButton`・`Slider`・`ProgressBar` を含まないことも主張する。たどり方は「`Client.Ui.Components` の型に当たったら内部へ降りず、その `contentContainer` に利用側が足した子だけ続けてたどる」（r4 で直した）。後続レーンも同じ形で写す（Produces に書く）。出所: レビュー r3・r4 | Web `blockInventoryDesign.test.ts:6-25,41-44` はコンポーネントのソースで禁止部品を見ている。色だけでは元テストの主張の半分が落ちる | 色だけを見る（元テストの主張が落ちる） |
 | D-47 | 枠の生の値の読み口 `IRawSubInventorySlots`（本番 `SubInventoryRawSlots`）と、開閉と値を合わせて読む `BlockSlotReader` を切り出し、`LocalBlockInventoryOperations.TryReadBlockSlots` は読み手へ委ねる。`BlockSlotReaderTest` で「パネルの枠が古く生の値が新しいとき生の値を返す」を主張し、`BlockSlotCommandsTest` の続けて押す件は「押すたびに口を読み直す」確認に名前を直す。出所: レビュー r4 | `SubInventoryState` は ctor が `ClientContext` を要し L0 で組めない。記録係だけのテストと 0.5 秒を挟む録画では、読み元がパネルの状態へ戻っても赤にならない | 読み元は機械で確かめず未確認に書く（戻りを検出できない） |
 | D-48 | `TryReadBlockSlots` に「生の値が null なら閉扱い」の分岐は足さない。出所: レビュー r4 | `UIStateControl.Update` は `OnExit`（`CurrentSubInventory = null`）→ `EnterState` → `_onStateChanged.OnNext` → `UiRoutingState.Refresh` → パネルの Model が閉へ組み直す、を 1 回の Update の中で同期に続けて行う（origin/feature/uitk の `UIStateControl.cs` の Update・`UiRoutingState.cs:32`）。UITK の押下はこの間に割り込めないので、パネルが開で生の値が null の窓は無い（`Refresh` は `ReactiveProperty` へ同期に代入。同じ状態への要求は `ConsumeWebRequest` が捨てる）。開く側も `OnExit` で null の後は `OnSubInventoryUpdated` までパネルが閉（Model の `sub == null`） | 防御の null 分岐とテストを足す（届かない分岐。null チェックは外部データだけの制約にも反する） |
+| D-49 | `ShiftMoveRefusalNotifier.TryGetMessageId` は DestinationFull を明示の腕（false）にし、未知の値は例外で止める。網羅テストは足さない。出所: レビュー r4（弱） | `TryGetLocalizationKey`（D-44）と未知の値の扱いを揃える。今ある 4 値は `ShiftMoveRefusalNotifierTest` が全部押さえている | default で false（enum に値を足しても無音で通知が落ちる） |
 
 ---
 
@@ -4864,7 +4865,7 @@ public static class MachineRecipeSummaryConversion { public static IReadOnlyList
 - **本体の追加決定の反映**: 機械レシピの源は Task 2（共有サービスの並びに登録・asmdef に `Game.UnlockState`）。使うのは machine・recipe と大型パネル判定の寄与の実装（research は使わない）。液体の 2 区画は `SectionStackSlot.FluidDetails`・`FluidRow` の空き区画として S4-machine に渡す
 - **integrator への依頼（Task 1 で done.md に書く）**: (a) `Registration/GameUi/` のファイル数が後続で 10 を超える → サブディレクトリ化、(b) `GamePanel` が題の操作を持つときの題の右の逃げ（`--panel-action-button-width + --mantine-spacing-sm`＝99px。Web は画面側の paddingRight。UITK は題の要素が部品の中にあり画面 USS から当てられない）、(c) 設計書 §2 の State の表に `SlotCommands/` と `Routing/` の遷移要求の口（A-142）
 - **要裁定: なし**。目的・裁定から外れる判断は無い。D-9（`DestinationFull` は通知せずログだけ）は Web に無い断りの扱いで、文言を足すなら Web 側も足すことになるため後送り
-- **残った問題・未確認（実装時に確かめる）**: 「掴んだまま閉じる」の掴みの行き先（死活表の要確認。Task 1 Step 5）。`LocalizationTextParam`・`UiTestHost` の押下ヘルパーの実名。`BlockInstanceId` の ctor の公開範囲（テストで `new BlockInstanceId(1)` を使う）。D-1 の「VContainer 1.10 は登録 0 本で空の列」は前例がどれも 1 本以上なので Task 8 Step 5 で実測する。`GameScrollView` の viewport が Web `.scroll` の `flex: 1; min-height: 0` 相当に縮むか（`BlockInventoryNaturalScrollTest` の 3 件目で確かめる）
+- **残った問題・未確認（実装時に確かめる）**: 「`SubInventoryState` とコントローラが同じ `SubInventoryModel` の参照を持つので、先に書いた値がすぐ見える」前提（`SubInventoryRawSlots` のコメント・D-37）はテストにも録画にも載っていない（L0 は `FixedRawSubInventorySlots` で組み、録画は 0.5 秒を挟むので窓が開かない）。今の実物では `SubInventoryState.ApplyInventory` が同じ model を `SetSubInventory(model)` へ渡すので成り立つ（`SubInventoryState.cs:134-138`）。「掴んだまま閉じる」の掴みの行き先（死活表の要確認。Task 1 Step 5）。`LocalizationTextParam`・`UiTestHost` の押下ヘルパーの実名。`BlockInstanceId` の ctor の公開範囲（テストで `new BlockInstanceId(1)` を使う）。D-1 の「VContainer 1.10 は登録 0 本で空の列」は前例がどれも 1 本以上なので Task 8 Step 5 で実測する。`GameScrollView` の viewport が Web `.scroll` の `flex: 1; min-height: 0` 相当に縮むか（`BlockInventoryNaturalScrollTest` の 3 件目で確かめる）
 - **通知の messageId**: `denied.inventoryMoveSlotRejected`・`denied.inventoryOpenFailed`・`denied.inventoryDetailLoading` は Web と同じ id を `ClientLocalNotificationSource` へ流す。UITK の通知レーンがこの id を文言へ解決できるかは通知レーン側の確認事項
 - **C3-b の型（E-22）**: 使う。`ItemSlot` の名前ツールチップが `GameUiHoverTooltipInstaller`（C3-b）経由で出るのと、`GameScrollView`（自然高のスクロール器）。Global Constraints の依存に C3-b を足した（マージ済み）
 - **Web の外殻から写さなかったもの**: `data-large` 属性はクラス `block-inventory--large`（小型は `block-inventory--natural`）で表す
