@@ -39,6 +39,10 @@ namespace Client.Game.InGame.UI.UIState
             CurrentState = initialState;
             EnterState(CurrentState, initialContext);
             enabled = true;
+
+            // 復元直後の画面（列車HUD等）を購読側へ知らせ、初期値のままの表示を残さない
+            // Tell subscribers the restored initial screen (e.g. train HUD) so none keeps showing its pre-restore value
+            _onStateChanged.OnNext(CurrentState);
         }
 
         // 現stateが入れ子ポーズを持つ画面かの解決口。Web境界はこの1箇所だけを見る（ADR 0035）
