@@ -25,8 +25,8 @@ namespace Client.Ui.Foundation.Input.OsCursor
 
             CursorPicture Load(string resourcePath, Vector2 hotspotFraction)
             {
-                // 絵が欠けたら最初に使う時点で止める（矢印のまま黙って続けない）
-                // Stop on first use when a picture is missing (never silently stay on the arrow)
+                // 絵が欠けたら生成の時点で止める（矢印のまま黙って続けない）
+                // Stop at construction when a picture is missing (never silently stay on the arrow)
                 var texture = Resources.Load<Texture2D>(resourcePath);
                 if (texture == null) throw new InvalidOperationException($"[UiOsCursor] missing cursor texture Resources/{resourcePath}.png");
                 return new CursorPicture(texture, new Vector2(texture.width * hotspotFraction.x, texture.height * hotspotFraction.y));
