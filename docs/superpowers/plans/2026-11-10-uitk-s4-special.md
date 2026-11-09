@@ -234,8 +234,8 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 注目点6件（矢印キーの前例・区画の display の書き手 2 人・開いたブロックの源 3 つ・依存の束・State からサーバー実装への依存・死活表の欠け）を D-7・D-23・D-25・D-26 と死活表の 2 行に反映
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱3・第3バケツ2 / 強 2 件（VM の任意の詳細・送信の結果）はシミュレーター予測でこのまま（D-28・D-29）、弱は D-30・D-31 とベルトの 2 度引きの修正、層の外の指摘（Screens へのサーバーの列挙）を D-27 で修正、第3バケツは「本PR外のリファクタ提案」へ
 
 ---
 
@@ -256,6 +256,8 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 | 発射台・宇宙エレベーターのスロット操作（左右押下・ダブルクリック・Shift） | alpha のマージ後に生きる | 枠は alpha の `BlockItemGridFactory.Create` の `BlockItemGrid`（`BlockItemGridGroup` で見出しを付ける）、身振りの実行器は alpha。このレーンは絶対添字を渡すだけ（Task 8） |
 | 発射台・宇宙エレベーターへの Shift の入れ口の絞り | alpha のマージ後に生きる | `SpecialInletBindingContributor` が alpha の拡張口 (6) `IBlockSlotRestrictionContributor` で入れ口を寄与（Task 3・9）。口が実物に無ければ Task 1 Step 2 の分岐 B |
 | 宇宙エレベーターの接続 | 生きる | `SpaceElevatorSectionView` → `ConnectSpaceElevator`（Task 4・8） |
+| 機械・発電機など標準の本文の中の歯車・電力網・歯車網の区画（S4-machine の本文にも同じ区画が差し込まれる） | alpha のマージ後に生きる | 区画は alpha の拡張口 (3) の Slot に 1 本ずつ登録し、どの blockType の標準の本文にも同じ工場が差し込まれる。出すかは詳細の有無（`HasDetail`）で決まる（Task 6・9） |
+| ベルトを開いて ←/→ を押してもプレイヤーが動かない | 生きる | ←/→ は Player/Move にも割り当て済みだが、ブロックインベントリを開いている間（`UIStateEnum.SubInventory`）はプレイヤーの移動が止まる既存の扱い（Web の系と同じ）。録画（Task 11 のベルトの段）で位置が変わらないことを Note に残す |
 | 合図の重ね押し・接続済みの再押下が誤報にならない | 生きる | 良性の拒否 `SpecialBlockCommandStale`（Task 4） |
 | 特殊族の Web の CEF 側の表示 | GameUi では描かない（裁定どおり） | 全体スイッチ 1 つ（`.decisions/2026-11-06-長命ブランチの中は全体スイッチ1つ`）。Web の系は変えない |
 
@@ -520,8 +522,9 @@ namespace Client.Ui.State.BlockInventory.Special.Details
     public sealed class GearNetworkDetail { public GearNetworkDetail(double totalGenerateGearPower, double totalRequiredGearPower, GearNetworkStopReasonKind stopReason); /* 同名の get-only */ }
     public readonly struct FilterSplitterDirectionDetail { public FilterSplitterDirectionDetail(FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds); public FilterSplitterMode Mode { get; } public IReadOnlyList<ItemId> FilterItemIds { get; } }
     public sealed class FilterSplitterDetail { public FilterSplitterDetail(IReadOnlyList<FilterSplitterDirectionDetail> directions); public IReadOnlyList<FilterSplitterDirectionDetail> Directions { get; } }
-    public sealed class RocketLaunchPadDetail { public RocketLaunchPadDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, int outputSlotStart); /* 同名の get-only */ public IReadOnlyList<int> OutputSlots(int itemSlotCount); }
-    public sealed class SpaceElevatorDetail { public SpaceElevatorDetail(IReadOnlyList<int> satelliteInputSlots, IReadOnlyList<int> outputSlots, bool connected, int cablePoolAmount, int cablesPerElevator, float climbProgress, SpaceElevatorBaseStatus status); /* 同名の get-only */ }
+    // サーバーの列挙（RocketLaunchPadPhase・SpaceElevatorBaseStatus 等）は internal にし、Screens へは文言キー・判定だけを出す（Client.Ui は Game.Block.Interface を参照しない。D-27）
+    public sealed class RocketLaunchPadDetail { public RocketLaunchPadDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, int outputSlotStart); internal RocketLaunchPadPhase Phase { get; } internal RocketLaunchPadWaitReason WaitReason { get; } public float Progress { get; } public IReadOnlyList<int> MaterialSlots { get; } public IReadOnlyList<int> PayloadSlots { get; } public int OutputSlotStart { get; } public LocalizationKey StatusKey { get; } public bool TryGetCommandButton(out RocketCommandButton button); public IReadOnlyList<int> OutputSlots(int itemSlotCount); }
+    public sealed class SpaceElevatorDetail { public SpaceElevatorDetail(IReadOnlyList<int> satelliteInputSlots, IReadOnlyList<int> outputSlots, bool connected, int cablePoolAmount, int cablesPerElevator, float climbProgress, SpaceElevatorBaseStatus status); /* 同名の get-only。ただし Status は internal */ public SpaceElevatorStatusDisplay StatusDisplay { get; } public bool CanConnect { get; } }
 }
 namespace Client.Ui.State.BlockInventory.Special.Text
 {
@@ -821,6 +824,8 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 `Details/RocketLaunchPadDetail.cs`:
 ```csharp
 using System.Collections.Generic;
+using Client.Localization;
+using Client.Ui.State.BlockInventory.Logic.Special;
 using Game.Block.Interface.State;
 
 namespace Client.Ui.State.BlockInventory.Special.Details
@@ -831,8 +836,8 @@ namespace Client.Ui.State.BlockInventory.Special.Details
     /// </summary>
     public sealed class RocketLaunchPadDetail
     {
-        public RocketLaunchPadPhase Phase { get; }
-        public RocketLaunchPadWaitReason WaitReason { get; }
+        internal RocketLaunchPadPhase Phase { get; }
+        internal RocketLaunchPadWaitReason WaitReason { get; }
         public float Progress { get; }
         public IReadOnlyList<int> MaterialSlots { get; }
         public IReadOnlyList<int> PayloadSlots { get; }
@@ -846,6 +851,15 @@ namespace Client.Ui.State.BlockInventory.Special.Details
             MaterialSlots = materialSlots;
             PayloadSlots = payloadSlots;
             OutputSlotStart = outputSlotStart;
+        }
+
+        // 状態文と題の操作は State で引き、Screens へサーバーの列挙を出さない（D-27）
+        // Resolve the status text and title action in State so Screens never sees the server enums (D-27)
+        public LocalizationKey StatusKey => RocketLaunchPadLogic.StatusKey(Phase, WaitReason);
+
+        public bool TryGetCommandButton(out RocketCommandButton button)
+        {
+            return RocketLaunchPadLogic.TryGetCommandButton(Phase, out button);
         }
 
         // 出力の枠（在庫の数が先頭に届かなければ空）
@@ -863,6 +877,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 `Details/SpaceElevatorDetail.cs`:
 ```csharp
 using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Logic.Special;
 using Game.Block.Interface.State;
 
 namespace Client.Ui.State.BlockInventory.Special.Details
@@ -879,7 +894,12 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         public int CablePoolAmount { get; }
         public int CablesPerElevator { get; }
         public float ClimbProgress { get; }
-        public SpaceElevatorBaseStatus Status { get; }
+        internal SpaceElevatorBaseStatus Status { get; }
+
+        // 状態の文言と不足色・接続できるかは State で決める（Screens へサーバーの列挙を出さない。D-27）
+        // Status text, shortage tone and connectability are decided in State (no server enums reach Screens. D-27)
+        public SpaceElevatorStatusDisplay StatusDisplay => SpaceElevatorLogic.StatusDisplay(Status);
+        public bool CanConnect => Status == SpaceElevatorBaseStatus.ReadyToConnect;
 
         public SpaceElevatorDetail(IReadOnlyList<int> satelliteInputSlots, IReadOnlyList<int> outputSlots, bool connected, int cablePoolAmount, int cablesPerElevator, float climbProgress, SpaceElevatorBaseStatus status)
         {
@@ -3764,11 +3784,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
         {
             // 窓が選べなければ区画ごと出さない（Web の selected 無しの return null）
             // Hide the whole section when no window can be selected (Web returns null without a selection)
-            var shown = _belt != null && BeltThroughputLogic.TrySelectBeltWindow(_belt.Windows, _cursor.SelectedTicks, out _);
+            BeltThroughputWindow selected = null;
+            var shown = _belt != null && BeltThroughputLogic.TrySelectBeltWindow(_belt.Windows, _cursor.SelectedTicks, out selected);
             SpecialViewParts.SetShown(this, shown);
             if (!shown) return;
 
-            BeltThroughputLogic.TrySelectBeltWindow(_belt.Windows, _cursor.SelectedTicks, out var selected);
             var row = BeltThroughputLogic.RowDisplay(selected);
             _window.SetText(row.Text);
             var measured = row as MeasuredBeltRowDisplay;
@@ -3779,7 +3799,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
     }
 }
 ```
-（`Draw` の 2 度目の `TrySelectBeltWindow` は 1 回にまとめてよい: `if (_belt == null || !BeltThroughputLogic.TrySelectBeltWindow(...out var selected)) { SetShown(false); return; }` の形に直して書く。上の形は読みやすさのための説明で、実装は 1 回）
 
 - [ ] **Step 4: コンパイルしテストを実行して通ることを確かめる**
 
@@ -4761,13 +4780,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             _material.Render(itemSlots, rocket.MaterialSlots);
             _payload.Render(itemSlots, rocket.PayloadSlots);
             _output.Render(itemSlots, rocket.OutputSlots(itemSlots.Count));
-            _status.SetText(new UiText(RocketLaunchPadLogic.StatusKey(rocket.Phase, rocket.WaitReason)));
+            _status.SetText(new UiText(rocket.StatusKey));
             _progress.SetValue(rocket.Progress);
         }
     }
 }
 ```
-（状態文の色 `--text-high-contrast` は `UiTypographyClass` に無いので、画面 USS の `.rocket-launch-pad-view__status`〈Task 9〉で当てる）
+（`RocketLaunchPadDetail` のサーバーの列挙は internal で、View は `StatusKey`・`TryGetCommandButton` だけを読む〈D-27〉。状態文の色 `--text-high-contrast` は `UiTypographyClass` に無いので、画面 USS の `.rocket-launch-pad-view__status`〈Task 9〉で当てる）
 
 `Space/RocketLaunchPadTitleActionView.cs`:
 ```csharp
@@ -4805,7 +4824,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         {
             // 合図待ちでなければ題の操作ごと隠す（Web は null。手動の操作を持たない段階）
             // Hide the whole action outside command waits (Web returns null; no manual operation in those phases)
-            var hasButton = detail.TryGetRocketLaunchPad(out var rocket) && RocketLaunchPadLogic.TryGetCommandButton(rocket.Phase, out var button) ? Show(button) : HideAll();
+            var hasButton = detail.TryGetRocketLaunchPad(out var rocket) && rocket.TryGetCommandButton(out var button) ? Show(button) : HideAll();
             SpecialViewParts.SetShown(this, hasButton);
 
             #region Internal
@@ -4850,7 +4869,6 @@ using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Text;
 using Client.Ui.State.Text;
-using Game.Block.Interface.State;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine.UIElements;
@@ -4893,13 +4911,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             SpecialViewParts.SetShown(_section, present);
             if (!present) return;
 
-            var display = SpaceElevatorLogic.StatusDisplay(elevator.Status);
+            var display = elevator.StatusDisplay;
             _status.Render(new UiText(display.LabelKey), display.Insufficient);
             _pool.SetText(SpecialDetailTexts.SpaceElevatorPool(elevator));
             _section.SetItemShown(_progress, elevator.Connected);
             _section.SetItemShown(_connect, !elevator.Connected);
             _progress.SetValue(elevator.ClimbProgress);
-            _connect.SetEnabled(elevator.Status == SpaceElevatorBaseStatus.ReadyToConnect);
+            _connect.SetEnabled(elevator.CanConnect);
         }
     }
 }
@@ -5541,7 +5559,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 
 ## 判断記録（ADR）
 
-設計の出所: 設計書 `docs/uitk/design.md`（[A-8] View が操作を直接呼ぶ・[A-14] 並べ比べの目安・[A-45]〜[A-47]・[A-57] 変化ごとに同期で描き直す）、実行計画 `docs/uitk/execution-plan.md`（§1.4 S4-special 行・§6.2・E-1・E-13・E-19・E-22）、裁定 `.decisions/2026-11-06-*`（全体スイッチ 1 つ・Web 版と同じ見た目・CEF 由来の不具合は直さない）。以下は planning 中に生じた判断。
+設計の出所: 設計書 `docs/uitk-migration/execution/component-architecture.md`（[A-8] View が操作を直接呼ぶ・[A-14] 並べ比べの目安・[A-45]〜[A-47]・[A-57] 変化ごとに同期で描き直す）、実行計画 `docs/uitk-migration/execution/execution-plan.md`（§1.4 S4-special 行・§6.2・E-1・E-13・E-19・E-22）、裁定 `.decisions/2026-11-06-*`（全体スイッチ 1 つ・Web 版と同じ見た目・CEF 由来の不具合は直さない）。以下は planning 中に生じた判断。
 
 - **D-1 所有の境界**: 指揮の申し合わせ（PLAN-W4a）どおり。このレーンは `Screens/BlockInventory/Special/`・`Client.Ui.State/BlockInventory/Special/`（`Logic/` を除く）・`BlockInventorySpecialGameUiRegistration.cs` だけを書く。S4-machine の `GeneratorSection`（ElectricGenerator・FuelGearGenerator・SimpleGearGenerator）は持たない。`SimpleGearGenerator` の参照 `4-block-gearGenerator` でこのレーンが見るのは Gear・GearNetwork の 2 区画だけ
 - **D-2 Web の橋と UITK の読み手の並走**: Web の `BlockDetailDtoBuilder` 系は変えず、UITK 用の読み手 `SpecialBlockDetailReader` を State に新設して同じ源を読む。CEF の撤去まで 2 本並ぶ（本PR外のリファクタ提案へ）。却下: Web の橋の DTO を UITK が読む（`Client.WebUiHost` への依存が層の向きに反する）
@@ -5549,7 +5567,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-4 適合の層 1 つ**: `SpecialDetailAdapter` が alpha の本文・題の操作・区画の 3 つの口を 1 つで実装し、View は `ISpecialDetailRenderer` だけを知る。alpha の口の形が変わったときの直し所を `Registration/` に閉じる
 - **D-5 操作は非同期・楽観更新なし**: 結果はサーバーの応答と後続の状態で表示が変わる（Web の dispatchAction と同じ）。`SpecialViewKit.Run` が結果をトーストの係へ渡す
 - **D-6 拒否理由 4 つ**: `SpecialBlockNotOpen`・`SpecialBlockRequestFailed`（良性でない）・`SpecialBlockCommandStale`・`FilterSplitterGrabEmpty`（良性。Web の BENIGN_ERRORS と noop）。wire は Web と同じ文字列
-- **D-7 矢印キーの流れを `Client.Input/ArrowKeys` に**: `Client.Ui` は Input System を直に読まない。前例 `InputSystemPointerButtonStream`（E-19）。namespace を `Client.Input.Keyboard` にしない（`UnityEngine.InputSystem.Keyboard` とぶつかる）
+- **D-7 矢印キーの流れを `Client.Input/ArrowKeys` に**: `Client.Ui` は Input System を直に読まない。前例 `InputSystemPointerButtonStream`（E-19）。namespace を `Client.Input.Keyboard` にしない（`UnityEngine.InputSystem.Keyboard` とぶつかる）。比べた案: `InputManager.UI` に `InputKey` を足して `moorestechInputSettings` の UI マップへ ←/→ を割り当てる案。却下の理由は、生成物の入力設定（共有の資産）を書き換えることになり、←/→ は Player/Move と同じキーで UI マップの抑止（`InputSuppressionScope`）の意味が合わないこと。Web は window の keydown をマップに依らず聞き、入力欄と層だけで絞っていたので、それと同じ判定（`UiInputExclusivity.IsTextInputFocused`・表示中か）を受け手に置く。前例 `InputSystemPointerButtonStream` から借りるのは「縁を流す・リセットで記憶を下ろす」の形だけで、役割（UI のキー操作）の前例は UITK に無い新規パターンとして扱う
 - **D-8 asmdef の参照 4 つ**: `Client.Ui.State` に `Game.Block`・`Game.Gear`・`Core.BeltTransport`・`Core.Update`（Web の橋 `Client.WebUiHost.asmdef` が同じ源を読むための参照と同じ）
 - **D-9 フィルタの択一の選択肢の testid**: `filter-mode-{d}-{mode}`（Web は名前で押すが UITK の L1 は testid で押す）。掴みが空の左押下は View でなく Commands が良性に断る（D-6）
 - **D-10 ベルトの窓の選択は View が持つ**: Web の `useState` と同じく区画の寿命の状態（`BeltWindowCursor`）。パネルから外れたら既定 180 へ戻る（Web の破棄と同じ）
@@ -5567,6 +5585,13 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-22 合図の古い拒否は良性**: 成功の後に段階の更新が遅れた二度目の押下の拒否をトーストしない（Web の「%sの成功後topicが遅れても二度目の拒否を誤報しない」）
 - **D-23 区画の出し入れ**: alpha の `SectionStackBody` は `IsApplicable` をパネルの `Render` のときにしか聞かない。網の集約・ベルトの統計はその外で届くので、区画の View が自分の `display` を切り替える。代償は、組み直しの外で出し入れが変わったときに `UiStack` の先頭の間隔が次の組み直しまでずれうること。alpha に「出し入れのやり直しを求める口」を足してもらうのが本筋なので integrator への依頼にする（要裁定ではない: 目的・裁定から外れない）。却下: 区画が親の `UiGapContainer.SetItemShown` を直に呼ぶ（alpha の内部の形に依る）
 - **D-24 フィルタ分配器の 3 件目**: alpha の外殻の L1 の土台（本文を差し込んだ外殻と自然高のスクロール器）に載せて写す。土台が無ければ部分移植にし、録画の分配器の段で末尾の枠を見る
+- **D-25 View の依存の束 `SpecialViewKit`**: 11 の工場と 9 の View が同じ 6 つ（Model・Commands・表示素材・トースト・矢印キー・格子の工場）を受けるので 1 つに束ね、結果をトーストへ渡す `Run` も 1 箇所に置く（同じ 3 行が View ごとに並ぶのを避ける）。UITK に同じ形の前例は無い新規パターン。却下: 各工場が個別に ctor で受ける（工場 11 本の ctor と View の ctor の引数が全部同じになる）
+- **D-26 開いたブロックの源が 3 つ並ぶ**: 操作は `SubInventoryState`（`IOpenSpecialBlock`。Web の ActionHandler と同じ源）、詳細は `OpenBlockDetailTracker`（Web の `BlockInventoryTopic` と同じ）、スロットは alpha のパネル。alpha の `OpenBlockInventoryPanel` は `BlockInstanceId` を持たないため操作の源を寄せられない。1 本にするなら alpha のパネルに InstanceId を足すことになるので、integrator への依頼にする（目的・裁定から外れないので要裁定ではない）
+- **D-27 Screens へサーバーの列挙を出さない**: `Client.Ui.asmdef` は `Game.Block.Interface` を参照しない（層の向き）。`RocketLaunchPadDetail`・`SpaceElevatorDetail` のサーバーの列挙は internal にし、文言キー・コマンドのボタン・接続できるかを State で引いて出す（Phase 2.6 の指摘で直した）
+- **D-28 詳細の VM は 9 つの任意の詳細を並べる（判別子で分けない）**: 1 つのブロックが複数の詳細を同時に持つ（宇宙エレベーターは本体＋電力網、機械は歯車＋電力網＋歯車網＋ベルト）ので、`BlockInventoryBodyKind` 1 つで分ける型にはできない。不在は `TryGet*` だけで読み、null を外へ出さない（Phase 2.6 の 5-A。シミュレーター予測「このままでよい」）
+- **D-29 送信の結果 `SpecialBlockRequestOutcome` は Kind＋WireCode のまま**: 結果は `SpecialBlockCommands` の 1 関数の中だけで `UiCommandResult` へ写され、Accepted の `WireCode` を読む所が無い（Phase 2.6 の 5-B。シミュレーター予測「このままでよい」。読む所が増えたら型を分ける）
+- **D-30 失敗理由を畳む Try 3 つは畳んだまま**: `TryGetInletBindings`（固定でない・未着・param の食い違い）・`IOpenSpecialBlock.TryGet`（開いていない・識別の未着）・`SpecialBlockCommands.TryOpen`（開いていない・種別違い）。どれも分けた理由で呼び手の分岐が変わらず、種別違いと param の食い違いは別にログか wire で区別している（Phase 2.6 の 5-C・弱）
+- **D-31 発射台・宇宙エレベーターの判定が Reader と入れ口の寄与に 2 回出る**: 入れ口は要求の品（マスタの `RequirementAt`）が要り、詳細の型は品を持たないので導出を 1 本にできない。重複は param の型の判定と状態の在否の 2 行に留める（Phase 2.6 の検査 6・弱）。ベルトの窓の 2 度引きはコードを 1 回に直した
 - **シミュレーター予測**: user-simulator の review の予測と適用は「## 設計検査記録」の下の記録に書く（このレーンはユーザーへ質問しない。指揮の指示）
 
 ## 本PR外のリファクタ提案
@@ -5574,6 +5599,9 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - Web の橋 `Client.WebUiHost/Game/Topics/BlockDetail/**` の特殊族の DTO 組み立てと、このレーンの `SpecialBlockDetailReader`・`SpecialStateDetailReader`・`SpecialNetworkReader`・`BeltThroughputReader` は同じ源から同じ値を組む（D-2）。CEF の撤去のときに Web の橋の側を消す
 - Web の橋の `FilterSplitter*ActionHandler`・`ElectricToGearSetOutputModeActionHandler`・`SpaceElevatorConnectActionHandler`・`RocketLaunchPadCommandActionHandler` と `VanillaSpecialBlockRequestSender`・`SpecialBlockResponseCodes` は同じ送信と失敗コードの写しを持つ。同じく CEF の撤去で 1 本にする
 - alpha の `SectionStackBody` に区画から出し入れのやり直しを求める口（D-23）
+- 既存 `Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs`＋`Topics/Inventory/BlockInventoryRepublishPolicy.cs`／新設 `SpecialBlockDetailModel`: どちらも「追跡ブロック・状態・集約・ベルトの窓の進みで詳細を出し直す」契機の判定。既存はベルト以外の窓の進みを捨てる（`RepublishOnBeltWindow`）が、新設は窓の進みごとに組み直す。出し直しの方針を 1 本にする
+- 既存 `Client.Input/Pointer/InputSystemPointerButtonStream.cs`／新設 `Client.Input/ArrowKeys/InputSystemArrowKeyStream.cs`: 「`ReadValueFromEvent`＋0.5 の閾値で押下の縁を判定し、リセットで記憶を下ろす」同じ判定。縁の判定を小さな共通の型へ寄せる
+- alpha の `OpenBlockInventoryPanel` に `BlockInstanceId` を足し、特殊族の操作の源を alpha のパネルへ寄せる（D-26）
 
 ## 未確認
 
@@ -5585,7 +5613,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 
 ## 設計書・実行計画へ反映する行
 
-設計書 `docs/uitk/design.md` の A 表へ:
+設計書 `docs/uitk-migration/execution/component-architecture.md` の A 表へ:
 
 | ID | 判断 |
 |---|---|
