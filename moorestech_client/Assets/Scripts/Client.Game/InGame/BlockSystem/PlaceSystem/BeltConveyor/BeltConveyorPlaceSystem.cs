@@ -38,6 +38,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly PlacementHeightOffset _placementHeightOffset;
         private readonly BeltRouteLiveWorld _world;
         private ulong _worldRevision;
+        // 理由行は毎フレーム消えるので、始点選びに戻ってから 2 秒出し続ける（UI の表示時間なので実時間）
+        // Tooltip lines clear every frame, so keep showing it for 2 s after returning to start selection (UI display time, so real time)
+        private const float WorldChangedNoticeSeconds = 2f;
+        private float _worldChangedNoticeUntil;
 
         private BeltConveyorHoldingBlock _holding;
         private BlockDirection _currentDirection = BlockDirection.North;
@@ -65,6 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         public override void Enable()
         {
             _session = null;
+            _worldChangedNoticeUntil = 0;
             _currentDirection = BlockDirection.North;
             _branchUseAlternateExit = false;
         }
@@ -115,6 +120,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private void UpdateStartSelection(PlacementFeedback feedback)
         {
             RefreshWorldIfChanged();
+            if (Time.unscaledTime < _worldChangedNoticeUntil) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteWorldChanged));
             if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, feedback, out var hit)) return;
 
             // Ctrlを押したまま既存ベルトを狙うと分岐の始点候補になる
@@ -160,6 +166,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private void UpdateRouting(PlacementFeedback feedback)
         {
+            _worldChangedNoticeUntil = 0;
             if (BeltRouteKeyInput.IsRotatePressed) _currentDirection = _currentDirection.HorizonRotation();
             if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, feedback, out var hit)) return;
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(hit.Cell)) { feedback.AddTooFar(); return; }
@@ -174,8 +181,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             RefreshWorldIfChanged();
             if (!BeltRouteConfirmCheck.IsStillPlaceable(_world, _blocks, _session, _holding, _branchUseAlternateExit, infos))
             {
-                Debug.Log($"[BeltRoute] world changed before confirm; back to start selection start:{_session.StartCell} end:{hit.Cell} branch:{_session.IsBranch}");
-                feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteWorldChanged));
+                _worldChangedNoticeUntil = Time.unscaledTime + WorldChangedNoticeSeconds;
                 _session = null;
                 return;
             }

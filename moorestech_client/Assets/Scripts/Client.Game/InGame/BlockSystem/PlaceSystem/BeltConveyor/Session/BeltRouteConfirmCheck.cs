@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Server.Protocol.PacketResponse;
+using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 {
@@ -17,18 +18,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     {
         public static bool IsStillPlaceable(IBeltRouteWorld world, BlockGameObjectDataStore blocks, BeltRouteSession session, BeltConveyorHoldingBlock holding, bool useAlternateExit, List<PlaceInfo> infos)
         {
-            if (session.IsBranch && !IsBranchStillUsable()) return false;
+            // 置けなければ送らずに始点選びへ戻るので、開発者向けに理由をログへ出す
+            // A failure sends nothing and returns to start selection, so log it for developers
+            var placeable = (!session.IsBranch || IsBranchStillUsable()) && AreCellsStillFree();
+            if (!placeable) Debug.Log($"[BeltRoute] world changed before confirm; back to start selection start:{session.StartCell} end:{infos[infos.Count - 1].Position} branch:{session.IsBranch}");
+            return placeable;
+
+            #region Internal
 
             // 分岐器のセル以外は全て空きセルのままであること
             // Every cell except the splitter's must still be free
-            foreach (var info in infos)
+            bool AreCellsStillFree()
             {
-                if (session.IsBranch && info.Position == session.Branch.Cell) continue;
-                if (BeltRouteCellJudge.Judge(world, info.Position) != BeltRouteCellBlockReason.None) return false;
+                foreach (var info in infos)
+                {
+                    if (session.IsBranch && info.Position == session.Branch.Cell) continue;
+                    if (BeltRouteCellJudge.Judge(world, info.Position) != BeltRouteCellBlockReason.None) return false;
+                }
+                return true;
             }
-            return true;
-
-            #region Internal
 
             // 同じ個体でも隣接変化で分岐器の向き・出口が変わっていたら使えない
             // Even for the same belt, a changed splitter facing or exit makes the branch unusable
