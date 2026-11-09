@@ -1,0 +1,26 @@
+/* web: W/features/tutorial/keyControlHint.module.css（.hud・.hint・.hint kbd）。bottom の calc は USS に無いので C# が足す（設計書 A-47） */
+/* web: W/features/tutorial/keyControlHint.module.css (.hud, .hint, .hint kbd); USS has no calc, so C# sums bottom (design A-47) */
+.key-control-hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: center;
+    /* kbd は部品のつまみ --key-cap-color で赤くする。--text-high-contrast は受け直さない（共有の色を画面で書き換えない。D-8） */
+    /* Recolor the kbd through the component knob --key-cap-color; never re-declare --text-high-contrast (D-8) */
+    --key-cap-color: var(--tutorial-key-hint-color);
+    --shortcut-hint-label-gap: var(--tutorial-key-hint-kbd-gap);
+    --key-control-hint-floor-offset: var(--hotbar-floor-offset);
+    --key-control-hint-hotbar-gap: var(--tutorial-key-hint-hotbar-gap);
+    --key-control-hint-row-gap: var(--tutorial-key-hint-gap);
+    --tutorial-attention-pulse-period: var(--tutorial-pulse-duration);
+}
+
+/* 文の色と行の高さ。Web の .hint { color } と、key-hint-text の 25px × line-height 1.2 の行箱（2 件積んだときの行間を Web に合わせる） */
+/* Sentence color and row height; Web .hint { color } and the 25px x line-height 1.2 line box (matches Web spacing when two rows stack) */
+/* 25px の字の自然な高さ（37px）は行箱を超えるので、min ではなく固定の高さにして字を行の中央へ置く（S2-hud の KeyHintRow と同じ） */
+/* A 25px glyph is naturally taller (37px) than the line box, so fix the height instead of min to center glyphs (same as S2-hud KeyHintRow) */
+.key-control-hint .key-control-hint__item {
+    color: var(--tutorial-key-hint-color); /* look-exception: LX-86 */
+    height: 30px;
+}
