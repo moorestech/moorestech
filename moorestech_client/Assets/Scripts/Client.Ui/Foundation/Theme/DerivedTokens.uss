@@ -116,4 +116,10 @@
     /* C4-b: 進捗の部品（Gauges）。ProgressArrowGlyph の drop-shadow の色。影の濃さの分布は部品が Linear 合成用に頂点ごとに解き直す（設計書 A-88） */
     /* C4-b: progress parts (Gauges); the ProgressArrowGlyph drop-shadow color, whose falloff the part re-solves per vertex for Linear blending (design A-88) */
     --progress-arrow-glyph-shadow: rgba(0, 0, 0, 0.6691); /* web: ProgressArrowGlyph .glyph の drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色。暗い色の式 1-(1-α)^1.85 */
+
+    /* C4-a: 液体のスロット族（Slots/Fluid）。縁の色のつまみ・ゴーストの透け・量の基線（設計書 A-97・A-99） */
+    /* C4-a: fluid slot family (Slots/Fluid); outline color knob, ghost fade and amount baseline (design A-97, A-99) */
+    --outlined-count-label-stroke: var(--icon-text-stroke-light); /* web: .iconTextOutlineLight の -webkit-text-stroke の色。.iconTextOutlineDark の置き場（FluidSlot の量・ホットバーの番号）が --icon-text-stroke-dark に上書きする */
+    --fluid-slot-ghost-opacity: var(--slot-frame-ghost-opacity); /* web: FluidSlot .slot[data-ghost] > * の opacity: var(--slot-ghost-opacity) 0.35。SlotFrame と同じ Linear 合成の補正を共有し、dark-8 の面の上の実測で合わなければ C4-a Task 7 で値を選び直す */
+    --fluid-slot-amount-bottom: 3.3px; /* web: FluidSlot .amount の bottom: 0。行高は本文の --mantine-line-height-md 1.55 で、OutlinedCountLabel は行高 1 の基線で置くので、半行間の差 (1.55 - 1) / 2 × 12px = 3.3px だけ箱を上げる */
 }
