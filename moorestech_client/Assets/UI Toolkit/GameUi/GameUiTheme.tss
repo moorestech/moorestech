@@ -30,6 +30,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/ItemSlot/ItemSlot.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/SlotGrid/SlotGrid.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/Fluid/FluidSlot/FluidSlot.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/Fluid/FluidAmountSlot/FluidAmountSlot.uss");
 /* == section: Components/Controls == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.uss");

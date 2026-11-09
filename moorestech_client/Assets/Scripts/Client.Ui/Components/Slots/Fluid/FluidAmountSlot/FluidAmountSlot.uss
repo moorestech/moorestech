@@ -1,0 +1,24 @@
+/* web: moorestech_web/webui/src/shared/ui/FluidAmountSlot/style.module.css の .amount（composes count）と .amount.amount を写す。.icon は SlotContent が写す */
+/* web: copies .amount (composes count) and .amount.amount in moorestech_web/webui/src/shared/ui/FluidAmountSlot/style.module.css; SlotContent copies .icon */
+
+/* 帯は枠幅の右寄せ。はみ出しても切らない（右寄せの帯は左へ溢れ、切ると先頭の桁が無言で消える） */
+/* The band spans the frame right-aligned and never clips (it overflows leftward, and clipping silently drops leading digits) */
+.fluid-amount-slot__amount {
+    position: absolute;
+    left: 0;
+    right: 2px;
+    bottom: var(--count-bottom);
+    height: var(--fluid-amount-font-size);
+}
+
+/* 字の大きさと字間 0 は Web の .amount.amount が画面の上書きに必ず勝つ値なので、つまみを読まずに直に書く */
+/* Size and zero spacing are what the Web .amount.amount always wins with over screen overrides, so they are written directly, not via knobs */
+.fluid-amount-slot__amount-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -unity-text-align: lower-right;
+    --outlined-count-label-size: var(--fluid-amount-font-size);
+    letter-spacing: 0;
+}

@@ -1,0 +1,11 @@
+/* 液体の族の L1 だけが当てる祖先のつまみの上書き。画面がルートでつまみを上書きする形を写す（値は Web の画面 CSS） */
+/* Ancestor knob overrides applied only by the fluid-family L1 tests; mirrors a screen overriding knobs at its root (values from the Web screen CSS) */
+
+/* W/features/recipe/views/RecipeBox の --icon-pad と ItemListPanel の GRID_STYLE の --count-*（.amount.amount が字の大きさと字間に勝つことを見る） */
+/* --icon-pad from W/features/recipe/views/RecipeBox and --count-* from ItemListPanel GRID_STYLE (checks .amount.amount wins on size and spacing) */
+.fluid-knob-recipe-row {
+    --icon-pad: 1px;
+    --count-bottom: -1px;
+    --count-font-size: 16px;
+    --count-letter-spacing: 12px;
+}
