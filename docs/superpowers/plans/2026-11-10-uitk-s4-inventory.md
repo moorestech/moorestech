@@ -32,7 +32,7 @@
 | R-13 | 並べ比べ: 参照 `4-player-inventory`・`4-player-inventory-full`・`3-hotbar-equipment-empty`・`2-game-hud`・`5-japanese-inventory` を 1280×720・2560×1080 で撮り、差の表を `done.md` に書く | 差の表の全行が「同じ／直した／LX-111〜LX-115／他レーン持ち」のどれか |
 | R-14 | 登録: `MainGameUiRegistration` の画面登録区画に `InventoryGameUiRegistration.Register(builder);` を 1 行、`TSS` の `Screens` 区画に `@import` を 1 行、`THEME/DerivedTokens.uss` の末尾に名札付きブロック「S4-inventory」（色 1 行） | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
 | R-15 | 写すテスト（実物で数え直した 34 件のうち 32 件を写し、2 件を処分表へ。下の「写すテスト」表）。`node tools/uitk/test-name-parity.mjs --bundle 4`・`--bundle 2`・`--bundle 5` でこのレーンのファイルの未対応 0。`docs/uitk/disposition.md` の albof.29・albof.31 の「写す予定」の行は、タグを足す同じコミットで消す | parity の出力にこのレーンのファイル（`inventory.spec.ts` のこのレーンの 4 件・`equipment.spec.ts`・`InventoryPanel/index.test.ts`・`EquipmentPanel/index.test.ts`・`inputLayer.spec.ts` のホイール 1 件・`itemSlot.spec.ts` のツールチップ 1 件・`alwaysOnHudWheel.test.ts` の装備 HUD 1 件）の未対応が無い |
-| R-16 | 録画: `uitk/uitk-inventory-equipment`（新設。持ち物を開く・整理・掴んで装備へ置く・装備の枠のクリックが移動になる・ゲーム画面でホイール 1 ノッチずつ循環・持ち物の上のホイールで進まない・装備 HUD の上で進む）と `uitk/uitk-grab-overlay`（C4-e。押下の配線が alpha → このレーンへ移ったことの回帰）を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-16 | 録画: `uitk/uitk-inventory-equipment`（新設。持ち物を開く・整理・掴んで装備へ置く・装備の枠のクリックが移動になる・ゲーム画面でホイール 1 ノッチずつ循環・持ち物の上のホイールで進まない・装備 HUD の上で進む・チェストを開いた状態で main の枠の Shift＋左押下がチェストへ配分される〈S4-alpha D-33 から渡された完了条件〉）と `uitk/uitk-grab-overlay`（C4-e。押下の配線が alpha → このレーンへ移ったことの回帰）を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-17 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`LOGS/harness/uitk/S4-inventory/done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -133,7 +133,7 @@ public interface ILocalPlayerInventory { IObservable<int> OnItemChange { get; } 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 public class PlaceSystemStateController { public bool IsWheelOwnedByTool { get; } public IObservable<bool> OnWheelOwnedByToolChanged { get; } }
 
-// ── S4-alpha（未マージなら Task 1 で止める。計画の Produces から写した。マージ後に実物と照合）
+// ── S4-alpha（未マージなら Task 1 で止める。alpha 計画 85f905aa3d の「後続レーンへの Produces 一覧」の綴りどおり）
 namespace Client.Ui.State.SlotCommands.Player
 public interface IPlayerSlotCommands
 {
@@ -144,7 +144,8 @@ public interface IPlayerSlotCommands
     UiCommandResult RightEnter(PlayerSlotRef slot);
 }
 public sealed class PlayerSlotCommands : IPlayerSlotCommands { public const string CommandName = "inventory.slot"; }
-// 登録は alpha の BlockInventoryGameUiRegistration（builder.Register<PlayerSlotCommands>(Lifetime.Singleton).As<IPlayerSlotCommands>()）。このレーンは登録しない
+// IPlayerSlotCommands は MainGameUiRegistration の共有サービスの並びに alpha が登録する。このレーンは ctor で受けるだけで登録しない
+// 同じ並びの IUiStateTransitionRequester（Client.Ui.State.Routing。bool RequestTransition(UIStateEnum)）は、このレーンに閉じるボタンも画面遷移の操作も無いので使わない
 
 // ── S3-hotbar-modal（未マージ。計画 Task 7 の Produces から写した。Task 9 Step 1 で実物と照合）
 namespace Client.Ui.Foundation.Input
@@ -262,13 +263,13 @@ Run:
 pwd
 git fetch origin && git log --oneline -1 origin/feature/uitk
 S=moorestech_client/Assets/Scripts
-ls $S/Client.Ui.State/SlotCommands/Player/IPlayerSlotCommands.cs $S/Client.Ui.State/SlotCommands/Player/PlayerSlotCommands.cs $S/Client.Ui.State/Inventory/Logic/EquipmentSelectionLogic.cs $S/Client.Ui.State/Inventory/Grab/PlayerGrabModel.cs $S/Client.Ui/Foundation/Tooltip/GameUiHoverTooltipInstaller.cs $S/Client.Ui/Foundation/Stage/Columns/StageColumnsLayout.cs
+ls $S/Client.Ui.State/SlotCommands/Player/IPlayerSlotCommands.cs $S/Client.Ui.State/SlotCommands/Player/PlayerSlotCommands.cs $S/Client.Ui.State/SlotCommands/PlannedItemActionRunner.cs $S/Client.Ui.State/Inventory/Logic/EquipmentSelectionLogic.cs $S/Client.Ui.State/Inventory/Grab/PlayerGrabModel.cs $S/Client.Ui/Foundation/Tooltip/GameUiHoverTooltipInstaller.cs $S/Client.Ui/Foundation/Stage/Columns/StageColumnsLayout.cs
 ls $S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs $S/Client.Ui/Screens/Hotbar/HotbarHudView.cs 2>&1
 ls $S/Client.Starter/Registration/GameUi/*.cs | wc -l
 grep -rln "TutorialAnchorCoveragePending" $S | head -3
 moores-wt status
 ```
-Expected: worktree のパス、1 行目の 6 ファイルが全部ある。`IPlayerSlotCommands` の名前・置き場は S4-alpha の改訂で変わりうるので、無ければ `grep -rn "interface IPlayer.*SlotCommands" $S` で探し、見つかった名前で以後の Task を読み替えて `done.md`「未確認」に書く（見つからなければ止めて指揮へ返す）。2 行目（S3-hotbar-modal）は有っても無くてもよく、結果を `done.md`「証拠」に書く。`GameUi/` の `.cs` の本数を書く（このレーンの 1 本で 10 本を超えるなら Step 3 の依頼に足す）
+Expected: worktree のパス、1 行目の 7 ファイルが全部ある（無ければ S4-alpha が未マージなので止めて指揮へ返す）。`grep -n "IPlayerSlotCommands" $S/Client.Starter/Registration/MainGameUiRegistration.cs` で共有サービスの並びに登録があることも見る。2 行目（S3-hotbar-modal）は有っても無くてもよく、結果を `done.md`「証拠」に書く。`GameUi/` の `.cs` の本数を書く（このレーンの 1 本で 10 本を超えるなら Step 3 の依頼に足す）
 
 - [ ] **Step 2: bd を作り、done.md の骨組みを書く**
 
@@ -2166,7 +2167,7 @@ git commit -m "feat(uitk): 装備 HUD の View と床トークンを足す（S4-
 - Modify（S2-tutorial がマージ済みのときだけ）: `TutorialAnchorCoveragePending` の S4-inventory 持ちの 4 行を消す
 
 **Interfaces:**
-- Consumes: S4-alpha の `PlayerSlotCommands`（と alpha の L0 の部品 `PlannedItemActionRunner`・`BlockItemActionExecutor`・`PlayerSlotContextReader`・`BlockSlotRestrictionInputBuilder`・`ShiftMoveRefusalNotifier`、テスト用の `RecordingBlockInventoryOperations`・`FakePanelSource`・`FixedMaxStackLookup`。**マージ後に実物の ctor・名前空間と照合**）、C4-e の `PlayerSlotDragCommands`・`PlayerItemActionExecutor`・`FakePrimaryPointerButton`、Task 2〜5 の型
+- Consumes: S4-alpha の `PlayerSlotCommands`（と alpha の L0 の部品 `PlannedItemActionRunner`・`BlockItemActionExecutor`・`PlayerSlotContextReader`・`BlockSlotRestrictionInputBuilder`・`ShiftMoveRefusalNotifier`、テスト用の `RecordingBlockInventoryOperations`・`FakePanelSource`・`FixedMaxStackLookup`。名前空間は alpha 計画 85f905aa3d の `PlayerSlotCommandsTest` の `using` のとおり）、C4-e の `PlayerSlotDragCommands`・`PlayerItemActionExecutor`・`FakePrimaryPointerButton`、Task 2〜5 の型
 - Produces: なし（L1 だけ）
 
 - [ ] **Step 1: 土台を書く**
@@ -2174,15 +2175,23 @@ git commit -m "feat(uitk): 装備 HUD の View と床トークンを足す（S4-
 `Support/InventoryScreenFixture.cs`（本物のプレイヤー側のコマンドを、ブロックが閉じた文脈で組む。組み方は alpha の `PlayerSlotCommandsTest` の SetUp と C4-e の `GrabOverlayFlowTest` の SetUp を合わせた写し）:
 ```csharp
 using System;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Inventory;
 using Client.Tests.Ui.State.Inventory.Drag;
 using Client.Tests.Ui.State.Inventory.Equipment;
 using Client.Tests.Ui.State.Inventory.Panel;
+using Client.Tests.Ui.State.ItemMove;
+using Client.Tests.Ui.State.SlotCommands;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.SlotRestriction;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Drag;
 using Client.Ui.State.Inventory.Panel;
+using Client.Ui.State.SlotCommands;
+using Client.Ui.State.SlotCommands.Block;
 using Client.Ui.State.SlotCommands.Player;
 using Client.Ui.State.Toast;
+using Server.Event.Notification;
 using UniRx;
 
 namespace Client.Tests.Ui.Screens.Inventory.Support
@@ -2226,7 +2235,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Support
     }
 }
 ```
-（`using` は alpha の実物の名前空間〈`Client.Ui.State.SlotCommands`・`Client.Ui.State.BlockInventory.*`・`Client.Tests.Ui.State.SlotCommands` 等〉で足す。`PlayerSlotCommands` の ctor が alpha の改訂で変わっていれば、改訂版の `PlayerSlotCommandsTest` の SetUp を写す。`ClientLocalNotificationSource` の名前空間は `Server.Event.Notification`〈alpha のテストの `using`〉）
+（ctor の並びは alpha 計画 85f905aa3d の `PlayerSlotCommandsTest` の SetUp と同じ）
 
 - [ ] **Step 2: 失敗するテストを書く**
 
@@ -2769,7 +2778,7 @@ git commit -m "feat(uitk): ホイールの入力を装備のルーターへ繋�
 - Test: `S/Client.Tests/Ui/Screens/Inventory/InventoryScreenVisibilityTest.cs`
 
 **Interfaces:**
-- Consumes: Task 2〜7 の型、`StageColumnsLayout`・`GameUiRoot`・`UiRoutingState`、S4-alpha の `IPlayerSlotCommands`（登録は alpha）、`InventoryScreenRules`（Task 5）
+- Consumes: Task 2〜7 の型、`StageColumnsLayout`・`GameUiRoot`・`UiRoutingState`、S4-alpha の `IPlayerSlotCommands`（`MainGameUiRegistration` の共有サービスの並びに alpha が登録）、`InventoryScreenRules`（Task 5）
 - Produces:
   ```csharp
   namespace Client.Ui.Screens.Inventory.Panel
@@ -2957,8 +2966,8 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi
 {
-    // 持ち物パネル・装備 HUD・ホイールでの装備の循環（GameUi）の登録。プレイヤーの枠のコマンドは S4-alpha が登録する
-    // Registers the inventory panel, equipment HUD and wheel equipment cycling (GameUi); player-slot commands are registered by S4-alpha
+    // 持ち物パネル・装備 HUD・ホイールでの装備の循環（GameUi）の登録。プレイヤーの枠のコマンドは共有サービスの並び（MainGameUiRegistration）にある
+    // Registers the inventory panel, equipment HUD and wheel equipment cycling (GameUi); player-slot commands live in the shared-service list (MainGameUiRegistration)
     internal static class InventoryGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)
@@ -3261,7 +3270,8 @@ git commit -m "docs(uitk): 持ち物と装備の並べ比べの差を閉じる�
 5. `equipment-slot-1` を左押下 → 掴みに移る（選択は変わらない）→ 元へ戻す
 6. 持ち物を閉じてゲーム画面へ → `SemanticInput.MouseWheel(-1)`（下へ 1 ノッチ）→ `LocalPlayerEquipment.SelectedIndex` が 1 進む → もう 1 ノッチで次へ（末尾の次は先頭）
 7. 持ち物を開き、パネルの上へカーソルを置いて `MouseWheel(-1)` → 選択が変わらない → 装備 HUD の上で `MouseWheel(-1)` → 1 進む（Task 9 の後）
-8. 途中で `AssertNoErrorLogs` 相当が 0 件
+8. S4-alpha から渡された完了条件（alpha D-33）: `PlaceBlockDirect("木のチェスト", pos, BlockDirection.North)` → `WaitBlockGameObject` → main の 2 番へ木材 5 を `GiveItem` → `PressInteract` → `WaitUiState(UIStateEnum.SubInventory)`（持ち物パネルも Inv 列に出ている）→ `main-slot-2` を Shift＋左押下 → main の 2 番が空になり、チェストの枠に木材 5 が入る（`Screenshot`）。押下は alpha の `uitk/uitk-block-inventory` の Shift 押下の書き方を使う
+9. 途中で `AssertNoErrorLogs` 相当が 0 件
 
 押下は前例 `uitk-grab-overlay.cs` の UITK 要素の押下の書き方を使う。InputSystem の注入だけを使い OS の入力は使わない
 
@@ -3359,6 +3369,7 @@ git merge origin/feature/uitk
 | D-14 | 装備の縦の間は 2 枠目からの上の余白（クラス `equipment-hud__slot--after-first`）で写す | USS に `gap` が無い（`SlotGrid` も余白で写している） | 枠の下に余白: 最後の枠の下に余白が残り、床の位置が変わる |
 | D-15 | 整理は `IInventorySortCommands.Sort()` が `LocalPlayerInventoryController.SortInventory()` を呼び、いつも受理を返す | Web の `inventory.sort` も手元で断らない。断る条件が無いのに拒否理由の enum を足さない | 拒否理由を足す: 使われない値が `UiCommandRejectReason` と `PauseMenuCommandsTest` の表に増える |
 | D-16 | 枠の身振りの振り分け `PlayerSlotGestureRouter` は `Screens/Inventory/Parts/` に置き、持ち物と装備の 2 つの View が使う | 同じ画面の中の 2 か所で、Components へ上げる 2 機能目ではない（§5.1）。S4-alpha の Produces の振り分けの規則をそのまま写す | View ごとに switch を書く: 同じ振り分けが 2 か所になる |
+| D-17 | 「ブロックを開いた状態で main の枠を Shift＋左押下するとブロックへ配分される」を UITK の持ち物画面から録画で確かめる（Task 11 の 8）。L1 は足さない | S4-alpha D-33 がこの確認を S4-inventory の完了条件として渡した。計画と実行は alpha の `PlayerSlotCommandsTest`（L0）が持ち、このレーンが足すのは持ち物の枠から UI で押せることだけで、それは本物の画面・DI・入力を通す録画でしか見られない | L1 で `PlayerSlotCommands` をブロックが開いた文脈で組む: alpha の L0 と同じ主張の繰り返しで、UI の結線（Presenter・DI）を通らない |
 
 ---
 
@@ -3380,7 +3391,7 @@ git merge origin/feature/uitk
 ## 起草メモ（本体向け）
 
 - **件数の差（§1.4 との差）**: inventory の実物は 62 件（P20・C16・L26）で、§1.4 の「61・L25」と 1 件違う。`slotActions.test.ts` の複数行の `it.each` を 1 件と数えると L26 になる（L0-s4a 9 件）。また L26 には L0-s4b の `blockSlotRestriction` 7 件が入っていて、§1.4 の「L25 は L0-s4a 済み」は L0-s4b の分を落としている。このレーンの持ち分は 34 件（inventory 31・束の外 3）で、32 件を写し 2 件を処分表へ（D-5）。反映の行は上の節
-- **S4-alpha の Produces と違う形は要らない**: 使うのは `IPlayerSlotCommands` の 5 つの口と `PlayerSlotCommands.CommandName` だけで、alpha の Produces の振り分け規則（LeftDown→LeftDown(slot, gesture.Shift) 等）をそのまま `PlayerSlotGestureRouter` に写した。指揮の予告どおり `IPlayerSlotCommands` の名前・置き場は alpha の改訂で変わりうるので、現名で書いた。**alpha 改訂版と照合**（Task 1 Step 1 が実物を探して読み替える）。L1 の `InventoryScreenFixture` は alpha の L0 のテスト用の部品（`RecordingBlockInventoryOperations`・`FakePanelSource`・`FixedMaxStackLookup`）と `PlannedItemActionRunner`・`PlayerSlotContextReader` の ctor を写しているので、ここも改訂版と照合が要る
+- **S4-alpha の Produces と違う形は要らない（改訂版 85f905aa3d と照合済み）**: 使うのは `IPlayerSlotCommands` の 5 つの口と `PlayerSlotCommands.CommandName` だけで、型名・名前空間（`Client.Ui.State.SlotCommands.Player`）は改訂後も同じ。振り分け規則（LeftDown→LeftDown(slot, gesture.Shift) 等）はそのまま `PlayerSlotGestureRouter` に写した。登録先は改訂どおり `MainGameUiRegistration` の共有サービスの並び（このレーンは登録しない）。`IUiStateTransitionRequester` は使わない（閉じる・遷移の操作が無い）。L1 の `InventoryScreenFixture` の ctor と `using` は改訂版の `PlayerSlotCommandsTest` の SetUp に合わせた。alpha D-33 で渡された「main の枠の Shift→ブロック」の録画は Task 11 の 8 と D-17 で引き受けた
 - **申告（Foundation の口。勝手に作らず integrator へ）**: (1) `TutorialAnchor.Unmark`（D-8）、(2) `GameUiPointerProbe` の要素を返す口 `PickAt`（D-11）。どちらも無くても動く形で書いた（画面側で外す・座標変換を写す）
 - **登録ディレクトリの本数**: `Client.Starter/Registration/GameUi/` は起草時 8 本、alpha で 9 本、このレーンで 10 本、S3-hotbar-modal が先なら 11 本。alpha が出した再編の依頼に重ねる（Task 1 Step 3）。再編が入らず 10 を超えるなら Task 8 の登録だけを保留する
 - **共有区画**: `THEME/DerivedTokens.uss` に名札付きブロック「S4-inventory」を 1 行足す（D-12）。alpha 計画は「トークン USS は変えない」としているが、色の直書きが規約で拒まれるため、前例 S3-hotbar-modal と同じ名札付きブロックの形を取った
