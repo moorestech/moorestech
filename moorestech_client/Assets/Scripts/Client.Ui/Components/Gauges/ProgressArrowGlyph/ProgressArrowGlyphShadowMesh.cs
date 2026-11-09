@@ -24,6 +24,10 @@ namespace Client.Ui.Components.Gauges
         // Blur span (2σ each side)
         private const float SigmaSpan = 2f;
 
+        // 内側へ止める位置を軸の中心線から離す量（px）
+        // Gap in px kept between the inward stop and the shaft centre line
+        private const float ShaftCenterMargin = 0.01f;
+
         public static void Build(float scale, float silhouetteOutset, float offsetY, float blur, Color shadowColor, Vertex[] vertices, ushort[] indices)
         {
             // drop-shadow のぼかしは標準偏差そのもの（box-shadow の半分ではない）
@@ -46,7 +50,10 @@ namespace Client.Ui.Components.Gauges
                     var fromEdge = (2f * k / RingCount - 1f) * SigmaSpan * sigma;
                     // 縁を輪で刻む近似で、先端の角は丸まらず 2σ の外の裾も無い（look-exception: LX-56）
                     // Ring approximation of the edge: the tip corner is not rounded and there is no tail beyond 2σ (look-exception: LX-56)
-                    ProgressArrowGlyphPath.WriteOffset(scale, silhouetteOutset + fromEdge, new Vector2(0f, offsetY), ring);
+                    // 小寸法で軸の半高より内へずらすと軸の輪が裏返り影が二重に乗るので、中心線の手前で止める
+                    // At small sizes an inward offset past the shaft half-height flips the ring and doubles the shadow, so stop short of the centre line
+                    var distance = Mathf.Max(silhouetteOutset + fromEdge, ShaftCenterMargin - ProgressArrowGlyphPath.ShaftHalfHeight * scale);
+                    ProgressArrowGlyphPath.WriteOffset(scale, distance, new Vector2(0f, offsetY), ring);
                     var tint = shadowColor;
                     // 濃さは形全体で一律の Web α（Web は描いた画素の α で溝・線の下が淡い。look-exception: LX-57）
                     // One Web alpha over the whole shape (Web is lighter under the groove and stroke; look-exception: LX-57)

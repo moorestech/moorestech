@@ -95,6 +95,28 @@ namespace Client.Tests.Ui.Components.Gauges
         }
 
         [Test]
+        public void 高さ8pxでも内端の輪の軸は中心線を越えず裏返った三角も無い()
+        {
+            // 高さ 8px は軸の半高 12×倍率≈1.23px が内側のずらし 2σ=2px より薄く、そのままずらすと軸の輪が裏返る
+            // At 8px tall the shaft half-height 12×scale≈1.23px is thinner than the 2σ=2px inward offset, so a raw offset flips the shaft
+            const float smallScale = 8f / 78f;
+            ProgressArrowGlyphShadowMesh.Build(smallScale, smallScale, 1f, 1f, ShadowColor, _vertices, _indices);
+            Assert.Less(_vertices[0].position.y, _vertices[6].position.y, "shaft left end");
+            Assert.Less(_vertices[1].position.y, _vertices[5].position.y, "shaft right end");
+
+            // 中心線で止めた輪どうしの帯は面積 0 になるので、裏返り（負の面積）だけを拒む
+            // Bands between rings stopped at the centre line have zero area, so only reject flips (negative area)
+            for (var i = 0; i < _indices.Length; i += 3)
+            {
+                var a = _vertices[_indices[i]].position;
+                var b = _vertices[_indices[i + 1]].position;
+                var c = _vertices[_indices[i + 2]].position;
+                var cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+                Assert.GreaterOrEqual(cross, -1e-4f, $"triangle {i / 3}");
+            }
+        }
+
+        [Test]
         public void 色は影の色のままで輪ごとに同じ濃さ()
         {
             for (var ring = 0; ring <= ProgressArrowGlyphShadowMesh.RingCount; ring++)

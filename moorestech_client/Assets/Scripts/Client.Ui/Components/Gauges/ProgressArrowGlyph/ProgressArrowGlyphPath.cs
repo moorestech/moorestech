@@ -21,6 +21,10 @@ namespace Client.Ui.Components.Gauges
         // Vertices clockwise (y down)
         private static readonly Vector2[] Vertices = { new(2f, 27f), new(69f, 27f), new(69f, 2f), new(119f, 39f), new(69f, 76f), new(69f, 51f), new(2f, 51f) };
 
+        // 軸の半高（viewBox 単位。軸の上辺 y=27 と下辺 y=51 の差の半分）
+        // Shaft half-height in viewBox units (half the gap between the top y=27 and bottom y=51)
+        public static readonly float ShaftHalfHeight = (Vertices[6].y - Vertices[0].y) / 2f;
+
         // 軸の長方形 2 枚と先端の三角 1 枚。ずらしても x=69 の 4 頂点が一直線に並び続けるので有効なまま
         // Two shaft triangles and the head; the four x=69 vertices stay collinear under offsetting, so they remain valid
         private static readonly ushort[] FillTriangles = { 0, 1, 5, 0, 5, 6, 2, 3, 4 };
