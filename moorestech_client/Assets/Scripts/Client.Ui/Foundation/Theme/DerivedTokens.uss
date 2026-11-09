@@ -95,7 +95,7 @@
     --dialog-frame-header-min-height: 60px; /* web: Mantine ModalBase の header の min-height: 60px（直書き） */
     --dialog-frame-body-padding: var(--mantine-spacing-lg); /* web: ModalHost の Modal.Body p="lg" */
     --dialog-frame-face: var(--mantine-color-body); /* web: Mantine ModalBase の content の背景（参照 3-modal の面 rgb(36,36,36)） */
-    --modal-backdrop-face: rgba(0, 0, 0, 0.8164); /* web: Modal.Overlay backgroundOpacity={0.6} の #000 を暗い色の式 1-(1-α)^1.85 で α 補正（A-72・A-73。handWrittenDerivedRows.mjs の formula 行が値を照合する。手で選び直さない） */ /* look-exception: LX-46 */
+    --modal-backdrop-face: rgba(0, 0, 0, 0.8164); /* web: Modal.Overlay backgroundOpacity={0.6} の #000 を暗い色の式 1-(1-α)^1.85 で α 補正（A-72・A-73。handWrittenDerivedRows.mjs の formula 行が値を照合する）。黒だけ α 0.852 相当なら Web に最大 5 段まで寄るが、式は全トークン共有で黒だけ分けるかは裁定待ちのため値は据え置き */ /* look-exception: LX-46 */
     --modal-shadow-1-y: 1px; /* web: Mantine Modal の box-shadow（--mantine-shadow-xl）の層 1「0 1px 3px rgba(0,0,0,0.05)」（@mantine/core 8.3.18 の既定・--mantine-scale 1） */
     --modal-shadow-1-blur: 3px;
     --modal-shadow-1-spread: 0px;

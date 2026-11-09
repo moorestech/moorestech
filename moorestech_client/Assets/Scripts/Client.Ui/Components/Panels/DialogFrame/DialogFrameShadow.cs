@@ -44,7 +44,7 @@ namespace Client.Ui.Components.Panels
 
         // 標準正規分布の累積分布 Φ(z)。erf は Abramowitz-Stegun 7.1.26（誤差 1.5e-7）
         // Standard normal CDF Phi(z); erf is Abramowitz-Stegun 7.1.26 (error 1.5e-7)
-        internal static float NormalCdf(float z)
+        private static float NormalCdf(float z)
         {
             var x = Mathf.Abs(z) / Mathf.Sqrt(2f);
             var t = 1f / (1f + 0.3275911f * x);
