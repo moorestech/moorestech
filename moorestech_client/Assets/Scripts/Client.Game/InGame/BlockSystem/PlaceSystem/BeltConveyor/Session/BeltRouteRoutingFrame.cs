@@ -13,7 +13,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     /// </summary>
     public static class BeltRouteRoutingFrame
     {
-        public static List<PlaceInfo> Resolve(BeltRouteSession session, BeltRouteCursorHit hit, BeltRouteStepPriority priority, BeltConveyorHoldingBlock holding, PlacementFeedback feedback, out bool placeable)
+        public static List<PlaceInfo> Resolve(BeltRouteSession session, BeltRouteCursorHit hit, BeltConveyorHoldingBlock holding, PlacementFeedback feedback, out bool placeable)
         {
             var endCell = hit.Cell;
             var endDirection = hit.Direction;
@@ -26,7 +26,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 return new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.Single(endCell, endDirection, holding.BlockId, true) };
             }
 
-            var cellReason = BeltRouteCellCheck.JudgeInGrid(session.Grid, endCell);
+            var cellReason = BeltRouteCellJudge.Judge(session.World, endCell);
             if (cellReason != BeltRouteCellBlockReason.None)
             {
                 feedback.Add(BeltRouteTooltipKey.CellLine(cellReason));
@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 return BeltRoutePlaceInfoBuilder.BuildEndpointGhosts(session, endCell, endDirection, holding);
             }
 
-            var result = session.Plan(endCell, endDirection, priority, holding);
+            var result = session.Plan(endCell, endDirection, holding);
             if (!result.HasPlan)
             {
                 feedback.Add(BeltRouteTooltipKey.NoPathLine());

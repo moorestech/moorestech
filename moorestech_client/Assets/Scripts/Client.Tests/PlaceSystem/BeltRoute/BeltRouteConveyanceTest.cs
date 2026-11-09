@@ -24,7 +24,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
             // 障害を跨ぐ経路を本番の探索で求める
             // Plan a route over the obstacle with the production search
-            var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, true, false, BeltRouteStepPriority.Default);
+            var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, true, false);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
             Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "obstacle route");
@@ -59,7 +59,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
             // (2,0,0)の東向きベルトから右（南）へ分岐する
             // Branch from the east-facing belt at (2,0,0) to its right (south)
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 0), BlockDirection.South, true, new Vector3Int(2, 0, -3), BlockDirection.South, true, false, BeltRouteStepPriority.Default);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 0), BlockDirection.South, true, new Vector3Int(2, 0, -3), BlockDirection.South, true, false);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
             Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "branch route");
@@ -101,7 +101,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BlockDirection.East, shape.SplitterFacing);
             Assert.AreEqual(BlockDirection.East, shape.BranchExit);
 
-            var query = new BeltRouteQuery(corner, shape.BranchExit, true, new Vector3Int(5, 0, 0), BlockDirection.East, true, false, BeltRouteStepPriority.Default);
+            var query = new BeltRouteQuery(corner, shape.BranchExit, true, new Vector3Int(5, 0, 0), BlockDirection.East, true, false);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
             Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "corner branch route");

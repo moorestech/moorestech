@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 {
     /// <summary>
-    ///     始点を決めてから終点を置くまでの状態。探索箱と探索器を持ち、同じ問い合わせの結果は使い回す
-    ///     The state between fixing the start and placing the end; owns the search box and planner and reuses results for identical queries
+    ///     始点を決めてから終点を置くまでの状態。本番の世界と探索器を持ち、同じ問い合わせの結果は使い回す
+    ///     The state between fixing the start and placing the end; owns the live world and planner and reuses results for identical queries
     /// </summary>
     public sealed class BeltRouteSession
     {
@@ -22,49 +22,40 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
         // The branch start; null for a normal start
         public readonly BeltRouteBranchOrigin Branch;
 
-        private readonly BeltRouteTerrainProfile _terrain;
-        private readonly BeltRouteWorldScanner _scanner;
+        private readonly BeltRouteLiveWorld _world;
         private readonly BeltRoutePlanner _planner;
-        private BeltRouteGrid _grid;
         private BeltRouteQuery _lastQuery;
         private BeltRoutePlanResult _lastResult;
 
-        private BeltRouteSession(Vector3Int startCell, BlockDirection startDirection, BeltRouteBranchOrigin branch, BeltRouteTerrainProfile terrain, BeltRouteWorldScanner scanner)
+        private BeltRouteSession(Vector3Int startCell, BlockDirection startDirection, BeltRouteBranchOrigin branch, BlockGameObjectDataStore blocks)
         {
             StartCell = startCell;
             StartDirection = startDirection;
             Branch = branch;
-            _terrain = terrain;
-            _scanner = scanner;
-            _grid = scanner.Build(terrain);
-            _planner = new BeltRoutePlanner(_grid, BeltRoutePlanner.DefaultRecoverySlack);
+            _world = new BeltRouteLiveWorld(blocks);
+            _planner = new BeltRoutePlanner(_world, BeltRoutePlanner.DefaultRecoverySlack);
         }
 
         public bool IsBranch => Branch != null;
-        public BeltRouteGrid Grid => _grid;
+        public IBeltRouteWorld World => _world;
 
-        // 始点確定時に地形を測って箱を固定する
-        // Measures the terrain at start selection and fixes the box
-        public static BeltRouteSession CreateAtCell(Vector3Int startCell, BlockDirection startDirection, BeltRouteWorldScanner scanner)
+        public static BeltRouteSession CreateAtCell(Vector3Int startCell, BlockDirection startDirection, BlockGameObjectDataStore blocks)
         {
-            return new BeltRouteSession(startCell, startDirection, null, BeltRouteTerrainProfile.Scan(startCell), scanner);
+            return new BeltRouteSession(startCell, startDirection, null, blocks);
         }
 
         // 分岐は既存ベルトのセルが始点で、向きは幾何が選んだ出口
         // A branch starts at the existing belt's cell, heading out of the exit the geometry chose
-        public static BeltRouteSession CreateBranch(BeltRouteBranchOrigin branch, BeltRouteWorldScanner scanner)
+        public static BeltRouteSession CreateBranch(BeltRouteBranchOrigin branch, BlockGameObjectDataStore blocks)
         {
-            return new BeltRouteSession(branch.Cell, branch.ExitDirection, branch, BeltRouteTerrainProfile.Scan(branch.Cell), scanner);
+            return new BeltRouteSession(branch.Cell, branch.ExitDirection, branch, blocks);
         }
 
-        public bool IsNearBox(Vector3Int blockOrigin) => BeltRouteWorldScanner.IsNearBox(Grid, blockOrigin);
-
-        // ブロックの設置・撤去で占有を作り直す。地形は始点確定時のまま
-        // Rebuilds occupancy after a block is placed or removed; the terrain stays as measured at start selection
+        // ブロックの設置・撤去で占有と辺を作り直す。地形は列ごとの記憶のまま
+        // Rebuilds occupancy and edges after a block is placed or removed; the per-column terrain memory stays
         public void RebuildObstacles()
         {
-            _grid = _scanner.Build(_terrain);
-            _planner.ReplaceWorld(_grid);
+            _world.Rebuild();
             _lastQuery = null;
             _lastResult = null;
         }
@@ -81,14 +72,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 var reason = BeltRouteBranchOrigin.Judge(blocks, current, holding, useAlternateExit, out var rejudged);
                 return reason == BeltRouteBranchBlockReason.None && rejudged.SplitterFacing == Branch.SplitterFacing && rejudged.ExitDirection == Branch.ExitDirection;
             }
-            return BeltRouteCellCheck.JudgeInGrid(Grid, StartCell) == BeltRouteCellBlockReason.None;
+            return BeltRouteCellJudge.Judge(_world, StartCell) == BeltRouteCellBlockReason.None;
         }
 
-        // カーソル・向き・優先順が変わったフレームだけ探索する
-        // Searches only on frames where the cursor, heading or priority changed
-        public BeltRoutePlanResult Plan(Vector3Int endCell, BlockDirection endDirection, BeltRouteStepPriority priority, BeltConveyorHoldingBlock holding)
+        // カーソルか向きが変わったフレームだけ探索する
+        // Searches only on frames where the cursor or heading changed
+        public BeltRoutePlanResult Plan(Vector3Int endCell, BlockDirection endDirection, BeltConveyorHoldingBlock holding)
         {
-            var query = new BeltRouteQuery(StartCell, StartDirection, IsBranch, endCell, endDirection, holding.AllowsSlopes, holding.IsSplitter, priority);
+            var query = new BeltRouteQuery(StartCell, StartDirection, IsBranch, endCell, endDirection, holding.AllowsSlopes, holding.IsSplitter);
             if (_lastQuery != null && _lastQuery.IsSameQuery(query)) return _lastResult;
 
             _lastQuery = query;

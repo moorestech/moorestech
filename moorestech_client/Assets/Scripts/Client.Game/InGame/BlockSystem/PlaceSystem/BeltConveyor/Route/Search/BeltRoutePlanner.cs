@@ -27,20 +27,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private readonly int _recoverySlack;
         private readonly BeltRouteSearch _search = new();
         private readonly BeltRouteRecovery _recovery;
-        private IBeltRouteWorld _world;
+        private readonly IBeltRouteWorld _world;
 
         public BeltRoutePlanner(IBeltRouteWorld world, int recoverySlack)
         {
             _world = world;
             _recoverySlack = recoverySlack;
             _recovery = new BeltRouteRecovery(_search);
-        }
-
-        // 世界を差し替える（Task 3 で BeltRouteSession が BeltRouteLiveWorld を持つまでの暫定。Task 3 で削除）
-        // Swaps the world (interim until BeltRouteSession owns a BeltRouteLiveWorld in Task 3; removed there)
-        public void ReplaceWorld(IBeltRouteWorld world)
-        {
-            _world = world;
         }
 
         // 始点・終点のセル自体の可否は呼び出し側（セッション）が先に確かめている

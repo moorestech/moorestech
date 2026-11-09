@@ -65,7 +65,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
         {
             var column = new Vector2Int(x, z);
             if (_floors.TryGetValue(column, out var floor)) return floor;
-            // silent-ok: 地表が無い列は下限なし（旧 BeltRouteTerrainProfile と同じ）/ プレビューでそのセルが埋まらないことが見える
+            // silent-ok: 地表が無い列は下限なし/ プレビューでそのセルが埋まらないことが見える
             floor = GroundHeightProbe.TryGetFootprintMaxGroundHeight(new Vector3Int(x, 0, z), BlockDirection.North, Vector3Int.one, out var groundMax)
                 ? PlacementGroundCellResolver.ResolveCellY(groundMax, 0)
                 : NoGround;

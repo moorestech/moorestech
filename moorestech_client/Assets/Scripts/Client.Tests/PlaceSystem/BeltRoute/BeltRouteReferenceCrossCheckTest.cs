@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
+using Client.Tests.PlaceSystem.BeltRoute.World;
 using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 本番の探索を総当たりの参照ソルバと突き合わせる。経路があるのに見つけない・最短でない・無いのに見つける、の3つを捕まえる
-    // Cross-checks the production search against the exhaustive reference solver, catching missed routes, non-shortest routes and routes that should not exist
+    // 本番の探索を総当たりの参照ソルバと突き合わせ、参照が見つけた経路を本番が見落とさないこと（存在）と、コストが参照の HeuristicWeight 倍＋余裕以内であることを確かめる
+    // Cross-checks the production search against the exhaustive reference solver: production must not miss a route the reference finds (existence), and its cost stays within HeuristicWeight times the reference plus the slack
     // 本番は重み付き探索なので最短性は求めない。参照が見つけたら本番も見つけ（存在）、コストは参照の HeuristicWeight 倍＋余裕以内（上限）。余裕なしの比較は意味を失うので本番の余裕だけで回す
     // Production is a weighted search, so optimality is not required: when the reference finds a route production must too (existence), within HeuristicWeight times the reference plus the slack (bound); a no-slack comparison loses its meaning, so only the production slack is run
     public class BeltRouteReferenceCrossCheckTest
@@ -87,9 +88,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var allowSlopes = !turnByOutput && random.Next(5) != 0;
             var startDirection = (BlockDirection)random.Next(4);
             var endDirection = (BlockDirection)random.Next(4);
-            var priority = new BeltRouteStepPriority(random.Next(BeltRouteStepPriority.PermutationCount));
             if (startIsExistingBelt) grid.MarkBlockCell(start);
-            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, endDirection, allowSlopes, turnByOutput, priority);
+            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, endDirection, allowSlopes, turnByOutput);
             return true;
         }
 

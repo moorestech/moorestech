@@ -1,6 +1,7 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
+using Client.Tests.PlaceSystem.BeltRoute.World;
 using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
@@ -20,16 +21,11 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return grid;
         }
 
-        // 通常ベルト・坂あり・優先順0の問い合わせ
-        // A query for a normal belt with slopes and priority 0
+        // 通常ベルト・坂ありの問い合わせ
+        // A query for a normal belt with slopes
         private static BeltRouteQuery Query(Vector3Int start, BlockDirection startDirection, Vector3Int end, BlockDirection endDirection)
         {
-            return Query(start, startDirection, end, endDirection, 0);
-        }
-
-        private static BeltRouteQuery Query(Vector3Int start, BlockDirection startDirection, Vector3Int end, BlockDirection endDirection, int priority)
-        {
-            return new BeltRouteQuery(start, startDirection, false, end, endDirection, true, false, new BeltRouteStepPriority(priority));
+            return new BeltRouteQuery(start, startDirection, false, end, endDirection, true, false);
         }
 
         [Test]
@@ -111,7 +107,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             grid.AddOutputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 0, 1), BlockDirection.North, 0));
             // 坂なしの直線ベルトはその面を入口に持つので、横へ迂回するしかない
             // A flat straight belt owns that face as an input, so the only option is a sideways detour
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(7, 0, 2), BlockDirection.East, false, false, BeltRouteStepPriority.Default);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(7, 0, 2), BlockDirection.East, false, false);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
 
             Assert.IsTrue(result.HasPlan);
@@ -125,7 +121,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         {
             var grid = FlatGrid();
             grid.MarkBlockCell(new Vector3Int(2, 0, 2));
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, true, new Vector3Int(6, 0, 5), BlockDirection.North, true, false, BeltRouteStepPriority.Default);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, true, new Vector3Int(6, 0, 5), BlockDirection.North, true, false);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
 
             Assert.IsTrue(result.HasPlan);
@@ -137,7 +133,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         public void SplitterHoldingTurnsOnTheExitSideAndStaysFlat()
         {
             var grid = FlatGrid();
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(6, 0, 6), BlockDirection.North, false, true, BeltRouteStepPriority.Default);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(6, 0, 6), BlockDirection.North, false, true);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
 
             Assert.IsTrue(result.HasPlan);

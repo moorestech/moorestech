@@ -15,7 +15,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     {
         public static TooltipLine NoPathLine()
         {
-            return new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteBlockedByBoth);
+            return new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteNotFound);
         }
 
         // 共有原因は共有の文言、ベルト固有の原因だけ専用の文言

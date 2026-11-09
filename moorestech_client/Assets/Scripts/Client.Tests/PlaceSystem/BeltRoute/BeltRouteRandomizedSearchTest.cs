@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
+using Client.Tests.PlaceSystem.BeltRoute.World;
 using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
@@ -29,7 +30,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 var result = planner.Plan(query);
                 if (!result.HasPlan) continue;
                 found++;
-                BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt} priority:{query.Priority.Index}");
+                BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt}");
             }
             Debug.Log($"[BeltRouteRandomized] found {found} routes in {Iterations} iterations");
             Assert.Greater(found, Iterations / 4, "too few routes found; the random scenario is not exercising the search");
@@ -92,7 +93,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             // 分岐の始点は既存ベルトなので障害として塗る
             // A branch start is an existing belt, so it is painted as an obstacle
             if (startIsExistingBelt) grid.MarkBlockCell(start);
-            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, (BlockDirection)random.Next(4), allowSlopes, turnByOutput, new BeltRouteStepPriority(random.Next(BeltRouteStepPriority.PermutationCount)));
+            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, (BlockDirection)random.Next(4), allowSlopes, turnByOutput);
             return true;
         }
 

@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
 {
     /// <summary>
-    ///     1回の経路探索に渡す条件。始点・終点・手持ちの性質・候補の優先順
-    ///     The input of one route search: start, end, properties of the held block, and the candidate priority
+    ///     1回の経路探索に渡す条件。始点・終点・手持ちの性質
+    ///     The input of one route search: start, end, and properties of the held block
     /// </summary>
     public sealed class BeltRouteQuery
     {
@@ -30,9 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
         // Holding a splitter: it takes input only from the back and exits through three faces, so turns happen on the exit side
         public readonly bool TurnByOutput;
 
-        public readonly BeltRouteStepPriority Priority;
-
-        public BeltRouteQuery(Vector3Int startCell, BlockDirection startDirection, bool startIsExistingBelt, Vector3Int endCell, BlockDirection endDirection, bool allowSlopes, bool turnByOutput, BeltRouteStepPriority priority)
+        public BeltRouteQuery(Vector3Int startCell, BlockDirection startDirection, bool startIsExistingBelt, Vector3Int endCell, BlockDirection endDirection, bool allowSlopes, bool turnByOutput)
         {
             StartCell = startCell;
             StartDirection = startDirection;
@@ -41,7 +39,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
             EndDirection = endDirection;
             AllowSlopes = allowSlopes;
             TurnByOutput = turnByOutput;
-            Priority = priority;
         }
 
         // 終点が流す先の辺。ここへ受け手を置くと終点が既存ラインへ繋がってしまうため途中では使わない
@@ -52,7 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
         {
             return StartCell == other.StartCell && StartDirection == other.StartDirection && StartIsExistingBelt == other.StartIsExistingBelt &&
                    EndCell == other.EndCell && EndDirection == other.EndDirection && AllowSlopes == other.AllowSlopes &&
-                   TurnByOutput == other.TurnByOutput && Priority.Equals(other.Priority);
+                   TurnByOutput == other.TurnByOutput;
         }
     }
 }

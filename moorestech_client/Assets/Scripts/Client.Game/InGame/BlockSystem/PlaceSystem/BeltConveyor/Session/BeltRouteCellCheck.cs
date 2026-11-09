@@ -1,5 +1,4 @@
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Game.Block.Interface;
@@ -9,18 +8,13 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 {
     /// <summary>
-    ///     端点セルの可否を、箱がある間は箱から、箱が無い間は実ワールドから判定する
-    ///     Judges endpoint cells from the box while one exists, and from the live world before the start is fixed
+    ///     始点確定前の端点セルの可否を実ワールドから判定する。始点確定後は BeltRouteCellJudge が探索の世界から判定する
+    ///     Judges an endpoint cell from the live world before the start is fixed; after that BeltRouteCellJudge judges from the search world
     /// </summary>
     public static class BeltRouteCellCheck
     {
-        public static BeltRouteCellBlockReason JudgeInGrid(BeltRouteGrid grid, Vector3Int cell)
-        {
-            return BeltRouteCellJudge.Judge(grid, cell);
-        }
-
-        // 始点確定前はまだ箱が無いので、重なり・埋まり・真下の坂を実ワールドで見る
-        // Before the start is fixed there is no box, so overlap, sinking and a slope underneath are read from the live world
+        // 重なり・埋まり・真下の坂を実ワールドで見る
+        // Overlap, sinking and a slope underneath are read from the live world
         public static BeltRouteCellBlockReason JudgeInWorld(BlockGameObjectDataStore blocks, Vector3Int cell)
         {
             if (blocks.IsOverlapPositionInfo(new BlockPositionInfo(cell, BlockDirection.North, Vector3Int.one))) return BeltRouteCellBlockReason.ExistingBlock;
