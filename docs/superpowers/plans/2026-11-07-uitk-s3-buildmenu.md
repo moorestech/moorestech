@@ -4390,10 +4390,10 @@ git commit -m "feat(uitk): ビルドメニューを GameUi の系へ登録し復
 
 Run:
 ```bash
-node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing > /tmp/s3bm-parity-3.txt; echo "exit3=$?"
-node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing > /tmp/s3bm-parity-5.txt; echo "exit5=$?"
-grep -E "regression/buildMenu(Layout)?\.spec\.ts|features/buildMenu/views/|ビルドメニューのアイコンは枠の中央に描かれる" /tmp/s3bm-parity-3.txt || true
-grep -E "regression/buildMenuRestore\.spec\.ts" /tmp/s3bm-parity-5.txt || true
+node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing > moorestech_client/.uloop/outputs/s3bm-parity-3.txt; echo "exit3=$?"
+node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing > moorestech_client/.uloop/outputs/s3bm-parity-5.txt; echo "exit5=$?"
+grep -E "regression/buildMenu(Layout)?\.spec\.ts|features/buildMenu/views/|ビルドメニューのアイコンは枠の中央に描かれる" moorestech_client/.uloop/outputs/s3bm-parity-3.txt || true
+grep -E "regression/buildMenuRestore\.spec\.ts" moorestech_client/.uloop/outputs/s3bm-parity-5.txt || true
 ```
 Expected: `exit3`・`exit5` が 0 か 1（2 は実行不能・書式・整合の誤りで、出たら grep の結果を信じず止めて直す）。そのうえで 3・4 行目の grep に何も出ない（P20・C9 の全件が `<web-test>` で対応。`placementIconCentering.spec.ts` の束は台帳「## 行」で読み、束 3 でなければその束の行で同じ grep を流す）。終了コード 1 は他レーンの未対応が残るためでよい（束の差分 0 は ladder が締める）。2 なら `<web-test>` の綴り（`file` のパス・テスト名の全角/半角・読点）を Web の実物と突き合わせて直す。`buildMenuRestore.spec.ts` が束 5 でなく束 3 に出たら、台帳「## 行」の持ち主の束の読み違いなので D-23 を直し、`done.md` の「未確認」に書く
 
