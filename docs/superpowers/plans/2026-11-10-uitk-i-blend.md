@@ -84,9 +84,9 @@ public void TranslucentOverOpaqueMatchesTheWebFormula(...) { /* UiRuntimePanelCa
 - Modify: `tools/uitk/webTokens/postProcessToken.mjs`（α を変えず素通し）、`tools/uitk/convert-web-tokens.mjs`（半透明の表・指数の照合・LX-81 の印を外す）、`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/Tokens.uss`・`SkitTokens.uss`（再生成）、`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss`（補正値を Web の値へ・LX-23/38/46/66 の印を外す・`--tutorial-attention-glow-over-world` を消す）、`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Modal/UiModalHost.uss`・`moorestech_client/Assets/Scripts/Client.Ui/Screens/TrainHud/TrainRidingHud.uss`・`moorestech_client/Assets/Scripts/Client.Ui.Editor/Gallery/Entries/Panels/PanelsAndDecorSamples.uss`（「α 補正」のコメント）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Theme/TokenFloorAndTranslucencyTest.cs` ほか期待値を持つテスト（Files 一覧は Task 4 の末尾）
 
-- [ ] Step 1: `postProcessToken` を「α を変えない」へ、生成器から表と照合を外し `node tools/uitk/convert-web-tokens.mjs` で再生成
-- [ ] Step 2: `DerivedTokens.uss` の補正値を Web の値へ（例: `--modal-backdrop-face: rgba(0, 0, 0, 0.6)`、`--screen-backdrop-face: rgba(0, 0, 0, 0.42)`、`--slot-frame-face: rgba(50, 52, 67, 0.5)`、`--slot-frame-insufficient-opacity: 0.4`、`--slot-frame-ghost-opacity: 0.35`、`--fluid-slot-ghost-opacity: 0.35`、`--game-panel-rule-*`・`--game-panel-triangle-face`・`--game-panel-title-shadow` は Web の α）
-- [ ] Step 3: テストの期待値を Web の値へ直し、`^Client\.Tests\.Ui\.` を回す → コミット
+- [x] Step 1: `postProcessToken` を「α を変えない」へ、生成器から表と照合を外し `node tools/uitk/convert-web-tokens.mjs` で再生成
+- [x] Step 2: `DerivedTokens.uss` の補正値を Web の値へ（例: `--modal-backdrop-face: rgba(0, 0, 0, 0.6)`、`--screen-backdrop-face: rgba(0, 0, 0, 0.42)`、`--slot-frame-face: rgba(50, 52, 67, 0.5)`、`--slot-frame-insufficient-opacity: 0.4`、`--slot-frame-ghost-opacity: 0.35`、`--fluid-slot-ghost-opacity: 0.35`、`--game-panel-rule-*`・`--game-panel-triangle-face`・`--game-panel-title-shadow` は Web の α）
+- [x] Step 3: テストの期待値を Web の値へ直し、`^Client\.Tests\.Ui\.` を回す → コミット
 
 ### Task 3: `LinearBlendOpacity` を撤去し重みを素直に掛ける
 
@@ -95,8 +95,8 @@ public void TranslucentOverOpaqueMatchesTheWebFormula(...) { /* UiRuntimePanelCa
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanelFaceOpacityRamp.cs`（`faceAlpha * MaskWeightAt(...)`）、`moorestech_client/Assets/Scripts/Client.Ui/Components/Gauges/ProgressArrowGlyph/ProgressArrowGlyphShadowMesh.cs`・`moorestech_client/Assets/Scripts/Client.Ui/Components/Panels/DialogFrame/DialogFrameShadow.cs`・`moorestech_client/Assets/Scripts/Client.Ui/Screens/CommonHud/CrosshairShadowRing.cs`・`moorestech_client/Assets/Scripts/Client.Ui/Screens/Shell/ScreenVignette.cs`（`color.a * coverage`）
 - Test: `GamePanelFaceOpacityRampTest.cs`・`ScreenVignetteTest.cs`・`ProgressArrowGlyphShadowMeshTest.cs`
 
-- [ ] Step 1: 呼び出し 5 か所を `alpha * weight` に置き換え、クラスとテストを消す
-- [ ] Step 2: テストの期待値を線形の掛け算へ（例: skit 上端の 50% 点は `0.88 * 0.5 = 0.44`）→ compile・テスト → コミット
+- [x] Step 1: 呼び出し 5 か所を `alpha * weight` に置き換え、クラスとテストを消す
+- [x] Step 2: テストの期待値を線形の掛け算へ（例: skit 上端の 50% 点は `0.88 * 0.5 = 0.44`）→ compile・テスト → コミット
 
 ### Task 4: グローの地の選び分けを撤去する
 
@@ -105,21 +105,21 @@ public void TranslucentOverOpaqueMatchesTheWebFormula(...) { /* UiRuntimePanelCa
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/Tutorial/Logic/TutorialAnchorState.cs`（Ready から Ground を外す）、`moorestech_client/Assets/Scripts/Client.Ui/Screens/Tutorial/Anchor/TutorialAnchorMeasure.cs`、`moorestech_client/Assets/Scripts/Client.Ui/Screens/Tutorial/Overlay/TutorialOutlineView.cs`・`TutorialOverlayView.cs`・`TutorialOverlay.uss`、`moorestech_client/Assets/Scripts/Client.Ui/Components/Panels/{GamePanel/GamePanel.cs,GamePanelSurface/GamePanelSurface.cs,DialogFrame/DialogFrame.cs,PaperSurface/PaperSurface.cs}`、`moorestech_client/Assets/Scripts/Client.Ui/Screens/PauseMenu/PauseMenuView.cs`（`UiSurface.Mark` を外す）
 - Test: `TutorialAnchorStateBookTest.cs`・`TutorialDragGuideGateTest.cs`・`TutorialAttentionTokenTest.cs`・`TutorialRingDesignTest.cs`・`GamePanelSurfaceTest.cs`・`PauseMenuSurfaceTest.cs`
 
-- [ ] Step 1: `Ready(rect, clip)` の 2 引数へ戻し、`ShowRing` から `glowOverWorld` を外し、`--over-world` の class・トークンを消す
-- [ ] Step 2: テストを直す → compile・`^Client\.Tests\.Ui\.` → コミット
+- [x] Step 1: `Ready(rect, clip)` の 2 引数へ戻し、`ShowRing` から `glowOverWorld` を外し、`--over-world` の class・トークンを消す
+- [x] Step 2: テストを直す → compile・`^Client\.Tests\.Ui\.` → コミット
 
 ### Task 5: 文書（設計書・台帳・スキル）
 
 **Files:**
 - Modify: `docs/uitk-migration/execution/component-architecture.md`（A-180〜A-185）、`docs/uitk/TODO.md`（LX-23・38・46・66・81 を見た目の例外から外し、実測の結論に I-blend の行を足す）、`.agents/skills/ref-uitk-design/SKILL.md`・`references/compare-procedure.md`・`references/css-to-uss.md`・`references/component-catalog.md`（α 補正の記述を sRGB 合成へ）
 
-- [ ] Step 1: 書く → `LookExceptionLedgerTest` を回す → コミット
+- [x] Step 1: 書く → `LookExceptionLedgerTest` を回す → コミット
 
 ### Task 6: 並べ比べの撮り直しと unityプレイ録画テスト
 
-- [ ] Step 1: 不透明な部品（ItemSlot・GamePanel・FormButton・TooltipFace）を `UiRuntimePanelCapture` で Web 参照（`web-a9d5123537`）と同じ地で撮り、旧方式（feature/uitk の done.md の表）と色の差を比べる
-- [ ] Step 2: unityプレイ録画テスト: `uitk-i-blend-measure`・`uitk-i-blend-perf`・`uitk-hud`・`uitk-grab-overlay`・`uitk-tutorial-cues`・`uitk-lifeline`・`uitk-gameview-resolution-switch`。全合格・エラーログ 0
-- [ ] Step 3: 2-game-hud・3-modal・チュートリアル枠を PlayMode で撮り、Web 参照と並べる
+- [x] Step 1: 不透明な部品（ItemSlot・GamePanel・FormButton・TooltipFace）を `UiRuntimePanelCapture` で Web 参照（`web-a9d5123537`）と同じ地で撮り、旧方式（feature/uitk の done.md の表）と色の差を比べる
+- [x] Step 2: unityプレイ録画テスト: `uitk-i-blend-measure`・`uitk-i-blend-perf`・`uitk-hud`・`uitk-grab-overlay`・`uitk-tutorial-cues`・`uitk-lifeline`・`uitk-gameview-resolution-switch`。全合格・エラーログ 0
+- [x] Step 3: 2-game-hud・3-modal・チュートリアル枠を PlayMode で撮り、Web 参照と並べる
 
 ### Task 7: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）
 
