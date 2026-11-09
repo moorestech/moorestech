@@ -40,7 +40,7 @@
 - 部品（`RecipeRow`・`RecipeActionButton`・`RecipeListScrollView`・`LevelInheritanceBadge`〈C4-c〉、`ItemSlot`・`SlotGrid`〈C3-a〉、`FluidAmountSlot`〈C4-a〉、`GamePanel`〈C2-a〉）と Foundation（`StageColumnsLayout`・`UiPressGesture`・`HoverTooltip*`・`TutorialAnchor`・`AnchorIds`）は変えない。例外は 1 つ: `GameScrollView.uss` に溝・つまみの色と縦バーの上下右の位置のつまみ 5 本を既定値＝今の値で足す（D-9・A-167。見た目は変わらない）。ほかに要るものは `done.md` の「integrator への依頼」に書く
 - 機械レシピの解放済み一覧の源（`Client.Ui.State/Recipe/Source/`）は作らない（S4-alpha。D-3）。機械画面のレシピ選択（`MachineRecipeSelectionRow` 等）は S4-machine、インベントリ・装備（`Inv` 列）は S4-inventory、ビューア＋機械 UI＋インベントリの同時表示の L3 は S4-gamma が持つ。重なりは下の「他レーンとの重なり」の表
 - `BlockInventoryPanel`（S4-alpha）も `Viewer` 列へ載るが画面 `SubInventory` のときだけで、このレーンの View は `PlayerInventory` のときだけ出す。列そのもの（`StageColumnsLayout`）は触らない
-- クラフトボタンの Enter キーでの長押しは写さない（UITK のボタンは `focusable=false`〈段階 1 の規則〉でキーが届かない。要裁定 1。裁定が出るまで Task 6 の Enter の分岐と Task 13 の処遇の行は書かない。Task 1 Step 1 で `.decisions/` に裁定があるか確かめる）
+- クラフトボタンの Enter キーでの長押しは裁定待ち（UITK のボタンは `focusable=false`〈段階 1 の規則〉でキーが届かないが、`.decisions/2026-10-01-クラフトボタンはSpaceに反応させずジャンプ専用にする.md` は「キーボードでのクラフトは Enter 長押しのみ」と残す側を決めている。要裁定 1。裁定が出るまで Task 6 の Enter の分岐と Task 13 の処遇の行は書かない。Task 1 Step 1 で `.decisions/` に裁定があるか確かめる）
 - ボタンの `title`（`holdToCraft`）と掴み中のカーソル `grabbing` は写さない（CEF の画面描画にツールチップとカーソルの受け手が無く、ゲーム内の Web では出ていない。D-12）
 - 接続待ちの表示（Web の `ConnectingPlaceholder`）は作らない（[A-13]）
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は変えない（`localization.csv` からの `npm run gen:i18n` の生成物を除く）
@@ -226,7 +226,7 @@ namespace Client.Ui.State.Recipe.Source
 | 一覧の掴みドラッグ・ホイールでスクロール | 生きる | ドラッグは R-5、ホイールは `ScrollView` 既定 |
 | 素材スロットのクリックでその素材のレシピへ移る | 生きる | `OnSlotGestured` の LeftDown → `Select`（R-7・R-9） |
 | クラフトボタンの長押し（マウス） | 生きる | R-8。録画 R-13 |
-| クラフトボタンにフォーカスして Enter で長押し | **死ぬ** | UITK のボタンは `focusable=false`（段階 1 の規則）。要裁定 1 |
+| クラフトボタンにフォーカスして Enter で長押し | **裁定待ち**（何もしなければ死ぬ） | UITK のボタンは `focusable=false`（段階 1 の規則）。`.decisions/2026-10-01-クラフトボタンはSpaceに反応させずジャンプ専用にする.md` で残すと決めた操作。要裁定 1（推奨: 写す） |
 | スロットのツールチップ（不足・名前） | 生きる | `ItemSlot` が自分で印。R-11 |
 | ボタンの `title`（長押しの説明） | 変わらない | ゲーム内の CEF でも出ていない（D-12） |
 | Esc で選択を外す（閉じると同時） | 生きる | R-10 |
@@ -242,7 +242,7 @@ namespace Client.Ui.State.Recipe.Source
 |---|---|---|---|
 | `src/features/recipe/views/RecipeContent.test.ts`(2) | 全レシピをクラフト優先の単一リストへ並べる／チュートリアルアンカーを先頭のクラフトエントリ1件だけへ付ける | `RecipeViewModelFactoryTest`（L0） | 3 |
 | `src/features/recipe/views/CraftRecipeEntry.test.ts`(3) | 矢印の上の秒数をui.recipe.durationの書式で組み、ボタンは秒数を持たない／言語ごとの秒数書式を矢印上の表示へ反映する | `CraftRecipeEntryViewTest`（L1） | 6 |
-| 同上 | SpaceではクラフトボタンのonKeyDownが何もせずEnterでは長押しを始める | 写さない（`捨てる`。要裁定 1） | 13 |
+| 同上 | SpaceではクラフトボタンのonKeyDownが何もせずEnterでは長押しを始める | 要裁定 1 で分岐（写す→ Task 6 の `CraftHoldKeyTest`／写さない→ Task 13 の `捨てる`） | 6 か 13 |
 | `src/features/recipe/views/MachineRecipeEntry.fluids.test.ts`(1) | 液体の入力・出力をアイテムの後ろに量付きで描き、クリック遷移は持たせない | `MachineRecipeEntryViewTest`（L1） | 7 |
 | `src/features/recipe/views/MachineRecipeEntry.localization.test.ts`(1・I) | 機械名をblockGuidから解決し、fallbackと言語変更をアイコンaltと表示・秒数へ反映する | `MachineRecipeEntryViewTest`（L1。alt は UITK に無いので名前の表示と ID 文字の代替で見る。部分移植の残りは `done.md`） | 7 |
 | `src/features/recipe/panels/useDragScroll.test.ts`(2) | 閾値未満で離すとタップとして押下点を通知する／閾値を超えて動かすとスクロールし、離してもタップにしない | `ItemListDragScrollTest`（L1） | 9 |
@@ -261,7 +261,7 @@ namespace Client.Ui.State.Recipe.Source
 | 同上 | クリップ境界はエントリからハイライトの逃げぶん離れ、最下段までスクロールしても保たれる | `RecipeTutorialClipTest` | 10 |
 | `e2e/tests/recipe/slotTooltip.spec.ts`(2) | ツールチップはMantine既定の白い角丸ではなくCursorTooltipと同じ面を使う／祖先のスクロールでツールチップを引っ込め、ポインタを動かせば開き直す | `RecipeSlotTooltipTest` | 10 |
 
-計: P19（9＋6＋2＋2）・C8（2＋3＋1＋2）・I1 = 52。写す 51・捨てる 1（Enter の長押し。要裁定が「写す」に倒れたら Task 6 に `CraftHoldKeyTest` を足し disposition の行を消す）。自前のテスト（タグなし）: `CraftRecipeCatalogTest`・`RecipeViewerItemCatalogTest`・`RecipeCommandsTest`・`RecipeScreenModelTest`・`RecipeSelectionCloseResetTest`・`RecipeDurationTextTest`・`GameScrollViewKnobTest`。Presenter の結線（列へ載せる・画面で出し入れ）は Task 10 の EDC と録画で見る（前例 S2-hud の Presenter）。
+計: P19（9＋6＋2＋2）・C8（2＋3＋1＋2）・I1 = 52。写す 51＋裁定待ち 1（Enter の長押し。要裁定 1 が「写す」なら Task 6 に `CraftHoldKeyTest` で 52 写す、「写さない」なら Task 13 で `捨てる` 1）。自前のテスト（タグなし）: `CraftRecipeCatalogTest`・`RecipeViewerItemCatalogTest`・`RecipeCommandsTest`・`RecipeScreenModelTest`・`RecipeSelectionCloseResetTest`・`RecipeDurationTextTest`・`GameScrollViewKnobTest`。Presenter の結線（列へ載せる・画面で出し入れ）は Task 10 の EDC と録画で見る（前例 S2-hud の Presenter）。
 
 ## File Structure
 
@@ -1015,7 +1015,7 @@ git commit -m "feat(uitk): クラフトの操作と拒否の理由 2 つを足�
 **Interfaces:**
 - Consumes: Task 2〜3 の Produces、S4-alpha の `UnlockedMachineRecipeSource.Current`（S4-alpha 計画 14a85b146c の Produces 一覧。レビュー中で変わりうる。Task 1 で実物と照合）、`LocalPlayerInventoryController`（`LocalPlayerInventory.OnItemChange`・`OnInventoryRefreshed`。前例 `ResearchNodeStateStore`）、`IPlayerInventoryOperations.ReadSnapshot()`、`Localize.OnLanguageChanged`（前例 `ModeHudModel`）、`UiRoutingState.Current`
 - Produces:
-  - `public interface IRecipeScreenSignals { IObservable<Unit> OnRecipesUnlocked { get; } IObservable<Unit> OnInventoryChanged { get; } }`、本番 `GameRecipeScreenSignals(IGameUnlockStateData unlockState, LocalPlayerInventoryController inventoryController)`
+  - `public interface IRecipeScreenSignals { IObservable<Unit> OnRecipesUnlocked { get; } IObservable<Unit> OnInventoryChanged { get; } }`、本番 `GameRecipeScreenSignals(IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController inventoryController) : IInitializable`（解放イベントは `Initialize` で購読。前例 `ResearchNodeStateStore`・`NotificationFeed`）
   - `public sealed class RecipeScreenModel { public RecipeScreenModel(IGameUnlockStateData unlockState, RecipeViewerItemCatalog itemCatalog, UnlockedMachineRecipeSource machineRecipes, IRecipeScreenSignals signals, IPlayerInventoryOperations inventory, RecipeItemSelection selection); public IReadOnlyReactiveProperty<ItemListViewModel> ItemList { get; } public IReadOnlyReactiveProperty<RecipeViewerViewModel> Viewer { get; } }`
   - `public interface IUiCloseKeyProbe { bool WasPressedThisFrame(); }`、`public sealed class RecipeSelectionCloseReset : IInitializable, IDisposable { public RecipeSelectionCloseReset(IReadOnlyReactiveProperty<UiRoutingSnapshot> routing, IUiCloseKeyProbe closeKey, RecipeItemSelection selection); }`（登録で `UiRoutingState.Current` を渡す）
 
@@ -1154,11 +1154,11 @@ namespace Client.Ui.State.Recipe.Screen
 
 ```csharp
 using System;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
-using Game.UnlockState;
+using Client.Network.API;
 using Server.Event.EventReceive;
 using UniRx;
+using VContainer.Unity;
 
 namespace Client.Ui.State.Recipe.Screen
 {
@@ -1166,18 +1166,24 @@ namespace Client.Ui.State.Recipe.Screen
     /// 本番の合図（解放イベント・持ち物の変化）。前例 ResearchNodeStateStore・CraftingRecipesTopic と同じ源
     /// Production signals (unlock event, inventory change); the same sources as ResearchNodeStateStore and CraftingRecipesTopic
     /// </summary>
-    public sealed class GameRecipeScreenSignals : IRecipeScreenSignals
+    public sealed class GameRecipeScreenSignals : IRecipeScreenSignals, IInitializable
     {
+        private readonly IVanillaApiEvent _vanillaApiEvent;
         private readonly Subject<Unit> _recipesUnlocked = new();
         public IObservable<Unit> OnRecipesUnlocked => _recipesUnlocked;
         public IObservable<Unit> OnInventoryChanged { get; }
 
-        // unlockState は使わない。ClientGameUnlockStateData が先に解放イベントを購読して更新済みであることを DI の解決順で固定するために受ける
-        // unlockState is unused; it is injected so DI resolves ClientGameUnlockStateData first and its unlock subscription runs before ours
-        public GameRecipeScreenSignals(IGameUnlockStateData unlockState, LocalPlayerInventoryController inventoryController)
+        public GameRecipeScreenSignals(IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController inventoryController)
         {
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => _recipesUnlocked.OnNext(Unit.Default));
+            _vanillaApiEvent = vanillaApiEvent;
             OnInventoryChanged = inventoryController.LocalPlayerInventory.OnItemChange.AsUnitObservable().Merge(inventoryController.OnInventoryRefreshed.AsUnitObservable());
+        }
+
+        public void Initialize()
+        {
+            // 解放イベントは Initialize で購読する。VContainer は全 IInitializable を作ってから Initialize を回すので、ClientGameUnlockStateData の ctor の購読が先に走り更新後の表を読める（前例 ResearchNodeStateStore・NotificationFeed）
+            // Subscribe to unlock events in Initialize; VContainer builds every IInitializable first, so ClientGameUnlockStateData's ctor subscription runs earlier and the table is updated (precedent ResearchNodeStateStore, NotificationFeed)
+            _vanillaApiEvent.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => _recipesUnlocked.OnNext(Unit.Default));
         }
     }
 }
@@ -1227,7 +1233,7 @@ namespace Client.Ui.Screens.Recipe.Input
 }
 ```
 
-`InputManagerCloseKeyProbe.cs`: `public bool WasPressedThisFrame() { return InputManager.UI.CloseUI.GetKeyDown(); }`（`Client.Input`）。`FakeCloseKeyProbe.cs`: `SetPressed(bool)` の値を返す。
+`InputManagerCloseKeyProbe.cs`: `public bool WasPressedThisFrame() { return InputManager.UI.CloseUI.GetKeyDown; }`（`GetKeyDown` はプロパティ。`Client.Input/InputKey.cs`）（`Client.Input`）。`FakeCloseKeyProbe.cs`: `SetPressed(bool)` の値を返す。
 
 - [ ] **Step 3: コンパイルしテストを実行して通ることを確認する**
 
@@ -1355,7 +1361,7 @@ public void 押下後にボタンの外へ出ると止まり経過が0に戻る(
 }
 
 [Test]
-public void 拒否はトーストへ渡り1フレームの経過は0点25秒で頭打ち()
+public void 拒否はトーストへ渡り1フレームの経過は上限で頭打ち()
 {
     _commands.SetResult(new UiCommandRejected(UiCommandRejectReason.CraftRecipeLocked, "x"));
     var view = Mount(new CraftRecipeEntryView(CraftVm(RecipeFixtures.RecipeGuid(1), 0.3, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
@@ -2754,7 +2760,7 @@ namespace Client.Starter.Registration.GameUi
             // State: selection, catalog, signals, model and commands
             builder.Register<RecipeItemSelection>(Lifetime.Singleton);
             builder.Register<RecipeViewerItemCatalog>(Lifetime.Singleton);
-            builder.Register<GameRecipeScreenSignals>(Lifetime.Singleton).As<IRecipeScreenSignals>();
+            builder.Register<GameRecipeScreenSignals>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<RecipeScreenModel>(Lifetime.Singleton);
             builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
             builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();
@@ -2923,7 +2929,7 @@ git commit -m "docs(uitk): Enter の長押しの 1 件を処遇の表に記し�
 
 - [ ] **Step 1: 必ず moores-code-review スキルで全ブランチレビューを実行する（自動実行・ゴール文言による省略不可）**
 
-対象は `origin/feature/uitk...HEAD`。レビューが裁定・設計書と食い違う直し（Web と違う見た目へ寄せる・画面 USS に部品のクラスを書く・色を C# に書く・宣言した 5 本の外で部品や Foundation を書き換える・機械レシピの源を自前で作る〈D-3〉・長押しを `UiPressGesture` へ戻す〈D-5〉・Enter の長押しを足す〈要裁定 1〉）を提案したら採らず、`done.md` の「要裁定」に書く
+対象は `origin/feature/uitk...HEAD`。レビューが裁定・設計書と食い違う直し（Web と違う見た目へ寄せる・画面 USS に部品のクラスを書く・色を C# に書く・宣言した 5 本の外で部品や Foundation を書き換える・機械レシピの源を自前で作る〈D-3〉・長押しを `UiPressGesture` へ戻す〈D-5〉・要裁定 1 の裁定と逆向きに Enter の長押しを足す／消す）を提案したら採らず、`done.md` の「要裁定」に書く
 
 - [ ] **Step 2: 自動適用があれば検査と録画を回し直してコミットする**
 
@@ -3042,11 +3048,12 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-26 `RecipeItemSelection` は読み書きを 1 つの class に持つ**: Web の zustand ストアの写しで、サーバーを通らない画面ローカルの状態。書き手は画面の部品だけ、受理の規則も無い（Hotbar の A-106 と違う）ので、`I*Lookup`／`I*Mutation` に分けても 2 つ目の実装が無い（Phase 2.6 5-D。agent 既定）
 - **D-27 名前の解決に欠損の分岐を置かない**: `GameContentPresentation.ItemName`・`Block(id).Label` はマスタの ID から引き、ID はマスタ由来のカタログからしか来ない（null チェックはマスタのコアに不要という AGENTS の規則）。欠損は `MasterHolder` の例外でテストと録画に出る（Phase 2.6 5-I。agent 既定）
 - **D-28 ビューアの 3 状態は VM の union と件数で分ける**: 未選択（`RecipeViewerNoSelection`）・選択あり（`RecipeViewerItemSelected`）は判別 union で、レシピ無しは `Entries.Count == 0`（Web の `entries.length === 0` と同じ）。列挙型を足すと VM と二重になる（Phase 2.6 5-C 弱。agent 既定）
+- **D-30 シミュレーターの指摘で直したもの**: 要裁定 1 に 2026-10-01 裁定（Enter 長押しを残す）を引き推奨を「写す」へ改めた／`GameRecipeScreenSignals` を `IInitializable` にして `IVanillaApiEvent` を注入し、未使用の `IGameUnlockStateData` を外した（前例 `ResearchNodeStateStore`・`NotificationFeed`。VContainer は全 IInitializable を作ってから Initialize を回すので解放表の更新が先）／`CloseUI.GetKeyDown` はプロパティ／長押しのテスト名から 0.25 秒の値を外した（出所: シミュレーター予測。ユーザー承認は未取得）
 - **D-29 解放の判定と素材の左押下は 2 か所のまま**: カタログは「無い・未解放」を 1 つに畳んで落とし、コマンドは 2 つの拒否の理由に分ける（目的が違う）。素材の左押下→選択はクラフトと機械のエントリに 1 行ずつで、共通の口を作るほどの量でない（Phase 2.6 検査6 弱 2 件。`Client.Ui.State` を Contract へ出す 5-G 弱も設計どおりの向きなので据え置き。agent 既定）
 
 ## 要裁定
 
-1. **クラフトボタンにフォーカスして Enter で長押しする操作を写さない**（死活表で「死ぬ」1 行）: Web はボタンにフォーカスして Enter を押す間クラフトを続け、Space は何もしない（`CraftRecipeEntry.test.ts` 3 件目）。UITK はボタンを `focusable=false`（段階 1 の規則・設計書 §1.2「ボタン類は focusable=false。入力欄だけがフォーカスを持つ」）にしているのでキーが届かない。推奨: **写さない**（段階 1 の規則に従う。マウスの長押しは生きる。disposition に `捨てる` で 1 行）。写すなら `RecipeActionButton` だけ `focusable=true` にして `KeyDownEvent` の Enter で `CraftHoldDriver.Start`・`KeyUpEvent`／`BlurEvent` で `Stop` を足す（部品の規則の例外になり、Tab でのフォーカス移動がゲームの Tab〈インベントリの開閉〉とぶつかる）。死ぬ操作を計画内で確定しないため、実装開始前に指揮がユーザーの裁定を取る。Task 1 Step 1 で `ls .decisions | grep -i "Enter\|長押し"` を見て、裁定が無ければ Task 2〜5 は進めてよいが Task 6 の前で止まって指揮へ「要裁定 1 待ち」と報告する。「写さない」なら Task 13 Step 1 の `捨てる` 行を書く。「写す」なら Task 6 に `CraftHoldKeyTest`（1 件）と部品の例外（設計書 §2.4 `RecipeActionButton` 行の改め）を足し、Task 13 の行は書かない
+1. **クラフトボタンにフォーカスして Enter で長押しする操作を写すか**（死活表の「裁定待ち」1 行）: Web はボタンにフォーカスして Enter を押す間クラフトを続け、Space は何もしない（`CraftRecipeEntry.test.ts` 3 件目）。この形はユーザー裁定 `.decisions/2026-10-01-クラフトボタンはSpaceに反応させずジャンプ専用にする.md`（「キーボードでのクラフトは Enter 長押しのみ、マウス長押しは従来どおり」）で残すと決めたもの。一方 UITK はボタンを `focusable=false`（段階 1 の規則・設計書 §1.2「ボタン類は focusable=false。入力欄だけがフォーカスを持つ」）にしているのでキーが届かない。選択肢: (a) **写す（推奨）** — `RecipeActionButton` だけ `focusable=true` にして `KeyDownEvent` の Enter で `CraftHoldDriver.Start`・`KeyUpEvent`／`BlurEvent` で `Stop`、Space は何もしない。2026-10-01 裁定と整合するが、§1.2 の部品の規則の例外になり（設計書 §2.4 `RecipeActionButton` 行の改め）、ボタンが Tab のフォーカス移動の対象になる懸念はゲームの Tab（インベントリの開閉）が先に消費するかで確かめる。(b) 写さない — 段階 1 の規則を守り disposition に `捨てる`。2026-10-01 裁定を覆すので `.decisions/` に新しい裁定ファイルが要る。死ぬ操作を計画内で確定しないため、実装開始前に指揮がユーザーの裁定を取る。Task 1 Step 1 で `ls .decisions | grep -i "Enter\|長押し"` を見て、裁定が無ければ Task 2〜5 は進めてよいが Task 6 の前で止まって指揮へ「要裁定 1 待ち」と報告する。(a) なら Task 6 に `CraftHoldKeyTest`（1 件。タグ `SpaceではクラフトボタンのonKeyDownが何もせずEnterでは長押しを始める`）と部品の例外を足し Task 13 の行は書かない。(b) なら Task 13 Step 1 の `捨てる` 行を書く（シミュレーター予測: (a)・中。2026-10-01 裁定の原文が根拠）
 
 ## 未確認
 
@@ -3072,7 +3079,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 | ID | 決定 | 却下した案と理由 |
 |---|---|---|
 | A-165 | レシピ画面（ビューア・アイテム一覧）の State は `Client.Ui.State/Recipe/` の `Catalog/`（解放済みクラフトレシピ・一覧のアイテムを Web の topic と同じ源から組む）・`Screen/`（選択 `RecipeItemSelection`・判別 union の VM・純関数の `RecipeViewModelFactory`・同期に組み直す `RecipeScreenModel`）・`Commands/`（`IRecipeCommands.Craft(Guid)`。拒否 `CraftRecipeUnknown`・`CraftRecipeLocked` は良性でない）。Esc の選択解除は画面のキー処理なので `Client.Ui/Screens/Recipe/Input/` に置く。機械レシピの解放済み一覧の源は S4-alpha が `Recipe/Source/` に作り、S4-recipe・S4-machine が使う。Presenter 1 本が 2 つの View を `Viewer`・`Items` 列へ載せ、`PlayerInventory` のときだけ出す（S4-recipe 計画 D-1〜D-3・D-15） | Web の橋の DTO を読む: 切替で消える。画面ごとに Presenter を分ける: 同じ条件と同じモデルの購読が 2 か所に分かれる。機械レシピの源を S4-recipe が持つ: S4-machine が 2 機能目で、持ち物の中核（S4-alpha）の中立の置き場が先に入る |
-| A-166 | 長押しクラフトは画面の部品（`Screens/Recipe/Parts/CraftHoldDriver`・`CraftHoldPointerInput`）が持つ。経過はパネルのスケジューラ（`schedule.Execute().Every(0)` の `TimerState.deltaTime`、1 フレーム 0.25 秒で頭打ち）で `HoldCraftLogic` を回し、押下・離し・外れ（位置でも判定）・取消で止める。Enter の長押しは写さない（ボタンは `focusable=false`。要裁定）（S4-recipe 計画 D-5・D-19・要裁定 1） | `UiPressGesture` を重ねる（C4-c の申し送り）: タップとドラッグの分類が Web の長押しに無く、外れで中断しない。`Update()`: 画面に毎フレームの処理を持たせない規則 |
+| A-166 | 長押しクラフトは画面の部品（`Screens/Recipe/Parts/CraftHoldDriver`・`CraftHoldPointerInput`）が持つ。経過はパネルのスケジューラ（`schedule.Execute().Every(0)` の `TimerState.deltaTime`、1 フレーム 0.25 秒で頭打ち）で `HoldCraftLogic` を回し、押下・離し・外れ（位置でも判定）・取消で止める。Enter の長押しは要裁定 1（2026-10-01 裁定は残す側。推奨は `RecipeActionButton` だけ `focusable=true` の例外）（S4-recipe 計画 D-5・D-19・要裁定 1） | `UiPressGesture` を重ねる（C4-c の申し送り）: タップとドラッグの分類が Web の長押しに無く、外れで中断しない。`Update()`: 画面に毎フレームの処理を持たせない規則 |
 | A-167 | `GameScrollView` に溝・つまみの色と縦バーの位置のつまみ `--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-inset-top/bottom/right` を足す（既定は今の値）。画面は Web の局所上書き（透明の溝・白いつまみ・チュートリアルの逃げ 12）をつまみで書く（S4-recipe 計画 D-9） | 画面の USS で `.unity-scroll-view__vertical-scroller` を書く: 部品のクラスを画面が書かない規則。画面ごとに別のスクロール部品: 同じ部品が 2 つになる |
 | A-168 | レシピの列はエントリを GUID で使い回し、持ち物の変化の描き直しで長押しを切らない。別のアイテムを選んだら中身を作り直してスクロールを先頭へ戻す（Web の `key`）。画面を閉じたらビューアの中身を捨て一覧のスクロールを先頭へ戻す（Web のアンマウント）（S4-recipe 計画 D-6・D-23） | VM ごとに作り直す: 長押しの経過とスケジューラが消える |
 | A-169 | Esc での選択解除は「画面の遷移と同じフレームに `InputManager.UI.CloseUI` が押されていた」で読む（Tab で閉じたときは残す。Web のゲーム層の Escape と同じ時点）（S4-recipe 計画 D-7・D-16） | UITK のキーイベント: 届かない（A-83）。遷移で常に外す: Tab で閉じたときも消えて Web と違う |
@@ -3084,7 +3091,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 
 ### 実行計画 §1.4 の S4-recipe 行の改め案
 
-`| S4-recipe | レシピビューアと一覧 | 4・W4 | C4-c・C4-e（`StageColumnsLayout`）・L0-s4a・C3-b（`UiPressGesture`・`HoverTooltipHost`）・L0-s3（`UiDragThreshold`）・C4-a（`FluidAmountSlot`）・S2-tutorial（`TutorialAnchorCoveragePending`・切り抜きの判定）・S4-alpha（機械レシピの源 `Client.Ui.State/Recipe/Source/`） | 要 | 単位 | RecipeViewer（`Viewer` 枠）・ItemListPanel（`Items` 枠 [A-45]。6 列・クラフトは `RecipeActionButton` [A-46]・長押しクラフトは画面の部品がパネルのスケジューラで回す [A-166]・コンテナクエリは C4-c の `RecipeRow` が `GeometryChangedEvent` で持つ）。State は `Client.Ui.State/Recipe/{Catalog,Screen,Commands}`・Esc の選択解除は `Screens/Recipe/Input` [A-165]、エントリは GUID で使い回す [A-168]、Esc の選択解除 [A-169]、`GameScrollView` のつまみ 5 本 [A-167]。アンカー `recipe.craft-button`・`recipe.item-<itemId>`。写す: recipe 52（P19・C8・I1。L24 は L0-s4a 済み。Enter の長押し 1 件は要裁定で捨てる）。パネルは `StageColumnsLayout.Get(StageColumn.Viewer)`／`Get(StageColumn.Items)` へ載せる [A-92]。録画 `uitk/uitk-recipe-craft`。計画 `P/2026-11-10-uitk-s4-recipe.md` |`
+`| S4-recipe | レシピビューアと一覧 | 4・W4 | C4-c・C4-e（`StageColumnsLayout`）・L0-s4a・C3-b（`UiPressGesture`・`HoverTooltipHost`）・L0-s3（`UiDragThreshold`）・C4-a（`FluidAmountSlot`）・S2-tutorial（`TutorialAnchorCoveragePending`・切り抜きの判定）・S4-alpha（機械レシピの源 `Client.Ui.State/Recipe/Source/`） | 要 | 単位 | RecipeViewer（`Viewer` 枠）・ItemListPanel（`Items` 枠 [A-45]。6 列・クラフトは `RecipeActionButton` [A-46]・長押しクラフトは画面の部品がパネルのスケジューラで回す [A-166]・コンテナクエリは C4-c の `RecipeRow` が `GeometryChangedEvent` で持つ）。State は `Client.Ui.State/Recipe/{Catalog,Screen,Commands}`・Esc の選択解除は `Screens/Recipe/Input` [A-165]、エントリは GUID で使い回す [A-168]、Esc の選択解除 [A-169]、`GameScrollView` のつまみ 5 本 [A-167]。アンカー `recipe.craft-button`・`recipe.item-<itemId>`。写す: recipe 52（P19・C8・I1。L24 は L0-s4a 済み。Enter の長押し 1 件は要裁定 1〈推奨: 写す〉）。パネルは `StageColumnsLayout.Get(StageColumn.Viewer)`／`Get(StageColumn.Items)` へ載せる [A-92]。録画 `uitk/uitk-recipe-craft`。計画 `P/2026-11-10-uitk-s4-recipe.md` |`
 
 DAG（§2）に `C4a --> Rec`・`S2t --> Rec`・`A --> Rec`（S4-alpha → S4-recipe）の辺を足す。W4 の枠では S4-recipe を S4-alpha の後に置く。
 
