@@ -219,7 +219,6 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 | `Train/TrainCommandRejection.cs` | 列車系コマンドの拒否を `UiCommandRejected(TrainEditRejected, 理由)` にし、Web ホストと同じ書式で Warning ログ |
 | `Train/Timetable/TrainTimetableViewState.cs` | Loading / Unavailable / Ready の型と「同じ状態か」の判定 |
 | `Train/Timetable/TrainTimetableReadyData.cs` | 用意済みの時刻表（列車・自動運転・現在位置・停車駅・駅一覧）と中身の等しさ |
-| `Train/Timetable/TrainTimetableValueEquality.cs` | 停車駅・駅一覧の値の列の比べ方（ReadyData と区画の描画値が共有） |
 | `Train/Timetable/TrainTimetableStationCatalog.cs` | 駅一覧を x→z→y で整列（Web ホスト `TrainTimetableDtoBuilder.SortStations` と同じ規則。D-2） |
 | `Train/Timetable/TrainTimetableReadyDataFactory.cs` | スナップショット＋駅一覧 → Ready（名前の補完・欠けの警告・未知の Side） |
 | `Train/Timetable/ITrainTimetableSource.cs` | 時刻表の状態の口（`Current`・`Refresh`） |
@@ -237,7 +236,7 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 | `Train/Inventory/TrainInventoryTab.cs` | タブの列挙 |
 | `Train/Inventory/TrainTimetableFetchTrigger.cs` | タブ選択・Loading の到着 → 取得の依頼の判定 |
 | `Train/Inventory/ITrainInventoryTabModel.cs` | タブと選択（View が直接呼ぶ。A-8） |
-| `Train/Inventory/TrainInventoryTabModel.cs` | 本番。パネルごとに持ち物タブへ戻し、取得を頼んだ直後に時刻表の源を組み直させる |
+| `Train/Inventory/TrainInventoryTabModel.cs` | 本番。パネルごとに持ち物タブへ戻し、タブ選択と読込中の到着で取得を頼む |
 | `Train/Inventory/TrainInventoryBodyViewModel.cs` | 貨車の中身（スロット・液体） |
 | `Train/Inventory/ITrainInventoryBodySource.cs` | 貨車の中身の口 |
 | `Train/Inventory/TrainInventoryBodyModel.cs` | 本番。スロットは alpha のパネルの源、液体は `SubInventoryState` |
@@ -253,7 +252,7 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 | `Train/Platform/Edit/TrainBlockCommands.cs` | 本番 |
 | `Train/Platform/Edit/TrainStationNameDraft.cs` | 駅名の下書き（同期・編集・拒否の巻き戻し） |
 | `Train/Platform/Edit/ITrainPlatformEditModel.cs` | 駅名の入力・決定・モードの選択（View が直接呼ぶ。A-8） |
-| `Train/Platform/Edit/TrainPlatformEditModel.cs` | 本番。パネルごとに下書きを作り直し、拒否は同じパネルのときだけ戻す |
+| `Train/Platform/Edit/TrainPlatformEditModel.cs` | 本番。パネルごとに下書きを作り直し、拒否は送った回の下書きが今のものなときだけ戻す |
 
 共有ファイルへの追記（E-1）: `Commands/UiCommandRejectReason.cs`（列挙 1 つと switch 3 本に 1 行ずつ、末尾に追記）、`Client.Ui.State.asmdef`（無い参照だけ。S4-machine の後なら `Core.Update` だけの見込み）。
 
@@ -288,15 +287,16 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 | `State/Train/Timetable/TrainTimetableReadyDataFactoryTest.cs` | 名前の補完・警告の重複抑止・未知の Side・同じ中身を流し直さない |
 | `State/Train/TimetableEdit/TrainTimetableEditSessionTest.cs` | `TrainTimetableImmediate.test.ts` 1〜6 |
 | `State/Train/TimetableEdit/TrainTimetableDepartureTest.cs` | 出発条件 |
-| `State/Train/TimetableEdit/TrainTimetableEditModelTest.cs` | 列車替わりでセッションを作り直す・開いていない操作の警告 |
+| `State/Train/TimetableEdit/TrainTimetableEditModelTest.cs` | 送った後に閉じる・列車替わりでセッションを作り直す・開いていない操作の警告 |
 | `State/Train/Inventory/TrainTimetableFetchTriggerTest.cs` | 依頼の判定 |
-| `State/Train/Inventory/TrainInventoryTabModelTest.cs` | 頼んだ直後の `Refresh`・パネルごとのタブの戻し |
+| `State/Train/Inventory/TrainInventoryTabModelTest.cs` | 使えないの間の依頼・パネルごとのタブの戻し |
 | `State/Train/Platform/TrainStationNameDraftTest.cs` | 下書き |
 | `State/Train/Platform/TrainPlatformDetailReaderTest.cs` | 駅・品物 PF・液体 PF・状態未着の 4 行 |
+| `State/Train/Platform/TrainPlatformEditModelTest.cs` | 閉じて同じ駅を開き直した後の拒否は新しい入力を消さない |
 | `State/Train/Fakes/FakeTrainTimetableCommands.cs` | 完了を手で返す偽コマンド |
 | `State/Train/Fakes/FakeTrainBlockCommands.cs` | 〃 |
 | `State/Train/Fakes/ManualTrainTimetableWaitTimer.cs` | 手で発火する時間切れ |
-| `State/Train/Fakes/FakeTrainSources.cs` | 3 つの源の偽物（`Refresh` は回数を数える） |
+| `State/Train/Fakes/FakeTrainSources.cs` | 3 つの源の偽物 |
 | `State/Train/Fakes/TrainTestData.cs` | 駅・停車駅（`TimetableEditLogic` で組む）・Ready の組み立て |
 | `Screens/BlockInventory/Train/TrainInventoryBodyTest.cs` | タブと取得 4 件＋液体貨車 1 件 |
 | `Screens/BlockInventory/Train/TrainInventoryFlowTest.cs` | alpha の外殻ごと（`train.spec`） |
@@ -369,11 +369,11 @@ Expected: `TrainTimetableSnapshot` と `TrainUnitInstanceId` のコンストラ�
 - Create: `S/Client.Ui.State/Train/TrainCommandRejection.cs`
 
 **Interfaces:**
-- Produces: `UiCommandRejectReason.TrainEditRejected`、`TrainCommandRejection.Reject(string logTag, string reason)`
+- Produces: `UiCommandRejectReason.TrainEditRejected`・`TrainBlockNotOpen`、`TrainCommandRejection.Reject(string logTag, string reason)`・`BlockNotOpen(string logTag)`
 
 - [ ] **Step 1: 列挙と switch に 1 行ずつ足す**
 
-`UiCommandRejectReason` の列挙の末尾に `TrainEditRejected,`（E-1: 列挙と switch はレーンが末尾に追記し、全列挙を見る `PauseMenuCommandsTest` を同じ PR で緑にする）。`IsBenign` に `UiCommandRejectReason.TrainEditRejected => false,`、`ToLocalizationKey` に `UiCommandRejectReason.TrainEditRejected => LocalizationKeys.Ui.CommandRejected.TrainEditRejected,`、`ToWireCode` に `UiCommandRejectReason.TrainEditRejected => "train_edit_rejected",`。`Detail` に Web と同じ理由文字列（`replace_failed:<理由>` 等）を入れるので、`UiCommandRejected.ToWireCode` の Detail 優先によりトースト係のログは Web と同じ文字列になる
+`UiCommandRejectReason` の列挙の末尾に `TrainEditRejected,`・`TrainBlockNotOpen,`（E-1: 列挙と switch はレーンが末尾に追記し、全列挙を見る `PauseMenuCommandsTest` を同じ PR で緑にする）。`IsBenign` に `UiCommandRejectReason.TrainEditRejected => false,`・`UiCommandRejectReason.TrainBlockNotOpen => true,`（開いた直後・閉じた直後の押下で起きうるので画面に出さない。S4-machine の `MachineRecipeBlockNotOpen` と同じ。D-26）、`ToLocalizationKey` に `UiCommandRejectReason.TrainEditRejected => LocalizationKeys.Ui.CommandRejected.TrainEditRejected,`・`UiCommandRejectReason.TrainBlockNotOpen => LocalizationKeys.Ui.CommandRejected.TrainBlockNotOpen,`、`ToWireCode` に `UiCommandRejectReason.TrainEditRejected => "train_edit_rejected",`・`UiCommandRejectReason.TrainBlockNotOpen => "block_not_open",`（Web ホスト `TrainStationActions`・`TrainPlatformActions` と同じコード）。`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の配列 `benign` の末尾に `UiCommandRejectReason.TrainBlockNotOpen` を足す（取り込みで S4-machine の 3 つと衝突したら両方残す）。`Detail` に Web と同じ理由文字列（`replace_failed:<理由>` 等）を入れるので、`UiCommandRejected.ToWireCode` の Detail 優先によりトースト係のログは Web と同じ文字列になる
 
 - [ ] **Step 2: 文言を足して再生成する**
 
@@ -381,12 +381,14 @@ Expected: `TrainTimetableSnapshot` と `TrainUnitInstanceId` のコンストラ�
 
 ```csv
 ui.commandRejected.trainEditRejected,The train setting change was rejected,The train setting change was rejected,列車の設定変更が受け付けられませんでした,Die Änderung der Zugeinstellung wurde abgelehnt,열차 설정 변경이 거부되었습니다
+ui.commandRejected.trainBlockNotOpen,The station or platform is not open,The station or platform is not open,駅またはプラットフォームが開いていません,Der Bahnhof oder Bahnsteig ist nicht geöffnet,역 또는 플랫폼이 열려 있지 않습니다
 ```
+（2 行目は良性なのでトーストには出ないが、網羅 switch のキーとして要る）
 
 ```bash
 pnpm --dir moorestech_web/webui run gen:i18n
 ```
-Expected: `LocalizationKeys.Ui.CommandRejected.TrainEditRejected` が引ける。Unity が csv の変化を拾わなければ前例どおり `_CompileRequester.cs` を触ってから compile。`docs/uitk/TODO.md`「追従記録」に `| 4 | <このコミット> | 写した | localization.csv ui.commandRejected.trainEditRejected（S4-train。UITK の拒否トースト用。Web は使わない） |`
+Expected: `LocalizationKeys.Ui.CommandRejected.TrainEditRejected`・`TrainBlockNotOpen` が引ける。Unity が csv の変化を拾わなければ前例どおり `_CompileRequester.cs` を触ってから compile。`docs/uitk/TODO.md`「追従記録」に `| 4 | <このコミット> | 写した | localization.csv ui.commandRejected.trainEditRejected・trainBlockNotOpen（S4-train。UITK の拒否理由用。Web は使わない） |`
 
 - [ ] **Step 3: asmdef に参照を足す**
 
@@ -413,6 +415,14 @@ namespace Client.Ui.State.Train
             Debug.LogWarning($"[{logTag}] rejected: {reason}");
             return new UiCommandRejected(UiCommandRejectReason.TrainEditRejected, reason);
         }
+
+        // 開いていないブロックへの操作は良性（開いた直後・閉じた直後に起きうる）。ログは同じ書式で残す
+        // Operating on a block that is not open is benign (it happens right after opening or closing); the log keeps the same format
+        public static UiCommandRejected BlockNotOpen(string logTag)
+        {
+            Debug.LogWarning($"[{logTag}] rejected: block_not_open");
+            return new UiCommandRejected(UiCommandRejectReason.TrainBlockNotOpen, string.Empty);
+        }
     }
 }
 ```
@@ -434,8 +444,9 @@ git commit -m "feat(uitk): 列車の設定変更の拒否理由と文言・asmde
 ### Task 3: 時刻表の状態（`Client.Ui.State/Train/Timetable/`）
 
 **Files:**
-- Create: `S/Client.Ui.State/Train/Timetable/` の 7 本
+- Create: `S/Client.Ui.State/Train/Timetable/` の 6 本
 - Create: `S/Client.Tests/Ui/State/Train/Timetable/TrainTimetableStationCatalogTest.cs`・`TrainTimetableReadyDataFactoryTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/TrainTestData.cs`
+- Modify（E-1: マージ済みの State の口への追記）: `S/Client.Ui.State/Train/TrainTimetableFetcher.cs`・`OpenTrainTimetableTracker.cs`（取得の開始の通知。D-20）、`S/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs`
 
 **Interfaces:**
 - Consumes: `TrainTimetableFetcher`・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver`（既存。Web ホストも使っている State の口をそのまま使う）、`TrainTimetableStation`・`TimetableEditStop`・`TimetableEditLogic`（L0-s4b）
@@ -445,9 +456,9 @@ namespace Client.Ui.State.Train.Timetable
 public abstract class TrainTimetableViewState { static Loading; static Unavailable; static Ready(TrainTimetableReadyData); static bool IsSameState(TrainTimetableViewState current, TrainTimetableViewState next); }
 public sealed class ReadyTrainTimetableViewState : TrainTimetableViewState { public TrainTimetableReadyData Data { get; } }
 public sealed class TrainTimetableReadyData { TrainUnitInstanceId; IsAutoRun; CurrentIndex; Stops; Stations; bool HasSameContent(TrainTimetableReadyData other); }
-public interface ITrainTimetableSource { IReadOnlyReactiveProperty<TrainTimetableViewState> Current { get; } void Refresh(); }
-public static class TrainTimetableValueEquality { public static bool SameItems<T>(IReadOnlyList<T> left, IReadOnlyList<T> right) where T : struct; }
-public sealed class TrainTimetableModel : ITrainTimetableSource, IInitializable
+public interface ITrainTimetableSource { IReadOnlyReactiveProperty<TrainTimetableViewState> Current { get; } }
+public sealed class TrainTimetableModel : ITrainTimetableSource, IInitializable   // ctor に UIStateControl（閉じたことを Web ホストと同じ契機で拾う）
+// 既存への追記（E-1: マージ済みの State の口へ合図を足す）: TrainTimetableFetcher.OnFetchFailed → OnFetchStateChanged（取得の開始と失敗の両方で流す）。購読は OpenTrainTimetableTracker の 1 か所だけ
 ```
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -663,6 +674,7 @@ namespace Client.Ui.State.Train.Timetable
 
 ```csharp
 using System.Collections.Generic;
+using System.Linq;
 using Client.Ui.State.Train.Logic;
 using Game.Train.Unit;
 
@@ -689,38 +701,12 @@ namespace Client.Ui.State.Train.Timetable
             Stations = stations;
         }
 
-        // 停車駅は座標・端・名前、駅一覧は座標・名前で比べる
-        // Stops compare position, side and name; stations compare position and name
+        // 停車駅は座標・端・名前、駅一覧は座標・名前で比べる（値の構造体の既定の Equals。前例 CursorTooltipViewModel）
+        // Stops compare position, side and name; stations compare position and name (struct default Equals; precedent CursorTooltipViewModel)
         public bool HasSameContent(TrainTimetableReadyData other)
         {
             return TrainUnitInstanceId.Equals(other.TrainUnitInstanceId) && IsAutoRun == other.IsAutoRun && CurrentIndex == other.CurrentIndex
-                   && TrainTimetableValueEquality.SameItems(Stops, other.Stops) && TrainTimetableValueEquality.SameItems(Stations, other.Stations);
-        }
-    }
-}
-```
-
-`TrainTimetableValueEquality.cs`:
-
-```csharp
-using System.Collections.Generic;
-
-namespace Client.Ui.State.Train.Timetable
-{
-    /// <summary>
-    /// 停車駅・駅一覧の値の列を要素ごとに比べる（用意済みの時刻表と区画の描画値が共有する）
-    /// Compares stop and station value lists element by element (shared by the ready timetable and the section draw values)
-    /// </summary>
-    public static class TrainTimetableValueEquality
-    {
-        public static bool SameItems<T>(IReadOnlyList<T> left, IReadOnlyList<T> right) where T : struct
-        {
-            if (left.Count != right.Count) return false;
-            for (var i = 0; i < left.Count; i++)
-            {
-                if (!left[i].Equals(right[i])) return false;
-            }
-            return true;
+                   && Stops.SequenceEqual(other.Stops) && Stations.SequenceEqual(other.Stations);
         }
     }
 }
@@ -830,10 +816,6 @@ namespace Client.Ui.State.Train.Timetable
     public interface ITrainTimetableSource
     {
         IReadOnlyReactiveProperty<TrainTimetableViewState> Current { get; }
-
-        // 取得を頼む唯一の呼び手（TrainInventoryTabModel）が頼んだ直後に呼び、取得中をすぐ配る。Fetcher は通知を出さないため
-        // Called by the only fetch requester (TrainInventoryTabModel) right after asking, so Loading publishes at once; the Fetcher raises no notification
-        void Refresh();
     }
 }
 ```
@@ -845,6 +827,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Ui.State.Train.Logic;
@@ -863,6 +846,7 @@ namespace Client.Ui.State.Train.Timetable
     public sealed class TrainTimetableModel : ITrainTimetableSource, IInitializable
     {
         private readonly SubInventoryState _subInventoryState;
+        private readonly UIStateControl _uiStateControl;
         private readonly TrainUnitClientCache _cache;
         private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _fetcher;
@@ -873,9 +857,10 @@ namespace Client.Ui.State.Train.Timetable
 
         public IReadOnlyReactiveProperty<TrainTimetableViewState> Current => _current;
 
-        public TrainTimetableModel(SubInventoryState subInventoryState, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher, BlockGameObjectDataStore blocks, OpenTrainTimetableTracker tracker)
+        public TrainTimetableModel(SubInventoryState subInventoryState, UIStateControl uiStateControl, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher, BlockGameObjectDataStore blocks, OpenTrainTimetableTracker tracker)
         {
             _subInventoryState = subInventoryState;
+            _uiStateControl = uiStateControl;
             _cache = cache;
             _timetables = timetables;
             _fetcher = fetcher;
@@ -885,15 +870,18 @@ namespace Client.Ui.State.Train.Timetable
 
         public void Initialize()
         {
-            // Web ホストの再公開の契機と同じ: 開閉・時刻表の到着・トラッカーの再公開要求（取得の依頼の直後は Refresh）
-            // Same republish triggers as the Web host: open/close, timetable arrival, tracker requests (Refresh right after a fetch request)
+            // Web ホスト BlockInventoryTopic と同じ契機: 画面の開閉（閉じると使えないへ倒れ、編集は閉じる）・中身の更新・時刻表の到着
+            // Same triggers as the Web host BlockInventoryTopic: screen open/close (closing falls to unavailable and closes the edit), contents updates, timetable arrival
+            _uiStateControl.OnStateChanged.Subscribe(_ => Refresh());
             _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Refresh());
             _timetables.OnTimetableUpdated.Subscribe(_ => Refresh());
+            // トラッカーの再公開要求は所属列車の変化と、取得の開始・失敗（Fetcher.OnFetchStateChanged）を運ぶ。D-20
+            // Tracker requests carry owning-train changes and fetch start/failure (Fetcher.OnFetchStateChanged); D-20
             _tracker.OnRepublishRequested.Subscribe(_ => Refresh());
             Refresh();
         }
 
-        public void Refresh()
+        private void Refresh()
         {
             var next = _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource source
                 ? Build(source.TrainCarInstanceId)
@@ -936,16 +924,27 @@ namespace Client.Ui.State.Train.Timetable
 }
 ```
 
-- [ ] **Step 3: テストを回す**
+- [ ] **Step 3: 取得の開始を通知に載せる（既存の Fetcher・Tracker・プローブへの追記）**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableStationCatalogTest|TrainTimetableReadyDataFactoryTest"`
-Expected: `ErrorCount: 0`、4 件 PASS
+`S/Client.Ui.State/Train/TrainTimetableFetcher.cs`（今 198 行。通知を 1 本足すと 200 行を超えるので、失敗の通知を「取得の状態が替わった」の 1 本に広げる）:
+- `_onFetchFailed` → `_onFetchStateChanged`、`public IObservable<UniRx.Unit> OnFetchFailed` → `OnFetchStateChanged`（直前の 2 行コメントを「取得の開始と失敗で流す」に替える）
+- `RequestForOpenedTab` の `_isFetchInFlight = true;` の直後に `_onFetchStateChanged.OnNext(UniRx.Unit.Default);`（取得中を立てた後なので、購読側が組み直すと読込中になる）
+- `MarkUnavailable` の `_onFetchFailed.OnNext` を `_onFetchStateChanged.OnNext` に
 
-- [ ] **Step 4: コミット**
+`S/Client.Ui.State/Train/OpenTrainTimetableTracker.cs`: `_fetcher.OnFetchFailed.Subscribe(_onRepublishRequested.OnNext);` を `_fetcher.OnFetchStateChanged.Subscribe(_onRepublishRequested.OnNext);` にし、直前のコメントを「時刻表更新・取得の開始と失敗で再配信」／「Republish on timetable updates and fetch start/failure」にする。Web ホスト `BlockInventoryTopic` も同じ要求で 1 回多く配る（取得中の表示が依頼の直後に届く。死活表）
+
+`S/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs`: `fetcher.RequestForOpenedTab(unknownTrain);` の前で `var stateChanges = 0; using var counting = fetcher.OnFetchStateChanged.Subscribe(_ => stateChanges++);` を取り、直後に `Assert.AreEqual(1, stateChanges, "取得の開始が通知されない");`（本番の Fetcher は送信境界に触れるので L0 では試せない。前例のプローブの中で確かめる）
+
+- [ ] **Step 4: テストを回す**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableStationCatalogTest|TrainTimetableReadyDataFactoryTest|TrainTimetableFetcherTest|WebUiHostlessStateAvailabilityTest"`
+Expected: `ErrorCount: 0`、全件 PASS（State 4 件・既存の Fetcher 3 件・Hostless のプローブ）。Hostless は PlayMode へ遷移するので、終わったらドメインリロードの待ちを入れる
+
+- [ ] **Step 5: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui.State/Train/Timetable moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Train
-git commit -m "feat(uitk): 時刻表の状態の Model を足す（S4-train）
+git add moorestech_client/Assets/Scripts/Client.Ui.State/Train moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Train moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless/TimetableStateProbe.cs
+git commit -m "feat(uitk): 時刻表の状態の Model を足し、取得の開始を通知に載せる（S4-train）
 
 <実行ホストの指示する帰属行>"
 ```
@@ -959,7 +958,7 @@ git commit -m "feat(uitk): 時刻表の状態の Model を足す（S4-train）
 - Create: `S/Client.Tests/Ui/State/Train/TimetableEdit/TrainTimetableEditSessionTest.cs`・`TrainTimetableDepartureTest.cs`・`TrainTimetableEditModelTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/FakeTrainTimetableCommands.cs`・`ManualTrainTimetableWaitTimer.cs`・`FakeTrainSources.cs`
 
 **Interfaces:**
-- Consumes: Task 3 の `ITrainTimetableSource`・`TrainTimetableViewState`・`TrainTimetableReadyData`・`TrainTimetableValueEquality`、`TimetableEditLogic`（L0-s4b）、`UiCommandResultToaster`、`TrainCommandRejection`（Task 2）、`TrainScheduleEditProtocol.TrainScheduleEditRequest`、`TrainTimetableFetcher`・`OpenTrainUnitResolver`（既存。Web ホストの `TrainTimetableOpenActionHandler` が呼ぶのと同じ口）
+- Consumes: Task 3 の `ITrainTimetableSource`・`TrainTimetableViewState`・`TrainTimetableReadyData`、`TimetableEditLogic`（L0-s4b）、`UiCommandResultToaster`、`TrainCommandRejection`（Task 2）、`TrainScheduleEditProtocol.TrainScheduleEditRequest`、`TrainTimetableFetcher`・`OpenTrainUnitResolver`（既存。Web ホストの `TrainTimetableOpenActionHandler` が呼ぶのと同じ口）
 - Produces:
 ```csharp
 namespace Client.Ui.State.Train.TimetableEdit
@@ -969,13 +968,13 @@ public sealed class TrainTimetableEditSession   // 状態は private な判別 u
 {
     public const string ReplaceCommandName = "train_timetable.replace";
     public static readonly TimeSpan PublicationTimeout;   // 5000ms（Web DEFAULT_ACTION_TIMEOUT_MS）
-    public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, IReadOnlyList<TimetableEditStop> serverStops);
-    public IReadOnlyList<TimetableEditStop> DisplayedStops { get; }  public bool IsPending { get; }  public IObservable<Unit> OnDisplayChanged { get; }
-    public void ReceiveServerStops(IReadOnlyList<TimetableEditStop> serverStops); public void Replace(IReadOnlyList<TimetableEditStop> nextStops); public void Close();
+    public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, TrainTimetableReadyData server);
+    public TrainTimetableReadyData Server { get; }  public IReadOnlyList<TimetableEditStop> DisplayedStops { get; }  public bool IsPending { get; }  public IObservable<Unit> OnDisplayChanged { get; }
+    public void ReceiveServer(TrainTimetableReadyData server); public void Replace(IReadOnlyList<TimetableEditStop> nextStops); public void Close();
 }
 public sealed class TrainTimetableSectionViewModel { Stops; int? CurrentIndex; Stations; IsPending; IsAutoRun; CanEnableAutoRun; static Build(server, displayedStops, isPending); bool HasSameContent(other); }
 public abstract class TrainTimetableAreaViewModel { static Loading; static Unavailable; static Ready(TrainUnitInstanceId, TrainTimetableSectionViewModel); static bool IsSameArea(current, next); }
-public sealed class ReadyTrainTimetableArea : TrainTimetableAreaViewModel { TrainUnitInstanceId TrainUnitInstanceId; TrainTimetableSectionViewModel Section; }
+public sealed class ReadyTrainTimetableArea : TrainTimetableAreaViewModel { TrainUnitInstanceId TrainUnitInstanceId; TrainTimetableSectionViewModel Section; bool IsSameTrain(ReadyTrainTimetableArea other); }   // View は列車の型を持たずこれで比べる
 public interface ITrainTimetableEditModel   // View が直接呼ぶ（設計書 A-8）
 {
     IReadOnlyReactiveProperty<TrainTimetableAreaViewModel> Current { get; }
@@ -1087,20 +1086,14 @@ using UniRx;
 namespace Client.Tests.Ui.State.Train.Fakes
 {
     /// <summary>
-    /// 源の偽物。値はテストが Set で押し込み、Refresh は回数だけ数える
-    /// Fake sources; tests push values with Set and Refresh only counts calls
+    /// 源の偽物。値はテストが Set で押し込む
+    /// Fake sources; tests push values with Set
     /// </summary>
     public sealed class FakeTrainSources : ITrainTimetableSource
     {
         private readonly ReactiveProperty<TrainTimetableViewState> _timetable = new(TrainTimetableViewState.Loading);
 
-        public int RefreshCount { get; private set; }
         IReadOnlyReactiveProperty<TrainTimetableViewState> ITrainTimetableSource.Current => _timetable;
-
-        public void Refresh()
-        {
-            RefreshCount++;
-        }
 
         public void SetTimetable(TrainTimetableViewState state)
         {
@@ -1140,7 +1133,7 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             _commands = new FakeTrainTimetableCommands();
             _timer = new ManualTrainTimetableWaitTimer();
             _server = Added(NoStops, North);
-            _session = new TrainTimetableEditSession(_commands, _timer, new UiCommandResultToaster(new GameUiToastFeed()), _server);
+            _session = new TrainTimetableEditSession(_commands, _timer, new UiCommandResultToaster(new GameUiToastFeed()), Ready(Unit1, false, _server));
         }
 
         /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">immediately sends each add, move and remove without an Apply button</web-test>
@@ -1158,12 +1151,12 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             // 受理と公開で保留が解け、続けて移動・削除も 1 回ずつ送る
             // Acceptance plus publication releases it; move and remove then send once each
             _commands.Accept();
-            _session.ReceiveServerStops(added);
+            _session.ReceiveServer(Ready(Unit1, false, added));
             Assert.IsFalse(_session.IsPending);
             var moved = TimetableEditLogic.MoveStop(added, 1, StopMoveDirection.Up);
             _session.Replace(moved);
             _commands.Accept();
-            _session.ReceiveServerStops(moved);
+            _session.ReceiveServer(Ready(Unit1, false, moved));
             _session.Replace(TimetableEditLogic.RemoveStop(moved, 0));
             Assert.AreEqual(3, _commands.SentReplaces.Count);
         }
@@ -1191,7 +1184,7 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         {
             var added = Added(_server, Unnamed);
             _session.Replace(added);
-            _session.ReceiveServerStops(added);
+            _session.ReceiveServer(Ready(Unit1, false, added));
             Assert.IsTrue(_session.IsPending);
 
             // 受理の時点でサーバーが同じ並びなら時間切れを待たずに解く
@@ -1207,7 +1200,7 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         {
             _session.Replace(Added(_server, Unnamed));
             var remote = Added(NoStops, Unnamed);
-            _session.ReceiveServerStops(remote);
+            _session.ReceiveServer(Ready(Unit1, false, remote));
 
             // 拒否で保留を解き、表示は届いた最新の並び
             // Rejection releases the pending edit and shows the newest published order
@@ -1300,6 +1293,7 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
     {
         private FakeTrainSources _sources;
         private FakeTrainTimetableCommands _commands;
+        private ManualTrainTimetableWaitTimer _timer;
         private TrainTimetableEditModel _model;
 
         [SetUp]
@@ -1307,8 +1301,32 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         {
             _sources = new FakeTrainSources();
             _commands = new FakeTrainTimetableCommands();
-            _model = new TrainTimetableEditModel(_sources, _commands, new ManualTrainTimetableWaitTimer(), new UiCommandResultToaster(new GameUiToastFeed()));
+            _timer = new ManualTrainTimetableWaitTimer();
+            _model = new TrainTimetableEditModel(_sources, _commands, _timer, new UiCommandResultToaster(new GameUiToastFeed()));
             _model.Initialize();
+        }
+
+        [Test]
+        public void 送った後に閉じると受理も拒否もトーストと時間切れを出さない()
+        {
+            // 閉じると源は使えないへ倒れる（本番は TrainTimetableModel が UIStateControl.OnStateChanged で組み直す。録画手順 6 で確かめる）
+            // Closing turns the source unavailable (in production TrainTimetableModel rebuilds on UIStateControl.OnStateChanged; recording step 6 checks it)
+            _sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
+            _model.Add(Unnamed);
+            _sources.SetTimetable(TrainTimetableViewState.Unavailable);
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] result after close discarded"));
+            _commands.Accept();
+            Assert.IsEmpty(_timer.RequestedDelays);
+
+            // 開き直して送り、また閉じてから拒否が戻っても、トーストの警告は出ない
+            // Reopen, send, close again; a late refusal raises no toaster warning either
+            _sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
+            _model.Add(Unnamed);
+            _sources.SetTimetable(TrainTimetableViewState.Unavailable);
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] result after close discarded"));
+            _commands.Reject("replace_failed:late");
+            LogAssert.NoUnexpectedReceived();
+            Assert.IsInstanceOf<UnavailableTrainTimetableArea>(_model.Current.Value);
         }
 
         [Test]
@@ -1526,6 +1544,7 @@ using System.Collections.Generic;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Toast;
 using Client.Ui.State.Train.Logic;
+using Client.Ui.State.Train.Timetable;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -1545,29 +1564,31 @@ namespace Client.Ui.State.Train.TimetableEdit
         private readonly ITrainTimetableWaitTimer _timer;
         private readonly UiCommandResultToaster _toaster;
         private readonly Subject<Unit> _onDisplayChanged = new();
-        private IReadOnlyList<TimetableEditStop> _serverStops;
         private EditPhase _phase = IdlePhase.Instance;
         private bool _closed;
 
+        // サーバーの最新の時刻表（列車の識別・並び・駅一覧）。セッションと寿命が同じなので一緒に持つ
+        // The server's latest timetable (train, order, stations); it shares the session's lifetime so the session holds it
+        public TrainTimetableReadyData Server { get; private set; }
         public IReadOnlyList<TimetableEditStop> DisplayedStops { get; private set; }
         public bool IsPending { get; private set; }
         public IObservable<Unit> OnDisplayChanged => _onDisplayChanged;
 
-        public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, IReadOnlyList<TimetableEditStop> serverStops)
+        public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, TrainTimetableReadyData server)
         {
             _commands = commands;
             _timer = timer;
             _toaster = toaster;
-            _serverStops = serverStops;
-            DisplayedStops = serverStops;
+            Server = server;
+            DisplayedStops = server.Stops;
         }
 
-        public void ReceiveServerStops(IReadOnlyList<TimetableEditStop> serverStops)
+        public void ReceiveServer(TrainTimetableReadyData server)
         {
             // 受理済みの保留は同じ並びの公開が届いた時点で解く
             // An accepted pending edit is released once a matching publication arrives
-            _serverStops = serverStops;
-            if (_phase is AwaitingPublicationPhase awaiting && TimetableEditLogic.SameStopOrder(awaiting.Stops, serverStops)) BackToIdle();
+            Server = server;
+            if (_phase is AwaitingPublicationPhase awaiting && TimetableEditLogic.SameStopOrder(awaiting.Stops, server.Stops)) BackToIdle();
             Publish();
         }
 
@@ -1581,7 +1602,7 @@ namespace Client.Ui.State.Train.TimetableEdit
                 return;
             }
             // silent-ok: 並びが変わらない編集は送る意味が無い / 表示も変わらないので操作した人が見て分かる（Web と同じ）
-            if (TimetableEditLogic.SameStopOrder(nextStops, _serverStops)) return;
+            if (TimetableEditLogic.SameStopOrder(nextStops, Server.Stops)) return;
 
             _phase = new SendingPhase(nextStops);
             Publish();
@@ -1609,7 +1630,7 @@ namespace Client.Ui.State.Train.TimetableEdit
 
             // 拒否か、公開が先に届いていれば解く。まだなら時間切れを仕掛けて公開を待つ
             // Release on refusal or when the publication already arrived; otherwise arm the timeout and wait
-            if (result is UiCommandRejected || TimetableEditLogic.SameStopOrder(stops, _serverStops)) BackToIdle();
+            if (result is UiCommandRejected || TimetableEditLogic.SameStopOrder(stops, Server.Stops)) BackToIdle();
             else _phase = new AwaitingPublicationPhase(stops, _timer.After(PublicationTimeout).Subscribe(_ => ReleaseMissingPublication()));
             Publish();
         }
@@ -1633,7 +1654,7 @@ namespace Client.Ui.State.Train.TimetableEdit
             {
                 SendingPhase sending => sending.Stops,
                 AwaitingPublicationPhase awaiting => awaiting.Stops,
-                _ => _serverStops,
+                _ => Server.Stops,
             };
             IsPending = _phase is not IdlePhase;
             _onDisplayChanged.OnNext(Unit.Default);
@@ -1679,6 +1700,7 @@ namespace Client.Ui.State.Train.TimetableEdit
 
 ```csharp
 using System.Collections.Generic;
+using System.Linq;
 using Client.Ui.State.Train.Logic;
 using Client.Ui.State.Train.Timetable;
 
@@ -1720,7 +1742,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         public bool HasSameContent(TrainTimetableSectionViewModel other)
         {
             return CurrentIndex == other.CurrentIndex && IsPending == other.IsPending && IsAutoRun == other.IsAutoRun && CanEnableAutoRun == other.CanEnableAutoRun
-                   && TrainTimetableValueEquality.SameItems(Stops, other.Stops) && TrainTimetableValueEquality.SameItems(Stations, other.Stations);
+                   && Stops.SequenceEqual(other.Stops) && Stations.SequenceEqual(other.Stations);
         }
     }
 }
@@ -1751,7 +1773,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             if (current is ReadyTrainTimetableArea currentReady && next is ReadyTrainTimetableArea nextReady)
             {
-                return currentReady.TrainUnitInstanceId.Equals(nextReady.TrainUnitInstanceId) && currentReady.Section.HasSameContent(nextReady.Section);
+                return currentReady.IsSameTrain(nextReady) && currentReady.Section.HasSameContent(nextReady.Section);
             }
             return ReferenceEquals(current, next);
         }
@@ -1776,6 +1798,13 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             TrainUnitInstanceId = trainUnitInstanceId;
             Section = section;
+        }
+
+        // 同じ列車か。View は列車の型（Game.Block.Interface）を参照できないのでこれで区画の作り直しを決める
+        // Whether it is the same train; the View cannot reference the train type (Game.Block.Interface), so it decides section rebuilds with this
+        public bool IsSameTrain(ReadyTrainTimetableArea other)
+        {
+            return TrainUnitInstanceId.Equals(other.TrainUnitInstanceId);
         }
     }
 }
@@ -1833,7 +1862,6 @@ namespace Client.Ui.State.Train.TimetableEdit
         private readonly ReactiveProperty<TrainTimetableAreaViewModel> _current = new(TrainTimetableAreaViewModel.Unavailable);
         private readonly SerialDisposable _sessionSubscription = new();
         private TrainTimetableEditSession _session;
-        private TrainTimetableReadyData _server;
 
         public IReadOnlyReactiveProperty<TrainTimetableAreaViewModel> Current => _current;
 
@@ -1887,28 +1915,27 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             // 列車が替わったら編集を作り直し（Web の key=trainUnitId）、同じ列車ならサーバーの並びを編集へ渡す
             // A different train rebuilds the session (Web key=trainUnitId); the same train hands the server order to the session
-            if (_session == null || !_server.TrainUnitInstanceId.Equals(data.TrainUnitInstanceId))
+            if (_session == null || !_session.Server.TrainUnitInstanceId.Equals(data.TrainUnitInstanceId))
             {
                 OpenSession(data);
                 return;
             }
-            _server = data;
-            _session.ReceiveServerStops(data.Stops);
+            _session.ReceiveServer(data);
         }
 
         private void OpenSession(TrainTimetableReadyData data)
         {
             CloseSession();
-            _server = data;
-            _session = new TrainTimetableEditSession(_commands, _timer, _toaster, data.Stops);
+            _session = new TrainTimetableEditSession(_commands, _timer, _toaster, data);
             _sessionSubscription.Disposable = _session.OnDisplayChanged.Subscribe(_ => PublishSection());
             PublishSection();
         }
 
         private void PublishSection()
         {
-            var section = TrainTimetableSectionViewModel.Build(_server, _session.DisplayedStops, _session.IsPending);
-            Publish(TrainTimetableAreaViewModel.Ready(_server.TrainUnitInstanceId, section));
+            var server = _session.Server;
+            var section = TrainTimetableSectionViewModel.Build(server, _session.DisplayedStops, _session.IsPending);
+            Publish(TrainTimetableAreaViewModel.Ready(server.TrainUnitInstanceId, section));
         }
 
         private void Publish(TrainTimetableAreaViewModel next)
@@ -1923,7 +1950,6 @@ namespace Client.Ui.State.Train.TimetableEdit
             _sessionSubscription.Disposable = null;
             _session?.Close();
             _session = null;
-            _server = null;
         }
 
         private bool HasOpenSession(string operation)
@@ -1941,12 +1967,12 @@ namespace Client.Ui.State.Train.TimetableEdit
     }
 }
 ```
-（`_session?.Close()` は「開いていない」を表す内部の寿命の分岐で、外部データの null チェックではない。`_session` と `_server` は常に一緒に立つ・倒れる）
+（`_session?.Close()` は「開いていない」を表す内部の寿命の分岐で、外部データの null チェックではない。サーバーの時刻表はセッションが持つので、組で立てる・倒すフィールドは無い〈レビュー r2 の 5-A1〉）
 
 - [ ] **Step 7: テストを回してコミット**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableEditSessionTest|TrainTimetableDepartureTest|TrainTimetableEditModelTest"`
-Expected: `ErrorCount: 0`、9 件 PASS。`UniTaskCompletionSource.TrySetResult` の継続が同期で走らずに `Accept()` 直後の主張が落ちるなら、テスト側で `await UniTask.Yield()` を挟む `[UnityTest]` に替える（本体のコードは替えない）
+Expected: `ErrorCount: 0`、10 件 PASS。`UniTaskCompletionSource.TrySetResult` の継続が同期で走らずに `Accept()` 直後の主張が落ちるなら、テスト側で `await UniTask.Yield()` を挟む `[UnityTest]` に替える（本体のコードは替えない）
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Train/TimetableEdit moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Train
@@ -1961,11 +1987,11 @@ git commit -m "feat(uitk): 時刻表の即時編集・コマンド・編集 Mode
 
 **Files:**
 - Create: `S/Client.Ui.State/Train/Inventory/` の 8 本、`S/Client.Ui.State/Train/Platform/` の 7 本、`S/Client.Ui.State/Train/Platform/Edit/` の 5 本
-- Create: `S/Client.Tests/Ui/State/Train/Inventory/TrainTimetableFetchTriggerTest.cs`・`TrainInventoryTabModelTest.cs`、`S/Client.Tests/Ui/State/Train/Platform/TrainStationNameDraftTest.cs`・`TrainPlatformDetailReaderTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/FakeTrainBlockCommands.cs`
+- Create: `S/Client.Tests/Ui/State/Train/Inventory/TrainTimetableFetchTriggerTest.cs`・`TrainInventoryTabModelTest.cs`、`S/Client.Tests/Ui/State/Train/Platform/TrainStationNameDraftTest.cs`・`TrainPlatformDetailReaderTest.cs`・`TrainPlatformEditModelTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/FakeTrainBlockCommands.cs`
 - Modify: `S/Client.Tests/Ui/State/Train/Fakes/FakeTrainSources.cs`（貨車・プラットフォームの口を足す）
 
 **Interfaces:**
-- Consumes: alpha の `IBlockInventoryPanelSource`・`OpenTrainInventoryPanel`・`OpenBlockInventoryPanel`（`ItemSlots`・`Error`・`Components.Body`・`BlockType`）・`BlockInventoryPanelState.IsSamePanel`、L0-s4b の `BlockComponentRegistry`・`BlockInventoryBodyKind.TrainPlatform`・`BlockFluidSlotState`、S4-machine の `IBlockFluidSlotsModel.Current`（`BlockFluidSlotsViewModel.Slots`。液体 PF は追跡ブロックの `FluidMachineInventoryStateDetail` から入る。D-17）と `BlockFluidSlotConversion.FromTanks`、`OpenBlockDetailTracker`、`SubInventoryState`、Task 4 の `ITrainTimetableCommands`、Task 3 の `ITrainTimetableSource.Refresh`
+- Consumes: alpha の `IBlockInventoryPanelSource`・`OpenTrainInventoryPanel`・`OpenBlockInventoryPanel`（`ItemSlots`・`Error`・`Components.Body`・`BlockType`）・`BlockInventoryPanelState.IsSamePanel`、L0-s4b の `BlockComponentRegistry`・`BlockInventoryBodyKind.TrainPlatform`・`BlockFluidSlotState`、S4-machine の `IBlockFluidSlotsModel.Current`（`BlockFluidSlotsViewModel.Slots`。液体 PF は追跡ブロックの `FluidMachineInventoryStateDetail` から入る。D-17）と `BlockFluidSlotConversion.FromTanks`、`OpenBlockDetailTracker`、`SubInventoryState`、Task 4 の `ITrainTimetableCommands`、Task 3 の `ITrainTimetableSource`
 - Produces:
 ```csharp
 namespace Client.Ui.State.Train.Inventory
@@ -2002,8 +2028,8 @@ using UniRx;
 namespace Client.Tests.Ui.State.Train.Fakes
 {
     /// <summary>
-    /// 3 つの源の偽物。値はテストが Set で押し込み、Refresh は回数だけ数える
-    /// Fakes of the three sources; tests push values with Set and Refresh only counts calls
+    /// 3 つの源の偽物。値はテストが Set で押し込む
+    /// Fakes of the three sources; tests push values with Set
     /// </summary>
     public sealed class FakeTrainSources : ITrainTimetableSource, ITrainInventoryBodySource, ITrainPlatformBodySource
     {
@@ -2011,15 +2037,9 @@ namespace Client.Tests.Ui.State.Train.Fakes
         private readonly ReactiveProperty<TrainInventoryBodyViewModel> _body = new(TrainInventoryBodyViewModel.Closed);
         private readonly ReactiveProperty<TrainPlatformBodyState> _platform = new(TrainPlatformBodyState.Closed);
 
-        public int RefreshCount { get; private set; }
         IReadOnlyReactiveProperty<TrainTimetableViewState> ITrainTimetableSource.Current => _timetable;
         IReadOnlyReactiveProperty<TrainInventoryBodyViewModel> ITrainInventoryBodySource.Current => _body;
         IReadOnlyReactiveProperty<TrainPlatformBodyState> ITrainPlatformBodySource.Current => _platform;
-
-        public void Refresh()
-        {
-            RefreshCount++;
-        }
 
         public void SetTimetable(TrainTimetableViewState state)
         {
@@ -2156,14 +2176,13 @@ namespace Client.Tests.Ui.State.Train.Inventory
         }
 
         [Test]
-        public void タブを選ぶと取得を頼みすぐ時刻表の源を組み直させる()
+        public void 使えないの間でもタブを選ぶと取得を1回頼む()
         {
-            // Fetcher は取得中を通知しないので、頼んだ直後に源を組み直させて読込中を出す
-            // The Fetcher raises no in-flight notification, so the source is rebuilt right after asking to show Loading
+            // 取得中の表示は Fetcher の開始の通知が運ぶ（Tracker 経由。Hostless のプローブで確かめる）。ここは頼む回数だけ
+            // Loading is carried by the Fetcher start notification (via the tracker; checked in the Hostless probe); here only the request count
             _sources.SetTimetable(TrainTimetableViewState.Unavailable);
             _model.SelectTab(TrainInventoryTab.Timetable);
             Assert.AreEqual(1, _commands.OpenRequestCount);
-            Assert.AreEqual(1, _sources.RefreshCount);
         }
 
         [Test]
@@ -2220,6 +2239,58 @@ namespace Client.Tests.Ui.State.Train.Platform
             draft.Sync("中央駅");
             draft.Sync("中央駅2");
             Assert.AreEqual("中央駅2", draft.Input);
+        }
+    }
+}
+```
+
+`TrainPlatformEditModelTest.cs`（送った回の下書きだけを巻き戻す。D-25）:
+
+```csharp
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.State.Train.Fakes;
+using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Items;
+using Client.Ui.State.Toast;
+using Client.Ui.State.Train.Platform;
+using Client.Ui.State.Train.Platform.Edit;
+using NUnit.Framework;
+using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+
+namespace Client.Tests.Ui.State.Train.Platform
+{
+    public class TrainPlatformEditModelTest
+    {
+        [Test]
+        public void 閉じて同じ駅を開き直した後に戻った拒否は新しい入力を消さない()
+        {
+            var panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation)));
+            var sources = new FakeTrainSources();
+            sources.SetPlatform(new OpenTrainPlatformBody(new TrainStationNamePart("北駅"), new List<SlotItem>(), new List<BlockFluidSlotState>(), TrainPlatformTransferMode.LoadToTrain));
+            var commands = new FakeTrainBlockCommands();
+            var model = new TrainPlatformEditModel(panels, sources, commands, new UiCommandResultToaster(new GameUiToastFeed()));
+            model.Initialize();
+
+            // 駅で送ってから閉じ、同じ駅を開き直して打ち直す（パネルの識別は同じ駅なので IsSamePanel では見分けられない）
+            // Send, close, reopen the same station and type again (IsSamePanel cannot tell it apart: same station)
+            model.EditStationName("南駅");
+            model.ApplyStationName();
+            panels.State.Value = BlockInventoryPanelState.Closed;
+            panels.State.Value = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation);
+            model.EditStationName("東駅");
+
+            // 前の回の拒否はトーストとログだけで、新しい入力は打った値のまま
+            // The earlier refusal only toasts and logs; the new input keeps the typed value
+            LogAssert.Expect(LogType.Warning, new Regex(@"train_station\.set_name failed"));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainStationName\] set_name refused after the draft was replaced"));
+            commands.Reject("set_name_failed:busy");
+            Assert.AreEqual("東駅", model.StationNameInput.Value);
         }
     }
 }
@@ -2287,7 +2358,7 @@ namespace Client.Tests.Ui.State.Train.Platform
 ```
 （`TestBlockParams` は各 `BlockParam` をテスト用 mod のブロックマスタから引く小さな補助を同じファイルの下に置く。`MasterHolder.BlockMaster` から `BlockType` で最初の 1 つを取り `BlockParam` を返す。`TrainStationNameStateDetail(string)`・`TrainPlatformTransferStateDetail(TransferMode)` の ctor は実物で確かめた）
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainInventoryTabModelTest|TrainStationNameDraftTest|TrainPlatformDetailReaderTest"`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainInventoryTabModelTest|TrainStationNameDraftTest|TrainPlatformDetailReaderTest|TrainPlatformEditModelTest"`
 Expected: コンパイルエラー（型が無い）
 
 - [ ] **Step 2: 貨車側の値と源を書く**
@@ -2546,17 +2617,16 @@ namespace Client.Ui.State.Train.Inventory
             _tab.Value = TrainInventoryTab.Inventory;
         }
 
-        // 頼んだ直後に源を組み直させ、取得中を出す。Fetcher は通知を出さず、重複の依頼は畳む
-        // Rebuild the source right after asking to show Loading; the Fetcher raises no notification and folds duplicates
+        // 取得中の表示は Fetcher の開始の通知で源が組み直して出す（D-20）。重複の依頼は Fetcher が畳む
+        // Loading shows when the source rebuilds on the Fetcher's start notification (D-20); the Fetcher folds duplicates
         private void RequestOpen()
         {
             _commands.RequestOpen();
-            _timetable.Refresh();
         }
     }
 }
 ```
-（`Refresh` で読込中が配られると上の購読がもう一度 `RequestOpen` を呼ぶ。Web も同じく 2 回送り、`TrainTimetableFetcher.RequestForOpenedTab` が同じ列車の依頼を畳むので通信は 1 回。2 回目の `Refresh` は同じ読込中で配り直さない〈`IsSameState`〉ので連鎖は止まる。D-20）
+（開始の通知で読込中が配られると上の購読がもう一度 `RequestOpen` を呼ぶ。Web も同じく 2 回送り、`TrainTimetableFetcher.RequestForOpenedTab` が同じ列車の依頼を畳む〈開始の通知も出ない〉ので通信は 1 回。D-20）
 
 - [ ] **Step 3: プラットフォーム側の値と源を書く**
 
@@ -2850,7 +2920,7 @@ namespace Client.Ui.State.Train.Platform.Edit
 
         public async UniTask<UiCommandResult> SetStationName(string name)
         {
-            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.Reject(StationLogTag, "block_not_open");
+            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.BlockNotOpen(StationLogTag);
             if (blockType != BlockTypeConst.TrainStation) return TrainCommandRejection.Reject(StationLogTag, "invalid_block_type");
 
             // 応答はネットワーク由来なので null を拒否として扱う
@@ -2864,7 +2934,7 @@ namespace Client.Ui.State.Train.Platform.Edit
         {
             // 本文の種類はパネルと同じ登録表で判定する（blockType を並べない）
             // The body kind is judged by the same registry as the panel (no blockType list)
-            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.Reject(PlatformLogTag, "block_not_open");
+            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.BlockNotOpen(PlatformLogTag);
             if (BlockComponentRegistry.Resolve(blockType).Body != BlockInventoryBodyKind.TrainPlatform) return TrainCommandRejection.Reject(PlatformLogTag, "invalid_block_type");
 
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(source.BlockPosition, TrainPlatformTransferModeConversion.ToServer(mode), CancellationToken.None);
@@ -2994,7 +3064,7 @@ namespace Client.Ui.State.Train.Platform.Edit
 
         public void ApplyStationName()
         {
-            ApplyAsync(_panel, _draft.Input).Forget();
+            ApplyAsync(_draft, _draft.Input).Forget();
         }
 
         // 選択は替えず目標のモードを送るだけ。結果は公開で反映され、拒否だけトーストへ
@@ -3019,17 +3089,17 @@ namespace Client.Ui.State.Train.Platform.Edit
             _stationNameInput.Value = _draft.Input;
         }
 
-        private async UniTaskVoid ApplyAsync(BlockInventoryPanelState panelAtSend, string name)
+        private async UniTaskVoid ApplyAsync(TrainStationNameDraft draftAtSend, string name)
         {
             var result = await _commands.SetStationName(name);
             _toaster.Report(SetNameCommandName, result);
             if (result is not UiCommandRejected) return;
 
-            // 別のパネルへ移った後なら戻す入力が無い。同じパネルなら最新の同期名へ戻す
-            // After moving to another panel there is no input to revert; on the same panel return to the latest synced name
-            if (!_panel.IsSamePanel(panelAtSend))
+            // 下書きは閉じる・別のパネルのたびに作り直すので、開閉の世代も兼ねる。送った回の下書きが今のものでなければ戻さない
+            // Drafts are rebuilt on every close or panel change, so they double as the open generation; revert only the draft that sent
+            if (!ReferenceEquals(_draft, draftAtSend))
             {
-                Debug.LogWarning("[TrainStationName] set_name refused after the panel changed; nothing to revert");
+                Debug.LogWarning("[TrainStationName] set_name refused after the draft was replaced; nothing to revert");
                 return;
             }
             _draft.Reject();
@@ -3047,8 +3117,8 @@ namespace Client.Ui.State.Train.Platform.Edit
 
 - [ ] **Step 5: テストを回してコミット**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainInventoryTabModelTest|TrainStationNameDraftTest|TrainPlatformDetailReaderTest"`
-Expected: `ErrorCount: 0`、8 件 PASS
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainInventoryTabModelTest|TrainStationNameDraftTest|TrainPlatformDetailReaderTest|TrainPlatformEditModelTest"`
+Expected: `ErrorCount: 0`、9 件 PASS
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Train moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Train
