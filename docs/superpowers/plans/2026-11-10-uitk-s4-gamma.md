@@ -98,7 +98,7 @@ Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot �
 - 番号: 設計書 §7.1 は A-175〜A-179、台帳は LX-141〜LX-145 だけを使う
 - 報告: `../moorestech_logs/harness/uitk/S4-gamma/done.md`（1 行目は「状態: 進行中／停止／完了」）。`moorestech_logs` で作業する前に同 repo の `README.md` を読む
 - CI の `Unity Test - client-remainder` で落ちる `UnityCursorTooltipScreenTest` 1 件は既存の失敗。マージの条件は G1 緑と、それ以外の必須ジョブの緑
-- 新しい共有の申告: 検査用の口（`PlaytestTrainLine`・`PlaytestPanelCostRecorder`・`PlaytestAnchorChecks`）は DSL の Operations の新しいサブディレクトリ `Ladder/` に置き、既存の Operations のファイルは変えない。既存の `PlaytestDriver` に足したくなったら足さずに `done.md`「integrator への依頼」へ書く（`PlaytestDriver` は 199 行。A-111 の前例）
+- 新しい共有の申告: 検査用の口（`PlaytestTrainLine`・`PlaytestPanelCostRecorder`・`PlaytestAnchorChecks`）のうち、列車線と CPU 時間は DSL の Operations の新しいサブディレクトリ `Ladder/`（段の締めのラダーの準備と計測。名前空間は `ServerSnapshots/`・`ScenarioChecks/` と同じ平らな `Client.Playtest.Operations`）、アンカーの照合はシナリオ用の照合の前例 `ScenarioChecks/`（`PlaytestPlacementGuideChecks`）に置き、既存の Operations のファイルは変えない。サーバーの値は既存の `ServerSnapshots/`（`WaitForItemCount` 等）か `RunOnServer` で読み、メインスレッドから直に読まない。既存の `PlaytestDriver` に足したくなったら足さずに `done.md`「integrator への依頼」へ書く（`PlaytestDriver` は 199 行。A-111 の前例）
 
 ## 設計検査記録
 
@@ -118,6 +118,8 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 | 既存の録画シナリオ 114 本 | 生きる | 既存のシナリオを書き換えない（新規 5 本だけ）。DSL の既存 Operations も変えない |
 | `docs/uitk/TODO.md` を読む G1 | 生きる | 束 4 の行の状態・起点と追従記録の行を足すだけ。書式は「## 読み方と運用」に従い、`check-uitk-web-follow.py` をローカルで回して確かめる（Task 2） |
 | `test-name-parity.mjs` を読む L2 | 生きる | 処遇の表に行を足すだけ。終了コード 2（書式の誤り）でないことを Task 10 で確かめる |
+| `tools/uitk/testNameParity/ledgerBundles.mjs`（台帳の束の表・`## 行` を読む） | 生きる | Task 2 で束 4 の状態の列だけを `暗転` にし、行の形は変えない。Task 10・Task 15 Step 2 で parity を流して読めることを見る |
+| `LookExceptionLedgerTest`（台帳の `## 見た目の例外` を読む） | 生きる | gamma はその節を書かない（LX の行と印は I-fix が置く）。Task 12 の取り込み後のテストで巻き込まれていないことを見る |
 
 ## File Structure
 
@@ -128,7 +130,7 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 | `…/Ui/Stage4/Stage4ExpectedSurfaces.cs` | 新規 | 画面ごとに見えるべき面と、面ごとの列の名前（Web の `App.tsx` と `UiScreenTraitsTable` から写した表） |
 | `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestTrainLine.cs` | 新規 | 駅 2 基・結線・機関車の解放と設置・燃料・列車の取得（既存 `train-timetable-via-ui.cs` の準備の写し。駅名は付けない） |
 | `…/Operations/Ladder/PlaytestPanelCostRecorder.cs` | 新規 | `ProfilerRecorder` で UI のマーカーを N フレーム読み、平均・p95・最大を返す |
-| `…/Operations/Ladder/PlaytestAnchorChecks.cs` | 新規 | マスタの `uiHighLight` を集め、アンカーの解決と枠の位置を確かめる |
+| `…/Operations/ScenarioChecks/PlaytestAnchorChecks.cs` | 新規 | マスタの `uiHighLight` を集め、アンカーの解決と枠の位置を確かめる |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-production-loop.cs` | 新規 | ラダー 4 |
 | `…/scenarios/uitk/uitk-research-train.cs` | 新規 | ラダー 5 |
 | `…/scenarios/uitk/uitk-master-anchors.cs` | 新規 | アンカー 9 件 |
@@ -139,7 +141,7 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 | `docs/uitk/TODO.md` | 変更（共有区画） | 束 4 の行（暗転・起点）、「## 追従記録」の束 4 の行、「## 実測の結論」の 3 行（CPU・全録画 UITK・全録画 Web）、「## 参照キャプチャ」の自撮りの置き場 |
 | `docs/uitk/disposition.md` | 変更（共有区画） | `detailActions.test.ts` 3 件の処遇の行、「## 突き合わせの記録」の 1 行 |
 
-ディレクトリのファイル数: `Ui/Stage4/` 3、`Operations/Ladder/` 3、`scenarios/uitk/` は起草時 12 本＋S2〜S4 の各レーンが足す分＋この 5 本（シナリオは C# のアセンブリに入らないファイルで、10 ファイルの規則は `.cs` のコードのディレクトリに当てる前例どおり既存の 12 本が既に超えている。D-8）。`tools/uitk/` は Task 1 Step 4 で数え、10 を超えるなら `tools/uitk/recordings/` へ 2 本を置く。
+ディレクトリのファイル数: `Ui/Stage4/` 3、`Operations/Ladder/` 2、`Operations/ScenarioChecks/` 1→2、`scenarios/uitk/` は起草時 12 本＋S2〜S4 の各レーンが足す分＋この 5 本（シナリオは C# のアセンブリに入らないファイルで、10 ファイルの規則は `.cs` のコードのディレクトリに当てる前例どおり既存の 12 本が既に超えている。D-8）。`tools/uitk/` は Task 1 Step 4 で数え、10 を超えるなら `tools/uitk/recordings/` へ 2 本を置く。
 
 **他レーンとの所有の境界**: L3 は他レーンの View・USS を読むだけ（名前とクラス）。シナリオは他レーンの testid を `ClickUi`・`UntilUiElement` で使うだけ。名前が計画と違っていたら Task 1 Step 2 の照合表で読み替え、gamma のファイルの側を直す（他レーンへ名前の変更を求めない。D-5）。
 
@@ -338,7 +340,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
 - [ ] **Step 2: 面を読む関数を書く**
 
 ```csharp
-using UnityEngine;
+using Client.Playtest.UiElements.GameUi;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
@@ -354,17 +356,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
             return root.Query(name: name).ToList().Count;
         }
 
+        // 見えるかの判定は DSL のロケータと同じ 1 か所を使う（InternalsVisibleTo("Client.Tests")）
+        // Use the DSL locator's single visibility rule (InternalsVisibleTo("Client.Tests"))
         public static bool IsVisible(VisualElement element)
         {
-            // 自分と祖先のどれかが消えていれば見えない
-            // Hidden when the element or any ancestor is hidden
-            for (var current = element; current != null; current = current.parent)
-            {
-                var style = current.resolvedStyle;
-                if (style.display == DisplayStyle.None || style.visibility == Visibility.Hidden || style.opacity <= 0f) return false;
-            }
-            var bound = element.worldBound;
-            return 0f < bound.width && 0f < bound.height;
+            return GameUiElementQuery.IsVisible(element);
         }
 
         public static string ColumnNameOf(VisualElement element)
@@ -583,12 +579,12 @@ git commit -m "test(uitk): 段階 4 の同時に出る組を実ゲームで巡�
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestTrainLine.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestPanelCostRecorder.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestAnchorChecks.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs`
 
 **Interfaces:**
 - Consumes: `PlaytestDriver`（`SetupFlatGround`・`WarpPlayer`・`PlaceBlockDirect`・`WaitBlockGameObject`・`GetBlock`・`RunOnServer`・`Until`・`Assert`・`GiveItemDirect`・`SendCommand`・`WaitSeconds`・`AimAt`）、`RailComponent`・`TrainStationComponent`・`StationNodeRole`、`ClientContext.VanillaApi.Response.PlaceTrainOnRail`、`ITrainUnitLookupDatastore`、`MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements`、`TutorialsElement.TutorialTypeConst.uiHighLight`・`UiHighLightTutorialParam.HighLightAnchorId`、`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`ITutorialView.CompleteTutorial()`、`TutorialAnchorRegistry.Resolve(VisualElement, string)`、`GameUiRoot.Instance.GetRootElement()`、`ProfilerRecorderHandle.GetAvailable`・`ProfilerRecorder.StartNew`
 - Produces:
-  - `PlaytestTrainLineSetup`（`IBlock StationA`・`IBlock StationB`・`Vector3Int StationAPosition`・`StationBPosition`・`TrainUnit Train`）、`PlaytestTrainLine.Build(PlaytestDriver p, Vector3Int stationAPosition, Vector3Int stationBPosition)` → `UniTask<PlaytestTrainLineSetup>`、`PlaytestTrainLine.AimAtCar(PlaytestDriver p)`、`PlaytestTrainLine.AimAtStation(PlaytestDriver p, Vector3Int stationPosition)`
+  - `PlaytestTrainLineSetup`（`IBlock StationA`・`IBlock StationB`・`Vector3Int StationAPosition`・`StationBPosition`・`TrainUnit Train`）、`PlaytestTrainLine.Build(PlaytestDriver p, Vector3Int stationAPosition, Vector3Int stationBPosition)` → `UniTask<PlaytestTrainLineSetup>`、`PlaytestTrainLine.AimAtCar(PlaytestDriver p)`、`PlaytestTrainLine.AimAtStation(PlaytestDriver p, Vector3Int stationPosition)`、`PlaytestTrainLine.WaitForStationName(PlaytestDriver p, IBlock station, string expected, float timeoutSeconds)`
   - `PlaytestPanelCost`（`int Frames`・`double MeanMs`・`P95Ms`・`MaxMs`・`string Markers`）、`PlaytestPanelCostRecorder.FindPanelMarkers()` → `IReadOnlyList<ProfilerRecorderDescription>`、`PlaytestPanelCostRecorder.Measure(IReadOnlyList<ProfilerRecorderDescription> markers, int frames)` → `UniTask<PlaytestPanelCost>`
   - `PlaytestMasterAnchor`（`string AnchorId`・`Guid TutorialGuid`・`Guid ChallengeGuid`・`string ChallengeTitle`）、`PlaytestAnchorChecks.CollectUiHighlightAnchors()` → `IReadOnlyList<PlaytestMasterAnchor>`、`PlaytestAnchorChecks.CheckOutlineOnAnchor(PlaytestDriver p, PlaytestMasterAnchor anchor)` → `UniTask`（照合は `p.Assert` で記録する）
 
@@ -613,7 +609,7 @@ using UnityEngine;
 using VContainer;
 using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarEntityObject;
 
-namespace Client.Playtest.Operations.Ladder
+namespace Client.Playtest.Operations
 {
     // 駅 2 基と機関車を置いた列車線の準備結果
     // The prepared line of two stations and a locomotive
@@ -713,6 +709,20 @@ namespace Client.Playtest.Operations.Ladder
             await p.WaitSeconds(0.5f);
         }
 
+        public static async UniTask WaitForStationName(PlaytestDriver p, IBlock station, string expected, float timeoutSeconds)
+        {
+            // 駅名はサーバーのスレッドで読む（tick と競合させない。PlaytestBlockSnapshots と同じ形）
+            // Read the station name on the server thread (no tick race; same shape as PlaytestBlockSnapshots)
+            var name = "";
+            for (var elapsed = 0f; elapsed < timeoutSeconds; elapsed += 0.2f)
+            {
+                await p.RunOnServer("駅名を読む", () => name = station.GetComponent<TrainStationComponent>().StationName);
+                if (name == expected) break;
+                await p.WaitSeconds(0.2f);
+            }
+            p.Assert(name == expected, $"サーバーの駅名が {expected} になる（{name}）");
+        }
+
         private static async UniTask<Bounds> StationBounds(PlaytestDriver p, Vector3Int stationPosition)
         {
             var blockObject = await p.WaitBlockGameObject(stationPosition);
@@ -737,7 +747,7 @@ using Cysharp.Threading.Tasks;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel.Unsafe;
 
-namespace Client.Playtest.Operations.Ladder
+namespace Client.Playtest.Operations
 {
     // UI のパネル更新と描画のマーカーを N フレーム読んだ結果（ms）
     // The UI panel update and repaint markers read over N frames (ms)
@@ -822,7 +832,7 @@ using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Playtest.Operations.Ladder
+namespace Client.Playtest.Operations
 {
     // マスタのチュートリアルが指すアンカー 1 件
     // One anchor a master tutorial points at
@@ -907,15 +917,15 @@ namespace Client.Playtest.Operations.Ladder
 Run:
 ```bash
 uloop compile --project-path ./moorestech_client
-wc -l moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs
+wc -l moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs
 ```
-Expected: `ErrorCount: 0`、3 本とも 200 行未満。`Func<>`・`partial`・`try` が無いことを `grep -n "Func<\|partial \|try" moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs` が 0 件で見る
+Expected: `ErrorCount: 0`、3 本とも 200 行未満。`Func<>`・`partial`・`try` が無いことを `grep -n "Func<\|partial \|try" moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs` が 0 件で見る
 
 - [ ] **Step 5: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder
-git commit -m "feat(playtest): ラダー用の列車線・CPU 時間・アンカー照合の口を足す（S4-gamma）" -- moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder
+git add moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs
+git commit -m "feat(playtest): ラダー用の列車線・CPU 時間・アンカー照合の口を足す（S4-gamma）" -- moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks
 ```
 
 ---
@@ -971,12 +981,10 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.ExitToGameScreen();
     p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（UITK側）");
 
-    var items = MasterHolder.ItemMaster;
-    ItemId Id(string name) => items.GetItemAllIds().First(id => items.GetItemMaster(id).Name == name);
-    var log = Id("原木");
-    var plank = Id("木の板");
-    var bronzeDust = Id("青銅鉱石の粉");
-    var ingot = Id("青銅インゴット");
+    var log = PlaytestItemOps.ResolveItemId("原木");
+    var plank = PlaytestItemOps.ResolveItemId("木の板");
+    var bronzeDust = PlaytestItemOps.ResolveItemId("青銅鉱石の粉");
+    var ingot = PlaytestItemOps.ResolveItemId("青銅インゴット");
     await p.GiveItem("原木", 12);
     await p.GiveItem("青銅鉱石の粉", 4);
 
@@ -1019,7 +1027,9 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     SemanticInput.KeyDown(Key.LeftShift);
     await p.ClickUi(MainSlotOf(bronzeDust));
     SemanticInput.KeyUp(Key.LeftShift);
-    await p.Until(() => KilnHas(log) && KilnHas(bronzeDust), 10f, "石窯の入力に原木と粉が入る（サーバー）");
+    var kilnInventory = p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>();
+    await p.WaitForItemCount(kilnInventory, log, 1, null, 10f, "石窯の入力に原木が入る（サーバー）");
+    await p.WaitForItemCount(kilnInventory, bronzeDust, 1, null, 10f, "石窯の入力に粉が入る（サーバー）");
 
     // 残りの原木を掴み右ドラッグで空き 3 枠へ配る
     // Grab the remaining logs and right-drag them across three empty slots
@@ -1033,7 +1043,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
 
     // 開いたまま出来上がりが出力枠に出るのを見る（機械 UI を開いたまま中身が更新される録画）
     // Watch the ingot appear in the output while the UI stays open
-    await p.Until(() => KilnHas(ingot), 20f, "石窯で青銅インゴットができる（サーバー）");
+    await p.WaitForItemCount(kilnInventory, ingot, 1, null, 20f, "石窯で青銅インゴットができる（サーバー）");
     await PlaytestUiElementOps.WaitUiTextContains("machine-output-slots", "1", 10f);
     await p.Screenshot("04-output-while-open");
 
@@ -1057,7 +1067,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     ILocalPlayerInventory Local() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
     string MainSlotOf(ItemId id) => $"main-slot-{Enumerable.Range(0, Local().MainSlotCount).First(i => Local()[i].Id == id)}";
     int[] EmptyMainSlots(int count) => Enumerable.Range(0, Local().MainSlotCount).Where(i => Local()[i].Id == ItemMaster.EmptyItemId).Take(count).ToArray();
-    bool KilnHas(ItemId id) => p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Any(s => s.Id == id && 0 < s.Count);
 
     async UniTask HoldOn(string testid, float seconds)
     {
@@ -1081,7 +1090,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     #endregion
 });
 ```
-`KilnHas` はサーバーのブロックを読む（`p.GetBlock` は既存のシナリオがサーバーの値の読みに使う形）。tick と競合した読みで例外が出たら bd moorestech-xyuaf.2.10 の既知の問題として `p.RunOnServer` で包む形へ直す。`ItemId.AsPrimitive()`（PlaytestItemOps と同じ）・`ItemMaster.EmptyItemId` の綴りは Task 1 Step 2 で `item-list-cell-` の作り方と一緒に確かめる。`machine-input-slots-slot-0`・`machine-output-slots-slot-0` は照合表の実物の名前へ読み替える
+石窯の中身は既存の `PlaytestBlockSnapshots.WaitForItemCount`（サーバーのスレッドで複製して読む）で待つ。`ItemId.AsPrimitive()`（PlaytestItemOps と同じ）・`ItemMaster.EmptyItemId` の綴りは Task 1 Step 2 で `item-list-cell-` の作り方と一緒に確かめる。`machine-input-slots-slot-0`・`machine-output-slots-slot-0` は照合表の実物の名前へ読み替える
 
 - [ ] **Step 2: 系を UITK にして流す**
 
@@ -1133,11 +1142,8 @@ using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
-using Client.Playtest.Operations.Ladder;
-using Client.Playtest.Operations.ServerSnapshots;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
-using Game.Block.Blocks.TrainRail;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -1186,12 +1192,7 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     await p.WaitUiState(UIStateEnum.SubInventory, 10f);
     await p.SetText("train-station-name-input", "南駅");
     await p.ClickUi("train-station-name-apply");
-    string serverName = null;
-    await p.Until(() =>
-    {
-        serverName = line.StationB.GetComponent<TrainStationComponent>().StationName;
-        return serverName == "南駅";
-    }, 10f, "サーバーの駅名が南駅になる");
+    await PlaytestTrainLine.WaitForStationName(p, line.StationB, "南駅", 10f);
     await p.Screenshot("02-station-named");
     await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -1239,7 +1240,7 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     #endregion
 });
 ```
-S4-train の計画（PLAN-W4a の起草版）では、駅名は `GameTextField(train-station-name-input)`＋`PanelActionButton(train-station-name-apply)` で送り（R-12）、時刻表は適用ボタンを消して追加ごとに即送信し、保留中は `train-timetable-section--busy` で次の追加を捨てる（R-9）。上のコードはその形。`TrainStationComponent.StationName`（起草時の実物）、研究ツリーを開くキー（`R`）、`HasStateFlag` がクラスの印を状態として返すかは Task 1 Step 2・3 の照合表で確かめる。サーバーの駅名の読みで tick と競合したら `p.RunOnServer` で包む
+S4-train の計画（PLAN-W4a の起草版）では、駅名は `GameTextField(train-station-name-input)`＋`PanelActionButton(train-station-name-apply)` で送り（R-12）、時刻表は適用ボタンを消して追加ごとに即送信し、保留中は `train-timetable-section--busy` で次の追加を捨てる（R-9）。上のコードはその形。`TrainStationComponent.StationName`（起草時の実物）、研究ツリーを開くキー（`R`）、`HasStateFlag` がクラスの印を状態として返すかは Task 1 Step 2・3 の照合表で確かめる。サーバーの駅名は `PlaytestTrainLine.WaitForStationName`（`RunOnServer` で読む）で待つ
 
 - [ ] **Step 2: 系を UITK にして流す**
 
@@ -1279,7 +1280,6 @@ using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
-using Client.Playtest.Operations.Ladder;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine.InputSystem;
@@ -1313,7 +1313,7 @@ return PlaytestRunner.Run("uitk-master-anchors", options, async p =>
     // Inventory: select planks, then the craft button and the item cell
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
-    var plank = MasterHolder.ItemMaster.GetItemAllIds().First(id => MasterHolder.ItemMaster.GetItemMaster(id).Name == "木の板");
+    var plank = PlaytestItemOps.ResolveItemId("木の板");
     await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable($"item-list-cell-{plank.AsPrimitive()}", "item-list-scroll", 10f);
     await p.ClickUi($"item-list-cell-{plank.AsPrimitive()}");
     foreach (var a in anchors.Where(a => a.AnchorId == "recipe.craft-button")) await PlaytestAnchorChecks.CheckOutlineOnAnchor(p, a);
@@ -1371,7 +1371,6 @@ using System.Threading;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
-using Client.Playtest.Operations.Ladder;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -1820,12 +1819,12 @@ git commit -m "test(uitk): 段階 4 の波の撮影シナリオを足す（S4-ga
 
 - [ ] **Step 2: 自動適用があれば検査と録画を回し直してコミットする**
 
-自動適用が L3・`Operations/Ladder/`・シナリオ・スクリプトに触れたら、反映後のバイナリで Task 12 Step 2〜3 を再走する（ユニットテストの通過は代替にならない）。続けて:
+自動適用が L3・`Operations/Ladder/`・`PlaytestAnchorChecks`・シナリオ・スクリプトに触れたら、反映後のバイナリで Task 12 Step 2〜3 を再走する（ユニットテストの通過は代替にならない）。続けて:
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4 moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk tools/uitk docs/uitk
+git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4 moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk tools/uitk docs/uitk
 git commit -m "fix(uitk): S4-gamma の moores-code-review 反映
 
-<実行ホストの指示する帰属行>" -- moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4 moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk tools/uitk docs/uitk
+<実行ホストの指示する帰属行>" -- moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4 moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk tools/uitk docs/uitk
 ```
 （自動適用が無ければコミットしない）
 
@@ -1952,6 +1951,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-13 | マスタのアンカーはシナリオがマスタから集め、件数 9 を assert する | ピンが動いたときに表の写し間違いで漏れないように、正本（マスタ）から集めて件数で囲う。件数が変われば落ちて気づく | アンカーの文字列を 9 個書く: ピンの変更で黙って古くなる |
 | D-14 | `recipe.item-<itemId>` はマスタ外の 1 件として 9 件と分けて見る | 統合計画 §4.5 の追加の ID で、マスタは今使っていない。`AnchorIds.RecipeItem(int)` の書式が解決することだけを見る | 見ない: 追加の ID の解決が誰にも確かめられない |
 | D-15 | ラダーとアンカー・撮影は録画の DSL、同時に出る組は L3 で見る | 同時に出る組は「木の構造（列・数・Pick）」の照合で、L3 が速く CI でも回る。ラダーは実操作の流れで、録画が要る（unityプレイ録画テスト） | 全部を録画で: CI で回らない。全部を L3 で: 掴み・長押し・F の流れの録画が残らない |
+| D-16 | 列車線の準備と CPU 時間の計測は `Operations/Ladder/`（新しい役割のサブディレクトリ。名前空間は平らな `Client.Playtest.Operations`）、アンカーの照合は前例の `ScenarioChecks/`、サーバーの値は既存の `ServerSnapshots/` の待ち（`WaitForItemCount`）か `RunOnServer` で読む。品目は `PlaytestItemOps.ResolveItemId`、見えるかは `GameUiElementQuery.IsVisible` を使う。出所: 設計検査（Phase 1〜2.5） | 既存のサブディレクトリは役割で分かれ（`ServerSnapshots`・`ScenarioChecks`・`Ui`）、準備と計測はどれにも当たらない。`Operations/` 直下は既に 10 本。サーバーの値をメインスレッドから読むと tick と競合する（bd moorestech-xyuaf.2.10） | 全部 `Ladder/` に置く: アンカーの照合は `ScenarioChecks` と同じ役割。`Operations/` 直下に置く: 11 本目になる。品目と見え方を自前で書く: 既存の 1 か所と判定が割れる |
 
 ランタイムの挙動（UI・入力）を確かめるので、unityプレイ録画テスト（Task 5・6・7・9・12）と EditModeInPlayingTest（Task 3）を入れた。
 
@@ -1991,7 +1991,7 @@ S4-recipe の D-9（`GameScrollView` のつまみ 5 本）は S4-recipe の計�
 
 ### §2 のカタログ差分
 
-部品の追加・変更は無い（gamma は部品を作らない）。DSL の口 `Client.Playtest/Operations/Ladder/`（`PlaytestTrainLine`・`PlaytestPanelCostRecorder`・`PlaytestAnchorChecks`）を、§2 の検査の基盤の表があればそこへ 1 行で足す案:「`Operations/Ladder/`: 段の締めのラダー・アンカー・CPU の口（S4-gamma）」。
+部品の追加・変更は無い（gamma は部品を作らない）。DSL の口 `Client.Playtest/Operations/Ladder/`（`PlaytestTrainLine`・`PlaytestPanelCostRecorder`）と `Operations/ScenarioChecks/PlaytestAnchorChecks` を、§2 の検査の基盤の表があればそこへ 1 行で足す案:「`Operations/Ladder/`: 段の締めのラダーの準備と UI の CPU の計測。`ScenarioChecks/PlaytestAnchorChecks`: マスタのアンカーの照合（S4-gamma）」。
 
 ### 実行計画 §1.4 の S4-gamma 行の改め案
 
