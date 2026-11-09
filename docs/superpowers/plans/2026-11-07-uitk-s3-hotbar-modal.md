@@ -25,11 +25,11 @@
 | R-5 | 入力の素通し: 帯は拾わず、列だけが拾い、列にホイール素通しの印（`WheelPassthroughMark`）がある（帯には無い） | `HotbarHudPickingTest` が緑（Web `alwaysOnHudWheel.test.ts` の「%s は入力を奪わない」ホットバー帯の行と「クリックを持つスロット列だけが入力を取り戻し…」。bd `moorestech-albof.30`） |
 | R-6 | 世界の上の色（bd `moorestech-albof.34`）: 画面ルートで `--slot-frame-face: var(--hotbar-slot-frame-face)`（α 0.7226）に上書きし、空き枠の面・番号タブの面・未解決と受理外の減光を、ランタイムの PanelSettings（Linear 合成）の明るい地 (240,203,166) と暗い地 (40,42,48) で Web の sRGB 合成と照合する。明るい地で RGB 7 段以内（C3-a の基準）にし、暗い地で外れる分は `LX-76` に記帳する | Task 10 の照合表（EDC の出力）が `done.md` にあり、明るい地の全行が 7 段以内 |
 | R-7 | アイコンが枠の中央に描かれる | `HotbarIconCenteringTest` が緑（Web `placementIconCentering.spec.ts`「ホットバーのアイコンは枠の中央に描かれる」） |
-| R-8 | モーダル: 全体スイッチ UITK では `ModalRequestService.Pending` を UITK だけが描く。`DialogFrame("modal")` に題（`UiText.FromVerbatim(Title)`）、本文（`modal-message`・`text--sm`・`text--dimmed`・下余白 lg）、入力付きなら `GameTextField("modal-input", false, MantineInput)`（下余白 lg・表示時にフォーカス）、`FormButton("modal-button", FromVerbatim(ButtonText), Blue→Filled／Red→Danger)`（入力付きで空白だけなら押せない）。確定は入力付きなら前後の空白を除いた文を、取消は文なしを `IModalCommands.Respond` へ返す。幕のクリックと ESC 1 回（Web の Mantine と同じ。入力欄の変換中を除く。ESC はワールドへ渡さない）は取消。入力欄の外を押しただけでは閉じない。要求 ID が変わったら入力欄を空にする | `ModalViewTest`・`ModalScreenPresenterTest`・`ModalCommandsTest` が緑（Web `modal.spec.ts` 4 件と ESC・欄外の押下の 2 件） |
+| R-8 | モーダル: 全体スイッチ UITK では `ModalRequestService.Pending` を UITK だけが描く。`DialogFrame("modal")` に題（`UiText.FromVerbatim(Title)`）、本文（`modal-message`・`text--sm`・`text--dimmed`・下余白 lg）、入力付きなら `GameTextField("modal-input", false, MantineInput)`（下余白 lg・表示時にフォーカス）、`FormButton("modal-button", FromVerbatim(ButtonText), Blue→Filled／Red→Danger)`（入力付きで空白だけなら押せない）。確定は入力付きなら前後の空白を除いた文を、取消は文なしを `IModalCommands.Respond` へ返す。幕のクリックと ESC 1 回（Web の Mantine と同じ。入力欄の変換中を除く。ESC はワールドへ渡さない。フォーカスの無い ESC は View でなく既存のゲーム入力の経路が BP 名の入力ごと取り消す〈D-11〉）は取消。入力欄の外を押しただけでは閉じない。要求 ID が変わったら入力欄を空にする | `ModalViewTest`・`ModalScreenPresenterTest`・`ModalCommandsTest` が緑（Web `modal.spec.ts` 4 件と ESC・欄外の押下の 2 件）。フォーカスの無い ESC は録画（R-12 の流れ 7b） |
 | R-9 | モーダルは実画面 px で Web と同じ（[A-41]）: 720p・1080p・2560×1080 で幅 440 実画面 px・画面の中央 | `ModalScreenPresenterTest` の倍率 1.5 の主張が緑。並べ比べ（R-10）の 3 解像度 |
 | R-10 | 並べ比べ: 参照 `3-hotbar-equipment-empty`（1280×720・2560×1080）と `3-modal`（1280×720・1920×1080・2560×1080）を UITK と並べ、差の表を `done.md` に書く | 2 状態の組（ホットバー 2 解像度・モーダル 3 解像度）が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれかがある |
 | R-11 | 登録: `MainGameUiRegistration` の画面登録区画に 2 行（`HotbarGameUiRegistration.Register(builder);`・`ModalGameUiRegistration.Register(builder);`）。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行。BP 名のブリッジは確定の検証を `ModalLogic.HasConfirmableText` に委ねる | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が緑 |
-| R-12 | 録画 `uitk/uitk-hotbar-and-bp-modal`（全体スイッチ UITK）: 枠のクリックで建築モードへ入る・枠の入替・枠外へのドラッグで解除・BP コピーの名前入力をモーダルで打って確定し BP ができる・ESC 1 回でモーダルが閉じ、ポーズも建築モードの解除も起きない（入力欄あり・なしの両方）。既存の `building/blueprint-copy-paste-via-ui` も全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（Note の `系=GameUi`）がある。録画に ESC 1 回でモーダルが閉じポーズが出ない段がある |
+| R-12 | 録画 `uitk/uitk-hotbar-and-bp-modal`（全体スイッチ UITK）: 枠のクリックで建築モードへ入る・枠の入替・枠外へのドラッグで解除・BP コピーの名前入力をモーダルで打って確定し BP ができる・ESC 1 回でモーダルが閉じ、ポーズも建築モードの解除も起きない（入力欄にフォーカスがあるとき・無いときの両方）。既存の `building/blueprint-copy-paste-via-ui` も全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（Note の `系=GameUi`）がある。録画に ESC 1 回でモーダルが閉じポーズが出ない段がある |
 | R-13 | 写さない Web テスト・一部だけ写す Web テストを `docs/uitk/disposition.md` に書く | `node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing` で、このレーンの持ち分（下の「写すテスト」の表）の未対応が 0 |
 | R-14 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd（レーン・`albof.30`・`albof.34`）を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
 
@@ -293,7 +293,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | 名前入力中のカーソル解放 | 生きる（このレーンの外） | `BlueprintNameInputCursorApplier`（Client.Game。`BlueprintNameInputState.OnOpenChanged` を購読）が両系で動き、UI の系を読まない |
 | 幕の上のクリックがワールドの設置にならない | 生きる | `UiModalHost` の幕は `PickingMode.Position` で `IsPointerOverAnyUi` が真になり、`PlaceBlockState` が設置を止める（Task 12 の幕で取消の段で BP もブロックも増えない） |
 | 右短押しで名前入力を閉じる | 生きる | `BlueprintCopySystem`（Client.Game）が `BlueprintNameInputState.Cancel` を呼び、ブリッジが `CancelPendingRequest` → `OnPendingChanged` → `Hide`（Task 12 で既存シナリオ `building/blueprint-copy-paste-via-ui` を通す） |
-| 入力欄の ESC | 生きる（Web と同じ 1 回で閉じる） | 既存の規則（`GameUiInputRules`・C2-b の albof.12 要件）は入力欄の ESC を消費してフォーカスを外す。`ModalView` はその外れ（`FocusOutEvent`）を、このフレームの ESC が消費済み（`UiInputExclusivity.IsEscapeConsumedThisFrame`）のときだけ取消として読む。規則は書き換えず、Web の Mantine と同じ 1 回で BP の命名を取り消す。変換中の ESC は規則がフォーカスを外さないので閉じない（albof.12）。ESC はワールドへ漏れない（消費済みの印を `InputSuppressionFilter` が読み、ポーズ・建築モードの `CloseUI` は立たない）。入力欄の無い確認モーダルとフォーカスの無い ESC は Task 8 Step 0 の実測で経路を決める。Task 8 の L1 と Task 12 の録画で見る。D-11 |
+| 入力欄の ESC | 生きる（Web と同じ 1 回で閉じる） | 既存の規則（`GameUiInputRules`・C2-b の albof.12 要件）は入力欄の ESC を消費してフォーカスを外す。`ModalView` はその外れ（`FocusOutEvent`）を、このフレームの ESC が消費済み（`UiInputExclusivity.IsEscapeConsumedThisFrame`）のときだけ取消として読む。規則は書き換えず、Web の Mantine と同じ 1 回で BP の命名を取り消す。変換中の ESC は規則がフォーカスを外さないので閉じない（albof.12）。ESC はワールドへ漏れない（消費済みの印を `InputSuppressionFilter` が読み、ポーズ・建築モードの `CloseUI` は立たない）。フォーカスの無い ESC は既存のゲーム入力の経路（`PlaceBlockState` の `CloseUI` → BP 名の入力の取消 → ブリッジの `CancelPendingRequest`）が 1 回で閉じる（Task 8 Step 0）。Task 8 の L1 と Task 12 の録画で見る。D-11 |
 | ゲーム終了での保留の取消 | 生きる | `ModalRequestService.Initialize` が `GameShutdownEvent` を購読（両系） |
 
 ---
@@ -2810,13 +2810,21 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   ```
   要素名（Web の testid と同名）: 枠 `modal`・題 `modal-title`（DialogFrame が付ける）・本文 `modal-message`・入力 `modal-input`（`GameTextField.Field`）・ボタン `modal-button`・幕 `modal-backdrop`（`UiModalHost`）。USS のクラス: `modal-view`・`__message`・`__input`
 
-- [ ] **Step 0: フォーカスの無い ESC がどこへ届くかを実測し、取り消しの経路を決める**
+- [ ] **Step 0: フォーカスの無い ESC を既存のゲーム入力の経路が取り消すことを確かめる**
 
-入力欄の ESC は `GameUiInputRules` が消費してフォーカスを外すので、View は入力欄の `FocusOutEvent` と `UiInputExclusivity.IsEscapeConsumedThisFrame` で 1 回で取り消す（変換中の ESC は `GameUiInputRules` がフォーカスを外さないので取り消さない＝albof.12 の例外）。決まっていないのは、入力欄の無い確認モーダルと、欄の外を押してフォーカスが無いときの ESC がどこへ届くか。全体スイッチ UITK の PlayMode で、`ModalRequestService.RequestModal` を EDC から出した状態で ESC を `SemanticInput` で 1 回注入し、次の 3 つをログで読む: (a) `GameUiRoot` のパネルの `visualTree` に `KeyDownEvent` が届くか（EDC で一時的に `RegisterCallback<KeyDownEvent>` を付けて `Debug.Log`）(b) 同じフレームで `PlaceBlockState`・ポーズが `InputManager.UI.CloseUI.GetKeyDown` を真と読むか（`UiInputExclusivity` の `ProbeSuppressed` ログと UIState の遷移ログ）(c) 届く順（UITK のイベント処理と UIState の Update のどちらが先か）
-- (a) が届き、`ConsumeEscapeThisFrame` が (b) より先に立つ → 計画のコードどおり `CancelOnUnfocusedEscape` を根で聞く
-- (a) が届かない、または (b) が先に読む → 根の聞き取りを消し、表示中の View の枠 `modal`（`focusable = true`・`tabIndex = 0`）へ表示時にフォーカスを置いて `KeyDownEvent` を受ける。`GameUiInputRules.BlurNonTextFieldFocus` が入力欄以外のフォーカスを外すなら、`GameUiInputRules` に「モーダルの枠は外さない」の 1 行を足す代わりに、`done.md` の「integrator への依頼」に書いて止める（Foundation の規則の変更はこのレーンの持ち物でない）
-- どちらでも、ESC 1 回でモーダルが閉じ、ポーズが開かず、建築モードを抜けず、背後の画面が変わらないことを Task 12 の録画の 1 段で確かめる
-結果（届いたか・順序・選んだ経路）を `done.md` の「## 証拠」に 1 行で書く。
+ESC は Web の Mantine と同じ 1 回で取り消す（D-11）。経路は 2 つで、View が聞くのは 1 つ目だけ:
+1. 入力欄にフォーカスがある ESC: `GameUiInputRules` が ESC を消費して（`UiInputExclusivity.ConsumeEscapeThisFrame`）フォーカスを外す。View は入力欄の `FocusOutEvent` を、このフレームの ESC が消費済みのときだけ取消として読む。消費の印は `InputSuppressionFilter` が読むので、同じフレームに `PlaceBlockState` の `InputManager.UI.CloseUI` は立たない（建築モードを抜けない・ポーズが開かない）。変換中の ESC は規則がフォーカスを外さないので閉じない（albof.12）
+2. フォーカスの無い ESC（欄の外を押した後）: UITK のキーイベントは GameUi が入力欄以外にフォーカスを持たせないので届かない（設計書 A-83 の理由と同じ）。代わりに既存のゲーム入力の経路が 1 回で取り消す: `PlaceBlockState` が `InputManager.UI.CloseUI.GetKeyDown` を読む → `PlaceSystemStateController.TryCancelInProgressOperation` → `BlueprintCopySystem` の `AwaitingName` の腕が `BlueprintNameInputState.Close` → `BlueprintNameInputModalBridge` が `ModalRequestService.CancelPendingRequest` → 保留が消えて Presenter が `Hide`。View は根でキーを聞かない（聞くと入力の第 2 経路になる。A-83）
+
+Run:
+```bash
+S=moorestech_client/Assets/Scripts
+grep -n "CloseUI.GetKeyDown\|TryCancelInProgressOperation" $S/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs
+grep -n "AwaitingName" -A3 $S/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint/Copy/BlueprintCopySystem.cs
+grep -n "CancelPendingRequest" $S/Client.Ui.State/Blueprint/BlueprintNameInputModalBridge.cs
+grep -rn "\.RequestModal(\|\.RequestInputModal(" $S | grep -v "/Client.Tests/"
+```
+Expected: 1〜3 行目が上の経路どおりに出る。4 行目は `BlueprintNameInputModalBridge.cs` の `RequestInputModal` 1 行だけ（本番でモーダルを出すのは建築モード中の BP 名だけ）。4 行目に別の呼び手（建築モードの外で出す確認モーダル等）が増えていたら、その画面のフォーカスの無い ESC を受ける経路が無いので、`done.md` の「要裁定」に「<呼び手> のモーダルのフォーカスの無い ESC の経路」と書いて先へ進む（View に根の聞き取りを足さない）。1 回で閉じ、ポーズが開かず、建築モードを抜けないことは Task 12 の録画の流れ 7b で実入力で見る
 
 - [ ] **Step 1: 要求の見本を書く**
 
@@ -3232,8 +3240,8 @@ namespace Client.Ui.Screens.Modal
             frame.AddAction(_button);
             SetEnteredText("");
 
-            // 幕の押下と、フォーカスの無い ESC（Task 8 Step 0 の実測で根へ届くと分かった場合）は、載っている間だけ聞く
-            // Listen for backdrop presses and focus-less ESC (if Task 8 Step 0 measured it reaching the root) only while attached
+            // 幕の押下は載っている間だけ聞く。フォーカスの無い ESC は聞かない（既存のゲーム入力の経路が取り消す。計画 D-11・設計書 A-83）
+            // Listen for backdrop presses only while attached; focus-less ESC is not heard here (the existing game input path cancels; plan D-11, design A-83)
             RegisterCallback<AttachToPanelEvent>(OnAttached);
             RegisterCallback<DetachFromPanelEvent>(OnDetached);
         }
@@ -3257,14 +3265,12 @@ namespace Client.Ui.Screens.Modal
         private void OnAttached(AttachToPanelEvent evt)
         {
             _backdropSubscription = _backdropClicked.Subscribe(_ => Respond(ModalResponse.Cancel(_request)));
-            evt.destinationPanel.visualTree.RegisterCallback<KeyDownEvent>(CancelOnUnfocusedEscape);
         }
 
         private void OnDetached(DetachFromPanelEvent evt)
         {
             _backdropSubscription?.Dispose();
             _backdropSubscription = null;
-            evt.originPanel.visualTree.UnregisterCallback<KeyDownEvent>(CancelOnUnfocusedEscape);
         }
 
         // 可否と確定の文は文の変化ごとに 1 回だけ導き、ボタンと確定の両方がそれを読む（ModalLogic.TryGetConfirmableText）
@@ -3292,20 +3298,6 @@ namespace Client.Ui.Screens.Modal
             Respond(ModalResponse.Cancel(_request));
         }
 
-        private void CancelOnUnfocusedEscape(KeyDownEvent evt)
-        {
-            if (evt.keyCode != KeyCode.Escape) return;
-
-            // silent-ok: このフレームの ESC は入力欄が使った（CancelIfEscapeBlurred が取り消し済み・変換の取消）ので重ねない / GameUiInputRules と UiInputExclusivity の Debug.Log が消費を記録する
-            if (UiInputExclusivity.IsEscapeConsumedThisFrame) return;
-
-            // 取消はワールド側（ポーズ・建築モード）へ渡さない
-            // The cancel is not passed on to the world side (pause, build mode)
-            UiInputExclusivity.ConsumeEscapeThisFrame();
-            evt.StopPropagation();
-            Respond(ModalResponse.Cancel(_request));
-        }
-
         private void Respond(ModalResponse response)
         {
             _toaster.Report(ModalCommands.RespondCommandName, _commands.Respond(response));
@@ -3313,7 +3305,6 @@ namespace Client.Ui.Screens.Modal
     }
 }
 ```
-（`CancelOnUnfocusedEscape` は Step 0 の実測で「フォーカスの無い ESC が `visualTree` へ届く」と分かった場合の形。届かなかった場合は Step 0 の分岐どおりに差し替える）
 
 `S/Client.Ui/Screens/Modal/Modal.uss`:
 ```css
@@ -3707,7 +3698,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 5. 枠外で解除: 枠 2 の中心から画面の上 1/3 へ同じドラッグ → `Assignments[2] == Guid.Empty`。`p.Screenshot("04-clear")`
 6. BP 名のモーダル: `p.Hotbar.UnlockBlueprint()`、前例と同じく木のチェストを置き、`checks.SelectEntry(ToolCategory, CopyToolEntry)` で BP コピーを選び、始点・終点をクリック → `p.UntilUiElement("modal-input", 10f)` → `FindUi("modal-button")` が押せない（`Clickable` でなく disabled の状態名で見る）→ `p.SetText("modal-input", "  uitk-bp  ")` → `p.ClickUi("modal-button")` → `p.WaitForBlueprint("uitk-bp", true, 15f, "BP『uitk-bp』が前後の空白を除いた名前で登録される")` → `FindUi("modal")` が見つからない。`p.Screenshot("05-bp-modal")`（入力の直後にも 1 枚）
 7. 幕で取消: もう一度始点・終点 → モーダル → 幕の左上（`FindUi("modal-backdrop").ScreenRect` の左上から内側へ 5px）をクリック → `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま、BP もブロックも増えない（幕の上のクリックが設置にならない）。名前を打つ間（流れ 6）にプレイヤーの位置が動かないことも `p.Note` に出して見る
-7b. ESC 1 回で取消（D-11・Task 8 Step 0）: もう一度始点・終点 → `p.UntilUiElement("modal-input", 10f)` → `p.SetText("modal-input", "途中")` → `p.PressKey(Key.Escape)` を 1 回 → 次のフレームで `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま（建築モードを抜けない）、ポーズの UI が出ない（`p.Assert(uiStateControl.CurrentState != UIStateEnum.PauseMenu, …)`）、BP が増えない。`p.Screenshot("07b-esc-once")`。続けて確認モーダル（入力欄なし）を EDC と同じ形で `ModalRequestService.RequestModal(<題>, <本文>, <ボタン文>, ModalVariant.Info)` で出し、何も押さずに `p.PressKey(Key.Escape)` 1 回 → 閉じて、ポーズが出ないことを同じ Assert で見る（Step 0 で選んだ経路の録画での確かめ。`RequestModal` の引数は `ModalRequestService` の実物に合わせる）
+7b. ESC 1 回で取消（D-11・Task 8 Step 0）: もう一度始点・終点 → `p.UntilUiElement("modal-input", 10f)` → `p.SetText("modal-input", "途中")` → `p.PressKey(Key.Escape)` を 1 回 → 次のフレームで `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま（建築モードを抜けない）、ポーズが出ない（`p.Assert(uiStateControl.CurrentState != UIStateEnum.PauseMenu, …)`）、BP が増えない。`p.Screenshot("07b-esc-in-field")`。続けてもう一度始点・終点 → モーダル → 本文 `modal-message` をクリックして入力欄のフォーカスを外し（閉じないことを Assert）→ `p.PressKey(Key.Escape)` を 1 回 → モーダルが消え、`PlaceBlock` のまま・ポーズが出ない（既存のゲーム入力の経路での取消）。`p.Screenshot("07b-esc-unfocused")`
 8. 解放の直後の解決（D-18）: `IGameUnlockStateData.BlockUnlockStateInfos` から未解放のブロックを 1 つ選ぶ（無ければ止めて `done.md` の「未確認」に書く）。`ClientHotbarDatastore.RequestAssign(8, その BlockGuid)` → `p.Until` で `Assignments[8]` が一致 → `HotbarModel.Current.Value.Slots[8] is HotbarUnresolvedSlot` を Assert。次に `ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => resolvedAtPacket = model.Current.Value.Slots[8] is HotbarAssignedSlot)` を購読し（`HotbarModel` より後の購読なので同じ配送の中で組み直しの後に走る）、`PlaytestBlockOps.UnlockBlockServerSide(ct, 名前)` → `p.Assert(resolvedAtPacket, "解放パケットの配送の中で枠 8 が解決済みになる（間引き無しの同期の組み直し）")`。偽なら間引きを足さず、購読の順とパケットの時点の値を `done.md` に実測付きで申告して止める
 ファイルは 200 行未満、`#region Internal` にローカル関数（ドラッグ・枠の中心）をまとめる
 
@@ -3915,7 +3906,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-8 | Web の `calc()`（タブの `top`）と `translateX`（列の横ずれ）は `HotbarCalcKnobs` が customStyle から読んで当てる | 換算値を USS に直書き: トークンの変更に追従しない | 設計書 [A-47] |
 | D-9 | albof.34 の照合は、複製した `GameUiPanelSettings` の RT（ランタイムと同じ Linear 合成）で明るい地と暗い地を描いて画素を読み、Web の sRGB 合成の式の値と比べる。明るい地で 7 段以内を合格とする | 部品ギャラリーで比べる: sRGB 合成なので差が出ない。Web を実際に撮って比べる: 世界の絵が地になり画素が定まらない | 指揮の判断（albof.34 の回送）→ agent 既定（C3-a の基準 7 段） |
 | D-10 | 退く間（blocking スキット・常駐 HUD を出さない画面）は帯ごと `display: none` にする | 子を消す: Web は `null` を返して木から外す。UITK は作り直しを避けて隠すだけで、見た目と入力は同じ | agent 既定 |
-| D-11 | モーダルは ESC 1 回で取り消す（Web の Mantine と同じ）。入力欄では `GameUiInputRules` が ESC を消費してフォーカスを外し、`ModalView` は入力欄の `FocusOutEvent` を、このフレームの ESC が消費済みのときだけ取消として読む（押下でフォーカスが外れただけなら閉じない）。フォーカスの無い ESC（確認モーダル・欄の外を押した後）は Task 8 Step 0 の実測で、パネルの根で聞くか枠にフォーカスを置くかを決める。変換中の ESC は規則がフォーカスを外さないので閉じない | 1 回目はフォーカスだけ外し 2 回目で閉じる: Web と押す回数が違う（ゴール「WebUI と同じ見た目」の操作面から外れる）うえ、入力欄の ESC は規則が Blur と `StopImmediatePropagation` をするので 2 回目の `KeyDownEvent` は View に届かない（`GameUiInputRules.cs` を読んで確かめた）。規則に「モーダルでは閉じる」を足す: Foundation の規則にモーダルの語彙を持ち込む | agent 既定（ゴールに合わせる） |
+| D-11 | モーダルは ESC 1 回で取り消す（Web の Mantine と同じ）。入力欄では `GameUiInputRules` が ESC を消費してフォーカスを外し、`ModalView` は入力欄の `FocusOutEvent` を、このフレームの ESC が消費済みのときだけ取消として読む（押下でフォーカスが外れただけなら閉じない）。フォーカスの無い ESC は View が聞かず、既存のゲーム入力の経路（`PlaceBlockState` の `CloseUI` → `TryCancelInProgressOperation` → `BlueprintNameInputState.Close` → ブリッジの `CancelPendingRequest`）が 1 回で取り消す。変換中の ESC は規則がフォーカスを外さないので閉じない | 1 回目はフォーカスだけ外し 2 回目で閉じる: Web と押す回数が違う（ゴールの操作面から外れる）うえ、入力欄の ESC は規則が Blur と `StopImmediatePropagation` をするので 2 回目の `KeyDownEvent` は View に届かない（`GameUiInputRules.cs` を読んで確かめた）。View がパネルの根で `KeyDownEvent` を聞く: GameUi は入力欄以外にフォーカスを持たせないので届かず、届いても入力の第 2 経路になる（設計書 A-83）。規則に「モーダルでは閉じる」を足す: Foundation の規則にモーダルの語彙を持ち込む | agent 既定（ゴールに合わせる・前例 A-83） |
 | D-12 | 確定の文の規則は `ModalLogic.TryGetConfirmableText`（可否と除去後の文を 1 回で導く）と `HasConfirmableText` の 1 か所。ブリッジは `HasConfirmableText` で二重に守り、空白の除去は状態側（`BlueprintNameInputState.Confirm`）の既存の `Trim` のまま | View だけで守る: ブリッジが別の描き手（Web）からの文も受ける | agent 既定 |
 | D-13 | モーダルの View は要求 1 件につき 1 つ作り、入力の持ち越しを構造で無くす。入力付きは載った次のフレームでフォーカスする | 1 つの View を使い回して ID の変化で空にする: リセット漏れの分岐が要る。Web は `key={id}` で作り直す | agent 既定（Web の写し） |
 | D-14 | `placementIconCentering.spec.ts` はホットバーの件だけを写す。ビルドメニューの件は S3-buildmenu が写す | このレーンで写す: ビルドメニューの画面を組まないと主張が立たない | 指揮の決定 |
@@ -3952,7 +3943,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 
 - C3-b の公開 API と、S3-buildmenu が作る型（指揮の決定どおりの形。`PlacementTargetIcons` の ctor の引数は想定）・テストの補助（`RecordingBuildMenuEntryHandler`）は想定。Task 1 Step 1 で実物と照合する
 - 撮り直しの描き直しは L1 で `Render` に新しい VM を渡して見る。Model が `OnThumbnailChanged` で組み直して配ることは Task 12 の録画（BP の絵が出る）で見る
-- フォーカスの無い ESC（確認モーダル・欄の外を押した後）がパネルの根へ届き、ワールド側（ポーズ・建築モード）より先に消費されるか（Task 8 Step 0 で実測し、届かなければ枠へのフォーカスへ切り替える）
+- フォーカスの無い ESC が既存のゲーム入力の経路で 1 回で閉じ、ポーズが開かないこと（Task 8 Step 0 で経路をコードで確かめ、Task 12 の録画の流れ 7b で実入力で見る）。本番で建築モードの外からモーダルを出す呼び手が増えたら、その経路は無い（Step 0 の 4 行目で見張る）
 - D-18 の順序（解放状態の更新がホットバーの組み直しより先）は推測。Task 12 の流れ 8 で実測する
 - `ui-modal-host--shown` が `modal-scope` に付くこと（C3-b の計画から写した）
 - `TextField.Focus()` の後の `focusController.focusedElement` が `TextField` か内側の要素か（主張は両方を受ける）
