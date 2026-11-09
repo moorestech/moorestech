@@ -9,15 +9,14 @@ namespace Client.Ui.Screens.CommonHud
     /// Draws the blurred shadow of box-shadow 0 0 blur color outside the crosshair circle as a vertex-colored ring
     /// </summary>
     /// <remarks>
-    /// 影は円と同じ大きさのガウスぼかし。円の縁から外向きの距離 d での濃さは半平面の被覆率 Φ(-d/σ)（σ=blur/2）で近似する。円の内側は白い点が覆うので描かない。α は LinearBlendOpacity で Linear 合成用に補正する
-    /// The shadow is a Gaussian blur of a circle the same size; the shade at outward distance d from the edge approximates the half-plane coverage Phi(-d/sigma) with sigma = blur/2; the white dot covers the inside, so nothing is drawn there; alpha is corrected for Linear blending with LinearBlendOpacity
+    /// 影は円と同じ大きさのガウスぼかし。円の縁から外向きの距離 d での濃さは半平面の被覆率 Φ(-d/σ)（σ=blur/2。Foundation の GaussianEdgeCoverage）で近似する。円の内側は白い点が覆うので描かない。α は LinearBlendOpacity で Linear 合成用に補正する
+    /// The shadow is a Gaussian blur of a circle the same size; the shade at outward distance d from the edge approximates the half-plane coverage Phi(-d/sigma) with sigma = blur/2 (Foundation GaussianEdgeCoverage); the white dot covers the inside, so nothing is drawn there; alpha is corrected for Linear blending with LinearBlendOpacity
     /// </remarks>
     internal sealed class CrosshairShadowRing : VisualElement
     {
-        // σ 単位の距離と Φ(-d) の表（標準正規分布の上側確率）
-        // Distance in sigma and the Phi(-d) table (upper tail of the standard normal)
+        // 輪を置く縁からの距離（σ 単位）。3σ より外の被覆率は 0.0013 で 8 bit の α に出ない
+        // Ring distances from the edge in sigma; coverage beyond 3 sigma is 0.0013 and does not show in an 8-bit alpha
         private static readonly float[] DistancesInSigma = { 0f, 0.5f, 1f, 1.5f, 2f, 2.5f, 3f };
-        private static readonly float[] Coverages = { 0.5f, 0.3085f, 0.1587f, 0.0668f, 0.0228f, 0.0062f, 0f };
         private const int Segments = 32;
 
         private float _blurRadius;
@@ -30,20 +29,6 @@ namespace Client.Ui.Screens.CommonHud
             pickingMode = PickingMode.Ignore;
             generateVisualContent += DrawRing;
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
-        }
-
-        // σ を単位にした縁からの距離の被覆率。表の間は線形、3σ より外は 0
-        // Coverage at a distance from the edge in sigma units; linear between rows and zero beyond 3 sigma
-        internal static float CoverageAt(float distance, float sigma)
-        {
-            var d = distance / sigma;
-            for (var i = 1; i < DistancesInSigma.Length; i++)
-            {
-                if (DistancesInSigma[i] < d) continue;
-                var t = (d - DistancesInSigma[i - 1]) / (DistancesInSigma[i] - DistancesInSigma[i - 1]);
-                return Mathf.Lerp(Coverages[i - 1], Coverages[i], t);
-            }
-            return 0f;
         }
 
         private void OnCustomStyleResolved()
@@ -80,7 +65,7 @@ namespace Client.Ui.Screens.CommonHud
                 {
                     var distance = DistancesInSigma[ring] * sigma;
                     var tint = _shadowColor;
-                    tint.a = LinearBlendOpacity.OpacityAt(_shadowColor.a, CoverageAt(distance, sigma));
+                    tint.a = LinearBlendOpacity.OpacityAt(_shadowColor.a, GaussianEdgeCoverage.At(distance, sigma));
                     for (var segment = 0; segment < Segments; segment++)
                     {
                         var angle = segment * Mathf.PI * 2f / Segments;

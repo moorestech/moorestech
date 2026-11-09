@@ -4,6 +4,7 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Stage;
+using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.CommonHud;
 using NUnit.Framework;
 using UnityEngine;
@@ -63,18 +64,14 @@ namespace Client.Tests.Ui.Screens.CommonHud
         [Test]
         public void 影はWebのbox_shadow_0_0_2pxと同じ減衰で円の外へ広がる()
         {
-            // Web の blur 2px は σ=1px のガウスの畳み込み。半平面の被覆率は縁で 0.5、σ で 0.1587、3σ で 0
-            // The Web blur 2px is a Gaussian with sigma 1px; half-plane coverage is 0.5 at the edge, 0.1587 at sigma, 0 at 3 sigma
-            Assert.AreEqual(0.5f, CrosshairShadowRing.CoverageAt(0f, 1f), 1e-4f);
-            Assert.AreEqual(0.3085f, CrosshairShadowRing.CoverageAt(0.5f, 1f), 1e-4f);
-            Assert.AreEqual(0.1587f, CrosshairShadowRing.CoverageAt(1f, 1f), 1e-4f);
-            Assert.AreEqual(0.0228f, CrosshairShadowRing.CoverageAt(2f, 1f), 1e-4f);
-            Assert.AreEqual(0f, CrosshairShadowRing.CoverageAt(3f, 1f), 1e-4f);
-            Assert.AreEqual(0f, CrosshairShadowRing.CoverageAt(5f, 1f), 1e-4f);
-
-            // 表で間の距離は線形に補間する
-            // Distances between table rows interpolate linearly
-            Assert.AreEqual((0.1587f + 0.0668f) / 2f, CrosshairShadowRing.CoverageAt(1.25f, 1f), 1e-4f);
+            // Web の blur 2px は σ=1px のガウスの畳み込み。半平面の被覆率は縁で 0.5、σ で 0.1587、3σ で 0.0013
+            // The Web blur 2px is a Gaussian with sigma 1px; half-plane coverage is 0.5 at the edge, 0.1587 at sigma, 0.0013 at 3 sigma
+            Assert.AreEqual(0.5f, GaussianEdgeCoverage.At(0f, 1f), 1e-4f);
+            Assert.AreEqual(0.3085f, GaussianEdgeCoverage.At(0.5f, 1f), 1e-4f);
+            Assert.AreEqual(0.1587f, GaussianEdgeCoverage.At(1f, 1f), 1e-4f);
+            Assert.AreEqual(0.0228f, GaussianEdgeCoverage.At(2f, 1f), 1e-4f);
+            Assert.AreEqual(0.0013f, GaussianEdgeCoverage.At(3f, 1f), 1e-4f);
+            Assert.AreEqual(0f, GaussianEdgeCoverage.At(5f, 1f), 1e-4f);
         }
     }
 }
