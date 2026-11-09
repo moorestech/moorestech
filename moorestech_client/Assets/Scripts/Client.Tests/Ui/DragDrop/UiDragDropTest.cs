@@ -90,8 +90,21 @@ namespace Client.Tests.Ui.DragDrop
         [Test]
         public void 印を外した落とし先は最寄りから外れクラスも消える()
         {
-            UiDragDrop.UnmarkTarget(_slot);
+            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
             Assert.IsFalse(_slot.ClassListContains("ui-drop-target"));
+            Press(_source.worldBound.center, _slotIcon.worldBound.center);
+            CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
+        }
+
+        [Test]
+        public void 源と違う型の落とし先は飛ばして同じ型の祖先へ落とす()
+        {
+            // 枠の印を別の型に替える。クラスは別の型の印が残る間は消えない
+            // Swap the slot's mark for another type; the class stays while that other mark remains
+            UiDragDrop.MarkTarget(_slot, new OtherKindDropTarget());
+            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
+            Assert.IsTrue(_slot.ClassListContains("ui-drop-target"));
+
             Press(_source.worldBound.center, _slotIcon.worldBound.center);
             CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
         }
