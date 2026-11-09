@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using Client.Game.Localization;
 using Client.Localization;
+using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Tooltip;
 using Core.Master;
 using Mod.Loader;
 using Mooresmaster.Localization.Generated;
@@ -11,6 +13,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Content
 {
@@ -71,15 +74,21 @@ namespace Client.Tests.Ui.Content
             Assert.Throws<ArgumentException>(() => content.FluidFace(FluidMaster.EmptyFluidId));
         }
 
+        /// <web-test file="src/shared/ui/FluidSlot/FluidSlot.localization.test.ts">fluidGuidの導出キーを辞書解決し、言語切替でラベルが追従する</web-test>
         [Test]
-        public void 液体名は言語を切り替えると同じ値のまま訳し直す()
+        public void 液体スロットの名前はGUIDから導いた辞書名で言語を切り替えると追従する()
         {
+            // 値を入れ直さずに言語だけを変え、印の文が解き直されることを見る
+            // Change only the language without resetting the value and check the mark's text re-resolves
             var content = new GameContentPresentation(new FakeContentTextureSource(null, null, null));
-            var label = content.Fluid(MasterHolder.FluidMaster.GetFluidId(WaterGuid)).Label;
+            var waterId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
+            var slot = new FluidSlot("fluid-slot");
+            slot.SetFluid(FluidSlotContent.Filled(content.Fluid(waterId), 500, 1000, content.FluidFace(waterId)));
 
-            Assert.AreEqual("Test Water", label.Resolve());
+            Assert.IsTrue(HoverTooltipMark.TryFindMarked(slot.Q(className: "fluid-slot__icon"), out _, out var text));
+            Assert.AreEqual("Test Water", text.Resolve());
             Localize.TrySetChosenLanguage("japanese");
-            Assert.AreEqual("テスト水", label.Resolve());
+            Assert.AreEqual("テスト水", text.Resolve());
         }
 
         // 一時 mod の辞書へ液体名の導出キーを合成する（C3-a の GameContentPresentationTest と同じ形）
