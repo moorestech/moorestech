@@ -39,7 +39,8 @@ namespace Client.Ui.Screens.BlockInventory
 
             // エラー中は何も載せない（Web の !error）。小型は自然高のスクロール器で包む（Web の !isLarge）
             // Nothing is mounted while erroring (Web !error); natural panels wrap the body in the natural-height scroller (Web !isLarge)
-            if (state is OpenBlockInventoryPanel block && block.Error == BlockInventoryPanelError.None)
+            var mountable = state is OpenInventoryPanel open && open.Error == BlockInventoryPanelError.None;
+            if (mountable && state is OpenBlockInventoryPanel block)
             {
                 _body = _parts.CreateBody(block, new BlockInventoryBodyMount(layout.FillsPanelHeight));
                 _view.PlaceBody(_body.Root, !layout.IsLarge);
@@ -51,7 +52,7 @@ namespace Client.Ui.Screens.BlockInventory
 
             // 列車は常に大型（LayoutModel が決める）
             // Trains are always large (decided by the layout model)
-            if (state is OpenTrainInventoryPanel train && train.Error == BlockInventoryPanelError.None)
+            if (mountable && state is OpenTrainInventoryPanel train)
             {
                 _trainBody = _parts.CreateTrainBody();
                 _view.PlaceBody(_trainBody.Root, !layout.IsLarge);

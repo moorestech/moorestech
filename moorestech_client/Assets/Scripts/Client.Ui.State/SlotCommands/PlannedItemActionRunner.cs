@@ -1,9 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.ItemMove;
 using Client.Ui.State.SlotCommands.Block;
-using UnityEngine;
 
 namespace Client.Ui.State.SlotCommands
 {
@@ -30,16 +30,19 @@ namespace Client.Ui.State.SlotCommands
                 if (result is UiCommandRejected) return result;
             }
             return UiCommandAccepted.Instance;
-        }
 
-        // プレイヤーへ写す → ブロックへ写す → どちらも不可は計画器の誤りなので Error ログと拒否
-        // Player first, then block; neither means a planner bug, so log an error and reject
-        private UiCommandResult Run(PlannedItemAction action)
-        {
-            if (PlayerItemActionConversion.TryConvert(action, out var playerAction)) return _player.Execute(new[] { playerAction });
-            if (BlockItemActionConversion.TryConvert(action, out var blockAction)) return _block.Execute(blockAction);
-            Debug.LogError($"[PlannedItemActionRunner] plan has no executor: {action}");
-            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
+            #region Internal
+
+            // プレイヤーへ写す → ブロックへ写す。どちらも不可は計画器の誤りなので止める（拒否の理由へ相乗りさせない。D-2）
+            // Player first, then block; neither is a planner bug, so stop (never piggyback on a reject reason; D-2)
+            UiCommandResult Run(PlannedItemAction action)
+            {
+                if (PlayerItemActionConversion.TryConvert(action, out var playerAction)) return _player.Execute(new[] { playerAction });
+                if (BlockItemActionConversion.TryConvert(action, out var blockAction)) return _block.Execute(blockAction);
+                throw new InvalidOperationException($"[PlannedItemActionRunner] plan has no executor: {action}");
+            }
+
+            #endregion
         }
     }
 }

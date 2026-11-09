@@ -22,26 +22,13 @@ namespace Client.Ui.State.SlotCommands.Block
 
         public bool TryRead(out IReadOnlyList<SlotItem> slots)
         {
-            if (!IsOpenWithoutError(_panel.Current.Value))
+            if (!(_panel.Current.Value is OpenInventoryPanel open && open.Error == BlockInventoryPanelError.None))
             {
                 slots = Array.Empty<SlotItem>();
                 return false;
             }
             slots = _raw.Read();
             return true;
-        }
-
-        private static bool IsOpenWithoutError(BlockInventoryPanelState state)
-        {
-            switch (state)
-            {
-                case OpenBlockInventoryPanel block:
-                    return block.Error == BlockInventoryPanelError.None;
-                case OpenTrainInventoryPanel train:
-                    return train.Error == BlockInventoryPanelError.None;
-                default:
-                    return false;
-            }
         }
     }
 }

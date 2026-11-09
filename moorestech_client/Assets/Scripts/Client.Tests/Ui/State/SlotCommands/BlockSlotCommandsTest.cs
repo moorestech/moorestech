@@ -83,16 +83,27 @@ namespace Client.Tests.Ui.State.SlotCommands
         }
 
         [Test]
-        public void 未知のItemIdの枠はShift配分へ渡さずエラーログで止める()
+        public void 未知のItemIdの枠はShift配分へ渡さずエラーログと拒否で止める()
         {
-            // D-11: DirectMovePlanner が最大スタックで例外を投げる前に、元の枠の ID を検査して止める
-            // D-11: stop on the source slot's ID before DirectMovePlanner throws on the max-stack lookup
+            // D-11・D-1: DirectMovePlanner が最大スタックで例外を投げる前に、元の枠の ID を検査して断る
+            // D-11, D-1: refuse on the source slot's ID before DirectMovePlanner throws on the max-stack lookup
             var unknown = new ItemId(9999);
             _block.Slots = new[] { new SlotItem(unknown, 5), new SlotItem(_wood, 3) };
             LogAssert.Expect(LogType.Error, $"[BlockSlotCommands] unknown ItemId {unknown} reached the slot planner; the allocation is skipped (client and server masters may differ)");
             var result = _commands.LeftDown(0, true);
-            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual(UiCommandRejectReason.ItemUnknownInSlot, ((UiCommandRejected)result).Reason);
             CollectionAssert.IsEmpty(_block.Moves);
+        }
+
+        [Test]
+        public void 未知のItemIdの枠でもShift以外の左押下は掴む()
+        {
+            // D-1: 検査は Shift 配分の腕だけ。普通の左押下まで止めない
+            // D-1: the check guards only the Shift allocation; a plain left press is not stopped
+            var unknown = new ItemId(9999);
+            _block.Slots = new[] { new SlotItem(unknown, 5), new SlotItem(_wood, 3) };
+            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(0, false));
+            Assert.AreEqual((ItemMoveSlotRef.Block(0), ItemMoveSlotRef.Grab, 5), _block.Moves[0]);
         }
 
         [Test]
@@ -101,7 +112,7 @@ namespace Client.Tests.Ui.State.SlotCommands
             // D-10: main が全枠スタック上限なら配分は空。Web と同じく何も送らず開発者ログだけ残す
             // D-10: with every main slot at the stack limit the allocation is empty; send nothing like the Web and only log
             for (var i = 0; i < 36; i++) _player.SetMain(i, new SlotItem(_wood, 64));
-            LogAssert.Expect(LogType.Warning, $"[block_inventory.shift_move] not sent: destinationFull block slot=0 item={_wood}");
+            LogAssert.Expect(LogType.Warning, $"[block_inventory.shift_move] not sent: DestinationFull block slot=0 item={_wood}");
             var result = _commands.LeftDown(0, true);
             Assert.IsInstanceOf<UiCommandAccepted>(result);
             CollectionAssert.IsEmpty(_block.Moves);

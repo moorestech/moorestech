@@ -31,14 +31,21 @@ namespace Client.Ui.State.SlotCommands.Block
         public UiCommandResult LeftDown(int blockSlot, bool shift)
         {
             if (!TryReadSlot(blockSlot, out var slot)) return Unavailable(blockSlot);
-            if (!KnownItemSlots.IsKnownOrEmpty(slot, nameof(BlockSlotCommands))) return UiCommandAccepted.Instance;
             var player = _player.ReadSnapshot();
+
+            // 未知の ID は Shift 配分（DirectMovePlanner が例外を投げる腕）の入力にだけ渡さない。それ以外の押下は通す（D-1）
+            // Keep an unknown ID out of the Shift allocation only (the arm where DirectMovePlanner throws); other presses go through (D-1)
+            if (shift && player.Grab.Count == 0 && !KnownItemSlots.IsKnownOrEmpty(slot, nameof(BlockSlotCommands))) return new UiCommandRejected(UiCommandRejectReason.ItemUnknownInSlot, "");
             var plan = BlockSlotPlanner.PlanLeftClick(blockSlot, slot, shift, player.Grab.Count, player.MainSlots, _stackLevels);
 
-            // Shift の配分が空（main が満杯）は Web と同じく何も送らない。開発者ログだけ残す（D-10）
-            // An empty Shift allocation (main full) sends nothing like the Web; leave only a developer log (D-10)
-            if (shift && player.Grab.Count == 0 && !slot.IsEmpty && plan.Count == 0) Debug.LogWarning($"[block_inventory.shift_move] not sent: destinationFull block slot={blockSlot} item={slot.ItemId}");
-            return _runner.Execute(plan);
+            // 計画器が断った Shift 配分は Web と同じく何も送らない。開発者ログだけ残す（D-10）
+            // A Shift allocation the planner refused sends nothing like the Web; leave only a developer log (D-10)
+            if (plan.Refusal is { } refusal)
+            {
+                Debug.LogWarning($"[block_inventory.shift_move] not sent: {refusal} block slot={blockSlot} item={slot.ItemId}");
+                return UiCommandAccepted.Instance;
+            }
+            return _runner.Execute(plan.Actions);
         }
 
         public UiCommandResult RightDown(int blockSlot)

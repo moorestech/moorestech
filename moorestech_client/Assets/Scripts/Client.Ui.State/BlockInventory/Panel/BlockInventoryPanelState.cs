@@ -37,26 +37,38 @@ namespace Client.Ui.State.BlockInventory.Panel
         }
     }
 
-    public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
+    /// <summary>
+    /// 開いたパネル（ブロック・列車）の共通の値。種類を足しても読み手は型で分けずにここを読む
+    /// Values shared by every open panel (block and train); readers use this instead of switching on the concrete type
+    /// </summary>
+    public abstract class OpenInventoryPanel : BlockInventoryPanelState
+    {
+        public IReadOnlyList<SlotItem> ItemSlots { get; private set; }
+        public BlockInventoryPanelError Error { get; private set; }
+
+        private protected OpenInventoryPanel(IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error)
+        {
+            ItemSlots = itemSlots;
+            Error = error;
+        }
+    }
+
+    public sealed class OpenBlockInventoryPanel : OpenInventoryPanel
     {
         public string BlockType { get; private set; }
         public Guid BlockGuid { get; private set; }
         public BlockId BlockId { get; private set; }
         public BlockInstanceId BlockInstanceId { get; private set; }
         public Vector3Int Position { get; private set; }
-        public IReadOnlyList<SlotItem> ItemSlots { get; private set; }
-        public BlockInventoryPanelError Error { get; private set; }
         public BlockInventoryComponents Components { get; private set; }
 
-        internal OpenBlockInventoryPanel(string blockType, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error)
+        internal OpenBlockInventoryPanel(string blockType, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error) : base(itemSlots, error)
         {
             BlockType = blockType;
             BlockGuid = blockGuid;
             BlockId = blockId;
             BlockInstanceId = blockInstanceId;
             Position = position;
-            ItemSlots = itemSlots;
-            Error = error;
             Components = BlockComponentRegistry.Resolve(blockType);
         }
 
@@ -66,17 +78,13 @@ namespace Client.Ui.State.BlockInventory.Panel
         }
     }
 
-    public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState
+    public sealed class OpenTrainInventoryPanel : OpenInventoryPanel
     {
         public long TrainCarInstanceId { get; private set; }
-        public IReadOnlyList<SlotItem> ItemSlots { get; private set; }
-        public BlockInventoryPanelError Error { get; private set; }
 
-        internal OpenTrainInventoryPanel(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error)
+        internal OpenTrainInventoryPanel(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error) : base(itemSlots, error)
         {
             TrainCarInstanceId = trainCarInstanceId;
-            ItemSlots = itemSlots;
-            Error = error;
         }
 
         public override bool IsSamePanel(BlockInventoryPanelState other)

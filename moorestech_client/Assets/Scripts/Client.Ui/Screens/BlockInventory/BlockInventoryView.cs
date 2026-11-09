@@ -101,7 +101,7 @@ namespace Client.Ui.Screens.BlockInventory
             {
                 // エラー行の出し入れは TryGetLocalizationKey の 1 か所で決める。一度作った行は外さず、文を持ったまま隠す
                 // The error row is decided only by TryGetLocalizationKey; once built it is never removed, only hidden with its text kept
-                var error = state is OpenBlockInventoryPanel open ? open.Error : ((OpenTrainInventoryPanel)state).Error;
+                var error = ((OpenInventoryPanel)state).Error;
                 if (!BlockInventoryPanelErrorText.TryGetLocalizationKey(error, out var key))
                 {
                     if (_error != null) _error.style.display = DisplayStyle.None;

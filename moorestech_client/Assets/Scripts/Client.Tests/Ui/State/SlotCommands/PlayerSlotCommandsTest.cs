@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Client.Game.InGame.UI.Notification;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Inventory;
@@ -20,6 +21,8 @@ using Server.Boot;
 using Server.Event.Notification;
 using Tests.Module.TestMod;
 using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.State.SlotCommands
 {
@@ -102,6 +105,35 @@ namespace Client.Tests.Ui.State.SlotCommands
             Assert.AreEqual("denied.inventoryOpenFailed", notified.MessageId);
             CollectionAssert.IsEmpty(_block.Moves);
             CollectionAssert.IsEmpty(_player.Moves);
+        }
+
+        [Test]
+        public void 未知のItemIdの枠のShift押下はエラーログと拒否で止め通常の左押下は掴む()
+        {
+            // D-1: 検査は Shift 配分の腕だけ。断った時は拒否を返しトーストで知らせる
+            // D-1: the check guards only the Shift allocation; a refusal returns a rejection the toast reports
+            var unknown = new ItemId(9999);
+            _panel.Value = BlockInventoryTestPanels.ChestWithSlots(new SlotItem(default, 0), new SlotItem(default, 0));
+            _player.SetMain(1, new SlotItem(unknown, 5));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[PlayerSlotCommands\] unknown ItemId"));
+            var shifted = _commands.LeftDown(PlayerSlotRef.Main(1), true);
+            Assert.AreEqual(UiCommandRejectReason.ItemUnknownInSlot, ((UiCommandRejected)shifted).Reason);
+            CollectionAssert.IsEmpty(_block.Moves);
+            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(PlayerSlotRef.Main(1), false));
+            CollectionAssert.AreEqual(new[] { $"{PlayerSlotRef.Main(1)}->Grab x5" }, _player.Moves);
+        }
+
+        [Test]
+        public void エラー中の列車へのShift押下は理由をワーニングログに残す()
+        {
+            // 列車には取得失敗の断りが無いので、状態の枠で計画したことをログで知らせる（Task 5 レビュー Minor）
+            // Trains have no fetch-failure refusal, so log that the plan used the state slots (Task 5 review Minor)
+            _panel.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.ContainerMissing);
+            _block.Open = false;
+            _player.SetMain(1, new SlotItem(_wood, 5));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[inventory\.shift_move\] train car 1 is in error \(ContainerMissing\)"));
+            _commands.LeftDown(PlayerSlotRef.Main(1), true);
+            CollectionAssert.IsEmpty(_block.Moves);
         }
 
         [Test]

@@ -34,11 +34,11 @@ namespace Client.Ui.State.SlotCommands.Player
 
         public UiCommandResult LeftDown(PlayerSlotRef slot, bool shift)
         {
-            // 全入力を押下の瞬間に読む。元の枠が未知の ID なら配分の計画へ渡さない（D-11）
-            // Read every input at gesture time; never hand an unknown source ID to the allocation planner (D-11)
+            // 全入力を押下の瞬間に読む。未知の ID は Shift 配分（空手・中身あり）の計画へだけ渡さず断る（D-11・D-1）
+            // Read every input at gesture time; refuse to hand an unknown ID to the Shift allocation (empty-handed, filled) only (D-11, D-1)
             var inventory = _player.ReadSnapshot();
             if (!inventory.TryResolveSlot(slot.ToItemMoveSlotRef(), out var clicked)) return Ignore(new StaleSlotIgnoredPlan(slot.ToItemMoveSlotRef()));
-            if (!KnownItemSlots.IsKnownOrEmpty(clicked, nameof(PlayerSlotCommands))) return UiCommandAccepted.Instance;
+            if (shift && inventory.Grab.Count == 0 && !KnownItemSlots.IsKnownOrEmpty(clicked, nameof(PlayerSlotCommands))) return new UiCommandRejected(UiCommandRejectReason.ItemUnknownInSlot, "");
             var plan = PlayerSlotActionPlanner.PlanLeftDown(_context.Read(inventory, clicked.ItemId), slot.ToItemMoveSlotRef(), shift);
             return Apply(plan, slot, clicked);
         }

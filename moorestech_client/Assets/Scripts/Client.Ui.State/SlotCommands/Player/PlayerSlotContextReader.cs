@@ -7,6 +7,7 @@ using Client.Ui.State.ItemMove;
 using Client.Ui.State.SlotCommands.Block;
 using Core.Item.Interface;
 using Core.Master;
+using UnityEngine;
 
 namespace Client.Ui.State.SlotCommands.Player
 {
@@ -36,7 +37,7 @@ namespace Client.Ui.State.SlotCommands.Player
             return _panel.Current.Value switch
             {
                 OpenBlockInventoryPanel block => PlayerSlotContext.WithBlockOpen(inventory, DestinationSlots(block.ItemSlots), BlockSlotRestrictionResolver.Resolve(_restrictionInput.Build(block), clickedItem), _stackLevels),
-                OpenTrainInventoryPanel train => PlayerSlotContext.WithBlockOpen(inventory, DestinationSlots(train.ItemSlots), BlockSlotRestriction.Unrestricted, _stackLevels),
+                OpenTrainInventoryPanel train => PlayerSlotContext.WithBlockOpen(inventory, TrainDestinationSlots(train), BlockSlotRestriction.Unrestricted, _stackLevels),
                 _ => PlayerSlotContext.WithBlockClosed(inventory, _stackLevels),
             };
 
@@ -46,8 +47,16 @@ namespace Client.Ui.State.SlotCommands.Player
             // Destination slots are read raw at press time from the same port as block-side commands (never pick a target from a stale copy after a pre-write; D-37)
             IReadOnlyList<SlotItem> DestinationSlots(IReadOnlyList<SlotItem> panelSlots)
             {
-                // silent-ok: 口が偽になるのはエラー中のパネルだけで、ブロックは束縛の入力が取得失敗の断りを返し、列車は従来どおり状態の枠で計画する / 断りは通知と Warning ログで出る
+                // silent-ok: 口が偽になるのはエラー中のパネルだけ。ブロックは束縛の入力が取得失敗の断りを返し通知と Warning ログが出る / 列車は TrainDestinationSlots が Warning ログを出す
                 return _block.TryReadBlockSlots(out var slots) ? slots : panelSlots;
+            }
+
+            // 列車には取得失敗の断りが無く、エラー中は状態の枠で計画して実行器が拒否する。理由が残らないのでここで知らせる
+            // Trains have no fetch-failure refusal: while erroring the plan uses the state slots and the executor rejects it, so report why here
+            IReadOnlyList<SlotItem> TrainDestinationSlots(OpenTrainInventoryPanel train)
+            {
+                if (train.Error != BlockInventoryPanelError.None) Debug.LogWarning($"[inventory.shift_move] train car {train.TrainCarInstanceId} is in error ({train.Error}); planning against its last panel slots, block-side moves will be rejected");
+                return DestinationSlots(train.ItemSlots);
             }
 
             #endregion

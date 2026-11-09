@@ -17,6 +17,7 @@ namespace Client.Ui.State.Commands
         SplitGrabNotEmpty,
         SplitDragNoValidSlots,
         BlockSlotUnavailable,
+        ItemUnknownInSlot,
     }
 
     /// <summary>
@@ -42,6 +43,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitGrabNotEmpty => true,
                 UiCommandRejectReason.SplitDragNoValidSlots => false,
                 UiCommandRejectReason.BlockSlotUnavailable => false,
+                UiCommandRejectReason.ItemUnknownInSlot => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -70,6 +72,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitGrabNotEmpty => LocalizationKeys.Ui.CommandRejected.SplitGrabNotEmpty,
                 UiCommandRejectReason.SplitDragNoValidSlots => LocalizationKeys.Ui.CommandRejected.SplitDragNoValidSlots,
                 UiCommandRejectReason.BlockSlotUnavailable => LocalizationKeys.Ui.CommandRejected.BlockSlotUnavailable,
+                UiCommandRejectReason.ItemUnknownInSlot => LocalizationKeys.Ui.CommandRejected.ItemUnknownInSlot,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -91,6 +94,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitGrabNotEmpty => "grab_not_empty",
                 UiCommandRejectReason.SplitDragNoValidSlots => "no_valid_slots",
                 UiCommandRejectReason.BlockSlotUnavailable => "invalid_slot",
+                UiCommandRejectReason.ItemUnknownInSlot => "unknown_item",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
