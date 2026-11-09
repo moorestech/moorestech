@@ -216,7 +216,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | 同 | topic反映前の高速2ノッチはpending値から1→2へ進む | 4 | `EquipmentWheelSelectorTest` | 2 |
 | 同 | 楽観topicと古いechoが来ても未確認の末尾から次ノッチを計算する | 4 | `EquipmentWheelSelectorTest` | 2 |
 | 同 | action失敗時はその要求をpendingから除く | 4 | 処分表（C# の選択は送りっぱなしで失敗が返らない。D-5） | 8 |
-| 同 | 再接続開始時にpendingを破棄して復元snapshotを起点にする | 4 | 処分表（UITK に WebSocket の再接続が無い。世代の巻き戻りで空にする規則は `EquipmentWheelSelectorTest` が別名で持つ。D-5） | 8 |
+| 同 | 再接続開始時にpendingを破棄して復元snapshotを起点にする | 4 | 処分表（UITK に WebSocket の再接続が無く、確定の世代は加算だけで戻らないので、世代の巻き戻りで空にする分岐は写さない。D-5・D-28） | 8 |
 | 同 | 加速で膨らんだ1イベントでも1段しか進まない | 4 | `EquipmentWheelSelectorTest` | 2 |
 | 同 | ホイール占有中はホイールで装備が切り替わらない | 4 | `EquipmentWheelGateTest` | 2 |
 | 同 | ホイールを読まない接続ツール中は抑止されず装備が切り替わる | 4 | `EquipmentWheelGateTest` | 2 |
@@ -4024,7 +4024,7 @@ git merge origin/feature/uitk
 | D-2 | 持ち物パネルと装備 HUD は同じ `PlayerInventoryPanelModel` の値を読む | Web も同じ `inventory` topic（mainSlots・equipment・selectedEquipment）を 2 つが読む | 装備だけの Model を別に作る: 源が同じで 2 重の購読と 2 重の組み立てになる |
 | D-3 | Model は変化のたびに同期で配る（Web の PostLateUpdate への間引きをしない） | A-57: 同じフレームの描き直しは UITK が 1 回の描画にまとめ、Web の間引きは WebSocket の送り過ぎを抑えるためのもの | フレーム末に寄せる: 理由が UITK に無い |
 | D-4 | Web の `ConnectingPlaceholder`（topic 未着の仮の面）は写さない | C# の持ち物は起動時から在り、未着の状態が無い（A-13 と同じ理由） | 空の面を写す: 出る場面が無い死んだコードになる |
-| D-5 | `EquipmentPanel/index.test.ts` の「action失敗時は…」「再接続開始時に…」を処分表へ書き、残り 12 件を写す。世代の巻き戻りで未確認を捨てる規則は `TrimConfirmed` に残す | C# の選択は `SendOnly` で失敗が返らず、UITK に WebSocket の再接続が無い。世代の巻き戻りは C# では起きないが、Web の規則を外す理由も無く、1 行で済む | 失敗の経路を作って写す: 存在しない失敗のためにコマンドに戻り値と待ちを足すことになる |
+| D-5 | `EquipmentPanel/index.test.ts` の「action失敗時は…」「再接続開始時に…」を処分表へ書き、残り 12 件を写す。世代の巻き戻りで未確認を捨てる分岐は写さない（D-28 で改めた。旧: `TrimConfirmed` に残す） | C# の選択は `SendOnly` で失敗が返らず、UITK に WebSocket の再接続が無い。世代の巻き戻りは C# では起きない（`LocalPlayerEquipment.cs:63,100` は加算だけ）ので、到達しない枝を残さない（D-28） | 失敗の経路を作って写す: 存在しない失敗のためにコマンドに戻り値と待ちを足すことになる |
 | D-6 | `equipment.spec`「持ち物画面の一覧スクロールでは装備が持ち替わらない」は S4-inventory が持ち、一覧（S4-recipe の `ItemListPanel`）の代わりに素通しの印の無い `GameScrollView` を立てて L1 で写す。S4-recipe の一覧は `WheelPassthroughMark` を付けない（付けないのが既定なので S4-recipe の作業は無い）。順序は独立で、どちらが先にマージしてもよい。S4-recipe の計画へは「一覧に素通しの印を付けない」1 行の申し送りだけを出す | テストの主題は「素通しでない UI の上のホイールは装備に回さない」で、判定はこのレーンの `EquipmentWheelGate` と `EquipmentWheelPickJudge` にある。一覧の実物を待つと S4-recipe → S4-inventory の辺が増える | S4-recipe が写す: 判定の持ち主でないレーンが装備の切り替えを確かめることになり、判定を変えたときに別レーンのテストが壊れる。S4-recipe を待つ: クリティカルパスの S4-inventory が W4b を待つ |
 | D-7 | `EquipmentPanel/index.test.ts` の「接続ツール」「BPコピー」「block選択」の 3 件は、同じ入力（占有＝偽）の 1 件に 3 行のタグで写す | Web のテストの主題は「topic の `wheelOwnedByTool` をそのまま読み、配置対象の種別から導き直さない」。C# の判定は bool 1 つを読むだけで、種別ごとに占有を決めるのは各配置システム（このレーンの外）。3 件を別々に書いても入力が同じになる | 配置システムを組んで種別ごとに占有を作る: このレーンの判定でなく配置システムの挙動を確かめることになる |
 | D-8 | 所持品のアンカーは描き直しのたびに `InventorySlotAnchorMarks` が付け替え、古い id と印のクラスを自分で外す。`TutorialAnchor.Unmark` を integrator へ依頼する | `TutorialAnchor` に外す口が無い。E-1 が許す A-71 の定数を除き、Foundation はこのレーンで変えない（スコープ境界） | Foundation に `Unmark` を足す: E-1 が許す A-71 の定数を除き、部品・Foundation を画面レーンが変えることになる。枠を毎回作り直す: スロットの購読と見た目の状態が描き直しのたびに捨てられる |
@@ -4051,6 +4051,7 @@ git merge origin/feature/uitk
 | D-29 | Task 9（`WheelPassthroughMark` の素通し）が済むまで PR を出さない（依存の節と Task 13 の前提に明記）。出所: moores-code-review（Fable Warning） | Task 7 版の `EquipmentWheelPickJudge.IsBlockingUi` は `picked != null` だけを見て、装備 HUD は `pickingMode = Position` なので、Task 9 の前の形でマージすると装備 HUD の上のホイールが止まり Web と逆になる | Task 7 の形で先にマージし Task 9 を後続 PR にする: 間の期間 `feature/uitk` で Web と逆の挙動が出る |
 | D-30 | `InventoryView` の列数は `bool _columnsResolved` で未解決を表し、解決済みで 1 未満なら `LogError` して当てない（fail-closed）。出所: moores-code-review（core-any-implicit-value-meaning） | 既定値 0 を「未解決」の印に流用すると、トークンを 0・負に誤記したときも未解決と同じ枝に落ち、`UssCustomStyleReader` は欠けしか `LogError` しないので 36 枠が黙って 1 列に並ぶ | `_columns <= 0` を未解決として黙って戻す（旧案）: 誤記が無音で 1 列になる |
 | D-31 | 録画の「Error ログ 0 件」は前例 `train-timetable-via-ui.cs` の `Application.logMessageReceived` の計数＋`p.Assert` で主張し、計数の無い `uitk-grab-overlay` は `result.json` の `ErrorLogs` を `done.md` で読む。DI の型は `ClientDIContext.DIContainer.DIContainerResolver` から引く。出所: moores-code-review（Fable Info） | DSL に `AssertNoErrorLogs` は無く、`PlaytestRunner` は `ErrorLogs` を集めるだけで成否に効かない | 「`AssertNoErrorLogs` 相当」のまま: 実装者が存在しない API を探すか、Error を見ずに PASS にする |
+| D-32 | D-5 と処分表 219 行を D-28（世代の巻き戻りの分岐は写さない）に合わせ、存在しない `EquipmentWheelSelectorTest` の「巻き戻り」の件への言及を消した。出所: moores-code-review（bug-pass） | D-28 の反映が D-5・219 行に追随しておらず、実装者が D-5 を正として分岐を戻す、または無いテストを探して止まる | — |
 
 ---
 

@@ -446,9 +446,9 @@ namespace Client.Ui.State.Train
     {
         public static UiCommandRejected Reject(string logTag, UiCommandRejectReason reason, string serverFailureReason)
         {
-            // Detail はサーバーの失敗理由だけ。応答が無い（切断・時間切れ）・理由が空なら空文字（前例 PauseMenuCommands.SubmitBugReport）
-            // Detail carries only the server failure reason; empty when there is no response or no reason (precedent PauseMenuCommands.SubmitBugReport)
-            var detail = serverFailureReason ?? string.Empty;
+            // Detail はサーバーの失敗理由だけ。応答が無い・理由が無い拒否では呼び手が空文字を渡す（前例 PauseMenuCommands.SubmitBugReport）
+            // Detail carries only the server failure reason; callers pass empty when there is no response or reason (precedent PauseMenuCommands.SubmitBugReport)
+            var detail = serverFailureReason;
             var wire = UiCommandRejectReasonTraits.ToWireCode(reason);
 
             // Web ホストの TrainTimetableActionSupport.Reject と同じ「理由:失敗理由」の書式
@@ -459,7 +459,7 @@ namespace Client.Ui.State.Train
     }
 }
 ```
-（`serverFailureReason` の null はネットワークの応答〈外部データ〉が無いときだけ。呼び手はサーバーの理由が無い拒否に `string.Empty` を渡す）
+（`serverFailureReason` に null は来ない。サーバーの `FailureReason` は列挙〈`TrainScheduleEditFailureReason`・`SetTrainStationNameFailureReason`〉なので、呼び手が `response == null ? string.Empty : response.FailureReason.ToString()` で文字列にして渡す。応答が無い〈切断・時間切れ〉ときとサーバーの理由が無い拒否は `string.Empty`）
 
 - [ ] **Step 5: compile とコミット**
 
@@ -1593,7 +1593,7 @@ namespace Client.Ui.State.Train.TimetableEdit.Send
             // The response comes from the network, so null (disconnect or timeout) counts as a refusal
             var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateReplaceTimetableRequest(trainUnitId, TrainTimetableDeparture.ToServerStops(stops));
             var response = await ClientContext.VanillaApi.Response.Train.SendTrainScheduleEdit(request, CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.TrainTimetableReplaceFailed, response?.FailureReason);
+            if (response == null || !response.Success) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.TrainTimetableReplaceFailed, response == null ? string.Empty : response.FailureReason.ToString());
             return UiCommandAccepted.Instance;
         }
 
@@ -1605,7 +1605,7 @@ namespace Client.Ui.State.Train.TimetableEdit.Send
             // Even when accepted, refuse if the applied value differs from the request (same check as the Web host)
             var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateSetAutoRunRequest(trainUnitId, enabled);
             var response = await ClientContext.VanillaApi.Response.Train.SendTrainScheduleEdit(request, CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.TrainAutoRunFailed, response?.FailureReason);
+            if (response == null || !response.Success) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.TrainAutoRunFailed, response == null ? string.Empty : response.FailureReason.ToString());
             if (response.AppliedIsAutoRun == enabled) return UiCommandAccepted.Instance;
 
             // 適用された値はサーバーの失敗理由ではないので Detail に入れず、ログにだけ残す（Web ホストの set_auto_run_not_applied:<値> と同じ情報）
@@ -2983,7 +2983,7 @@ namespace Client.Ui.State.Train.Platform
     }
 }
 ```
-（`OpenBlockDetailTracker` の 2 つの通知を自分でも購読すると、1 回の状態変化で「追跡の通知 → 液体の配り直し」の 2 回組み直し、1 回目は古い液体の列で組む。液体の Model〈S4-machine の `BlockFluidSlotsModel`〉は同じ 2 つの通知で毎回新しい `BlockFluidSlotsViewModel` を作って配り直すので、その 1 本だけに乗れば新しい追跡ブロックと液体で 1 回だけ組む。`ReactiveProperty` は購読した瞬間に今の値を流すので初回の `Rebuild()` も要らない。前提〈状態変化のたびに参照の違う値を配る〉は Task 1 Step 2 で確かめ、同じ値を畳んで流さない作りなら `_tracker` の 2 つの通知の購読へ戻し、`_fluidSlots` は読むだけにする。D-35）
+（`OpenBlockDetailTracker` の 2 つの通知を自分でも購読すると、1 回の状態変化で「追跡の通知 → 液体の配り直し」の 2 回組み直し、1 回目は古い液体の列で組む。液体の Model〈S4-machine の `BlockFluidSlotsModel`〉は同じ 2 つの通知で毎回新しい `BlockFluidSlotsViewModel` を作って配り直すので、その 1 本だけに乗れば新しい追跡ブロックと液体で 1 回だけ組む。`ReactiveProperty` は購読した瞬間に今の値を流すので初回の `Rebuild()` も要らない。前提〈状態変化のたびに参照の違う値を配る。液体を持たない駅でも〉は S4-machine の Produces の約束で、`BlockFluidSlotsModelTest`「追跡の状態変化のたびに中身が同じでも新しい VM が流れる」が固定する。Task 1 Step 2 でその件の有無を確かめ、同じ値を畳んで流さない作りなら `_tracker` の 2 つの通知の購読へ戻し、`_fluidSlots` は読むだけにする。D-35）
 
 - [ ] **Step 4: プラットフォームの編集側を書く（`Platform/Edit/`）**
 
@@ -3045,7 +3045,7 @@ namespace Client.Ui.State.Train.Platform.Edit
             // 応答はネットワーク由来なので null を拒否として扱う
             // The response comes from the network, so null counts as a refusal
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainStationName(source.BlockPosition, name, CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject(StationLogTag, UiCommandRejectReason.TrainStationNameFailed, response?.FailureReason);
+            if (response == null || !response.Success) return TrainCommandRejection.Reject(StationLogTag, UiCommandRejectReason.TrainStationNameFailed, response == null ? string.Empty : response.FailureReason.ToString());
             return UiCommandAccepted.Instance;
         }
 
@@ -4438,7 +4438,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     }
 }
 ```
-（`BlockItemGridFactory`・`GameContentPresentation` のテストでの組み方は alpha の `BlockInventoryTestBodies` と S4-machine の `FluidSectionsTest` の前例に合わせる。`BlockInventoryTestParts`〈`Grids()` と `Content()` を返す小さな補助〉は alpha・S4-machine のテスト補助に同等のものがあればそれを使い、無ければこのファイルの下に置く）
+（`BlockItemGridFactory`・`GameContentPresentation` のテストでの組み方は alpha の `BlockInventoryTestBodies` と S4-machine の `FluidSectionsTest` の前例に合わせる。`BlockInventoryTestParts`〈`Grids()` と `Content()` を返す小さな補助〉は alpha・S4-machine のテスト補助に同等のものがあればそれを使い、無ければこのファイルの下に置く。`Content()` は液体にテクスチャを持たせて組む: `new GameContentPresentation(new FakeContentTextureSource(null, null, FluidTexture))`。`FluidTexture` は補助の `private static readonly Texture2D FluidTexture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };`〈前例 `GrabOverlayViewTest.cs:58-59` の組み方。`GameIcon.SetIcon` は `icon.Texture != null` のときだけ `game-icon--image` を立てる〈`GameIcon.cs:33-37`〉ので、液体のテクスチャが null だと `HasFluidIcon` の件が落ちる〉。同等の補助を流用する場合も、液体のテクスチャが非 null であることを確かめ、null なら上の形の `Content()` を train 側に置く）
 
 `Timetable/TrainTimetableSectionViewTest.cs`（`TrainTimetableImmediate.test.ts` 7・8 件目。Web と同じ順と主張）:
 
@@ -4581,7 +4581,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     }
 }
 ```
-（液体名は Foundation の既存 `UiIcon.Label`〈公開メンバは `Texture`・`IdText`・`Label` の 3 つ。`Client.Ui/Foundation/Icons/UiIcon.cs:14-16`、前例 `Client.Tests/Ui/Content/GameContentPresentationTest.cs:81` の `.Label.Resolve()`〉。アイコンの要素のクラス名〈`fluid-slot__icon`〉と「出ている」の印〈`game-icon--image`〉は C4-a 計画〈`FluidSlot` の `_icon.AddToClassList("fluid-slot__icon")`・空で `ClearIcon`〉から写した。C4-a の `FluidSlot`／`FluidSlotRow` の実物と、S4-machine の `FluidInventoryContents` が行の中に `FluidSlot` を持つことを Task 1 Step 2 で確かめ、違えば「名前の合わせ」で合わせる。テストの液体にテクスチャが無く `--image` が立たない場合は、絵の有無でなく `HoverTooltipMark` の印の有無で見る形に替え、`done.md`「名前の合わせ」に書く）
+（液体名は Foundation の既存 `UiIcon.Label`〈公開メンバは `Texture`・`IdText`・`Label` の 3 つ。`Client.Ui/Foundation/Icons/UiIcon.cs:14-16`、前例 `Client.Tests/Ui/Content/GameContentPresentationTest.cs:81` の `.Label.Resolve()`〉。アイコンの要素のクラス名〈`fluid-slot__icon`〉と「出ている」の印〈`game-icon--image`〉は C4-a 計画〈`FluidSlot` の `_icon.AddToClassList("fluid-slot__icon")`・空で `ClearIcon`〉から写した。C4-a の `FluidSlot`／`FluidSlotRow` の実物と、S4-machine の `FluidInventoryContents` が行の中に `FluidSlot` を持つことを Task 1 Step 2 で確かめ、違えば「名前の合わせ」で合わせる。テストの液体のテクスチャは `BlockInventoryTestParts.Content()` が非 null の 1 枚で組む〈上の注〉ので `--image` が立つ。空の枠は `ClearIcon` で外れる）
 
 `TrainInventoryBodyTest.cs`（8 件。後ろの 3 件は Web の写しではなく、D-27 の主張と、State から Presenter へ移したタブの局所状態〈D-33〉の主張）:
 
@@ -5556,13 +5556,14 @@ git merge origin/feature/uitk
 | D-28 | View は列車の型（`TrainUnitInstanceId`。`Game.Block.Interface`）を持たず、区画の作り直しは State の `ReadyTrainTimetableArea.IsSameTrain` で決める。出所: レビュー r2 | `Client.Ui.asmdef` は `Game.Block.Interface` を参照せず（asmdef の参照は推移しない）、D-8 も View にサーバーの型を持たせない | `Client.Ui.asmdef` に参照を足す（D-8 に反する） |
 | D-29 | 閉じたことは `TrainTimetableModel` が `UIStateControl.OnStateChanged` を購読して組み直し、使えないへ倒して編集の器に伝える（器 `TrainTimetableEditState` はセッションを閉じ、遅れて戻った受理・拒否を捨てる。D-33 で編集の Model から器へ移した）。L0 は器の約束（源が使えない → 捨てる）を、本番の通知経路は録画 `uitk/uitk-train-inventory` 手順 6 で確かめる。出所: レビュー r2 | `SubInventoryState` は開閉で `OnSubInventoryUpdated` を出さず、Tracker の開閉の購読も再公開を出さないので、閉じても Ready のまま編集が続き、閉じた後に拒否のトーストと巻き戻し・受理の 5000ms の時間切れが走っていた。Web ホスト `BlockInventoryTopic` も `UIStateControl.OnStateChanged` で配り直す | 編集の Model がパネルの源を購読して閉じる（時刻表の源は Ready のまま残るので、閉じた後に同じ列車を開き直すと同じ中身の Ready が配り直されずセッションが開かない。源と編集の Model の閉じの入力がずれる窓ができる。なお選んだ案でも State の閉じの入力は 2 系統〈時刻表は `UIStateControl.OnStateChanged`、本文・PF・駅名の下書きは alpha のパネルの源の `Closed`〉で、どちらが先に倒れても源が使えなくなった時点で閉じるので食い違いは起きない）／`TrainTimetableModel` を L0 で組む（`UIStateControl` は MonoBehaviour で組めない） |
 | D-30 | 編集セッションはサーバーの時刻表（`TrainTimetableReadyData`）を `Server` として持ち、編集の Model は `_session` 1 本にする。値の列の比べは `Enumerable.SequenceEqual`（自前の `SameItems` を消す）。出所: レビュー r2（5-A1・N-7） | 組で立てる・倒す 2 つのフィールド（`_session` と `_server`）を言葉の注で保証する形をやめる。`SequenceEqual` は既定の比較子（値の構造体の `Equals`）で同じ判定（前例 `CursorTooltipViewModel`） | 2 フィールドのまま注で保証する（r1）／`TrainTimetableValueEquality` を残す |
-| D-31 | 列車の拒否は理由ごとの `UiCommandRejectReason` で返す（`TrainTimetableReplaceFailed`・`TrainAutoRunFailed`・`TrainAutoRunNotApplied`・`TrainInvalidBlockType`・`TrainStationNameFailed`・`TrainPlatformModeFailed`、と共有の `BlockNotOpen`）。wire は Web ホストの理由の頭（`replace_failed` 等）、文言キーは値ごとに `ui.commandRejected.<値>`。`Detail` は既定 `""` で、サーバーの `FailureReason` を載せるときだけ入れる。組み立ては `TrainCommandRejection.Reject(logTag, reason, serverFailureReason)` の 1 か所（D-9 を覆した）。出所: moores-code-review（設計判断 D1） | `ToWireCode` は「Detail があればそれ」を返すので、Detail に wire を詰めると Detail の意味（補足）が崩れる。前例 `PauseMenuCommands.SubmitBugReport` は失敗コードだけを Detail に入れる。理由ごとの文言があれば利用者に何が断られたかが伝わる | 1 つの `TrainEditRejected` に寄せ Detail に Web の理由文字列を入れる（D-9 の旧案。どれも同じ文言で、Detail の契約を曲げる） |
+| D-31 | 列車の拒否は理由ごとの `UiCommandRejectReason` で返す（`TrainTimetableReplaceFailed`・`TrainAutoRunFailed`・`TrainAutoRunNotApplied`・`TrainInvalidBlockType`・`TrainStationNameFailed`・`TrainPlatformModeFailed`、と共有の `BlockNotOpen`）。理由の既定 wire（`UiCommandRejectReasonTraits.ToWireCode(reason)`）は Web ホストの理由の頭（`replace_failed` 等）で、`TrainCommandRejection.Reject` のログ `rejected: <wire>:<Detail>` に出る。ただし Detail がある拒否では `UiCommandRejected.ToWireCode()` が Detail（サーバーの列挙名。例 `TrainNotFound`）を返すので、トースト係 `UiCommandResultToaster` のログ `failed: <…>` に出るのは列挙名で、理由の頭ではない（Detail が空の拒否だけ理由の頭が出る）。文言キーは値ごとに `ui.commandRejected.<値>`。`Detail` は既定 `""` で、サーバーの `FailureReason` を載せるときだけ入れる。組み立ては `TrainCommandRejection.Reject(logTag, reason, serverFailureReason)` の 1 か所（D-9 を覆した）。出所: moores-code-review（設計判断 D1） | `ToWireCode` は「Detail があればそれ」を返すので、Detail に wire を詰めると Detail の意味（補足）が崩れる。前例 `PauseMenuCommands.SubmitBugReport` は失敗コードだけを Detail に入れる。理由ごとの文言があれば利用者に何が断られたかが伝わる | 1 つの `TrainEditRejected` に寄せ Detail に Web の理由文字列を入れる（D-9 の旧案。どれも同じ文言で、Detail の契約を曲げる） |
 | D-32 | 足す拒否は全部非良性でトーストする。「開いていない」（駅・PF の `block_not_open`、時刻表の `train_not_open`、時刻表が開いていない編集）は S4-machine と共有の `BlockNotOpen` 1 値（wire `block_not_open`・文言キー `ui.commandRejected.blockNotOpen`。csv の行は S4-machine 計画と一字一句同じ）。S4-machine と S4-train の先にマージした方が列挙・3 つの switch・csv に足し、後の方は使うだけ（着手時に grep で確かめ、取り込みで両側にあれば 1 行に畳む）。`PauseMenuCommandsTest` の良性の配列と名前は変えない（D-26 を覆した）。出所: moores-code-review（設計判断 D2。S4-machine D-38 と同じ裁き） | Web の `BENIGN_ERRORS` に列車の操作の項目は無く、Web はどの拒否もトーストする。`IsBenign` の契約（Web の BENIGN_ERRORS にあるものだけ良性）と alpha D-56 にそろう。同じ意味・同じ wire の値を 2 レーンで 2 つ持つと取り込みで衝突する。時刻表の wire が Web ホストの `train_not_open` と違うのはログの文字列だけで、利用者に見える振る舞い（トースト）は Web と同じ | 良性の `TrainBlockNotOpen`（D-26 の旧案。Web と挙動が逆）／時刻表だけ `TrainNotOpen` を別に足す（同じ意味の値が増える） |
 | D-33 | 編集は前例 `PauseMenuStateService`＋`PauseMenuModel`＋`IPauseMenuCommands` と同じく 3 つに分ける: 器（`TrainTimetableEditState`〈列車ごとのセッション〉・`TrainStationNameEditState`〈駅名の下書き〉。DI の単一インスタンス）・描画値の Model（`ITrainTimetableEditModel.Current`・`ITrainPlatformEditModel.StationNameInput`。Presenter が購読）・コマンド（`ITrainTimetableEditCommands`・`ITrainPlatformEditCommands`。View が直接呼び〈A-8〉、`UiCommandResult` を返す。サーバーの結果はコマンドがトーストへ渡すので View は戻り値を読まない）。器を共有するのは、View が直接呼ぶコマンドと Presenter が購読する描画値が同じセッション・下書きを見るためで、下書きは遅れて戻る拒否が送った回を見分けるまで Presenter より長く生きる（D-25）。タブはパネルごとの局所状態なので State に置かず、列車の本文の Presenter が `TrainTimetableFetchTrigger` を 1 つ持ち、`IsSamePanel` が偽のパネルで作り直す（前例 S4-machine の `MachineSelectionModeState`）。View はタブの押下を `OnTabSelected` で出す。送信の 3 本は `TimetableEdit/Send/` へ出す（10 本の上限）。D-12 を覆した。出所: moores-code-review（設計判断 D3） | 1 つの Model に描画値と操作を同居させると、偽の `ReactiveProperty` で Presenter＋View を試す L1 の形（`FakeModel<T>`）に合わず、操作の結果も返せない。前例の分け方に揃えると、Model は `Current` だけ・コマンドは結果を返す形になる。タブは alpha が別のパネルで本文を作り直すので Presenter の寿命で足り、State のパネルの購読が要らない | 編集の Model に操作も持たせる（旧版）／器を作らず Model とコマンドがそれぞれ源を購読する（同じセッションが 2 つでき、表示と送信がずれる）／タブも State の Model に残す（D-12 の旧案） |
 | D-34 | `OpenTrainPlatformBody` の部分の有無（駅名・スロット・モード）は S4-machine の `SectionContent<T>`（`Client.Ui.State.BlockInventory.Common`。`IsPresent`・`Value`・`Absent`・`Present`）で配る。テストは `TrainTestPlatforms` の 3 つの組み立てで作る。D-19 の「無ければ null」を覆した。出所: moores-code-review（Fable） | 設計書 A-150 は「値を null 許容で配る」を Nullチェックの指針に反する案として却下し、同じ W4 の S4-machine は `SectionContent<T>` で有無を型にしている。2 計画で有無の表し方を揃える | null 許容のまま A-150 に例外を書く（同じ W4 で表し方が割れる） |
-| D-35 | `TrainPlatformBodyModel` はパネルの源と `IBlockFluidSlotsModel.Current` だけを購読し、`OpenBlockDetailTracker` の 2 つの通知は購読しない（追跡ブロックは組むときに読む）。前提（液体の Model が追跡替え・状態変化のたびに参照の違う値で配り直す）は Task 1 Step 2 で確かめ、外れたら追跡の通知の購読へ戻す。出所: moores-code-review（efficiency） | 追跡の通知と液体の配り直しの両方を購読すると、状態変化 1 回で 2 回組み、1 回目は古い液体の列で組む。液体の Model は同じ 2 つの通知で組み直すので、その 1 本に乗れば新しい値で 1 回だけ組める | 3 本とも購読して同じ値は畳む（1 回目が古い液体で組まれる窓は残る）／`CombineLatest` で束ねる（入力が同じ通知から派生するので 2 回流れるのは変わらない。alpha D-55 と同じ形） |
+| D-35 | `TrainPlatformBodyModel` はパネルの源と `IBlockFluidSlotsModel.Current` だけを購読し、`OpenBlockDetailTracker` の 2 つの通知は購読しない（追跡ブロックは組むときに読む）。前提（液体の Model が追跡替え・状態変化のたびに参照の違う値で配り直す）は S4-machine 計画の Produces の `IBlockFluidSlotsModel` に約束として書かれ、`BlockFluidSlotsModelTest`「追跡の状態変化のたびに中身が同じでも新しい VM が流れる」が固定する（液体を持たない駅でも流れる）。Task 1 Step 2 でもその件があることを確かめ、無ければ追跡の通知の購読へ戻す。出所: moores-code-review（efficiency）、約束への参照は moores-code-review（bug-pass） | 追跡の通知と液体の配り直しの両方を購読すると、状態変化 1 回で 2 回組み、1 回目は古い液体の列で組む。液体の Model は同じ 2 つの通知で組み直すので、その 1 本に乗れば新しい値で 1 回だけ組める | 3 本とも購読して同じ値は畳む（1 回目が古い液体で組まれる窓は残る）／`CombineLatest` で束ねる（入力が同じ通知から派生するので 2 回流れるのは変わらない。alpha D-55 と同じ形） |
 | D-36 | 公開待ちの段階は、段階を `_phase` に入れてから時間切れを `Arm` で仕掛ける（`AwaitingPublicationPhase.Arm`・`Disarm`。`BackToIdle` が `Disarm` する）。出所: moores-code-review（Fable） | `new AwaitingPublicationPhase(stops, _timer.After(...).Subscribe(...))` は `Subscribe` が代入より先に評価され、同期で発火するタイマーだと Idle に戻した直後に発火済みの段階が入り、保留が解けない | タイマーは同期で発火しない前提を注で書く（偽物や将来の実装で崩れる） |
 | D-37 | 列車の本文の `GameScrollView(train-body-scroll)` の高さは alpha の大型パネルが決める（`.block-inventory--large .block-inventory__panel` の高さと `block-inventory__body` の `flex-grow:1; min-height:0`）。列車の `.train-body`・`.train-body__scroll` は `flex-grow:1; min-height:0` でその鎖をつなぐだけで、自分で高さの上限を持たない。Task 10 の自撮り「本文の高さ」で確かめ、潰れる・伸びるなら鎖の切れた段を alpha の持ち主へ上げる。出所: moores-code-review（Fable） | Web も `BlockInventoryPanel.tsx` の「大型面は本文側が器を持つ」で、高さは外殻が決め、本文の `ScrollArea`（`panelBodyScrollArea` の `.scroll`）が残りを埋める。alpha Produces の「本文は自分でスクロール器を持たない」は自然高・区画の積み重ねの本文の話で、大型の本文は器を持つ（Web と同じ） | 列車の USS に高さの上限のトークンを足す（Web に無い値。外殻と二重に決める） |
+| D-38 | bug-pass の反映: (a) `TrainCommandRejection.Reject` の第 3 引数（string）へ列挙の `response?.FailureReason` を渡していた 3 か所（時刻表の置換・自動運転・駅名）を `response == null ? string.Empty : response.FailureReason.ToString()` にし、`Reject` は null を受けない前提に注を直した、(b) D-31 の wire の記述を「Detail がある拒否では `ToWireCode()` が Detail〈列挙名〉を返す」に直した、(c) D-35 の前提を S4-machine の Produces の約束と `BlockFluidSlotsModelTest` の件へ結んだ、(d) `HasFluidIcon` のテストの `Content()` は液体のテクスチャを非 null の 1 枚（`FakeContentTextureSource(null, null, FluidTexture)`）で組むと決めた、(e) 録画 `train/train-timetable-via-ui.cs` は `train_not_open` を見ていない（数えるのはサーバーの `[TrainScheduleEdit] rejected`・`[SetTrainStationName] rejected` だけ。166 行）と確かめたので追随は要らない。出所: moores-code-review（bug-pass） | (a) 列挙の null 許容は string へ暗黙に変換できず CS1503 で Task 4 の compile が赤になる（`TrainScheduleEditProtocol.cs:143`・`SetTrainStationNameProtocol.cs:91` は列挙）。(b) `UiCommandResult.cs:38`。(d) `GameIcon.cs:33-37` はテクスチャが null だと `game-icon--image` を立てない | — |
 
 ## 設計書・実行計画へ反映する行
 
