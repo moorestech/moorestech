@@ -126,6 +126,8 @@ public sealed class IconButton : VisualElement
 - View は C# で組む。UXML と UI Builder は使わない
 - 出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める
 - 毎フレームの値（採掘の進捗など）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（設計書 A-57）。View は `Update()` を持たない
+- USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける。付けないと、その中のアンカーを指すチュートリアル枠が容器の外へはみ出して描かれる（祖先クリップの判定は印のある容器しか見ない。設計書 A-65）
+- 面（パネル・紙）を張る部品を新しく作るときは `UiSurface.Mark` を付ける。付けないと、その面の上のアンカーを指すチュートリアル枠のグローが世界の上の色（明るい地用）で描かれる（設計書 A-136）
 
 ## 9. 動き
 
