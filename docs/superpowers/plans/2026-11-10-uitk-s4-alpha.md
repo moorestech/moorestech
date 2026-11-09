@@ -8,7 +8,7 @@
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`GeometryChangedEvent`・`CustomStyleResolvedEvent`）、UniRx、VContainer 1.10（コレクション解決）、NUnit＋`com.unity.ui.test-framework`、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（test-name-parity）、gh CLI、bd（Beads）
 
-- **パスの略記**: `S/` = `moorestech_client/Assets/Scripts/`、`W/` = `moorestech_web/webui/`、`LOGS` = `/Users/sakastudio/hermes-agent/data/repos/moorestech_logs`、`SKILL` = `.agents/skills/unity-playmode-recorded-playtest`。Files 節とコマンドはリポジトリ相対の完全なパスで書く（`S/` は Files 節の読みやすさのための略記で、実体は `moorestech_client/Assets/Scripts/`）
+- **パスの略記**: `S/` = `moorestech_client/Assets/Scripts/`、`W/` = `moorestech_web/webui/`、`LOGS` = `../moorestech_logs`、`SKILL` = `.agents/skills/unity-playmode-recorded-playtest`。Files 節とコマンドはリポジトリ相対の完全なパスで書く（`S/` は Files 節の読みやすさのための略記で、実体は `moorestech_client/Assets/Scripts/`）
 - **正本**: 裁定 `.decisions/2026-11-06-*`（「段階2以降の画面もWeb版と同じ見た目にする」「長命ブランチの中は全体スイッチ1つ」「UITK切替までCEF由来の不具合は直さない」）、設計書 `docs/uitk-migration/execution/component-architecture.md`（§1・§2・§3・§4.1〜§4.3・§5.1・§7.1 の A-45・A-47・A-57・A-70・A-72〜A-74・A-90〜A-99・A-110・A-111）、実行計画 `docs/uitk-migration/execution/execution-plan.md`（§1.4 の S4-alpha 行・§4.3・§5・§6.2・E-1・E-16・E-18〜E-22）、先行レーンの申し送り（`LOGS/harness/uitk/C4-e/done.md`・`L0-s4a/done.md`・`L0-s4b/done.md`・`conductor.md`「## 引き継ぎ」）、本体の追加決定（2026-11-10。機械レシピの源は alpha・液体の中身表示は S4-machine が `Screens/BlockInventory/Fluid/` に作り alpha は区画を空ける）。食い違ったら 裁定 → 統合計画 → 設計書 → 実行計画 → この計画 の順で上が勝つ
 
 ## Requirements
@@ -4626,7 +4626,7 @@ git merge origin/feature/uitk
 - [ ] **Step 4: 報告と後始末**
 
 1. `bd close <S4-alpha の issue>`
-2. `/Users/sakastudio/hermes-agent/data/repos/moorestech_logs/harness/uitk/S4-alpha/done.md` の 1 行目を「状態: 完了」にし、PR 番号・マージコミット・証拠・差の表・integrator への依頼・未確認を埋める
+2. `../moorestech_logs/harness/uitk/S4-alpha/done.md` の 1 行目を「状態: 完了」にし、PR 番号・マージコミット・証拠・差の表・integrator への依頼・未確認を埋める
 3. `cmux wait-for -S uitk-s4-alpha`
 4. `moores-wt rm s4-alpha`（Editor とworktreeを畳む。未 push があれば拒否されるので push を確かめてから）
 
