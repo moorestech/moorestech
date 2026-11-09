@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 {
     /// <summary>
-    ///     組み立ての1歩で試す手前候補の列挙。入る向き3通り×種別3通りを、総コストの下限が小さい順、同じなら列挙順（直進・左・右、直線・上り・下り）に並べる
-    ///     Enumerates the predecessor candidates for one recovery step: three incomings times three kinds, ordered by the lower bound of the total cost, then by enumeration order (straight, left, right; flat, up, down)
+    ///     組み立ての手前候補を総コスト下限の昇順で列挙
+    ///     Enumerates recovery predecessors by total-cost lower bound
     /// </summary>
     public sealed class BeltRouteRecoveryCandidates
     {

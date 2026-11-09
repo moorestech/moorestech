@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
 {
     /// <summary>
-    ///     分岐判定が隣のブロックの入出力辺を写す入れ物。辺の有無だけを答える
-    ///     Holds the neighbouring blocks' port edges for the branch judge and answers only whether an edge exists
+    ///     分岐判定用に隣の入出力辺を写す入れ物
+    ///     Holds neighbouring port edges for the branch judge
     /// </summary>
     public sealed class BeltRouteNeighbourEdges : IBeltRouteEdgeSink
     {
@@ -17,8 +17,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
         public void AddOutputEdge(BeltRouteEdge edge) => _outputEdges.Add(edge);
         public void AddInputEdge(BeltRouteEdge edge) => _inputEdges.Add(edge);
 
-        // 分岐の向きと出口は辺だけで決まる。坂の真上は判定に使わないので受け流す
-        // The branch facing and exits follow from edges alone; slope heads play no part, so they are ignored
+        // 坂の真上は分岐判定に不要なので無視
+        // Slope heads are unused by the branch judge, so ignored
         public void MarkSlopeHead(Vector3Int cell)
         {
         }

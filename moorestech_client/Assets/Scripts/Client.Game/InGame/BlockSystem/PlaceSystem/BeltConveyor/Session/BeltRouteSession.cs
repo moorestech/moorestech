@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 {
     /// <summary>
-    ///     始点を決めてから終点を置くまでの状態。本番の世界と探索器を持ち、同じ問い合わせの結果は使い回す
-    ///     The state between fixing the start and placing the end; owns the live world and planner and reuses results for identical queries
+    ///     始点確定後の状態。世界と探索器を持ち結果を使い回す
+    ///     State after the start is fixed; owns world and planner, reuses results
     /// </summary>
     public sealed class BeltRouteSession
     {
@@ -37,7 +37,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
         }
 
         public bool IsBranch => Branch != null;
-        public IBeltRouteWorld World => _world;
 
         public static BeltRouteSession CreateAtCell(Vector3Int startCell, BlockDirection startDirection, BlockGameObjectDataStore blocks)
         {
@@ -51,8 +50,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             return new BeltRouteSession(branch.Cell, branch.ExitDirection, branch, blocks);
         }
 
-        // ブロックの設置・撤去で占有と辺を作り直す。地形は列ごとの記憶のまま
-        // Rebuilds occupancy and edges after a block is placed or removed; the per-column terrain memory stays
+        // 設置・撤去で占有と辺を再構築
+        // Rebuild occupancy and edges on place or removal
         public void RebuildObstacles()
         {
             _world.Rebuild();
@@ -79,6 +78,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
         // Searches only on frames where the cursor or heading changed
         public BeltRoutePlanResult Plan(Vector3Int endCell, BlockDirection endDirection, BeltConveyorHoldingBlock holding)
         {
+            // 終点不可なら探索せず理由を返す
+            // Unusable end returns its reason without searching
+            var endCellReason = BeltRouteCellJudge.Judge(_world, endCell);
+            if (endCellReason != BeltRouteCellBlockReason.None) return BeltRoutePlanResult.EndCellBlocked(endCellReason);
+
             var query = new BeltRouteQuery(StartCell, StartDirection, IsBranch, endCell, endDirection, holding.AllowsSlopes, holding.IsSplitter);
             if (_lastQuery != null && _lastQuery.IsSameQuery(query)) return _lastResult;
 

@@ -26,18 +26,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 return new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.Single(endCell, endDirection, holding.BlockId, true) };
             }
 
-            var cellReason = BeltRouteCellJudge.Judge(session.World, endCell);
-            if (cellReason != BeltRouteCellBlockReason.None)
-            {
-                feedback.Add(BeltRouteTooltipKey.CellLine(cellReason));
-                placeable = false;
-                return BeltRoutePlaceInfoBuilder.BuildEndpointGhosts(session, endCell, endDirection, holding);
-            }
-
             var result = session.Plan(endCell, endDirection, holding);
             if (!result.HasPlan)
             {
-                feedback.Add(BeltRouteTooltipKey.NoPathLine());
+                var line = result.EndCellBlockReason != BeltRouteCellBlockReason.None ? BeltRouteTooltipKey.CellLine(result.EndCellBlockReason) : BeltRouteTooltipKey.NoPathLine();
+                feedback.Add(line);
                 placeable = false;
                 return BeltRoutePlaceInfoBuilder.BuildEndpointGhosts(session, endCell, endDirection, holding);
             }

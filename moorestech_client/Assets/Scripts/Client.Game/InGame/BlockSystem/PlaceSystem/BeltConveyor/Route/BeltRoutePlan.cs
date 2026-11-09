@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using System.Collections.Generic;
 using Game.Block.Interface;
 using UnityEngine;
@@ -41,21 +42,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
     }
 
     /// <summary>
-    ///     探索の結果。経路があればPlan、無ければ経路なし（利用者向けの理由は「見つかりません」の1つ。ADR 0099）
-    ///     The search outcome: a plan when a route exists, otherwise no route (the single user-facing reason is "not found", ADR 0099)
+    ///     探索結果。経路ありはPlan、なしは理由1つ
+    ///     Search outcome: a plan, or no route with one reason
     /// </summary>
     public sealed class BeltRoutePlanResult
     {
         public readonly BeltRoutePlan Plan;
 
+        // 終点が使えない理由。他はNone
+        // Why the end is unusable; None otherwise
+        public readonly BeltRouteCellBlockReason EndCellBlockReason;
+
         public bool HasPlan => Plan != null;
 
-        private BeltRoutePlanResult(BeltRoutePlan plan)
+        private BeltRoutePlanResult(BeltRoutePlan plan, BeltRouteCellBlockReason endCellBlockReason)
         {
             Plan = plan;
+            EndCellBlockReason = endCellBlockReason;
         }
 
-        public static BeltRoutePlanResult Found(BeltRoutePlan plan) => new(plan);
-        public static BeltRoutePlanResult NotFound() => new(null);
+        public static BeltRoutePlanResult Found(BeltRoutePlan plan) => new(plan, BeltRouteCellBlockReason.None);
+        public static BeltRoutePlanResult NotFound() => new(null, BeltRouteCellBlockReason.None);
+        public static BeltRoutePlanResult EndCellBlocked(BeltRouteCellBlockReason reason) => new(null, reason);
     }
 }

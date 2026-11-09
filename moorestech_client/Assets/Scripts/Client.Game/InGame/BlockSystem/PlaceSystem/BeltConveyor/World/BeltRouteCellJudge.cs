@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
 {
     /// <summary>
-    ///     セルにベルトを置けない理由。端点の判定（セッション）と途中セルの判定（探索規則）が同じ1本を通る
-    ///     Why a cell cannot take a belt; endpoint checks (session) and mid-route checks (search rule) share this one judgement
+    ///     セルにベルトを置けない理由（端点・途中で共通）
+    ///     Why a cell cannot take a belt (shared by endpoints and mid-route)
     /// </summary>
     public enum BeltRouteCellBlockReason
     {

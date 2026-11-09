@@ -22,8 +22,8 @@ using static Client.Game.DebugConst;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 {
     /// <summary>
-    ///     ベルトの2クリック設置。1回目で始点を決め、カーソルのセルまでの経路を毎フレーム出し、2回目で置く
-    ///     Two-click belt placement: the first click fixes the start, the route to the cursor cell is previewed every frame, the second click places it
+    ///     2クリックでベルト設置。経路を毎フレーム表示
+    ///     Two-click belt placement; the route is previewed every frame
     /// </summary>
     public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {

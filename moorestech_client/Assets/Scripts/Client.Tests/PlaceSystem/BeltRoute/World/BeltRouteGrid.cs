@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute.World
 {
-    // テスト用の世界。有限の箱で、列ごとの地形の下限・占有・坂の真上・入出力辺を持つ。箱の外は占有扱いで探索が外へ出ない
-    // A test world: a finite box holding per-column terrain floors, occupancy, slope heads and port edges; outside the box counts as occupied so the search never leaves it
-    // 面ビットの立て方は本番と同じ BeltRouteFaceBits.Mark
-    // Face bits are raised by the same BeltRouteFaceBits.Mark as production
+    // テスト用の有限の世界。箱の外は占有扱い
+    // Finite test world; outside the box counts as occupied
+    // 面ビットは本番と同じMarkで立てる
+    // Face bits use the same Mark as production
     public sealed class BeltRouteGrid : IBeltRouteWorld, IBeltRouteEdgeSink
     {
         private const int NoGround = int.MinValue;

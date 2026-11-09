@@ -7,8 +7,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
     /// <summary>
     ///     サーバーの接続規則を探索の可否判定へ写した1枚。探索と組み立ての両方がここだけを通る
     ///     The server's connection rules translated into search feasibility; both the search and the recovery go through this alone
-    ///     世界はセル単位でその場で答える（IBeltRouteWorld）。箱も添字も持たない
-    ///     The world answers per cell on demand (IBeltRouteWorld); there is no box and no index
+    ///     世界へはセル単位で問い合わせる
+    ///     The world is queried per cell
     /// </summary>
     public sealed class BeltRouteTransitionRule
     {
@@ -36,8 +36,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 
         public BeltRouteQuery Query => _query;
 
-        // 地面にも既存ブロックにも既存坂の真上にも当たらないセルか（判定は BeltRouteCellJudge の1本）
-        // Whether the cell is clear of ground, existing blocks and existing slope heads (judged by BeltRouteCellJudge alone)
+        // 地面・既存ブロック・既存坂の真上に当たらないセルか
+        // Whether the cell avoids ground, blocks and slope heads
         public bool IsCellFree(Vector3Int cell)
         {
             return BeltRouteCellJudge.Judge(_world, cell) == BeltRouteCellBlockReason.None;
@@ -77,8 +77,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return CanEnterGoalFrom(previous.Outgoing);
         }
 
-        // 分岐器の終点は背面入力なので入る向きが正面と一致、通常ベルトは背面・左右のどこからでも入れる
-        // A splitter end takes input from its back so the entry heading must equal its facing; a normal belt accepts back, left or right
+        // 分岐器の終点は正面一致、通常は背面・左右から入れる
+        // Splitter end needs facing match; normal accepts back or sides
         public bool CanEnterGoalFrom(BlockDirection outgoing)
         {
             if (_query.TurnByOutput) return outgoing == _query.EndDirection;

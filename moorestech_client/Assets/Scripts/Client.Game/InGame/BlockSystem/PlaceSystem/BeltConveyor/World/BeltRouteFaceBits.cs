@@ -18,8 +18,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
             return 1 << ((int)face + BeltRouteDirection.DirectionCount * heightOffset);
         }
 
-        // 辺に接する2セルへ、辺の高さにある段と1つ下の段の両方で面ビットを立てる
-        // Raise the face bit on both cells touching the edge, at the edge's level and one level below
+        // 辺に接する2セルの辺高さと1つ下に面ビットを立てる
+        // Raise face bits on both edge cells at edge height and one below
         public static void Mark(BeltRouteEdge edge, Dictionary<Vector3Int, int> faceBits)
         {
             var positive = edge.PositiveCell;

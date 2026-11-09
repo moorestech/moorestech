@@ -45,8 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _reversedStates.Clear();
             _steps = 0;
 
-            var query = rule.Query;
-            var goal = new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight);
+            var goal = _search.Goal;
             if (_search.BestCost(goal) == BeltRouteSearch.Unreached) return null;
 
             Place(goal, 0);

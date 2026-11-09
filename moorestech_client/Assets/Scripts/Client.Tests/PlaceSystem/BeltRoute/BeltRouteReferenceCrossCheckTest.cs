@@ -8,10 +8,10 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 本番の探索を総当たりの参照ソルバと突き合わせ、参照が見つけた経路を本番が見落とさないこと（存在）と、コストが参照の HeuristicWeight 倍＋余裕以内であることを確かめる
-    // Cross-checks the production search against the exhaustive reference solver: production must not miss a route the reference finds (existence), and its cost stays within HeuristicWeight times the reference plus the slack
-    // 本番は重み付き探索なので最短性は求めない。参照が見つけたら本番も見つけ（存在）、コストは参照の HeuristicWeight 倍＋余裕以内（上限）。余裕なしの比較は意味を失うので本番の余裕だけで回す
-    // Production is a weighted search, so optimality is not required: when the reference finds a route production must too (existence), within HeuristicWeight times the reference plus the slack (bound); a no-slack comparison loses its meaning, so only the production slack is run
+    // 本番探索を総当たり参照と突き合わせる（存在とコスト上限）
+    // Cross-checks production search against the exhaustive reference (existence, cost bound)
+    // 参照が見つけたら本番も見つける。コストは参照×W＋余裕以内
+    // When the reference finds a route production must too, within W times the reference plus slack
     public class BeltRouteReferenceCrossCheckTest
     {
         // 回数は PR 追加テスト全体で 1 秒に収める裁定（2026-11-07）に合わせる
@@ -24,8 +24,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // The reference solver is exhaustive, so the box and the cost cap stay small (cap 50 = 10 cells)
         private const int CostCap = 50;
 
-        // 本番と同じ余裕。探索の生成と食い違いの上限の両方がこの1本を使う
-        // The production slack; both the planner construction and the disagreement bound use this one value
+        // 本番と同じ余裕（生成と上限で共用）
+        // Production slack (shared by construction and bound)
         private const int RecoverySlack = BeltRoutePlanner.DefaultRecoverySlack;
         private static readonly Vector3Int BoxSize = new(6, 3, 6);
 
@@ -60,8 +60,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(0, disagreements.Count, $"{disagreements.Count} disagreements, first {ReportedDisagreements}:\n{string.Join("\n", disagreements.GetRange(0, Mathf.Min(ReportedDisagreements, disagreements.Count)))}");
         }
 
-        // 参照が見つけたら本番も見つける。コストは参照の HeuristicWeight 倍＋余裕まで。参照が上限内に見つけないなら本番も上限内の経路を出さない。一致ならnull
-        // When the reference finds a route the production must too, within HeuristicWeight times the reference plus the slack; when the reference finds none within the cap, production must not produce one within the cap; null when they agree
+        // 本番が参照を見落とさずコスト上限内か検査。一致ならnull
+        // Checks production misses no reference route within the cost bound; null if agree
         private static string Disagreement(BeltRoutePlanResult result, int referenceCost)
         {
             if (referenceCost == BeltRouteReferenceSolver.NotFound)

@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 {
     /// <summary>
-    ///     始点確定前の端点セルの可否を実ワールドから判定する。始点確定後は BeltRouteCellJudge が探索の世界から判定する
-    ///     Judges an endpoint cell from the live world before the start is fixed; after that BeltRouteCellJudge judges from the search world
+    ///     始点確定前の端点可否を実ワールドで判定
+    ///     Judges endpoint cells in the live world before the start is fixed
     /// </summary>
     public static class BeltRouteCellCheck
     {

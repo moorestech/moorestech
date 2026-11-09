@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute
 {
-    // 平地・坂・障害・終点の前・既存出力口・分岐・分岐器手持ちを個別に確かめる
-    // Checks flat runs, slopes, obstacles, the cell in front of the end, existing outputs, branches and splitter holding one by one
+    // 基本形（平地・坂・障害・分岐等）を個別に確認
+    // Checks basic shapes (flat, slope, obstacle, branch) one by one
     public class BeltRoutePlannerBasicTest
     {
         private static BeltRouteGrid FlatGrid()
@@ -166,8 +166,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.LessOrEqual(result.Plan.TotalCost, expectedCost * BeltRouteSearch.HeuristicWeight);
         }
 
-        // 旧箱（X64×Z64）を超える距離。開けた平地では重み付きでも最短のまま（ADR 0099）
-        // Farther than the old 64x64 box; on open ground the weighted search still returns the shortest (ADR 0099)
+        // 旧箱超えの距離。平地は最短のまま
+        // Beyond the old box; flat ground stays shortest
         [Test]
         public void LongOpenRunBeyondTheOldBoxIsStraightAndShortest()
         {

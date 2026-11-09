@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
 {
     /// <summary>
-    ///     既存ブロックの搬入口・搬出口を、サーバーのBeltEdgeEndpoint/MachineInventoryEdgePortsと同じ面と高さで書き込み先（本番の世界・分岐判定の入れ物・テストの箱）へ書く
-    ///     Writes an existing block's input and output ports into the sink (live world, branch holder or test box) as the same faces and heights the server's BeltEdgeEndpoint/MachineInventoryEdgePorts use
+    ///     既存ブロックの入出力口を書き込み先へ書く（面・高さはサーバー準拠）
+    ///     Writes existing blocks' ports to the sink (faces and heights match the server)
     /// </summary>
     public static class BeltRouteBlockEdgeScanner
     {

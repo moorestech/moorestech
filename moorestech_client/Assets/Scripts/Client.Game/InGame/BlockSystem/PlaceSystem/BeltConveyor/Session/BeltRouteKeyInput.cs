@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
 {
     /// <summary>
-    ///     2クリック設置が読むキー。R: 向き/分岐の出口の切替、Ctrl: 分岐、左クリック: 始点・終点の確定
-    ///     Keys read by two-click placement. R: rotate / switch the branch exit, Ctrl: branch, Left click: fix start and end
+    ///     2クリック設置のキー（R・Ctrl・左クリック）
+    ///     Keys for two-click placement (R, Ctrl, left click)
     /// </summary>
     public static class BeltRouteKeyInput
     {

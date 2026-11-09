@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 {
     /// <summary>
-    ///     経路計画の入口。世界をその場で読む重み付き探索→組み立て。箱も範囲の上限も無く、探索量の上限だけで経路なしを決める（ADR 0099）
-    ///     The entry for route planning: a weighted search reading the world on demand, then recovery; no box or range limit, only the expansion cap decides no-route (ADR 0099)
+    ///     経路計画の入口。重み付き探索→組み立て
+    ///     Route planning entry: weighted search, then recovery
     /// </summary>
     public sealed class BeltRoutePlanner
     {
@@ -20,8 +20,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         // The expansion cap; enclosed or far-away ends stop here. Chosen to stay around 100 ms locally (measurements in ADR 0099)
         public const int MaxExpansions = 20000;
 
-        // 最短で組めないとき、組み立ての代替候補を増やすために追加で展開する数
-        // Extra expansions run when the shortest cannot be assembled, so recovery sees more alternatives
+        // 組み立て失敗時の追加展開数
+        // Extra expansions when recovery fails
         private const int RecoveryExtraExpansions = 4000;
 
         private readonly int _recoverySlack;
@@ -42,14 +42,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         {
             var rule = new BeltRouteTransitionRule(_world, query);
             var startStates = BuildStartStates(query, rule);
-            if (startStates.Count == 0) return NotFound(query, "no start state");
 
             var outcome = _search.Run(rule, startStates, MaxExpansions);
             if (outcome != BeltRouteSearchOutcome.Reached) return NotFound(query, outcome.ToString());
 
-            // まず届いたコストちょうどで組む。組めなければ少し探索を進め、余裕ぶん広げて組み直す
-            // Assemble at exactly the reached cost first; if that fails, search a little further and assemble again with the slack
-            var reached = _search.BestCost(new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight));
+            // 届いたコストで組み、失敗時は追加展開して再組み立て
+            // Assemble at the reached cost; on failure expand more and retry
+            var reached = _search.BestCost(_search.Goal);
             var plan = _recovery.Recover(rule, startStates, reached);
             if (plan == null && _recoverySlack != NoRecoverySlack)
             {
@@ -59,16 +58,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return plan == null ? NotFound(query, "recovery failed") : BeltRoutePlanResult.Found(plan);
         }
 
-        // 利用者には理由行「経路が見つかりません」、開発者には出どころと展開数をログで
-        // The user sees the "no route found" line; developers get the origin and the expansion count in the log
+        // 理由行は利用者へ、出どころと展開数はログへ
+        // Reason line to the user; origin and expansions to the log
         private BeltRoutePlanResult NotFound(BeltRouteQuery query, string origin)
         {
             Debug.Log($"[BeltRoute] no route {query.StartCell}->{query.EndCell}: {origin} expansions:{_search.Expansions}");
             return BeltRoutePlanResult.NotFound();
         }
 
-        // 通常ベルトは直線か上りで出発、分岐器は背面入力のまま3方向へ、分岐の始点は既存ベルトの出口（置かないのでコスト0）
-        // A normal belt starts straight or rising, a splitter keeps its back entry and exits three ways, and a branch start is the existing belt's exit (cost 0, never placed)
+        // 出発規則: 通常は直線か上り、分岐器は背面入力3方向
+        // Start rule: normal belt straight or up, splitter back entry three ways
         private static List<(BeltRouteState state, int cost)> BuildStartStates(BeltRouteQuery query, BeltRouteTransitionRule rule)
         {
             var starts = new List<(BeltRouteState, int)>(3);
