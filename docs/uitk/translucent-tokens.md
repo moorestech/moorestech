@@ -36,3 +36,4 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.029)` | 明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き |
 | `--screen-backdrop-face` | `rgb(0 0 0 / 42%)` | `rgba(0, 0, 0, 0.635)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（画面の幕。S2-hud・設計書 A-55） |
 | `--train-riding-hud-face` | `color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)` | `rgba(31, 31, 31, 0.9581)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55） |
+| `--progress-arrow-glyph-shadow` | `drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色` | `rgba(0, 0, 0, 0.6691)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（ProgressArrowGlyph の drop-shadow。輪の頂点ごとの濃さは部品が OpacityAt で解き直す。C4-b） |

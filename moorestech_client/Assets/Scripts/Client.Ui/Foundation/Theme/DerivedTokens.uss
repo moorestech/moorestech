@@ -86,4 +86,8 @@
     --outlined-count-label-color: var(--count-text); /* web: .iconTextOutlineLight の字の色。slotContent.module.css の量バッジの黒は --count-text で一元管理 */
     --slot-grid-gap: 6.8px; /* web: SlotGrid .grid の var(--slot-grid-gap, 0.425rem) */
     --slot-grid-row-gap: var(--slot-grid-gap); /* web: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem))。祖先で gap だけ上書きしても行が追う（台帳「実測の結論」） */
+
+    /* C4-b: 進捗の部品（Gauges）。ProgressArrowGlyph の drop-shadow の色。影の濃さの分布は部品が Linear 合成用に頂点ごとに解き直す（設計書 A-88） */
+    /* C4-b: progress parts (Gauges); the ProgressArrowGlyph drop-shadow color, whose falloff the part re-solves per vertex for Linear blending (design A-88) */
+    --progress-arrow-glyph-shadow: rgba(0, 0, 0, 0.6691); /* web: ProgressArrowGlyph .glyph の drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色。暗い色の式 1-(1-α)^1.85 */
 }

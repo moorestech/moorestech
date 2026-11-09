@@ -27,6 +27,7 @@ const rowSources = [
   { name: "--mantine-color-blue-light-hover", web: "rgba(34, 139, 230, 0.2)", uss: "rgba(34, 139, 230, 0.029)", method: "明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き" },
   { name: "--screen-backdrop-face", web: "rgb(0 0 0 / 42%)", formula: [0, 0, 0, 0.42], method: `${translucencyMethod}（画面の幕。S2-hud・設計書 A-55）` },
   { name: "--train-riding-hud-face", web: "color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)` = `rgba(31, 31, 31, 0.82)", formula: [31, 31, 31, 0.82], method: `${translucencyMethod}（列車乗車 HUD の Paper の面。S2-hud・設計書 A-55）` },
+  { name: "--progress-arrow-glyph-shadow", web: "drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色", formula: [0, 0, 0, 0.45], method: `${translucencyMethod}（ProgressArrowGlyph の drop-shadow。輪の頂点ごとの濃さは部品が OpacityAt で解き直す。C4-b）` },
 ];
 
 export const handWrittenDerivedRows = rowSources.map((row) => ({ name: row.name, web: row.web, uss: row.uss ?? formulaValue(row.formula), method: row.method }));
