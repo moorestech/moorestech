@@ -251,7 +251,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | `S/Client.Ui/Screens/Inventory/Panel/InventoryView.cs`・`InventoryScreenPresenter.cs`・`InventorySlotAnchorMarks.cs` | 持ち物パネル | 新規 |
 | `S/Client.Ui/Screens/Inventory/Equipment/EquipmentHudView.cs`・`EquipmentHudPresenter.cs` | 装備 HUD | 新規 |
 | `S/Client.Ui/Screens/Inventory/Parts/PlayerSlotGestureRouter.cs`・`PlayerSlotContent.cs` | `SlotGesture` → `IPlayerSlotCommands`、`SlotItem` → `ItemSlotContent`（2 つの View で共有。D-23） | 新規 |
-| `S/Client.Ui/Screens/Inventory/Wheel/EquipmentWheelPickJudge.cs`・`IEquipmentWheelPointerPicker.cs`・`EquipmentWheelPointerPicker.cs`・`EquipmentWheelNotchScale.cs`・`EquipmentWheelInput.cs` | ホイールの入力（ノッチ → 60px の換算は `EquipmentWheelNotchScale` の 1 か所。拾いは口越し〈前例 `IGrabOverlayPointer`〉） | 新規 |
+| `S/Client.Ui/Screens/Inventory/Wheel/EquipmentWheelPickJudge.cs`・`IEquipmentWheelPointerPicker.cs`・`EquipmentWheelPointerPicker.cs`・`EquipmentWheelNotchScale.cs`・`EquipmentWheelInput.cs` | ホイールの入力（ノッチ → 60px の換算は `EquipmentWheelNotchScale` の 1 か所。拾いは口越し〈前例 `IUiScreenPointer`〉） | 新規 |
 | `S/Client.Starter/Registration/GameUi/Screens/InventoryGameUiRegistration.cs` | 登録（E-1 の W4 以降の置き場。`Screens/` が無ければ作る） | 新規 |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | 画面登録区画に 1 行と `using` 1 行 | 変更（共有区画） |
 | `TSS` | `Screens` 区画に `@import` 1 行 | 変更（共有区画） |
@@ -317,7 +317,7 @@ Run: `bd create "UITK S4-inventory: 持ち物パネル・装備 HUD・ホイー�
 
 `done.md`「## integrator への依頼」に次を書き、指揮へも同じ文を返す:
 - `TutorialAnchor` に印を外す口（`Unmark(VisualElement element, params string[] ids)`。id を外し、id が残らなければ印のクラスも外す）がほしい。持ち物の所持品のアンカーは描き直しのたびに付く枠が動く。今は `InventorySlotAnchorMarks` がクラスを直接外している（D-8）
-- `GameUiPointerProbe` に拾った要素を返す口（`VisualElement PickAt(Vector2 screenPosition)`）がほしい。あわせて Screens に既にある 2 つの左下原点→左上原点→`ScreenToPanel` の変換（`GrabOverlay/InputSystemGrabOverlayPointer.cs`・`CursorTooltip/UnityCursorTooltipScreen.cs`。bd `moorestech-albof.40`）もそこへ寄せてほしい。装備のホイールは「拾った要素が素通しか」を見るので bool では足りず、入るまでは `EquipmentWheelPointerPicker` が 4 か所目の写しを持つ（D-11）
+- `GameUiPointerProbe` に拾った要素を返す口（`VisualElement PickAt(Vector2 screenPosition)`）がほしい。装備のホイールは「拾った要素が素通しか」を見るので bool では足りず、入るまでは `EquipmentWheelPointerPicker` が `panel.Pick` の呼び出しを持つ（座標の換算は A-133 の `UiScreenToPanel.FromBottomLeft` を使い、写さない。D-11）
 - S3-hotbar-modal のトークン `--hotbar-slot-frame-face` を、世界の地の上の空き枠の面という意味の名前（例 `--world-slot-frame-face`）へ改名してほしい。装備 HUD も同じ源・同じ地で借りている（D-22）
 - `SlotItem` → `ItemSlotContent` の写し（`item.IsEmpty ? null : …`）が、このレーンの `Screens/Inventory/Parts/PlayerSlotContent` と S4-alpha の `BlockItemGrid` の 2 機能にある。Content（`Client.Ui/Content`）へ統合してほしい（統合までは両方に写しが残る。D-23）
 
@@ -2541,7 +2541,7 @@ git commit -m "test(uitk): 持ち物と装備の身振りを本物のスロッ�
 - Test: `S/Client.Tests/Input/Pointer/InputSystemPointerWheelStreamTest.cs`・`ScrollDeltaBehaviorSettingTest.cs`・`InputTestDriver.cs`、`S/Client.Tests/Ui/Screens/Inventory/EquipmentWheelFlowTest.cs`・`Wheel/EquipmentWheelInputFlowTest.cs`・`Support/UiRoutingStateTestFactory.cs`・`Support/EquipmentWheelRouterFixture.cs`・`Support/FakeEquipmentWheelPointerPicker.cs`、`InventoryEquipmentFlowTest.cs` に 1 件足す
 
 **Interfaces:**
-- Consumes: Task 2 の `EquipmentWheelRouter`、`UiRoutingState`・`ModalRequestService`・`PlaceSystemStateController`・`GameUiRoot`・`InputSystemPointerPositionStream`・`HybridInput`、`CrosshairHudView`（S2-hud の実物）、InputSystem の `InputState.currentUpdateType`、前例 `DeleteInputFixture.Frame`（更新の種類を選んで回す反射）・`IGrabOverlayPointer`／`FakeGrabOverlayPointer`（パネル座標の変換を口の外へ出す）
+- Consumes: Task 2 の `EquipmentWheelRouter`、`UiRoutingState`・`ModalRequestService`・`PlaceSystemStateController`・`GameUiRoot`・`InputSystemPointerPositionStream`・`HybridInput`、`CrosshairHudView`（S2-hud の実物）、InputSystem の `InputState.currentUpdateType`、前例 `DeleteInputFixture.Frame`（更新の種類を選んで回す反射）・`IUiScreenPointer`／`FakeUiScreenPointer`（パネル座標の変換を口の外へ出す）・`UiScreenToPanel.FromBottomLeft`（座標の換算の唯一の式 [A-133]）・`InputManager.IsCursorLocked`（ロック状態の正本 [A-134]）
 - Produces:
   ```csharp
   namespace Client.Input.Pointer
@@ -2725,7 +2725,7 @@ namespace Client.Tests.Input.Pointer
 （`runtime` がプロパティかフィールドか、`PlayerFocusLost` の綴りは InputSystem 1.18.0 の `InputTestFixture.cs`・`InputTestRuntime.cs` で確かめ、違えば合わせる）
 （Editor の更新でイベントが処理される条件〈フォーカス・`editorInputBehaviorInPlayMode`・`backgroundBehavior`〉は InputSystem 1.18.0 の `InputManager.cs:3320-3345` に合わせて実物で確かめる。前提の assert〈生の onEvent が Editor で受けた〉が赤なら、条件の与え方を直す。前提の assert は外さない）
 
-`Support/FakeEquipmentWheelPointerPicker.cs`（パネル座標の変換はテストのパネルで動かないので口の外に出す。前例 `FakeGrabOverlayPointer`）:
+`Support/FakeEquipmentWheelPointerPicker.cs`（パネル座標の変換はテストのパネルで動かないので口の外に出す。前例 `FakeUiScreenPointer`）:
 ```csharp
 using Client.Ui.Screens.Inventory.Wheel;
 using UnityEngine;
@@ -3174,7 +3174,7 @@ namespace Client.Ui.Screens.Inventory.Wheel
 }
 ```
 
-`Wheel/IEquipmentWheelPointerPicker.cs`（パネル座標の変換を口の外へ出し、L1 の流れのテストが Fake で通れるようにする。前例 `IGrabOverlayPointer`）:
+`Wheel/IEquipmentWheelPointerPicker.cs`（パネル座標の変換を口の外へ出し、L1 の流れのテストが Fake で通れるようにする。前例 `IUiScreenPointer`）:
 ```csharp
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -3190,8 +3190,9 @@ namespace Client.Ui.Screens.Inventory.Wheel
 }
 ```
 
-`Wheel/EquipmentWheelPointerPicker.cs`（座標変換は `GameUiPointerProbe` と同じ。要素を返す口が無いので写す。integrator の `PickAt` が入ったら置き換える〈Task 1 Step 3 の bd〉。D-11）:
+`Wheel/EquipmentWheelPointerPicker.cs`（座標の換算は `UiScreenToPanel.FromBottomLeft`〈A-133 の唯一の式〉を呼び、写さない。要素を返す口が無いので `panel.Pick` だけを持つ。integrator の `PickAt` が入ったら置き換える〈Task 1 Step 3 の bd〉。D-11）:
 ```csharp
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Foundation.Root;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -3209,11 +3210,10 @@ namespace Client.Ui.Screens.Inventory.Wheel
 
         public VisualElement PickAt(Vector2 screenPosition)
         {
-            // 画面座標（左下原点）→ パネル座標（左上原点）。GameUiPointerProbe と同じ変換
-            // Screen (bottom-left origin) to panel (top-left origin); same conversion as GameUiPointerProbe
+            // 画面座標（左下原点）→ パネル座標。換算は A-133 の唯一の式を使う
+            // Screen (bottom-left origin) to panel coordinates via the single A-133 formula
             var panel = _root.GetRootElement().panel;
-            var topLeft = new Vector2(screenPosition.x, Screen.height - screenPosition.y);
-            return panel.Pick(RuntimePanelUtils.ScreenToPanel(panel, topLeft));
+            return panel.Pick(UiScreenToPanel.FromBottomLeft(panel, screenPosition));
         }
     }
 }
@@ -3273,8 +3273,8 @@ namespace Client.Ui.Screens.Inventory.Wheel
 
         public void Initialize()
         {
-            // 位置は変わった時だけ届くので、起動時の値を一度読む（前例 InputSystemGrabOverlayPointer.CurrentPointerOnScreen）
-            // Positions arrive only on change, so read the startup value once (precedent InputSystemGrabOverlayPointer.CurrentPointerOnScreen)
+            // 位置は変わった時だけ届くので、起動時の値を一度読む（前例 InputSystemUiScreenPointer.CurrentPointerOnScreen）
+            // Positions arrive only on change, so read the startup value once (precedent InputSystemUiScreenPointer.CurrentPointerOnScreen)
             _pointerOnScreen = (Vector2)HybridInput.GetMousePosition();
             _positions.OnPointerScreenPositionChanged.Subscribe(position => _pointerOnScreen = position);
             _wheel.OnWheelNotchesScrolled.Subscribe(OnWheel);
@@ -3282,9 +3282,9 @@ namespace Client.Ui.Screens.Inventory.Wheel
 
         private void OnWheel(float notchesUp)
         {
-            // ロック中はカーソルが画面中央に固定され HUD の上に来ない（Web useGameLayerWheel と同じ扱い）
-            // While locked the cursor stays centred and never over a HUD (same as Web useGameLayerWheel)
-            var overBlockingUi = Cursor.lockState != CursorLockMode.Locked && EquipmentWheelPickJudge.IsBlockingUi(_picker.PickAt(_pointerOnScreen));
+            // ロック中はカーソルが画面中央に固定され HUD の上に来ない。ロックの正本は InputManager（A-134）
+            // While locked the cursor stays centred and never over a HUD; InputManager owns the lock state (A-134)
+            var overBlockingUi = !InputManager.IsCursorLocked && EquipmentWheelPickJudge.IsBlockingUi(_picker.PickAt(_pointerOnScreen));
             _router.Route(EquipmentWheelNotchScale.ToDownwardPixels(notchesUp), WheelDeltaUnit.Pixel, overBlockingUi);
         }
     }
@@ -4017,7 +4017,7 @@ git merge origin/feature/uitk
 | D-8 | 所持品のアンカーは描き直しのたびに `InventorySlotAnchorMarks` が付け替え、古い id と印のクラスを自分で外す。`TutorialAnchor.Unmark` を integrator へ依頼する | `TutorialAnchor` に外す口が無い。E-1 が許す A-71 の定数を除き、Foundation はこのレーンで変えない（スコープ境界） | Foundation に `Unmark` を足す: E-1 が許す A-71 の定数を除き、部品・Foundation を画面レーンが変えることになる。枠を毎回作り直す: スロットの購読と見た目の状態が描き直しのたびに捨てられる |
 | D-9 | ホイールの循環は State の `EquipmentWheelSelector` 1 か所に置き、Web と同じ未確認 FIFO を持つ。口 `IEquipmentSelectionPort` の本番は `LocalPlayerEquipment` | C# の `SetSelectedIndex` は楽観で選択を変えるが、`ApplySelected` のエコーは古い値で巻き戻す。速い 2 ノッチの間に古いエコーが来ると、FIFO 無しでは選択が戻る（Web と同じ理由）。§1.4「ホイール循環を C# 1 か所へ」 | `LocalPlayerEquipment.SelectedIndex` だけを起点にする: 古いエコーで巻き戻る |
 | D-10 | 入力は `InputSystemPointerWheelStream` の縦のノッチ（Uniform 設定で 1＝1 ノッチ。上が正）を A-71 と同じ 1 ノッチ＝60px（下が正）に直し、`WheelDeltaUnit.Pixel` で渡す。Web の本番と同じく 1 ノッチ目では進まず 2 ノッチ目で 1 段進む。換算は `EquipmentWheelNotchScale` の 1 か所で、60 は Foundation の共有の定数 `WebWheelScale.PixelsPerNotch` を読む。この定数はこのレーンが `GameScrollView` の private 定数から上げ、`GameScrollView` もそれを読むよう直す（E-1〈反映済み ad92a44777〉が「`GameScrollView` の外で最初に要したレーンが上げてよい」とする。Task 7 Step 1）。カーソルがロック中は UI の上でない。出所: レビュー r1（opus-1。旧案は Page で 1 ノッチ＝1 段）・r2（N-4。旧案は integrator が上げるのを待つ） | InputSystem の値は入力設定 `scrollDeltaBehavior` の既定 Uniform（`StarterAssets.inputsettings.asset` に値が無く既定。InputSettings.cs の `m_ScrollDeltaBehavior`）で [-1,1] に正規化され、1 ノッチ＝1（Windows の 120 も 1 に直る）。`ScrollDeltaBehaviorSettingTest` が固定する。Web（CEF）の本番は 1 ノッチを 60px で送り（CefUnity `ScrollInputPipeline.WheelPixelsPerStep`）、装備は 100px で 1 段・段が出たら端数を捨てる（`equipmentLogic.ts`）。A-71（4ec5ce2dc7 で全読み手へ広げ済み）が UITK のノッチ→px を 60 に揃えている。ロック中はカーソルが画面中央に固定され、Web でもクロスヘアの上（拾わない）と同じ扱い。`ElectricWirePoleSelection.cs` の `/100f` は Uniform と合わない古い前提で反証にならない | Page で 1 ノッチ＝1 段: Web の本番より倍速くなり、根拠にした「Web の 100px＝1 段」は e2e の `wheel(0, 100)` の約束事で本番の CEF の量ではない。1 ノッチ＝1 段が望ましいなら Web との差なので要裁定へ上げる（今は上げていない）。60 をこのレーンに書く: A-71 の値が 2 か所になり片方だけ変わる。integrator が上げるのを待つ（r1 の案）: クリティカルパス上の Task 7 が待ちになり、待ちの持ち主もいない。実機で値を測る: 設定の既定で閉じられ、録画は定義上 1 を注入するので測れない |
-| D-11 | 拾いは `EquipmentWheelPointerPicker` が `GameUiPointerProbe` と同じ座標変換で `panel.Pick` を呼んで要素を返す。integrator へ `PickAt` と、Screens の既存の 2 つの変換（GrabOverlay・CursorTooltip。bd `moorestech-albof.40`）の寄せを依頼し、入ったら置き換える bd を `--parent` で残す。「UI の上か」は Client.Ui が `EquipmentWheelPickJudge` で bool にしてルーターへ渡し、型は変えない（出所: レビュー r1・Phase 2.6 強1。agent 既定） | 判定に要素（素通しの印の祖先）が要るが、`GameUiPointerProbe` は bool しか返さない。E-1 が許す A-71 の定数を除き、Foundation はこのレーンで変えない。bool にするのは State が UIElements を知らないため（`UiLayerDependencyRules` の向き）で、Web も `isPointerOverWebUi(e.target) && !isWheelPassthrough(e.target)` を bool にしてから判断する。ルーターが画面・モーダル・占有を State から読むので（D-20）、境界を越える bool は `overBlockingUi` 1 つだけになる | `UiInputExclusivity.IsPointerOverGameUi` を使う: 素通しを見られず、装備 HUD の上で止まる。拾った要素を State へ渡す: State が UIElements を参照することになる |
+| D-11 | 拾いは `EquipmentWheelPointerPicker` が A-133 の換算 `UiScreenToPanel.FromBottomLeft` で `panel.Pick` を呼んで要素を返す。integrator へ `PickAt` を依頼し、入ったら置き換える bd を `--parent` で残す。ロック中かは `InputManager.IsCursorLocked` で読む（A-134。feature/uitk の取り込みで換算の 1 本化 A-133 が入ったのに合わせた）。「UI の上か」は Client.Ui が `EquipmentWheelPickJudge` で bool にしてルーターへ渡し、型は変えない（出所: レビュー r1・Phase 2.6 強1。agent 既定） | 判定に要素（素通しの印の祖先）が要るが、`GameUiPointerProbe` は bool しか返さない。E-1 が許す A-71 の定数を除き、Foundation はこのレーンで変えない。bool にするのは State が UIElements を知らないため（`UiLayerDependencyRules` の向き）で、Web も `isPointerOverWebUi(e.target) && !isWheelPassthrough(e.target)` を bool にしてから判断する。ルーターが画面・モーダル・占有を State から読むので（D-20）、境界を越える bool は `overBlockingUi` 1 つだけになる | `UiInputExclusivity.IsPointerOverGameUi` を使う: 素通しを見られず、装備 HUD の上で止まる。拾った要素を State へ渡す: State が UIElements を参照することになる |
 | D-12 | 持ち物のグリッドの面の内側の色 rgb(50 52 67) は `THEME/DerivedTokens.uss` の名札付きブロック「S4-inventory」のトークン `--inventory-slot-face-inset-color` にする | `UiStyleConventionTest` が画面 USS の色の直書きを拒む。名札付きブロックは A-52 の共有区画（画面レーンも足してよいことは 4ec5ce2dc7 で A-52・E-1 に反映済み）で、前例 S3-hotbar-modal Task 5 と S2-hud（A-55・マージ済みの `DerivedTokens.uss`「S2-hud」ブロック） | 既存の同色のトークン（`--slot-frame-selected-trim-face`）を借りる: 意味の違う名前を読むことになり、片方を変えるともう片方が壊れる（同じ源・同じ地のトークンを借りる場合は D-22） |
 | D-13 | S3-hotbar-modal の型（`WheelPassthroughMark`・`HotbarHudView`・`--hotbar-slot-frame-face`）を使う作業は Task 9 に寄せ、Task 7 の判定は印を見ない形で先に作る | 起草時に S3-hotbar-modal が未マージ。依存の辺は E-23 にあり、先の Task を止めずに済む | 全部を S3-hotbar-modal のマージ後に始める: クリティカルパスの S4-inventory が W2 の画面レーンを待つ |
 | D-14 | 装備の縦の間は 2 枠目からの上の余白（クラス `equipment-hud__slot--after-first`）で写す | USS に `gap` が無い（`SlotGrid` も余白で写している） | 枠の下に余白: 最後の枠の下に余白が残り、床の位置が変わる |
@@ -4031,7 +4031,7 @@ git merge origin/feature/uitk
 | D-22 | 装備 HUD の世界の上の枠の面はホットバーの `--hotbar-slot-frame-face` を借りる。名前は integrator へ世界の地の意味の名前（例 `--world-slot-frame-face`）への改名を依頼する（S3-hotbar-modal のトークンなのでこのレーンは改名しない）。出所: レビュー r1（配置検査 N-3） | 装備 HUD はホットバーと同じ源（Web `SlotFrame .slot` の `rgb(50 52 67 / 50%)` を世界の上で使う。`EquipmentPanel/style.module.css`「ホットバー同様に面を持たない浮遊HUD」）・同じ地（世界）なので、ホットバー側の α を Task 10 で決め直したら装備も一緒に変わるのが正しい。D-12 の却下は意味の違う名前の場合 | 装備用の同値のトークンを足す: 同じ源の値が 2 つになり、片方だけ直る |
 | D-23 | `SlotItem` → `ItemSlotContent` の写しは `Screens/Inventory/Parts/PlayerSlotContent.From` に 1 つ置き、2 つの View が使う。S4-alpha の `BlockItemGrid` の同じ式との統合は integrator へ Content（`Client.Ui/Content`）への統合を依頼する。§5.1-2 の例外: 1 機能目（alpha）の式は `BlockItemGrid` のローカル関数で外から呼べる口が無く、E-23 で alpha のファイルを書けないため、申告したうえで自分の `Parts/` に写す（統合は integrator）。View は最新値を覚えず「隠れている間は描かない」を持たない（`Render` は受けたら描き、`SetShown` は出し入れだけ）。「表示中だけ購読」は Presenter に残し、2 つの Presenter の同じ 4 行は共通化しない。§4.2 の View の雛形の注記は ad92a44777 で「出し入れだけ。描かないのは Presenter が表示中だけ購読して守る」に直った。出所: レビュー r1（Phase 2.6 弱4）・r2（検査7。§5.1-2 の例外の理由と、Components の語の取り違え N-3） | 同じ式が View 2 つ（と alpha）にあった。ReactiveProperty は購読時に今の値を流すので、View の `_latest` は Presenter の購読と二重の仕組みで、出すたびに古い値で 1 回描いた直後にもう 1 回描いていた | View ごとに式を持つ: 空きマスの扱いを変えると片方だけ直る。Presenter の 4 行を基底へ上げる: 2 本だけで、前例の Presenter に基底が無い |
 | D-24 | `PlayerInventoryPanelModel` は初期値を ctor で組み、`Initialize` は購読と購読までの間の変化の取り込みだけをする。出所: レビュー r1（usersim W3） | 起動時の画面 None は `AlwaysOnHud` が真で、装備 HUD の Presenter は `Initialize` で即 Model を購読する。初期値が null だと登録の順に依って `Render(null)` で落ちる。前例 `PlayerGrabModel`・`ModeHudModel` は ctor で初期値を持つ | 登録の順（Model を Presenter より先に）に頼り、判断記録に書く: VContainer の初期化順に依る形が残る |
-| D-25 | `InputSystemPointerWheelStream` は流れの頭で `InputState.currentUpdateType == InputUpdateType.Editor` を除く（`silent-ok` 付き）。L0 の `InputSystemPointerWheelStreamTest` と、流れ → `EquipmentWheelInput` → ルーターを通す L1 の `EquipmentWheelInputFlowTest`（Editor の更新では選択要求 0 件、ゲームの更新では 2 ノッチで 1 段）で確かめる。拾いは口 `IEquipmentWheelPointerPicker` 越しにし、L1 は Fake で通す（前例 `IGrabOverlayPointer`）。録画の頭で入力設定を焦点無視にする（前例 `blueprint-place-like-block`）。出所: レビュー r2（codex C-1） | プロジェクトの入力設定（`StarterAssets.inputsettings.asset`。`m_BackgroundBehavior: 0`・`m_EditorInputBehaviorInPlayMode: 0`）では、PlayMode で Game View にフォーカスが無いときポインタのイベントが Editor の更新で処理され、`onEvent` の購読者にも届く（InputManager.cs:3320-3345・3456-3457）。除かないと Inspector の上でホイールを回しただけで装備が替わる。テストの土台は既定でプレイヤーの更新を回すので、更新の種類を選んで回さないと赤にならない | ルーターや Gate で止める: 更新の種類は入力の層の事情で、State に持ち込む理由が無い。位置の流れ（`InputSystemPointerPositionStream`）も同時に直す: 既存の他レーンのファイルで、位置だけなら害が小さい（第 3 バケツへ）。ボタンの流れ（`InputSystemPointerButtonStream`）を揃える: ボタンの解放は焦点の外（Inspector の上）でも通さないと掴みが解けなくなるので、揃えない（第 3 バケツへ。出所: レビュー r3 N-1） |
+| D-25 | `InputSystemPointerWheelStream` は流れの頭で `InputState.currentUpdateType == InputUpdateType.Editor` を除く（`silent-ok` 付き）。L0 の `InputSystemPointerWheelStreamTest` と、流れ → `EquipmentWheelInput` → ルーターを通す L1 の `EquipmentWheelInputFlowTest`（Editor の更新では選択要求 0 件、ゲームの更新では 2 ノッチで 1 段）で確かめる。拾いは口 `IEquipmentWheelPointerPicker` 越しにし、L1 は Fake で通す（前例 `IUiScreenPointer`）。録画の頭で入力設定を焦点無視にする（前例 `blueprint-place-like-block`）。出所: レビュー r2（codex C-1） | プロジェクトの入力設定（`StarterAssets.inputsettings.asset`。`m_BackgroundBehavior: 0`・`m_EditorInputBehaviorInPlayMode: 0`）では、PlayMode で Game View にフォーカスが無いときポインタのイベントが Editor の更新で処理され、`onEvent` の購読者にも届く（InputManager.cs:3320-3345・3456-3457）。除かないと Inspector の上でホイールを回しただけで装備が替わる。テストの土台は既定でプレイヤーの更新を回すので、更新の種類を選んで回さないと赤にならない | ルーターや Gate で止める: 更新の種類は入力の層の事情で、State に持ち込む理由が無い。位置の流れ（`InputSystemPointerPositionStream`）も同時に直す: 既存の他レーンのファイルで、位置だけなら害が小さい（第 3 バケツへ）。ボタンの流れ（`InputSystemPointerButtonStream`）を揃える: ボタンの解放は焦点の外（Inspector の上）でも通さないと掴みが解けなくなるので、揃えない（第 3 バケツへ。出所: レビュー r3 N-1） |
 | D-26 | 所持品の表は State の `InventoryItemGuidTable`（スロット → 小文字の GUID 文字列）にし、アンカー id は Mark を呼ぶ Client.Ui の `InventorySlotAnchorMarks` が `AnchorIds.InventoryItem(guid)` で組む。出所: レビュー r2（opus O-1） | 網羅テスト `TutorialAnchorCoverageTest` は `Scripts/Client.Ui` の下で `TutorialAnchor.Mark(` を含むファイルからだけ `AnchorIds.` を拾う。id を State で組むと `InventoryItemPrefix` が拾われず、保留の行を消した Task 6 で赤になる | 保留の行を残す: このレーンのアンカーが網羅テストの外に出たままになる。網羅テストの走査を `Client.Ui.State` へ広げる: S2-tutorial の Foundation のテストを画面レーンが変えることになる |
 | D-27 | 登録は `Client.Starter/Registration/GameUi/Screens/InventoryGameUiRegistration.cs` に置き、`Screens/` が無ければこのレーンが作る。integrator の再編は待たない。出所: レビュー r2（O-2・N-4） | `GameUi/` 直下は S4-alpha で 10 本の上限に達し、このレーンの 1 本で規約に反する。E-1（反映済み ad92a44777）が W4 以降の画面レーンの置き場を `GameUi/Screens/` に決め、最初に要したレーンが作るとした | 直下に置いて再編を待つ（r1 の案）: 11 本目で規約に反し、Task 8 の登録がクリティカルパス上で integrator 待ちになる |
 
@@ -4081,7 +4081,7 @@ git merge origin/feature/uitk
 
 （Phase 2.6 の第 3 バケツ。このレーンのタスクにはしない。着手の可否は人が決める）
 
-- 既存側 `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiPointerProbe.cs`（`IsPointerOverGameUi`: 左下原点→左上原点→`RuntimePanelUtils.ScreenToPanel`→`panel.Pick`）と `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/UiPointerHitTest.cs`（`IsPointerOverAnyUi`: `Cursor.lockState == Locked` なら偽）／新設側 `EquipmentWheelPointerPicker.PickAt` と `EquipmentWheelPickJudge.IsBlockingUi`・`EquipmentWheelInput` のロック中の扱い／同役割と判断した根拠: どれも「画面座標のポインタが UI の上か（ロック中は上でない）」を同じ変換と `Pick` で決めている。既存側に要素を返す口を足して新設側を委譲にするか、その逆かを決める（`PickAt` は integrator へ依頼済み。D-11）
+- 既存側 `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiPointerProbe.cs`（`IsPointerOverGameUi`: `UiScreenToPanel.FromBottomLeft`→`panel.Pick`）と `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/UiPointerHitTest.cs`（`IsPointerOverAnyUi`: `InputManager.IsCursorLocked` なら偽）／新設側 `EquipmentWheelPointerPicker.PickAt` と `EquipmentWheelPickJudge.IsBlockingUi`・`EquipmentWheelInput` のロック中の扱い／同役割と判断した根拠: どれも「画面座標のポインタが UI の上か（ロック中は上でない）」を同じ変換と `Pick` で決めている。既存側に要素を返す口を足して新設側を委譲にするか、その逆かを決める（`PickAt` は integrator へ依頼済み。D-11）
 - 既存側 `moorestech_client/Assets/Scripts/Client.Input/Pointer/InputSystemPointerPositionStream.cs`（`InputSystem.onEvent` の購読で、更新の種類を見ない）／新設側 `InputSystemPointerWheelStream` の Editor の更新の除外（D-25）／同役割と判断した根拠: 同じ `onEvent` の購読で、Game View の外の位置も Editor の更新で流れる。位置だけなら害は小さいが、同じ規則に揃えるかを決める
 - 既存側 `moorestech_client/Assets/Scripts/Client.Playtest/WebUi/CefInputForwarder.cs:86`（`ScrollInputPipeline.WheelPixelsPerStep` を直接読む）／新設側 `Client.Ui/Foundation/Input/WebWheelScale.PixelsPerNotch`（D-10）／同役割と判断した根拠: どちらも 1 ノッチ＝60px（CefUnity の正本）。共有の定数が正本と同じ値であることを `GameScrollViewTest:171` と同じくリテラルで照合するかを決める。CefInputForwarder は正本を読むので触らない
 - 既存側 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ElectricWireConnect/Parts/ElectricWirePoleSelection.cs:89-93`（毎フレーム `Mouse.current.scroll.ReadValue().y / 100f`＋`UiPointerHitTest.IsPointerOverAnyUi()`）／新設側 `InputSystemPointerWheelStream`＋`EquipmentWheelInput`／同役割と判断した根拠: どちらも「UI の上でなければホイールの段で循環する」。電柱の側は Uniform の入力設定では 1 ノッチ＝0.01 で、計算上 100 ノッチで 1 段になる（推定。実機では測っていない）。bd `moorestech-9a7t9` に起票済み（このレーンの外）

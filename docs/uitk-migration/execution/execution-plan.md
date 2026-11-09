@@ -236,7 +236,7 @@ integrator は共有ファイル（層 enum・全体スイッチ・composition r
   （Workflow ツールの無いホストでは各スキルの references/codex-host.md の手順で scripts/codex_workflow_runner/run.mjs を使う）
 - 設計の正本: docs/uitk-migration/execution/component-architecture.md、.agents/skills/ref-uitk-design/SKILL.md
 - 見た目の正本: Web 版（moorestech_web/webui/src/shared/ui/*・features/*、docs/design/components.md）と
-  参照キャプチャ /Users/sakastudio/hermes-agent/data/repos/moorestech_logs/uitk/reference-captures/web-<最新sha>/
+  参照キャプチャ ../moorestech_logs/uitk/reference-captures/web-<最新sha>/
 - ゴール: WebUI と同じ見た目で、適切な設計、コンポーネント化された UITK の UI。
   このゴール・裁定から外れそうな判断だけを報告に「要裁定」と書き、それ以外は計画の判断記録に agent 既定として書いて進める
 - バックグラウンドのポーリングで待たず、全部前景で実行する。区切り（タスク）ごとにコミットする
