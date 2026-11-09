@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
-    /// 面の縁フェードの mask（skit・hud の形）と、mask を掛けた頂点 α が Web と同じ濃さの並びになるかを確かめる（L0。重みの掛け方は LinearBlendOpacityTest）
-    /// Verifies the face edge-fade mask (skit and hud shapes) and the masked vertex alpha keep the Web run of shades (L0; weighting is in LinearBlendOpacityTest)
+    /// 面の縁フェード mask と頂点 α の濃さ並び（L0）
+    /// Verifies the face edge-fade mask and vertex alpha shade run (L0)
     /// </summary>
     public class GamePanelFaceOpacityRampTest
     {

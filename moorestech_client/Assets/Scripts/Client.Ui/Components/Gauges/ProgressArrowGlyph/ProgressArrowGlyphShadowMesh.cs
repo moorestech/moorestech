@@ -24,8 +24,8 @@ namespace Client.Ui.Components.Gauges
         // Blur span (2σ each side)
         private const float SigmaSpan = 2f;
 
-        // 内側へ止める位置を軸の中心線から離す量（px）
-        // Gap in px kept between the inward stop and the shaft centre line
+        // 中心線から内側止めまでの距離（px）
+        // Distance in px from centre line to the inward stop
         private const float ShaftCenterMargin = 0.01f;
 
         public static void Build(float scale, float silhouetteOutset, float offsetY, float blur, Color shadowColor, Vertex[] vertices, ushort[] indices)

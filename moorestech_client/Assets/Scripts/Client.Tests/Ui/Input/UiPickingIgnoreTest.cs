@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Input
 {
     /// <summary>
-    /// 部分木の拾わない指定が孫まで届き、後から足した子には届かないことを確かめる（L0）
-    /// Verifies the subtree picking-ignore reaches grandchildren and not children added later (L0)
+    /// 拾わない指定が孫へ届き後付けの子へ届かない（L0）
+    /// Picking-ignore reaches grandchildren, not later-added children (L0)
     /// </summary>
     public class UiPickingIgnoreTest
     {

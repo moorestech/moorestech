@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Ui.Foundation.Theme
 {
     /// <summary>
-    /// S7 の式で補正済みの α に重み（縁の mask・影の被覆率）を掛けた Linear 合成用の α を返す
-    /// Returns the Linear-blend alpha for an S7-corrected alpha scaled by a weight (edge mask or shadow coverage)
+    /// 補正済み α に重みを掛けた Linear 合成用 α を返す
+    /// Returns the Linear-blend alpha of a corrected alpha scaled by a weight
     /// </summary>
     /// <remarks>
     /// Web は重み m を sRGB 合成の α に線形に掛ける。Linear 合成で α を線形に掛けると、暗い色が明るい地の上で縁から遅れて濃くなる。

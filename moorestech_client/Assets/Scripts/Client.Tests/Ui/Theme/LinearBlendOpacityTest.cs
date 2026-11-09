@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Theme
 {
     /// <summary>
-    /// 補正済みの α に重みを掛けた Linear 合成用の α が、端・途中で Web と同じ濃さの並びになるかを確かめる（L0）
-    /// Verifies the Linear-blend alpha of a corrected alpha scaled by a weight keeps the Web run of shades at the ends and mid-way (L0)
+    /// 重み付き α が端・途中で Web と同じ濃さ並びか（L0）
+    /// Weighted alpha keeps the Web shade run at ends and mid-way (L0)
     /// </summary>
     public class LinearBlendOpacityTest
     {
