@@ -2,9 +2,9 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/blockInventory/train/*`（`TrainInventoryBody`・`TrainTimetableSection`・`StopList`・`useImmediateTimetable`）と `views/TrainPlatformInventory`（`TrainStationNameSection`・`TrainPlatformSection`）を、S4-alpha の外殻・拡張口と S4-machine の液体の中身表示（`FluidInventoryContents`）・液体の Model（`IBlockFluidSlotsModel`）を使って、Web と同じ見た目・同じ操作の UITK 画面にする。列車（source=train）の本文は貨車スロット・液体貨車・時刻表タブ（即時送信の編集・自動運転の切替）、ブロックの本文は TrainStation（駅名＋スロット＋積込/卸し）・TrainItemPlatform（スロット＋積込/卸し）・TrainFluidPlatform（液体＋積込/卸し）。L1・並べ比べ（720p・2560×1080）・録画（古い適用ボタン前提の `train/train-timetable-via-ui` を UITK の操作に直す）まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/blockInventory/train/*`（`TrainInventoryBody`・`TrainTimetableSection`・`StopList`・`useImmediateTimetable`）と `views/TrainPlatformInventory`（`TrainStationNameSection`・`TrainPlatformSection`）を、S4-alpha の外殻・拡張口と S4-machine の液体の中身表示（`FluidInventoryContents`）・液体の Model（`IBlockFluidSlotsModel`）を使って、Web と同じ見た目・同じ操作の UITK 画面にする。列車（source=train）の本文は貨車スロット・液体貨車・時刻表タブ（即時送信の編集・自動運転の切替）、ブロックの本文は TrainStation（駅名＋スロット＋積込/卸し）・TrainItemPlatform（スロット＋積込/卸し）・TrainFluidPlatform（液体＋積込/卸し）。L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-train-inventory`。古い適用ボタン前提で Web 系でも壊れている `train/train-timetable-via-ui` は両系で通る形に直す）まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。設計書 §4.2「Model の購読は Presenter、View は Render だけ」に従う。State（`Client.Ui.State/Train/` の新しい 4 ディレクトリ）に、源を購読して `IReadOnlyReactiveProperty<…ViewModel>` を配る Model を置く: (1) 時刻表の状態 `TrainTimetableModel`（`TrainUnitClientCache`・`IClientTrainTimetableLookup`・`TrainTimetableFetcher`・`BlockGameObjectDataStore`・`OpenTrainTimetableTracker` を購読し、Web ホスト `TrainTimetableDtoBuilder` と同じ規則で Loading / Unavailable / Ready〈停車駅・駅一覧〉を組む）、(2) 列車本文の中身 `TrainInventoryBodyModel`（`SubInventoryState` から貨車スロットと液体）、(3) プラットフォーム本文の中身 `TrainPlatformBodyModel`（`OpenBlockDetailTracker.TrackedBlock` の StateDetail から駅名・積込/卸し・スロット数、液体は S4-machine の `IBlockFluidSlotsModel`）。編集は `TrainTimetableEditSession`（`useImmediateTimetable` の写し。保留・受理・公開待ち 5000ms・拒否の巻き戻し）が `ITrainTimetableCommands`（本番はサーバーへ `TrainScheduleEditRequest` を送る）を呼ぶ。駅名の下書きは `TrainStationNameDraft`。View 側（`Client.Ui/Screens/BlockInventory/Train/`）は alpha の拡張口に差す工場 2 本（列車の本文・`BlockInventoryBodyKind.TrainPlatform` の本文）が「Presenter（Attach で Model と View の意図を購読し View.Render へ流す・Detach で切る）＋ View」の組を作る。View は自分で購読しない。見た目は Web と同名のトークン（`--mode-switch-gap`・`--mode-switch-padding-inline`・`--bevel-1`・`--bevel-c1`・`--text-high-contrast`・`--text-muted`）だけを使い、ローカルなつまみは持たない。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。設計書 §4.2「Model の購読は Presenter、View は Render だけ」と A-8「View が型付きコマンドを直接呼ぶ（Presenter は中継しない）」に従う。State（`Client.Ui.State/Train/` の新しい 5 ディレクトリ）に 2 種類の Model を DI の単一インスタンスで置く。源の Model は源を購読して `IReadOnlyReactiveProperty<…>` を配る: (1) `TrainTimetableModel`（`TrainUnitClientCache`・`IClientTrainTimetableLookup`・`TrainTimetableFetcher`・`BlockGameObjectDataStore`・`OpenTrainTimetableTracker` から、Web ホスト `TrainTimetableDtoBuilder` と同じ規則で Loading / Unavailable / Ready を組む。同じ状態は流し直さない）、(2) `TrainInventoryBodyModel`（スロットは alpha の `IBlockInventoryPanelSource`、液体は `SubInventoryState`）、(3) `TrainPlatformBodyModel`（スロットはパネルの源、駅名・積込/卸しは追跡ブロックの StateDetail を純関数 `TrainPlatformDetailReader` で、液体は S4-machine の `IBlockFluidSlotsModel`）。編集の Model は View が直接呼ぶ型付きの口を持つ: `TrainTimetableEditModel`（列車ごとの `TrainTimetableEditSession`〈`useImmediateTimetable` の写し。保留・受理・公開待ち 5000ms・拒否の巻き戻し〉を持ち、`Add`・`Move`・`Remove`・`SetAutoRun`）、`TrainInventoryTabModel`（タブ・取得の依頼。パネルごとに持ち物タブへ戻す）、`TrainPlatformEditModel`（駅名の下書き・決定・移送モード）。送信は `ITrainTimetableCommands`・`ITrainBlockCommands`（本番はサーバーへ送る）。View 側（`Client.Ui/Screens/BlockInventory/Train/`）は alpha の拡張口に差す工場 2 本（列車の本文・`BlockInventoryBodyKind.TrainPlatform` の本文）が「Presenter（Attach で Model の `Current` を購読して `View.Render` へ流す・Detach で切る。判断は持たない）＋ View（押下で編集の Model を直接呼ぶ）」の組を作る。見た目は Web と同名のトークン（`--mode-switch-gap`・`--mode-switch-padding-inline`・`--mode-switch-padding-block`・`--bevel-1`・`--bevel-c1`・`--text-high-contrast`・`--text-muted`）と `UiTypographyClass` だけを使い、ローカルなつまみは持たない。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit、UniRx、UniTask、VContainer 1.10、NUnit＋`com.unity.ui.test-framework`、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（test-name-parity）、pnpm（gen:i18n）、gh CLI、bd（Beads）
 
@@ -13,27 +13,27 @@
 
 ## Requirements
 
-設計の出所: 実行計画 §1.4 の S4-train 行（`TrainInventoryBody`・時刻表・駅名・プラットフォームの本文。`train.spec`・`timetable.spec`・`TrainTimetableImmediate.test`・`TrainTimetableSection.test`・`TrainInventoryBody.test`・`trainPlatform.spec`）、本体の決定 4 件（液体の中身は S4-machine・写すのは実物・古い録画は直す・Web ホストの導出の作り直しは重複として記録）、alpha の改訂（パネルは識別子だけ・各レーンが Model を持つ・工場は Presenter＋View の組）。
+設計の出所: 実行計画 §1.4 の S4-train 行（`TrainInventoryBody`・時刻表・駅名・プラットフォームの本文。`train.spec`・`timetable.spec`・`TrainTimetableImmediate.test`・`TrainTimetableSection.test`・`TrainInventoryBody.test`・`trainPlatform.spec`）、本体の決定 4 件（液体の中身は S4-machine・写すのは実物・古い録画は直す・Web ホストの導出の作り直しは重複として記録〈C4-e 要裁定 1 の据え置き〉）、alpha の改訂（パネルは識別子だけ・各レーンが Model を持つ・工場は Presenter＋View の組）、レビュー r1 の反映（D-6・D-8・D-12・D-13・D-16〜D-24）。
 
 | ID | 要件 | 受け入れ基準 |
 |---|---|---|
-| R-1 | 列車の本文の器: `UiStack` に `ModeSwitch<TrainInventoryTab>(train-tabs, Horizontal, Tablist)`（`train-tab-inventory` 持ち物 / `train-tab-timetable` 時刻表）と `GameScrollView(train-body-scroll)`。間は `--mode-switch-gap`。開いた直後は持ち物タブ。同じ車両のあいだタブは保たれる | `TrainInventoryBodyTest`「asks C# to fetch only when the timetable tab is selected」が緑 |
-| R-2 | 持ち物タブ: 液体があれば `FluidInventoryContents(train-inventory-fluids)`（S4-machine）、無ければ `BlockItemGrid(train-inventory-slots)`（alpha。押下は `IBlockSlotCommands`）。液体貨車は名前と `量 / 容量`、再取得した量へ描き直す | `TrainInventoryBodyTest`「液体貨車は名前と量容量を表示し、再取得した量へ更新する」・`TrainInventoryFlowTest`「貨車スロットとコンテナ不在エラーを表示する」が緑 |
+| R-1 | 列車の本文の器: `UiStack` に `ModeSwitch<TrainInventoryTab>(train-tabs, Horizontal, Tablist)`（`train-tab-inventory` 持ち物 / `train-tab-timetable` 時刻表）と `GameScrollView(train-body-scroll)`。間は `--mode-switch-gap`。開いた直後は持ち物タブ。同じ車両のあいだタブは保たれる（`TrainInventoryTabModel` がパネルの `IsSamePanel` で判定）。タブの押下は View が `ITrainInventoryTabModel.SelectTab` を直接呼ぶ | `TrainInventoryBodyTest`「asks C# to fetch only when the timetable tab is selected」・`TrainInventoryTabModelTest` が緑 |
+| R-2 | 持ち物タブ: 器 `train-inventory-contents` の中に、液体があれば `FluidInventoryContents(train-inventory-fluids)`（S4-machine）、無ければ `BlockItemGrid(train-inventory-slots)`（alpha。押下は `IBlockSlotCommands`）。スロットは alpha のパネルの源（エラー無しの `OpenTrainInventoryPanel.ItemSlots`）から読む。液体貨車は名前と `量 / 容量`、再取得した量へ描き直す | `TrainInventoryBodyTest`「液体貨車は名前と量容量を表示し、再取得した量へ更新する」・`TrainInventoryFlowTest`「貨車スロットとコンテナ不在エラーを表示する」が緑 |
 | R-3 | 時刻表タブ: Loading は `train-timetable-loading`（`ui.blockInventory.timetableLoading`）、Unavailable は `train-timetable-unavailable`（`timetableUnavailable`）、Ready は `TrainTimetableSection`。Ready の区画は持ち物タブのあいだも作ったまま隠す（`display:none`。Web は hidden で保つ）。区画は `TrainUnitInstanceId` ごとに作り直す（Web の key） | `TrainInventoryBodyTest`「shows loading and unavailable as distinct states without warning」が緑 |
-| R-4 | 取得の依頼: 時刻表タブへ切り替えた瞬間と、時刻表タブのあいだに Loading が届くたびに `ITrainTimetableCommands.RequestOpen()`（本番は `OpenTrainUnitResolver` で列車を引き `TrainTimetableFetcher.RequestForOpenedTab`、引けなければ `MarkTabOpenedWithoutTrain`。Web ホスト `TrainTimetableOpenActionHandler` と同じ）。Ready でもタブ選択では依頼する | `TrainInventoryBodyTest` の fetch 3 件が緑。録画で `[TrainTimetableFetcher] requesting timetable` が開いた直後 0・タブ選択で 1・開き直してタブ選択で 2 |
-| R-5 | 時刻表の状態: Web ホスト `TrainTimetableDtoBuilder.Build` と同じ優先（所有列車が引けない→Unavailable〈警告〉・`IsUnavailable`→Unavailable・`IsFetchInFlight`→Loading・キャッシュ無し→Loading・Ready）。駅一覧は `GetBlocksByBlockType(TrainStation)` の位置と `TrainStationNameStateDetail.StationName`（無ければ空）を x→z→y で整列。停車駅の名前は駅一覧から引き、引けない位置の集合が前回と変わったときだけ警告。未知の Side があれば Error ログで Unavailable | `TrainTimetableReadyDataFactoryTest`・`TrainTimetableStationCatalogTest` が緑 |
-| R-6 | 時刻表の区画: `UiStack(Xs)`（`train-timetable-section`。保留中は `train-timetable-section--busy`）。自動運転の行（`ui.blockInventory.timetableAutoRun` ＋ `ModeSwitch<bool>(train-timetable-auto-run, Horizontal, Group)` の `-on` / `-off`）。on は保留中かサーバーの停車駅が 0 件で無効、off は保留中で無効。押すと楽観更新なしで `SetAutoRun` を即送信。停車駅が 0 件なら `timetableAutoRunUnavailable` を出す | `TrainTimetableSectionViewTest`「blocks auto-run until an added stop is authoritative and sends toggles immediately」が緑 |
-| R-7 | 停車駅: `GamePanel(train-timetable-stops-panel, Craft)` の題 `timetableStops`＋`FadeRule`。0 件は文言 `train-timetable-stops`（`timetableStopsEmpty`）、それ以外は `train-timetable-stops` の列に行 `train-timetable-stop-{i}`（現在位置は `train-timetable-stop--current`＝`--text-high-contrast`。表示中の並びがサーバーの並びと同じときだけ）。行のラベルは `timetableStopLabel`（`{index}. {station}`）。操作 `-up`（先頭で無効）・`-down`（末尾で無効）・`-remove`（保留中は全部無効） | `TrainTimetableSectionViewTest`「disables moves past either end and follows remote changes when idle」が緑 |
-| R-8 | 駅一覧: `GamePanel(train-timetable-stations-panel, Craft)` の題 `timetableStations`＋`FadeRule`。0 件は `timetableStationsEmpty`。行は駅のラベル（`TimetableEditLogic.StationLabel`。名前が空なら `timetableUnnamedStation`）と `PanelActionButton(train-timetable-station-{x}_{y}_{z}-add, timetableAdd)`（保留中は無効）。行の上の区切りは `--bevel-1 solid --bevel-c1`、無効な操作の文字は `--text-muted` | `TrainTimetableFlowTest` 2 件が緑。並べ比べ R-15 |
-| R-9 | 即時編集（`useImmediateTimetable` の写し）: 送信中・保留中の編集は警告して捨てる。並びが同じ編集は何もしない。編集は表示を即時に替え（保留）、受理されたら同じ並びの公開が届くまで保留を保つ（公開が先に届いていれば受理で解く）。受理後 5000ms 公開が無ければ警告して解く。拒否は警告・トースト・最新のサーバーの並びへ戻す。閉じた後に戻った結果は捨てる | `TrainTimetableEditSessionTest` 6 件が緑 |
-| R-10 | 送信: 置換は `TrainScheduleEditRequest.CreateReplaceTimetableRequest(列車, 停車駅)`（出発条件は `WaitForTicks`・`GameUpdater.TicksPerSecond`。Web ホスト `TrainTimetableStopParser` と同じ）、自動運転は `CreateSetAutoRunRequest`（`AppliedIsAutoRun` が求めた値と違えば拒否）。列車が開いていなければ拒否。拒否は `UiCommandRejectReason.TrainEditRejected`（新設。詳細に Web と同じ理由文字列）で返し、呼び手が `UiCommandResultToaster.Report` へ渡す | `TrainTimetableCommandsTest`（純粋部分）と `TrainTimetableFlowTest`「拒否された追加を巻き戻し、次の追加で復帰する」が緑 |
-| R-11 | プラットフォームの本文（Kind `TrainPlatform`）: `UiStack(Sm)`（`train-platform-view`）に、駅なら駅名の行、スロット数があれば `BlockItemGrid(train-platform-item-slots)`（空でも実枠を出す）、液体なら `FluidInventoryContents(train-platform-fluid-slots)`、移送の状態があれば `ModeSwitch<TrainPlatformTransferMode>(train-platform-mode, Horizontal, Group)` の `-load`（`trainPlatformLoad` 積込）/ `-unload`（`trainPlatformUnload` 卸し）。押すと楽観更新なしで `SetTransferMode` を送る | `TrainPlatformBodyTest` 3 件が緑 |
-| R-12 | 駅名: `GameTextField(train-station-name-input, false, GaugeInset)`（プレースホルダ `stationNamePlaceholder`）と `PanelActionButton(train-station-name-apply, stationNameApply)`。手を付けていない入力は同期した名前に従う。送るのは決定を押したときだけ（入力のたびには送らない）。拒否は同期済みの最新の名前へ戻す。プラットフォームでは行を出さない | `TrainPlatformBodyTest`「sends station names only through Set and hides the field for platforms」が緑。録画 `train/train-station-default-name` の延長分 |
-| R-13 | 新しい断りの理由: `UiCommandRejectReason.TrainEditRejected`（benign でない・wire code `train_edit_rejected`・文言キー `ui.commandRejected.trainEditRejected`）。`localization.csv` に行を足し `pnpm --dir moorestech_web/webui run gen:i18n` で再生成、`docs/uitk/TODO.md`「追従記録」に 1 行 | `UiCommandRejectReasonTraitsTest`（既存。全列挙を回す件）が緑。`LocalizationKeysTest` が緑 |
+| R-4 | 取得の依頼: 時刻表タブへ切り替えた瞬間と、時刻表タブのあいだに Loading が届くたびに `TrainInventoryTabModel` が `ITrainTimetableCommands.RequestOpen()` を呼び、直後に `ITrainTimetableSource.Refresh()` で取得中を配らせる（本番の RequestOpen は `OpenTrainUnitResolver` で列車を引き `TrainTimetableFetcher.RequestForOpenedTab`、引けなければ `MarkTabOpenedWithoutTrain`。Web ホスト `TrainTimetableOpenActionHandler` と同じ）。Ready でもタブ選択では依頼する | `TrainInventoryBodyTest` の fetch 3 件・`TrainInventoryTabModelTest`「タブを選ぶと取得を頼みすぐ時刻表の源を組み直させる」が緑。録画 `train/train-timetable-via-ui` で `[TrainTimetableFetcher] requesting timetable` が開いた直後 0・タブ選択で 1 |
+| R-5 | 時刻表の状態: Web ホスト `TrainTimetableDtoBuilder.Build` と同じ優先（所有列車が引けない→Unavailable〈警告〉・`IsUnavailable`→Unavailable・`IsFetchInFlight`→Loading・キャッシュ無し→Loading・Ready）。駅一覧は `GetBlocksByBlockType(TrainStation)` の位置と `TrainStationNameStateDetail.StationName`（無ければ空）を x→z→y で整列。停車駅の名前は駅一覧から引き、引けない位置の集合が前回と変わったときだけ警告。未知の Side があれば Error ログで Unavailable。同じ状態（Ready は中身）は流し直さない（D-6） | `TrainTimetableReadyDataFactoryTest`・`TrainTimetableStationCatalogTest` が緑 |
+| R-6 | 時刻表の区画: `UiStack(Xs)`（`train-timetable-section`。保留中は `train-timetable-section--busy`）。自動運転の行（`ui.blockInventory.timetableAutoRun` ＋ `ModeSwitch<bool>(train-timetable-auto-run, Horizontal, Group)` の `-on` / `-off`）。on は保留中かサーバーの停車駅が 0 件で無効、off は保留中で無効。押すと楽観更新なしで View が `ITrainTimetableEditModel.SetAutoRun` を直接呼び即送信。停車駅が 0 件なら `timetableAutoRunUnavailable` を出す。Mantine `Text size="sm"` の 7 か所は `UiTypographyClass.TextSm`（D-22） | `TrainTimetableSectionViewTest`「blocks auto-run until an added stop is authoritative and sends toggles immediately」が緑 |
+| R-7 | 停車駅: `GamePanel(train-timetable-stops-panel, Craft)` の題 `timetableStops`＋`FadeRule`。0 件は文言 `train-timetable-stops`（`timetableStopsEmpty`）、それ以外は `train-timetable-stops` の列に行 `train-timetable-stop-{i}`（現在位置は `train-timetable-stop--current`＝`--text-high-contrast`。表示中の並びがサーバーの並びと同じときだけ。現在位置は `int?`）。行のラベルは `timetableStopLabel`（`{index}. {station}`）。操作 `-up`（先頭で無効）・`-down`（末尾で無効）・`-remove`（保留中は全部無効）。押下は View が `ITrainTimetableEditModel.Move`・`Remove` を直接呼ぶ | `TrainTimetableSectionViewTest`「disables moves past either end and follows remote changes when idle」が緑 |
+| R-8 | 駅一覧: `GamePanel(train-timetable-stations-panel, Craft)` の題 `timetableStations`＋`FadeRule`。0 件は `timetableStationsEmpty`。行は駅のラベル（`TimetableEditLogic.StationLabel`。名前が空なら `timetableUnnamedStation`）と `PanelActionButton(train-timetable-station-{x}_{y}_{z}-add, timetableAdd)`（保留中は無効。押下は `Add` を直接呼ぶ）。行の右の子と左の間は画面のクラス `train-timetable__row-end` の `--mode-switch-padding-inline`。行の上の区切りは `--bevel-1 solid --bevel-c1`、無効な操作の文字は `--text-muted` | `TrainTimetableFlowTest` 2 件が緑。並べ比べ R-15 |
+| R-9 | 即時編集（`useImmediateTimetable` の写し）: 送信中・保留中の編集は警告して捨てる。並びが同じ編集は何もしない。編集は表示を即時に替え（保留）、受理されたら同じ並びの公開が届くまで保留を保つ（公開が先に届いていれば受理で解く）。受理後 5000ms 公開が無ければ警告して解く。拒否は警告・トースト・最新のサーバーの並びへ戻す。閉じた後に戻った結果は捨てる。列車が替わるとセッションを作り直す | `TrainTimetableEditSessionTest` 6 件・`TrainTimetableEditModelTest` が緑 |
+| R-10 | 送信: 置換は `TrainScheduleEditRequest.CreateReplaceTimetableRequest(列車, 停車駅)`（出発条件は `WaitForTicks`・`GameUpdater.TicksPerSecond`。Web ホスト `TrainTimetableStopParser` と同じ）、自動運転は `CreateSetAutoRunRequest`（`AppliedIsAutoRun` が求めた値と違えば拒否）。列車が開いていなければ拒否。拒否は `UiCommandRejectReason.TrainEditRejected`（新設。詳細に Web と同じ理由文字列）で返し、呼び手が `UiCommandResultToaster.Report` へ渡す | `TrainTimetableDepartureTest` と `TrainTimetableFlowTest`「拒否された追加を巻き戻し、次の追加で復帰する」が緑 |
+| R-11 | プラットフォームの本文（Kind `TrainPlatform`）: `UiStack(Sm)`（`train-platform-view`）に、描画値は `ClosedTrainPlatformBody`／`OpenTrainPlatformBody`（部分ごとに「無ければ null」。D-19）で、View は「あれば出す」の 1 規則。駅なら駅名の行、移送の状態がある品物 PF・駅ならパネルの源のスロットで `BlockItemGrid(train-platform-item-slots)`（空でも実枠を出す）、液体があれば `FluidInventoryContents(train-platform-fluid-slots)`（液体 PF は `IBlockFluidSlotsModel`。D-17）、移送の状態があれば `ModeSwitch<TrainPlatformTransferMode>(train-platform-mode, Horizontal, Group)` の `-load`（`trainPlatformLoad` 積込）/ `-unload`（`trainPlatformUnload` 卸し）。押すと楽観更新なしで View が `ITrainPlatformEditModel.SelectTransferMode` を直接呼んで送る | `TrainPlatformBodyTest` 3 件・`TrainPlatformDetailReaderTest` が緑 |
+| R-12 | 駅名: `GameTextField(train-station-name-input, false, GaugeInset)`（プレースホルダ `stationNamePlaceholder`）と `PanelActionButton(train-station-name-apply, stationNameApply)`。手を付けていない入力は同期した名前に従う。送るのは決定を押したときだけ（入力のたびには送らない）。拒否は同期済みの最新の名前へ戻す（同じパネルのあいだだけ）。下書きは `TrainPlatformEditModel` が持ち、View が `EditStationName`・`ApplyStationName` を直接呼ぶ。入力欄は伸ばさない。プラットフォームでは行を出さない | `TrainPlatformBodyTest`「sends station names only through Set and hides the field for platforms」・`TrainStationNameDraftTest` が緑。録画 `uitk/uitk-train-inventory` 手順 2 |
+| R-13 | 新しい断りの理由: `UiCommandRejectReason.TrainEditRejected`（benign でない・wire code `train_edit_rejected`・文言キー `ui.commandRejected.trainEditRejected`）。`localization.csv` に行を足し `pnpm --dir moorestech_web/webui run gen:i18n` で再生成、`docs/uitk/TODO.md`「追従記録」に 1 行 | 既存の `PauseMenuCommandsTest`（`UiCommandRejectReason` の全列挙を回す良性の配列〈変えない〉とトースト用の翻訳文の 2 件）が緑（D-24） |
 | R-14 | 写すテスト（実物で数え直した S4-train 分 20 件＋alpha が train に割り振った共有 2 件。下の「写すテスト」表）。`node tools/uitk/test-name-parity.mjs --bundle 4` で S4-train のファイルの未対応 0。`<web-test>` で写した件は `docs/uitk/disposition.md` に書かない | parity の出力に S4-train のファイルの未対応が無い |
 | R-15 | 並べ比べ: 参照 `4-block-train`・`4-block-trainTimetable`・`4-block-train-timetable-tab`・`4-block-trainPlatform`・`4-block-trainFluidPlatform` を 1280×720・2560×1080 で撮り差の表。参照の無い場面（駅名の行・Loading/Unavailable・保留中・液体貨車）は E-22 の自撮りで足す | 差の表の全行が「同じ／直した／LX-121〜LX-125／他レーン持ち」のどれか |
 | R-16 | 登録: `S/Client.Starter/Registration/GameUi/BlockInventoryTrainGameUiRegistration.cs`（Model・コマンド・タイマー・工場 2 本）を `MainGameUiRegistration` の画面登録区画から 1 行で呼ぶ。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
-| R-17 | 録画: `train/train-timetable-via-ui`（適用ボタンを消し、追加の直後にサーバーの状態を待つ形へ直す）・`train/train-station-default-name`（入力→決定→サーバーの名前を待つを足す）・`train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` を全体スイッチ UITK で回す | 4 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-17 | 録画: 新設 `uitk/uitk-train-inventory`（駅名の入力→決定→クライアントの駅名を待つ・フォーカス中の Esc/E の閉じ・積込/卸し・時刻表の追加と自動運転）、`train/train-timetable-via-ui`（Web 系でも壊れている適用ボタンの押下を消し、待ちをサーバーとクライアントの時刻表の駅数だけにして両系で通す）、`train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` を全体スイッチ UITK で回し、Web 系でも `train/train-timetable-via-ui`・`train/train-station-default-name`（触らない）を回す（D-13） | 6 本の `result.json` が PASS、mp4、`done.md` に各回の `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-18 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`LOGS/harness/uitk/S4-train/done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -43,8 +43,33 @@
 - 乗車 HUD（S2-hud 済み。`train.spec.ts` の「乗車HUD…」は写さない）
 - 時刻表の編集ロジック `TimetableEditLogic`（L0-s4b 済み）・`TrainTimetableFetcher`・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver`（既存。変えない）
 - 部品（`ModeSwitch`・`PanelActionButton`・`GameTextField`・`GameScrollView`・`GamePanel`・`FadeRule`）と Foundation は変えない。要るものは `done.md`「integrator への依頼」へ
-- Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は変えない。例外は `localization.csv` の行を足したときの生成物の再生成だけ（E-1）
+- Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は変えない。例外は `localization.csv` の行を足したときの生成物の再生成だけ（E-1）。Web ホストにしかない導出を State へ 1 本にまとめる作り直しも本 PR ではしない（C4-e 要裁定 1 の据え置き。D-2・「## 本 PR 外のリファクタ提案」）
+- 録画 `train/train-station-default-name`（Web 系の既定名の初期同期の主張のまま。D-13）
 - 出発条件の UI（Web にも無い。固定の `WaitForTicks` 1 秒）
+
+## 死活表
+
+触る機構: `MainGameUiRegistration`（GameUi の系だけで登録。Web の系は登録の頭で return）・`Client.Ui.State.asmdef`・`UiCommandRejectReason`（Settings・PauseMenu・分割ドラッグ・持ち物の移動・alpha のブロックの枠も使う）・`localization.csv`（Web の `localizationKeys.ts` も再生成）・`GameUiTheme.tss`・既存の `TrainTimetableFetcher`／`OpenTrainTimetableTracker`／`OpenTrainUnitResolver`／`SubInventoryState`／`OpenBlockDetailTracker`（呼ぶ・読むだけ）・alpha の `IBlockInventoryPanelSource` と S4-machine の `IBlockFluidSlotsModel`（購読するだけ）・録画シナリオ `train/train-timetable-via-ui`（直す）と `uitk/uitk-train-inventory`（新設）。`Client.WebUiHost/**` は変えない（D-2）
+
+| 操作 | 計画後 | 根拠 |
+|---|---|---|
+| Web 系: 列車インベントリの開閉・貨車の枠・時刻表タブ・即時編集・自動運転 | 生きる | Web の系では Client.Ui を登録しない。`Client.WebUiHost/**` も既存の Fetcher・Tracker も変えない |
+| Web 系: 駅名の入力・決定、PF の積込/卸し | 生きる | 同上 |
+| Web 系: 新しい文言キー | 生きる | キーが 1 つ増えるだけで、Web では使わない |
+| UITK 系: 貨車を開いて本文を出す（持ち物タブ・液体貨車） | 新しく使える | Task 5・7・8 |
+| UITK 系: 貨車の枠の左／右／ダブル／Shift | 新しく使える | alpha の `BlockItemGrid` → `IBlockSlotCommands`（`TryReadBlockSlots` はエラー無しの列車で真。alpha D-37） |
+| UITK 系: 時刻表タブ・追加／上下／削除・自動運転 | 新しく使える | Task 4・6・7、録画 `uitk/uitk-train-inventory` 手順 5・6 |
+| UITK 系: 駅名の入力・決定、PF の積込/卸し | 新しく使える | Task 5・7、録画 `uitk/uitk-train-inventory` 手順 2・4 |
+| UITK 系: 液体 PF の液体 | 新しく使える | 追跡ブロックの `FluidMachineInventoryStateDetail` を S4-machine の `IBlockFluidSlotsModel` が読む（D-17）。Task 1 Step 2 で空でないことを確かめる |
+| UITK 系: テキスト欄にフォーカスがあるときの E・ESC での閉じる | 要確認 | C2-b の `UiInputExclusivity` の範囲。入力欄が閉じるキーを食えば閉じられなくなる（退化）。録画 `uitk/uitk-train-inventory` 手順 3（Task 7 Step 5・Task 11 Step 2）で確かめ、食うなら C2-b の持ち主へ上げる |
+| 乗車 HUD（S2-hud） | 生きる | `TrainRidingHudModel` を触らない。Fetcher・Tracker の購読が増えるだけ |
+| 既存の拒否理由（Settings・PauseMenu・分割ドラッグ・ブロックの枠） | 生きる | enum と switch の末尾に足すだけ（E-1）。非良性なので `PauseMenuCommandsTest` の benign 配列は変わらない |
+| 録画 `train/train-timetable-via-ui`（Web 系。X-prerun で回す） | 今は壊れている → 直る | 押していた `train-timetable-apply` は Web にも無い（`TrainTimetableImmediate.test.ts:38`）。押下を消し、待ちをサーバーとクライアントの時刻表の駅数だけにする（系ごとの保留の印は読まない）。Task 11 Step 1・Step 3 で Web 系でも回す |
+| 録画 `train/train-timetable-via-ui`（UITK 系） | 新しく通る | 同上 |
+| 録画 `train/train-station-default-name` | 生きる | 触らない（D-13）。UITK の駅名の入力・決定は新設の `uitk/uitk-train-inventory` が持つ。Task 11 Step 3 で Web 系でも回す |
+| 録画 `uitk/uitk-train-inventory` | 新設（UITK 系だけ） | Task 11 Step 2 |
+| 録画 `train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` | 生きる | 書き換えない。UITK 系で回すだけ |
+| ホットバー・HUD・他の常駐表示 | 生きる | 触らない |
 
 ## Global Constraints
 
@@ -52,10 +77,10 @@
 - **依存**: S4-alpha（拡張口・`BlockItemGrid`・`IBlockSlotCommands`・パネルの状態）と **S4-machine**（`FluidInventoryContents`・ブロックの液体の読み手）が `origin/feature/uitk` に入っていること（Task 1 Step 1 で確かめ、無ければ待つ）。ほかに C3-a（`GamePanel`・`FadeRule`・`PanelActionButton`）・C3-b（`GameScrollView`）・C4-c 系の `ModeSwitch`・`GameTextField`・L0-s4b（`TimetableEditLogic`・`BlockComponentRegistry`）。すべてマージ済み
 - **登録の本数**: `S/Client.Starter/Registration/GameUi/` は alpha で 9 本、integrator のサブディレクトリ化の後に置く。Task 1 で再編後の置き場を確かめ、その時点の `GameUi/`（または再編先）に 1 本足す
 - **規約**: 1 ファイル 200 行以下・1 ディレクトリ 10 ファイル以下（`.meta` を除く）・partial 禁止・`Func<>` 禁止・イベントは UniRx（`Action` 禁止）・try-catch 禁止（このレーンに外部境界は無い。ネットワークの失敗は API が null を返す）・日英 2 行コメント・デフォルト引数禁止・単純 getter/setter 禁止（`{ get; private set; }` と式本体の計算プロパティは可）・初期化は `Initialize`・null チェックは外部データ（サーバー応答・StateDetail）だけ・fail-closed の経路は開発者ログ・意図して黙る行は `silent-ok: <理由> / <誰が気づくか>`・`#region Internal` はメソッド内のローカル関数だけ・`.meta` を手で作らない・Prefab/シーンを手で編集しない・`Update()` で同値判定しない（購読）
-- **Model / Presenter / View**: Model（State）だけが源を購読し `IReadOnlyReactiveProperty<…ViewModel>` を配る。Presenter（Screens）は `Attach` で Model と View の意図（`IObservable`）を購読し `View.Render(ViewModel)` へ流し、`Detach` で全部切る。View は購読しない（自分の子の部品の `OnClicked` 等を自分の意図の `Subject` へ流す配線だけは View が持つ。言語の変化は `LocalizedLabel` が自分で描き直す）
-- **State は `Client.WebUiHost` を参照しない**。Web ホストにしかない導出（駅一覧の組み立て・整列・名前の補完・状態の優先・未知の Side・出発条件・`AppliedIsAutoRun` の照合・プラットフォーム/駅の詳細）は State に写し直す。重複は D-2 に記録
-- **asmdef**: `S/Client.Ui.State/Client.Ui.State.asmdef` に `Game.Block`（`TrainStationNameStateDetail`・`TrainPlatformTransferStateDetail`・`TrainPlatformTransferComponent`）と `Core.Update`（`GameUpdater.TicksPerSecond`）を足す（共有ファイルへの追記）。`Client.Ui` には足さない（View は State の `TrainPlatformTransferMode` を使う。D-8）
-- **USS**: 画面 USS の先頭に出所の 1 行（日英。`/* web: features/blockInventory/train/TrainTimetableSection.module.css …（日本語の要約） / (English) */`）。色はトークン経由だけ。部品のクラスを画面 USS の選択子の主語にしない。部品のつまみの上書きは画面のルートのクラスの下で（このレーンでは `--panel-action-button-text` の無効時の上書き 1 件。D-11）。`:root` のトークンを C# で読むときは読む要素のクラスで `--<部品>-<名>: var(--token)` と受け直す（`UssCustomStyleReader` の remarks。このレーンでは読まない）
+- **Model / Presenter / View（設計書 §4.2・A-8）**: Model（State）だけが源を購読し `IReadOnlyReactiveProperty<…>` を配る。判断・セッションの寿命・下書きも State の Model が持つ。Presenter（Screens）は `Attach` で Model の `Current` を購読して `View.Render` へ流し、`Detach` で全部切る（中継・判断はしない）。View は Model を購読しない。押下は View が自分の子の部品の `OnClicked`・`OnOptionSelected`・`OnValueChanged` から State の型付きの口（`ITrainInventoryTabModel`・`ITrainTimetableEditModel`・`ITrainPlatformEditModel`）を直接呼ぶ。言語の変化は `LocalizedLabel` が自分で描き直し、解決済みの文字列を埋めた所だけ Presenter が描き直す（D-10）
+- **State は `Client.WebUiHost` を参照しない**。Web ホストにしかない導出（駅一覧の整列・名前の補完・状態の優先・未知の Side・出発条件・`AppliedIsAutoRun` の照合・プラットフォーム/駅の詳細）は State に同じ規則でもう 1 本持つ（本体の裁定 C4-e 要裁定 1「CEF 撤去まで据え置き」。負債が残り、CEF 撤去の日に `Client.WebUiHost` 側を消す。D-2）。Web ホストが既に呼んでいる State の口（`TrainTimetableFetcher`・`OpenTrainUnitResolver`）は UITK もそのまま使う。重複の一覧は「## 本 PR 外のリファクタ提案」
+- **asmdef**: `S/Client.Ui.State/Client.Ui.State.asmdef` に要るのは `Game.Block`（`TrainStationNameStateDetail`・`TrainPlatformTransferStateDetail`・`TrainPlatformTransferComponent`）と `Core.Update`（`GameUpdater.TicksPerSecond`）。Task 2 Step 3 で grep し、無いものだけ末尾に足す（S4-machine の後なら `Core.Update` だけの見込み）。取り込みで同じ参照が衝突したら 1 行に畳む（E-1）。`Client.Ui` には足さない（View は State の `TrainPlatformTransferMode` を使う。D-8）
+- **USS**: 画面 USS の先頭に出所の 2 行（日本語 1 行 `/* web: features/blockInventory/train/style.module.css …（日本語の要約） */` → 英語 1 行 `/* web: … (English) */`。1 行に日英を混ぜない）。行の中の間は画面のクラス（`train-timetable__row-end`・`train-station-name__row-end`）を右の子に付けて 1 本の規則で取る（D-22）。色はトークン経由だけ。部品のクラスを画面 USS の選択子の主語にしない。部品のつまみの上書きは画面のルートのクラスの下で（このレーンでは `--panel-action-button-text` の無効時の上書き 1 件。D-11）。`:root` のトークンを C# で読むときは読む要素のクラスで `--<部品>-<名>: var(--token)` と受け直す（`UssCustomStyleReader` の remarks。このレーンでは読まない）
 - **計画の Produces と実物の照合**: alpha（改訂版 85f905aa3d）と S4-machine（09b9a73226）の型は計画から写した。両レーンの実装で綴りが変わっていれば Task 1 Step 2 で合わせる
 - **使う部品と公開 API**（Components・Foundation・既存 State は `origin/feature/uitk` の実物、alpha と S4-machine はそれぞれの計画の Produces から写した）
 
@@ -66,12 +91,17 @@ public interface ITrainInventoryBodyFactory { ITrainInventoryPart Create(); }   
 public interface ITrainInventoryPart { VisualElement Root { get; } void Attach(OpenTrainInventoryPanel panel); void Detach(); }   // Presenter（Root が View）
 public interface IBlockInventoryPart { VisualElement Root { get; } void Attach(OpenBlockInventoryPanel panel); void Detach(); }
 public interface IBlockInventoryBodyFactory { BlockInventoryBodyKind Kind { get; } IBlockInventoryPart Create(BlockInventoryBodyMount mount); }
-public sealed class BlockInventoryBodyMount { public bool FillsPanelHeight { get; private set; } }
+public sealed class BlockInventoryBodyMount { public BlockInventoryBodyMount(bool fillsPanelHeight); public bool FillsPanelHeight { get; private set; } }   // テストは new BlockInventoryBodyMount(false)
 namespace Client.Ui.State.BlockInventory.Panel
 public sealed class OpenTrainInventoryPanel : BlockInventoryPanelState { public long TrainCarInstanceId { get; } public IReadOnlyList<SlotItem> ItemSlots { get; } public BlockInventoryPanelError Error { get; } }
 public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState { public string BlockType { get; } public Guid BlockGuid { get; } public BlockId BlockId { get; } public BlockInstanceId BlockInstanceId { get; } public Vector3Int Position { get; } public IReadOnlyList<SlotItem> ItemSlots { get; } public BlockInventoryPanelError Error { get; } public BlockInventoryComponents Components { get; } }
 // 呼ばれ方: 同じパネル（列車は車両・エラー、ブロックは位置・Guid・エラー）かつ同じ大きさのあいだは何も呼ばれない。変わると Detach → Create → Attach。画面が隠れると Detach
-// テスト: Client.Tests.Ui.State.BlockInventory.PanelModel.BlockInventoryTestPanels.Train(error) / OfType(blockType, ...)・FakePanelSource・BlockInventoryTestShell.Create(state, params object[] plugged)
+// 列車の本文の工場が未登録なら alpha は空の部分を返す（null ではない。alpha D-35）。IBlockInventoryOperations.TryReadBlockSlots はエラー無しのブロック／列車のときだけ真（alpha D-37）
+// テスト: Client.Tests.Ui.State.BlockInventory.PanelModel.BlockInventoryTestPanels.Train(error) / OfType(blockType, ...)・FakePanelSource(ReactiveProperty<BlockInventoryPanelState>)・BlockInventoryTestShell.Create(ScreenTestHost host, ReactiveProperty<BlockInventoryPanelState> state, params object[] plugged)
+namespace Client.Ui.State.BlockInventory.Panel
+public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }   // 共有サービス。スロットの更新でも配り直す
+public abstract class BlockInventoryPanelState { public static readonly BlockInventoryPanelState Closed; public abstract bool IsSamePanel(BlockInventoryPanelState other); }
+public enum BlockInventoryPanelError { None, OpenFailed, ContainerMissing, TrainCarMissing }   // エラー無しは == None
 namespace Client.Ui.Screens.BlockInventory.Parts
 public sealed class BlockItemGridFactory { public BlockItemGrid Create(string testId); }               // 共有サービス（MainGameUiRegistration）。枠 <testId>-slot-<i>。押下は IBlockSlotCommands へ配線済み
 public sealed class BlockItemGrid : VisualElement { public void Render(IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<int> slotIndices); }
@@ -83,7 +113,7 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
 public sealed class FluidInventoryContents : UiStack { public FluidInventoryContents(string testid, GameContentPresentation content); public void Render(IReadOnlyList<BlockFluidSlotState> fluids); }  // Web FluidInventoryContents。0 件で子なし。行 <testid>-slot-<i>
 namespace Client.Ui.State.BlockInventory.Fluid
 public sealed class BlockFluidSlotsViewModel { IReadOnlyList<BlockFluidSlotState> Slots; bool HasProgress; float Progress; }
-public interface IBlockFluidSlotsModel { IReadOnlyReactiveProperty<BlockFluidSlotsViewModel> Current { get; } }   // 追跡ブロックの液体（タンクの入力→出力・パイプの複製）。閉・列車では空
+public interface IBlockFluidSlotsModel { IReadOnlyReactiveProperty<BlockFluidSlotsViewModel> Current { get; } }   // 追跡ブロックの液体（タンクの入力→出力・パイプの複製）。閉・列車〈source=train〉では空。液体 PF は追跡ブロックの FluidMachineInventoryStateDetail で入る（D-17）
 public static class BlockFluidSlotConversion { static IReadOnlyList<BlockFluidSlotState> FromTanks(IReadOnlyList<FluidMessagePack> inputTanks, IReadOnlyList<FluidMessagePack> outputTanks); }
 // テスト: FakeBlockFluidSlotsModel（Client.Tests の State/BlockInventory/Family/FakeFamilyModels.cs）
 
@@ -128,7 +158,7 @@ namespace Client.Ui.State.Train.Logic   // L0-s4b
 public readonly struct TrainTimetableStation { Vector3Int Position; string Name; }   public readonly struct TimetableEditStop { Vector3Int Position; string Name; StationNodeSide Side; }
 public readonly struct TimetableReplaceStop { Vector3Int Position; StationNodeSide Side; }   public enum StopMoveDirection { Up = -1, Down = 1 }
 public static class TimetableEditLogic { StationKey(Vector3Int); AddStop(stops, station); RemoveStop(stops, index); MoveStop(stops, index, direction); CanEnableAutoRun(stops); StationLabel(station, unnamedStationName) → UiText; ToReplacePayload(stops) → List<TimetableReplaceStop>; SameStopOrder(left, right); }
-namespace Client.Ui.State.Command
+namespace Client.Ui.State.Commands
 public sealed class UiCommandAccepted : UiCommandResult { public static readonly UiCommandAccepted Instance; }
 public sealed class UiCommandRejected : UiCommandResult { public UiCommandRejected(UiCommandRejectReason reason, string detail); }
 namespace Client.Ui.State.Toast
@@ -142,19 +172,24 @@ SubInventoryModel { List<IItemStack> SubInventory; List<FluidMessagePack> Fluids
 TrainSubInventorySource { long TrainCarInstanceId; }    BlockSubInventorySource { Vector3Int BlockPosition; bool TryGetBlockIdentity(out Guid guid, out string blockTypeName); }
 OpenBlockDetailTracker { BlockGameObject TrackedBlock; IObservable<BlockGameObject> OnTrackedBlockChanged; IObservable<Unit> OnTrackedBlockStateChanged; }
 BlockGameObject { BlockMasterElement BlockMasterElement; BlockPosInfo BlockPosInfo /* OriginalPos */; T GetStateDetail<T>(string key); }
-BlockGameObjectDataStore { IEnumerable<BlockGameObject> GetBlocksByBlockType(string blockType); }
-TrainUnitClientCache;  IClientTrainTimetableLookup { IObservable<TrainUnitInstanceId> OnTimetableUpdated; bool TryGet(TrainUnitInstanceId id, out TrainTimetableSnapshot snapshot); }
+BlockGameObjectDataStore { IReadOnlyList<BlockGameObject> GetBlocksByBlockType(string blockType); }   // 確かめた（BlockGameObjectDataStore.cs:158）
+TrainUnitClientCache;  IClientTrainTimetableLookup { IObservable<TrainUnitInstanceId> OnTimetableUpdated; bool TryGet(TrainUnitInstanceId id, out TrainTimetableSnapshot snapshot); }   // OnTimetableUpdated の型は確かめた（ClientTrainTimetableDatastore.cs:12）
+Localize { static IObservable<Unit> OnLanguageChanged; static string Get(LocalizationKey key); }   // 確かめた（Localize.cs:22）
+BlockMasterElement.BlockParam : IBlockParam   // Mooresmaster.Model.BlocksModule
 TrainTimetableSnapshot { TrainUnitInstanceId TrainUnitInstanceId; bool IsAutoRun; int CurrentIndex; IReadOnlyList<TrainTimetableStop> Stops; }   TrainTimetableStop { Vector3Int StationPosition; StationNodeSide Side; }
 ClientContext.VanillaApi.Response.Train { SendTrainScheduleEdit(TrainScheduleEditProtocol.TrainScheduleEditRequest, CancellationToken) → { Success; FailureReason; AppliedIsAutoRun }; SetTrainStationName(Vector3Int, string, CancellationToken) → { Success; AppliedName; FailureReason }; SetTrainPlatformTransferMode(Vector3Int, TrainPlatformTransferComponent.TransferMode, CancellationToken) → { Success; AppliedMode; FailureReason } }
-TrainStationNameStateDetail { const string BlockStateDetailKey = "TrainStationName"; string StationName; }   TrainPlatformTransferStateDetail { const string BlockStateDetailKey = "TrainPlatformTransfer"; TransferMode Mode; }   // Game.Block.Blocks.TrainRail
+TrainStationNameStateDetail { TrainStationNameStateDetail(string stationName); const string BlockStateDetailKey; string StationName; }   TrainPlatformTransferStateDetail { TrainPlatformTransferStateDetail(TrainPlatformTransferComponent.TransferMode mode); const string BlockStateDetailKey; TransferMode Mode; }   // Game.Block.Blocks.TrainRail。ctor は確かめた
 TrainItemPlatformBlockParam / TrainStationBlockParam { int ItemSlotCount; }   TrainFluidPlatformBlockParam   // Mooresmaster.Model.BlocksModule
+// ── テストの土台（実物）
+ScreenTestHost { protected static T Find<T>(VisualElement root, string testid); protected bool IsShown(VisualElement element) /* 要素自身の resolvedStyle.display だけを見る */; protected static bool IsSelected(VisualElement root, string optionTestid); }
+UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, bool allowColorLiterals); }   UiStyleViolation { UiStyleRule Rule; }   // Client.Tests.Ui.Conventions。UiStyleRule.ColorLiteral
+// Web ホストの拒否文字列（照合済み）: 時刻表 TrainTimetableActions.cs（train_not_open・replace_failed:<理由>・set_auto_run_failed:<理由>・set_auto_run_not_applied:<値>）、駅 TrainStationActions.cs（block_not_open・invalid_block_type・set_name_failed:<理由>）、PF TrainPlatformActions.cs（block_not_open・invalid_block_type・mode_request_failed〈接尾辞なし〉）
 ```
-（`IClientTrainTimetableLookup.OnTimetableUpdated` の型、`BlockGameObjectDataStore.GetBlocksByBlockType` の戻りの型は Task 1 Step 3 で実物を確かめ、違えば下のコードの綴りだけ合わせる）
 
 ## 設計検査記録
 
-- 配置検査: 未実施
-- Phase 2.6: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み（レビュー r1）/ 違反 6 件・修正 6 件 / 死活表が無い（V-1 → 「## 死活表」を足した）・スロット列を alpha のパネルの源と別に作る（V-2 → D-16）・asmdef の重ね足し（V-3 → Task 2 Step 3 を grep して無いものだけに。E-1 の 1 行に畳む決まり）・液体 PF の液体の源（V-4 → D-17。S4-machine の R-3 も直っている）・blockType の自前の列挙（V-5 → D-21）・録画の Web 系の退化（V-6 → D-13。UITK の録画を `uitk/` に新設し、時刻表の録画は両系で通る形に直した）。注目点は Presenter の判断と寿命（→ D-12・D-22 の A-8 の形）、Reader の純関数化（→ D-21）、`Refresh` の欠け（→ D-20）、E-1 の列挙（本体が fce54ea0b5 で足した）、受け入れ基準のテスト名（→ D-24）を直した
+- Phase 2.6（型閉包・重複・ADR 矛盾）: 実施済み（レビュー r1）/ 強 7・弱 9・第 3 バケツ 8 / 強: 編集セッションの null＋bool（5-A1 → D-18）・`-1` の番兵（5-B1 → D-19）・PF の描画値の判別子と片側の値の同居（5-B3・5-C2 → D-19）・Presenter の中継と ADR A-8 の矛盾（7-1 → 設計書 A-8 に合わせて State に編集の Model を置いた。D-12）は直した。D-2 の根拠と ADR の矛盾（7-1）は本体の裁定 C4-e 要裁定 1 どおり重複を据え置き、誤った根拠「E-1 に反する」を裁定の引用に書き直した（D-2）。`Localize.Get` の素通し（5-I6）は再現せず直していない。弱: bool の合成（5-C1）・blockType の部分分岐（5-I3）・判定と表示の別入力（6-1）は D-19・D-21 の組み替えで解消し、移送モードの写しの 2 か所（6-4）は `TrainPlatformTransferModeConversion` 1 本にした（D-8）。空名（5-B2）・失敗理由の畳み（5-C3）・`response?.FailureReason`（5-C4）・理由の enum と Detail（5-I2）は Web ホストと同じ形なので見送り、応答の判定の繰り返し（6-4）は D-2 の据え置きの負債として残す。第 3 バケツ 8 件は「## 本 PR 外のリファクタ提案」へ
 
 ## 写すテスト
 
@@ -177,60 +212,69 @@ TrainItemPlatformBlockParam / TrainStationBlockParam { int ItemSlotCount; }   Tr
 
 すべて `moorestech_client/Assets/Scripts/` の下（`S/`）。新しいディレクトリはどれも 10 ファイル以下・各ファイル 200 行以下。
 
-**State**（`S/Client.Ui.State/Train/`。既存 5 本＋`Logic/` に、1 本と 4 ディレクトリを足す）
+**State**（`S/Client.Ui.State/Train/`。既存 5 本＋`Logic/` に、1 本と 5 ディレクトリを足す）
 
 | ファイル | 責務 |
 |---|---|
 | `Train/TrainCommandRejection.cs` | 列車系コマンドの拒否を `UiCommandRejected(TrainEditRejected, 理由)` にし、Web ホストと同じ書式で Warning ログ |
-| `Train/Timetable/TrainTimetableViewState.cs` | Loading / Unavailable / Ready の型 |
-| `Train/Timetable/TrainTimetableReadyData.cs` | 用意済みの時刻表（列車・自動運転・現在位置・停車駅・駅一覧） |
-| `Train/Timetable/TrainTimetableStationCatalog.cs` | 駅ブロックから駅一覧を組み x→z→y で整列（Web ホスト `TrainTimetableDtoBuilder` の写し） |
+| `Train/Timetable/TrainTimetableViewState.cs` | Loading / Unavailable / Ready の型と「同じ状態か」の判定 |
+| `Train/Timetable/TrainTimetableReadyData.cs` | 用意済みの時刻表（列車・自動運転・現在位置・停車駅・駅一覧）と中身の等しさ |
+| `Train/Timetable/TrainTimetableValueEquality.cs` | 停車駅・駅一覧の値の列の比べ方（ReadyData と区画の描画値が共有） |
+| `Train/Timetable/TrainTimetableStationCatalog.cs` | 駅一覧を x→z→y で整列（Web ホスト `TrainTimetableDtoBuilder.SortStations` と同じ規則。D-2） |
 | `Train/Timetable/TrainTimetableReadyDataFactory.cs` | スナップショット＋駅一覧 → Ready（名前の補完・欠けの警告・未知の Side） |
-| `Train/Timetable/ITrainTimetableSource.cs` | 時刻表の状態の口（テストは偽物） |
-| `Train/Timetable/TrainTimetableModel.cs` | 本番の源。状態の優先を写し、変化の契機を購読 |
+| `Train/Timetable/ITrainTimetableSource.cs` | 時刻表の状態の口（`Current`・`Refresh`） |
+| `Train/Timetable/TrainTimetableModel.cs` | 本番の源。状態の優先を組み、変化の契機を購読。駅ブロックから駅一覧を読む |
 | `Train/TimetableEdit/ITrainTimetableCommands.cs` | 取得の依頼・置換・自動運転 |
-| `Train/TimetableEdit/TrainTimetableCommands.cs` | 本番。`TrainScheduleEditRequest` を送る |
+| `Train/TimetableEdit/TrainTimetableCommands.cs` | 本番。`TrainTimetableFetcher`・`OpenTrainUnitResolver` を呼び、`TrainScheduleEditRequest` を送る |
 | `Train/TimetableEdit/TrainTimetableDeparture.cs` | 送信形 → サーバーの停車駅（固定の出発条件） |
 | `Train/TimetableEdit/ITrainTimetableWaitTimer.cs` | 公開待ちの時間切れの口 |
 | `Train/TimetableEdit/UniRxTrainTimetableWaitTimer.cs` | 本番。`Observable.Timer` |
-| `Train/TimetableEdit/TrainTimetableEditSession.cs` | 即時編集（`useImmediateTimetable` の写し） |
-| `Train/TimetableEdit/TrainTimetableSectionViewModel.cs` | 区画の描画値（現在位置を当てるか・自動運転の可否） |
+| `Train/TimetableEdit/TrainTimetableEditSession.cs` | 即時編集（`useImmediateTimetable` の写し。段階は private な判別 union） |
+| `Train/TimetableEdit/TrainTimetableSectionViewModel.cs` | 区画の描画値（現在位置 `int?`・自動運転の可否・中身の等しさ） |
+| `Train/TimetableEdit/TrainTimetableAreaViewModel.cs` | 時刻表タブの中身（Loading / Unavailable / 列車ごとの Ready） |
+| `Train/TimetableEdit/ITrainTimetableEditModel.cs` | 時刻表の描画値と型付きの操作（View が直接呼ぶ。A-8） |
+| `Train/TimetableEdit/TrainTimetableEditModel.cs` | 本番。時刻表の状態を購読し、列車ごとのセッションを持つ |
 | `Train/Inventory/TrainInventoryTab.cs` | タブの列挙 |
 | `Train/Inventory/TrainTimetableFetchTrigger.cs` | タブ選択・Loading の到着 → 取得の依頼の判定 |
+| `Train/Inventory/ITrainInventoryTabModel.cs` | タブと選択（View が直接呼ぶ。A-8） |
+| `Train/Inventory/TrainInventoryTabModel.cs` | 本番。パネルごとに持ち物タブへ戻し、取得を頼んだ直後に時刻表の源を組み直させる |
 | `Train/Inventory/TrainInventoryBodyViewModel.cs` | 貨車の中身（スロット・液体） |
 | `Train/Inventory/ITrainInventoryBodySource.cs` | 貨車の中身の口 |
-| `Train/Inventory/TrainInventoryBodyModel.cs` | 本番。`SubInventoryState` を購読 |
-| `Train/Inventory/TrainCarContentsConversion.cs` | `IItemStack` → `SlotItem`、貨車の `FluidMessagePack` → `BlockFluidSlotState`（S4-machine の `BlockFluidSlotConversion.FromTanks` を入力側だけで呼ぶ） |
+| `Train/Inventory/TrainInventoryBodyModel.cs` | 本番。スロットは alpha のパネルの源、液体は `SubInventoryState` |
+| `Train/Inventory/TrainCarFluidConversion.cs` | 貨車の `FluidMessagePack` → `BlockFluidSlotState`（S4-machine の `BlockFluidSlotConversion.FromTanks` を入力側だけで呼ぶ） |
 | `Train/Platform/TrainPlatformTransferMode.cs` | State 側の積込/卸し（View が `Game.Block` を参照しないため） |
-| `Train/Platform/TrainPlatformBodyViewModel.cs` | 駅名・スロット数・スロット・液体・モード |
+| `Train/Platform/TrainPlatformTransferModeConversion.cs` | サーバーの移送モードとの写し（読み手と送り手が共有） |
+| `Train/Platform/TrainStationNamePart.cs` | 駅だけが持つ部分（同期した駅名） |
+| `Train/Platform/TrainPlatformBodyState.cs` | 閉 / 開（部分ごとの有無）の union |
 | `Train/Platform/ITrainPlatformBodySource.cs` | プラットフォームの中身の口 |
-| `Train/Platform/TrainPlatformBodyModel.cs` | 本番。追跡ブロック・`SubInventoryState`・S4-machine の `IBlockFluidSlotsModel` を購読 |
-| `Train/Platform/TrainPlatformDetailReader.cs` | `BlockGameObject` → 描画値（Web ホスト `TrainPlatformDetailDtoBuilder`・`TrainStationDetailDtoBuilder` の写し） |
-| `Train/Platform/ITrainBlockCommands.cs` | 駅名・モードの送信 |
-| `Train/Platform/TrainBlockCommands.cs` | 本番 |
-| `Train/Platform/TrainStationNameDraft.cs` | 駅名の下書き（同期・編集・拒否の巻き戻し） |
+| `Train/Platform/TrainPlatformBodyModel.cs` | 本番。パネルの源・追跡ブロック・S4-machine の `IBlockFluidSlotsModel` を購読 |
+| `Train/Platform/TrainPlatformDetailReader.cs` | StateDetail・BlockParam → 描画値の純関数（Web ホスト `TrainStationDetailDtoBuilder`・`TrainPlatformDetailDtoBuilder` と同じ規則。D-2） |
+| `Train/Platform/Edit/ITrainBlockCommands.cs` | 駅名・モードの送信 |
+| `Train/Platform/Edit/TrainBlockCommands.cs` | 本番 |
+| `Train/Platform/Edit/TrainStationNameDraft.cs` | 駅名の下書き（同期・編集・拒否の巻き戻し） |
+| `Train/Platform/Edit/ITrainPlatformEditModel.cs` | 駅名の入力・決定・モードの選択（View が直接呼ぶ。A-8） |
+| `Train/Platform/Edit/TrainPlatformEditModel.cs` | 本番。パネルごとに下書きを作り直し、拒否は同じパネルのときだけ戻す |
 
-共有ファイルへの追記: `Commands/UiCommandRejectReason.cs`（列挙 1 つと switch 3 本に 1 行ずつ）、`Client.Ui.State.asmdef`（`Game.Block`・`Core.Update`）。
+共有ファイルへの追記（E-1）: `Commands/UiCommandRejectReason.cs`（列挙 1 つと switch 3 本に 1 行ずつ、末尾に追記）、`Client.Ui.State.asmdef`（無い参照だけ。S4-machine の後なら `Core.Update` だけの見込み）。
 
 **View**（`S/Client.Ui/Screens/BlockInventory/Train/`）
 
 | ファイル | 責務 |
 |---|---|
 | `Train/TrainInventoryBodyFactory.cs` | `ITrainInventoryBodyFactory` の実装 |
-| `Train/TrainInventoryBodyPresenter.cs` | タブ・取得の依頼・中身と時刻表の配線 |
-| `Train/TrainInventoryBodyView.cs` | タブ＋スクロール器＋中身＋時刻表の器 |
-| `Train/TrainInventoryContentsView.cs` | スロットか液体か |
+| `Train/TrainInventoryBodyPresenter.cs` | タブ・中身・時刻表の Model を購読して View へ流す |
+| `Train/TrainInventoryBodyView.cs` | タブ＋スクロール器＋中身＋時刻表の器。タブの押下は `ITrainInventoryTabModel` を直接呼ぶ |
+| `Train/TrainInventoryContentsView.cs` | スロットか液体か（`train-inventory-contents`） |
 | `Train/TrainPlatformBodyFactory.cs` | `IBlockInventoryBodyFactory`（Kind `TrainPlatform`） |
-| `Train/TrainPlatformBodyPresenter.cs` | 駅名の下書き・送信・モード送信 |
-| `Train/TrainPlatformBodyView.cs` | 駅名の行・スロット・液体・モード |
-| `Train/Train.uss` | 本文の間隔 |
-| `Train/Timetable/TrainTimetableAreaView.cs` | Loading / Unavailable / 区画の出し分け |
-| `Train/Timetable/TrainTimetablePresenter.cs` | 列車ごとの編集セッション・区画の意図 → コマンド |
-| `Train/Timetable/TrainTimetableSectionView.cs` | 自動運転の行と 2 つの枠 |
+| `Train/TrainPlatformBodyPresenter.cs` | 本文の状態と駅名の入力を購読して View へ流す |
+| `Train/TrainPlatformBodyView.cs` | 駅名の行・スロット・液体・モード（あれば出す） |
+| `Train/Train.uss` | 本文の間隔・駅名の行 |
+| `Train/Timetable/TrainTimetableAreaView.cs` | Loading / Unavailable / 区画の出し分け（列車ごとに区画を作り直す） |
+| `Train/Timetable/TrainTimetableSectionView.cs` | 自動運転の行と 2 つの枠。押下は `ITrainTimetableEditModel` を直接呼ぶ |
 | `Train/Timetable/TrainTimetableStopListView.cs` | 停車駅の列 |
 | `Train/Timetable/TrainTimetableStationListView.cs` | 駅一覧の列 |
-| `Train/Timetable/TimetableStopMoveRequest.cs` | 上下移動の意図の値 |
-| `Train/Timetable/Timetable.uss` | `TrainTimetableSection.module.css` の写し |
+| `Train/Timetable/TrainTimetableHeading.cs` | 枠の見出し（器に余白、ラベルに文字の型） |
+| `Train/Timetable/Timetable.uss` | `style.module.css` の時刻表の部分の写し |
 | `Train/Parts/TrainStationNameRow.cs` | 駅名の入力と決定 |
 | `Train/Parts/TrainPlatformModeSection.cs` | 積込/卸しの切替 |
 
@@ -241,25 +285,28 @@ TrainItemPlatformBlockParam / TrainStationBlockParam { int ItemSlotCount; }   Tr
 | ファイル | 中身 |
 |---|---|
 | `State/Train/Timetable/TrainTimetableStationCatalogTest.cs` | 整列 |
-| `State/Train/Timetable/TrainTimetableReadyDataFactoryTest.cs` | 名前の補完・警告の重複抑止・未知の Side |
+| `State/Train/Timetable/TrainTimetableReadyDataFactoryTest.cs` | 名前の補完・警告の重複抑止・未知の Side・同じ中身を流し直さない |
 | `State/Train/TimetableEdit/TrainTimetableEditSessionTest.cs` | `TrainTimetableImmediate.test.ts` 1〜6 |
 | `State/Train/TimetableEdit/TrainTimetableDepartureTest.cs` | 出発条件 |
+| `State/Train/TimetableEdit/TrainTimetableEditModelTest.cs` | 列車替わりでセッションを作り直す・開いていない操作の警告 |
 | `State/Train/Inventory/TrainTimetableFetchTriggerTest.cs` | 依頼の判定 |
+| `State/Train/Inventory/TrainInventoryTabModelTest.cs` | 頼んだ直後の `Refresh`・パネルごとのタブの戻し |
 | `State/Train/Platform/TrainStationNameDraftTest.cs` | 下書き |
+| `State/Train/Platform/TrainPlatformDetailReaderTest.cs` | 駅・品物 PF・液体 PF・状態未着の 4 行 |
 | `State/Train/Fakes/FakeTrainTimetableCommands.cs` | 完了を手で返す偽コマンド |
 | `State/Train/Fakes/FakeTrainBlockCommands.cs` | 〃 |
 | `State/Train/Fakes/ManualTrainTimetableWaitTimer.cs` | 手で発火する時間切れ |
-| `State/Train/Fakes/FakeTrainSources.cs` | 3 つの源の偽物 |
-| `State/Train/Fakes/TrainTestData.cs` | 駅・停車駅・Ready の組み立て |
+| `State/Train/Fakes/FakeTrainSources.cs` | 3 つの源の偽物（`Refresh` は回数を数える） |
+| `State/Train/Fakes/TrainTestData.cs` | 駅・停車駅（`TimetableEditLogic` で組む）・Ready の組み立て |
 | `Screens/BlockInventory/Train/TrainInventoryBodyTest.cs` | タブと取得 4 件＋液体貨車 1 件 |
 | `Screens/BlockInventory/Train/TrainInventoryFlowTest.cs` | alpha の外殻ごと（`train.spec`） |
 | `Screens/BlockInventory/Train/TrainTimetableFlowTest.cs` | `timetable.spec` 2 件 |
 | `Screens/BlockInventory/Train/TrainPlatformBodyTest.cs` | `trainPlatform.spec` 2・PF 1・駅名 1 |
-| `Screens/BlockInventory/Train/TrainDesignTest.cs` | 共有 2 件 |
-| `Screens/BlockInventory/Train/TrainTestBodies.cs` | 工場を偽の源で組む |
+| `Screens/BlockInventory/Train/TrainDesignTest.cs` | 共有 2 件（USS の色・共通部品だけ） |
+| `Screens/BlockInventory/Train/TrainTestBodies.cs` | 偽の源の上の本物の編集 Model で工場を組む |
 | `Screens/BlockInventory/Train/Timetable/TrainTimetableSectionViewTest.cs` | `TrainTimetableImmediate.test.ts` 7〜8 |
 
-**録画**: `.agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-timetable-via-ui.cs`（直す）、`scenarios/train/train-station-default-name.cs`（延ばす）。
+**録画**: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs`（新設）、`scenarios/train/train-timetable-via-ui.cs`（両系で通る形に直す）。
 
 ## Tasks
 
@@ -280,19 +327,17 @@ Expected: alpha と S4-machine のマージコミットがあり、`Registry/` �
 
 - [ ] **Step 2: 計画から写した名前を実物に合わせる**
 
-Global Constraints のコードブロックの alpha・S4-machine の型（`ITrainInventoryPart`・`IBlockInventoryPart`・`BlockInventoryBodyMount`・`OpenTrainInventoryPanel`・`FluidInventoryContents(testid, content)`・`IBlockFluidSlotsModel`・`BlockFluidSlotConversion.FromTanks`）を実物と突き合わせ、違うものを表にして `done.md`「名前の合わせ」に書く。以降のタスクのコードはその表で綴りだけ置き換える。形が違う（工場が Presenter を返さない・液体の Model が列車で空でない等）なら、置き換えの方針を D-n として判断記録に足す
+Global Constraints のコードブロックの alpha・S4-machine の型（`ITrainInventoryPart`・`IBlockInventoryPart`・`BlockInventoryBodyMount`・`OpenTrainInventoryPanel`・`FluidInventoryContents(testid, content)`・`IBlockFluidSlotsModel`・`BlockFluidSlotConversion.FromTanks`）を実物と突き合わせ、違うものを表にして `done.md`「名前の合わせ」に書く。あわせて、液体 PF を追跡しているあいだ `IBlockFluidSlotsModel.Current.Value.Slots` が空でないことを PlayMode の `uloop execute-dynamic-code` で確かめる（D-17。空なら S4-machine の持ち主へ上げ、液体 PF の行が空になることを `done.md`「未確認」に書く）。以降のタスクのコードはその表で綴りだけ置き換える。形が違う（工場が Presenter を返さない・液体の Model が列車で空でない等）なら、置き換えの方針を D-n として判断記録に足す
 
 - [ ] **Step 3: 実物の綴りを確かめる**
 
 ```bash
 cd moorestech_client/Assets/Scripts
-grep -rn "OnTimetableUpdated\|bool TryGet" Client.Game/InGame/Train | head
-grep -rn "GetBlocksByBlockType" Client.Game | head -3
 grep -rn "public TrainTimetableSnapshot(\|public TrainUnitInstanceId(" ../../../moorestech_server/Assets/Scripts/Game.Train | head
 grep -rn "EmptyFluidId" ../../../moorestech_server/Assets/Scripts/Core.Master | head -2
 ls Client.Starter/Registration/GameUi
 ```
-Expected: 戻りの型（`IObservable<TrainUnitInstanceId>` か `IObservable<Unit>` か・`IEnumerable` か `List` か）、`TrainTimetableSnapshot` と `TrainUnitInstanceId` のコンストラクタ（テストで組めるか）、`FluidId` の作り方と空の液体の比べ方、登録ディレクトリの再編の有無。下のコードと違うところは綴りだけ合わせ、`done.md`「名前の合わせ」に足す
+Expected: `TrainTimetableSnapshot` と `TrainUnitInstanceId` のコンストラクタ（テストで組めるか）、`FluidId` の作り方と空の液体の比べ方、登録ディレクトリの再編の有無。下のコードと違うところは綴りだけ合わせ、`done.md`「名前の合わせ」に足す
 
 - [ ] **Step 4: done.md を作る**
 
@@ -328,7 +373,7 @@ Expected: 戻りの型（`IObservable<TrainUnitInstanceId>` か `IObservable<Uni
 
 - [ ] **Step 1: 列挙と switch に 1 行ずつ足す**
 
-`UiCommandRejectReason` の末尾に `TrainEditRejected,`。`IsBenign` に `UiCommandRejectReason.TrainEditRejected => false,`、`ToLocalizationKey` に `UiCommandRejectReason.TrainEditRejected => LocalizationKeys.Ui.CommandRejected.TrainEditRejected,`、`ToWireCode` に `UiCommandRejectReason.TrainEditRejected => "train_edit_rejected",`。`Detail` に Web と同じ理由文字列（`replace_failed:<理由>` 等）を入れるので、`UiCommandRejected.ToWireCode` の Detail 優先によりトースト係のログは Web と同じ文字列になる
+`UiCommandRejectReason` の列挙の末尾に `TrainEditRejected,`（E-1: 列挙と switch はレーンが末尾に追記し、全列挙を見る `PauseMenuCommandsTest` を同じ PR で緑にする）。`IsBenign` に `UiCommandRejectReason.TrainEditRejected => false,`、`ToLocalizationKey` に `UiCommandRejectReason.TrainEditRejected => LocalizationKeys.Ui.CommandRejected.TrainEditRejected,`、`ToWireCode` に `UiCommandRejectReason.TrainEditRejected => "train_edit_rejected",`。`Detail` に Web と同じ理由文字列（`replace_failed:<理由>` 等）を入れるので、`UiCommandRejected.ToWireCode` の Detail 優先によりトースト係のログは Web と同じ文字列になる
 
 - [ ] **Step 2: 文言を足して再生成する**
 
@@ -345,7 +390,7 @@ Expected: `LocalizationKeys.Ui.CommandRejected.TrainEditRejected` が引ける�
 
 - [ ] **Step 3: asmdef に参照を足す**
 
-`Client.Ui.State.asmdef` の `references` に `Game.Block` と `Core.Update` を足す（書式は同ファイルの既存の `Game.Train` 等の行に合わせる。GUID 参照なら各 asmdef の `.meta` の guid を読んで書く）
+`grep -n '"Game.Block"\|"Core.Update"' moorestech_client/Assets/Scripts/Client.Ui.State/Client.Ui.State.asmdef` で確かめ、無いものだけを `references` の末尾に足す（S4-machine の後なら `Core.Update` だけの見込み。書式は同ファイルの既存の `Game.Train` 等の行に合わせる。GUID 参照なら各 asmdef の `.meta` の guid を読んで書く）。取り込みで同じ参照が衝突したら 1 行に畳む（E-1）
 
 - [ ] **Step 4: 拒否の組み立て**
 
@@ -389,12 +434,21 @@ git commit -m "feat(uitk): 列車の設定変更の拒否理由と文言・asmde
 ### Task 3: 時刻表の状態（`Client.Ui.State/Train/Timetable/`）
 
 **Files:**
-- Create: `S/Client.Ui.State/Train/Timetable/` の 6 本
+- Create: `S/Client.Ui.State/Train/Timetable/` の 7 本
 - Create: `S/Client.Tests/Ui/State/Train/Timetable/TrainTimetableStationCatalogTest.cs`・`TrainTimetableReadyDataFactoryTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/TrainTestData.cs`
 
 **Interfaces:**
-- Consumes: `TrainTimetableFetcher`・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver`（既存）、`TrainTimetableStation`・`TimetableEditStop`（L0-s4b）
-- Produces: `TrainTimetableViewState`（`Loading`・`Unavailable`・`Ready(data)`）、`ReadyTrainTimetableViewState.Data`、`TrainTimetableReadyData`、`ITrainTimetableSource.Current`、`TrainTimetableModel`
+- Consumes: `TrainTimetableFetcher`・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver`（既存。Web ホストも使っている State の口をそのまま使う）、`TrainTimetableStation`・`TimetableEditStop`・`TimetableEditLogic`（L0-s4b）
+- Produces:
+```csharp
+namespace Client.Ui.State.Train.Timetable
+public abstract class TrainTimetableViewState { static Loading; static Unavailable; static Ready(TrainTimetableReadyData); static bool IsSameState(TrainTimetableViewState current, TrainTimetableViewState next); }
+public sealed class ReadyTrainTimetableViewState : TrainTimetableViewState { public TrainTimetableReadyData Data { get; } }
+public sealed class TrainTimetableReadyData { TrainUnitInstanceId; IsAutoRun; CurrentIndex; Stops; Stations; bool HasSameContent(TrainTimetableReadyData other); }
+public interface ITrainTimetableSource { IReadOnlyReactiveProperty<TrainTimetableViewState> Current { get; } void Refresh(); }
+public static class TrainTimetableValueEquality { public static bool SameItems<T>(IReadOnlyList<T> left, IReadOnlyList<T> right) where T : struct; }
+public sealed class TrainTimetableModel : ITrainTimetableSource, IInitializable
+```
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -404,15 +458,14 @@ git commit -m "feat(uitk): 列車の設定変更の拒否理由と文言・asmde
 using System.Collections.Generic;
 using Client.Ui.State.Train.Logic;
 using Client.Ui.State.Train.Timetable;
-using Game.Train.RailGraph;
 using Game.Train.Unit;
 using UnityEngine;
 
 namespace Client.Tests.Ui.State.Train.Fakes
 {
     /// <summary>
-    /// Web のモック trainWithTimetable と同じ駅・停車駅を組む
-    /// Builds the same stations and stops as the Web mock trainWithTimetable
+    /// Web のモック trainWithTimetable と同じ駅を持ち、停車駅は L0-s4b の編集ロジックで組む（Side を手で書かない）
+    /// Holds the same stations as the Web mock trainWithTimetable and builds stops with the L0-s4b edit logic (never hand-written sides)
     /// </summary>
     public static class TrainTestData
     {
@@ -420,20 +473,23 @@ namespace Client.Tests.Ui.State.Train.Fakes
         public static readonly TrainUnitInstanceId Unit2 = new(2);
         public static readonly TrainTimetableStation Unnamed = new(new Vector3Int(-8, 0, 3), string.Empty);
         public static readonly TrainTimetableStation North = new(new Vector3Int(12, 0, 40), "北駅");
+        public static readonly IReadOnlyList<TimetableEditStop> NoStops = new List<TimetableEditStop>();
 
-        public static TimetableEditStop Stop(TrainTimetableStation station, StationNodeSide side)
+        // 追加した駅の並び。Side は AddStop が決める（Back 固定）
+        // Order after adding a station; AddStop decides the side (always Back)
+        public static IReadOnlyList<TimetableEditStop> Added(IReadOnlyList<TimetableEditStop> stops, TrainTimetableStation station)
         {
-            return new TimetableEditStop(station.Position, station.Name, side);
+            return TimetableEditLogic.AddStop(stops, station);
         }
 
-        public static TrainTimetableReadyData Ready(TrainUnitInstanceId unit, bool isAutoRun, int currentIndex, params TimetableEditStop[] stops)
+        public static TrainTimetableReadyData Ready(TrainUnitInstanceId unit, bool isAutoRun, IReadOnlyList<TimetableEditStop> stops)
         {
-            return new TrainTimetableReadyData(unit, isAutoRun, currentIndex, stops, new List<TrainTimetableStation> { Unnamed, North });
+            return new TrainTimetableReadyData(unit, isAutoRun, 0, stops, new List<TrainTimetableStation> { Unnamed, North });
         }
 
         public static TrainTimetableReadyData NorthOnly(TrainUnitInstanceId unit)
         {
-            return Ready(unit, false, 0, Stop(North, StationNodeSide.Back));
+            return Ready(unit, false, Added(NoStops, North));
         }
     }
 }
@@ -458,15 +514,14 @@ namespace Client.Tests.Ui.State.Train.Timetable
         {
             // Web ホストの SortStations と同じ優先順
             // Same priority as the Web host's SortStations
-            var stations = new List<TrainTimetableStation>
+            var sorted = TrainTimetableStationCatalog.Sorted(new List<TrainTimetableStation>
             {
                 new(new Vector3Int(1, 5, 0), "b"),
                 new(new Vector3Int(0, 9, 9), "a"),
                 new(new Vector3Int(1, 0, 0), "c"),
                 new(new Vector3Int(1, 9, -1), "d"),
-            };
-            TrainTimetableStationCatalog.Sort(stations);
-            CollectionAssert.AreEqual(new[] { "a", "d", "c", "b" }, stations.ConvertAll(s => s.Name));
+            });
+            CollectionAssert.AreEqual(new[] { "a", "d", "c", "b" }, sorted.ConvertAll(s => s.Name));
         }
     }
 }
@@ -521,6 +576,20 @@ namespace Client.Tests.Ui.State.Train.Timetable
             Assert.IsFalse(factory.TryCreate(snapshot, Stations, out _));
         }
 
+        [Test]
+        public void 中身が同じ用意済みは流し直さず読込中と使えないは同じ値で流さない()
+        {
+            // 貨車の中身の更新だけでは時刻表の行を作り直さない（R-5）
+            // A car contents update alone does not rebuild the timetable rows (R-5)
+            var first = TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1));
+            var same = TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1));
+            var moved = TrainTimetableViewState.Ready(TrainTestData.Ready(TrainTestData.Unit1, true, TrainTestData.Added(TrainTestData.NoStops, TrainTestData.North)));
+            Assert.IsTrue(TrainTimetableViewState.IsSameState(first, same));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, moved));
+            Assert.IsTrue(TrainTimetableViewState.IsSameState(TrainTimetableViewState.Loading, TrainTimetableViewState.Loading));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, TrainTimetableViewState.Loading));
+        }
+
         private static TrainTimetableStop StopAt(Vector3Int position)
         {
             return new TrainTimetableStop(position, StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, 20);
@@ -557,6 +626,14 @@ namespace Client.Ui.State.Train.Timetable
         public static TrainTimetableViewState Ready(TrainTimetableReadyData data)
         {
             return new ReadyTrainTimetableViewState(data);
+        }
+
+        // 同じ状態なら流し直さない。用意済みは中身で比べ、読込中・使えないは同じインスタンス
+        // Same states are not republished: ready compares contents, loading/unavailable are single instances
+        public static bool IsSameState(TrainTimetableViewState current, TrainTimetableViewState next)
+        {
+            if (current is ReadyTrainTimetableViewState currentReady && next is ReadyTrainTimetableViewState nextReady) return currentReady.Data.HasSameContent(nextReady.Data);
+            return ReferenceEquals(current, next);
         }
     }
 
@@ -611,6 +688,40 @@ namespace Client.Ui.State.Train.Timetable
             Stops = stops;
             Stations = stations;
         }
+
+        // 停車駅は座標・端・名前、駅一覧は座標・名前で比べる
+        // Stops compare position, side and name; stations compare position and name
+        public bool HasSameContent(TrainTimetableReadyData other)
+        {
+            return TrainUnitInstanceId.Equals(other.TrainUnitInstanceId) && IsAutoRun == other.IsAutoRun && CurrentIndex == other.CurrentIndex
+                   && TrainTimetableValueEquality.SameItems(Stops, other.Stops) && TrainTimetableValueEquality.SameItems(Stations, other.Stations);
+        }
+    }
+}
+```
+
+`TrainTimetableValueEquality.cs`:
+
+```csharp
+using System.Collections.Generic;
+
+namespace Client.Ui.State.Train.Timetable
+{
+    /// <summary>
+    /// 停車駅・駅一覧の値の列を要素ごとに比べる（用意済みの時刻表と区画の描画値が共有する）
+    /// Compares stop and station value lists element by element (shared by the ready timetable and the section draw values)
+    /// </summary>
+    public static class TrainTimetableValueEquality
+    {
+        public static bool SameItems<T>(IReadOnlyList<T> left, IReadOnlyList<T> right) where T : struct
+        {
+            if (left.Count != right.Count) return false;
+            for (var i = 0; i < left.Count; i++)
+            {
+                if (!left[i].Equals(right[i])) return false;
+            }
+            return true;
+        }
     }
 }
 ```
@@ -619,43 +730,27 @@ namespace Client.Ui.State.Train.Timetable
 
 ```csharp
 using System.Collections.Generic;
-using Client.Game.InGame.Block;
 using Client.Ui.State.Train.Logic;
-using Game.Block.Blocks.TrainRail;
 
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 駅ブロックから時刻表の駅一覧を組む（Web ホスト TrainTimetableDtoBuilder の写し。D-2）
-    /// Builds the timetable station list from station blocks (copy of the Web host TrainTimetableDtoBuilder; D-2)
+    /// 駅一覧を x → z → y で並べる（Web ホスト TrainTimetableDtoBuilder.SortStations と同じ規則。D-2）
+    /// Orders stations by x, then z, then y (same rule as the Web host TrainTimetableDtoBuilder.SortStations; D-2)
     /// </summary>
     public static class TrainTimetableStationCatalog
     {
-        public static List<TrainTimetableStation> Build(IEnumerable<BlockGameObject> stationBlocks)
+        public static List<TrainTimetableStation> Sorted(IEnumerable<TrainTimetableStation> stations)
         {
-            var stations = new List<TrainTimetableStation>();
-            foreach (var block in stationBlocks)
-            {
-                // 駅名はサーバーの StateDetail。届く前は空名で並べる（Web ホストと同じ）
-                // The name is a server StateDetail; before it arrives the station lists with an empty name (same as the Web host)
-                var name = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName;
-                stations.Add(new TrainTimetableStation(block.BlockPosInfo.OriginalPos, name ?? string.Empty));
-            }
-            Sort(stations);
-            return stations;
-        }
-
-        // x → z → y の順。Web ホスト SortStations と同じ
-        // Order by x, then z, then y; same as the Web host SortStations
-        public static void Sort(List<TrainTimetableStation> stations)
-        {
-            stations.Sort((a, b) =>
+            var sorted = new List<TrainTimetableStation>(stations);
+            sorted.Sort((a, b) =>
             {
                 var byX = a.Position.x.CompareTo(b.Position.x);
                 if (byX != 0) return byX;
                 var byZ = a.Position.z.CompareTo(b.Position.z);
                 return byZ != 0 ? byZ : a.Position.y.CompareTo(b.Position.y);
             });
+            return sorted;
         }
     }
 }
@@ -674,8 +769,8 @@ using UnityEngine;
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む（Web ホスト CreateFromTimetable の写し。D-2）
-    /// Builds the ready timetable from a snapshot and the station list (copy of the Web host CreateFromTimetable; D-2)
+    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む（Web ホスト CreateFromTimetable と同じ規則。D-2）
+    /// Builds the ready timetable from a snapshot and the station list (same rule as the Web host CreateFromTimetable; D-2)
     /// </summary>
     public sealed class TrainTimetableReadyDataFactory
     {
@@ -735,6 +830,10 @@ namespace Client.Ui.State.Train.Timetable
     public interface ITrainTimetableSource
     {
         IReadOnlyReactiveProperty<TrainTimetableViewState> Current { get; }
+
+        // 取得を頼む唯一の呼び手（TrainInventoryTabModel）が頼んだ直後に呼び、取得中をすぐ配る。Fetcher は通知を出さないため
+        // Called by the only fetch requester (TrainInventoryTabModel) right after asking, so Loading publishes at once; the Fetcher raises no notification
+        void Refresh();
     }
 }
 ```
@@ -742,11 +841,14 @@ namespace Client.Ui.State.Train.Timetable
 `TrainTimetableModel.cs`:
 
 ```csharp
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
+using Client.Ui.State.Train.Logic;
+using Game.Block.Blocks.TrainRail;
 using UniRx;
 using UnityEngine;
 using VContainer.Unity;
@@ -783,19 +885,22 @@ namespace Client.Ui.State.Train.Timetable
 
         public void Initialize()
         {
-            // Web ホストの再公開の契機と同じ: 開閉・時刻表の到着・トラッカーの再公開要求
-            // Same republish triggers as the Web host: open/close, timetable arrival, tracker republish requests
-            _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Rebuild());
-            _timetables.OnTimetableUpdated.Subscribe(_ => Rebuild());
-            _tracker.OnRepublishRequested.Subscribe(_ => Rebuild());
-            Rebuild();
+            // Web ホストの再公開の契機と同じ: 開閉・時刻表の到着・トラッカーの再公開要求（取得の依頼の直後は Refresh）
+            // Same republish triggers as the Web host: open/close, timetable arrival, tracker requests (Refresh right after a fetch request)
+            _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Refresh());
+            _timetables.OnTimetableUpdated.Subscribe(_ => Refresh());
+            _tracker.OnRepublishRequested.Subscribe(_ => Refresh());
+            Refresh();
         }
 
-        private void Rebuild()
+        public void Refresh()
         {
-            _current.Value = _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource source
+            var next = _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource source
                 ? Build(source.TrainCarInstanceId)
                 : TrainTimetableViewState.Unavailable;
+            // silent-ok: 中身が同じ状態は配り直さない / 表示が変わらないので見ている人に差は無く、行の作り直しも起きない（R-5）
+            if (TrainTimetableViewState.IsSameState(_current.Value, next)) return;
+            _current.Value = next;
         }
 
         private TrainTimetableViewState Build(long trainCarInstanceId)
@@ -810,21 +915,31 @@ namespace Client.Ui.State.Train.Timetable
             if (_fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
             if (_fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
             if (!_timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;
-
-            var stations = TrainTimetableStationCatalog.Build(_blocks.GetBlocksByBlockType(BlockTypeConst.TrainStation));
-            return _readyDataFactory.TryCreate(timetable, stations, out var data)
+            return _readyDataFactory.TryCreate(timetable, ReadStations(), out var data)
                 ? TrainTimetableViewState.Ready(data)
                 : TrainTimetableViewState.Unavailable;
+        }
+
+        // 駅ブロックの位置と駅名（サーバーの StateDetail。届く前は空名で並べる。Web ホストと同じ）
+        // Station block positions and names (a server StateDetail; empty until it arrives, same as the Web host)
+        private List<TrainTimetableStation> ReadStations()
+        {
+            var stations = new List<TrainTimetableStation>();
+            foreach (var block in _blocks.GetBlocksByBlockType(BlockTypeConst.TrainStation))
+            {
+                var name = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName;
+                stations.Add(new TrainTimetableStation(block.BlockPosInfo.OriginalPos, name ?? string.Empty));
+            }
+            return TrainTimetableStationCatalog.Sorted(stations);
         }
     }
 }
 ```
-（`Loading`・`Unavailable` は同じインスタンスなので `ReactiveProperty` は同じ状態の連続を流さない。Ready は毎回新しいので流れる。D-6）
 
 - [ ] **Step 3: テストを回す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableStationCatalogTest|TrainTimetableReadyDataFactoryTest"`
-Expected: `ErrorCount: 0`、3 件 PASS
+Expected: `ErrorCount: 0`、4 件 PASS
 
 - [ ] **Step 4: コミット**
 
@@ -837,31 +952,36 @@ git commit -m "feat(uitk): 時刻表の状態の Model を足す（S4-train）
 
 ---
 
-### Task 4: 即時編集とコマンド（`Client.Ui.State/Train/TimetableEdit/`）
+### Task 4: 即時編集・コマンド・時刻表の編集 Model（`Client.Ui.State/Train/TimetableEdit/`）
 
 **Files:**
-- Create: `S/Client.Ui.State/Train/TimetableEdit/` の 7 本
-- Create: `S/Client.Tests/Ui/State/Train/TimetableEdit/TrainTimetableEditSessionTest.cs`・`TrainTimetableDepartureTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/FakeTrainTimetableCommands.cs`・`ManualTrainTimetableWaitTimer.cs`
+- Create: `S/Client.Ui.State/Train/TimetableEdit/` の 10 本
+- Create: `S/Client.Tests/Ui/State/Train/TimetableEdit/TrainTimetableEditSessionTest.cs`・`TrainTimetableDepartureTest.cs`・`TrainTimetableEditModelTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/FakeTrainTimetableCommands.cs`・`ManualTrainTimetableWaitTimer.cs`・`FakeTrainSources.cs`
 
 **Interfaces:**
-- Consumes: `TimetableEditLogic`（L0-s4b）、`UiCommandResultToaster`、`TrainCommandRejection`（Task 2）、`TrainScheduleEditProtocol.TrainScheduleEditRequest`
+- Consumes: Task 3 の `ITrainTimetableSource`・`TrainTimetableViewState`・`TrainTimetableReadyData`・`TrainTimetableValueEquality`、`TimetableEditLogic`（L0-s4b）、`UiCommandResultToaster`、`TrainCommandRejection`（Task 2）、`TrainScheduleEditProtocol.TrainScheduleEditRequest`、`TrainTimetableFetcher`・`OpenTrainUnitResolver`（既存。Web ホストの `TrainTimetableOpenActionHandler` が呼ぶのと同じ口）
 - Produces:
 ```csharp
 namespace Client.Ui.State.Train.TimetableEdit
 public interface ITrainTimetableCommands { void RequestOpen(); UniTask<UiCommandResult> Replace(IReadOnlyList<TimetableReplaceStop> stops); UniTask<UiCommandResult> SetAutoRun(bool enabled); }
 public interface ITrainTimetableWaitTimer { IObservable<Unit> After(TimeSpan delay); }
-public sealed class TrainTimetableEditSession
+public sealed class TrainTimetableEditSession   // 状態は private な判別 union（Idle・Sending・AwaitingPublication）
 {
     public const string ReplaceCommandName = "train_timetable.replace";
     public static readonly TimeSpan PublicationTimeout;   // 5000ms（Web DEFAULT_ACTION_TIMEOUT_MS）
     public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, IReadOnlyList<TimetableEditStop> serverStops);
-    public IReadOnlyReactiveProperty<IReadOnlyList<TimetableEditStop>> DisplayedStops { get; }
-    public IReadOnlyReactiveProperty<bool> IsPending { get; }
-    public void ReceiveServerStops(IReadOnlyList<TimetableEditStop> serverStops);
-    public void Replace(IReadOnlyList<TimetableEditStop> nextStops);
-    public void Close();
+    public IReadOnlyList<TimetableEditStop> DisplayedStops { get; }  public bool IsPending { get; }  public IObservable<Unit> OnDisplayChanged { get; }
+    public void ReceiveServerStops(IReadOnlyList<TimetableEditStop> serverStops); public void Replace(IReadOnlyList<TimetableEditStop> nextStops); public void Close();
 }
-public sealed class TrainTimetableSectionViewModel { public static TrainTimetableSectionViewModel Build(TrainTimetableReadyData server, IReadOnlyList<TimetableEditStop> displayedStops, bool isPending); }
+public sealed class TrainTimetableSectionViewModel { Stops; int? CurrentIndex; Stations; IsPending; IsAutoRun; CanEnableAutoRun; static Build(server, displayedStops, isPending); bool HasSameContent(other); }
+public abstract class TrainTimetableAreaViewModel { static Loading; static Unavailable; static Ready(TrainUnitInstanceId, TrainTimetableSectionViewModel); static bool IsSameArea(current, next); }
+public sealed class ReadyTrainTimetableArea : TrainTimetableAreaViewModel { TrainUnitInstanceId TrainUnitInstanceId; TrainTimetableSectionViewModel Section; }
+public interface ITrainTimetableEditModel   // View が直接呼ぶ（設計書 A-8）
+{
+    IReadOnlyReactiveProperty<TrainTimetableAreaViewModel> Current { get; }
+    void Add(TrainTimetableStation station); void Move(int index, StopMoveDirection direction); void Remove(int index); void SetAutoRun(bool enabled);
+}
+public sealed class TrainTimetableEditModel : ITrainTimetableEditModel, IInitializable
 ```
 
 - [ ] **Step 1: 偽物と失敗するテストを書く**
@@ -958,7 +1078,39 @@ namespace Client.Tests.Ui.State.Train.Fakes
 }
 ```
 
-`TrainTimetableEditSessionTest.cs`（ScreenTestHost は使わない。トースト係は `GameUiToastFeed` から組む）:
+`FakeTrainSources.cs`（源の偽物。ここでは時刻表の口だけを持ち、Task 5 Step 1 で貨車・プラットフォームの口を足す）:
+
+```csharp
+using Client.Ui.State.Train.Timetable;
+using UniRx;
+
+namespace Client.Tests.Ui.State.Train.Fakes
+{
+    /// <summary>
+    /// 源の偽物。値はテストが Set で押し込み、Refresh は回数だけ数える
+    /// Fake sources; tests push values with Set and Refresh only counts calls
+    /// </summary>
+    public sealed class FakeTrainSources : ITrainTimetableSource
+    {
+        private readonly ReactiveProperty<TrainTimetableViewState> _timetable = new(TrainTimetableViewState.Loading);
+
+        public int RefreshCount { get; private set; }
+        IReadOnlyReactiveProperty<TrainTimetableViewState> ITrainTimetableSource.Current => _timetable;
+
+        public void Refresh()
+        {
+            RefreshCount++;
+        }
+
+        public void SetTimetable(TrainTimetableViewState state)
+        {
+            _timetable.Value = state;
+        }
+    }
+}
+```
+
+`TrainTimetableEditSessionTest.cs`（ScreenTestHost は使わない。トースト係は `GameUiToastFeed` から組む。期待の並びは `TrainTestData.Added`・`TimetableEditLogic` で組み、Side を手で書かない）:
 
 ```csharp
 using System;
@@ -968,7 +1120,6 @@ using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.State.Toast;
 using Client.Ui.State.Train.Logic;
 using Client.Ui.State.Train.TimetableEdit;
-using Game.Train.RailGraph;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -988,7 +1139,7 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         {
             _commands = new FakeTrainTimetableCommands();
             _timer = new ManualTrainTimetableWaitTimer();
-            _server = new[] { Stop(North, StationNodeSide.Back) };
+            _server = Added(NoStops, North);
             _session = new TrainTimetableEditSession(_commands, _timer, new UiCommandResultToaster(new GameUiToastFeed()), _server);
         }
 
@@ -998,17 +1149,17 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         {
             // 追加は即送信され、表示も即替わる
             // An add is sent at once and shows at once
-            var added = TimetableEditLogic.AddStop(_server, Unnamed);
+            var added = Added(_server, Unnamed);
             _session.Replace(added);
             Assert.AreEqual(1, _commands.SentReplaces.Count);
-            Assert.AreEqual(2, _session.DisplayedStops.Value.Count);
-            Assert.IsTrue(_session.IsPending.Value);
+            Assert.AreEqual(2, _session.DisplayedStops.Count);
+            Assert.IsTrue(_session.IsPending);
 
             // 受理と公開で保留が解け、続けて移動・削除も 1 回ずつ送る
             // Acceptance plus publication releases it; move and remove then send once each
             _commands.Accept();
             _session.ReceiveServerStops(added);
-            Assert.IsFalse(_session.IsPending.Value);
+            Assert.IsFalse(_session.IsPending);
             var moved = TimetableEditLogic.MoveStop(added, 1, StopMoveDirection.Up);
             _session.Replace(moved);
             _commands.Accept();
@@ -1021,10 +1172,10 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         [Test]
         public void 受理後も公開が届くまで次の編集を受けない()
         {
-            var added = TimetableEditLogic.AddStop(_server, Unnamed);
+            var added = Added(_server, Unnamed);
             _session.Replace(added);
             _commands.Accept();
-            Assert.IsTrue(_session.IsPending.Value);
+            Assert.IsTrue(_session.IsPending);
             Assert.AreEqual(new[] { TimeSpan.FromMilliseconds(5000) }, _timer.RequestedDelays);
 
             // 保留中の編集は警告して捨てる
@@ -1038,15 +1189,15 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         [Test]
         public void 公開が先に届いても受理まで保留する()
         {
-            var added = TimetableEditLogic.AddStop(_server, Unnamed);
+            var added = Added(_server, Unnamed);
             _session.Replace(added);
             _session.ReceiveServerStops(added);
-            Assert.IsTrue(_session.IsPending.Value);
+            Assert.IsTrue(_session.IsPending);
 
             // 受理の時点でサーバーが同じ並びなら時間切れを待たずに解く
             // On acceptance with a matching server order, release without waiting for the timeout
             _commands.Accept();
-            Assert.IsFalse(_session.IsPending.Value);
+            Assert.IsFalse(_session.IsPending);
             Assert.IsEmpty(_timer.RequestedDelays);
         }
 
@@ -1054,16 +1205,16 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         [Test]
         public void 拒否は最新のサーバーの並びへ戻し次の編集を受ける()
         {
-            _session.Replace(TimetableEditLogic.AddStop(_server, Unnamed));
-            var remote = new[] { Stop(North, StationNodeSide.Front) };
+            _session.Replace(Added(_server, Unnamed));
+            var remote = Added(NoStops, Unnamed);
             _session.ReceiveServerStops(remote);
 
             // 拒否で保留を解き、表示は届いた最新の並び
             // Rejection releases the pending edit and shows the newest published order
             LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_timetable.replace failed: replace_failed:busy"));
             _commands.Reject("replace_failed:busy");
-            Assert.IsFalse(_session.IsPending.Value);
-            Assert.AreEqual(StationNodeSide.Front, _session.DisplayedStops.Value[0].Side);
+            Assert.IsFalse(_session.IsPending);
+            CollectionAssert.AreEqual(remote, _session.DisplayedStops);
             _session.Replace(TimetableEditLogic.RemoveStop(remote, 0));
             Assert.AreEqual(2, _commands.SentReplaces.Count);
         }
@@ -1072,27 +1223,27 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         [Test]
         public void 公開が来なければ時間切れで解く()
         {
-            _session.Replace(TimetableEditLogic.AddStop(_server, Unnamed));
+            _session.Replace(Added(_server, Unnamed));
             _commands.Accept();
             LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] publication did not arrive"));
             _timer.Elapse();
-            Assert.IsFalse(_session.IsPending.Value);
-            Assert.AreEqual(1, _session.DisplayedStops.Value.Count);
+            Assert.IsFalse(_session.IsPending);
+            Assert.AreEqual(1, _session.DisplayedStops.Count);
         }
 
         /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">does not defer an edit or refresh a different train after closing</web-test>
         [Test]
         public void 閉じた後に戻った結果は表示を動かさない()
         {
-            _session.Replace(TimetableEditLogic.AddStop(_server, Unnamed));
-            var displayedAtClose = _session.DisplayedStops.Value;
+            _session.Replace(Added(_server, Unnamed));
+            var displayedAtClose = _session.DisplayedStops;
             _session.Close();
 
             // 閉じた後の受理は捨て、時間切れも仕掛けない
             // Acceptance after close is discarded and no timeout is armed
             LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] result after close discarded"));
             _commands.Accept();
-            Assert.AreSame(displayedAtClose, _session.DisplayedStops.Value);
+            Assert.AreSame(displayedAtClose, _session.DisplayedStops);
             Assert.IsEmpty(_timer.RequestedDelays);
         }
     }
@@ -1128,8 +1279,75 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
     }
 }
 ```
+（ここの `Front` はサーバーへ送る形の写しの確認で、`AddStop` の並びとは比べない）
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableEditSessionTest|TrainTimetableDepartureTest"`
+`TrainTimetableEditModelTest.cs`:
+
+```csharp
+using System.Text.RegularExpressions;
+using Client.Tests.Ui.State.Train.Fakes;
+using Client.Ui.State.Toast;
+using Client.Ui.State.Train.Timetable;
+using Client.Ui.State.Train.TimetableEdit;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using static Client.Tests.Ui.State.Train.Fakes.TrainTestData;
+
+namespace Client.Tests.Ui.State.Train.TimetableEdit
+{
+    public class TrainTimetableEditModelTest
+    {
+        private FakeTrainSources _sources;
+        private FakeTrainTimetableCommands _commands;
+        private TrainTimetableEditModel _model;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _sources = new FakeTrainSources();
+            _commands = new FakeTrainTimetableCommands();
+            _model = new TrainTimetableEditModel(_sources, _commands, new ManualTrainTimetableWaitTimer(), new UiCommandResultToaster(new GameUiToastFeed()));
+            _model.Initialize();
+        }
+
+        [Test]
+        public void 列車が替わると保留を捨てて新しい列車の並びを出す()
+        {
+            // 列車 1 で追加して保留中のまま列車 2 が届く（Web の key=trainUnitId と同じく持ち越さない）
+            // An add on train 1 is still pending when train 2 arrives (nothing carries over, like the Web key=trainUnitId)
+            _sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
+            _model.Add(Unnamed);
+            Assert.IsTrue(Section().IsPending);
+            _sources.SetTimetable(TrainTimetableViewState.Ready(Ready(Unit2, false, NoStops)));
+            Assert.IsFalse(Section().IsPending);
+            Assert.AreEqual(0, Section().Stops.Count);
+
+            // 列車 1 の結果が後から戻っても列車 2 の表示は動かない
+            // A late result for train 1 does not move train 2's display
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] result after close discarded"));
+            _commands.Accept();
+            Assert.AreEqual(0, Section().Stops.Count);
+        }
+
+        [Test]
+        public void 時刻表が開いていない操作は警告して送らない()
+        {
+            _sources.SetTimetable(TrainTimetableViewState.Unavailable);
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] add ignored: no timetable is open"));
+            _model.Add(North);
+            Assert.IsEmpty(_commands.SentReplaces);
+        }
+
+        private TrainTimetableSectionViewModel Section()
+        {
+            return ((ReadyTrainTimetableArea)_model.Current.Value).Section;
+        }
+    }
+}
+```
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableEditSessionTest|TrainTimetableDepartureTest|TrainTimetableEditModelTest"`
 Expected: コンパイルエラー（型が無い）
 
 - [ ] **Step 2: 口とタイマーと出発条件を書く**
@@ -1210,8 +1428,8 @@ using Game.Train.Unit;
 namespace Client.Ui.State.Train.TimetableEdit
 {
     /// <summary>
-    /// UI が送る停車駅に固定の出発条件を付ける（Web ホスト TrainTimetableStopParser の写し。D-2）
-    /// Attaches the fixed departure condition to stops sent from the UI (copy of the Web host TrainTimetableStopParser; D-2)
+    /// UI が送る停車駅に固定の出発条件を付ける（Web ホスト TrainTimetableStopParser と同じ規則。D-2）
+    /// Attaches the fixed departure condition to stops sent from the UI (same rule as the Web host TrainTimetableStopParser; D-2)
     /// </summary>
     public static class TrainTimetableDeparture
     {
@@ -1229,7 +1447,7 @@ namespace Client.Ui.State.Train.TimetableEdit
 
 - [ ] **Step 3: 本番のコマンドを書く**
 
-`TrainTimetableCommands.cs`:
+`TrainTimetableCommands.cs`（拒否の理由文字列は Web ホスト `TrainTimetableActions.cs` の 33・41・49・71・77・81・92 行と同じ綴り。照合済み）:
 
 ```csharp
 using System.Collections.Generic;
@@ -1245,8 +1463,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.Train.TimetableEdit
 {
     /// <summary>
-    /// 時刻表の取得依頼・置換・自動運転をサーバーへ送る（Web ホスト TrainTimetableActions の写し。D-2）
-    /// Sends timetable fetch requests, replaces and auto-run toggles to the server (copy of the Web host TrainTimetableActions; D-2)
+    /// 時刻表の取得依頼・置換・自動運転をサーバーへ送る（Web ホスト TrainTimetableActions と同じ規則。D-2）
+    /// Sends timetable fetch requests, replaces and auto-run toggles to the server (same rules as the Web host TrainTimetableActions; D-2)
     /// </summary>
     public sealed class TrainTimetableCommands : ITrainTimetableCommands
     {
@@ -1264,8 +1482,8 @@ namespace Client.Ui.State.Train.TimetableEdit
 
         public void RequestOpen()
         {
-            // 列車が引けなければ「列車なしで開いた」と記録する（Web ホスト TrainTimetableOpenActionHandler と同じ）
-            // Without a resolvable train, record the tab as opened without one (same as the Web host TrainTimetableOpenActionHandler)
+            // 列車が引けなければ「列車なしで開いた」と記録する（Web ホスト TrainTimetableOpenActionHandler と同じ State の口）
+            // Without a resolvable train, record the tab as opened without one (the same State calls as the Web host TrainTimetableOpenActionHandler)
             if (OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) _fetcher.RequestForOpenedTab(trainUnitId);
             else _fetcher.MarkTabOpenedWithoutTrain();
         }
@@ -1300,7 +1518,7 @@ namespace Client.Ui.State.Train.TimetableEdit
 
 - [ ] **Step 4: 編集セッションを書く**
 
-`TrainTimetableEditSession.cs`:
+`TrainTimetableEditSession.cs`（保留は private な判別 union 1 本で持ち、null と bool の組で表さない。D-18）:
 
 ```csharp
 using System;
@@ -1326,16 +1544,14 @@ namespace Client.Ui.State.Train.TimetableEdit
         private readonly ITrainTimetableCommands _commands;
         private readonly ITrainTimetableWaitTimer _timer;
         private readonly UiCommandResultToaster _toaster;
-        private readonly ReactiveProperty<IReadOnlyList<TimetableEditStop>> _displayedStops;
-        private readonly ReactiveProperty<bool> _isPending = new(false);
+        private readonly Subject<Unit> _onDisplayChanged = new();
         private IReadOnlyList<TimetableEditStop> _serverStops;
-        private IReadOnlyList<TimetableEditStop> _pendingStops;
-        private bool _accepted;
+        private EditPhase _phase = IdlePhase.Instance;
         private bool _closed;
-        private IDisposable _publicationTimeout;
 
-        public IReadOnlyReactiveProperty<IReadOnlyList<TimetableEditStop>> DisplayedStops => _displayedStops;
-        public IReadOnlyReactiveProperty<bool> IsPending => _isPending;
+        public IReadOnlyList<TimetableEditStop> DisplayedStops { get; private set; }
+        public bool IsPending { get; private set; }
+        public IObservable<Unit> OnDisplayChanged => _onDisplayChanged;
 
         public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, IReadOnlyList<TimetableEditStop> serverStops)
         {
@@ -1343,15 +1559,15 @@ namespace Client.Ui.State.Train.TimetableEdit
             _timer = timer;
             _toaster = toaster;
             _serverStops = serverStops;
-            _displayedStops = new ReactiveProperty<IReadOnlyList<TimetableEditStop>>(serverStops);
+            DisplayedStops = serverStops;
         }
 
         public void ReceiveServerStops(IReadOnlyList<TimetableEditStop> serverStops)
         {
             // 受理済みの保留は同じ並びの公開が届いた時点で解く
-            // A pending edit that was accepted is released once a matching publication arrives
+            // An accepted pending edit is released once a matching publication arrives
             _serverStops = serverStops;
-            if (_pendingStops != null && _accepted && TimetableEditLogic.SameStopOrder(_pendingStops, serverStops)) ClearPending();
+            if (_phase is AwaitingPublicationPhase awaiting && TimetableEditLogic.SameStopOrder(awaiting.Stops, serverStops)) BackToIdle();
             Publish();
         }
 
@@ -1359,7 +1575,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             // 前の編集が終わるまでは古い並びから組んだ編集を受けない
             // Until the previous edit settles, refuse edits built from a stale order
-            if (_pendingStops != null)
+            if (_phase is not IdlePhase)
             {
                 Debug.LogWarning("[TrainTimetableEdit] ignored: previous edit is still pending");
                 return;
@@ -1367,8 +1583,7 @@ namespace Client.Ui.State.Train.TimetableEdit
             // silent-ok: 並びが変わらない編集は送る意味が無い / 表示も変わらないので操作した人が見て分かる（Web と同じ）
             if (TimetableEditLogic.SameStopOrder(nextStops, _serverStops)) return;
 
-            _pendingStops = nextStops;
-            _accepted = false;
+            _phase = new SendingPhase(nextStops);
             Publish();
             SendAsync(nextStops).Forget();
         }
@@ -1376,7 +1591,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         public void Close()
         {
             _closed = true;
-            _publicationTimeout?.Dispose();
+            BackToIdle();
         }
 
         private async UniTaskVoid SendAsync(IReadOnlyList<TimetableEditStop> stops)
@@ -1390,51 +1605,75 @@ namespace Client.Ui.State.Train.TimetableEdit
                 Debug.LogWarning($"[TrainTimetableEdit] result after close discarded: {result}");
                 return;
             }
-            if (result is UiCommandRejected)
-            {
-                _toaster.Report(ReplaceCommandName, result);
-                ClearPending();
-                Publish();
-                return;
-            }
+            if (result is UiCommandRejected) _toaster.Report(ReplaceCommandName, result);
 
-            // 受理。公開が先に届いていれば解き、まだなら時間切れを仕掛けて待つ
-            // Accepted: release if the publication already arrived, otherwise arm the timeout and wait
-            if (TimetableEditLogic.SameStopOrder(stops, _serverStops))
-            {
-                ClearPending();
-                Publish();
-                return;
-            }
-            _accepted = true;
-            _publicationTimeout = _timer.After(PublicationTimeout).Subscribe(_ => ReleaseMissingPublication());
+            // 拒否か、公開が先に届いていれば解く。まだなら時間切れを仕掛けて公開を待つ
+            // Release on refusal or when the publication already arrived; otherwise arm the timeout and wait
+            if (result is UiCommandRejected || TimetableEditLogic.SameStopOrder(stops, _serverStops)) BackToIdle();
+            else _phase = new AwaitingPublicationPhase(stops, _timer.After(PublicationTimeout).Subscribe(_ => ReleaseMissingPublication()));
+            Publish();
         }
 
         private void ReleaseMissingPublication()
         {
             Debug.LogWarning($"[TrainTimetableEdit] publication did not arrive within {PublicationTimeout.TotalMilliseconds}ms; showing the server order");
-            ClearPending();
+            BackToIdle();
             Publish();
         }
 
-        private void ClearPending()
+        private void BackToIdle()
         {
-            _pendingStops = null;
-            _accepted = false;
-            _publicationTimeout?.Dispose();
-            _publicationTimeout = null;
+            if (_phase is AwaitingPublicationPhase awaiting) awaiting.Timeout.Dispose();
+            _phase = IdlePhase.Instance;
         }
 
         private void Publish()
         {
-            _displayedStops.Value = _pendingStops ?? _serverStops;
-            _isPending.Value = _pendingStops != null;
+            DisplayedStops = _phase switch
+            {
+                SendingPhase sending => sending.Stops,
+                AwaitingPublicationPhase awaiting => awaiting.Stops,
+                _ => _serverStops,
+            };
+            IsPending = _phase is not IdlePhase;
+            _onDisplayChanged.OnNext(Unit.Default);
+        }
+
+        // 編集の段階: 待ちなし・送信中・受理後の公開待ち
+        // Edit phases: idle, sending, and awaiting publication after acceptance
+        private abstract class EditPhase { }
+
+        private sealed class IdlePhase : EditPhase
+        {
+            public static readonly IdlePhase Instance = new();
+        }
+
+        private sealed class SendingPhase : EditPhase
+        {
+            public IReadOnlyList<TimetableEditStop> Stops { get; }
+
+            public SendingPhase(IReadOnlyList<TimetableEditStop> stops)
+            {
+                Stops = stops;
+            }
+        }
+
+        private sealed class AwaitingPublicationPhase : EditPhase
+        {
+            public IReadOnlyList<TimetableEditStop> Stops { get; }
+            public IDisposable Timeout { get; }
+
+            public AwaitingPublicationPhase(IReadOnlyList<TimetableEditStop> stops, IDisposable timeout)
+            {
+                Stops = stops;
+                Timeout = timeout;
+            }
         }
     }
 }
 ```
 
-- [ ] **Step 5: 区画の描画値を書く**
+- [ ] **Step 5: 区画とタブの中身の描画値を書く**
 
 `TrainTimetableSectionViewModel.cs`:
 
@@ -1451,16 +1690,14 @@ namespace Client.Ui.State.Train.TimetableEdit
     /// </summary>
     public sealed class TrainTimetableSectionViewModel
     {
-        public const int NoCurrentIndex = -1;
-
         public IReadOnlyList<TimetableEditStop> Stops { get; }
-        public int CurrentIndex { get; }
+        public int? CurrentIndex { get; }
         public IReadOnlyList<TrainTimetableStation> Stations { get; }
         public bool IsPending { get; }
         public bool IsAutoRun { get; }
         public bool CanEnableAutoRun { get; }
 
-        private TrainTimetableSectionViewModel(IReadOnlyList<TimetableEditStop> stops, int currentIndex, IReadOnlyList<TrainTimetableStation> stations, bool isPending, bool isAutoRun, bool canEnableAutoRun)
+        private TrainTimetableSectionViewModel(IReadOnlyList<TimetableEditStop> stops, int? currentIndex, IReadOnlyList<TrainTimetableStation> stations, bool isPending, bool isAutoRun, bool canEnableAutoRun)
         {
             Stops = stops;
             CurrentIndex = currentIndex;
@@ -1474,121 +1711,329 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             // 自動運転の可否は楽観表示でなくサーバーの停車駅で決める（追加が確定するまで ON にできない）
             // Auto-run availability follows the server stops, not the optimistic list, so ON waits until an add is authoritative
-            var currentIndex = TimetableEditLogic.SameStopOrder(displayedStops, server.Stops) ? server.CurrentIndex : NoCurrentIndex;
+            int? currentIndex = TimetableEditLogic.SameStopOrder(displayedStops, server.Stops) ? server.CurrentIndex : null;
             return new TrainTimetableSectionViewModel(displayedStops, currentIndex, server.Stations, isPending, server.IsAutoRun, TimetableEditLogic.CanEnableAutoRun(server.Stops));
+        }
+
+        // 同じ中身なら区画を描き直さない（貨車の中身の更新だけで行を作り直さない。R-5）
+        // Same contents skip the redraw so a car contents update alone never rebuilds rows (R-5)
+        public bool HasSameContent(TrainTimetableSectionViewModel other)
+        {
+            return CurrentIndex == other.CurrentIndex && IsPending == other.IsPending && IsAutoRun == other.IsAutoRun && CanEnableAutoRun == other.CanEnableAutoRun
+                   && TrainTimetableValueEquality.SameItems(Stops, other.Stops) && TrainTimetableValueEquality.SameItems(Stations, other.Stations);
         }
     }
 }
 ```
 
-- [ ] **Step 6: テストを回してコミット**
+`TrainTimetableAreaViewModel.cs`:
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableEditSessionTest|TrainTimetableDepartureTest"`
-Expected: `ErrorCount: 0`、7 件 PASS。`UniTaskCompletionSource.TrySetResult` の継続が同期で走らずに `Accept()` 直後の主張が落ちるなら、テスト側で `await UniTask.Yield()` を挟む `[UnityTest]` に替える（本体のコードは替えない）
+```csharp
+using Game.Train.Unit;
+
+namespace Client.Ui.State.Train.TimetableEdit
+{
+    /// <summary>
+    /// 時刻表タブの中身。読込中・使えない・列車ごとの区画の 3 つ
+    /// Content of the timetable tab: loading, unavailable, or a per-train section
+    /// </summary>
+    public abstract class TrainTimetableAreaViewModel
+    {
+        public static readonly TrainTimetableAreaViewModel Loading = new LoadingTrainTimetableArea();
+        public static readonly TrainTimetableAreaViewModel Unavailable = new UnavailableTrainTimetableArea();
+
+        public static TrainTimetableAreaViewModel Ready(TrainUnitInstanceId trainUnitInstanceId, TrainTimetableSectionViewModel section)
+        {
+            return new ReadyTrainTimetableArea(trainUnitInstanceId, section);
+        }
+
+        public static bool IsSameArea(TrainTimetableAreaViewModel current, TrainTimetableAreaViewModel next)
+        {
+            if (current is ReadyTrainTimetableArea currentReady && next is ReadyTrainTimetableArea nextReady)
+            {
+                return currentReady.TrainUnitInstanceId.Equals(nextReady.TrainUnitInstanceId) && currentReady.Section.HasSameContent(nextReady.Section);
+            }
+            return ReferenceEquals(current, next);
+        }
+    }
+
+    public sealed class LoadingTrainTimetableArea : TrainTimetableAreaViewModel
+    {
+        internal LoadingTrainTimetableArea() { }
+    }
+
+    public sealed class UnavailableTrainTimetableArea : TrainTimetableAreaViewModel
+    {
+        internal UnavailableTrainTimetableArea() { }
+    }
+
+    public sealed class ReadyTrainTimetableArea : TrainTimetableAreaViewModel
+    {
+        public TrainUnitInstanceId TrainUnitInstanceId { get; }
+        public TrainTimetableSectionViewModel Section { get; }
+
+        internal ReadyTrainTimetableArea(TrainUnitInstanceId trainUnitInstanceId, TrainTimetableSectionViewModel section)
+        {
+            TrainUnitInstanceId = trainUnitInstanceId;
+            Section = section;
+        }
+    }
+}
+```
+
+- [ ] **Step 6: 時刻表の編集 Model を書く**
+
+`ITrainTimetableEditModel.cs`:
+
+```csharp
+using Client.Ui.State.Train.Logic;
+using UniRx;
+
+namespace Client.Ui.State.Train.TimetableEdit
+{
+    /// <summary>
+    /// 時刻表タブの描画値と型付きの操作。View が操作を直接呼ぶ（設計書 A-8。Presenter は中継しない）
+    /// Draw values of the timetable tab and its typed operations; the View calls them directly (design doc A-8; no Presenter relay)
+    /// </summary>
+    public interface ITrainTimetableEditModel
+    {
+        IReadOnlyReactiveProperty<TrainTimetableAreaViewModel> Current { get; }
+        void Add(TrainTimetableStation station);
+        void Move(int index, StopMoveDirection direction);
+        void Remove(int index);
+        void SetAutoRun(bool enabled);
+    }
+}
+```
+
+`TrainTimetableEditModel.cs`:
+
+```csharp
+using Client.Ui.State.Toast;
+using Client.Ui.State.Train.Logic;
+using Client.Ui.State.Train.Timetable;
+using Cysharp.Threading.Tasks;
+using UniRx;
+using UnityEngine;
+using VContainer.Unity;
+
+namespace Client.Ui.State.Train.TimetableEdit
+{
+    /// <summary>
+    /// 時刻表の状態を購読し、列車ごとの編集セッションを持って区画の描画値を配る
+    /// Subscribes to the timetable state, owns the per-train edit session and publishes the section draw values
+    /// </summary>
+    public sealed class TrainTimetableEditModel : ITrainTimetableEditModel, IInitializable
+    {
+        public const string SetAutoRunCommandName = "train_timetable.set_auto_run";
+        private readonly ITrainTimetableSource _source;
+        private readonly ITrainTimetableCommands _commands;
+        private readonly ITrainTimetableWaitTimer _timer;
+        private readonly UiCommandResultToaster _toaster;
+        private readonly ReactiveProperty<TrainTimetableAreaViewModel> _current = new(TrainTimetableAreaViewModel.Unavailable);
+        private readonly SerialDisposable _sessionSubscription = new();
+        private TrainTimetableEditSession _session;
+        private TrainTimetableReadyData _server;
+
+        public IReadOnlyReactiveProperty<TrainTimetableAreaViewModel> Current => _current;
+
+        public TrainTimetableEditModel(ITrainTimetableSource source, ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster)
+        {
+            _source = source;
+            _commands = commands;
+            _timer = timer;
+            _toaster = toaster;
+        }
+
+        public void Initialize()
+        {
+            _source.Current.Subscribe(Receive);
+        }
+
+        public void Add(TrainTimetableStation station)
+        {
+            if (HasOpenSession("add")) _session.Replace(TimetableEditLogic.AddStop(_session.DisplayedStops, station));
+        }
+
+        public void Move(int index, StopMoveDirection direction)
+        {
+            if (HasOpenSession("move")) _session.Replace(TimetableEditLogic.MoveStop(_session.DisplayedStops, index, direction));
+        }
+
+        public void Remove(int index)
+        {
+            if (HasOpenSession("remove")) _session.Replace(TimetableEditLogic.RemoveStop(_session.DisplayedStops, index));
+        }
+
+        // 自動運転は楽観表示しない。結果は公開で反映され、拒否だけトーストへ
+        // Auto-run is never shown optimistically; the publication reflects the result and only refusals toast
+        public void SetAutoRun(bool enabled)
+        {
+            if (HasOpenSession("set_auto_run")) SendAutoRunAsync(enabled).Forget();
+        }
+
+        private void Receive(TrainTimetableViewState state)
+        {
+            if (state is ReadyTrainTimetableViewState ready)
+            {
+                ReceiveReady(ready.Data);
+                return;
+            }
+            CloseSession();
+            Publish(state is LoadingTrainTimetableViewState ? TrainTimetableAreaViewModel.Loading : TrainTimetableAreaViewModel.Unavailable);
+        }
+
+        private void ReceiveReady(TrainTimetableReadyData data)
+        {
+            // 列車が替わったら編集を作り直し（Web の key=trainUnitId）、同じ列車ならサーバーの並びを編集へ渡す
+            // A different train rebuilds the session (Web key=trainUnitId); the same train hands the server order to the session
+            if (_session == null || !_server.TrainUnitInstanceId.Equals(data.TrainUnitInstanceId))
+            {
+                OpenSession(data);
+                return;
+            }
+            _server = data;
+            _session.ReceiveServerStops(data.Stops);
+        }
+
+        private void OpenSession(TrainTimetableReadyData data)
+        {
+            CloseSession();
+            _server = data;
+            _session = new TrainTimetableEditSession(_commands, _timer, _toaster, data.Stops);
+            _sessionSubscription.Disposable = _session.OnDisplayChanged.Subscribe(_ => PublishSection());
+            PublishSection();
+        }
+
+        private void PublishSection()
+        {
+            var section = TrainTimetableSectionViewModel.Build(_server, _session.DisplayedStops, _session.IsPending);
+            Publish(TrainTimetableAreaViewModel.Ready(_server.TrainUnitInstanceId, section));
+        }
+
+        private void Publish(TrainTimetableAreaViewModel next)
+        {
+            // silent-ok: 同じ中身は配り直さない / 表示が変わらないので見ている人に差は無い（R-5）
+            if (TrainTimetableAreaViewModel.IsSameArea(_current.Value, next)) return;
+            _current.Value = next;
+        }
+
+        private void CloseSession()
+        {
+            _sessionSubscription.Disposable = null;
+            _session?.Close();
+            _session = null;
+            _server = null;
+        }
+
+        private bool HasOpenSession(string operation)
+        {
+            if (_session != null) return true;
+            Debug.LogWarning($"[TrainTimetableEdit] {operation} ignored: no timetable is open");
+            return false;
+        }
+
+        private async UniTaskVoid SendAutoRunAsync(bool enabled)
+        {
+            var result = await _commands.SetAutoRun(enabled);
+            _toaster.Report(SetAutoRunCommandName, result);
+        }
+    }
+}
+```
+（`_session?.Close()` は「開いていない」を表す内部の寿命の分岐で、外部データの null チェックではない。`_session` と `_server` は常に一緒に立つ・倒れる）
+
+- [ ] **Step 7: テストを回してコミット**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableEditSessionTest|TrainTimetableDepartureTest|TrainTimetableEditModelTest"`
+Expected: `ErrorCount: 0`、9 件 PASS。`UniTaskCompletionSource.TrySetResult` の継続が同期で走らずに `Accept()` 直後の主張が落ちるなら、テスト側で `await UniTask.Yield()` を挟む `[UnityTest]` に替える（本体のコードは替えない）
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Train/TimetableEdit moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Train
-git commit -m "feat(uitk): 時刻表の即時編集とコマンドを足す（S4-train）
+git commit -m "feat(uitk): 時刻表の即時編集・コマンド・編集 Model を足す（S4-train）
 
 <実行ホストの指示する帰属行>"
 ```
 
 ---
 
-### Task 5: 貨車とプラットフォームの Model（`Client.Ui.State/Train/Inventory/`・`Platform/`）
+### Task 5: 貨車とプラットフォームの Model（`Client.Ui.State/Train/Inventory/`・`Platform/`・`Platform/Edit/`）
 
 **Files:**
-- Create: `S/Client.Ui.State/Train/Inventory/` の 6 本、`S/Client.Ui.State/Train/Platform/` の 8 本
-- Create: `S/Client.Tests/Ui/State/Train/Inventory/TrainTimetableFetchTriggerTest.cs`、`S/Client.Tests/Ui/State/Train/Platform/TrainStationNameDraftTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/FakeTrainBlockCommands.cs`・`FakeTrainSources.cs`
+- Create: `S/Client.Ui.State/Train/Inventory/` の 8 本、`S/Client.Ui.State/Train/Platform/` の 7 本、`S/Client.Ui.State/Train/Platform/Edit/` の 5 本
+- Create: `S/Client.Tests/Ui/State/Train/Inventory/TrainTimetableFetchTriggerTest.cs`・`TrainInventoryTabModelTest.cs`、`S/Client.Tests/Ui/State/Train/Platform/TrainStationNameDraftTest.cs`・`TrainPlatformDetailReaderTest.cs`、`S/Client.Tests/Ui/State/Train/Fakes/FakeTrainBlockCommands.cs`
+- Modify: `S/Client.Tests/Ui/State/Train/Fakes/FakeTrainSources.cs`（貨車・プラットフォームの口を足す）
 
 **Interfaces:**
-- Consumes: `SubInventoryState`・`OpenBlockDetailTracker`、`BlockFluidSlotState`（L0-s4b）、`IBlockFluidSlotsModel.Current`（`BlockFluidSlotsViewModel.Slots`）と `BlockFluidSlotConversion.FromTanks`（S4-machine の Task 3。`Client.Ui.State/BlockInventory/Fluid/`）
+- Consumes: alpha の `IBlockInventoryPanelSource`・`OpenTrainInventoryPanel`・`OpenBlockInventoryPanel`（`ItemSlots`・`Error`・`Components.Body`・`BlockType`）・`BlockInventoryPanelState.IsSamePanel`、L0-s4b の `BlockComponentRegistry`・`BlockInventoryBodyKind.TrainPlatform`・`BlockFluidSlotState`、S4-machine の `IBlockFluidSlotsModel.Current`（`BlockFluidSlotsViewModel.Slots`。液体 PF は追跡ブロックの `FluidMachineInventoryStateDetail` から入る。D-17）と `BlockFluidSlotConversion.FromTanks`、`OpenBlockDetailTracker`、`SubInventoryState`、Task 4 の `ITrainTimetableCommands`、Task 3 の `ITrainTimetableSource.Refresh`
 - Produces:
 ```csharp
 namespace Client.Ui.State.Train.Inventory
 public enum TrainInventoryTab { Inventory, Timetable }
 public sealed class TrainTimetableFetchTrigger { public TrainInventoryTab Tab { get; } public bool SelectTab(TrainInventoryTab tab); public bool ReceiveState(TrainTimetableViewState state); }
-public sealed class TrainInventoryBodyViewModel { public static readonly TrainInventoryBodyViewModel Closed; public long TrainCarInstanceId { get; } public IReadOnlyList<SlotItem> ItemSlots { get; } public IReadOnlyList<BlockFluidSlotState> Fluids { get; } }
+public interface ITrainInventoryTabModel { IReadOnlyReactiveProperty<TrainInventoryTab> Tab { get; } void SelectTab(TrainInventoryTab tab); }   // View が直接呼ぶ（A-8）
+public sealed class TrainInventoryTabModel : ITrainInventoryTabModel, IInitializable   // 別のパネルで持ち物タブへ戻す
+public sealed class TrainInventoryBodyViewModel { public static readonly TrainInventoryBodyViewModel Closed; public IReadOnlyList<SlotItem> ItemSlots { get; } public IReadOnlyList<BlockFluidSlotState> Fluids { get; } }
 public interface ITrainInventoryBodySource { IReadOnlyReactiveProperty<TrainInventoryBodyViewModel> Current { get; } }
 namespace Client.Ui.State.Train.Platform
 public enum TrainPlatformTransferMode { LoadToTrain, UnloadToPlatform }
-public sealed class TrainPlatformBodyViewModel { Closed; IsStation; StationName; HasItemSlots; ItemSlots; Fluids; HasTransferMode; Mode; }
-public interface ITrainPlatformBodySource { IReadOnlyReactiveProperty<TrainPlatformBodyViewModel> Current { get; } }
+public static class TrainPlatformTransferModeConversion { FromServer(TrainPlatformTransferComponent.TransferMode); ToServer(TrainPlatformTransferMode); }
+public abstract class TrainPlatformBodyState { public static readonly TrainPlatformBodyState Closed; }
+public sealed class OpenTrainPlatformBody : TrainPlatformBodyState { TrainStationNamePart StationName /* 駅だけ。他は null */; IReadOnlyList<SlotItem> ItemSlots /* 移送の状態がある品物 PF・駅だけ。他は null */; IReadOnlyList<BlockFluidSlotState> Fluids; TrainPlatformTransferMode? Mode /* 移送の状態があるときだけ */; }
+public sealed class TrainStationNamePart { public string SyncedName { get; } }
+public interface ITrainPlatformBodySource { IReadOnlyReactiveProperty<TrainPlatformBodyState> Current { get; } }
+public static class TrainPlatformDetailReader { public static OpenTrainPlatformBody Read(string blockType, IBlockParam param, TrainStationNameStateDetail stationName, TrainPlatformTransferStateDetail transfer, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids); }
+namespace Client.Ui.State.Train.Platform.Edit
 public interface ITrainBlockCommands { UniTask<UiCommandResult> SetStationName(string name); UniTask<UiCommandResult> SetTransferMode(TrainPlatformTransferMode mode); }
 public sealed class TrainStationNameDraft { string Input; void Sync(string syncedName); void Edit(string input); void Reject(); }
+public interface ITrainPlatformEditModel { IReadOnlyReactiveProperty<string> StationNameInput { get; } void EditStationName(string input); void ApplyStationName(); void SelectTransferMode(TrainPlatformTransferMode mode); }   // View が直接呼ぶ（A-8）
 ```
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [ ] **Step 1: 偽物と失敗するテストを書く**
 
-`TrainTimetableFetchTriggerTest.cs`:
+`FakeTrainSources.cs` を 3 つの源の偽物にする（Task 4 の時刻表の口に貨車・プラットフォームの口を足す）:
 
 ```csharp
-using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.State.Train.Inventory;
-using Client.Ui.State.Train.Timetable;
-using NUnit.Framework;
-
-namespace Client.Tests.Ui.State.Train.Inventory
-{
-    public class TrainTimetableFetchTriggerTest
-    {
-        [Test]
-        public void 時刻表タブへ移った瞬間と時刻表タブで読込中が届いたときだけ依頼する()
-        {
-            var trigger = new TrainTimetableFetchTrigger();
-
-            // 持ち物タブの読込中では依頼しない
-            // Loading on the inventory tab does not ask
-            Assert.IsFalse(trigger.ReceiveState(TrainTimetableViewState.Loading));
-            Assert.IsTrue(trigger.SelectTab(TrainInventoryTab.Timetable));
-            Assert.IsFalse(trigger.SelectTab(TrainInventoryTab.Timetable));
-
-            // 時刻表タブでは読込中が届くたびに依頼し、用意済みでは依頼しない
-            // On the timetable tab every loading arrival asks, ready does not
-            Assert.IsTrue(trigger.ReceiveState(TrainTimetableViewState.Loading));
-            Assert.IsFalse(trigger.ReceiveState(TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1))));
-            Assert.IsFalse(trigger.SelectTab(TrainInventoryTab.Inventory));
-        }
-    }
-}
-```
-
-`TrainStationNameDraftTest.cs`:
-
-```csharp
 using Client.Ui.State.Train.Platform;
-using NUnit.Framework;
+using Client.Ui.State.Train.Timetable;
+using UniRx;
 
-namespace Client.Tests.Ui.State.Train.Platform
+namespace Client.Tests.Ui.State.Train.Fakes
 {
-    public class TrainStationNameDraftTest
+    /// <summary>
+    /// 3 つの源の偽物。値はテストが Set で押し込み、Refresh は回数だけ数える
+    /// Fakes of the three sources; tests push values with Set and Refresh only counts calls
+    /// </summary>
+    public sealed class FakeTrainSources : ITrainTimetableSource, ITrainInventoryBodySource, ITrainPlatformBodySource
     {
-        [Test]
-        public void 手を付けていない入力は同期した名前に従い拒否で同期済みへ戻る()
+        private readonly ReactiveProperty<TrainTimetableViewState> _timetable = new(TrainTimetableViewState.Loading);
+        private readonly ReactiveProperty<TrainInventoryBodyViewModel> _body = new(TrainInventoryBodyViewModel.Closed);
+        private readonly ReactiveProperty<TrainPlatformBodyState> _platform = new(TrainPlatformBodyState.Closed);
+
+        public int RefreshCount { get; private set; }
+        IReadOnlyReactiveProperty<TrainTimetableViewState> ITrainTimetableSource.Current => _timetable;
+        IReadOnlyReactiveProperty<TrainInventoryBodyViewModel> ITrainInventoryBodySource.Current => _body;
+        IReadOnlyReactiveProperty<TrainPlatformBodyState> ITrainPlatformBodySource.Current => _platform;
+
+        public void Refresh()
         {
-            var draft = new TrainStationNameDraft();
-            draft.Sync("北駅");
-            Assert.AreEqual("北駅", draft.Input);
+            RefreshCount++;
+        }
 
-            // 編集中は同期で上書きしない
-            // While edited, a sync does not overwrite
-            draft.Edit("南駅");
-            draft.Sync("東駅");
-            Assert.AreEqual("南駅", draft.Input);
+        public void SetTimetable(TrainTimetableViewState state)
+        {
+            _timetable.Value = state;
+        }
 
-            // 拒否は最新の同期済みへ戻し、以後は同期に従う
-            // Rejection reverts to the latest synced name and follows syncs again
-            draft.Reject();
-            Assert.AreEqual("東駅", draft.Input);
-            draft.Sync("西駅");
-            Assert.AreEqual("西駅", draft.Input);
+        public void SetBody(TrainInventoryBodyViewModel body)
+        {
+            _body.Value = body;
+        }
 
-            // 決定した名前が同期されれば、その後の同期にも従う
-            // Once the applied name syncs back, later syncs are followed too
-            draft.Edit("中央駅");
-            draft.Sync("中央駅");
-            draft.Sync("中央駅2");
-            Assert.AreEqual("中央駅2", draft.Input);
+        public void SetPlatform(TrainPlatformBodyState platform)
+        {
+            _platform.Value = platform;
         }
     }
 }
@@ -1600,6 +2045,7 @@ namespace Client.Tests.Ui.State.Train.Platform
 using System.Collections.Generic;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Train.Platform;
+using Client.Ui.State.Train.Platform.Edit;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Tests.Ui.State.Train.Fakes
@@ -1646,52 +2092,205 @@ namespace Client.Tests.Ui.State.Train.Fakes
 }
 ```
 
-`FakeTrainSources.cs`:
+`TrainTimetableFetchTriggerTest.cs`:
 
 ```csharp
+using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.State.Train.Inventory;
-using Client.Ui.State.Train.Platform;
 using Client.Ui.State.Train.Timetable;
-using UniRx;
+using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.Train.Fakes
+namespace Client.Tests.Ui.State.Train.Inventory
 {
-    /// <summary>
-    /// 3 つの源の偽物。値はテストが Set で押し込む
-    /// Fakes of the three sources; tests push values with Set
-    /// </summary>
-    public sealed class FakeTrainSources : ITrainTimetableSource, ITrainInventoryBodySource, ITrainPlatformBodySource
+    public class TrainTimetableFetchTriggerTest
     {
-        private readonly ReactiveProperty<TrainTimetableViewState> _timetable = new(TrainTimetableViewState.Loading);
-        private readonly ReactiveProperty<TrainInventoryBodyViewModel> _body = new(TrainInventoryBodyViewModel.Closed);
-        private readonly ReactiveProperty<TrainPlatformBodyViewModel> _platform = new(TrainPlatformBodyViewModel.Closed);
-
-        IReadOnlyReactiveProperty<TrainTimetableViewState> ITrainTimetableSource.Current => _timetable;
-        IReadOnlyReactiveProperty<TrainInventoryBodyViewModel> ITrainInventoryBodySource.Current => _body;
-        IReadOnlyReactiveProperty<TrainPlatformBodyViewModel> ITrainPlatformBodySource.Current => _platform;
-
-        public void SetTimetable(TrainTimetableViewState state)
+        [Test]
+        public void 時刻表タブへ移った瞬間と時刻表タブで読込中が届いたときだけ依頼する()
         {
-            _timetable.Value = state;
-        }
+            var trigger = new TrainTimetableFetchTrigger();
 
-        public void SetBody(TrainInventoryBodyViewModel body)
-        {
-            _body.Value = body;
-        }
+            // 持ち物タブの読込中では依頼しない
+            // Loading on the inventory tab does not ask
+            Assert.IsFalse(trigger.ReceiveState(TrainTimetableViewState.Loading));
+            Assert.IsTrue(trigger.SelectTab(TrainInventoryTab.Timetable));
+            Assert.IsFalse(trigger.SelectTab(TrainInventoryTab.Timetable));
 
-        public void SetPlatform(TrainPlatformBodyViewModel platform)
-        {
-            _platform.Value = platform;
+            // 時刻表タブでは読込中が届くたびに依頼し、用意済みでは依頼しない
+            // On the timetable tab every loading arrival asks, ready does not
+            Assert.IsTrue(trigger.ReceiveState(TrainTimetableViewState.Loading));
+            Assert.IsFalse(trigger.ReceiveState(TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1))));
+            Assert.IsFalse(trigger.SelectTab(TrainInventoryTab.Inventory));
         }
     }
 }
 ```
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainStationNameDraftTest"`
+`TrainInventoryTabModelTest.cs`:
+
+```csharp
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.State.Train.Fakes;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Train.Inventory;
+using Client.Ui.State.Train.Timetable;
+using NUnit.Framework;
+using UniRx;
+
+namespace Client.Tests.Ui.State.Train.Inventory
+{
+    public class TrainInventoryTabModelTest
+    {
+        private FakePanelSource _panels;
+        private FakeTrainSources _sources;
+        private FakeTrainTimetableCommands _commands;
+        private TrainInventoryTabModel _model;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None)));
+            _sources = new FakeTrainSources();
+            _commands = new FakeTrainTimetableCommands();
+            _model = new TrainInventoryTabModel(_panels, _sources, _commands);
+            _model.Initialize();
+        }
+
+        [Test]
+        public void タブを選ぶと取得を頼みすぐ時刻表の源を組み直させる()
+        {
+            // Fetcher は取得中を通知しないので、頼んだ直後に源を組み直させて読込中を出す
+            // The Fetcher raises no in-flight notification, so the source is rebuilt right after asking to show Loading
+            _sources.SetTimetable(TrainTimetableViewState.Unavailable);
+            _model.SelectTab(TrainInventoryTab.Timetable);
+            Assert.AreEqual(1, _commands.OpenRequestCount);
+            Assert.AreEqual(1, _sources.RefreshCount);
+        }
+
+        [Test]
+        public void 同じ車両のあいだタブを保ち別のパネルで持ち物へ戻す()
+        {
+            _model.SelectTab(TrainInventoryTab.Timetable);
+            _panels.State.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.None);
+            Assert.AreEqual(TrainInventoryTab.Timetable, _model.Tab.Value);
+
+            // 閉じて開き直すと持ち物タブから（Web は本文の mount ごとに初期化）
+            // Closing and reopening starts on the inventory tab (Web resets per body mount)
+            _panels.State.Value = BlockInventoryPanelState.Closed;
+            _panels.State.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.None);
+            Assert.AreEqual(TrainInventoryTab.Inventory, _model.Tab.Value);
+        }
+    }
+}
+```
+（`BlockInventoryTestPanels.Train(error)` が毎回同じ `TrainCarInstanceId` で組むことは alpha の補助の実物で確かめる。`FakePanelSource.State` は alpha の Produces のとおり書き換え用の `ReactiveProperty`）
+
+`TrainStationNameDraftTest.cs`:
+
+```csharp
+using Client.Ui.State.Train.Platform.Edit;
+using NUnit.Framework;
+
+namespace Client.Tests.Ui.State.Train.Platform
+{
+    public class TrainStationNameDraftTest
+    {
+        [Test]
+        public void 手を付けていない入力は同期した名前に従い拒否で同期済みへ戻る()
+        {
+            var draft = new TrainStationNameDraft();
+            draft.Sync("北駅");
+            Assert.AreEqual("北駅", draft.Input);
+
+            // 編集中は同期で上書きしない
+            // While edited, a sync does not overwrite
+            draft.Edit("南駅");
+            draft.Sync("東駅");
+            Assert.AreEqual("南駅", draft.Input);
+
+            // 拒否は最新の同期済みへ戻し、以後は同期に従う
+            // Rejection reverts to the latest synced name and follows syncs again
+            draft.Reject();
+            Assert.AreEqual("東駅", draft.Input);
+            draft.Sync("西駅");
+            Assert.AreEqual("西駅", draft.Input);
+
+            // 決定した名前が同期されれば、その後の同期にも従う
+            // Once the applied name syncs back, later syncs are followed too
+            draft.Edit("中央駅");
+            draft.Sync("中央駅");
+            draft.Sync("中央駅2");
+            Assert.AreEqual("中央駅2", draft.Input);
+        }
+    }
+}
+```
+
+`TrainPlatformDetailReaderTest.cs`（駅・品物 PF・液体 PF・状態未着の 4 行。Web ホストの `TrainStationDetailDtoBuilder`・`TrainPlatformDetailDtoBuilder` と同じ規則）:
+
+```csharp
+using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.Items;
+using Client.Ui.State.Train.Platform;
+using Core.Master;
+using Game.Block.Blocks.TrainRail;
+using NUnit.Framework;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+
+namespace Client.Tests.Ui.State.Train.Platform
+{
+    public class TrainPlatformDetailReaderTest
+    {
+        private static readonly IReadOnlyList<SlotItem> Slots = new[] { new SlotItem(new ItemId(3), 12) };
+        private static readonly IReadOnlyList<BlockFluidSlotState> NoFluids = new List<BlockFluidSlotState>();
+        private static readonly TrainPlatformTransferStateDetail Unload = new(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform);
+
+        [Test]
+        public void 駅は名前と枠とモードを持つ()
+        {
+            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), new TrainStationNameStateDetail("北駅"), Unload, Slots, NoFluids);
+            Assert.AreEqual("北駅", body.StationName.SyncedName);
+            Assert.AreSame(Slots, body.ItemSlots);
+            Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, body.Mode);
+        }
+
+        [Test]
+        public void 品物PFは名前を持たず枠とモードを持つ()
+        {
+            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainItemPlatform, TestBlockParams.ItemPlatform(), null, Unload, Slots, NoFluids);
+            Assert.IsNull(body.StationName);
+            Assert.AreSame(Slots, body.ItemSlots);
+        }
+
+        [Test]
+        public void 液体PFは枠を持たず液体とモードを持つ()
+        {
+            var fluids = new[] { BlockFluidSlotState.Empty(1000) };
+            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainFluidPlatform, TestBlockParams.FluidPlatform(), null, Unload, Slots, fluids);
+            Assert.IsNull(body.ItemSlots);
+            Assert.AreSame(fluids, body.Fluids);
+            Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, body.Mode);
+        }
+
+        [Test]
+        public void 移送の状態が届く前は枠もモードも出さず駅名は空()
+        {
+            // Web ホストは状態が無ければ詳細ごと出さない。駅名の StateDetail が無ければ空名
+            // The Web host omits the detail without a state; a missing name StateDetail gives an empty name
+            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), null, null, Slots, NoFluids);
+            Assert.AreEqual(string.Empty, body.StationName.SyncedName);
+            Assert.IsNull(body.ItemSlots);
+            Assert.IsNull(body.Mode);
+        }
+    }
+}
+```
+（`TestBlockParams` は各 `BlockParam` をテスト用 mod のブロックマスタから引く小さな補助を同じファイルの下に置く。`MasterHolder.BlockMaster` から `BlockType` で最初の 1 つを取り `BlockParam` を返す。`TrainStationNameStateDetail(string)`・`TrainPlatformTransferStateDetail(TransferMode)` の ctor は実物で確かめた）
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainInventoryTabModelTest|TrainStationNameDraftTest|TrainPlatformDetailReaderTest"`
 Expected: コンパイルエラー（型が無い）
 
-- [ ] **Step 2: 貨車側を書く**
+- [ ] **Step 2: 貨車側の値と源を書く**
 
 `TrainInventoryTab.cs`:
 
@@ -1718,8 +2317,8 @@ using Client.Ui.State.Train.Timetable;
 namespace Client.Ui.State.Train.Inventory
 {
     /// <summary>
-    /// 時刻表の取得を C# 側へ頼む契機を決める（Web TrainInventoryBody の effect の写し）
-    /// Decides when to ask for a timetable fetch (copy of the Web TrainInventoryBody effects)
+    /// 時刻表の取得を頼む契機を決める（Web TrainInventoryBody の effect の写し。重複の依頼は Fetcher が畳む）
+    /// Decides when to ask for a timetable fetch (copy of the Web TrainInventoryBody effect; the Fetcher folds duplicates)
     /// </summary>
     public sealed class TrainTimetableFetchTrigger
     {
@@ -1759,22 +2358,20 @@ namespace Client.Ui.State.Train.Inventory
     /// </summary>
     public sealed class TrainInventoryBodyViewModel
     {
-        public static readonly TrainInventoryBodyViewModel Closed = new(-1, new List<SlotItem>(), new List<BlockFluidSlotState>());
+        public static readonly TrainInventoryBodyViewModel Closed = new(new List<SlotItem>(), new List<BlockFluidSlotState>());
 
-        public long TrainCarInstanceId { get; }
         public IReadOnlyList<SlotItem> ItemSlots { get; }
         public IReadOnlyList<BlockFluidSlotState> Fluids { get; }
 
-        public TrainInventoryBodyViewModel(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids)
+        public TrainInventoryBodyViewModel(IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids)
         {
-            TrainCarInstanceId = trainCarInstanceId;
             ItemSlots = itemSlots;
             Fluids = fluids;
         }
     }
 }
 ```
-（`SlotItem` の名前空間は alpha の Produces の綴りに合わせる）
+（列車の識別は alpha のパネルの状態〈`OpenTrainInventoryPanel.TrainCarInstanceId`〉が持つので、ここには置かない。D-19）
 
 `ITrainInventoryBodySource.cs`:
 
@@ -1794,33 +2391,22 @@ namespace Client.Ui.State.Train.Inventory
 }
 ```
 
-`TrainCarContentsConversion.cs`:
+`TrainCarFluidConversion.cs`:
 
 ```csharp
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Logic.Common;
-using Client.Ui.State.Items;
-using Core.Item.Interface;
 using Game.Block.Interface.State;
 
 namespace Client.Ui.State.Train.Inventory
 {
     /// <summary>
-    /// 貨車のサブインベントリを描画値へ写す（Web ホスト TrainInventoryDtoFactory の写し。D-2）
-    /// Maps the car sub-inventory to draw values (copy of the Web host TrainInventoryDtoFactory; D-2)
+    /// 貨車の液体を描画値へ写す。S4-machine のタンクの写しを入力側だけで使い、写しを 2 か所に持たない
+    /// Maps car fluids to draw values by reusing the S4-machine tank conversion with inputs only, so the mapping lives in one place
     /// </summary>
-    public static class TrainCarContentsConversion
+    public static class TrainCarFluidConversion
     {
-        public static IReadOnlyList<SlotItem> ToSlots(IReadOnlyList<IItemStack> stacks)
-        {
-            var slots = new List<SlotItem>(stacks.Count);
-            foreach (var stack in stacks) slots.Add(new SlotItem(stack.Id, stack.Count));
-            return slots;
-        }
-
-        // 貨車の液体は S4-machine のタンクの写しを入力側だけで使う（空の液体 ID は空きタンク。写しを 2 か所に持たない）
-        // Car fluids reuse the S4-machine tank conversion with inputs only (empty id is an empty tank; no second copy of the mapping)
         public static IReadOnlyList<BlockFluidSlotState> ToFluids(IReadOnlyList<FluidMessagePack> fluids)
         {
             return BlockFluidSlotConversion.FromTanks(fluids, new List<FluidMessagePack>());
@@ -1829,56 +2415,150 @@ namespace Client.Ui.State.Train.Inventory
 }
 ```
 
-
-`TrainInventoryBodyModel.cs`:
+`TrainInventoryBodyModel.cs`（スロットは alpha のパネルの状態から読み、`IItemStack → SlotItem` の写しを持たない。D-16）:
 
 ```csharp
+using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState.State;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
+using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.BlockInventory.Panel;
 using UniRx;
 using VContainer.Unity;
 
 namespace Client.Ui.State.Train.Inventory
 {
     /// <summary>
-    /// 開いている貨車の中身を SubInventoryState から配る
-    /// Publishes the open car's contents from SubInventoryState
+    /// 開いている貨車の中身を配る。スロットはパネルの状態、液体はサブインベントリから
+    /// Publishes the open car's contents: slots from the panel state, fluids from the sub-inventory
     /// </summary>
     public sealed class TrainInventoryBodyModel : ITrainInventoryBodySource, IInitializable
     {
+        private readonly IBlockInventoryPanelSource _panels;
         private readonly SubInventoryState _subInventoryState;
         private readonly ReactiveProperty<TrainInventoryBodyViewModel> _current = new(TrainInventoryBodyViewModel.Closed);
 
         public IReadOnlyReactiveProperty<TrainInventoryBodyViewModel> Current => _current;
 
-        public TrainInventoryBodyModel(SubInventoryState subInventoryState)
+        public TrainInventoryBodyModel(IBlockInventoryPanelSource panels, SubInventoryState subInventoryState)
         {
+            _panels = panels;
             _subInventoryState = subInventoryState;
         }
 
         public void Initialize()
         {
+            _panels.Current.Subscribe(_ => Rebuild());
             _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Rebuild());
             Rebuild();
         }
 
         private void Rebuild()
         {
-            // 列車以外が開いているあいだは閉じた値（本文は alpha が出さない）
-            // While something other than a train is open, publish the closed value (alpha shows no body)
-            var model = _subInventoryState.CurrentSubInventory;
-            if (_subInventoryState.CurrentSubInventorySource is not TrainSubInventorySource source || model == null)
+            // エラー無しの列車のパネルのあいだだけ中身を配る（エラー行は alpha が出す）
+            // Contents publish only while an error-free train panel is open (alpha shows the error row)
+            if (_panels.Current.Value is not OpenTrainInventoryPanel { Error: BlockInventoryPanelError.None } open)
             {
                 _current.Value = TrainInventoryBodyViewModel.Closed;
                 return;
             }
-            _current.Value = new TrainInventoryBodyViewModel(source.TrainCarInstanceId, TrainCarContentsConversion.ToSlots(model.SubInventory), TrainCarContentsConversion.ToFluids(model.Fluids));
+            var fluids = _subInventoryState.CurrentSubInventory?.Fluids;
+            _current.Value = new TrainInventoryBodyViewModel(open.ItemSlots, fluids == null ? new List<BlockFluidSlotState>() : TrainCarFluidConversion.ToFluids(fluids));
         }
     }
 }
 ```
+（`CurrentSubInventory` はサーバーの応答から組まれる外部データなので null を見る。パネルが列車を開いた直後に液体の応答がまだ無い一瞬は、液体なしで描き、届いた `OnSubInventoryUpdated` で描き直す）
 
-- [ ] **Step 3: プラットフォーム側を書く**
+`ITrainInventoryTabModel.cs`:
+
+```csharp
+using UniRx;
+
+namespace Client.Ui.State.Train.Inventory
+{
+    /// <summary>
+    /// 列車の本文のタブ。View が SelectTab を直接呼ぶ（設計書 A-8）
+    /// Tab of the train body; the View calls SelectTab directly (design doc A-8)
+    /// </summary>
+    public interface ITrainInventoryTabModel
+    {
+        IReadOnlyReactiveProperty<TrainInventoryTab> Tab { get; }
+        void SelectTab(TrainInventoryTab tab);
+    }
+}
+```
+
+`TrainInventoryTabModel.cs`:
+
+```csharp
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Train.Timetable;
+using Client.Ui.State.Train.TimetableEdit;
+using UniRx;
+using VContainer.Unity;
+
+namespace Client.Ui.State.Train.Inventory
+{
+    /// <summary>
+    /// タブと時刻表の取得の依頼を持つ。別のパネルでは持ち物タブへ戻す（Web は本文の mount ごとに初期化）
+    /// Holds the tab and timetable fetch requests; a different panel resets to the inventory tab (Web resets per body mount)
+    /// </summary>
+    public sealed class TrainInventoryTabModel : ITrainInventoryTabModel, IInitializable
+    {
+        private readonly IBlockInventoryPanelSource _panels;
+        private readonly ITrainTimetableSource _timetable;
+        private readonly ITrainTimetableCommands _commands;
+        private readonly ReactiveProperty<TrainInventoryTab> _tab = new(TrainInventoryTab.Inventory);
+        private TrainTimetableFetchTrigger _trigger = new();
+        private BlockInventoryPanelState _panel = BlockInventoryPanelState.Closed;
+
+        public IReadOnlyReactiveProperty<TrainInventoryTab> Tab => _tab;
+
+        public TrainInventoryTabModel(IBlockInventoryPanelSource panels, ITrainTimetableSource timetable, ITrainTimetableCommands commands)
+        {
+            _panels = panels;
+            _timetable = timetable;
+            _commands = commands;
+        }
+
+        public void Initialize()
+        {
+            _panels.Current.Subscribe(ReceivePanel);
+            _timetable.Current.Subscribe(state =>
+            {
+                if (_trigger.ReceiveState(state)) RequestOpen();
+            });
+        }
+
+        public void SelectTab(TrainInventoryTab tab)
+        {
+            var enteredTimetable = _trigger.SelectTab(tab);
+            _tab.Value = tab;
+            if (enteredTimetable) RequestOpen();
+        }
+
+        private void ReceivePanel(BlockInventoryPanelState panel)
+        {
+            // silent-ok: 同じパネルの再配信ではタブを保つ / 開き直しは別のパネルとして下で戻すので、見ている人に差は無い
+            if (panel.IsSamePanel(_panel)) return;
+            _panel = panel;
+            _trigger = new TrainTimetableFetchTrigger();
+            _tab.Value = TrainInventoryTab.Inventory;
+        }
+
+        // 頼んだ直後に源を組み直させ、取得中を出す。Fetcher は通知を出さず、重複の依頼は畳む
+        // Rebuild the source right after asking to show Loading; the Fetcher raises no notification and folds duplicates
+        private void RequestOpen()
+        {
+            _commands.RequestOpen();
+            _timetable.Refresh();
+        }
+    }
+}
+```
+（`Refresh` で読込中が配られると上の購読がもう一度 `RequestOpen` を呼ぶ。Web も同じく 2 回送り、`TrainTimetableFetcher.RequestForOpenedTab` が同じ列車の依頼を畳むので通信は 1 回。2 回目の `Refresh` は同じ読込中で配り直さない〈`IsSameState`〉ので連鎖は止まる。D-20）
+
+- [ ] **Step 3: プラットフォーム側の値と源を書く**
 
 `TrainPlatformTransferMode.cs`:
 
@@ -1897,7 +2577,54 @@ namespace Client.Ui.State.Train.Platform
 }
 ```
 
-`TrainPlatformBodyViewModel.cs`:
+`TrainPlatformTransferModeConversion.cs`:
+
+```csharp
+using Game.Block.Blocks.TrainRail;
+
+namespace Client.Ui.State.Train.Platform
+{
+    /// <summary>
+    /// サーバーの移送モードとの写しを 1 か所に置く（読み手と送り手が共有する）
+    /// Keeps the mapping to the server transfer mode in one place, shared by the reader and the sender
+    /// </summary>
+    public static class TrainPlatformTransferModeConversion
+    {
+        public static TrainPlatformTransferMode FromServer(TrainPlatformTransferComponent.TransferMode mode)
+        {
+            return mode == TrainPlatformTransferComponent.TransferMode.UnloadToPlatform ? TrainPlatformTransferMode.UnloadToPlatform : TrainPlatformTransferMode.LoadToTrain;
+        }
+
+        public static TrainPlatformTransferComponent.TransferMode ToServer(TrainPlatformTransferMode mode)
+        {
+            return mode == TrainPlatformTransferMode.UnloadToPlatform ? TrainPlatformTransferComponent.TransferMode.UnloadToPlatform : TrainPlatformTransferComponent.TransferMode.LoadToTrain;
+        }
+    }
+}
+```
+
+`TrainStationNamePart.cs`:
+
+```csharp
+namespace Client.Ui.State.Train.Platform
+{
+    /// <summary>
+    /// 駅だけが持つ部分。サーバーと同期した駅名（届く前は空）
+    /// Part only a station has: the station name synced from the server (empty until it arrives)
+    /// </summary>
+    public sealed class TrainStationNamePart
+    {
+        public string SyncedName { get; }
+
+        public TrainStationNamePart(string syncedName)
+        {
+            SyncedName = syncedName;
+        }
+    }
+}
+```
+
+`TrainPlatformBodyState.cs`（判別子と片側だけで意味のある値を同居させず、部分ごとの有無で表す。Web の `trainStation?`・`trainPlatform?` と同じ形。D-19）:
 
 ```csharp
 using System.Collections.Generic;
@@ -1907,29 +2634,37 @@ using Client.Ui.State.Items;
 namespace Client.Ui.State.Train.Platform
 {
     /// <summary>
-    /// 駅・プラットフォームの本文に描く値
-    /// Values drawn by the station and platform body
+    /// 駅・プラットフォームの本文の状態。閉じているか、部分ごとの有無を持つ開いた本文
+    /// State of the station and platform body: closed, or open with each part present or absent
     /// </summary>
-    public sealed class TrainPlatformBodyViewModel
+    public abstract class TrainPlatformBodyState
     {
-        public static readonly TrainPlatformBodyViewModel Closed = new(false, string.Empty, false, new List<SlotItem>(), new List<BlockFluidSlotState>(), false, TrainPlatformTransferMode.LoadToTrain);
+        public static readonly TrainPlatformBodyState Closed = new ClosedTrainPlatformBody();
+    }
 
-        public bool IsStation { get; }
-        public string StationName { get; }
-        public bool HasItemSlots { get; }
+    public sealed class ClosedTrainPlatformBody : TrainPlatformBodyState
+    {
+        internal ClosedTrainPlatformBody() { }
+    }
+
+    public sealed class OpenTrainPlatformBody : TrainPlatformBodyState
+    {
+        // 駅だけ。他は null
+        // Stations only; null otherwise
+        public TrainStationNamePart StationName { get; }
+        // 移送の状態がある品物 PF・駅だけ。他は null
+        // Only item platforms and stations with a transfer state; null otherwise
         public IReadOnlyList<SlotItem> ItemSlots { get; }
         public IReadOnlyList<BlockFluidSlotState> Fluids { get; }
-        public bool HasTransferMode { get; }
-        public TrainPlatformTransferMode Mode { get; }
+        // 移送の状態があるときだけ
+        // Only when a transfer state exists
+        public TrainPlatformTransferMode? Mode { get; }
 
-        public TrainPlatformBodyViewModel(bool isStation, string stationName, bool hasItemSlots, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids, bool hasTransferMode, TrainPlatformTransferMode mode)
+        public OpenTrainPlatformBody(TrainStationNamePart stationName, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids, TrainPlatformTransferMode? mode)
         {
-            IsStation = isStation;
             StationName = stationName;
-            HasItemSlots = hasItemSlots;
             ItemSlots = itemSlots;
             Fluids = fluids;
-            HasTransferMode = hasTransferMode;
             Mode = mode;
         }
     }
@@ -1949,16 +2684,15 @@ namespace Client.Ui.State.Train.Platform
     /// </summary>
     public interface ITrainPlatformBodySource
     {
-        IReadOnlyReactiveProperty<TrainPlatformBodyViewModel> Current { get; }
+        IReadOnlyReactiveProperty<TrainPlatformBodyState> Current { get; }
     }
 }
 ```
 
-`TrainPlatformDetailReader.cs`:
+`TrainPlatformDetailReader.cs`（`BlockGameObject` を取らない純関数。値の取り出しは Model の 1 か所。D-21）:
 
 ```csharp
 using System.Collections.Generic;
-using Client.Game.InGame.Block;
 using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.Items;
 using Game.Block.Blocks.TrainRail;
@@ -1968,40 +2702,27 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 namespace Client.Ui.State.Train.Platform
 {
     /// <summary>
-    /// 駅・プラットフォームのブロックから描画値を読む（Web ホスト TrainPlatformDetailDtoBuilder・TrainStationDetailDtoBuilder の写し。D-2）
-    /// Reads draw values from a station or platform block (copy of the Web host TrainPlatformDetailDtoBuilder and TrainStationDetailDtoBuilder; D-2)
+    /// 駅・プラットフォームの描画値を組む（Web ホスト TrainStationDetailDtoBuilder・TrainPlatformDetailDtoBuilder と同じ規則。D-2）
+    /// Builds station and platform draw values (same rules as the Web host TrainStationDetailDtoBuilder and TrainPlatformDetailDtoBuilder; D-2)
     /// </summary>
     public static class TrainPlatformDetailReader
     {
-        public static bool IsTrainPlatformBlock(string blockType)
+        public static OpenTrainPlatformBody Read(string blockType, IBlockParam param, TrainStationNameStateDetail stationName, TrainPlatformTransferStateDetail transfer, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids)
         {
-            return blockType == BlockTypeConst.TrainStation || blockType == BlockTypeConst.TrainItemPlatform || blockType == BlockTypeConst.TrainFluidPlatform;
-        }
-
-        public static TrainPlatformBodyViewModel Read(BlockGameObject block, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids)
-        {
-            var master = block.BlockMasterElement;
-            var isStation = master.BlockType == BlockTypeConst.TrainStation;
-
             // 駅名・移送モードはサーバーの StateDetail。届く前は名前は空・モードの切替は出さない（Web ホストと同じ）
             // Name and mode are server StateDetails; before they arrive the name is empty and no mode switch shows (same as the Web host)
-            var stationName = isStation ? block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName ?? string.Empty : string.Empty;
-            var transfer = block.GetStateDetail<TrainPlatformTransferStateDetail>(TrainPlatformTransferStateDetail.BlockStateDetailKey);
-            // スロット数は移送の状態があり、かつ品物の PF・駅のときだけ持つ（Web ホストは状態が無ければ詳細ごと出さない）
-            // Item slots exist only with a transfer state on an item platform or station (the Web host omits the detail without a state)
-            var hasItemSlots = transfer != null && master.BlockParam is TrainItemPlatformBlockParam or TrainStationBlockParam;
-            var mode = transfer != null && transfer.Mode == TrainPlatformTransferComponent.TransferMode.UnloadToPlatform
-                ? TrainPlatformTransferMode.UnloadToPlatform
-                : TrainPlatformTransferMode.LoadToTrain;
+            var namePart = blockType == BlockTypeConst.TrainStation ? new TrainStationNamePart(stationName?.StationName ?? string.Empty) : null;
+            TrainPlatformTransferMode? mode = transfer == null ? null : TrainPlatformTransferModeConversion.FromServer(transfer.Mode);
 
-            // 液体の列は S4-machine の液体 Model が追跡ブロックから組んだもの（Web の fluidSlots と同じく全ブロック共通）
-            // Fluids are the list the S4-machine fluid model built for the tracked block (shared by all blocks, like Web fluidSlots)
-            return new TrainPlatformBodyViewModel(isStation, stationName, hasItemSlots, hasItemSlots ? itemSlots : new List<SlotItem>(), fluids, transfer != null, mode);
+            // スロットは移送の状態があり、かつ品物の PF・駅のときだけ（Web ホストは状態が無ければ詳細ごと出さない）
+            // Item slots only with a transfer state on an item platform or station (the Web host omits the detail without a state)
+            var hasItemSlots = transfer != null && param is TrainItemPlatformBlockParam or TrainStationBlockParam;
+            return new OpenTrainPlatformBody(namePart, hasItemSlots ? itemSlots : null, fluids, mode);
         }
     }
 }
 ```
-（`BlockTypeConst` の駅・PF の綴りは Task 1 Step 3 の grep で確かめる。`ItemSlotCount` は Web と同じく描画には使わない: 実枠はサブインベントリの数で出る）
+（`ItemSlotCount` は Web と同じく描画には使わない: 実枠はパネルの `ItemSlots` の数で出る）
 
 `TrainPlatformBodyModel.cs`:
 
@@ -2009,65 +2730,82 @@ namespace Client.Ui.State.Train.Platform
 using Client.Game.InGame.UI.UIState.State;
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockInventory.Fluid;
-using Client.Ui.State.Train.Inventory;
+using Client.Ui.State.BlockInventory.Logic.Panel;
+using Client.Ui.State.BlockInventory.Panel;
+using Game.Block.Blocks.TrainRail;
 using UniRx;
 using VContainer.Unity;
 
 namespace Client.Ui.State.Train.Platform
 {
     /// <summary>
-    /// 開いている駅・プラットフォームの描画値を、追跡ブロックとサブインベントリから配る
-    /// Publishes the open station or platform's draw values from the tracked block and the sub-inventory
+    /// 開いている駅・プラットフォームの描画値を、パネルの状態・追跡ブロック・液体の Model から配る
+    /// Publishes the open station or platform's draw values from the panel state, the tracked block and the fluid model
     /// </summary>
     public sealed class TrainPlatformBodyModel : ITrainPlatformBodySource, IInitializable
     {
-        private readonly SubInventoryState _subInventoryState;
+        private readonly IBlockInventoryPanelSource _panels;
         private readonly OpenBlockDetailTracker _tracker;
         private readonly IBlockFluidSlotsModel _fluidSlots;
-        private readonly ReactiveProperty<TrainPlatformBodyViewModel> _current = new(TrainPlatformBodyViewModel.Closed);
+        private readonly ReactiveProperty<TrainPlatformBodyState> _current = new(TrainPlatformBodyState.Closed);
 
-        public IReadOnlyReactiveProperty<TrainPlatformBodyViewModel> Current => _current;
+        public IReadOnlyReactiveProperty<TrainPlatformBodyState> Current => _current;
 
-        public TrainPlatformBodyModel(SubInventoryState subInventoryState, OpenBlockDetailTracker tracker, IBlockFluidSlotsModel fluidSlots)
+        public TrainPlatformBodyModel(IBlockInventoryPanelSource panels, OpenBlockDetailTracker tracker, IBlockFluidSlotsModel fluidSlots)
         {
-            _subInventoryState = subInventoryState;
+            _panels = panels;
             _tracker = tracker;
             _fluidSlots = fluidSlots;
         }
 
         public void Initialize()
         {
-            // 追跡替え・追跡ブロックの状態変化・スロット更新で組み直す（alpha のパネルの契機と同じ）
-            // Rebuild on tracked-block change, its state change and slot updates (same triggers as alpha's panel)
+            // パネル・追跡替え・追跡ブロックの状態変化・液体の更新で組み直す
+            // Rebuild on panel, tracked-block change, its state change and fluid updates
+            _panels.Current.Subscribe(_ => Rebuild());
             _tracker.OnTrackedBlockChanged.Subscribe(_ => Rebuild());
             _tracker.OnTrackedBlockStateChanged.Subscribe(_ => Rebuild());
-            _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Rebuild());
             _fluidSlots.Current.Subscribe(_ => Rebuild());
             Rebuild();
         }
 
         private void Rebuild()
         {
-            var block = _tracker.TrackedBlock;
-            var model = _subInventoryState.CurrentSubInventory;
-            if (block == null || model == null || !TrainPlatformDetailReader.IsTrainPlatformBlock(block.BlockMasterElement.BlockType))
+            // 本文の種類はパネルの登録表（BlockComponentRegistry）で決まり、ここで blockType を並べない
+            // The body kind comes from the panel registry (BlockComponentRegistry); no blockType list here
+            if (_panels.Current.Value is not OpenBlockInventoryPanel { Error: BlockInventoryPanelError.None } open || open.Components.Body != BlockInventoryBodyKind.TrainPlatform)
             {
-                _current.Value = TrainPlatformBodyViewModel.Closed;
+                _current.Value = TrainPlatformBodyState.Closed;
                 return;
             }
-            _current.Value = TrainPlatformDetailReader.Read(block, TrainCarContentsConversion.ToSlots(model.SubInventory), _fluidSlots.Current.Value.Slots);
+            var block = _tracker.TrackedBlock;
+            // silent-ok: 追跡の替わりがパネルより後に届く一瞬だけ閉じた値 / 直後の OnTrackedBlockChanged で組み直し、出ないままなら L1・録画で本文が空のまま見える
+            if (block == null)
+            {
+                _current.Value = TrainPlatformBodyState.Closed;
+                return;
+            }
+
+            // StateDetail はサーバー由来の外部データなので無いことがある（Reader が扱う）
+            // StateDetails come from the server and may be missing; the Reader handles that
+            var stationName = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey);
+            var transfer = block.GetStateDetail<TrainPlatformTransferStateDetail>(TrainPlatformTransferStateDetail.BlockStateDetailKey);
+            _current.Value = TrainPlatformDetailReader.Read(open.BlockType, block.BlockMasterElement.BlockParam, stationName, transfer, open.ItemSlots, _fluidSlots.Current.Value.Slots);
         }
     }
 }
 ```
 
+- [ ] **Step 4: プラットフォームの編集側を書く（`Platform/Edit/`）**
+
 `ITrainBlockCommands.cs`:
 
 ```csharp
 using Client.Ui.State.Commands;
+using Client.Ui.State.Train.Platform;
 using Cysharp.Threading.Tasks;
 
-namespace Client.Ui.State.Train.Platform
+namespace Client.Ui.State.Train.Platform.Edit
 {
     /// <summary>
     /// 開いている駅・プラットフォームへの操作。対象はその時点で開いているブロック（Web と同じ）
@@ -2081,28 +2819,28 @@ namespace Client.Ui.State.Train.Platform
 }
 ```
 
-`TrainBlockCommands.cs`:
+`TrainBlockCommands.cs`（拒否の理由文字列は Web ホスト `TrainStationActions.cs:28-35,43`・`TrainPlatformActions.cs:30-32,41` と同じ綴り。モードの失敗は `mode_request_failed`〈理由の接尾辞なし〉。照合済み）:
 
 ```csharp
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
+using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
-using Game.Block.Blocks.TrainRail;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
-namespace Client.Ui.State.Train.Platform
+namespace Client.Ui.State.Train.Platform.Edit
 {
     /// <summary>
-    /// 駅名・移送モードをサーバーへ送る（Web ホスト TrainStationActions・TrainPlatformActions の写し。D-2）
-    /// Sends station names and transfer modes to the server (copy of the Web host TrainStationActions and TrainPlatformActions; D-2)
+    /// 駅名・移送モードをサーバーへ送る（Web ホスト TrainStationActions・TrainPlatformActions と同じ規則。D-2）
+    /// Sends station names and transfer modes to the server (same rules as the Web host TrainStationActions and TrainPlatformActions; D-2)
     /// </summary>
     public sealed class TrainBlockCommands : ITrainBlockCommands
     {
-        public const string SetNameCommandName = "train_station.set_name";
-        public const string SetModeCommandName = "train_platform.set_transfer_mode";
+        private const string StationLogTag = "TrainStationAction";
+        private const string PlatformLogTag = "TrainPlatformAction";
         private readonly SubInventoryState _subInventoryState;
 
         public TrainBlockCommands(SubInventoryState subInventoryState)
@@ -2112,24 +2850,25 @@ namespace Client.Ui.State.Train.Platform
 
         public async UniTask<UiCommandResult> SetStationName(string name)
         {
-            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.Reject("TrainStationAction", "block_not_open");
-            if (blockType != BlockTypeConst.TrainStation) return TrainCommandRejection.Reject("TrainStationAction", "invalid_block_type");
+            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.Reject(StationLogTag, "block_not_open");
+            if (blockType != BlockTypeConst.TrainStation) return TrainCommandRejection.Reject(StationLogTag, "invalid_block_type");
 
             // 応答はネットワーク由来なので null を拒否として扱う
             // The response comes from the network, so null counts as a refusal
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainStationName(source.BlockPosition, name, CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject("TrainStationAction", $"set_name_failed:{response?.FailureReason}");
+            if (response == null || !response.Success) return TrainCommandRejection.Reject(StationLogTag, $"set_name_failed:{response?.FailureReason}");
             return UiCommandAccepted.Instance;
         }
 
         public async UniTask<UiCommandResult> SetTransferMode(TrainPlatformTransferMode mode)
         {
-            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.Reject("TrainPlatformAction", "block_not_open");
-            if (!TrainPlatformDetailReader.IsTrainPlatformBlock(blockType)) return TrainCommandRejection.Reject("TrainPlatformAction", "invalid_block_type");
+            // 本文の種類はパネルと同じ登録表で判定する（blockType を並べない）
+            // The body kind is judged by the same registry as the panel (no blockType list)
+            if (!TryResolveOpenBlock(out var source, out var blockType)) return TrainCommandRejection.Reject(PlatformLogTag, "block_not_open");
+            if (BlockComponentRegistry.Resolve(blockType).Body != BlockInventoryBodyKind.TrainPlatform) return TrainCommandRejection.Reject(PlatformLogTag, "invalid_block_type");
 
-            var serverMode = mode == TrainPlatformTransferMode.UnloadToPlatform ? TrainPlatformTransferComponent.TransferMode.UnloadToPlatform : TrainPlatformTransferComponent.TransferMode.LoadToTrain;
-            var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(source.BlockPosition, serverMode, CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject("TrainPlatformAction", $"set_mode_failed:{response?.FailureReason}");
+            var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(source.BlockPosition, TrainPlatformTransferModeConversion.ToServer(mode), CancellationToken.None);
+            if (response == null || !response.Success) return TrainCommandRejection.Reject(PlatformLogTag, "mode_request_failed");
             return UiCommandAccepted.Instance;
         }
 
@@ -2142,12 +2881,11 @@ namespace Client.Ui.State.Train.Platform
     }
 }
 ```
-（拒否の理由文字列は Web ホスト `TrainPlatformActions.cs` の実物の綴りに合わせる。Task 1 Step 3 で読む）
 
 `TrainStationNameDraft.cs`:
 
 ```csharp
-namespace Client.Ui.State.Train.Platform
+namespace Client.Ui.State.Train.Platform.Edit
 {
     /// <summary>
     /// 駅名の下書き。同期済みの名前と同じ入力（未編集）だけが同期に従い、拒否で最新の同期済みへ戻す（Web TrainStationNameSection の写し）
@@ -2182,144 +2920,161 @@ namespace Client.Ui.State.Train.Platform
 }
 ```
 
-- [ ] **Step 4: テストを回してコミット**
+`ITrainPlatformEditModel.cs`:
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainStationNameDraftTest"`
-Expected: `ErrorCount: 0`、2 件 PASS
+```csharp
+using UniRx;
+
+namespace Client.Ui.State.Train.Platform.Edit
+{
+    /// <summary>
+    /// 駅名の入力と決定・移送モードの切替。View が直接呼ぶ（設計書 A-8）
+    /// Station name input and apply, and transfer mode selection; the View calls them directly (design doc A-8)
+    /// </summary>
+    public interface ITrainPlatformEditModel
+    {
+        IReadOnlyReactiveProperty<string> StationNameInput { get; }
+        void EditStationName(string input);
+        void ApplyStationName();
+        void SelectTransferMode(TrainPlatformTransferMode mode);
+    }
+}
+```
+
+`TrainPlatformEditModel.cs`:
+
+```csharp
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Toast;
+using Cysharp.Threading.Tasks;
+using UniRx;
+using UnityEngine;
+using VContainer.Unity;
+
+namespace Client.Ui.State.Train.Platform.Edit
+{
+    /// <summary>
+    /// 駅名の下書きと送信・移送モードの送信。パネルごとに下書きを作り直し、拒否は同じパネルのときだけ戻す
+    /// Station name draft and sends, and mode sends; the draft is rebuilt per panel and a refusal reverts only on the same panel
+    /// </summary>
+    public sealed class TrainPlatformEditModel : ITrainPlatformEditModel, IInitializable
+    {
+        public const string SetNameCommandName = "train_station.set_name";
+        public const string SetModeCommandName = "train_platform.set_transfer_mode";
+        private readonly IBlockInventoryPanelSource _panels;
+        private readonly ITrainPlatformBodySource _bodies;
+        private readonly ITrainBlockCommands _commands;
+        private readonly UiCommandResultToaster _toaster;
+        private readonly ReactiveProperty<string> _stationNameInput = new(string.Empty);
+        private TrainStationNameDraft _draft = new();
+        private BlockInventoryPanelState _panel = BlockInventoryPanelState.Closed;
+
+        public IReadOnlyReactiveProperty<string> StationNameInput => _stationNameInput;
+
+        public TrainPlatformEditModel(IBlockInventoryPanelSource panels, ITrainPlatformBodySource bodies, ITrainBlockCommands commands, UiCommandResultToaster toaster)
+        {
+            _panels = panels;
+            _bodies = bodies;
+            _commands = commands;
+            _toaster = toaster;
+        }
+
+        public void Initialize()
+        {
+            _panels.Current.Subscribe(ReceivePanel);
+            _bodies.Current.Subscribe(_ => SyncDraft());
+        }
+
+        public void EditStationName(string input)
+        {
+            _draft.Edit(input);
+            _stationNameInput.Value = _draft.Input;
+        }
+
+        public void ApplyStationName()
+        {
+            ApplyAsync(_panel, _draft.Input).Forget();
+        }
+
+        // 選択は替えず目標のモードを送るだけ。結果は公開で反映され、拒否だけトーストへ
+        // The selection is not changed; only the target mode is sent and the publication reflects it, with refusals toasted
+        public void SelectTransferMode(TrainPlatformTransferMode mode)
+        {
+            SendModeAsync(mode).Forget();
+        }
+
+        private void ReceivePanel(BlockInventoryPanelState panel)
+        {
+            // silent-ok: 同じパネルの再配信では下書きを保つ / 打ちかけの入力を消さないため。別のパネルは下で作り直す
+            if (panel.IsSamePanel(_panel)) return;
+            _panel = panel;
+            _draft = new TrainStationNameDraft();
+            SyncDraft();
+        }
+
+        private void SyncDraft()
+        {
+            if (_bodies.Current.Value is OpenTrainPlatformBody { StationName: { } stationName }) _draft.Sync(stationName.SyncedName);
+            _stationNameInput.Value = _draft.Input;
+        }
+
+        private async UniTaskVoid ApplyAsync(BlockInventoryPanelState panelAtSend, string name)
+        {
+            var result = await _commands.SetStationName(name);
+            _toaster.Report(SetNameCommandName, result);
+            if (result is not UiCommandRejected) return;
+
+            // 別のパネルへ移った後なら戻す入力が無い。同じパネルなら最新の同期名へ戻す
+            // After moving to another panel there is no input to revert; on the same panel return to the latest synced name
+            if (!_panel.IsSamePanel(panelAtSend))
+            {
+                Debug.LogWarning("[TrainStationName] set_name refused after the panel changed; nothing to revert");
+                return;
+            }
+            _draft.Reject();
+            _stationNameInput.Value = _draft.Input;
+        }
+
+        private async UniTaskVoid SendModeAsync(TrainPlatformTransferMode mode)
+        {
+            var result = await _commands.SetTransferMode(mode);
+            _toaster.Report(SetModeCommandName, result);
+        }
+    }
+}
+```
+
+- [ ] **Step 5: テストを回してコミット**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TrainTimetableFetchTriggerTest|TrainInventoryTabModelTest|TrainStationNameDraftTest|TrainPlatformDetailReaderTest"`
+Expected: `ErrorCount: 0`、8 件 PASS
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Train moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Train
-git commit -m "feat(uitk): 貨車とプラットフォームの Model を足す（S4-train）
+git commit -m "feat(uitk): 貨車とプラットフォームの Model・タブと駅名の編集 Model を足す（S4-train）
 
 <実行ホストの指示する帰属行>"
 ```
 
 ---
 
-### Task 6: 時刻表の View と Presenter（`Screens/BlockInventory/Train/Timetable/`）
+### Task 6: 時刻表の View（`Screens/BlockInventory/Train/Timetable/`）
 
 **Files:**
 - Create: `S/Client.Ui/Screens/BlockInventory/Train/Timetable/` の 6 本（`.cs` 5・`Timetable.uss`）
-- Create: `S/Client.Tests/Ui/Screens/BlockInventory/Train/Timetable/TrainTimetableSectionViewTest.cs`
 
 **Interfaces:**
-- Consumes: Task 3〜4 の型、`GamePanel`・`FadeRule`・`PanelActionButton`・`ModeSwitch<bool>`・`LocalizedLabel`・`UiStack`
-- Produces: `TrainTimetableAreaView`（`ShowLoading`・`ShowUnavailable`・`ReplaceSection`）、`TrainTimetablePresenter`（`Render(TrainTimetableViewState)`・`RerenderLanguage()`・`Close()`）、`TrainTimetableSectionView.BusyClass = "train-timetable-section--busy"`
+- Consumes: Task 4 の `ITrainTimetableEditModel`・`TrainTimetableAreaViewModel`・`TrainTimetableSectionViewModel`、`GamePanel`・`FadeRule`・`PanelActionButton`・`ModeSwitch<bool>`・`LocalizedLabel`・`UiStack`・`UiTypographyClass`
+- Produces: `TrainTimetableAreaView(ITrainTimetableEditModel edit)`（`Render(TrainTimetableAreaViewModel model, string unnamedStationName)`）、`TrainTimetableSectionView.BusyClass = "train-timetable-section--busy"`、画面のクラス `train-timetable__row-end`（行の右の子）
 
-- [ ] **Step 1: 失敗するテストを書く**
+View は押下で `ITrainTimetableEditModel` の型付きの操作を直接呼ぶ（設計書 A-8）。描画は Presenter（Task 7 の `TrainInventoryBodyPresenter`）が `Render` へ流す。L1 は Task 7 の本文ごと組んで試す（`TrainTimetableSectionViewTest` は Task 7 Step 4）。
 
-`TrainTimetableSectionViewTest.cs`:
-
-```csharp
-using Client.Tests.Ui.State.Train.Fakes;
-using Client.Ui.Screens.BlockInventory.Train.Timetable;
-using Client.Ui.State.Train.Logic;
-using Client.Ui.State.Train.Timetable;
-using Game.Train.RailGraph;
-using NUnit.Framework;
-using UnityEngine.UIElements;
-using static Client.Tests.Ui.State.Train.Fakes.TrainTestData;
-
-namespace Client.Tests.Ui.Screens.BlockInventory.Train.Timetable
-{
-    public class TrainTimetableSectionViewTest : ScreenTestHost
-    {
-        private FakeTrainTimetableCommands _commands;
-        private TrainTimetableAreaView _area;
-        private TrainTimetablePresenter _presenter;
-
-        [SetUp]
-        public void MountArea()
-        {
-            _commands = new FakeTrainTimetableCommands();
-            _area = Mount(new TrainTimetableAreaView());
-            _presenter = new TrainTimetablePresenter(_area, _commands, new ManualTrainTimetableWaitTimer(), Toaster);
-        }
-
-        /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">blocks auto-run until an added stop is authoritative and sends toggles immediately</web-test>
-        [Test]
-        public void 追加が確定するまで自動運転ONを塞ぎ切替は即送る()
-        {
-            // 停車駅 0 件では ON が無効で、理由の文が出る
-            // With no stops, ON is disabled and the reason text shows
-            _presenter.Render(TrainTimetableViewState.Ready(Ready(Unit1, false, 0)));
-            simulate.FrameUpdate();
-            Assert.IsFalse(Find<Button>(_area, "train-timetable-auto-run-on").enabledSelf);
-            Assert.IsTrue(IsShown(_area.Q<Label>("train-timetable-auto-run-unavailable")));
-
-            // 追加は楽観表示でも ON を開けない。公開で確定してから開く
-            // An optimistic add does not open ON; it opens after the publication confirms it
-            simulate.Click(Find<Button>(_area, $"train-timetable-station-12_0_40-add"));
-            Assert.IsFalse(Find<Button>(_area, "train-timetable-auto-run-on").enabledSelf);
-            _commands.Accept();
-            _presenter.Render(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
-            simulate.FrameUpdate();
-            Assert.IsTrue(Find<Button>(_area, "train-timetable-auto-run-on").enabledSelf);
-
-            // 押すと楽観更新なしで即送る
-            // Pressing sends immediately without an optimistic update
-            simulate.Click(Find<Button>(_area, "train-timetable-auto-run-on"));
-            CollectionAssert.AreEqual(new[] { true }, _commands.SentAutoRuns);
-            Assert.IsTrue(IsSelected(Find<Button>(_area, "train-timetable-auto-run-off")));
-        }
-
-        /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">disables moves past either end and follows remote changes when idle</web-test>
-        [Test]
-        public void 端を越える移動を塞ぎ待ちが無いときは外の変更に従う()
-        {
-            _presenter.Render(TrainTimetableViewState.Ready(Ready(Unit1, false, 0, Stop(Unnamed, StationNodeSide.Front), Stop(North, StationNodeSide.Back))));
-            simulate.FrameUpdate();
-            Assert.IsFalse(Find<Button>(_area, "train-timetable-stop-0-up").enabledSelf);
-            Assert.IsTrue(Find<Button>(_area, "train-timetable-stop-0-down").enabledSelf);
-            Assert.IsFalse(Find<Button>(_area, "train-timetable-stop-1-down").enabledSelf);
-            Assert.IsTrue(_area.Q("train-timetable-stop-0").ClassListContains("train-timetable-stop--current"));
-
-            // 待ちが無ければ別の画面からの変更をそのまま映す
-            // When idle, a change from elsewhere shows as is
-            _presenter.Render(TrainTimetableViewState.Ready(Ready(Unit1, false, 0, Stop(North, StationNodeSide.Back))));
-            simulate.FrameUpdate();
-            Assert.IsNull(_area.Q("train-timetable-stop-1"));
-            UiTextAssert.Contains("1. 北駅", _area.Q<Label>("train-timetable-stop-0-label"));
-        }
-    }
-}
-```
-（`Find`・`IsShown`・`IsSelected` は `ScreenTestHost`、`UiTextAssert` は `Client.Tests/Ui/TestDoubles` の実名に合わせる。`simulate.Click` は前例 `BugReportRecoveryControlsViewTest`）
-
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Train.Timetable.TrainTimetableSectionViewTest"`
-Expected: コンパイルエラー
-
-- [ ] **Step 2: 意図の値と 2 つの列を書く**
-
-`TimetableStopMoveRequest.cs`:
-
-```csharp
-using Client.Ui.State.Train.Logic;
-
-namespace Client.Ui.Screens.BlockInventory.Train.Timetable
-{
-    /// <summary>
-    /// 停車駅の上下移動の意図
-    /// Intent to move a stop up or down
-    /// </summary>
-    public readonly struct TimetableStopMoveRequest
-    {
-        public readonly int Index;
-        public readonly StopMoveDirection Direction;
-
-        public TimetableStopMoveRequest(int index, StopMoveDirection direction)
-        {
-            Index = index;
-            Direction = direction;
-        }
-    }
-}
-```
+- [ ] **Step 1: 2 つの列を書く**
 
 `TrainTimetableStopListView.cs`:
 
 ```csharp
-using System;
 using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Decor;
@@ -2334,34 +3089,30 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 {
     /// <summary>
-    /// 停車駅の枠（Web TrainTimetableStopList の写し）。押下は自分の意図へ流すだけ
-    /// Stop list frame (copy of Web TrainTimetableStopList); presses only flow into its own intents
+    /// 停車駅の枠（Web TrainTimetableStopList の写し）。押下は編集 Model を直接呼ぶ（A-8）
+    /// Stop list frame (copy of Web TrainTimetableStopList); presses call the edit model directly (A-8)
     /// </summary>
     public sealed class TrainTimetableStopListView : VisualElement
     {
         private const string ListTestId = "train-timetable-stops";
+        private readonly ITrainTimetableEditModel _edit;
         private readonly GamePanel _panel;
         private readonly LocalizedLabel _empty;
         private readonly VisualElement _list;
-        private readonly Subject<TimetableStopMoveRequest> _onMoveRequested = new();
-        private readonly Subject<int> _onRemoveRequested = new();
 
-        public IObservable<TimetableStopMoveRequest> OnMoveRequested => _onMoveRequested;
-        public IObservable<int> OnRemoveRequested => _onRemoveRequested;
-
-        public TrainTimetableStopListView()
+        public TrainTimetableStopListView(ITrainTimetableEditModel edit)
         {
-            // Craft 枠に見出し・飾り線・列（空なら文言）
-            // A craft frame holding the heading, the fade rule and the list (or the empty text)
+            _edit = edit;
+
+            // Craft 枠に見出し（内側余白は器、文字の型はラベル）・飾り線・列（空なら文言）
+            // A craft frame with the heading (padding on the wrapper, type on the label), the fade rule and the list or empty text
             _panel = new GamePanel("train-timetable-stops-panel", GamePanelFrame.Craft);
-            var heading = new LocalizedLabel();
-            heading.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableStops);
-            heading.AddToClassList("train-timetable__section-heading");
             _empty = new LocalizedLabel { name = ListTestId };
             _empty.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableStopsEmpty);
+            _empty.AddToClassList(UiTypographyClass.TextSm);
             _list = new VisualElement { name = ListTestId };
             _list.AddToClassList("train-timetable__list");
-            _panel.Add(heading);
+            _panel.Add(TrainTimetableHeading.Create(LocalizationKeys.Ui.BlockInventory.TimetableStops));
             _panel.Add(new FadeRule());
             Add(_panel);
         }
@@ -2387,7 +3138,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             var stop = model.Stops[index];
             var row = new VisualElement { name = $"train-timetable-stop-{index}" };
             row.AddToClassList("train-timetable__row");
-            row.EnableInClassList("train-timetable-stop--current", index == model.CurrentIndex);
+            row.EnableInClassList("train-timetable-stop--current", model.CurrentIndex == index);
 
             // ラベルは「番号. 駅名(座標)」。駅名の空は言語で変わるので Presenter が言語の変化で描き直す（D-10）
             // The label is "index. station(coords)"; the Presenter re-renders on language change since the unnamed name localizes (D-10)
@@ -2400,17 +3151,18 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             }));
             label.AddToClassList("train-timetable__label");
 
-            // 押下は行の番号つきの意図へ写して流す。行を作り直すと古いボタンごと購読も捨てられる
-            // Presses map to intents carrying the row index; rebuilding rows discards old buttons with their subscriptions
+            // 押下は行の番号つきで編集 Model へ。行を作り直すと古いボタンごと購読も捨てられる
+            // Presses go to the edit model with the row index; rebuilding rows discards old buttons with their subscriptions
             var up = Control($"train-timetable-stop-{index}-up", LocalizationKeys.Ui.BlockInventory.TimetableMoveUp, model.IsPending || index == 0);
             var down = Control($"train-timetable-stop-{index}-down", LocalizationKeys.Ui.BlockInventory.TimetableMoveDown, model.IsPending || index == model.Stops.Count - 1);
             var remove = Control($"train-timetable-stop-{index}-remove", LocalizationKeys.Ui.BlockInventory.TimetableRemove, model.IsPending);
-            up.OnClicked.Select(_ => new TimetableStopMoveRequest(index, StopMoveDirection.Up)).Subscribe(x => _onMoveRequested.OnNext(x));
-            down.OnClicked.Select(_ => new TimetableStopMoveRequest(index, StopMoveDirection.Down)).Subscribe(x => _onMoveRequested.OnNext(x));
-            remove.OnClicked.Select(_ => index).Subscribe(x => _onRemoveRequested.OnNext(x));
+            up.OnClicked.Subscribe(_ => _edit.Move(index, StopMoveDirection.Up));
+            down.OnClicked.Subscribe(_ => _edit.Move(index, StopMoveDirection.Down));
+            remove.OnClicked.Subscribe(_ => _edit.Remove(index));
 
             var controls = new VisualElement();
             controls.AddToClassList("train-timetable__controls");
+            controls.AddToClassList("train-timetable__row-end");
             controls.Add(up);
             controls.Add(down);
             controls.Add(remove);
@@ -2429,12 +3181,11 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     }
 }
 ```
-（`Subscribe(subject)` にしないのは、ボタンの完了が意図の Subject を閉じないようにするため。`UiNumberFormat` の名前空間は `TimetableEditLogic` と同じ）
+（`UiNumberFormat` の名前空間は `TimetableEditLogic` と同じ）
 
 `TrainTimetableStationListView.cs`:
 
 ```csharp
-using System;
 using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Decor;
@@ -2448,32 +3199,28 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 {
     /// <summary>
-    /// 追加先の駅一覧の枠（Web TrainTimetableSection の駅一覧の写し）
-    /// Frame listing the stations that can be added (copy of the Web TrainTimetableSection station list)
+    /// 追加先の駅一覧の枠（Web TrainTimetableSection の駅一覧の写し）。追加は編集 Model を直接呼ぶ（A-8）
+    /// Frame listing the stations that can be added (copy of the Web TrainTimetableSection station list); adds call the edit model directly (A-8)
     /// </summary>
     public sealed class TrainTimetableStationListView : VisualElement
     {
-        private readonly GamePanel _panel;
+        private readonly ITrainTimetableEditModel _edit;
         private readonly LocalizedLabel _empty;
         private readonly VisualElement _list;
-        private readonly Subject<TrainTimetableStation> _onAddRequested = new();
 
-        public IObservable<TrainTimetableStation> OnAddRequested => _onAddRequested;
-
-        public TrainTimetableStationListView()
+        public TrainTimetableStationListView(ITrainTimetableEditModel edit)
         {
-            _panel = new GamePanel("train-timetable-stations-panel", GamePanelFrame.Craft);
-            var heading = new LocalizedLabel();
-            heading.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableStations);
-            heading.AddToClassList("train-timetable__section-heading");
+            _edit = edit;
+            var panel = new GamePanel("train-timetable-stations-panel", GamePanelFrame.Craft);
             _list = new VisualElement { name = "train-timetable-stations" };
             _list.AddToClassList("train-timetable__list");
             _empty = new LocalizedLabel();
             _empty.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableStationsEmpty);
-            _panel.Add(heading);
-            _panel.Add(new FadeRule());
-            _panel.Add(_list);
-            Add(_panel);
+            _empty.AddToClassList(UiTypographyClass.TextSm);
+            panel.Add(TrainTimetableHeading.Create(LocalizationKeys.Ui.BlockInventory.TimetableStations));
+            panel.Add(new FadeRule());
+            panel.Add(_list);
+            Add(panel);
         }
 
         public void Render(TrainTimetableSectionViewModel model, string unnamedStationName)
@@ -2501,8 +3248,9 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             label.AddToClassList("train-timetable__label");
             var add = new PanelActionButton($"train-timetable-station-{key}-add", LocalizationKeys.Ui.BlockInventory.TimetableAdd);
             add.AddToClassList("train-timetable__control");
+            add.AddToClassList("train-timetable__row-end");
             add.SetEnabled(!disabled);
-            add.OnClicked.Select(_ => station).Subscribe(x => _onAddRequested.OnNext(x));
+            add.OnClicked.Subscribe(_ => _edit.Add(station));
             row.Add(label);
             row.Add(add);
             return row;
@@ -2512,18 +3260,48 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 ```
 （`StationLabel` の名前の引数は言語ごとに `Localize.Get(timetableUnnamedStation)` を Presenter が渡す。`StationLabel` の UiText 自体は `LocalizedLabel` が言語の変化で描き直す）
 
-- [ ] **Step 3: 区画と器を書く**
+`TrainTimetableHeading.cs`:
+
+```csharp
+using Client.Localization;
+using Client.Ui.Foundation.Text;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.BlockInventory.Train.Timetable
+{
+    /// <summary>
+    /// 枠の見出し。内側余白は器に、文字の型（sm・高コントラスト）はラベルに付ける（同じ要素に付けると padding が取り合う）
+    /// Frame heading: padding on the wrapper and the type (sm, high contrast) on the label, since both on one element fight over padding
+    /// </summary>
+    public static class TrainTimetableHeading
+    {
+        public static VisualElement Create(LocalizationKey key)
+        {
+            var wrapper = new VisualElement();
+            wrapper.AddToClassList("train-timetable__section-heading");
+            var label = new LocalizedLabel();
+            label.SetKey(key);
+            label.AddToClassList(UiTypographyClass.TextSm);
+            label.AddToClassList(UiTypographyClass.TextHighContrast);
+            wrapper.Add(label);
+            return wrapper;
+        }
+    }
+}
+```
+
+- [ ] **Step 2: 区画と器を書く**
 
 `TrainTimetableSectionView.cs`:
 
 ```csharp
-using System;
 using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.TimetableEdit;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Train.Timetable
@@ -2538,37 +3316,40 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
         private readonly UiStack _stack = new(UiGap.Xs);
         private readonly ModeSwitch<bool> _autoRun;
         private readonly LocalizedLabel _autoRunUnavailable;
+        private readonly TrainTimetableStopListView _stops;
+        private readonly TrainTimetableStationListView _stations;
 
-        public TrainTimetableStopListView Stops { get; } = new();
-        public TrainTimetableStationListView Stations { get; } = new();
-        public IObservable<bool> OnAutoRunSelected => _autoRun.OnOptionSelected;
-
-        public TrainTimetableSectionView()
+        public TrainTimetableSectionView(ITrainTimetableEditModel edit)
         {
             name = "train-timetable-section";
             AddToClassList("train-timetable");
 
-            // 自動運転の行: 左に見出し・右に ON/OFF
-            // Auto-run row: heading left, ON/OFF right
+            // 自動運転の行: 左に見出し・右に ON/OFF。押下は編集 Model を直接呼ぶ（A-8）
+            // Auto-run row: heading left, ON/OFF right; presses call the edit model directly (A-8)
             var autoRunRow = new VisualElement();
             autoRunRow.AddToClassList("train-timetable__row");
             var autoRunLabel = new LocalizedLabel();
             autoRunLabel.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableAutoRun);
+            autoRunLabel.AddToClassList(UiTypographyClass.TextSm);
             _autoRun = new ModeSwitch<bool>("train-timetable-auto-run", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, new[]
             {
                 new ModeSwitchOption<bool>("train-timetable-auto-run-on", true, new UiText(LocalizationKeys.Ui.BlockInventory.TimetableAutoRunOn)),
                 new ModeSwitchOption<bool>("train-timetable-auto-run-off", false, new UiText(LocalizationKeys.Ui.BlockInventory.TimetableAutoRunOff)),
             });
+            _autoRun.AddToClassList("train-timetable__row-end");
+            _autoRun.OnOptionSelected.Subscribe(edit.SetAutoRun);
             autoRunRow.Add(autoRunLabel);
             autoRunRow.Add(_autoRun);
             _autoRunUnavailable = new LocalizedLabel { name = "train-timetable-auto-run-unavailable" };
             _autoRunUnavailable.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableAutoRunUnavailable);
             _autoRunUnavailable.AddToClassList(UiTypographyClass.TextSm);
 
+            _stops = new TrainTimetableStopListView(edit);
+            _stations = new TrainTimetableStationListView(edit);
             _stack.AddItem(autoRunRow);
             _stack.AddItem(_autoRunUnavailable);
-            _stack.AddItem(Stops);
-            _stack.AddItem(Stations);
+            _stack.AddItem(_stops);
+            _stack.AddItem(_stations);
             Add(_stack);
         }
 
@@ -2581,8 +3362,8 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             _autoRun.SetOptionEnabled(true, !model.IsPending && model.CanEnableAutoRun);
             _autoRun.SetOptionEnabled(false, !model.IsPending);
             _stack.SetItemShown(_autoRunUnavailable, !model.CanEnableAutoRun);
-            Stops.Render(model, unnamedStationName);
-            Stations.Render(model, unnamedStationName);
+            _stops.Render(model, unnamedStationName);
+            _stations.Render(model, unnamedStationName);
         }
     }
 }
@@ -2593,6 +3374,8 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 ```csharp
 using Client.Localization;
 using Client.Ui.Foundation.Text;
+using Client.Ui.State.Train.TimetableEdit;
+using Game.Train.Unit;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Train.Timetable
@@ -2603,46 +3386,49 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     /// </summary>
     public sealed class TrainTimetableAreaView : VisualElement
     {
+        private readonly ITrainTimetableEditModel _edit;
         private readonly LocalizedLabel _loading;
         private readonly LocalizedLabel _unavailable;
         private TrainTimetableSectionView _section;
+        private TrainUnitInstanceId _sectionTrain;
 
-        public TrainTimetableAreaView()
+        public TrainTimetableAreaView(ITrainTimetableEditModel edit)
         {
             name = "train-timetable-area";
-            _loading = new LocalizedLabel { name = "train-timetable-loading" };
-            _loading.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableLoading);
-            _unavailable = new LocalizedLabel { name = "train-timetable-unavailable" };
-            _unavailable.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableUnavailable);
+            _edit = edit;
+            _loading = Message("train-timetable-loading", LocalizationKeys.Ui.BlockInventory.TimetableLoading);
+            _unavailable = Message("train-timetable-unavailable", LocalizationKeys.Ui.BlockInventory.TimetableUnavailable);
             Add(_loading);
             Add(_unavailable);
-            ShowLoading();
+            Show(_loading);
         }
 
-        public void ShowLoading()
+        public void Render(TrainTimetableAreaViewModel model, string unnamedStationName)
         {
-            RemoveSection();
-            _loading.style.display = DisplayStyle.Flex;
-            _unavailable.style.display = DisplayStyle.None;
+            if (model is not ReadyTrainTimetableArea ready)
+            {
+                RemoveSection();
+                Show(model is LoadingTrainTimetableArea ? _loading : _unavailable);
+                return;
+            }
+
+            // 列車が替わるたびに新しい区画を作る（Web の key=trainUnitId と同じく中の状態を持ち越さない）
+            // A new section per train, carrying no inner state over (same as the Web key=trainUnitId)
+            if (_section == null || !_sectionTrain.Equals(ready.TrainUnitInstanceId))
+            {
+                RemoveSection();
+                _section = new TrainTimetableSectionView(_edit);
+                _sectionTrain = ready.TrainUnitInstanceId;
+                Add(_section);
+            }
+            Show(null);
+            _section.Render(ready.Section, unnamedStationName);
         }
 
-        public void ShowUnavailable()
+        private void Show(VisualElement message)
         {
-            RemoveSection();
-            _loading.style.display = DisplayStyle.None;
-            _unavailable.style.display = DisplayStyle.Flex;
-        }
-
-        // 列車が替わるたびに新しい区画を作る（Web の key=trainUnitId と同じく中の状態を持ち越さない）
-        // A new section per train, carrying no inner state over (same as the Web key=trainUnitId)
-        public TrainTimetableSectionView ReplaceSection()
-        {
-            RemoveSection();
-            _loading.style.display = DisplayStyle.None;
-            _unavailable.style.display = DisplayStyle.None;
-            _section = new TrainTimetableSectionView();
-            Add(_section);
-            return _section;
+            _loading.style.display = message == _loading ? DisplayStyle.Flex : DisplayStyle.None;
+            _unavailable.style.display = message == _unavailable ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void RemoveSection()
@@ -2650,127 +3436,24 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             _section?.RemoveFromHierarchy();
             _section = null;
         }
-    }
-}
-```
 
-- [ ] **Step 4: Presenter を書く**
-
-`TrainTimetablePresenter.cs`:
-
-```csharp
-using Client.Localization;
-using Client.Ui.State.Toast;
-using Client.Ui.State.Train.Logic;
-using Client.Ui.State.Train.Timetable;
-using Client.Ui.State.Train.TimetableEdit;
-using Cysharp.Threading.Tasks;
-using UniRx;
-
-namespace Client.Ui.Screens.BlockInventory.Train.Timetable
-{
-    /// <summary>
-    /// 時刻表の状態を区画へ流し、区画の意図を列車ごとの編集セッションとコマンドへ渡す
-    /// Feeds the timetable state into the section and routes section intents to the per-train edit session and commands
-    /// </summary>
-    public sealed class TrainTimetablePresenter
-    {
-        private const string SetAutoRunCommandName = "train_timetable.set_auto_run";
-        private readonly TrainTimetableAreaView _view;
-        private readonly ITrainTimetableCommands _commands;
-        private readonly ITrainTimetableWaitTimer _timer;
-        private readonly UiCommandResultToaster _toaster;
-        private readonly CompositeDisposable _sectionSubscriptions = new();
-        private TrainTimetableEditSession _session;
-        private TrainTimetableSectionView _section;
-        private TrainTimetableReadyData _server;
-
-        public TrainTimetablePresenter(TrainTimetableAreaView view, ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster)
+        private static LocalizedLabel Message(string testid, LocalizationKey key)
         {
-            _view = view;
-            _commands = commands;
-            _timer = timer;
-            _toaster = toaster;
-        }
-
-        public void Render(TrainTimetableViewState state)
-        {
-            if (state is ReadyTrainTimetableViewState ready)
-            {
-                RenderReady(ready.Data);
-                return;
-            }
-            CloseSection();
-            if (state is LoadingTrainTimetableViewState) _view.ShowLoading();
-            else _view.ShowUnavailable();
-        }
-
-        public void RerenderLanguage()
-        {
-            if (_section != null) RenderSection();
-        }
-
-        public void Close()
-        {
-            CloseSection();
-        }
-
-        private void RenderReady(TrainTimetableReadyData data)
-        {
-            // 列車が替わったら区画と編集を作り直し、同じ列車ならサーバーの並びを編集へ渡す
-            // A different train rebuilds the section and session; the same train hands the server order to the session
-            if (_session == null || !_server.TrainUnitInstanceId.Equals(data.TrainUnitInstanceId)) OpenSection(data);
-            else _session.ReceiveServerStops(data.Stops);
-            _server = data;
-            RenderSection();
-        }
-
-        private void OpenSection(TrainTimetableReadyData data)
-        {
-            CloseSection();
-            _server = data;
-            _session = new TrainTimetableEditSession(_commands, _timer, _toaster, data.Stops);
-            _section = _view.ReplaceSection();
-
-            // 編集の表示と区画の意図を購読する（View は購読しない）
-            // Subscribe to the session display and the section intents (the View never subscribes)
-            _session.DisplayedStops.Skip(1).Subscribe(_ => RenderSection()).AddTo(_sectionSubscriptions);
-            _session.IsPending.Skip(1).Subscribe(_ => RenderSection()).AddTo(_sectionSubscriptions);
-            _section.Stations.OnAddRequested.Subscribe(station => _session.Replace(TimetableEditLogic.AddStop(_session.DisplayedStops.Value, station))).AddTo(_sectionSubscriptions);
-            _section.Stops.OnMoveRequested.Subscribe(move => _session.Replace(TimetableEditLogic.MoveStop(_session.DisplayedStops.Value, move.Index, move.Direction))).AddTo(_sectionSubscriptions);
-            _section.Stops.OnRemoveRequested.Subscribe(index => _session.Replace(TimetableEditLogic.RemoveStop(_session.DisplayedStops.Value, index))).AddTo(_sectionSubscriptions);
-            _section.OnAutoRunSelected.Subscribe(enabled => SendAutoRun(enabled).Forget()).AddTo(_sectionSubscriptions);
-        }
-
-        private void RenderSection()
-        {
-            var model = TrainTimetableSectionViewModel.Build(_server, _session.DisplayedStops.Value, _session.IsPending.Value);
-            _section.Render(model, Localize.Get(LocalizationKeys.Ui.BlockInventory.TimetableUnnamedStation));
-        }
-
-        private void CloseSection()
-        {
-            _sectionSubscriptions.Clear();
-            _session?.Close();
-            _session = null;
-            _section = null;
-        }
-
-        // 自動運転は楽観表示しない。結果は公開で反映され、拒否だけトーストへ
-        // Auto-run is never shown optimistically; the publication reflects the result and only refusals toast
-        private async UniTaskVoid SendAutoRun(bool enabled)
-        {
-            var result = await _commands.SetAutoRun(enabled);
-            _toaster.Report(SetAutoRunCommandName, result);
+            var label = new LocalizedLabel { name = testid };
+            label.SetKey(key);
+            label.AddToClassList(UiTypographyClass.TextSm);
+            return label;
         }
     }
 }
 ```
+（`_section` の null は「区画をまだ作っていない」を表す View 内の寿命で、外部データの null チェックではない）
 
 `Timetable.uss`:
 
 ```css
-/* web: features/blockInventory/train/style.module.css の行・操作・一覧・見出し（ローカルのつまみ無し） / (English) rows, controls, lists and headings from the Web train style module; no local knobs */
+/* web: features/blockInventory/train/style.module.css の行・操作・一覧・見出し（ローカルのつまみ無し） */
+/* web: rows, controls, lists and headings from the Web train style module; no local knobs */
 .train-timetable__list {
     flex-direction: column;
 }
@@ -2781,13 +3464,15 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     justify-content: space-between;
 }
 
-.train-timetable__row > .train-timetable__controls {
+.train-timetable__row > .train-timetable__row-end {
     margin-left: var(--mode-switch-padding-inline);
 }
 
 .train-timetable__label {
     flex-shrink: 1;
     min-width: 0;
+    margin: 0;
+    padding: 0;
     white-space: normal;
 }
 
@@ -2815,25 +3500,25 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 
 .train-timetable__section-heading {
     padding: 0 var(--mode-switch-padding-inline) var(--mode-switch-padding-block);
-    color: var(--text-high-contrast);
 }
 
-/* 無効な操作の文字は --text-muted（Web .list button:disabled）。部品のつまみを画面のルートで上書き（D-11） / Disabled control text uses --text-muted (Web .list button:disabled) via the part knob at the screen root (D-11) */
+/* 無効な操作の文字は --text-muted（Web .list button:disabled）。部品のつまみを画面のルートで上書き（D-11） */
+/* Disabled control text uses --text-muted (Web .list button:disabled) via the part knob at the screen root (D-11) */
 .train-timetable .train-timetable__control:disabled {
     --panel-action-button-text: var(--text-muted);
     opacity: 1;
 }
 ```
-（UITK の USS は `gap` と `+` 結合子を持たない。Task 6 Step 5 の compile で USS の警告が出たら、`+` の 2 か所を「先頭以外の子」に当たるクラスを C# が付ける形（`train-timetable__row--following`・`train-timetable__control--following`）に替える。`border-top-width` に `var()` が使えなければ同値のトークンの解決後の値を書かず、`UssCustomStyleReader` で読んで C# が `style.borderTopWidth` に入れる。どちらにしても見た目は Web と同じにする）
+（行の右の子の間は `train-timetable__row-end` 1 本で取り、部品のクラスを主語にしない。停車駅の操作・駅一覧の `+`・自動運転の `ModeSwitch` の 3 つに C# で付ける。UITK の USS は `gap` と `+` 結合子を持たない。Step 3 の compile で USS の警告が出たら、`+` の 2 か所を「先頭以外の子」に当たるクラスを C# が付ける形（`train-timetable__row--following`・`train-timetable__control--following`）に替える。`border-top-width` に `var()` が使えなければ同値のトークンの解決後の値を書かず、`UssCustomStyleReader` で読んで C# が `style.borderTopWidth` に入れる。どちらにしても見た目は Web と同じにする）
 
-- [ ] **Step 5: テストを回してコミット**
+- [ ] **Step 3: compile してコミット**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Train.Timetable.TrainTimetableSectionViewTest"`
-Expected: `ErrorCount: 0`、2 件 PASS（`Timetable.uss` の取り込みは Task 8。ここでは色・余白を主張しない）
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: `ErrorCount: 0`（L1 は Task 7 Step 4 で本文ごと回す。`Timetable.uss` の取り込みは Task 8）
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Train/Timetable moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Train
-git commit -m "feat(uitk): 時刻表の区画の View と Presenter を足す（S4-train）
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Train/Timetable
+git commit -m "feat(uitk): 時刻表の区画の View を足す（S4-train）
 
 <実行ホストの指示する帰属行>"
 ```
@@ -2844,53 +3529,57 @@ git commit -m "feat(uitk): 時刻表の区画の View と Presenter を足す（
 
 **Files:**
 - Create: `S/Client.Ui/Screens/BlockInventory/Train/` の 7 本＋`Train.uss`、`Train/Parts/` の 2 本
-- Create: `S/Client.Tests/Ui/Screens/BlockInventory/Train/TrainTestBodies.cs`・`TrainInventoryBodyTest.cs`・`TrainPlatformBodyTest.cs`
+- Create: `S/Client.Tests/Ui/Screens/BlockInventory/Train/TrainTestBodies.cs`・`TrainInventoryBodyTest.cs`・`TrainPlatformBodyTest.cs`、`Train/Timetable/TrainTimetableSectionViewTest.cs`
 
 **Interfaces:**
-- Consumes: alpha の `ITrainInventoryBodyFactory`・`IBlockInventoryBodyFactory`・`BlockItemGridFactory`、S4-machine の `FluidInventoryContents(testid, GameContentPresentation)`、Task 3〜6 の型
+- Consumes: alpha の `ITrainInventoryBodyFactory`・`IBlockInventoryBodyFactory`・`BlockInventoryBodyMount(bool fillsPanelHeight)`・`BlockItemGridFactory`、S4-machine の `FluidInventoryContents(testid, GameContentPresentation)`、Task 4〜6 の型
 - Produces: `TrainInventoryBodyFactory : ITrainInventoryBodyFactory`、`TrainPlatformBodyFactory : IBlockInventoryBodyFactory`（Kind `TrainPlatform`）
+
+Presenter は Model の `Current` を購読して View の `Render` へ流すだけで、判断・コマンドの中継・State の寿命を持たない（設計書 §4.2・A-8）。押下は View が State の型付きの口（`ITrainInventoryTabModel`・`ITrainTimetableEditModel`・`ITrainPlatformEditModel`）を直接呼ぶ。
 
 - [ ] **Step 1: 画面だけの部品を書く**
 
 `Parts/TrainStationNameRow.cs`:
 
 ```csharp
-using System;
 using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
+using Client.Ui.State.Train.Platform.Edit;
 using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Train.Parts
 {
     /// <summary>
-    /// 駅名の行（Web TrainStationNameSection の写し）。送るのは決定の押下だけ
-    /// Station name row (copy of Web TrainStationNameSection); only the Set press sends
+    /// 駅名の行（Web TrainStationNameSection の写し）。入力と決定は編集 Model を直接呼ぶ（A-8）。送るのは決定だけ
+    /// Station name row (copy of Web TrainStationNameSection); input and Set call the edit model directly (A-8) and only Set sends
     /// </summary>
     public sealed class TrainStationNameRow : VisualElement
     {
         private readonly GameTextField _input;
-        private readonly PanelActionButton _apply;
 
-        public IObservable<string> OnInputEdited => _input.OnValueChanged;
-        public IObservable<Unit> OnApplyClicked => _apply.OnClicked;
-
-        public TrainStationNameRow()
+        public TrainStationNameRow(ITrainPlatformEditModel edit)
         {
             name = "train-station-name-section";
             AddToClassList("train-station-name");
             var label = new LocalizedLabel();
             label.SetKey(LocalizationKeys.Ui.BlockInventory.StationNameLabel);
             label.AddToClassList(UiTypographyClass.TextSm);
+
+            // 入力欄は自然な幅（Web は伸ばさない）。間は右の 2 つの子に付ける画面のクラスで取る
+            // The field keeps its natural width (Web does not stretch it); gaps come from a screen class on the two right children
             _input = new GameTextField("train-station-name-input", false, GameTextFieldLook.GaugeInset);
             _input.SetPlaceholder(new UiText(LocalizationKeys.Ui.BlockInventory.StationNamePlaceholder));
-            _input.AddToClassList("train-station-name__input");
-            _apply = new PanelActionButton("train-station-name-apply", LocalizationKeys.Ui.BlockInventory.StationNameApply);
+            _input.AddToClassList("train-station-name__row-end");
+            _input.OnValueChanged.Subscribe(edit.EditStationName);
+            var apply = new PanelActionButton("train-station-name-apply", LocalizationKeys.Ui.BlockInventory.StationNameApply);
+            apply.AddToClassList("train-station-name__row-end");
+            apply.OnClicked.Subscribe(_ => edit.ApplyStationName());
             Add(label);
             Add(_input);
-            Add(_apply);
+            Add(apply);
         }
 
         public void Render(string input)
@@ -2906,26 +3595,25 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
 `Parts/TrainPlatformModeSection.cs`:
 
 ```csharp
-using System;
 using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.Platform;
+using Client.Ui.State.Train.Platform.Edit;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Train.Parts
 {
     /// <summary>
-    /// 積込/卸しの切替（Web TrainPlatformSection の写し）。選択はサーバーの状態でだけ替わる
-    /// Load/unload switch (copy of Web TrainPlatformSection); the selection changes only with the server state
+    /// 積込/卸しの切替（Web TrainPlatformSection の写し）。押下は編集 Model を直接呼び、選択はサーバーの状態でだけ替わる
+    /// Load/unload switch (copy of Web TrainPlatformSection); presses call the edit model directly and the selection follows the server only
     /// </summary>
     public sealed class TrainPlatformModeSection : VisualElement
     {
         private readonly ModeSwitch<TrainPlatformTransferMode> _mode;
 
-        public IObservable<TrainPlatformTransferMode> OnModeSelected => _mode.OnOptionSelected;
-
-        public TrainPlatformModeSection()
+        public TrainPlatformModeSection(ITrainPlatformEditModel edit)
         {
             // 選択肢の testid は Web に無いので -load / -unload を足す（D-7）
             // Web options carry no testids, so -load / -unload are added (D-7)
@@ -2935,6 +3623,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
                 new ModeSwitchOption<TrainPlatformTransferMode>("train-platform-mode-load", TrainPlatformTransferMode.LoadToTrain, new UiText(LocalizationKeys.Ui.BlockInventory.TrainPlatformLoad)),
                 new ModeSwitchOption<TrainPlatformTransferMode>("train-platform-mode-unload", TrainPlatformTransferMode.UnloadToPlatform, new UiText(LocalizationKeys.Ui.BlockInventory.TrainPlatformUnload)),
             });
+            _mode.OnOptionSelected.Subscribe(edit.SelectTransferMode);
             Add(_mode);
         }
 
@@ -2970,6 +3659,7 @@ namespace Client.Ui.Screens.BlockInventory.Train
 
         public TrainInventoryContentsView(BlockItemGrid grid, FluidInventoryContents fluids)
         {
+            name = "train-inventory-contents";
             _grid = grid;
             _fluids = fluids;
             Add(_grid);
@@ -2991,38 +3681,39 @@ namespace Client.Ui.Screens.BlockInventory.Train
 `TrainInventoryBodyView.cs`:
 
 ```csharp
-using System;
 using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Train.Timetable;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.Inventory;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Train
 {
     /// <summary>
-    /// 列車の本文（Web TrainInventoryBody の写し）。タブとスクロール器の中に持ち物と時刻表
-    /// Train body (copy of Web TrainInventoryBody): tabs, then inventory and timetable inside the scroll view
+    /// 列車の本文（Web TrainInventoryBody の写し）。タブとスクロール器の中に持ち物と時刻表。タブの押下は Model を直接呼ぶ（A-8）
+    /// Train body (copy of Web TrainInventoryBody): tabs, then inventory and timetable inside the scroll view; tab presses call the model directly (A-8)
     /// </summary>
     public sealed class TrainInventoryBodyView : VisualElement
     {
         private readonly ModeSwitch<TrainInventoryTab> _tabs;
 
         public TrainInventoryContentsView Contents { get; }
-        public TrainTimetableAreaView Timetable { get; } = new();
-        public IObservable<TrainInventoryTab> OnTabSelected => _tabs.OnOptionSelected;
+        public TrainTimetableAreaView Timetable { get; }
 
-        public TrainInventoryBodyView(TrainInventoryContentsView contents)
+        public TrainInventoryBodyView(TrainInventoryContentsView contents, TrainTimetableAreaView timetable, ITrainInventoryTabModel tabModel)
         {
             name = "train-inventory-body";
             AddToClassList("train-body");
             Contents = contents;
+            Timetable = timetable;
             _tabs = new ModeSwitch<TrainInventoryTab>("train-tabs", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Tablist, new[]
             {
                 new ModeSwitchOption<TrainInventoryTab>("train-tab-inventory", TrainInventoryTab.Inventory, new UiText(LocalizationKeys.Ui.BlockInventory.TrainTabInventory)),
                 new ModeSwitchOption<TrainInventoryTab>("train-tab-timetable", TrainInventoryTab.Timetable, new UiText(LocalizationKeys.Ui.BlockInventory.TrainTabTimetable)),
             });
+            _tabs.OnOptionSelected.Subscribe(tabModel.SelectTab);
 
             // 時刻表は持ち物タブのあいだも作ったまま隠す（Web の hidden。D-5）
             // The timetable stays built but hidden on the inventory tab (Web hidden; D-5)
@@ -3049,10 +3740,8 @@ namespace Client.Ui.Screens.BlockInventory.Train
 ```csharp
 using Client.Localization;
 using Client.Ui.Screens.BlockInventory.Registry;
-using Client.Ui.Screens.BlockInventory.Train.Timetable;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Train.Inventory;
-using Client.Ui.State.Train.Timetable;
 using Client.Ui.State.Train.TimetableEdit;
 using UniRx;
 using UnityEngine.UIElements;
@@ -3060,64 +3749,51 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Train
 {
     /// <summary>
-    /// 列車の本文の Presenter。タブ・取得の依頼・中身と時刻表を View へ流す
-    /// Presenter of the train body: routes tabs, fetch requests, contents and the timetable to the View
+    /// 列車の本文の Presenter。タブ・中身・時刻表の Model を購読して View へ流すだけ（判断と寿命は State）
+    /// Presenter of the train body: only subscribes the tab, contents and timetable models into the View (decisions and lifetimes stay in State)
     /// </summary>
     public sealed class TrainInventoryBodyPresenter : ITrainInventoryPart
     {
         private readonly TrainInventoryBodyView _view;
+        private readonly ITrainInventoryTabModel _tab;
         private readonly ITrainInventoryBodySource _body;
-        private readonly ITrainTimetableSource _timetableSource;
-        private readonly ITrainTimetableCommands _commands;
-        private readonly TrainTimetablePresenter _timetable;
+        private readonly ITrainTimetableEditModel _timetable;
         private readonly CompositeDisposable _subscriptions = new();
-        private TrainTimetableFetchTrigger _fetchTrigger;
 
         public VisualElement Root => _view;
 
-        public TrainInventoryBodyPresenter(TrainInventoryBodyView view, ITrainInventoryBodySource body, ITrainTimetableSource timetableSource, ITrainTimetableCommands commands, TrainTimetablePresenter timetable)
+        public TrainInventoryBodyPresenter(TrainInventoryBodyView view, ITrainInventoryTabModel tab, ITrainInventoryBodySource body, ITrainTimetableEditModel timetable)
         {
             _view = view;
+            _tab = tab;
             _body = body;
-            _timetableSource = timetableSource;
-            _commands = commands;
             _timetable = timetable;
         }
 
+        // 列車の識別は Model がパネルの源から読むので、ここでは使わない
+        // Models read the train identity from the panel source, so it is unused here
         public void Attach(OpenTrainInventoryPanel panel)
         {
-            // 開くたびに持ち物タブから始める（Web は本文の mount ごとに初期化）
-            // Every open starts on the inventory tab (Web resets per body mount)
-            _fetchTrigger = new TrainTimetableFetchTrigger();
-            _view.RenderTab(_fetchTrigger.Tab);
-            _view.OnTabSelected.Subscribe(SelectTab).AddTo(_subscriptions);
+            _tab.Tab.Subscribe(_view.RenderTab).AddTo(_subscriptions);
             _body.Current.Subscribe(_view.Contents.Render).AddTo(_subscriptions);
-            _timetableSource.Current.Subscribe(ReceiveTimetable).AddTo(_subscriptions);
-            Localize.OnLanguageChanged.Subscribe(_ => _timetable.RerenderLanguage()).AddTo(_subscriptions);
+            _timetable.Current.Subscribe(_ => RenderTimetable()).AddTo(_subscriptions);
+            Localize.OnLanguageChanged.Subscribe(_ => RenderTimetable()).AddTo(_subscriptions);
         }
 
         public void Detach()
         {
             _subscriptions.Clear();
-            _timetable.Close();
         }
 
-        private void SelectTab(TrainInventoryTab tab)
+        // 無名の駅の名前は言語で変わるので、言語の変化でも描き直す（D-10）
+        // The unnamed station name localizes, so language changes redraw too (D-10)
+        private void RenderTimetable()
         {
-            var enteredTimetable = _fetchTrigger.SelectTab(tab);
-            _view.RenderTab(tab);
-            if (enteredTimetable) _commands.RequestOpen();
-        }
-
-        private void ReceiveTimetable(TrainTimetableViewState state)
-        {
-            _timetable.Render(state);
-            if (_fetchTrigger.ReceiveState(state)) _commands.RequestOpen();
+            _view.Timetable.Render(_timetable.Current.Value, Localize.Get(LocalizationKeys.Ui.BlockInventory.TimetableUnnamedStation));
         }
     }
 }
 ```
-（`Localize.OnLanguageChanged` の型は Task 1 Step 3 で確かめる。`IObservable` でなければ前例 `LocalizedLabel` の購読の書き方に合わせる）
 
 `TrainInventoryBodyFactory.cs`:
 
@@ -3127,9 +3803,7 @@ using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.Train.Timetable;
-using Client.Ui.State.Toast;
 using Client.Ui.State.Train.Inventory;
-using Client.Ui.State.Train.Timetable;
 using Client.Ui.State.Train.TimetableEdit;
 
 namespace Client.Ui.Screens.BlockInventory.Train
@@ -3141,20 +3815,16 @@ namespace Client.Ui.Screens.BlockInventory.Train
     public sealed class TrainInventoryBodyFactory : ITrainInventoryBodyFactory
     {
         private readonly ITrainInventoryBodySource _body;
-        private readonly ITrainTimetableSource _timetable;
-        private readonly ITrainTimetableCommands _commands;
-        private readonly ITrainTimetableWaitTimer _timer;
-        private readonly UiCommandResultToaster _toaster;
+        private readonly ITrainInventoryTabModel _tab;
+        private readonly ITrainTimetableEditModel _timetable;
         private readonly BlockItemGridFactory _gridFactory;
         private readonly GameContentPresentation _content;
 
-        public TrainInventoryBodyFactory(ITrainInventoryBodySource body, ITrainTimetableSource timetable, ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, BlockItemGridFactory gridFactory, GameContentPresentation content)
+        public TrainInventoryBodyFactory(ITrainInventoryBodySource body, ITrainInventoryTabModel tab, ITrainTimetableEditModel timetable, BlockItemGridFactory gridFactory, GameContentPresentation content)
         {
             _body = body;
+            _tab = tab;
             _timetable = timetable;
-            _commands = commands;
-            _timer = timer;
-            _toaster = toaster;
             _gridFactory = gridFactory;
             _content = content;
         }
@@ -3162,68 +3832,73 @@ namespace Client.Ui.Screens.BlockInventory.Train
         public ITrainInventoryPart Create()
         {
             var contents = new TrainInventoryContentsView(_gridFactory.Create("train-inventory-slots"), new FluidInventoryContents("train-inventory-fluids", _content));
-            var view = new TrainInventoryBodyView(contents);
-            var timetable = new TrainTimetablePresenter(view.Timetable, _commands, _timer, _toaster);
-            return new TrainInventoryBodyPresenter(view, _body, _timetable, _commands, timetable);
+            var view = new TrainInventoryBodyView(contents, new TrainTimetableAreaView(_timetable), _tab);
+            return new TrainInventoryBodyPresenter(view, _tab, _body, _timetable);
         }
     }
 }
 ```
+（alpha D-35 により、この工場が登録されていないあいだ alpha のレジストリは null ではなく空の部分 `EmptyTrainInventoryPart` を返す。登録後はこの工場の部分が使われる）
 
 - [ ] **Step 3: プラットフォームの本文を書く**
 
 `TrainPlatformBodyView.cs`:
 
 ```csharp
-using System;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Train.Parts;
 using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.Train.Platform;
+using Client.Ui.State.Train.Platform.Edit;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Train
 {
     /// <summary>
-    /// 駅・プラットフォームの本文（Web TrainPlatformInventory の写し）。駅名 → スロット → 液体 → モード
-    /// Station and platform body (copy of Web TrainPlatformInventory): name, slots, fluids, then mode
+    /// 駅・プラットフォームの本文（Web TrainPlatformInventory の写し）。駅名 → スロット → 液体 → モード。部分は「あれば出す」の 1 規則
+    /// Station and platform body (copy of Web TrainPlatformInventory): name, slots, fluids, mode; each part follows "show when present"
     /// </summary>
     public sealed class TrainPlatformBodyView : VisualElement
     {
         private readonly UiStack _stack = new(UiGap.Sm);
+        private readonly TrainStationNameRow _nameRow;
         private readonly BlockItemGrid _grid;
         private readonly FluidInventoryContents _fluids;
-        private readonly TrainPlatformModeSection _mode = new();
+        private readonly TrainPlatformModeSection _mode;
 
-        public TrainStationNameRow NameRow { get; } = new();
-        public IObservable<TrainPlatformTransferMode> OnModeSelected => _mode.OnModeSelected;
-
-        public TrainPlatformBodyView(BlockItemGrid grid, FluidInventoryContents fluids)
+        public TrainPlatformBodyView(BlockItemGrid grid, FluidInventoryContents fluids, ITrainPlatformEditModel edit)
         {
             name = "train-platform-view";
+            _nameRow = new TrainStationNameRow(edit);
             _grid = grid;
             _fluids = fluids;
-            _stack.AddItem(NameRow);
+            _mode = new TrainPlatformModeSection(edit);
+            _stack.AddItem(_nameRow);
             _stack.AddItem(_grid);
             _stack.AddItem(_fluids);
             _stack.AddItem(_mode);
             Add(_stack);
         }
 
-        public void Render(TrainPlatformBodyViewModel model, string stationNameInput)
+        public void Render(TrainPlatformBodyState state, string stationNameInput)
         {
-            // 出さない区画は Stack から隠し、間の余白も詰める
+            // 閉じた状態ではどの部分も出さない（エラー行は alpha の外殻が出す）
+            // A closed state shows no part (alpha's shell shows the error row)
+            var open = state as OpenTrainPlatformBody;
+            _stack.SetItemShown(_nameRow, open?.StationName != null);
+            _stack.SetItemShown(_grid, open?.ItemSlots != null);
+            _stack.SetItemShown(_fluids, open != null && 0 < open.Fluids.Count);
+            _stack.SetItemShown(_mode, open?.Mode != null);
+            if (open == null) return;
+
+            // 出さない部分は Stack から隠し、間の余白も詰める
             // Hidden parts leave the stack so their gaps collapse too
-            _stack.SetItemShown(NameRow, model.IsStation);
-            if (model.IsStation) NameRow.Render(stationNameInput);
-            _stack.SetItemShown(_grid, model.HasItemSlots);
-            if (model.HasItemSlots) _grid.Render(model.ItemSlots, BlockDetailMath.AllSlotIndices(model.ItemSlots.Count));
-            _stack.SetItemShown(_fluids, 0 < model.Fluids.Count);
-            _fluids.Render(model.Fluids);
-            _stack.SetItemShown(_mode, model.HasTransferMode);
-            _mode.Render(model.Mode);
+            if (open.StationName != null) _nameRow.Render(stationNameInput);
+            if (open.ItemSlots != null) _grid.Render(open.ItemSlots, BlockDetailMath.AllSlotIndices(open.ItemSlots.Count));
+            _fluids.Render(open.Fluids);
+            if (open.Mode.HasValue) _mode.Render(open.Mode.Value);
         }
     }
 }
@@ -3234,84 +3909,49 @@ namespace Client.Ui.Screens.BlockInventory.Train
 ```csharp
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Panel;
-using Client.Ui.State.Commands;
-using Client.Ui.State.Toast;
 using Client.Ui.State.Train.Platform;
-using Cysharp.Threading.Tasks;
+using Client.Ui.State.Train.Platform.Edit;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Train
 {
     /// <summary>
-    /// 駅・プラットフォームの本文の Presenter。駅名の下書きと送信・モードの送信を受け持つ
-    /// Presenter of the station and platform body: owns the name draft and sends names and modes
+    /// 駅・プラットフォームの本文の Presenter。本文の状態と駅名の入力を購読して View へ流すだけ（下書き・送信は State）
+    /// Presenter of the station and platform body: only subscribes the body state and the name input into the View (draft and sends stay in State)
     /// </summary>
     public sealed class TrainPlatformBodyPresenter : IBlockInventoryPart
     {
         private readonly TrainPlatformBodyView _view;
         private readonly ITrainPlatformBodySource _source;
-        private readonly ITrainBlockCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
-        private readonly TrainStationNameDraft _draft = new();
+        private readonly ITrainPlatformEditModel _edit;
         private readonly CompositeDisposable _subscriptions = new();
-        private TrainPlatformBodyViewModel _latest = TrainPlatformBodyViewModel.Closed;
-        private bool _attached;
 
         public VisualElement Root => _view;
 
-        public TrainPlatformBodyPresenter(TrainPlatformBodyView view, ITrainPlatformBodySource source, ITrainBlockCommands commands, UiCommandResultToaster toaster)
+        public TrainPlatformBodyPresenter(TrainPlatformBodyView view, ITrainPlatformBodySource source, ITrainPlatformEditModel edit)
         {
             _view = view;
             _source = source;
-            _commands = commands;
-            _toaster = toaster;
+            _edit = edit;
         }
 
+        // ブロックの識別は Model がパネルの源から読むので、ここでは使わない
+        // Models read the block identity from the panel source, so it is unused here
         public void Attach(OpenBlockInventoryPanel panel)
         {
-            _attached = true;
-            _source.Current.Subscribe(Render).AddTo(_subscriptions);
-            _view.NameRow.OnInputEdited.Subscribe(_draft.Edit).AddTo(_subscriptions);
-            _view.NameRow.OnApplyClicked.Subscribe(_ => ApplyName().Forget()).AddTo(_subscriptions);
-            _view.OnModeSelected.Subscribe(mode => SendMode(mode).Forget()).AddTo(_subscriptions);
+            _source.Current.Subscribe(_ => Render()).AddTo(_subscriptions);
+            _edit.StationNameInput.Subscribe(_ => Render()).AddTo(_subscriptions);
         }
 
         public void Detach()
         {
-            _attached = false;
             _subscriptions.Clear();
         }
 
-        private void Render(TrainPlatformBodyViewModel model)
+        private void Render()
         {
-            _latest = model;
-            _draft.Sync(model.StationName);
-            _view.Render(model, _draft.Input);
-        }
-
-        private async UniTaskVoid ApplyName()
-        {
-            var result = await _commands.SetStationName(_draft.Input);
-            _toaster.Report(TrainBlockCommands.SetNameCommandName, result);
-            if (result is not UiCommandRejected) return;
-
-            // 閉じた後なら入力欄が無いので戻さない。開いていれば最新の同期名へ戻す
-            // After close there is no field to revert; while open, return to the latest synced name
-            if (!_attached)
-            {
-                Debug.LogWarning("[TrainStationName] set_name refused after close; nothing to revert");
-                return;
-            }
-            _draft.Reject();
-            _view.Render(_latest, _draft.Input);
-        }
-
-        private async UniTaskVoid SendMode(TrainPlatformTransferMode mode)
-        {
-            var result = await _commands.SetTransferMode(mode);
-            _toaster.Report(TrainBlockCommands.SetModeCommandName, result);
+            _view.Render(_source.Current.Value, _edit.StationNameInput.Value);
         }
     }
 }
@@ -3325,8 +3965,8 @@ using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Logic.Panel;
-using Client.Ui.State.Toast;
 using Client.Ui.State.Train.Platform;
+using Client.Ui.State.Train.Platform.Edit;
 
 namespace Client.Ui.Screens.BlockInventory.Train
 {
@@ -3337,26 +3977,24 @@ namespace Client.Ui.Screens.BlockInventory.Train
     public sealed class TrainPlatformBodyFactory : IBlockInventoryBodyFactory
     {
         private readonly ITrainPlatformBodySource _source;
-        private readonly ITrainBlockCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
+        private readonly ITrainPlatformEditModel _edit;
         private readonly BlockItemGridFactory _gridFactory;
         private readonly GameContentPresentation _content;
 
         public BlockInventoryBodyKind Kind => BlockInventoryBodyKind.TrainPlatform;
 
-        public TrainPlatformBodyFactory(ITrainPlatformBodySource source, ITrainBlockCommands commands, UiCommandResultToaster toaster, BlockItemGridFactory gridFactory, GameContentPresentation content)
+        public TrainPlatformBodyFactory(ITrainPlatformBodySource source, ITrainPlatformEditModel edit, BlockItemGridFactory gridFactory, GameContentPresentation content)
         {
             _source = source;
-            _commands = commands;
-            _toaster = toaster;
+            _edit = edit;
             _gridFactory = gridFactory;
             _content = content;
         }
 
         public IBlockInventoryPart Create(BlockInventoryBodyMount mount)
         {
-            var view = new TrainPlatformBodyView(_gridFactory.Create("train-platform-item-slots"), new FluidInventoryContents("train-platform-fluid-slots", _content));
-            return new TrainPlatformBodyPresenter(view, _source, _commands, _toaster);
+            var view = new TrainPlatformBodyView(_gridFactory.Create("train-platform-item-slots"), new FluidInventoryContents("train-platform-fluid-slots", _content), _edit);
+            return new TrainPlatformBodyPresenter(view, _source, _edit);
         }
     }
 }
@@ -3365,7 +4003,8 @@ namespace Client.Ui.Screens.BlockInventory.Train
 `Train.uss`:
 
 ```css
-/* web: features/blockInventory/train/style.module.css .body と details/station/trainStationNameSection.module.css .row（ローカルのつまみ無し） / (English) the Web train .body and station name .row; no local knobs */
+/* web: features/blockInventory/train/style.module.css .body と details/station/trainStationNameSection.module.css .row（ローカルのつまみ無し） */
+/* web: the Web train .body and the station name .row; no local knobs */
 .train-body {
     flex-direction: column;
     flex-grow: 1;
@@ -3384,66 +4023,185 @@ namespace Client.Ui.Screens.BlockInventory.Train
     justify-content: space-between;
 }
 
-.train-station-name > .train-station-name__input {
-    flex-grow: 1;
+.train-station-name > .train-station-name__row-end {
     margin-left: var(--mode-switch-padding-inline);
-    margin-right: var(--mode-switch-padding-inline);
 }
 ```
-（入力欄の自然な幅は Web の `textAreaField .field` に従い、参照キャプチャが無いので Task 10 の自撮りで確かめる。差が出たら LX に記帳する）
+（入力欄は伸ばさず自然な幅のまま〈Web は `flex-grow` を当てていない〉。Task 10 で Web 側の自撮りの入力欄の幅を測り、UITK の自然な幅と違えば、同値の既存トークンか `Foundation/Theme/DerivedTokens.uss` の名札付きブロック〈根拠のコメントつき。E-1〉にトークンを足して `.train-station-name__input` の `width` に当てる。差が残ったときだけ LX にする）
 
 - [ ] **Step 4: 失敗するテストを書く**
 
 `TrainTestBodies.cs`:
 
 ```csharp
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.Content;
-using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.Train;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Toast;
+using Client.Ui.State.Train.Inventory;
+using Client.Ui.State.Train.Platform.Edit;
+using Client.Ui.State.Train.TimetableEdit;
+using UniRx;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
 {
     /// <summary>
-    /// 列車とプラットフォームの本文を偽の源・偽のコマンドで組む
-    /// Builds the train and platform bodies on fake sources and fake commands
+    /// 列車とプラットフォームの本文を偽の源・偽のコマンドの上の本物の編集 Model で組む
+    /// Builds the train and platform bodies with real edit models over fake sources and fake commands
     /// </summary>
     public sealed class TrainTestBodies
     {
         public FakeTrainSources Sources { get; } = new();
         public FakeTrainTimetableCommands TimetableCommands { get; } = new();
         public FakeTrainBlockCommands BlockCommands { get; } = new();
-        public ManualTrainTimetableWaitTimer Timer { get; } = new();
+        public ReactiveProperty<BlockInventoryPanelState> Panel { get; }
+        public TrainTimetableEditModel TimetableEdit { get; }
+        public TrainInventoryTabModel Tab { get; }
+        public TrainPlatformEditModel PlatformEdit { get; }
 
-        public TrainInventoryBodyFactory TrainBodyFactory(UiCommandResultToaster toaster, BlockItemGridFactory grids, GameContentPresentation content)
+        public TrainTestBodies(UiCommandResultToaster toaster, BlockInventoryPanelState panel)
         {
-            return new TrainInventoryBodyFactory(Sources, Sources, TimetableCommands, Timer, toaster, grids, content);
+            // 本番と同じく Model は源を一度だけ購読する
+            // Models subscribe to their sources once, as in production
+            Panel = new ReactiveProperty<BlockInventoryPanelState>(panel);
+            var panels = new FakePanelSource(Panel);
+            TimetableEdit = new TrainTimetableEditModel(Sources, TimetableCommands, new ManualTrainTimetableWaitTimer(), toaster);
+            TimetableEdit.Initialize();
+            Tab = new TrainInventoryTabModel(panels, Sources, TimetableCommands);
+            Tab.Initialize();
+            PlatformEdit = new TrainPlatformEditModel(panels, Sources, BlockCommands, toaster);
+            PlatformEdit.Initialize();
         }
 
-        public ITrainInventoryPart CreateTrainBody(UiCommandResultToaster toaster, BlockItemGridFactory grids, GameContentPresentation content)
+        public TrainInventoryBodyFactory TrainBodyFactory(BlockItemGridFactory grids, GameContentPresentation content)
         {
-            return TrainBodyFactory(toaster, grids, content).Create();
+            return new TrainInventoryBodyFactory(Sources, Tab, TimetableEdit, grids, content);
         }
 
-        public IBlockInventoryPart CreatePlatformBody(UiCommandResultToaster toaster, BlockItemGridFactory grids, GameContentPresentation content)
+        public ITrainInventoryPart CreateTrainBody(BlockItemGridFactory grids, GameContentPresentation content)
         {
-            return new TrainPlatformBodyFactory(Sources, BlockCommands, toaster, grids, content).Create(BlockInventoryTestBodies.NaturalMount());
+            return TrainBodyFactory(grids, content).Create();
+        }
+
+        public IBlockInventoryPart CreatePlatformBody(BlockItemGridFactory grids, GameContentPresentation content)
+        {
+            return new TrainPlatformBodyFactory(Sources, PlatformEdit, grids, content).Create(new BlockInventoryBodyMount(false));
         }
     }
 }
 ```
-（`BlockItemGridFactory`・`GameContentPresentation`・`BlockInventoryBodyMount` のテストでの組み方は alpha の `BlockInventoryTestBodies` と S4-machine の `FluidSectionsTest` の前例に合わせる〈`NaturalMount()` は alpha の補助の実名に置き換える〉。`BlockItemGridFactory` が `IBlockSlotCommands` を要るなら alpha の偽物を渡す）
+（`BlockItemGridFactory`・`GameContentPresentation` のテストでの組み方は alpha の `BlockInventoryTestBodies` と S4-machine の `FluidSectionsTest` の前例に合わせる。`BlockInventoryTestParts`〈`Grids()` と `Content()` を返す小さな補助〉は alpha・S4-machine のテスト補助に同等のものがあればそれを使い、無ければこのファイルの下に置く）
 
-`TrainInventoryBodyTest.cs`（5 件。骨組みと 2 件を全文で示し、残りは同じ形）:
+`Timetable/TrainTimetableSectionViewTest.cs`（`TrainTimetableImmediate.test.ts` 7・8 件目。Web と同じ順と主張）:
+
+```csharp
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.State.Train.Fakes;
+using Client.Ui.Screens.BlockInventory.Registry;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Train.Timetable;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+using static Client.Tests.Ui.State.Train.Fakes.TrainTestData;
+
+namespace Client.Tests.Ui.Screens.BlockInventory.Train.Timetable
+{
+    public class TrainTimetableSectionViewTest : ScreenTestHost
+    {
+        private TrainTestBodies _bodies;
+        private ITrainInventoryPart _body;
+
+        [SetUp]
+        public void OpenTimetableTab()
+        {
+            _bodies = new TrainTestBodies(Toaster, BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            _body = _bodies.CreateTrainBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
+            Mount(_body.Root);
+            _body.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            simulate.Click(Find<Button>(_body.Root, "train-tab-timetable"));
+        }
+
+        [TearDown]
+        public void Close()
+        {
+            _body.Detach();
+        }
+
+        /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">blocks auto-run until an added stop is authoritative and sends toggles immediately</web-test>
+        [Test]
+        public void 追加が確定するまで自動運転ONを塞ぎ切替は即送る()
+        {
+            // 停車駅 0 件では ON が無効で、理由の文が出る
+            // With no stops, ON is disabled and the reason text shows
+            Publish(Ready(Unit1, false, NoStops));
+            Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-auto-run-on").enabledSelf);
+            Assert.IsTrue(IsShown(_body.Root.Q<Label>("train-timetable-auto-run-unavailable")));
+
+            // 追加は楽観表示でも ON を開けない。受理と公開で確定してから開く
+            // An optimistic add does not open ON; it opens once acceptance and the publication confirm it
+            simulate.Click(Find<Button>(_body.Root, "train-timetable-station-12_0_40-add"));
+            Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-auto-run-on").enabledSelf);
+            _bodies.TimetableCommands.Accept();
+            Publish(NorthOnly(Unit1));
+            Assert.IsTrue(Find<Button>(_body.Root, "train-timetable-auto-run-on").enabledSelf);
+
+            // 押すと楽観更新なしで即送る
+            // Pressing sends immediately without an optimistic update
+            simulate.Click(Find<Button>(_body.Root, "train-timetable-auto-run-on"));
+            CollectionAssert.AreEqual(new[] { true }, _bodies.TimetableCommands.SentAutoRuns);
+            Assert.IsTrue(IsSelected(_body.Root, "train-timetable-auto-run-off"));
+
+            // 自動運転 ON が公開された後は OFF を押すと false を送る
+            // After auto-run ON is published, pressing OFF sends false
+            _bodies.TimetableCommands.Accept();
+            Publish(Ready(Unit1, true, Added(NoStops, North)));
+            simulate.Click(Find<Button>(_body.Root, "train-timetable-auto-run-off"));
+            CollectionAssert.AreEqual(new[] { true, false }, _bodies.TimetableCommands.SentAutoRuns);
+        }
+
+        /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">disables moves past either end and follows remote changes when idle</web-test>
+        [Test]
+        public void 端を越える移動を塞ぎ待ちが無いときは外の変更に従う()
+        {
+            // 1 駅では上も下も無効
+            // With one stop both up and down are disabled
+            Publish(NorthOnly(Unit1));
+            Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-stop-0-up").enabledSelf);
+            Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-stop-0-down").enabledSelf);
+
+            // 待ちが無ければ別の画面からの変更（2 駅）をそのまま映し、何も送らない
+            // When idle, a change from elsewhere (two stops) shows as is and nothing is sent
+            Publish(Ready(Unit1, false, Added(Added(NoStops, North), Unnamed)));
+            Assert.IsNotNull(_body.Root.Q("train-timetable-stop-1"));
+            Assert.IsTrue(Find<Button>(_body.Root, "train-timetable-stop-0-down").enabledSelf);
+            Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-stop-1-down").enabledSelf);
+            Assert.AreEqual(0, _bodies.TimetableCommands.SentReplaces.Count);
+            Assert.AreEqual(0, _bodies.TimetableCommands.SentAutoRuns.Count);
+        }
+
+        private void Publish(TrainTimetableReadyData data)
+        {
+            _bodies.Sources.SetTimetable(TrainTimetableViewState.Ready(data));
+            simulate.FrameUpdate();
+        }
+    }
+}
+```
+（`Find`・`IsShown`・`IsSelected(root, optionTestid)` は `ScreenTestHost` の実物〈`IsSelected` は 2 引数〉。`simulate.Click` は前例 `BugReportRecoveryControlsViewTest`）
+
+`TrainInventoryBodyTest.cs`（5 件）:
 
 ```csharp
 using System.Collections.Generic;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
 using Client.Ui.State.Train.Inventory;
 using Client.Ui.State.Train.Timetable;
@@ -3458,22 +4216,22 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     public class TrainInventoryBodyTest : ScreenTestHost
     {
         private TrainTestBodies _bodies;
-        private ITrainInventoryPart _presenter;
+        private ITrainInventoryPart _body;
 
         [SetUp]
         public void MountBody()
         {
-            _bodies = new TrainTestBodies();
-            _presenter = _bodies.CreateTrainBody(Toaster, BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
-            Mount(_presenter.Root);
-            _presenter.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            _bodies = new TrainTestBodies(Toaster, BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            _body = _bodies.CreateTrainBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
+            Mount(_body.Root);
+            _body.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
             simulate.FrameUpdate();
         }
 
         [TearDown]
         public void DetachBody()
         {
-            _presenter.Detach();
+            _body.Detach();
         }
 
         /// <web-test file="src/features/blockInventory/train/TrainTimetableSection.test.ts">asks C# to fetch only when the timetable tab is selected</web-test>
@@ -3484,12 +4242,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             // On the inventory tab a loading state does not ask
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Loading);
             Assert.AreEqual(0, _bodies.TimetableCommands.OpenRequestCount);
-            Assert.IsTrue(IsSelected(Find<Button>(_presenter.Root, "train-tab-inventory")));
+            Assert.IsTrue(IsSelected(_body.Root, "train-tab-inventory"));
 
-            simulate.Click(Find<Button>(_presenter.Root, "train-tab-timetable"));
+            // 持ち物の器は子ごと隠れる（IsShown は要素自身の display を見るので器で確かめる）
+            // The inventory container hides with its children (IsShown reads the element's own display, so check the container)
+            simulate.Click(Find<Button>(_body.Root, "train-tab-timetable"));
+            simulate.FrameUpdate();
             Assert.AreEqual(1, _bodies.TimetableCommands.OpenRequestCount);
-            Assert.IsTrue(IsShown(_presenter.Root.Q("train-timetable-loading")));
-            Assert.IsFalse(IsShown(_presenter.Root.Q("train-inventory-slots")));
+            Assert.IsTrue(IsShown(_body.Root.Q("train-timetable-loading")));
+            Assert.IsFalse(IsShown(_body.Root.Q("train-inventory-contents")));
         }
 
         /// <web-test file="src/features/blockInventory/train/TrainTimetableSection.test.ts">asks C# to fetch on tab select even when the timetable is already ready</web-test>
@@ -3497,9 +4258,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public void 用意済みでもタブ選択では取得を頼む()
         {
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
-            simulate.Click(Find<Button>(_presenter.Root, "train-tab-timetable"));
+            simulate.Click(Find<Button>(_body.Root, "train-tab-timetable"));
+            simulate.FrameUpdate();
             Assert.AreEqual(1, _bodies.TimetableCommands.OpenRequestCount);
-            Assert.IsTrue(IsShown(_presenter.Root.Q("train-timetable-section")));
+            Assert.IsTrue(IsShown(_body.Root.Q("train-timetable-section")));
         }
 
         /// <web-test file="src/features/blockInventory/train/TrainTimetableSection.test.ts">re-asks C# when a reset fetch arrives as loading while the timetable tab stays selected</web-test>
@@ -3507,7 +4269,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public void 時刻表タブのあいだに読込中へ戻れば頼み直す()
         {
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
-            simulate.Click(Find<Button>(_presenter.Root, "train-tab-timetable"));
+            simulate.Click(Find<Button>(_body.Root, "train-tab-timetable"));
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Loading);
             Assert.AreEqual(2, _bodies.TimetableCommands.OpenRequestCount);
         }
@@ -3516,16 +4278,16 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         [Test]
         public void 読込中と使えないを別の文で出し警告しない()
         {
-            simulate.Click(Find<Button>(_presenter.Root, "train-tab-timetable"));
+            simulate.Click(Find<Button>(_body.Root, "train-tab-timetable"));
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Loading);
             simulate.FrameUpdate();
-            Assert.IsTrue(IsShown(_presenter.Root.Q("train-timetable-loading")));
-            Assert.IsFalse(IsShown(_presenter.Root.Q("train-timetable-unavailable")));
+            Assert.IsTrue(IsShown(_body.Root.Q("train-timetable-loading")));
+            Assert.IsFalse(IsShown(_body.Root.Q("train-timetable-unavailable")));
 
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Unavailable);
             simulate.FrameUpdate();
-            Assert.IsFalse(IsShown(_presenter.Root.Q("train-timetable-loading")));
-            Assert.IsTrue(IsShown(_presenter.Root.Q("train-timetable-unavailable")));
+            Assert.IsFalse(IsShown(_body.Root.Q("train-timetable-loading")));
+            Assert.IsTrue(IsShown(_body.Root.Q("train-timetable-unavailable")));
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -3534,53 +4296,59 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public void 液体貨車は名前と量容量を出し再取得で描き直す()
         {
             var water = MasterHolder.FluidMaster.GetFluidId(ForUnitTestFluidGuids.Water);
-            _bodies.Sources.SetBody(new TrainInventoryBodyViewModel(7, new List<SlotItem>(), new[] { BlockFluidSlotState.Filled(water, 10, 1000) }));
+            _bodies.Sources.SetBody(new TrainInventoryBodyViewModel(new List<SlotItem>(), new[] { BlockFluidSlotState.Filled(water, 10, 1000) }));
             simulate.FrameUpdate();
-            Assert.IsFalse(IsShown(_presenter.Root.Q("train-inventory-slots")));
-            UiTextAssert.Contains("10 / 1,000", _presenter.Root.Q("train-inventory-fluids-slot-0"));
+            Assert.IsFalse(IsShown(_body.Root.Q("train-inventory-slots")));
+            UiTextAssert.Contains("10 / 1,000", _body.Root.Q("train-inventory-fluids-slot-0"));
 
-            _bodies.Sources.SetBody(new TrainInventoryBodyViewModel(7, new List<SlotItem>(), new[] { BlockFluidSlotState.Filled(water, 90, 1000) }));
+            _bodies.Sources.SetBody(new TrainInventoryBodyViewModel(new List<SlotItem>(), new[] { BlockFluidSlotState.Filled(water, 90, 1000) }));
             simulate.FrameUpdate();
-            UiTextAssert.Contains("90 / 1,000", _presenter.Root.Q("train-inventory-fluids-slot-0"));
+            UiTextAssert.Contains("90 / 1,000", _body.Root.Q("train-inventory-fluids-slot-0"));
         }
     }
 }
 ```
-（`BlockInventoryTestParts`（`Grids()` と `Content()`〈テスト用の `GameContentPresentation`〉を返す小さな補助）は alpha・S4-machine のテスト補助に同等のものがあればそれを使い、無ければ `TrainTestBodies.cs` の中に置く。水の `FluidId` の引き方はテスト用 mod の前例に合わせる）
+（格子 `train-inventory-slots` は液体の有無で自分の display を切り替えるので、最後の件はその要素で確かめてよい。水の `FluidId` の引き方はテスト用 mod の前例に合わせる）
 
 `TrainPlatformBodyTest.cs`（4 件）:
 
 ```csharp
 using System.Collections.Generic;
-using Client.Tests.Ui.State.Train.Fakes;
+using System.Text.RegularExpressions;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.Items;
 using Client.Ui.State.Train.Platform;
 using Core.Master;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
 {
     public class TrainPlatformBodyTest : ScreenTestHost
     {
+        private static readonly IReadOnlyList<BlockFluidSlotState> NoFluids = new List<BlockFluidSlotState>();
         private TrainTestBodies _bodies;
-        private IBlockInventoryPart _presenter;
+        private IBlockInventoryPart _body;
 
         [SetUp]
         public void MountBody()
         {
-            _bodies = new TrainTestBodies();
-            _presenter = _bodies.CreatePlatformBody(Toaster, BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
-            Mount(_presenter.Root);
-            _presenter.Attach(BlockInventoryTestPanels.OfType("TrainItemPlatform"));
+            var panel = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainItemPlatform);
+            _bodies = new TrainTestBodies(Toaster, panel);
+            _body = _bodies.CreatePlatformBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
+            Mount(_body.Root);
+            _body.Attach((OpenBlockInventoryPanel)panel);
         }
 
         [TearDown]
         public void DetachBody()
         {
-            _presenter.Detach();
+            _body.Detach();
         }
 
         /// <web-test file="e2e/tests/block/trainPlatform.spec.ts">PFスロットを表示し、積込から卸しへ目標モードActionを送る</web-test>
@@ -3589,16 +4357,17 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         {
             // Web のモック blockTrainPlatform: 2 枠（12 個と空）・積込
             // Web mock blockTrainPlatform: two slots (12 and empty), load mode
-            _bodies.Sources.SetPlatform(new TrainPlatformBodyViewModel(false, string.Empty, true, new[] { new SlotItem(new ItemId(3), 12), new SlotItem(ItemMaster.EmptyItemId, 0) }, new List<BlockFluidSlotState>(), true, TrainPlatformTransferMode.LoadToTrain));
+            var slots = new[] { new SlotItem(new ItemId(3), 12), new SlotItem(ItemMaster.EmptyItemId, 0) };
+            _bodies.Sources.SetPlatform(new OpenTrainPlatformBody(null, slots, NoFluids, TrainPlatformTransferMode.LoadToTrain));
             simulate.FrameUpdate();
-            Assert.IsNotNull(_presenter.Root.Q("train-platform-item-slots-slot-1"));
-            Assert.IsTrue(IsSelected(Find<Button>(_presenter.Root, "train-platform-mode-load")));
+            Assert.IsNotNull(_body.Root.Q("train-platform-item-slots-slot-1"));
+            Assert.IsTrue(IsSelected(_body.Root, "train-platform-mode-load"));
 
             // 押しても選択は替えず、目標のモードを送るだけ
             // Pressing does not change the selection; it only sends the target mode
-            simulate.Click(Find<Button>(_presenter.Root, "train-platform-mode-unload"));
+            simulate.Click(Find<Button>(_body.Root, "train-platform-mode-unload"));
             CollectionAssert.AreEqual(new[] { TrainPlatformTransferMode.UnloadToPlatform }, _bodies.BlockCommands.SentModes);
-            Assert.IsTrue(IsSelected(Find<Button>(_presenter.Root, "train-platform-mode-load")));
+            Assert.IsTrue(IsSelected(_body.Root, "train-platform-mode-load"));
         }
 
         /// <web-test file="e2e/tests/block/trainPlatform.spec.ts">液体PFは液体名・アイコン・量容量と卸しモードを表示する</web-test>
@@ -3606,22 +4375,22 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public void 液体PFは液体と卸しモードを出す()
         {
             var water = MasterHolder.FluidMaster.GetFluidId(ForUnitTestFluidGuids.Water);
-            _bodies.Sources.SetPlatform(new TrainPlatformBodyViewModel(false, string.Empty, false, new List<SlotItem>(), new[] { BlockFluidSlotState.Filled(water, 250, 1000) }, true, TrainPlatformTransferMode.UnloadToPlatform));
+            _bodies.Sources.SetPlatform(new OpenTrainPlatformBody(null, null, new[] { BlockFluidSlotState.Filled(water, 250, 1000) }, TrainPlatformTransferMode.UnloadToPlatform));
             simulate.FrameUpdate();
-            Assert.IsFalse(IsShown(_presenter.Root.Q("train-platform-item-slots")));
-            UiTextAssert.Contains("250 / 1,000", _presenter.Root.Q("train-platform-fluid-slots-slot-0"));
-            Assert.IsTrue(IsSelected(Find<Button>(_presenter.Root, "train-platform-mode-unload")));
+            Assert.IsFalse(IsShown(_body.Root.Q("train-platform-item-slots")));
+            UiTextAssert.Contains("250 / 1,000", _body.Root.Q("train-platform-fluid-slots-slot-0"));
+            Assert.IsTrue(IsSelected(_body.Root, "train-platform-mode-unload"));
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/TrainPlatformInventory.test.tsx">PF自身の充填スロット・常時テキストを更新し、空でも実スロットを残す</web-test>
         [Test]
         public void 充填スロットを描き直し空でも実枠を残す()
         {
-            _bodies.Sources.SetPlatform(new TrainPlatformBodyViewModel(false, string.Empty, true, new[] { new SlotItem(new ItemId(3), 12) }, new List<BlockFluidSlotState>(), true, TrainPlatformTransferMode.LoadToTrain));
+            _bodies.Sources.SetPlatform(new OpenTrainPlatformBody(null, new[] { new SlotItem(new ItemId(3), 12) }, NoFluids, TrainPlatformTransferMode.LoadToTrain));
             simulate.FrameUpdate();
-            _bodies.Sources.SetPlatform(new TrainPlatformBodyViewModel(false, string.Empty, true, new[] { new SlotItem(ItemMaster.EmptyItemId, 0) }, new List<BlockFluidSlotState>(), true, TrainPlatformTransferMode.LoadToTrain));
+            _bodies.Sources.SetPlatform(new OpenTrainPlatformBody(null, new[] { new SlotItem(ItemMaster.EmptyItemId, 0) }, NoFluids, TrainPlatformTransferMode.LoadToTrain));
             simulate.FrameUpdate();
-            Assert.IsTrue(IsShown(_presenter.Root.Q("train-platform-item-slots-slot-0")));
+            Assert.IsTrue(IsShown(_body.Root.Q("train-platform-item-slots-slot-0")));
         }
 
         /// <web-test file="src/features/blockInventory/train/TrainTimetableSection.test.ts">sends station names only through Set and hides the field for platforms</web-test>
@@ -3630,31 +4399,37 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         {
             // PF では駅名の行が無い
             // Platforms have no station name row
-            _bodies.Sources.SetPlatform(new TrainPlatformBodyViewModel(false, string.Empty, true, new List<SlotItem>(), new List<BlockFluidSlotState>(), true, TrainPlatformTransferMode.LoadToTrain));
+            _bodies.Sources.SetPlatform(new OpenTrainPlatformBody(null, new List<SlotItem>(), NoFluids, TrainPlatformTransferMode.LoadToTrain));
             simulate.FrameUpdate();
-            Assert.IsFalse(IsShown(_presenter.Root.Q("train-station-name-section")));
+            Assert.IsFalse(IsShown(_body.Root.Q("train-station-name-section")));
 
             // 駅では打つだけでは送らず、決定で 1 回送る。拒否は同期名へ戻す
             // On a station typing sends nothing, Set sends once, and a refusal reverts to the synced name
-            _bodies.Sources.SetPlatform(new TrainPlatformBodyViewModel(true, "北駅", true, new List<SlotItem>(), new List<BlockFluidSlotState>(), true, TrainPlatformTransferMode.LoadToTrain));
+            _bodies.Sources.SetPlatform(new OpenTrainPlatformBody(new TrainStationNamePart("北駅"), new List<SlotItem>(), NoFluids, TrainPlatformTransferMode.LoadToTrain));
             simulate.FrameUpdate();
-            var field = _presenter.Root.Q<TextField>("train-station-name-input");
+            var field = _body.Root.Q<TextField>("train-station-name-input");
+            Assert.AreEqual("北駅", field.value);
             field.value = "南駅";
             Assert.IsEmpty(_bodies.BlockCommands.SentNames);
-            simulate.Click(Find<Button>(_presenter.Root, "train-station-name-apply"));
+            simulate.Click(Find<Button>(_body.Root, "train-station-name-apply"));
             CollectionAssert.AreEqual(new[] { "南駅" }, _bodies.BlockCommands.SentNames);
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_station.set_name failed"));
             _bodies.BlockCommands.Reject("set_name_failed:duplicate");
             Assert.AreEqual("北駅", field.value);
         }
     }
 }
 ```
-（`ForUnitTestFluidGuids`・`ItemMaster.EmptyItemId`・`ItemId` の綴りはテスト用 mod の前例に合わせる。最後の件の `Reject` で `[UiCommandResultToaster]` の Warning が出るので `LogAssert.Expect` を足す）
+（`ForUnitTestFluidGuids`・`ItemMaster.EmptyItemId`・`ItemId` の綴りはテスト用 mod の前例に合わせる。`BlockInventoryTestPanels.OfType` が `OpenBlockInventoryPanel` を返す型ならキャストは要らない）
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\.Screens\.BlockInventory\.Train\."`
-Expected: `ErrorCount: 0`、9 件 PASS（Task 6 の 2 件＋5＋4。ScrollView の自然高などの見た目はここでは主張しない）
+Expected: `ErrorCount: 0`、11 件 PASS（SectionView 2・Body 5・Platform 4。ScrollView の自然高などの見た目はここでは主張しない）。`UniTaskCompletionSource` の継続が同期で走らず `Accept`/`Reject` 直後の主張が落ちるなら、その件だけ `[UnityTest]` にして `await UniTask.Yield()` を挟む
 
-- [ ] **Step 5: コミット**
+- [ ] **Step 5: テキスト欄にフォーカスがあるときの閉じを確かめる**
+
+死活表の「要確認」行。`TrainPlatformBodyTest` と同じ組み立てで駅名の欄にフォーカスを置き、E と Esc を `simulate` で送って、alpha の外殻の閉じる経路（`UiInputExclusivity` の範囲。C2-b）が効くかを Task 11 の録画 `uitk/uitk-train-inventory` の中で確かめる（L1 の外殻には入力の振り分けが無いので録画で見る）。結果を `done.md`「証拠」に書き、効かなければ C2-b の持ち主へ `done.md`「integrator への依頼」で上げる（このレーンでは入力の振り分けを変えない）
+
+- [ ] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Train moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Train
@@ -3680,6 +4455,7 @@ using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.Train;
 using Client.Ui.State.Train.Inventory;
 using Client.Ui.State.Train.Platform;
+using Client.Ui.State.Train.Platform.Edit;
 using Client.Ui.State.Train.Timetable;
 using Client.Ui.State.Train.TimetableEdit;
 using VContainer;
@@ -3695,11 +4471,17 @@ namespace Client.Starter.Registration.GameUi
     {
         public static void Register(IContainerBuilder builder)
         {
-            // Model（源の購読は起動時に 1 回）
-            // Models subscribe to their sources once at startup
+            // 源の Model（源の購読は起動時に 1 回）
+            // Source models subscribe to their sources once at startup
             builder.RegisterEntryPoint<TrainTimetableModel>().As<ITrainTimetableSource>();
             builder.RegisterEntryPoint<TrainInventoryBodyModel>().As<ITrainInventoryBodySource>();
             builder.RegisterEntryPoint<TrainPlatformBodyModel>().As<ITrainPlatformBodySource>();
+
+            // View が直接呼ぶ編集の Model（A-8）
+            // Edit models the View calls directly (A-8)
+            builder.RegisterEntryPoint<TrainTimetableEditModel>().As<ITrainTimetableEditModel>();
+            builder.RegisterEntryPoint<TrainInventoryTabModel>().As<ITrainInventoryTabModel>();
+            builder.RegisterEntryPoint<TrainPlatformEditModel>().As<ITrainPlatformEditModel>();
 
             // コマンドと時間切れ
             // Commands and the timeout
@@ -3736,14 +4518,14 @@ namespace Client.Starter.Registration.GameUi
 `TrainInventoryFlowTest.cs`（alpha の外殻 `BlockInventoryTestShell` に本文の工場を差して開く）:
 
 ```csharp
+using System.Collections.Generic;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
 using Client.Ui.State.Train.Inventory;
-using Client.Ui.State.BlockInventory.Logic.Common;
 using Core.Master;
 using NUnit.Framework;
-using UniRx;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
 {
@@ -3755,22 +4537,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         {
             // Web のモック trainCargo: 24・8 と空 7 枠
             // Web mock trainCargo: 24, 8 and seven empty slots
-            var bodies = new TrainTestBodies();
-            var state = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
-            var shell = BlockInventoryTestShell.Create(state, bodies.TrainBodyFactory(Toaster, BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content()));
-            Mount(shell.Root);
-            bodies.Sources.SetBody(new TrainInventoryBodyViewModel(1, TrainCargoSlots(), new System.Collections.Generic.List<BlockFluidSlotState>()));
+            var bodies = new TrainTestBodies(Toaster, BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            var shell = BlockInventoryTestShell.Create(this, bodies.Panel, bodies.TrainBodyFactory(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content()));
+            bodies.Sources.SetBody(new TrainInventoryBodyViewModel(TrainCargoSlots(), new List<BlockFluidSlotState>()));
             simulate.FrameUpdate();
-            UiTextAssert.Contains("24", shell.Root.Q("train-inventory-slots-slot-0"));
-            UiTextAssert.Contains("8", shell.Root.Q("train-inventory-slots-slot-1"));
-            Assert.IsNotNull(shell.Root.Q("train-inventory-slots-slot-8"));
+            UiTextAssert.Contains("24", shell.View.Q("train-inventory-slots-slot-0"));
+            UiTextAssert.Contains("8", shell.View.Q("train-inventory-slots-slot-1"));
+            Assert.IsNotNull(shell.View.Q("train-inventory-slots-slot-8"));
 
             // コンテナ不在では alpha のエラー行が出て、本文は作られない
             // With the container missing, alpha's error row shows and no body is built
-            state.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.ContainerMissing);
+            bodies.Panel.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.ContainerMissing);
             simulate.FrameUpdate();
-            Assert.IsTrue(IsShown(shell.Root.Q("train-inventory-error")));
-            Assert.IsNull(shell.Root.Q("train-inventory-slots"));
+            Assert.IsTrue(IsShown(shell.View.Q("train-inventory-error")));
+            Assert.IsNull(shell.View.Q("train-inventory-slots"));
         }
 
         private static SlotItem[] TrainCargoSlots()
@@ -3784,17 +4564,23 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     }
 }
 ```
-（`BlockInventoryTestShell.Create` の差し込み引数の型は alpha 改訂版に合わせる）
+（`BlockInventoryTestShell.Create(ScreenTestHost host, ReactiveProperty<BlockInventoryPanelState> state, params object[] plugged)` は alpha の Produces の形。返り値の `View` の名前は alpha の実物に合わせる）
 
-`TrainTimetableFlowTest.cs`（`timetable.spec` 2 件。本文ごと開き、時刻表タブで操作する。公開はテストが `SetTimetable` で返す＝サーバーの代わり）:
+`TrainTimetableFlowTest.cs`（`timetable.spec` 2 件。Web と同じ手順。公開はテストが `SetTimetable` で返す＝サーバーの代わり。期待の並びは `TimetableEditLogic` で組み、Side を手で書かない。各手順の後に保留が解けた〈`--busy` が無い〉ことを確かめる。Web の `aria-busy="false"` に当たる）:
 
 ```csharp
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.Screens.BlockInventory.Registry;
+using Client.Ui.Screens.BlockInventory.Train.Timetable;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Train.Logic;
 using Client.Ui.State.Train.Timetable;
-using Game.Train.RailGraph;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.State.Train.Fakes.TrainTestData;
 
@@ -3803,93 +4589,147 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     public class TrainTimetableFlowTest : ScreenTestHost
     {
         private TrainTestBodies _bodies;
-        private ITrainInventoryPart _presenter;
+        private ITrainInventoryPart _body;
 
         [SetUp]
         public void OpenTimetableTab()
         {
-            _bodies = new TrainTestBodies();
-            _presenter = _bodies.CreateTrainBody(Toaster, BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
-            Mount(_presenter.Root);
-            _presenter.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            // Web のモック trainTimetable: 停車駅は北駅 1 つ、駅一覧は無名(-8,0,3)と北駅(12,0,40)
+            // Web mock trainTimetable: one stop at North; stations are unnamed (-8,0,3) and North (12,0,40)
+            _bodies = new TrainTestBodies(Toaster, BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            _body = _bodies.CreateTrainBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
+            Mount(_body.Root);
+            _body.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
-            simulate.Click(Find<Button>(_presenter.Root, "train-tab-timetable"));
+            Click("train-tab-timetable");
         }
 
         [TearDown]
         public void Close()
         {
-            _presenter.Detach();
+            _body.Detach();
         }
 
         /// <web-test file="e2e/tests/train/timetable.spec.ts">駅の追加・上下移動・削除を即時反映し、再読込でも保持する</web-test>
         [Test]
         public void 追加移動削除を即時に映し開き直しても保つ()
         {
-            // 追加 → 即 2 行・保留
-            // Add: two rows at once, pending
-            simulate.Click(Find<Button>(_presenter.Root, "train-timetable-station--8_0_3-add"));
-            Assert.IsNotNull(_presenter.Root.Q("train-timetable-stop-1"));
-            Assert.IsTrue(_presenter.Root.Q("train-timetable-section").ClassListContains("train-timetable-section--busy"));
-            var added = new[] { Stop(North, StationNodeSide.Back), Stop(Unnamed, StationNodeSide.Front) };
-            Publish(added);
+            Assert.IsNull(_body.Root.Q("train-timetable-apply"));
 
-            // 上へ移動 → 削除。どれも公開で確定する
-            // Move up, then remove; each settles on publication
-            simulate.Click(Find<Button>(_presenter.Root, "train-timetable-stop-1-up"));
-            var moved = new[] { added[1], added[0] };
-            Publish(moved);
-            simulate.Click(Find<Button>(_presenter.Root, "train-timetable-stop-0-remove"));
-            Publish(new[] { added[0] });
-            Assert.AreEqual(3, _bodies.TimetableCommands.SentReplaces.Count);
+            // 追加 → 上 → 下 → 削除。どれも受理と公開で保留が解ける
+            // Add, up, down, remove; each releases on acceptance and publication
+            var added = Added(NorthOnly(Unit1).Stops, Unnamed);
+            Edit("train-timetable-station--8_0_3-add", added);
+            Assert.IsNotNull(_body.Root.Q("train-timetable-stop-1"));
+            var up = TimetableEditLogic.MoveStop(added, 1, StopMoveDirection.Up);
+            Edit("train-timetable-stop-1-up", up);
+            UiTextAssert.Contains("(-8, 0, 3)", StopLabel(0));
+            var down = TimetableEditLogic.MoveStop(up, 0, StopMoveDirection.Down);
+            Edit("train-timetable-stop-0-down", down);
+            UiTextAssert.Contains("(12, 0, 40)", StopLabel(0));
+            var removed = TimetableEditLogic.RemoveStop(down, 0);
+            Edit("train-timetable-stop-0-remove", removed);
+            Assert.IsNull(_body.Root.Q("train-timetable-stop-1"));
 
-            // 閉じて開き直すと、サーバーの並びがそのまま出る
-            // Closing and reopening shows the server order as is
-            _presenter.Detach();
-            _presenter.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
-            simulate.Click(Find<Button>(_presenter.Root, "train-tab-timetable"));
-            simulate.FrameUpdate();
-            UiTextAssert.Contains("1. 北駅", _presenter.Root.Q<Label>("train-timetable-stop-0-label"));
-            Assert.IsNull(_presenter.Root.Q("train-timetable-stop-1"));
+            // タブの往復と開き直し（Web の再読込）のどちらでも反映済みの並びが残る
+            // The applied order survives both a tab round trip and reopening (Web reload)
+            Click("train-tab-inventory");
+            Click("train-tab-timetable");
+            UiTextAssert.Contains("(-8, 0, 3)", StopLabel(0));
+            Reopen();
+            Assert.IsNull(_body.Root.Q("train-timetable-stop-1"));
+            UiTextAssert.Contains("(-8, 0, 3)", StopLabel(0));
+
+            // 最後の 1 件を消すと 0 件になり、自動運転 ON が塞がる
+            // Removing the last stop leaves none and blocks auto-run ON
+            Edit("train-timetable-stop-0-remove", TimetableEditLogic.RemoveStop(removed, 0));
+            Assert.IsNull(_body.Root.Q("train-timetable-stop-0"));
+            Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-auto-run-on").enabledSelf);
+            Assert.AreEqual(5, _bodies.TimetableCommands.SentReplaces.Count);
         }
 
         /// <web-test file="e2e/tests/train/timetable.spec.ts">拒否された追加を巻き戻し、次の追加で復帰する</web-test>
         [Test]
         public void 拒否された追加を巻き戻し次の追加で戻る()
         {
-            simulate.Click(Find<Button>(_presenter.Root, "train-timetable-station--8_0_3-add"));
-            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("train_timetable.replace failed"));
-            _bodies.TimetableCommands.Reject("replace_failed:invalid_station");
+            Click("train-timetable-station--8_0_3-add");
+            LogAssert.Expect(LogType.Warning, new Regex("train_timetable.replace failed"));
+            _bodies.TimetableCommands.Reject("replace_failed:test");
             simulate.FrameUpdate();
-            Assert.IsNull(_presenter.Root.Q("train-timetable-stop-1"));
+            AssertIdle();
+            Assert.IsNull(_body.Root.Q("train-timetable-stop-1"));
             Assert.AreEqual(1, ShownToasts.Count);
 
-            // 次の追加は通る
-            // The next add goes through
-            simulate.Click(Find<Button>(_presenter.Root, "train-timetable-station--8_0_3-add"));
+            // 次の追加は通り、公開で 2 件になる
+            // The next add goes through and the publication shows two stops
+            Edit("train-timetable-station--8_0_3-add", Added(NorthOnly(Unit1).Stops, Unnamed));
+            Assert.IsNotNull(_body.Root.Q("train-timetable-stop-1"));
             Assert.AreEqual(2, _bodies.TimetableCommands.SentReplaces.Count);
-            Assert.IsNotNull(_presenter.Root.Q("train-timetable-stop-1"));
         }
 
-        private void Publish(TimetableEditStop[] stops)
+        // 押す → 受理 → 公開 → 保留が解けたことを確かめる
+        // Press, accept, publish, then confirm the pending state cleared
+        private void Edit(string testid, IReadOnlyList<TimetableEditStop> published)
         {
+            Click(testid);
             _bodies.TimetableCommands.Accept();
-            _bodies.Sources.SetTimetable(TrainTimetableViewState.Ready(Ready(Unit1, false, 0, stops)));
+            _bodies.Sources.SetTimetable(TrainTimetableViewState.Ready(Ready(Unit1, false, published)));
+            simulate.FrameUpdate();
+            AssertIdle();
+        }
+
+        // 閉じて同じ貨車を開き直す。タブは持ち物から始まる
+        // Close and reopen the same car; the tab starts on inventory
+        private void Reopen()
+        {
+            _body.Detach();
+            _bodies.Panel.Value = BlockInventoryPanelState.Closed;
+            _bodies.Panel.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.None);
+            _body.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            Click("train-tab-timetable");
+        }
+
+        private void AssertIdle()
+        {
+            Assert.IsFalse(_body.Root.Q("train-timetable-section").ClassListContains(TrainTimetableSectionView.BusyClass));
+        }
+
+        private Label StopLabel(int index)
+        {
+            return _body.Root.Q<Label>($"train-timetable-stop-{index}-label");
+        }
+
+        private void Click(string testid)
+        {
+            simulate.Click(Find<Button>(_body.Root, testid));
             simulate.FrameUpdate();
         }
     }
 }
 ```
+（ラベルの座標の書式 `(-8, 0, 3)` は L0-s4b の `TimetableEditLogic.StationLabel` の実物に合わせる）
 
 `TrainDesignTest.cs`（共有 2 件。前例は alpha の `BlockInventoryDesignTest` の同名の件。そこには足さず、列車の分を自分のファイルで主張する）:
 
 ```csharp
+using System;
+using System.Collections.Generic;
 using System.IO;
+using Client.Tests.Ui.Conventions;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.Components.Controls;
-using Client.Ui.Screens.BlockInventory.Registry;
+using Client.Ui.Screens.BlockInventory.Fluid;
+using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Items;
+using Client.Ui.State.Train.Inventory;
+using Client.Ui.State.Train.Platform;
+using Client.Ui.State.Train.Timetable;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using static Client.Tests.Ui.State.Train.Fakes.TrainTestData;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
 {
@@ -3900,6 +4740,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             "Assets/Scripts/Client.Ui/Screens/BlockInventory/Train/Train.uss",
             "Assets/Scripts/Client.Ui/Screens/BlockInventory/Train/Timetable/Timetable.uss",
         };
+        private static readonly Type[] RawControlTypes = { typeof(Button), typeof(Toggle), typeof(RadioButton), typeof(Slider), typeof(ProgressBar), typeof(TextField) };
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">ゲージとモード切替を用途別に共通部品へ置換する</web-test>
         [Test]
@@ -3907,37 +4748,85 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         {
             // タブ・自動運転・積込/卸しの 3 つとも共通の ModeSwitch
             // Tabs, auto-run and load/unload all use the shared ModeSwitch
-            var bodies = new TrainTestBodies();
-            var train = bodies.CreateTrainBody(Toaster, BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
-            var platform = bodies.CreatePlatformBody(Toaster, BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
-            Assert.IsInstanceOf<ModeSwitch<Client.Ui.State.Train.Inventory.TrainInventoryTab>>(train.Root.Q("train-tabs"));
-            Assert.IsInstanceOf<ModeSwitch<Client.Ui.State.Train.Platform.TrainPlatformTransferMode>>(platform.Root.Q("train-platform-mode"));
-            Assert.IsInstanceOf<ModeSwitch<bool>>(new Client.Ui.Screens.BlockInventory.Train.Timetable.TrainTimetableSectionView().Q("train-timetable-auto-run"));
+            var (train, platform) = MountAllParts();
+            Assert.IsInstanceOf<ModeSwitch<TrainInventoryTab>>(train.Q("train-tabs"));
+            Assert.IsInstanceOf<ModeSwitch<bool>>(train.Q("train-timetable-auto-run"));
+            Assert.IsInstanceOf<ModeSwitch<TrainPlatformTransferMode>>(platform.Q("train-platform-mode"));
         }
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">%sから禁止Mantine部品とテーマ色を除去する</web-test>
-        [TestCaseSource(nameof(TrainUssPaths))]
-        public void 列車のUSSは色をトークンだけで書く(string ussPath)
+        [Test]
+        public void 列車の本文は共通部品とトークンの色だけで組む()
         {
-            // 色の直書き（#・rgb・色名）が無いことを確かめる。前例は alpha の BlockInventoryDesignTest の同名の件
-            // Asserts no literal colors (#, rgb, named); the precedent is the same-named case in alpha's BlockInventoryDesignTest
-            var uss = File.ReadAllText(ussPath);
-            StringAssert.DoesNotMatch(@"#[0-9a-fA-F]{3,8}\b|rgba?\(|:\s*(white|black|red|green|blue)\s*;", uss);
+            // (a) USS に色の直書きが無い。判定は規約検査 UiStyleConventionRules と同じもの
+            // (a) No literal colors in the USS, judged by the same UiStyleConventionRules as the convention check
+            foreach (var path in TrainUssPaths)
+            {
+                var violations = UiStyleConventionRules.CheckUss(File.ReadAllText(path), false);
+                Assert.IsFalse(violations.Exists(v => v.Rule == UiStyleRule.ColorLiteral), $"{path} に色の直書きがある");
+            }
+
+            // (b) 列車・駅の本文の操作の要素はどれも共通部品で、素の Button・Toggle 等を画面が作らない
+            // (b) Every control in the train and station bodies is a shared part; the screen builds no raw Button, Toggle, etc.
+            var (train, platform) = MountAllParts();
+            var sharedControls = new List<VisualElement>();
+            CollectControls(train, sharedControls);
+            CollectControls(platform, sharedControls);
+            Assert.Less(0, sharedControls.Count);
+        }
+
+        // 列車の本文（時刻表タブを開いた区画つき）と、駅名・枠・液体・モードを全部出した駅の本文を組む
+        // Builds the train body with the timetable section open and a station body showing name, slots, fluids and mode
+        private (VisualElement train, VisualElement platform) MountAllParts()
+        {
+            var bodies = new TrainTestBodies(Toaster, BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            var train = bodies.CreateTrainBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
+            Mount(train.Root);
+            train.Attach(BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
+            bodies.Sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
+            simulate.Click(Find<Button>(train.Root, "train-tab-timetable"));
+
+            var platform = bodies.CreatePlatformBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
+            Mount(platform.Root);
+            platform.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("TrainStation"));
+            bodies.Sources.SetPlatform(new OpenTrainPlatformBody(new TrainStationNamePart("北駅"), new[] { new SlotItem(new Core.Master.ItemId(3), 12) }, new[] { BlockFluidSlotState.Empty(1000) }, TrainPlatformTransferMode.LoadToTrain));
+            simulate.FrameUpdate();
+            return (train.Root, platform.Root);
+        }
+
+        // 共通部品の中は部品の責任なので下りない。それ以外に素の操作の要素があれば落とす
+        // Shared parts own their insides, so do not descend; any other raw control fails
+        private static void CollectControls(VisualElement element, List<VisualElement> sharedControls)
+        {
+            if (IsSharedControl(element))
+            {
+                sharedControls.Add(element);
+                return;
+            }
+            Assert.IsFalse(Array.IndexOf(RawControlTypes, element.GetType()) >= 0, $"素の {element.GetType().Name} '{element.name}' を画面が作っている");
+            foreach (var child in element.Children()) CollectControls(child, sharedControls);
+        }
+
+        private static bool IsSharedControl(VisualElement element)
+        {
+            var type = element.GetType();
+            return (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ModeSwitch<>))
+                   || element is PanelActionButton || element is IconButton || element is GameTextField || element is BlockItemGrid || element is FluidInventoryContents;
         }
     }
 }
 ```
-（色の直書きの判定は alpha の同名の件の実装をそのまま写す。上の正規表現は仮）
+（`Children()` は `contentContainer` の子を返すので、`GameScrollView` の Scroller や `GamePanel` の枠の内部には下りない。`UiStyleConventionRules.CheckUss(string ussText, bool allowColorLiterals)`・`UiStyleRule.ColorLiteral` は `Client.Tests/Ui/Conventions` の実物で確かめた。`violations` が `List<UiStyleViolation>` なので `Exists` を使う）
 
 - [ ] **Step 3: compile・テスト・起動**
 
 Run:
 ```bash
 uloop compile --project-path ./moorestech_client
-uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\.(State|Screens\.BlockInventory)\.Train\.|UiCommandRejectReason|UiThemeImportBundleTest|UiStyleConventionTest|UiLayerDependencyDirectionTest|LookExceptionLedgerTest|BlockInventory"
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\.(State|Screens\.BlockInventory)\.Train\.|PauseMenuCommandsTest|UiThemeImportBundleTest|UiStyleConventionTest|UiLayerDependencyDirectionTest|LookExceptionLedgerTest|BlockInventory"
 uloop get-logs --project-path ./moorestech_client --log-type Error
 ```
-Expected: `ErrorCount: 0`、全件 PASS（State 12・Screens 14・L2・alpha の `BlockInventory*`）。全体スイッチ UITK（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`）で PlayMode を起動し、列車・駅を開いて Error ログ 0 件
+Expected: `ErrorCount: 0`、全件 PASS（State 21・Screens 16・`PauseMenuCommandsTest`〈`UiCommandRejectReason` の全列挙を回す 2 件。良性の配列は変えない: `TrainEditRejected` は非良性〉・L2・alpha の `BlockInventory*`）。全体スイッチ UITK（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`）で PlayMode を起動し、列車・駅を開いて Error ログ 0 件
 
 - [ ] **Step 4: コミット**
 
@@ -3965,6 +4854,7 @@ Expected: S4-train のファイル（`train.spec.ts`〈乗車HUD の件は S2-hu
 
 **Files:**
 - Modify: `docs/uitk/TODO.md`（「## 見た目の例外」。使ったときだけ LX-121〜LX-125。「## 参照キャプチャ」に自撮りの行）
+- Modify（要るときだけ）: `S/Client.Ui/Foundation/Theme/DerivedTokens.uss`（駅名の入力欄の幅のトークン）
 - 記録: `LOGS/harness/uitk/S4-train/done.md`「差の表」
 
 - [ ] **Step 1: 撮る**
@@ -3987,10 +4877,10 @@ Expected: S4-train のファイル（`train.spec.ts`〈乗車HUD の件は S2-hu
 |---|---|---|
 | 4-block-train | タブの位置・間（`--mode-switch-gap`）・格子の列数と枠 | 同じ |
 | 4-block-trainTimetable | 持ち物タブの格子・スクロール器の上端 | 同じ（参照の切れは Web 側の撮影の問題。自撮りで確かめる） |
-| 4-block-train-timetable-tab | 自動運転の行・Craft 枠 2 つ・見出しの色と余白・行の区切り線・`+` ボタンの位置 | 同じ。USS に `+` 結合子が無い分は Task 6 の注のクラスで同じにする |
+| 4-block-train-timetable-tab | 自動運転の行・Craft 枠 2 つ・見出しの色と余白・行の区切り線・`+` ボタンの位置・文字の行の高さと位置（`TextSm`）・行内の gap（長い駅名で右の子との間が詰まらない） | 同じ。USS に `+` 結合子が無い分は Task 6 の注のクラスで同じにする |
 | 4-block-trainPlatform | スロット・ModeSwitch の位置 | 同じ |
 | 4-block-trainFluidPlatform | 液体の行（S4-machine の部品）・ModeSwitch | 液体の行の差は S4-machine 持ち（他レーン持ち）。ModeSwitch は同じ |
-| 自撮り: 駅名の行 | 入力欄の幅・高さ・決定ボタン | 見込みの例外: 入力欄の自然な幅（Web は `textAreaField .field` の既定幅） |
+| 自撮り: 駅名の行 | 入力欄の幅・高さ・決定ボタン・行内の gap | Web の入力欄の幅を測って UITK と比べる。違えば同値の既存トークンか `Foundation/Theme/DerivedTokens.uss` の名札付きブロック（根拠のコメントつき。E-1）にトークンを足して `.train-station-name__input` の `width` に当てる。差が残ったときだけ LX |
 | 自撮り: 保留中 | 無効な操作の文字色 | 同じ（D-11 のつまみの上書き） |
 
 差は 1 件ずつ「同じ／直した／LX-n／他レーン持ち」で閉じる。LX は `docs/uitk/TODO.md`「## 見た目の例外」に LX-121 から順に使い、USS に `/* look-exception: LX-n */` を付ける
@@ -3998,7 +4888,7 @@ Expected: S4-train のファイル（`train.spec.ts`〈乗車HUD の件は S2-hu
 - [ ] **Step 3: コミット**
 
 ```bash
-git add docs/uitk/TODO.md moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Train
+git add docs/uitk/TODO.md moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Train moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss
 git commit -m "docs(uitk): 列車族の並べ比べの差を閉じる（S4-train）
 
 <実行ホストの指示する帰属行>"
@@ -4007,60 +4897,56 @@ git commit -m "docs(uitk): 列車族の並べ比べの差を閉じる（S4-train
 
 ---
 
-### Task 11: 録画（古い適用ボタン前提のシナリオを直す）
+### Task 11: 録画（UITK の録画を新設し、壊れた時刻表の録画を両系で通る形に直す）
 
 **Files:**
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs`
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-timetable-via-ui.cs`
-- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-station-default-name.cs`
+- 触らない: `scenarios/train/train-station-default-name.cs`（Web 系の既定名の初期同期の主張のまま。D-13）
 
-- [ ] **Step 1: `train-timetable-via-ui.cs` を即時送信に直す**
+- [ ] **Step 1: `train-timetable-via-ui.cs` を Web と UITK の両方で通る形に直す**
 
-今のシナリオは 2 駅を続けて追加してから `train-timetable-apply` を押す（Web の旧 UI）。Web も UITK も適用ボタンは無く、追加は即送信・保留中は次の追加を受けない。次のとおり直す:
-1. 冒頭のコメント（日英）の「追加→適用」を「1 駅ずつ追加し、サーバーの時刻表に載るのを待つ」に替える
+今のシナリオは 2 駅を続けて追加してから `train-timetable-apply` を押す。適用ボタンは Web にも無い（`TrainTimetableImmediate.test.ts:38`）ので、Web 系でも今は壊れている。追加は即送信・保留中は次の追加を受けないので、次のとおり直す。待ちはサーバーとクライアントのデータだけで取り、系ごとに違う保留の印（UITK の `train-timetable-section--busy`・Web の `aria-busy`）は読まない（Web の DSL は `data-*` 属性しか返さない）:
+1. 冒頭のコメント（日英）の「追加→適用」を「1 駅ずつ追加し、時刻表に載るのを待つ」に替える
 2. 「北駅・南駅を追加して適用」の節を次に替える:
 
 ```csharp
         p.Note("北駅・南駅を1駅ずつ追加（即時送信）");
         await p.ClickUi($"train-timetable-station-{stationAPos.x}_{stationAPos.y}_{stationAPos.z}-add");
         await p.WaitForTrainState(train, 1, null, null, 10f, "サーバーの時刻表が1駅になる");
-        await p.Until("時刻表の保留が解ける", () => !PlaytestUiElementOps.FindUi("train-timetable-section").HasStateFlag("train-timetable-section--busy"), 10f);
+        await p.Until(() => ClientTimetableStopCount() == 1, 10f, "クライアントの時刻表が1駅になる（保留が解ける）");
         await p.ClickUi($"train-timetable-station-{stationBPos.x}_{stationBPos.y}_{stationBPos.z}-add");
         await p.WaitForTrainState(train, 2, null, null, 10f, "サーバーの時刻表が2駅になる");
+        await p.Until(() => ClientTimetableStopCount() == 2, 10f, "クライアントの時刻表が2駅になる");
         await p.UntilUiElement("train-timetable-stop-1", 5f);
 ```
-（`p.Until` と `FindUi(...).HasStateFlag` の実名は DSL の `PlaytestUiElementOps`・`UiElementSnapshot` に合わせる。`--` を含むクラスが状態フラグとして読める）
+（`ClientTimetableStopCount()` はシナリオ内のローカル関数で、`IClientTrainTimetableLookup` を前例 `uitk/uitk-grab-overlay.cs` と同じく `ClientDIContainer` から引き、`TryGet(列車の TrainUnitInstanceId, out snapshot)` の `Stops.Count`〈無ければ 0〉を返す。クライアントの公開が届いた後は DSL のアクション間 0.5 秒の間に両系の UI が描き直されるので、次の追加は保留に当たらない）
 3. スクショ名 `02-timetable-applied` を `02-timetable-added` に替える
-4. 取得の回数の主張（開いた直後 0・タブ選択で 1・開き直してタブ選択で 2）と拒否ログの数え方（`[TrainScheduleEdit] rejected`）はそのまま残す。UITK では拒否の Warning が `[TrainTimetableCommands] rejected:` で出るので、拒否 0 件の主張がこのタグも数えるよう足す
+4. 取得の回数の主張（開いた直後 0・タブ選択で 1）と拒否ログの数え方（`[TrainScheduleEdit] rejected`）はそのまま残し、UITK の拒否の Warning `[TrainTimetableCommands] rejected:` も同じ数え方に足す（両系で拒否 0 件を主張する）
 
-- [ ] **Step 2: `train-station-default-name.cs` に打鍵と決定を足す**
+- [ ] **Step 2: `uitk/uitk-train-inventory.cs` を書く**
 
-UITK では入力欄へ打鍵が届く（CEF の制約が無い）。既存の `UntilUiElement("train-station-name-input")` の後に:
+前例 `scenarios/uitk/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContainer` から型を引く）と、設置は `train/train-timetable-via-ui.cs` の前半（駅 2 つ・レール・貨車 1 両）をそのまま使う。次を順に主張する:
+1. 駅 A を `PressInteract` で開く → `WaitUiState(UIStateEnum.SubInventory)` → `train-platform-view`・`train-station-name-section`・`train-platform-mode` が出る（`Screenshot("01-station")`）
+2. `PlaytestUiElementOps.SetText("train-station-name-input", "中央駅")` → 送らないこと（クライアントの駅名が既定名のまま）→ `ClickUi("train-station-name-apply")` → クライアントの駅名が「中央駅」になるのを待つ。駅名は `train-station-default-name.cs:88-91` と同じく `ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(stationAPos)` の `view.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName` で読む（サーバーの `TrainStationComponent` には `GetStateDetail` が無い）→ `WaitUiTextContains("train-station-name-input", "中央駅")`
+3. 死活表の要確認「テキスト欄にフォーカスがあるときの E・ESC での閉じる」: 入力欄にフォーカスを置いたまま Esc を InputSystem で注入し、`WaitUiState(UIStateEnum.GameScreen, 5f)` で閉じることを主張する。落ちたら `done.md`「証拠」に結果を書き、C2-b の持ち主へ「integrator への依頼」で上げ、この手順だけ `p.Note` の記録に替えて残りを回す（このレーンでは入力の振り分けを変えない）。閉じたら駅 A を開き直す。E も同じ形で 1 回確かめる
+4. `ClickUi("train-platform-mode-unload")` → 押しただけでは選択が替わらず、クライアントの `TrainPlatformTransferStateDetail.Mode` が `UnloadToPlatform` になってから替わる（`Screenshot("02-station-unload")`）→ `block-inventory-close` → `WaitUiState(UIStateEnum.GameScreen)`
+5. 貨車を `PressInteract` で開く → `train-inventory-body` が出て `train-tab-inventory` が選ばれている → `ClickUi("train-tab-timetable")` → `train-timetable-section` → 駅 A を追加 → `WaitForTrainState(train, 1, …)` とクライアントの時刻表 1 駅を待ち、`train-timetable-section` が `train-timetable-section--busy` を持たない（UITK の系だけの録画なので UITK の印を読む）
+6. `ClickUi("train-timetable-auto-run-on")` → `WaitForTrainState(train, null, true, null, 10f, …)` → `train-timetable-auto-run-on` が選ばれる（`Screenshot("03-timetable-auto-run")`）→ 閉じる
+7. 全体で `AssertNoErrorLogs` が 0 件
 
-```csharp
-        p.Note("駅名を入力して決定");
-        await PlaytestUiElementOps.SetText("train-station-name-input", "中央駅");
-        await p.ClickUi("train-station-name-apply");
-        var appliedName = string.Empty;
-        await p.Until("サーバーの駅名が替わる", () =>
-        {
-            p.RunOnServerSync("駅名を読む", () => appliedName = station.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey).StationName);
-            return appliedName == "中央駅";
-        }, 10f);
-        await PlaytestUiElementOps.WaitUiTextContains("train-station-name-input", "中央駅", 5f);
-        await p.Screenshot("02-station-renamed");
-```
-（サーバーの値を読む DSL の実名は既存シナリオの `RunOnServer` の使い方に合わせる。同期で読めなければ `await p.RunOnServer(...)` を待ちの外へ出し、0.5 秒ごとに読み直す形にする）
+押下は DSL の `ClickUi`、文字は `PlaytestUiElementOps.SetText`、キーは InputSystem の注入だけを使い OS の入力は使わない
 
 - [ ] **Step 3: 回す**
 
-実行前に PlayMode を止め、`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)` を立ててから、unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で `train/train-timetable-via-ui`・`train/train-station-default-name`・`train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` を回す
-Expected: 4 本の `result.json` が PASS、mp4 がある。`done.md`「証拠」に result.json のパス・mp4・`UiInputExclusivity.ActiveUiSystem` の値（GameUi）を書く。生の録画は worktree の gitignore 下に置き、`LOGS` へはスクショ 3 枚までと報告だけ。終わりに `list-work-saves.sh` でテストのワールドを消す
+実行前に PlayMode を止め、`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)` を立ててから、unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で `uitk/uitk-train-inventory`・`train/train-timetable-via-ui`・`train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` を回す。続けて全体スイッチを Web（`UiSystem.WebUi`）に戻し、`train/train-timetable-via-ui` と `train/train-station-default-name` を回す（Web 系が直った／退化していないことの確かめ。死活表）
+Expected: 6 本の `result.json` が PASS、mp4 がある。`done.md`「証拠」に result.json のパス・mp4・各回の `UiInputExclusivity.ActiveUiSystem` の値（GameUi 4 本・WebUi 2 本）と、手順 3 のフォーカス中の閉じの結果を書く。生の録画は worktree の gitignore 下に置き、`LOGS` へはスクショ 3 枚までと報告だけ。終わりに `list-work-saves.sh` でテストのワールドを消す
 
 - [ ] **Step 4: コミット**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/train
-git commit -m "test(uitk): 時刻表の録画を即時送信に直し駅名の決定を足す（S4-train）
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-timetable-via-ui.cs
+git commit -m "test(uitk): 列車族の UITK 録画を足し、時刻表の録画を即時送信に直す（S4-train）
 
 <実行ホストの指示する帰属行>"
 ```
@@ -4081,7 +4967,7 @@ Expected: `ErrorCount: 0`、全件 PASS
 - [ ] **Step 3: コミット**
 
 ```bash
-git add -A moorestech_client docs .agents/skills/unity-playmode-recorded-playtest/scenarios/train
+git add -A moorestech_client docs .agents/skills/unity-playmode-recorded-playtest/scenarios/train .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs
 git commit -m "fix(uitk): 全ブランチのレビューを反映（S4-train）
 
 <実行ホストの指示する帰属行>"
@@ -4101,7 +4987,7 @@ pr-create スキルで base `feature/uitk` の PR を作る。本文の先頭行
 git fetch origin
 git merge origin/feature/uitk
 ```
-共有区画（`MainGameUiRegistration` の画面登録区画・`GameUiTheme.tss` の `Screens` 区画・`docs/uitk/TODO.md`・`UiCommandRejectReason`〈alpha の `BlockSlotUnavailable` 等と並ぶ〉・`localization.csv`・`Client.Ui.State.asmdef` の references）の衝突は両側の行を残して解く。`localization.csv` が衝突したら解いた後に `pnpm --dir moorestech_web/webui run gen:i18n` を回し直す。取り込み後に `uloop compile` と Task 8 Step 3 のテストを回し、緑を確かめて push
+共有区画（`MainGameUiRegistration` の画面登録区画・`GameUiTheme.tss` の `Screens` 区画・`docs/uitk/TODO.md`・`UiCommandRejectReason`〈alpha の `BlockSlotUnavailable` 等と並ぶ〉・`localization.csv`・`Client.Ui.State.asmdef` の references）の衝突は両側の行を残して解く。ただし `Client.Ui.State.asmdef` で同じ参照が両側にあれば 1 行に畳む（E-1）。`localization.csv` が衝突したら解いた後に `pnpm --dir moorestech_web/webui run gen:i18n` を回し直す。取り込み後に `uloop compile` と Task 8 Step 3 のテストを回し、緑を確かめて push
 
 - [ ] **Step 3: G1 を待ってマージする**
 
@@ -4118,33 +5004,42 @@ git merge origin/feature/uitk
 
 ## Self-Review
 
-- 写すテスト 20 件（＋共有 2 件）は Task 4（6）・Task 6（2）・Task 7（9）・Task 8（3＋共有 2）に全部ある。数: 6＋2＋5＋4＋1＋2 = 20
+- 写すテスト 20 件（＋共有 2 件）は Task 4（6）・Task 7（2＋5＋4）・Task 8（1＋2＋共有 2）に全部ある。数: 6＋2＋5＋4＋1＋2 = 20（`train.spec` 1・`timetable.spec` 2・`TrainTimetableImmediate` 8・`TrainTimetableSection` 5・`TrainInventoryBody` 1・`trainPlatform.spec` 2・`TrainPlatformInventory` 1）
 - R-1〜R-18 は Task 1〜13 のどこかに受け入れ基準の主張がある。R-15 は Task 10、R-17 は Task 11、R-18 は Task 12〜13
-- 型の綴り: `TrainTimetableViewState`・`ReadyTrainTimetableViewState.Data`・`TrainTimetableEditSession.DisplayedStops / IsPending / ReceiveServerStops / Replace / Close`・`TrainTimetableSectionViewModel.Build`・`TrainTimetableFetchTrigger.SelectTab / ReceiveState`・`TrainStationNameDraft.Sync / Edit / Reject` は定義とテスト・Presenter で一致
-- ディレクトリの本数: State `Timetable/` 7・`TimetableEdit/` 7・`Inventory/` 6・`Platform/` 8、View `Train/` 8・`Train/Timetable/` 7・`Train/Parts/` 2、テスト `State/Train/Fakes/` 5。どれも 10 以下
+- 型の綴り: `TrainTimetableViewState.IsSameState`・`TrainTimetableReadyData.HasSameContent`・`ITrainTimetableSource.Refresh`・`TrainTimetableEditSession.DisplayedStops / IsPending / OnDisplayChanged / ReceiveServerStops / Replace / Close`・`TrainTimetableSectionViewModel.Build / HasSameContent / CurrentIndex(int?)`・`TrainTimetableAreaViewModel.IsSameArea`・`ITrainTimetableEditModel.Add / Move / Remove / SetAutoRun`・`ITrainInventoryTabModel.Tab / SelectTab`・`ITrainPlatformEditModel.StationNameInput / EditStationName / ApplyStationName / SelectTransferMode`・`OpenTrainPlatformBody.StationName / ItemSlots / Fluids / Mode`・`TrainPlatformDetailReader.Read(blockType, param, …)` は定義・テスト・View で一致
+- ディレクトリの本数: State `Timetable/` 7・`TimetableEdit/` 10・`Inventory/` 8・`Platform/` 7＋`Platform/Edit/` 5、View `Train/` 8・`Train/Timetable/` 6・`Train/Parts/` 2、テスト `State/Train/Fakes/` 5・`Screens/BlockInventory/Train/` 6。どれも 10 以下
+- 層: Presenter は Model の `Current` を購読して `Render` へ流すだけ。押下は View が State の型付きの口を直接呼ぶ（A-8）。判断・セッションの寿命・下書きは State の Model が持つ
 - alpha・S4-machine の型は計画の Produces から写し、実物との差は Task 1 Step 2 で合わせる。合わせた結果の形の違いは D-n で足す
-- 規約: `Action` のコールバックは使っていない（意図は `Subject` と `Select`）。`Func<>`・partial・try-catch・デフォルト引数は無い。黙る経路は `silent-ok` 1 か所（並びの同じ編集）と、ログつきの捨て（保留中の編集・閉じた後の結果・閉じた後の駅名の拒否）
+- 規約: `Action` のコールバックは使っていない（押下は `OnClicked.Subscribe` で State の口を呼ぶ）。`Func<>`・partial・try-catch・デフォルト引数は無い。黙る経路は `silent-ok` 6 か所（並びの同じ編集・同じ中身の再配信 2・同じパネルの再配信 2・追跡が遅れた一瞬）と、ログつきの捨て（保留中の編集・閉じた後の結果・開いていない操作・別のパネルへ移った後の駅名の拒否）
 
 ## 判断記録
 
 | ID | 判断 | 理由 | 却下した案 |
 |---|---|---|---|
-| D-1 | State は `Train/` の下に役割で 4 ディレクトリ（`Timetable/`・`TimetableEdit/`・`Inventory/`・`Platform/`）、View は `Train/`・`Train/Timetable/`・`Train/Parts/` | 1 ディレクトリ 10 本の上限と、Model / 編集 / 本文 / ブロック側で変わる理由が別 | `Train/` 直下に全部（27 本で上限超え） |
-| D-2 | **Web ホストにしかない導出を State で作り直す（重複）**: 駅一覧の組み立て（`GetBlocksByBlockType(TrainStation)`＋駅名の StateDetail）・x→z→y の整列・停車駅の名前の補完と欠けの警告・状態の優先（所有列車・`IsUnavailable`・`IsFetchInFlight`・キャッシュ）・未知の Side の捨て・出発条件（`WaitForTicks`・`TicksPerSecond`）・`AppliedIsAutoRun` の照合・`train_not_open` 等の拒否文字列・駅/PF の詳細（モード・スロット数の有無）・貨車の液体の変換。写し元は `Client.WebUiHost` の `TrainTimetableDtoBuilder`・`TrainTimetableStopParser`・`TrainTimetableActions`・`TrainTimetableOpenActionHandler`・`TrainStationActions`・`TrainPlatformActions`・`TrainPlatformDetailDtoBuilder`・`TrainStationDetailDtoBuilder`・`TrainInventoryDtoFactory` | State は `Client.WebUiHost` を参照できない（層の向き）。CEF 撤去で Web ホストごと消えるので、片方を正にする共通化は撤去後に UITK 側だけが残る形で解消する | Web ホストの導出を共通の場所へ移して両方から呼ぶ（Web ホストを変えない縛り・E-1 に反する） |
+| D-1 | State は `Train/` の下に役割で 5 ディレクトリ（`Timetable/`・`TimetableEdit/`・`Inventory/`・`Platform/`・`Platform/Edit/`）、View は `Train/`・`Train/Timetable/`・`Train/Parts/` | 1 ディレクトリ 10 本の上限と、Model / 編集 / 本文 / ブロック側で変わる理由が別 | `Train/` 直下に全部（38 本で上限超え） |
+| D-2 | **Web ホストにしかない導出は State に同じ規則でもう 1 本持つ（負債が残る。CEF 撤去の日に `Client.WebUiHost` 側を消す）**: 駅一覧の組み立てと整列・停車駅の名前の補完と欠けの警告・状態の優先・未知の Side の捨て・出発条件・`AppliedIsAutoRun` の照合・拒否文字列・駅/PF の詳細・貨車の液体の変換。Web ホストが既に State の口を呼んでいる所（`TrainTimetableFetcher`・`OpenTrainUnitResolver`）は UITK もその口を使い、写さない。重複の一覧は「## 本 PR 外のリファクタ提案」。出所: レビュー r1（根拠の書き直し） | 本体の裁定 C4-e 要裁定 1「Web ホストと UITK State に同じ規則が一時的に 2 本ある負債は CEF 撤去まで据え置き」に従う（S4-alpha・S4-machine D-3 も同じ）。State は `Client.WebUiHost` を参照できず（層の向き）、Web ホストは撤去で消えるので、撤去の日に片側を消せば 1 本に戻る | State に 1 本にして Web ホストから呼ぶ（設計書 A-84・A-21 の向き。裁定で撤去まで据え置きと決まっており、このレーンで Web ホストを書き換えると Web 系の検証が増える）。旧版の却下理由「E-1 に反する」は誤り（E-1 に Web ホストの変更禁止は無い）なので消した |
 | D-3 | 公開待ちの時間切れは口 `ITrainTimetableWaitTimer` で注入し、本番は UniRx の実時間 5000ms | Web の `DEFAULT_ACTION_TIMEOUT_MS` と同じ値。UI の通信待ちでゲームロジックの経過ではないので、AGENTS.md の「ティックで測る」の対象外。テストで手で起こせる | `GameUpdater` のティックで測る（ゲームが止まっていると UI が永久に保留） |
 | D-4 | 閉じた後に戻った結果は捨て、Warning ログを出す（`Close()` のフラグ） | Web の unmount 後の無視と同じ。別の列車を開いた後に古い結果で表示を動かさない | 結果を待ってから閉じる（閉じる操作が遅れる） |
 | D-5 | Ready の区画は持ち物タブのあいだも作ったまま `display:none`。列車が替わると作り直す | Web は hidden で mount を保ち、key=trainUnitId で作り直す。保留中にタブを替えても編集が切れない | タブごとに作り直す（保留が消える） |
-| D-6 | Loading・Unavailable は単一のインスタンスで、同じ状態の連続は流さない | 時刻表タブのあいだの「読込中が届くたびの頼み直し」は Ready → Loading の遷移で起きる（Web の取得のやり直しの公開）。同じ Loading の連続で頼み直すと依頼が無限に続きうる | Loading も毎回新しく作る |
+| D-6 | 同じ状態は流し直さない: Loading・Unavailable は単一のインスタンス、Ready は中身（`HasSameContent`）で比べる。区画の描画値も同じ（`IsSameArea`）。出所: レビュー r1（Ready の比較を足した） | 「読込中が届くたびの頼み直し」は Ready → Loading の遷移で起きる。同じ Loading の連続で頼み直すと依頼が続く。貨車の中身の更新（`OnSubInventoryUpdated`）だけで時刻表の行とボタンを作り直さない | Ready を毎回新しく流す（中身の更新のたびに行を作り直し、押下の最中に要素が替わる） |
 | D-7 | 積込/卸しの選択肢に testid `train-platform-mode-load` / `-unload` を足す | Web の選択肢には testid が無く、UITK の DSL とテストは名前で押す。部品 `ModeSwitch` は選択肢の testid を必須にしている | 文言で押す（言語で壊れる） |
-| D-8 | 積込/卸しは State 側の列挙 `TrainPlatformTransferMode` で持ち、サーバーの列挙への写しは `TrainBlockCommands`・`TrainPlatformDetailReader` の 2 か所 | `Client.Ui` に `Game.Block` の参照を足さない（View がサーバーの型を知らない） | `Client.Ui.asmdef` に `Game.Block` を足す |
+| D-8 | 積込/卸しは State 側の列挙 `TrainPlatformTransferMode` で持ち、サーバーの列挙との写しは `TrainPlatformTransferModeConversion` の 1 か所（読み手と送り手が共有）。出所: レビュー r1（写しを 1 本にした） | `Client.Ui` に `Game.Block` の参照を足さない（View がサーバーの型を知らない） | `Client.Ui.asmdef` に `Game.Block` を足す／写しを読み手と送り手に 2 本持つ |
 | D-9 | 拒否の理由は新しい 1 つ `TrainEditRejected`（文言 1 つ）に寄せ、Web と同じ理由文字列は `Detail` に入れる | Web は拒否の生のコードをトーストに出すが、UITK は利用者向けの文言に替える規約（`UiCommandRejectReasonTraits.ToLocalizationKey`）。理由ごとの文言は Web に無いので足さない。ログは Detail 優先で Web と同じ文字列 | 理由ごとに列挙と文言を足す（Web に無い文言が 6 つ増える） |
-| D-10 | 停車駅のラベルの中の駅名（名前が空なら `timetableUnnamedStation`）は Presenter が `Localize.OnLanguageChanged` で描き直す | `LocalizedLabel` は自分のキーは描き直すが、引数に埋めた解決済みの文字列は変わらない | 引数に UiText を入れ子で渡す（`LocalizationTextParam` が文字列だけ） |
+| D-10 | 停車駅のラベルの中の駅名（名前が空なら `timetableUnnamedStation`）は `TrainInventoryBodyPresenter` が `Localize.OnLanguageChanged` で描き直す | `LocalizedLabel` は自分のキーは描き直すが、引数に埋めた解決済みの文字列は変わらない | 引数に UiText を入れ子で渡す（`LocalizationTextParam` が文字列だけ） |
 | D-11 | 無効な操作の文字色は、画面のルートのクラスの下で部品のつまみ `--panel-action-button-text` を `--text-muted` に上書き（＋`opacity: 1`） | Web `.list button:disabled { color: var(--text-muted) }`。`PanelActionButton` に無効の見た目が無く、部品のクラスを画面 USS の主語にしない規約。既定テーマの無効の不透明度が乗ると Web と違うので打ち消す。integrator へ部品側の無効の状態を依頼 | 画面 USS で `.panel-action-button` を直接塗る（規約違反） |
-| D-12 | 取得の依頼の判定 `TrainTimetableFetchTrigger` は State に置き、Presenter が持つ | Web の effect の条件は純粋な判定で、L1 で View 無しに確かめられる | View が自分で依頼する（View は購読しない規約） |
-| D-13 | 既存の録画 `train/train-timetable-via-ui.cs`・`train/train-station-default-name.cs` はその場で直す（新しいシナリオを作らない） | 適用ボタンは Web にも無く、シナリオは今の Web でも古い。同じ経路の検証を 2 本にしない | `uitk/` に別シナリオを新設（古い方が壊れたまま残る） |
+| D-12 | タブと取得の依頼の判定は State の `TrainInventoryTabModel`（`TrainTimetableFetchTrigger` を持つ単一インスタンス）が持ち、View のタブの押下が `SelectTab` を直接呼ぶ。別のパネル（`IsSamePanel` が偽）で持ち物タブへ戻す。出所: レビュー r1（Presenter から State へ移した） | 設計書 A-8「View が型付きコマンドを直接呼ぶ」と §4.2「Presenter は判断を持たない」。Web の effect の条件は純粋な判定で L0 で確かめられる。Web は本文の mount ごとにタブを初期化するので、パネルの識別で同じ振る舞いにする | Presenter が `FetchTrigger` を持ち意図を中継する（旧版。A-8 に反し、配線が増えるだけ） |
+| D-13 | UITK の操作の録画は `scenarios/uitk/uitk-train-inventory.cs` に新設する（alpha の `uitk-block-inventory`・S4-machine の `uitk-machine-ui` と同じ形）。`train/train-timetable-via-ui.cs` は Web 系でも今は壊れている（無い適用ボタンを押す）ので、その場で両系で通る形に直す（押下を消し、待ちはサーバーとクライアントの時刻表の駅数だけ）。`train/train-station-default-name.cs` は触らない。出所: レビュー r1 | Web 系で回す録画に UITK だけで成り立つ手順を足すと Web 系が退化する。時刻表の録画は直さないと Web 系の壊れが残り、両系で成り立つ待ち方がある。系ごとの保留の印（UITK `--busy`・Web `aria-busy`）は Web の DSL から読めない | 既存の 2 本をその場で UITK の操作へ延ばす（旧版。Web 系の `train-station-default-name` が退化する）／時刻表の録画も `uitk/` へ分ける（Web 系の壊れが残る） |
 | D-14 | 自動運転と積込/卸しは楽観更新しない。押すと即送り、選択はサーバーの公開でだけ替わる | Web と同じ。`ModeSwitch` も押下で自分では選ばない | 押した瞬間に選択を替える |
 | D-15 | 駅名の拒否は待ちのあいだに届いた最新の同期名へ戻す。「未編集」は前の同期値と同じ入力とみなす | Web `TrainStationNameSection`（`latestName` と `previousName` の比べ方）と同じ。拒否のまま dirty で残り再同期されないのを防ぐ | 編集フラグで持つ（打ち戻した入力が同期に従わない差が出る） |
-| D-16 | 本文の工場は「Presenter＋View」の組（`ITrainInventoryPart`・`IBlockInventoryPart`）を返し、Model は DI の単一インスタンスで起動時に源を購読する。貨車のスロットも `OpenTrainInventoryPanel.ItemSlots` ではなく自分の Model から読む | 設計書 §4.2「Model の購読は Presenter、View は Render だけ」と alpha の改訂（同じパネルのあいだ `Attach` は呼び直されない） | パネルの `ItemSlots` を `Attach` で描く（スロットの更新が届かない） |
+| D-16 | 貨車・PF のスロットは alpha のパネルの源（`IBlockInventoryPanelSource.Current` の `OpenTrainInventoryPanel`／`OpenBlockInventoryPanel`〈エラー無し〉の `ItemSlots`）を Model が購読して読む。液体だけを `SubInventoryState`（貨車）・`IBlockFluidSlotsModel`（PF）から読む。本文の工場は「Presenter＋View」の組を返し、Model は DI の単一インスタンスで起動時に源を購読する。出所: レビュー r1（スロットの源を替えた） | パネルの源はスロットの更新でも配り直すので、`Current` を購読すれば更新が届く。`IItemStack → SlotItem` の写しを State にもう 1 本作らない（alpha のパネルと `LocalPlayerInventoryOperations` に既にある） | `SubInventoryState` からスロットを自前で写す（旧版。同じ役目の 3 本目）／パネルの `ItemSlots` を `Attach` の引数で一度だけ描く（更新が届かない） |
+| D-17 | 液体 PF の液体は S4-machine の `IBlockFluidSlotsModel` を読む。出所: レビュー r1 | サーバー `TrainPlatformFluidContainerComponent.cs:172-173` が `FluidMachineInventoryStateDetail` を出し、S4-machine の `BlockFluidSlotsModel` は追跡ブロックのその StateDetail を読む（machine R-3）。`SubInventoryModel.SetFluids` を呼ぶのは `TrainSubInventorySource.cs:59` だけなので、液体 PF（ブロック）では `SubInventoryModel.Fluids` は空のまま。Web ホスト `BlockDetailDtoBuilder.cs:104-109` も同じ StateDetail から組む。Task 1 Step 2 で液体 PF を追跡しているあいだ `Slots` が空でないことを確かめる | `SubInventoryModel.Fluids` を読む（液体 PF の行が空になる） |
+| D-18 | 編集セッションの段階は private な判別 union（`Idle`・`Sending(stops)`・`AwaitingPublication(stops, timeout)`）1 本で持つ。`_closed` は寿命なので別。表示は `DisplayedStops`・`IsPending` と変化の通知 `OnDisplayChanged` 1 本で出す。出所: レビュー r1 | null の `_pendingStops` と bool の `_accepted` の組では「受理済みなのに並びが無い」等のありえない組が書ける。通知を 1 本にすると、並びと保留の片方だけが替わった途中の値を配らない | null と bool の組（旧版） |
+| D-19 | 描画値は有無を型で表す: 貨車の本文の値から `TrainCarInstanceId`（-1 で閉）を消し（識別はパネルの状態が持つ）、区画の現在位置は `int?`、PF の本文は `ClosedTrainPlatformBody`／`OpenTrainPlatformBody`（駅名の部分・スロット・モードは「無ければ null」）にする。View は「null でなければ出す」の 1 規則で描く。出所: レビュー r1 | 数値の番兵と、判別 bool と片側だけで意味のある値の同居をやめる。Web の `trainStation?`・`trainPlatform?` の省略可能な詳細と同じ形 | `-1`・`IsStation`＋`StationName ""`・`HasTransferMode`＋既定の `LoadToTrain`（旧版） |
+| D-20 | 取得を頼んだ直後の `ITrainTimetableSource.Refresh()` は、取得を頼む唯一の呼び手 `TrainInventoryTabModel` が `RequestOpen` の後に呼ぶ。Refresh で配られた読込中に応じてもう 1 回頼むのは、Web と同じく Fetcher が同じ列車の依頼を畳むので通信は 1 回。出所: レビュー r1 | `TrainTimetableFetcher` は取得中になっても通知を出さず、Ready（または使えないのラッチ）のまま頼むと結果が届くまで読込中が出ない。Commands から呼ぶ案（再現役の推奨）より、偽物で順を L0 に試せる Model 側に置いた | `TrainTimetableCommands.RequestOpen` の中で呼ぶ（本番の Fetcher・キャッシュを組まないと試せない）／2 回目の依頼を抑える旗を持つ（Web は抑えていない） |
+| D-21 | 駅・PF の描画値の組み立て `TrainPlatformDetailReader.Read` は `BlockGameObject` を取らない純関数にし、StateDetail と BlockParam の取り出しは `TrainPlatformBodyModel` の 1 か所に置く。本文の種類は `BlockComponentRegistry`（Model はパネルの `Components.Body`、Commands は `Resolve(blockType).Body`）で判定し、駅かどうかは Reader の `BlockTypeConst.TrainStation` との比較 1 か所。駅一覧の整列も `TrainTimetableStation` の列を受ける。出所: レビュー r1 | S4-machine の「状態詳細 → 値の写しは `BlockGameObject` を取らない純関数で L0 で試す」に揃える。3 つの blockType の列挙を自前で持たない（alpha の登録表と食い違わない） | `Read(BlockGameObject, …)` と `IsTrainPlatformBlock`（旧版） |
+| D-22 | 見た目の直し: Mantine `Text size="sm"` の 7 か所（自動運転の見出し・停車駅と駅一覧の見出し・空の文 2・読込中・使えない）に `UiTypographyClass.TextSm`。見出しの内側余白は器（`train-timetable__section-heading`）に、文字の型はラベルに付ける。駅のラベル（Web は継承の `<span>`）は `margin: 0; padding: 0`。行の右の子（停車駅の操作・駅一覧の `+`・自動運転の `ModeSwitch`、駅名の入力欄と決定）に画面のクラス `…__row-end` を付けて間を 1 本の規則で取る。駅名の入力欄は伸ばさない。USS の出所のコメントは日本語 1 行 → 英語 1 行。出所: レビュー r1 | 部品のクラスを画面 USS の主語にしない規約のまま、Web の `gap` を全行で抜けなく写す。Web の入力欄は `flex-grow` を持たない | 見出しの器とラベルに同じクラス（`padding: 0` と取り合う）／`train-timetable__controls` だけに間（自動運転の行・駅一覧の行で抜ける） |
+| D-23 | 共有テスト「%sから禁止Mantine部品とテーマ色を除去する」は、(a) USS の色の直書きが無いことを規約検査と同じ `UiStyleConventionRules.CheckUss` の `ColorLiteral` で、(b) 列車・駅の本文の木の操作の要素がすべて共通部品（`ModeSwitch`・`PanelActionButton`・`IconButton`・`GameTextField`・`BlockItemGrid`・`FluidInventoryContents`）で素の `Button`・`Toggle`・`RadioButton`・`Slider`・`ProgressBar`・`TextField` を画面が作らないことを主張する。出所: レビュー r1 | Web の元テストはソースに禁止部品のタグとテーマ色が無いことの 2 つを見る。仮の正規表現は規約検査と判定がずれる | USS の色だけを見る（旧版。素の `Button` を使っても通る） |
+| D-24 | R-13 の受け入れは既存の `PauseMenuCommandsTest`（`UiCommandRejectReason` の全列挙を回す良性の配列とトースト用の翻訳文の 2 件）にする。`TrainEditRejected` は非良性なので良性の配列は変えない。出所: レビュー r1 | 旧版が挙げた `UiCommandRejectReasonTraitsTest`・`LocalizationKeysTest` は実在しない | 新しいテストを作る（同じ全列挙が 2 本になる） |
 
 ## 設計書・実行計画へ反映する行
 
@@ -4152,21 +5047,33 @@ git merge origin/feature/uitk
 
 | ID | 下書き |
 |---|---|
-| A-155 | 列車族の本文の置き場: State は `Client.Ui.State/Train/{Timetable,TimetableEdit,Inventory,Platform}/`、View は `Client.Ui/Screens/BlockInventory/Train/{,Timetable/,Parts/}`。Model（`TrainTimetableModel`・`TrainInventoryBodyModel`・`TrainPlatformBodyModel`）が源を購読し、alpha の拡張口に差す工場 2 本が Presenter＋View の組を作る。登録は `BlockInventoryTrainGameUiRegistration` |
-| A-156 | 時刻表の即時編集 `TrainTimetableEditSession`（Web `useImmediateTimetable` の写し）: 編集は即送信・保留中の編集は捨てる・受理と同じ並びの公開で解く・受理後 5000ms 公開が無ければ解く（実時間。UI の通信待ちでティックの対象外）・拒否は最新のサーバーの並びへ戻す・閉じた後の結果は捨てる。Web ホストにしかない導出（駅一覧・整列・状態の優先・出発条件等）は State に重複して写す（CEF 撤去で解消） |
+| A-155 | 列車族の本文の置き場: State は `Client.Ui.State/Train/{Timetable,TimetableEdit,Inventory,Platform,Platform/Edit}/`、View は `Client.Ui/Screens/BlockInventory/Train/{,Timetable/,Parts/}`。源の Model（`TrainTimetableModel`・`TrainInventoryBodyModel`・`TrainPlatformBodyModel`）と、View が直接呼ぶ編集の Model（`TrainTimetableEditModel`・`TrainInventoryTabModel`・`TrainPlatformEditModel`。A-8）を DI の単一インスタンスで持ち、alpha の拡張口に差す工場 2 本が Presenter（購読して `Render` へ流すだけ）＋View の組を作る。スロットは alpha のパネルの源から読む。登録は `BlockInventoryTrainGameUiRegistration` |
+| A-156 | 時刻表の即時編集 `TrainTimetableEditSession`（Web `useImmediateTimetable` の写し。段階は判別 union）: 編集は即送信・保留中の編集は捨てる・受理と同じ並びの公開で解く・受理後 5000ms 公開が無ければ解く（実時間。UI の通信待ちでティックの対象外）・拒否は最新のサーバーの並びへ戻す・閉じた後の結果は捨てる。Web ホストにしかない導出は State に同じ規則でもう 1 本持ち（C4-e 要裁定 1 の据え置き）、CEF 撤去の日に `Client.WebUiHost` 側を消す |
 | A-157 | 断りの理由 `UiCommandRejectReason.TrainEditRejected`（非良性・wire `train_edit_rejected`・文言 `ui.commandRejected.trainEditRejected`）。Web と同じ理由文字列は `Detail` に入れる |
 | A-158 | 駅名の欄は `GameTextField(GaugeInset)`＋`PanelActionButton`。送るのは決定の押下だけ、拒否は最新の同期名へ戻す。積込/卸しの選択肢の testid は `train-platform-mode-load` / `-unload`（Web に無い名前を UITK で足す） |
-| A-159 | 実行計画 §1.4 の S4-train 行: 写すテストの数を実物の 20 件（`train.spec` 1・`timetable.spec` 2・`TrainTimetableImmediate` 8・`TrainTimetableSection` 5・`TrainInventoryBody` 1・`trainPlatform.spec` 2・`TrainPlatformInventory` 1）＋共有 2 件に直し、依存に S4-machine（`FluidInventoryContents`）を足す |
+| A-159 | 実行計画 §1.4 の S4-train 行: 写すテストの数を実物の 20 件（`train.spec` 1・`timetable.spec` 2・`TrainTimetableImmediate` 8・`TrainTimetableSection` 5・`TrainInventoryBody` 1・`trainPlatform.spec` 2・`TrainPlatformInventory` 1）＋共有 2 件に直し、依存に S4-machine（`FluidInventoryContents`・`IBlockFluidSlotsModel`）を足す。録画は `uitk/uitk-train-inventory`（新設）と `train/train-timetable-via-ui`（両系で通る形に直す） |
+
+## 本 PR 外のリファクタ提案
+
+Phase 2.6 の第 3 バケツ。このレーンのタスクにはしない。どれも D-2 の据え置き（C4-e 要裁定 1）の対象で、CEF 撤去の日に `Client.WebUiHost` 側を消せば 1 本に戻る。
+
+- 既存 `Client.WebUiHost/Game/Topics/BlockDetail/Train/TrainTimetableDtoBuilder.cs`（`Build`・`SortStations`・`CreateFromTimetable`）と新設 `TrainTimetableStationCatalog`・`TrainTimetableReadyDataFactory`・`TrainTimetableModel.Build`: 駅ブロック → 駅一覧（`GetBlocksByBlockType(TrainStation)`＋駅名 StateDetail＋整列）と状態の優先が 2 本
+- 既存 `Client.WebUiHost/Game/Actions/Train/TrainTimetableStopParser.cs` と新設 `TrainTimetableDeparture.ToServerStops`: 固定の出発条件を付ける写しが 2 本
+- 既存 `Client.WebUiHost/Game/Actions/Train/TrainTimetableActions.cs`（`TrainTimetableActionSupport.Reject`）・`TrainTimetableOpenActionHandler.cs` と新設 `TrainTimetableCommands`・`TrainCommandRejection`: 置換・`AppliedIsAutoRun` の照合・拒否文字列の組み立てが 2 本（開いた列車の解決と取得の依頼は両方が既存の `OpenTrainUnitResolver`・`TrainTimetableFetcher` を呼ぶので 1 本）
+- 既存 `Client.WebUiHost/Game/Topics/BlockDetail/TrainPlatformDetailDtoBuilder.cs`・`Train/TrainStationDetailDtoBuilder.cs` と新設 `TrainPlatformDetailReader.Read`: 駅名・モード・スロットの有無の導出が 2 本
+- 既存 `Client.WebUiHost/Game/Actions/TrainPlatformActions.cs`（`IsTrainPlatform` の 3 つの blockType）と新設 `TrainBlockCommands.SetTransferMode`（`BlockComponentRegistry` で判定）: 種別の判定が 2 本。Web ホスト側も `BlockComponentRegistry` に寄せられる
+- 既存 `Client.WebUiHost/Game/Actions/Train/TrainStationActions.cs` と新設 `TrainBlockCommands.SetStationName`: 開いているブロックの解決・種別検査・送信・拒否文字列が 2 本
+- 既存 `Client.WebUiHost/Game/Topics/TrainInventoryDtoFactory.cs` と新設 `TrainCarFluidConversion`（スロットは alpha のパネルの源を使うので液体だけ）: 貨車の液体の写しが 2 本
+- 既存 `Client.Ui.State/Inventory/Actions/LocalPlayerInventoryOperations.cs`（`ToSlotItem(IItemStack)`）: 旧版はこれと同じ `IItemStack → SlotItem` の写しを State にもう 1 本作る所だったが、D-16 でパネルの源を使うので新設しない（記録だけ）
 
 ## 起草メモ（本体向け）
 
 - **数の食い違い（申告）**: 本体の指示は「実物の 21 件」だが、実物で数えると S4-train の持ち分は **20 件**。下調べの 21 件は `test-name-parity --bundle 4` の出力に S4-research の `ResearchDetailPane` の 1 件が混ざっていた。内訳は「写すテスト」表と A-159。`train.spec` の「乗車HUD…」（S2-hud 済み）は除き、`TrainPlatformInventory.test.tsx` の 1 件は足した。ほかに alpha が train に割り振った `blockInventoryDesign.test.ts` の共有 2 件を自分のファイル `TrainDesignTest` に同じタグで写す（alpha の `BlockInventoryDesignTest` には足さない）
-- **S4-machine の型**: 計画（09b9a73226）の Produces から写した: `FluidInventoryContents(testid, GameContentPresentation)`・`Render(IReadOnlyList<BlockFluidSlotState>)`、液体の Model `IBlockFluidSlotsModel`（プラットフォームの液体はこれを購読）、`BlockFluidSlotConversion.FromTanks`（貨車の液体の変換に入力側だけで使い、写しを 2 か所に持たない）。S4-machine の Produces は工場ではなくコンストラクタなので、S4-train の工場が `GameContentPresentation` を受けて `new` する。`IBlockFluidSlotsModel` は「列車では空」なので貨車の液体には使えず、`SubInventoryState` の `Fluids` を S4-train の `TrainInventoryBodyModel` が読む
-- **alpha の型**: 改訂版（85f905aa3d）の Produces から写した（`ITrainInventoryPart`・`IBlockInventoryPart`・`Attach`/`Detach`・`BlockInventoryBodyMount`）。`OpenTrainInventoryPanel.ItemSlots` は残っているが、同じパネルのあいだ `Attach` は呼び直されないので、スロットの更新は S4-train の `TrainInventoryBodyModel` が `SubInventoryState` から配る（alpha のパネルの Model と同じ源を 2 か所で購読する。D-16）。`IUiStateTransitionRequester` は使わない（閉じるは alpha の外殻）
-- **本体の決定 4 件の反映**: (1) 液体の中身は S4-machine のものを使うだけ・依存に S4-machine を足した（Global Constraints・A-159）。(2) 写すテストは上のとおり。(3) `train-timetable-via-ui.cs` は `train-timetable-apply` を押す旧 UI 前提だったので、即時送信に直すタスクを Task 11 に入れた（`train-station-default-name.cs` も UITK では打鍵できるので決定まで延ばした）。(4) Web ホストの導出の作り直しは D-2 に重複として書いた
-- **共有ファイルへの追記**: `Client.Ui.State.asmdef` に `Game.Block`・`Core.Update`（駅名・移送の StateDetail と `TicksPerSecond`）。`UiCommandRejectReason` に 1 つ。`localization.csv` に 1 行（`gen:i18n` の再生成と追従記録）。`MainGameUiRegistration` に 1 行・`GameUiTheme.tss` に 2 行
-- **integrator への依頼（Task 1 で done.md に書く）**: (a) `PanelActionButton` の無効の見た目（今は画面のつまみの上書きで Web に合わせた。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) `Registration/GameUi/` の再編先（alpha が依頼済み。S4-train はその置き場に 1 本足す）。共有の新部品は作っていない
+- **レビュー r1 の反映**: 再現した・一部の節を推奨どおりに直した（D-6・D-8・D-12・D-13・D-16 を直し、D-17〜D-24 を足した。どれも「出所: レビュー r1」）。§15 は A-8 に合わせて State に編集の Model 3 つを置き、Presenter を購読だけにした。§16 は推奨と違い、本体の裁定（C4-e 要裁定 1）どおり重複を据え置いて D-2 の根拠を書き直し、重複を「## 本 PR 外のリファクタ提案」に並べた。§14 は Web 系の録画を退化させず、UITK の録画を `uitk/` に新設し、壊れていた `train-timetable-via-ui` は両系で通る形に直した。§20（`Localize.Get` の欠損）は再現しなかったので直していない。別に見つかった `IsSelected` の 1 引数の呼び方 5 か所は `IsSelected(root, optionTestid)` に直した
+- **S4-machine の型**: 計画（09b9a73226）の Produces から写した: `FluidInventoryContents(testid, GameContentPresentation)`・`Render(IReadOnlyList<BlockFluidSlotState>)`、液体の Model `IBlockFluidSlotsModel`（液体 PF の液体はこれを購読。D-17。machine の R-3 も「液体プラットフォームもブロックで同じ経路、貨車は空」に直っている）、`BlockFluidSlotConversion.FromTanks`（貨車の液体の変換に入力側だけで使う）。貨車の液体は `IBlockFluidSlotsModel` の対象外なので `SubInventoryState` の `Fluids` を `TrainInventoryBodyModel` が読む
+- **alpha の型**: 改訂版（85f905aa3d・44c416e9e4）の Produces から写した（`ITrainInventoryPart`・`IBlockInventoryPart`・`Attach`/`Detach`・`BlockInventoryBodyMount(bool)`・`IBlockInventoryPanelSource`）。スロットはパネルの源を Model が購読して読む（D-16）。`IBlockInventoryOperations.TryReadBlockSlots` はエラー無しのブロック／列車のときだけ真（alpha D-37）で、貨車の枠の押下もこの条件で通る。列車の本文の工場が未登録のあいだ alpha は空の部分を返す（alpha D-35）。`BlockInventoryPanelLayout` は 3 つの static でしか作れないが、このレーンは大型パネルの寄与を足さないので触らない。テストの外殻は `BlockInventoryTestShell.Create(this, state, plugged)`
+- **共有ファイルへの追記（E-1。fce54ea0b5 の決まり）**: `Client.Ui.State.asmdef` は無い参照だけを足し、取り込みで同じ参照が衝突したら 1 行に畳む。`UiCommandRejectReason` は列挙と switch 3 本の末尾に 1 行ずつ足し、`PauseMenuCommandsTest` を同じ PR で緑にする。`localization.csv` に 1 行（`gen:i18n` の再生成と追従記録）。`MainGameUiRegistration` に 1 行・`GameUiTheme.tss` に 2 行
+- **integrator への依頼（Task 1 で done.md に書く）**: (a) `PanelActionButton` の無効の見た目（今は画面のつまみの上書きで Web に合わせた。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) `Registration/GameUi/` の再編先（alpha が依頼済み。S4-train はその置き場に 1 本足す）、(d) 駅名の入力欄の幅のトークンを足したときはその名札付きブロック（Task 10）。共有の新部品は作っていない
 - **設計書との食い違い**: 設計書は `GameScrollView.ScrollTo` を書いているが実物に無い（`SetScrollOffset` 等だけ）。S4-train は使わないので影響は無い
-- **要裁定: なし**。目的・裁定から外れる判断は無い
-- **未確認（実装時に確かめる）**: `PanelActionButton` に既定テーマの無効の不透明度が乗るか（D-11 で `opacity: 1` を当てた）、テキスト欄にフォーカスがあるあいだ E や閉じるキーが入力欄へ食われず UI の閉じが効くか（C2-b の `UiInputExclusivity` の範囲）、alpha の大型パネルの中で本文が縦に伸びるか（`.train-body` の `flex-grow`）、駅名の入力欄の自然な幅（参照が無い）、USS の `+` 結合子と `border-top-width: var()` が UITK で効くか（Task 6 の注の代替あり）、`UniTaskCompletionSource` の継続が同期で走るか（Task 4 の注の代替あり）、`OpenTrainTimetableTracker.OnRepublishRequested` が取得の状態の変化（取得中 → 済み）と駅名の変化を全部運ぶか、`TrainTimetableSnapshot`・`TrainUnitInstanceId` をテストで組めるか
-- 設計検査記録は未実施のまま
+- **要裁定: なし**。目的・裁定から外れる判断は無い（D-2 の据え置きは本体の裁定どおり）
+- **未確認（実装時に確かめる）**: `PanelActionButton` に既定テーマの無効の不透明度が乗るか（D-11 で `opacity: 1` を当てた）、テキスト欄にフォーカスがあるあいだ E や閉じるキーが入力欄へ食われず UI の閉じが効くか（死活表の要確認。Task 11 Step 2 手順 3）、alpha の大型パネルの中で本文が縦に伸びるか（`.train-body` の `flex-grow`）、駅名の入力欄の自然な幅（Task 10 で Web と測り比べる）、USS の `+` 結合子と `border-top-width: var()` が UITK で効くか（Task 6 の注の代替あり）、`UniTaskCompletionSource` の継続が同期で走るか（Task 4・7 の注の代替あり）、`OpenTrainTimetableTracker.OnRepublishRequested` が駅名の変化を運ぶか、`TrainTimetableSnapshot`・`TrainUnitInstanceId` をテストで組めるか、`BlockInventoryTestPanels.Train(error)` が毎回同じ車両で組むか（`TrainInventoryTabModelTest`）
