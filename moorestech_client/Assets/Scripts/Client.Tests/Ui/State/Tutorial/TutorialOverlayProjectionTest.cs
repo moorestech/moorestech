@@ -31,7 +31,7 @@ namespace Client.Tests.Ui.State.Tutorial
         public void keyControlが混ざっても枠の件数は変わらない()
         {
             var keyControl = new TutorialKeyControlElementData { ElementId = "k1", TutorialGuid = LabelGuid.ToString(), KeyName = "Tab", UiState = "GameScreen" };
-            var model = TutorialOverlayProjection.Project(Data(3, Outline("o1", "pause.save", null), keyControl));
+            var model = new TutorialOverlayProjection().Project(Data(3, Outline("o1", "pause.save", null), keyControl));
 
             Assert.AreEqual(1, model.Outlines.Count);
             Assert.AreEqual(0, model.DragGuides.Count);
@@ -44,7 +44,7 @@ namespace Client.Tests.Ui.State.Tutorial
             // EditMode では辞書が未初期化のことがあるので、解決の前に初期化する
             // The dictionary may be uninitialized in EditMode, so initialize it before resolving
             Localize.Initialize();
-            var model = TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()), Outline("o2", "pause.back", "")));
+            var model = new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()), Outline("o2", "pause.back", "")));
 
             var labeled = (TutorialOutlineCue.Labeled)model.Outlines[0];
             Assert.AreEqual(UiTextSource.Content, labeled.Label.Source);
@@ -56,9 +56,23 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 読めないラベルのGUIDは理由をLogErrorに出しラベル無しで枠を出す()
         {
             UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("tutorialGuid is not a GUID: 'not-a-guid'"));
-            var model = TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", "not-a-guid")));
+            var model = new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", "not-a-guid")));
             Assert.AreEqual(1, model.Outlines.Count);
             Assert.IsInstanceOf<TutorialOutlineCue.Plain>(model.Outlines[0]);
+        }
+
+        [Test]
+        public void 読めないラベルのGUIDはデータが変わって組み直してもLogErrorを1回だけ出す()
+        {
+            // 同じ射影で 2 回組み直しても、同じ GUID の LogError は初回だけ
+            // Rebuilding twice with the same projection logs the same GUID's error only the first time
+            var projection = new TutorialOverlayProjection();
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("tutorialGuid is not a GUID: 'not-a-guid'"));
+            projection.Project(Data(1, Outline("o1", "pause.save", "not-a-guid")));
+            var rebuilt = projection.Project(Data(2, Outline("o1", "pause.save", "not-a-guid"), Outline("o2", "pause.back", null)));
+            UnityEngine.TestTools.LogAssert.NoUnexpectedReceived();
+            Assert.AreEqual(2, rebuilt.Outlines.Count);
+            Assert.IsInstanceOf<TutorialOutlineCue.Plain>(rebuilt.Outlines[0]);
         }
     }
 }

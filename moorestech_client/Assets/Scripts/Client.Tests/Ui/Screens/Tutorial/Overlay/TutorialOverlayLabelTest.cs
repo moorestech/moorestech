@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 200, 40);
             MountAnchor(rootVisualElement, "pause.back", 100, 300, 200, 40);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()), Outline("o2", "pause.back", null))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()), Outline("o2", "pause.back", null))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         public void 下に収まらないラベルは枠の上へ反転する()
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 680, 200, 30);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -86,7 +86,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         public void アンカーが解けない枠はラベルも出さない()
         {
             LogAssert.Expect(LogType.Warning, new Regex("anchor is missing: pause.save"));
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
             simulate.FrameUpdate();
 
             Assert.AreEqual(0, Shown<TutorialHighlightLabelView>().Count);
@@ -97,7 +97,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         public void ラベルの面はlabel_face_paddingの4px_10pxを受ける()
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 200, 40);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
             simulate.FrameUpdate();
             var label = Shown<TutorialHighlightLabelView>().Single();
             Assert.AreEqual((4f, 10f, 4f, 10f), (label.resolvedStyle.paddingTop, label.resolvedStyle.paddingRight, label.resolvedStyle.paddingBottom, label.resolvedStyle.paddingLeft));
@@ -107,7 +107,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         public void ラベルを隠した後に同じ位置で出し直すとラベルが見える()
         {
             var anchor = MountAnchor(rootVisualElement, "pause.save", 100, 100, 200, 40);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             Assert.AreEqual(1, Shown<TutorialHighlightLabelView>().Count);

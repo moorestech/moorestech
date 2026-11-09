@@ -43,7 +43,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         private void ShowOutline(string labelGuid)
         {
             MountAnchor(rootVisualElement, "pause.save", 400, 300, 200, 40);
-            _overlay.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", labelGuid))));
+            _overlay.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", labelGuid))));
             simulate.FrameUpdate();
         }
 
@@ -116,7 +116,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         public void 演出の更新が来なくてもアンカーが消えたフレームで枠も消える()
         {
             var anchor = MountAnchor(rootVisualElement, "pause.save", 400, 300, 200, 40);
-            _overlay.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", null))));
+            _overlay.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", null))));
             simulate.FrameUpdate();
             Assert.IsTrue(IsShown(_overlayView.Q(className: "tutorial-outline__clip")));
 

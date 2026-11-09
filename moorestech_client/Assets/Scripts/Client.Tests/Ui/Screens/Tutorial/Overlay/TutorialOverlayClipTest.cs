@@ -29,7 +29,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             var container = ClipBox();
             MountAnchor(container, "research.node-a", 100, -20, 120, 60);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "research.node-a", null))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "research.node-a", null))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -45,7 +45,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         {
             var container = ClipBox();
             MountAnchor(container, "research.node-a", 100, -200, 120, 60);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "research.node-a", null))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "research.node-a", null))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             Assert.IsFalse(IsShown(_view.Q(className: "tutorial-outline__clip")));
@@ -59,7 +59,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             // 箱（アンカー ± 8）の下端が容器の上端より 2px 上（グロー 4px より狭い）
             // The box (anchor ± 8) ends 2px above the container top (narrower than the 4px glow)
             MountAnchor(container, "research.node-a", 100, -70, 120, 60);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "research.node-a", null))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "research.node-a", null))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             Assert.IsFalse(IsShown(_view.Q(className: "tutorial-outline__clip")));

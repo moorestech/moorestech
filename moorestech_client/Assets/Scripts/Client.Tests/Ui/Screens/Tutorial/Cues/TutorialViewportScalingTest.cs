@@ -63,7 +63,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
         public void 枠線ラベルはどの解像度でも枠に付いたまま()
         {
             MountAnchor(rootVisualElement, "pause.save", _logicalSize.x / 2f - 100f, 300, 200, 40);
-            _overlay.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
+            _overlay.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             var ring = _overlayView.Q(className: "tutorial-outline__ring").worldBound;

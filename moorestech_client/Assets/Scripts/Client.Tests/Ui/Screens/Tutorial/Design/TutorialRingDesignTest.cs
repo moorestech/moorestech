@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Design
             var model = new FakeTutorialOverlayModel();
             var view = TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, model.Current);
             MountAnchor(rootVisualElement, "research.node-a", 100, 100, 120, 60);
-            model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "research.node-a", null))));
+            model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "research.node-a", null))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 

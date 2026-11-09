@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             MountAnchor(canvas, "research.node-a", 300, 480, 160, 80);
             simulate.FrameUpdate();
             scroll.scrollOffset = new Vector2(0, 520);
-            _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "research.node-a", null))));
+            _model.Set(new TutorialOverlayProjection().Project(Data(1, Outline("o1", "research.node-a", null))));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 

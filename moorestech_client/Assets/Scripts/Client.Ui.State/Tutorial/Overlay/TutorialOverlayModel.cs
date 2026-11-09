@@ -7,6 +7,7 @@ namespace Client.Ui.State.Tutorial.Overlay
     public sealed class TutorialOverlayModel : IInitializable
     {
         private readonly TutorialPresentationStateStore _store;
+        private readonly TutorialOverlayProjection _projection = new();
         private readonly ReactiveProperty<TutorialOverlayViewModel> _current = new(TutorialOverlayViewModel.Empty);
 
         public IReadOnlyReactiveProperty<TutorialOverlayViewModel> Current => _current;
@@ -29,7 +30,7 @@ namespace Client.Ui.State.Tutorial.Overlay
 
         private void Rebuild()
         {
-            _current.Value = TutorialOverlayProjection.Project(_store.GetCurrent());
+            _current.Value = _projection.Project(_store.GetCurrent());
         }
     }
 }
