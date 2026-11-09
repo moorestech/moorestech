@@ -43,11 +43,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
     /// </summary>
     public static class BeltRouteBranchGeometry
     {
-        // edges は対象ベルト自身を除いた隣の辺だけを写した箱（辺は向きを持たないので、自分の入力口を混ぜると受け手と区別できない）
+        // edges は対象ベルト自身を除いた隣の辺だけを写した入れ物（辺は向きを持たないので、自分の入力口を混ぜると受け手と区別できない）
         // edges holds only the neighbours' edges, never the belt's own (an edge has no direction, so the belt's own input port would read as a receiver)
         // 分岐器の入口は背面1つ。背面・左・右のどの面から受けているかを数え、2方向以上なら置けない
         // A splitter has one back entry; count which of the back, left and right faces feed the belt, and two or more cannot be placed
-        public static BeltRouteBranchBlockReason Resolve(BeltRouteGrid edges, Vector3Int cell, BlockDirection beltFacing, bool useAlternateExit, out BeltRouteBranchShape shape)
+        public static BeltRouteBranchBlockReason Resolve(BeltRouteNeighbourEdges edges, Vector3Int cell, BlockDirection beltFacing, bool useAlternateExit, out BeltRouteBranchShape shape)
         {
             shape = default;
             var fedFromBack = IsFed(edges, cell, BeltRouteDirection.Opposite(beltFacing));
@@ -80,7 +80,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
             return BeltRouteBranchBlockReason.None;
         }
 
-        private static bool IsFed(BeltRouteGrid edges, Vector3Int cell, BlockDirection face)
+        private static bool IsFed(BeltRouteNeighbourEdges edges, Vector3Int cell, BlockDirection face)
         {
             return edges.HasOutputEdge(BeltRouteEdge.FromFace(cell, face, cell.y));
         }

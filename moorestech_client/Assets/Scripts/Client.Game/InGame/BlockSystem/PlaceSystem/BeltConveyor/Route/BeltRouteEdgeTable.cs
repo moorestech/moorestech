@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Game.Block.Interface;
 using UnityEngine;
 
@@ -31,7 +32,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
 
         public static int FaceBit(BlockDirection face, int heightOffset)
         {
-            return 1 << ((int)face + BeltRouteDirection.DirectionCount * heightOffset);
+            return BeltRouteFaceBits.FaceBit(face, heightOffset);
         }
 
         public void AddOutput(BeltRouteEdge edge) => Add(edge, _outputEdges, _outputFaceBits);

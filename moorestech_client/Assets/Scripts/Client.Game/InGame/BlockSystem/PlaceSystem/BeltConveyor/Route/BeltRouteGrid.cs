@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
@@ -8,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
     ///     探索の内側向けにセル添字で引く版も持つ。Vector3Intの演算はMonoでは遅く、毎フレーム百万回単位で通るため
     ///     Index-based accessors exist for the search's inner loop; Vector3Int math is slow under Mono and runs millions of times per frame
     /// </summary>
-    public sealed class BeltRouteGrid
+    public sealed class BeltRouteGrid : IBeltRouteWorld, IBeltRouteEdgeSink
     {
         public const int HorizontalSize = 64;
 
@@ -105,16 +106,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
         public void AddOutputEdge(BeltRouteEdge edge) => _edges.AddOutput(edge);
         public void AddInputEdge(BeltRouteEdge edge) => _edges.AddInput(edge);
 
+        // 箱の外は占有扱い。テストの世界は箱で閉じ、探索が外へ出ないようにする
+        // Outside the box counts as occupied, so a test world is closed and the search never leaves it
+        public bool IsBlockedByBlock(Vector3Int cell) => !Contains(cell) || _blockCells[CellIndex(cell)];
+
         public bool IsBlockedByTerrain(Vector3Int cell)
         {
+            if (!Contains(cell)) return false;
             var floor = _columnFloorY[ColumnIndex(cell.x, cell.z)];
             return floor != NoGround && cell.y < floor;
         }
 
-        public bool IsBlockedByBlock(Vector3Int cell) => _blockCells[CellIndex(cell)];
-        public bool IsSlopeHead(Vector3Int cell) => _slopeHeadCells[CellIndex(cell)];
-        public bool HasOutputEdge(BeltRouteEdge edge) => _edges.HasOutput(edge);
-        public bool HasInputEdge(BeltRouteEdge edge) => _edges.HasInput(edge);
+        public bool IsSlopeHead(Vector3Int cell) => Contains(cell) && _slopeHeadCells[CellIndex(cell)];
+        public int OutputFaceBits(Vector3Int cell) => Contains(cell) ? _edges.OutputFaceBits(CellIndex(cell)) : 0;
+        public int InputFaceBits(Vector3Int cell) => Contains(cell) ? _edges.InputFaceBits(CellIndex(cell)) : 0;
 
         public bool IsBlockedByTerrainAt(int cellIndex)
         {

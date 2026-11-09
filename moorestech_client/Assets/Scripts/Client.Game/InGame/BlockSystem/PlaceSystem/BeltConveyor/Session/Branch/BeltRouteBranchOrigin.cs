@@ -34,8 +34,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
         public BlockDirection SplitterFacing => _shape.SplitterFacing;
         public BlockDirection ExitDirection => _shape.BranchExit;
 
-        // 隣の入出力辺を1セルの箱へ写す
-        // Copies the neighbours' port edges into a one-cell box
+        // 隣の入出力辺を入れ物へ写す
+        // Copies the neighbours' port edges into a holder
         public static BeltRouteBranchBlockReason Judge(BlockGameObjectDataStore blocks, BlockGameObject belt, BeltConveyorHoldingBlock holding, bool useAlternateExit, out BeltRouteBranchOrigin origin)
         {
             origin = null;
@@ -45,7 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
             if (!BeltSplitterCounterpart.TryGetSplitterBlockId(belt.BlockId, out var splitterBlockId)) return BeltRouteBranchBlockReason.NoSplitter;
 
             var cell = belt.BlockPosInfo.OriginalPos;
-            var edges = new BeltRouteGrid(cell, Vector3Int.one);
+            var edges = new BeltRouteNeighbourEdges();
             foreach (var neighbour in blocks.BlockGameObjectDictionary.Values)
             {
                 if (ReferenceEquals(neighbour, belt) || !IsNeighbour(neighbour, cell)) continue;

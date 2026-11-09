@@ -103,21 +103,21 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BlockDirection.North, shape.BranchExit);
         }
 
-        private static BeltRouteGrid NewEdges()
+        private static BeltRouteNeighbourEdges NewEdges()
         {
-            return new BeltRouteGrid(Cell, Vector3Int.one);
+            return new BeltRouteNeighbourEdges();
         }
 
         // 隣の出力口がこのセルの face 面へ向いている
         // A neighbour's output port aimed at this cell's given face
-        private static void AddFeeder(BeltRouteGrid edges, BlockDirection face)
+        private static void AddFeeder(BeltRouteNeighbourEdges edges, BlockDirection face)
         {
             edges.AddOutputEdge(BeltRouteEdge.FromFace(Cell, face, Cell.y));
         }
 
         // 隣の入力口がこのセルの face 面に接している
         // A neighbour's input port touching this cell's given face
-        private static void AddReceiver(BeltRouteGrid edges, BlockDirection face)
+        private static void AddReceiver(BeltRouteNeighbourEdges edges, BlockDirection face)
         {
             edges.AddInputEdge(BeltRouteEdge.FromFace(Cell, face, Cell.y));
         }

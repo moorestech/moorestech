@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Core.Master;
 using Core.Update;
@@ -53,9 +54,9 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
         // 本番 Judge と同じく自身を除いた隣の辺を箱へ写す
         // Like the production Judge, copies the neighbours' edges into the box, excluding the cell itself
-        public static BeltRouteGrid BuildNeighbourEdges(IWorldBlockDatastore world, Vector3Int cell)
+        public static BeltRouteNeighbourEdges BuildNeighbourEdges(IWorldBlockDatastore world, Vector3Int cell)
         {
-            var edges = new BeltRouteGrid(cell, Vector3Int.one);
+            var edges = new BeltRouteNeighbourEdges();
             foreach (var data in world.BlockMasterDictionary.Values)
             {
                 if (data.BlockPositionInfo.OriginalPos == cell) continue;

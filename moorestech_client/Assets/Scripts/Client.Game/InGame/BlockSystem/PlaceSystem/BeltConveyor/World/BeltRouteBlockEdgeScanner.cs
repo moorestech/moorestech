@@ -10,30 +10,30 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
 {
     /// <summary>
-    ///     既存ブロックの搬入口・搬出口を、サーバーのBeltEdgeEndpoint/MachineInventoryEdgePortsと同じ面と高さで箱へ書く
-    ///     Writes an existing block's input and output ports into the box as the same faces and heights the server's BeltEdgeEndpoint/MachineInventoryEdgePorts use
+    ///     既存ブロックの搬入口・搬出口を、サーバーのBeltEdgeEndpoint/MachineInventoryEdgePortsと同じ面と高さで書き込み先（本番の世界・分岐判定の入れ物・テストの箱）へ書く
+    ///     Writes an existing block's input and output ports into the sink (live world, branch holder or test box) as the same faces and heights the server's BeltEdgeEndpoint/MachineInventoryEdgePorts use
     /// </summary>
     public static class BeltRouteBlockEdgeScanner
     {
         private static readonly BlockDirection[] AllDirections = { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
 
-        public static void Write(BlockGameObject block, BeltRouteGrid grid)
+        public static void Write(BlockGameObject block, IBeltRouteEdgeSink sink)
         {
-            Write(block.BlockMasterElement, block.BlockId, block.BlockPosInfo, grid);
+            Write(block.BlockMasterElement, block.BlockId, block.BlockPosInfo, sink);
         }
 
         // サーバーのブロックからも同じ辺を書けるよう、マスタと位置だけを受ける
         // Takes only the master and position so server-side blocks (tests) write the same edges
-        public static void Write(BlockMasterElement master, BlockId blockId, BlockPositionInfo position, BeltRouteGrid grid)
+        public static void Write(BlockMasterElement master, BlockId blockId, BlockPositionInfo position, IBeltRouteEdgeSink sink)
         {
             if (master.BlockParam is not IInventoryConnectors connectors) return;
 
             if (IsBelt(master))
             {
-                WriteBelt(blockId, position, connectors.InventoryConnectors, grid);
+                WriteBelt(blockId, position, connectors.InventoryConnectors, sink);
                 return;
             }
-            WriteMachine(position, connectors.InventoryConnectors, grid);
+            WriteMachine(position, connectors.InventoryConnectors, sink);
         }
 
         public static bool IsBelt(BlockMasterElement master)
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
 
         // 坂は搬送軸の両端だけ。上りは前が1段上、下りは後ろが1段上。真上のセルは他のブロックに取られると坂が切れる
         // Slopes touch only their two transport ends: an up slope's front is one level up, a down slope's back is; the cell above must stay free
-        private static void WriteBelt(BlockId blockId, BlockPositionInfo position, InventoryConnects ports, BeltRouteGrid grid)
+        private static void WriteBelt(BlockId blockId, BlockPositionInfo position, InventoryConnects ports, IBeltRouteEdgeSink sink)
         {
             var cell = position.OriginalPos;
             var facing = position.BlockDirection;
@@ -51,9 +51,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
             if (slope != BlockVerticalDirection.Horizontal)
             {
                 var upperIsFront = slope == BlockVerticalDirection.Up;
-                grid.AddInputEdge(BeltRouteEdge.FromFace(cell, BeltRouteDirection.Opposite(facing), cell.y + (upperIsFront ? 0 : 1)));
-                grid.AddOutputEdge(BeltRouteEdge.FromFace(cell, facing, cell.y + (upperIsFront ? 1 : 0)));
-                grid.MarkSlopeHead(cell + Vector3Int.up);
+                sink.AddInputEdge(BeltRouteEdge.FromFace(cell, BeltRouteDirection.Opposite(facing), cell.y + (upperIsFront ? 0 : 1)));
+                sink.AddOutputEdge(BeltRouteEdge.FromFace(cell, facing, cell.y + (upperIsFront ? 1 : 0)));
+                sink.MarkSlopeHead(cell + Vector3Int.up);
                 return;
             }
 
@@ -72,8 +72,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
                     foreach (var direction in WorldDirections(port, facing, isInput))
                     {
                         var edge = BeltRouteEdge.FromFace(cell, direction, cell.y);
-                        if (isInput) grid.AddInputEdge(edge);
-                        else grid.AddOutputEdge(edge);
+                        if (isInput) sink.AddInputEdge(edge);
+                        else sink.AddOutputEdge(edge);
                     }
                 }
             }
@@ -83,7 +83,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
 
         // 機械は外向きの側面にある口だけが辺になる。縦向きや内向きの口は機械同士用なので飛ばす
         // Only ports on an outward side face of a machine form edges; vertical or inward ports serve machine-to-machine links and are skipped
-        private static void WriteMachine(BlockPositionInfo position, InventoryConnects ports, BeltRouteGrid grid)
+        private static void WriteMachine(BlockPositionInfo position, InventoryConnects ports, IBeltRouteEdgeSink sink)
         {
             WriteMachinePorts(ports.InputConnects, true);
             WriteMachinePorts(ports.OutputConnects, false);
@@ -100,8 +100,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
                     {
                         if (!IsExposedFace(position, cell, outward)) continue;
                         var edge = BeltRouteEdge.FromFace(cell, outward, cell.y);
-                        if (isInput) grid.AddInputEdge(edge);
-                        else grid.AddOutputEdge(edge);
+                        if (isInput) sink.AddInputEdge(edge);
+                        else sink.AddOutputEdge(edge);
                     }
                 }
             }
