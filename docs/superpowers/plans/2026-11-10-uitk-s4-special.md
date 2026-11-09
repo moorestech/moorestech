@@ -2,9 +2,9 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版 `features/blockInventory` の特殊族（FilterSplitter・ElectricToGearGenerator・ElectricPole・SpaceElevatorBase・RocketLaunchPad〈題の合図ボタン付き〉の本文 5 つと、SectionStackView に差し込む区画 GearToElectric・BeltThroughput〈`BarSeries`〉・Gear・ElectricNetwork・GearNetwork の 5 つ）を、S4-alpha の拡張口（blockType ごとの本文・題の操作・SectionStackView の固定順の区画）へ「登録するだけ」で載る UITK の View にし、Web と同じ見た目（720p・2560×1080 の並べ比べ）・同じ操作（フィルタのモードと枠・出力モード・接続・建造/発射の合図・ベルトの窓の←/→）を、L0/L1・録画 `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject`・新規 `uitk/uitk-block-special-panels` まで確かめて `feature/uitk` へ取り込む。
+**Goal:** Web 版 `features/blockInventory` の特殊族（FilterSplitter・ElectricToGearGenerator・ElectricPole・SpaceElevatorBase・RocketLaunchPad〈題の合図ボタン付き〉の本文 5 つと、SectionStackView に差し込む区画 GearToElectric・BeltThroughput〈`BarSeries`〉・Gear・ElectricNetwork・GearNetwork の 5 つ）を、S4-alpha の拡張口（blockType ごとの本文・題の操作・SectionStackView の固定順の区画）へ「登録するだけ」で載る UITK の View にし、Web と同じ見た目（720p・2560×1080 の並べ比べ）・同じ操作（フィルタのモードと枠・出力モード・接続・建造/発射の合図・ベルトの窓の←/→）を、L0/L1・録画 `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject`・`tier9/tier9-6-fusion-elevator`・新規 `uitk/uitk-block-special-panels` まで確かめて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。外殻（パネル・題・閉じる・自然高のスクロール器）・`blockComponentRegistry` の解決・SectionStackView の並び・`BlockItemGrid`・`LackHighlightText` は S4-alpha が持ち、このレーンは自分のディレクトリ（`Screens/BlockInventory/Special/`・`Client.Ui.State/BlockInventory/Special/`）と自分の登録ファイル（`BlockInventorySpecialGameUiRegistration.cs`）からだけ差し込む。特殊族の詳細（state detail・電力網/歯車網の集約・フィルタの状態・ベルトの搬出統計）は、Web の橋の `BlockDetailDtoBuilder` 系と同じ源を `SpecialBlockDetailReader` が純関数で読み、`SpecialBlockDetailModel`（`OpenBlockDetailTracker`・`BlockNetworkInfoCache`・`BeltSegmentExitStatisticsTable` を購読し、変化ごとに同期で組み直す [A-57]）が不変の `SpecialBlockDetailViewModel` を `IReadOnlyReactiveProperty` で配る。差し込む部分は alpha の形（S4-alpha 計画 85f905aa3d の「差し込みの形」）どおり Presenter＋View で、Presenter（`SpecialDetailPresenter`・ベルトだけ `BeltThroughputSectionPresenter`）が `Attach(panel)` で alpha のパネルの源（同じパネルの枠）と自分の詳細 Model を購読して View の `Render` へ流し、`Detach()` で切る。View は購読しない。区画の Presenter は `IsApplicable`（`IReadOnlyReactiveProperty<bool>`）を詳細の有無で書き、alpha の `SectionStackBody` がそれを購読して `SetItemShown` で出し入れと先頭の間隔を組み直す（区画は自分の `display` を触らない。D-23）。開いたブロックの識別は alpha のパネル（`BlockInstanceId`・位置・blockType）の 1 本で、詳細の Model・操作・Shift の寄与がそれに揃える（D-26）。操作は `ISpecialBlockCommands`（`UniTask<UiCommandResult>`。前例 `PauseMenuCommands.SubmitBugReport`）を View が直に呼び [A-8]、拒否は `UiCommandResultToaster` へ渡す。表示は Web と同じく楽観更新しない（サーバーの後続の状態で変わる）。見た目は既存の部品（`ModeSwitch`・`ItemSlot`・`GaugeBar`・`BarSeries`・`PanelActionButton`・`UiStack`/`UiGroup`・`LocalizedLabel`）と alpha の `LackHighlightText`・`BlockItemGridGroup` だけで組み、新しい共有部品は作らない。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。外殻（パネル・題・閉じる・自然高のスクロール器）・`blockComponentRegistry` の解決・SectionStackView の並び・`BlockItemGrid`・`LackHighlightText` は S4-alpha が持ち、このレーンは自分のディレクトリ（`Screens/BlockInventory/Special/`・`Client.Ui.State/BlockInventory/Special/`）と自分の登録ファイル（`BlockInventorySpecialGameUiRegistration.cs`）からだけ差し込む。特殊族の詳細（state detail・電力網/歯車網の集約・フィルタの状態・ベルトの搬出統計）は、Web の橋の `BlockDetailDtoBuilder` 系と同じ源を `SpecialBlockDetailReader` が純関数で読み、`SpecialBlockDetailModel`（`OpenBlockDetailTracker`・`BlockNetworkInfoCache`・`BeltSegmentExitStatisticsTable` を購読し、変化ごとに同期で組み直す [A-57]）が不変の `SpecialBlockDetailViewModel` を `IReadOnlyReactiveProperty` で配る。差し込む部分は alpha の形（S4-alpha 計画（feature/uitk・#1630）の「差し込みの形」）どおり Presenter＋View で、Presenter（`SpecialDetailPresenter`・ベルトだけ `BeltThroughputSectionPresenter`）が `Attach(panel)` で alpha のパネルの源（同じパネルの枠）と自分の詳細 Model を購読して View の `Render` へ流し、`Detach()` で切る。View は購読しない。区画の Presenter は `IsApplicable`（`IReadOnlyReactiveProperty<bool>`）を詳細の有無で書き、alpha の `SectionStackBody` がそれを購読して `SetItemShown` で出し入れと先頭の間隔を組み直す（区画は自分の `display` を触らない。D-23）。開いたブロックの識別は alpha のパネル（`BlockInstanceId`・位置・blockType）の 1 本で、詳細の Model・操作・Shift の寄与がそれに揃える（D-26）。操作は `ISpecialBlockCommands`（`UniTask<UiCommandResult>`。前例 `PauseMenuCommands.SubmitBugReport`）を View が直に呼び [A-8]、拒否は `UiCommandResultToaster` へ渡す。表示は Web と同じく楽観更新しない（サーバーの後続の状態で変わる）。見た目は既存の部品（`ModeSwitch`・`ItemSlot`・`GaugeBar`・`BarSeries`・`PanelActionButton`・`UiStack`/`UiGroup`・`LocalizedLabel`）と alpha の `LackHighlightText`・`BlockItemGridGroup` だけで組み、新しい共有部品は作らない。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`AttachToPanelEvent`/`DetachFromPanelEvent`）、UniRx、UniTask、VContainer、Unity Input System（`InputSystem.onEvent`）、NUnit＋`com.unity.ui.test-framework`（`UITestFixture`・`PanelSimulator`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、node（Web の参照キャプチャ・test-name-parity・`npm run gen:i18n`）、gh CLI、bd（Beads）
 
@@ -30,7 +30,7 @@
 | R-9 | Shift の入れ口: 発射台・宇宙エレベーターの入れ口の受け入れ（サーバーと同じ定義）を alpha の Shift の判断へ渡す（受け付けない物・詳細未着の Shift は送らずに通知） | `SpecialInletBindingContributorTest`（L0。Web `shiftRejection.spec.ts` 2 件を判断まで写す）が緑。送らない・通知は alpha の Shift の実行器と録画 `tier9-4b-rocket-cargo-shift-reject`（alpha の拡張口 (6) が無ければ Task 1 Step 2 の分岐 B） |
 | R-10 | 操作: `ISpecialBlockCommands` の 5 つ（フィルタのモード・フィルタの枠・出力モード・接続・合図）は開いたブロックの種別を確かめ、サーバーへ送り、結果を `UiCommandResult` で返す。Web の BENIGN_ERRORS と同じもの（合図の重ね押し・接続済み・掴みが空のフィルタ設定）は良性、他はトースト | `SpecialBlockCommandsTest`（L0）が緑。`RocketLaunchPadViewTest` の「%sの成功後topicが遅れても二度目の拒否を誤報しない」が緑 |
 | R-11 | 登録: `MainGameUiRegistration` の画面登録区画に 1 行（`BlockInventorySpecialGameUiRegistration.Register(builder);`）。alpha の拡張口へ本文 5・題の操作 1・区画 5 を登録する | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
-| R-12 | 録画（全体スイッチ UITK）: 既存の `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject` と、新規 `uitk/uitk-block-special-panels`（フィルタ分配器のモードと枠・回転生成機の出力モード・電柱・ベルトの窓の←/→・歯車の区画・宇宙エレベーターの表示）を通す | 4 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に `系=GameUi` の Note がある |
+| R-12 | 録画（全体スイッチ UITK）: 既存の `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject`・`tier9/tier9-6-fusion-elevator`（宇宙エレベーターの接続を UI から押す。先に S4-machine の発電機の区画を待つ）と、新規 `uitk/uitk-block-special-panels`（フィルタ分配器のモードと枠・回転生成機の出力モード・電柱・ベルトの窓の←/→・歯車の区画・宇宙エレベーターの表示と接続の押下）を通す | 5 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に `系=GameUi` の Note がある |
 | R-13 | 並べ比べ: 15 状態（電柱・回転生成機・フィルタ分配器・歯車発電機・歯車・ベルト・回転発電機 2・発射台・宇宙エレベーター 6）×2 解像度（1280×720・2560×1080）の 30 セルを、セルごとに Web の参照 id と UITK の撮影 id を決めて並べる（Task 10 の撮影表。参照に無いセルは自分で撮り、実行時に作れない状態は EditMode の本番 PanelSettings で撮る。D-34）。差の表を `done.md` に書く | 差の表が 30 行そろい、全行に「同じ／直した／LX-n／捨てる」のどれか（撮れていないセルが 1 つでもあれば未完了）。合否の目安は設計書 [A-14]（720p で 2px） |
 | R-14 | 写した Web テストは `<web-test>` で示し、捨てる 1 件（TS の型検査）だけ処遇の表（`docs/uitk/disposition.md`）に行を足す | `node tools/uitk/test-name-parity.mjs --bundle 4 --emit-missing` でこのレーンの持ち分（File Structure の「写すテスト」の表）の未対応が 0、書式・整合の誤り 0 |
 | R-15 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
@@ -42,13 +42,13 @@
 - 部品（`Components/**`）・Foundation（`Foundation/**`）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`・`DerivedTokens.uss`）・`UiLayer`・`UiScreenTraits` は変えない
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない。Web の橋の DTO 組み立てと UITK の読み手は CEF 停止の撤去まで 2 本並ぶ（D-2）
 - L3（EditModeInPlayingTest）は持たない（段の締め S4-gamma）
-- `blockInventoryDesign.test.ts`（S15）は alpha の持ち主表で special に回った 4 名（`%sから禁止Mantine部品とテーマ色を除去する` の gear・filterSplitter・electricToGear・network、`ゲージとモード切替を用途別に共通部品へ置換する`・`フィルタ分岐器の方向を縦積みにする`・`モード切替の間隔と選択面を専用トークンで制御する`）だけを自分の `SpecialDesignTest` に写し、残りと alpha の `BlockInventoryDesignTest.cs` は書かない（S4-alpha）。`BlockInventoryPanel.localization.test.ts`（S2）・`blockComponentRegistry.test.ts`・`SectionStackView.test.tsx` は写さない（S4-alpha）
+- `SectionStackView.test.tsx` は alpha の持ち主表で「alpha（区画の順を偽の区画で）＋special（中身）」と分けた「親から状態・供給・歯車・電力網・歯車網を順に描画する」だけを自分の統合 L1 `SpecialSectionStackOrderTest` に写し、残りは書かない（S4-alpha・S4-machine）。`blockInventoryDesign.test.ts`（S16）は alpha の持ち主表で special に回った 4 名（`%sから禁止Mantine部品とテーマ色を除去する` の gear・filterSplitter・electricToGear・network、`ゲージとモード切替を用途別に共通部品へ置換する`・`フィルタ分岐器の方向を縦積みにする`・`モード切替の間隔と選択面を専用トークンで制御する`）だけを自分の `SpecialDesignTest` に写し、残りと alpha の `BlockInventoryDesignTest.cs` は書かない（S4-alpha）。`BlockInventoryPanel.localization.test.ts`（S2）・`blockComponentRegistry.test.ts` は写さない（S4-alpha）
 
 ## Global Constraints
 
 - **作業場所**: `moores-wt new uitk-lane/s4-special --from origin/feature/uitk`（Editor 要）。最初に `pwd` で worktree にいることを確かめる。Unity は自分の worktree の Editor だけを使い、起動・停止の前に `moores-wt status` で所有を確かめる。Mac の Editor が逼迫したら Windows の `~/bin/winunity`（compile/test/play を ssh で回す）を使ってよい
 - **依存**: S4-alpha（外殻・拡張口・`Parts/`）・C4-b（`BarSeries`。#1624 でマージ済み）・C3-b（`HoverTooltipMark`。#1623 でマージ済み。E-22 により依存に足す）・L0-s4b（`Client.Ui.State/BlockInventory/Logic/**`。#1599 でマージ済み）・C4-e（`PlayerGrabModel`。#1626 でマージ済み）。Task 1 Step 1 で全部の実物を確かめ、S4-alpha が `origin/feature/uitk` に無ければ止めて指揮へ報告する
-- **使う部品と公開 API**。C2-*・C3-*・C4-b・C4-e・L0-s4b・段階 1 の型は `origin/feature/uitk`（`0a94c9b96b`）の実物から写した。S4-alpha の型は S4-alpha 計画 85f905aa3d（`origin/uitk-lane/plan-w4a` の `docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md` 末尾「## 後続レーンへの Produces 一覧」）から写した。再検査中で名前が変わりうるので「マージ後に実物と照合」（Task 1 Step 2 で grep し、名前が違えば以後を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <計画の名前> → <実物>」と書く。形〈引数・寿命〉が違えば、このレーンの Presenter〈`Special/Registration/`・`Special/Belt/BeltThroughputSectionPresenter.cs`〉と工場だけを直し、View 本体は変えない）
+- **使う部品と公開 API**。C2-*・C3-*・C4-b・C4-e・L0-s4b・段階 1 の型は `origin/feature/uitk`（`0a94c9b96b`）の実物から写した。S4-alpha の型は S4-alpha 計画（feature/uitk・#1630 f21451fec6。`docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md` 末尾「## 後続レーンへの Produces 一覧」と判断記録 D-50〜D-64）から写した。計画はマージ済みだが実装は未マージなので、実装の実物と照合する（Task 1 Step 2 で grep し、名前が違えば以後を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <計画の名前> → <実物>」と書く。形〈引数・寿命〉が違えば、このレーンの Presenter〈`Special/Registration/`・`Special/Belt/BeltThroughputSectionPresenter.cs`〉と工場だけを直し、View 本体は変えない）
 
 ```csharp
 // ===== 既存の部品（実物。S/Client.Ui/Components/**）=====
@@ -173,15 +173,15 @@ namespace Client.Ui.State.Toast { public sealed class UiCommandResultToaster { p
 // SpaceElevatorBaseInventoryComponent.SatelliteSlot・FirstOutputSlot・GetCarriedPayloadItemIds(param)（Game.Block.Blocks.SpaceElevator）
 ```
 
-- **S4-alpha の API**（出所: S4-alpha 計画 85f905aa3d〈`origin/uitk-lane/plan-w4a` の `docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md` 末尾「## 後続レーンへの Produces 一覧」の「差し込みの形」・(1)〜(3)・(6)・画面の部品・パネルの状態・遷移要求の口・登録・共有区画〉。再検査中で名前が変わりうる。マージ後に実物と Task 1 Step 2 で照合する）
+- **S4-alpha の API**（出所: S4-alpha 計画（feature/uitk・#1630）〈`docs/superpowers/plans/2026-11-10-uitk-s4-alpha.md` 末尾「## 後続レーンへの Produces 一覧」の「差し込みの形」・(1)〜(3)・(6)・画面の部品・パネルの状態・遷移要求の口・登録・共有区画と D-50〜D-64〉。実装の実物と Task 1 Step 2 で照合する）
 
 ```csharp
-// ===== S4-alpha（S4-alpha 計画 85f905aa3d の Produces 一覧。再検査中で名前が変わりうる。マージ後に実物と照合）=====
+// ===== S4-alpha（S4-alpha 計画〈feature/uitk・#1630〉の Produces 一覧。実装の実物と照合）=====
 namespace Client.Ui.State.BlockInventory.Panel
 {
     // パネルの状態は識別子・エラー・枠だけ（BlockGameObject は載らない）。区画・本文の Model が開いたブロックを引く鍵は BlockInstanceId・Position・BlockGuid
     public interface IBlockInventoryPanelSource { IReadOnlyReactiveProperty<BlockInventoryPanelState> Current { get; } }   // 共有サービス（MainGameUiRegistration の共有サービスの並び）
-    public abstract class BlockInventoryPanelState { public static readonly BlockInventoryPanelState Closed; public abstract bool IsSamePanel(BlockInventoryPanelState other); }   // ブロックは位置・Guid・エラーで同じパネル
+    public abstract class BlockInventoryPanelState { public static readonly BlockInventoryPanelState Closed; public abstract bool IsSamePanel(BlockInventoryPanelState other); }   // ブロックは位置・Guid・BlockInstanceId・エラーで同じパネル（alpha D-59）
     public sealed class OpenBlockInventoryPanel : BlockInventoryPanelState
     {
         public string BlockType { get; }  public Guid BlockGuid { get; }  public BlockId BlockId { get; }
@@ -260,6 +260,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱3・第3バケツ2 / 強 2 件（VM の任意の詳細・送信の結果）はシミュレーター予測でこのまま（D-28・D-29）、弱は D-30・D-31 とベルトの 2 度引きの修正、層の外の指摘（Screens へのサーバーの列挙）を D-27 で修正、第3バケツは「本PR外のリファクタ提案」へ
 - 変更範囲の再検査（独立評価〈codex 3 件〉・S4-alpha 85f905aa3d・W4a の申し送り・E-1 の追記 ad92a44777 を反映した後。fresh-context 2 体）: 配置 違反0・注意4 / 型・整合 強0・弱5 / codex の 3 件（区画の display 直書き・2 解像度・件数）の解消を Web の実物の数え直し〈宣言 44・ケース 62→区画の id の面を足して 70〉で確認。注意は filterSplitter の写しを本文のホスト越しのパネル全体で見る形へ・`BodyMount` を実物の public ctor へ・統合 L1 の名前を中身に合わせ末尾の網の消失を足す・パネルと追跡ブロックの持続する食い違いを警告ログへ、弱は `regression/sectionStack` の特殊族の区画の id 8 ケース（W-1）・食い違いの数え直し・撮り方を A-164 へ（asmdef は A-160 へ畳む）・`SetShown` の注記・歯車ポンプの空の検査の削除と登録の using を反映。登録行は区画の末尾に直した。この修正後の再検査は回していない
 - 2 周目の独立評価（opus 5 件・codex 2 件）を反映した後の変更範囲の再検査（fresh-context 1 体）: 7 件とも計画の上で直ったことを Web・alpha・UITK の実物で確認 / 新規 強0・弱6 を全部反映（filterSplitter の 3 件目の using を `Mooresmaster.Model.BlocksModule` に、帯が 600 に追う Assert、EditMode の器にロケールのクラス・マスタ・辞書をそろえ一致の確認に文言と絵を足す、行 9 を指揮が後へ回したときの `[Q-n]` での閉じ方、Task 1 Step 2・Consumes・L1 の土台の一覧に Shell、D-36 の取り残し 4 か所）。この修正後の再検査は回していない
+- 3 周目の独立評価（codex 1 件・opus 3 件）と S4-alpha 計画のマージ版（#1630）の照合を反映した後の再検査（fresh-context 1 体）: 3 系統とも直ったことと件数 16 ファイル・宣言 49・ケース 78 を実物で確認 / 新規 強1（`tier9-6-fusion-elevator` が S4-machine の `generator-section` を先に待ち、未着だと接続まで届かない）は新シナリオの宇宙エレベーターの段でケーブルを到着させて接続ボタンを押す形にし、`tier9-6` は止まったときの分岐 (c) を足した（D-16）。弱5（`Client.Localization` の using・順の検査を期待の id で絞らず区画・項目グリッドまで並べる・英語コメントの食い違い・Task 13 と Goal の本数・古い注記）を反映。この修正後の再検査は回していない
 
 ---
 
@@ -279,7 +280,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 | 発射台の建造・発射の合図 | 生きる | 題の操作 `RocketLaunchPadTitleActionView` → `SendRocketCommand`（Task 4・8）。題の右の余白は alpha |
 | 発射台・宇宙エレベーターのスロット操作（左右押下・ダブルクリック・Shift） | alpha のマージ後に生きる | 枠は alpha の `BlockItemGridFactory.Create` の `BlockItemGrid`（`BlockItemGridGroup` で見出しを付ける）、身振りの実行器は alpha。このレーンは絶対添字を渡すだけ（Task 8） |
 | 発射台・宇宙エレベーターへの Shift の入れ口の絞り | alpha のマージ後に生きる | `SpecialInletBindingContributor` が alpha の拡張口 (6) `IBlockSlotRestrictionContributor` で入れ口を寄与（Task 3・9）。口が実物に無ければ Task 1 Step 2 の分岐 B |
-| 宇宙エレベーターの接続 | 生きる | `SpaceElevatorSectionView` → `ConnectSpaceElevator`（Task 4・8） |
+| 宇宙エレベーターの接続 | 生きる | `SpaceElevatorSectionView` → `ConnectSpaceElevator`（Task 4・8）。本物の送信の経路は新シナリオ `uitk-block-special-panels` の宇宙エレベーターの段（ケーブルを到着させ `space-elevator-connect` を押して進みが出るまで。Task 11）で見る。`tier9/tier9-6-fusion-elevator` も流すが、先に S4-machine の `generator-section` を待つので S4-machine の未着時は届かない |
 | 機械・発電機など標準の本文の中の歯車・電力網・歯車網の区画（S4-machine の本文にも同じ区画が差し込まれる） | alpha のマージ後に生きる | 区画は alpha の拡張口 (3) の Slot に 1 本ずつ登録し、どの blockType の標準の本文にも同じ工場が差し込まれる。区画の Presenter が詳細の有無で `IsApplicable` を書き、alpha の `SectionStackBody` が `SetItemShown` で出し入れする（Task 6・9） |
 | 網の集約・ベルトの統計がパネルの組み直しの外で届き、先頭の区画が後から出る・消える | 生きる（間隔も Web と同じ） | 区画は自分の `display` を触らず `IsApplicable` を書くだけで、親の `SetItemShown` が先頭の間隔を組み直す。統合 L1 `SpecialSectionStackSpacingTest` が後続の区画の余白まで見る（Task 9。D-23） |
 | ベルトを開いて ←/→ を押すと窓の切り替えとプレイヤーの横移動が同時に起きる | Web と同じ（変えない） | ←/→ は Player/Move にも割り当て済み（`moorestechInputSettings.inputactions`）、`SubInventoryState.LocksPlayerMovement()` は false、Keyboard の抑止は入力欄のフォーカス中だけ（`UiInputExclusivity`）。Web の系も同じ割り当て・同じロックなので振る舞いは同じ（コード読み。D-32） |
@@ -380,10 +381,11 @@ Screens（`SP` = `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInvent
 | `…/Special/Space/SpaceElevatorSpecTest.cs` | L1 | `spaceElevator.spec.ts`（宣言 6・ケース 9） |
 | `…/Special/Support/SpaceElevatorTestHost.cs` | 道具 | 宇宙エレベーターの 2 本が共有する描画・見本・読み取り |
 | `…/Special/SectionStack/SpecialSectionStackSpacingTest.cs` | L1（統合） | alpha の標準の本文に本物の区画 5 つを差し、先頭の区画が後着・消失したときの後続の余白（D-23） |
+| `…/Special/SectionStack/SpecialSectionStackOrderTest.cs` | L1（統合） | `SectionStackView.test.tsx`「親から状態・供給・歯車・電力網・歯車網を順に描画する」の中身（本物の区画 5 つ。順は alpha が偽の区画で見る） |
 | `…/Special/SectionStack/SpecialBlockDetailsTest.cs` | L1（統合） | `blockDetails.spec.ts` の歯車とフィルタの面 4 名（ケース 5）・`regression/sectionStack.spec.ts` の特殊族の面 1 名（ケース 9） |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-special-panels.cs` | 録画 | 新規（R-12） |
 
-（`…` = `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory`。ディレクトリのファイル数: `SS/Details` 8・`SS/Source` 5・`SS/Commands` 7・`SS/Text` 2・`SS` 直下 2、`SP/*` は各 2〜5、`Client.Tests/Ui/State/BlockInventory/Special` 9、`…/Special` 9＋`Support/` 6＋`SectionStack/` 2＋`Space/` 2、`SP/Registration` 6・`SP/Belt` 3。どれも 10 以下）
+（`…` = `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory`。ディレクトリのファイル数: `SS/Details` 8・`SS/Source` 5・`SS/Commands` 7・`SS/Text` 2・`SS` 直下 2、`SP/*` は各 2〜5、`Client.Tests/Ui/State/BlockInventory/Special` 9、`…/Special` 9＋`Support/` 6＋`SectionStack/` 3＋`Space/` 2、`SP/Registration` 6・`SP/Belt` 3。どれも 10 以下）
 
 ### 共有ファイル（共有区画だけ書く）
 
@@ -420,7 +422,8 @@ Screens（`SP` = `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInvent
 | `e2e/tests/block/spaceElevator/shiftRejection.spec.ts` | 2 | 2 | `SpecialInletBindingContributorTest` | 写す（判断まで。送らない・通知は alpha の Shift の実行器） |
 | `e2e/tests/block/blockDetails.spec.ts`（S4-machine と分け合う。S4-machine 計画 44a0bb0334 の対応表で S4-special に回した面） | 4（`renders ${type} detail section`・「歯車機械は消費トルクと基準付きRPMを赤なしで出し、網の需給行を持つ」・「歯車発電機は発生トルクと現在RPMだけを出す」・「歯車ポンプは電力行を持たず歯車行を出す」） | 5（`renders ${type}` は gearMachine・filterSplitter の 2。他は各 1。歯車ポンプは歯車行の面だけ） | `SpecialBlockDetailsTest` | 写す（`renders ${type}`・歯車ポンプの 2 名は S4-machine も同じタグで自分の面を写す） |
 | `e2e/tests/regression/sectionStack.spec.ts`（alpha の持ち主表で「machine・special（区画の id）＋special（FilterSplitter）」と割り振られた面） | 1（`${entry.type}は対応セクションだけを表示する`） | 9（filterSplitter 1 と、特殊族の区画の id〈`gear-section`・`gear-network-section`・`electric-network-section`〉が出る 8 種: gearMachine・gearMiner・gearPump・gearGenerator・machine・miner・generator・pump） | `SpecialBlockDetailsTest` | 写す（同じ 12 ケースのうち、項目グリッドの id は alpha、機械・採掘機・ポンプ・発電機の区画の id は S4-machine が同じタグで写す。chest・tank・generic は特殊族の区画が出ないので持ち分に無い） |
-| `src/features/blockInventory/blockInventoryDesign.test.ts`（alpha の持ち主表〈S4-alpha 計画 85f905aa3d の 208〜216 行〉で special に割り振られた面） | 4（`%sから禁止Mantine部品とテーマ色を除去する`・「ゲージとモード切替を用途別に共通部品へ置換する」・「フィルタ分岐器の方向を縦積みにする」・「モード切替の間隔と選択面を専用トークンで制御する」） | 7（`%s…` は sources の gear・filterSplitter・electricToGear・network の 4、他は各 1） | `SpecialDesignTest` | 写す（`%s…` の他の sources と残りの名前は alpha・S4-machine・S4-train が各自のテストに同じタグで写す） |
+| `src/features/blockInventory/blockInventoryDesign.test.ts`（alpha の持ち主表〈S4-alpha 計画（feature/uitk・#1630）の 208〜216 行〉で special に割り振られた面） | 4（`%sから禁止Mantine部品とテーマ色を除去する`・「ゲージとモード切替を用途別に共通部品へ置換する」・「フィルタ分岐器の方向を縦積みにする」・「モード切替の間隔と選択面を専用トークンで制御する」） | 7（`%s…` は sources の gear・filterSplitter・electricToGear・network の 4、他は各 1） | `SpecialDesignTest` | 写す（`%s…` の他の sources と残りの名前は alpha・S4-machine・S4-train が各自のテストに同じタグで写す） |
+| `src/features/blockInventory/views/__tests__/SectionStackView.test.tsx`（alpha の持ち主表で「alpha（区画の順を偽の区画で）＋special（中身）」と分けた 1 名） | 1（「親から状態・供給・歯車・電力網・歯車網を順に描画する」） | 1 | `SpecialSectionStackOrderTest` | 写す（順は alpha の `SectionStackViewTest` が同じタグで偽の区画で見る。他の 7 名は alpha・S4-machine） |
 | `src/features/blockInventory/details/__tests__/GearToElectricSection.test.ts` | 7 | 13（`it.each` の 7 行を展開） | `GearToElectricSectionViewTest` | 写す |
 | `src/features/blockInventory/details/__tests__/GearToElectricSection.i18n.test.ts` | 1 | 1 | `GearToElectricSectionViewTest` | 写す（D-14） |
 | `src/features/blockInventory/details/__tests__/BeltThroughputSection.test.ts` | 3 | 3 | `BeltThroughputSectionViewTest` | 写す |
@@ -429,7 +432,7 @@ Screens（`SP` = `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInvent
 | `src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorInventory.test.tsx` | 1 | 2（`it.each([false, true])`） | `Space/SpaceElevatorViewTest` | 写す |
 | `src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx` | 5 | 11（`it.each` の 7 行を展開） | `Space/SpaceElevatorViewTest` | 写す |
 
-計 15 ファイル・宣言 48（写す 47・捨てる 1）・ケース 77（写す 76・捨てる 1）。実行計画 §1.4 の数（`spaceElevator/*`(8)・GearToElectric 7・RocketLaunchPad 5・SpaceElevator 5）は宣言で数えてあり、`it.each`・`for` の展開とは食い違わない。食い違いは 5 つ: RocketLaunchPad 5 は捨てる 1 を除いた宣言、SpaceElevator 5 は `SpaceElevatorSection` だけで `SpaceElevatorInventory` の 1 宣言を含まない、`GearToElectricSection.i18n` の 1 宣言が無い、他レーンの表から回ってきた `blockDetails` の 4 名と `regression/sectionStack` の 1 名と `blockInventoryDesign` の 4 名が無い。§1.4 の行は宣言とケースの 2 つの数で書き直す（末尾「設計書・実行計画へ反映する行」）。完了の判定は、名前の照合（test-name-parity）を宣言で、実行（`uloop run-tests` の件数）をケースで見る（Task 12 Step 2・3）
+計 16 ファイル・宣言 49（写す 48・捨てる 1）・ケース 78（写す 77・捨てる 1）。実行計画 §1.4 の数（`spaceElevator/*`(8)・GearToElectric 7・RocketLaunchPad 5・SpaceElevator 5）は宣言で数えてあり、`it.each`・`for` の展開とは食い違わない。食い違いは 5 つ: RocketLaunchPad 5 は捨てる 1 を除いた宣言、SpaceElevator 5 は `SpaceElevatorSection` だけで `SpaceElevatorInventory` の 1 宣言を含まない、`GearToElectricSection.i18n` の 1 宣言が無い、他レーンの表から回ってきた `blockDetails` の 4 名と `regression/sectionStack` の 1 名と `blockInventoryDesign` の 4 名と `SectionStackView.test` の 1 名が無い。§1.4 の行は宣言とケースの 2 つの数で書き直す（末尾「設計書・実行計画へ反映する行」）。完了の判定は、名前の照合（test-name-parity）を宣言で、実行（`uloop run-tests` の件数）をケースで見る（Task 12 Step 2・3）
 
 ---
 
@@ -493,7 +496,7 @@ Expected: Global Constraints の「S4-alpha の API」の口が出る。読み�
 - **分岐 A（拡張口 (6) `IBlockSlotRestrictionContributor` がある。alpha の計画どおり）**: Task 3 の `SpecialInletBindingContributor` をその口に実装し、Task 9 で DI に登録する
 - **分岐 B（拡張口 (6) が無い）**: Task 3 の `SpecialInletBindingContributor` から `: IBlockSlotRestrictionContributor` と `AppliesTo`・`Contribute` を外し、静的な `TryGetInletBindings`・`SpaceElevatorBindings` だけの `static class` にして、Task 9 では登録しない。`done.md` の「integrator への依頼」に「S4-alpha の Shift の束縛へ発射台・宇宙エレベーターの入れ口を寄与する口が無い。実装は `Client.Ui.State/BlockInventory/Special/Source/SpecialInletBindingContributor.cs` にある。それまで両ブロックの Shift は取得待ち（`BlockDetailLoading`）のまま」と書く。R-9 の受け入れ基準は L0（判断まで）で満たし、死活表の行を「alpha の口の追加後に生きる」と読む（D-17）
 - **区画の出し入れの通知**: `IBlockInventorySection.IsApplicable` が `IReadOnlyReactiveProperty<bool>` で、`SectionStackBody.cs` がそれを購読して `SetItemShown` していること（上の 2 つの grep）。違えば（bool のメソッドのまま・購読していない）止めて指揮へ。`done.md` を「状態: 停止（S4-alpha の区画の出し入れの通知が無い）」にする。区画が自分の `display` を切り替える逃げ道は作らない（`UiGapContainer` の先頭の間隔がずれる。D-23）
-- **パネルの識別**: `OpenBlockInventoryPanel` が `BlockInstanceId`・`Position` を持ち `Block`（`BlockGameObject`）を持たないこと。`BlockInstanceId` が無ければ止めて指揮へ（詳細の Model・操作・Shift の寄与が開いたブロックを照らす鍵。D-26）。あわせて、開いたまま同じ位置でブロックが置き換わったとき alpha のパネルが新しい `BlockInstanceId` で再発行するか（`IsSamePanel` が位置・Guid・エラーしか見ないなら再発行されない）を読み、再発行しないなら `done.md` の「integrator への依頼」に「置き換え時にパネルの `BlockInstanceId` を更新して再発行してほしい（しないと特殊族の詳細が取得待ちのまま。`SpecialBlockDetailModel` の警告で気づく）」と書く
+- **パネルの識別**: `OpenBlockInventoryPanel` が `BlockInstanceId`・`Position` を持ち `Block`（`BlockGameObject`）を持たないこと。`BlockInstanceId` が無ければ止めて指揮へ（詳細の Model・操作・Shift の寄与が開いたブロックを照らす鍵。D-26）。あわせて、alpha の `OpenBlockInventoryPanel.IsSamePanel` が `BlockInstanceId` も比べること（alpha D-59。同じ位置・同じ型の別個体は別のパネルになり、本文・区画が作り直される）を実物で確かめ、比べていないなら `done.md` の「integrator への依頼」に「置き換え時にパネルの `BlockInstanceId` を更新して再発行してほしい（しないと特殊族の詳細が取得待ちのまま。`SpecialBlockDetailModel` の警告で気づく）」と書く
 - L1 の土台（`BlockInventoryTestPanels.OfType`・`FakePanelSource.State`・`BlockInventoryTestBodies.SectionStack`・`BlockInventoryTestShell.Create`）の名前と形を控える。Shell は引数（`ScreenTestHost`・`ReactiveProperty<BlockInventoryPanelState>`・`params object[] plugged`）・返り値の `View`・`View` が `StageColumnsLayout` の子に載ること・舞台の大きさの変化を帯へ流すかを読む。Shell が無ければ、Task 9 の filterSplitter の 3 件目と `regression/sectionStack` の filterSplitter を部分移植にし、Task 10 Step 3 の組み方は alpha の `BlockInventoryPresenter` の組み方を読んで書き写す（読めなければ指揮へ）
 
 - [ ] **Step 3: bd を積み、done.md の雛形を置く**
@@ -4106,13 +4109,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
             return new SpecialViewKit(Commands, presentation, Toaster, new BlockItemGridFactory(BlockSlots, presentation, Toaster));
         }
 ```
-（`BlockItemGridFactory` の ctor〈`IBlockSlotCommands`・`GameContentPresentation`・`UiCommandResultToaster`〉は S4-alpha 計画 85f905aa3d の記述〈共有サービス。`MainGameUiRegistration` の共有サービスの並び〉。実物と違えば実物に合わせる。`Support/` は 5 本）
+（`BlockItemGridFactory` の ctor〈`IBlockSlotCommands`・`GameContentPresentation`・`UiCommandResultToaster`〉は S4-alpha 計画（feature/uitk・#1630）の記述〈共有サービス。`MainGameUiRegistration` の共有サービスの並び〉。実物と違えば実物に合わせる。`Support/` は 5 本）
 
 `ElectricBodyViewTest.cs`:
 ```csharp
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
-using Client.Ui.Components.Controls.ModeSwitch;
+using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Special.Energy;
 using Client.Ui.Screens.BlockInventory.Special.Network;
 using Client.Ui.State.BlockInventory.Special.Text;
@@ -4316,7 +4319,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
 `Energy/ElectricToGearBodyView.cs`:
 ```csharp
 using System.Collections.Generic;
-using Client.Ui.Components.Controls.ModeSwitch;
+using Client.Ui.Components.Controls;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
@@ -4401,7 +4404,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
 `FilterSplitter/FilterDirectionView.cs`:
 ```csharp
 using System.Collections.Generic;
-using Client.Ui.Components.Controls.ModeSwitch;
+using Client.Ui.Components.Controls;
 using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
@@ -5029,7 +5032,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 `Space/RocketLaunchPadTitleActionView.cs`:
 ```csharp
 using System.Collections.Generic;
-using Client.Ui.Components.Controls.PanelActionButton;
+using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
@@ -5097,7 +5100,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 
 `Space/SpaceElevatorSectionView.cs`:
 ```csharp
-using Client.Ui.Components.Controls.PanelActionButton;
+using Client.Ui.Components.Controls;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
@@ -5233,7 +5236,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     }
 }
 ```
-（`PanelActionButton` の namespace は実物〈`Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.cs`〉に合わせる。`UiStack` の name を初期化子で付けるのは alpha の `SectionStackBody` と同じ書き方）
+（`UiStack` の name を初期化子で付けるのは alpha の `SectionStackBody` と同じ書き方）
 
 - [ ] **Step 3: コンパイルしテストを実行して通ることを確かめる**
 
@@ -5262,6 +5265,7 @@ git commit -m "feat(uitk): 発射台の本文と題の操作・宇宙エレベ�
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/FilterSplitterBodyViewTest.cs`（3 件目。本文の工場が要るのでここで足す。D-24）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/SpecialFactoriesTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/SectionStack/SpecialSectionStackSpacingTest.cs`（統合 L1。D-23）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/SectionStack/SpecialSectionStackOrderTest.cs`（統合 L1。`SectionStackView.test.tsx` の special の 1 件）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/SectionStack/SpecialBlockDetailsTest.cs`（`blockDetails`・`regression/sectionStack` の持ち分）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialScreenTestHost.cs`（`SectionFactories()`）・`SpecialDetailSamples.cs`（歯車機械・歯車発電機・回転発電機の見本）
 
@@ -5407,6 +5411,75 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
 ```
 （`BlockInventoryTestBodies.SectionStack` の戻りは `var` で受け、根だけを返す〈`.Root`・`.Attach(panel)` は alpha の手本どおり〉。GearToElectricGenerator・GearMachine の標準の本文に alpha の ItemGrid 区画や S4-machine の区画が出る場合も、`shown[0]` は全区画の中の先頭なので、余白の確かめはそれを含めた並びで行い、特殊族の区画の順だけを `SpecialSectionNames` で絞って比べる。先頭が特殊族でない blockType では 1 件目の `AreEqual(0f, …)` が alpha 側の区画を見ることになるので、両件とも ItemGrid が出ない blockType〈`SectionStackConfigTable.Resolve` が `Hidden`〉であることを Task 1 Step 2 の照合のときに確かめる。出るなら `SpecialDetailSamples` の名前の区画だけで先頭を判定する形に直す）
 
+`SectionStack/SpecialSectionStackOrderTest.cs`（統合 L1。alpha の持ち主表で「alpha（区画の順を偽の区画で）＋special（中身）」と分けた `SectionStackView.test.tsx` の 1 件の special の側。alpha の標準の本文に本物の区画の工場 5 つを差す）:
+```csharp
+using System.Linq;
+using Client.Localization;
+using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Text;
+using Mooresmaster.Localization.Generated;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
+{
+    /// <summary>
+    /// 回転発電機の 4 区画が本物の区画で Web と同じ順と中身で出る（Web SectionStackView.test.tsx の special の持ち分。順だけは alpha が偽の区画で見る）
+    /// The generator's four sections render with real sections in the Web order and content (special share of SectionStackView.test.tsx; alpha checks the order alone with fake sections)
+    /// </summary>
+    public class SpecialSectionStackOrderTest : SpecialScreenTestHost
+    {
+        private static readonly string[] ExpectedIds =
+        {
+            "gear-to-electric-section", "gear-to-electric-state", "gear-to-electric-supplied-power",
+            "gear-section", "gear-torque", "gear-rpm", "electric-network-section", "gear-network-section",
+        };
+
+        /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">親から状態・供給・歯車・電力網・歯車網を順に描画する</web-test>
+        [Test]
+        public void 回転発電機は状態と供給と歯車と電力網と歯車網を順に中身つきで出す()
+        {
+            // Web と同じ値: 発電中 72.4/100・歯車 120rpm 100trq（基準 120）・電力網 100/72.4・歯車網 100/72
+            // Same values as the Web: generating 72.4/100, gear 120rpm 100trq (base 120), electric 100/72.4, gear network 100/72
+            Model.Set(new SpecialBlockDetailViewModel(null, new GearToElectricDetail(GearToElectricDisplayState.Generating, 72.4, 100), GearDetail.Consumer(120, 100, 120), null, new ElectricNetworkDetail(100, 72.4, 1, 1), new GearNetworkDetail(100, 72, GearNetworkStopReasonKind.None), null, null, null));
+            var panel = OpenPanel("GearToElectricGenerator");
+            var body = BlockInventoryTestBodies.SectionStack(Panels, "GearToElectricGenerator", SectionFactories());
+            Mount(body.Root);
+            body.Attach(panel);
+            simulate.FrameUpdate();
+
+            // 表示中の要素の testid を木の順に読む（Web は data-testid を持つ要素を木の順で並べる）
+            // Read the testids of shown elements in tree order (the Web lists data-testid elements in tree order)
+            var ids = body.Root.Query<VisualElement>().ToList().Where(e => IsSectionOrRowId(e.name) && IsShownInTree(e, body.Root)).Select(e => e.name).ToArray();
+            CollectionAssert.AreEqual(ExpectedIds, ids, "余計な区画・行・項目グリッドが出ていない");
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.GearToElectricStateGenerating).Resolve(), TextOf(body.Root, "gear-to-electric-state"));
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.GearToElectricSuppliedPower, new[] { new LocalizationTextParam("current", "72"), new LocalizationTextParam("max", "100") }).Resolve(), TextOf(body.Root, "gear-to-electric-supplied-power"));
+        }
+
+        // 区画（-section）・項目グリッド（-grid）と、Web が並べる区画の行の id
+        // Section (-section) and item-grid (-grid) ids plus the section-row ids the Web lists
+        private static bool IsSectionOrRowId(string name)
+        {
+            return !string.IsNullOrEmpty(name) && (name.EndsWith("-section") || name.EndsWith("-grid") || ExpectedIds.Contains(name));
+        }
+
+        // 自分と根までの祖先がどれも隠れていない
+        // Neither the element nor any ancestor up to the root is hidden
+        private static bool IsShownInTree(VisualElement element, VisualElement root)
+        {
+            for (var e = element; e != null && e != root.parent; e = e.parent)
+            {
+                if (e.resolvedStyle.display == DisplayStyle.None) return false;
+            }
+            return true;
+        }
+    }
+}
+```
+（Web の最後の主張〈testid を持つ `div` が無い〉は空の回転発電機に項目グリッドが出ないことを見ているので、`-grid` で終わる id が並びに無いことで写す。余計な区画〈例: 詳細の無いベルトの区画〉が出ても赤になるよう、期待の id で絞らず区画・項目グリッド・区画の行の id を全部並べて比べる。順は alpha の `区画は固定の順に並ぶ` が偽の区画で見ており、この件は本物の区画の中身〈状態文・供給電力の値の丸め〉まで見る。）
+
 `SectionStack/SpecialBlockDetailsTest.cs`（S4-machine と分け合う `blockDetails.spec.ts` の歯車とフィルタの面、alpha の持ち主表で回ってきた `regression/sectionStack.spec.ts` の filterSplitter）:
 ```csharp
 using System.Linq;
@@ -5551,7 +5624,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
     }
 }
 ```
-（`BlockInventoryTestShell.Create(ScreenTestHost, ReactiveProperty<BlockInventoryPanelState>, params object[] plugged)` は alpha の L1 の土台で、本物の `BlockInventoryPartRegistry` に `plugged` の工場を登録して `BlockInventoryView` と `BlockInventoryBodyHost` を組む〈S4-alpha 計画 85f905aa3d〉。部分 1 つだけを根にすると標準の区画の混入が構造上起こらず空振りするので、本文だけで組む形には戻さない。土台に本文のホストを組む手段が無ければ、filterSplitter の 2 つのケース〈`blockDetails` と `regression/sectionStack`〉のうち混入を見る `regression/sectionStack` の 1 ケースは書かず、`done.md` の「## 部分移植の残り」に「`regression/sectionStack` の filterSplitter: 本文のホストの土台が無い。録画 R-12 の分配器の段で他の区画が出ないことを見る」と書く〈D-24 と同じ扱い〉。`BlockTypeConst.GearMachine`・`GearPump`・`SimpleGearGenerator` は生成物の実物の名前に合わせる〈マスタの `blockType` は `GearMachine`・`GearPump` を確かめ済み〉。歯車ポンプの「電力行を持たない」の面〈`pump-power-rate` が無い〉は S4-machine が同じタグで写す。ここで見るのは歯車行〈`gear-section`〉だけ。歯車ポンプに電力網の詳細が付かないこと〈Reader が種別ごとに網の詳細を付けるか〉は L1 の偽の Model では見られないので、録画 R-12 の歯車の段と Web の橋との値の一致〈D-2〉で見る。区画の TestCase〈上の 8 種〉も同じく「詳細の有無 → 出る区画」の写しを固定するもので、種別ごとの詳細の付与は見ない。blockType の文字列〈`ElectricMachine`・`ElectricMiner`・`ElectricGenerator`・`ElectricPump` 等〉は生成物の `BlockTypeConst` の実物の名前に合わせる）
+（`BlockInventoryTestShell.Create(ScreenTestHost, ReactiveProperty<BlockInventoryPanelState>, params object[] plugged)` は alpha の L1 の土台で、本物の `BlockInventoryPartRegistry` に `plugged` の工場を登録して `BlockInventoryView` と `BlockInventoryBodyHost` を組む〈S4-alpha 計画（feature/uitk・#1630）〉。部分 1 つだけを根にすると標準の区画の混入が構造上起こらず空振りするので、本文だけで組む形には戻さない。土台に本文のホストを組む手段が無ければ、filterSplitter の 2 つのケース〈`blockDetails` と `regression/sectionStack`〉のうち混入を見る `regression/sectionStack` の 1 ケースは書かず、`done.md` の「## 部分移植の残り」に「`regression/sectionStack` の filterSplitter: 本文のホストの土台が無い。録画 R-12 の分配器の段で他の区画が出ないことを見る」と書く〈D-24 と同じ扱い〉。`BlockTypeConst.GearMachine`・`GearPump`・`SimpleGearGenerator` は生成物の実物の名前に合わせる〈マスタの `blockType` は `GearMachine`・`GearPump` を確かめ済み〉。歯車ポンプの「電力行を持たない」の面〈`pump-power-rate` が無い〉は S4-machine が同じタグで写す。ここで見るのは歯車行〈`gear-section`〉だけ。歯車ポンプに電力網の詳細が付かないこと〈Reader が種別ごとに網の詳細を付けるか〉は L1 の偽の Model では見られないので、録画 R-12 の歯車の段と Web の橋との値の一致〈D-2〉で見る。区画の TestCase〈上の 8 種〉も同じく「詳細の有無 → 出る区画」の写しを固定するもので、種別ごとの詳細の付与は見ない。blockType の文字列〈`ElectricMachine`・`ElectricMiner`・`ElectricGenerator`・`ElectricPump` 等〉は生成物の `BlockTypeConst` の実物の名前に合わせる）
 
 `Support/SpecialDetailSamples.cs` に足す（Web の `e2e/mock-host/fixtures/blocks/` の gearMachine・gearGenerator と同じ値）:
 ```csharp
@@ -5758,7 +5831,7 @@ namespace Client.Starter.Registration.GameUi.Screens
             BlockInventorySpecialGameUiRegistration.Register(builder);
 ```
 
-`SpecialDesignTest.cs`（Web `blockInventoryDesign.test.ts` のうち alpha の持ち主表〈S4-alpha 計画 85f905aa3d の 208〜216 行〉で special に割り振られた 4 名。`%sから禁止Mantine部品とテーマ色を除去する` は sources の `gear`・`filterSplitter`・`electricToGear`・`network` の 4 ケース。alpha の `BlockInventoryDesignTest` には足さない）:
+`SpecialDesignTest.cs`（Web `blockInventoryDesign.test.ts` のうち alpha の持ち主表〈S4-alpha 計画（feature/uitk・#1630）の 208〜216 行〉で special に割り振られた 4 名。`%sから禁止Mantine部品とテーマ色を除去する` は sources の `gear`・`filterSplitter`・`electricToGear`・`network` の 4 ケース。alpha の `BlockInventoryDesignTest` には足さない）:
 ```csharp
 using System.Collections.Generic;
 using System.IO;
@@ -5768,6 +5841,9 @@ using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Screens.BlockInventory.Special.Energy;
 using Client.Ui.Screens.BlockInventory.Special.FilterSplitter;
+using Client.Ui.Screens.BlockInventory.Special.Network;
+using Client.Ui.Screens.BlockInventory.Special.Registration;
+using Client.Ui.State.BlockInventory.Special.Details;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -5785,7 +5861,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
 
         // Web の禁止 Mantine 部品・テーマ色に当たるもの: 素の Unity の操作部品と色の直書き
         // Counterparts of the Web's forbidden Mantine parts and theme colors: raw Unity controls and hard-coded colors
-        private static readonly Regex ForbiddenControl = new(@"new\s+(Button|ProgressBar|Slider|SliderInt|RadioButton|RadioButtonGroup|Toggle|DropdownField)\s*\(");
+        private static readonly Regex ForbiddenControl = new(@"new\s+(Button|ProgressBar|Slider|SliderInt|RadioButton|RadioButtonGroup|Toggle|DropdownField)\s*[({]");
         private static readonly Regex HardCodedColor = new(@"new\s+Color32?\s*\(|\bColor\.(red|green|blue|white|black|yellow|cyan|magenta|gray|grey|clear)\b|style\.(color|backgroundColor|border\w*Color|unityBackgroundImageTintColor)\s*=|""#[0-9a-fA-F]{3,8}""");
 
         private static readonly Dictionary<string, string[]> ViewFilesByWebSource = new()
@@ -5808,6 +5884,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
                 var source = File.ReadAllText(Path.Combine(Application.dataPath, SpecialRoot, file));
                 Assert.IsFalse(ForbiddenControl.IsMatch(source), $"{file} が素の操作部品を作っている");
                 Assert.IsFalse(HardCodedColor.IsMatch(source), $"{file} に色の直書きがある");
+            }
+
+            // 組んだ木でも、共通部品の外に素の操作部品が無いこと（alpha の同じタグの件と同じ境界。alpha D-46）
+            // The built tree must hold no raw controls outside shared components (same boundary as alpha's case under this tag. alpha D-46)
+            foreach (var view in MountViewsOf(webSource))
+            {
+                foreach (var element in OwnTree(view)) Assert.IsFalse(!IsSharedComponent(element) && IsRawControl(element), $"{webSource} の木に素の操作部品 {element.GetType().Name}（{element.name}）がある");
             }
         }
 
@@ -5850,6 +5933,49 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             foreach (var token in new[] { "var(--mode-switch-gap)", "var(--mode-switch-padding-block)", "var(--mode-switch-padding-inline)", "var(--mode-switch-selected-face)" }) StringAssert.Contains(token, uss);
         }
 
+        private VisualElement[] MountViewsOf(string webSource)
+        {
+            switch (webSource)
+            {
+                case "gear": return new VisualElement[] { RenderInto(new GearSectionView(), SpecialDetailSamples.GearMachine) };
+                case "filterSplitter": return new VisualElement[] { RenderFilterSplitter() };
+                case "electricToGear": return new VisualElement[] { RenderInto(new ElectricToGearBodyView(Kit(null)), SpecialDetailSamples.Only(SpecialDetailSamples.ElectricToGear)) };
+                case "network": return new VisualElement[] { RenderInto(new ElectricNetworkSectionView(), SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork)), RenderInto(new GearNetworkSectionView(), SpecialDetailSamples.GearMachine) };
+                default: throw new System.ArgumentOutOfRangeException(nameof(webSource), webSource, "Web の sources の鍵に対応する View が無い");
+            }
+        }
+
+        private VisualElement RenderInto<TView>(TView view, SpecialBlockDetailViewModel detail) where TView : VisualElement, ISpecialDetailRenderer
+        {
+            Mount(view);
+            view.Render(NoSlots, detail);
+            return view;
+        }
+
+        // 共通部品（Client.Ui.Components 以下の型）は内部へ降りず、利用側が足す contentContainer の子だけたどる
+        // Do not descend into shared components (types under Client.Ui.Components); follow only the children the caller adds to their contentContainer
+        private static IEnumerable<VisualElement> OwnTree(VisualElement root)
+        {
+            foreach (var child in root.hierarchy.Children())
+            {
+                yield return child;
+                var next = IsSharedComponent(child) ? child.contentContainer : child;
+                if (IsSharedComponent(child) && next == child) continue;
+                foreach (var descendant in OwnTree(next)) yield return descendant;
+            }
+        }
+
+        private static bool IsSharedComponent(VisualElement element)
+        {
+            var ns = element.GetType().Namespace ?? string.Empty;
+            return ns == "Client.Ui.Components" || ns.StartsWith("Client.Ui.Components.");
+        }
+
+        private static bool IsRawControl(VisualElement element)
+        {
+            return element is Button || element is Toggle || element is RadioButton || element is Slider || element is ProgressBar;
+        }
+
         private FilterSplitterBodyView RenderFilterSplitter()
         {
             var view = Mount(new FilterSplitterBodyView(Kit(LoadContent())));
@@ -5859,7 +5985,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
     }
 }
 ```
-（`ModeSwitch` の USS は部品レーンの持ち物で、このレーンは読むだけ。`--mode-switch-selected-face` の名前は `DerivedTokens.uss`・`ModeSwitch.uss` の実物で確かめた〈`origin/feature/uitk`〉。View の C# のパスは File Structure のとおりで、名前を変えたらこの表も同じコミットで直す。画面 USS を作ったとき〈D-36〉は、その USS の色の直書きの検査を `%s…` の件へ 1 ケース足す）
+（`%s…` の件は、C# の文面〈`new Button(`・`new Button {` の両方の形〉と、組んだ木〈alpha の S4-alpha 計画〈feature/uitk・#1630〉の Produces「同じタグでは…」と D-46 の境界: 共通部品の内部へ降りず contentContainer の子だけたどる〉の 2 つで素の操作部品を見る。`ModeSwitch` の USS は部品レーンの持ち物で、このレーンは読むだけ。`--mode-switch-selected-face` の名前は `DerivedTokens.uss`・`ModeSwitch.uss` の実物で確かめた〈`origin/feature/uitk`〉。View の C# のパスは File Structure のとおりで、名前を変えたらこの表も同じコミットで直す。画面 USS を作ったとき〈D-36〉は、その USS の色の直書きの検査を `%s…` の件へ 1 ケース足す）
 
 `FilterSplitterBodyViewTest.cs` に 3 件目を足す（本文の工場が要るので Task 9 で。D-24）:
 ```csharp
@@ -5895,13 +6021,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             return viewport.worldBound.yMin <= element.worldBound.yMin && element.worldBound.yMax <= viewport.worldBound.yMax;
         }
 ```
-（`BlockInventoryTestShell.Create(ScreenTestHost, ReactiveProperty<BlockInventoryPanelState>, params object[] plugged)` は alpha の L1 の土台〈S4-alpha 計画 85f905aa3d の `BlockInventoryTestFixtures.cs`〉。舞台は 1280×720 の `StageColumnsLayout` で、ここでは高さだけ 600 に下げる。using に `Client.Tests.Ui.State.BlockInventory.PanelModel`（`BlockInventoryTestShell` の置き場。alpha の実物の名前空間に合わせる）・`Client.Ui.Components.Controls`・`Client.Ui.Foundation.Stage.Columns`・`Client.Ui.Screens.BlockInventory.Special.Registration`・`Mooresmaster.Model.BlocksModule`（`BlockMasterElement`）を足す。舞台の高さを変えても帯の高さが追わない〈Shell が大きさの変化を流さない。最初の Assert が赤〉・中身が窓を超えない、のどちらかなら、この件は書かず〈`[Ignore]` で残さない〉タグごと消して、`done.md` の「## 部分移植の残り」に「`filterSplitter.spec.ts` の 3 件目: alpha の Shell で高さ 600 の舞台を作れない〈理由〉。録画 R-12 の分配器の段で末尾の枠の解除を見る」と書く。720 のまま書くと末尾の枠が最初から見えていて空振りで緑になるので、高さを下げずに書かない）
+（`BlockInventoryTestShell.Create(ScreenTestHost, ReactiveProperty<BlockInventoryPanelState>, params object[] plugged)` は alpha の L1 の土台〈S4-alpha 計画（feature/uitk・#1630）の `BlockInventoryTestFixtures.cs`〉。舞台は 1280×720 の `StageColumnsLayout` で、ここでは高さだけ 600 に下げる。using に `Client.Tests.Ui.State.BlockInventory.PanelModel`（`BlockInventoryTestShell` の置き場。alpha の実物の名前空間に合わせる）・`Client.Ui.Components.Controls`・`Client.Ui.Foundation.Stage.Columns`・`Client.Ui.Screens.BlockInventory.Special.Registration`・`Mooresmaster.Model.BlocksModule`（`BlockMasterElement`）を足す。舞台の高さを変えても帯の高さが追わない〈Shell が大きさの変化を流さない。最初の Assert が赤〉・中身が窓を超えない、のどちらかなら、この件は書かず〈`[Ignore]` で残さない〉タグごと消して、`done.md` の「## 部分移植の残り」に「`filterSplitter.spec.ts` の 3 件目: alpha の Shell で高さ 600 の舞台を作れない〈理由〉。録画 R-12 の分配器の段で末尾の枠の解除を見る」と書く。720 のまま書くと末尾の枠が最初から見えていて空振りで緑になるので、高さを下げずに書かない）
 
 
 - [ ] **Step 3: コンパイルし、テストと起動のエラーを見る**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`
-Expected: ErrorCount 0 / PASS（`SpecialFactoriesTest` 1・`SpecialSectionStackSpacingTest` 2・`SpecialBlockDetailsTest` 14〈TestCase 込み〉・`SpecialDesignTest` 7〈同〉・`FilterSplitterBodyViewTest` 4〈3 件目を足した後。部分移植なら 3〉、L2 の `UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest` を含む）
+Expected: ErrorCount 0 / PASS（`SpecialFactoriesTest` 1・`SpecialSectionStackSpacingTest` 2・`SpecialSectionStackOrderTest` 1・`SpecialBlockDetailsTest` 14〈TestCase 込み〉・`SpecialDesignTest` 7〈同〉・`FilterSplitterBodyViewTest` 4〈3 件目を足した後。部分移植なら 3〉、L2 の `UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest` を含む）
 
 Run（全体スイッチ UITK で PlayMode を 1 回起動して止める）: `uloop execute-dynamic-code --project-path ./moorestech_client --code "Client.Input.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return 0;"` → `uloop control-play-mode --project-path ./moorestech_client --action Play` → 30 秒後に `uloop get-logs --project-path ./moorestech_client --log-type Error` → `uloop control-play-mode --project-path ./moorestech_client --action Stop`
 Expected: Error 0 件（VContainer の解決失敗・二重登録の例外が無い）。alpha の起動時の情報ログに「空きの Slot」として GearToElectric・BeltThroughput・Gear・ElectricNetwork・GearNetwork が並ばない（`uloop get-logs --log-type Log` で `SectionStackSlotRegistry` を grep）
@@ -5924,7 +6050,7 @@ git commit -m "feat(uitk): 特殊族を S4-alpha の拡張口へ登録し設計�
 - 成果物（コミットしない）: `moorestech_client/.uloop/outputs/compare/S4-special/*.png`・`compare.html`
 
 **Interfaces:**
-- Consumes: Task 9 までの全部、Task 11 の新シナリオと既存の 3 本の撮影、参照 `LOGS/uitk/reference-captures/web-a9d5123537/`・`web-0e81bbe3c3-2560x1080/`、Web の mock-host（`W/e2e/mock-host/`）、`Client.Ui.Editor.Capture.UiRuntimePanelCapture`（EditMode で本番の PanelSettings の複製に描く。A-74）・`PlaytestGameViewOps.SetResolution`
+- Consumes: Task 9 までの全部、Task 11 の新シナリオと既存の撮影、参照 `LOGS/uitk/reference-captures/web-a9d5123537/`・`web-0e81bbe3c3-2560x1080/`、Web の mock-host（`W/e2e/mock-host/`）、`Client.Ui.Editor.Capture.UiRuntimePanelCapture`（EditMode で本番の PanelSettings の複製に描く。A-74）・`PlaytestGameViewOps.SetResolution`
 - Produces: `done.md` の「## 差の表」（下の撮影表の全行に「同じ／直した／LX-n／捨てる」）・`compare.html`（Task 14 の報告ページへ載せる）
 
 設計書 `component-architecture.md` の「比べ方」の表（UITK の画面は参照と同じ状態を 720p と 2560×1080 の 2 種撮る）に合わせ、比べる単位を「状態×解像度」の 1 セルにする。1 状態は 2 セル（720p・2560×1080）で、下の 15 状態 × 2 解像度 = **30 セルすべての比較を完了条件**にする（1 セルでも撮れていない・比べていないなら Task 10 は未完了。`done.md` の「## 差の表」は 30 行）。
@@ -5994,7 +6120,7 @@ git commit -m "fix(uitk): 特殊族の並べ比べの差を直し、直せない
 
 **Interfaces:**
 - Consumes: Task 9 までの全部、DSL（`PlaytestRunner.Run`・`SetupDebugEnvironment`・`PlaceBlockDirect`・`WaitBlockGameObject`・`AimAt`・`PressInteract`・`WaitUiState`・`UntilUiElement`・`ClickUi`・`PressKey`・`GiveItem`・`Screenshot`・`Note`・`Assert`・`Until`）
-- Produces: 4 本の `result.json`（`Success: true`）と mp4、`done.md` の「## 証拠」に `系=GameUi` の Note の行
+- Produces: 5 本の `result.json`（`Success: true`）と mp4、`done.md` の「## 証拠」に `系=GameUi` の Note の行
 
 - [ ] **Step 1: 新シナリオを書く**
 
@@ -6004,13 +6130,18 @@ git commit -m "fix(uitk): 特殊族の並べ比べの差を直し、直せない
 // Runs the block-inventory special family (filter splitter, electric-to-gear, pole, belt, gear, space elevator) on UITK (GameUi)
 // 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
 // Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Operations.Ui;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Game.Context;
+using Game.Orbit;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6073,12 +6204,22 @@ return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
     await Capture("gear-generator");
     await Close();
 
-    // 宇宙エレベーター: 群・状態区画・電力網が出る（接続は tier9 の 2 本が見る）
-    // Space elevator: groups, the state section and the network appear (connection is covered by the two tier9 runs)
-    await Open("宇宙エレベーター基部", new Vector3Int(14, 32, 6), "space-elevator-view");
+    // 宇宙エレベーター: 群・状態区画・電力網が出る
+    // Space elevator: groups, the state section and the network appear
+    var elevator = await Open("宇宙エレベーター基部", new Vector3Int(14, 32, 6), "space-elevator-view");
     await p.UntilUiElement("space-elevator-status", 15f);
     p.Note($"宇宙エレベーターの状態文={Text("space-elevator-status")}");
     await Capture("space-elevator");
+
+    // ケーブル 1 便の軌道到着でプールを満たし、UI の接続ボタンを押して本物の送信の経路を通す（前例 tier9-6-fusion-elevator。接続に電力は要らない）
+    // Fill the pool with one cable arrival and press the UI connect button to exercise the real send path (precedent tier9-6-fusion-elevator; connecting needs no power)
+    var cableId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"));
+    var cablesPerElevator = ((SpaceElevatorBaseBlockParam)elevator.BlockMasterElement.BlockParam).CablesPerElevator;
+    await p.RunOnServer("ケーブル1便を軌道へ到着させる", () => ServerContext.GetService<IOrbitalArrivalService>().Arrive(cableId, cablesPerElevator));
+    await p.UntilUiElement("space-elevator-connect", 10f);
+    await p.ClickUi("space-elevator-connect");
+    await p.UntilUiElement("space-elevator-progress", 10f);
+    p.Note("宇宙エレベーターの接続を UI から押し、接続後の進みが出た");
     await Close();
 
     #region Internal
@@ -6117,9 +6258,9 @@ return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
     #endregion
 });
 ```
-（`PlaytestUiElements.HasClass`・`ReadText` は GameUi の要素を testid で読む DSL の実物の名前に合わせる〈無ければ `GameUiRoot.Instance.GetRootElement().Q<…>(testid)` で読む。前例 `uitk-grab-overlay.cs`〉。照準の位置は前例の `AimAtClickCollider` に合わせて直す。`PlaytestGameViewOps.SetResolution` は前例 `uitk/uitk-gameview-resolution-switch.cs` の書き方。宇宙エレベーターの状態文〈Note〉が「ケーブルが足りません」〈`insufficientCable`〉でなければ、Task 10 の行 11 を EditMode の撮影〈Step 3〉に回し、`done.md` に書く。`PlaceBlockDirect` がティックと競合して落ちる既知の不具合〈bd `moorestech-xyuaf.2.10`〉に当たったら、置いた後に `p.WaitSeconds(0.5f)` を挟み、それでも落ちれば `done.md` の「## 未確認」に書いて既存の 3 本で代える。ローカル関数の式本体は `Func` を使わない）
+（`PlaytestUiElements.HasClass`・`ReadText` は GameUi の要素を testid で読む DSL の実物の名前に合わせる〈無ければ `GameUiRoot.Instance.GetRootElement().Q<…>(testid)` で読む。前例 `uitk-grab-overlay.cs`〉。照準の位置は前例の `AimAtClickCollider` に合わせて直す。`PlaytestGameViewOps.SetResolution` は前例 `uitk/uitk-gameview-resolution-switch.cs` の書き方。宇宙エレベーターの状態文〈Note〉が「ケーブルが足りません」〈`insufficientCable`〉でなければ、Task 10 の行 11 を EditMode の撮影〈Step 3〉に回し、`done.md` に書く。`PlaceBlockDirect` がティックと競合して落ちる既知の不具合〈bd `moorestech-xyuaf.2.10`〉に当たったら、置いた後に `p.WaitSeconds(0.5f)` を挟み、それでも落ちれば `done.md` の「## 未確認」に書いて既存の 4 本で代える。ローカル関数の式本体は `Func` を使わない）
 
-- [ ] **Step 2: 4 本を流す**
+- [ ] **Step 2: 5 本を流す**
 
 Run（各本の前に PlayMode を止め、`uloop execute-dynamic-code --project-path ./moorestech_client --code "Client.Input.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return 0;"` を流す）:
 ```bash
@@ -6128,15 +6269,16 @@ $SK/scripts/run-scenario.sh $SK/scenarios/uitk/uitk-block-special-panels.cs
 $SK/scripts/run-scenario.sh $SK/scenarios/connect/rotary-generator-ui.cs
 $SK/scripts/run-scenario.sh $SK/scenarios/tier9/tier9-4-rocket-launch.cs
 $SK/scripts/run-scenario.sh $SK/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs
+$SK/scripts/run-scenario.sh $SK/scenarios/tier9/tier9-6-fusion-elevator.cs
 ```
-Expected: 4 本とも `result.json` が `Success: true`、mp4 がある。既存の 3 本は書き換えない。既存の 3 本が GameUi で落ちたら、(a) 落ちた所がこのレーンの View・Model なら直して流し直す、(b) alpha の外殻・格子・Shift の実行器なら直さず `done.md` の「## integrator への依頼」に書き、Web の系（`UiSystem.Web`）でも同じ所で落ちるかを流して比べ、Web で通るなら UITK の欠落として「## 未確認」へ、両系で落ちるなら既存の不具合として bd に積む（`bd create … --parent <bd>`）
+Expected: 5 本とも `result.json` が `Success: true`、mp4 がある。UITK の `SpaceElevatorSectionView` → `VanillaSpecialBlockRequestSender.ConnectSpaceElevator` の本物の経路は、新シナリオの宇宙エレベーターの段（Note「宇宙エレベーターの接続を UI から押し…」）と `tier9-6-fusion-elevator`（押下 → `IsConnected`）が通す。既存の 4 本は書き換えない。(c) `tier9-6-fusion-elevator` が核融合炉の `generator-section` の待ちで止まったら、S4-machine の区画の未着（このレーンの依存に無い）として `done.md` の「## 未確認」に書き、接続の証拠は新シナリオの段で足りるとする（新シナリオの段が落ちたら完了にしない）。既存の 4 本が GameUi で落ちたら、(a) 落ちた所がこのレーンの View・Model なら直して流し直す、(b) alpha の外殻・格子・Shift の実行器なら直さず `done.md` の「## integrator への依頼」に書き、Web の系（`UiSystem.Web`）でも同じ所で落ちるかを流して比べ、Web で通るなら UITK の欠落として「## 未確認」へ、両系で落ちるなら既存の不具合として bd に積む（`bd create … --parent <bd>`）
 
 - [ ] **Step 3: 証拠を書いてコミットする**
 
-`done.md` の「## 証拠」に 4 本の `result.json` の要約（Success・Note の `系=GameUi`・mp4 のパス）を書く。
+`done.md` の「## 証拠」に 5 本の `result.json` の要約（Success・Note の `系=GameUi`・mp4 のパス）を書く。
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-special-panels.cs moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special
-git commit -m "test(uitk): 特殊族の録画シナリオを足し、既存の 3 本と GameUi で通す（S4-special）
+git commit -m "test(uitk): 特殊族の録画シナリオを足し、既存の 4 本と GameUi で通す（S4-special）
 
 <実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
 ```
@@ -6163,12 +6305,12 @@ git commit -m "test(uitk): 特殊族の録画シナリオを足し、既存の 3
 - [ ] **Step 2: テスト名の対応を確かめる**
 
 Run: `node tools/uitk/test-name-parity.mjs --bundle 4 --emit-missing`
-Expected: File Structure「写すテスト」の表の 15 ファイル・48 宣言の未対応が 0、書式・整合の誤り 0（alpha・machine・train の持ち分の未対応は数えない。分け合う `blockDetails`・`regression/sectionStack`・`blockInventoryDesign` は S4-machine・alpha のタグと同じ名前が並んでよい）
+Expected: File Structure「写すテスト」の表の 16 ファイル・49 宣言の未対応が 0、書式・整合の誤り 0（alpha・machine・train の持ち分の未対応は数えない。分け合う `blockDetails`・`regression/sectionStack`・`blockInventoryDesign`・`SectionStackView.test` は S4-machine・alpha のタグと同じ名前が並んでよい）
 
 - [ ] **Step 3: 全体の回帰を流す**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\." --timeout-seconds 1500`
-Expected: PASS（`UnityCursorTooltipScreenTest` の既知の失敗は数えない。それ以外が落ちたらこのレーンの変更との関係を調べ、関係するなら直す）。件数を `done.md` の「## 証拠」に書く。Web の写しは 76 ケース（捨てる 1 を除く）が NUnit の実行件数（`[TestCase]` 込み）に含まれることを、`<web-test>` の付いたテストの実行件数で確かめる（末尾「設計書・実行計画へ反映する行」の §1.4 の宣言・ケースの根拠）
+Expected: PASS（`UnityCursorTooltipScreenTest` の既知の失敗は数えない。それ以外が落ちたらこのレーンの変更との関係を調べ、関係するなら直す）。件数を `done.md` の「## 証拠」に書く。Web の写しは 77 ケース（捨てる 1 を除く）が NUnit の実行件数（`[TestCase]` 込み）に含まれることを、`<web-test>` の付いたテストの実行件数で確かめる（末尾「設計書・実行計画へ反映する行」の §1.4 の宣言・ケースの根拠）
 
 - [ ] **Step 4: コミットする**
 
@@ -6185,7 +6327,7 @@ git commit -m "docs(uitk): 特殊族の捨てる 1 件を処遇の表に記す�
 
 - [ ] **Step 1: 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
-base は `origin/feature/uitk`。記録は `../moorestech_logs/harness/` へ（featureブランチにコミットしない）。指摘の反映が判定経路・条件式・評価の時点（例: `SpecialDetailPresenter` の `IsApplicable` の書き込みと同じパネルの判定・`BeltThroughputSectionPresenter.OnArrowPressed` のガード・`SpecialBlockCommands` の種別の確かめ）に触れたら、Task 11 の 4 本を反映後のバイナリで流し直してから完了とする。反映はタスクごとにコミットする
+base は `origin/feature/uitk`。記録は `../moorestech_logs/harness/` へ（featureブランチにコミットしない）。指摘の反映が判定経路・条件式・評価の時点（例: `SpecialDetailPresenter` の `IsApplicable` の書き込みと同じパネルの判定・`BeltThroughputSectionPresenter.OnArrowPressed` のガード・`SpecialBlockCommands` の種別の確かめ）に触れたら、Task 11 の 5 本を反映後のバイナリで流し直してから完了とする。反映はタスクごとにコミットする
 
 ---
 
@@ -6193,7 +6335,7 @@ base は `origin/feature/uitk`。記録は `../moorestech_logs/harness/` へ（f
 
 - [ ] **Step 1: セッション終了可能状態にすること: pr-create スキルで PR を作る**
 
-base `feature/uitk`。PR 本文の先頭行は `# https://review.moores.tech/pr/<PR番号>/report/`（h1 で URL だけ）。報告ページには Task 10 の `compare.html` と Task 11 の 4 本の録画を載せる（素材・manifest・公開コマンドは環境ローカル規約〈CLAUDE.local の「PR の成果物の載せ先」〉が指す README。公開に失敗したら報告 URL 無しで完了にしない）。画像・動画の URL を本文に並べない
+base `feature/uitk`。PR 本文の先頭行は `# https://review.moores.tech/pr/<PR番号>/report/`（h1 で URL だけ）。報告ページには Task 10 の `compare.html` と Task 11 の 5 本の録画を載せる（素材・manifest・公開コマンドは環境ローカル規約〈CLAUDE.local の「PR の成果物の載せ先」〉が指す README。公開に失敗したら報告 URL 無しで完了にしない）。画像・動画の URL を本文に並べない
 
 - [ ] **Step 2: `origin/feature/uitk` を取り込み、確かめて push する**
 
@@ -6225,7 +6367,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 
 1. **Requirements の網羅**: R-1 → Task 2・3（L0）＋Task 11。R-2・R-3・R-4 → Task 5・6。R-5・R-6 → Task 7。R-7・R-8 → Task 8。R-9 → Task 3（L0）・Task 9（登録）・Task 11（`tier9-4b`）。R-10 → Task 4・8。R-11 → Task 9。R-12 → Task 11。R-13 → Task 10。R-14 → Task 12。R-15 → Task 13・14。漏れなし
 2. **プレースホルダ**: 「実物に合わせる」は、起草時に実物を確かめられなかった名前（alpha の未マージの型、`RocketLaunchPadPhase` の値の綴り、DSL の要素の読み取り）だけに付け、照合のコマンドを Task 1 Step 2 に置いた。TBD・「同様」は無い
-3. **型の一致**: `ISpecialDetailRenderer`（`HasDetail`・`Render(IReadOnlyList<SlotItem>, SpecialBlockDetailViewModel)`）を Task 6〜9 の全 View が実装する。`SpecialDetailPresenter`・`BeltThroughputSectionPresenter`（`IBlockInventorySection`。`Attach`/`Detach`・`IsApplicable`）・`SpecialPresenters`・`SpecialViewKit.Run`・`RecordingSpecialBlockCommands` の 1 行の書式（`<action> <args>`）・`RecordingBlockSlotCommands` の書式（`LeftDown <slot>`）を Task 6〜9 で同じ綴りで使う。alpha の型は Global Constraints の「S4-alpha の API」（85f905aa3d）と同じ綴り
+3. **型の一致**: `ISpecialDetailRenderer`（`HasDetail`・`Render(IReadOnlyList<SlotItem>, SpecialBlockDetailViewModel)`）を Task 6〜9 の全 View が実装する。`SpecialDetailPresenter`・`BeltThroughputSectionPresenter`（`IBlockInventorySection`。`Attach`/`Detach`・`IsApplicable`）・`SpecialPresenters`・`SpecialViewKit.Run`・`RecordingSpecialBlockCommands` の 1 行の書式（`<action> <args>`）・`RecordingBlockSlotCommands` の書式（`LeftDown <slot>`）を Task 6〜9 で同じ綴りで使う。alpha の型は Global Constraints の「S4-alpha の API」（S4-alpha 計画〈feature/uitk・#1630〉）と同じ綴り
 4. **保留・縮退の解消**: (a) 詳細の未着 → 取得待ち・区画を隠す（Presenter の `IsApplicable` が偽 → alpha の `SetItemShown`）。届けば Presenter の購読で描き直し出す側へ変わる（`Attach` から `Detach` まで購読。L1「Presenterは組み直しの外で…」と統合 L1 `SpecialSectionStackSpacingTest`）。要素 0（詳細が一度も来ない）でも取得待ちの文が出続けるので無音にならない。(b) Shift の入れ口の未着 → 寄与しない → L0-s4b が取得待ち → alpha の通知。詳細が届けばパネルの組み直し（追跡ブロックの状態の変化）で寄与が入る。(c) 掴みが空のフィルタ設定 → 良性の拒否（警告ログ）。(d) 合図の古い拒否 → 良性。段階が変われば題の操作が消える（L1 の 2 件）。(e) 区画の出し入れは親の `SetItemShown` が当てるので、組み直しの外で出し入れが変わっても先頭の間隔はその場で組み直る（D-23。ずれは残らない）。(f) 開いたブロックの識別と追跡ブロックが一致しない間（開閉・差し替えの途中）は詳細を空にし、Shift の寄与もしない → 本文は取得待ち・Shift は取得待ちの通知
 5. **「決定的」を理由にした選択**: 無い。ベルトの窓の既定 180 と端で止まる巡回は Web の `cycleBeltWindow` の写し（L1 で固定）
 6. **呼び出し側への責務漏出**: 掴みの中身を読んで設定/無操作を決めるのは `SpecialBlockCommands`（State）で、View は左右の押下を渡すだけ。結果のトーストは `SpecialViewKit.Run` の 1 箇所。開いたブロックの種別の確かめも Commands の中。View 側に同じ判定は無い
@@ -6249,28 +6391,30 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-13 捨てる 1 件**: `RocketLaunchPadInventory.test.tsx` の「accepts panel data and narrows inside the dedicated view」は TS の型検査なので捨てる（`disposition.md` に 1 行）
 - **D-14 回転発電機の i18n の件を写す**: §1.4 に無いが同じ区画の Web テストなので持ち分に入れる
 - **D-15 参照に無い状態は使い捨ての master の worktree で撮る**: Web の mock-host に一時の fixture を足して撮り、fixture はコミットしない（E-22）
-- **D-16 録画**: 既存の 3 本（書き換えない）と新規 `uitk/uitk-block-special-panels` の 4 本。ランタイムの挙動（入力・UI）に触れるので unityプレイ録画テストを入れる
+- **D-16 録画**: 既存の 4 本（書き換えない。`tier9-6-fusion-elevator` は宇宙エレベーターの前に S4-machine の `generator-section` を待つので、S4-machine の未着時は接続まで届かない）と新規 `uitk/uitk-block-special-panels`（宇宙エレベーターの段でケーブルを到着させ UI の接続ボタンを押す。接続の本物の送信の証拠をこのレーンの中で閉じる）の 5 本。却下: S4-machine のマージを Task 11 の前提にする（依存に無いレーンの順に完了が縛られる）。ランタイムの挙動（入力・UI）に触れるので unityプレイ録画テストを入れる
 - **D-17 Shift の入れ口**: alpha の拡張口 (6) `IBlockSlotRestrictionContributor` に `SpecialInletBindingContributor` を差し込む（分岐 A）。口が実物に無ければ分岐 B（静的な判断だけ作り integrator へ依頼）。L0 は判断まで、送らない・通知は alpha と録画
 - **D-18 新しい汎用部品を作らない**: 使う部品は既存の `ModeSwitch`・`GaugeBar`・`BarSeries`・`PanelActionButton`・`ItemSlot` と alpha の `Parts/`
 - **D-19 L3 を持たない**: 段の締め（S4-gamma）が持つ
 - **D-20 登録の置き場と数**: 登録ファイルは W4 以降の画面の置き場 `Registration/GameUi/Screens/` に置き（実行計画 E-1 の追記 ad92a44777）、10 ファイルの関門もそこで数える。W4 の画面レーン（alpha・inventory・machine・train・special・recipe 等）が先に入って 10 本を超えたら、作業は止めずに進め、再編が `origin/feature/uitk` に入るまでマージしない。名前空間はディレクトリに合わせ `Client.Starter.Registration.GameUi.Screens`（`MainGameUiRegistration.cs` の画面登録区画は他の W4 レーンの行と同じ書き方に合わせ、`using Client.Starter.Registration.GameUi.Screens;` が無ければ足す）
 - **D-21 回転生成機の択一はモードの一覧が変わったときだけ作り直す**: 毎回作るとフォーカスと押下が切れる。`ElectricToGearDetail.HasSameModes` で比べる
 - **D-22 合図の古い拒否は良性**: 成功の後に段階の更新が遅れた二度目の押下の拒否をトーストしない（Web の「%sの成功後topicが遅れても二度目の拒否を誤報しない」）
-- **D-23 区画の出し入れは alpha の通知で解消**: 区画の Presenter は詳細の有無で `IsApplicable`（`IReadOnlyReactiveProperty<bool>`）を書くだけで、自分の `display` を触らない。alpha の `SectionStackBody` がそれを購読して `UiGapContainer.SetItemShown` を呼び、出し入れと先頭の間隔をその場で組み直す（S4-alpha 計画 85f905aa3d の拡張口 (3)）。網の集約・ベルトの統計のようにパネルの組み直しの外で先頭の区画が後から出る・消える場合も、後続の区画の余白まで Web の `Stack gap="sm"` と同じになることを統合 L1 `SpecialSectionStackSpacingTest`（alpha の標準の本文に本物の区画 5 つを差す）で確かめる。本文の中に区画の View を置く所（電柱・宇宙エレベーターの電力網）は、包む本文が `HasDetail` で出し入れする（Stack の項目なら `SetItemShown`）。出所: 独立評価（codex）の指摘と alpha の改訂。却下: 区画の View が自分の `display` を切り替える（`UiGapContainer` が先頭の間隔を組み直さず、次のパネルの組み直しまで Web と違う間隔が残る）・区画が親の `SetItemShown` を直に呼ぶ（alpha の内部の形に依る）
+- **D-23 区画の出し入れは alpha の通知で解消**: 区画の Presenter は詳細の有無で `IsApplicable`（`IReadOnlyReactiveProperty<bool>`）を書くだけで、自分の `display` を触らない。alpha の `SectionStackBody` がそれを購読して `UiGapContainer.SetItemShown` を呼び、出し入れと先頭の間隔をその場で組み直す（S4-alpha 計画（feature/uitk・#1630）の拡張口 (3)）。網の集約・ベルトの統計のようにパネルの組み直しの外で先頭の区画が後から出る・消える場合も、後続の区画の余白まで Web の `Stack gap="sm"` と同じになることを統合 L1 `SpecialSectionStackSpacingTest`（alpha の標準の本文に本物の区画 5 つを差す）で確かめる。本文の中に区画の View を置く所（電柱・宇宙エレベーターの電力網）は、包む本文が `HasDetail` で出し入れする（Stack の項目なら `SetItemShown`）。出所: 独立評価（codex）の指摘と alpha の改訂。却下: 区画の View が自分の `display` を切り替える（`UiGapContainer` が先頭の間隔を組み直さず、次のパネルの組み直しまで Web と違う間隔が残る）・区画が親の `SetItemShown` を直に呼ぶ（alpha の内部の形に依る）
 - **D-24 フィルタ分配器の 3 件目**: alpha の L1 の土台 `BlockInventoryTestShell.Create`（1280×720 の `StageColumnsLayout`）に本物の本文の工場を差し、舞台の高さを Web の e2e と同じ 600 に下げて写す。中身が窓を超えること（`GetContentHeight() > GetViewportHeight()`）と、スクロール前は末尾の枠が窓の外にあることを先に確かめる。720 では 3 方向の枠が全部収まりスクロールが起きず空振りで緑になるため。600 を作れなければ部分移植にし、録画の分配器の段で末尾の枠を見る。本文の工場が要るので Task 9 で足す。`regression/sectionStack` の filterSplitter も同じ Shell に本文と区画の工場を全部差してパネル全体で見る。出所: 独立評価（opus 2 周目）
 - **D-25 View の依存の束 `SpecialViewKit`**: 工場と View が同じ 4 つ（Commands・表示素材・トースト・格子の工場）を受けるので 1 つに束ね、結果をトーストへ渡す `Run` も 1 箇所に置く（同じ 3 行が View ごとに並ぶのを避ける）。購読の源（詳細の Model・パネル・矢印キー）は束に入れず `SpecialPresenters` が持つ（View が購読できる依存を持たない。D-33）。UITK に同じ形の前例は無い新規パターン。却下: 各工場が個別に ctor で受ける（工場 11 本の ctor と View の ctor の引数が全部同じになる）
-- **D-26 開いたブロックの識別は alpha のパネルの 1 本**: alpha のパネルが `BlockInstanceId`・`Position`・blockType を持つ（85f905aa3d）ので、操作（`PanelOpenSpecialBlock`）・詳細の Model（`SpecialBlockDetailModel`）・Shift の寄与（`SpecialInletBindingContributor`）は、どれも「どのブロックが開いているか」を alpha のパネルから読む。パネルは `BlockGameObject` を持たないので、state detail・マスタの param は `OpenBlockDetailTracker.TrackedBlock` から読み、`BlockInstanceId` が一致する間だけ使う（開閉・差し替えの途中は空・寄与なし）。追跡ブロックは識別の源ではなく中身の読み口。却下: 操作の識別を `SubInventoryState` から読む（Web の ActionHandler と同じ源だが、パネルと別の源が並び、差し替えの途中で操作の対象と表示が食い違いうる）・パネルに `BlockGameObject` を戻すよう依頼する（alpha が識別子だけに絞った設計に反する）
+- **D-26 開いたブロックの識別は alpha のパネルの 1 本**: alpha のパネルが `BlockInstanceId`・`Position`・blockType を持つ（S4-alpha 計画〈feature/uitk・#1630〉）ので、操作（`PanelOpenSpecialBlock`）・詳細の Model（`SpecialBlockDetailModel`）・Shift の寄与（`SpecialInletBindingContributor`）は、どれも「どのブロックが開いているか」を alpha のパネルから読む。パネルは `BlockGameObject` を持たないので、state detail・マスタの param は `OpenBlockDetailTracker.TrackedBlock` から読み、`BlockInstanceId` が一致する間だけ使う（開閉・差し替えの途中は空・寄与なし）。追跡ブロックは識別の源ではなく中身の読み口。却下: 操作の識別を `SubInventoryState` から読む（Web の ActionHandler と同じ源だが、パネルと別の源が並び、差し替えの途中で操作の対象と表示が食い違いうる）・パネルに `BlockGameObject` を戻すよう依頼する（alpha が識別子だけに絞った設計に反する）
 - **D-27 Screens へサーバーの列挙を出さない**: `Client.Ui.asmdef` は `Game.Block.Interface` を参照しない（層の向き）。`RocketLaunchPadDetail`・`SpaceElevatorDetail` のサーバーの列挙は internal にし、文言キー・コマンドのボタン・接続できるかを State で引いて出す（Phase 2.6 の指摘で直した）
 - **D-28 詳細の VM は 9 つの任意の詳細を並べる（判別子で分けない）**: 1 つのブロックが複数の詳細を同時に持つ（宇宙エレベーターは本体＋電力網、機械は歯車＋電力網＋歯車網＋ベルト）ので、`BlockInventoryBodyKind` 1 つで分ける型にはできない。不在は `TryGet*` だけで読み、null を外へ出さない（Phase 2.6 の 5-A。シミュレーター予測「このままでよい」）
 - **D-29 送信の結果 `SpecialBlockRequestOutcome` は Kind＋WireCode のまま**: 結果は `SpecialBlockCommands` の 1 関数の中だけで `UiCommandResult` へ写され、Accepted の `WireCode` を読む所が無い（Phase 2.6 の 5-B。シミュレーター予測「このままでよい」。読む所が増えたら型を分ける）
 - **D-30 失敗理由を畳む Try 3 つは畳んだまま**: `TryGetInletBindings`（固定でない・未着・param の食い違い）・`IOpenSpecialBlock.TryGet`（開いていない・識別の未着）・`SpecialBlockCommands.TryOpen`（開いていない・種別違い）。どれも分けた理由で呼び手の分岐が変わらず、種別違いと param の食い違いは別にログか wire で区別している（Phase 2.6 の 5-C・弱）
 - **D-31 発射台・宇宙エレベーターの判定が Reader と入れ口の寄与に 2 回出る**: 入れ口は要求の品（マスタの `RequirementAt`）が要り、詳細の型は品を持たないので導出を 1 本にできない。重複は param の型の判定と状態の在否の 2 行に留める（Phase 2.6 の検査 6・弱）。ベルトの窓の 2 度引きはコードを 1 回に直した
 - **D-32 ブロックインベントリ中の ←/→ の横移動は据え置く**: ←/→ は Player/Move と同じキーで、SubInventory は移動をロックしない（Web の系も同じ）。このレーンでは変えない。出所: シミュレーター予測（(a) Web と同じとして据え置く。根拠: 2026-11-06 裁定「Web と同じ振る舞い」「CEF 由来の不具合は直さない」）。移動を止めるなら `SubInventoryState.LocksPlayerMovement()` と `UIStateMovementLockDeclarationTest` の別件
-- **D-33 差し込みの形は alpha の Presenter＋View に合わせる**: S4-alpha 計画 85f905aa3d の「差し込みの形」（Presenter が `Attach(panel)` で自レーンの Model を購読し View の `Render` へ流す・`Detach` で切る・View は購読しない・パネルは識別子だけ）に合わせ、前版の「適合の層が作ってから Detach まで購読する」形を改めた。同じパネルの間は alpha が何も呼ばないので、枠の変化も Presenter が `IBlockInventoryPanelSource` を購読して受ける（前例 alpha の `SectionStackItemGridSection`）。`SpecialViewKit` から購読の源（Model・矢印キー）を外した（View が購読できる依存を持たない）。出所: alpha の改訂
+- **D-33 差し込みの形は alpha の Presenter＋View に合わせる**: S4-alpha 計画（feature/uitk・#1630）の「差し込みの形」（Presenter が `Attach(panel)` で自レーンの Model を購読し View の `Render` へ流す・`Detach` で切る・View は購読しない・パネルは識別子だけ）に合わせ、前版の「適合の層が作ってから Detach まで購読する」形を改めた。同じパネルの間は alpha が何も呼ばないので、枠の変化も Presenter が `IBlockInventoryPanelSource` を購読して受ける（前例 alpha の `SectionStackItemGridSection`）。`SpecialViewKit` から購読の源（Model・矢印キー）を外した（View が購読できる依存を持たない）。出所: alpha の改訂
 - **D-34 実行時に作れない状態は EditMode で本番の外殻に偽の Model を差して撮る**: 宇宙エレベーターの接続直前・昇降の途中・取得待ち・出口の満杯・並べ替えた添字は、録画で決まった値を作れない。alpha の L1 の土台 `BlockInventoryTestShell`（本番の `BlockInventoryView`・`BlockInventoryBodyHost` を `StageColumnsLayout` の Viewer 列に載せる）に本物の本文の工場と偽の詳細の Model を差し、`UiRuntimePanelCapture`（A-74。本番の PanelSettings の複製に描く）でパネル全体を 720p・2560×1080 で撮る。本文だけを撮る器では本文の幅・背景・継承が本番と変わり（`GaugeBar` は幅 100% なので撮影器の幅まで伸びる）、比べる絵が Web と別の条件になるため。舞台の論理寸法は実行時の行 11 で測った値にそろえ、行 11 の状態を同じ手順で撮って実行時の撮影と 2px 以内で一致することを先に確かめる。一致しなければ EditMode のセルを差の表に入れず指揮へ報告する。これで撮影表の 30 セル全部が比べられる。設計書 §3.3 の「PlayMode・ScreenCapture で撮る」の例外になるので A-164 として反映する行に置く。却下: その状態を比べない（設計書の「同じ状態を 2 解像度で」を満たさない）・mock の状態を実行時に作るデバッグ口を足す（プロダクションにテスト専用の口を残す）。出所: 独立評価（codex 1・2 周目）の指摘
 - **D-35 写すテストは宣言とケースの 2 つで数える**: 名前の照合（`<web-test>`・test-name-parity）は宣言、実行の完了は `it.each`・`for` を展開したケース（`[TestCase]` と揃える）で見る。前版の「実行計画が it.each を数えていない」は誤りで、§1.4 は一貫して宣言で数えており、食い違いは捨てる 1 件の除外・`SpaceElevatorInventory` と i18n の欠け・他レーンから回ってきた `blockDetails`・`regression/sectionStack` の欠けだった。`regression/sectionStack` は alpha の持ち主表が区画の id を持ち主のレーンへ割り振っているので、特殊族の区画の id が出る 8 種も写す（名前の照合は他レーンの同じタグで通ってしまうので、ケースで数えないと穴が見えない）。出所: 独立評価（codex）の指摘
 - **D-36 画面 USS を作らない**: 特殊族の Web の局所上書きは発射台の状態文の `c="var(--text-high-contrast)"` 1 つだけで、既存の `UiTypographyClass.TextHighContrast` で当たる。USS の規約（色は `text--*` のクラス、USS は Web の局所上書きだけ）に合わせて画面 USS・`GameUiTheme.tss` の `@import`・alpha の `BlockInventoryDesignTest` への行を持たない。色の直書きの検査は `SpecialDesignTest` が View の C# で見る。並べ比べで局所上書きに当たる差が出たときだけ USS を作り、`@import` と検査の対象を同時に足す。却下: 同じ働きのルールを画面 USS に書く（既存のクラスと二重になる）。出所: 独立評価（opus 2 周目）
 - **D-37 題の右の逃げの不足は例外にしない**: 発射台の題の右の逃げ（Web 99px）が 12px 足りないのは配置の差で、設計書 §3.4 は配置の差を例外にしない。`GamePanel` は部品でこのレーンは変えないので、alpha の依頼 (b) の処理を指揮へ上げ、直った版で行 9 の 2 セルを撮り直して比べるまで Task 10 を完了にしない。指揮が後の波へ回したときは `done.md` の「## 要裁定」に `[Q-n]` の候補として上げ、その裁定で閉じる（§3.4 の「直すか `[Q-n]` で上げる」）。却下: LX に記帳して完了（§3.4 に反し、Web より題とボタンの間が狭いまま出る）・このレーンが `GamePanel` に口を足す（部品はこのレーンの持ち物でない）。出所: 独立評価（codex 2 周目）
+- **D-38 S4-alpha 計画のマージ版（feature/uitk・#1630）に照らし直す**: 写した型名・口・持ち分を実物の「## 後続レーンへの Produces 一覧」と D-50〜D-64 に照らした。このレーンに効く変わり目は 3 つ。(a) D-59 で `IsSamePanel` が `BlockInstanceId` も比べる。同じ位置へ同じ型を置き直すと本文・区画が作り直されるので、`SpecialBlockDetailModel` の識別の食い違いの警告は持続しない前提になる（警告は残す。Task 1 Step 2 で比較の有無を確かめる）。(b) Produces の「同じタグでは…」と D-46 で、`%sから禁止Mantine部品とテーマ色を除去する` の持ち分は、USS の色に加えて自分の本文・区画の木に素の操作部品が無いことも主張する（共通部品の内部へ降りず contentContainer の子だけたどる）。`SpecialDesignTest` の 4 ケースに木の検査を足した。(c) D-55 で Shell は LayoutModel の `BlockInventoryPanelPresentation` の 1 源から流す。`Create` の形は変わらないので、このレーンの呼び方は変えない。持ち主表（`SectionStackView.test`・`blockInventoryDesign`・`regression/sectionStack` の special の面）・`BlockInventoryBodyMount(bool)`・`SectionStackSectionMount(config, bool)` の public ctor・`BlockInventoryTestBodies.SectionStack` の形・拡張口 (1)〜(3)・(6) は 85f905aa3d の写しと同じ。D-54（`UiCommandRejected.Detail` は失敗コードか空）にこのレーンの `Detail`（wire の失敗コード）は合っている。D-56（`BlockSlotUnavailable` は良性でない）・D-50・D-51・D-53・D-57・D-58・D-60〜D-64 は alpha の内側で、このレーンの型・口に触れない。出所: 指揮（#1630 のマージ）
+- **D-39 `SectionStackView.test` の回転発電機の 1 件を本物の区画で写す**: alpha の持ち主表はこの 1 件を「alpha（区画の順を偽の区画で）＋special（中身）」に分けている。alpha の写しは順だけで、名前の照合は alpha の同じタグで通るので、写さないと本物の 4 区画を同時に差したときの中身（状態文・供給電力の丸め）を見る件が欠けても検出されない。統合 L1 `SpecialSectionStackOrderTest` に同じタグで 1 件足す。Web の最後の主張（testid を持つ `div` が無い）は項目グリッドが出ないことなので、`-grid` の id が並びに無いことで写し、余計な区画も見る。出所: 独立評価（codex 3 周目）
 - **シミュレーター予測（review 実施済み）**: 適用推奨 1 件（死活表の ←/→ の行の前提の誤り）を適用、Warning 3 件（D-20 の条件文・D-7 の前例との形の違い・電柱は無印だけ openable）のうち前 2 件を適用、電柱は Task 11 が無印を使うので変更なし。裁定候補 1 件（←/→ の横移動）は予測 (a) で D-32 に記録（ゴール・裁定から外れないので要裁定 0）
 
 ## 本PR外のリファクタ提案
@@ -6282,7 +6426,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 
 ## 未確認
 
-- S4-alpha の型の綴り（85f905aa3d は再検査中）。Task 1 Step 2 で照合する。`BlockInventoryBodyMount`・`SectionStackSectionMount` の ctor をテストから呼べるか、`OfType` が同じ位置・Guid のパネルを返すか
+- S4-alpha の実装の型の綴り（計画は #1630 でマージ済み、実装は未マージ）。Task 1 Step 2 で照合する。`BlockInventoryBodyMount`・`SectionStackSectionMount` の ctor をテストから呼べるか、`OfType` が同じ位置・Guid のパネルを返すか
 - 題の右の逃げ（+12px）を alpha の依頼が処理したか（Task 10 の行 9 で見る。未処理なら Task 10 は直った版の再比較待ち。D-37）
 - EditMode で本番の外殻ごと撮った絵が実行時の撮影と 2px 以内で一致するか（Task 10 Step 3 の手順 3。一致しなければ EditMode のセルを使わず指揮へ）
 - alpha の `BlockInventoryTestShell` の舞台の高さを 600 に下げたとき帯の高さが追い、フィルタ分配器の中身が窓を超えるか（Task 9 の filterSplitter 3 件目。超えなければ部分移植）
@@ -6309,7 +6453,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 
 | レーン | 完了条件 |
 |---|---|
-| S4-special | FilterSplitter・ElectricToGear・GearToElectric・ElectricPole・Gear・ベルトの流量（`BarSeries`）・ロケット・宇宙エレベーター。写す（宣言/ケース）: `blockDetails` の歯車とフィルタの面（S4-machine 計画の対応表で S4-special に回したもの。歯車機械のトルク・RPM・網、歯車発電機、歯車ポンプの歯車行、`renders ${type}` の gearMachine・filterSplitter。4/5）・`regression/sectionStack` の filterSplitter と特殊族の区画の id（1/9）・`electricPole`(1/1)・`electricToGear`(1/1)・`filterSplitter`(3/3)・`spaceElevator/*`(8/11〈`spaceElevator` 6/9・`shiftRejection` 2/2〉)・C（GearToElectric 7/13＋i18n 1/1・BeltThroughput 3/3・RocketLaunchPad 6/7〈写す 5/6・捨てる 1/1〉・SpaceElevatorSection 5/11＋SpaceElevatorInventory 1/2・Gear 3/3）・`blockInventoryDesign` の special の面（`%s…` の gear・filterSplitter・electricToGear・network、ゲージとモード切替の部品、フィルタの縦積み、モード切替のトークン。4/7）。計 15 ファイル・宣言 48（写す 47）・ケース 77（写す 76）。並べ比べは 15 状態×2 解像度の 30 セル。録画 `connect/rotary-generator-ui`・`tier9` のロケット 2 本・新規 `uitk/uitk-block-special-panels` |
+| S4-special | FilterSplitter・ElectricToGear・GearToElectric・ElectricPole・Gear・ベルトの流量（`BarSeries`）・ロケット・宇宙エレベーター。写す（宣言/ケース）: `blockDetails` の歯車とフィルタの面（S4-machine 計画の対応表で S4-special に回したもの。歯車機械のトルク・RPM・網、歯車発電機、歯車ポンプの歯車行、`renders ${type}` の gearMachine・filterSplitter。4/5）・`regression/sectionStack` の filterSplitter と特殊族の区画の id（1/9）・`electricPole`(1/1)・`electricToGear`(1/1)・`filterSplitter`(3/3)・`spaceElevator/*`(8/11〈`spaceElevator` 6/9・`shiftRejection` 2/2〉)・C（GearToElectric 7/13＋i18n 1/1・BeltThroughput 3/3・RocketLaunchPad 6/7〈写す 5/6・捨てる 1/1〉・SpaceElevatorSection 5/11＋SpaceElevatorInventory 1/2・Gear 3/3）・`blockInventoryDesign` の special の面（`%s…` の gear・filterSplitter・electricToGear・network、ゲージとモード切替の部品、フィルタの縦積み、モード切替のトークン。4/7）。`SectionStackView.test` の回転発電機の 4 区画の中身（1/1）。計 16 ファイル・宣言 49（写す 48）・ケース 78（写す 77）。並べ比べは 15 状態×2 解像度の 30 セル。録画 `connect/rotary-generator-ui`・`tier9` のロケット 2 本・`tier9-6-fusion-elevator`（接続）・新規 `uitk/uitk-block-special-panels` |
 
 実行計画 §6.1 へ:
 
