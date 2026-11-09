@@ -11,7 +11,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
 {
     public class BlockInventoryRowsTest : ScreenTestHost
     {
-        /// <web-test file="src/features/blockInventory/details/rows/PowerRateText.tsx">率を四捨五入の百分率で出し、強調が許されて率が1未満なら不足にする</web-test>
         [Test]
         public void 電力率は四捨五入の百分率で出し強調が許されれば不足にする()
         {
@@ -27,7 +26,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
             Assert.IsTrue(label.ClassListContains(LackHighlightText.InsufficientClassName));
         }
 
-        /// <web-test file="src/features/blockInventory/details/rows/PowerRateText.tsx">強調が許されなければ率が低くても不足にしない</web-test>
         [Test]
         public void 強調が許されなければ率が低くても不足にしない()
         {
@@ -37,7 +35,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
             Assert.IsFalse(view.Q<Label>("power").ClassListContains(LackHighlightText.InsufficientClassName));
         }
 
-        /// <web-test file="src/features/blockInventory/details/rows/MachineStateRow.tsx">停止中は電力率を隠す</web-test>
         [Test]
         public void 停止中は電力率を隠しエラーを出さない()
         {
@@ -55,7 +52,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
             LogAssert.NoUnexpectedReceived();
         }
 
-        /// <web-test file="src/features/blockInventory/details/rows/PerMinuteRateRow.tsx">分間レートを小数1桁で出す</web-test>
         [Test]
         public void 分間レートは小数一桁で出す()
         {
