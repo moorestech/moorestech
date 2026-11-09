@@ -86,6 +86,26 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         }
 
         [Test]
+        public void 印なしでインラインのoverflowだけを持つ祖先でもclipされる()
+        {
+            // 印も ScrollView も無く style.overflow = Hidden だけの祖先（R-2）
+            // An ancestor with neither mark nor ScrollView, only inline overflow: hidden (R-2)
+            var container = new VisualElement { style = { position = Position.Absolute, left = 50, top = 100, width = 300, height = 150, overflow = Overflow.Hidden } };
+            rootVisualElement.Add(container);
+            var anchor = new VisualElement { style = { height = 40 } };
+            TutorialAnchor.Mark(anchor, "research.node-a");
+            container.Add(anchor);
+            var tracker = CreateTracker();
+            tracker.SetSubscribedAnchors(Ids("research.node-a"));
+            simulate.FrameUpdate();
+
+            tracker.TryGet("research.node-a", out var state);
+            Assert.IsInstanceOf<TutorialAnchorState.Ready>(state);
+            var clip = ((TutorialAnchorState.Ready)state).Clip;
+            Assert.AreEqual((50f, 100f, 350f, 250f), (clip.Left, clip.Top, clip.Right, clip.Bottom));
+        }
+
+        [Test]
         public void レイアウト前のアンカーはreadyにせず測れた次のフレームでreadyにする()
         {
             // 足した直後はまだレイアウトされず worldBound が NaN になりうる（NaN を矩形として通さない。D-33）

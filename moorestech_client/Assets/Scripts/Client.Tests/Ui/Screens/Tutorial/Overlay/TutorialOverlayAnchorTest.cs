@@ -34,11 +34,13 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", null))));
             simulate.FrameUpdate();
 
-            // フレームを回さずに revision だけを進めても、枠は前の解決結果で出たまま
-            // Advancing only the revision without a frame keeps the outline drawn from the previous resolution
+            var before = _view.Query<TutorialOutlineView>().First();
+            // フレームを回さずに revision だけを進め、View が書いた表示の指定を直に読む（IsShown は 1 フレーム回すので使わない）
+            // Advance only the revision and read the View's inline display directly (IsShown would run a frame)
             _model.Set(TutorialOverlayProjection.Project(Data(2, Outline("o1", "pause.save", null))));
-            var outline = _view.Query<TutorialOutlineView>().First();
-            Assert.IsTrue(IsShown(outline.Q("tutorial-outline__clip")));
+            var after = _view.Query<TutorialOutlineView>().First();
+            Assert.AreSame(before, after);
+            Assert.AreEqual(DisplayStyle.Flex, after.Q(className: "tutorial-outline__clip").style.display.value);
         }
 
         [Test]

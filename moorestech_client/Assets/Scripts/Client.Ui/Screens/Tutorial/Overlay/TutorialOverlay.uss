@@ -29,7 +29,7 @@
     position: absolute;
     border-width: 3px;
     border-color: var(--tutorial-attention-red);
-    border-radius: 8px;
+    border-radius: var(--tutorial-overlay-ring-radius);
 }
 
 /* box-shadow の spread の代わりに、外側へ glow 幅の枠を重ねる。幅と角丸は C# が --tutorial-overlay-glow-width から当てる */

@@ -15,9 +15,11 @@ namespace Client.Ui.Screens.Tutorial.Overlay
         private readonly VisualElement _clip = new() { name = "tutorial-outline__clip" };
         private readonly VisualElement _glow = new();
         private readonly VisualElement _ring = new();
+        private readonly TutorialPulseBinding _pulse;
 
         public TutorialOutlineView(TutorialPulseBinding pulse)
         {
+            _pulse = pulse;
             name = "tutorial-outline";
             AddToClassList("tutorial-outline");
             pickingMode = PickingMode.Ignore;
@@ -34,6 +36,13 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             // The ring pulses at 1.03 and the label does not (Web tutorialAttentionDesign)
             pulse.Attach(_clip, TutorialAttentionPulse.SubtleScale);
             HideRing();
+        }
+
+        public void ReleasePulse()
+        {
+            // 外す枠の clip を脈動の管理から外す（辞書とコールバックを残さない）
+            // Drop the removed outline's clip from pulse bookkeeping (leave no dictionary entry or callback)
+            _pulse.Detach(_clip);
         }
 
         public void ShowRing(TutorialClipRect box, TutorialClipInset inset, float glowWidth, float ringRadius)

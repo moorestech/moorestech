@@ -40,6 +40,14 @@ namespace Client.Ui.Screens.Tutorial.Pulse
             if (target.panel != null) Start(target);
         }
 
+        public void Detach(VisualElement target)
+        {
+            // 流しを止めて管理から外す。載せ直されても Start は管理外の子を流さない
+            // Stop the pulse and forget the target; Start never pulses an untracked target even if re-attached
+            Stop(target);
+            _peakScales.Remove(target);
+        }
+
         private void OnPeriodResolved(ICustomStyle customStyle)
         {
             if (!UssCustomStyleReader.TryReadMilliseconds(customStyle, TutorialAttentionPulse.PeriodPropertyName, out var period)) return;
@@ -59,7 +67,7 @@ namespace Client.Ui.Screens.Tutorial.Pulse
         private void Start(VisualElement target)
         {
             // silent-ok: 周期の解決前は待ち、解決時に OnPeriodResolved が載っている子を流す / L1 TutorialPulseBindingTest が見る
-            if (!_periodResolved || _handles.ContainsKey(target)) return;
+            if (!_peakScales.ContainsKey(target) || !_periodResolved || _handles.ContainsKey(target)) return;
             _handles[target] = TutorialAttentionPulse.Start(target, _peakScales[target], _periodMilliseconds);
         }
 

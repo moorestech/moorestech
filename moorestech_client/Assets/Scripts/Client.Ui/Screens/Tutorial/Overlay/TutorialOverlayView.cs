@@ -80,6 +80,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             foreach (var key in _outlines.Keys.Where(key => !live.Contains(key)).ToList())
             {
                 _outlines[key].RemoveFromHierarchy();
+                _outlines[key].ReleasePulse();
                 _outlines.Remove(key);
             }
             foreach (var outline in model.Outlines)
