@@ -169,7 +169,7 @@ namespace Client.Ui.Components.Controls
 // --research-action-disabled-face: rgb(50, 52, 67)・--research-action-disabled-opacity は C4-c が DerivedTokens.uss の C4-c ブロックに置く（このレーンは var() で使うだけ。同じ値を別名で足さない）
 
 // ===== 機械レシピのマスタ（実物 moorestech_server/Assets/Scripts/Core.Master/MachineRecipesMaster.cs）=====
-// MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid) → MachineRecipeMasterElement（無い GUID は null）。.OutputItems[i].ItemGuid・.OutputFluids[i].FluidGuid/.Amount
+// MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid) → MachineRecipeMasterElement（無い GUID は null。研究が指す GUID は `ResearchMasterUtil` の検証で `MasterHolder.Load` が止めるので届かない）。.OutputItems[i].ItemGuid・.OutputFluids[i].FluidGuid/.Amount
 // 前例 S/Client.WebUiHost/Game/Topics/Research/ResearchNodeDtoFactory.cs の BuildUnlockMachineRecipeDto（同じ読み方）
 ```
 
@@ -191,6 +191,7 @@ namespace Client.Ui.Components.Controls
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / 所持の読み口を既存の `ReadSnapshot` へ・Model は常に組む形へ・橋の DTO との突き合わせ L0 を追加・死活表に 4 行・研究の実行の二重は帰結を D-25 に記録
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱2・第3バケツ4 / 検査7（未対応の GameActionType）を ADR どおり例外へ直し、他は「このままでよい」を D-24 に記録、第3バケツは本PR外のリファクタ提案へ
+- user-simulator review（Fable 判事）: 実施済み / 適用推奨1・Warning4・要裁定0 / 機械レシピの null の分岐を消す（参照切れは MasterHolder.Load の検証で止まる）・S4-alpha の消費者から外す申し送りと起動順を末尾へ・網羅テストの申し送りを本PR外へ・古い MainSlots() の行を削除
 
 ## 死活表（Phase 2.5）
 
@@ -686,7 +687,6 @@ using Core.Master;
 using Game.Block.Interface.MachineUpgrade;
 using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.ResearchModule;
-using UnityEngine;
 
 namespace Client.Ui.State.Research.Catalog
 {
@@ -766,12 +766,9 @@ namespace Client.Ui.State.Research.Catalog
             // Each machine recipe carries both item and fluid outputs; locked recipes are needed too, so read the master (D-13)
             void AppendMachineRecipe(Guid recipeGuid)
             {
+                // 参照切れは ResearchMasterUtil の検証で MasterHolder.Load が止めるので、ここでは null を見ない
+                // Dangling GUIDs are rejected by ResearchMasterUtil validation in MasterHolder.Load, so no null check here
                 var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid);
-                if (recipe == null)
-                {
-                    Debug.LogError($"[ResearchUnlockSetFromMaster] 研究 {master.ResearchNodeGuid} の解放する機械レシピ {recipeGuid} がマスタに無い");
-                    return;
-                }
                 var items = new List<ItemId>(recipe.OutputItems.Length);
                 foreach (var output in recipe.OutputItems) items.Add(MasterHolder.ItemMaster.GetItemId(output.ItemGuid));
                 var fluids = new List<UnlockFluid>(recipe.OutputFluids.Length);
@@ -3972,7 +3969,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 1. **Requirements coverage**: R-1 → Task 2（`ResearchCatalogFromMasterTest`）、R-2 → Task 3（`ResearchTreeViewModelFactoryTest`）、R-3 → Task 4・Task 12（流れ 8 の開き直し）、R-4 → Task 3・4・8・9（`ResearchSelectionTest`・`ResearchTreeViewTest`・閉じるの `ResearchDetailPaneTest`・録画の流れ 8）、R-5 → Task 7・9（`ResearchTreeViewTest` のエリアの寸法）、R-6 → Task 6・7・9（4 状態の `[TestCase]`・状態ラベル・減光は Task 11）、R-7 → Task 9（`ResearchTreeViewportTest` 5 本）、R-8 → Task 7・8（`ResearchDetailPaneTest`）、R-9 → Task 3・8（消費の 4 本）、R-10 → Task 8（`ResearchUnlockSectionsTest` 5 本）、R-11 → Task 5・8・11・12、R-12 → Task 11、R-13 → Task 12、R-14 → Task 7・10、R-15 → Task 8・9・13、R-16 → Task 14・15。完了条件の各句: ResearchTreePanel（`NodeGraphView`。Task 9）・ノードカード 4 状態（Task 7・9）・詳細ペイン（Task 8）・解放物（Task 2・8）・研究ボタンの無効の面 [A-46]（Task 7 の USS・C4-c の `--research-action-disabled-face`）・左余白 0（C4-e 済み。Task 9 の `ResearchStageLayoutTest`）・アンカー 7 件（Task 7・12）・写す 33 件（File Structure の表・Task 8・9・13）・録画 tier9-5（Task 12）・右の領域の `left` は画面 USS（Task 7・9）。§6.2 の必須: 部品と公開 API（Global Constraints）・画面専用の部品の置き場（`Screens/Research/Parts/`）・つまみの同名上書き（File Structure の表）・写すテスト名と件数と `<web-test>`・撮影の解像度（Task 11）・録画（Task 12）・登録の行数 1（Task 10）・新しい共有部品の申告の手順（Global Constraints）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<PR番号>`・`<HEAD 10 桁>`・`<sha>`・`<空きポート>`・`<値>`・`<n>`・`<h>`・manifest の `<… のパス>`・`<自動適用が触ったファイル>` は実行時にしか決まらず、取り方を同じタスクに書いた。「TBD」「適切に」は無い。C4-d・C4-c の型は計画の Produces からの想定で、Task 1 Step 1 で実物と照合し、違えば読み替えて記録する手順を書いた
 3. **Type consistency**: `ResearchNodeDefinition(Guid, ItemId, Vector2, IReadOnlyList<Guid>, IReadOnlyList<ResearchConsumeItem>, ResearchUnlockSet)`・`ResearchNodeCatalog.Nodes`・`ResearchNodeDefinitionsFromMaster.Build()`・`ResearchSelection.None/Of/Is/TryGetGuid/Toggled`・`ResearchNodeCardViewModel`（`Guid`・`IconItemId`・`TreePosition`・`PreviousGuids`・`CardState`・`StateLabelKey`・`Selected`）・`ResearchConsumeSlotViewModel(ItemId, int, int, bool)`・`ResearchDetailViewModel`（`Guid`・`Button`・`ConsumeSlots`・`Unlocks`）・`ResearchTreeViewModel.Create/CreateWithDetail/TryGetInitialFocus/TryGetDetail/Nodes/Empty`・`ResearchFocusPoint.None/At/TryGetPoint`・`ResearchTreeViewModelFactory.Create(definitions, states, owned, selection)`・`ResearchSelectionStore.Current/Toggle/Clear`・`ResearchTreeModel.Current`・`IResearchTreeCommands.ToggleNodeSelection/CloseDetail/CompleteResearch`・`ResearchTreeCommands.CompleteResearchCommandName`・`UiCommandRejectReason.ResearchFailed`・`ResearchCalcKnobs.ApplyAreaLeft/ApplyScrollBleed`・`ResearchNodeCard(Guid).Render(vm, content)`・`ResearchNodeCardSet.RenderCards/BuildContent`・`ResearchDetailPane(commands, content, toaster).Render`・`ResearchDetailActions.Render(Guid, ResearchButtonState)`・`ResearchConsumeItemsSection.Render`・`ResearchUnlockSections.Render(IReadOnlyList<UnlockEntry>)`・`ResearchUnlockSectionKinds.Of/LabelKey/Testid/WrapsInSlotsRow`・`ResearchUnlockEntryElements.AddTo`・`ResearchTreeView(commands, content, toaster).Render/SetShown`・`ResearchTreePresenter(GameUiRoot, ResearchTreeModel, UiRoutingState, IResearchTreeCommands, GameContentPresentation, UiCommandResultToaster)`・`ResearchScreenTestKit.Tree/Detail/NoUnlocks/Unlocks/MasterUnlocks/LoadMasterAndContent`・`RecordingResearchTreeCommands.SetCompleteResult` は定義と使用（テスト・View・Presenter・登録・録画）で同じ綴り。USS のクラス `research-tree`・`__panel`・`__graph`・`__card`（`--completed/--ready/--locked/--selected`）・`__card-name/-icon/-state/-ring`・`__detail-host`・`__detail`・`__detail-panel`・`__detail-body`・`__detail-header`・`__detail-name`・`__detail-close`・`__detail-close-symbol`・`__detail-scroll`・`__detail-scroll-content`・`__detail-description`・`__section`・`__section-label`・`__slots`・`__slot`・`__unlock-other`・`__unlock-fluid`・`__actions`・`__reason` は C#・USS・テストで一致。testid（`research-tree`・`research-panel`・`research-viewport`・`research-node-<guid>`・`research-node-state-<guid>`・`research-detail-pane`・`research-detail-close`・`research-detail-scroll`・`research-consume-items`・`research-consume-slot-<i>`・`research-unlock-blocks/-machine-recipes/-items/-others`・`research-reward-items`・`research-unlock-fluid`・`research-unlock-module-slot-stack-limit`・`research-unlock-craft-cap-<itemId>`・`research-button-<guid>`・`research-detail-reason`）は Web の `data-testid` と同名
-4. **保留・縮退経路**: (a) 研究の応答なし → `ResearchTreeCommands` が LogWarning と `Rejected(ResearchFailed)`、トースト口が良性でないトーストを出す（`ResearchDetailPaneTest` の失敗のトーストが固定）。(b) 応答ありで `Success` が偽 → 状態は入れたうえで同じ拒否。(c) 研究画面の外の通知 → Model は組み直すが View は `display: none` で描かない（表示の有無は Presenter が経路で持つ）。(d) 機械レシピの GUID が源に無い → `ResearchUnlockSetFromMaster` が LogError で知らせてその 1 件を落とす（マスタの検証の漏れを開発者のログへ）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`ResearchCalcKnobs`）。(f) 解放物の種類の追加 → マスタの写しは出さない 7 種以外の `GameActionType` で例外（`ResearchUnlockSetFromMaster`。起動時の定義の組み立てで止まる）、`ResearchUnlockSectionKinds.Of`・`ResearchUnlockEntryElements.AddTo` も未知の型で例外（.decisions 2026-08-19「研究の未対応GameActionTypeは例外で落とす」と同じ）。(g) Task 1・10・11・12 の「止める」経路は、解消の主体（指揮・integrator・S4-alpha）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
+4. **保留・縮退経路**: (a) 研究の応答なし → `ResearchTreeCommands` が LogWarning と `Rejected(ResearchFailed)`、トースト口が良性でないトーストを出す（`ResearchDetailPaneTest` の失敗のトーストが固定）。(b) 応答ありで `Success` が偽 → 状態は入れたうえで同じ拒否。(c) 研究画面の外の通知 → Model は組み直すが View は `display: none` で描かない（表示の有無は Presenter が経路で持つ）。(d) 機械レシピの GUID がマスタに無い → この計画では分岐を持たない。`ResearchMasterUtil` が参照切れをエラーに積み `MasterHolder.Load` が `Validate` 失敗で例外を出すので起動時に止まる（AGENTS.md「MasterHolder には null チェック不要」、Web の `ResearchNodeDtoFactory` も同じ）。(e) つまみが読めない → `UssCustomStyleReader` が LogError（`ResearchCalcKnobs`）。(f) 解放物の種類の追加 → マスタの写しは出さない 7 種以外の `GameActionType` で例外（`ResearchUnlockSetFromMaster`。起動時の定義の組み立てで止まる）、`ResearchUnlockSectionKinds.Of`・`ResearchUnlockEntryElements.AddTo` も未知の型で例外（.decisions 2026-08-19「研究の未対応GameActionTypeは例外で落とす」と同じ）。(g) Task 1・10・11・12 の「止める」経路は、解消の主体（指揮・integrator・S4-alpha）と記録先（`done.md` の「integrator への依頼」「要裁定」「未確認」）を書いた
 5. **「決定的にする」を根拠にした選択**: 初期の注目点は L0-s4b の `TryFindInitialFocusNode`（Web と同じ規則）をそのまま使い、選び方を足さない。解放物の節の並びは初出順（Web と同じ）。ほかに無し
 6. **呼び出し側への責務漏出**: 状態→カードの 4 状態・ラベル・ボタン・不足の判定は L0-s4b の `ResearchLogic` の 1 か所を Factory が読み、View は ViewModel の値を当てるだけ。解放物の種類→節の写像は `ResearchUnlockSectionKinds` の 1 か所（節の見出し・testid・枠の列の有無を同じ switch 群で持つ）。研究の実行と状態の反映と失敗の写しは `ResearchTreeCommands` の 1 か所で、View は結果をトースト口へ渡すだけ。選択の切り替えと離脱で消すのは `ResearchSelectionStore` の 1 か所
 
@@ -4028,7 +4025,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 - 既存側 `moorestech_client/Assets/Scripts/Client.WebUiHost/**/ResearchNodeDtoFactory.cs` ／新設側 `Client.Ui.State/Research/Catalog/ResearchNodeDefinitionsFromMaster.cs`・`ResearchUnlockSetFromMaster.cs` ／同じ研究マスタから座標・前提・消費（上位レベル込み）・解放物 8 種を写す同じ役割。Web の撤去（CEF 停止）で前者が消えるまで 2 か所になる
 
 - 既存側 `S/Client.WebUiHost/Game/Actions/ResearchActions.cs`（`ResearchCompleteActionHandler`）／新設側 `Client.Ui.State/Research/Commands/ResearchTreeCommands.cs` ／同じ API を呼び `ApplyNodeStates` で反映し、応答なしと拒否を同じ失敗にする同じ役割
-- 既存側 `S/Client.Ui.State/Inventory/Actions/LocalPlayerInventoryOperations.cs:33-35` ／新設側 `ResearchTreeModel.MainSlots()` ／持ち物のメインの枠を `SlotItem` の列へ写す同じ導出
+- 既存側 `S/Client.WebUiHost/**/ResearchUnlockGameActionCoverageTest`（表示 8 種＋非表示 7 種＝全 `GameActionTypeConst` の網羅テスト）／新設側 `ResearchUnlockSetFromMaster.HiddenGameActionTypes` ／同じ「解放物の種別の台帳」。Web の橋の撤去でテストが消えると、新種別の追加は research.json がそれを使って起動したときまで気づけない（負債が残る）。橋の撤去レーンへ「UITK 側に同形の網羅テストを移す」を申し送る（本 PR では種別の写しを public にしないため置かない）
 - 既存側 `S/Client.Ui.State/Research/ResearchNodeStateStore.cs` の `_researchScreenActive`（`UIStateControl` から）／新設側 `ResearchSelectionStore`・`ResearchTreeModel`・`ResearchTreePresenter` の `UiScreen.ResearchTree` 判定（`UiRoutingState` から）／同じ「研究画面の表示中か」を別の源から導いている
 
 ---
@@ -4053,6 +4050,11 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 ### 実行計画 §1.4 の S4-research 行の改め案
 
 | S4-research | 研究ツリー | 4・W4 | C4-d・C3-a・C4-c（`RecipeActionButton`）・C4-e（`StageColumnsLayout`）・L0-s4b | 要 | 単位 | ResearchTreePanel（`NodeGraphView` を常駐 1 つ [A-172]）・ノードカード 4 状態・詳細ペイン・解放物・研究ボタン（`RecipeActionButton` に無効の面を `rgb(50 52 67)` へ上書き [A-46]・[A-173]）。研究画面の左余白 0 は `UiScreenTraits.CollapsesStageLeftPadding`（C4-e D-34）。アンカー `research.node-<guid>`（マスタ 7 件）。写す: research 33（P19 から `tmp-icon-click` を除く 18・C15〈`ResearchNodeCard.test.ts` は `it` 1＋`it.each` 1〉。L22 は L0-s4b 済み。うち処遇 7）。録画 `uitk/uitk-research-tree`（新規）・`tier9/tier9-5-compute-research`。研究の右の領域の `left` は画面 USS（列ではない）[A-171]。研究の失敗は `ResearchFailed` [A-174] |
+
+### 指揮・S4-alpha への申し送り
+
+- S4-alpha 計画 14a85b146c は `UnlockedMachineRecipeSource` の消費者に S4-research を数えている（同計画 L326・L4203・D-15）。この計画は使わない（D-13）ので、S4-alpha の計画と実行計画の依存から S4-research を外す
+- `origin/feature/uitk` には C4-d（`Components/NodeGraph/`）と C4-c（`RecipeActionButton.cs`）がまだ無い。この 2 つのマージ後にレーンを起動する（先に起動すると Task 1 の照合で止まる）
 
 ### 実行計画 §6.1 の割り当て表の行
 
