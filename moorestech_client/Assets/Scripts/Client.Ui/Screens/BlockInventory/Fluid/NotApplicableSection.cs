@@ -13,7 +13,7 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
     {
         private static readonly IReadOnlyReactiveProperty<bool> Never = new ReactiveProperty<bool>(false);
 
-        public VisualElement Root { get; private set; } = new();
+        public VisualElement Root { get; } = new();
         public IReadOnlyReactiveProperty<bool> IsApplicable => Never;
 
         public void Attach(OpenBlockInventoryPanel panel)

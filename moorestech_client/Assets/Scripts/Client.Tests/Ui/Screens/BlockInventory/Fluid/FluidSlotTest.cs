@@ -28,15 +28,25 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             SetFluids(progress, slots);
         }
 
+        /// <web-test file="e2e/tests/block/fluidSlot.spec.ts">tank の block inventory パネルに Fluid Tank が表示される</web-test>
         [Test]
-        public void 題はタンクの名前で水の量の帯が出る()
+        public void 題はタンクの名前()
         {
             OpenTank(new Texture2D(4, 4) { hideFlags = HideFlags.DontSave }, null, BlockFluidSlotState.Filled(Water, 500, 1000));
 
             Assert.AreEqual("Fluid Tank", _shell.TitleText());
+        }
+
+        /// <web-test file="e2e/tests/block/fluidSlot.spec.ts">水の流体スロットが量 500 を表示する</web-test>
+        [Test]
+        public void 水の量の帯が出る()
+        {
+            OpenTank(new Texture2D(4, 4) { hideFlags = HideFlags.DontSave }, null, BlockFluidSlotState.Filled(Water, 500, 1000));
+
             Assert.AreEqual(SlotAmountFormat.Format(500), Amount(_shell.View.Q<FluidSlot>("fluid-slot")));
         }
 
+        /// <web-test file="e2e/tests/block/fluidSlot.spec.ts">Water 名のツールチップが hover で表示される</web-test>
         [Test]
         public void 枠の印の文は水の名前()
         {
@@ -47,6 +57,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             Assert.AreEqual("Test Water", text.Resolve());
         }
 
+        /// <web-test file="e2e/tests/block/fluidSlot.spec.ts">progress-arrow-bar のフィル幅が 50% になる</web-test>
         [Test]
         public void 進捗の帯は割合の幅で出る()
         {
@@ -56,6 +67,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             Assert.AreEqual(Length.Percent(50f), fill.style.width.value);
         }
 
+        /// <web-test file="e2e/tests/block/fluidSlot.spec.ts">通常のe2eでは液体アイコンが404になり背面フィルが残る</web-test>
         [Test]
         public void 絵が欠けても背面の面の色が残る()
         {
