@@ -21,8 +21,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 標準の本文の中の機械の区画（出し入れ・歯車駆動の充足率・分間生産数）。本物の工場と偽の Model で組む
-    /// The machine section inside the standard body (visibility, gear-driven power rate, per-minute production) on real factories and fake models
+    /// 標準の本文の中の機械の区画
+    /// The machine section inside the standard body
     /// </summary>
     public class BlockDetailsMachineTest : MachineScreenTestHost
     {

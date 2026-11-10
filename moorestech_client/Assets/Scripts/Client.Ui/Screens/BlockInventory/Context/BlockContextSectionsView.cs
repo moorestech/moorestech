@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 文脈の 3 欄（部屋 → 抽選 → 搬入停止）を Stack gap=sm で並べる。無い欄は SetItemShown で隠す
-    /// Lays out the three context sections (room → draw → stall) in Stack gap=sm, hiding absent ones via SetItemShown
+    /// 文脈の 3 欄を Stack gap=sm で並べる
+    /// Lays out the three context sections in Stack gap=sm, hiding absent ones via SetItemShown
     /// </summary>
     public sealed class BlockContextSectionsView : VisualElement
     {
@@ -28,8 +28,8 @@ namespace Client.Ui.Screens.BlockInventory.Context
 
         public void Render(BlockContextViewModel viewModel)
         {
-            // 無い欄は隠し、ある欄だけ描く（Absent の判定は ContextEntry.IsAbsent の 1 本）
-            // Hide absent sections and draw the rest (absence is judged once by ContextEntry.IsAbsent)
+            // 無い欄は隠し、ある欄だけ描く
+            // Hide absent sections and draw the rest; absence is judged once by ContextEntry.IsAbsent
             _stack.SetItemShown(_cleanRoom, !viewModel.CleanRoom.IsAbsent);
             if (!viewModel.CleanRoom.IsAbsent) _cleanRoom.Render(viewModel.CleanRoom);
             _stack.SetItemShown(_cleanRoomYield, !viewModel.CleanRoomYield.IsAbsent);

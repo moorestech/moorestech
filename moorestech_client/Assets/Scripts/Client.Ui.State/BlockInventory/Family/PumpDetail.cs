@@ -21,8 +21,8 @@ namespace Client.Ui.State.BlockInventory.Family
     }
 
     /// <summary>
-    /// ポンプの詳細の写し。電気と歯車の 2 種に閉じる（Web の kind "electric"/"gear"）
-    /// Snapshot of a pump's detail, closed over electric and gear (Web kinds "electric"/"gear")
+    /// ポンプの詳細。電気と歯車の 2 種
+    /// Snapshot of a pump's detail, closed over electric and gear (Web kinds)
     /// </summary>
     public abstract class PumpDetail
     {

@@ -18,8 +18,8 @@ using Tests.Module.TestMod;
 namespace Client.Tests.Ui.State.BlockInventory.Machine.Rules
 {
     /// <summary>
-    /// 開いた機械の選択レシピの束縛を Shift 配分の入力へ足す寄与（Web machineGestures 3 件目の前提）
-    /// The contribution adding the open machine's selected-recipe binding to the Shift-allocation input (premise of Web machineGestures case 3)
+    /// 選択レシピの束縛を Shift 配分へ足す寄与
+    /// Adds the selected-recipe binding to Shift allocation; premise of Web machineGestures case 3
     /// </summary>
     public class MachineSlotRestrictionContributorTest
     {

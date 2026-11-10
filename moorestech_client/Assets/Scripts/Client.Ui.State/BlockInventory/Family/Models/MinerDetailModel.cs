@@ -40,8 +40,8 @@ namespace Client.Ui.State.BlockInventory.Family.Models
                 return;
             }
 
-            // 採掘機の詳細・common・IMinerParam の 3 つが揃うときだけ出す（Web ホスト MinerDetailDtoBuilder と同じガード）
-            // Show only when the miner detail, common and IMinerParam are all present (same guard as the Web host's MinerDetailDtoBuilder)
+            // 3 つが揃うときだけ出す
+            // Show only when the miner detail, common and IMinerParam are all present, as the Web host guard
             var miner = block.GetStateDetail<CommonMinerBlockStateDetail>(CommonMinerBlockStateDetail.BlockStateDetailKey);
             var common = block.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
             var param = block.BlockMasterElement.BlockParam;

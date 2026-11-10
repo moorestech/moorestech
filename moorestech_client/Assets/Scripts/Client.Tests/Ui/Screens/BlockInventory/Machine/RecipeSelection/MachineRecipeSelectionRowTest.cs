@@ -121,8 +121,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
 
         private MachineRecipeSelectionRowView MountRow(MachineRecipeData recipe, bool selected)
         {
-            // 本物の値の組み立て（カタログ → 行）を通した 1 行を載せる
-            // Mount one row built through the real value pipeline (catalog → rows)
+            // カタログ→行を通した 1 行を載せる
+            // Mount one row built through catalog → rows
             var selection = selected ? MachineRecipeSelection.Selected(recipe.RecipeGuid) : MachineRecipeSelection.Unselected;
             var viewModel = Fixtures.Machine(selection, false, recipe);
             var view = Mount(new MachineRecipeSelectionRowView(Fixtures.Row(viewModel, recipe.RecipeGuid), Fixtures.RecipeOf(viewModel, recipe.RecipeGuid), Content, OsCursor));

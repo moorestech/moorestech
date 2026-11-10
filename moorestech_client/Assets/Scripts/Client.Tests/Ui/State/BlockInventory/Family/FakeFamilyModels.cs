@@ -7,8 +7,8 @@ using Client.Ui.State.BlockInventory.Fluid;
 namespace Client.Tests.Ui.State.BlockInventory.Family
 {
     /// <summary>
-    /// 族ごとの詳細 Model と液体の Model の偽物。Set で値を差し替える
-    /// Fakes of the per-family detail models and the fluid model; swap values with Set
+    /// 族ごとの詳細と液体の偽物 Model
+    /// Fakes of the per-family detail and fluid models; swap values with Set
     /// </summary>
     public sealed class FakeMinerDetailModel : FakeModel<SectionContent<MinerDetail>>, IMinerDetailModel
     {

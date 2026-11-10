@@ -5,8 +5,8 @@ using Client.Ui.State.BlockInventory.Family.Models;
 namespace Client.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 発電機の区画の工場（SectionStackSlot.Generator）。出すかは Model の有無で区画が決める
-    /// Factory of the generator section (SectionStackSlot.Generator); the section decides from the model's presence whether to show
+    /// 発電機の区画の工場
+    /// Factory of the generator section (SectionStackSlot.Generator); shown when the model is present
     /// </summary>
     public sealed class GeneratorSectionFactory : ISectionStackSectionFactory
     {

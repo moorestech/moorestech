@@ -15,8 +15,8 @@ using T = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockTypeConst;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
 {
     /// <summary>
-    /// Web e2e の mock-host の setBlock の fixture を、本レーンの Model の値へ写した 1 件（blockType と各 Model の値）
-    /// One Web e2e mock-host setBlock fixture ported to this lane's model values (blockType and each model's value)
+    /// Web e2e の setBlock を写した 1 件
+    /// One Web e2e mock-host setBlock fixture ported to this lane's model values
     /// </summary>
     public sealed class SectionStackRegressionEntry
     {
@@ -59,8 +59,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
     }
 
     /// <summary>
-    /// sectionStack.spec.ts の cases の entry.type → 本レーンの Model の値（moorestech_web/webui/e2e/mock-host/fixtures の写し。マスタ読み込み済みが前提）
-    /// sectionStack.spec.ts cases entry.type → this lane's model values (port of moorestech_web/webui/e2e/mock-host/fixtures; master must be loaded)
+    /// cases の entry を Model の値へ写す
+    /// sectionStack.spec.ts cases ported to model values; master must be loaded
     /// </summary>
     public static class SectionStackRegressionEntries
     {
@@ -89,15 +89,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
                     .SetPump(new ElectricPumpDetail(MachineProcessDisplayState.Processing, 10, 10, new[] { new PumpingFluid(Water, 3600) })),
                 "gearPump" => new SectionStackRegressionEntry(T.GearPump, FluidsOf(false, 0, BlockFluidSlotState.Filled(Water, 30, 100)))
                     .SetPump(new GearPumpDetail(new[] { new PumpingFluid(Water, 120) })),
-                // 風車は generator を持たない（Web fixture は gear と gearNetwork だけ）
-                // The windmill has no generator detail (the Web fixture carries only gear and gearNetwork)
+                // 風車は generator を持たない
+                // The windmill has no generator detail; the Web fixture carries only gear and gearNetwork
                 "gearGenerator" => new SectionStackRegressionEntry(T.SimpleGearGenerator, NoFluids()),
                 _ => throw new ArgumentOutOfRangeException(nameof(entryType), entryType, null),
             };
         }
 
-        // 機械の fixture（加工中・入力の先頭に 1 品・液体は機械の本体が持つ）
-        // Machine fixture (processing, one item in the first input, fluids carried by the machine body)
+        // 機械の fixture。加工中で入力先頭に 1 品
+        // Machine fixture: processing, one item in the first input, fluids on the body
         private static SectionStackRegressionEntry MachineEntry(string blockType, MachineSlotLayout layout, bool gearDriven, params BlockFluidSlotState[] fluids)
         {
             var slots = new SlotItem[layout.Input + layout.Output + layout.Module];

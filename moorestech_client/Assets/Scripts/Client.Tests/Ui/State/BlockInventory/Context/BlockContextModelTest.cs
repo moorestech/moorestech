@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 文脈の 3 欄 Model の配り直し（追跡替えと閉・ポーリング更新の通知）
-    /// Republishing of the context-entries model (tracking changes, closing and poll-update notifications)
+    /// 文脈の 3 欄 Model の配り直し
+    /// Republishing of the context-entries model on tracking, close and poll updates
     /// </summary>
     public class BlockContextModelTest
     {

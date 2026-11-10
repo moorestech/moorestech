@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.Family
 {
     /// <summary>
-    /// 追跡ブロックの試験用の組み立て。本物の追跡（UI 状態・データストア）を使わず、追跡中のブロックと 2 つの通知を手で動かす
-    /// Test rig for the tracked block: moves the tracked block and its two notifications by hand without the real tracking (UI state, datastore)
+    /// 追跡ブロックの試験用の組み立て
+    /// Test rig moving the tracked block and its two notifications by hand, without real tracking
     /// </summary>
     internal sealed class TrackedBlockHarness
     {

@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の詳細（Web FluidInventoryContents）。行ごとに枠＋中身ありなら名前と「量 / 容量」
-    /// Fluid details (Web FluidInventoryContents): per row a slot, plus name and "amount / capacity" when filled
+    /// 液体の詳細（FluidInventoryContents）
+    /// Fluid details (Web FluidInventoryContents): per row a slot, plus name and amount / capacity when filled
     /// </summary>
     public sealed class FluidInventoryContents : VisualElement
     {

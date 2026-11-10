@@ -14,8 +14,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// ポンプの区画（Web PumpSection）。電気ポンプだけ動力行 → 汲み上げ対象があれば毎分の行、無ければ鉱脈の警告行
-    /// The pump section (Web PumpSection): the power rows for electric pumps only → per-minute rows when there are targets, else the no-vein warning
+    /// ポンプの区画
+    /// The pump section (Web PumpSection): power rows for electric pumps → per-minute rows, else the no-vein warning
     /// </summary>
     public sealed class PumpSectionView : IDetailSectionView<PumpDetail>
     {
@@ -45,14 +45,14 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
         public void Render(PumpDetail detail)
         {
-            // 動力行の有無は種別が決める（歯車ポンプには動力行が無い）
-            // The kind decides whether power rows exist (a gear pump has none)
+            // 動力行の有無は種別が決める
+            // The kind decides whether power rows exist; a gear pump has none
             var electric = detail as ElectricPumpDetail;
             _root.SetItemShown(_electricRows, electric != null);
             if (electric != null) _stateRow.Render(electric.State, electric.CurrentPower, electric.RequestPower, true);
 
-            // 汲み上げ対象の有無が流体行と警告行を排他に分ける
-            // Whether the pump has targets splits the fluid rows from the warning row
+            // 汲み上げ対象の有無で行を分ける
+            // Pump targets split fluid rows from the warning
             var hasTargets = 0 < detail.PumpingFluids.Count;
             _root.SetItemShown(_fluids, hasTargets);
             _root.SetItemShown(_noVein, !hasTargets);

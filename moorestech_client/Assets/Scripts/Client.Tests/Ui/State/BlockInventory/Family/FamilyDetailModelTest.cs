@@ -14,8 +14,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.Family
 {
     /// <summary>
-    /// 族ごとの詳細 Model の揃い方（採掘機は 3 つが揃うときだけ・追跡替えと状態変化で組み直す）
-    /// How the per-family detail models assemble (miner only when all three are present; rebuilt on tracking and state changes)
+    /// 族ごとの詳細 Model の揃い方
+    /// How the per-family detail models assemble; rebuilt on tracking and state changes
     /// </summary>
     public class FamilyDetailModelTest
     {

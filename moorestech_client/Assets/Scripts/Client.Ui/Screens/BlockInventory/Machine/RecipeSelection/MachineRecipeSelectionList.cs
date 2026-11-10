@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
 {
     /// <summary>
-    /// 機械のレシピ選択モードの本体（Web MachineRecipeSelectionList）。文脈を前置したスクロールに行を並べ、行の押下を GUID で流す
-    /// The machine's recipe-selection mode (Web MachineRecipeSelectionList): rows in a scroller led by the context, row presses streamed as GUIDs
+    /// 機械のレシピ選択モードの本体
+    /// Recipe-selection mode body (Web MachineRecipeSelectionList): rows in a scroller led by the context, presses streamed as GUIDs
     /// </summary>
     public sealed class MachineRecipeSelectionList : VisualElement
     {
@@ -56,52 +56,56 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
                 return;
             }
             Rebuild(viewModel);
+
+            #region Internal
+
+            void Rebuild(MachineSectionViewModel viewModel)
+            {
+                // 購読を捨て、行を作り直して押下を集約
+                // Drop subscriptions, rebuild rows, merge presses
+                _rowSubscriptions.Clear();
+                _rows.Clear();
+                var entries = new List<VisualElement>(viewModel.Rows.Count);
+                foreach (var row in viewModel.Rows)
+                {
+                    // 行は解放済みのカタログから組まれるので必ず引ける。引けなければ組み立ての誤りとして知らせ、その行を出さない
+                    // Rows are built from the unlocked catalog so the lookup always succeeds; a miss is a build bug, reported, and the row is omitted
+                    if (!viewModel.TryGetRecipe(row.Recipe.RecipeGuid, out var recipe))
+                    {
+                        Debug.LogError($"[MachineRecipeSelectionList] recipe {row.Recipe.RecipeGuid} of a selection row is missing from the catalog; the row is not shown");
+                        continue;
+                    }
+                    var view = new MachineRecipeSelectionRowView(row, recipe, _content, _osCursor);
+                    view.OnPressed.Subscribe(_rowPressed.OnNext).AddTo(_rowSubscriptions);
+                    _rows.Add(new ShownRow(row.Recipe.RecipeGuid, recipe, view));
+                    entries.Add(view);
+                }
+                _scroll.SetEntries(entries);
+            }
+
+            bool IsSameOrder(MachineSectionViewModel viewModel)
+            {
+                // GUID とレシピの値が同じ並びか
+                // Same order of both GUIDs and recipe values; a rebuilt catalog yields new values
+                if (viewModel.Rows.Count != _rows.Count) return false;
+                for (var i = 0; i < _rows.Count; i++)
+                {
+                    var guid = viewModel.Rows[i].Recipe.RecipeGuid;
+                    if (_rows[i].RecipeGuid != guid) return false;
+                    if (!viewModel.TryGetRecipe(guid, out var recipe) || !ReferenceEquals(_rows[i].Recipe, recipe)) return false;
+                }
+                return true;
+            }
+
+            #endregion
         }
 
         public void ClearLeadingContent()
         {
-            // 覚えた先頭も外す（残すと次に選択へ入ったとき同じ文脈と見なして前置を飛ばす。R-14）
-            // Forget the remembered leading too (else re-entering selection sees the same context and skips prepending it; R-14)
+            // 覚えた先頭も外す（R-14）
+            // Forget the remembered leading too, else re-entering selection skips prepending it (R-14)
             _scroll.ClearLeadingContent();
             _shownLeading = null;
-        }
-
-        private bool IsSameOrder(MachineSectionViewModel viewModel)
-        {
-            // GUID とレシピの値（カタログが組み直されると別の値）の両方が同じ並びか
-            // Same order of both GUIDs and recipe values (a rebuilt catalog yields new values)
-            if (viewModel.Rows.Count != _rows.Count) return false;
-            for (var i = 0; i < _rows.Count; i++)
-            {
-                var guid = viewModel.Rows[i].Recipe.RecipeGuid;
-                if (_rows[i].RecipeGuid != guid) return false;
-                if (!viewModel.TryGetRecipe(guid, out var recipe) || !ReferenceEquals(_rows[i].Recipe, recipe)) return false;
-            }
-            return true;
-        }
-
-        private void Rebuild(MachineSectionViewModel viewModel)
-        {
-            // 前の行の購読を捨て、行を作り直して押下を 1 本へ集める
-            // Drop the old rows' subscriptions, rebuild the rows and merge their presses into one stream
-            _rowSubscriptions.Clear();
-            _rows.Clear();
-            var entries = new List<VisualElement>(viewModel.Rows.Count);
-            foreach (var row in viewModel.Rows)
-            {
-                // 行は解放済みのカタログから組まれるので必ず引ける。引けなければ組み立ての誤りとして知らせ、その行を出さない
-                // Rows are built from the unlocked catalog so the lookup always succeeds; a miss is a build bug, reported, and the row is omitted
-                if (!viewModel.TryGetRecipe(row.Recipe.RecipeGuid, out var recipe))
-                {
-                    Debug.LogError($"[MachineRecipeSelectionList] recipe {row.Recipe.RecipeGuid} of a selection row is missing from the catalog; the row is not shown");
-                    continue;
-                }
-                var view = new MachineRecipeSelectionRowView(row, recipe, _content, _osCursor);
-                view.OnPressed.Subscribe(_rowPressed.OnNext).AddTo(_rowSubscriptions);
-                _rows.Add(new ShownRow(row.Recipe.RecipeGuid, recipe, view));
-                entries.Add(view);
-            }
-            _scroll.SetEntries(entries);
         }
 
         private readonly struct ShownRow

@@ -19,8 +19,8 @@ using Fixtures = Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection.
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
 {
     /// <summary>
-    /// レシピ選択の配置の写しの土台（Web の machine と同じ 3 レシピの機械を舞台 1280×720 のシェルに開き、押下とサーバーの追いつきを流す）
-    /// Base of the recipe-selection layout ports (opens the Web machine's three-recipe machine in the 1280x720 shell, drives presses and the server catching up)
+    /// レシピ選択の配置の写しの土台
+    /// Base of the recipe-selection layout ports
     /// </summary>
     public abstract class MachineRecipeLayoutTestHost : MachineScreenTestHost
     {
@@ -33,8 +33,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
 
         protected MachineRecipeData[] Recipes()
         {
-            // Web の machine の 3 件: A（5 秒）・B（10 秒・液体入力）・C（液体のみ出力 1000）
-            // The Web machine's three: A (5 s), B (10 s, fluid input), C (fluid-only output of 1000)
+            // Web の machine の 3 件
+            // The Web machine's three: A (5 s), B (10 s, fluid input), C (fluid-only output)
             var a = Fixtures.ItemRecipe(RecipeA, 5, SecondItem, FirstItem);
             var b = Fixtures.Recipe(RecipeB, 10, new[] { new ItemAmount(SecondItem, 1) }, new[] { new RecipeFluidAmount(Water, 10) }, new[] { new ItemAmount(FirstItem, 1) }, new RecipeFluidAmount[0], RecipeLevelInheritance.None);
             var c = Fixtures.Recipe(RecipeC, 3, new ItemAmount[0], new[] { new RecipeFluidAmount(Water, 10) }, new ItemAmount[0], new[] { new RecipeFluidAmount(Water, 1000) }, RecipeLevelInheritance.None);
@@ -78,14 +78,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
 
         protected void Open(BlockInventoryPanelState panel, MachineSectionViewModel machine, GameContentPresentation content)
         {
-            // 本番の GameUi と同じく機械・文脈の工場と大型の寄与を差す（CleanRoomLayoutTestHost と同じ組み方）
-            // Plug the machine and context factories and the large rule as the real GameUi does (same as CleanRoomLayoutTestHost)
+            // 本番と同じく機械・文脈の工場と寄与を差す
+            // Plug machine and context factories and the large rule, as the real GameUi
             var rule = new RecipeMachineLargePanelRule(MachineModel);
             rule.Initialize();
             var factory = new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, content, RecipeSelect, OsCursor);
 
-            // 本番と同じく外殻は閉じたまま先に載って舞台とトークンが解決し、開く時点で機械の値は既に届いている（BlockInventoryScreenPresenter.Initialize・BlockGameObject の状態）
-            // As in the game, the shell mounts closed first so the stage and tokens resolve, and the machine value is already there when it opens (BlockInventoryScreenPresenter.Initialize, BlockGameObject state)
+            // 外殻は閉じたまま先に載り、値は既に届く
+            // The shell mounts closed first and the machine value is already there on open
             var panelState = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed);
             Shell = BlockInventoryTestShell.Create(this, panelState, rule, factory, new ContextSectionFactory(content, ContextModel, MachineModel));
             Settle();

@@ -89,8 +89,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory
     /// </summary>
     public sealed class BlockInventoryTestShell
     {
-        // 舞台の下の安全帯（alpha の --block-inventory-menu-lower-safe-area）
-        // The stage's lower safe band (alpha's --block-inventory-menu-lower-safe-area)
+        // 舞台の下の安全帯
+        // The stage's lower safe band
         public const float MenuLowerSafeArea = 70f;
         private static readonly UiRoutingSnapshot SubInventory = new(UiScreen.SubInventory);
 

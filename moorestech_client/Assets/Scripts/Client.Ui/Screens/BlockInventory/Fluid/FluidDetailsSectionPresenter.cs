@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の詳細の区画。液体が 1 件以上あるときだけ出す（機械かどうかは見ない。Web と同じ）
-    /// The fluid-details section: shown only with at least one fluid (machine-ness is ignored, same as Web)
+    /// 液体が 1 件以上あるときだけ出す
+    /// Fluid-details section shown only with at least one fluid; machine-ness is ignored, as Web
     /// </summary>
     public sealed class FluidDetailsSectionPresenter : IBlockInventorySection
     {

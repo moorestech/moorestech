@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 文脈の 3 欄の L1 の土台（テスト用の品の名前を辞書へ重ね、表示中の子の名前を数える）
-    /// Base of the context-section L1 tests (overlays a test item name and lists the names of shown children)
+    /// 文脈の 3 欄の L1 の土台
+    /// Base of the context-section L1 tests
     /// </summary>
     public abstract class ContextSectionTestHost : BlockInventoryScreenTestHost
     {

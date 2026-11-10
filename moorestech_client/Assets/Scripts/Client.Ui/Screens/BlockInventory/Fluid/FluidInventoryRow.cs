@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の詳細の 1 行。要素は作った後は替えず、Render で枠の中身と文と文の出し入れだけを当て直す
-    /// One fluid-details row; elements are fixed after construction and Render only reapplies slot contents, texts and text visibility
+    /// 液体の詳細の 1 行
+    /// One fluid-details row; elements are fixed after construction and Render only reapplies contents and texts
     /// </summary>
     public sealed class FluidInventoryRow
     {
@@ -25,8 +25,8 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
 
         public FluidInventoryRow(string slotTestid, GameContentPresentation content)
         {
-            // 行は Group gap=sm・中央揃え・折り返しなし（揃えと折り返しは内側の行に効く UiLayoutClass で付ける）
-            // Each row is Group gap=sm, centered, no wrap (set via UiLayoutClass, which reaches the inner row)
+            // 行は gap=sm・中央・折り返しなし
+            // Each row is Group gap=sm, centered, no wrap, set via UiLayoutClass which reaches the inner row
             _content = content;
             _group.AddToClassList(UiLayoutClass.GroupNoWrap);
             _slotRow = new FluidSlotRow(slotTestid);
@@ -38,8 +38,8 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
 
         public void Render(BlockFluidSlotState fluid)
         {
-            // 空の液体は枠だけ（名前と容量を出さない。Web と同じ）
-            // An empty fluid shows only the slot (no name or capacity, same as Web)
+            // 空の液体は枠だけ
+            // An empty fluid shows only the slot, with no name or capacity, as Web
             _slotRow.SetFluids(new[] { FluidSlotContentMapper.Map(fluid, _content) });
             var filled = fluid as FilledBlockFluidSlotState;
             _group.SetItemShown(_texts, filled != null);

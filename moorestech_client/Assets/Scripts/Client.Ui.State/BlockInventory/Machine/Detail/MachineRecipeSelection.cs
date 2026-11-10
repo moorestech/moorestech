@@ -13,7 +13,7 @@ namespace Client.Ui.State.BlockInventory.Machine.Detail
         public static readonly MachineRecipeSelection Unselected = new UnselectedMachineRecipe();
         public static MachineRecipeSelection Selected(Guid recipeGuid) => new SelectedMachineRecipe(recipeGuid);
 
-        // 読めない文字列は偽。呼び手が fail-closed でログを出す
+        // 読めない文字列は偽で呼び手がログ
         // An unreadable string returns false; the caller logs and fails closed
         public static bool TryParse(string wire, out MachineRecipeSelection selection)
         {

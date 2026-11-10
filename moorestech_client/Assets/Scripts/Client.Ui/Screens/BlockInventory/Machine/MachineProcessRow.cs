@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 加工行（Web machineInventoryBody の processRow）。入力の帯 → 進捗の矢印 → 出力の帯を、矢印が中央に来る 3 列で並べる
-    /// The process row (Web machineInventoryBody processRow): input band → progress arrow → output band in three columns that keep the arrow centred
+    /// 加工行（Web の processRow）
+    /// Process row (Web processRow): input band → progress arrow → output band in three columns, arrow centred
     /// </summary>
     public sealed class MachineProcessRow : VisualElement
     {
@@ -26,7 +26,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _input = new MachineSlotBand("machine-input-slots", "machine-input-slot", commands, toaster, content);
             _output = new MachineSlotBand("machine-output-slots", "machine-output-slot", commands, toaster, content);
 
-            // 左右の器を等幅で伸ばし、矢印を中央に固定する（Web grid 1fr auto 1fr）
+            // 左右を等幅で伸ばし矢印を中央に固定
             // Stretch both side boxes equally to pin the arrow at the centre (Web grid 1fr auto 1fr)
             Add(Side("machine-process-row__input", _input));
             Add(_arrow);
@@ -47,8 +47,8 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
         public void Render(MachineSectionViewModel viewModel)
         {
-            // 素材の枠だけ所持/必要を出す（出力は実物があっても出さない）
-            // Only material slots show held/required (outputs never do, even when filled)
+            // 素材の枠だけ所持/必要を出す
+            // Only material slots show held/required; outputs never do, even when filled
             _input.Render(viewModel.SlotView.Inputs, viewModel.ItemSlots, true);
             _output.Render(viewModel.SlotView.Outputs, viewModel.ItemSlots, false);
             _arrow.SetProgress(viewModel.Detail.Progress);

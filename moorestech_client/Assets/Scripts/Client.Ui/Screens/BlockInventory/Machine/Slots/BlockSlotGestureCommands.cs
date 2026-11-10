@@ -5,8 +5,8 @@ using Client.Ui.State.Toast;
 namespace Client.Ui.Screens.BlockInventory.Machine.Slots
 {
     /// <summary>
-    /// 機械の枠の押下をブロック側の型付きコマンドへ写す（alpha BlockItemGrid と同じ写し: 左・右・ダブルだけ。進入は使わない）
-    /// Maps machine slot gestures onto the typed block commands (same mapping as alpha BlockItemGrid: left, right, double only; no enter)
+    /// 枠の押下を型付きコマンドへ写す
+    /// Maps machine slot gestures onto typed block commands as alpha BlockItemGrid: left, right, double; no enter
     /// </summary>
     public static class BlockSlotGestureCommands
     {

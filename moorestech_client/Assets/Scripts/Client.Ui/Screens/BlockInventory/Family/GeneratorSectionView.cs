@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 発電機の区画（Web GeneratorSection）。残燃料の棒 → 稼働率の文
+    /// 発電機の区画
     /// The generator section (Web GeneratorSection): remaining-fuel bar → operating-rate text
     /// </summary>
     public sealed class GeneratorSectionView : IDetailSectionView<GeneratorDetail>
@@ -42,8 +42,8 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
         private void ShowOperatingRate(double operatingRate)
         {
-            // 百分率は JS の Math.round と同じく .5 を上へ丸める
-            // The percentage rounds .5 up like JS Math.round
+            // 百分率は .5 を上へ丸める
+            // Percent rounds .5 up like JS Math.round
             var percent = UiNumberFormat.RoundHalfUp(operatingRate * 100);
             _operatingRate.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.GeneratorOperatingRate, new[] { new LocalizationTextParam("rate", UiNumberFormat.Integer(percent)) }));
         }

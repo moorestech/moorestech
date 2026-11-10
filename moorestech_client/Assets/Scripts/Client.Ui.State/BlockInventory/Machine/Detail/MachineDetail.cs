@@ -5,8 +5,8 @@ using Client.Ui.State.BlockInventory.Logic.Machine;
 namespace Client.Ui.State.BlockInventory.Machine.Detail
 {
     /// <summary>
-    /// 機械の詳細の写し（選択レシピ・状態・電力・進捗・加工中レシピ・スロット束縛）
-    /// Snapshot of a machine's detail (selection, state, power, progress, running recipe, slot binding)
+    /// 機械の詳細の写し
+    /// Snapshot of a machine's detail: selection, state, power, progress, running recipe, slot binding
     /// </summary>
     public sealed class MachineDetail
     {

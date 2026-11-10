@@ -65,8 +65,8 @@ namespace Client.Starter.Registration
             builder.Register<BlockSlotCommands>(Lifetime.Singleton).As<IBlockSlotCommands>();
             builder.Register<PlayerSlotCommands>(Lifetime.Singleton).As<IPlayerSlotCommands>();
             builder.Register<BlockItemGridFactory>(Lifetime.Singleton);
-            // 追跡ブロックの液体（タンク・液体プラットフォーム・パイプ）。S4-machine と S4-train が ctor で受ける
-            // Fluids of the tracked block (tank, fluid platform, pipe); taken by S4-machine and S4-train ctors
+            // 追跡ブロックの液体
+            // Fluids of the tracked block; taken by machine and train sections
             builder.Register<FluidNetworkReplicaReader>(Lifetime.Singleton).As<IFluidReplicaReader>();
             builder.RegisterEntryPoint<BlockFluidSlotsModel>().As<IBlockFluidSlotsModel>();
 

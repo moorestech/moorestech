@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋欄の行の並びと赤の付き方（View を直に組み、状態を差して見る）
-    /// Room section row order and red marking (builds the View directly and feeds it states)
+    /// 部屋欄の行の並びと赤の付き方
+    /// Room section row order and red marking
     /// </summary>
     public class CleanRoomSectionTest : ContextSectionTestHost
     {

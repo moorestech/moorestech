@@ -8,8 +8,8 @@ using Client.Ui.State.Items;
 namespace Client.Ui.State.BlockInventory.Machine
 {
     /// <summary>
-    /// パネル・機械の詳細・枠・液体・カタログから機械の区画の値を組む
-    /// Builds the machine section's values from the panel, machine detail, slots, fluids and catalog
+    /// パネル・詳細・枠・液体・カタログから値を組む
+    /// Builds values from panel, detail, slots, fluids, catalog
     /// </summary>
     public static class MachineSectionViewModelBuilder
     {
@@ -20,7 +20,7 @@ namespace Client.Ui.State.BlockInventory.Machine
             var rows = catalog.RowsFor(panel.BlockGuid, detail.Selection);
             var slotView = MachineSlotGhosts.BuildMachineSlotView(detail.Binding, itemSlots, fluidSlots);
             var bands = detail.Binding.Layout.Split(itemSlots.Count);
-            return new MachineSectionViewModel(panel.BlockInstanceId, panel.BlockGuid, detail, itemSlots, fluidSlots, slotView, bands, rows, moduleStackLimit, catalog);
+            return new MachineSectionViewModel(panel.BlockInstanceId, detail, itemSlots, fluidSlots, slotView, bands, rows, moduleStackLimit, catalog);
         }
     }
 }

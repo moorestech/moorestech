@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 出さない区画（その blockType の設定に対応する液体の設定が無いとき。IsApplicable が常に偽）
-    /// A section never shown (the blockType's settings carry no matching fluid setting; IsApplicable is always false)
+    /// 出さない区画（IsApplicable が常に偽）
+    /// A section never shown: the blockType carries no matching fluid setting; IsApplicable is always false
     /// </summary>
     public sealed class NotApplicableSection : IBlockInventorySection
     {

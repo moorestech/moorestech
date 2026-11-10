@@ -18,8 +18,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 採掘機・ポンプ・発電機の区画の L1 の土台（品と水の名前を辞書へ重ね、3 つの偽の Model と本物の 3 工場を持つ）
-    /// Base of the miner, pump and generator section L1 tests (overlays item and water names, holds three fake models and the three real factories)
+    /// 採掘機・ポンプ・発電機の L1 の土台
+    /// Base of the miner, pump and generator L1 tests
     /// </summary>
     public abstract class FamilyScreenTestHost : BlockInventoryScreenTestHost
     {
@@ -73,8 +73,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
             return body;
         }
 
-        // 自分も祖先も隠されていない要素だけを数える（区画の出し入れは祖先の表示で決まる）
-        // Count only elements neither hidden themselves nor via an ancestor (section visibility lives on ancestors)
+        // 自分も祖先も隠れていない要素を数える
+        // Count elements hidden neither themselves nor via an ancestor
         protected static bool IsEffectivelyShown(VisualElement element)
         {
             for (var current = element; current != null; current = current.parent)

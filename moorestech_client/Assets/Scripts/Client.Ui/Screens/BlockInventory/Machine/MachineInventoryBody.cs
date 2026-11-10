@@ -15,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械のインベントリ本文（Web MachineInventoryBody）。加工行 → モジュール帯 → 液体の行 → 出力ごとの分間生産数
-    /// The machine inventory body (Web MachineInventoryBody): process row → module band → fluid row → per-minute production per output
+    /// 機械のインベントリ本文
+    /// Machine inventory body (Web MachineInventoryBody): process row → module band → fluid row → per-minute production
     /// </summary>
     public sealed class MachineInventoryBody : VisualElement
     {
@@ -40,8 +40,8 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _perMinuteRows.pickingMode = PickingMode.Ignore;
             _perMinuteRows.AddToClassList(UiLayoutClass.StackAlignCenter);
 
-            // 機械の液体行は矢印を持たない（加工の進捗は入出力の間の矢印が担う）
-            // The machine fluid row has no arrow (processing progress lives between the in/out bands)
+            // 機械の液体行は矢印を持たない
+            // The machine fluid row has no arrow; processing progress lives between the in/out bands
             _fluids.ClearProgress();
             _stack.AddItem(_processRow);
             _stack.AddItem(_moduleBand);
@@ -72,8 +72,8 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
             void RenderPerMinute()
             {
-                // レシピ秒が 0 以下の出力は行を出さない（Web は null）
-                // Outputs with a non-positive recipe time get no row (null on the Web)
+                // レシピ秒が 0 以下なら行なし
+                // Outputs with a non-positive recipe time get no row, null on the Web
                 var rates = new List<double>();
                 foreach (var output in viewModel.Detail.RunningRecipeOutputs)
                 {
@@ -93,8 +93,8 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 _perMinuteNumbers.Clear();
                 for (var i = 0; i < count; i++)
                 {
-                    // Web の行は本文の字（md 16px）を継ぐ div で、語と数の間は空白 1 つ（約 4px）
-                    // The Web row is a div inheriting the body text (md 16px); one space (about 4px) separates word and number
+                    // Web の行は本文の字を継ぎ空白 1 つ
+                    // The Web row inherits body text (md 16px); one space (about 4px) separates word and number
                     var row = new UiGroup(UiGap.Px4) { name = "machine-items-per-minute", pickingMode = PickingMode.Ignore };
                     var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
                     label.AddToClassList(UiTypographyClass.TextMd);

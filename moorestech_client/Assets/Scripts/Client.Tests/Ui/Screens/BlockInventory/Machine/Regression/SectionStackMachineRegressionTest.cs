@@ -23,13 +23,13 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
 {
     /// <summary>
-    /// 本レーンの区画の id が entry ごとに Web の e2e と同じだけ出る（本番の 7 工場を偽の Model で標準の本文に差す。他レーンの id は持ち主のテストが見る）
-    /// This lane's section ids per entry match the Web e2e (the 7 production factories with fake models in the standard body; other lanes' ids are covered by their owners)
+    /// 区画 id が Web の e2e と同じ
+    /// Section ids per entry match the Web e2e; other lanes' ids are covered by their owners
     /// </summary>
     public class SectionStackMachineRegressionTest : BlockInventoryScreenTestHost
     {
-        // Web の sectionIds のうち本レーンが持つ id（Web の並び順）
-        // The ids of Web sectionIds owned by this lane (in Web order)
+        // 本レーンの Web sectionIds
+        // The Web sectionIds owned by this lane, in Web order
         private static readonly string[] OwnSectionIds =
         {
             "machine-section", "miner-section", "generator-section", "machine-fluid-slots", "generic-block-fluids", "pump-section", "pump-fluid-slots",
@@ -69,14 +69,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
             var entry = SectionStackRegressionEntries.For(entryType);
             var root = MountBody(entry);
 
-            // 本レーンの id のうち自分も祖先も隠されていないものを Web の並びで集める
-            // Collect this lane's ids that are hidden neither themselves nor via an ancestor, in Web order
+            // 隠れていない id を Web の並びで
+            // Visible lane ids in Web order
             var shown = OwnSectionIds.Where(id => root.Query<VisualElement>(id).ToList().Any(IsEffectivelyShown)).ToArray();
             CollectionAssert.AreEqual(expectedOwnIds, shown, string.Join(",", shown));
         }
 
-        // 本番の 7 工場に entry の値を入れた偽の Model を差し、標準の本文を組んで載せる
-        // Plug the 7 production factories with fake models holding the entry's values, then build and mount the standard body
+        // 7 工場に偽の Model を差し本文を載せる
+        // Plug fake models into 7 factories and mount the body
         private VisualElement MountBody(SectionStackRegressionEntry entry)
         {
             var machine = new FakeMachineSectionModel();

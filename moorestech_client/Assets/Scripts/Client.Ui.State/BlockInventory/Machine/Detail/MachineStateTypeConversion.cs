@@ -4,8 +4,8 @@ using Game.Block.Blocks.Machine;
 namespace Client.Ui.State.BlockInventory.Machine.Detail
 {
     /// <summary>
-    /// サーバーの機械の状態文字列を表示の状態へ写す（Web ホストは camelCase の文字列で渡していた）
-    /// Maps the server's machine state string onto the display state (the Web host passed it as a camelCase string)
+    /// サーバーの状態文字列を表示の状態へ写す
+    /// Maps the server's machine state string onto the display state
     /// </summary>
     public static class MachineStateTypeConversion
     {

@@ -6,8 +6,8 @@ using Client.Ui.State.BlockInventory.Family.Models;
 namespace Client.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 採掘機の区画の工場（SectionStackSlot.Miner）。出すかは Model の有無で区画が決める
-    /// Factory of the miner section (SectionStackSlot.Miner); the section decides from the model's presence whether to show
+    /// 採掘機の区画の工場
+    /// Factory of the miner section (SectionStackSlot.Miner); shown when the model is present
     /// </summary>
     public sealed class MinerSectionFactory : ISectionStackSectionFactory
     {

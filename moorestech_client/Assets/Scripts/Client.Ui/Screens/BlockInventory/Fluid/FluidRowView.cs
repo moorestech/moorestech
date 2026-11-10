@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の行（Web の FluidSlotRow を区画に置いたもの）。液体の枠の横並びと、設定次第の進捗の矢印
-    /// Fluid row (the Web FluidSlotRow placed in a section): fluid cells and an optional progress arrow
+    /// 液体の行（Web の FluidSlotRow）
+    /// Fluid row (Web FluidSlotRow in a section): fluid cells and an optional progress arrow
     /// </summary>
     public sealed class FluidRowView : VisualElement
     {
@@ -27,8 +27,8 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
             for (var i = 0; i < contents.Length; i++) contents[i] = FluidSlotContentMapper.Map(viewModel.Slots[i], _content);
             _row.SetFluids(contents);
 
-            // 進捗は設定で出す blockType かつ値があるときだけ
-            // Progress only for block types that show it and when a value exists
+            // 進捗は設定の型で値があるときだけ
+            // Progress only for configured types with a value
             if (showProgress && viewModel.HasProgress) _row.SetProgress(viewModel.Progress);
             else _row.ClearProgress();
         }

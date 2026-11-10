@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋欄: クラス（密閉できていない理由）・空気・清浄機・停止理由の順（Web CleanRoomSection）。取れていない間は取得状態の 1 行だけ
-    /// Room section: class (or why unsealed), air, purifiers, halt reason in order (Web CleanRoomSection); only the fetch-state line while unavailable
+    /// 部屋欄: クラス・空気・清浄機・停止理由の順
+    /// Room section: class, air, purifiers, halt reason in order (Web CleanRoomSection); only the fetch-state line while unavailable
     /// </summary>
     public sealed class CleanRoomSectionView : VisualElement
     {
@@ -40,41 +40,41 @@ namespace Client.Ui.Screens.BlockInventory.Context
             }
             RenderFetched(((FetchedContextEntry<CleanRoomFetchedDetail>)entry).Value);
             ContextRowList.MountOnly(this, _section.Stack);
-        }
-
-        private void RenderFetched(CleanRoomFetchedDetail detail)
-        {
-            var display = CleanRoomLogic.Display(detail);
-            var rows = new List<VisualElement>();
-
-            // 見出しは不足のときだけ赤。空気と清浄機の行は密閉された部屋にだけある
-            // The headline is red only when insufficient; air and purifier rows exist only for an enclosed room
-            _headline.Render(display.Headline, display.HeadlineInsufficient);
-            rows.Add(_headline);
-            if (display is EnclosedCleanRoomDisplay enclosed)
-            {
-                _air.SetText(enclosed.Air);
-                rows.Add(_air);
-                AddFilterRows(enclosed);
-                if (enclosed.ShowsNoFilter)
-                {
-                    _noFilter.Render(enclosed.NoFilter, true);
-                    rows.Add(_noFilter);
-                }
-            }
-
-            // 止まっていなければ停止理由の行は無い
-            // No halt-reason row while not halted
-            if (display.TryGetHaltReason(out var haltReason))
-            {
-                _haltReason.Render(haltReason, true);
-                rows.Add(_haltReason);
-            }
-            _section.SetRows(rows);
 
             #region Internal
 
-            void AddFilterRows(EnclosedCleanRoomDisplay source)
+            void RenderFetched(CleanRoomFetchedDetail detail)
+            {
+                var display = CleanRoomLogic.Display(detail);
+                var rows = new List<VisualElement>();
+
+                // 赤は不足のときだけ。空気は密閉時のみ
+                // Red only when insufficient; air and purifier rows exist only for an enclosed room
+                _headline.Render(display.Headline, display.HeadlineInsufficient);
+                rows.Add(_headline);
+                if (display is EnclosedCleanRoomDisplay enclosed)
+                {
+                    _air.SetText(enclosed.Air);
+                    rows.Add(_air);
+                    AddFilterRows(enclosed, rows);
+                    if (enclosed.ShowsNoFilter)
+                    {
+                        _noFilter.Render(enclosed.NoFilter, true);
+                        rows.Add(_noFilter);
+                    }
+                }
+
+                // 止まっていなければ停止理由の行は無い
+                // No halt-reason row while not halted
+                if (display.TryGetHaltReason(out var haltReason))
+                {
+                    _haltReason.Render(haltReason, true);
+                    rows.Add(_haltReason);
+                }
+                _section.SetRows(rows);
+            }
+
+            void AddFilterRows(EnclosedCleanRoomDisplay source, List<VisualElement> rows)
             {
                 for (var i = 0; i < source.Filters.Count; i++)
                 {

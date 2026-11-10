@@ -19,8 +19,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画の L1 の土台（品と水の名前を辞書へ重ね、偽の機械・文脈の Model と記録係のコマンドで区画を組む）
-    /// Base of the machine-section L1 tests (overlays item and water names, builds the section with fake machine/context models and recording commands)
+    /// 機械の区画の L1 の土台
+    /// Base of the machine-section L1 tests
     /// </summary>
     public abstract class MachineScreenTestHost : BlockInventoryScreenTestHost
     {
@@ -65,8 +65,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 
         protected static GameContentPresentation Content => new(new FakeContentTextureSource(Texture, Texture, Texture));
 
-        // View＋Presenter を組んで Attach し、機械の値を流してから載せる（Machine.uss は土台のテーマ GameUiTheme.tss から当たる）
-        // Build the view and presenter, attach, push the machine value and mount (Machine.uss comes from the host theme GameUiTheme.tss)
+        // View＋Presenter を組み、値を流して載せる
+        // Build view and presenter, attach, push the value and mount
         protected MachineSectionView MountSection(MachineSectionViewModel viewModel, bool fillsPanelHeight)
         {
             var view = new MachineSectionView(fillsPanelHeight, Content, Commands, Toaster, OsCursor, RecipeSelect);

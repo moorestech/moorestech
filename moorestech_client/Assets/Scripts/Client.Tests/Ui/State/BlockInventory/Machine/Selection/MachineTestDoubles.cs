@@ -21,8 +21,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
     }
 
     /// <summary>
-    /// 選んだ GUID を順に覚えて受理を返すレシピ選択コマンドの偽物（画面のテストが使う）
-    /// Fake recipe-select command that records the chosen GUIDs in order and accepts (used by screen tests)
+    /// 選んだ GUID を覚えるコマンドの偽物
+    /// Fake recipe-select command recording chosen GUIDs in order and accepting, for screen tests
     /// </summary>
     public sealed class RecordingRecipeSelectCommand : IMachineRecipeSelectCommand
     {

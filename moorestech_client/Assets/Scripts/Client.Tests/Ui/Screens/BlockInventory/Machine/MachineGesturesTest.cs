@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の枠の押下が番地つきでブロックの型付きコマンドへ渡ること（Web の送信は alpha のコマンドが呼ばれたことで写す）
-    /// Machine slot presses reach the typed block commands with their slot index (the Web sends are ported as the alpha commands being called)
+    /// 機械の枠の押下が型付きコマンドへ渡る
+    /// Machine slot presses reach the typed block commands
     /// </summary>
     public class MachineGesturesTest : MachineScreenTestHost
     {
@@ -53,7 +53,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         [Test]
         public void 加工中の状態更新では枠の要素が同一のままダブルクリックが届く()
         {
-            // 入力 1・出力 1・モジュール 1。描いた枠を控える
+            // 入力 1・出力 1・モジュール 1
             // 1 input, 1 output, 1 module; keep the drawn slots
             var root = MountSection(MachineScreenViewModels.Filled(1, 1, 0.1f, FirstItem, 3, 1), false).Root;
             var output = Slot(root, "machine-output-slot-0");
@@ -63,16 +63,16 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             Assert.IsNotNull(input);
             Assert.IsNotNull(module);
 
-            // 進捗と個数だけ違う更新では同じ要素のまま個数が新しい値になる
-            // An update differing only in progress and counts keeps the same elements with the new counts
+            // 進捗と個数だけの更新は個数だけ変わる
+            // A progress/count-only update changes counts only
             SetMachine(MachineScreenViewModels.Filled(1, 1, 0.6f, FirstItem, 7, 1));
             Assert.AreSame(output, Slot(root, "machine-output-slot-0"));
             Assert.AreSame(input, Slot(root, "machine-input-slot-0"));
             Assert.AreSame(module, Slot(root, "machine-module-slot-0"));
             Assert.AreEqual("7", output.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph").text);
 
-            // 1 回目と 2 回目のクリックの間に状態更新が来てもダブルクリックとして届く
-            // A state update between the first and second click still yields one double click
+            // 間に状態更新が来てもダブルクリック
+            // A state update between clicks still double-clicks
             simulate.MouseMove(new Vector2(600, 400), output.worldBound.center);
             // 更新は Model の差し替えで同期に描かせる（FrameUpdate を挟むと模擬の時計がダブルクリックの間隔を越えると実測した）
             // The update renders synchronously via the model swap (measured: a FrameUpdate in between pushes the simulated clock past the double-click window)

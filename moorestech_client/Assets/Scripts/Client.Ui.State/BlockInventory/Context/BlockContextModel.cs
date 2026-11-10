@@ -8,8 +8,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋・抽選・詰まりの 3 欄を、追跡替え・状態変化・1 秒ポーリングの更新で配り直す
-    /// Re-publishes the room, draw and stall entries on tracking changes, state changes and the one-second poll updates
+    /// 部屋・抽選・詰まりの 3 欄を更新のたび配り直す
+    /// Re-publishes room, draw and stall entries on updates
     /// </summary>
     public sealed class BlockContextModel : IBlockContextModel, IInitializable
     {
@@ -48,8 +48,8 @@ namespace Client.Ui.State.BlockInventory.Context
 
             ContextEntry<CleanRoomFetchedDetail> BuildCleanRoom()
             {
-                // 部屋の照会を追わないブロックは取得状態も読まない
-                // Blocks that do not follow the room query skip reading the fetch state too
+                // 部屋を追わないなら取得状態も読まない
+                // Not following rooms skips the fetch state too
                 if (_cache.CleanRoomTarget == CleanRoomDetailTarget.None) return ContextEntry<CleanRoomFetchedDetail>.Absent;
                 var fetchState = _cache.GetCleanRoom(out var view);
                 var operability = block.GetStateDetail<CleanRoomOperabilityStateDetail>(CleanRoomOperabilityStateDetail.BlockStateDetailKey);

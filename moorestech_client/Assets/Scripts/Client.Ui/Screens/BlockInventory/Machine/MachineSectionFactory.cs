@@ -10,8 +10,8 @@ using Client.Ui.State.Toast;
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画の工場（SectionStackSlot.Machine）。コマンドとトースターは View へ渡し、Presenter は持たない
-    /// Factory of the machine section (SectionStackSlot.Machine); commands and the toaster go to the view, never the presenter
+    /// 機械の区画の工場
+    /// Factory of the machine section (SectionStackSlot.Machine); commands and toaster go to the view, never the presenter
     /// </summary>
     public sealed class MachineSectionFactory : ISectionStackSectionFactory
     {

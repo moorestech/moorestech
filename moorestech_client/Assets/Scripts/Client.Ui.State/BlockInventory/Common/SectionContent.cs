@@ -1,7 +1,7 @@
 namespace Client.Ui.State.BlockInventory.Common
 {
     /// <summary>
-    /// 区画の値の有無。無しを null で表さず、出し入れはこの真偽で決める
+    /// 区画の値の有無。無しは null にしない
     /// Whether a section has a value; absence is never null, and showing follows this flag
     /// </summary>
     public readonly struct SectionContent<T>

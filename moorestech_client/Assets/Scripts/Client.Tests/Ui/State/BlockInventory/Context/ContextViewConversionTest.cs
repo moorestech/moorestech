@@ -15,8 +15,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋・抽選・詰まりの照会から 3 欄への写し（Web ホストの 3 本の Builder と同じ分岐）
-    /// Mapping the room, draw and stall queries onto the three entries (same branches as the Web host's three builders)
+    /// 照会から 3 欄への写し
+    /// Mapping the room, draw and stall queries onto the three entries, as the Web host builders
     /// </summary>
     public class ContextViewConversionTest
     {

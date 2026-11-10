@@ -25,18 +25,18 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 清浄室の配置の写しの土台（Web cleanRoomFixtures と同じ形の部屋・機械を舞台 1280×720 のシェルに開き、Web の配置の検証を写す）
-    /// Base of the clean-room layout ports (opens Web cleanRoomFixtures-shaped rooms and machines in the 1280x720 shell, ports the Web layout checks)
+    /// 清浄室の配置の写しの土台
+    /// Base of the clean-room layout ports
     /// </summary>
     public abstract class CleanRoomLayoutTestHost : MachineScreenTestHost
     {
-        // Web の MIN_BODY_VIEWPORT_HEIGHT と同じ（0px に潰れた視口を捕まえる下限）
-        // Same as the Web MIN_BODY_VIEWPORT_HEIGHT (floor that catches a collapsed 0px viewport)
+        // Web の最小視口高と同じ
+        // Same floor as Web MIN_BODY_VIEWPORT_HEIGHT, catching a collapsed viewport
         protected const float MinBodyViewportHeight = 120f;
         private const float Tolerance = 0.5f;
 
-        // 清浄機の面（Web cleanRoomAirFilterWith）: フィルタ枠 1 つと部屋欄。Web openBlock と同じく大型でないことを先に確かめる
-        // The purifier panel (Web cleanRoomAirFilterWith): one filter slot plus the room section; asserts non-large first like Web openBlock
+        // 清浄機の面。大型でないことを先に確かめる
+        // The purifier panel; asserts non-large first like Web openBlock
         protected BlockInventoryTestShell OpenAirFilterPanel(int filterCount)
         {
             ContextModel.Set(Room(filterCount));
@@ -55,8 +55,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             simulate.FrameUpdate();
         }
 
-        // 部屋の中の大型機械（Web cleanRoomMachineWith）。filterCount が負なら部屋の無い機械（Web blockMachine）
-        // The large interior machine (Web cleanRoomMachineWith); a negative filterCount is the roomless machine (Web blockMachine)
+        // 部屋の中の大型機械。負なら部屋なし
+        // The large interior machine; negative filterCount means no room
         protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount)
         {
             var slots = Enumerable.Repeat(new SlotItem(new ItemId(0), 0), 4).ToArray();
@@ -73,8 +73,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
         private BlockInventoryTestShell OpenShell(BlockInventoryPanelState panel)
         {
-            // 本番の GameUi と同じく機械・文脈の工場と大型の寄与を差す
-            // Plug the machine and context factories and the large-panel rule, as the real GameUi does
+            // 本番と同じく機械・文脈の工場と寄与を差す
+            // Plug machine, context factories and rule, as production
             var rule = new RecipeMachineLargePanelRule(MachineModel);
             rule.Initialize();
             var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, new RecordingRecipeSelectCommand(), OsCursor);
@@ -85,8 +85,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             return shell;
         }
 
-        // 清浄機 filterCount 台の密閉済みの部屋（機械の区画のテストも使う）
-        // A sealed room with filterCount purifiers (the machine-section tests use it too)
+        // filterCount 台の密閉済みの部屋
+        // A sealed room with filterCount purifiers
         public static BlockContextViewModel Room(int filterCount)
         {
             var filters = Enumerable.Range(0, filterCount).Select(_ => new CleanRoomAirFilter(1, 5, 0.5)).ToArray();
@@ -95,8 +95,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             return new BlockContextViewModel(entry, ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Absent);
         }
 
-        // Web expectReachableInScrollViewport: 視口へ寄せ、上下端が視口の中で中心に当たる
-        // Web expectReachableInScrollViewport: scroll into the viewport, both edges inside it, hit at the centre
+        // Web expectReachableInScroll
+        // Web expectReachableInScrollViewport: edges inside the viewport, hit at centre
         protected void ExpectReachableInScrollViewport(GameScrollView scroll, VisualElement target)
         {
             scroll.ScrollTo(target);
@@ -114,8 +114,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             ExpectReachableInScrollViewport(target.GetFirstAncestorOfType<GameScrollView>(), target);
         }
 
-        // Web expectFooterReadable: フッタは器の外・パネル内で中心に当たる
-        // Web expectFooterReadable: the footer sits outside the scroller, inside the panel, and is hit at its centre
+        // Web expectFooterReadable の写し
+        // Web expectFooterReadable: the footer is hit at its centre
         protected static void ExpectFooterReadable(BlockInventoryTestShell shell)
         {
             var panel = shell.View.worldBound;
@@ -129,8 +129,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             }
         }
 
-        // Web expectSharedBodyViewport: 部屋欄と本文は入れ子なしの同じ視口で、使える高さがありフッタの上で終わる
-        // Web expectSharedBodyViewport: room and body share one un-nested viewport of usable height ending above the footer
+        // Web expectSharedBody の写し
+        // Web expectSharedBodyViewport: room and body share one viewport ending above the footer
         protected static void ExpectSharedBodyViewport(BlockInventoryTestShell shell, string bodyName)
         {
             var scroll = shell.View.Q(bodyName).GetFirstAncestorOfType<GameScrollView>();
@@ -148,8 +148,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             ExpectSharedBodyViewport(shell, "machine-inventory-body");
         }
 
-        // Web expectHitTestWithin と同じく測る間だけ対象を当たり判定に入れ、中心の Pick が対象かその子孫
-        // As Web expectHitTestWithin, make the target pickable only while measuring; the centre Pick is the target or a descendant
+        // Web expectHitTestWithin の写し
+        // As Web expectHitTestWithin, pickable only while measuring; the centre Pick is the target or a descendant
         private static void ExpectHitAtCenter(VisualElement target)
         {
             var original = target.pickingMode;

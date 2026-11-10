@@ -3,8 +3,8 @@ using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋・抽選・詰まりの 3 欄。HasAny は Web SectionStackView の hasContextSections と同形（機械以外の区画を出す条件）
-    /// The room, draw and stall entries; HasAny mirrors Web SectionStackView's hasContextSections (the condition for non-machine sections)
+    /// 部屋・抽選・詰まりの 3 欄
+    /// The three context entries; HasAny mirrors Web SectionStackView hasContextSections
     /// </summary>
     public sealed class BlockContextViewModel
     {

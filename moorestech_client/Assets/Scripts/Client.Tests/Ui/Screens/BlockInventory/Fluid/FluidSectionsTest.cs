@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の 2 区画（行と詳細）の出し分け。blockType ごとの設定・機械・件数で決まる
-    /// Visibility of the two fluid sections (row and details) per blockType setting, machine and fluid count
+    /// 液体の 2 区画の出し分け
+    /// Visibility of the two fluid sections
     /// </summary>
     public class FluidSectionsTest : FluidScreenTestHost
     {
@@ -32,9 +32,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             var body = MountBody(blockType);
             SetFluids(0.4f, BlockFluidSlotState.Empty(100));
 
-            var rowNames = Shown<FluidSlotRow>(body.Root).Select(row => row.name).ToArray();
+            var rowNames = Shown<FluidSlotRow>(body.Root, null, null).Select(row => row.name).ToArray();
             Assert.AreEqual(fluidRowTestId == null ? new string[0] : new[] { fluidRowTestId }, rowNames);
-            if (fluidRowTestId != null) Assert.AreEqual(showFluidProgress ? 1 : 0, Shown<VisualElement>(body.Root, "progress-arrow-bar").Count);
+            if (fluidRowTestId != null) Assert.AreEqual(showFluidProgress ? 1 : 0, Shown<VisualElement>(body.Root, "progress-arrow-bar", null).Count);
         }
 
         [TestCase("ElectricPump", "pump-fluid-slots")]
@@ -44,8 +44,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             var body = MountBody(blockType);
             SetFluids(0.4f, BlockFluidSlotState.Empty(100));
 
-            Assert.AreEqual(new[] { rowTestId }, Shown<FluidSlotRow>(body.Root).Select(row => row.name).ToArray());
-            Assert.AreEqual(0, Shown<VisualElement>(body.Root, "progress-arrow-bar").Count);
+            Assert.AreEqual(new[] { rowTestId }, Shown<FluidSlotRow>(body.Root, null, null).Select(row => row.name).ToArray());
+            Assert.AreEqual(0, Shown<VisualElement>(body.Root, "progress-arrow-bar", null).Count);
         }
 
         [Test]
@@ -54,8 +54,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             var body = MountBody("FluidPipe");
             SetFluids(null, BlockFluidSlotState.Empty(100));
 
-            Assert.AreEqual(1, Shown<VisualElement>(body.Root, "fluid-pipe-fluid-slots").Count);
-            Assert.AreEqual(new[] { "fluid-pipe-fluid-slots-slot-0" }, Shown<FluidSlotRow>(body.Root).Select(row => row.name).ToArray());
+            Assert.AreEqual(1, Shown<VisualElement>(body.Root, "fluid-pipe-fluid-slots", null).Count);
+            Assert.AreEqual(new[] { "fluid-pipe-fluid-slots-slot-0" }, Shown<FluidSlotRow>(body.Root, null, null).Select(row => row.name).ToArray());
         }
 
         [Test]
@@ -63,15 +63,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         {
             var body = MountBody("unknown");
             SetFluids(null, BlockFluidSlotState.Empty(100));
-            Assert.AreEqual(1, Shown<FluidSlotRow>(body.Root).Count);
+            Assert.AreEqual(1, Shown<FluidSlotRow>(body.Root, null, null).Count);
 
             Machine.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModelWithModules(0, 0f, 1)));
             simulate.FrameUpdate();
-            Assert.AreEqual(0, Shown<FluidSlotRow>(body.Root).Count);
+            Assert.AreEqual(0, Shown<FluidSlotRow>(body.Root, null, null).Count);
 
             Machine.Set(SectionContent<MachineSectionViewModel>.Absent);
             simulate.FrameUpdate();
-            Assert.AreEqual(1, Shown<FluidSlotRow>(body.Root).Count);
+            Assert.AreEqual(1, Shown<FluidSlotRow>(body.Root, null, null).Count);
         }
 
         [TestCase("unknown")]
@@ -81,7 +81,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             var body = MountBody(blockType);
             SetFluids(null);
 
-            Assert.AreEqual(0, Shown<FluidSlotRow>(body.Root).Count);
+            Assert.AreEqual(0, Shown<FluidSlotRow>(body.Root, null, null).Count);
         }
     }
 }

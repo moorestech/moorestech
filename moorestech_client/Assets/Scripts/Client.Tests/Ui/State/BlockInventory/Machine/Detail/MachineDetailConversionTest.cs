@@ -16,8 +16,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.BlockInventory.Machine.Detail
 {
     /// <summary>
-    /// 機械の状態詳細から詳細を組む変換（束縛の番号規則・未選択・読めない値の fail-closed）
-    /// The conversion from machine state details to the detail (binding numbering, unselected, fail-closed on unreadable values)
+    /// 機械の状態詳細から詳細を組む変換
+    /// Conversion from machine state details; binding numbering, unselected, fail-closed
     /// </summary>
     public class MachineDetailConversionTest
     {
@@ -54,8 +54,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Detail
                 CollectionAssert.AreEqual(MachineRecipeSlotBindingUtil.GetAcceptedOutputItemIds(_recipe, j), slot.AcceptedItemIds);
             }
 
-            // タンクは入力 i、出力 j は InputTankCount + j
-            // Tanks: input i, output j at InputTankCount + j
+            // タンクは入力 i、出力は後ろ
+            // Tanks: input i, outputs after inputs
             var tanks = detail.Binding.TankBindings;
             for (var i = 0; i < _recipe.InputFluids.Length; i++) Assert.AreEqual(i, tanks[i].Tank);
             for (var j = 0; j < _recipe.OutputFluids.Length; j++) Assert.AreEqual(InputTanks + j, tanks[_recipe.InputFluids.Length + j].Tank);

@@ -6,8 +6,8 @@ using Client.Ui.State.BlockInventory.Logic.Machine;
 namespace Client.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の列の 1 件を液体の枠の中身へ写す（C4-a の約束: 中身あり→Filled、空でゴーストあり→Ghost、他→Empty）
-    /// Maps one fluid entry onto fluid-slot content (C4-a contract: filled→Filled, empty with ghost→Ghost, else Empty)
+    /// 液体の列の 1 件を枠の中身へ写す
+    /// Maps one fluid entry onto slot content (C4-a): filled→Filled, empty with ghost→Ghost, else Empty
     /// </summary>
     public static class FluidSlotContentMapper
     {

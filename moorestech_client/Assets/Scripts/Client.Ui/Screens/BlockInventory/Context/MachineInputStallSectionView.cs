@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 搬入停止欄: 止まった理由を待っている品の名前つきで赤字で出す（Web MachineInputStallSection）。取れていない間は赤くない取得状態の 1 行だけ
-    /// Inflow-stall section: the stall reason in red naming the waiting item (Web MachineInputStallSection); a non-red fetch-state line while unavailable
+    /// 搬入停止欄
+    /// Inflow-stall section: the stall reason in red naming the waiting item; a non-red fetch-state line while unavailable
     /// </summary>
     public sealed class MachineInputStallSectionView : VisualElement
     {

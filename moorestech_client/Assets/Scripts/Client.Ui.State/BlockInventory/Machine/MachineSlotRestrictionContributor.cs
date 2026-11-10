@@ -5,8 +5,8 @@ using Client.Ui.State.BlockInventory.SlotRestriction;
 namespace Client.Ui.State.BlockInventory.Machine
 {
     /// <summary>
-    /// 開いた機械の選択レシピの束縛を Shift 配分の入力へ足す寄与
-    /// The contribution that adds the open machine's selected-recipe binding to the Shift-allocation input
+    /// 選択レシピの束縛を Shift 配分の入力へ足す寄与
+    /// Adds the selected recipe binding to Shift allocation
     /// </summary>
     public sealed class MachineSlotRestrictionContributor : IBlockSlotRestrictionContributor
     {
@@ -17,8 +17,8 @@ namespace Client.Ui.State.BlockInventory.Machine
             _model = model;
         }
 
-        // 前に開いた機械の値を別のブロックへ当てないよう、個体 ID の一致を見る
-        // Match the instance ID so a previously opened machine's value never applies to another block
+        // 前の機械の値を当てないよう個体 ID を見る
+        // Match instance ID so old values never apply
         public bool AppliesTo(OpenBlockInventoryPanel panel)
         {
             var current = _model.Current.Value;

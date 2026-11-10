@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Ui.State.BlockInventory.Machine.Selection
 {
     /// <summary>
-    /// 開いた機械のレシピを選んで送る。検査と応答の扱いは Web ホスト MachineRecipeSelectActionHandler と同じ（UITK に写し直した）
-    /// Selects and sends the open machine's recipe; checks and response handling match the Web host's MachineRecipeSelectActionHandler (ported to UITK)
+    /// 開いた機械のレシピを選んで送る
+    /// Selects and sends the open machine's recipe; checks and responses match the Web host's MachineRecipeSelectActionHandler
     /// </summary>
     public sealed class MachineRecipeSelectCommand : IMachineRecipeSelectCommand
     {
@@ -33,12 +33,12 @@ namespace Client.Ui.State.BlockInventory.Machine.Selection
         {
             // 送れない要求は非良性の拒否で返す（Web と同じくトーストする。GUID はここでログへ出す。D-38）
             // Requests that cannot go return a non-benign rejection (toasts like Web; the GUID is logged here; D-38)
-            if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || panel.Error != BlockInventoryPanelError.None) return Reject(UiCommandRejectReason.BlockNotOpen, "");
+            if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return Reject(UiCommandRejectReason.BlockNotOpen, "");
             if (!_unlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var unlock)) return Reject(UiCommandRejectReason.MachineRecipeInvalid, "");
             if (!unlock.IsUnlocked) return Reject(UiCommandRejectReason.MachineRecipeLocked, "");
 
-            // 選択中と同じレシピは送らずに受理する（Web MachineSection の onSelect。選択モードは要求の一致で閉じる）
-            // The already-selected recipe is accepted without sending (Web MachineSection onSelect; the mode closes on the request match)
+            // 選択中と同じレシピは送らず受理
+            // The already-selected recipe is accepted unsent, as Web onSelect; the mode closes on the request match
             if (_machine.Current.Value.IsPresent && _machine.Current.Value.Value.Detail.Selection.Matches(recipeGuid)) return UiCommandAccepted.Instance;
 
             // 応答はネットワーク由来なので null も拒否として扱う（Web ホストと同じ判定。例外は捕まえない）

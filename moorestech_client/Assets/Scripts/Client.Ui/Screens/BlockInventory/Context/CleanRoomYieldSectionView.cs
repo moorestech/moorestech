@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 抽選の中身欄: 工程の失敗率、またはダイシングの品質 Tier・損失率・レベル別割合（Web CleanRoomYieldSection）。取れていない間は取得状態の 1 行だけ
-    /// Draw-detail section: a process's fail rate, or dicing tier, loss and level shares (Web CleanRoomYieldSection); only the fetch-state line while unavailable
+    /// 抽選の中身欄: 失敗率またはダイシング品質
+    /// Draw-detail section: fail rate or dicing tier, loss and level shares; fetch-state line only while unavailable
     /// </summary>
     public sealed class CleanRoomYieldSectionView : VisualElement
     {
@@ -35,8 +35,8 @@ namespace Client.Ui.Screens.BlockInventory.Context
             var rows = new List<VisualElement>();
             for (var i = 0; i < lines.Count; i++)
             {
-                // 行の数だけラベルを使い回し、名前と文を毎回差す
-                // Reuse labels per line index, setting the name and text each time
+                // 行数だけラベルを使い回し毎回差す
+                // Reuse labels per line and set text each time
                 if (i == _labels.Count) _labels.Add(NewLabel());
                 _labels[i].name = lines[i].RowId;
                 _labels[i].SetText(lines[i].Text);

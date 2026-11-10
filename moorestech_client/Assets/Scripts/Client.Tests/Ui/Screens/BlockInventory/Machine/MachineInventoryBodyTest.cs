@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の素材の枠の所持/必要と、数字の上の押下（View＋Presenter を偽の Model で組む）
-    /// Held/required on machine input slots and presses over the numbers (view and presenter on a fake model)
+    /// 機械の素材の枠の所持/必要と押下
+    /// Held/required on machine input slots and presses
     /// </summary>
     public class MachineInventoryBodyTest : MachineScreenTestHost
     {
@@ -15,8 +15,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         [Test]
         public void 必要数を満たした素材は所持と必要を黒字で個数バッジなし()
         {
-            // 素材 1 に必要 2 の束縛、枠 0 に 3 個
-            // Input binding needs 2 of the item; slot 0 holds 3
+            // 必要 2 の束縛、枠 0 に 3 個
+            // Binding needs 2; slot 0 holds 3
             var root = MountSection(MachineScreenViewModels.WithInput(FirstItem, 2, 3), false).Root;
             var slot = Find<SlotFrame>(root, "machine-input-slot-0");
 
@@ -64,8 +64,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var slot = Find<SlotFrame>(root, "machine-input-slot-0");
             var center = ShortageLabel(slot).worldBound.center;
 
-            // 実ゲームと同じく押す前にポインタを舞台へ入れる
-            // Move the pointer into the stage before pressing, as in the game
+            // 実ゲームと同じく押す前に入れる
+            // Enter the pointer before pressing, as in game
             simulate.MouseMove(new Vector2(600, 400), center);
             simulate.MouseDown(center, MouseButton.RightMouse);
             simulate.MouseUp(center, MouseButton.RightMouse);
@@ -73,8 +73,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             CollectionAssert.AreEqual(new[] { "RightDown:0" }, Commands.Issued);
         }
 
-        // 所持/必要と個数バッジは ItemSlot（枠の親）が持つ。C3-a ItemSlotShortageTest と同じ引き方
-        // Held/required and the count badge live on ItemSlot (the frame's parent); same lookup as C3-a ItemSlotShortageTest
+        // 所持/必要と個数バッジは ItemSlot が持つ
+        // Held/required and count badge live on ItemSlot, as in C3-a ItemSlotShortageTest
         private static Label ShortageLabel(SlotFrame frame)
         {
             return frame.parent.Q<Label>(null, "item-slot__shortage", "outlined-count-label--glyph");

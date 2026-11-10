@@ -11,24 +11,24 @@ using UnityEngine;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋の照会を L0-s4b の入力型へ写す（Web ホスト CleanRoomDetailDtoBuilder の写し）
-    /// Maps the room query onto L0-s4b's input type (port of the Web host's CleanRoomDetailDtoBuilder)
+    /// 部屋の照会を入力型へ写す
+    /// Maps the room query onto L0-s4b's input type, as the Web host's CleanRoomDetailDtoBuilder
     /// </summary>
     public static class CleanRoomViewConversion
     {
-        // 対象の種類・取得状態・稼働可否の状態詳細から部屋欄を決める（Model の組み立てから切り出した静的関数）
-        // Decides the room entry from the target kind, fetch state and operability detail (a static function split out of the model's assembly)
+        // 部屋欄を状態詳細から決める静的関数
+        // Decides the room entry from target kind, fetch state and operability; static function split from the model
         public static ContextEntry<CleanRoomFetchedDetail> Build(CleanRoomDetailTarget target, BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomOperabilityStateDetail operability)
         {
             if (target == CleanRoomDetailTarget.None) return ContextEntry<CleanRoomFetchedDetail>.Absent;
 
-            // 未取得は対象の種類によらず取得状態の 1 行（Web ホスト CleanRoomDetailDtoBuilder と同じ順）
-            // Not fetched yields the fetch-state line for any target (same order as the Web host's CleanRoomDetailDtoBuilder)
+            // 未取得は取得状態の 1 行
+            // Not fetched yields the fetch-state line for any target, in the Web host's order
             if (fetchState != BlockInfoFetchState.Fetched) return Convert(fetchState, view, CleanRoomHaltReason.None);
             if (target == CleanRoomDetailTarget.AirFilter) return Convert(fetchState, view, CleanRoomHaltReason.None);
 
-            // 取得済みの室内機械の停止理由は状態詳細から（揃わない間は欄ごと出さない。Web ホストと同じ）
-            // A fetched interior machine's halt reason comes from its state detail (no entry until present, like the Web host)
+            // 室内機械の停止理由は状態詳細から
+            // A fetched interior machine's halt reason comes from its state detail; no entry until present
             // silent-ok: 稼働可否の状態詳細が届く前は欄を出さない（Web ホストと同じ） / 届けば状態変化の購読で出る
             if (operability == null) return ContextEntry<CleanRoomFetchedDetail>.Absent;
             if (!Enum.IsDefined(typeof(CleanRoomOperability), operability.Operability))
@@ -40,7 +40,7 @@ namespace Client.Ui.State.BlockInventory.Context
             return Convert(fetchState, view, haltReason);
         }
 
-        public static ContextEntry<CleanRoomFetchedDetail> Convert(BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason)
+        private static ContextEntry<CleanRoomFetchedDetail> Convert(BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason)
         {
             if (fetchState != BlockInfoFetchState.Fetched) return ContextEntry<CleanRoomFetchedDetail>.Unavailable(fetchState);
             switch (view)

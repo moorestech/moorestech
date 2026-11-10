@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 抽選の中身欄の行の並び（View を直に組み、状態を差して見る）
-    /// Draw-detail section row order (builds the View directly and feeds it states)
+    /// 抽選の中身欄の行の並び
+    /// Draw-detail section row order
     /// </summary>
     public class CleanRoomYieldSectionTest : ContextSectionTestHost
     {

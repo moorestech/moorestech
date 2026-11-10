@@ -12,13 +12,12 @@ using Game.Block.Interface;
 namespace Client.Ui.State.BlockInventory.Machine
 {
     /// <summary>
-    /// 開いた機械の区画が描く値（詳細・枠・液体・ゴースト・帯・選択行・モジュールの上限）
-    /// Values the open machine section draws (detail, slots, fluids, ghosts, bands, selection rows, module limit)
+    /// 開いた機械の区画が描く値
+    /// Values the open machine section draws: detail, slots, fluids, ghosts, bands, rows, module limit
     /// </summary>
     public sealed class MachineSectionViewModel
     {
         public BlockInstanceId BlockInstanceId { get; }
-        public Guid BlockGuid { get; }
         public MachineDetail Detail { get; }
         public IReadOnlyList<SlotItem> ItemSlots { get; }
         public IReadOnlyList<BlockFluidSlotState> FluidSlots { get; }
@@ -29,10 +28,9 @@ namespace Client.Ui.State.BlockInventory.Machine
 
         private readonly MachineRecipeCatalog _catalog;
 
-        public MachineSectionViewModel(BlockInstanceId blockInstanceId, Guid blockGuid, MachineDetail detail, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluidSlots, MachineSlotView slotView, MachineSlotBands bands, IReadOnlyList<MachineRecipeSelectionRow> rows, int moduleStackLimit, MachineRecipeCatalog catalog)
+        public MachineSectionViewModel(BlockInstanceId blockInstanceId, MachineDetail detail, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluidSlots, MachineSlotView slotView, MachineSlotBands bands, IReadOnlyList<MachineRecipeSelectionRow> rows, int moduleStackLimit, MachineRecipeCatalog catalog)
         {
             BlockInstanceId = blockInstanceId;
-            BlockGuid = blockGuid;
             Detail = detail;
             ItemSlots = itemSlots;
             FluidSlots = fluidSlots;

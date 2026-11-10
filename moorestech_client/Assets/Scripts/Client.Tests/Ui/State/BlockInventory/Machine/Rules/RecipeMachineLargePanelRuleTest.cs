@@ -42,8 +42,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Rules
             _model.Set(Present(MachineTestDetails.ViewModel(MachineRecipeSelection.Unselected, MachineTestDetails.RecipeA)));
             Assert.IsTrue(_rule.IsLargePanel(panel));
 
-            // 同じ blockType でも個体の違うパネルには前の機械の値を当てない
-            // A panel of another instance of the same blockType never takes the previous machine's value
+            // 個体の違うパネルに前の機械の値を当てない
+            // Another instance's panel never takes the old value
             Assert.IsFalse(_rule.IsLargePanel(MachineTestDetails.Panel(OtherInstanceId, new SlotItem[2])));
         }
 
@@ -62,8 +62,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Rules
             _model.Set(Present(WithProgress(OtherInstanceId, 0.1f, MachineTestDetails.Catalog(MachineTestDetails.RecipeA))));
             Assert.AreEqual(3, count);
 
-            // 加工中の状態更新（進捗だけ違う値）では流さない
-            // A processing update (only the progress differs) does not fire
+            // 進捗だけ違う更新は流さない
+            // A processing update where only the progress differs does not fire
             _model.Set(Present(WithProgress(OtherInstanceId, 0.6f, MachineTestDetails.Catalog(MachineTestDetails.RecipeA))));
             Assert.AreEqual(3, count);
         }

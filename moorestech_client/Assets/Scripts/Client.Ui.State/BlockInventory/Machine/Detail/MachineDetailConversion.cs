@@ -10,16 +10,16 @@ using UnityEngine;
 namespace Client.Ui.State.BlockInventory.Machine.Detail
 {
     /// <summary>
-    /// 機械の 2 つの状態詳細と param から詳細を組む（Web ホスト BlockDetailDtoBuilder の機械部分の写し）
-    /// Builds the machine detail from its two state details and param (port of the machine part of the Web host's BlockDetailDtoBuilder)
+    /// 機械の状態詳細と param から詳細を組む
+    /// Builds the machine detail from its two state details and param, as the Web host's BlockDetailDtoBuilder
     /// </summary>
     public static class MachineDetailConversion
     {
         public static bool TryBuild(CommonMachineBlockStateDetail common, MachineBlockStateDetail machine, IMachineParam param, bool gearDriven, out MachineDetail detail)
         {
             detail = null;
-            // 読めない値は機械の区画ごと出さず、開発者ログへ出す
-            // Unreadable values drop the whole machine section and go to the developer log
+            // 読めない値は区画ごと出さず開発者ログへ
+            // Unreadable values drop the section and go to the log
             if (!MachineRecipeSelection.TryParse(machine.SelectedRecipeGuid, out var selection))
             {
                 Debug.LogError($"[MachineDetailConversion] unreadable SelectedRecipeGuid: '{machine.SelectedRecipeGuid}'");
@@ -36,8 +36,8 @@ namespace Client.Ui.State.BlockInventory.Machine.Detail
                 return false;
             }
 
-            // 束縛は選択レシピ、秒と出力は加工中レシピから引く（Web ホストと同じ）
-            // Binding follows the selected recipe; time and outputs follow the running recipe (same as the Web host)
+            // 束縛は選択レシピ、秒と出力は加工中
+            // Binding follows the selected recipe; time and outputs follow the running recipe
             var running = MasterHolder.MachineRecipesMaster.GetRecipeElement(runningGuid);
             var selected = selection is SelectedMachineRecipe s ? MasterHolder.MachineRecipesMaster.GetRecipeElement(s.RecipeGuid) : null;
             var binding = MachineSlotBindingConversion.Build(selected, param);

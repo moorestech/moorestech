@@ -15,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
 {
     /// <summary>
-    /// レシピ選択の 1 行（Web MachineRecipeSelectionRow）。名前・継承バッジ・静止矢印の RecipeRow。選択中は内側 1px の枠
-    /// One recipe-selection row (Web MachineRecipeSelectionRow): name, inheritance badge, a RecipeRow with an idle arrow; selected rows get a 1px inner frame
+    /// レシピ選択の 1 行
+    /// One selection row (Web MachineRecipeSelectionRow): name, badge, idle-arrow RecipeRow; selected rows get a 1px inner frame
     /// </summary>
     public sealed class MachineRecipeSelectionRowView : VisualElement
     {
@@ -34,7 +34,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
             AddToClassList("machine-recipe-selection-row");
             SetSelected(row.Selected);
 
-            // 名前 → 継承バッジ → 静止矢印の行（アクション欄なし）
+            // 名前→継承バッジ→静止矢印の行
             // Name → inheritance badge → idle-arrow row (no action column)
             var title = new LocalizedLabel { name = $"{rowId}-name", pickingMode = PickingMode.Ignore };
             title.AddToClassList("machine-recipe-selection-row__name");
@@ -44,21 +44,21 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
             if (LevelInheritanceBadgeText.TryBuild(recipe.LevelInheritance, out var badgeText)) badge.Show(badgeText);
             else badge.Hide();
             Add(badge);
-            var duration = new UiText(LocalizationKeys.Ui.BlockInventory.RecipeDuration, new[] { new LocalizationTextParam("seconds", MachineRecipeRowContentBuilder.FormatSeconds(recipe.Time)) });
+            var duration = MachineRecipeNames.Duration(recipe.Time);
             var recipeRow = new RecipeRow($"{rowId}-row", $"{rowId}-arrow", duration);
             recipeRow.SetSlots(MachineRecipeRowContentBuilder.Materials(rowId, recipe, content), MachineRecipeRowContentBuilder.Results(rowId, recipe, content));
             recipeRow.SetIdle();
             Add(recipeRow);
 
-            // 選択中の外周は拾わない絶対配置の枠で描く（UITK に outline が無い。寸法に効かない）
-            // The selected outline is an absolute, non-picking frame (UITK has no outline; it adds no size)
+            // 選択中の外周は絶対配置の枠で描く
+            // Selected outline is an absolute, non-picking frame; UITK has no outline and it adds no size
             var outline = new VisualElement { pickingMode = PickingMode.Ignore };
             outline.AddToClassList("machine-recipe-selection-row__outline");
             Add(outline);
             RegisterCallback<ClickEvent>(_ => _pressed.OnNext(recipeGuid));
 
-            // 行全体が押せる印の指は OS カーソルへ要素の層で要求する（USS の cursor はランタイムで効かない。web: .row の cursor: pointer）
-            // The whole-row pointer is requested on the element layer (USS cursor does nothing at runtime; web: .row cursor: pointer)
+            // 押せる印の指は要素の層で要求する
+            // Whole-row pointer is requested on the element layer; USS cursor does nothing at runtime (web .row cursor: pointer)
             new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
 

@@ -14,8 +14,8 @@ using Core.Master;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
 {
     /// <summary>
-    /// レシピ選択の画面テスト用の値（マスタ読み込み済みが前提。レシピ・機械の値・選択行を組む）
-    /// Values for the recipe-selection screen tests (master must be loaded; builds recipes, machine values and selection rows)
+    /// レシピ選択の画面テスト用の値
+    /// Values for the recipe-selection screen tests; master must be loaded
     /// </summary>
     public static class MachineRecipeSelectionFixtures
     {
@@ -36,8 +36,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             return Recipe(recipeGuid, time, new[] { new ItemAmount(input, 1) }, Array.Empty<RecipeFluidAmount>(), new[] { new ItemAmount(output, 1) }, Array.Empty<RecipeFluidAmount>(), RecipeLevelInheritance.None);
         }
 
-        // 束縛なし・入力 1・出力 1 の機械に、渡したレシピを解放済みにする
-        // An unbound 1-input, 1-output machine with the given recipes unlocked
+        // 束縛なし 1 入力 1 出力に渡したレシピを解放
+        // An unbound 1-in 1-out machine with given recipes
         public static MachineSectionViewModel Machine(MachineRecipeSelection selection, bool outputSpaceShort, params MachineRecipeData[] recipes)
         {
             var detail = new MachineDetail(selection, MachineProcessDisplayState.Idle, 1, 1, 0, outputSpaceShort, false, 0, Array.Empty<RecipeOutputItem>(), MachineTestDetails.Unbound(new MachineSlotLayout(1, 1, 0)));
@@ -45,8 +45,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             return MachineScreenViewModels.Build(detail, slots, MachineRecipeCatalog.Build(recipes), 1);
         }
 
-        // 選んだレシピの素材・結果をそのまま束縛にした機械（入力 2・出力 1・入力タンク 1・出力タンク 1。Web の machine の形）
-        // A machine bound to the selected recipe's materials and results (2 inputs, 1 output, 1+1 tanks; the Web machine fixture shape)
+        // 選んだレシピをそのまま束縛にした機械
+        // A machine bound to the selected recipe's materials and results
         public static MachineSectionViewModel BoundMachine(Guid selectedRecipeGuid, IReadOnlyList<MachineRecipeData> recipes, SlotItem[] slots)
         {
             var selected = recipes.First(recipe => recipe.RecipeGuid == selectedRecipeGuid);
@@ -76,8 +76,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             return recipe;
         }
 
-        // GUID の並びが 1 から n まで続くアイテムレシピ（溢れの検査用）
-        // Item recipes with GUIDs numbered 1..n (for the overflow check)
+        // GUID が 1 から n まで続くアイテムレシピ
+        // Item recipes with GUIDs numbered 1..n, for the overflow check
         public static MachineRecipeData[] ManyItemRecipes(int count, ItemId input, ItemId output)
         {
             return Enumerable.Range(1, count).Select(i => ItemRecipe(new Guid($"00000000-0000-0000-0000-{i:D12}"), 5, input, output)).ToArray();

@@ -31,8 +31,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
     /// <summary>
-    /// UITK 起動で機械の区画の登録が解決し、機械を開くと区画が出て開き直しで前の機械の値が残らない（S4-machine）
-    /// On a UITK boot the machine-section registrations resolve, opening a machine shows its section and reopening another drops the previous value (S4-machine)
+    /// 機械の区画の登録と開き直し
+    /// Machine sections resolve; reopening leaves no previous value
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class GameUiMachineSectionWiringTest : UiSystemPlayModeTestBase
@@ -45,8 +45,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
-            // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
-            // Always call yield return new EnterPlayMode directly under the [UnityTest] function
+            // EnterPlayMode は直下で呼ぶ
+            // Call EnterPlayMode directly under the [UnityTest] function
             yield return new EnterPlayMode(expectDomainReload: true);
             LogAssert.ignoreFailingMessages = true;
 
@@ -80,15 +80,15 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var first = await PlaceMachine(playerPosition + new Vector3Int(1, 0, 0));
                 var second = await PlaceMachine(playerPosition + new Vector3Int(0, 0, 1));
 
-                // 1 台目を開くと区画が出て、追跡中の機械の値になる
-                // Opening the first machine shows the section with the tracked machine's value
+                // 1 台目を開くと区画が出て値が入る
+                // Opening the first machine shows its section and value
                 await OpenSubInventory(uiStateControl, first);
                 var firstPanel = await WaitMachinePresent(machine, panels);
                 Assert.Less(0, machine.Current.Value.Value.Rows.Count, "解放済みのレシピの行が無い");
                 Assert.IsTrue(IsMachineSectionShown(), "機械の区画が画面に出ていない");
 
-                // 開いたまま別の機械へ開き直すと前の機械の値が残らない
-                // Reopening another machine while open leaves nothing of the previous machine
+                // 開き直しで前の機械の値が残らない
+                // Reopening leaves nothing of the previous machine
                 var secondState = await BlockSubInventoryOpener.Open(second);
                 var secondPanel = await WaitMachinePresent(machine, panels);
                 Assert.AreNotEqual(firstPanel.BlockInstanceId, secondPanel.BlockInstanceId);
@@ -118,8 +118,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
         private static void AssertRegistrationsResolve()
         {
-            // 本レーンの工場 7 本・寄与 2 本・コマンドが UITK 起動のコンテナから引ける
-            // This lane's 7 factories, 2 contributions and the command resolve from the UITK boot's container
+            // 工場 7 本と寄与 2 本が引ける
+            // 7 factories, 2 contributions and the command resolve
             var resolver = ClientDIContext.DIContainer.DIContainerResolver;
             var factoryTypes = resolver.Resolve<System.Collections.Generic.IReadOnlyList<ISectionStackSectionFactory>>().Select(f => f.GetType()).ToArray();
             foreach (var type in new[] { typeof(ContextSectionFactory), typeof(MachineSectionFactory), typeof(MinerSectionFactory), typeof(PumpSectionFactory), typeof(GeneratorSectionFactory), typeof(FluidDetailsSectionFactory), typeof(FluidRowSectionFactory) })

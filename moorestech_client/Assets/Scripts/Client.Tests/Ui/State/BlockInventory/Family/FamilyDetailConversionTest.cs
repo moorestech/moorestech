@@ -19,8 +19,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.BlockInventory.Family
 {
     /// <summary>
-    /// 採掘機・ポンプ・発電機の状態詳細から詳細を組む変換（毎分の換算・種別の振り分け・読めない値の fail-closed）
-    /// The conversions from miner, pump and generator state details to details (per-minute conversion, kind dispatch, fail-closed on unreadable values)
+    /// 族の状態詳細から詳細を組む変換
+    /// Conversions from miner, pump and generator state details; fail-closed on unreadable values
     /// </summary>
     public class FamilyDetailConversionTest
     {
@@ -112,7 +112,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
         {
             var param = MasterHolder.BlockMaster.Blocks.Data.Select(b => b.BlockParam).OfType<ElectricPumpBlockParam>().First();
 
-            // silent-ok を検証する。Error ログが出れば Unity が落とす
+            // silent-ok の検証。Error は落ちる
             // Verifies the silent-ok; Unity fails the test if an Error is logged
             Assert.IsFalse(PumpDetailConversion.TryBuild(PumpState(1.5), param, null, out _));
         }

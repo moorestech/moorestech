@@ -17,8 +17,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画（Web MachineSection）。外殻がフッタと伸長を 1 か所で持ち、モードで分かれるのは中身だけ
-    /// The machine section (Web MachineSection); one shell owns the footer and stretch, only the body branches by mode
+    /// 機械の区画（Web MachineSection）
+    /// Machine section (Web MachineSection); one shell owns the footer and stretch, only the body branches by mode
     /// </summary>
     public sealed class MachineSectionView
     {
@@ -58,7 +58,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _inventoryContent.SetItemShown(_header, false);
             _selectionList.OnRowPressed.Subscribe(guid => SelectAsync(guid).Forget());
 
-            // 大型面の本文は器高のスクロール器に入れ、フッタに重ならない（列車の本文と同じ土台）
+            // 大型面の本文はスクロール器に入れる
             // On the large panel the body sits in a container-height scroller so it never overlaps the footer
             _root.EnableInClassList(FillPanelHeightClassName, fillsPanelHeight);
             _inventoryHost = fillsPanelHeight ? WrapInScroll(_inventoryContent) : _inventoryContent;
@@ -73,6 +73,14 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 scroll.AddToClassList("machine-section__inventory-scroll");
                 scroll.Add(inventoryContent);
                 return scroll;
+            }
+
+            async UniTaskVoid SelectAsync(Guid recipeGuid)
+            {
+                // 送るか・受理かの判断はコマンド（State）が持つ。拒否は非良性なので Web と同じくトーストする（D-38）
+                // The command (State) decides whether to send or accept; rejections are non-benign and toast like the Web (D-38)
+                var result = await _selectCommand.Select(recipeGuid);
+                _toaster.Report(MachineRecipeSelectCommand.CommandName, result);
             }
 
             #endregion
@@ -95,6 +103,29 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 _body.Render(viewModel);
             }
             _footer.Render(viewModel.Detail);
+
+            #region Internal
+
+            void SwitchMode(bool showsSelection)
+            {
+                // 選択モードでは文脈をリスト先頭へ移す
+                // Selection mode moves the context to the list's leading slot; returning restacks context → header → body
+                _showsSelection = showsSelection;
+                _selectionList.ClearLeadingContent();
+                if (!showsSelection)
+                {
+                    StackInventoryContent();
+                    _inventoryContent.SetItemShown(_context, _contextHasAny);
+                }
+
+                // 木に置くのは今のモードの中身だけ
+                // Only the current mode's content is in the tree, as Web; the footer always comes last
+                _root.ClearItems();
+                _root.AddItem(showsSelection ? _selectionList : _inventoryHost);
+                _root.AddItem(_footer);
+            }
+
+            #endregion
         }
 
         public void RenderContext(BlockContextViewModel context)
@@ -106,25 +137,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _inventoryContent.SetItemShown(_context, context.HasAny);
         }
 
-        private void SwitchMode(bool showsSelection)
-        {
-            // 選択モードでは文脈を選択リストの先頭へ移し、戻るときは本体の器へ文脈 → ヘッダ → 本体の順に積み直す
-            // Selection mode moves the context to the list's leading slot; returning restacks context → header → body in the inventory box
-            _showsSelection = showsSelection;
-            _selectionList.ClearLeadingContent();
-            if (!showsSelection)
-            {
-                StackInventoryContent();
-                _inventoryContent.SetItemShown(_context, _contextHasAny);
-            }
-
-            // 木に置くのは今のモードの中身だけ（Web も片方だけを描く）。フッタは常に末尾
-            // Only the current mode's content is in the tree (the Web renders just one); the footer always comes last
-            _root.ClearItems();
-            _root.AddItem(showsSelection ? _selectionList : _inventoryHost);
-            _root.AddItem(_footer);
-        }
-
         private void StackInventoryContent()
         {
             // UiGapContainer に先頭へ入れる口は無いので、全部外して並びの順に足し直す
@@ -133,14 +145,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _inventoryContent.AddItem(_context);
             _inventoryContent.AddItem(_header);
             _inventoryContent.AddItem(_body);
-        }
-
-        private async UniTaskVoid SelectAsync(Guid recipeGuid)
-        {
-            // 送るか・受理かの判断はコマンド（State）が持つ。拒否は非良性なので Web と同じくトーストする（D-38）
-            // The command (State) decides whether to send or accept; rejections are non-benign and toast like the Web (D-38)
-            var result = await _selectCommand.Select(recipeGuid);
-            _toaster.Report(MachineRecipeSelectCommand.CommandName, result);
         }
     }
 }

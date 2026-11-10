@@ -6,8 +6,8 @@ using Client.Ui.State.BlockInventory.Family.Models;
 namespace Client.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// ポンプの区画の工場（SectionStackSlot.Pump）。出すかは Model の有無で区画が決める
-    /// Factory of the pump section (SectionStackSlot.Pump); the section decides from the model's presence whether to show
+    /// ポンプの区画の工場
+    /// Factory of the pump section (SectionStackSlot.Pump); shown when the model is present
     /// </summary>
     public sealed class PumpSectionFactory : ISectionStackSectionFactory
     {

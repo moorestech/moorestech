@@ -37,8 +37,8 @@ namespace Client.Ui.State.BlockInventory.Machine
 
         public IReadOnlyList<MachineRecipeSelectionRow> RowsFor(Guid blockGuid, MachineRecipeSelection selection)
         {
-            // ブロックと選択が前回と同じなら前回の列を返す（加工中の状態更新で行を組み直さない）
-            // Return the previous rows while the block and selection are unchanged (no rebuild on processing updates)
+            // 同じなら前回の列を返す
+            // Return the previous rows while the block and selection are unchanged, avoiding rebuilds on processing updates
             if (_hasCachedRows && _cachedBlockGuid == blockGuid && _cachedSelection.IsSame(selection)) return _cachedRows;
             _cachedRows = selection.BuildRows(_summaries, blockGuid);
             _cachedBlockGuid = blockGuid;

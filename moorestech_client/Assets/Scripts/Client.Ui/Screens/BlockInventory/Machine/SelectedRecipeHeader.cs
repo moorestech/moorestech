@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Client.Localization;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
@@ -18,8 +17,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// インベントリモード上部の選択中レシピ（Web SelectedRecipeHeader）。代表の枠 → 名前 → 秒。押すとレシピ選択モードへ戻る
-    /// The selected recipe atop inventory mode (Web SelectedRecipeHeader): representative slot → name → seconds; pressing returns to recipe selection
+    /// 選択中レシピのヘッダ
+    /// Selected recipe atop inventory mode (Web SelectedRecipeHeader): slot → name → seconds; pressing returns to selection
     /// </summary>
     public sealed class SelectedRecipeHeader : VisualElement
     {
@@ -79,30 +78,30 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 var time = new LocalizedLabel { name = "machine-selected-recipe-time", pickingMode = PickingMode.Ignore };
                 time.AddToClassList(UiTypographyClass.TextSm);
                 time.AddToClassList(UiTypographyClass.TextDimmed);
-                time.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.RecipeDuration, new[] { new LocalizationTextParam("seconds", recipe.Time.ToString(CultureInfo.InvariantCulture)) }));
+                time.SetText(MachineRecipeNames.Duration(recipe.Time));
                 _group.AddItem(time);
             }
 
-            #endregion
-        }
-
-        private VisualElement RepresentativeSlot(RecipeDisplaySubject subject)
-        {
-            // 代表はアイテムなら ItemSlot、液体なら量の帯を出さない液体の枠（Web は同じ枠の大きさ）
-            // An item representative uses ItemSlot, a fluid one a fluid frame without the amount band (same frame size on the Web)
-            switch (subject)
+            VisualElement RepresentativeSlot(RecipeDisplaySubject subject)
             {
-                case ItemRecipeDisplaySubject item:
-                    var itemSlot = new ItemSlot("machine-selected-recipe-item");
-                    itemSlot.SetContent(new ItemSlotContent(_content.Item(item.ItemId), null, NoMarks, null, null, null));
-                    return itemSlot;
-                case FluidRecipeDisplaySubject fluid:
-                    var fluidSlot = new FluidAmountSlot("machine-selected-recipe-fluid");
-                    fluidSlot.SetFluid(_content.Fluid(fluid.FluidId), SlotAmountBadge.Hidden);
-                    return fluidSlot;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(subject), subject, "RecipeDisplaySubject has only the item and fluid kinds");
+                // 代表は ItemSlot か液体の枠
+                // An item representative uses ItemSlot, a fluid one a fluid frame without the amount band, same size as Web
+                switch (subject)
+                {
+                    case ItemRecipeDisplaySubject item:
+                        var itemSlot = new ItemSlot("machine-selected-recipe-item");
+                        itemSlot.SetContent(new ItemSlotContent(_content.Item(item.ItemId), null, NoMarks, null, null, null));
+                        return itemSlot;
+                    case FluidRecipeDisplaySubject fluid:
+                        var fluidSlot = new FluidAmountSlot("machine-selected-recipe-fluid");
+                        fluidSlot.SetFluid(_content.Fluid(fluid.FluidId), SlotAmountBadge.Hidden);
+                        return fluidSlot;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(subject), subject, "RecipeDisplaySubject has only the item and fluid kinds");
+                }
             }
+
+            #endregion
         }
     }
 }

@@ -22,8 +22,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の区画の L1 の土台（水とタンクの名前を辞書へ重ね、偽の液体・機械の Model と本物の 2 工場を持つ）
-    /// Base of the fluid-section L1 tests (overlays the water and tank names, holds fake fluid and machine models and the two real factories)
+    /// 液体の区画の L1 の土台
+    /// Base of the fluid-section L1 tests
     /// </summary>
     public abstract class FluidScreenTestHost : BlockInventoryScreenTestHost
     {
@@ -82,8 +82,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             simulate.FrameUpdate();
         }
 
-        // 自分も祖先も隠されていない要素だけを数える（区画の出し入れは祖先の表示で決まる）
-        // Count only elements neither hidden themselves nor via an ancestor (section visibility lives on ancestors)
+        // 自分も祖先も隠れていない要素を数える
+        // Count elements hidden neither themselves nor via an ancestor
         protected static bool IsEffectivelyShown(VisualElement element)
         {
             for (var current = element; current != null; current = current.parent)
@@ -93,7 +93,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             return true;
         }
 
-        protected static List<T> Shown<T>(VisualElement root, string name = null, string className = null) where T : VisualElement
+        protected static List<T> Shown<T>(VisualElement root, string name, string className) where T : VisualElement
         {
             var shown = new List<T>();
             foreach (var element in root.Query<T>(name, className).ToList())

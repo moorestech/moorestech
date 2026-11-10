@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の行の区画。機械でなく詳細でない blockType で、液体が 1 件以上あるときだけ出す（Web SectionStackView の 13 番）
-    /// The fluid-row section: shown for non-machine, non-detail block types with at least one fluid (Web SectionStackView slot 13)
+    /// 液体の行の区画
+    /// Fluid-row section shown for non-machine, non-detail block types with at least one fluid (Web SectionStackView slot 13)
     /// </summary>
     public sealed class FluidRowSectionPresenter : IBlockInventorySection
     {

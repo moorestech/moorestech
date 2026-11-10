@@ -18,8 +18,8 @@ using Fixtures = Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection.
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画の両モード（選択リストとヘッダの往復・フッタの状態と充足率・空き不足の理由・大型面のスクロール）
-    /// Both modes of the machine section (list/header round trip, footer state and power rate, output-space reason, large-panel scrolling)
+    /// 機械の区画の選択・通常の両モード
+    /// Both modes of the machine section
     /// </summary>
     public class MachineSectionTest : MachineScreenTestHost
     {
@@ -57,8 +57,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             Assert.AreEqual(1, Shown(root, "machine-selected-recipe").Count);
             Assert.IsNull(root.Q(MachineRecipeSelectionList.ListTestid));
 
-            // ヘッダ押下で選択リストへ入り、別の行の押下でコマンドを 1 回呼ぶ。サーバーの選択が変わるまでリストのまま
-            // The header press enters the list; another row's press calls the command once; the list stays until the server selection changes
+            // ヘッダでリストへ入り行で呼ぶ
+            // Header press enters the list; a row press calls the command once
             ClickCenter(root, "machine-selected-recipe");
             Assert.IsNotNull(root.Q(MachineRecipeSelectionList.ListTestid));
             Assert.IsNull(root.Q("machine-inventory-body"));
@@ -79,8 +79,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             ClickCenter(root, "machine-selected-recipe");
             ClickCenter(root, $"machine-recipe-{RecipeA}");
 
-            // 送らない判断はコマンド側（MachineRecipeSelectCommandTest が見る）。区画は要求の一致で閉じる
-            // Not sending is the command's call (MachineRecipeSelectCommandTest); the section closes on the request match
+            // 送らない判断はコマンド側が持つ
+            // Not sending is the command's call; the section closes on the request match
             CollectionAssert.AreEqual(new[] { RecipeA }, RecipeSelect.Selected);
             Assert.IsNull(root.Q(MachineRecipeSelectionList.ListTestid));
             Assert.AreEqual(1, Shown(root, "machine-inventory-body").Count);
@@ -89,8 +89,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         [Test]
         public void 清浄室の機械は選択から戻っても部屋欄とヘッダと本体の並びと間隔を保つ()
         {
-            // Web MachineSection.tsx:61-67 の Stack gap=sm（文脈 → ヘッダ → 本体）。選択リストへ前置した文脈を積み直しても同じ
-            // Web MachineSection.tsx:61-67 Stack gap=sm (context → header → body); the same after restacking the context prepended to the list
+            // Web の gap=sm と同じ
+            // Web MachineSection.tsx:61-67 Stack gap=sm; the same after restacking the context
             ContextModel.Set(Context.CleanRoomLayoutTestHost.Room(2));
             var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Selected(RecipeA), false, Fixtures.ItemRecipe(RecipeA, 5, SecondItem, FirstItem)), false).Root;
             ClickCenter(root, "machine-selected-recipe");
@@ -152,8 +152,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             AssertWaitReasonShown(root);
             Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.MachineStateIdle).Resolve(), root.Q<Label>("machine-state-label").text);
 
-            // 未選択（選択モード）でもフッタに理由が出る
-            // The footer shows the reason while unselected (selection mode) too
+            // 選択モードでもフッタに理由が出る
+            // The footer shows the reason in selection mode too
             SetMachine(MachineScreenViewModels.WithRecipe(recipe, false, true));
             Assert.IsNotNull(root.Q(MachineRecipeSelectionList.ListTestid));
             AssertWaitReasonShown(root);

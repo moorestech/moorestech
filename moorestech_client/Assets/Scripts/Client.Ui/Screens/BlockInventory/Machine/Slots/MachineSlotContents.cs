@@ -6,8 +6,8 @@ using Client.Ui.State.Items;
 namespace Client.Ui.Screens.BlockInventory.Machine.Slots
 {
     /// <summary>
-    /// 機械の枠の中身を組む。ゴーストは束縛から、所持/必要は素材の枠だけ（Web MachineInventoryBody の slotAt）
-    /// Builds machine slot content: ghosts from the binding, held/required on input slots only (Web MachineInventoryBody slotAt)
+    /// 機械の枠の中身を組む
+    /// Builds machine slot content: ghosts from the binding, held/required on input slots only (Web slotAt)
     /// </summary>
     public static class MachineSlotContents
     {
@@ -15,7 +15,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
 
         public static ItemSlotContent For(SlotItem slot, BoundItemSlot bound, bool showsRequirement, GameContentPresentation content)
         {
-            // 所持/必要があれば ItemSlot が個数バッジを出さない（C3-a ItemSlotPresentation）
+            // 所持/必要があれば個数バッジなし
             // With held/required present ItemSlot hides the count badge (C3-a ItemSlotPresentation)
             var icon = slot.IsEmpty ? null : content.Item(slot.ItemId);
             int? count = slot.IsEmpty ? null : slot.Count;

@@ -28,19 +28,19 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Detail
         public static readonly Guid RecipeB = new("00000000-0000-0000-0000-00000000b00b");
         public static readonly BlockInstanceId DefaultInstanceId = new(1);
 
-        // 以下の区画の値の補助はマスタ読み込み済みが前提（レシピの要約が機械の blockGuid を引く）
-        // The section-value helpers below require the master to be loaded (summaries look up the machine's blockGuid)
+        // 区画の値の補助はマスタ読み込み前提
+        // The helpers below require the master to be loaded; summaries look up the machine's blockGuid
         public static BlockMasterElement MachineBlock => MasterHolder.BlockMaster.Blocks.Data.First(b => b.BlockParam is IMachineParam);
 
-        // 入力 1・出力 1・モジュール 0 の機械で、各 GUID を出力アイテム 1 個のレシピとして解放済みにする
-        // A 1-input, 1-output, 0-module machine with each GUID unlocked as a recipe producing one item
+        // 各 GUID を出力 1 個のレシピとして解放した機械
+        // A machine with each GUID unlocked as a 1-item recipe
         public static MachineSectionViewModel ViewModel(MachineRecipeSelection selection, params Guid[] unlockedRecipeGuids)
         {
             return ViewModelFor(DefaultInstanceId, Detail(selection, Unbound(new MachineSlotLayout(1, 1, 0)), 0), 2, Catalog(unlockedRecipeGuids));
         }
 
-        // モジュールを持つ未選択・レシピ 0 件の機械（インベントリモードで枠を操作する件用）
-        // An unselected machine with modules and no recipes (for gestures on slots in inventory mode)
+        // モジュール付き未選択・レシピ 0 件の機械
+        // An unselected machine with modules and no recipes, for slot gestures in inventory mode
         public static MachineSectionViewModel ViewModelWithModules(int moduleSlotCount, float progress, int inputCount)
         {
             var detail = Detail(MachineRecipeSelection.Unselected, Unbound(new MachineSlotLayout(inputCount, 1, moduleSlotCount)), progress);
@@ -54,8 +54,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Detail
             return MachineSectionViewModelBuilder.Build(Panel(instanceId, slots), detail, slots, Array.Empty<BlockFluidSlotState>(), catalog, 1);
         }
 
-        // Client.Ui.State の InternalsVisibleTo で機械のパネルを直に組む
-        // Builds a machine panel directly via the Client.Ui.State InternalsVisibleTo
+        // InternalsVisibleTo で直に組む
+        // Builds a machine panel via InternalsVisibleTo
         public static OpenBlockInventoryPanel Panel(BlockInstanceId instanceId, SlotItem[] slots)
         {
             var block = MachineBlock;

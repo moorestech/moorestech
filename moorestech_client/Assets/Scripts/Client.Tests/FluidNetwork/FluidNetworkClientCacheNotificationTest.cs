@@ -9,8 +9,8 @@ using static Tests.CombinedTest.Server.PacketTest.Event.FluidNetworkSync.FluidSy
 
 namespace Client.Tests.FluidNetwork
 {
-    // 全量の適用と差分の適用のたびに、複製と版を進め終えてから版の通知が 1 回流れるか
-    // Whether each full-state and tick-diff application emits one version notification after the replica and version have advanced
+    // 適用のたび、版を進めた後に通知が 1 回流れるか
+    // Each apply emits one version notification after advancing
     public class FluidNetworkClientCacheNotificationTest
     {
         private const long InflowUnits = 5 * FluidUnits.UnitsPerAmount;
@@ -35,8 +35,8 @@ namespace Client.Tests.FluidNetwork
             Assert.AreEqual(1, notified.Count);
             Assert.AreEqual(cache.ReplicaVersion, notified[0]);
 
-            // 中身のある節へ流入を 1 つ載せた差分。購読の中で読んだ量は、同じ全量から空の差分で進めた双子の量に流入を足した値と一致する
-            // A diff carrying one inflow into a filled node; the amount read inside the subscription equals a twin advanced by an empty diff from the same full state plus the inflow
+            // 流入 1 つの差分は双子に足した量
+            // A one-inflow diff equals the twin plus the inflow
             nodeIndex = FindFilledNode(cache);
             var fluidId = cache.Replica.Network.NodeFluidIds[nodeIndex];
             var twin = new FluidNetworkClientCache();

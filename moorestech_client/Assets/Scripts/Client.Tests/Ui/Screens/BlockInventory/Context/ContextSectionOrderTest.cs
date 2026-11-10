@@ -22,8 +22,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 標準の本文の中での文脈の 3 欄の並びと出し入れ（本物の工場・偽の Model で組む）
-    /// Order and visibility of the three context sections inside the standard body (real factory, fake models)
+    /// 文脈の 3 欄の並びと出し入れ
+    /// Order and visibility of the three context sections
     /// </summary>
     public class ContextSectionOrderTest : ContextSectionTestHost
     {
@@ -114,8 +114,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         [Test]
         public void 搬入停止欄は機械欄より上に赤字で描く()
         {
-            // 機械では文脈を機械の区画の本文の器の先頭に置き、区画列の先頭には出さない
-            // On machines the context leads the machine section's body box and never heads the section column
+            // 機械では文脈を本文の器の先頭に置く
+            // On machines the context leads the body box
             _machine.Set(SectionContent<MachineSectionViewModel>.Present(MachineScreenViewModels.WithState(MachineProcessDisplayState.Processing, 1, 1, false, false)));
             _context.Set(new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Absent, ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Fetched(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
             var panel = BlockInventoryTestPanels.OfType("ElectricMachine");

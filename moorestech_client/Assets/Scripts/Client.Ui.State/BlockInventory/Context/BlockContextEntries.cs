@@ -5,8 +5,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 文脈の 1 欄の状態（無し / 未取得 / 取得済み）。出し入れの判定は IsAbsent の 1 本に揃える
-    /// The state of one context entry (absent / unavailable / fetched); showing follows the single IsAbsent check
+    /// 文脈の 1 欄の状態。判定は IsAbsent に揃える
+    /// State of one context entry; showing follows the single IsAbsent check
     /// </summary>
     public abstract class ContextEntry<T>
     {

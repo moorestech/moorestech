@@ -9,8 +9,8 @@ using Tests.Module.TestMod;
 namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
 {
     /// <summary>
-    /// 選択モードの出し分け（Web MachineSection の showSelection・C14）
-    /// Selection-mode visibility (Web MachineSection showSelection, C14)
+    /// 選択モードの出し分け
+    /// Selection-mode visibility, as Web MachineSection showSelection (C14)
     /// </summary>
     public class MachineSelectionModeStateTest
     {

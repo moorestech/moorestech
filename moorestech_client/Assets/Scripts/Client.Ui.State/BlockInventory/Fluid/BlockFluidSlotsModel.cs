@@ -11,8 +11,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.BlockInventory.Fluid
 {
     /// <summary>
-    /// 追跡ブロックの液体の列を、追跡の 2 つの通知とパイプの複製の変化で配り直す
-    /// Republishes the tracked block's fluid list on the tracker's two notifications and on pipe replica changes
+    /// 追跡の 2 通知とパイプ複製の変化で液体列を配り直す
+    /// Republishes fluids on two tracker notifications and pipe replica
     /// </summary>
     public sealed class BlockFluidSlotsModel : IBlockFluidSlotsModel, IInitializable
     {
@@ -39,14 +39,14 @@ namespace Client.Ui.State.BlockInventory.Fluid
             OnTrackerNotified();
         }
 
-        // 追跡の通知のたびに、同値でも新しい VM を配り、パイプの購読を張り替える
-        // On each tracker notification publish a new view model even when equal, and re-wire the pipe subscription
+        // 通知のたび新しい VM を配り購読を張り替える
+        // Each notification publishes a new VM and rewires
         private void OnTrackerNotified()
         {
             _replicaSubscription?.Dispose();
             _replicaSubscription = null;
 
-            // 追跡ブロックが無い（閉・貨車）ときは空の列・進捗なし
+            // 追跡ブロックが無ければ空の列
             // With no tracked block (closed or freight car) the list is empty with no progress
             var block = _tracker.TrackedBlock;
             if (block == null)
@@ -56,21 +56,21 @@ namespace Client.Ui.State.BlockInventory.Fluid
             }
 
             _current.Value = BlockFluidSlotReading.Read(block, _replica);
-            // 液体タンクの詳細を持たない（パイプかもしれない）ブロックは、節の有無にかかわらず追跡中ずっと複製の変化を購読する
-            // A block without a fluid tank detail (possibly a pipe) subscribes to replica changes for the whole tracking, whether or not a node exists yet
+            // パイプかもしれないブロックは複製を購読
+            // A block without a fluid tank detail (possibly a pipe) subscribes to replica changes for the whole tracking
             if (block.GetStateDetail<FluidMachineInventoryStateDetail>(FluidMachineInventoryStateDetail.BlockStateDetailKey) != null) return;
             var position = block.BlockPosInfo.OriginalPos;
             _shownHasNode = _replica.TryReadNode(position, out _shownFluidId, out _shownAmount, out _);
             _replicaSubscription = _replica.OnReplicaChanged.Subscribe(_ => OnReplicaChanged(block, position));
         }
 
-        // 毎 tick の通知を、節の有無・液体 id・量のどれかが変わった回だけに絞る（Web ホスト HasPipeContentsChanged と同じ比べ方）
-        // Narrow the per-tick notifications to those where node presence, fluid id or amount changed (same comparison as the Web host's HasPipeContentsChanged)
+        // 通知を節・液体 id・量の変化だけに絞る
+        // Narrow per-tick notifications to changes of node presence, fluid id or amount, as the Web host's HasPipeContentsChanged
         private void OnReplicaChanged(BlockGameObject block, Vector3Int position)
         {
             var hasNode = _replica.TryReadNode(position, out var fluidId, out var amount, out _);
-            // 節の有無・液体 id・量が同じなら配り直さない
-            // Skip republishing when node presence, fluid id and amount are unchanged
+            // 節・液体 id・量が同じなら配らない
+            // Skip when node, fluid id and amount match
             if (hasNode == _shownHasNode && fluidId == _shownFluidId && amount == _shownAmount) return;
             _shownHasNode = hasNode;
             _shownFluidId = fluidId;

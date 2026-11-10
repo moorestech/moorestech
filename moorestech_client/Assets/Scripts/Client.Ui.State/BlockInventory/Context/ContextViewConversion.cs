@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 抽選の中身と搬入停止の照会を欄へ写す（Web ホスト CleanRoomYieldDetailDtoBuilder・MachineInputStallDetailDtoBuilder の写し）
-    /// Maps the draw-detail and stall queries onto entries (port of the Web host's CleanRoomYieldDetailDtoBuilder and MachineInputStallDetailDtoBuilder)
+    /// 抽選と搬入停止の照会を欄へ写す
+    /// Maps the draw-detail and stall queries onto entries, as the Web host's builders
     /// </summary>
     public static class ContextViewConversion
     {
@@ -25,8 +25,8 @@ namespace Client.Ui.State.BlockInventory.Context
                     var dicingCurrent = Dicing(dicing.Dicing);
                     if (dicing.PendingDraw == null) return Fetched(CleanRoomYieldFetched.WithoutPendingDraw(dicingCurrent));
                     return Fetched(CleanRoomYieldFetched.WithPendingDraw(dicingCurrent, Dicing(dicing.PendingDraw)));
-                // 役割の無いレシピと稼働できない機械は欄を出さない（Web ホストと同じ。停止理由は部屋欄が出す）
-                // Role-less recipes and machines that cannot operate show no entry (same as the Web host; the room entry shows the halt reason)
+                // 役割の無いレシピ等は欄を出さない
+                // Role-less recipes and machines that cannot operate show no entry; the room entry shows the halt reason
                 case CleanRoomYieldNoRoleView _:
                 case CleanRoomYieldNotOperableView _:
                     return ContextEntry<CleanRoomYieldFetched>.Absent;

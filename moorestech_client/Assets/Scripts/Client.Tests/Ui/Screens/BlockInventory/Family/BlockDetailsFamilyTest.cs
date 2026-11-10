@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 採掘機・ポンプ・発電機の区画の出し入れと中身（本物の工場・偽の Model で標準の本文に組む）
-    /// Visibility and contents of the miner, pump and generator sections (real factories and fake models in the standard body)
+    /// 採掘機・ポンプ・発電機の出し入れと中身
+    /// Visibility and contents of miner, pump and generator sections
     /// </summary>
     public class BlockDetailsFamilyTest : FamilyScreenTestHost
     {
@@ -44,8 +44,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
                 Assert.AreEqual(1, Shown(body.Root, name).Count, name);
             }
 
-            // 歯車ポンプも同じ pump-section に出る
-            // A gear pump shows in the same pump-section
+            // 歯車ポンプも pump-section
+            // A gear pump also shows in pump-section
             Pump.Set(SectionContent<PumpDetail>.Present(new GearPumpDetail(new[] { new PumpingFluid(Water, 60) })));
             simulate.FrameUpdate();
             Assert.AreEqual(1, Shown(body.Root, "pump-section").Count, "gear pump");

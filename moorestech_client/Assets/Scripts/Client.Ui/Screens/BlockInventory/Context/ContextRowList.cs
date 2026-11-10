@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 欄の行を縦に並べる器。行の並びが変わったときだけ組み直し、毎秒の再描画では要素を捨てない
-    /// A vertical holder of a section's rows; rebuilds only when the row sequence changes, so the per-second redraw keeps elements
+    /// 欄の行を縦に並べる器
+    /// Vertical holder of a section's rows; rebuilds only when the row sequence changes, keeping elements on redraw
     /// </summary>
     public sealed class ContextRowList
     {

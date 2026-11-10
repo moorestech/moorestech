@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 選択中レシピのヘッダの代表の枠と名前（区画を偽の Model で組む）
-    /// The selected-recipe header's representative slot and name (section on a fake model)
+    /// 選択中レシピのヘッダの代表の枠と名前
+    /// The selected-recipe header's representative slot and name
     /// </summary>
     public class SelectedRecipeHeaderTest : MachineScreenTestHost
     {
@@ -48,8 +48,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         [Test]
         public void 出力2品でもヘッダは代表の名前だけ()
         {
-            // 「他 N 件」は選択リストの行だけ（Web SelectedRecipeHeader の useRecipeDisplayName）
-            // "and N more" belongs to the selection rows only (Web SelectedRecipeHeader useRecipeDisplayName)
+            // 「他 N 件」は選択リストの行だけ
+            // "and N more" belongs to the selection rows only
             var root = MountSelected(MachineScreenViewModels.Recipe(7, new[] { new ItemAmount(FirstItem, 1), new ItemAmount(SecondItem, 1) }, new RecipeFluidAmount[0]));
 
             Assert.AreEqual("Test Item 1", root.Q<Label>("machine-selected-recipe-name").text);

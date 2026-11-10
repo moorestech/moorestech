@@ -13,8 +13,8 @@ using Core.Master;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画の画面テスト用の値（マスタ読み込み済みが前提。区画が描く状態を 1 つずつ組む）
-    /// Values for the machine-section screen tests (master must be loaded; builds each drawn state one at a time)
+    /// 機械の区画の画面テスト用の値
+    /// Values for the machine-section screen tests; master must be loaded
     /// </summary>
     public static class MachineScreenViewModels
     {
@@ -25,8 +25,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             return MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, Array.Empty<SlotItem>());
         }
 
-        // 区画が描く状態の詳細。束縛なし・未選択・入力 1・出力 1・モジュール 0 を既定にする
-        // The detail the section draws; defaults to unbound, unselected, 1 input, 1 output, 0 modules
+        // 区画が描く状態の詳細。既定は最小構成
+        // The detail the section draws; defaults to the minimal shape
         public static MachineDetail Detail(MachineProcessDisplayState state, double current, double request, bool gearDriven, bool outputSpaceShort)
         {
             return new MachineDetail(MachineRecipeSelection.Unselected, state, current, request, 0, outputSpaceShort, gearDriven, 0, Array.Empty<RecipeOutputItem>(), MachineTestDetails.Unbound(new MachineSlotLayout(1, 1, 0)));
@@ -42,8 +42,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             return Build(Detail(state, current, request, gearDriven, outputSpaceShort), new[] { Empty, Empty }, MachineRecipeCatalog.Empty, 1);
         }
 
-        // 素材 1 品に必要数の束縛があり、枠 0 に held 個入った機械
-        // A machine whose input slot 0 is bound to `required` of the item and holds `held`
+        // 必要数の束縛があり枠 0 に held 個ある機械
+        // A machine bound to `required`, slot 0 holding `held`
         public static MachineSectionViewModel WithInput(ItemId item, int required, int held)
         {
             var binding = new MachineBindingDetail(new MachineSlotLayout(1, 1, 0), new[] { new MachineItemSlotBinding(0, item, required, new[] { item }) }, Array.Empty<MachineTankBinding>());
@@ -66,8 +66,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             return Build(detail, new[] { Empty, Empty }, MachineRecipeCatalog.Empty, 1);
         }
 
-        // 入力 inputCount・出力 1・モジュール moduleCount の全枠に item を held 個ずつ入れた機械
-        // A machine with inputCount inputs, 1 output and moduleCount modules, each slot holding `held` of the item
+        // 全枠に item を held 個ずつ入れた機械
+        // A machine whose every slot holds `held` of the item
         public static MachineSectionViewModel Filled(int inputCount, int moduleCount, float progress, ItemId item, int held, int moduleStackLimit)
         {
             var slots = new SlotItem[inputCount + 1 + moduleCount];
@@ -76,8 +76,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             return Build(detail, slots, MachineRecipeCatalog.Empty, moduleStackLimit);
         }
 
-        // 1 件のレシピを解放し、selected なら選択済みにした機械
-        // A machine with one unlocked recipe, selected when `selected` is true
+        // レシピ 1 件を解放し、selected なら選択済み
+        // One unlocked recipe, selected if `selected`
         public static MachineSectionViewModel WithRecipe(MachineRecipeData recipe, bool selected, bool outputSpaceShort)
         {
             var selection = selected ? MachineRecipeSelection.Selected(recipe.RecipeGuid) : MachineRecipeSelection.Unselected;

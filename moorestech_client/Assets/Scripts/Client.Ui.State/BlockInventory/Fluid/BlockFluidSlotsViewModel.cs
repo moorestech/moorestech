@@ -4,8 +4,8 @@ using Client.Ui.State.BlockInventory.Logic.Common;
 namespace Client.Ui.State.BlockInventory.Fluid
 {
     /// <summary>
-    /// 追跡ブロックの液体の列と加工の進捗（進捗は機械・採掘機だけが持つ）
-    /// The tracked block's fluid list and processing progress (only machines and miners have progress)
+    /// 液体の列と加工の進捗
+    /// The tracked block's fluid list and processing progress; only machines and miners have progress
     /// </summary>
     public sealed class BlockFluidSlotsViewModel
     {

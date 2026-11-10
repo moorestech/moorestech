@@ -25,8 +25,8 @@ using Fixtures = Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection.
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
 {
     /// <summary>
-    /// 機械のレシピ選択の配置（Web e2e machineRecipe.spec.ts の写し。舞台 1280×720 のシェルに本レーンの登録一式と偽の Model を差す）
-    /// Machine recipe-selection layout (port of Web e2e machineRecipe.spec.ts; this lane's registrations and fake models in the 1280x720 shell)
+    /// 機械のレシピ選択の配置の写し
+    /// Port of Web e2e machineRecipe.spec.ts, in the 1280x720 shell with fake models
     /// </summary>
     public class MachineRecipeLayoutTest : MachineRecipeLayoutTestHost
     {
@@ -40,8 +40,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             Assert.IsNull(Shell.View.Q(className: "mode-switch"));
             StringAssert.Contains("10", Q<Label>("machine-selected-recipe-time").text);
 
-            // 入力は素材数（1）・出力は生産物数（1）だけ（機械は入 2／出 1）。空の出力と液体はゴースト、実物のある入力はゴースト無し
-            // Only recipe-count slots: 1 input, 1 output (machine has 2/1); the empty output and fluid are ghosts, the occupied input is not
+            // 枠はレシピの素材数と生産物数だけ
+            // Slots match recipe counts only; empty output and fluid are ghosts
             Assert.AreEqual(1, Q("machine-input-slots").Query<SlotFrame>().ToList().Count);
             Assert.AreEqual(1, Q("machine-output-slots").Query<SlotFrame>().ToList().Count);
             Assert.AreEqual(0, Ghosts("machine-input-slots"));

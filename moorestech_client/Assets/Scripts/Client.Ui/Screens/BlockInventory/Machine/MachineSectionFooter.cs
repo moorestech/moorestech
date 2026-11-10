@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画の共通フッタ（Web MachineSection の footer）。状態ラベル＋充足率、出力空き不足のときだけ理由を添える
-    /// The machine section's shared footer (Web MachineSection footer): state label and power rate, plus the reason only on an output-space shortage
+    /// 機械の区画の共通フッタ
+    /// Shared footer (Web MachineSection footer): state label and power rate, plus the reason only on output-space shortage
     /// </summary>
     public sealed class MachineSectionFooter : VisualElement
     {
@@ -41,8 +41,8 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             // Gear-driven shortage red belongs to the network stop-reason row, so only electric drive reddens the rate (ADR 0056)
             _stateRow.Render(detail.State, detail.CurrentPower, detail.RequestPower, !detail.GearDriven);
 
-            // 出力空き不足のときだけ理由を出し、入力切れの待機と見分ける
-            // Show the reason only on an output-space shortage, telling it apart from input starvation
+            // 出力空き不足のときだけ理由を出す
+            // Show the reason only on output-space shortage
             _row.SetItemShown(_waitReason, detail.OutputSpaceShort);
         }
     }

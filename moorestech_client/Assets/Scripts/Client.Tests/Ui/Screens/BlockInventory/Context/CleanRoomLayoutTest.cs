@@ -70,7 +70,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             foreach (var name in new[] { "machine-power-rate", "machine-state-label" })
             {
                 var overlap = Intersect(visibleFluids, shell.View.Q(name).worldBound);
-                Assert.IsFalse(overlap.width > 0 && overlap.height > 0, $"{name} overlap {overlap.width}x{overlap.height}");
+                Assert.IsFalse(0 < overlap.width && 0 < overlap.height, $"{name} overlap {overlap.width}x{overlap.height}");
             }
             ExpectFooterClearOfBody(shell);
         }
@@ -79,8 +79,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         [Test]
         public void 低いウィンドウで清浄機が多い部屋でもフッタは見え本文はスクロールで液体行へ届く()
         {
-            // Web と同じ高さ 600 へ舞台を縮める
-            // Shrink the stage to the Web's 600 height
+            // Web と同じ高さ 600 に縮める
+            // Shrink the stage to Web's 600 height
             var shell = OpenCleanRoomMachine(8);
             SetStageHeight(shell, 600f);
             Assert.IsNotNull(shell.View.Q("clean-room-air-filter-7"));
@@ -145,15 +145,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             ExpectFooterReadable(shell);
         }
 
-        // Web expectPanelAboveHotbar: パネルの下端は舞台の下の安全帯より上
-        // Web expectPanelAboveHotbar: the panel bottom stays above the stage's lower safe band
+        // Web expectPanelAboveHotbar の写し
+        // Web expectPanelAboveHotbar: the panel bottom stays above the safe band
         private static void ExpectPanelAboveSafeBand(BlockInventoryTestShell shell)
         {
             Assert.LessOrEqual(shell.View.worldBound.yMax, shell.Stage.worldBound.yMax - BlockInventoryTestShell.MenuLowerSafeArea + 0.5f);
         }
 
-        // Web expectFooterClearOfBody: フッタはパネル内で、本文の視口はその上で終わる
-        // Web expectFooterClearOfBody: the footer stays inside the panel and the body viewport ends above it
+        // Web expectFooterClearOfBody
+        // Web expectFooterClearOfBody: the footer stays below the body viewport
         private static void ExpectFooterClearOfBody(BlockInventoryTestShell shell)
         {
             var panel = shell.View.worldBound;

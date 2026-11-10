@@ -6,8 +6,8 @@ using Client.Ui.State.BlockInventory.Machine;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 文脈の区画の工場（SectionStackSlot.Context）。どの blockType でも同じ区画を作り、出すかは区画が決める
-    /// Factory of the context section (SectionStackSlot.Context); builds the same section for any blockType, which decides on its own whether to show
+    /// 文脈の区画の工場
+    /// Factory of the context section (SectionStackSlot.Context); builds it for any blockType, which decides whether to show
     /// </summary>
     public sealed class ContextSectionFactory : ISectionStackSectionFactory
     {

@@ -7,8 +7,8 @@ using Game.Fluid;
 namespace Client.Ui.State.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の列を組む。タンクは入力→出力の順、パイプは流体複製の節 1 つ（Web ホスト FluidSlotDtoBuilder の写し）
-    /// Builds the fluid list: tanks input-then-output, a pipe as one replica node (port of the Web host's FluidSlotDtoBuilder)
+    /// 液体の列を組む。タンクは入力→出力
+    /// Builds the fluid list: tanks input-then-output, a pipe as one replica node, as the Web host
     /// </summary>
     public static class BlockFluidSlotConversion
     {
@@ -25,8 +25,8 @@ namespace Client.Ui.State.BlockInventory.Fluid
             return ToSlot(fluidId, amount, capacity);
         }
 
-        // 空の液体は Empty（uGUI MachineBlockInventoryView の EmptyFluidId 分岐と同じ）
-        // The empty fluid becomes Empty (same as uGUI MachineBlockInventoryView's EmptyFluidId branch)
+        // 空の液体は Empty にする
+        // The empty fluid becomes Empty, as uGUI MachineBlockInventoryView's EmptyFluidId branch
         private static BlockFluidSlotState ToSlot(int fluidId, double amount, double capacity)
         {
             var id = new FluidId(fluidId);

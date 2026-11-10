@@ -8,16 +8,16 @@ using UnityEngine;
 namespace Client.Ui.State.BlockInventory.Family
 {
     /// <summary>
-    /// ポンプの状態詳細と param から詳細を組む（Web ホスト PumpDetailDtoBuilder の写し。未知の param は例外でなく Error ログ）
-    /// Builds the pump detail from its state detail and param (port of the Web host's PumpDetailDtoBuilder; an unknown param logs an error instead of throwing)
+    /// ポンプの詳細を状態詳細と param から組む
+    /// Builds the pump detail from state detail and param; an unknown param logs an error instead of throwing
     /// </summary>
     public static class PumpDetailConversion
     {
         public static bool TryBuild(PumpBlockStateDetail pump, IBlockParam param, CommonMachineBlockStateDetail common, out PumpDetail detail)
         {
             detail = null;
-            // 種別の正はマスタの param（common の有無で代用しない）
-            // The master's param settles the kind (never stand in common's presence)
+            // 種別の正はマスタの param
+            // The master's param settles the kind, never common's presence
             switch (param)
             {
                 case ElectricPumpBlockParam:
@@ -34,8 +34,8 @@ namespace Client.Ui.State.BlockInventory.Family
                     detail = new GearPumpDetail(Fluids());
                     return true;
                 default:
-                    // 未知の param はコードの不整合。購読を殺さないよう投げずに開発者ログへ出す
-                    // An unknown param is a code inconsistency; log for developers instead of throwing so the subscription survives
+                    // 未知の param は投げず開発者ログへ
+                    // Unknown param is a code inconsistency; log it instead of throwing so the subscription survives
                     Debug.LogError($"[PumpDetailConversion] unsupported pump param: {param?.GetType().Name}");
                     return false;
             }

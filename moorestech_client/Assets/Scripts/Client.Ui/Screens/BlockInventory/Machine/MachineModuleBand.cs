@@ -16,8 +16,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// モジュールの帯（Web MachineInventoryBody のモジュール節）。ラベル → 1 枠の上限 → モジュールの枠を加工行の 1 段下に置く
-    /// The module band (Web MachineInventoryBody module block): label → per-slot limit → module slots, one level below the process row
+    /// モジュールの帯
+    /// Module band (Web MachineInventoryBody): label → per-slot limit → module slots, one level below the process row
     /// </summary>
     public sealed class MachineModuleBand : VisualElement
     {
@@ -54,7 +54,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
         public void Render(MachineSectionViewModel viewModel)
         {
-            // モジュールの枠は束縛を持たない（ゴースト無し）
+            // モジュールの枠は束縛なし
             // Module slots carry no binding (no ghost)
             var bound = new List<BoundItemSlot>(viewModel.Bands.Module.Count);
             foreach (var index in viewModel.Bands.Module) bound.Add(BoundItemSlot.WithoutGhost(index));

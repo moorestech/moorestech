@@ -14,8 +14,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.BlockInventory.Machine
 {
     /// <summary>
-    /// 開いた機械の区画の値を、追跡ブロック・パネルの枠・解放済みレシピ・モジュールの上限の変化で配り直す
-    /// Re-publishes the open machine section's values on changes to the tracked block, panel slots, unlocked recipes and module limit
+    /// 追跡・枠・解放レシピ・上限の変化で配り直す
+    /// Re-publishes on tracking, slots, recipes and limit changes
     /// </summary>
     public sealed class MachineSectionModel : IMachineSectionModel, IInitializable
     {
@@ -48,10 +48,9 @@ namespace Client.Ui.State.BlockInventory.Machine
                 Rebuild();
             });
 
-            // パネル（枠）は alpha の Model が追跡の変化でも組み直すので、それと追跡の状態変化・上限で組み直す
-            // Rebuild on the panel (alpha rebuilds it on tracking changes), tracked-state changes and the limit
+            // パネルは alpha の Model が追跡替え・追跡の状態変化でも組み直すので、パネル・レシピ源・上限で組み直す
+            // The panel is rebuilt by alpha's Model on tracking and state changes, so rebuild on panel, recipe source and limit
             _panelSource.Current.Subscribe(_ => Rebuild());
-            _tracker.OnTrackedBlockStateChanged.Subscribe(_ => Rebuild());
             _stackLimit.OnStackLimitChanged.Subscribe(_ => Rebuild());
         }
 
@@ -64,7 +63,7 @@ namespace Client.Ui.State.BlockInventory.Machine
             SectionContent<MachineSectionViewModel> Read()
             {
                 // silent-ok: 閉・列車・取得失敗のパネルに機械の区画は無い（alpha の外殻が本文を作らない） / 並べ比べと録画
-                if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || panel.Error != BlockInventoryPanelError.None) return SectionContent<MachineSectionViewModel>.Absent;
+                if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return SectionContent<MachineSectionViewModel>.Absent;
                 // silent-ok: 追跡ブロックが未解決の間は区画を出さない（閉と同じ見え方） / 追跡替えでパネルが組み直され直ちに再計算
                 var block = _tracker.TrackedBlock;
                 if (block == null || !TryReadMachine(block, out var detail)) return SectionContent<MachineSectionViewModel>.Absent;

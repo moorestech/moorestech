@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 1 つの Model の値を 1 つの View へ流す区画の Presenter。値が無ければ隠す
-    /// A section presenter feeding one model's value into one view; hidden when absent
+    /// 1 Model を 1 View へ流す Presenter
+    /// Section presenter feeding one model's value into one view; hidden when absent
     /// </summary>
     public sealed class DetailSectionPresenter<T> : IBlockInventorySection
     {
@@ -30,19 +30,23 @@ namespace Client.Ui.Screens.BlockInventory.Family
         public void Attach(OpenBlockInventoryPanel panel)
         {
             _subscription = _source.Subscribe(Apply);
+
+            #region Internal
+
+            void Apply(SectionContent<T> content)
+            {
+                // 描いてから出す
+                // Draw before showing; hide without drawing when there is no value
+                if (content.IsPresent) _view.Render(content.Value);
+                _isApplicable.Value = content.IsPresent;
+            }
+
+            #endregion
         }
 
         public void Detach()
         {
             _subscription.Dispose();
-        }
-
-        private void Apply(SectionContent<T> content)
-        {
-            // 描いてから出す（値が無いときは描かずに隠す）
-            // Draw before showing (hide without drawing when there is no value)
-            if (content.IsPresent) _view.Render(content.Value);
-            _isApplicable.Value = content.IsPresent;
         }
     }
 }

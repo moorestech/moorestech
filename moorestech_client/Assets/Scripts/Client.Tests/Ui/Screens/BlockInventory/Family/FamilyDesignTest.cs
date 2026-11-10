@@ -15,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 採掘機・ポンプ・発電機の区画の見た目の決まり（共通部品・寒色トークン・流体アイコンの枠・行の共有）
-    /// Design rules of the miner, pump and generator sections (shared parts, cool tokens, fluid icon box, shared rows)
+    /// 採掘機・ポンプ・発電機の見た目の決まり
+    /// Design rules of the miner, pump and generator sections
     /// </summary>
     public class FamilyDesignTest : FamilyScreenTestHost
     {
@@ -79,8 +79,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
             var slotSize = ThemeTokenFile.ResolvePixels("--slot-size");
             Assert.AreEqual(slotSize, icon.resolvedStyle.width, 0.5f);
             Assert.AreEqual(slotSize, icon.resolvedStyle.height, 0.5f);
-            // 縦横比を保つ枠への収め方は旧 API でしか解決値を読めない
-            // The fit mode that keeps the aspect ratio can only be read through the old resolved-style API
+            // 縦横比保持の収め方は旧 API で読む
+            // Aspect-keeping fit is read via the old API
 #pragma warning disable CS0618
             Assert.AreEqual(ScaleMode.ScaleToFit, icon.Q(className: "game-icon__image").resolvedStyle.unityBackgroundScaleMode.value);
 #pragma warning restore CS0618

@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Family
 {
     /// <summary>
-    /// 採掘機の区画（Web MinerSection）。進捗の棒 → 充足率 → 採掘中の品ごとの毎分
+    /// 採掘機の区画
     /// The miner section (Web MinerSection): progress bar → power rate → per-minute per mined item
     /// </summary>
     public sealed class MinerSectionView : IDetailSectionView<MinerDetail>
@@ -39,7 +39,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
         public void Render(MinerDetail detail)
         {
-            // 歯車採掘機の不足赤は網の停止理由行が担う（ADR 0056）
+            // 歯車採掘機の不足赤は網の行が担う
             // Gear miners leave shortage red to the network stop-reason row (ADR 0056)
             _progress.SetValue(detail.Progress);
             _powerRate.Render(detail.CurrentPower, detail.RequestPower, !detail.GearDriven);

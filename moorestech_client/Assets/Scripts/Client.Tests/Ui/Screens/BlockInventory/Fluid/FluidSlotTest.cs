@@ -14,8 +14,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// タンクのパネルに出る液体の枠（題・量の帯・名前の印・進捗・絵の欠け）
-    /// Fluid slots shown in a tank panel (title, amount badge, name mark, progress, missing picture)
+    /// タンクのパネルに出る液体の枠
+    /// Fluid slots shown in a tank panel
     /// </summary>
     public class FluidSlotTest : FluidScreenTestHost
     {

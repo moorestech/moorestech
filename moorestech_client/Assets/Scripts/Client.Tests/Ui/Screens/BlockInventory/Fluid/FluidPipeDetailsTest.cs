@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 {
     /// <summary>
-    /// パイプの液体の詳細（名前と「量 / 容量」の文・空の行・同じ行数の再描画で要素を残す）
-    /// Pipe fluid details (name and "amount / capacity" texts, empty rows, keeping elements across same-count re-renders)
+    /// パイプの液体の詳細の文・空の行・再描画
+    /// Pipe fluid details: texts, empty rows, re-render
     /// </summary>
     public class FluidPipeDetailsTest : FluidScreenTestHost
     {
@@ -21,7 +21,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             var body = MountBody("FluidPipe");
             SetFluids(null, BlockFluidSlotState.Filled(Water, 40, 100));
 
-            Assert.AreEqual(0, Shown<VisualElement>(body.Root, "progress-arrow-bar").Count);
+            Assert.AreEqual(0, Shown<VisualElement>(body.Root, "progress-arrow-bar", null).Count);
             var texts = Shown<LocalizedLabel>(body.Root, null, "text--sm");
             Assert.AreEqual(new[] { "Test Water", "40 / 100" }, texts.ConvertAll(label => label.text).ToArray());
 
@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             SetFluids(null, BlockFluidSlotState.Empty(100));
 
             Assert.IsNotNull(body.Root.Q(Slot0));
-            Assert.AreEqual(1, Shown<FluidSlot>(body.Root, "fluid-slot").Count);
+            Assert.AreEqual(1, Shown<FluidSlot>(body.Root, "fluid-slot", null).Count);
             Assert.AreEqual(0, Shown<LocalizedLabel>(body.Root, null, "text--sm").Count);
         }
 

@@ -15,8 +15,8 @@ namespace Client.Game.InGame.FluidNetwork
         // Absent until the join-time full state arrives; the ordered buffer flushes nothing before it, so no diff can come first
         public FluidNetworkReplica Replica { get; private set; }
 
-        // 組み直しとtickのたびに進む版。パイプの水位の表示は描画更新の順番の中で版を見る。UI は OnReplicaVersionChanged を購読する
-        // Advances on every re-assembly and tick; the pipe water level compares it inside the explicit update order, while the UI subscribes to OnReplicaVersionChanged
+        // 組み直しとtickで進む版
+        // Advances on re-assembly and tick; the UI subscribes to OnReplicaVersionChanged
         public int ReplicaVersion { get; private set; }
 
         // 複製と版を進め終えた後に版を流す。購読者の例外は呼び手へ同期で戻る（前例 TrainUnitClientCache.OnUnitApplied と同じ）

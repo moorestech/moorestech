@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// モジュールの 1 枠の上限の文（Model の値を差し替えると描き直す）
-    /// The per-module-slot limit text (redrawn when the model value changes)
+    /// モジュール 1 枠の上限の文
+    /// The per-module-slot limit text, redrawn when the value changes
     /// </summary>
     public class ModuleSlotStackLimitTextTest : MachineScreenTestHost
     {

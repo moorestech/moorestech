@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.Family
 {
     /// <summary>
-    /// 追跡ブロックの液体の配信（パイプの複製の変化・液体プラットフォーム・閉・通知のたびに別の VM）
-    /// Publishing the tracked block's fluids (pipe replica changes, fluid platform, closed, a distinct view model per notification)
+    /// 追跡ブロックの液体の配信
+    /// Publishing the tracked block's fluids, a distinct view model per notification
     /// </summary>
     public class BlockFluidSlotsModelTest
     {
@@ -170,8 +170,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
                 _harness.NotifyStateChanged();
                 _harness.NotifyStateChanged();
 
-                // 2 回とも流れ、3 つの値が互いに別の参照
-                // Both notifications publish, and the three values are distinct references
+                // 2 回とも流れ、値は別の参照
+                // Both notifications publish distinct references
                 Assert.AreEqual(2, _published.Count);
                 Assert.AreNotSame(before, _published[0]);
                 Assert.AreNotSame(before, _published[1]);

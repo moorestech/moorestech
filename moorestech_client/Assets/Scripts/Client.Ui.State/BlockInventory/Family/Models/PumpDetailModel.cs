@@ -40,7 +40,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
                 return;
             }
 
-            // 変換が偽のときは変換側が理由をログへ出す（揃わない間の黙りは silent-ok つき）
+            // 偽なら変換側が理由をログへ出す
             // When the conversion returns false it has already logged why (the quiet wait carries its own silent-ok)
             var common = block.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
             var built = PumpDetailConversion.TryBuild(pump, block.BlockMasterElement.BlockParam, common, out var detail);

@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 文脈の区画の Presenter。機械の Model と文脈の Model を別々に購読し、どちらの通知でも同じ判断をやり直す（Web hasContextSections）
-    /// Presenter of the context section; subscribes to the machine and context models separately and redoes the same decision on either (Web hasContextSections)
+    /// 文脈の区画の Presenter
+    /// Context section presenter; subscribes to the machine and context models and redoes the same decision on either
     /// </summary>
     public sealed class ContextSectionPresenter : IBlockInventorySection
     {
