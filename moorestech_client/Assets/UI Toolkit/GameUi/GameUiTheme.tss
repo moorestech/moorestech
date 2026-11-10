@@ -55,6 +55,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Decor/HudSectionHeading/HudSectionHeading.uss");
 /* == section: Components/Recipe == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Recipe/RecipeRow/RecipeRow.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Recipe/LevelInheritanceBadge/LevelInheritanceBadge.uss");
 /* == section: Components/NodeGraph == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.uss");
 /* == section: Screens == */
