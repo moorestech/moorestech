@@ -171,13 +171,13 @@ namespace Client.Ui.State.Inventory.Actions { public interface IPlayerInventoryO
 // ===== C4-c（計画 uitk-plan-w3c/docs/superpowers/plans/2026-11-09-uitk-c4-c.md の Produces。マージ後に実物と照合）=====
 namespace Client.Ui.Components.Controls
 {
-    public enum RecipeActionLabelWeight { Medium, Regular }
-    public sealed class RecipeActionButton : Button { public const string UssClassName = "recipe-action-button"; public RecipeActionButton(string testid, UiText label, RecipeActionLabelWeight weight); public IObservable<Unit> OnClicked { get; } public void SetLabel(UiText label); } // focusable=false。SetEnabled は VisualElement 既定。長押しは置く側
+    public enum RecipeActionButtonVariant { Craft, Research }   // Craft は 500 の字形・Research は研究の組を部品 USS が持つ（設計書 A-190）
+    public sealed class RecipeActionButton : Button { public const string UssClassName = "recipe-action-button"; public const string ResearchUssClassName = "recipe-action-button--research"; public RecipeActionButton(string testid, UiText label, RecipeActionButtonVariant variant); public IObservable<Unit> OnClicked { get; } public void SetLabel(UiText label); } // focusable=false。SetEnabled は VisualElement 既定。長押しは置く側
     public sealed class RecipeListScrollView : VisualElement { public const string UssClassName = "recipe-list-scroll-view"; public RecipeListScrollView(string listTestid); public void SetLeadingContent(VisualElement content); public void ClearLeadingContent(); public void SetEntries(IReadOnlyList<VisualElement> entries); } // 列の name = listTestid、中の GameScrollView は <listTestid>-scroll。間隔は --recipe-list-gap（既定 --recipe-entry-gap）
 }
 namespace Client.Ui.Components.Recipe
 {
-    public sealed class RecipeRow : VisualElement { public const string UssClassName = "recipe-row"; public RecipeRow(string testid, string arrowTestid); public void SetSlots(IReadOnlyList<VisualElement> materials, IReadOnlyList<VisualElement> results); public void SetDuration(UiText duration); public void SetProgress(float ratio01); public void SetIdle(); public void SetAction(VisualElement action); public void ClearAction(); } // 秒数の name = <testid>-duration。SetDuration は載せる前（後なら LogError）。スロットの寸法は RecipeSlotLayout を GeometryChangedEvent で当てる（Web のコンテナクエリ cqw の写し）
+    public sealed class RecipeRow : VisualElement { public const string UssClassName = "recipe-row"; public RecipeRow(string testid, string arrowTestid, UiText duration) /* 秒数は ctor で受ける。SetDuration は無い（設計書 A-196） */; public void SetSlots(IReadOnlyList<VisualElement> materials, IReadOnlyList<VisualElement> results); public void SetProgress(float ratio01); public void SetIdle(); public void SetAction(VisualElement action); public void ClearAction(); } // 秒数の name = <testid>-duration。SetDuration は載せる前（後なら LogError）。スロットの寸法は RecipeSlotLayout を GeometryChangedEvent で当てる（Web のコンテナクエリ cqw の写し）
     public sealed class LevelInheritanceBadge : VisualElement { public LevelInheritanceBadge(string testid); public void Show(UiText text); public void Hide(); } // 作った直後は隠れる
 }
 
@@ -1786,11 +1786,10 @@ namespace Client.Ui.Screens.Recipe.Parts
             var guid = first.RecipeGuid;
             name = $"craft-recipe-entry-{guid}";
 
-            // 行・秒数・ボタン（秒数は載せる前に入れる。C4-c の約束）
-            // Row, seconds and button (seconds go in before mounting; C4-c contract)
-            _row = new RecipeRow($"craft-recipe-box-{guid}", $"craft-progress-arrow-{guid}");
-            _row.SetDuration(RecipeDurationText.Create(first.Recipe.CraftTime));
-            _button = new RecipeActionButton($"craft-button-{guid}", new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionLabelWeight.Medium);
+            // 行・秒数・ボタン（秒数は行の ctor で受ける。A-196）
+            // Row, seconds and button (the row takes the seconds in its ctor; A-196)
+            _row = new RecipeRow($"craft-recipe-box-{guid}", $"craft-progress-arrow-{guid}", RecipeDurationText.Create(first.Recipe.CraftTime));
+            _button = new RecipeActionButton($"craft-button-{guid}", new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionButtonVariant.Craft);
             _row.SetAction(_button);
 
             // Enter の長押しのためこのインスタンスだけフォーカスを持ち、規則に外されない印を付ける（部品の既定 focusable=false の画面側の例外。D-31・D-32）
@@ -1956,8 +1955,7 @@ namespace Client.Ui.Screens.Recipe.Parts
 
             // 行は進捗を持たない（Web arrowValue null）
             // The row carries no progress (the Web arrowValue null)
-            var row = new RecipeRow($"machine-recipe-box-{guid}", $"machine-progress-arrow-{guid}");
-            row.SetDuration(RecipeDurationText.Create(recipe.Time));
+            var row = new RecipeRow($"machine-recipe-box-{guid}", $"machine-progress-arrow-{guid}", RecipeDurationText.Create(recipe.Time));
             row.SetIdle();
             row.SetSlots(BuildSide(recipe.InputItems, recipe.InputFluids, "input"), BuildSide(recipe.OutputItems, recipe.OutputFluids, "output"));
 
@@ -3452,7 +3450,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-8 拒否の理由 2 つは良性でない**: UI からは解放済みのレシピしか出ないので、起きたら不整合。トーストとログで気づかせる（Web の橋も `invalid_recipe`・`recipe_locked` をエラーで返す）
 - **D-9 `GameScrollView.uss` につまみ 5 本を足す（宣言した部品の変更）**: 一覧は溝が透明・つまみが白 88%・縦バーの上下に 12 の逃げ、レシピ列は上下右に 12 の逃げ（Web の局所上書き）。画面の USS は部品のクラス（`.unity-scroll-view__vertical-scroller` 等）を書けないので、部品につまみが要る。既定は今の値なので他の画面の見た目は変わらない。2 機能目は S4-machine のレシピ選択の列（同じ逃げ）になりうるので、`done.md` の「integrator への依頼」に「つまみ 5 本を足した。設計書 §2.4 の GameScrollView 行へ」と書く（前例: S3-hotbar-modal の `OutlinedCountLabel` の縁の色のつまみ A-108）
 - **D-10 掴みスクロールはパネル px で送る**: Web は `clientY`（実画面 px）の移動を `scrollTop`（CSS px）へそのまま足すので、倍率が 1 でない画面では内容が指より速く／遅く動く。UITK は `UiPressMove.FromStart`（パネル px）を当てて内容を指に付ける。720p（倍率 1）では同じ。閾値（実画面 5px）は `UiPressGesture` が Web と同じに判定する
-- **D-11 秒数はエントリを作るときに 1 回だけ入れる**: C4-c の約束（載せる前に `SetDuration`）。言語の変化は `UiText` の再解決で追従する（`CraftRecipeEntryViewTest` の言語の件で確かめる）。クラフト時間は GUID ごとに変わらない
+- **D-11 秒数はエントリを作るときに 1 回だけ入れる**: C4-c の約束（秒数は `RecipeRow` の ctor で受ける。`SetDuration` は無い。設計書 A-196）。言語の変化は `UiText` の再解決で追従する（`CraftRecipeEntryViewTest` の言語の件で確かめる）。クラフト時間は GUID ごとに変わらない
 - **D-12 ボタンの `title` と掴み中の `grabbing` カーソルは写さない**: クライアントのコードにオフスクリーンの CEF のツールチップ・カーソルの受け手が無く（`grep -rln "OnTooltip\|CursorChange\|SetCursor" moorestech_client/Assets/Scripts` が 0 件）、ゲーム内の Web では出ていない。見た目を Web と同じにする（裁定）ために足さない
 - **D-13 素材のツールチップの文は View が組む**: `MaterialTooltipText.Create` は名前の文字列を受けるが、名前の解決（`GameContentPresentation.ItemName`）は Content 層にあり State から呼べない。モデルは言語の変化で組み直し、View が描き直しのたびに名前を解いて作る。A-31（言語に追従する文は `LocalizedTextBinding` 1 本）は部品の中で `Localize` を購読しない規則で、この形は State の Model が購読する前例 `ModeHudModel` と同じ。名前を文字列で焼き込む `MaterialTooltipText`（C3-a の既存 API）は `LocalizedTextBinding` の束縛 1 本で表せないので、Model の組み直しで追う（Phase 2.6 検査7。agent 既定）
 - **D-14 カタログは State に置き、`ItemRecipeViewerDataContainer` を使い回す**: 表示判定（Show／Hide／UnknownType）は既存の評価器 1 か所。未知の型の警告 1 回は topic と同じ振る舞い

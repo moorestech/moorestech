@@ -150,9 +150,9 @@ public sealed class UiCommandResultToaster { public void Report(string commandNa
 namespace Client.Ui.Components.Recipe
 public sealed class RecipeRow : VisualElement   // UssClassName "recipe-row"。秒数の name は <testid>-duration
 {
-    public RecipeRow(string testid, string arrowTestid);
+    public RecipeRow(string testid, string arrowTestid, UiText duration);   // 秒数は ctor で受ける（SetDuration は無い。設計書 A-196）
     public void SetSlots(IReadOnlyList<VisualElement> materials, IReadOnlyList<VisualElement> results);   // 枠は呼び手が作る（枠ごとの testid は呼び手が付ける）
-    public void SetDuration(UiText duration); public void SetProgress(float ratio01); public void SetIdle();
+    public void SetProgress(float ratio01); public void SetIdle();
     public void SetAction(VisualElement action); public void ClearAction();                               // 機械の選択行はアクション欄を使わない
 }
 public sealed class LevelInheritanceBadge : VisualElement { public LevelInheritanceBadge(string testid); public void Show(UiText text); public void Hide(); }   // 作った直後は隠れている。testid は Show の文のラベルに付く
@@ -2885,7 +2885,7 @@ C4-c がまだ `origin/feature/uitk` に無ければ、Task 13〜15 の選択に
 - Test: `S/Client.Tests/Ui/Screens/BlockInventory/Machine/RecipeSelection/MachineRecipeSelectionRowTest.cs`・`MachineRecipeLayoutTest.cs`・`MachineRecipeSelectionFixtures.cs`、`MachineSectionTest.cs`（4 件と出力空き不足の選択モードの面を足す）・`MachineDesignTest.cs`（2 件）・`Context/CleanRoomLayoutTest.cs`（1 件）
 
 **Interfaces:**
-- Consumes: Task 5（`MachineSelectionModeState.RememberRequest`・`IMachineRecipeSelectCommand`・`MachineRecipeSelectCommand.CommandName`）、C4-c（`RecipeRow(testid, arrowTestid)`・`SetSlots`・`SetDuration`・`SetIdle`・`LevelInheritanceBadge(testid)`・`Show`・`Hide`・`RecipeListScrollView(listTestid)`・`SetLeadingContent`・`ClearLeadingContent`・`SetEntries`）、C4-a（`FluidAmountSlot`・`SlotAmountBadge.Show`）、`LevelInheritanceBadgeText.TryBuild`
+- Consumes: Task 5（`MachineSelectionModeState.RememberRequest`・`IMachineRecipeSelectCommand`・`MachineRecipeSelectCommand.CommandName`）、C4-c（`RecipeRow(testid, arrowTestid, duration)`・`SetSlots`・`SetIdle`・`LevelInheritanceBadge(testid)`・`Show`・`Hide`・`RecipeListScrollView(listTestid)`・`SetLeadingContent`・`ClearLeadingContent`・`SetEntries`）、C4-a（`FluidAmountSlot`・`SlotAmountBadge.Show`）、`LevelInheritanceBadgeText.TryBuild`
 - Produces: なし（画面の中だけ）
 
 - [ ] **Step 1: C4-c の実物と照合する**
@@ -2975,9 +2975,8 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
             if (LevelInheritanceBadgeText.TryBuild(recipe.LevelInheritance, out var badgeText)) badge.Show(badgeText);
             else badge.Hide();
             Add(badge);
-            var recipeRow = new RecipeRow($"{rowId}-row", $"{rowId}-arrow");
+            var recipeRow = new RecipeRow($"{rowId}-row", $"{rowId}-arrow", new UiText(LocalizationKeys.Ui.BlockInventory.RecipeDuration, new[] { new LocalizationTextParam("seconds", MachineRecipeRowContentBuilder.FormatSeconds(recipe.Time)) }));
             recipeRow.SetSlots(MachineRecipeRowContentBuilder.Materials(rowId, recipe, content), MachineRecipeRowContentBuilder.Results(rowId, recipe, content));
-            recipeRow.SetDuration(new UiText(LocalizationKeys.Ui.BlockInventory.RecipeDuration, new[] { new LocalizationTextParam("seconds", MachineRecipeRowContentBuilder.FormatSeconds(recipe.Time)) }));
             recipeRow.SetIdle();
             Add(recipeRow);
 
