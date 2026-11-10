@@ -94,7 +94,7 @@ namespace Client.Tests.Ui.State.Research
                 var label = definition.Guid.ToString();
                 Assert.AreEqual(dto.IconItemId, definition.IconItemId.AsPrimitive(), label);
                 CollectionAssert.AreEqual(dto.PrevGuids, definition.PreviousGuids.Select(guid => guid.ToString()).ToList(), label);
-                CollectionAssert.AreEqual(dto.ConsumeItems.Select(c => Join(c.ItemId, c.Count, Join(c.AcceptedItemIds.ToArray()))), definition.ConsumeItems.Select(c => Join(c.ItemId.AsPrimitive(), c.Count, Join(c.AcceptedItemIds.Select(id => id.AsPrimitive()).ToArray()))), label);
+                CollectionAssert.AreEqual(dto.ConsumeItems.Select(c => Join(c.ItemId, c.Count, JoinInts(c.AcceptedItemIds))), definition.ConsumeItems.Select(c => Join(c.ItemId.AsPrimitive(), c.Count, JoinInts(c.AcceptedItemIds.Select(id => id.AsPrimitive())))), label);
                 AssertSameUnlocks(dto, definition.Unlocks, label);
             }
         }
@@ -108,11 +108,18 @@ namespace Client.Tests.Ui.State.Research
             CollectionAssert.AreEqual(dto.RewardItems.Select(r => Join(r.ItemId, r.Count)), unlocks.RewardItems.Select(r => Join(r.ItemId.AsPrimitive(), r.Count)), $"{label} reward");
             CollectionAssert.AreEqual(dto.UnlockItemRecipeViewItemIds, unlocks.ItemRecipeViewItemIds.Select(id => id.AsPrimitive()), $"{label} itemRecipeView");
             CollectionAssert.AreEqual(dto.UnlockBlocks.Select(b => b.BlockId), unlocks.Blocks.Select(b => b.BlockId.AsPrimitive()), $"{label} block");
-            CollectionAssert.AreEqual(dto.UnlockMachineRecipes.Select(r => Join(r.RecipeGuid, Join(r.OutputItemIds.ToArray()), Join(r.OutputFluids.Select(f => Join(f.FluidId, f.Amount)).ToArray()))), unlocks.MachineRecipes.Select(r => Join(r.RecipeGuid.ToString(), Join(r.OutputItemIds.Select(id => id.AsPrimitive()).ToArray()), Join(r.OutputFluids.Select(f => Join(f.FluidId.AsPrimitive(), f.Amount)).ToArray()))), $"{label} machineRecipe");
+            CollectionAssert.AreEqual(dto.UnlockMachineRecipes.Select(r => Join(r.RecipeGuid, JoinInts(r.OutputItemIds), Join(r.OutputFluids.Select(f => Join(f.FluidId, f.Amount)).ToArray()))), unlocks.MachineRecipes.Select(r => Join(r.RecipeGuid.ToString(), JoinInts(r.OutputItemIds.Select(id => id.AsPrimitive())), Join(r.OutputFluids.Select(f => Join(f.FluidId.AsPrimitive(), f.Amount)).ToArray()))), $"{label} machineRecipe");
             CollectionAssert.AreEqual(dto.UnlockConnectToolGuids, unlocks.ConnectToolGuids.Select(guid => guid.ToString()), $"{label} connectTool");
             CollectionAssert.AreEqual(dto.UnlockTrainCarGuids, unlocks.TrainCarGuids.Select(guid => guid.ToString()), $"{label} trainCar");
             CollectionAssert.AreEqual(dto.UnlockModuleSlotStackLimits, unlocks.ModuleSlotStackLimits, $"{label} moduleSlot");
             CollectionAssert.AreEqual(dto.UnlockLevelInheritanceCraftCaps.Select(c => Join(c.ItemId, c.Level)), unlocks.LevelInheritanceCraftCaps.Select(c => Join(c.ItemId.AsPrimitive(), c.Level)), $"{label} craftCap");
+        }
+
+        // int[] を params object[] に渡すと 1 要素に包まれ比較が無効になるため専用に展開する
+        // Passing int[] to params object[] wraps it as one element and defeats the comparison, so expand it explicitly
+        private static string JoinInts(IEnumerable<int> ids)
+        {
+            return string.Join(",", ids);
         }
 
         private static string Join(params object[] parts)

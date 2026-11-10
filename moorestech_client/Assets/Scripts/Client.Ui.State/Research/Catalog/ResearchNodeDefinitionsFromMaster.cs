@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Ui.State.Research.Catalog
 {
     /// <summary>
-    /// 研究マスタの全ノードを定義へ写す（Web の橋 ResearchNodeDtoFactory と同じ読み方）
-    /// Copies every research master node into a definition (same reading as the Web bridge ResearchNodeDtoFactory)
+    /// 研究マスタの全ノードを定義へ写す（Web の橋 ResearchNodeDtoFactory と同じ読み方。ただし橋と違い台帳外の解放種別は例外で止める）
+    /// Copies every research master node into a definition (same reading as the Web bridge ResearchNodeDtoFactory, but unlike the bridge it throws on unlisted unlock types)
     /// </summary>
     public static class ResearchNodeDefinitionsFromMaster
     {
