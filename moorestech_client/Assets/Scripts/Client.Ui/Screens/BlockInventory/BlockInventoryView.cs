@@ -4,6 +4,7 @@ using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Foundation.Text;
+using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -30,7 +31,6 @@ namespace Client.Ui.Screens.BlockInventory
         private readonly BlockInventoryPanelBand _band;
         private readonly BlockInventoryNaturalScroll _naturalScroll;
         private LocalizedLabel _error;
-        private bool _titleActionPlaced;
 
         public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands)
         {
@@ -86,15 +86,18 @@ namespace Client.Ui.Screens.BlockInventory
 
             void RenderTitle()
             {
-                // 題: ブロックは BlockName(blockGuid)、列車は ui.blockInventory.trainInventory。題の操作の器は題の後に 1 回だけ渡す（GamePanel に外す API が無い。D-17）
-                // Title: BlockName(blockGuid) for blocks, ui.blockInventory.trainInventory for trains; the action holder goes in once after the title (GamePanel has no removal API; D-17)
-                var title = state is OpenBlockInventoryPanel block
+                // 題: ブロックは BlockName(blockGuid)、列車は ui.blockInventory.trainInventory
+                // Title: BlockName(blockGuid) for blocks, ui.blockInventory.trainInventory for trains
+                var block = state as OpenBlockInventoryPanel;
+                var title = block != null
                     ? UiText.FromContent(ContentLocalizationKeys.BlockName(block.BlockGuid))
                     : new UiText(LocalizationKeys.Ui.BlockInventory.TrainInventory);
                 _panel.SetTitle(title);
-                if (_titleActionPlaced) return;
-                _panel.SetTitleAction(_titleActionContainer);
-                _titleActionPlaced = true;
+
+                // 題の操作の器は題の後に、操作を持つ blockType のときだけ載せる（Web はエラー中も TitleAction があれば題の右を空ける）。中身は BodyHost が付け替える
+                // Mount the action holder after the title only for block types with an action (the Web keeps the title reserve even while erroring); BodyHost swaps its contents
+                if (block != null && block.Components.TitleAction != BlockInventoryTitleActionKind.None) _panel.SetTitleAction(_titleActionContainer);
+                else _panel.ClearTitleAction();
             }
 
             void RenderError()

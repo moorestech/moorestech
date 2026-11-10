@@ -1,5 +1,6 @@
 using System;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Ui.Components.Panels;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
@@ -14,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory
 {
     /// <summary>
-    /// 題の操作の器の付け替え（D-17。器は 1 回だけ渡し、中身を器の中で差し替える）の L1
-    /// L1 of swapping the title-action holder contents (D-17; the holder goes in once and its contents are swapped inside)
+    /// 題の操作の器の付け替え（操作を持つ blockType だけ器を載せ、中身を器の中で差し替える）の L1
+    /// L1 of the title-action holder (mounted only for block types with an action; contents swapped inside)
     /// </summary>
     public class BlockInventoryTitleActionTest : BlockInventoryScreenTestHost
     {
@@ -52,9 +53,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             state.Value = BlockInventoryTestPanels.OfType(BlockMasterElement.BlockTypeConst.Chest);
             simulate.FrameUpdate();
             Assert.AreEqual(1, actions.DetachCount);
-            Assert.IsNull(Holder(shell).Q(FakeActionName));
-            Assert.AreEqual(1, Holder(shell).childCount);
-            Assert.AreEqual(0, Holder(shell)[0].childCount);
+            Assert.IsNull(shell.View.Q(FakeActionName));
+            Assert.IsNull(Holder(shell), "操作の無い blockType では器ごと題の行から外す");
+            Assert.IsFalse(shell.View.Q("block-inventory-panel").ClassListContains(GamePanel.TitleActionUssClassName));
+        }
+
+        [Test]
+        public void 題の操作を持つblockTypeはエラー中も題の右を空ける()
+        {
+            // Web は TitleAction があれば操作を出さないエラー中も題の span に paddingRight を付ける
+            // The Web pads the title span whenever TitleAction exists, even while erroring hides the action
+            var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(Panel(RocketType, BlockInventoryPanelError.OpenFailed)), new FakeTitleActionFactory(), new FakeRocketBodyFactory());
+            simulate.FrameUpdate();
+            Assert.IsTrue(shell.View.Q("block-inventory-panel").ClassListContains(GamePanel.TitleActionUssClassName));
+            Assert.AreEqual(99f, shell.View.Q(className: "game-panel__title").resolvedStyle.paddingRight, 0.01f);
         }
 
         private static VisualElement Holder(BlockInventoryTestShell shell)

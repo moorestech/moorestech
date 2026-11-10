@@ -30,6 +30,7 @@
     --panel-right: -3px; /* web: var(--panel-right, -3px) */
     --panel-bottom: -8px; /* web: var(--panel-bottom, -8px) */
     --panel-left: -3px; /* web: var(--panel-left, -3px) */
+    --panel-title-action-reserve: 99px; /* web: BlockInventoryPanel の題の paddingRight calc(var(--panel-action-button-width) + var(--mantine-spacing-sm)) = 87px + 12px。USS に calc が無いので定数の和を写す */
     --title-shift-x: 0px; /* web: .title の var(--title-shift-x, 0) */
     --title-scale-x: 0.947; /* web: .title の var(--title-scale-x, 0.947) */
     --title-scale-y: 0.947; /* web: .title の var(--title-scale-y, 0.947) */

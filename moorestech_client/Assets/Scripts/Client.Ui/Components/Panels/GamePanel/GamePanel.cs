@@ -16,6 +16,8 @@ namespace Client.Ui.Components.Panels
     /// </remarks>
     public sealed class GamePanel : VisualElement
     {
+        public const string TitleActionUssClassName = "game-panel--title-action";
+
         private readonly VisualElement _header;
         private readonly VisualElement _titleAction;
         private readonly VisualElement _body;
@@ -118,10 +120,19 @@ namespace Client.Ui.Components.Panels
                 return;
             }
 
-            // 副次アクションは 1 つだけ。差し替えは前の要素を外してから足す
-            // Only one title action; replacing removes the previous element first
+            // 副次アクションは 1 つだけ。差し替えは前の要素を外してから足し、題の右に操作の分を空ける
+            // Only one title action; replacing removes the previous one, and the title reserves room for it
             _titleAction.Clear();
             _titleAction.Add(action);
+            AddToClassList(TitleActionUssClassName);
+        }
+
+        public void ClearTitleAction()
+        {
+            // 操作を外すと題の右の逃げも外す
+            // Removing the action also drops the title's right reserve
+            _titleAction.Clear();
+            RemoveFromClassList(TitleActionUssClassName);
         }
     }
 }
