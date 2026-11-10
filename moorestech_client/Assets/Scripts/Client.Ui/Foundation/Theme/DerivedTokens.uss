@@ -155,5 +155,6 @@
     --recipe-action-active-offset: 1px; /* web: Mantine Button の .mantine-active:active の translateY(1px) */
     --research-action-disabled-face: rgb(50, 52, 67); /* web: research .researchButton:disabled の background。S4-research が --recipe-action-disabled-* へ当てる */
     --research-action-disabled-opacity: 0.6; /* web: research .researchButton:disabled の opacity: 0.6。S4-research が --recipe-action-disabled-opacity へ当てる */
+    --research-action-disabled-text: rgb(222, 222, 219); /* web: research .researchButton:disabled の color: var(--text-default)（#eee）。UITK の opacity は群でなく面と文字に別々に掛かり、文字が半透明の面に重なって明るく出る（Task 8 の実測で Web 147・#eee のままの UITK 156）。研究の地 rgb(11 11 19) の上で Web と同じ画素になる #eee + 0.4 ×（地 − 面 rgb(50 52 67)）。S4-research が --recipe-action-disabled-text へ当てる */
     --recipe-list-gap: var(--recipe-entry-gap); /* web: RecipeListScrollArea の listGap。機械のレシピ選択は --machine-recipe-row-gap へ上書き */
 }

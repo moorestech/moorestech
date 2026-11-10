@@ -168,7 +168,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             button.SetEnabled(false);
             simulate.FrameUpdate();
             AssertFace(button, "--research-action-disabled-face", "--research-action-disabled-face", "--research-action-disabled-face");
-            AssertSameColor(ResolveColor("--text-default"), Label(button).resolvedStyle.color, "disabled text");
+            AssertSameColor(ResolveColor("--research-action-disabled-text"), Label(button).resolvedStyle.color, "disabled text");
             // :root の値は子の customStyle に出ないので、probe が var() で受けた名前を probe の要素から読む
             // :root values do not show in a child's customStyle, so read the name the probe re-declares via var() from the probe element
             Assert.IsTrue(screen.customStyle.TryGetValue(new CustomStyleProperty<float>("--recipe-action-disabled-opacity"), out var researchOpacity), "probe re-declares the research disabled opacity");
