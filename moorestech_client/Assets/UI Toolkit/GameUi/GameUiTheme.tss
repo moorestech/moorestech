@@ -80,3 +80,6 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/BlockInventory.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/SectionStack/SectionStack.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Parts/Parts.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/Machine.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Family/Family.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Fluid/Fluid.uss");

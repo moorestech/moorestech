@@ -2,6 +2,7 @@ using Client.Input;
 using Client.Input.Pointer;
 using Client.Skit.UI;
 using Client.Starter.Registration.GameUi;
+using Client.Starter.Registration.GameUi.Screens;
 using Client.Ui.Foundation.Composite;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
@@ -80,6 +81,7 @@ namespace Client.Starter.Registration
             TutorialGameUiRegistration.Register(builder);
             GrabGameUiRegistration.Register(builder);
             BlockInventoryGameUiRegistration.Register(builder);
+            BlockInventoryMachineGameUiRegistration.Register(builder);
         }
     }
 }
