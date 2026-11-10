@@ -9,6 +9,7 @@
         "Client.Localization",
         "Client.PlaytestReceiver",
         "Client.Ui.State",
+        "Server.Protocol",
         "UniRx",
         "UniTask",
         "VContainer",
