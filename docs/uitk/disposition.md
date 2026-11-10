@@ -83,3 +83,9 @@
 | 4 | `src/features/blockInventory/details/machine/recipeSelection/MachineRecipeSelectionRow.test.ts` | 入出力の液体はFluidAmountSlotへ量とtestIdを渡して描く | 写す予定 | moorestech-albof.46（レシピの inputFluids/outputFluids から FluidAmountSlot の GUID・量・testid への結線は S4-machine の画面。部品の並びと量の帯は C4-c の RecipeRowContentTest がタグ無しで固定） | — |
 | 4 | `src/features/blockInventory/details/machine/recipeSelection/MachineRecipeSelectionRow.test.ts` | 上限つき継承レシピにはバッジを出す | 写す予定 | moorestech-albof.46（継承から Show を選ぶ分岐は S4-machine の画面。バッジの文の出し方は C4-c の LevelInheritanceBadgeTest がタグ無しで固定） | — |
 | 4 | `src/features/blockInventory/details/machine/recipeSelection/MachineRecipeSelectionRow.test.ts` | 継承しないレシピにはバッジを出さない | 写す予定 | moorestech-albof.46（継承から Hide を選ぶ分岐は S4-machine の画面。隠すと testid の要素が無いことは C4-c の LevelInheritanceBadgeTest がタグ無しで固定） | — |
+| 4 | `e2e/tests/research/research.spec.ts` | translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する | 捨てる | Playwright の補助関数 expectCraftGrip 自身の検査で、DOM の translate とボックスの境界に依る。UITK に同じ補助が無く、写す対象の挙動が無い | #<PR番号> |
+| 4 | `e2e/tests/research/research.spec.ts` | padding box外の境界buttonをexpectCraftGripが重なりなしと判定する | 捨てる | 同上（expectCraftGrip の自己テスト） | #<PR番号> |
+| 4 | `e2e/tests/research/research.spec.ts` | 研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-research-tree.cs（研究画面を開いたまま、判定の間だけ HUD の根を拾う設定にして challenge-hud・key-hints の中心の Pick が各 HUD を返す。層の順序の主張） | #<PR番号> |
+| 4 | `e2e/tests/research/tmp-icon-click.spec.ts` | * | 捨てる | tmp の付いた一時の調査テストで、実行計画 §1.4 の完了条件が写す数から除いた | #<PR番号> |
+| 4 | `src/features/research/ResearchTreePanel.test.ts` | インベントリtopic未受信中は詳細ペインへ所持数をnullで渡す(D4) | 捨てる | UITK は持ち物を同期で持ち、所持数の未受信の状態が無い（設計書 [A-13] の ConnectingPlaceholder と同じ理由） | #<PR番号> |
+| 4 | `src/features/research/ResearchDetailPane.test.ts` | 所持数未受信中(owned=null)は不足表示も所持/必要も出さない | 捨てる | 同上（[A-13]。所持数は常に有る） | #<PR番号> |
