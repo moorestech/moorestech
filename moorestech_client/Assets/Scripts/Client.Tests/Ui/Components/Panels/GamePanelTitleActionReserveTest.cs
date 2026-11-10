@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
-    /// 題の操作を持つ間だけ題の右に逃げが空くことの L1
-    /// L1: title reserves action space only while it holds an action
+    /// 逃げを頼んだ間だけ題の右が空き、題の操作を載せるだけでは空かないことの L1
+    /// L1: the title reserves room only while asked, not merely because it holds an action
     /// </summary>
     public class GamePanelTitleActionReserveTest : UiTestHost
     {
@@ -35,9 +35,20 @@ namespace Client.Tests.Ui.Components.Panels
         }
 
         [Test]
-        public void 題の操作を持つ間は題の右に逃げを空ける()
+        public void 題の操作を載せるだけでは右を空けない()
+        {
+            // 持ち物パネルの並べ替えは Web で流れの中に置かれ、題の右を空けない
+            // The inventory sort button flows inline on the Web and reserves no room
+            _panel.SetTitleAction(new VisualElement { name = "test-title-action" });
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, Title().resolvedStyle.paddingRight, 0.01f);
+        }
+
+        [Test]
+        public void 逃げを頼んだ間は題の右を空ける()
         {
             _panel.SetTitleAction(new VisualElement { name = "test-title-action" });
+            _panel.SetTitleActionReserve(true);
             simulate.FrameUpdate();
             // 幅の値は CalcConstantRecheckTest が --panel-action-button-width との和で守る。ここは逃げが付くことだけを見る
             // CalcConstantRecheckTest guards the value against --panel-action-button-width; this only checks that a reserve is applied
@@ -49,6 +60,7 @@ namespace Client.Tests.Ui.Components.Panels
         {
             var action = new VisualElement { name = "test-title-action" };
             _panel.SetTitleAction(action);
+            _panel.SetTitleActionReserve(true);
             _panel.ClearTitleAction();
             simulate.FrameUpdate();
             Assert.IsNull(action.parent);

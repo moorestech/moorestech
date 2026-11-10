@@ -56,6 +56,16 @@ namespace Client.Playtest.Input
             #endregion
         }
 
+        public static void ReportIfOverwritten()
+        {
+            // 押下中の修飾キーが実キーの事象で上書きされていたら、このクリックは修飾無しで届くのでログへ出す
+            // If a real key event overwrote the held modifiers, this click lands without them, so log it
+            if (_held == EventModifiers.None) return;
+            var current = (EventModifiers)ModifiersField().GetValue(null);
+            if (current == _held) return;
+            Debug.LogError($"[UitkModifierKeys] 注入した修飾キー {_held} が実入力で {current} に上書きされた。このクリックは evt.shiftKey 等が外れて届く（Editor を前面にして人がキー・マウスに触れた可能性）");
+        }
+
         private static void Rewrite()
         {
             Write(_held);
@@ -64,21 +74,17 @@ namespace Client.Playtest.Input
         private static void Write(EventModifiers modifiers)
         {
             ModifiersField().SetValue(null, modifiers);
+        }
 
-            #region Internal
-
-            FieldInfo ModifiersField()
-            {
-                // 非公開の静的値なので名前で引く。Unity の更新で消えたら DSL の Shift が黙って効かなくなるので止める
-                // A private static, so look it up by name; stop if a Unity update removed it, since DSL Shift would otherwise silently fail
-                if (_modifiersField != null) return _modifiersField;
-                var handler = Type.GetType("UnityEngine.UIElements.PanelEventHandler, UnityEngine.UI");
-                _modifiersField = handler?.GetField("s_Modifiers", BindingFlags.NonPublic | BindingFlags.Static);
-                if (_modifiersField == null) throw new InvalidOperationException("[UitkModifierKeys] PanelEventHandler.s_Modifiers が見つからない（Unity の版で内部名が変わった）ので DSL の修飾キーを UITK へ届けられない");
-                return _modifiersField;
-            }
-
-            #endregion
+        private static FieldInfo ModifiersField()
+        {
+            // 非公開の静的値なので名前で引く。Unity の更新で消えたら DSL の Shift が黙って効かなくなるので止める
+            // A private static, so look it up by name; stop if a Unity update removed it, since DSL Shift would otherwise silently fail
+            if (_modifiersField != null) return _modifiersField;
+            var handler = Type.GetType("UnityEngine.UIElements.PanelEventHandler, UnityEngine.UI");
+            _modifiersField = handler?.GetField("s_Modifiers", BindingFlags.NonPublic | BindingFlags.Static);
+            if (_modifiersField == null) throw new InvalidOperationException("[UitkModifierKeys] PanelEventHandler.s_Modifiers が見つからない（Unity の版で内部名が変わった）ので DSL の修飾キーを UITK へ届けられない");
+            return _modifiersField;
         }
     }
 }

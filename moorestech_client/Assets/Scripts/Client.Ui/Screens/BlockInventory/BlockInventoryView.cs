@@ -96,7 +96,11 @@ namespace Client.Ui.Screens.BlockInventory
 
                 // 題の操作の器は題の後に、操作を持つ blockType のときだけ載せる（Web はエラー中も TitleAction があれば題の右を空ける）。中身は BodyHost が付け替える
                 // Mount the action holder after the title only for block types with an action (the Web keeps the title reserve even while erroring); BodyHost swaps its contents
-                if (block != null && block.Components.TitleAction != BlockInventoryTitleActionKind.None) _panel.SetTitleAction(_titleActionContainer);
+                if (block != null && block.Components.TitleAction != BlockInventoryTitleActionKind.None)
+                {
+                    _panel.SetTitleAction(_titleActionContainer);
+                    _panel.SetTitleActionReserve(true);
+                }
                 else _panel.ClearTitleAction();
             }
 

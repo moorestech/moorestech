@@ -122,17 +122,20 @@ namespace Client.Ui.Components.Panels
 
             // 同じ器を毎 Render で渡されても外して付け直さない（detach でポインタ捕捉・:hover が外れるため）
             // Never detach and re-add the same holder when it is passed again every Render (detaching drops pointer capture and :hover)
-            if (_titleAction.childCount == 1 && _titleAction[0] == action)
-            {
-                AddToClassList(TitleActionUssClassName);
-                return;
-            }
+            if (_titleAction.childCount == 1 && _titleAction[0] == action) return;
 
-            // 副次アクションは 1 つだけ。差し替えは前の要素を外してから足し、題の右に操作の分を空ける
-            // Only one title action; replacing removes the previous one, and the title reserves room for it
+            // 副次アクションは 1 つだけ。差し替えは前の要素を外してから足す
+            // Only one title action; replacing removes the previous one first
             _titleAction.Clear();
             _titleAction.Add(action);
-            AddToClassList(TitleActionUssClassName);
+        }
+
+        public void SetTitleActionReserve(bool reserve)
+        {
+            // 題の右の逃げは Web が titleAction を絶対配置する画面（ブロックのインベントリ）だけが付ける
+            // Only screens whose Web titleAction is absolutely positioned (block inventory) reserve room right of the title
+            if (reserve) AddToClassList(TitleActionUssClassName);
+            else RemoveFromClassList(TitleActionUssClassName);
         }
 
         public void ClearTitleAction()
