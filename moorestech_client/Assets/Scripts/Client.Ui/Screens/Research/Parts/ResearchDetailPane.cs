@@ -44,7 +44,7 @@ namespace Client.Ui.Screens.Research.Parts
             _name = new LocalizedLabel();
             _name.AddToClassList("research-tree__detail-name");
             header.Add(_name);
-            header.Add(CloseButton(commands));
+            header.Add(CloseButton());
 
             // 見出しとボタンの間だけスクロールさせ、研究ボタンを常に見せる
             // Scroll only between header and button so the research button stays visible
@@ -68,6 +68,24 @@ namespace Client.Ui.Screens.Research.Parts
             body.Add(_actions);
             panel.Add(body);
             Add(panel);
+
+            #region Internal
+
+            // 閉じるは素の要素とクリックで作る（Unity の Button の既定の見た目を持ち込まない）
+            // Close is a plain element with a click (keeps Unity Button default styling out)
+            VisualElement CloseButton()
+            {
+                var close = new VisualElement { name = "research-detail-close" };
+                close.AddToClassList("research-tree__detail-close");
+                var symbol = new LocalizedLabel { pickingMode = PickingMode.Ignore };
+                symbol.AddToClassList("research-tree__detail-close-symbol");
+                symbol.SetText(new UiText(LocalizationKeys.Ui.Research.CloseSymbol));
+                close.Add(symbol);
+                close.RegisterCallback<ClickEvent>(_ => commands.CloseDetail());
+                return close;
+            }
+
+            #endregion
         }
 
         public void Render(ResearchDetailViewModel detail)
@@ -91,20 +109,6 @@ namespace Client.Ui.Screens.Research.Parts
             // The next show starts from the top, even for the same node
             style.display = DisplayStyle.None;
             _hasRendered = false;
-        }
-
-        // 閉じるは素の要素とクリックで作る（Unity の Button の既定の見た目を持ち込まない）
-        // Close is a plain element with a click (keeps Unity Button default styling out)
-        private static VisualElement CloseButton(IResearchTreeCommands commands)
-        {
-            var close = new VisualElement { name = "research-detail-close" };
-            close.AddToClassList("research-tree__detail-close");
-            var symbol = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-            symbol.AddToClassList("research-tree__detail-close-symbol");
-            symbol.SetText(new UiText(LocalizationKeys.Ui.Research.CloseSymbol));
-            close.Add(symbol);
-            close.RegisterCallback<ClickEvent>(_ => commands.CloseDetail());
-            return close;
         }
     }
 }

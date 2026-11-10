@@ -29,12 +29,6 @@ namespace Client.Ui.State.Research.Tree
             return _hasNode && _guid == guid;
         }
 
-        public bool TryGetGuid(out Guid guid)
-        {
-            guid = _guid;
-            return _hasNode;
-        }
-
         // 同じノードの再タップで閉じる（Web の toggleSelect）
         // Tapping the same node again closes it (the Web toggleSelect)
         public ResearchSelection Toggled(Guid guid)

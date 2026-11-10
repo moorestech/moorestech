@@ -37,6 +37,16 @@ namespace Client.Ui.Screens.Research.Parts
             _reason.SetText(new UiText(LocalizationKeys.Ui.Research.MissingItems));
             Add(_button);
             Add(_reason);
+
+            #region Internal
+
+            async UniTaskVoid CompleteAsync()
+            {
+                var result = await _commands.CompleteResearch(_researchGuid);
+                _toaster.Report(ResearchTreeCommands.CompleteResearchCommandName, result);
+            }
+
+            #endregion
         }
 
         public void Render(Guid researchGuid, ResearchButtonState button)
@@ -53,12 +63,6 @@ namespace Client.Ui.Screens.Research.Parts
             var showsReason = !button.Completed && !button.Interactable;
             _reason.style.display = showsReason ? DisplayStyle.Flex : DisplayStyle.None;
             _reason.SetText(new UiText(button.TooltipKey));
-        }
-
-        private async UniTaskVoid CompleteAsync()
-        {
-            var result = await _commands.CompleteResearch(_researchGuid);
-            _toaster.Report(ResearchTreeCommands.CompleteResearchCommandName, result);
         }
     }
 }

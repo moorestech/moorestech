@@ -1,4 +1,3 @@
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Localization;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Items;
@@ -19,7 +18,6 @@ namespace Client.Ui.State.Research.Tree
         private readonly ResearchNodeCatalog _catalog;
         private readonly ResearchNodeStateStore _store;
         private readonly ResearchSelectionStore _selection;
-        private readonly LocalPlayerInventoryController _inventory;
         private readonly IPlayerInventoryOperations _inventoryOperations;
         private readonly UiRoutingState _routing;
         private readonly ReactiveProperty<ResearchTreeViewModel> _current = new(ResearchTreeViewModel.Empty);
@@ -27,12 +25,11 @@ namespace Client.Ui.State.Research.Tree
 
         public IReadOnlyReactiveProperty<ResearchTreeViewModel> Current => _current;
 
-        public ResearchTreeModel(ResearchNodeCatalog catalog, ResearchNodeStateStore store, ResearchSelectionStore selection, LocalPlayerInventoryController inventory, IPlayerInventoryOperations inventoryOperations, UiRoutingState routing)
+        public ResearchTreeModel(ResearchNodeCatalog catalog, ResearchNodeStateStore store, ResearchSelectionStore selection, IPlayerInventoryOperations inventoryOperations, UiRoutingState routing)
         {
             _catalog = catalog;
             _store = store;
             _selection = selection;
-            _inventory = inventory;
             _inventoryOperations = inventoryOperations;
             _routing = routing;
         }
@@ -42,8 +39,7 @@ namespace Client.Ui.State.Research.Tree
             // 状態・選択・所持・言語の変化は研究画面の表示中だけ組み直す（前例 ResearchNodeStateStore.RefreshWhileResearchScreenActive）
             // State, selection, inventory and language changes rebuild only while the research screen is shown (precedent ResearchNodeStateStore.RefreshWhileResearchScreenActive)
             _store.OnNodeStatesChanged.Subscribe(_ => OnNodeStatesReceived());
-            _inventory.LocalPlayerInventory.OnItemChange.Subscribe(_ => RebuildWhileShown());
-            _inventory.OnInventoryRefreshed.Subscribe(_ => RebuildWhileShown());
+            _inventoryOperations.OnSnapshotChanged.Subscribe(_ => RebuildWhileShown());
             Localize.OnLanguageChanged.Subscribe(_ => RebuildWhileShown());
             _selection.Current.Skip(1).Subscribe(_ => RebuildWhileShown());
 
@@ -63,6 +59,20 @@ namespace Client.Ui.State.Research.Tree
                 RebuildWhileShown();
             }
 
+            // 受けた状態に欠けたノードは Web の既定で描くので、受信ごとに件数を出して気づけるようにする（D-29）
+            // Missing nodes render with the Web default, so log their count on every receipt to make the gap visible (D-29)
+            void WarnMissingNodeStates()
+            {
+                var states = _store.NodeStates;
+                var missing = 0;
+                foreach (var node in _catalog.Nodes)
+                {
+                    if (!states.ContainsKey(node.Guid)) missing++;
+                }
+                if (missing == 0) return;
+                Debug.LogWarning($"[ResearchTreeModel] {missing} research node(s) have no server state; drawn as UnresearchableAllReasons like the Web bridge");
+            }
+
             #endregion
         }
 
@@ -78,20 +88,6 @@ namespace Client.Ui.State.Research.Tree
             // Owned counts come from the main slots only (the Web buildOwnedCounts(inventory.mainSlots); same read port as inventory operations)
             var owned = OwnedItemCounts.Build(_inventoryOperations.ReadSnapshot().MainSlots);
             _current.Value = ResearchTreeViewModelFactory.Create(_catalog.Nodes, _store.NodeStates, owned, _selection.Current.Value);
-        }
-
-        // 受けた状態に欠けたノードは Web の既定で描くので、受信ごとに件数を出して気づけるようにする（D-29）
-        // Missing nodes render with the Web default, so log their count on every receipt to make the gap visible (D-29)
-        private void WarnMissingNodeStates()
-        {
-            var states = _store.NodeStates;
-            var missing = 0;
-            foreach (var node in _catalog.Nodes)
-            {
-                if (!states.ContainsKey(node.Guid)) missing++;
-            }
-            if (missing == 0) return;
-            Debug.LogWarning($"[ResearchTreeModel] {missing} research node(s) have no server state; drawn as UnresearchableAllReasons like the Web bridge");
         }
     }
 }

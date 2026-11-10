@@ -19,7 +19,7 @@ namespace Client.Tests.Ui.State.Research
             var selected = ResearchSelection.None.Toggled(A);
             Assert.IsTrue(selected.Is(A));
             Assert.IsTrue(selected.Toggled(B).Is(B));
-            Assert.IsFalse(selected.Toggled(A).TryGetGuid(out _));
+            Assert.IsFalse(selected.Toggled(A).Is(A));
         }
     }
 }

@@ -52,15 +52,19 @@ namespace Client.Ui.Screens.Research.Parts
                 _slots[i].style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
                 if (shown) _slots[i].SetContent(ContentOf(slots[i]));
             }
-        }
 
-        // 不足は枠の強調と所持/必要の赤で示し、ツールチップは名前と所持・必要
-        // Shortage shows as the frame highlight and red owned/required; the tooltip lists name, owned and required
-        private ItemSlotContent ContentOf(ResearchConsumeSlotViewModel slot)
-        {
-            var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.ResearchConsumeItem, _content.ItemName(slot.ItemId).Resolve(), slot.Required, slot.Allocated);
-            var shortage = new ItemSlotShortage(slot.Allocated, slot.Required, slot.Lacking, tooltip);
-            return new ItemSlotContent(_content.Item(slot.ItemId), null, new ItemSlotMarks(false, false, slot.Lacking), shortage, null, null);
+            #region Internal
+
+            // 不足は枠の強調と所持/必要の赤で示し、ツールチップは名前と所持・必要
+            // Shortage shows as the frame highlight and red owned/required; the tooltip lists name, owned and required
+            ItemSlotContent ContentOf(ResearchConsumeSlotViewModel slot)
+            {
+                var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.ResearchConsumeItem, _content.ItemName(slot.ItemId).Resolve(), slot.Required, slot.Allocated);
+                var shortage = new ItemSlotShortage(slot.Allocated, slot.Required, slot.Lacking, tooltip);
+                return new ItemSlotContent(_content.Item(slot.ItemId), null, new ItemSlotMarks(false, false, slot.Lacking), shortage, null, null);
+            }
+
+            #endregion
         }
     }
 }

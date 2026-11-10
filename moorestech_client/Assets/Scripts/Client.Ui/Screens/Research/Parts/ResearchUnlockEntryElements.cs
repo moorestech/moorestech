@@ -56,6 +56,21 @@ namespace Client.Ui.Screens.Research.Parts
                 default:
                     throw new ArgumentOutOfRangeException(nameof(entry), entry.GetType().Name, null);
             }
+
+            #region Internal
+
+            // 液体の出力は容量を持たないので量の文だけで示す（Web UnlockFluidLabel）
+            // Fluid outputs have no capacity, so only an amount text is shown (Web UnlockFluidLabel)
+            LocalizedLabel FluidLabelOf(UnlockFluid fluid, GameContentPresentation content)
+            {
+                var label = new LocalizedLabel { name = "research-unlock-fluid" };
+                label.AddToClassList("research-tree__unlock-fluid");
+                var textParams = new[] { new LocalizationTextParam("fluidName", content.Fluid(fluid.FluidId).Label.Resolve()), new LocalizationTextParam("amount", SlotAmountFormat.Format(fluid.Amount)) };
+                label.SetText(new UiText(LocalizationKeys.Ui.Research.UnlockFluidSummary, textParams));
+                return label;
+            }
+
+            #endregion
         }
 
         private static ItemSlot ItemSlotOf(string frameTestid, ItemId itemId, int? count, GameContentPresentation content)
@@ -64,17 +79,6 @@ namespace Client.Ui.Screens.Research.Parts
             slot.AddToClassList("research-tree__slot");
             slot.SetContent(new ItemSlotContent(content.Item(itemId), count, new ItemSlotMarks(false, false, false), null, null, null));
             return slot;
-        }
-
-        // 液体の出力は容量を持たないので量の文だけで示す（Web UnlockFluidLabel）
-        // Fluid outputs have no capacity, so only an amount text is shown (Web UnlockFluidLabel)
-        private static LocalizedLabel FluidLabelOf(UnlockFluid fluid, GameContentPresentation content)
-        {
-            var label = new LocalizedLabel { name = "research-unlock-fluid" };
-            label.AddToClassList("research-tree__unlock-fluid");
-            var textParams = new[] { new LocalizationTextParam("fluidName", content.Fluid(fluid.FluidId).Label.Resolve()), new LocalizationTextParam("amount", SlotAmountFormat.Format(fluid.Amount)) };
-            label.SetText(new UiText(LocalizationKeys.Ui.Research.UnlockFluidSummary, textParams));
-            return label;
         }
 
         private static LocalizedLabel OtherLine(string testid, UiText text)
