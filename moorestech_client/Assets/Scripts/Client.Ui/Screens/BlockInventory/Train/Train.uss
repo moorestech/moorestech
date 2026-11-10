@@ -21,3 +21,9 @@
 .train-station-name > .train-station-name__row-end {
     margin-left: var(--mode-switch-padding-inline);
 }
+
+/* 入力欄の幅は Web の UA 既定（size=20）の実測をトークンで当てる */
+/* The field width applies the measured Web UA default (size=20) through a token */
+.train-station-name > .train-station-name__input {
+    width: var(--train-station-name-input-width);
+}
