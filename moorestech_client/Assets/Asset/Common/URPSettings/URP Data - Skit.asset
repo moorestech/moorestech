@@ -26,7 +26,8 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
   - {fileID: 9176458359454757473}
-  m_RendererFeatureMap: 59896c27dc4ee90761f2764b4254597f
+  - {fileID: 7781356291806578709}
+  m_RendererFeatureMap: 59896c27dc4ee90761f2764b4254597f15c8e1eb51eefc6b
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -97,6 +98,20 @@ MonoBehaviour:
     perObjectData: 0
     enableDynamicBatching: 0
     enableInstancing: 0
+--- !u!114 &7781356291806578709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0885d039760b3462db9b10ad0a56ba24, type: 3}
+  m_Name: UiSrgbComposite
+  m_EditorClassIdentifier: Client.Ui::Client.Ui.Foundation.Composite.UiSrgbCompositeFeature
+  m_Active: 1
+  compositeShader: {fileID: 4800000, guid: b3d019f34ead54eb186a349dba5ce8e0, type: 3}
 --- !u!114 &9176458359454757473
 MonoBehaviour:
   m_ObjectHideFlags: 0

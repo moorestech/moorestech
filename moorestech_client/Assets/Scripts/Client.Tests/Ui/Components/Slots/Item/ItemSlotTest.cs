@@ -72,8 +72,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
             _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, new ItemSlotMarks(false, false, true), null, null, null));
             simulate.FrameUpdate();
 
-            // Web の 40% を Linear 合成で同じ見え方に寄せたトークンの値になる
-            // Resolves to the token that makes the Web 40% look the same under Linear blending
+            // Web の 40% そのままのトークンの値になる
+            // Resolves to the token holding the Web 40% as is
             Assert.IsTrue(_frame.ClassListContains("slot-frame--insufficient"));
             Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), _frame.resolvedStyle.opacity, 0.001f);
         }

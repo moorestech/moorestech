@@ -56,5 +56,5 @@
 /* A ghost fades only the picture and amount (no frame change, no fill) */
 .fluid-slot--ghost > .fluid-slot__icon,
 .fluid-slot--ghost > .fluid-slot__amount {
-    opacity: var(--fluid-slot-ghost-opacity);
+    opacity: var(--slot-ghost-opacity);
 }

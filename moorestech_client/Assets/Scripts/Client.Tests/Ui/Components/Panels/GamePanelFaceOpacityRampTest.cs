@@ -9,9 +9,9 @@ namespace Client.Tests.Ui.Components.Panels
     /// </summary>
     public class GamePanelFaceOpacityRampTest
     {
-        // --surface-navy の α（Web の α0.8 を 1-(1-a)^1.85 で補正した値）
-        // The --surface-navy alpha (Web alpha 0.8 corrected by 1-(1-a)^1.85)
-        private const float NavyFaceAlpha = 0.9491f;
+        // --surface-navy の α（Web の α0.8 のまま。UI は sRGB 空間で合成する: A-180）
+        // The --surface-navy alpha (the Web alpha 0.8; the UI blends in sRGB space: A-180)
+        private const float NavyFaceAlpha = 0.8f;
 
         // skit の形（左右と下端はフェードせず上端だけ 12px）と hud の形（4 辺 10px）
         // The skit shape (no side or bottom fade, top only 12px) and the hud shape (10px on all four sides)
@@ -44,12 +44,12 @@ namespace Client.Tests.Ui.Components.Panels
         }
 
         [Test]
-        public void 頂点のαは縁の重みを線形に掛けずS7の式で補正した値になる()
+        public void 頂点のαは面のαに縁の重みを線形に掛けた値になる()
         {
-            // skit 上端の 50% 点。重み 0.5 を線形に掛けた 0.4746 ではなく LinearBlendOpacity.OpacityAt(a, 0.5) = 0.6113 になる
-            // The skit top 50% point: not the linear 0.4746 but LinearBlendOpacity.OpacityAt(a, 0.5) = 0.6113
+            // skit 上端の 50% 点。Web の mask と同じく重み 0.5 を線形に掛けて 0.4
+            // The skit top 50% point: the weight 0.5 is multiplied linearly as the Web mask does, giving 0.4
             var alpha = GamePanelFaceOpacityRamp.VertexAlpha(NavyFaceAlpha, Width / 2f, SkitTopFade / 2f, Width, Height, 0f, SkitTopFade, 0f);
-            Assert.AreEqual(0.6113f, alpha, 0.002f);
+            Assert.AreEqual(0.4f, alpha, 0.002f);
             Assert.AreEqual(NavyFaceAlpha, GamePanelFaceOpacityRamp.VertexAlpha(NavyFaceAlpha, Width / 2f, Height, Width, Height, 0f, SkitTopFade, 0f), 0.0001f);
         }
 

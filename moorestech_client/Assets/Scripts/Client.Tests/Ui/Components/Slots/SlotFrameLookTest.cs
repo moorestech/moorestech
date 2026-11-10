@@ -110,11 +110,11 @@ namespace Client.Tests.Ui.Components.Slots
             var insufficient = Mount(null, new SlotFrameState(false, false, false, true, false));
             var ghost = Mount(null, new SlotFrameState(false, false, false, false, true));
 
-            // 値は Web の 0.4・0.35 を Linear 合成で同じ見え方に寄せたトークン
-            // The values are tokens that make the Web 0.4 and 0.35 look the same under Linear blending
+            // 値は Web の 0.4・0.35 そのままのトークン
+            // The values are the tokens holding the Web 0.4 and 0.35 as is
             Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), insufficient.resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(1f, ghost.resolvedStyle.opacity, 0.001f);
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-ghost-opacity")), ghost.Q(className: "slot-frame__content").resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-ghost-opacity")), ghost.Q(className: "slot-frame__content").resolvedStyle.opacity, 0.001f);
         }
 
         [Test]

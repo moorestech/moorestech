@@ -2,6 +2,7 @@ using Client.Input;
 using Client.Input.Pointer;
 using Client.Skit.UI;
 using Client.Starter.Registration.GameUi;
+using Client.Ui.Foundation.Composite;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
@@ -31,6 +32,9 @@ namespace Client.Starter.Registration
             if (uiSystem != UiSystem.GameUi) return;
 
             builder.RegisterComponent(gameUiRoot);
+            // パネルの描き先を sRGB 合成の RT へ替えるので、root.panel を控える入口より先に初期化させる
+            // It swaps the panel's target to the sRGB composite RT, so it initializes before entry points that keep root.panel
+            builder.RegisterEntryPoint<GameUiSrgbCompositeInstaller>();
             builder.RegisterEntryPoint<GameUiLocaleClassBinder>();
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();

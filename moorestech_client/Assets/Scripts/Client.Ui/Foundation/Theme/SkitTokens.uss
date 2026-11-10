@@ -1,7 +1,7 @@
 /* Generated from moorestech_web/webui/src/app/skitTokens.css — do not edit by hand. */
 /* Regenerate: node tools/uitk/convert-web-tokens.mjs */
 :root {
-    --skit-window-face: rgba(11, 17, 28, 0.9802); /* web: rgba(11, 17, 28, 0.88) α補正 */
+    --skit-window-face: rgba(11, 17, 28, 0.88);
     --skit-window-top-fade: 37px;
     --skit-window-height: 204px;
     --skit-window-content-inset: 168px;

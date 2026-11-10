@@ -11,7 +11,9 @@
         "Client.Ui.State",
         "UniRx",
         "UniTask",
-        "VContainer"
+        "VContainer",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -23,7 +23,7 @@
 
 17. **PickingMode の既定** — 層コンテナ・ルート・幕・描くだけの子（Painter2D・頂点カラー・装飾・文字だけの Label）が `PickingMode.Ignore` か。押せない要素が Pick を受けると、ワールドのクリックとパネル外の右短押しが効かなくなる。逆に押せる要素を Ignore にしていないか。
 18. **全体スイッチ〔W0-switch〕の片側読み** — 入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）・DSL のロケータ・アンカーの解決が、全体スイッチの系の値だけを読んでいるか。Web と UITK の値を論理和にしていないか。Presenter・View・部品がスイッチを読んでいないか（分岐は composition root の 1 か所）。
-19. **トークンの直書き** — 部品・画面の USS と C# に色（`#hex`・`rgb()`・`new Color(`）を直に書いていないか。色は `var(--…)`、C# が色・寸法を要るときは部品の USS で受け直して `UssCustomStyleReader` で読む。Web の値を写した半透明に α 補正が付いているか。Web がトークンで書く寸法を数値で書いていないか。
+19. **トークンの直書き** — 部品・画面の USS と C# に色（`#hex`・`rgb()`・`new Color(`）を直に書いていないか。色は `var(--…)`、C# が色・寸法を要るときは部品の USS で受け直して `UssCustomStyleReader` で読む。Web の値を写した半透明は Web の α のままか（補正・地での選び分けをしていないか）。Web がトークンで書く寸法を数値で書いていないか。
 20. **イベントの出し方** — 部品・View が `Button.clicked`・`Action`・`event`・コールバック引数で操作を外へ出していないか。`IObservable<T> On<変化対象><過去分詞>`（UniRx の `Subject`）へ。`clicked` は部品の内側で `Subject` へ流すときだけ使う。
 21. **部品の中身を外から塗る** — 画面の USS や別の部品の USS が他部品の子クラス（`__`）・状態クラス（`--`）を書いていないか、C# から他部品の子へ `style.*`・`AddToClassList` していないか。外から変えてよいのはつまみ（Web の局所上書き変数と同じ名前のカスタムプロパティ）だけ。
 22. **層の依存方向** — `Components/` が `Client.Game`・`MasterHolder`・`Client.Ui.State` の機能別の型・`Client.Ui.Content`〔C3-a〕・`Client.Ui.Screens` を参照していないか。`Content/` が `Screens` を、`Screens/<機能>` が別の `Screens/<機能>` を、`Client.Ui.State` が `UnityEngine.UIElements` を参照していないか。部品が ItemId などの ID を受けていたら、解決を Content へ移す。

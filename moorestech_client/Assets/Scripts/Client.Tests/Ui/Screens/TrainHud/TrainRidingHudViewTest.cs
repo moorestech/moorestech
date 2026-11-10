@@ -74,7 +74,7 @@ namespace Client.Tests.Ui.Screens.TrainHud
             Assert.AreEqual(12f, paper.resolvedStyle.paddingTop, 0.05f);
             Assert.AreEqual(16f, paper.resolvedStyle.paddingLeft, 0.05f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--train-riding-hud-face"), paper.resolvedStyle.backgroundColor, "face");
-            Assert.AreEqual(0.9581f, paper.resolvedStyle.backgroundColor.a, 1e-3f);
+            Assert.AreEqual(0.82f, paper.resolvedStyle.backgroundColor.a, 1e-3f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-gray-1"), paper.resolvedStyle.color, "text");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-gray-1"), Find<Label>(_view, "train-branch-selection").resolvedStyle.color, "branch text");
             Assert.IsTrue(paper.ClassListContains(AnchorIds.TrainHudStatus));
