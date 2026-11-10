@@ -66,12 +66,17 @@
     display: flex;
 }
 
+/* 名前と状態の行の高さは Web が Mantine の body から継ぐ 1.55（14px×1.55＝21.7px・12px×1.55＝18.6px）。1 行の nowrap なので前例 TooltipFace の 1 行目と同じく min-height だけで写す。Web の半行間に合わせ文字は縦中央（行送りの指定は text へ line-height タグを足すため使わない） */
+/* Name and state lines use the Web's line-height 1.55 inherited from the Mantine body (14px x 1.55 = 21.7px, 12px x 1.55 = 18.6px), single-line nowrap, so min-height alone like the first line of TooltipFace; text centered vertically like the Web half-leading (the pitch knob would add a line-height tag to text) */
 .research-tree__card-name {
     max-width: 100%;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 14px;
+    --research-card-name-line-height: 21.7px;
+    min-height: var(--research-card-name-line-height);
+    -unity-text-align: middle-center;
     color: var(--text-default);
     margin: 0;
     padding: 0;
@@ -88,6 +93,9 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 12px;
+    --research-card-state-line-height: 18.6px;
+    min-height: var(--research-card-state-line-height);
+    -unity-text-align: middle-center;
     color: var(--text-default);
     margin: 0;
     padding: 0;
