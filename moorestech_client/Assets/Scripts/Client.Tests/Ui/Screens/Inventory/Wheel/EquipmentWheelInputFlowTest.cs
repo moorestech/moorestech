@@ -13,8 +13,8 @@ using UnityEngine.InputSystem.LowLevel;
 namespace Client.Tests.Ui.Screens.Inventory.Wheel
 {
     /// <summary>
-    /// ホイールの流れからルーターまでを通し、Editor の更新では選ばずゲームの更新では 2 ノッチで 1 段進むことを見る
-    /// Drives the wheel stream through to the router: no selection on Editor updates, one step per two notches on game updates
+    /// Editor 更新では選ばず 2 ノッチで 1 段進む
+    /// No selection on Editor updates; one step per two notches
     /// </summary>
     public class EquipmentWheelInputFlowTest : ScreenTestHost
     {

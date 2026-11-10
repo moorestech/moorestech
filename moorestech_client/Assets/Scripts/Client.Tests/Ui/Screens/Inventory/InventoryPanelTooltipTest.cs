@@ -101,8 +101,8 @@ namespace Client.Tests.Ui.Screens.Inventory
             StringAssert.EndsWith(WoodName, face.Q<Label>().text);
         }
 
-        // 一時 mod の辞書へ木材の名前を合成（前例 GameContentPresentationTest.MergeContentNames）
-        // Compose the wood name into a temporary mod dictionary (precedent GameContentPresentationTest.MergeContentNames)
+        // 木材の名前を一時 mod の辞書へ合成
+        // Compose the wood name into a temporary mod dictionary
         private void MergeWoodName()
         {
             var modDirectory = Path.Combine(_temporaryDirectory, "inventory-tooltip-mod");

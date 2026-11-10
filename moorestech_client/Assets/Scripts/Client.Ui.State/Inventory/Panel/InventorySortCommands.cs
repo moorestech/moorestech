@@ -4,8 +4,8 @@ using Client.Ui.State.Commands;
 namespace Client.Ui.State.Inventory.Panel
 {
     /// <summary>
-    /// 持ち物の整理（Web inventory.sort）。整理はサーバーへ送るだけで、手元で断る条件は無い
-    /// Sorts the inventory (Web inventory.sort); it only sends to the server and has no local refusal
+    /// 持ち物の整理（サーバーへ送るのみ）
+    /// Sorts the inventory (only sends to the server)
     /// </summary>
     public sealed class InventorySortCommands : IInventorySortCommands
     {

@@ -11,8 +11,8 @@ namespace Client.Ui.State.Inventory.Equipment
     }
 
     /// <summary>
-    /// ホイールの抑止の判定（Web の順: useGameLayerWheel の層 → isPointerOverWebUi と isWheelPassthrough → wheelOwnedByTool）
-    /// Wheel suppression check (Web order: useGameLayerWheel's layer, isPointerOverWebUi with isWheelPassthrough, wheelOwnedByTool)
+    /// ホイール抑止の判定（Web の順に評価）
+    /// Wheel suppression check (evaluated in Web order)
     /// </summary>
     public static class EquipmentWheelGate
     {

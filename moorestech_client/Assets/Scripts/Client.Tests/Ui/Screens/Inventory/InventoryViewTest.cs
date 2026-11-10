@@ -64,8 +64,8 @@ namespace Client.Tests.Ui.Screens.Inventory
             Assert.AreEqual(36, Find<VisualElement>(_view, "main-grid").Query(className: "slot-frame").ToList().Count, "36 枠");
             Assert.IsTrue(Find<VisualElement>(_view, "main-slot-0").Query<TextElement>().ToList().Any(text => text.text == "10"), "個数");
 
-            // 整理ボタンは整理のコマンドへ（Web dispatch inventory.sort）
-            // The sort button goes to the sort command (Web dispatch inventory.sort)
+            // 整理ボタンは整理コマンドへ
+            // The sort button goes to the sort command
             simulate.Click(sort);
             Assert.AreEqual(1, _sort.SortCount);
         }
@@ -117,8 +117,8 @@ namespace Client.Tests.Ui.Screens.Inventory
 
         private VisualElement SlotOf(int index)
         {
-            // 印は ItemSlot（枠 main-slot-<i> の親）に付く
-            // Anchors sit on the ItemSlot (the parent of frame main-slot-<i>)
+            // 印は ItemSlot に付く
+            // Anchors sit on the ItemSlot
             return Find<VisualElement>(_view, $"main-slot-{index}").parent;
         }
 

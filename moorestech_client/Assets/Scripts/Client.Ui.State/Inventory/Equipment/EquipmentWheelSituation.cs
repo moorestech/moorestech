@@ -3,8 +3,8 @@ using Client.Ui.State.Routing;
 namespace Client.Ui.State.Inventory.Equipment
 {
     /// <summary>
-    /// ホイールを装備へ流してよいかを決める入力。UI の上かは Client.Ui がパネルで拾って決める
-    /// Inputs that decide whether the wheel may switch equipment; Client.Ui decides "over UI" by picking on the panel
+    /// ホイールを装備へ流してよいかの入力
+    /// Inputs deciding whether the wheel may switch equipment
     /// </summary>
     public readonly struct EquipmentWheelSituation
     {

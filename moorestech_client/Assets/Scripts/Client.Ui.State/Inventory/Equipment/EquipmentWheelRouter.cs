@@ -6,8 +6,8 @@ using Client.Ui.State.Routing;
 namespace Client.Ui.State.Inventory.Equipment
 {
     /// <summary>
-    /// 画面・モーダル・ツールの占有を State から読んでホイールを判定し、通れば装備の循環へ流す
-    /// Reads screen, modal and tool ownership from State, judges the wheel, and passes it to equipment cycling when allowed
+    /// ホイールを判定し、通れば装備の循環へ流す
+    /// Judges the wheel and passes it to equipment cycling when allowed
     /// </summary>
     public sealed class EquipmentWheelRouter
     {

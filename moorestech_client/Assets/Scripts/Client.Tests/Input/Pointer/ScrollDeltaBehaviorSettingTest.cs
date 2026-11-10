@@ -4,8 +4,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.Input.Pointer
 {
     /// <summary>
-    /// プロジェクトの入力設定がホイールを 1 ノッチ＝1 に正規化することを固定する（装備のホイールの 60px 換算の前提。D-10）
-    /// Pins that the project input settings normalize the wheel to one per notch (premise of the equipment wheel's 60px scaling, D-10)
+    /// 入力設定がホイールを 1 ノッチ＝1 に正規化することを固定（D-10）
+    /// Pins the input settings normalizing the wheel to one per notch (D-10)
     /// </summary>
     public class ScrollDeltaBehaviorSettingTest
     {

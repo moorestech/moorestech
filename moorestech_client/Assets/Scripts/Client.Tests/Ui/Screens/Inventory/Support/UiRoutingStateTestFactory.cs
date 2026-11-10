@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Screens.Inventory.Support
 {
     /// <summary>
-    /// 指定の画面に居る本物の UiRoutingState を組む（ホイールのルーターと Presenter の L1 用）
-    /// Builds a real UiRoutingState on the given screen (for the wheel router and presenter L1)
+    /// 指定画面の UiRoutingState を組む
+    /// Builds a UiRoutingState on the given screen
     /// </summary>
     public static class UiRoutingStateTestFactory
     {

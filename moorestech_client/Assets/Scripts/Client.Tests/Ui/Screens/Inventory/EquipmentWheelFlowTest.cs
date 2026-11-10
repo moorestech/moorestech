@@ -113,8 +113,8 @@ namespace Client.Tests.Ui.Screens.Inventory
         [Test]
         public void ゲーム画面のホイールは最新の装備の値から次を選ぶ()
         {
-            // サーバーが選択を 2 にした後のホイールは 2 の次（0）
-            // After the server sets the selection to 2, the wheel picks the one after 2 (0)
+            // 選択 2 の次は 0
+            // After selection 2 comes 0
             var wheel = Wheel(UIStateEnum.GameScreen);
             _port.ConfirmFromServer(2);
             WheelAt(wheel, OverWorld, 100);

@@ -114,8 +114,8 @@ namespace Client.Tests.Ui.Screens.Inventory
 
         private void Republish()
         {
-            // 置いた時点で記録係が合図を流しているので、レイアウトを進めるだけ
-            // The recorder already signalled on the put, so only advance layout
+            // 合図は流れ済み。レイアウトを進める
+            // Already signalled; advance layout
             simulate.FrameUpdate();
         }
 

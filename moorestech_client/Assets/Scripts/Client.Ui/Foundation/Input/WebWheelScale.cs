@@ -1,8 +1,8 @@
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// Web（CEF）のホイール 1 ノッチの px（A-71）。ノッチを px に換算する UITK の読み手はすべてここを読む
-    /// Pixels per wheel notch on the Web (CEF) (A-71); every UITK reader converting notches to pixels reads this
+    /// Web のホイール 1 ノッチの px（A-71）
+    /// Pixels per Web wheel notch (A-71)
     /// </summary>
     public static class WebWheelScale
     {

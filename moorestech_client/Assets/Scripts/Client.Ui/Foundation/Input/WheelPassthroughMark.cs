@@ -3,12 +3,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// 実 UI のままホイールだけゲームへ素通す印（Web の wheel-passthrough の写し。S3-hotbar-modal〈A-109〉もこれを使う）
-    /// Mark that keeps an element real UI but lets only the wheel pass to the game (copy of Web wheel-passthrough; S3-hotbar-modal (A-109) uses it too)
+    /// ホイールだけゲームへ素通す印（A-109 も使う）
+    /// Mark that lets only the wheel pass to the game (A-109 uses it too)
     /// </summary>
     /// <remarks>
-    /// 判定は祖先をたどる（Web の closest）ので、印は部分木の根に 1 つ付ければ足りる
-    /// The check walks ancestors (Web closest), so one mark on the subtree root is enough
+    /// 祖先をたどるので根に 1 つで足りる
+    /// Ancestors are walked, so one mark on the root suffices
     /// </remarks>
     public static class WheelPassthroughMark
     {

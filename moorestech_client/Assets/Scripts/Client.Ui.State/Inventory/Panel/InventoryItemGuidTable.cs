@@ -5,8 +5,8 @@ using Core.Master;
 namespace Client.Ui.State.Inventory.Panel
 {
     /// <summary>
-    /// 「このアイテムを持っているスロット」の表（Web InventoryPanel の firstSlots。id は View が inventoryItemAnchorId と同じ形で組む）
-    /// Table of "the slot holding this item" (Web InventoryPanel firstSlots; the view builds the id like inventoryItemAnchorId)
+    /// アイテムを持つスロットの表（Web firstSlots）
+    /// Table of slots holding each item (Web firstSlots)
     /// </summary>
     public static class InventoryItemGuidTable
     {

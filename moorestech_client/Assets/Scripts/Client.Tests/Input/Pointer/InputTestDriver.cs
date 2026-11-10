@@ -5,8 +5,8 @@ using UnityEngine.InputSystem.LowLevel;
 namespace Client.Tests.Input.Pointer
 {
     /// <summary>
-    /// テストから internal の InputSystem の操作（更新の種類を選んで回す・Game View の焦点を外す）を呼ぶ
-    /// Calls internal InputSystem operations from tests (run a chosen update type, drop Game View focus)
+    /// internal の InputSystem 操作を呼ぶ
+    /// Calls internal InputSystem operations
     /// </summary>
     public static class InputTestDriver
     {

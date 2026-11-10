@@ -18,8 +18,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Inventory.Panel
 {
     /// <summary>
-    /// 持ち物パネル（Web features/inventory/InventoryPanel）。操作はプレイヤーの枠のコマンドと整理のコマンドへ
-    /// Inventory panel (Web features/inventory/InventoryPanel); input goes to the player-slot and sort commands
+    /// 持ち物パネル。操作は枠コマンドと整理コマンドへ
+    /// Inventory panel; input goes to slot and sort commands
     /// </summary>
     public sealed class InventoryView : VisualElement
     {
@@ -40,8 +40,8 @@ namespace Client.Ui.Screens.Inventory.Panel
             _content = content;
             AddToClassList("inventory-view");
 
-            // 題と、題の行の右端の整理ボタン（Web titleAction）
-            // Title and the sort button at the right end of the title row (Web titleAction)
+            // 題と整理ボタン
+            // Title and sort button
             var panel = new GamePanel("inventory-panel", GamePanelFrame.Default);
             panel.AddToClassList("inventory-view__panel");
             panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
@@ -59,8 +59,8 @@ namespace Client.Ui.Screens.Inventory.Panel
 
         public void Render(PlayerInventoryViewModel viewModel)
         {
-            // 表示中だけ購読するのは Presenter（§4.2）。ここは受けた値をそのまま描く
-            // The presenter subscribes only while shown (§4.2); this draws whatever it receives
+            // 購読は Presenter。ここは描くだけ
+            // The presenter subscribes; this only draws
             if (_slots.Count != viewModel.MainSlots.Count) Rebuild(viewModel.MainSlots.Count);
             for (var i = 0; i < _slots.Count; i++) _slots[i].SetContent(PlayerSlotContent.From(_content, viewModel.MainSlots[i], false));
             _anchors.Apply(_slots, viewModel.MainSlotItemGuids);

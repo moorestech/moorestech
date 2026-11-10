@@ -5,8 +5,8 @@ using Client.Ui.State.Items;
 namespace Client.Ui.Screens.Inventory.Parts
 {
     /// <summary>
-    /// プレイヤーの枠の中身を ItemSlot の中身へ写す（空きマスは絵も個数も持たない）
-    /// Maps a player slot item to ItemSlot content (empty cells carry no icon or count)
+    /// 枠の中身を ItemSlot の中身へ写す
+    /// Maps slot item to ItemSlot content
     /// </summary>
     public static class PlayerSlotContent
     {

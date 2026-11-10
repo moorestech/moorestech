@@ -48,8 +48,8 @@ namespace Client.Tests.Ui.State.Inventory
             _onSnapshotChanged.OnNext(Unit.Default);
         }
 
-        // 装備の選択の Fake を本番と同じ 1 本の合図に繋ぐ L1 の土台用（本番は LocalPlayerEquipment の合図が中身と選択の両方を流す）
-        // For L1 fixtures wiring the equipment-selection fake to one signal as in production (LocalPlayerEquipment signals both contents and selection)
+        // 選択 Fake を本番と同じ 1 本の合図へ繋ぐ
+        // Wires the selection fake to one signal as in production
         public void RaiseSnapshotChanged()
         {
             _onSnapshotChanged.OnNext(Unit.Default);

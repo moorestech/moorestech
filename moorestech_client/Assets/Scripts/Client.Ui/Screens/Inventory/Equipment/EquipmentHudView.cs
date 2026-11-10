@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Inventory.Equipment
 {
     /// <summary>
-    /// 装備 HUD（Web features/inventory/EquipmentPanel）。選択はホイールだけで、クリックはアイテム移動
-    /// Equipment HUD (Web features/inventory/EquipmentPanel); selection is wheel-only and clicks move items
+    /// 装備 HUD。選択はホイール、クリックは移動
+    /// Equipment HUD; wheel selects, clicks move items
     /// </summary>
     public sealed class EquipmentHudView : VisualElement
     {
@@ -53,8 +53,8 @@ namespace Client.Ui.Screens.Inventory.Equipment
 
         public void Render(PlayerInventoryViewModel viewModel)
         {
-            // 表示中だけ購読するのは Presenter（§4.2）。ここは受けた値をそのまま描く
-            // The presenter subscribes only while shown (§4.2); this draws whatever it receives
+            // 購読は Presenter。ここは描くだけ
+            // The presenter subscribes; this only draws
             if (_slots.Count != viewModel.EquipmentSlots.Count) Rebuild(viewModel.EquipmentSlots.Count);
             for (var i = 0; i < _slots.Count; i++)
             {
@@ -84,14 +84,14 @@ namespace Client.Ui.Screens.Inventory.Equipment
                 }
             }
 
-            #endregion
-        }
+            void OnGestured(int index, SlotGesture gesture)
+            {
+                // silent-ok: 掴めない画面では装備の枠はクリックを受けない（Web はハンドラごと付けない） / EquipmentHudViewTest が見る
+                if (!_clicksAccepted) return;
+                _gestures.Route(PlayerSlotRef.Equipment(index), gesture);
+            }
 
-        private void OnGestured(int index, SlotGesture gesture)
-        {
-            // silent-ok: 掴めない画面では装備の枠はクリックを受けない（Web はハンドラごと付けない） / EquipmentHudViewTest が見る
-            if (!_clicksAccepted) return;
-            _gestures.Route(PlayerSlotRef.Equipment(index), gesture);
+            #endregion
         }
     }
 }

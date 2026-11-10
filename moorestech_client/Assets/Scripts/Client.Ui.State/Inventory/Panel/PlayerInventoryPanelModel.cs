@@ -6,8 +6,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Inventory.Panel
 {
     /// <summary>
-    /// 持ち物と装備の変化を購読し、描画用の値を同期で配る（Web InventoryTopic の写し。フレーム末への間引きはしない A-57）
-    /// Subscribes to inventory and equipment changes and publishes draw values synchronously (Web InventoryTopic; no end-of-frame coalescing, A-57)
+    /// 持ち物・装備の変化を購読し描画値を配る（A-57）
+    /// Subscribes to inventory and equipment changes and publishes draw values (A-57)
     /// </summary>
     public sealed class PlayerInventoryPanelModel : IInitializable
     {

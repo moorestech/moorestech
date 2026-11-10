@@ -9,8 +9,8 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi.Screens
 {
-    // 持ち物パネル・装備 HUD・ホイールでの装備の循環（GameUi）の登録。プレイヤーの枠のコマンドは共有サービスの並び（MainGameUiRegistration）にある
-    // Registers the inventory panel, equipment HUD and wheel equipment cycling (GameUi); player-slot commands live in the shared-service list (MainGameUiRegistration)
+    // 持ち物・装備 HUD・装備ホイールの登録。枠コマンドは MainGameUiRegistration
+    // Registers inventory, equipment HUD and wheel; slot commands live in MainGameUiRegistration
     internal static class InventoryGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)

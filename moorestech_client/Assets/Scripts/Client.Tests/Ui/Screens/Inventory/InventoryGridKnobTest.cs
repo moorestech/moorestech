@@ -26,8 +26,8 @@ namespace Client.Tests.Ui.Screens.Inventory
                 declared[match.Groups[1].Value] = match.Groups[2].Value.Trim();
             }
 
-            // calc: の注記を持つ行を全部検算し、3 行（大きさ・間・個数の字）があることも見る
-            // Recheck every row with a calc: note and require the three rows (size, gap, count font)
+            // calc 注記の行を全て検算（3 行あること）
+            // Recheck all calc-noted rows (require three)
             var evaluator = new CssCalcEvaluator(declared);
             var checkedRows = 0;
             foreach (Match match in Declaration.Matches(File.ReadAllText(Path.Combine(root, "moorestech_client/Assets/Scripts/Client.Ui/Screens/Inventory/Inventory.uss"))))

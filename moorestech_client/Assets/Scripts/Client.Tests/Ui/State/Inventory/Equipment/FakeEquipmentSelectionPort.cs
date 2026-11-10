@@ -27,8 +27,8 @@ namespace Client.Tests.Ui.State.Inventory.Equipment
             _changed.OnNext(Unit.Default);
         }
 
-        // サーバーのエコー（LocalPlayerEquipment.ApplySelected と同じ）
-        // Server echo (same as LocalPlayerEquipment.ApplySelected)
+        // サーバーのエコー（ApplySelected 相当）
+        // Server echo (ApplySelected equivalent)
         public void ConfirmFromServer(int index)
         {
             SelectedIndex = index;

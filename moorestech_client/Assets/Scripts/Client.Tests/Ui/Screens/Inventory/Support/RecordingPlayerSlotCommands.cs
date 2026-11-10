@@ -5,8 +5,8 @@ using Client.Ui.State.SlotCommands.Player;
 
 namespace Client.Tests.Ui.Screens.Inventory.Support
 {
-    // 呼ばれた操作を "LeftDown Main:0 shift=False" の書式で残す
-    // Records calls as "LeftDown Main:0 shift=False"
+    // 呼ばれた操作を書式付きで記録
+    // Records calls in a fixed format
     public sealed class RecordingPlayerSlotCommands : IPlayerSlotCommands
     {
         public List<string> Calls { get; } = new();

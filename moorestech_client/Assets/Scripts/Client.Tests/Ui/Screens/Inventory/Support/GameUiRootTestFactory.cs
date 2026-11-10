@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Inventory.Support
 {
     /// <summary>
-    /// テストのパネルに層を組んだ GameUiRoot を作る（Presenter の L1 用）
-    /// Creates a GameUiRoot whose layers live on the test panel (for presenter L1)
+    /// 層を組んだ GameUiRoot を作る
+    /// Creates a GameUiRoot with layers
     /// </summary>
     public static class GameUiRootTestFactory
     {

@@ -6,8 +6,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Inventory.Equipment
 {
     /// <summary>
-    /// ホイールで装備を循環する唯一の場所（Web EquipmentPanel の未確認 FIFO の写し）
-    /// The single place that cycles equipment with the wheel (Web EquipmentPanel's unconfirmed FIFO)
+    /// ホイールで装備を循環する唯一の場所（Web EquipmentPanel の写し）
+    /// The single place that cycles equipment with the wheel (Web EquipmentPanel)
     /// </summary>
     public sealed class EquipmentWheelSelector : IInitializable
     {
@@ -25,6 +25,20 @@ namespace Client.Ui.State.Inventory.Equipment
         {
             _lastRevision = _port.ConfirmationRevision;
             _port.OnSelectionChanged.Subscribe(_ => TrimConfirmed());
+
+            #region Internal
+
+            void TrimConfirmed()
+            {
+                // 世代が進んだ数だけ頭から確定済みとして捨てる（世代は単調増加。Web の「戻ったら全部捨てる」は再接続用で写さない）
+                // Drop as many head entries as the revision advanced (it only increases; Web's reset-on-rewind is for reconnects and is not copied)
+                var revision = _port.ConfirmationRevision;
+                var advanced = revision - _lastRevision;
+                _lastRevision = revision;
+                _pending.RemoveRange(0, System.Math.Min(advanced, _pending.Count));
+            }
+
+            #endregion
         }
 
         public void Wheel(double delta, WheelDeltaUnit unit)
@@ -46,16 +60,6 @@ namespace Client.Ui.State.Inventory.Equipment
             var index = EquipmentSelectionLogic.CycleEquipment(current, accumulated.Steps, slotCount);
             _pending.Add(index);
             _port.Select(index);
-        }
-
-        private void TrimConfirmed()
-        {
-            // 世代が進んだ数だけ頭から確定済みとして捨てる（世代は単調増加。Web の「戻ったら全部捨てる」は再接続用で写さない）
-            // Drop as many head entries as the revision advanced (it only increases; Web's reset-on-rewind is for reconnects and is not copied)
-            var revision = _port.ConfirmationRevision;
-            var advanced = revision - _lastRevision;
-            _lastRevision = revision;
-            _pending.RemoveRange(0, System.Math.Min(advanced, _pending.Count));
         }
     }
 }

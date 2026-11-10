@@ -7,8 +7,8 @@ using Client.Ui.State.Toast;
 namespace Client.Ui.Screens.Inventory.Parts
 {
     /// <summary>
-    /// プレイヤーの枠の身振りを型付きコマンドへ振り分け、結果をトーストへ渡す（持ち物と装備で共有）
-    /// Routes player-slot gestures to typed commands and reports results (shared by inventory and equipment)
+    /// 枠の身振りをコマンドへ振り分けトーストへ渡す
+    /// Routes slot gestures to commands and reports to toast
     /// </summary>
     public sealed class PlayerSlotGestureRouter
     {
