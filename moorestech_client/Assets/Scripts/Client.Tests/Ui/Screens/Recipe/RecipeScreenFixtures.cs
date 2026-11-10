@@ -29,6 +29,20 @@ namespace Client.Tests.Ui.Screens.Recipe
             return new RecipeEntryPartsContext(content, commands, toaster, selection);
         }
 
+        public static RecipeViewerItemSelected Selected(int itemId, params RecipeEntryViewModel[] entries)
+        {
+            return new RecipeViewerItemSelected(new ItemId(itemId), entries);
+        }
+
+        // 先頭だけアンカーを持つ作れるクラフト n 件（GUID は 1..n）
+        // n craftable crafts with the anchor on the head only (GUIDs 1..n)
+        public static RecipeEntryViewModel[] ManyCrafts(int count)
+        {
+            var entries = new RecipeEntryViewModel[count];
+            for (var i = 0; i < count; i++) entries[i] = CraftVm(RecipeFixtures.RecipeGuid(i + 1), 1, true, i == 0, Material(1, 1, 9));
+            return entries;
+        }
+
         public static CraftRecipeEntryViewModel CraftVm(Guid guid, double craftTime, bool craftable, bool anchor, params RecipeMaterialViewModel[] materials)
         {
             var required = new ItemAmount[materials.Length];
