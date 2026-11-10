@@ -1,6 +1,6 @@
 // S4-train: UITK（GameUi）で駅の名前・積み降ろし切替と、機関車の持ち物・時刻表・自動運転を通す。Error ログ 0 件を主張する
-// S4-train: on UITK (GameUi), run station rename and load/unload switch, then the locomotive's inventory, timetable and auto-run, asserting zero Error logs
 // 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
+// S4-train: on UITK (GameUi), run station rename and load/unload switch, then the locomotive's inventory, timetable and auto-run, asserting zero Error logs
 // Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
@@ -49,14 +49,16 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         await p.SetupFlatGround();
         await p.SkipOpeningSkitIfPlaying();
         await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "GameScreen");
+        // スポーン付近の岩（マップオブジェクト）が照準を遮るので消す
+        // Hide map objects, since a rock near the spawn blocks the aim
         Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-        // 駅 2 基を置いて結線する（駅 A の名前は既定名のまま）
-        // Place two stations and link them (station A keeps its default name)
-        foreach (var position in new[] { stationAPos, stationBPos }) { await p.PlaceBlockDirect("蒸気機関車駅", position, BlockDirection.North); await p.WaitBlockGameObject(position); }
+        // 駅 2 基を南向きに置き front・back の両方を結線する（UI の停車駅は back 側で ConnectNode は片方向。時刻表の録画と同じ形。駅 A は既定名のまま）
+        // Place two south-facing stations and link both front and back edges (UI stops are back-side and ConnectNode is one-way; same as the timetable recording)
+        foreach (var position in new[] { stationAPos, stationBPos }) { await p.PlaceBlockDirect("蒸気機関車駅", position, BlockDirection.South); await p.WaitBlockGameObject(position); }
         List<RailComponent> railsA = p.GetBlock(stationAPos).GetComponents<RailComponent>(), railsB = p.GetBlock(stationBPos).GetComponents<RailComponent>();
         RailComponent ExitOf(List<RailComponent> rails) => rails.First(r => r.FrontNode.StationRef.NodeRole == StationNodeRole.Exit);
         RailComponent EntryOf(List<RailComponent> rails) => rails.First(r => r.FrontNode.StationRef.NodeRole == StationNodeRole.Entry);
-        await p.RunOnServer("駅2基を結線する", () => { ExitOf(railsA).FrontNode.ConnectNode(EntryOf(railsB).FrontNode); ExitOf(railsB).FrontNode.ConnectNode(EntryOf(railsA).FrontNode); });
+        await p.RunOnServer("駅2基を結線する", () => { ExitOf(railsA).FrontNode.ConnectNode(EntryOf(railsB).FrontNode); ExitOf(railsB).FrontNode.ConnectNode(EntryOf(railsA).FrontNode); EntryOf(railsB).BackNode.ConnectNode(ExitOf(railsA).BackNode); EntryOf(railsA).BackNode.ConnectNode(ExitOf(railsB).BackNode); });
         await p.Until(() => StationName() != null, 15f, "駅名の初期同期");
         var defaultName = StationName();
         // 1・2: 駅を開き、名前を打っただけでは送らず、適用で送る
@@ -82,7 +84,7 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         // 4: pressing unload does not change the selection until the client state changes
         var selectedBeforeState = false;
         await PlaytestUiElementOps.ClickUi("train-platform-mode-unload");
-        p.Assert(!Has("train-platform-mode-unload", SelectedClass) || Mode() == TransferMode.UnloadToPlatform, $"押した直後は状態より先に選択が替わらない (mode={Mode()})");
+        p.Assert(!Has("train-platform-mode-unload", SelectedClass) || Mode() == TransferMode.UnloadToPlatform, $"押した直後: 選択済みなら状態も卸し（ローカル接続では即応するので常に真） (mode={Mode()})");
         await p.Until(() =>
         {
             if (Has("train-platform-mode-unload", SelectedClass) && Mode() != TransferMode.UnloadToPlatform) selectedBeforeState = true;
@@ -99,12 +101,12 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         await p.RunOnServer("機関車を解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(carMaster.TrainCarGuid));
         await p.Until(() => resolver.Resolve<IGameUnlockStateData>().TrainCarUnlockStateInfos.TryGetValue(carMaster.TrainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロック同期");
         foreach (var required in carMaster.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
-        var railPosition = new RailPosition(new List<IRailNode> { ExitOf(railsA).FrontNode, EntryOf(railsA).FrontNode }, TrainLengthConverter.ToRailUnits(carMaster.Length), 0);
+        var railPosition = new RailPosition(new List<IRailNode> { EntryOf(railsA).BackNode, ExitOf(railsA).BackNode }, TrainLengthConverter.ToRailUnits(carMaster.Length), 0);
         var placed = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(railPosition, carMaster.TrainCarGuid, default);
         p.Assert(placed != null && placed.Success, $"車両設置成功 (failure={placed?.FailureType})");
         await p.Until(() => SpawnedCar() != null, 15f, "車両entity出現");
         TrainUnit train = null; ItemTrainCarContainer container = null;
-        await p.RunOnServer("列車を取得し枠 0 に石を入れる", () => (container = (ItemTrainCarContainer)(train = ServerContext.GetService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First()).Cars[0].Container).SetItem(0, PlaytestItemOps.ResolveItemId("石"), 5));
+        await p.RunOnServer("列車を取得し枠 0 に石を入れる", () => { train = ServerContext.GetService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First(); container = (ItemTrainCarContainer)train.Cars[0].Container; container.SetItem(0, PlaytestItemOps.ResolveItemId("石"), 5); });
         // 5: 機関車を開き、持ち物の枠を押して掴み・移動が機関車へ届くかを見る
         // 5: open the locomotive and press inventory slots to see grab and move reach the car
         var player = resolver.Resolve<IPlayerInventoryOperations>();
@@ -131,6 +133,8 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         await p.ClickUi("train-timetable-auto-run-on");
         await p.WaitForTrainState(train, null, true, null, 10f, "サーバーの自動運転がON");
         await p.Until(() => Has("train-timetable-auto-run-on", SelectedClass), 10f, "自動運転ONが選ばれる");
+        await p.WaitSeconds(3f);
+        p.Assert((await p.ReadTrainState(train)).AutoRun && Has("train-timetable-auto-run-on", SelectedClass), "3 秒後も自動運転ONが保たれる");
         await p.Screenshot("03-timetable-auto-run");
         await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -140,7 +144,6 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
     {
         Application.logMessageReceived -= CountErrors;
     }
-
     // 7: 全体で Error ログが 0 件
     // 7: zero Error logs overall
     p.Assert(errorLogs.Count == 0, $"Error ログが 0 件 (count={errorLogs.Count}: {string.Join(" | ", errorLogs.Take(5))})");
@@ -170,8 +173,7 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         var colliders = new List<Collider>();
         await p.Until(() => 0 < (colliders = ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(stationAPos).GetComponentsInChildren<Collider>(true)
             .Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger && c.bounds.size != Vector3.zero).ToList()).Count, 10f, "駅のColliderが復帰する");
-        var bounds = colliders[0].bounds;
-        foreach (var collider in colliders) bounds.Encapsulate(collider.bounds);
+        var bounds = colliders[0].bounds; foreach (var collider in colliders) bounds.Encapsulate(collider.bounds);
         p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1f));
         await UniTask.DelayFrame(10);
         SemanticInput.KeyDown(Key.LeftAlt);

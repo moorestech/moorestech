@@ -157,7 +157,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
         await p.WaitSeconds(3f);
         var speedLater = (await p.ReadTrainState(train)).Speed;
         p.Assert(speedLater < speedAfterOff, $"自動運転OFF後は惰性で減速する ({speedAfterOff:F2} → {speedLater:F2})");
-        await p.Screenshot("04-stopped");
+        await p.Screenshot("04-coasting");
         p.Assert(mismatchCount == 0, $"Hash mismatch警告0件 (count={mismatchCount})");
         p.Assert(rejectCount == 0, $"時刻表・駅名プロトコルの拒否ログ0件 (count={rejectCount})");
         await p.Screenshot("final");
@@ -188,8 +188,8 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
         await p.WaitSeconds(0.5f);
     }
     Bounds RearBounds() => SpawnedCar().GetComponentsInChildren<Collider>(true).OrderBy(collider => collider.bounds.min.z).First().bounds;
-    Vector3 RearAimPoint() => new(RearBounds().center.x, RearBounds().max.y - 0.3f, RearBounds().min.z + 0.3f);
-    Vector3 BehindRear() => new(RearBounds().center.x, 33.5f, RearBounds().min.z - 1.2f);
+    Vector3 RearAimPoint() { var rear = RearBounds(); return new(rear.center.x, rear.max.y - 0.3f, rear.min.z + 0.3f); }
+    Vector3 BehindRear() { var rear = RearBounds(); return new(rear.center.x, 33.5f, rear.min.z - 1.2f); }
     async UniTaskVoid FollowCar() { while (followCar) { PlaytestSetup.WarpPlayer(BehindRear()); await UniTask.Yield(); } }
     // クライアントの時刻表の停車駅数（公開が届く前は 0）
     // Stop count of the client timetable (0 until the publish arrives)
