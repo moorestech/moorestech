@@ -5,6 +5,7 @@ using Client.Ui.State.Commands;
 using Client.Ui.State.Research.Tree;
 using Client.Ui.State.Toast;
 using Cysharp.Threading.Tasks;
+using Game.Research;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -66,8 +67,18 @@ namespace Client.Ui.State.Research.Commands
 
             // 応答の全状態を反映
             // Apply all response states
-            store.ApplyNodeStates(response.NodeState.ToDictionary());
-            return response.Success ? UiCommandAccepted.Instance : new UiCommandRejected(UiCommandRejectReason.ResearchFailed, "");
+            var states = response.NodeState.ToDictionary();
+            store.ApplyNodeStates(states);
+            if (response.Success) return UiCommandAccepted.Instance;
+
+            // 応答待ちの二度押しは 2 回目だけ失敗するが研究は済んでいるので受理にする
+            // A double press fails only the second request, yet the research is done, so treat it as accepted
+            if (states.TryGetValue(researchGuid, out var state) && state == ResearchNodeState.Completed)
+            {
+                Debug.LogWarning($"[ResearchTreeCommands] CompleteResearch {researchGuid} already completed");
+                return UiCommandAccepted.Instance;
+            }
+            return new UiCommandRejected(UiCommandRejectReason.ResearchFailed, "");
         }
     }
 }

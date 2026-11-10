@@ -64,6 +64,17 @@ namespace Client.Tests.Ui.State.Research.Wiring
         }
 
         [Test]
+        public void 失敗でも当該ノードが完了済みなら二度押しとみなしトーストを出さない()
+        {
+            LogAssert.Expect(LogType.Warning, new Regex(@"already completed"));
+
+            _commands.ReportResponse(Target, Response(false, ResearchNodeState.Completed));
+
+            Assert.AreEqual(ResearchNodeState.Completed, _store.NodeStates[Target]);
+            Assert.IsEmpty(_shownToasts);
+        }
+
+        [Test]
         public void 応答なしは状態を保ち研究失敗のトーストを出す()
         {
             LogAssert.Expect(LogType.Warning, new Regex(@"returned no response"));
