@@ -120,7 +120,7 @@
 .research-tree__slots {
     flex-direction: row;
     flex-wrap: wrap;
-    padding-bottom: var(--research-detail-slots-bleed);
+    padding-bottom: var(--research-detail-slots-bleed); /* look-exception: LX-136 */
     /* 子の margin で写した gap の行末・最終行の余りを負の margin で相殺（UiGroup と同じ手） */
     /* Cancel the trailing gap of the child margins with negative margins (same as UiGroup) */
     margin-right: -4px;
