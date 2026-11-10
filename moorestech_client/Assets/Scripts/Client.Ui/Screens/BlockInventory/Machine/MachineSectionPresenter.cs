@@ -1,0 +1,61 @@
+using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.State.BlockInventory.Context;
+using Client.Ui.State.BlockInventory.Machine;
+using Client.Ui.State.BlockInventory.Machine.Selection;
+using Client.Ui.State.BlockInventory.Panel;
+using UniRx;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.BlockInventory.Machine
+{
+    /// <summary>
+    /// 機械の区画の Presenter。機械と文脈の Model を購読して View へ流し、選択モードを変える押下（ヘッダ・行）だけを受ける
+    /// The machine section presenter: feeds the machine and context models into the view and handles only the mode-changing presses (header, rows)
+    /// </summary>
+    public sealed class MachineSectionPresenter : IBlockInventorySection
+    {
+        private readonly MachineSectionView _view;
+        private readonly IMachineSectionModel _machine;
+        private readonly IBlockContextModel _context;
+        private readonly MachineSelectionModeState _mode = new();
+        private readonly ReactiveProperty<bool> _isApplicable = new(false);
+        private readonly CompositeDisposable _subscriptions = new();
+
+        public VisualElement Root => _view.Root;
+        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
+
+        public MachineSectionPresenter(MachineSectionView view, IMachineSectionModel machine, IBlockContextModel context)
+        {
+            _view = view;
+            _machine = machine;
+            _context = context;
+        }
+
+        public void Attach(OpenBlockInventoryPanel panel)
+        {
+            // 機械の通知は本体を、文脈の通知は文脈の 3 欄だけを描く（1 tick に本体を 2 回描かない。D-39）
+            // Machine updates draw the body and context updates draw only the context entries (no double body render per tick; D-39)
+            _machine.Current.Subscribe(_ => Apply()).AddTo(_subscriptions);
+            _context.Current.Subscribe(_view.RenderContext).AddTo(_subscriptions);
+            _view.OnChangeRecipeRequested.Subscribe(_ =>
+            {
+                _mode.OpenSelection();
+                Apply();
+            }).AddTo(_subscriptions);
+        }
+
+        public void Detach()
+        {
+            _subscriptions.Clear();
+        }
+
+        private void Apply()
+        {
+            // 描いてから出す（機械でなければ描かずに隠す）
+            // Draw before showing (hide without drawing when not a machine)
+            var machine = _machine.Current.Value;
+            if (machine.IsPresent) _view.Render(machine.Value, _mode.ShowsSelection(machine.Value));
+            _isApplicable.Value = machine.IsPresent;
+        }
+    }
+}

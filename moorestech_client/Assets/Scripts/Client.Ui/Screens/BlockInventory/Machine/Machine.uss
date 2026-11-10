@@ -1,0 +1,49 @@
+/* web: details/machine/machineInventoryBody.module.css の .processRow（grid 1fr auto 1fr・column-gap 16px）・.inputSide のつまみ上書き・モジュール帯の mt=xs・style.module.css の .fillPanelHeight と .machineInventoryScroll を機械の区画に写す / ports the process row grid, the input-side knob overrides, the module band's mt=xs, fillPanelHeight and machineInventoryScroll */
+.machine-section--fill-panel-height {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.machine-section__inventory-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+/* grid の 1fr auto 1fr は左右を等幅の伸縮列にして矢印を中央に固定する（UITK に grid が無い） */
+/* grid 1fr auto 1fr becomes two equal stretching sides that pin the arrow at the centre (UITK has no grid) */
+.machine-process-row {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+}
+
+.machine-process-row__input {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-right: 16px;
+    --shortage-count-right: 2px;
+    --shortage-count-bottom: -3px;
+    --shortage-count-font-size: 15px;
+}
+
+.machine-process-row__output {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-left: 16px;
+}
+
+/* UiStack は子の marginTop を gap で上書きするので、mt=xs は器の内側の余白で写す */
+/* UiStack overwrites a child's marginTop with the gap, so mt=xs is ported as the box's inner padding */
+.machine-module-band-wrap {
+    padding-top: var(--mantine-spacing-xs);
+}
+
+.machine-selected-recipe {
+    cursor: link;
+}
