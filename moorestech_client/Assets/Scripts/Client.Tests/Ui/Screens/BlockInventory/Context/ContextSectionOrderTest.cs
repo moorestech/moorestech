@@ -1,13 +1,19 @@
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Tests.Ui.Screens.BlockInventory.Machine;
 using Client.Tests.Ui.State.BlockInventory.Context;
 using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Screens.BlockInventory.Context;
+using Client.Ui.Screens.BlockInventory.Machine;
 using Client.Ui.Screens.BlockInventory.Registry;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
+using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Panel;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -97,6 +103,28 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
             Assert.IsNull(body.Root.Q<VisualElement>("clean-room-section"));
             Assert.IsNotNull(body.Root.Q<VisualElement>("clean-room-fetch-state"));
+        }
+
+        /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">搬入停止欄は機械欄より上に赤字で描く</web-test>
+        [Test]
+        public void 搬入停止欄は機械欄より上に赤字で描く()
+        {
+            // 機械では文脈を機械の区画の本文の器の先頭に置き、区画列の先頭には出さない
+            // On machines the context leads the machine section's body box and never heads the section column
+            _machine.Set(SectionContent<MachineSectionViewModel>.Present(MachineScreenViewModels.WithState(MachineProcessDisplayState.Processing, 1, 1, false, false)));
+            _context.Set(new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Absent, ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Fetched(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
+            var panel = BlockInventoryTestPanels.OfType("ElectricMachine");
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
+            var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Toaster, Content, new RecordingRecipeSelectCommand());
+            var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", new ContextSectionFactory(Content, _context, _machine), machineFactory);
+            Mount(body.Root);
+            body.Attach((OpenBlockInventoryPanel)panel);
+            simulate.FrameUpdate();
+
+            CollectionAssert.DoesNotContain(ShownNames(body.Root), "block-context-sections");
+            var stall = body.Root.Q<Label>("machine-input-stall");
+            Assert.IsTrue(stall.ClassListContains("lack-highlight-text--insufficient"));
+            Assert.Less(stall.worldBound.yMin, body.Root.Q("machine-inventory-body").worldBound.yMin);
         }
     }
 }
