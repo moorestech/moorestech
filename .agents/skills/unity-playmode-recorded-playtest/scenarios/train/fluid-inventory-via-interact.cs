@@ -50,6 +50,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.WaitUiState(UIStateEnum.GameScreen,60);
+    p.Note($"描画系={Client.Input.UiInputExclusivity.ActiveUiSystem}");
     // スポーン付近の岩（マップオブジェクト）が照準の線を遮るので消す
     // Hide map objects, since a rock near the spawn blocks the aim ray
     UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>().SetActive(false);

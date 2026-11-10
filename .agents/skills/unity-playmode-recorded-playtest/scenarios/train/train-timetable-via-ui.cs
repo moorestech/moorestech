@@ -49,7 +49,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
         UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>().SetActive(false);
         // ===== 駅2基とレール =====
         // ===== Two stations and rails =====
-        p.Note("駅2基を直設置し、A出口→B入口、B出口→A入口を結線する");
+        p.Note($"駅2基を直設置し、A出口→B入口、B出口→A入口を結線する（描画系={Client.Input.UiInputExclusivity.ActiveUiSystem}）");
         var stationAPos = new Vector3Int(10, 32, 4);
         var stationBPos = new Vector3Int(10, 32, 64);
         await p.PlaceBlockDirect("蒸気機関車駅", stationAPos, BlockDirection.South);
@@ -149,8 +149,8 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
         await PlaytestUiElementOps.WaitUiTextContains("train-timetable-stops", "南駅", 10f);
         await p.ClickUi("train-timetable-auto-run-off");
         await p.WaitForTrainState(train, null, false, null, 10f, "サーバーの自動運転がOFF");
-        followCar = false;
         await p.ClickUi("block-inventory-close");
+        followCar = false;
         // 惰性の減速はごく緩く（実測: 120 秒後も 7.6）止まり切るのを待てないので、OFF 後に加速しないこと（減速）を主張する
         // Coasting decelerates very slowly (measured: still 7.6 after 120s), so assert it decelerates after OFF instead of waiting for a stop
         var speedAfterOff = (await p.ReadTrainState(train)).Speed;
