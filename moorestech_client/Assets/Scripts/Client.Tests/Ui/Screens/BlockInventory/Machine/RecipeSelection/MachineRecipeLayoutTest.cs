@@ -10,7 +10,6 @@ using Client.Ui.Screens.BlockInventory;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.Screens.BlockInventory.Machine;
 using Client.Ui.Screens.BlockInventory.Machine.RecipeSelection;
-using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.State.BlockInventory.Panel;
@@ -18,8 +17,8 @@ using Client.Ui.State.Items;
 using Client.Ui.State.Recipe.Data;
 using Core.Master;
 using NUnit.Framework;
-using UniRx;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using Fixtures = Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection.MachineRecipeSelectionFixtures;
 
@@ -72,6 +71,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             CollectionAssert.IsEmpty(RecipeSelect.Selected);
 
             Click($"machine-recipe-{RecipeA}");
+            CollectionAssert.AreEqual(new[] { RecipeA }, RecipeSelect.Selected);
+            Assert.IsNotNull(Q(MachineRecipeSelectionList.ListTestid), "list until the server catches up");
             SetBound(RecipeA);
             Assert.IsNotNull(Q("machine-inventory-body"));
             StringAssert.Contains("5", Q<Label>("machine-selected-recipe-time").text);
@@ -81,13 +82,23 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
         [Test]
         public void 未選択の機械は選択モードで開く()
         {
-            // 本番と同じくパネルが先に開き、状態詳細が後から届く（D-39 の Absent → Present）
-            // As in the game, the panel opens first and the state detail arrives later (D-39 Absent → Present)
-            Open(MachinePanel(), null, Content);
-            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(Fixtures.Machine(MachineRecipeSelection.Unselected, false, Recipes())));
-            Settle();
+            // 状態は BlockGameObject に残るので、開いた時点で値は Present。区画は開くたびに作り直されても行の枠ははみ出さない（Error 0 件）
+            // The state stays on BlockGameObject, so the value is Present at open; sections rebuilt per open never overflow the slot columns (zero errors)
+            Open(MachinePanel(), Fixtures.Machine(MachineRecipeSelection.Unselected, false, Recipes()), Content);
             Assert.IsNotNull(Q(MachineRecipeSelectionList.ListTestid));
             Assert.IsNull(Shell.View.Q("machine-inventory-body"));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void 状態詳細が開いた後に届いても選択モードになる()
+        {
+            // D-39 の Absent → Present（初めて状態が配られる機械）
+            // D-39 Absent → Present (a machine whose state is broadcast for the first time)
+            Open(MachinePanel(), null, Content);
+            SetMachine(Fixtures.Machine(MachineRecipeSelection.Unselected, false, Recipes()));
+            Assert.IsNotNull(Q(MachineRecipeSelectionList.ListTestid));
+            LogAssert.NoUnexpectedReceived();
         }
 
         /// <web-test file="e2e/tests/block/machineRecipe.spec.ts">レシピ無しブロックは小型パネルのまま</web-test>
@@ -110,8 +121,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             Assert.LessOrEqual(scroll.GetContentHeight(), before + 0.5f, "3 recipes fit");
 
             var many = Fixtures.ManyItemRecipes(30, SecondItem, FirstItem);
-            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(Fixtures.Machine(MachineRecipeSelection.Unselected, false, many)));
-            Settle();
+            SetMachine(Fixtures.Machine(MachineRecipeSelection.Unselected, false, many));
             Assert.AreEqual(before, scroll.GetViewportHeight(), 0.5f);
             Assert.Greater(scroll.GetContentHeight(), scroll.GetViewportHeight());
             Assert.IsNull(scroll.GetFirstAncestorOfType<ScrollView>(), "nested scroller");

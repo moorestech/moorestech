@@ -67,7 +67,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
         // Push the state where the server selection caught up (the recorder never changes it)
         protected void SetBound(Guid selectedRecipe)
         {
-            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(Bound(selectedRecipe)));
+            SetMachine(Bound(selectedRecipe));
+        }
+
+        protected void SetMachine(MachineSectionViewModel machine)
+        {
+            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(machine));
             Settle();
         }
 
@@ -75,11 +80,17 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
         {
             // 本番の GameUi と同じく機械・文脈の工場と大型の寄与を差す（CleanRoomLayoutTestHost と同じ組み方）
             // Plug the machine and context factories and the large rule as the real GameUi does (same as CleanRoomLayoutTestHost)
-            if (machine != null) MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(machine));
             var rule = new RecipeMachineLargePanelRule(MachineModel);
             rule.Initialize();
             var factory = new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, content, RecipeSelect, OsCursor);
-            Shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(panel), rule, factory, new ContextSectionFactory(content, ContextModel, MachineModel));
+
+            // 本番と同じく外殻は閉じたまま先に載って舞台とトークンが解決し、開く時点で機械の値は既に届いている（BlockInventoryScreenPresenter.Initialize・BlockGameObject の状態）
+            // As in the game, the shell mounts closed first so the stage and tokens resolve, and the machine value is already there when it opens (BlockInventoryScreenPresenter.Initialize, BlockGameObject state)
+            var panelState = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed);
+            Shell = BlockInventoryTestShell.Create(this, panelState, rule, factory, new ContextSectionFactory(content, ContextModel, MachineModel));
+            Settle();
+            if (machine != null) MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(machine));
+            panelState.Value = panel;
             Settle();
         }
 
