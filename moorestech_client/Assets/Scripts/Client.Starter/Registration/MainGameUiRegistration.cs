@@ -78,6 +78,7 @@ namespace Client.Starter.Registration
             GrabGameUiRegistration.Register(builder);
             BlockInventoryGameUiRegistration.Register(builder);
             InventoryGameUiRegistration.Register(builder);
+            ResearchGameUiRegistration.Register(builder);
         }
     }
 }
