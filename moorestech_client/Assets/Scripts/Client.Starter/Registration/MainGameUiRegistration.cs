@@ -1,7 +1,8 @@
 using Client.Input;
 using Client.Input.Pointer;
 using Client.Skit.UI;
-using Client.Starter.Registration.GameUi;
+using Client.Starter.Registration.GameUi.Hud;
+using Client.Starter.Registration.GameUi.Shared;
 using Client.Starter.Registration.GameUi.Screens;
 using Client.Ui.Foundation.Composite;
 using Client.Ui.Foundation.Input;

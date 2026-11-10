@@ -3,7 +3,7 @@ using Client.Ui.State.ModeHud;
 using VContainer;
 using VContainer.Unity;
 
-namespace Client.Starter.Registration.GameUi
+namespace Client.Starter.Registration.GameUi.Hud
 {
     // 操作モード HUD（GameUi）の登録
     // Registers the GameUi operation-mode HUD

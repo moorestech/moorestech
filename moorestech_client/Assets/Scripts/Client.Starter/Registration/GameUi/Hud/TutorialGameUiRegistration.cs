@@ -8,7 +8,7 @@ using Client.Ui.State.Tutorial.WorldPin;
 using VContainer;
 using VContainer.Unity;
 
-namespace Client.Starter.Registration.GameUi
+namespace Client.Starter.Registration.GameUi.Hud
 {
     // チュートリアルの枠・キー操作ヒント・ワールドピン（GameUi）の登録
     // Registers the GameUi tutorial outline, key-control hint and world pin
