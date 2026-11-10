@@ -92,6 +92,7 @@ properties:
       default: true
     - key: levelInheritance
       type: enum
+      default: None
       options:
       - None
       - Inherit
