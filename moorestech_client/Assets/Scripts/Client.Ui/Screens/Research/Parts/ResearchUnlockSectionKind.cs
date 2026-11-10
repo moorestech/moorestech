@@ -1,5 +1,4 @@
 using System;
-using Client.Ui.State.Research.Logic;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.Screens.Research.Parts
@@ -14,24 +13,11 @@ namespace Client.Ui.Screens.Research.Parts
     }
 
     /// <summary>
-    /// 解放物の種類→節の唯一の表
-    /// Single table from unlock kind to section
+    /// 節ごとの見出し・testid・枠の列の有無（種類→節は ResearchUnlockEntryElements.AddTo が返す）
+    /// Per-section label, testid and slots-row flag (kind-to-section is returned by ResearchUnlockEntryElements.AddTo)
     /// </summary>
     public static class ResearchUnlockSectionKinds
     {
-        public static ResearchUnlockSectionKind Of(UnlockEntry entry)
-        {
-            return entry switch
-            {
-                BlockUnlockEntry => ResearchUnlockSectionKind.Blocks,
-                MachineRecipeOutputUnlockEntry => ResearchUnlockSectionKind.MachineRecipes,
-                ItemRecipeViewUnlockEntry => ResearchUnlockSectionKind.Items,
-                RewardItemUnlockEntry => ResearchUnlockSectionKind.RewardItems,
-                ConnectToolUnlockEntry or TrainCarUnlockEntry or ModuleSlotStackLimitUnlockEntry or LevelInheritanceCraftCapUnlockEntry => ResearchUnlockSectionKind.Others,
-                _ => throw new ArgumentOutOfRangeException(nameof(entry), entry.GetType().Name, null),
-            };
-        }
-
         public static LocalizationKey LabelKey(ResearchUnlockSectionKind kind)
         {
             return kind switch

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Client.Localization;
 using Client.Ui.Components.Slots;
@@ -18,7 +19,9 @@ namespace Client.Ui.Screens.Research.Parts
     /// </summary>
     public static class ResearchUnlockEntryElements
     {
-        public static void AddTo(VisualElement container, UnlockEntry entry, GameContentPresentation content)
+        // 解放物 1 件の要素を elements へ足し、載せる節を返す（種類→節と描画を 1 本の switch で持つ）
+        // Adds one unlock's elements to elements and returns its section (kind-to-section and drawing share one switch)
+        public static ResearchUnlockSectionKind AddTo(List<VisualElement> elements, UnlockEntry entry, GameContentPresentation content)
         {
             switch (entry)
             {
@@ -26,33 +29,33 @@ namespace Client.Ui.Screens.Research.Parts
                     var blockSlot = new BlockSlot($"research-unlock-block-{entry.Index}");
                     blockSlot.AddToClassList("research-tree__slot");
                     blockSlot.SetBlock(content.Block(block.Block.BlockId), UiText.FromContent(ContentLocalizationKeys.BlockName(block.Block.BlockGuid)));
-                    container.Add(blockSlot);
-                    break;
+                    elements.Add(blockSlot);
+                    return ResearchUnlockSectionKind.Blocks;
                 case MachineRecipeOutputUnlockEntry recipe:
                     // アイテムと液体は両方並べる
                     // Show both items and fluids
-                    for (var i = 0; i < recipe.Recipe.OutputItemIds.Count; i++) container.Add(ItemSlotOf($"research-unlock-recipe-{entry.Index}-{i}", recipe.Recipe.OutputItemIds[i], null, content));
-                    foreach (var fluid in recipe.Recipe.OutputFluids) container.Add(FluidLabelOf(fluid, content));
-                    break;
+                    for (var i = 0; i < recipe.Recipe.OutputItemIds.Count; i++) elements.Add(ItemSlotOf($"research-unlock-recipe-{entry.Index}-{i}", recipe.Recipe.OutputItemIds[i], null, content));
+                    foreach (var fluid in recipe.Recipe.OutputFluids) elements.Add(FluidLabelOf(fluid, content));
+                    return ResearchUnlockSectionKind.MachineRecipes;
                 case ItemRecipeViewUnlockEntry item:
-                    container.Add(ItemSlotOf($"research-unlock-item-{entry.Index}", item.ItemId, null, content));
-                    break;
+                    elements.Add(ItemSlotOf($"research-unlock-item-{entry.Index}", item.ItemId, null, content));
+                    return ResearchUnlockSectionKind.Items;
                 case RewardItemUnlockEntry reward:
-                    container.Add(ItemSlotOf($"research-reward-item-{entry.Index}", reward.Reward.ItemId, reward.Reward.Count, content));
-                    break;
+                    elements.Add(ItemSlotOf($"research-reward-item-{entry.Index}", reward.Reward.ItemId, reward.Reward.Count, content));
+                    return ResearchUnlockSectionKind.RewardItems;
                 case ConnectToolUnlockEntry tool:
-                    container.Add(OtherLine(null, UiText.FromContent(ContentLocalizationKeys.ConnectToolName(tool.Guid))));
-                    break;
+                    elements.Add(OtherLine(null, UiText.FromContent(ContentLocalizationKeys.ConnectToolName(tool.Guid))));
+                    return ResearchUnlockSectionKind.Others;
                 case TrainCarUnlockEntry car:
-                    container.Add(OtherLine(null, UiText.FromContent(ContentLocalizationKeys.TrainCarName(car.Guid))));
-                    break;
+                    elements.Add(OtherLine(null, UiText.FromContent(ContentLocalizationKeys.TrainCarName(car.Guid))));
+                    return ResearchUnlockSectionKind.Others;
                 case ModuleSlotStackLimitUnlockEntry limit:
-                    container.Add(OtherLine("research-unlock-module-slot-stack-limit", new UiText(LocalizationKeys.Ui.Research.UnlockModuleSlotStackLimit, new[] { new LocalizationTextParam("limit", limit.Limit.ToString(CultureInfo.InvariantCulture)) })));
-                    break;
+                    elements.Add(OtherLine("research-unlock-module-slot-stack-limit", new UiText(LocalizationKeys.Ui.Research.UnlockModuleSlotStackLimit, new[] { new LocalizationTextParam("limit", limit.Limit.ToString(CultureInfo.InvariantCulture)) })));
+                    return ResearchUnlockSectionKind.Others;
                 case LevelInheritanceCraftCapUnlockEntry cap:
                     var capParams = new[] { new LocalizationTextParam("itemName", content.ItemName(cap.Cap.ItemId).Resolve()), new LocalizationTextParam("level", cap.Cap.Level.ToString(CultureInfo.InvariantCulture)) };
-                    container.Add(OtherLine($"research-unlock-craft-cap-{cap.Cap.ItemId.AsPrimitive()}", new UiText(LocalizationKeys.Ui.Research.UnlockLevelInheritanceCraftCap, capParams)));
-                    break;
+                    elements.Add(OtherLine($"research-unlock-craft-cap-{cap.Cap.ItemId.AsPrimitive()}", new UiText(LocalizationKeys.Ui.Research.UnlockLevelInheritanceCraftCap, capParams)));
+                    return ResearchUnlockSectionKind.Others;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(entry), entry.GetType().Name, null);
             }

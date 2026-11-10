@@ -27,7 +27,15 @@ namespace Client.Ui.Screens.Research.Parts
             // Rebuild on every render
             Clear();
             var containers = new Dictionary<ResearchUnlockSectionKind, VisualElement>();
-            foreach (var entry in entries) ResearchUnlockEntryElements.AddTo(ContainerOf(ResearchUnlockSectionKinds.Of(entry)), entry, _content);
+            var elements = new List<VisualElement>();
+            foreach (var entry in entries)
+            {
+                // 描いた要素を返った節の器へ移す
+                // Move the drawn elements into the returned section's container
+                elements.Clear();
+                var container = ContainerOf(ResearchUnlockEntryElements.AddTo(elements, entry, _content));
+                foreach (var element in elements) container.Add(element);
+            }
 
             #region Internal
 
