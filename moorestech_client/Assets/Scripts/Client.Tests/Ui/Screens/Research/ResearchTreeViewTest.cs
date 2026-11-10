@@ -16,7 +16,7 @@ namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
     /// 研究エリアの描画・カードの 4 状態・エリアの寸法・選択で開閉する詳細・進捗 HUD との層の順序（L1）
-    /// Research area rendering, the four card states, area geometry and selection-driven details (L1)
+    /// Research area rendering, the four card states, area geometry, selection-driven details and layer order against the progress HUD (L1)
     /// </summary>
     public class ResearchTreeViewTest : ScreenTestHost
     {
@@ -101,6 +101,9 @@ namespace Client.Tests.Ui.Screens.Research
             // カードの枠は中身の高さを持つ（包みの高さ 0 で Yoga に潰されない）
             // The card box takes its content height (not crushed by Yoga under a zero-height wrapper)
             Assert.LessOrEqual(state.worldBound.yMax, card.worldBound.yMax + 0.5f, "card holds its content");
+            // Web の高さ: 枠 1+上 8+名前 19+6+アイコン 48+6+状態 17+下 8+枠 1（行高は NotoSans の normal＝(2189+600)/2048 を Chrome が上下で丸めた 19・17）
+            // Web height: border 1 + top 8 + name 19 + 6 + icon 48 + 6 + state 17 + bottom 8 + border 1 (NotoSans normal line height (2189+600)/2048, rounded per side by Chrome to 19 and 17)
+            Assert.AreEqual(114f, card.worldBound.height, 1f, "Web card height");
         }
 
         /// <web-test file="e2e/tests/research/research.spec.ts">研究パネルは持ち物の右隣から画面端までを占有し持ち物と重ならない</web-test>
