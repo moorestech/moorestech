@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/features/recipe/views/RecipeActionButton.module.css・RecipeBox.module.css:186-212（.craftButton）・research/style.module.css:131-148（.researchButton）。既定はクラフトで、研究は画面が --recipe-action-* を上書きする */
-/* web: moorestech_web/webui/src/features/recipe/views/RecipeActionButton.module.css, RecipeBox.module.css:186-212 (.craftButton) and research/style.module.css:131-148 (.researchButton); defaults to craft and research overrides --recipe-action-* */
+/* web: moorestech_web/webui/src/features/recipe/views/RecipeActionButton.module.css・RecipeBox.module.css:186-212（.craftButton）・research/style.module.css:131-148（.researchButton）。既定はクラフトで、研究は .recipe-action-button--research が研究の組を持つ（A-190） */
+/* web: moorestech_web/webui/src/features/recipe/views/RecipeActionButton.module.css, RecipeBox.module.css:186-212 (.craftButton) and research/style.module.css:131-148 (.researchButton); defaults to craft and .recipe-action-button--research holds the research set (A-190) */
 
 /* 既定テーマの .unity-button に勝つため 2 クラスで当てる。面は描く子が持つので背景は透明 */
 /* Two classes so these beat the default theme's .unity-button; the drawing child owns the face, so the background is clear */
@@ -111,4 +111,25 @@
 
 .recipe-action-button:disabled .recipe-action-button__label {
     color: var(--recipe-action-disabled-text);
+}
+
+/* 研究の組（Web research/style.module.css:131-148 の .researchButton）。素の button なのでホバーで面を変えず、沈まず、枠・影なし。寸法だけは画面が祖先で --research-action-width/height を上書きしてよい */
+/* Research set (Web .researchButton in research/style.module.css:131-148); a plain button, so no hover face, no sink, no border or shadow. Only the size may be overridden by a screen ancestor through --research-action-width/height */
+.recipe-action-button--research {
+    --recipe-action-hover-start: var(--recipe-action-background-start);
+    --recipe-action-hover-middle: var(--recipe-action-background-middle);
+    --recipe-action-hover-end: var(--recipe-action-background-end);
+    --recipe-action-disabled-start: var(--research-action-disabled-face);
+    --recipe-action-disabled-middle: var(--research-action-disabled-face);
+    --recipe-action-disabled-end: var(--research-action-disabled-face);
+    --recipe-action-disabled-text: var(--text-default); /* look-exception: LX-95 */
+    --recipe-action-disabled-opacity: var(--research-action-disabled-opacity);
+    --recipe-action-width: var(--research-action-width);
+    --recipe-action-height: var(--research-action-height);
+    --recipe-action-padding-block: 8px;
+    --recipe-action-font-size: 14px;
+    --recipe-action-letter-spacing: 0px;
+    --recipe-action-text-shadow-offset: 0px;
+    --recipe-action-active-offset: 0px;
+    --recipe-action-border-width: 0px;
 }

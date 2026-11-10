@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace Client.Ui.State.Routing
 {
     /// <summary>
-    /// 画面ごとの性質。Web の ScreenTraits と同じ列に、UITK だけの列 CollapsesStageLeftPadding（Web App.tsx の .stageResearch）を足す
-    /// Per-screen traits; the web ScreenTraits columns plus the UITK-only CollapsesStageLeftPadding (Web App.tsx .stageResearch)
+    /// 画面ごとの性質。Web の列に UITK 固有の 2 列を足す
+    /// Per-screen traits; Web columns plus two UITK-only columns
     /// </summary>
     public sealed class UiScreenTraits
     {
@@ -16,8 +16,9 @@ namespace Client.Ui.State.Routing
         public bool AlwaysOnHud { get; }
         public bool TrainHud { get; }
         public bool CollapsesStageLeftPadding { get; }
+        public bool CoversGameLayer { get; }
 
-        public UiScreenTraits(bool grab, bool pauseMenu, bool skitInput, bool backdrop, bool alwaysOnHud, bool trainHud, bool collapsesStageLeftPadding)
+        public UiScreenTraits(bool grab, bool pauseMenu, bool skitInput, bool backdrop, bool alwaysOnHud, bool trainHud, bool collapsesStageLeftPadding, bool coversGameLayer)
         {
             Grab = grab;
             PauseMenu = pauseMenu;
@@ -26,6 +27,7 @@ namespace Client.Ui.State.Routing
             AlwaysOnHud = alwaysOnHud;
             TrainHud = trainHud;
             CollapsesStageLeftPadding = collapsesStageLeftPadding;
+            CoversGameLayer = coversGameLayer;
         }
     }
 
@@ -35,8 +37,8 @@ namespace Client.Ui.State.Routing
     /// </summary>
     public static class UiScreenTraitsTable
     {
-        // 列順: grab, pauseMenu, skitInput, backdrop, alwaysOnHud, trainHud, collapsesStageLeftPadding
-        // Column order: grab, pauseMenu, skitInput, backdrop, alwaysOnHud, trainHud, collapsesStageLeftPadding
+        // 列順: grab, pauseMenu, skitInput, backdrop, alwaysOnHud, trainHud, collapsesStageLeftPadding, coversGameLayer
+        // Column order: grab, pauseMenu, skitInput, backdrop, alwaysOnHud, trainHud, collapsesStageLeftPadding, coversGameLayer
         private static readonly Dictionary<UiScreen, UiScreenTraits> Traits = BuildTraits();
 
         public static UiScreenTraits Get(UiScreen screen)
@@ -46,20 +48,22 @@ namespace Client.Ui.State.Routing
 
         private static Dictionary<UiScreen, UiScreenTraits> BuildTraits()
         {
+            // coversGameLayer は Web deriveActiveLayer の blockInventory（SubInventory）・research・buildMenu。modal は画面でなく保留の有無なので UiActiveLayer が足す
+            // coversGameLayer is Web deriveActiveLayer's blockInventory (SubInventory), research and buildMenu; modal is a pending flag, not a screen, so UiActiveLayer adds it
             var traits = new Dictionary<UiScreen, UiScreenTraits>
             {
-                { UiScreen.None, new UiScreenTraits(false, false, true, false, true, false, false) },
-                { UiScreen.PlayerInventory, new UiScreenTraits(true, false, true, true, true, false, false) },
-                { UiScreen.SubInventory, new UiScreenTraits(true, false, true, true, true, false, false) },
-                { UiScreen.ResearchTree, new UiScreenTraits(true, false, true, true, false, false, true) },
-                { UiScreen.BuildMenu, new UiScreenTraits(false, false, true, true, true, false, false) },
-                { UiScreen.ChallengeList, new UiScreenTraits(false, false, true, true, true, false, false) },
-                { UiScreen.PauseMenu, new UiScreenTraits(false, true, true, true, true, false, false) },
-                { UiScreen.TrainHud, new UiScreenTraits(false, false, true, false, true, true, false) },
-                { UiScreen.TrainPause, new UiScreenTraits(false, true, true, true, true, true, false) },
+                { UiScreen.None, new UiScreenTraits(false, false, true, false, true, false, false, false) },
+                { UiScreen.PlayerInventory, new UiScreenTraits(true, false, true, true, true, false, false, false) },
+                { UiScreen.SubInventory, new UiScreenTraits(true, false, true, true, true, false, false, true) },
+                { UiScreen.ResearchTree, new UiScreenTraits(true, false, true, true, false, false, true, true) },
+                { UiScreen.BuildMenu, new UiScreenTraits(false, false, true, true, true, false, false, true) },
+                { UiScreen.ChallengeList, new UiScreenTraits(false, false, true, true, true, false, false, false) },
+                { UiScreen.PauseMenu, new UiScreenTraits(false, true, true, true, true, false, false, false) },
+                { UiScreen.TrainHud, new UiScreenTraits(false, false, true, false, true, true, false, false) },
+                { UiScreen.TrainPause, new UiScreenTraits(false, true, true, true, true, true, false, false) },
                 // スキットのポーズ中だけ表示を続けたまま入力口を閉じる
                 // Only the skit's pause keeps drawing while every input path closes
-                { UiScreen.SkitPause, new UiScreenTraits(false, true, false, true, true, false, false) },
+                { UiScreen.SkitPause, new UiScreenTraits(false, true, false, true, true, false, false, false) },
             };
 
             // 画面を足して行を書き忘れたら静的初期化で止める

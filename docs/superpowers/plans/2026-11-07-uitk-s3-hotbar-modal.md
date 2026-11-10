@@ -23,7 +23,7 @@
 | R-3 | 未解決の割当枠は白面（filled）のまま中身を出さず、枠ごと `--hotbar-unresolved-opacity` で減光する。選択を受けない画面では列ごと `--hotbar-select-disabled-opacity` で減光し、タップの選択は `HotbarCommands.Select` が良性の拒否 `HotbarSelectNotAccepted`（wire `invalid_state`）を返し、源が `UiCommandResultToaster` へ渡す（良性なのでログだけ。クリックごとに警告ログが 1 行出る）。Web の画面は受けないときタップを送らず、橋の `HotbarSelectActionHandler` が同じ規則で `invalid_state` を返す。UITK は規則を 1 か所（A-106）にするため操作側で断る。選ばれない結果は Web と同じ。D&D はどちらでも成立する | `HotbarHudViewTest`・`HotbarHudDropTest` が緑（Web `hotbar.spec.ts` 2・4 件目） |
 | R-4 | ドラッグ: 枠を源（`UiDragDrop.MarkSource`）にし、タップは `IHotbarCommands.Select(i)`、枠へ落とすと入替（自分自身は無操作）、列の隙間は無操作、それ以外（他の画面の落とし先・何も無い所）は解除。空き枠は掴む物が無いのでドラッグ後は何もせずタップにも落とさない。右ボタンは無視（捕捉しない）。ビルドメニューの源（S3-buildmenu の `BuildMenuEntryDragPayload`）は State の `IHotbarDropReceiver` で枠の印へ落とし、空き枠なら割当になる（このレーンはビルドメニューを書き換えない） | `HotbarSlotDragGestureTest`（Web `useHotbarDragSource.test.ts` 7 件）・`HotbarHudDropTest`（Web `hotbar.spec.ts` 3・4・6 件目）が緑 |
 | R-5 | 入力の素通し: 帯は拾わず、列だけが拾い、列にホイール素通しの印（`WheelPassthroughMark`）がある（帯には無い） | `HotbarHudPickingTest` が緑（Web `alwaysOnHudWheel.test.ts` の「%s は入力を奪わない」ホットバー帯の行と「クリックを持つスロット列だけが入力を取り戻し…」。bd `moorestech-albof.30`） |
-| R-6 | 世界の上の色（bd `moorestech-albof.34`）: 画面ルートで `--slot-frame-face: var(--hotbar-slot-frame-face)`（α 0.7226）に上書きし、空き枠の面・番号タブの面・未解決と受理外の減光を、ランタイムの PanelSettings（Linear 合成）の明るい地 (240,203,166) と暗い地 (40,42,48) で Web の sRGB 合成と照合する。明るい地で RGB 7 段以内（C3-a の基準）にし、暗い地で外れる分は `LX-76` に記帳する | Task 10 の照合表（EDC の出力）が `done.md` にあり、明るい地の全行が 7 段以内 |
+| R-6 | 世界の上の色（bd `moorestech-albof.34`）: 画面ルートで `--slot-frame-face: var(--world-slot-frame-face)`（α 0.7226）に上書きし、空き枠の面・番号タブの面・未解決と受理外の減光を、ランタイムの PanelSettings（Linear 合成）の明るい地 (240,203,166) と暗い地 (40,42,48) で Web の sRGB 合成と照合する。明るい地で RGB 7 段以内（C3-a の基準）にし、暗い地で外れる分は `LX-76` に記帳する | Task 10 の照合表（EDC の出力）が `done.md` にあり、明るい地の全行が 7 段以内 |
 | R-7 | アイコンが枠の中央に描かれる | `HotbarIconCenteringTest` が緑（Web `placementIconCentering.spec.ts`「ホットバーのアイコンは枠の中央に描かれる」） |
 | R-8 | モーダル: 全体スイッチ UITK では `ModalRequestService.Pending` を UITK だけが描く。`DialogFrame("modal")` に題（`UiText.FromVerbatim(Title)`）、本文（`modal-message`・`text--sm`・`text--dimmed`・下余白 lg）、入力付きなら `GameTextField("modal-input", false, MantineInput)`（下余白 lg・表示時にフォーカス）、`FormButton("modal-button", FromVerbatim(ButtonText), Blue→Filled／Red→Danger)`（入力付きで空白だけなら押せない）。確定は入力付きなら前後の空白を除いた文を、取消は文なしを `IModalCommands.Respond` へ返す。幕のクリックと ESC 1 回（Web の Mantine と同じ。入力欄の変換中を除く。ESC はワールドへ渡さない。フォーカスの無い ESC は View でなく既存のゲーム入力の経路が BP 名の入力ごと取り消す〈D-11〉）は取消。入力欄の外を押しただけでは閉じない。要求 ID が変わったら入力欄を空にする | `ModalViewTest`・`ModalScreenPresenterTest`・`ModalCommandsTest` が緑（Web `modal.spec.ts` 4 件と ESC・欄外の押下の 2 件）。フォーカスの無い ESC は録画（R-12 の流れ 7b） |
 | R-9 | モーダルは実画面 px で Web と同じ（[A-41]）: 720p・1080p・2560×1080 で幅 440 実画面 px・画面の中央 | `ModalScreenPresenterTest` の倍率 1.5 の主張が緑。並べ比べ（R-10）の 3 解像度 |
@@ -35,9 +35,9 @@
 
 **やらないこと（スコープ境界）**
 
-- 部品（`SlotFrame`・`PlacementTargetFace`・`OutlinedCountLabel`・`DialogFrame`・`FormButton`・`GameTextField`）・既存の Foundation（`UiDragDrop`・`UiModalHost`・`UiPressGesture`・`StageScaleSource`・`GameUiInputRules`。新規の `Foundation/Input/WheelPassthroughMark.cs` だけ足す。D-21）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`）・`UiLayer`・`UiScreenTraits`・`AnchorIds` は変えない。要るものは `done.md` の「integrator への依頼」に書く（`DerivedTokens.uss` は末尾の名札付きブロックを足す [A-52]）。例外は 1 つ: 部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke` を足す（`OutlinedCountLabel.uss` の縁の層の 2 行・`.cs` のコメント・`DerivedTokens.uss` の `--outlined-count-label-color` の次に既定 1 行。設計書 A-108・計画 D-7・Task 6 Step 3）
+- 部品（`SlotFrame`・`PlacementTargetFace`・`OutlinedCountLabel`・`DialogFrame`・`FormButton`・`GameTextField`）・既存の Foundation（`UiDragDrop`・`UiModalHost`・`UiPressGesture`・`StageScaleSource`・`GameUiInputRules`。`Foundation/Input/WheelPassthroughMark` は S4-inventory が作った物を呼ぶだけで新設しない。A-194）・トークン USS（`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`）・`UiLayer`・`UiScreenTraits`・`AnchorIds` は変えない。要るものは `done.md` の「integrator への依頼」に書く（`DerivedTokens.uss` は末尾の名札付きブロックを足す [A-52]）。例外は 1 つ: 部品 `OutlinedCountLabel` に縁の色のつまみ `--outlined-count-label-stroke` を足す（`OutlinedCountLabel.uss` の縁の層の 2 行・`.cs` のコメント・`DerivedTokens.uss` の `--outlined-count-label-color` の次に既定 1 行。設計書 A-108・計画 D-7・Task 6 Step 3）
 - ビルドメニューの画面と、その源（エントリのドラッグ・タップ）、配置対象の絵の出どころ（`PlacementTargetIcon` 系・`PlacementTargetIconResolver`・`PlacementTargetIcons`）、State の落とし先の口 `IHotbarDropReceiver` は作らない（S3-buildmenu が最終の置き場に作る。W3 で先に入る）。S3-buildmenu のファイルは書き換えない。ビルドメニューのパネルからホットバーへ通しで確かめる横断の L1 は S3-ladder。このレーンは本物のエントリの源（`BuildMenuEntryDragPayload`）を単独で置いて確かめる（使うだけ）
-- ホイールで装備を回す処理は作らない（S4-inventory。このレーンは列に素通しの印と、その判定 `WheelPassthroughMark.IsPassthrough` を作るまで）
+- ホイールで装備を回す処理は作らない（S4-inventory。このレーンは S4-inventory が作った `WheelPassthroughMark` の `Mark` を列に呼ぶまで。A-194）
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない。Web の系のモーダル（`ModalTopic`・`ModalActions`）はそのまま残る
 - L3（EditModeInPlayingTest）は持たない（段の締め S3-ladder）
 - `app/iconTextOutlineDesign.test.ts` は記帳しない（[A-54] で integrator が配る。配られたら「integrator への依頼」の返りとして写す）
@@ -260,7 +260,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/{Hotbar,Modal}/`・`S/Client.Tests/Ui/State/{Hotbar,Modal}/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。`it.each` は第 1 引数の書式文字列そのまま。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(Hotbar|Modal)|State\.(Hotbar|Modal|PauseMenuCommandsTest)|Conventions|Theme|Layers|Anchor|DragDrop|Modal|Content)\.`（`PauseMenuCommandsTest` は namespace `Client.Tests.Ui.State` 直下なので名指しで入れる。S3-buildmenu と共有のテスト）。ドメインリロード中のエラーは 45 秒待って再試行
 - **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の albof.30 の行の削除（行は足さない）、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
-- **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` は Web で既に 2 機能（ホットバーの列・装備 HUD。`W/src/shared/uiState/activeLayer.ts:22`）が使うので §5.1-1 により最初から `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` に置く（新規ファイルで他レーンと重ならない。D-21）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。State の `IHotbarDropReceiver` だけを実装し `MarkTarget<IHotbarDropReceiver>` で付く）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
+- **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` （`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs`）は S4-inventory が先に作ったので新設せず、列に `WheelPassthroughMark.Mark(<ホットバーの列>)` を呼ぶだけ（設計書 A-194。D-21 の持ち主を改めた）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。State の `IHotbarDropReceiver` だけを実装し `MarkTarget<IHotbarDropReceiver>` で付く）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
 - **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品」を見つけたら作らない。`LOGS/harness/uitk/S3-hotbar-modal/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) 無し（`OutlinedCountLabel` の縁の色のつまみは、既存部品へのつまみ 1 つの追加でこのレーンが足す。Task 6 Step 3・D-7）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-869b2d4264/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080）の `3-hotbar-equipment-empty.png`・`3-modal.png`。1920×1080 の `3-modal` は無いので Task 11 Step 1 で撮る
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/` に置き、`moorestech_logs` へ入れない。`moorestech_logs` へ書く前に `LOGS/README.md` を読む
@@ -330,7 +330,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDragPayload.cs` | 枠の源（タップ → 選択・ドロップ → 解決） | 新規 |
 | `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`.cs` | 縁の色のつまみ `--outlined-count-label-stroke` を読む（.cs はコメントだけ。D-7） | 変更（C3-a の部品。C4-a が先に足していれば触らない。Task 6 Step 3 の分岐） |
 | `S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`・`SlotKnobOverrides.uss` | 縁の色のつまみの既定と上書きの L1 | 新規・変更 |
-| `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` | ホイール素通しの印と読み手の判定 `IsPassthrough`（Web `data-wheel-passthrough`・`isWheelPassthrough`。Web で 2 機能が使うので §5.1-1 で最初から Foundation） | 新規 |
+| `S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` | ホイール素通しの印と読み手の判定 `IsPassthrough`（Web `data-wheel-passthrough`・`isWheelPassthrough`。S4-inventory が作った物を呼ぶだけ。A-194） | 使うだけ（新設しない） |
 | `S/Client.Ui/Screens/Modal/ModalScreenPresenter.cs` | 保留の要求を View にして宿主へ `Show`/`Hide`（幕の押下は View へ渡す） | 新規 |
 | `S/Client.Ui/Screens/Modal/ModalView.cs` | `DialogFrame` の中身（本文・入力・ボタン）。確定・ESC 1 回・幕の押下（取消）を `IModalCommands.Respond` へ | 新規 |
 | `S/Client.Ui/Screens/Modal/ModalButtonVariants.cs` | `ModalButtonTone` → `FormButtonVariant` の唯一の switch（[A-28]） | 新規 |
@@ -381,7 +381,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `--bevel-c1` | `rgb(125 127 133)` | `var(--hotbar-bevel-c1)` |
 | `--bevel-c2` / `--bevel-c3` | `rgb(116 118 125)` | `var(--hotbar-bevel-c2)` |
 | `--sel-c1` / `--sel-c2` / `--sel-c3` | `var(--select-cyan)` | `var(--select-cyan)` |
-| `--slot-frame-face`（画面ルート `.hotbar-hud`） | （Web は `SlotFrame` の直書き `rgb(50 52 67 / 50%)`。地は世界） | `var(--hotbar-slot-frame-face)`（α 0.7226。bd `albof.34`） |
+| `--slot-frame-face`（画面ルート `.hotbar-hud`） | （Web は `SlotFrame` の直書き `rgb(50 52 67 / 50%)`。地は世界） | `var(--world-slot-frame-face)`（α 0.7226。bd `albof.34`） |
 
 **写すテストの件数（Web の実物を grep して数え直した）**
 
@@ -1374,7 +1374,7 @@ git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandR
 
 **Interfaces:**
 - Consumes: Web `W/src/features/hotbar/HotbarPanel/style.module.css`・`W/src/shared/ui/SlotFrame/style.module.css`、[A-52] の式（暗い色 `1-(1-α)^1.85`・明るい色 `α^2.2`）
-- Produces: トークン `--hotbar-slot-frame-face`・`--hotbar-bevel-c1`・`--hotbar-bevel-c2`・`--hotbar-number-tab-face`・`--hotbar-number-tab-border`・`--hotbar-number-tab-text`・`--hotbar-select-disabled-opacity`・`--hotbar-unresolved-opacity`
+- Produces: トークン `--world-slot-frame-face`（世界の地の上の空き枠の面。ホットバーと装備 HUD〈S4-inventory〉が借りるので画面名を付けない）・`--hotbar-bevel-c1`・`--hotbar-bevel-c2`・`--hotbar-number-tab-face`・`--hotbar-number-tab-border`・`--hotbar-number-tab-text`・`--hotbar-select-disabled-opacity`・`--hotbar-unresolved-opacity`
 
 - [ ] **Step 1: ブロックを足す**
 
@@ -1382,7 +1382,7 @@ git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandR
 ```css
     /* S3-hotbar-modal: 世界の上に直に置くホットバーの前計算色と減光。Web の HotbarPanel/style.module.css・SlotFrame の直書きを前計算した値（設計書 A-52） */
     /* S3-hotbar-modal: precomputed colors and dimming for the hotbar placed directly over the world; precomputes literals in the Web HotbarPanel/style.module.css and SlotFrame (design A-52) */
-    --hotbar-slot-frame-face: rgba(50, 52, 67, 0.7226); /* web: SlotFrame .slot の rgb(50 52 67 / 50%)。地は世界なので暗い色の式（bd moorestech-albof.34。Task 10 で明るい地の画素を照合） */
+    --world-slot-frame-face: rgba(50, 52, 67, 0.7226); /* web: SlotFrame .slot の rgb(50 52 67 / 50%)。地は世界なので暗い色の式（bd moorestech-albof.34。Task 10 で明るい地の画素を照合） */
     --hotbar-bevel-c1: rgb(125, 127, 133); /* web: .cell の --bevel-c1: rgb(125 127 133) */
     --hotbar-bevel-c2: rgb(116, 118, 125); /* web: .cell の --bevel-c2・--bevel-c3: rgb(116 118 125) */
     --hotbar-number-tab-face: rgba(50, 52, 67, 0.8785); /* web: .num の background rgb(50 52 67 / 68%)。暗い色の式 */
@@ -1396,7 +1396,7 @@ git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandR
 
 `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾（その時点の最後の行の次。S3-buildmenu など他のレーンが先に足していればその後ろ）に:
 ```js
-  { name: "--hotbar-slot-frame-face", web: "rgb(50 52 67 / 50%)", formula: [50, 52, 67, 0.5], method: `${translucencyMethod}（ホットバーの空き枠の面。世界の地の上。S3-hotbar-modal・bd albof.34）` },
+  { name: "--world-slot-frame-face", web: "rgb(50 52 67 / 50%)", formula: [50, 52, 67, 0.5], method: `${translucencyMethod}（ホットバーの空き枠の面。世界の地の上。S3-hotbar-modal・bd albof.34）` },
   { name: "--hotbar-number-tab-face", web: "rgb(50 52 67 / 68%)", formula: [50, 52, 67, 0.68], method: `${translucencyMethod}（ホットバーの番号タブの面。S3-hotbar-modal）` },
   { name: "--hotbar-number-tab-border", web: "rgb(156 158 166 / 55%)", formula: [156, 158, 166, 0.55], method: `${translucencyMethod}（ホットバーの番号タブの枠。S3-hotbar-modal）` },
 ```
@@ -1406,7 +1406,7 @@ node tools/uitk/convert-web-tokens.mjs
 git diff --stat
 grep -n "hotbar-" docs/uitk/translucent-tokens.md
 ```
-Expected: 差分は `docs/uitk/translucent-tokens.md` に 3 行足されたことだけ（他の生成物〈`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`〉に差が出たら、生成器の入力が土台とずれているので `git checkout -- <そのファイル>` で戻して `done.md` の「integrator への依頼」に書く）。3 行の UITK の値が Step 1 の `0.7226`・`0.8785`・`0.2684` と一致する。違えば表（生成器の判定）を正として Step 1 の値を直す。Task 10 の照合で `--hotbar-slot-frame-face` を決め直したら、この行を `formula` から `uss: "<値>"` と決め方の文へ書き換えて再生成する（前例 `--slot-frame-face`）
+Expected: 差分は `docs/uitk/translucent-tokens.md` に 3 行足されたことだけ（他の生成物〈`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`〉に差が出たら、生成器の入力が土台とずれているので `git checkout -- <そのファイル>` で戻して `done.md` の「integrator への依頼」に書く）。3 行の UITK の値が Step 1 の `0.7226`・`0.8785`・`0.2684` と一致する。違えば表（生成器の判定）を正として Step 1 の値を直す。Task 10 の照合で `--world-slot-frame-face` を決め直したら、この行を `formula` から `uss: "<値>"` と決め方の文へ書き換えて再生成する（前例 `--slot-frame-face`）
 
 - [ ] **Step 3: L2 を通してコミット**
 
@@ -1423,7 +1423,7 @@ git commit -m "feat(uitk): ホットバーの前計算色と減光のトーク�
 ### Task 6: ホットバーの画面内の部品（`Screens/Hotbar/Parts/`）
 
 **Files:**
-- Create: `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs`・`HotbarRowGapDropMark.cs`・`HotbarSlotDragPayload.cs`・`HotbarCalcKnobs.cs`・`HotbarNumberTab.cs`・`HotbarCell.cs`、`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs`
+- Create: `S/Client.Ui/Screens/Hotbar/Parts/HotbarSlotDropMark.cs`・`HotbarRowGapDropMark.cs`・`HotbarSlotDragPayload.cs`・`HotbarCalcKnobs.cs`・`HotbarNumberTab.cs`・`HotbarCell.cs`（`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` は S4-inventory の物を使う。A-194）
 - Modify: `S/Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`・`OutlinedCountLabel.cs`（コメントだけ）、`THEME/DerivedTokens.uss`（`--outlined-count-label-color` の次に 1 行）、`S/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss`（末尾に 1 ブロック）
 - Test: `S/Client.Tests/Ui/Components/Slots/CountLabel/OutlinedCountLabelStrokeKnobTest.cs`
 
@@ -1440,6 +1440,7 @@ git commit -m "feat(uitk): ホットバーの前計算色と減光のトーク�
       public sealed class HotbarNumberTab : VisualElement { public const string ClassName = "hotbar-hud__number-tab"; public HotbarNumberTab(int slotIndex); }
       public sealed class HotbarCell : VisualElement { public HotbarCell(int slotIndex, IHotbarCommands commands, PlacementTargetIcons icons, UiCommandResultToaster toaster); public void Render(HotbarSlotViewModel slot, bool selected); }
   }
+  // Consumes（S4-inventory が作った物。新設しない。A-194）
   namespace Client.Ui.Foundation.Input { public static class WheelPassthroughMark { public const string ClassName = "wheel-passthrough"; public static void Mark(VisualElement element); public static bool IsPassthrough(VisualElement target); } }
   ```
 
@@ -1578,42 +1579,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 }
 ```
 
-`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs`:
-```csharp
-using UnityEngine.UIElements;
-
-namespace Client.Ui.Foundation.Input
-{
-    /// <summary>
-    /// 実 UI だがホイールだけはゲームへ素通す印と、その判定（Web の data-wheel-passthrough・isWheelPassthrough）。判定を使うのは装備のホイール（S4-inventory）
-    /// Mark for real UI that still lets the wheel through to the game, and its check (the Web data-wheel-passthrough and isWheelPassthrough); the equipment wheel (S4-inventory) uses the check
-    /// </summary>
-    /// <remarks>
-    /// Web で既に 2 機能（ホットバーの列・装備 HUD）が使うので Foundation に置く（設計書 §5.1-1。計画 D-21）
-    /// Already used by two features on the Web (hotbar row, equipment HUD), so it lives in Foundation (design §5.1-1; plan D-21)
-    /// </remarks>
-    public static class WheelPassthroughMark
-    {
-        public const string ClassName = "wheel-passthrough";
-
-        public static void Mark(VisualElement element)
-        {
-            element.AddToClassList(ClassName);
-        }
-
-        // 印の付いた祖先を持つか（Web の closest("[data-wheel-passthrough]")）
-        // Whether a marked ancestor exists (the Web closest("[data-wheel-passthrough]"))
-        public static bool IsPassthrough(VisualElement target)
-        {
-            for (var element = target; element != null; element = element.parent)
-            {
-                if (element.ClassListContains(ClassName)) return true;
-            }
-            return false;
-        }
-    }
-}
-```
+`WheelPassthroughMark`（`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs`）は S4-inventory が先に作った物を使い、このレーンは書かない（設計書 A-194・S4-inventory 計画 D-33）。着手時に `grep -n "public" S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs` で `ClassName`・`Mark`・`IsPassthrough` があることを確かめ、無ければ止まって指揮へ返す。列には View が `WheelPassthroughMark.Mark(<ホットバーの列>)` を呼ぶ（下の View の Step）
 
 - [ ] **Step 3: 部品 `OutlinedCountLabel` に縁の色のつまみを足す**
 
@@ -1904,7 +1870,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount: 0`（テストは Task 7 で View と一緒に書く）
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/WheelPassthroughMark.cs moorestech_client/Assets/Scripts/Client.Ui/Components/Slots/OutlinedCountLabel moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/CountLabel
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Hotbar moorestech_client/Assets/Scripts/Client.Ui/Components/Slots/OutlinedCountLabel moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Slots/CountLabel
 git commit -m "feat(uitk): ホットバーの枠・番号タブ・落とし先の印を足す（S3-hotbar-modal）
 
 <実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
@@ -2163,7 +2129,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
 
             // 空き枠の面は世界の地向けの値（bd albof.34）、ベベルはホットバーの色
             // The empty face uses the over-the-world value (bd albof.34); the bevel uses the hotbar colors
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--hotbar-slot-frame-face"), slot1.resolvedStyle.backgroundColor, "empty face");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--world-slot-frame-face"), slot1.resolvedStyle.backgroundColor, "empty face");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--hotbar-bevel-c1"), slot1.Q(className: "slot-frame__band--1").resolvedStyle.borderTopColor, "bevel c1");
         }
 
@@ -2683,7 +2649,7 @@ namespace Client.Ui.Screens.Hotbar
     align-items: flex-end;
     /* 世界の上に直に置くので、空き枠の面を世界の地向けの値に上書きする（bd moorestech-albof.34・台帳 LX-23） */
     /* Placed directly over the world, so the empty face is overridden with the over-the-world value (bd moorestech-albof.34, ledger LX-23) */
-    --slot-frame-face: var(--hotbar-slot-frame-face);
+    --slot-frame-face: var(--world-slot-frame-face);
 }
 
 .hotbar-hud__row {
@@ -2812,7 +2778,7 @@ namespace Client.Ui.Screens.Hotbar
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.(Hotbar|BuildMenu)|Conventions|Theme|Layers)\."`
 Expected: `ErrorCount: 0`、`HotbarHudViewTest` 5・`HotbarHudDropTest` 4・`HotbarSlotDragGestureTest` 7・`HotbarHudPickingTest` 2・`HotbarIconCenteringTest` 2 が PASS、L2 も PASS。赤のときの手順:
 - 番号タブの `-16` が外れる → `HotbarCalcKnobs` の `CustomStyleResolvedEvent` が列に届いていない。`Debug.Log` で読めた値を出して原因を確かめる（テストの期待は変えない）
-- `slot1.resolvedStyle.backgroundColor` が `--hotbar-slot-frame-face` でない → `.hotbar-hud` の上書きが `SlotFrame.uss` の `var()` へ継承していない。`--slot-frame-face` を `.hotbar-hud__cell` へ移して試し、移した理由を `done.md` の「未確認」に書く
+- `slot1.resolvedStyle.backgroundColor` が `--world-slot-frame-face` でない → `.hotbar-hud` の上書きが `SlotFrame.uss` の `var()` へ継承していない。`--slot-frame-face` を `.hotbar-hud__cell` へ移して試し、移した理由を `done.md` の「未確認」に書く
 - 番号タブの縁が黒くならない → タブの `--outlined-count-label-stroke` が効いていない。Task 6 Step 3 の部品の USS の置き換え（`color` と `-unity-text-outline-color` の両方がつまみを読む）と、`HotbarHud.uss` のタブの行を見る
 - 絵の中央が 0.5px を超えてずれる → `--icon-pad` と `--bevel-inset: inset` の組み合わせを確かめ、Web の正方 SVG と同じ条件（256 角）であることを確かめてから USS を直す
 - 右ボタンで捕捉される → C3-b の `UiPressGesture` の誤り。止めて `done.md` の「integrator への依頼」に書く（Foundation はこのレーンの持ち物でない）
@@ -3708,7 +3674,7 @@ Expected: 3 地 × 6 値（受理ありの `empty`・`tab`・`unresolved` と、
 
 - [ ] **Step 5: 台帳に書き、口を片付けてコミット**
 
-`docs/uitk/TODO.md` の「## 実測の結論」の末尾に 1 行: 「世界の上に直に置く面と opacity（S3-hotbar-modal・bd albof.34）: 明るい地 (240,203,166)・暗い地 (40,42,48) のランタイム画素を Web の sRGB 合成と照合。採った値 `--hotbar-slot-frame-face` α <値>・`--hotbar-number-tab-face` α <値>・`--hotbar-unresolved-opacity` <値>・`--hotbar-select-disabled-opacity` <値>。明るい地の最大差 <n> 段・暗い地の最大差 <n> 段」。暗い地で 7 段を超えた行があれば「## 見た目の例外」の末尾に `LX-76`（理由: Linear 合成では明るい地と暗い地の両方を 1 つの α で Web に揃えられない。明るい地を優先）を足し、該当トークンの行に `/* look-exception: LX-76 */` を付ける。撮り終えたら `s3hm-albof34-*` を `Object.Destroy` し RT を `Release` する
+`docs/uitk/TODO.md` の「## 実測の結論」の末尾に 1 行: 「世界の上に直に置く面と opacity（S3-hotbar-modal・bd albof.34）: 明るい地 (240,203,166)・暗い地 (40,42,48) のランタイム画素を Web の sRGB 合成と照合。採った値 `--world-slot-frame-face` α <値>・`--hotbar-number-tab-face` α <値>・`--hotbar-unresolved-opacity` <値>・`--hotbar-select-disabled-opacity` <値>。明るい地の最大差 <n> 段・暗い地の最大差 <n> 段」。暗い地で 7 段を超えた行があれば「## 見た目の例外」の末尾に `LX-76`（理由: Linear 合成では明るい地と暗い地の両方を 1 つの α で Web に揃えられない。明るい地を優先）を足し、該当トークンの行に `/* look-exception: LX-76 */` を付ける。撮り終えたら `s3hm-albof34-*` を `Object.Destroy` し RT を `Release` する
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"
@@ -4010,7 +3976,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | D-18 | 源の変化ごとに同期で組み直す（間引きは持たない）。解放の事象の順は、解放状態の持ち主 `ClientGameUnlockStateData` が ctor で同じタグを先に購読しているので、Model が読む時点で更新済みの見込み（`ClientGameUnlockStateDatastore.cs:112`。推測で、録画の 1 段で確かめる）。崩れたら間引きを足さず `done.md` に実測付きで申告 | フレーム末に 1 回だけ組む（Web HotbarTopic の写し）: [A-57] の同期の組み直しと前例（`ModeHudModel`・`BuildMenuModel`）から外れ、順序の懸念は実測でない | agent 既定（[A-57]） |
 | D-19 | 絵と名前は ViewModel に値（ID・表示名・ID だけの `PlacementTargetIcon`）で運び、変化は等価の外れで描き直す。Texture は運ばない。BP の絵だけは参照の等価（S3-buildmenu）で、`HotbarAssignedSlot.Equals` が `Icon.Equals` を比べるので、撮り直し（`OnThumbnailChanged` → 組み直し）のたびに等しくない VM が配られ絵が替わる（L0 の等価のテストと L1「同じBPの撮り直しで枠の絵が替わる」が固定）。版の数（`PresentationRevision`）は持たない | 版の数を足す: 値で運べば不要になり、増やし忘れの穴が残る | agent 既定 |
 | D-20 | 枠の源のタップは常に `Select` を呼び、受理は `HotbarCommands` が規則で決める。受けない状態は良性の拒否 `HotbarSelectNotAccepted`（wire `invalid_state`。Web `HotbarSelectActionHandler` と同じコード）を返し、源が `UiCommandResultToaster` へ渡す（良性なのでログだけ） | View が減光中はタップを出さない: 受理の判断が 2 か所になる。`void` のままログ: [A-8] のコマンドの形から外れる | agent 既定（[A-8]） |
-| D-21 | `WheelPassthroughMark` は最初から `Foundation/Input` に置き、印（`Mark`）と読み手の判定（`IsPassthrough`。Web `isWheelPassthrough` の `closest`）を同じファイルに持つ。判定を使う装備のホイールは S4-inventory | 画面内に置いて 2 機能目で昇格: Web で既に 2 機能（`activeLayer.ts:22`・HotbarPanel・EquipmentPanel）が使うので §5.1-1 に当たる。印だけ置いて判定は S4-inventory: 読み手の無い印は L1 が印の有無しか見られず、Web の判定（祖先をたどる）と同じかを確かめる場所が無い。新規ファイルで他レーンと重ならない | agent 既定（§5.1-1・[A-58]） |
+| D-21 | **A-194 で持ち主を S4-inventory へ改めた（S4-inventory が先に作り、このレーンは列に `Mark` を呼ぶだけ）。** `WheelPassthroughMark` は最初から `Foundation/Input` に置き、印（`Mark`）と読み手の判定（`IsPassthrough`。Web `isWheelPassthrough` の `closest`）を同じファイルに持つ。判定を使う装備のホイールは S4-inventory | 画面内に置いて 2 機能目で昇格: Web で既に 2 機能（`activeLayer.ts:22`・HotbarPanel・EquipmentPanel）が使うので §5.1-1 に当たる。印だけ置いて判定は S4-inventory: 読み手の無い印は L1 が印の有無しか見られず、Web の判定（祖先をたどる）と同じかを確かめる場所が無い。新規ファイルで他レーンと重ならない | agent 既定（§5.1-1・[A-58]） |
 | D-22 | 登録は画面ごとに 1 行（2 行）。`HotbarCommands` はホットバーの登録に入れる | State の登録へ入れる: GameUi の系でしか使わない | agent 既定（実行計画 §6.2） |
 | D-23 | モーダルの並べ比べは 720p・1080p・2560×1080。1080p の Web 参照は master の worktree で撮る | 1080p を省く: 完了条件が 720p・1080p を名指す | 完了条件（[A-41]） |
 | D-24 | L3（EditModeInPlayingTest）は持たない | — | 実行計画（段の締め S3-ladder） |

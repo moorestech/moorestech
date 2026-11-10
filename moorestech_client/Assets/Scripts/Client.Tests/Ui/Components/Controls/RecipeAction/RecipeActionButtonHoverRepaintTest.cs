@@ -19,7 +19,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
         public void ホバーで面が描き直され最後に描いた色がホバーの3色になる()
         {
             Localize.Initialize();
-            var button = new RecipeActionButton("recipe-action-hover-test", new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionLabelWeight.Medium);
+            var button = new RecipeActionButton("recipe-action-hover-test", new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionButtonVariant.Craft);
             rootVisualElement.Add(button);
             simulate.FrameUpdate();
             var face = button.Q<RecipeActionButtonFace>(className: RecipeActionButtonFace.UssClassName);

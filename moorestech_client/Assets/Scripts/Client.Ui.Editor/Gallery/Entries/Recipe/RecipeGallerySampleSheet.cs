@@ -84,16 +84,16 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
 
         public static RecipeActionButton CreateCraftButton(string testid, bool enabled)
         {
-            var button = new RecipeActionButton(testid, new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionLabelWeight.Medium);
+            var button = new RecipeActionButton(testid, new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionButtonVariant.Craft);
             button.SetEnabled(enabled);
             return button;
         }
 
         public static RecipeActionButton CreateResearchButton(string testid, bool enabled)
         {
-            // 研究の上書き（色・寸法・字）は置く側の祖先の ResearchKnobClass が当てる
-            // The research overrides (colors, size, type) come from the ResearchKnobClass ancestor where it is placed
-            var button = new RecipeActionButton(testid, new UiText(LocalizationKeys.Ui.Research.Action), RecipeActionLabelWeight.Regular);
+            // 研究の組は部品が持ち、寸法だけを置く側の祖先の ResearchKnobClass が当てる
+            // The component owns the research set; only the size comes from the ResearchKnobClass ancestor where it is placed
+            var button = new RecipeActionButton(testid, new UiText(LocalizationKeys.Ui.Research.Action), RecipeActionButtonVariant.Research);
             button.SetEnabled(enabled);
             return button;
         }

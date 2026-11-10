@@ -8,7 +8,7 @@ using Client.Ui.Foundation.Tooltip;
 using VContainer;
 using VContainer.Unity;
 
-namespace Client.Starter.Registration.GameUi
+namespace Client.Starter.Registration.GameUi.Shared
 {
     /// <summary>
     /// GameUi の土台サービスを登録

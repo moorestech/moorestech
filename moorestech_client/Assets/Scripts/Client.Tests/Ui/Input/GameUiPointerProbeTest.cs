@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Input
 {
     /// <summary>
-    /// GameUi の Pick の probe が、層コンテナを除いた拾える要素の上でだけ true を返すことを実パネルで確かめる（L1）
-    /// Verifies on a real panel that the GameUi Pick probe is true only over pickable content, never over layer containers (L1)
+    /// 層コンテナを除き拾える要素だけ返す L1
+    /// L1: returns only pickable elements, never layer containers
     /// </summary>
     /// <remarks>
     /// スクリーン座標→パネル座標の換算はテスト用パネルでは RuntimePanelUtils が使えないので、ここではパネル座標で試し、換算は L3 で試す
@@ -33,21 +33,38 @@ namespace Client.Tests.Ui.Input
             UiLayerStack.Build(rootVisualElement);
             simulate.FrameUpdate();
 
-            Assert.IsFalse(new GameUiPointerProbe(panel).IsPickableAt(PanelCenter));
+            Assert.IsNull(new GameUiPointerProbe(panel).PickAtPanel(PanelCenter));
         }
 
         [Test]
-        public void PositionPickedBoxIsOverGameUi()
+        public void PositionPickedBoxIsPickedItself()
         {
             var stack = UiLayerStack.Build(rootVisualElement);
-            stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(CreateCenteredBox(PickingMode.Position));
+            var box = CreateCenteredBox(PickingMode.Position);
+            stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(box);
             simulate.FrameUpdate();
 
-            // 箱の上は true、箱の外は層だけなので false
-            // True over the box, false outside it where only layers remain
+            // 箱の外は層だけなので null
+            // Null outside the box where only layers remain
             var probe = new GameUiPointerProbe(panel);
-            Assert.IsTrue(probe.IsPickableAt(PanelCenter));
-            Assert.IsFalse(probe.IsPickableAt(new Vector2(10, 10)));
+            Assert.AreSame(box, probe.PickAtPanel(PanelCenter));
+            Assert.IsNull(probe.PickAtPanel(new Vector2(10, 10)));
+        }
+
+        [Test]
+        public void PickedChildIsReturnedInsteadOfItsParent()
+        {
+            // 装備のホイールは拾った要素の印を見るので、親でなく最も手前の子が返ること
+            // The equipment wheel inspects the picked element's mark, so the topmost child must come back, not its parent
+            var stack = UiLayerStack.Build(rootVisualElement);
+            var box = CreateCenteredBox(PickingMode.Position);
+            var child = new VisualElement { name = "probe-child" };
+            child.style.flexGrow = 1;
+            box.Add(child);
+            stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(box);
+            simulate.FrameUpdate();
+
+            Assert.AreSame(child, new GameUiPointerProbe(panel).PickAtPanel(PanelCenter));
         }
 
         [Test]
@@ -57,7 +74,7 @@ namespace Client.Tests.Ui.Input
             stack.GetLayer(UiLayer.Modal, UiFamily.Viewport).Add(CreateCenteredBox(PickingMode.Ignore));
             simulate.FrameUpdate();
 
-            Assert.IsFalse(new GameUiPointerProbe(panel).IsPickableAt(PanelCenter));
+            Assert.IsNull(new GameUiPointerProbe(panel).PickAtPanel(PanelCenter));
         }
 
         private static VisualElement CreateCenteredBox(PickingMode pickingMode)

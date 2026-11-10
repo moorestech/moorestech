@@ -1,5 +1,3 @@
-using System;
-
 namespace Client.Ui.State.Routing
 {
     /// <summary>
@@ -10,27 +8,10 @@ namespace Client.Ui.State.Routing
     {
         public static bool CoversGameLayer(UiScreen screen, bool modalPending)
         {
+            // モーダルの保留は画面に関わらず前面。画面の分類は性質の表の列が持ち、行の書き忘れは表の静的初期化が止める
+            // A pending modal is frontmost on any screen; the trait column classifies screens and a missing row stops at table initialization
             if (modalPending) return true;
-
-            // 全 UiScreen を列挙する。新しい画面は分類しないと例外で落ち、書き忘れが無警告にならない
-            // Every UiScreen is listed; an unclassified new screen throws so it cannot be forgotten silently
-            switch (screen)
-            {
-                case UiScreen.SubInventory:
-                case UiScreen.ResearchTree:
-                case UiScreen.BuildMenu:
-                    return true;
-                case UiScreen.None:
-                case UiScreen.PlayerInventory:
-                case UiScreen.ChallengeList:
-                case UiScreen.PauseMenu:
-                case UiScreen.TrainHud:
-                case UiScreen.TrainPause:
-                case UiScreen.SkitPause:
-                    return false;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(screen), screen, "UiScreen is not classified in UiActiveLayer");
-            }
+            return UiScreenTraitsTable.Get(screen).CoversGameLayer;
         }
     }
 }

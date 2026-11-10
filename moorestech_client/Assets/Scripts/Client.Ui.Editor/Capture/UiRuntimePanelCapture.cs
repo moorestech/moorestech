@@ -30,7 +30,7 @@ namespace Client.Ui.Editor.Capture
 
         // 読める Texture2D を返す。破棄は呼び手
         // Returns a readable Texture2D; the caller disposes it
-        public static Texture2D Render(VisualElement content, int width, int height, Color ground)
+        public static Texture2D Render(VisualElement content, int width, int height, Color ground, UiCaptureLocalization localization)
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("[UiRuntimePanelCapture] EditMode only; use ScreenCapture in PlayMode");
             var source = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
@@ -40,9 +40,9 @@ namespace Client.Ui.Editor.Capture
             // The runtime panel render entry points are internal, so resolve them via reflection before creating temp resources; stop if a Unity update renamed them
             var passMethods = ResolvePassMethods();
 
-            // 束縛付きの部品が辞書を引けるよう初期化する（ギャラリー窓と同じ）
-            // Initialize the dictionary so bound components can resolve text (same as the gallery window)
-            Localize.Initialize();
+            // 束縛付きの部品が辞書を引けるよう初期化する（ギャラリー窓と同じ）。テストが足した辞書を保つときは呼び手が止める
+            // Initialize the dictionary so bound components resolve text (same as the gallery window); callers keeping test-added entries opt out
+            if (localization == UiCaptureLocalization.InitializeDictionary) Localize.Initialize();
 
             // 本番の複製に一時の UIDocument を載せる（本番のアセットは書き換えない）
             // Mount a temporary UIDocument on a copy of the production settings (the asset is never modified)
@@ -122,9 +122,9 @@ namespace Client.Ui.Editor.Capture
 
         // PNG に書いてパスを返す。上下は画面と同じ（C3-a）
         // Writes a PNG and returns its path; upright like the screen (C3-a)
-        public static string CaptureToPng(VisualElement content, int width, int height, Color ground, string pngPath)
+        public static string CaptureToPng(VisualElement content, int width, int height, Color ground, UiCaptureLocalization localization, string pngPath)
         {
-            var texture = Render(content, width, height, ground);
+            var texture = Render(content, width, height, ground, localization);
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(pngPath)));
             File.WriteAllBytes(pngPath, texture.EncodeToPNG());
             Object.DestroyImmediate(texture);

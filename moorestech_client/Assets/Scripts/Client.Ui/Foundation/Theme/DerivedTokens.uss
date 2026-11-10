@@ -29,6 +29,7 @@
     --panel-top: -8px; /* web: GamePanel/style.module.css の var(--panel-top, -8px) */
     --panel-right: -3px; /* web: var(--panel-right, -3px) */
     --panel-bottom: -8px; /* web: var(--panel-bottom, -8px) */
+    --panel-title-action-reserve: 99px; /* calc: var(--panel-action-button-width) + 12px */
     --panel-left: -3px; /* web: var(--panel-left, -3px) */
     --title-shift-x: 0px; /* web: .title の var(--title-shift-x, 0) */
     --title-scale-x: 0.947; /* web: .title の var(--title-scale-x, 0.947) */
@@ -156,7 +157,9 @@
     --recipe-action-text-shadow-offset: 1px; /* web: .craftButton の text-shadow 4 枚（上下左右 1px）のずれ。UITK も同じ文の字 4 つをずらして重ねる。研究は 0px で影なし */
     --recipe-action-text-shadow: rgba(0, 40, 80, 0.55); /* web: text-shadow の rgb(0 40 80 / 55%) */
     --recipe-action-active-offset: 1px; /* web: Mantine Button の .mantine-active:active の translateY(1px) */
-    --research-action-disabled-face: rgb(50, 52, 67); /* web: research .researchButton:disabled の background。S4-research が --recipe-action-disabled-* へ当てる */
-    --research-action-disabled-opacity: 0.6; /* web: research .researchButton:disabled の opacity: 0.6。S4-research が --recipe-action-disabled-opacity へ当てる */ /* look-exception: LX-95 */
+    --research-action-disabled-face: rgb(50, 52, 67); /* web: research .researchButton:disabled の background。RecipeActionButton の研究の組が --recipe-action-disabled-* へ当てる */
+    --research-action-disabled-opacity: 0.6; /* web: research .researchButton:disabled の opacity: 0.6。RecipeActionButton の研究の組が --recipe-action-disabled-opacity へ当てる */ /* look-exception: LX-95 */
+    --research-action-width: auto; /* web: research .researchButton は幅の指定なし（置き場所の幅に従う）。S4-research が画面で上書きする */
+    --research-action-height: auto; /* web: research .researchButton は高さの指定なし（padding 8px 0 と行の高さ normal）。S4-research が画面で上書きする */
     --recipe-list-gap: var(--recipe-entry-gap); /* web: RecipeListScrollArea の listGap。機械のレシピ選択は --machine-recipe-row-gap へ上書き */
 }

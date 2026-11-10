@@ -55,7 +55,7 @@ namespace Client.Tests.Ui.Composite
             swatch.style.height = 40;
             swatch.style.backgroundColor = new Color(red, green, blue, alpha);
             var groundColor = new Color32((byte)ground, (byte)ground, (byte)ground, 255);
-            var texture = UiRuntimePanelCapture.Render(swatch, 1280, 720, groundColor);
+            var texture = UiRuntimePanelCapture.Render(swatch, 1280, 720, groundColor, UiCaptureLocalization.InitializeDictionary);
 
             // 読み戻しは左下原点。左上 40×40 の中央を読む
             // Read-back is bottom-left origin; read the centre of the top-left 40x40

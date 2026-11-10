@@ -11,12 +11,13 @@ namespace Client.Ui.Components.Controls
     /// Primary action button with the blue gradient
     /// </summary>
     /// <remarks>
-    /// 既定はクラフトの見た目。研究は画面が祖先で --recipe-action-* を上書きする。長押しは置く側の画面の部品が持つ（A-166）。
-    /// Defaults to the craft look; research overrides --recipe-action-* on an ancestor. Hold-to-craft belongs to the placing screen's own part (A-166).
+    /// 見た目の組は変種で選び、研究の組は部品 USS の修飾クラスが持つ（A-190）。画面が祖先で上書きしてよいのは研究の寸法だけ。長押しは置く側の画面の部品が持つ（A-166）。
+    /// The variant picks the look set and the research set lives in the component USS modifier (A-190); screens may only override research size on an ancestor. Hold-to-craft belongs to the placing screen's own part (A-166).
     /// </remarks>
     public sealed class RecipeActionButton : Button
     {
         public const string UssClassName = "recipe-action-button";
+        public const string ResearchUssClassName = "recipe-action-button--research";
         public const string LabelUssClassName = "recipe-action-button__label";
         public const string FaceStartProperty = "--recipe-action-button-face-start";
         public const string FaceMiddleProperty = "--recipe-action-button-face-middle";
@@ -29,7 +30,7 @@ namespace Client.Ui.Components.Controls
 
         public IObservable<Unit> OnClicked => _clicked;
 
-        public RecipeActionButton(string testid, UiText label, RecipeActionLabelWeight weight)
+        public RecipeActionButton(string testid, UiText label, RecipeActionButtonVariant variant)
         {
             name = testid;
             AddToClassList(UssClassName);
@@ -45,9 +46,13 @@ namespace Client.Ui.Components.Controls
             Add(_labelShadow);
             _label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
             _label.AddToClassList(LabelUssClassName);
-            // 字の太さは Web と同じ字形を選び、影の字にも同じ字形を渡す（クラフト 500、研究 400 は付けない既定の字）
-            // Pick the Web weight and give the shadow copies the same face (craft 500; research 400 is the default face with no class)
-            if (weight == RecipeActionLabelWeight.Medium)
+            // クラフトは 500 の字形を文言と影の字に渡し、研究は修飾クラスで研究の組（400 の既定の字・影なし）に切り替える
+            // Craft gives the 500 face to the label and shadow copies; research switches to its set (default 400 face, no shadow) via the modifier
+            if (variant == RecipeActionButtonVariant.Research)
+            {
+                AddToClassList(ResearchUssClassName);
+            }
+            else
             {
                 _label.AddToClassList(UiTypographyClass.TextMedium);
                 _labelShadow.AddGlyphClass(UiTypographyClass.TextMedium);

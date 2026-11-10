@@ -393,9 +393,9 @@ Screens（`SP` = `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInvent
 |---|---|
 | `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs` | 画面登録区画の末尾に `BlockInventorySpecialGameUiRegistration.Register(builder);` 1 行と、無ければ `using Client.Starter.Registration.GameUi.Screens;` 1 行 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/Client.Ui.State.asmdef` | `references` の末尾に `Game.Block`・`Game.Gear`・`Core.BeltTransport`・`Core.Update`（D-8。他レーンが同じ名前を足していれば和を採る） |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs` | enum と 3 つの switch の末尾に 4 値（D-6） |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs` | enum と 3 つの switch の末尾に 3 値（「開いていない」は共有の既存の `BlockNotOpen`。D-6） |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` | 「良性の拒否理由は…」の `benign` の配列に 2 値、テスト名を「…と特殊族の古い合図と掴みの空」まで伸ばす |
-| `Localization/localization.csv` | `ui.commandRejected.*` の群の末尾 4 行 |
+| `Localization/localization.csv` | `ui.commandRejected.*` の群の末尾 3 行（`blockNotOpen` は共有の既存の行） |
 | `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` | `npm run gen:i18n` の再生成だけ（手で書かない） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」「## 見た目の例外」（`LX-126`〜`LX-130`）の末尾 |
 | `docs/uitk/disposition.md` | 「## 処遇」の末尾 1 行（D-13） |
@@ -1925,8 +1925,8 @@ git commit -m "feat(uitk): 特殊族の詳細を源から読み、変化のた�
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/ISpecialBlockRequestSender.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/VanillaSpecialBlockRequestSender.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/SpecialBlockResponseCodes.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs`（共有区画: enum と 3 つの switch の末尾に 4 値）
-- Modify: `Localization/localization.csv`（`ui.commandRejected.*` の群の末尾 4 行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs`（共有区画: enum と 3 つの switch の末尾に 3 値。「開いていない」は共有の既存の `BlockNotOpen`）
+- Modify: `Localization/localization.csv`（`ui.commandRejected.*` の群の末尾 3 行。`blockNotOpen` は共有の既存の行）
 - Modify: `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`（`gen:i18n` の再生成）・`moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs`（印。生成物）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（良性の一覧）
 - Modify: `docs/uitk/TODO.md`（「## 追従記録」の末尾 1 行）
@@ -1968,7 +1968,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         public static SpecialBlockRequestOutcome FromRocketFailure(RocketLaunchPadCommandProtocol.RocketLaunchPadCommandFailureReason reason);
     }
 }
-// UiCommandRejectReason（共有区画の末尾）: SpecialBlockNotOpen・SpecialBlockRequestFailed・SpecialBlockCommandStale・FilterSplitterGrabEmpty
+// UiCommandRejectReason（共有区画の末尾）: SpecialBlockRequestFailed・SpecialBlockCommandStale・FilterSplitterGrabEmpty（「開いていない」は共有の既存の BlockNotOpen を使い足さない。A-197）
 ```
 
 - [ ] **Step 1: テストの道具とテストを書く**
@@ -2084,7 +2084,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 開いていなければ送らずに開いていない拒否を返す()
         {
             var result = _commands.SetElectricToGearMode(0).GetAwaiter().GetResult() as UiCommandRejected;
-            Assert.AreEqual(UiCommandRejectReason.SpecialBlockNotOpen, result.Reason);
+            Assert.AreEqual(UiCommandRejectReason.BlockNotOpen, result.Reason);
             Assert.AreEqual("block_not_open", result.ToWireCode());
             CollectionAssert.IsEmpty(_sender.Sent);
         }
@@ -2094,7 +2094,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
             var result = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
-            Assert.AreEqual(UiCommandRejectReason.SpecialBlockNotOpen, result.Reason);
+            Assert.AreEqual(UiCommandRejectReason.BlockNotOpen, result.Reason);
             Assert.AreEqual("invalid_block_type", result.ToWireCode());
             CollectionAssert.IsEmpty(_sender.Sent);
         }
@@ -2215,30 +2215,26 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
 
 - [ ] **Step 2: 拒否理由と文言を足す**
 
-`UiCommandRejectReason.cs` の enum の末尾（その時点の最後の値の次）に 4 値を足し、3 つの switch の末尾にも 1 行ずつ足す:
+「開いていない」は S4-machine・S4-train と共有の既存の `BlockNotOpen`（非良性・wire `block_not_open`・文言キー `ui.commandRejected.blockNotOpen`。#1632 で 1 つにまとめた値で、S4-machine・S4-train の先にマージした側が足す）を使い、列挙・switch・csv に足さない（着手時に `grep -n "BlockNotOpen" moorestech_client/Assets/Scripts/Client.Ui.State/Commands/UiCommandRejectReason.cs` で有ることを確かめ、無ければ止まって integrator へ。A-197）。`UiCommandRejectReason.cs` の enum の末尾（その時点の最後の値の次）に 3 値を足し、3 つの switch の末尾にも 1 行ずつ足す:
 ```csharp
-        SpecialBlockNotOpen,
         SpecialBlockRequestFailed,
         SpecialBlockCommandStale,
         FilterSplitterGrabEmpty,
 ```
 `IsBenign`:
 ```csharp
-                UiCommandRejectReason.SpecialBlockNotOpen => false,
                 UiCommandRejectReason.SpecialBlockRequestFailed => false,
                 UiCommandRejectReason.SpecialBlockCommandStale => true,
                 UiCommandRejectReason.FilterSplitterGrabEmpty => true,
 ```
 `ToLocalizationKey`:
 ```csharp
-                UiCommandRejectReason.SpecialBlockNotOpen => LocalizationKeys.Ui.CommandRejected.SpecialBlockNotOpen,
                 UiCommandRejectReason.SpecialBlockRequestFailed => LocalizationKeys.Ui.CommandRejected.SpecialBlockRequestFailed,
                 UiCommandRejectReason.SpecialBlockCommandStale => LocalizationKeys.Ui.CommandRejected.SpecialBlockCommandStale,
                 UiCommandRejectReason.FilterSplitterGrabEmpty => LocalizationKeys.Ui.CommandRejected.FilterSplitterGrabEmpty,
 ```
 `ToWireCode`（Detail が空でなければ `UiCommandRejected.ToWireCode` が Detail を使う。これは Detail が空のときの既定）:
 ```csharp
-                UiCommandRejectReason.SpecialBlockNotOpen => "block_not_open",
                 UiCommandRejectReason.SpecialBlockRequestFailed => "special_block_request_failed",
                 UiCommandRejectReason.SpecialBlockCommandStale => "special_block_command_stale",
                 UiCommandRejectReason.FilterSplitterGrabEmpty => "grab_empty",
@@ -2247,7 +2243,6 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
 
 `Localization/localization.csv` の `ui.commandRejected.*` の群の末尾（その時点の群の最後の行の次）に:
 ```csv
-ui.commandRejected.specialBlockNotOpen,The block screen is not open,The block screen is not open,ブロックの画面が開いていません,Der Blockbildschirm ist nicht geöffnet,블록 화면이 열려 있지 않습니다
 ui.commandRejected.specialBlockRequestFailed,The block did not accept the operation,The block did not accept the operation,ブロックが操作を受け付けませんでした,Der Block hat die Aktion nicht angenommen,블록이 조작을 받아들이지 않았습니다
 ui.commandRejected.specialBlockCommandStale,The block has already changed,The block has already changed,ブロックの状態がすでに変わっています,Der Block hat sich bereits geändert,블록 상태가 이미 바뀌었습니다
 ui.commandRejected.filterSplitterGrabEmpty,Hold an item to set the filter,Hold an item to set the filter,フィルタに設定するアイテムを持ってください,Halte einen Gegenstand um den Filter zu setzen,필터에 설정할 아이템을 들어 주세요
@@ -2258,7 +2253,7 @@ pnpm --dir moorestech_web/webui run gen:i18n
 uloop compile --project-path ./moorestech_client
 git diff --stat -- moorestech_web/webui/src/shared/i18n/generated/ moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs
 ```
-Expected: `localizationKeys.ts` に 4 キーが増え（`contentKeys.ts` は変わらない）、`_CompileRequester.cs` の印が変わる（変わらなければ `uloop compile` をもう 1 回流してから見直す）。コンパイルエラーは Step 3 の実装が無い分だけ（`SpecialBlockCommands` 等）
+Expected: `localizationKeys.ts` に 3 キーが増え（`contentKeys.ts` は変わらない）、`_CompileRequester.cs` の印が変わる（変わらなければ `uloop compile` をもう 1 回流してから見直す）。コンパイルエラーは Step 3 の実装が無い分だけ（`SpecialBlockCommands` 等）
 
 - [ ] **Step 3: 実装を書く**
 
@@ -2346,7 +2341,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
     }
 }
 ```
-（偽の経路〈閉じている・取得失敗のパネル〉は呼び手 `SpecialBlockCommands` が `SpecialBlockNotOpen` の拒否にし、`UiCommandResultToaster` が LogWarning とトーストを出す。ここではログを出さない）
+（偽の経路〈閉じている・取得失敗のパネル〉は呼び手 `SpecialBlockCommands` が共有の `BlockNotOpen` の拒否にし、`UiCommandResultToaster` が LogWarning とトーストを出す。ここではログを出さない）
 
 `Commands/ISpecialBlockRequestSender.cs`:
 ```csharp
@@ -2607,11 +2602,11 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             rejected = null;
             if (!_openBlock.TryGet(out block))
             {
-                rejected = new UiCommandRejected(UiCommandRejectReason.SpecialBlockNotOpen, "block_not_open");
+                rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "block_not_open");
                 return false;
             }
             if (block.BlockType == expectedBlockType) return true;
-            rejected = new UiCommandRejected(UiCommandRejectReason.SpecialBlockNotOpen, "invalid_block_type");
+            rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "invalid_block_type");
             return false;
         }
 
@@ -6091,7 +6086,7 @@ master の使い捨て worktree を作り（Unity を起動しないので `git 
 
 1. **舞台の論理寸法を測る**: Step 2 で行 11 を実行時に撮るとき、同じ PlayMode で `uloop execute-dynamic-code` から GameUi の `UIDocument.rootVisualElement` のクラスの一覧・`layout` の幅・高さと `block-inventory-panel` の `worldBound` を 1280×720・2560×1080 の両方で読み、`done.md` の「## 証拠」に書く
 2. **本番の外殻を EditMode で組む**: PlayMode を止めた Editor で、`uloop execute-dynamic-code` から alpha の L1 の土台 `BlockInventoryTestShell` と同じ組み方で組む（`StageColumnsLayout` の Viewer 列に本番の `BlockInventoryView` を載せ、本物の `BlockInventoryPartRegistry` に本物の `SpaceElevatorBodyFactory`〈`SpecialViewKit`・`SpecialPresenters` は記録係の Commands と、Web の fixture〈`energyFixtures.ts` の `blockSpaceElevator*`〉の値を返す偽の `ISpecialBlockDetailModel` で組む〉を登録して `BlockInventoryBodyHost` に渡し、パネルの状態を宇宙エレベーターの `OpenBlockInventoryPanel` にして `View.Render` → `BodyHost.Apply` の順に流す）。`StageColumnsLayout` の `style.width`・`style.height` は手順 1 で測った論理寸法にする（Shell の 1280×720 固定のままにしない）。実行時だけにある環境もそろえる: 舞台の根に実行時と同じロケールのクラス（日本語なら `GameUiLocaleClassBinder` が付ける `game-ui-locale--cjk`。手順 1 で実行時のルートのクラスを読んで写す）を付け、表示素材はピン留めの master を読んだ `GameContentPresentation`、文言は実行時と同じ言語の辞書で組む（題のブロック名・枠のアイテムの絵が実行時と同じになるように）
-3. **器が本番と一致することを先に確かめる**: 行 11（`insufficientCable`）の状態を手順 2 で組み、`UiRuntimePanelCapture.Render(stage, 1280, 720, <Web の地の色>)` と `(stage, 2560, 1080, …)` で撮って png に書き（`Texture2D.EncodeToPNG`。破棄は呼び手）、Step 2 の実行時の撮影と `block-inventory-panel` の領域で比べる。位置・寸法が 2px 以内（2560×1080 は倍率を掛けた値）で、題の文言・状態文の段組・枠のアイテムの絵が実行時と同じであることを見る。どれかがそろわなければ、行 10・12〜15 を EditMode で撮らず、ずれの値を `done.md` の「## 未確認」に書いて指揮へ報告する（そのセルは空のまま完了にしない）
+3. **器が本番と一致することを先に確かめる**: 行 11（`insufficientCable`）の状態を手順 2 で組み、`UiRuntimePanelCapture.Render(stage, 1280, 720, <Web の地の色>, UiCaptureLocalization.InitializeDictionary)` と `(stage, 2560, 1080, …)` で撮って png に書き（`Texture2D.EncodeToPNG`。破棄は呼び手）、Step 2 の実行時の撮影と `block-inventory-panel` の領域で比べる。位置・寸法が 2px 以内（2560×1080 は倍率を掛けた値）で、題の文言・状態文の段組・枠のアイテムの絵が実行時と同じであることを見る。どれかがそろわなければ、行 10・12〜15 を EditMode で撮らず、ずれの値を `done.md` の「## 未確認」に書いて指揮へ報告する（そのセルは空のまま完了にしない）
 4. **行 10・12〜15 を撮る**: 一致を確かめた手順のまま、偽の Model の値だけを各行の fixture に替えて両解像度で撮る。比べるのは Web の参照のパネル全体（外殻を含む）
 
 組み方の型の名前（`BlockInventoryView`・`BlockInventoryBodyHost`・`BlockInventoryPartRegistry` の ctor）は alpha の実物と `BlockInventoryTestFixtures.cs` に合わせる。dynamic code は `Client.Tests` を参照できないことがあるので、Shell を呼ばず同じ手順を書き写す（偽の Model は dynamic code の中のクラスで書き、クラスを書けない形なら `Client.Tests` の `FakeSpecialBlockDetailModel` を使う。どちらもできなければ手順 3 の前で止めて指揮へ報告する）。撮影に使う偽の Model・記録係は dynamic code の中だけに置き、プロダクションに撮影用の口を足さない
@@ -6412,7 +6407,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-3 特殊族専用の詳細の Model**: alpha の `OpenBlockInventoryPanel` に特殊族の詳細を混ぜず、`SpecialBlockDetailModel` を別に持つ。alpha は「連続値は区画が自分で購読」と定めており（Produces 一覧 (3)）、網の集約・ベルトの統計はパネルの組み直しの外で届くため
 - **D-4 Presenter 1 つ＋ベルトだけ専用**: `SpecialDetailPresenter` が alpha の本文・題の操作・区画の 3 つの口を 1 つで実装し、View は `ISpecialDetailRenderer` だけを知る（購読しない）。ベルトは窓の選択と ←/→ の購読という区画固有の状態を持つので `BeltThroughputSectionPresenter` を分ける。購読の源（詳細の Model・パネル・矢印キー）を持つのは `SpecialPresenters` だけ。alpha の口の形が変わったときの直し所を Presenter と工場に閉じる
 - **D-5 操作は非同期・楽観更新なし**: 結果はサーバーの応答と後続の状態で表示が変わる（Web の dispatchAction と同じ）。`SpecialViewKit.Run` が結果をトーストの係へ渡す
-- **D-6 拒否理由 4 つ**: `SpecialBlockNotOpen`・`SpecialBlockRequestFailed`（良性でない）・`SpecialBlockCommandStale`・`FilterSplitterGrabEmpty`（良性。Web の BENIGN_ERRORS と noop）。wire は Web と同じ文字列
+- **D-6 拒否理由 3 つ＋共有 1 つ**: 「開いていない」は S4-machine・S4-train と共有の既存の `BlockNotOpen`（非良性。#1632 で 1 つにまとめた値。足さない。設計書 A-197）、特殊族の新設は `SpecialBlockRequestFailed`（良性でない）・`SpecialBlockCommandStale`・`FilterSplitterGrabEmpty`（良性。Web の BENIGN_ERRORS と noop）。wire は Web と同じ文字列
 - **D-7 矢印キーの流れを `Client.Input/ArrowKeys` に**: `Client.Ui` は Input System を直に読まない。前例 `InputSystemPointerButtonStream`（E-19）。namespace を `Client.Input.Keyboard` にしない（`UnityEngine.InputSystem.Keyboard` とぶつかる）。比べた案: `InputManager.UI` に `InputKey` を足して `moorestechInputSettings` の UI マップへ ←/→ を割り当てる案。却下の理由は、生成物の入力設定（共有の資産）を書き換えることになり、←/→ は Player/Move と同じキーで UI マップの抑止（`InputSuppressionScope`）の意味が合わないこと。Web は window の keydown をマップに依らず聞き、入力欄と層だけで絞っていたので、それと同じ判定（`UiInputExclusivity.IsTextInputFocused`・表示中か）を受け手に置く。前例 `InputSystemPointerButtonStream` は interface を持たず具象を ctor で注入しているが、ここは区画の L1 で偽物に差し替えるため `IHorizontalArrowKeySource` を切る。前例から借りるのは「縁を流す・リセットで記憶を下ろす」の形だけで、役割（UI のキー操作）の前例は UITK に無い新規パターンとして扱う
 - **D-8 asmdef の参照 4 つ**: `Client.Ui.State` に `Game.Block`・`Game.Gear`・`Core.BeltTransport`・`Core.Update`（Web の橋 `Client.WebUiHost.asmdef` が同じ源を読むための参照と同じ）
 - **D-9 フィルタの択一の選択肢の testid**: `filter-mode-{d}-{mode}`（Web は名前で押すが UITK の L1 は testid で押す）。掴みが空の左押下は View でなく Commands が良性に断る（D-6）
@@ -6473,7 +6468,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 | ID | 判断 | 棄却した案と理由 |
 |---|---|---|
 | A-160 | ブロックインベントリの特殊族は専用の詳細の Model（`SpecialBlockDetailModel`。alpha のパネルの源・`OpenBlockDetailTracker`・`BlockNetworkInfoCache`・`BeltTransportClientCache` を購読し、開いたブロックの識別は alpha のパネルの `BlockInstanceId` に揃える）を持ち、Presenter 1 つ（`SpecialDetailPresenter`。ベルトだけ `BeltThroughputSectionPresenter`）が S4-alpha の本文・題の操作・区画の口を実装する。View は購読しない。区画は自分の `display` を触らず `IsApplicable` を書き、alpha の `SectionStackBody` が `SetItemShown` で出し入れと先頭の間隔を組み直す。`Client.Ui.State.asmdef` は Web の橋と同じ源を読むため `Game.Block`・`Game.Gear`・`Core.BeltTransport`・`Core.Update` を参照する | Web の橋の DTO を UITK が読む: `Client.WebUiHost` への依存が層の向きに反する（D-2。asmdef の参照 4 つは同じ源を UITK 側で読むための代価。D-8）。alpha の `OpenBlockInventoryPanel` に特殊族の詳細を混ぜる: 網の集約・ベルトの統計はパネルの組み直しの外で届き、alpha の「連続値は区画が自分で購読」と合わない（D-3）。区画ごとに Presenter を持つ: alpha の口の形が変わったときの直し所が散る（ベルトだけは窓の選択と ←/→ の状態を持つので分ける。D-4）。新しい汎用部品を作る: 既存の `ModeSwitch`・`GaugeBar`・`BarSeries`・`PanelActionButton`・`ItemSlot` と alpha の `Parts/` で足りる（D-18） |
-| A-161 | 特殊族の操作の拒否理由は `SpecialBlockNotOpen`・`SpecialBlockRequestFailed`（良性でない）・`SpecialBlockCommandStale`・`FilterSplitterGrabEmpty`（良性）。wire は Web と同じ | 既存の汎用の理由で済ませる: トーストの文言が特殊族の失敗と分からず、Web が良性（`BENIGN_ERRORS`・noop）にしている空の掴み・古い合図の二度目の拒否まで誤報する（D-6・D-22）。wire を UITK 独自の文字列にする: Web と同じ拒否の記録・テストの期待値と照合できない（D-6） |
+| A-161 | 特殊族の操作の拒否理由は共有の `BlockNotOpen`（「開いていない」。A-197）・`SpecialBlockRequestFailed`（良性でない）・`SpecialBlockCommandStale`・`FilterSplitterGrabEmpty`（良性）。wire は Web と同じ | 既存の汎用の理由で済ませる: トーストの文言が特殊族の失敗と分からず、Web が良性（`BENIGN_ERRORS`・noop）にしている空の掴み・古い合図の二度目の拒否まで誤報する（D-6・D-22）。wire を UITK 独自の文字列にする: Web と同じ拒否の記録・テストの期待値と照合できない（D-6） |
 | A-162 | ←/→ の押下は `Client.Input/ArrowKeys/InputSystemArrowKeyStream`（`IHorizontalArrowKeySource`）が流し、受け手が入力欄のフォーカスと表示中かを確かめる | `InputManager.UI` に `InputKey` を足して `moorestechInputSettings` の UI マップへ ←/→ を割り当てる（A-83 の形）: 生成物の入力設定（共有の資産）を書き換えることになり、←/→ は Player/Move と同じキーで UI マップの抑止（`InputSuppressionScope`）の意味が合わない。これが A-83 の例外である理由で、Web も window の keydown をマップに依らず聞き、入力欄と層だけで絞っていたので、受け手が同じ判定（`UiInputExclusivity.IsTextInputFocused`・表示中か）を持つ。帰結: 入力欄の抑止の判定が `InputSuppressionFilter` と受け手の 2 か所に割れ、`InputSuppressionScope` に抑止が足されても ←/→ には効かない（足すときは受け手も直す）。`Client.Ui` が Input System を直に読む: 層の規則に反する（前例 `InputSystemPointerButtonStream` と同じく `Client.Input` に置く）（D-7） |
 | A-163 | 発射台・宇宙エレベーターの Shift の入れ口は S4-special が `IBlockSlotRestrictionContributor` で寄与する。束縛は追跡ブロックをパネルの `BlockInstanceId` で照らして読み、一致しない間は寄与しない（取得待ち） | 操作の識別を `SubInventoryState` から読む: パネルと別の源が並び、差し替えの途中で操作の対象と表示が食い違いうる。パネルに `BlockGameObject` を戻すよう依頼する: alpha が識別子だけに絞った設計に反する（D-17・D-26） |
 | A-164 | 画面レーンの並べ比べで、実行時に決まった値を作れない状態（接続の直前・途中の進み・詳細の未着・満杯・ホストの並べ替え）は、EditMode で本番の外殻（画面レーンの L1 の土台の Shell）に偽の Model を差し、`UiRuntimePanelCapture`（A-74）で本番の PanelSettings にパネル全体を 720p・2560×1080 で描いて撮る。舞台の論理寸法は実行時の撮影で測った値にそろえ、実行時に作れる状態 1 つを同じ手順で撮って実行時の撮影と 2px 以内で一致することを先に確かめる。§3.3「比べ方」の「UITK の画面」の行の例外として足す（S4-special D-34） | その状態を比べない: 設計書の「同じ状態を 2 解像度で」を満たさない。mock の状態を実行時に作るデバッグ口を足す: プロダクションにテスト専用の口を残す。本文だけを撮る器で撮る: 本文の幅・背景・継承が本番と変わり（`GaugeBar` は撮影器の幅まで伸びる）、Web と別の条件の絵になる（D-34） |

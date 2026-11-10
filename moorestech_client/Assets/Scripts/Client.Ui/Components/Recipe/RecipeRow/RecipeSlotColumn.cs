@@ -15,10 +15,6 @@ namespace Client.Ui.Components.Recipe
     /// </remarks>
     internal sealed class RecipeSlotColumn : VisualElement
     {
-        // Web の MAX_SLOT_COLUMNS（recipeSlotLayout.ts）
-        // Web MAX_SLOT_COLUMNS (recipeSlotLayout.ts)
-        private const int MaxSlotColumns = 2;
-
         // レイアウトの小数の丸めをはみ出しと数えない幅
         // Width that layout rounding may exceed without counting as overflow
         private const float OverflowTolerancePixels = 0.5f;
@@ -47,7 +43,7 @@ namespace Client.Ui.Components.Recipe
             // 列数は 1〜2。3 点以上は列を増やさず行を増やす（裁定 2026-08-20）
             // One or two columns; from three slots on, add rows rather than columns (ruling 2026-08-20)
             _grid.Clear();
-            var columns = Math.Max(1, Math.Min(slots.Count, MaxSlotColumns));
+            var columns = RecipeSlotLayout.Columns(slots.Count);
             for (var start = 0; start < slots.Count; start += columns)
             {
                 var line = NewBox("recipe-row__slot-line");

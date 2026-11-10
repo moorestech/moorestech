@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// スクリーン座標の下に GameUi の拾える要素があるかを panel.Pick で答える
-    /// Answers whether a pickable GameUi element lies under a screen position, using panel.Pick
+    /// 画面座標の下の GameUi の拾える要素を答える
+    /// Answers the pickable GameUi element under a screen position
     /// </summary>
     public sealed class GameUiPointerProbe : IGameUiPointerProbe
     {
@@ -20,15 +20,21 @@ namespace Client.Ui.Foundation.Input
 
         public bool IsPointerOverGameUi(Vector2 screenPosition)
         {
-            var panelPosition = UiScreenToPanel.FromBottomLeft(_panel, screenPosition);
-            return IsPickableAt(panelPosition);
+            return PickAt(screenPosition) != null;
+        }
+
+        // 画面座標（左下原点）で拾う要素。無ければ null
+        // Element picked at a bottom-left screen position; null if none
+        public VisualElement PickAt(Vector2 screenPosition)
+        {
+            return PickAtPanel(UiScreenToPanel.FromBottomLeft(_panel, screenPosition));
         }
 
         // 層コンテナとルートは PickingMode.Ignore なので、Pick が返すのは中身の要素だけ
         // Layer containers and the root are PickingMode.Ignore, so Pick only ever returns content elements
-        internal bool IsPickableAt(Vector2 panelPosition)
+        internal VisualElement PickAtPanel(Vector2 panelPosition)
         {
-            return _panel.Pick(panelPosition) != null;
+            return _panel.Pick(panelPosition);
         }
     }
 }
