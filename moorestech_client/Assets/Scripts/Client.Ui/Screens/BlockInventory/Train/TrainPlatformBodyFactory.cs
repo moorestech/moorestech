@@ -15,14 +15,14 @@ namespace Client.Ui.Screens.BlockInventory.Train
     public sealed class TrainPlatformBodyFactory : IBlockInventoryBodyFactory
     {
         private readonly ITrainPlatformBodySource _source;
-        private readonly ITrainPlatformEditModel _edit;
-        private readonly ITrainPlatformEditCommands _commands;
+        private readonly TrainPlatformEditModel _edit;
+        private readonly TrainPlatformEditCommands _commands;
         private readonly BlockItemGridFactory _gridFactory;
         private readonly GameContentPresentation _content;
 
         public BlockInventoryBodyKind Kind => BlockInventoryBodyKind.TrainPlatform;
 
-        public TrainPlatformBodyFactory(ITrainPlatformBodySource source, ITrainPlatformEditModel edit, ITrainPlatformEditCommands commands, BlockItemGridFactory gridFactory, GameContentPresentation content)
+        public TrainPlatformBodyFactory(ITrainPlatformBodySource source, TrainPlatformEditModel edit, TrainPlatformEditCommands commands, BlockItemGridFactory gridFactory, GameContentPresentation content)
         {
             _source = source;
             _edit = edit;

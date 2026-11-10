@@ -5,8 +5,8 @@ using Client.Ui.State.Items;
 namespace Client.Ui.State.Train.Inventory
 {
     /// <summary>
-    /// 開いている貨車の中身。液体貨車は Fluids、それ以外は ItemSlots を描く
-    /// Contents of the open car; fluid cars draw Fluids, others draw ItemSlots
+    /// 開いている貨車の中身。液体は Fluids、他は ItemSlots
+    /// Open car contents; Fluids for fluid cars, else ItemSlots
     /// </summary>
     public sealed class TrainInventoryBodyViewModel
     {

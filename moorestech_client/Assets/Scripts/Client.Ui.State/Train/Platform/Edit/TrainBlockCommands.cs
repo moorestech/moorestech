@@ -44,7 +44,7 @@ namespace Client.Ui.State.Train.Platform.Edit
             if (BlockComponentRegistry.Resolve(blockType).Body != BlockInventoryBodyKind.TrainPlatform) return TrainCommandRejection.Reject(PlatformLogTag, UiCommandRejectReason.TrainInvalidBlockType, string.Empty);
 
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(source.BlockPosition, TrainPlatformTransferModeConversion.ToServer(mode), CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject(PlatformLogTag, UiCommandRejectReason.TrainPlatformModeFailed, string.Empty);
+            if (response == null || !response.Success) return TrainCommandRejection.Reject(PlatformLogTag, UiCommandRejectReason.TrainPlatformModeFailed, response == null ? string.Empty : response.FailureReason.ToString());
             return UiCommandAccepted.Instance;
         }
 

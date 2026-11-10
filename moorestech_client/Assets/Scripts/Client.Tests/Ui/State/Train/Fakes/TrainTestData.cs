@@ -13,8 +13,8 @@ namespace Client.Tests.Ui.State.Train.Fakes
     /// </summary>
     public static class TrainTestData
     {
-        // TrainUnitInstanceId は Guid の UnitOf 型。テストでは固定の Guid で組む
-        // TrainUnitInstanceId is a Guid UnitOf type; tests build it from fixed Guids
+        // TrainUnitInstanceId は固定の Guid で組む
+        // TrainUnitInstanceId is built from fixed Guids
         public static readonly TrainUnitInstanceId Unit1 = new TrainUnitInstanceId(Guid.Parse("00000000-0000-0000-0000-000000000001"));
         public static readonly TrainUnitInstanceId Unit2 = new TrainUnitInstanceId(Guid.Parse("00000000-0000-0000-0000-000000000002"));
         public static readonly TrainTimetableStation Unnamed = new(new Vector3Int(-8, 0, 3), string.Empty);

@@ -46,8 +46,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         {
             Assert.IsNull(_body.Root.Q("train-timetable-apply"));
 
-            // 追加 → 上 → 下 → 削除。どれも受理と公開で保留が解ける
-            // Add, up, down, remove; each releases on acceptance and publication
+            // 追加→上→下→削除で保留解除
+            // Add/up/down/remove each release pending
             var added = Added(NorthOnly(Unit1).Stops, Unnamed);
             Edit("train-timetable-station--8_0_3-add", added);
             Assert.IsNotNull(_body.Root.Q("train-timetable-stop-1"));
@@ -70,8 +70,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             Assert.IsNull(_body.Root.Q("train-timetable-stop-1"));
             StringAssert.Contains("(-8, 0, 3)", TrainTestText.TextsUnder(StopLabel(0)));
 
-            // 最後の 1 件を消すと 0 件になり、自動運転 ON が塞がる
-            // Removing the last stop leaves none and blocks auto-run ON
+            // 最後の1件削除でON封鎖
+            // Removing last stop blocks ON
             Edit("train-timetable-stop-0-remove", TimetableEditLogic.RemoveStop(removed, 0));
             Assert.IsNull(_body.Root.Q("train-timetable-stop-0"));
             Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-auto-run-on").enabledSelf);

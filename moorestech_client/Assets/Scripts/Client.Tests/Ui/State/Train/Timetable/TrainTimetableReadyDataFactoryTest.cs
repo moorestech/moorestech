@@ -51,9 +51,19 @@ namespace Client.Tests.Ui.State.Train.Timetable
             // A car contents update alone does not rebuild the timetable rows (R-5)
             var first = TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1));
             var same = TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1));
-            var moved = TrainTimetableViewState.Ready(TrainTestData.Ready(TrainTestData.Unit1, true, TrainTestData.Added(TrainTestData.NoStops, TrainTestData.North)));
             Assert.IsTrue(TrainTimetableViewState.IsSameState(first, same));
-            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, moved));
+
+            // 自動運転だけ・停車駅だけ・現在位置だけ・駅一覧だけが違っても流し直す
+            // A difference in only auto-run, only the stops, only the current index, or only the station list still republishes
+            var northOnly = TrainTestData.NorthOnly(TrainTestData.Unit1);
+            var autoRunOnly = TrainTimetableViewState.Ready(TrainTestData.Ready(TrainTestData.Unit1, true, TrainTestData.Added(TrainTestData.NoStops, TrainTestData.North)));
+            var stopsOnly = TrainTimetableViewState.Ready(TrainTestData.Ready(TrainTestData.Unit1, false, TrainTestData.Added(TrainTestData.Added(TrainTestData.NoStops, TrainTestData.North), TrainTestData.Unnamed)));
+            var indexOnly = TrainTimetableViewState.Ready(new TrainTimetableReadyData(TrainTestData.Unit1, false, 1, northOnly.Stops, northOnly.Stations));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, autoRunOnly));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, stopsOnly));
+            var stationsOnly = TrainTimetableViewState.Ready(new TrainTimetableReadyData(TrainTestData.Unit1, false, 0, northOnly.Stops, new List<TrainTimetableStation> { TrainTestData.North }));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, indexOnly));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, stationsOnly));
             Assert.IsTrue(TrainTimetableViewState.IsSameState(TrainTimetableViewState.Loading, TrainTimetableViewState.Loading));
             Assert.IsFalse(TrainTimetableViewState.IsSameState(first, TrainTimetableViewState.Loading));
         }

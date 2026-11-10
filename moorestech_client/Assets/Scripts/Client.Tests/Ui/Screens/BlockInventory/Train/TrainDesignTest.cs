@@ -33,8 +33,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         [Test]
         public void 列車のモード切替は共通部品ModeSwitchで出す()
         {
-            // タブ・自動運転・積込/卸しの 3 つとも共通の ModeSwitch
-            // Tabs, auto-run and load/unload all use the shared ModeSwitch
+            // 3用途とも共通ModeSwitch
+            // All three uses share ModeSwitch
             var (train, platform) = MountAllParts();
             Assert.IsInstanceOf<ModeSwitch<TrainInventoryTab>>(train.Q("train-tabs"));
             Assert.IsInstanceOf<ModeSwitch<bool>>(train.Q("train-timetable-auto-run"));
@@ -90,7 +90,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
                 sharedControls.Add(element);
                 return;
             }
-            Assert.IsFalse(Array.IndexOf(RawControlTypes, element.GetType()) >= 0, $"素の {element.GetType().Name} '{element.name}' を画面が作っている");
+            Assert.IsFalse(0 <= Array.IndexOf(RawControlTypes, element.GetType()), $"素の {element.GetType().Name} '{element.name}' を画面が作っている");
             foreach (var child in element.Children()) CollectControls(child, sharedControls);
         }
 

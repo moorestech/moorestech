@@ -7,12 +7,12 @@ using Cysharp.Threading.Tasks;
 namespace Client.Ui.State.Train.TimetableEdit
 {
     /// <summary>
-    /// 時刻表の編集の操作。開いているセッションへ渡すか自動運転を送り、開いていなければ拒否してトーストへ
-    /// Timetable edit operations: hand edits to the open session or send auto-run, and refuse with a toast when none is open
+    /// 時刻表の編集操作。セッション未開なら拒否してトースト
+    /// Timetable edit operations; refused with a toast when no session is open
     /// </summary>
-    public sealed class TrainTimetableEditCommands : ITrainTimetableEditCommands
+    public sealed class TrainTimetableEditCommands
     {
-        public const string SetAutoRunCommandName = "train_timetable.set_auto_run";
+        private const string SetAutoRunCommandName = "train_timetable.set_auto_run";
         private const string LogTag = "TrainTimetableEdit";
         private readonly TrainTimetableEditState _state;
         private readonly ITrainTimetableCommands _commands;

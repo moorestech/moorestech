@@ -54,6 +54,9 @@ namespace Client.Ui.State.Train.Timetable
             // 取得の開始は UITK だけが拾い、依頼の直後に読込中を出す（Web ホストの配信は変えない。D-20）
             // Only UITK picks up fetch start to show Loading right after the request (the Web host publishing is unchanged; D-20)
             _fetcher.OnFetchStarted.Subscribe(_ => Refresh());
+            // ラッチが下りた後の通知を拾い、取得不可・取得中の古い値で固まらないようにする
+            // Pick up the latch release so the model does not stay on a stale unavailable or in-flight value
+            _fetcher.OnFetchLatchReleased.Subscribe(_ => Refresh());
             Refresh();
         }
 
@@ -69,8 +72,8 @@ namespace Client.Ui.State.Train.Timetable
 
         private TrainTimetableViewState Build(long trainCarInstanceId)
         {
-            // 優先: 列車が引けない → 使えない → 取得中 → キャッシュ無し → 用意済み
-            // Priority: no owning train, unavailable, fetch in flight, no cache, then ready
+            // 優先順: 列車不明>不可>取得中>無>用意済
+            // Priority: no train, unavailable, in flight, no cache, ready
             if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, _cache, out var trainUnitInstanceId))
             {
                 Debug.LogWarning($"[TrainTimetableModel] Missing car snapshot: {trainCarInstanceId}");

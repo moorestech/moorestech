@@ -6,8 +6,8 @@ using Client.Ui.State.Items;
 namespace Client.Ui.State.Train.Platform
 {
     /// <summary>
-    /// 駅・プラットフォームの本文の状態。閉じているか、部分ごとの有無を持つ開いた本文
-    /// State of the station and platform body: closed, or open with each part present or absent
+    /// 駅・PF 本文の状態(閉じ/部分ごとの有無の開き)
+    /// Station/platform body state: closed, or open with parts
     /// </summary>
     public abstract class TrainPlatformBodyState
     {
@@ -23,7 +23,7 @@ namespace Client.Ui.State.Train.Platform
     {
         // 駅だけが持つ。他は Absent
         // Present on stations only; Absent otherwise
-        public SectionContent<TrainStationNamePart> StationName { get; }
+        public SectionContent<string> StationName { get; }
         // 移送の状態がある品物 PF・駅だけが持つ。他は Absent
         // Present only on item platforms and stations with a transfer state; Absent otherwise
         public SectionContent<IReadOnlyList<SlotItem>> ItemSlots { get; }
@@ -32,7 +32,7 @@ namespace Client.Ui.State.Train.Platform
         // Present only when a transfer state exists
         public SectionContent<TrainPlatformTransferMode> Mode { get; }
 
-        public OpenTrainPlatformBody(SectionContent<TrainStationNamePart> stationName, SectionContent<IReadOnlyList<SlotItem>> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids, SectionContent<TrainPlatformTransferMode> mode)
+        public OpenTrainPlatformBody(SectionContent<string> stationName, SectionContent<IReadOnlyList<SlotItem>> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids, SectionContent<TrainPlatformTransferMode> mode)
         {
             StationName = stationName;
             ItemSlots = itemSlots;

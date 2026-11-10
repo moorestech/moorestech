@@ -17,7 +17,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         private readonly ITrainTimetableCommands _commands;
         private readonly ITrainTimetableWaitTimer _timer;
         private readonly UiCommandResultToaster _toaster;
-        private readonly Subject<Unit> _onChanged = new();
+        private readonly Subject<Unit> _onTimetableAreaInputChanged = new();
         private readonly SerialDisposable _sessionSubscription = new();
         private TrainTimetableEditSession _session;
 
@@ -25,9 +25,9 @@ namespace Client.Ui.State.Train.TimetableEdit
         // Whether it is loading while no session exists (false means unavailable), from the source's latest state
         public bool IsLoading { get; private set; }
 
-        // セッションの開閉・表示の変化・源の状態の変化のたびに流す
-        // Fires on session open/close, display changes and source state changes
-        public IObservable<Unit> OnChanged => _onChanged;
+        // 開閉・表示・源の変化ごとに流す
+        // Fires on open/close, display and source changes
+        public IObservable<Unit> OnTimetableAreaInputChanged => _onTimetableAreaInputChanged;
 
         public TrainTimetableEditState(ITrainTimetableSource source, ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster)
         {
@@ -59,7 +59,7 @@ namespace Client.Ui.State.Train.TimetableEdit
             }
             CloseSession();
             IsLoading = state is LoadingTrainTimetableViewState;
-            _onChanged.OnNext(Unit.Default);
+            _onTimetableAreaInputChanged.OnNext(Unit.Default);
         }
 
         private void ReceiveReady(TrainTimetableReadyData data)
@@ -78,8 +78,8 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             CloseSession();
             _session = new TrainTimetableEditSession(_commands, _timer, _toaster, data);
-            _sessionSubscription.Disposable = _session.OnDisplayChanged.Subscribe(_ => _onChanged.OnNext(Unit.Default));
-            _onChanged.OnNext(Unit.Default);
+            _sessionSubscription.Disposable = _session.OnDisplayChanged.Subscribe(_ => _onTimetableAreaInputChanged.OnNext(Unit.Default));
+            _onTimetableAreaInputChanged.OnNext(Unit.Default);
         }
 
         private void CloseSession()

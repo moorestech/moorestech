@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Ui.Foundation.Stage.Columns;
+using Client.Ui.Screens.BlockInventory;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
+using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
@@ -40,8 +43,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         [Test]
         public void 時刻表タブを選んだときだけ取得を頼む()
         {
-            // 持ち物タブのあいだは読込中が届いても頼まない
-            // On the inventory tab a loading state does not ask
+            // 持ち物タブ中は読込中でも依頼しない
+            // Inventory tab: loading does not request
             _bodies.Sources.SetTimetable(TrainTimetableViewState.Loading);
             Assert.AreEqual(0, _bodies.TimetableCommands.OpenRequestCount);
             Assert.IsTrue(IsSelected(_body.Root, "train-tab-inventory"));
@@ -119,8 +122,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             StringAssert.Contains("90 / 1,000", FluidTexts());
             StringAssert.Contains("90", TrainTestText.TextsUnder(_body.Root.Q("train-inventory-fluids-slot-0")));
 
-            // 空になると枠は残り、名前・量・アイコンは消える
-            // When emptied the slot stays while name, amount and icon disappear
+            // 空で枠は残り名前・量・絵は消える
+            // Empty: slot stays, name/amount/icon vanish
             _bodies.Sources.SetBody(new TrainInventoryBodyViewModel(new List<SlotItem>(), new[] { BlockFluidSlotState.Empty(1000) }));
             simulate.FrameUpdate();
             Assert.IsNotNull(_body.Root.Q("train-inventory-fluids-slot-0"));
@@ -159,20 +162,28 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         }
 
         [Test]
-        public void 隠して戻した同じ車両はタブを保ち別のパネルでは持ち物タブから()
+        public void 別の車両のパネルへ付け替えた本文は持ち物タブから始まる()
         {
-            // 画面が隠れると Detach、戻ると同じ Presenter へ Attach（alpha の呼ばれ方）。同じ車両ならタブを保つ
-            // Hiding the screen detaches and showing it attaches the same Presenter again (alpha's call order); the same car keeps its tab
-            simulate.Click(Find<Button>(_body.Root, "train-tab-timetable"));
-            _body.Detach();
-            _body.Attach((OpenTrainInventoryPanel)BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
-            Assert.IsTrue(IsSelected(_body.Root, "train-tab-timetable"));
+            // 本文の付け替えは本物の BlockInventoryBodyHost を通す（Host が別パネルで本文を使い回すと時刻表タブのまま残る）
+            // Swap through the real BlockInventoryBodyHost (if it reused the body across panels the timetable tab would stay selected)
+            var stage = new StageColumnsLayout();
+            Mount(stage);
+            var view = new BlockInventoryView(stage, new RecordingPanelCommands());
+            stage.Get(StageColumn.Viewer).Add(view);
+            view.SetShown(true);
+            var standard = new SectionStackBodyFactory(BlockInventoryTestParts.Grids(), new SectionStackSlotRegistry(new ISectionStackSectionFactory[0]), new FakePanelSource(_bodies.Panel));
+            var trainFactories = new ITrainInventoryBodyFactory[] { _bodies.TrainBodyFactory(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content()) };
+            var parts = new BlockInventoryPartRegistry(new IBlockInventoryBodyFactory[0], new IBlockInventoryTitleActionFactory[0], trainFactories, standard);
+            var bodyHost = new BlockInventoryBodyHost(parts, view);
 
-            // 識別の違うパネル（エラーが違う）が来たら持ち物タブから（Web は本文の mount ごとに初期化）
-            // A panel with a different identity (different error) starts on the inventory tab (Web resets per body mount)
-            _body.Detach();
-            _body.Attach((OpenTrainInventoryPanel)BlockInventoryTestPanels.Train(BlockInventoryPanelError.TrainCarMissing));
-            Assert.IsTrue(IsSelected(_body.Root, "train-tab-inventory"));
+            bodyHost.Apply(BlockInventoryPanelStateFactory.FromTrain(1, new SlotItem[0], null), BlockInventoryPanelLayout.LargeNaturalBody);
+            simulate.FrameUpdate();
+            simulate.Click(Find<Button>(view, "train-tab-timetable"));
+            Assert.IsTrue(IsSelected(view, "train-tab-timetable"));
+
+            bodyHost.Apply(BlockInventoryPanelStateFactory.FromTrain(2, new SlotItem[0], null), BlockInventoryPanelLayout.LargeNaturalBody);
+            Assert.IsTrue(IsSelected(view, "train-tab-inventory"));
+            bodyHost.Apply(BlockInventoryPanelState.Closed, BlockInventoryPanelLayout.LargeNaturalBody);
         }
 
         // 液体名と量・容量の文は枠の兄弟なので、FluidInventoryContents の器（testid）から読む

@@ -6,18 +6,18 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 {
     /// <summary>
-    /// 時刻表タブの中身。読込中・使えない・区画のどれか 1 つを出す
-    /// Content of the timetable tab: shows exactly one of loading, unavailable, or the section
+    /// 時刻表タブ中身(読込中/不可/区画の1つ)
+    /// Timetable tab content: one of loading, unavailable, section
     /// </summary>
     public sealed class TrainTimetableAreaView : VisualElement
     {
-        private readonly ITrainTimetableEditCommands _commands;
+        private readonly TrainTimetableEditCommands _commands;
         private readonly LocalizedLabel _loading;
         private readonly LocalizedLabel _unavailable;
         private TrainTimetableSectionView _section;
         private ReadyTrainTimetableArea _sectionArea;
 
-        public TrainTimetableAreaView(ITrainTimetableEditCommands commands)
+        public TrainTimetableAreaView(TrainTimetableEditCommands commands)
         {
             name = "train-timetable-area";
             _commands = commands;
@@ -48,18 +48,22 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             _sectionArea = ready;
             Show(null);
             _section.Render(ready.Section, unnamedStationName);
+
+            #region Internal
+
+            void RemoveSection()
+            {
+                _section?.RemoveFromHierarchy();
+                _section = null;
+            }
+
+            #endregion
         }
 
         private void Show(VisualElement message)
         {
             _loading.style.display = message == _loading ? DisplayStyle.Flex : DisplayStyle.None;
             _unavailable.style.display = message == _unavailable ? DisplayStyle.Flex : DisplayStyle.None;
-        }
-
-        private void RemoveSection()
-        {
-            _section?.RemoveFromHierarchy();
-            _section = null;
         }
 
         private static LocalizedLabel Message(string testid, LocalizationKey key)

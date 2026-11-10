@@ -31,8 +31,8 @@ namespace Client.Ui.State.Train.Platform
 
         public void Initialize()
         {
-            // 追跡替え・状態変化は液体の Model が組み直して必ず配り直すので、その 1 本に乗って 1 回だけ組む（D-35）
-            // The fluid model rebuilds and republishes on every tracked-block change and state change, so ride that one stream and build once (D-35)
+            // パネルと液体の Model のどちらの通知でも組み直す（追跡替えの直後は 1 回目が前の液体で組まれ、同じフレームで液体の配り直しが直す。D-35）
+            // Either the panel or the fluid model notification rebuilds (right after a tracking change the first build uses the previous fluid and the fluid republish fixes it in the same frame; D-35)
             _panels.Current.Subscribe(_ => Rebuild());
             _fluidSlots.Current.Subscribe(_ => Rebuild());
         }

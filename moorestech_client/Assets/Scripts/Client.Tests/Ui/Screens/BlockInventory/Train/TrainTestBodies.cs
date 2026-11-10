@@ -63,8 +63,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     }
 
     /// <summary>
-    /// 本文に渡す枠の工場と表示素材。液体の絵は非 null の 1 枚にして、枠のアイコンの有無を読めるようにする
-    /// Slot-grid factory and display material for the bodies; fluids get a non-null texture so the slot icon state is readable
+    /// 本文に渡す枠の工場と表示素材。液体の絵は非 null
+    /// Slot-grid factory and display material; fluids get a non-null texture
     /// </summary>
     public static class BlockInventoryTestParts
     {

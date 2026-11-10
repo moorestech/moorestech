@@ -7,8 +7,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Train.Platform.Edit
 {
     /// <summary>
-    /// 駅名の下書きの器。パネルごとに下書きを作り直し、同期した名前を下書きへ流す
-    /// Holder of the station name draft; rebuilds the draft per panel and feeds synced names into it
+    /// 駅名の下書きの器。パネルごとに作り直す
+    /// Station name draft holder; rebuilt per panel
     /// </summary>
     public sealed class TrainStationNameEditState : IInitializable
     {
@@ -62,7 +62,7 @@ namespace Client.Ui.State.Train.Platform.Edit
 
         private void SyncDraft()
         {
-            if (_bodies.Current.Value is OpenTrainPlatformBody { StationName: { IsPresent: true } stationName }) Draft.Sync(stationName.Value.SyncedName);
+            if (_bodies.Current.Value is OpenTrainPlatformBody { StationName: { IsPresent: true } stationName }) Draft.Sync(stationName.Value);
             _input.Value = Draft.Input;
         }
     }

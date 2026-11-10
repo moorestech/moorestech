@@ -2,16 +2,15 @@ using Game.Train.Unit;
 
 namespace Client.Ui.State.Train
 {
-    // Fetcher の取得ラッチ。要求中の列車・取得中・取得不可・再試行済みを持つ
-    // The fetcher's fetch latch: requested train, in-flight, unavailable, and retried flags
+    // 取得ラッチ(要求列車・取得中/不可・再試行済)
+    // Fetch latch: requested train, in-flight, unavailable, retried
     internal sealed class TrainTimetableFetchLatch
     {
         private TrainUnitInstanceId? _unavailableTrainUnitInstanceId;
-        private bool _isFetchInFlight;
 
         public TrainUnitInstanceId? RequestedTrainUnitInstanceId { get; private set; }
         public bool RetriedForRequestedTrain { get; private set; }
-        public bool HasFetchInFlight => _isFetchInFlight;
+        public bool HasFetchInFlight { get; private set; }
 
         // 同じ列車の重複要求を畳む判定
         // Folds a duplicate request for the same train
@@ -27,33 +26,41 @@ namespace Client.Ui.State.Train
             RequestedTrainUnitInstanceId = trainUnitInstanceId;
             _unavailableTrainUnitInstanceId = null;
             RetriedForRequestedTrain = false;
-            _isFetchInFlight = true;
+            HasFetchInFlight = true;
         }
 
-        public void MarkRetried()
+        // 再試行未使用なら印を付けtrue、使用済みはfalse
+        // Marks retry used and returns true; false if used
+        public bool TryUseRetry()
         {
+            if (RetriedForRequestedTrain) return false;
             RetriedForRequestedTrain = true;
+            return true;
         }
 
-        // 届いた列車が要求中なら取得中を倒す
-        // Lowers in-flight when the delivered train is the requested one
-        public void ReleaseInFlight(TrainUnitInstanceId deliveredTrainUnitInstanceId)
+        // 届いた列車が要求中で取得中なら倒して true
+        // Lowers in-flight and returns true when the delivered train is the requested one and in flight
+        public bool TryReleaseInFlight(TrainUnitInstanceId deliveredTrainUnitInstanceId)
         {
-            if (!_isFetchInFlight || RequestedTrainUnitInstanceId != deliveredTrainUnitInstanceId) return; // silent-ok: 別列車の通知では取得状態を変えない / 対象タブは対応する応答を表示する
-            _isFetchInFlight = false;
+            if (!HasFetchInFlight || RequestedTrainUnitInstanceId != deliveredTrainUnitInstanceId) return false;
+            HasFetchInFlight = false;
+            return true;
         }
 
-        public void ReleaseUnavailable(TrainUnitInstanceId deliveredTrainUnitInstanceId)
+        // 届いた列車が取得不可なら解いて true
+        // Releases unavailable and returns true when the delivered train was unavailable
+        public bool TryReleaseUnavailable(TrainUnitInstanceId deliveredTrainUnitInstanceId)
         {
-            if (_unavailableTrainUnitInstanceId != deliveredTrainUnitInstanceId) return; // silent-ok: 別列車の通知では取得不可を解かない / 対象タブは取得不可を表示する
+            if (_unavailableTrainUnitInstanceId != deliveredTrainUnitInstanceId) return false;
             _unavailableTrainUnitInstanceId = null;
+            return true;
         }
 
         // 取得中を倒し、取得不可を立てる
         // Lowers in-flight and raises unavailable
         public void MarkUnavailable(TrainUnitInstanceId trainUnitInstanceId)
         {
-            _isFetchInFlight = false;
+            HasFetchInFlight = false;
             _unavailableTrainUnitInstanceId = trainUnitInstanceId;
         }
 
@@ -61,7 +68,7 @@ namespace Client.Ui.State.Train
         // A success response arrived, so in-flight is lowered
         public void CompleteFetch()
         {
-            _isFetchInFlight = false;
+            HasFetchInFlight = false;
         }
 
         public void Clear()
@@ -69,7 +76,7 @@ namespace Client.Ui.State.Train
             RequestedTrainUnitInstanceId = null;
             _unavailableTrainUnitInstanceId = null;
             RetriedForRequestedTrain = false;
-            _isFetchInFlight = false;
+            HasFetchInFlight = false;
         }
 
         public bool IsUnavailable(TrainUnitInstanceId trainUnitInstanceId)
@@ -79,7 +86,7 @@ namespace Client.Ui.State.Train
 
         public bool IsFetchInFlight(TrainUnitInstanceId trainUnitInstanceId)
         {
-            return _isFetchInFlight && RequestedTrainUnitInstanceId == trainUnitInstanceId;
+            return HasFetchInFlight && RequestedTrainUnitInstanceId == trainUnitInstanceId;
         }
     }
 }

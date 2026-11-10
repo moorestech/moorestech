@@ -23,8 +23,8 @@ namespace Client.Ui.State.Train.Platform.Edit
             Input = input;
         }
 
-        // 非受理・到達不能なら入力を捨て、待ちのあいだに届いた最新の同期値へ戻す
-        // On refusal or no reply, drop the input and return to the latest synced name that arrived meanwhile
+        // 非受理・到達不能なら入力を捨て最新の同期値へ戻す
+        // On refusal or no reply, drop input and return to latest synced name
         public void Reject()
         {
             Input = _synced;

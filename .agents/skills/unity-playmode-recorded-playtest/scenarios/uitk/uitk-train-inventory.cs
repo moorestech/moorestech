@@ -138,7 +138,7 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         await p.Screenshot("03-timetable-auto-run");
         await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-        await p.Until(() => resolver.Resolve<ITrainTimetableEditModel>().Current.Value is UnavailableTrainTimetableArea, 10f, "閉じると時刻表の編集が使えない状態へ戻る");
+        await p.Until(() => resolver.Resolve<TrainTimetableEditModel>().Current.Value is UnavailableTrainTimetableArea, 10f, "閉じると時刻表の編集が使えない状態へ戻る");
     }
     finally
     {

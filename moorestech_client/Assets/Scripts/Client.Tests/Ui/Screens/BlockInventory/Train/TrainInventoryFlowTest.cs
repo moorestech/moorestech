@@ -26,8 +26,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             StringAssert.Contains("8", TrainTestText.TextsUnder(shell.View.Q("train-inventory-slots-slot-1")));
             Assert.IsNotNull(shell.View.Q("train-inventory-slots-slot-8"));
 
-            // コンテナ不在では alpha のエラー行が出て、本文は作られない
-            // With the container missing, alpha's error row shows and no body is built
+            // コンテナ不在はエラー行のみ表示
+            // No container: error row only
             bodies.Panel.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.ContainerMissing);
             simulate.FrameUpdate();
             Assert.IsTrue(IsShown(shell.View.Q("train-inventory-error")));

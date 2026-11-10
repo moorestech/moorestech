@@ -19,12 +19,12 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     public sealed class TrainTimetableStopListView : VisualElement
     {
         private const string ListTestId = "train-timetable-stops";
-        private readonly ITrainTimetableEditCommands _commands;
+        private readonly TrainTimetableEditCommands _commands;
         private readonly GamePanel _panel;
         private readonly LocalizedLabel _empty;
         private readonly VisualElement _list;
 
-        public TrainTimetableStopListView(ITrainTimetableEditCommands commands)
+        public TrainTimetableStopListView(TrainTimetableEditCommands commands)
         {
             _commands = commands;
 

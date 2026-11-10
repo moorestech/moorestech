@@ -35,8 +35,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train.Timetable
         [Test]
         public void 追加が確定するまで自動運転ONを塞ぎ切替は即送る()
         {
-            // 停車駅 0 件では ON が無効で、理由の文が出る
-            // With no stops, ON is disabled and the reason text shows
+            // 停車駅0件はON無効+理由表示
+            // No stops: ON disabled, reason shown
             Publish(Ready(Unit1, false, NoStops));
             Assert.IsFalse(Find<Button>(_body.Root, "train-timetable-auto-run-on").enabledSelf);
             Assert.IsTrue(IsShown(_body.Root.Q<Label>("train-timetable-auto-run-unavailable")));
@@ -57,8 +57,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train.Timetable
             CollectionAssert.AreEqual(new[] { true }, _bodies.TimetableCommands.SentAutoRuns);
             Assert.IsTrue(IsSelected(_body.Root, "train-timetable-auto-run-off"));
 
-            // 自動運転 ON が公開された後は OFF を押すと false を送る
-            // After auto-run ON is published, pressing OFF sends false
+            // ON公開後のOFF押下でfalse送信
+            // OFF after published ON sends false
             _bodies.TimetableCommands.Accept();
             Publish(Ready(Unit1, true, Added(NoStops, North)));
             Assert.IsTrue(IsSelected(_body.Root, "train-timetable-auto-run-on"));

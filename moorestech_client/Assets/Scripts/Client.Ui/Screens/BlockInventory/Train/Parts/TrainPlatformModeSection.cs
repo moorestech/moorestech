@@ -16,7 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
     {
         private readonly ModeSwitch<TrainPlatformTransferMode> _mode;
 
-        public TrainPlatformModeSection(ITrainPlatformEditCommands commands)
+        public TrainPlatformModeSection(TrainPlatformEditCommands commands)
         {
             // 選択肢の testid は Web に無いので -load / -unload を足す（D-7）
             // Web options carry no testids, so -load / -unload are added (D-7)

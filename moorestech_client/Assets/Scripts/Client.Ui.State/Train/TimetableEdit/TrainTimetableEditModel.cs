@@ -7,7 +7,7 @@ namespace Client.Ui.State.Train.TimetableEdit
     /// 編集の器を購読し、時刻表タブの描画値（読込中・使えない・列車ごとの区画）を配る
     /// Subscribes to the edit holder and publishes the timetable tab's draw values (loading, unavailable or a per-train section)
     /// </summary>
-    public sealed class TrainTimetableEditModel : ITrainTimetableEditModel, IInitializable
+    public sealed class TrainTimetableEditModel : IInitializable
     {
         private readonly TrainTimetableEditState _state;
         private readonly ReactiveProperty<TrainTimetableAreaViewModel> _current = new(TrainTimetableAreaViewModel.Unavailable);
@@ -23,7 +23,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             // 器の Initialize が先でも後でも、購読の後に 1 回組めば最新を配れる
             // Whether the holder initializes first or later, building once after subscribing publishes the latest
-            _state.OnChanged.Subscribe(_ => Rebuild());
+            _state.OnTimetableAreaInputChanged.Subscribe(_ => Rebuild());
             Rebuild();
         }
 

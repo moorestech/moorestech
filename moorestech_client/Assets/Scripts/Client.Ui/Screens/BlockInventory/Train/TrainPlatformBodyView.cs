@@ -21,7 +21,7 @@ namespace Client.Ui.Screens.BlockInventory.Train
         private readonly FluidInventoryContents _fluids;
         private readonly TrainPlatformModeSection _mode;
 
-        public TrainPlatformBodyView(BlockItemGrid grid, FluidInventoryContents fluids, ITrainPlatformEditCommands commands)
+        public TrainPlatformBodyView(BlockItemGrid grid, FluidInventoryContents fluids, TrainPlatformEditCommands commands)
         {
             name = "train-platform-view";
             _nameRow = new TrainStationNameRow(commands);

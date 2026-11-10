@@ -16,11 +16,11 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     /// </summary>
     public sealed class TrainTimetableStationListView : VisualElement
     {
-        private readonly ITrainTimetableEditCommands _commands;
+        private readonly TrainTimetableEditCommands _commands;
         private readonly LocalizedLabel _empty;
         private readonly VisualElement _list;
 
-        public TrainTimetableStationListView(ITrainTimetableEditCommands commands)
+        public TrainTimetableStationListView(TrainTimetableEditCommands commands)
         {
             _commands = commands;
             var panel = new GamePanel("train-timetable-stations-panel", GamePanelFrame.Craft);

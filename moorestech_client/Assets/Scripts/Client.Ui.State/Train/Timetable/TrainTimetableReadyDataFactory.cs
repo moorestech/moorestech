@@ -21,8 +21,8 @@ namespace Client.Ui.State.Train.Timetable
             var stationNames = new Dictionary<Vector3Int, string>();
             foreach (var station in stations) stationNames[station.Position] = station.Name;
 
-            // 停車駅ごとに駅名を当て、未知の端は表示ごと捨てて Unavailable にする
-            // Name each stop; an unknown side discards the whole timetable as unavailable
+            // 停車駅ごとに駅名を当て、未知の端は Unavailable
+            // Name each stop; unknown side makes it Unavailable
             var stops = new List<TimetableEditStop>(timetable.Stops.Count);
             var missingStationPositions = new HashSet<Vector3Int>();
             foreach (var stop in timetable.Stops)

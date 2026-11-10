@@ -45,8 +45,8 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             Assert.AreEqual(2, _session.DisplayedStops.Count);
             Assert.IsTrue(_session.IsPending);
 
-            // 受理と公開で保留が解け、続けて移動・削除も 1 回ずつ送る
-            // Acceptance plus publication releases it; move and remove then send once each
+            // 保留解除後に移動・削除を1回ずつ送る
+            // After release, move and remove send once each
             _commands.Accept();
             _session.ReceiveServer(Ready(Unit1, false, added));
             Assert.IsFalse(_session.IsPending);
@@ -131,8 +131,8 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             var displayedAtClose = _session.DisplayedStops;
             _session.Close();
 
-            // 閉じた後の受理は捨て、時間切れも仕掛けない
-            // Acceptance after close is discarded and no timeout is armed
+            // 閉じた後の受理は捨て時間切れも無し
+            // Post-close acceptance dropped, no timeout
             LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] result after close discarded"));
             _commands.Accept();
             Assert.AreSame(displayedAtClose, _session.DisplayedStops);

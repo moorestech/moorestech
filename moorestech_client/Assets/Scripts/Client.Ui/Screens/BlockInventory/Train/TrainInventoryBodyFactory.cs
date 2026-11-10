@@ -17,14 +17,14 @@ namespace Client.Ui.Screens.BlockInventory.Train
     public sealed class TrainInventoryBodyFactory : ITrainInventoryBodyFactory
     {
         private readonly ITrainInventoryBodySource _body;
-        private readonly ITrainTimetableEditModel _timetable;
-        private readonly ITrainTimetableEditCommands _timetableEdit;
+        private readonly TrainTimetableEditModel _timetable;
+        private readonly TrainTimetableEditCommands _timetableEdit;
         private readonly ITrainTimetableSource _timetableSource;
         private readonly ITrainTimetableCommands _timetableCommands;
         private readonly BlockItemGridFactory _gridFactory;
         private readonly GameContentPresentation _content;
 
-        public TrainInventoryBodyFactory(ITrainInventoryBodySource body, ITrainTimetableEditModel timetable, ITrainTimetableEditCommands timetableEdit, ITrainTimetableSource timetableSource, ITrainTimetableCommands timetableCommands, BlockItemGridFactory gridFactory, GameContentPresentation content)
+        public TrainInventoryBodyFactory(ITrainInventoryBodySource body, TrainTimetableEditModel timetable, TrainTimetableEditCommands timetableEdit, ITrainTimetableSource timetableSource, ITrainTimetableCommands timetableCommands, BlockItemGridFactory gridFactory, GameContentPresentation content)
         {
             _body = body;
             _timetable = timetable;

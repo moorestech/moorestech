@@ -30,10 +30,10 @@ namespace Client.Starter.Registration.GameUi.Screens
 
             // 描画値の Model（Presenter が購読）と、View が直接呼ぶコマンド（A-8）
             // Draw-value models the Presenters subscribe to, and commands the View calls directly (A-8)
-            builder.RegisterEntryPoint<TrainTimetableEditModel>().As<ITrainTimetableEditModel>();
-            builder.Register<TrainPlatformEditModel>(Lifetime.Singleton).As<ITrainPlatformEditModel>();
-            builder.Register<TrainTimetableEditCommands>(Lifetime.Singleton).As<ITrainTimetableEditCommands>();
-            builder.Register<TrainPlatformEditCommands>(Lifetime.Singleton).As<ITrainPlatformEditCommands>();
+            builder.RegisterEntryPoint<TrainTimetableEditModel>().AsSelf();
+            builder.Register<TrainPlatformEditModel>(Lifetime.Singleton).AsSelf();
+            builder.Register<TrainTimetableEditCommands>(Lifetime.Singleton).AsSelf();
+            builder.Register<TrainPlatformEditCommands>(Lifetime.Singleton).AsSelf();
 
             // サーバーへ送るコマンドと時間切れ
             // Server-bound commands and the timeout

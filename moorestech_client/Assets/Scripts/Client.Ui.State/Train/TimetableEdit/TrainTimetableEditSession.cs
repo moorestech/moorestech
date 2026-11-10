@@ -17,8 +17,8 @@ namespace Client.Ui.State.Train.TimetableEdit
     /// </summary>
     public sealed class TrainTimetableEditSession
     {
-        public const string ReplaceCommandName = "train_timetable.replace";
-        public static readonly TimeSpan PublicationTimeout = TimeSpan.FromMilliseconds(5000);
+        internal const string ReplaceCommandName = "train_timetable.replace";
+        private static readonly TimeSpan PublicationTimeout = TimeSpan.FromMilliseconds(5000);
 
         private readonly ITrainTimetableCommands _commands;
         private readonly ITrainTimetableWaitTimer _timer;
@@ -45,8 +45,8 @@ namespace Client.Ui.State.Train.TimetableEdit
 
         public void ReceiveServer(TrainTimetableReadyData server)
         {
-            // 受理済みの保留は同じ並びの公開が届いた時点で解く
-            // An accepted pending edit is released once a matching publication arrives
+            // 受理済み保留は同並びの公開で解く
+            // Accepted pending releases on matching publication
             Server = server;
             if (_phase is AwaitingPublicationPhase awaiting && TimetableEditLogic.SameStopOrder(awaiting.Stops, server.Stops)) BackToIdle();
             Publish();

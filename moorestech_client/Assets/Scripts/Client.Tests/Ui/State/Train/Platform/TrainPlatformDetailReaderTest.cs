@@ -31,7 +31,7 @@ namespace Client.Tests.Ui.State.Train.Platform
         public void 駅は名前と枠とモードを持つ()
         {
             var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), new TrainStationNameStateDetail("北駅"), Unload, Slots, NoFluids);
-            Assert.AreEqual("北駅", body.StationName.Value.SyncedName);
+            Assert.AreEqual("北駅", body.StationName.Value);
             Assert.AreSame(Slots, body.ItemSlots.Value);
             Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, body.Mode.Value);
         }
@@ -60,7 +60,7 @@ namespace Client.Tests.Ui.State.Train.Platform
             // Web ホストは状態が無ければ詳細ごと出さない。駅名の StateDetail が無ければ空名
             // The Web host omits the detail without a state; a missing name StateDetail gives an empty name
             var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), null, null, Slots, NoFluids);
-            Assert.AreEqual(string.Empty, body.StationName.Value.SyncedName);
+            Assert.AreEqual(string.Empty, body.StationName.Value);
             Assert.IsFalse(body.ItemSlots.IsPresent);
             Assert.IsFalse(body.Mode.IsPresent);
         }

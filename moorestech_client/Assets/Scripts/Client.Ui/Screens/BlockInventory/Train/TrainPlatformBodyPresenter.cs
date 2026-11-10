@@ -15,12 +15,12 @@ namespace Client.Ui.Screens.BlockInventory.Train
     {
         private readonly TrainPlatformBodyView _view;
         private readonly ITrainPlatformBodySource _source;
-        private readonly ITrainPlatformEditModel _edit;
+        private readonly TrainPlatformEditModel _edit;
         private readonly CompositeDisposable _subscriptions = new();
 
         public VisualElement Root => _view;
 
-        public TrainPlatformBodyPresenter(TrainPlatformBodyView view, ITrainPlatformBodySource source, ITrainPlatformEditModel edit)
+        public TrainPlatformBodyPresenter(TrainPlatformBodyView view, ITrainPlatformBodySource source, TrainPlatformEditModel edit)
         {
             _view = view;
             _source = source;
@@ -33,16 +33,20 @@ namespace Client.Ui.Screens.BlockInventory.Train
         {
             _source.Current.Subscribe(_ => Render()).AddTo(_subscriptions);
             _edit.StationNameInput.Subscribe(_ => Render()).AddTo(_subscriptions);
+
+            #region Internal
+
+            void Render()
+            {
+                _view.Render(_source.Current.Value, _edit.StationNameInput.Value);
+            }
+
+            #endregion
         }
 
         public void Detach()
         {
             _subscriptions.Clear();
-        }
-
-        private void Render()
-        {
-            _view.Render(_source.Current.Value, _edit.StationNameInput.Value);
         }
     }
 }

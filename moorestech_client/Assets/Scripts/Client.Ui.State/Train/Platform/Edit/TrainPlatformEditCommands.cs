@@ -8,10 +8,10 @@ namespace Client.Ui.State.Train.Platform.Edit
     /// 駅名と移送モードを送る。結果はトーストへ渡し、駅名の拒否は送った回の下書きだけを戻す
     /// Sends station names and transfer modes; results go to the toaster and a station name refusal reverts only the draft that sent
     /// </summary>
-    public sealed class TrainPlatformEditCommands : ITrainPlatformEditCommands
+    public sealed class TrainPlatformEditCommands
     {
-        public const string SetNameCommandName = "train_station.set_name";
-        public const string SetModeCommandName = "train_platform.set_transfer_mode";
+        private const string SetNameCommandName = "train_station.set_name";
+        private const string SetModeCommandName = "train_platform.set_transfer_mode";
         private readonly TrainStationNameEditState _state;
         private readonly ITrainBlockCommands _commands;
         private readonly UiCommandResultToaster _toaster;

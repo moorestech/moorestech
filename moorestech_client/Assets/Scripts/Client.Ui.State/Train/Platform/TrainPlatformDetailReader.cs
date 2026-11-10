@@ -20,8 +20,8 @@ namespace Client.Ui.State.Train.Platform
             // Name and mode are server StateDetails; before they arrive the name is empty and no mode switch shows (same as the Web host)
             // silent-ok: 駅名の StateDetail が届く前は空名の欄を出す（Web ホストと同じ）/ 届かないままなら欄が空のままで、録画 uitk/uitk-train-inventory 手順 2 の駅名の待ちが落ちて開発者が気づく
             var namePart = blockType == BlockTypeConst.TrainStation
-                ? SectionContent<TrainStationNamePart>.Present(new TrainStationNamePart(stationName?.StationName ?? string.Empty))
-                : SectionContent<TrainStationNamePart>.Absent;
+                ? SectionContent<string>.Present(stationName?.StationName ?? string.Empty)
+                : SectionContent<string>.Absent;
             var mode = transfer == null ? SectionContent<TrainPlatformTransferMode>.Absent : SectionContent<TrainPlatformTransferMode>.Present(TrainPlatformTransferModeConversion.FromServer(transfer.Mode));
 
             // スロットは移送の状態があり、かつ品物の PF・駅のときだけ（Web ホストは状態が無ければ詳細ごと出さない）

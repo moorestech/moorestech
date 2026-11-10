@@ -10,19 +10,25 @@ namespace Client.Tests.Ui.State.Train.Inventory
         [Test]
         public void 時刻表タブへ移った瞬間と時刻表タブで読込中が届いたときだけ依頼する()
         {
-            var trigger = new TrainTimetableFetchTrigger();
+            var commands = new FakeTrainTimetableCommands();
+            var trigger = new TrainTimetableFetchTrigger(commands);
 
             // 持ち物タブの読込中では依頼しない
             // Loading on the inventory tab does not ask
-            Assert.IsFalse(trigger.ReceiveState(TrainTimetableViewState.Loading));
-            Assert.IsTrue(trigger.SelectTab(TrainInventoryTab.Timetable));
-            Assert.IsFalse(trigger.SelectTab(TrainInventoryTab.Timetable));
+            trigger.ReceiveState(TrainTimetableViewState.Loading);
+            Assert.AreEqual(0, commands.OpenRequestCount);
+            trigger.SelectTab(TrainInventoryTab.Timetable);
+            Assert.AreEqual(1, commands.OpenRequestCount);
+            trigger.SelectTab(TrainInventoryTab.Timetable);
+            Assert.AreEqual(1, commands.OpenRequestCount);
 
-            // 時刻表タブでは読込中が届くたびに依頼し、用意済みでは依頼しない
-            // On the timetable tab every loading arrival asks, ready does not
-            Assert.IsTrue(trigger.ReceiveState(TrainTimetableViewState.Loading));
-            Assert.IsFalse(trigger.ReceiveState(TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1))));
-            Assert.IsFalse(trigger.SelectTab(TrainInventoryTab.Inventory));
+            // 時刻表タブは読込中で依頼、用意済みは不要
+            // Timetable tab: loading requests, ready does not
+            trigger.ReceiveState(TrainTimetableViewState.Loading);
+            Assert.AreEqual(2, commands.OpenRequestCount);
+            trigger.ReceiveState(TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1)));
+            trigger.SelectTab(TrainInventoryTab.Inventory);
+            Assert.AreEqual(2, commands.OpenRequestCount);
         }
     }
 }

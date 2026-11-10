@@ -22,8 +22,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             return string.Join(" ", texts.ConvertAll(e => e.text));
         }
 
-        // 自分も root までの祖先も display:none でない
-        // Neither the element nor its ancestors up to root are display:none
+        // 自身と祖先が display:none でない
+        // Element and ancestors are not display:none
         private static bool IsShownUnder(VisualElement root, VisualElement element)
         {
             for (var current = element; current != null; current = current.parent)

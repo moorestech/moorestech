@@ -6,7 +6,7 @@ namespace Client.Ui.State.Train.Platform.Edit
     /// 駅名の下書きの器から入力欄の描画値を配る
     /// Publishes the station name field's draw value from the draft holder
     /// </summary>
-    public sealed class TrainPlatformEditModel : ITrainPlatformEditModel
+    public sealed class TrainPlatformEditModel
     {
         private readonly TrainStationNameEditState _state;
 

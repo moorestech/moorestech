@@ -38,12 +38,12 @@ namespace Client.Ui.State.Train.TimetableEdit
 
     public sealed class ReadyTrainTimetableArea : TrainTimetableAreaViewModel
     {
-        public TrainUnitInstanceId TrainUnitInstanceId { get; }
+        private readonly TrainUnitInstanceId _trainUnitInstanceId;
         public TrainTimetableSectionViewModel Section { get; }
 
         internal ReadyTrainTimetableArea(TrainUnitInstanceId trainUnitInstanceId, TrainTimetableSectionViewModel section)
         {
-            TrainUnitInstanceId = trainUnitInstanceId;
+            _trainUnitInstanceId = trainUnitInstanceId;
             Section = section;
         }
 
@@ -51,7 +51,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         // Whether it is the same train; the View cannot reference the train type (Game.Block.Interface), so it decides section rebuilds with this
         public bool IsSameTrain(ReadyTrainTimetableArea other)
         {
-            return TrainUnitInstanceId.Equals(other.TrainUnitInstanceId);
+            return _trainUnitInstanceId.Equals(other._trainUnitInstanceId);
         }
     }
 }

@@ -97,8 +97,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             StringAssert.Contains("700 / 1,000", FluidTexts(body));
             StringAssert.Contains("700", TrainTestText.TextsUnder(body.Root.Q("train-platform-fluid-slots-slot-0")));
 
-            // 空でも枠は 1 つ残り、アイコンと文は消える
-            // Even when empty one slot stays while the icon and texts disappear
+            // 空でも枠1つ残り絵と文は消える
+            // Empty: one slot stays, icon and texts vanish
             bodies.Sources.SetPlatform(TrainTestPlatforms.FluidPlatformBody(new[] { BlockFluidSlotState.Empty(1000) }, TrainPlatformTransferMode.UnloadToPlatform));
             simulate.FrameUpdate();
             Assert.IsNotNull(body.Root.Q("train-platform-fluid-slots-slot-0"));

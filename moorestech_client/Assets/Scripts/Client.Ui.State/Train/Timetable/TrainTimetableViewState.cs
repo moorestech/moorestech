@@ -14,8 +14,8 @@ namespace Client.Ui.State.Train.Timetable
             return new ReadyTrainTimetableViewState(data);
         }
 
-        // 同じ状態なら流し直さない。用意済みは中身で比べ、読込中・使えないは同じインスタンス
-        // Same states are not republished: ready compares contents, loading/unavailable are single instances
+        // 同じ状態は流し直さない。用意済みは中身で比べる
+        // Same states are not republished; ready compares contents
         public static bool IsSameState(TrainTimetableViewState current, TrainTimetableViewState next)
         {
             if (current is ReadyTrainTimetableViewState currentReady && next is ReadyTrainTimetableViewState nextReady) return currentReady.Data.HasSameContent(nextReady.Data);

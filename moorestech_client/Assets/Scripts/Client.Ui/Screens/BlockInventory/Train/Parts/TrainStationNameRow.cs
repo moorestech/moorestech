@@ -16,7 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
     {
         private readonly GameTextField _input;
 
-        public TrainStationNameRow(ITrainPlatformEditCommands commands)
+        public TrainStationNameRow(TrainPlatformEditCommands commands)
         {
             name = "train-station-name-section";
             AddToClassList("train-station-name");
