@@ -1,0 +1,23 @@
+/* web: features/blockInventory/train/style.module.css .body と details/station/trainStationNameSection.module.css .row（ローカルのつまみ無し） */
+/* web: the Web train .body and the station name .row; no local knobs */
+.train-body {
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.train-body__scroll {
+    flex-grow: 1;
+    min-height: 0;
+    margin-top: var(--mode-switch-gap);
+}
+
+.train-station-name {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.train-station-name > .train-station-name__row-end {
+    margin-left: var(--mode-switch-padding-inline);
+}
