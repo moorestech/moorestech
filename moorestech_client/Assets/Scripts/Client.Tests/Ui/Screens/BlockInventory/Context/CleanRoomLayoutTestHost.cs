@@ -74,7 +74,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             return shell;
         }
 
-        private static BlockContextViewModel Room(int filterCount)
+        // 清浄機 filterCount 台の密閉済みの部屋（機械の区画のテストも使う）
+        // A sealed room with filterCount purifiers (the machine-section tests use it too)
+        public static BlockContextViewModel Room(int filterCount)
         {
             var filters = Enumerable.Range(0, filterCount).Select(_ => new CleanRoomAirFilter(1, 5, 0.5)).ToArray();
             var room = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 1.2, 0.8, filters);

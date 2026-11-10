@@ -36,6 +36,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         protected FakeMachineSectionModel MachineModel { get; private set; }
         protected FakeBlockContextModel ContextModel { get; private set; }
         protected RecordingBlockSlotCommands Commands { get; private set; }
+        protected RecordingRecipeSelectCommand RecipeSelect { get; private set; }
         protected FakeUiOsCursorApplier AppliedCursor { get; private set; }
         protected UiOsCursorRequestStack OsCursor { get; private set; }
 
@@ -47,6 +48,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             MachineModel = new FakeMachineSectionModel();
             ContextModel = new FakeBlockContextModel();
             Commands = new RecordingBlockSlotCommands();
+            RecipeSelect = new RecordingRecipeSelectCommand();
             AppliedCursor = new FakeUiOsCursorApplier();
             OsCursor = new UiOsCursorRequestStack(AppliedCursor);
         }
@@ -67,7 +69,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         // Build the view and presenter, attach, push the machine value and mount (Machine.uss comes from the host theme GameUiTheme.tss)
         protected MachineSectionView MountSection(MachineSectionViewModel viewModel, bool fillsPanelHeight)
         {
-            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, Toaster, OsCursor);
+            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, Toaster, OsCursor, RecipeSelect);
             var presenter = new MachineSectionPresenter(view, MachineModel, ContextModel);
             presenter.Attach(MachineScreenViewModels.Panel());
             SetMachine(viewModel);

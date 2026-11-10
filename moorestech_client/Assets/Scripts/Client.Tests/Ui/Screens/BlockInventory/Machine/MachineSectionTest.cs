@@ -1,22 +1,31 @@
+using System;
+using Client.Tests.Ui.Components;
+using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.Components.Controls;
+using Client.Ui.Screens.BlockInventory.Context;
+using Client.Ui.Screens.BlockInventory.Machine.RecipeSelection;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.State.Items;
 using Client.Ui.State.Recipe.Data;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using Fixtures = Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection.MachineRecipeSelectionFixtures;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画のインベントリモード（ヘッダの有無・フッタの状態と充足率・空き不足の理由・大型面のスクロール）
-    /// Inventory mode of the machine section (header presence, footer state and power rate, output-space reason, large-panel scrolling)
+    /// 機械の区画の両モード（選択リストとヘッダの往復・フッタの状態と充足率・空き不足の理由・大型面のスクロール）
+    /// Both modes of the machine section (list/header round trip, footer state and power rate, output-space reason, large-panel scrolling)
     /// </summary>
     public class MachineSectionTest : MachineScreenTestHost
     {
         private const string InsufficientClass = LackHighlightText.ClassName + "--insufficient";
+        private static readonly Guid RecipeA = MachineTestDetails.RecipeA;
+        private static readonly Guid RecipeB = MachineTestDetails.RecipeB;
 
         /// <web-test file="src/features/blockInventory/details/MachineSection.test.ts">レシピ0件の機械はヘッダもリストも出さず本体だけ出す</web-test>
         [Test]
@@ -27,6 +36,74 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             Assert.AreEqual(0, Shown(root, "machine-selected-recipe").Count);
             Assert.IsNull(root.Q("machine-recipe-selection"));
             Assert.AreEqual(1, Shown(root, "machine-inventory-body").Count);
+        }
+
+        /// <web-test file="src/features/blockInventory/details/MachineSection.test.ts">未選択機械はレシピ選択リストを出し、インベントリ本体を出さない</web-test>
+        [Test]
+        public void 未選択の機械は選択リストを出し本体を出さない()
+        {
+            var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Unselected, false, Fixtures.ItemRecipe(RecipeA, 5, SecondItem, FirstItem)), false).Root;
+
+            Assert.IsNotNull(root.Q(MachineRecipeSelectionList.ListTestid));
+            Assert.IsNull(root.Q("machine-inventory-body"));
+        }
+
+        /// <web-test file="src/features/blockInventory/details/MachineSection.test.ts">選択済機械はヘッダ＋本体を出し、ヘッダのonChangeRecipeでリストへ戻り、selectedRecipeGuidが実際に変わるまで本体へ戻らない</web-test>
+        [Test]
+        public void 選択済みはヘッダ押下で選択へ入り選択が変わるまで本体へ戻らない()
+        {
+            var recipes = new[] { Fixtures.ItemRecipe(RecipeA, 5, SecondItem, FirstItem), Fixtures.ItemRecipe(RecipeB, 7, FirstItem, SecondItem) };
+            var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Selected(RecipeA), false, recipes), false).Root;
+            Assert.AreEqual(1, Shown(root, "machine-selected-recipe").Count);
+            Assert.IsNull(root.Q(MachineRecipeSelectionList.ListTestid));
+
+            // ヘッダ押下で選択リストへ入り、別の行の押下でコマンドを 1 回呼ぶ。サーバーの選択が変わるまでリストのまま
+            // The header press enters the list; another row's press calls the command once; the list stays until the server selection changes
+            ClickCenter(root, "machine-selected-recipe");
+            Assert.IsNotNull(root.Q(MachineRecipeSelectionList.ListTestid));
+            Assert.IsNull(root.Q("machine-inventory-body"));
+            ClickCenter(root, $"machine-recipe-{RecipeB}");
+            CollectionAssert.AreEqual(new[] { RecipeB }, RecipeSelect.Selected);
+            Assert.IsNotNull(root.Q(MachineRecipeSelectionList.ListTestid));
+
+            SetMachine(Fixtures.Machine(MachineRecipeSelection.Selected(RecipeB), false, recipes));
+            Assert.IsNull(root.Q(MachineRecipeSelectionList.ListTestid));
+            Assert.AreEqual(1, Shown(root, "machine-inventory-body").Count);
+        }
+
+        /// <web-test file="src/features/blockInventory/details/MachineSection.test.ts">同一レシピを選び直しても選択モードから戻れる（要求GUID一致で閉じる）</web-test>
+        [Test]
+        public void 同じレシピを選び直しても選択モードから戻れる()
+        {
+            var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Selected(RecipeA), false, Fixtures.ItemRecipe(RecipeA, 5, SecondItem, FirstItem)), false).Root;
+            ClickCenter(root, "machine-selected-recipe");
+            ClickCenter(root, $"machine-recipe-{RecipeA}");
+
+            // 送らない判断はコマンド側（MachineRecipeSelectCommandTest が見る）。区画は要求の一致で閉じる
+            // Not sending is the command's call (MachineRecipeSelectCommandTest); the section closes on the request match
+            CollectionAssert.AreEqual(new[] { RecipeA }, RecipeSelect.Selected);
+            Assert.IsNull(root.Q(MachineRecipeSelectionList.ListTestid));
+            Assert.AreEqual(1, Shown(root, "machine-inventory-body").Count);
+        }
+
+        [Test]
+        public void 清浄室の機械は選択から戻っても部屋欄とヘッダと本体の並びと間隔を保つ()
+        {
+            // Web MachineSection.tsx:61-67 の Stack gap=sm（文脈 → ヘッダ → 本体）。選択リストへ前置した文脈を積み直しても同じ
+            // Web MachineSection.tsx:61-67 Stack gap=sm (context → header → body); the same after restacking the context prepended to the list
+            ContextModel.Set(Context.CleanRoomLayoutTestHost.Room(2));
+            var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Selected(RecipeA), false, Fixtures.ItemRecipe(RecipeA, 5, SecondItem, FirstItem)), false).Root;
+            ClickCenter(root, "machine-selected-recipe");
+            Assert.IsNotNull(Find<VisualElement>(root, MachineRecipeSelectionList.ListTestid).parent.parent.Q("clean-room-section"));
+            ClickCenter(root, $"machine-recipe-{RecipeA}");
+
+            var sm = ThemeTokenFile.ResolvePixels("--mantine-spacing-sm");
+            var context = root.Q<BlockContextSectionsView>().worldBound;
+            var header = Find<VisualElement>(root, "machine-selected-recipe").worldBound;
+            var body = Find<VisualElement>(root, "machine-inventory-body").worldBound;
+            Assert.LessOrEqual(context.yMin, root.Q("clean-room-section").worldBound.yMin + 0.5f);
+            Assert.AreEqual(sm, header.yMin - context.yMax, 0.5f);
+            Assert.AreEqual(sm, body.yMin - header.yMax, 0.5f);
         }
 
         /// <web-test file="src/features/blockInventory/details/MachineSection.test.ts">停止中は充足率テキストを出さず状態ラベルだけを見せる</web-test>
@@ -75,9 +152,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             AssertWaitReasonShown(root);
             Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.MachineStateIdle).Resolve(), root.Q<Label>("machine-state-label").text);
 
-            // 未選択（選択モードの面）でもフッタに理由が出る。選択リストそのものは Task 12
-            // The footer shows the reason while unselected (selection-mode face) too; the selection list itself is Task 12
+            // 未選択（選択モード）でもフッタに理由が出る
+            // The footer shows the reason while unselected (selection mode) too
             SetMachine(MachineScreenViewModels.WithRecipe(recipe, false, true));
+            Assert.IsNotNull(root.Q(MachineRecipeSelectionList.ListTestid));
             AssertWaitReasonShown(root);
 
             #region Internal
@@ -99,6 +177,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         {
             var root = MountSection(MachineScreenViewModels.WithState(MachineProcessDisplayState.Idle, 1, 1, false, false), false).Root;
             Assert.AreEqual(0, Shown(root, "machine-wait-reason").Count);
+        }
+
+        private void ClickCenter(VisualElement root, string testid)
+        {
+            simulate.Click(Find<VisualElement>(root, testid).worldBound.center);
+            simulate.FrameUpdate();
         }
     }
 }

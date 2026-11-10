@@ -1,0 +1,38 @@
+/* web: details/machine/recipeSelection/machineRecipeSelectionList.module.css の .row・.name・[data-selected] の outline・.list のつまみ上書き（ユーザー裁定 2026-09-05「控えめ」）と listGap を写す / ports the row, name, selected outline, the list knob overrides and listGap */
+/* 行間とつまみは祖先のクラスで上書きし、共有 RecipeRow・RecipeListScrollView の既定には及ばない */
+/* The gap and knobs are overridden on an ancestor class and never reach the shared RecipeRow / RecipeListScrollView defaults */
+.machine-recipe-selection-list {
+    --recipe-list-gap: var(--machine-recipe-row-gap);
+    --recipe-row-padding-block: 5.6px;
+    --recipe-slot-size-max: 32px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+/* 押せる印の指は C# が OS カーソルへ要求する（USS の cursor はランタイムで効かない） */
+/* The pressable pointer is requested on the OS cursor from C# (USS cursor does nothing at runtime) */
+.machine-recipe-selection-row {
+    min-width: 0;
+}
+
+.machine-recipe-selection-row__name {
+    color: var(--text-muted);
+    font-size: var(--recipe-info-text-size);
+    padding: 0 var(--recipe-row-padding-inline) 4px var(--recipe-row-padding-inline);
+}
+
+.machine-recipe-selection-row__outline {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    border-width: 1px;
+    border-color: var(--select-cyan);
+}
+
+.machine-recipe-selection-row--selected > .machine-recipe-selection-row__outline {
+    display: flex;
+}

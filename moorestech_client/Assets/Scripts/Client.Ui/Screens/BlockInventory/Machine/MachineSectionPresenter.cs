@@ -42,6 +42,14 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 _mode.OpenSelection();
                 Apply();
             }).AddTo(_subscriptions);
+
+            // 行の押下は要求を覚えて描き直すだけ（送る判断はコマンド、送信とトーストは View。D-24・D-33）
+            // A row press only remembers the request and redraws (the command decides sending; the view sends and toasts; D-24, D-33)
+            _view.OnRecipeRowPressed.Subscribe(recipeGuid =>
+            {
+                _mode.RememberRequest(recipeGuid);
+                Apply();
+            }).AddTo(_subscriptions);
         }
 
         public void Detach()

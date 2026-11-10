@@ -32,15 +32,13 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _commands = commands;
             _toaster = toaster;
             _content = content;
-            // レシピを選ぶコマンドは Task 12 の選択リストが View で使う（D-33）
-            // The recipe-select command is used by the Task 12 selection list in the view (D-33)
             _recipeSelect = recipeSelect;
             _osCursor = osCursor;
         }
 
         public IBlockInventorySection Create(SectionStackSectionMount mount)
         {
-            return new MachineSectionPresenter(new MachineSectionView(mount.FillsPanelHeight, _content, _commands, _toaster, _osCursor), _machine, _context);
+            return new MachineSectionPresenter(new MachineSectionView(mount.FillsPanelHeight, _content, _commands, _toaster, _osCursor, _recipeSelect), _machine, _context);
         }
     }
 }

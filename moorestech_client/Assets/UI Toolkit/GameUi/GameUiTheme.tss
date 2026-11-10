@@ -83,3 +83,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/Machine.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Family/Family.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Fluid/Fluid.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/RecipeSelection/MachineRecipeSelection.uss");
