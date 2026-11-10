@@ -1,7 +1,17 @@
+using System.IO;
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.Components;
+using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Screens.BlockInventory;
+using Client.Ui.State.BlockInventory.Common;
+using Client.Ui.State.BlockInventory.Machine;
+using Client.Ui.State.BlockInventory.Machine.Detail;
+using Client.Ui.State.BlockInventory.Panel;
 using NUnit.Framework;
+using UniRx;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
@@ -12,6 +22,50 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
     /// </summary>
     public class MachineDesignTest : MachineScreenTestHost
     {
+        private const string ScreensUssRoot = "Scripts/Client.Ui/Screens";
+
+        /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">%sから禁止Mantine部品とテーマ色を除去する</web-test>
+        [TestCase("BlockInventory/Machine/Machine.uss")]
+        [TestCase("BlockInventory/Family/Family.uss")]
+        [TestCase("BlockInventory/Fluid/Fluid.uss")]
+        public void 本レーンのUSSは色を直書きせずトークンだけを使う(string relativePath)
+        {
+            // alpha の BlockInventoryDesignTest の色の件と同じ判定（選択リストの USS は Task 12 で足す）
+            // Same check as alpha's BlockInventoryDesignTest colour case (the selection-list USS is added in Task 12)
+            var uss = File.ReadAllText(Path.Combine(Application.dataPath, ScreensUssRoot, relativePath));
+            StringAssert.DoesNotMatch(@"#[0-9a-fA-F]{3,8}\b|rgba?\(", uss);
+            foreach (Match match in Regex.Matches(uss, @"^\s*(?:-unity-)?[a-z-]*color\s*:\s*([^;]+);", RegexOptions.Multiline))
+            {
+                StringAssert.StartsWith("var(--", match.Groups[1].Value.Trim(), match.Value);
+            }
+        }
+
+        /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">レシピ有り機械だけviewer〜items占有の大型パネルへ広げる</web-test>
+        [Test]
+        public void レシピの行がある機械だけ外殻が大型になる()
+        {
+            // 本物の寄与に偽の機械の Model を差し、行 0 → 行 1 → 行 0 と流す
+            // Plug the real rule with a fake machine model and feed 0 rows, then 1, then 0
+            var rule = new RecipeMachineLargePanelRule(MachineModel);
+            rule.Initialize();
+            var state = new ReactiveProperty<BlockInventoryPanelState>(MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, new Client.Ui.State.Items.SlotItem[2]));
+            var shell = BlockInventoryTestShell.Create(this, state, rule);
+            simulate.FrameUpdate();
+            Assert.IsFalse(shell.View.ClassListContains(BlockInventoryView.LargeClassName));
+
+            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModel(MachineRecipeSelection.Unselected)));
+            simulate.FrameUpdate();
+            Assert.IsFalse(shell.View.ClassListContains(BlockInventoryView.LargeClassName));
+
+            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModel(MachineRecipeSelection.Unselected, MachineTestDetails.RecipeA)));
+            simulate.FrameUpdate();
+            Assert.IsTrue(shell.View.ClassListContains(BlockInventoryView.LargeClassName));
+
+            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModel(MachineRecipeSelection.Unselected)));
+            simulate.FrameUpdate();
+            Assert.IsFalse(shell.View.ClassListContains(BlockInventoryView.LargeClassName));
+        }
+
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">機械の加工行は進捗矢印を中央に固定する3カラムグリッドにする</web-test>
         [Test]
         public void 加工行は左右等幅の伸縮列で矢印を中央に固定する()
