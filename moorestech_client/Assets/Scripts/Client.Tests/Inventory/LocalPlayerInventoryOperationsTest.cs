@@ -8,6 +8,7 @@ using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -23,6 +24,22 @@ namespace Client.Tests.Inventory
         private const int OtherMainSlot = 6;
         private static readonly Guid ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         private static readonly Guid OtherItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
+
+        [Test]
+        public void 装備の選択が変わるとOnSnapshotChangedが流れる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var equipment = new LocalPlayerEquipment();
+            var operations = new LocalPlayerInventoryOperations(new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment);
+            var signals = 0;
+            operations.OnSnapshotChanged.Subscribe(_ => signals++);
+
+            // SetSelectedIndex はサーバーへ送るので、確定の入口 ApplySelected で選択を変える
+            // SetSelectedIndex sends to the server, so change the selection through the confirmation entry ApplySelected
+            equipment.ApplySelected(1);
+
+            Assert.AreEqual(1, signals);
+        }
 
         [Test]
         public void 空の枠から掴むとSourceEmptyになる()

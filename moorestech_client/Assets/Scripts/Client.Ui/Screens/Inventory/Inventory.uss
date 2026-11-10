@@ -1,0 +1,48 @@
+/* web: features/inventory/InventoryPanel/index.tsx の GamePanel の style と GRID_STYLE、EquipmentPanel/style.module.css の .equipmentArea を写す（持ち物パネルと装備 HUD） */
+/* web: copies the GamePanel style and GRID_STYLE in features/inventory/InventoryPanel/index.tsx and .equipmentArea in EquipmentPanel/style.module.css (inventory panel and equipment HUD) */
+
+.inventory-view {
+    align-items: flex-start;
+}
+
+.inventory-view__panel {
+    align-self: flex-start;
+    width: var(--inventory-panel-width);
+    min-height: 452.391px;
+    translate: 0.783px 0.783px;
+    --panel-left: -2.22px;
+    --panel-right: -2.22px;
+    --title-shift-x: -1.96px;
+    --title-scale-x: 0.919;
+    --title-scale-y: 0.924;
+}
+
+.inventory-view__grid {
+    --inventory-view-columns: var(--inventory-columns);
+    --slot-size: 35.1776394px; /* calc: var(--inventory-slot-base-size) * var(--inventory-slot-scale) */
+    --slot-grid-gap: 7.0815392px; /* calc: var(--inventory-slot-base-gap) * var(--inventory-slot-scale) */
+    --count-font-size: 12.337807px; /* calc: var(--inventory-count-base-font-size) * var(--inventory-slot-scale) */
+    --filled-face-inset: 1.565749px;
+    --face-inset-color: var(--inventory-slot-face-inset-color);
+    --icon-pad: 1px;
+    --count-bottom: -1px;
+    --count-letter-spacing: 12px; /* web: 0.12em。UITK の字間は字の大きさ/100 × 値なので em ×100（A-70） */
+    margin-top: 12px;
+    margin-left: -0.549px;
+}
+
+.equipment-hud {
+    position: absolute;
+    right: var(--equipment-right);
+    bottom: var(--equipment-bottom);
+    flex-direction: column;
+    min-width: var(--equipment-slot-size);
+    min-height: var(--equipment-slot-size);
+    --slot-size: var(--equipment-slot-size);
+}
+
+/* web: gap: var(--equipment-slot-gap)。USS に gap が無いので 2 枠目から上の余白で写す */
+/* web: gap: var(--equipment-slot-gap); USS has no gap, so slots after the first get a top margin */
+.equipment-hud__slot--after-first {
+    margin-top: var(--equipment-slot-gap);
+}
