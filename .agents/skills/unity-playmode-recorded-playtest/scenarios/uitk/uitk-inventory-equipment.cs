@@ -92,10 +92,12 @@ return PlaytestRunner.Run("uitk-inventory-equipment", new PlaytestRunOptions { R
         var selectedBefore = equipment.SelectedIndex;
         await p.ClickUi("equipment-slot-0");
         await p.Until(() => operations.ReadGrab().Count == 10 && operations.ReadSnapshot().Equipment[0].IsEmpty, 5f, "装備の枠の左押下で掴みに 10");
-        p.Assert(equipment.SelectedIndex == selectedBefore, $"装備の枠の押下で選択が変わらない ({selectedBefore} → {equipment.SelectedIndex})");
+        // 枠 1 のため選択は変わりようがなく録画では検証にならない。刻みと循環は EquipmentWheelFlowTest が見る
+        // With one slot the selection cannot change, so this is no check in the recording; steps and wrap are covered by EquipmentWheelFlowTest
+        p.Note($"装備の枠の押下後の選択 ({selectedBefore} → {equipment.SelectedIndex})。枠 1 のため録画では検証にならない");
         await p.ClickUi("equipment-slot-0");
         await p.Until(() => operations.ReadSnapshot().Equipment[0].Count == 10 && operations.ReadGrab().IsEmpty, 5f, "装備 0 番へ戻す");
-        // 6. ゲーム画面でホイール: ノッチは本番の流れに届くが、1 枠では選択も端数も動かない（Web も 1 枠以下は送らない）
+        // 6. ゲーム画面でホイール: ノッチは本番の流れに届く。1 枠では選択が動かず Note のみ（Web も 1 枠以下は送らない）
         // 6. Wheel on the game screen: notches reach the production stream, but one slot moves neither selection nor remainder (Web sends nothing either)
         await p.PressKey(Key.Tab);
         await p.WaitUiState(UIStateEnum.GameScreen, 15f);
@@ -179,20 +181,17 @@ return PlaytestRunner.Run("uitk-inventory-equipment", new PlaytestRunOptions { R
         var column = GameUiRoot.Instance.GetRootElement().Q<VisualElement>("stage-column-inv");
         return panel != null && column != null && column.Contains(panel) && panel.resolvedStyle.display == DisplayStyle.Flex && panel.worldBound.width > 0f;
     }
-    // ノッチを 1 つずつ別フレームで注入し、選択が 0 のまま・セレクタの端数が溜まらないことを見る
-    // Inject notches one frame apart and check selection stays 0 and the selector accumulates no remainder
+    // ノッチを 1 つずつ別フレームで注入する。枠 1 では選択も端数も動かず検証にならないので Note だけ残す（刻みと循環は EquipmentWheelFlowTest が見る）
+    // Inject notches one frame apart; with one slot selection and remainder cannot move so only a Note is kept (steps and wrap: EquipmentWheelFlowTest)
     async UniTask Wheel(int notches, string label)
     {
-        var selector = resolver.Resolve<EquipmentWheelSelector>();
         for (var i = 0; i < notches; i++)
         {
             SemanticInput.MouseWheel(-1f);
             await UniTask.DelayFrame(3);
         }
         await p.WaitSeconds(0.5f);
-        var remainder = (double)typeof(EquipmentWheelSelector).GetField("_remainder", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(selector);
-        p.Note($"{label}: SelectedIndex={equipment.SelectedIndex} 端数={remainder}");
-        p.Assert(equipment.SelectedIndex == 0 && remainder == 0d, $"{label}: 選択 0 のまま・端数 0（1 枠では累積もしない）");
+        p.Note($"{label}: SelectedIndex={equipment.SelectedIndex}。枠 1 のため録画では検証にならない");
     }
 
     #endregion
