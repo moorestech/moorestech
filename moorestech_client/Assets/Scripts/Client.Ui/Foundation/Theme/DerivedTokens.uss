@@ -162,4 +162,8 @@
     --research-action-width: auto; /* web: research .researchButton は幅の指定なし（置き場所の幅に従う）。S4-research が画面で上書きする */
     --research-action-height: auto; /* web: research .researchButton は高さの指定なし（padding 8px 0 と行の高さ normal）。S4-research が画面で上書きする */
     --recipe-list-gap: var(--recipe-entry-gap); /* web: RecipeListScrollArea の listGap。機械のレシピ選択は --machine-recipe-row-gap へ上書き */
+
+    /* S4-research: 研究ノードのロックの減光。Web .node[data-locked] の opacity をそのまま使う（半透明は Web の値で書く。設計書 A-52） */
+    /* S4-research: dimming of locked research nodes; uses the Web .node[data-locked] opacity as is (translucency is written with Web values; design A-52) */
+    --research-node-locked-opacity: 0.45; /* web: .node[data-locked] { opacity: 0.45 } */
 }
