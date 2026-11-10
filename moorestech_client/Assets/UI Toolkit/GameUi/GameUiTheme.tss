@@ -54,6 +54,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Decor/FadeRule/FadeRule.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Decor/HudSectionHeading/HudSectionHeading.uss");
 /* == section: Components/Recipe == */
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Recipe/RecipeRow/RecipeRow.uss");
 /* == section: Components/NodeGraph == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.uss");
 /* == section: Screens == */
