@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Components.Recipe
             // The edge is Web alpha 0.25 times coverage 0.5 as-is; the 2σ rim is 0.25 × Φ(-2) (about 0.0228), about one 8-bit step
             Assert.AreEqual(0.25f * 0.5f, vertices[0].tint.a / 255f, Tolerance);
             Assert.Greater(vertices[0].tint.a, 0, "glow core survives the 8-bit quantum");
-            Assert.AreEqual(0.25f * 0.02275f, vertices[outer].tint.a / 255f, Tolerance);
+            Assert.AreEqual(Mathf.RoundToInt(0.25f * 0.02275f * 255f), vertices[outer].tint.a, "glow rim stays at one 8-bit step, not 0");
             AssertIndicesInRange(indices, RecipeRowFrameShadowMesh.GlowVertexCount);
         }
 
@@ -57,7 +57,7 @@ namespace Client.Tests.Ui.Components.Recipe
             Assert.AreEqual(0.3f * 0.38291f, vertices[0].tint.a / 255f, Tolerance);
             Assert.Greater(vertices[0].tint.a, 0, "bracket shadow core survives the 8-bit quantum");
             Assert.AreEqual(0.3f * 0.34134f, vertices[RecipeRowFrameShadowMesh.RingCount / 2 * 4].tint.a / 255f, Tolerance);
-            Assert.AreEqual(0.3f * 0.0214f, vertices[outer].tint.a / 255f, Tolerance);
+            Assert.AreEqual(Mathf.RoundToInt(0.3f * 0.0214f * 255f), vertices[outer].tint.a, "bracket shadow rim stays at two 8-bit steps");
             CollectionAssert.AreEquivalent(new ushort[] { 0, 1, 2, 0, 2, 3 }, new[] { indices[0], indices[1], indices[2], indices[3], indices[4], indices[5] });
             AssertIndicesInRange(indices, RecipeRowFrameShadowMesh.BarShadowVertexCount);
         }

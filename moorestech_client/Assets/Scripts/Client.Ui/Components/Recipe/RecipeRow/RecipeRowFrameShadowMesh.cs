@@ -50,7 +50,7 @@ namespace Client.Ui.Components.Recipe
             for (var k = 0; k <= RingCount; k++)
             {
                 var fromEdge = Mathf.Max((2f * k / RingCount - 1f) * 2f * sigma, innerLimit);
-                WriteRing(vertices, k * 4, Grow(bar, fromEdge), Tint(shadowColor, BarCoverage(fromEdge, thickness, sigma)));
+                WriteRing(vertices, k * 4, Grow(bar, fromEdge), Tint(shadowColor, BarEdgeCoverage(fromEdge, thickness, sigma)));
             }
 
             // 輪 0 の内側は芯として輪 0 の濃さで塗る
@@ -61,11 +61,11 @@ namespace Client.Ui.Components.Recipe
             for (var k = 0; k < RingCount; k++) WriteBand(vertices, indices, ref cursor, k * 4);
         }
 
-        private static float BarCoverage(float fromEdge, float thickness, float sigma)
+        private static float BarEdgeCoverage(float fromEdge, float thickness, float sigma)
         {
-            // 細い棒は反対側の縁が σ の内にあるので、半無限の縁の被覆率から反対側の縁の分を引く（1px・σ 1px で芯 0.383）
-            // A thin bar's far edge lies within σ, so subtract the far edge from the half-plane coverage (0.383 at the core for 1px and σ 1px)
-            return GaussianEdgeCoverage.At(fromEdge, sigma) - GaussianEdgeCoverage.At(fromEdge + thickness, sigma);
+            // 細い棒は反対側の縁が σ の内にあるので、帯 [-太さ, 0] の被覆率で両縁の差を取る（1px・σ 1px で芯 0.383）
+            // A thin bar's far edge lies within σ, so take the two-edge difference as the coverage of the band [-thickness, 0] (0.383 at the core for 1px and σ 1px)
+            return GaussianEdgeCoverage.BandCoverage(fromEdge, -thickness, 0f, sigma);
         }
 
         private static Rect Grow(Rect rect, float distance)
