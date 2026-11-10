@@ -3,6 +3,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Panel;
@@ -33,6 +34,10 @@ namespace Client.Ui.Screens.Inventory.Equipment
             // The HUD's own anchor is always present; the column picks as real UI (Web pointer-events: auto)
             TutorialAnchor.Mark(this, AnchorIds.EquipmentHud);
             pickingMode = PickingMode.Position;
+
+            // 実 UI だがスクロールを持たないゲーム操作の場なので、ホイールだけ装備へ素通す（Web data-wheel-passthrough）
+            // Real UI without scrolling that belongs to the game, so only the wheel passes through to equipment (Web data-wheel-passthrough)
+            WheelPassthroughMark.Mark(this);
             SetShown(false);
         }
 
