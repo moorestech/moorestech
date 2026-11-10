@@ -18,6 +18,7 @@ namespace Client.Tests.Ui.State.Inventory
         private readonly SlotItem[] _main;
         private readonly SlotItem[] _equipment;
         private readonly Subject<Unit> _onGrabChanged = new();
+        private readonly Subject<Unit> _onSnapshotChanged = new();
         private SlotItem _grab = Empty;
 
         // 呼ばれた移動を「from→to x個」の文字で残す（grab は "Grab"）
@@ -25,6 +26,7 @@ namespace Client.Tests.Ui.State.Inventory
         public List<string> Moves { get; } = new();
         public List<string> Collects { get; } = new();
         public IObservable<Unit> OnGrabChanged => _onGrabChanged;
+        public IObservable<Unit> OnSnapshotChanged => _onSnapshotChanged;
 
         public RecordingPlayerInventoryOperations(int mainSlotCount, int equipmentSlotCount)
         {
@@ -37,11 +39,20 @@ namespace Client.Tests.Ui.State.Inventory
         public void SetMain(int slot, SlotItem item)
         {
             _main[slot] = item;
+            _onSnapshotChanged.OnNext(Unit.Default);
         }
 
         public void SetEquipment(int slot, SlotItem item)
         {
             _equipment[slot] = item;
+            _onSnapshotChanged.OnNext(Unit.Default);
+        }
+
+        // 選択 Fake を本番と同じ 1 本の合図へ繋ぐ
+        // Wires the selection fake to one signal as in production
+        public void RaiseSnapshotChanged()
+        {
+            _onSnapshotChanged.OnNext(Unit.Default);
         }
 
         public void SetGrab(SlotItem item)
@@ -115,6 +126,7 @@ namespace Client.Tests.Ui.State.Inventory
                 writeSource(rest <= 0 ? Empty : new SlotItem(source.ItemId, rest));
             }
             _onGrabChanged.OnNext(Unit.Default);
+            _onSnapshotChanged.OnNext(Unit.Default);
             return PlayerItemMoveOutcome.Moved;
         }
 

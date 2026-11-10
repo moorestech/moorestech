@@ -19,11 +19,19 @@ namespace Client.Ui.State.Inventory.Actions
         private readonly LocalPlayerEquipment _equipment;
 
         public IObservable<Unit> OnGrabChanged => _controller.OnGrabChanged;
+        public IObservable<Unit> OnSnapshotChanged { get; private set; }
 
         public LocalPlayerInventoryOperations(LocalPlayerInventoryController controller, LocalPlayerEquipment equipment)
         {
             _controller = controller;
             _equipment = equipment;
+
+            // スロット単位の変化・まとめての差し替え・装備の中身と選択の 3 つを 1 本にする（Web ホスト InventoryTopic と同じ源）
+            // Merge per-slot changes, bulk refreshes and equipment contents/selection into one stream (same sources as the Web host InventoryTopic)
+            OnSnapshotChanged = Observable.Merge(
+                controller.LocalPlayerInventory.OnItemChange.AsUnitObservable(),
+                controller.OnInventoryRefreshed,
+                equipment.OnSlotsOrSelectionChanged);
         }
 
         public PlayerInventorySnapshot ReadSnapshot()

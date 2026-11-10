@@ -4052,6 +4052,11 @@ git merge origin/feature/uitk
 | D-30 | `InventoryView` の列数は `bool _columnsResolved` で未解決を表し、解決済みで 1 未満なら `LogError` して当てない（fail-closed）。出所: moores-code-review（core-any-implicit-value-meaning） | 既定値 0 を「未解決」の印に流用すると、トークンを 0・負に誤記したときも未解決と同じ枝に落ち、`UssCustomStyleReader` は欠けしか `LogError` しないので 36 枠が黙って 1 列に並ぶ | `_columns <= 0` を未解決として黙って戻す（旧案）: 誤記が無音で 1 列になる |
 | D-31 | 録画の「Error ログ 0 件」は前例 `train-timetable-via-ui.cs` の `Application.logMessageReceived` の計数＋`p.Assert` で主張し、計数の無い `uitk-grab-overlay` は `result.json` の `ErrorLogs` を `done.md` で読む。DI の型は `ClientDIContext.DIContainer.DIContainerResolver` から引く。出所: moores-code-review（Fable Info） | DSL に `AssertNoErrorLogs` は無く、`PlaytestRunner` は `ErrorLogs` を集めるだけで成否に効かない | 「`AssertNoErrorLogs` 相当」のまま: 実装者が存在しない API を探すか、Error を見ずに PASS にする |
 | D-32 | D-5 と処分表 219 行を D-28（世代の巻き戻りの分岐は写さない）に合わせ、存在しない `EquipmentWheelSelectorTest` の「巻き戻り」の件への言及を消した。出所: moores-code-review（bug-pass） | D-28 の反映が D-5・219 行に追随しておらず、実装者が D-5 を正として分岐を戻す、または無いテストを探して止まる | — |
+| D-33 | S3-hotbar-modal が未マージ（ブランチも無し）のまま Task 9 に来たので、`WheelPassthroughMark` を計画の API どおりこのレーンが先に作り、ホットバーに依存する Web テスト 2 件は S3-hotbar-modal へ回送した（bd moorestech-albof.47）。出所: agent 既定（実行時） | このレーンはクリティカルパス上で、待つと後続 3 レーンが止まる。API は設計書 A-109 と同じなので S3-hotbar-modal は呼ぶだけで済む | 指揮へ返して待つ: クリティカルパスが止まる |
+| D-34 | 装備 HUD の `--slot-frame-face` の上書き（R-11）を入れない。出所: agent 既定（実行時） | I-blend（#1636）で UI が sRGB 合成になり、Linear 補正のためのホットバー用トークンの前提が消えた。並べ比べで空き枠の面が Web と同じ式（rgba(50,52,67,0.5)）と確かめた | 上書きを入れる: 前提のトークンが無い |
+| D-35 | 実ゲームの装備の枠はマスタで 1 なので、録画ではホイールの刻み・循環を主張せず Note に落とし、刻みと循環は `EquipmentWheelFlowTest` が見る。出所: agent 既定（タスクレビュー） | 枠 1 では選択が動きようがなく、主張が常に真になる | 2 枠のマスタを用意する: DSL に口が無くスコープ外 |
+| D-36 | ホイールを止める前面の層の判定を `EquipmentWheelGate` の UiScreen 直書きから `Client.Ui.State/Routing/` の共有判定（Web `deriveActiveLayer` の写し）へ移した。出所: moores-code-review（C5・設計判断 D1 の案B。agent 既定） | 2 人目の利用者（ホットバー）が書き写さずに済む | `UiScreenTraits` に列を足す（案A）: 計画の「traits は変えない」と並走レーンの共有ファイルに触れる。integrator 依頼へ |
+| D-37 | 装備のホイールの刻みは Web 本番どおり（60px/ノッチ・100px で 1 段＝1 ノッチ目では進まない）を保つ。出所: moores-code-review（設計判断 D3 の案A。agent 既定） | ゴール「WebUI と同じ操作」 | 1 ノッチ＝1 段: Web と操作が変わる |
 
 ---
 
