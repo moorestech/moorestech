@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Ui.State.Research.Logic;
 using Core.Master;
 using Game.Block.Interface.MachineUpgrade;
@@ -14,9 +15,23 @@ namespace Client.Ui.State.Research.Catalog
     /// </summary>
     public static class ResearchUnlockSetFromMaster
     {
+        // Append の switch が case を持つ表示 8 種。網羅テストが全 GameActionType との突き合わせに使う
+        // The eight shown kinds that Append's switch has cases for; the coverage test reconciles them with every GameActionType
+        internal static readonly IReadOnlyCollection<string> DisplayedGameActionTypes = new HashSet<string>
+        {
+            GameActionElement.GameActionTypeConst.giveItem,
+            GameActionElement.GameActionTypeConst.unlockItemRecipeView,
+            GameActionElement.GameActionTypeConst.unlockBlock,
+            GameActionElement.GameActionTypeConst.unlockMachineRecipe,
+            GameActionElement.GameActionTypeConst.unlockConnectTool,
+            GameActionElement.GameActionTypeConst.unlockTrainCar,
+            GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel,
+            GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel,
+        };
+
         // 解放はされるが研究画面に出さない種別（Web の ResearchUnlockGameActionCoverageTest の非表示台帳と同じ 7 種）
         // Kinds unlocked but not shown on the research screen (same seven as the Web ResearchUnlockGameActionCoverageTest hidden ledger)
-        private static readonly HashSet<string> HiddenGameActionTypes = new()
+        internal static readonly IReadOnlyCollection<string> HiddenGameActionTypes = new HashSet<string>
         {
             GameActionElement.GameActionTypeConst.unlockCraftRecipe,
             GameActionElement.GameActionTypeConst.unlockChallengeCategory,
