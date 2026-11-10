@@ -38,7 +38,7 @@ namespace Client.Ui.Components.Recipe
                 WriteRing(vertices, k * 4, Grow(borderBox, distance), Tint(glowColor, GaussianEdgeCoverage.At(distance, sigma)));
             }
             var cursor = 0;
-            for (var k = 0; k < RingCount; k++) WriteBand(vertices, indices, ref cursor, k * 4);
+            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, RingCount, 4);
         }
 
         public static void BuildBarShadow(Rect bar, float sigma, Color shadowColor, Vertex[] vertices, ushort[] indices)
@@ -56,9 +56,9 @@ namespace Client.Ui.Components.Recipe
             // 輪 0 の内側は芯として輪 0 の濃さで塗る
             // The inside of ring 0 fills as the core at ring 0's alpha
             var cursor = 0;
-            WriteClockwise(vertices, indices, ref cursor, 0, 1, 2);
-            WriteClockwise(vertices, indices, ref cursor, 0, 2, 3);
-            for (var k = 0; k < RingCount; k++) WriteBand(vertices, indices, ref cursor, k * 4);
+            ShadowRingMeshWriter.WriteClockwise(vertices, indices, ref cursor, 0, 1, 2);
+            ShadowRingMeshWriter.WriteClockwise(vertices, indices, ref cursor, 0, 2, 3);
+            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, RingCount, 4);
 
             #region Internal
 
@@ -92,34 +92,6 @@ namespace Client.Ui.Components.Recipe
             vertices[first + 1] = new Vertex { position = new Vector3(rect.xMax, rect.yMin, Vertex.nearZ), tint = tint };
             vertices[first + 2] = new Vertex { position = new Vector3(rect.xMax, rect.yMax, Vertex.nearZ), tint = tint };
             vertices[first + 3] = new Vertex { position = new Vector3(rect.xMin, rect.yMax, Vertex.nearZ), tint = tint };
-        }
-
-        private static void WriteBand(Vertex[] vertices, ushort[] indices, ref int cursor, int innerFirst)
-        {
-            // 隣り合う輪の同じ辺を四角で結ぶ
-            // Join the same side of neighbouring rings with a quad
-            for (var side = 0; side < 4; side++)
-            {
-                var innerFrom = (ushort)(innerFirst + side);
-                var innerTo = (ushort)(innerFirst + (side + 1) % 4);
-                var outerFrom = (ushort)(innerFrom + 4);
-                var outerTo = (ushort)(innerTo + 4);
-                WriteClockwise(vertices, indices, ref cursor, innerFrom, outerTo, innerTo);
-                WriteClockwise(vertices, indices, ref cursor, innerFrom, outerFrom, outerTo);
-            }
-        }
-
-        private static void WriteClockwise(Vertex[] vertices, ushort[] indices, ref int cursor, ushort a, ushort b, ushort c)
-        {
-            // 時計回り（y 下向き）の順で書く（前例 ProgressArrowGlyphShadowMesh と同じ判定）
-            // Write in clockwise order (y down), with the same test as the ProgressArrowGlyphShadowMesh precedent
-            var pa = vertices[a].position;
-            var pb = vertices[b].position;
-            var pc = vertices[c].position;
-            var clockwise = 0f < (pb.x - pa.x) * (pc.y - pa.y) - (pb.y - pa.y) * (pc.x - pa.x);
-            indices[cursor++] = a;
-            indices[cursor++] = clockwise ? b : c;
-            indices[cursor++] = clockwise ? c : b;
         }
     }
 }
