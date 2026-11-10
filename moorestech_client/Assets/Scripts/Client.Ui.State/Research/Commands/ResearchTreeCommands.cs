@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Ui.State.Research.Commands
 {
     /// <summary>
-    /// 研究ツリーの操作の本番。研究の実行は Web の橋 research.complete と同じ API と状態の反映をする
-    /// Production research tree operations; running research uses the same API and state application as the Web bridge research.complete
+    /// 研究ツリー操作の本番実装
+    /// Production research tree operations
     /// </summary>
     public sealed class ResearchTreeCommands : IResearchTreeCommands
     {
@@ -37,8 +37,8 @@ namespace Client.Ui.State.Research.Commands
 
         public async UniTask<UiCommandResult> CompleteResearch(Guid researchGuid)
         {
-            // 応答なしは失敗。前の状態のまま次の取り直しに任せる
-            // No response is a failure; keep the previous states for the next refetch
+            // 応答なしは失敗として扱う
+            // No response is a failure
             var response = await ClientContext.VanillaApi.Response.Progression.CompleteResearch(researchGuid, CancellationToken.None);
             if (response == null)
             {
@@ -46,8 +46,8 @@ namespace Client.Ui.State.Research.Commands
                 return new UiCommandRejected(UiCommandRejectReason.ResearchFailed, "");
             }
 
-            // 成否に関わらず応答の全状態を入れ、表示をサーバーの正へ寄せる
-            // Apply the full response states whether or not it succeeded, converging the display to the server truth
+            // 応答の全状態を反映
+            // Apply all response states
             _store.ApplyNodeStates(response.NodeState.ToDictionary());
             return response.Success ? UiCommandAccepted.Instance : new UiCommandRejected(UiCommandRejectReason.ResearchFailed, "");
         }

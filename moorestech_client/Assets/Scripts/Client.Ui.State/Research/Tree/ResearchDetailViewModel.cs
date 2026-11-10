@@ -6,8 +6,8 @@ using Core.Master;
 namespace Client.Ui.State.Research.Tree
 {
     /// <summary>
-    /// 選択ノードの詳細（研究ボタンの状態・消費アイテムの割当・解放物）
-    /// Details of the selected node (research button state, consume allocation, unlocks)
+    /// 選択ノードの詳細
+    /// Details of the selected node
     /// </summary>
     public sealed class ResearchDetailViewModel
     {
@@ -26,8 +26,8 @@ namespace Client.Ui.State.Research.Tree
     }
 
     /// <summary>
-    /// 消費アイテム 1 枠（必要数・割り当てた所持数・不足）。UITK には所持数の未受信が無いので割当は常にある（A-13）
-    /// One consume slot (required, allocated owned count, shortage); UITK has no unreceived inventory, so the allocation always exists (A-13)
+    /// 消費アイテム1枠（必要数・割当・不足）
+    /// One consume slot (required, allocated, short)
     /// </summary>
     public sealed class ResearchConsumeSlotViewModel
     {

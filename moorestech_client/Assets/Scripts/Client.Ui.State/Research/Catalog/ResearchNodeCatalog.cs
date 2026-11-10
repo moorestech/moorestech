@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Client.Ui.State.Research.Catalog
 {
     /// <summary>
-    /// 研究ノードの定義の列。マスタはゲーム中に変わらないので生成時に 1 回だけ組む
-    /// The list of research node definitions; the master never changes in play, so it is built once at construction
+    /// 研究ノード定義の列。生成時に1回組む
+    /// Research node definitions, built once
     /// </summary>
     public sealed class ResearchNodeCatalog
     {

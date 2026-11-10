@@ -6,8 +6,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Research.Tree
 {
     /// <summary>
-    /// 研究ツリーの選択を持つ。画面を離れたら捨てる（Web はパネルのアンマウントで選択が消える）
-    /// Holds the research tree selection and drops it on leaving the screen (the Web loses it when the panel unmounts)
+    /// 研究ツリーの選択（離れたら捨てる）
+    /// Research tree selection (dropped on leaving)
     /// </summary>
     public sealed class ResearchSelectionStore : IInitializable
     {

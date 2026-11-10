@@ -29,8 +29,8 @@ namespace Client.Ui.State.Research.Tree
             return _hasNode && _guid == guid;
         }
 
-        // 同じノードの再タップで閉じる（Web の toggleSelect）
-        // Tapping the same node again closes it (the Web toggleSelect)
+        // 同じノードの再タップで閉じる
+        // Tapping the same node closes it
         public ResearchSelection Toggled(Guid guid)
         {
             return Is(guid) ? None : Of(guid);

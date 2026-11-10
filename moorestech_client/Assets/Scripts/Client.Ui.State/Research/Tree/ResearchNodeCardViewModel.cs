@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Ui.State.Research.Tree
 {
     /// <summary>
-    /// 研究ノードのカード 1 枚の表示（4 状態・状態ラベル・選択）
-    /// Display of one research node card (four states, state label, selection)
+    /// 研究ノードのカード1枚の表示
+    /// Display of one research node card
     /// </summary>
     public sealed class ResearchNodeCardViewModel
     {

@@ -14,8 +14,8 @@ namespace Client.Ui.Screens.Research.Parts
     }
 
     /// <summary>
-    /// 解放物の種類 → 節（見出し・testid・枠の列で包むか）の唯一の表（Web UnlockSections の SECTIONS）
-    /// The single table from unlock kind to section (heading, testid, whether it wraps in a slots row); the Web UnlockSections SECTIONS
+    /// 解放物の種類→節の唯一の表
+    /// Single table from unlock kind to section
     /// </summary>
     public static class ResearchUnlockSectionKinds
     {

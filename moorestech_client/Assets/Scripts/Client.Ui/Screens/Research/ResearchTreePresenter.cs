@@ -13,8 +13,8 @@ using VContainer.Unity;
 namespace Client.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究エリアを起動時に 1 回 OverlayPanel 層へ載せ、経路で表示し Model で描く
-    /// Mounts the research area once into the OverlayPanel layer, shows it by routing and draws it from the Model
+    /// 研究エリアの登録・表示・描画
+    /// Mounts, shows and draws the research area
     /// </summary>
     public sealed class ResearchTreePresenter : IInitializable
     {

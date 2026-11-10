@@ -17,8 +17,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究画面の L1 の共通の材料（テスト mod のマスタ・Content・5 状態の木・1 ノードの詳細）
-    /// Shared material for research screen L1 tests (test mod master, Content, a five-state tree, single-node details)
+    /// 研究画面L1の共通材料
+    /// Shared material for research L1 tests
     /// </summary>
     internal static class ResearchScreenTestKit
     {
@@ -38,8 +38,8 @@ namespace Client.Tests.Ui.Screens.Research
 
         public static GameContentPresentation LoadMasterAndContent(Texture2D texture)
         {
-            // 名前と絵は ID から引くので、マスタはテスト mod、テクスチャは手元の 1 枚
-            // Names and pictures resolve from ids, so the master is the test mod and the texture a local one
+            // 名前と絵はIDから引く
+            // Names and pictures resolve from ids
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             return new GameContentPresentation(new FakeContentTextureSource(texture, texture, texture));
         }
@@ -67,8 +67,8 @@ namespace Client.Tests.Ui.Screens.Research
             return ResearchTreeViewModelFactory.Create(definitions, states, new Dictionary<ItemId, int>(), selection);
         }
 
-        // 1 ノードの詳細。消費は ItemId1 を 3 個（ItemId2 を上位レベルとして受け付ける）
-        // Single-node details; consumes 3 of ItemId1 (accepting ItemId2 as the higher level)
+        // 1ノードの詳細（消費はItemId1を3個）
+        // Single-node details (3 of ItemId1)
         public static ResearchDetailViewModel Detail(ResearchNodeState state, int ownedItem1, int ownedItem2, ResearchUnlockSet unlocks)
         {
             var consume = new List<ResearchConsumeItem> { new(ForUnitTestItemId.ItemId1, 3, new List<ItemId> { ForUnitTestItemId.ItemId1, ForUnitTestItemId.ItemId2 }) };
@@ -97,8 +97,8 @@ namespace Client.Tests.Ui.Screens.Research
             return new ResearchUnlockSet(blocks, machineRecipes, itemRecipeViews, rewards, connectTools, trainCars, moduleSlotLimits, craftCaps);
         }
 
-        // テスト mod の研究の解放物をそのまま引く（ブロック・接続ツール等の GUID を捏造しない）
-        // Take a test mod research's unlocks as they are (no fabricated block or tool GUIDs)
+        // テストmodの解放物をそのまま引く
+        // Take test mod unlocks as they are
         public static ResearchUnlockSet MasterUnlocks(Guid researchGuid)
         {
             return ResearchNodeDefinitionsFromMaster.Build().Single(node => node.Guid == researchGuid).Unlocks;

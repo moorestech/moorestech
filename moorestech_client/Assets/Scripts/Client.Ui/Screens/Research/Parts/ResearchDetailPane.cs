@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// 選択ノードの詳細ペイン（Web ResearchDetailPane）。パン・ズームに追従しない
-    /// Detail pane of the selected node (Web ResearchDetailPane); unaffected by pan and zoom
+    /// 選択ノードの詳細ペイン
+    /// Detail pane of the selected node
     /// </summary>
     public sealed class ResearchDetailPane : VisualElement
     {
@@ -46,8 +46,8 @@ namespace Client.Ui.Screens.Research.Parts
             header.Add(_name);
             header.Add(CloseButton());
 
-            // 見出しとボタンの間だけスクロールさせ、研究ボタンを常に見せる
-            // Scroll only between header and button so the research button stays visible
+            // 見出しとボタンの間だけスクロール
+            // Scroll only between header and button
             _scroll = new GameScrollView("research-detail-scroll");
             _scroll.AddToClassList("research-tree__detail-scroll");
             var scrollContent = new VisualElement();
@@ -71,8 +71,8 @@ namespace Client.Ui.Screens.Research.Parts
 
             #region Internal
 
-            // 閉じるは素の要素とクリックで作る（Unity の Button の既定の見た目を持ち込まない）
-            // Close is a plain element with a click (keeps Unity Button default styling out)
+            // 閉じるは素の要素＋クリック
+            // Close is a plain element with a click
             VisualElement CloseButton()
             {
                 var close = new VisualElement { name = "research-detail-close" };

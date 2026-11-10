@@ -48,8 +48,8 @@ namespace Client.Tests.Ui.Screens.Research
             var pane = MountInArea(ManyItemUnlocks(60));
             var scroll = Find<GameScrollView>(pane, "research-detail-scroll");
 
-            // ペインは置き場の上下 12 の内側で止まり、溢れた分は説明の領域が持つ
-            // The pane stops inside the host's 12px top/bottom and the overflow belongs to the scroll
+            // ペインは置き場の内側で止まる
+            // The pane stops inside the host
             Assert.AreEqual(AreaHeight - 24f, pane.layout.height, 0.5f);
             Assert.Greater(scroll.GetContentHeight(), scroll.GetViewportHeight() + 1f, "content overflows the viewport");
             Assert.Greater(scroll.GetViewportHeight(), 0f);
@@ -82,8 +82,8 @@ namespace Client.Tests.Ui.Screens.Research
             var scroll = Find<GameScrollView>(pane, "research-detail-scroll");
             Assert.AreEqual(DisplayStyle.Flex, scroll.verticalScroller.resolvedStyle.display, "vertical bar shown");
 
-            // バーは本文に重なり、逃げの padding の内側が 253 のまま
-            // The bar overlays the content and the inside of the bleed padding stays 253
+            // バーは本文に重なる
+            // The bar overlays the content
             var scrollContent = scroll.contentContainer.Children().Single();
             Assert.AreEqual(BodyContentWidth, scrollContent.contentRect.width, 0.5f);
             var button = Find<RecipeActionButton>(pane, $"research-button-{Kit.Researchable}");

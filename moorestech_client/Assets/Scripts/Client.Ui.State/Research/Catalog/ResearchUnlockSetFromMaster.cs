@@ -9,8 +9,8 @@ using Mooresmaster.Model.ResearchModule;
 namespace Client.Ui.State.Research.Catalog
 {
     /// <summary>
-    /// 研究の完了アクションから、詳細ペインに出す解放物 8 種を抜き出す（Web の ResearchNodeDtoFactory と同じ集合）
-    /// Extracts the eight unlock kinds shown in the detail pane from a research's cleared actions (same set as the Web ResearchNodeDtoFactory)
+    /// 完了アクションから解放物8種を抜く
+    /// Extracts eight unlock kinds from actions
     /// </summary>
     public static class ResearchUnlockSetFromMaster
     {
@@ -65,8 +65,8 @@ namespace Client.Ui.State.Research.Catalog
                         trainCars.AddRange(car.UnlockTrainCarGuids);
                         break;
                     case UnlockModuleSlotStackLevelGameActionParam moduleSlot:
-                        // レベルでなく、プレイヤーが読む上限値で運ぶ
-                        // Carry the limit value the player reads, not the level
+                        // 上限値で運ぶ
+                        // Carry the limit value
                         moduleSlotLimits.Add(ModuleSlotStackLimitMasterUtil.GetStackLimit(moduleSlot.Level));
                         break;
                     case UnlockLevelInheritanceCraftLevelGameActionParam craftCap:

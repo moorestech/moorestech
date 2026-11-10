@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Ui.State.Research.Catalog
 {
     /// <summary>
-    /// 研究マスタの全ノードを定義へ写す（Web の橋 ResearchNodeDtoFactory と同じ読み方。ただし橋と違い台帳外の解放種別は例外で止める）
-    /// Copies every research master node into a definition (same reading as the Web bridge ResearchNodeDtoFactory, but unlike the bridge it throws on unlisted unlock types)
+    /// マスタの全ノードを定義へ写す
+    /// Copies every master node into a definition
     /// </summary>
     public static class ResearchNodeDefinitionsFromMaster
     {
@@ -33,8 +33,8 @@ namespace Client.Ui.State.Research.Catalog
                 return new ResearchNodeDefinition(master.ResearchNodeGuid, iconItemId, position, previous, ConsumeItemsOf(master), ResearchUnlockSetFromMaster.Build(master));
             }
 
-            // 消費アイテムは上位レベルで代替できる ID 群ごと運ぶ（割当の 2 パスが読む）
-            // Consume items carry the higher-level substitutes too (the two-pass allocation reads them)
+            // 消費は上位代替のID群ごと運ぶ
+            // Consume items carry substitutes too
             IReadOnlyList<ResearchConsumeItem> ConsumeItemsOf(ResearchNodeMasterElement master)
             {
                 var items = new List<ResearchConsumeItem>(master.ConsumeItems.Length);

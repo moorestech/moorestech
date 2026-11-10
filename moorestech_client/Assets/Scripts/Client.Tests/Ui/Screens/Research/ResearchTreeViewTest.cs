@@ -15,13 +15,13 @@ using Kit = Client.Tests.Ui.Screens.Research.ResearchScreenTestKit;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究エリアの描画・カードの 4 状態・エリアの寸法・選択で開閉する詳細・進捗 HUD との層の順序（L1）
-    /// Research area rendering, the four card states, area geometry, selection-driven details and layer order against the progress HUD (L1)
+    /// 研究エリアの描画・選択・層順（L1）
+    /// Research area draw, selection, layers (L1)
     /// </summary>
     public class ResearchTreeViewTest : ScreenTestHost
     {
-        // Web の持ち物の幅（--inventory-panel-width）と列の間隔（--stage-column-gap）
-        // Web inventory width (--inventory-panel-width) and column gap (--stage-column-gap)
+        // Webの持ち物幅と列間隔
+        // Web inventory width and column gap
         private const float InventoryPanelWidth = 473.891247f;
         private const float StageColumnGap = 16f;
 
@@ -39,8 +39,8 @@ namespace Client.Tests.Ui.Screens.Research
             _content = Kit.LoadMasterAndContent(_texture);
             _commands = new RecordingResearchTreeCommands();
 
-            // 本番と同じ層（OverlayPanel・Stage）へ、描いてから載せる
-            // Render first, then mount on the production layer (OverlayPanel, Stage)
+            // 本番と同じ層へ載せる
+            // Mount on the production layer
             _view = new ResearchTreeView(_commands, _content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _view.Render(Kit.Tree(ResearchSelection.None));
             _view.SetShown(true);
@@ -82,8 +82,8 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.AreEqual(locked, card.ClassListContains("research-tree__card--locked"), "locked");
             Assert.AreEqual(stateLabel, Find<Label>(rootVisualElement, $"research-node-state-{guid}").text);
 
-            // ロックだけ減光する（値は Task 11 で決めたトークン）
-            // Only locked cards dim (the value is the token settled in Task 11)
+            // ロックだけ減光する
+            // Only locked cards dim
             Assert.AreEqual(locked, card.resolvedStyle.opacity < 1f, "opacity");
         }
 
@@ -117,8 +117,8 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.AreEqual(stage.yMin, area.yMin, 1.5f, "top");
             Assert.AreEqual(stage.yMax, area.yMax, 1.5f, "bottom");
 
-            // エリアの根は拾わず、持ち物の側（エリアの左）はエリアに奪われない
-            // The area root does not pick, so the inventory side (left of the area) is not taken by it
+            // 持ち物側はエリアに奪われない
+            // Inventory side is not taken
             Assert.AreEqual(PickingMode.Ignore, Find<VisualElement>(rootVisualElement, "research-tree").pickingMode);
             Assert.IsNull(rootVisualElement.panel.Pick(new Vector2(area.xMin - 20f, area.center.y))?.GetFirstAncestorOfType<ResearchTreeView>());
         }
@@ -161,8 +161,8 @@ namespace Client.Tests.Ui.Screens.Research
         [Test]
         public void 採掘の進捗バーは研究エリアより上の層にあり研究エリアに遮られない()
         {
-            // 本番の ProgressHudPresenter と同じ層（Chrome・Viewport）に本物の進捗 HUD を出す
-            // Show the real progress HUD on the production layer (Chrome, Viewport) as ProgressHudPresenter does
+            // 本番と同じ層に進捗HUDを出す
+            // Show progress HUD on the production layer
             var progress = new ProgressHudView();
             progress.SetShown(true);
             _layers.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(progress);

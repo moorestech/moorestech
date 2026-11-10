@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// 消費アイテムの節。所持/必要と不足を枠へ渡す（Web ResearchDetailPane の consume）
-    /// Consume items section; passes owned/required and shortage to the slots (Web ResearchDetailPane consume)
+    /// 消費アイテムの節（所持/必要・不足）
+    /// Consume items section (owned/required)
     /// </summary>
     public sealed class ResearchConsumeItemsSection : VisualElement
     {
@@ -55,8 +55,8 @@ namespace Client.Ui.Screens.Research.Parts
 
             #region Internal
 
-            // 不足は枠の強調と所持/必要の赤で示し、ツールチップは名前と所持・必要
-            // Shortage shows as the frame highlight and red owned/required; the tooltip lists name, owned and required
+            // 不足は枠の強調と赤で示す
+            // Shortage shows as highlight and red
             ItemSlotContent ContentOf(ResearchConsumeSlotViewModel slot)
             {
                 var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.ResearchConsumeItem, _content.ItemName(slot.ItemId).Resolve(), slot.Required, slot.Allocated);

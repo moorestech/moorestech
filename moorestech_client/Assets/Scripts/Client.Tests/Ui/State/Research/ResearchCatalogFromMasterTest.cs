@@ -15,8 +15,8 @@ using Tests.Module.TestMod;
 namespace Client.Tests.Ui.State.Research
 {
     /// <summary>
-    /// 研究マスタから静的な定義と解放物 8 種を写す（テスト mod）
-    /// Copies static definitions and the eight unlock kinds from the research master (test mod)
+    /// 研究マスタから定義と解放物を写す
+    /// Copies definitions and unlocks from master
     /// </summary>
     public class ResearchCatalogFromMasterTest
     {
@@ -38,8 +38,8 @@ namespace Client.Tests.Ui.State.Research
         {
             var nodes = ResearchNodeDefinitionsFromMaster.Build();
 
-            // マスタの件数と同じで、前提の GUID もそのまま写る
-            // Same count as the master, and prerequisite GUIDs carry over as they are
+            // マスタ件数・前提GUIDが一致
+            // Count and prerequisite GUIDs match
             Assert.AreEqual(MasterHolder.ResearchMaster.GetAllResearches().Count, nodes.Count);
             var second = nodes.Single(node => node.Guid == SecondResearch);
             CollectionAssert.AreEqual(new[] { FirstResearch }, second.PreviousGuids);
@@ -54,8 +54,8 @@ namespace Client.Tests.Ui.State.Research
             Assert.IsNotEmpty(unlocks.MachineRecipes);
             Assert.IsNotEmpty(unlocks.ConnectToolGuids);
             Assert.IsNotEmpty(unlocks.TrainCarGuids);
-            // 機械レシピはアイテムか液体の出力を少なくとも 1 つ運ぶ
-            // A machine recipe carries at least one item or fluid output
+            // 出力を1つ以上運ぶ
+            // Carries at least one output
             var recipe = unlocks.MachineRecipes[0];
             Assert.Greater(recipe.OutputItemIds.Count + recipe.OutputFluids.Count, 0);
         }
@@ -103,8 +103,8 @@ namespace Client.Tests.Ui.State.Research
 
         private static void AssertSameUnlocks(ResearchNodeDto dto, ResearchUnlockSet unlocks, string label)
         {
-            // 8 種を種類ごとに同じ並び・同じ値で比べる
-            // Compare all eight kinds in the same order with the same values
+            // 8種を同値で比べる
+            // Compare all eight kinds
             CollectionAssert.AreEqual(dto.RewardItems.Select(r => Join(r.ItemId, r.Count)), unlocks.RewardItems.Select(r => Join(r.ItemId.AsPrimitive(), r.Count)), $"{label} reward");
             CollectionAssert.AreEqual(dto.UnlockItemRecipeViewItemIds, unlocks.ItemRecipeViewItemIds.Select(id => id.AsPrimitive()), $"{label} itemRecipeView");
             CollectionAssert.AreEqual(dto.UnlockBlocks.Select(b => b.BlockId), unlocks.Blocks.Select(b => b.BlockId.AsPrimitive()), $"{label} block");

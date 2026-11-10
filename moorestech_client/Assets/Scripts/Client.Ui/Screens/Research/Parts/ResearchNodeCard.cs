@@ -14,8 +14,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// 研究ノードのカード 1 枚（Web ResearchNodeCard）。押下はカードの根だけが受け、NodeGraphView のタップとパンに渡す
-    /// One research node card (Web ResearchNodeCard); only the card root takes presses, handing them to NodeGraphView tap and pan
+    /// 研究ノードのカード1枚
+    /// One research node card
     /// </summary>
     public sealed class ResearchNodeCard : VisualElement
     {
@@ -29,8 +29,8 @@ namespace Client.Ui.Screens.Research.Parts
             name = $"research-node-{key}";
             AddToClassList("research-tree__card");
 
-            // 名前・アイコン・状態ラベル・選択の輪を縦に積む
-            // Stack name, icon, state label and the selection ring
+            // 名前・アイコン・状態を縦に積む
+            // Stack name, icon and state
             _name = new LocalizedLabel();
             _name.AddToClassList("research-tree__card-name");
             _icon = new ItemSlot($"research-node-icon-{key}");
@@ -53,8 +53,8 @@ namespace Client.Ui.Screens.Research.Parts
 
         public void Render(ResearchNodeCardViewModel card, GameContentPresentation content)
         {
-            // 4 状態と選択は修飾クラス（Web の data 属性）
-            // The four states and the selection are modifier classes (the Web data attributes)
+            // 4状態と選択は修飾クラス
+            // States and selection are modifier classes
             EnableInClassList("research-tree__card--completed", card.CardState.Completed);
             EnableInClassList("research-tree__card--ready", card.CardState.Ready);
             EnableInClassList("research-tree__card--locked", card.CardState.Locked);

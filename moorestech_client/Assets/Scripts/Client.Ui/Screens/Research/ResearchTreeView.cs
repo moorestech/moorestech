@@ -16,8 +16,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究エリア（Web ResearchTreePanel）。常駐の NodeGraphView にカードを使い回して渡し、選択があれば詳細ペインを浮かべる
-    /// The research area (Web ResearchTreePanel); hands reused cards to a resident NodeGraphView and floats the detail pane while selected
+    /// 研究エリア（カード＋詳細ペイン）
+    /// Research area (cards + detail pane)
     /// </summary>
     public sealed class ResearchTreeView : VisualElement
     {
@@ -34,12 +34,12 @@ namespace Client.Ui.Screens.Research
             name = "research-tree";
             AddToClassList("research-tree");
             pickingMode = PickingMode.Ignore;
-            // left の calc は要素ごとに 1 回だけ登録する（コールバックが重なるため）
-            // Register the left calc once per element (callbacks would stack)
+            // leftのcalcは要素ごとに1回登録
+            // Register the left calc once per element
             ResearchCalcKnobs.ApplyAreaLeft(this);
 
-            // 題「研究」のパネルとツリー。タップは選択の切り替えへ
-            // The "Research" panel and the tree; taps toggle the selection
+            // パネルとツリー。タップで選択切替
+            // Panel and tree; taps toggle selection
             var panel = new GamePanel("research-panel", GamePanelFrame.Default);
             panel.AddToClassList("research-tree__panel");
             panel.SetTitle(new UiText(LocalizationKeys.Ui.Research.Title));
@@ -49,8 +49,8 @@ namespace Client.Ui.Screens.Research
             panel.Add(_graph);
             Add(panel);
 
-            // 詳細ペインはパン・ズームの外に浮かべ、最初の詳細で載せる（キーの無いラベルを載せない）
-            // The detail pane floats outside pan and zoom and mounts on the first details (no keyless labels attached)
+            // 詳細ペインは視野の外に浮かべる
+            // Detail pane floats outside pan and zoom
             _detailHost = new VisualElement { pickingMode = PickingMode.Ignore };
             _detailHost.AddToClassList("research-tree__detail-host");
             Add(_detailHost);
@@ -60,8 +60,8 @@ namespace Client.Ui.Screens.Research
 
         public void Render(ResearchTreeViewModel model)
         {
-            // グラフの組み直しはノードの並びか注目点が変わったときだけ（視野を残すため）
-            // Rebuild the graph only when node order or focus changes (to keep the viewport)
+            // 並びか注目点の変化時だけ組み直す
+            // Rebuild only when order or focus changes
             var orderChanged = _cards.RenderCards(model.Nodes);
             var hasFocus = model.TryGetInitialFocus(out var focus);
             var focusChanged = hasFocus != _hasFocus || (hasFocus && focus != _focus);
@@ -86,8 +86,8 @@ namespace Client.Ui.Screens.Research
 
         public void SetShown(bool shown)
         {
-            // 隠す間も要素は残し、NodeGraphView の視野を保つ（C4-d D-23(3)）
-            // Keep the element while hidden so NodeGraphView keeps its viewport (C4-d D-23(3))
+            // 隠す間も要素を残し視野を保つ
+            // Keep the element hidden to keep the viewport
             style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }

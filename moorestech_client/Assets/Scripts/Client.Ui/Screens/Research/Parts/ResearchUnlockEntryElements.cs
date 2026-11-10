@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// 解放物 1 件を枠か文の行にして節へ足す（Web renderUnlockEntry）
-    /// Turns one unlock entry into slots or text rows in its section (Web renderUnlockEntry)
+    /// 解放物1件を枠か文の行にする
+    /// Turns one unlock into slots or text rows
     /// </summary>
     public static class ResearchUnlockEntryElements
     {
@@ -29,8 +29,8 @@ namespace Client.Ui.Screens.Research.Parts
                     container.Add(blockSlot);
                     break;
                 case MachineRecipeOutputUnlockEntry recipe:
-                    // アイテムと液体は排他でないので両方を並べる
-                    // Items and fluids are not exclusive, so show both
+                    // アイテムと液体は両方並べる
+                    // Show both items and fluids
                     for (var i = 0; i < recipe.Recipe.OutputItemIds.Count; i++) container.Add(ItemSlotOf($"research-unlock-recipe-{entry.Index}-{i}", recipe.Recipe.OutputItemIds[i], null, content));
                     foreach (var fluid in recipe.Recipe.OutputFluids) container.Add(FluidLabelOf(fluid, content));
                     break;
@@ -59,8 +59,8 @@ namespace Client.Ui.Screens.Research.Parts
 
             #region Internal
 
-            // 液体の出力は容量を持たないので量の文だけで示す（Web UnlockFluidLabel）
-            // Fluid outputs have no capacity, so only an amount text is shown (Web UnlockFluidLabel)
+            // 液体は量の文だけで示す
+            // Fluids show only an amount text
             LocalizedLabel FluidLabelOf(UnlockFluid fluid, GameContentPresentation content)
             {
                 var label = new LocalizedLabel { name = "research-unlock-fluid" };

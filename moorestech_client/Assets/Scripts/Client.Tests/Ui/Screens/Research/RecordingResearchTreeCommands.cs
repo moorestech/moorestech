@@ -7,8 +7,8 @@ using Cysharp.Threading.Tasks;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究ツリーの操作を「toggle:<guid>」「close」「complete:<guid>」で記録する偽。研究の実行は設定した結果を同期で返す
-    /// Fake that records research tree operations as "toggle:<guid>", "close" and "complete:<guid>"; running research returns the configured result synchronously
+    /// 研究操作を記録する偽
+    /// Fake recording research operations
     /// </summary>
     internal sealed class RecordingResearchTreeCommands : CommandRecorder<string>, IResearchTreeCommands
     {

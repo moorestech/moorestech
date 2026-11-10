@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// 解放物を種類ごとの節にまとめ、初出順に並べる（Web UnlockSections）
-    /// Groups unlocks into per-kind sections in first-appearance order (Web UnlockSections)
+    /// 解放物を種類ごとの節にまとめる
+    /// Groups unlocks into per-kind sections
     /// </summary>
     public sealed class ResearchUnlockSections : VisualElement
     {
@@ -23,8 +23,8 @@ namespace Client.Ui.Screens.Research.Parts
 
         public void Render(IReadOnlyList<UnlockEntry> entries)
         {
-            // 解放物はノードごとに数件なので描くたびに組み直す
-            // Unlocks are a handful per node, so rebuild on every render
+            // 描くたびに組み直す
+            // Rebuild on every render
             Clear();
             var containers = new Dictionary<ResearchUnlockSectionKind, VisualElement>();
             foreach (var entry in entries) ResearchUnlockEntryElements.AddTo(ContainerOf(ResearchUnlockSectionKinds.Of(entry)), entry, _content);

@@ -10,8 +10,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Research.Tree
 {
     /// <summary>
-    /// 研究ツリーの表示を源から組み、研究画面の表示中だけ源が動くたびに同期で組み直して配る（A-57）。表示の出し入れは Presenter と View が持つ
-    /// Builds the research tree display from its sources and rebuilds it synchronously on every change while the research screen is shown (A-57); showing is owned by the Presenter and View
+    /// 研究ツリー表示の組み直しと配信
+    /// Rebuilds and publishes the research tree display
     /// </summary>
     public sealed class ResearchTreeModel : IInitializable
     {
@@ -43,8 +43,8 @@ namespace Client.Ui.State.Research.Tree
             Localize.OnLanguageChanged.Subscribe(_ => RebuildWhileShown());
             _selection.Current.Skip(1).Subscribe(_ => RebuildWhileShown());
 
-            // 表示の突入で 1 回組む（閉じている間に捨てた変化をここで取り込む。購読の初回が今の画面を流す）
-            // Build once on entering the screen (picks up changes dropped while closed; the first notification carries the current screen)
+            // 表示の突入で1回組む
+            // Build once on entering the screen
             _routing.Current.Subscribe(snapshot =>
             {
                 _screenShown = snapshot.Screen == UiScreen.ResearchTree;

@@ -7,8 +7,8 @@ using Client.Ui.State.Research.Tree;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// 研究ノードのカードを GUID で使い回す。並びが変わったときだけグラフの組み直しを求める
-    /// Reuses research node cards by GUID and asks for a graph rebuild only when the order changes
+    /// ノードカードをGUIDで使い回す
+    /// Reuses node cards by GUID
     /// </summary>
     public sealed class ResearchNodeCardSet
     {
@@ -45,8 +45,8 @@ namespace Client.Ui.Screens.Research.Parts
 
         public NodeGraphContent BuildContent(IReadOnlyList<ResearchNodeCardViewModel> nodes, NodeGraphFocus focus)
         {
-            // キーは GUID の文字列（前提も同じ綴り）
-            // Keys are GUID strings (prerequisites use the same spelling)
+            // キーはGUID文字列
+            // Keys are GUID strings
             var graphNodes = new List<NodeGraphNode>(nodes.Count);
             foreach (var node in nodes)
             {

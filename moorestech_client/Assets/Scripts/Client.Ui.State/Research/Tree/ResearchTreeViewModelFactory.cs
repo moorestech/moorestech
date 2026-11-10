@@ -8,8 +8,8 @@ using Game.Research;
 namespace Client.Ui.State.Research.Tree
 {
     /// <summary>
-    /// 定義・サーバーの状態・所持数・選択から研究ツリーの表示を組む純関数
-    /// Pure function building the research tree display from definitions, server states, owned counts and selection
+    /// 研究ツリー表示を組む純関数
+    /// Pure function building the display
     /// </summary>
     public static class ResearchTreeViewModelFactory
     {
@@ -21,8 +21,8 @@ namespace Client.Ui.State.Research.Tree
             ResearchDetailViewModel detail = null;
             foreach (var definition in definitions) AddNode(definition);
 
-            // 注目点は研究可能を優先し、無ければ素材待ちの最前線
-            // Focus prefers researchable, else the item-waiting frontier
+            // 注目点は研究可能を優先
+            // Focus prefers researchable
             var focus = ResearchLogic.TryFindInitialFocusNode(summaries, out var focusNode) ? ResearchFocusPoint.At(PositionOf(focusNode.Guid)) : ResearchFocusPoint.None;
             return hasDetail ? ResearchTreeViewModel.CreateWithDetail(cards, focus, detail) : ResearchTreeViewModel.Create(cards, focus);
 
@@ -40,8 +40,8 @@ namespace Client.Ui.State.Research.Tree
                 detail = BuildDetail(definition, state);
             }
 
-            // サーバーの状態が無いノードは全条件未達（Web の橋と同じ既定）
-            // Nodes without server state are all-reasons-unmet (same default as the Web bridge)
+            // 状態の無いノードは全条件未達
+            // Nodes without state are all-unmet
             ResearchNodeState StateOf(Guid guid)
             {
                 // silent-ok: 取り直しの前は全ノードが未着で Web の橋と同じ既定 / 受信後の欠落は ResearchTreeModel が受信ごとに件数を LogWarning へ出す
@@ -50,8 +50,8 @@ namespace Client.Ui.State.Research.Tree
 
             ResearchDetailViewModel BuildDetail(ResearchNodeDefinition definition, ResearchNodeState state)
             {
-                // 割当はサーバーと同じ 2 パス。不足の強調は完了で出さない
-                // Allocation follows the server's two passes; completed nodes never show shortage
+                // 割当は2パス
+                // Allocation is two passes
                 var allocated = ResearchLogic.AllocateResearchItems(definition.ConsumeItems, owned);
                 var slots = new List<ResearchConsumeSlotViewModel>(definition.ConsumeItems.Count);
                 for (var i = 0; i < definition.ConsumeItems.Count; i++)

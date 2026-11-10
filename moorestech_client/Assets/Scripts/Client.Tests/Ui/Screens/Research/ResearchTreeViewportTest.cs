@@ -14,8 +14,8 @@ using Kit = Client.Tests.Ui.Screens.Research.ResearchScreenTestKit;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究ツリーの視野（中央寄せ・開き直しで残る・ホイールとパン・ノードのドラッグとタップ）（L1）
-    /// Research tree viewport (centering, kept across reopen, wheel and pan, node drag and tap) (L1)
+    /// 研究ツリーの視野操作（L1）
+    /// Research tree viewport (L1)
     /// </summary>
     public class ResearchTreeViewportTest : ScreenTestHost
     {
@@ -62,8 +62,8 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.LessOrEqual(panned.x - before.x, -59.5f);
             Assert.GreaterOrEqual(panned.y - before.y, 29.5f);
 
-            // 閉じて開き直す（Model は入り直しで選択の無い同じ並びを配る）
-            // Close and reopen (the Model hands the same order without selection on re-entry)
+            // 閉じて開き直す
+            // Close and reopen
             _view.SetShown(false);
             Settle();
             _view.SetShown(true);
@@ -78,8 +78,8 @@ namespace Client.Tests.Ui.Screens.Research
         [Test]
         public void ホイールで拡縮し空の背景のドラッグでパンし右ドラッグでは動かない()
         {
-            // ホイール 4 ノッチ（Web の deltaY 240）でカーソルを中心に拡大し、戻すと縮む
-            // Four notches (Web deltaY 240) zoom in around the cursor, and the reverse shrinks
+            // 4ノッチで拡大、戻すと縮む
+            // Four notches zoom in, reverse shrinks
             var beforeZoom = ResearchableCard().worldBound;
             var cursor = beforeZoom.center;
             Wheel(cursor, -4f);
@@ -90,8 +90,8 @@ namespace Client.Tests.Ui.Screens.Research
             Wheel(cursor, 4f);
             Assert.Less(ResearchableCard().worldBound.width, zoomed.width);
 
-            // 空の背景を左ドラッグするとドラッグ量以上に動く（慣性の上限は C4-d の L1 が見る）
-            // A left drag on empty background moves at least the drag distance (C4-d's L1 owns the glide cap)
+            // 背景の左ドラッグで動く
+            // Left drag on background moves
             var grip = EmptyBackgroundPoint();
             var beforePan = ResearchableCard().worldBound;
             Drag(grip, new Vector2(-80f, -50f));
@@ -139,8 +139,8 @@ namespace Client.Tests.Ui.Screens.Research
             return Find<VisualElement>(rootVisualElement, $"research-node-{Kit.Researchable}");
         }
 
-        // ビューポートの右下から内へ探し、カードの無い点を返す（Web の findEmptyBackgroundPoint）
-        // Probe inward from the viewport's bottom right for a point with no card (Web findEmptyBackgroundPoint)
+        // カードの無い点を右下から探す
+        // Probe from bottom right for an empty point
         private Vector2 EmptyBackgroundPoint()
         {
             var box = Find<VisualElement>(rootVisualElement, "research-viewport").worldBound;

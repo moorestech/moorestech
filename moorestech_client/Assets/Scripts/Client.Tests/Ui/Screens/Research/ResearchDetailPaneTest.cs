@@ -12,8 +12,8 @@ using Kit = Client.Tests.Ui.Screens.Research.ResearchScreenTestKit;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 詳細ペインの研究ボタン・理由・閉じる・消費アイテムの不足（L1）
-    /// Detail pane research button, reason, close and consume shortage (L1)
+    /// 詳細ペインの研究ボタン・理由・閉じる・不足（L1）
+    /// Detail pane button, reason, close, shortage (L1)
     /// </summary>
     public class ResearchDetailPaneTest : ScreenTestHost
     {
@@ -45,14 +45,14 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.IsTrue(button.enabledSelf);
             Assert.AreEqual("Research", LabelOf(button));
 
-            // 押すと研究の実行を 1 回呼び、受理ならトーストは出ない
-            // Pressing calls research once; acceptance shows no toast
+            // 押すと研究を1回実行する
+            // Pressing runs research once
             Click(button);
             CollectionAssert.AreEqual(new[] { $"complete:{Kit.Researchable}" }, _commands.Issued);
             Assert.IsEmpty(ShownToasts);
 
-            // サーバーの状態が完了へ替わると押せず「完了済み」になり理由は出ない
-            // Once the server state turns completed it is disabled, reads Completed and shows no reason
+            // 完了へ替わると押せない
+            // Disabled once completed
             pane.Render(Kit.Detail(ResearchNodeState.Completed, 3, 0, Kit.NoUnlocks()));
             simulate.FrameUpdate();
             Assert.IsFalse(button.enabledSelf);
@@ -109,8 +109,8 @@ namespace Client.Tests.Ui.Screens.Research
         [Test]
         public void 閉じて同じノードを開き直すと説明のスクロールは頭へ戻る()
         {
-            // Web は閉じるとペインを捨てるので、開き直しは常に頭から。表示中の同じノードの描き直しでは保つ
-            // The Web discards the pane on close, so reopening starts at the top; re-rendering the same shown node keeps it
+            // 開き直しは頭から、再描画では保つ
+            // Reopen starts at top; re-render keeps
             var detail = Kit.Detail(ResearchNodeState.Researchable, 3, 0, Kit.NoUnlocks());
             var pane = MountPane(detail);
             var scroll = Find<ScrollView>(rootVisualElement, "research-detail-scroll");

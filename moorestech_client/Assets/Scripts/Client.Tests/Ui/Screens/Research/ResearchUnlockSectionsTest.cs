@@ -18,8 +18,8 @@ using Kit = Client.Tests.Ui.Screens.Research.ResearchScreenTestKit;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 詳細ペインの解放物の節（種類ごとの見出し・枠・文の行）（L1）
-    /// Detail pane unlock sections (per-kind headings, slots and text rows) (L1)
+    /// 詳細ペインの解放物の節（L1）
+    /// Detail pane unlock sections (L1)
     /// </summary>
     public class ResearchUnlockSectionsTest : ScreenTestHost
     {
@@ -80,8 +80,8 @@ namespace Client.Tests.Ui.Screens.Research
             var section = Find<VisualElement>(rootVisualElement, "research-unlock-machine-recipes");
             Assert.AreEqual(1, section.Query<ItemSlot>().ToList().Count);
             var fluid = Find<Label>(section, "research-unlock-fluid");
-            // テストの辞書に液体名は無いので、名前は部品と同じ解決の結果で比べる
-            // The test dictionary lacks fluid names, so compare against the same resolution the part uses
+            // 液体名は部品と同じ解決で比べる
+            // Compare fluid names by the part's resolution
             StringAssert.Contains(_content.Fluid(water).Label.Resolve(), fluid.text);
             StringAssert.Contains(SlotAmountFormat.Format(250d), fluid.text);
         }

@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// Web の calc() を通る 2 つの値を customStyle から読んで inline で当てる（A-47）
-    /// Reads the two values that go through Web calc() from customStyle and applies them inline (A-47)
+    /// calc相当の2値をcustomStyleから当てる
+    /// Apply two calc values from customStyle
     /// </summary>
     public static class ResearchCalcKnobs
     {
@@ -13,22 +13,22 @@ namespace Client.Ui.Screens.Research.Parts
         private const string ColumnGapProperty = "--research-tree-column-gap";
         private const string ScrollBleedProperty = "--research-tree-scroll-bleed";
 
-        // 研究エリアの left = 持ち物の幅 + 列の間隔（Web .researchArea の calc）
-        // Research area left = inventory width + column gap (the Web .researchArea calc)
+        // left=持ち物幅+列間隔
+        // left = inventory width + column gap
         public static void ApplyAreaLeft(VisualElement area)
         {
             area.RegisterCallback<CustomStyleResolvedEvent>(_ =>
             {
-                // 読めないときは UssCustomStyleReader が LogError を出す
-                // When unreadable, UssCustomStyleReader logs an error
+                // 読めない時はLogError
+                // Unreadable logs an error
                 if (!UssCustomStyleReader.TryReadPixels(area.customStyle, InventoryWidthProperty, out var width)) return;
                 if (!UssCustomStyleReader.TryReadPixels(area.customStyle, ColumnGapProperty, out var gap)) return;
                 area.style.left = width + gap;
             });
         }
 
-        // スクロールを左右へ逃げの分はみ出させ、中身を同じだけ内へ戻す（Web .detailScroll の負の margin-inline）
-        // Bleed the scroll out sideways by the clearance and step the content back in (the Web .detailScroll negative margin-inline)
+        // 左右の逃げ分はみ出し、中身を内へ戻す
+        // Bleed sideways and step content back in
         public static void ApplyScrollBleed(VisualElement scroll, VisualElement content)
         {
             scroll.RegisterCallback<CustomStyleResolvedEvent>(_ =>

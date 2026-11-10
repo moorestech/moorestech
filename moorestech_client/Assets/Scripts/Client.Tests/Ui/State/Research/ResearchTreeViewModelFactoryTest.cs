@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.Research
 {
     /// <summary>
-    /// 定義・状態・所持数・選択から研究ツリーの ViewModel を組む（L0）
-    /// Builds the research tree view model from definitions, states, owned counts and selection (L0)
+    /// 研究ツリーのViewModelを組む（L0）
+    /// Builds the research tree view model (L0)
     /// </summary>
     public class ResearchTreeViewModelFactoryTest
     {
@@ -54,8 +54,8 @@ namespace Client.Tests.Ui.State.Research
             var completedStates = new Dictionary<Guid, ResearchNodeState> { { Child, ResearchNodeState.Completed } };
             var completed = Detail(ResearchTreeViewModelFactory.Create(Definitions(), completedStates, Owned(1, 1), ResearchSelection.Of(Child)));
 
-            // 必要 3 に対し、単一受付の 1 個と上位レベルの 1 個を割り当てて 2 個で不足
-            // 3 required; one exact and one higher-level item are allocated, so 2 is short
+            // 必要3に対し2個で不足
+            // 2 of 3 required is short
             Assert.AreEqual(3, lacking.ConsumeSlots[0].Required);
             Assert.AreEqual(2, lacking.ConsumeSlots[0].Allocated);
             Assert.IsTrue(lacking.ConsumeSlots[0].Lacking);

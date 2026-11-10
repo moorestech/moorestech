@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// 研究ボタンと不可の理由。押すと研究を実行し、結果をトースト口へ渡す
-    /// The research button and the unavailable reason; pressing runs research and hands the result to the toast port
+    /// 研究ボタンと不可の理由
+    /// Research button and unavailable reason
     /// </summary>
     public sealed class ResearchDetailActions : VisualElement
     {
@@ -51,15 +51,15 @@ namespace Client.Ui.Screens.Research.Parts
 
         public void Render(Guid researchGuid, ResearchButtonState button)
         {
-            // ボタンの testid はノードごと（Web の research-button-<guid>）
-            // The button testid is per node (the Web research-button-<guid>)
+            // testidはノードごと
+            // The testid is per node
             _researchGuid = researchGuid;
             _button.name = $"research-button-{researchGuid}";
             _button.SetLabel(new UiText(button.Completed ? LocalizationKeys.Ui.Research.Completed : LocalizationKeys.Ui.Research.Action));
             _button.SetEnabled(button.Interactable);
 
-            // 理由は完了でも研究可能でもないときだけ出す
-            // The reason shows only when neither completed nor researchable
+            // 理由は未完了かつ不可のみ
+            // Reason only when not completed
             var showsReason = !button.Completed && !button.Interactable;
             _reason.style.display = showsReason ? DisplayStyle.Flex : DisplayStyle.None;
             _reason.SetText(new UiText(button.TooltipKey));

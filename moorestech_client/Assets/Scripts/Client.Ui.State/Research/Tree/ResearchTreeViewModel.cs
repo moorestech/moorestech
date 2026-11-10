@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Ui.State.Research.Tree
 {
     /// <summary>
-    /// 研究ツリー画面の表示。値の等価を持たず、組み直すたびに配る（言語の変化でも描き直させる）
-    /// Display of the research tree screen; no value equality, so every rebuild is published (language changes redraw too)
+    /// 研究ツリー画面の表示（等価なし）
+    /// Research tree display (no equality)
     /// </summary>
     public sealed class ResearchTreeViewModel
     {
@@ -49,8 +49,8 @@ namespace Client.Ui.State.Research.Tree
     }
 
     /// <summary>
-    /// 初期の注目点（研究可能か素材待ちの最前線）。無いことを型で持つ
-    /// Initial focus point (researchable or item-waiting frontier); absence is part of the type
+    /// 初期の注目点（無いことを型で持つ）
+    /// Initial focus point (absence in the type)
     /// </summary>
     public readonly struct ResearchFocusPoint
     {
