@@ -13,8 +13,8 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Recipe
 {
     /// <summary>
-    /// RecipeRow に載る液体（Web の機械のレシピ選択行）・線と面と枠の色と位置・描画の健全性（L1）
-    /// Fluids in a RecipeRow (the Web machine recipe selection row), border/face/frame colors and placement, and drawing sanity (L1)
+    /// 液体・線と面と枠の色・描画（L1）
+    /// Fluids, border/face/frame colors and drawing (L1)
     /// </summary>
     public class RecipeRowContentTest : UiTestHost
     {

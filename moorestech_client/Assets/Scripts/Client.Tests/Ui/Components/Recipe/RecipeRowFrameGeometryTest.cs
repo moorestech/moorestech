@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行の四隅の括弧と外周の輪の矩形（Web の ::before/::after と box-shadow の spread）
-    /// Rectangles for the recipe row's corner brackets and outer ring (the Web ::before/::after and box-shadow spread)
+    /// 四隅の括弧と外周の輪の矩形
+    /// Rectangles for corner brackets and outer ring
     /// </summary>
     public class RecipeRowFrameGeometryTest
     {

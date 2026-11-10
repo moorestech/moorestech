@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行の光彩・外周の輪・括弧の影・四隅の括弧を頂点カラーで描く拾わない子（Web の box-shadow 2 層と ::before/::after とその drop-shadow）
-    /// Non-picking child drawing the recipe row's glow, outer ring, bracket shadow and corner brackets with vertex colors (the Web two box-shadow layers, ::before/::after and their drop-shadow)
+    /// 光彩・輪・影・括弧を描く枠
+    /// Frame drawing glow, ring, shadow and brackets
     /// </summary>
     internal sealed class RecipeRowFrame : VisualElement
     {

@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// RecipeActionButton の面。USS が状態ごとに付け替える 3 色を読み、横グラデの帯を描く
-    /// RecipeActionButton face; reads the three colors the USS swaps per state and draws the horizontal gradient strip
+    /// 3 色の横グラデを描く面
+    /// Face drawing the three-color horizontal gradient
     /// </summary>
     internal sealed class RecipeActionButtonFace : VisualElement
     {

@@ -67,8 +67,8 @@ namespace Client.Ui.Components.Controls
                 return ratio <= 0.5f ? Color.Lerp(start, middle, ratio * 2f) : Color.Lerp(middle, end, (ratio - 0.5f) * 2f);
             }
 
-            // 画面座標（y 下向き）で時計回りに 1 区画 2 三角。帯の 16 区画の後に左右の枠を 1 区画ずつ
-            // Two clockwise triangles per cell in screen space (y down); the 16 strip cells, then one cell per side border
+            // y 下向きで時計回りに 1 区画 2 三角（帯 16 区画→左右の枠）
+            // Two clockwise triangles per cell, y down (16 strip cells, then side borders)
             void WriteIndices()
             {
                 for (var column = 0; column < ColumnCount - 1; column++)

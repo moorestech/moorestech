@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
-    // RecipeListScrollViewの見本（クラフト行 5 本を高さ 260 の器で溢れさせる）
-    // RecipeListScrollView sample (five craft rows overflowing a 260px container)
+    // RecipeListScrollViewの見本（溢れる 5 行）
+    // RecipeListScrollView sample (five overflowing rows)
     public sealed class RecipeListScrollViewGalleryEntry : IUiGalleryEntry
     {
         public UiGalleryFamily Family => UiGalleryFamily.Controls;

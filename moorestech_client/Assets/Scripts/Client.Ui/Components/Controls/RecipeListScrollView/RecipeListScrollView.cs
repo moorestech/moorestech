@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// レシピ行のスクローラ。先頭の内容と行の列を同じスクロールに並べ、行の逃げ余白と間隔を持つ（Web の RecipeListScrollArea）
-    /// Scroller for recipe rows; puts leading content and the row list in one scroll and owns the rows' bleed padding and gap (Web RecipeListScrollArea)
+    /// レシピ行のスクローラ（先頭内容＋列）
+    /// Recipe row scroller (leading content and list)
     /// </summary>
     public sealed class RecipeListScrollView : VisualElement
     {

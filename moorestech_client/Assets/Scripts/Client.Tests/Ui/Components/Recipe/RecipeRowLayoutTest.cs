@@ -16,8 +16,8 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Recipe
 {
     /// <summary>
-    /// RecipeRow の名前・折り返し・列の幅・寸法の上書き・操作段・はみ出しの報告（L1）
-    /// RecipeRow names, wrapping, column widths, size overrides, action slot and overflow report (L1)
+    /// 名前・折り返し・列幅・操作段（L1）
+    /// Names, wrapping, column widths and action slot (L1)
     /// </summary>
     public class RecipeRowLayoutTest : UiTestHost
     {

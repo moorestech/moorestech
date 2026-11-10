@@ -10,8 +10,8 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// RecipeListScrollView の名前・行の逃げ余白・バーの幅・先頭の内容・行の間隔（L1）
-    /// RecipeListScrollView names, row bleed padding, bar width, leading content and row gap (L1)
+    /// 名前・余白・バー・間隔（L1）
+    /// Names, padding, bar and gap (L1)
     /// </summary>
     public class RecipeListScrollViewTest : UiTestHost
     {

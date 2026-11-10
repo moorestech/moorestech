@@ -18,10 +18,10 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             var root = RecipeGallerySampleSheet.CreateSampleRoot();
             var capped = new LevelInheritanceBadge("gallery-level-inheritance-capped");
             capped.Show(new UiText(LocalizationKeys.Ui.Recipe.LevelInheritanceCapped, new[] { new LocalizationTextParam("level", "2") }));
-            RecipeGallerySampleSheet.AddRow(root, "recipe-gallery__plain").Add(capped);
+            RecipeGallerySampleSheet.AddPlainRow(root).Add(capped);
             var plain = new LevelInheritanceBadge("gallery-level-inheritance");
             plain.Show(new UiText(LocalizationKeys.Ui.Recipe.LevelInheritance));
-            RecipeGallerySampleSheet.AddRow(root, "recipe-gallery__plain").Add(plain);
+            RecipeGallerySampleSheet.AddPlainRow(root).Add(plain);
             return root;
         }
     }

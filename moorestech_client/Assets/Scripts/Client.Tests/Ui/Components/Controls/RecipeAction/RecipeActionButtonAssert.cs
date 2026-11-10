@@ -8,8 +8,8 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Controls.RecipeAction
 {
     /// <summary>
-    /// RecipeActionButton の文言のラベル・影の字・面の 3 色を読んで照合する補助（L1）
-    /// Helpers that read the RecipeActionButton label and shadow copies and check the three face colors (L1)
+    /// 文言・影・面の 3 色の照合補助（L1）
+    /// Helpers that check the label, shadow and three face colors (L1)
     /// </summary>
     public static class RecipeActionButtonAssert
     {

@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行。素材・中央列（秒数→矢印→操作）・結果の 3 列と、外周の輪と四隅の括弧
-    /// Recipe row: materials, the center column (duration, arrow, action) and results, with the outer ring and corner brackets
+    /// レシピ行（3 列＋輪と括弧）
+    /// Recipe row (three columns, ring and brackets)
     /// </summary>
     /// <remarks>
     /// スロットは画面が作った要素を受けて並べるだけで、操作は画面がスロットを直接購読する（Web は ReactNode[] を受ける）。

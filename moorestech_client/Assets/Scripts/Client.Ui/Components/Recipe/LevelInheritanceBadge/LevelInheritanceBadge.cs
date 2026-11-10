@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ選択行とビューアで共有するレベル継承のバッジ（Web の LevelInheritanceBadge）
-    /// Level inheritance badge shared by the recipe selection row and the viewer (Web LevelInheritanceBadge)
+    /// レベル継承のバッジ（共有部品）
+    /// Level inheritance badge (shared component)
     /// </summary>
     /// <remarks>
     /// Web は継承しないとき testid の要素ごと描かない。testid は文のラベルに付け、ラベルは Show で作り Hide で外す（文の無い LocalizedLabel は 1 フレーム後にエラーを出すため）。

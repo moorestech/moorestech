@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// RecipeActionButton の文言の影。Web の上下左右 1px の text-shadow 4 枚を、同じ文の字 4 つをずらして重ねて写す
-    /// Label shadow of RecipeActionButton; copies the Web four-way 1px text-shadow by stacking four shifted copies of the same text
+    /// 文言の影（字 4 つをずらして重ねる）
+    /// Label shadow (four shifted copies stacked)
     /// </summary>
     /// <remarks>
     /// 文字の縁（-unity-text-outline-width）は字の内側にも掛かり細い字の白を塗りつぶすので使わない。影の幅が 0 なら描かない（研究は影なし）。
@@ -54,7 +54,7 @@ namespace Client.Ui.Components.Controls
 
             // 幅 0 は影なし。重ねたままだと字の縁の画素が影の色で暗むので描かない
             // Zero width means no shadow; stacking the copies would darken the glyph edges, so skip drawing
-            style.display = offset > 0f ? DisplayStyle.Flex : DisplayStyle.None;
+            style.display = 0f < offset ? DisplayStyle.Flex : DisplayStyle.None;
 
             for (var i = 0; i < _glyphs.Length; i++)
             {

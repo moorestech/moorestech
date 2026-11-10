@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行の光彩と括弧の影のメッシュ（Web の box-shadow 0 0 2px と drop-shadow 0 0 1px）
-    /// Meshes for the recipe row glow and bracket shadow (the Web box-shadow 0 0 2px and drop-shadow 0 0 1px)
+    /// 光彩と括弧の影のメッシュ
+    /// Meshes for the glow and bracket shadow
     /// </summary>
     public class RecipeRowFrameShadowMeshTest
     {

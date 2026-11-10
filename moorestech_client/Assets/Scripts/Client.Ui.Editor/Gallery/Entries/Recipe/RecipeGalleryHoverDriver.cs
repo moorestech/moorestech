@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Recipe
 {
     /// <summary>
-    /// 撮影の見本をホバーにする。パネルに載り寸法が決まった最初の回に、要素の中心へポインタの移動をパネルへ送る
-    /// Puts a capture sample into hover by sending a pointer move to its centre through the panel once it is laid out
+    /// 撮影の見本をホバーにする
+    /// Puts a capture sample into hover
     /// </summary>
     public static class RecipeGalleryHoverDriver
     {
@@ -29,16 +29,16 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
                 target.schedule.Execute(() => SendPointerMove(target.panel, target.worldBound.center));
             }
 
-            #endregion
-        }
+            void SendPointerMove(IPanel panel, Vector2 panelPosition)
+            {
+                // 本番の入力と同じくディスパッチャが要素の下のポインタを更新して :hover を付ける
+                // As with real input, the dispatcher updates the element under the pointer and applies :hover
+                var systemEvent = new Event { type = EventType.MouseMove, mousePosition = panelPosition };
+                using var move = PointerMoveEvent.GetPooled(systemEvent);
+                panel.visualTree.SendEvent(move);
+            }
 
-        private static void SendPointerMove(IPanel panel, Vector2 panelPosition)
-        {
-            // 本番の入力と同じくディスパッチャが要素の下のポインタを更新して :hover を付ける
-            // As with real input, the dispatcher updates the element under the pointer and applies :hover
-            var systemEvent = new Event { type = EventType.MouseMove, mousePosition = panelPosition };
-            using var move = PointerMoveEvent.GetPooled(systemEvent);
-            panel.visualTree.SendEvent(move);
+            #endregion
         }
     }
 }

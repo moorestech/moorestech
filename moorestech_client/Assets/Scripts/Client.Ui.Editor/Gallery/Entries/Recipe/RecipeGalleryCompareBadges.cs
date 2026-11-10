@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Recipe
 {
     /// <summary>
-    /// 並べ比べの継承バッジ 2 種（継承・上限つき継承）。Web の機械のレシピ選択のバッジと同じ幅で並べ、文の段組を比べる
-    /// Comparison inheritance badges (inherit and capped); laid out at the Web machine-selection badge width to compare the text layout
+    /// 並べ比べの継承バッジ 2 種
+    /// Two comparison inheritance badges
     /// </summary>
     public static class RecipeGalleryCompareBadges
     {

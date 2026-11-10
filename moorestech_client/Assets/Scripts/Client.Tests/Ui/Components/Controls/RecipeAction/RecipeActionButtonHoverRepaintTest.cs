@@ -10,8 +10,8 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Controls.RecipeAction
 {
     /// <summary>
-    /// ホバーで RecipeActionButton の面の子が描き直され、最後に描いた 3 色がホバーのつまみになる（L1）
-    /// Hovering repaints the RecipeActionButton face child and the last drawn three colors become the hover knobs (L1)
+    /// ホバーで面が描き直される（L1）
+    /// Hovering repaints the face (L1)
     /// </summary>
     public class RecipeActionButtonHoverRepaintTest : UiTestHost
     {

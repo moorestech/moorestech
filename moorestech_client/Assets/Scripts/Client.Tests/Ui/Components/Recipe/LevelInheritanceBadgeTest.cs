@@ -12,8 +12,8 @@ using static Client.Tests.Ui.State.Recipe.RecipeFixtures;
 namespace Client.Tests.Ui.Components.Recipe
 {
     /// <summary>
-    /// レベル継承のバッジの表示と隠しと見た目（部品の L1。Web の 4・5 件目の結線は S4-machine が写す）
-    /// Level inheritance badge show/hide and look (component L1; the Web tests 4 and 5 wiring is copied by S4-machine)
+    /// 継承バッジの表示・隠し・見た目（L1）
+    /// Inheritance badge show, hide and look (L1)
     /// </summary>
     public class LevelInheritanceBadgeTest : UiTestHost
     {

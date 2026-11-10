@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行の素材／結果の列。スロットを 2 列で折り返し、列に収まらなければ開発者へ知らせる
-    /// Material/result column of a recipe row; wraps slots in two columns and tells developers when they do not fit
+    /// 素材／結果の列（2 列折り返し）
+    /// Material/result column (two-column wrap)
     /// </summary>
     /// <remarks>
     /// Web の recipeSlotLayout は列数を 1〜2 にし、スロットの寸法を列の幅から縮める（cqw）。UITK はカスタムプロパティを C# から書けないので寸法は USS の上限のまま置き、はみ出しを LogError で知らせる。
@@ -51,9 +51,9 @@ namespace Client.Ui.Components.Recipe
             for (var start = 0; start < slots.Count; start += columns)
             {
                 var line = NewBox("recipe-row__slot-line");
-                line.EnableInClassList("recipe-row__slot-line--after", start > 0);
+                line.EnableInClassList("recipe-row__slot-line--after", 0 < start);
                 _grid.Add(line);
-                for (var i = start; i < Math.Min(start + columns, slots.Count); i++) line.Add(NewCell(slots[i], i > start));
+                for (var i = start; i < Math.Min(start + columns, slots.Count); i++) line.Add(NewCell(slots[i], start < i));
             }
 
             #region Internal
@@ -75,7 +75,7 @@ namespace Client.Ui.Components.Recipe
         {
             // 格子が列より広いと、Web なら縮むところがはみ出す。はみ出しに入った時だけ 1 回知らせる
             // A grid wider than the column overflows where the Web would shrink; report once when it starts overflowing
-            var overflows = _grid.layout.width > contentRect.width + OverflowTolerancePixels;
+            var overflows = contentRect.width + OverflowTolerancePixels < _grid.layout.width;
             if (overflows && !_overflowReported) Debug.LogError($"[RecipeRow] {_rowTestid}: slots overflow the column ({_grid.layout.width:0.#}px > {contentRect.width:0.#}px); the Web shrinks them with container queries, UITK keeps --recipe-slot-size-max (look-exception: LX-91)");
             _overflowReported = overflows;
         }

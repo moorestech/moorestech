@@ -18,8 +18,8 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Controls.RecipeAction
 {
     /// <summary>
-    /// RecipeActionButton の押下・クラフトの寸法と字・3 状態の面・沈み・研究の上書き（L1）
-    /// RecipeActionButton presses, craft size and type, three face states, press sink and research overrides (L1)
+    /// 押下・寸法・3 状態・沈み（L1）
+    /// Press, size, three states and sink (L1)
     /// </summary>
     public class RecipeActionButtonTest : UiTestHost
     {

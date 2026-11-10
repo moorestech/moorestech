@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行の光彩（box-shadow 0 0 2px）と括弧の drop-shadow（0 0 1px）を、縁からの距離で刻む矩形の輪の頂点カラーメッシュで組む
-    /// Builds the recipe row glow (box-shadow 0 0 2px) and the bracket drop-shadow (0 0 1px) as vertex-colored meshes of rectangle rings stepped by distance from the edge
+    /// 光彩と括弧の影の頂点カラーメッシュ
+    /// Vertex-colored meshes for the glow and bracket shadow
     /// </summary>
     /// <remarks>
     /// 前例 ProgressArrowGlyphShadowMesh と同じく輪を 8 段で刻み、濃さは Web の α に GaussianEdgeCoverage の被覆率を掛ける（括弧の棒は太さが σ と同じ程度なので両縁の差）。
@@ -50,7 +50,7 @@ namespace Client.Ui.Components.Recipe
             for (var k = 0; k <= RingCount; k++)
             {
                 var fromEdge = Mathf.Max((2f * k / RingCount - 1f) * 2f * sigma, innerLimit);
-                WriteRing(vertices, k * 4, Grow(bar, fromEdge), Tint(shadowColor, BarEdgeCoverage(fromEdge, thickness, sigma)));
+                WriteRing(vertices, k * 4, Grow(bar, fromEdge), Tint(shadowColor, BarEdgeCoverage(fromEdge)));
             }
 
             // 輪 0 の内側は芯として輪 0 の濃さで塗る
@@ -59,13 +59,17 @@ namespace Client.Ui.Components.Recipe
             WriteClockwise(vertices, indices, ref cursor, 0, 1, 2);
             WriteClockwise(vertices, indices, ref cursor, 0, 2, 3);
             for (var k = 0; k < RingCount; k++) WriteBand(vertices, indices, ref cursor, k * 4);
-        }
 
-        private static float BarEdgeCoverage(float fromEdge, float thickness, float sigma)
-        {
-            // 細い棒は反対側の縁が σ の内にあるので、帯 [-太さ, 0] の被覆率で両縁の差を取る（1px・σ 1px で芯 0.383）
-            // A thin bar's far edge lies within σ, so take the two-edge difference as the coverage of the band [-thickness, 0] (0.383 at the core for 1px and σ 1px)
-            return GaussianEdgeCoverage.BandCoverage(fromEdge, -thickness, 0f, sigma);
+            #region Internal
+
+            float BarEdgeCoverage(float fromEdge)
+            {
+                // 細い棒は反対側の縁が σ の内にあるので、帯 [-太さ, 0] の被覆率で両縁の差を取る（1px・σ 1px で芯 0.383）
+                // A thin bar's far edge lies within σ, so take the two-edge difference as the coverage of the band [-thickness, 0] (0.383 at the core for 1px and σ 1px)
+                return GaussianEdgeCoverage.BandCoverage(fromEdge, -thickness, 0f, sigma);
+            }
+
+            #endregion
         }
 
         private static Rect Grow(Rect rect, float distance)

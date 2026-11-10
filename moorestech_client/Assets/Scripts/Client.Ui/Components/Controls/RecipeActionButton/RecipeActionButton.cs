@@ -7,12 +7,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 主要アクションの青グラデのボタン（クラフト・研究する）。面の 3 色・寸法・字・影はつまみで受ける
-    /// Primary action button with the blue gradient (craft, research); face colors, size, type and shadow come from knobs
+    /// 主要アクションの青グラデボタン
+    /// Primary action button with the blue gradient
     /// </summary>
     /// <remarks>
-    /// 既定はクラフトの見た目。研究は画面が祖先で --recipe-action-* を上書きする。長押しは置く側が Foundation の UiPressGesture を重ねる。
-    /// Defaults to the craft look; research overrides --recipe-action-* on an ancestor. Hold-to-craft is layered on by the caller with the Foundation UiPressGesture.
+    /// 既定はクラフトの見た目。研究は画面が祖先で --recipe-action-* を上書きする。長押しは置く側の画面の部品が持つ（A-166）。
+    /// Defaults to the craft look; research overrides --recipe-action-* on an ancestor. Hold-to-craft belongs to the placing screen's own part (A-166).
     /// </remarks>
     public sealed class RecipeActionButton : Button
     {

@@ -3,8 +3,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
-    // RecipeActionButtonの見本（クラフト・研究 × 有効・無効。ホバーと押下はギャラリー上で手で確かめる）
-    // RecipeActionButton samples (craft and research, enabled and disabled; hover and press are checked by hand in the gallery)
+    // RecipeActionButtonの見本（4 状態）
+    // RecipeActionButton samples (four states)
     public sealed class RecipeActionButtonGalleryEntry : IUiGalleryEntry
     {
         public UiGalleryFamily Family => UiGalleryFamily.Controls;
@@ -13,7 +13,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
         public VisualElement CreateSample()
         {
             var root = RecipeGallerySampleSheet.CreateSampleRoot();
-            var craft = RecipeGallerySampleSheet.AddRow(root, "recipe-gallery__plain");
+            var craft = RecipeGallerySampleSheet.AddPlainRow(root);
             craft.Add(RecipeGallerySampleSheet.CreateCraftButton("gallery-recipe-action-craft", true));
             craft.Add(RecipeGallerySampleSheet.CreateCraftButton("gallery-recipe-action-craft-disabled", false));
             var research = RecipeGallerySampleSheet.AddRow(root, RecipeGallerySampleSheet.ResearchKnobClass);

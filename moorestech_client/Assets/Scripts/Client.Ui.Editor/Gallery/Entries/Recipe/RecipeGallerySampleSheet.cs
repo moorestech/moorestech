@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Recipe
 {
     /// <summary>
-    /// レシピ族とレシピのボタン・スクロールの見本の組み立て（ギャラリーと Task 8 の並べ比べの撮影が共有する）
-    /// Builds samples for the recipe family and the recipe button and scroll (shared by the gallery and the comparison capture)
+    /// レシピ部品の見本の組み立て（撮影と共有）
+    /// Builds recipe component samples (shared with capture)
     /// </summary>
     public static class RecipeGallerySampleSheet
     {
@@ -42,6 +42,16 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             var row = new VisualElement();
             row.AddToClassList("recipe-gallery__row");
             row.AddToClassList(knobClass);
+            parent.Add(row);
+            return row;
+        }
+
+        public static VisualElement AddPlainRow(VisualElement parent)
+        {
+            // つまみ無しの行（前例 SlotGallerySampleSheet.AddPlainRow）
+            // A row without knobs (precedent SlotGallerySampleSheet.AddPlainRow)
+            var row = new VisualElement();
+            row.AddToClassList("recipe-gallery__row");
             parent.Add(row);
             return row;
         }
@@ -117,7 +127,6 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             // 並べ比べの対象を縦に積む: 機械のレシピ選択の Oil の行・Web と同じ条件のクラフト行 2 状態・クラフトボタン 3 状態・研究ボタン 2 状態
             // Stack the targets: the machine-selection Oil row, craft rows in 2 states built from the Web conditions, craft buttons in 3 states and research buttons in 2 states
             var root = CreateSampleRoot();
-            root.AddToClassList("recipe-gallery--compare");
             var machine = AddRow(root, MachineSelectionKnobClass);
             var oil = CreateMachineSelectionOilRow("compare-machine-oil");
             oil.style.width = machineRowWidth;
@@ -126,12 +135,12 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             // Craft rows sit on the Web inventory centre viewer ground read from the reference shots
             AddGroundedRow(root, craftGround).Add(craftEnabledRow);
             AddGroundedRow(root, craftGround).Add(craftDisabledRow);
-            var craftButtons = AddRow(root, "recipe-gallery__plain");
+            var craftButtons = AddPlainRow(root);
             craftButtons.Add(CreateCraftButton("compare-craft-enabled", true));
             craftButtons.Add(CreateCraftButton("compare-craft-disabled", false));
             craftButtons.Add(RecipeGalleryHoverDriver.HoverWhenLaidOut(CreateCraftButton("compare-craft-hover", true)));
-            // 研究ボタンは Web の研究の詳細ペインの地（参照の撮影から読んだ色）の上に置き、切り抜きの余白 6px も同じ地にする
-            // Research buttons sit on the Web research detail pane ground read from the reference shots, with the 6px crop margin on the same ground
+        // 地色と内余白を持つ段を足す
+        // Add a row with a ground color and inner padding
             var researchButtons = AddGroundedRow(root, researchGround);
             researchButtons.AddToClassList(ResearchKnobClass);
             researchButtons.Add(CreateResearchButton("compare-research-enabled", true));
@@ -143,7 +152,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
         // Add a row with the ground color and 8px inner padding so the 6px crop margin shares the ground
         private static VisualElement AddGroundedRow(VisualElement parent, Color ground)
         {
-            var row = AddRow(parent, "recipe-gallery__plain");
+            var row = AddPlainRow(parent);
             row.style.backgroundColor = ground;
             row.style.paddingTop = 8f;
             row.style.paddingBottom = 8f;

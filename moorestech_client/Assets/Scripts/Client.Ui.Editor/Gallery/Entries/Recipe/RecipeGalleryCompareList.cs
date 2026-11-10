@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Recipe
 {
     /// <summary>
-    /// 並べ比べのレシピ列。機械のレシピ選択の上書きを当てた列に、名前の段と Oil の行の項目を数本積む（バー・逃げ余白・項目の間隔を比べる）
-    /// Comparison recipe column; stacks name-band plus Oil-row entries in a column with the machine-selection overrides (to compare the bar, bleed margins and entry gap)
+    /// 並べ比べのレシピ列（名前段＋Oil 行）
+    /// Comparison recipe column (name band and Oil row)
     /// </summary>
     public static class RecipeGalleryCompareList
     {
