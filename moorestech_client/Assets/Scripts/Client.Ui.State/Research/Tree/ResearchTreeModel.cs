@@ -85,7 +85,6 @@ namespace Client.Ui.State.Research.Tree
         private void WarnMissingNodeStates()
         {
             var states = _store.NodeStates;
-            if (states.Count == 0) return; // silent-ok: 取り直しの前は全ノードが未着で正常 / 応答が入った時点でこの数え直しが走る
             var missing = 0;
             foreach (var node in _catalog.Nodes)
             {
