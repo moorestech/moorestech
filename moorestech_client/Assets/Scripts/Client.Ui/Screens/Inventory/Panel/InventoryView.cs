@@ -62,7 +62,7 @@ namespace Client.Ui.Screens.Inventory.Panel
             // 購読は Presenter。ここは描くだけ
             // The presenter subscribes; this only draws
             if (_slots.Count != viewModel.MainSlots.Count) Rebuild(viewModel.MainSlots.Count);
-            for (var i = 0; i < _slots.Count; i++) _slots[i].SetContent(PlayerSlotContent.From(_content, viewModel.MainSlots[i], false));
+            for (var i = 0; i < _slots.Count; i++) _slots[i].SetContent(SlotItemContent.From(_content, viewModel.MainSlots[i], false));
             _anchors.Apply(_slots, viewModel.MainSlotItemGuids);
 
             #region Internal

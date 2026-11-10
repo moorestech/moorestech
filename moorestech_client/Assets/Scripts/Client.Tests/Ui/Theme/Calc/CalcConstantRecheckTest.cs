@@ -16,7 +16,7 @@ namespace Client.Tests.Ui.Theme.Calc
     public class CalcConstantRecheckTest
     {
         private const string ThemeDirectory = "moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme";
-        private static readonly string[] TokenFiles = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss" };
+        private static readonly string[] TokenFiles = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss", "DerivedTokens.uss" };
         private static readonly Regex Declaration = new(@"^\s*(--[\w-]+)\s*:\s*([^;]+);(?:\s*/\*\s*(.*?)\s*\*/)?", RegexOptions.Multiline);
         private const string CalcCommentPrefix = "calc: ";
 

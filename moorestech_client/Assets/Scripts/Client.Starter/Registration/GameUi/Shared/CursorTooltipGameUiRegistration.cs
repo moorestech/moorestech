@@ -3,7 +3,7 @@ using Client.Ui.State.CursorTooltip;
 using VContainer;
 using VContainer.Unity;
 
-namespace Client.Starter.Registration.GameUi
+namespace Client.Starter.Registration.GameUi.Shared
 {
     // カーソルツールチップ（GameUi）の登録
     // Registers the GameUi cursor tooltip

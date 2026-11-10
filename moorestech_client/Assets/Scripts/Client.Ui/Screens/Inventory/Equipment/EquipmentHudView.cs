@@ -61,7 +61,7 @@ namespace Client.Ui.Screens.Inventory.Equipment
                 // 選択枠はホイールで動くので、選択アンカーもその枠へ移す
                 // The selected slot moves with the wheel, so the selection anchor moves with it
                 var selected = i == viewModel.SelectedEquipment;
-                _slots[i].SetContent(PlayerSlotContent.From(_content, viewModel.EquipmentSlots[i], selected));
+                _slots[i].SetContent(SlotItemContent.From(_content, viewModel.EquipmentSlots[i], selected));
                 _slots[i].EnableInClassList(AnchorIds.EquipmentSelectedSlot, selected);
             }
 

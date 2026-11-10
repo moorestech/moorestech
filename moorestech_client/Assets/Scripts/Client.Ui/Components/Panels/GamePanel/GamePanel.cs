@@ -16,6 +16,8 @@ namespace Client.Ui.Components.Panels
     /// </remarks>
     public sealed class GamePanel : VisualElement
     {
+        public const string TitleActionReserveUssClassName = "game-panel--title-action-reserve";
+
         private readonly VisualElement _header;
         private readonly VisualElement _titleAction;
         private readonly VisualElement _body;
@@ -118,10 +120,30 @@ namespace Client.Ui.Components.Panels
                 return;
             }
 
+            // 同じ器を毎 Render で渡されても外して付け直さない（detach でポインタ捕捉・:hover が外れるため）
+            // Never detach and re-add the same holder when it is passed again every Render (detaching drops pointer capture and :hover)
+            if (_titleAction.childCount == 1 && _titleAction[0] == action) return;
+
             // 副次アクションは 1 つだけ。差し替えは前の要素を外してから足す
-            // Only one title action; replacing removes the previous element first
+            // Only one title action; replacing removes the previous one first
             _titleAction.Clear();
             _titleAction.Add(action);
+        }
+
+        public void SetTitleActionReserve(bool reserve)
+        {
+            // 題の右の逃げは Web が題の span に paddingRight を足す画面だけが頼む
+            // Only screens whose Web adds paddingRight to the title span ask for the reserve
+            if (reserve) AddToClassList(TitleActionReserveUssClassName);
+            else RemoveFromClassList(TitleActionReserveUssClassName);
+        }
+
+        public void ClearTitleAction()
+        {
+            // 操作を外すと題の右の逃げも外す
+            // Removing the action also drops the title's right reserve
+            _titleAction.Clear();
+            RemoveFromClassList(TitleActionReserveUssClassName);
         }
     }
 }

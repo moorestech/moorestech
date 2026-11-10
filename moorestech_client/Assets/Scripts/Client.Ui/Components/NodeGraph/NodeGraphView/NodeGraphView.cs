@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Theme;
 using UniRx;
@@ -18,9 +19,6 @@ namespace Client.Ui.Components.NodeGraph
     /// </remarks>
     public sealed class NodeGraphView : VisualElement
     {
-        // Web のホイール 1 ノッチの deltaY（CefUnity の ScrollInputPipeline.WheelPixelsPerStep。GameScrollView と同じ値。A-118）
-        // The Web deltaY per wheel notch (CefUnity ScrollInputPipeline.WheelPixelsPerStep; same as GameScrollView; A-118)
-        private const float WebWheelDeltaPerNotch = 60f;
         private const string ClipInsetProperty = "--node-graph-clip-inset";
 
         private readonly VisualElement _canvas;
@@ -113,10 +111,10 @@ namespace Client.Ui.Components.NodeGraph
             evt.StopPropagation();
             _pan.CancelGlide();
 
-            // カーソルを内容 box の座標へ直し、1 ノッチを Web の deltaY 60 へ換算してズームする（横成分は無視）
-            // Convert the cursor to content-box coordinates, scale one notch to the Web deltaY 60, and zoom (horizontal ignored)
+            // カーソルを内容 box の座標へ直し、1 ノッチを Web の deltaY（WebWheelScale。A-71・A-118）へ換算してズームする（横成分は無視）
+            // Convert the cursor to content-box coordinates, scale one notch to the Web deltaY (WebWheelScale; A-71, A-118), and zoom (horizontal ignored)
             var cursor = this.WorldToLocal(evt.mousePosition) - contentRect.position;
-            var webDeltaY = evt.delta.y * WebWheelDeltaPerNotch / WheelEvent.scrollDeltaPerTick;
+            var webDeltaY = evt.delta.y * WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
             SetViewport(NodeGraphViewportMath.ZoomAt(_viewport, cursor, webDeltaY));
         }
 

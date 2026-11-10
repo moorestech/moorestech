@@ -1,4 +1,4 @@
-using Client.Ui.Foundation.Input.Pointer;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,10 +16,9 @@ namespace Client.Ui.Screens.Inventory.Wheel
 
         public VisualElement PickAt(Vector2 screenPosition)
         {
-            // 画面座標（左下原点）→ パネル座標。換算は A-133 の唯一の式を使う
-            // Screen (bottom-left origin) to panel coordinates via the single A-133 formula
-            var panel = _root.GetRootElement().panel;
-            return panel.Pick(UiScreenToPanel.FromBottomLeft(panel, screenPosition));
+            // 拾いと座標換算は Foundation の probe の 1 か所に任せる（ルートのパネル接続は入力の導入が起動で確かめる）
+            // Picking and conversion live in the Foundation probe (the input installer checks the root's panel at startup)
+            return new GameUiPointerProbe(_root.GetRootElement().panel).PickAt(screenPosition);
         }
     }
 }

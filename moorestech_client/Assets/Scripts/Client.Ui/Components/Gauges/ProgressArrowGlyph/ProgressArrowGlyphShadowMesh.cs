@@ -37,7 +37,7 @@ namespace Client.Ui.Components.Gauges
             WriteRingVertices();
             var cursor = 0;
             WriteCore();
-            WriteBands();
+            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, RingCount, ProgressArrowGlyphPath.VertexCount);
 
             #region Internal
 
@@ -66,37 +66,7 @@ namespace Client.Ui.Components.Gauges
             void WriteCore()
             {
                 for (var i = 0; i < ProgressArrowGlyphPath.FillTriangleIndexCount; i += 3)
-                    WriteClockwise(ProgressArrowGlyphPath.FillTriangleIndexAt(i), ProgressArrowGlyphPath.FillTriangleIndexAt(i + 1), ProgressArrowGlyphPath.FillTriangleIndexAt(i + 2));
-            }
-
-            // 隣り合う輪の同じ辺を四角で結ぶ
-            // Join the same edge of neighbouring rings with a quad
-            void WriteBands()
-            {
-                var corners = ProgressArrowGlyphPath.VertexCount;
-                for (var k = 0; k < RingCount; k++)
-                for (var corner = 0; corner < corners; corner++)
-                {
-                    var innerFrom = (ushort)(k * corners + corner);
-                    var innerTo = (ushort)(k * corners + (corner + 1) % corners);
-                    var outerFrom = (ushort)(innerFrom + corners);
-                    var outerTo = (ushort)(innerTo + corners);
-                    WriteClockwise(innerFrom, outerTo, innerTo);
-                    WriteClockwise(innerFrom, outerFrom, outerTo);
-                }
-            }
-
-            // 時計回り（y 下向き）の順で書く
-            // Write in clockwise order (y down)
-            void WriteClockwise(ushort a, ushort b, ushort c)
-            {
-                var pa = vertices[a].position;
-                var pb = vertices[b].position;
-                var pc = vertices[c].position;
-                var clockwise = 0f < (pb.x - pa.x) * (pc.y - pa.y) - (pb.y - pa.y) * (pc.x - pa.x);
-                indices[cursor++] = a;
-                indices[cursor++] = clockwise ? b : c;
-                indices[cursor++] = clockwise ? c : b;
+                    ShadowRingMeshWriter.WriteClockwise(vertices, indices, ref cursor, ProgressArrowGlyphPath.FillTriangleIndexAt(i), ProgressArrowGlyphPath.FillTriangleIndexAt(i + 1), ProgressArrowGlyphPath.FillTriangleIndexAt(i + 2));
             }
 
             #endregion

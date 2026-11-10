@@ -4,7 +4,6 @@
 // Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
@@ -119,14 +118,8 @@ return PlaytestRunner.Run("uitk-block-inventory", new PlaytestRunOptions { Recor
         // 6. Shift + left press distributes into main
         var mainBefore = MainWood();
         p.Note($"Shift＋左押下で main へ（前の main の原木={mainBefore}）");
-        // UITK の shiftKey は PanelEventHandler が IMGUI の Event 列から読み InputSystem の注入では立たないので、押下の間だけ同じ静的値へ Shift を置く
-        // UITK's shiftKey comes from PanelEventHandler's IMGUI event queue, not injected InputSystem keys, so hold Shift in that static only during the press
-        var uitkModifiers = typeof(PanelEventHandler).GetField("s_Modifiers", BindingFlags.NonPublic | BindingFlags.Static);
-        if (uitkModifiers == null) throw new System.InvalidOperationException("PanelEventHandler.s_Modifiers が見つからない（Unity の版で内部名が変わった）ので Shift を注入できない");
         SemanticInput.KeyDown(Key.LeftShift);
-        uitkModifiers.SetValue(null, EventModifiers.Shift);
         await p.ClickUi("chest-grid-slot-0");
-        uitkModifiers.SetValue(null, EventModifiers.None);
         SemanticInput.KeyUp(Key.LeftShift);
         await Expect(0, 0, 0, "Shift: チェストの枠が空");
         p.Assert(MainWood() == mainBefore + 10, $"Shift: main の原木が 10 増える（{mainBefore} → {MainWood()}）");

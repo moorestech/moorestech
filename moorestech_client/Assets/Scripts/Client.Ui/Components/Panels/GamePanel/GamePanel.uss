@@ -110,6 +110,12 @@
     --game-panel-title-scale-y: var(--title-scale-y);
 }
 
+/* 逃げを頼んだ間は題の右に操作の幅と間を空け、長い題が絶対配置の操作に重ならない（Web BlockInventoryPanel の題の span の paddingRight） */
+/* While the reserve is requested, reserve the action width plus gap right of the title so long titles never run under the positioned action (Web BlockInventoryPanel title span paddingRight) */
+.game-panel--title-action-reserve > .game-panel__header > .game-panel__title {
+    padding-right: var(--panel-title-action-reserve);
+}
+
 /* 副次アクションは題の行の右端へ。行の固定高と題の transform に影響させない */
 /* The title action hugs the row's right end without touching the fixed height or the title's transform */
 .game-panel__title-action {

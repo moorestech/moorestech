@@ -1,3 +1,4 @@
+using Client.Localization;
 using Client.Ui.Editor.Capture;
 using NUnit.Framework;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 不透明な箱と地を1280x720の画素で読める()
         {
-            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureLocalization.InitializeDictionary);
 
             AssertPixel(new Color32(255, 0, 0, 255), texture, 30, 30);
             AssertPixel(Ground, texture, 100, 100);
@@ -27,10 +28,34 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 横長2560x1080では本番の倍率1_5で描く()
         {
-            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 2560, 1080, Ground);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 2560, 1080, Ground, UiCaptureLocalization.InitializeDictionary);
 
             Assert.AreEqual(60, MeasureRedRunWidth(texture, 45), 1);
             Object.DestroyImmediate(texture);
+        }
+
+        [Test]
+        public void 辞書を保つ撮影は今の辞書を作り直さない()
+        {
+            // テストが足した辞書で撮れるよう、Keep では Localize.Initialize を呼ばない
+            // Keep skips Localize.Initialize so captures can use test-added dictionaries
+            Localize.Initialize();
+            var revision = Localize.GetDictionaryRevision();
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureLocalization.KeepCurrentDictionary);
+            Object.DestroyImmediate(texture);
+
+            Assert.AreEqual(revision, Localize.GetDictionaryRevision());
+        }
+
+        [Test]
+        public void 辞書を初期化する撮影は辞書を作り直す()
+        {
+            Localize.Initialize();
+            var revision = Localize.GetDictionaryRevision();
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureLocalization.InitializeDictionary);
+            Object.DestroyImmediate(texture);
+
+            Assert.AreNotEqual(revision, Localize.GetDictionaryRevision());
         }
 
         #region Helpers

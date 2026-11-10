@@ -1,3 +1,5 @@
+using System.Linq;
+using Client.Game.InGame.Tutorial.UIHighlight;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Anchor
@@ -13,6 +15,27 @@ namespace Client.Ui.Foundation.Anchor
         {
             element.AddToClassList(MarkerClassName);
             foreach (var id in ids) element.AddToClassList(id);
+        }
+
+        // id を外し、残らなければ印のクラスも外す
+        // Removes ids and drops the marker class when none remain
+        public static void Unmark(VisualElement element, params string[] ids)
+        {
+            foreach (var id in ids) element.RemoveFromClassList(id);
+            if (element.GetClasses().Any(IsAnchorId)) return;
+            element.RemoveFromClassList(MarkerClassName);
+
+            #region Internal
+
+            // クラス名がアンカー id か（固定の id か、マスタが直書きする動的な接頭辞の id）
+            // Whether a class name is an anchor id (a static id or one with a master-written dynamic prefix)
+            bool IsAnchorId(string className)
+            {
+                if (AnchorIds.StaticIds.Contains(className)) return true;
+                return AnchorIds.DynamicPrefixes.Any(className.StartsWith);
+            }
+
+            #endregion
         }
 
         // USS の overflow: hidden で子を切る要素に付ける。C# は USS 由来の overflow を読めないので、祖先クリップの判定はこの印で行う（ADR 0024）
