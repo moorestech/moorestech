@@ -18,6 +18,7 @@ namespace Client.Ui.State.Commands
         SplitDragNoValidSlots,
         BlockSlotUnavailable,
         ItemUnknownInSlot,
+        ResearchFailed,
     }
 
     /// <summary>
@@ -44,6 +45,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitDragNoValidSlots => false,
                 UiCommandRejectReason.BlockSlotUnavailable => false,
                 UiCommandRejectReason.ItemUnknownInSlot => false,
+                UiCommandRejectReason.ResearchFailed => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -73,6 +75,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitDragNoValidSlots => LocalizationKeys.Ui.CommandRejected.SplitDragNoValidSlots,
                 UiCommandRejectReason.BlockSlotUnavailable => LocalizationKeys.Ui.CommandRejected.BlockSlotUnavailable,
                 UiCommandRejectReason.ItemUnknownInSlot => LocalizationKeys.Ui.CommandRejected.ItemUnknownInSlot,
+                UiCommandRejectReason.ResearchFailed => LocalizationKeys.Ui.CommandRejected.ResearchFailed,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -95,6 +98,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitDragNoValidSlots => "no_valid_slots",
                 UiCommandRejectReason.BlockSlotUnavailable => "invalid_slot",
                 UiCommandRejectReason.ItemUnknownInSlot => "unknown_item",
+                UiCommandRejectReason.ResearchFailed => "research_failed",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
