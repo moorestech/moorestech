@@ -13,7 +13,7 @@ Mac mini 自宅サーバー固有の事情。索引は `CLAUDE.local.macmini.md`
 
 ## uloop CLI の配置
 - `~/.local/bin/uloop`: `~/bin/uloop-owned-wrapper.py` への symlink（PATH 上の入口）
-- `~/bin/uloop-owned-wrapper.py`: `uloop launch` で生えた Unity PID を所有者エージェントに紐づけて receipt を書くラッパー。`REAL_ULOOP` は `~/bin/uloop-v3/uloop`
+- `~/bin/uloop-owned-wrapper.py`: `uloop launch` で生えた Unity PID を所有者エージェントに紐づけて receipt を書くラッパー。`REAL_ULOOP` は `~/bin/uloop-v3/uloop`。本体を `ULOOP_INSTALL_DIR=~/bin/uloop-v3` 付きで起動するので、ラッパー経由の自動 self-update は本体の置き場を更新し、リンクを上書きしない。ラッパーからこの環境変数を外さない
 - v3 のインストーラ・`uloop update`・dispatcher の自動 self-update は、既定で `~/.local/bin/uloop` を生バイナリで上書きする（旧ファイルは `~/.local/bin/uloop.old-<pid>-<epoch>` に退避される）。自動 self-update は `uloop compile` 等の普段のコマンドの中で新版を見つけると黙って走るので、明示の更新をしなくても symlink は消える
 - uloop を更新するときは `ULOOP_INSTALL_DIR=$HOME/bin/uloop-v3` を付けて入れる。`ULOOP_INSTALL_DIR` 無しの `uloop update`・`uloop install`・Unity の Setup Wizard / Settings の「Install CLI」は使わない（`~/.local/bin` へ入り、ラッパーを素通りして receipt が付かない）
 - Unity 作業の前と、`~/.local/bin/uloop.old-*` が増えているのを見たときは `readlink ~/.local/bin/uloop` が `$HOME/bin/uloop-owned-wrapper.py` を返すか確かめる。返さなければ、生バイナリを `~/bin/uloop-v3/uloop` へコピーし、`ln -sfh ~/bin/uloop-owned-wrapper.py ~/.local/bin/uloop` で張り直し、その間に起動した Editor を `uloop launch` で起動し直す（receipt の無い Editor は刈られる）

@@ -6,7 +6,6 @@
 // The real master has one equipment slot (equipmentSlotCount: 1), so the wheel asserts Web-equal no-op selection and that the mark judgment runs on the real pick
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.UIState;
@@ -134,14 +133,8 @@ return PlaytestRunner.Run("uitk-inventory-equipment", new PlaytestRunOptions { R
         SemanticInput.KeyUp(Key.LeftAlt);
         await p.UntilUiElement("chest-grid-slot-0", 10f);
         p.Assert(IsInInvColumn(), "チェストを開いた画面でも inventory-panel が Inv 列に出る");
-        // UITK の shiftKey は PanelEventHandler が IMGUI の Event 列から読み、DSL の Shift 注入では立たない。alpha の uitk-block-inventory と同じく押下の間だけ静的値へ Shift を置く
-        // UITK's shiftKey comes from PanelEventHandler's IMGUI queue, not DSL-injected keys; as in alpha's uitk-block-inventory, hold Shift in that static only during the press
-        var uitkModifiers = typeof(PanelEventHandler).GetField("s_Modifiers", BindingFlags.NonPublic | BindingFlags.Static);
-        if (uitkModifiers == null) throw new System.InvalidOperationException("PanelEventHandler.s_Modifiers が見つからない（Unity の版で内部名が変わった）ので Shift を注入できない");
         SemanticInput.KeyDown(Key.LeftShift);
-        uitkModifiers.SetValue(null, EventModifiers.Shift);
         await p.ClickUi($"main-slot-{fiveSlot}");
-        uitkModifiers.SetValue(null, EventModifiers.None);
         SemanticInput.KeyUp(Key.LeftShift);
         await p.Until(() => operations.ReadSnapshot().MainSlots[fiveSlot].IsEmpty && ChestSlot(0) == 5, 5f, $"Shift: main {fiveSlot} が空・チェストの枠 0 に 5（クライアント）");
         var serverCount = -1;
