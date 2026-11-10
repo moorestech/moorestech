@@ -18,10 +18,9 @@ namespace Client.Ui.State.Inventory.Equipment
     {
         public static EquipmentWheelBlock Judge(EquipmentWheelSituation situation)
         {
-            // 前面の層がゲームでなければ止める（Web deriveActiveLayer: modal > blockInventory > research > buildMenu）
-            // Stop unless the front layer is the game (Web deriveActiveLayer: modal > blockInventory > research > buildMenu)
-            if (situation.ModalPending) return EquipmentWheelBlock.Layer;
-            if (situation.Screen == UiScreen.SubInventory || situation.Screen == UiScreen.ResearchTree || situation.Screen == UiScreen.BuildMenu) return EquipmentWheelBlock.Layer;
+            // 前面の層がゲームでなければ止める（Routing の共有判定。Web deriveActiveLayer の写し）
+            // Stop unless the front layer is the game (shared Routing check; a copy of the web deriveActiveLayer)
+            if (UiActiveLayer.CoversGameLayer(situation.Screen, situation.ModalPending)) return EquipmentWheelBlock.Layer;
 
             // UI の上のホイールはその画面の操作。占有は C# の値をそのまま読む
             // A wheel over UI belongs to that screen; ownership is read as C# publishes it
