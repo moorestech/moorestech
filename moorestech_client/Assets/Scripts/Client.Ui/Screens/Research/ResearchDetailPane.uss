@@ -31,15 +31,16 @@
     flex-shrink: 1;
     min-height: 0;
     padding: 10px;
-    /* web: padding 8px 0 ＋ 14px の行の高さ normal＝37.69px（参照の画素で 1280×720 は 37 行・2560×1080 は 55 行）。幅は書かない（D-21） */
-    /* web: padding 8px 0 plus a 14px normal line height = 37.69px (reference pixels: 37 rows at 1280x720, 55 rows at 2560x1080); width is not set (D-21) */
-    --research-action-height: 37.69px;
+    /* web: 参照の画素で 1280×720 は 37 行・2560×1080 は約 55.5 物理 px＝37.0 論理 px（padding 8px 0 ＋ 14px の行）。幅は書かない（D-21） */
+    /* web: reference pixels show 37 rows at 1280x720 and about 55.5 physical px (37.0 logical) at 2560x1080 (padding 8px 0 plus a 14px line); width is not set (D-21) */
+    --research-action-height: 37px;
 }
 
 /* 文字のラベルは Unity 既定の余白を消し、Web が Mantine の body から継ぐ行の高さ 1.55 を写す。2 行目以降は LocalizedLabel の行送り */
-/* 1 行目は字形の既定の行の高さ（実測 16px 23.4・13px 19・12px 18）なので、1.55 との差の半分を上下の padding で足す（min-height は padding の外に足されるので使わない） */
+/* 1 行目は字形の既定の行の高さ（実測 16px 23.4・13px 19・12px 18）なので、1.55 との差の半分を上下の padding で足す（min-height は padding の外に足されるので複数行の文には使わない。1 行固定の液体量ラベルだけ padding 0 の min-height で高さを取る） */
+/* 字の大きさ・フォントを変えたら実測値と下の半行間の padding を測り直す / If font size or font changes, re-measure the values above and the half-leading paddings below */
 /* Text labels drop Unity's default spacing and copy the Web line-height 1.55 inherited from the Mantine body; lines after the first use LocalizedLabel's pitch */
-/* The first line takes the glyph default height (measured 16px 23.4, 13px 19, 12px 18), so top/bottom padding adds half the gap to 1.55 (min-height adds outside padding, so it is not used) */
+/* The first line takes the glyph default height (measured 16px 23.4, 13px 19, 12px 18), so top/bottom padding adds half the gap to 1.55 (min-height adds outside padding, so it is not used for multi-line text; only the single-line fluid label uses min-height with padding 0) */
 .research-tree__detail-header {
     flex-direction: row;
     justify-content: space-between;
@@ -120,7 +121,8 @@
 .research-tree__slots {
     flex-direction: row;
     flex-wrap: wrap;
-    padding-bottom: var(--research-detail-slots-bleed); /* look-exception: LX-136 */
+    /* look-exception: LX-136 */ /* 差は Web の約 3px の偽のはみ出し（スクロールバー）を写さないこと。この padding の値自体は Web と同じ / The difference is not copying Web's spurious ~3px overflow (scrollbar); this padding value itself matches Web */
+    padding-bottom: var(--research-detail-slots-bleed);
     /* 子の margin で写した gap の行末・最終行の余りを負の margin で相殺（UiGroup と同じ手） */
     /* Cancel the trailing gap of the child margins with negative margins (same as UiGroup) */
     margin-right: -4px;

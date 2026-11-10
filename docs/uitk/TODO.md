@@ -219,7 +219,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 - 2 行の行送り（設計書 A-48）: リッチテキストの <line-height> が改行と折り返しの両方に効く（14px で既定 19.00px・19.00px → 指定 20.00px・20.00px）。S2-hud は行高トークンの値をタグで前置する
 - C4-a: Web の本文の行高 1.55 の中に置かれた字を OutlinedCountLabel（行高 1）で写すときは、半行間 (1.55-1)/2 × 字の大きさ を下端に足すと基線が合う（FluidSlot の量で 0 px。タンク・ポンプ・液体プラットフォームの量の字の下端が枠の外の下端から 1280×720 で 6px・2560×1080 で 9 物理画素と Web と同じ。ランタイムの PanelSettings で撮影）
 - 研究ノードのロックの減光: Web 0.45 → UITK 0.45（面・枠・字の最大差 5 段。sRGB 合成〈I-blend〉。1280×720 の `4-research.png` と `UiRuntimePanelCapture` で面 (25,23,29)/(27,24,30)・枠 (65,63,70)/(64,63,70)・名前の字の最も明るい画素 (127,124,124)/(122,120,124)。アイコンの絵は fixture が別なので数えない）
-- S4-research 研究ボタンの高さと詳細ペインの行の高さ: Web の `.researchButton` は padding 8px 0 ＋ 14px の行 normal で 37.69px（参照の画素で 1280×720 は 37 行・2560×1080 は 55 行、幅は本文の 253）→ `--research-action-height: 37.69px`。詳細ペインの文字は Mantine の body の 1.55 を継ぐ。UITK の 1 行目は字形の既定の高さ（16px 23.4・13px 19・12px 18）なので、2 行目以降は LocalizedLabel の行送り、1 行目は 1.55 との差の半分を上下の padding で足す（min-height は padding の外に足され単一行が 1.3px ずつ伸びた）。3 状態×2 解像度で文の行・ボタンの上端の差は 1280×720 で 3px 以内（ほぼ 2px 以内）・2560×1080 で 4 物理画素以内。作業報告 `moorestech_logs/harness/uitk/S4-research/done.md` の「差の表」
+- S4-research 研究ボタンの高さと詳細ペインの行の高さ: Web の `.researchButton` は参照の画素で 1280×720 は 37 行・2560×1080 は約 55.5 物理 px＝37.0 論理 px（幅は本文の 253）→ `--research-action-height: 37px`。詳細ペインの文字は Mantine の body の 1.55 を継ぐ。UITK の 1 行目は字形の既定の高さ（16px 23.4・13px 19・12px 18）なので、2 行目以降は LocalizedLabel の行送り、1 行目は 1.55 との差の半分を上下の padding で足す（min-height は padding の外に足され単一行が 1.3px ずつ伸びた）。3 状態×2 解像度で文の行・ボタンの上端の差は 1280×720 で 3px 以内（ほぼ 2px 以内）・2560×1080 で 4 物理画素以内。作業報告 `moorestech_logs/harness/uitk/S4-research/done.md` の「差の表」
 
 ## 壊れた録画の割り振り（bd moorestech-wwxy）
 

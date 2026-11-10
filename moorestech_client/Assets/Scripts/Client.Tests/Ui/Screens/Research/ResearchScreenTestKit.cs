@@ -32,8 +32,9 @@ namespace Client.Tests.Ui.Screens.Research
         public static readonly Guid BlockAndToolsResearch = Guid.Parse("bb000000-0000-4000-8000-000000000001");
         public static readonly Guid ModuleSlotResearch = Guid.Parse("c0de0000-0000-4000-8000-000000000002");
         public static readonly Guid CraftCapResearch = Guid.Parse("c0de0000-0000-4000-8000-000000000001");
-        private static readonly Regex RichTextTag = new("<[^>]+>");
         public static readonly Guid RewardResearch = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
+
+        private static readonly Regex RichTextTag = new("<[^>]+>");
 
         public static GameContentPresentation LoadMasterAndContent(Texture2D texture)
         {
