@@ -1,0 +1,57 @@
+/* web: features/blockInventory/train/style.module.css の行・操作・一覧・見出し（ローカルのつまみ無し） */
+/* web: rows, controls, lists and headings from the Web train style module; no local knobs */
+.train-timetable__list {
+    flex-direction: column;
+}
+
+.train-timetable__row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.train-timetable__row > .train-timetable__row-end {
+    margin-left: var(--mode-switch-padding-inline);
+}
+
+.train-timetable__label {
+    flex-shrink: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    font-size: var(--mantine-font-size-md);
+    white-space: normal;
+}
+
+.train-timetable-stop--current {
+    color: var(--text-high-contrast);
+}
+
+.train-timetable__controls {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.train-timetable__controls > .train-timetable__control--following {
+    margin-left: var(--mode-switch-gap);
+}
+
+.train-timetable__list > .train-timetable__row {
+    padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+}
+
+.train-timetable__list > .train-timetable__row--following {
+    border-top-width: var(--bevel-1);
+    border-top-color: var(--bevel-c1);
+}
+
+.train-timetable__section-heading {
+    padding: 0 var(--mode-switch-padding-inline) var(--mode-switch-padding-block);
+}
+
+/* 無効な操作の文字は --text-muted（Web .list button:disabled）。部品のつまみを画面のルートで上書き（D-11） */
+/* Disabled control text uses --text-muted (Web .list button:disabled) via the part knob at the screen root (D-11) */
+.train-timetable .train-timetable__control:disabled {
+    --panel-action-button-text: var(--text-muted);
+    opacity: 1;
+}
