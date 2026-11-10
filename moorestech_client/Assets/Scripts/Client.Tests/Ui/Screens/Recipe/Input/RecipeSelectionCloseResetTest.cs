@@ -55,11 +55,14 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         [Test]
         public void 画面が変わらなければCloseUIが押されていても選択を残す()
         {
-            // 購読直後の現在値（Skip(1) で捨てる初回）では外さない
-            // The current value replayed on subscribe (dropped by Skip(1)) does not clear
+            // 押下中・選択済みの状態で購読を始めても、replay される現在値（Skip(1) で捨てる初回）では外さない
+            // Even when subscribing while pressed with a selection, the replayed current value (dropped by Skip(1)) does not clear
             _selection.Select(new ItemId(3));
             _probe.SetPressed(true);
+            var lateReset = new RecipeSelectionCloseReset(_routing, _probe, _selection);
+            lateReset.Initialize();
             Assert.IsInstanceOf<ItemRecipeSelection>(_selection.Current.Value);
+            lateReset.Dispose();
         }
     }
 }
