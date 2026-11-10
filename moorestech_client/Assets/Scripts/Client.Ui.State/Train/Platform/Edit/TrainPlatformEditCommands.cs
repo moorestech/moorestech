@@ -28,20 +28,18 @@ namespace Client.Ui.State.Train.Platform.Edit
             _state.Edit(input);
         }
 
-        // 受理は「送った」の意味。サーバーの結果は届いてからトーストへ渡す
-        // Accepted means "sent"; the server result is reported to the toaster when it arrives
-        public UiCommandResult ApplyStationName()
+        // 戻り値は無い。サーバーの結果は届いてからトーストへ渡す
+        // No return value; the server result is reported to the toaster when it arrives
+        public void ApplyStationName()
         {
             ApplyAsync(_state.Draft, _state.Draft.Input).Forget();
-            return UiCommandAccepted.Instance;
         }
 
         // 選択は替えず目標のモードを送るだけ。結果は公開で反映され、拒否だけトーストへ
         // The selection is not changed; only the target mode is sent and the publication reflects it, with refusals toasted
-        public UiCommandResult SelectTransferMode(TrainPlatformTransferMode mode)
+        public void SelectTransferMode(TrainPlatformTransferMode mode)
         {
             SendModeAsync(mode).Forget();
-            return UiCommandAccepted.Instance;
         }
 
         private async UniTaskVoid ApplyAsync(TrainStationNameDraft draftAtSend, string name)

@@ -38,22 +38,23 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         }
 
         [Test]
-        public void 送った後に閉じると受理も拒否もトーストと時間切れを出さない()
+        public void 送った後に閉じると受理は何も出さず拒否だけトーストして時間切れを出さない()
         {
             // 閉じると源は使えないへ倒れる（本番は TrainTimetableModel が UIStateControl.OnStateChanged で組み直す。録画手順 6 で確かめる）
             // Closing turns the source unavailable (in production TrainTimetableModel rebuilds on UIStateControl.OnStateChanged; recording step 6 checks it)
             _sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
-            Assert.IsInstanceOf<UiCommandAccepted>(_edit.Add(Unnamed));
+            _edit.Add(Unnamed);
             _sources.SetTimetable(TrainTimetableViewState.Unavailable);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] result after close discarded"));
             _send.Accept();
             Assert.IsEmpty(_timer.RequestedDelays);
 
-            // 開き直して送り、また閉じてから拒否が戻っても、トーストの警告は出ない
-            // Reopen, send, close again; a late refusal raises no toaster warning either
+            // 開き直して送り、また閉じてから拒否が戻ると、表示は捨てるがトーストの警告は出る（Web と同じ）
+            // Reopen, send, close again; a late refusal discards the display but still raises the toaster warning (like the Web)
             _sources.SetTimetable(TrainTimetableViewState.Ready(NorthOnly(Unit1)));
             _edit.Add(Unnamed);
             _sources.SetTimetable(TrainTimetableViewState.Unavailable);
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_timetable\.replace failed"));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] result after close discarded"));
             _send.Reject(UiCommandRejectReason.TrainTimetableReplaceFailed, "late");
             LogAssert.NoUnexpectedReceived();
@@ -87,8 +88,7 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             _sources.SetTimetable(TrainTimetableViewState.Unavailable);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] rejected: block_not_open"));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_timetable\.replace failed: block_not_open"));
-            var result = _edit.Add(North);
-            Assert.AreEqual(UiCommandRejectReason.BlockNotOpen, ((UiCommandRejected)result).Reason);
+            _edit.Add(North);
             Assert.IsEmpty(_send.SentReplaces);
         }
 

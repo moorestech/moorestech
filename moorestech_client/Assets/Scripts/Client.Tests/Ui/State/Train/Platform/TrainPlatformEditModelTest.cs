@@ -43,7 +43,7 @@ namespace Client.Tests.Ui.State.Train.Platform
             // 駅で送ってから閉じ、同じ駅を開き直して打ち直す（パネルの識別は同じ駅なので IsSamePanel では見分けられない）
             // Send, close, reopen the same station and type again (IsSamePanel cannot tell it apart: same station)
             edit.EditStationName("南駅");
-            Assert.IsInstanceOf<UiCommandAccepted>(edit.ApplyStationName());
+            edit.ApplyStationName();
             panels.State.Value = BlockInventoryPanelState.Closed;
             panels.State.Value = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation);
             edit.EditStationName("東駅");

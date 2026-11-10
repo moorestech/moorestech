@@ -25,45 +25,40 @@ namespace Client.Ui.State.Train.TimetableEdit
             _toaster = toaster;
         }
 
-        // 受理は「編集をセッションへ渡した」の意味。保留中で捨てた編集・並びの同じ編集もセッションがログつきで扱う（Web も知らせない）。サーバーの結果はセッションがトーストへ渡す
-        // Accepted means "handed to the session"; edits dropped while pending or with the same order are logged by the session (Web does not notify either), and the session reports the server result
-        public UiCommandResult Add(TrainTimetableStation station)
+        // 戻り値は無い（トーストは State が出し、閉じた後の結果は View が消えた後に届くため）。保留中で捨てた編集・並びの同じ編集もセッションがログつきで扱う（Web も知らせない）。サーバーの結果はセッションがトーストへ渡す
+        // No return value (State toasts, since results after close arrive once the View is gone); edits dropped while pending or with the same order are logged by the session (Web does not notify either), and the session reports the server result
+        public void Add(TrainTimetableStation station)
         {
-            if (!_state.TryGetSession(out var session)) return NotOpen(TrainTimetableEditSession.ReplaceCommandName);
+            if (!_state.TryGetSession(out var session)) { NotOpen(TrainTimetableEditSession.ReplaceCommandName); return; }
             session.Replace(TimetableEditLogic.AddStop(session.DisplayedStops, station));
-            return UiCommandAccepted.Instance;
         }
 
-        public UiCommandResult Move(int index, StopMoveDirection direction)
+        public void Move(int index, StopMoveDirection direction)
         {
-            if (!_state.TryGetSession(out var session)) return NotOpen(TrainTimetableEditSession.ReplaceCommandName);
+            if (!_state.TryGetSession(out var session)) { NotOpen(TrainTimetableEditSession.ReplaceCommandName); return; }
             session.Replace(TimetableEditLogic.MoveStop(session.DisplayedStops, index, direction));
-            return UiCommandAccepted.Instance;
         }
 
-        public UiCommandResult Remove(int index)
+        public void Remove(int index)
         {
-            if (!_state.TryGetSession(out var session)) return NotOpen(TrainTimetableEditSession.ReplaceCommandName);
+            if (!_state.TryGetSession(out var session)) { NotOpen(TrainTimetableEditSession.ReplaceCommandName); return; }
             session.Replace(TimetableEditLogic.RemoveStop(session.DisplayedStops, index));
-            return UiCommandAccepted.Instance;
         }
 
-        // 自動運転は楽観表示しない。受理は「送った」の意味で、結果は公開で反映され、拒否だけトーストへ
-        // Auto-run is never shown optimistically; accepted means "sent", the publication reflects the result and only refusals toast
-        public UiCommandResult SetAutoRun(bool enabled)
+        // 自動運転は楽観表示しない。結果は公開で反映され、拒否だけトーストへ
+        // Auto-run is never shown optimistically; the publication reflects the result and only refusals toast
+        public void SetAutoRun(bool enabled)
         {
-            if (!_state.TryGetSession(out _)) return NotOpen(SetAutoRunCommandName);
+            if (!_state.TryGetSession(out _)) { NotOpen(SetAutoRunCommandName); return; }
             SendAutoRunAsync(enabled).Forget();
-            return UiCommandAccepted.Instance;
         }
 
         // 時刻表が開いていない操作は送らず、Web ホストが train_not_open を返してトーストするのと同じく拒否をトーストへ（D-32）
         // An operation without an open timetable is not sent and its refusal is toasted, as the Web host's train_not_open is (D-32)
-        private UiCommandResult NotOpen(string commandName)
+        private void NotOpen(string commandName)
         {
             var rejected = TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.BlockNotOpen, string.Empty);
             _toaster.Report(commandName, rejected);
-            return rejected;
         }
 
         private async UniTaskVoid SendAutoRunAsync(bool enabled)

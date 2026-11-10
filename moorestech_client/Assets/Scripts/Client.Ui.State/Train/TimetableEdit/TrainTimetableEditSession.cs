@@ -79,15 +79,15 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             var result = await _commands.Replace(TimetableEditLogic.ToReplacePayload(stops));
 
-            // 閉じた後の結果は別の列車の表示を動かさないよう捨てる
-            // Results after close are discarded so they cannot touch another train's display
+            // 拒否のトーストは閉じた後でも出す（Web useImmediateTimetable と同じ）。表示は別の列車を動かさないよう捨てる
+            // A refusal toasts even after close (like Web useImmediateTimetable); the display update is discarded so it cannot touch another train
+            if (result is UiCommandRejected) _toaster.Report(ReplaceCommandName, result);
             if (_closed)
             {
                 var summary = result is UiCommandRejected rejected ? $"rejected {UiCommandRejectReasonTraits.ToWireCode(rejected.Reason)}:{rejected.Detail}" : "accepted";
                 Debug.LogWarning($"[TrainTimetableEdit] result after close discarded: {summary}");
                 return;
             }
-            if (result is UiCommandRejected) _toaster.Report(ReplaceCommandName, result);
 
             // 拒否か、公開が先に届いていれば解く。まだなら時間切れを仕掛けて公開を待つ
             // Release on refusal or when the publication already arrived; otherwise arm the timeout and wait
