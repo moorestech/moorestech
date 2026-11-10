@@ -45,5 +45,31 @@ namespace Client.Tests.Ui.Screens.Recipe.ItemList
             Assert.AreEqual(130f, scroll.scrollOffset.y, 0.5f);
             Assert.IsInstanceOf<NoRecipeSelection>(Selection.Current.Value);
         }
+        [Test]
+        public void ドラッグ中に閉じて押したまま開き直すと先頭から始まり古い掴みで送らない()
+        {
+            var view = MountList(ListOf(MaxItemId));
+            var scroll = view.Q<GameScrollView>("item-list-scroll");
+            var at = view.Q<ItemListCellView>("item-list-cell-20").worldBound.center;
+            simulate.MouseDown(at);
+            simulate.MouseMove(at + new Vector2(0, -40));
+            simulate.FrameUpdate();
+            Assert.Greater(scroll.scrollOffset.y, 0f);
+
+            // 押したまま閉じて開き直すと先頭へ戻る（Web は画面を出るとアンマウント）
+            // Closing and reopening while held returns to the top (the Web unmounts on leaving the screen)
+            view.SetShown(false);
+            simulate.FrameUpdate();
+            view.SetShown(true);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, scroll.scrollOffset.y, 0.5f);
+
+            // 閉じる前の掴みが残って指の移動で送り直さない
+            // The grab from before closing does not survive to scroll on further moves
+            simulate.MouseMove(at + new Vector2(0, -80));
+            simulate.MouseUp(at + new Vector2(0, -80));
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, scroll.scrollOffset.y, 0.5f);
+        }
     }
 }

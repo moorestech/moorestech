@@ -1,5 +1,6 @@
 using Client.Tests.Ui.State.Recipe;
 using Client.Ui.Components.Controls;
+using Client.Ui.Screens.Recipe;
 using Client.Ui.Screens.Recipe.Parts;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Recipe.Screen;
@@ -98,6 +99,25 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             simulate.FrameUpdateMs(100);
             Assert.AreEqual(1, _commands.Crafted.Count);
             Assert.AreEqual(1, ShownToasts.Count);
+        }
+        [Test]
+        public void 長押し中にビューアを閉じると押したままでもクラフトしない()
+        {
+            // 閉じるとエントリが木から外れて長押しが止まる（Web は画面を出るとアンマウント。Task 6 レビューの申し送り b）
+            // Hiding detaches the entry and stops the hold (the Web unmounts on leaving the screen; Task 6 review follow-up b)
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));
+            simulate.FrameUpdate();
+            var button = view.Q<RecipeActionButton>($"craft-button-{guid}");
+            simulate.MouseDown(button.worldBound.center);
+            for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);
+            Assert.Greater(ArrowProgress(view, guid), 0f);
+
+            view.SetShown(false);
+            Assert.IsNull(button.panel);
+            for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
         }
     }
 }

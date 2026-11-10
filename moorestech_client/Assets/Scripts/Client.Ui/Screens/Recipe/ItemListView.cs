@@ -59,9 +59,20 @@ namespace Client.Ui.Screens.Recipe
         {
             style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
 
+            // 出すときは何も戻さない（戻すのは閉じる側）
+            // Showing resets nothing (the hide side does)
+            if (shown) return;
+
             // 開き直したら先頭から（Web は画面を出るとアンマウントし、スクロール位置を持ち越さない）
             // Reopen at the top (Web unmounts on leaving the screen and does not carry the scroll position)
-            if (!shown) _scroll.SetScrollOffset(0f);
+            _scroll.SetScrollOffset(0f);
+
+            // 掴み中に閉じたら捕捉を手放して掴みを終える（display:none では捕捉が残り、開き直した後の移動で古い掴みが送ってしまう）
+            // Closing mid-grab releases the capture to end the grab (display:none keeps the capture, so the stale grab would scroll after reopening)
+            for (var pointerId = 0; pointerId < PointerId.maxPointers; pointerId++)
+            {
+                if (_scroll.contentViewport.HasPointerCapture(pointerId)) _scroll.contentViewport.ReleasePointer(pointerId);
+            }
         }
 
         private void ApplyClipClearance()
