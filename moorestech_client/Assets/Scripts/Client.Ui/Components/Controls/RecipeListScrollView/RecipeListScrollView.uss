@@ -1,0 +1,29 @@
+/* web: moorestech_web/webui/src/shared/ui/RecipeListScrollArea/{index.tsx,style.module.css}（土台の .scroll は panelBodyScrollArea と同じで GameScrollView が持つ） */
+/* web: moorestech_web/webui/src/shared/ui/RecipeListScrollArea/{index.tsx,style.module.css} (the base .scroll matches panelBodyScrollArea and lives in GameScrollView) */
+.recipe-list-scroll-view {
+    --scrollarea-scrollbar-size: var(--recipe-list-scrollbar-reserve);
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.recipe-list-scroll-view__scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+/* 枠の四隅の括弧と外周の輪は行の外へ出るので、全周に逃げ余白をとる。右の和は C# が当てる */
+/* Corner brackets and the outer ring sit outside each row, so pad every side by the bleed; C# applies the right sum */
+.recipe-list-scroll-view__list {
+    flex-shrink: 0;
+    padding: var(--recipe-entry-bleed);
+    --recipe-list-scroll-view-bleed: var(--recipe-entry-bleed);
+    --recipe-list-scroll-view-reserve: var(--recipe-list-scrollbar-reserve);
+}
+
+/* 行の間隔は UiStack の --ui-gap。2 クラスで Layout.uss の .ui-stack--gap-none に勝つ（前例 CurrentChallengeHud.uss） */
+/* The row gap is UiStack's --ui-gap; two classes beat .ui-stack--gap-none in Layout.uss (precedent CurrentChallengeHud.uss) */
+.recipe-list-scroll-view .recipe-list-scroll-view__list {
+    --ui-gap: var(--recipe-list-gap);
+}

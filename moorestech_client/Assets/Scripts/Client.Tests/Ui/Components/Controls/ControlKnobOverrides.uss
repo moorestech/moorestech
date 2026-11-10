@@ -4,3 +4,13 @@
     --icon-button-size: var(--skit-tool-button-size);
     --icon-button-icon-size: var(--skit-tool-button-size);
 }
+
+/* RecipeListScrollView の行の間隔（MachineRecipeSelectionList の listGap）と bleed の上書き */
+/* RecipeListScrollView row gap (the MachineRecipeSelectionList listGap) and bleed overrides */
+.control-recipe-list-machine-probe {
+    --recipe-list-gap: var(--machine-recipe-row-gap);
+}
+
+.control-recipe-list-bleed-probe {
+    --recipe-entry-bleed: 7px;
+}
