@@ -83,7 +83,8 @@ namespace Client.Ui.State.Train.TimetableEdit
             // Results after close are discarded so they cannot touch another train's display
             if (_closed)
             {
-                Debug.LogWarning($"[TrainTimetableEdit] result after close discarded: {result}");
+                var summary = result is UiCommandRejected rejected ? $"rejected {UiCommandRejectReasonTraits.ToWireCode(rejected.Reason)}:{rejected.Detail}" : "accepted";
+                Debug.LogWarning($"[TrainTimetableEdit] result after close discarded: {summary}");
                 return;
             }
             if (result is UiCommandRejected) _toaster.Report(ReplaceCommandName, result);
