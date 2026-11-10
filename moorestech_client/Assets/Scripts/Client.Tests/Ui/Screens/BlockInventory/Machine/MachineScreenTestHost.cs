@@ -4,14 +4,15 @@ using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.Context;
 using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using Client.Tests.Ui.State.ModeHud;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Machine;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -23,9 +24,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
     /// </summary>
     public abstract class MachineScreenTestHost : BlockInventoryScreenTestHost
     {
-        public const string MachineUssPath = "Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/Machine.uss";
         protected static readonly Guid FirstItemGuid = new("00000000-0000-0000-1234-000000000001");
         protected static readonly Guid SecondItemGuid = new("00000000-0000-0000-1234-000000000002");
+        // 品と液体は別マスタなので同じ値でよい（テスト用 mod の水の GUID がこの値）
+        // Items and fluids are separate masters, so sharing the value is fine (the test mod's water GUID is this)
         protected static readonly Guid WaterGuid = new("00000000-0000-0000-1234-000000000001");
         private static readonly Texture2D Texture = new(4, 4) { hideFlags = HideFlags.DontSave };
 
@@ -34,6 +36,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         protected FakeMachineSectionModel MachineModel { get; private set; }
         protected FakeBlockContextModel ContextModel { get; private set; }
         protected RecordingBlockSlotCommands Commands { get; private set; }
+        protected FakeUiOsCursorApplier AppliedCursor { get; private set; }
+        protected UiOsCursorRequestStack OsCursor { get; private set; }
 
         [SetUp]
         public void SetUpMachineScreen()
@@ -43,6 +47,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             MachineModel = new FakeMachineSectionModel();
             ContextModel = new FakeBlockContextModel();
             Commands = new RecordingBlockSlotCommands();
+            AppliedCursor = new FakeUiOsCursorApplier();
+            OsCursor = new UiOsCursorRequestStack(AppliedCursor);
         }
 
         [TearDown]
@@ -57,12 +63,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 
         protected static GameContentPresentation Content => new(new FakeContentTextureSource(Texture, Texture, Texture));
 
-        // View＋Presenter を組んで Attach し、機械の値を流してから載せる（tss の束ねは Task 10 なので Machine.uss はここで当てる）
-        // Build the view and presenter, attach, push the machine value and mount (tss bundling is Task 10, so Machine.uss is applied here)
+        // View＋Presenter を組んで Attach し、機械の値を流してから載せる（Machine.uss は土台のテーマ GameUiTheme.tss から当たる）
+        // Build the view and presenter, attach, push the machine value and mount (Machine.uss comes from the host theme GameUiTheme.tss)
         protected MachineSectionView MountSection(MachineSectionViewModel viewModel, bool fillsPanelHeight)
         {
-            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, Toaster);
-            view.Root.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(MachineUssPath));
+            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, Toaster, OsCursor);
             var presenter = new MachineSectionPresenter(view, MachineModel, ContextModel);
             presenter.Attach(MachineScreenViewModels.Panel());
             SetMachine(viewModel);

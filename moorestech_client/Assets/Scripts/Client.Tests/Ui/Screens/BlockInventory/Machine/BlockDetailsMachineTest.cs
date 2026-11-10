@@ -1,5 +1,8 @@
 using Client.Tests.Ui.State.BlockInventory.Family;
+using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Family;
 using Client.Ui.Screens.BlockInventory.Machine;
 using Client.Ui.Screens.BlockInventory.Parts;
@@ -11,7 +14,6 @@ using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Panel;
-using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine.UIElements;
@@ -34,7 +36,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var factories = new ISectionStackSectionFactory[]
             {
-                new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, new RecordingRecipeSelectCommand()),
+                new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())),
                 new MinerSectionFactory(Content, _miner),
             };
             var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", factories);

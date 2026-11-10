@@ -1,7 +1,9 @@
 using Client.Ui.Components.Slots;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Items;
 using Client.Ui.State.Recipe.Data;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
@@ -51,6 +53,23 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var root = MountSelected(MachineScreenViewModels.Recipe(7, new[] { new ItemAmount(FirstItem, 1), new ItemAmount(SecondItem, 1) }, new RecipeFluidAmount[0]));
 
             Assert.AreEqual("Test Item 1", root.Q<Label>("machine-selected-recipe-name").text);
+        }
+
+        [Test]
+        public void ヘッダに乗ると指を要求し離れると外す()
+        {
+            // USS の cursor はランタイムで効かないので、乗っている間だけ OS カーソルへ指を要求する（web: cursor: pointer）
+            // USS cursor does nothing at runtime, so the pointer is requested on the OS cursor only while hovered (web: cursor: pointer)
+            var root = MountSelected(MachineScreenViewModels.Recipe(7, new[] { new ItemAmount(FirstItem, 1) }, new RecipeFluidAmount[0]));
+            var header = Find<VisualElement>(root, "machine-selected-recipe");
+            var outside = new Vector2(header.worldBound.xMax + 50f, header.worldBound.yMax + 50f);
+            simulate.MouseMove(outside);
+            simulate.MouseMove(header.worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Pointer, AppliedCursor.Current, "pointer while over the header");
+
+            simulate.MouseMove(outside);
+            simulate.FrameUpdate();
+            Assert.AreEqual(UiOsCursorShape.Default, AppliedCursor.Current, "withdrawn after leaving");
         }
     }
 }

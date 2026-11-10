@@ -1,4 +1,5 @@
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Machine;
@@ -20,10 +21,11 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         private readonly UiCommandResultToaster _toaster;
         private readonly GameContentPresentation _content;
         private readonly IMachineRecipeSelectCommand _recipeSelect;
+        private readonly IUiOsCursor _osCursor;
 
         public SectionStackSlot Slot => SectionStackSlot.Machine;
 
-        public MachineSectionFactory(IMachineSectionModel machine, IBlockContextModel context, IBlockSlotCommands commands, UiCommandResultToaster toaster, GameContentPresentation content, IMachineRecipeSelectCommand recipeSelect)
+        public MachineSectionFactory(IMachineSectionModel machine, IBlockContextModel context, IBlockSlotCommands commands, UiCommandResultToaster toaster, GameContentPresentation content, IMachineRecipeSelectCommand recipeSelect, IUiOsCursor osCursor)
         {
             _machine = machine;
             _context = context;
@@ -33,11 +35,12 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             // レシピを選ぶコマンドは Task 12 の選択リストが View で使う（D-33）
             // The recipe-select command is used by the Task 12 selection list in the view (D-33)
             _recipeSelect = recipeSelect;
+            _osCursor = osCursor;
         }
 
         public IBlockInventorySection Create(SectionStackSectionMount mount)
         {
-            return new MachineSectionPresenter(new MachineSectionView(mount.FillsPanelHeight, _content, _commands, _toaster), _machine, _context);
+            return new MachineSectionPresenter(new MachineSectionView(mount.FillsPanelHeight, _content, _commands, _toaster, _osCursor), _machine, _context);
         }
     }
 }

@@ -3,6 +3,8 @@ using Client.Tests.Ui.Screens.BlockInventory.Machine;
 using Client.Tests.Ui.State.BlockInventory.Context;
 using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.Screens.BlockInventory.Machine;
 using Client.Ui.Screens.BlockInventory.Registry;
@@ -118,7 +120,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             _context.Set(new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Absent, ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Fetched(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
             var panel = BlockInventoryTestPanels.OfType("ElectricMachine");
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Toaster, Content, new RecordingRecipeSelectCommand());
+            var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Toaster, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", new ContextSectionFactory(Content, _context, _machine), machineFactory);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);

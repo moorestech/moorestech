@@ -1,6 +1,7 @@
 using System;
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Context;
@@ -30,14 +31,14 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         public VisualElement Root => _root;
         public IObservable<Unit> OnChangeRecipeRequested => _header.OnPressed;
 
-        public MachineSectionView(bool fillsPanelHeight, GameContentPresentation content, IBlockSlotCommands commands, UiCommandResultToaster toaster)
+        public MachineSectionView(bool fillsPanelHeight, GameContentPresentation content, IBlockSlotCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             // 枠の押下は本体の枠が直接コマンドへ渡す（設計書 §4.2 A-8。Presenter は中継しない）
             // Slot presses go straight from the body's slots to the commands (design §4.2 A-8; no presenter relay)
             _root.pickingMode = PickingMode.Ignore;
             _inventoryContent.pickingMode = PickingMode.Ignore;
             _context = new BlockContextSectionsView(content);
-            _header = new SelectedRecipeHeader(content);
+            _header = new SelectedRecipeHeader(content, osCursor);
             _body = new MachineInventoryBody(content, commands, toaster);
             _inventoryContent.AddItem(_context);
             _inventoryContent.AddItem(_header);

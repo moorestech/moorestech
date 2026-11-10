@@ -5,7 +5,9 @@ using Client.Tests.Ui.State.BlockInventory.Family;
 using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.ModeHud;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.Screens.BlockInventory.Family;
 using Client.Ui.Screens.BlockInventory.Fluid;
@@ -93,7 +95,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
             var factories = new ISectionStackSectionFactory[]
             {
                 new ContextSectionFactory(content, context, machine),
-                new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), Toaster, content, new RecordingRecipeSelectCommand()),
+                new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), Toaster, content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())),
                 new MinerSectionFactory(content, miner),
                 new PumpSectionFactory(content, pump),
                 new GeneratorSectionFactory(generator),

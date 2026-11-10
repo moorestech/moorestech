@@ -3,6 +3,7 @@ using System.Globalization;
 using Client.Localization;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Tooltip;
@@ -32,7 +33,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
         public IObservable<Unit> OnPressed => _pressed;
 
-        public SelectedRecipeHeader(GameContentPresentation content)
+        public SelectedRecipeHeader(GameContentPresentation content, IUiOsCursor osCursor)
         {
             name = "machine-selected-recipe";
             AddToClassList("machine-selected-recipe");
@@ -42,6 +43,10 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             Add(_group);
             HoverTooltipMark.Mark(this, new UiText(LocalizationKeys.Ui.BlockInventory.ChangeRecipe));
             RegisterCallback<ClickEvent>(_ => _pressed.OnNext(Unit.Default));
+
+            // 押せる印の指は USS の cursor がランタイムで効かないので OS カーソルへ要素の層で要求する（web: SelectedRecipeHeader の cursor: pointer）
+            // USS cursor does nothing at runtime, so the pressable pointer is requested on the element layer (web: SelectedRecipeHeader cursor: pointer)
+            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
 
         public void Render(MachineRecipeSelectionRow row, MachineSectionViewModel viewModel)

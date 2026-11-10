@@ -43,7 +43,3 @@
 .machine-module-band-wrap {
     padding-top: var(--mantine-spacing-xs);
 }
-
-.machine-selected-recipe {
-    cursor: link;
-}
