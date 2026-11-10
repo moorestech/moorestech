@@ -23,12 +23,11 @@ namespace Client.Ui.Screens.Inventory.Panel
                 _applied.TryGetValue(index, out var current);
                 if (wanted == current) continue;
 
-                // 古い id は印のクラスごと外す（枠に他のアンカーは付かない。Web の持ち物の枠のアンカーも inventoryItemAnchorId の 1 種だけ）
-                // Remove the old id with the marker class (slots carry no other anchor; the Web inventory slot also has only inventoryItemAnchorId)
+                // 古い id を外す。他の id が残らなければ印のクラスも外れる
+                // Remove the old id; the marker class goes too once no other id remains
                 if (current != null)
                 {
-                    slots[index].RemoveFromClassList(current);
-                    slots[index].RemoveFromClassList(TutorialAnchor.MarkerClassName);
+                    TutorialAnchor.Unmark(slots[index], current);
                     _applied.Remove(index);
                 }
                 if (wanted == null) continue;
