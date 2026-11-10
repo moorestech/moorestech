@@ -652,6 +652,8 @@ SKILL.md の目次:
 | A-195 | **A-118 を改める。** Web のホイール 1 ノッチ（deltaY 60。CefUnity の `WheelPixelsPerStep`）の換算は Foundation `Input/WebWheelScale.PixelsPerNotch` の 1 本を読む。`GameScrollView`・装備のホイール（S4-inventory が上げた）・`NodeGraphView`（私有定数 60 をやめる）が同じ値を読む（A-71） | 部品ごとに 60 を持つ: 換算が 3 本になり、片方だけ直ると Web とずれる |
 | A-196 | `RecipeRow` は秒数を ctor `RecipeRow(string testid, string arrowTestid, UiText duration)` で受け、`SetDuration` は持たない。画面は行を作るときに秒数を渡す（C4-c の最終レビュー W10） | `SetDuration` を残す: 呼び忘れても行が空の秒数で黙って描かれ、コンパイルで止まらない |
 | A-197 | **A-161 を改める。** 特殊族の「開いていない」は新設の `SpecialBlockNotOpen` をやめ、S4-machine・S4-train が #1632 で 1 つにまとめた共有の `BlockNotOpen`（非良性・wire `block_not_open`・文言キー `ui.commandRejected.blockNotOpen`）を使う。S4-special は列挙・switch・localization の行を足さない（PLAN-W4a の依頼） | `SpecialBlockNotOpen` を残す: 同じ意味の拒否理由と文言が 2 つになり、wire も同じ `block_not_open` で区別が付かない |
+| A-198 | 共有フォント資産（`Assets/UI Toolkit/GameUi/Fonts/*.asset` の 7 つ）の atlas の padding は 18／90pt。作り直しは `tools/uitk/create-game-ui-*.dynamic.cs`（padding の定数を持つ）。縁を使う字の最小 10px で `-unity-text-outline-width` 2px（Web の `-webkit-text-stroke` 2px）が頭打ちしない最小の値。LX-69 を閉じる（I-fix4 の実測: padding 9 は 2px と 3px が同じ画素・最暗 50〜54、18 で最暗 0〜3） | padding 27: 2px の縁は 18 と同じで atlas の面積だけ増える。縁を太らせる別の層（影を 4 方向に重ねる等）: 縁は字の形に沿わず、資産の直しで済む差を部品へ持ち込む |
+| A-199 | UI の sRGB 合成は世界の色を URP の final blit と同じ拡大フィルタで読む（`UiSrgbWorldUpscaleFilter`。Auto は 1/renderScale と画面の寸法が整数で割り切れれば点、それ以外は双線形。URP の解決後の値は internal なので同じ式を公開の値で写す）。FSR・STP は写せないので双線形で読み 1 回 `Debug.LogError` する（I-fix4。renderScale 0.5 で帯の下の差 最大 2 段） | 合成を常に双線形: 描画解像度を下げると地平線の細部で URP と 5〜96 段ずれる（I-blend の実測）。URP の internal を反射で読む: URP の更新で黙って壊れる |
 
 ### 7.2 ユーザーに上げるもの
 
