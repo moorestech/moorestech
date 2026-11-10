@@ -74,5 +74,22 @@ namespace Client.Tests.Ui.Components.NodeGraph
             Assert.AreEqual(100f, lines[0].Length, 0.01f);
             Assert.AreEqual(180f, Mathf.Abs(lines[0].AngleDegrees), 0.01f);
         }
+
+        [Test]
+        public void 寸法を持たない中身なりのカードは包みに潰されず中身の高さになる()
+        {
+            // カード自身は寸法を持たず、子の高さ 30 だけで高さが決まる（研究・チャレンジのカードと同じ型）
+            // The card has no size of its own; only its 30-high child sets its height (same shape as research/challenge cards)
+            var view = MountView(MountHost(400f, 300f));
+            var card = new VisualElement { name = "card-content-sized" };
+            card.style.width = CardWidth;
+            var content = new VisualElement();
+            content.style.height = 30f;
+            card.Add(content);
+            view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, card) }, NodeGraphFocus.None));
+            simulate.FrameUpdate();
+
+            Assert.AreEqual(30f, card.resolvedStyle.height, 0.5f, "card height follows its content");
+        }
     }
 }

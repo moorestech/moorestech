@@ -83,8 +83,8 @@ namespace Client.Ui.Components.NodeGraph
 
             void AddWrapper(NodeGraphNode node)
             {
-                // 包みは点に置く幅 0 の要素。拾わず、中のカードが押下を受ける
-                // The wrapper is a zero-size element at the point; it does not pick, and the card inside receives presses
+                // 包みは点に置く、中のカードが押下を受ける
+                // Wrapper at the point; inner card takes presses
                 var point = ToCanvasPoint(node.TreePosition);
                 var wrapper = new VisualElement { pickingMode = PickingMode.Ignore };
                 wrapper.AddToClassList("node-graph__node");

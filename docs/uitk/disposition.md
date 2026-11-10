@@ -78,6 +78,12 @@
 | 4 | `src/features/inventory/EquipmentPanel/index.test.ts` | 再接続開始時にpendingを破棄して復元snapshotを起点にする | 捨てる | UITK は同じプロセスの C# を直接読み、WebSocket の切断・再接続が無い。確定の世代 `SelectionConfirmationRevision` は加算だけで戻らない（`LocalPlayerEquipment.cs:63,100`）ので、世代が戻ったら未確認を捨てる規則は写さない（D-28）。確定値を起点にすることは `EquipmentWheelSelectorTest`「未確認が全部確定した後はサーバーの確定値から次を計算する」が見る（S4-inventory D-5） | — |
 | 4 | `e2e/tests/inventory/equipment.spec.ts` | ホットバーHUDの上でもホイールで装備が切り替わる | 写す予定 | moorestech-albof.47（S3-hotbar-modal へ回送。HotbarHudView が未マージで、ホットバーの枠の上のホイールが装備を切り替えることを NUnit で見られない。素通しの印 `WheelPassthroughMark` は S4-inventory が先に作った） | — |
 | 4 | `e2e/tests/inventory/equipment.spec.ts` | ホットバー帯のスロット列外でもホイールで装備が切り替わる | 写す予定 | moorestech-albof.47（S3-hotbar-modal へ回送。HotbarHudView が未マージで、ホットバー帯のスロット列の外のホイールが装備を切り替えることを NUnit で見られない） | — |
+| 4 | `e2e/tests/research/research.spec.ts` | translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する | 捨てる | Playwright の補助関数 expectCraftGrip 自身の検査で、DOM の translate とボックスの境界に依る。UITK に同じ補助が無く、写す対象の挙動が無い | #1641 |
+| 4 | `e2e/tests/research/research.spec.ts` | padding box外の境界buttonをexpectCraftGripが重なりなしと判定する | 捨てる | 同上（expectCraftGrip の自己テスト） | #1641 |
+| 4 | `e2e/tests/research/research.spec.ts` | 研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-research-tree.cs（研究画面を開いたまま、判定の間だけ HUD の根を拾う設定にして challenge-hud・key-hints の中心の Pick が各 HUD を返す。層の順序の主張） | #1641 |
+| 4 | `e2e/tests/research/tmp-icon-click.spec.ts` | * | 捨てる | tmp の付いた一時の調査テストで、実行計画 §1.4 の完了条件が写す数から除いた | #1641 |
+| 4 | `src/features/research/ResearchTreePanel.test.ts` | インベントリtopic未受信中は詳細ペインへ所持数をnullで渡す(D4) | 捨てる | UITK は持ち物を同期で持ち、所持数の未受信の状態が無い（設計書 [A-13] の ConnectingPlaceholder と同じ理由） | #1641 |
+| 4 | `src/features/research/ResearchDetailPane.test.ts` | 所持数未受信中(owned=null)は不足表示も所持/必要も出さない | 捨てる | 同上（[A-13]。所持数は常に有る） | #1641 |
 | 4 | `src/features/blockInventory/details/machine/ModuleSlotStackLimitText.test.ts` | 上限の配信が届くまでは何も描かない | 捨てる | UITK は `IModuleSlotStackLimitLookup.CurrentStackLimit` を同期で読み、配信待ちの状態が無い（S4-machine D-10） | — |
 | 4 | `e2e/mock-host/detailActions.test.ts` | setはrecipeGuidを選択状態へ反映する | 捨てる | mock-host 自身の契約。UITK は `MachineRecipeSelectionProtocol` を直に送り、解放の検査は `MachineRecipeSelectCommandTest` が持つ（S4-machine D-11） | — |
 | 4 | `e2e/mock-host/detailActions.test.ts` | recipeGuidなしsetとclearは空GUIDへ戻す | 捨てる | 同上（S4-machine D-11） | — |

@@ -1,0 +1,102 @@
+/* web: moorestech_web/webui/src/features/research/style.module.css（.researchArea〜.nodeState のエリアとカード。詳細ペインは ResearchDetailPane.uss）。data 属性は修飾クラス、gap は子の margin、calc() は ResearchCalcKnobs、outline は拾わない子の輪で写す */
+/* web: moorestech_web/webui/src/features/research/style.module.css (.researchArea to .nodeState: area and cards; the detail pane is in ResearchDetailPane.uss); data attributes become modifier classes, gap becomes child margins, calc() goes to ResearchCalcKnobs, and the outline is a non-picking child ring */
+
+/* 研究エリア: 上右下は舞台の端、left は C# が持ち物の幅と列の間隔の和で当てる（A-92） */
+/* Research area: top/right/bottom at the stage edges; C# sets left to inventory width plus column gap (A-92) */
+.research-tree {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 0;
+    flex-direction: column;
+    --research-tree-inventory-width: var(--inventory-panel-width);
+    --research-tree-column-gap: var(--stage-column-gap);
+}
+
+/* パネルはエリアの高さいっぱい、グラフはパネルの本文いっぱい（Web の height: 100% と .treeContainer） */
+/* The panel fills the area height and the graph fills the panel body (Web height: 100% and .treeContainer) */
+.research-tree__panel {
+    flex-grow: 1;
+}
+
+.research-tree__graph {
+    flex-grow: 1;
+}
+
+/* ノードカード: 名前・アイコン・状態ラベルの縦積み。中心をノードの点に据える */
+/* Node card: name, icon and state label stacked; centered on the node point */
+.research-tree__card {
+    width: 132px;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 6px;
+    background-color: var(--research-node-face);
+    border-width: 1px;
+    border-color: var(--research-node-border);
+    translate: -50% -50%;
+}
+
+.research-tree__card--locked {
+    opacity: var(--research-node-locked-opacity);
+}
+
+.research-tree__card--ready {
+    border-color: var(--select-cyan);
+}
+
+.research-tree__card--completed {
+    border-color: var(--text-default);
+}
+
+/* 選択の輪: Web の outline 2px（枠の外）。Yoga の絶対配置は親の padding 辺が基準なので枠 1px ぶん更に外へ */
+/* Selection ring: the Web 2px outline outside the border; Yoga absolute offsets start at the padding edge, so go 1px further out */
+.research-tree__card-ring {
+    display: none;
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-width: 2px;
+    border-color: var(--text-high-contrast);
+}
+
+.research-tree__card--selected > .research-tree__card-ring {
+    display: flex;
+}
+
+/* 名前と状態の行の高さは Web が Mantine の body から継ぐ 1.55（14px×1.55＝21.7px・12px×1.55＝18.6px）。1 行の nowrap なので前例 TooltipFace の 1 行目と同じく min-height だけで写す。Web の半行間に合わせ文字は縦中央（行送りの指定は text へ line-height タグを足すため使わない） */
+/* Name and state lines use the Web's line-height 1.55 inherited from the Mantine body (14px x 1.55 = 21.7px, 12px x 1.55 = 18.6px), single-line nowrap, so min-height alone like the first line of TooltipFace; text centered vertically like the Web half-leading (the pitch knob would add a line-height tag to text) */
+.research-tree__card-name {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    --research-card-name-line-height: 21.7px;
+    min-height: var(--research-card-name-line-height);
+    -unity-text-align: middle-center;
+    color: var(--text-default);
+    margin: 0;
+    padding: 0;
+    margin-bottom: 6px;
+}
+
+.research-tree__card-icon {
+    margin-bottom: 6px;
+}
+
+.research-tree__card-state {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    --research-card-state-line-height: 18.6px;
+    min-height: var(--research-card-state-line-height);
+    -unity-text-align: middle-center;
+    color: var(--text-default);
+    margin: 0;
+    padding: 0;
+}

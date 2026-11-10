@@ -15,7 +15,6 @@ namespace Client.Tests.Ui.Anchor
             { AnchorIds.BuildMenuEntryPrefix, "S3-buildmenu" },
             { AnchorIds.RecipeCraftButton, "S4-recipe" },
             { AnchorIds.RecipeItemPrefix, "S4-recipe" },
-            { AnchorIds.ResearchNodePrefix, "S4-research" },
             { AnchorIds.ChallengePanel, "S5-challenge" },
             { AnchorIds.ChallengeCategories, "S5-challenge" },
             { AnchorIds.ChallengeNodePrefix, "S5-challenge" },
