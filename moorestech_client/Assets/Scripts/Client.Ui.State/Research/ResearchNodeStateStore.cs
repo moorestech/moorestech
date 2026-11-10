@@ -25,6 +25,7 @@ namespace Client.Ui.State.Research
         private bool _researchScreenActive;
 
         public IReadOnlyDictionary<Guid, ResearchNodeState> NodeStates { get; private set; } = new Dictionary<Guid, ResearchNodeState>();
+        public bool HasReceivedNodeStates { get; private set; }
         public IObservable<Unit> OnNodeStatesChanged => _onNodeStatesChanged;
 
         public ResearchNodeStateStore(UIStateControl uiStateControl, LocalPlayerInventoryController inventoryController)
@@ -63,6 +64,7 @@ namespace Client.Ui.State.Research
         public void ApplyNodeStates(Dictionary<Guid, ResearchNodeState> nodeStates)
         {
             NodeStates = nodeStates;
+            HasReceivedNodeStates = true;
             _onNodeStatesChanged.OnNext(Unit.Default);
         }
 

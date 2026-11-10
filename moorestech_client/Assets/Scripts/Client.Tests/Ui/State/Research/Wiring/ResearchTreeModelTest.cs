@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory;
@@ -11,6 +12,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
 namespace Client.Tests.Ui.State.Research.Wiring
@@ -62,8 +64,9 @@ namespace Client.Tests.Ui.State.Research.Wiring
         }
 
         [Test]
-        public void 研究画面へ入ると全ノードを組む()
+        public void 研究画面へ入ると全ノードを組み状態の未受信を警告する()
         {
+            LogAssert.Expect(LogType.Warning, new Regex(@"no research node state received yet"));
             UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ResearchTree);
 
             Assert.AreEqual(_catalog.Nodes.Count, _model.Current.Value.Nodes.Count);
@@ -81,11 +84,13 @@ namespace Client.Tests.Ui.State.Research.Wiring
             _selection.Toggle(target);
             Assert.IsTrue(_model.Current.Value.TryGetDetail(out var detail));
             Assert.AreEqual(target, detail.Guid);
+            Assert.IsFalse(detail.NodeStatesReceived);
 
             // 状態の受信でカードが替わる
             // Receiving states changes the cards
             _store.ApplyNodeStates(AllStates(ResearchNodeState.Completed));
             Assert.IsTrue(_model.Current.Value.Nodes[0].CardState.Completed);
+            Assert.IsTrue(_model.Current.Value.TryGetDetail(out var receivedDetail) && receivedDetail.NodeStatesReceived);
 
             // 所持の変化で組み直す
             // An inventory change rebuilds

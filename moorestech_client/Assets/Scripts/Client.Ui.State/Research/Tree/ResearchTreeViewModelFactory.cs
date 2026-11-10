@@ -13,7 +13,7 @@ namespace Client.Ui.State.Research.Tree
     /// </summary>
     public static class ResearchTreeViewModelFactory
     {
-        public static ResearchTreeViewModel Create(IReadOnlyList<ResearchNodeDefinition> definitions, IReadOnlyDictionary<Guid, ResearchNodeState> states, IReadOnlyDictionary<ItemId, int> owned, ResearchSelection selection)
+        public static ResearchTreeViewModel Create(IReadOnlyList<ResearchNodeDefinition> definitions, IReadOnlyDictionary<Guid, ResearchNodeState> states, bool nodeStatesReceived, IReadOnlyDictionary<ItemId, int> owned, ResearchSelection selection)
         {
             var cards = new List<ResearchNodeCardViewModel>(definitions.Count);
             var summaries = new List<ResearchNodeSummary>(definitions.Count);
@@ -44,7 +44,7 @@ namespace Client.Ui.State.Research.Tree
             // Nodes without state are all-unmet
             ResearchNodeState StateOf(Guid guid)
             {
-                // silent-ok: 取り直しの前は全ノードが未着で Web の橋と同じ既定 / 受信後の欠落は ResearchTreeModel が受信ごとに件数を LogWarning へ出す
+                // silent-ok: 取り直しの前は全ノードが未着で Web の橋と同じ既定（受信前は詳細の理由文を出さない） / 欠落は ResearchTreeModel が突入時と受信ごとに LogWarning へ出す
                 return states.TryGetValue(guid, out var state) ? state : ResearchNodeState.UnresearchableAllReasons;
             }
 
@@ -59,7 +59,7 @@ namespace Client.Ui.State.Research.Tree
                     var consume = definition.ConsumeItems[i];
                     slots.Add(new ResearchConsumeSlotViewModel(consume.ItemId, consume.Count, allocated[i], ResearchLogic.IsConsumeItemLacking(state, consume.Count, allocated[i])));
                 }
-                return new ResearchDetailViewModel(definition.Guid, ResearchLogic.DeriveResearchButton(state), slots, UnlockEntries.ToUnlockEntries(definition.Unlocks));
+                return new ResearchDetailViewModel(definition.Guid, ResearchLogic.DeriveResearchButton(state), nodeStatesReceived, slots, UnlockEntries.ToUnlockEntries(definition.Unlocks));
             }
 
             UnityEngine.Vector2 PositionOf(Guid guid)

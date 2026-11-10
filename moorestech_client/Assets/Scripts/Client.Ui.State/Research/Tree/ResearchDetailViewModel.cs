@@ -13,13 +13,17 @@ namespace Client.Ui.State.Research.Tree
     {
         public Guid Guid { get; }
         public ResearchButtonState Button { get; }
+        // サーバー状態を一度も受け取っていない間は研究できない理由を出さない
+        // Until any server state arrives, the unavailable reason is not shown
+        public bool NodeStatesReceived { get; }
         public IReadOnlyList<ResearchConsumeSlotViewModel> ConsumeSlots { get; }
         public IReadOnlyList<UnlockEntry> Unlocks { get; }
 
-        public ResearchDetailViewModel(Guid guid, ResearchButtonState button, IReadOnlyList<ResearchConsumeSlotViewModel> consumeSlots, IReadOnlyList<UnlockEntry> unlocks)
+        public ResearchDetailViewModel(Guid guid, ResearchButtonState button, bool nodeStatesReceived, IReadOnlyList<ResearchConsumeSlotViewModel> consumeSlots, IReadOnlyList<UnlockEntry> unlocks)
         {
             Guid = guid;
             Button = button;
+            NodeStatesReceived = nodeStatesReceived;
             ConsumeSlots = consumeSlots;
             Unlocks = unlocks;
         }

@@ -73,6 +73,16 @@ namespace Client.Tests.Ui.Screens.Research
             CollectionAssert.AreEqual(new[] { "close" }, _commands.Issued);
         }
 
+        [Test]
+        public void サーバー状態の受信前は既定の状態でも理由を出さない()
+        {
+            var lacking = Kit.Detail(ResearchNodeState.UnresearchableAllReasons, 0, 0, Kit.NoUnlocks());
+            MountPane(new ResearchDetailViewModel(lacking.Guid, lacking.Button, false, lacking.ConsumeSlots, lacking.Unlocks));
+
+            Assert.IsFalse(ResearchButton().enabledSelf);
+            Assert.IsFalse(IsShown(Find<Label>(rootVisualElement, "research-detail-reason")));
+        }
+
         /// <web-test file="src/features/research/ResearchDetailPane.test.ts">所持数不足の消費アイテムはinsufficient=trueで所持/必要をスロットへ渡す</web-test>
         [Test]
         public void 所持が足りない消費アイテムは不足の枠と所持と必要を出す()

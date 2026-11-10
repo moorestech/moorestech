@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.State.Research
         [Test]
         public void 状態の無いノードは全条件未達で描き注目点も無い()
         {
-            var model = ResearchTreeViewModelFactory.Create(Definitions(), new Dictionary<Guid, ResearchNodeState>(), Owned(0, 0), ResearchSelection.None);
+            var model = ResearchTreeViewModelFactory.Create(Definitions(), new Dictionary<Guid, ResearchNodeState>(), false, Owned(0, 0), ResearchSelection.None);
 
             Assert.IsTrue(model.Nodes[0].CardState.Locked);
             Assert.AreEqual(LocalizationKeys.Ui.Research.StateUnavailable, model.Nodes[0].StateLabelKey);
@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.State.Research
         public void 研究可能なノードの座標が注目点になり選択の印が付く()
         {
             var states = new Dictionary<Guid, ResearchNodeState> { { Root, ResearchNodeState.Completed }, { Child, ResearchNodeState.Researchable } };
-            var model = ResearchTreeViewModelFactory.Create(Definitions(), states, Owned(5, 0), ResearchSelection.Of(Child));
+            var model = ResearchTreeViewModelFactory.Create(Definitions(), states, true, Owned(5, 0), ResearchSelection.Of(Child));
 
             Assert.IsTrue(model.TryGetInitialFocus(out var focus));
             Assert.AreEqual(new Vector2(200f, 0f), focus);
@@ -50,9 +50,9 @@ namespace Client.Tests.Ui.State.Research
         public void 詳細は割当と不足を消費アイテムごとに持ち完了なら不足を出さない()
         {
             var lackingStates = new Dictionary<Guid, ResearchNodeState> { { Child, ResearchNodeState.UnresearchableNotEnoughItem } };
-            var lacking = Detail(ResearchTreeViewModelFactory.Create(Definitions(), lackingStates, Owned(1, 1), ResearchSelection.Of(Child)));
+            var lacking = Detail(ResearchTreeViewModelFactory.Create(Definitions(), lackingStates, true, Owned(1, 1), ResearchSelection.Of(Child)));
             var completedStates = new Dictionary<Guid, ResearchNodeState> { { Child, ResearchNodeState.Completed } };
-            var completed = Detail(ResearchTreeViewModelFactory.Create(Definitions(), completedStates, Owned(1, 1), ResearchSelection.Of(Child)));
+            var completed = Detail(ResearchTreeViewModelFactory.Create(Definitions(), completedStates, true, Owned(1, 1), ResearchSelection.Of(Child)));
 
             // 必要3に対し2個で不足
             // 2 of 3 required is short
@@ -62,6 +62,16 @@ namespace Client.Tests.Ui.State.Research
             Assert.IsFalse(lacking.Button.Interactable);
             Assert.IsFalse(completed.ConsumeSlots[0].Lacking);
             Assert.IsTrue(completed.Button.Completed);
+        }
+
+        [Test]
+        public void 状態の受信の有無を詳細へ渡す()
+        {
+            var unreceived = Detail(ResearchTreeViewModelFactory.Create(Definitions(), new Dictionary<Guid, ResearchNodeState>(), false, Owned(0, 0), ResearchSelection.Of(Child)));
+            var received = Detail(ResearchTreeViewModelFactory.Create(Definitions(), new Dictionary<Guid, ResearchNodeState>(), true, Owned(0, 0), ResearchSelection.Of(Child)));
+
+            Assert.IsFalse(unreceived.NodeStatesReceived);
+            Assert.IsTrue(received.NodeStatesReceived);
         }
 
         #region Helpers

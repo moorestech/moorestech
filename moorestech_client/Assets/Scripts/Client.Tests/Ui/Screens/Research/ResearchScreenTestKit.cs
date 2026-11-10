@@ -64,7 +64,7 @@ namespace Client.Tests.Ui.Screens.Research
                 { PreNodeLacking, ResearchNodeState.UnresearchableNotEnoughPreNode },
                 { AllLacking, ResearchNodeState.UnresearchableAllReasons },
             };
-            return ResearchTreeViewModelFactory.Create(definitions, states, new Dictionary<ItemId, int>(), selection);
+            return ResearchTreeViewModelFactory.Create(definitions, states, true, new Dictionary<ItemId, int>(), selection);
         }
 
         // 1ノードの詳細（消費はItemId1を3個）
@@ -75,7 +75,7 @@ namespace Client.Tests.Ui.Screens.Research
             var definition = new ResearchNodeDefinition(Researchable, ForUnitTestItemId.ItemId1, Vector2.zero, new List<Guid>(), consume, unlocks);
             var owned = new Dictionary<ItemId, int> { { ForUnitTestItemId.ItemId1, ownedItem1 }, { ForUnitTestItemId.ItemId2, ownedItem2 } };
             var states = new Dictionary<Guid, ResearchNodeState> { { Researchable, state } };
-            var tree = ResearchTreeViewModelFactory.Create(new List<ResearchNodeDefinition> { definition }, states, owned, ResearchSelection.Of(Researchable));
+            var tree = ResearchTreeViewModelFactory.Create(new List<ResearchNodeDefinition> { definition }, states, true, owned, ResearchSelection.Of(Researchable));
             if (!tree.TryGetDetail(out var detail)) throw new InvalidOperationException("選択したノードの詳細が組まれていない");
             return detail;
         }

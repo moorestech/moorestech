@@ -47,7 +47,9 @@ namespace Client.Ui.State.Research.Tree
             // Build once on entering the screen
             _routing.Current.Subscribe(snapshot =>
             {
+                var entering = !_screenShown && snapshot.Screen == UiScreen.ResearchTree;
                 _screenShown = snapshot.Screen == UiScreen.ResearchTree;
+                if (entering) WarnMissingNodeStates();
                 RebuildWhileShown();
             });
 
@@ -59,10 +61,15 @@ namespace Client.Ui.State.Research.Tree
                 RebuildWhileShown();
             }
 
-            // 受けた状態に欠けたノードは Web の既定で描くので、受信ごとに件数を出して気づけるようにする（D-29）
-            // Missing nodes render with the Web default, so log their count on every receipt to make the gap visible (D-29)
+            // 状態の欠けたノードは Web の既定で描くので、突入時と受信ごとに件数を出して気づけるようにする（D-29）
+            // Missing nodes render with the Web default, so log their count on entry and every receipt to make the gap visible (D-29)
             void WarnMissingNodeStates()
             {
+                if (!_store.HasReceivedNodeStates)
+                {
+                    Debug.LogWarning("[ResearchTreeModel] no research node state received yet; cards drawn as UnresearchableAllReasons and detail reasons hidden until it arrives");
+                    return;
+                }
                 var states = _store.NodeStates;
                 var missing = 0;
                 foreach (var node in _catalog.Nodes)
@@ -87,7 +94,7 @@ namespace Client.Ui.State.Research.Tree
             // 所持数はメインの枠だけで数える（Web の buildOwnedCounts(inventory.mainSlots)。読み口は持ち物の操作と同じ）
             // Owned counts come from the main slots only (the Web buildOwnedCounts(inventory.mainSlots); same read port as inventory operations)
             var owned = OwnedItemCounts.Build(_inventoryOperations.ReadSnapshot().MainSlots);
-            _current.Value = ResearchTreeViewModelFactory.Create(_catalog.Nodes, _store.NodeStates, owned, _selection.Current.Value);
+            _current.Value = ResearchTreeViewModelFactory.Create(_catalog.Nodes, _store.NodeStates, _store.HasReceivedNodeStates, owned, _selection.Current.Value);
         }
     }
 }

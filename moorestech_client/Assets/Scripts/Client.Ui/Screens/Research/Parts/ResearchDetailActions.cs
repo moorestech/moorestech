@@ -36,7 +36,7 @@ namespace Client.Ui.Screens.Research.Parts
             Add(_reason);
         }
 
-        public void Render(Guid researchGuid, ResearchButtonState button)
+        public void Render(Guid researchGuid, ResearchButtonState button, bool nodeStatesReceived)
         {
             // testidはノードごと
             // The testid is per node
@@ -45,9 +45,9 @@ namespace Client.Ui.Screens.Research.Parts
             _button.SetLabel(new UiText(button.Completed ? LocalizationKeys.Ui.Research.Completed : LocalizationKeys.Ui.Research.Action));
             _button.SetEnabled(button.Interactable);
 
-            // 理由は未完了かつ不可のみ
-            // Reason only when not completed
-            var showsReason = !button.Completed && !button.Interactable;
+            // 理由は状態受信後の未完了かつ不可のみ（受信前の既定は嘘の理由になる）
+            // Reason only after states arrive, when not completed and unavailable (the pre-receipt default would lie)
+            var showsReason = nodeStatesReceived && !button.Completed && !button.Interactable;
             _reason.style.display = showsReason ? DisplayStyle.Flex : DisplayStyle.None;
             _reason.SetText(new UiText(button.TooltipKey));
         }

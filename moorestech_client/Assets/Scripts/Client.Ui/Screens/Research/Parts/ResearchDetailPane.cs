@@ -99,7 +99,7 @@ namespace Client.Ui.Screens.Research.Parts
             _description.SetText(UiText.FromContent(ContentLocalizationKeys.ResearchDescription(detail.Guid)));
             _consume.Render(detail.ConsumeSlots);
             _unlocks.Render(detail.Unlocks);
-            _actions.Render(detail.Guid, detail.Button);
+            _actions.Render(detail.Guid, detail.Button, detail.NodeStatesReceived);
         }
 
         public void Hide()
