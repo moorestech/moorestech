@@ -21,6 +21,7 @@ Shader "Hidden/Moorestech/UiSrgbComposite"
 
             TEXTURE2D(_UiSrgbTexture);
             float _OutputSrgbEncoded;
+            float _WorldPointSample;
 
             half4 Frag(Varyings input) : SV_Target
             {
@@ -30,9 +31,12 @@ Shader "Hidden/Moorestech/UiSrgbComposite"
                 float4 ui = SAMPLE_TEXTURE2D_LOD(_UiSrgbTexture, sampler_PointClamp, uv, 0);
                 clip(ui.a - 0.5 / 255.0);
 
-                // 世界の色を sRGB にして、乗算済みの UI を over で重ねる
-                // Convert the world colour to sRGB and put the premultiplied UI over it
-                float3 world = saturate(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearClamp, uv, 0).rgb);
+                // 世界の色は URP の final blit と同じ拡大フィルタ（点か双線形）で読み、sRGB にして乗算済みの UI を over で重ねる
+                // Read the world colour with the same upscaling filter as URP's final blit (point or bilinear), convert to sRGB and put the premultiplied UI over it
+                float3 world = _WorldPointSample > 0.5
+                    ? SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_PointClamp, uv, 0).rgb
+                    : SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearClamp, uv, 0).rgb;
+                world = saturate(world);
                 float3 composite = ui.rgb + (1.0 - ui.a) * LinearToSRGB(world);
                 float3 output = _OutputSrgbEncoded > 0.5 ? composite : SRGBToLinear(composite);
                 return half4(output, 1.0);
