@@ -1,0 +1,14 @@
+/* web: moorestech_web/webui/src/features/recipe/views/LevelInheritanceBadge.tsx（Mantine Text size="xs" c="dimmed"。字の組は Typography.uss の text--xs・text--dimmed） */
+/* web: moorestech_web/webui/src/features/recipe/views/LevelInheritanceBadge.tsx (Mantine Text size="xs" c="dimmed"; typography comes from text--xs and text--dimmed in Typography.uss) */
+.level-inheritance-badge {
+    display: none;
+}
+
+.level-inheritance-badge--shown {
+    display: flex;
+}
+
+.level-inheritance-badge__text {
+    margin: 0;
+    padding: 0;
+}

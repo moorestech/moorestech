@@ -1,0 +1,6 @@
+/* 機械のレシピ選択の局所上書き（Web machineRecipeSelectionList.module.css:24-27 の .list） */
+/* Machine recipe selection local overrides (Web machineRecipeSelectionList.module.css:24-27 .list) */
+.recipe-machine-selection-probe {
+    --recipe-row-padding-block: 5.6px;
+    --recipe-slot-size-max: 32px;
+}
