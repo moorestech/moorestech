@@ -39,6 +39,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/IconButton/IconButton.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/FormButton/FormButton.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/GameTextField/GameTextField.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/RecipeActionButton/RecipeActionButton.uss");
 /* == section: Components/Gauges == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/ToastItem/ToastItem.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/GaugeBar/GaugeBar.uss");
