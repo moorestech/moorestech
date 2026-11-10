@@ -7,7 +7,6 @@ using Client.Ui.Screens.Research.Parts;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
@@ -29,7 +28,7 @@ namespace Client.Ui.Screens.Research
         private bool _hasFocus;
         private Vector2 _focus;
 
-        public ResearchTreeView(IResearchTreeCommands commands, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public ResearchTreeView(IResearchTreeCommands commands, GameContentPresentation content, IUiOsCursor osCursor)
         {
             name = "research-tree";
             AddToClassList("research-tree");
@@ -54,7 +53,7 @@ namespace Client.Ui.Screens.Research
             _detailHost = new VisualElement { pickingMode = PickingMode.Ignore };
             _detailHost.AddToClassList("research-tree__detail-host");
             Add(_detailHost);
-            _detailPane = new ResearchDetailPane(commands, content, toaster);
+            _detailPane = new ResearchDetailPane(commands, content);
             _cards = new ResearchNodeCardSet(content);
         }
 

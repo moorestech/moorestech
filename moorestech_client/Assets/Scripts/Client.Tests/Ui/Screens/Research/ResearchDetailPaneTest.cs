@@ -1,7 +1,6 @@
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
 using Client.Ui.Screens.Research.Parts;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Research.Tree;
 using Game.Research;
 using NUnit.Framework;
@@ -128,23 +127,13 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.AreEqual(0f, scroll.scrollOffset.y, 0.5f);
         }
 
-        [Test]
-        public void 研究の失敗は良性でないトーストに出る()
-        {
-            _commands.SetCompleteResult(new UiCommandRejected(UiCommandRejectReason.ResearchFailed, ""));
-            MountPane(Kit.Detail(ResearchNodeState.Researchable, 3, 0, Kit.NoUnlocks()));
-
-            Click(ResearchButton());
-            Assert.AreEqual(1, ShownToasts.Count);
-        }
-
         #region Helpers
 
         private ResearchDetailPane MountPane(ResearchDetailViewModel detail)
         {
             // キーの無いラベルを載せないよう、描いてから載せる
             // Render before mounting so no keyless label is attached
-            var pane = new ResearchDetailPane(_commands, _content, Toaster);
+            var pane = new ResearchDetailPane(_commands, _content);
             pane.Render(detail);
             Mount(pane);
             simulate.FrameUpdate();

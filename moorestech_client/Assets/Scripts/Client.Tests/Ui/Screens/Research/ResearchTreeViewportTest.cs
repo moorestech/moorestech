@@ -29,7 +29,7 @@ namespace Client.Tests.Ui.Screens.Research
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
             var content = Kit.LoadMasterAndContent(_texture);
             _commands = new RecordingResearchTreeCommands();
-            _view = new ResearchTreeView(_commands, content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _view = new ResearchTreeView(_commands, content, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _view.Render(Kit.Tree(ResearchSelection.None));
             _view.SetShown(true);
             UiLayerStack.Build(rootVisualElement).GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(_view);

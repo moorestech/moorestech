@@ -104,7 +104,7 @@ namespace Client.Tests.Ui.Screens.Research
             var area = new VisualElement { style = { position = Position.Absolute, left = 0f, top = 0f, width = AreaWidth, height = AreaHeight } };
             var host = new VisualElement();
             host.AddToClassList("research-tree__detail-host");
-            var pane = new ResearchDetailPane(new RecordingResearchTreeCommands(), _content, Toaster);
+            var pane = new ResearchDetailPane(new RecordingResearchTreeCommands(), _content);
             pane.Render(Kit.Detail(ResearchNodeState.Researchable, 3, 0, unlocks));
             host.Add(pane);
             area.Add(host);
