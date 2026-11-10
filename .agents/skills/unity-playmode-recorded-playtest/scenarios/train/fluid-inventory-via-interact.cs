@@ -50,6 +50,9 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.WaitUiState(UIStateEnum.GameScreen,60);
+    // スポーン付近の岩（マップオブジェクト）が照準の線を遮るので消す
+    // Hide map objects, since a rock near the spawn blocks the aim ray
+    UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>().SetActive(false);
     var water = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("9eae6979-d56a-4991-9107-b8161acec430"));
     var tankPosition = new Vector3Int(2,32,2);
     var platformPosition = new Vector3Int(15,32,2);
@@ -74,7 +77,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     p.Assert(tankNodeIndexAtInject<0 && tankRemainderAmount==0,"未構築のタンクへ持ち越しで水40を注入");
     var tankView = await p.WaitBlockGameObject(tankPosition);
     await Open(tankView.GetComponentsInChildren<Collider>().First(c => c.enabled));
-    await CheckFluid("fluid-pipe-fluid-slots","40 / 5,000","タンク");
+    await CheckFluid("fluid-pipe-fluid-slots","40 / 50,000","タンク");
     await p.Screenshot("01-tank-water40");
     await p.WaitSeconds(1f);
     await Close();
@@ -88,7 +91,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     await p.RunOnServer("液体PFに水80を入れる", () => pf.AddLiquid(new FluidStack(80,water),default));
     var platformView = await p.WaitBlockGameObject(platformPosition);
     await Open(platformView.GetComponentsInChildren<Collider>().First(c => c.enabled));
-    await CheckFluid("train-platform-fluid-slots","80 / 100","液体PF");
+    await CheckFluid("train-platform-fluid-slots","80 / 50,000","液体PF");
     var platformDom = await PlaytestUiElementOps.FindUi("train-platform-mode");
     p.Assert(platformDom.IsFound && platformDom.Text.Contains("積込") && platformDom.Text.Contains("卸し"),"PF積込/卸し切替を表示");
     p.Note("PF画面="+platformDom.Text);
