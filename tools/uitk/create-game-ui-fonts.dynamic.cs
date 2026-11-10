@@ -11,7 +11,7 @@ FontAsset Create(string sourcePath, string assetName)
     var path = $"{Folder}/{assetName}.asset";
     AssetDatabase.DeleteAsset(path);
     var font = AssetDatabase.LoadAssetAtPath<Font>(sourcePath);
-    var asset = FontAsset.CreateFontAsset(font, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024, AtlasPopulationMode.Dynamic, true);
+    var asset = FontAsset.CreateFontAsset(font, 90, 18, GlyphRenderMode.SDFAA, 1024, 1024, AtlasPopulationMode.Dynamic, true);
     asset.name = assetName;
     AssetDatabase.CreateAsset(asset, path);
     // clearDynamicDataOnBuild は internal のため、シリアライズ済みの欄を立てる

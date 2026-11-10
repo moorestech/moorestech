@@ -83,7 +83,7 @@ string Abort(string reason)
 
 FontAsset CreateAtTemporaryPath(Font font, string assetName)
 {
-    var asset = FontAsset.CreateFontAsset(font, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024, AtlasPopulationMode.Dynamic, true);
+    var asset = FontAsset.CreateFontAsset(font, 90, 18, GlyphRenderMode.SDFAA, 1024, 1024, AtlasPopulationMode.Dynamic, true);
     if (asset == null) return null;
     asset.name = assetName;
     var path = TemporaryPath(assetName);
