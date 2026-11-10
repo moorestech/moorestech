@@ -1,0 +1,7 @@
+/* web: features/blockInventory/details/pump/pumpSection.module.css .icon { width/height: var(--slot-size, 3rem); object-fit: contain } をポンプの液体アイコンに写す */
+/* web: ports the pump fluid icon's slot-size box with object-fit: contain from features/blockInventory/details/pump/pumpSection.module.css .icon */
+.pump-section__fluid-icon {
+    width: var(--slot-size);
+    height: var(--slot-size);
+    -unity-background-scale-mode: scale-to-fit;
+}
