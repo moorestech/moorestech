@@ -4,3 +4,19 @@
     --icon-button-size: var(--skit-tool-button-size);
     --icon-button-icon-size: var(--skit-tool-button-size);
 }
+
+/* RecipeListScrollView の行の間隔（MachineRecipeSelectionList の listGap）と bleed の上書き */
+/* RecipeListScrollView row gap (the MachineRecipeSelectionList listGap) and bleed overrides */
+.control-recipe-list-machine-probe {
+    --recipe-list-gap: var(--machine-recipe-row-gap);
+}
+
+.control-recipe-list-bleed-probe {
+    --recipe-entry-bleed: 7px;
+}
+
+/* RecipeListScrollView の reserve を読めない値にし、前回の右の余白が残らないことを確かめる */
+/* Makes the RecipeListScrollView reserve unreadable to check that the previous right padding does not linger */
+.control-recipe-list-unreadable-reserve-probe .recipe-list-scroll-view__list {
+    --recipe-list-scroll-view-reserve: none;
+}

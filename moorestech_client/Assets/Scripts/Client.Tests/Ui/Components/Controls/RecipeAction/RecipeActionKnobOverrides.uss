@@ -1,0 +1,20 @@
+/* 研究の詳細ペインの「研究」ボタンの上書き（Web research/style.module.css:131-148 の .researchButton）。S4-research が画面の USS に同じ組を書く。幅と高さの値は S4-research が撮って決めるので、ここでは上書きが効くことだけを見る。無効の面と opacity はこのレーンのトークン */
+/* Override set for the research detail pane's Research button (Web research/style.module.css:131-148 .researchButton); S4-research writes the same set in its screen USS. Width and height are settled by S4-research from captures, so this only checks that the overrides take effect; the disabled face and opacity are this lane's tokens */
+.recipe-action-research-probe {
+    --recipe-action-hover-start: var(--recipe-action-background-start);
+    --recipe-action-hover-middle: var(--recipe-action-background-middle);
+    --recipe-action-hover-end: var(--recipe-action-background-end);
+    --recipe-action-disabled-start: var(--research-action-disabled-face);
+    --recipe-action-disabled-middle: var(--research-action-disabled-face);
+    --recipe-action-disabled-end: var(--research-action-disabled-face);
+    --recipe-action-disabled-text: var(--text-default); /* look-exception: LX-95 */
+    --recipe-action-disabled-opacity: var(--research-action-disabled-opacity);
+    --recipe-action-width: 300px;
+    --recipe-action-height: 40px;
+    --recipe-action-padding-block: 8px;
+    --recipe-action-font-size: 14px;
+    --recipe-action-letter-spacing: 0px;
+    --recipe-action-text-shadow-offset: 0px;
+    --recipe-action-active-offset: 0px;
+    --recipe-action-border-width: 0px;
+}

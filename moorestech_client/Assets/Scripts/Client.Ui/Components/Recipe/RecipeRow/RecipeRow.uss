@@ -1,0 +1,127 @@
+/* web: moorestech_web/webui/src/features/recipe/views/RecipeBox.module.css の .recipeBox・.recipeMaterials・.recipeResult・.recipeArrowCol・.recipeDuration・.recipeActionSlot と ::before/::after（components.md §8.17） */
+/* web: .recipeBox, .recipeMaterials, .recipeResult, .recipeArrowCol, .recipeDuration, .recipeActionSlot and ::before/::after in moorestech_web/webui/src/features/recipe/views/RecipeBox.module.css (components.md §8.17) */
+.recipe-row {
+    --recipe-row-border-width: 1px;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: var(--recipe-row-padding-block) var(--recipe-row-padding-inline);
+    border-width: var(--recipe-row-border-width);
+    border-color: var(--recipe-row-border);
+    border-radius: 0;
+    background-color: var(--recipe-row-face);
+}
+
+/* 光彩・外周の輪・四隅の括弧とその影（Web の box-shadow 0 0 0 1.2px と 0 0 2px、::before/::after と drop-shadow 0 0 1px）。位置（padding の箱から外へ outset）は C# が当てる */
+/* Glow, outer ring, corner brackets and their shadow (Web box-shadow 0 0 0 1.2px and 0 0 2px, ::before/::after and drop-shadow 0 0 1px); C# places the box outset outside the padding box */
+.recipe-row__frame {
+    position: absolute;
+    --recipe-row-frame-outset: 3px;
+    --recipe-row-frame-border: var(--recipe-row-border-width);
+    --recipe-row-frame-ring-width: 1.2px;
+    --recipe-row-frame-ring: var(--recipe-row-ring);
+    --recipe-row-frame-bracket-length: 9px;
+    --recipe-row-frame-bracket-thickness: 1px;
+    --recipe-row-frame-bracket: var(--recipe-row-bracket);
+    --recipe-row-frame-glow-blur: 2px;
+    --recipe-row-frame-glow: var(--recipe-row-glow);
+    --recipe-row-frame-bracket-shadow-blur: 1px;
+    --recipe-row-frame-bracket-shadow: var(--recipe-row-bracket-shadow);
+}
+
+/* 素材・結果の列は等幅（Web の minmax(0, 1fr)）。スロットの寸法は上限のまま（Web の cqw の縮みは写さない） */
+/* Material and result columns share the width (Web minmax(0, 1fr)); slots keep the maximum size (the Web cqw shrink is not copied) */
+.recipe-row__slots {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    --slot-size: var(--recipe-slot-size-max);
+    --icon-pad: 1px;
+    --count-bottom: -1px;
+    --count-font-size: 16px;
+    --count-letter-spacing: 12px;
+}
+
+/* 素材は左寄せで、所持/必要の文字はスロットの外へ出さない（Web の .materialSlot） */
+/* Materials align left and keep owned/required text inside the slot (Web .materialSlot) */
+.recipe-row__materials {
+    justify-content: flex-start;
+    --shortage-count-right: 0px;
+    --shortage-count-bottom: 0px;
+}
+
+.recipe-row__results {
+    justify-content: flex-end;
+}
+
+/* 格子は中身の幅のまま縮めない（はみ出しを C# が測る） */
+/* The grid keeps its content width without shrinking (C# measures the overflow) */
+.recipe-row__slot-grid,
+.recipe-row__slot-line,
+.recipe-row__slot-cell {
+    flex-shrink: 0;
+}
+
+.recipe-row__slot-line {
+    flex-direction: row;
+}
+
+.recipe-row__slot-line--after {
+    margin-top: var(--recipe-slot-gap);
+}
+
+.recipe-row__slot-cell--after {
+    margin-left: var(--recipe-slot-gap);
+}
+
+/* 中央列はクラフトボタンの幅で固定し、左右に列の間隔（裁定 2026-08-20） */
+/* The center column is fixed to the craft button width with the column gap on both sides (ruling 2026-08-20) */
+.recipe-row__center {
+    width: var(--recipe-craft-button-width);
+    flex-shrink: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: var(--recipe-column-gap);
+    margin-right: var(--recipe-column-gap);
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 秒数。Web の line-height: 1 は OutlinedCountLabel と同じく高さを字の大きさにして基線を 18.1% 下げる */
+/* Duration; the Web line-height: 1 sets the height to the font size and lowers the baseline by 18.1%, as OutlinedCountLabel does */
+.recipe-row__duration {
+    max-width: 100%;
+    height: var(--recipe-duration-text-size);
+    margin: 0;
+    padding: 0;
+    font-size: var(--recipe-duration-text-size);
+    color: var(--text-high-contrast);
+    -unity-text-align: lower-center;
+    translate: 0 18.1%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recipe-row__arrow {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* 操作段は操作があるときだけ描き、最小の高さはボタンの高さ */
+/* The action slot is drawn only with an action; its minimum height is the button height */
+.recipe-row__action {
+    display: none;
+    margin-top: 2px;
+    min-height: var(--recipe-action-button-height);
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.recipe-row__action--shown {
+    display: flex;
+}
