@@ -102,6 +102,7 @@
 | 1 | 4052bf3372 | 写した | C4-e の持ち物・分割の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
 | 1 | ad2ff7d2ae | 写した | バグ報告の記述欄の幅 356→354px（窓の内幅 420−1×2−32×2。Web・UITK とも右枠が窓に 2px 切られていた。C2-b の観測）。Web 側は tokens.css の値と pauseMenu/style.module.css のコメントで、写し先は同じコミットの生成物 Tokens.uss（convert-web-tokens.mjs）。I-fix2 |
 | 1 | bc47bb655a | 写した | S4-alpha 自身の localization.csv への追加（ui.commandRejected.blockSlotUnavailable）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# |
+| 1 | 7ec6e61825 | 写した | S4-machine の拒否理由（ui.commandRejected.blockNotOpen・machineRecipeInvalid・machineRecipeLocked・machineRecipeRequestFailed）の localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 
 ## 参照キャプチャ
 
