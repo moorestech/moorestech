@@ -18,6 +18,10 @@ namespace Client.Ui.State.Commands
         SplitDragNoValidSlots,
         BlockSlotUnavailable,
         ItemUnknownInSlot,
+        BlockNotOpen,
+        MachineRecipeInvalid,
+        MachineRecipeLocked,
+        MachineRecipeRequestFailed,
     }
 
     /// <summary>
@@ -44,6 +48,10 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitDragNoValidSlots => false,
                 UiCommandRejectReason.BlockSlotUnavailable => false,
                 UiCommandRejectReason.ItemUnknownInSlot => false,
+                UiCommandRejectReason.BlockNotOpen => false,
+                UiCommandRejectReason.MachineRecipeInvalid => false,
+                UiCommandRejectReason.MachineRecipeLocked => false,
+                UiCommandRejectReason.MachineRecipeRequestFailed => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -73,6 +81,10 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitDragNoValidSlots => LocalizationKeys.Ui.CommandRejected.SplitDragNoValidSlots,
                 UiCommandRejectReason.BlockSlotUnavailable => LocalizationKeys.Ui.CommandRejected.BlockSlotUnavailable,
                 UiCommandRejectReason.ItemUnknownInSlot => LocalizationKeys.Ui.CommandRejected.ItemUnknownInSlot,
+                UiCommandRejectReason.BlockNotOpen => LocalizationKeys.Ui.CommandRejected.BlockNotOpen,
+                UiCommandRejectReason.MachineRecipeInvalid => LocalizationKeys.Ui.CommandRejected.MachineRecipeInvalid,
+                UiCommandRejectReason.MachineRecipeLocked => LocalizationKeys.Ui.CommandRejected.MachineRecipeLocked,
+                UiCommandRejectReason.MachineRecipeRequestFailed => LocalizationKeys.Ui.CommandRejected.MachineRecipeRequestFailed,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -95,6 +107,10 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SplitDragNoValidSlots => "no_valid_slots",
                 UiCommandRejectReason.BlockSlotUnavailable => "invalid_slot",
                 UiCommandRejectReason.ItemUnknownInSlot => "unknown_item",
+                UiCommandRejectReason.BlockNotOpen => "block_not_open",
+                UiCommandRejectReason.MachineRecipeInvalid => "invalid_recipe",
+                UiCommandRejectReason.MachineRecipeLocked => "recipe_locked",
+                UiCommandRejectReason.MachineRecipeRequestFailed => "machine_recipe_request_failed",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

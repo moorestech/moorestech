@@ -9,6 +9,7 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
 using Client.Ui.State.Recipe.Source;
@@ -65,6 +66,10 @@ namespace Client.Starter.Registration
             builder.Register<BlockSlotCommands>(Lifetime.Singleton).As<IBlockSlotCommands>();
             builder.Register<PlayerSlotCommands>(Lifetime.Singleton).As<IPlayerSlotCommands>();
             builder.Register<BlockItemGridFactory>(Lifetime.Singleton);
+            // 追跡ブロックの液体
+            // Fluids of the tracked block; taken by machine and train sections
+            builder.Register<FluidNetworkReplicaReader>(Lifetime.Singleton).As<IFluidReplicaReader>();
+            builder.RegisterEntryPoint<BlockFluidSlotsModel>().As<IBlockFluidSlotsModel>();
 
             // 画面登録区画: 1行ずつ呼び出しを足す
             // Screen registration section: add one call per line
@@ -77,6 +82,7 @@ namespace Client.Starter.Registration
             TutorialGameUiRegistration.Register(builder);
             GrabGameUiRegistration.Register(builder);
             BlockInventoryGameUiRegistration.Register(builder);
+            BlockInventoryMachineGameUiRegistration.Register(builder);
             InventoryGameUiRegistration.Register(builder);
         }
     }
