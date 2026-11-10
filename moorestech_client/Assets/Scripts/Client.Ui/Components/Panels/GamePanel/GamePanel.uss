@@ -110,9 +110,9 @@
     --game-panel-title-scale-y: var(--title-scale-y);
 }
 
-/* 題の操作を持つ間は題の右に操作の幅と間を空け、長い題が絶対配置の操作に重ならない（Web BlockInventoryPanel の題の span の paddingRight） */
-/* While a title action is held, reserve the action width plus gap right of the title so long titles never run under the positioned action (Web BlockInventoryPanel title span paddingRight) */
-.game-panel--title-action > .game-panel__header > .game-panel__title {
+/* 逃げを頼んだ間は題の右に操作の幅と間を空け、長い題が絶対配置の操作に重ならない（Web BlockInventoryPanel の題の span の paddingRight） */
+/* While the reserve is requested, reserve the action width plus gap right of the title so long titles never run under the positioned action (Web BlockInventoryPanel title span paddingRight) */
+.game-panel--title-action-reserve > .game-panel__header > .game-panel__title {
     padding-right: var(--panel-title-action-reserve);
 }
 

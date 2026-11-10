@@ -37,8 +37,8 @@ namespace Client.Tests.Ui.Components.Panels
         [Test]
         public void 題の操作を載せるだけでは右を空けない()
         {
-            // 持ち物パネルの並べ替えは Web で流れの中に置かれ、題の右を空けない
-            // The inventory sort button flows inline on the Web and reserves no room
+            // Web の持ち物パネルは題の span に paddingRight を足さず、題の右を空けない
+            // The Web inventory panel adds no paddingRight to the title span, so no reserve
             _panel.SetTitleAction(new VisualElement { name = "test-title-action" });
             simulate.FrameUpdate();
             Assert.AreEqual(0f, Title().resolvedStyle.paddingRight, 0.01f);
@@ -64,7 +64,7 @@ namespace Client.Tests.Ui.Components.Panels
             _panel.ClearTitleAction();
             simulate.FrameUpdate();
             Assert.IsNull(action.parent);
-            Assert.IsFalse(_panel.ClassListContains(GamePanel.TitleActionUssClassName));
+            Assert.IsFalse(_panel.ClassListContains(GamePanel.TitleActionReserveUssClassName));
             Assert.AreEqual(0f, Title().resolvedStyle.paddingRight, 0.01f);
         }
 

@@ -121,7 +121,7 @@ namespace Client.Playtest.Input
         public static void MouseButtonDown(int button)
         {
             EnsureDevices();
-            UitkModifierKeys.ReportIfOverwritten();
+            UitkModifierKeys.WatchDelivery();
             QueueMouseButtons((ushort)(CurrentButtons() | ButtonBit(button)));
             PlaytestOverlay.NotifyMouseButton(button, true);
         }

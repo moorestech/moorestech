@@ -16,7 +16,7 @@ namespace Client.Ui.Components.Panels
     /// </remarks>
     public sealed class GamePanel : VisualElement
     {
-        public const string TitleActionUssClassName = "game-panel--title-action";
+        public const string TitleActionReserveUssClassName = "game-panel--title-action-reserve";
 
         private readonly VisualElement _header;
         private readonly VisualElement _titleAction;
@@ -132,10 +132,10 @@ namespace Client.Ui.Components.Panels
 
         public void SetTitleActionReserve(bool reserve)
         {
-            // 題の右の逃げは Web が titleAction を絶対配置する画面（ブロックのインベントリ）だけが付ける
-            // Only screens whose Web titleAction is absolutely positioned (block inventory) reserve room right of the title
-            if (reserve) AddToClassList(TitleActionUssClassName);
-            else RemoveFromClassList(TitleActionUssClassName);
+            // 題の右の逃げは Web が題の span に paddingRight を足す画面だけが頼む
+            // Only screens whose Web adds paddingRight to the title span ask for the reserve
+            if (reserve) AddToClassList(TitleActionReserveUssClassName);
+            else RemoveFromClassList(TitleActionReserveUssClassName);
         }
 
         public void ClearTitleAction()
@@ -143,7 +143,7 @@ namespace Client.Ui.Components.Panels
             // 操作を外すと題の右の逃げも外す
             // Removing the action also drops the title's right reserve
             _titleAction.Clear();
-            RemoveFromClassList(TitleActionUssClassName);
+            RemoveFromClassList(TitleActionReserveUssClassName);
         }
     }
 }

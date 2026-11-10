@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 namespace Client.Playtest.Input
 {
@@ -22,6 +23,7 @@ namespace Client.Playtest.Input
         private static FieldInfo _modifiersField;
         private static EventModifiers _held = EventModifiers.None;
         private static bool _hooked;
+        private static readonly HashSet<IPanel> _watchedPanels = new();
 
         public static void Apply(IReadOnlyCollection<Key> pressedKeys)
         {
@@ -56,14 +58,24 @@ namespace Client.Playtest.Input
             #endregion
         }
 
-        public static void ReportIfOverwritten()
+        public static void WatchDelivery()
         {
-            // 押下中の修飾キーが実キーの事象で上書きされていたら、このクリックは修飾無しで届くのでログへ出す
-            // If a real key event overwrote the held modifiers, this click lands without them, so log it
-            if (_held == EventModifiers.None) return;
-            var current = (EventModifiers)ModifiersField().GetValue(null);
-            if (current == _held) return;
-            Debug.LogError($"[UitkModifierKeys] 注入した修飾キー {_held} が実入力で {current} に上書きされた。このクリックは evt.shiftKey 等が外れて届く（Editor を前面にして人がキー・マウスに触れた可能性）");
+            // 修飾値が実際に読まれる PointerDown で照合する。注入時に読むと Rewrite の前後で誤検出・見逃しが出る
+            // Check at PointerDown where modifiers are actually read; checking at injection misfires around Rewrite
+            foreach (var document in UnityEngine.Object.FindObjectsByType<UIDocument>(FindObjectsSortMode.None))
+            {
+                var panel = document.rootVisualElement?.panel;
+                if (panel == null || !_watchedPanels.Add(panel)) continue;
+                panel.visualTree.RegisterCallback<PointerDownEvent>(ReportDroppedModifiers, TrickleDown.TrickleDown);
+            }
+        }
+
+        private static void ReportDroppedModifiers(PointerDownEvent evt)
+        {
+            // 押下中の修飾キーが外れて届いたら、実入力の上書きなのでログへ出す（Editor 前面で人が触れた可能性）
+            // If held modifiers arrive missing, a real input overwrote them, so log it (someone may have touched the focused Editor)
+            if (_held == EventModifiers.None || (evt.modifiers & _held) == _held) return;
+            Debug.LogError($"[UitkModifierKeys] 注入した修飾キー {_held} が実入力で上書きされ、PointerDown に {evt.modifiers} で届いた（evt.shiftKey 等が外れる）");
         }
 
         private static void Rewrite()

@@ -55,7 +55,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             Assert.AreEqual(1, actions.DetachCount);
             Assert.IsNull(shell.View.Q(FakeActionName));
             Assert.IsNull(Holder(shell), "操作の無い blockType では器ごと題の行から外す");
-            Assert.IsFalse(shell.View.Q("block-inventory-panel").ClassListContains(GamePanel.TitleActionUssClassName));
+            Assert.IsFalse(shell.View.Q("block-inventory-panel").ClassListContains(GamePanel.TitleActionReserveUssClassName));
         }
 
         [Test]
@@ -65,7 +65,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             // The Web pads the title span whenever TitleAction exists, even while erroring hides the action
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(Panel(RocketType, BlockInventoryPanelError.OpenFailed)), new FakeTitleActionFactory(), new FakeRocketBodyFactory());
             simulate.FrameUpdate();
-            Assert.IsTrue(shell.View.Q("block-inventory-panel").ClassListContains(GamePanel.TitleActionUssClassName));
+            Assert.IsTrue(shell.View.Q("block-inventory-panel").ClassListContains(GamePanel.TitleActionReserveUssClassName));
             Assert.Greater(shell.View.Q(className: "game-panel__title").resolvedStyle.paddingRight, 0f);
         }
 
