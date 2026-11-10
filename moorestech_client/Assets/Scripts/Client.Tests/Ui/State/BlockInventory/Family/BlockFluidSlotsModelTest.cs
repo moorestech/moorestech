@@ -112,9 +112,10 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
         }
 
         [Test]
-        public void パイプでないブロックを追跡している間は複製の通知を購読しない()
+        public void 液体タンクを持つブロックを追跡している間は複製の通知を購読しない()
         {
-            _harness.Track(_harness.CreateBlock(OtherPosition, null));
+            var tanks = new FluidMachineInventoryStateDetail(new List<FluidMessagePack> { new(5, 10, 100) }, new List<FluidMessagePack>());
+            _harness.Track(_harness.CreateBlock(OtherPosition, null, (FluidMachineInventoryStateDetail.BlockStateDetailKey, tanks)));
             _published.Clear();
 
             Assert.AreEqual(0, _replica.SubscriberCount);
@@ -122,6 +123,21 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
             _replica.NotifyChanged();
 
             Assert.AreEqual(0, _published.Count);
+        }
+
+        [Test]
+        public void 追跡した時点で節が無くても後から節が現れたら行が埋まる()
+        {
+            _harness.Track(_harness.CreateBlock(PipePosition, null));
+            Assert.AreEqual(0, _model.Current.Value.Slots.Count);
+            Assert.AreEqual(1, _replica.SubscriberCount);
+            _published.Clear();
+
+            _replica.SetNode(PipePosition, 3, 40, 100);
+            _replica.NotifyChanged();
+
+            Assert.AreEqual(1, _published.Count);
+            Assert.AreEqual(40, ((FilledBlockFluidSlotState)_model.Current.Value.Slots[0]).Amount, 1e-9);
         }
 
         [Test]
@@ -174,38 +190,6 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
             Assert.IsFalse(FluidRowVisibility.Shows(one, true));
             Assert.IsFalse(FluidRowVisibility.Shows(empty, false));
             Assert.IsTrue(FluidRowVisibility.Shows(one, false));
-        }
-
-        // 手で流す通知と節を持つ偽の読み手
-        // A fake reader with hand-driven notifications and nodes
-        private sealed class FakeFluidReplicaReader : IFluidReplicaReader
-        {
-            private readonly Subject<Unit> _changed = new();
-            private readonly Dictionary<Vector3Int, (int fluidId, double amount, double capacity)> _nodes = new();
-
-            public int SubscriberCount { get; private set; }
-
-            public System.IObservable<Unit> OnReplicaChanged => Observable.Create<Unit>(observer =>
-            {
-                SubscriberCount++;
-                var subscription = _changed.Subscribe(observer);
-                return Disposable.Create(() =>
-                {
-                    SubscriberCount--;
-                    subscription.Dispose();
-                });
-            });
-
-            public void SetNode(Vector3Int position, int fluidId, double amount, double capacity) => _nodes[position] = (fluidId, amount, capacity);
-
-            public void NotifyChanged() => _changed.OnNext(Unit.Default);
-
-            public bool TryReadNode(Vector3Int position, out int fluidId, out double amount, out double capacity)
-            {
-                var found = _nodes.TryGetValue(position, out var node);
-                (fluidId, amount, capacity) = node;
-                return found;
-            }
         }
     }
 }

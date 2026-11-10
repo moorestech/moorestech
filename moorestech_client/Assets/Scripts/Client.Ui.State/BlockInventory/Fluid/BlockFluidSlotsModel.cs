@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Game.Block.Interface.State;
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockInventory.Logic.Common;
 using UniRx;
@@ -19,6 +20,7 @@ namespace Client.Ui.State.BlockInventory.Fluid
         private readonly IFluidReplicaReader _replica;
         private readonly ReactiveProperty<BlockFluidSlotsViewModel> _current = new(Empty());
         private IDisposable _replicaSubscription;
+        private bool _shownHasNode;
         private int _shownFluidId;
         private double _shownAmount;
 
@@ -54,21 +56,23 @@ namespace Client.Ui.State.BlockInventory.Fluid
             }
 
             _current.Value = BlockFluidSlotReading.Read(block, _replica);
-            // 複製に節がある（パイプ）間だけ複製の変化を購読する。節が無ければ通知は読まない
-            // Subscribe to replica changes only while the block has a replica node (a pipe); otherwise never read the notifications
+            // 液体タンクの詳細を持たない（パイプかもしれない）ブロックは、節の有無にかかわらず追跡中ずっと複製の変化を購読する
+            // A block without a fluid tank detail (possibly a pipe) subscribes to replica changes for the whole tracking, whether or not a node exists yet
+            if (block.GetStateDetail<FluidMachineInventoryStateDetail>(FluidMachineInventoryStateDetail.BlockStateDetailKey) != null) return;
             var position = block.BlockPosInfo.OriginalPos;
-            if (!_replica.TryReadNode(position, out _shownFluidId, out _shownAmount, out _)) return;
+            _shownHasNode = _replica.TryReadNode(position, out _shownFluidId, out _shownAmount, out _);
             _replicaSubscription = _replica.OnReplicaChanged.Subscribe(_ => OnReplicaChanged(block, position));
         }
 
-        // 毎 tick の通知を、節の液体 id か量が変わった回だけに絞る（Web ホスト HasPipeContentsChanged と同じ比べ方）
-        // Narrow the per-tick notifications to those where the node's fluid id or amount changed (same comparison as the Web host's HasPipeContentsChanged)
+        // 毎 tick の通知を、節の有無・液体 id・量のどれかが変わった回だけに絞る（Web ホスト HasPipeContentsChanged と同じ比べ方）
+        // Narrow the per-tick notifications to those where node presence, fluid id or amount changed (same comparison as the Web host's HasPipeContentsChanged)
         private void OnReplicaChanged(BlockGameObject block, Vector3Int position)
         {
-            // silent-ok: 節が消えた（網の組み直し）間は前の表示を保つ / 追跡の通知かパイプの再設置で組み直す
-            if (!_replica.TryReadNode(position, out var fluidId, out var amount, out _)) return;
-            // silent-ok: 同じ中身なら配り直さない / 変わった回に配る
-            if (fluidId == _shownFluidId && amount == _shownAmount) return;
+            var hasNode = _replica.TryReadNode(position, out var fluidId, out var amount, out _);
+            // 節の有無・液体 id・量が同じなら配り直さない
+            // Skip republishing when node presence, fluid id and amount are unchanged
+            if (hasNode == _shownHasNode && fluidId == _shownFluidId && amount == _shownAmount) return;
+            _shownHasNode = hasNode;
             _shownFluidId = fluidId;
             _shownAmount = amount;
             _current.Value = BlockFluidSlotReading.Read(block, _replica);
