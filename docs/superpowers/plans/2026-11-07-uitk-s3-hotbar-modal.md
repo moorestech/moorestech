@@ -23,7 +23,7 @@
 | R-3 | 未解決の割当枠は白面（filled）のまま中身を出さず、枠ごと `--hotbar-unresolved-opacity` で減光する。選択を受けない画面では列ごと `--hotbar-select-disabled-opacity` で減光し、タップの選択は `HotbarCommands.Select` が良性の拒否 `HotbarSelectNotAccepted`（wire `invalid_state`）を返し、源が `UiCommandResultToaster` へ渡す（良性なのでログだけ。クリックごとに警告ログが 1 行出る）。Web の画面は受けないときタップを送らず、橋の `HotbarSelectActionHandler` が同じ規則で `invalid_state` を返す。UITK は規則を 1 か所（A-106）にするため操作側で断る。選ばれない結果は Web と同じ。D&D はどちらでも成立する | `HotbarHudViewTest`・`HotbarHudDropTest` が緑（Web `hotbar.spec.ts` 2・4 件目） |
 | R-4 | ドラッグ: 枠を源（`UiDragDrop.MarkSource`）にし、タップは `IHotbarCommands.Select(i)`、枠へ落とすと入替（自分自身は無操作）、列の隙間は無操作、それ以外（他の画面の落とし先・何も無い所）は解除。空き枠は掴む物が無いのでドラッグ後は何もせずタップにも落とさない。右ボタンは無視（捕捉しない）。ビルドメニューの源（S3-buildmenu の `BuildMenuEntryDragPayload`）は State の `IHotbarDropReceiver` で枠の印へ落とし、空き枠なら割当になる（このレーンはビルドメニューを書き換えない） | `HotbarSlotDragGestureTest`（Web `useHotbarDragSource.test.ts` 7 件）・`HotbarHudDropTest`（Web `hotbar.spec.ts` 3・4・6 件目）が緑 |
 | R-5 | 入力の素通し: 帯は拾わず、列だけが拾い、列にホイール素通しの印（`WheelPassthroughMark`）がある（帯には無い） | `HotbarHudPickingTest` が緑（Web `alwaysOnHudWheel.test.ts` の「%s は入力を奪わない」ホットバー帯の行と「クリックを持つスロット列だけが入力を取り戻し…」。bd `moorestech-albof.30`） |
-| R-6 | 世界の上の色（bd `moorestech-albof.34`）: 画面ルートで `--slot-frame-face: var(--hotbar-slot-frame-face)`（α 0.7226）に上書きし、空き枠の面・番号タブの面・未解決と受理外の減光を、ランタイムの PanelSettings（Linear 合成）の明るい地 (240,203,166) と暗い地 (40,42,48) で Web の sRGB 合成と照合する。明るい地で RGB 7 段以内（C3-a の基準）にし、暗い地で外れる分は `LX-76` に記帳する | Task 10 の照合表（EDC の出力）が `done.md` にあり、明るい地の全行が 7 段以内 |
+| R-6 | 世界の上の色（bd `moorestech-albof.34`）: 画面ルートで `--slot-frame-face: var(--world-slot-frame-face)`（α 0.7226）に上書きし、空き枠の面・番号タブの面・未解決と受理外の減光を、ランタイムの PanelSettings（Linear 合成）の明るい地 (240,203,166) と暗い地 (40,42,48) で Web の sRGB 合成と照合する。明るい地で RGB 7 段以内（C3-a の基準）にし、暗い地で外れる分は `LX-76` に記帳する | Task 10 の照合表（EDC の出力）が `done.md` にあり、明るい地の全行が 7 段以内 |
 | R-7 | アイコンが枠の中央に描かれる | `HotbarIconCenteringTest` が緑（Web `placementIconCentering.spec.ts`「ホットバーのアイコンは枠の中央に描かれる」） |
 | R-8 | モーダル: 全体スイッチ UITK では `ModalRequestService.Pending` を UITK だけが描く。`DialogFrame("modal")` に題（`UiText.FromVerbatim(Title)`）、本文（`modal-message`・`text--sm`・`text--dimmed`・下余白 lg）、入力付きなら `GameTextField("modal-input", false, MantineInput)`（下余白 lg・表示時にフォーカス）、`FormButton("modal-button", FromVerbatim(ButtonText), Blue→Filled／Red→Danger)`（入力付きで空白だけなら押せない）。確定は入力付きなら前後の空白を除いた文を、取消は文なしを `IModalCommands.Respond` へ返す。幕のクリックと ESC 1 回（Web の Mantine と同じ。入力欄の変換中を除く。ESC はワールドへ渡さない。フォーカスの無い ESC は View でなく既存のゲーム入力の経路が BP 名の入力ごと取り消す〈D-11〉）は取消。入力欄の外を押しただけでは閉じない。要求 ID が変わったら入力欄を空にする | `ModalViewTest`・`ModalScreenPresenterTest`・`ModalCommandsTest` が緑（Web `modal.spec.ts` 4 件と ESC・欄外の押下の 2 件）。フォーカスの無い ESC は録画（R-12 の流れ 7b） |
 | R-9 | モーダルは実画面 px で Web と同じ（[A-41]）: 720p・1080p・2560×1080 で幅 440 実画面 px・画面の中央 | `ModalScreenPresenterTest` の倍率 1.5 の主張が緑。並べ比べ（R-10）の 3 解像度 |
@@ -381,7 +381,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `--bevel-c1` | `rgb(125 127 133)` | `var(--hotbar-bevel-c1)` |
 | `--bevel-c2` / `--bevel-c3` | `rgb(116 118 125)` | `var(--hotbar-bevel-c2)` |
 | `--sel-c1` / `--sel-c2` / `--sel-c3` | `var(--select-cyan)` | `var(--select-cyan)` |
-| `--slot-frame-face`（画面ルート `.hotbar-hud`） | （Web は `SlotFrame` の直書き `rgb(50 52 67 / 50%)`。地は世界） | `var(--hotbar-slot-frame-face)`（α 0.7226。bd `albof.34`） |
+| `--slot-frame-face`（画面ルート `.hotbar-hud`） | （Web は `SlotFrame` の直書き `rgb(50 52 67 / 50%)`。地は世界） | `var(--world-slot-frame-face)`（α 0.7226。bd `albof.34`） |
 
 **写すテストの件数（Web の実物を grep して数え直した）**
 
@@ -1374,7 +1374,7 @@ git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandR
 
 **Interfaces:**
 - Consumes: Web `W/src/features/hotbar/HotbarPanel/style.module.css`・`W/src/shared/ui/SlotFrame/style.module.css`、[A-52] の式（暗い色 `1-(1-α)^1.85`・明るい色 `α^2.2`）
-- Produces: トークン `--hotbar-slot-frame-face`・`--hotbar-bevel-c1`・`--hotbar-bevel-c2`・`--hotbar-number-tab-face`・`--hotbar-number-tab-border`・`--hotbar-number-tab-text`・`--hotbar-select-disabled-opacity`・`--hotbar-unresolved-opacity`
+- Produces: トークン `--world-slot-frame-face`（世界の地の上の空き枠の面。ホットバーと装備 HUD〈S4-inventory〉が借りるので画面名を付けない）・`--hotbar-bevel-c1`・`--hotbar-bevel-c2`・`--hotbar-number-tab-face`・`--hotbar-number-tab-border`・`--hotbar-number-tab-text`・`--hotbar-select-disabled-opacity`・`--hotbar-unresolved-opacity`
 
 - [ ] **Step 1: ブロックを足す**
 
@@ -1382,7 +1382,7 @@ git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandR
 ```css
     /* S3-hotbar-modal: 世界の上に直に置くホットバーの前計算色と減光。Web の HotbarPanel/style.module.css・SlotFrame の直書きを前計算した値（設計書 A-52） */
     /* S3-hotbar-modal: precomputed colors and dimming for the hotbar placed directly over the world; precomputes literals in the Web HotbarPanel/style.module.css and SlotFrame (design A-52) */
-    --hotbar-slot-frame-face: rgba(50, 52, 67, 0.7226); /* web: SlotFrame .slot の rgb(50 52 67 / 50%)。地は世界なので暗い色の式（bd moorestech-albof.34。Task 10 で明るい地の画素を照合） */
+    --world-slot-frame-face: rgba(50, 52, 67, 0.7226); /* web: SlotFrame .slot の rgb(50 52 67 / 50%)。地は世界なので暗い色の式（bd moorestech-albof.34。Task 10 で明るい地の画素を照合） */
     --hotbar-bevel-c1: rgb(125, 127, 133); /* web: .cell の --bevel-c1: rgb(125 127 133) */
     --hotbar-bevel-c2: rgb(116, 118, 125); /* web: .cell の --bevel-c2・--bevel-c3: rgb(116 118 125) */
     --hotbar-number-tab-face: rgba(50, 52, 67, 0.8785); /* web: .num の background rgb(50 52 67 / 68%)。暗い色の式 */
@@ -1396,7 +1396,7 @@ git commit -m "feat(uitk): ホットバーとモーダルの操作を UiCommandR
 
 `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾（その時点の最後の行の次。S3-buildmenu など他のレーンが先に足していればその後ろ）に:
 ```js
-  { name: "--hotbar-slot-frame-face", web: "rgb(50 52 67 / 50%)", formula: [50, 52, 67, 0.5], method: `${translucencyMethod}（ホットバーの空き枠の面。世界の地の上。S3-hotbar-modal・bd albof.34）` },
+  { name: "--world-slot-frame-face", web: "rgb(50 52 67 / 50%)", formula: [50, 52, 67, 0.5], method: `${translucencyMethod}（ホットバーの空き枠の面。世界の地の上。S3-hotbar-modal・bd albof.34）` },
   { name: "--hotbar-number-tab-face", web: "rgb(50 52 67 / 68%)", formula: [50, 52, 67, 0.68], method: `${translucencyMethod}（ホットバーの番号タブの面。S3-hotbar-modal）` },
   { name: "--hotbar-number-tab-border", web: "rgb(156 158 166 / 55%)", formula: [156, 158, 166, 0.55], method: `${translucencyMethod}（ホットバーの番号タブの枠。S3-hotbar-modal）` },
 ```
@@ -1406,7 +1406,7 @@ node tools/uitk/convert-web-tokens.mjs
 git diff --stat
 grep -n "hotbar-" docs/uitk/translucent-tokens.md
 ```
-Expected: 差分は `docs/uitk/translucent-tokens.md` に 3 行足されたことだけ（他の生成物〈`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`〉に差が出たら、生成器の入力が土台とずれているので `git checkout -- <そのファイル>` で戻して `done.md` の「integrator への依頼」に書く）。3 行の UITK の値が Step 1 の `0.7226`・`0.8785`・`0.2684` と一致する。違えば表（生成器の判定）を正として Step 1 の値を直す。Task 10 の照合で `--hotbar-slot-frame-face` を決め直したら、この行を `formula` から `uss: "<値>"` と決め方の文へ書き換えて再生成する（前例 `--slot-frame-face`）
+Expected: 差分は `docs/uitk/translucent-tokens.md` に 3 行足されたことだけ（他の生成物〈`Tokens.uss`・`SlotTokens.uss`・`MantineTokens.uss`〉に差が出たら、生成器の入力が土台とずれているので `git checkout -- <そのファイル>` で戻して `done.md` の「integrator への依頼」に書く）。3 行の UITK の値が Step 1 の `0.7226`・`0.8785`・`0.2684` と一致する。違えば表（生成器の判定）を正として Step 1 の値を直す。Task 10 の照合で `--world-slot-frame-face` を決め直したら、この行を `formula` から `uss: "<値>"` と決め方の文へ書き換えて再生成する（前例 `--slot-frame-face`）
 
 - [ ] **Step 3: L2 を通してコミット**
 
@@ -2163,7 +2163,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
 
             // 空き枠の面は世界の地向けの値（bd albof.34）、ベベルはホットバーの色
             // The empty face uses the over-the-world value (bd albof.34); the bevel uses the hotbar colors
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--hotbar-slot-frame-face"), slot1.resolvedStyle.backgroundColor, "empty face");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--world-slot-frame-face"), slot1.resolvedStyle.backgroundColor, "empty face");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--hotbar-bevel-c1"), slot1.Q(className: "slot-frame__band--1").resolvedStyle.borderTopColor, "bevel c1");
         }
 
@@ -2683,7 +2683,7 @@ namespace Client.Ui.Screens.Hotbar
     align-items: flex-end;
     /* 世界の上に直に置くので、空き枠の面を世界の地向けの値に上書きする（bd moorestech-albof.34・台帳 LX-23） */
     /* Placed directly over the world, so the empty face is overridden with the over-the-world value (bd moorestech-albof.34, ledger LX-23) */
-    --slot-frame-face: var(--hotbar-slot-frame-face);
+    --slot-frame-face: var(--world-slot-frame-face);
 }
 
 .hotbar-hud__row {
@@ -2812,7 +2812,7 @@ namespace Client.Ui.Screens.Hotbar
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.(Hotbar|BuildMenu)|Conventions|Theme|Layers)\."`
 Expected: `ErrorCount: 0`、`HotbarHudViewTest` 5・`HotbarHudDropTest` 4・`HotbarSlotDragGestureTest` 7・`HotbarHudPickingTest` 2・`HotbarIconCenteringTest` 2 が PASS、L2 も PASS。赤のときの手順:
 - 番号タブの `-16` が外れる → `HotbarCalcKnobs` の `CustomStyleResolvedEvent` が列に届いていない。`Debug.Log` で読めた値を出して原因を確かめる（テストの期待は変えない）
-- `slot1.resolvedStyle.backgroundColor` が `--hotbar-slot-frame-face` でない → `.hotbar-hud` の上書きが `SlotFrame.uss` の `var()` へ継承していない。`--slot-frame-face` を `.hotbar-hud__cell` へ移して試し、移した理由を `done.md` の「未確認」に書く
+- `slot1.resolvedStyle.backgroundColor` が `--world-slot-frame-face` でない → `.hotbar-hud` の上書きが `SlotFrame.uss` の `var()` へ継承していない。`--slot-frame-face` を `.hotbar-hud__cell` へ移して試し、移した理由を `done.md` の「未確認」に書く
 - 番号タブの縁が黒くならない → タブの `--outlined-count-label-stroke` が効いていない。Task 6 Step 3 の部品の USS の置き換え（`color` と `-unity-text-outline-color` の両方がつまみを読む）と、`HotbarHud.uss` のタブの行を見る
 - 絵の中央が 0.5px を超えてずれる → `--icon-pad` と `--bevel-inset: inset` の組み合わせを確かめ、Web の正方 SVG と同じ条件（256 角）であることを確かめてから USS を直す
 - 右ボタンで捕捉される → C3-b の `UiPressGesture` の誤り。止めて `done.md` の「integrator への依頼」に書く（Foundation はこのレーンの持ち物でない）
@@ -3708,7 +3708,7 @@ Expected: 3 地 × 6 値（受理ありの `empty`・`tab`・`unresolved` と、
 
 - [ ] **Step 5: 台帳に書き、口を片付けてコミット**
 
-`docs/uitk/TODO.md` の「## 実測の結論」の末尾に 1 行: 「世界の上に直に置く面と opacity（S3-hotbar-modal・bd albof.34）: 明るい地 (240,203,166)・暗い地 (40,42,48) のランタイム画素を Web の sRGB 合成と照合。採った値 `--hotbar-slot-frame-face` α <値>・`--hotbar-number-tab-face` α <値>・`--hotbar-unresolved-opacity` <値>・`--hotbar-select-disabled-opacity` <値>。明るい地の最大差 <n> 段・暗い地の最大差 <n> 段」。暗い地で 7 段を超えた行があれば「## 見た目の例外」の末尾に `LX-76`（理由: Linear 合成では明るい地と暗い地の両方を 1 つの α で Web に揃えられない。明るい地を優先）を足し、該当トークンの行に `/* look-exception: LX-76 */` を付ける。撮り終えたら `s3hm-albof34-*` を `Object.Destroy` し RT を `Release` する
+`docs/uitk/TODO.md` の「## 実測の結論」の末尾に 1 行: 「世界の上に直に置く面と opacity（S3-hotbar-modal・bd albof.34）: 明るい地 (240,203,166)・暗い地 (40,42,48) のランタイム画素を Web の sRGB 合成と照合。採った値 `--world-slot-frame-face` α <値>・`--hotbar-number-tab-face` α <値>・`--hotbar-unresolved-opacity` <値>・`--hotbar-select-disabled-opacity` <値>。明るい地の最大差 <n> 段・暗い地の最大差 <n> 段」。暗い地で 7 段を超えた行があれば「## 見た目の例外」の末尾に `LX-76`（理由: Linear 合成では明るい地と暗い地の両方を 1 つの α で Web に揃えられない。明るい地を優先）を足し、該当トークンの行に `/* look-exception: LX-76 */` を付ける。撮り終えたら `s3hm-albof34-*` を `Object.Destroy` し RT を `Release` する
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"
