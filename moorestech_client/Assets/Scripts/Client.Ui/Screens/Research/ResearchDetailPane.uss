@@ -31,11 +31,15 @@
     flex-shrink: 1;
     min-height: 0;
     padding: 10px;
-    /* web: padding 8px 0 ＋ 14px の行の高さ normal。Task 11 Step 3 で画素から決め直す。幅は書かない（D-21） */
-    /* web: padding 8px 0 plus a 14px normal line height; to be re-fixed from pixels in Task 11 Step 3; width is not set (D-21) */
-    --research-action-height: 36px;
+    /* web: padding 8px 0 ＋ 14px の行の高さ normal＝37.69px（参照の画素で 1280×720 は 37 行・2560×1080 は 55 行）。幅は書かない（D-21） */
+    /* web: padding 8px 0 plus a 14px normal line height = 37.69px (reference pixels: 37 rows at 1280x720, 55 rows at 2560x1080); width is not set (D-21) */
+    --research-action-height: 37.69px;
 }
 
+/* 文字のラベルは Unity 既定の余白を消し、Web が Mantine の body から継ぐ行の高さ 1.55 を写す。2 行目以降は LocalizedLabel の行送り */
+/* 1 行目は字形の既定の行の高さ（実測 16px 23.4・13px 19・12px 18）なので、1.55 との差の半分を上下の padding で足す（min-height は padding の外に足されるので使わない） */
+/* Text labels drop Unity's default spacing and copy the Web line-height 1.55 inherited from the Mantine body; lines after the first use LocalizedLabel's pitch */
+/* The first line takes the glyph default height (measured 16px 23.4, 13px 19, 12px 18), so top/bottom padding adds half the gap to 1.55 (min-height adds outside padding, so it is not used) */
 .research-tree__detail-header {
     flex-direction: row;
     justify-content: space-between;
@@ -46,7 +50,15 @@
 .research-tree__detail-name {
     flex-shrink: 1;
     font-size: 16px;
+    white-space: normal;
     color: var(--text-high-contrast);
+    margin: 0;
+    padding: 0;
+    padding-top: 0.7px;
+    padding-bottom: 0.7px;
+    --research-detail-name-line-height: 24.8px;
+    --localized-label-line-height: var(--research-detail-name-line-height);
+    -unity-text-align: middle-left;
 }
 
 .research-tree__detail-close {
@@ -57,6 +69,8 @@
 .research-tree__detail-close-symbol {
     font-size: 16px;
     color: var(--text-default);
+    margin: 0;
+    padding: 0;
 }
 
 /* スクロールは左右へ逃げの分はみ出し、中身を同じだけ内へ戻す（ResearchCalcKnobs） */
@@ -76,6 +90,13 @@
     font-size: 13px;
     white-space: normal;
     color: var(--text-default);
+    margin: 0;
+    padding: 0;
+    padding-top: 0.6px;
+    padding-bottom: 0.6px;
+    --research-detail-description-line-height: 20.15px;
+    --localized-label-line-height: var(--research-detail-description-line-height);
+    -unity-text-align: middle-left;
 }
 
 .research-tree__section {
@@ -86,7 +107,14 @@
 .research-tree__section-label {
     font-size: 12px;
     color: var(--text-muted);
+    margin: 0;
     margin-bottom: 4px;
+    padding: 0;
+    padding-top: 0.3px;
+    padding-bottom: 0.3px;
+    --research-section-label-line-height: 18.6px;
+    --localized-label-line-height: var(--research-section-label-line-height);
+    -unity-text-align: middle-left;
 }
 
 .research-tree__slots {
@@ -108,6 +136,13 @@
     font-size: 13px;
     white-space: normal;
     color: var(--text-default);
+    margin: 0;
+    padding: 0;
+    padding-top: 0.6px;
+    padding-bottom: 0.6px;
+    --research-unlock-other-line-height: 20.15px;
+    --localized-label-line-height: var(--research-unlock-other-line-height);
+    -unity-text-align: middle-left;
 }
 
 .research-tree__unlock-fluid {
@@ -115,8 +150,13 @@
     white-space: nowrap;
     align-self: center;
     color: var(--text-default);
+    margin: 0;
     margin-right: 4px;
     margin-bottom: 4px;
+    padding: 0;
+    --research-unlock-fluid-line-height: 20.15px;
+    min-height: var(--research-unlock-fluid-line-height);
+    -unity-text-align: middle-left;
 }
 
 .research-tree__actions {
@@ -128,5 +168,12 @@
     font-size: 12px;
     white-space: normal;
     color: var(--text-default);
+    margin: 0;
     margin-top: 8px;
+    padding: 0;
+    padding-top: 0.3px;
+    padding-bottom: 0.3px;
+    --research-reason-line-height: 18.6px;
+    --localized-label-line-height: var(--research-reason-line-height);
+    -unity-text-align: middle-left;
 }

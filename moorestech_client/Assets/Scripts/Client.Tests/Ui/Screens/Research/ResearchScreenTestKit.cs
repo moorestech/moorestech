@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.Content;
 using Client.Ui.Content;
 using Client.Ui.State.Research.Catalog;
@@ -11,6 +12,7 @@ using Game.Research;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.Research
 {
@@ -30,6 +32,7 @@ namespace Client.Tests.Ui.Screens.Research
         public static readonly Guid BlockAndToolsResearch = Guid.Parse("bb000000-0000-4000-8000-000000000001");
         public static readonly Guid ModuleSlotResearch = Guid.Parse("c0de0000-0000-4000-8000-000000000002");
         public static readonly Guid CraftCapResearch = Guid.Parse("c0de0000-0000-4000-8000-000000000001");
+        private static readonly Regex RichTextTag = new("<[^>]+>");
         public static readonly Guid RewardResearch = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
 
         public static GameContentPresentation LoadMasterAndContent(Texture2D texture)
@@ -74,6 +77,13 @@ namespace Client.Tests.Ui.Screens.Research
             var tree = ResearchTreeViewModelFactory.Create(new List<ResearchNodeDefinition> { definition }, states, owned, ResearchSelection.Of(Researchable));
             if (!tree.TryGetDetail(out var detail)) throw new InvalidOperationException("選択したノードの詳細が組まれていない");
             return detail;
+        }
+
+        // LocalizedLabel は --localized-label-line-height を <line-height=Npx> で前置するので外す（前例 ChallengeHudTestText.Plain）
+        // LocalizedLabel prefixes --localized-label-line-height as <line-height=Npx>, so strip it (precedent ChallengeHudTestText.Plain)
+        public static string PlainText(Label label)
+        {
+            return RichTextTag.Replace(label.text, string.Empty);
         }
 
         public static ResearchUnlockSet NoUnlocks()

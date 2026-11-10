@@ -69,7 +69,7 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.IsFalse(ResearchButton().enabledSelf);
             var reason = Find<Label>(rootVisualElement, "research-detail-reason");
             Assert.IsTrue(IsShown(reason));
-            Assert.AreEqual("Not enough research items.", reason.text);
+            Assert.AreEqual("Not enough research items.", Kit.PlainText(reason));
             Click(Find<VisualElement>(rootVisualElement, "research-detail-close"));
             CollectionAssert.AreEqual(new[] { "close" }, _commands.Issued);
         }
