@@ -28,7 +28,7 @@
 | R-8 | 詳細ペイン: `research-detail-pane`（エリアの右上 12px・幅 300・高さはエリアの高さ − 24 まで）に `GamePanel(craft)`、見出し（名前 16px `--text-high-contrast`・閉じる `research-detail-close`「×」）、スクロール `research-detail-scroll`（説明 13px・消費アイテム `research-consume-items`・解放物の節）、研究ボタン `research-button-<guid>`、不可の理由 `research-detail-reason`（完了でも研究可能でもないとき） | `ResearchDetailPaneTest` が緑（Web `ResearchDetailPane.test.ts` の 2 件〈ボタンの活性・理由と閉じる〉） |
 | R-9 | 消費アイテム: `ItemSlot` に所持/必要（`ItemSlotShortage`・ツールチップ `MaterialTooltipKind.ResearchConsumeItem`）、不足は `insufficient`。完了ノードは不足を出さない。上位レベルの所持も充足に数える | `ResearchDetailPaneTest`（Web 4 件）が緑 |
 | R-10 | 解放物の節: Web の `UnlockSections` と同じ 5 節（ブロック `research-unlock-blocks`・機械レシピ `research-unlock-machine-recipes`・アイテム `research-unlock-items`・報酬 `research-reward-items`・その他 `research-unlock-others`）を初出順に並べ、ブロックは `BlockSlot`、機械レシピはアイテムの `ItemSlot` と液体の量のラベル `research-unlock-fluid`、報酬は個数付き、その他は 13px の文の行（接続ツール・車両・`research-unlock-module-slot-stack-limit`・`research-unlock-craft-cap-<itemId>`） | `ResearchUnlockSectionsTest`（Web `ResearchDetailPane.test.ts` 4 件・`research.spec.ts` 2 件・`researchMachineUpgradeUnlock.spec.ts` 1 件）が緑 |
-| R-11 | 研究ボタン: `RecipeActionButton(Regular)` を研究の組（幅はペインの本文の幅・高さは撮影で決めた値・無効の面 `--research-action-disabled-face`・無効の字 `--text-default`・無効の淡さ `--research-action-disabled-opacity`・ホバーで面を変えない・14px・字間 0・縁なし・沈まない）で上書きし、文言は完了なら「完了済み」、それ以外は「研究」。押すと `IResearchTreeCommands.CompleteResearch` を呼び、応答の全状態を `ResearchNodeStateStore.ApplyNodeStates` へ入れ、失敗（応答なし・サーバーの拒否）は良性でない `ResearchFailed`（wire `research_failed`）でトーストに出す | `ResearchDetailPaneTest`（Web `research.spec.ts`「research button sends research.complete…」・`ResearchDetailPane.test.ts` 1 件）と `ResearchTreeViewTest` の研究ボタンの幅（本文の幅 253）が緑。録画（R-13） |
+| R-11 | 研究ボタン: `RecipeActionButtonVariant.Research` で作り（研究の組〈無効の面 `--research-action-disabled-face`・無効の字 `--text-default`・無効の淡さ `--research-action-disabled-opacity`・ホバーで面を変えない・14px・字間 0・縁なし・沈まない〉は部品 USS が持つ。設計書 A-190）、画面 USS は寸法 `--research-action-width`（既定 `auto` のままでよければ書かない。幅はペインの本文の幅）と `--research-action-height`（撮影で決めた値）だけを書き、文言は完了なら「完了済み」、それ以外は「研究」。押すと `IResearchTreeCommands.CompleteResearch` を呼び、応答の全状態を `ResearchNodeStateStore.ApplyNodeStates` へ入れ、失敗（応答なし・サーバーの拒否）は良性でない `ResearchFailed`（wire `research_failed`）でトーストに出す | `ResearchDetailPaneTest`（Web `research.spec.ts`「research button sends research.complete…」・`ResearchDetailPane.test.ts` 1 件）と `ResearchTreeViewTest` の研究ボタンの幅（本文の幅 253）が緑。録画（R-13） |
 | R-12 | 並べ比べ: 参照 `4-research`・`5-tutorial-research-node`（1280×720・2560×1080）と、参照の組に無い詳細ペインの 3 状態（研究可能・素材不足・完了）を master の mock-host で自撮りして、UITK と並べた差の表を `done.md` に書く | 組が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれか |
 | R-13 | 録画: 新しい `uitk/uitk-research-tree`（全体スイッチ UITK。開く・中央寄せ・ノードのタップで詳細・研究の実行で完了・閉じて開き直しで視野が残り選択が消える・チャレンジ HUD とキーヒントが Pick で遮られない〈判定の間だけ HUD の根を拾う設定にする〉・マスタの研究ノードのアンカー 7 件が引ける）と、既存 `tier9/tier9-5-compute-research` を全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4、Note の `系=GameUi` |
 | R-14 | 登録: `MainGameUiRegistration` の画面登録区画に `ResearchGameUiRegistration.Register(builder);` 1 行。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行（`ResearchTree.uss`・`ResearchDetailPane.uss`）。`TutorialAnchorCoveragePending` に `ResearchNodePrefix` の行があれば同じ PR で消す（表がまだ無ければ integrator へ申し送る） | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`。`TutorialAnchorCoverageTest` は在れば）が緑 |
@@ -136,7 +136,7 @@ namespace Client.Ui.Components.NodeGraph
 {
     public sealed class NodeGraphView : VisualElement
     {
-        public NodeGraphView(string testIdPrefix);                 // 根 name = <prefix>-viewport・.node-graph、キャンバス <prefix>-canvas
+        public NodeGraphView(string testIdPrefix);                 // C4-d の実物は (string testIdPrefix, IUiOsCursor osCursor)。カードの指は UiOsCursorHoverRequest（Element 層・Pointer）で当てる（設計書 A-191。下のコードは着手時に実物へ合わせる）。根 name = <prefix>-viewport・.node-graph、キャンバス <prefix>-canvas
         public IObservable<string> OnNodeTapped { get; }           // 閾値未満の押下だけ。ドラッグはパン
         public IObservable<NodeGraphViewport> OnViewportChanged { get; }
         public void SetGraph(NodeGraphContent content);            // 毎回組み直し。中央寄せは「ノード・注目点・寸法がそろった最初の 1 回」だけ
@@ -155,17 +155,17 @@ namespace Client.Ui.Components.Controls
 {
     public sealed class RecipeActionButton : Button
     {
-        public RecipeActionButton(string testid, UiText label, RecipeActionLabelWeight weight); // 研究は Regular（Web の素の button の 400）
+        public const string ResearchUssClassName = "recipe-action-button--research";
+        public RecipeActionButton(string testid, UiText label, RecipeActionButtonVariant variant); // 研究は Research（Web の素の button の 400・研究の組を部品 USS が持つ。設計書 A-190）
         public IObservable<Unit> OnClicked { get; }                 // 無効では流さない。SetEnabled は VisualElement の既定
         public void SetLabel(UiText label);
     }
-    public enum RecipeActionLabelWeight { Medium, Regular }
+    public enum RecipeActionButtonVariant { Craft, Research }
 }
-// 研究の上書きの組（C4-c の RecipeActionKnobOverrides.uss の .recipe-action-research-probe と同じ組。幅と高さはこのレーンが撮って決める）:
-//   --recipe-action-hover-start/middle/end: var(--recipe-action-background-start/middle/end)
-//   --recipe-action-disabled-start/middle/end: var(--research-action-disabled-face)
-//   --recipe-action-disabled-text: var(--text-default)・--recipe-action-disabled-opacity: var(--research-action-disabled-opacity)
-//   --recipe-action-width・--recipe-action-height・--recipe-action-padding-block: 8px・--recipe-action-border-width: 0px・--recipe-action-font-size: 14px・--recipe-action-letter-spacing: 0px・--recipe-action-text-outline-width: 0px・--recipe-action-active-offset: 0px
+// 研究の組は RecipeActionButtonVariant.Research で部品 USS の .recipe-action-button--research が持つ（設計書 A-190。画面は組を書かない）:
+//   ホバーの面＝通常の面・無効の面 3 つ＝--research-action-disabled-face・無効の字＝--text-default（LX-95）・無効の淡さ＝--research-action-disabled-opacity（Web 0.6 のまま）
+//   --recipe-action-padding-block: 8px・--recipe-action-font-size: 14px・--recipe-action-letter-spacing: 0px・--recipe-action-text-shadow-offset: 0px（影なし）・--recipe-action-active-offset: 0px・--recipe-action-border-width: 0px
+//   幅と高さは --recipe-action-width/height: var(--research-action-width/height)（既定 auto。DerivedTokens.uss の :root）。画面が祖先で上書きしてよいのは --research-action-width・--research-action-height の 2 本だけ
 // --research-action-disabled-face: rgb(50, 52, 67)・--research-action-disabled-opacity は C4-c が DerivedTokens.uss の C4-c ブロックに置く（このレーンは var() で使うだけ。同じ値を別名で足さない）
 
 // ===== 機械レシピのマスタ（実物 moorestech_server/Assets/Scripts/Core.Master/MachineRecipesMaster.cs）=====
@@ -277,22 +277,12 @@ namespace Client.Ui.Components.Controls
 
 **MainGameUiRegistration の画面登録区画に足す行**: 1 行（`ResearchGameUiRegistration.Register(builder);`）。
 
-**つまみの上書き**（Web で局所上書きされている変数と同名。研究ボタンは C4-c の部品のつまみを `.research-tree__detail-body` で上書きする。値は Web の `.researchButton` と同じ）
+**研究ボタンの寸法の上書き**（研究の組〈ホバーで面を変えない・無効の面 `--research-action-disabled-face`・無効の字 `--text-default`〈LX-95〉・無効の淡さ `--research-action-disabled-opacity`〈Web 0.6 のまま〉・padding 8px・14px・字間 0・影なし・沈まない・枠 0〉は `RecipeActionButtonVariant.Research` で作ると部品 USS の `.recipe-action-button--research` が持つ。設計書 A-190。この画面 USS が `.research-tree__detail-body` で書いてよいのは寸法の 2 本だけ。研究の組の残りを画面で書かない）
 
 | つまみ | Web の値（`W/src/features/research/style.module.css` の `.researchButton`） | UITK の値（`.research-tree__detail-body`） |
 |---|---|---|
-| `--recipe-action-hover-start/middle/end` | （素の button。ホバーで面が変わらない） | `var(--recipe-action-background-start/middle/end)` |
-| `--recipe-action-disabled-start/middle/end` | `:disabled` の `background: rgb(50 52 67)` | `var(--research-action-disabled-face)` |
-| `--recipe-action-disabled-text` | `:disabled` の `color: var(--text-default)` | `var(--text-default)` |
-| `--recipe-action-disabled-opacity` | `:disabled` の `opacity: 0.6` | `var(--research-action-disabled-opacity)`（C4-c が Linear 補正込みで持つ） |
-| `--recipe-action-width` | 幅の指定なし（本文の幅いっぱい = 300 − 枠 1×2 − `GamePanel(craft)` の padding 左 10・右 15 − 本文の padding 10×2 ＝ 253） | `auto`（本文の幅に従う。効かなければ `100%`→`253px`。D-21） |
-| `--recipe-action-height` | 高さの指定なし（`padding: 8px 0` ＋ 14px の行の高さ `normal`） | `36px` を初期値（14px の Noto Sans JP の `normal` を 20px と見た値。Task 11 Step 3 で Web の画素から決め直す） |
-| `--recipe-action-padding-block` | `8px` | `8px` |
-| `--recipe-action-border-width` | `border: 0` | `0px`（既定 1px だとグラデが左右 1px 内へ寄る。C4-c の研究の組） |
-| `--recipe-action-font-size` | `14px` | `14px` |
-| `--recipe-action-letter-spacing` | `normal` | `0px` |
-| `--recipe-action-text-outline-width` | （影なし） | `0px` |
-| `--recipe-action-active-offset` | （素の button。沈まない） | `0px` |
+| `--research-action-width` | 幅の指定なし（本文の幅いっぱい = 300 − 枠 1×2 − `GamePanel(craft)` の padding 左 10・右 15 − 本文の padding 10×2 ＝ 253） | 書かない（部品の既定 `auto`〈`DerivedTokens.uss` の `:root`〉で本文の幅に従う。効かなければ `100%`→`253px`。D-21） |
+| `--research-action-height` | 高さの指定なし（`padding: 8px 0` ＋ 14px の行の高さ `normal`） | `36px` を初期値（14px の Noto Sans JP の `normal` を 20px と見た値。Task 11 Step 3 で Web の画素から決め直す。部品の既定 `auto` のままで Web と合えば書かない） |
 
 **受け直すトークン**（`.research-tree` で受け、`ResearchCalcKnobs` が読む）: `--research-tree-inventory-width: var(--inventory-panel-width)`・`--research-tree-column-gap: var(--stage-column-gap)`・`--research-tree-scroll-bleed: var(--research-detail-scroll-inline-bleed)`。
 
@@ -337,9 +327,10 @@ grep -rn "public NodeGraphContent(\|public NodeGraphNode(\|public static NodeGra
 grep -rn "MarkClipContainer" $S/Client.Ui/Components/NodeGraph/ $S/Client.Ui/Foundation/Anchor/ || echo "NO-CLIP-MARK"
 ls $S/Client.Tests/Ui/Components/NodeGraph/
 # C4-c（マージ後に実物と照合）
-grep -rn "public RecipeActionButton(\|enum RecipeActionLabelWeight\|public void SetLabel(" $S/Client.Ui/Components/Controls/
+grep -rn "public RecipeActionButton(\|enum RecipeActionButtonVariant\|ResearchUssClassName\|public void SetLabel(" $S/Client.Ui/Components/Controls/
 grep -n "research-action-disabled-face\|research-action-disabled-opacity\|recipe-action-background-start" $S/Client.Ui/Foundation/Theme/*.uss
-grep -rn "recipe-action-research-probe" -A16 $S/Client.Tests/Ui/Components/Controls/
+grep -n "recipe-action-button--research" -A18 $S/Client.Ui/Components/Controls/RecipeActionButton/RecipeActionButton.uss
+grep -n "research-action-width\|research-action-height" $S/Client.Ui/Foundation/Theme/DerivedTokens.uss
 # 機械レシピのマスタ（解放物の出力の読み口）
 grep -n "public MachineRecipeMasterElement GetRecipeElement(Guid" moorestech_server/Assets/Scripts/Core.Master/MachineRecipesMaster.cs
 # 実物（念のため）
@@ -358,7 +349,7 @@ test -f $S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs && grep -n "R
 ls $S/Client.Starter/Registration/GameUi/Screens/*.cs 2>/dev/null | wc -l
 ls $S/Client.Tests/Ui/State/Research/*.cs | wc -l
 ```
-Expected: worktree の絶対パス。C4-d の 4 行・3 行（`NodeGraphView(string testIdPrefix)`・`OnNodeTapped`・`SetGraph(NodeGraphContent)`・`RestoreViewport`、`NodeGraphContent(IReadOnlyList<NodeGraphNode>, NodeGraphFocus)`・`NodeGraphNode(string, Vector2, IReadOnlyList<string>, VisualElement)`・`NodeGraphFocus.At/None`）と `NodeGraphTestStage.cs`、C4-c の `RecipeActionButton(string, UiText, RecipeActionLabelWeight)`・`--research-action-disabled-face`・`--research-action-disabled-opacity`・研究の上書きの組（Global Constraints と同じ 13 行）、`GetRecipeElement` の 1 行、実物の 10 行、トークン 9 つ、`/* == section: Screens == */`。`Registration/GameUi/Screens/*.cs` が 9 以下（ディレクトリが無ければ 0 で、このレーンが Task 10 で作る。1 足して 10 以下）、State の Research のテストが 7 以下。
+Expected: worktree の絶対パス。C4-d の 4 行・3 行（`NodeGraphView(string testIdPrefix, IUiOsCursor osCursor)`〈設計書 A-191〉・`OnNodeTapped`・`SetGraph(NodeGraphContent)`・`RestoreViewport`、`NodeGraphContent(IReadOnlyList<NodeGraphNode>, NodeGraphFocus)`・`NodeGraphNode(string, Vector2, IReadOnlyList<string>, VisualElement)`・`NodeGraphFocus.At/None`）と `NodeGraphTestStage.cs`、C4-c の `RecipeActionButton(string, UiText, RecipeActionLabelWeight)`・`--research-action-disabled-face`・`--research-action-disabled-opacity`・研究の上書きの組（Global Constraints と同じ 13 行）、`GetRecipeElement` の 1 行、実物の 10 行、トークン 9 つ、`/* == section: Screens == */`。`Registration/GameUi/Screens/*.cs` が 9 以下（ディレクトリが無ければ 0 で、このレーンが Task 10 で作る。1 足して 10 以下）、State の Research のテストが 7 以下。
 - C4-d・C4-c のどれかのファイルが無ければ、その依存が未取り込みなので止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
 - 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。機械レシピの出力はこのレーンがマスタから読む（D-13。S4-alpha の `UnlockedMachineRecipeSource` は解放済みだけなので使わない）
 - `NO-CLIP-MARK` 以外（`NodeGraphView` か S2-tutorial が切り口の印をすでに付けている）なら、Task 1 Step 3 の「integrator への依頼」の (1) を書かない
@@ -1783,29 +1774,14 @@ git commit -m "feat(uitk): 研究ノードのロックの減光のトークン�
     min-height: 0;
 }
 
-/* 本文: 見出し・スクロール・研究ボタン・理由。研究ボタンは C4-c の部品のつまみを研究の組に上書きする（A-46） */
-/* Body: header, scroll, research button, reason; the research button overrides the C4-c part knobs with the research set (A-46) */
+/* 本文: 見出し・スクロール・研究ボタン・理由。研究ボタンの組は部品が持ち、ここは寸法だけ（A-190） */
+/* Body: header, scroll, research button, reason; the part owns the research set and this sets only its size (A-190) */
 .research-tree__detail-body {
     flex-direction: column;
     flex-shrink: 1;
     min-height: 0;
     padding: 10px;
-    --recipe-action-hover-start: var(--recipe-action-background-start);
-    --recipe-action-hover-middle: var(--recipe-action-background-middle);
-    --recipe-action-hover-end: var(--recipe-action-background-end);
-    --recipe-action-disabled-start: var(--research-action-disabled-face);
-    --recipe-action-disabled-middle: var(--research-action-disabled-face);
-    --recipe-action-disabled-end: var(--research-action-disabled-face);
-    --recipe-action-disabled-text: var(--text-default);
-    --recipe-action-disabled-opacity: var(--research-action-disabled-opacity);
-    --recipe-action-width: auto; /* web: .researchButton は幅の指定なしで本文の幅いっぱい（300 − 枠 2 − GamePanel(craft) の左右 25 − 本文の左右 20 ＝ 253）。D-21 */
-    --recipe-action-height: 36px; /* web: padding 8px 0 ＋ 14px の行の高さ normal。Task 11 Step 3 で画素から決め直す */
-    --recipe-action-padding-block: 8px;
-    --recipe-action-border-width: 0px; /* web: .researchButton の border: 0（C4-c の研究の組） */
-    --recipe-action-font-size: 14px;
-    --recipe-action-letter-spacing: 0px;
-    --recipe-action-text-outline-width: 0px;
-    --recipe-action-active-offset: 0px;
+    --research-action-height: 36px; /* web: padding 8px 0 ＋ 14px の行の高さ normal。Task 11 Step 3 で画素から決め直す（既定 auto のままで合えば消す）。幅は既定 auto で本文の幅 253 に従うので書かない（D-21） */
 }
 
 .research-tree__detail-header {
@@ -1901,7 +1877,7 @@ git commit -m "feat(uitk): 研究ノードのロックの減光のトークン�
 ```
 （`transparent` は前例 `THEME/Theme.uss` と同じキーワード。理由の文の改行は csv の `\n` をそのまま描く〈Web の `white-space: pre-line`〉）
 
-（1 ファイル 200 行未満のため、エリアとカード〈`ResearchTree.uss`〉と詳細ペイン〈`ResearchDetailPane.uss`〉に分ける。`--recipe-action-width: auto` が `var()` 越しに効かない〈Task 9 の `ResearchTreeViewTest` の幅の主張が赤〉なら `100%` を試し、それでも赤なら `253px` を置いて `done.md` の「integrator への依頼」に「C4-c の `RecipeActionButton` の `--recipe-action-width` が auto/100% を受けられるように」を 1 行書く。D-21）
+（1 ファイル 200 行未満のため、エリアとカード〈`ResearchTree.uss`〉と詳細ペイン〈`ResearchDetailPane.uss`〉に分ける。部品の既定 `--research-action-width: auto` で幅が本文に従わない〈Task 9 の `ResearchTreeViewTest` の幅の主張が赤〉なら画面 USS に `--research-action-width: 100%` を試し、それでも赤なら `253px` を置いて `done.md` の「integrator への依頼」に「`RecipeActionButton` の研究の幅が auto/100% を受けられるように」を 1 行書く。D-21）
 
 `GameUiTheme.tss` の `/* == section: Screens == */` の区画の末尾に 2 行:
 ```css
@@ -2953,7 +2929,7 @@ namespace Client.Ui.Screens.Research.Parts
             _toaster = toaster;
             AddToClassList("research-tree__actions");
             pickingMode = PickingMode.Ignore;
-            _button = new RecipeActionButton("research-button", new UiText(LocalizationKeys.Ui.Research.Action), RecipeActionLabelWeight.Regular);
+            _button = new RecipeActionButton("research-button", new UiText(LocalizationKeys.Ui.Research.Action), RecipeActionButtonVariant.Research);
             _button.OnClicked.Subscribe(_ => CompleteAsync().Forget());
             _reason = new LocalizedLabel { name = "research-detail-reason" };
             _reason.AddToClassList("research-tree__reason");
@@ -4126,7 +4102,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 - **D-18 HUD の遮蔽の 2 件は、採掘の進捗バーを L1、チャレンジ HUD とキーヒントを録画で写す**: 進捗バーは本物の `ProgressHudView` を本番と同じ `Chrome`・`Viewport` 層に置き、研究エリア（`OverlayPanel`・`Stage`）と重なる点で Pick する L1 を `ResearchTreeViewTest` に置く（opus の案 (b)）。Web の元テストは `.viewportOverlay` の z の封じ込めの回帰ガードで、守る物は層の順序。`UiLayerStack` が enum 順に足すので L1 で決定的に固定でき、ctor に引数の無い本物の View を使える。棄却 (a) 録画で採掘を始める: 採掘できるブロックと道具の準備が録画に増え、採掘が終わると進捗バーが消えるので Pick の時刻に依る。HUD は部分木ごと拾わないので、L1・録画とも Web の `expectHitTestWithin` と同じく判定の間だけ根の `pickingMode` を `Position` にして戻す（本番の入力の透過は変えない）。チャレンジ HUD とキーヒントは Presenter と状態の源（現在のチャレンジ・キーのトークン）が要るので録画で見る。1280×720 では両 HUD とも研究エリアの外にあり、録画の主張は「上の層に覆われていない」まで（重なる配置での層の順序は進捗バーの L1 が持つ）。独立評価 2 体の指摘
 - **D-19 `ResearchStageLayoutTest` は研究画面の性質の値を固定するだけ**: 左の余白の畳み（C4-e）と常駐 HUD の非表示（S3-hotbar・S4-inventory）は持ち主のテストがあり、ここは Web のテスト名の写し先として研究画面の値と結果の寸法を見る
 - **D-20 ロックの減光は opacity のトークンで持ち、Task 11 の画素で決める**（初期 0.45。前例 `--slot-frame-insufficient-opacity`）。暗い半透明の色の式（指数 1.85）は要素の opacity に当てはまらない
-- **D-21 研究ボタンの幅は本文の幅に従わせ（`--recipe-action-width: auto`）、高さ 36 は初期値**で Task 11 Step 3 で Web の画素から決め直す（C4-c は研究の組の幅と高さをこのレーンに残した）。Web の `.researchButton` は幅の指定が無く、`.detailBody` の列で伸びて 300 − 枠 2 − `GamePanel(craft)` の padding 25 − 本文 20 ＝ 253（`W/src/shared/ui/GamePanel/style.module.css` の `.craft`・UITK の `GamePanel.uss` の `.game-panel--craft` が同じ値）。固定 px にすると本文やペインの幅の変更に追従しないので幅は持たない。C4-c の USS は `width`・`min-width` を `var(--recipe-action-width)` で読むので、`auto` が `var()` 越しに効けば部品は変えずに済む。効かなければ `100%`、それも効かなければ `253px` を置き、C4-c の部品が受けられるようにする依頼を integrator へ出す。棄却: 280px（本文より 27px 広く、ペインの右の余白と枠を越える）
+- **D-21 研究ボタンの幅は本文の幅に従わせ（`--research-action-width` は部品の既定 `auto` のまま書かない。A-190）、高さ 36 は初期値（`--research-action-height`）**で Task 11 Step 3 で Web の画素から決め直す（C4-c は研究の組の幅と高さをこのレーンに残した）。Web の `.researchButton` は幅の指定が無く、`.detailBody` の列で伸びて 300 − 枠 2 − `GamePanel(craft)` の padding 25 − 本文 20 ＝ 253（`W/src/shared/ui/GamePanel/style.module.css` の `.craft`・UITK の `GamePanel.uss` の `.game-panel--craft` が同じ値）。固定 px にすると本文やペインの幅の変更に追従しないので幅は持たない。部品の USS は `width`・`min-width` を `var(--recipe-action-width)`（研究の組では `var(--research-action-width)`）で読むので、既定の `auto` が `var()` 越しに効けば画面は幅を書かずに済む。効かなければ画面 USS に `--research-action-width: 100%`、それも効かなければ `253px` を置き、C4-c の部品が受けられるようにする依頼を integrator へ出す。棄却: 280px（本文より 27px 広く、ペインの右の余白と枠を越える）
 - **D-22 Web の `gap` は子の margin で写す**（USS の規約）。カードは名前とアイコンの下 6px、詳細の本文は見出しとスクロールの下 8px・理由の上 8px、節は上 8px、枠は右と下 4px
 - **D-23 録画を持つ**: ランタイムの挙動（入力・UI）に触れるので、unityプレイ録画テスト 2 本（`uitk/uitk-research-tree` 新規・`tier9/tier9-5-compute-research` 既存）を Task 12 に置く。L3（EditModeInPlayingTest）は持たない（段の締め S4-ladder）
 - **D-24 設計検査 Phase 2.6 の裁定（user-simulator の予測で代えた。出所: 起草役の既定）**:
@@ -4169,7 +4145,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 | A-170 | 研究ツリーの State は `Research/Catalog`（研究マスタから 1 回だけ組む静的な定義 `ResearchNodeCatalog`。機械レシピの出力も機械レシピのマスタから読む。解放済みだけを配る S4-alpha の源は使わない）・`Research/Tree`（`ResearchSelectionStore`・`ResearchTreeViewModelFactory`・`ResearchTreeModel`）・`Research/Commands` に分け、Model は源の変化のたびに同期で組み直すが研究画面の表示中だけで、閉じている間の変化は表示の突入で 1 回組む（前例 `ResearchNodeStateStore.RefreshWhileResearchScreenActive`。画面の判定は選択の持ち主・Presenter と同じ `UiRoutingState`）。表示の出し入れは Presenter と View が持つ。サーバーの状態を受けたのに欠けたノードは Web の橋と同じ `UnresearchableAllReasons` で描き、欠けた数を Model が受信ごとに LogWarning へ出す（S4-research D-2・D-29） | Model が毎回マスタを読む: 同じ写しを状態の通知のたびに繰り返す。表示の有無で止めない: 閉画面でも採掘・搬入のたびに全ノードの VM を組む（判定は `UiRoutingState` 1 本を読むだけで散らない）。欠けたノードを新しい状態の値で表す: Web の橋と見た目が割れ、サーバーの列挙に値を足せない |
 | A-171 | 研究エリアは `UiLayer.OverlayPanel`・`UiFamily.Stage` に Presenter が 1 回載せ、`left` は画面 USS で受け直した `--inventory-panel-width` と `--stage-column-gap` の和を C# が当てる（[A-47]・[A-92]）。表示は経路で `display` を切り替え、要素は残す（S4-research） | 舞台の列に入れる: Web も列でなく絶対配置で、持ち物の右から画面端までを占める。開くたびに作り直す: `NodeGraphView` の視野を外に保存する口が要る |
 | A-172 | 研究ツリーは常駐の `NodeGraphView` 1 つにカードを GUID で使い回して渡し、`SetGraph` はノードの並びか初期の注目点が変わったときだけ呼ぶ（C4-d D-23(3) に乗り、開き直しても視野が残る）。カードの文字は拾わず、アイコンはホバーの名前のために拾い、押下はカードの包みへ浮かぶ（S4-research） | 毎回 `SetGraph`: 組み直しのたびに包みが作り直され、カードの状態だけの変化で無駄に組む。カードの子をすべて拾わない: Web の `ItemSlot` のホバーの名前が出ない |
-| A-173 | 研究ノードのロックの減光は要素の opacity のトークン `--research-node-locked-opacity`（`DerivedTokens.uss` の「S4-research」）で持ち、値はランタイムの PanelSettings の画素で Web と比べて決める（前例 `--slot-frame-insufficient-opacity`）。研究ボタンは `RecipeActionButton(Regular)` を画面 USS の `.research-tree__detail-body` で研究の組に上書きし、幅と高さはこのレーンが撮って決める（[A-46]）（S4-research） | Web の 0.45 のまま: Linear 合成で明るい字と枠が淡く残る。暗い半透明の式（指数 1.85）: 要素の opacity は下の色を混ぜる式が違う |
+| A-173 | 研究ノードのロックの減光は要素の opacity のトークン `--research-node-locked-opacity`（`DerivedTokens.uss` の「S4-research」）で持ち、値はランタイムの PanelSettings の画素で Web と比べて決める（前例 `--slot-frame-insufficient-opacity`）。研究ボタンは `RecipeActionButtonVariant.Research` で作り（研究の組は部品 USS。A-190）、画面 USS の `.research-tree__detail-body` は寸法 `--research-action-width`・`--research-action-height` だけを書き、幅と高さはこのレーンが撮って決める（[A-46]）（S4-research） | Web の 0.45 のまま: Linear 合成で明るい字と枠が淡く残る。暗い半透明の式（指数 1.85）: 要素の opacity は下の色を混ぜる式が違う |
 | A-174 | 研究の実行の失敗（応答なし・サーバーの拒否）は新しい拒否理由 `UiCommandRejectReason.ResearchFailed`（良性でない・wire `research_failed`・文言 `ui.commandRejected.researchFailed`）で `UiCommandResultToaster` の 1 本へ渡す。応答があれば状態は先に `ResearchNodeStateStore.ApplyNodeStates` へ入れる（S4-research） | 既存の汎用の理由: トーストの文言が研究と分からない。View が失敗を直接トーストする: 拒否の口が 2 本になる（[A-8]） |
 
 ### 設計書 §2 の部品カタログの差分案
