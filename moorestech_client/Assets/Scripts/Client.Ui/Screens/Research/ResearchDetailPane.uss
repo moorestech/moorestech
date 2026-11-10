@@ -31,7 +31,9 @@
     flex-shrink: 1;
     min-height: 0;
     padding: 10px;
-    --research-action-height: 36px; /* web: padding 8px 0 ＋ 14px の行の高さ normal。Task 11 Step 3 で画素から決め直す（既定 auto のままで合えば消す）。幅は既定 auto で本文の幅 253 に従うので書かない（D-21） */
+    /* web: padding 8px 0 ＋ 14px の行の高さ normal。Task 11 Step 3 で画素から決め直す。幅は書かない（D-21） */
+    /* web: padding 8px 0 plus a 14px normal line height; to be re-fixed from pixels in Task 11 Step 3; width is not set (D-21) */
+    --research-action-height: 36px;
 }
 
 .research-tree__detail-header {
@@ -91,6 +93,10 @@
     flex-direction: row;
     flex-wrap: wrap;
     padding-bottom: var(--research-detail-slots-bleed);
+    /* 子の margin で写した gap の行末・最終行の余りを負の margin で相殺（UiGroup と同じ手） */
+    /* Cancel the trailing gap of the child margins with negative margins (same as UiGroup) */
+    margin-right: -4px;
+    margin-bottom: -4px;
 }
 
 .research-tree__slot {
