@@ -74,10 +74,10 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
         }
 
         [Test]
-        public void 既定はクラフトの寸法と字と文字の縁になる()
+        public void 既定はクラフトの寸法と字と上下左右1pxの文字の影になる()
         {
-            // 幅 80.433・高 19・padding 0・12px・字間 0.12em（12）・文字 #fff・縁 1px の rgb(0 40 80 / 55%)・500 の字形
-            // Width 80.433, height 19, padding 0, 12px, spacing 0.12em (12), #fff text, 1px outline of rgb(0 40 80 / 55%), the 500 face
+            // 幅 80.433・高 19・padding 0・12px・字間 0.12em（12）・文字 #fff・縁なし・500 の字形
+            // Width 80.433, height 19, padding 0, 12px, spacing 0.12em (12), #fff text, no outline, the 500 face
             var button = AddButton(_rulesRoot, RecipeActionLabelWeight.Medium);
             var label = Label(button);
             Assert.AreEqual(ResolvePixels("--recipe-craft-button-width"), button.resolvedStyle.width, 0.5f);
@@ -85,11 +85,29 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             Assert.AreEqual(0f, button.resolvedStyle.paddingTop, 0.01f);
             Assert.AreEqual(12f, label.resolvedStyle.fontSize, 0.01f);
             Assert.AreEqual(12f, label.resolvedStyle.letterSpacing, 0.01f);
-            Assert.AreEqual(ResolvePixels("--recipe-action-text-outline-width"), label.resolvedStyle.unityTextOutlineWidth, 0.01f);
-            AssertSameColor(ResolveColor("--recipe-action-text-outline"), label.resolvedStyle.unityTextOutlineColor, "outline");
+            Assert.AreEqual(0f, label.resolvedStyle.unityTextOutlineWidth, 0.01f);
             AssertColor(Hex("#FFFFFF"), label.resolvedStyle.color, "text");
             Assert.AreEqual("GameUiLatinMedium SDF", label.resolvedStyle.unityFontDefinition.fontAsset.name);
             Assert.AreEqual(0f, button.resolvedStyle.backgroundColor.a, 0.001f);
+
+            // 影は同じ文・同じ字形の 4 枚を右・左・下・上へ 1px ずらし、rgb(0 40 80 / 55%) で文言の下に敷く（Web の text-shadow 4 枚）
+            // The shadow is four copies of the same text and face shifted 1px right, left, down and up in rgb(0 40 80 / 55%) under the label (Web four text-shadows)
+            var offset = ResolvePixels("--recipe-action-text-outline-width");
+            var expected = new[] { new Vector2(offset, 0f), new Vector2(-offset, 0f), new Vector2(0f, offset), new Vector2(0f, -offset) };
+            var glyphs = ShadowGlyphs(button).ToList();
+            Assert.AreEqual(4, glyphs.Count);
+            Assert.Less(button.IndexOf(glyphs[0].parent), button.IndexOf(label), "shadow sits under the label");
+            Assert.AreEqual(DisplayStyle.Flex, glyphs[0].parent.resolvedStyle.display);
+            for (var i = 0; i < glyphs.Count; i++)
+            {
+                Assert.AreEqual(expected[i].x, glyphs[i].resolvedStyle.translate.x, 0.01f, $"shadow {i} x");
+                Assert.AreEqual(expected[i].y, glyphs[i].resolvedStyle.translate.y, 0.01f, $"shadow {i} y");
+                AssertSameColor(ResolveColor("--recipe-action-text-outline"), glyphs[i].resolvedStyle.color, $"shadow {i} color");
+                Assert.AreEqual(label.text, glyphs[i].text);
+                Assert.AreEqual(12f, glyphs[i].resolvedStyle.fontSize, 0.01f);
+                Assert.AreEqual(12f, glyphs[i].resolvedStyle.letterSpacing, 0.01f);
+                Assert.AreEqual("GameUiLatinMedium SDF", glyphs[i].resolvedStyle.unityFontDefinition.fontAsset.name);
+            }
         }
 
         [Test]
@@ -141,7 +159,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             Assert.AreEqual(300f, button.resolvedStyle.width, 0.5f);
             Assert.AreEqual(8f, button.resolvedStyle.paddingTop, 0.01f);
             Assert.AreEqual(14f, Label(button).resolvedStyle.fontSize, 0.01f);
-            Assert.AreEqual(0f, Label(button).resolvedStyle.unityTextOutlineWidth, 0.01f);
+            Assert.AreEqual(DisplayStyle.None, ShadowGlyphs(button).First().parent.resolvedStyle.display, "research has no text shadow");
 
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();

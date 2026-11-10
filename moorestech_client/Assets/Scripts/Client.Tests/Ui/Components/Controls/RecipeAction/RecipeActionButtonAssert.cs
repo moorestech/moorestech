@@ -8,14 +8,19 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Controls.RecipeAction
 {
     /// <summary>
-    /// RecipeActionButton の文言のラベルと面の 3 色を読んで照合する補助（L1）
-    /// Helpers that read the RecipeActionButton label and check the three face colors (L1)
+    /// RecipeActionButton の文言のラベル・影の字・面の 3 色を読んで照合する補助（L1）
+    /// Helpers that read the RecipeActionButton label and shadow copies and check the three face colors (L1)
     /// </summary>
     public static class RecipeActionButtonAssert
     {
         public static Label Label(RecipeActionButton button)
         {
             return button.Q<Label>(className: RecipeActionButton.LabelUssClassName);
+        }
+
+        public static UQueryState<Label> ShadowGlyphs(RecipeActionButton button)
+        {
+            return button.Query<Label>(className: RecipeActionLabelShadow.GlyphUssClassName).Build();
         }
 
         public static void AssertFace(RecipeActionButton button, string startToken, string middleToken, string endToken)

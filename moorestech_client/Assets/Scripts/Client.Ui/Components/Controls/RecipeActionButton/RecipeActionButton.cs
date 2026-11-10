@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 主要アクションの青グラデのボタン（クラフト・研究する）。面の 3 色・寸法・字・縁はつまみで受ける
-    /// Primary action button with the blue gradient (craft, research); face colors, size, type and outline come from knobs
+    /// 主要アクションの青グラデのボタン（クラフト・研究する）。面の 3 色・寸法・字・影はつまみで受ける
+    /// Primary action button with the blue gradient (craft, research); face colors, size, type and shadow come from knobs
     /// </summary>
     /// <remarks>
     /// 既定はクラフトの見た目。研究は画面が祖先で --recipe-action-* を上書きする。長押しは置く側が Foundation の UiPressGesture を重ねる。
@@ -24,6 +24,7 @@ namespace Client.Ui.Components.Controls
         public const string FaceBorderWidthProperty = "--recipe-action-button-face-border-width";
 
         private readonly Subject<Unit> _clicked = new();
+        private readonly RecipeActionLabelShadow _labelShadow;
         private readonly LocalizedLabel _label;
 
         public IObservable<Unit> OnClicked => _clicked;
@@ -37,9 +38,11 @@ namespace Client.Ui.Components.Controls
             // GameUi never lets anything but text fields hold focus
             focusable = false;
 
-            // 面を先に、文言をその上に重ねる（どちらも押下を横取りしない）
-            // Face first, then the label on top (neither steals the press)
+            // 面・文言の影・文言の順に重ねる（どれも押下を横取りしない）
+            // Stack face, label shadow, then label (none steals the press)
             Add(new RecipeActionButtonFace());
+            _labelShadow = new RecipeActionLabelShadow(weight);
+            Add(_labelShadow);
             _label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
             _label.AddToClassList(LabelUssClassName);
             // 字の太さは Web と同じ字形を選ぶ（クラフト 500、研究 400 は付けない既定の字）
@@ -55,6 +58,7 @@ namespace Client.Ui.Components.Controls
 
         public void SetLabel(UiText label)
         {
+            _labelShadow.SetText(label);
             _label.SetText(label);
         }
     }

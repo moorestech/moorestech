@@ -67,8 +67,8 @@
     --recipe-action-button-face-end: var(--recipe-action-disabled-end);
 }
 
-/* 文言。4 方向の text-shadow は文字の縁で近似する */
-/* Label; the four-way text-shadow is approximated by a text outline */
+/* 文言。影は下の層が描くので縁を付けない */
+/* Label; the layer below draws the shadow, so no outline */
 .recipe-action-button .recipe-action-button__label {
     flex-grow: 1;
     margin: 0;
@@ -77,11 +77,35 @@
     color: var(--recipe-action-text);
     font-size: var(--recipe-action-font-size);
     letter-spacing: var(--recipe-action-letter-spacing);
-    -unity-text-outline-width: var(--recipe-action-text-outline-width); /* look-exception: LX-93 */
-    -unity-text-outline-color: var(--recipe-action-text-outline);
     -unity-text-align: middle-center;
     white-space: nowrap;
     overflow: hidden;
+}
+
+/* 文言の影の層。文言と同じ箱（padding の内側）に重ね、ずらす幅は C# が読んで字ごとに当てる（Web の上下左右 1px の text-shadow 4 枚） */
+/* Label shadow layer over the label's box (inside the padding); C# reads the shift and applies it per copy (the Web four-way 1px text-shadow) */
+.recipe-action-button .recipe-action-button__label-shadow {
+    position: absolute;
+    top: var(--recipe-action-padding-block);
+    bottom: var(--recipe-action-padding-block);
+    left: 0;
+    right: 0;
+    --recipe-action-button-text-shadow-offset: var(--recipe-action-text-outline-width);
+}
+
+.recipe-action-button .recipe-action-button__label-shadow-glyph {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    color: var(--recipe-action-text-outline);
+    font-size: var(--recipe-action-font-size);
+    letter-spacing: var(--recipe-action-letter-spacing);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
 }
 
 .recipe-action-button:disabled .recipe-action-button__label {
