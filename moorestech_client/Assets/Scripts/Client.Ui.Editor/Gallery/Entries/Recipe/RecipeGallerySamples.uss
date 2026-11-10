@@ -42,7 +42,7 @@
     --recipe-action-disabled-start: var(--research-action-disabled-face);
     --recipe-action-disabled-middle: var(--research-action-disabled-face);
     --recipe-action-disabled-end: var(--research-action-disabled-face);
-    --recipe-action-disabled-text: var(--research-action-disabled-text);
+    --recipe-action-disabled-text: var(--text-default); /* look-exception: LX-95 */
     --recipe-action-disabled-opacity: var(--research-action-disabled-opacity);
     --recipe-action-width: 300px;
     --recipe-action-height: 40px;

@@ -106,6 +106,7 @@
     letter-spacing: var(--recipe-action-letter-spacing);
     -unity-text-align: middle-center;
     white-space: nowrap;
+    overflow: hidden; /* 文言と同じく箱で切り、長い文言で影だけはみ出さない / Clip like the label so a long text does not leave the shadow sticking out */
 }
 
 .recipe-action-button:disabled .recipe-action-button__label {
