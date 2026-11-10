@@ -173,4 +173,11 @@
     --item-header-diamond-border: #b8c0cc; /* web: ItemHeader.module.css .itemHeaderRule::after の border 1px solid #b8c0cc */
     --item-header-name-shadow: 0.3px 0 0 rgba(0, 0, 0, 0.55); /* web: .itemName の text-shadow 0.3px 0 0 / -0.3px 0 0 rgb(0 0 0 / 55%) の右の 1 本 */
     --item-list-scroll-thumb-face: rgba(255, 255, 255, 0.88); /* web: ItemListPanel.module.css のつまみ rgb(255 255 255 / 88%) */
+    --item-list-scroll-track-face: rgba(0, 0, 0, 0); /* web: ItemListPanel.module.css の scrollbar background: transparent */
+    --game-scroll-view-track-face: var(--gauge-track); /* GameScrollView の溝の既定。要素に書くと祖先の上書きを潰すので :root に置く（A-167） */
+    --game-scroll-view-thumb-face: var(--bevel-c2); /* GameScrollView のつまみの既定 */
+    --game-scroll-view-scrollbar-inset-top: 0px; /* GameScrollView の縦バーの上の逃げの既定 */
+    --game-scroll-view-scrollbar-inset-bottom: 0px; /* 同じく下の逃げの既定 */
+    --game-scroll-view-scrollbar-inset-right: 0px; /* 同じく右の逃げの既定 */
+    --game-scroll-view-scrollbar-padding-ratio: 0.2; /* web: Mantine ScrollArea のバーの padding = size / 5。縦バーの内側余白＝幅×比 */
 }

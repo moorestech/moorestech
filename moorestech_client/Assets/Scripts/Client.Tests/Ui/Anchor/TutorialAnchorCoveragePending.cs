@@ -13,7 +13,6 @@ namespace Client.Tests.Ui.Anchor
         {
             { AnchorIds.HotbarHud, "S3-hotbar-modal" },
             { AnchorIds.BuildMenuEntryPrefix, "S3-buildmenu" },
-            { AnchorIds.RecipeItemPrefix, "S4-recipe" },
             { AnchorIds.ChallengePanel, "S5-challenge" },
             { AnchorIds.ChallengeCategories, "S5-challenge" },
             { AnchorIds.ChallengeNodePrefix, "S5-challenge" },
