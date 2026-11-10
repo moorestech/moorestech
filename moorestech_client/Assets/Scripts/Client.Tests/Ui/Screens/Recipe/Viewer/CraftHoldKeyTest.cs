@@ -115,6 +115,32 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             Assert.IsEmpty(_commands.Crafted);
         }
 
+        [Test]
+        public void Enterの保持中に作れなくなり無効のまま離しても補充後のEnterで長押しが始まる()
+        {
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = MountInRules(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var button = view.Q<RecipeActionButton>();
+            simulate.Click(button.worldBound.center);
+            SendKeyDown(button, KeyCode.Return);
+
+            // 素材が尽きて無効になるとフォーカスが外れ、その間の Enter の離しはボタンに届かない
+            // Running out disables the button and drops its focus, so releasing Enter meanwhile never reaches it
+            view.Render(CraftVm(guid, 0.4, false, false, Material(1, 1, 0)));
+            Assert.IsNull(panel.focusController.focusedElement);
+            SendKeyUp(button, KeyCode.Return);
+            for (var i = 0; i < 3; i++) simulate.FrameUpdateMs(100);
+
+            // 補充されて有効に戻り、クリックでフォーカスし直せば、次の Enter で長押しが始まる
+            // Once refilled and re-focused by a click, the next Enter starts the hold
+            view.Render(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)));
+            simulate.Click(button.worldBound.center);
+            Assert.AreSame(button, panel.focusController.focusedElement);
+            SendKeyDown(button, KeyCode.Return);
+            for (var i = 0; i < 6; i++) simulate.FrameUpdateMs(100);
+            CollectionAssert.AreEqual(new[] { guid }, _commands.Crafted);
+        }
+
         private T MountInRules<T>(T view) where T : VisualElement
         {
             _rulesRoot.Add(view);

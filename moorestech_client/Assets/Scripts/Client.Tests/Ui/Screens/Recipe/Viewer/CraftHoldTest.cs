@@ -66,6 +66,25 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         }
 
         [Test]
+        public void 保持中に作れるまま描き直しても長押しは切れず経過も続く()
+        {
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 1, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            simulate.MouseDown(view.Q<RecipeActionButton>().worldBound.center);
+
+            // 初回の経過は 0〜上限 0.25 秒のどれでもよいように数える（5 フレームで高々 0.65 秒）
+            // Count frames so any first delta from 0 to the 0.25 s cap works (at most 0.65 s after 5 frames)
+            for (var i = 0; i < 5; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+
+            // 所持だけ変えて描き直しても経過は残り、続く 8 フレームで 1 秒に届く（始め直すと高々 0.95 秒で 0 回）
+            // Redrawing with only the owned count changed keeps the elapsed time, reaching 1 s in 8 more frames (a restart reaches at most 0.95 s and crafts nothing)
+            view.Render(CraftVm(guid, 1, true, false, Material(1, 1, 8)));
+            for (var i = 0; i < 8; i++) simulate.FrameUpdateMs(100);
+            Assert.AreEqual(1, _commands.Crafted.Count);
+        }
+
+        [Test]
         public void 拒否はトーストへ渡り1フレームの経過は上限で頭打ち()
         {
             _commands.SetResult(new UiCommandRejected(UiCommandRejectReason.MachineRecipeLocked, ""));

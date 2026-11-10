@@ -41,8 +41,11 @@ namespace Client.Ui.Screens.Recipe.Parts
 
         private void OnKeyDown(KeyDownEvent evt)
         {
-            // silent-ok: Enter 以外のキーと押しっぱなしのリピートは長押しにしない / CraftHoldKeyTest の Space とリピートの件が見る
-            if (!IsEnter(evt.keyCode) || _enterHeld) return;
+            // silent-ok: Enter 以外のキーは長押しにしない / CraftHoldKeyTest の Space の件が見る
+            if (!IsEnter(evt.keyCode)) return;
+
+            // リピートの二重開始は driver が弾く（無効の間に KeyUp を取りこぼして旗が残っても、次の Enter で始め直せる。Web と同じ）
+            // The driver rejects repeat restarts (even if a KeyUp was lost while disabled, the next Enter starts again, as on the Web)
             _enterHeld = true;
             _driver.Start();
         }

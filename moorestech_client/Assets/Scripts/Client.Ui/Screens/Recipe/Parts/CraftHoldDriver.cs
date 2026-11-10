@@ -76,18 +76,11 @@ namespace Client.Ui.Screens.Recipe.Parts
             // Cap one frame at the limit so a large jump never crafts several times
             var delta = Math.Min(timer.deltaTime / 1000.0, HoldCraftLogic.MaxFrameDeltaSeconds);
 
-            // 保持中に作れなくなったら経過を捨てて待つ（補充されれば続く。Web と同じ）
-            // If it becomes uncraftable mid-hold, drop the elapsed time and wait (resumes on refill, as on the Web)
-            if (_craftable)
-            {
-                var step = HoldCraftLogic.Advance(_elapsed, delta, _craftTime);
-                _elapsed = step.Elapsed;
-                if (step.DidCraft) _toaster.Report(CraftCommandName, _commands.Craft(_recipeGuid));
-            }
-            else
-            {
-                _elapsed = 0;
-            }
+            // 回っている間は必ず作れる（作れないと Start せず、作れなくなると SetRecipe が止める）。Web の待機の分岐は届かないので写さない
+            // While ticking it is always craftable (Start refuses otherwise and SetRecipe stops it), so the Web's unreachable idle branch is not ported
+            var step = HoldCraftLogic.Advance(_elapsed, delta, _craftTime);
+            _elapsed = step.Elapsed;
+            if (step.DidCraft) _toaster.Report(CraftCommandName, _commands.Craft(_recipeGuid));
             _row.SetProgress((float)HoldCraftLogic.Progress(_elapsed, _craftTime));
         }
     }
