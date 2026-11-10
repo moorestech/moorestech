@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Layout;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Components.ThemeTokenFile;
 
@@ -80,6 +83,21 @@ namespace Client.Tests.Ui.Components.Controls
             var list = Mount(Probe("control-recipe-list-bleed-probe"), 2).Q(ListTestId);
             Assert.AreEqual(7f, list.resolvedStyle.paddingLeft, 0.01f);
             Assert.AreEqual(7f + ResolvePixels("--recipe-list-scrollbar-reserve"), list.resolvedStyle.paddingRight, 0.01f);
+        }
+
+        [Test]
+        public void reserveが読めなくなると右は前回の和を外してbleedへ戻る()
+        {
+            var holder = Probe("control-recipe-list-bleed-probe");
+            var list = Mount(holder, 2).Q(ListTestId);
+            Assert.AreEqual(7f + ResolvePixels("--recipe-list-scrollbar-reserve"), list.resolvedStyle.paddingRight, 0.01f);
+
+            // 再解決で片方が読めないと LogError を出し、inline の和を外して USS の bleed に戻る
+            // An unreadable knob on re-resolve logs an error and drops the inline sum back to the USS bleed
+            LogAssert.Expect(LogType.Error, new Regex(@"\[UssCustomStyleReader\] --recipe-list-scroll-view-reserve is not a resolved length"));
+            holder.AddToClassList("control-recipe-list-unreadable-reserve-probe");
+            simulate.FrameUpdate();
+            Assert.AreEqual(7f, list.resolvedStyle.paddingRight, 0.01f);
         }
 
         private RecipeListScrollView Mount(VisualElement parent, int entryCount)

@@ -92,7 +92,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
 
             // 影は同じ文・同じ字形の 4 枚を右・左・下・上へ 1px ずらし、rgb(0 40 80 / 55%) で文言の下に敷く（Web の text-shadow 4 枚）
             // The shadow is four copies of the same text and face shifted 1px right, left, down and up in rgb(0 40 80 / 55%) under the label (Web four text-shadows)
-            var offset = ResolvePixels("--recipe-action-text-outline-width");
+            var offset = ResolvePixels("--recipe-action-text-shadow-offset");
             var expected = new[] { new Vector2(offset, 0f), new Vector2(-offset, 0f), new Vector2(0f, offset), new Vector2(0f, -offset) };
             var glyphs = ShadowGlyphs(button).ToList();
             Assert.AreEqual(4, glyphs.Count);
@@ -102,7 +102,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             {
                 Assert.AreEqual(expected[i].x, glyphs[i].resolvedStyle.translate.x, 0.01f, $"shadow {i} x");
                 Assert.AreEqual(expected[i].y, glyphs[i].resolvedStyle.translate.y, 0.01f, $"shadow {i} y");
-                AssertSameColor(ResolveColor("--recipe-action-text-outline"), glyphs[i].resolvedStyle.color, $"shadow {i} color");
+                AssertSameColor(ResolveColor("--recipe-action-text-shadow"), glyphs[i].resolvedStyle.color, $"shadow {i} color");
                 Assert.AreEqual(label.text, glyphs[i].text);
                 Assert.AreEqual(12f, glyphs[i].resolvedStyle.fontSize, 0.01f);
                 Assert.AreEqual(12f, glyphs[i].resolvedStyle.letterSpacing, 0.01f);

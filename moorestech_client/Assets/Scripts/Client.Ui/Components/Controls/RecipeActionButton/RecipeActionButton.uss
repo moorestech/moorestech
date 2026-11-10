@@ -90,7 +90,7 @@
     bottom: var(--recipe-action-padding-block);
     left: 0;
     right: 0;
-    --recipe-action-button-text-shadow-offset: var(--recipe-action-text-outline-width);
+    --recipe-action-button-text-shadow-offset: var(--recipe-action-text-shadow-offset);
 }
 
 .recipe-action-button .recipe-action-button__label-shadow-glyph {
@@ -101,7 +101,7 @@
     right: 0;
     margin: 0;
     padding: 0;
-    color: var(--recipe-action-text-outline);
+    color: var(--recipe-action-text-shadow);
     font-size: var(--recipe-action-font-size);
     letter-spacing: var(--recipe-action-letter-spacing);
     -unity-text-align: middle-center;

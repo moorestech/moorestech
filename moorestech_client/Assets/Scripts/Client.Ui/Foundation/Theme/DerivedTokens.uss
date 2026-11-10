@@ -150,8 +150,8 @@
     --recipe-action-padding-block: 0px; /* web: .craftButton の padding: 0 */
     --recipe-action-font-size: 12px; /* web: .craftButton の font-size */
     --recipe-action-letter-spacing: 12px; /* web: .craftButton の letter-spacing 0.12em。UITK の字間は字の大きさ/100 × 値なので ×100 の px（A-70） */
-    --recipe-action-text-outline-width: 1px; /* web: .craftButton の text-shadow 4 枚（上下左右 1px）のずれ。UITK も同じ文の字 4 つをずらして重ねる。研究は 0px で影なし */
-    --recipe-action-text-outline: rgba(0, 40, 80, 0.55); /* web: text-shadow の rgb(0 40 80 / 55%) */
+    --recipe-action-text-shadow-offset: 1px; /* web: .craftButton の text-shadow 4 枚（上下左右 1px）のずれ。UITK も同じ文の字 4 つをずらして重ねる。研究は 0px で影なし */
+    --recipe-action-text-shadow: rgba(0, 40, 80, 0.55); /* web: text-shadow の rgb(0 40 80 / 55%) */
     --recipe-action-active-offset: 1px; /* web: Mantine Button の .mantine-active:active の translateY(1px) */
     --research-action-disabled-face: rgb(50, 52, 67); /* web: research .researchButton:disabled の background。S4-research が --recipe-action-disabled-* へ当てる */
     --research-action-disabled-opacity: 0.6; /* web: research .researchButton:disabled の opacity: 0.6。S4-research が --recipe-action-disabled-opacity へ当てる */ /* look-exception: LX-95 */

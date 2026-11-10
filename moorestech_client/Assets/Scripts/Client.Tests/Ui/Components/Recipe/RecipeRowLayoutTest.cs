@@ -137,11 +137,8 @@ namespace Client.Tests.Ui.Components.Recipe
 
         private RecipeRow Mount(VisualElement parent, int materialCount, int resultCount, float width)
         {
-            // 秒数は載せる前に渡す（文の無い LocalizedLabel は 1 フレーム後に LogError を出す）
-            // Pass the duration before mounting (a LocalizedLabel without text logs an error one frame later)
-            var row = new RecipeRow(TestId, ArrowTestId);
+            var row = new RecipeRow(TestId, ArrowTestId, UiText.FromVerbatim("5秒"));
             row.style.width = width;
-            row.SetDuration(UiText.FromVerbatim("5秒"));
             row.SetSlots(Slots("m", materialCount), Slots("r", resultCount));
             parent.Add(row);
             simulate.FrameUpdate();

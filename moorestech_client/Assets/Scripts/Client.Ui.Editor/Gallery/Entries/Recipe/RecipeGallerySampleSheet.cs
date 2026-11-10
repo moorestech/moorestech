@@ -12,13 +12,14 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Recipe
 {
     /// <summary>
-    /// レシピ部品の見本の組み立て（撮影と共有）
-    /// Builds recipe component samples (shared with capture)
+    /// レシピ部品の見本の組み立て
+    /// Builds recipe component samples
     /// </summary>
     public static class RecipeGallerySampleSheet
     {
         public const string MachineSelectionKnobClass = "recipe-gallery__machine-selection";
         public const string ResearchKnobClass = "recipe-gallery__research";
+        private const string EntryNameClass = "recipe-gallery__entry-name";
         private const string SheetPath = "Assets/Scripts/Client.Ui.Editor/Gallery/Entries/Recipe/RecipeGallerySamples.uss";
 
         public static VisualElement CreateSampleRoot()
@@ -60,8 +61,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
         {
             // Web の CraftRecipeEntry と同じ組: 秒数・保持していない矢印（0）・クラフトボタン
             // Same set as the Web CraftRecipeEntry: duration, the arrow at 0 while not holding, and the craft button
-            var row = new RecipeRow(testid, $"{testid}-arrow");
-            row.SetDuration(UiText.FromVerbatim("5秒"));
+            var row = new RecipeRow(testid, $"{testid}-arrow", UiText.FromVerbatim("5秒"));
             row.SetSlots(ItemSlots($"{testid}-material", materialCount, 3), ItemSlots($"{testid}-result", resultCount, 1));
             row.SetProgress(0f);
             row.SetAction(CreateCraftButton($"{testid}-craft", craftable));
@@ -76,8 +76,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             input.SetFluid(SlotGallerySampleSheet.Icon("gallery-fluid-input", "Oil"), SlotAmountBadge.Show(10));
             var output = new FluidAmountSlot($"{testid}-output-fluid-0");
             output.SetFluid(SlotGallerySampleSheet.Icon("gallery-fluid-output", "Heavy Oil"), SlotAmountBadge.Show(1000));
-            var row = new RecipeRow($"{testid}-row", $"{testid}-arrow");
-            row.SetDuration(UiText.FromVerbatim("15秒"));
+            var row = new RecipeRow($"{testid}-row", $"{testid}-arrow", UiText.FromVerbatim("15秒"));
             row.SetSlots(new VisualElement[] { input }, new VisualElement[] { output });
             row.SetIdle();
             return row;
@@ -99,66 +98,38 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             return button;
         }
 
-        public static RecipeRow CreateCraftCompareRow(string testid, float rowWidth, string duration, double[] ownedCounts, double[] requiredCounts, int resultCount, bool craftable)
+        public static RecipeRow CreateLackingCraftRow(string testid)
         {
-            // Web の撮影で読んだ行と同じ条件で組む: 素材は所持/必要（不足は減光と赤字）、結果は 1 枠に個数
-            // Build with the conditions read from the Web shot: materials show owned/required (shortage dims and reds), the result is one slot with its count
-            var materials = new List<VisualElement>();
-            for (var i = 0; i < ownedCounts.Length; i++)
-            {
-                var lacking = ownedCounts[i] < requiredCounts[i];
-                var slot = new ItemSlot($"{testid}-material-{i}");
-                // ツールチップは撮影に写らないので null（アイテム名のまま）
-                // The tooltip never shows in the shot, so null keeps the item name
-                slot.SetContent(new ItemSlotContent(SlotGallerySampleSheet.Icon($"{testid}-material-{i}", $"Item {i + 1}"), null, new ItemSlotMarks(false, false, lacking), new ItemSlotShortage(ownedCounts[i], requiredCounts[i], lacking, null), null, null));
-                materials.Add(slot);
-            }
-            var row = new RecipeRow(testid, $"{testid}-arrow");
-            row.SetDuration(UiText.FromVerbatim(duration));
-            row.SetSlots(materials, ItemSlots($"{testid}-result", 1, resultCount));
+            // Web の撮影と同じ無効の行: 素材 0/2（不足は減光と赤字）・100/1、結果 1 枠に 1、0.2秒
+            // The disabled row from the Web shot: materials 0/2 (shortage dims and reds) and 100/1, one result of 1, 0.2 seconds
+            var materials = new List<VisualElement> { ShortageSlot($"{testid}-material-0", 0, 2), ShortageSlot($"{testid}-material-1", 100, 1) };
+            var row = new RecipeRow(testid, $"{testid}-arrow", UiText.FromVerbatim("0.2秒"));
+            row.SetSlots(materials, ItemSlots($"{testid}-result", 1, 1));
             row.SetProgress(0f);
-            row.SetAction(CreateCraftButton($"{testid}-craft", craftable));
-            row.style.width = rowWidth;
+            row.SetAction(CreateCraftButton($"{testid}-craft", false));
             return row;
         }
 
-        public static VisualElement CreateCompareSheet(float machineRowWidth, RecipeRow craftEnabledRow, RecipeRow craftDisabledRow, Color craftGround, Color researchGround)
+        public static VisualElement CreateMachineSelectionEntry(string testid)
         {
-            // 並べ比べの対象を縦に積む: 機械のレシピ選択の Oil の行・Web と同じ条件のクラフト行 2 状態・クラフトボタン 3 状態・研究ボタン 2 状態
-            // Stack the targets: the machine-selection Oil row, craft rows in 2 states built from the Web conditions, craft buttons in 3 states and research buttons in 2 states
-            var root = CreateSampleRoot();
-            var machine = AddRow(root, MachineSelectionKnobClass);
-            var oil = CreateMachineSelectionOilRow("compare-machine-oil");
-            oil.style.width = machineRowWidth;
-            machine.Add(oil);
-            // クラフト行は Web のインベントリの中央のビューアの地（参照の撮影から読んだ色）の上に置く
-            // Craft rows sit on the Web inventory centre viewer ground read from the reference shots
-            AddGroundedRow(root, craftGround).Add(craftEnabledRow);
-            AddGroundedRow(root, craftGround).Add(craftDisabledRow);
-            var craftButtons = AddPlainRow(root);
-            craftButtons.Add(CreateCraftButton("compare-craft-enabled", true));
-            craftButtons.Add(CreateCraftButton("compare-craft-disabled", false));
-            craftButtons.Add(RecipeGalleryHoverDriver.HoverWhenLaidOut(CreateCraftButton("compare-craft-hover", true)));
-        // 地色と内余白を持つ段を足す
-        // Add a row with a ground color and inner padding
-            var researchButtons = AddGroundedRow(root, researchGround);
-            researchButtons.AddToClassList(ResearchKnobClass);
-            researchButtons.Add(CreateResearchButton("compare-research-enabled", true));
-            researchButtons.Add(CreateResearchButton("compare-research-disabled", false));
-            return root;
+            // Web の 1 項目は「名前 → 継承バッジ → RecipeRow」。名前の段（12px・行高 1・下 4px）を Oil の行の上に置く
+            // A Web entry is name, inheritance badge, then RecipeRow; put the name band (12px, line-height 1, 4px below) above the Oil row
+            var entry = new VisualElement();
+            var name = new Label("Oil");
+            name.AddToClassList(EntryNameClass);
+            entry.Add(name);
+            entry.Add(CreateMachineSelectionOilRow(testid));
+            return entry;
         }
 
-        // 切り抜きの余白 6px まで同じ地になるよう、地の色と 8px の内側の余白を持つ段を足す
-        // Add a row with the ground color and 8px inner padding so the 6px crop margin shares the ground
-        private static VisualElement AddGroundedRow(VisualElement parent, Color ground)
+        private static ItemSlot ShortageSlot(string testid, double owned, double required)
         {
-            var row = AddPlainRow(parent);
-            row.style.backgroundColor = ground;
-            row.style.paddingTop = 8f;
-            row.style.paddingBottom = 8f;
-            row.style.paddingLeft = 8f;
-            row.style.paddingRight = 8f;
-            return row;
+            // ツールチップは見本に要らないので null（アイテム名のまま）
+            // The sample needs no tooltip, so null keeps the item name
+            var lacking = owned < required;
+            var slot = new ItemSlot(testid);
+            slot.SetContent(new ItemSlotContent(SlotGallerySampleSheet.Icon(testid, testid), null, new ItemSlotMarks(false, false, lacking), new ItemSlotShortage(owned, required, lacking, null), null, null));
+            return slot;
         }
 
         private static IReadOnlyList<VisualElement> ItemSlots(string prefix, int count, int amount)

@@ -14,3 +14,9 @@
 .control-recipe-list-bleed-probe {
     --recipe-entry-bleed: 7px;
 }
+
+/* RecipeListScrollView の reserve を読めない値にし、前回の右の余白が残らないことを確かめる */
+/* Makes the RecipeListScrollView reserve unreadable to check that the previous right padding does not linger */
+.control-recipe-list-unreadable-reserve-probe .recipe-list-scroll-view__list {
+    --recipe-list-scroll-view-reserve: none;
+}

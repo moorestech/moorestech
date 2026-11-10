@@ -16,13 +16,22 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
         public VisualElement CreateSample()
         {
             var root = RecipeGallerySampleSheet.CreateSampleRoot();
-            var capped = new LevelInheritanceBadge("gallery-level-inheritance-capped");
-            capped.Show(new UiText(LocalizationKeys.Ui.Recipe.LevelInheritanceCapped, new[] { new LocalizationTextParam("level", "2") }));
-            RecipeGallerySampleSheet.AddPlainRow(root).Add(capped);
-            var plain = new LevelInheritanceBadge("gallery-level-inheritance");
-            plain.Show(new UiText(LocalizationKeys.Ui.Recipe.LevelInheritance));
-            RecipeGallerySampleSheet.AddPlainRow(root).Add(plain);
+            AddSized(new LevelInheritanceBadge("gallery-level-inheritance-capped"), new UiText(LocalizationKeys.Ui.Recipe.LevelInheritanceCapped, new[] { new LocalizationTextParam("level", "2") }));
+            AddSized(new LevelInheritanceBadge("gallery-level-inheritance"), new UiText(LocalizationKeys.Ui.Recipe.LevelInheritance));
             return root;
+
+            #region Internal
+
+            // 幅は Web の機械のレシピ選択の項目と同じ 688px（1280×720 の実測）
+            // Width matches the Web machine recipe selection entry, 688px (measured at 1280x720)
+            void AddSized(LevelInheritanceBadge badge, UiText text)
+            {
+                badge.style.width = 688f;
+                badge.Show(text);
+                RecipeGallerySampleSheet.AddPlainRow(root).Add(badge);
+            }
+
+            #endregion
         }
     }
 }

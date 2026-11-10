@@ -21,11 +21,10 @@ namespace Client.Ui.Components.Recipe
 
         private readonly RecipeSlotColumn _materials;
         private readonly RecipeSlotColumn _results;
-        private readonly LocalizedLabel _duration;
         private readonly ProgressArrowGlyph _arrow;
         private readonly VisualElement _action;
 
-        public RecipeRow(string testid, string arrowTestid)
+        public RecipeRow(string testid, string arrowTestid, UiText duration)
         {
             name = testid;
             AddToClassList(UssClassName);
@@ -46,9 +45,12 @@ namespace Client.Ui.Components.Recipe
 
             // 中央列は秒数→矢印→操作の縦積み（裁定 2026-08-20）。操作が無ければ操作段を描かない（裁定 2026-09-05）
             // The center stacks duration, arrow and action (ruling 2026-08-20); no action means no action slot (ruling 2026-09-05)
-            _duration = new LocalizedLabel { name = $"{testid}-duration", pickingMode = PickingMode.Ignore };
-            _duration.AddToClassList("recipe-row__duration");
-            center.Add(_duration);
+            // 秒数は ctor で受ける。文の無い LocalizedLabel は 1 フレーム後にエラーになるので、入れ忘れをコンパイルで止める
+            // The duration comes through the ctor; a LocalizedLabel without text errors a frame later, so a missing duration fails to compile
+            var durationLabel = new LocalizedLabel { name = $"{testid}-duration", pickingMode = PickingMode.Ignore };
+            durationLabel.AddToClassList("recipe-row__duration");
+            durationLabel.SetText(duration);
+            center.Add(durationLabel);
             _arrow = new ProgressArrowGlyph(arrowTestid);
             _arrow.AddToClassList("recipe-row__arrow");
             center.Add(_arrow);
@@ -61,11 +63,6 @@ namespace Client.Ui.Components.Recipe
         {
             _materials.SetSlots(materials);
             _results.SetSlots(results);
-        }
-
-        public void SetDuration(UiText duration)
-        {
-            _duration.SetText(duration);
         }
 
         public void SetProgress(float ratio01)

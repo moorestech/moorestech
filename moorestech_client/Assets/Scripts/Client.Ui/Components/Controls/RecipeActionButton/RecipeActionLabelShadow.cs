@@ -26,7 +26,7 @@ namespace Client.Ui.Components.Controls
 
         private readonly LocalizedLabel[] _glyphs = new LocalizedLabel[4];
 
-        public RecipeActionLabelShadow(RecipeActionLabelWeight weight)
+        public RecipeActionLabelShadow()
         {
             AddToClassList(UssClassName);
             pickingMode = PickingMode.Ignore;
@@ -34,11 +34,17 @@ namespace Client.Ui.Components.Controls
             {
                 var glyph = new LocalizedLabel { pickingMode = PickingMode.Ignore };
                 glyph.AddToClassList(GlyphUssClassName);
-                if (weight == RecipeActionLabelWeight.Medium) glyph.AddToClassList(UiTypographyClass.TextMedium);
                 _glyphs[i] = glyph;
                 Add(glyph);
             }
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
+        }
+
+        public void AddGlyphClass(string className)
+        {
+            // 字形は文言と同じものをボタンが選んで渡す
+            // The button picks the label's face and passes it here
+            foreach (var glyph in _glyphs) glyph.AddToClassList(className);
         }
 
         public void SetText(UiText text)

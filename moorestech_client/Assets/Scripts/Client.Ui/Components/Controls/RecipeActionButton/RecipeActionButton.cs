@@ -41,13 +41,17 @@ namespace Client.Ui.Components.Controls
             // 面・文言の影・文言の順に重ねる（どれも押下を横取りしない）
             // Stack face, label shadow, then label (none steals the press)
             Add(new RecipeActionButtonFace());
-            _labelShadow = new RecipeActionLabelShadow(weight);
+            _labelShadow = new RecipeActionLabelShadow();
             Add(_labelShadow);
             _label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
             _label.AddToClassList(LabelUssClassName);
-            // 字の太さは Web と同じ字形を選ぶ（クラフト 500、研究 400 は付けない既定の字）
-            // Pick the same weight as the Web (craft 500; research 400 is the default face with no class)
-            if (weight == RecipeActionLabelWeight.Medium) _label.AddToClassList(UiTypographyClass.TextMedium);
+            // 字の太さは Web と同じ字形を選び、影の字にも同じ字形を渡す（クラフト 500、研究 400 は付けない既定の字）
+            // Pick the Web weight and give the shadow copies the same face (craft 500; research 400 is the default face with no class)
+            if (weight == RecipeActionLabelWeight.Medium)
+            {
+                _label.AddToClassList(UiTypographyClass.TextMedium);
+                _labelShadow.AddGlyphClass(UiTypographyClass.TextMedium);
+            }
             SetLabel(label);
             Add(_label);
 

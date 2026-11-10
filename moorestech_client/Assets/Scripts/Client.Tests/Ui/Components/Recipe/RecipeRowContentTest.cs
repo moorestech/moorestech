@@ -37,9 +37,8 @@ namespace Client.Tests.Ui.Components.Recipe
             input.SetFluid(Icon("87000000-0000-4000-8000-000000000001"), SlotAmountBadge.Show(10));
             var output = new FluidAmountSlot(outputId);
             output.SetFluid(Icon("87000000-0000-4000-8000-000000000002"), SlotAmountBadge.Show(1000));
-            var row = new RecipeRow($"machine-recipe-{RecipeGuid}-row", $"machine-recipe-{RecipeGuid}-arrow");
+            var row = new RecipeRow($"machine-recipe-{RecipeGuid}-row", $"machine-recipe-{RecipeGuid}-arrow", UiText.FromVerbatim("7秒"));
             row.style.width = 600f;
-            row.SetDuration(UiText.FromVerbatim("7秒"));
             row.SetSlots(new VisualElement[] { input }, new VisualElement[] { output });
             rootVisualElement.Add(row);
             simulate.FrameUpdate();
@@ -85,9 +84,8 @@ namespace Client.Tests.Ui.Components.Recipe
 
         private RecipeRow MountPlain()
         {
-            var row = new RecipeRow("recipe-row-content-test", "recipe-row-content-test-arrow");
+            var row = new RecipeRow("recipe-row-content-test", "recipe-row-content-test-arrow", UiText.FromVerbatim("5秒"));
             row.style.width = 600f;
-            row.SetDuration(UiText.FromVerbatim("5秒"));
             row.SetSlots(new VisualElement[] { new ItemSlot("m-0") }, new VisualElement[] { new ItemSlot("r-0") });
             rootVisualElement.Add(row);
             simulate.FrameUpdate();

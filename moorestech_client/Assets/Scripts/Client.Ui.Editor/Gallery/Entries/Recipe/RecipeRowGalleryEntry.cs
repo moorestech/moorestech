@@ -2,8 +2,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Recipe
 {
-    // RecipeRowの見本（3 種）
-    // RecipeRow samples (three kinds)
+    // RecipeRowの見本（4 種）
+    // RecipeRow samples (four kinds)
     public sealed class RecipeRowGalleryEntry : IUiGalleryEntry
     {
         public UiGalleryFamily Family => UiGalleryFamily.Recipe;
@@ -14,6 +14,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             var root = RecipeGallerySampleSheet.CreateSampleRoot();
             AddSized(RecipeGallerySampleSheet.AddPlainRow(root), RecipeGallerySampleSheet.CreateCraftRow("gallery-recipe-craft", 2, 1, true));
             AddSized(RecipeGallerySampleSheet.AddPlainRow(root), RecipeGallerySampleSheet.CreateCraftRow("gallery-recipe-wrap", 3, 3, false));
+            AddSized(RecipeGallerySampleSheet.AddPlainRow(root), RecipeGallerySampleSheet.CreateLackingCraftRow("gallery-recipe-lacking"));
             AddSized(RecipeGallerySampleSheet.AddRow(root, RecipeGallerySampleSheet.MachineSelectionKnobClass), RecipeGallerySampleSheet.CreateMachineSelectionOilRow("gallery-recipe-machine"));
             return root;
 
