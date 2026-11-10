@@ -1,0 +1,126 @@
+/* web: moorestech_web/webui/src/features/research/style.module.css（.detailPane〜.unlockFluidAmount）。詳細ペイン・節・解放物・研究ボタンのつまみの上書き */
+/* web: moorestech_web/webui/src/features/research/style.module.css (.detailPane to .unlockFluidAmount); detail pane, sections, unlocks and research button knob overrides */
+
+/* 詳細ペイン: エリアの右上 12px・幅 300。高さの上限はエリア − 24（置き場の上下 12 で写す） */
+/* Detail pane: 12px from the area's top right, 300 wide; the height cap is area − 24 (the host's 12px top/bottom) */
+.research-tree__detail-host {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: 300px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.research-tree__detail {
+    flex-shrink: 1;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.research-tree__detail-panel {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+/* 本文: 見出し・スクロール・研究ボタン・理由。研究ボタンの組は部品が持ち、ここは寸法だけ（A-190） */
+/* Body: header, scroll, research button, reason; the part owns the research set and this sets only its size (A-190) */
+.research-tree__detail-body {
+    flex-direction: column;
+    flex-shrink: 1;
+    min-height: 0;
+    padding: 10px;
+    --research-action-height: 36px; /* web: padding 8px 0 ＋ 14px の行の高さ normal。Task 11 Step 3 で画素から決め直す（既定 auto のままで合えば消す）。幅は既定 auto で本文の幅 253 に従うので書かない（D-21） */
+}
+
+.research-tree__detail-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.research-tree__detail-name {
+    flex-shrink: 1;
+    font-size: 16px;
+    color: var(--text-high-contrast);
+}
+
+.research-tree__detail-close {
+    padding: 0 4px;
+    background-color: transparent;
+}
+
+.research-tree__detail-close-symbol {
+    font-size: 16px;
+    color: var(--text-default);
+}
+
+/* スクロールは左右へ逃げの分はみ出し、中身を同じだけ内へ戻す（ResearchCalcKnobs） */
+/* The scroll bleeds out sideways by the clearance and the content steps back in by the same (ResearchCalcKnobs) */
+.research-tree__detail-scroll {
+    flex-shrink: 1;
+    min-height: 0;
+    margin-bottom: 8px;
+    --research-tree-scroll-bleed: var(--research-detail-scroll-inline-bleed);
+}
+
+.research-tree__detail-scroll-content {
+    flex-direction: column;
+}
+
+.research-tree__detail-description {
+    font-size: 13px;
+    white-space: normal;
+    color: var(--text-default);
+}
+
+.research-tree__section {
+    flex-direction: column;
+    margin-top: 8px;
+}
+
+.research-tree__section-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.research-tree__slots {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-bottom: var(--research-detail-slots-bleed);
+}
+
+.research-tree__slot {
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.research-tree__unlock-other {
+    font-size: 13px;
+    white-space: normal;
+    color: var(--text-default);
+}
+
+.research-tree__unlock-fluid {
+    font-size: 13px;
+    white-space: nowrap;
+    align-self: center;
+    color: var(--text-default);
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.research-tree__actions {
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.research-tree__reason {
+    font-size: 12px;
+    white-space: normal;
+    color: var(--text-default);
+    margin-top: 8px;
+}
