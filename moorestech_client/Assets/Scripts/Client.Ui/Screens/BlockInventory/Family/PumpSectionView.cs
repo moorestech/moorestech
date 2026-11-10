@@ -61,6 +61,8 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
             #region Internal
 
+            // 件数と添字ごとの id 一致で比べる（MinerSectionView.SameItems と同じ規則。片方を変えたら両方直す）
+            // Compare by count and per-index id (same rule as MinerSectionView.SameItems; change both together)
             bool SameFluids()
             {
                 if (detail.PumpingFluids.Count != _rows.Count) return false;

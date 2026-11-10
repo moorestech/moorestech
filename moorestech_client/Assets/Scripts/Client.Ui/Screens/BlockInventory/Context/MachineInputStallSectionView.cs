@@ -29,8 +29,7 @@ namespace Client.Ui.Screens.BlockInventory.Context
         {
             if (entry is UnavailableContextEntry<MachineInputStall> unavailable)
             {
-                _unavailable.Render(unavailable.FetchState);
-                ContextRowList.MountOnly(this, _unavailable);
+                _unavailable.RenderInto(this, unavailable.FetchState);
                 return;
             }
             var stall = ((FetchedContextEntry<MachineInputStall>)entry).Value;

@@ -27,8 +27,7 @@ namespace Client.Ui.Screens.BlockInventory.Context
         {
             if (entry is UnavailableContextEntry<CleanRoomYieldFetched> unavailable)
             {
-                _unavailable.Render(unavailable.FetchState);
-                ContextRowList.MountOnly(this, _unavailable);
+                _unavailable.RenderInto(this, unavailable.FetchState);
                 return;
             }
             var lines = CleanRoomYieldLogic.Lines(((FetchedContextEntry<CleanRoomYieldFetched>)entry).Value);

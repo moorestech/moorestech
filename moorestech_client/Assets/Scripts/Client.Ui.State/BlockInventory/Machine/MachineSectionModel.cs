@@ -66,7 +66,10 @@ namespace Client.Ui.State.BlockInventory.Machine
                 if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return SectionContent<MachineSectionViewModel>.Absent;
                 // silent-ok: 追跡ブロックが未解決の間は区画を出さない（閉と同じ見え方） / 追跡替えでパネルが組み直され直ちに再計算
                 var block = _tracker.TrackedBlock;
-                if (block == null || !TryReadMachine(block, out var detail)) return SectionContent<MachineSectionViewModel>.Absent;
+                if (block == null) return SectionContent<MachineSectionViewModel>.Absent;
+                // silent-ok: 追跡替え直後はパネルが前のブロックのまま届くことがある（パネルの ID と詳細を混ぜない） / パネルの組み直しで直ちに再計算
+                if (!panel.BlockInstanceId.Equals(block.BlockInstanceId)) return SectionContent<MachineSectionViewModel>.Absent;
+                if (!TryReadMachine(block, out var detail)) return SectionContent<MachineSectionViewModel>.Absent;
                 var fluids = BlockFluidSlotReading.Read(block, _fluidReplica).Slots;
                 return SectionContent<MachineSectionViewModel>.Present(MachineSectionViewModelBuilder.Build(panel, detail, panel.ItemSlots, fluids, _catalog, _stackLimit.CurrentStackLimit));
             }

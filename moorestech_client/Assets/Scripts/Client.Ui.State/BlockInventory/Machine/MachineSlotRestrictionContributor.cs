@@ -1,6 +1,7 @@
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
+using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Machine
 {
@@ -27,7 +28,15 @@ namespace Client.Ui.State.BlockInventory.Machine
 
         public OpenBlockSlotInput Contribute(OpenBlockInventoryPanel panel, OpenBlockSlotInput input)
         {
-            return input.WithMachine(_model.Current.Value.Value.Detail.Binding);
+            // AppliesTo を経ずに呼ばれ区画が無いときは束縛を足さない
+            // Without a section (called past AppliesTo), add no binding
+            var current = _model.Current.Value;
+            if (!current.IsPresent)
+            {
+                Debug.LogError($"[MachineSlotRestrictionContributor] Contribute called without a machine section (blockInstanceId={panel.BlockInstanceId}); input left unchanged");
+                return input;
+            }
+            return input.WithMachine(current.Value.Detail.Binding);
         }
     }
 }

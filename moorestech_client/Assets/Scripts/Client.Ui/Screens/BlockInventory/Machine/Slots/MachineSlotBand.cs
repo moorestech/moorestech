@@ -39,7 +39,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
             // 加工中は状態更新が毎 tick 届くので、番地が変わったときだけ作り直す（ダブルクリックの数え直しを防ぐ）
             // Updates arrive every tick while processing, so rebuild only when the indices change (avoids resetting the double-click count)
             if (!SameIndices()) Rebuild();
-            for (var i = 0; i < _slots.Count; i++) _slots[i].Slot.SetContent(MachineSlotContents.For(itemSlots[_slots[i].Index], bound[i], showsRequirement, _content));
+            for (var i = 0; i < _slots.Count; i++) _slots[i].Slot.SetContent(MachineSlotContents.For(ReadSlot(_slots[i].Index), bound[i], showsRequirement, _content));
 
             #region Internal
 
@@ -51,6 +51,15 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
                     if (bound[i].Index != _slots[i].Index) return false;
                 }
                 return true;
+            }
+
+            // 番地外は BlockItemGrid.ReadSlot と同じく LogError して空で描く
+            // Out-of-range indices log an error and draw empty, as BlockItemGrid.ReadSlot
+            SlotItem ReadSlot(int index)
+            {
+                if (0 <= index && index < itemSlots.Count) return itemSlots[index];
+                UnityEngine.Debug.LogError($"[MachineSlotBand] {_slotTestidPrefix}: slot index {index} is out of range (slot count {itemSlots.Count}); drawn as empty");
+                return default;
             }
 
             void Rebuild()

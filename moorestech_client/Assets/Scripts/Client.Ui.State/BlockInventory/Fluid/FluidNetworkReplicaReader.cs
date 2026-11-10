@@ -14,7 +14,9 @@ namespace Client.Ui.State.BlockInventory.Fluid
     {
         private readonly FluidNetworkClientCache _cache;
 
-        public IObservable<Unit> OnReplicaChanged => _cache.OnReplicaVersionChanged.AsUnitObservable();
+        // 複製の適用（順序待ちキューの Apply）の中で表示を走らせないよう通知をメインスレッドの次の配送へ回す
+        // Defer to the main-thread dispatch so UI never runs inside the replica Apply (queue flush)
+        public IObservable<Unit> OnReplicaChanged => _cache.OnReplicaVersionChanged.ObserveOnMainThread().AsUnitObservable();
 
         public FluidNetworkReplicaReader(FluidNetworkClientCache cache)
         {

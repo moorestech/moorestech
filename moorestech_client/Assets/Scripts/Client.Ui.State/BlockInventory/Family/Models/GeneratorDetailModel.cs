@@ -31,8 +31,16 @@ namespace Client.Ui.State.BlockInventory.Family.Models
 
         private void Rebuild()
         {
-            // silent-ok: 追跡ブロックが無い・発電機でないとき区画は無い / 追跡替え・状態変化の購読で直ちに組み直す
-            var generator = _tracker.TrackedBlock?.GetStateDetail<PowerGeneratorStateDetail>(PowerGeneratorStateDetail.StateDetailKey);
+            var block = _tracker.TrackedBlock;
+            // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
+            if (block == null)
+            {
+                _current.Value = SectionContent<GeneratorDetail>.Absent;
+                return;
+            }
+
+            // silent-ok: 発電機の状態詳細が無いブロックは発電機でない / 状態変化の購読で直ちに組み直す
+            var generator = block.GetStateDetail<PowerGeneratorStateDetail>(PowerGeneratorStateDetail.StateDetailKey);
             _current.Value = generator == null ? SectionContent<GeneratorDetail>.Absent : SectionContent<GeneratorDetail>.Present(FamilyDetailConversion.Generator(generator));
         }
     }

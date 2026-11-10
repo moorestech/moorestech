@@ -33,7 +33,14 @@ namespace Client.Ui.State.BlockInventory.Family.Models
         {
             var block = _tracker.TrackedBlock;
             // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
-            var pump = block?.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
+            if (block == null)
+            {
+                _current.Value = SectionContent<PumpDetail>.Absent;
+                return;
+            }
+
+            // silent-ok: ポンプの状態詳細が無いブロックはポンプでない / 区画が出ないことを並べ比べで見る
+            var pump = block.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
             if (pump == null)
             {
                 _current.Value = SectionContent<PumpDetail>.Absent;
