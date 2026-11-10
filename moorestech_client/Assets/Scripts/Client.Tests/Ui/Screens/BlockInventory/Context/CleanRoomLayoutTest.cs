@@ -7,24 +7,30 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋欄が長い・ウィンドウが低いときの清浄室の配置（Web cleanRoom/*.spec.ts の写し。舞台 1280×720。600・1080 の件は録画で見る D-15）
-    /// Clean-room layout with long room sections and low windows (ports of Web cleanRoom/*.spec.ts on the 1280x720 stage; 600/1080 go to recordings, D-15)
+    /// 部屋欄が長い・ウィンドウが低いときの清浄室の配置（Web cleanRoom/*.spec.ts の写し。舞台 1280×720 と縮めた 600。1080 の件は録画で見る D-15）
+    /// Clean-room layout with long room sections and low windows (ports of Web cleanRoom/*.spec.ts on the 1280x720 stage and a shrunk 600; 1080 goes to recordings, D-15)
     /// </summary>
     public class CleanRoomLayoutTest : CleanRoomLayoutTestHost
     {
         private const string NaturalScrollName = "block-inventory-natural-scroll";
 
         /// <web-test file="e2e/tests/block/cleanRoom/cleanRoomAirFilterPanel.spec.ts">清浄機パネル(${room.fixture})・高さ${windowHeight}で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない</web-test>
-        [TestCase(2)]
-        [TestCase(8)]
-        [TestCase(14)]
-        [TestCase(20)]
-        [TestCase(30)]
-        public void 清浄機パネルは部屋欄の末尾とフィルタ枠へ届き枠が安全帯へ潜らない(int filterCount)
+        [TestCase(2, 600f)]
+        [TestCase(2, 720f)]
+        [TestCase(8, 600f)]
+        [TestCase(8, 720f)]
+        [TestCase(14, 600f)]
+        [TestCase(14, 720f)]
+        [TestCase(20, 600f)]
+        [TestCase(20, 720f)]
+        [TestCase(30, 600f)]
+        [TestCase(30, 720f)]
+        public void 清浄機パネルは部屋欄の末尾とフィルタ枠へ届き枠が安全帯へ潜らない(int filterCount, float stageHeight)
         {
             // 30 台の未接続（cleanRoomAirFilter30FiltersUnconnected）は電力網の行を UITK が持たないので 30 台と同じ形になる
             // The unconnected 30-unit fixture has the same shape as 30 here, since UITK has no electric-network row
             var shell = OpenAirFilterPanel(filterCount);
+            SetStageHeight(shell, stageHeight);
             ExpectPanelAboveSafeBand(shell);
             var grid = shell.View.Q("clean-room-filter-grid");
             var scroll = grid.GetFirstAncestorOfType<GameScrollView>();
@@ -55,7 +61,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         {
             var shell = OpenCleanRoomMachine(2);
             Assert.IsNotNull(shell.View.Q("clean-room-air-filter-1"));
-            Assert.IsTrue(shell.View.ClassListContains(Client.Ui.Screens.BlockInventory.BlockInventoryView.LargeClassName));
 
             // 本文側は視口で切った可視矩形で比べる
             // Compare the body side by its rect clipped to the scroll viewport
@@ -74,12 +79,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         [Test]
         public void 低いウィンドウで清浄機が多い部屋でもフッタは見え本文はスクロールで液体行へ届く()
         {
-            // Web と同じ高さ 600 へ舞台を縮める（縮めるだけなら 720 の土台に収まる。BlockInventoryPanelBandTest の前例）
-            // Shrink the stage to the Web's 600 height (shrinking fits the 720 host; BlockInventoryPanelBandTest precedent)
+            // Web と同じ高さ 600 へ舞台を縮める
+            // Shrink the stage to the Web's 600 height
             var shell = OpenCleanRoomMachine(8);
-            shell.Stage.style.height = 600f;
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
+            SetStageHeight(shell, 600f);
             Assert.IsNotNull(shell.View.Q("clean-room-air-filter-7"));
             ExpectFooterClearOfBody(shell);
 
@@ -91,11 +94,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         }
 
         /// <web-test file="e2e/tests/block/cleanRoom/cleanRoomManyFilters.spec.ts">清浄機${room.filters}台・高さ${windowHeight}でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める</web-test>
-        [TestCase(16)]
-        [TestCase(20)]
-        public void 清浄機が多くても部屋欄ごと本文がスクロールしレシピとスロットと液体に届きフッタが読める(int filterCount)
+        [TestCase(16, 600f)]
+        [TestCase(16, 720f)]
+        [TestCase(20, 600f)]
+        [TestCase(20, 720f)]
+        public void 清浄機が多くても部屋欄ごと本文がスクロールしレシピとスロットと液体に届きフッタが読める(int filterCount, float stageHeight)
         {
             var shell = OpenCleanRoomMachine(filterCount);
+            SetStageHeight(shell, stageHeight);
             ExpectReachable(shell, $"clean-room-air-filter-{filterCount - 1}");
             ExpectInventoryBodyReachable(shell);
         }
@@ -143,7 +149,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         // Web expectPanelAboveHotbar: the panel bottom stays above the stage's lower safe band
         private static void ExpectPanelAboveSafeBand(BlockInventoryTestShell shell)
         {
-            Assert.LessOrEqual(shell.View.worldBound.yMax, shell.Stage.worldBound.yMax - MenuLowerSafeArea + 0.5f);
+            Assert.LessOrEqual(shell.View.worldBound.yMax, shell.Stage.worldBound.yMax - BlockInventoryTestShell.MenuLowerSafeArea + 0.5f);
         }
 
         // Web expectFooterClearOfBody: フッタはパネル内で、本文の視口はその上で終わる

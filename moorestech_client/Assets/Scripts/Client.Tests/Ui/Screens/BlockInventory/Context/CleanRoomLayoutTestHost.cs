@@ -4,6 +4,7 @@ using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
 using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Components.Controls;
+using Client.Ui.Screens.BlockInventory;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.Screens.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Common;
@@ -32,18 +33,26 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         // Web の MIN_BODY_VIEWPORT_HEIGHT と同じ（0px に潰れた視口を捕まえる下限）
         // Same as the Web MIN_BODY_VIEWPORT_HEIGHT (floor that catches a collapsed 0px viewport)
         protected const float MinBodyViewportHeight = 120f;
-        // 舞台の下の安全帯（alpha の --block-inventory-menu-lower-safe-area。BlockInventoryPanelBandTest と同じ値）
-        // The stage's lower safe band (alpha's --block-inventory-menu-lower-safe-area; same value as BlockInventoryPanelBandTest)
-        protected const float MenuLowerSafeArea = 70f;
         private const float Tolerance = 0.5f;
 
-        // 清浄機の面（Web cleanRoomAirFilterWith）: フィルタ枠 1 つと部屋欄
-        // The purifier panel (Web cleanRoomAirFilterWith): one filter slot plus the room section
+        // 清浄機の面（Web cleanRoomAirFilterWith）: フィルタ枠 1 つと部屋欄。Web openBlock と同じく大型でないことを先に確かめる
+        // The purifier panel (Web cleanRoomAirFilterWith): one filter slot plus the room section; asserts non-large first like Web openBlock
         protected BlockInventoryTestShell OpenAirFilterPanel(int filterCount)
         {
             ContextModel.Set(Room(filterCount));
             var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter", new SlotItem(FirstItem, 5));
-            return OpenShell(panel);
+            var shell = OpenShell(panel);
+            Assert.IsFalse(shell.View.ClassListContains(BlockInventoryView.LargeClassName), "air filter panel is not large");
+            return shell;
+        }
+
+        // Web の setViewportSize の写し: 舞台を縮める（720 の土台の内側だけ。BlockInventoryPanelBandTest の前例）
+        // Port of the Web setViewportSize: shrink the stage (only within the 720 host; BlockInventoryPanelBandTest precedent)
+        protected void SetStageHeight(BlockInventoryTestShell shell, float stageHeight)
+        {
+            shell.Stage.style.height = stageHeight;
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
         }
 
         // 部屋の中の大型機械（Web cleanRoomMachineWith）。filterCount が負なら部屋の無い機械（Web blockMachine）
@@ -57,7 +66,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var viewModel = MachineSectionViewModelBuilder.Build(panel, detail, slots, fluids, MachineTestDetails.Catalog(MachineTestDetails.RecipeA, MachineTestDetails.RecipeB), 1);
             MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(viewModel));
             if (0 <= filterCount) ContextModel.Set(Room(filterCount));
-            return OpenShell(panel);
+            var shell = OpenShell(panel);
+            Assert.IsTrue(shell.View.ClassListContains(BlockInventoryView.LargeClassName), "machine panel is large");
+            return shell;
         }
 
         private BlockInventoryTestShell OpenShell(BlockInventoryPanelState panel)

@@ -11,7 +11,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory
     /// </summary>
     public class BlockInventoryPanelBandTest : BlockInventoryScreenTestHost
     {
-        private const float MenuLowerSafeArea = 70f;
         private const float InventoryPanelWidth = 473.891247f;
         private const float StageColumnGap = 16f;
 
@@ -29,7 +28,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             simulate.FrameUpdate();
             var stage = shell.Stage.resolvedStyle;
             Assert.AreEqual(1100f, stage.width, 0.01f);
-            var band = stage.height - stage.paddingTop - MenuLowerSafeArea;
+            var band = stage.height - stage.paddingTop - BlockInventoryTestShell.MenuLowerSafeArea;
             var largeWidth = stage.width - stage.paddingLeft - stage.paddingRight - InventoryPanelWidth - StageColumnGap;
             Assert.AreEqual(band, shell.View.style.height.value.value, 0.01f);
             Assert.AreEqual(largeWidth, shell.View.style.width.value.value, 0.01f);
