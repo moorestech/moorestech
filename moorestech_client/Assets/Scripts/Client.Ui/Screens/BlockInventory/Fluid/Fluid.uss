@@ -1,0 +1,5 @@
+/* web: features/blockInventory/fluid/FluidInventoryContents.tsx の Stack を区画の幅いっぱいに置く */
+/* web: lays the fluid details stack across the section width */
+.fluid-inventory-contents {
+    width: 100%;
+}
