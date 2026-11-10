@@ -1,8 +1,8 @@
-// 時刻表UI経路の通し検証: 駅2基・レール・機関車を置き、Fで車両を開き時刻表タブから2駅を追加→適用→自動運転ON→走行→OFF→停止。
+// 時刻表UI経路の通し検証: 駅2基・レール・機関車を置き、Fで車両を開き時刻表タブから1駅ずつ追加し、時刻表に載るのを待つ→自動運転ON→走行→OFF→停止。
 // 駅名はサーバー直で付け、時刻表タブの表示に名前が出ることを確認する（CEFへキー入力は転送されないため入力欄の打鍵はしない）。
 // 時刻表の取得は列車インベントリを開いただけでは起きず、時刻表タブを選んだときに1回だけ起き、開き直すと再取得されることも確かめる。
 // Timetable UI end-to-end: place two stations, rails and a locomotive, open the car with F, add both stations from the
-// timetable tab, apply, turn auto-run on, watch it move, turn it off and watch it stop. Station names are set server-side
+// timetable tab one at a time waiting until each lands in the timetable, turn auto-run on, watch it move, turn it off and watch it stop. Station names are set server-side
 // and verified in the tab (keystrokes are not forwarded to CEF, so the name input is not typed).
 // It also checks that opening the train inventory alone does not fetch the timetable, selecting the tab fetches it once,
 // and reopening fetches it again.
@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
@@ -33,6 +34,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
     var mismatchCount = 0;
     var rejectCount = 0;
     var timetableRequestCount = 0;
+    Game.Train.Unit.TrainUnit train = null;
     Application.logMessageReceived += CountWarnings;
     try
     {
@@ -79,12 +81,11 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         var exitA = ExitOf(railsA).FrontNode;
         var entryA = EntryOf(railsA).FrontNode;
         var railPosition = new RailPosition(new List<IRailNode> { exitA, entryA }, trainLength, 0);
-        var placed = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(railPosition, carMaster.TrainCarGuid, CancellationToken.None);
+        var placed = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(railPosition, carMaster.TrainCarGuid, CancellationToken.None);
         p.Assert(placed != null && placed.Success, $"車両設置成功 (failure={placed?.FailureType})");
         await p.Until(() => SpawnedCar() != null, 15f, "車両entity出現");
         p.SendCommand("addFuelToAllTrainCarsCommand");
         await p.WaitSeconds(1f);
-        Game.Train.Unit.TrainUnit train = null;
         await p.RunOnServer("検証対象の列車を取得する", () => train = ServerContext.GetService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First());
         var initial = await p.ReadTrainState(train);
         p.Assert(initial.Entries == 0 && !initial.AutoRun, "初期は時刻表が空で自動運転OFF");
@@ -105,19 +106,21 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await PlaytestUiElementOps.WaitUiTextContains("train-timetable-stations", "南駅", 10f);
         await p.Screenshot("01-timetable-tab");
 
-        p.Note("北駅・南駅を追加して適用");
+        p.Note("北駅・南駅を1駅ずつ追加（即時送信）");
         await p.ClickUi($"train-timetable-station-{stationAPos.x}_{stationAPos.y}_{stationAPos.z}-add");
+        await p.WaitForTrainState(train, 1, null, null, 10f, "サーバーの時刻表が1駅になる");
+        await p.Until(() => ClientTimetableStopCount() == 1, 10f, "クライアントの時刻表が1駅になる（保留が解ける）");
         await p.ClickUi($"train-timetable-station-{stationBPos.x}_{stationBPos.y}_{stationBPos.z}-add");
-        await p.UntilUiElement("train-timetable-stop-1", 5f);
-        await p.ClickUi("train-timetable-apply");
         await p.WaitForTrainState(train, 2, null, null, 10f, "サーバーの時刻表が2駅になる");
+        await p.Until(() => ClientTimetableStopCount() == 2, 10f, "クライアントの時刻表が2駅になる");
+        await p.UntilUiElement("train-timetable-stop-1", 5f);
         var station0Matches = false;
         await p.RunOnServer("時刻表の停車駅を読む", () => station0Matches = ReferenceEquals(train.trainDiagram.Entries[0].Node.StationRef.StationBlock, stationA));
         p.Assert(station0Matches, "1駅目は北駅");
         var station1Matches = false;
         await p.RunOnServer("時刻表の停車駅を読む", () => station1Matches = ReferenceEquals(train.trainDiagram.Entries[1].Node.StationRef.StationBlock, stationB));
         p.Assert(station1Matches, "2駅目は南駅");
-        await p.Screenshot("02-timetable-applied");
+        await p.Screenshot("02-timetable-added");
 
         // ===== UI: 自動運転ON → 走行 =====
         // ===== UI: auto-run on → moving =====
@@ -159,11 +162,12 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
     }
 
     #region Internal
-
     void CountWarnings(string condition, string stackTrace, LogType type)
     {
         if (condition.Contains("Hash mismatch detected")) mismatchCount++;
-        if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected")) rejectCount++;
+        // Web 系の拒否と UITK 系の拒否の Warning を同じ数え方で数え、両系で 0 件を主張する
+        // Count Web-side and UITK-side rejection warnings the same way so both systems assert zero
+        if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected") || condition.Contains("[TrainTimetableCommands] rejected:")) rejectCount++;
         if (condition.Contains("[TrainTimetableFetcher] requesting timetable")) timetableRequestCount++;
     }
 
@@ -182,9 +186,12 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         // 画面下端のHUDにカーソルが重なるとインタラクト走査が空になるため、車両の上寄りを狙う
         // Aim high on the car because a cursor over the bottom HUD empties the interact scan
         await p.AimAt(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f));
-        p.Note($"aim screen point={Camera.main.WorldToScreenPoint(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f))} screen={Screen.width}x{Screen.height}");
         await p.WaitSeconds(0.5f);
     }
+
+    // クライアントの時刻表の停車駅数（公開が届く前は 0）
+    // Stop count of the client timetable (0 until the publish arrives)
+    int ClientTimetableStopCount() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IClientTrainTimetableLookup>().TryGet(train.TrainUnitInstanceId, out var snapshot) ? snapshot.Stops.Count : 0;
 
     TrainCarEntityObject SpawnedCar() => UnityEngine.Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
 
