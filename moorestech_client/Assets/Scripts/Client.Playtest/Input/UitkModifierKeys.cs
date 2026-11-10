@@ -7,8 +7,8 @@ using UnityEngine.InputSystem;
 namespace Client.Playtest.Input
 {
     /// <summary>
-    ///     注入した修飾キーを UITK の evt.shiftKey 等へ届ける
-    ///     Delivers injected modifier keys to UITK's evt.shiftKey and friends
+    ///     注入した修飾キーを evt.shiftKey へ届ける
+    ///     Delivers injected modifier keys to evt.shiftKey
     ///
     ///     UITK（EventSystem 経由の PanelEventHandler）は修飾キーを IMGUI の Event 列から静的値 s_Modifiers に写し、ポインタ事象の modifiers に使う。
     ///     QueueStateEvent の注入は IMGUI の列に入らないので、押下中の修飾キーをその静的値へ置き、毎フレームの入力更新の後にも置き直す（実キーの事象で上書きされても次のフレームで戻す）。
@@ -25,19 +25,35 @@ namespace Client.Playtest.Input
 
         public static void Apply(IReadOnlyCollection<Key> pressedKeys)
         {
-            // 押下中のキーから修飾キーの組を作り、変われば静的値へ置く
-            // Build the modifier set from held keys and write it when it changed
+            // 修飾キーの組を作り、変化時だけ置く
+            // Build the modifier set and write it only on change
             var held = EventModifiers.None;
             foreach (var key in pressedKeys) held |= ToModifier(key);
             if (held == _held) return;
             _held = held;
             Write(held);
 
-            // 押下中だけ毎フレーム置き直す（離したら外す）
-            // Rewrite every frame only while held (unhook on release)
+            // 押下中だけ毎フレーム置き直す
+            // Rewrite every frame only while held
             if (held != EventModifiers.None && !_hooked) InputSystem.onAfterUpdate += Rewrite;
             if (held == EventModifiers.None && _hooked) InputSystem.onAfterUpdate -= Rewrite;
             _hooked = held != EventModifiers.None;
+
+            #region Internal
+
+            EventModifiers ToModifier(Key key)
+            {
+                return key switch
+                {
+                    Key.LeftShift or Key.RightShift => EventModifiers.Shift,
+                    Key.LeftCtrl or Key.RightCtrl => EventModifiers.Control,
+                    Key.LeftAlt or Key.RightAlt => EventModifiers.Alt,
+                    Key.LeftCommand or Key.RightCommand => EventModifiers.Command,
+                    _ => EventModifiers.None,
+                };
+            }
+
+            #endregion
         }
 
         private static void Rewrite()
@@ -48,29 +64,21 @@ namespace Client.Playtest.Input
         private static void Write(EventModifiers modifiers)
         {
             ModifiersField().SetValue(null, modifiers);
-        }
 
-        private static FieldInfo ModifiersField()
-        {
-            // 非公開の静的値なので名前で引く。Unity の更新で消えたら DSL の Shift が黙って効かなくなるので止める
-            // A private static, so look it up by name; stop if a Unity update removed it, since DSL Shift would otherwise silently fail
-            if (_modifiersField != null) return _modifiersField;
-            var handler = Type.GetType("UnityEngine.UIElements.PanelEventHandler, UnityEngine.UI");
-            _modifiersField = handler?.GetField("s_Modifiers", BindingFlags.NonPublic | BindingFlags.Static);
-            if (_modifiersField == null) throw new InvalidOperationException("[UitkModifierKeys] PanelEventHandler.s_Modifiers が見つからない（Unity の版で内部名が変わった）ので DSL の修飾キーを UITK へ届けられない");
-            return _modifiersField;
-        }
+            #region Internal
 
-        private static EventModifiers ToModifier(Key key)
-        {
-            return key switch
+            FieldInfo ModifiersField()
             {
-                Key.LeftShift or Key.RightShift => EventModifiers.Shift,
-                Key.LeftCtrl or Key.RightCtrl => EventModifiers.Control,
-                Key.LeftAlt or Key.RightAlt => EventModifiers.Alt,
-                Key.LeftCommand or Key.RightCommand => EventModifiers.Command,
-                _ => EventModifiers.None,
-            };
+                // 非公開の静的値なので名前で引く。Unity の更新で消えたら DSL の Shift が黙って効かなくなるので止める
+                // A private static, so look it up by name; stop if a Unity update removed it, since DSL Shift would otherwise silently fail
+                if (_modifiersField != null) return _modifiersField;
+                var handler = Type.GetType("UnityEngine.UIElements.PanelEventHandler, UnityEngine.UI");
+                _modifiersField = handler?.GetField("s_Modifiers", BindingFlags.NonPublic | BindingFlags.Static);
+                if (_modifiersField == null) throw new InvalidOperationException("[UitkModifierKeys] PanelEventHandler.s_Modifiers が見つからない（Unity の版で内部名が変わった）ので DSL の修飾キーを UITK へ届けられない");
+                return _modifiersField;
+            }
+
+            #endregion
         }
     }
 }

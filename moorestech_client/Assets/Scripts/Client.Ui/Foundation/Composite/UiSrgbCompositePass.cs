@@ -65,7 +65,7 @@ namespace Client.Ui.Foundation.Composite
                 // Where the backbuffer is not an sRGB format, encode to sRGB ourselves as URP's final blit does
                 _material.SetTexture(UiSrgbTextureId, uiTexture);
                 _material.SetFloat(OutputSrgbEncodedId, Display.main.requiresSrgbBlitToBackbuffer ? 1f : 0f);
-                _material.SetFloat(WorldPointSampleId, WorldUsesPointSampling(cameraData) ? 1f : 0f);
+                _material.SetFloat(WorldPointSampleId, UsesWorldPointSampling() ? 1f : 0f);
                 // 上下の反転は URP の final blit と同じ判定（RenderingUtils.GetFinalBlitScaleBias）。書き先が反転しない画面なら uv を反転する
                 // Y flip uses the same test as URP's final blit (RenderingUtils.GetFinalBlitScaleBias): flip the uv when the target is the unflipped screen
                 var screen = _cameraTarget;
@@ -79,14 +79,18 @@ namespace Client.Ui.Foundation.Composite
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             UiSrgbCompositeSource.MarkComposited();
-        }
 
-        private static bool WorldUsesPointSampling(CameraData cameraData)
-        {
-            // 画面のカメラの描画解像度と、パイプライン asset の拡大フィルタの選択から URP と同じフィルタを選ぶ
-            // Pick the same filter as URP from the camera's render scale and the pipeline asset's upscaling filter selection
-            var camera = cameraData.camera;
-            return UiSrgbWorldUpscaleFilter.UsesPointSampling(cameraData.renderScale, camera.pixelWidth, camera.pixelHeight, UniversalRenderPipeline.asset.upscalingFilter);
+            #region Internal
+
+            bool UsesWorldPointSampling()
+            {
+                // 画面のカメラの描画解像度と、パイプライン asset の拡大フィルタの選択から URP と同じフィルタを選ぶ
+                // Pick the same filter as URP from the camera's render scale and the pipeline asset's upscaling filter selection
+                var camera = cameraData.camera;
+                return UiSrgbWorldUpscaleFilter.UsesPointSampling(cameraData.postProcessEnabled, cameraData.renderScale, camera.pixelWidth, camera.pixelHeight, UniversalRenderPipeline.asset.upscalingFilter);
+            }
+
+            #endregion
         }
 #endif
     }

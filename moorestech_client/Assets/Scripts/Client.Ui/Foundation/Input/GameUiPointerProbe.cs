@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// スクリーン座標の下にある GameUi の拾える要素を panel.Pick で答える
-    /// Answers which pickable GameUi element lies under a screen position, using panel.Pick
+    /// 画面座標の下の GameUi の拾える要素を答える
+    /// Answers the pickable GameUi element under a screen position
     /// </summary>
     public sealed class GameUiPointerProbe : IGameUiPointerProbe
     {
@@ -23,8 +23,8 @@ namespace Client.Ui.Foundation.Input
             return PickAt(screenPosition) != null;
         }
 
-        // 画面座標（左下原点）の下で拾われる要素。無ければ null（ワールド側）
-        // The element picked under a bottom-left-origin screen position; null means the world
+        // 画面座標（左下原点）で拾う要素。無ければ null
+        // Element picked at a bottom-left screen position; null if none
         public VisualElement PickAt(Vector2 screenPosition)
         {
             return PickAtPanel(UiScreenToPanel.FromBottomLeft(_panel, screenPosition));

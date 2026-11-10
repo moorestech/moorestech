@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Content
 {
     /// <summary>
-    /// 枠の中身から ItemSlot の中身への写しが、空きでは絵と個数を持たず、選択の印だけを渡すことを確かめる（L0）
-    /// Verifies the slot-item mapping drops icon and count for empty cells and carries only the selection mark (L0)
+    /// 空きは絵と個数を持たず選択の印だけ渡す L0
+    /// L0: empty cells carry only the selection mark
     /// </summary>
     public class SlotItemContentTest
     {
@@ -20,8 +20,8 @@ namespace Client.Tests.Ui.Content
         [SetUp]
         public void SetUp()
         {
-            // 名前の解決に要るのでテスト用 mod のマスタを読む
-            // Load the test mod master because name resolution needs it
+            // 名前解決のためテスト mod のマスタを読む
+            // Load the test mod master for name resolution
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
             _content = new GameContentPresentation(new FakeContentTextureSource(_texture, null, null));

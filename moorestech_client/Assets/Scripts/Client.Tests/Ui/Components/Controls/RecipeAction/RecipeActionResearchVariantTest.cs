@@ -9,8 +9,8 @@ using static Client.Tests.Ui.Components.ThemeTokenFile;
 namespace Client.Tests.Ui.Components.Controls.RecipeAction
 {
     /// <summary>
-    /// 研究の変種の組と、画面が上書きしてよい寸法（L1・A-190）
-    /// The research variant set and the size a screen may override (L1, A-190)
+    /// 研究の変種の組と上書き寸法（L1・A-190）
+    /// Research variants and override size (L1, A-190)
     /// </summary>
     public class RecipeActionResearchVariantTest : RecipeActionButtonFixture
     {

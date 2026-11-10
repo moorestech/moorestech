@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls.RecipeAction
 {
     /// <summary>
-    /// RecipeActionButton の L1 の共通の器（入力の規則・辞書・置き方）
-    /// Shared L1 fixture for RecipeActionButton (input rules, dictionary, placement)
+    /// RecipeActionButton の L1 共通の器
+    /// Shared L1 fixture for RecipeActionButton
     /// </summary>
     public abstract class RecipeActionButtonFixture : UiTestHost
     {
@@ -23,8 +23,8 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
         [SetUp]
         public void AttachRules()
         {
-            // テストごとの器に入力の規則を付け、文言の辞書を先に読む（FormButtonTest と同じ形）
-            // Attach input rules to a per-test container and load the dictionary first (same shape as FormButtonTest)
+            // 入力の規則を付け辞書を先に読む
+            // Attach input rules and load the dictionary first
             RulesRoot = new VisualElement { name = "rules-root" };
             RulesRoot.style.position = Position.Absolute;
             RulesRoot.style.left = 0;

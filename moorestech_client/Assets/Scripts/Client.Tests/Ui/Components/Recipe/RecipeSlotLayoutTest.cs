@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行のスロットの列数の式（Web recipeSlotLayout の列数）を確かめる（L0）
-    /// Verifies the recipe-row slot column count (the Web recipeSlotLayout column count) (L0)
+    /// スロット列数の式の L0
+    /// L0 of the slot column-count formula
     /// </summary>
     public class RecipeSlotLayoutTest
     {

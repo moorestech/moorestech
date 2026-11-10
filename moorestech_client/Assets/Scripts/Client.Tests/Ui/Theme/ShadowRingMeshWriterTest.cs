@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Theme
 {
     /// <summary>
-    /// 影の輪の共有 writer が帯の結び順と時計回りの向きを固定の並びで書くことを確かめる（L0）
-    /// Verifies the shared shadow-ring writer emits bands in a fixed order with clockwise winding (L0)
+    /// 帯の結び順と時計回りの向き L0
+    /// L0 of band order and clockwise winding
     /// </summary>
     public class ShadowRingMeshWriterTest
     {

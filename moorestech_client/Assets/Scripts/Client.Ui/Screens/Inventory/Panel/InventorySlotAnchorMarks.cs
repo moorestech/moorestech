@@ -23,8 +23,8 @@ namespace Client.Ui.Screens.Inventory.Panel
                 _applied.TryGetValue(index, out var current);
                 if (wanted == current) continue;
 
-                // 古い id を外す。他の id が残らなければ印のクラスも外れる
-                // Remove the old id; the marker class goes too once no other id remains
+                // 古い id を外す
+                // Remove the old id
                 if (current != null)
                 {
                     TutorialAnchor.Unmark(slots[index], current);

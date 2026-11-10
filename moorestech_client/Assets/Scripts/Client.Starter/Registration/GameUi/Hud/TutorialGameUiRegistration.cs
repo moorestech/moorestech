@@ -10,8 +10,8 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi.Hud
 {
-    // チュートリアルの枠・キー操作ヒント・ワールドピン（GameUi）の登録
-    // Registers the GameUi tutorial outline, key-control hint and world pin
+    // チュートリアルの枠・ヒント・ピンの登録
+    // Registers the tutorial outline, hint and pin
     internal static class TutorialGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)

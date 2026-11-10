@@ -5,13 +5,17 @@ using UnityEngine;
 using UnityEngine.TextCore.LowLevel;
 using UnityEngine.TextCore.Text;
 const string Folder = "Assets/UI Toolkit/GameUi/Fonts";
+// SDF の atlas の padding（設計書 A-198）。数字の縁を Web に合わせる値で、もう一方のスクリプトと同じにする
+// SDF atlas padding (design A-198): the value that matches digit edges to the Web; keep it equal to the sibling script
+const int AtlasPadding = 18;
+const int SamplingPointSize = 90;
 if (!AssetDatabase.IsValidFolder(Folder)) AssetDatabase.CreateFolder("Assets/UI Toolkit/GameUi", "Fonts");
 FontAsset Create(string sourcePath, string assetName)
 {
     var path = $"{Folder}/{assetName}.asset";
     AssetDatabase.DeleteAsset(path);
     var font = AssetDatabase.LoadAssetAtPath<Font>(sourcePath);
-    var asset = FontAsset.CreateFontAsset(font, 90, 18, GlyphRenderMode.SDFAA, 1024, 1024, AtlasPopulationMode.Dynamic, true);
+    var asset = FontAsset.CreateFontAsset(font, SamplingPointSize, AtlasPadding, GlyphRenderMode.SDFAA, 1024, 1024, AtlasPopulationMode.Dynamic, true);
     asset.name = assetName;
     AssetDatabase.CreateAsset(asset, path);
     // clearDynamicDataOnBuild は internal のため、シリアライズ済みの欄を立てる

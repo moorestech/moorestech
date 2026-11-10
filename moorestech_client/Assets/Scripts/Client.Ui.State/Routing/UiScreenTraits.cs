@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace Client.Ui.State.Routing
 {
     /// <summary>
-    /// 画面ごとの性質。Web の ScreenTraits と同じ列に、UITK だけの列 CollapsesStageLeftPadding（Web App.tsx の .stageResearch）と CoversGameLayer（Web deriveActiveLayer が game 以外を返す画面）を足す
-    /// Per-screen traits; the web ScreenTraits columns plus the UITK-only CollapsesStageLeftPadding (Web App.tsx .stageResearch) and CoversGameLayer (screens for which Web deriveActiveLayer is not game)
+    /// 画面ごとの性質。Web の列に UITK 固有の 2 列を足す
+    /// Per-screen traits; Web columns plus two UITK-only columns
     /// </summary>
     public sealed class UiScreenTraits
     {

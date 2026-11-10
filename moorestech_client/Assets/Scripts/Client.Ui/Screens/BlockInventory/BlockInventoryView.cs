@@ -86,8 +86,8 @@ namespace Client.Ui.Screens.BlockInventory
 
             void RenderTitle()
             {
-                // 題: ブロックは BlockName(blockGuid)、列車は ui.blockInventory.trainInventory
-                // Title: BlockName(blockGuid) for blocks, ui.blockInventory.trainInventory for trains
+                // 題はブロック名、列車は列車インベントリ
+                // Title is the block name, or train inventory for trains
                 var block = state as OpenBlockInventoryPanel;
                 var title = block != null
                     ? UiText.FromContent(ContentLocalizationKeys.BlockName(block.BlockGuid))

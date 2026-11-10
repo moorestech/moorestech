@@ -9,15 +9,11 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
-    /// 題の操作を持つ間だけ題の右に操作の幅と間（Web calc(--panel-action-button-width + --mantine-spacing-sm)）を空けることを確かめる（L1）
-    /// Verifies the title reserves the action width plus gap (Web calc(--panel-action-button-width + --mantine-spacing-sm)) only while it holds an action (L1)
+    /// 題の操作を持つ間だけ題の右に逃げが空くことの L1
+    /// L1: title reserves action space only while it holds an action
     /// </summary>
     public class GamePanelTitleActionReserveTest : UiTestHost
     {
-        // Web の 87px（--panel-action-button-width）+ 12px（--mantine-spacing-sm）
-        // The Web 87px (--panel-action-button-width) plus 12px (--mantine-spacing-sm)
-        private const float WebTitleActionReserve = 87f + 12f;
-
         private GamePanel _panel;
 
         [SetUp]
@@ -39,11 +35,13 @@ namespace Client.Tests.Ui.Components.Panels
         }
 
         [Test]
-        public void 題の操作を持つ間は題の右にWebと同じ幅を空ける()
+        public void 題の操作を持つ間は題の右に逃げを空ける()
         {
             _panel.SetTitleAction(new VisualElement { name = "test-title-action" });
             simulate.FrameUpdate();
-            Assert.AreEqual(WebTitleActionReserve, Title().resolvedStyle.paddingRight, 0.01f);
+            // 幅の値は CalcConstantRecheckTest が --panel-action-button-width との和で守る。ここは逃げが付くことだけを見る
+            // CalcConstantRecheckTest guards the value against --panel-action-button-width; this only checks that a reserve is applied
+            Assert.Greater(Title().resolvedStyle.paddingRight, 0f);
         }
 
         [Test]

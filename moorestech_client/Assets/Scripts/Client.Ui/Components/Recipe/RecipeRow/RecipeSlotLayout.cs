@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.Components.Recipe
 {
     /// <summary>
-    /// レシピ行のスロットの列数の唯一の式（Web recipeSlotLayout の列数の写し）
-    /// The single column-count formula for recipe-row slots (port of the Web recipeSlotLayout column count)
+    /// スロット列数の唯一の式（Web の写し）
+    /// The single slot column-count formula (Web port)
     /// </summary>
     /// <remarks>
     /// Web は列の幅からスロットの寸法も縮めるが、UITK は寸法をつまみの上限のまま置く（A-121・LX-91）ので列数だけを写す。
@@ -18,8 +18,8 @@ namespace Client.Ui.Components.Recipe
 
         public static int Columns(int count)
         {
-            // 0 点でも 1 列を床にし、0 列を出さない
-            // Floor at one column so zero items never yield zero columns
+            // 0 点でも 1 列を床にする
+            // Floor at one column even for zero items
             return Math.Max(1, Math.Min(count, MaxSlotColumns));
         }
     }

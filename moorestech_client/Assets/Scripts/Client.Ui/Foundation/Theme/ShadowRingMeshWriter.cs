@@ -3,8 +3,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Theme
 {
     /// <summary>
-    /// 影の輪メッシュのインデックスを書く共有の口（隣り合う輪の帯と時計回りの三角）
-    /// Shared index writer for shadow ring meshes (bands between neighbouring rings and clockwise triangles)
+    /// 影の輪メッシュのインデックスを書く共有の口
+    /// Shared index writer for shadow ring meshes
     /// </summary>
     /// <remarks>
     /// 輪 k の角 c は頂点 k·角数+c に並ぶ前提。UITK は裏向きの三角を描かないので、三角は頂点の位置から必ず時計回り（y 下向き）で書く。
@@ -14,8 +14,8 @@ namespace Client.Ui.Foundation.Theme
     {
         public static void WriteBands(Vertex[] vertices, ushort[] indices, ref int cursor, int ringCount, int cornersPerRing)
         {
-            // 隣り合う輪の同じ辺を四角（三角 2 枚）で結ぶ
-            // Join the same side of neighbouring rings with a quad (two triangles)
+            // 隣り合う輪の辺を四角で結ぶ
+            // Join neighbouring ring sides with a quad
             for (var ring = 0; ring < ringCount; ring++)
             for (var corner = 0; corner < cornersPerRing; corner++)
             {
@@ -30,8 +30,8 @@ namespace Client.Ui.Foundation.Theme
 
         public static void WriteClockwise(Vertex[] vertices, ushort[] indices, ref int cursor, ushort a, ushort b, ushort c)
         {
-            // 外積の符号で向きを見て、反時計回りなら b と c を入れ替える
-            // Check the winding by the cross product sign and swap b and c when counter-clockwise
+            // 反時計回りなら b と c を入れ替える
+            // Swap b and c when counter-clockwise
             var pa = vertices[a].position;
             var pb = vertices[b].position;
             var pc = vertices[c].position;

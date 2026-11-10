@@ -17,13 +17,25 @@ namespace Client.Ui.Foundation.Anchor
             foreach (var id in ids) element.AddToClassList(id);
         }
 
-        // id を外し、アンカー id が 1 つも残らなければ印のクラスも外す（描き直しで付く枠が動く要素の付け替え用）
-        // Removes the ids and drops the marker once no anchor id remains (for elements whose anchor moves on redraw)
+        // id を外し、残らなければ印のクラスも外す
+        // Removes ids and drops the marker class when none remain
         public static void Unmark(VisualElement element, params string[] ids)
         {
             foreach (var id in ids) element.RemoveFromClassList(id);
             if (element.GetClasses().Any(IsAnchorId)) return;
             element.RemoveFromClassList(MarkerClassName);
+
+            #region Internal
+
+            // クラス名がアンカー id か（固定の id か、マスタが直書きする動的な接頭辞の id）
+            // Whether a class name is an anchor id (a static id or one with a master-written dynamic prefix)
+            bool IsAnchorId(string className)
+            {
+                if (AnchorIds.StaticIds.Contains(className)) return true;
+                return AnchorIds.DynamicPrefixes.Any(className.StartsWith);
+            }
+
+            #endregion
         }
 
         // USS の overflow: hidden で子を切る要素に付ける。C# は USS 由来の overflow を読めないので、祖先クリップの判定はこの印で行う（ADR 0024）
@@ -31,14 +43,6 @@ namespace Client.Ui.Foundation.Anchor
         public static void MarkClipContainer(VisualElement element)
         {
             element.AddToClassList(ClipContainerClassName);
-        }
-
-        // クラス名がアンカー id か（固定の id か、マスタが直書きする動的な接頭辞の id）
-        // Whether a class name is an anchor id (a static id or one with a master-written dynamic prefix)
-        private static bool IsAnchorId(string className)
-        {
-            if (AnchorIds.StaticIds.Contains(className)) return true;
-            return AnchorIds.DynamicPrefixes.Any(className.StartsWith);
         }
     }
 }

@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Input
 {
     /// <summary>
-    /// GameUi の Pick の probe が、層コンテナを除いた拾える要素の上でだけその要素を返すことを実パネルで確かめる（L1）
-    /// Verifies on a real panel that the GameUi Pick probe returns the element only over pickable content, never layer containers (L1)
+    /// 層コンテナを除き拾える要素だけ返す L1
+    /// L1: returns only pickable elements, never layer containers
     /// </summary>
     /// <remarks>
     /// スクリーン座標→パネル座標の換算はテスト用パネルでは RuntimePanelUtils が使えないので、ここではパネル座標で試し、換算は L3 で試す
@@ -44,8 +44,8 @@ namespace Client.Tests.Ui.Input
             stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(box);
             simulate.FrameUpdate();
 
-            // 箱の上は箱そのもの、箱の外は層だけなので null
-            // The box itself over the box, null outside it where only layers remain
+            // 箱の外は層だけなので null
+            // Null outside the box where only layers remain
             var probe = new GameUiPointerProbe(panel);
             Assert.AreSame(box, probe.PickAtPanel(PanelCenter));
             Assert.IsNull(probe.PickAtPanel(new Vector2(10, 10)));

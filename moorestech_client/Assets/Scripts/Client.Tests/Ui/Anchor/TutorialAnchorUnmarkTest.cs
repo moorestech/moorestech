@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Anchor
 {
     /// <summary>
-    /// 印を外す口が id を外し、id が残らないときだけ印のクラスを外すことを確かめる（L1）
-    /// Verifies Unmark removes ids and drops the marker class only when no id remains (L1)
+    /// id が残らないときだけ印を外す L1
+    /// L1: marker drops only when no id remains
     /// </summary>
     public class TutorialAnchorUnmarkTest : UiTestHost
     {

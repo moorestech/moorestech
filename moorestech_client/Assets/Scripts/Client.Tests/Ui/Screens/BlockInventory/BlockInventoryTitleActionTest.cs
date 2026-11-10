@@ -15,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory
 {
     /// <summary>
-    /// 題の操作の器の付け替え（操作を持つ blockType だけ器を載せ、中身を器の中で差し替える）の L1
-    /// L1 of the title-action holder (mounted only for block types with an action; contents swapped inside)
+    /// 題の操作の器の付け替え L1
+    /// L1 of the title-action holder swap
     /// </summary>
     public class BlockInventoryTitleActionTest : BlockInventoryScreenTestHost
     {
@@ -66,7 +66,21 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(Panel(RocketType, BlockInventoryPanelError.OpenFailed)), new FakeTitleActionFactory(), new FakeRocketBodyFactory());
             simulate.FrameUpdate();
             Assert.IsTrue(shell.View.Q("block-inventory-panel").ClassListContains(GamePanel.TitleActionUssClassName));
-            Assert.AreEqual(99f, shell.View.Q(className: "game-panel__title").resolvedStyle.paddingRight, 0.01f);
+            Assert.Greater(shell.View.Q(className: "game-panel__title").resolvedStyle.paddingRight, 0f);
+        }
+
+        [Test]
+        public void 同じパネルの状態更新で器は外れ直さない()
+        {
+            var state = new ReactiveProperty<BlockInventoryPanelState>(Panel(RocketType, BlockInventoryPanelError.None));
+            var shell = BlockInventoryTestShell.Create(this, state, new FakeTitleActionFactory(), new FakeRocketBodyFactory());
+            simulate.FrameUpdate();
+            var detachCount = 0;
+            Holder(shell).RegisterCallback<DetachFromPanelEvent>(_ => detachCount++);
+
+            state.Value = Panel(RocketType, BlockInventoryPanelError.None);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0, detachCount);
         }
 
         private static VisualElement Holder(BlockInventoryTestShell shell)
