@@ -55,6 +55,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             return new BlockContextViewModel(room, yield, ContextEntry<MachineInputStall>.Absent);
         }
 
+        /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">部屋欄はセクション列の先頭に描く</web-test>
         [Test]
         public void 部屋欄はセクション列の先頭に描く()
         {
@@ -65,6 +66,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             Assert.Less(body.Root.Q<VisualElement>("clean-room-section").worldBound.y, body.Root.Q<VisualElement>("section-stack-item-grid").worldBound.y);
         }
 
+        /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">抽選の中身欄は部屋欄のすぐ下に描く</web-test>
         [Test]
         public void 抽選の中身欄は部屋欄のすぐ下に描く()
         {
@@ -76,6 +78,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             Assert.Less(body.Root.Q<VisualElement>("clean-room-section").worldBound.y, body.Root.Q<VisualElement>("clean-room-yield-section").worldBound.y);
         }
 
+        /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">照会欄の無い payload では3欄とも描かず、取得中の欄は取得状態の行だけを描く</web-test>
         [Test]
         public void 照会欄の無いpayloadでは3欄とも描かず取得中の欄は取得状態の行だけを描く()
         {
