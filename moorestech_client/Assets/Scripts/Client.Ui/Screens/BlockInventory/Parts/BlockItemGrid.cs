@@ -60,7 +60,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
             // 並ぶ枠の番号が変わったときだけ作り直し、同じなら中身だけ差し替える
             // Rebuild only when the slot indices change; otherwise just swap contents
             if (!SameIndices(slotIndices)) Rebuild(slotIndices);
-            foreach (var (index, slot) in _slots) slot.SetContent(ToContent(ReadSlot(index)));
+            foreach (var (index, slot) in _slots) slot.SetContent(SlotItemContent.From(_content, ReadSlot(index), false));
             ApplyColumns();
 
             #region Internal
@@ -99,15 +99,6 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                 if (0 <= index && index < itemSlots.Count) return itemSlots[index];
                 UnityEngine.Debug.LogError($"[BlockItemGrid] {_testId}: slot index {index} is out of range (slot count {itemSlots.Count}); drawn as empty");
                 return default;
-            }
-
-            ItemSlotContent ToContent(SlotItem item)
-            {
-                // 空きマスは絵も個数も持たない（ItemSlot が空きの面で描く）
-                // Empty cells carry no icon or count (ItemSlot draws the empty face)
-                var icon = item.IsEmpty ? null : _content.Item(item.ItemId);
-                int? count = item.IsEmpty ? null : item.Count;
-                return new ItemSlotContent(icon, count, new ItemSlotMarks(false, false, false), null, null, null);
             }
 
             void OnGestured(int index, SlotGesture gesture)
