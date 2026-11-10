@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Client.Localization;
+using Client.Ui.State.Commands;
 using Client.Ui.State.Research;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
@@ -72,6 +73,23 @@ namespace Client.Tests.Ui.State.Research.Wiring
 
             Assert.IsEmpty(_store.NodeStates);
             Assert.AreEqual(1, _shownToasts.Count);
+        }
+
+        [Test]
+        public void 応答の写しは応答なしと失敗を研究失敗にし成功を受理にする()
+        {
+            LogAssert.Expect(LogType.Warning, new Regex(@"returned no response"));
+
+            Assert.AreEqual(UiCommandRejectReason.ResearchFailed, RejectReasonOf(ResearchTreeCommands.ToCommandResult(null, _store, Target)));
+            Assert.AreEqual(UiCommandRejectReason.ResearchFailed, RejectReasonOf(ResearchTreeCommands.ToCommandResult(Response(false, ResearchNodeState.UnresearchableNotEnoughItem), _store, Target)));
+            Assert.AreSame(UiCommandAccepted.Instance, ResearchTreeCommands.ToCommandResult(Response(true, ResearchNodeState.Completed), _store, Target));
+            Assert.AreEqual(ResearchNodeState.Completed, _store.NodeStates[Target]);
+        }
+
+        private static UiCommandRejectReason RejectReasonOf(UiCommandResult result)
+        {
+            Assert.IsInstanceOf<UiCommandRejected>(result);
+            return ((UiCommandRejected)result).Reason;
         }
 
         private static CompleteResearchProtocol.ResponseCompleteResearchMessagePack Response(bool success, ResearchNodeState targetState)
