@@ -3,8 +3,11 @@ using System.Text.RegularExpressions;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.Components.Gauges;
+using Client.Ui.Components.Recipe;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory;
+using Client.Ui.Screens.BlockInventory.Machine;
+using Client.Ui.Screens.BlockInventory.Machine.RecipeSelection;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Detail;
@@ -13,12 +16,13 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Fixtures = Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection.MachineRecipeSelectionFixtures;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 機械の区画の見た目の決まり（加工行の 3 列・モジュール帯の 1 段下げ）
-    /// Design rules of the machine section (three-column process row, module band one level down)
+    /// 機械の区画の見た目の決まり（選択リストとヘッダの往復・選択行の静止矢印・加工行の 3 列・モジュール帯の 1 段下げ）
+    /// Design rules of the machine section (list/header round trip, idle arrows in selection rows, three-column process row, module band one level down)
     /// </summary>
     public class MachineDesignTest : MachineScreenTestHost
     {
@@ -28,10 +32,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         [TestCase("BlockInventory/Machine/Machine.uss")]
         [TestCase("BlockInventory/Family/Family.uss")]
         [TestCase("BlockInventory/Fluid/Fluid.uss")]
+        [TestCase("BlockInventory/Machine/RecipeSelection/MachineRecipeSelection.uss")]
         public void 本レーンのUSSは色を直書きせずトークンだけを使う(string relativePath)
         {
-            // alpha の BlockInventoryDesignTest の色の件と同じ判定（選択リストの USS は Task 12 で足す）
-            // Same check as alpha's BlockInventoryDesignTest colour case (the selection-list USS is added in Task 12)
+            // alpha の BlockInventoryDesignTest の色の件と同じ判定
+            // Same check as alpha's BlockInventoryDesignTest colour case
             var uss = File.ReadAllText(Path.Combine(Application.dataPath, ScreensUssRoot, relativePath));
             StringAssert.DoesNotMatch(@"#[0-9a-fA-F]{3,8}\b|rgba?\(", uss);
             foreach (Match match in Regex.Matches(uss, @"^\s*(?:-unity-)?[a-z-]*color\s*:\s*([^;]+);", RegexOptions.Multiline))
@@ -64,6 +69,36 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModel(MachineRecipeSelection.Unselected)));
             simulate.FrameUpdate();
             Assert.IsFalse(shell.View.ClassListContains(BlockInventoryView.LargeClassName));
+        }
+
+        /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">MachineSectionはレシピ選択リストとヘッダを往復し、電力率を共通フッタに置く</web-test>
+        [Test]
+        public void 選択リストとヘッダを往復し電力率は両モードで同じフッタに置く()
+        {
+            var recipe = Fixtures.ItemRecipe(MachineTestDetails.RecipeA, 5, SecondItem, FirstItem);
+            var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Selected(MachineTestDetails.RecipeA), false, recipe), true).Root;
+            var footer = Find<VisualElement>(root, "machine-power-rate").GetFirstAncestorOfType<MachineSectionFooter>();
+            Assert.IsNotNull(footer);
+            Assert.IsNull(root.Q(className: "mode-switch"));
+
+            simulate.Click(Find<VisualElement>(root, "machine-selected-recipe").worldBound.center);
+            simulate.FrameUpdate();
+            Assert.IsNotNull(root.Q(MachineRecipeSelectionList.ListTestid));
+            Assert.AreSame(footer, Find<VisualElement>(root, "machine-power-rate").GetFirstAncestorOfType<MachineSectionFooter>());
+        }
+
+        /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">レシピ選択行は共有RecipeRowを流用し、静止矢印で列挙する</web-test>
+        [Test]
+        public void 選択行は共有RecipeRowを使い矢印を静止させる()
+        {
+            var recipes = new[] { Fixtures.ItemRecipe(MachineTestDetails.RecipeA, 5, SecondItem, FirstItem), Fixtures.ItemRecipe(MachineTestDetails.RecipeB, 7, FirstItem, SecondItem) };
+            var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Unselected, false, recipes), true).Root;
+            foreach (var guid in new[] { MachineTestDetails.RecipeA, MachineTestDetails.RecipeB })
+            {
+                var row = Find<VisualElement>(root, $"machine-recipe-{guid}");
+                Assert.IsNotNull(row.Q<RecipeRow>($"machine-recipe-{guid}-row"));
+                Assert.IsTrue(Find<ProgressArrowGlyph>(row, $"machine-recipe-{guid}-arrow").ClassListContains("progress-arrow-glyph--idle"));
+            }
         }
 
         /// <web-test file="src/features/blockInventory/blockInventoryDesign.test.ts">機械の加工行は進捗矢印を中央に固定する3カラムグリッドにする</web-test>

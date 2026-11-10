@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Screens.BlockInventory.Machine.RecipeSelection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -97,6 +98,26 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var shell = OpenCleanRoomMachine(filterCount);
             ExpectReachable(shell, $"clean-room-air-filter-{filterCount - 1}");
             ExpectInventoryBodyReachable(shell);
+        }
+
+        /// <web-test file="e2e/tests/block/cleanRoom/cleanRoomManyFilters.spec.ts">清浄機20台・高さ${windowHeight}のレシピ選択でも部屋欄と同じ視口で最後のレシピ行へ届く</web-test>
+        [Test]
+        public void 清浄機20台のレシピ選択でも部屋欄と同じ視口で最後のレシピ行へ届く()
+        {
+            // 部屋欄が長いのでヘッダを視口へ寄せてから押す
+            // The room section is long, so scroll the header into the viewport before pressing it
+            var shell = OpenCleanRoomMachine(20);
+            ExpectReachable(shell, "machine-selected-recipe");
+            simulate.Click(shell.View.Q("machine-selected-recipe").worldBound.center);
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            ExpectFooterReadable(shell);
+            var rows = shell.View.Q(MachineRecipeSelectionList.ListTestid).Query<MachineRecipeSelectionRowView>().ToList();
+            Assert.Greater(rows.Count, 0);
+            var scroll = rows[0].GetFirstAncestorOfType<GameScrollView>();
+            ExpectReachableInScrollViewport(scroll, rows[0]);
+            ExpectReachableInScrollViewport(scroll, rows[rows.Count - 1]);
+            ExpectSharedBodyViewport(shell, MachineRecipeSelectionList.ListTestid);
         }
 
         /// <web-test file="e2e/tests/block/cleanRoom/cleanRoomManyFilters.spec.ts">清浄機${room.filters}台・高さ720の境目でも本文とフッタが使える</web-test>

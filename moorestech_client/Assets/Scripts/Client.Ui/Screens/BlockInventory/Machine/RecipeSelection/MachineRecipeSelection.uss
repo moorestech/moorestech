@@ -10,13 +10,22 @@
     min-height: 0;
 }
 
+/* 高さ確定面では内容高を基準にせず器の残りだけを取り、フッタを押し縮めない（基準が内容高だとレシピが溢れたとき縮みをフッタと分け合う） */
+/* On the height-determining panel take only the remaining space, not the content height, so the footer is never squeezed (a content-height basis shares the shrink with the footer when recipes overflow) */
+.machine-section--fill-panel-height > .machine-recipe-selection-list {
+    flex-basis: 0;
+}
+
 /* 押せる印の指は C# が OS カーソルへ要求する（USS の cursor はランタイムで効かない） */
 /* The pressable pointer is requested on the OS cursor from C# (USS cursor does nothing at runtime) */
 .machine-recipe-selection-row {
     min-width: 0;
 }
 
+/* Mantine の Text は margin 0。UITK の Label の既定の margin を外す（line-height: 1 は UITK に無く、字の行の高さの差は残る） */
+/* Mantine Text has margin 0; drop the UITK Label default margin (line-height: 1 does not exist in UITK, so the text line height difference remains) */
 .machine-recipe-selection-row__name {
+    margin: 0;
     color: var(--text-muted);
     font-size: var(--recipe-info-text-size);
     padding: 0 var(--recipe-row-padding-inline) 4px var(--recipe-row-padding-inline);

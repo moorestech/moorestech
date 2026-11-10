@@ -54,7 +54,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var detail = MachineTestDetails.Detail(MachineRecipeSelection.Selected(MachineTestDetails.RecipeA), MachineTestDetails.Unbound(new MachineSlotLayout(2, 1, 1)), 0.42f);
             var fluids = new[] { BlockFluidSlotState.Filled(Water, 50, 100), BlockFluidSlotState.Empty(100) };
             var panel = MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, slots);
-            var viewModel = MachineSectionViewModelBuilder.Build(panel, detail, slots, fluids, MachineTestDetails.Catalog(MachineTestDetails.RecipeA), 1);
+            var viewModel = MachineSectionViewModelBuilder.Build(panel, detail, slots, fluids, MachineTestDetails.Catalog(MachineTestDetails.RecipeA, MachineTestDetails.RecipeB), 1);
             MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(viewModel));
             if (0 <= filterCount) ContextModel.Set(Room(filterCount));
             return OpenShell(panel);
