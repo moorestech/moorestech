@@ -93,10 +93,14 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 _perMinuteNumbers.Clear();
                 for (var i = 0; i < count; i++)
                 {
+                    // Web の行は本文の字（md 16px）を継ぐ div で、語と数の間は空白 1 つ（約 4px）
+                    // The Web row is a div inheriting the body text (md 16px); one space (about 4px) separates word and number
                     var row = new UiGroup(UiGap.Px4) { name = "machine-items-per-minute", pickingMode = PickingMode.Ignore };
                     var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
+                    label.AddToClassList(UiTypographyClass.TextMd);
                     label.SetKey(LocalizationKeys.Ui.BlockInventory.ProductionPerMinute);
                     var number = new Label { pickingMode = PickingMode.Ignore };
+                    number.AddToClassList(UiTypographyClass.TextMd);
                     row.AddItem(label);
                     row.AddItem(number);
                     _perMinuteRows.AddItem(row);

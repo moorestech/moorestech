@@ -22,13 +22,16 @@
     min-width: 0;
 }
 
-/* Mantine の Text は margin 0。UITK の Label の既定の margin を外す（line-height: 1 は UITK に無く、字の行の高さの差は残る） */
-/* Mantine Text has margin 0; drop the UITK Label default margin (line-height: 1 does not exist in UITK, so the text line height difference remains) */
+/* Web の line-height: 1 は RecipeRow の秒数と同じく高さを字の大きさにして基線を 18.1% 下げる。下の 0.25rem は margin で写す（height は padding を含むため） */
+/* The Web line-height: 1 sets the height to the font size and lowers the baseline by 18.1%, as the RecipeRow duration does; the 0.25rem below becomes a margin (height includes padding) */
 .machine-recipe-selection-row__name {
-    margin: 0;
+    height: var(--recipe-info-text-size);
+    margin: 0 0 4px 0;
     color: var(--text-muted);
     font-size: var(--recipe-info-text-size);
-    padding: 0 var(--recipe-row-padding-inline) 4px var(--recipe-row-padding-inline);
+    padding: 0 var(--recipe-row-padding-inline);
+    -unity-text-align: lower-left;
+    translate: 0 18.1%;
 }
 
 .machine-recipe-selection-row__outline {
