@@ -20,8 +20,8 @@
 
 /* 透明な溝に白 88% のつまみ（ホバーでも同じ）、内側余白 0。calc の margin は ItemListView が下の 3 本から当てる */
 /* Transparent track with a white 88% thumb (same on hover) and zero bar padding; ItemListView derives the calc margins from the three knobs below */
-/* 縦バーの下端は Web では clip-inset + --sa-corner-width。corner は横バーが出るときだけの幅で、横を出さない一覧では 0 */
-/* The Web bar bottom is clip-inset + --sa-corner-width; the corner only has width when a horizontal bar shows, which never happens here, so it is 0 */
+/* 縦バーの下端は Web では clip-inset + --sa-corner-width。参照の画素ではつまみが 277px（2560 は 415 物理 px）で、溝の長さは 388 − 4 = 384 にあたるので corner は 4px が残っている */
+/* The Web bar bottom is clip-inset + --sa-corner-width; the reference thumb is 277px (415 physical px at 2560), i.e. a 388 - 4 = 384 track, so a 4px corner remains */
 .item-list .item-list__scroll {
     --scrollarea-scrollbar-size: 4px;
     --game-scroll-view-track-face: var(--item-list-scroll-track-face);
@@ -29,7 +29,7 @@
     --game-scroll-view-thumb-hover: var(--item-list-scroll-thumb-face);
     --game-scroll-view-scrollbar-padding-ratio: 0;
     --game-scroll-view-scrollbar-inset-top: var(--tutorial-anchor-clip-inset);
-    --game-scroll-view-scrollbar-inset-bottom: var(--tutorial-anchor-clip-inset);
+    --game-scroll-view-scrollbar-inset-bottom: 16px; /* web: calc(var(--tutorial-anchor-clip-inset) + var(--sa-corner-width)) = 12 + 4 */
     --item-list-scroll-clip-inset: var(--tutorial-anchor-clip-inset);
     --item-list-scroll-margin-left-base: -0.43px; /* web: -3.561498px + 3.131498px（グリッドの内側の補正と旧 padding-left の打ち消し） */
     --item-list-scroll-margin-top-base: 12px; /* web: calc(12px - clip-inset) の 12px（つまみの縦位置合わせ） */

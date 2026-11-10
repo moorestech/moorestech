@@ -48,7 +48,7 @@
     padding: 0;
     font-size: 19.75px;
     letter-spacing: 1px;
-    text-shadow: var(--item-header-name-shadow); /* web は ±0.3px の 2 本。UITK は 1 本なので右だけ（D-35・LX-135 の記帳候補） */
+    text-shadow: none; /* look-exception: LX-135 */ /* web は ±0.3px 0 0 rgb(0 0 0 / 55%) の 2 本。UITK の 0.3px の影は字の濃さを変えず、字の外に明るい点を出すので描かない */
     -unity-text-align: middle-center;
     white-space: nowrap;
 }

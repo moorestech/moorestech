@@ -82,10 +82,10 @@ namespace Client.Tests.Ui.Screens.Recipe.ItemList
             simulate.FrameUpdate();
             ComponentStyleAssert.AssertColor(white88, dragger.resolvedStyle.backgroundColor, "hovered thumb");
 
-            // 縦バーは上下に逃げ 12 を空ける
-            // The bar leaves the 12 clearance above and below
+            // 縦バーは上に逃げ 12、下に逃げ 12 と Web の corner 4 を空ける（参照のつまみ 277px）
+            // The bar leaves 12 above and 12 plus the Web corner 4 below (reference thumb 277px)
             Assert.AreEqual(12f, scroll.verticalScroller.worldBound.y - scroll.worldBound.y, 0.5f);
-            Assert.AreEqual(12f, scroll.worldBound.yMax - scroll.verticalScroller.worldBound.yMax, 0.5f);
+            Assert.AreEqual(16f, scroll.worldBound.yMax - scroll.verticalScroller.worldBound.yMax, 0.5f);
         }
     }
 }
