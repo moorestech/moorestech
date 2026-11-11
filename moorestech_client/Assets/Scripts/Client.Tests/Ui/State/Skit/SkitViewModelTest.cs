@@ -58,6 +58,7 @@ namespace Client.Tests.Ui.State.Skit
         public void ポーズで許可が空になると全操作が閉じ選択肢も出さない()
         {
             _store.BeginBlocking(new SkitActionContext());
+            _store.PresentBlockingText("Moore", "Blocking message");
             _store.PresentChoices(new[] { new SkitChoice { ChoiceId = "route-a", Label = "Route A" } });
             _store.SetInputSuspended(true);
             var model = SkitViewModel.From(_store.GetCurrent());
