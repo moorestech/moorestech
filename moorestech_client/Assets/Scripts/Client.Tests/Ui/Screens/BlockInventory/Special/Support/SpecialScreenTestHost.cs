@@ -6,6 +6,7 @@ using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Content;
 using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
@@ -50,6 +51,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
         protected SpecialViewKit Kit(GameContentPresentation presentation)
         {
             return new SpecialViewKit(Commands, presentation, Toaster, new BlockItemGridFactory(BlockSlots, presentation, Toaster));
+        }
+
+        // 本物の区画の工場 5 つ（alpha の標準の本文に差す統合 L1 用）
+        // The five real section factories (for integration L1 plugged into alpha's standard body)
+        protected ISectionStackSectionFactory[] SectionFactories()
+        {
+            return new ISectionStackSectionFactory[] { new GearToElectricSectionFactory(Presenters), new BeltThroughputSectionFactory(Presenters), new GearSectionFactory(Presenters), new ElectricNetworkSectionFactory(Presenters), new GearNetworkSectionFactory(Presenters) };
         }
 
         // alpha の土台でパネルを開いた状態にして返す（Presenter の Attach に渡す）

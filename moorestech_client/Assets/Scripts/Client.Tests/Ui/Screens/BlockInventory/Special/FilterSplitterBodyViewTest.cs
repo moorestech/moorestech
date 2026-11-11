@@ -1,5 +1,8 @@
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Special.FilterSplitter;
+using Client.Ui.Screens.BlockInventory.Special.Registration;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -39,6 +42,41 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             simulate.Click(Find<VisualElement>(view, "filter-slot-1-0"), MouseButton.LeftMouse);
             CollectionAssert.AreEqual(new[] { "filter_splitter.set_filter_item 1 0 set" }, Commands.Issued);
             CollectionAssert.IsEmpty(ShownToasts, "掴みが空は良性（Web の noop）");
+        }
+
+        /// <web-test file="e2e/tests/block/filterSplitter.spec.ts">last direction's filter slot is reachable by scrolling on a short window</web-test>
+        [Test]
+        public void 短い窓でも末尾の方向の枠へスクロールで届き解除を送る()
+        {
+            // alpha の外殻の土台に本物の本文の工場を差し、Web の e2e と同じ高さ 600 の舞台で開く
+            // Plug the real body factory into alpha's shell fixture and open it on a 600px-tall stage, as in the Web e2e
+            Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.FilterSplitter));
+            var shell = BlockInventoryTestShell.Create(this, Panels.State, new FilterSplitterBodyFactory(Kit(LoadContent()), Presenters));
+            shell.Stage.style.height = 600f;
+            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            // 空振りを防ぐ: 帯が 600 に追い、中身が窓を超え、末尾の枠がスクロール前は窓の外にある（720 では全部収まりスクロールしない）
+            // Guard against a vacuous pass: the band follows 600, the content overflows and the last slot starts outside the viewport (at 720 everything fits)
+            Assert.LessOrEqual(Find<VisualElement>(shell.View, "block-inventory-panel").worldBound.yMax, 600.5f, "パネルの帯が高さ 600 の舞台に追う");
+            var scroll = Find<GameScrollView>(shell.View, "block-inventory-natural-scroll");
+            Assert.Greater(scroll.GetContentHeight(), scroll.GetViewportHeight(), "高さ 600 で中身が窓を超える");
+            var last = Find<VisualElement>(shell.View, "filter-slot-2-1");
+            Assert.IsFalse(IsFullyInside(scroll, last), "スクロール前は末尾の枠が窓の外");
+
+            // 末尾までスクロールすると枠が窓に入り、右押下で解除を送る
+            // Scrolling to the end brings the slot into view and a right press sends clear
+            scroll.SetScrollOffset(scroll.GetContentHeight() - scroll.GetViewportHeight());
+            simulate.FrameUpdate();
+            Assert.IsTrue(IsFullyInside(scroll, last), "スクロールの後に末尾の枠が見える");
+            simulate.Click(last, MouseButton.RightMouse);
+            Assert.AreEqual("filter_splitter.set_filter_item 2 1 clear", Commands.Issued[Commands.Issued.Count - 1]);
+        }
+
+        private static bool IsFullyInside(VisualElement viewport, VisualElement element)
+        {
+            return viewport.worldBound.yMin <= element.worldBound.yMin && element.worldBound.yMax <= viewport.worldBound.yMax;
         }
 
         private FilterSplitterBodyView Render()

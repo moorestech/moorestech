@@ -30,6 +30,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         public static SpaceElevatorDetail SpaceElevator(SpaceElevatorBaseStatus status, bool connected, int pool, float progress) => new(new[] { 0 }, new[] { 1, 2 }, connected, pool, 1000, progress, status);
 
+        public static GearDetail GearMachineGear => GearDetail.Consumer(12.5, 3, 20);
+        public static GearNetworkDetail GearMachineNetwork => new(100, 60, GearNetworkStopReasonKind.None);
+        public static SpecialBlockDetailViewModel GearMachine => new(null, null, GearMachineGear, null, null, GearMachineNetwork, null, null, null);
+        public static SpecialBlockDetailViewModel GearGenerator => new(null, null, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(100, 60, GearNetworkStopReasonKind.None), null, null, null);
+        public static GearToElectricDetail GearToElectricGenerating => new(GearToElectricDisplayState.Generating, 120, 200);
+
         public static SpecialBlockDetailViewModel Only(ElectricToGearDetail detail) => new(detail, null, null, null, null, null, null, null, null);
         public static SpecialBlockDetailViewModel Only(GearToElectricDetail detail) => new(null, detail, null, null, null, null, null, null, null);
         public static SpecialBlockDetailViewModel Only(GearDetail detail) => new(null, null, detail, null, null, null, null, null, null);
