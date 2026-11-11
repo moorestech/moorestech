@@ -43,6 +43,13 @@ namespace Client.Ui.State.BlockInventory.Special.Text
             return Math.Round(value, decimals, MidpointRounding.AwayFromZero).ToString("F" + decimals, CultureInfo.InvariantCulture);
         }
 
+        // サーバーの float を Web と同じ値の double にする（Newtonsoft の最短表記を JS が double で読む経路）
+        // Turns a server float into the double the Web sees (shortest-form text parsed as a JS double)
+        public static double FromServerFloat(float value)
+        {
+            return double.Parse(value.ToString("R", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+        }
+
         // String(number): 整数は小数点なし、他は最短の往復表記
         // String(number): integers without a decimal point, others in the shortest round-trip form
         public static string Number(double value)

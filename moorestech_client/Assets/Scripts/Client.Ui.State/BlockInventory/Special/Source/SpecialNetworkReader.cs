@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.BlockInventory.Special.Text;
 using Game.Gear.Common;
 using Server.Protocol.PacketResponse;
 using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;
@@ -19,7 +20,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
         {
             // silent-ok: 未取得はポーリングの到着待ちで、区画を出さないのが Web と同じ表示 / 届かないままなら録画（R-12）の電柱の段で気づく
             if (snapshot == null) return null;
-            return new ElectricNetworkDetail(snapshot.TotalGeneratePower, snapshot.TotalRequiredPower, snapshot.ConsumerCount, snapshot.PowerRate);
+            return new ElectricNetworkDetail(JsNumberText.FromServerFloat(snapshot.TotalGeneratePower), JsNumberText.FromServerFloat(snapshot.TotalRequiredPower), snapshot.ConsumerCount, JsNumberText.FromServerFloat(snapshot.PowerRate));
         }
 
         public static GearNetworkDetail Gear(GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot snapshot)

@@ -41,6 +41,13 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         }
 
         [Test]
+        public void 供給率はWebと同じ値で丸まる()
+        {
+            var electric = SpecialNetworkReader.Electric(new GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot(167f, 200f, 0.835f, 1));
+            Assert.AreEqual(0.835d, electric.PowerRate);
+        }
+
+        [Test]
         public void 停止理由はサーバーの全値を写す()
         {
             foreach (GearNetworkStopReason reason in Enum.GetValues(typeof(GearNetworkStopReason)))

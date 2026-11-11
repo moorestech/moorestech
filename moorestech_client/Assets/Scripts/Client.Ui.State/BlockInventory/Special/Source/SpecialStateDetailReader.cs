@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.BlockInventory.Special.Text;
 using Core.Master;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
@@ -24,7 +25,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
 
         public static GearToElectricDetail GearToElectric(GearToElectricGeneratorBlockStateDetail state, double maxGeneratedPower)
         {
-            return new GearToElectricDetail(ToDisplayState(state.GenerationState), state.GeneratedElectricPower, maxGeneratedPower);
+            return new GearToElectricDetail(ToDisplayState(state.GenerationState), JsNumberText.FromServerFloat(state.GeneratedElectricPower), maxGeneratedPower);
         }
 
         private static GearToElectricDisplayState ToDisplayState(GearToElectricGenerationState state)
