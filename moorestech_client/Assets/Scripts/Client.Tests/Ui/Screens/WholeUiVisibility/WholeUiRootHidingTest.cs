@@ -63,7 +63,9 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
         [Test]
         public void 隠すと全層の要素が拾えず戻すと同じ要素が前面から拾える()
         {
-            var topmost = _probes[_probes.Count - 1];
+            // 最前面は最後の層の舞台（UiStageFrame は実画面の後に舞台を足す。族の enum 順とは逆）
+            // The frontmost is the last layer's stage (UiStageFrame adds the stage after the viewport, opposite to the family enum order)
+            var topmost = _stack.GetLayer(UiLayer.FullScreenGate, UiFamily.Stage)[0];
             Assert.AreSame(topmost, rootVisualElement.panel.Pick(new Vector2(50, 50)));
 
             _stack.SetAllLayersVisible(false);
