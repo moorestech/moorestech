@@ -16,6 +16,7 @@ using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("uitk-build-bp", options, async p =>
@@ -67,8 +68,9 @@ return PlaytestRunner.Run("uitk-build-bp", options, async p =>
     p.Assert(p.CurrentUiState == UIStateEnum.BuildMenu, $"ドラッグでは選択（建築モード）にならない 実際:{p.CurrentUiState}");
     await p.Screenshot("02-dragged");
 
-    // 4. 閉じて範囲の外へ退き、数字キー 2 で枠 1 を選んで石窯を建てる
-    // 4. Close, step out of the range, pick slot 1 with digit 2 and build the stone oven
+    // 4. 検索語は開き直しで戻る（R-9）ので空にしてから閉じ、範囲の外へ退き、数字キー 2 で枠 1 を選んで石窯を建てる
+    // 4. The query is restored on reopen (R-9), so clear it, close, step out of the range, pick slot 1 with digit 2 and build the oven
+    await p.SetText("build-menu-search", "");
     await p.PressKey(Key.B);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     p.WarpPlayer(new Vector3(6f, 33.5f, -5f));
@@ -76,7 +78,9 @@ return PlaytestRunner.Run("uitk-build-bp", options, async p =>
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await p.AimAt(new Vector3(2.5f, 32f, 2.5f));
     await p.ClickPlace();
-    await p.WaitBlockGameObject(new Vector3Int(2, 32, 2));
+    // 石窯は 3x2x3 なので中心 (2.5,32,2.5) を狙うと原点は (1,32,1) になる
+    // The stone oven is 3x2x3, so aiming at its center (2.5,32,2.5) puts the origin at (1,32,1)
+    await p.WaitBlockGameObject(new Vector3Int(1, 32, 1));
     await p.Screenshot("03-placed");
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
