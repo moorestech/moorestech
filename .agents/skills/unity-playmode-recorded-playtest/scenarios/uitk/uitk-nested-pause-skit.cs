@@ -4,6 +4,7 @@ using System.Reflection;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
+using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -24,6 +25,8 @@ return PlaytestRunner.Run("uitk-nested-pause-skit", options, async p =>
     InputSystem.EnableDevice(Keyboard.current);
     InputSystem.EnableDevice(Mouse.current);
 
+    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
+    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     var skitStore = SkitPresentationStateStore.Instance;
     var skitManager = Object.FindFirstObjectByType<Client.Game.Skit.SkitManager>(FindObjectsInactive.Include);
@@ -35,6 +38,7 @@ return PlaytestRunner.Run("uitk-nested-pause-skit", options, async p =>
     // 自動再生中の開幕スキットを先に終わらせる。並走させると古い方の後片付けが再生中の印を下ろしゲーム画面へ戻る
     // Finish the auto-played opening skit first; running two at once lets the old one's cleanup clear the playing flag and drop to the game screen
     await p.SkipOpeningSkitIfPlaying();
+    p.Note($"飛ばした直後 timeScale={Time.timeScale} 再生中={skitManager.IsPlayingSkit} UI={p.CurrentUiState}");
     await p.Until(() => !skitManager.IsPlayingSkit && p.CurrentUiState == UIStateEnum.GameScreen, 60f, "開幕スキットが終わりゲーム画面");
     // 開幕チャレンジは続けて背景スキットを流し、その終了処理(End)が再生中スキットの送り待ちを取り消すので、終わるまで待つ
     // The opening challenge chains a background skit whose End() cancels a running skit's advance wait, so wait for it to finish
@@ -66,6 +70,11 @@ return PlaytestRunner.Run("uitk-nested-pause-skit", options, async p =>
     await p.Until(MenuOpen, 5f, "入れ子ポーズが開く");
     await p.UntilUiElement("pause-menu", 10f);
     p.Assert(p.CurrentUiState == UIStateEnum.Story, $"ポーズ中も外側はStory（実測 {p.CurrentUiState}）");
+    // ポーズの背後でも会話窓は見えていて、押せない（R-9）
+    // The dialogue window stays visible behind the pause and cannot be pressed (R-9)
+    var skitWindowBehindPause = await PlaytestUiElementOps.FindUi("blocking-skit");
+    p.Assert(skitWindowBehindPause.IsFound && skitWindowBehindPause.Visible, "ポーズの背後で会話窓が見えている");
+    p.Assert(!skitWindowBehindPause.Clickable, "ポーズ中は会話窓を押せない");
     await p.Screenshot("01-skit-pause-top");
 
     // 設定へ進み、戻るでトップへ
