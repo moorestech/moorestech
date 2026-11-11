@@ -66,9 +66,38 @@ namespace Client.Ui.Screens.Recipe
 
             // 別のアイテム、または「レシピ無し」と列の境をまたいだら作り直す（Web は key の再マウントと entries.length の枝の決め直し）
             // Rebuild for a different item or when crossing between "no recipes" and the list (Web remounts by key and re-picks the entries.length branch)
-            var hasRecipes = selected.Entries.Count > 0;
+            var hasRecipes = 0 < selected.Entries.Count;
             if (!_shownSelection.SameAs(RecipeSelection.Of(selected.ItemId)) || hasRecipes != _shownHasRecipes) RebuildContent(selected, hasRecipes);
             if (hasRecipes) _list.Render(selected.Entries);
+
+            #region Internal
+
+            void RebuildContent(RecipeViewerItemSelected selected, bool hasRecipes)
+            {
+                ForgetShownContent();
+                _shownSelection = RecipeSelection.Of(selected.ItemId);
+                _shownHasRecipes = hasRecipes;
+                var header = new ItemHeaderView();
+                header.SetName(_context.Content.ItemName(selected.ItemId));
+                _content.Add(header);
+
+                // レシピが無ければ「レシピ無し」、あれば列（Web の Stack gap sm）
+                // "No recipes" when empty, otherwise the list (the Web Stack gap sm)
+                if (!hasRecipes)
+                {
+                    var noRecipes = new LocalizedLabel { name = "recipe-viewer-no-recipes" };
+                    noRecipes.AddToClassList(UiTypographyClass.TextSm);
+                    noRecipes.AddToClassList(UiTypographyClass.TextDimmed);
+                    noRecipes.AddToClassList("recipe-viewer__no-recipes");
+                    noRecipes.SetText(new UiText(LocalizationKeys.Ui.Recipe.NoRecipes));
+                    _content.Add(noRecipes);
+                    return;
+                }
+                _list = new RecipeEntryList(_context);
+                _content.Add(_list);
+            }
+
+            #endregion
         }
 
         public void SetShown(bool shown)
@@ -96,31 +125,6 @@ namespace Client.Ui.Screens.Recipe
             _list = null;
             _shownSelection = RecipeSelection.None;
             _shownHasRecipes = false;
-        }
-
-        private void RebuildContent(RecipeViewerItemSelected selected, bool hasRecipes)
-        {
-            ForgetShownContent();
-            _shownSelection = RecipeSelection.Of(selected.ItemId);
-            _shownHasRecipes = hasRecipes;
-            var header = new ItemHeaderView();
-            header.SetName(_context.Content.ItemName(selected.ItemId));
-            _content.Add(header);
-
-            // レシピが無ければ「レシピ無し」、あれば列（Web の Stack gap sm）
-            // "No recipes" when empty, otherwise the list (the Web Stack gap sm)
-            if (!hasRecipes)
-            {
-                var noRecipes = new LocalizedLabel { name = "recipe-viewer-no-recipes" };
-                noRecipes.AddToClassList(UiTypographyClass.TextSm);
-                noRecipes.AddToClassList(UiTypographyClass.TextDimmed);
-                noRecipes.AddToClassList("recipe-viewer__no-recipes");
-                noRecipes.SetText(new UiText(LocalizationKeys.Ui.Recipe.NoRecipes));
-                _content.Add(noRecipes);
-                return;
-            }
-            _list = new RecipeEntryList(_context);
-            _content.Add(_list);
         }
     }
 }

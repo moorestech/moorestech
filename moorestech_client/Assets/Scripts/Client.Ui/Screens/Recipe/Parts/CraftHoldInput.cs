@@ -88,6 +88,10 @@ namespace Client.Ui.Screens.Recipe.Parts
             // Clickable が捕捉していると Leave が来ないので、外へ出たかを位置で読む（Web の pointerleave と同じ時点）
             // While Clickable holds capture no Leave arrives, so read the position to detect leaving (same moment as the Web pointerleave)
             if (_pressed && !_button.worldBound.Contains(evt.position)) Release();
+
+            // 他ボタンを押したままの左解放は PointerUp でなく chorded な PointerMove で届く（UiPressGesture と同じ判定）
+            // A primary release while another button is held arrives as a chorded PointerMove, not PointerUp (same check as UiPressGesture)
+            if (_pressed && evt.button == PrimaryButton && (evt.pressedButtons & 1) == 0) Release();
         }
 
         private void Release()

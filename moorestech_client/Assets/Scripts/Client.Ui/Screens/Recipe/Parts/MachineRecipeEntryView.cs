@@ -54,6 +54,46 @@ namespace Client.Ui.Screens.Recipe.Parts
             row.SetAction(info);
             Add(row);
             Render(first);
+
+            #region Internal
+
+            IReadOnlyList<VisualElement> BuildSide(Guid guid, IReadOnlyList<ItemAmount> items, IReadOnlyList<RecipeFluidAmount> fluids, string side)
+            {
+                // アイテム（数付き・押すと選ぶ）の後ろに液体（量付き・遷移なし）
+                // Items (with counts, select on press) followed by fluids (with amounts, no navigation)
+                var slots = new List<VisualElement>(items.Count + fluids.Count);
+                for (var i = 0; i < items.Count; i++) slots.Add(CreateItemSlot(items[i], $"machine-recipe-box-{guid}-{side}-{i}"));
+                for (var i = 0; i < fluids.Count; i++) slots.Add(CreateFluidSlot(fluids[i], $"{name}-{side}-fluid-{i}"));
+                return slots;
+            }
+
+            ItemSlot CreateItemSlot(ItemAmount amount, string testid)
+            {
+                // 機械レシピは手で作らないので所持は見ず必要数だけ出す（Web count={r.count}）
+                // Machine recipes are not hand-crafted, so show only the required count (Web count={r.count})
+                var slot = new ItemSlot(testid);
+                slot.SetContent(new ItemSlotContent(_context.Content.Item(amount.ItemId), amount.Count, new ItemSlotMarks(false, false, false), null, null, null));
+                slot.OnSlotGestured.Subscribe(gesture => OnItemGestured(amount.ItemId, gesture));
+                return slot;
+            }
+
+            void OnItemGestured(ItemId itemId, SlotGesture gesture)
+            {
+                // silent-ok: アイテムは左押下だけを受ける（Web は onLeftDown だけ渡す）/ MachineRecipeEntryViewTest の左押下の件が見る
+                if (gesture.Kind != SlotGestureKind.LeftDown) return;
+                _context.Selection.Select(itemId);
+            }
+
+            FluidAmountSlot CreateFluidSlot(RecipeFluidAmount fluid, string testid)
+            {
+                // 液体はレシピ一覧の遷移先を持たないので押下を購読しない（前例 MachineRecipeSelectionRow）
+                // Fluids have no recipe-list destination, so presses are not subscribed (precedent: MachineRecipeSelectionRow)
+                var slot = new FluidAmountSlot(testid);
+                slot.SetFluid(_context.Content.Fluid(fluid.FluidId), SlotAmountBadge.Show(fluid.Amount));
+                return slot;
+            }
+
+            #endregion
         }
 
         public void Render(MachineRecipeEntryViewModel vm)
@@ -62,42 +102,6 @@ namespace Client.Ui.Screens.Recipe.Parts
             // The inheritance cap changes with research, so only the badge is re-applied (slots are fixed by the GUID)
             if (LevelInheritanceBadgeText.TryBuild(vm.Recipe.LevelInheritance, out var text)) _badge.Show(text);
             else _badge.Hide();
-        }
-
-        private IReadOnlyList<VisualElement> BuildSide(Guid guid, IReadOnlyList<ItemAmount> items, IReadOnlyList<RecipeFluidAmount> fluids, string side)
-        {
-            // アイテム（数付き・押すと選ぶ）の後ろに液体（量付き・遷移なし）
-            // Items (with counts, select on press) followed by fluids (with amounts, no navigation)
-            var slots = new List<VisualElement>(items.Count + fluids.Count);
-            for (var i = 0; i < items.Count; i++) slots.Add(CreateItemSlot(items[i], $"machine-recipe-box-{guid}-{side}-{i}"));
-            for (var i = 0; i < fluids.Count; i++) slots.Add(CreateFluidSlot(fluids[i], $"{name}-{side}-fluid-{i}"));
-            return slots;
-        }
-
-        private ItemSlot CreateItemSlot(ItemAmount amount, string testid)
-        {
-            // 機械レシピは手で作らないので所持は見ず必要数だけ出す（Web count={r.count}）
-            // Machine recipes are not hand-crafted, so show only the required count (Web count={r.count})
-            var slot = new ItemSlot(testid);
-            slot.SetContent(new ItemSlotContent(_context.Content.Item(amount.ItemId), amount.Count, new ItemSlotMarks(false, false, false), null, null, null));
-            slot.OnSlotGestured.Subscribe(gesture => OnItemGestured(amount.ItemId, gesture));
-            return slot;
-        }
-
-        private void OnItemGestured(ItemId itemId, SlotGesture gesture)
-        {
-            // silent-ok: アイテムは左押下だけを受ける（Web は onLeftDown だけ渡す）/ MachineRecipeEntryViewTest の左押下の件が見る
-            if (gesture.Kind != SlotGestureKind.LeftDown) return;
-            _context.Selection.Select(itemId);
-        }
-
-        private FluidAmountSlot CreateFluidSlot(RecipeFluidAmount fluid, string testid)
-        {
-            // 液体はレシピ一覧の遷移先を持たないので押下を購読しない（前例 MachineRecipeSelectionRow）
-            // Fluids have no recipe-list destination, so presses are not subscribed (precedent: MachineRecipeSelectionRow)
-            var slot = new FluidAmountSlot(testid);
-            slot.SetFluid(_context.Content.Fluid(fluid.FluidId), SlotAmountBadge.Show(fluid.Amount));
-            return slot;
         }
     }
 }

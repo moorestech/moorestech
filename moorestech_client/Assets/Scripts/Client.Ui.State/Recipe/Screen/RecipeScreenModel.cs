@@ -83,21 +83,21 @@ namespace Client.Ui.State.Recipe.Screen
                 RebuildWhileShown();
             }
 
+            void RebuildUnlockedLists()
+            {
+                _unlockedCrafts = CraftRecipeCatalog.BuildUnlocked(_unlockState);
+                _visibleItems = _itemCatalog.BuildVisibleItems();
+            }
+
+            // 閉画面の変化は捨てる（前例 ResearchNodeStateStore.RefreshWhileResearchScreenActive）
+            // Drop changes while closed (precedent ResearchNodeStateStore.RefreshWhileResearchScreenActive)
+            void RebuildWhileShown()
+            {
+                if (!_screenShown) return; // silent-ok: 閉画面では組まない / 次の表示の突入で最新を組み、録画 R-13 の再度開く段が見る
+                Rebuild();
+            }
+
             #endregion
-        }
-
-        // 閉画面の変化は捨てる（前例 ResearchNodeStateStore.RefreshWhileResearchScreenActive）
-        // Drop changes while closed (precedent ResearchNodeStateStore.RefreshWhileResearchScreenActive)
-        private void RebuildWhileShown()
-        {
-            if (!_screenShown) return; // silent-ok: 閉画面では組まない / 次の表示の突入で最新を組み、録画 R-13 の再度開く段が見る
-            Rebuild();
-        }
-
-        private void RebuildUnlockedLists()
-        {
-            _unlockedCrafts = CraftRecipeCatalog.BuildUnlocked(_unlockState);
-            _visibleItems = _itemCatalog.BuildVisibleItems();
         }
 
         private void Rebuild()

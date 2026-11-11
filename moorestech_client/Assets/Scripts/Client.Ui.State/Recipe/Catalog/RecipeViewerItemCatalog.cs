@@ -32,15 +32,19 @@ namespace Client.Ui.State.Recipe.Catalog
                 if (visibility == RecipeViewerItemVisibility.Show) result.Add(itemId);
             }
             return result;
-        }
 
-        private void WarnUnknownTypeOnce(string recipeViewType)
-        {
-            // 未知の型は隠す（fail-closed）。開発者が気づくよう最初の 1 回だけ警告する
-            // Unknown types are hidden (fail-closed); warn once so developers notice
-            if (_unknownTypeWarned) return;
-            _unknownTypeWarned = true;
-            Debug.LogWarning($"[RecipeViewerItemCatalog] 未知の RecipeViewType のアイテムを一覧から隠した: {recipeViewType}");
+            #region Internal
+
+            void WarnUnknownTypeOnce(string recipeViewType)
+            {
+                // 未知の型は隠す（fail-closed）。開発者が気づくよう最初の 1 回だけ警告する
+                // Unknown types are hidden (fail-closed); warn once so developers notice
+                if (_unknownTypeWarned) return;
+                _unknownTypeWarned = true;
+                Debug.LogWarning($"[RecipeViewerItemCatalog] 未知の RecipeViewType のアイテムを一覧から隠した: {recipeViewType}");
+            }
+
+            #endregion
         }
     }
 }

@@ -13,8 +13,6 @@ namespace Client.Ui.Screens.Recipe.Parts
     /// </summary>
     public sealed class CraftHoldDriver
     {
-        private const string CraftCommandName = "recipe.craft";
-
         private readonly VisualElement _scheduleOwner;
         private readonly RecipeRow _row;
         private readonly IRecipeCommands _commands;
@@ -80,7 +78,7 @@ namespace Client.Ui.Screens.Recipe.Parts
             // While ticking it is always craftable (Start refuses otherwise and SetRecipe stops it), so the Web's unreachable idle branch is not ported
             var step = HoldCraftLogic.Advance(_elapsed, delta, _craftTime);
             _elapsed = step.Elapsed;
-            if (step.DidCraft) _toaster.Report(CraftCommandName, _commands.Craft(_recipeGuid));
+            if (step.DidCraft) _toaster.Report(RecipeCommands.CommandName, _commands.Craft(_recipeGuid));
             _row.SetProgress((float)HoldCraftLogic.Progress(_elapsed, _craftTime));
         }
     }

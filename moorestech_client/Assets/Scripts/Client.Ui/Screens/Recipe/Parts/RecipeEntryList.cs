@@ -36,6 +36,76 @@ namespace Client.Ui.Screens.Recipe.Parts
             // On an order change, reuse existing elements from the GUID map and re-lay them (an unlock keeps the holding element; D-34)
             if (!SameOrder(entries)) Relayout(entries);
             foreach (var entry in entries) Apply(_viewsByGuid[entry.RecipeGuid], entry);
+
+            #region Internal
+
+            bool SameOrder(IReadOnlyList<RecipeEntryViewModel> entries)
+            {
+                if (entries.Count != _order.Count) return false;
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    if (entries[i].RecipeGuid != _order[i]) return false;
+                }
+                return true;
+            }
+
+            void Relayout(IReadOnlyList<RecipeEntryViewModel> entries)
+            {
+                // 残る GUID は既存の要素を、新しい GUID だけ作る
+                // Keep elements for surviving GUIDs and create only new ones
+                var next = new List<VisualElement>(entries.Count);
+                var kept = new HashSet<Guid>();
+                foreach (var entry in entries)
+                {
+                    kept.Add(entry.RecipeGuid);
+                    if (!_viewsByGuid.TryGetValue(entry.RecipeGuid, out var view))
+                    {
+                        view = Create(entry);
+                        _viewsByGuid.Add(entry.RecipeGuid, view);
+                    }
+                    next.Add(view);
+                }
+
+                // 消えた GUID の要素は捨てる
+                // Drop elements whose GUID is gone
+                foreach (var guid in _order)
+                {
+                    if (!kept.Contains(guid)) _viewsByGuid.Remove(guid);
+                }
+                _order.Clear();
+                foreach (var entry in entries) _order.Add(entry.RecipeGuid);
+
+                // SetEntries（C4-c）は一度外して付け直す。外れている間は長押しのスケジューラが止まり、同じフレームで付け直すので経過は保たれる（D-34）
+                // SetEntries (C4-c) detaches and re-attaches; the hold scheduler pauses while detached and resumes in the same frame, so progress is kept (D-34)
+                _scroll.SetEntries(next);
+            }
+
+            VisualElement Create(RecipeEntryViewModel entry)
+            {
+                return entry switch
+                {
+                    CraftRecipeEntryViewModel craft => new CraftRecipeEntryView(craft, _context),
+                    MachineRecipeEntryViewModel machine => new MachineRecipeEntryView(machine, _context),
+                    _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "未知のレシピエントリ"),
+                };
+            }
+
+            static void Apply(VisualElement view, RecipeEntryViewModel entry)
+            {
+                switch (view)
+                {
+                    case CraftRecipeEntryView craftView:
+                        craftView.Render((CraftRecipeEntryViewModel)entry);
+                        break;
+                    case MachineRecipeEntryView machineView:
+                        machineView.Render((MachineRecipeEntryViewModel)entry);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(view), view, "未知のレシピエントリの要素");
+                }
+            }
+
+            #endregion
         }
 
         private void ApplyClipClearance()
@@ -61,72 +131,6 @@ namespace Client.Ui.Screens.Recipe.Parts
             content.style.paddingRight = inset;
             content.style.paddingBottom = inset;
             content.style.paddingLeft = inset;
-        }
-
-        private bool SameOrder(IReadOnlyList<RecipeEntryViewModel> entries)
-        {
-            if (entries.Count != _order.Count) return false;
-            for (var i = 0; i < entries.Count; i++)
-            {
-                if (entries[i].RecipeGuid != _order[i]) return false;
-            }
-            return true;
-        }
-
-        private void Relayout(IReadOnlyList<RecipeEntryViewModel> entries)
-        {
-            // 残る GUID は既存の要素を、新しい GUID だけ作る
-            // Keep elements for surviving GUIDs and create only new ones
-            var next = new List<VisualElement>(entries.Count);
-            var kept = new HashSet<Guid>();
-            foreach (var entry in entries)
-            {
-                kept.Add(entry.RecipeGuid);
-                if (!_viewsByGuid.TryGetValue(entry.RecipeGuid, out var view))
-                {
-                    view = Create(entry);
-                    _viewsByGuid.Add(entry.RecipeGuid, view);
-                }
-                next.Add(view);
-            }
-
-            // 消えた GUID の要素は捨てる
-            // Drop elements whose GUID is gone
-            foreach (var guid in _order)
-            {
-                if (!kept.Contains(guid)) _viewsByGuid.Remove(guid);
-            }
-            _order.Clear();
-            foreach (var entry in entries) _order.Add(entry.RecipeGuid);
-
-            // SetEntries（C4-c）は一度外して付け直す。外れている間は長押しのスケジューラが止まり、同じフレームで付け直すので経過は保たれる（D-34）
-            // SetEntries (C4-c) detaches and re-attaches; the hold scheduler pauses while detached and resumes in the same frame, so progress is kept (D-34)
-            _scroll.SetEntries(next);
-        }
-
-        private VisualElement Create(RecipeEntryViewModel entry)
-        {
-            return entry switch
-            {
-                CraftRecipeEntryViewModel craft => new CraftRecipeEntryView(craft, _context),
-                MachineRecipeEntryViewModel machine => new MachineRecipeEntryView(machine, _context),
-                _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "未知のレシピエントリ"),
-            };
-        }
-
-        private static void Apply(VisualElement view, RecipeEntryViewModel entry)
-        {
-            switch (view)
-            {
-                case CraftRecipeEntryView craftView:
-                    craftView.Render((CraftRecipeEntryViewModel)entry);
-                    break;
-                case MachineRecipeEntryView machineView:
-                    machineView.Render((MachineRecipeEntryViewModel)entry);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(view), view, "未知のレシピエントリの要素");
-            }
         }
     }
 }

@@ -4,6 +4,7 @@ using Client.Ui.Screens.Recipe;
 using Client.Ui.Screens.Recipe.Parts;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Recipe.Screen;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -100,6 +101,35 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             Assert.AreEqual(1, _commands.Crafted.Count);
             Assert.AreEqual(1, ShownToasts.Count);
         }
+        [Test]
+        public void 他ボタンを押したまま左だけ離すとchordedな移動で止まる()
+        {
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var button = view.Q<RecipeActionButton>();
+            simulate.MouseDown(button.worldBound.center);
+            simulate.FrameUpdateMs(100);
+
+            // 左の解放は PointerUp でなく button=0 の PointerMove で届く（右を押したままの解放）
+            // The primary release arrives as a button=0 PointerMove, not PointerUp (right button still held)
+            var systemEvent = new Event { type = EventType.MouseMove, mousePosition = button.worldBound.center, button = 0 };
+            using (var move = PointerMoveEvent.GetPooled(systemEvent))
+            {
+                move.target = button;
+
+                // 合成イベントの pressedButtons は内部 setter でしか書けないので、右だけが押された状態に反射で整える
+                // The synthetic event's pressedButtons has only an internal setter, so set the right-only state by reflection
+                var pressed = typeof(PointerMoveEvent).GetProperty("pressedButtons", BindingFlags.Public | BindingFlags.Instance);
+                pressed.GetSetMethod(true).Invoke(move, new object[] { 2 });
+                var buttonProperty = typeof(PointerMoveEvent).GetProperty("button", BindingFlags.Public | BindingFlags.Instance);
+                buttonProperty.GetSetMethod(true).Invoke(move, new object[] { 0 });
+                button.SendEvent(move);
+            }
+            Assert.AreEqual(0f, ArrowProgress(view, guid));
+            for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+        }
+
         [Test]
         public void 長押し中にビューアを閉じると押したままでもクラフトしない()
         {

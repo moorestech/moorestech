@@ -62,6 +62,27 @@ namespace Client.Ui.Screens.Recipe.Parts
             row.SetSlots(_materialSlots, new VisualElement[] { _resultSlot });
             Add(row);
             Render(first);
+
+            #region Internal
+
+            ItemSlot CreateMaterialSlot(Guid guid, int index)
+            {
+                // 素材の左押下はその素材のレシピへ移る（Web onLeftDown）。購読は ItemSlot 自身の Subject に閉じるので要素と一緒に捨てる
+                // A left press on a material moves to that material's recipes (the Web onLeftDown); the subscription stays on the slot's own Subject and goes with the element
+                var slot = new ItemSlot($"craft-recipe-box-{guid}-material-{index}");
+                slot.AddToClassList(MaterialSlotClass);
+                slot.OnSlotGestured.Subscribe(gesture => OnMaterialGestured(index, gesture));
+                return slot;
+            }
+
+            void OnMaterialGestured(int index, SlotGesture gesture)
+            {
+                // silent-ok: 素材は左押下だけを受ける（Web は onLeftDown だけ渡す）/ CraftRecipeEntryViewTest の左押下の件が見る
+                if (gesture.Kind != SlotGestureKind.LeftDown) return;
+                _context.Selection.Select(_materialItemIds[index]);
+            }
+
+            #endregion
         }
 
         public void Render(CraftRecipeEntryViewModel vm)
@@ -81,35 +102,23 @@ namespace Client.Ui.Screens.Recipe.Parts
             _resultSlot.SetContent(new ItemSlotContent(_context.Content.Item(vm.Recipe.ResultItemId), vm.Recipe.ResultCount, new ItemSlotMarks(false, false, false), null, null, null));
             _button.SetEnabled(vm.Craftable);
             _hold.SetRecipe(vm.RecipeGuid, vm.Recipe.CraftTime, vm.Craftable);
+
+            #region Internal
+
+            void ApplyMaterial(int index, RecipeMaterialViewModel material)
+            {
+                // 数は所持/必要の表示が描くのでバッジの数は渡さない（Web の素材の ItemSlot は count を持たない）
+                // The owned/required text draws the numbers, so no badge count is passed (the Web material ItemSlot has no count)
+                _materialItemIds[index] = material.ItemId;
+                var itemName = _context.Content.ItemName(material.ItemId).Resolve();
+                var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.RecipeMaterial, itemName, material.Required, material.Owned);
+                var shortage = new ItemSlotShortage(material.Owned, material.Required, material.Lacking, tooltip);
+                _materialSlots[index].SetContent(new ItemSlotContent(_context.Content.Item(material.ItemId), null, new ItemSlotMarks(false, false, material.Lacking), shortage, null, null));
+            }
+
+            #endregion
         }
 
-        private ItemSlot CreateMaterialSlot(Guid guid, int index)
-        {
-            // 素材の左押下はその素材のレシピへ移る（Web onLeftDown）。購読は ItemSlot 自身の Subject に閉じるので要素と一緒に捨てる
-            // A left press on a material moves to that material's recipes (the Web onLeftDown); the subscription stays on the slot's own Subject and goes with the element
-            var slot = new ItemSlot($"craft-recipe-box-{guid}-material-{index}");
-            slot.AddToClassList(MaterialSlotClass);
-            slot.OnSlotGestured.Subscribe(gesture => OnMaterialGestured(index, gesture));
-            return slot;
-        }
-
-        private void OnMaterialGestured(int index, SlotGesture gesture)
-        {
-            // silent-ok: 素材は左押下だけを受ける（Web は onLeftDown だけ渡す）/ CraftRecipeEntryViewTest の左押下の件が見る
-            if (gesture.Kind != SlotGestureKind.LeftDown) return;
-            _context.Selection.Select(_materialItemIds[index]);
-        }
-
-        private void ApplyMaterial(int index, RecipeMaterialViewModel material)
-        {
-            // 数は所持/必要の表示が描くのでバッジの数は渡さない（Web の素材の ItemSlot は count を持たない）
-            // The owned/required text draws the numbers, so no badge count is passed (the Web material ItemSlot has no count)
-            _materialItemIds[index] = material.ItemId;
-            var itemName = _context.Content.ItemName(material.ItemId).Resolve();
-            var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.RecipeMaterial, itemName, material.Required, material.Owned);
-            var shortage = new ItemSlotShortage(material.Owned, material.Required, material.Lacking, tooltip);
-            _materialSlots[index].SetContent(new ItemSlotContent(_context.Content.Item(material.ItemId), null, new ItemSlotMarks(false, false, material.Lacking), shortage, null, null));
-        }
     }
 
     /// <summary>

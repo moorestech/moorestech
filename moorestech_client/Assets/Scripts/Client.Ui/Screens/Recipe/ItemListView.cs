@@ -53,6 +53,34 @@ namespace Client.Ui.Screens.Recipe
             // Rebuild when the order changes, otherwise only re-apply counts
             if (!SameItems(vm.Cells)) Rebuild(vm.Cells);
             for (var i = 0; i < vm.Cells.Count; i++) _cells[i].SetContent(_content.Item(vm.Cells[i].ItemId), vm.Cells[i].CraftableCount);
+
+            #region Internal
+
+            bool SameItems(IReadOnlyList<ItemListCell> next)
+            {
+                if (next.Count != _cells.Count) return false;
+                for (var i = 0; i < next.Count; i++)
+                {
+                    if (next[i].ItemId != _cells[i].ItemId) return false;
+                }
+                return true;
+            }
+
+            void Rebuild(IReadOnlyList<ItemListCell> next)
+            {
+                // 解放で並びが変わったときだけセルを作り直す
+                // Recreate the cells only when an unlock changed the order
+                _grid.ClearItems();
+                _cells.Clear();
+                foreach (var cell in next)
+                {
+                    var view = new ItemListCellView(cell.ItemId);
+                    _cells.Add(view);
+                    _grid.AddItem(view);
+                }
+            }
+
+            #endregion
         }
 
         public void SetShown(bool shown)
@@ -96,30 +124,6 @@ namespace Client.Ui.Screens.Recipe
             _scroll.contentContainer.style.paddingTop = inset;
             _scroll.contentContainer.style.paddingBottom = inset;
             _scroll.contentContainer.style.paddingLeft = inset;
-        }
-
-        private bool SameItems(IReadOnlyList<ItemListCell> next)
-        {
-            if (next.Count != _cells.Count) return false;
-            for (var i = 0; i < next.Count; i++)
-            {
-                if (next[i].ItemId != _cells[i].ItemId) return false;
-            }
-            return true;
-        }
-
-        private void Rebuild(IReadOnlyList<ItemListCell> next)
-        {
-            // 解放で並びが変わったときだけセルを作り直す
-            // Recreate the cells only when an unlock changed the order
-            _grid.ClearItems();
-            _cells.Clear();
-            foreach (var cell in next)
-            {
-                var view = new ItemListCellView(cell.ItemId);
-                _cells.Add(view);
-                _grid.AddItem(view);
-            }
         }
     }
 }
