@@ -163,6 +163,9 @@
     --research-action-height: auto; /* web: research .researchButton は高さの指定なし（padding 8px 0 と行の高さ normal）。S4-research が画面で上書きする */
     --recipe-list-gap: var(--recipe-entry-gap); /* web: RecipeListScrollArea の listGap。機械のレシピ選択は --machine-recipe-row-gap へ上書き */
 
+    /* ── S4-train: 駅名の入力欄の幅。Web は幅を指定せず、<input type="text"> の UA 既定（size=20）が MooresUI JP 16px で 200.19px（border-box・mock-host の 1280×720 で getBoundingClientRect 実測） */
+    /* ── S4-train: station name field width; the Web sets none, so the UA default for <input type="text"> (size=20) measures 200.19px in MooresUI JP 16px (border-box, getBoundingClientRect on mock-host 1280x720) */
+    --train-station-name-input-width: 200px; /* web: TrainStationNameSection の input（textAreaField .field は寸法を持たない）。UA の size=20 の幅の実測 */
     /* S4-research: 研究ノードのロックの減光。Web .node[data-locked] の opacity をそのまま使う（半透明は Web の値で書く。設計書 A-52） */
     /* S4-research: dimming of locked research nodes; uses the Web .node[data-locked] opacity as is (translucency is written with Web values; design A-52) */
     --research-node-locked-opacity: 0.45; /* web: .node[data-locked] { opacity: 0.45 } */
