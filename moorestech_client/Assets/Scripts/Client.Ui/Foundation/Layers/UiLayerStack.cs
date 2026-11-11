@@ -13,10 +13,12 @@ namespace Client.Ui.Foundation.Layers
     {
         private const string LayerUssClassName = "game-ui-layer";
 
+        private readonly VisualElement _root;
         private readonly Dictionary<UiLayer, UiStageFrame> _frames;
 
-        private UiLayerStack(Dictionary<UiLayer, UiStageFrame> frames)
+        private UiLayerStack(VisualElement root, Dictionary<UiLayer, UiStageFrame> frames)
         {
+            _root = root;
             _frames = frames;
         }
 
@@ -36,7 +38,7 @@ namespace Client.Ui.Foundation.Layers
                 frames.Add(layer, UiStageFrame.Build(container));
             }
 
-            return new UiLayerStack(frames);
+            return new UiLayerStack(root, frames);
 
             #region Internal
 
@@ -55,6 +57,24 @@ namespace Client.Ui.Foundation.Layers
         public VisualElement GetLayer(UiLayer layer, UiFamily family)
         {
             return _frames[layer].Get(family);
+        }
+
+        // 全部隠し（HideAll）の中身。全層をルート 1 つの display でまとめて出し入れする。要素は階層に残すので購読・入力中の値・動きは保たれる（A-80）
+        // Body of HideAll: shows or hides every layer at once through the root's display; elements stay in the hierarchy, so subscriptions, typed values and motion survive (A-80)
+        public void SetAllLayersVisible(bool visible)
+        {
+            if (visible)
+            {
+                // 戻すときはインラインの指定を外し、USS の既定へ返す
+                // When showing again, drop the inline value and return to the USS default
+                _root.style.display = StyleKeyword.Null;
+                return;
+            }
+
+            // 隠れた入力欄がフォーカスを持ち続けるとゲームのキー抑止が残るので先に外す（Web の focus fixup と同じ。フォーカス無しは外すものが無い）
+            // A hidden text field keeping focus would leave the game's key suppression on, so blur first (same as the Web focus fixup; no focus means nothing to blur)
+            _root.focusController.focusedElement?.Blur();
+            _root.style.display = DisplayStyle.None;
         }
     }
 }

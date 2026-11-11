@@ -56,5 +56,12 @@ namespace Client.Ui.Foundation.Root
         {
             uiDocument.rootVisualElement.EnableInClassList(className, enabled);
         }
+
+        // Ctrl+U・カットシーンの全体非表示（全部隠し・HideAll）。BehindStage の通知も含む全層をルート 1 つの display で出し入れする（A-80）
+        // Whole-UI hiding (HideAll) for Ctrl+U and cutscenes; shows or hides every layer, BehindStage notifications included, through the single root display (A-80)
+        public void SetWholeUiVisible(bool visible)
+        {
+            _layers.SetAllLayersVisible(visible);
+        }
     }
 }
