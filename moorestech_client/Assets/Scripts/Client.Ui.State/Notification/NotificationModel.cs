@@ -25,10 +25,10 @@ namespace Client.Ui.State.Notification
 
             // 合流するのは獲得だけ。合流先は同じアイテム・同じ messageId の表示中の行で、id と位置を保ち epoch を進める
             // Only earns merge; the target is a visible row with the same item and messageId, keeping its id and position and advancing the epoch
-            if (content is EarnedNotificationContent earned && TryFindMergeTarget(rows, earned, out var index, out var shown))
+            if (content is EarnedNotificationContent earned && TryFindMergeTarget(earned, out var index, out var merged))
             {
-                var merged = new NotificationRow(rows[index].Id, rows[index].LifetimeEpoch + 1, shown.MergeWith(earned));
-                _current.Value = new NotificationListViewModel(new List<NotificationRow>(rows) { [index] = merged });
+                var mergedRow = new NotificationRow(rows[index].Id, rows[index].LifetimeEpoch + 1, merged);
+                _current.Value = new NotificationListViewModel(new List<NotificationRow>(rows) { [index] = mergedRow });
                 return;
             }
 
@@ -36,6 +36,21 @@ namespace Client.Ui.State.Notification
             // A new row goes to the end (newest)
             var row = new NotificationRow(_nextId++, 0, content);
             _current.Value = new NotificationListViewModel(new List<NotificationRow>(rows) { row });
+
+            #region Internal
+
+            bool TryFindMergeTarget(EarnedNotificationContent newer, out int foundIndex, out EarnedNotificationContent mergedContent)
+            {
+                for (foundIndex = 0; foundIndex < rows.Count; foundIndex++)
+                {
+                    if (rows[foundIndex].Content is EarnedNotificationContent candidate && candidate.TryMergeWith(newer, out mergedContent)) return true;
+                }
+                foundIndex = -1;
+                mergedContent = null;
+                return false;
+            }
+
+            #endregion
         }
 
         public void RemoveNotification(long id)
@@ -50,21 +65,6 @@ namespace Client.Ui.State.Notification
             // silent-ok: 同じ行の除去が 2 度来るのは、退場の終わりと差分描画の片付けが重なる正常な場合 / 消し漏れは NotificationModelTest と L1 の行数の検査が気づく
             if (kept.Count == rows.Count) return;
             _current.Value = new NotificationListViewModel(kept);
-        }
-
-        private static bool TryFindMergeTarget(IReadOnlyList<NotificationRow> rows, EarnedNotificationContent newer, out int index, out EarnedNotificationContent shown)
-        {
-            for (index = 0; index < rows.Count; index++)
-            {
-                if (rows[index].Content is EarnedNotificationContent candidate && candidate.CanMergeWith(newer))
-                {
-                    shown = candidate;
-                    return true;
-                }
-            }
-            index = -1;
-            shown = null;
-            return false;
         }
     }
 }

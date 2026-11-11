@@ -60,7 +60,7 @@ namespace Client.Tests.Ui.State.Notification.Coverage
             foreach (var source in sources.Values)
             {
                 var match = enumBody.Match(source);
-                if (match.Success) return match.Groups[1].Value.Split(',').Select(member => member.Split('=')[0].Trim()).Where(member => member.Length > 0).ToList();
+                if (match.Success) return match.Groups[1].Value.Split(',').Select(member => member.Split('=')[0].Trim()).Where(member => 0 < member.Length).ToList();
             }
             return null;
         }

@@ -38,6 +38,17 @@ namespace Client.Tests.Ui.Screens.Notification
             Assert.IsTrue(IsShown(iconSlot));
             StringAssert.Contains("#2", ConcatText(iconSlot));
             Assert.AreEqual(22f, iconSlot.resolvedStyle.width, 0.5f);
+
+            #region Internal
+
+            string ConcatText(VisualElement root)
+            {
+                var text = string.Empty;
+                root.Query<TextElement>().ForEach(element => text += element.text);
+                return text;
+            }
+
+            #endregion
         }
 
         [Test]
@@ -58,13 +69,6 @@ namespace Client.Tests.Ui.Screens.Notification
             var view = new NotificationRowView();
             view.Show(row, text, _icons);
             return Mount(view);
-        }
-
-        private static string ConcatText(VisualElement root)
-        {
-            var text = string.Empty;
-            root.Query<TextElement>().ForEach(element => text += element.text);
-            return text;
         }
     }
 }

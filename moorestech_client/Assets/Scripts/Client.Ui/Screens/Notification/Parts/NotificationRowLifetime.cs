@@ -10,13 +10,13 @@ namespace Client.Ui.Screens.Notification.Parts
     /// </summary>
     public static class NotificationRowLifetime
     {
-        public static UiTweenAnimation CreateEnter(VisualElement row, NotificationRowTiming timing)
+        internal static UiTweenAnimation CreateEnter(VisualElement row, NotificationRowTiming timing)
         {
             var spec = new UiMotionSpec(timing.EnterMilliseconds, 0f, UiEasing.CssEaseOut, UiMotionLoop.Once);
             return new UiTweenAnimation(spec, EnterStep(row, timing));
         }
 
-        public static UiTweenAnimation CreateExit(VisualElement row, NotificationRowTiming timing)
+        internal static UiTweenAnimation CreateExit(VisualElement row, NotificationRowTiming timing)
         {
             // 退場の頭は生存尺から退場の尺を引いた時刻。2 本は同じフレームで始まるので遅延で順を作る
             // The exit starts at the lifetime minus the exit duration; both start on the same frame, so the delay makes the order

@@ -47,7 +47,7 @@ namespace Client.Ui.Foundation.Motion.Tween
         private static float CssCubicBezier(float x1, float y1, float x2, float y2, float t)
         {
             if (t <= 0f) return 0f;
-            if (t >= 1f) return 1f;
+            if (1f <= t) return 1f;
             var low = 0f;
             var high = 1f;
             for (var i = 0; i < CssBezierBisectionSteps; i++)
@@ -57,12 +57,16 @@ namespace Client.Ui.Foundation.Motion.Tween
                 else high = middle;
             }
             return Bezier((low + high) * 0.5f, y1, y2);
-        }
 
-        private static float Bezier(float s, float p1, float p2)
-        {
-            var u = 1f - s;
-            return 3f * u * u * s * p1 + 3f * u * s * s * p2 + s * s * s;
+            #region Internal
+
+            float Bezier(float s, float p1, float p2)
+            {
+                var u = 1f - s;
+                return 3f * u * u * s * p1 + 3f * u * s * s * p2 + s * s * s;
+            }
+
+            #endregion
         }
     }
 }

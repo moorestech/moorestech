@@ -39,8 +39,20 @@ namespace Client.Ui.Screens.Notification
             pickingMode = PickingMode.Ignore;
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+
+            // 内容名・アイテム名は解決済みの文字列で UiText に入るので、言語が変わったら行ごとに解き直す
+            // Content and item names enter the UiText as resolved strings, so re-resolve every row when the language changes
             RegisterCallback<AttachToPanelEvent>(attachEvent => _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts()));
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+
+            #region Internal
+
+            void ReapplyTexts()
+            {
+                foreach (var shown in _shownRows.Values) shown.View.SetText(TextOf(shown.View.Row));
+            }
+
+            #endregion
         }
 
         public void Render(NotificationListViewModel viewModel)
@@ -56,12 +68,13 @@ namespace Client.Ui.Screens.Notification
 
             RemoveVanishedRows(viewModel);
             foreach (var row in viewModel.Rows) ShowRow(row);
-        }
 
-        private void ShowRow(NotificationRow row)
-        {
-            if (_shownRows.TryGetValue(row.Id, out var shown))
+            #region Internal
+
+            void ShowRow(NotificationRow row)
             {
+                if (_shownRows.TryGetValue(row.Id, out var shown))
+                {
                 // silent-ok: Render は毎回全行を渡すので、生存尺が回り直していない行は触らない / 合流の再生は L1「合流で生存尺が回り直し…」が確かめる
                 if (shown.LifetimeEpoch == row.LifetimeEpoch) return;
 
@@ -71,15 +84,30 @@ namespace Client.Ui.Screens.Notification
                 shown.View.Show(row, TextOf(row), _icons);
                 StartLifetime(shown, row);
                 return;
+                }
+
+                // 新着は最上段へ（Web の column-reverse と同じ見え方）。登録してから生存を回し、除去の再入が必ず行を見つけるようにする
+                // The newest goes on top (same look as the Web column-reverse); register before starting the lifetime so a re-entrant removal always finds the row
+                var added = new ShownRow(new NotificationRowView());
+                added.View.Show(row, TextOf(row), _icons);
+                Insert(0, added.View);
+                _shownRows.Add(row.Id, added);
+                StartLifetime(added, row);
             }
 
-            // 新着は最上段へ（Web の column-reverse と同じ見え方）。登録してから生存を回し、除去の再入が必ず行を見つけるようにする
-            // The newest goes on top (same look as the Web column-reverse); register before starting the lifetime so a re-entrant removal always finds the row
-            var added = new ShownRow(new NotificationRowView());
-            added.View.Show(row, TextOf(row), _icons);
-            Insert(0, added.View);
-            _shownRows.Add(row.Id, added);
-            StartLifetime(added, row);
+            void RemoveVanishedRows(NotificationListViewModel viewModel)
+            {
+                var alive = new HashSet<long>(viewModel.Rows.Select(row => row.Id));
+                foreach (var id in _shownRows.Keys.Where(id => !alive.Contains(id)).ToList())
+                {
+                var shown = _shownRows[id];
+                shown.StopLifetime();
+                shown.View.RemoveFromHierarchy();
+                _shownRows.Remove(id);
+                }
+            }
+
+            #endregion
         }
 
         private void StartLifetime(ShownRow shown, NotificationRow row)
@@ -89,25 +117,6 @@ namespace Client.Ui.Screens.Notification
             var handle = NotificationRowLifetime.Play(shown.View, _timing);
             var exitSubscription = handle.ExitCompleted.Subscribe(_ => _writer.RemoveNotification(row.Id));
             shown.SetLifetime(row.LifetimeEpoch, handle, exitSubscription);
-        }
-
-        private void RemoveVanishedRows(NotificationListViewModel viewModel)
-        {
-            var alive = new HashSet<long>(viewModel.Rows.Select(row => row.Id));
-            foreach (var id in _shownRows.Keys.Where(id => !alive.Contains(id)).ToList())
-            {
-                var shown = _shownRows[id];
-                shown.StopLifetime();
-                shown.View.RemoveFromHierarchy();
-                _shownRows.Remove(id);
-            }
-        }
-
-        private void ReapplyTexts()
-        {
-            // 内容名・アイテム名は解決済みの文字列で UiText に入るので、言語が変わったら行ごとに解き直す
-            // Content and item names enter the UiText as resolved strings, so re-resolve every row when the language changes
-            foreach (var shown in _shownRows.Values) shown.View.SetText(TextOf(shown.View.Row));
         }
 
         // 行の文の解決はこの 1 か所（新着・合流・言語の 3 経路が呼ぶ）
@@ -123,7 +132,7 @@ namespace Client.Ui.Screens.Notification
 
             // 外れると行の動きが止まり退場の終わりが来ない＝行が Model に残る。常駐のホストが外れるのは Dispose だけのはずなので、それ以外で起きたら開発者に知らせる
             // Detaching stops the row motions, so no exit end comes and rows stay in the model; a resident host should only detach on Dispose, so tell developers otherwise
-            if (_shownRows.Count > 0) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop and they will not be removed");
+            if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop and they will not be removed");
         }
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)

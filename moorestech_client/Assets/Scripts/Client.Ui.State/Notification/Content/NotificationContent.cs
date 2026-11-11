@@ -41,16 +41,14 @@ namespace Client.Ui.State.Notification.Content
             Count = count;
         }
 
-        public bool CanMergeWith(EarnedNotificationContent newer)
+        // 同じアイテム・同じ messageId なら数を足して合流した中身を返す。ほかの項目は新しい方を採る（Web の { ...n, count: merged.count + n.count }）
+        // Returns the merged content with summed counts for the same item and messageId, taking the newer fields otherwise (Web { ...n, count: merged.count + n.count })
+        public bool TryMergeWith(EarnedNotificationContent newer, out EarnedNotificationContent merged)
         {
-            return newer.ItemId == ItemId && newer.MessageId == MessageId;
-        }
-
-        // 数を足し、ほかの項目は新しい方を採る（Web の { ...n, count: merged.count + n.count }）
-        // Add the counts and take the newer fields otherwise (Web { ...n, count: merged.count + n.count })
-        public EarnedNotificationContent MergeWith(EarnedNotificationContent newer)
-        {
-            return new EarnedNotificationContent(newer.MessageId, newer.MessageParams, newer.ItemId, Count + newer.Count);
+            merged = null;
+            if (newer.ItemId != ItemId || newer.MessageId != MessageId) return false;
+            merged = new EarnedNotificationContent(newer.MessageId, newer.MessageParams, newer.ItemId, Count + newer.Count);
+            return true;
         }
     }
 

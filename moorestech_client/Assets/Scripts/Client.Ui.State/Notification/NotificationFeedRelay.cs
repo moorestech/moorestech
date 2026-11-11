@@ -28,16 +28,20 @@ namespace Client.Ui.State.Notification
             var initialNotice = _feed.SaveMigrationNotice;
             if (initialNotice != null) Push(initialNotice.Message);
             _subscription = _feed.OnNotified.Subscribe(notification => Push(notification.Message));
+
+            #region Internal
+
+            void Push(NotificationMessagePack message)
+            {
+                _writer.AddNotification(NotificationContentFactory.FromMessage(message));
+            }
+
+            #endregion
         }
 
         public void Dispose()
         {
             _subscription?.Dispose();
-        }
-
-        private void Push(NotificationMessagePack message)
-        {
-            _writer.AddNotification(NotificationContentFactory.FromMessage(message));
         }
     }
 }

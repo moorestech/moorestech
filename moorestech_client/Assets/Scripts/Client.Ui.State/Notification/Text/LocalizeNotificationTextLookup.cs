@@ -35,6 +35,16 @@ namespace Client.Ui.State.Notification.Text
             if (!IsMissingMarker(name, key)) return name;
             Debug.LogError($"[LocalizeNotificationTextLookup] item {itemId.AsPrimitive()} has no name in every language ({key.Key}); showing the fallback name");
             return FallbackName(itemId);
+
+            #region Internal
+
+            string FallbackName(ItemId id)
+            {
+                var itemIdText = id.AsPrimitive().ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return Localize.GetFormatted(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", itemIdText) });
+            }
+
+            #endregion
         }
 
         // 欠けの印は LocalizationTextResolver の「[!<key>]」（Web の i18nStore も同じ形）
@@ -42,12 +52,6 @@ namespace Client.Ui.State.Notification.Text
         private static bool IsMissingMarker(string text, ContentLocalizationKey key)
         {
             return text == $"[!{key.Key}]";
-        }
-
-        private static string FallbackName(ItemId itemId)
-        {
-            var itemIdText = itemId.AsPrimitive().ToString(System.Globalization.CultureInfo.InvariantCulture);
-            return Localize.GetFormatted(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", itemIdText) });
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Client.Ui.State.Notification.Text
             return new UiText(LocalizationKeys.Ui.Notification.ItemEarned, values);
         }
 
-        public static IReadOnlyList<LocalizationTextParam> ResolveParams(IReadOnlyList<NotificationParam> messageParams, INotificationTextLookup lookup)
+        internal static IReadOnlyList<LocalizationTextParam> ResolveParams(IReadOnlyList<NotificationParam> messageParams, INotificationTextLookup lookup)
         {
             var resolved = new List<LocalizationTextParam>(messageParams.Count);
             foreach (var param in messageParams) resolved.Add(new LocalizationTextParam(param.Name, ValueOf(param)));
@@ -56,7 +56,7 @@ namespace Client.Ui.State.Notification.Text
 
         // params を並べた後に messageId を足す。params に同名があれば messageId が勝つ（Web の { ...params, messageId }）
         // List the params, then messageId; a same-named param loses to messageId (Web { ...params, messageId })
-        public static List<LocalizationTextParam> BuildInterpolationValues(string messageId, IReadOnlyList<LocalizationTextParam> resolvedParams)
+        internal static List<LocalizationTextParam> BuildInterpolationValues(string messageId, IReadOnlyList<LocalizationTextParam> resolvedParams)
         {
             var values = new List<LocalizationTextParam>(resolvedParams.Count + 1);
             foreach (var param in resolvedParams)

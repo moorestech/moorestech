@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Localization;
+using Client.Ui.State.Notification.Params;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.State.Notification.Text
@@ -13,8 +14,8 @@ namespace Client.Ui.State.Notification.Text
         private static readonly Dictionary<string, LocalizationKey> Keys = new()
         {
             ["denied.undoRestoreSkipped"] = LocalizationKeys.Ui.Notification.UndoRestoreSkipped,
-            ["achievement.researchCompleted"] = LocalizationKeys.Ui.Notification.ResearchCompleted,
-            ["achievement.challengeCompleted"] = LocalizationKeys.Ui.Notification.ChallengeCompleted,
+            [NotificationParams.ResearchCompletedId] = LocalizationKeys.Ui.Notification.ResearchCompleted,
+            [NotificationParams.ChallengeCompletedId] = LocalizationKeys.Ui.Notification.ChallengeCompleted,
             ["achievement.unlockedItem"] = LocalizationKeys.Ui.Notification.UnlockedItem,
             ["achievement.unlockedCraftRecipe"] = LocalizationKeys.Ui.Notification.UnlockedCraftRecipe,
             ["achievement.unlockedMachineRecipe"] = LocalizationKeys.Ui.Notification.UnlockedMachineRecipe,
