@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.Content
             return _fluid;
         }
 
-        // 車両と接続ツールはブロックと同じ 1 枚を返す（L1 は絵の有無だけを見る）
+        // 車両・接続ツールもブロックと同じ1枚（L1は絵の有無のみ）
         // Train cars and connect tools return the block texture (L1 only checks whether a picture exists)
         public Texture2D TrainCarTexture(Guid trainCarGuid)
         {

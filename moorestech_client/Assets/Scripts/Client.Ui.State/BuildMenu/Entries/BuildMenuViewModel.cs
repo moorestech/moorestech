@@ -15,7 +15,6 @@ namespace Client.Ui.State.BuildMenu.Entries
         public static readonly BuildMenuViewModel Empty = new(Array.Empty<BuildMenuCategory>(), new Dictionary<Guid, UiText>(), Array.Empty<BuildMenuEntryViewModel>());
 
         public IReadOnlyList<BuildMenuCategory> Categories { get; }
-        public IReadOnlyList<BuildMenuEntryViewModel> Entries { get; }
         public IReadOnlyList<BuildMenuCatalogEntry> CatalogEntries { get; }
 
         private readonly IReadOnlyDictionary<Guid, UiText> _headingNames;
@@ -24,7 +23,6 @@ namespace Client.Ui.State.BuildMenu.Entries
         public BuildMenuViewModel(IReadOnlyList<BuildMenuCategory> categories, IReadOnlyDictionary<Guid, UiText> headingNames, IReadOnlyList<BuildMenuEntryViewModel> entries)
         {
             Categories = categories;
-            Entries = entries;
             CatalogEntries = entries.Select(entry => entry.Catalog).ToList();
             _headingNames = headingNames;
             _entriesById = entries.ToDictionary(entry => entry.Catalog.TargetId);

@@ -9,7 +9,7 @@ using Cysharp.Threading.Tasks;
 namespace Client.Ui.Screens.BuildMenu
 {
     /// <summary>
-    /// マスの操作を型付きコマンドへ流し、結果をトーストへ、ホバーを詳細とセッションへ渡す
+    /// マス操作を型付きコマンドへ流し、結果をトーストへ
     /// Routes slot operations to typed commands, results to toasts, and hovers to the detail and session
     /// </summary>
     public sealed class BuildMenuEntryActions : IBuildMenuEntryHandler
@@ -46,19 +46,23 @@ namespace Client.Ui.Screens.BuildMenu
 
         public void OnBlueprintDeleteRequested(Guid targetId)
         {
-            DeleteBlueprintAsync(targetId).Forget();
+            DeleteBlueprintAsync().Forget();
+
+            #region Internal
+
+            async UniTaskVoid DeleteBlueprintAsync()
+            {
+                var result = await _commands.DeleteBlueprint(targetId);
+                _toaster.Report(DeleteCommandName, result);
+            }
+
+            #endregion
         }
 
         public void OnEntryHovered(Guid targetId)
         {
             _session.SetHoveredEntry(targetId);
             RefreshDetail();
-        }
-
-        private async UniTaskVoid DeleteBlueprintAsync(Guid blueprintGuid)
-        {
-            var result = await _commands.DeleteBlueprint(blueprintGuid);
-            _toaster.Report(DeleteCommandName, result);
         }
 
         // sticky: 離れても消さず、エントリが無くなったら（解放の取り消し・BP の削除）ヒントへ戻す（Web の ?? null。D-14）

@@ -38,7 +38,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             frame.SetTitle(new UiText(LocalizationKeys.Ui.BuildMenu.Title)); /* look-exception: LX-72。題の影のかけらと 2560×1080 の幅は共有 GamePanel の題の描き方 */
             panel.Add(frame);
 
-            // 中央の列: 検索 → スクロール（該当なしとリストを入れ替える）
+            // 中央列: 検索→スクロール
             // Center column: search, then the scroll (the no-results label swaps with the list)
             Search = new GameTextField("build-menu-search", false, GameTextFieldLook.GaugeInset);
             Search.AddToClassList("build-menu__search");

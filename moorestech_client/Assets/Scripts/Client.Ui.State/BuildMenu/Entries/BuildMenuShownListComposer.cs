@@ -11,10 +11,10 @@ namespace Client.Ui.State.BuildMenu.Entries
     {
         public static BuildMenuShownList Compose(BuildMenuViewModel viewModel, string query)
         {
-            // サイドバーは全エントリの群、本文は検索を当てた群
+            // サイドバーは全群、本文は検索後の群
             // The sidebar lists groups of all entries; the body lists the searched groups
             var allGroups = BuildMenuGrouping.Group(viewModel.Categories, viewModel.CatalogEntries);
-            var searching = query.Length > 0;
+            var searching = 0 < query.Length;
             var shownGroups = searching ? BuildMenuGrouping.Group(viewModel.Categories, BuildMenuGrouping.Search(query, viewModel.CatalogEntries)) : allGroups;
             var sidebar = allGroups.Select(group => group.CategoryGuid).ToList();
             return new BuildMenuShownList(shownGroups, sidebar, searching && shownGroups.Count == 0);

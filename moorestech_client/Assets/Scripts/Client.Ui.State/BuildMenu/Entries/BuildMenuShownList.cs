@@ -6,7 +6,7 @@ using Client.Ui.State.BuildMenu.Logic;
 namespace Client.Ui.State.BuildMenu.Entries
 {
     /// <summary>
-    /// 今出すもの（検索を当てた群・サイドバーの項目と有効・該当なし）
+    /// 検索後の群・サイド項目・該当なし
     /// What to show now: searched groups, sidebar items with their enabled state, and the no-results flag
     /// </summary>
     public sealed class BuildMenuShownList

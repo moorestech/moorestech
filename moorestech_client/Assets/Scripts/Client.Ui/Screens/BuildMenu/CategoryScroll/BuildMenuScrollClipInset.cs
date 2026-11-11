@@ -16,27 +16,31 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 
         public static void Apply(GameScrollView scroll)
         {
-            scroll.RegisterCallback<CustomStyleResolvedEvent>(_ => OnResolved(scroll));
-        }
+            scroll.RegisterCallback<CustomStyleResolvedEvent>(_ => OnResolved());
 
-        private static void OnResolved(GameScrollView scroll)
-        {
-            // 読めないときは UssCustomStyleReader が LogError を出し、クリップは広げない（BuildMenuLayoutTest の逃げの主張が赤になる）
-            // When unreadable, UssCustomStyleReader logs an error and the clip stays unwidened (BuildMenuLayoutTest's clearance assertion turns red)
-            if (!UssCustomStyleReader.TryReadPixels(scroll.customStyle, ClipInsetProperty, out var inset)) return;
+            #region Internal
 
-            // 外へ広げた分だけ内側を空け、格子の位置と寸法を変えない（Web: margin calc(-1 * inset)・padding inset）
-            // Pad inward by what was widened outward so the grid keeps its position and size (Web: margin calc(-1 * inset), padding inset)
-            var outer = scroll.style;
-            outer.marginLeft = -inset;
-            outer.marginTop = -inset;
-            outer.marginRight = -inset;
-            outer.marginBottom = -inset;
-            var content = scroll.contentContainer.style;
-            content.paddingLeft = inset;
-            content.paddingTop = inset;
-            content.paddingRight = inset;
-            content.paddingBottom = inset;
+            void OnResolved()
+            {
+                // 読めないときは UssCustomStyleReader が LogError を出し、クリップは広げない（BuildMenuLayoutTest の逃げの主張が赤になる）
+                // When unreadable, UssCustomStyleReader logs an error and the clip stays unwidened (BuildMenuLayoutTest's clearance assertion turns red)
+                if (!UssCustomStyleReader.TryReadPixels(scroll.customStyle, ClipInsetProperty, out var inset)) return;
+
+                // 外へ広げた分だけ内側を空け、格子の位置と寸法を変えない（Web: margin calc(-1 * inset)・padding inset）
+                // Pad inward by what was widened outward so the grid keeps its position and size (Web: margin calc(-1 * inset), padding inset)
+                var outer = scroll.style;
+                outer.marginLeft = -inset;
+                outer.marginTop = -inset;
+                outer.marginRight = -inset;
+                outer.marginBottom = -inset;
+                var content = scroll.contentContainer.style;
+                content.paddingLeft = inset;
+                content.paddingTop = inset;
+                content.paddingRight = inset;
+                content.paddingBottom = inset;
+            }
+
+            #endregion
         }
     }
 }

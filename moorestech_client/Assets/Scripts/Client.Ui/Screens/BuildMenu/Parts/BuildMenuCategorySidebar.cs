@@ -28,11 +28,30 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
         public void Render(BuildMenuShownList shown, BuildMenuViewModel viewModel)
         {
-            if (!_categories.SequenceEqual(shown.SidebarCategories)) Rebuild(shown.SidebarCategories, viewModel);
+            if (!_categories.SequenceEqual(shown.SidebarCategories)) Rebuild();
 
-            // ヒットの無いカテゴリだけ無効（Web の disabled）
+            // ヒット無しカテゴリだけ無効
             // Only categories without hits are disabled (the Web disabled)
             foreach (var category in _categories) _switch.SetOptionEnabled(category, shown.IsCategoryEnabled(category));
+
+            #region Internal
+
+            void Rebuild()
+            {
+                _categories = shown.SidebarCategories.ToList();
+                _switchSubscription?.Dispose();
+                _switch?.RemoveFromHierarchy();
+
+                // 選択肢の文は VM の見出しの名前。高さのつまみは画面のクラスで上書きする（D-26）
+                // Option labels are the view model's heading names; the height knob is overridden through the screen class (D-26)
+                var options = _categories.Select(guid => new ModeSwitchOption<Guid>($"build-menu-category-{guid:D}", guid, viewModel.HeadingNameOf(guid))).ToList();
+                _switch = new ModeSwitch<Guid>("build-menu-sidebar", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, options);
+                _switch.AddToClassList("build-menu__category-switch");
+                _switchSubscription = _switch.OnOptionSelected.Subscribe(_onCategorySelected.OnNext);
+                Add(_switch);
+            }
+
+            #endregion
         }
 
         public void SetActive(Guid? categoryGuid)
@@ -42,21 +61,6 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             if (_switch == null) return;
             if (categoryGuid is { } guid && _categories.Contains(guid)) _switch.SetSelected(guid);
             else _switch.SetSelectedNone();
-        }
-
-        private void Rebuild(IReadOnlyList<Guid> categories, BuildMenuViewModel viewModel)
-        {
-            _categories = categories.ToList();
-            _switchSubscription?.Dispose();
-            _switch?.RemoveFromHierarchy();
-
-            // 選択肢の文は VM の見出しの名前。高さのつまみは画面のクラスで上書きする（D-26）
-            // Option labels are the view model's heading names; the height knob is overridden through the screen class (D-26)
-            var options = _categories.Select(guid => new ModeSwitchOption<Guid>($"build-menu-category-{guid:D}", guid, viewModel.HeadingNameOf(guid))).ToList();
-            _switch = new ModeSwitch<Guid>("build-menu-sidebar", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, options);
-            _switch.AddToClassList("build-menu__category-switch");
-            _switchSubscription = _switch.OnOptionSelected.Subscribe(_onCategorySelected.OnNext);
-            Add(_switch);
         }
     }
 }

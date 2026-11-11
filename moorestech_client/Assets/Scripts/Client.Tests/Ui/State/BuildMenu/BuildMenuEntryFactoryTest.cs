@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -9,11 +10,14 @@ using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Source;
 using Client.Ui.State.PlacementTarget;
 using Client.WebUiHost.Game.Topics.BuildMenu;
+using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Blueprint;
 using Game.Construction;
+using Game.Context;
 using Game.PlacementTarget;
 using NUnit.Framework;
 using Server.Boot;
@@ -23,7 +27,7 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BuildMenu
 {
     /// <summary>
-    /// ビルドメニューのエントリ組み立てを Web の橋と突き合わせる
+    /// エントリ組み立てを橋と照合
     /// Checks the build-menu entry factory against the Web bridge
     /// </summary>
     public class BuildMenuEntryFactoryTest
@@ -49,19 +53,57 @@ namespace Client.Tests.Ui.State.BuildMenu
             else PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
             PlayerPrefs.Save();
             Localize.Initialize();
+            DebugParameters.RemoveBool(DebugParameterKeys.FreeBlockPlacement);
         }
 
         [Test]
         public void 全解放の対象でWebの橋と同じ種別とカテゴリ対と素材と免除と1セット設置を出す()
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var blueprint = new BlueprintJsonObject("starter-base", new(), new(), new(), Guid.Parse("70000000-0000-4000-8000-000000000001"));
-            var targets = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), new BlueprintLookupStub(blueprint), new AllPlacementTargetsUnlocked()).CreateUnlockedTargets();
-            var wallet = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
-            var thumbnails = new BlueprintThumbnailContainer();
+            AssertMatchesBridge(new ClientRemainingPlacementCountDatastore(), false);
+        }
 
-            var entries = BuildMenuEntryFactory.CreateEntries(targets, wallet, Array.Empty<IItemStack>(), thumbnails);
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, wallet, Array.Empty<IItemStack>(), thumbnails);
+        [Test]
+        public void 所持品があるときも橋と同じ所持数と不足を出す()
+        {
+            var entries = AssertMatchesBridge(new ClientRemainingPlacementCountDatastore(), true);
+
+            // 比べる値が定数でないこと（所持数を持つ素材がある）を確かめる
+            // Make sure the compared values are not constants (some material has a held count)
+            Assert.IsTrue(entries.Any(entry => entry.Materials.Any(row => 0 < row.Item.Held)));
+        }
+
+        [Test]
+        public void 財布の残りが賄うブロックは橋と同じく免除になる()
+        {
+            var datastore = new ClientRemainingPlacementCountDatastore();
+            datastore.ApplyAll(new Dictionary<BlockId, int> { { ConstructionWalletQuery.ResolveWalletBlockId(ForUnitTestModBlockId.GearBeltConveyor), 3 } });
+
+            var entries = AssertMatchesBridge(datastore, false);
+
+            Assert.IsTrue(entries.Any(entry => entry.Catalog.PaymentWaived));
+        }
+
+        [Test]
+        public void 無料設置中は橋と同じくブロックが免除になる()
+        {
+            DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, true);
+
+            var entries = AssertMatchesBridge(new ClientRemainingPlacementCountDatastore(), false);
+
+            Assert.IsTrue(entries.Any(entry => entry.Catalog.PaymentWaived));
+        }
+
+        private static IReadOnlyList<BuildMenuEntryViewModel> AssertMatchesBridge(ClientRemainingPlacementCountDatastore datastore, bool holdMaterials)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var blueprint = CreateBlueprint();
+            var targets = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), new BlueprintLookupStub(blueprint), new AllPlacementTargetsUnlocked()).CreateUnlockedTargets();
+            var wallet = new ConstructionWalletQuery(datastore);
+            var thumbnails = new BlueprintThumbnailContainer();
+            var held = holdMaterials ? HoldOneOfEveryMaterial() : new List<IItemStack>();
+
+            var entries = BuildMenuEntryFactory.CreateEntries(targets, wallet, held, thumbnails);
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, wallet, held, thumbnails);
 
             // 同じ順に 1 対 1 で並び、どの欄も橋の DTO と一致する
             // Same order one-to-one, and every field matches the bridge DTO
@@ -79,6 +121,30 @@ namespace Client.Tests.Ui.State.BuildMenu
                 Assert.AreEqual(dto.SetPlacement != null, entry.SetPlacement is BuildMenuSetPlacementAvailable, dto.Id);
                 CollectionAssert.AreEqual(dto.RequiredItems.Select(item => (item.ItemId, item.Count, item.Held, item.Lacking)), entry.Materials.Select(row => (row.ItemId.AsPrimitive(), row.Item.Count, row.Item.Held, row.Item.Lacking)), dto.Id);
             }
+            return entries;
+
+            #region Internal
+
+            // BP（ブロック2つ）で素材合算まで照合
+            // Use one non-empty blueprint (two blocks) so the material totals are compared too
+            BlueprintJsonObject CreateBlueprint()
+            {
+                var blocks = new List<BlueprintBlockJsonObject>();
+                var blockIds = new[] { ForUnitTestModBlockId.GearBeltConveyor, ForUnitTestModBlockId.BlockId };
+                for (var i = 0; i < blockIds.Length; i++)
+                    blocks.Add(new BlueprintBlockJsonObject(new Vector3Int(i * 10, 0, 0), MasterHolder.BlockMaster.GetBlockMaster(blockIds[i]).BlockGuid.ToString(), (int)BlockDirection.North, new()));
+                return new BlueprintJsonObject("starter-base", blocks, new(), new(), Guid.Parse("70000000-0000-4000-8000-000000000001"));
+            }
+
+            // 素材になる全アイテムを 1 個ずつ所持品にする
+            // Hold one of every item that appears as a material
+            List<IItemStack> HoldOneOfEveryMaterial()
+            {
+                var probe = BuildMenuEntryFactory.CreateEntries(targets, wallet, Array.Empty<IItemStack>(), thumbnails);
+                return probe.SelectMany(entry => entry.Materials).Select(row => row.ItemId).Distinct().Select(itemId => ServerContext.ItemStackFactory.Create(itemId, 1)).ToList();
+            }
+
+            #endregion
         }
 
         [Test]

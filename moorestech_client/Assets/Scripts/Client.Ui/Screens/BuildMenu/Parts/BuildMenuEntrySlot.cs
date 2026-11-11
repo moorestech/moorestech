@@ -17,39 +17,39 @@ namespace Client.Ui.Screens.BuildMenu.Parts
     /// </summary>
     public sealed class BuildMenuEntrySlot
     {
-        public const string EntryClass = "build-menu__entry";
+        private const string EntryClass = "build-menu__entry";
 
         private readonly GameContentPresentation _content;
         private readonly PlacementTargetIcons _icons;
         private readonly PlacementTargetFace _face = new();
+        private readonly Guid _targetId;
 
         public SlotFrame Frame { get; }
-        public Guid TargetId { get; }
 
         public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
         {
             _content = content;
             _icons = icons;
-            TargetId = entry.Catalog.TargetId;
+            _targetId = entry.Catalog.TargetId;
             Frame = new SlotFrame(TestIdOf(entry));
             Frame.AddToClassList(EntryClass);
             Frame.SetState(new SlotFrameState(false, true, false, false, false));
             Frame.Add(_face);
-            TutorialAnchor.Mark(Frame, AnchorIds.BuildMenuEntry(entry.KindName, TargetId.ToString("D")));
+            TutorialAnchor.Mark(Frame, AnchorIds.BuildMenuEntry(entry.KindName, _targetId.ToString("D")));
 
             // 左はドラッグ源（タップ＝選択）、右は BP だけ削除、ホバーは詳細の sticky
             // Left is the drag source (tap selects), right deletes blueprints only, hover feeds the sticky detail
-            UiDragDrop.MarkSource(Frame, new BuildMenuEntryDragPayload(TargetId, handler));
+            UiDragDrop.MarkSource(Frame, new BuildMenuEntryDragPayload(_targetId, handler));
             var isBlueprint = entry.CanDeleteBlueprint;
             Frame.OnSlotGestured.Subscribe(gesture =>
             {
-                if (gesture.Kind == SlotGestureKind.HoverEnter) handler.OnEntryHovered(TargetId);
-                if (gesture.Kind == SlotGestureKind.RightDown && isBlueprint) handler.OnBlueprintDeleteRequested(TargetId);
+                if (gesture.Kind == SlotGestureKind.HoverEnter) handler.OnEntryHovered(_targetId);
+                if (gesture.Kind == SlotGestureKind.RightDown && isBlueprint) handler.OnBlueprintDeleteRequested(_targetId);
             });
             Render(entry);
         }
 
-        public static string TestIdOf(BuildMenuEntryViewModel entry)
+        private static string TestIdOf(BuildMenuEntryViewModel entry)
         {
             return $"build-menu-entry-{entry.KindName}-{entry.Catalog.TargetId:D}";
         }

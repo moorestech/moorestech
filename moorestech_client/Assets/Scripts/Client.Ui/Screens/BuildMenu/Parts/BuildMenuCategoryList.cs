@@ -88,8 +88,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
             // 群同士の間隔は 2 群目以降とスペーサの上の余白で写す（UITK に gap が無い）
             // Gaps between groups become top margins on later groups and the spacer (UITK has no gap)
-            for (var i = 0; i < groups.Count; i++) _groupsRoot.Add(CreateGroup(groups[i], i > 0));
-            Spacer.EnableInClassList("build-menu__trailing-spacer--following", groups.Count > 0);
+            for (var i = 0; i < groups.Count; i++) _groupsRoot.Add(CreateGroup(groups[i], 0 < i));
+            Spacer.EnableInClassList("build-menu__trailing-spacer--following", 0 < groups.Count);
 
             #region Internal
 
@@ -113,7 +113,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 {
                     var view = new BuildMenuSectionView(group.Sections[s], viewModel, _content, _icons, _handler);
                     view.AddToClassList("build-menu__stacked");
-                    view.EnableInClassList("build-menu__section--following", s > 0);
+                    view.EnableInClassList("build-menu__section--following", 0 < s);
                     _sectionViews.Add(view);
                     root.Add(view);
                 }

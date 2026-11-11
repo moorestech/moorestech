@@ -5,7 +5,7 @@ using UniRx;
 namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 {
     /// <summary>
-    /// 表示ごとに視口を張り替え、隠すときに位置を保存して凍らせる。スペーサの要求高をリストへ当てる
+    /// 表示ごとに視口を張替え、隠すとき位置を保存して凍結
     /// Swaps in a fresh viewport per showing, saves and freezes it on hide, and applies the requested spacer height to the list
     /// </summary>
     public sealed class BuildMenuScrollBinding
@@ -22,7 +22,7 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             _tracker = tracker;
             BuildMenuScrollClipInset.Apply(scroll);
 
-            // スペーサの要求は表示の有無に依らずリストへ当てる（D-9）
+            // スペーサ要求は表示に依らず当てる（D-9）
             // Apply spacer requests to the list whether or not the menu is shown (D-9)
             tracker.SpacerHeight.Subscribe(list.SetSpacerHeight);
         }

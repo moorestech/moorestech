@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
@@ -18,7 +17,7 @@ namespace Client.Ui.State.BuildMenu.Source
     /// ビルドメニューの Model。開いている間だけ源の変化で組み直して Current で配る
     /// Build-menu model; while the menu is open, rebuilds on source changes and publishes through Current
     /// </summary>
-    public sealed class BuildMenuModel : IInitializable, IDisposable
+    public sealed class BuildMenuModel : IInitializable
     {
         private readonly UIStateControl _uiStateControl;
         private readonly PlacementTargetResolver _placementTargetResolver;
@@ -27,9 +26,7 @@ namespace Client.Ui.State.BuildMenu.Source
         private readonly ClientBlueprintLibrary _blueprintLibrary;
         private readonly IBlueprintThumbnailLookup _thumbnails;
         private readonly ReactiveProperty<BuildMenuViewModel> _current = new(BuildMenuViewModel.Empty);
-        private readonly CompositeDisposable _subscriptions = new();
         private bool _rebuildScheduled;
-        private bool _disposed;
 
         public IReadOnlyReactiveProperty<BuildMenuViewModel> Current => _current;
 
@@ -51,22 +48,16 @@ namespace Client.Ui.State.BuildMenu.Source
             {
                 _blueprintLibrary.Refresh(CancellationToken.None).Forget();
                 ScheduleRebuild();
-            }).AddTo(_subscriptions);
+            });
 
             // 源の変化は開いている間だけ組み直す。同じフレームの多発はフレーム末の 1 回に畳む（橋 BuildMenuTopic.SchedulePublish と同じ。D-19）
             // Source changes rebuild only while open; bursts within a frame fold into one end-of-frame rebuild (same as the bridge's SchedulePublish; D-19)
-            _blueprintLibrary.OnChanged.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
-            _thumbnails.OnThumbnailChanged.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
-            _walletQuery.OnWalletChanged.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
-            _inventoryController.LocalPlayerInventory.OnItemChange.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
-            _inventoryController.OnInventoryRefreshed.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
-            Localize.OnLanguageChanged.Subscribe(_ => RebuildWhileOpen()).AddTo(_subscriptions);
-        }
-
-        public void Dispose()
-        {
-            _disposed = true;
-            _subscriptions.Dispose();
+            _blueprintLibrary.OnChanged.Subscribe(_ => RebuildWhileOpen());
+            _thumbnails.OnThumbnailChanged.Subscribe(_ => RebuildWhileOpen());
+            _walletQuery.OnWalletChanged.Subscribe(_ => RebuildWhileOpen());
+            _inventoryController.LocalPlayerInventory.OnItemChange.Subscribe(_ => RebuildWhileOpen());
+            _inventoryController.OnInventoryRefreshed.Subscribe(_ => RebuildWhileOpen());
+            Localize.OnLanguageChanged.Subscribe(_ => RebuildWhileOpen());
         }
 
         private void RebuildWhileOpen()
@@ -91,19 +82,16 @@ namespace Client.Ui.State.BuildMenu.Source
             {
                 await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
                 _rebuildScheduled = false;
-                // silent-ok: 破棄後（ゲーム終了時だけ）は組まない / 誰も購読していない
-                // silent-ok: after dispose (only at game exit) skip the rebuild / no one is subscribed
-                if (_disposed) return;
                 Rebuild();
             }
 
-            #endregion
-        }
+            void Rebuild()
+            {
+                var entries = BuildMenuEntryFactory.CreateEntries(_placementTargetResolver.CreateUnlockedTargets(), _walletQuery, _inventoryController.LocalPlayerInventory, _thumbnails);
+                _current.Value = new BuildMenuViewModel(BuildMenuEntryFactory.CreateCategories(), BuildMenuEntryFactory.CreateHeadingNames(), entries);
+            }
 
-        private void Rebuild()
-        {
-            var entries = BuildMenuEntryFactory.CreateEntries(_placementTargetResolver.CreateUnlockedTargets(), _walletQuery, _inventoryController.LocalPlayerInventory, _thumbnails);
-            _current.Value = new BuildMenuViewModel(BuildMenuEntryFactory.CreateCategories(), BuildMenuEntryFactory.CreateHeadingNames(), entries);
+            #endregion
         }
     }
 }

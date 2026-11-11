@@ -20,7 +20,7 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BuildMenu
 {
     /// <summary>
-    /// ビルドメニューのコマンドの前提と拒否理由を Web の橋と突き合わせる
+    /// コマンドの前提と拒否理由を橋と照合
     /// Checks the build-menu commands' preconditions and reject reasons against the Web bridge
     /// </summary>
     public class BuildMenuCommandsTest

@@ -46,16 +46,27 @@ namespace Client.Ui.Screens.BuildMenu
             Add(_skeleton.Band);
             _scrollBinding = new BuildMenuScrollBinding(_skeleton.Scroll, _list, tracker);
 
-            // 閉じる・検索・カテゴリの押下・現在地の追従
+            // 閉じる・検索・押下・現在地の追従
             // Close, search, category presses and following the current category
             _skeleton.CloseButton.OnClicked.Subscribe(_ => toaster.Report(CloseCommandName, commands.Close()));
             _skeleton.Search.OnValueChanged.Subscribe(OnQueryChanged);
             _sidebar.OnCategorySelected.Subscribe(tracker.JumpTo);
             tracker.ActiveCategory.Subscribe(_sidebar.SetActive);
 
-            // 生成直後は隠し、Presenter の SetShown が出す
+            // 生成直後は隠す（SetShownで出す）
             // Start hidden; the presenter's SetShown reveals it
             style.display = DisplayStyle.None;
+
+            #region Internal
+
+            void OnQueryChanged(string query)
+            {
+                _query = query;
+                _session.SetQuery(query);
+                RenderShownList();
+            }
+
+            #endregion
         }
 
         public void Render(BuildMenuViewModel viewModel)
@@ -75,6 +86,9 @@ namespace Client.Ui.Screens.BuildMenu
             _shown = shown;
             if (!shown)
             {
+                // 入力欄にフォーカスが残ると隠しても入力中の扱いが残るので外す
+                // A focused field would stay counted as typing after hiding, so blur it
+                if (focusController?.focusedElement is VisualElement focused && Contains(focused)) focused.Blur();
                 // 位置を保存して視口を凍らせてから隠す（隠した ScrollView の位置は当てにならないため。D-7）
                 // Save the position and freeze the viewport before hiding, since a hidden ScrollView's offset is unreliable (D-7)
                 _scrollBinding.Detach();
@@ -89,13 +103,6 @@ namespace Client.Ui.Screens.BuildMenu
             style.display = DisplayStyle.Flex;
             RenderShownList();
             _scrollBinding.Attach();
-        }
-
-        private void OnQueryChanged(string query)
-        {
-            _query = query;
-            _session.SetQuery(query);
-            RenderShownList();
         }
 
         private void RenderShownList()

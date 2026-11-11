@@ -66,7 +66,7 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         // Both the pre-layout NaN and the post-hide 0 count as not laid out (comparisons with NaN are false)
         // 群・スペーサの GeometryChangedEvent は ScrollView がバーの範囲を更新する前に来る。古い範囲で位置を当てると手前へクランプされるので、範囲が今の寸法に追いつくまで待つ（後の中身の通知でやり直す）
         // Group and spacer GeometryChangedEvents arrive before the ScrollView updates its bar range; setting an offset on the stale range clamps short, so wait until the range catches up (the later content notification retries)
-        private bool IsViewportLaidOut => ClientHeight > 0f && _scroll.verticalScroller.highValue >= ScrollHeight - ClientHeight - ScrollRangeTolerance;
+        private bool IsViewportLaidOut => 0f < ClientHeight && ScrollHeight - ClientHeight - ScrollRangeTolerance <= _scroll.verticalScroller.highValue;
         public float ScrollHeight => _scroll.GetContentHeight();
 
         // レイアウト前の NaN は「まだ当たっていない」を 0 で表す（トラッカーは要求値と比べて反映待ちを続ける）

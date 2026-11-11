@@ -64,6 +64,18 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             // Web の gap 8px は 2 つ目以降の子の上の余白で写す（UITK に gap が無い）
             // The Web 8px gap becomes a top margin on every child after the first (UITK has no gap)
             for (var i = 1; i < childCount; i++) this[i].AddToClassList("build-menu__detail-stacked");
+
+            #region Internal
+
+            VisualElement CreateIcon(UiIcon icon)
+            {
+                var gameIcon = new GameIcon();
+                gameIcon.AddToClassList("build-menu__detail-icon");
+                gameIcon.SetIcon(icon, GameIconFallback.None);
+                return gameIcon;
+            }
+
+            #endregion
         }
 
         private void AddMaterials(BuildMenuEntryViewModel entry, UiText title)
@@ -88,14 +100,6 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 grid.AddItem(slot);
             }
             Add(grid);
-        }
-
-        private static VisualElement CreateIcon(UiIcon icon)
-        {
-            var gameIcon = new GameIcon();
-            gameIcon.AddToClassList("build-menu__detail-icon");
-            gameIcon.SetIcon(icon, GameIconFallback.None);
-            return gameIcon;
         }
 
         private static LocalizedLabel Label(string className, UiText text)

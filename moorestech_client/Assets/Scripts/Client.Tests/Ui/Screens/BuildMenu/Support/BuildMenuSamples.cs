@@ -47,7 +47,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             return Create(materials, PlacementTargetNameOnlyIcon.Instance);
         }
 
-        // 木のチェストにだけ絵を持たせられる版（アイコンの中央寄せを測る画面テスト用）
+        // 木のチェストだけ絵付き（中央寄せ測定用）
         // Variant where only the wood chest may carry a picture (for the screen test measuring icon centering)
         public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials, PlacementTargetIcon woodChestIcon)
         {

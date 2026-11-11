@@ -52,7 +52,8 @@ namespace Client.Ui.State.BuildMenu.Commands
                 BlueprintDeleteResult.NotFound => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteNotFound, ""),
                 BlueprintDeleteResult.NotUnlocked => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteNotUnlocked, ""),
                 BlueprintDeleteResult.Unknown => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteUnknown, ""),
-                _ => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteRequestFailed, ""),
+                BlueprintDeleteResult.RequestFailed => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteRequestFailed, ""),
+                _ => throw new ArgumentOutOfRangeException(nameof(result), result, null),
             };
         }
 

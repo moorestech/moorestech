@@ -12,24 +12,24 @@ namespace Client.Ui.Screens.BuildMenu.Parts
     {
         private readonly IBuildMenuEntryHandler _handler;
 
-        public BuildMenuEntryDragSource Source { get; }
+        private readonly BuildMenuEntryDragSource _source;
 
         public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler)
         {
-            Source = new BuildMenuEntryDragSource(targetId);
+            _source = new BuildMenuEntryDragSource(targetId);
             _handler = handler;
         }
 
         public void OnTapped()
         {
-            _handler.OnEntrySelected(Source.TargetId);
+            _handler.OnEntrySelected(_source.TargetId);
         }
 
         public void OnDropped(IHotbarDropReceiver receiver)
         {
             // ホットバーの印へ源を渡す。別の型の落とし先は Foundation が飛ばし OnDroppedOutside になる。断った理由のログは受け手が出す（D-16）
             // Hand the source to the hotbar mark; other target types are skipped by Foundation into OnDroppedOutside; the receiver logs any refusal (D-16)
-            receiver.Receive(Source);
+            receiver.Receive(_source);
         }
 
         public void OnDroppedOutside()
