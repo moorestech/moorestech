@@ -10,6 +10,7 @@ using Client.Ui.State.BlockDetail.NetworkInfo;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 using UniRx;
 using UnityEngine;
 
@@ -103,7 +104,7 @@ namespace Client.Ui.State.BlockDetail
             var param = block.BlockMasterElement.BlockParam;
             IsTrackingGear = param is IGearConnectors;
             CleanRoomTarget = ToCleanRoomTarget(param);
-            if (param is IElectricWireConnectParam) _electricPoller.Start(block.BlockInstanceId);
+            if (JoinsElectricNetwork(param)) _electricPoller.Start(block.BlockInstanceId);
             if (IsTrackingGear) _gearPoller.Start(block.BlockInstanceId);
             if (block.BlockMasterElement.BlockType == "FilterSplitter") FetchFilterSplitter(block.BlockPosInfo.OriginalPos, _cts.Token).Forget();
 
@@ -135,6 +136,13 @@ namespace Client.Ui.State.BlockDetail
             }
 
             #endregion
+        }
+
+        // 端点の判定は配線・プレビューと同じリゾルバに任せる
+        // Endpoint detection is delegated to the same resolver as wiring and preview
+        internal static bool JoinsElectricNetwork(IBlockParam param)
+        {
+            return ElectricWireBlockParamResolver.TryGetWireRangeParam(param, out _, out _, out _);
         }
 
         public void Clear()

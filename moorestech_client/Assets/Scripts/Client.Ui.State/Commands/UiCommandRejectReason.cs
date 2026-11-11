@@ -29,6 +29,9 @@ namespace Client.Ui.State.Commands
         TrainInvalidBlockType,
         TrainStationNameFailed,
         TrainPlatformModeFailed,
+        SpecialBlockRequestFailed,
+        SpecialBlockCommandStale,
+        FilterSplitterGrabEmpty,
         BuildMenuNotOpen,
         UnknownBuildMenuEntry,
         BlueprintDeleteNotFound,
@@ -46,8 +49,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 状態を変えない再選択・受理外のタップ・古い応答と、Web の BENIGN_ERRORS にある取りこぼしは良性
-        // Re-selections, non-accepting taps and stale replies that change no state, plus the misses in Web BENIGN_ERRORS, are benign
+        // 状態を変えない再選択・受理外のタップ・古い応答と、Web の BENIGN_ERRORS にある取りこぼし（特殊族の古い操作含む）と、Web が送らない空の掴みのフィルタ設定は良性
+        // Re-selections, non-accepting taps and stale replies that change no state, the misses in Web BENIGN_ERRORS (incl. special-family stale operations), and a filter set with an empty grab (never sent by Web) are benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch
@@ -75,6 +78,9 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => false,
                 UiCommandRejectReason.TrainStationNameFailed => false,
                 UiCommandRejectReason.TrainPlatformModeFailed => false,
+                UiCommandRejectReason.SpecialBlockRequestFailed => false,
+                UiCommandRejectReason.SpecialBlockCommandStale => true,
+                UiCommandRejectReason.FilterSplitterGrabEmpty => true,
                 UiCommandRejectReason.BuildMenuNotOpen => true,
                 UiCommandRejectReason.UnknownBuildMenuEntry => true,
                 UiCommandRejectReason.BlueprintDeleteNotFound => true,
@@ -124,6 +130,9 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => LocalizationKeys.Ui.CommandRejected.TrainInvalidBlockType,
                 UiCommandRejectReason.TrainStationNameFailed => LocalizationKeys.Ui.CommandRejected.TrainStationNameFailed,
                 UiCommandRejectReason.TrainPlatformModeFailed => LocalizationKeys.Ui.CommandRejected.TrainPlatformModeFailed,
+                UiCommandRejectReason.SpecialBlockRequestFailed => LocalizationKeys.Ui.CommandRejected.SpecialBlockRequestFailed,
+                UiCommandRejectReason.SpecialBlockCommandStale => LocalizationKeys.Ui.CommandRejected.SpecialBlockCommandStale,
+                UiCommandRejectReason.FilterSplitterGrabEmpty => LocalizationKeys.Ui.CommandRejected.FilterSplitterGrabEmpty,
                 UiCommandRejectReason.BuildMenuNotOpen => LocalizationKeys.Ui.CommandRejected.BuildMenuNotOpen,
                 UiCommandRejectReason.UnknownBuildMenuEntry => LocalizationKeys.Ui.CommandRejected.UnknownBuildMenuEntry,
                 UiCommandRejectReason.BlueprintDeleteNotFound => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteNotFound,
@@ -166,6 +175,9 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => "invalid_block_type",
                 UiCommandRejectReason.TrainStationNameFailed => "set_name_failed",
                 UiCommandRejectReason.TrainPlatformModeFailed => "mode_request_failed",
+                UiCommandRejectReason.SpecialBlockRequestFailed => "special_block_request_failed",
+                UiCommandRejectReason.SpecialBlockCommandStale => "special_block_command_stale",
+                UiCommandRejectReason.FilterSplitterGrabEmpty => "grab_empty",
                 UiCommandRejectReason.BuildMenuNotOpen => "invalid_state",
                 UiCommandRejectReason.UnknownBuildMenuEntry => "unknown_entry",
                 UiCommandRejectReason.BlueprintDeleteNotFound => "blueprint_delete_not_found",
