@@ -29,9 +29,14 @@
     padding-bottom: var(--skit-window-edge-safe-area);
 }
 
+/* 1 行の話者は字形の既定の行の高さ（28.7px で約 41.97px＝1.4625em。前例 ResearchDetailPane の実測 16px 23.4）になり、Web の line-height 34.44px より 7.53px 高い */
+/* 差の半分 3.77px を上下の margin から引き、Web の半行間と同じ字の位置と罫線の位置にする（字の大きさ・フォントを変えたら測り直す） */
+/* A one-line speaker takes the glyph default line height (about 41.97px at 28.7px = 1.4625em; precedent ResearchDetailPane measured 16px 23.4), 7.53px taller than the Web line-height 34.44px */
+/* Half the gap, 3.77px, comes off the top and bottom margins so the glyph and the rule land where the Web half-leading puts them (re-measure if the font size or font changes) */
 .skit-screen .skit-window__speaker {
     margin: 0;
-    margin-top: var(--skit-window-edge-safe-area);
+    margin-top: 4.23px; /* web: --skit-window-edge-safe-area 8px − 3.77px */
+    margin-bottom: -3.77px;
     padding: 0;
     padding-left: var(--skit-window-content-inset);
     padding-right: var(--skit-rule-inset);
@@ -54,6 +59,10 @@
     padding-right: var(--skit-rule-inset);
     color: var(--text-high-contrast);
     font-size: var(--skit-body-font-size);
+    /* 1 行目は字形の既定の高さ（21.3px で約 31.15px）なので、Web の 31.95px との差の半分を上下の padding で足す */
+    /* The first line takes the glyph default height (about 31.15px at 21.3px), so top/bottom padding adds half the gap to the Web 31.95px */
+    padding-top: 0.4px;
+    padding-bottom: 0.4px;
     white-space: pre-wrap;
     --localized-label-line-height: 31.95px; /* web: line-height 1.5 × 21.3px */
 }
