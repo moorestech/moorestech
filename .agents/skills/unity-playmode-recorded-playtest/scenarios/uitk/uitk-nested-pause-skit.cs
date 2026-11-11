@@ -27,6 +27,13 @@ return PlaytestRunner.Run("uitk-nested-pause-skit", options, async p =>
 
     p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
     p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // Game View が裏タブだと描画されず、Recorder が初回フレーム待ちで timeScale=0 に固定してスキットの scaled Delay が返らないため表へ出す（vq8w・iefh）
+    // A Game View behind another tab never renders, so the Recorder pins timeScale=0 and the skit's scaled delays never return; bring it to front (vq8w, iefh)
+    var tabFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
+    var gameView = System.Array.Find(Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>(), w => w.GetType().Name == "GameView");
+    var dockArea = typeof(UnityEditor.EditorWindow).GetField("m_Parent", tabFlags).GetValue(gameView);
+    dockArea.GetType().GetProperty("selected", tabFlags).SetValue(dockArea, ((System.Collections.IList)dockArea.GetType().GetField("m_Panes", tabFlags).GetValue(dockArea)).IndexOf(gameView));
+    await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     var skitStore = SkitPresentationStateStore.Instance;
     var skitManager = Object.FindFirstObjectByType<Client.Game.Skit.SkitManager>(FindObjectsInactive.Include);
