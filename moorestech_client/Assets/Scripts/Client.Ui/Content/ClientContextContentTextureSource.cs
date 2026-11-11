@@ -31,5 +31,15 @@ namespace Client.Ui.Content
             if (id == FluidMaster.EmptyFluidId) throw new ArgumentException("The empty fluid has no texture; the screen must not ask for it", nameof(id));
             return ClientContext.FluidImageContainer.GetItemView(id)?.FluidTexture as Texture2D;
         }
+
+        public Texture2D TrainCarTexture(Guid trainCarGuid)
+        {
+            return ClientContext.TrainCarImageContainer.GetTrainCarView(trainCarGuid)?.ItemTexture as Texture2D;
+        }
+
+        public Texture2D ConnectToolTexture(Guid connectToolGuid)
+        {
+            return ClientContext.ConnectToolImageContainer.GetConnectToolView(connectToolGuid)?.ItemTexture as Texture2D;
+        }
     }
 }

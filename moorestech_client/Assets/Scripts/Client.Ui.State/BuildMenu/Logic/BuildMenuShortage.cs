@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Client.Ui.State.BuildMenu.Logic
 {
     /// <summary>
@@ -14,13 +11,6 @@ namespace Client.Ui.State.BuildMenu.Logic
         public static bool IsItemInsufficient(BuildMenuCatalogEntry entry, BuildMenuRequiredItem item)
         {
             return !entry.PaymentWaived && item.Lacking;
-        }
-
-        // ツールチップに出す不足の行。免除中は 1 件も出さない
-        // The shortage rows for the tooltip; a waived entry yields none
-        public static IReadOnlyList<BuildMenuRequiredItem> InsufficientItems(BuildMenuCatalogEntry entry)
-        {
-            return entry.RequiredItems.Where(item => IsItemInsufficient(entry, item)).ToList();
         }
     }
 }

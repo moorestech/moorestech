@@ -29,6 +29,13 @@ namespace Client.Ui.State.Commands
         TrainInvalidBlockType,
         TrainStationNameFailed,
         TrainPlatformModeFailed,
+        BuildMenuNotOpen,
+        UnknownBuildMenuEntry,
+        BlueprintDeleteNotFound,
+        BlueprintDeleteNotUnlocked,
+        BlueprintDeleteRequestFailed,
+        BlueprintDeleteUnknown,
+        BuildMenuCloseRefused,
     }
 
     /// <summary>
@@ -37,8 +44,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 選択済み再選択と、Web の BENIGN_ERRORS にある持ち物の移動・分割の取りこぼしは良性
-        // Re-selecting a chosen language and the inventory move/split misses in Web BENIGN_ERRORS are benign
+        // 選択済み再選択と、Web の BENIGN_ERRORS にある持ち物・ビルドメニュー・BP 削除の取りこぼしは良性
+        // Re-selecting a chosen language and the inventory, build-menu and blueprint-delete misses in Web BENIGN_ERRORS are benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch
@@ -66,6 +73,13 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => false,
                 UiCommandRejectReason.TrainStationNameFailed => false,
                 UiCommandRejectReason.TrainPlatformModeFailed => false,
+                UiCommandRejectReason.BuildMenuNotOpen => true,
+                UiCommandRejectReason.UnknownBuildMenuEntry => true,
+                UiCommandRejectReason.BlueprintDeleteNotFound => true,
+                UiCommandRejectReason.BlueprintDeleteNotUnlocked => false,
+                UiCommandRejectReason.BlueprintDeleteRequestFailed => false,
+                UiCommandRejectReason.BlueprintDeleteUnknown => false,
+                UiCommandRejectReason.BuildMenuCloseRefused => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -106,6 +120,13 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => LocalizationKeys.Ui.CommandRejected.TrainInvalidBlockType,
                 UiCommandRejectReason.TrainStationNameFailed => LocalizationKeys.Ui.CommandRejected.TrainStationNameFailed,
                 UiCommandRejectReason.TrainPlatformModeFailed => LocalizationKeys.Ui.CommandRejected.TrainPlatformModeFailed,
+                UiCommandRejectReason.BuildMenuNotOpen => LocalizationKeys.Ui.CommandRejected.BuildMenuNotOpen,
+                UiCommandRejectReason.UnknownBuildMenuEntry => LocalizationKeys.Ui.CommandRejected.UnknownBuildMenuEntry,
+                UiCommandRejectReason.BlueprintDeleteNotFound => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteNotFound,
+                UiCommandRejectReason.BlueprintDeleteNotUnlocked => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteNotUnlocked,
+                UiCommandRejectReason.BlueprintDeleteRequestFailed => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteRequestFailed,
+                UiCommandRejectReason.BlueprintDeleteUnknown => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteUnknown,
+                UiCommandRejectReason.BuildMenuCloseRefused => LocalizationKeys.Ui.CommandRejected.BuildMenuCloseRefused,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -139,6 +160,13 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => "invalid_block_type",
                 UiCommandRejectReason.TrainStationNameFailed => "set_name_failed",
                 UiCommandRejectReason.TrainPlatformModeFailed => "mode_request_failed",
+                UiCommandRejectReason.BuildMenuNotOpen => "invalid_state",
+                UiCommandRejectReason.UnknownBuildMenuEntry => "unknown_entry",
+                UiCommandRejectReason.BlueprintDeleteNotFound => "blueprint_delete_not_found",
+                UiCommandRejectReason.BlueprintDeleteNotUnlocked => "blueprint_delete_not_unlocked",
+                UiCommandRejectReason.BlueprintDeleteRequestFailed => "blueprint_delete_request_failed",
+                UiCommandRejectReason.BlueprintDeleteUnknown => "blueprint_delete_unknown",
+                UiCommandRejectReason.BuildMenuCloseRefused => "transition_not_allowed",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

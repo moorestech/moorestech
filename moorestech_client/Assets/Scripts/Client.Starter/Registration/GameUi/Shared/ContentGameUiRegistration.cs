@@ -11,6 +11,7 @@ namespace Client.Starter.Registration.GameUi.Shared
         {
             builder.Register<ClientContextContentTextureSource>(Lifetime.Singleton).As<IGameContentTextureSource>();
             builder.Register<GameContentPresentation>(Lifetime.Singleton);
+            builder.Register<PlacementTargetIcons>(Lifetime.Singleton);
         }
     }
 }

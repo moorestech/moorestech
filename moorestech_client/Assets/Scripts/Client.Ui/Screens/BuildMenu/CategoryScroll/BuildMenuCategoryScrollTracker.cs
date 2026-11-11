@@ -38,9 +38,9 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             // silent-ok: 同じ視口の渡し直しは冪等 / 状態は何も変わらない
             // silent-ok: re-attaching the same viewport is idempotent / no state changes
             if (ReferenceEquals(viewport, _viewport)) return;
-            // 位置を保存し新視口で復元
-            // Save the position and restore on the new viewport
-            if (_viewport != null) _session.SetScrollTop(_viewport.ScrollTop);
+            // 位置を保存し新視口で復元（復元前の位置は保存しない）
+            // Save the position and restore on the new viewport (a pre-restore position is never saved)
+            PersistScrollPosition();
             _viewport = viewport;
             _jumpPin = null;
             _scrollRestored = false;
@@ -73,7 +73,9 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             // silent-ok: 視口を外した後の遅延通知・保存は何もしない / 次の AttachViewport が保存位置から復元をやり直す
             // silent-ok: late notifications after the viewport detaches do nothing / the next AttachViewport redoes the restore from the saved position
             if (_viewport == null) return;
-            _session.SetScrollTop(scrollTop);
+            // 復元前の位置通知で保存位置を潰さない
+            // Never overwrite the saved position with pre-restore notifications
+            if (_scrollRestored) _session.SetScrollTop(scrollTop);
             if (_jumpPin is { } pin)
             {
                 // 到達まで固定、到達で目標を確定
@@ -107,6 +109,9 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             // silent-ok: 視口を外した後の遅延通知・保存は何もしない / 次の AttachViewport が保存位置から復元をやり直す
             // silent-ok: late notifications after the viewport detaches do nothing / the next AttachViewport redoes the restore from the saved position
             if (_viewport == null) return;
+            // silent-ok: 復元前の位置は保存位置ではない（復元前の 0 等の位置で保存位置を潰さない） / 次の AttachViewport が保存位置から復元する
+            // silent-ok: a pre-restore position is not the saved one (never flatten the saved position with a pre-restore value such as 0) / the next AttachViewport restores from the saved position
+            if (!_scrollRestored) return;
             _session.SetScrollTop(_viewport.ScrollTop);
         }
 
@@ -145,7 +150,6 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
                 if (_scrollRestored) return;
                 _scrollRestored = true;
                 _viewport.SetScrollTopImmediately(_session.Current.ScrollTop);
-
                 // クランプ後の実効値へ保存を揃える
                 // Realign the store with the clamped effective value
                 _session.SetScrollTop(_viewport.ScrollTop);
@@ -169,11 +173,11 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         // When even the spacer cannot reach, target the max scroll so the settle check can succeed
         private float ReachableTop(float headingTop) => Math.Min(headingTop, Math.Max(0f, _viewport.ScrollHeight - _viewport.ClientHeight));
 
-        // 目標位置にすでに居れば目標自身で確定し、居なければ固定してスムーズに動かす
-        // Settle on the target if already there, otherwise pin it and scroll smoothly
+        // 目標位置に居れば動いている tween を止めて目標自身で確定し、居なければ固定してスムーズに動かす
+        // If already there, cancel any in-flight tween and settle on the target; otherwise pin and scroll smoothly
         private void PinOrSettleJump(Guid categoryGuid, float top)
         {
-            if (BuildMenuScrollSpy.IsJumpSettled(_viewport.ScrollTop, top)) { SettleOnJumpTarget(categoryGuid); return; }
+            if (BuildMenuScrollSpy.IsJumpSettled(_viewport.ScrollTop, top)) { _viewport.SetScrollTopImmediately(top); SettleOnJumpTarget(categoryGuid); return; }
             _jumpPin = new BuildMenuJumpPin(categoryGuid, top);
             _viewport.ScrollSmoothlyTo(top);
         }

@@ -26,7 +26,10 @@
         "MessagePack",
         "UniRx",
         "UniTask",
-        "VContainer"
+        "VContainer",
+        "Common.Debug",
+        "Game.Construction",
+        "Game.Blueprint"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
