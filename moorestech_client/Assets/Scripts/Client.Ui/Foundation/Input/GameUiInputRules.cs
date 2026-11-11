@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// GameUi のルートで入力を先取りする規則。フォーカス同期・ESC・ナビゲーション打ち消し・入力欄と印付き以外のフォーカス拒否を TrickleDown で行う
-    /// Root-level input rules for GameUi: focus sync, ESC, navigation cancelling and refusing focus outside text fields and marked elements, all via TrickleDown
+    /// GameUi のルートで入力を先取りする規則。フォーカス同期・ESC（取消のナビゲーションを含む）・ナビゲーション打ち消し・入力欄と印付き以外のフォーカス拒否を TrickleDown で行う
+    /// Root-level input rules for GameUi: focus sync, ESC (including navigation cancel), navigation cancelling and refusing focus outside text fields and marked elements, all via TrickleDown
     /// </summary>
     /// <remarks>
     /// 拡張点: 全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す。画面固有のキー処理（←→・Enter 等）は各画面の Presenter が持つ
@@ -26,7 +26,7 @@ namespace Client.Ui.Foundation.Input
             // GameUi never uses navigation move/submit/cancel coming from Tab, arrows, Space, Enter or ESC
             root.RegisterCallback<NavigationMoveEvent>(CancelNavigation, TrickleDown.TrickleDown);
             root.RegisterCallback<NavigationSubmitEvent>(CancelNavigation, TrickleDown.TrickleDown);
-            root.RegisterCallback<NavigationCancelEvent>(CancelNavigation, TrickleDown.TrickleDown);
+            root.RegisterCallback<NavigationCancelEvent>(OnNavigationCancel, TrickleDown.TrickleDown);
         }
 
         private static void OnFocusIn(FocusInEvent evt)
@@ -67,19 +67,38 @@ namespace Client.Ui.Foundation.Input
             var focused = root.focusController.focusedElement as VisualElement;
             if (!IsInsideTextField(focused)) return;
 
-            // 入力欄が ESC を使ったことをワールド側（ポーズ・閉じる）へ知らせる
-            // Tell the world side (pause / close) that a text field used this ESC
-            UiInputExclusivity.ConsumeEscapeThisFrame();
-
             // silent-ok: 変換中の ESC は OS が変換を取り消すのでフォーカスも値も触らない / ラッチの Debug.Log が ESC の消費を記録する
             // silent-ok: during IME composition the OS cancels the conversion, so leave focus and value alone / the latch's Debug.Log records the consumed ESC
-            if (!string.IsNullOrEmpty(UnityEngine.Input.compositionString)) return;
+            if (!ConsumeEscapeOutsideComposition()) return;
 
             // TextField の既定の ESC（値の巻き戻しと再フォーカス）を止め、値を保ったままフォーカスだけ外す
             // Stop TextField's default ESC (revert value and refocus) and drop only the focus, keeping the value
             evt.StopImmediatePropagation();
             root.focusController.IgnoreEvent(evt);
             focused.Blur();
+        }
+
+        // EventSystem 経由の UITK はキーを OS のイベントからだけ作るので、Input System へ注入した ESC は取消のナビゲーションとしてだけ届く。入力欄では ESC と同じく外す
+        // Through the EventSystem, UITK builds key events only from OS events, so an ESC injected into the Input System arrives only as navigation cancel; in a text field treat it like ESC
+        private static void OnNavigationCancel(NavigationCancelEvent evt)
+        {
+            CancelNavigation(evt);
+            var root = (VisualElement)evt.currentTarget;
+            var focused = root.focusController.focusedElement as VisualElement;
+            if (!IsInsideTextField(focused)) return;
+
+            // silent-ok: 変換中の取消は OS が変換を取り消すのでフォーカスを触らない / ラッチの Debug.Log が ESC の消費を記録する
+            // silent-ok: during IME composition the OS cancels the conversion, so leave focus alone / the latch's Debug.Log records the consumed ESC
+            if (!ConsumeEscapeOutsideComposition()) return;
+            focused.Blur();
+        }
+
+        // 入力欄が ESC を使ったことをワールド側（ポーズ・閉じる）へ知らせ、変換中でないか返す
+        // Tell the world side (pause / close) that a text field used this ESC, and return whether no IME composition is in progress
+        private static bool ConsumeEscapeOutsideComposition()
+        {
+            UiInputExclusivity.ConsumeEscapeThisFrame();
+            return string.IsNullOrEmpty(UnityEngine.Input.compositionString);
         }
 
         private static void CancelNavigation(EventBase evt)
