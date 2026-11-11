@@ -512,3 +512,9 @@ ui.commandRejected.trainAutoRunNotApplied,Auto-run was not changed,Auto-run was 
 ui.commandRejected.trainInvalidBlockType,This block cannot take this setting,This block cannot take this setting,このブロックにはこの設定ができません,Dieser Block unterstützt diese Einstellung nicht,이 블록에는 이 설정을 할 수 없습니다
 ui.commandRejected.trainStationNameFailed,The station name was rejected,The station name was rejected,駅名が受け付けられませんでした,Der Bahnhofsname wurde abgelehnt,역 이름이 거부되었습니다
 ui.commandRejected.trainPlatformModeFailed,Could not switch loading and unloading,Could not switch loading and unloading,積込と卸しを切り替えられませんでした,Be- und Entladen konnte nicht umgeschaltet werden,적재와 하역을 전환하지 못했습니다
+ui.commandRejected.buildMenuNotOpen,The build menu is not open,The build menu is not open,ビルドメニューが開いていません,Das Baumenü ist nicht geöffnet,건설 메뉴가 열려 있지 않습니다
+ui.commandRejected.unknownBuildMenuEntry,This entry is no longer available,This entry is no longer available,この項目は選べなくなりました,Dieser Eintrag ist nicht mehr verfügbar,이 항목은 더 이상 사용할 수 없습니다
+ui.commandRejected.blueprintDeleteNotFound,The blueprint was already deleted,The blueprint was already deleted,ブループリントはすでに削除されています,Der Bauplan wurde bereits gelöscht,설계도가 이미 삭제되었습니다
+ui.commandRejected.blueprintDeleteNotUnlocked,Blueprints are not unlocked yet,Blueprints are not unlocked yet,ブループリントはまだ解放されていません,Baupläne sind noch nicht freigeschaltet,설계도가 아직 해금되지 않았습니다
+ui.commandRejected.blueprintDeleteRequestFailed,Could not reach the server to delete the blueprint,Could not reach the server to delete the blueprint,ブループリントの削除をサーバーへ送れませんでした,Der Bauplan konnte nicht gelöscht werden (keine Serververbindung),설계도 삭제 요청을 서버에 보낼 수 없습니다
+ui.commandRejected.blueprintDeleteUnknown,Could not delete the blueprint,Could not delete the blueprint,ブループリントを削除できませんでした,Der Bauplan konnte nicht gelöscht werden,설계도를 삭제할 수 없습니다
