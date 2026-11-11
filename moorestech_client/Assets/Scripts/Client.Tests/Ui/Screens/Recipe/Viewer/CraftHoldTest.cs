@@ -1,0 +1,153 @@
+using Client.Tests.Ui.State.Recipe;
+using Client.Ui.Components.Controls;
+using Client.Ui.Screens.Recipe;
+using Client.Ui.Screens.Recipe.Parts;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Recipe.Screen;
+using System.Reflection;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.UIElements;
+using static Client.Tests.Ui.Screens.Recipe.RecipeScreenFixtures;
+
+namespace Client.Tests.Ui.Screens.Recipe.Viewer
+{
+    /// <summary>
+    /// マウスの長押しクラフト（到達ごとのクラフト・外れ・可否・頭打ち）を確かめる（L1）
+    /// Verifies the mouse hold-to-craft (craft per cycle, leaving, craftability, per-frame cap) (L1)
+    /// </summary>
+    public class CraftHoldTest : ScreenTestHost
+    {
+        private RecordingRecipeCommands _commands;
+        private RecipeItemSelection _selection;
+
+        [SetUp]
+        public void SetUpHold()
+        {
+            _commands = new RecordingRecipeCommands();
+            _selection = new RecipeItemSelection();
+        }
+
+        /// <web-test file="e2e/tests/recipe/recipe.spec.ts">アイテム選択でレシピ表示、長押しで素材が尽きるまで連続クラフトする</web-test>
+        [Test]
+        public void 長押しで到達ごとにクラフトし可否が偽になったら止まる()
+        {
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 2)), Context(Toaster, _commands, _selection)));
+            var button = view.Q<RecipeActionButton>();
+
+            simulate.MouseDown(button.worldBound.center);
+            for (var i = 0; i < 6; i++) simulate.FrameUpdateMs(100);
+            Assert.AreEqual(1, _commands.Crafted.Count);
+            for (var i = 0; i < 4; i++) simulate.FrameUpdateMs(100);
+            CollectionAssert.AreEqual(new[] { guid, guid }, _commands.Crafted);
+
+            // 素材が尽きた VM で描き直すと止まり矢印は 0 に戻る
+            // Redrawing with exhausted materials stops the hold and resets the arrow
+            view.Render(CraftVm(guid, 0.4, false, false, Material(1, 1, 0)));
+            for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+            Assert.AreEqual(2, _commands.Crafted.Count);
+            Assert.AreEqual(0f, ArrowProgress(view, guid));
+        }
+
+        /// <web-test file="e2e/tests/recipe/recipe.spec.ts">押下後にボタンから外れるとクラフトが止まり経過時間がリセットされる</web-test>
+        [Test]
+        public void 押下後にボタンの外へ出ると止まり経過が0に戻る()
+        {
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 1, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var button = view.Q<RecipeActionButton>();
+
+            simulate.MouseDown(button.worldBound.center);
+            for (var i = 0; i < 5; i++) simulate.FrameUpdateMs(100);
+            Assert.Greater(ArrowProgress(view, guid), 0.3f);
+            simulate.MouseMove(button.worldBound.center + new Vector2(0, button.worldBound.height));
+            Assert.AreEqual(0f, ArrowProgress(view, guid));
+            for (var i = 0; i < 20; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+        }
+
+        [Test]
+        public void 保持中に作れるまま描き直しても長押しは切れず経過も続く()
+        {
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 1, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            simulate.MouseDown(view.Q<RecipeActionButton>().worldBound.center);
+
+            // 初回の経過は 0〜上限 0.25 秒のどれでもよいように数える（5 フレームで高々 0.65 秒）
+            // Count frames so any first delta from 0 to the 0.25 s cap works (at most 0.65 s after 5 frames)
+            for (var i = 0; i < 5; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+
+            // 所持だけ変えて描き直しても経過は残り、続く 8 フレームで 1 秒に届く（始め直すと高々 0.95 秒で 0 回）
+            // Redrawing with only the owned count changed keeps the elapsed time, reaching 1 s in 8 more frames (a restart reaches at most 0.95 s and crafts nothing)
+            view.Render(CraftVm(guid, 1, true, false, Material(1, 1, 8)));
+            for (var i = 0; i < 8; i++) simulate.FrameUpdateMs(100);
+            Assert.AreEqual(1, _commands.Crafted.Count);
+        }
+
+        [Test]
+        public void 拒否はトーストへ渡り1フレームの経過は上限で頭打ち()
+        {
+            _commands.SetResult(new UiCommandRejected(UiCommandRejectReason.MachineRecipeLocked, ""));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(RecipeFixtures.RecipeGuid(1), 0.3, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            simulate.MouseDown(view.Q<RecipeActionButton>().worldBound.center);
+
+            // 1 フレームで 1 秒進めても 0.25 秒だけ進み、次の 0.1 秒で 0.3 秒に届いて 1 回
+            // One 1-second frame advances only 0.25 s; the next 0.1 s reaches 0.3 s and crafts once
+            simulate.FrameUpdateMs(1000);
+            Assert.IsEmpty(_commands.Crafted);
+            simulate.FrameUpdateMs(100);
+            Assert.AreEqual(1, _commands.Crafted.Count);
+            Assert.AreEqual(1, ShownToasts.Count);
+        }
+        [Test]
+        public void 他ボタンを押したまま左だけ離すとchordedな移動で止まる()
+        {
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var button = view.Q<RecipeActionButton>();
+            simulate.MouseDown(button.worldBound.center);
+            simulate.FrameUpdateMs(100);
+
+            // 左の解放は PointerUp でなく button=0 の PointerMove で届く（右を押したままの解放）
+            // The primary release arrives as a button=0 PointerMove, not PointerUp (right button still held)
+            var systemEvent = new Event { type = EventType.MouseMove, mousePosition = button.worldBound.center, button = 0 };
+            using (var move = PointerMoveEvent.GetPooled(systemEvent))
+            {
+                move.target = button;
+
+                // 合成イベントの pressedButtons は内部 setter でしか書けないので、右だけが押された状態に反射で整える
+                // The synthetic event's pressedButtons has only an internal setter, so set the right-only state by reflection
+                var pressed = typeof(PointerMoveEvent).GetProperty("pressedButtons", BindingFlags.Public | BindingFlags.Instance);
+                pressed.GetSetMethod(true).Invoke(move, new object[] { 2 });
+                var buttonProperty = typeof(PointerMoveEvent).GetProperty("button", BindingFlags.Public | BindingFlags.Instance);
+                buttonProperty.GetSetMethod(true).Invoke(move, new object[] { 0 });
+                button.SendEvent(move);
+            }
+            Assert.AreEqual(0f, ArrowProgress(view, guid));
+            for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+        }
+
+        [Test]
+        public void 長押し中にビューアを閉じると押したままでもクラフトしない()
+        {
+            // 閉じるとエントリが木から外れて長押しが止まる（Web は画面を出るとアンマウント。Task 6 レビューの申し送り b）
+            // Hiding detaches the entry and stops the hold (the Web unmounts on leaving the screen; Task 6 review follow-up b)
+            var guid = RecipeFixtures.RecipeGuid(1);
+            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));
+            simulate.FrameUpdate();
+            var button = view.Q<RecipeActionButton>($"craft-button-{guid}");
+            simulate.MouseDown(button.worldBound.center);
+            for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);
+            Assert.Greater(ArrowProgress(view, guid), 0f);
+
+            view.SetShown(false);
+            Assert.IsNull(button.panel);
+            for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+        }
+    }
+}

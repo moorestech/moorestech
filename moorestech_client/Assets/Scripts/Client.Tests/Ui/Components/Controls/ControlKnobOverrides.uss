@@ -20,3 +20,21 @@
 .control-recipe-list-unreadable-reserve-probe .recipe-list-scroll-view__list {
     --recipe-list-scroll-view-reserve: none;
 }
+
+/* GameScrollView の溝・つまみ・縦バーの位置・内側余白の比を祖先から上書きする */
+/* Overrides the GameScrollView track, thumb, vertical bar insets and padding ratio from an ancestor */
+.game-scroll-view-knob-probe {
+    --game-scroll-view-track-face: rgba(0, 0, 0, 0);
+    --game-scroll-view-thumb-face: rgb(255, 255, 255);
+    --game-scroll-view-scrollbar-inset-top: 12px;
+    --game-scroll-view-scrollbar-inset-bottom: 12px;
+    --game-scroll-view-scrollbar-inset-right: 12px;
+}
+
+.game-scroll-view-size-probe {
+    --scrollarea-scrollbar-size: 4px;
+}
+
+.game-scroll-view-ratio-probe {
+    --game-scroll-view-scrollbar-padding-ratio: 0;
+}

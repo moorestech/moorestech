@@ -27,6 +27,7 @@
 | 2026-11-06 | 4 | e23c6fd597 | 457 | 87 | 5 | 0 | 365 |
 | 2026-11-10 | 4 | 91e3f7f5c5 | 457 | 189 | 9 | 1 | 258 |
 | 2026-11-10 | 5 | 91e3f7f5c5 | 528 | 132 | 4 | 0 | 392 |
+| 2026-11-11 | 4 | 9e2228c658 | 457 | 371 | 22 | 2 | 62 |
 
 ## 処遇
 
@@ -82,6 +83,7 @@
 | 4 | `e2e/tests/research/research.spec.ts` | padding box外の境界buttonをexpectCraftGripが重なりなしと判定する | 捨てる | 同上（expectCraftGrip の自己テスト） | #1641 |
 | 4 | `e2e/tests/research/research.spec.ts` | 研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-research-tree.cs（研究画面を開いたまま、判定の間だけ HUD の根を拾う設定にして challenge-hud・key-hints の中心の Pick が各 HUD を返す。層の順序の主張） | #1641 |
 | 4 | `e2e/tests/research/tmp-icon-click.spec.ts` | * | 捨てる | tmp の付いた一時の調査テストで、実行計画 §1.4 の完了条件が写す数から除いた | #1641 |
+| 4 | `src/features/recipe/logic/recipeSlotLayout.test.ts` | スロット寸法は列数ぶんのgapを差し引いて上限で頭打ちになる | 捨てる | Web は CSS の calc 文字列でスロット寸法を列幅から縮めるが、UITK は寸法をつまみの上限のまま置く（S4-recipe A-121・LX-91）ので寸法の式が無い。列数の式は `RecipeSlotLayoutTest` が持つ | — |
 | 4 | `src/features/research/ResearchTreePanel.test.ts` | インベントリtopic未受信中は詳細ペインへ所持数をnullで渡す(D4) | 捨てる | UITK は持ち物を同期で持ち、所持数の未受信の状態が無い（設計書 [A-13] の ConnectingPlaceholder と同じ理由） | #1641 |
 | 4 | `src/features/research/ResearchDetailPane.test.ts` | 所持数未受信中(owned=null)は不足表示も所持/必要も出さない | 捨てる | 同上（[A-13]。所持数は常に有る） | #1641 |
 | 4 | `src/features/blockInventory/details/machine/ModuleSlotStackLimitText.test.ts` | 上限の配信が届くまでは何も描かない | 捨てる | UITK は `IModuleSlotStackLimitLookup.CurrentStackLimit` を同期で読み、配信待ちの状態が無い（S4-machine D-10） | — |
