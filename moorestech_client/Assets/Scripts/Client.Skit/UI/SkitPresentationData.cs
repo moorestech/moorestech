@@ -7,6 +7,25 @@ namespace Client.Skit.UI
         // blocking スキット（会話の演出が画面を持つ）のモード名。判定する側もこの定数を読む
         // Mode name of a blocking skit (the dialogue owns the screen); consumers compare against this constant too
         public const string BlockingMode = "blocking";
+        public const string NoneMode = "none";
+        public const string BackgroundMode = "background";
+
+        // 許可 intent と表示方式の綴り。Web の wire と同じで、store・UITK・Playtest が読む
+        // Spellings of the allowed intents and reveal modes; same as the Web wire, read by the store, UITK and Playtest
+        public const string AdvanceIntent = "advance";
+        public const string SelectIntent = "select";
+        public const string SetAutoIntent = "set-auto";
+        public const string SkipIntent = "skip";
+        public const string SetUiHiddenIntent = "set-ui-hidden";
+        public const string TypewriterRevealMode = "typewriter";
+        public const string InstantRevealMode = "instant";
+
+        // 許可 intent に含まれるか。store の検証・UITK の ViewModel・Playtest が同じ規則を読む
+        // Whether the intent is in the allowed set; the store validation, the UITK view model and Playtest share this rule
+        public static bool IsIntentAllowed(string[] allowedIntents, string intent)
+        {
+            return Array.IndexOf(allowedIntents, intent) >= 0;
+        }
 
         public string SessionId;
         public int SceneRevision;
@@ -16,13 +35,13 @@ namespace Client.Skit.UI
         public static SkitPresentationData CreateNone(string sessionId, int revision)
         {
             return CreateBlocking(sessionId, revision, "", "", Array.Empty<SkitChoice>(), false, false,
-                false, false, false, "instant", 0, Array.Empty<string>(), "none");
+                false, false, false, InstantRevealMode, 0, Array.Empty<string>(), NoneMode);
         }
 
         public static SkitPresentationData CreateBackground(string sessionId, int revision, string speaker, string body)
         {
             return CreateBlocking(sessionId, revision, speaker, body, Array.Empty<SkitChoice>(), true, false,
-                false, false, false, "typewriter", 24, Array.Empty<string>(), "background");
+                false, false, false, TypewriterRevealMode, 24, Array.Empty<string>(), BackgroundMode);
         }
 
         public static SkitPresentationData CreateBlocking(string sessionId, int revision, string speaker, string body,
