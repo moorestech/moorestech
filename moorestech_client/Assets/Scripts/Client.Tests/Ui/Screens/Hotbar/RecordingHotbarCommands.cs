@@ -7,8 +7,8 @@ using Client.Ui.State.Hotbar.Logic;
 namespace Client.Tests.Ui.Screens.Hotbar
 {
     /// <summary>
-    /// 画面が呼んだ操作を文字列で記録する（Web e2e の payloadsOf にあたる）
-    /// Records the operations the screen called as strings (the Web e2e payloadsOf)
+    /// 呼ばれた操作を文字列で記録する
+    /// Records the called operations as strings
     /// </summary>
     internal sealed class RecordingHotbarCommands : IHotbarCommands
     {

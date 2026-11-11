@@ -3,8 +3,8 @@ using Client.Ui.State.Hotbar.Logic;
 namespace Client.Ui.Screens.Hotbar.Parts
 {
     /// <summary>
-    /// 列の枠の間の隙間の印（Web の data-hotbar-row。ここで離すと受けて無操作）
-    /// Mark for the gap between slots in the row (the Web data-hotbar-row; releasing here is received and does nothing)
+    /// 列の枠間の隙間の印。落とすと無操作
+    /// Gap mark in the row; dropping does nothing
     /// </summary>
     public sealed class HotbarRowGapDropMark : IHotbarDropReceiver
     {

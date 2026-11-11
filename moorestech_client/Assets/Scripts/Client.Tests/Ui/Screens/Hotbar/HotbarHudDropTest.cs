@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Hotbar
 {
     /// <summary>
-    /// 落とし先の解き方（割当・解除・隙間）と未解決の枠（L1。Web hotbar.spec.ts の D&D）
-    /// How drops resolve (assign, clear, gap) and the unresolved slot (L1; the Web hotbar.spec.ts drag-and-drop)
+    /// 落とし先の解き方と未解決の枠（L1）
+    /// How drops resolve and the unresolved slot (L1)
     /// </summary>
     public class HotbarHudDropTest : ScreenTestHost
     {

@@ -44,8 +44,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
         {
             // silent-ok: 空き枠は掴む物が無い（Web の source === null） / HotbarSlotDragGestureTest「空き枠を引きずって…」が固定する
             if (!TryGetDragSource(out var source)) return;
-            // 枠外（何も無い所・他の画面の印）は L0-s3 の規則で解除になる
-            // Outside (empty space or another screen's mark) resolves to a clear by the L0-s3 rule
+            // 枠外は規則で解除
+            // Outside a slot resolves to a clear by rule
             _commands.Apply(HotbarDropResolver.Resolve(source, OutsideHotbarDropTarget.Instance));
         }
 

@@ -5,8 +5,8 @@ using Client.Ui.State.Modal.Logic;
 namespace Client.Ui.Screens.Modal
 {
     /// <summary>
-    /// 確定ボタンの色の向き → ボタンの見た目の唯一の写し（設計書 A-28。Web は blue・red）
-    /// The single mapping from confirm-button tone to button look (design A-28; the Web uses blue and red)
+    /// 確定ボタンの色の向き→見た目の唯一の写し
+    /// The single mapping from confirm tone to button look
     /// </summary>
     public static class ModalButtonVariants
     {

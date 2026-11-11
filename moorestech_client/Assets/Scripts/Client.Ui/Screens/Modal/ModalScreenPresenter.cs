@@ -28,8 +28,8 @@ namespace Client.Ui.Screens.Modal
 
         public void Initialize()
         {
-            // 状態の正は ModalRequestService。変化の通知で出し入れする
-            // ModalRequestService owns the state; show or hide on its change notice
+            // 状態の正は ModalRequestService
+            // ModalRequestService owns the state
             _service.OnPendingChanged.Subscribe(_ => Sync());
             Sync();
         }

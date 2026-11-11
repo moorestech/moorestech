@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.Hotbar
 {
-    // 群の減光は filter: opacity() で当てる（Web の opacity と同じ群の合成）。その値を読む
-    // Group dimming uses filter: opacity() (same group compositing as Web opacity); this reads its value
+    // 群の減光は filter: opacity() の値を読む
+    // Group dimming reads the filter: opacity() value
     public static class HotbarGroupOpacity
     {
         public static float Read(VisualElement element)

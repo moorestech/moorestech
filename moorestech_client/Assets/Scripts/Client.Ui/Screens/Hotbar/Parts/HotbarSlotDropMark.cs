@@ -4,8 +4,8 @@ using Client.Ui.State.Hotbar.Logic;
 namespace Client.Ui.Screens.Hotbar.Parts
 {
     /// <summary>
-    /// 枠の落とし先の印（Web の data-hotbar-slot-index）。受けた源を L0-s3 の規則で解いて操作へ流す
-    /// Drop-target mark for a slot (the Web data-hotbar-slot-index); resolves the received source by the L0-s3 rule and sends the operation
+    /// 枠の落とし先の印。源を規則で解く
+    /// Slot drop-target mark; resolves the source by rule
     /// </summary>
     public sealed class HotbarSlotDropMark : IHotbarDropReceiver
     {

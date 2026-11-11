@@ -43,8 +43,8 @@ namespace Client.Tests.Ui.Components.Slots.CountLabel
 
         private Label MountStroke(string knobClass)
         {
-            // 置く側の要素に祖先のつまみを当て、2 層の数字を足す
-            // Apply the ancestor knob to the placing element and add the two-layer number
+            // 祖先のつまみを当て数字を足す
+            // Apply the ancestor knob and add the number
             var screen = new VisualElement();
             if (knobClass != null)
             {

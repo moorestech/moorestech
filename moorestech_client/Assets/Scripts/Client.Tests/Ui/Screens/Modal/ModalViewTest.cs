@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Modal
 {
     /// <summary>
-    /// モーダルの中身（題・本文・入力・ボタン）と確定の可否・空白の除去・色（L1。Web modal.spec.ts）
-    /// Modal contents (title, message, input, button), confirm eligibility, trimming and colour (L1; Web modal.spec.ts)
+    /// モーダルの中身・可否・空白除去・色（L1）
+    /// Modal contents, eligibility, trimming and colour (L1)
     /// </summary>
     public class ModalViewTest : ScreenTestHost
     {

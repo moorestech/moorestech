@@ -4,8 +4,8 @@ using Client.Ui.State.Modal.Logic;
 namespace Client.Ui.State.Modal
 {
     /// <summary>
-    /// モーダルの応答の本番の実装。状態の正 ModalRequestService へ渡す
-    /// Production modal reply; hands the reply to ModalRequestService, the source of truth
+    /// 応答の本番実装。正は ModalRequestService
+    /// Production reply; the source of truth is ModalRequestService
     /// </summary>
     public sealed class ModalCommands : IModalCommands
     {

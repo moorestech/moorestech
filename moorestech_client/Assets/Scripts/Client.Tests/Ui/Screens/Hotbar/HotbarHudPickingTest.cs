@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Hotbar
 {
     /// <summary>
-    /// 帯は入力を奪わず、列だけが拾ってホイール素通しの印を持つ（L1。Web alwaysOnHudWheel.test.ts・bd albof.30）
-    /// The band never takes input; only the row picks and carries the wheel pass-through mark (L1; Web alwaysOnHudWheel.test.ts, bd albof.30)
+    /// 帯は入力を奪わず列だけが拾う（L1）
+    /// The band never takes input; only the row picks (L1)
     /// </summary>
     public class HotbarHudPickingTest : ScreenTestHost
     {

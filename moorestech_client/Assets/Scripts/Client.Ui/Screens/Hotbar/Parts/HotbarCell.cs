@@ -48,8 +48,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
 
         public void Render(HotbarSlotViewModel slot, bool selected)
         {
-            // 割当があれば白面（未解決も外せる割当として白面）、未解決は枠ごと減光
-            // An assignment shows the white face (unresolved too, as a clearable assignment); unresolved dims the whole cell
+            // 割当は白面、未解決は枠ごと減光
+            // An assignment shows the white face; unresolved dims the whole cell
             _frame.SetState(new SlotFrameState(selected, slot.IsAssigned, false, false, false));
             EnableInClassList(UnresolvedClass, slot is HotbarUnresolvedSlot);
             RenderFace();

@@ -10,8 +10,8 @@ using VContainer.Unity;
 namespace Client.Ui.Screens.Hotbar
 {
     /// <summary>
-    /// ホットバーを起動時に 1 回 Chrome 層（Viewport の族。Web の .viewportOverlay）へ載せる
-    /// Mounts the hotbar once into the Chrome layer (Viewport family; the Web .viewportOverlay)
+    /// ホットバーを起動時に 1 回 Chrome 層へ載せる
+    /// Mounts the hotbar once into the Chrome layer
     /// </summary>
     public sealed class HotbarHudPresenter : IInitializable
     {

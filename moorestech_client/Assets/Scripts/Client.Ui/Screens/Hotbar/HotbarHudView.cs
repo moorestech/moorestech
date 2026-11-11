@@ -39,8 +39,8 @@ namespace Client.Ui.Screens.Hotbar
             pickingMode = PickingMode.Ignore;
             AddToClassList("hotbar-hud");
 
-            // 列: ホイール素通し・隙間の落とし先・チュートリアルの錨・calc() のつまみ
-            // Row: wheel pass-through, gap drop target, tutorial anchor and calc() knobs
+            // 列: 素通し・落とし先・錨・つまみ
+            // Row: pass-through, drop target, anchor and knobs
             _row = new VisualElement { name = "hotbar-grid" };
             _row.AddToClassList("hotbar-hud__row");
             WheelPassthroughMark.Mark(_row);
@@ -52,8 +52,8 @@ namespace Client.Ui.Screens.Hotbar
 
         public void Render(HotbarViewModel viewModel)
         {
-            // 退く間は帯ごと隠す（Web は null を返す。計画 D-10）
-            // Hide the whole band while retreating (the Web returns null; plan D-10)
+            // 退く間は帯ごと隠す
+            // Hide the whole band while retreating
             style.display = viewModel.Visible ? DisplayStyle.Flex : DisplayStyle.None;
             _row.EnableInClassList(SelectDisabledClass, !viewModel.SelectAccepted);
 

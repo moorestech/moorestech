@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Hotbar
 {
     /// <summary>
-    /// 配置対象の絵が枠の中央に描かれる（L1。Web placementIconCentering.spec.ts のホットバー）
-    /// The placement picture is drawn centred in the slot (L1; the hotbar case of Web placementIconCentering.spec.ts)
+    /// 配置対象の絵が枠の中央に描かれる（L1）
+    /// The placement picture is drawn centred (L1)
     /// </summary>
     public class HotbarIconCenteringTest : ScreenTestHost
     {

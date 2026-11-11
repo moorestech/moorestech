@@ -13,8 +13,8 @@ namespace Client.Ui.State.Hotbar
         {
         }
 
-        // 割当があるか（未解決も割当あり。外せる・白面で出す）
-        // Whether an assignment exists (unresolved counts: it can be cleared and shows the white face)
+        // 割当の有無（未解決も有り）
+        // Whether an assignment exists (unresolved counts)
         public abstract bool IsAssigned { get; }
     }
 

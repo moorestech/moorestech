@@ -31,8 +31,8 @@ namespace Client.Tests.Ui.Screens.Hotbar
             _view = Mount(new HotbarHudView(_commands, HotbarTestPresentation.Create(), Toaster));
             _view.Render(HotbarViewModelSamples.WebFixture());
 
-            // 左上に本物のビルドメニューのエントリの源を単独で置く
-            // The real build-menu entry source alone at the top-left
+            // 左上にエントリの源を単独で置く
+            // The entry source alone at the top-left
             _entry = new VisualElement { name = "build-menu-entry-alone" };
             _entry.style.position = Position.Absolute;
             _entry.style.left = 10;

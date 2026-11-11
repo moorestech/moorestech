@@ -48,8 +48,8 @@ namespace Client.Ui.Screens.Modal
             message.SetText(UiText.FromVerbatim(request.Message));
             frame.Add(message);
 
-            // 入力付きだけ入力欄を置き、確定ボタンは幅いっぱい（Web Button fullWidth）
-            // Only input requests get the field; the confirm button spans the width (Web Button fullWidth)
+            // 入力欄は入力付きのみ、ボタンは全幅
+            // The field only for input requests; the button spans the width
             if (request.RequiresInput) frame.Add(CreateInput());
             _button = new FormButton("modal-button", UiText.FromVerbatim(request.ButtonText), ModalButtonVariants.From(ModalLogic.ConfirmButtonTone(request.Variant)));
             _button.OnClicked.Subscribe(_ => Confirm());

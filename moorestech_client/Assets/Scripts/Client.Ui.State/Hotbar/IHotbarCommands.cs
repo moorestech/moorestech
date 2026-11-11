@@ -4,8 +4,8 @@ using Client.Ui.State.Hotbar.Logic;
 namespace Client.Ui.State.Hotbar
 {
     /// <summary>
-    /// ホットバーの画面から呼ぶ操作（Web の hotbar.select・assign・swap・clear）
-    /// Operations the hotbar screen calls (Web hotbar.select, assign, swap, clear)
+    /// ホットバー画面から呼ぶ操作
+    /// Operations the hotbar screen calls
     /// </summary>
     public interface IHotbarCommands
     {

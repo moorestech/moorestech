@@ -4,8 +4,8 @@ using Client.Ui.State.Modal.Logic;
 namespace Client.Ui.State.Modal
 {
     /// <summary>
-    /// モーダルの応答の操作（Web の ui.modal.respond。設計書 A-8）
-    /// The modal reply command (Web ui.modal.respond; design A-8)
+    /// モーダルの応答の操作
+    /// The modal reply command
     /// </summary>
     public interface IModalCommands
     {
