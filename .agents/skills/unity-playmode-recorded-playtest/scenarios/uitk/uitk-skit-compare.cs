@@ -110,6 +110,16 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         await p.WaitSeconds(0.5f);
         await p.Screenshot($"{prefix}-uitk-skit-choices");
 
+        // ホバーの色は参照キャプチャに無いので UITK だけ撮り、Web の CSS の値と照らす
+        // Hover colours are absent from the reference captures, so shoot UITK only and check against the Web CSS values
+        await p.HoverUi("skit-choice-route-b");
+        await p.WaitSeconds(0.3f);
+        await p.Screenshot($"{prefix}-uitk-skit-choice-hover");
+        await p.HoverUi("skit-tool-auto");
+        await p.WaitSeconds(0.3f);
+        await p.Screenshot($"{prefix}-uitk-skit-tool-hover");
+        await p.HoverUi("blocking-skit");
+
         store.SetTransitionVisible(true);
         await p.WaitSeconds(0.5f);
         await p.Screenshot($"{prefix}-uitk-skit-transition");
