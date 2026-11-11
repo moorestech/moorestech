@@ -25,7 +25,7 @@ namespace Client.Ui.State.BlockInventory.Special.Text
 
         // toPrecision(2): 指数が -6 より小さいか 2 以上なら指数表記（符号付き）、他は小数（JS の規則）
         // toPrecision(2): signed exponent notation when the exponent is below -6 or at least 2, plain decimals otherwise (JS rule)
-        public static string Precision2(double value)
+        internal static string Precision2(double value)
         {
             if (value == 0) return "0.0";
             var exponent = (int)Math.Floor(Math.Log10(Math.Abs(value)));

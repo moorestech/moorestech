@@ -16,7 +16,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         public float Progress { get; }
         public IReadOnlyList<int> MaterialSlots { get; }
         public IReadOnlyList<int> PayloadSlots { get; }
-        public int OutputSlotStart { get; }
+        private int OutputSlotStart { get; }
 
         public RocketLaunchPadDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, int outputSlotStart)
         {

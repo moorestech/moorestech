@@ -25,7 +25,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             return new GearToElectricDetail(ToDisplayState(state.GenerationState), state.GeneratedElectricPower, maxGeneratedPower);
         }
 
-        public static GearToElectricDisplayState ToDisplayState(GearToElectricGenerationState state)
+        private static GearToElectricDisplayState ToDisplayState(GearToElectricGenerationState state)
         {
             return state switch
             {

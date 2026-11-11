@@ -1,4 +1,5 @@
 using Client.Ui.State.BlockInventory.Logic.Special;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Grab;
 using Core.Master;
@@ -13,13 +14,13 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
     /// </summary>
     public sealed class SpecialBlockCommands : ISpecialBlockCommands
     {
-        private readonly IOpenSpecialBlock _openBlock;
+        private readonly IBlockInventoryPanelSource _panels;
         private readonly ISpecialBlockRequestSender _sender;
         private readonly PlayerGrabModel _grab;
 
-        public SpecialBlockCommands(IOpenSpecialBlock openBlock, ISpecialBlockRequestSender sender, PlayerGrabModel grab)
+        public SpecialBlockCommands(IBlockInventoryPanelSource panels, ISpecialBlockRequestSender sender, PlayerGrabModel grab)
         {
-            _openBlock = openBlock;
+            _panels = panels;
             _sender = sender;
             _grab = grab;
         }
@@ -27,7 +28,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         public async UniTask<UiCommandResult> SetFilterMode(int directionIndex, FilterSplitterMode mode)
         {
             if (!TryOpen(BlockMasterElement.BlockTypeConst.FilterSplitter, out var block, out var rejected)) return rejected;
-            return ToResult(await _sender.SetFilterMode(block.Position, directionIndex, mode));
+            return ToResult(await _sender.SetFilterMode(block.Position, block.BlockInstanceId, directionIndex, mode));
         }
 
         public async UniTask<UiCommandResult> SetFilterItem(int directionIndex, int slotIndex, bool clear)
@@ -40,7 +41,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             var action = FilterSplitterLogic.ClickAction(grab.Count, clear);
             if (action == FilterSlotClickAction.Noop) return new UiCommandRejected(UiCommandRejectReason.FilterSplitterGrabEmpty, "");
             var itemId = action == FilterSlotClickAction.Clear ? ItemMaster.EmptyItemId : grab.ItemId;
-            return ToResult(await _sender.SetFilterItem(block.Position, directionIndex, slotIndex, itemId));
+            return ToResult(await _sender.SetFilterItem(block.Position, block.BlockInstanceId, directionIndex, slotIndex, itemId));
         }
 
         public async UniTask<UiCommandResult> SetElectricToGearMode(int modeIndex)
@@ -52,25 +53,27 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         public async UniTask<UiCommandResult> ConnectSpaceElevator()
         {
             if (!TryOpen(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, out var block, out var rejected)) return rejected;
-            return ToResult(await _sender.ConnectSpaceElevator(block.Position, block.InstanceId));
+            return ToResult(await _sender.ConnectSpaceElevator(block.Position, block.BlockInstanceId));
         }
 
         public async UniTask<UiCommandResult> SendRocketCommand(RocketCommand command)
         {
             if (!TryOpen(BlockMasterElement.BlockTypeConst.RocketLaunchPad, out var block, out var rejected)) return rejected;
-            return ToResult(await _sender.SendRocketCommand(block.Position, command, block.InstanceId));
+            return ToResult(await _sender.SendRocketCommand(block.Position, command, block.BlockInstanceId));
         }
 
         // 開いていない・種別が違うなら送らずに拒否する（Web の block_not_open・invalid_block_type）
         // Refuse without sending when nothing is open or the type differs (Web block_not_open, invalid_block_type)
-        private bool TryOpen(string expectedBlockType, out OpenSpecialBlock block, out UiCommandResult rejected)
+        private bool TryOpen(string expectedBlockType, out OpenBlockInventoryPanel block, out UiCommandResult rejected)
         {
             rejected = null;
-            if (!_openBlock.TryGet(out block))
+            block = null;
+            if (_panels.Current.Value is not OpenBlockInventoryPanel { Error: BlockInventoryPanelError.None } open)
             {
                 rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "block_not_open");
                 return false;
             }
+            block = open;
             if (block.BlockType == expectedBlockType) return true;
             rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "invalid_block_type");
             return false;

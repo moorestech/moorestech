@@ -35,8 +35,8 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
     // Port that sends to the server; tests swap in a recorder
     public interface ISpecialBlockRequestSender
     {
-        UniTask<SpecialBlockRequestOutcome> SetFilterMode(Vector3Int position, int directionIndex, FilterSplitterMode mode);
-        UniTask<SpecialBlockRequestOutcome> SetFilterItem(Vector3Int position, int directionIndex, int slotIndex, ItemId itemId);
+        UniTask<SpecialBlockRequestOutcome> SetFilterMode(Vector3Int position, BlockInstanceId instanceId, int directionIndex, FilterSplitterMode mode);
+        UniTask<SpecialBlockRequestOutcome> SetFilterItem(Vector3Int position, BlockInstanceId instanceId, int directionIndex, int slotIndex, ItemId itemId);
         UniTask<SpecialBlockRequestOutcome> SetElectricToGearMode(Vector3Int position, int modeIndex);
         UniTask<SpecialBlockRequestOutcome> ConnectSpaceElevator(Vector3Int position, BlockInstanceId instanceId);
         UniTask<SpecialBlockRequestOutcome> SendRocketCommand(Vector3Int position, RocketCommand command, BlockInstanceId instanceId);

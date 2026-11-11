@@ -21,7 +21,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
     public sealed class FilterDirectionView : VisualElement
     {
         public const string SetModeCommandName = "filter_splitter.set_mode";
-        public const string SetItemCommandName = "filter_splitter.set_filter_item";
+        private const string SetItemCommandName = "filter_splitter.set_filter_item";
         private static readonly FilterSplitterMode[] Modes = { FilterSplitterMode.Default, FilterSplitterMode.Whitelist, FilterSplitterMode.Blacklist };
 
         private readonly SpecialViewKit _kit;
@@ -83,16 +83,16 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
                 return new ItemSlotContent(icon, null, new ItemSlotMarks(false, false, false), null, null, null);
             }
 
-            #endregion
-        }
+            void OnGesture(int slotIndex, SlotGestureKind kind)
+            {
+                // 左押下は設定、右押下は解除。掴みが空の設定は操作の側が良性に断る（Web の noop）
+                // Left-down sets and right-down clears; an empty-grab set is benignly refused by the command (Web noop)
+                // silent-ok: 押下以外の身振り（ホバー・なぞり・ダブルクリック）はフィルタ枠の操作ではない / Web の ItemSlot も onLeftDown・onRightDown だけを渡す
+                if (kind != SlotGestureKind.LeftDown && kind != SlotGestureKind.RightDown) return;
+                _kit.Run(SetItemCommandName, _kit.Commands.SetFilterItem(_directionIndex, slotIndex, kind == SlotGestureKind.RightDown));
+            }
 
-        private void OnGesture(int slotIndex, SlotGestureKind kind)
-        {
-            // 左押下は設定、右押下は解除。掴みが空の設定は操作の側が良性に断る（Web の noop）
-            // Left-down sets and right-down clears; an empty-grab set is benignly refused by the command (Web noop)
-            // silent-ok: 押下以外の身振り（ホバー・なぞり・ダブルクリック）はフィルタ枠の操作ではない / Web の ItemSlot も onLeftDown・onRightDown だけを渡す
-            if (kind != SlotGestureKind.LeftDown && kind != SlotGestureKind.RightDown) return;
-            _kit.Run(SetItemCommandName, _kit.Commands.SetFilterItem(_directionIndex, slotIndex, kind == SlotGestureKind.RightDown));
+            #endregion
         }
     }
 }

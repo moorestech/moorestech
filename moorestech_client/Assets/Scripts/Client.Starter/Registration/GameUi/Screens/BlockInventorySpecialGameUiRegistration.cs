@@ -20,7 +20,6 @@ namespace Client.Starter.Registration.GameUi.Screens
             // 詳細と操作（State）
             // Details and commands (State)
             builder.RegisterEntryPoint<SpecialBlockDetailModel>().As<ISpecialBlockDetailModel>();
-            builder.Register<PanelOpenSpecialBlock>(Lifetime.Singleton).As<IOpenSpecialBlock>();
             builder.Register<VanillaSpecialBlockRequestSender>(Lifetime.Singleton).As<ISpecialBlockRequestSender>();
             builder.Register<SpecialBlockCommands>(Lifetime.Singleton).As<ISpecialBlockCommands>();
             builder.Register<SpecialInletBindingContributor>(Lifetime.Singleton).As<IBlockSlotRestrictionContributor>();

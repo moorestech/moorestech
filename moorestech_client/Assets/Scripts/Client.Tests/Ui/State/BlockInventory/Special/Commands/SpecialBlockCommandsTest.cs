@@ -1,4 +1,7 @@
+using System;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Inventory;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.Commands;
@@ -8,6 +11,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Tests.Ui.State.BlockInventory.Special
@@ -20,7 +24,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
     {
         private static readonly Vector3Int Position = new(3, 0, 4);
         private RecordingSpecialRequestSender _sender;
-        private FakeOpenSpecialBlock _open;
+        private ReactiveProperty<BlockInventoryPanelState> _open;
         private RecordingPlayerInventoryOperations _operations;
         private SpecialBlockCommands _commands;
 
@@ -28,11 +32,11 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void SetUp()
         {
             _sender = new RecordingSpecialRequestSender();
-            _open = new FakeOpenSpecialBlock();
+            _open = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed);
             _operations = new RecordingPlayerInventoryOperations(36, 0);
             var grab = new PlayerGrabModel(_operations);
             grab.Initialize();
-            _commands = new SpecialBlockCommands(_open, _sender, grab);
+            _commands = new SpecialBlockCommands(new FakePanelSource(_open), _sender, grab);
         }
 
         [Test]
@@ -61,7 +65,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             _operations.SetGrab(new SlotItem(new ItemId(4), 3));
             Assert.AreSame(UiCommandAccepted.Instance, _commands.SetFilterItem(2, 1, false).GetAwaiter().GetResult());
             Assert.AreSame(UiCommandAccepted.Instance, _commands.SetFilterItem(2, 1, true).GetAwaiter().GetResult());
-            CollectionAssert.AreEqual(new[] { $"filter_item {Position} 2 1 4", $"filter_item {Position} 2 1 {ItemMaster.EmptyItemId.AsPrimitive()}" }, _sender.Sent);
+            CollectionAssert.AreEqual(new[] { $"filter_item {Position} 77 2 1 4", $"filter_item {Position} 77 2 1 {ItemMaster.EmptyItemId.AsPrimitive()}" }, _sender.Sent);
 
             _operations.SetGrab(new SlotItem(ItemMaster.EmptyItemId, 0));
             var noop = _commands.SetFilterItem(2, 1, false).GetAwaiter().GetResult() as UiCommandRejected;
@@ -82,7 +86,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad);
             _commands.SendRocketCommand(RocketCommand.Launch).GetAwaiter().GetResult();
 
-            CollectionAssert.AreEqual(new[] { $"filter_mode {Position} 0 Blacklist", $"electric_to_gear {Position} 1", $"connect {Position} 77", $"rocket {Position} Launch 77" }, _sender.Sent);
+            CollectionAssert.AreEqual(new[] { $"filter_mode {Position} 77 0 Blacklist", $"electric_to_gear {Position} 1", $"connect {Position} 77", $"rocket {Position} Launch 77" }, _sender.Sent);
         }
 
         [Test]
@@ -102,9 +106,20 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             Assert.AreEqual("rocket_command_missing_materials", failed.ToWireCode());
         }
 
+        [Test]
+        public void 送信後に開いているブロックが変わったら分配器の応答は当てない()
+        {
+            var sent = new BlockInstanceId(77);
+            var other = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, Guid.Empty, default, new BlockInstanceId(78), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var same = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, Guid.Empty, default, sent, Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            Assert.IsTrue(VanillaSpecialBlockRequestSender.IsStillOpen(same, sent));
+            Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(other, sent));
+            Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(BlockInventoryPanelState.Closed, sent));
+        }
+
         private void Open(string blockType)
         {
-            _open.SetOpen(new OpenSpecialBlock(Position, blockType, new BlockInstanceId(77)));
+            _open.Value = new OpenBlockInventoryPanel(blockType, Guid.Empty, default, new BlockInstanceId(77), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
         }
     }
 }

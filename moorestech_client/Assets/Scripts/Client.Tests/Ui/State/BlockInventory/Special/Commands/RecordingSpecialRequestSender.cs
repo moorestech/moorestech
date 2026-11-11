@@ -23,8 +23,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             _next = outcome;
         }
 
-        public UniTask<SpecialBlockRequestOutcome> SetFilterMode(Vector3Int position, int directionIndex, FilterSplitterMode mode) => Record($"filter_mode {position} {directionIndex} {mode}");
-        public UniTask<SpecialBlockRequestOutcome> SetFilterItem(Vector3Int position, int directionIndex, int slotIndex, ItemId itemId) => Record($"filter_item {position} {directionIndex} {slotIndex} {itemId.AsPrimitive()}");
+        public UniTask<SpecialBlockRequestOutcome> SetFilterMode(Vector3Int position, BlockInstanceId instanceId, int directionIndex, FilterSplitterMode mode) => Record($"filter_mode {position} {instanceId.AsPrimitive()} {directionIndex} {mode}");
+        public UniTask<SpecialBlockRequestOutcome> SetFilterItem(Vector3Int position, BlockInstanceId instanceId, int directionIndex, int slotIndex, ItemId itemId) => Record($"filter_item {position} {instanceId.AsPrimitive()} {directionIndex} {slotIndex} {itemId.AsPrimitive()}");
         public UniTask<SpecialBlockRequestOutcome> SetElectricToGearMode(Vector3Int position, int modeIndex) => Record($"electric_to_gear {position} {modeIndex}");
         public UniTask<SpecialBlockRequestOutcome> ConnectSpaceElevator(Vector3Int position, BlockInstanceId instanceId) => Record($"connect {position} {instanceId.AsPrimitive()}");
         public UniTask<SpecialBlockRequestOutcome> SendRocketCommand(Vector3Int position, RocketCommand command, BlockInstanceId instanceId) => Record($"rocket {position} {command} {instanceId.AsPrimitive()}");

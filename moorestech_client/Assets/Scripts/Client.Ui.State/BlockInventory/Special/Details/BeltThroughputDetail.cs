@@ -10,8 +10,8 @@ namespace Client.Ui.State.BlockInventory.Special.Details
     public sealed class BeltThroughputDetail
     {
         public IReadOnlyList<BeltThroughputWindow> Windows { get; }
-        public IReadOnlyList<int> RecentSecondCounts { get; }
-        public double MaxCountPerSecond { get; }
+        private IReadOnlyList<int> RecentSecondCounts { get; }
+        private double MaxCountPerSecond { get; }
 
         public BeltThroughputDetail(IReadOnlyList<BeltThroughputWindow> windows, IReadOnlyList<int> recentSecondCounts, double maxCountPerSecond)
         {

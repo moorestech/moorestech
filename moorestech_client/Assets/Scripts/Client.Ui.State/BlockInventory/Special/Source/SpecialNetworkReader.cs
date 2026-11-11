@@ -38,7 +38,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             return new FilterSplitterDetail(directions);
         }
 
-        public static GearNetworkStopReasonKind ToStopReasonKind(GearNetworkStopReason reason)
+        internal static GearNetworkStopReasonKind ToStopReasonKind(GearNetworkStopReason reason)
         {
             return reason switch
             {
@@ -51,7 +51,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             };
         }
 
-        public static FilterSplitterMode ToClientMode(ServerFilterSplitterMode mode)
+        internal static FilterSplitterMode ToClientMode(ServerFilterSplitterMode mode)
         {
             return mode switch
             {

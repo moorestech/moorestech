@@ -124,7 +124,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
             // Register the real 5 body and 5 section factories on alpha's body host and return the whole panel root, so a stray section would show up
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.FilterSplitter));
             var kit = Kit(LoadContent());
-            var bodies = new IBlockInventoryBodyFactory[] { new FilterSplitterBodyFactory(kit, Presenters), new ElectricToGearBodyFactory(kit, Presenters), new ElectricPoleBodyFactory(kit, Presenters), new SpaceElevatorBodyFactory(kit, Presenters), new RocketLaunchPadBodyFactory(kit, Presenters) };
+            var bodies = new IBlockInventoryBodyFactory[] { new FilterSplitterBodyFactory(kit, Presenters), new ElectricToGearBodyFactory(kit, Presenters), new ElectricPoleBodyFactory(Presenters), new SpaceElevatorBodyFactory(kit, Presenters), new RocketLaunchPadBodyFactory(kit, Presenters) };
             var shell = BlockInventoryTestShell.Create(this, Panels.State, bodies.Cast<object>().Concat(SectionFactories()).ToArray());
             OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter);
             simulate.FrameUpdate();

@@ -29,9 +29,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
 
     public sealed class ElectricPoleBodyFactory : IBlockInventoryBodyFactory
     {
-        private readonly SpecialViewKit _kit;
         private readonly SpecialPresenters _presenters;
-        public ElectricPoleBodyFactory(SpecialViewKit kit, SpecialPresenters presenters) { _kit = kit; _presenters = presenters; }
+        public ElectricPoleBodyFactory(SpecialPresenters presenters) { _presenters = presenters; }
         public BlockInventoryBodyKind Kind => BlockInventoryBodyKind.ElectricPole;
         public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.Of(new ElectricPoleBodyView());
     }

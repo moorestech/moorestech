@@ -2,6 +2,7 @@ using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using Client.Ui.State.BlockDetail;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Source;
 using Core.Master;
@@ -20,22 +21,24 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
     public sealed class VanillaSpecialBlockRequestSender : ISpecialBlockRequestSender
     {
         private readonly BlockNetworkInfoCache _networkCache;
+        private readonly IBlockInventoryPanelSource _panels;
 
-        public VanillaSpecialBlockRequestSender(BlockNetworkInfoCache networkCache)
+        public VanillaSpecialBlockRequestSender(BlockNetworkInfoCache networkCache, IBlockInventoryPanelSource panels)
         {
             _networkCache = networkCache;
+            _panels = panels;
         }
 
-        public async UniTask<SpecialBlockRequestOutcome> SetFilterMode(Vector3Int position, int directionIndex, FilterSplitterMode mode)
+        public async UniTask<SpecialBlockRequestOutcome> SetFilterMode(Vector3Int position, BlockInstanceId instanceId, int directionIndex, FilterSplitterMode mode)
         {
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetModeRequest(position, directionIndex, SpecialNetworkReader.ToServerMode(mode));
-            return ApplyFilterResponse(await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, CancellationToken.None));
+            return ApplyFilterResponse(await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, CancellationToken.None), instanceId);
         }
 
-        public async UniTask<SpecialBlockRequestOutcome> SetFilterItem(Vector3Int position, int directionIndex, int slotIndex, ItemId itemId)
+        public async UniTask<SpecialBlockRequestOutcome> SetFilterItem(Vector3Int position, BlockInstanceId instanceId, int directionIndex, int slotIndex, ItemId itemId)
         {
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetFilterItemRequest(position, directionIndex, slotIndex, itemId);
-            return ApplyFilterResponse(await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, CancellationToken.None));
+            return ApplyFilterResponse(await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, CancellationToken.None), instanceId);
         }
 
         public async UniTask<SpecialBlockRequestOutcome> SetElectricToGearMode(Vector3Int position, int modeIndex)
@@ -60,13 +63,23 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             return response.Success ? SpecialBlockRequestOutcome.Accepted : SpecialBlockResponseCodes.FromRocketFailure(response.FailureReason);
         }
 
-        private SpecialBlockRequestOutcome ApplyFilterResponse(FilterSplitterStateProtocol.FilterSplitterStateResponse response)
+        private SpecialBlockRequestOutcome ApplyFilterResponse(FilterSplitterStateProtocol.FilterSplitterStateResponse response, BlockInstanceId sentInstanceId)
         {
-            // 受理した応答は最新の状態として集約へ当て、Model の組み直しを起こす
-            // Apply an accepted response to the aggregate as the latest state, which triggers the model rebuild
+            // 受理した応答は、送った分配器が今も開いているときだけ集約へ当てる。別のブロックに当てると本文に他個体の設定が残る
+            // Apply an accepted response only while the splitter it was sent for is still open; applying it to another block leaves foreign settings in the body
             if (response == null || !response.Success) return SpecialBlockRequestOutcome.Failed("filter_request_failed");
+            if (!IsStillOpen(_panels.Current.Value, sentInstanceId))
+            {
+                Debug.LogWarning($"分配器の応答を捨てました（送信後に開いているブロックが変わった）/ Dropped the splitter response because the open block changed after sending: {sentInstanceId}");
+                return SpecialBlockRequestOutcome.Accepted;
+            }
             _networkCache.ApplyFilterSplitterSnapshot(response);
             return SpecialBlockRequestOutcome.Accepted;
+        }
+
+        internal static bool IsStillOpen(BlockInventoryPanelState current, BlockInstanceId sentInstanceId)
+        {
+            return current is OpenBlockInventoryPanel { Error: BlockInventoryPanelError.None } open && open.BlockInstanceId == sentInstanceId;
         }
     }
 }

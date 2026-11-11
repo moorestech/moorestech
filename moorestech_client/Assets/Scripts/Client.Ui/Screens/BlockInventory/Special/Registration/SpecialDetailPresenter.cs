@@ -45,6 +45,14 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
 
             #region Internal
 
+            void Draw(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+            {
+                // 出し入れは IsApplicable で親へ知らせ、出す時だけ描く（区画は自分の display を触らない。D-23）
+                // Report visibility to the parent via IsApplicable and draw only when shown (sections never touch their own display. D-23)
+                _isApplicable.Value = _view.HasDetail(detail);
+                if (_isApplicable.Value) _view.Render(itemSlots, detail);
+            }
+
             bool IsSame(BlockInventoryPanelState current, OpenBlockInventoryPanel attached)
             {
                 // silent-ok: 別のパネルへ替わる途中の値は描かない / alpha の BodyHost が同じフレームで Detach して新しい部分を作る（前例 alpha の SectionStackItemGridSection）
@@ -57,14 +65,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         public void Detach()
         {
             _subscriptions.Clear();
-        }
-
-        private void Draw(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
-        {
-            // 出し入れは IsApplicable で親へ知らせ、出す時だけ描く（区画は自分の display を触らない。D-23）
-            // Report visibility to the parent via IsApplicable and draw only when shown (sections never touch their own display. D-23)
-            _isApplicable.Value = _view.HasDetail(detail);
-            if (_isApplicable.Value) _view.Render(itemSlots, detail);
         }
     }
 }

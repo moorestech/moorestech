@@ -24,7 +24,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void 本文5つと題の操作1つと区画5つを持ち分どおりに作る()
         {
             var kit = Kit(null);
-            var bodies = new IBlockInventoryBodyFactory[] { new FilterSplitterBodyFactory(kit, Presenters), new ElectricToGearBodyFactory(kit, Presenters), new ElectricPoleBodyFactory(kit, Presenters), new SpaceElevatorBodyFactory(kit, Presenters), new RocketLaunchPadBodyFactory(kit, Presenters) };
+            var bodies = new IBlockInventoryBodyFactory[] { new FilterSplitterBodyFactory(kit, Presenters), new ElectricToGearBodyFactory(kit, Presenters), new ElectricPoleBodyFactory(Presenters), new SpaceElevatorBodyFactory(kit, Presenters), new RocketLaunchPadBodyFactory(kit, Presenters) };
             CollectionAssert.AreEquivalent(new[] { BlockInventoryBodyKind.FilterSplitter, BlockInventoryBodyKind.ElectricToGear, BlockInventoryBodyKind.ElectricPole, BlockInventoryBodyKind.SpaceElevator, BlockInventoryBodyKind.RocketLaunchPad }, bodies.Select(b => b.Kind));
             CollectionAssert.AreEquivalent(new[] { "filter-splitter", "electric-to-gear-view", "electric-pole-view", "space-elevator-view", string.Empty }, bodies.Select(b => b.Create(new BlockInventoryBodyMount(false)).Root.name));
 

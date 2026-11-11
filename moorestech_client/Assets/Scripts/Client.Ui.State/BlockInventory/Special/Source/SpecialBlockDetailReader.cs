@@ -46,12 +46,9 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             {
                 if (param is not GearToElectricGeneratorBlockParam generatorParam) return null;
                 var state = block.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
-                if (state != null) return SpecialStateDetailReader.GearToElectric(state, generatorParam.MaxGeneratedPower);
-
-                // 未着は開発者へ知らせて区画を出さない（Web の橋と同じ警告）
-                // Tell developers about the missing state and render no section (same warning as the Web bridge)
-                Debug.LogWarning("[SpecialBlockDetailReader] GearToElectric の状態詳細が未着のため区画を保留します");
-                return null;
+                // silent-ok: 状態の初回到着待ちは区画を出さない / 届かないままなら録画（R-12）の回転発電機の段で気づく
+                if (state == null) return null;
+                return SpecialStateDetailReader.GearToElectric(state, generatorParam.MaxGeneratedPower);
             }
 
             GearDetail ReadGear()

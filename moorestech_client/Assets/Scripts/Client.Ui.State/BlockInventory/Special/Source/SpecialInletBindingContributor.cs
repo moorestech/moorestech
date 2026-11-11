@@ -40,7 +40,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             return TryGetInletBindings(block, out var bindings) ? input.WithInletBindings(bindings) : input;
         }
 
-        public static bool TryGetInletBindings(BlockGameObject block, out IReadOnlyList<InletSlotBinding> bindings)
+        private static bool TryGetInletBindings(BlockGameObject block, out IReadOnlyList<InletSlotBinding> bindings)
         {
             bindings = null;
             var param = block.BlockMasterElement.BlockParam;
@@ -73,7 +73,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             return false;
         }
 
-        public static IReadOnlyList<InletSlotBinding> SpaceElevatorBindings(int satelliteSlot, IReadOnlyList<ItemId> carriedPayloadItemIds)
+        internal static IReadOnlyList<InletSlotBinding> SpaceElevatorBindings(int satelliteSlot, IReadOnlyList<ItemId> carriedPayloadItemIds)
         {
             return new[] { new InletSlotBinding(satelliteSlot, carriedPayloadItemIds) };
         }
