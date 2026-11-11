@@ -108,21 +108,32 @@ namespace Client.Tests.Ui.State.BuildMenu
         }
 
         [Test]
-        public void 閉じた後の閉じると拒まれた遷移は良性の拒否になる()
+        public void 閉じた後の閉じるは遷移を頼まず良性の拒否になる()
         {
-            // 閉じた後は遷移を頼まない。開いていても許可表が拒めば同じ拒否
-            // After close no transition is requested; a refusal by the allow table while open yields the same rejection
             SetState(UIStateEnum.GameScreen);
-            var closed = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).Close();
-            Assert.IsEmpty(_requester.Requested);
 
+            var closed = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).Close();
+
+            Assert.IsEmpty(_requester.Requested);
+            Assert.AreEqual(UiCommandRejectReason.BuildMenuNotOpen, closed.Reason);
+            Assert.AreEqual("invalid_state", closed.ToWireCode());
+            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(closed.Reason));
+        }
+
+        [Test]
+        public void 許可表に拒まれた閉じるは非良性の閉じ拒否になる()
+        {
+            // 開いているのに閉じられないのでトーストで知らせる（BuildMenuNotOpen と取り違えない）
+            // Open yet not closable, so it must toast instead of being mistaken for BuildMenuNotOpen
             SetState(UIStateEnum.BuildMenu);
             _requester.Result = false;
+
             var refused = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).Close();
 
-            Assert.AreEqual("invalid_state", closed.ToWireCode());
-            Assert.AreEqual("invalid_state", refused.ToWireCode());
             CollectionAssert.AreEqual(new[] { UIStateEnum.GameScreen }, _requester.Requested);
+            Assert.AreEqual(UiCommandRejectReason.BuildMenuCloseRefused, refused.Reason);
+            Assert.AreEqual("transition_not_allowed", refused.ToWireCode());
+            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(refused.Reason));
         }
 
         private BuildMenuCommands CreateCommands(BlueprintDeleteResult deleteResult)

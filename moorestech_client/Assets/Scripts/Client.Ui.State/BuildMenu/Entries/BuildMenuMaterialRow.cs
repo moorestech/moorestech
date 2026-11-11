@@ -19,18 +19,16 @@ namespace Client.Ui.State.BuildMenu.Entries
         }
     }
 
-    // VM が持つ素材の行。不足は VM の ctor で 1 回だけ判定し、ツールチップと詳細はこの値を読む
-    // A material line held by the VM; shortage is judged once in the VM ctor and the tooltip and detail read this value
+    // VM が持つ素材の行。Row を丸ごと持ち、不足は VM の ctor で 1 回だけ判定した値を足す
+    // A material line held by the VM; wraps the Row whole and adds the shortage judged once in the VM ctor
     public sealed class BuildMenuMaterialLine
     {
-        public ItemId ItemId { get; }
-        public BuildMenuRequiredItem Item { get; }
+        public BuildMenuMaterialRow Row { get; }
         public bool IsInsufficient { get; }
 
         public BuildMenuMaterialLine(BuildMenuMaterialRow row, bool isInsufficient)
         {
-            ItemId = row.ItemId;
-            Item = row.Item;
+            Row = row;
             IsInsufficient = isInsufficient;
         }
     }

@@ -92,11 +92,11 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             {
                 var row = entry.Materials[i];
                 var lacking = row.IsInsufficient;
-                var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuMaterial, _content.ItemName(row.ItemId).Resolve(), row.Item.Count, row.Item.Held);
+                var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuMaterial, _content.ItemName(row.Row.ItemId).Resolve(), row.Row.Item.Count, row.Row.Item.Held);
                 var slot = new ItemSlot($"build-menu-detail-material-{i}");
                 // ghost・tooltipOverride の null 渡しは SlotItemContent.From と同じ
                 // Passing null ghost and tooltipOverride follows SlotItemContent.From
-                slot.SetContent(new ItemSlotContent(_content.Item(row.ItemId), null, new ItemSlotMarks(false, false, lacking), new ItemSlotShortage(row.Item.Held, row.Item.Count, lacking, tooltip), null, null));
+                slot.SetContent(new ItemSlotContent(_content.Item(row.Row.ItemId), null, new ItemSlotMarks(false, false, lacking), new ItemSlotShortage(row.Row.Item.Held, row.Row.Item.Count, lacking, tooltip), null, null));
                 grid.AddItem(slot);
             }
             Add(grid);

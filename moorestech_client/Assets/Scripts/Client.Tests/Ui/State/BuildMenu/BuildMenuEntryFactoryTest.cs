@@ -69,7 +69,7 @@ namespace Client.Tests.Ui.State.BuildMenu
 
             // 比べる値が定数でないこと（所持数を持つ素材がある）を確かめる
             // Make sure the compared values are not constants (some material has a held count)
-            Assert.IsTrue(entries.Any(entry => entry.Materials.Any(row => 0 < row.Item.Held)));
+            Assert.IsTrue(entries.Any(entry => entry.Materials.Any(line => 0 < line.Row.Item.Held)));
         }
 
         [Test]
@@ -119,7 +119,7 @@ namespace Client.Tests.Ui.State.BuildMenu
                 Assert.AreEqual(dto.SubCategoryGuid, entry.Catalog.SubCategoryGuid.ToString("D"));
                 Assert.AreEqual(dto.PaymentWaived, entry.Catalog.PaymentWaived);
                 Assert.AreEqual(dto.SetPlacement != null, entry.SetPlacement is BuildMenuSetPlacementAvailable, dto.Id);
-                CollectionAssert.AreEqual(dto.RequiredItems.Select(item => (item.ItemId, item.Count, item.Held, item.Lacking)), entry.Materials.Select(row => (row.ItemId.AsPrimitive(), row.Item.Count, row.Item.Held, row.Item.Lacking)), dto.Id);
+                CollectionAssert.AreEqual(dto.RequiredItems.Select(item => (item.ItemId, item.Count, item.Held, item.Lacking)), entry.Materials.Select(line => (line.Row.ItemId.AsPrimitive(), line.Row.Item.Count, line.Row.Item.Held, line.Row.Item.Lacking)), dto.Id);
             }
             return entries;
 
@@ -141,7 +141,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             List<IItemStack> HoldOneOfEveryMaterial()
             {
                 var probe = BuildMenuEntryFactory.CreateEntries(targets, wallet, Array.Empty<IItemStack>(), thumbnails);
-                return probe.SelectMany(entry => entry.Materials).Select(row => row.ItemId).Distinct().Select(itemId => ServerContext.ItemStackFactory.Create(itemId, 1)).ToList();
+                return probe.SelectMany(entry => entry.Materials).Select(line => line.Row.ItemId).Distinct().Select(itemId => ServerContext.ItemStackFactory.Create(itemId, 1)).ToList();
             }
 
             #endregion

@@ -22,8 +22,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             foreach (var row in entry.Materials)
             {
                 if (!row.IsInsufficient) continue;
-                var itemName = content.ItemName(row.ItemId).Resolve();
-                lines.Add(MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuShortageLine, itemName, row.Item.Count, row.Item.Held).Resolve());
+                var itemName = content.ItemName(row.Row.ItemId).Resolve();
+                lines.Add(MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuShortageLine, itemName, row.Row.Item.Count, row.Row.Item.Held).Resolve());
             }
             if (lines.Count == 1) return false;
             text = UiText.FromVerbatim(string.Join("\n", lines));

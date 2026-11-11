@@ -518,3 +518,4 @@ ui.commandRejected.blueprintDeleteNotFound,The blueprint was already deleted,The
 ui.commandRejected.blueprintDeleteNotUnlocked,Blueprints are not unlocked yet,Blueprints are not unlocked yet,ブループリントはまだ解放されていません,Baupläne sind noch nicht freigeschaltet,설계도가 아직 해금되지 않았습니다
 ui.commandRejected.blueprintDeleteRequestFailed,Could not reach the server to delete the blueprint,Could not reach the server to delete the blueprint,ブループリントの削除をサーバーへ送れませんでした,Der Bauplan konnte nicht gelöscht werden (keine Serververbindung),설계도 삭제 요청을 서버에 보낼 수 없습니다
 ui.commandRejected.blueprintDeleteUnknown,Could not delete the blueprint,Could not delete the blueprint,ブループリントを削除できませんでした,Der Bauplan konnte nicht gelöscht werden,설계도를 삭제할 수 없습니다
+ui.commandRejected.buildMenuCloseRefused,Could not close the build menu right now,Could not close the build menu right now,今はビルドメニューを閉じられません,Das Baumenü kann gerade nicht geschlossen werden,지금은 건설 메뉴를 닫을 수 없습니다
