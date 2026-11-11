@@ -14,7 +14,7 @@ namespace Client.Tests.Ui.Screens.Skit
     /// </summary>
     public class SkitTypewriterLayoutTest : ScreenTestHost
     {
-        private const string         private const float WrapWidth = 600f;
+        private const float WrapWidth = 600f;
         private const string WrappingBody = "The conveyor is jammed again so check the splitter near the furnace and then bring three iron plates back to the hub before the night shift starts, and after that sort every crate in the warehouse by its label.";
         private const string TagLikeBody = "A</noparse>B<b>C</b><alpha=#00>D<";
 
