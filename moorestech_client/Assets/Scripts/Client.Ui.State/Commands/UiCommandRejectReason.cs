@@ -23,6 +23,12 @@ namespace Client.Ui.State.Commands
         MachineRecipeInvalid,
         MachineRecipeLocked,
         MachineRecipeRequestFailed,
+        TrainTimetableReplaceFailed,
+        TrainAutoRunFailed,
+        TrainAutoRunNotApplied,
+        TrainInvalidBlockType,
+        TrainStationNameFailed,
+        TrainPlatformModeFailed,
     }
 
     /// <summary>
@@ -54,6 +60,12 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.MachineRecipeInvalid => false,
                 UiCommandRejectReason.MachineRecipeLocked => false,
                 UiCommandRejectReason.MachineRecipeRequestFailed => false,
+                UiCommandRejectReason.TrainTimetableReplaceFailed => false,
+                UiCommandRejectReason.TrainAutoRunFailed => false,
+                UiCommandRejectReason.TrainAutoRunNotApplied => false,
+                UiCommandRejectReason.TrainInvalidBlockType => false,
+                UiCommandRejectReason.TrainStationNameFailed => false,
+                UiCommandRejectReason.TrainPlatformModeFailed => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -88,6 +100,12 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.MachineRecipeInvalid => LocalizationKeys.Ui.CommandRejected.MachineRecipeInvalid,
                 UiCommandRejectReason.MachineRecipeLocked => LocalizationKeys.Ui.CommandRejected.MachineRecipeLocked,
                 UiCommandRejectReason.MachineRecipeRequestFailed => LocalizationKeys.Ui.CommandRejected.MachineRecipeRequestFailed,
+                UiCommandRejectReason.TrainTimetableReplaceFailed => LocalizationKeys.Ui.CommandRejected.TrainTimetableReplaceFailed,
+                UiCommandRejectReason.TrainAutoRunFailed => LocalizationKeys.Ui.CommandRejected.TrainAutoRunFailed,
+                UiCommandRejectReason.TrainAutoRunNotApplied => LocalizationKeys.Ui.CommandRejected.TrainAutoRunNotApplied,
+                UiCommandRejectReason.TrainInvalidBlockType => LocalizationKeys.Ui.CommandRejected.TrainInvalidBlockType,
+                UiCommandRejectReason.TrainStationNameFailed => LocalizationKeys.Ui.CommandRejected.TrainStationNameFailed,
+                UiCommandRejectReason.TrainPlatformModeFailed => LocalizationKeys.Ui.CommandRejected.TrainPlatformModeFailed,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -115,6 +133,12 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.MachineRecipeInvalid => "invalid_recipe",
                 UiCommandRejectReason.MachineRecipeLocked => "recipe_locked",
                 UiCommandRejectReason.MachineRecipeRequestFailed => "machine_recipe_request_failed",
+                UiCommandRejectReason.TrainTimetableReplaceFailed => "replace_failed",
+                UiCommandRejectReason.TrainAutoRunFailed => "set_auto_run_failed",
+                UiCommandRejectReason.TrainAutoRunNotApplied => "set_auto_run_not_applied",
+                UiCommandRejectReason.TrainInvalidBlockType => "invalid_block_type",
+                UiCommandRejectReason.TrainStationNameFailed => "set_name_failed",
+                UiCommandRejectReason.TrainPlatformModeFailed => "mode_request_failed",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

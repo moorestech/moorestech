@@ -3,6 +3,7 @@ using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using NUnit.Framework;
+using UniRx;
 using VContainer;
 
 namespace Client.Tests.EditModeInPlayingTest.Hostless
@@ -17,7 +18,12 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
             var fetcher = resolver.Resolve<TrainTimetableFetcher>();
             var unknownTrain = TrainUnitInstanceId.Create();
 
+            // 取得の開始が合図で流れる。本番の Fetcher は送信境界に触れるので L0 では試せずここで確かめる
+            // The fetch start is signaled; the real Fetcher touches the send boundary, so it is verified here rather than at L0
+            var starts = 0;
+            using var counting = fetcher.OnFetchStarted.Subscribe(_ => starts++);
             fetcher.RequestForOpenedTab(unknownTrain);
+            Assert.AreEqual(1, starts, "取得の開始が通知されない");
             Assert.IsTrue(fetcher.IsFetchInFlight(unknownTrain), "時刻表の取得要求が出ない");
 
             // 不在列車は取得不可になる

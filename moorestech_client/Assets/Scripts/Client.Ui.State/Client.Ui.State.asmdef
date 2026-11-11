@@ -19,6 +19,7 @@
         "Game.Gear",
         "Game.Research",
         "Game.Train",
+        "Core.Update",
         "Server.Event",
         "Server.Protocol",
         "Server.Util",

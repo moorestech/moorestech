@@ -104,6 +104,7 @@
 | 1 | bc47bb655a | 写した | S4-alpha 自身の localization.csv への追加（ui.commandRejected.blockSlotUnavailable）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# |
 | 4 | 237eb39440 | 写した | 2026-11-10 S4-research: `ui.commandRejected.researchFailed` を足し `npm run gen:i18n` で `localizationKeys.ts` を再生成。写し先は同じコミットの C# `UiCommandRejectReasonTraits.ResearchFailed` |
 | 1 | 7ec6e61825 | 写した | S4-machine の拒否理由（ui.commandRejected.blockNotOpen・machineRecipeInvalid・machineRecipeLocked・machineRecipeRequestFailed）の localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 4 | 23bf17e0bb | 写した | localization.csv ui.commandRejected.trainTimetableReplaceFailed・trainAutoRunFailed・trainAutoRunNotApplied・trainInvalidBlockType・trainStationNameFailed・trainPlatformModeFailed（S4-train。UITK の拒否理由用。Web は使わない。blockNotOpen は S4-machine が追加済みで共有） |
 
 ## 参照キャプチャ
 
@@ -114,6 +115,7 @@ Web 版の全画面と主要な状態（移行後も「意図した見た目」�
 - URL: https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-a9d5123537
 - 目視検査: 同じ置き場の `visual-review.md` と `qa/` に全64静止画・全5動画の確認とフレーム証拠を残す。通知動画は入場・集約・全退出を含む12秒、ほかは3〜4秒
 - 2560×1080 の参照: 撮影元 moorestech `0e81bbe3c3`、置き場は `moorestech_logs` の `uitk/reference-captures/web-0e81bbe3c3-2560x1080/`（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-0e81bbe3c3-2560x1080 。撮影 id は 1280×720 と同じ名前・静止画 84 と動画 5。舞台は 1.5 倍で左右に 320px の余白）。Web の版が 1280×720 の撮影元と違うので、差が出たらまず版の差を疑う。撮り直すときは capture の前に `pnpm build` が要る（`compare-procedure.md` §3）
+- S4-train の自撮り（撮影表に無い列車族の場面）: 撮影元 moorestech `755c54a512`（uitk-lane/s4-train。Web は feature/uitk と同じ）。mock-host に一時の fixture（駅 `TrainStation`・時刻表の Unavailable・液体貨車・停車駅 15 件。コミットしない）を足して 1280×720 と 2560×1080 で撮った。撮影 id は `s4t-station`・`s4t-timetable-loading`（`train` の時刻表タブ）・`s4t-timetable-unavailable`・`s4t-timetable-busy`（`trainTimetable` で追加を押した直後。mock の配信を 4 秒遅らせた）・`s4t-fluid-car`・`s4t-timetable-15`。置き場は S4-train の worktree の `.uitk-capture/web-*/`（gitignore 下）で、撮影表 `referenceShots.ts` への追加は integrator へ依頼済み（`harness/uitk/S4-train/done.md`）
 - 各行の `参照キャプチャ` 列は撮影 id（PNG は `<id>.png`、動画は `<id>.webm`）。束を切り替える前に撮り直したら、ここの撮影元と置き場を新しい方へ書き換える
 
 ## 未撮影
