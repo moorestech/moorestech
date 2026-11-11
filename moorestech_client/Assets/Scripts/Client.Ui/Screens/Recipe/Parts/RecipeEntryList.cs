@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Recipe.Parts
 {
     /// <summary>
-    /// エントリを GUID で使い回す列（Web の React key と同じく、描き直しで長押しの状態を失わない）
-    /// List that reuses entries by GUID (like the Web React key, a redraw never loses the hold state)
+    /// エントリを GUID で使い回す列（並びが同じ描き直しは長押しが続き、並べ直しで木から外れたら止まる。D-51）
+    /// List that reuses entries by GUID (a same-order redraw keeps the hold; a reorder detaches and stops it, D-51)
     /// </summary>
     public sealed class RecipeEntryList : VisualElement
     {

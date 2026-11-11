@@ -71,11 +71,11 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             for (var i = 0; i < 5; i++) simulate.FrameUpdateMs(100);
             Assert.IsEmpty(_commands.Crafted);
 
-            // 押し直すと始めから進み、合計 1 秒前後（初回の経過は 0〜0.25 秒）で 1 回作る
-            // A re-press starts from zero and crafts once in about 1 s (first delta 0 to 0.25 s)
+            // 押し直すと始めから進み、13 フレーム（1.2〜1.45 秒。初回の経過は 0〜0.25 秒）で必ず 1 回、2 回目には届かない
+            // A re-press restarts; 13 frames (1.2 to 1.45 s, first delta 0 to 0.25 s) always craft exactly once, never twice
             simulate.MouseUp(button.worldBound.center);
             simulate.MouseDown(button.worldBound.center);
-            for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+            for (var i = 0; i < 13; i++) simulate.FrameUpdateMs(100);
             CollectionAssert.AreEqual(new[] { guid }, _commands.Crafted);
         }
 
