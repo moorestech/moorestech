@@ -59,7 +59,9 @@
     min-width: 0;
     margin: 0;
     padding: 0;
-    white-space: normal;
+    /* 行末の閉じ括弧を Chrome のように半角へ詰めないので、閉じ括弧が行末に来る日本語は Web より 1 行多く折れることがある */
+    /* Closing brackets at line end are not trimmed to half width as in Chrome, so Japanese text ending a line with one may wrap one line more than Web */
+    white-space: normal; /* look-exception: LX-40 */
     -unity-text-align: middle-left;
     font-size: 15px;
     /* 0.055em×15px=0.825px。UITK の letter-spacing の px は「文字の大きさ/100×値」で効くので 0.825÷0.15 */
