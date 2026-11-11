@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.State.Notification;
 using Client.Ui.Content;
 using Client.Ui.Screens.Notification;
@@ -15,7 +16,7 @@ using static Client.Tests.Ui.State.Notification.NotificationTestContents;
 namespace Client.Tests.Ui.Screens.Notification
 {
     /// <summary>
-    /// マスタに無いアイテムの獲得が来ても理由つきのエラーと代わりのアイコンで描かれ、後続の通知が止まらないことを確かめる（L1。本番のアイコンの口）
+    /// マスタに無いアイテムの獲得・実績が来ても理由つきのエラーと代わりのアイコンで描かれ、後続の通知が止まらないことを確かめる（L1。本番のアイコンの口）
     /// Verifies a missing-master item earn renders with a reasoned error and a fallback icon without stopping later notifications (L1; production icon lookup)
     /// </summary>
     public class GameContentNotificationRowIconsTest : ScreenTestHost
@@ -31,6 +32,7 @@ namespace Client.Tests.Ui.Screens.Notification
         [Test]
         public void マスタに無いアイテムの獲得が来ても後続の通知が描かれる()
         {
+            LogAssert.Expect(LogType.Error, new Regex($"item {MissingItemId} is not in the item master"));
             var model = new NotificationModel();
             var icons = new GameContentNotificationRowIcons(new GameContentPresentation(null));
             var host = Mount(new NotificationHostView(model, new FakeNotificationTextLookup(), icons));
@@ -38,6 +40,23 @@ namespace Client.Tests.Ui.Screens.Notification
             simulate.FrameUpdateMs(0);
 
             model.AddNotification(Earned(MissingItemId, 1, "itemEarned.mined"));
+            model.AddNotification(Achievement("achievement.unlockedBlock", NoParams, NoIcon));
+
+            Assert.AreEqual(2, host.childCount);
+            StringAssert.Contains($"#{MissingItemId}", ConcatText(host[1]));
+        }
+
+        [Test]
+        public void マスタに無いアイテムのアイコンが付いた実績でも理由つきのエラーが出て後続が描かれる()
+        {
+            LogAssert.Expect(LogType.Error, new Regex($"item {MissingItemId} is not in the item master"));
+            var model = new NotificationModel();
+            var icons = new GameContentNotificationRowIcons(new GameContentPresentation(null));
+            var host = Mount(new NotificationHostView(model, new FakeNotificationTextLookup(), icons));
+            using var subscription = model.Current.Subscribe(host.Render);
+            simulate.FrameUpdateMs(0);
+
+            model.AddNotification(Achievement("achievement.unlockedItem", NoParams, ItemIcon(MissingItemId)));
             model.AddNotification(Achievement("achievement.unlockedBlock", NoParams, NoIcon));
 
             Assert.AreEqual(2, host.childCount);

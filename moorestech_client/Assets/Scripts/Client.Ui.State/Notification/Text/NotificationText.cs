@@ -5,6 +5,7 @@ using Client.Localization;
 using Client.Ui.State.Notification.Content;
 using Client.Ui.State.Notification.Params;
 using Client.Ui.State.Text;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.State.Notification.Text
@@ -29,6 +30,20 @@ namespace Client.Ui.State.Notification.Text
             values.Add(new LocalizationTextParam("itemName", lookup.ItemDisplayName(earned.ItemId)));
             values.Add(new LocalizationTextParam("count", earned.Count.ToString(CultureInfo.InvariantCulture)));
             return new UiText(LocalizationKeys.Ui.Notification.ItemEarned, values);
+        }
+
+        // マスタに無い・名前が欠けたアイテムの代わりの名前を作る唯一の場所（獲得の本文もアイコンの hover もここを使う）
+        // The only place that builds the fallback name for an item absent from the master or missing its name (earn text and icon hover both use it)
+        public static UiText FallbackItemName(ItemId itemId)
+        {
+            return new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", ItemIdText(itemId)) });
+        }
+
+        // ItemId の文字列化はここだけ（InvariantCulture）
+        // The single ItemId stringification (InvariantCulture)
+        public static string ItemIdText(ItemId itemId)
+        {
+            return itemId.AsPrimitive().ToString(CultureInfo.InvariantCulture);
         }
 
         internal static IReadOnlyList<LocalizationTextParam> ResolveParams(IReadOnlyList<NotificationParam> messageParams, INotificationTextLookup lookup)
