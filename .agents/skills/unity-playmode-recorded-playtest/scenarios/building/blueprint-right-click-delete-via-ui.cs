@@ -1,142 +1,104 @@
-using Game.Context;
-// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みのuGUI型（BuildMenuView/ItemSlotView/CommonSlotView/BlueprintNameInputView）を参照しておりexecute-dynamic-codeでコンパイルできない。画面UIはWeb UI一本（ADR 0052）。雛形にしないこと。書き直しはWebビルドメニューのbuild-menu-entry-blueprintCopy-{id}等をClickUi/UntilUiElementで操作し、名前入力はBlueprintNameInputWebBridge経由のWebモーダルで行う
-// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): references removed uGUI types (BuildMenuView/ItemSlotView/CommonSlotView/BlueprintNameInputView) and does not compile under execute-dynamic-code. The screen UI is Web-only (ADR 0052); do not use this as a template. Rewrite it by operating the Web build-menu entry (build-menu-entry-blueprintCopy-{id} etc.) via ClickUi/UntilUiElement, with name input through the BlueprintNameInputWebBridge Web modal
-// BP右クリック削除E2E検証(UI経路): BPをコピー作成→ビルドメニューのBPスロットを右クリックで削除する
-// 検証項目: BP作成とメニュー表示、右クリックでサーバーのBPデータストアから削除、メニューからスロット消滅
-// Blueprint right-click delete E2E (UI route): create a blueprint via copy, then right-click its menu slot to delete it.
-// Verifies: creation + menu listing, right-click removes it from the server datastore, and the slot disappears from the menu.
+// BP 右クリック削除: BP コピーで BP『delbp』を作り、ビルドメニューのエントリを右クリックしてサーバーとメニューから消えるのを見る（GameUi・Web 両系。S3-ladder）
+// Blueprint right-click delete: create blueprint "delbp" by copy, right-click its build menu entry, and see it leave the server and the menu (GameUi and Web, S3-ladder)
+using System;
 using System.Linq;
-using Client.Game.InGame.UI.Blueprint;
-using Client.Game.InGame.UI.BuildMenu;
-using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
+using Client.Playtest.UiElements;
+using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using Game.Blueprint;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using VContainer;
 
-var options = new PlaytestRunOptions { Record = true };
+var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async p =>
 {
-    await p.SetupFlatGround();
-    p.WarpPlayer(new Vector3(3f, 33.5f, 3f));
-    await p.WaitSeconds(0.5f);
+    // 1. 系は主張せず記録し、入力の準備をする（前例 uitk-build-bp）
+    // 1. Record the UI system without asserting it and prepare input (precedent uitk-build-bp)
+    var isGameUi = UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi;
+    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
+    var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+    var library = resolver.Resolve<ClientBlueprintLibrary>();
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
 
-    // コピー元ブロックを1つ直設置する
-    // Place a single source block directly
-    var chestPos = new Vector3Int(2, 32, 2);
-    await p.PlaceBlockDirect("木のチェスト", chestPos, BlockDirection.North);
-    await p.WaitBlockGameObject(chestPos);
-
-    // BP機能を解放（未解放時メニュー非表示）
-    // Unlock the blueprint feature (otherwise it never appears in the build menu)
+    // 2. 木のチェストを置き、BP コピーで範囲を打って BP『delbp』を作る（前例 uitk-hotbar-and-bp-modal の手順 6）
+    // 2. Place a wooden chest, mark the range with blueprint copy and create "delbp" (precedent uitk-hotbar-and-bp-modal step 6)
     await p.Hotbar.UnlockBlueprint();
+    await p.PlaceBlockDirect("木のチェスト", new Vector3Int(2, 32, 2), BlockDirection.North);
+    await p.WaitBlockGameObject(new Vector3Int(2, 32, 2));
+    p.WarpPlayer(new Vector3(6f, 33.5f, -5f));
+    var checks = new BlueprintCopyPasteScenarioChecks(p, resolver.Resolve<MouseCursorTooltipState>());
+    await checks.SelectEntry("build-menu-category-d1000000-0000-4000-8000-000000000009", "build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d");
+    await p.AimAt(new Vector3(0.5f, 32f, 0.5f));
+    await p.ClickPlace();
+    await p.AimAt(new Vector3(4.5f, 32f, 4.5f));
+    await p.ClickPlace();
+    await p.UntilUiElement("modal-input", 10f);
+    await p.SetText("modal-input", "delbp");
+    await p.ClickUi("modal-button");
+    await p.WaitForBlueprint("delbp", true, 15f, "BP『delbp』がサーバーに登録される");
+    var blueprintGuid = library.Blueprints.Single(blueprint => blueprint.Name == "delbp").BlueprintGuid;
+    var entryTestId = $"build-menu-entry-blueprint-{blueprintGuid:D}";
+    p.Note($"BP『delbp』の Guid={blueprintGuid:D} エントリ={entryTestId}");
 
-    // BPコピーツールを選択しドラッグでBP「delbp」を作成する
-    // Select the copy tool and create blueprint "delbp" via drag
-    await OpenBuildMenuAndClickTextSlot("ブループリントコピー", "01-menu-copy-tool");
-
-    await p.AimAt(new Vector3(1.5f, 32f, 1.5f));
-    SemanticInput.MouseButtonDown(0);
-    await UniTask.DelayFrame(3);
-    await p.AimAt(new Vector3(3.5f, 32f, 3.5f));
-    await UniTask.DelayFrame(3);
-    SemanticInput.MouseButtonUp(0);
-
-    // 名前入力ダイアログで命名して確定する
-    // Name the blueprint in the dialog and confirm
-    var nameInputView = UnityEngine.Object.FindFirstObjectByType<BlueprintNameInputView>(FindObjectsInactive.Include);
-    await p.Until(() => nameInputView.gameObject.activeSelf, 10f, "ドラッグ解放で名前入力ダイアログが開く");
-    var nameFieldInfo = typeof(BlueprintNameInputView).GetField("nameInputField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-    var inputField = (TMPro.TMP_InputField)nameFieldInfo.GetValue(nameInputView);
-    inputField.text = "delbp";
-    var confirmInfo = typeof(BlueprintNameInputView).GetField("confirmButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-    var confirmButton = (UnityEngine.UI.Button)confirmInfo.GetValue(nameInputView);
-    ClickUi(confirmButton.gameObject, PointerEventData.InputButton.Left, true);
-
-    // サーバー登録を確認する
-    // Confirm server-side registration
-    await p.WaitForBlueprint("delbp", true, 15f, "サーバーにBP『delbp』が登録される");
-
-    // メニューを開きBPスロットの表示を確認する
-    // Open the menu and confirm the blueprint slot is listed
+    // 3. B でメニューを開き、保存済み BP のカテゴリで delbp のエントリが出るのを見る
+    // 3. Open the menu with B and see the delbp entry under the saved blueprint category
     await p.ExitToGameScreen();
     await p.PressKey(Key.B);
     await p.WaitUiState(UIStateEnum.BuildMenu, 10f);
-    await p.Until(() => FindTextSlot("delbp") != null, 15f, "ビルドメニューにBP『delbp』が表示される");
-    await p.Screenshot("02-menu-bp-entry");
+    await p.UntilUiElement("build-menu-panel", 15f);
+    await p.ClickUi("build-menu-category-d1000000-0000-4000-8000-000000000010");
+    await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable(entryTestId, "build-menu-scroll-area", 15f);
+    await p.Screenshot("01-menu-bp-entry");
 
-    // BPスロットを右クリックし、サーバー削除とスロット消滅を検証する
-    // Right-click the blueprint slot, then verify server-side deletion and slot removal
-    var slot = FindTextSlot("delbp");
-    ClickUi(slot.GetComponentInChildren<CommonSlotView>(true).gameObject, PointerEventData.InputButton.Right, false);
-    await p.WaitForBlueprint("delbp", false, 15f, "右クリックでサーバーからBPが削除される");
-    await p.Until(() => FindTextSlot("delbp") == null, 15f, "メニューからBPスロットが消滅する");
-    await p.Screenshot("03-menu-after-delete");
+    // 4. エントリの中心で右クリックする（削除に確認の UI は無く、右の押下で即コマンドが出る）
+    // 4. Right-click the entry center (no confirmation UI; the right press issues the command at once)
+    var entryCenter = (await PlaytestUiElementOps.FindUi(entryTestId)).ScreenRect.center;
+    SemanticInput.MouseMoveTo(entryCenter);
+    await p.WaitSeconds(0.3f);
+    p.Note($"右クリック: {entryTestId} @ {entryCenter}");
+    SemanticInput.MouseButtonDown(1);
+    await UniTask.DelayFrame(2);
+    SemanticInput.MouseButtonUp(1);
+
+    // 5. サーバーから消え、メニューからもエントリが消える
+    // 5. It leaves the server and the entry leaves the menu
+    await p.WaitForBlueprint("delbp", false, 15f, "BP『delbp』がサーバーから消える");
+    if (isGameUi) await p.Until(() => GameUiRoot.Instance.GetRootElement().Q(entryTestId) == null, 5f, "メニューから delbp のエントリが消える（UITK のツリー）");
+    else await WaitWebEntryGone();
+    p.Assert(p.CurrentUiState == UIStateEnum.BuildMenu, $"削除の後もメニューは開いたまま 実際:{p.CurrentUiState}");
+    await p.Screenshot("02-menu-after-delete");
     await p.ExitToGameScreen();
 
     #region Internal
 
-    async UniTask OpenBuildMenuAndClickTextSlot(string label, string screenshotName)
+    // Web の照会は非同期なので Until に渡さず、NotFound が返るまで照会し直す
+    // The Web lookup is async, so instead of Until re-query until it answers NotFound
+    async UniTask WaitWebEntryGone()
     {
-        // PlaceBlock中はTab、それ以外はBで開く（実プレイと同じキー割当）
-        // Open with Tab while in PlaceBlock, otherwise with B (same bindings as real play)
-        for (var attempt = 0; attempt < 3 && p.CurrentUiState != UIStateEnum.BuildMenu; attempt++)
+        var wait = p.BeginWait(5f, "メニューから delbp のエントリが消える（Web の DOM）");
+        while ((await PlaytestUiElementOps.FindUi(entryTestId)).Status != UiElementLookupStatus.NotFound)
         {
-            var openKey = p.CurrentUiState == UIStateEnum.PlaceBlock ? Key.Tab : Key.B;
-            await p.PressKey(openKey);
-            var openDeadline = Time.realtimeSinceStartup + 4f;
-            while (Time.realtimeSinceStartup < openDeadline && p.CurrentUiState != UIStateEnum.BuildMenu) await UniTask.DelayFrame(5);
+            wait.CheckTimeout("expected=NotFound, actual=still present or renderer unavailable");
+            await UniTask.Yield();
         }
-        p.Assert(p.CurrentUiState == UIStateEnum.BuildMenu, $"ビルドメニューが開く ({label})");
-
-        // 非同期再構築がクリックを破棄するレースがあるため、遷移するまでクリックを繰り返す
-        // The async rebuild can wipe a pending click, so retry clicking until the transition happens
-        var screenshotTaken = false;
-        var clickDeadline = Time.realtimeSinceStartup + 20f;
-        while (p.CurrentUiState != UIStateEnum.PlaceBlock && Time.realtimeSinceStartup < clickDeadline)
-        {
-            var slotView = FindTextSlot(label);
-            if (slotView != null && !screenshotTaken && screenshotName != null)
-            {
-                await p.Screenshot(screenshotName);
-                screenshotTaken = true;
-                slotView = FindTextSlot(label);
-            }
-            if (slotView != null) ClickUi(slotView.GetComponentInChildren<CommonSlotView>(true).gameObject, PointerEventData.InputButton.Left, true);
-            await UniTask.DelayFrame(10);
-        }
-        p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"スロット『{label}』選択でPlaceBlockへ遷移");
-        await UniTask.Delay(System.TimeSpan.FromSeconds(0.6f));
-    }
-
-    ItemSlotView FindTextSlot(string label)
-    {
-        // アイコン無し（ItemViewData==null）スロットを表示テキストで特定する
-        // Locate icon-less slots (ItemViewData==null) by display text
-        var buildMenuView = UnityEngine.Object.FindFirstObjectByType<BuildMenuView>(FindObjectsInactive.Include);
-        if (buildMenuView == null || !buildMenuView.gameObject.activeInHierarchy) return null;
-        foreach (var slotView in buildMenuView.GetComponentsInChildren<ItemSlotView>(true))
-        {
-            if (slotView.ItemViewData != null) continue;
-            if (slotView.GetComponentsInChildren<TMPro.TMP_Text>(true).Any(t => t.text == label)) return slotView;
-        }
-        return null;
-    }
-
-    void ClickUi(GameObject target, PointerEventData.InputButton button, bool withClickHandler)
-    {
-        // EventSystem直叩き（OSカーソル非依存）。右クリック削除はOnPointerUpのRight判定で発火する
-        // Direct EventSystem execution (OS-cursor independent); right-click delete fires on the Right-button pointerUp
-        var eventData = new PointerEventData(EventSystem.current) { button = button };
-        ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerDownHandler);
-        ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerUpHandler);
-        if (withClickHandler) ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerClickHandler);
+        wait.Complete();
     }
 
     #endregion
