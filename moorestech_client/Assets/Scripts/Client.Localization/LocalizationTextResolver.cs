@@ -15,7 +15,7 @@ namespace Client.Localization
             if (TryGetText(snapshot.Languages[currentLanguageCode], key, out var currentText)) return currentText;
             if (TryGetText(snapshot.Languages[Localize.DefaultLanguageCode], key, out var englishText)) return englishText;
             if (TryGetText(snapshot.SourceTexts, key, out var sourceText)) return sourceText;
-            return $"[!{key}]";
+            return LocalizationMissingText.Mark(key);
 
             #region Internal
 

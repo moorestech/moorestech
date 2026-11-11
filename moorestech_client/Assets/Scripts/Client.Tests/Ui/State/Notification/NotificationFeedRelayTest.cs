@@ -8,6 +8,8 @@ using Client.Ui.State.Notification.Params;
 using Core.Master;
 using NUnit.Framework;
 using Server.Event.Notification;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.State.Notification
 {
@@ -89,6 +91,32 @@ namespace Client.Tests.Ui.State.Notification
             Assert.IsInstanceOf<AchievementNotificationContent>(Rows[0].Content);
             Assert.IsInstanceOf<NoNotificationIcon>(Rows[0].Content.Icon);
             Assert.That(Rows[1].Content.Icon, Is.TypeOf<ItemNotificationIcon>().With.Property(nameof(ItemNotificationIcon.ItemId)).EqualTo(new ItemId(2)));
+        }
+
+        [Test]
+        public void 零個の獲得は理由つきのエラーで捨てられ後続の通知は積まれる()
+        {
+            _relay.Initialize();
+            var zero = NotificationMessagePack.CreateItemEarned(new ItemId(2), 1);
+            zero.Count = 0;
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex(@"^\[NotificationContentFactory\] dropped an unrepresentable item earn"));
+            _localSource.Notify(zero);
+            _localSource.Notify(NotificationMessagePack.CreateItemEarned(new ItemId(2), 3));
+
+            Assert.AreEqual(1, Rows.Count);
+            Assert.AreEqual(3, ((EarnedNotificationContent)Rows[0].Content).Count);
+        }
+
+        [Test]
+        public void 空のアイテムの獲得は理由つきのエラーで捨てられる()
+        {
+            _relay.Initialize();
+            var empty = NotificationMessagePack.CreateItemEarned(new ItemId(2), 1);
+            empty.ItemId = ItemMaster.EmptyItemId;
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex(@"^\[NotificationContentFactory\] dropped an unrepresentable item earn"));
+            _localSource.Notify(empty);
+
+            Assert.AreEqual(0, Rows.Count);
         }
     }
 }

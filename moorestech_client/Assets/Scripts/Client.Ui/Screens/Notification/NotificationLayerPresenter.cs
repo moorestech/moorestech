@@ -21,7 +21,7 @@ namespace Client.Ui.Screens.Notification
 
         private readonly GameUiRoot _gameUiRoot;
         private readonly INotificationListSource _source;
-        private readonly INotificationListWriter _writer;
+        private readonly NotificationModel _writer;
         private readonly INotificationTextLookup _textLookup;
         private readonly INotificationRowIcons _icons;
         private readonly StageScaleSource _stageScaleSource;
@@ -29,7 +29,7 @@ namespace Client.Ui.Screens.Notification
         private IDisposable _subscription;
         private IDisposable _scaleSubscription;
 
-        public NotificationLayerPresenter(GameUiRoot gameUiRoot, INotificationListSource source, INotificationListWriter writer, INotificationTextLookup textLookup, INotificationRowIcons icons, StageScaleSource stageScaleSource)
+        public NotificationLayerPresenter(GameUiRoot gameUiRoot, INotificationListSource source, NotificationModel writer, INotificationTextLookup textLookup, INotificationRowIcons icons, StageScaleSource stageScaleSource)
         {
             _gameUiRoot = gameUiRoot;
             _source = source;

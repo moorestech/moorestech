@@ -8,7 +8,7 @@ namespace Client.Ui.State.Notification
     /// 表示中の通知の行を持ち、獲得だけを合流させる。時間は持たず、除去は View の退場の終わりが書き口から呼ぶ（Web の notificationStore。保険タイマーは D-2 で持たない）
     /// Holds the visible notification rows and merges only earns; it owns no time, and the View's exit end calls removal through the write side (Web notificationStore; no fallback timer, D-2)
     /// </summary>
-    public sealed class NotificationModel : INotificationListSource, INotificationListWriter
+    public sealed class NotificationModel : INotificationListSource
     {
         // 生存尺は出入りを含めて 7 秒。View の動きの長さはこの定数だけから決まる（Web NOTIFICATION_DISPLAY_MS）
         // The 7s lifetime includes enter and exit; the View's motion length comes only from this constant (Web NOTIFICATION_DISPLAY_MS)

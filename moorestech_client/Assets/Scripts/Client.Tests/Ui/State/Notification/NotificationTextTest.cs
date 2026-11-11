@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Localization;
 using Client.Tests.Ui.TestDoubles;
+using Client.Ui.State.Notification.Content;
 using Client.Ui.State.Notification.Params;
 using Client.Ui.State.Notification.Text;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
@@ -124,6 +126,23 @@ namespace Client.Tests.Ui.State.Notification
             var messageParams = Wire(id, new Dictionary<string, string> { ["research"] = "not-a-guid" });
             Assert.IsInstanceOf<TextNotificationParam>(messageParams.Single());
             Assert.AreEqual("not-a-guid", NotificationText.ResolveParams(messageParams, _lookup).Single().Value);
+        }
+
+        [Test]
+        public void 獲得のparamsに同名のitemNameとcountがあっても値は1組だけになる()
+        {
+            var spoofed = new[] { new TextNotificationParam("itemName", "spoof"), new TextNotificationParam("count", "99") };
+            var content = new EarnedNotificationContent("itemEarned.mined", spoofed, new ItemId(7), 8);
+            UiTextAssert.AreEqual(LocalizationKeys.Ui.Notification.ItemEarned, new[] { "messageId", "itemEarned.mined", "itemName", "item:7", "count", "8" },
+                NotificationText.Resolve(content, _lookup));
+        }
+
+        [Test]
+        public void Paramsにmessageidを入れても出力のmessageIdは1個になる()
+        {
+            const string id = "denied.craftResultFull";
+            var text = NotificationText.Resolve(Denied(id, new[] { new TextNotificationParam("messageId", "spoof") }, NoIcon), _lookup);
+            UiTextAssert.AreEqual(LocalizationKeys.Ui.Notification.CraftResultFull, new[] { "messageId", id }, text);
         }
 
         // 受信の 1 引数を型付きにしてから解決し、その値を返す

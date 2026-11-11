@@ -16,7 +16,7 @@ namespace Client.Ui.State.Notification.Text
             // 全言語に無い内容名は Localize が欠けの印を返す。Web も同じ印を出すのでそのまま出し、理由を開発者に残す
             // Localize returns the missing marker for a content name absent in every language; Web shows the same marker, so keep it and leave the reason for developers
             var text = Localize.GetContent(key);
-            if (IsMissingMarker(text, key)) Debug.LogError($"[LocalizeNotificationTextLookup] content text missing in every language: {key.Key}");
+            if (LocalizationMissingText.IsMissingText(text, key.Key)) Debug.LogError($"[LocalizeNotificationTextLookup] content text missing in every language: {key.Key}");
             return text;
         }
 
@@ -32,7 +32,7 @@ namespace Client.Ui.State.Notification.Text
 
             var key = ContentLocalizationKeys.ItemName(MasterHolder.ItemMaster.GetItemGuid(itemId));
             var name = Localize.GetContent(key);
-            if (!IsMissingMarker(name, key)) return name;
+            if (!LocalizationMissingText.IsMissingText(name, key.Key)) return name;
             Debug.LogError($"[LocalizeNotificationTextLookup] item {itemId.AsPrimitive()} has no name in every language ({key.Key}); showing the fallback name");
             return FallbackName(itemId);
 
@@ -45,13 +45,6 @@ namespace Client.Ui.State.Notification.Text
             }
 
             #endregion
-        }
-
-        // 欠けの印は LocalizationTextResolver の「[!<key>]」（Web の i18nStore も同じ形）
-        // The missing marker is LocalizationTextResolver's "[!<key>]" (same shape as the Web i18nStore)
-        private static bool IsMissingMarker(string text, ContentLocalizationKey key)
-        {
-            return text == $"[!{key.Key}]";
         }
     }
 }

@@ -12,10 +12,10 @@ namespace Client.Ui.State.Notification
     public sealed class NotificationFeedRelay : IInitializable, IDisposable
     {
         private readonly NotificationFeed _feed;
-        private readonly INotificationListWriter _writer;
+        private readonly NotificationModel _writer;
         private IDisposable _subscription;
 
-        public NotificationFeedRelay(NotificationFeed feed, INotificationListWriter writer)
+        public NotificationFeedRelay(NotificationFeed feed, NotificationModel writer)
         {
             _feed = feed;
             _writer = writer;
@@ -33,7 +33,11 @@ namespace Client.Ui.State.Notification
 
             void Push(NotificationMessagePack message)
             {
-                _writer.AddNotification(NotificationContentFactory.FromMessage(message));
+                // Factory は作れない通知（0 個の獲得など）に null を返すので、Model に入れず捨てる（理由は Factory が LogError 済み）
+                // The factory returns null for an unbuildable notification (e.g. a zero-count earn), so drop it before the model (the factory already logged the reason)
+                var content = NotificationContentFactory.FromMessage(message);
+                if (content == null) return;
+                _writer.AddNotification(content);
             }
 
             #endregion

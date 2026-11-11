@@ -120,6 +120,20 @@ namespace Client.Tests.Ui.Screens.Notification
         }
 
         [Test]
+        public void 配置のあとにスタイル解決が来ないまま通知を預かっても開発者にエラーを出す()
+        {
+            // 規則の当たらないホストを先に配置まで進め、そのあとに来た通知の預かりが無音にならないことを確かめる
+            // Lay out a host no rule matches first, then make sure a notification held afterwards is never silent
+            var bare = new NotificationHostView(new NotificationModel(), new FakeNotificationTextLookup(), new FakeNotificationRowIcons());
+            bare.RemoveFromClassList("notification-host");
+            Mount(bare);
+            AdvancePanel(0);
+            AdvancePanel(0);
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new Regex(@"^\[NotificationHostView\] custom style not resolved"));
+            bare.Render(new NotificationListViewModel(new System.Collections.Generic.List<NotificationRow> { new NotificationRow(1, 0, Earned(7, 1, "itemEarned.mined")) }));
+        }
+
+        [Test]
         public void 合流で生存尺が回り直し動きを頭から再生する()
         {
             Model.AddNotification(Earned(7, 5, "itemEarned.mined"));
