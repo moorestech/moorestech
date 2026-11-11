@@ -63,7 +63,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             Assert.IsTrue(slot4.parent.ClassListContains("hotbar-hud__cell--unresolved"));
             Assert.IsTrue(slot4.ClassListContains("slot-frame--filled"));
             Assert.IsNull(slot4.Q<PlacementTargetFace>());
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-unresolved-opacity"), CultureInfo.InvariantCulture), slot4.parent.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-unresolved-opacity"), CultureInfo.InvariantCulture), HotbarGroupOpacity.Read(slot4.parent), 0.001f);
 
             Drag(slot4.worldBound.center, new Vector2(slot4.worldBound.center.x, 5f));
             CollectionAssert.AreEqual(new[] { "clear:4" }, _commands.Calls);

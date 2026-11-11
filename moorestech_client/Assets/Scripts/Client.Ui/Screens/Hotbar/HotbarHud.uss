@@ -17,7 +17,7 @@
 }
 
 .hotbar-hud__row--select-disabled {
-    opacity: var(--hotbar-select-disabled-opacity);
+    filter: opacity(var(--hotbar-select-disabled-opacity));
 }
 
 /* Web .cell の局所上書き変数を同名で上書きする（設計書 §3.3-3） */
@@ -47,7 +47,7 @@
 }
 
 .hotbar-hud__cell--unresolved {
-    opacity: var(--hotbar-unresolved-opacity);
+    filter: opacity(var(--hotbar-unresolved-opacity));
 }
 
 /* 番号タブ: 角張った 15px 角・細い明るい枠・半透明の面。縁取りは暗い色（Web .iconTextOutlineDark。部品の縁の色のつまみで渡す。計画 D-7） */
