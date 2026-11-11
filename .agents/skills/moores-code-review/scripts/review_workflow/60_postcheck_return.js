@@ -23,7 +23,7 @@ if (postChecks.length) {
       `Post-check reports : ${postResults.map((r) => `${A.runDir}/agents/${r.name}.md`).join(', ')}`,
       `Repo root : ${A.repoRoot}`,
       `Skill root : ${A.skillRoot}`,
-      '手順: rationale-guard の Critical は自動復元せず design.md へ追記（復元タグ案付き）。convention-guard は `機械的` を自動適用し `要判断` はガードの裁定で完結させる（webui は要判断も短縮適用）。同一行で衝突したら根拠保全を優先。.cs を変えたら uloop compile を再実行する。',
+      '手順: rationale-guard の Critical は自動復元せず design.md 末尾の「## apply で追加した設計判断」見出しの下へ追記（復元タグ案付き。それより上は書き換えない）。convention-guard は `機械的` を自動適用し `要判断` はガードの裁定で完結させる（webui は要判断も短縮適用）。同一行で衝突したら根拠保全を優先。.cs を変えたら uloop compile を再実行する。',
       '各レポートの Warning / Info は1件1行で warnings / infos に転記する（親が最終報告へ載せる。黙って落とさない）。',
       '返答は構造化出力のみ（適用数・escalate数・compile結果・warnings・infos）。',
     ].join('\n')
