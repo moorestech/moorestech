@@ -32,6 +32,13 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     // 素材消費を検証するため、開発者設定に関わらず無料設置をOFFにする
     // Turn free placement off regardless of developer settings, since this scenario asserts material consumption
     DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, false);
+    // Editor が背面でもキー・マウスが届くよう入力デバイスを開ける（前例 uitk-build-bp）
+    // Keep keyboard and mouse delivered while the Editor is in the background (precedent uitk-build-bp)
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
     await p.SetupFlatGround();
     // カメラは北(+Z)を向くためプレイヤーを南に置き、電柱は前方(高いZ)へ設置する
     // The camera faces north (+Z), so put the player south and the poles ahead (higher Z)

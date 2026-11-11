@@ -17,6 +17,7 @@ using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 using VContainer;
 
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };

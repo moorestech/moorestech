@@ -1,11 +1,7 @@
 // クロスヘアは両系で CrosshairVisibility を読み、GameUi では UITK の crosshair 要素の可視も照会する（Web の Crosshair には testid が無い。S3-ladder）
 // The crosshair is read from CrosshairVisibility on both systems; GameUi also queries the visible UITK crosshair element (the Web Crosshair has no testid, S3-ladder)
-// FPS/TPS視点切替E2E検証: Vキーでゲーム画面・建設モードのどこでも視点を切替え、建設中もカメラが変化しないことを確認する
-// 検証項目: ゲーム画面でのV切替（FPS化・三人称復帰）→ 建設モード突入でカメラ距離/ピッチが不変（俯瞰化しない）→
-// 三人称マウス照準設置 → 建設中のV切替とFPS中央照準設置 → 削除モード・ゲーム画面復帰後もFPSが維持される
-// FPS/TPS view toggle E2E: toggle the view anywhere (game screen and build states) and verify the camera is
-// untouched when entering build mode. Covers toggling on the game screen, unchanged camera distance/pitch on
-// entering placement, third-person mouse-aim placement, FPS center-aim placement, and FPS memory across states.
+// FPS/TPS 視点切替: ゲーム画面・建設中のどこでも V で切り替わり、建設モード突入でカメラ距離/ピッチが変わらず、FPS が削除モード・ゲーム画面復帰後も保たれることを見る
+// FPS/TPS toggle: V switches anywhere (game screen and build states), entering build mode keeps camera distance/pitch, and FPS survives the delete state and returning to the game screen
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Context;
@@ -14,11 +10,11 @@ using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using Game.Context;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -27,15 +23,22 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
 {
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
     await p.SetupFlatGround();
+    await p.SkipOpeningSkitIfPlaying();
+    await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "開幕スキットを抜けて GameScreen とメインカメラに戻る");
     p.WarpPlayer(new Vector3(4f, 33.5f, 5f));
     await p.PrepareBlockForUiPlacement("木のチェスト", 4);
 
     // 検証に使う実体への参照を確保する
     // Grab references to the objects under verification
-    var camera = UnityEngine.Object.FindFirstObjectByType<InGameCameraController>();
+    var camera = UnityEngine.Object.FindFirstObjectByType<InGameCameraController>(FindObjectsInactive.Include);
     var viewModeController = ClientDIContext.DIContainer.DIContainerResolver.Resolve<PlayerViewModeController>();
-    var playerRenderers = UnityEngine.Object.FindFirstObjectByType<PlayerObjectController>().GetComponentsInChildren<Renderer>(true);
+    var playerRenderers = ((MonoBehaviour)PlayerSystemContainer.Instance.PlayerObjectController).GetComponentsInChildren<Renderer>(true);
     var crosshair = ClientDIContext.DIContainer.DIContainerResolver.Resolve<CrosshairVisibility>();
     var queriesUitkCrosshair = UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi;
     p.Note($"系={UiInputExclusivity.ActiveUiSystem}。クロスヘアは CrosshairVisibility{(queriesUitkCrosshair ? " と UITK の crosshair 要素" : " だけ（Web の Crosshair には testid が無い）")}で判定する");
@@ -131,7 +134,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.PressKey(Key.V);
     await p.Until(() => viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson, 5f, "建設モード中にFirstPersonへ切替");
     await AssertCrosshair(true, "FPS建設でクロスヘア表示");
-    p.Assert(Cursor.lockState != CursorLockMode.Locked, "FPS建設でもUI側のカーソル解放を維持");
+    p.Assert(Cursor.lockState == CursorLockMode.Locked, "FPS建設はカーソルをロックする（UiStateCameraPolicyServiceTest.BuildZoneFpsLocksCursorAndIgnoresRightClick の仕様）");
     var beforeFpsPlace = await p.ReadWorldBlockCount();
     await p.ClickPlace();
     var placeWait = p.BeginWait(10f, "FPS画面中央照準でブロックが設置される");
