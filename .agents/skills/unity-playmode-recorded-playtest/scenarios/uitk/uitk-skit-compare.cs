@@ -8,6 +8,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
+using Client.Playtest.Overlay;
 using Client.Playtest.Operations.Ui;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -17,6 +18,9 @@ using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 const string LongBody = "Blocking message. The conveyor is jammed again, check the splitter near the furnace before the night shift starts.";
+// 本文が同じなら打ち直さない（Web の useEffect の依存と同じ）ので、Ctrl+U の検査は別の本文で頭から打たせる
+// The same body does not restart typing (same as the Web useEffect deps), so the Ctrl+U check types a different body from the head
+const string CtrlUBody = "Blocking message. The splitter near the furnace is jammed again, clear it before the night shift starts.";
 
 var options = new PlaytestRunOptions { Record = false };
 return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
@@ -41,6 +45,9 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
     await p.Until(() => !skitManager.IsPlayingSkit && p.CurrentUiState == UIStateEnum.GameScreen, 60f, "開幕スキットが終わりゲーム画面");
     await p.WaitSeconds(1f);
     await p.Until(() => !backgroundSkit.IsPlayingSkit, 120f, "背景スキットも終わる");
+    // 操作オーバーレイ（OnGUI）は参照キャプチャに無いので、撮る間は描かない
+    // The operation overlay (OnGUI) is absent from the reference captures, so stop drawing it while shooting
+    Object.FindFirstObjectByType<PlaytestOverlayView>().enabled = false;
 
     // 1280×720 で打ち出し中と 5 状態を撮る
     // At 1280x720, capture mid-typing and the five states
@@ -68,11 +75,12 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         store.PresentBlockingText("Moore", LongBody);
         await p.WaitSeconds(0.6f);
         await p.Screenshot("720p-uitk-skit-typing");
-        store.PresentBlockingText("Moore", LongBody);
-        await p.WaitSeconds(2f);
+        // 115 字×50ms で打ち終わるまで待ち、同じ本文の全文を撮る（行の位置を打ち出し中と重ねて見る）
+        // Wait until 115 chars x 50ms finish and capture the same body in full (to overlay line positions with mid-typing)
+        await p.WaitSeconds(6f);
         await p.Screenshot("720p-uitk-skit-typing-full");
 
-        store.PresentBlockingText("Moore", LongBody);
+        store.PresentBlockingText("Moore", CtrlUBody);
         await p.WaitSeconds(0.4f);
         for (var i = 0; i < 2; i++)
         {
@@ -81,7 +89,7 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
             SemanticInput.KeyUp(Key.LeftCtrl);
             await p.WaitSeconds(0.3f);
         }
-        p.Note($"Ctrl+U 往復後 uiHidden={store.GetCurrent().PresentationState.UiHidden}");
+        p.Note($"Ctrl+U 往復後 uiHidden={store.GetCurrent().PresentationState.UiHidden} 経過は打ち始めから約 1 秒（続きなら約 20 字・全文なら {CtrlUBody.Length} 字）");
         await p.Screenshot("720p-uitk-skit-typing-after-ctrlu");
     }
 
