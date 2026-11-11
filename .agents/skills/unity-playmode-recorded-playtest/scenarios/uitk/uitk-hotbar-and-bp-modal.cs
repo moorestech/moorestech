@@ -137,7 +137,6 @@ return PlaytestRunner.Run("uitk-hotbar-and-bp-modal", options, async p =>
     #region Internal
 
     VisualElement UiTree() => GameUiRoot.Instance.GetRootElement();
-
     async UniTask<Vector2> CenterOf(string testid) => (await PlaytestUiElementOps.FindUi(testid)).ScreenRect.center;
 
     async UniTask DragAsync(Vector2 from, Vector2 to)
