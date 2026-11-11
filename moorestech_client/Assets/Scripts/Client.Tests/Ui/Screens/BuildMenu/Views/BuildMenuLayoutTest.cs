@@ -138,8 +138,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             Assert.AreEqual(left, top, 0.5f);
         }
 
-        // 折り返すと 1 行の高さを超える。Web の scrollHeight と clientHeight の比較に当たる
-        // Wrapping exceeds the one-line height; stands for the Web scrollHeight vs clientHeight check
+        // 折り返すと 1 行の高さを超える。Web の scrollHeight と clientHeight（内余白込み・枠線抜き）の比較に当たる
+        // Wrapping exceeds the one-line height; stands for the Web scrollHeight vs clientHeight check (clientHeight includes padding, excludes borders)
         private void AssertCategoryLabelsStayOneLine()
         {
             foreach (var button in CategoryButtons())
@@ -148,7 +148,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
                 var oneLine = text.MeasureTextSize("A", 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined).y;
                 var actual = text.MeasureTextSize(text.text, text.contentRect.width, VisualElement.MeasureMode.Exactly, 0f, VisualElement.MeasureMode.Undefined).y;
                 Assert.AreEqual(oneLine, actual, 0.5f, button.name);
-                Assert.LessOrEqual(actual, button.contentRect.height + 0.5f, button.name);
+                var clientHeight = button.contentRect.height + button.resolvedStyle.paddingTop + button.resolvedStyle.paddingBottom;
+                Assert.LessOrEqual(actual, clientHeight + 0.5f, button.name);
             }
         }
 

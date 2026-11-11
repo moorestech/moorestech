@@ -58,9 +58,11 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             simulate.FrameUpdateMs(0);
             simulate.FrameUpdateMs(100);
 
-            // ホイール・押下・キーは同じ口なので押下で代表させる（D-11）
-            // Wheel, press and key share one handler, so a press stands for all three (D-11)
-            using (var down = PointerDownEvent.GetPooled()) Scroll.SendEvent(down);
+            // ホイール・押下・キーは同じ口なので押下で代表させる（D-11）。target の無い PointerDownEvent は届かないので、見出し（エントリでない所）を押す（前例 UiDragDropTest）
+            // Wheel, press and key share one handler, so a press stands for all three (D-11); a target-less PointerDownEvent never arrives, so press a heading, not an entry (precedent UiDragDropTest)
+            var heading = Find<VisualElement>(View, $"build-menu-category-heading-{Transport:D}").worldBound.center;
+            simulate.MouseDown(heading, MouseButton.LeftMouse);
+            simulate.MouseUp(heading, MouseButton.LeftMouse);
             Settle();
 
             Assert.Greater(Scroll.scrollOffset.y, 0f);

@@ -21,6 +21,10 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         // Stands in for the Web scrollTo({ behavior: "smooth" }); duration is a USS knob, easing stays in C# (precedent ToastHostView; LX-71, D-10)
         private const string SmoothScrollDurationProperty = "--build-menu-smooth-scroll-duration";
 
+        // バーの範囲と寸法の差の許容（px）
+        // Allowed gap between the bar range and the measured size (px)
+        private const float ScrollRangeTolerance = 0.5f;
+
         private readonly GameScrollView _scroll;
         private readonly BuildMenuCategoryList _list;
         private readonly BuildMenuCategoryScrollTracker _tracker;
@@ -61,7 +65,9 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 
         // 初回レイアウト前の NaN も閉じた後の 0 も「未レイアウト」（NaN との比較は偽）
         // Both the pre-layout NaN and the post-hide 0 count as not laid out (comparisons with NaN are false)
-        private bool IsViewportLaidOut => ClientHeight > 0f;
+        // 群・スペーサの GeometryChangedEvent は ScrollView がバーの範囲を更新する前に来る。古い範囲で位置を当てると手前へクランプされるので、範囲が今の寸法に追いつくまで待つ（後の中身の通知でやり直す）
+        // Group and spacer GeometryChangedEvents arrive before the ScrollView updates its bar range; setting an offset on the stale range clamps short, so wait until the range catches up (the later content notification retries)
+        private bool IsViewportLaidOut => ClientHeight > 0f && _scroll.verticalScroller.highValue >= ScrollHeight - ClientHeight - ScrollRangeTolerance;
         public float ScrollHeight => _scroll.GetContentHeight();
 
         // レイアウト前の NaN は「まだ当たっていない」を 0 で表す（トラッカーは要求値と比べて反映待ちを続ける）
