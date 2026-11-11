@@ -94,3 +94,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BuildMenu/BuildMenu.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Hotbar/HotbarHud.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Modal/Modal.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Notification/Notification.uss");
