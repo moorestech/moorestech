@@ -14,7 +14,7 @@
     --panel-bottom: -9.17px;
     --panel-left: -1.04px;
     --title-shift-x: 1.57px;
-    --title-scale-x: 0.963;
+    --title-scale-x: 0.963; /* look-exception: LX-132 */
     --title-scale-y: 0.861;
 }
 
@@ -45,6 +45,6 @@
     --icon-pad: 5px;
     --count-bottom: -1px;
     --count-font-size: 16px;
-    --count-letter-spacing: 12px;
+    --count-letter-spacing: 12px; /* look-exception: LX-131 */
     padding-bottom: var(--item-list-count-bleed);
 }
