@@ -18,6 +18,7 @@ using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
@@ -52,13 +53,13 @@ return PlaytestRunner.Run("uitk-hotbar-and-bp-modal", options, async p =>
     p.Assert(slot0.HasStateFlag("slot-frame--filled"), $"枠 0 が埋まりの状態 [{string.Join(",", slot0.StateFlags)}]");
     await p.Screenshot("01-hotbar");
 
-    // 3. ゲーム画面はカーソルがロックされるので、左 Alt の長押しで解放して枠をクリック → 建築モード → ESC で戻る
-    // 3. The game screen locks the cursor, so hold left Alt to free it, click the slot -> build mode -> ESC returns
+    // 3. カーソルのロックを左 Alt で解き、既定の選択でない枠 1 をクリック → 建築モード → ESC で戻る
+    // 3. Free the locked cursor with left Alt, click slot 1 (not the default selection) -> build mode -> ESC returns
     await HoldAltAsync(true);
-    await p.ClickUi("hotbar-slot-0");
+    await p.ClickUi("hotbar-slot-1");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await HoldAltAsync(false);
-    await p.Until(() => UiTree().Q<VisualElement>("hotbar-slot-0").ClassListContains("slot-frame--selected"), 5f, "枠 0 が選択の状態");
+    await p.Until(() => UiTree().Q<VisualElement>("hotbar-slot-1").ClassListContains("slot-frame--selected") && !UiTree().Q<VisualElement>("hotbar-slot-0").ClassListContains("slot-frame--selected"), 5f, "クリックした枠 1 が選択の状態（枠 0 は外れる）");
     await p.Screenshot("02-slot-click-build");
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -97,8 +98,8 @@ return PlaytestRunner.Run("uitk-hotbar-and-bp-modal", options, async p =>
     await p.Until(() => UiTree().Q<VisualElement>("modal") == null, 5f, "確定でモーダルが閉じる");
     await p.Screenshot("05-bp-modal");
 
-    // 7. 幕の左上のクリックで取消。PlaceBlock のまま・BP は増えない
-    // 7. A click on the backdrop's top-left cancels; stays in PlaceBlock and no blueprint is added
+    // 7. 幕の左下のクリックで取消。PlaceBlock のまま・BP は増えず、クリックは世界へ抜けない（始点が打ち直されない）
+    // 7. A click on the backdrop's bottom-left cancels; stays in PlaceBlock, adds no blueprint, and does not reach the world (start not re-placed)
     var blueprintCount = library.Blueprints.Count;
     await OpenNameModalFromStart();
     var backdrop = await PlaytestUiElementOps.FindUi("modal-backdrop");
@@ -106,6 +107,7 @@ return PlaytestRunner.Run("uitk-hotbar-and-bp-modal", options, async p =>
     await p.WaitSeconds(0.5f);
     await SemanticInput.Click();
     await AssertCancelledAsync("幕のクリック", blueprintCount);
+    checks.AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "幕のクリックで始点 (0,32,0) が打ち直されない");
     await p.Screenshot("06-backdrop-cancel");
 
     // 7b. 入力欄にフォーカスがあるときの ESC 1 回で取消、閉じた後に旗が落ちゲームの E が効く
@@ -153,8 +155,7 @@ return PlaytestRunner.Run("uitk-hotbar-and-bp-modal", options, async p =>
 
     async UniTask HoldAltAsync(bool down)
     {
-        if (down) SemanticInput.KeyDown(Key.LeftAlt);
-        else SemanticInput.KeyUp(Key.LeftAlt);
+        if (down) SemanticInput.KeyDown(Key.LeftAlt); else SemanticInput.KeyUp(Key.LeftAlt);
         await p.WaitSeconds(0.5f);
     }
 
@@ -183,6 +184,7 @@ return PlaytestRunner.Run("uitk-hotbar-and-bp-modal", options, async p =>
         await p.ClickPlace();
         await p.UntilUiElement("modal-input", 10f);
         await p.Until(() => UiInputExclusivity.IsTextInputFocused, 3f, "入力欄にフォーカス（入力中の旗）");
+        p.Assert(EventSystem.current.currentSelectedGameObject?.GetComponent<PanelEventHandler>()?.panel == UiTree().panel, $"EventSystem の選択が GameUi のパネル＝実キーの KeyDown が入力欄へ届く条件（選択 {EventSystem.current.currentSelectedGameObject?.name}）");
     }
 
     async UniTask AssertCancelledAsync(string label, int blueprintCountBefore)

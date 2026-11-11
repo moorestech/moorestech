@@ -7,12 +7,12 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Input
 {
     /// <summary>
-    /// 取消のナビゲーション（Input System へ注入した ESC・パッドの取消）でも入力欄は ESC と同じくフォーカスを外す（L1）
-    /// Navigation cancel (ESC injected into the Input System, pad cancel) drops text-field focus the same way as ESC (L1)
+    /// 取消のナビゲーションでも入力欄は ESC と同じくフォーカスを外す（L1）
+    /// Navigation cancel drops text-field focus the same way as ESC (L1)
     /// </summary>
     /// <remarks>
-    /// EventSystem 経由の UITK（PanelEventHandler）は KeyDownEvent を OS の IMGUI イベントからだけ作る。録画の注入入力では ESC が NavigationCancelEvent としてだけ届く
-    /// UITK through the EventSystem (PanelEventHandler) builds KeyDownEvent only from OS IMGUI events; in recordings the injected ESC arrives only as NavigationCancelEvent
+    /// 取消のナビゲーションは UI 入力資産の Cancel 由来で、今の資産には Cancel が無いので本番・録画とも届かない（実キーの ESC は KeyDown、録画は UitkFocusedKeyEvents が KeyDown で送る）。資産に Cancel が足されたときの扱いを押さえる
+    /// Navigation cancel comes from the UI asset's Cancel action, which the current asset lacks, so neither production nor recordings send it (real ESC is KeyDown; recordings send KeyDown via UitkFocusedKeyEvents). This pins the handling for when Cancel is added
     /// </remarks>
     public class GameUiInputRulesNavigationCancelTest : UiTestHost
     {

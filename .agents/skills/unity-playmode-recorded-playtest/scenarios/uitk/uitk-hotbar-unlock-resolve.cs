@@ -74,7 +74,7 @@ return PlaytestRunner.Run("uitk-hotbar-unlock-resolve", options, async p =>
         await p.WaitSeconds(0.5f);
     }
     SemanticInput.KeyUp(Key.LeftAlt);
-    p.Assert(notches.Count == 2, $"列の上の 2 ノッチが本番のホイールの流れに届く [{string.Join(",", notches)}]");
+    p.Assert(notches.Count == 2, $"注入した 2 ノッチがホイールの流れに届く（前提。素通しは上の拾いの判定で見る） [{string.Join(",", notches)}]");
     await p.Screenshot("01-wheel-over-row");
 
     // 3. 選択を受けない画面（持ち物）では列が減光され、それでも枠のドラッグで入替が通る

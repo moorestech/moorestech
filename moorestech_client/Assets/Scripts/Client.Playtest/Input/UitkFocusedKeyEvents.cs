@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Input;
 using Client.Ui.Foundation.Root;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
@@ -22,7 +23,8 @@ namespace Client.Playtest.Input
     public static class UitkFocusedKeyEvents
     {
         private static readonly HashSet<Key> Held = new();
-        private static readonly List<(Key key, bool down)> Pending = new();
+        private const int MaxWaitUpdates = 120;
+        private static readonly List<(Key key, bool down, int waited)> Pending = new();
         private static bool _hooked;
 
         public static void Apply(IReadOnlyCollection<Key> pressedKeys)
@@ -31,12 +33,12 @@ namespace Client.Playtest.Input
             // Queue the difference from last time as press and release events
             foreach (var key in pressedKeys)
             {
-                if (Held.Add(key)) Pending.Add((key, true));
+                if (Held.Add(key)) Pending.Add((key, true, 0));
             }
             Held.RemoveWhere(key =>
             {
                 var released = !Contains(pressedKeys, key);
-                if (released) Pending.Add((key, false));
+                if (released) Pending.Add((key, false, 0));
                 return released;
             });
             if (Pending.Count == 0 || _hooked) return;
@@ -46,15 +48,30 @@ namespace Client.Playtest.Input
 
         private static void DeliverProcessed()
         {
-            // Input System が処理した分だけ送り、残りは次の更新で待つ
-            // Send only what the Input System has processed; the rest waits for the next update
-            for (var i = Pending.Count - 1; 0 <= i; i--)
+            // Input System が処理した分だけ積んだ順に送り、残りは次の更新で待つ
+            // Send what the Input System has processed in queued order; the rest waits for the next update
+            var i = 0;
+            while (i < Pending.Count)
             {
-                var (key, down) = Pending[i];
+                var (key, down, waited) = Pending[i];
                 var control = Keyboard.current[key];
-                if (down ? !control.wasPressedThisFrame : !control.wasReleasedThisFrame) continue;
-                Pending.RemoveAt(i);
-                Send(key, down);
+                if (down ? control.wasPressedThisFrame : control.wasReleasedThisFrame)
+                {
+                    Pending.RemoveAt(i);
+                    Send(key, down);
+                    continue;
+                }
+
+                // 処理されないまま待ち続ける事象（デバイス無効等）は捨てて開発者に知らせる
+                // Drop an event the Input System never processes (disabled device etc.) and tell the developer
+                if (MaxWaitUpdates <= waited)
+                {
+                    Pending.RemoveAt(i);
+                    Debug.LogError($"[UitkFocusedKeyEvents] {key} {(down ? "down" : "up")} was not processed by the Input System within {MaxWaitUpdates} updates; dropped without reaching UITK");
+                    continue;
+                }
+                Pending[i] = (key, down, waited + 1);
+                i++;
             }
             if (0 < Pending.Count) return;
             InputSystem.onAfterUpdate -= DeliverProcessed;
@@ -67,6 +84,16 @@ namespace Client.Playtest.Input
             if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi || GameUiRoot.Instance == null) return;
             var panel = GameUiRoot.Instance.GetRootElement().panel;
             if (panel?.focusController.focusedElement is not VisualElement focused) return;
+
+            // 本番の PanelEventHandler は EventSystem の選択がこのパネルのときだけ実キーを送るので、同じ門を写し外れは録画の失敗にする
+            // Production PanelEventHandler forwards real keys only while the EventSystem selects this panel; mirror that gate and fail the recording otherwise
+            var selected = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
+            var selectedHandler = selected == null ? null : selected.GetComponent<PanelEventHandler>();
+            if (selectedHandler == null || selectedHandler.panel != panel)
+            {
+                Debug.LogError($"[UitkFocusedKeyEvents] {key} not sent: GameUi has focus on {focused.name} but the EventSystem selects {(selected == null ? "nothing" : selected.name)}, so a real key would not reach it");
+                return;
+            }
 
             // silent-ok: KeyCode に写せないキー（修飾キー等）は UitkModifierKeys が別経路で届ける / その経路の LogError が欠落を知らせる
             if (!TryToKeyCode(key, out var keyCode)) return;

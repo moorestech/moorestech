@@ -78,8 +78,8 @@ namespace Client.Ui.Foundation.Input
             focused.Blur();
         }
 
-        // EventSystem 経由の UITK はキーを OS のイベントからだけ作るので、Input System へ注入した ESC は取消のナビゲーションとしてだけ届く。入力欄では ESC と同じく外す
-        // Through the EventSystem, UITK builds key events only from OS events, so an ESC injected into the Input System arrives only as navigation cancel; in a text field treat it like ESC
+        // 取消のナビゲーションは UI 入力資産の Cancel 由来で、今の資産には Cancel が無く届かない（実キーの ESC は KeyDown で届く）。届いたら入力欄では ESC と同じく外す
+        // Navigation cancel comes from the UI asset's Cancel action, which the current asset lacks (a real ESC arrives as KeyDown); if it arrives, treat it like ESC in a text field
         private static void OnNavigationCancel(NavigationCancelEvent evt)
         {
             CancelNavigation(evt);
