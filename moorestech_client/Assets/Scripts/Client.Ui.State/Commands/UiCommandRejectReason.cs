@@ -29,6 +29,9 @@ namespace Client.Ui.State.Commands
         TrainInvalidBlockType,
         TrainStationNameFailed,
         TrainPlatformModeFailed,
+        SpecialBlockRequestFailed,
+        SpecialBlockCommandStale,
+        FilterSplitterGrabEmpty,
     }
 
     /// <summary>
@@ -37,8 +40,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 選択済み再選択と、Web の BENIGN_ERRORS にある持ち物の移動・分割の取りこぼしは良性
-        // Re-selecting a chosen language and the inventory move/split misses in Web BENIGN_ERRORS are benign
+        // 選択済み再選択と、Web の BENIGN_ERRORS にある持ち物の移動・分割・特殊族の古い操作の取りこぼしと、Web が送らない空の掴みのフィルタ設定は良性
+        // Re-selecting a chosen language, the inventory move/split and special-family stale-operation misses in Web BENIGN_ERRORS, and a filter set with an empty grab (never sent by Web) are benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch
@@ -66,6 +69,9 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => false,
                 UiCommandRejectReason.TrainStationNameFailed => false,
                 UiCommandRejectReason.TrainPlatformModeFailed => false,
+                UiCommandRejectReason.SpecialBlockRequestFailed => false,
+                UiCommandRejectReason.SpecialBlockCommandStale => true,
+                UiCommandRejectReason.FilterSplitterGrabEmpty => true,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -106,6 +112,9 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => LocalizationKeys.Ui.CommandRejected.TrainInvalidBlockType,
                 UiCommandRejectReason.TrainStationNameFailed => LocalizationKeys.Ui.CommandRejected.TrainStationNameFailed,
                 UiCommandRejectReason.TrainPlatformModeFailed => LocalizationKeys.Ui.CommandRejected.TrainPlatformModeFailed,
+                UiCommandRejectReason.SpecialBlockRequestFailed => LocalizationKeys.Ui.CommandRejected.SpecialBlockRequestFailed,
+                UiCommandRejectReason.SpecialBlockCommandStale => LocalizationKeys.Ui.CommandRejected.SpecialBlockCommandStale,
+                UiCommandRejectReason.FilterSplitterGrabEmpty => LocalizationKeys.Ui.CommandRejected.FilterSplitterGrabEmpty,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -139,6 +148,9 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.TrainInvalidBlockType => "invalid_block_type",
                 UiCommandRejectReason.TrainStationNameFailed => "set_name_failed",
                 UiCommandRejectReason.TrainPlatformModeFailed => "mode_request_failed",
+                UiCommandRejectReason.SpecialBlockRequestFailed => "special_block_request_failed",
+                UiCommandRejectReason.SpecialBlockCommandStale => "special_block_command_stale",
+                UiCommandRejectReason.FilterSplitterGrabEmpty => "grab_empty",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

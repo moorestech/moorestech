@@ -512,3 +512,6 @@ ui.commandRejected.trainAutoRunNotApplied,Auto-run was not changed,Auto-run was 
 ui.commandRejected.trainInvalidBlockType,This block cannot take this setting,This block cannot take this setting,このブロックにはこの設定ができません,Dieser Block unterstützt diese Einstellung nicht,이 블록에는 이 설정을 할 수 없습니다
 ui.commandRejected.trainStationNameFailed,The station name was rejected,The station name was rejected,駅名が受け付けられませんでした,Der Bahnhofsname wurde abgelehnt,역 이름이 거부되었습니다
 ui.commandRejected.trainPlatformModeFailed,Could not switch loading and unloading,Could not switch loading and unloading,積込と卸しを切り替えられませんでした,Be- und Entladen konnte nicht umgeschaltet werden,적재와 하역을 전환하지 못했습니다
+ui.commandRejected.specialBlockRequestFailed,The block did not accept the operation,The block did not accept the operation,ブロックが操作を受け付けませんでした,Der Block hat die Aktion nicht angenommen,블록이 조작을 받아들이지 않았습니다
+ui.commandRejected.specialBlockCommandStale,The block has already changed,The block has already changed,ブロックの状態がすでに変わっています,Der Block hat sich bereits geändert,블록 상태가 이미 바뀌었습니다
+ui.commandRejected.filterSplitterGrabEmpty,Hold an item to set the filter,Hold an item to set the filter,フィルタに設定するアイテムを持ってください,Halte einen Gegenstand um den Filter zu setzen,필터에 설정할 아이템을 들어 주세요

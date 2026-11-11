@@ -73,11 +73,11 @@ namespace Client.Tests.Ui.State
         }
 
         [Test]
-        public void 良性の拒否理由は言語の選択済みと持ち物の移動と分割の取りこぼしだけ()
+        public void 良性の拒否理由は言語の選択済みと持ち物の移動と分割の取りこぼしと特殊族の古い操作と空の掴みだけ()
         {
-            // 選択済みの再送と、Web の BENIGN_ERRORS にある持ち物の取りこぼしは利用者に知らせない
-            // An already-selected resend and the inventory misses in Web BENIGN_ERRORS are not told to players
-            var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.ItemSourceSlotEmpty, UiCommandRejectReason.ItemSourceCountShort, UiCommandRejectReason.SplitGrabNotEmpty };
+            // 選択済みの再送と、Web の BENIGN_ERRORS の発射台の待ち外れ・接続済みと、Web が送らない空の掴みのフィルタ設定は利用者に知らせない
+            // An already-selected resend, the Web BENIGN_ERRORS launch-pad not-awaiting and already-connected cases, and a filter set with an empty grab (never sent by Web) are not told to players
+            var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.ItemSourceSlotEmpty, UiCommandRejectReason.ItemSourceCountShort, UiCommandRejectReason.SplitGrabNotEmpty, UiCommandRejectReason.SpecialBlockCommandStale, UiCommandRejectReason.FilterSplitterGrabEmpty };
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
                 Assert.AreEqual(0 <= System.Array.IndexOf(benign, reason), UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
