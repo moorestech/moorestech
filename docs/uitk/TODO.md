@@ -105,6 +105,7 @@
 | 4 | 237eb39440 | 写した | 2026-11-10 S4-research: `ui.commandRejected.researchFailed` を足し `npm run gen:i18n` で `localizationKeys.ts` を再生成。写し先は同じコミットの C# `UiCommandRejectReasonTraits.ResearchFailed` |
 | 1 | 7ec6e61825 | 写した | S4-machine の拒否理由（ui.commandRejected.blockNotOpen・machineRecipeInvalid・machineRecipeLocked・machineRecipeRequestFailed）の localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 | 4 | 23bf17e0bb | 写した | localization.csv ui.commandRejected.trainTimetableReplaceFailed・trainAutoRunFailed・trainAutoRunNotApplied・trainInvalidBlockType・trainStationNameFailed・trainPlatformModeFailed（S4-train。UITK の拒否理由用。Web は使わない。blockNotOpen は S4-machine が追加済みで共有） |
+| 1 | 18ae2ca640 | 写した | S4-special の特殊族の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
 
 ## 参照キャプチャ
 
