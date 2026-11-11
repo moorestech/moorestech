@@ -106,6 +106,7 @@
 | 1 | 7ec6e61825 | 写した | S4-machine の拒否理由（ui.commandRejected.blockNotOpen・machineRecipeInvalid・machineRecipeLocked・machineRecipeRequestFailed）の localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 | 4 | 23bf17e0bb | 写した | localization.csv ui.commandRejected.trainTimetableReplaceFailed・trainAutoRunFailed・trainAutoRunNotApplied・trainInvalidBlockType・trainStationNameFailed・trainPlatformModeFailed（S4-train。UITK の拒否理由用。Web は使わない。blockNotOpen は S4-machine が追加済みで共有） |
 | 1 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
+| 1 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
 
 ## 参照キャプチャ
 
