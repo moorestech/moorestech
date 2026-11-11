@@ -1,35 +1,46 @@
-// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みの研究ノードGUID（837e9697）をCompleteResearchへ送るため、サーバー側でnull参照になり後続の検証へ進めない（ピン先マスタ c219a2f5・ADR 0038）。雛形にしないこと
-// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): sends a removed research-node GUID (837e9697) to CompleteResearch, which null-references server-side and blocks the rest of the check (pinned master c219a2f5, ADR 0038). Do not use this as a template
-// サーバー発通知基盤スモーク
-// 1) 素材ゼロで研究完了を試みる→操作拒否(operationDenied)通知が右上に出る
-// 2) 素材を付与して研究を完了→実績(achievement)通知「Research completed: 原始研究1」が出る
-// 3) 同一失敗を3秒以内に連打→クールダウンで2回目はワイヤに乗らない(通知は増えない)
-// Server-notification smoke:
-// (1) complete-research with no materials -> operation-denied toast top-right
-// (2) grant materials, complete research -> achievement toast "Research completed: 原始研究1"
-// (3) burst the same failure within 3s -> cooldown suppresses the 2nd delivery
-// 検証は「クライアント側でEventTagを購読して実ペイロードをassert」+「Web UIホストの可視化Until」+「録画/スクショ」の3点で行う
-// Verification uses a client-side EventTag subscription (asserts the real payload) + Web-UI host visibility Until + video/screenshots
+// サーバー発通知基盤スモーク（GameUi〈UITK〉と Web の両方で通す）
+// 1) 素材ゼロで研究完了を試みる→操作拒否（operationDenied）通知が出る
+// 2) 同一失敗を 3 秒以内に連打→クールダウンで 2 回目はワイヤに乗らない（通知は増えない）
+// 3) 素材を付与して研究を完了→実績（achievement）通知「研究完了: <研究名>」が出る
+// 研究はマスタから選ぶ（前提の研究が無く消費アイテムを持つ最初のノード）。GameUi のときは通知が背面の層に出たことと文言も確かめる
+// Server-notification smoke (run on both GameUi (UITK) and Web):
+// (1) complete-research with no materials -> an operation-denied notification
+// (2) burst the same failure within 3s -> the cooldown suppresses the 2nd delivery
+// (3) grant the materials and complete -> an achievement notification "Research completed: <name>"
+// The research is picked from the master (the first node with no prerequisites and some consumed items); on GameUi it also checks the behind-stage layer and the text
+// 検証は「クライアント側でEventTagを購読して実ペイロードをassert」+「通知ホストの可視化Until」+「録画/スクショ」の3点で行う
+// Verification uses a client-side EventTag subscription (asserts the real payload) + notification-host visibility Until + video/screenshots
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
+using Client.Localization;
 using Client.Playtest;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
+using Client.WebUiHost.Boot;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
+using Mooresmaster.Localization.Generated;
 using Server.Event.Notification;
+using UnityEngine.UIElements;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("server-notification-smoke", options, async p =>
 {
-    // Web UI(CEF)前提を整備
-    // Prepare Web-UI (CEF) prerequisites
+    // デバッグ環境を整備する
+    // Prepare the debug environment
     p.Note("デバッグ環境を構築し、通知イベントをクライアント側で購読する");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
 
-    // 初回研究ノード(原始研究1)
-    // First research node (原始研究1)
-    var firstResearchGuid = Guid.Parse("837e9697-8586-406e-a0f6-16a010050218");
+    // 前提の研究が無く、消費アイテムを持つ最初のノードを選ぶ（GUID を直書きするとマスタの改訂で壊れる）
+    // Pick the first node with no prerequisites and some consumed items (a hard-coded GUID breaks on master revisions)
+    var firstResearch = MasterHolder.ResearchMaster.GetAllResearches()
+        .First(node => node.PrevResearchNodeGuids.Length == 0 && node.ConsumeItems.Length > 0);
+    var firstResearchGuid = firstResearch.ResearchNodeGuid;
+    p.Note($"研究ノード: {firstResearchGuid}");
 
     // EventTagをクライアントで購読し、届いた通知の実ペイロードを蓄積する(NotificationTopicとは別の観測用購読)
     // Subscribe to the EventTag on the client and accumulate delivered payloads (observer sub, separate from NotificationTopic)
@@ -68,13 +79,12 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
 
     // === Goal2: 実績通知 ===
     // === Goal2: achievement notification ===
-    p.Note("研究に必要な素材(木の板x5・木の棒x5)を付与する");
-    await p.GiveItemDirect("木の板", 5);
-    await p.GiveItemDirect("木の棒", 5);
+    p.Note("研究に必要な素材をマスタの ConsumeItems どおりに付与する");
+    foreach (var consume in firstResearch.ConsumeItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(consume.ItemGuid).Name, consume.ItemCount);
     await p.WaitSeconds(0.5f);
 
     var achievementBefore = AchievementResearchCount();
-    p.Note("研究を完了する。実績通知『Research completed: 原始研究1』が届くはず");
+    p.Note("研究を完了する。実績通知『研究完了: <研究名>』が届くはず");
     ClientContext.VanillaApi.SendOnly.CompleteResearch(firstResearchGuid);
     await p.Until(() => achievementBefore < AchievementResearchCount(), 10f, "研究完了で実績通知(achievement.researchCompleted)がクライアントに届く");
 
@@ -84,6 +94,20 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     p.Assert(achievement.MessageParams.TryGetValue("research", out var researchParam) && researchParam == firstResearchGuid.ToString(), $"実績通知の研究GUIDが送信した研究と一致する 実際:{string.Join(",", achievement.MessageParams)}");
 
     await UntilHudVisible("notification-host", 10f);
+
+    // GameUi では通知が背面の層の実画面の族に居て、研究名の入った文言が出ていることを確かめる
+    // On GameUi, check the host sits in the viewport family of the behind-stage layer and shows the text with the research name
+    if (WebUiHost.Hub == null)
+    {
+        var behindStage = GameUiRoot.Instance.GetLayer(UiLayer.BehindStage, UiFamily.Viewport);
+        p.Assert(behindStage.Q("notification-host") != null, "通知ホストは背面の層（BehindStage・Viewport）に居る");
+        var researchName = Localize.GetContent(ContentLocalizationKeys.ResearchName(firstResearchGuid));
+        await Client.Playtest.Operations.PlaytestUiElementOps.WaitUiTextContains("notification-host", researchName, 10f);
+    }
+
+    // 入場の動き（160ms）が終わってから撮る
+    // Shoot after the enter motion (160ms) has finished
+    await p.WaitSeconds(0.5f);
     await p.Screenshot("03-achievement-notification");
 
     // HUD要素の「存在+矩形あり」だけを待つ(空のホストは幅0のため、通知1件以上の描画完了と等価)
@@ -99,6 +123,11 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
         }
         throw new Exception($"HUD要素が可視にならない: {testid}");
     }
+
+    // 時間切れの退場まで録画に残す（録画は実行の終わりで切れる）
+    // Keep recording until the rows time out and exit (the recording stops when the run ends)
+    p.Note("通知が時間切れで退場するまで待つ");
+    await p.WaitSeconds(8f);
 
     // 後片付け: 観測用購読を破棄する
     // Cleanup: dispose the observer subscription
