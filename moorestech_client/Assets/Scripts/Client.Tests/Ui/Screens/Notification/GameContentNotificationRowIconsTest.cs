@@ -37,7 +37,6 @@ namespace Client.Tests.Ui.Screens.Notification
             using var subscription = model.Current.Subscribe(host.Render);
             simulate.FrameUpdateMs(0);
 
-            LogAssert.Expect(LogType.Error, $"[GameContentNotificationRowIcons] item {MissingItemId} is not in the item master; showing the fallback icon");
             model.AddNotification(Earned(MissingItemId, 1, "itemEarned.mined"));
             model.AddNotification(Achievement("achievement.unlockedBlock", NoParams, NoIcon));
 

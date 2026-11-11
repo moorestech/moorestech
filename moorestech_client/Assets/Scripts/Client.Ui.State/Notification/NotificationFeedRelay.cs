@@ -12,13 +12,13 @@ namespace Client.Ui.State.Notification
     public sealed class NotificationFeedRelay : IInitializable, IDisposable
     {
         private readonly NotificationFeed _feed;
-        private readonly NotificationModel _writer;
+        private readonly NotificationModel _model;
         private IDisposable _subscription;
 
-        public NotificationFeedRelay(NotificationFeed feed, NotificationModel writer)
+        public NotificationFeedRelay(NotificationFeed feed, NotificationModel model)
         {
             _feed = feed;
-            _writer = writer;
+            _model = model;
         }
 
         public void Initialize()
@@ -37,7 +37,7 @@ namespace Client.Ui.State.Notification
                 // The factory returns null for an unbuildable notification (e.g. a zero-count earn), so drop it before the model (the factory already logged the reason)
                 var content = NotificationContentFactory.FromMessage(message);
                 if (content == null) return;
-                _writer.AddNotification(content);
+                _model.AddNotification(content);
             }
 
             #endregion

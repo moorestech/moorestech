@@ -1,4 +1,6 @@
+using System.Globalization;
 using Client.Localization;
+using Client.Ui.State.Text;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
@@ -16,7 +18,7 @@ namespace Client.Ui.State.Notification.Text
             // 全言語に無い内容名は Localize が欠けの印を返す。Web も同じ印を出すのでそのまま出し、理由を開発者に残す
             // Localize returns the missing marker for a content name absent in every language; Web shows the same marker, so keep it and leave the reason for developers
             var text = Localize.GetContent(key);
-            if (LocalizationMissingText.IsMissingText(text, key.Key)) Debug.LogError($"[LocalizeNotificationTextLookup] content text missing in every language: {key.Key}");
+            if (Localize.IsMissingText(text, key.Key)) Debug.LogError($"[LocalizeNotificationTextLookup] content text missing in every language: {key.Key}");
             return text;
         }
 
@@ -27,24 +29,22 @@ namespace Client.Ui.State.Notification.Text
             if (!MasterHolder.ItemMaster.ExistItemId(itemId))
             {
                 Debug.LogError($"[LocalizeNotificationTextLookup] item {itemId.AsPrimitive()} is not in the item master; showing the fallback name");
-                return FallbackName(itemId);
+                return FallbackItemName(itemId).Resolve();
             }
 
             var key = ContentLocalizationKeys.ItemName(MasterHolder.ItemMaster.GetItemGuid(itemId));
             var name = Localize.GetContent(key);
-            if (!LocalizationMissingText.IsMissingText(name, key.Key)) return name;
+            if (!Localize.IsMissingText(name, key.Key)) return name;
             Debug.LogError($"[LocalizeNotificationTextLookup] item {itemId.AsPrimitive()} has no name in every language ({key.Key}); showing the fallback name");
-            return FallbackName(itemId);
+            return FallbackItemName(itemId).Resolve();
+        }
 
-            #region Internal
-
-            string FallbackName(ItemId id)
-            {
-                var itemIdText = id.AsPrimitive().ToString(System.Globalization.CultureInfo.InvariantCulture);
-                return Localize.GetFormatted(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", itemIdText) });
-            }
-
-            #endregion
+        // マスタに無い・名前が欠けたアイテムの代わりの名前を作る唯一の場所（本文もアイコンの hover もここを使う。LogError は本文側の口が出す）
+        // The only place that builds the fallback name for an item absent from the master or missing its name (text and icon hover both use it; the text lookup logs the error)
+        public static UiText FallbackItemName(ItemId itemId)
+        {
+            var itemIdText = itemId.AsPrimitive().ToString(CultureInfo.InvariantCulture);
+            return new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", itemIdText) });
         }
     }
 }

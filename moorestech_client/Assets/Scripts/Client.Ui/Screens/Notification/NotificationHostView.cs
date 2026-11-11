@@ -21,7 +21,7 @@ namespace Client.Ui.Screens.Notification
     {
         private const string StyleNotResolvedMessage = "[NotificationHostView] custom style not resolved after layout; is Notification.uss imported by GameUiTheme.tss and the notification-host class present?";
 
-        private readonly NotificationModel _writer;
+        private readonly NotificationModel _model;
         private readonly INotificationTextLookup _textLookup;
         private readonly INotificationRowIcons _icons;
         private readonly Dictionary<long, NotificationShownRow> _shownRows = new();
@@ -32,9 +32,9 @@ namespace Client.Ui.Screens.Notification
         private float? _screenLeftPixels;
         private bool _laidOutWithoutStyle;
 
-        public NotificationHostView(NotificationModel writer, INotificationTextLookup textLookup, INotificationRowIcons icons)
+        public NotificationHostView(NotificationModel model, INotificationTextLookup textLookup, INotificationRowIcons icons)
         {
-            _writer = writer;
+            _model = model;
             _textLookup = textLookup;
             _icons = icons;
             name = "notification-host";
@@ -119,7 +119,7 @@ namespace Client.Ui.Screens.Notification
             // 退場の終わりで行を書き口から除く。除去と退場が同じパネルの時計に乗る（除去の経路はこれだけ。D-2）
             // Remove the row through the write side at the exit end, so removal and exit share the panel clock (the only removal path, D-2)
             var handle = NotificationRowLifetime.Play(shown.View, _timing);
-            var exitSubscription = handle.ExitCompleted.Subscribe(_ => _writer.RemoveNotification(row.Id));
+            var exitSubscription = handle.ExitCompleted.Subscribe(_ => _model.RemoveNotification(row.Id));
             shown.SetLifetime(row.LifetimeEpoch, handle, exitSubscription);
         }
 

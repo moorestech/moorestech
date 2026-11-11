@@ -31,7 +31,7 @@ namespace Client.Tests.Ui.State.Notification
         {
             var key = ContentLocalizationKeys.ResearchName(Guid.Empty);
             LogAssert.Expect(LogType.Error, $"[LocalizeNotificationTextLookup] content text missing in every language: {key.Key}");
-            Assert.IsTrue(LocalizationMissingText.IsMissingText(new LocalizeNotificationTextLookup().ContentText(key), key.Key));
+            Assert.IsTrue(Localize.IsMissingText(new LocalizeNotificationTextLookup().ContentText(key), key.Key));
         }
 
         [Test]

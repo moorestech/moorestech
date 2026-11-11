@@ -1,11 +1,8 @@
 using System.Globalization;
-using Client.Localization;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Icons;
-using Client.Ui.State.Text;
+using Client.Ui.State.Notification.Text;
 using Core.Master;
-using Mooresmaster.Localization.Generated;
-using UnityEngine;
 
 namespace Client.Ui.Screens.Notification
 {
@@ -24,13 +21,11 @@ namespace Client.Ui.Screens.Notification
 
         public UiIcon ItemIcon(ItemId itemId)
         {
-            // マスタに無い ID は名前もテクスチャも引けないので、理由つきで「Item {id}」と "#id" の代わりのアイコンにする（throw すると購読が止まり後続の通知が出ない）
-            // An id absent from the master has no name or texture, so log the reason and show the "Item {id}" / "#id" fallback icon (throwing would stop the subscription and every later notification)
+            // マスタに無い ID は名前もテクスチャも引けないので代わりのアイコンにする（throw すると購読が止まり後続の通知が出ない。理由の LogError は同じ行の本文を引く口が 1 本だけ出す）
+            // An id absent from the master has no name or texture, so show the fallback icon (throwing would stop the subscription and every later notification; the text lookup of the same row logs the one error)
             if (MasterHolder.ItemMaster.ExistItemId(itemId)) return _content.Item(itemId);
             var idText = itemId.AsPrimitive().ToString(CultureInfo.InvariantCulture);
-            Debug.LogError($"[GameContentNotificationRowIcons] item {idText} is not in the item master; showing the fallback icon");
-            var name = new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", idText) });
-            return new UiIcon(null, idText, name);
+            return new UiIcon(null, idText, LocalizeNotificationTextLookup.FallbackItemName(itemId));
         }
     }
 }

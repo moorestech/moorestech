@@ -20,8 +20,7 @@ namespace Client.Ui.Screens.Notification
         internal const UiFamily HostFamily = UiFamily.Viewport;
 
         private readonly GameUiRoot _gameUiRoot;
-        private readonly INotificationListSource _source;
-        private readonly NotificationModel _writer;
+        private readonly NotificationModel _model;
         private readonly INotificationTextLookup _textLookup;
         private readonly INotificationRowIcons _icons;
         private readonly StageScaleSource _stageScaleSource;
@@ -29,11 +28,10 @@ namespace Client.Ui.Screens.Notification
         private IDisposable _subscription;
         private IDisposable _scaleSubscription;
 
-        public NotificationLayerPresenter(GameUiRoot gameUiRoot, INotificationListSource source, NotificationModel writer, INotificationTextLookup textLookup, INotificationRowIcons icons, StageScaleSource stageScaleSource)
+        public NotificationLayerPresenter(GameUiRoot gameUiRoot, NotificationModel model, INotificationTextLookup textLookup, INotificationRowIcons icons, StageScaleSource stageScaleSource)
         {
             _gameUiRoot = gameUiRoot;
-            _source = source;
-            _writer = writer;
+            _model = model;
             _textLookup = textLookup;
             _icons = icons;
             _stageScaleSource = stageScaleSource;
@@ -43,10 +41,10 @@ namespace Client.Ui.Screens.Notification
         {
             // 中身は PanelSettings の倍率で舞台と同率、倍率の外の左端だけ StageScaleSource を購読して実画面 16px に保つ（Web の left: 1rem＋中身の scale(var(--ui-scale))）
             // Contents scale with the stage via PanelSettings; only the unscaled left edge follows StageScaleSource to stay 16 real px (Web left: 1rem + contents scale(var(--ui-scale)))
-            _host = new NotificationHostView(_writer, _textLookup, _icons);
+            _host = new NotificationHostView(_model, _textLookup, _icons);
             _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(_host);
             _scaleSubscription = _stageScaleSource.Scale.Subscribe(_host.SetStageScale);
-            _subscription = _source.Current.Subscribe(_host.Render);
+            _subscription = _model.Current.Subscribe(_host.Render);
         }
 
         public void Dispose()

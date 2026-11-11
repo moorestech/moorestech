@@ -134,7 +134,7 @@ namespace Client.Tests.Ui.Screens.Notification
             // Give the GameUiRoot the same layers built in SetUp (the factory would build a second set that cannot be compared)
             var root = _gameObject.AddComponent<GameUiRoot>();
             typeof(GameUiRoot).GetField("_layers", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(root, _layers);
-            _presenter = new NotificationLayerPresenter(root, model, model, new FakeNotificationTextLookup(), new FakeNotificationRowIcons(), new StageScaleSource(_stageScale));
+            _presenter = new NotificationLayerPresenter(root, model, new FakeNotificationTextLookup(), new FakeNotificationRowIcons(), new StageScaleSource(_stageScale));
             _presenter.Initialize();
             simulate.FrameUpdate();
             model.AddNotification(Earned(7, 1, "itemEarned.mined"));
