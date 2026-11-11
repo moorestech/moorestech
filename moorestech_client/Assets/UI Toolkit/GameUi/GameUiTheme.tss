@@ -5,6 +5,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/SlotTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/MantineTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/SkitDerivedTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Theme.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Typography.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Layout.uss");
@@ -95,3 +96,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Hotbar/HotbarHud.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Modal/Modal.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolbar.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Skit/Parts/Choices/SkitChoices.uss");

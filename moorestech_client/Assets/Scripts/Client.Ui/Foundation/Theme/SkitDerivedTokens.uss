@@ -1,0 +1,7 @@
+/* スキット専用の手書きの派生トークン。SkitTokens.uss は生成物なので、Web が color-mix で出す値はここへ Web の値のまま書く */
+/* Hand-written derived tokens for the skit; SkitTokens.uss is generated, so values the Web derives with color-mix are written here as the Web value */
+:root {
+    /* 選択肢を押している間の面。Web の color-mix(in srgb, var(--gauge-track), var(--select-cyan) 35%) = rgba(6, 97, 119, 0.87) */
+    /* The choice face while pressed; Web color-mix(in srgb, var(--gauge-track), var(--select-cyan) 35%) = rgba(6, 97, 119, 0.87) */
+    --skit-choice-active-face: rgba(6, 97, 119, 0.87);
+}

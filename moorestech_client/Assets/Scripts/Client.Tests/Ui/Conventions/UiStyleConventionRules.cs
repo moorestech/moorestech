@@ -15,7 +15,7 @@ namespace Client.Tests.Ui.Conventions
     {
         // 色の定義元なので色リテラルだけを許すトークン USS
         // Token USS files that define the colors, so only color literals are allowed in them
-        public static readonly string[] ColorLiteralExemptUssFileNames = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss", "MantineTokens.uss", "DerivedTokens.uss" };
+        public static readonly string[] ColorLiteralExemptUssFileNames = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss", "MantineTokens.uss", "DerivedTokens.uss", "SkitDerivedTokens.uss" };
 
         private static readonly Regex UssComment = new(@"/\*.*?\*/", RegexOptions.Singleline);
         private static readonly Regex UxmlComment = new(@"<!--.*?-->", RegexOptions.Singleline);

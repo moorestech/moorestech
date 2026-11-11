@@ -1,0 +1,100 @@
+/* web: moorestech_web/webui/src/features/skit/controls/SkitChoiceList.module.css の .choices・.choice・.marker・.choiceLabel */
+/* 会話窓の上・右端に下から積む固定寸法の板。面は左右だけフェードし、上下の線と菱形はホバーでシアン、押下で面をシアン寄りにする */
+/* web: moorestech_web/webui/src/features/skit/controls/SkitChoiceList.module.css .choices, .choice, .marker and .choiceLabel */
+/* Fixed-size plates stacked upward above the window at its right edge; the face fades at the sides only, rules and diamonds turn cyan on hover, and pressing pushes the face toward cyan */
+
+.skit-choices {
+    position: absolute;
+    right: var(--skit-choices-right-inset);
+    bottom: var(--skit-window-height);
+    margin-bottom: var(--skit-choices-window-gap);
+    flex-direction: column-reverse;
+    align-items: flex-end;
+}
+
+/* .unity-button の既定（1 クラス）へ 2 クラスで勝ち、面・枠・余白を消す */
+/* Two classes beat the .unity-button default (one class) and clear its face, border and padding */
+.skit-choices .skit-choice {
+    width: var(--skit-choice-width);
+    height: var(--skit-choice-height);
+    margin: 0;
+    margin-bottom: var(--skit-choice-gap);
+    padding: 0;
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
+    color: var(--text-high-contrast);
+    font-size: var(--skit-choice-font-size);
+}
+
+.skit-choices .skit-choice--lead {
+    margin-bottom: 0;
+}
+
+/* 板の面（左右のフェード・押下の面）は部品 GamePanelSurface の種別 SkitChoice が持つ（D-37） */
+/* The plate face (side fades and pressed face) belongs to the GamePanelSurface SkitChoice kind (D-37) */
+
+/* 上下の線は板端でなく内側に引き、フェード帯の上も全不透明で描く */
+/* The rules run inset from the plate edge and stay fully opaque over the fade band */
+.skit-choices .skit-choice__rule {
+    position: absolute;
+    top: var(--skit-choice-rule-vertical-inset);
+    right: var(--skit-choice-rule-inset);
+    bottom: var(--skit-choice-rule-vertical-inset);
+    left: var(--skit-choice-rule-inset);
+    border-top-width: var(--skit-choice-rule-thickness);
+    border-bottom-width: var(--skit-choice-rule-thickness);
+    border-top-color: var(--bevel-c1);
+    border-bottom-color: var(--bevel-c1);
+}
+
+.skit-choices .skit-choice:hover .skit-choice__rule {
+    border-top-color: var(--select-cyan);
+    border-bottom-color: var(--select-cyan);
+}
+
+.skit-choices .skit-choice__marker {
+    position: absolute;
+    top: 50%;
+    width: var(--skit-choice-marker-size);
+    height: var(--skit-choice-marker-size);
+    translate: 0 -50%;
+    --skit-choice-marker-color: var(--bevel-c2);
+    --skit-choice-marker-stroke: var(--skit-choice-marker-stroke-width);
+}
+
+.skit-choices .skit-choice:hover .skit-choice__marker {
+    --skit-choice-marker-color: var(--select-cyan);
+}
+
+.skit-choices .skit-choice__marker--start {
+    left: var(--skit-choice-rule-inset);
+}
+
+.skit-choices .skit-choice__marker--end {
+    right: var(--skit-choice-rule-inset);
+}
+
+/* 文の箱は線と同じ内側から菱形の幅だけさらに避ける（Web の max-width: calc(100% - 2 * (inset + marker))） */
+/* The label box starts at the rules' inset and clears the diamond width too (Web max-width: calc(100% - 2 * (inset + marker))) */
+.skit-choices .skit-choice__label-box {
+    position: absolute;
+    top: 0;
+    right: var(--skit-choice-rule-inset);
+    bottom: 0;
+    left: var(--skit-choice-rule-inset);
+    padding-left: var(--skit-choice-marker-size);
+    padding-right: var(--skit-choice-marker-size);
+    align-items: center;
+    justify-content: center;
+}
+
+.skit-choices .skit-choice__label {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -unity-text-align: middle-center;
+    margin: 0;
+    padding: 0;
+}
