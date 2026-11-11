@@ -3,7 +3,6 @@ using Client.Ui.Screens.Recipe.Input;
 using Client.Ui.State.Recipe.Catalog;
 using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Recipe.Screen;
-using Client.Ui.State.Routing;
 using VContainer;
 using VContainer.Unity;
 
@@ -23,10 +22,10 @@ namespace Client.Starter.Registration.GameUi.Screens
             builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
             builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();
 
-            // Esc の選択解除は routing の Current を工場で渡す（前例 StageScaleSource）。RegisterEntryPoint は工場を取らないので、中身と同じ AsImplementedInterfaces で IInitializable に載せる
-            // Esc clearing gets routing.Current via a factory (precedent StageScaleSource); RegisterEntryPoint takes no factory, so use AsImplementedInterfaces as it does internally
+            // Esc の選択解除は UiRoutingState を直に受ける entry point（前例 ResearchSelectionStore）
+            // Esc clearing is an entry point taking UiRoutingState directly (precedent ResearchSelectionStore)
             builder.Register<InputManagerCloseKeyProbe>(Lifetime.Singleton).As<IUiCloseKeyProbe>();
-            builder.Register(resolver => new RecipeSelectionCloseReset(resolver.Resolve<UiRoutingState>().Current, resolver.Resolve<IUiCloseKeyProbe>(), resolver.Resolve<RecipeItemSelection>()), Lifetime.Singleton).AsImplementedInterfaces();
+            builder.RegisterEntryPoint<RecipeSelectionCloseReset>();
 
             builder.RegisterEntryPoint<RecipeScreenPresenter>();
         }

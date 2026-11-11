@@ -12,12 +12,12 @@ namespace Client.Ui.Screens.Recipe.Input
     /// </summary>
     public sealed class RecipeSelectionCloseReset : IInitializable, IDisposable
     {
-        private readonly IReadOnlyReactiveProperty<UiRoutingSnapshot> _routing;
+        private readonly UiRoutingState _routing;
         private readonly IUiCloseKeyProbe _closeKey;
         private readonly RecipeItemSelection _selection;
         private IDisposable _subscription;
 
-        public RecipeSelectionCloseReset(IReadOnlyReactiveProperty<UiRoutingSnapshot> routing, IUiCloseKeyProbe closeKey, RecipeItemSelection selection)
+        public RecipeSelectionCloseReset(UiRoutingState routing, IUiCloseKeyProbe closeKey, RecipeItemSelection selection)
         {
             _routing = routing;
             _closeKey = closeKey;
@@ -28,7 +28,7 @@ namespace Client.Ui.Screens.Recipe.Input
         {
             // UITK のキーイベントは届かないので、遷移と同じフレームの CloseUI で読む（A-83 と同じく InputManager を正にする）
             // UITK key events never arrive, so read CloseUI in the same frame as the transition (InputManager is authoritative, as in A-83)
-            _subscription = _routing.Skip(1).Subscribe(_ => OnScreenChanged());
+            _subscription = _routing.Current.Skip(1).Subscribe(_ => OnScreenChanged());
 
             #region Internal
 

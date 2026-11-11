@@ -1,19 +1,24 @@
+using Client.Game.InGame.UI.UIState;
+using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Ui.Screens.Recipe.Input;
 using Client.Ui.State.Recipe.Screen;
 using Client.Ui.State.Routing;
 using Core.Master;
 using NUnit.Framework;
-using UniRx;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Client.Tests.Ui.Screens.Recipe.Input
 {
     /// <summary>
-    /// 遷移と同じフレームの CloseUI でだけ選択を外す（L0）
-    /// The selection is cleared only by CloseUI in the same frame as the transition (L0)
+    /// 遷移と同じフレームの CloseUI でだけ選択を外す（L0。前例 ResearchSelectionStoreTest と同じく本物の UiRoutingState で遷移させる）
+    /// The selection is cleared only by CloseUI in the same frame as the transition (L0; drives a real UiRoutingState like ResearchSelectionStoreTest)
     /// </summary>
     public class RecipeSelectionCloseResetTest
     {
-        private ReactiveProperty<UiRoutingSnapshot> _routing;
+        private GameObject _host;
+        private UIStateControl _control;
+        private UiRoutingState _routing;
         private FakeCloseKeyProbe _probe;
         private RecipeItemSelection _selection;
         private RecipeSelectionCloseReset _reset;
@@ -21,7 +26,8 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         [SetUp]
         public void SetUp()
         {
-            _routing = new ReactiveProperty<UiRoutingSnapshot>(new UiRoutingSnapshot(UiScreen.PlayerInventory));
+            _host = new GameObject("RecipeSelectionCloseResetTest");
+            _routing = UiRoutingStateTestFactory.CreateSwitchable(_host, UIStateEnum.PlayerInventory, new[] { UIStateEnum.PlayerInventory, UIStateEnum.GameScreen }, out _control);
             _probe = new FakeCloseKeyProbe();
             _selection = new RecipeItemSelection();
             _reset = new RecipeSelectionCloseReset(_routing, _probe, _selection);
@@ -32,6 +38,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         public void TearDown()
         {
             _reset.Dispose();
+            Object.DestroyImmediate(_host);
         }
 
         [Test]
@@ -39,7 +46,8 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         {
             _selection.Select(new ItemId(3));
             _probe.SetPressed(true);
-            _routing.Value = new UiRoutingSnapshot(UiScreen.None);
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
+            Assert.AreEqual(UiScreen.None, _routing.Current.Value.Screen);
             Assert.IsInstanceOf<NoRecipeSelection>(_selection.Current.Value);
         }
 
@@ -48,7 +56,8 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         {
             _selection.Select(new ItemId(3));
             _probe.SetPressed(false);
-            _routing.Value = new UiRoutingSnapshot(UiScreen.None);
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
+            Assert.AreEqual(UiScreen.None, _routing.Current.Value.Screen);
             Assert.IsInstanceOf<ItemRecipeSelection>(_selection.Current.Value);
         }
 
