@@ -1,3 +1,4 @@
+using System;
 using Client.Ui.Content;
 using Core.Master;
 using UnityEngine;
@@ -34,6 +35,18 @@ namespace Client.Tests.Ui.Content
         public Texture2D FluidTexture(FluidId id)
         {
             return _fluid;
+        }
+
+        // 車両と接続ツールはブロックと同じ 1 枚を返す（L1 は絵の有無だけを見る）
+        // Train cars and connect tools return the block texture (L1 only checks whether a picture exists)
+        public Texture2D TrainCarTexture(Guid trainCarGuid)
+        {
+            return _block;
+        }
+
+        public Texture2D ConnectToolTexture(Guid connectToolGuid)
+        {
+            return _block;
         }
     }
 }

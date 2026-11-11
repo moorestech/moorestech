@@ -12,7 +12,6 @@ namespace Client.Tests.Ui.Anchor
         public static readonly IReadOnlyDictionary<string, string> Owners = new Dictionary<string, string>
         {
             { AnchorIds.HotbarHud, "S3-hotbar-modal" },
-            { AnchorIds.BuildMenuEntryPrefix, "S3-buildmenu" },
             { AnchorIds.ChallengePanel, "S5-challenge" },
             { AnchorIds.ChallengeCategories, "S5-challenge" },
             { AnchorIds.ChallengeNodePrefix, "S5-challenge" },
