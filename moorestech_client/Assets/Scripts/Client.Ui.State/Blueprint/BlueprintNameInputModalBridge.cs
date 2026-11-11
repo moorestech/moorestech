@@ -1,6 +1,7 @@
 using Client.Game.InGame.UI.Blueprint;
 using Client.Localization;
 using Client.Ui.State.Modal;
+using Client.Ui.State.Modal.Logic;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -53,9 +54,9 @@ namespace Client.Ui.State.Blueprint
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalConfirm));
                 var (result, text) = await response;
 
-                // 確定は空白のみを弾いて状態へ書き戻す（web側でも確定無効化済みの二重防御）
-                // Confirm rejects whitespace-only before writing back (double guard; the web disables confirm too)
-                if (result == ModalResult.Confirm && !string.IsNullOrWhiteSpace(text))
+                // 確定は空白のみを弾いて状態へ書き戻す（描き手の確定無効化と同じ規則 ModalLogic.HasConfirmableText の二重防御）
+                // Confirm rejects whitespace-only before writing back (double guard with the renderer's disabled confirm, same rule ModalLogic.HasConfirmableText)
+                if (result == ModalResult.Confirm && ModalLogic.HasConfirmableText(text))
                 {
                     _state.Confirm(text);
                     return;

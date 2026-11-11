@@ -36,6 +36,8 @@ namespace Client.Ui.State.Commands
         BlueprintDeleteRequestFailed,
         BlueprintDeleteUnknown,
         BuildMenuCloseRefused,
+        HotbarSelectNotAccepted,
+        ModalResponseStale,
     }
 
     /// <summary>
@@ -44,8 +46,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 選択済み再選択と、Web の BENIGN_ERRORS にある持ち物・ビルドメニュー・BP 削除の取りこぼしは良性
-        // Re-selecting a chosen language and the inventory, build-menu and blueprint-delete misses in Web BENIGN_ERRORS are benign
+        // 状態を変えない再選択・受理外のタップ・古い応答と、Web の BENIGN_ERRORS にある取りこぼしは良性
+        // Re-selections, non-accepting taps and stale replies that change no state, plus the misses in Web BENIGN_ERRORS, are benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch
@@ -80,6 +82,8 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BlueprintDeleteRequestFailed => false,
                 UiCommandRejectReason.BlueprintDeleteUnknown => false,
                 UiCommandRejectReason.BuildMenuCloseRefused => false,
+                UiCommandRejectReason.HotbarSelectNotAccepted => true,
+                UiCommandRejectReason.ModalResponseStale => true,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -127,6 +131,8 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BlueprintDeleteRequestFailed => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteRequestFailed,
                 UiCommandRejectReason.BlueprintDeleteUnknown => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteUnknown,
                 UiCommandRejectReason.BuildMenuCloseRefused => LocalizationKeys.Ui.CommandRejected.BuildMenuCloseRefused,
+                UiCommandRejectReason.HotbarSelectNotAccepted => LocalizationKeys.Ui.CommandRejected.HotbarSelectNotAccepted,
+                UiCommandRejectReason.ModalResponseStale => LocalizationKeys.Ui.CommandRejected.ModalResponseStale,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -167,6 +173,8 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BlueprintDeleteRequestFailed => "blueprint_delete_request_failed",
                 UiCommandRejectReason.BlueprintDeleteUnknown => "blueprint_delete_unknown",
                 UiCommandRejectReason.BuildMenuCloseRefused => "transition_not_allowed",
+                UiCommandRejectReason.HotbarSelectNotAccepted => "invalid_state",
+                UiCommandRejectReason.ModalResponseStale => "no_pending_modal",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

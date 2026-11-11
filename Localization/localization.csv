@@ -519,3 +519,5 @@ ui.commandRejected.blueprintDeleteNotUnlocked,Blueprints are not unlocked yet,Bl
 ui.commandRejected.blueprintDeleteRequestFailed,Could not reach the server to delete the blueprint,Could not reach the server to delete the blueprint,ブループリントの削除をサーバーへ送れませんでした,Der Bauplan konnte nicht gelöscht werden (keine Serververbindung),설계도 삭제 요청을 서버에 보낼 수 없습니다
 ui.commandRejected.blueprintDeleteUnknown,Could not delete the blueprint,Could not delete the blueprint,ブループリントを削除できませんでした,Der Bauplan konnte nicht gelöscht werden,설계도를 삭제할 수 없습니다
 ui.commandRejected.buildMenuCloseRefused,Could not close the build menu right now,Could not close the build menu right now,今はビルドメニューを閉じられません,Das Baumenü kann gerade nicht geschlossen werden,지금은 건설 메뉴를 닫을 수 없습니다
+ui.commandRejected.hotbarSelectNotAccepted,The hotbar cannot be selected on this screen,The hotbar cannot be selected on this screen,この画面ではホットバーを選べません,Die Schnellleiste kann auf diesem Bildschirm nicht ausgewählt werden,이 화면에서는 단축바를 선택할 수 없습니다
+ui.commandRejected.modalResponseStale,This dialog is already closed,This dialog is already closed,このダイアログはすでに閉じています,Dieser Dialog ist bereits geschlossen,이 대화 상자는 이미 닫혔습니다
