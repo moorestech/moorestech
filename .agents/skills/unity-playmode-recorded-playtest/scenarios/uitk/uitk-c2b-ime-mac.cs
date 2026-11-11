@@ -116,7 +116,9 @@ return PlaytestRunner.Run("uitk-c2b-ime-mac", options, async p =>
 
     TextField Field() => GameUiRoot.Instance.GetRootElement().Q<TextField>("bug-report-description");
 
-    VisualElement Underline() => GameUiRoot.Instance.GetRootElement().Q<GameTextField>().Q(className: "game-text-field__composition-underline");
+    // 根の最初の GameTextField は建築メニューの検索欄なので、本文欄を包む GameTextField から引く
+    // The root's first GameTextField is the build menu search box, so look inside the one wrapping the body field
+    VisualElement Underline() => Field().GetFirstAncestorOfType<GameTextField>().Q(className: "game-text-field__composition-underline");
 
     bool IsFieldFocused(TextField target)
     {
