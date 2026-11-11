@@ -115,27 +115,8 @@ return PlaytestRunner.Run("uitk-skit", options, async p =>
     await PressCtrlU();
     await p.Until(() => root.resolvedStyle.display == DisplayStyle.Flex, 5f, "Ctrl+U でルートが戻る");
 
-    // 選択肢が出るまで送り、UITK の選択肢で選ぶ（出なければ選択肢の検証は記録だけ残す）
-    // Advance until choices appear and pick one in UITK (if none appear, only note it)
-    for (var i = 0; i < 40 && store.GetCurrent().PresentationState.Choices.Length == 0 && store.GetCurrent().PresentationState.Mode == SkitPresentationData.BlockingMode; i++)
-    {
-        var current = store.GetCurrent();
-        store.TryAdvance(current.SessionId, current.SceneRevision);
-        await p.WaitSeconds(0.3f);
-    }
-    var choices = store.GetCurrent().PresentationState.Choices;
-    if (choices.Length > 0)
-    {
-        var choiceId = choices[0].ChoiceId;
-        await p.UntilUiElement($"skit-choice-{choiceId}", 10f);
-        await p.Screenshot("04-skit-choices");
-        await p.ClickUi($"skit-choice-{choiceId}");
-        await p.Until(() => store.GetCurrent().PresentationState.Choices.Length == 0, 5f, "UITK の選択肢で選んだ");
-    }
-    else
-    {
-        p.Note("100_start_game に選択肢が無かった。選択肢は L1（SkitChoiceListTest・SkitScreenViewTest）と並べ比べの固定提示で見る");
-    }
+    // 100_start_game に選択肢は無い（実測）。選択肢・乗ったままのポーズと指は uitk-skit-choice-pause-cursor が sample_short で見る
+    // 100_start_game has no choices (observed); uitk-skit-choice-pause-cursor covers choices and the pause-over-choice cursor with sample_short
 
     // 後始末: UITK のスキップでゲーム画面へ
     // Cleanup: skip in UITK back to the game screen
@@ -151,6 +132,10 @@ return PlaytestRunner.Run("uitk-skit", options, async p =>
     p.Assert(timelinePlayer != null, "シーンに TimelinePlayer がある（GameSystem.prefab の CutSceneManager）");
     var director = timelinePlayer.GetComponent<PlayableDirector>();
     p.Assert(director != null, "TimelinePlayer と同じ GameObject に PlayableDirector がある");
+    // MainGame.unity が CutSceneManager の PlayableDirector を無効で置いていて Play しても再生しない（本番に Play の呼び手は無い）。全体非表示の経路を見るため有効にする
+    // MainGame.unity ships CutSceneManager's PlayableDirector disabled so Play does nothing (no production caller of Play); enable it to observe the whole-UI hiding path
+    p.Note($"シーンの PlayableDirector.enabled={director.enabled}。有効にしてから再生する");
+    director.enabled = true;
     var playingNotices = new List<bool>();
     var noticeSubscription = Client.CutScene.TimelinePlayer.OnPlayingChanged.Subscribe(notice => playingNotices.Add(notice));
     var timeline = ScriptableObject.CreateInstance<UnityEngine.Timeline.TimelineAsset>();
