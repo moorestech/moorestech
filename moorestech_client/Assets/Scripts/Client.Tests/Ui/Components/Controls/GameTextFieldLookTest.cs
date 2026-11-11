@@ -94,6 +94,10 @@ namespace Client.Tests.Ui.Components.Controls
             AssertColor(Hex("#2E2E2E"), input.resolvedStyle.backgroundColor, "face");
             AssertColor(Hex("#C9C9C9"), input.resolvedStyle.color, "text");
 
+            // キャレットは文字の色（Chrome の caret-color: auto）。UITK の既定の黒にしない
+            // The caret takes the text colour (Chrome caret-color: auto), not UITK's default black
+            AssertColor(Hex("#C9C9C9"), field.Field.textSelection.cursorColor, "caret");
+
             field.Field.Focus();
             simulate.FrameUpdate();
             AssertColor(Hex("#1971C2"), input.resolvedStyle.borderTopColor, "border");
