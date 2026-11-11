@@ -190,6 +190,6 @@
     --hotbar-number-tab-face: rgba(50, 52, 67, 0.68); /* web: .num の background rgb(50 52 67 / 68%) */
     --hotbar-number-tab-border: rgba(156, 158, 166, 0.55); /* web: .num の border rgb(156 158 166 / 55%) */
     --hotbar-number-tab-text: rgb(226, 229, 238); /* web: .num の color #e2e5ee */
-    --hotbar-select-disabled-opacity: 0.55; /* web: .hotbarFrame[data-select-disabled] の opacity 0.55 */
-    --hotbar-unresolved-opacity: 0.4; /* web: .cell[data-unresolved] の opacity 0.4 */
+    --hotbar-select-disabled-opacity: 0.55; /* web: .hotbarFrame[data-select-disabled] の opacity 0.55 */ /* look-exception: LX-76 */
+    --hotbar-unresolved-opacity: 0.4; /* web: .cell[data-unresolved] の opacity 0.4 */ /* look-exception: LX-76 */
 }
