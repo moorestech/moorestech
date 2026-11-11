@@ -182,4 +182,14 @@
     --game-scroll-view-scrollbar-inset-bottom: 0px; /* 同じく下の逃げの既定 */
     --game-scroll-view-scrollbar-inset-right: 0px; /* 同じく右の逃げの既定 */
     --game-scroll-view-scrollbar-padding-ratio: 0.2; /* web: Mantine ScrollArea のバーの padding = size / 5。縦バーの内側余白＝幅×比 */
+
+    /* S3-hotbar-modal: 世界の上に直に置くホットバーの色と減光。Web の HotbarPanel/style.module.css の直書きをそのまま使う（半透明は Web の値で書く。設計書 A-52） */
+    /* S3-hotbar-modal: colors and dimming for the hotbar placed directly over the world; uses the literals in the Web HotbarPanel/style.module.css as is (translucency is written with Web values; design A-52) */
+    --hotbar-bevel-c1: rgb(125, 127, 133); /* web: .cell の bevel-c1 = rgb(125 127 133) */
+    --hotbar-bevel-c2: rgb(116, 118, 125); /* web: .cell の bevel-c2・bevel-c3 = rgb(116 118 125) */
+    --hotbar-number-tab-face: rgba(50, 52, 67, 0.68); /* web: .num の background rgb(50 52 67 / 68%) */
+    --hotbar-number-tab-border: rgba(156, 158, 166, 0.55); /* web: .num の border rgb(156 158 166 / 55%) */
+    --hotbar-number-tab-text: rgb(226, 229, 238); /* web: .num の color #e2e5ee */
+    --hotbar-select-disabled-opacity: 0.55; /* web: .hotbarFrame[data-select-disabled] の opacity 0.55 */ /* look-exception: LX-76 */
+    --hotbar-unresolved-opacity: 0.4; /* web: .cell[data-unresolved] の opacity 0.4 */ /* look-exception: LX-76 */
 }

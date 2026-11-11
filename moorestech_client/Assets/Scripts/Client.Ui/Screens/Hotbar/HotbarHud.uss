@@ -1,0 +1,80 @@
+/* web: moorestech_web/webui/src/features/hotbar/HotbarPanel/style.module.css の .hotbarArea・.hotbarFrame・.cell・.num・data-unresolved・data-select-disabled。calc() と transform の 2 つ（.num の top・.hotbarFrame の translateX）は HotbarCalcKnobs が当てる（設計書 A-47）。gap は UITK に無いので 2 枠目以降の左余白で写す */
+/* web: .hotbarArea, .hotbarFrame, .cell, .num, data-unresolved and data-select-disabled in moorestech_web/webui/src/features/hotbar/HotbarPanel/style.module.css; the calc() and transform pair (.num top, .hotbarFrame translateX) is applied by HotbarCalcKnobs (design A-47); UITK has no gap, so cells after the first take a left margin */
+.hotbar-hud {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--hotbar-bottom);
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.hotbar-hud__row {
+    flex-direction: row;
+    --hotbar-hud-row-offset: var(--hotbar-horizontal-offset);
+    --hotbar-hud-number-tab-overhang: var(--hotbar-number-tab-overhang);
+}
+
+.hotbar-hud__row--select-disabled {
+    filter: opacity(var(--hotbar-select-disabled-opacity));
+}
+
+/* Web .cell の局所上書き変数を同名で上書きする（設計書 §3.3-3） */
+/* Override the Web .cell local variables under the same names (design §3.3-3) */
+.hotbar-hud__cell {
+    margin-left: var(--hotbar-slot-gap);
+    --slot-size: var(--hotbar-slot-size);
+    --selected-face-bottom-trim: 0.78px;
+    --selected-face-ring-inset: 1.565749px;
+    --icon-pad: 5px;
+    --count-bottom: -1px;
+    --bevel-inset: inset;
+    --face-inset: 0px;
+    --bevel-1: 0.782875px;
+    --bevel-2: 1.565749px;
+    --bevel-3: 1.565749px;
+    --bevel-c1: var(--hotbar-bevel-c1);
+    --bevel-c2: var(--hotbar-bevel-c2);
+    --bevel-c3: var(--hotbar-bevel-c2);
+    --sel-c1: var(--select-cyan);
+    --sel-c2: var(--select-cyan);
+    --sel-c3: var(--select-cyan);
+}
+
+.hotbar-hud__cell--first {
+    margin-left: 0;
+}
+
+.hotbar-hud__cell--unresolved {
+    filter: opacity(var(--hotbar-unresolved-opacity));
+}
+
+/* 番号タブ: 角張った 15px 角・細い明るい枠・半透明の面。縁取りは暗い色（Web .iconTextOutlineDark。部品の縁の色のつまみで渡す。計画 D-7） */
+/* Number tab: an angular 15px square with a thin light border and translucent face; the outline is dark (Web .iconTextOutlineDark; passed through the part's outline-color knob; plan D-7) */
+.hotbar-hud__number-tab {
+    position: absolute;
+    left: 17px;
+    min-width: 15px;
+    height: 15px;
+    padding-left: 1px;
+    padding-right: 1px;
+    border-width: 1px;
+    border-radius: 0;
+    border-color: var(--hotbar-number-tab-border);
+    background-color: var(--hotbar-number-tab-face);
+    --outlined-count-label-stroke: var(--icon-text-stroke-dark);
+    --outlined-count-label-size: 13px;
+    --outlined-count-label-color: var(--hotbar-number-tab-text);
+}
+
+/* 字の 2 層をタブの内側いっぱいに重ね、中央に置く（Web の text-align: center・line-height 13px）。中央寄せは行の箱を中央に置くので基線は Web の line-height:1 と同じ 0.112em に来る。部品の translate 18.1% の下げは要らない（Task 11 Step 3 の数字の縦位置で確かめる） */
+/* Stack both glyph layers across the tab's inside and centre them (Web text-align: center, line-height 13px); centring the line box puts the baseline at 0.112em like the Web line-height:1, so the component's 18.1% translate is not needed (checked by the digit position in Task 11 Step 3) */
+.hotbar-hud__number-tab .hotbar-hud__number {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    translate: 0 0;
+    -unity-text-align: middle-center;
+}

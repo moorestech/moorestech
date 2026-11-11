@@ -54,3 +54,9 @@
     --bevel-1: 5px;
     --bevel-3: wide;
 }
+
+/* W/app/tokens.css の .iconTextOutlineDark（ホットバーの番号タブ） */
+/* .iconTextOutlineDark in W/app/tokens.css (the hotbar number tab) */
+.slot-knob-dark-outline {
+    --outlined-count-label-stroke: var(--icon-text-stroke-dark);
+}

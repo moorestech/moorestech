@@ -21,7 +21,7 @@ namespace Client.Playtest.Input
     public static class UitkModifierKeys
     {
         private static FieldInfo _modifiersField;
-        private static EventModifiers _held = EventModifiers.None;
+        internal static EventModifiers Held { get; private set; } = EventModifiers.None;
         private static bool _hooked;
         private static readonly HashSet<IPanel> _watchedPanels = new();
 
@@ -31,8 +31,8 @@ namespace Client.Playtest.Input
             // Build the modifier set and write it only on change
             var held = EventModifiers.None;
             foreach (var key in pressedKeys) held |= ToModifier(key);
-            if (held == _held) return;
-            _held = held;
+            if (held == Held) return;
+            Held = held;
             Write(held);
 
             // 押下中だけ毎フレーム置き直す
@@ -40,22 +40,23 @@ namespace Client.Playtest.Input
             if (held != EventModifiers.None && !_hooked) InputSystem.onAfterUpdate += Rewrite;
             if (held == EventModifiers.None && _hooked) InputSystem.onAfterUpdate -= Rewrite;
             _hooked = held != EventModifiers.None;
+        }
 
-            #region Internal
+        internal static bool IsModifier(Key key)
+        {
+            return ToModifier(key) != EventModifiers.None;
+        }
 
-            EventModifiers ToModifier(Key key)
+        private static EventModifiers ToModifier(Key key)
+        {
+            return key switch
             {
-                return key switch
-                {
-                    Key.LeftShift or Key.RightShift => EventModifiers.Shift,
-                    Key.LeftCtrl or Key.RightCtrl => EventModifiers.Control,
-                    Key.LeftAlt or Key.RightAlt => EventModifiers.Alt,
-                    Key.LeftCommand or Key.RightCommand => EventModifiers.Command,
-                    _ => EventModifiers.None,
-                };
-            }
-
-            #endregion
+                Key.LeftShift or Key.RightShift => EventModifiers.Shift,
+                Key.LeftCtrl or Key.RightCtrl => EventModifiers.Control,
+                Key.LeftAlt or Key.RightAlt => EventModifiers.Alt,
+                Key.LeftCommand or Key.RightCommand => EventModifiers.Command,
+                _ => EventModifiers.None,
+            };
         }
 
         public static void WatchDelivery()
@@ -74,13 +75,13 @@ namespace Client.Playtest.Input
         {
             // 押下中の修飾キーが外れて届いたら、実入力の上書きなのでログへ出す（Editor 前面で人が触れた可能性）
             // If held modifiers arrive missing, a real input overwrote them, so log it (someone may have touched the focused Editor)
-            if (_held == EventModifiers.None || (evt.modifiers & _held) == _held) return;
-            Debug.LogError($"[UitkModifierKeys] 注入した修飾キー {_held} が実入力で上書きされ、PointerDown に {evt.modifiers} で届いた（evt.shiftKey 等が外れる）");
+            if (Held == EventModifiers.None || (evt.modifiers & Held) == Held) return;
+            Debug.LogError($"[UitkModifierKeys] 注入した修飾キー {Held} が実入力で上書きされ、PointerDown に {evt.modifiers} で届いた（evt.shiftKey 等が外れる）");
         }
 
         private static void Rewrite()
         {
-            Write(_held);
+            Write(Held);
         }
 
         private static void Write(EventModifiers modifiers)

@@ -1,7 +1,5 @@
-using System.Diagnostics;
 using UniRx;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Input
 {
@@ -32,7 +30,7 @@ namespace Client.Input
         private static bool _webTextInputFocused;
         private static volatile bool _gameUiTextInputFocused;
         private static IGameUiPointerProbe _gameUiPointerProbe;
-        private static int _escapeConsumedFrame = -1;
+        private static int _escapeConsumedFrame = -1, _escapeBlurredTextFieldFrame = -1;
         private static int _lastKeyboardProbeFrame = -1;
 
         // 選ばれていない系の値は読まない。無応答のWebは値を更新できないのでポインタ占有を主張させない
@@ -112,6 +110,11 @@ namespace Client.Input
             Debug.Log($"[UiInput] escape consumed by game UI at frame {_escapeConsumedFrame}");
         }
 
+        // 変換中でない ESC で入力欄を外したフレームの印。変換中の ESC では立てない（モーダルの ESC 取消が読む）
+        // Marks the frame an ESC outside IME composition blurred a text field; never set during composition (read by the modal's ESC cancel)
+        public static bool IsEscapeBlurredTextFieldThisFrame => _escapeBlurredTextFieldFrame == Time.frameCount;
+        public static void MarkEscapeBlurredTextFieldThisFrame() => _escapeBlurredTextFieldFrame = Time.frameCount;
+
         // WSスレッドから受信ごとに呼ぶ。時刻だけ書き、無応答の印は EvaluateWebSilence だけが書く（D-22）
         // Called on the WS thread per message; it writes only the time and only EvaluateWebSilence writes the silent mark (D-22)
         public static void RecordWebMessageReceived(long stopwatchTimestamp)
@@ -129,7 +132,7 @@ namespace Client.Input
         private static double? SecondsSinceLastWebMessageLocked(long nowStopwatchTimestamp)
         {
             if (!_lastWebMessageTimestamp.HasValue) return null;
-            return (nowStopwatchTimestamp - _lastWebMessageTimestamp.Value) / (double)Stopwatch.Frequency;
+            return (nowStopwatchTimestamp - _lastWebMessageTimestamp.Value) / (double)System.Diagnostics.Stopwatch.Frequency;
         }
 
         // JSが止まりWSだけ残るとWebの値が古いまま残る（§3.11）。閾値超えでWeb側を読まない。GameUiの系では系の印で判定しない
@@ -152,10 +155,7 @@ namespace Client.Input
             else Debug.Log("[UiInput] web UI answered again; web input values are read again");
         }
 
-        public static bool IsSuppressed(InputSuppressionScope scope)
-        {
-            return (scope & InputSuppressionScope.Keyboard) != 0 && TextInputFocusedProperty.Value;
-        }
+        public static bool IsSuppressed(InputSuppressionScope scope) => (scope & InputSuppressionScope.Keyboard) != 0 && TextInputFocusedProperty.Value;
 
         public static void ProbeSuppressed(InputSuppressionScope scope)
         {
@@ -174,13 +174,12 @@ namespace Client.Input
         {
             TextInputFocusedProperty.Value = _activeUiSystem == UiSystem.GameUi ? _gameUiTextInputFocused : !_webSilent && _webTextInputFocused;
         }
-
 #if UNITY_EDITOR
         // EditModeではTime.frameCountが進まずラッチがテスト間で残るため、テストから解除する
         // In EditMode Time.frameCount does not advance so the latch would leak between tests; tests clear it here
         internal static void ClearEscapeLatchForTest()
         {
-            _escapeConsumedFrame = -1;
+            _escapeConsumedFrame = _escapeBlurredTextFieldFrame = -1;
         }
 
         // 受信時刻と無応答の印は静的に残るため、テスト間で「一度も受信していない」状態へ戻す

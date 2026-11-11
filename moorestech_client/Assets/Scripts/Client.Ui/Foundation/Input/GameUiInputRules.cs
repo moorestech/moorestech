@@ -67,19 +67,24 @@ namespace Client.Ui.Foundation.Input
             var focused = root.focusController.focusedElement as VisualElement;
             if (!IsInsideTextField(focused)) return;
 
-            // 入力欄が ESC を使ったことをワールド側（ポーズ・閉じる）へ知らせる
-            // Tell the world side (pause / close) that a text field used this ESC
-            UiInputExclusivity.ConsumeEscapeThisFrame();
-
             // silent-ok: 変換中の ESC は OS が変換を取り消すのでフォーカスも値も触らない / ラッチの Debug.Log が ESC の消費を記録する
             // silent-ok: during IME composition the OS cancels the conversion, so leave focus and value alone / the latch's Debug.Log records the consumed ESC
-            if (!string.IsNullOrEmpty(UnityEngine.Input.compositionString)) return;
+            if (!ConsumeEscapeOutsideComposition()) return;
 
             // TextField の既定の ESC（値の巻き戻しと再フォーカス）を止め、値を保ったままフォーカスだけ外す
             // Stop TextField's default ESC (revert value and refocus) and drop only the focus, keeping the value
             evt.StopImmediatePropagation();
             root.focusController.IgnoreEvent(evt);
+            UiInputExclusivity.MarkEscapeBlurredTextFieldThisFrame();
             focused.Blur();
+        }
+
+        // 入力欄が ESC を使ったことをワールド側（ポーズ・閉じる）へ知らせ、変換中でないか返す
+        // Tell the world side (pause / close) that a text field used this ESC, and return whether no IME composition is in progress
+        private static bool ConsumeEscapeOutsideComposition()
+        {
+            UiInputExclusivity.ConsumeEscapeThisFrame();
+            return string.IsNullOrEmpty(UnityEngine.Input.compositionString);
         }
 
         private static void CancelNavigation(EventBase evt)

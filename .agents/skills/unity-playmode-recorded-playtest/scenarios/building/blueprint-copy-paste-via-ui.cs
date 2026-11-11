@@ -1,8 +1,8 @@
 using Game.Context;
 // ⚠ 旧uGUI版（BuildMenuView等）を置き換えたWeb UI版。名前入力の文字打ちだけは状態へ直接書く（Webモーダルの文字入力はDSL未対応）
 // Web-UI rewrite replacing the old uGUI scenario; only the name text is written to the state directly (DSL cannot type into the web modal)
-// 検証: 1クリック始点/終点・E高さ・右短押しで終点選択へ戻る・側面ヒットの始点セル・範囲内0の拒否・貼り付けE・ドラッグ列5個・サムネイル
-// Checks one-click bounds, height, cancellation, side hits, empty ranges, drag paste, and thumbnails
+// 検証: 1クリック始点/終点・E高さ・取消で終点選択へ戻る・幕の上の右短押しでは閉じない・側面ヒットの始点セル・範囲内0の拒否・貼り付けE・ドラッグ列5個・サムネイル
+// Checks one-click bounds, height, cancellation, no close on a right press over the backdrop, side hits, empty ranges, drag paste, and thumbnails
 using System.Linq;
 using UniRx;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
@@ -81,15 +81,22 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"Webキャンセル後もPlaceBlock 実際:{p.CurrentUiState}");
     checks.AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "Webキャンセル後も始点マーカーが残る");
 
-    p.Note("もう一度終点クリックし、今度はゲーム側の右短押しで終点選択へ戻る");
+    // 幕は全面のUIなので、カーソルを動かした後の右短押しは「UIの外」にならず閉じない（Web・UITK共通。静止カーソルのWebだけ古いpointerOverUi=falseで閉じていた）
+    // The backdrop is full-screen UI, so after the cursor moves a right press is not "outside UI" and does not close (Web and UITK alike; only a still cursor on Web closed it via a stale pointerOverUi=false)
+    p.Note("もう一度終点クリックし、カーソルを幕の上で動かしてから右短押し。名前入力は閉じず、取消で閉じる");
     await p.ClickPlace();
     await p.UntilUiElement("modal-input", 10f);
+    SemanticInput.MouseMoveTo(Mouse.current.position.ReadValue() + new Vector2(40f, 20f));
+    await UniTask.DelayFrame(15);
     await p.RightShortClick();
     await UniTask.DelayFrame(5);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"右短押し後もPlaceBlock 実際:{p.CurrentUiState}");
-    p.Assert(!isNameOpen, "右短押しで名前入力が閉じる");
+    p.Assert(isNameOpen, "幕の上の右短押しでは名前入力が閉じない");
     checks.AssertMarker("BlueprintCopyStartMarker", new Vector3Int(0, 32, 0), "右短押し後も始点マーカーが残る");
-    await p.Screenshot("02-after-cancel");
+    await p.Screenshot("02-right-press-over-backdrop");
+    nameState.Cancel();
+    await UniTask.DelayFrame(5);
+    p.Assert(!isNameOpen, "取消で名前入力が閉じる");
 
     p.Note("もう一度終点を確定し名前を入れて作成。チェストだけが写りオフセット(0,0,0)");
     await p.PressKey(Key.Q);

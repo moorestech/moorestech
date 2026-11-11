@@ -88,6 +88,8 @@ namespace Client.Starter.Registration
             ResearchGameUiRegistration.Register(builder);
             RecipeGameUiRegistration.Register(builder);
             BuildMenuGameUiRegistration.Register(builder);
+            HotbarGameUiRegistration.Register(builder);
+            ModalGameUiRegistration.Register(builder);
         }
     }
 }

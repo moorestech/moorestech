@@ -44,6 +44,7 @@
         "UniRx",
         "VContainer",
         "Unity.InputSystem",
+        "UnityEngine.UI",
         "Unity.Recorder.Editor",
         "Client.Playtest.Overlay",
         "Nuget"
