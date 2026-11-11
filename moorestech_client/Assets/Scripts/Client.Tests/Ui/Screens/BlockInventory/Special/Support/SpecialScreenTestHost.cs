@@ -5,6 +5,7 @@ using Client.Input.ArrowKeys;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Content;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
@@ -31,6 +32,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
         protected FakeArrowKeys ArrowKeys { get; private set; }
         protected FakePanelSource Panels { get; private set; }
         protected SpecialPresenters Presenters { get; private set; }
+        protected RecordingBlockSlotCommands BlockSlots { get; private set; }
 
         [SetUp]
         public void SetUpSpecialHost()
@@ -40,6 +42,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
             ArrowKeys = new FakeArrowKeys();
             Panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed));
             Presenters = new SpecialPresenters(Model, Panels, ArrowKeys);
+            BlockSlots = new RecordingBlockSlotCommands();
+        }
+
+        // 本文の L1 が使う依存の束（格子は alpha の本物の工場に記録係の押下先を渡す。トーストは ScreenTestHost の係）
+        // Dependency bundle for body L1 tests (alpha's real grid factory with the recording press target; toasts from ScreenTestHost)
+        protected SpecialViewKit Kit(GameContentPresentation presentation)
+        {
+            return new SpecialViewKit(Commands, presentation, Toaster, new BlockItemGridFactory(BlockSlots, presentation, Toaster));
         }
 
         // alpha の土台でパネルを開いた状態にして返す（Presenter の Attach に渡す）
