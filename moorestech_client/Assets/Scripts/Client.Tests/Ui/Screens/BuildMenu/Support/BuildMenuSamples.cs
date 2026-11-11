@@ -40,13 +40,13 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             return Create(Array.Empty<BuildMenuMaterialRow>(), PlacementTargetNameOnlyIcon.Instance);
         }
 
+        // 木のチェストとベルトコンベアにだけ素材を持たせる版（詳細の素材の題を見る画面テスト用。素材の名前はテスト mod が要る）
+        // Variant where only the wood chest and belt conveyor carry materials (for screen tests that read the detail's materials title; item names need the test mod)
         public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials)
         {
             return Create(materials, PlacementTargetNameOnlyIcon.Instance);
         }
 
-        // 木のチェストとベルトコンベアにだけ素材を持たせる版（詳細の素材の題を見る画面テスト用。素材の名前はテスト mod が要る）
-        // Variant where only the wood chest and belt conveyor carry materials (for screen tests that read the detail's materials title; item names need the test mod)
         // 木のチェストにだけ絵を持たせられる版（アイコンの中央寄せを測る画面テスト用）
         // Variant where only the wood chest may carry a picture (for the screen test measuring icon centering)
         public static BuildMenuViewModel Create(IReadOnlyList<BuildMenuMaterialRow> materials, PlacementTargetIcon woodChestIcon)
