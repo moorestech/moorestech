@@ -44,6 +44,19 @@ namespace Client.Playtest.Input
             if (Pending.Count == 0 || _hooked) return;
             InputSystem.onAfterUpdate += DeliverProcessed;
             _hooked = true;
+
+            #region Internal
+
+            bool Contains(IReadOnlyCollection<Key> keys, Key key)
+            {
+                foreach (var each in keys)
+                {
+                    if (each == key) return true;
+                }
+                return false;
+            }
+
+            #endregion
         }
 
         private static void DeliverProcessed()
@@ -76,54 +89,49 @@ namespace Client.Playtest.Input
             if (0 < Pending.Count) return;
             InputSystem.onAfterUpdate -= DeliverProcessed;
             _hooked = false;
-        }
 
-        private static void Send(Key key, bool down)
-        {
-            // silent-ok: Web 系・GameUi 未生成・フォーカス無しでは実キーも入力欄へ届かない / 入力欄の ESC は録画の Assert（モーダルが閉じる）が見る
-            if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi || GameUiRoot.Instance == null) return;
-            var panel = GameUiRoot.Instance.GetRootElement().panel;
-            if (panel?.focusController.focusedElement is not VisualElement focused) return;
+            #region Internal
 
-            // 本番の PanelEventHandler は EventSystem の選択がこのパネルのときだけ実キーを送るので、同じ門を写し外れは録画の失敗にする
-            // Production PanelEventHandler forwards real keys only while the EventSystem selects this panel; mirror that gate and fail the recording otherwise
-            var selected = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
-            var selectedHandler = selected == null ? null : selected.GetComponent<PanelEventHandler>();
-            if (selectedHandler == null || selectedHandler.panel != panel)
+            void Send(Key key, bool down)
             {
-                Debug.LogError($"[UitkFocusedKeyEvents] {key} not sent: GameUi has focus on {focused.name} but the EventSystem selects {(selected == null ? "nothing" : selected.name)}, so a real key would not reach it");
-                return;
+                // silent-ok: Web 系・GameUi 未生成・フォーカス無しでは実キーも入力欄へ届かない / 入力欄の ESC は録画の Assert（モーダルが閉じる）が見る
+                if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi || GameUiRoot.Instance == null) return;
+                var panel = GameUiRoot.Instance.GetRootElement().panel;
+                if (panel?.focusController.focusedElement is not VisualElement focused) return;
+
+                // 本番の PanelEventHandler は EventSystem の選択がこのパネルのときだけ実キーを送るので、同じ門を写し外れは録画の失敗にする
+                // Production PanelEventHandler forwards real keys only while the EventSystem selects this panel; mirror that gate and fail the recording otherwise
+                var selected = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
+                var selectedHandler = selected == null ? null : selected.GetComponent<PanelEventHandler>();
+                if (selectedHandler == null || selectedHandler.panel != panel)
+                {
+                    Debug.LogError($"[UitkFocusedKeyEvents] {key} not sent: GameUi has focus on {focused.name} but the EventSystem selects {(selected == null ? "nothing" : selected.name)}, so a real key would not reach it");
+                    return;
+                }
+
+                // silent-ok: 修飾キーは UitkModifierKeys が別経路で届ける / その経路の LogError が欠落を知らせる
+                if (UitkModifierKeys.IsModifier(key)) return;
+                if (!TryToKeyCode(key, out var keyCode))
+                {
+                    Debug.LogError($"[UitkFocusedKeyEvents] {key} has no KeyCode mapping; not sent to UITK");
+                    return;
+                }
+                using EventBase evt = down ? KeyDownEvent.GetPooled('\0', keyCode, UitkModifierKeys.Held) : KeyUpEvent.GetPooled('\0', keyCode, UitkModifierKeys.Held);
+                evt.target = focused;
+                panel.visualTree.SendEvent(evt);
             }
 
-            // silent-ok: KeyCode に写せないキー（修飾キー等）は UitkModifierKeys が別経路で届ける / その経路の LogError が欠落を知らせる
-            if (!TryToKeyCode(key, out var keyCode)) return;
-            using EventBase evt = down ? KeyDownEvent.GetPooled('\0', keyCode, EventModifiers.None) : KeyUpEvent.GetPooled('\0', keyCode, EventModifiers.None);
-            evt.target = focused;
-            panel.visualTree.SendEvent(evt);
-        }
-
-        // Input System の Key 名を KeyCode 名へ写す（名前の違う Enter と数字だけ個別に写す）
-        // Map Input System Key names to KeyCode names (only Enter and digits differ by name)
-        private static bool TryToKeyCode(Key key, out KeyCode keyCode)
-        {
-            if (key == Key.Enter) { keyCode = KeyCode.Return; return true; }
-            if (Key.Digit1 <= key && key <= Key.Digit9) { keyCode = KeyCode.Alpha1 + (key - Key.Digit1); return true; }
-            if (key == Key.Digit0) { keyCode = KeyCode.Alpha0; return true; }
-            return Enum.TryParse(key.ToString(), out keyCode) && keyCode != KeyCode.None && !IsModifier(keyCode);
-        }
-
-        private static bool IsModifier(KeyCode keyCode)
-        {
-            return keyCode is KeyCode.LeftShift or KeyCode.RightShift or KeyCode.LeftControl or KeyCode.RightControl or KeyCode.LeftAlt or KeyCode.RightAlt or KeyCode.LeftCommand or KeyCode.RightCommand;
-        }
-
-        private static bool Contains(IReadOnlyCollection<Key> keys, Key key)
-        {
-            foreach (var each in keys)
+            // Input System の Key 名を KeyCode 名へ写す（名前の違う Enter と数字だけ個別に写す）
+            // Map Input System Key names to KeyCode names (only Enter and digits differ by name)
+            bool TryToKeyCode(Key key, out KeyCode keyCode)
             {
-                if (each == key) return true;
+                if (key == Key.Enter) { keyCode = KeyCode.Return; return true; }
+                if (Key.Digit1 <= key && key <= Key.Digit9) { keyCode = KeyCode.Alpha1 + (key - Key.Digit1); return true; }
+                if (key == Key.Digit0) { keyCode = KeyCode.Alpha0; return true; }
+                return Enum.TryParse(key.ToString(), out keyCode) && keyCode != KeyCode.None;
             }
-            return false;
+
+            #endregion
         }
     }
 }

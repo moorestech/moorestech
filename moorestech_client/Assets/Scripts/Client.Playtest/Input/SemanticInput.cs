@@ -62,6 +62,7 @@ namespace Client.Playtest.Input
         {
             PressedKeys.Clear();
             UitkModifierKeys.Apply(PressedKeys);
+            UitkFocusedKeyEvents.Apply(PressedKeys);
             PlaytestOverlay.NotifyAllKeysReleased();
             if (Keyboard.current != null) InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
         }

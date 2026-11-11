@@ -31,35 +31,35 @@ namespace Client.Ui.State.Hotbar
 
     public sealed class HotbarUnresolvedSlot : HotbarSlotViewModel
     {
-        public Guid AssignedId { get; }
+        private readonly Guid _assignedId;
 
         public HotbarUnresolvedSlot(Guid assignedId)
         {
-            AssignedId = assignedId;
+            _assignedId = assignedId;
         }
 
         public override bool IsAssigned => true;
-        public override bool Equals(object obj) => obj is HotbarUnresolvedSlot other && other.AssignedId == AssignedId;
-        public override int GetHashCode() => AssignedId.GetHashCode();
+        public override bool Equals(object obj) => obj is HotbarUnresolvedSlot other && other._assignedId == _assignedId;
+        public override int GetHashCode() => _assignedId.GetHashCode();
     }
 
     // 解けた対象。Screens が Client.Game の型を受けないよう、描くのに要る ID・表示名・絵の出どころだけを運ぶ
     // A resolved target; carries only the id, display name and picture source needed to draw, so Screens never take Client.Game types
     public sealed class HotbarAssignedSlot : HotbarSlotViewModel
     {
-        public Guid TargetId { get; }
+        private readonly Guid _targetId;
         public string DisplayLabel { get; }
         public PlacementTargetIcon Icon { get; }
 
         public HotbarAssignedSlot(Guid targetId, string displayLabel, PlacementTargetIcon icon)
         {
-            TargetId = targetId;
+            _targetId = targetId;
             DisplayLabel = displayLabel;
             Icon = icon;
         }
 
         public override bool IsAssigned => true;
-        public override bool Equals(object obj) => obj is HotbarAssignedSlot other && other.TargetId == TargetId && other.DisplayLabel == DisplayLabel && other.Icon.Equals(Icon);
-        public override int GetHashCode() => TargetId.GetHashCode();
+        public override bool Equals(object obj) => obj is HotbarAssignedSlot other && other._targetId == _targetId && other.DisplayLabel == DisplayLabel && other.Icon.Equals(Icon);
+        public override int GetHashCode() => _targetId.GetHashCode();
     }
 }

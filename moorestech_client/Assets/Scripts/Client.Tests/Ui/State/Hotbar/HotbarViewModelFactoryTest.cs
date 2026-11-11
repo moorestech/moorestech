@@ -26,7 +26,7 @@ namespace Client.Tests.Ui.State.Hotbar
             Assert.IsFalse(fromSlot.Selection.IsSlot(0));
 
             var fromMenu = HotbarViewModelFactory.Create(NineEmpty, PlacementOrigin.NonHotbar, UIStateEnum.PlaceBlock, UiScreen.None, false);
-            Assert.IsFalse(fromMenu.Selection.TryGetSlot(out _));
+            Assert.AreEqual(HotbarSelection.None, fromMenu.Selection);
         }
 
         [Test]

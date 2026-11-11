@@ -13,8 +13,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
     /// </remarks>
     public sealed class HotbarCalcKnobs
     {
-        public const string RowOffsetProperty = "--hotbar-hud-row-offset";
-        public const string TabOverhangProperty = "--hotbar-hud-number-tab-overhang";
+        private const string RowOffsetProperty = "--hotbar-hud-row-offset";
+        private const string TabOverhangProperty = "--hotbar-hud-number-tab-overhang";
 
         private readonly VisualElement _row;
         private bool _overhangResolved;
@@ -24,6 +24,24 @@ namespace Client.Ui.Screens.Hotbar.Parts
         {
             _row = row;
             row.RegisterCallback<CustomStyleResolvedEvent>(_ => ReadAndApply());
+
+            #region Internal
+
+            // 列の横ずれ（Web .hotbarFrame の translateX）と、タブの上へのはみ出し（Web .num の top: calc(overhang * -1)）
+            // The row's horizontal shift (Web .hotbarFrame translateX) and the tab's upward overhang (Web .num top: calc(overhang * -1))
+            void ReadAndApply()
+            {
+                // 読めないつまみは UssCustomStyleReader が LogError を出す
+                // An unreadable knob is logged as an error by UssCustomStyleReader
+                if (UssCustomStyleReader.TryReadPixels(_row.customStyle, RowOffsetProperty, out var offset))
+                {
+                    _row.style.translate = new Translate(new Length(offset), new Length(0f));
+                }
+                _overhangResolved = UssCustomStyleReader.TryReadPixels(_row.customStyle, TabOverhangProperty, out _overhang);
+                if (_overhangResolved) ApplyOverhang();
+            }
+
+            #endregion
         }
 
         // 子（番号タブ）を作り直した後に呼ぶ。解決の前なら、解決の通知の ReadAndApply が当てる
@@ -33,20 +51,6 @@ namespace Client.Ui.Screens.Hotbar.Parts
             // silent-ok: スタイル解決の前に作ったタブは解決の通知で当たる / HotbarHudViewTest（SetUp が解決の前に Render する。未解決で読めば LogError で Unity のテストが落ちる）のタブの -16 の主張が見る
             if (!_overhangResolved) return;
             ApplyOverhang();
-        }
-
-        // 列の横ずれ（Web .hotbarFrame の translateX）と、タブの上へのはみ出し（Web .num の top: calc(overhang * -1)）
-        // The row's horizontal shift (Web .hotbarFrame translateX) and the tab's upward overhang (Web .num top: calc(overhang * -1))
-        private void ReadAndApply()
-        {
-            // 読めないつまみは UssCustomStyleReader が LogError を出す
-            // An unreadable knob is logged as an error by UssCustomStyleReader
-            if (UssCustomStyleReader.TryReadPixels(_row.customStyle, RowOffsetProperty, out var offset))
-            {
-                _row.style.translate = new Translate(new Length(offset), new Length(0f));
-            }
-            _overhangResolved = UssCustomStyleReader.TryReadPixels(_row.customStyle, TabOverhangProperty, out _overhang);
-            if (_overhangResolved) ApplyOverhang();
         }
 
         private void ApplyOverhang()

@@ -59,21 +59,25 @@ namespace Client.Ui.Screens.Hotbar
 
             if (_cells.Count != viewModel.Slots.Count) RebuildCells(viewModel.Slots.Count);
             for (var i = 0; i < _cells.Count; i++) _cells[i].Render(viewModel.Slots[i], viewModel.Selection.IsSlot(i));
-        }
 
-        // 枠の数は割当の長さに合わせる（通常は起動時に 1 回）。作り直したらタブのはみ出しを当て直す
-        // Match the cell count to the assignment length (normally once at boot); re-apply the tab overhang after rebuilding
-        private void RebuildCells(int count)
-        {
-            _row.Clear();
-            _cells.Clear();
-            for (var i = 0; i < count; i++)
+            #region Internal
+
+            // 枠の数は割当の長さに合わせる（通常は起動時に 1 回）。作り直したらタブのはみ出しを当て直す
+            // Match the cell count to the assignment length (normally once at boot); re-apply the tab overhang after rebuilding
+            void RebuildCells(int count)
             {
-                var cell = new HotbarCell(i, _commands, _icons, _toaster);
-                _cells.Add(cell);
-                _row.Add(cell);
+                _row.Clear();
+                _cells.Clear();
+                for (var i = 0; i < count; i++)
+                {
+                    var cell = new HotbarCell(i, _commands, _icons, _toaster);
+                    _cells.Add(cell);
+                    _row.Add(cell);
+                }
+                _calcKnobs.ApplyToRebuiltTabs();
             }
-            _calcKnobs.ApplyToRebuiltTabs();
+
+            #endregion
         }
     }
 }

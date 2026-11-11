@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Ui.State.Hotbar;
 
 namespace Client.Tests.Ui.Screens.Hotbar
@@ -17,7 +18,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             var slots = Enumerable.Repeat<HotbarSlotViewModel>(HotbarEmptySlot.Instance, 9).ToArray();
             slots[0] = HotbarTestPresentation.PicturedBlueprint();
             slots[4] = new HotbarUnresolvedSlot(UnresolvedId);
-            return new HotbarViewModel(slots, HotbarSelection.Of(0), selectAccepted, visible);
+            return new HotbarViewModel(slots, HotbarSelection.FromOrigin(PlacementOrigin.FromHotbarSlot(0)), selectAccepted, visible);
         }
 
         public static HotbarViewModel WebFixture()

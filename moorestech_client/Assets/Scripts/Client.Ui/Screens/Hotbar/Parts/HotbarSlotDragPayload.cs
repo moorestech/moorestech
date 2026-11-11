@@ -44,7 +44,9 @@ namespace Client.Ui.Screens.Hotbar.Parts
         {
             // silent-ok: 空き枠は掴む物が無い（Web の source === null） / HotbarSlotDragGestureTest「空き枠を引きずって…」が固定する
             if (!TryGetDragSource(out var source)) return;
-            ClearAsDroppedOutside(source);
+            // 枠外（何も無い所・他の画面の印）は L0-s3 の規則で解除になる
+            // Outside (empty space or another screen's mark) resolves to a clear by the L0-s3 rule
+            _commands.Apply(HotbarDropResolver.Resolve(source, OutsideHotbarDropTarget.Instance));
         }
 
         // 掴める物があるかの判定はここ 1 か所。空き枠は掴む物が無い
@@ -54,13 +56,6 @@ namespace Client.Ui.Screens.Hotbar.Parts
             source = new HotbarSlotDragSource(_slotIndex);
             // silent-ok: 空き枠はドラッグに確定した後も何もせずタップにも落とさない（Web useHotbarDragSource の source === null） / HotbarSlotDragGestureTest「空枠を閾値超えで…」が固定する
             return _slot.IsAssigned;
-        }
-
-        // 枠外（何も無い所・他の画面の印）は L0-s3 の規則で解除になる
-        // Outside (empty space or another screen's mark) resolves to a clear by the L0-s3 rule
-        private void ClearAsDroppedOutside(HotbarSlotDragSource source)
-        {
-            _commands.Apply(HotbarDropResolver.Resolve(source, OutsideHotbarDropTarget.Instance));
         }
     }
 }

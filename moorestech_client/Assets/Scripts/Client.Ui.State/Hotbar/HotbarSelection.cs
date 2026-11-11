@@ -20,7 +20,7 @@ namespace Client.Ui.State.Hotbar
             _slotIndex = slotIndex;
         }
 
-        public static HotbarSelection Of(int slotIndex)
+        private static HotbarSelection Of(int slotIndex)
         {
             return new HotbarSelection(true, slotIndex);
         }
@@ -30,12 +30,6 @@ namespace Client.Ui.State.Hotbar
         public static HotbarSelection FromOrigin(PlacementOrigin origin)
         {
             return origin.TryGetHotbarSlot(out var slot) ? Of(slot) : None;
-        }
-
-        public bool TryGetSlot(out int slotIndex)
-        {
-            slotIndex = _slotIndex;
-            return _hasSlot;
         }
 
         public bool IsSlot(int slotIndex)
