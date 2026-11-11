@@ -14,7 +14,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
         public const string HiddenTailOpenTag = "<alpha=#00>";
         // 「<」の直後に挟む幅 0 の字。語結合子は改行の機会も作らない。Task 8 Step 1 の実測で決める（D-48）
         // Zero-width character inserted right after '<'; a word joiner adds no line-break opportunity; settled by the Task 8 Step 1 measurement (D-48)
-        private const string TagBreaker = "⁠";
+        private const string TagBreaker = "\u2060";
         private const string BackgroundSeparator = " : ";
 
         public static string Literal(string text)
