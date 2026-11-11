@@ -73,11 +73,11 @@ namespace Client.Tests.Ui.State
         }
 
         [Test]
-        public void 良性の拒否理由は言語の選択済みと持ち物の移動と分割の取りこぼしと特殊族の古い操作と空の掴みだけ()
+        public void 良性の拒否理由は宣言した一覧と一致する()
         {
-            // 選択済みの再送と、Web の BENIGN_ERRORS の発射台の待ち外れ・接続済みと、Web が送らない空の掴みのフィルタ設定は利用者に知らせない
-            // An already-selected resend, the Web BENIGN_ERRORS launch-pad not-awaiting and already-connected cases, and a filter set with an empty grab (never sent by Web) are not told to players
-            var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.ItemSourceSlotEmpty, UiCommandRejectReason.ItemSourceCountShort, UiCommandRejectReason.SplitGrabNotEmpty, UiCommandRejectReason.SpecialBlockCommandStale, UiCommandRejectReason.FilterSplitterGrabEmpty };
+            // 選択済みの再送・持ち物の取りこぼし・特殊族の古い操作・空の掴みのフィルタ設定・閉じた後の選択・消えた BP の削除・受理外のホットバー選択・古いモーダル応答は利用者に知らせない（ログだけ）
+            // Resends, inventory misses, special-family stale operations, filter sets with an empty grab, selections after close, deletes of vanished blueprints, non-accepting hotbar taps and stale modal replies are not told to players (log only)
+            var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.ItemSourceSlotEmpty, UiCommandRejectReason.ItemSourceCountShort, UiCommandRejectReason.SplitGrabNotEmpty, UiCommandRejectReason.SpecialBlockCommandStale, UiCommandRejectReason.FilterSplitterGrabEmpty, UiCommandRejectReason.BuildMenuNotOpen, UiCommandRejectReason.UnknownBuildMenuEntry, UiCommandRejectReason.BlueprintDeleteNotFound, UiCommandRejectReason.HotbarSelectNotAccepted, UiCommandRejectReason.ModalResponseStale };
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
                 Assert.AreEqual(0 <= System.Array.IndexOf(benign, reason), UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());

@@ -515,3 +515,12 @@ ui.commandRejected.trainPlatformModeFailed,Could not switch loading and unloadin
 ui.commandRejected.specialBlockRequestFailed,The block did not accept the operation,The block did not accept the operation,ブロックが操作を受け付けませんでした,Der Block hat die Aktion nicht angenommen,블록이 조작을 받아들이지 않았습니다
 ui.commandRejected.specialBlockCommandStale,The block has already changed,The block has already changed,ブロックの状態がすでに変わっています,Der Block hat sich bereits geändert,블록 상태가 이미 바뀌었습니다
 ui.commandRejected.filterSplitterGrabEmpty,Hold an item to set the filter,Hold an item to set the filter,フィルタに設定するアイテムを持ってください,Halte einen Gegenstand um den Filter zu setzen,필터에 설정할 아이템을 들어 주세요
+ui.commandRejected.buildMenuNotOpen,The build menu is not open,The build menu is not open,ビルドメニューが開いていません,Das Baumenü ist nicht geöffnet,건설 메뉴가 열려 있지 않습니다
+ui.commandRejected.unknownBuildMenuEntry,This entry is no longer available,This entry is no longer available,この項目は選べなくなりました,Dieser Eintrag ist nicht mehr verfügbar,이 항목은 더 이상 사용할 수 없습니다
+ui.commandRejected.blueprintDeleteNotFound,The blueprint was already deleted,The blueprint was already deleted,ブループリントはすでに削除されています,Der Bauplan wurde bereits gelöscht,설계도가 이미 삭제되었습니다
+ui.commandRejected.blueprintDeleteNotUnlocked,Blueprints are not unlocked yet,Blueprints are not unlocked yet,ブループリントはまだ解放されていません,Baupläne sind noch nicht freigeschaltet,설계도가 아직 해금되지 않았습니다
+ui.commandRejected.blueprintDeleteRequestFailed,Could not reach the server to delete the blueprint,Could not reach the server to delete the blueprint,ブループリントの削除をサーバーへ送れませんでした,Der Bauplan konnte nicht gelöscht werden (keine Serververbindung),설계도 삭제 요청을 서버에 보낼 수 없습니다
+ui.commandRejected.blueprintDeleteUnknown,Could not delete the blueprint,Could not delete the blueprint,ブループリントを削除できませんでした,Der Bauplan konnte nicht gelöscht werden,설계도를 삭제할 수 없습니다
+ui.commandRejected.buildMenuCloseRefused,Could not close the build menu right now,Could not close the build menu right now,今はビルドメニューを閉じられません,Das Baumenü kann gerade nicht geschlossen werden,지금은 건설 메뉴를 닫을 수 없습니다
+ui.commandRejected.hotbarSelectNotAccepted,The hotbar cannot be selected on this screen,The hotbar cannot be selected on this screen,この画面ではホットバーを選べません,Die Schnellleiste kann auf diesem Bildschirm nicht ausgewählt werden,이 화면에서는 단축바를 선택할 수 없습니다
+ui.commandRejected.modalResponseStale,This dialog is already closed,This dialog is already closed,このダイアログはすでに閉じています,Dieser Dialog ist bereits geschlossen,이 대화 상자는 이미 닫혔습니다

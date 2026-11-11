@@ -15,7 +15,7 @@ namespace Client.Tests.Ui.Input
     /// </summary>
     public class GameUiInputRulesTest : UiTestHost
     {
-        private static readonly Regex ButtonFocusWarning = new(@"^\[GameUiInput\] non text-field element took focus and was blurred: Button 'rules-button'$");
+        private static readonly Regex ButtonFocusWarning = new(@"^\[GameUiInput\] non text-field, unmarked element took focus and was blurred: Button 'rules-button'$");
 
         private VisualElement _rulesRoot;
 
@@ -106,6 +106,21 @@ namespace Client.Tests.Ui.Input
 
             Assert.IsNull(panel.focusController.focusedElement);
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
+        }
+
+        [Test]
+        public void KeepMarkedButtonFocusIsKeptWithoutWarning()
+        {
+            var button = new Button { name = "rules-keep-button", focusable = true };
+            UiKeyFocusKeepMark.Mark(button);
+            _rulesRoot.Add(button);
+            button.Focus();
+            for (var i = 0; i < 3; i++) simulate.FrameUpdate();
+            // 印付きは規則の次のスケジュールでも外れず、警告も出ない。入力欄ではないので入力中の旗は立たない
+            // A marked element survives the rules' scheduled blur without a warning, and raises no text-input flag
+            Assert.AreSame(button, panel.focusController.focusedElement);
+            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
+            LogAssert.NoUnexpectedReceived();
         }
 
         [Test]

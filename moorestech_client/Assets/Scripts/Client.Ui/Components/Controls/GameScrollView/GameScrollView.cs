@@ -16,9 +16,9 @@ namespace Client.Ui.Components.Controls
     {
         private const string ScrollbarSizeProperty = "--game-scroll-view-scrollbar-size";
 
-        // Mantine ScrollArea のバーは padding = size / 5 で、つまみは size − 2 × padding
-        // Mantine ScrollArea pads the bar by size / 5, so the thumb is size - 2 x padding
-        private const float ScrollbarPaddingRatio = 0.2f;
+        // バーの内側余白＝幅×比（既定 0.2 は Mantine ScrollArea の size / 5。一覧は Web と同じく 0 に上書きする）
+        // Bar padding = size x ratio (the default 0.2 is Mantine ScrollArea's size / 5; the item list overrides it to 0 as on the Web)
+        private const string ScrollbarPaddingRatioProperty = "--game-scroll-view-scrollbar-padding-ratio-resolved";
 
         private readonly Subject<float> _onScrollOffsetChanged = new();
 
@@ -111,9 +111,13 @@ namespace Client.Ui.Components.Controls
             // 読めないときは UssCustomStyleReader が LogError を出し、バーは Theme.uss の既定の幅のまま
             // When unreadable, UssCustomStyleReader logs an error and the bar keeps the Theme.uss default width
             if (!UssCustomStyleReader.TryReadPixels(customStyle, ScrollbarSizeProperty, out var size)) return;
+            // 比も読めなければ UssCustomStyleReader が LogError を出し、バーは前の幅と余白のまま
+            // If the ratio is unreadable too, UssCustomStyleReader logs an error and the bar keeps its previous width and padding
+            if (!UssCustomStyleReader.TryReadNumber(customStyle, ScrollbarPaddingRatioProperty, out var ratio)) return;
+
             // 内側の余白はレイアウトで整数 px に丸まる（look-exception: LX-42）
             // The padding snaps to whole px in layout (look-exception: LX-42)
-            var padding = size * ScrollbarPaddingRatio;
+            var padding = size * ratio;
             verticalScroller.style.width = size;
             verticalScroller.style.paddingLeft = padding;
             verticalScroller.style.paddingRight = padding;

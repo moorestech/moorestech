@@ -1,4 +1,6 @@
+using Client.Input;
 using Client.Tests.Ui.TestHost;
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Modal;
 using Client.Ui.Foundation.Stage.ScaleReading;
 using NUnit.Framework;
@@ -91,6 +93,47 @@ namespace Client.Tests.Ui.Modal
             Assert.IsFalse(ScopeShown());
             Assert.IsNull(second.parent);
             Assert.AreEqual(DisplayStyle.None, _layer.Q("modal-scope").resolvedStyle.display);
+        }
+
+        [Test]
+        public void フォーカス中の入力欄を持つ中身を外してもゲームのキー入力を止めたままにしない()
+        {
+            // 入力の規則は本番と同じく層の根に付ける（前例 GameTextFieldTest）
+            // Attach the input rules at the layer root as in production (precedent GameTextFieldTest)
+            GameUiInputRules.Attach(_layer);
+            var first = FocusedTextFieldBox("modal-content-a");
+            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
+
+            // 差し替えでも隠すでも、外す前に外れの知らせが根の規則へ届く
+            // Both replacing and hiding blur before removal, so the root rules hear it
+            _host.Show(Box("modal-content-b", 200, 100));
+            simulate.FrameUpdate();
+            Assert.IsNull(first.parent);
+            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "replace");
+
+            FocusedTextFieldBox("modal-content-c");
+            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
+            _host.Hide();
+            simulate.FrameUpdate();
+            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "hide");
+        }
+
+        [TearDown]
+        public void ResetInputLatches()
+        {
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
+        }
+
+        private VisualElement FocusedTextFieldBox(string boxName)
+        {
+            var box = Box(boxName, 200, 100);
+            var field = new TextField();
+            box.Add(field);
+            _host.Show(box);
+            simulate.FrameUpdate();
+            field.Focus();
+            simulate.FrameUpdate();
+            return box;
         }
 
         // 表示中かは宿主の状態クラスで見る（宿主は表示の有無を公開しない）

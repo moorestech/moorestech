@@ -62,6 +62,7 @@ namespace Client.Playtest.Input
         {
             PressedKeys.Clear();
             UitkModifierKeys.Apply(PressedKeys);
+            UitkFocusedKeyEvents.Apply(PressedKeys);
             PlaytestOverlay.NotifyAllKeysReleased();
             if (Keyboard.current != null) InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
         }
@@ -170,6 +171,7 @@ namespace Client.Playtest.Input
             PressedKeys.CopyTo(keys);
             InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(keys));
             UitkModifierKeys.Apply(PressedKeys);
+            UitkFocusedKeyEvents.Apply(PressedKeys);
         }
 
         private static void QueueMouseButtons(ushort buttons)
@@ -191,7 +193,6 @@ namespace Client.Playtest.Input
             if (mouse.middleButton.isPressed) buttons |= 1 << 2;
             return buttons;
         }
-
         private static ushort ButtonBit(int button) => (ushort)(1 << button);
 
         #endregion

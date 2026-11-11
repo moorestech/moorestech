@@ -32,6 +32,15 @@ namespace Client.Ui.State.Commands
         SpecialBlockRequestFailed,
         SpecialBlockCommandStale,
         FilterSplitterGrabEmpty,
+        BuildMenuNotOpen,
+        UnknownBuildMenuEntry,
+        BlueprintDeleteNotFound,
+        BlueprintDeleteNotUnlocked,
+        BlueprintDeleteRequestFailed,
+        BlueprintDeleteUnknown,
+        BuildMenuCloseRefused,
+        HotbarSelectNotAccepted,
+        ModalResponseStale,
     }
 
     /// <summary>
@@ -40,8 +49,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 選択済み再選択と、Web の BENIGN_ERRORS にある持ち物の移動・分割・特殊族の古い操作の取りこぼしと、Web が送らない空の掴みのフィルタ設定は良性
-        // Re-selecting a chosen language, the inventory move/split and special-family stale-operation misses in Web BENIGN_ERRORS, and a filter set with an empty grab (never sent by Web) are benign
+        // 状態を変えない再選択・受理外のタップ・古い応答と、Web の BENIGN_ERRORS にある取りこぼし（特殊族の古い操作含む）と、Web が送らない空の掴みのフィルタ設定は良性
+        // Re-selections, non-accepting taps and stale replies that change no state, the misses in Web BENIGN_ERRORS (incl. special-family stale operations), and a filter set with an empty grab (never sent by Web) are benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch
@@ -72,6 +81,15 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SpecialBlockRequestFailed => false,
                 UiCommandRejectReason.SpecialBlockCommandStale => true,
                 UiCommandRejectReason.FilterSplitterGrabEmpty => true,
+                UiCommandRejectReason.BuildMenuNotOpen => true,
+                UiCommandRejectReason.UnknownBuildMenuEntry => true,
+                UiCommandRejectReason.BlueprintDeleteNotFound => true,
+                UiCommandRejectReason.BlueprintDeleteNotUnlocked => false,
+                UiCommandRejectReason.BlueprintDeleteRequestFailed => false,
+                UiCommandRejectReason.BlueprintDeleteUnknown => false,
+                UiCommandRejectReason.BuildMenuCloseRefused => false,
+                UiCommandRejectReason.HotbarSelectNotAccepted => true,
+                UiCommandRejectReason.ModalResponseStale => true,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -115,6 +133,15 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SpecialBlockRequestFailed => LocalizationKeys.Ui.CommandRejected.SpecialBlockRequestFailed,
                 UiCommandRejectReason.SpecialBlockCommandStale => LocalizationKeys.Ui.CommandRejected.SpecialBlockCommandStale,
                 UiCommandRejectReason.FilterSplitterGrabEmpty => LocalizationKeys.Ui.CommandRejected.FilterSplitterGrabEmpty,
+                UiCommandRejectReason.BuildMenuNotOpen => LocalizationKeys.Ui.CommandRejected.BuildMenuNotOpen,
+                UiCommandRejectReason.UnknownBuildMenuEntry => LocalizationKeys.Ui.CommandRejected.UnknownBuildMenuEntry,
+                UiCommandRejectReason.BlueprintDeleteNotFound => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteNotFound,
+                UiCommandRejectReason.BlueprintDeleteNotUnlocked => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteNotUnlocked,
+                UiCommandRejectReason.BlueprintDeleteRequestFailed => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteRequestFailed,
+                UiCommandRejectReason.BlueprintDeleteUnknown => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteUnknown,
+                UiCommandRejectReason.BuildMenuCloseRefused => LocalizationKeys.Ui.CommandRejected.BuildMenuCloseRefused,
+                UiCommandRejectReason.HotbarSelectNotAccepted => LocalizationKeys.Ui.CommandRejected.HotbarSelectNotAccepted,
+                UiCommandRejectReason.ModalResponseStale => LocalizationKeys.Ui.CommandRejected.ModalResponseStale,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -151,6 +178,15 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.SpecialBlockRequestFailed => "special_block_request_failed",
                 UiCommandRejectReason.SpecialBlockCommandStale => "special_block_command_stale",
                 UiCommandRejectReason.FilterSplitterGrabEmpty => "grab_empty",
+                UiCommandRejectReason.BuildMenuNotOpen => "invalid_state",
+                UiCommandRejectReason.UnknownBuildMenuEntry => "unknown_entry",
+                UiCommandRejectReason.BlueprintDeleteNotFound => "blueprint_delete_not_found",
+                UiCommandRejectReason.BlueprintDeleteNotUnlocked => "blueprint_delete_not_unlocked",
+                UiCommandRejectReason.BlueprintDeleteRequestFailed => "blueprint_delete_request_failed",
+                UiCommandRejectReason.BlueprintDeleteUnknown => "blueprint_delete_unknown",
+                UiCommandRejectReason.BuildMenuCloseRefused => "transition_not_allowed",
+                UiCommandRejectReason.HotbarSelectNotAccepted => "invalid_state",
+                UiCommandRejectReason.ModalResponseStale => "no_pending_modal",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

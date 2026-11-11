@@ -87,6 +87,10 @@ namespace Client.Starter.Registration
             BlockInventoryTrainGameUiRegistration.Register(builder);
             ResearchGameUiRegistration.Register(builder);
             BlockInventorySpecialGameUiRegistration.Register(builder);
+            RecipeGameUiRegistration.Register(builder);
+            BuildMenuGameUiRegistration.Register(builder);
+            HotbarGameUiRegistration.Register(builder);
+            ModalGameUiRegistration.Register(builder);
         }
     }
 }

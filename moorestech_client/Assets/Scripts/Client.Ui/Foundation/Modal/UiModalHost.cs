@@ -50,7 +50,7 @@ namespace Client.Ui.Foundation.Modal
         // A new show replaces the previous contents (Web ModalHost renders the single store entry)
         public void Show(VisualElement content)
         {
-            _content?.RemoveFromHierarchy();
+            RemoveContent();
             _content = content;
             _center.Add(content);
             ApplyShown();
@@ -58,9 +58,20 @@ namespace Client.Ui.Foundation.Modal
 
         public void Hide()
         {
-            _content?.RemoveFromHierarchy();
+            RemoveContent();
             _content = null;
             ApplyShown();
+        }
+
+        private void RemoveContent()
+        {
+            // silent-ok: 中身が無ければ外すものが無い / 表示の有無は ApplyShown の状態クラスが写す
+            if (_content == null) return;
+
+            // フォーカスを持ったまま外すとパネルから外れた後に外れの知らせが根の入力規則へ届かず、入力中の旗が残る。外す前に根まで届く形で外す
+            // Removing focused contents blurs after leaving the panel, so the root input rules never hear it and the text-input flag sticks; blur while still attached
+            if (_content.focusController?.focusedElement is VisualElement focused && _content.Contains(focused)) focused.Blur();
+            _content.RemoveFromHierarchy();
         }
 
         // 表示の有無は中身の有無 1 つで決まり、状態クラスはその写しだけ（二重に持たない）

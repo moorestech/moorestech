@@ -37,6 +37,7 @@
     border-color: var(--bevel-c1);
     background-color: var(--gauge-track);
     color: var(--text-default);
+    --unity-cursor-color: var(--text-default); /* web: caret-color の既定 auto は文字の色（Chrome）。UITK の既定の黒は紺の面で見えない */
     font-size: var(--mantine-font-size-md); /* web: font-size 指定なしで Mantine の body（--mantine-font-size-md）を継ぐ（参照キャプチャ実測 16px） */
 }
 
@@ -86,6 +87,7 @@
     border-color: var(--mantine-color-dark-4);
     background-color: var(--mantine-color-dark-6);
     color: var(--mantine-color-text);
+    --unity-cursor-color: var(--mantine-color-text); /* web: caret-color の既定 auto は文字の色（Chrome）。UITK の既定は黒 */
     font-size: var(--mantine-font-size-sm);
     -unity-text-align: middle-left;
 }

@@ -47,15 +47,15 @@ namespace Client.Tests.Ui.State.Modal
         [Test]
         public void 入力なしのモーダルは常に確定できる()
         {
-            Assert.IsTrue(ModalLogic.CanConfirm(Request("m1", false), ""));
+            Assert.IsTrue(ModalLogic.TryGetConfirmableText(Request("m1", false), "", out _));
         }
 
         /// <web-test file="src/features/modal/modalLogic.test.ts">inputモーダルは空白のみを確定不可にする</web-test>
         [Test]
         public void 入力付きモーダルは空白だけの文では確定できない()
         {
-            Assert.IsFalse(ModalLogic.CanConfirm(Request("m1", true), "   "));
-            Assert.IsTrue(ModalLogic.CanConfirm(Request("m1", true), " 家 "));
+            Assert.IsFalse(ModalLogic.TryGetConfirmableText(Request("m1", true), "   ", out _));
+            Assert.IsTrue(ModalLogic.TryGetConfirmableText(Request("m1", true), " 家 ", out _));
         }
 
         /// <web-test file="src/features/modal/modalLogic.test.ts">confirm variant は blue</web-test>
