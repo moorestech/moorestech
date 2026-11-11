@@ -19,8 +19,8 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void Uniform設定の1ノッチ量1で1段ずつ進む()
         {
-            // ScrollDeltaBehavior.UniformAcrossAllPlatforms では実マウスの1ノッチが1.0で届き、電柱の選択はそれをそのまま渡す
-            // Under UniformAcrossAllPlatforms one mouse notch arrives as 1.0 and the pole selection passes it through unchanged
+            // Uniform 設定の1ノッチ量1.0を蓄積器は1段にする（電柱の選択の換算は ElectricWirePoleSelectionScrollTest が見る）
+            // The accumulator turns the Uniform notch of 1.0 into one step (the pole selection's conversion is checked by ElectricWirePoleSelectionScrollTest)
             var accumulator = new ScrollStepAccumulator();
             Assert.AreEqual(1, accumulator.Accumulate(1f));
             Assert.AreEqual(1, accumulator.Accumulate(1f));
