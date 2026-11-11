@@ -88,9 +88,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             {
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
 
-                // スクロール読取（legacy代替あり）
-                // Read scroll with legacy fallback
-                return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
+                // 入力設定が Uniform なので 1 ノッチ＝1.0 が届き、そのまま 1 段になる（legacy代替あり）
+                // The input settings are Uniform, so one notch arrives as 1.0 and is one step as is (legacy fallback kept)
+                return Mouse.current != null ? Mouse.current.scroll.ReadValue().y : UnityEngine.Input.mouseScrollDelta.y;
             }
 
             #endregion

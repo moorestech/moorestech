@@ -5,8 +5,8 @@ namespace Client.Tests.PlaceSystem.Common
 {
     public class ScrollStepAccumulatorTest
     {
-        // ホイール1ノッチ相当の入力量。InputSystemの120を100で割った値
-        // One wheel notch of input: the Input System's 120 divided by 100
+        // 1ノッチより少し大きい量。端数を残して反転時の捨て方を試すために使う
+        // Slightly more than one notch, used to leave a remainder and exercise the drop on reversal
         private const float OneNotch = 1.2f;
 
         [Test]
@@ -14,6 +14,16 @@ namespace Client.Tests.PlaceSystem.Common
         {
             var accumulator = new ScrollStepAccumulator();
             Assert.AreEqual(1, accumulator.Accumulate(OneNotch));
+        }
+
+        [Test]
+        public void Uniform設定の1ノッチ量1で1段ずつ進む()
+        {
+            // ScrollDeltaBehavior.UniformAcrossAllPlatforms では実マウスの1ノッチが1.0で届き、電柱の選択はそれをそのまま渡す
+            // Under UniformAcrossAllPlatforms one mouse notch arrives as 1.0 and the pole selection passes it through unchanged
+            var accumulator = new ScrollStepAccumulator();
+            Assert.AreEqual(1, accumulator.Accumulate(1f));
+            Assert.AreEqual(1, accumulator.Accumulate(1f));
         }
 
         [Test]
