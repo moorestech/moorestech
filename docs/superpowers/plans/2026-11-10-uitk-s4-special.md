@@ -6446,6 +6446,11 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **テストの置き場の分割（agent 既定・Task 4 fix）**: テストを 4 サブディレクトリへ分割（1 ディレクトリ 10 ファイル上限）。`Client.Tests/Ui/State/BlockInventory/Special/{Commands,Logic,Source,Details}/`、namespace は変えない。Files 節の `Special/` 直下の表記は、このサブディレクトリ下の同名ファイルと読む
 - **シミュレーター予測（review 実施済み）**: 適用推奨 1 件（死活表の ←/→ の行の前提の誤り）を適用、Warning 3 件（D-20 の条件文・D-7 の前例との形の違い・電柱は無印だけ openable）のうち前 2 件を適用、電柱は Task 11 が無印を使うので変更なし。裁定候補 1 件（←/→ の横移動）は予測 (a) で D-32 に記録（ゴール・裁定から外れないので要裁定 0）
 - **agent 既定**: 電柱の電力網ポーリング漏れ（albof.54.1）はレーン外の共有キャッシュ（`BlockNetworkInfoCache`）だが、R-5/R-12 の電柱の網の行が出ないため 1 行で直す（`JoinsElectricNetwork` が `IElectricWireConnectParam` と `ElectricPoleBlockParam` を数える。Web 側も同じ源で直る）
+- **最終レビュー D1 種別違いの拒否は `BlockNotOpen` のまま（agent 既定）**: 裁定「SpecialBlockNotOpen は作らず BlockNotOpen を使う」の範囲と読み、種別違いは `Detail`（`invalid_block_type`）でログに区別する。列車の理由の改名・新しい値の追加は所有の境界と設計書 A-197 を越えるため採らない
+- **最終レビュー D2 サーバーが区別する失敗は 1 値のまま（agent 既定）**: `SpecialBlockRequestFailed` に写し WireCode は `Detail` に残す（D-29・Machine/Train の前例と同じ）。ケーブル不足・発射台の待ちの理由は状態の区画に出るので、拒否理由 5 値と文言 25 行の追加は採らない
+- **最終レビュー D3 入れ口の束縛は詳細の Reader が組む（agent 既定・案A）**: `SpecialBlockDetailReader` が本文の枠と同じ layout から `InletBindings` を組んで `RocketLaunchPadDetail`/`SpaceElevatorDetail` に持たせ、`SpecialInletBindingContributor` は `ISpecialBlockDetailModel` の詳細の束縛を当てるだけにした（`TryGetInletBindings`・`SpaceElevatorBindings` を撤去）。枠の定義・未着の門・個体照合が Reader と Model の 1 か所になり、片方だけ直して本文と Shift の宛先が食い違う経路が消えるため。D-26 の「追跡ブロックを照らして読む」の読み方・D-30 の `TryGetInletBindings`・D-31 の二重化を改める
+- **最終レビュー D4 区画の口は `bool Render` の 1 口（agent 既定・案A）**: `ISpecialDetailRenderer` の `HasDetail` と `Render` を「描いたら true」の `Render` にまとめ、呼び出し元は戻り値を `IsApplicable`・`SetShown`・`SetItemShown` へ当てるだけにした。判定と描画が 1 つの呼び出しになり、Render だけ呼んで古い表示が残る経路が無くなるため（D-4 は保たれる）。S4-machine の `DetailSectionPresenter<T>` へ揃える案は D-4 の区画の部分を覆し口が 2 種類並ぶので採らない
+- **最終レビュー D5 9 個の任意の詳細を 1 つの VM に並べる形は現状維持（agent 既定）**: 特殊族は Web の features/blockInventory の固定の 9 種で、このレーンで族を足す予定が無く実害が出ない（D-28 のまま）。族ごとの型付きの源に分ける案は Web の 1 DTO との 1 対 1 が崩れ、計画の Task と L0/L1 を書き直すため採らない
 
 ## 本PR外のリファクタ提案
 

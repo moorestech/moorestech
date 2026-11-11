@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
+using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Game.Block.Interface.State;
 
@@ -16,15 +17,19 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         public float Progress { get; }
         public IReadOnlyList<int> MaterialSlots { get; }
         public IReadOnlyList<int> PayloadSlots { get; }
+        // 資材・積荷の枠ごとに要求の 1 品だけを受ける Shift の束縛（本文の枠と同じ定義から組む）
+        // Shift bindings accepting the one required item per material/payload slot (built from the same definition as the body slots)
+        public IReadOnlyList<InletSlotBinding> InletBindings { get; }
         private int OutputSlotStart { get; }
 
-        public RocketLaunchPadDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, int outputSlotStart)
+        public RocketLaunchPadDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, IReadOnlyList<InletSlotBinding> inletBindings, int outputSlotStart)
         {
             Phase = phase;
             WaitReason = waitReason;
             Progress = progress;
             MaterialSlots = materialSlots;
             PayloadSlots = payloadSlots;
+            InletBindings = inletBindings;
             OutputSlotStart = outputSlotStart;
         }
 

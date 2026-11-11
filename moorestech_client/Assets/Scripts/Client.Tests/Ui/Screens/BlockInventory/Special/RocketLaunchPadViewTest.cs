@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Screens.BlockInventory.Special.Space;
+using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Commands;
@@ -84,7 +86,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         {
             var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent())));
             var slots = new[] { new SlotItem(new ItemId(3), 20), new SlotItem(new ItemId(4), 5), new SlotItem(new ItemId(5), 7), new SlotItem(new ItemId(1), 2) };
-            var rocket = new RocketLaunchPadDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.OutputFull, 0.375f, new[] { 2 }, new[] { 0 }, 3);
+            var rocket = new RocketLaunchPadDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.OutputFull, 0.375f, new[] { 2 }, new[] { 0 }, Array.Empty<InletSlotBinding>(), 3);
             view.Render(slots, SpecialDetailSamples.Only(rocket));
             simulate.FrameUpdate();
 

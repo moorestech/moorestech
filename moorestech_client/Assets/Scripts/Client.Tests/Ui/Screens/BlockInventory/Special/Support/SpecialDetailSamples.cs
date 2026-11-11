@@ -1,5 +1,7 @@
+using System;
 using Client.Ui.State.BlockInventory.Logic.Belt;
 using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Core.Master;
@@ -26,9 +28,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         public static BeltThroughputDetail Belt => new(new[] { BeltThroughputWindow.Measured(90, 4, 4.5), BeltThroughputWindow.Measured(180, 9, 9), BeltThroughputWindow.Measuring(360, 18) }, new[] { 1, 0, 1 }, 1);
 
-        public static RocketLaunchPadDetail Rocket(RocketLaunchPadPhase phase) => new(phase, RocketLaunchPadWaitReason.None, 0f, new[] { 0 }, new[] { 1 }, 2);
+        public static RocketLaunchPadDetail Rocket(RocketLaunchPadPhase phase) => new(phase, RocketLaunchPadWaitReason.None, 0f, new[] { 0 }, new[] { 1 }, Array.Empty<InletSlotBinding>(), 2);
 
-        public static SpaceElevatorDetail SpaceElevator(SpaceElevatorBaseStatus status, bool connected, int pool, float progress) => new(new[] { 0 }, new[] { 1, 2 }, connected, pool, 1000, progress, status);
+        public static SpaceElevatorDetail SpaceElevator(SpaceElevatorBaseStatus status, bool connected, int pool, float progress) => new(new[] { 0 }, new[] { 1, 2 }, Array.Empty<InletSlotBinding>(), connected, pool, 1000, progress, status);
 
         public static GearDetail GearMachineGear => GearDetail.Consumer(12.5, 3, 20);
         public static GearNetworkDetail GearMachineNetwork => new(100, 60, GearNetworkStopReasonKind.None);

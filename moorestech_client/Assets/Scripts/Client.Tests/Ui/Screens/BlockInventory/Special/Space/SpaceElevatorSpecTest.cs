@@ -1,5 +1,7 @@
+using System;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Screens.BlockInventory.Special.Space;
+using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Text;
@@ -86,7 +88,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
         [Test]
         public void 並べ替えた入口と出口の添字を描画と押下に使う()
         {
-            var reordered = new SpaceElevatorDetail(new[] { 2 }, new[] { 1, 0 }, false, 1000, 1000, 0f, SpaceElevatorBaseStatus.ReadyToConnect);
+            var reordered = new SpaceElevatorDetail(new[] { 2 }, new[] { 1, 0 }, Array.Empty<InletSlotBinding>(), false, 1000, 1000, 0f, SpaceElevatorBaseStatus.ReadyToConnect);
             var view = Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(reordered));
             Assert.AreEqual(new[] { "space-elevator-input-grid-slot-2" }, FrameIds(view, "space-elevator-input-grid"));
             Assert.AreEqual(new[] { "space-elevator-output-grid-slot-1", "space-elevator-output-grid-slot-0" }, FrameIds(view, "space-elevator-output-grid"));

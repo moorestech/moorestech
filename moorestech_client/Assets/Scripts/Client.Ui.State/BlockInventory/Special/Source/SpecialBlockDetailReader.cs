@@ -4,6 +4,7 @@ using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
@@ -72,7 +73,10 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 // silent-ok: 状態の初回到着待ちは本文が「状態の取得を待っています」を出す / 録画（R-12）の発射台の段で気づく
                 if (state == null) return null;
                 var layout = new RocketLaunchPadSlotLayout(rocketParam);
-                return SpecialStateDetailReader.RocketLaunchPad(state, layout.MaterialSlots.ToList(), layout.PayloadSlots.ToList(), layout.OutputSlotStart);
+                // 資材・積荷の枠ごとに要求の 1 品を Shift の束縛にする（本文の枠と同じ layout から組む）
+                // Bind each material/payload slot to its one required item for Shift (from the same layout as the body slots)
+                var inletBindings = layout.MaterialSlots.Concat(layout.PayloadSlots).Select(slot => new InletSlotBinding(slot, new[] { layout.RequirementAt(slot).ItemId })).ToList();
+                return SpecialStateDetailReader.RocketLaunchPad(state, layout.MaterialSlots.ToList(), layout.PayloadSlots.ToList(), inletBindings, layout.OutputSlotStart);
             }
 
             SpaceElevatorDetail ReadSpaceElevator()
@@ -81,7 +85,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 var state = block.GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
                 // silent-ok: 状態の初回到着待ちは区画が取得待ちを出す / 録画（R-12）の宇宙エレベーターの段で気づく
                 if (state == null) return null;
-                return SpecialStateDetailReader.SpaceElevator(state, SpaceElevatorBaseInventoryComponent.SatelliteSlot, SpaceElevatorBaseInventoryComponent.FirstOutputSlot, elevatorParam.OutputSlotCount, elevatorParam.CablesPerElevator);
+                return SpecialStateDetailReader.SpaceElevator(state, SpaceElevatorBaseInventoryComponent.SatelliteSlot, SpaceElevatorBaseInventoryComponent.GetCarriedPayloadItemIds(elevatorParam), SpaceElevatorBaseInventoryComponent.FirstOutputSlot, elevatorParam.OutputSlotCount, elevatorParam.CablesPerElevator);
             }
 
             #endregion

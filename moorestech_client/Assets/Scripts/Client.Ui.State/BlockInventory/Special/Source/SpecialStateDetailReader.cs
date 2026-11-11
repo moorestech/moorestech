@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special.Details;
+using Core.Master;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
 using Game.Block.Interface.State;
@@ -46,18 +48,19 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             return GearDetail.Consumer(gear.CurrentRpm, gear.CurrentTorque, baseRpm);
         }
 
-        public static RocketLaunchPadDetail RocketLaunchPad(RocketLaunchPadStateDetail state, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, int outputSlotStart)
+        public static RocketLaunchPadDetail RocketLaunchPad(RocketLaunchPadStateDetail state, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, IReadOnlyList<InletSlotBinding> inletBindings, int outputSlotStart)
         {
-            return new RocketLaunchPadDetail(state.Phase, state.WaitReason, state.Progress, materialSlots, payloadSlots, outputSlotStart);
+            return new RocketLaunchPadDetail(state.Phase, state.WaitReason, state.Progress, materialSlots, payloadSlots, inletBindings, outputSlotStart);
         }
 
-        // 入口は 1 枠、出口は先頭から連番（Web SpaceElevatorDetailDtoBuilder と同じ）
-        // One inlet slot and consecutive outlets from the first output slot (same as the Web builder)
-        public static SpaceElevatorDetail SpaceElevator(SpaceElevatorBaseStateDetail state, int satelliteSlot, int firstOutputSlot, int outputSlotCount, int cablesPerElevator)
+        // 入口は 1 枠で運べる積荷だけを受け、出口は先頭から連番（Web SpaceElevatorDetailDtoBuilder と同じ）
+        // One inlet slot accepting the carried payloads and consecutive outlets from the first output slot (same as the Web builder)
+        public static SpaceElevatorDetail SpaceElevator(SpaceElevatorBaseStateDetail state, int satelliteSlot, IReadOnlyList<ItemId> carriedPayloadItemIds, int firstOutputSlot, int outputSlotCount, int cablesPerElevator)
         {
             var outputs = new List<int>(outputSlotCount);
             for (var i = 0; i < outputSlotCount; i++) outputs.Add(firstOutputSlot + i);
-            return new SpaceElevatorDetail(new[] { satelliteSlot }, outputs, state.IsConnected, state.CablePoolAmount, cablesPerElevator, state.ClimbProgress, state.Status);
+            var inletBindings = new[] { new InletSlotBinding(satelliteSlot, carriedPayloadItemIds) };
+            return new SpaceElevatorDetail(new[] { satelliteSlot }, outputs, inletBindings, state.IsConnected, state.CablePoolAmount, cablesPerElevator, state.ClimbProgress, state.Status);
         }
     }
 }
