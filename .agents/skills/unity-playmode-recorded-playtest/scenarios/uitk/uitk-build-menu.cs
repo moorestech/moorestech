@@ -8,10 +8,12 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
+using Client.Playtest.Operations;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -50,6 +52,25 @@ return PlaytestRunner.Run("uitk-build-menu", options, async p =>
     await p.Until(() => Math.Abs(Scroll().scrollOffset.y - HeadingTop(lastGuid)) <= 1f, 5f, "末尾の見出しが視口の上端に来る");
     await p.Screenshot("02-trailing-jump");
 
+    // 末尾ジャンプの後に手でホイールを回すと一覧だけが動き、カメラのズームは動かない
+    // A hand wheel after the trailing jump moves only the list; the camera zoom stays put
+    var jumpedOffset = Scroll().scrollOffset.y;
+    var cameraBefore = Camera.main.transform.position;
+    SemanticInput.MouseMoveTo((await PlaytestUiElementOps.FindUi("build-menu-scroll-area")).ScreenRect.center);
+    await p.WaitSeconds(0.5f);
+    p.Note("一覧の上でホイールを上へ 3 ノッチ回す");
+    for (var i = 0; i < 3; i++)
+    {
+        SemanticInput.MouseWheel(1f);
+        await p.WaitSeconds(0.2f);
+    }
+    await p.WaitSeconds(0.5f);
+    var cameraMoved = Vector3.Distance(cameraBefore, Camera.main.transform.position);
+    p.Note($"手のスクロール 一覧 {jumpedOffset} → {Scroll().scrollOffset.y} カメラの移動 {cameraMoved:F3}");
+    p.Assert(Scroll().scrollOffset.y < jumpedOffset - 1f, "手のホイールで一覧が上へ動いた");
+    p.Assert(cameraMoved < 0.01f, "手のホイールでカメラが動かない");
+    await p.Screenshot("02b-hand-scroll");
+
     // 検索で絞り込み、閉じて開き直すと検索語と位置が戻る（R-9）
     // Filter by search; closing and reopening restores the query and the position (R-9)
     p.Note("検索欄に「ベルト」を入れ、閉じて開き直す");
@@ -66,9 +87,12 @@ return PlaytestRunner.Run("uitk-build-menu", options, async p =>
     p.Assert(Math.Abs(Scroll().scrollOffset.y - filteredOffset) <= 1f, $"スクロール位置が戻る（{filteredOffset} → {Scroll().scrollOffset.y}）");
     await p.Screenshot("04-restored");
 
-    // 選択で設置モードへ移る（検索を空に戻してから）
-    // Selecting moves to placement mode (after clearing the search)
+    // 検索を空に戻すと末尾付近に居るので、ベルトのカテゴリへ跳んでから選ぶ（前例 webui-buildmenu-click）
+    // Clearing the search leaves us near the end, so jump to the belt's category before selecting (precedent webui-buildmenu-click)
     await p.SetText("build-menu-search", "");
+    var beltMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("ベルトコンベア"));
+    var (beltCategoryGuid, _) = MasterHolder.BuildMenuCategoryMaster.GetGuidPair(beltMaster.Category, beltMaster.SubCategory);
+    await p.ClickUi($"build-menu-category-{beltCategoryGuid:D}");
     p.Note("ベルトコンベアを選ぶ");
     await p.ClickBuildMenuBlock("ベルトコンベア");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
