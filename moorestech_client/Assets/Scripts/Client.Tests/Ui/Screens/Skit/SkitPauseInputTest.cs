@@ -1,4 +1,5 @@
 // S/Client.Tests/Ui/Screens/Skit/SkitPauseInputTest.cs
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
@@ -56,7 +57,7 @@ namespace Client.Tests.Ui.Screens.Skit
             _view.SetInteractive(true);
             Assert.IsTrue(PicksInsideSkit(window.worldBound.center));
             simulate.Click(window.worldBound.center);
-            Assert.IsTrue(BodyText().EndsWith(SkitRichText.TypewriterBody(Body, Body.Length)));
+            Assert.IsTrue(ShowsWholeBody());
             simulate.Click(auto.worldBound.center);
             Assert.AreEqual(SkitCommandKind.SetAuto, _commands.Issued[0].Kind);
         }
@@ -103,7 +104,7 @@ namespace Client.Tests.Ui.Screens.Skit
             // On resume the same Enter reveals the full body without sending a command (second half of the Web test)
             _view.SetInteractive(true);
             enter.OnNext(Unit.Default);
-            Assert.IsTrue(BodyText().EndsWith(SkitRichText.TypewriterBody(Body, Body.Length)), "再開後の Enter で全文が出ない");
+            Assert.IsTrue(ShowsWholeBody(), "再開後の Enter で全文が出ない");
             Assert.AreEqual(0, _commands.Issued.Count, "再開後の Enter で操作を送った");
         }
 
@@ -118,7 +119,7 @@ namespace Client.Tests.Ui.Screens.Skit
             Assert.IsTrue(IsShown(Find<VisualElement>(_view, "skit-window")));
             Assert.IsTrue(IsShown(Find<VisualElement>(_view, "skit-tool-auto")));
             Assert.AreEqual(1f, Find<VisualElement>(_view, "skit-window").resolvedStyle.opacity);
-            Assert.IsTrue(BodyText().EndsWith(SkitRichText.TypewriterBody(Body, Body.Length)));
+            Assert.IsTrue(ShowsWholeBody());
         }
 
         // 復元で 1 つ目を出し、別の session の同じ本文で打ち出しを始めて少し進める
@@ -128,12 +129,19 @@ namespace Client.Tests.Ui.Screens.Skit
             _view.Render(SkitTestData.Text("restore-0", 0, "Restored line", intents));
             _view.Render(SkitTestData.Text(SkitTestData.SessionId, 1, Body, intents));
             simulate.FrameUpdateMs(120);
-            Assert.IsFalse(BodyText().EndsWith(SkitRichText.TypewriterBody(Body, Body.Length)), "打ち出しが始まっていない");
+            Assert.IsFalse(ShowsWholeBody(), "打ち出しが始まっていない");
         }
 
         private string BodyText()
         {
             return Find<LocalizedLabel>(_view, "skit-body").text;
+        }
+
+        // 本文の Label は行高のタグを前置するので、その前置きだけを許して全文と比べる。透明な残りも全文で終わるので末尾の一致では判定しない
+        // The body Label prefixes a line-height tag, so allow only that prefix against the full text; the transparent tail also ends with the full text, so a suffix match is not used
+        private bool ShowsWholeBody()
+        {
+            return Regex.IsMatch(BodyText(), "^(<line-height=[^>]*>)?" + Regex.Escape(SkitRichText.TypewriterBody(Body, Body.Length)) + "$");
         }
 
         private bool PicksInsideSkit(Vector2 point)
