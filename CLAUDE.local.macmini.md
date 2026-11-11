@@ -32,7 +32,7 @@ moores-wt status [--json]
 ## 運用上の注意
 
 - PlayModeの内蔵サーバーはポート0（OS自動採番）で起動しBoundPortへ接続するため、複数worktreeのPlayMode同時実行はポート衝突しない（ServerConnectionInitializer参照）。ローカルプレイは接続試行なしで必ず内蔵サーバーを起動し、スタンドアロンサーバーが11564に居ても誤接続しない（外部接続はConnectServerメニューの明示指定のみ）。
-- .cs変更のコンパイル必須ゲートを満たすには、worktree側で自分用のEditorをuloopで立ち上げる必要がある。Mac miniのメモリ上、同時Editor数は2〜3本を目安に抑える（目安であって機械的な拒否はしない）。
+- .cs変更のコンパイル必須ゲートを満たすには、worktree側で自分用のEditorをuloopで立ち上げる必要がある。Mac miniで同時に動かすEditorは1本まで（2本では落ちて安定しない）。2本目以降が要る並列作業は、RTX2060のWindows機（windows-pc）を `~/bin/winunity`（compile/test/play。push済みブランチを渡す）で使う。
 - Editorのカウントは`-batchMode`付きの子プロセス（AssetImportWorker等）を除外する。
 
 ## メインワークツリーでのブランチ操作はhookで物理拒否
