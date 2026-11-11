@@ -1,6 +1,5 @@
 using Client.Input;
 using Client.Input.Pointer;
-using Client.Skit.UI;
 using Client.Starter.Registration.GameUi.Hud;
 using Client.Starter.Registration.GameUi.Shared;
 using Client.Starter.Registration.GameUi.Screens;
@@ -43,7 +42,6 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
             builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
-            builder.RegisterInstance(SkitPresentationStateStore.Instance);
             builder.Register<BlockingSkitPresence>(Lifetime.Singleton);
             FoundationGameUiRegistration.Register(builder);
             // ポインタの位置の流れは画面ポインタ（InputSystemUiScreenPointer）が読む

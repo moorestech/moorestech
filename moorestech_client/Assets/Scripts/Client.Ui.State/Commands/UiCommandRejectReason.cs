@@ -41,6 +41,7 @@ namespace Client.Ui.State.Commands
         BuildMenuCloseRefused,
         HotbarSelectNotAccepted,
         ModalResponseStale,
+        SkitIntentRejected,
     }
 
     /// <summary>
@@ -90,6 +91,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BuildMenuCloseRefused => false,
                 UiCommandRejectReason.HotbarSelectNotAccepted => true,
                 UiCommandRejectReason.ModalResponseStale => true,
+                UiCommandRejectReason.SkitIntentRejected => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -142,6 +144,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BuildMenuCloseRefused => LocalizationKeys.Ui.CommandRejected.BuildMenuCloseRefused,
                 UiCommandRejectReason.HotbarSelectNotAccepted => LocalizationKeys.Ui.CommandRejected.HotbarSelectNotAccepted,
                 UiCommandRejectReason.ModalResponseStale => LocalizationKeys.Ui.CommandRejected.ModalResponseStale,
+                UiCommandRejectReason.SkitIntentRejected => LocalizationKeys.Ui.CommandRejected.SkitIntentRejected,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -187,6 +190,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BuildMenuCloseRefused => "transition_not_allowed",
                 UiCommandRejectReason.HotbarSelectNotAccepted => "invalid_state",
                 UiCommandRejectReason.ModalResponseStale => "no_pending_modal",
+                UiCommandRejectReason.SkitIntentRejected => "skit_intent_rejected",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

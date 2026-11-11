@@ -1,24 +1,34 @@
-using Client.Skit.UI;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Skit;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Game.Actions
 {
+    /// <summary>
+    /// skit.* action の payload を読んで ISkitCommands へ渡す。失敗の写しは SkitCommands 1 本で、GameUi のトーストと同じ結果を wire へ返す（S2-skit D-54）
+    /// Reads skit.* payloads and hands them to ISkitCommands; SkitCommands is the only failure mapping, so the wire gets the same result as the GameUi toast (S2-skit D-54)
+    /// </summary>
     public abstract class SkitActionHandlerBase : IActionHandler
     {
-        protected readonly SkitPresentationStateStore Store;
+        protected readonly ISkitCommands Commands;
         public abstract string ActionType { get; }
 
-        protected SkitActionHandlerBase(SkitPresentationStateStore store)
+        protected SkitActionHandlerBase(ISkitCommands commands)
         {
-            Store = store;
+            Commands = commands;
         }
 
         public abstract UniTask<ActionResult> ExecuteAsync(JObject payload);
 
-        protected static ActionResult Convert(SkitIntentResult result)
+        protected static UniTask<ActionResult> Reply(UiCommandResult result)
         {
-            return result.Ok ? ActionResult.Success() : ActionResult.Fail(result.Error);
+            return UniTask.FromResult(ActionResult.FromCommandResult(result));
+        }
+
+        protected static UniTask<ActionResult> InvalidPayload()
+        {
+            return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
         }
 
         protected static bool TryReadBase(JObject payload, out string sessionId, out int revision)
@@ -32,70 +42,64 @@ namespace Client.WebUiHost.Game.Actions
     public class SkitAdvanceActionHandler : SkitActionHandlerBase
     {
         public override string ActionType => "skit.advance";
-        public SkitAdvanceActionHandler(SkitPresentationStateStore store) : base(store) { }
+        public SkitAdvanceActionHandler(ISkitCommands commands) : base(commands) { }
 
         public override UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            if (!TryReadBase(payload, out var sessionId, out var revision))
-                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
-            return UniTask.FromResult(Convert(Store.TryAdvance(sessionId, revision)));
+            if (!TryReadBase(payload, out var sessionId, out var revision)) return InvalidPayload();
+            return Reply(Commands.Advance(sessionId, revision));
         }
     }
 
     public class SkitSelectActionHandler : SkitActionHandlerBase
     {
         public override string ActionType => "skit.select";
-        public SkitSelectActionHandler(SkitPresentationStateStore store) : base(store) { }
+        public SkitSelectActionHandler(ISkitCommands commands) : base(commands) { }
 
         public override UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            if (!TryReadBase(payload, out var sessionId, out var revision))
-                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
-            return UniTask.FromResult(Convert(Store.TrySelect(
-                sessionId, revision, payload.Value<string>("choiceId"))));
+            if (!TryReadBase(payload, out var sessionId, out var revision)) return InvalidPayload();
+            return Reply(Commands.Select(sessionId, revision, payload.Value<string>("choiceId")));
         }
     }
 
     public class SkitSetAutoActionHandler : SkitActionHandlerBase
     {
         public override string ActionType => "skit.set_auto";
-        public SkitSetAutoActionHandler(SkitPresentationStateStore store) : base(store) { }
+        public SkitSetAutoActionHandler(ISkitCommands commands) : base(commands) { }
 
         public override UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (!TryReadBase(payload, out var sessionId, out var revision) ||
                 payload?["enabled"]?.Type != JTokenType.Boolean)
-                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
-            return UniTask.FromResult(Convert(Store.TrySetAuto(
-                sessionId, revision, payload.Value<bool>("enabled"))));
+                return InvalidPayload();
+            return Reply(Commands.SetAuto(sessionId, revision, payload.Value<bool>("enabled")));
         }
     }
 
     public class SkitSkipActionHandler : SkitActionHandlerBase
     {
         public override string ActionType => "skit.skip";
-        public SkitSkipActionHandler(SkitPresentationStateStore store) : base(store) { }
+        public SkitSkipActionHandler(ISkitCommands commands) : base(commands) { }
 
         public override UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            if (!TryReadBase(payload, out var sessionId, out var revision))
-                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
-            return UniTask.FromResult(Convert(Store.TrySkip(sessionId, revision)));
+            if (!TryReadBase(payload, out var sessionId, out var revision)) return InvalidPayload();
+            return Reply(Commands.Skip(sessionId, revision));
         }
     }
 
     public class SkitSetUiHiddenActionHandler : SkitActionHandlerBase
     {
         public override string ActionType => "skit.set_ui_hidden";
-        public SkitSetUiHiddenActionHandler(SkitPresentationStateStore store) : base(store) { }
+        public SkitSetUiHiddenActionHandler(ISkitCommands commands) : base(commands) { }
 
         public override UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (!TryReadBase(payload, out var sessionId, out var revision) ||
                 payload?["hidden"]?.Type != JTokenType.Boolean)
-                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
-            return UniTask.FromResult(Convert(Store.TrySetUiHidden(
-                sessionId, revision, payload.Value<bool>("hidden"))));
+                return InvalidPayload();
+            return Reply(Commands.SetUiHidden(sessionId, revision, payload.Value<bool>("hidden")));
         }
     }
 }
