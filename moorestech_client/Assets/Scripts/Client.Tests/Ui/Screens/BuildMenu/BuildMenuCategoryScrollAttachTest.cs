@@ -37,7 +37,9 @@ namespace Client.Tests.Ui.Screens.BuildMenu
                 _tracker.OnUserIntervened();
                 _tracker.OnScrolled(123f);
             });
-            Assert.AreEqual(0f, _session.Current.ScrollTop);
+            // 復元前に外したので保存位置 250 はそのまま残る
+            // Detached before the restore, so the saved 250 is kept as is
+            Assert.AreEqual(250f, _session.Current.ScrollTop);
         }
 
         [Test]

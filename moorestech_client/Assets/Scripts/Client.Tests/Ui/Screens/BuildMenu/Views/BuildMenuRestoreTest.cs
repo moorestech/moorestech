@@ -113,5 +113,22 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             Assert.AreEqual(150f, Scroll.scrollOffset.y, 0.5f);
             Assert.AreEqual(150f, Session.Current.ScrollTop, 0.5f);
         }
+
+        [Test]
+        public void 復元の前に閉じても保存位置を上書きしない()
+        {
+            // 開いて最初のレイアウトが済む前に閉じる。Web は閉じるときに保存しないので、保存位置は残る
+            // Close before the first layout settles; the Web never saves on close, so the saved position survives
+            Session.SetScrollTop(150f);
+            View.Render(Create());
+            View.SetShown(true);
+            CloseMenu();
+            Assert.AreEqual(150f, Session.Current.ScrollTop, 0.5f);
+
+            OpenMenu(Create());
+
+            Assert.AreEqual(150f, Scroll.scrollOffset.y, 0.5f);
+            Assert.AreEqual(150f, Session.Current.ScrollTop, 0.5f);
+        }
     }
 }

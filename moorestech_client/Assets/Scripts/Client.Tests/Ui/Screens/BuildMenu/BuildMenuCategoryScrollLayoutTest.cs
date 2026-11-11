@@ -149,11 +149,28 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         [Test]
         public void 閉じる直前の位置を保存する()
         {
+            // 末尾群が視口と同じ高さならスペーサ 0 で反映済みとなり、張った時点で復元が済む
+            // A last group as tall as the viewport needs a 0 spacer, so the restore completes on attach
             var viewport = new FakeBuildMenuScrollViewport(600f, 1200f, 0f);
+            viewport.SetGroupHeight(A, 600f);
+            _tracker.SetVisibleCategories(new[] { A });
             _tracker.AttachViewport(viewport);
             viewport.SetScrollTop(180f);
             _tracker.PersistScrollPosition();
             Assert.AreEqual(180f, _session.Current.ScrollTop);
+        }
+
+        [Test]
+        public void 復元前の位置は閉じても保存しない()
+        {
+            // 末尾群が未配置で復元前のまま閉じても、保存位置は残る（Web は閉じるときに保存しない）
+            // Closing before the restore, while the last group is unplaced, keeps the saved position (the Web never saves on close)
+            _session.SetScrollTop(250f);
+            var viewport = new FakeBuildMenuScrollViewport(600f, 1200f, 0f);
+            _tracker.SetVisibleCategories(new[] { A });
+            _tracker.AttachViewport(viewport);
+            _tracker.PersistScrollPosition();
+            Assert.AreEqual(250f, _session.Current.ScrollTop);
         }
     }
 }
