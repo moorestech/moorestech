@@ -1,3 +1,4 @@
+using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
 using Mooresmaster.Model.BlocksModule;
