@@ -14,22 +14,34 @@ namespace Client.Tests.Ui.Screens.Skit
     /// </summary>
     public class SkitTypewriterLayoutTest : ScreenTestHost
     {
-        private const string LongBody = "The conveyor is jammed again. Check the splitter near the furnace,\nthen bring three iron plates back to the hub before the night shift starts.";
+        private const string         private const float WrapWidth = 600f;
+        private const string WrappingBody = "The conveyor is jammed again so check the splitter near the furnace and then bring three iron plates back to the hub before the night shift starts, and after that sort every crate in the warehouse by its label.";
         private const string TagLikeBody = "A</noparse>B<b>C</b><alpha=#00>D<";
 
         [Test]
-        public void 打ち出し中も本文の箱の高さと幅が全文と変わらない()
+        public void 打ち出し中も本文の箱の高さが全文と変わらない()
         {
-            var full = MountBody(SkitRichText.TypewriterBody(LongBody, SkitTypewriterRules.CountCodePoints(LongBody)));
-            var typing = MountBody(SkitRichText.TypewriterBody(LongBody, 12));
+            // 明示の改行を含まない長い 1 段落を窓の本文より狭い幅で自動に折り返し、行末の語の途中を含む多くの区切りで高さを比べる
+            // A long single paragraph without explicit newlines wraps automatically at a narrow width; heights are compared at many splits including mid-word ones
+            var count = SkitTypewriterRules.CountCodePoints(WrappingBody);
+            var single = MountBody("Wrap", WrapWidth);
+            var full = MountBody(SkitRichText.TypewriterBody(WrappingBody, count), WrapWidth);
+            var splits = new System.Collections.Generic.List<(int visible, LocalizedLabel label)>();
+            for (var visible = 0; visible <= count; visible += 3) splits.Add((visible, MountBody(SkitRichText.TypewriterBody(WrappingBody, visible), WrapWidth)));
             simulate.FrameUpdate();
 
             // 測った値は D-10 の計測として結果の出力に残す
             // Keep the measured values in the result output as the D-10 measurement
-            TestContext.WriteLine($"[D-10] {SkitRichText.HiddenTailOpenTag} full={full.layout.width}x{full.layout.height} typing={typing.layout.width}x{typing.layout.height}");
-            Assert.Greater(full.layout.height, 40f, "全文が 2 行以上に折り返していない（測り方の前提）");
-            Assert.AreEqual(full.layout.height, typing.layout.height, 0.5f, $"打ち出し中の高さが変わる（{SkitRichText.HiddenTailOpenTag}）");
-            Assert.AreEqual(full.layout.width, typing.layout.width, 0.5f);
+            TestContext.WriteLine($"[D-10] {SkitRichText.HiddenTailOpenTag} single={single.layout.height} full={full.layout.width}x{full.layout.height}");
+            Assert.False(WrappingBody.Contains("\n"), "本文に明示の改行がある（測り方の前提）");
+            Assert.Greater(full.layout.height, single.layout.height * 1.8f, "全文が自動で 2 行以上に折り返していない（測り方の前提）");
+            var midWordSplits = 0;
+            foreach (var (visible, label) in splits)
+            {
+                Assert.AreEqual(full.layout.height, label.layout.height, 0.5f, $"先頭 {visible} 字で区切ると高さが全文と違う（{SkitRichText.HiddenTailOpenTag}）");
+                if (visible > 0 && visible < count && WrappingBody[visible - 1] != ' ' && WrappingBody[visible] != ' ') midWordSplits++;
+            }
+            Assert.Greater(midWordSplits, 10, "語の途中の区切りを十分に踏んでいない（測り方の前提）");
         }
 
         [Test]
@@ -62,12 +74,12 @@ namespace Client.Tests.Ui.Screens.Skit
             }
         }
 
-        private LocalizedLabel MountBody(string richText)
+        private LocalizedLabel MountBody(string richText, float width)
         {
-            // 窓の本文と同じクラスと幅（実画面 1280 − 左 168 − 右 111 の内側）で測る
-            // Measure with the window body's class and width (inside 1280 minus 168 left and 111 right)
+            // 窓の本文と同じクラスで、折り返しが起きる指定の幅で測る
+            // Measure with the window body's class at the given width where wrapping occurs
             var label = new LocalizedLabel();
-            label.style.width = 1280f;
+            label.style.width = width;
             label.SetText(UiText.FromVerbatim(richText));
             MountWithBodyClass(label);
             return label;

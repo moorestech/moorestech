@@ -40,7 +40,7 @@ namespace Client.Tests.Ui.Screens.Skit
             _view.Render(SkitTestData.Text(SkitTestData.SessionId, 1, "Blocking message", SkitTestData.TextIntents));
             _view.Render(SkitTestData.Text(SkitTestData.SessionId, 2, SecondBody, SkitTestData.TextIntents));
             simulate.FrameUpdateMs(120);
-            Assert.AreNotEqual(Expected(SecondBody, 14), BodyText(), "打ち出しが始まっていない");
+            Assert.AreEqual(Expected(SecondBody, 0), BodyText(), "120ms ではまだ 0 字（全文が即時に出ていない）");
 
             simulate.Click(Find<VisualElement>(_view, "blocking-skit"));
             Assert.AreEqual(Expected(SecondBody, 14), BodyText());
