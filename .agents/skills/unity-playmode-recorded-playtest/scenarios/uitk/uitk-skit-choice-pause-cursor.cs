@@ -94,13 +94,16 @@ return PlaytestRunner.Run("uitk-skit-choice-pause-cursor", options, async p =>
     await p.WaitSeconds(0.5f);
     p.Assert(AppliedCursorShape() == UiOsCursorShape.Default.ToString(), $"乗ったままポーズに入ると指が外れる（実測 {AppliedCursorShape()}）");
     var choiceBehindPause = await PlaytestUiElementOps.FindUi(choiceTestid);
-    p.Assert(choiceBehindPause.IsFound && !choiceBehindPause.Clickable, "ポーズ中は選択肢を押せない");
+    // ポーズ中は許可が空になり select が外れるので、Web（SkitPresentation.tsx の allowedIntents.has("select")）と同じく選択肢は隠れる
+    // While paused the allowed intents empty out and drop select, so the choices hide as on the Web (allowedIntents.has("select") in SkitPresentation.tsx)
+    p.Assert(!choiceBehindPause.IsFound || !choiceBehindPause.Visible, $"ポーズ中は選択肢が隠れる（実測 {choiceBehindPause.Status}）");
     await p.Screenshot("02-pause-over-choice");
 
     // ポーズを閉じ、UITK の選択肢で選ぶ
     // Close the pause and pick with the UITK choice
     await p.PressKey(Key.Escape);
     await p.Until(() => !MenuOpen(), 5f, "入れ子ポーズが閉じる");
+    await p.UntilUiElement(choiceTestid, 5f);
     await p.ClickUi(choiceTestid);
     await p.Until(() => store.GetCurrent().PresentationState.Choices.Length == 0, 5f, "UITK の選択肢で選んだ");
     await p.Screenshot("03-after-choice");
