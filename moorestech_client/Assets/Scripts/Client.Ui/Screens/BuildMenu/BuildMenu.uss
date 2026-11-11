@@ -1,0 +1,171 @@
+/* web: moorestech_web/webui/src/features/buildMenu/style.module.css（.panelBand・.panel・.close・.columns・.sidebar・.main・.detail 系・見出し・.categoryGroup・.section・.gridArea・.trailingSpacer）と BuildMenuPanel.tsx の並び */
+/* UITK に gap が無いので、Web の gap は 2 つ目以降の子の上（縦）か左（横）の余白で写す。.slotIcon・.slotLabel は Web で使われていない規則なので写さず、マスの絵の余白は --icon-pad で 4px にする（面 = --slot-size − 8px。D-5） */
+/* スクロールの負の外余白・中身の内余白は BuildMenuScrollClipInset.cs が --build-menu-scroll-clip-inset から導き、縦バーの inset はここで GameScrollView のつまみを上書きする（[A-47]・D-5・D-51）。Web の .main の gap 8px は検索の下の余白で写し、スクロールの負の上余白と足し合わせる（D-36） */
+/* Copies style.module.css of moorestech_web/webui/src/features/buildMenu (.panelBand, .panel, .close, .columns, .sidebar, .main, the .detail family, headings, .categoryGroup, .section, .gridArea, .trailingSpacer) and the BuildMenuPanel.tsx order */
+/* UITK has no gap, so Web gaps become top (vertical) or left (horizontal) margins on every child after the first. .slotIcon and .slotLabel are unused in the Web and not copied; the slot picture inset is --icon-pad 4px (face = --slot-size - 8px, D-5) */
+/* BuildMenuScrollClipInset.cs derives the scroll's negative margin and content padding from --build-menu-scroll-clip-inset, and this file overrides the GameScrollView bar inset knobs ([A-47], D-5, D-51); the Web .main 8px gap is a bottom margin on the search that adds up with the scroll's negative top margin (D-36) */
+
+.build-menu {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* 舞台の上の安全帯の下から下の安全帯の上までの帯。水平中央にパネルを立てる */
+/* Band from below the upper safe area to above the lower one; the panel stands centered horizontally */
+.build-menu__band {
+    position: absolute;
+    top: var(--menu-upper-safe-area);
+    bottom: var(--menu-lower-safe-area);
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.build-menu__panel {
+    width: var(--build-menu-panel-width);
+    height: 100%;
+}
+
+.build-menu__frame {
+    height: 100%;
+}
+
+.build-menu__close {
+    position: absolute;
+    top: var(--bevel-3);
+    right: var(--panel-edge-fade);
+}
+
+.build-menu__columns {
+    flex-direction: row;
+    flex-grow: 1;
+    min-height: 0;
+    padding-right: var(--build-menu-edge-safe-area);
+    padding-bottom: var(--block-panel-bottom-safe-area);
+}
+
+.build-menu__column-following {
+    margin-left: var(--build-menu-edge-safe-area);
+}
+
+.build-menu__sidebar {
+    width: var(--build-menu-sidebar-width);
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+/* ModeSwitch の高さのつまみを部品の要素に足したクラスで上書きする（D-26） */
+/* Override the ModeSwitch height knob through a class added to the component element (D-26) */
+.build-menu__category-switch {
+    --mode-switch-option-height: var(--build-menu-category-height);
+}
+
+.build-menu__main {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.build-menu__search {
+    margin-bottom: 8px;
+}
+
+.build-menu__scroll {
+    --build-menu-scroll-clip-inset: var(--tutorial-anchor-clip-inset);
+    /* 広げたクリップ領域のぶん縦バーを詰め、つまみの位置と長さを変えない（Web の --sa-corner-width は横バーが無いので 0。D-52） */
+    /* Inset the vertical bar by the widened clip region so the thumb keeps its position and length (the Web --sa-corner-width is 0 without a horizontal bar; D-52) */
+    --game-scroll-view-scrollbar-inset-top: var(--tutorial-anchor-clip-inset);
+    --game-scroll-view-scrollbar-inset-right: var(--tutorial-anchor-clip-inset);
+    --game-scroll-view-scrollbar-inset-bottom: var(--tutorial-anchor-clip-inset);
+    --build-menu-smooth-scroll-duration: 300ms; /* look-exception: LX-71。Web は scrollTo smooth の長さをブラウザが決める。300ms を固定した（D-10） */
+}
+
+.build-menu__list {
+    padding-right: var(--build-menu-grid-scrollbar-reserve);
+}
+
+.build-menu__group--following {
+    margin-top: var(--build-menu-category-gap);
+}
+
+.build-menu__trailing-spacer {
+    flex-shrink: 0;
+}
+
+.build-menu__trailing-spacer--following {
+    margin-top: var(--build-menu-category-gap);
+}
+
+.build-menu__category-heading {
+    color: var(--text-default);
+    font-size: var(--label-face-font-size);
+    margin: 0;
+    /* Web は本文の line-height 1.55 を継ぐ（14px × 1.55 = 21.7px）。UITK は USS に行の高さが無いので min-height で写す（前例 Typography.uss） */
+    /* The Web inherits the body line-height 1.55 (14px x 1.55 = 21.7px); USS has no line-height, so min-height carries it (precedent Typography.uss) */
+    min-height: 21.7px;
+    --localized-label-line-height: 21.7px;
+}
+
+.build-menu__section-heading {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin: 0;
+    /* 12px × 1.55 = 18.6px */
+    min-height: 18.6px;
+    --localized-label-line-height: 18.6px;
+}
+
+/* 見出し → FadeRule → 節（格子）の 6px の積み。2 節目からはさらに 6px（Web .section + .section） */
+/* 6px stacking for heading, FadeRule and sections (grid); later sections add another 6px (Web .section + .section) */
+.build-menu__stacked {
+    margin-top: 6px;
+}
+
+.build-menu__section--following {
+    margin-top: 12px;
+}
+
+.build-menu__entry {
+    --icon-pad: 4px;
+}
+
+.build-menu__detail {
+    width: var(--build-menu-detail-width);
+    flex-shrink: 0;
+    min-height: 0;
+    padding-top: var(--build-menu-detail-top-safe-area);
+}
+
+.build-menu__detail-stacked {
+    margin-top: 8px;
+}
+
+.build-menu__detail-icon {
+    width: var(--slot-size);
+    height: var(--slot-size);
+}
+
+/* 詳細の文と該当なしは Web の本文（継承の 16px・行の高さ 1.55）。大きさ・1 行の高さ・折り返しは C# が付ける UiTypographyClass.TextMd（.text--md）が持ち、ここは 2 行目以降の行送りだけ（前例 .mode-hud__detail） */
+/* Detail text and no-results use the Web body text (inherited 16px, line-height 1.55); size, one-line height and wrapping come from UiTypographyClass.TextMd (.text--md) added in C#, and this only sets the pitch of later lines (precedent .mode-hud__detail) */
+.build-menu__detail-name,
+.build-menu__detail-hint,
+.build-menu__detail-cost,
+.build-menu__no-results {
+    --localized-label-line-height: 24.8px;
+}
+
+.build-menu__detail-name {
+    color: var(--text-default);
+}
+
+.build-menu__detail-hint,
+.build-menu__detail-cost,
+.build-menu__no-results {
+    color: var(--text-muted);
+}

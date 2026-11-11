@@ -91,3 +91,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Research/ResearchDetailPane.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Recipe/RecipeViewer.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Recipe/ItemList.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/BuildMenu/BuildMenu.uss");

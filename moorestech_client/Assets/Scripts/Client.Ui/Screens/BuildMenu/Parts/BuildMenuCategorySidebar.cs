@@ -37,8 +37,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
         public void SetActive(Guid? categoryGuid)
         {
-            // silent-ok: 項目を作る前の現在地は捨てる / 次の Render の後に ActiveCategory の購読がもう一度流す
-            // silent-ok: an active category before items exist is dropped / the ActiveCategory subscription replays after the next Render
+            // silent-ok: 項目を作る前の現在地は捨てる / BuildMenuView が Render の直後に今の現在地で SetActive を呼び直す（Rebuild で消えた選択も戻す）
+            // silent-ok: an active category before items exist is dropped / BuildMenuView calls SetActive with the current category right after Render (also restoring a selection lost to Rebuild)
             if (_switch == null) return;
             if (categoryGuid is { } guid && _categories.Contains(guid)) _switch.SetSelected(guid);
             else _switch.SetSelectedNone();
