@@ -9,8 +9,8 @@ using FailureReason = Server.Protocol.PacketResponse.RocketLaunchPadCommandProto
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 通信結果とサーバーの拒否理由を Web の橋と同じ失敗コードへ写し、Web の BENIGN_ERRORS と同じものだけを古い操作（良性）にする
-    /// Maps transport results and server refusals to the Web bridge failure codes; only Web BENIGN_ERRORS become stale (benign)
+    /// 失敗コードの写像と良性判定を確かめる
+    /// Verifies failure code mapping and benign classification
     /// </summary>
     public class SpecialBlockResponseCodesTest
     {
@@ -38,8 +38,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             foreach (FailureReason reason in Enum.GetValues(typeof(FailureReason)))
             {
-                // None は成功の応答だけが持つ（Success=true）ので写さない
-                // None only appears on a successful response (Success=true), so it is not mapped
+                // None は成功応答のみなので除外
+                // None only appears on success, so it is excluded
                 if (reason == FailureReason.None) continue;
                 var outcome = SpecialBlockResponseCodes.FromRocketFailure(reason);
                 StringAssert.StartsWith("rocket_command_", outcome.WireCode, reason.ToString());

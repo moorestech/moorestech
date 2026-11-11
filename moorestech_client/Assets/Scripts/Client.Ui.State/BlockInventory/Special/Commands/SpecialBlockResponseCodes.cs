@@ -7,8 +7,8 @@ using FailureReason = Server.Protocol.PacketResponse.RocketLaunchPadCommandProto
 namespace Client.Ui.State.BlockInventory.Special.Commands
 {
     /// <summary>
-    /// 通信結果・サーバーの拒否理由を Web の橋（SpaceElevatorConnectActionHandler・RocketLaunchPadCommandActionHandler）と同じ失敗コードへ写す。Web の BENIGN_ERRORS のコードだけが古い操作
-    /// Maps transport results and server refusals to the same failure codes as the Web bridge; only Web BENIGN_ERRORS codes are stale
+    /// 通信結果と拒否理由を失敗コードへ写す
+    /// Maps transport results and refusals to failure codes
     /// </summary>
     public static class SpecialBlockResponseCodes
     {

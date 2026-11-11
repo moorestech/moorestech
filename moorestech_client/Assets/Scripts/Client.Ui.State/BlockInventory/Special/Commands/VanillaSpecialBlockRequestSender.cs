@@ -15,8 +15,8 @@ using Operation = Server.Protocol.PacketResponse.RocketLaunchPadCommandProtocol.
 namespace Client.Ui.State.BlockInventory.Special.Commands
 {
     /// <summary>
-    /// ClientContext.VanillaApi で送り、応答を Web の橋と同じ失敗コードへ写す。分配器の応答は集約キャッシュへ当てる（Web FilterSplitter*ActionHandler と同じ）
-    /// Sends through ClientContext.VanillaApi and maps responses to the Web bridge codes; splitter responses are applied to the aggregate cache (same as the Web handlers)
+    /// VanillaApi で送り応答を失敗コードへ写す
+    /// Sends via VanillaApi and maps responses to failure codes
     /// </summary>
     public sealed class VanillaSpecialBlockRequestSender : ISpecialBlockRequestSender
     {

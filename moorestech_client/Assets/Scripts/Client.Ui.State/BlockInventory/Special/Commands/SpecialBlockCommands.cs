@@ -9,8 +9,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Ui.State.BlockInventory.Special.Commands
 {
     /// <summary>
-    /// 特殊族の操作。開いたブロックの種別を確かめ、掴みを読み、送信の結果を UiCommandResult へ写す
-    /// Special-family commands: checks the open block type, reads the grab and maps send outcomes to UiCommandResult
+    /// 特殊族の操作を判定して送り結果を写す
+    /// Checks, sends special-family commands and maps outcomes
     /// </summary>
     public sealed class SpecialBlockCommands : ISpecialBlockCommands
     {
@@ -35,8 +35,8 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         {
             if (!TryOpen(BlockMasterElement.BlockTypeConst.FilterSplitter, out var block, out var rejected)) return rejected;
 
-            // 掴みが空の左押下は送らない（Web filterSlotClickAction の noop・uGUI と同じ）
-            // A left press with an empty grab sends nothing (Web filterSlotClickAction noop, same as uGUI)
+            // 掴みが空の左押下は送らない
+            // A left press with an empty grab sends nothing
             var grab = _grab.Current.Value;
             var action = FilterSplitterLogic.ClickAction(grab.Count, clear);
             if (action == FilterSlotClickAction.Noop) return new UiCommandRejected(UiCommandRejectReason.FilterSplitterGrabEmpty, "");
@@ -62,8 +62,8 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             return ToResult(await _sender.SendRocketCommand(block.Position, command, block.BlockInstanceId));
         }
 
-        // 開いていない・種別が違うなら送らずに拒否する（Web の block_not_open・invalid_block_type）
-        // Refuse without sending when nothing is open or the type differs (Web block_not_open, invalid_block_type)
+        // 未オープン・種別違いは送らず拒否
+        // Refuse without sending when not open or type differs
         private bool TryOpen(string expectedBlockType, out OpenBlockInventoryPanel block, out UiCommandResult rejected)
         {
             rejected = null;

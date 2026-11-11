@@ -17,8 +17,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 特殊族の操作が開いたブロックの種別を確かめ、掴みを読み、結果を UiCommandResult に写す（Web の各 ActionHandler と同じ判断）
-    /// Special-family commands check the open block type, read the grab and map outcomes to UiCommandResult (same decisions as the Web action handlers)
+    /// 特殊族の操作の判定と結果写像を確かめる
+    /// Verifies special-family command checks and outcome mapping
     /// </summary>
     public class SpecialBlockCommandsTest
     {

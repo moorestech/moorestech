@@ -5,8 +5,8 @@ using Cysharp.Threading.Tasks;
 namespace Client.Ui.State.BlockInventory.Special.Commands
 {
     /// <summary>
-    /// 特殊族の操作（Web の filter_splitter.*・electric_to_gear.set_output_mode・space_elevator.connect・rocket_launch_pad.command）。表示は楽観更新せずサーバーの後続の状態で変わる
-    /// Special-family commands (the Web filter_splitter.*, electric_to_gear.set_output_mode, space_elevator.connect, rocket_launch_pad.command); the display is not updated optimistically
+    /// 特殊族の操作。表示は楽観更新しない
+    /// Special-family commands; the display is not updated optimistically
     /// </summary>
     public interface ISpecialBlockCommands
     {

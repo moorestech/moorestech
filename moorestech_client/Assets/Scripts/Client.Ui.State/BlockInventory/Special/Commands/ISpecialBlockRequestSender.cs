@@ -13,8 +13,8 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         Failed,
     }
 
-    // 送信の結果。古い操作（良性）と失敗は Web の橋と同じ失敗コードを持つ
-    // Send outcome; stale (benign) and failed outcomes carry the same failure code as the Web bridge
+    // 送信の結果。古い操作と失敗はコードを持つ
+    // Send outcome; stale and failed outcomes carry a code
     public readonly struct SpecialBlockRequestOutcome
     {
         public SpecialBlockRequestOutcomeKind Kind { get; }

@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 送信を 1 行の文字で記録し、テストが決めた結果を返す（既定は受理）
-    /// Records each send as one line and returns the outcome chosen by the test (accepted by default)
+    /// 送信を文字列で記録し結果を返す
+    /// Records sends as strings and returns the chosen outcome
     /// </summary>
     public sealed class RecordingSpecialRequestSender : ISpecialBlockRequestSender
     {
