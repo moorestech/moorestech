@@ -88,3 +88,4 @@
 | 4 | `e2e/mock-host/detailActions.test.ts` | recipeGuidなしsetとclearは空GUIDへ戻す | 捨てる | 同上（S4-machine D-11） | — |
 | 4 | `e2e/mock-host/detailActions.test.ts` | 対象machineがないblockと未知operationを拒否する | 捨てる | 同上（S4-machine D-11） | — |
 | 2 | `src/features/notification/notificationStore.test.ts` | 退場アニメが発火しなくても保険タイマーで消える | 捨てる | UITK の通知ホストは背面の層に常駐し、外れるのは Dispose だけなので退場の終わりが必ず来る。保険タイマーを持たない（Web の保険は React の unmount で onAnimationEnd が来ない場合のもの）。外れた場合は NotificationHostView の LogWarning が知らせる | — |
+| 4 | `src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx` | accepts panel data and narrows inside the dedicated view | 捨てる | TS の型検査（`expectTypeOf`）。C# は型がコンパイルで閉じる | S4-special |
