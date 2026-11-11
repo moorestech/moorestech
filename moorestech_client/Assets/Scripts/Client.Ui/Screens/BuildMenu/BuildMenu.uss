@@ -82,6 +82,8 @@
     /* Inset the vertical bar by the widened clip region so the thumb keeps its position and length; the bottom is the Web clip-inset + --sa-corner-width, and Mantine puts the 12px vertical bar width into the corner width even without a horizontal bar (DOM measurement; D-52, D-60) */
     --game-scroll-view-scrollbar-inset-top: var(--tutorial-anchor-clip-inset);
     --game-scroll-view-scrollbar-inset-right: var(--tutorial-anchor-clip-inset);
+    /* corner の幅は Mantine が縦バーの幅（--scrollarea-scrollbar-size）から入れる値。ItemList.uss が 4px なのはその画面のバーの幅が 4px だから */
+    /* The corner width is what Mantine takes from the vertical bar width (--scrollarea-scrollbar-size); ItemList.uss has 4px because its bar is 4px wide */
     --game-scroll-view-scrollbar-inset-bottom: 24px; /* web: calc(var(--tutorial-anchor-clip-inset) + var(--sa-corner-width)) = 12 + 12（前例 ItemList.uss） */
     --build-menu-smooth-scroll-duration: 300ms; /* look-exception: LX-71。Web は scrollTo smooth の長さをブラウザが決める。300ms を固定した（D-10） */
 }
