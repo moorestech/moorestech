@@ -15,7 +15,7 @@ namespace Client.Localization
             if (TryGetText(snapshot.Languages[currentLanguageCode], key, out var currentText)) return currentText;
             if (TryGetText(snapshot.Languages[Localize.DefaultLanguageCode], key, out var englishText)) return englishText;
             if (TryGetText(snapshot.SourceTexts, key, out var sourceText)) return sourceText;
-            return $"[!{key}]";
+            return MissingMark(key);
 
             #region Internal
 
@@ -30,6 +30,13 @@ namespace Client.Localization
             }
 
             #endregion
+        }
+
+        // 欠けの印の書式を書く唯一の場所（Web の i18nStore も同じ「[!key]」）。読む側は Localize.IsMissingText を使う
+        // The only place that writes the missing-marker format (same "[!key]" as the Web i18nStore); readers use Localize.IsMissingText
+        internal static string MissingMark(string key)
+        {
+            return $"[!{key}]";
         }
     }
 }

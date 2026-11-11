@@ -1,0 +1,51 @@
+using System;
+using Server.Event.Notification;
+using UniRx;
+using VContainer.Unity;
+
+namespace Client.Ui.State.Notification
+{
+    /// <summary>
+    /// 通知の Feed を購読し、中身へ変換して書き口へ積む。購読前に来た除去告知は初期データから 1 回だけ積む
+    /// Subscribes the notification feed and pushes converted contents through the write side; a prune notice that came before subscribing is pushed once from the initial data
+    /// </summary>
+    public sealed class NotificationFeedRelay : IInitializable, IDisposable
+    {
+        private readonly NotificationFeed _feed;
+        private readonly NotificationModel _model;
+        private IDisposable _subscription;
+
+        public NotificationFeedRelay(NotificationFeed feed, NotificationModel model)
+        {
+            _feed = feed;
+            _model = model;
+        }
+
+        public void Initialize()
+        {
+            // 初期データと購読を同じ同期区間で取るので、間に来た通知の取りこぼしも二重もない
+            // Initial data and the subscription are taken in one synchronous span, so nothing is missed or doubled in between
+            var initialNotice = _feed.SaveMigrationNotice;
+            if (initialNotice != null) Push(initialNotice.Message);
+            _subscription = _feed.OnNotified.Subscribe(notification => Push(notification.Message));
+
+            #region Internal
+
+            void Push(NotificationMessagePack message)
+            {
+                // Factory は作れない通知（0 個の獲得など）に null を返すので、Model に入れず捨てる（理由は Factory が LogError 済み）
+                // The factory returns null for an unbuildable notification (e.g. a zero-count earn), so drop it before the model (the factory already logged the reason)
+                var content = NotificationContentFactory.FromMessage(message);
+                if (content == null) return;
+                _model.AddNotification(content);
+            }
+
+            #endregion
+        }
+
+        public void Dispose()
+        {
+            _subscription?.Dispose();
+        }
+    }
+}

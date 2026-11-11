@@ -1,0 +1,85 @@
+/* 通知のホストと行。Web W/features/notification/style.module.css の写し。ホストは実画面の左端・縦の中央線から下へ積み、舞台と同率で拡縮する（層の族 Viewport ＋ PanelSettings の倍率） */
+/* Notification host and rows, copied from Web W/features/notification/style.module.css; the host stacks down from the vertical center at the left edge of the real screen and scales with the stage (Viewport family plus PanelSettings scaling) */
+
+.notification-host {
+    position: absolute;
+    top: 50%;
+    /* 左端は実画面の 16px（Web .host の left: 1rem は --ui-scale の外）。C# が StageScaleSource の倍率で割って style.left に当てる */
+    /* The left edge is 16 real-screen px (Web .host left: 1rem is outside --ui-scale); C# divides it by the StageScaleSource scale into style.left */
+    --notification-host-screen-left: 16px;
+    flex-direction: column;
+    --notification-host-enter-duration: var(--notification-enter-duration);
+    --notification-host-exit-duration: var(--notification-exit-duration);
+    --notification-host-shift: var(--notification-shift);
+}
+
+/* 研究ノードカード同族の半透明ネイビー面と 1px の寒色枠（直角・影なし）。行間 10px は Web の gap の代わりに下の余白で取る */
+/* Navy translucent face with a 1px cool border (square, shadowless), same family as research node cards; the 10px row gap replaces the Web gap with a bottom margin */
+.notification-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    width: var(--notification-width);
+    margin-bottom: 10px;
+    /* 上下は Web の 5px＋5px から 3px 引く。UITK の 1 行目は字の自然な高さ（Latin 21px）で Web の 18px の行より 3px 高いので、その分を上下で吸う（S4-research の 1 行目の差を padding で調整する前例） */
+    /* 半端な 1.5px ずつは画素に丸められて行が 1px 伸びたので、整数の 3px と 4px に分ける。字の上端は Web の 3.5px に対し 3px */
+    /* Vertical padding is the Web 5px + 5px minus 3px; UITK's first line is the natural glyph height (Latin 21px), 3px taller than the Web 18px line, so the padding absorbs it (S4-research precedent of fixing the first-line gap with padding) */
+    /* Fractional 1.5px each got pixel-rounded and grew the row by 1px, so split into whole 3px and 4px; the glyph top sits at 3px against the Web 3.5px */
+    padding: 3px 12px 4px 12px;
+    border-width: 1px;
+    border-color: var(--notification-border);
+    background-color: var(--notification-face);
+}
+
+/* アイテムのアイコンは 1 行の文字高に収め、文との間は Web の gap 8px */
+/* The item icon fits within one line of text, with the Web 8px gap before the text */
+.notification-row__icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    margin-right: 8px;
+    /* 行の上下の padding で削った 2px と 1px をアイコンの上下に戻し、アイコンの行を Web と同じ 22+10+2＝34px・アイコンの上端を Web と同じ 5px に保つ */
+    /* Give back the 2px and 1px trimmed from the row padding above and below the icon so icon rows stay the Web 22+10+2 = 34px with the icon top at the Web 5px */
+    margin-top: 2px;
+    margin-bottom: 1px;
+}
+
+/* 枠の中の GameIcon 本体も 22px に揃える。部品のクラスは指さず、画面所有のクラスを View が付ける（前例 PauseMenuSubPageView の pause-menu__back） */
+/* Size the GameIcon body inside the slot to 22px too; target a screen-owned class the View adds, not the component's class (precedent: pause-menu__back in PauseMenuSubPageView) */
+.notification-row__icon-content {
+    width: 100%;
+    height: 100%;
+}
+
+/* 固定幅に収まらない文は折り返す（省略記号だとアイテム名が読めない）。文字影は世界が透ける面の上の読みやすさの補助 */
+/* Text that overflows the fixed width wraps (an ellipsis would hide item names); the text shadow aids legibility over the see-through face */
+.notification-row__text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    /* 行末の閉じ括弧を Chrome のように半角へ詰めないので、閉じ括弧が行末に来る日本語は Web より 1 行多く折れることがある */
+    /* Closing brackets at line end are not trimmed to half width as in Chrome, so Japanese text ending a line with one may wrap one line more than Web */
+    white-space: normal; /* look-exception: LX-40 */
+    -unity-text-align: middle-left;
+    font-size: 15px;
+    /* 0.055em×15px=0.825px。UITK の letter-spacing の px は「文字の大きさ/100×値」で効くので 0.825÷0.15 */
+    /* 0.055em x 15px = 0.825px; a UITK letter-spacing px acts as font-size/100 x value, so 0.825 / 0.15 */
+    letter-spacing: 5.5px;
+    /* 2 行目以降の行送りは Web の 15px×1.2＝18px を LocalizedLabel のつまみで写す（TooltipFace.uss の前例） */
+    /* 1 行目は字の自然な高さ（実測 Latin 21px・JP 22px）で縮められないので、Web との差は行の上下の padding で吸う（.notification-row） */
+    /* Lines after the first advance the Web 15px x 1.2 = 18px through LocalizedLabel's knob (TooltipFace.uss precedent) */
+    /* The first line takes the natural glyph height (measured Latin 21px, JP 22px) and cannot shrink, so the row's vertical padding absorbs the gap to Web (.notification-row) */
+    --localized-label-line-height: 18px;
+    color: var(--text-high-contrast);
+    /* Web style.module.css:38 の直書きの値を持つ通知専用のトークン（I-fix2 が DerivedTokens に足した） */
+    /* Notification-only token holding the Web style.module.css:38 literal (added to DerivedTokens by I-fix2) */
+    text-shadow: var(--notification-text-shadow);
+}
+
+/* 操作拒否は共通の警告色 */
+/* Denied operations use the shared warning color */
+.notification-row--operation-denied .notification-row__text {
+    color: var(--text-insufficient);
+}
