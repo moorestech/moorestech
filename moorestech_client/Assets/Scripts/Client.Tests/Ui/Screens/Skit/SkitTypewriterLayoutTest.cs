@@ -24,6 +24,9 @@ namespace Client.Tests.Ui.Screens.Skit
             var typing = MountBody(SkitRichText.TypewriterBody(LongBody, 12));
             simulate.FrameUpdate();
 
+            // 測った値は D-10 の計測として結果の出力に残す
+            // Keep the measured values in the result output as the D-10 measurement
+            TestContext.WriteLine($"[D-10] {SkitRichText.HiddenTailOpenTag} full={full.layout.width}x{full.layout.height} typing={typing.layout.width}x{typing.layout.height}");
             Assert.Greater(full.layout.height, 40f, "全文が 2 行以上に折り返していない（測り方の前提）");
             Assert.AreEqual(full.layout.height, typing.layout.height, 0.5f, $"打ち出し中の高さが変わる（{SkitRichText.HiddenTailOpenTag}）");
             Assert.AreEqual(full.layout.width, typing.layout.width, 0.5f);

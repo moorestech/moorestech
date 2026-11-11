@@ -18,7 +18,6 @@ namespace Client.Ui.Screens.Skit.Parts.Window
     {
         private readonly GamePanelSurface _surface;
         private readonly VisualElement _section;
-        private readonly UiOsCursorHoverRequest _sectionCursor;
         private readonly LocalizedLabel _speaker;
         private readonly LocalizedLabel _body;
         private readonly SkitAdvanceMarker _advanceMarker;
@@ -45,9 +44,9 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             _section.RegisterCallback<ClickEvent>(_ => _onTextClicked.OnNext(Unit.Default));
             _surface.Add(_section);
 
-            // 押せる印の指は文の区画で要求する（Web .window の cursor: pointer）
-            // The pointer finger is requested on the text section (Web .window cursor: pointer)
-            _sectionCursor = new UiOsCursorHoverRequest(_section, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            // 押せる印の指は文の区画で要求する（Web .window の cursor: pointer。ポーズで Ignore になると PointerLeave で外れる）
+            // The pointer finger is requested on the text section (Web .window cursor: pointer; turning Ignore on pause withdraws it via PointerLeave)
+            new UiOsCursorHoverRequest(_section, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
 
             // 話者・罫線・本文・送りの印を Web と同じ順に積む
             // Stack speaker, rule, body and advance marker in the Web order

@@ -1,4 +1,5 @@
 // S/Client.Tests/Ui/Screens/Skit/SkitScreenViewTest.cs
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
@@ -170,13 +171,15 @@ namespace Client.Tests.Ui.Screens.Skit
             return Find<LocalizedLabel>(_view, "skit-body").text;
         }
 
-        // 本文の Label は行高のタグを前置するので、末尾の一致で比べる
-        // The body Label prefixes a line-height tag, so compare by suffix
+        // 本文の Label は行高のタグを前置するので、その前置きだけを許して比べる。透明な残りは全文で終わるので末尾の一致だけでは打ち出し中も一致する
+        // The body Label prefixes a line-height tag, so allow only that prefix; the transparent tail ends with the full text, so a bare suffix match would also hit while typing
         private string Expected(string body, int visibleCodePoints)
         {
             var expected = SkitRichText.TypewriterBody(body, visibleCodePoints);
             var actual = BodyText();
-            return actual.EndsWith(expected) ? actual : expected;
+            if (!actual.EndsWith(expected)) return expected;
+            var prefix = actual.Substring(0, actual.Length - expected.Length);
+            return Regex.IsMatch(prefix, "^(<line-height=[^>]*>)?$") ? actual : expected;
         }
 
         // 祖先のどれかが display:none なら画面には出ていない
