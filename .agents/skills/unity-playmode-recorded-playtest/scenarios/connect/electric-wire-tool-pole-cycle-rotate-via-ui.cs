@@ -1,8 +1,10 @@
 using Game.Context;
 // 電線ツールの電柱種サイクル・回転E2E(受け入れ4): スクロールで電柱種が切り替わり装備は切り替わらない／Rキーで向きが変わる
-// 検証項目: 対照実験(GameScreenのスクロールでは装備が切り替わる)→ツール使用中のスクロールで電柱種のみ変化し装備選択は不変、Rキーで設置向きが回転
+// 検証項目: 対照実験(GameScreenではツールがホイールを占有せず、装備枠2以上なら装備が切り替わる)→ツール使用中のスクロールで電柱種のみ変化し装備選択は不変、Rキーで設置向きが回転
+// 電柱名のゴーストラベルは削除され（437dee26f3）、後継のカーソルツールチップにも電柱名の行が無いため、名前は SelectedPoleName() だけで見る
 // Pole-type cycling and rotation E2E (acceptance 4): the wheel cycles pole types without switching equipment, and R rotates the pole.
-// Verifies: control case (wheel on the game screen does switch equipment), then wheel under the tool cycles only the pole type, and R changes the direction.
+// Verifies: control case (no tool owns the wheel on the game screen; with 2+ equipment slots it switches equipment), then wheel under the tool cycles only the pole type, and R changes the direction.
+// The pole-name ghost label was removed (437dee26f3) and the cursor tooltip carries no pole-name line, so the name is read only through SelectedPoleName().
 using System;
 using System.Linq;
 using System.Reflection;
@@ -21,13 +23,19 @@ using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options, async p =>
 {
+    // 背景EditorではInputSystemがデバイスを無効化し注入が届かないため、焦点無視へ切り替え再有効化する
+    // A background Editor disables keyboard/mouse so injection never lands; switch to ignore-focus and re-enable
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
     await p.SetupFlatGround();
     p.WarpPlayer(new Vector3(8f, 34f, -6f));
     await p.WaitSeconds(0.5f);
@@ -68,25 +76,9 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     // 選択中の電柱名はプロダクションと同じ公開APIから引く（検証のために内部状態を開けない）
     // Read the selected pole name through the same public API production uses; never open internals just to observe
     string SelectedPoleName() => toolContext.PoleSelection.TryGetSelectedPole(out _, out var selectedMaster) ? selectedMaster.Name : null;
-    TextMeshPro PoleNameLabel() => UnityEngine.Object
-        .FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None)
-        .FirstOrDefault(t => t.gameObject.name == "ElectricWirePoleNameLabel");
-    // ===== 対照実験: ツール未使用時はホイールで装備が切り替わる =====
-    // ===== Control: without the tool, the wheel does switch equipment =====
-    p.Note($"対照実験: ゲーム画面でホイールを回すと装備が切り替わることを先に確認する（装備枠数={equipment.Slots.Count}）");
-    // 注入ホイールはCEFへポインタ座標込みで転送されるため、画面中央へ移動してから回す
-    // The injected wheel is forwarded to CEF with the pointer position, so move to the screen center first
-    SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.45f));
-    await UniTask.DelayFrame(3);
-    var controlBefore = equipment.SelectedIndex;
-    // Web の装備切替は 100px で 1 段（equipmentLogic.ts）、DSL の CEF 転送は 1 ノッチ 60px なので 2 ノッチ回す
-    // The Web equipment switch steps per 100px (equipmentLogic.ts) and the DSL CEF forward sends 60px per notch, so turn 2 notches
-    await InjectScroll(2f);
-    var controlDeadline = Time.realtimeSinceStartup + 6f;
-    while (Time.realtimeSinceStartup < controlDeadline && equipment.SelectedIndex == controlBefore) await UniTask.DelayFrame(5);
-    p.Assert(equipment.SelectedIndex != controlBefore, $"対照実験: ゲーム画面のホイールで装備選択が変わる (前={controlBefore} 後={equipment.SelectedIndex})");
-    p.Note($"対照実験の結果: 装備選択 {controlBefore} → {equipment.SelectedIndex}");
-    await p.Screenshot("01-control-equipment-switched-by-wheel");
+    // ===== 対照実験: ツール未使用時はホイールを占有しない（装備枠2以上なら装備が切り替わる） =====
+    // ===== Control: without the tool nothing owns the wheel (with 2+ slots it switches equipment) =====
+    await AssertGameScreenWheelNotOwnedByTool("対照実験", "01-control-equipment-wheel");
     // ===== 電線ツールを選択する =====
     // ===== Select the wire tool =====
     p.Note("ビルドメニューのツールカテゴリから電線接続ツールを選ぶ");
@@ -109,6 +101,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     var poleNameBefore = SelectedPoleName();
     var equipmentBefore = equipment.SelectedIndex;
     var serverEquipmentBefore = await ReadEquipmentIndex();
+    p.Assert(placeController.IsWheelOwnedByTool, "受け入れ4: 電柱が2種以上の電線ツールはホイールを占有する");
     p.Note($"ツール使用中の初期状態: 電柱種={poleNameBefore} / 装備選択={equipmentBefore}");
     await p.Screenshot("02-pole-type-1");
     // ===== スクロール1回目: 電柱種が次へサイクルし、装備は動かない =====
@@ -120,8 +113,6 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     p.Note($"電柱種: {poleNameBefore} → {poleNameSecond} / 装備選択: {equipmentBefore} → {equipment.SelectedIndex}");
     p.Assert(equipment.SelectedIndex == equipmentBefore, $"受け入れ4: ツール使用中のスクロールで装備は切り替わらない (前={equipmentBefore} 後={equipment.SelectedIndex})");
     p.Assert((await ReadEquipmentIndex()) == serverEquipmentBefore, $"受け入れ4: サーバー側の装備選択も不変 (前={serverEquipmentBefore} 後={(await ReadEquipmentIndex())})");
-    var label = PoleNameLabel();
-    p.Assert(label != null && label.text == poleNameSecond, $"ゴーストの名前ラベルが選択中の電柱種を示す 実際:'{label?.text}'");
     await p.Screenshot("03-pole-type-2");
     // ===== スクロール2回目: さらに次の電柱種へ =====
     // ===== Second notch: cycle once more =====
@@ -153,22 +144,38 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     p.Note($"設置向き: {directionAfter} → {toolContext.PoleSelection.CurrentDirection}");
     p.Assert(equipment.SelectedIndex == equipmentBefore, "回転操作でも装備は切り替わらない");
     await p.Screenshot("06-rotated-twice");
-    // ===== 後対照: ツールを抜ければ同じホイール注入で装備が再び切り替わる =====
-    // ===== Post-control: leaving the tool makes the same wheel injection switch equipment again =====
-    p.Note("後対照: ツールを抜けてゲーム画面へ戻り、同じホイール注入で装備が切り替わることを確認する");
+    // ===== 後対照: ツールを抜ければホイールの占有が外れる =====
+    // ===== Post-control: leaving the tool releases the wheel =====
+    p.Note("後対照: ツールを抜けてゲーム画面へ戻り、ホイールの占有が外れる（装備枠2以上なら装備が切り替わる）ことを確認する");
     await p.ExitToGameScreen();
-    SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.45f));
-    await UniTask.DelayFrame(3);
-    var postControlBefore = equipment.SelectedIndex;
-    // 対照と同じく装備切替には 2 ノッチ（1 ノッチ 60px・切替は 100px）
-    // As in the control, the equipment switch needs 2 notches (60px per notch, a switch per 100px)
-    await InjectScroll(2f);
-    var postDeadline = Time.realtimeSinceStartup + 6f;
-    while (Time.realtimeSinceStartup < postDeadline && equipment.SelectedIndex == postControlBefore) await UniTask.DelayFrame(5);
-    p.Assert(equipment.SelectedIndex != postControlBefore, $"後対照: ツール解除後は同じホイールで装備が切り替わる (前={postControlBefore} 後={equipment.SelectedIndex})");
-    p.Note($"後対照の結果: 装備選択 {postControlBefore} → {equipment.SelectedIndex}（抑止はツール使用中に限定されている）");
-    await p.Screenshot("07-post-control-equipment-switched");
+    await AssertGameScreenWheelNotOwnedByTool("後対照", "07-post-control-equipment-wheel");
     #region Internal
+    // ゲーム画面でツールがホイールを占有しないことを見て、装備枠2以上なら2ノッチで装備が切り替わるのも見る
+    // On the game screen no tool owns the wheel, and with 2+ equipment slots two notches switch the equipment
+    async UniTask AssertGameScreenWheelNotOwnedByTool(string label, string screenshotName)
+    {
+        // 注入ホイールはCEFへポインタ座標込みで転送されるため、画面中央へ移動してから回す
+        // The injected wheel is forwarded to CEF with the pointer position, so move to the screen center first
+        SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.45f));
+        await UniTask.DelayFrame(3);
+        p.Assert(!placeController.IsWheelOwnedByTool, $"{label}: ゲーム画面ではツールがホイールを占有しない");
+        // 装備枠1のマスタは切替先が無く EquipmentWheelSelector が何もしないので、装備の変化は見ない
+        // With a single equipment slot EquipmentWheelSelector has nowhere to switch, so the equipment change is not checked
+        if (equipment.Slots.Count <= 1)
+        {
+            p.Note($"{label}: 装備枠数={equipment.Slots.Count} のため装備選択の変化は見ない（占有の判定だけを対照にする）");
+            await p.Screenshot(screenshotName);
+            return;
+        }
+        var before = equipment.SelectedIndex;
+        // Web の装備切替は 100px で 1 段（equipmentLogic.ts）、1 ノッチは 60px なので 2 ノッチ回す
+        // The Web equipment switch steps per 100px (equipmentLogic.ts) and one notch is 60px, so turn 2 notches
+        await InjectScroll(2f);
+        var deadline = Time.realtimeSinceStartup + 6f;
+        while (Time.realtimeSinceStartup < deadline && equipment.SelectedIndex == before) await UniTask.DelayFrame(5);
+        p.Assert(equipment.SelectedIndex != before, $"{label}: ゲーム画面のホイールで装備選択が変わる (前={before} 後={equipment.SelectedIndex})");
+        await p.Screenshot(screenshotName);
+    }
     // ホイールをノッチ数（正で上・負で下）で注入する。SemanticInput.MouseWheel は実マウスと同じ 1 ノッチ＝1 の値を入れる
     // Inject wheel notches (positive up, negative down); SemanticInput.MouseWheel queues the same 1-per-notch value a real mouse gives
     async UniTask InjectScroll(float notches)
