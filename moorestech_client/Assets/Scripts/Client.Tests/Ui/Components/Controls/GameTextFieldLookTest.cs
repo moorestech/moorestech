@@ -46,6 +46,7 @@ namespace Client.Tests.Ui.Components.Controls
             // 字は Mantine の body の 16px を継ぐ（Web の記述欄と検索欄は font-size を書かない）
             // Text inherits the Mantine body 16px (the Web textarea and search input set no font-size)
             Assert.AreEqual(16f, input.resolvedStyle.fontSize, 0.01f);
+            AssertColor(Hex("#EEEEEE"), field.Field.textSelection.cursorColor, "caret");
 
             // 字は余白の内側からすぐ始まる
             // Text starts right inside the padding

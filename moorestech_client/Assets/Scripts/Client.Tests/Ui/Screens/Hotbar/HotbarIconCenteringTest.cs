@@ -33,7 +33,9 @@ namespace Client.Tests.Ui.Screens.Hotbar
             var right = slot.worldBound.xMax - drawnWorld.xMax;
             var top = drawnWorld.yMin - slot.worldBound.yMin;
             var bottom = slot.worldBound.yMax - drawnWorld.yMax;
-            Assert.Greater(left, 0f);
+            // Web の img の箱（枠いっぱい・padding 5px＝絵の面 42px 角）と同じ位置
+            // Same as Web's img box (fills the slot with 5px padding, a 42px-square drawn area)
+            Assert.AreEqual(5f, left, 0.5f);
             Assert.Less(Mathf.Abs(left - right), 0.5f);
             Assert.Less(Mathf.Abs(top - bottom), 0.5f);
             Assert.Less(Mathf.Abs(left - top), 0.5f);
