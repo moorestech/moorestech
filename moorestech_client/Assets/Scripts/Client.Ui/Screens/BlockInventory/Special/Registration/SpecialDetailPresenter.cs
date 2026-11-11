@@ -1,0 +1,70 @@
+using System.Collections.Generic;
+using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Items;
+using UniRx;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.BlockInventory.Special.Registration
+{
+    /// <summary>
+    /// S4-alpha の本文・題の操作・区画の口を 1 つで実装する Presenter。Attach から Detach まで、同じパネルの枠と特殊族の詳細の Model を購読して View へ流し、区画の出し入れを IsApplicable で知らせる
+    /// Presenter implementing S4-alpha's body, title-action and section ports in one; from Attach to Detach it streams the same panel's slots and the special detail model into the view and reports section visibility through IsApplicable
+    /// </summary>
+    public sealed class SpecialDetailPresenter : IBlockInventorySection
+    {
+        private readonly ISpecialDetailRenderer _view;
+        private readonly ISpecialBlockDetailModel _model;
+        private readonly IBlockInventoryPanelSource _panels;
+        private readonly ReactiveProperty<bool> _isApplicable = new(false);
+        private readonly CompositeDisposable _subscriptions = new();
+
+        public VisualElement Root { get; private set; }
+        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;   // 型を狭める公開（前例 alpha の SectionStackItemGridSection）
+
+        public SpecialDetailPresenter(VisualElement root, ISpecialDetailRenderer view, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)
+        {
+            Root = root;
+            _view = view;
+            _model = model;
+            _panels = panels;
+        }
+
+        public void Attach(OpenBlockInventoryPanel panel)
+        {
+            // 同じパネルの枠の変化と、パネルの組み直しの外で届く詳細（網の集約・ベルトの統計）の両方で描き直す
+            // Redraw on both slot changes of the same panel and details arriving outside panel rebuilds (network totals, belt stats)
+            _panels.Current
+                .Where(current => IsSame(current, panel))
+                .Select(current => ((OpenBlockInventoryPanel)current).ItemSlots)
+                .CombineLatest(_model.Current, (slots, detail) => (slots, detail))
+                .Subscribe(pair => Draw(pair.slots, pair.detail))
+                .AddTo(_subscriptions);
+
+            #region Internal
+
+            bool IsSame(BlockInventoryPanelState current, OpenBlockInventoryPanel attached)
+            {
+                // silent-ok: 別のパネルへ替わる途中の値は描かない / alpha の BodyHost が同じフレームで Detach して新しい部分を作る（前例 alpha の SectionStackItemGridSection）
+                return current is OpenBlockInventoryPanel open && open.IsSamePanel(attached);
+            }
+
+            #endregion
+        }
+
+        public void Detach()
+        {
+            _subscriptions.Clear();
+        }
+
+        private void Draw(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        {
+            // 出し入れは IsApplicable で親へ知らせ、出す時だけ描く（区画は自分の display を触らない。D-23）
+            // Report visibility to the parent via IsApplicable and draw only when shown (sections never touch their own display. D-23)
+            _isApplicable.Value = _view.HasDetail(detail);
+            if (_isApplicable.Value) _view.Render(itemSlots, detail);
+        }
+    }
+}
