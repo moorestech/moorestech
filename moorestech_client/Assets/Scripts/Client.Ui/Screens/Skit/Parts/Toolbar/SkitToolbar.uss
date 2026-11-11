@@ -1,0 +1,51 @@
+/* S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolbar.uss */
+/* web: moorestech_web/webui/src/features/skit/controls/SkitToolbar.module.css の .toolbar・.toolButton と skitTokens.css の --skit-tool-icon-shadow */
+/* 実画面の右上に並ぶ面を持たないツール。IconButton の寸法をボタン枠と同寸へ局所上書きし、図形の色は状態ごとに IconButton の図形のつまみで渡す */
+/* web: moorestech_web/webui/src/features/skit/controls/SkitToolbar.module.css .toolbar and .toolButton, plus --skit-tool-icon-shadow in skitTokens.css */
+/* Faceless tools in the screen's top-right; IconButton's size is locally overridden to the frame size and the glyph color is passed per state through IconButton's glyph knob */
+
+.skit-toolbar {
+    position: absolute;
+    top: var(--skit-toolbar-inset-top);
+    right: var(--skit-toolbar-inset-right);
+    flex-direction: row;
+}
+
+/* 既定は Tokens.uss の :root にあるので、要素自身に宣言すれば継承より勝つ（--icon-button-icon-size が効くのは既定の × だけで、図形の寸法は下の .skit-tool-glyph が持つ。Web と同じ上書きを写す） */
+/* The defaults live on :root in Tokens.uss, so declaring on the element beats inheritance (--icon-button-icon-size only sizes the default cross; the glyph size is set on .skit-tool-glyph below; mirrors the Web override) */
+.skit-toolbar .skit-toolbar__tool {
+    --icon-button-size: var(--skit-tool-button-size);
+    --icon-button-icon-size: var(--skit-tool-button-size);
+    margin-left: var(--skit-tool-gap);
+    filter: opacity(var(--skit-tool-icon-opacity));
+}
+
+.skit-toolbar .skit-toolbar__tool--lead {
+    margin-left: 0;
+}
+
+.skit-toolbar .skit-tool-glyph {
+    --skit-tool-glyph-shadow-color: var(--skit-window-face);
+    --skit-tool-glyph-shadow-offset: 1px;
+    width: var(--skit-tool-button-size);
+    height: var(--skit-tool-button-size);
+}
+
+/* 通常の色と線幅。IconButton の .icon-button .icon-button__glyph（2 クラス）へ 3 クラスで勝つ。有効時のホバーは IconButton の 4 つ（:hover:enabled）が --text-high-contrast にし、自動 ON の上でも白になる（Web の :not(:disabled):hover が [data-enabled] より強いのと同じ） */
+/* Normal colour and stroke; three classes beat IconButton's two-class .icon-button .icon-button__glyph. Enabled hover is IconButton's four-part :hover:enabled rule (--text-high-contrast), which also wins over auto-on, as the Web :not(:disabled):hover beats [data-enabled] */
+.skit-toolbar .skit-toolbar__tool .skit-tool-glyph {
+    --icon-button-glyph-color: var(--text-high-contrast);
+    --icon-button-glyph-stroke: var(--skit-tool-icon-stroke-width);
+}
+
+/* 自動送り ON だけシアンで灯す（同じ 3 つで後に置く） */
+/* Only auto-advance ON lights cyan (same three parts, placed later) */
+.skit-toolbar .skit-toolbar__tool--active .skit-tool-glyph {
+    --icon-button-glyph-color: var(--select-cyan);
+}
+
+/* 押せないツールは従属テキストへ減衰させる。4 つで自動 ON にも勝つ（Web の :disabled が後に来て勝つのと同じ） */
+/* Unpressable tools fade to secondary text; four parts beat auto-on too (as the later Web :disabled wins) */
+.skit-toolbar .skit-toolbar__tool:disabled .skit-tool-glyph {
+    --icon-button-glyph-color: var(--text-muted);
+}
