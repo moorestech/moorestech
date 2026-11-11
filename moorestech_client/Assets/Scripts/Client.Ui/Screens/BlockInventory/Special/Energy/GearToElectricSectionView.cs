@@ -35,18 +35,18 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             Add(stack);
         }
 
-        public bool HasDetail(SpecialBlockDetailViewModel detail) => detail.TryGetGearToElectric(out _);
-
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // silent-ok: 詳細が無ければ Presenter が IsApplicable を偽にして親が隠す（Render は呼ばれない。本文の中では本文が HasDetail で隠す） / 区画の L1「詳細の前は何も出さない」で気づく
-            if (!detail.TryGetGearToElectric(out var generator)) return;
+            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
+            // Without the detail draw nothing and return false so the caller hides the section
+            if (!detail.TryGetGearToElectric(out var generator)) return false;
 
             // 状態の文と不足トーンは L0 の表で決める
             // The state sentence and shortage tone come from the L0 table
             var display = BlockDetailStateDisplay.GearToElectric(generator.State);
             _state.Render(new UiText(display.LabelKey), display.Insufficient);
             _supplied.SetText(SpecialDetailTexts.GearToElectricSuppliedPower(generator));
+            return true;
         }
     }
 }

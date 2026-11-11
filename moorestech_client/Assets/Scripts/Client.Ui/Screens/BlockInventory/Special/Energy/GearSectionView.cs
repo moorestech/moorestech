@@ -28,15 +28,15 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             Add(stack);
         }
 
-        public bool HasDetail(SpecialBlockDetailViewModel detail) => detail.TryGetGear(out _);
-
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // silent-ok: 詳細が無ければ Presenter が IsApplicable を偽にして親が隠す（Render は呼ばれない。本文の中では本文が HasDetail で隠す） / 区画の L1「詳細の前は何も出さない」で気づく
-            if (!detail.TryGetGear(out var gear)) return;
+            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
+            // Without the detail draw nothing and return false so the caller hides the section
+            if (!detail.TryGetGear(out var gear)) return false;
             var rows = GearRowDisplay.From(gear);
             _torque.SetText(rows.Torque);
             _rpm.SetText(rows.Rpm);
+            return true;
         }
     }
 }

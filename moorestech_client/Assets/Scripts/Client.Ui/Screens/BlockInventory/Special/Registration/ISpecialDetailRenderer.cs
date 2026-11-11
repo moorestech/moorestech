@@ -4,11 +4,10 @@ using Client.Ui.State.Items;
 
 namespace Client.Ui.Screens.BlockInventory.Special.Registration
 {
-    // 特殊族の View が実装する描画の口（自分の詳細の有無と、スロットの中身・特殊族の詳細での描画）。View は購読せず Presenter から呼ばれる
-    // Rendering port the special views implement: whether their detail exists, and drawing from slot contents and special details; views never subscribe and are called by the presenter
+    // 特殊族の View が実装する描画の口（スロットの中身・特殊族の詳細で描き、描いたら true。偽なら呼び手が隠す）。View は購読せず Presenter から呼ばれる
+    // Rendering port the special views implement: draws from slot contents and special details and returns true when drawn (the caller hides it on false); views never subscribe and are called by the presenter
     public interface ISpecialDetailRenderer
     {
-        bool HasDetail(SpecialBlockDetailViewModel detail);
-        void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail);
+        bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail);
     }
 }

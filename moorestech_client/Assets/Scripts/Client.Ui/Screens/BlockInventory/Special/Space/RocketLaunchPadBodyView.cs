@@ -46,20 +46,19 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             Add(_view);
         }
 
-        public bool HasDetail(SpecialBlockDetailViewModel detail) => true;
-
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetRocketLaunchPad(out var rocket);
             SpecialViewParts.SetShown(_loading, !present);
             SpecialViewParts.SetShown(_view, present);
-            if (!present) return;
+            if (!present) return true;
 
             _material.Render(itemSlots, rocket.MaterialSlots);
             _payload.Render(itemSlots, rocket.PayloadSlots);
             _output.Render(itemSlots, rocket.OutputSlots(itemSlots.Count));
             _status.SetText(new UiText(rocket.StatusKey));
             _progress.SetValue(rocket.Progress);
+            return true;
         }
     }
 }

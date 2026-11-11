@@ -25,13 +25,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
             Add(_stack);
         }
 
-        public bool HasDetail(SpecialBlockDetailViewModel detail) => true;
-
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetFilterSplitter(out var filter);
             SpecialViewParts.SetShown(_stack, present);
-            if (!present) return;
+            if (!present) return true;
 
             // 方向の数が変わったときだけ作り直す（開いている間はマスタで固定）
             // Rebuild only when the direction count changes (fixed by the master while open)
@@ -47,6 +45,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
                 }
             }
             for (var d = 0; d < _directions.Count; d++) _directions[d].Render(filter.Directions[d]);
+            return true;
         }
     }
 }

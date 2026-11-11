@@ -21,15 +21,12 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             Add(_network);
         }
 
-        public bool HasDetail(SpecialBlockDetailViewModel detail) => true;
-
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             // 区画は自分の display を触らないので、包む本文が詳細の有無で出し入れする（Web の ElectricNetworkSection の return null）
             // Sections never touch their own display, so the wrapping body toggles it by detail presence (Web ElectricNetworkSection returns null)
-            var present = _network.HasDetail(detail);
-            SpecialViewParts.SetShown(_network, present);
-            if (present) _network.Render(itemSlots, detail);
+            SpecialViewParts.SetShown(_network, _network.Render(itemSlots, detail));
+            return true;
         }
     }
 }

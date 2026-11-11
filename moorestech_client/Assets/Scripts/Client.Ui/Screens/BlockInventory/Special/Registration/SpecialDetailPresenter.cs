@@ -47,10 +47,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
 
             void Draw(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
             {
-                // 出し入れは IsApplicable で親へ知らせ、出す時だけ描く（区画は自分の display を触らない。D-23）
-                // Report visibility to the parent via IsApplicable and draw only when shown (sections never touch their own display. D-23)
-                _isApplicable.Value = _view.HasDetail(detail);
-                if (_isApplicable.Value) _view.Render(itemSlots, detail);
+                // 描けたかを IsApplicable で親へ知らせる（区画は自分の display を触らない。D-23）
+                // Report whether it drew to the parent via IsApplicable (sections never touch their own display. D-23)
+                _isApplicable.Value = _view.Render(itemSlots, detail);
             }
 
             bool IsSame(BlockInventoryPanelState current, OpenBlockInventoryPanel attached)

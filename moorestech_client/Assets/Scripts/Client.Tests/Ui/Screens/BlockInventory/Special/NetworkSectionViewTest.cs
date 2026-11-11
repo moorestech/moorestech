@@ -96,8 +96,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         private sealed class RecordingRenderer : VisualElement, ISpecialDetailRenderer
         {
             public IReadOnlyList<SlotItem> LastSlots { get; private set; }
-            public bool HasDetail(SpecialBlockDetailViewModel detail) => true;
-            public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail) => LastSlots = itemSlots;
+            public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+            {
+                LastSlots = itemSlots;
+                return true;
+            }
         }
     }
 }

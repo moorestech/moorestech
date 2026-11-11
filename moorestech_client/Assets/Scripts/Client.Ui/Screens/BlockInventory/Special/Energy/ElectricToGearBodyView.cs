@@ -44,15 +44,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             Add(_stack);
         }
 
-        public bool HasDetail(SpecialBlockDetailViewModel detail) => true;
-
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             // 詳細の未着は Web と同じく本文を空にする（Web は詳細無しで null）
             // Without detail the body stays empty, as the Web returns null
             var present = detail.TryGetElectricToGear(out var electricToGear);
             SpecialViewParts.SetShown(_stack, present);
-            if (!present) return;
+            if (!present) return true;
 
             // 択一はモードの一覧が変わったときだけ作り直す（毎回作るとフォーカスと押下が切れる。D-21）
             // Rebuild the switch only when the mode list changes (rebuilding every time drops focus and presses. D-21)
@@ -61,6 +59,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             _modes.SetSelected(electricToGear.SelectedIndex);
             _fulfillment.SetValue((float)electricToGear.FulfillmentRate);
             _consumed.SetText(SpecialDetailTexts.ElectricToGearConsumedPower(electricToGear));
+
+            return true;
 
             #region Internal
 
