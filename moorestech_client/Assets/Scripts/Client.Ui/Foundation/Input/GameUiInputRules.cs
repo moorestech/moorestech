@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// GameUi のルートで入力を先取りする規則。フォーカス同期・ESC（取消のナビゲーションを含む）・ナビゲーション打ち消し・入力欄と印付き以外のフォーカス拒否を TrickleDown で行う
-    /// Root-level input rules for GameUi: focus sync, ESC (including navigation cancel), navigation cancelling and refusing focus outside text fields and marked elements, all via TrickleDown
+    /// GameUi のルートで入力を先取りする規則。フォーカス同期・ESC・ナビゲーション打ち消し・入力欄と印付き以外のフォーカス拒否を TrickleDown で行う
+    /// Root-level input rules for GameUi: focus sync, ESC, navigation cancelling and refusing focus outside text fields and marked elements, all via TrickleDown
     /// </summary>
     /// <remarks>
     /// 拡張点: 全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す。画面固有のキー処理（←→・Enter 等）は各画面の Presenter が持つ
@@ -26,7 +26,7 @@ namespace Client.Ui.Foundation.Input
             // GameUi never uses navigation move/submit/cancel coming from Tab, arrows, Space, Enter or ESC
             root.RegisterCallback<NavigationMoveEvent>(CancelNavigation, TrickleDown.TrickleDown);
             root.RegisterCallback<NavigationSubmitEvent>(CancelNavigation, TrickleDown.TrickleDown);
-            root.RegisterCallback<NavigationCancelEvent>(OnNavigationCancel, TrickleDown.TrickleDown);
+            root.RegisterCallback<NavigationCancelEvent>(CancelNavigation, TrickleDown.TrickleDown);
         }
 
         private static void OnFocusIn(FocusInEvent evt)
@@ -75,21 +75,7 @@ namespace Client.Ui.Foundation.Input
             // Stop TextField's default ESC (revert value and refocus) and drop only the focus, keeping the value
             evt.StopImmediatePropagation();
             root.focusController.IgnoreEvent(evt);
-            focused.Blur();
-        }
-
-        // 取消のナビゲーションは UI 入力資産の Cancel 由来で、今の資産には Cancel が無く届かない（実キーの ESC は KeyDown で届く）。届いたら入力欄では ESC と同じく外す
-        // Navigation cancel comes from the UI asset's Cancel action, which the current asset lacks (a real ESC arrives as KeyDown); if it arrives, treat it like ESC in a text field
-        private static void OnNavigationCancel(NavigationCancelEvent evt)
-        {
-            CancelNavigation(evt);
-            var root = (VisualElement)evt.currentTarget;
-            var focused = root.focusController.focusedElement as VisualElement;
-            if (!IsInsideTextField(focused)) return;
-
-            // silent-ok: 変換中の取消は OS が変換を取り消すのでフォーカスを触らない / ラッチの Debug.Log が ESC の消費を記録する
-            // silent-ok: during IME composition the OS cancels the conversion, so leave focus alone / the latch's Debug.Log records the consumed ESC
-            if (!ConsumeEscapeOutsideComposition()) return;
+            UiInputExclusivity.MarkEscapeBlurredTextFieldThisFrame();
             focused.Blur();
         }
 

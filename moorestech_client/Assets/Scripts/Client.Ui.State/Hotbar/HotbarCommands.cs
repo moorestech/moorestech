@@ -49,7 +49,7 @@ namespace Client.Ui.State.Hotbar
                     // silent-ok: 自分自身への落とし・ビルドメニューの枠外への落としは Web と同じく何も変えない / L0-s3 の HotbarDropResolverTest が組を固定する
                     return;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action, "未知のホットバーの落としの結果");
+                    throw new ArgumentOutOfRangeException(nameof(action), action, $"未対応のホットバーの落としの結果: {action.GetType().FullName}");
             }
         }
     }

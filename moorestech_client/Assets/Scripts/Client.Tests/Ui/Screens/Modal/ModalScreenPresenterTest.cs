@@ -128,26 +128,23 @@ namespace Client.Tests.Ui.Screens.Modal
             Assert.AreEqual(ModalResult.Cancel, response.GetAwaiter().GetResult().result);
             Assert.IsFalse(Shown());
             Assert.IsTrue(UiInputExclusivity.IsEscapeConsumedThisFrame);
+            Assert.IsTrue(UiInputExclusivity.IsEscapeBlurredTextFieldThisFrame);
         }
 
         [Test]
-        public void 入力欄の取消ナビゲーションも1回で取り消す()
+        public void 変換中のESCでフォーカスが外れても取り消さない()
         {
-            // 録画の注入入力の ESC は KeyDown にならず NavigationCancel だけで届く（PanelEventHandler）。実キーと同じく 1 回で閉じる
-            // An ESC injected by recordings arrives only as NavigationCancel, not KeyDown (PanelEventHandler); it closes in one press like a real key
+            // 変換中の ESC はワールド側へ渡さない印だけ立ち、外した印は立たない。同じフレームに FocusOut が出ても閉じない（設計判断 D4）
+            // An ESC during composition sets only the world-side latch, not the blurred mark; a same-frame FocusOut must not close (design decision D4)
             var (_, response) = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
             simulate.FrameUpdate();
             simulate.FrameUpdate();
-            using (var evt = NavigationCancelEvent.GetPooled())
-            {
-                evt.target = _layer.focusController.focusedElement;
-                _layer.panel.visualTree.SendEvent(evt);
-            }
+            UiInputExclusivity.ConsumeEscapeThisFrame();
+            Find<TextField>(_layer, "modal-input").Blur();
             simulate.FrameUpdate();
-            Assert.AreEqual(UniTaskStatus.Succeeded, response.Status);
-            Assert.AreEqual(ModalResult.Cancel, response.GetAwaiter().GetResult().result);
-            Assert.IsFalse(Shown());
-            Assert.IsTrue(UiInputExclusivity.IsEscapeConsumedThisFrame);
+            Assert.IsFalse(UiInputExclusivity.IsEscapeBlurredTextFieldThisFrame);
+            Assert.AreEqual(UniTaskStatus.Pending, response.Status);
+            Assert.IsTrue(Shown());
         }
 
         [Test]
