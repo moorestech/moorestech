@@ -12,8 +12,8 @@ namespace Client.Starter.Registration.GameUi.Hud
     {
         public static void Register(ContainerBuilder builder)
         {
-            // 1 つの Model を具体型（書く側：中継とホスト）と読み口（読む側：Presenter）で配る
-            // Hand out one model as the concrete type (writers: relay and host) and the read interface (reader: presenter)
+            // 1 つの Model を具体型で中継・ホスト・Presenter に配る
+            // Hand out one model as the concrete type to the relay, host and presenter
             builder.Register<NotificationModel>(Lifetime.Singleton).AsSelf();
             builder.RegisterEntryPoint<NotificationFeedRelay>();
             builder.Register<LocalizeNotificationTextLookup>(Lifetime.Singleton).As<INotificationTextLookup>();
