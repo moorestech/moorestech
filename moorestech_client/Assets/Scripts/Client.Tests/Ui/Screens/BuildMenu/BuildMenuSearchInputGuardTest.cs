@@ -58,6 +58,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             // 申し送り: 入力欄入りの View をフォーカスごと外すと旗が残る問題がモーダル以外にもあるか
             // Hand-off: does hiding a view with a focused field leave the flag set outside the modal too
             SearchField().Focus();
+            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused, "閉じる前は入力中の旗が立っている");
             CloseMenu();
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
         }
