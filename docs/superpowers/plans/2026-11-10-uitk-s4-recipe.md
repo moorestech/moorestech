@@ -3050,7 +3050,7 @@ git commit -m "feat(uitk): アイテム一覧のパネルと掴みスクロー�
 
 **Interfaces:**
 - Consumes: Task 5〜9 の Produces、`StageColumnsLayout`、`UiRoutingState`、`GameContentPresentation`、`UiCommandResultToaster`、S2-tutorial の測定（テストだけ）、C3-b の `HoverTooltipTestStage`（テストだけ）
-- Produces: `public sealed class RecipeScreenPresenter : IInitializable, IDisposable { public RecipeScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, RecipeScreenModel model, GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection); }`、`public static class RecipeGameUiRegistration { public static void Register(IContainerBuilder builder); }`
+- Produces: `public sealed class RecipeScreenPresenter : IInitializable, IDisposable { public RecipeScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, RecipeScreenModel model, GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection); }`、`internal static class RecipeGameUiRegistration { public static void Register(ContainerBuilder builder); }（実物。前例 ResearchGameUiRegistration。D-43）`
 
 - [ ] **Step 1: テストを書く**
 
@@ -3174,9 +3174,9 @@ namespace Client.Starter.Registration.GameUi.Screens
     /// レシピ画面（ビューアと一覧）の登録。全体スイッチ UITK のときだけ MainGameUiRegistration から呼ばれる
     /// Registration of the recipe screen (viewer and list); called from MainGameUiRegistration only when the switch is UITK
     /// </summary>
-    public static class RecipeGameUiRegistration
+    internal static class RecipeGameUiRegistration
     {
-        public static void Register(IContainerBuilder builder)
+        public static void Register(ContainerBuilder builder)
         {
             // State: 選択・カタログ・モデル・操作。モデルは Initialize で購読するので entry point（前例 HudGameUiRegistration の Model）
             // State: selection, catalog, model and commands; the model subscribes in Initialize, so it is an entry point (precedent: the models in HudGameUiRegistration)
@@ -3483,6 +3483,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 - **D-41 α 補正の道具は撤去済み（I-blend 1cb563795d）**: `tools/uitk/webTokens/handWrittenDerivedRows.mjs`・`docs/uitk/translucent-tokens.md` は無い。半透明は Web の値のまま `DerivedTokens.uss` の「S4-recipe」ブロックに書き、D-24 の式 1.85 の値（0.6315・0.7894・0.7717）は使わない（白 88%＝0.88 等の Web の値）。R-14・Global Constraints の該当部は空振り（Task 1 実物照合。agent 既定）
 - **D-42 API 名の読み替え（Task 1 実物照合。agent 既定）**: `RecipeActionButton(..., Medium)` → `RecipeActionButtonVariant.Craft`／`RecipeFluidAmount`・`ItemAmount` は `readonly struct` の public readonly フィールド（null は来ない）／`RecipeEntry.RecipeGuid` が抽象プロパティで型 switch 無しにキーを取れる／`TutorialAnchorMeasure.Measure(searchRoot, coordinateSpace, anchorId)` → `TutorialAnchorMeasure.Measure(TutorialAnchorRegistry.Resolve(searchRoot, anchorId), coordinateSpace)`（状態は `Client.Ui.State.Tutorial.Logic.TutorialAnchorState.Ready/NotFound/Hidden`）／R-9 の `recipe.time` は鍵でなく `MachineRecipeData.Time` を `ui.recipe.duration` で出す（Web `MachineRecipeEntry.tsx:31`）／持ち物の変化の源は `IPlayerInventoryOperations.OnSnapshotChanged`（`PlayerInventorySnapshot` は `Client.Ui.State.ItemMove`）／`Recipe/Logic/` の既存は 3 本（足して 4）
 - **D-43 登録の関門は通る**: `Client.Starter/Registration/GameUi/Screens/` は既にあり 5 本（BlockInventory・BlockInventoryMachine・Inventory・PauseMenu・Research）。このレーンの 1 本で 6 本で 10 以下、マージの関門なし。`internal static class RecipeGameUiRegistration`（前例 `ResearchGameUiRegistration`）を `MainGameUiRegistration` の画面登録区画の末尾（`ResearchGameUiRegistration.Register(builder);` の次）へ。`GameUiInputRules.cs`・`GameScrollView.uss` は W4 の他レーンの計画・`origin/feature/uitk` の履歴とも書いていない（D-32 の確認済み。Task 1 実物照合。agent 既定）
+- **D-43a Task 10 Produces の読み替え（Task 13）**: 計画本文の `public static class RecipeGameUiRegistration { Register(IContainerBuilder) }` は実物では `internal static class RecipeGameUiRegistration { Register(ContainerBuilder builder) }`（前例 `ResearchGameUiRegistration` どおり。D-43 の internal はこちらが正）。agent 既定
 - **D-44 `RecipeScreenModel` の持ち物の合図は `IPlayerInventoryOperations.OnSnapshotChanged` 1 本（ctor から `LocalPlayerInventoryController` を外す）**: 兄弟の `ResearchTreeModel` と同じ合図で、実体 `LocalPlayerInventoryOperations` が `OnItemChange`・`OnInventoryRefreshed`（と装備・選択）を Merge 済み。ctor は `(IGameUnlockStateData, RecipeViewerItemCatalog, UnlockedMachineRecipeSource, IVanillaApiEvent, IPlayerInventoryOperations, RecipeItemSelection, UiRoutingState)`（D-42 の読み替えを Task 5 で適用。Task 10 の登録はこの形で解決する。agent 既定）
 - **D-45 Step 0 の関門は IMGUI の経路で測る（DSL の `SemanticInput` は UITK のキーイベントを作らない）**: EventSystem＋`InputSystemUIInputModule` の構成では UITK の `KeyDownEvent` は `PanelEventHandler` が `Event.PopEvent`（OS→IMGUI のキー）から作る（com.unity.ugui `PanelEventHandler.cs:329・355`）。実測で `SemanticInput` の Enter は印付きのボタンに 0・対照のフォーカス中の `TextField` の `A` も 0（空振り）、Game ビューへの `SendEvent(Event.KeyboardEvent("return"))`（実キーと同じ経路）は 1。印付きのフォーカスは 3 フレーム後も残る。よって能動案（D-32）で続け、OS のキーでの確認は Task 12 の録画の段 9 で OS 段の注入を使う（`p.PressKey` では届かない）。証拠は done.md「## 証拠」（Task 6 実測。agent 既定）
 - **D-46 Task 6 の細部（agent 既定）**: 素材の `ItemSlot` は数を渡さない（Web `CraftRecipeEntry.tsx` の素材は `count` 無し・所持/必要は `ItemSlotShortage` が描く）。クラフトの矢印は ctor で `SetProgress(0)`（Web は常に数を渡し静止表示にしない）。`TutorialAnchorCoveragePending.cs` の `RecipeCraftButton` の行は印を付けた Task 6 で消す（残すと `TutorialAnchorCoverageTest` が落ちる。`RecipeItemPrefix` の行は Task 10 で消す）。ボタンの外れはポインタの `PointerLeaveEvent` と位置判定の両方で止まり、どちらか片方だけでも `CraftHoldTest` は緑（変異で確認）
