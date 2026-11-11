@@ -9,6 +9,7 @@
         "Client.Localization",
         "Client.Network",
         "Core.Master",
+        "Core.Item",
         "Core.Item.Interface",
         "Game.Block.Interface",
         "Game.PlacementTarget",

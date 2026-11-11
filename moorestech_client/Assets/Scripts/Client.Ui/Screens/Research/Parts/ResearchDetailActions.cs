@@ -1,0 +1,55 @@
+using System;
+using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Text;
+using Client.Ui.State.Research.Commands;
+using Client.Ui.State.Research.Logic;
+using Client.Ui.State.Text;
+using Cysharp.Threading.Tasks;
+using Mooresmaster.Localization.Generated;
+using UniRx;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.Research.Parts
+{
+    /// <summary>
+    /// 研究ボタンと不可の理由
+    /// Research button and unavailable reason
+    /// </summary>
+    public sealed class ResearchDetailActions : VisualElement
+    {
+        private readonly IResearchTreeCommands _commands;
+        private readonly RecipeActionButton _button;
+        private readonly LocalizedLabel _reason;
+        private Guid _researchGuid;
+
+        public ResearchDetailActions(IResearchTreeCommands commands)
+        {
+            _commands = commands;
+            AddToClassList("research-tree__actions");
+            pickingMode = PickingMode.Ignore;
+            _button = new RecipeActionButton("research-button", new UiText(LocalizationKeys.Ui.Research.Action), RecipeActionButtonVariant.Research);
+            _button.OnClicked.Subscribe(_ => _commands.CompleteResearch(_researchGuid).Forget());
+            _reason = new LocalizedLabel { name = "research-detail-reason" };
+            _reason.AddToClassList("research-tree__reason");
+            _reason.SetText(new UiText(LocalizationKeys.Ui.Research.MissingItems));
+            Add(_button);
+            Add(_reason);
+        }
+
+        public void Render(Guid researchGuid, ResearchButtonState button, bool nodeStatesReceived)
+        {
+            // testidはノードごと
+            // The testid is per node
+            _researchGuid = researchGuid;
+            _button.name = $"research-button-{researchGuid}";
+            _button.SetLabel(new UiText(button.Completed ? LocalizationKeys.Ui.Research.Completed : LocalizationKeys.Ui.Research.Action));
+            _button.SetEnabled(button.Interactable);
+
+            // 理由は状態受信後の未完了かつ不可のみ（受信前の既定は嘘の理由になる）
+            // Reason only after states arrive, when not completed and unavailable (the pre-receipt default would lie)
+            var showsReason = nodeStatesReceived && !button.Completed && !button.Interactable;
+            _reason.style.display = showsReason ? DisplayStyle.Flex : DisplayStyle.None;
+            _reason.SetText(new UiText(button.TooltipKey));
+        }
+    }
+}

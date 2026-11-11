@@ -501,6 +501,7 @@ ui.commandRejected.splitGrabNotEmpty,Put down the held items before splitting,Pu
 ui.commandRejected.splitDragNoValidSlots,No slot can take the held items,No slot can take the held items,持っているアイテムを置けるスロットがありません,Kein Platz kann die gehaltenen Gegenstände aufnehmen,들고 있는 아이템을 놓을 수 있는 슬롯이 없습니다
 ui.commandRejected.blockSlotUnavailable,The block slot is no longer available,The block slot is no longer available,ブロックの枠がもうありません,Der Blockplatz ist nicht mehr verfügbar,블록 슬롯을 더 이상 사용할 수 없습니다
 ui.commandRejected.itemUnknownInSlot,This item is unknown to the client and cannot be moved with Shift,This item is unknown to the client and cannot be moved with Shift,このアイテムはクライアントが知らないため Shift で移動できません,Dieser Gegenstand ist dem Client unbekannt und kann nicht mit Shift verschoben werden,이 아이템은 클라이언트가 알 수 없어 Shift로 옮길 수 없습니다
+ui.commandRejected.researchFailed,Research failed,Research failed,研究に失敗しました,Forschung fehlgeschlagen,연구에 실패했습니다
 ui.commandRejected.blockNotOpen,The block is not open,The block is not open,ブロックが開いていません,Der Block ist nicht geöffnet,블록이 열려 있지 않습니다
 ui.commandRejected.machineRecipeInvalid,This recipe does not exist,This recipe does not exist,このレシピは存在しません,Dieses Rezept existiert nicht,이 레시피는 존재하지 않습니다
 ui.commandRejected.machineRecipeLocked,This recipe is not unlocked yet,This recipe is not unlocked yet,このレシピはまだ解放されていません,Dieses Rezept ist noch nicht freigeschaltet,이 레시피는 아직 해금되지 않았습니다

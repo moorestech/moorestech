@@ -1,9 +1,9 @@
 /* web: moorestech_web/webui/src/shared/treeView/TreeView.module.css（.viewport・.canvas・.line） */
 /* ビューポートは overflow で切り、クリップの逃げは C# が padding と同量の負の margin で当てる（A-47）。キャンバスは左上を原点に平行移動と拡縮を受ける */
-/* 線の層はキャンバスを覆い、色と太さを受け直す。ノードの包みは点に置く幅 0 の要素で、カードが自分の中心を点に合わせる */
+/* 線の層はキャンバスを覆い、色と太さを受け直す。ノードの包みは点に置く幅 0・高さは中身なりの要素で（高さ 0 だと Yoga が中身の高さで決まるカードを 0 へ潰す）、カードが自分の中心を点に合わせる */
 /* web: moorestech_web/webui/src/shared/treeView/TreeView.module.css (.viewport, .canvas, .line) */
 /* The viewport clips with overflow; C# applies the clip clearance as padding plus an equal negative margin (A-47). The canvas translates and scales from its top-left */
-/* The edge layer covers the canvas and re-declares color and width; node wrappers are zero-size elements at the point, and cards center themselves on it */
+/* The edge layer covers the canvas and re-declares color and width; node wrappers are zero-width, content-height elements at the point (a zero height makes Yoga crush content-sized cards to 0), and cards center themselves on it */
 .node-graph {
     --node-graph-clip-inset: var(--tutorial-anchor-clip-inset);
     flex-grow: 1;
@@ -33,7 +33,6 @@
 .node-graph__node {
     position: absolute;
     width: 0;
-    height: 0;
     align-items: flex-start;
 }
 

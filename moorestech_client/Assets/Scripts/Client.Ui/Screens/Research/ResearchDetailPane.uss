@@ -1,0 +1,181 @@
+/* web: moorestech_web/webui/src/features/research/style.module.css（.detailPane〜.unlockFluidAmount）。詳細ペイン・節・解放物・研究ボタンのつまみの上書き */
+/* web: moorestech_web/webui/src/features/research/style.module.css (.detailPane to .unlockFluidAmount); detail pane, sections, unlocks and research button knob overrides */
+
+/* 詳細ペイン: エリアの右上 12px・幅 300。高さの上限はエリア − 24（置き場の上下 12 で写す） */
+/* Detail pane: 12px from the area's top right, 300 wide; the height cap is area − 24 (the host's 12px top/bottom) */
+.research-tree__detail-host {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: 300px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.research-tree__detail {
+    flex-shrink: 1;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.research-tree__detail-panel {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+/* 本文: 見出し・スクロール・研究ボタン・理由。研究ボタンの組は部品が持ち、ここは寸法だけ（A-190） */
+/* Body: header, scroll, research button, reason; the part owns the research set and this sets only its size (A-190) */
+.research-tree__detail-body {
+    flex-direction: column;
+    flex-shrink: 1;
+    min-height: 0;
+    padding: 10px;
+    /* web: 参照の画素で 1280×720 は 37 行・2560×1080 は約 55.5 物理 px＝37.0 論理 px（padding 8px 0 ＋ 14px の行）。幅は書かない（D-21） */
+    /* web: reference pixels show 37 rows at 1280x720 and about 55.5 physical px (37.0 logical) at 2560x1080 (padding 8px 0 plus a 14px line); width is not set (D-21) */
+    --research-action-height: 37px;
+}
+
+/* 文字のラベルは Unity 既定の余白を消し、Web が Mantine の body から継ぐ行の高さ 1.55 を写す。2 行目以降は LocalizedLabel の行送り */
+/* 1 行目は字形の既定の行の高さ（実測 16px 23.4・13px 19・12px 18）なので、1.55 との差の半分を上下の padding で足す（min-height は padding の外に足されるので複数行の文には使わない。1 行固定の液体量ラベルだけ padding 0 の min-height で高さを取る） */
+/* 字の大きさ・フォントを変えたら実測値と下の半行間の padding を測り直す / If font size or font changes, re-measure the values above and the half-leading paddings below */
+/* Text labels drop Unity's default spacing and copy the Web line-height 1.55 inherited from the Mantine body; lines after the first use LocalizedLabel's pitch */
+/* The first line takes the glyph default height (measured 16px 23.4, 13px 19, 12px 18), so top/bottom padding adds half the gap to 1.55 (min-height adds outside padding, so it is not used for multi-line text; only the single-line fluid label uses min-height with padding 0) */
+.research-tree__detail-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.research-tree__detail-name {
+    flex-shrink: 1;
+    font-size: 16px;
+    white-space: normal;
+    color: var(--text-high-contrast);
+    margin: 0;
+    padding: 0;
+    padding-top: 0.7px;
+    padding-bottom: 0.7px;
+    --research-detail-name-line-height: 24.8px;
+    --localized-label-line-height: var(--research-detail-name-line-height);
+    -unity-text-align: middle-left;
+}
+
+.research-tree__detail-close {
+    padding: 0 4px;
+    background-color: transparent;
+}
+
+.research-tree__detail-close-symbol {
+    font-size: 16px;
+    color: var(--text-default);
+    margin: 0;
+    padding: 0;
+}
+
+/* スクロールは左右へ逃げの分はみ出し、中身を同じだけ内へ戻す（ResearchCalcKnobs） */
+/* The scroll bleeds out sideways by the clearance and the content steps back in by the same (ResearchCalcKnobs) */
+.research-tree__detail-scroll {
+    flex-shrink: 1;
+    min-height: 0;
+    margin-bottom: 8px;
+    --research-tree-scroll-bleed: var(--research-detail-scroll-inline-bleed);
+}
+
+.research-tree__detail-scroll-content {
+    flex-direction: column;
+}
+
+.research-tree__detail-description {
+    font-size: 13px;
+    white-space: normal;
+    color: var(--text-default);
+    margin: 0;
+    padding: 0;
+    padding-top: 0.6px;
+    padding-bottom: 0.6px;
+    --research-detail-description-line-height: 20.15px;
+    --localized-label-line-height: var(--research-detail-description-line-height);
+    -unity-text-align: middle-left;
+}
+
+.research-tree__section {
+    flex-direction: column;
+    margin-top: 8px;
+}
+
+.research-tree__section-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+    margin-bottom: 4px;
+    padding: 0;
+    padding-top: 0.3px;
+    padding-bottom: 0.3px;
+    --research-section-label-line-height: 18.6px;
+    --localized-label-line-height: var(--research-section-label-line-height);
+    -unity-text-align: middle-left;
+}
+
+.research-tree__slots {
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* look-exception: LX-136 */ /* 差は Web の約 3px の偽のはみ出し（スクロールバー）を写さないこと。この padding の値自体は Web と同じ / The difference is not copying Web's spurious ~3px overflow (scrollbar); this padding value itself matches Web */
+    padding-bottom: var(--research-detail-slots-bleed);
+    /* 子の margin で写した gap の行末・最終行の余りを負の margin で相殺（UiGroup と同じ手） */
+    /* Cancel the trailing gap of the child margins with negative margins (same as UiGroup) */
+    margin-right: -4px;
+    margin-bottom: -4px;
+}
+
+.research-tree__slot {
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.research-tree__unlock-other {
+    font-size: 13px;
+    white-space: normal;
+    color: var(--text-default);
+    margin: 0;
+    padding: 0;
+    padding-top: 0.6px;
+    padding-bottom: 0.6px;
+    --research-unlock-other-line-height: 20.15px;
+    --localized-label-line-height: var(--research-unlock-other-line-height);
+    -unity-text-align: middle-left;
+}
+
+.research-tree__unlock-fluid {
+    font-size: 13px;
+    white-space: nowrap;
+    align-self: center;
+    color: var(--text-default);
+    margin: 0;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    padding: 0;
+    --research-unlock-fluid-line-height: 20.15px;
+    min-height: var(--research-unlock-fluid-line-height);
+    -unity-text-align: middle-left;
+}
+
+.research-tree__actions {
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.research-tree__reason {
+    font-size: 12px;
+    white-space: normal;
+    color: var(--text-default);
+    margin: 0;
+    margin-top: 8px;
+    padding: 0;
+    padding-top: 0.3px;
+    padding-bottom: 0.3px;
+    --research-reason-line-height: 18.6px;
+    --localized-label-line-height: var(--research-reason-line-height);
+    -unity-text-align: middle-left;
+}

@@ -18,26 +18,42 @@ namespace Client.Tests.Ui.Screens.Inventory.Support
     {
         public static UiRoutingState Create(GameObject host, UIStateEnum state)
         {
-            var control = host.AddComponent<UIStateControl>();
-            control.Construct(DictionaryWith(state), new FakePlayerObjectController());
-            control.Initialize(state, new UITransitContext(state));
+            return CreateSwitchable(host, state, new[] { state }, out _);
+        }
+
+        // 指定の画面群の間を Transit で行き来できる UiRoutingState を組む
+        // Builds a UiRoutingState that can move between the given screens via Transit
+        public static UiRoutingState CreateSwitchable(GameObject host, UIStateEnum initial, IReadOnlyList<UIStateEnum> states, out UIStateControl control)
+        {
+            control = host.AddComponent<UIStateControl>();
+            control.Construct(DictionaryWith(), new FakePlayerObjectController());
+            control.Initialize(initial, new UITransitContext(initial));
             var routing = new UiRoutingState(control, Array.Empty<INestedPauseScreenState>());
             routing.Initialize();
             return routing;
 
             #region Internal
 
-            UIStateDictionary DictionaryWith(UIStateEnum only)
+            UIStateDictionary DictionaryWith()
             {
                 // UIStateControlTest.CreateDictionary と同じ反射で、指定の画面だけを入れる
-                // Same reflection as UIStateControlTest.CreateDictionary, holding only the given screen
+                // Same reflection as UIStateControlTest.CreateDictionary, holding only the given screens
                 var result = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
                 var field = typeof(UIStateDictionary).GetField("_stateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
-                ((Dictionary<UIStateEnum, IUIState>)field.GetValue(result))[only] = new IdleUiState();
+                var dictionary = (Dictionary<UIStateEnum, IUIState>)field.GetValue(result);
+                foreach (var state in states) dictionary[state] = new IdleUiState();
                 return result;
             }
 
             #endregion
+        }
+
+        // 遷移を要求し Update を 1 回回して確定する（UIStateControlTest.InvokeUpdate と同じ反射）
+        // Requests a transition and runs one Update to settle it (same reflection as UIStateControlTest.InvokeUpdate)
+        public static void Transit(UIStateControl control, UIStateEnum next)
+        {
+            control.RequestTransition(next);
+            typeof(UIStateControl).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(control, null);
         }
 
         // 遷移を出さない画面
