@@ -63,7 +63,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             return response.Success ? SpecialBlockRequestOutcome.Accepted : SpecialBlockResponseCodes.FromRocketFailure(response.FailureReason);
         }
 
-        private SpecialBlockRequestOutcome ApplyFilterResponse(FilterSplitterStateProtocol.FilterSplitterStateResponse response, BlockInstanceId sentInstanceId)
+        internal SpecialBlockRequestOutcome ApplyFilterResponse(FilterSplitterStateProtocol.FilterSplitterStateResponse response, BlockInstanceId sentInstanceId)
         {
             // 受理した応答は、送った分配器が今も開いているときだけ集約へ当てる。別のブロックに当てると本文に他個体の設定が残る
             // Apply an accepted response only while the splitter it was sent for is still open; applying it to another block leaves foreign settings in the body
