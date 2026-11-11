@@ -113,6 +113,22 @@ namespace Client.Tests.Ui.Screens.Hotbar
             CollectionAssert.IsEmpty(_commands.Calls);
         }
 
+        [Test]
+        public void ドラッグ中にホットバーが退くと離しても解除しない()
+        {
+            // 閾値を越えて掴んだまま帯が退き、枠の無い所で離す
+            // Drag past the threshold, retreat the band mid-drag, then release where no slot is
+            var slot0 = Slot(0).worldBound.center;
+            var outside = new Vector2(640f, 100f);
+            simulate.MouseDown(slot0, MouseButton.LeftMouse);
+            simulate.MouseMove(Vector2.Lerp(slot0, outside, 0.5f));
+            _view.Render(HotbarViewModelSamples.WebFixture(true, false));
+            simulate.MouseMove(outside);
+            simulate.MouseUp(outside, MouseButton.LeftMouse);
+            simulate.FrameUpdate();
+            CollectionAssert.IsEmpty(_commands.Calls);
+        }
+
         private SlotFrame Slot(int index)
         {
             return Find<SlotFrame>(_view, $"hotbar-slot-{index}");

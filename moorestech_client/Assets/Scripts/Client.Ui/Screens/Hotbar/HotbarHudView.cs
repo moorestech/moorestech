@@ -50,11 +50,21 @@ namespace Client.Ui.Screens.Hotbar
             Add(_row);
         }
 
+        // 退いた帯の中で掴んだままの押下を捨てる（残ると離した時に枠外ドロップとして割当が解除される）
+        // Drop a press still captured inside the retreated band (otherwise releasing it fires an outside drop and clears the assignment)
+        private void ReleaseCaptureInsideBand()
+        {
+            var capturing = panel?.GetCapturingElement(PointerId.mousePointerId) as VisualElement;
+            if (capturing == null || !Contains(capturing)) return;
+            capturing.ReleasePointer(PointerId.mousePointerId);
+        }
+
         public void Render(HotbarViewModel viewModel)
         {
             // 退く間は帯ごと隠す
             // Hide the whole band while retreating
             style.display = viewModel.Visible ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!viewModel.Visible) ReleaseCaptureInsideBand();
             _row.EnableInClassList(SelectDisabledClass, !viewModel.SelectAccepted);
 
             if (_cells.Count != viewModel.Slots.Count) RebuildCells(viewModel.Slots.Count);

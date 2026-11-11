@@ -94,6 +94,8 @@ namespace Client.Playtest.Input
 
             void Send(Key key, bool down)
             {
+                // silent-ok: 修飾キーは UitkModifierKeys が別経路で届ける / その経路の LogError が欠落を知らせる
+                if (UitkModifierKeys.IsModifier(key)) return;
                 // silent-ok: Web 系・GameUi 未生成・フォーカス無しでは実キーも入力欄へ届かない / 入力欄の ESC は録画の Assert（モーダルが閉じる）が見る
                 if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi || GameUiRoot.Instance == null) return;
                 var panel = GameUiRoot.Instance.GetRootElement().panel;
@@ -109,8 +111,6 @@ namespace Client.Playtest.Input
                     return;
                 }
 
-                // silent-ok: 修飾キーは UitkModifierKeys が別経路で届ける / その経路の LogError が欠落を知らせる
-                if (UitkModifierKeys.IsModifier(key)) return;
                 if (!TryToKeyCode(key, out var keyCode))
                 {
                     Debug.LogError($"[UitkFocusedKeyEvents] {key} has no KeyCode mapping; not sent to UITK");
