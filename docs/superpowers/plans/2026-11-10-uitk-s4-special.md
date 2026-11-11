@@ -6445,6 +6445,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-41 区画の文の初期値と別パネルの作り方（agent 既定・Task 6）**: 区画は詳細の前から載るので、`LocalizedLabel`・`LackHighlightText` を `SpecialViewParts.SeedEmptyText`（空の原文。前例 `FluidInventoryRow`）で初期化し、`LocalizedTextBinding` の「文なし」の LogError を避ける。L1「別のパネルの値は描かない」の別パネルは `OpenFailedChest`（マスタを読む）でなく、internal ctor で位置・個体を変えた `OpenBlockInventoryPanel` を組む。出所: Task 6 の実測（L1 の失敗）
 - **テストの置き場の分割（agent 既定・Task 4 fix）**: テストを 4 サブディレクトリへ分割（1 ディレクトリ 10 ファイル上限）。`Client.Tests/Ui/State/BlockInventory/Special/{Commands,Logic,Source,Details}/`、namespace は変えない。Files 節の `Special/` 直下の表記は、このサブディレクトリ下の同名ファイルと読む
 - **シミュレーター予測（review 実施済み）**: 適用推奨 1 件（死活表の ←/→ の行の前提の誤り）を適用、Warning 3 件（D-20 の条件文・D-7 の前例との形の違い・電柱は無印だけ openable）のうち前 2 件を適用、電柱は Task 11 が無印を使うので変更なし。裁定候補 1 件（←/→ の横移動）は予測 (a) で D-32 に記録（ゴール・裁定から外れないので要裁定 0）
+- **agent 既定**: 電柱の電力網ポーリング漏れ（albof.54.1）はレーン外の共有キャッシュ（`BlockNetworkInfoCache`）だが、R-5/R-12 の電柱の網の行が出ないため 1 行で直す（`JoinsElectricNetwork` が `IElectricWireConnectParam` と `ElectricPoleBlockParam` を数える。Web 側も同じ源で直る）
 
 ## 本PR外のリファクタ提案
 

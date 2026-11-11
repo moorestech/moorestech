@@ -103,7 +103,7 @@ namespace Client.Ui.State.BlockDetail
             var param = block.BlockMasterElement.BlockParam;
             IsTrackingGear = param is IGearConnectors;
             CleanRoomTarget = ToCleanRoomTarget(param);
-            if (param is IElectricWireConnectParam) _electricPoller.Start(block.BlockInstanceId);
+            if (JoinsElectricNetwork(param)) _electricPoller.Start(block.BlockInstanceId);
             if (IsTrackingGear) _gearPoller.Start(block.BlockInstanceId);
             if (block.BlockMasterElement.BlockType == "FilterSplitter") FetchFilterSplitter(block.BlockPosInfo.OriginalPos, _cts.Token).Forget();
 
@@ -135,6 +135,13 @@ namespace Client.Ui.State.BlockDetail
             }
 
             #endregion
+        }
+
+        // 電線網に属するのは機械側（IElectricWireConnectParam）と電柱。電柱は同interfaceを実装しないので別に数える
+        // Machines (IElectricWireConnectParam) and poles join the wire network; poles do not implement that interface so they are counted separately
+        internal static bool JoinsElectricNetwork(IBlockParam param)
+        {
+            return param is IElectricWireConnectParam || param is ElectricPoleBlockParam;
         }
 
         public void Clear()
