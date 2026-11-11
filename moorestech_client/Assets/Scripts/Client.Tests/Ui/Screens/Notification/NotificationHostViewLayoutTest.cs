@@ -127,8 +127,8 @@ namespace Client.Tests.Ui.Screens.Notification
             Assert.AreEqual(Host.childCount, TextLookup.ContentTextCalls - callsBefore);
         }
 
-        // 1 行目は字の自然な高さ（LX-39。Latin 21・JP 22px）、2 行目以降は Web の 18px 送り。アイコンの行の 1 行は Web と同じ 34px
-        // The first line is the natural glyph height (LX-39; Latin 21, JP 22px) and later lines advance the Web 18px; a one-line icon row is the Web 34px
+        // 1 行目は字の自然な高さ（Latin 21・JP 22px）、2 行目以降は Web の 18px 送り。行は上 3px・下 4px＋枠 1px で、アイコンの 1 行は Web と同じ 34px・2 行は Web 48px に対し Latin 48・JP 49px
+        // The first line is the natural glyph height (Latin 21, JP 22px), later lines advance the Web 18px; rows add 3px top and 4px bottom padding + 1px border, so a one-line icon row is the Web 34px and a two-line row is Latin 48 / JP 49px against the Web 48px
         [TestCase("english", false, 21f, "Ore", "Refined copper plate bundle")]
         [TestCase("japanese", true, 22f, "鉱石", "精錬した銅の板を束ねた品物です")]
         public void 文の1行目は字の自然な高さで2行目からは18px送り(string languageCode, bool cjk, float firstLineHeight, string shortName, string wrappingName)
@@ -146,6 +146,7 @@ namespace Client.Tests.Ui.Screens.Notification
             Assert.AreEqual(firstLineHeight, oneLine.layout.height, 0.5f, "one line");
             Assert.AreEqual(firstLineHeight + 18f, twoLines.layout.height, 0.5f, $"two lines: {twoLines.text}");
             Assert.AreEqual(34f, RowAt(0).layout.height, 0.5f, "one-line icon row");
+            Assert.AreEqual(firstLineHeight + 18f + 9f, RowAt(1).layout.height, 0.5f, "two-line icon row");
         }
 
         [Test]

@@ -41,14 +41,14 @@ namespace Client.Tests.Ui.Screens.Notification
         }
 
         [Test]
-        public void 文字だけの行は幅がトークンで高さはWebの30pxに1行目の差3pxを足した33px()
+        public void 文字だけの行は幅がトークンで高さはWebと同じ30px()
         {
             var row = MountShown(new NotificationRow(1, 0, Achievement("achievement.unlockedBlock", NoParams, NoIcon)), UiText.FromVerbatim("Block unlocked"));
 
-            // Web は 18px の行＋上下 5px の padding＋上下 1px の枠＝30px。UITK の 1 行目は Latin の字の自然な高さ 21px なので 33px（LX-39）
-            // Web is an 18px line + 5px vertical padding + 1px vertical border = 30px; UITK's first line is the 21px natural Latin glyph height, so 33px (LX-39)
+            // Web は 18px の行＋上下 5px の padding＋上下 1px の枠＝30px。UITK は Latin の 1 行目 21px＋上 3px・下 4px＋枠 1px で同じ 30px
+            // Web is an 18px line + 5px vertical padding + 1px border = 30px; UITK is the 21px Latin first line + 3px top and 4px bottom padding + 1px border, also 30px
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--notification-width"), row.resolvedStyle.width, 1f);
-            Assert.AreEqual(33f, row.layout.height, 1f);
+            Assert.AreEqual(30f, row.layout.height, 0.5f);
         }
 
         // ホストと同じく文を入れてからパネルに載せる（文の無いラベルが付くと LocalizedTextBinding が LogError を出す）
