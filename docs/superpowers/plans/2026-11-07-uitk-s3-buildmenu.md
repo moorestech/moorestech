@@ -5033,6 +5033,8 @@ Expected: closed、`git status --short` と `git log` が空。テストで `Sav
 | D-51 | 縦バーの inset は C# のインライン指定をやめ、`BuildMenu.uss` で GameScrollView のつまみ `--game-scroll-view-scrollbar-inset-{top,right,bottom}` を `var(--tutorial-anchor-clip-inset)` に上書きする。C# は margin と contentContainer の padding だけ | `verticalScroller.style` に C# で当てる: 部品のつまみを迂回し、前例 `RecipeViewer.uss`・`RecipeEntryList.ApplyClipClearance` と違う形になる | agent 既定（同上） |
 | D-52 | Web の `--sa-corner-width` は既定 0 で書き、Task 10 で縦バーの長さを参照と比べて 4px 長ければ bottom を clip-inset + 4px にする | 最初から 4px（`ItemList.uss` の前例）: 前例が `RecipeViewer.uss`（0）と割れており、この画面の参照で決める | agent 既定（同上） |
 | D-53 | LX-71 の台帳行は Task 10 でなく、印を付ける Task 7 Step 6 で `BuildMenu.uss` と同じコミットに足す（台帳は 7 列）。撮影の参照の表記は台帳の正本 `web-a9d5123537`（`web-869b2d4264` と画像は同一）、撮影は `UiRuntimePanelCapture.CaptureToPng`（I-blend 後の Linear の RT）を第一候補にし、罠 (c) の「α 未実測なので未確認」は前提が消えたので色の差も同じく閉じる | 計画どおり Task 10 で足す: Task 7 の `LookExceptionLedgerTest` が赤になる。sRGB の RT の EDC を写す: I-blend 後は色が二重に変換される | agent 既定（同上） |
+| D-54 | Task 3 の compile で `Client.Ui.State.asmdef` に実際に要った参照は `Common.Debug`・`Game.Construction`（CS0246/CS0234）と `Game.Blueprint`（CS0012・`BlueprintJsonObject`）の 3 つ。`Client.Mod` は要らなかった（D-48 の推測を実測で確定） | 計画の `Client.Mod` も足す: 使わない参照が残る | agent 既定（Task 3 の compile 実測） |
+| D-55 | `BuildMenuEntryFactoryTest` は SetUp で保存言語を退避して `Localize.Initialize()`＋`TrySetChosenLanguage("english")`、TearDown で戻す（前例 `ScreenTestHost`）。UITK は全種別で `IPlacementTarget.DisplayName` を引き、辞書が未初期化だと `LocalizationTextResolver` で NRE になるため | 橋と同じく BP だけ DisplayName を引く: 全種別で DisplayName を使う計画（S2-mode-tooltip D-8）に反する | agent 既定（Task 3 のテスト実測） |
 
 **未確認**（実装で確かめ、違えば `done.md` の「未確認」へ）:
 - C3-b の `ModeSwitch<TValue>`・`GameScrollView` の口・`UiDragDrop` の綴り（Task 1 Step 1 で照合）
