@@ -34,8 +34,8 @@ namespace Client.Ui.Screens.Recipe.Parts
             // A craft arrow always shows progress (the Web passes 0 when not holding, never the static form)
             _row.SetProgress(0f);
 
-            // 木から外れている間はスケジューラが止まり、同じ要素を付け直せば続く（GUID で並べ直すときに Web の key と同じく長押しを保つ。D-34）。捨てるときは要素ごと捨てる
-            // While detached the scheduler pauses and resumes when the same element is re-attached (keeps the hold across GUID reordering like the Web key; D-34); discarded entries are dropped whole
+            // 木から外れるときは CraftHoldInput が Stop する（並べ直しで捕捉が外れ離しが届かないため。D-34 を覆す判断記録）。捨てるときは要素ごと捨てる
+            // On detach CraftHoldInput stops the hold (relayout drops capture so no release arrives; overrides D-34); discarded entries are dropped whole
         }
 
         public void SetRecipe(Guid recipeGuid, double craftTime, bool craftable)

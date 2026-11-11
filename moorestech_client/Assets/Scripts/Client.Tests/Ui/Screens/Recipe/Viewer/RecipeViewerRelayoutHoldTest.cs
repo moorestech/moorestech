@@ -18,8 +18,8 @@ using static Client.Tests.Ui.Screens.Recipe.RecipeScreenFixtures;
 namespace Client.Tests.Ui.Screens.Recipe.Viewer
 {
     /// <summary>
-    /// 解放による並べ直しの下で、長押し（マウスと Enter）とアンカーの付け替えを確かめる（L1）
-    /// Verifies the hold (mouse and Enter) and the anchor move across an unlock relayout (L1)
+    /// 解放による並べ直しで長押し（マウスと Enter）が止まることとアンカーの付け替えを確かめる（L1）
+    /// Verifies the hold (mouse and Enter) stops and the anchor moves across an unlock relayout (L1)
     /// </summary>
     public class RecipeViewerRelayoutHoldTest : ScreenTestHost
     {
@@ -51,32 +51,39 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         }
 
         [Test]
-        public void 解放で並びが変わっても既存のエントリは同じ要素で長押しが続く()
+        public void 解放で並びが変わると同じ要素のまま長押しは止まり押し直しで再開する()
         {
             var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
             var guid = RecipeFixtures.RecipeGuid(2);
-            view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));
+            view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9))));
             simulate.FrameUpdate();
             var entry = view.Q($"craft-recipe-entry-{guid}");
-            simulate.MouseDown(entry.Q<RecipeActionButton>().worldBound.center);
-            for (var i = 0; i < 3; i++) simulate.FrameUpdateMs(100);
-
-            // 後ろに別レシピが解放された（押している要素の位置は動かない）
-            // Another recipe unlocks behind it (the pressed element does not move)
-            view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), CraftVm(RecipeFixtures.RecipeGuid(3), 0.4, true, false, Material(1, 1, 9))));
-            Assert.AreSame(entry, view.Q($"craft-recipe-entry-{guid}"));
-
-            // 合計 0.5 秒前後（初回の経過は 0〜0.25 秒）で 1 回＝SetEntries の付け外しを越えて経過を保った
-            // About 0.5 s in total (first delta 0 to 0.25 s) crafts once: progress survived the SetEntries detach and re-attach
+            var button = entry.Q<RecipeActionButton>();
+            simulate.MouseDown(button.worldBound.center);
             for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);
+            Assert.Greater(ArrowProgress(view, guid), 0f);
+
+            // 後ろに別レシピが解放された。要素は使い回すが、付け外しで捕捉が外れるので保持は止まる（D-34 を覆す判断記録）
+            // Another recipe unlocks behind it; the element is reused, but the detach drops capture so the hold stops (overrides D-34)
+            view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9)), CraftVm(RecipeFixtures.RecipeGuid(3), 1, true, false, Material(1, 1, 9))));
+            Assert.AreSame(entry, view.Q($"craft-recipe-entry-{guid}"));
+            Assert.AreEqual(0f, ArrowProgress(view, guid));
+            for (var i = 0; i < 5; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+
+            // 押し直すと始めから進み、合計 1 秒前後（初回の経過は 0〜0.25 秒）で 1 回作る
+            // A re-press starts from zero and crafts once in about 1 s (first delta 0 to 0.25 s)
+            simulate.MouseUp(button.worldBound.center);
+            simulate.MouseDown(button.worldBound.center);
+            for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
             CollectionAssert.AreEqual(new[] { guid }, _commands.Crafted);
         }
 
         [Test]
-        public void マウス保持中に並べ直してから離すと止まる()
+        public void マウス保持中に並べ直すとその場で止まり離しても作らない()
         {
-            // 付け外しでボタンの捕捉が外れても、離しは同じ位置のボタンに届いて長押しが止まる（Task 6 レビューの申し送り）
-            // Even if the detach drops the button's capture, the release reaches the button at the same spot and stops the hold (Task 6 review follow-up)
+            // 付け外しで保持を止めるので、離しが届くかに頼らない（Task 6 レビューの申し送り。D-34 を覆す判断記録）
+            // The detach ends the hold, so it does not rely on the release arriving (Task 6 review follow-up; overrides D-34)
             // 1 回の所要は 1 秒にし、離す前の経過（高々 0.35＋0.25 秒）でクラフトしないようにする
             // Use a 1 s cycle so the time before the release (at most 0.35 + 0.25 s) never crafts
             var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
@@ -90,10 +97,33 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
 
             view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9)), CraftVm(RecipeFixtures.RecipeGuid(3), 1, true, false, Material(1, 1, 9))));
             simulate.FrameUpdate();
-            Assert.Greater(ArrowProgress(view, guid), 0f);
-            simulate.MouseUp(button.worldBound.center);
             Assert.AreEqual(0f, ArrowProgress(view, guid));
+            simulate.MouseUp(button.worldBound.center);
             for (var i = 0; i < 10; i++) simulate.FrameUpdateMs(100);
+            Assert.IsEmpty(_commands.Crafted);
+        }
+
+        [Test]
+        public void マウス保持中に前へ解放されボタンがずれてから元の位置で離しても止まる()
+        {
+            // 前方追加で押したボタンが下へずれ、元の位置で離すと離しは別のボタンへ落ちる。それでもクラフトが続かない
+            // A front unlock shifts the pressed button down, so a release at the old spot lands elsewhere; crafting still does not continue
+            var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var guid = RecipeFixtures.RecipeGuid(2);
+            view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9))));
+            simulate.FrameUpdate();
+            var button = view.Q<RecipeActionButton>($"craft-button-{guid}");
+            var pressedAt = button.worldBound.center;
+            simulate.MouseDown(pressedAt);
+            for (var i = 0; i < 2; i++) simulate.FrameUpdateMs(100);
+            Assert.Greater(ArrowProgress(view, guid), 0f);
+
+            view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 1, true, false, Material(1, 1, 9)), CraftVm(guid, 1, true, false, Material(1, 1, 9))));
+            simulate.FrameUpdate();
+            Assert.AreNotEqual(pressedAt, button.worldBound.center);
+            Assert.AreEqual(0f, ArrowProgress(view, guid));
+            simulate.MouseUp(pressedAt);
+            for (var i = 0; i < 15; i++) simulate.FrameUpdateMs(100);
             Assert.IsEmpty(_commands.Crafted);
         }
 

@@ -34,8 +34,8 @@ namespace Client.Ui.Screens.Recipe.Parts
             button.RegisterCallback<KeyUpEvent>(OnKeyUp);
             button.RegisterCallback<BlurEvent>(_ => ReleaseEnter());
 
-            // 並べ直しで木から外れるとフォーカスが失われ KeyUp も届かないので、Enter の保持だけ解く（ポインタの保持は付け直しで続く。D-34）
-            // Detaching on relayout drops focus and no KeyUp arrives, so release only the Enter hold (a pointer hold resumes on re-attach; D-34)
+            // 並べ直しで木から外れるとフォーカスもポインタの捕捉も失われ離しが届かないので、保持をすべて解く（押し直しが要る。D-34 を覆す判断記録）
+            // Detaching on relayout drops focus and pointer capture so no release arrives; end every hold (a re-press is needed; overrides D-34)
             button.RegisterCallback<DetachFromPanelEvent>(_ => OnDetached());
         }
 
@@ -59,9 +59,9 @@ namespace Client.Ui.Screens.Recipe.Parts
 
         private void OnDetached()
         {
-            // silent-ok: Enter で保持していなければ外れても止めない（ポインタの保持は付け直しで続く）/ D-34 と RecipeViewerViewTest の並べ直しの件が見る
-            if (!_enterHeld) return;
-            ReleaseEnter();
+            _pressed = false;
+            _enterHeld = false;
+            _driver.Stop();
         }
 
         private void ReleaseEnter()

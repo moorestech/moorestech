@@ -32,8 +32,8 @@ namespace Client.Ui.Screens.Recipe.Parts
 
         public void Render(IReadOnlyList<RecipeEntryViewModel> entries)
         {
-            // 並びが変われば GUID の辞書で既存の要素を使い回して並べ直す（解放で増えても長押し中の要素は同じ。D-34）
-            // On an order change, reuse existing elements from the GUID map and re-lay them (an unlock keeps the holding element; D-34)
+            // 並びが変われば GUID の辞書で既存の要素を使い回して並べ直す（解放で増えても要素は同じ。長押しは外れで止まる）
+            // On an order change, reuse existing elements from the GUID map and re-lay them (an unlock keeps the element; the hold stops on detach)
             if (!SameOrder(entries)) Relayout(entries);
             foreach (var entry in entries) Apply(_viewsByGuid[entry.RecipeGuid], entry);
 
@@ -75,8 +75,8 @@ namespace Client.Ui.Screens.Recipe.Parts
                 _order.Clear();
                 foreach (var entry in entries) _order.Add(entry.RecipeGuid);
 
-                // SetEntries（C4-c）は一度外して付け直す。外れている間は長押しのスケジューラが止まり、同じフレームで付け直すので経過は保たれる（D-34）
-                // SetEntries (C4-c) detaches and re-attaches; the hold scheduler pauses while detached and resumes in the same frame, so progress is kept (D-34)
+                // SetEntries（C4-c）は一度外して付け直す。外れで長押しは止まり押し直しが要る（捕捉が外れ離しが届かないため。D-34 を覆す判断記録）
+                // SetEntries (C4-c) detaches and re-attaches; the detach stops the hold and a re-press is needed (capture is lost so no release arrives)
                 _scroll.SetEntries(next);
             }
 
