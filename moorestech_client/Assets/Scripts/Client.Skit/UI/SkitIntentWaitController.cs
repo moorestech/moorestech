@@ -4,9 +4,11 @@ using Cysharp.Threading.Tasks;
 
 namespace Client.Skit.UI
 {
-    public interface ISkitAutoAdvanceSink
+    // 送り待ちを解く直前に版を進める口。手動の送りも自動送りも同じ順で通る
+    // Hook that advances the revision right before an advance wait is released; manual and auto advance share it
+    public interface ISkitAdvanceReleaseSink
     {
-        void CompleteAutoAdvance();
+        void AdvanceRevisionBeforeRelease();
     }
 
     public class SkitIntentWaitController
@@ -16,12 +18,12 @@ namespace Client.Skit.UI
         private UniTaskCompletionSource<string> _selectionWait;
         private CancellationTokenSource _autoAdvanceCancellation;
         private ISkitActionController _actionController;
-        private ISkitAutoAdvanceSink _autoAdvanceSink;
+        private ISkitAdvanceReleaseSink _releaseSink;
 
-        public void Bind(ISkitActionController actionController, ISkitAutoAdvanceSink autoAdvanceSink)
+        public void Bind(ISkitActionController actionController, ISkitAdvanceReleaseSink releaseSink)
         {
             _actionController = actionController;
-            _autoAdvanceSink = autoAdvanceSink;
+            _releaseSink = releaseSink;
         }
 
         public void StartAdvanceWait()
@@ -51,8 +53,11 @@ namespace Client.Skit.UI
             return _advanceWait != null;
         }
 
+        // 版を進めてから待ちを解き、同じActionの再送をstaleにする
+        // Advance the revision before releasing the wait so a replayed Action becomes stale
         public void CompleteAdvance()
         {
+            _releaseSink.AdvanceRevisionBeforeRelease();
             var wait = _advanceWait;
             _advanceWait = null;
             CancelAutoAdvanceTimer();
@@ -91,7 +96,7 @@ namespace Client.Skit.UI
             var canceled = await UniTask.Delay(AutoAdvanceDelayMs, cancellationToken: token)
                 .SuppressCancellationThrow();
             if (!canceled && _advanceWait != null && _actionController.IsAuto)
-                _autoAdvanceSink.CompleteAutoAdvance();
+                CompleteAdvance();
         }
 
         private void CancelAutoAdvanceTimer()
