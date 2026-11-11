@@ -30,7 +30,6 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         private readonly BuildMenuCategoryScrollTracker _tracker;
         private readonly CompositeDisposable _subscriptions = new();
         private UiMotionHandle _motion;
-        private bool _forwarding;
         private bool _frozen;
         private float _frozenScrollTop;
 
@@ -40,9 +39,9 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             _list = list;
             _tracker = tracker;
 
-            // 位置は最初の復元の後だけ流す。復元前に ScrollView が流す 0 で保存位置を潰さない（L-3。D-8）
-            // Forward offsets only after the first restore so the ScrollView's pre-restore 0 never flattens the saved position (L-3, D-8)
-            scroll.OnScrollOffsetChanged.Where(_ => _forwarding).Subscribe(tracker.OnScrolled).AddTo(_subscriptions);
+            // 位置の通知はそのまま流す。開き直しで復元前に 0 が流れないことは実測済み（L-3。D-8）
+            // Forward offsets as they come; measured that no pre-restore 0 flows on reopen (L-3, D-8)
+            scroll.OnScrollOffsetChanged.Subscribe(tracker.OnScrolled).AddTo(_subscriptions);
 
             // 中身・視口・スペーサの寸法が変わったらトラッカーへ（L-1。D-9）
             // Content, viewport and spacer size changes go to the tracker (L-1, D-9)
@@ -95,7 +94,6 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             if (WarnIfFrozen(nameof(SetScrollTopImmediately))) return;
             _motion?.Cancel();
             _scroll.SetScrollOffset(scrollTop);
-            _forwarding = true;
         }
 
         public void ScrollSmoothlyTo(float scrollTop)
@@ -120,7 +118,6 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         {
             _frozenScrollTop = _scroll.scrollOffset.y;
             _frozen = true;
-            _forwarding = false;
             _motion?.Cancel();
             _subscriptions.Dispose();
             _list.Spacer.UnregisterCallback<GeometryChangedEvent>(OnSpacerGeometryChanged);
