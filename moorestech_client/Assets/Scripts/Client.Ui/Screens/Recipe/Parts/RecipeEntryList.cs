@@ -19,8 +19,9 @@ namespace Client.Ui.Screens.Recipe.Parts
 
         private readonly RecipeEntryPartsContext _context;
         private readonly RecipeListScrollView _scroll = new(ListTestId);
-        private readonly Dictionary<Guid, VisualElement> _viewsByGuid = new();
-        private readonly List<Guid> _order = new();
+        private readonly Dictionary<Guid, CraftRecipeEntryView> _craftViewsByGuid = new();
+        private readonly Dictionary<Guid, MachineRecipeEntryView> _machineViewsByGuid = new();
+        private readonly List<VisualElement> _order = new();
 
         public RecipeEntryList(RecipeEntryPartsContext context)
         {
@@ -32,77 +33,89 @@ namespace Client.Ui.Screens.Recipe.Parts
 
         public void Render(IReadOnlyList<RecipeEntryViewModel> entries)
         {
-            // 並びが変われば GUID の辞書で既存の要素を使い回して並べ直す（解放で増えても要素は同じ。長押しは外れで止まる）
-            // On an order change, reuse existing elements from the GUID map and re-lay them (an unlock keeps the element; the hold stops on detach)
-            if (!SameOrder(entries)) Relayout(entries);
-            foreach (var entry in entries) Apply(_viewsByGuid[entry.RecipeGuid], entry);
+            // 種類ごとの GUID の辞書で既存の要素を引き、新しいものだけ作る（解放で増えても要素は同じ。長押しは外れで止まる）
+            // Look up existing elements in the per-kind GUID maps and create only new ones (an unlock keeps the element; the hold stops on detach)
+            var next = new List<VisualElement>(entries.Count);
+            foreach (var entry in entries) next.Add(Resolve(entry));
+
+            // 並びが変わったときだけ付け直し、そのあと全エントリへ VM を描く
+            // Re-lay only when the order changed, then render every entry's VM
+            if (!SameOrder(next)) Relayout(next);
+            foreach (var entry in entries) Apply(entry);
 
             #region Internal
 
-            bool SameOrder(IReadOnlyList<RecipeEntryViewModel> entries)
+            VisualElement Resolve(RecipeEntryViewModel entry)
             {
-                if (entries.Count != _order.Count) return false;
-                for (var i = 0; i < entries.Count; i++)
+                switch (entry)
                 {
-                    if (entries[i].RecipeGuid != _order[i]) return false;
+                    case CraftRecipeEntryViewModel craft:
+                        if (!_craftViewsByGuid.TryGetValue(craft.RecipeGuid, out var craftView))
+                        {
+                            craftView = new CraftRecipeEntryView(craft, _context);
+                            _craftViewsByGuid.Add(craft.RecipeGuid, craftView);
+                        }
+                        return craftView;
+                    case MachineRecipeEntryViewModel machine:
+                        if (!_machineViewsByGuid.TryGetValue(machine.RecipeGuid, out var machineView))
+                        {
+                            machineView = new MachineRecipeEntryView(machine, _context);
+                            _machineViewsByGuid.Add(machine.RecipeGuid, machineView);
+                        }
+                        return machineView;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(entry), entry, "未知のレシピエントリ");
+                }
+            }
+
+            bool SameOrder(List<VisualElement> next)
+            {
+                if (next.Count != _order.Count) return false;
+                for (var i = 0; i < next.Count; i++)
+                {
+                    if (next[i] != _order[i]) return false;
                 }
                 return true;
             }
 
-            void Relayout(IReadOnlyList<RecipeEntryViewModel> entries)
+            void Relayout(List<VisualElement> next)
             {
-                // 残る GUID は既存の要素を、新しい GUID だけ作る
-                // Keep elements for surviving GUIDs and create only new ones
-                var next = new List<VisualElement>(entries.Count);
-                var kept = new HashSet<Guid>();
-                foreach (var entry in entries)
-                {
-                    kept.Add(entry.RecipeGuid);
-                    if (!_viewsByGuid.TryGetValue(entry.RecipeGuid, out var view))
-                    {
-                        view = Create(entry);
-                        _viewsByGuid.Add(entry.RecipeGuid, view);
-                    }
-                    next.Add(view);
-                }
-
-                // 消えた GUID の要素は捨てる
-                // Drop elements whose GUID is gone
-                foreach (var guid in _order)
-                {
-                    if (!kept.Contains(guid)) _viewsByGuid.Remove(guid);
-                }
+                // 消えたエントリの要素は辞書から捨てる
+                // Drop elements of entries that are gone from the maps
+                var kept = new HashSet<VisualElement>(next);
+                RemoveDropped(_craftViewsByGuid, kept);
+                RemoveDropped(_machineViewsByGuid, kept);
                 _order.Clear();
-                foreach (var entry in entries) _order.Add(entry.RecipeGuid);
+                _order.AddRange(next);
 
                 // SetEntries（C4-c）は一度外して付け直す。外れで長押しは止まり押し直しが要る（捕捉が外れ離しが届かないため。D-34 を覆す判断記録）
                 // SetEntries (C4-c) detaches and re-attaches; the detach stops the hold and a re-press is needed (capture is lost so no release arrives)
                 _scroll.SetEntries(next);
             }
 
-            VisualElement Create(RecipeEntryViewModel entry)
+            void Apply(RecipeEntryViewModel entry)
             {
-                return entry switch
+                switch (entry)
                 {
-                    CraftRecipeEntryViewModel craft => new CraftRecipeEntryView(craft, _context),
-                    MachineRecipeEntryViewModel machine => new MachineRecipeEntryView(machine, _context),
-                    _ => throw new ArgumentOutOfRangeException(nameof(entry), entry, "未知のレシピエントリ"),
-                };
-            }
-
-            static void Apply(VisualElement view, RecipeEntryViewModel entry)
-            {
-                switch (view)
-                {
-                    case CraftRecipeEntryView craftView:
-                        craftView.Render((CraftRecipeEntryViewModel)entry);
+                    case CraftRecipeEntryViewModel craft:
+                        _craftViewsByGuid[craft.RecipeGuid].Render(craft);
                         break;
-                    case MachineRecipeEntryView machineView:
-                        machineView.Render((MachineRecipeEntryViewModel)entry);
+                    case MachineRecipeEntryViewModel machine:
+                        _machineViewsByGuid[machine.RecipeGuid].Render(machine);
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(view), view, "未知のレシピエントリの要素");
+                        throw new ArgumentOutOfRangeException(nameof(entry), entry, "未知のレシピエントリ");
                 }
+            }
+
+            static void RemoveDropped<TView>(Dictionary<Guid, TView> viewsByGuid, HashSet<VisualElement> kept) where TView : VisualElement
+            {
+                var dropped = new List<Guid>();
+                foreach (var pair in viewsByGuid)
+                {
+                    if (!kept.Contains(pair.Value)) dropped.Add(pair.Key);
+                }
+                foreach (var guid in dropped) viewsByGuid.Remove(guid);
             }
 
             #endregion
