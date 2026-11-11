@@ -117,8 +117,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         [Test]
         public void 復元の前に閉じても保存位置を上書きしない()
         {
-            // 開いて最初のレイアウトが済む前に閉じる。Web は閉じるときに保存しないので、保存位置は残る
-            // Close before the first layout settles; the Web never saves on close, so the saved position survives
+            // 開いて最初のレイアウトが済む前に閉じる。復元前の位置で保存位置を潰さないため、保存位置は残る
+            // Close before the first layout settles; a pre-restore position must not flatten the saved one, so it survives
             Session.SetScrollTop(150f);
             View.Render(Create());
             View.SetShown(true);

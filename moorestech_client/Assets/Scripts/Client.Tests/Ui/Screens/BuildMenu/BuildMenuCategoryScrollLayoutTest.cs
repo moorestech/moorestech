@@ -163,8 +163,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         [Test]
         public void 復元前の位置は閉じても保存しない()
         {
-            // 末尾群が未配置で復元前のまま閉じても、保存位置は残る（Web は閉じるときに保存しない）
-            // Closing before the restore, while the last group is unplaced, keeps the saved position (the Web never saves on close)
+            // 末尾群が未配置で復元前のまま閉じても、保存位置は残る（復元前の位置で保存位置を潰さないため）
+            // Closing before the restore, while the last group is unplaced, keeps the saved position (a pre-restore position must not flatten the saved one)
             _session.SetScrollTop(250f);
             var viewport = new FakeBuildMenuScrollViewport(600f, 1200f, 0f);
             _tracker.SetVisibleCategories(new[] { A });

@@ -107,8 +107,8 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             // silent-ok: 視口を外した後の遅延通知・保存は何もしない / 次の AttachViewport が保存位置から復元をやり直す
             // silent-ok: late notifications after the viewport detaches do nothing / the next AttachViewport redoes the restore from the saved position
             if (_viewport == null) return;
-            // silent-ok: 復元前の位置は保存位置ではない（閉じた後の 0 で潰さない。Web も復元後と scroll 通知でしか保存しない） / 次の AttachViewport が保存位置から復元する
-            // silent-ok: a pre-restore position is not the saved one (never flatten it with the post-hide 0; the Web also saves only after restore and on scroll) / the next AttachViewport restores from the saved position
+            // silent-ok: 復元前の位置は保存位置ではない（復元前の 0 等の位置で保存位置を潰さない） / 次の AttachViewport が保存位置から復元する
+            // silent-ok: a pre-restore position is not the saved one (never flatten the saved position with a pre-restore value such as 0) / the next AttachViewport restores from the saved position
             if (!_scrollRestored) return;
             _session.SetScrollTop(_viewport.ScrollTop);
         }
