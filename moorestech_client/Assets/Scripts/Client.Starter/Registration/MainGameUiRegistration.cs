@@ -90,6 +90,7 @@ namespace Client.Starter.Registration
             BuildMenuGameUiRegistration.Register(builder);
             HotbarGameUiRegistration.Register(builder);
             ModalGameUiRegistration.Register(builder);
+            NotificationGameUiRegistration.Register(builder);
         }
     }
 }
