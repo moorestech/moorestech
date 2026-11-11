@@ -38,7 +38,7 @@ namespace Client.Ui.Screens.Notification
             AddToClassList("notification-host");
             pickingMode = PickingMode.Ignore;
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
-            RegisterCallback<GeometryChangedEvent>(_ => OnGeometryChanged());
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             RegisterCallback<AttachToPanelEvent>(attachEvent => _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts()));
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
@@ -47,7 +47,7 @@ namespace Client.Ui.Screens.Notification
         {
             // 尺はトークンから読むので、スタイル解決前の描画は解決後まで最新の 1 つを預かる
             // Durations come from tokens, so a render before style resolution keeps the latest one until it resolves
-            // silent-ok: パネルに付いてスタイルが解決するまでの一時的な預かり / 解決が来ないまま配置まで進んだら（tss の @import 漏れ等）OnGeometryChanged の ReportUnresolvedStyle が LogError を出す
+            // silent-ok: パネルに付いてスタイルが解決するまでの一時的な預かり / 解決が来ないまま配置まで進んだら（tss の @import 漏れ等）OnGeometryChanged が LogError を出す
             if (_timing == null)
             {
                 _waitingForStyle = viewModel;
@@ -67,27 +67,28 @@ namespace Client.Ui.Screens.Notification
 
                 // 合流で生存尺が回り直したら、文を差し替えて 2 本を頭から再生する（行の要素と位置は保つ）
                 // When a merge restarts the lifetime, swap the text and replay both tweens from the head (keeping the element and position)
-                shown.Motion.Cancel();
+                shown.StopLifetime();
                 shown.View.Show(row, TextOf(row), _icons);
-                shown.Restart(row.LifetimeEpoch, PlayLifetime(shown.View, row.Id));
+                StartLifetime(shown, row);
                 return;
             }
 
-            // 新着は最上段へ（Web の column-reverse と同じ見え方）
-            // The newest goes on top (same look as the Web column-reverse)
-            var view = new NotificationRowView();
-            view.Show(row, TextOf(row), _icons);
-            Insert(0, view);
-            _shownRows.Add(row.Id, new ShownRow(view, row.LifetimeEpoch, PlayLifetime(view, row.Id)));
+            // 新着は最上段へ（Web の column-reverse と同じ見え方）。登録してから生存を回し、除去の再入が必ず行を見つけるようにする
+            // The newest goes on top (same look as the Web column-reverse); register before starting the lifetime so a re-entrant removal always finds the row
+            var added = new ShownRow(new NotificationRowView());
+            added.View.Show(row, TextOf(row), _icons);
+            Insert(0, added.View);
+            _shownRows.Add(row.Id, added);
+            StartLifetime(added, row);
         }
 
-        private NotificationRowLifetimeHandle PlayLifetime(NotificationRowView view, long id)
+        private void StartLifetime(ShownRow shown, NotificationRow row)
         {
             // 退場の終わりで行を書き口から除く。除去と退場が同じパネルの時計に乗る（除去の経路はこれだけ。D-2）
             // Remove the row through the write side at the exit end, so removal and exit share the panel clock (the only removal path, D-2)
-            var handle = NotificationRowLifetime.Play(view, _timing);
-            handle.ExitCompleted.Subscribe(_ => _writer.RemoveNotification(id));
-            return handle;
+            var handle = NotificationRowLifetime.Play(shown.View, _timing);
+            var exitSubscription = handle.ExitCompleted.Subscribe(_ => _writer.RemoveNotification(row.Id));
+            shown.SetLifetime(row.LifetimeEpoch, handle, exitSubscription);
         }
 
         private void RemoveVanishedRows(NotificationListViewModel viewModel)
@@ -96,7 +97,7 @@ namespace Client.Ui.Screens.Notification
             foreach (var id in _shownRows.Keys.Where(id => !alive.Contains(id)).ToList())
             {
                 var shown = _shownRows[id];
-                shown.Motion.Cancel();
+                shown.StopLifetime();
                 shown.View.RemoveFromHierarchy();
                 _shownRows.Remove(id);
             }
@@ -137,21 +138,17 @@ namespace Client.Ui.Screens.Notification
             _timing = hasEnter && hasExit && hasShift
                 ? new NotificationRowTiming(enter, exit, NotificationModel.DisplayMilliseconds, shift)
                 : new NotificationRowTiming(0f, 0f, NotificationModel.DisplayMilliseconds, 0f);
+            UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
             var waiting = _waitingForStyle;
             _waitingForStyle = null;
             if (waiting != null) Render(waiting);
         }
 
-        private void OnGeometryChanged()
+        // 配置まで進んでも画面 USS の受け直しが来ていなければ、預かった通知は出ない。無音にしないため開発者に知らせる（尺が決まると購読を外す）
+        // If layout ran but the screen USS custom properties never resolved, held notifications never show; tell developers (unsubscribed once durations are known)
+        private void OnGeometryChanged(GeometryChangedEvent geometryEvent)
         {
-            ReportUnresolvedStyle();
-        }
-
-        private void ReportUnresolvedStyle()
-        {
-            // 配置まで進んでも画面 USS の受け直しが来ていなければ、預かった通知は出ない。無音にしないため開発者に知らせる
-            // If layout ran but the screen USS custom properties never resolved, held notifications never show; tell developers instead of staying silent
             if (_timing == null && _waitingForStyle != null) Debug.LogError("[NotificationHostView] custom style not resolved after layout; is Notification.uss imported by GameUiTheme.tss and the notification-host class present?");
         }
 
@@ -165,7 +162,7 @@ namespace Client.Ui.Screens.Notification
 
         private void ApplyScreenLeft()
         {
-            // silent-ok: 画面 USS の解決前は 16px が未知なので置かない / 読めなければ UssCustomStyleReader が LogError、解決しないまま行が来れば ReportUnresolvedStyle が LogError
+            // silent-ok: 画面 USS の解決前は 16px が未知なので置かない / 読めなければ UssCustomStyleReader が LogError、解決しないまま行が来れば OnGeometryChanged が LogError
             if (_screenLeftPixels == null) return;
             style.left = _screenLeftPixels.Value / _stageScale;
         }
@@ -173,20 +170,28 @@ namespace Client.Ui.Screens.Notification
         private sealed class ShownRow
         {
             public readonly NotificationRowView View;
+            private NotificationRowLifetimeHandle _motion;
+            private IDisposable _exitSubscription;
             public int LifetimeEpoch { get; private set; }
-            public NotificationRowLifetimeHandle Motion { get; private set; }
 
-            public ShownRow(NotificationRowView view, int lifetimeEpoch, NotificationRowLifetimeHandle motion)
+            public ShownRow(NotificationRowView view)
             {
                 View = view;
-                LifetimeEpoch = lifetimeEpoch;
-                Motion = motion;
             }
 
-            public void Restart(int lifetimeEpoch, NotificationRowLifetimeHandle motion)
+            public void SetLifetime(int lifetimeEpoch, NotificationRowLifetimeHandle motion, IDisposable exitSubscription)
             {
                 LifetimeEpoch = lifetimeEpoch;
-                Motion = motion;
+                _motion = motion;
+                _exitSubscription = exitSubscription;
+            }
+
+            // 取り消した生存の退場の購読も切り、古い終わりが行を消す余地を残さない
+            // Also drop the cancelled lifetime's exit subscription so a stale end can never remove the row
+            public void StopLifetime()
+            {
+                _motion.Cancel();
+                _exitSubscription.Dispose();
             }
         }
     }

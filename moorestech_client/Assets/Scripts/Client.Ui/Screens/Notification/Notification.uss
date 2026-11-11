@@ -49,9 +49,7 @@
     flex-grow: 1;
     flex-shrink: 1;
     min-width: 0;
-    /* UITK の 1 行目は字の自然な高さ 21px（Latin 15px の実測）で Web の行 18px より 3px 高い。上下 -1.5px で CSS の負の half-leading と同じく字を行からはみ出させる（2 行目以降は 18px 送り） */
-    /* UITK's first line is the natural glyph height of 21px (measured, Latin 15px), 3px taller than the Web 18px line; -1.5px top and bottom lets glyphs overflow like CSS negative half-leading (later lines advance 18px) */
-    margin: -1.5px 0;
+    margin: 0;
     padding: 0;
     white-space: normal;
     -unity-text-align: middle-left;
@@ -59,10 +57,11 @@
     /* 0.055em×15px=0.825px。UITK の letter-spacing の px は「文字の大きさ/100×値」で効くので 0.825÷0.15 */
     /* 0.055em x 15px = 0.825px; a UITK letter-spacing px acts as font-size/100 x value, so 0.825 / 0.15 */
     letter-spacing: 5.5px;
-    /* 行の高さは Web の 15px×1.2＝18px。1 行目は min-height、2 行目以降の行送りは LocalizedLabel のつまみ（TooltipFace.uss の前例） */
-    /* Line height is the Web 15px x 1.2 = 18px: min-height for the first line, LocalizedLabel's knob for the pitch after it (TooltipFace.uss precedent) */
-    min-height: 18px;
-    --localized-label-line-height: 18px;
+    /* 2 行目以降の行送りは Web の 15px×1.2＝18px を LocalizedLabel のつまみで写す（TooltipFace.uss の前例） */
+    /* 1 行目は字の自然な高さ（実測 Latin 21px・JP 22px）で Web の 18px より高く、USS にも <line-height> にも縮める手段が無いので行が 3〜4px 高い（LX-39） */
+    /* Lines after the first advance the Web 15px x 1.2 = 18px through LocalizedLabel's knob (TooltipFace.uss precedent) */
+    /* The first line takes the natural glyph height (measured Latin 21px, JP 22px), taller than the Web 18px, and neither USS nor <line-height> can shrink it, so rows are 3-4px taller (LX-39) */
+    --localized-label-line-height: 18px; /* look-exception: LX-39 */
     color: var(--text-high-contrast);
     /* Web style.module.css:38 の直書きの値を持つ通知専用のトークン（I-fix2 が DerivedTokens に足した） */
     /* Notification-only token holding the Web style.module.css:38 literal (added to DerivedTokens by I-fix2) */

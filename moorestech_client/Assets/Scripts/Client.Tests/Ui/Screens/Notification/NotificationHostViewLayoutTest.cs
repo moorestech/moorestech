@@ -2,6 +2,7 @@ using System;
 using Client.Localization;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.Notification;
+using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Notification.Content;
@@ -121,17 +122,30 @@ namespace Client.Tests.Ui.Screens.Notification
             Localize.TrySetChosenLanguage("japanese");
             AdvancePanel(0);
             StringAssert.Contains("研究完了", RowAt(0).Q<Label>(className: "notification-row__text").text);
-            Assert.Greater(TextLookup.ContentTextCalls, callsBefore);
+            // 表示中の 1 行を言語の切り替えで 1 回だけ解き直す（Task 3 の申し送り: 解く回数）
+            // The one shown row is re-resolved exactly once by the language switch (Task 3 hand-off: resolve count)
+            Assert.AreEqual(Host.childCount, TextLookup.ContentTextCalls - callsBefore);
         }
 
-        [Test]
-        public void ホストと行は入力を奪わない()
+        // 1 行目は字の自然な高さ（LX-39。Latin 21・JP 22px）、2 行目以降は Web の 18px 送り。アイコンの行の 1 行は Web と同じ 34px
+        // The first line is the natural glyph height (LX-39; Latin 21, JP 22px) and later lines advance the Web 18px; a one-line icon row is the Web 34px
+        [TestCase("english", false, 21f, "Ore", "Refined copper plate bundle")]
+        [TestCase("japanese", true, 22f, "鉱石", "精錬した銅の板を束ねた品物です")]
+        public void 文の1行目は字の自然な高さで2行目からは18px送り(string languageCode, bool cjk, float firstLineHeight, string shortName, string wrappingName)
         {
+            Localize.TrySetChosenLanguage(languageCode);
+            rootVisualElement.EnableInClassList(GameUiLocaleClass.CjkClassName, cjk);
+            TextLookup.SetItemName(new ItemId(7), shortName);
+            TextLookup.SetItemName(new ItemId(9), wrappingName);
+            Model.AddNotification(Earned(9, 1, "itemEarned.mined"));
             Model.AddNotification(Earned(7, 1, "itemEarned.mined"));
             AdvancePanel(0);
             AdvancePanel(300);
-            var picked = Host.panel.Pick(RowAt(0).worldBound.center);
-            Assert.IsFalse(picked != null && (picked == Host || Host.Contains(picked)), $"picked {picked?.name}");
+            var oneLine = RowAt(0).Q<Label>(className: "notification-row__text");
+            var twoLines = RowAt(1).Q<Label>(className: "notification-row__text");
+            Assert.AreEqual(firstLineHeight, oneLine.layout.height, 0.5f, "one line");
+            Assert.AreEqual(firstLineHeight + 18f, twoLines.layout.height, 0.5f, $"two lines: {twoLines.text}");
+            Assert.AreEqual(34f, RowAt(0).layout.height, 0.5f, "one-line icon row");
         }
 
         [Test]
