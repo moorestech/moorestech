@@ -34,10 +34,7 @@ return PlaytestRunner.Run("uitk-skit", options, async p =>
     p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // Game View が裏タブだと描画されず、Recorder が初回フレーム待ちで timeScale=0 に固定してスキットの scaled Delay が返らないため表へ出す（vq8w・iefh）
     // A Game View behind another tab never renders, so the Recorder pins timeScale=0 and the skit's scaled delays never return; bring it to front (vq8w, iefh)
-    var tabFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
-    var gameView = System.Array.Find(Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>(), w => w.GetType().Name == "GameView");
-    var dockArea = typeof(UnityEditor.EditorWindow).GetField("m_Parent", tabFlags).GetValue(gameView);
-    dockArea.GetType().GetProperty("selected", tabFlags).SetValue(dockArea, ((System.Collections.IList)dockArea.GetType().GetField("m_Panes", tabFlags).GetValue(dockArea)).IndexOf(gameView));
+    Client.Playtest.Operations.Ui.PlaytestGameViewOps.BringToFront();
     await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
@@ -135,6 +132,7 @@ return PlaytestRunner.Run("uitk-skit", options, async p =>
     // MainGame.unity が CutSceneManager の PlayableDirector を無効で置いていて Play しても再生しない（本番に Play の呼び手は無い）。全体非表示の経路を見るため有効にする
     // MainGame.unity ships CutSceneManager's PlayableDirector disabled so Play does nothing (no production caller of Play); enable it to observe the whole-UI hiding path
     p.Note($"シーンの PlayableDirector.enabled={director.enabled}。有効にしてから再生する");
+    var directorWasEnabled = director.enabled;
     director.enabled = true;
     var playingNotices = new List<bool>();
     var noticeSubscription = Client.CutScene.TimelinePlayer.OnPlayingChanged.Subscribe(notice => playingNotices.Add(notice));
@@ -162,6 +160,9 @@ return PlaytestRunner.Run("uitk-skit", options, async p =>
     await p.Until(() => Client.Game.Common.GameStateController.CurrentState == Client.Game.Common.GameStateType.InGame, 5f, "段3 ゲーム状態がカットシーンを抜ける");
     await p.Until(() => root.resolvedStyle.display == DisplayStyle.Flex, 5f, "段4 カットシーンが終わるとルートが戻る");
     noticeSubscription.Dispose();
+    // 有効化はこの区間だけの観測用なので元の状態へ戻す
+    // The enabling was only for this observation, so restore the original state
+    director.enabled = directorWasEnabled;
 
     #region Internal
 

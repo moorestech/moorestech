@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
+using System.Reflection;
 using System.Threading;
 using Client.Ui.Editor.Capture;
 using Cysharp.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 namespace Client.Playtest.Operations.Ui
@@ -13,6 +16,29 @@ namespace Client.Playtest.Operations.Ui
     public static class PlaytestGameViewOps
     {
         private const float ResolutionApplyTimeoutSeconds = 5f;
+
+        /// <summary>
+        /// 裏タブの Game View を表へ出す。裏だと描画されず Recorder が timeScale=0 に固定する
+        /// Brings a Game View hidden behind another tab to front; a hidden one never renders and the Recorder pins timeScale=0
+        /// </summary>
+        public static void BringToFront()
+        {
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            var gameView = System.Array.Find(Resources.FindObjectsOfTypeAll<EditorWindow>(), w => w.GetType().Name == "GameView");
+            if (gameView == null)
+            {
+                throw new InvalidOperationException("[PlaytestGameViewOps] GameView window not found; cannot bring it to front");
+            }
+
+            var dockArea = typeof(EditorWindow).GetField("m_Parent", flags)?.GetValue(gameView);
+            if (dockArea == null)
+            {
+                throw new InvalidOperationException("[PlaytestGameViewOps] GameView is not docked (EditorWindow.m_Parent is null); cannot select its tab");
+            }
+
+            var panes = (IList)dockArea.GetType().GetField("m_Panes", flags).GetValue(dockArea);
+            dockArea.GetType().GetProperty("selected", flags).SetValue(dockArea, panes.IndexOf(gameView));
+        }
 
         public static async UniTask SetResolution(CancellationToken cancellationToken, int width, int height)
         {
