@@ -29,13 +29,6 @@ using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarE
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
 {
-    // 背景Editorでも注入入力が届くよう焦点無視へ切り替える（Windows の対話セッションで Escape が落ちる）
-    // Ignore focus so injected input reaches a background Editor (Escape was dropped in the Windows interactive session)
-    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-    SemanticInput.EnsureDevices();
-    InputSystem.EnableDevice(Keyboard.current);
-    InputSystem.EnableDevice(Mouse.current);
     // Game ViewがScene Viewの裏タブだと描画されず、Recorderが初回フレーム待ちでtimeScale=0に固定しスキットのscaled Delayが返らないため表タブへ出す
     // A Game View hidden behind the Scene View tab never renders, so the Recorder pins timeScale=0 awaiting its first frame and the skit's scaled delays never return; bring it to front
     Client.Playtest.Operations.Ui.PlaytestGameViewOps.BringToFront();
