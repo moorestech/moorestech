@@ -524,3 +524,4 @@ ui.commandRejected.blueprintDeleteUnknown,Could not delete the blueprint,Could n
 ui.commandRejected.buildMenuCloseRefused,Could not close the build menu right now,Could not close the build menu right now,今はビルドメニューを閉じられません,Das Baumenü kann gerade nicht geschlossen werden,지금은 건설 메뉴를 닫을 수 없습니다
 ui.commandRejected.hotbarSelectNotAccepted,The hotbar cannot be selected on this screen,The hotbar cannot be selected on this screen,この画面ではホットバーを選べません,Die Schnellleiste kann auf diesem Bildschirm nicht ausgewählt werden,이 화면에서는 단축바를 선택할 수 없습니다
 ui.commandRejected.modalResponseStale,This dialog is already closed,This dialog is already closed,このダイアログはすでに閉じています,Dieser Dialog ist bereits geschlossen,이 대화 상자는 이미 닫혔습니다
+ui.commandRejected.skitIntentRejected,The conversation did not accept that operation,The conversation did not accept that operation,会話がその操作を受け付けませんでした,Das Gespräch hat diese Aktion nicht angenommen,대화가 그 조작을 받아들이지 않았습니다

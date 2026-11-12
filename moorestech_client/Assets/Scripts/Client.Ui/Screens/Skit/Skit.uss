@@ -1,0 +1,104 @@
+/* S/Client.Ui/Screens/Skit/Skit.uss */
+/* web: moorestech_web/webui/src/features/skit/style.module.css の .root・.window・.speaker・.body・.rule・.advanceMarker・.backgroundLine・.transition */
+/* スキットは実画面いっぱいの透明な置き場に乗り、入力を受けるのは会話窓の文の区画・選択肢・ツールだけ。暗転は SkitTransition 層の全画面 */
+/* web: moorestech_web/webui/src/features/skit/style.module.css .root, .window, .speaker, .body, .rule, .advanceMarker, .backgroundLine and .transition */
+/* The skit rides a transparent full-screen host and only the window's text section, choices and tools take input; the blackout is a full-screen element on the SkitTransition layer */
+
+.skit-screen {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.skit-screen .skit-window {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+/* 上端のフェード帯を文の区画に含め、文字はその下の安全余白から始める（Web の padding-top: calc(top-fade + safe-area)） */
+/* The text section includes the top fade band and text starts below its safe area (Web padding-top: calc(top-fade + safe-area)) */
+.skit-screen .skit-window__section {
+    flex-grow: 1;
+    flex-direction: column;
+    padding-top: var(--skit-window-top-fade);
+    padding-bottom: var(--skit-window-edge-safe-area);
+}
+
+/* 1 行の話者は字形の既定の行の高さ（28.7px で約 41.97px＝1.4625em。前例 ResearchDetailPane の実測 16px 23.4）になり、Web の line-height 34.44px より 7.53px 高い */
+/* 差の半分 3.77px を上下の margin から引き、Web の半行間と同じ字の位置と罫線の位置にする（字の大きさ・フォントを変えたら測り直す） */
+/* A one-line speaker takes the glyph default line height (about 41.97px at 28.7px = 1.4625em; precedent ResearchDetailPane measured 16px 23.4), 7.53px taller than the Web line-height 34.44px */
+/* Half the gap, 3.77px, comes off the top and bottom margins so the glyph and the rule land where the Web half-leading puts them (re-measure if the font size or font changes) */
+.skit-screen .skit-window__speaker {
+    margin: 0;
+    margin-top: var(--skit-speaker-margin-top);
+    margin-bottom: var(--skit-speaker-half-leading-trim);
+    padding: 0;
+    padding-left: var(--skit-window-content-inset);
+    padding-right: var(--skit-rule-inset);
+    color: var(--text-high-contrast);
+    font-size: var(--skit-speaker-font-size);
+    --localized-label-line-height: 34.44px; /* web: line-height 1.2 × 28.7px */
+}
+
+.skit-screen .skit-window__rule {
+    padding-left: var(--skit-rule-inset);
+    padding-right: var(--skit-rule-inset);
+    margin-top: var(--skit-rule-margin-top);
+    margin-bottom: var(--skit-rule-margin-bottom);
+}
+
+.skit-screen .skit-window__body {
+    margin: 0;
+    padding: 0;
+    padding-left: var(--skit-window-content-inset);
+    padding-right: var(--skit-rule-inset);
+    color: var(--text-high-contrast);
+    font-size: var(--skit-body-font-size);
+    /* 1 行目は字形の既定の高さ（21.3px で約 31.15px）なので、Web の 31.95px との差の半分を上下の padding で足す */
+    /* The first line takes the glyph default height (about 31.15px at 21.3px), so top/bottom padding adds half the gap to the Web 31.95px */
+    padding-top: 0.4px;
+    padding-bottom: 0.4px;
+    white-space: pre-wrap;
+    --localized-label-line-height: 31.95px; /* web: line-height 1.5 × 21.3px */
+}
+
+/* 送り待ちの印は本文の右下に絶対配置し、本文の行を食わない */
+/* The advance marker sits absolutely at the body's bottom-right and never eats body lines */
+.skit-screen .skit-advance-marker {
+    position: absolute;
+    right: var(--skit-advance-marker-right);
+    bottom: var(--skit-window-edge-safe-area);
+    width: var(--skit-advance-marker-size);
+    height: var(--skit-advance-marker-size);
+    --skit-advance-marker-color: var(--select-cyan);
+    --skit-advance-marker-stroke: var(--skit-advance-marker-stroke-width);
+}
+
+.skit-screen .skit-background-line {
+    position: absolute;
+    right: 0;
+    bottom: var(--skit-background-bottom);
+    left: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    color: var(--text-high-contrast);
+    font-size: var(--skit-background-font-size);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -unity-text-align: middle-center;
+}
+
+.skit-transition {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: var(--skit-transition-face);
+}

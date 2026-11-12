@@ -31,11 +31,7 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
 {
     // Game ViewがScene Viewの裏タブだと描画されず、Recorderが初回フレーム待ちでtimeScale=0に固定しスキットのscaled Delayが返らないため表タブへ出す
     // A Game View hidden behind the Scene View tab never renders, so the Recorder pins timeScale=0 awaiting its first frame and the skit's scaled delays never return; bring it to front
-    var tabFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
-    var gameView = Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
-    var dockArea = typeof(UnityEditor.EditorWindow).GetField("m_Parent", tabFlags).GetValue(gameView);
-    var panes = (System.Collections.IList)dockArea.GetType().GetField("m_Panes", tabFlags).GetValue(dockArea);
-    dockArea.GetType().GetProperty("selected", tabFlags).SetValue(dockArea, panes.IndexOf(gameView));
+    Client.Playtest.Operations.Ui.PlaytestGameViewOps.BringToFront();
     await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkit();

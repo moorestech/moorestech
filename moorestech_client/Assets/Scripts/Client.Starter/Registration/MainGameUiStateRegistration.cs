@@ -1,3 +1,4 @@
+using Client.Skit.UI;
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.Train;
 using Client.Ui.State.Blueprint;
@@ -8,6 +9,7 @@ using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Research;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Settings;
+using Client.Ui.State.Skit;
 using VContainer;
 using VContainer.Unity;
 
@@ -58,6 +60,11 @@ namespace Client.Starter.Registration
             builder.Register<SettingsCommands>(Lifetime.Singleton).As<ISettingsCommands>();
             builder.RegisterEntryPoint<PauseMenuModel>().AsSelf();
             builder.RegisterEntryPoint<SettingsModel>().AsSelf();
+
+            // スキットの store と型付きコマンド。Web の action と GameUi の View が同じ失敗の写しを通るので両方の系で登録する。提示 Model は GameUi だけが読むので SkitGameUiRegistration（S2-skit D-54・D-82）
+            // Skit store and typed commands; Web actions and GameUi views share one failure mapping, so both systems register them; the presentation model is read only by GameUi, so SkitGameUiRegistration owns it (S2-skit D-54, D-82)
+            builder.RegisterInstance(SkitPresentationStateStore.Instance);
+            builder.Register<SkitCommands>(Lifetime.Singleton).As<ISkitCommands>();
         }
     }
 }

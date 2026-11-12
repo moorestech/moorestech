@@ -41,6 +41,7 @@ namespace Client.Ui.State.Commands
         BuildMenuCloseRefused,
         HotbarSelectNotAccepted,
         ModalResponseStale,
+        SkitIntentRejected,
     }
 
     /// <summary>
@@ -90,6 +91,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BuildMenuCloseRefused => false,
                 UiCommandRejectReason.HotbarSelectNotAccepted => true,
                 UiCommandRejectReason.ModalResponseStale => true,
+                UiCommandRejectReason.SkitIntentRejected => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -142,12 +144,13 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BuildMenuCloseRefused => LocalizationKeys.Ui.CommandRejected.BuildMenuCloseRefused,
                 UiCommandRejectReason.HotbarSelectNotAccepted => LocalizationKeys.Ui.CommandRejected.HotbarSelectNotAccepted,
                 UiCommandRejectReason.ModalResponseStale => LocalizationKeys.Ui.CommandRejected.ModalResponseStale,
+                UiCommandRejectReason.SkitIntentRejected => LocalizationKeys.Ui.CommandRejected.SkitIntentRejected,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
 
-        // 理由ごとの Web の失敗コード。送信手続き由来の 2 種は Detail（失敗コード）が優先される（UiCommandRejected.ToWireCode）
-        // Web failure code per reason; for the two submitter-derived reasons the Detail failure code wins (UiCommandRejected.ToWireCode)
+        // 理由ごとの Web の失敗コード。送信手続き由来の 2 種と SkitIntentRejected（store の失敗コード）は Detail が優先される（UiCommandRejected.ToWireCode）
+        // Web failure code per reason; for the two submitter-derived reasons and SkitIntentRejected (the store's failure code) the Detail wins (UiCommandRejected.ToWireCode)
         public static string ToWireCode(UiCommandRejectReason reason)
         {
             return reason switch
@@ -187,6 +190,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BuildMenuCloseRefused => "transition_not_allowed",
                 UiCommandRejectReason.HotbarSelectNotAccepted => "invalid_state",
                 UiCommandRejectReason.ModalResponseStale => "no_pending_modal",
+                UiCommandRejectReason.SkitIntentRejected => "skit_intent_rejected",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

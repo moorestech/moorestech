@@ -10,6 +10,7 @@ using Client.Game.InGame.FluidNetwork;
 using System.Collections.Generic;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
+using Client.Ui.State.Skit;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
@@ -95,7 +96,7 @@ namespace Client.WebUiHost.Game
             var nestedPauseScreens = resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>();
             var uiStateTopic = new UiStateTopic(hub, uiStateControl, uiStateDictionary, nestedPauseScreens);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
-            C4WebUiRegistration.Register(hub);
+            C4WebUiRegistration.Register(hub, resolver.Resolve<ISkitCommands>());
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
             // 現在言語トピックは開始ゲートより前に登録済み。ゲートを通らない接続経路のためここでも冪等に確かめる
             // The current-locale topic is registered ahead of the start gates; this idempotent call covers paths that skip them
