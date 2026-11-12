@@ -28,20 +28,21 @@ namespace Client.Game.InGame.Block
 
         public IObservable<BlockGameObject> OnBlockPlaced => _onBlockPlaced;
         private readonly Subject<BlockGameObject> _onBlockPlaced = new();
-        
         public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
         private readonly Subject<Vector3Int> _onBlockRemoved = new();
         public ulong OccupancyRevision { get; private set; }
-
         // ブロック種別ごとの索引。種別での列挙に全ブロック走査を使わないため
         // Per-block-type index, so enumerating one type needs no full scan
         private readonly BlockTypeIndex _blockTypeIndex = new();
 
+        // 占有セルからブロックを引く索引。設置照準がセルをたどるのに使う
+        // Occupied-cell index that placement aim traverses
+        public BlockOccupiedCellIndex OccupiedCells { get; private set; } = new();
+
         // ブロックGUID別の最近傍索引。全ブロック走査での最寄り探索を毎フレーム回さないため（前例: OutcropGameObjectDatastore）
         // Per-block-GUID nearest index, so no per-frame full scan is needed for nearest lookups (precedent: OutcropGameObjectDatastore)
         private readonly NearestTargetIndex<BlockGameObject> _nearestIndex = new();
-        
-        
+
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
             return _blockObjectsDictionary.GetValueOrDefault(position);
@@ -100,13 +101,10 @@ namespace Client.Game.InGame.Block
                 // IDが違うため削除（BlockInstanceId辞書からも削除）
                 // Delete because the ID is different (also remove from BlockInstanceId dictionary)
                 var oldBlock = _blockObjectsDictionary[blockPosition];
-                _blockObjectsByInstanceIdDictionary.Remove(oldBlock.BlockInstanceId);
-                DropFromNearestIndex(oldBlock);
-                _blockTypeIndex.Remove(oldBlock);
+                ForgetFromIndexes(oldBlock);
                 Destroy(oldBlock.gameObject);
                 _blockObjectsDictionary.Remove(blockPosition);
             }
-
             // 新しいブロックを設置
             // Place a new block
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockId);
@@ -124,6 +122,7 @@ namespace Client.Game.InGame.Block
             _blockObjectsByInstanceIdDictionary.Add(blockInstanceId, block);
             _nearestIndex.Register(block.BlockMasterElement.BlockGuid, block);
             _blockTypeIndex.Register(block);
+            OccupiedCells.Register(block.BlockPosInfo);
             OccupancyRevision++;
             _onBlockPlaced.OnNext(block);
         }
@@ -136,9 +135,7 @@ namespace Client.Game.InGame.Block
 
             var block = _blockObjectsDictionary[blockPosition];
             block.DestroyBlock().Forget();
-            _blockObjectsByInstanceIdDictionary.Remove(block.BlockInstanceId);
-            DropFromNearestIndex(block);
-            _blockTypeIndex.Remove(block);
+            ForgetFromIndexes(block);
             _blockObjectsDictionary.Remove(blockPosition);
             OccupancyRevision++;
             
@@ -147,6 +144,16 @@ namespace Client.Game.InGame.Block
             _onBlockRemoved.OnNext(blockPosition);
         }
         
+        // 辞書から消すのと同じ瞬間に全索引から外す。破棄アニメ中は設置照準にも当たらない
+        // Drop from every index the moment it leaves the dictionary, so a destroy animation is not hit by placement aim
+        private void ForgetFromIndexes(BlockGameObject block)
+        {
+            _blockObjectsByInstanceIdDictionary.Remove(block.BlockInstanceId);
+            DropFromNearestIndex(block);
+            _blockTypeIndex.Remove(block);
+            OccupiedCells.Remove(block.BlockPosInfo);
+        }
+
         // 索引は墓標で外す。破棄アニメ中も探索対象へ戻らないよう、辞書から消すのと同じ瞬間に立てる
         // The index drops it as a tombstone, raised the moment it leaves the dictionary so a destroy animation never keeps it searchable
         private void DropFromNearestIndex(BlockGameObject block)
