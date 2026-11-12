@@ -10,7 +10,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
     /// 呼ばれた操作を文字列で記録する。落としは源と先の組だけを記録し、結果は HotbarDropResolverTest が固定する
     /// Records the called operations as strings; a drop records only the source and target pair, whose outcome HotbarDropResolverTest pins
     /// </summary>
-    internal sealed class RecordingHotbarCommands : IHotbarCommands
+    public sealed class RecordingHotbarCommands : IHotbarCommands
     {
         public readonly List<string> Calls = new();
 
