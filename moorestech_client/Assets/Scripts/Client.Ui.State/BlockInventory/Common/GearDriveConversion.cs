@@ -5,8 +5,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Ui.State.BlockInventory.Common
 {
     /// <summary>
-    /// 歯車駆動か。純関数で、異常はログでなく結果に載せて返す（呼び手の Model が自分の旗で 1 回出す）
-    /// Whether gear-driven; port of Web GearDetailDtoBuilder.Apply. Pure: an anomaly is returned in the result and the calling Model reports it once with its own flag
+    /// 歯車の状態とマスタの param から歯車駆動の種類を読む 1 か所（族・機械の Model、特殊族の Reader、Web ホストの DTO が共有する）。純関数で、異常はログでなく結果に載せ、どう縮退するかは呼び手が決める
+    /// The single reader of the gear-drive kind from the gear state and master param (shared by family/machine models, the special reader and the Web host DTO); pure: an anomaly is returned in the result and each caller chooses its fallback
     /// </summary>
     public static class GearDriveConversion
     {
@@ -17,32 +17,45 @@ namespace Client.Ui.State.BlockInventory.Common
 
         public static GearDriveReading Read(GearStateDetail gear, object param)
         {
-            // 歯車の詳細が無ければ電力駆動
-            // No gear state detail means electric, as Web data.gear === undefined
-            if (gear == null) return GearDriveReading.Healthy(false);
-            if (gear.Role == GearRole.Generator) return GearDriveReading.Healthy(true);
+            // 歯車の詳細が無ければ電力駆動、役割はサーバーの GearStateDetail.Role に従う
+            // No gear state detail means electric; the role follows the server-sent GearStateDetail.Role
+            if (gear == null) return new GearDriveReading(GearDriveKind.Electric, null, null);
+            if (gear.Role == GearRole.Generator) return new GearDriveReading(GearDriveKind.Generator, null, null);
 
-            // 消費の値が無いのは不整合。Web と同じく電力扱いにして異常を返す
-            // A consumer without a consumption param is inconsistent; like Web, treat as electric and return the anomaly
-            if (param is IGearConsumptionParam) return GearDriveReading.Healthy(true);
-            return GearDriveReading.Inconsistent($"[GearDriveConversion] Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam; treated as electric like the Web host");
+            // 消費側なのに消費の param が無いのはマスタの食い違い
+            // A consumer without a consumption param is a master mismatch
+            if (param is IGearConsumptionParam consumption) return new GearDriveReading(GearDriveKind.Consumer, consumption, null);
+            return new GearDriveReading(GearDriveKind.InconsistentConsumer, null, $"Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam");
         }
+    }
+
+    public enum GearDriveKind
+    {
+        Electric,
+        Generator,
+        Consumer,
+        InconsistentConsumer,
     }
 
     public readonly struct GearDriveReading
     {
-        public readonly bool IsGearDriven;
-        // 異常の文面。無ければ null
-        // Anomaly text; null when none
+        public readonly GearDriveKind Kind;
+        // 消費側の消費の値。Consumer 以外は null
+        // The consumer's consumption param; null unless Consumer
+        public readonly IGearConsumptionParam ConsumptionParam;
+        // 異常の文面。InconsistentConsumer 以外は null
+        // Anomaly text; null unless InconsistentConsumer
         public readonly string Anomaly;
 
-        private GearDriveReading(bool isGearDriven, string anomaly)
+        // 歯車で動くか（食い違いは Web と同じく電力扱い）
+        // Whether gear-driven (a mismatch counts as electric, as on the Web)
+        public bool IsGearDriven => Kind == GearDriveKind.Generator || Kind == GearDriveKind.Consumer;
+
+        internal GearDriveReading(GearDriveKind kind, IGearConsumptionParam consumptionParam, string anomaly)
         {
-            IsGearDriven = isGearDriven;
+            Kind = kind;
+            ConsumptionParam = consumptionParam;
             Anomaly = anomaly;
         }
-
-        public static GearDriveReading Healthy(bool isGearDriven) => new(isGearDriven, null);
-        public static GearDriveReading Inconsistent(string anomaly) => new(false, anomaly);
     }
 }

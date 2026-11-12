@@ -1,6 +1,7 @@
 using Client.Localization;
 using Client.Ui.Content;
 using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.Text;
@@ -25,14 +26,14 @@ namespace Client.Ui.Screens.BlockInventory.Context
             name = "machine-input-stall-section-view";
         }
 
-        public void Render(ContextEntry<MachineInputStall> entry)
+        public void Render(SectionContent<MachineInputStall> entry)
         {
-            if (entry is UnavailableContextEntry<MachineInputStall> unavailable)
+            if (entry.TryGetUnavailable(out var fetchState))
             {
-                _unavailable.RenderInto(this, unavailable.FetchState);
+                _unavailable.RenderInto(this, fetchState);
                 return;
             }
-            var stall = ((FetchedContextEntry<MachineInputStall>)entry).Value;
+            var stall = entry.Value;
             var itemName = _content.ItemName(stall.WaitingItemId).Resolve();
             _stall.Render(new UiText(MachineInputStallLogic.MessageKey(stall.Reason), new[] { new LocalizationTextParam("itemName", itemName) }), true);
             ContextRowList.MountOnly(this, _stall);

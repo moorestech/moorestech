@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Core.Master;
 using Server.Protocol.PacketResponse;
@@ -12,9 +13,9 @@ namespace Client.Ui.State.BlockInventory.Context
     /// </summary>
     public static class ContextViewConversion
     {
-        public static ContextEntry<CleanRoomYieldFetched> Yield(BlockInfoFetchState fetchState, CleanRoomYieldView view)
+        public static SectionContent<CleanRoomYieldFetched> Yield(BlockInfoFetchState fetchState, CleanRoomYieldView view)
         {
-            if (fetchState != BlockInfoFetchState.Fetched) return ContextEntry<CleanRoomYieldFetched>.Unavailable(fetchState);
+            if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<CleanRoomYieldFetched>.Unavailable(fetchState);
             switch (view)
             {
                 case CleanRoomYieldLayerExposureView layer:
@@ -29,38 +30,38 @@ namespace Client.Ui.State.BlockInventory.Context
                 // Role-less recipes and machines that cannot operate show no entry; the room entry shows the halt reason
                 case CleanRoomYieldNoRoleView _:
                 case CleanRoomYieldNotOperableView _:
-                    return ContextEntry<CleanRoomYieldFetched>.Absent;
+                    return SectionContent<CleanRoomYieldFetched>.Absent;
             }
 
             // 未知の型は欄を出さず開発者へ知らせる（購読の中で投げると購読ごと止まる。D-6）
             // An unknown view hides the entry and tells developers (throwing inside the subscription would kill it; D-6)
             Debug.LogError($"[ContextViewConversion] unsupported yield view: {view.GetType().Name}");
-            return ContextEntry<CleanRoomYieldFetched>.Absent;
+            return SectionContent<CleanRoomYieldFetched>.Absent;
 
             #region Internal
 
-            ContextEntry<CleanRoomYieldFetched> Fetched(CleanRoomYieldFetched value) => ContextEntry<CleanRoomYieldFetched>.Fetched(value);
+            SectionContent<CleanRoomYieldFetched> Fetched(CleanRoomYieldFetched value) => SectionContent<CleanRoomYieldFetched>.Present(value);
 
             CleanRoomYieldRates Dicing(DicingYieldMessagePack pack) => CleanRoomYieldRates.Dicing(pack.DieLossRate, pack.QualityTier, pack.LevelRates, pack.FailedRate);
 
             #endregion
         }
 
-        public static ContextEntry<MachineInputStall> Stall(BlockInfoFetchState fetchState, MachineInputStallView view)
+        public static SectionContent<MachineInputStall> Stall(BlockInfoFetchState fetchState, MachineInputStallView view)
         {
-            if (fetchState != BlockInfoFetchState.Fetched) return ContextEntry<MachineInputStall>.Unavailable(fetchState);
+            if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<MachineInputStall>.Unavailable(fetchState);
             switch (view)
             {
                 case MachineInputStalledView stalled:
-                    return ContextEntry<MachineInputStall>.Fetched(new MachineInputStall(stalled.Stall.Reason, new ItemId(stalled.Stall.WaitingItemId)));
+                    return SectionContent<MachineInputStall>.Present(new MachineInputStall(stalled.Stall.Reason, new ItemId(stalled.Stall.WaitingItemId)));
                 case MachineInputNotStalledView _:
-                    return ContextEntry<MachineInputStall>.Absent;
+                    return SectionContent<MachineInputStall>.Absent;
             }
 
             // 未知の型は欄を出さず開発者へ知らせる（D-6）
             // An unknown view hides the entry and tells developers (D-6)
             Debug.LogError($"[ContextViewConversion] unsupported stall view: {view.GetType().Name}");
-            return ContextEntry<MachineInputStall>.Absent;
+            return SectionContent<MachineInputStall>.Absent;
         }
     }
 }

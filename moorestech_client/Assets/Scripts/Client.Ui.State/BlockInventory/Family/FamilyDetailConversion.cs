@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Logic.Detail;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface.State;
@@ -14,8 +15,8 @@ namespace Client.Ui.State.BlockInventory.Family
     {
         public static MinerDetail Miner(CommonMinerBlockStateDetail miner, CommonMachineBlockStateDetail common, IMinerParam param, bool gearDriven)
         {
-            // 60/秒を毎分にし採掘中の品だけ並べる
-            // Convert 60/s to per-minute, mined items only
+            // 1 個あたりの秒を毎分にし採掘中の品だけ並べる
+            // Convert seconds per item to per-minute, mined items only
             var items = new List<MinerMiningItem>();
             if (0 < miner.MiningSeconds)
             {
@@ -23,7 +24,7 @@ namespace Client.Ui.State.BlockInventory.Family
                 foreach (var settings in param.MineSettings.items)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
-                    if (currentIds.Contains(itemId)) items.Add(new MinerMiningItem(itemId, 60 / miner.MiningSeconds));
+                    if (currentIds.Contains(itemId)) items.Add(new MinerMiningItem(itemId, BlockDetailMath.SecondsPerMinute / miner.MiningSeconds));
                 }
             }
             return new MinerDetail(common.CurrentPower, common.RequestPower, common.ProcessingRate, gearDriven, items);

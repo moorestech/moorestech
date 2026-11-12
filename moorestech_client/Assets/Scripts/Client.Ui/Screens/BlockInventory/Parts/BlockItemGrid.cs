@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Screens.BlockInventory.Parts.Rows;
 using Client.Ui.State.Items;
 using Client.Ui.State.SlotCommands.Block;
 using Client.Ui.State.Toast;
@@ -25,7 +26,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
         private readonly GameContentPresentation _content;
         private readonly UiCommandResultToaster _toaster;
         private readonly SlotGrid _grid;
-        private readonly List<(int Index, ItemSlot Slot)> _slots = new();
+        private readonly KeyedRowList<int, ItemSlot> _slots = new();
         private int _inventoryColumns;
         private int _appliedColumns;
 
@@ -58,21 +59,11 @@ namespace Client.Ui.Screens.BlockInventory.Parts
         {
             // 並ぶ枠の番号が変わったときだけ作り直し、同じなら中身だけ差し替える
             // Rebuild only when the slot indices change; otherwise just swap contents
-            if (!SameIndices(slotIndices)) Rebuild(slotIndices);
-            foreach (var (index, slot) in _slots) slot.SetContent(SlotItemContent.From(_content, ReadSlot(index), false));
+            if (!_slots.HasSameKeys(slotIndices)) Rebuild(slotIndices);
+            for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(SlotItemContent.From(_content, BlockSlotReader.Read(itemSlots, _slots.KeyAt(i), nameof(BlockItemGrid), _testId), false));
             ApplyColumns();
 
             #region Internal
-
-            bool SameIndices(IReadOnlyList<int> indices)
-            {
-                if (indices.Count != _slots.Count) return false;
-                for (var i = 0; i < indices.Count; i++)
-                {
-                    if (indices[i] != _slots[i].Index) return false;
-                }
-                return true;
-            }
 
             void Rebuild(IReadOnlyList<int> indices)
             {
@@ -84,20 +75,11 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                     var capturedIndex = index;
                     slot.OnSlotGestured.Subscribe(gesture => BlockSlotGestureCommands.Run(_commands, _toaster, capturedIndex, gesture));
                     _grid.AddItem(slot);
-                    _slots.Add((index, slot));
+                    _slots.Add(index, slot);
                 }
                 // 並びが変わったので列数を当て直す
                 // The layout changed, so apply the column count again
                 _appliedColumns = 0;
-            }
-
-            // 枠の番号が枠数を超えるのは呼び手（区画）の誤り。購読を例外で止めず空きで描き、LogError で知らせる
-            // An index beyond the slot count is the caller's (section's) bug; draw it empty instead of killing the subscription, and LogError
-            SlotItem ReadSlot(int index)
-            {
-                if (0 <= index && index < itemSlots.Count) return itemSlots[index];
-                UnityEngine.Debug.LogError($"[BlockItemGrid] {_testId}: slot index {index} is out of range (slot count {itemSlots.Count}); drawn as empty");
-                return default;
             }
 
             #endregion

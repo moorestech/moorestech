@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Client.Ui.State.BlockDetail;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special.Details;
@@ -54,16 +56,23 @@ namespace Client.Ui.State.BlockInventory.Special.Source
 
             GearDetail ReadGear()
             {
+                // 歯車駆動の種類は族・機械・Web ホストと同じ 1 か所で読む
+                // Read the gear-drive kind at the same single place as the family, machine and Web host
                 var gear = block.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
-                // silent-ok: 歯車でないブロックは歯車の状態を持たない / 歯車ブロックで出ないなら録画（R-12）の歯車の段で気づく
-                if (gear == null) return null;
-                if (gear.Role == GearRole.Generator) return SpecialStateDetailReader.Generator(gear);
-                if (param is IGearConsumptionParam consumptionParam) return SpecialStateDetailReader.Consumer(gear, consumptionParam.GearConsumption.BaseRpm);
-
-                // 消費側なのに消費の param が無いのはマスタの食い違い（Web の橋と同じエラー）
-                // A consumer without a consumption param is a master mismatch (same error as the Web bridge)
-                Debug.LogError($"[SpecialBlockDetailReader] Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam; gear rows are omitted");
-                return null;
+                var drive = GearDriveConversion.Read(gear, param);
+                switch (drive.Kind)
+                {
+                    // silent-ok: 歯車でないブロックは歯車の状態を持たない / 歯車ブロックで出ないなら録画（R-12）の歯車の段で気づく
+                    case GearDriveKind.Electric: return null;
+                    case GearDriveKind.Generator: return SpecialStateDetailReader.Generator(gear);
+                    case GearDriveKind.Consumer: return SpecialStateDetailReader.Consumer(gear, drive.ConsumptionParam.GearConsumption.BaseRpm);
+                    case GearDriveKind.InconsistentConsumer:
+                        // マスタの食い違いは歯車行を出さず知らせる（Web の橋と同じ）
+                        // A master mismatch omits the gear rows and is reported (same as the Web bridge)
+                        Debug.LogError($"[SpecialBlockDetailReader] {drive.Anomaly}; gear rows are omitted");
+                        return null;
+                    default: throw new ArgumentOutOfRangeException(nameof(drive.Kind), drive.Kind, null);
+                }
             }
 
             RocketLaunchPadDetail ReadRocketLaunchPad()

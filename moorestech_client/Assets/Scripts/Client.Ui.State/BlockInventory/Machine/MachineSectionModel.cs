@@ -95,7 +95,7 @@ namespace Client.Ui.State.BlockInventory.Machine
                 // 歯車駆動の異常は、同じ間は 1 回だけ出す
                 // Report a gear-drive anomaly once while it persists
                 var gear = GearDriveConversion.Read(block, param);
-                if (_gearAnomalyGate.ShouldReport(gear.Anomaly)) Debug.LogError(gear.Anomaly);
+                if (_gearAnomalyGate.ShouldReport(gear.Anomaly)) Debug.LogError($"[MachineSectionModel] {gear.Anomaly}; treated as electric like the Web host");
                 return MachineDetailConversion.TryBuild(common, machine, param, gear.IsGearDriven, out detail);
             }
 

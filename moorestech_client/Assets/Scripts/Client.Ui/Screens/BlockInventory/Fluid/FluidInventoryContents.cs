@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Logic.Common;
 using UnityEngine.UIElements;
 
@@ -10,12 +11,14 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
     /// 液体の詳細（FluidInventoryContents）
     /// Fluid details (Web FluidInventoryContents): per row a slot, plus name and amount / capacity when filled
     /// </summary>
-    public sealed class FluidInventoryContents : VisualElement
+    public sealed class FluidInventoryContents : VisualElement, IDetailSectionView<IReadOnlyList<BlockFluidSlotState>>
     {
         private readonly UiStack _rows = new(UiGap.Xs);
         private readonly List<FluidInventoryRow> _rowViews = new();
         private readonly string _testid;
         private readonly GameContentPresentation _content;
+
+        public VisualElement Root => this;
 
         public FluidInventoryContents(string testid, GameContentPresentation content)
         {

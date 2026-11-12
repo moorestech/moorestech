@@ -1,18 +1,20 @@
+using System;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Panel;
 using UniRx;
+using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Screens.BlockInventory.Family
+namespace Client.Ui.Screens.BlockInventory.Parts
 {
     /// <summary>
-    /// 1 Model を 1 View へ流す Presenter
-    /// Section presenter feeding one model's value into one view; hidden when absent
+    /// 区画の値の流れを 1 View へ流す汎用 Presenter（族の詳細・液体の区画が共有する）。値が在るときだけ描いて出し、無ければ隠す
+    /// Generic presenter feeding one stream of section values into one view (shared by family details and fluid sections); draws and shows only when present, hidden otherwise
     /// </summary>
     public sealed class DetailSectionPresenter<T> : IBlockInventorySection
     {
-        private readonly IReadOnlyReactiveProperty<SectionContent<T>> _source;
+        private readonly IObservable<SectionContent<T>> _source;
         private readonly IDetailSectionView<T> _view;
         private readonly ReactiveProperty<bool> _isApplicable = new(false);
         private readonly CompositeDisposable _subscriptions = new();
@@ -20,7 +22,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
         public VisualElement Root => _view.Root;
         public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
 
-        public DetailSectionPresenter(IReadOnlyReactiveProperty<SectionContent<T>> source, IDetailSectionView<T> view)
+        public DetailSectionPresenter(IObservable<SectionContent<T>> source, IDetailSectionView<T> view)
         {
             _source = source;
             _view = view;
@@ -34,6 +36,10 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
             void Apply(SectionContent<T> content)
             {
+                // 「取得できません」の行を持つのは文脈の区画だけ。ここへ届くのは結線の誤りなので隠して知らせる
+                // Only the context section has the unavailable line; reaching here is a wiring mistake, so hide and report it
+                if (content.TryGetUnavailable(out var fetchState)) Debug.LogError($"[DetailSectionPresenter] {typeof(T).Name}: this section has no unavailable line ({fetchState}); hidden");
+
                 // 描いてから出す
                 // Draw before showing; hide without drawing when there is no value
                 if (content.IsPresent) _view.Render(content.Value);

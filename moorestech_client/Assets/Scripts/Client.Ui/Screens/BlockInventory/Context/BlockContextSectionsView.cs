@@ -29,7 +29,7 @@ namespace Client.Ui.Screens.BlockInventory.Context
         public void Render(BlockContextViewModel viewModel)
         {
             // 無い欄は隠し、ある欄だけ描く
-            // Hide absent sections and draw the rest; absence is judged once by ContextEntry.IsAbsent
+            // Hide absent sections and draw the rest; absence is judged once by SectionContent.IsAbsent
             _stack.SetItemShown(_cleanRoom, !viewModel.CleanRoom.IsAbsent);
             if (!viewModel.CleanRoom.IsAbsent) _cleanRoom.Render(viewModel.CleanRoom);
             _stack.SetItemShown(_cleanRoomYield, !viewModel.CleanRoomYield.IsAbsent);

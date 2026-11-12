@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Tests.Ui.Screens.BlockInventory.Machine;
 using Client.Tests.Ui.State.BlockInventory.Family;
@@ -7,6 +8,7 @@ using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.Screens.BlockInventory.Family;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Machine;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
@@ -22,19 +24,20 @@ using Core.Master;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 区画の Presenter は Detach で IsApplicable を偽へ戻し、前のパネルの適用可否を次のパネルへ持ち越さない（AC-18）
-    /// Section presenters reset IsApplicable to false on Detach so the previous panel's applicability is never carried over (AC-18)
+    /// 区画の Presenter は Detach で IsApplicable を偽へ戻し、前のパネルの適用可否を次のパネルへ持ち越さない（AC-18）。汎用 Presenter の縮退も見る
+    /// Section presenters reset IsApplicable to false on Detach so the previous panel's applicability is never carried over (AC-18); also covers the generic presenter's fallback
     /// </summary>
     public class SectionDetachTest : MachineScreenTestHost
     {
         [Test]
         public void 文脈の区画はDetachで偽へ戻る()
         {
-            ContextModel.Set(new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Absent));
+            ContextModel.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent));
             AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel).Create(Mount("Chest")), "Chest");
         }
 
@@ -80,6 +83,18 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
             Assert.IsTrue(section.IsApplicable.Value);
             section.Detach();
             Assert.IsFalse(section.IsApplicable.Value, "Detach で偽へ戻る");
+        }
+
+        [Test]
+        public void 汎用Presenterは取得できないの値を隠して開発者へ知らせる()
+        {
+            var generator = new FakeGeneratorDetailModel();
+            generator.Set(SectionContent<GeneratorDetail>.Unavailable(BlockInfoFetchState.NotFetched));
+            var section = new DetailSectionPresenter<GeneratorDetail>(generator.Current, new GeneratorSectionView());
+
+            LogAssert.Expect(LogType.Error, new Regex(@"\[DetailSectionPresenter\] GeneratorDetail: this section has no unavailable line"));
+            section.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("ElectricGenerator"));
+            Assert.IsFalse(section.IsApplicable.Value, "「取得できません」の行を持たない区画は隠す");
         }
 
         private static SectionStackSectionMount Mount(string blockType)

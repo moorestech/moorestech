@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Machine.Detail;
 using Core.Master;
 using Game.Block.Interface.State;
@@ -45,7 +46,7 @@ namespace Client.Ui.State.BlockInventory.Family
             IReadOnlyList<PumpingFluid> Fluids()
             {
                 var fluids = new List<PumpingFluid>();
-                foreach (var pumping in pump.PumpingFluids) fluids.Add(new PumpingFluid(new FluidId(pumping.FluidId), pumping.AmountPerSecond * 60));
+                foreach (var pumping in pump.PumpingFluids) fluids.Add(new PumpingFluid(new FluidId(pumping.FluidId), pumping.AmountPerSecond * BlockDetailMath.SecondsPerMinute));
                 return fluids;
             }
 

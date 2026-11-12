@@ -1,3 +1,4 @@
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 
 namespace Client.Ui.State.BlockInventory.Context
@@ -9,17 +10,17 @@ namespace Client.Ui.State.BlockInventory.Context
     public sealed class BlockContextViewModel
     {
         public static readonly BlockContextViewModel None = new(
-            ContextEntry<CleanRoomFetchedDetail>.Absent,
-            ContextEntry<CleanRoomYieldFetched>.Absent,
-            ContextEntry<MachineInputStall>.Absent);
+            SectionContent<CleanRoomFetchedDetail>.Absent,
+            SectionContent<CleanRoomYieldFetched>.Absent,
+            SectionContent<MachineInputStall>.Absent);
 
-        public ContextEntry<CleanRoomFetchedDetail> CleanRoom { get; }
-        public ContextEntry<CleanRoomYieldFetched> CleanRoomYield { get; }
-        public ContextEntry<MachineInputStall> MachineInputStall { get; }
+        public SectionContent<CleanRoomFetchedDetail> CleanRoom { get; }
+        public SectionContent<CleanRoomYieldFetched> CleanRoomYield { get; }
+        public SectionContent<MachineInputStall> MachineInputStall { get; }
 
         public bool HasAny => !CleanRoom.IsAbsent || !CleanRoomYield.IsAbsent || !MachineInputStall.IsAbsent;
 
-        public BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail> cleanRoom, ContextEntry<CleanRoomYieldFetched> cleanRoomYield, ContextEntry<MachineInputStall> machineInputStall)
+        public BlockContextViewModel(SectionContent<CleanRoomFetchedDetail> cleanRoom, SectionContent<CleanRoomYieldFetched> cleanRoomYield, SectionContent<MachineInputStall> machineInputStall)
         {
             CleanRoom = cleanRoom;
             CleanRoomYield = cleanRoomYield;

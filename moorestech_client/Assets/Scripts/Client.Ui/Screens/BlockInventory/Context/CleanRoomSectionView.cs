@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Mooresmaster.Localization.Generated;
@@ -30,14 +31,14 @@ namespace Client.Ui.Screens.BlockInventory.Context
             _air.AddToClassList(UiTypographyClass.TextDefault);
         }
 
-        public void Render(ContextEntry<CleanRoomFetchedDetail> entry)
+        public void Render(SectionContent<CleanRoomFetchedDetail> entry)
         {
-            if (entry is UnavailableContextEntry<CleanRoomFetchedDetail> unavailable)
+            if (entry.TryGetUnavailable(out var fetchState))
             {
-                _unavailable.RenderInto(this, unavailable.FetchState);
+                _unavailable.RenderInto(this, fetchState);
                 return;
             }
-            RenderFetched(((FetchedContextEntry<CleanRoomFetchedDetail>)entry).Value);
+            RenderFetched(entry.Value);
             ContextRowList.MountOnly(this, _section.Stack);
 
             #region Internal

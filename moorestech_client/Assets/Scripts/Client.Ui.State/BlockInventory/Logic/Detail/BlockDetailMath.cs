@@ -8,6 +8,10 @@ namespace Client.Ui.State.BlockInventory.Logic.Detail
     /// </summary>
     public static class BlockDetailMath
     {
+        // 毎秒→毎分の換算の 1 か所（採掘・ポンプ・レシピ・ベルトの毎分がこれを使う）
+        // The single seconds-to-minutes factor (miner, pump, recipe and belt per-minute figures use it)
+        public const double SecondsPerMinute = 60;
+
         // uGUI CommonMachineBlockStateDetail.PowerRate と同式。要求 0 は充足 1 とみなす
         // Same formula as uGUI CommonMachineBlockStateDetail.PowerRate; a zero request counts as fully met
         public static double ComputePowerRate(double currentPower, double requestPower)
@@ -19,7 +23,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Detail
         // No per-minute figure when the recipe time is zero or less (null on the Web)
         public static bool TryGetItemsPerMinute(int outputCount, double recipeTimeSeconds, out double itemsPerMinute)
         {
-            itemsPerMinute = recipeTimeSeconds <= 0 ? 0 : outputCount * 60 / recipeTimeSeconds;
+            itemsPerMinute = recipeTimeSeconds <= 0 ? 0 : outputCount * SecondsPerMinute / recipeTimeSeconds;
             return 0 < recipeTimeSeconds;
         }
 
