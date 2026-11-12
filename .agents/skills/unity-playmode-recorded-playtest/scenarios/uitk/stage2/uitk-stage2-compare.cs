@@ -25,6 +25,8 @@ using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
+using VContainer;
 using Object = UnityEngine.Object;
 
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
@@ -78,8 +80,7 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         // Game screen, then a key-control hint injected into the store (precedent uitk-tutorial-cues 03)
         p.WarpPlayer(scaffold);
         await p.WaitSeconds(1.5f);
-        NoteRect(res, "challenge-hud");
-        NoteRect(res, "key-hints");
+        foreach (var name in new[] { "challenge-hud", "key-hints" }) NoteRect(res, name);
         await p.Screenshot($"{res}-2-game-hud");
         var session = Guid.NewGuid();
         TutorialPresentationStateStore.Instance.BeginSession(session);
@@ -194,6 +195,5 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
     }
 
     Vector3 Flat(Vector3 position) => new(position.x, 0f, position.z);
-
     #endregion
 });
