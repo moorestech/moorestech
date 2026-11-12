@@ -34,6 +34,10 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     SemanticInput.EnsureDevices();
     InputSystem.EnableDevice(Keyboard.current);
     InputSystem.EnableDevice(Mouse.current);
+    // 裏タブの Game View は描画されず timeScale=0 のままスキットの Skip 送りが止まるので表へ出す（前例 uitk-opening-hud）
+    // A Game View behind a tab never renders and skit skip stalls at timeScale=0, so bring it to front (precedent uitk-opening-hud)
+    PlaytestGameViewOps.BringToFront();
+    await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     // 重い機械では1回の Skip で開幕スキットが終わらないことがあるので、Story のままなら飛ばし直し回数を Note に残す
