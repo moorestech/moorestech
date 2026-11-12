@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Client.Game.InGame.Block;
 using Client.Tests.Common;
 using Client.Tests.Ui.State.BlockInventory.Family;
@@ -20,6 +21,8 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UniRx;
 using UnityEngine;
+using UnityEngine.TestTools;
+using Game.Gear.Common;
 
 namespace Client.Tests.Ui.State.BlockInventory.Machine
 {
@@ -81,6 +84,26 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
             _harness.Track(MachineBlockWith(MachineTestDetails.MachineBlock, 0.5f));
             _panel.Value = MachinePanel(new BlockInstanceId(99));
             Assert.IsFalse(_model.Current.Value.IsPresent, "パネルと追跡ブロックの個体 ID が違う");
+        }
+
+        [Test]
+        public void 歯車の不整合は組み直しを繰り返しても1回で_閉じて開き直すと再び出る()
+        {
+            var master = MasterHolder.BlockMaster.Blocks.Data.First(b => b.BlockParam is IMachineParam and not IGearConsumptionParam);
+            var block = MachineBlockWith(master, 0.5f);
+            var gear = new GearStateDetail(true, 5f, 2.4f, GearRole.Consumer);
+            _harness.ReplaceStates(block, Common(), (MachineBlockStateDetail.BlockStateDetailKey, Machine(0.5f)), (GearStateDetail.BlockStateDetailKey, gear));
+            _harness.Track(block);
+
+            LogAssert.Expect(LogType.Error, new Regex("has no IGearConsumptionParam"));
+            _panel.Value = MachinePanel(MachineTestDetails.DefaultInstanceId);
+            _panel.Value = MachinePanel(MachineTestDetails.DefaultInstanceId);
+
+            // パネルを閉じる間は区画が無く、旗が戻る
+            // While the panel is closed there is no section and the flag clears
+            _panel.Value = BlockInventoryPanelState.Closed;
+            LogAssert.Expect(LogType.Error, new Regex("has no IGearConsumptionParam"));
+            _panel.Value = MachinePanel(MachineTestDetails.DefaultInstanceId);
         }
 
         private BlockGameObject MachineBlockWith(BlockMasterElement master, float progress)

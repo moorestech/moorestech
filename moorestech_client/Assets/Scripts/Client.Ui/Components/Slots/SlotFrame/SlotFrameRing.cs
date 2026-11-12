@@ -15,7 +15,7 @@ namespace Client.Ui.Components.Slots
         private static readonly string[] BevelWidthProperties = { "--slot-frame-bevel-1", "--slot-frame-bevel-2", "--slot-frame-bevel-3" };
 
         private readonly VisualElement[] _bands = new VisualElement[BevelWidthProperties.Length];
-        private bool _scaleUnreadableReported;
+        private readonly StageScaleReadGuard _scaleReadGuard = new();
 
         public SlotFrameRing()
         {
@@ -46,11 +46,13 @@ namespace Client.Ui.Components.Slots
             {
                 // 読めないときは前の形のまま（LogError は Reader が出す）
                 // Keep the previous shape when unreadable (the Reader logs the error)
+                // 倍率は先に読む。他の読み口が失敗しても回復の旗戻しを見逃さない
+                // Read the scale first so a failure in another reader never hides the flag reset on recovery
+                if (!TryReadScale(out var pixelsPerPoint)) return;
                 if (!TryReadGrowsInward(out var growsInward)) return;
                 // 全層を読み切ってから書く。途中で読めない層があっても帯が新旧混在で残らない
                 // Read every layer before writing so an unreadable layer never leaves bands half old, half new
                 if (!TryReadBevelWidths(out var widths)) return;
-                if (!TryReadScale(out var pixelsPerPoint)) return;
                 var rawCovered = 0f;
                 var snappedCovered = 0f;
                 for (var i = 0; i < _bands.Length; i++)
@@ -80,15 +82,7 @@ namespace Client.Ui.Components.Slots
             {
                 // 倍率は StageScaleMeasure だけが読む。読めない間は前の形のまま、入ったときに 1 回だけ知らせ、回復で旗を戻す
                 // Only StageScaleMeasure reads the scale; keep the previous shape while unreadable, report once on entry, and clear the flag on recovery
-                if (StageScaleMeasure.TryRead(panel, out scale))
-                {
-                    _scaleUnreadableReported = false;
-                    return true;
-                }
-                if (_scaleUnreadableReported) return false;
-                _scaleUnreadableReported = true;
-                Debug.LogError("[SlotFrameRing] stage scale is unreadable; the bevel bands keep their previous shape");
-                return false;
+                return _scaleReadGuard.TryRead(panel, "SlotFrameRing", "the bevel bands keep their previous shape", out scale);
             }
 
             bool TryReadBevelWidths(out float[] widths)

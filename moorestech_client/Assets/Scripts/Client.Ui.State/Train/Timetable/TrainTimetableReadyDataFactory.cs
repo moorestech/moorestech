@@ -15,7 +15,7 @@ namespace Client.Ui.State.Train.Timetable
     public sealed class TrainTimetableReadyDataFactory
     {
         private readonly HashSet<Vector3Int> _lastWarnedMissingStationPositions = new();
-        private readonly AnomalyReportGate _unknownSideGate = new();
+        private readonly Dictionary<TrainUnitInstanceId, AnomalyReportGate> _unknownSideGates = new();
 
         public bool TryCreate(TrainTimetableSnapshot timetable, IReadOnlyList<TrainTimetableStation> stations, out TrainTimetableReadyData data)
         {
@@ -25,6 +25,13 @@ namespace Client.Ui.State.Train.Timetable
 
             // 停車駅ごとに駅名を当て、未知の端は Unavailable
             // Name each stop; unknown side makes it Unavailable
+            // 旗は列車ごとに持つ。壊れた 2 列車を交互に処理しても連打にならない
+            // Keep the flag per train so two broken trains handled alternately do not spam
+            if (!_unknownSideGates.TryGetValue(timetable.TrainUnitInstanceId, out var unknownSideGate))
+            {
+                unknownSideGate = new AnomalyReportGate();
+                _unknownSideGates[timetable.TrainUnitInstanceId] = unknownSideGate;
+            }
             var stops = new List<TimetableEditStop>(timetable.Stops.Count);
             var missingStationPositions = new HashSet<Vector3Int>();
             foreach (var stop in timetable.Stops)
@@ -34,13 +41,13 @@ namespace Client.Ui.State.Train.Timetable
                     // 同じ時刻表を捨てている間は 1 回だけ出す
                     // Report once while the same timetable keeps being discarded
                     var unknownSide = $"[TrainTimetableModel] discarding timetable with unknown side: {timetable.TrainUnitInstanceId}";
-                    if (_unknownSideGate.ShouldReport(unknownSide)) Debug.LogError(unknownSide);
+                    if (unknownSideGate.ShouldReport(unknownSide)) Debug.LogError(unknownSide);
                     return false;
                 }
                 if (!stationNames.TryGetValue(stop.StationPosition, out var name)) missingStationPositions.Add(stop.StationPosition);
                 stops.Add(new TimetableEditStop(stop.StationPosition, name ?? string.Empty, stop.Side));
             }
-            _unknownSideGate.ShouldReport(null);
+            unknownSideGate.ShouldReport(null);
             WarnMissingStationsWhenChanged(timetable.TrainUnitInstanceId, missingStationPositions);
 
             data = new TrainTimetableReadyData(timetable.TrainUnitInstanceId, timetable.IsAutoRun, timetable.CurrentIndex, stops, stations);

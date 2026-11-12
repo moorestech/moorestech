@@ -1,7 +1,10 @@
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.State.BlockInventory.Panel;
 using NUnit.Framework;
 using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.Screens.BlockInventory
 {
@@ -37,6 +40,36 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             // Layout snaps to device pixels at scale 1, so the laid-out size is checked within half a pixel
             Assert.AreEqual(band, shell.View.layout.height, 0.5f);
             Assert.AreEqual(largeWidth, shell.View.layout.width, 0.5f);
+        }
+
+        [Test]
+        public void 舞台が安全帯より狭い間は警告を1回だけ出し_回復後に狭まると再び出す()
+        {
+            var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Chest()), new FakeLargePanelRule(true));
+            simulate.FrameUpdate();
+
+            // 安全帯（上の padding + 下 70）より低く縮める。入ったフレームで 1 回
+            // Shrink below the safe areas (top padding + 70 bottom); one warning on entry
+            shell.Stage.style.height = 40f;
+            LogAssert.Expect(LogType.Warning, new Regex("below the safe areas"));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            // さらに縮めても同じ異常なので出ない（未期待のログがあれば失敗する）
+            // Shrinking further is the same anomaly, so nothing more is logged (an unexpected log fails the test)
+            shell.Stage.style.height = 30f;
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            // 回復で旗が戻り、再び狭めると出る
+            // Recovery clears the flag, and narrowing again warns again
+            shell.Stage.style.height = 600f;
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            shell.Stage.style.height = 40f;
+            LogAssert.Expect(LogType.Warning, new Regex("below the safe areas"));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
         }
     }
 }

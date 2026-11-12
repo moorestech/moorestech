@@ -38,6 +38,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
             if (block == null)
             {
+                _conversionAnomalyGate.ShouldReport(null);
                 _current.Value = SectionContent<PumpDetail>.Absent;
                 return;
             }
@@ -46,6 +47,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             var pump = block.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
             if (pump == null)
             {
+                _conversionAnomalyGate.ShouldReport(null);
                 _current.Value = SectionContent<PumpDetail>.Absent;
                 return;
             }

@@ -5,7 +5,6 @@ using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
-using Client.Ui.State.Diagnostics;
 using Client.Ui.State.Train.Logic;
 using Game.Block.Blocks.TrainRail;
 using UniRx;
@@ -29,7 +28,7 @@ namespace Client.Ui.State.Train.Timetable
         private readonly BlockGameObjectDataStore _blocks;
         private readonly OpenTrainTimetableTracker _tracker;
         private readonly TrainTimetableReadyDataFactory _readyDataFactory = new();
-        private readonly AnomalyReportGate _missingCarGate = new();
+        private readonly TrainTimetableMissingCarReport _missingCarReport = new();
         private readonly ReactiveProperty<TrainTimetableViewState> _current = new(TrainTimetableViewState.Unavailable);
 
         public IReadOnlyReactiveProperty<TrainTimetableViewState> Current => _current;
@@ -66,10 +65,18 @@ namespace Client.Ui.State.Train.Timetable
         {
             var next = _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource source
                 ? Build(source.TrainCarInstanceId)
-                : TrainTimetableViewState.Unavailable;
+                : NoTrainOpen();
             // silent-ok: 中身が同じ状態は配り直さない / 表示が変わらないので見ている人に差は無く、行の作り直しも起きない（R-5）
             if (TrainTimetableViewState.IsSameState(_current.Value, next)) return;
             _current.Value = next;
+        }
+
+        private TrainTimetableViewState NoTrainOpen()
+        {
+            // 貨車を開いていない間は欠けの旗を戻し、回復後の同じ異常をもう一度出せるようにする
+            // Clear the missing-car flag while no car is open so the same anomaly is reported again after recovery
+            _missingCarReport.Clear();
+            return TrainTimetableViewState.Unavailable;
         }
 
         private TrainTimetableViewState Build(long trainCarInstanceId)
@@ -78,13 +85,10 @@ namespace Client.Ui.State.Train.Timetable
             // Priority: no train, unavailable, in flight, no cache, ready
             if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, _cache, out var trainUnitInstanceId))
             {
-                // 同じ貨車が欠けている間は 1 回だけ警告する
-                // Warn once while the same car stays missing
-                var missingCar = $"[TrainTimetableModel] Missing car snapshot: {trainCarInstanceId}";
-                if (_missingCarGate.ShouldReport(missingCar)) Debug.LogWarning(missingCar);
+                _missingCarReport.ReportMissing(trainCarInstanceId);
                 return TrainTimetableViewState.Unavailable;
             }
-            _missingCarGate.ShouldReport(null);
+            _missingCarReport.Clear();
             if (_fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
             if (_fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
             if (!_timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;

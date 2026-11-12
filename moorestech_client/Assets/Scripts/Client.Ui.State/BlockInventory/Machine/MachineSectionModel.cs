@@ -66,15 +66,23 @@ namespace Client.Ui.State.BlockInventory.Machine
             SectionContent<MachineSectionViewModel> Read()
             {
                 // silent-ok: 閉・列車・取得失敗のパネルに機械の区画は無い（alpha の外殻が本文を作らない） / 並べ比べと録画
-                if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return SectionContent<MachineSectionViewModel>.Absent;
+                if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return AbsentWithoutGear();
                 // silent-ok: 追跡ブロックが未解決の間は区画を出さない（閉と同じ見え方） / 追跡替えでパネルが組み直され直ちに再計算
                 var block = _tracker.TrackedBlock;
-                if (block == null) return SectionContent<MachineSectionViewModel>.Absent;
+                if (block == null) return AbsentWithoutGear();
                 // silent-ok: 追跡替え直後はパネルが前のブロックのまま届くことがある（パネルの ID と詳細を混ぜない） / パネルの組み直しで直ちに再計算
-                if (!panel.BlockInstanceId.Equals(block.BlockInstanceId)) return SectionContent<MachineSectionViewModel>.Absent;
-                if (!TryReadMachine(block, out var detail)) return SectionContent<MachineSectionViewModel>.Absent;
+                if (!panel.BlockInstanceId.Equals(block.BlockInstanceId)) return AbsentWithoutGear();
+                if (!TryReadMachine(block, out var detail)) return AbsentWithoutGear();
                 var fluids = BlockFluidSlotReading.Read(block, _fluidReplica).Slots;
                 return SectionContent<MachineSectionViewModel>.Present(MachineSectionViewModelBuilder.Build(panel, detail, panel.ItemSlots, fluids, _catalog, _stackLimit.CurrentStackLimit));
+            }
+
+            SectionContent<MachineSectionViewModel> AbsentWithoutGear()
+            {
+                // 区画が無い間は歯車の旗を戻し、回復後の同じ異常をもう一度出せるようにする
+                // Clear the gear flag while the section is absent so the same anomaly is reported again after recovery
+                _gearAnomalyGate.ShouldReport(null);
+                return SectionContent<MachineSectionViewModel>.Absent;
             }
 
             bool TryReadMachine(BlockGameObject block, out MachineDetail detail)

@@ -3,6 +3,10 @@ using NUnit.Framework;
 
 namespace Client.Tests.Ui.State.Diagnostics
 {
+    /// <summary>
+    /// 同じ異常は 1 回、回復で旗が戻る（L0）
+    /// The same anomaly is reported once and recovery clears the flag (L0)
+    /// </summary>
     public class AnomalyReportGateTest
     {
         [Test]

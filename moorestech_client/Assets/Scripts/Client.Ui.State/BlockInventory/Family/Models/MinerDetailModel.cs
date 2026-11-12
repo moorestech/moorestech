@@ -39,6 +39,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
             if (block == null)
             {
+                _gearAnomalyGate.ShouldReport(null);
                 _current.Value = SectionContent<MinerDetail>.Absent;
                 return;
             }
@@ -51,6 +52,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 採掘機でない・状態詳細が揃う前は区画が無い（Web ホストと同じ） / 状態詳細の更新で組み直す
             if (miner == null || common == null || param is not IMinerParam minerParam)
             {
+                _gearAnomalyGate.ShouldReport(null);
                 _current.Value = SectionContent<MinerDetail>.Absent;
                 return;
             }
