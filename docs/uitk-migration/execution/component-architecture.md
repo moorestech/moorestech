@@ -302,17 +302,17 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 
 合否の目安（agent 既定 `[A-14]`）: 720p で位置・寸法の差が 2px 以内、色はトークン経由で同じ値、装飾（罫線・三角・ベベル・グラデ）の有無が同じ（`GamePanel` の外周の影は Web でも出ないので描かない `[A-22]`）、文字の段組（折返し・行数）が同じ。文字の字形の差（Chrome と TextCore）は差に数えない。
 
-切替 PR のマージまでは I-follow が master の Web の変更を受けて参照を撮り直す（`compare-procedure.md` の I-follow の手順）。切替の後は Web の参照を撮り直せず、比べるのは変更の前後の UITK どうしと最後の参照キャプチャ。例外の記帳先は X-cleanup が台帳から `docs/uitk/look-exceptions.md` へ移す（X-5e D-35）
+切替 PR のマージまでは I-follow が master の Web の変更を受けて参照を撮り直す（`compare-procedure.md` の I-follow の手順）。切替の後は Web の参照を撮り直せず、比べるのは変更の前後の UITK どうしと最後の参照キャプチャ。
 
 ### 3.4 例外（Web と同じにしないもの）の記帳
 
 - **入れてよい条件**: ユーザー原文「無理に同じにする必要はない、影響が小さく非本質的な対応が入るのであれば、推奨でも良い」。agent はこれを「同じにするための対応が大きい（部品の作り直し・描画の自作が数百行・性能の劣化）か、ゲームの本質から外れた対応（ブラウザの癖の再現）が要り、かつ差が一目で分からない」と読む。**配置・色の系統・装飾の有無・文字の大きさの差は一目で分かるので例外にしない**（直すか、`[Q-n]` で上げる）
-- **書く場所**: 台帳 `docs/uitk/TODO.md` に「## 見た目の例外」の表を足す（F1。台帳は integrator 所有）。列: ID（`LX-n`）／画面・部品／差／同じにしない理由／推奨案／撮影（比較 HTML の URL）／出所（agent 既定・裁定）
+- **書く場所**: 台帳 `docs/uitk/TODO.md` に「## 見た目の例外」の表を足す（F1。台帳は integrator 所有。X-cleanup の後は `docs/uitk/look-exceptions.md`）。列: ID（`LX-n`）／画面・部品／差／同じにしない理由／推奨案／撮影（比較 HTML の URL）／出所（agent 既定・裁定）
 - **コードに印を残す**: 例外の USS 行・C# 行に `/* look-exception: LX-n */` を付ける。L2 で「印の ID が台帳にある」「台帳の ID が印のどこかにある」を照合する
 - **文字の大きさは Web と同じ px にする**。GameUi のフォントの字幅が Web と違うぶんは letter-spacing で寄せ、字の大きさ（px）は変えない `[A-37]`。寄せても並べ比べで差が一目で分かるときは例外にせず `[Q-n]` で上げる
 - 段階 1 で既にある差（題 34px → 32px のフォント幅の補正、`PanelActionButton` の text-shadow → outline 近似、`ModeSwitch` の ring → border 近似）は、F1 で `LX-1..3` として記帳する。`LX-1` は C2-c が Title を Web と同じ px＋letter-spacing へ直すときに台帳と印ごと消す `[A-37]`
 - `LX-n` の番号は実行計画 §6.1 の割り当て（レーンごとの範囲）から取り、台帳「## 見た目の例外」の末尾へレーンが追記する（実行計画 E-1）。段の締めが範囲を持つ例外は、印を置くレーン（I-fix）が台帳の行と印を同じ PR で入れる（`LookExceptionLedgerTest` が同じ HEAD で両方を照合するため。`[A-179]`）
-- 切替 PR のマージまでは I-follow が master の Web の変更を受けて参照を撮り直す（`compare-procedure.md` の I-follow の手順）。切替の後は Web の参照を撮り直せず、比べるのは変更の前後の UITK どうしと最後の参照キャプチャ。例外の記帳先は X-cleanup が台帳から `docs/uitk/look-exceptions.md` へ移す（X-5e D-35）
+- 例外の記帳先は X-cleanup が台帳から `docs/uitk/look-exceptions.md` へ移す（X-5e D-35）
 
 ---
 
@@ -371,7 +371,7 @@ public sealed class UiCommandResultToaster
 - ゲーム寿命の型は IDisposable を持たない（ゲームはメインメニューへ戻らない。AGENTS.md 既知の制約）`[A-248]`
 - **View がコマンドを直接呼ぶ**（段階 1 の PauseMenuView・BugReportFormView の前例）`[A-8]`。plan §3.1 は「Presenter が操作をコマンドへ渡す」と書くが、コマンドは既にインターフェースで、L1 では `CommandRecorder` で受けられる。Presenter を経由させても中継の配線が増えるだけなので、前例に合わせる
 - **Model の購読は Presenter**。View は `Render` で値を受けるだけ（購読の寿命を Presenter の表示・非表示に揃えるため）
-- **Model の購読の寿命は 2 型**: ① 画面（ルータの主パネル・モーダル）と、ルータの traits（`AlwaysOnHud`・`Grab` 等）で出し入れする HUD は、Presenter が表示中だけ Model を購読し、隠れたら購読を捨てる（購読した時に最新値で 1 回描かれる。前例は `BuildMenuScreenPresenter.SetShown` と、同じ形を今は View に置いている `PauseMenuView.SetShown`〈撤去 5e で Presenter へ移す〉。traits で出し入れする HUD は `EquipmentHudPresenter`）。② 常駐 HUD（traits で隠れない HUD）は Presenter が起動時から常時購読し、出す・出さないは Model が値（`Visible` 等）に畳んで View が `SetShown` で受ける（前例 `HotbarHudPresenter`）。どちらも購読の束は `CompositeDisposable`／`SerialDisposable` で持ち、購読のフィールドを手で並べない
+- **Model の購読の寿命は 2 型**: ① 画面（ルータの主パネル・モーダル）と、ルータの traits（`AlwaysOnHud`・`Grab` 等）で出し入れする HUD は、Presenter が表示中だけ Model を購読し、隠れたら購読を捨てる（購読した時に最新値で 1 回描かれる。前例は `BuildMenuScreenPresenter.SetShown` と、同じ形を今は View に置いている `PauseMenuView.SetShown`〈撤去 5e で Presenter へ移す〉。traits で出し入れする HUD は `EquipmentHudPresenter`。BuildMenu・Equipment の束ね方は今は `IDisposable` の手管理で、撤去 5e で `SerialDisposable` へ揃える〈X-5e Task 14b〉。それまで束ね方の前例は `TrainInventoryBodyPresenter._shownTabSubscription`）。② 常駐 HUD（traits で隠れない HUD）は Presenter が起動時から常時購読し、出す・出さないは Model が値（`Visible` 等）に畳んで View が `SetShown` で受ける（前例 `HotbarHudPresenter`）。どちらも購読の束は `CompositeDisposable`／`SerialDisposable` で持ち、購読のフィールドを手で並べない
 - **2 源を合成する表示の例**: `GrabOverlayModel`（掴みと画面の 2 源）→ `GrabOverlayPresenter` → `GrabOverlayView.Render`。ID→アイコンは View が `GameContentPresentation` で解く `[A-90]`
 - **`Update()` を使わない**。変化は Model の `ReactiveProperty`。毎フレームの物理（採掘進捗）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（同じフレームの描き直しは UITK が 1 回の描画にまとめる。Web の間引きは WebSocket の送り過ぎを抑えるためのもの）`[A-57]`。源に変化通知の無い連続値は、変化を起こす操作の直後に通知を足して購読する（`FluidNetworkClientCache` は `ApplyFullState`・`ApplyTickDiff` の直後に `ReplicaVersion` を流す。S4-machine 計画）
 - `UiCommandResultToaster`（`Report(string commandName, UiCommandResult result)`）は段階 1 の `GameUiToastFeed.ShowRejected` の呼び方を 1 つにまとめる F1 の追加 `[A-15]`。F1 で `ShowRejected` は消え、`GameUiToastFeed` は `Show(string, GameUiToastVariant)` だけを持つ。`commandName` はログ用のコマンド名（Web の失敗コードの綴り）で、利用者へ出す文は拒否理由ごとの翻訳文 `[A-18]`
@@ -397,7 +397,7 @@ public sealed class UiCommandResultToaster
 - 画面の出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める（段階 1 の `MainPanelOwner` は消える。C10）
 - HUD（常駐表示）はルータの主パネル画面ではなく、Web `App.tsx` の条件を Presenter が読んで出す。`UiScreenTraits` の `AlwaysOnHud` が絞るのはホットバーと装備だけで、他の常駐 HUD はそれぞれの条件（`CrosshairVisibility`・`TrainHud` ∧ 乗車中・¬blocking スキット等）に従う `[A-57]`。`Backdrop` 列は `Screens/Shell/` の `ScreenBackdropPresenter` だけが読む `[A-44]`
 - 舞台の上段 3 列に並ぶ画面（持ち物＝`Inv`、ブロックインベントリとレシピビューア＝`Viewer`、アイテム一覧＝`Items`）の Presenter は、`StageColumnsLayout.Get(StageColumn)` の枠へ View を載せる。研究画面の左余白 0 は、`GameUiStageColumnsInstaller` が `UiRoutingState` の画面の `UiScreenTraits.CollapsesStageLeftPadding` を読んで `StageColumnsLayout` へ渡す（Web `App.module.css:26-54`・`App.tsx:100-103` の `.stageResearch`。左を畳む画面を足すときは表の列を true にする）`[A-45]` `[A-92]`
-- L1 と L0 は View を `UiTestHost` に直接組む。L3・L4 は何も切り替えずに始める
+- L1 と L0 は View を `UiTestHost` に直接組む。L3・L4 は、X-5a のマージまでは全体スイッチがあるので `UiSystemEditorSwitch.Set(UiSystem.GameUi)` してから始める（plan §3.3 R4）。X-5a の後は何も切り替えずに始める
 
 ---
 

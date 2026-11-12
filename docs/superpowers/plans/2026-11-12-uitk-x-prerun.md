@@ -784,10 +784,14 @@ async function main(): Promise<void> {
     const context = await browser.newContext({ viewport: { width, height } });
     const page = await context.newPage();
     await openShot(page, `http://127.0.0.1:${port}`, shot);
-    // testid が無い id は要素待ちで止めず null を書く（対応表の `面=` の誤りとして下の python が挙げる）
-    // Write null instead of waiting when the testid is absent (the python below reports it as a wrong 面= in the table)
+    // testid が無い id は要素待ちで止めず missing-testid、見えていない面は not-visible を書く（下の python が別々に挙げる）
+    // Write missing-testid when the testid is absent and not-visible when the panel is hidden (the python below reports them separately)
     const panel = page.getByTestId(targets[shot.id]).first();
-    rects[shot.id] = (await panel.count()) === 0 ? null : await panel.boundingBox();
+    if ((await panel.count()) === 0) {
+      rects[shot.id] = { status: "missing-testid" };
+    } else {
+      rects[shot.id] = (await panel.boundingBox()) ?? { status: "not-visible" };
+    }
     await context.close();
     await stopMockHost(host);
   }
@@ -823,10 +827,11 @@ for vp in ("1280x720", "2560x1080"):
     for part in sorted(glob.glob(f"{d}/web-panel-rects-{vp}-part*.json")):
         got.update(json.load(open(part)))
     json.dump(got, open(f"{d}/web-panel-rects-{vp}.json", "w"), indent=2)
-    print(vp, "抜け", sorted(want - set(got)), "矩形なし", sorted(k for k, v in got.items() if v is None))
+    bad = lambda s: sorted(k for k, v in got.items() if isinstance(v, dict) and v.get("status") == s)
+    print(vp, "抜け", sorted(want - set(got)), "testid なし", bad("missing-testid"), "見えていない", bad("not-visible"))
 EOF
 ```
-Expected: 各回 `exit=0`、どちらの解像度も `抜け []`・`矩形なし []`。抜けは `referenceShots.ts` に無い id（E の id は全部参照にある）か流し忘れた部分、矩形なしは testid の誤り（Web の DOM にその testid が無い。スクリプトは要素を待たず `null` を書く）なので、対応表の `面=` を Web の DOM と UITK の外殻の両方にある名前へ直し、`e-panels.json` を作り直して、その id を含む部分だけ流し直す。測り終えたら Run: `git -C $R status --short`（`prerun-panel-rects.ts` の 1 本だけが未追跡）→ `moores-wt rm uitk-prerun-ref --force --prune-branch`（`--dir` で付けた worktree の名で引く。ブランチ名 `uitk-tmp/prerun-ref` では `resolve_worktree` が「worktreeが見つかりません」で止まる。未参照の master ピンが報告されたら `--prune-master` を足して流し直す）
+Expected: 各回 `exit=0`、どちらの解像度も `抜け []`・`testid なし []`・`見えていない []`。抜けは `referenceShots.ts` に無い id（E の id は全部参照にある）か流し忘れた部分、testid なしは `面=` の誤り（Web の DOM にその testid が無い。スクリプトは要素を待たず `missing-testid` を書く）なので、対応表の `面=` を Web の DOM と UITK の外殻の両方にある名前へ直し、`e-panels.json` を作り直して、その id を含む部分だけ流し直す。見えていないは `面=` が正しいのに `openShot` の直後で面がまだ不可視な状態なので、`面=` は直さず `openShot` の待ちを直して流し直す。測り終えたら Run: `git -C $R status --short`（`prerun-panel-rects.ts` の 1 本だけが未追跡）→ `moores-wt rm uitk-prerun-ref --force --prune-branch`（`--dir` で付けた worktree の名で引く。ブランチ名 `uitk-tmp/prerun-ref` では `resolve_worktree` が「worktreeが見つかりません」で止まる。未参照の master ピンが報告されたら `--prune-master` を足して流し直す）
 
 - [ ] **Step 5: コミットは無し**（`done.md` を logs でコミット・push）
 
