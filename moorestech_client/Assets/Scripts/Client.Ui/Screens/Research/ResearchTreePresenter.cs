@@ -3,6 +3,7 @@ using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
+using Client.Ui.State.Research;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
 using Client.Ui.State.Routing;
@@ -44,7 +45,7 @@ namespace Client.Ui.Screens.Research
             var view = new ResearchTreeView(_commands, _content, _toaster, _osCursor);
             view.Render(_model.Current.Value);
             _gameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);
-            _routing.Current.Subscribe(snapshot => view.SetShown(snapshot.Screen == UiScreen.ResearchTree));
+            _routing.Current.Subscribe(snapshot => view.SetShown(ResearchScreenVisibility.IsShown(snapshot)));
             _model.Current.Subscribe(view.Render);
         }
     }
