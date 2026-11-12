@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Client.Ui.State.Commands;
+using Client.Ui.State.Research;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
 using Game.Research;
