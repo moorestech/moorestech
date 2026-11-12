@@ -6,8 +6,8 @@ using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest.Input;
+using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Root;
 using Client.Ui.State.WholeUiVisibility;
 using Cysharp.Threading.Tasks;
@@ -18,6 +18,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using VContainer;
+using static Client.Tests.EditModeInPlayingTest.Ui.Stage2.Stage2HudTreeAssertions;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
@@ -66,6 +67,10 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                 // Only GameUi runs, no web host
                 Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
+
+                // テストワールドには地面が無いため足場へ立たせる（落下復帰の Error を出さない）
+                // The test world has no ground, so stand on a scaffold (avoids fall-recovery errors)
+                await PlaytestSetup.CreateFlatGroundAndWarp();
 
                 // 開幕スキットの開始を期限まで待って飛ばす（走ると key-hints が隠れる）
                 // Wait for an opening skit to start and skip it (it hides key-hints)
@@ -144,36 +149,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
             }
 
             #endregion
-        }
-
-        // その UI 状態で載る行（常駐を含む）が期待の層に 1 つずつ載る
-        // Each row mounted in the UI state (residents included) sits once under its layer
-        private static void AssertMountedIn(VisualElement root, UIStateEnum state)
-        {
-            foreach (var surface in Stage2HudSurfaces.All)
-            {
-                if (!surface.IsMountedIn(state)) continue;
-                var matches = Matches(root, surface.Name, surface.ByClass);
-                Assert.AreEqual(1, matches.Count, $"{surface.Name} が {state} で {matches.Count} 件載っている（期待 1 件）");
-                var layer = GameUiRoot.Instance.GetLayer(surface.Layer, surface.Family);
-                Assert.IsTrue(layer.Contains(matches[0]), $"{surface.Name} が層 {surface.Layer} の {surface.Family} の下に無い");
-            }
-        }
-
-        // 表の ByClass に従って引き、どれかが見えていれば真（判定は DSL の GameUiElementQuery）
-        // True when any element found per the row's ByClass is visible (uses the DSL's GameUiElementQuery)
-        private static bool Visible(VisualElement root, Stage2HudSurface surface)
-        {
-            foreach (var element in Matches(root, surface.Name, surface.ByClass))
-            {
-                if (GameUiElementQuery.IsVisible(element)) return true;
-            }
-            return false;
-        }
-
-        private static List<VisualElement> Matches(VisualElement root, string name, bool byClass)
-        {
-            return byClass ? root.Query<VisualElement>(className: name).ToList() : root.Query<VisualElement>(name: name).ToList();
         }
 
         private static async UniTask TransitionTo(UIStateControl uiStateControl, UIStateEnum state)
