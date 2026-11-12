@@ -1,4 +1,3 @@
-using Client.Ui.State.Diagnostics;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,13 +9,20 @@ namespace Client.Ui.Foundation.Stage.ScaleReading
     /// </summary>
     internal sealed class StageScaleReadGuard
     {
-        private readonly AnomalyReportGate _unreadableGate = new();
+        private bool _unreadableReported;
 
         // 読めたときは旗を戻して false、読めない間は入ったときだけ true
         // Clears the flag and returns false when readable; while unreadable returns true only on entry
         public bool ShouldReportUnreadable(bool readable)
         {
-            return _unreadableGate.ShouldReport(readable ? null : "unreadable");
+            if (readable)
+            {
+                _unreadableReported = false;
+                return false;
+            }
+            if (_unreadableReported) return false;
+            _unreadableReported = true;
+            return true;
         }
 
         public bool TryRead(IPanel panel, string owner, string consequence, out float scale)
