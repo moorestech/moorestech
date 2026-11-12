@@ -25,6 +25,8 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         private float _boxWidth;
         private bool _boxSizedByMeasure;
         private bool _measuredSinceGeometry;
+        // 文か必要な幅が替わってから次の箱が決まるまで、測りは古い箱でなく受けた制約で決める（同じ配置の中の何回もの測りも全部）
+        // From a text or needed-width change until the next box is known, measures decide from the constraint, not the stale box (every measure of that layout)
         private bool _contentChangedSinceGeometry;
         private float _decidedMinimumWidth;
         private string _scannedText;
@@ -34,7 +36,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         {
             _element = element;
             _whiteSpace = whiteSpace;
-            _element.RegisterCallback<GeometryChangedEvent>(_ => OnGeometryChanged());
+            _element.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             _element.RegisterCallback<CustomStyleResolvedEvent>(_ => OnStyleResolved());
             _element.RegisterCallback<DetachFromPanelEvent>(_ => OnDetached());
         }
@@ -97,7 +99,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
             // silent-ok: 固まる並びの無い文と止めている文は箱を必要な幅で判定しない / 文が替われば次の測りでここへ来る
             if (minimumWidth <= 0f || _whiteSpace.IsHeld(WhiteSpaceHoldReason.NarrowWidth) || !_whiteSpace.WrapsWithout(WhiteSpaceHoldReason.NarrowWidth)) return;
             if (widthMode != VisualElement.MeasureMode.Undefined && measureWidth < minimumWidth) return;
-            _wrappedMeasureFit.Record(_element.text, minimumWidth, measuredWidth);
+            _wrappedMeasureFit.Record(_element.text, _element.resolvedStyle.unityFontDefinition, minimumWidth, measuredWidth);
         }
 
         // 文が替わった。測りの来ない固定の箱は今の箱で決め、必要な幅が替わった測りの来る箱は次の測りが制約の幅で決める（行末の約物の詰めの差し替えのように同じ幅なら今の箱）
@@ -128,11 +130,12 @@ namespace Client.Ui.Foundation.Text.WrapSafe
             Evaluate(_boxWidth);
         }
 
-        private void OnGeometryChanged()
+        private void OnGeometryChanged(GeometryChangedEvent geometryChanged)
         {
-            // この配置で測りが来なかった箱は幅も高さも決まっている（文やスタイルが替わっても次の測りは来ない）
-            // A box laid out without a measure has a set width and height (a text or style change brings no measure)
-            _boxSizedByMeasure = _measuredSinceGeometry;
+            // 測りが来ずに大きさが替わった箱は幅も高さも決まっている。位置だけ動いた箱（兄弟の高さの変化。測りはキャッシュ）は前の見立てを保つ
+            // A box resized without a measure has a set width and height; a box that only moved (a sibling's height, measure cached) keeps the previous verdict
+            if (_measuredSinceGeometry) _boxSizedByMeasure = true;
+            else if (geometryChanged.oldRect.size != geometryChanged.newRect.size) _boxSizedByMeasure = false;
             _measuredSinceGeometry = false;
             _contentChangedSinceGeometry = false;
             _boxKnown = true;
@@ -166,7 +169,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
             _decidedMinimumWidth = minimumWidth;
             // silent-ok: 固まる並びが無く止めてもいない文は何もしない / 文が替われば OnTextChanged か次の測りでここへ来る
             if (minimumWidth <= 0f && !_whiteSpace.IsHeld(WhiteSpaceHoldReason.NarrowWidth)) return;
-            var tooNarrow = renderWidth < minimumWidth && !_wrappedMeasureFit.Fits(_element.text, minimumWidth, renderWidth);
+            var tooNarrow = renderWidth < minimumWidth && !_wrappedMeasureFit.Fits(_element.text, _element.resolvedStyle.unityFontDefinition, minimumWidth, renderWidth);
             var hold = _whiteSpace.WrapsWithout(WhiteSpaceHoldReason.NarrowWidth) && tooNarrow;
             if (hold == _whiteSpace.IsHeld(WhiteSpaceHoldReason.NarrowWidth)) return;
 

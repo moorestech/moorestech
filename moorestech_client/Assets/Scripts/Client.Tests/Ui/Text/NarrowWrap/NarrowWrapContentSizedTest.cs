@@ -19,12 +19,18 @@ namespace Client.Tests.Ui.Text.NarrowWrap
         private const int SettleFrames = 40;
         private const int QuietFrames = 20;
 
-        // 15px・字間 5.5 で必要な幅は 42px、「ん（前」の 1 行はそれより広い
-        // At 15px with 5.5 spacing the needed width is 42px and the one-line "ん（前" is wider
+        // 親の幅は必要な幅（15px で字間 5.5 なら 42px、字間 0.825＝通知の 0.055em なら 32.65px）からの上乗せ。「ん（前」の 1 行はどちらもそれより広い
+        // The parent width adds to the needed width (42px at 15px with 5.5 spacing, 32.65px with 0.825 = the notification 0.055em); the one-line "ん（前" is wider in both
+        // 倍率 1.25・1.5（2560×1080）は箱と測りが非整数の画素へ丸まる
+        // Scales 1.25 and 1.5 (2560x1080) round box and measure to fractional pixels
         [Test]
-        public void 必要な幅以上の制約では止めずに折り返したまま落ち着く([Values(42f, 44f, 50f, 56f)] float parentWidth, [Values] bool localized)
+        public void 必要な幅以上の制約では止めずに折り返したまま落ち着く(
+            [Values(0f, 2f, 8f, 14f)] float overNeeded, [Values(5.5f, 0.825f)] float letterSpacing, [Values(1f, 1.25f, 1.5f)] float scale, [Values] bool localized)
         {
+            pixelsPerPoint = scale;
+            var parentWidth = Client.Ui.Foundation.Text.WrapSafe.NarrowWrapWidth.OfRun(1, 15f, letterSpacing) + overNeeded;
             var label = CreateLabel(localized, MinimalFreezingText);
+            label.style.letterSpacing = letterSpacing;
             var parent = new VisualElement();
             parent.style.width = parentWidth;
             parent.style.alignItems = Align.FlexStart;
@@ -45,7 +51,7 @@ namespace Client.Tests.Ui.Text.NarrowWrap
                 lastWhiteSpace = label.resolvedStyle.whiteSpace;
             }
 
-            var context = $"parent {parentWidth} localized={localized}: box {label.contentRect.width:0.##} height {label.layout.height:0.##} holds {HoldWarnings} releases {ReleaseLogs} late changes {lateChanges}";
+            var context = $"parent {parentWidth} spacing {letterSpacing} scale {scale} localized={localized}: box {label.contentRect.width:0.##} height {label.layout.height:0.##} holds {HoldWarnings} releases {ReleaseLogs} late changes {lateChanges}";
             Assert.AreEqual(0, lateChanges, context);
             Assert.AreEqual(0, HoldWarnings, context);
             Assert.AreEqual(0, ReleaseLogs, context);
