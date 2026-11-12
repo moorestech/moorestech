@@ -148,13 +148,24 @@ namespace Client.Ui.State.Routing
 - **参照キャプチャ**: `REF/web-8a585f742a/5-challenge-list.png`（1280×720）・`REF/web-8a585f742a-2560x1080/5-challenge-list.png`（2560×1080。座標は `x' = 320 + 1.5x`・`y' = 1.5y`）。状態の出所は `W/e2e/uitk-reference/referenceShots.ts:114`（controls: topic `challengeActive`・ui `ChallengeList`、steps visible `challenge-panel`）。mock-host のデータ（`W/e2e/mock-host/fixtures/presentationFixtures.ts` の challengeTree: Basics〈First Craft 完了 (0,0)・Second Step 進行中 (220,0)〉・Logistics）なので、UITK の撮影（実マスタ）とはカテゴリ数・名前・ノード数が違う。差の表はデータの違いを「捨てる」とし、位置・寸法・色・装飾・段組を比べる。参照の実測（1280×720）: 一覧の上端 y=168、地 (31,31,31)、題の上端 y≈184、ボタンの列 y=219〜255（高さ 36）、Basics は x=16〜96、Logistics の字頭 x≈130、ビューポートの中心 (640, 479.5)、カードは幅 240・高さ約 86（面 (36,36,36)）、完了の輪 (64,192,87)・進行中の輪 (51,154,240) が 2px、2 枚は隣接し後のカードの輪が前のカードの上に重なる
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S5-challenge/` に置き、`LOGS` へ入れない。`LOGS` へ書く前に `LOGS/README.md` を読む
 - **報告**: `LOGS/harness/uitk/S5-challenge/done.md`（1 行目「状態: 完了」。止まるときは「状態: 停止（理由）」）。節は「証拠」「差の表」「要裁定」「integrator への依頼」「未確認」
-- **共有区画は追記だけ**: `GameUiTheme.tss` の `/* == section: Screens == */`（末尾に 1 行）・`MainGameUiRegistration.cs` の画面登録区画（末尾に 1 行）と `using` の 1 行・`docs/uitk/TODO.md` の「## 実測の結論」と「## 未撮影」の末尾（と、並べ比べで LX-200〜202 の予備を使うときだけ「## 見た目の例外」の末尾）。衝突は両方の行を採る
+- **共有区画は追記だけ**: `GameUiTheme.tss` の `/* == section: Screens == */`（末尾に 1 行）・`MainGameUiRegistration.cs` の画面登録区画（末尾に 1 行）と `using` の 1 行・`docs/uitk/TODO.md` の「## 実測の結論」と「## 未撮影」の末尾（と、並べ比べで LX-200〜202 の予備を使うときだけ「## 見た目の例外」の末尾）・Task 2b の呼び出し側 13 か所（`new GameScrollView(` の行に `GameScrollAxis.Vertical` を足すだけ。Files の一覧）と `GameScrollView.cs`・`GameScrollView.uss`・Task 5 Step 4 の `GameUiScreenMountTest` の一覧（1 行足すだけ）。衝突したら両方の変更を残す（相手の行を消さない。呼び出し側は相手の変更の上に `GameScrollAxis.Vertical` を足し直す）
+- **他レーンと重なりうるファイル**（Task 1 Step 1 と Task 9 Step 2 の取り込みの後に `git log origin/feature/uitk` で相手が入ったかを見る）:
+
+| ファイル | 相手 | 扱い |
+|---|---|---|
+| Task 2b の呼び出し側 13 か所（`RecipeListScrollView`・`BlockInventoryNaturalScroll`・`MachineSectionView`・`TrainInventoryBodyView`・`BuildMenuPanelSkeleton`・`PauseMenuSubPageView`・`ItemListView`・`ResearchDetailPane`・`GameScrollViewGalleryEntry`・テスト 4） | S5-crosscut T9（`BuildMenuPanelSkeleton`:71・`PauseMenuSubPageView`:37・`TrainInventoryBodyView`:29 の指カーソル）・T2（`TrainInventoryBodyView`・`ItemListView`・`ResearchDetailPane`・`BuildMenuPanelSkeleton` の表示の書き口）・T3（`RecipeListScrollView`:27 のローカル変数 `scroll` をフィールドへ・`BlockInventoryNaturalScroll` のクリップ逃げ）。各画面の持ち主のレーン | 両方の変更を残す。`RecipeListScrollView`:27 は同じ行に重なるので、T3 のフィールドの形に `GameScrollAxis.Vertical` を足す。取り込み後に `git grep -n "new GameScrollView(" -- moorestech_client/Assets/Scripts` で引数 1 つの呼び出しが 0 件であることを見る（後から入ったレーンの新しい呼び出しも直す） |
+| `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs`・`.uss` | S5-crosscut T3（`contentContainer` を読む呼び手側の変更。部品は読むだけ）・T10（`UiStyleConventionTest` に「画面の USS が部品の内側のクラスを書かない」を足す） | 両方の変更を残す。T10 の検査は `Screens/**/*.uss` が対象で、部品自身の USS とこのレーンの `ChallengeList.uss`（内側のクラスを書かない。D-7）は当たらない。T10 が先に入っていれば `$FILTER` の `Conventions` で緑を見る |
+| `S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiScreenMountTest.cs` | S5-crosscut T14（作る） | 先に入っていればこのレーンが一覧に 1 行足す（Task 5 Step 4。D-26）。衝突したら相手の行を消さずに足す |
+| `S/Client.Starter/Registration/MainGameUiRegistration.cs`・`GameUiTheme.tss` の Screens 区画・`docs/uitk/TODO.md` の節の末尾 | 画面レーン（S5-gate・S5-ladder 等） | 追記だけ。両方の行を採る |
+| `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | S5-ladder（ファイルの削除） | このレーンは自分の 3 行だけを消す。他レーンの行は残す |
+| `S/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.cs` | I-fix6（`RestoreViewport` を消す） | 触らない。順序不問（D-1） |
 
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 注目点 7 件のうち 6 件を反映（横スクロールを画面の部品で写す〈評価の反映で `GameScrollView` の横向きに改めた〉・状態の文言キーを State へ・Commands と View の置き場・死活表 4 行）
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱2・第3バケツ3 / 選択の二重を畳み表示判定を 1 本に、カーソルと開き直しは Web・裁定どおりで A-191 を改める。第3バケツはレビュー依頼文へ
 - 独立評価・予測レビューの反映: 実施済み / 再現 13 件を反映・不再現 8 件 / 視点を View の寿命で持ち I-fix6 に合わせ、横スクロールは `GameScrollView` の横向き、並走レーンとの照合・選択と Model の L0・常駐 HUD の録画のブロックインベントリと列車の入れ子ポーズを足した（処遇は判断記録の末尾）
+- 独立評価・予測レビューの反映（再検査 2）: 実施済み / 再現 10 件を反映・不再現 1 件 / 開き直しの先頭カテゴリは裁定の読み方を D-2 に書き done.md の要裁定へ、A-35 を縦に限り A-241 に入れ、D-1 の帰結を正にし、共有区画と他レーンと重なるファイルの表・死活表の 2 行・D-29 を足した
 
 ## 死活表（Phase 2.5）
 
@@ -172,12 +183,14 @@ namespace Client.Ui.State.Routing
 | グラフの外（題・カテゴリ列）でのホイール | 生きる（装備・ホットバーへ抜けない） | ホイールの読み手 `EquipmentWheelInput.cs:45` はパネルで拾った要素を `EquipmentWheelPickJudge.IsBlockingUi` に通し、`WheelPassthroughMark` の付かない UI の上なら `EquipmentWheelGate` が止める（`ChallengeList` は traits の covers=F なので層では止まらず、UI の上かで決まる）。一覧の根・題・カテゴリ列は拾い、印を付けない。L1 `ChallengeListViewTest`「一覧の題とカテゴリ列の上のホイールは…」が題・カテゴリ列・空の背景で `IsBlockingUi` が真を固定する。グラフの上のホイールは `NodeGraphView` のズーム（C4-d） |
 | カテゴリの初回訪問だけ進行中へ寄せ、再訪・開き直しで前回の視点（裁定 2026-11-04） | 生きる | 訪れたカテゴリごとの `NodeGraphView` を控えて付け替える `ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`（Task 3。部品は中央寄せをインスタンスにつき 1 回だけ行う。L1 は Task 4） |
 | パン・ズーム・慣性 | 生きる | C4-d の `NodeGraphView`（部品の L1 は C4-d 済み） |
+| グラフの掴む手のカーソル（Web `TreeView.module.css:11` の `cursor: grab`。カードの上も継ぐ） | 生きる | `NodeGraphPointerFeedback` が `UiOsCursorHoverRequest(viewport, …, Grab, Surface)` で要求する（C4-d。部品の L1 `NodeGraphViewCursorRequestTest`）。カードは指を持たない（D-5）。付け替えで外した View は寸法 0 の回を通らず `ReleaseAll()` が呼ばれないが、`UiOsCursorHoverRequest.cs:29` と `NodeGraphPointerFeedback.cs:29` が `DetachFromPanelEvent` で掴む手と握った手を外す（実物で確認）。外す経路の L1 は無い（カテゴリの切替はボタンの押下で、グラフの上に指が無いので実害は見込みにくい。推測） |
 | 完了の知らせで状態が変わる（表示中） | 生きる | `ChallengeProgressState.OnChallengeCompleted` → `ChallengeListModel` が組み直す（Task 2）。閉じている間の変化は次の突入で組む |
 | カードの 3 状態・輪・減光・中身なりの高さ | 生きる | `ChallengeNodeCard`・`ChallengeList.uss`（Task 3。L1） |
 | チュートリアルの強調（`challenge.panel`・`challenge.categories`・`challenge.node-<guid>`） | S2-tutorial の描き手で生きる | 印を付け（Task 3）、`TutorialAnchorCoveragePending` の 3 行を消す。切り口の印は `NodeGraphView` が自分で付けている（`NodeGraphView.cs:49`） |
 | 進行中チャレンジ HUD が一覧に遮られない・一覧の上に出る | 生きる | HUD は `Chrome` 層（上）、一覧は `OverlayPanel` 層。L1（Task 4）と録画（Task 6） |
 | 一覧の中でホットバー・キーヒントが出る | 生きる（持ち主は各 HUD） | `UiScreenTraits.AlwaysOnHud` が `ChallengeList` で true。描くのは S3-hotbar・S2-hud（参照にも写る） |
 | 言語の切り替え | 生きる | 文言はすべて `LocalizedLabel`（`FormButton` の中も）で、自分で解決し直す。Model は言語で組み直さない（D-12） |
+| 既存の縦スクロール（`GameScrollView` の他の使い手 9 か所: レシピ一覧・アイテム一覧・ブロックインベントリの自然スクロール・機械の区画・列車インベントリ・ビルドメニュー・ポーズのサブページ・研究の詳細ペイン・ギャラリー）のバーの有無と太さ・溝・つまみ・hover の色、ホイール 1 ノッチ 60px、スクロールスパイ（`OnScrollOffsetChanged`・`OnContentLayoutChanged`・`TryGetContentTop`・`SetScrollOffset`） | 生きる | Task 2b が ctor・バーの有無の式・スクロール量の通知の購読先（`AxisScroller()`）・`GameScrollView.uss` の 4 規則のセレクタ（`.unity-scroller` → `.unity-scroller--vertical`）を変えるが、縦の値は今のまま。Task 2b Step 3 の L1（`GameScrollViewTest`・`GameScrollViewKnobTest`・`GameScrollViewSpyPortTest`・`RecipeListScrollViewTest` と BuildMenu・PauseMenu・Recipe・Research・BlockInventory・Inventory の各画面の L1）が今のまま緑 |
 
 ---
 
@@ -3728,7 +3741,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の `using` と画面登録区画・`docs/uitk/TODO.md` の節の末尾）の衝突は両方の行を採る。`TutorialAnchorCoveragePending.cs` に他レーンが行を足していたらその行を残し、S5-challenge の 3 行だけを消した形にする。I-fix5 が `scenarios/uitk/` を段のサブディレクトリへ移していたら、このレーンの `stage5/` の 3 本はそのまま（パスが変わらない）。判定経路に触れる衝突（`ChallengeProgressState`・`NodeGraphView`・`UiRoutingState` の変更）を解いたときだけ Task 6 の録画を流し直す。取り込みの後に並走レーンとの照合（Global Constraints）をもう一度見る: `git grep -n "new GameScrollView(" -- moorestech_client/Assets/Scripts` に引数 1 つの呼び出しが増えていれば `GameScrollAxis.Vertical` を足す・`UiDisplay.cs` が入っていれば `ChallengeListView.SetShown` を `UiDisplay.SetShown` に替える・`GameUiScreenMountTest.cs` が入っていれば Task 5 Step 4 の行を足して L3 を流す（足したら `done.md` の依頼の行を消す）・`git grep -n "RestoreViewport" -- moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge` が 0（このレーンは使わない）。直したら compile と `$FILTER` を流し直す。G1 が緑で、未記帳 0
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の `using` と画面登録区画・`docs/uitk/TODO.md` の節の末尾・Task 2b の呼び出し側 13 か所と `GameScrollView.cs/.uss`・`GameUiScreenMountTest` の一覧）の衝突は両方の変更を残す（相手の行を消さない。Global Constraints の「他レーンと重なりうるファイル」の表）。取り込み後に `git grep -n "new GameScrollView(" -- moorestech_client/Assets/Scripts` で引数 1 つの呼び出しが 0 件。`TutorialAnchorCoveragePending.cs` に他レーンが行を足していたらその行を残し、S5-challenge の 3 行だけを消した形にする。I-fix5 が `scenarios/uitk/` を段のサブディレクトリへ移していたら、このレーンの `stage5/` の 3 本はそのまま（パスが変わらない）。判定経路に触れる衝突（`ChallengeProgressState`・`NodeGraphView`・`UiRoutingState` の変更）を解いたときだけ Task 6 の録画を流し直す。取り込みの後に並走レーンとの照合（Global Constraints）をもう一度見る: `git grep -n "new GameScrollView(" -- moorestech_client/Assets/Scripts` に引数 1 つの呼び出しが増えていれば `GameScrollAxis.Vertical` を足す・`UiDisplay.cs` が入っていれば `ChallengeListView.SetShown` を `UiDisplay.SetShown` に替える・`GameUiScreenMountTest.cs` が入っていれば Task 5 Step 4 の行を足して L3 を流す（足したら `done.md` の依頼の行を消す）・`git grep -n "RestoreViewport" -- moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge` が 0（このレーンは使わない）。直したら compile と `$FILTER` を流し直す。G1 が緑で、未記帳 0
 
 - [ ] **Step 3: マージコミットで取り込む**
 
@@ -3796,6 +3809,7 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-26 全画面の載り先の L3 に一覧を足す**（指揮の agent 既定（PLAN-W5 評価））: S5-crosscut T14 の `GameUiScreenMountTest`（`Client.Tests/EditModeInPlayingTest/Ui/Crosscut/`）があれば、その一覧に `ChallengeListView` の行を足す（Task 5 Step 4）。無ければ `done.md` の「integrator への依頼」に「S5-crosscut T14 の一覧に ChallengeListView を足す」と書く
 - **D-27 設計書の A 行は入ったものを照らす**（指揮の agent 既定（PLAN-W5 評価））: 設計書 §7.1 の A-240・A-241 は入り済みなので、`done.md` の雛形は「足す」でなく「設計書に入った A-240・A-241 を実装と照らす」にした。A-240 の本文（視点は View の寿命）・A-191 と §2 の OS カーソルの行の改めは notes から指揮が設計書へ写す。`GameScrollView` の横向きは A-241 に入れた。A-35 を縦に限る改めと §2.7 の行の書き換えを含む（指揮の agent 既定（PLAN-W5 評価））。実行計画 §6.1 の LX-200 は既に「予備」に直っている
 - **D-28 第 3 バケツは本 PR 外のリファクタ提案に置く**（指揮の agent 既定（PLAN-W5 評価））: Web の橋 `ChallengeDtoBuilder.BuildTree` と State の工場の同じ規則、研究の `ResearchNodeCardSet` の bool 返し、研究の `ResearchTreeView.Render` の渡し直しの式の 3 つは、この PR では直さず「## 本PR外のリファクタ提案」に 1 行ずつ書いた（このレーンの持ち物でなく、研究の挙動に触れるため）
+- **D-29 `GameScrollView` の向きは enum で持つ 1 型、横で縦の口を呼んでも止めない**（指揮の agent 既定（PLAN-W5 評価））: 軸を `GameScrollAxis` で持つ 1 型にしたのは、USS・つまみ・バーの有無の式を縦と横で共有し、横の使い手がチャレンジのカテゴリ列の 1 つだけだから（横を別の型にすると式とつまみの受け口が 2 本になる。A-167）。本番ブロックの `_axis == GameScrollAxis.Horizontal` の分岐（5 回）はどれも軸を選ぶだけ。横のインスタンスで縦の口（`SetScrollOffset`・`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop`）を呼んでも止めないのは、横の使い手がその口を呼ばず、呼んでも縦のバーの値を読み書きするだけで誤動作に至る入力が組めないから（ガードとテストを足さない）
 
 ### 評価の指摘の処遇
 
@@ -3807,6 +3821,8 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - `ChallengeListLogic.SameGuidSequence` が既存の `SequenceEqual` と違う書き方（再検査 注目点 4）: 違反ではないので直さない。実装時に `SequenceEqual` で足りれば置き換えてよい
 - 工場の `PrevChallengeGuids ?? Array.Empty<Guid>()`（予測レビュー Warning）: 直さない。スキーマが `optional: true` でサーバーも null を前提なしとして読む既存仕様に沿う（D-24）
 - View の置き場を指揮の指定 `List/` から `Tree/` にした（再検査 注目点 5・予測レビュー Warning）: 直さない。D-16 に理由を書き、指揮の判断で足りる
+- 横バーの見た目の出所が縦の Mantine ScrollArea のつまみ（再検査 2 注目点 4）: 直さない。違反ではなく、D-7 と台帳の「## 未撮影」に記帳済み
+- 外した View を付け直したとき手のカーソルが残る（再検査 2 死活表の不足 2 の懸念）: 再現しない。`ReleaseAll()` は呼ばれないが、`UiOsCursorHoverRequest.cs:29`・`NodeGraphPointerFeedback.cs:29`（`origin/feature/uitk`・`origin/uitk-lane/i-fix6` とも）が `DetachFromPanelEvent` で外す。死活表に行だけ足した
 - CEF の既定の横バーとの差が台帳に載らない（評価 1 軽・予測レビュー Warning）: 例外にはせず台帳の「## 未撮影」に 1 行足した（Task 7）。差が測れる状態が撮れたら並べ比べる
 
 ## 未確認
