@@ -156,7 +156,9 @@ namespace Client.Tests.Ui.State
         [Test]
         public void 書き出しの進行を文にしidleは出さない()
         {
-            Assert.IsNull(BugReportFormText.DescribeExport(PlaytestExportIdle.Instance).Resolve());
+            Assert.IsFalse(BugReportFormText.HasExportLine(PlaytestExportIdle.Instance));
+            Assert.IsTrue(BugReportFormText.HasExportLine(PlaytestExportRunning.Instance));
+            Assert.Throws<ArgumentOutOfRangeException>(() => BugReportFormText.DescribeExport(PlaytestExportIdle.Instance));
             Assert.AreEqual("報告を書き出しています…", BugReportFormText.DescribeExport(PlaytestExportRunning.Instance).Resolve());
             Assert.AreEqual("書き出せませんでした: desktop folder unavailable", BugReportFormText.DescribeExport(new PlaytestExportFailed("desktop folder unavailable")).Resolve());
         }
