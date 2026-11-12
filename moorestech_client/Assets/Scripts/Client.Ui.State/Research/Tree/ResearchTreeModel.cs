@@ -49,8 +49,7 @@ namespace Client.Ui.State.Research.Tree
             {
                 var entering = !_screenShown && snapshot.Screen == UiScreen.ResearchTree;
                 _screenShown = snapshot.Screen == UiScreen.ResearchTree;
-                // silent-ok: 未着の突入は取得が始まったばかりの正常状態 / 直後の受信で OnNodeStatesReceived が検査し、取得失敗は ResearchNodeStateStore が LogWarning
-                if (entering && _store.HasReceivedNodeStates) WarnMissingNodeStates();
+                if (entering) WarnMissingNodeStates();
                 RebuildWhileShown();
             });
 
@@ -62,8 +61,8 @@ namespace Client.Ui.State.Research.Tree
                 RebuildWhileShown();
             }
 
-            // 状態の欠けたノードは Web の既定で描くので、受信済みの突入時と受信ごとに件数を出して気づけるようにする（D-29）
-            // Missing nodes render with the Web default, so log their count on entry (once received) and every receipt to make the gap visible (D-29)
+            // 状態の欠けたノードは Web の既定で描くので、突入時と受信ごとに件数を出して気づけるようにする（D-29）
+            // Missing nodes render with the Web default, so log their count on entry and every receipt to make the gap visible (D-29)
             void WarnMissingNodeStates()
             {
                 if (!_store.HasReceivedNodeStates)
