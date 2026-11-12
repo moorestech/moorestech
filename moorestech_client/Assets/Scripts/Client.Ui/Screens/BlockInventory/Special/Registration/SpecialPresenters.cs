@@ -21,9 +21,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
             _arrowKeys = arrowKeys;
         }
 
-        public SpecialDetailPresenter Of<TView>(TView view) where TView : VisualElement, ISpecialDetailRenderer
+        public SpecialDetailPresenter Of<TView>(TView view, SpecialDetailSection section) where TView : VisualElement, ISpecialDetailRenderer
         {
-            return new SpecialDetailPresenter(view, view, _model, _panels);
+            return new SpecialDetailPresenter(view, view, section, _model, _panels);
         }
 
         public BeltThroughputSectionPresenter Belt(BeltThroughputSectionView view)

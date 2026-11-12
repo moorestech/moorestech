@@ -16,6 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
     public sealed class SpecialDetailPresenter : IBlockInventorySection
     {
         private readonly ISpecialDetailRenderer _view;
+        private readonly SpecialDetailSection _section;
         private readonly ISpecialBlockDetailModel _model;
         private readonly IBlockInventoryPanelSource _panels;
         private readonly ReactiveProperty<bool> _isApplicable = new(false);
@@ -24,10 +25,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         public VisualElement Root { get; private set; }
         public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;   // 型を狭める公開（前例 alpha の SectionStackItemGridSection）
 
-        public SpecialDetailPresenter(VisualElement root, ISpecialDetailRenderer view, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)
+        public SpecialDetailPresenter(VisualElement root, ISpecialDetailRenderer view, SpecialDetailSection section, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)
         {
             Root = root;
             _view = view;
+            _section = section;
             _model = model;
             _panels = panels;
         }
@@ -47,9 +49,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
 
             void Draw(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
             {
-                // 描けたかを IsApplicable で親へ知らせる（区画は自分の display を触らない。D-23）
-                // Report whether it drew to the parent via IsApplicable (sections never touch their own display. D-23)
-                _isApplicable.Value = _view.Render(itemSlots, detail);
+                // 出すかは描く前に State の表で決め、描いてから IsApplicable で親へ知らせる（区画は自分の display を触らない。D-23）
+                // Decide showing from the State table before drawing, then report it via IsApplicable after drawing (sections never touch their own display. D-23)
+                var shows = SpecialDetailVisibility.Shows(_section, detail);
+                if (shows) _view.Render(itemSlots, detail);
+                _isApplicable.Value = shows;
             }
 
             bool IsSame(BlockInventoryPanelState current, OpenBlockInventoryPanel attached)

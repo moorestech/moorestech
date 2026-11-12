@@ -46,19 +46,19 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             Add(_view);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetRocketLaunchPad(out var rocket);
             SpecialViewParts.SetShown(_loading, !present);
             SpecialViewParts.SetShown(_view, present);
-            if (!present) return true;
+            // silent-ok: 詳細の未着は「状態の取得を待っています」を出したまま / 録画（R-12）の発射台の段で気づく
+            if (!present) return;
 
             _material.Render(itemSlots, rocket.MaterialSlots);
             _payload.Render(itemSlots, rocket.PayloadSlots);
             _output.Render(itemSlots, rocket.OutputSlots(itemSlots.Count));
             _status.SetText(new UiText(rocket.StatusKey));
             _progress.SetValue(rocket.Progress);
-            return true;
         }
     }
 }

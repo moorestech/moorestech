@@ -6,6 +6,7 @@ using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Text;
 using Client.Ui.State.Items;
@@ -52,7 +53,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void Presenterは組み直しの外で届いた詳細で出し入れを知らせ自分のdisplayを触らずDetachの後は描かない()
         {
             var view = new ElectricNetworkSectionView();
-            var presenter = Presenters.Of(view);
+            var presenter = Presenters.Of(view, SpecialDetailSection.ElectricNetwork);
             Mount(presenter.Root);
             presenter.Attach(OpenPanel("ElectricPole"));
             Assert.IsFalse(presenter.IsApplicable.Value);
@@ -77,7 +78,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void Presenterは同じパネルの枠の変化を流し別のパネルの値は描かない()
         {
             var view = new RecordingRenderer();
-            var presenter = Presenters.Of(view);
+            var presenter = Presenters.Of(view, SpecialDetailSection.Body);
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             presenter.Attach(OpenPanel("ElectricPole"));
             Panels.State.Value = BlockInventoryTestPanels.OfType("ElectricPole", new SlotItem(new ItemId(1), 3));
@@ -99,10 +100,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         private sealed class RecordingRenderer : VisualElement, ISpecialDetailRenderer
         {
             public IReadOnlyList<SlotItem> LastSlots { get; private set; }
-            public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+            public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
             {
                 LastSlots = itemSlots;
-                return true;
             }
         }
     }

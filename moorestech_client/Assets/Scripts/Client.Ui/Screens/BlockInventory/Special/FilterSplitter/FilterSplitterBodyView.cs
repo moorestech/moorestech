@@ -25,11 +25,12 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
             Add(_stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetFilterSplitter(out var filter);
             SpecialViewParts.SetShown(_stack, present);
-            if (!present) return true;
+            // silent-ok: 詳細の未着は本文を空のまま（Web と同じ） / 届かないままなら録画（R-12）の振り分け機の段で気づく
+            if (!present) return;
 
             // 方向の数が変わったときだけ作り直す（開いている間はマスタで固定）
             // Rebuild only when the direction count changes (fixed by the master while open)
@@ -45,7 +46,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
                 }
             }
             for (var d = 0; d < _directions.Count; d++) _directions[d].Render(filter.Directions[d]);
-            return true;
         }
     }
 }

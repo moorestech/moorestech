@@ -34,11 +34,10 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             Add(_stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
-            // Without the detail draw nothing and return false so the caller hides the section
-            if (!detail.TryGetGearNetwork(out var network)) return false;
+            // silent-ok: Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので無いのは届かない / 区画が隠れることを L0 SpecialDetailVisibilityTest と L1 が見る
+            if (!detail.TryGetGearNetwork(out var network)) return;
 
             // 止まっていれば理由の文を不足色で足す
             // Add the reason sentence in the shortage color when stopped
@@ -46,7 +45,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             var stopped = BlockDetailStateDisplay.TryGetStopReasonKey(network.StopReason, out var reasonKey);
             _stack.SetItemShown(_stopReason, stopped);
             if (stopped) _stopReason.SetText(new UiText(reasonKey));
-            return true;
         }
     }
 }

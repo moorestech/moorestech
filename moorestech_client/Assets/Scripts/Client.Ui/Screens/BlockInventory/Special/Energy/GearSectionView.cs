@@ -28,15 +28,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             Add(stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
-            // Without the detail draw nothing and return false so the caller hides the section
-            if (!detail.TryGetGear(out var gear)) return false;
+            // silent-ok: Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので無いのは届かない / 区画が隠れることを L0 SpecialDetailVisibilityTest と L1 が見る
+            if (!detail.TryGetGear(out var gear)) return;
             var rows = GearRowDisplay.From(gear);
             _torque.SetText(rows.Torque);
             _rpm.SetText(rows.Rpm);
-            return true;
         }
     }
 }

@@ -3,6 +3,7 @@ using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Special.Network;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
+using Client.Ui.State.BlockInventory.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
 using Mooresmaster.Localization.Generated;
@@ -43,7 +44,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             Add(_stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             // 群は詳細が届いてから出す（Web は詳細無しで群を空にする）
             // Groups appear once the detail arrives (the Web leaves them empty without detail)
@@ -57,10 +58,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             }
             _section.Render(detail);
 
-            // 電力網の区画は Stack の項目なので SetItemShown で出し入れする（直に display を触ると先頭の間隔がずれる。D-23）
-            // The network section is a Stack item, so toggle it with SetItemShown (touching display directly skews the leading gap. D-23)
-            _stack.SetItemShown(_network, _network.Render(itemSlots, detail));
-            return true;
+            // 電力網の区画は Stack の項目なので State の表で決めて SetItemShown で出し入れする（直に display を触ると先頭の間隔がずれる。D-23）
+            // The network section is a Stack item, so decide with the State table and toggle via SetItemShown (touching display directly skews the leading gap. D-23)
+            var showsNetwork = SpecialDetailVisibility.Shows(SpecialDetailSection.ElectricNetwork, detail);
+            if (showsNetwork) _network.Render(itemSlots, detail);
+            _stack.SetItemShown(_network, showsNetwork);
         }
     }
 }
