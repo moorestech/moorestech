@@ -31,6 +31,7 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
     InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
 
     p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
     p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
