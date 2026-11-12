@@ -68,6 +68,19 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             Assert.AreEqual(first, SelectedPoleId(), "下へ1ノッチで電柱の種類が戻らなかった");
         }
 
+        [Test]
+        public void 慣性で1フレームに大きなスクロール量が届いても電柱の種類は1段だけ進む()
+        {
+            // 2種なので2段進むと元に戻る。1段で止まれば別の種になる
+            // With two types, two steps would return to the first; stopping at one step lands on the other
+            Assert.IsTrue(_selection.CanCyclePoleType);
+            var first = SelectedPoleId();
+
+            Set(_mouse.scroll, new Vector2(0f, 2f));
+            _selection.UpdateInput();
+            Assert.AreNotEqual(first, SelectedPoleId(), "1フレームの大きなスクロールで1段に収まらなかった");
+        }
+
         private BlockId SelectedPoleId()
         {
             _selection.TryGetSelectedPole(out var blockId, out _);

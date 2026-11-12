@@ -69,9 +69,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// </summary>
         public void UpdateInput()
         {
-            // スクロールを蓄積し整数ステップになった分だけ種をサイクルする
-            // Accumulate scroll and cycle the type by whole steps only
-            var scrollStep = _scrollAccumulator.Accumulate(ReadScroll());
+            // スクロールを蓄積し整数ステップ分だけサイクルする。慣性で大きな量が届いても1フレーム1段に抑える
+            // Accumulate scroll and cycle by whole steps, capped at one per frame so inertia bursts cannot spin the selection
+            var scrollStep = Mathf.Clamp(_scrollAccumulator.Accumulate(ReadScroll()), -1, 1);
             for (var i = 0; i < Mathf.Abs(scrollStep); i++)
             {
                 if (0 < scrollStep) CycleNext();
