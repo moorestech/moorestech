@@ -69,7 +69,6 @@ namespace Client.Ui.Screens.Notification
                 {
                 // silent-ok: Render は毎回全行を渡すので、生存尺が回り直していない行は触らない / 合流の再生は L1「合流で生存尺が回り直し…」が確かめる
                 if (shown.LifetimeEpoch == row.LifetimeEpoch) return;
-
                 // 合流で生存尺が回り直したら、文を差し替えて 2 本を頭から再生する（行の要素と位置は保つ）
                 // When a merge restarts the lifetime, swap the text and replay both tweens from the head (keeping the element and position)
                 shown.StopLifetime();
@@ -77,7 +76,6 @@ namespace Client.Ui.Screens.Notification
                 StartLifetime(shown, row);
                 return;
                 }
-
                 // 新着は最上段へ（Web の column-reverse と同じ見え方）。登録してから生存を回し、除去の再入が必ず行を見つけるようにする
                 // The newest goes on top (same look as the Web column-reverse); register before starting the lifetime so a re-entrant removal always finds the row
                 var added = new NotificationShownRow(new NotificationRowView());
@@ -107,6 +105,7 @@ namespace Client.Ui.Screens.Notification
             // Do not start motion while off the panel (re-attach restarts from the head); the row stays in the model and shows on return
             if (panel == null)
             {
+                Debug.LogWarning($"[NotificationHostView] notification {row.Id} held while detached; it shows when the host is attached again");
                 shown.SetLifetime(row.LifetimeEpoch, null, null);
                 return;
             }

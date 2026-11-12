@@ -23,21 +23,28 @@ namespace Client.Tests.Ui.Screens.Notification
         {
             Model.AddNotification(Earned(7, 1, "itemEarned.mined"));
             AdvancePanel(0);
-            AdvancePanel(3000);
+            AdvancePanel(100);
             var row = RowAt(0);
             Assert.That(row.resolvedStyle.opacity, Is.GreaterThan(0f));
 
-            // 表示中に外して戻しても Model の行は残り、入場の頭（透明）から回し直す
-            // Detaching and re-attaching while shown keeps the model row and replays from the enter head (transparent)
+            // 入場中に外して戻しても Model の行は残り、入場の頭（透明）から回し直す
+            // Detaching and re-attaching mid-enter keeps the model row and replays from the enter head (transparent)
             var parent = Host.parent;
             DetachAndReattach(parent);
             Assert.AreEqual(1, Model.Current.Value.Rows.Count);
             Assert.AreEqual(1, Host.childCount);
             Assert.That(row.resolvedStyle.opacity, Is.LessThan(0.5f));
+            // 表示中まで進めてもう一度外して戻すと、また頭から回る
+            // Advance into the shown phase, detach and re-attach again, and it replays from the head again
+            AdvancePanel(3000);
+            DetachAndReattach(parent);
+            Assert.That(row.resolvedStyle.opacity, Is.LessThan(0.5f));
 
             // 回し直した生存は頭から数えて退場の終わりで書き口から除かれる
             // The restarted lifetime ends at the exit end counted from the head, and the row leaves through the write side
-            AdvancePanel(3000);
+            // 続きから再開なら残り約 4000ms で消えるので、5000ms 後もまだ 1 行あることが「頭から数えて」を時間で固定する
+            // Resuming would remove it after about 4000ms left, so still one row after 5000ms pins "counted from the head" in time
+            AdvancePanel(5000);
             Assert.AreEqual(1, Model.Current.Value.Rows.Count);
             AdvancePanel(5000);
             Assert.AreEqual(0, Model.Current.Value.Rows.Count);
@@ -52,6 +59,9 @@ namespace Client.Tests.Ui.Screens.Notification
             // Detached with no rows, so no detach warning (it only fires when detaching with rows)
             Host.RemoveFromHierarchy();
             AdvancePanel(0);
+            // 外れている間に届いた通知は保留の理由を警告する（動きは再アタッチまで始めない）
+            // A notification arriving while detached logs why it is held (motion waits for re-attach)
+            LogAssert.Expect(LogType.Warning, new Regex(@"^\[NotificationHostView\] notification \d+ held while detached"));
             Model.AddNotification(Earned(7, 1, "itemEarned.mined"));
             AdvancePanel(0);
             Assert.AreEqual(1, Model.Current.Value.Rows.Count);
@@ -65,7 +75,7 @@ namespace Client.Tests.Ui.Screens.Notification
         }
 
         [Test]
-        public void トークンが読めないと読めない理由を1回LogErrorし出入り無しで出す()
+        public void トークンが読めないと読めない理由を1回LogErrorする()
         {
             var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(ProbePath);
             Assert.IsNotNull(sheet, ProbePath);

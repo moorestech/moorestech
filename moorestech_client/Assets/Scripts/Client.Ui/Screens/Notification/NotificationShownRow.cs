@@ -27,7 +27,7 @@ namespace Client.Ui.Screens.Notification
         }
 
         // 外れている間に始めた行は動きを持たない。取り消した生存の退場の購読も切り、古い終わりが行を消す余地を残さない
-        // Also drop the cancelled lifetime's exit subscription so a stale end can never remove the row
+        // A row started while detached has no motion; also drop the cancelled lifetime's exit subscription so a stale end can never remove the row
         public void StopLifetime()
         {
             _motion?.Cancel();
