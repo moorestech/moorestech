@@ -1,168 +1,97 @@
-using Client.Playtest.Operations;
-using Game.Context;
-// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（bd5262ed/7bafc2cf）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
-// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (bd5262ed/7bafc2cf) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
-// シナリオ: 木チュートリアル(チャレンジ#3)まで進め、k-d tree索引の最寄り探索が
-//           (a)総当たり最寄りと一致 (b)伐採後に次の木へ移る ことを実走検証する
-// Scenario: advance to the tree challenge (#3) and verify the k-d tree nearest search
-//           (a) matches a brute-force nearest and (b) moves to the next tree after felling.
-// 足場生成やSetupDebugEnvironmentは呼ばない（自然なマップ=木mapObjectとスポーンを残すため）
-// Do NOT flatten ground or SetupDebugEnvironment (keep the natural map: tree mapObjects & spawn)
-using System;
+// シナリオ: 先頭チャレンジの木ピンで k-d tree 索引の最寄り探索を確かめる。(a) 総当たりと一致 (b) ピンがその木に重なる (c) 壊すと索引とピンが次の木へ移る
+// Scenario: check the k-d tree nearest search through the first challenge's tree pin: (a) matches brute force (b) the pin sits on it (c) destroying it moves index and pin to the next tree
+// 木は採掘で倒さずサーバーで壊す。原木を得ると先頭が完了しピンが消えて (c) を見られないため（採掘の完了は tutorial-opening-log-challenge が持つ）
+// Trees are destroyed on the server instead of mined: logs would complete the first challenge and remove the pin before (c) (tutorial-opening-log-challenge covers mining)
+// SetupDebugEnvironment は呼ばない（自然なマップの木とスポーンを残す）。全体スイッチの GameUi・Web の両方で流す
+// Never call SetupDebugEnvironment (keep the natural map's trees and spawn); run under both GameUi and Web
+using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Tutorial;
+using Client.Input;
 using Client.Playtest;
-using Cysharp.Threading.Tasks;
+using Client.Playtest.Input;
+using Client.Playtest.Operations;
+using Core.Master;
+using Game.Context;
+using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-var challenge1 = new Guid("bd5262ed-fbd4-51e0-a75d-2944f366e10a"); // 小石を3個拾う
-var challenge2 = new Guid("7bafc2cf-d55c-5141-805f-99e0b78a9945"); // 石器を作る
-var challenge3 = new Guid("fb529cac-5358-57fa-bd0a-08f3a6bb43c4"); // 木を伐採して原木を入手する
-var stoneToolRecipe = new Guid("9c20aa73-1877-4e0e-adcc-9f725c9377da"); // 石器クラフトレシピ(小石x3)
-var treeMapObject = new Guid("6a53fef8-2cf5-41fe-9922-21fd7dd4ab6c"); // mapObject「木」
-var treePinTutorial = "a0e8917b-83d2-5cf6-84da-f45ea20fb298"; // チャレンジ#3のmapObjectPin tutorialGuid
-var stoneToolAttackSpeedSeconds = 2.1f; // 石器のattackSpeed=2。サーバーのクールダウン許容率を越える間隔で打つ
-var fellingMaxHits = 14; // 木hp100 / 石器damage10。破壊までの上限打撃数
-
-var options = new PlaytestRunOptions { Record = true };
+var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =>
 {
-    p.Note("チュートリアル序盤を進めて木ピン(チャレンジ#3)まで到達する");
-    var pinStore = Client.Game.InGame.Tutorial.WorldPinStateStore.Instance;
+    // 系の記録と入力の準備（前例 uitk-skit）
+    // Record the UI system and prepare input (precedent uitk-skit)
+    p.Note($"系={UiInputExclusivity.ActiveUiSystem}");
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
 
-    await p.WaitForChallenge(challenge1, false, 30, "チャレンジ#1(小石を3個拾う)がカレントに存在する");
+    // マスタから先頭チャレンジと木ピンの候補を引く（ピンと同じ入口 ResolvePinTargets）
+    // Pull the first challenge and the tree pin candidates from the master (same entry as the pin, ResolvePinTargets)
+    var category = MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements.Single(c => c.InitialUnlocked);
+    var first = MasterHolder.ChallengeMaster.GetCategoryInitialChallenges(category.CategoryGuid).Single();
+    var pinTutorial = first.Tutorials.Single(t => t.TutorialType == TutorialsElement.TutorialTypeConst.mapObjectPin);
+    var pinTutorialGuid = pinTutorial.TutorialGuid.ToString("D");
+    var treeCandidates = MasterHolder.ChallengeMaster.ResolvePinTargets((MapObjectPinTutorialParam)pinTutorial.TutorialParam);
+    var pinStore = WorldPinStateStore.Instance;
 
-    // スキット表示中はピンが仕様上非表示のため、Web UIと同じSkipインテントで飛ばす
-    // Pins are hidden while a skit is playing by design, so skip it via the same intent path as the web UI
-    p.Note("Skipインテントで開幕スキットを飛ばす");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    var skipAccepted = await PollUntil(() =>
-    {
-        var s = skitStore.GetCurrent();
-        return skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
-    }, 30);
-    p.Assert(skipAccepted, "Skipインテントが受理された");
-
-    p.Note("小石3個と石器クラフトでチャレンジ#1・#2を消化する");
-    await p.GiveItemDirect("小石", 3);
-    await p.WaitForChallenge(challenge1, true, 30, "チャレンジ#1(小石を3個拾う)が完了した");
-
-    Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.Craft(stoneToolRecipe);
-    await p.WaitForChallenge(challenge3, false, 60, "チャレンジ#3(伐採)が解放された");
-
-    // 検証1: 木ピンが伐採のtutorialGuidで表示される
-    // Verify 1: the tree pin appears with the felling tutorialGuid
-    var treePinShown = await PollUntil(() => pinStore.GetCurrent().Pins
-        .Any(x => x.PinId == "map-object-pin" && x.TutorialGuid == treePinTutorial), 30);
-    p.Assert(treePinShown, "木ピン(map-object-pin)が伐採のtutorialGuidで表示された");
+    // 1. 先頭がカレントで、スキットを飛ばすと木ピンが出る
+    // 1. The first challenge is current and the tree pin shows once the skit is skipped
+    await p.WaitForChallenge(first.ChallengeGuid, false, 30, "先頭チャレンジ（原木）がカレント");
+    await p.SkipOpeningSkit();
+    await p.Until(() => pinStore.GetCurrent().Pins.Any(x => x.PinId == "map-object-pin" && x.TutorialGuid == pinTutorialGuid), 30f, "木ピンが先頭チャレンジの tutorialGuid で出た");
     await p.Screenshot("01-tree-pin");
 
-    // 検証2: k-d tree索引の結果が、シーン内の全木を総当たりした最寄りと一致する
-    // Verify 2: the k-d tree result equals a brute-force nearest over every tree in the scene
-    p.Note("k-d tree索引の最寄り木を総当たり結果と突き合わせる");
-    var datastore = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>();
-    var playerPosition = p.PlayerPosition;
-    var indexed = datastore.SearchNearestMapObject(treeMapObject, playerPosition);
-    var brute = BruteForceNearest(playerPosition);
-    p.Assert(indexed != null, "索引が最寄りの木を返した");
-    p.Assert(brute != null, "総当たりで最寄りの木が見つかった");
-    if (indexed != null && brute != null)
-    {
-        var indexedDistance = (indexed.transform.position - playerPosition).sqrMagnitude;
-        var bruteDistance = (brute.transform.position - playerPosition).sqrMagnitude;
-        p.Note($"索引={indexed.InstanceId} d2={indexedDistance:F3} / 総当たり={brute.InstanceId} d2={bruteDistance:F3} / 木の総数={CountAvailableTrees()}");
-        p.Assert(Mathf.Abs(indexedDistance - bruteDistance) < 0.001f, "索引の最寄り距離が総当たりと一致する");
-    }
+    // 2. (a) 索引の最寄りが総当たりの最寄りと同じ距離
+    // 2. (a) The index's nearest has the same distance as the brute-force nearest
+    var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
+    await p.Until(() => datastore.IsAllInstantiated.Value, 30f, "マップオブジェクトが全部生成された");
+    var position = p.PlayerPosition;
+    var indexed = datastore.SearchNearestMapObject(treeCandidates, position);
+    var brute = BruteForceNearest(position, -1);
+    p.Assert(indexed != null && brute != null, $"索引と総当たりの両方が最寄りの木を返した（候補 {treeCandidates.Count} 種・生存 {LiveTrees().Count()} 本）");
+    p.Note($"索引={indexed.InstanceId} d2={Distance2(indexed, position):F3} / 総当たり={brute.InstanceId} d2={Distance2(brute, position):F3}");
+    p.Assert(Mathf.Abs(Distance2(indexed, position) - Distance2(brute, position)) < 0.001f, "(a) 索引の最寄り距離が総当たりと一致する");
 
-    // 検証3: ピンの実座標が最寄りの木に重なっている
-    // Verify 3: the pin transform sits on the nearest tree
-    var pinComponent = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Tutorial.MapObjectPin>(FindObjectsInactive.Include);
-    p.Assert(pinComponent != null, "MapObjectPinがシーンに存在する");
-    var firstPinPosition = pinComponent.transform.position;
-    if (indexed != null) p.Assert((firstPinPosition - indexed.transform.position).sqrMagnitude < 0.001f, "ピンが最寄りの木の位置を指している");
+    // 3. (b) ピンの実座標が索引の木に重なる
+    // 3. (b) The pin transform sits on the index's tree
+    var pin = Object.FindFirstObjectByType<MapObjectPin>(FindObjectsInactive.Include);
+    await p.Until(() => (pin.transform.position - indexed.transform.position).sqrMagnitude < 0.001f, 10f, "(b) ピンが最寄りの木の位置を指している");
 
-    // 検証4: その木を伐採すると、索引とピンが次の木へ移る
-    // Verify 4: felling that tree moves both the index result and the pin to the next tree
-    p.Note("石器を装備して最寄りの木を伐採しきる");
-    await p.EquipItem("石器", 0);
-    var felledInstanceId = indexed.InstanceId;
-    for (var hit = 0; hit < fellingMaxHits && indexed.IsAvailable; hit++)
-    {
-        Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.AttackMapObject(felledInstanceId);
-        await p.WaitSeconds(stoneToolAttackSpeedSeconds);
-    }
-    p.Assert(!indexed.IsAvailable, "伐採した木が破壊済みになった");
-    await p.Screenshot("02-tree-felled");
+    // 4. その木を採掘無しでサーバーから壊す。原木は入らないので先頭はまだカレント
+    // 4. Destroy that tree on the server without mining; no logs arrive, so the first challenge stays current
+    var felledId = indexed.InstanceId;
+    await p.RunOnServer("最寄りの木を採掘無しで壊す", () => ServerContext.MapObjectDatastore.Get(felledId).Destroy());
+    await p.Until(() => !indexed.IsAvailable, 10f, "壊した木がクライアントで破壊済み");
+    p.Assert(await p.ReadChallenge(first.ChallengeGuid, false) && !await p.ReadChallenge(first.ChallengeGuid, true), "原木を得ていないので先頭チャレンジはまだカレント");
+    await p.Screenshot("02-tree-destroyed");
 
-    p.Note("伐採後の最寄り探索が次の木へ移ることを確認する");
-    var afterPosition = p.PlayerPosition;
-    var afterIndexed = await PollUntilResult(() =>
-    {
-        var candidate = datastore.SearchNearestMapObject(treeMapObject, afterPosition);
-        return candidate != null && candidate.InstanceId != felledInstanceId ? candidate : null;
-    }, 30);
-    p.Assert(afterIndexed != null, "伐採後の索引が伐採済みでない別の木を返した");
-    if (afterIndexed != null)
-    {
-        var afterBrute = BruteForceNearest(afterPosition);
-        p.Note($"伐採後: 索引={afterIndexed.InstanceId} / 総当たり={afterBrute?.InstanceId}");
-        p.Assert(afterBrute != null && Mathf.Abs((afterIndexed.transform.position - afterPosition).sqrMagnitude - (afterBrute.transform.position - afterPosition).sqrMagnitude) < 0.001f,
-            "伐採後も索引の最寄り距離が総当たりと一致する");
-
-        var pinMoved = await PollUntil(() => (pinComponent.transform.position - afterIndexed.transform.position).sqrMagnitude < 0.001f, 15);
-        p.Assert(pinMoved, "ピンが次の木へ移った");
-    }
+    // 5. (c) 索引が壊した木以外を返して総当たりと一致し、ピンがその木へ移る
+    // 5. (c) The index returns a tree other than the destroyed one, matching brute force, and the pin moves there
+    var after = p.PlayerPosition;
+    await p.Until(() => datastore.SearchNearestMapObject(treeCandidates, after) is { } next && next.InstanceId != felledId, 10f, "壊した後の索引が別の木を返した");
+    var afterIndexed = datastore.SearchNearestMapObject(treeCandidates, after);
+    var afterBrute = BruteForceNearest(after, felledId);
+    p.Note($"壊した後: 索引={afterIndexed.InstanceId} / 総当たり={afterBrute.InstanceId}");
+    p.Assert(Mathf.Abs(Distance2(afterIndexed, after) - Distance2(afterBrute, after)) < 0.001f, "(c) 壊した後も索引の最寄り距離が総当たりと一致する");
+    await p.Until(() => (pin.transform.position - afterIndexed.transform.position).sqrMagnitude < 0.001f, 15f, "(c) ピンが次の木へ移った");
     await p.Screenshot("03-pin-moved-to-next-tree");
-
-    p.Note("検証完了");
 
     #region Internal
 
-    // シーン内の生存している木を総当たりして最寄りを出す。索引から独立した検算用
-    // Brute-force the nearest live tree in the scene as an oracle independent of the index
-    Client.Game.InGame.Map.MapObject.MapObjectGameObject BruteForceNearest(Vector3 from)
-    {
-        Client.Game.InGame.Map.MapObject.MapObjectGameObject best = null;
-        var bestDistance = float.MaxValue;
-        foreach (var mapObject in UnityEngine.Object.FindObjectsByType<Client.Game.InGame.Map.MapObject.MapObjectGameObject>(FindObjectsSortMode.None))
-        {
-            if (mapObject.MapObjectGuid != treeMapObject || !mapObject.IsAvailable) continue;
-            var distance = (mapObject.transform.position - from).sqrMagnitude;
-            if (bestDistance <= distance) continue;
-            bestDistance = distance;
-            best = mapObject;
-        }
-        return best;
-    }
+    // 候補に入る生存中の木（非活性も含める。索引は距離で隠した木も持つ）
+    // Live candidate trees, inactive ones included (the index also holds trees hidden by distance)
+    IEnumerable<MapObjectGameObject> LiveTrees() => Object.FindObjectsByType<MapObjectGameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(m => treeCandidates.Contains(m.MapObjectGuid) && m.IsAvailable);
 
-    int CountAvailableTrees()
-    {
-        return UnityEngine.Object.FindObjectsByType<Client.Game.InGame.Map.MapObject.MapObjectGameObject>(FindObjectsSortMode.None)
-            .Count(x => x.MapObjectGuid == treeMapObject && x.IsAvailable);
-    }
+    // 索引から独立した検算用の総当たり。excludeId は壊した木が配信前に残る窓を除くため
+    // Brute-force oracle independent of the index; excludeId drops the destroyed tree during the sync window
+    MapObjectGameObject BruteForceNearest(Vector3 from, int excludeId) => LiveTrees().Where(m => m.InstanceId != excludeId).OrderBy(m => Distance2(m, from)).FirstOrDefault();
 
-    // 条件成立まで1秒間隔でポーリング（Untilと違い例外中断せず、失敗しても後続の検証を続ける）
-    // Poll every 1s until the condition holds (unlike Until, never aborts so later checks still run)
-    async UniTask<bool> PollUntil(Func<bool> condition, int seconds)
-    {
-        for (var i = 0; i < seconds; i++)
-        {
-            if (condition()) return true;
-            await p.WaitSeconds(1f);
-        }
-        return condition();
-    }
-
-    async UniTask<Client.Game.InGame.Map.MapObject.MapObjectGameObject> PollUntilResult(
-        Func<Client.Game.InGame.Map.MapObject.MapObjectGameObject> resolve, int seconds)
-    {
-        for (var i = 0; i < seconds; i++)
-        {
-            var result = resolve();
-            if (result != null) return result;
-            await p.WaitSeconds(1f);
-        }
-        return resolve();
-    }
+    float Distance2(MapObjectGameObject mapObject, Vector3 from) => (mapObject.transform.position - from).sqrMagnitude;
 
     #endregion
 });

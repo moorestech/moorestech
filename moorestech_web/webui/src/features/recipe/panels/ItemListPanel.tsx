@@ -69,7 +69,7 @@ export default function ItemListPanel() {
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (
-              <div key={id} data-item-id={id} {...tutorialAnchor(recipeItemAnchorId(id))}>
+              <div key={id} data-item-id={id} data-testid={`item-list-cell-${id}`} {...tutorialAnchor(recipeItemAnchorId(id))}>
                 <ItemSlot itemId={id} count={craftableCounts.get(id) ?? 0} catalog />
               </div>
             ))}
