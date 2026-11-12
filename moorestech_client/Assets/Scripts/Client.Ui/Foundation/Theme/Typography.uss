@@ -128,5 +128,5 @@
 
 .game-ui-locale--cjk .title--heading-face {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
-    letter-spacing: -7.5px; /* web: .Hiragino Kaku Gothic Interface W6 は NotoSansJP Medium より字送りが 0.075em 狭い（題の語 11 個の平均） */
+    letter-spacing: -7.5px; /* look-exception: LX-181 */ /* web: .Hiragino Kaku Gothic Interface W6 は NotoSansJP Medium より字送りが 0.075em 狭い（題の語 11 個の平均） */
 }

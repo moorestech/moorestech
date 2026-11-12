@@ -153,8 +153,8 @@
     --game-panel-rule-end: var(--game-panel-rule-bottom-end);
 }
 
-/* basis 0% で本文の高さを子孫の内容寸法へ依存させない（Web の .body と同じ方針） */
-/* Basis 0% keeps the body height independent of descendant content size (same policy as the Web .body) */
+/* basis 0% で本文の高さを子孫の内容寸法へ依存させない（Web の .body と同じ方針）。max-height で止まるときの飾り線の縮みは写さない（look-exception: LX-182） */
+/* Basis 0% keeps the body height independent of descendant content size (same policy as the Web .body); the deco-line shrink at max-height is not copied (look-exception: LX-182) */
 .game-panel__body {
     flex-grow: 1;
     flex-shrink: 1;
