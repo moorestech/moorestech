@@ -1,8 +1,10 @@
+using System.IO;
 using Client.Game.InGame.Tutorial;
 using Client.Tests.Ui.State.Tutorial;
 using Client.Ui.Screens.Tutorial.WorldPin;
 using Client.Ui.State.Tutorial.WorldPin;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.Tutorial.Cues
@@ -48,6 +50,25 @@ namespace Client.Tests.Ui.Screens.Tutorial.Cues
             var pin = Find<VisualElement>(_view, "world-pin-p1");
             Assert.AreEqual(640f, pin.worldBound.center.x, 1f);
             Assert.AreEqual(288f, pin.worldBound.yMax, 1f);
+        }
+
+        [Test]
+        public void マーカーは20pxの箱で切り描画は箱の中の子が持つ()
+        {
+            // Web の svg は viewBox の上へはみ出た頂を切る。UITK は箱の overflow で子の描画を切って揃える
+            // The Web svg clips the apex above its viewBox; UITK clips the child's drawing with the box's overflow
+            _model.Set(new WorldPinViewModelProjection().Project(Pins(Pin("p1", 0.5f, 0.4f)), false));
+            simulate.FrameUpdate();
+
+            var marker = Find<VisualElement>(_view, "world-pin-p1").Q(className: "world-pin__marker");
+            var glyph = marker.Q(className: "world-pin__marker-glyph");
+            // overflow は resolvedStyle に無いので USS の規則で見る（前例 ModeHudDesignTest の USS 読み）
+            // resolvedStyle has no overflow, so check the USS rule (precedent: ModeHudDesignTest reading USS)
+            var uss = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts/Client.Ui/Screens/Tutorial/WorldPin/WorldPin.uss"));
+            StringAssert.IsMatch(@"\.world-pin__marker\s*\{[^}]*overflow:\s*hidden;", uss);
+            Assert.AreSame(marker, glyph.parent);
+            Assert.AreEqual(20f, glyph.layout.width, 0.01f);
+            Assert.AreEqual(20f, glyph.layout.height, 0.01f);
         }
 
         /// <web-test file="e2e/tests/system/worldPin.spec.ts">world pin follows updated projections</web-test>
