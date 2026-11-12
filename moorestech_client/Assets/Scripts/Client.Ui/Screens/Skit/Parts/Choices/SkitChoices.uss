@@ -31,6 +31,14 @@
     margin-bottom: 0;
 }
 
+/* Web の .choice は素の button（background: none・押下の沈み無し）なので、既定テーマ（Theme.uss）のホバーの面と押下の translate を打ち消す */
+/* The Web .choice is a bare button (background: none, no press sink), so cancel the default theme's (Theme.uss) hover face and press translate */
+.skit-choices .skit-choice.unity-button:hover,
+.skit-choices .skit-choice.unity-button:active {
+    background-color: transparent;
+    translate: 0 0;
+}
+
 /* 板の面（左右のフェード・押下の面）は部品 GamePanelSurface の種別 SkitChoice が持つ（D-37） */
 /* The plate face (side fades and pressed face) belongs to the GamePanelSurface SkitChoice kind (D-37) */
 

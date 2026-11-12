@@ -26,7 +26,7 @@
 
 .skit-toolbar .skit-tool-glyph {
     --skit-tool-glyph-shadow-color: var(--skit-window-face);
-    --skit-tool-glyph-shadow-offset: 1px;
+    --skit-tool-glyph-shadow-offset: 1px; /* look-exception: LX-52 */
     width: var(--skit-tool-button-size);
     height: var(--skit-tool-button-size);
 }

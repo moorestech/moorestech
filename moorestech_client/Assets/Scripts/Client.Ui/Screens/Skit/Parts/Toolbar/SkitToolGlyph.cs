@@ -62,7 +62,7 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             // 影を先に、本体をその上に描く
             // Draw the shadow first and the glyph on top
             painter.strokeColor = _shadowColor;
-            SkitToolGlyphPaths.Stroke(painter, _shape, scale, new Vector2(0f, _shadowOffset));
+            SkitToolGlyphPaths.Stroke(painter, _shape, scale, new Vector2(0f, _shadowOffset)); // look-exception: LX-52
             painter.strokeColor = _color;
             SkitToolGlyphPaths.Stroke(painter, _shape, scale, Vector2.zero);
         }

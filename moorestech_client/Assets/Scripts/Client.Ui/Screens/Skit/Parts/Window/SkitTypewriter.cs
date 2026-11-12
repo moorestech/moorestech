@@ -36,7 +36,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
         // Restart from the head only when the Web useEffect dependencies (session, body, mode, interval) change
         public void Follow(SkitViewModel model, bool restoringSnapshot)
         {
-            if (!restoringSnapshot && !ChangedFrom(model)) return;
+            if (!restoringSnapshot && !ChangedFrom(model)) return; // look-exception: LX-54
             Remember(model);
             StopTyping();
             TotalCount = SkitTypewriterRules.CountCodePoints(model.Body);

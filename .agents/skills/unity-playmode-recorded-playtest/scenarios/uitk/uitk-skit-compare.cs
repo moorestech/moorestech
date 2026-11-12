@@ -127,6 +127,15 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         p.Note($"PointerEnter の回数={enterCount}");
         NoteHover("skit-choice-route-b");
         await p.Screenshot($"{prefix}-uitk-skit-choice-hover");
+        // 押したまま撮り、選ばないよう選択肢の外で離す
+        // Shoot while held, then release outside the choice so nothing is selected
+        SemanticInput.MouseButtonDown(0);
+        await p.WaitSeconds(0.3f);
+        await p.Screenshot($"{prefix}-uitk-skit-choice-press");
+        SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
+        await UniTask.DelayFrame(2);
+        SemanticInput.MouseButtonUp(0);
+        p.Assert(store.GetCurrent().PresentationState.Choices.Length == 2, "外で離したので選ばれていない");
         await p.HoverUi("skit-tool-auto");
         await p.WaitSeconds(0.3f);
         await p.Screenshot($"{prefix}-uitk-skit-tool-hover");
