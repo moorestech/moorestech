@@ -20,7 +20,7 @@
 |---|---|---|
 | R-1 | 注目点の論理: ノードの列から状態が進行中の最初のノードを返し、無ければ寄せない（Web `findChallengeInitialFocusNode`） | `ChallengeListLogicTest`（L0。`challengeLogic.test.ts` の 2 件）が緑 |
 | R-2 | ViewModel の工場: `ChallengeProgressState.Categories`（`ChallengeCategoryResponse` の列）から、`IsUnlocked` のカテゴリだけを受信順（＝マスタの順）で写し（Web `ChallengeDtoBuilder.BuildTree`）、各カテゴリのノードはマスタの `Challenges` の順で、状態は完了＞進行中＞未解放、状態の文言キーは State の `ChallengeListLogic`、座標は `DisplayListParam.UIPosition`、倍率は `UIScale` の x・y、前提は `PrevChallengeGuids`（省略〈null〉は前提なし）のうち同じカテゴリにあるものだけ（C4-d D-5 の申し送り (2)）。選択したカテゴリが出ていなければ先頭（Web の `find(...) ?? categories[0]`）。解放済みが無ければ空の一覧（`EmptyChallengeListViewModel`。選択を持たない） | `ChallengeListViewModelFactoryTest`（L0）の 4 件が緑 |
-| R-3 | Model と選択: 完了の知らせ・選択の変化・一覧への突入で同期で組み直す。組み直すのは一覧の表示中だけ（前例 `ResearchTreeModel`）で、表示中かは経路の今の値を `ChallengeScreenVisibility.IsShown` で読む（購読の順に依らない）。カテゴリの選択は一覧を離れると「無し」に戻り、開き直すと先頭のカテゴリになる（Web はパネルのアンマウントで `useState` が消える） | `ChallengeListViewportTest`「閉じて開き直すと先頭のカテゴリへ戻り…」が緑。録画 `uitk-challenge-list` の開き直しの段 |
+| R-3 | Model と選択: 完了の知らせ・選択の変化・一覧への突入で同期で組み直す。組み直すのは一覧の表示中だけ（前例 `ResearchTreeModel`）で、表示中かは経路の今の値を `ChallengeScreenVisibility.IsShown` で読む（購読の順に依らない）。カテゴリの選択は一覧を離れると「無し」に戻り、開き直すと先頭のカテゴリになる（Web はパネルのアンマウントで `useState` が消える） | `ChallengeListModelTest`（L0 4 件: 閉画面では組まない・突入と選択と完了の知らせで組み直す・離れた後の戻しは登録順の両方で組まず開き直すと先頭）と `ChallengeCategorySelectionStoreTest`（L0 1 件）が緑。`ChallengeListViewportTest`「閉じて開き直すと先頭のカテゴリへ戻り…」が緑。録画 `uitk-challenge-list` の開き直しの段 |
 | R-4 | 視点: 訪れたカテゴリごとに `NodeGraphView("challenge", …)` を 1 本作って控え（`ChallengeCategoryGraph`。カテゴリ Guid → View。画面の寿命）、選んだカテゴリが変わったら置き場に付ける View を付け替える（置き場の子は表示中のカテゴリの 1 本だけ）。View を作ったときだけ部品が進行中へ 1 回寄せ、再訪と開き直しは控えた View の視点のまま（View の寿命で保つ。I-fix6 D-3 と同じ形。`RestoreViewport` と State の視点の Session は使わない） | `ChallengeListViewportTest`（L1）の 3 件が緑（`challenge.spec.ts` の 1 件と裁定 2026-11-04 の 2 件。再訪は同じ View のインスタンスが付け直され、木の中の `NodeGraphView` が常に 1 本であることも見る） |
 | R-5 | 一覧の枠: `challenge-panel`（アンカー `challenge.panel`）は舞台の上端から `--menu-upper-safe-area`（168px）下・左右下 0、地 `--mantine-color-dark-8`、内側の余白 `--mantine-spacing-md`、縦積み。中に題（`title--order-2`・`ui.challenge.title`）・カテゴリのボタン列 `challenge-categories`（アンカー `challenge.categories`。中に `GameScrollView("challenge-categories-scroll", GameScrollAxis.Horizontal)`、その中に `UiGroup(UiGap.Md)`＋`ui-group--nowrap`）・`NodeGraphView`（`challenge-viewport`・`challenge-canvas`。残りの高さいっぱい）。カテゴリ列はボタンが幅を越えたら横に送れ、越えなければバーを出さない（Web の `Group` の `flex-wrap: nowrap`・`overflow-x: auto`）。バーはゲームのスクロール領域と同じ `GameScrollView` のバー（太さ `--scrollarea-scrollbar-size`・溝 `--game-scroll-view-track-face`・つまみ `--game-scroll-view-thumb-face`）を本文の下の流れに置き、越えたときだけ列がバーの太さの分だけ高くなる。画面の USS は部品の内側のクラスを書かない。一覧の上（題・カテゴリ列）のホイールは装備・ホットバーへ抜けない | `ChallengeListViewTest`（L1）の 5 件が緑。並べ比べ（R-11） |
 | R-6 | カテゴリのボタン: 各カテゴリに `FormButton("challenge-category-<guid>", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), …)`。選んだカテゴリは `Filled`、他は `Subtle`。押すと `IChallengeListCommands.SelectCategory(guid)` | `ChallengeListViewportTest`（押下で選択の操作が 1 回出て、選んだカテゴリが Filled）が緑 |
@@ -233,6 +233,7 @@ namespace Client.Ui.State.Routing
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | S5-challenge の 3 行を消す（表は空） | 変更 |
 | `S/Client.Tests/Ui/State/Challenge/ChallengeListLogicTest.cs` | L0（Web 2 件） | 新規 |
 | `S/Client.Tests/Ui/State/Challenge/ChallengeListViewModelFactoryTest.cs` | L0（工場 3 件・グラフの形の比較 1 件） | 新規 |
+| `S/Client.Tests/Ui/State/Challenge/ChallengeListModelTest.cs`・`ChallengeCategorySelectionStoreTest.cs`・`ChallengeProgressStateTestSource.cs` | L0（Model 4 件・選択 1 件）と、テスト mod の 2 カテゴリで源を組む補助 | 新規 |
 | `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListScreenTestKit.cs` | L1 の共通材料 | 新規 |
 | `S/Client.Tests/Ui/Screens/Challenge/Tree/RecordingChallengeListCommands.cs` | 操作の記録 | 新規 |
 | `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewTest.cs` | L1（翻訳済み表示・カードの見た目・空・カテゴリ列の横スクロール・ホイールの行き先） | 新規 |
@@ -243,7 +244,7 @@ namespace Client.Ui.State.Routing
 | `docs/uitk/TODO.md` | 「## 実測の結論」の末尾に 1 行 | 変更（追記） |
 | `LOGS/harness/uitk/S5-challenge/done.md` | 作業報告 | 新規（moorestech_logs） |
 
-ディレクトリのファイル数（.cs・.uss を数える）: `Client.Ui.State/Challenge/` 直下 4（既存 3＋`ChallengeScreenVisibility`）・`Challenge/Tree/` 9・`Tree/Selection/` 2・`Challenge/Commands/` 2・`Screens/Challenge/` 直下 0（`CurrentHud/`・`Tree/`・`Parts/` の 3 つのサブディレクトリだけ）・`Screens/Challenge/Tree/` 3・`Parts/` 5（カード・カードの組・ボタン列・グラフの置き場・カテゴリ 1 つのグラフ）・`Components/Controls/GameScrollView/` 3・`Client.Tests/Ui/Components/Controls/GameScrollViewAxis/` 1（`Controls/` 直下は既に 10）・`Registration/GameUi/Screens/Challenge/` 1（直下は既に 10）・`Client.Tests/Ui/State/Challenge/` 2（`Ui/State/` 直下は既に 10）・`Client.Tests/Ui/Screens/Challenge/Tree/` 5。どれも 10 以下。名前空間に `List` を使わない（一覧の View の置き場は `Screens/Challenge/Tree/`。`List` だと `System.Collections.Generic.List` と読み違える。State の `Challenge.Tree`・L1 の `Screens.Challenge.Tree`・研究の `Research.Tree` と同じ名前になり、HUD の `CurrentHud/` と並ぶサブディレクトリになる。D-16）。
+ディレクトリのファイル数（.cs・.uss を数える）: `Client.Ui.State/Challenge/` 直下 4（既存 3＋`ChallengeScreenVisibility`）・`Challenge/Tree/` 9・`Tree/Selection/` 2・`Challenge/Commands/` 2・`Screens/Challenge/` 直下 0（`CurrentHud/`・`Tree/`・`Parts/` の 3 つのサブディレクトリだけ）・`Screens/Challenge/Tree/` 3・`Parts/` 5（カード・カードの組・ボタン列・グラフの置き場・カテゴリ 1 つのグラフ）・`Components/Controls/GameScrollView/` 3・`Client.Tests/Ui/Components/Controls/GameScrollViewAxis/` 1（`Controls/` 直下は既に 10）・`Registration/GameUi/Screens/Challenge/` 1（直下は既に 10）・`Client.Tests/Ui/State/Challenge/` 5（`Ui/State/` 直下は既に 10）・`Client.Tests/Ui/Screens/Challenge/Tree/` 5。どれも 10 以下。名前空間に `List` を使わない（一覧の View の置き場は `Screens/Challenge/Tree/`。`List` だと `System.Collections.Generic.List` と読み違える。State の `Challenge.Tree`・L1 の `Screens.Challenge.Tree`・研究の `Research.Tree` と同じ名前になり、HUD の `CurrentHud/` と並ぶサブディレクトリになる。D-16）。
 
 **写すテスト（5 件）**
 
@@ -254,7 +255,7 @@ namespace Client.Ui.State.Routing
 | `e2e/tests/challenge.spec.ts`「チャレンジ画面は進行中のチャレンジを中央にして開き、カテゴリ切替でもその進行中へ寄せる」 | 1 | `ChallengeListViewportTest.進行中のチャレンジを中央にして開きカテゴリ切替でもその進行中へ寄せる` | L1 |
 | `e2e/tests/challenge.spec.ts`「常駐HUDをインベントリ・メニュー・操作モードで維持する」 | 1 | `ChallengeHudOverListTest.常駐HUDはチャレンジ一覧を開いても同じ位置のまま一覧とカテゴリより上に出る`（一覧の部分）＋録画 `uitk-challenge-hud-resident`（画面を跨ぐ部分） | L1＋録画 |
 
-タグの付かない L1/L0（裁定・事後承認・工場・死活表）: `ChallengeListViewTest` 4 件・`ChallengeListViewportTest` 2 件・`ChallengeListViewModelFactoryTest` 4 件。`challenge.spec.ts` の残り 4 件（HUD）は S2-hud が `CurrentChallengeHudStateTest` で写し済み。
+タグの付かない L1/L0（裁定・事後承認・工場・死活表）: `ChallengeListViewTest` 4 件・`ChallengeListViewportTest` 2 件・`ChallengeListViewModelFactoryTest` 4 件・`ChallengeListModelTest` 4 件・`ChallengeCategorySelectionStoreTest` 1 件。`challenge.spec.ts` の残り 4 件（HUD）は S2-hud が `CurrentChallengeHudStateTest` で写し済み。
 
 テストのフィルタ（以後 `$FILTER`）: `^Client\.Tests\.Ui\.(State\.Challenge|Screens\.Challenge\.Tree|Components\.Controls|Anchor|Conventions|Theme|Layers|Screens\.Challenge\.Current)`（`Components\.Controls` は `GameScrollView` の縦横の L1）
 
@@ -956,6 +957,9 @@ git commit -m "feat(uitk): S5-challenge のチャレンジ一覧の ViewModel・
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Commands/IChallengeListCommands.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Commands/ChallengeListCommands.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListModel.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeCategorySelectionStoreTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeListModelTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeProgressStateTestSource.cs`（補助）
 
 **Interfaces:**
 - Consumes: Task 1 の `ChallengeListViewModelFactory.Create`・`ChallengeListViewModel.Empty`・`ChallengeCategorySelection`、`ChallengeProgressState.Categories`・`OnChallengeCompleted`、`UiRoutingState.Current`・`UiRoutingSnapshot.Screen`
@@ -1016,7 +1020,7 @@ namespace Client.Ui.State.Challenge.Tree.Selection
         {
             _routing.Current.Subscribe(snapshot =>
             {
-                // silent-ok: 一覧の中の経路の通知は選択を保つ / 離れて先頭へ戻ることは L1 ChallengeListViewportTest と録画 uitk-challenge-list が見る
+                // silent-ok: 一覧の中の経路の通知は選択を保つ / 離れて無しに戻ることは L0 ChallengeCategorySelectionStoreTest、先頭へ戻ることは L1 ChallengeListViewportTest と録画 uitk-challenge-list が見る
                 if (ChallengeScreenVisibility.IsShown(snapshot)) return;
                 _current.Value = ChallengeCategorySelection.None;
             });
@@ -1126,23 +1130,307 @@ namespace Client.Ui.State.Challenge.Tree
         {
             // ReactiveProperty は値を書いてから購読者へ流すので、通知の中でも今の経路が読める
             // ReactiveProperty stores the value before notifying, so the current route is readable inside any notice
-            if (!ChallengeScreenVisibility.IsShown(_routing.Current.Value)) return; // silent-ok: 閉画面では組まない / 次の突入で最新を組み、録画 uitk-challenge-list の開き直しの段が見る
+            if (!ChallengeScreenVisibility.IsShown(_routing.Current.Value)) return; // silent-ok: 閉画面では組まない / 閉画面で組まず突入で組むことは L0 ChallengeListModelTest が固定し、録画 uitk-challenge-list の開き直しの段が見る
             _current.Value = ChallengeListViewModelFactory.Create(_progress.Categories, _selection.Current.Value);
         }
     }
 }
 ```
 
-- [ ] **Step 3: コンパイルする**
+- [ ] **Step 3: 選択ストアと Model の L0 を書く**
 
-Run: `uloop compile --project-path ./moorestech_client`
-Expected: ErrorCount 0（振る舞いは Task 4 の L1 と Task 6 の録画で見る）
+前例 `Client.Tests/Ui/State/Research/Wiring/ResearchTreeModelTest.cs`・`ResearchSelectionStoreTest.cs`（経路は `UiRoutingStateTestFactory.CreateSwitchable`・`Transit`）。源の `ChallengeProgressState` は前例 `Client.Tests/WebUi/Challenge/ChallengeProgressStateTest.cs` の組み方（`CapturingVanillaApiEvent`・握手の応答・完了の知らせの MessagePack）で、テスト mod の 2 カテゴリから組む。
 
-- [ ] **Step 4: コミットする**
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeProgressStateTestSource.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Client.Network.API;
+using Client.Tests.Inventory;
+using Client.Ui.State.Challenge;
+using Core.Master;
+using MessagePack;
+using Server.Event.EventReceive;
+using Server.Util.MessagePack;
+using UnityEngine;
+
+namespace Client.Tests.Ui.State.Challenge
+{
+    /// <summary>
+    /// テスト mod の 2 カテゴリで ChallengeProgressState を組み、完了の知らせを流す（前例 ChallengeProgressStateTest）
+    /// Builds ChallengeProgressState from the two test mod categories and dispatches completion notices (precedent ChallengeProgressStateTest)
+    /// </summary>
+    internal sealed class ChallengeProgressStateTestSource
+    {
+        public static readonly Guid Category1 = Guid.Parse("03ca4ded-3b2b-4e7f-bb6e-430f060c4ed1");
+        public static readonly Guid Category2 = Guid.Parse("35330f9d-f44f-493d-a6bc-07ae6413d7c4");
+        public static readonly Guid Test1 = Guid.Parse("00000000-0000-0000-4567-000000000001");
+        public static readonly Guid Test2 = Guid.Parse("00000000-0000-0000-4567-000000000002");
+        public static readonly Guid Category2First = Guid.Parse("c2d84cfb-73cb-4ffa-99b5-9703c550f330");
+
+        private readonly CapturingVanillaApiEvent _events = new();
+
+        public ChallengeProgressState Progress { get; }
+
+        public ChallengeProgressStateTestSource()
+        {
+            // 2 カテゴリとも解放済み。Category1 は Test1 完了・Test2 進行中、Category2 は先頭が進行中（受信順＝マスタの順）
+            // Both categories unlocked; Category1 has Test1 done and Test2 current, Category2 has its first current (received order = master order)
+            var initial = new List<ChallengeCategoryResponse>
+            {
+                Response(Category1, new[] { Test2 }, new[] { Test1 }),
+                Response(Category2, new[] { Category2First }, Array.Empty<Guid>()),
+            };
+            Progress = new ChallengeProgressState(_events, Handshake(initial));
+            Progress.Initialize();
+        }
+
+        // Test2 を完了にした全量を流す（サーバーの完了イベントと同じ形。Categories を置き換えてから知らせる）
+        // Dispatch the full state with Test2 completed (same shape as the server completion event; Categories is replaced before the notice)
+        public void CompleteTest2()
+        {
+#pragma warning disable CS0618
+            var message = new CompletedChallengeEventMessagePack
+            {
+                CompletedChallengeGuidStr = Test2.ToString(),
+                NextChallengeGuidsStr = new List<string>(),
+                PlayedSkitIds = new List<string>(),
+                ChallengeCategories = new List<ChallengeCategoryMessagePack>
+                {
+                    Category(Category1, Array.Empty<Guid>(), new[] { Test1, Test2 }),
+                    Category(Category2, new[] { Category2First }, Array.Empty<Guid>()),
+                },
+            };
+#pragma warning restore CS0618
+            _events.Dispatch(CompletedChallengeEventPacket.EventTag, MessagePackSerializer.Serialize(message));
+        }
+
+        private static ChallengeCategoryResponse Response(Guid category, Guid[] current, Guid[] completed)
+        {
+            var master = MasterHolder.ChallengeMaster;
+            return new ChallengeCategoryResponse(master.GetChallengeCategory(category), true, current.Select(master.GetChallenge).ToList(), completed.Select(master.GetChallenge).ToList());
+        }
+
+        private static ChallengeCategoryMessagePack Category(Guid category, Guid[] current, Guid[] completed)
+        {
+            return new ChallengeCategoryMessagePack
+            {
+                ChallengeCategoryGuid = category,
+                IsUnlocked = true,
+                CurrentChallengeGuidsStr = current.Select(guid => guid.ToString()).ToList(),
+                CompletedChallengeGuidsStr = completed.Select(guid => guid.ToString()).ToList(),
+            };
+        }
+
+        // チャレンジ以外は空で組む（前例 ChallengeProgressStateTest.CreateHandshake）
+        // Non-challenge handshake parts stay empty (precedent ChallengeProgressStateTest.CreateHandshake)
+        private static InitialHandshakeResponse Handshake(List<ChallengeCategoryResponse> challenges)
+        {
+#pragma warning disable CS0618
+            var initialHandshake = new global::Server.Protocol.PacketResponse.InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack
+            {
+                Accepted = new global::Server.Protocol.PacketResponse.Handshake.HandshakeAcceptedMessagePack
+                {
+                    PlayerPos = new Vector3MessagePack(Vector3.zero),
+                },
+            };
+#pragma warning restore CS0618
+            return new InitialHandshakeResponse(initialHandshake, (null, null, null, challenges, null, null, null, null));
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeCategorySelectionStoreTest.cs`:
+```csharp
+using Client.Game.InGame.UI.UIState;
+using Client.Tests.Ui.Screens.Inventory.Support;
+using Client.Ui.State.Challenge.Tree.Selection;
+using NUnit.Framework;
+using UnityEngine;
+using Object = UnityEngine.Object;
+using Source = Client.Tests.Ui.State.Challenge.ChallengeProgressStateTestSource;
+
+namespace Client.Tests.Ui.State.Challenge
+{
+    /// <summary>
+    /// チャレンジのカテゴリの選択は一覧の中で保ち、離れると無しに戻る（L0。Web はパネルのアンマウントで useState が消える）
+    /// The challenge category selection holds inside the list and resets to none on leaving (L0; the Web loses useState on panel unmount)
+    /// </summary>
+    public class ChallengeCategorySelectionStoreTest
+    {
+        private GameObject _host;
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_host);
+        }
+
+        [Test]
+        public void 一覧の中では選んだカテゴリを保ち離れると無しに戻る()
+        {
+            _host = new GameObject("ChallengeCategorySelectionStoreTest");
+            var routing = UiRoutingStateTestFactory.CreateSwitchable(_host, UIStateEnum.GameScreen, new[] { UIStateEnum.GameScreen, UIStateEnum.ChallengeList }, out var control);
+            var store = new ChallengeCategorySelectionStore(routing);
+            store.Initialize();
+            Assert.AreSame(ChallengeCategorySelection.None, store.Current.Value, "初期");
+
+            // 一覧へ入って選ぶと保つ
+            // Entering the list and selecting keeps it
+            UiRoutingStateTestFactory.Transit(control, UIStateEnum.ChallengeList);
+            store.Select(Source.Category2);
+            Assert.IsTrue(store.Current.Value.Is(Source.Category2));
+
+            // 離れると無しに戻る
+            // Leaving resets it to none
+            UiRoutingStateTestFactory.Transit(control, UIStateEnum.GameScreen);
+            Assert.AreSame(ChallengeCategorySelection.None, store.Current.Value, "離れた後");
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeListModelTest.cs`:
+```csharp
+using System;
+using System.Linq;
+using Client.Game.InGame.UI.UIState;
+using Client.Tests.Ui.Screens.Inventory.Support;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UnityEngine;
+using Object = UnityEngine.Object;
+using Source = Client.Tests.Ui.State.Challenge.ChallengeProgressStateTestSource;
+
+namespace Client.Tests.Ui.State.Challenge
+{
+    /// <summary>
+    /// チャレンジ一覧の表示は一覧の表示中だけ組み、突入・選択・完了の知らせで組み直し、離れると先頭のカテゴリへ戻る（L0。前例 ResearchTreeModelTest）
+    /// The challenge list display builds only while shown, rebuilds on entry, selection and completion notices, and returns to the first category after leaving (L0; precedent ResearchTreeModelTest)
+    /// </summary>
+    public class ChallengeListModelTest
+    {
+        private GameObject _host;
+        private UIStateControl _control;
+        private Source _source;
+        private ChallengeCategorySelectionStore _selection;
+        private ChallengeListModel _model;
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_host);
+        }
+
+        [Test]
+        public void 閉画面では完了の知らせと選択の変化で組まない()
+        {
+            Build(true);
+            _selection.Select(Source.Category2);
+            _source.CompleteTest2();
+
+            Assert.AreSame(ChallengeListViewModel.Empty, _model.Current.Value);
+        }
+
+        [Test]
+        public void 一覧へ入ると先頭のカテゴリで組み表示中は選択と完了の知らせで組み直す()
+        {
+            // 突入で解放済みの 2 カテゴリを受信順で組み、先頭を選ぶ
+            // Entering builds both unlocked categories in received order and selects the first
+            Build(true);
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ChallengeList);
+            var entered = AsSelected(_model.Current.Value);
+            CollectionAssert.AreEqual(new[] { Source.Category1, Source.Category2 }, entered.CategoryGuids);
+            Assert.AreEqual(Source.Category1, entered.Selected.Guid);
+
+            // 選択の変化で組み直す
+            // A selection change rebuilds
+            _selection.Select(Source.Category2);
+            Assert.AreEqual(Source.Category2, AsSelected(_model.Current.Value).Selected.Guid);
+
+            // 完了の知らせ（Categories の置き換えの後）で組み直し、Test2 が完了になる
+            // A completion notice (after Categories is replaced) rebuilds and Test2 becomes completed
+            var beforeCompletion = _model.Current.Value;
+            _source.CompleteTest2();
+            Assert.AreNotSame(beforeCompletion, _model.Current.Value);
+            var basics = AsSelected(_model.Current.Value).Categories.Single(c => c.Guid == Source.Category1);
+            Assert.AreEqual(ChallengeNodeState.Completed, basics.Nodes.Single(n => n.Guid == Source.Test2).State);
+        }
+
+        // 本番の登録順（選択ストア → Model）と逆順の両方で、離れた後の選択の戻しでは組まず、開き直すと先頭のカテゴリ（D-21）
+        // In both the production order (selection store, then model) and the reverse, the reset after leaving builds nothing and reopening shows the first category (D-21)
+        [TestCase(true)]
+        [TestCase(false)]
+        public void 一覧を離れると選択が無しに戻り開き直すと先頭のカテゴリを組む(bool selectionFirst)
+        {
+            Build(selectionFirst);
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ChallengeList);
+            _selection.Select(Source.Category2);
+            var shown = _model.Current.Value;
+
+            // 離れると選択は無しに戻るが、閉じた画面では組まない（最後に出した表示のまま）
+            // Leaving resets the selection, but a closed screen builds nothing (the last shown display stays)
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
+            Assert.AreSame(ChallengeCategorySelection.None, _selection.Current.Value);
+            Assert.AreSame(shown, _model.Current.Value);
+
+            // 開き直すと先頭のカテゴリで組む
+            // Reopening builds with the first category
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ChallengeList);
+            Assert.AreEqual(Source.Category1, AsSelected(_model.Current.Value).Selected.Guid);
+        }
+
+        private void Build(bool selectionFirst)
+        {
+            // テスト mod のマスタを読み、ゲーム画面と一覧の間を行き来できる経路で組む
+            // Load the test mod master and build on a router that moves between the game screen and the list
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            _host = new GameObject("ChallengeListModelTest");
+            var routing = UiRoutingStateTestFactory.CreateSwitchable(_host, UIStateEnum.GameScreen, new[] { UIStateEnum.GameScreen, UIStateEnum.ChallengeList }, out _control);
+            _source = new Source();
+            _selection = new ChallengeCategorySelectionStore(routing);
+            _model = new ChallengeListModel(_source.Progress, _selection, routing);
+
+            // 初期化の順を入れ替えられるようにする（DI の登録順に依らないことを見る）
+            // Allow either initialization order (checks independence from DI registration order)
+            if (selectionFirst)
+            {
+                _selection.Initialize();
+                _model.Initialize();
+                return;
+            }
+            _model.Initialize();
+            _selection.Initialize();
+        }
+
+        private static SelectedChallengeListViewModel AsSelected(ChallengeListViewModel model)
+        {
+            Assert.IsInstanceOf<SelectedChallengeListViewModel>(model);
+            return (SelectedChallengeListViewModel)model;
+        }
+    }
+}
+```
+（`ChallengeCategorySelectionStoreTest` は前例 `ResearchSelectionStoreTest` と同じく Initialize 前後の振る舞いだけを見る。マスタを読まないので `Source` の GUID 定数だけを使う）
+
+- [ ] **Step 4: コンパイルして L0 を流す**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.State\.Challenge"`
+Expected: ErrorCount 0 / 11 件 PASS（Task 1 の 6 件＋ここの 5 件。画面との結線は Task 4 の L1 と Task 6 の録画で見る）
+- 「閉画面では…組まない」が落ちたら、`ChallengeListModel` の購読のどれかが `IsShown` を通っていない
+- 「離れると…」の `selectionFirst = false` だけ落ちたら、Model が選択の戻しを経路の今の値でなく控えた旗で判定している（D-21）
+- 源の組み立てで `MasterHolder` が null なら、`Build` の先頭のマスタの読み込みが `new Source()` より後に来ている
+
+- [ ] **Step 5: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui.State/Challenge
-git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択・操作・Model"
+git add moorestech_client/Assets/Scripts/Client.Ui.State/Challenge moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge
+git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択・操作・Model と L0"
 ```
 
 ---
@@ -3267,7 +3555,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。セッショ�
   ],
   "verification": [
     "Unityコンパイル: エラー0",
-    "L0/L1: State.Challenge 6 件・Screens.Challenge.Tree 9 件 PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
+    "L0/L1: State.Challenge 11 件・Screens.Challenge.Tree 9 件 PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
     "test-name-parity 束 5: このレーンの持ち分 5 件の未対応 0",
     "unityプレイ録画テスト: uitk-challenge-list PASS・uitk-challenge-hud-resident PASS（全体スイッチ GameUi）"
   ],
@@ -3314,7 +3602,7 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 
 ## Self-Review
 
-1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア）・Task 4（開き直しの L1）・Task 6。R-4 → Task 3（`ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`）・Task 4（L1 3 件。付け替えと View の数）。R-5 → Task 3（View・USS・`GameScrollView` の横向き・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9。R-17 → Task 2b（`GameScrollAxis`・L1 2 件・呼び出し側 13 か所）。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
+1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア・L0 5 件）・Task 4（開き直しの L1）・Task 6。R-4 → Task 3（`ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`）・Task 4（L1 3 件。付け替えと View の数）。R-5 → Task 3（View・USS・`GameScrollView` の横向き・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9。R-17 → Task 2b（`GameScrollAxis`・L1 2 件・呼び出し側 13 か所）。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
 2. **Placeholder scan**: 「TBD」「後で」は無い。`<幅>×<高さ>`・`<PR番号>`・`<bd>`・出力ディレクトリは実行時に決まる値で、埋め方を同じ Step に書いた。`GameScrollView` の横向きの content container の配置とバーの上書きの勝ち負けは実装時に `resolvedStyle` で確かめ、外れたときの直し方を Task 2b Step 3 に書いた
 3. **Type consistency**: `ChallengeNodeCardViewModel(Guid, Vector2, Vector2, IReadOnlyList<Guid>, ChallengeNodeState)`・`StateLabelKey`・`HasSameGraphPlacementAs` は Task 1・3（Kit・カード）・4 で同じ。`ChallengeListViewModel.Create(categories, selection)`・`ChallengeListViewModel.Empty`・`SelectedChallengeListViewModel.Categories/CategoryGuids/Selected`・`EmptyChallengeListViewModel` は Task 1・2・3・4 で同じ（View の switch と L0 の `AsSelected`）。`ChallengeCategoryViewModel.Create(guid, nodes)`・`TryGetInitialFocus`・`HasSameGraphAs` は Task 1・3 で同じ。`ChallengeListLogic.SameGuidSequence`・`DeriveStateLabelKey` は Task 1・3 で同じ。`ChallengeScreenVisibility.IsShown(UiRoutingSnapshot)` は Task 2・5 で同じ。`ChallengeCategoryGraph(ChallengeCategoryViewModel, IUiOsCursor)`・`View`・`Render` と `ChallengeCategoryGraphHost(IUiOsCursor)` は Task 3・4 で同じ。`ChallengeListView(IChallengeListCommands, IUiOsCursor)` と `Kit.MountList(UiLayerStack, IChallengeListCommands)` は Task 3・4・5 で同じ。`IChallengeListCommands.SelectCategory(Guid)` は `Client.Ui.State.Challenge.Commands` で Task 2・3・4・5 同じ。名前空間は State が `Client.Ui.State.Challenge`・`.Tree`・`.Tree.Selection`・`.Commands`、画面が `Client.Ui.Screens.Challenge.Tree`・`.Parts`、L1 が `Client.Tests.Ui.Screens.Challenge.Tree` で全タスク同じ
 4. **保留・縮退経路の解消可能性**: (a) `ChallengeListModel` は閉画面で組まず、解消の条件は「一覧への突入」（経路の通知で必ず来る）。表示中かは経路の今の値で読むので、選択ストアとの購読順で組み漏れも余分な組み直しも起きない。(b) 最小構成: 解放済みのカテゴリ 0（`EmptyChallengeListViewModel`。題だけ・グラフ無し。L1 `解放済みのカテゴリが無ければ…`）、カテゴリ 1・進行中 0（注目点無し → 寄せない・視点は原点。部品の既定）、初回（View を作る → 部品が寄せる）、カテゴリ列が幅に収まる（バーなし。L1）。どれも恒久の保留にならない。(c) `ChallengeCategoryGraph` の「中身が同じなら渡し直さない」は、カードの描き直しを先に済ませるので表示が古いまま残らない
@@ -3347,7 +3635,7 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-18 一覧の VM は空と選択ありの型で分ける**（指揮の agent 既定（PLAN-W5 設計検査）・強5-A）: `ChallengeListViewModel` を abstract にし、`EmptyChallengeListViewModel`（解放済みのカテゴリが無い）と `SelectedChallengeListViewModel`（`Categories`・`CategoryGuids`・`Selected` が必ずある）に分ける。View の `Render` の switch の 1 か所だけが分岐し、部品は `SelectedChallengeListViewModel`・`ChallengeCategoryViewModel` だけを受けて null を見ない。棄却: `bool HasSelection`＋`Selected` が null になりうる 1 つの型 — 旗と null の 2 つで同じことを表し、旗を見ずに `Selected` を読む経路が型で止まらない
 - **D-19 表示判定と Guid の並びの比較は 1 本**（指揮の agent 既定（PLAN-W5 設計検査）・弱）: 経路から一覧を出すかは `ChallengeScreenVisibility.IsShown(UiRoutingSnapshot)`（前例 `BlockInventoryScreenVisibility.IsShown`、X-audit DC-8 の形）だけで決め、選択ストア・Model・Presenter の 3 か所はこれを呼ぶ。Guid の並びが同じかは `ChallengeListLogic.SameGuidSequence` だけで比べ、ボタン列の作り直しとグラフの中身の比較（`ChallengeCategoryViewModel.HasSameGraphAs`）が使う
 - **D-20 グラフを渡し直す条件は渡す中身の値で比べる**（指揮の agent 既定（PLAN-W5 設計検査）・弱5-F）: `ChallengeCategoryGraphHost` は前に渡したカテゴリの VM を控え、カテゴリが変わったときか `HasSameGraphAs` が偽のとき（並び・座標・前提・注目点のどれかが違う）だけ `SetGraph` する。状態と倍率は渡す中身に入らない（カードの描き直しで済む）ので比べない。L0 で「状態と倍率では変わらない」を固定する。棄却: カードの組が「並びが変わったか」の bool を返す — 座標や前提の変化を見落とし、判定が画面の部品に散る
-- **D-21 選択ストアと Model の購読順に依らない**（指揮の agent 既定（PLAN-W5 設計検査）・10c）: Model は表示中かを自分の旗に控えず、組むたびに `ChallengeScreenVisibility.IsShown(_routing.Current.Value)` で読む。`ReactiveProperty` は値を書いてから購読者へ流すので、経路の通知の中でも今の値が読める。一覧を離れたとき選択ストアが「無し」に戻す通知が Model の経路の購読より先でも後でも、閉じた画面では組まない。DI の登録順に依る形を残さないために直した（判断記録だけで済ませない）
+- **D-21 選択ストアと Model の購読順に依らない**（指揮の agent 既定（PLAN-W5 設計検査）・10c）: Model は表示中かを自分の旗に控えず、組むたびに `ChallengeScreenVisibility.IsShown(_routing.Current.Value)` で読む。`ReactiveProperty` は値を書いてから購読者へ流すので、経路の通知の中でも今の値が読める。一覧を離れたとき選択ストアが「無し」に戻す通知が Model の経路の購読より先でも後でも、閉じた画面では組まない。DI の登録順に依る形を残さないために直した（判断記録だけで済ませない）。両方の順で `ChallengeListModelTest` の `[TestCase(true)]`・`[TestCase(false)]` が固定する（Task 2 Step 3）
 - **D-22 Commands と View の置き場**（指揮の agent 既定（PLAN-W5 設計検査）・N-3/N-6）: 操作は `Client.Ui.State/Challenge/Commands/`（前例 `Client.Ui.State/Research/Commands/IResearchTreeCommands.cs`）。View・Presenter・USS は `Client.Ui/Screens/Challenge/Tree/`（`Screens/Challenge/` 直下は 0、`CurrentHud/`・`Parts/` と並ぶ。名前は D-16）。どのディレクトリも 10 ファイル以下
 - **D-23 状態の文言キーは State が決める**（指揮の agent 既定（PLAN-W5 設計検査）・N-2）: 状態→文言キーは `ChallengeListLogic.DeriveStateLabelKey`（前例 `ResearchLogic.DeriveNodeStateLabelKey`）で、`ChallengeNodeCardViewModel.StateLabelKey`（`LocalizationKey`）としてカードへ渡す。画面は状態の修飾クラスだけを決める。前例との差: 研究は工場がキーを引いて VM へ渡すが、チャレンジは VM の ctor で引く（L1 の材料が ctor で VM を組むので、どの組み方でもキーが状態とずれない）。L0 で状態ごとのキーを固定する
 - **D-24 受信順とマスタの並び、前提なしの扱い**（指揮の agent 既定（PLAN-W5 設計検査）・10a/10b）: 握手（`GetChallengeInfoProtocol`）も完了イベントも `CompletedChallengeEventPacket.GetChallengeCategories` がマスタの `ChallengeCategoryMasterElements` 順に組むので、受信順＝マスタの並びと書きそろえる（計画の中で「受信順」「マスタ順」を混ぜない）。`PrevChallengeGuids` はスキーマで optional（`VanillaSchema/challenges.yml:54-56`）で、サーバーも null を前提なし扱いする（`ChallengeMaster.cs:117`）ので、工場は null を空と同じに扱い、同じ行に `silent-ok` で理由を書く（`ChallengeDtoBuilder.cs:43` は null を確かめずに回すが、Web の橋の欠けで仕様ではない）
