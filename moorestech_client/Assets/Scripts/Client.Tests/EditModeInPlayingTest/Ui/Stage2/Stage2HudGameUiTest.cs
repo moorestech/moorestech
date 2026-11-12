@@ -23,8 +23,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
 {
     /// <summary>
-    /// 段階 2 の HUD が UITK 側で各層に載り、遷移と Ctrl+U で出し分けられるか確かめる（R-4 L3）
-    /// Verifies stage-2 HUDs mount on their layers on UITK and switch with transitions and Ctrl+U (R-4 L3)
+    /// 段階 2 HUD の層への載りと出し分けの確認（R-4 L3）
+    /// Checks stage-2 HUD layer mounting and switching (R-4 L3)
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class Stage2HudGameUiTest : UiSystemPlayModeTestBase
@@ -57,8 +57,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                 var root = GameUiRoot.Instance.GetRootElement();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
 
-                // Web ホスト無しで GameUi だけが動く
-                // Only GameUi runs with no web host
+                // Web ホスト無しで GameUi のみ動く
+                // Only GameUi runs, no web host
                 Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
 
@@ -82,8 +82,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
 
                 async UniTask Cycle()
                 {
-                    // 常駐の HUD が期待の層に 1 つずつ載る
-                    // Each resident HUD is mounted once under its expected layer
+                    // 常駐 HUD が期待の層に 1 つずつ載る
+                    // Each resident HUD mounts once on its layer
                     AssertMountedIn(root, UIStateEnum.GameScreen);
 
                     // ゲーム画面で出るもの・出ないもの
@@ -119,8 +119,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
                     Assert.IsFalse(Visible(root, "placement-mode-hud"), "ゲーム画面へ戻っても配置 HUD が残る");
 
-                    // Ctrl+U で根ごと消え、もう一度で戻る
-                    // Ctrl+U hides the whole root and a second press restores it
+                    // Ctrl+U で根ごと消え、再度で戻る
+                    // Ctrl+U hides the root, again restores it
                     await ToggleCtrlU();
                     Assert.IsFalse(wholeUi.IsShown.Value, "Ctrl+U で全体非表示にならない");
                     Assert.AreEqual(DisplayStyle.None, root.resolvedStyle.display, "Ctrl+U で根が隠れない");
@@ -139,8 +139,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
             #endregion
         }
 
-        // 表のうちその UI 状態で載る行が、それぞれ期待の層の下に 1 つだけある
-        // Each table row mounted in the given UI state exists exactly once under its expected layer
+        // その UI 状態の行が期待の層に 1 つずつ載る
+        // Each row of the UI state mounts once under its layer
         private static void AssertMountedIn(VisualElement root, UIStateEnum state)
         {
             foreach (var surface in Stage2HudSurfaces.All)

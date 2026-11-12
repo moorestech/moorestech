@@ -5,8 +5,8 @@ using Client.Ui.Foundation.Stage;
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
 {
     /// <summary>
-    /// 段階 2 の HUD の根要素と、載る層・載っている UI 状態の 1 行
-    /// One row of a stage-2 HUD root element with its layer and the UI state it is mounted in
+    /// 段階 2 HUD の根要素・層・UI 状態の 1 行
+    /// One row: stage-2 HUD root, layer, and UI state
     /// </summary>
     internal readonly struct Stage2HudSurface
     {
