@@ -4,7 +4,7 @@
 
 **Goal:** 段階 5 の締め（S5-ladder）が `feature/uitk` に入った後、撤去（X-5a〜5e）で全体スイッチの Web 側が使えなくなる前に、(1) 全体スイッチの UITK 側と Web 側で全録画を回して分類し、(2) wwxy の残り 2 本を削除・書き直して bd `moorestech-wwxy` を閉じ、(3) master の worktree で全画面の参照を 1280×720 と 2560×1080 で撮り直し、UITK の全画面（参照 manifest の全 id）と並べ比べて opus の評価役 2 系統の独立評価にかけ、再現した差を「直した／LX-210〜217 に記帳／要裁定 Q-n／持ち主へ bd」のどれかに閉じ、(4) 撤去レーンが見た目の不変を確かめる物差し `prerun-smoke-shots.cs` と撤去前の最後の Web の基準（全録画の Web 側 TSV・参照 `web-<sha>`・全束の突き合わせの記録）を残して `feature/uitk` へ取り込む。
 
-**Architecture:** integrator のレーン（`int`。Mac の Editor 1 本＝このレーンの worktree。Web 側の全録画と 2 本目の Editor が要る再走は Windows の `~/bin/winunity`）。本番のコードは触らず、書くのは「検査する側」（`scenarios/uitk/prerun/` の撮影シナリオ 5 本・wwxy の 2 本）と、並べ比べで再現した差を直す USS（`Client.Ui/**/*.uss`）と台帳の自分の節だけ。全録画は S4-gamma が作った `tools/uitk/list-recordings.sh`・`run-all-recordings.sh` を書き換えずに使い、結果の分類は設計書 [A-177] の 6 分類。UITK の撮影は「既存の段の撮影シナリオ（P）／このレーンが新設する撮影シナリオ（N）／EditMode の `UiRuntimePanelCapture`（E。[A-164]）／動画の 3 フレーム（V）」の 4 種で、参照 manifest の全 id に 1 行ずつ撮り方を割り当て、機械で抜けと重複が 0 であることを確かめる。並べ比べの判定は前例 S3-ladder Task 9・S4-gamma Task 13 の形（評価役 2 系統が互いの結果を見ずに判定 → 別の subagent が画素で再現 → 再現したものだけ処遇）。
+**Architecture:** integrator のレーン（`int`。Mac の Editor 1 本＝このレーンの worktree。Web 側の全録画と 2 本目の Editor が要る再走は Windows の `~/bin/winunity`）。本番のコードは触らず、書くのは「検査する側」（`scenarios/uitk/prerun/` の撮影シナリオ 5 本・wwxy の 2 本）と、並べ比べで再現した差を直す USS（`Client.Ui/**/*.uss`）と台帳の自分の節だけ。全録画は S4-gamma が作った `tools/uitk/list-recordings.sh`・`run-all-recordings.sh` を書き換えずに使い、結果の分類は設計書 [A-177] の 6 分類。UITK の撮影は「既存の段の撮影シナリオ（P）／このレーンが新設する撮影シナリオ（N）／EditMode の `UiRuntimePanelCapture`（E。[A-164]）／動画の 3 フレーム（V）」の 4 種で、参照 manifest の全 id に 1 行ずつ撮り方を割り当て、機械で抜けと重複が 0 であることを確かめる。並べ比べの判定は前例 S3-ladder Task 9・S4-gamma Task 13 の形（評価役 2 系統が互いの結果を見ずに判定 → 別の subagent が画素で再現 → 再現したものだけ処遇）。判定の取りまとめ・USS の修正・LX の記帳（台帳の行と印）はこのレーンが行い、USS で直らない差だけを持ち主へ bd で回して指揮へ返す（設計書 §3.3「並べ比べ」の行と [A-179] の「指揮が判定し、印は I-fix が置く」を X-prerun について上書きする。D-16）。
 
 **Tech Stack:** Unity 6 / UI Toolkit（`Client.Ui`）、プレイテスト DSL（`Client.Playtest`・`.agents/skills/unity-playmode-recorded-playtest`）、`Client.Ui.Editor.Capture`（`UiRuntimePanelCapture`・`GameViewResolution`）、Node と pnpm（master の worktree の `moorestech_web/webui/e2e/uitk-reference/capture.ts`・`tools/uitk/test-name-parity.mjs`）、ffmpeg・ffprobe、Python 3（標準ライブラリだけ。`check-uitk-web-follow.py`・対応表の機械検査）、bd、`~/bin/winunity`。
 
@@ -18,17 +18,17 @@
 | R-2 | 全束の突き合わせ差分 0（撤去前の最後の記録・A-251） | 最終 HEAD で `node tools/uitk/test-name-parity.mjs --bundle all` が exit 0（全束 写す予定 0・未対応 0）。`docs/uitk/disposition.md`「## 突き合わせの記録」に束 1〜5 の 5 行（日付・束・HEAD 10 桁・件数）。崩れていたら持ち主へ bd を立てて「状態: 停止」 |
 | R-3 | wwxy: `tutorial-research-renumber.cs` を削除 | `scenarios/tutorial-research-renumber.cs` が無い（`git ls-files` 0 件）。台帳の行の方針に「削除した（X-prerun）」 |
 | R-4 | wwxy: `misc/research-node-state-label.cs` を現行の研究 GUID へ書き直す | 削除済み GUID（837e9697・424be8c1・07d6226c）がファイルに 0 件。ピン先マスタの研究（起草時 e0c913033c: 原始研究1 `858bcb10-b8ba-478e-9bc5-473ca61281a2`・原始研究2 `b47c5e3c-1b58-42c5-a477-d485d2eae747`・原始研究3 `bc5e7786-6759-4271-8095-836703b54490`）で「完了済み／研究可能／研究不可」の 3 状態を作り、GameUi と Web の両方で `Success: true`・ErrorLogs 0 |
-| R-5 | wwxy を閉じる | 台帳「## 壊れた録画の割り振り」の 10 行すべての方針の列に結果（書き直した・削除した・移植した）が入り、X-prerun の 2 行に GameUi/Web の run を書く。全録画で 10 行のうち現存する 8 本が PASS。bd `moorestech-wwxy` を close（理由に PR URL） |
+| R-5 | wwxy を閉じる | 台帳「## 壊れた録画の割り振り」の 10 行すべての方針の列に結果（書き直した・削除した・移植した）が入り、X-prerun の 2 行に GameUi/Web の run を書く。全録画で 10 行のうち現存する 8 本（起草時: S2-ladder の 4 本・S3-ladder の 3 本・state-label。数は Task 5 Step 1 で 10 行を 1 行ずつ「現存／削除／後継」に分けて数え直す）と、削除した electric-wire の後継 `connect/electric-wire-tool-extend-chain-via-ui.cs`（GameUi）が PASS。bd `moorestech-wwxy` を close（理由に PR URL） |
 | R-6 | 全録画の UITK 側（全体スイッチ GameUi） | `list-recordings.sh GameUi` の全本と書き直した state-label を `run-all-recordings.sh` で流し、TSV の行数＝一覧の本数。exit 0 以外の全行を [A-177] の 6 分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）に分け、`束 5 未移植` 0・`不具合` 0（途中で見つけたものは持ち主へ回して入ったら流し直して PASS） |
 | R-7 | 全録画の Web 側（全体スイッチ Web） | `list-recordings.sh Web` の全本と state-label を流し、exit 0 以外の行を S4-gamma の Web 側の TSV（S4-gamma `done.md`「## 全録画の結果」）と比べ、S4-gamma で PASS だった行だけを S4-gamma の HEAD で流し直して `既存`／`退行`／`比較不能（新設）`／`比較不能（変更）` に分ける。`退行` 0 |
 | R-8 | 5a への申し送り（Web 専用の一覧） | `done.md`「## 5a への申し送り」に、分類が `Web 専用` のシナリオ全部、Web 専用の assert を持つシナリオ（`playtest-receiver/developer-report-delivery.cs` の webUiHealth と実箱ロック）、`Client.WebUiHost` を直接参照する 8 本（起草時の実測）の、パス・落ちた assert・5a でどうするか（書き直す／消す）の案 |
 | R-9 | 参照の撮り直し | origin/master の使い捨て worktree で `capture.ts` を 1280×720 と 2560×1080（W6-4）で撮り、`moorestech_logs/uitk/reference-captures/web-<sha10>/`・`web-<sha10>-2560x1080/` に置く。両方の `manifest.json` の `viewport` が `1280x720`・`2560x1080`、`entries` の件数が同じ。台帳「## 参照キャプチャ」に撤去前の最後の参照として 1 行（撮影元・置き場・件数） |
 | R-10 | 撮影の対応表（W6-5） | `done.md`「## 撮影の対応表」に新しい manifest の全 id が 1 行ずつ（撮り方 P/N/E/V・出所・UITK のファイル名・判定）。Task 7 の検査スクリプトが「manifest にあって表に無い 0・表にあって manifest に無い 0・重複 0」で exit 0 |
-| R-11 | UITK の全画面の撮影 | 表の全静止画 id について `moorestech_client/.uloop/outputs/compare/X-prerun/<id>-1280x720.png` と `<id>-2560x1080.png` が実在（Task 8〜9 の `ls` の数え上げ）。E の id は、先に実行時に作れる状態 1 つ（`4-block-chest`）で EditMode と PlayMode の panel の位置・寸法の差が 1280×720 で 2px 以内であることを記録してから撮る（[A-164]） |
+| R-11 | UITK の全画面の撮影 | 表の全静止画 id について `moorestech_client/.uloop/outputs/compare/X-prerun/<id>-1280x720.png` と `<id>-2560x1080.png` が実在（Task 8〜9 の `ls` の数え上げ）。Task 9 Step 2 の逃げ道（撮れない状態を各レーンの PR の並べ比べで代える）を使った id は R-11 未達として数え、`done.md`「要裁定」に Q-n（外した id・代わりの証拠の URL・外した理由）で上げる（0 件なら何もしない。D-23）。E の id は、先に実行時に作れる状態 1 つ（`4-block-chest`）で EditMode と PlayMode の panel の位置・寸法の差が 1280×720 で 2px 以内であることを記録してから撮る（[A-164]） |
 | R-12 | 動画 5 件 | 表の V の 5 件について、UITK 側を録画し、Web の webm と同じ相（長さの 10%・50%・90%）の 3 フレームを両方から ffmpeg で抜いて `compare/X-prerun/video/<id>-{start,mid,end}-{web,uitk}.png` に置く |
-| R-13 | 独立評価 2 系統と再現 | 並べ比べの組（左 Web・右 UITK の合成画像）を opus の評価役 A・B に互いの結果を見せずに判定させ、指摘を別の subagent が画素で再現し、再現したものだけを `done.md`「## 差の表」に残す。再現しなかったものも 1 行で残す |
-| R-14 | 差 0 か記帳済み（設計書 §3.3 (c)・§3.4） | 「## 差の表」の全行が「直した（USS・撮り直しの PNG）／LX-210〜217（台帳の行と `/* look-exception: LX-n */` を同じコミット。`LookExceptionLedgerTest` PASS）／要裁定 Q-n（`done.md`「要裁定」）／持ち主へ bd（入って再撮影して閉じた）」のどれか。配置・色の系統・装飾の有無・文字の大きさの差は LX にしない |
-| R-15 | 撤去レーンの物差し `prerun-smoke-shots.cs`（W6-6 (b)） | `scenarios/uitk/prerun/prerun-smoke-shots.cs`（200 行未満・全体スイッチと Web の型を参照しない）が束ごとに 2 状態・計 10 状態を 1280×720 と 2560×1080 で撮り、最終 HEAD で `Success: true`・PNG 20 枚。`done.md` に撮影名の一覧 |
+| R-13 | 独立評価 2 系統と再現 | このレーンが取りまとめ役として（D-16）、並べ比べの組（左 Web・右 UITK の合成画像）を opus の評価役 A・B に互いの結果を見せずに判定させ、指摘を別の subagent が画素で再現し、再現したものだけを `done.md`「## 差の表」に残す。再現しなかったものも 1 行で残す |
+| R-14 | 差 0 か記帳済み（設計書 §3.3 (c)・§3.4） | 「## 差の表」の全行が「直した（USS・撮り直しの PNG）／LX-210〜217（台帳の行と `/* look-exception: LX-n */` を同じコミット。`LookExceptionLedgerTest` PASS。9 件目からは「LX（番号待ち）」で停止。D-24）／要裁定 Q-n（`done.md`「要裁定」）／持ち主へ bd（入って再撮影して閉じた）」のどれか。配置・色の系統・装飾の有無・文字の大きさの差は LX にしない |
+| R-15 | 撤去レーンの物差し `prerun-smoke-shots.cs`（W6-6 (b)） | `scenarios/uitk/prerun/prerun-smoke-shots.cs`（200 行未満・全体スイッチと Web の型を参照しない）が束ごとに 2 状態・計 10 状態を 1280×720 と 2560×1080 で撮り、最終 HEAD で `Success: true`・PNG 20 枚。`grep -nE "UiSystem|ActiveUiSystem|UiSystemEditorSwitch|WebUiHost|PlaytestDomQuery|Cef" scenarios/uitk/prerun/*.cs` が 0 件（Task 10 Step 2・Task 14 Step 1。D-18）。`done.md` に撮影名の一覧 |
 | R-16 | 台帳の記録 | 台帳「## 実測の結論」の末尾に 2 行（全録画の 3 回目の UITK 側・Web 側）。「## 参照キャプチャ」に 1 行（R-9）。「## 壊れた録画の割り振り」の 2 行（R-3・R-4） |
 | R-17 | 申し送りの処遇 | 「## 申し送りの処遇」の全行に「やった（Task n・証拠）／回した（bd id・宛先）／閉じた（理由）」が付き、`done.md` に写す |
 | R-18 | 最終 HEAD でラダー 6 本と UI テスト全体 | 最終 HEAD（取り込み後）で `uloop compile` ErrorCount 0、`^Client\.Tests\.Ui\.` 全 PASS、ラダー 6 本が GameUi で `Success: true`・ErrorLogs 0 |
@@ -43,13 +43,13 @@
 - 本番の C#（View・Presenter・部品）の変更。並べ比べで USS で直らない差は持ち主（I-fix）へ bd で回す
 - 撮影の道具（`UiRuntimePanelCapture` 等）への口の追加。足りない口は `done.md`「integrator への依頼」へ
 - 設計書・実行計画の本文の改訂（末尾の「## 設計書・実行計画へ反映する行」に下書きを置き、本体が docs PR で入れる）
-- Codex（指揮の指示「一旦 Codex セッションは使わない」）。§5 の codex-audit は opus の subagent 2 系統で代える
+- Codex（ユーザーの指揮への指示「一旦codexは使わず、claudeセッションで今からこの計画の遂行をして」〈`../moorestech_logs/harness/uitk/conductor.md`「## ユーザー指示（2026-11-06 15:55）」〉。`.decisions/2026-10-16-moores-writing-plansの実装引き継ぎはCodexセッションに固定する.md` と実行計画 §8 E-3 を W6 について上書きする。D-17）。§5 の codex-audit は opus の subagent 2 系統で代える
 - worktree の `moores-wt rm`（指揮が行う）
 
 ## Global Constraints
 
 1. AGENTS.md 全部（1 ファイル 200 行未満・1 ディレクトリ 10 ファイル・partial と `Func<>` 禁止〈シナリオの `p.Until(() => …)` はドライバの既存の口の呼び出しで、新しく `Func<>` を宣言しない〉・try-catch は外部境界だけ・UniRx・2 行コメント〈日本語 1 行→英語 1 行〉・`#region Internal` はメソッド内のローカル関数だけ・デフォルト引数禁止・.meta を手で作らない・Prefab/シーンを手で編集しない〈uloop execute-dynamic-code 経由はよい〉・fail-closed の経路はログ・コード変更後は必ず compile）
-2. 実装はこのホスト（Mac mini）の Claude Code の subagent（opus）で行う。Codex は使わない。実行計画 §5 の codex-audit・外部監査は **opus の subagent 2 系統の独立評価**で代える（目的・裁定・設計書・完了条件と成果物の実物だけを渡して別々に判定。設計判断になる指摘は別の subagent に再現させ、再現したものだけ残す）
+2. 実装はこのホスト（Mac mini）の Claude Code の subagent（opus）で行う。Codex は使わない（D-17）。実行計画 §5 の codex-audit・外部監査は **opus の subagent 2 系統の独立評価**で代える（目的・裁定・設計書・完了条件と成果物の実物だけを渡して別々に判定。設計判断になる指摘は別の subagent に再現させ、再現したものだけ残す）
 3. Unity Editor: **Mac mini の Editor は全体で 1 本まで**（このレーンの worktree の 1 本。起動・停止の前に `moores-wt status` で所有を確かめる）。2 本目以降が要るときは Windows（RTX2060）の `~/bin/winunity`（push 済みのブランチを使う。`winunity compile|test|test-all|play <branch> <scenario.cs> [--ui-system GameUi|Web]|edc`）。subagent は Editor を起動しない。master の参照の撮影は `--no-editor` の worktree で行う
 4. 区切り（タスク）ごとにコミットする。subagent はバックグラウンドのポーリングで待たず前景で実行する（1 回の Bash は 600 秒以内に収める。全録画は 3 本ずつ）。`.superpowers/` はコミットしない
 5. 録画: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client <scenario.cs>`。このレーンは X-5a より前なので、PlayMode を止めた状態で `uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE","http://127.0.0.1:9"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'`（Web は `UiSystem.Web`）を流してから入る（`run-all-recordings.sh` は 1 本ごとに自分で立てる）。UI テスト（`UiTestHost`）の TearDown はスイッチを Web に戻すので、テストの後の録画の前に必ず立て直す（W0-switch:41）。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）。録画の前に push する（未 push の HEAD でバグ報告の箱が巨大になり送信トーストが 60 秒を超える。C2-b の申し送り）。受け口は `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` で本番へ送らない（winunity play は Windows の Editor に同じ値を入れて起こす。`winunity.d/interactive.ps1:30`）
@@ -63,8 +63,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 配置 16 項目は前例・規約表と矛盾なし。別に実物の食い違い 2 件（Pending の数え方・wwxy の現存の内訳）を直した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱2・第3バケツ0 / 並べ比べの判定と修正の担い手を A-179 からこのレーンへ移すことを D-16 に記録、物差しの型の不参照の grep と研究の照会の exit 1 を足した
 
 ## 死活表（Phase 2.5）
 
@@ -226,11 +226,11 @@ Expected: マージコミット 5 本・5 つとも「状態: 完了」・ラダ
 Run:
 ```bash
 awk '/^## 束/{f=1;next} /^## /{f=0} f' docs/uitk/TODO.md
-grep -c "S[0-9]-\|C[0-9]-" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs 2>/dev/null; echo "pending-file-exit=$?"
+grep -c '{ AnchorIds\.' moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs 2>/dev/null; echo "pending-file-exit=$?"
 node tools/uitk/test-name-parity.mjs --bundle all; echo "parity-exit=$?"
 python3 .github/scripts/check-uitk-web-follow.py --base origin/feature/uitk --head HEAD; echo "g1-exit=$?"
 ```
-Expected: 束 1〜5 が `暗転`（起点付き）・Pending の表に持ち主の行が 0（ファイルが無いか表が空）・parity exit 0・G1 exit 0。parity が 1 なら未対応・写す予定の行の持ち主（束の画面レーン。取り込み済みなら I-fix）へ bd を `--parent moorestech-albof` で立て、Step 2 と同じ手順で「状態: 停止（突き合わせの差分 n 件の修正待ち）」で止まる
+Expected: 束 1〜5 が `暗転`（起点付き）・Pending の表に持ち主の行が 0（ファイルが無いか、`Owners` の項目 `{ AnchorIds.… }` の数が 0。クラスの説明コメントの「S5-ladder」は数えない。起草時は項目 3）・parity exit 0・G1 exit 0。parity が 1 なら未対応・写す予定の行の持ち主（束の画面レーン。取り込み済みなら I-fix）へ bd を `--parent moorestech-albof` で立て、Step 2 と同じ手順で「状態: 停止（突き合わせの差分 n 件の修正待ち）」で止まる
 
 - [ ] **Step 4: Editor と compile**
 
@@ -308,10 +308,16 @@ PIN=$(python3 -c 'import json;print([r["commitHash"] for r in json.load(open(".m
 git -C ../moorestech_master show "$PIN":server_v8/mods/moorestechAlphaMod_8/master/research.json | python3 -c '
 import json,sys
 rows={r["researchNodeGuid"]:r for r in json.load(sys.stdin)["data"]}
+missing=[]
 for g in ["858bcb10-b8ba-478e-9bc5-473ca61281a2","b47c5e3c-1b58-42c5-a477-d485d2eae747","bc5e7786-6759-4271-8095-836703b54490"]:
-    r=rows.get(g); print(g, r and r["researchNodeName"], r and r["prevResearchNodeGuids"], r and r["consumeItems"])'
+    if g not in rows:
+        missing.append(g); continue
+    r=rows[g]; print(g, r["researchNodeName"], r["prevResearchNodeGuids"], r["consumeItems"])
+if missing:
+    print("ピン先マスタに無い研究:", missing); sys.exit(1)'
+echo "research-exit=$?"
 ```
-Expected（起草時 e0c913033c）: 原始研究1（前提なし・木の板 3・木の棒 3・砕いた石材 2）、原始研究2（前提 原始研究1・レンガ 30）、原始研究3（前提 原始研究2）。ピンが動いて名前・前提・素材が違えば、「前提なしの研究 → それを前提にする研究 → さらにそれを前提にする研究」の 3 つを同じ照会で選び直し、Step 2 の GUID と素材を書き換える（`done.md` に書く。D-7）
+Expected（起草時 e0c913033c）: `research-exit=0` で 原始研究1（前提なし・木の板 3・木の棒 3・砕いた石材 2）、原始研究2（前提 原始研究1・レンガ 30）、原始研究3（前提 原始研究2）。exit 1（GUID がピン先マスタに無い）か、ピンが動いて名前・前提・素材が違えば、「前提なしの研究 → それを前提にする研究 → さらにそれを前提にする研究」の 3 つを同じ照会で選び直し、Step 2 の GUID と素材を書き換える（`done.md` に書く。D-7）
 
 - [ ] **Step 2: state-label を書き直す**
 
@@ -455,7 +461,7 @@ Expected: 最後に `tail -n +2 $D/gameui.tsv | wc -l` が `list.txt` の本数�
 exit 0 以外の行ごとに `result.json` と `uloop get-logs --project-path ./moorestech_client --log-type Error` の該当部分を読み、[A-177] の 6 分類に分ける:
 - `PASS`（0）。S2-ladder の `tutorial-craft-guidance` は Web の回だけ「PASS（Web は UI 未確認・既知）」
 - `束 5 未移植`: 0 のはず。出たら `不具合` として扱う（S5 の完了条件の崩れ）
-- `wwxy`: 台帳の 10 行のうち現存する 8 本（S2/S3-ladder の 6 本と state-label・後継 extend-chain）が落ちたら `不具合`
+- `wwxy`: 台帳の 10 行のうち現存する 8 本（起草時: S2-ladder の 4 本〈pebble・equip・tree-pin-nearest-search・server-notification-smoke〉・S3-ladder の 3 本〈blueprint-copy-paste・blueprint-right-click-delete・fps-tps-view-toggle〉・state-label）と、行の外の後継 `connect/electric-wire-tool-extend-chain-via-ui.cs` が落ちたら `不具合`。現存の数は台帳の 10 行を 1 行ずつ `find` で「現存／削除／後継」に分けて数え直してから当てる（固定の数を当てない）
 - `前提つき`（`playtest-receiver/`・IME の `.sh`）: そのシナリオのヘッダの手順で 1 回流し直して PASS／不具合に振り直す
 - `Web 専用`（CEF・Web の DOM・`webUiHealth` を見るもの。例 `misc/cef-webui-showcase.cs`・`playtest-receiver/developer-report-delivery.cs` の webUiHealth と実箱ロックの assert）: 落ちた assert を `done.md`「## 5a への申し送り」へ
 - `不具合`（UITK の画面・操作の誤り）: 1 本ずつ bd を `--parent <bd>` で立て、持ち主（その画面のレーン。取り込み済みなら I-fix）への依頼文（シナリオのパス・落ちた assert・Error の行・run dir の録画）を指揮へ返し、`done.md` 1 行目を「状態: 停止（全録画の不具合 n 件の修正待ち）」にして push・`cmux wait-for -S uitk-x-prerun` を 1 回送り、指揮の再開の連絡を待つ。入ったら `git merge --no-ff origin/feature/uitk` で取り込み、compile のあと `不具合` の行だけを `grep` で作り直した一覧で流し直す（前例 S4-gamma Task 9 Step 3）。シナリオ側の誤り（古い testid・Web の型の参照）なら 5a への申し送りに書いて `Web 専用` か「シナリオの誤り（5a）」に分ける
@@ -491,12 +497,12 @@ Expected: `scenarios/uitk/` の全本（`prerun/` を含む）が外れる
 B=$(git rev-parse --abbrev-ref HEAD)
 [ -f $D/web.tsv ] || printf "scenario\tsystem\texit\tseconds\trun_dir\n" > $D/web.tsv
 tail -n +<開始行> $D/list-web.txt | head -n 3 | while IFS= read -r s; do
-  began=$(date +%s); out=$(~/bin/winunity play "$B" "$s" --ui-system Web 2>&1); code=$?
+  began=$(date +%s); out=$(~/bin/winunity play "$B" "$s" --ui-system Web 2>&1 </dev/null); code=$?
   dir=$(printf '%s\n' "$out" | grep -o '\[mac\] results: .*' | sed 's/^\[mac\] results: //')
   printf "%s\tWeb\t%s\t%s\t%s\n" "$s" "$code" "$(( $(date +%s) - began ))" "${dir:--}" >> $D/web.tsv
 done
 ```
-（winunity は 1 本ごとに Windows の Editor に受け口と系を立てる。1 回の呼び出しが 600 秒を超えるなら 1 本ずつ）
+（winunity は 1 本ごとに Windows の Editor に受け口と系を立てる。1 回の呼び出しが 600 秒を超えるなら 1 本ずつ。`~/bin/winunity` の中の `ssh` は標準入力を閉じないので、`</dev/null` が無いとパイプの残りの行を ssh が読み切って 1 本しか流れない。D-21）
 Expected: `web.tsv` の行数が `list-web.txt` の本数と同じ
 
 - [ ] **Step 3: S4-gamma の Web 側と比べる**
@@ -524,7 +530,7 @@ Windows で CEF が描けない（経路 M）なら、自分の Editor を閉じ
 
 - [ ] **Step 1: done.md に書く**
 
-`done.md`「## 全録画の結果」に 2 つの TSV を「シナリオ / UITK の分類 / Web の分類 / 秒」の表で写す（run dir は書かない）。これが撤去前の最後の Web の基準（A-251）。`## 5a への申し送り` に、`Web 専用` の全行・Web 専用の assert を持つ行・`Client.WebUiHost`／`PlaytestDomQuery`／`IsWebUiAvailable`／`Cef*` を参照するシナリオ（Run: `grep -rlE "WebUiHost|PlaytestDomQuery|IsWebUiAvailable|CefUnity|CefScreenMapper|CefInputForwarder" .agents/skills/unity-playmode-recorded-playtest/scenarios`）を「パス / 理由 / 5a の案（書き直す・消す）」で並べる。wwxy の 10 行の現存 8 本の結果を書き、全部 PASS なら bd `moorestech-wwxy` に note（close は Task 16）
+`done.md`「## 全録画の結果」に 2 つの TSV を「シナリオ / UITK の分類 / Web の分類 / 秒」の表で写す（run dir は書かない）。これが撤去前の最後の Web の基準（A-251）。`## 5a への申し送り` に、`Web 専用` の全行・Web 専用の assert を持つ行・`Client.WebUiHost`／`PlaytestDomQuery`／`IsWebUiAvailable`／`Cef*` を参照するシナリオ（Run: `grep -rlE "WebUiHost|PlaytestDomQuery|IsWebUiAvailable|CefUnity|CefScreenMapper|CefInputForwarder" .agents/skills/unity-playmode-recorded-playtest/scenarios`）を「パス / 理由 / 5a の案（書き直す・消す）」で並べる。wwxy の 10 行を 1 行ずつ「現存／削除／後継」に分けて数え直し（Run: 台帳の各行のパスを `find .agents/skills/unity-playmode-recorded-playtest/scenarios -path "*<パス>"`。起草時は現存 8・削除 2〈electric-wire・renumber〉・後継 1〈extend-chain〉）、現存の全本と後継の結果を書き、全部 PASS なら bd `moorestech-wwxy` に note（close は Task 16）
 
 - [ ] **Step 2: 台帳の 2 行**
 
@@ -554,19 +560,20 @@ git commit -m "docs(uitk): 撤去の前の全録画（UITK 側・Web 側）を�
 
 Run:
 ```bash
+L=$(cd ../moorestech_logs && pwd -P)/uitk/reference-captures; echo $L
 moores-wt new uitk-tmp/prerun-ref --dir uitk-prerun-ref --from origin/master --no-editor --fetch
 R=~/hermes-agent/data/worktrees/moorestech/uitk-prerun-ref
 test -d $R/moorestech_web/node || cp -Rc ~/hermes-agent/data/repos/moorestech/moorestech_web/node $R/moorestech_web/node
 cd $R/moorestech_web/webui && pnpm install --frozen-lockfile && pnpm build
 SHA=$(git -C $R rev-parse --short=10 HEAD); echo $SHA
 ```
-Expected: `pnpm build` が 0。`moores-wt` が非ログインシェルで失敗したら `docs/development/macmini/worktree-and-automation.md` の手順で流し直す
+Expected: `L` が `moorestech_logs` の実体の絶対パス（レーンの worktree の中で決める。`capture.ts:19-22` は `UITK_REFERENCE_OUT` を cwd 相対で `mkdir` するので、相対のまま `cd` すると参照が使い捨て worktree の中にできて Step 4 の `moores-wt rm` で消える。D-22）・`pnpm build` が 0。`L`・`R`・`SHA` は Task 7・9・11 でも使うので `done.md`「## 前提」に値を書く。`moores-wt` が非ログインシェルで失敗したら `docs/development/macmini/worktree-and-automation.md` の手順で流し直す
 
 - [ ] **Step 2: 1280×720**
 
 Run:
 ```bash
-L=../moorestech_logs/uitk/reference-captures
+case "$L" in /*) ;; *) echo "L が絶対パスでない: $L"; exit 1;; esac
 cd $R/moorestech_web/webui
 UITK_REFERENCE_OUT=$L/web-$SHA UITK_REFERENCE_PORT=5791 node --import tsx e2e/uitk-reference/capture.ts
 python3 -c 'import json,sys;m=json.load(open(sys.argv[1]));print(m["sourceCommit"],m["viewport"],len(m["entries"]),sum(e["kind"]=="video" for e in m["entries"]))' $L/web-$SHA/manifest.json
@@ -577,6 +584,7 @@ Expected: `<SHA> 1280x720 <n> 5`（起草時は 89 件・動画 5）。ポート
 
 Run:
 ```bash
+cd $R/moorestech_web/webui
 sed -i '' 's/export const referenceViewport = { width: 1280, height: 720 } as const;/export const referenceViewport = { width: 2560, height: 1080 } as const;/' e2e/uitk-reference/shotRunner.ts
 grep -n "referenceViewport =" e2e/uitk-reference/shotRunner.ts
 pnpm build
@@ -588,7 +596,7 @@ Expected: grep が `2560, height: 1080`・manifest が `2560x1080 <n>`（Step 2 
 
 - [ ] **Step 4: 目で見る・logs へ入れる・worktree を畳む**
 
-`web-$SHA/` の静止画を 5 枚（束ごとに 1 枚）開き、白画面・mock-host の起動失敗の画面でないことを見る。`../moorestech_logs/README.md` を読み、`uitk/reference-captures/web-$SHA/`・`web-$SHA-2560x1080/` を手でコミット・push する（`git log origin/main..main --stat` で押し出すものを確かめる）。Run: `moores-wt rm uitk-tmp/prerun-ref --force --prune-branch`（未参照の master ピンが報告されたら `--prune-master` を足して流し直す）
+`web-$SHA/` の静止画を 5 枚（束ごとに 1 枚）開き、白画面・mock-host の起動失敗の画面でないことを見る。`../moorestech_logs/README.md` を読み、`uitk/reference-captures/web-$SHA/`・`web-$SHA-2560x1080/` を手でコミット・push する（`git log origin/main..main --stat` で押し出すものを確かめる）。畳む前に Run: `ls $L/web-$SHA/manifest.json $L/web-$SHA-2560x1080/manifest.json` が 2 つとも出ることを見る（無ければ畳まず、参照がどこにできたかを `find $R -name manifest.json -newer $R/moorestech_web/webui/package.json` で探して `$L` へ移す）。Run: `moores-wt rm uitk-tmp/prerun-ref --force --prune-branch`（未参照の master ピンが報告されたら `--prune-master` を足して流し直す）
 
 - [ ] **Step 5: 台帳に書いてコミット**
 
@@ -653,7 +661,7 @@ Expected: `manifest <n> / 表 <n> / 抜け [] / 余り [] / 重複 [] / 撮り�
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/prerun-shots-b5.cs`
 
 **Interfaces:**
-- Consumes: `PlaytestGameViewOps.SetResolution(CancellationToken, int, int)`（`Client.Playtest.Operations.Ui`）、`p.Screenshot(string)`、`PlaytestOverlayView`（`Client.Playtest.Overlay`。撮る前に消す・前例 `uitk-stage3-compare.cs:108-113`）、`GameUiRoot.Instance.GetRootElement()`（`Client.Ui.Foundation.Root`）、`p.PressInteract()`・`p.PressRide()`（`Client.Playtest.Operations` の拡張）、`TutorialPresentationStateStore.Instance.BeginSession(Guid)`・`AddOutlineHighlight(string, Guid)`・`EndSession(Guid)`（`Client.Game.InGame.Tutorial`）、`AnchorIds.PauseSettings`・`AnchorIds.ResearchNode(string)`・`AnchorIds.ChallengePanel`（`Client.Game.InGame.Tutorial.UIHighlight`）、`MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements[0].Challenges[0].Tutorials[0].TutorialGuid`（前例 `uitk-tutorial-cues.cs:76`）、乗車の手順 `PrepareAndRideTrain`・`PlacePier`（`uitk/uitk-nested-pause-train.cs:75-115`）、出展モードの言語ゲートの出し方（S5-ladder の `uitk-challenge-gate.cs`。期待する形: ゲートを出す 1〜3 行の呼び出しと、ゲートの要素の testid 1 つ）
+- Consumes: `PlaytestGameViewOps.SetResolution(CancellationToken, int, int)`（`Client.Playtest.Operations.Ui`）、`p.Screenshot(string)`、`PlaytestOverlayView`（`Client.Playtest.Overlay`。撮る前に消す・前例 `uitk-stage3-compare.cs:108-113`）、`GameUiRoot.Instance.GetRootElement()`（`Client.Ui.Foundation.Root`）、`p.PressInteract()`・`p.PressRide()`（`Client.Playtest.Operations` の拡張）、`p.SetupFlatGround()`（足場 `PlaytestSetup.GroundCenter`=(0,30,0)・`GroundSize`=(50,4,50)。`Client.Playtest/Operations/PlaytestSetup.cs:23-24`）・`p.PlaceBlockDirect(string, Vector3Int, BlockDirection)`・`p.WaitBlockGameObject(Vector3Int)`・`p.RemoveBlock(Vector3Int) : UniTask<bool>`（`PlaytestDriver.cs:83,88,101`）・`p.WarpPlayer(Vector3)`・`p.AimAt(Vector3)`、`TutorialPresentationStateStore.Instance.BeginSession(Guid)`・`AddOutlineHighlight(string, Guid)`・`EndSession(Guid)`（`Client.Game.InGame.Tutorial`）、`AnchorIds.PauseSettings`・`AnchorIds.ResearchNode(string)`・`AnchorIds.ChallengePanel`（`Client.Game.InGame.Tutorial.UIHighlight`）、`MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements[0].Challenges[0].Tutorials[0].TutorialGuid`（前例 `uitk-tutorial-cues.cs:76`）、乗車の手順 `PrepareAndRideTrain`・`PlacePier`（`uitk/uitk-nested-pause-train.cs:75-115`）、出展モードの言語ゲートの出し方（S5-ladder の `uitk-challenge-gate.cs`。期待する形: ゲートを出す 1〜3 行の呼び出しと、ゲートの要素の testid 1 つ）
 - Produces: `compare/X-prerun/<id>-1280x720.png`・`<id>-2560x1080.png`（P と N の全 id）
 
 - [ ] **Step 1: ポーズと列車の撮影シナリオ**
@@ -729,7 +737,7 @@ return PlaytestRunner.Run("prerun-shots-pause-train", options, async p =>
     // Hide the operation overlay and park the cursor off the panels before shooting
     async UniTask Shoot(string id, int width, int height)
     {
-        foreach (var overlay in Object.FindObjectsByType<PlaytestOverlayView>(FindObjectsSortMode.None)) overlay.gameObject.SetActive(false);
+        foreach (var overlay in UnityEngine.Object.FindObjectsByType<PlaytestOverlayView>(FindObjectsSortMode.None)) overlay.gameObject.SetActive(false);
         SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.03f, Screen.height * 0.5f));
         await p.WaitSeconds(0.5f);
         await p.Screenshot($"pt-{id}-{width}x{height}");
@@ -740,7 +748,7 @@ return PlaytestRunner.Run("prerun-shots-pause-train", options, async p =>
     #endregion
 });
 ```
-`PrepareAndRideTrain`・`PlacePier` の 2 つのローカル関数は `uitk/uitk-nested-pause-train.cs:75-115` の本文を変えずに `#region Internal` の中へ写す（最後のコメント行は写したら消す）。
+`PrepareAndRideTrain`・`PlacePier` の 2 つのローカル関数は `uitk/uitk-nested-pause-train.cs:75-115` の本文を変えずに `#region Internal` の中へ写す（最後のコメント行は写したら消す）。写した本文の `Object.FindObjectsByType`（写し元 99 行）は裸の `Object` なので、このファイルに `using System;` を足さない（足すと `System.Object` とあいまいになり CS0104）。`Guid` を使う `prerun-shots-b5.cs`・`prerun-videos.cs`・`prerun-smoke-shots.cs` は `using System;` を持つので、`Object` は必ず `UnityEngine.Object` と書く（D-20）。
 
 - [ ] **Step 2: ブロックの撮影シナリオ**
 
@@ -771,7 +779,7 @@ var blocks = new (string id, string blockName)[]
     ("4-block-gearPump", "歯車ポンプ"), ("4-block-gearGenerator", "燃料式風車"), ("4-block-electricToGear", "回転生成機"),
     ("4-block-electricPole", "電柱"), ("4-block-spaceElevator", "宇宙エレベーター拠点"),
 };
-var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 900f };
+var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("prerun-shots-blocks", options, async p =>
 {
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
@@ -785,41 +793,39 @@ return PlaytestRunner.Run("prerun-shots-blocks", options, async p =>
     await p.SetupFlatGround();
     p.Assert(GameUiRoot.Instance.GetRootElement().Q("hotbar-slot-1") != null, "UITK のホットバーが描かれている");
 
-    // 16 マスずつ離して置き、置けた位置の当たり判定を控える
-    // Place them 16 cells apart and keep each placed collider's bounds
-    var bounds = new Bounds[blocks.Length];
-    for (var i = 0; i < blocks.Length; i++)
+    // 足場（中心 (0,30,0)・50×50・上面 y=32）の内側の 1 か所へ 1 個ずつ置き、2 解像度を撮って消してから次へ
+    // Place one block at a time at a fixed spot inside the 50x50 ground (top y=32), shoot both resolutions, then remove it
+    var position = new Vector3Int(-6, 32, -6);
+    foreach (var (id, blockName) in blocks)
     {
-        var position = new Vector3Int(8 + i * 16, 32, 8);
-        await p.PlaceBlockDirect(blocks[i].blockName, position, BlockDirection.North);
+        await p.PlaceBlockDirect(blockName, position, BlockDirection.North);
         var placed = await p.WaitBlockGameObject(position);
-        bounds[i] = placed.GetComponentsInChildren<Collider>(true)[0].bounds;
-    }
-
-    foreach (var (w, h) in new[] { (1280, 720), (2560, 1080) })
-    {
-        await PlaytestGameViewOps.SetResolution(p.CancellationToken, w, h);
-        await p.WaitSeconds(1.5f);
-        p.Assert(Screen.width == w && Screen.height == h, $"Screen が {w}x{h}");
-        for (var i = 0; i < blocks.Length; i++) await OpenAndShoot(blocks[i].id, bounds[i], w, h);
+        var bounds = placed.GetComponentsInChildren<Collider>(true)[0].bounds;
+        foreach (var (w, h) in new[] { (1280, 720), (2560, 1080) }) await OpenAndShoot(id, bounds, w, h);
+        p.Assert(await p.RemoveBlock(position), $"{blockName} を撤去した");
+        await p.WaitSeconds(1f);
     }
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
 
     #region Internal
 
-    // 手前に立って照準し、開いて撮って閉じる
-    // Stand in front, aim, open, shoot and close
+    // 解像度を合わせ、手前に立って照準し、開いて panel の矩形を控えて撮って閉じる
+    // Set the resolution, stand in front, aim, open, note the panel rect, shoot and close
     async UniTask OpenAndShoot(string id, Bounds target, int width, int height)
     {
+        await PlaytestGameViewOps.SetResolution(p.CancellationToken, width, height);
+        await p.WaitSeconds(1.5f);
+        p.Assert(Screen.width == width && Screen.height == height, $"Screen が {width}x{height}");
         p.WarpPlayer(new Vector3(target.center.x, target.min.y + 1.5f, target.min.z - 1.5f));
         await p.WaitSeconds(0.5f);
         await p.AimAt(target.center);
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         await p.UntilUiElement("block-inventory-panel", 10f);
-        foreach (var overlay in Object.FindObjectsByType<PlaytestOverlayView>(FindObjectsSortMode.None)) overlay.gameObject.SetActive(false);
+        foreach (var overlay in UnityEngine.Object.FindObjectsByType<PlaytestOverlayView>(FindObjectsSortMode.None)) overlay.gameObject.SetActive(false);
         SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.03f, Screen.height * 0.5f));
         await p.WaitSeconds(1f);
+        p.Note($"{id} {width}x{height} panel={GameUiRoot.Instance.GetRootElement().Q("block-inventory-panel").worldBound}");
         await p.Screenshot($"bk-{id}-{width}x{height}");
         await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -828,7 +834,7 @@ return PlaytestRunner.Run("prerun-shots-blocks", options, async p =>
     #endregion
 });
 ```
-開けないブロック（UI を持たない・置けない）は Step 4 の run で落ちた行を見て表の撮り方を E に替え、配列から外す（`done.md` に理由）。
+置く位置 (-6,32,-6) は、ピン先マスタ e0c913033c の最大の寸法（液体タンク 9×7×9・ガソリンエンジン発電機 7×5×13・油井 3×8×9・宇宙エレベーター拠点 9×4×9）でも足場（`PlaytestSetup.GroundCenter`=(0,30,0)・`GroundSize`=(50,4,50)。x・z は -25〜25）の内側に収まり、手前 1.5 マスに立つ位置も足場の上にある。足場の外へ置くとワープ先の下に足場が無く開く手順が時間切れになる（D-19）。足場の上で開けなかったブロック（UI を持たない・置けない）だけを、Step 4 の run の落ちた行を見て表の撮り方を E に替え、配列から外す（`done.md` に理由）。座標・照準の誤りで落ちた行は E に替えず、座標を直して流し直す。`p.Note` の panel の矩形は Task 9 Step 1 の EditMode との一致の確かめに使う。
 
 - [ ] **Step 3: 束 5 の撮影シナリオ**
 
@@ -921,13 +927,13 @@ git commit -m "test(uitk): 撤去の前の並べ比べの撮影シナリオを�
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop execute-dynamic-code --project-path ./moorestech_client --code-file $C/edc/4-block-chest.cs
 ```
-PlayMode 側の panel の矩形は、`prerun-shots-blocks.cs` の撮影の直前に `p.Note($"{id} panel={GameUiRoot.Instance.GetRootElement().Q("block-inventory-panel").worldBound}")` を 1 行足して取る（足したら Task 8 Step 5 のコミットに含める）。
+PlayMode 側の panel の矩形は、`prerun-shots-blocks.cs` が撮影の直前に打つ `p.Note`（`<id> <w>x<h> panel=<worldBound>`。Task 8 Step 2 のコードに最初から入っている）の `4-block-chest 1280x720` の行から取る。
 Expected: panel の x・y・幅・高さの差が 1280×720 で 2px 以内。超えたら舞台の論理寸法（PlayMode の root の大きさ）を EditMode の外殻へそろえて撮り直し、それでも超えるなら E の行の比べ方を「状態に依らない観点だけ・位置は PlayMode の組と照らす」と表に書く（`done.md`）
 
 - [ ] **Step 2: E の全 id を撮る**
 
 表の E の行ごとに `$C/edc/<id>.cs` を書き（出所のレーンの組み方を写す。地の色は新しい参照の該当画面の外側の 1 画素）、1280×720 と 2560×1080 の 2 回 `CaptureToPng` を呼ぶ。辞書を足すテストの見本を使うときは `UiCaptureLocalization.KeepCurrentDictionary` にし、撮った後に言語と辞書を戻す（前例 S4-research）。前例の無い id は、その画面の L1 の土台（`Client.Tests/Ui/Screens/<画面>/Support/`）の外殻に、Web の fixture（`moorestech_web/webui/e2e/mock-host/` の該当 fixture）と同じ値の ViewModel を渡す形で組み、`done.md` の表の出所に型名を書く。
-Expected: Run: `for id in <表の E の id>; do for r in 1280x720 2560x1080; do test -s $C/$id-$r.png || echo "無い: $id $r"; done; done` が何も出さない。撮れない状態（外殻が実行時の DI を要する等）は `done.md`「integrator への依頼」に道具の口の不足として書き、その id の比べ方を「各レーンの PR の並べ比べを証拠にする」（W6-3 と同じ扱い）に替えて表に書く
+Expected: Run: `for id in <表の E の id>; do for r in 1280x720 2560x1080; do test -s $C/$id-$r.png || echo "無い: $id $r"; done; done` が何も出さない。撮れない状態（外殻が実行時の DI を要する等）は `done.md`「integrator への依頼」に道具の口の不足として書き、その id の比べ方を「各レーンの PR の並べ比べを証拠にする」（W6-3 と同じ扱い）に替えて表に書く。この逃げ道を使った id は R-11 未達なので、`done.md`「要裁定」に Q-n（外した id・代わりの証拠の報告ページの URL・外した理由・推奨案）でまとめて上げてから先へ進む（実行計画 §1.5 の完了条件「UITK の全画面と並べ比べ」を省く判断はユーザーのもの。0 件なら何もしない。D-23）
 
 - [ ] **Step 3: 動画の UITK 側のシナリオ**
 
@@ -999,7 +1005,7 @@ Expected: 5 件 × 3 相 × 2 系＝30 枚。録画の時刻と Timeline の秒�
 - [ ] **Step 5: コミット**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/prerun-videos.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/prerun-shots-blocks.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/prerun-videos.cs
 git commit -m "test(uitk): 撤去の前の並べ比べの動画の撮影シナリオを足す（X-prerun）"
 ```
 
@@ -1154,6 +1160,7 @@ return PlaytestRunner.Run("prerun-smoke-shots", options, async p =>
 
 - [ ] **Step 2: 2 回流して決定的かを見る**
 
+先に Run: `grep -nE "UiSystem|ActiveUiSystem|UiSystemEditorSwitch|WebUiHost|PlaytestDomQuery|Cef" .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/*.cs; echo "guard-exit=$?"`。Expected: 何も出ず `guard-exit=1`（grep の 0 件。D-2 の「5a〜5e の全 HEAD でそのままコンパイルできる」の前提を機械で確かめる。当たったら参照を `GameUiRoot` の要素の照会へ書き換えてから流す。D-18）。
 Run（Task 8 Step 4 と同じ前置きで GameUi）: `run-scenario.sh ./moorestech_client $S/scenarios/uitk/prerun/prerun-smoke-shots.cs` を 2 回。2 つの run dir の同じ名前の PNG を `ffmpeg -v error -i <run1>/smoke-<state>-<res>.png -i <run2>/smoke-<state>-<res>.png -lavfi psnr -f null - 2>&1 | tail -1` で比べる。
 Expected: 2 回とも exit 0・PNG 20 枚。PSNR が `inf` でない状態（世界の動き・カーソル・時刻で揺れる）は、その状態の撮影の前の待ちを延ばすか、揺れる部分（世界の空・水面）を `done.md` に書いて 5a〜5e の比べ方を「PSNR ではなく UITK の要素の矩形の差 0」に替える旨を「5a への申し送り」に書く（D-12）
 
@@ -1185,7 +1192,7 @@ ls $C/pairs | wc -l
 ```
 Expected: 静止画 id 数 × 2 ＋ 動画 5 × 3 の枚数。高さが違って hstack が失敗した組は、UITK 側の撮影の解像度の誤りなので撮り直す
 
-- [ ] **Step 2: 評価役 A・B を束ごとに派遣する（本体が派遣する）**
+- [ ] **Step 2: 評価役 A・B を束ごとに派遣する（本体が派遣し、結果をこのレーンが取りまとめる。D-16）**
 
 opus の subagent を、評価役 A と B の 2 系統で、束ごと（束 4 は 2 つに分けて 1 回 24 組まで）に派遣する（D-3）。A と B は互いの結果を見ない。依頼文に渡すもの: ゴールの原文「WebUIと同じ見た目で、適切な設計、コンポーネント化されたUITKベースのUIを開発すること」、裁定 `.decisions/2026-11-06-UITK段階1の画面はWeb版と同じ見た目にする.md`・`…段階2以降の画面もWeb版と同じ見た目にする.md`、設計書 §3.3・§3.4、`compare-procedure.md` §5・§6、台帳「## 見た目の例外」の全行、`$C/states.md` のその束の行、組の画像のローカルパス（左が Web・右が UITK）。依頼:「各組の左右の差を、位置・寸法・色の系統・装飾（罫線・三角・影・ベベル・グラデ）の有無・文字の大きさと段組・欠けている要素・重なり・はみ出しで挙げる。states.md に書いた状態の差（データ・名前・行数・世界の地）は差に数えない。字形の差（Chrome と TextCore）は数えない。既存の LX に当たる差はその ID を書く。各差に座標（左上原点・px）と測った値を添え、重さ（一目で分かるか）を書く。合否の目安は 1280×720 で 2px。報告はファイル `<scratchpad>/x-prerun-eval-<A|B>-<束>.md` へ、返答は 3 行」。subagent はバックグラウンドのポーリングで待たず前景で実行し、Editor を起動しない
 
@@ -1206,7 +1213,9 @@ A・B の指摘を合わせて重ね（同じ組・同じ位置の差は 1 件�
 **Interfaces:**
 - Consumes: 「## 差の表」、`LookExceptionLedgerTest`（`Client.Tests/Ui/Conventions/LookExceptionLedgerTest.cs`）
 
-- [ ] **Step 1: 行ごとに処遇を決める（D-4）**
+- [ ] **Step 1: 行ごとに処遇を決める（D-4・D-16）**
+
+処遇を決めるのはこのレーン（指揮の判定を待たない。設計書 §3.3・[A-179] の「指揮が判定」を X-prerun について上書き。D-16）。(b) だけが指揮へ返る。
 
 - (a) USS の値（つまみの上書き漏れ・トークンの取り違え・半透明の補正漏れ・余白）で Web に寄せられる → このレーンが直す。Web の CSS（`feature/uitk` の `moorestech_web/webui/src/**`。読むだけ）と突き合わせて値を写す
 - (b) USS で直らず、C#・部品の作り直しが要り、差が一目で分かる（配置・色の系統・装飾の有無・文字の大きさ・欠け・重なり・はみ出し）→ 持ち主（その画面・部品のレーン。取り込み済みなら I-fix）へ bd を `--parent <bd>` で立て、依頼文（id・組の画像・測った値・Web の CSS の行）を指揮へ返し、`done.md` 1 行目を「状態: 停止（並べ比べの差 n 件の修正待ち）」にして push・合図を 1 回送って待つ。入ったら取り込み、該当の id だけ Task 8・9 の手順で撮り直して Task 11 Step 1・3 を回す
@@ -1222,7 +1231,7 @@ Expected: ErrorCount 0・全 PASS。直した id を Task 8・9 の手順で撮�
 
 - [ ] **Step 3: 例外を記帳する**
 
-台帳「## 見た目の例外」の末尾に 1 行（列: ID／画面・部品／差／同じにしない理由／推奨案／撮影〈報告ページの URL。PR 作成後に Task 16 で埋める〉／出所〈agent 既定（X-prerun D-4）〉）と、差のある USS の行に `/* look-exception: LX-n */` を同じコミットで入れる。C# の行が要る差は印を置けない（本番の C# を触らない）ので (b) として持ち主へ回す。
+台帳「## 見た目の例外」の末尾に 1 行（列: ID／画面・部品／差／同じにしない理由／推奨案／撮影〈報告ページの URL。PR 作成後に Task 16 で埋める〉／出所〈agent 既定（X-prerun D-4）〉）と、差のある USS の行に `/* look-exception: LX-n */` を同じコミットで入れる。C# の行が要る差は印を置けない（本番の C# を触らない）ので (b) として持ち主へ回す。使える番号は LX-210〜217 の 8 本だけ。(c) が 9 件以上になったら、残りの行の処遇を「LX（番号待ち）」にして `done.md`「integrator への依頼」に番号の追加を頼み、(b) と同じく 1 行目を「状態: 停止（LX の番号待ち n 件）」にして push・合図を 1 回送って待つ（計画・レーンは実行計画 §6.1 の割り当てを書かない。D-24）。
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Conventions.LookExceptionLedgerTest"`
 Expected: PASS
 
@@ -1261,7 +1270,7 @@ git commit -m "docs(uitk): 撤去の前の最後の全束の突き合わせ（�
 - [ ] **Step 1: テスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\." --timeout-seconds 1500`
-Expected: ErrorCount 0・全 PASS（件数を `done.md` へ）。ドメインリロード中のエラーは 45 秒待って再試行
+Expected: ErrorCount 0・全 PASS（件数を `done.md` へ）。ドメインリロード中のエラーは 45 秒待って再試行。あわせて Task 10 Step 2 の `prerun/*.cs` の grep を最終 HEAD で流し直し、0 件（`guard-exit=1`）であること（R-15。D-18）
 
 - [ ] **Step 2: ラダー 6 本と物差し**
 
@@ -1298,17 +1307,17 @@ Expected: 7 本とも exit 0・`Success: true`・ErrorLogs 0。`done.md`「## �
 ## Self-Review
 
 - Requirements の各行のタスク: R-1→T1、R-2→T1 Step 3・T13、R-3・R-4→T2、R-5→T2・T5・T16 Step 4、R-6→T3、R-7→T4、R-8→T5、R-9→T6、R-10→T7、R-11→T8・T9、R-12→T9、R-13→T11、R-14→T12、R-15→T10、R-16→T2・T5・T6、R-17→各タスクと T16、R-18→T14、R-19→T1 Step 3・T16 Step 2〜3、R-20→T15・T16
-- 保留の経路（停止して待つ）: 前提の欠け（T1）・突き合わせの差分（T1・T13）・全録画の不具合と退行（T3・T4）・USS で直らない差（T12 (b)）。どれも `done.md` 1 行目・bd・合図 1 回で指揮に届き、解消の条件は「持ち主の修正が `feature/uitk` に入る」。入った後にこのレーンが該当分だけ流し直す経路を各タスクに書いた。最小構成: 不具合 0 件なら停止に入らない。全 id が P のときも E の一致の確かめ（T9 Step 1）は `4-block-chest` が N なので必ず走る
+- 保留の経路（停止して待つ）: 前提の欠け（T1）・突き合わせの差分（T1・T13）・全録画の不具合と退行（T3・T4）・USS で直らない差（T12 (b)）・LX の番号の枠切れ（T12 Step 3）。どれも `done.md` 1 行目・bd・合図 1 回で指揮に届き、解消の条件は「持ち主の修正が `feature/uitk` に入る」（枠切れは「番号が足される」）。撮れない E の id（T9 Step 2）は停止せず `done.md`「要裁定」の Q-n で届く。入った後にこのレーンが該当分だけ流し直す経路を各タスクに書いた。最小構成: 不具合 0 件なら停止に入らない。全 id が P のときも E の一致の確かめ（T9 Step 1）は `4-block-chest` が N なので必ず走る
 - 対照: 物差しは 2 回流して決定的かを見る（T10 Step 2）。EditMode は先に実行時と 2px 以内の一致を見る（T9 Step 1）。Web 側の失敗は S4-gamma の HEAD で流し直して既存と退行を分ける（T4 Step 3）
-- 型の一致: `UiRuntimePanelCapture.CaptureToPng(VisualElement, int, int, Color, UiCaptureLocalization, string)`・`PlaytestGameViewOps.SetResolution(CancellationToken, int, int)`・`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`AnchorIds.PauseSettings`／`ResearchNode(string)`／`ChallengePanel`・`GameUiRoot.Instance.GetRootElement()`・testid `research-node-state-<guid>`・`block-inventory-panel`・`block-inventory-close`・`placement-mode-hud`・`inventory-panel`・`research-tree`・`pause-menu-open-settings`・`language-select`・`build-menu-search` は起草時の HEAD `9c83052273` の実物と一致。S5 のレーンが足すもの（チャレンジ一覧の中身・言語ゲート）は T8 Step 3 で実物から写す
+- 型の一致: `UiRuntimePanelCapture.CaptureToPng(VisualElement, int, int, Color, UiCaptureLocalization, string)`・`PlaytestGameViewOps.SetResolution(CancellationToken, int, int)`・`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`AnchorIds.PauseSettings`／`ResearchNode(string)`／`ChallengePanel`・`GameUiRoot.Instance.GetRootElement()`・testid `research-node-state-<guid>`・`block-inventory-panel`・`block-inventory-close`・`placement-mode-hud`・`inventory-panel`・`research-tree`・`pause-menu-open-settings`・`language-select`・`build-menu-search`・`p.RemoveBlock(Vector3Int) : UniTask<bool>`・`PlaytestSetup.GroundCenter`／`GroundSize` は起草時の HEAD `9c83052273` の実物と一致。S5 のレーンが足すもの（チャレンジ一覧の中身・言語ゲート）は T8 Step 3 で実物から写す
 
 ## 判断記録（ADR）
 
-従う裁定: `.decisions/2026-11-06-*`（UITK 6 本と CEF 停止の 7 本。特に「一気切替の日に CEF と Web を同時に撤去する」＝撤去の後は Web 側が無いので、ここが Web と比べられる最後の回）。依頼文の指示: Codex を使わない・Mac Editor 1 本・問いは agent 既定・worktree の片付けは指揮。判断台帳: このレーンの Modify/Create は `moores-*.md` の `paths` に当たらない（Global Constraints 11）。unityプレイ録画テスト: 含む（Task 2・3・4・8・9・10・14）。
+従う裁定: `.decisions/2026-11-06-*`（UITK 6 本と CEF 停止の 7 本。特に「一気切替の日に CEF と Web を同時に撤去する」＝撤去の後は Web 側が無いので、ここが Web と比べられる最後の回）。上書きする裁定: `.decisions/2026-10-16-moores-writing-plansの実装引き継ぎはCodexセッションに固定する.md` と実行計画 §8 E-3（D-17）。依頼文の指示: Codex を使わない・Mac Editor 1 本・問いは agent 既定・worktree の片付けは指揮。判断台帳: このレーンの Modify/Create は `moores-*.md` の `paths` に当たらない（Global Constraints 11）。unityプレイ録画テスト: 含む（Task 2・3・4・8・9・10・14）。
 
 W6 の agent 既定の写し:
-- **W6-1** Codex を使わない。§5 の外部監査・codex-audit は opus の評価役 2 系統の独立評価。pr-independent-review はスキルが削除済み（ed461b35de、2026-10-30）
-- **W6-2** Mac Editor 1 本・それ以上は winunity（ユーザー指示 2026-11-11「unity2つは安定しないので1つに絞って」）
+- **W6-1** Codex を使わない。§5 の外部監査・codex-audit は opus の評価役 2 系統の独立評価。pr-independent-review はスキルが削除済み（ed461b35de、2026-10-30）。根拠と上書きする裁定は D-17
+- **W6-2** Mac Editor 1 本・それ以上は winunity（ユーザー指示 2026-11-11「やはりunity2つは安定しないので1つに絞ってほしい」。`../moorestech_logs/harness/uitk/conductor.md`「## 2026-11-11 21:30 Mac Editor を 1 本に」）
 - **W6-3** 「全画面」は参照 manifest の全 id（起草時 89 件・静止画 84・動画 5）。撮影表に無くレーンが自撮りした場面（掴み絵 `4-player-inventory-grab`・`3-modal-backdrop-only`・列車族 6・特殊族 `self/*`）は各レーンの PR の並べ比べを証拠にし、撮影表への追加の依頼は「撮影表ごと 5c で消える」で閉じる
 - **W6-4** Web 参照の 2560×1080 は master の worktree で `shotRunner.ts:11` の `referenceViewport` を一時的に書き換え、`pnpm build` の後に撮り、コミットしない（前例 S3-ladder）
 - **W6-5** UITK 側の撮影は id → 撮り方の対応表を作り、全 id が 1 行ずつあることを機械で確かめる。PlayMode は既存の段の撮影シナリオを流し、足りない id は `scenarios/uitk/prerun/` に新設（200 行未満・10 ファイルまで）。実行時に作れない状態は EditMode の `UiRuntimePanelCapture`（実行時に作れる状態 1 つで 2px 以内の一致を先に確かめる。[A-164]）。動画 5 件は UITK 側を録画し、Web の webm と同じ時刻の 3 フレーム（始・中・終）を ffmpeg で抜いて比べる
@@ -1334,18 +1343,33 @@ W6 の agent 既定の写し:
 - **D-14** §4.3 の 5（`moores-wt rm`）は依頼文の「worktree の片付けは指揮が行う」に従い、このレーンは Editor を閉じるまで
 - **D-15** 申し送りのバグ報告の記述欄の幅（356→354px）は Web と UITK が同じ見た目（どちらも右枠が切れる）なので、UITK だけを直さず Q-n に上げる（UITK だけ直すと Web と画素が変わり「Web と同じ見た目」から外れる。Web 側を直すのは master の Web の変更）
 
+検査の反映（Phase 2.6・user-simulator・設計検査の注目点）:
+- **D-16**（Phase 2.6 検査7・1行目 [強]: 設計書 §3.3「並べ比べ」の行と [A-179] は「codex-audit → 別の subagent が再現 → 指揮が判定 → 台帳の行と印は I-fix が置く」。計画はどちらを正にするか → X-prerun（integrator レーン）が判定の取りまとめと USS の修正・LX の記帳〈台帳の行と `/* look-exception */` の印を同じコミット〉を行う。判定は opus 2 体の独立評価、再現は別の subagent。USS で直せない差〈部品の作り直しが要るもの〉は持ち主の部品の範囲として bd を立てて指揮へ返し、停止して待つ。理由: W6 は撤去の直前で、段の締めの I-fix レーンはもう無く、直列のクリティカルパスに別レーンを挟むと撤去が止まる。A-179 が I-fix に印を置かせた理由〈`LookExceptionLedgerTest` が同じ HEAD で台帳と印を照合する〉は、このレーンが同じコミットで両方を入れるので満たす。A-250 の下書きにこの担い手の移りを書いた。出所 agent 既定〈指揮の補足〉）
+- **D-17**（設計検査 注目点5: 「Codex を使わない」が実行計画 §3 の「integrator レーンは Codex セッションで回す」と逆向き → 根拠はユーザーの指揮への指示で、`../moorestech_logs/harness/uitk/conductor.md`「## ユーザー指示（2026-11-06 15:55）」の原文「一旦codexは使わず、claudeセッションで今からこの計画の遂行をして」と次の行「実行計画 §4.1 の Codex 指定をこの指示で上書き」、および「## 2026-11-11 21:30 Mac Editor を 1 本に」の「やはりunity2つは安定しないので1つに絞ってほしい」。これが `.decisions/2026-10-16-moores-writing-plansの実装引き継ぎはCodexセッションに固定する.md` と実行計画 §8 E-3〈integrator レーンも Codex セッションで回す〉を W6 について上書きする。出所 ユーザー指示〈指揮の記録〉を agent が引用）
+- **D-18**（Phase 2.6 5-E・1行目 [弱]: 「全体スイッチと Web の型を参照しない」〈D-2〉を確かめるガードが無い。型で強制するかテストに載せるか → `prerun/*.cs` に `UiSystem|ActiveUiSystem|UiSystemEditorSwitch|WebUiHost|PlaytestDomQuery|Cef` が 0 件であることを Task 10 Step 2 と Task 14 Step 1 の grep で確かめ、R-15 の受け入れ基準に入れる。シナリオは asmdef の外で型の参照を禁じる仕組みが無いので grep にした。出所 agent 既定）
+- **D-19**（シミュレーター 適用推奨1・設計検査 注目点7・シミュレーター Warning 3: ブロック 14 種を x=8〜216 に並べると 50×50 の足場の外に出て開けず、逃げ道が座標の誤りを「開けないブロック」と読み替える。`ScenarioTimeoutSeconds = 900f` は 1 回の Bash の 600 秒を超える。panel の矩形の `p.Note` を Task 8 の済んだコミットへ後から足す文になっていた → 足場の内側の (-6,32,-6) へ 1 個ずつ置いて 2 解像度を撮り `p.RemoveBlock` で消して次へ進む形に書き直し、逃げ道を「足場の上で開けなかったものだけ E」へ絞り、上限を 600 秒にし、`p.Note` を Task 8 Step 2 のコードに最初から入れた。出所 シミュレーター予測（agent 前提・拒否権つき）と設計検査）
+- **D-20**（設計検査 注目点6: `Guid` を使うシナリオに `using System;` を足すと裸の `Object` が CS0104 であいまい → 計画のコードの `Object.FindObjectsByType` を全部 `UnityEngine.Object` にし、写し元の本文を変えずに写す `prerun-shots-pause-train.cs` には `using System;` を足さないと書いた。出所 agent 既定）
+- **D-21**（シミュレーター 適用推奨2: 経路 W の `while read` のループの中で `~/bin/winunity` の ssh が標準入力を読み切り 1 本しか流れない〈`~/bin/winunity` 64・80・87 行の ssh に `-n` も `</dev/null` も無い〉→ ループの中の呼び出しに `</dev/null` を付けた。出所 シミュレーター予測（agent 前提・拒否権つき））
+- **D-22**（シミュレーター 適用推奨3: `L` が相対のまま `cd $R/moorestech_web/webui` するので、`capture.ts:19-22` が参照を使い捨て worktree の中に作り `moores-wt rm` で消える。Step 3 に `cd` が無い → `L` をレーンの worktree で `pwd -P` の絶対パスに決め、Step 2・3 の先頭に `cd`、畳む前に 2 つの manifest の実在を見る手順を足した。出所 シミュレーター予測（agent 前提・拒否権つき））
+- **D-23**（シミュレーター Warning 1: Task 9 Step 2 の逃げ道〈撮れない E の id を各レーンの PR の並べ比べで代える〉と R-11「全静止画 id の PNG が実在」が食い違う → 逃げ道を使った id は R-11 未達として数え、`done.md`「要裁定」に Q-n で上げる。実行計画 §1.5 の「UITK の全画面と並べ比べ」を省くのはユーザーの判断なので、実行時に起きたら上げる。起草の段階では件数が 0 か分からないので計画は止めない。出所 シミュレーター予測（agent 前提・拒否権つき））
+- **D-24**（シミュレーター Warning 2: 例外の番号は LX-210〜217 の 8 本だけで、9 件目の扱いが無い → 9 件目からは「LX（番号待ち）」にして `done.md`「integrator への依頼」で番号の追加を頼み停止する。計画・レーンは実行計画 §6.1 を書かない〈Global Constraints 7〉。出所 シミュレーター予測（agent 前提・拒否権つき））
+- **D-25**（Phase 2.6 5-C・5行目 [弱]: 研究の照会が GUID の欠けを `None None None` で出して exit 0 → 欠けを明示の分岐にし、無ければ一覧を出して exit 1。出所 agent 既定）
+- **D-26**（設計検査 注目点1: state-label の `AssertStateLabel` は自前の `realtimeSinceStartup` の期限付きループで、前例は `p.Until(() => FindUi(…).GetAwaiter().GetResult()…)` → このままでよい。`p.Until` は時間切れで投げて観測した文言が残らず、Task 2 Step 3 の「Note の `text=` で状態の取り違えを見る」が使えなくなる。時間の規約はサーバーのゲームロジックだけが対象。出所 agent 既定）
+- **D-27**（設計検査 注目点3・4: A-179 が棄却した「mock-host の参照だけと比べる」を X-prerun が採る理由と、A-177 の 6 分類を広げた分類〈`比較不能（新設）`・`比較不能（変更）`・「シナリオの誤り（5a）」〉が設計書に無い → A-250 の棄却案に「実ゲームで Web と UITK を全画面撮る」を足して理由を書き、A-251 に広げた分類を書いた。出所 agent 既定）
+- **D-28**（設計検査 実物2・シミュレーター Warning 4: 「現存する 8 本（S2/S3-ladder の 6 本と state-label・後継 extend-chain）」の内訳が台帳と合わない〈台帳では S2-ladder 4・S3-ladder 3・state-label で 8、extend-chain は行の外の後継〉→ 括弧を実物の内訳に直し、extend-chain を別に書き、Task 5 Step 1 で 10 行を 1 行ずつ「現存／削除／後継」に分けて数え直す形にした。出所 設計検査とシミュレーター予測（agent 前提・拒否権つき））
+
 ## 未確認
 
 - ラダー 4〜6・`tools/uitk/` の 2 本・段 4〜5 の撮影シナリオ・`uitk-challenge-gate.cs` の言語ゲートの出し方は起草時の HEAD に無い（S4-gamma・S5-ladder の後にできる）。パスと API は Task 1・Task 8 Step 3 で実物から写す
 - 新しい参照の manifest の id の数（起草時 89）。master で増えていれば Task 7 で表を足す
 - E の各 id の外殻の組み方は、前例のレーンの `done.md` の記述から写す（repo に撮影のコードが無い）。前例の無い id は Task 9 Step 2 で決める
-- `prerun-shots-blocks.cs` の 14 種のうち、平らな地面で開けないもの（油井・宇宙エレベーター拠点・電柱の UI の有無）は Task 8 の run で分かる
+- `prerun-shots-blocks.cs` の 14 種のうち、平らな地面で開けないもの（油井・宇宙エレベーター拠点・電柱の UI の有無）は Task 8 の run で分かる。置く向き North で大きなブロックが原点のどちら側へ伸びるかは確かめていない（(-6,32,-6) はどちらへ 13 マス伸びても足場の内側）
 - 動画の録画の始まりと Timeline の秒のずれ（Task 9 Step 4 で測る）
 - Windows の Editor で CEF が描けるか（Task 1 Step 5。winunity の Library の不調〈`winunity-play-fix.md`〉が再発したら経路 M）
 
 ## 本PR外のリファクタ提案
 
-- 既存の段の撮影シナリオは出力名の付け方がばらばら（`uitk-<id>-<w>x<h>`・`<w>x<h>-<id>`・`<prefix>-uitk-<名>`・`4-wave-<状態>-<w>x<h>`）。撮影 id と解像度から名前を作る口が DSL に無いので、切替後に撮影を続けるなら `PlaytestScreenshot` に `<id>-<w>x<h>` の口を足す案（持ち主: DSL。X-cleanup 以後）
+- 既存の段の撮影シナリオは出力名の付け方がばらばら（`uitk-<id>-<w>x<h>`・`<w>x<h>-<id>`・`<prefix>-uitk-<名>`・`4-wave-<状態>-<w>x<h>`）。撮影 id と解像度から名前を作る口が DSL に無いので、切替後に撮影を続けるなら `PlaytestScreenshot` に `<id>-<w>x<h>` の口を足す案（持ち主: DSL。X-cleanup 以後）。その口に「操作オーバーレイを消し、カーソルをパネルの外へ置いてから撮る」手順（既存の `uitk/stage3/uitk-stage3-compare.cs` の `ShootAsync`・`MoveCursorOffPanelsAsync` と、この計画の `prerun/` の 4 本の `Shoot`）も入れられる（Phase 2.6 の参考。表の対象外のテストコード）
 - `UiRuntimePanelCapture` に「画面の外殻と偽の Model を組む見本」を画面ごとに持たせる口が無く、E の撮影は毎回レーンの `done.md` の記述から組み直している（前例 S3-buildmenu D-61・S4-alpha の依頼）。画面ごとの `IUiGalleryEntry` に Web の fixture 相当の見本を足す案（持ち主: 各画面・I-fix）
 
 ## 設計書・実行計画へ反映する行
@@ -1353,8 +1377,8 @@ W6 の agent 既定の写し:
 ### 設計書 §7.1（A-250・A-251）
 
 ```markdown
-| A-250 | 撤去の前の全画面の並べ比べ（X-prerun）は、master の worktree で撮り直した参照 manifest の全 id に「既存の段の撮影シナリオ／`scenarios/uitk/prerun/` の新設シナリオ／EditMode の `UiRuntimePanelCapture`（実行時に作れない状態。[A-164] の一致を先に確かめる）／動画は録画して Web の webm と同じ相の 3 フレーム」のどれか 1 つを割り当てた対応表を作り、抜けと重複が 0 であることを機械で確かめてから撮る。判定は左 Web・右 UITK の合成画像を opus の評価役 2 系統に束ごとに別々に渡し、別の subagent が画素で再現した差だけを「USS で直す／持ち主へ回す／LX／Q-n」に閉じる。撤去レーンの見た目の不変は X-prerun が作る `prerun-smoke-shots.cs`（束ごとに 2 状態・全体スイッチと Web の型を参照しない）で測る（X-prerun D-2・D-3・D-11） | 撮影表の 84 件だけを PlayMode で撮る: 実行時に作れない状態が比べられない。評価役 1 体に全部を渡す: コンテキストに収まらず後半を見ない。Codex の codex-audit: 指揮の指示で使わない |
-| A-251 | 撤去の前の最後の Web の基準は、全録画の Web 側の結果（`harness/uitk/X-prerun/done.md`「## 全録画の結果」と台帳「## 実測の結論」の行）・参照 `web-<sha>`／`web-<sha>-2560x1080`（台帳「## 参照キャプチャ」）・全束の突き合わせの記録（`disposition.md` の束 1〜5 の行）の 3 つとし、切替後に Web の挙動・見た目・テストを確かめるときはここだけを引く（X-prerun） | 撤去後に Web を復元して比べる: 裁定（切替後に Web へ戻すデバッグ切替を残さない）と合わない。基準を残さない: 切替後の不具合で Web の挙動を辿れない |
+| A-250 | 撤去の前の全画面の並べ比べ（X-prerun）は、master の worktree で撮り直した参照 manifest の全 id に「既存の段の撮影シナリオ／`scenarios/uitk/prerun/` の新設シナリオ／EditMode の `UiRuntimePanelCapture`（実行時に作れない状態。[A-164] の一致を先に確かめる）／動画は録画して Web の webm と同じ相の 3 フレーム」のどれか 1 つを割り当てた対応表を作り、抜けと重複が 0 であることを機械で確かめてから撮る。判定は左 Web・右 UITK の合成画像を opus の評価役 2 系統に束ごとに別々に渡し、別の subagent が画素で再現した差だけを「USS で直す／持ち主へ回す／LX／Q-n」に閉じる。判定の取りまとめ・USS の修正・LX の記帳（台帳の行と印を同じコミット）は X-prerun が行い、USS で直らない差だけを持ち主へ bd で回して指揮へ返す。§3.3「並べ比べ」の行と [A-179] の「指揮が判定し、台帳の行と印は I-fix が置く」を X-prerun について改める（段の締めの I-fix レーンが W6 には無く、撤去の直列の道に別レーンを挟まない）。撤去レーンの見た目の不変は X-prerun が作る `prerun-smoke-shots.cs`（束ごとに 2 状態・全体スイッチと Web の型を参照しない）で測る（X-prerun D-2・D-3・D-11・D-16） | 撮影表の 84 件だけを PlayMode で撮る: 実行時に作れない状態が比べられない。評価役 1 体に全部を渡す: コンテキストに収まらず後半を見ない。Codex の codex-audit: ユーザーの指示（2026-11-06「一旦codexは使わず」）で使わない。[A-179] のとおり指揮が判定し I-fix が印を置く: W6 に I-fix レーンが無く、撤去の直列の道が止まる。[A-179] のとおり実ゲームで Web と UITK の両方を全画面撮る: 段の締め（S2〜S5-ladder）が同時表示の重なりを実ゲームの組で見終えており、残るのは全 id を覆う比べで、Web 側を全画面撮るには CEF の Editor がもう 1 本要る（Mac の Editor は 1 本） |
+| A-251 | 撤去の前の最後の Web の基準は、全録画の Web 側の結果（`harness/uitk/X-prerun/done.md`「## 全録画の結果」と台帳「## 実測の結論」の行）・参照 `web-<sha>`／`web-<sha>-2560x1080`（台帳「## 参照キャプチャ」）・全束の突き合わせの記録（`disposition.md` の束 1〜5 の行）の 3 つとし、切替後に Web の挙動・見た目・テストを確かめるときはここだけを引く。Web 側の失敗の分類は [A-177] の 6 分類に `既存`・`退行`・`比較不能（新設）`（前の全録画に無いシナリオ）・`比較不能（変更）`（前の全録画の HEAD から中身が変わったシナリオ）と、UITK 側の「シナリオの誤り（5a）」（古い testid・Web の型の参照）を足して使う（X-prerun D-6・D-27） | 撤去後に Web を復元して比べる: 裁定（切替後に Web へ戻すデバッグ切替を残さない）と合わない。基準を残さない: 切替後の不具合で Web の挙動を辿れない |
 ```
 
 ### 実行計画 §6.1 の割り当て行
