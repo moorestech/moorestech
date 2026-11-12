@@ -122,6 +122,7 @@ public sealed class IconButton : VisualElement
 | `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report` |
 | `S/Client.Ui/Screens/<機能>/<機能>.uss` | 配置とつまみの上書きだけ |
 
+- Commands は結果を返すだけで、トーストは呼び手の View が `UiCommandResultToaster.Report` で出す。Commands 内で Report してよいのは分割ドラッグ（`PlayerSlotDragCommands`。呼び手の View が居ない）と列車の編集（`TrainPlatformEditCommands`・`TrainTimetableEditCommands`／`Session`。閉じた後に戻った拒否もトーストする。S4-train D-39・D-40）だけ（設計書 A-262）
 - 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している（Web では pauseMenu 配下）。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない
 - View は C# で組む。UXML と UI Builder は使わない
 - 出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める
