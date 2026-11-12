@@ -22,7 +22,7 @@
 | R-2 | 作らない横断層の記帳 | `docs/uitk/disposition.md` の `## 処遇` に、`e2e/tests/regression/connection.spec.ts` の 3 件（restoring・connecting placeholder・再接続バナー）と `allScreensI18n.test.ts` の辞書の HTTP 取得 3 件が `捨てる` で理由（[A-13]・[A-38]・E-17）付きで載り、`node tools/uitk/test-name-parity.mjs --bundle 5` がそれらを未対応に数えない。`AppErrorBoundary` のフォールバック画面を作らない理由は設計書 §7.1 の A-244（本文は D-1） |
 | R-3 | 束 5 の横断テストの写し | `i18n.spec` 2・`allScreensI18n` 3（残る 3 は R-2 の捨てる）・`uiState.spec` 5・`inputLayer.spec` 4・`textSelection` 2 の計 16 件に `/// <web-test file="…">…</web-test>` が付いた NUnit が緑。`test-name-parity.mjs --bundle 5 --emit-missing` の出力にこの 5 ファイルの行が 0 |
 | R-4 | DC-11 表示の出し入れ | `Foundation/Layout/UiDisplay.SetShown(VisualElement, bool)`（出すときは `StyleKeyword.Null`）が唯一の書き口、`UiDisplay.IsShownInline` が唯一の読み口。4 つの helper（`SpecialViewParts`:32・`SettingsSectionParts`:32・`BugReportRecoveryControlsView`:63・`SkitToolbar`:90）を消し、`UiGapContainer`・`UiLayerStack`・`CursorTooltipView` を含む直書き 74 か所（T2 の Files の全一覧。起草時の実測 76 行 44 ファイルから `CurrentChallengeHudView` の 2 行を除く）を置換する。検査 `git grep -nE "style\.display[[:space:]]*=[^=]" -- 'moorestech_client/Assets/Scripts/Client.Ui/*.cs'` の結果が `Foundation/Layout/UiDisplay.cs` の 1 行だけ（T22 Step 2 の取り込みまでは S5-challenge の持ち物 `Screens/Challenge/CurrentHud/CurrentChallengeHudView.cs`:38,43 の 2 行も残り、取り込みで置換して 1 行になる）。読み `style\.display[[:space:]]*==` は 0 行。L1 `UiDisplayTest` 3 件 |
-| R-5 | DC-19 スクロールのクリップ逃げ | `Foundation/Layout/UiScrollClipInset.Apply(VisualElement outer, VisualElement inner, float inset)` が唯一の式。5 実装（`ItemListView.ApplyClipClearance`・`RecipeEntryList`・`BuildMenuScrollClipInset`・`NodeGraphView`・`BlockInventoryNaturalScroll`）と `ResearchCalcKnobs.ApplyScrollBleed` が呼ぶ。`RecipeEntryList` は部品の `RecipeListScrollView.SetClipInset(float)` を呼び、`contentContainer` を直に触らない。L1 `UiScrollClipInsetTest` 2 件。並べ比べ（R-17）でスクロールの端が退行 0 |
+| R-5 | DC-19 スクロールのクリップ逃げ | `Foundation/Layout/UiScrollClipInset`（`Apply` 4 辺・外と内を片側ずつ当てる `ApplyOuterMargin`／`ApplyInnerPadding`・左右だけの `ApplyHorizontal`）が唯一の式。4 実装（`RecipeEntryList`・`BuildMenuScrollClipInset`・`NodeGraphView`・`BlockInventoryNaturalScroll`）と `ResearchCalcKnobs.ApplyScrollBleed` が呼ぶ。`RecipeEntryList` は内側を部品の `RecipeListScrollView.SetClipPadding(float)` から当て、部品の内側の `contentContainer` を直に触らない。`ItemListView.ApplyClipClearance`（3 辺＋実測の基準値。Web の `ItemListPanel.module.css`:32-55 も別の式）は置き換えない（D-6）。L1 `UiScrollClipInsetTest` 3 件。並べ比べ（R-17）でスクロールの端が退行 0 |
 | R-6 | DC-27 描画ヘルパ | `Foundation/Theme/Mesh/GridMeshIndexWriter.WriteQuads`・`Painter2DSquareCap.AddSegment`・`ShadowRingMeshWriter.RingCount`／`CenterMargin` が唯一。格子の index 5 か所・square cap 2 か所・影の定数 2 部品が呼ぶ。L1 `GridMeshIndexWriterTest` 2 件・`Painter2DSquareCapTest` 1 件。部品の L1 と並べ比べが退行 0 |
 | R-7 | DC-28 B トークン待ちの宿主 | `Foundation/Theme/StyleResolution/UssStyleResolutionGate` が「解決待ち→解決の通知→配置後も未解決なら LogError」を持ち、`ToastHostView`・`NotificationHostView` が使う。読めないトークンの診断は両方が同じ文（`[<宿主>] … unreadable`）。L1 `UssStyleResolutionGateTest` 3 件、既存の Toast/Notification の L1 緑 |
 | R-8 | DC-10 画面がキーを受ける口 | `InputKey` のキーを画面へ渡す口は `Client.Input/KeyPress/IUiKeyPressSource`（`IObservable<Unit> OnPressed`・`bool WasPressedThisFrame()`）と唯一の実装 `InputKeyPressSource`（抽象。`InputKey` を読むのはここだけ）で、DI の鍵はキーごとの型 `ISkitAdvanceKeyPressSource`／`ICloseUiKeyPressSource`（実装 `SkitAdvanceKeyPressSource`・`CloseUiKeyPressSource`）。`SkitEnterKeySource`・`IUiCloseKeyProbe`・`InputManagerCloseKeyProbe` を消し、`RecipeSelectionCloseReset` を `Client.Ui.State/Recipe/Screen/` へ移す（駆動は旧の pull のまま。D-8）。矢印は A-162 のとおり `Client.Input/ArrowKeys/InputSystemArrowKeyStream` が流し、UI の入力マップと `.inputactions` は変えない。stream が押下の縁を `InputSuppressionFilter.FilterKeyPress` に 1 回通し、`BeltThroughputSectionPresenter` の `UiInputExclusivity.IsTextInputFocused` を消す。入力欄のフォーカス中に 3 口とも流れないことを L0 で固定（`UiKeyPressSourceSuppressionTest` 3 件・`InputSystemArrowKeyStreamTest` に 1 件） |
@@ -614,7 +614,7 @@ Run: `python3 -m unittest discover -s scripts/playtest/tests -p 'test_dashboard*
 ### Task 2: DC-11 表示の出し入れを `UiDisplay` 1 本へ（R-4）
 
 **Files:**
-- Create: `S/Client.Ui/Foundation/Layout/UiDisplay.cs`、Test: `S/Client.Tests/Ui/Foundation/Layout/UiDisplayTest.cs`（置き場は既存の `UiGapContainer` の L1 の横。`find S/Client.Tests -name "UiGapContainer*Test.cs"` で確かめる）
+- Create: `S/Client.Ui/Foundation/Layout/UiDisplay.cs`、Test: `S/Client.Tests/Ui/Layout/UiDisplayTest.cs`（置き場は既存の Layout の L1 `UiLayoutTest.cs`・`UiGroupWrapTest.cs` の横。`Client.Tests/Ui/Foundation/` は無く、`UiGapContainer` の L1 も無い）
 - Modify（helper 4）: `Screens/BlockInventory/Special/SpecialViewParts.cs`:32・`Screens/Settings/SettingsSectionParts.cs`:32・`Screens/BugReport/BugReportRecoveryControlsView.cs`:63（I-fix6 の取り込み後の行）・`Screens/Skit/Parts/Toolbar/SkitToolbar.cs`:90（と各呼び手）
 - Modify（Foundation。S 相対 `Client.Ui/`）: `Foundation/Layout/UiGapContainer.cs`:57（書き）・:102（読み）・`Foundation/Layers/UiLayerStack.cs`:70,77（`SetAllLayersVisible`。隠す前の `Blur` は残す。A-80 の持ち物だが、規則〈出すときは Null〉が同じなので `UiDisplay.SetShown` へ委ねる）
 - Modify（Components）: `Components/Controls/RecipeActionButton/RecipeActionLabelShadow.cs`:63・`Components/Controls/GameTextField/ImeCompositionUnderline.cs`:35,60,82・`Components/Text/ShortcutHintLabel/ShortcutHintLabel.cs`:79（書き）・:89（読み）
@@ -627,12 +627,12 @@ Run: `python3 -m unittest discover -s scripts/playtest/tests -p 'test_dashboard*
 - [ ] **Step 1: L1（赤）**
 
 ```csharp
-// S/Client.Tests/Ui/Foundation/Layout/UiDisplayTest.cs
+// S/Client.Tests/Ui/Layout/UiDisplayTest.cs
 using Client.Ui.Foundation.Layout;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Foundation.Layout
+namespace Client.Tests.Ui.Layout
 {
     public class UiDisplayTest : Client.Tests.Ui.TestHost.UiTestHost
     {
@@ -722,21 +722,33 @@ Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-v
 ### Task 3: DC-19 スクロールのクリップ逃げを `UiScrollClipInset` 1 本へ（R-5）
 
 **Files:**
-- Create: `S/Client.Ui/Foundation/Layout/UiScrollClipInset.cs`、Test: `S/Client.Tests/Ui/Foundation/Layout/UiScrollClipInsetTest.cs`
-- Modify: `Screens/Recipe/ItemListView.cs`（:23,44,106-127）・`Screens/Recipe/Parts/RecipeEntryList.cs`（:17,31,124-149。:142 の `contentContainer` 直書き）・`Components/Controls/RecipeListScrollView/RecipeListScrollView.cs`（:12）・`Screens/BuildMenu/CategoryScroll/BuildMenuScrollClipInset.cs`（呼び手 `BuildMenuScrollBinding.cs`:23）・`Components/NodeGraph/NodeGraphView/NodeGraphView.cs`（:22,140-159）・`Screens/BlockInventory/BlockInventoryNaturalScroll.cs`（:14,30-41）・`Screens/Research/ResearchCalcKnobs.cs`（:32 `ApplyScrollBleed`。左右だけ）
+- Create: `S/Client.Ui/Foundation/Layout/UiScrollClipInset.cs`、Test: `S/Client.Tests/Ui/Layout/UiScrollClipInsetTest.cs`
+- Modify: `Screens/Recipe/Parts/RecipeEntryList.cs`（:31,124-149。:142 の `_scroll.Q<GameScrollView>().contentContainer` の直書き）・`Components/Controls/RecipeListScrollView/RecipeListScrollView.cs`（:12・:27 のローカル変数 `scroll` をフィールド `_scroll` へ）・`Screens/BuildMenu/CategoryScroll/BuildMenuScrollClipInset.cs`（呼び手 `BuildMenuScrollBinding.cs`:23）・`Components/NodeGraph/NodeGraphView/NodeGraphView.cs`（:22,140-159）・`Screens/BlockInventory/BlockInventoryNaturalScroll.cs`（:14,30-41）・`Screens/Research/Parts/ResearchCalcKnobs.cs`（:32 `ApplyScrollBleed`。左右だけ）
+- 置き換えない（D-6）: `Screens/Recipe/ItemListView.cs`:106-127 の `ApplyClipClearance`（左・上・下の 3 辺で右を持たず、margin に実測の基準値〈`--…-margin-left-base`・`-top-base`〉を足す。Web `features/recipe/panels/ItemListPanel.module.css`:32-55 も同じ 3 辺と基準値で、右は `margin-right: 4.435px` でつまみの位置を詰める。共有の式に入れると右の margin と padding が増え、縦のつまみが inset px 右へずれる）
 
-**Interfaces:** Consumes: `GameScrollView`（`ctor(string testid)`・`contentContainer`・`OnContentLayoutChanged`）。Produces: `UiScrollClipInset.Apply(VisualElement outer, VisualElement inner, float inset)`・`UiScrollClipInset.ApplyHorizontal(VisualElement outer, VisualElement inner, float inset)`・`RecipeListScrollView.SetClipInset(float inset)`
+**Interfaces:** Consumes: `GameScrollView`（`ctor(string testid)`・`contentContainer`・`OnContentLayoutChanged`）。Produces: `UiScrollClipInset.Apply(VisualElement outer, VisualElement inner, float inset)`（4 辺）・`UiScrollClipInset.ApplyOuterMargin(VisualElement outer, float inset)`・`UiScrollClipInset.ApplyInnerPadding(VisualElement inner, float inset)`（外と内が別の持ち主のとき）・`UiScrollClipInset.ApplyHorizontal(VisualElement outer, VisualElement inner, float inset)`（左右だけ）・`RecipeListScrollView.SetClipPadding(float inset)`
 
-- [ ] **Step 1: 5 実装を読み、式を表にする**: 各実装の「外側に負の margin・内側に正の padding」の向き（4 辺か左右だけか）・元の margin を足すか（`ItemListView` の `outerBaseMargin` 相当）・つまみ名（USS の `--*-clip-inset`）を判断記録 D-6 に表で書く。式が「外 margin = 元の margin − inset、内 padding = inset」から外れる実装があれば、その差が Web のどの CSS から来るかを書き、外れる分は `Apply` の引数に足さず呼び手に残す（共有の式は 1 つにする）
+- [ ] **Step 1: 実装を読み、式を表にする**: 各実装の「外側に負の margin・内側に正の padding」の向き（4 辺か左右だけか）・元の margin を足すか・margin と padding を当てる要素が同じ持ち主か・つまみ名（USS の `--*-clip-inset`）を判断記録 D-6 に表で書く。起草時の実測（評価の指摘を実物で確かめた形）:
+
+| 実装 | 外の margin | 内の padding | 共有の口 |
+|---|---|---|---|
+| `BuildMenuScrollClipInset`:28-38 | 4 辺 −inset（`scroll`） | 4 辺 inset（`scroll.contentContainer`） | `Apply`（ファイルを消し、呼び手から直に呼ぶ） |
+| `NodeGraphView`:150-157 | 4 辺 −inset（自分） | 4 辺 inset（自分） | `Apply(this, this, inset)` |
+| `BlockInventoryNaturalScroll`:33-40 | 4 辺 −bleed（`Root`） | 4 辺 bleed（`Root.contentContainer`） | `Apply` |
+| `ResearchCalcKnobs.ApplyScrollBleed`:37-40 | 左右 −bleed | 左右 bleed | `ApplyHorizontal` |
+| `RecipeEntryList`:137-147 | 4 辺 −inset（自分）、上だけ `gap − inset`（Web の Stack の margin-top gap と打ち消しの −inset の和） | 4 辺 inset（部品 `RecipeListScrollView` の内側の `GameScrollView.contentContainer`） | `ApplyOuterMargin(this, inset)` の後に上を `gap − inset` で書き直し、内は部品の `SetClipPadding(inset)`（部品の内側を直に触らない） |
+| `ItemListView`:106-127 | 左 `leftBase − inset`・上 `topBase − inset`・下 −inset。右なし | 上・下・左 inset。右なし | 置き換えない（上の Files の理由。Web の CSS が別の式） |
+
+表と実物が食い違えば（T0 Step 3 の取り込み後に行が動いた等）D-6 に読み替えを書く。共有の式は「外 margin = −inset、内 padding = inset」の 1 つで、外れる分は呼び手が式の後に自分の辺を書き直す形でだけ残す（足りない辺を打ち消す形は採らない。`ItemListView` を外す理由）
 - [ ] **Step 2: L1（赤）**
 
 ```csharp
-// S/Client.Tests/Ui/Foundation/Layout/UiScrollClipInsetTest.cs
+// S/Client.Tests/Ui/Layout/UiScrollClipInsetTest.cs
 using Client.Ui.Foundation.Layout;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Foundation.Layout
+namespace Client.Tests.Ui.Layout
 {
     // Web の margin: calc(-1 * clip-inset) と padding: clip-inset の写し（4 辺と左右だけの 2 形）
     // Port of the Web margin: calc(-1 * clip-inset) plus padding: clip-inset (all four sides, or left and right only)
@@ -765,6 +777,21 @@ namespace Client.Tests.Ui.Foundation.Layout
             Assert.AreEqual(4f, inner.style.paddingRight.value.value);
             Assert.AreEqual(StyleKeyword.Null, inner.style.paddingTop.keyword);
         }
+
+        // 外と内の持ち主が違う画面（RecipeEntryList と部品の内側）は片側ずつ当て、もう片方の要素を触らない
+        // Screens whose outer and inner have different owners (RecipeEntryList and the component inside) apply one side at a time without touching the other element
+        [Test]
+        public void 外のmarginと内のpaddingは片側ずつ当てられる()
+        {
+            var outer = new VisualElement();
+            var inner = new VisualElement();
+            UiScrollClipInset.ApplyOuterMargin(outer, 5f);
+            UiScrollClipInset.ApplyInnerPadding(inner, 5f);
+            Assert.AreEqual(-5f, outer.style.marginRight.value.value);
+            Assert.AreEqual(StyleKeyword.Null, outer.style.paddingTop.keyword);
+            Assert.AreEqual(5f, inner.style.paddingLeft.value.value);
+            Assert.AreEqual(StyleKeyword.Null, inner.style.marginTop.keyword);
+        }
     }
 }
 ```
@@ -785,11 +812,26 @@ namespace Client.Ui.Foundation.Layout
     {
         public static void Apply(VisualElement outer, VisualElement inner, float inset)
         {
-            ApplyHorizontal(outer, inner, inset);
+            ApplyOuterMargin(outer, inset);
+            ApplyInnerPadding(inner, inset);
+        }
+
+        // 外の要素と内の要素の持ち主が違うとき用（内は部品が自分の口から当てる）
+        // For when the outer and inner elements have different owners (the component applies the inner side through its own port)
+        public static void ApplyOuterMargin(VisualElement outer, float inset)
+        {
             outer.style.marginTop = -inset;
+            outer.style.marginRight = -inset;
             outer.style.marginBottom = -inset;
+            outer.style.marginLeft = -inset;
+        }
+
+        public static void ApplyInnerPadding(VisualElement inner, float inset)
+        {
             inner.style.paddingTop = inset;
+            inner.style.paddingRight = inset;
             inner.style.paddingBottom = inset;
+            inner.style.paddingLeft = inset;
         }
 
         // 縦は Web が逃がさない画面（研究の計算の帯）用
@@ -805,9 +847,19 @@ namespace Client.Ui.Foundation.Layout
 }
 ```
 
-`RecipeListScrollView` に `public void SetClipInset(float inset) { UiScrollClipInset.Apply(this, _scroll.contentContainer, inset); }`（`_scroll` は実物の内側の `GameScrollView` のフィールド名に合わせる）を足し、`RecipeEntryList`:142 の直書きを `_scroll.SetClipInset(inset)` へ。他 5 か所は自前の式を消して `Apply`／`ApplyHorizontal` を呼ぶ。`BuildMenuScrollClipInset` が `Apply` を呼ぶだけになったら、呼び手から直に呼んでファイルを消す
+`RecipeListScrollView` は ctor のローカル変数 `scroll`（:27）を `private readonly GameScrollView _scroll;` のフィールドにし、`public void SetClipPadding(float inset) { UiScrollClipInset.ApplyInnerPadding(_scroll.contentContainer, inset); }` を足す。`RecipeEntryList.ApplyClipClearance` の :137-147 は次へ（`_scroll.Q<GameScrollView>()` で部品の内側を探す直書きが消える）:
 
-Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "UiScrollClipInsetTest|ItemList|RecipeEntryList|RecipeViewer|BuildMenuScroll|NodeGraph|BlockInventoryNaturalScroll|ResearchCalc"` → 失敗 0
+```csharp
+            // 外へ広げる式は共有のもの。上だけ見出しとの Stack gap sm を足す（Web は Stack の margin-top gap と打ち消しの -inset の和）
+            // The outward formula is the shared one; only the top adds the Stack gap sm below the header (the Web sums the Stack margin-top gap and the cancelling -inset)
+            UiScrollClipInset.ApplyOuterMargin(this, inset);
+            style.marginTop = gap - inset;
+            _scroll.SetClipPadding(inset);
+```
+
+`BuildMenuScrollClipInset`・`NodeGraphView`・`BlockInventoryNaturalScroll` は自前の 8 行を `UiScrollClipInset.Apply(…)` の 1 行へ、`ResearchCalcKnobs.ApplyScrollBleed` は `ApplyHorizontal` へ。`BuildMenuScrollClipInset` が `Apply` を呼ぶだけになったら、呼び手から直に呼んでファイルを消す。`ItemListView` は触らない（Step 1 の表）
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "UiScrollClipInsetTest|ItemList|RecipeEntryList|RecipeListScrollView|RecipeViewer|BuildMenuScroll|BuildMenuLayout|NodeGraph|BlockInventoryNaturalScroll|ResearchCalc"` → 失敗 0
 
 - [ ] **Step 4: コミット**: `refactor(uitk): スクロールのクリップ逃げを UiScrollClipInset の 1 式へ（DC-19。S5-crosscut T3）`
 
@@ -816,7 +868,7 @@ Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-v
 ### Task 4: DC-27 描画ヘルパ（R-6）
 
 **Files:**
-- Create: `S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs`、Test: `S/Client.Tests/Ui/Foundation/Theme/GridMeshIndexWriterTest.cs`・`Painter2DSquareCapTest.cs`
+- Create: `S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs`、Test: `S/Client.Tests/Ui/Theme/Mesh/GridMeshIndexWriterTest.cs`・`Painter2DSquareCapTest.cs`（既存の Theme の L1 `Client.Tests/Ui/Theme/` の下に、本体と同じ `Mesh/`。`Client.Tests/Ui/Foundation/` は無い）
 - Modify: `Screens/Shell/ScreenVignette.cs`（:85-97）・`Components/Panels/GamePanel/GamePanelFace.cs`（:101-116）・`Components/Panels/DialogFrame/DialogFrameShadow.cs`（:108-120）・`Components/Controls/RecipeActionButton/RecipeActionFaceMesh.cs`（:74-87）・`Components/Recipe/RecipeRow/RecipeRowFrame.cs`（:123-128）・`Components/Controls/IconButton/IconButtonCloseGlyph.cs`（:63 のローカル関数）・`SkitAdvanceMarker.cs`（`ExtendedEnd`）・`Foundation/Theme/ShadowRingMeshWriter.cs`・`Components/Recipe/RecipeRow/RecipeRowFrameShadowMesh.cs`（:21,29）・`Components/Gauges/ProgressArrowGlyph/ProgressArrowGlyphShadowMesh.cs`（:19,29）
 
 **Interfaces:** Consumes: `MeshWriteData.SetNextIndex(ushort)`・`Painter2D.MoveTo/LineTo`。Produces: `GridMeshIndexWriter.WriteQuads(MeshWriteData mesh, int rows, int columns, int stride)`・`Painter2DSquareCap.AddSegment(Painter2D painter, Vector2 from, Vector2 to, float halfWidth)`・`Painter2DSquareCap.Extend(Vector2 end, Vector2 from, float length)`・`ShadowRingMeshWriter.RingCount`（8）・`ShadowRingMeshWriter.CenterMargin`（0.01f）
@@ -900,7 +952,7 @@ Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-v
 ### Task 5: DC-28 B トークン待ちの宿主を `UssStyleResolutionGate` へ（R-7）
 
 **Files:**
-- Create: `S/Client.Ui/Foundation/Theme/StyleResolution/UssStyleResolutionGate.cs`（`Foundation/Theme/` 直下は USS・txt を含め 14 ファイルなのでサブディレクトリ。D-7）、Test: `S/Client.Tests/Ui/Foundation/Theme/UssStyleResolutionGateTest.cs`
+- Create: `S/Client.Ui/Foundation/Theme/StyleResolution/UssStyleResolutionGate.cs`（`Foundation/Theme/` 直下は USS・txt を含め 14 ファイルなのでサブディレクトリ。D-7）、Test: `S/Client.Tests/Ui/Theme/StyleResolution/UssStyleResolutionGateTest.cs`（本体と同じサブディレクトリ。`Client.Tests/Ui/Theme/` 直下は既に 7 ファイル）
 - Modify: `Screens/Toast/ToastHostView.cs`（:23-27,38-45,70-86）・`Screens/Notification/NotificationHostView.cs`（:22,33,44,61-71,142-168。I-fix6 の DC-28 A 反映後の実物）
 
 **Interfaces:** Consumes: `UssCustomStyleReader.TryReadMilliseconds`／`TryReadPixels`（`Foundation/Theme/UssCustomStyleReader.cs`）。Produces: `UssStyleResolutionGate(VisualElement host, string ownerName)`・`bool IsResolved { get; private set; }`・`IObservable<ICustomStyle> OnResolved`・`void ReportHeldWhileUnresolved(string what)`・`void ReportUnreadable(string what)`
@@ -1568,7 +1620,7 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 
 ### Task 17: AC-5 単一参照の helper をローカル関数へ（R-20）
 
-**Files（48 件。S 相対。「→」は呼び手）:** BlockNetworkInfoCache.cs:172 FetchFilterSplitter→Track（既存の region へ）・SpecialStateDetailReader.cs:31→GearToElectric・HotbarSelection.cs:23 Of→FromOrigin・BugReportFormText.cs:101,112,123,133,143（123→112・133→101 は入れ子。I-fix6 の DC-22 A 後の実物）・ResearchTreeModel.cs:92 Rebuild→RebuildWhileShown・TrainPlatformEditCommands.cs:45,52・TrainStationNameEditState.cs:54→Initialize・TrainTimetableModel.cs:92→Build・TrainTimetableReadyDataFactory.cs:46→TryCreate・TrainTimetableEditCommands.cs:64→SetAutoRun・TrainTimetableEditSession.cs:78,99,108（3 段の入れ子）・TrainTimetableEditState.cs:53,65,77（3 段の入れ子）・ModeSwitch.cs:101→ctor（T9 の後）・ToastItem.cs:32→ctor・UiDragDrop.cs:83→TryFindTarget（外の TTarget を使う）・GameUiInputRules.cs:84→OnKeyDown・:97,:123→OnFocusIn・UiPressGesture.cs:113→ctor・UiOsCursorRequestStack.cs:44 FindTopShape→ApplyTopIfChanged・UiScreenPixelScope.cs:31→ctor・TrainTimetableStationListView.cs:51→Render・TrainTimetableStopListView.cs:60→Render・BugReportFormView.cs:107,173,185（I-fix6 の取り込み後に、移して 200 行未満に収まるときだけ。D-24）・BuildMenuEntrySlot.cs:52→ctor・CursorTooltipView.cs:63→OnAttached・HotbarHudView.cs:55→Render（既存の region へ）・ModalView.cs:65→ctor・:110→CreateInput（入れ子）・PauseMenuView.cs:160→SetShown・ItemListView.cs:106→ctor（T3 で式が `UiScrollClipInset` へ移った後の残り）・CraftHoldDriver.cs:71→Start・RecipeScreenPresenter.cs:55→Initialize・GraphicsQualitySettingsView.cs:68→ctor・LanguageSelectView.cs:51→ctor・ToastHostView.cs:89 ToneOf→Push（T5 の後）・WorldPinOverlayView.cs:112→ctor
+**Files（48 件。S 相対。「→」は呼び手）:** BlockNetworkInfoCache.cs:172 FetchFilterSplitter→Track（既存の region へ）・SpecialStateDetailReader.cs:31→GearToElectric・HotbarSelection.cs:23 Of→FromOrigin・BugReportFormText.cs:101,112,123,133,143（123→112・133→101 は入れ子。I-fix6 の DC-22 A 後の実物）・ResearchTreeModel.cs:92 Rebuild→RebuildWhileShown・TrainPlatformEditCommands.cs:45,52・TrainStationNameEditState.cs:54→Initialize・TrainTimetableModel.cs:92→Build・TrainTimetableReadyDataFactory.cs:46→TryCreate・TrainTimetableEditCommands.cs:64→SetAutoRun・TrainTimetableEditSession.cs:78,99,108（3 段の入れ子）・TrainTimetableEditState.cs:53,65,77（3 段の入れ子）・ModeSwitch.cs:101→ctor（T9 の後）・ToastItem.cs:32→ctor・UiDragDrop.cs:83→TryFindTarget（外の TTarget を使う）・GameUiInputRules.cs:84→OnKeyDown・:97,:123→OnFocusIn・UiPressGesture.cs:113→ctor・UiOsCursorRequestStack.cs:44 FindTopShape→ApplyTopIfChanged・UiScreenPixelScope.cs:31→ctor・TrainTimetableStationListView.cs:51→Render・TrainTimetableStopListView.cs:60→Render・BugReportFormView.cs:107,173,185（I-fix6 の取り込み後に、移して 200 行未満に収まるときだけ。D-24）・BuildMenuEntrySlot.cs:52→ctor・CursorTooltipView.cs:63→OnAttached・HotbarHudView.cs:55→Render（既存の region へ）・ModalView.cs:65→ctor・:110→CreateInput（入れ子）・PauseMenuView.cs:160→SetShown・ItemListView.cs:106→ctor（T3 の置き換えから外した 3 辺の式のまま移す。D-6）・CraftHoldDriver.cs:71→Start・RecipeScreenPresenter.cs:55→Initialize・GraphicsQualitySettingsView.cs:68→ctor・LanguageSelectView.cs:51→ctor・ToastHostView.cs:89 ToneOf→Push（T5 の後）・WorldPinOverlayView.cs:112→ctor
 
 除外（D-18）: `UiScreenTraits.cs`:49 BuildTraits（呼び手が静的フィールドの初期化子で、移すと静的 ctor が要る）・`UiOsCursorRequestStack.cs`:29 Withdraw（入れ子の型 `ShapeRequest.Dispose` から呼ぶ）・`HoverTooltipHost.cs`:143 OnTrackedDetached（`Track` の中で登録と解除に同じ method group を渡し、`Track` が複数回走る。ローカル関数が `this` 以外を捕まえると解除の等価が崩れる）・`BlockSlotRestrictionInput.cs`:91（AC-8）・イベントコールバックの約 45 件（DC-33。X-5）
 
@@ -1666,8 +1718,8 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 設計検査（配置・型閉包）の反映後にやり直した。
 
 1. **Requirements coverage**: R-1→T1、R-2→T1 Step 7-8、R-3→T14・T18、R-4→T2（取り込み後の残り 2 行は T22 Step 2）、R-5→T3、R-6→T4、R-7→T5、R-8→T6、R-9→T7（研究の 3 か所は I-fix6 の結果次第で T7 Step 3）、R-10・R-11→T8、R-12→T9、R-13→T10、R-14→T11、R-15→T12、R-16→T14、R-17→T19、R-18→T13、R-19→T15、R-20→T16・T17（`BugReportFormView` の 3 件は D-24 の条件付き）、R-21→T20（反映後の再走は T21）、R-22→T22 Step 5、R-23→T0 Step 4・T22 Step 5。死活表の 22 行は各行の根拠がどれかのタスクの Step（L1・録画・並べ比べの状態）に載っている（足した検証: T6 Step 1 の CloseUI と矢印の抑止の L0、T10 Step 3 の IconButton の色の L1、T10 Step 4 の面の値の L1、T19 の 2-challenge-hud-multiple-long・3-modal・4-block-machine、T20 Step 3 の列車の Web 録画 2 本）
-2. **Placeholder scan**: 実物の名前が起草時に確かめられないもの（`UiTestStyleSheets.TryCompile`・`FakeUiOsCursorApplier` の記録名・`RecipeListScrollView` の内側のフィールド名・I-fix6 の型と行）は、探す grep と読み替えの書き先（判断記録の末尾）を書いた。R-4・T2 Step 5 の検査は git grep の ERE で効く `[[:space:]]` に直し、起草時に 76 行を数えて対象を全部 T2 の Files に書いた（以前の `\s` の形は 0 行を返し検査が空振りしていた）。「適切に」「必要なら」で閉じたステップは無い
-3. **Type consistency（Produces／Consumes の閉包）**: T1 `GameUiExceptionReading`（抽象・`readonly Status`）／`GameUiExceptionsRecorded(int, IReadOnlyList<GameUiExceptionSample>)`／`GameUiExceptionsUnknown()`／`GameUiExceptionCounter.FromLogs`・`TryFindFirstUiFrame`・`SampleLimit`／`BugReportManifestReadings.Apply`・`MarkGameUiExceptionsUnknown` は Step 2 のテスト・Step 3 の本体・Step 4 の Writer・Interfaces で同じ名前。T6 `IUiKeyPressSource`（`OnPressed`・`WasPressedThisFrame`）・`ISkitAdvanceKeyPressSource`／`ICloseUiKeyPressSource`・`InputKeyPressSource`（抽象）・`SkitAdvanceKeyPressSource()`／`CloseUiKeyPressSource()`・`RecipeSelectionCloseReset(UiRoutingState, ICloseUiKeyPressSource, RecipeItemSelection)` は Step 1 のテスト・Step 2・Step 3 の DI・Step 4 の偽物で一致し、T13（`RecipeSelectionCloseReset` の IDisposable）・T18（Esc の L3 は `CloseUI.SetKeyDownForTest`）が同じ形を前提にする。T5 `UssStyleResolutionGate`（namespace `Client.Ui.Foundation.Theme.StyleResolution`）は T5 Step 3 と T17 の `ToastHostView` で一致。T15 `CraftRecipeUnlockCheck.Check(IGameUnlockStateData, Guid) : UiCommandRejectReason?` は File Structure・T15 の Files・本体・2 つの呼び手で一致し、wire は既存の `UiCommandRejectReasonTraits.ToWireCode` だけが綴る。`UiDisplay.SetShown`/`IsShownInline`（T2→T16 以降）、`UiScrollClipInset.Apply`/`ApplyHorizontal`（T3）、`GridMeshIndexWriter.WriteQuads`/`QuadIndices`・`Painter2DSquareCap.AddSegment`/`Extend`（T4）は変更なし。既存 API（`UnityLogEntry` の 5 引数 ctor・`InputKey.OnGetKeyDown`/`GetKeyDown`/`SetKeyDownForTest`・`InputSuppressionFilter.FilterKeyPress`〈internal、同じ asmdef から呼ぶ〉・`UiInputExclusivity.ConsumeEscapeThisFrame`/`ClearEscapeLatchForTest`・`UiOsCursorHoverRequest` の 4 引数・`GameUiRootTestFactory.Create`・`UiRoutingStateTestFactory.CreateSwitchable`・`Localize.TrySetChosenLanguage`・`WebUiHealthReading`:33-37 の属性）は実物の file:line で照合した。File Structure に無い新しいファイルは無い（`CraftRecipeUnlockCheck.cs`・`UiText.cs` を載せ、`BugReportFormSender.cs` は「作らない」の行）
+2. **Placeholder scan**: 実物の名前が起草時に確かめられないもの（`UiTestStyleSheets.TryCompile`・`FakeUiOsCursorApplier` の記録名・`RecipeListScrollView` の内側のフィールド（起草時はローカル変数なのでフィールドを足す）・I-fix6 の型と行）は、探す grep と読み替えの書き先（判断記録の末尾）を書いた。R-4・T2 Step 5 の検査は git grep の ERE で効く `[[:space:]]` に直し、起草時に 76 行を数えて対象を全部 T2 の Files に書いた（以前の `\s` の形は 0 行を返し検査が空振りしていた）。「適切に」「必要なら」で閉じたステップは無い
+3. **Type consistency（Produces／Consumes の閉包）**: T1 `GameUiExceptionReading`（抽象・`readonly Status`）／`GameUiExceptionsRecorded(int, IReadOnlyList<GameUiExceptionSample>)`／`GameUiExceptionsUnknown()`／`GameUiExceptionCounter.FromLogs`・`TryFindFirstUiFrame`・`SampleLimit`／`BugReportManifestReadings.Apply`・`MarkGameUiExceptionsUnknown` は Step 2 のテスト・Step 3 の本体・Step 4 の Writer・Interfaces で同じ名前。T6 `IUiKeyPressSource`（`OnPressed`・`WasPressedThisFrame`）・`ISkitAdvanceKeyPressSource`／`ICloseUiKeyPressSource`・`InputKeyPressSource`（抽象）・`SkitAdvanceKeyPressSource()`／`CloseUiKeyPressSource()`・`RecipeSelectionCloseReset(UiRoutingState, ICloseUiKeyPressSource, RecipeItemSelection)` は Step 1 のテスト・Step 2・Step 3 の DI・Step 4 の偽物で一致し、T13（`RecipeSelectionCloseReset` の IDisposable）・T18（Esc の L3 は `CloseUI.SetKeyDownForTest`）が同じ形を前提にする。T5 `UssStyleResolutionGate`（namespace `Client.Ui.Foundation.Theme.StyleResolution`）は T5 Step 3 と T17 の `ToastHostView` で一致。T15 `CraftRecipeUnlockCheck.Check(IGameUnlockStateData, Guid) : UiCommandRejectReason?` は File Structure・T15 の Files・本体・2 つの呼び手で一致し、wire は既存の `UiCommandRejectReasonTraits.ToWireCode` だけが綴る。`UiDisplay.SetShown`/`IsShownInline`（T2→T16 以降）、`UiScrollClipInset.Apply`/`ApplyOuterMargin`/`ApplyInnerPadding`/`ApplyHorizontal`・`RecipeListScrollView.SetClipPadding`（T3）、`GridMeshIndexWriter.WriteQuads`/`QuadIndices`・`Painter2DSquareCap.AddSegment`/`Extend`（T4）は変更なし。既存 API（`UnityLogEntry` の 5 引数 ctor・`InputKey.OnGetKeyDown`/`GetKeyDown`/`SetKeyDownForTest`・`InputSuppressionFilter.FilterKeyPress`〈internal、同じ asmdef から呼ぶ〉・`UiInputExclusivity.ConsumeEscapeThisFrame`/`ClearEscapeLatchForTest`・`UiOsCursorHoverRequest` の 4 引数・`GameUiRootTestFactory.Create`・`UiRoutingStateTestFactory.CreateSwitchable`・`Localize.TrySetChosenLanguage`・`WebUiHealthReading`:33-37 の属性）は実物の file:line で照合した。File Structure に無い新しいファイルは無い（`CraftRecipeUnlockCheck.cs`・`UiText.cs` を載せ、`BugReportFormSender.cs` は「作らない」の行）
 4. **保留・縮退経路**: (a) `UssStyleResolutionGate` の預かりは「解決が来る」で解け、来ないまま配置へ進めば LogError（最小構成: 1 件の Push・0 件の Render。配置前は黙り、配置後は必ず出る。T5 Step 1 の 3 件目が両方を見る）。(b) `gameUiExceptions` の unknown はログが無いときとクラッシュの箱だけで、どちらも `MarkGameUiExceptionsUnknown` を通るので `missing` に必ず行が立ち、件数の欄そのものが無い（T1 Step 2 の 4 件目）。クラッシュ箱は恒久に unknown で、それを 0 件と読ませない表示（ダッシュボードの unknown）を対で試す。(c) 矢印は入力欄のフォーカス中に `InputSuppressionFilter` が止め、止めたことを `[UiInputProbe]` のログで出す（無音の縮退にならない）。(d) `RecipeSelectionCloseReset` は旧と同じ pull なので、押下と遷移の順序による取りこぼしは新しく生まれない（D-8）
 5. **「決定的にする」**: 選択の規則は無い（`gameUiExceptions` の見本は時系列の先頭 5 件で、どれを選んでも件数は同じ）
 6. **呼び出し側への責務漏出**: `GameContentPresentation.TryItem` は判定（bool）と値を返し、未知の ID の代替の組み立て（`UiIcon(null, idText, FallbackItemName)`）は通知の口に残る。代替を全画面で共有する DC-12 B を採らなかったため（D-15）。`UssStyleResolutionGate` は判定（`IsResolved`）を返し、預かりと流し直しは宿主に残る。宿主ごとに預かるもの（トースト列・最新の 1 つの VM）が違うため（D-13）。`CraftRecipeUnlockCheck` は理由を返し、wire の綴りは呼び手が既存の `ToWireCode` で引く（Web の `JValue` の検査と `Guid.TryParse` は Web の境界の責務なので Web 側に残す）。`IUiKeyPressSource` と矢印の stream の受け手は抑止を判定しない（`BeltThroughputSectionPresenter` に残るのはベルトが有るか・表示中かだけ）
@@ -1681,7 +1733,7 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 - D-3（agent 既定）: 再接続オーバーレイ・辞書エラー・`ConnectingPlaceholder` は作らず、Web の 6 件を disposition の `捨てる` にする（[A-13]・[A-38]・E-17）
 - D-4（agent 既定）: 横断の L1 の置き場は `Client.Tests/Ui/Crosscut/`、L3 は `EditModeInPlayingTest/Ui/Crosscut/`。棄却: `Stage5/` — S5-ladder の持ち物と重なる
 - D-5（agent 既定。設計書 §7.1 に A-245 を足す。本文はメモ）: 表示の出し入れは `UiDisplay.SetShown`（出すときは Null）の 1 本。USS が既定で none の要素の扱いは T2 Step 2 の表をここへ足す。棄却: Flex 明示に揃え `SetItemShown` だけ例外（DC-11 B）— 状態クラスの none に勝つ症状が残る
-- D-6（agent 既定。A-245 に含める）: スクロールのクリップ逃げは `UiScrollClipInset` の 1 式。T3 Step 1 の 5 実装の表をここへ足す。棄却: USS の共通トークンだけ揃える（DC-19 B）— 実装 5 本が残る
+- D-6（agent 既定。A-245 に含める）: スクロールのクリップ逃げは `UiScrollClipInset` の 1 式（外 margin = −inset・内 padding = inset。4 辺の `Apply`、外と内の持ち主が違うときの `ApplyOuterMargin`／`ApplyInnerPadding`、左右だけの `ApplyHorizontal`）。T3 Step 1 の表をここへ足す。棄却: USS の共通トークンだけ揃える（DC-19 B）— 実装が残る。形の合わない 2 つの扱い（評価の指摘を実物で再現。`ItemListView.cs`:106-127・`RecipeEntryList.cs`:124-149・Web `ItemListPanel.module.css`:32-55）: `ItemListView` は置き換えない — 左・上・下の 3 辺で右を持たず、margin に実測の基準値を足す Web の別の式（右は `margin-right: 4.435px` でつまみを詰める）で、共有の式に入れると右に −inset の margin と inset の padding が増えて縦のつまみが inset px ずれる。足りない辺を打ち消す口を足す案は棄却（式の後で 2 辺を消すのは「1 つの式」にならない）。`RecipeEntryList` は形に合う口を足して置き換える — margin は自分（4 辺。上だけ Web の Stack の gap を足す）、padding は部品の内側で持ち主が違うので、`ApplyOuterMargin` の後に上を書き直し、内側は部品の `RecipeListScrollView.SetClipPadding`（`ApplyInnerPadding`）が当てる。棄却: `RecipeListScrollView.SetClipInset` で部品に margin も当てる — margin が部品（子）に付き、今の `RecipeEntryList`（親）の margin と並びが変わる
 - D-7（agent 既定。gate の置き場は指揮の agent 既定（PLAN-W5 設計検査））: 格子の index と square cap と影の輪の定数は `Foundation/Theme/Mesh/`。Theme 直下は USS・txt を含めて 14 ファイル（.cs 4 本）で、USS もディレクトリの 10 ファイルに数えるので、`UssStyleResolutionGate` も直下に足さず `Foundation/Theme/StyleResolution/` に置く。並びの違う 2 か所は置換しない（T4 Step 1）
 - D-8（agent 既定。設計書 §7.1 に A-246 を足す。A-162 を保つこと・駆動の比較・DI の形は指揮の agent 既定（PLAN-W5 設計検査））: 画面が `InputKey` のキーを受ける口は `IUiKeyPressSource`（`OnPressed`・`WasPressedThisFrame()`）1 本と唯一の実装 `InputKeyPressSource` で、抑止と ESC ラッチは `InputKey` の `InputSuppressionFilter` だけが持つ。棄却: 3 通りを ref-uitk-design に書いて残す（DC-10 B）— 抑止の持ち方が 2 通り残る。棄却: 4 つの口を持つ集約型を 1 つ注入 — 使わない口まで見える。
   - 矢印（A-162 を保つ）: ←/→ は `InputSystemArrowKeyStream` が流し、UI の入力マップへ足さない。DC-10 の目的（抑止の持ち方を 1 か所に）は、stream が押下の縁を `InputSuppressionFilter.FilterKeyPress(true, InputSuppressionScope.Keyboard, false)` に 1 回通す形で満たす。`InputSuppressionScope.Keyboard` の抑止は `UiInputExclusivity.IsSuppressed` が `TextInputFocused` の値をそのまま返す（`UiInputExclusivity.cs` の `IsSuppressed`）ので、`BeltThroughputSectionPresenter` が読んでいた `IsTextInputFocused` と同じ値で、押下の配送と同じ呼び出しの中で読む点も同じ。よって受け手の `IsTextInputFocused` は外せる（表示中かの確かめは受け手に残る）。A-162 の棄却理由への答え: (1)「生成物の入力設定（共有の資産）を書き換える」— `.inputactions`・`moorestechInputSettings.cs`・`InputManager` を触らないので当たらない。(2)「←/→ は Player/Move と同じキーで UI マップの抑止の意味が合わない」— UI マップに入れず、通すのは `InputSuppressionScope.Keyboard`（入力欄のフォーカス中に止める）だけで、これは Web が window keydown を入力欄で絞っていたのと同じ意味。A-162 の帰結「抑止の判定が 2 か所に割れ、`InputSuppressionScope` に抑止が足されても ←/→ には効かない」は、この形で閉じる（A-246 で A-162 の「受け手が入力欄のフォーカスを確かめる」の部分だけを改める）
