@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Special.Registration
 {
     /// <summary>
-    /// 特殊族の区画の Presenter。selector が詳細を取れたときだけ View を描いて出し、取れなければ隠す。View と selector は詳細の型で結ばれる
-    /// Presenter for a special section; draws and shows the view only when the selector yields the detail, otherwise hides it; the view and selector are tied by the detail type
+    /// 特殊族の本文・題の操作・区画の Presenter。selector が詳細を取れたときだけ View を描いて出し、取れなければ隠す。View と selector は詳細の型で結ばれ、常に出す本文は WholeSpecialDetailSelector と組む
+    /// Presenter for a special body, title action or section; draws and shows the view only when the selector yields the detail, otherwise hides it; the view and selector are tied by the detail type, and always-shown bodies pair with WholeSpecialDetailSelector
     /// </summary>
     public sealed class SpecialSectionPresenter<TDetail> : IBlockInventorySection
     {
