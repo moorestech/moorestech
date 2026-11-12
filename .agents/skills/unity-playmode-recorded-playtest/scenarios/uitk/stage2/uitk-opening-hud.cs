@@ -109,6 +109,9 @@ return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
     await UntilUiFound("progress-bar", 10f, "採掘ゲージ progress-bar が出た");
     await p.Screenshot("03-mining-gauge");
     await p.Until(() => EarnedRows().Any(), 20f, "獲得通知の行が出た");
+    // 行は入りの tween で透明から出るので、不透明になってから撮る
+    // Rows fade in through an enter tween, so capture once one is opaque
+    await p.Until(() => EarnedRows().Any(row => 0.99f <= row.resolvedStyle.opacity), 5f, "獲得通知の行が入り終わった");
     SemanticInput.KeyUp(Key.F);
     p.Note($"獲得通知: {string.Join(" / ", EarnedRows().Select(row => row.Q<Label>()?.text))}");
     await p.Screenshot("04-earned-notification");
