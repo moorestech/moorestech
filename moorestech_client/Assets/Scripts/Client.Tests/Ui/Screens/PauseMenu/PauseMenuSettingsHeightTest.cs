@@ -56,20 +56,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             AssertNear(LanguageSectionHeight + SprintSectionHeight + GraphicsSectionHeight + StackGap * 2, body.contentContainer.layout.height, "body content height");
         }
 
-        [Test]
-        public void ZzProbe()
-        {
-            MountSettings("english");
-            var body = Find<GameScrollView>(_view, "pause-menu-body");
-            var sb = new System.Text.StringBuilder();
-            foreach (var section in body.contentContainer.Children())
-            {
-                sb.Append($"[{string.Join(".", section.GetClasses())} {section.layout.height:F2}] ");
-                foreach (var child in section.Children()) sb.Append($"{string.Join(".", child.GetClasses())}:{child.layout.height:F2}:{(child is Label l ? l.text : "")}; ");
-            }
-            Assert.Fail(sb.ToString());
-        }
-
         private void MountSettings(string languageCode)
         {
             // 言語を先に決めてから載せ、字形（CJK/Latin）を最初のレイアウトに入れる
