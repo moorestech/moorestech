@@ -800,6 +800,9 @@ GameUi で `uitk/uitk-lifeline.cs`・`uitk/stage3/uitk-build-bp.cs`（`uitk/uitk
 - D-8（agent 既定）: §4.3 の 5（`moores-wt rm`）は依頼文の「worktree の片付けは指揮が行う」に従い、このレーンは Editor を閉じるまで
 - D-9（agent 既定・評価役 H1/H2）: 並べ比べは 720p の古い参照を使わず撮り直す。色・寸法は EditMode の組 1（参照の地の 1 色・Web fixture 相当）で判定し、PlayMode の組 2 は崩れの確認だけ（前例 `uitk-notification-compare.cs` の 2 本立て・設計書 §3.3）
 - D-10（agent 既定・評価役 L4）: place-like-block の ConnectionLimit は仕様（燃料機械は電線口 0）で、シナリオを電気機械へ替える
+- D-11（agent 既定・Task 7 実測）: pole-cycle-rotate の装備のホイールの対照は、ピン先マスタの装備枠 1（moorestech_master 6e6046b で 3→1）で切替先が無く成り立たない（製品の不具合ではないので bd は立てない）。対照を「電柱ツールがホイールを占有する／抜けると外れる」に置き換え、装備の切替は枠 2 以上のときだけ評価し、枠 1 では Note に「未検査」と出す
+- D-12（agent 既定・moores-code-review D1 案 A）: 電柱の種類のホイールは 1 フレームに進む段数を ±1 に Clamp（トラックパッドの慣性の大きな量で多段に回るのを抑える。慣性が何フレームも続く尾では段が進みうる・1 フレーム 2 ノッチ以上の速回しは超過分を捨てる）
+- D-13（agent 既定・Task 9 実測）: 並べ比べで見つかった台帳に無い差 2 件は LX-170（2560×1080 のモーダルの 1px の線のにじみ。箱の丸め）・LX-171（和文の題の太さ。A-36 の改めを integrator へ依頼する暫定記帳）
 - unityプレイ録画テスト: 含む（Task 5・6・7・9・10）
 
 ## 設計書・実行計画へ反映する行（integrator への依頼の案。このレーンは書かない）
