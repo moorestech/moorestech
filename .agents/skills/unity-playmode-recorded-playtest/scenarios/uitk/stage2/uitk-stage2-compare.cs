@@ -1,7 +1,5 @@
-// 束 2 の並べ比べ（組 2）: 同じ実ゲームの状態を GameUi と Web の両系で作り参照と同じ撮影 id で 1280×720 と 2560×1080 に撮る。winunity play <branch> <this> --ui-system GameUi|Web で流し、UITK の木の照会は GameUi の回だけ
-// Bundle-2 comparison (group 2): build the same real game states on GameUi and Web and shoot them under the reference ids at 1280x720 and 2560x1080; run with winunity play <branch> <this> --ui-system GameUi|Web, UITK tree queries only on the GameUi pass
-// 2-train-hud は乗車で分岐 1 しか出ないので撮らない。通知とスキットは uitk-notification-compare・uitk-skit-compare が受け持つ
-// 2-train-hud is skipped (riding shows only one branch); notifications and skits belong to uitk-notification-compare and uitk-skit-compare
+// 束 2 の並べ比べ（組 2）: 同じ実ゲームの状態を GameUi と Web の両系で作り参照と同じ撮影 id で 1280×720 と 2560×1080 に撮る。winunity play <branch> <this> --ui-system GameUi|Web で流し、UITK の木の照会は GameUi の回だけ。2-train-hud は乗車で分岐 1 しか出ないので撮らず、通知とスキットは uitk-notification-compare・uitk-skit-compare が受け持つ
+// Bundle-2 comparison (group 2): build the same real game states on GameUi and Web and shoot them under the reference ids at 1280x720 and 2560x1080; run with winunity play <branch> <this> --ui-system GameUi|Web, UITK tree queries only on the GameUi pass. 2-train-hud is skipped (riding shows only one branch); notifications and skits belong to uitk-notification-compare and uitk-skit-compare
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
@@ -79,7 +77,6 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await ShootAll($"{width}x{height}");
     }
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
-
     #region Internal
 
     async UniTask ShootAll(string res)
@@ -117,7 +114,7 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         p.WarpPlayer(tree.transform.position - forward * 5f + Vector3.up * 0.5f);
         await p.AimAt(treeCenter);
         SemanticInput.KeyDown(Key.W);
-        await p.Until(() => Vector3.Distance(Flat(p.PlayerPosition), Flat(tree.transform.position)) < 1.6f, 10f, "歩いて木に寄った");
+        await p.Until(() => Vector2.Distance(new Vector2(p.PlayerPosition.x, p.PlayerPosition.z), new Vector2(tree.transform.position.x, tree.transform.position.z)) < 1.6f, 10f, "歩いて木に寄った");
         SemanticInput.KeyUp(Key.W);
         await p.AimAt(treeCenter + Vector3.down * 1.5f);
         SemanticInput.KeyDown(Key.F);
@@ -168,6 +165,11 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         SemanticInput.MouseMoveTo(new Vector2(2f, Screen.height - 2f));
         tooltip.Show(owner, LocalizationKeys.Ui.Tooltip.WorldTarget);
         await UntilShown("cursor-tooltip", Localize.Get(LocalizationKeys.Ui.Tooltip.WorldTarget));
+        // Web は文言が先に届きポインタの位置が遅れて CEF へ着くので、ツールチップが左上のポインタの所へ来るまで待つ
+        // On Web the text lands before the pointer position reaches CEF, so wait until the tooltip sits at the top-left pointer
+        var tooltipDeadline = Time.realtimeSinceStartup + 10f;
+        for (var tip = await PlaytestUiElementOps.FindUi("cursor-tooltip"); Screen.width / 4f < tip.ScreenRect.center.x && Time.realtimeSinceStartup < tooltipDeadline; tip = await PlaytestUiElementOps.FindUi("cursor-tooltip")) await UniTask.DelayFrame(1);
+        p.Assert((await PlaytestUiElementOps.FindUi("cursor-tooltip")).ScreenRect.center.x < Screen.width / 4f, "ツールチップが左上のポインタの所");
         NoteRect(res, "cursor-tooltip");
         await p.Screenshot($"{res}-2-tooltip");
         tooltip.Show(owner, new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain), new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceTooFar) });
@@ -177,7 +179,6 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await p.PressKey(Key.Tab);
         await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     }
-
     // UITK の木の矩形（パネル座標）を記録する。Web の回は UITK の木が無いので測らない
     // Record a UITK tree rect in panel coordinates; the Web pass has no UITK tree, so skip it
     void NoteRect(string res, string name)
@@ -194,6 +195,5 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         p.Note($"表示を確認 {testid} 「{text}」");
     }
     string PinId() => WorldPinStateStore.Instance.GetCurrent().Pins.Single().PinId;
-    Vector3 Flat(Vector3 position) => new(position.x, 0f, position.z);
     #endregion
 });
