@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Motion.Steps
 {
     /// <summary>
-    /// 要素の横の translate を px で補間する（縦は 0 に置く）
-    /// Interpolates the element's horizontal translate in pixels (vertical is set to 0)
+    /// 要素の横の translate を px で補間する（縦は現在値を保つ）
+    /// Interpolates the element's horizontal translate in pixels (vertical keeps its current value)
     /// </summary>
     public sealed class TranslateXTweenStep : IUiTweenStep
     {
@@ -23,7 +23,7 @@ namespace Client.Ui.Foundation.Motion.Steps
 
         public void Apply(float easedProgress)
         {
-            _target.style.translate = new Translate(Mathf.LerpUnclamped(_fromPixels, _toPixels, easedProgress), 0);
+            _target.style.translate = new Translate(Mathf.LerpUnclamped(_fromPixels, _toPixels, easedProgress), _target.style.translate.value.y);
         }
     }
 }
