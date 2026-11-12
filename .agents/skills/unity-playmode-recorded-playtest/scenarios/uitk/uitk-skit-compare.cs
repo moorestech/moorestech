@@ -116,6 +116,10 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
 
         // ホバーの色は参照キャプチャに無いので UITK だけ撮り、Web の CSS の値と照らす
         // Hover colours are absent from the reference captures, so shoot UITK only and check against the Web CSS values
+        // store を直に動かすので UIState はゲーム画面のままでカーソルが固定され、ポインタが UI へ届かない。本番の選択肢は Story（カーソル解放）で出るので、撮る間だけ外す
+        // Driving the store directly leaves the UIState on the game screen with the cursor locked, so the pointer never reaches the UI; real choices appear in Story (cursor free), so unlock only while shooting
+        p.Note($"ホバー前のカーソル lockState={Cursor.lockState}");
+        Cursor.lockState = CursorLockMode.None;
         var enterCount = 0;
         GameUiRoot.Instance.GetRootElement().Q<VisualElement>("skit-choice-route-b").RegisterCallback<PointerEnterEvent>(_ => enterCount++);
         await p.HoverUi("skit-choice-route-b");
