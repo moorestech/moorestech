@@ -67,13 +67,23 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
     var actionLog = Object.FindFirstObjectByType<PlaytestOverlayView>();
     actionLog.enabled = false;
 
-    await ShootRealScreen(1280, 720);
-    await ShootRealScreen(2560, 1080);
-    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
-    ground.RemoveFromHierarchy();
-    keyHints.style.display = StyleKeyword.Null;
-    actionLog.enabled = true;
-    Localize.TrySetChosenLanguage("english");
+    // 途中の Assert で落ちても、同じ PlayMode で続けて動かすシナリオのために隠した物・言語・作ったテクスチャを戻す
+    // Even when an Assert fails midway, restore what was hidden, the language and the created textures for scenarios run next in the same PlayMode
+    try
+    {
+        await ShootRealScreen(1280, 720);
+        await ShootRealScreen(2560, 1080);
+    }
+    finally
+    {
+        await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
+        ground.RemoveFromHierarchy();
+        keyHints.style.display = StyleKeyword.Null;
+        actionLog.enabled = true;
+        Localize.TrySetChosenLanguage("english");
+        Object.Destroy(groundTexture);
+        foreach (var icon in placeholderIcons.Values) Object.Destroy(icon);
+    }
 
     // Game View を指定の解像度にし、前の行が消えるのを待ってから 4 件を通知し、参照に合わせて差し替えて入場の後に撮る
     // Set the Game View resolution, wait for earlier rows to leave, notify the four rows, swap them to match the reference and shoot after the enter
