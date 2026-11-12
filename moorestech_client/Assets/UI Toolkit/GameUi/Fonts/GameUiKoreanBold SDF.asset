@@ -210,7 +210,7 @@ MonoBehaviour:
     italicTypeface: {fileID: 0}
   - regularTypeface: {fileID: 0}
     italicTypeface: {fileID: 0}
-  m_RegularStyleWeight: 0
+  m_RegularStyleWeight: -0.45
   m_RegularStyleSpacing: 0
   m_BoldStyleWeight: 0.75
   m_BoldStyleSpacing: 7

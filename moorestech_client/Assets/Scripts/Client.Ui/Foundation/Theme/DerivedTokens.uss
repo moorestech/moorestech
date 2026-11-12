@@ -96,8 +96,6 @@
     --slot-grid-row-gap: var(--slot-grid-gap); /* web: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem))。祖先で gap だけ上書きしても行が追う（台帳「実測の結論」） */
     /* C3-b: 相互作用（ModeSwitch の選択肢の高さ・DialogFrame・モーダルの幕）。つまみの既定は Web の var() のフォールバックか Mantine Modal の既定（設計書 A-52） */
     /* C3-b: interaction (ModeSwitch option height, DialogFrame, modal backdrop); knob defaults are the Web var() fallbacks or Mantine Modal defaults (design A-52) */
-    --mode-switch-ring-outset: -0.782875px; /* web: ModeSwitch .option の box-shadow 0 0 0 var(--bevel-1) は面の外へ --bevel-1（0.782875px）広がる。輪の子を面の外へ出す負の位置 */
-    --mode-switch-ring-radius: 1.56575px; /* web: box-shadow の広がりは角丸も広げる（border-radius var(--bevel-1)＋広がり var(--bevel-1)） */
     --mode-switch-option-height: 34.8px; /* web: ModeSwitch .option の var(--mode-switch-option-height, auto)。auto の実寸＝padding-block 5px×2＋本文の行 16px×1.55（C2-c の実測）。ビルドメニューは --build-menu-category-height へ上書き */
     --modal-size: 440px; /* web: Mantine Modal の --modal-size（size 既定 md = 27.5rem）。ModalHost の w={320} は Mantine の content の flex: 0 0 var(--modal-size) に負け、参照 3-modal の実寸は 440px */
     --modal-radius: var(--mantine-radius-default); /* web: Mantine Modal の --modal-radius の既定 */

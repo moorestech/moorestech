@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Text;
 using NUnit.Framework;
 using UniRx;
@@ -31,6 +32,7 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
         [TearDown]
         public void DisposeSubscription()
         {
+            pixelsPerPoint = 1f;
             _subscription?.Dispose();
         }
 
@@ -142,17 +144,37 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
             var ring = face.Q(className: "mode-switch__ring");
             Assert.AreEqual(0f, face.resolvedStyle.borderTopWidth, 0.001f, "the face draws no border");
             Assert.AreEqual(PickingMode.Ignore, ring.pickingMode);
-            // 位置と枠線の幅は画素へ丸まる（±0.78px は ±1px に解ける）
-            // Positions and border widths snap to pixels (±0.78px resolves to ±1px)
-            Assert.AreEqual(-0.782875f, ring.resolvedStyle.top, 0.25f);
-            Assert.AreEqual(-0.782875f, ring.resolvedStyle.left, 0.25f);
-            Assert.AreEqual(0.782875f, ring.resolvedStyle.borderBottomWidth, 0.25f);
+            // 幅は --bevel-1 を物理画素へ揃えた 1px、外へ同じだけ出し、足りない被覆（0.78）を不透明度で写す。値はトークンから読み、手で写さない
+            // The width is --bevel-1 snapped to 1 physical px, pushed out by the same, with the missing coverage (0.78) as opacity; values come from the token, not hand copies
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(ring.customStyle, "--mode-switch-ring-width", out var bevel));
+            Assert.AreEqual(-1f, ring.resolvedStyle.top, 0.001f);
+            Assert.AreEqual(1f, ring.resolvedStyle.borderBottomWidth, 0.001f);
+            Assert.AreEqual(bevel, ring.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(bevel * 2f, ring.resolvedStyle.borderTopLeftRadius, 0.001f);
             Assert.AreEqual(4f, Option(modeSwitch, "mode-b").layout.yMin - face.layout.yMax, 0.6f, "--mode-switch-gap between faces");
 
             // 選んでいない輪は --bevel-c1、選んだ輪は --bevel-c2
             // An unselected ring is --bevel-c1 and the selected one --bevel-c2
             Assert.AreEqual(new UnityEngine.Color32(56, 58, 72, 255), (UnityEngine.Color32)ring.resolvedStyle.borderTopColor);
             Assert.AreEqual(new UnityEngine.Color32(104, 106, 120, 255), (UnityEngine.Color32)Option(modeSwitch, "mode-b").Q(className: "mode-switch__ring").resolvedStyle.borderTopColor);
+        }
+
+        // 倍率 1.5 では --bevel-1 が 1.17 物理画素で、1 物理画素へ揃え被覆は満ちる（Web の 2560×1080 の輪の主な行は (104,106,120) のまま）
+        // At scale 1.5 --bevel-1 is 1.17 physical px, so it snaps to 1 physical px at full coverage (the main Web ring row at 2560x1080 stays (104,106,120))
+        [Test]
+        public void 倍率を変えると輪は新しい倍率の物理画素と被覆で組み直される()
+        {
+            var modeSwitch = Mount(ModeSwitchOrientation.Vertical, ModeSwitchRole.Group);
+            var ring = Option(modeSwitch, "mode-a").Q(className: "mode-switch__ring");
+            pixelsPerPoint = 1.5f;
+            simulate.FrameUpdate();
+            Assert.AreEqual(1f, ring.style.borderTopWidth.value * 1.5f, 0.001f);
+            Assert.AreEqual(-1f, ring.style.left.value.value * 1.5f, 0.001f);
+            Assert.AreEqual(1f, ring.style.opacity.value, 0.001f);
+            pixelsPerPoint = 1f;
+            simulate.FrameUpdate();
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(ring.customStyle, "--mode-switch-ring-width", out var bevel));
+            Assert.AreEqual(bevel, ring.style.opacity.value, 0.001f);
         }
 
         private ModeSwitchString Mount(ModeSwitchOrientation orientation, ModeSwitchRole role)

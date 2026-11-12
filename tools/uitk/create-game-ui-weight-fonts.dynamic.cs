@@ -56,6 +56,10 @@ var koreanBold = created[2];
 japaneseBold.fallbackFontAssetTable = new List<FontAsset> { koreanBold };
 koreanBold.fallbackFontAssetTable = new List<FontAsset>();
 latinBold.fallbackFontAssetTable = new List<FontAsset> { japaneseMedium, koreanMedium };
+// 和文の題は Bold の 0.925 倍が W6 より太いので SDF の面を細らせる（LX-181 の実測値）。韓国語の字も同じ比で揃える
+// The CJK heading at Bold 0.925x is heavier than W6, so thin the SDF face (LX-181 measured value); Hangul matches by the same ratio
+japaneseBold.regularStyleWeight = -0.45f;
+koreanBold.regularStyleWeight = -0.45f;
 foreach (var asset in created) { asset.ClearFontAssetData(true); EditorUtility.SetDirty(asset); }
 AssetDatabase.SaveAssets();
 

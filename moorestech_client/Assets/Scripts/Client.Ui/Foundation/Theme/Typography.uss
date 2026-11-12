@@ -122,9 +122,9 @@
 /* Weights: the Web loads one face each, Regular for Latin (MooresUI) and NotoSansJP Medium (Latin glyphs included) for CJK locales, with font-synthesis: none, so fw={700}, fw={500}, keyHintText (500) and Modal.Title draw with that face; text--bold, text--medium, key-hint-text and plain title--order-N keep the inherited face (Latin Regular, CJK Medium); only Mantine Title takes title--heading-face below (design A-220); no synthetic bold */
 
 /* Mantine の Title は本文の字体を継がず --mantine-font-family-headings（OS の字体の 700）で描く。参照を撮った Mac の Chrome では欧文が SF Pro の 700、和文が .Hiragino Kaku Gothic Interface W6。Windows の CEF では Web 自体の字体が変わる（LX-183）。Title で描く題（Modal.Title は除く）に付ける（設計書 A-220） */
-/* 欧文は Bold の字形で字送りを SF Pro に寄せる（光学サイズで大きさごとに違うので値は Title の段が持つ）。和文は NotoSansJP Bold を字の大きさの 0.925 倍で描き、W6 の字の面・字送りに合わせる（字間は詰めない）。UITK の letter-spacing は 1px が字の大きさの 1/100 */
+/* 欧文は Bold の字形で字送りを SF Pro に寄せる（光学サイズで大きさごとに違うので値は Title の段が持つ）。和文は NotoSansJP Bold を字の大きさの 0.925 倍で描き、W6 の字の面・字送りに合わせる（字間は詰めない。線の太さは資産の regularStyleWeight −0.45 で SDF の面を細らせて寄せる）。UITK の letter-spacing は 1px が字の大きさの 1/100 */
 /* Mantine Title ignores the body face and draws with --mantine-font-family-headings (the OS face at 700); on the Mac Chrome that shot the reference that is SF Pro 700 for Latin and .Hiragino Kaku Gothic Interface W6 for CJK, and the Web face itself changes on Windows CEF (LX-183); attach it to titles drawn with Title, not Modal.Title (design A-220) */
-/* Latin takes the Bold face with SF Pro's advance (optical sizing differs per size, so each Title order holds the value); CJK draws NotoSansJP Bold at 0.925x the size to match the W6 glyph face and advance (no tightening); UITK letter-spacing 1px is 1/100 of the font size */
+/* Latin takes the Bold face with SF Pro's advance (optical sizing differs per size, so each Title order holds the value); CJK draws NotoSansJP Bold at 0.925x the size to match the W6 glyph face and advance (no tightening; the asset regularStyleWeight -0.45 thins the SDF face toward the W6 stroke); UITK letter-spacing 1px is 1/100 of the font size */
 .title--heading-face {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset"); /* look-exception: LX-183 */
     letter-spacing: var(--title-heading-latin-letter-spacing);

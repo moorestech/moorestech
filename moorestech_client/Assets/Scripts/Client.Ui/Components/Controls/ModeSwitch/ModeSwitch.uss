@@ -1,7 +1,7 @@
 /* ModeSwitch。寸法と色は moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css を写す */
-/* box-shadow の輪は USS に無いので、面の外へ --bevel-1 だけ出した絡まない子（.mode-switch__ring）の枠線で描く。面の箱と送りは Web と同じで、輪はレイアウトに入らない。選択面の color-mix は DerivedTokens.uss の前計算トークンで受ける */
+/* box-shadow の輪は USS に無いので、面の外へ出した絡まない子（ModeSwitchRing・.mode-switch__ring）の枠線で描く。面の箱と送りは Web と同じで、輪はレイアウトに入らない。選択面の color-mix は DerivedTokens.uss の前計算トークンで受ける */
 /* ModeSwitch; sizes and colors copy moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css */
-/* USS has no box-shadow, so the ring is the border of a non-picking child (.mode-switch__ring) pushed --bevel-1 outside the face; the face box and pitch match the Web and the ring stays out of layout; the selected face's color-mix comes from a precomputed DerivedTokens.uss token */
+/* USS has no box-shadow, so the ring is the border of a non-picking child (ModeSwitchRing, .mode-switch__ring) pushed outside the face; the face box and pitch match the Web and the ring stays out of layout; the selected face's color-mix comes from a precomputed DerivedTokens.uss token */
 
 .mode-switch {
     flex-direction: row;
@@ -43,16 +43,11 @@
     background-color: var(--mode-switch-option-face);
 }
 
-/* Web の box-shadow 0 0 0 var(--bevel-1) の輪。面の外へ広がり、スクロールの視口では Web と同じく左右が切れる */
-/* The Web box-shadow 0 0 0 var(--bevel-1) ring; it spreads outside the face and, like the Web, its sides are clipped by a scroll viewport */
+/* Web の box-shadow 0 0 0 var(--bevel-1) の輪。位置・幅・角丸・被覆は ModeSwitchRing が --bevel-1 と倍率から決める。面の外へ広がり、スクロールの視口では Web と同じく左右が切れる */
+/* The Web box-shadow 0 0 0 var(--bevel-1) ring; ModeSwitchRing sets position, width, radius and coverage from --bevel-1 and the scale; it spreads outside the face and, like the Web, its sides are clipped by a scroll viewport */
 .mode-switch__ring {
+    --mode-switch-ring-width: var(--bevel-1);
     position: absolute;
-    left: var(--mode-switch-ring-outset);
-    top: var(--mode-switch-ring-outset);
-    right: var(--mode-switch-ring-outset);
-    bottom: var(--mode-switch-ring-outset);
-    border-width: var(--bevel-1); /* look-exception: LX-3 */
-    border-radius: var(--mode-switch-ring-radius);
     border-color: var(--mode-switch-option-ring);
 }
 
