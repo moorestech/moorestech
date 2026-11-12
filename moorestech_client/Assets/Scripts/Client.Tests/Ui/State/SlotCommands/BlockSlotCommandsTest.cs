@@ -140,7 +140,7 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void 閉じたあとの古い押下はブロックの枠の取りこぼしで拒否し何も動かさない()
         {
-            LogAssert.Expect(LogType.Warning, "[block_inventory.slot] stale press ignored: block slot 0 is not available");
+            LogAssert.Expect(LogType.Warning, "[block_inventory.slot] rejected (block_slot_unavailable): block slot 0 is closed or out of range");
             _block.Open = false;
             var result = _commands.LeftDown(0, false);
             Assert.AreEqual(UiCommandRejectReason.BlockSlotUnavailable, ((UiCommandRejected)result).Reason);

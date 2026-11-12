@@ -70,7 +70,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             block = null;
             if (_panels.Current.Value is not OpenBlockInventoryPanel { Error: BlockInventoryPanelError.None } open)
             {
-                rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "block_not_open");
+                rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "");
                 return false;
             }
             block = open;

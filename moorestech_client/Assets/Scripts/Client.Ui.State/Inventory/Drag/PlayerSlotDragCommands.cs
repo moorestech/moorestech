@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
@@ -92,15 +93,15 @@ namespace Client.Ui.State.Inventory.Drag
 
             #region Internal
 
-            // 番地がプレイヤー側なので計画もプレイヤー側だけ。写せない計画は開発者向けのログへ
-            // The slot is player-side so plans are too; any unconvertible plan goes to the developer log
+            // 番地がプレイヤー側なので計画もプレイヤー側だけ。写せない計画は例外で開発者に気づかせる
+            // The slot is player-side so plans are too; any unconvertible plan throws so the developer notices
             List<PlayerItemAction> ToPlayerActions(IReadOnlyList<PlannedItemAction> actions)
             {
                 var converted = new List<PlayerItemAction>();
                 foreach (var action in actions)
                 {
                     if (PlayerItemActionConversion.TryConvert(action, out var playerAction)) converted.Add(playerAction);
-                    else Debug.LogWarning($"[PlayerSlotDragCommands] right-button enter skipped non-player action {action}");
+                    else throw new InvalidOperationException($"[PlayerSlotDragCommands] right-button enter got non-player action {action}");
                 }
                 return converted;
             }

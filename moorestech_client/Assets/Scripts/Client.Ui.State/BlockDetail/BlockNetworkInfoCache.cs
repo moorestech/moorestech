@@ -174,9 +174,13 @@ namespace Client.Ui.State.BlockDetail
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateGetRequest(pos);
             var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, ct);
             if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
-            // 取得失敗（未配置/別ブロック）は空スナップショットで上書きせず無視する（uGUI と同じガード）
-            // Ignore fetch failures instead of overwriting with an empty snapshot (same guard as uGUI)
-            if (response == null || !response.Success) return; // silent-ok: 取得失敗時は既存スナップショットを保つ / 描画側へ未取得または前回値が残る
+            // 取得失敗（未配置/別ブロック）は空スナップショットで上書きせず Warning を出して破棄する（uGUI と同じガード）
+            // Discard fetch failures with a warning instead of overwriting with an empty snapshot (same guard as uGUI)
+            if (response == null || !response.Success)
+            {
+                Debug.LogWarning($"[BlockNetworkInfoCache] filter splitter fetch failed at {pos}: response={(response == null ? "null" : "Success=false")}");
+                return;
+            }
             ApplyFilterSplitterSnapshot(response);
         }
     }

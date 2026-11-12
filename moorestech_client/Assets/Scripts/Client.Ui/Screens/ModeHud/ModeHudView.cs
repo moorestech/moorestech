@@ -40,9 +40,11 @@ namespace Client.Ui.Screens.ModeHud
                     _deleteHeight.SetHeight(delete.Height);
                     MountOnly(_deleteBands, _deleteHeight);
                     break;
-                default:
+                case ModeHudHidden:
                     MountOnly();
                     break;
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(viewModel), viewModel, "unknown ModeHud view model");
             }
 
             // 帯は層の中で前へ

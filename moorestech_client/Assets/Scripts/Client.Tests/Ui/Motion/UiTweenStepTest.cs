@@ -31,13 +31,16 @@ namespace Client.Tests.Ui.Motion
         [TestCase(0.5f, -6f)]
         [TestCase(1f, 0f)]
         [TestCase(1.25f, 3f)]
-        public void TranslateXは横だけを補間し縦は0に置く(float progress, float expectedX)
+        public void TranslateXは横だけを補間し縦は現在値を保つ(float progress, float expectedX)
         {
+            // 縦のずらしを先に置き、横の補間がそれを 0 へ戻さないことを見る
+            // Set a vertical offset first and check the horizontal tween does not reset it to 0
             var target = new VisualElement();
+            target.style.translate = new Translate(0, 7f);
             new TranslateXTweenStep(target, -12f, 0f).Apply(progress);
 
             var translate = target.style.translate.value;
-            Assert.AreEqual(0f, translate.y.value);
+            Assert.AreEqual(7f, translate.y.value, 0.001f);
             Assert.AreEqual(LengthUnit.Pixel, translate.x.unit);
             Assert.AreEqual(expectedX, translate.x.value, 0.001f);
         }
