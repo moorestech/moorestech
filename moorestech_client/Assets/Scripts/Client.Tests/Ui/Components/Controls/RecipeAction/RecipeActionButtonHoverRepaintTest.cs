@@ -1,9 +1,11 @@
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Components.ThemeTokenFile;
 
@@ -16,25 +18,43 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
     public class RecipeActionButtonHoverRepaintTest : UiTestHost
     {
         [Test]
-        public void ホバーで面が描き直され最後に描いた色がホバーの3色になる()
+        public void ホバーで面の3色がホバーの色へ解決し直され帯の頂点に出る()
         {
             Localize.Initialize();
             var button = new RecipeActionButton("recipe-action-hover-test", new UiText(LocalizationKeys.Ui.Recipe.CraftButtonLabel), RecipeActionButtonVariant.Craft);
             rootVisualElement.Add(button);
             simulate.FrameUpdate();
             var face = button.Q<RecipeActionButtonFace>(className: RecipeActionButtonFace.UssClassName);
-            AssertSameColor(ResolveColor("--recipe-action-background-start"), face.LastDrawnStartForTest, "normal start");
-            var drawsBeforeHover = face.DrawCountForTest;
+            var normal = BuildFaceStrip(face);
+            AssertTint(ResolveColor("--recipe-action-background-start"), normal[0], "normal start");
 
-            // 本番と同じポインタの移動で :hover を付け、面が描いた色を読む
-            // Apply :hover through the same pointer move as production and read the colors the face drew
+            // 本番と同じポインタの移動で :hover を付け、面を組む入力（解決済みの 3 色）から帯を組み直して頂点を読む
+            // Apply :hover through the same pointer move as production, then rebuild the strip from the face's resolved inputs and read its vertices
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();
-            Assert.Greater(face.DrawCountForTest, drawsBeforeHover, "face repainted on hover");
-            AssertSameColor(ResolveColor("--recipe-action-hover-start"), face.LastDrawnStartForTest, "hover start");
-            AssertSameColor(ResolveColor("--recipe-action-hover-middle"), face.LastDrawnMiddleForTest, "hover middle");
-            AssertSameColor(ResolveColor("--recipe-action-hover-end"), face.LastDrawnEndForTest, "hover end");
-            Assert.AreNotEqual(ResolveColor("--recipe-action-background-start"), face.LastDrawnStartForTest, "hover differs from normal");
+            var hover = BuildFaceStrip(face);
+            AssertTint(ResolveColor("--recipe-action-hover-start"), hover[0], "hover start");
+            AssertTint(ResolveColor("--recipe-action-hover-middle"), hover[RecipeActionFaceMesh.SegmentsPerHalf], "hover middle");
+            AssertTint(ResolveColor("--recipe-action-hover-end"), hover[RecipeActionFaceMesh.ColumnCount - 1], "hover end");
+            Assert.AreNotEqual(normal[0], hover[0], "hover differs from normal");
+        }
+
+        private static Vertex[] BuildFaceStrip(RecipeActionButtonFace face)
+        {
+            Assert.IsTrue(UssCustomStyleReader.TryReadColor(face.customStyle, RecipeActionButton.FaceStartProperty, out var start));
+            Assert.IsTrue(UssCustomStyleReader.TryReadColor(face.customStyle, RecipeActionButton.FaceMiddleProperty, out var middle));
+            Assert.IsTrue(UssCustomStyleReader.TryReadColor(face.customStyle, RecipeActionButton.FaceEndProperty, out var end));
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(face.customStyle, RecipeActionButton.FaceBorderWidthProperty, out var borderWidth));
+            var vertices = new Vertex[RecipeActionFaceMesh.VertexCount];
+            var indices = new ushort[RecipeActionFaceMesh.IndexCount];
+            var size = face.contentRect.size;
+            RecipeActionFaceMesh.Build(size.x, size.y, borderWidth, start, middle, end, vertices, indices);
+            return vertices;
+        }
+
+        private static void AssertTint(Color expected, Vertex actual, string label)
+        {
+            Assert.AreEqual((Color32)expected, actual.tint, label);
         }
     }
 }

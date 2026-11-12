@@ -11,10 +11,12 @@ namespace Client.Ui.Foundation.Input.OsCursor
     {
         private static UiOsCursorRequestStack _processStack;
         private static int _generation;
-        private static IUiOsCursorApplier _applierOverride;
 
-        public ProcessUiOsCursor()
+        private readonly IUiOsCursorApplier _applier;
+
+        public ProcessUiOsCursor(IUiOsCursorApplier applier)
         {
+            _applier = applier;
             // 生成時に既定を当てて OS カーソルと記録を揃える
             // Apply the default at creation so the OS cursor and the record agree
             _processStack ??= CreateProcessStack();
@@ -28,20 +30,12 @@ namespace Client.Ui.Foundation.Input.OsCursor
             return new GenerationGuardedRequest(_generation, _processStack.Request(shape, layer));
         }
 
-        private static UiOsCursorRequestStack CreateProcessStack()
+        private UiOsCursorRequestStack CreateProcessStack()
         {
-            // 絵を読み、既定を当ててから記録（既定）と揃えたスタックを作る
-            // Load the pictures, apply the default, then create a stack whose record (default) matches
-            var applier = _applierOverride ?? new UnityUiOsCursorApplier();
-            applier.Apply(UiOsCursorShape.Default);
-            return new UiOsCursorRequestStack(applier);
-        }
-
-        // 次に作るスタックの当て先を差し替える（テスト用・内部のみ）
-        // Replace the applier of the next stack (tests only, internal)
-        internal static void UseApplierForNextProcessStack(IUiOsCursorApplier applier)
-        {
-            _applierOverride = applier;
+            // 既定を当ててから記録（既定）と揃えたスタックを作る
+            // Apply the default, then create a stack whose record (default) matches
+            _applier.Apply(UiOsCursorShape.Default);
+            return new UiOsCursorRequestStack(_applier);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -21,12 +21,11 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
     }
 
     /// <summary>
-    /// Shift 配分の判断が読むブロック在庫の部分（Web の BlockInventoryData のうち blockSlotRestriction が読む所）。開いていない・開いた・開くのに失敗したを sealed 派生で表す（判断記録 D-5）
-    /// The part of the block inventory the Shift-allocation decision reads (what Web blockSlotRestriction reads of BlockInventoryData); not open, open and open-failed are sealed subtypes (D-5)
+    /// Shift 配分の判断が読むブロック在庫の部分（Web の BlockInventoryData のうち blockSlotRestriction が読む所）。開いた・開くのに失敗したを sealed 派生で表す（判断記録 D-5）
+    /// The part of the block inventory the Shift-allocation decision reads (what Web blockSlotRestriction reads of BlockInventoryData); open and open-failed are sealed subtypes (D-5)
     /// </summary>
     public abstract class BlockSlotRestrictionInput
     {
-        public static readonly BlockSlotRestrictionInput NotOpenBlock = new NotOpenBlockSlotInput();
         public static readonly BlockSlotRestrictionInput OpenFailedBlock = new OpenFailedBlockSlotInput();
 
         private protected BlockSlotRestrictionInput()
@@ -38,13 +37,6 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
         public static OpenBlockSlotInput OpenBlock(string blockType, int itemSlotCount)
         {
             return new OpenBlockSlotInput(blockType, itemSlotCount, BlockSlotDetail.Pending);
-        }
-    }
-
-    public sealed class NotOpenBlockSlotInput : BlockSlotRestrictionInput
-    {
-        internal NotOpenBlockSlotInput()
-        {
         }
     }
 

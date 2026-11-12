@@ -14,8 +14,8 @@ namespace Client.Ui.Components.NodeGraph
     /// Node graph with pan, zoom and inertia (research tree, challenge list); web: moorestech_web/webui/src/shared/treeView/TreeView.tsx
     /// </summary>
     /// <remarks>
-    /// ビューポートの保持は画面が持つ。変化は OnViewportChanged で流し、作り直した直後に RestoreViewport で戻すと初回の中央寄せと寸法の追従をしない。カードは押下を捕まえない・止めない（Button・Clickable を使わない）ので、カード上の押下もパンになり、タップは OnNodeTapped で受ける（Web TreeView.tsx と同じ）
-    /// The screen keeps the viewport; changes flow out on OnViewportChanged, and RestoreViewport right after rebuilding skips initial centering and resize-follow. Cards never capture or stop presses (do not use Button or Clickable), so a press on a card also pans and taps arrive on OnNodeTapped (same as the Web TreeView.tsx)
+    /// ビューポートは View の寿命で保たれる（Web の viewportStore がセッション内で保つのと同じ寿命）。変化は OnViewportChanged で流す。一度でも視点が動いた後に非表示から戻すと、Web の復元と同じく初回の中央寄せと寸法の追従をしない。カードは押下を捕まえない・止めない（Button・Clickable を使わない）ので、カード上の押下もパンになり、タップは OnNodeTapped で受ける（Web TreeView.tsx と同じ）
+    /// The viewport lives as long as the View (the same lifetime as the Web viewportStore within a session); changes flow out on OnViewportChanged. Once the view has moved, coming back from hidden skips initial centering and resize-follow like the Web restore. Cards never capture or stop presses (do not use Button or Clickable), so a press on a card also pans and taps arrive on OnNodeTapped (same as the Web TreeView.tsx)
     /// </remarks>
     public sealed class NodeGraphView : VisualElement
     {
@@ -27,7 +27,8 @@ namespace Client.Ui.Components.NodeGraph
         private readonly NodeGraphPointerFeedback _pointerFeedback;
         private readonly Subject<string> _onNodeTapped = new();
         private readonly Subject<NodeGraphViewport> _onViewportChanged = new();
-        private bool _restored;
+        private bool _viewportHeld;
+        private bool _hasEmittedViewport;
         private NodeGraphViewport _viewport;
         private NodeGraphFocus _initialFocus = NodeGraphFocus.None;
         private bool _hasCentered;
@@ -68,15 +69,6 @@ namespace Client.Ui.Components.NodeGraph
             _scene.Rebuild(content.Nodes);
             _initialFocus = content.InitialFocus;
             CenterOnInitialFocusOnce();
-        }
-
-        public void RestoreViewport(NodeGraphViewport viewport)
-        {
-            // 画面が保持した値へ戻し、以後の初回の中央寄せと寸法の追従を止める。戻した値は流さない（Web のマウント時の復元と同じ）
-            // Return to the screen-held value and stop initial centering and resize-follow; the restored value is not emitted (same as the Web mount restore)
-            _restored = true;
-            _viewport = viewport;
-            ApplyViewport();
         }
 
         internal void PanBy(Vector2 delta)
@@ -120,17 +112,18 @@ namespace Client.Ui.Components.NodeGraph
 
         private void OnGeometryChanged(GeometryChangedEvent evt)
         {
-            // 復元しなかったときだけ、寸法の変化で中央に見えていた点を保つ（0 からの初回は動かさない。Web useKeepViewCenterOnResize）
+            // 隠す前に視点が動いていなければ、寸法の変化で中央に見えていた点を保つ（0 からの初回は動かさない。Web useKeepViewCenterOnResize）
             // Only when not restored, keep the centered point across size changes (not from zero; the Web useKeepViewCenterOnResize)
             var size = contentRect.size;
-            // 0 へ縮む回（display: none の祖先）は PointerLeave が来ないので手のカーソルを放し、追従も記録もしない。開き直した回に隠す前の寸法との差で追従する
-            // A shrink to 0 (display: none ancestor) sends no PointerLeave, so release the hand cursor and neither follow nor record; reopening follows from the pre-hide size
+            // 0 へ縮む回（display: none の祖先）は PointerLeave が来ないので手のカーソルを放し、追従も記録もしない。視点が動いていれば保持し、開き直しても寸法に追従しない（Web の復元は寸法に追従しない）
+            // A shrink to 0 (display: none ancestor) sends no PointerLeave, so release the hand cursor and neither follow nor record; a moved view is held and does not follow the size on reopen (the Web restore never follows)
             if (size.x <= 0f || size.y <= 0f)
             {
                 _pointerFeedback.ReleaseAll();
+                _viewportHeld |= _hasEmittedViewport;
                 return;
             }
-            var keepsCenter = !_restored && _hasClipInset && 0f < _lastContentSize.x && 0f < _lastContentSize.y && size != _lastContentSize;
+            var keepsCenter = !_viewportHeld && _hasClipInset && 0f < _lastContentSize.x && 0f < _lastContentSize.y && size != _lastContentSize;
             if (keepsCenter) SetViewport(NodeGraphViewportMath.ShiftForResize(_viewport, _lastContentSize, size));
             if (_hasClipInset) _lastContentSize = size;
             CenterOnInitialFocusOnce();
@@ -159,8 +152,8 @@ namespace Client.Ui.Components.NodeGraph
 
         private void CenterOnInitialFocusOnce()
         {
-            // silent-ok: 寄せた後・復元した後・ノードか注目点か逃げか寸法が未着の間は寄せない / 揃った次の SetGraph か寸法の変化で 1 回だけ寄る（Web と同じ）
-            if (_hasCentered || _restored || !_scene.HasNodes || !_initialFocus.TryGetPoint(out var focus) || !_hasClipInset || contentRect.width <= 0f) return;
+            // silent-ok: 寄せた後・保持した後・ノードか注目点か逃げか寸法が未着の間は寄せない / 揃った次の SetGraph か寸法の変化で 1 回だけ寄る（Web と同じ）
+            if (_hasCentered || _viewportHeld || !_scene.HasNodes || !_initialFocus.TryGetPoint(out var focus) || !_hasClipInset || contentRect.width <= 0f) return;
 
             // 事前のズームの倍率を保ったまま、注目点を内容 box の中央に据える
             // Center the focus point in the content box while keeping any earlier zoom scale
@@ -171,6 +164,7 @@ namespace Client.Ui.Components.NodeGraph
         private void SetViewport(NodeGraphViewport viewport)
         {
             _viewport = viewport;
+            _hasEmittedViewport = true;
             ApplyViewport();
             _onViewportChanged.OnNext(viewport);
         }

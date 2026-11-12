@@ -103,7 +103,7 @@
 | C9 | `UiText`（Key＋Params）と `LocalizedLabel.SetKey(key, params)` が同じ組を別々に持つ。`UiText` は辞書キーしか運べない | `LocalizedLabel.SetText(UiText)` に一本化する。`UiText` は辞書キー（`LocalizationKey`＋引数）・コンテンツ辞書キー（`ContentLocalizationKey`。アイテム名・研究名・チャレンジのカテゴリ名）・解決済みの文（サーバーのモーダル要求の題・本文・ボタン文言）の 3 種を運ぶ。文言を出す部品の API は `UiText` を受ける（`LocalizationKey` だけを受ける API は、辞書キー以外を出さないと Web で確かめた部品に限る）`[A-40]` | stage1-asbuilt §6.4 の重複。`Localize.GetContent` は通常キーと別の口で、`GameContentPresentation.ItemName` と `FormButton` のモーダル文言が `UiText` で表せない | F1 |
 | C10 | `PauseMenuScreenPresenter.IsShownOn` が `MainPanelOwner == GameUi` を見る | 全体スイッチの作り直し（albof.17）で、Presenter はスイッチを見ない。UITK モードのときだけ composition root が Presenter を登録する（§4.4） | 分岐を 1 か所に集める（AGENTS.md「同種の条件分岐は一箇所へ」） | albof.17 |
 
-段階 1 の「本番未使用の基盤」（`TutorialAnchorRegistry`・`UiInertiaAnimation`・`TranslateYTweenStep`・`ScrollOffsetTweenStep`・`UiNumberFormat`・`GamePanel`）は、§2 の表の使い手の段で本番から使われる。
+段階 1 の「本番未使用の基盤」（`TutorialAnchorRegistry`・`UiInertiaAnimation`・`ScrollOffsetTweenStep`・`UiNumberFormat`・`GamePanel`）は、§2 の表の使い手の段で本番から使われる。
 
 ---
 
