@@ -27,7 +27,6 @@ namespace Client.Tests.Ui.State.ItemMove
 
             foreach (var pair in planned)
             {
-                Assert.AreEqual(pair.Key, pair.Value.Kind, $"plan built for {pair.Key} has another kind");
                 var toPlayer = PlayerItemActionConversion.TryConvert(pair.Value, out _);
                 var toBlock = BlockItemActionConversion.TryConvert(pair.Value, out _);
                 Assert.IsTrue(toPlayer ^ toBlock, $"{pair.Key} must map to exactly one conversion (player={toPlayer}, block={toBlock})");

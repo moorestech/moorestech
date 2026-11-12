@@ -123,13 +123,12 @@ namespace Client.Ui.Screens.Notification
         private void OnAttachToPanel(AttachToPanelEvent attachEvent)
         {
             _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts());
-            // 外れていた間に動きが止まった行は再生し直さず、生存の最終の姿（退場の終わり）に揃えて書き口から除く（再生し直しの API は持たない。A-267）
-            // Rows whose motion stopped while detached are not replayed: set them to the lifetime's final pose (the exit end) and remove them through the write side (no replay API; A-267)
-            foreach (var pair in _shownRows.ToList())
+            // 外れると動きが止まるので、まだ Model に残る行は新しいハンドルで生存を頭から回し直す（Web の再マウントで CSS アニメが頭から回るのと同じ。止まった動きの再生し直しの口は持たない。A-267）
+            // Detaching stopped the motions, so rows still in the model restart their lifetime from the head with a new handle (like the Web remount restarting the CSS animation; no replay port on the stopped motion; A-267)
+            foreach (var shown in _shownRows.Values)
             {
-                pair.Value.StopLifetime();
-                NotificationRowLifetime.ApplyFinalPose(pair.Value.View, _timing);
-                _model.RemoveNotification(pair.Key);
+                shown.StopLifetime();
+                StartLifetime(shown, shown.View.Row);
             }
         }
 
@@ -145,13 +144,13 @@ namespace Client.Ui.Screens.Notification
             _languageSubscription?.Dispose();
             // 外れると行の動きが止まり退場の終わりが来ない＝行が Model に残る。常駐のホストが外れるのは Dispose だけのはずなので、それ以外で起きたら開発者に知らせる
             // Detaching stops the row motions, so no exit end comes and rows stay in the model; a resident host should only detach on Dispose, so tell developers otherwise
-            if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop; they are finalized and removed only if the host is attached again");
+            if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop; their lifetimes restart from the head if the host is attached again");
         }
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            // 読めないトークンは Reader が LogError を出す。通知を届けるのを優先し、出入り無し（尺 0・ずれ 0）で出す
-            // The reader logs unreadable tokens; delivering the notification comes first, so show it without enter/exit (0 durations, 0 shift)
+            // 読めないトークンは Reader が値ごとに LogError を出し、ホストもまとめて 1 回出す（解決のたび）。通知を届けるのを優先し、出入り無し（尺 0・ずれ 0）で出す
+            // The reader logs each unreadable token and the host logs once per resolution; delivering the notification comes first, so show it without enter/exit (0 durations, 0 shift)
             var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-enter-duration", out var enter);
             var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-exit-duration", out var exit);
             var hasShift = UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-shift", out var shift);

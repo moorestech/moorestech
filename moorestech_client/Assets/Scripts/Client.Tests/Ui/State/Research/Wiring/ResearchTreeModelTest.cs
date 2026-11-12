@@ -87,13 +87,16 @@ namespace Client.Tests.Ui.State.Research.Wiring
         }
 
         [Test]
-        public void 受信済みで研究画面へ入り直すと欠けた件数を警告する()
+        public void 受信済みで研究画面へ入ると欠けた件数を警告する()
         {
             var states = AllStates(ResearchNodeState.Researchable);
             states.Remove(_catalog.Nodes[0].Guid);
+            // 閉画面の受信でも警告が 1 回出るので、受信と突入で計 2 回を期待する
+            // A receipt while closed also warns once, so expect two in total: the receipt and the entry
+            var expected = new Regex(@"1 research node\(s\) have no server state");
+            LogAssert.Expect(LogType.Warning, expected);
             _store.ApplyNodeStates(states);
-
-            LogAssert.Expect(LogType.Warning, new Regex(@"1 research node\(s\) have no server state"));
+            LogAssert.Expect(LogType.Warning, expected);
             UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ResearchTree);
         }
 

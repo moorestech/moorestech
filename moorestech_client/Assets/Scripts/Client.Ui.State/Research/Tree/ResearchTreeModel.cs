@@ -67,11 +67,6 @@ namespace Client.Ui.State.Research.Tree
             // Missing nodes render with the Web default, so log their count on entry (once received) and every receipt to make the gap visible (A-266)
             void WarnMissingNodeStates()
             {
-                if (!_store.HasReceivedNodeStates)
-                {
-                    Debug.LogWarning("[ResearchTreeModel] no research node state received yet; cards drawn as UnresearchableAllReasons and detail reasons hidden until it arrives");
-                    return;
-                }
                 var states = _store.NodeStates;
                 var missing = 0;
                 foreach (var node in _catalog.Nodes)
