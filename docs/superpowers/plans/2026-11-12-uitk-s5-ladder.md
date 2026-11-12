@@ -19,7 +19,7 @@
 | # | 要件 | 受け入れ基準 |
 |---|---|---|
 | R-1 | ラダー 6 `uitk-challenge-gate` | `scenarios/uitk/stage5/uitk-challenge-gate.cs` を `exhibition-mode-run.sh ./moorestech_client GameUi <それ>` で流し、出展モードで起動 → DI より前の言語ゲート（初期化は未完了）→ `event-language-gate-option-japanese` を押す → その場で外れる → 初期化完了・言語 `japanese` → ゲーム画面 → `WebUiHost.Hub == null` → T で `UIStateEnum.ChallengeList`・`challenge-panel`・解放済みの先頭カテゴリの `challenge-category-<guid>`・進行中の `challenge-node-<guid>` が出る → T で GameScreen、を `Success: true`。初期化の完了の後の Error/Exception のログ 0 件と（起動からの）`[PlaytestUi] Web` のログ 0 件をシナリオ自身が主張し、選ぶ前の言語へ戻せたこと（`TrySetChosenLanguage` が真）を主張してから控えを消す。Note に `系=GameUi` |
-| R-2 | 出展モードの運転役の汎用化 | `scenarios/uitk/stage5/exhibition-mode-run.sh <project> <GameUi\|Web> <scenario.cs>` が系の切り替え・武装・`run-scenario.sh`・後始末（Disarm と言語の復元）を行い、引数が 3 つでない・系が 2 値でないときは何もせず終了コード 2。武装の EDC の戻り値が語 `armed` でなければ（PlayMode が残っている等）流さずに終了コード 1。言語の復元は EDC の戻り値の語 `language-restored` のときだけ控えを消し、外れたら `ERROR: … kept` を出して控えを残す（S5-gate の運転役と同じ判定）。S5-gate の `uitk-event-language-gate.sh <project>` は呼び方を変えずにこれへ委ね、S5-gate の録画 `uitk-event-language-gate` が `Success: true` のまま |
+| R-2 | 出展モードの運転役の汎用化 | `scenarios/uitk/stage5/exhibition-mode-run.sh <project> <GameUi\|Web> <scenario.cs>` が系の切り替え・武装・`run-scenario.sh`・後始末（Disarm と言語の復元）を行い、引数が 3 つでない・系が 2 値でないときは何もせず終了コード 2。武装の EDC の戻り値が語 `exhibition-armed` でなければ（PlayMode が残っている等）流さずに終了コード 1（S5-gate の運転役と同じ判定）。言語の復元は EDC の戻り値の語 `language-restored` のときだけ控えを消し、外れたら `ERROR: … kept` を出して控えを残す（S5-gate の運転役と同じ判定）。S5-gate の `uitk-event-language-gate.sh <project>` は呼び方を変えずにこれへ委ね、S5-gate の録画 `uitk-event-language-gate` が `Success: true` のまま |
 | R-3 | ラダー 6 本が UITK で緑（plan §2.0 の 1・§2.6） | 最終 HEAD（Task 12 の取り込み後）の GameUi で 6 本が全部 `Success: true`・ErrorLogs 0。取り込みで `moorestech_client/Assets`・`.agents/skills/unity-playmode-recorded-playtest/` に差分が入ったら 6 本を流し直す。入らなければ流した HEAD の sha と「取り込みの差分にこの 2 か所が無い」（`git diff --stat <流した sha> HEAD -- moorestech_client/Assets .agents/skills/unity-playmode-recorded-playtest` が空）を `done.md` に書く（ラダー 6 の初期化の完了までの NRE は 2026-08-28 裁定で許容し、シナリオは初期化の完了の後だけ数える。S5-gate と同じ扱い）。ラダー 1 の「セーブして終了」の結果は呼び出し側のシェルで `save.json` の更新時刻を見る（`uitk-lifeline.cs` 冒頭の注記） |
 | R-4 | UITK 側で DSL の Web ロケータが一度も要素を返さない（ログ） | R-3 の 6 本と R-10 の段階 5 の録画の GameUi の回のそれぞれで、`uloop get-logs --search-text "[PlaytestUi]"` に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` で始まる行が 0。L0 `SwitchedUiElementLocatorTest` が PASS（選んだ系だけを読む構造の固定）。証拠を `done.md` の表に 1 本 1 行 |
 | R-5 | `TutorialAnchorCoveragePending.cs` が空 | S5-challenge の後で `Owners` が 0 件であることを確かめてからファイルを消し、`TutorialAnchorCoverageTest` の 1 本目を「全てのアンカーIDはUITKで印が付いている」（未移植の表の分岐を外す）に書き換えて PASS |
@@ -67,7 +67,7 @@
 |---|---|---|
 | S5-gate の録画 `uitk-event-language-gate.sh <project>` | 生きる | 呼び方を変えず `exhibition-mode-run.sh` へ委ねる。Task 5 Step 3 で流し直して `Success: true` を見る |
 | 出展モードの武装の後始末（Disarm・言語の復元） | 生きる | 中身を移すだけ（trap の処理は S5-gate の検査後の形と同じく、復元の成否を EDC の戻り値の語で判定し、戻せたときだけ控えを消す）。ラダー 6 と並べ比べも同じ後始末を通り、シナリオ側も `TrySetChosenLanguage` の真偽を主張してから控えを消す。Task 5 Step 3 で中断時の復元も 1 回確かめる |
-| 武装の失敗（PlayMode が残っている） | 生きる（強まる） | `ArmForNextBoot` は PlayMode 中に `ERROR: already playing` を返し EDC の終了コードは 0。運転役は戻り値の語 `armed` を見て、外れたら流さず終了コード 1（武装の無い通常の起動で流れ、ゲート待ちの時間切れが依存レーンの不具合に見える誤りを防ぐ）。Task 5 Step 3 の対照で見る |
+| 武装の失敗（PlayMode が残っている） | 生きる（強まる） | `ArmForNextBoot` は PlayMode 中に `ERROR: already playing` を返し EDC の終了コードは 0。運転役は戻り値の語 `exhibition-armed` を見て、外れたら流さず終了コード 1（武装の無い通常の起動で流れ、ゲート待ちの時間切れが依存レーンの不具合に見える誤りを防ぐ）。Task 5 Step 3 の対照で見る |
 | Editor の全体スイッチ（`UiSystemEditorSwitch`。SessionState）の運転役の後の値 | 生きる（流した系のまま残る） | 運転役は後始末で全体スイッチを戻さない（`Web` で流すと、同じ Editor の次の Play も Web で起動する）。S5-gate の運転役は GameUi 固定だったので、この状態は汎用化で新しく生じる。このレーンの録画は毎回 `Set(...)` してから流し（Global Constraints・Task 10）、X-prerun への引き継ぎにも「運転役の後は流した系のまま。次の録画は必ず Set してから」と書く |
 | 置き換える既存 NUnit `PauseMenuViewTest.設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る` | 生きる | 置き換え後のメソッドは既存の assert（`PauseMenuViewTest.cs:112-128`）を全部含み、走りと画質の節の assert を足すだけ。I-fix5 の後は題の読みを `.PlainText()` にした形（`origin/uitk-lane/i-fix5` の同じメソッド）を土台にする |
 | 置き換える既存 NUnit `BugReportFormViewTest.応答待ちが終わってもホスト送信中は種別と本文を保護する` | 生きる（推測。Task 3 Step 1 で確かめる） | 旧テストは「ローカルの送信なしでホストが Submitting」でロックと文言を見ていた。新テストは必ずローカルの送信を通るが、拒否の応答の後は `_sending=false` になりロックの出どころは同じ `capture == Submitting`（`BugReportFormView.cs:154-171`）。Task 3 Step 1 で、旧テストの assert（種別 2 つ・本文・送信の無効と状態行の文言）が新テストに全部含まれることを見る |
@@ -1275,11 +1275,11 @@ git commit -m "test(uitk): 束 5 の Web テストの残りを処遇し突き合
 
 **Interfaces:**
 - Consumes: `Client.Playtest.Boot.PlaytestEventLanguageGateBoot.ArmForNextBoot()`・`.Disarm()`（S5-gate。`public static string`）、`Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem)`、`Client.Localization.Localize.TrySetChosenLanguage(string)`、`SK/scripts/run-scenario.sh <project> <scenario.cs>`（終了コード 0/1/2）
-- Produces: `exhibition-mode-run.sh <project> <GameUi|Web> <scenario.cs>`（終了コードは `run-scenario.sh` のもの。引数の誤りは 2、武装の戻り値が `armed` でなければ 1）。シナリオは選ぶ前の言語を `<project>/PlaytestResults/scratch/event-language-gate/language-before.txt` に書き、戻したら消す（S5-gate の取り決めのまま）
+- Produces: `exhibition-mode-run.sh <project> <GameUi|Web> <scenario.cs>`（終了コードは `run-scenario.sh` のもの。引数の誤りは 2、武装の戻り値が `exhibition-armed` でなければ 1）。シナリオは選ぶ前の言語を `<project>/PlaytestResults/scratch/event-language-gate/language-before.txt` に書き、戻したら消す（S5-gate の取り決めのまま）
 
 - [ ] **Step 1: 実物の運転役を読む**
 
-`git show origin/feature/uitk:.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-event-language-gate.sh` を読み、下の `exhibition-mode-run.sh` と後始末・武装の判定を突き合わせる。下のコード片は S5-gate 計画（Task 7 Step 3）の検査後の形（言語の復元は EDC の戻り値の語 `language-restored`／`language-restore-failed` で判定し、戻せたときだけ控えを消す）に、武装の判定（戻り値の語 `armed`）を足したもの。実物がこれより進んだ形なら実物を写し、実物が終了コードで判定する古い形なら下の形を採る（後退させない）。どちらを採ったかを `done.md`「証拠」に 1 行
+`git show origin/feature/uitk:.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-event-language-gate.sh` を読み、下の `exhibition-mode-run.sh` と後始末・武装の判定を突き合わせる。下のコード片は S5-gate 計画（Task 7 Step 3）の評価後の形（言語の復元は EDC の戻り値の語 `language-restored`／`language-restore-failed` で判定し、戻せたときだけ控えを消す。武装は戻り値の語 `exhibition-armed` で判定する）を、系とシナリオを引数に取る形にしたもの。実物がこれより進んだ形なら実物を写し、実物が終了コードで判定する古い形なら下の形を採る（後退させない）。どちらを採ったかを `done.md`「証拠」に 1 行
 
 - [ ] **Step 2: 汎用の運転役を書く**
 
@@ -1330,13 +1330,12 @@ on_exit() {
 }
 trap on_exit EXIT
 
-# 武装できたかも戻り値の語で見る（PlayMode が残っていると "ERROR: already playing" を返し、終了コードは 0 のまま）
-# Judge arming by the returned word too (a lingering PlayMode returns "ERROR: already playing" with exit code 0)
-armed=$(uloop execute-dynamic-code --project-path "$PROJECT" --code "Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.$SYSTEM); return Client.Playtest.Boot.PlaytestEventLanguageGateBoot.ArmForNextBoot();")
-if echo "$armed" | grep -q "ERROR" || ! echo "$armed" | grep -q "armed"; then
-  echo "NG: could not switch to $SYSTEM or arm exhibition mode (stop PlayMode first): $armed"
-  exit 1
-fi
+# 武装できたかは EDC の戻り値の語で見る（終了コードは EDC が走ったかだけ。Play 中なら ArmForNextBoot は "ERROR: already playing" を返す）
+# Judge arming by the word EDC returns (the exit code only says EDC ran; during Play, ArmForNextBoot returns "ERROR: already playing")
+armed=$(uloop execute-dynamic-code --project-path "$PROJECT" --code "Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.$SYSTEM); return Client.Playtest.Boot.PlaytestEventLanguageGateBoot.ArmForNextBoot();") \
+  || { echo "NG: could not switch to $SYSTEM or arm exhibition mode (EDC failed)"; exit 1; }
+echo "$armed" | grep -q "exhibition-armed" \
+  || { echo "NG: exhibition mode was not armed (stop PlayMode first): $armed"; exit 1; }
 bash "$SKILL_DIR/scripts/run-scenario.sh" "$PROJECT" "$SCENARIO"
 ```
 
@@ -1360,7 +1359,7 @@ bash .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhib
 bash .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client Classic x.cs; echo "exit=$?"
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-event-language-gate.sh ./moorestech_client; echo "exit=$?"
 ```
-加えて、PlayMode を手で起こした状態（`uloop control-play-mode --project-path ./moorestech_client --action play`）で `exhibition-mode-run.sh ./moorestech_client GameUi <uitk-event-language-gate.cs のパス>` を流し、`exit=1` と `NG: could not switch … ERROR: already playing` の行を見てから PlayMode を止める（武装できないまま通常の起動で流れない対照）。
+加えて、PlayMode を手で起こした状態（`uloop control-play-mode --project-path ./moorestech_client --action play`）で `exhibition-mode-run.sh ./moorestech_client GameUi <uitk-event-language-gate.cs のパス>` を流し、`exit=1` と `NG: exhibition mode was not armed … ERROR: already playing` の行を見てから PlayMode を止める（武装できないまま通常の起動で流れない対照）。
 Expected: 1 本目と 2 本目は `exit=2`（Unity に何も送らない）。3 本目は `exit=0`・`result.json` が `Success: true`・Note の `系=GameUi`（S5-gate の録画が呼び方を変えずに通る）。続けて `uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Localization.Localize.GetCurrentLanguageCode();'` が流す前の言語のまま、`ls moorestech_client/PlaytestResults/scratch/event-language-gate/` に `language-before.txt` が無い
 
 - [ ] **Step 4: コミット**
@@ -1543,7 +1542,7 @@ uloop clear-console --project-path ./moorestech_client
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client GameUi .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-gate.cs; echo "exit=$?"
 uloop get-logs --project-path ./moorestech_client --log-type All --search-text "[PlaytestUi]" --max-count 200
 ```
-Expected: `exit=0`、`result.json` が `Success: true`、Note に `系=GameUi`・「初期化の後のエラー 0 件・Web ロケータのログ 0 件」、mp4 とスクショ 3 枚。get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行。落ちたら、まず運転役の出力を見る: `NG: could not switch … or arm` が出ていれば運転役の側（PlayMode が残っていた等。`uloop control-play-mode --action stop` の後に流し直す）で、依存レーンへは回さない。`ERROR: language restore` が出ていれば控えが残っているので、出た言語へ戻してから次を流す。運転役が通っていて落ちたら: ゲートが出ない → S5-gate の Task 8 Step 1 の切り分け（`[EventLanguageGate]`・`[UiSrgbPanelTarget]` のログ）。T で一覧が出ない → `uitk-challenge-list.cs` を GameUi で流して同じく落ちるかを見て、落ちるなら S5-challenge の不具合として bd（`--parent <Task 0 の ID>`）と `done.md`「未完了」へ（このレーンで画面を直さない）。初期化の後のエラーが出たら、1 行目を `done.md` に書き、出所のレーンへ bd で回す（シナリオの Assert は緩めない）。**どの分岐でも、緑にならないまま先へ進めない**: R-1 が満たせないので、bd を立てて `done.md` の 1 行目を「状態: 停止（ラダー 6 が赤: <理由>）」にし、`cmux wait-for -S uitk-s5-ladder` を送って待つ。出所のレーンか I-fix の直しが `feature/uitk` に入ったら取り込んで流し直す。未完了のままマージしない
+Expected: `exit=0`、`result.json` が `Success: true`、Note に `系=GameUi`・「初期化の後のエラー 0 件・Web ロケータのログ 0 件」、mp4 とスクショ 3 枚。get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行。落ちたら、まず運転役の出力を見る: `NG: could not switch …`・`NG: exhibition mode was not armed` が出ていれば運転役の側（PlayMode が残っていた等。`uloop control-play-mode --action stop` の後に流し直す）で、依存レーンへは回さない。`ERROR: language restore` が出ていれば控えが残っているので、出た言語へ戻してから次を流す。運転役が通っていて落ちたら: ゲートが出ない → S5-gate の Task 8 Step 1 の切り分け（`[EventLanguageGate]`・`[UiSrgbPanelTarget]` のログ）。T で一覧が出ない → `uitk-challenge-list.cs` を GameUi で流して同じく落ちるかを見て、落ちるなら S5-challenge の不具合として bd（`--parent <Task 0 の ID>`）と `done.md`「未完了」へ（このレーンで画面を直さない）。初期化の後のエラーが出たら、1 行目を `done.md` に書き、出所のレーンへ bd で回す（シナリオの Assert は緩めない）。**どの分岐でも、緑にならないまま先へ進めない**: R-1 が満たせないので、bd を立てて `done.md` の 1 行目を「状態: 停止（ラダー 6 が赤: <理由>）」にし、`cmux wait-for -S uitk-s5-ladder` を送って待つ。出所のレーンか I-fix の直しが `feature/uitk` に入ったら取り込んで流し直す。未完了のままマージしない
 
 - [ ] **Step 3: コミット**
 
@@ -1752,7 +1751,7 @@ return PlaytestRunner.Run("uitk-stage5-compare", options, async p =>
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client GameUi .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-stage5-compare.cs; echo "exit=$?"
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client Web .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-stage5-compare.cs; echo "exit=$?"
 ```
-Expected: 両方 `exit=0`・Note の系がそれぞれ。各 run dir のスクショ 4 枚を `moorestech_client/.uloop/outputs/compare/S5-ladder/` へ写す。Web の回で落ちたら原因を切り分ける: 運転役の `NG: could not switch … or arm` は運転役の側（PlayMode を止めて流し直す）。CEF が出なければ（`uloop get-logs --log-type All --search-text "RendererUnavailable"` が出る）、その行を証拠に「Web 側の組 2 は未撮影」と `done.md` に書き、参照と組 0 と組 2 の GameUi で判定する。CEF は出たのにゲートが出ない・ready が書かれない（Web の系で出展モードの起動口と Web 版のゲート `EventModeStartGate.WaitOnWebAsync` を録画でつなぐのはこれが初めて）なら、`[EventLanguageGate]`・`[PlaytestEventLanguageGateBoot]` のログの 1 行目を `done.md`「未完了」に書き、S5-gate へ bd で回して「Web 側の組 2 は未撮影（起動口の不成立）」とする（CEF の不在と書き分ける）
+Expected: 両方 `exit=0`・Note の系がそれぞれ。各 run dir のスクショ 4 枚を `moorestech_client/.uloop/outputs/compare/S5-ladder/` へ写す。Web の回で落ちたら原因を切り分ける: 運転役の `NG: could not switch …`・`NG: exhibition mode was not armed` は運転役の側（PlayMode を止めて流し直す）。CEF が出なければ（`uloop get-logs --log-type All --search-text "RendererUnavailable"` が出る）、その行を証拠に「Web 側の組 2 は未撮影」と `done.md` に書き、参照と組 0 と組 2 の GameUi で判定する。CEF は出たのにゲートが出ない・ready が書かれない（Web の系で出展モードの起動口と Web 版のゲート `EventModeStartGate.WaitOnWebAsync` を録画でつなぐのはこれが初めて）なら、`[EventLanguageGate]`・`[PlaytestEventLanguageGateBoot]` のログの 1 行目を `done.md`「未完了」に書き、S5-gate へ bd で回して「Web 側の組 2 は未撮影（起動口の不成立）」とする（CEF の不在と書き分ける）
 
 - [ ] **Step 3: 評価役 2 体に別々に判定させる（本体が派遣する）**
 
@@ -1853,7 +1852,7 @@ Expected: 出た Web の録画（起草時の見込み: `misc/walk-while-menus-o
 - D-3（agent 既定）: 「UITK 側で Web ロケータが一度も要素を返さない（ログ）」は、(1) `SwitchedUiElementLocator` が ctor で出す `[PlaytestUi] locator reads only the GameUi UI`（選んだ系だけに委ねる。L0 `SwitchedUiElementLocatorTest` が構造を固定）、(2) `WebUiElementLocator` だけが出す `[PlaytestUi] Web …` の行が 0、(3) `WebUiHost.Hub == null`（Web ロケータは Hub が無いと Unavailable しか返さない）の 3 つで示す。主の証拠は (1)＋L0 と (3) の構造で、(2) は補助（`WebUiElementLocator` が `[PlaytestUi] Web …` を出すのは失敗・警告の 4 種だけ〈`WebUiElementLocator.cs:70,77,112,131`〉で、要素を返したときは何も出さない。成功時の `[PlaytestUi] {testid} resolved`〈`PlaytestUiElementOps.cs:145`〉は両系で出る）。`done.md` の表は (1)・(3) を主の列、(2) を「Web 経路の失敗が起きていない補助」の列として書き分ける。ラダー 6 は (2) をシナリオの中で `Application.logMessageReceived` で数えて主張し、他の録画は `uloop get-logs` で見る。棄却: Web ロケータに「返した」ログを足す（本番の DSL を変えるレーンになり、X-5a で消える物に手を入れる）
 - D-4（agent 既定）: 出展モードの運転役は S5-gate の `uitk-event-language-gate.sh` の中身を `exhibition-mode-run.sh <project> <系> <scenario.cs>` へ移し、元の名前は委ねる 1 行にする（呼び方は不変）。ラダー 6・並べ比べ・S5-gate の録画の 3 本が同じ後始末を通る。S5-gate の「起動口を流用しファイルを足さない」は起動口（C#）についての申し送りで、運転役の bash の重複を避けるのはこれと両立する。棄却: ラダー 6 用に同じ 40 行の運転役を複製する（後始末の直しが 2 か所に割れる）。S5-gate の運転役の第 2 引数を任意にする（引数の有無で挙動が変わる。デフォルト引数禁止の趣旨）
 - D-5（agent 既定）: `TutorialAnchorCoveragePending.cs` は空を確かめてから消し、`TutorialAnchorCoverageTest` の 1 本目を「全アンカーが UITK で印」へ書き換える。完了条件「空」は表が 0 行であることで満たし、消すことで以後の画面のアンカーの印の付け忘れを表へ逃がせなくする（切替後に Web の印が消えると表の意味も無くなる）。棄却: 空の表を残す（使い手の無い規則が残る）
-- D-6（agent 既定）: 段階 5 の L3 は作らない。完了条件と plan §2.0 に L3 は無く、一覧の載り先は S5-crosscut の `GameUiScreenMountTest`、ゲートは DI より前の実起動でしか出ずラダー 6 と S5-gate の録画が見る。S5-crosscut D-14 の「段ごとの L3 の数え上げ」にはこの理由で答える。棄却: `EditModeInPlayingTest/Ui/Stage5/` を作る（一覧の載りは GameUiScreenMountTest と重なり、ゲートは EditModeInPlayingTest の起動経路で出せない）
+- D-6（agent 既定）: 段階 5 の L3 は作らない。完了条件と plan §2.0 に L3 は無く、一覧の載り先は S5-crosscut の `GameUiScreenMountTest`（`ChallengeListView` は S5-crosscut T14 の時点で在ればその一覧へ、無ければ S5-challenge が自分の PR で足す。どちらでも一覧から落ちない。Task 0 Step 3 の grep で確かめる）、ゲートは DI より前の実起動でしか出ずラダー 6 と S5-gate の録画が見る。S5-crosscut D-14 の「段ごとの L3 の数え上げ」にはこの理由で答える。棄却: `EditModeInPlayingTest/Ui/Stage5/` を作る（一覧の載りは GameUiScreenMountTest と重なり、ゲートは EditModeInPlayingTest の起動経路で出せない）
 - D-7（agent 既定）: 束 5 の未対応の残り（約 329 件。持ち主のレーン無し）はこのレーンが全部処遇する。`写す予定` は差分に数えられるので残さず、UITK に挙動があるのに NUnit が無いものはこのレーンで書く。bridge・mock-host・Web の撮影・TS の生成物・辞書の HTTP 取得はファイルごと `捨てる`（理由は A-13・A-38 と UITK の対応物）。棄却: 持ち主の画面のレーンへ戻す（段階 5 の後に画面のレーンは無く、X-prerun の前提「全束の突き合わせ差分 0」が満たせない）
 - D-8（agent 既定）: 出展モードの 3 本は Mac の Editor で運転役から流し、`winunity play` では流さない（`winunity play` は run-scenario.sh の前に系の切替しか挟めず、出展モードの武装〈SessionState〉を同じ Editor のセッションへ入れる口が無い）。X-prerun の全録画の一覧にはこの 3 本を運転役経由と書いて渡す
 - D-9（agent 既定・前例 S2-ladder D-14）: 段階 5 の並べ比べは設計書 [A-179] に従い、両系で撮る組を足し、差は処理の案と LX-207〜LX-209 の文面だけを書いて指揮の判定へ回す（USS を直さず、台帳の LX の行と印を置かない）
@@ -1862,10 +1861,10 @@ Expected: 出た Web の録画（起草時の見込み: `misc/walk-while-menus-o
 - D-12（agent 既定）: 束 5 の暗転の起点は S5 の 3 レーンの分岐点（各レーンの最初のコミットの親）で取り込み済みの master のうち最も古いもの（起草時の見込み `0e81bbe3c3`。レーンの先端の merge-base は途中の取り込みで遅い側へ寄るので使わない。迷ったら古い側。台帳「束のレーンを始めるとき」の規則を、締めのレーンが束を代表して当てる。前例 S2-ladder D-5）。束 5 の画面の Web の変更で UITK 側に写しが無いものは記帳で 0 にせず bd で画面のレーンへ回す
 - D-13（agent 既定）: 「台帳の全行が UITK で作られ」は台帳の列を足さず（G1 のパーサを守る）、`done.md` の照合の表で行ごとに実体のパスか「作らない」の根拠を示す。空欄が残れば完了条件を満たさないので「要裁定」に書きマージしない
 - D-14（agent 既定・条件付き）: 束 1 の「topicを固定したまま連続操作とpreset直後に%sを送る」は、UITK の画質の行が `_current` を `Apply` でしか更新しないため Fake のモデルでは前の操作を巻き戻す。本番で送信から `Apply` までが同じ呼び出しの中で回ると実物で確かめたら、モデルが追いつかない状態が起きないので `捨てる`（理由に file:line）。回らなければ本番の不具合として bd と「要裁定」に上げ、このレーンでは直さない（本番コードを書かないレーン）。棄却: View が送った値を持つように本番を変える（設定のレーンの範囲で、故障シナリオが立たないなら要らない変更）
-- D-15（指揮の agent 既定〈PLAN-W5 評価〉）: 運転役 `exhibition-mode-run.sh` の後始末は S5-gate の運転役（検査後の形）と同じく、言語を戻せたかを EDC の戻り値の語（`language-restored`／`language-restore-failed`）で判定し、戻せたときだけ控えを消し、戻せなければ `ERROR: … kept` で理由をログへ出して控えを残す。EDC の終了コードは EDC が走ったかしか表さない。シナリオ（ラダー 6・並べ比べ）も `TrySetChosenLanguage` の真偽を `p.Assert` してから戻せたときだけ控えを消し、Task 3 の NUnit は `Assert.IsTrue(Localize.TrySetChosenLanguage(..))` にする（型閉包の弱「`TrySetChosenLanguage` の bool を捨てる」も同じ件として閉じる）。武装も同じ理由で戻り値の語 `armed` を見て、外れたら流さず終了コード 1。棄却: 終了コードで判定する（偽でも控えが消え、言語が戻らないまま黙る）
+- D-15（指揮の agent 既定〈PLAN-W5 評価〉）: 運転役 `exhibition-mode-run.sh` の後始末は S5-gate の運転役（検査後の形）と同じく、言語を戻せたかを EDC の戻り値の語（`language-restored`／`language-restore-failed`）で判定し、戻せたときだけ控えを消し、戻せなければ `ERROR: … kept` で理由をログへ出して控えを残す。EDC の終了コードは EDC が走ったかしか表さない。シナリオ（ラダー 6・並べ比べ）も `TrySetChosenLanguage` の真偽を `p.Assert` してから戻せたときだけ控えを消し、Task 3 の NUnit は `Assert.IsTrue(Localize.TrySetChosenLanguage(..))` にする（型閉包の弱「`TrySetChosenLanguage` の bool を捨てる」も同じ件として閉じる）。武装も同じ理由で戻り値の語 `exhibition-armed` を見て（S5-gate の運転役と同じ）、外れたら流さず終了コード 1。棄却: 終了コードで判定する（偽でも控えが消え、言語が戻らないまま黙る）
 - D-16（指揮の agent 既定〈PLAN-W5 評価〉）: ラダー 6 の順は計画のまま「言語ゲート → チャレンジ一覧」（D-2）。plan §4.4 のラダー表は素描で、ゲートは DI より前に 1 回しか出ないため、§4.4 の語順では 1 本のシナリオで通せない。plan §4.4 のラダー表の `uitk-challenge-gate` の行（表の番号 5）の書き直しを integrator へ依頼する
 - D-17（指揮の agent 既定〈PLAN-W5 評価〉）: ラダー・段階 5 の録画が赤のままマージへ進める分岐は作らない。赤なら bd を立てて `done.md` を「状態: 停止（理由）」にし合図して待ち、取り込みの後に該当分を流し直す（Task 6 Step 2・Task 10 Step 2〜3・Self-Review）。G1 に写しの無い Web の変更が残るときも同じ（Task 1 Step 2）。棄却: bd と「未完了」に書いて締める（Task 12 の G1 は未記帳を赤にしないので、完了条件を満たさないままマージされる）
-- D-18（指揮の agent 既定〈PLAN-W5 評価〉）: 依存レーン（S5-gate・S5-crosscut・S5-challenge）の Produces（testid・録画名・型名）を写す箇所は各計画の最新版に揃える。S5-crosscut T13 はゲーム寿命の型から `Dispose` を外すので、Task 3 のテスト 2・3 は `PauseMenuScreenPresenter.Dispose()` を呼ばない（残っていれば呼ぶ分岐を Task 0 Step 3 に置く）。S5-challenge の視点の保持の形（訪れたカテゴリごとに `NodeGraphView` を控えて付け替える）は、このレーンが読む testid（`challenge-panel`・`challenge-category-<guid>`・`challenge-node-<guid>`）と開閉だけに触れ、ラダー 6 は最初のカテゴリしか訪れないので形によらず同じに通る
+- D-18（指揮の agent 既定〈PLAN-W5 評価〉）: 依存レーン（S5-gate・S5-crosscut・S5-challenge）の Produces（testid・録画名・型名）を写す箇所は各計画の最新版に揃える。S5-crosscut T13 はゲーム寿命の型から `Dispose` を外すので、Task 3 のテスト 2・3 は `PauseMenuScreenPresenter.Dispose()` を呼ばない（残っていれば呼ぶ分岐を Task 0 Step 3 に置く）。S5-challenge の視点の保持の形（訪れたカテゴリごとに `NodeGraphView` を 1 本控えて付け替え、置き場の子は表示中のカテゴリの 1 本だけ。S5-challenge 計画 R-4）は、このレーンが読む testid（`challenge-panel`・`challenge-category-<guid>`・`challenge-node-<guid>`）と開閉だけに触れ、木の中のグラフが常に 1 本なので `root.Q("challenge-node-<guid>")` は表示中のカードだけを引く。ラダー 6 は最初のカテゴリしか訪れないので形によらず同じに通る。S5-gate の運転役の武装の語は `exhibition-armed`（S5-gate 計画 Task 7 の起動口）
 - D-19（指揮の agent 既定〈PLAN-W5 評価〉）: 並走の I-fix5（`LocalizedLabel.text` が行送りの印を前に付け、テストは `LabelPlainText.PlainText()` で読む）と I-fix6（配送と書き出しの行が `LocalizedLabel`）は、取り込み後の名前で書き（Task 3 の読みは `.PlainText()`、ラダー 6 は `SourceText` から印を外す）、未マージなら Task 0 Step 1 の読み替えで `.text` に戻す
 - D-20（指揮の agent 既定〈PLAN-W5 評価〉）: D-14（束 1 の画質の連続操作のテストが本番で落ちる見込み）は条件付きの要裁定のまま残す（実物の同期の連鎖を確かめるまで決めない）
 - unityプレイ録画テスト: 含む（Task 5・6・9・10）
