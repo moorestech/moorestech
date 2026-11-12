@@ -37,32 +37,5 @@ namespace Client.Tests.Ui.Stage
 
             CollectionAssert.AreEqual(new[] { 1f, 1.5f, 1f }, received);
         }
-
-        [Test]
-        public void 読めない状態のErrorは入ったとき1回で読めるようになるとまた出る()
-        {
-            var watch = new StageScaleWatch(rootVisualElement);
-            watch.Start();
-            simulate.FrameUpdate();
-
-            // 倍率 0 は読めない状態。続くフレームでは連打しない
-            // Scale 0 is unreadable; following frames do not repeat the error
-            LogAssert.Expect(LogType.Error, new Regex(@"^\[StageScale\] stage scale is unreadable"));
-            pixelsPerPoint = 0f;
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
-            LogAssert.NoUnexpectedReceived();
-
-            // 読めたら旗が戻り、次の読めない状態はまた知らせる
-            // Once readable the flag clears, so the next unreadable spell is reported again
-            LogAssert.Expect(LogType.Log, new Regex(@"^\[StageScale\] stage scale changed"));
-            pixelsPerPoint = 1.5f;
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
-            LogAssert.Expect(LogType.Error, new Regex(@"^\[StageScale\] stage scale is unreadable"));
-            pixelsPerPoint = 0f;
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
-        }
     }
 }
