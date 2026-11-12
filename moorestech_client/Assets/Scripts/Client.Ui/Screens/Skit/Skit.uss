@@ -35,8 +35,8 @@
 /* Half the gap, 3.77px, comes off the top and bottom margins so the glyph and the rule land where the Web half-leading puts them (re-measure if the font size or font changes) */
 .skit-screen .skit-window__speaker {
     margin: 0;
-    margin-top: 4.23px; /* web: --skit-window-edge-safe-area 8px − 3.77px */
-    margin-bottom: -3.77px;
+    margin-top: var(--skit-speaker-margin-top);
+    margin-bottom: var(--skit-speaker-half-leading-trim);
     padding: 0;
     padding-left: var(--skit-window-content-inset);
     padding-right: var(--skit-rule-inset);

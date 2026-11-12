@@ -4,4 +4,8 @@
     /* 選択肢を押している間の面。Web の color-mix(in srgb, var(--gauge-track), var(--select-cyan) 35%) = rgba(6, 97, 119, 0.87) */
     /* The choice face while pressed; Web color-mix(in srgb, var(--gauge-track), var(--select-cyan) 35%) = rgba(6, 97, 119, 0.87) */
     --skit-choice-active-face: rgba(6, 97, 119, 0.87);
+    /* 1 行の話者の字形の既定の行高 41.97px と Web の line-height 34.44px の差の半分（実測。字の大きさ・フォントを変えたら測り直す） */
+    /* Half the gap between the one-line speaker's glyph default line height 41.97px and the Web line-height 34.44px (measured; re-measure if the font size or font changes) */
+    --skit-speaker-half-leading-trim: -3.77px;
+    --skit-speaker-margin-top: 4.23px; /* calc: var(--skit-window-edge-safe-area) + var(--skit-speaker-half-leading-trim) */
 }
