@@ -32,8 +32,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 
         private static T PresentValue<T>(SectionContent<T> entry)
         {
-            Assert.IsTrue(entry.IsPresent, "取得済みの欄である");
-            return entry.Value;
+            Assert.IsTrue(entry.TryGetPresent(out var value), "取得済みの欄である");
+            return value;
         }
 
         private static BlockInfoFetchState UnavailableState<T>(SectionContent<T> entry)
@@ -130,9 +130,9 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         {
             Assert.AreEqual(BlockInfoFetchState.NotFetched, UnavailableState(ContextViewConversion.Stall(BlockInfoFetchState.NotFetched, null)));
             var stalled = ContextViewConversion.Stall(Fetched, new MachineInputStalledView(new MachineInputStallMessagePack(MachineInputStallReasonKind.AboveCraftCap, 5)));
-            Assert.IsTrue(stalled.IsPresent);
-            Assert.AreEqual(MachineInputStallReasonKind.AboveCraftCap, stalled.Value.Reason);
-            Assert.AreEqual(new ItemId(5), stalled.Value.WaitingItemId);
+            Assert.IsTrue(stalled.TryGetPresent(out var stall));
+            Assert.AreEqual(MachineInputStallReasonKind.AboveCraftCap, stall.Reason);
+            Assert.AreEqual(new ItemId(5), stall.WaitingItemId);
             Assert.IsTrue(ContextViewConversion.Stall(Fetched, MachineInputNotStalledView.Instance).IsAbsent);
         }
 

@@ -5,6 +5,7 @@ using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Mooresmaster.Localization.Generated;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Context
@@ -31,7 +32,14 @@ namespace Client.Ui.Screens.BlockInventory.Context
                 _unavailable.RenderInto(this, fetchState);
                 return;
             }
-            var lines = CleanRoomYieldLogic.Lines(entry.Value);
+            // 取得不可でも在るでもない（欄が無い）まま届くのは結線の誤りなので知らせて戻る
+            // Neither unavailable nor present (absent) means a wiring mistake, so report it and return
+            if (!entry.TryGetPresent(out var detail))
+            {
+                Debug.LogError("[CleanRoomYieldSectionView] Render called with an absent entry; the caller must hide absent sections");
+                return;
+            }
+            var lines = CleanRoomYieldLogic.Lines(detail);
             var rows = new List<VisualElement>();
             for (var i = 0; i < lines.Count; i++)
             {

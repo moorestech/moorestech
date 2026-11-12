@@ -64,9 +64,9 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         {
             // 描いてから出す
             // Draw before showing; hide without drawing when not a machine
-            var machine = _machine.Current.Value;
-            if (machine.IsPresent) _view.Render(machine.Value, _mode.ShowsSelection(machine.Value));
-            _isApplicable.Value = machine.IsPresent;
+            var present = _machine.Current.Value.TryGetPresent(out var machine);
+            if (present) _view.Render(machine, _mode.ShowsSelection(machine));
+            _isApplicable.Value = present;
         }
     }
 }

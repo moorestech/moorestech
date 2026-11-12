@@ -59,8 +59,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
             var block = MachineBlockWith(MachineTestDetails.MachineBlock, 0.25f);
             _harness.Track(block);
             _panel.Value = MachinePanel(MachineTestDetails.DefaultInstanceId);
-            Assert.IsTrue(_model.Current.Value.IsPresent);
-            Assert.AreEqual(0.25f, _model.Current.Value.Value.Detail.Progress, 1e-6);
+            Assert.IsTrue(_model.Current.Value.TryGetPresent(out var before));
+            Assert.AreEqual(0.25f, before.Detail.Progress, 1e-6);
 
             // 本番では alpha の Model が状態変化でパネルを組み直す
             // In production alpha's model rebuilds the panel on state changes
@@ -68,7 +68,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
             _harness.NotifyStateChanged();
             _panel.Value = MachinePanel(MachineTestDetails.DefaultInstanceId);
 
-            Assert.AreEqual(0.75f, _model.Current.Value.Value.Detail.Progress, 1e-6);
+            Assert.IsTrue(_model.Current.Value.TryGetPresent(out var after));
+            Assert.AreEqual(0.75f, after.Detail.Progress, 1e-6);
         }
 
         [Test]

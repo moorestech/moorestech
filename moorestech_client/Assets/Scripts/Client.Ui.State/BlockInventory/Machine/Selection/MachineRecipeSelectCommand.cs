@@ -39,7 +39,7 @@ namespace Client.Ui.State.BlockInventory.Machine.Selection
 
             // 選択中と同じレシピは送らず受理
             // The already-selected recipe is accepted unsent, as Web onSelect; the mode closes on the request match
-            if (_machine.Current.Value.IsPresent && _machine.Current.Value.Value.Detail.Selection.Matches(recipeGuid)) return UiCommandAccepted.Instance;
+            if (_machine.Current.Value.TryGetPresent(out var machine) && machine.Detail.Selection.Matches(recipeGuid)) return UiCommandAccepted.Instance;
 
             // 応答はネットワーク由来なので null も拒否として扱う（Web ホストと同じ判定。例外は捕まえない）
             // The response comes from the network, so null also counts as a rejection (same check as the Web host; no exception is caught)

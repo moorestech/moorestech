@@ -42,8 +42,9 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 
                 // 描いてから出す
                 // Draw before showing; hide without drawing when there is no value
-                if (content.IsPresent) _view.Render(content.Value);
-                _isApplicable.Value = content.IsPresent;
+                var present = content.TryGetPresent(out var value);
+                if (present) _view.Render(value);
+                _isApplicable.Value = present;
             }
 
             #endregion

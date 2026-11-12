@@ -38,7 +38,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Common
 
             Assert.IsFalse(content.IsAbsent);
             Assert.IsTrue(content.IsPresent);
-            Assert.AreEqual(7, content.Value);
+            Assert.IsTrue(content.TryGetPresent(out var value));
+            Assert.AreEqual(7, value);
             Assert.IsFalse(content.TryGetUnavailable(out _));
         }
 

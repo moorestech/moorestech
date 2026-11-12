@@ -84,7 +84,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 // Opening the first machine shows its section and value
                 await OpenSubInventory(uiStateControl, first);
                 var firstPanel = await WaitMachinePresent(machine, panels);
-                Assert.Less(0, machine.Current.Value.Value.Rows.Count, "解放済みのレシピの行が無い");
+                Assert.IsTrue(machine.Current.Value.TryGetPresent(out var firstMachine));
+                Assert.Less(0, firstMachine.Rows.Count, "解放済みのレシピの行が無い");
                 Assert.IsTrue(IsMachineSectionShown(), "機械の区画が画面に出ていない");
 
                 // 開き直しで前の機械の値が残らない
@@ -92,7 +93,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var secondState = await BlockSubInventoryOpener.Open(second);
                 var secondPanel = await WaitMachinePresent(machine, panels);
                 Assert.AreNotEqual(firstPanel.BlockInstanceId, secondPanel.BlockInstanceId);
-                Assert.AreEqual(secondPanel.BlockInstanceId, machine.Current.Value.Value.BlockInstanceId, "前の機械の値が残っている");
+                Assert.IsTrue(machine.Current.Value.TryGetPresent(out var secondMachine));
+                Assert.AreEqual(secondPanel.BlockInstanceId, secondMachine.BlockInstanceId, "前の機械の値が残っている");
                 Assert.IsTrue(IsMachineSectionShown(), "開き直した機械の区画が画面に出ていない");
 
                 // 閉じると区画の値を手放す
@@ -153,7 +155,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
         {
             for (var i = 0; i < 300; i++)
             {
-                if (panels.Current.Value is OpenBlockInventoryPanel panel && machine.Current.Value.IsPresent && machine.Current.Value.Value.IsFor(panel)) return panel;
+                if (panels.Current.Value is OpenBlockInventoryPanel panel && machine.Current.Value.TryGetPresent(out var present) && present.IsFor(panel)) return panel;
                 await UniTask.Yield();
             }
             Assert.Fail("開いた機械の区画の値が届かない");

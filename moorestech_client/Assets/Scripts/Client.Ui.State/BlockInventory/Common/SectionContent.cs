@@ -8,7 +8,7 @@ namespace Client.Ui.State.BlockInventory.Common
     /// </summary>
     public readonly struct SectionContent<T>
     {
-        public readonly T Value;
+        private readonly T _value;
         private readonly SectionContentKind _kind;
         private readonly BlockInfoFetchState _fetchState;
 
@@ -21,13 +21,21 @@ namespace Client.Ui.State.BlockInventory.Common
         private SectionContent(SectionContentKind kind, T value, BlockInfoFetchState fetchState)
         {
             _kind = kind;
-            Value = value;
+            _value = value;
             _fetchState = fetchState;
         }
 
         public static SectionContent<T> Absent => new(SectionContentKind.Absent, default, default);
         public static SectionContent<T> Present(T value) => new(SectionContentKind.Present, value, default);
         public static SectionContent<T> Unavailable(BlockInfoFetchState fetchState) => new(SectionContentKind.Unavailable, default, fetchState);
+
+        // 在るときだけ値を渡す（Present 以外で値を読む書き方を作らない）
+        // Hands out the value only when present (no way to read it otherwise)
+        public bool TryGetPresent(out T value)
+        {
+            value = _value;
+            return _kind == SectionContentKind.Present;
+        }
 
         // 照会が取れていないなら取得状態を返す（「取得できません」の行の文を選ぶため）
         // Returns the fetch state when the query is unavailable (to pick the unavailable line's text)
