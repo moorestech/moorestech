@@ -75,6 +75,22 @@ class DesignTranscriptTest(unittest.TestCase):
         self.assertEqual(self.check(), 1)
 
 
+class DesignTranscriptFormatVariantsTest(unittest.TestCase):
+    def test_bold_and_heading_variants_are_all_transcribed(self):
+        # 統合報告の実物にある書式の揺れ（太字の閉じ位置・太字なし・見出しの空白と括弧書き）
+        # Format variants seen in real integrated reports
+        text = ("## 採用 Critical（自動適用可）\n\n### C1. a\n- 適用区分: 自動適用\n\n"
+                "## 採用 Critical（設計判断）\n\n### C2. b\n- **適用区分: 設計判断**\n\n### C3. c\n- 適用区分: 設計判断\n\n"
+                "## 設計判断（ユーザーへ上げるもの）\n\n- D1. x\n")
+        sys.path.insert(0, str(SCRIPTS))
+        import design_from_integrated as d
+        part = d.transcribed_part(text)
+        self.assertIn("### C2. b", part)
+        self.assertIn("### C3. c", part)
+        self.assertNotIn("### C1.", part)
+        self.assertIn("- D1. x", part)
+
+
 class DependencyChangesTest(unittest.TestCase):
     def test_added_asmdef_reference_is_listed(self):
         patch = """diff --git a/S/Game.World/Game.World.asmdef b/S/Game.World/Game.World.asmdef

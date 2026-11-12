@@ -37,7 +37,9 @@ APPEND_HEADING = "## apply で追加した設計判断"
 CRITICAL_HEADING = "## 採用Critical のうち適用区分=設計判断"
 DESIGN_HEADING = "## 設計判断"
 EMPTY_MARK = "なし"
-DESIGN_CLASS_RE = re.compile(r"\*\*適用区分\*\*\s*[:：]\s*設計判断")
+# 太字の有無・閉じ位置の揺れ（**適用区分**: / **適用区分: / 適用区分:）をすべて拾う
+# Accept every bold variant the integrator emits
+DESIGN_CLASS_RE = re.compile(r"\**適用区分\**\s*[:：]\s*\**\s*設計判断")
 
 
 def split_sections(text: str) -> dict[str, str]:
@@ -71,12 +73,20 @@ def design_class_criticals(body: str) -> list[str]:
     return [b for b in picked if DESIGN_CLASS_RE.search(b)]
 
 
+def sections_with_prefix(sections: dict[str, str], prefix: str) -> list[str]:
+    # 「## 採用 Critical（自動適用可）」のような空白・括弧書きの揺れも同じ節として集める
+    # Collect headings that only differ by spaces or a parenthesised suffix
+    return [body for name, body in sections.items() if name.replace(" ", "").startswith(prefix)]
+
+
 def transcribed_part(integrated_text: str) -> str:
     sections = split_sections(integrated_text)
-    if "採用Critical" not in sections and "設計判断" not in sections:
+    critical_bodies = sections_with_prefix(sections, "採用Critical")
+    design_bodies = sections_with_prefix(sections, "設計判断")
+    if not critical_bodies and not design_bodies:
         raise ValueError("integrated.md に「## 採用Critical」「## 設計判断」のどちらも無い")
-    criticals = design_class_criticals(sections.get("採用Critical", ""))
-    design = sections.get("設計判断", "").strip() or EMPTY_MARK
+    criticals = [b for body in critical_bodies for b in design_class_criticals(body)]
+    design = "\n\n".join(b.strip() for b in design_bodies if b.strip()) or EMPTY_MARK
     lines = [
         "# design.md",
         "",
