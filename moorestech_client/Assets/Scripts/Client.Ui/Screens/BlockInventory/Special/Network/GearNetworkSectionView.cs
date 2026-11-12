@@ -16,7 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
     /// 歯車網の集約と停止理由の区画（Web GearNetworkSection）
     /// Gear network aggregate and stop reason section (Web GearNetworkSection)
     /// </summary>
-    public sealed class GearNetworkSectionView : VisualElement, ISpecialDetailRenderer
+    public sealed class GearNetworkSectionView : VisualElement, ISpecialSectionRenderer<GearNetworkDetail>
     {
         private readonly UiStack _stack = new(UiGap.Px2);
         private readonly LackHighlightText _summary;
@@ -34,16 +34,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             Add(_stack);
         }
 
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, GearNetworkDetail network)
         {
-            // Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので、無いのは表と View の結線の誤り。隠れたまま古い値を残さず知らせる
-            // The Presenter calls only when SpecialDetailVisibility is true (detail present), so a missing detail is a table/View wiring mistake; report it instead of leaving stale values
-            if (!detail.TryGetGearNetwork(out var network))
-            {
-                UnityEngine.Debug.LogError("[GearNetworkSectionView] Render called without gear-network detail; SpecialDetailVisibility and the view disagree");
-                return;
-            }
-
             // 止まっていれば理由の文を不足色で足す
             // Add the reason sentence in the shortage color when stopped
             _summary.Render(SpecialDetailTexts.GearNetworkSummary(network), false);

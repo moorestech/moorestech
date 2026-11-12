@@ -3,7 +3,7 @@ using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Special.Network;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
-using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Selectors;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
 using Mooresmaster.Localization.Generated;
@@ -24,6 +24,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         private readonly BlockItemGrid _output;
         private readonly SpaceElevatorSectionView _section;
         private readonly ElectricNetworkSectionView _network = new();
+        private readonly ElectricNetworkDetailSelector _networkSelector = new();
         private readonly UiStack _stack = new(UiGap.Sm);
 
         public SpaceElevatorBodyView(SpecialViewKit kit)
@@ -58,10 +59,10 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             }
             _section.Render(detail);
 
-            // 電力網の区画は Stack の項目なので State の表で決めて SetItemShown で出し入れする（直に display を触ると先頭の間隔がずれる。D-23）
-            // The network section is a Stack item, so decide with the State table and toggle via SetItemShown (touching display directly skews the leading gap. D-23)
-            var showsNetwork = SpecialDetailVisibility.Shows(SpecialDetailSection.ElectricNetwork, detail);
-            if (showsNetwork) _network.Render(itemSlots, detail);
+            // 電力網の区画は Stack の項目なので selector で決めて SetItemShown で出し入れする（直に display を触ると先頭の間隔がずれる。D-23）
+            // The network section is a Stack item, so decide with the selector and toggle via SetItemShown (touching display directly skews the leading gap. D-23)
+            var showsNetwork = _networkSelector.TryGet(detail, out var network);
+            if (showsNetwork) _network.Render(itemSlots, network);
             _stack.SetItemShown(_network, showsNetwork);
         }
     }

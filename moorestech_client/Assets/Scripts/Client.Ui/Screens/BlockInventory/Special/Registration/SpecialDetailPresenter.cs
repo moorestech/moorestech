@@ -10,13 +10,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Special.Registration
 {
     /// <summary>
-    /// S4-alpha の本文・題の操作・区画の口を 1 つで実装する Presenter。Attach から Detach まで、同じパネルの枠と特殊族の詳細の Model を購読して View へ流し、区画の出し入れを IsApplicable で知らせる
-    /// Presenter implementing S4-alpha's body, title-action and section ports in one; from Attach to Detach it streams the same panel's slots and the special detail model into the view and reports section visibility through IsApplicable
+    /// S4-alpha の本文・題の操作の口を実装する Presenter（常に出す View 用）。Attach から Detach まで、同じパネルの枠と特殊族の詳細の Model を購読して View へ流し、区画の出し入れを IsApplicable で知らせる
+    /// Presenter implementing S4-alpha's body and title-action ports (for always-shown views); from Attach to Detach it streams the same panel's slots and the special detail model into the view and reports visibility through IsApplicable
     /// </summary>
     public sealed class SpecialDetailPresenter : IBlockInventorySection
     {
         private readonly ISpecialDetailRenderer _view;
-        private readonly SpecialDetailSection _section;
         private readonly ISpecialBlockDetailModel _model;
         private readonly IBlockInventoryPanelSource _panels;
         private readonly ReactiveProperty<bool> _isApplicable = new(false);
@@ -25,23 +24,17 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         public VisualElement Root { get; private set; }
         public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;   // 型を狭める公開（前例 alpha の SectionStackItemGridSection）
 
-        public SpecialDetailPresenter(VisualElement root, ISpecialDetailRenderer view, SpecialDetailSection section, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)
+        public SpecialDetailPresenter(VisualElement root, ISpecialDetailRenderer view, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)
         {
             Root = root;
             _view = view;
-            _section = section;
             _model = model;
             _panels = panels;
         }
 
         public void Attach(OpenBlockInventoryPanel panel)
         {
-            // 同じパネルの枠の変化と、パネルの組み直しの外で届く詳細（網の集約・ベルトの統計）の両方で描き直す
-            // Redraw on both slot changes of the same panel and details arriving outside panel rebuilds (network totals, belt stats)
-            _panels.Current
-                .Where(current => IsSame(current, panel))
-                .Select(current => ((OpenBlockInventoryPanel)current).ItemSlots)
-                .CombineLatest(_model.Current, (slots, detail) => (slots, detail))
+            SpecialDetailStream.Of(_panels, _model, panel)
                 .Subscribe(pair => Draw(pair.slots, pair.detail))
                 .AddTo(_subscriptions);
 
@@ -49,17 +42,10 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
 
             void Draw(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
             {
-                // 出すかは描く前に State の表で決め、描いてから IsApplicable で親へ知らせる（区画は自分の display を触らない。D-23）
-                // Decide showing from the State table before drawing, then report it via IsApplicable after drawing (sections never touch their own display. D-23)
-                var shows = SpecialDetailVisibility.Shows(_section, detail);
-                if (shows) _view.Render(itemSlots, detail);
-                _isApplicable.Value = shows;
-            }
-
-            bool IsSame(BlockInventoryPanelState current, OpenBlockInventoryPanel attached)
-            {
-                // silent-ok: 別のパネルへ替わる途中の値は描かない / alpha の BodyHost が同じフレームで Detach して新しい部分を作る（前例 alpha の SectionStackItemGridSection）
-                return current is OpenBlockInventoryPanel open && open.IsSamePanel(attached);
+                // 本文と題の操作は詳細の未着でも常に出す。描いてから IsApplicable で親へ知らせる（区画は自分の display を触らない。D-23）
+                // Body and title action always show, even before the detail arrives; report it via IsApplicable after drawing (sections never touch their own display. D-23)
+                _view.Render(itemSlots, detail);
+                _isApplicable.Value = true;
             }
 
             #endregion

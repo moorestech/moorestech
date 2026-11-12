@@ -1,6 +1,6 @@
 using System;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
-using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Selectors;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Game.Block.Interface.State;
 using NUnit.Framework;
@@ -8,40 +8,49 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 特殊族の区画の表示条件の表（DC-35）
-    /// Table of special section visibility (DC-35)
+    /// 特殊族の区画の selector の L0（出る条件は自分の詳細があるときだけ。DC-35・D-19）
+    /// L0 of the special section selectors (a section shows only with its own detail; DC-35, D-19)
     /// </summary>
-    public class SpecialDetailVisibilityTest
+    public class SpecialDetailSelectorTest
     {
-        // 区画は自分の詳細があるときだけ出る
-        // A section shows only with its own detail
-        [TestCase(SpecialDetailSection.Gear, "empty", false)]
-        [TestCase(SpecialDetailSection.Gear, "gear", true)]
-        [TestCase(SpecialDetailSection.Gear, "allButGear", false)]
-        [TestCase(SpecialDetailSection.GearToElectric, "empty", false)]
-        [TestCase(SpecialDetailSection.GearToElectric, "gearToElectric", true)]
-        [TestCase(SpecialDetailSection.GearToElectric, "allButGearToElectric", false)]
-        [TestCase(SpecialDetailSection.ElectricNetwork, "empty", false)]
-        [TestCase(SpecialDetailSection.ElectricNetwork, "electricNetwork", true)]
-        [TestCase(SpecialDetailSection.ElectricNetwork, "allButElectricNetwork", false)]
-        [TestCase(SpecialDetailSection.GearNetwork, "empty", false)]
-        [TestCase(SpecialDetailSection.GearNetwork, "gearNetwork", true)]
-        [TestCase(SpecialDetailSection.GearNetwork, "allButGearNetwork", false)]
-        // 本文と題の操作は未着でも出す
-        // Body and title action show before detail arrives
-        [TestCase(SpecialDetailSection.Body, "empty", true)]
-        [TestCase(SpecialDetailSection.Body, "everything", true)]
-        [TestCase(SpecialDetailSection.TitleAction, "empty", true)]
-        [TestCase(SpecialDetailSection.TitleAction, "everything", true)]
-        public void 区画ごとの出る条件は今と同じ(SpecialDetailSection section, string detail, bool expected)
+        [TestCase("empty", false)]
+        [TestCase("gear", true)]
+        [TestCase("allButGear", false)]
+        public void 歯車の区画は歯車の詳細があるときだけ取れる(string detail, bool expected)
         {
-            Assert.AreEqual(expected, SpecialDetailVisibility.Shows(section, Detail(detail)));
+            Assert.AreEqual(expected, new GearDetailSelector().TryGet(Detail(detail), out _));
+        }
+
+        [TestCase("empty", false)]
+        [TestCase("gearToElectric", true)]
+        [TestCase("allButGearToElectric", false)]
+        public void 回転発電機の区画は回転発電機の詳細があるときだけ取れる(string detail, bool expected)
+        {
+            Assert.AreEqual(expected, new GearToElectricDetailSelector().TryGet(Detail(detail), out _));
+        }
+
+        [TestCase("empty", false)]
+        [TestCase("electricNetwork", true)]
+        [TestCase("allButElectricNetwork", false)]
+        public void 電力網の区画は電力網の詳細があるときだけ取れる(string detail, bool expected)
+        {
+            Assert.AreEqual(expected, new ElectricNetworkDetailSelector().TryGet(Detail(detail), out _));
+        }
+
+        [TestCase("empty", false)]
+        [TestCase("gearNetwork", true)]
+        [TestCase("allButGearNetwork", false)]
+        public void 歯車網の区画は歯車網の詳細があるときだけ取れる(string detail, bool expected)
+        {
+            Assert.AreEqual(expected, new GearNetworkDetailSelector().TryGet(Detail(detail), out _));
         }
 
         [Test]
-        public void 未知の区画は例外()
+        public void 取れた詳細は詳細の中身そのもの()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => SpecialDetailVisibility.Shows((SpecialDetailSection)99, SpecialBlockDetailViewModel.Empty));
+            var expected = SpecialDetailSamples.GearMachineGear;
+            Assert.IsTrue(new GearDetailSelector().TryGet(SpecialDetailSamples.Only(expected), out var gear));
+            Assert.AreSame(expected, gear);
         }
 
         private static SpecialBlockDetailViewModel Detail(string kind)

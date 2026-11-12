@@ -18,7 +18,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
     /// 回転発電機の区画。状態の行はホバーで計測時期を説明し、停止は不足トーン（Web GearToElectricSection）
     /// GearToElectric section; the state row explains measurement timing on hover and a stop uses the shortage tone (Web GearToElectricSection)
     /// </summary>
-    public sealed class GearToElectricSectionView : VisualElement, ISpecialDetailRenderer
+    public sealed class GearToElectricSectionView : VisualElement, ISpecialSectionRenderer<GearToElectricDetail>
     {
         private readonly LackHighlightText _state = new("gear-to-electric-state", LackHighlightTextSize.Sm);
         private readonly LocalizedLabel _supplied = SpecialViewParts.Label("gear-to-electric-supplied-power", UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
@@ -35,16 +35,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             Add(stack);
         }
 
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, GearToElectricDetail generator)
         {
-            // Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので、無いのは表と View の結線の誤り。隠れたまま古い値を残さず知らせる
-            // The Presenter calls only when SpecialDetailVisibility is true (detail present), so a missing detail is a table/View wiring mistake; report it instead of leaving stale values
-            if (!detail.TryGetGearToElectric(out var generator))
-            {
-                UnityEngine.Debug.LogError("[GearToElectricSectionView] Render called without gear-to-electric detail; SpecialDetailVisibility and the view disagree");
-                return;
-            }
-
             // 状態の文と不足トーンは L0 の表で決める
             // The state sentence and shortage tone come from the L0 table
             var display = BlockDetailStateDisplay.GearToElectric(generator.State);

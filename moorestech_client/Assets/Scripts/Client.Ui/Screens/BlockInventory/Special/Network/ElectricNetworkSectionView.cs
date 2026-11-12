@@ -16,7 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
     /// 電力網の集約の区画。消費者 0 は「需要なし」、他は集約の 1 行（Web ElectricNetworkSection）
     /// Electric network aggregate section; zero consumers shows "no demand", otherwise one summary row (Web ElectricNetworkSection)
     /// </summary>
-    public sealed class ElectricNetworkSectionView : VisualElement, ISpecialDetailRenderer
+    public sealed class ElectricNetworkSectionView : VisualElement, ISpecialSectionRenderer<ElectricNetworkDetail>
     {
         private readonly UiStack _stack = new(UiGap.Px2);
         private readonly LocalizedLabel _noDemand;
@@ -35,16 +35,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             Add(_stack);
         }
 
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, ElectricNetworkDetail network)
         {
-            // Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので、無いのは表と View の結線の誤り。隠れたまま古い値を残さず知らせる
-            // The Presenter calls only when SpecialDetailVisibility is true (detail present), so a missing detail is a table/View wiring mistake; report it instead of leaving stale values
-            if (!detail.TryGetElectricNetwork(out var network))
-            {
-                UnityEngine.Debug.LogError("[ElectricNetworkSectionView] Render called without electric-network detail; SpecialDetailVisibility and the view disagree");
-                return;
-            }
-
             var noDemand = network.ConsumerCount == 0;
             _stack.SetItemShown(_noDemand, noDemand);
             _stack.SetItemShown(_summary, !noDemand);
