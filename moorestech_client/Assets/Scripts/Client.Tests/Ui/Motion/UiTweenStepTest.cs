@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Motion
 {
     /// <summary>
-    /// 段階3以降で使う translateX・scrollOffset の補間ステップが、進捗どおりの値を要素へ書くことを確かめる（L1）
-    /// Verifies the translate and scrollOffset tween steps used from stage 3 write values that follow the progress onto the element (L1)
+    /// 補間ステップが進捗どおり値を書く（L1）
+    /// Tween steps write progress values (L1)
     /// </summary>
     public class UiTweenStepTest : UiTestHost
     {

@@ -97,8 +97,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             LogAssert.NoUnexpectedReceived();
         }
 
-        // 枠外の落としも Drop へ渡り、何も起きないことは HotbarDropResolverTest が固定する（D-11）
-        // An outside drop also reaches Drop; HotbarDropResolverTest pins that nothing happens (D-11)
+        // 枠外も Drop へ渡る（D-11）
+        // Outside drops also reach Drop (D-11)
         [Test]
         public void 受け口でない落とし先へ落とすと選択も削除もせず枠外への落としを渡す()
         {

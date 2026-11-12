@@ -7,8 +7,8 @@ using Client.Ui.State.Hotbar.Logic;
 namespace Client.Ui.State.Hotbar
 {
     /// <summary>
-    /// ホットバーの操作の本番の実装。選択の受理は HotbarSelectRule、落としの結果は HotbarDropResolver が決め、割当の変更は ClientHotbarDatastore へ積む
-    /// Production hotbar operations; HotbarSelectRule decides select acceptance, HotbarDropResolver decides drop outcomes, and assignment changes go to ClientHotbarDatastore
+    /// ホットバー操作の本番実装
+    /// Production hotbar operations
     /// </summary>
     public sealed class HotbarCommands : IHotbarCommands
     {

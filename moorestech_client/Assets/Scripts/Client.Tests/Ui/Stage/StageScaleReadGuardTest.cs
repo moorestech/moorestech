@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Stage
 {
     /// <summary>
-    /// 倍率が読めない異常は入ったとき 1 回、回復で旗が戻る（L0。StageScaleWatch と SlotFrameRing が共有）
-    /// An unreadable scale is reported once on entry and recovery clears the flag (L0; shared by StageScaleWatch and SlotFrameRing)
+    /// 倍率の異常は入口で 1 回、回復で旗が戻る
+    /// Scale anomaly once on entry; recovery clears flag
     /// </summary>
     public class StageScaleReadGuardTest
     {

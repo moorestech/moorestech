@@ -46,7 +46,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
             // 採掘中の品の並びが同じ間は行を残して毎分だけ描き直す（採掘中は毎 tick 届くので要素を捨てない。D-37）
             // Keep the rows and redraw only the rate while the mined items are the same (updates arrive every tick while mining; D-37)
-            if (!_rows.HasSameKeys(ItemIds())) Rebuild();
+            if (_rows.ClearIfKeysChanged(ItemIds())) Rebuild();
             for (var i = 0; i < _rows.Count; i++) _rows.RowAt(i).Render(detail.MiningItems[i].ItemsPerMinute);
 
             #region Internal
@@ -61,7 +61,6 @@ namespace Client.Ui.Screens.BlockInventory.Family
             void Rebuild()
             {
                 _items.ClearItems();
-                _rows.Clear();
                 foreach (var item in detail.MiningItems)
                 {
                     // Web の採掘機の ItemSlot は testid を持たないが、UITK の枠は名前が要るので録画・テストの照準用に付ける

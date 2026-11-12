@@ -48,8 +48,8 @@ namespace Client.Tests.Ui.State.Train.Timetable
             Assert.IsFalse(factory.TryCreate(broken, Stations, out _));
             LogAssert.NoUnexpectedReceived();
 
-            // 正常な時刻表で旗が戻り、次の異常はまた出る
-            // A healthy timetable clears the flag, so the next anomaly is reported again
+            // 正常で旗が戻り、次の異常は再び出る
+            // Healthy clears flag; next anomaly reports again
             Assert.IsTrue(factory.TryCreate(Snapshot(StopAt(TrainTestData.North.Position)), Stations, out _));
             LogAssert.Expect(LogType.Error, new Regex(@"\[TrainTimetableModel\] discarding timetable with unknown side"));
             Assert.IsFalse(factory.TryCreate(broken, Stations, out _));

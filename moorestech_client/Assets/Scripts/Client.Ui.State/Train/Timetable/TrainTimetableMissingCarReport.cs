@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 開いた貨車のスナップショットが欠けている異常を、同じ貨車の間は 1 回だけ警告する
-    /// Warns once about a missing car snapshot while the same car stays missing
+    /// 貨車の欠けを同じ間 1 回だけ警告する
+    /// Warns once while the same car stays missing
     /// </summary>
     public sealed class TrainTimetableMissingCarReport
     {
@@ -17,11 +17,11 @@ namespace Client.Ui.State.Train.Timetable
             if (_gate.ShouldReport(message)) Debug.LogWarning(message);
         }
 
-        // 欠けが解けた・貨車を開いていない間は旗を戻し、回復後の同じ異常をもう一度出せるようにする
-        // Clear the flag once the car resolves or none is open so the same anomaly is reported again after recovery
+        // 欠けが解けたら旗を戻し再警告に備える
+        // Clear flag on recovery so it warns again
         public void Clear()
         {
-            _gate.ShouldReport(null);
+            _gate.Clear();
         }
     }
 }

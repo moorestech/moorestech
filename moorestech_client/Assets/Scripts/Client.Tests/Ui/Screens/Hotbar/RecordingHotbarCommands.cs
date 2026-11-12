@@ -7,8 +7,8 @@ using Client.Ui.State.Hotbar.Logic;
 namespace Client.Tests.Ui.Screens.Hotbar
 {
     /// <summary>
-    /// 呼ばれた操作を文字列で記録する。落としは源と先の組だけを記録し、結果は HotbarDropResolverTest が固定する
-    /// Records the called operations as strings; a drop records only the source and target pair, whose outcome HotbarDropResolverTest pins
+    /// 呼ばれた操作を文字列で記録する
+    /// Records called operations as strings
     /// </summary>
     public sealed class RecordingHotbarCommands : IHotbarCommands
     {

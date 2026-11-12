@@ -6,8 +6,8 @@ using UniRx;
 namespace Client.Ui.State.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の行の区画の値の流れ。液体と機械のどちらの通知でも FluidRowVisibility で同じ判断をやり直す（購読の寿命は購読した側が持つ）
-    /// Value stream of the fluid-row section; redoes the same FluidRowVisibility decision on either fluid or machine updates (the subscriber owns the lifetime)
+    /// 液体の行区画の値の流れ。どちらの通知でも判断し直す
+    /// Fluid-row values; redecide on either update
     /// </summary>
     public sealed class FluidRowSectionSource : IObservable<SectionContent<BlockFluidSlotsViewModel>>
     {
@@ -22,8 +22,8 @@ namespace Client.Ui.State.BlockInventory.Fluid
 
         public IDisposable Subscribe(IObserver<SectionContent<BlockFluidSlotsViewModel>> observer)
         {
-            // 2 本を別々に購読し、どちらの通知でも今の 2 値で組み直す
-            // Subscribe to both separately and rebuild from the current two values on either
+            // 2 本を別購読し今の 2 値で組み直す
+            // Subscribe separately; rebuild from both values
             var subscriptions = new CompositeDisposable();
             _fluids.Current.Subscribe(_ => observer.OnNext(Content())).AddTo(subscriptions);
             _machine.Current.Subscribe(_ => observer.OnNext(Content())).AddTo(subscriptions);

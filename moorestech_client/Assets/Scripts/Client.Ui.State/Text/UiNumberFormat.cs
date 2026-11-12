@@ -38,45 +38,39 @@ namespace Client.Ui.State.Text
             return sign + digits.Substring(0, digits.Length - decimals) + "." + digits.Substring(digits.Length - decimals);
         }
 
-        // サーバーの float を Web と同じ値の double にする（Newtonsoft の最短表記を JS が double で読む経路）
-        // Turns a server float into the double the Web sees (shortest-form text parsed as a JS double)
+        // サーバー float を Web と同じ double に
+        // Turn a server float into the Web's double
         public static double FromServerFloat(float value)
         {
-            if (float.IsNaN(value) || float.IsInfinity(value) || value == 0) return value;
-            for (var precision = 1; precision <= 9; precision++)
-            {
-                var text = value.ToString("E" + (precision - 1), CultureInfo.InvariantCulture);
-                if (float.Parse(text, CultureInfo.InvariantCulture) == value) return double.Parse(text, CultureInfo.InvariantCulture);
-            }
-            // float は 9 桁で必ず往復するのでここへは来ない
-            // A float always round-trips within 9 digits, so this is unreachable
-            throw new InvalidOperationException($"float {value:R} did not round-trip within 9 digits");
+            return double.Parse(value.ToString("R", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
         }
 
-        // JS の String(number): 整数は小数点なし、他は最短の往復表記、1e21 以上と 1e-7 未満は「1e+21」「1e-7」の指数表記
-        // JS String(number): integers without a decimal point, others shortest round-trip, exponent form "1e+21" / "1e-7" from 1e21 up and below 1e-6
+        // JS String(number) の書式（指数表記を含む）
+        // JS String(number) format incl. exponent form (1e21 up, below 1e-6)
         public static string JsString(double value)
         {
             if (double.IsNaN(value)) return "NaN";
             if (double.IsInfinity(value)) return 0 < value ? "Infinity" : "-Infinity";
             if (value == 0) return "0";
 
-            // 最短で往復できる有効桁を探し、桁列と「値 = 桁列 × 10^(n-k)」の n を得る
-            // Find the shortest round-trip digits, then n where value = digits x 10^(n-k)
+            // 最短の往復桁と n を求める
+            // Find shortest round-trip digits and n
             var magnitude = Math.Abs(value);
             var text = "";
             for (var precision = 1; precision <= 17; precision++)
             {
                 text = magnitude.ToString("E" + (precision - 1), CultureInfo.InvariantCulture);
-                if (double.Parse(text, CultureInfo.InvariantCulture) == magnitude) break;
+                // 型の最大値を越える候補は Parse が例外を投げるので、往復しない扱いで次の桁へ進む
+                // A candidate past the type maximum makes Parse throw, so treat it as not round-tripping and try more digits
+                if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) && parsed == magnitude) break;
             }
             var exponentIndex = text.IndexOf('E');
             var digits = text.Substring(0, exponentIndex).Replace(".", "");
             var n = int.Parse(text.Substring(exponentIndex + 1), CultureInfo.InvariantCulture) + 1;
             var k = digits.Length;
 
-            // JS Number::toString の分岐（21 桁まで素の整数、-6 まで素の小数、他は指数）
-            // The JS Number::toString branches: plain integer up to 21 digits, plain decimal down to -6, exponent otherwise
+            // JS の toString の分岐
+            // The JS Number::toString branches
             var sign = value < 0 ? "-" : "";
             if (k <= n && n <= 21) return sign + digits + new string('0', n - k);
             if (0 < n && n <= 21) return sign + digits.Substring(0, n) + "." + digits.Substring(n);

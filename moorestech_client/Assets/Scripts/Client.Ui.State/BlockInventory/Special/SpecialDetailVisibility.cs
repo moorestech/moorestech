@@ -4,8 +4,8 @@ using Client.Ui.State.BlockInventory.Special.Details;
 namespace Client.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 特殊族の区画を出すか（Web の各 Section が null を返す条件）。区画は詳細が届いたときだけ、本文と題の操作は常に出す（中身の出し入れは View が持つ）
-    /// Whether a special-family section shows (the condition each Web Section returns null on); sections only with their detail, bodies and the title action always (their inner toggles stay in the view)
+    /// 特殊族の区画を出すか。区画は詳細が届いたときだけ
+    /// Whether a special section shows; only with its detail
     /// </summary>
     public static class SpecialDetailVisibility
     {

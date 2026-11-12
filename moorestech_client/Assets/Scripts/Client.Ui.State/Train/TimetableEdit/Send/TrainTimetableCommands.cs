@@ -58,8 +58,8 @@ namespace Client.Ui.State.Train.TimetableEdit.Send
             if (response == null || !response.Success) return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainAutoRunFailed, response == null ? "no response" : response.FailureReason.ToString());
             if (response.AppliedIsAutoRun == enabled) return UiCommandAccepted.Instance;
 
-            // 適用された値は wire に載せず診断としてトースト係のログ 1 行に出す（Web ホストの set_auto_run_not_applied:<値> と同じ情報）
-            // The applied value stays off the wire and rides as the diagnostic in the toaster's one log line (same information as the Web host's set_auto_run_not_applied:<value>)
+            // 適用値は wire でなく診断へ
+            // Applied value goes to diagnostic, not the wire
             return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainAutoRunNotApplied, $"applied {response.AppliedIsAutoRun}, requested {enabled}");
         }
     }

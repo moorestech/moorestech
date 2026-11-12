@@ -86,8 +86,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         [Test]
         public void 材料不足で建造の合図が断られると失敗コードを添えてトーストする()
         {
-            // Web の bridge/transport/actions.ts と同じく、トーストに失敗コードが出る（A-261）
-            // Like the Web bridge/transport/actions.ts, the toast shows the failure code (A-261)
+            // トーストに失敗コードが出る（A-261）
+            // Toast shows the failure code (A-261)
             var action = Mount(new RocketLaunchPadTitleActionView(Kit(null)));
             action.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(RocketLaunchPadPhase.AwaitingBuildCommand)));
             simulate.FrameUpdate();

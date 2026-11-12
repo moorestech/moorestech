@@ -3,8 +3,8 @@ using Client.Game.InGame.BlockInfoPolling;
 namespace Client.Ui.State.BlockInventory.Common
 {
     /// <summary>
-    /// 区画（文脈の 1 欄を含む）の値の 3 状態: 無し・照会が取れていない（取得状態つき）・在る。無しは null にしない
-    /// Three states of a section's value (context entries included): absent, unavailable (with the fetch state) or present; absence is never null
+    /// 区画の値の 3 状態: 無し・取得不可・在る
+    /// Section value: absent, unavailable or present (absent is never null)
     /// </summary>
     public readonly struct SectionContent<T>
     {
@@ -14,8 +14,8 @@ namespace Client.Ui.State.BlockInventory.Common
 
         public bool IsPresent => _kind == SectionContentKind.Present;
 
-        // 欄ごと出さないか（「取得できません」の行も出さない）
-        // Whether the whole entry is hidden (no unavailable line either)
+        // 欄ごと隠すか（取得不可の行も出さない）
+        // Whether the whole entry is hidden
         public bool IsAbsent => _kind == SectionContentKind.Absent;
 
         private SectionContent(SectionContentKind kind, T value, BlockInfoFetchState fetchState)

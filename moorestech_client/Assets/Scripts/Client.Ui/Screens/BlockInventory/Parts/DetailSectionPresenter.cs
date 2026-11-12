@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Parts
 {
     /// <summary>
-    /// 区画の値の流れを 1 View へ流す汎用 Presenter（族の詳細・液体の区画が共有する）。値が在るときだけ描いて出し、無ければ隠す
-    /// Generic presenter feeding one stream of section values into one view (shared by family details and fluid sections); draws and shows only when present, hidden otherwise
+    /// 区画の値の流れを 1 View へ流す Presenter
+    /// Generic presenter feeding section values into one view
     /// </summary>
     public sealed class DetailSectionPresenter<T> : IBlockInventorySection
     {

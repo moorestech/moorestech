@@ -7,8 +7,8 @@ using UniRx;
 namespace Client.Ui.State.BlockInventory.Fluid
 {
     /// <summary>
-    /// 液体の詳細の区画の値の流れ。液体が 1 件以上あるときだけ在る（機械かどうかは見ない。Web と同じ）
-    /// Value stream of the fluid-details section; present only with at least one fluid (machine-ness is ignored, as Web)
+    /// 液体の詳細区画の値の流れ。液体が 1 件以上で在る
+    /// Fluid-details values; present with 1+ fluids
     /// </summary>
     public sealed class FluidDetailsSectionSource : IObservable<SectionContent<IReadOnlyList<BlockFluidSlotState>>>
     {

@@ -39,7 +39,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
             if (block == null)
             {
-                _gearAnomalyGate.ShouldReport(null);
+                _gearAnomalyGate.Clear();
                 _current.Value = SectionContent<MinerDetail>.Absent;
                 return;
             }
@@ -52,14 +52,15 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 採掘機でない・状態詳細が揃う前は区画が無い（Web ホストと同じ） / 状態詳細の更新で組み直す
             if (miner == null || common == null || param is not IMinerParam minerParam)
             {
-                _gearAnomalyGate.ShouldReport(null);
+                _gearAnomalyGate.Clear();
                 _current.Value = SectionContent<MinerDetail>.Absent;
                 return;
             }
-            // 歯車駆動の異常は、同じ間は 1 回だけ出す
-            // Report a gear-drive anomaly once while it persists
+            // 歯車の異常は同じ間 1 回だけ出す
+            // Report gear anomaly once while it persists
             var gear = GearDriveConversion.Read(block, param);
-            if (_gearAnomalyGate.ShouldReport(gear.Anomaly)) Debug.LogError($"[MinerDetailModel] {gear.Anomaly}; treated as electric like the Web host");
+            var anomaly = gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
+            if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MinerDetailModel] {anomaly}; treated as electric like the Web host");
             _current.Value = SectionContent<MinerDetail>.Present(FamilyDetailConversion.Miner(miner, common, minerParam, gear.IsGearDriven));
         }
     }

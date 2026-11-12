@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// JS の数値書式（toFixed(0)・toPrecision(2)）を Web と同じ文字にする
-    /// Formats numbers exactly like JS toFixed(0) and toPrecision(2)
+    /// JS の数値書式を Web と同じ文字にする
+    /// Format numbers like JS toFixed/toPrecision
     /// </summary>
     public class JsNumberTextTest
     {

@@ -63,8 +63,8 @@ namespace Client.Tests.Ui.State
         [Test]
         public void RejectedWithDiagnosticLogsReasonCodeAndDiagnosticInOneLine()
         {
-            // 診断はログだけに載り、Web へ返す失敗コードは理由の既定のまま（A-260）
-            // The diagnostic rides only in the log; the wire code stays the reason's code (A-260)
+            // 診断はログだけに載る（A-260）
+            // Diagnostic rides only in the log (A-260)
             var rejected = UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainStationNameFailed, "DuplicateName");
             Assert.AreEqual(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.TrainStationNameFailed), rejected.ToWireCode());
             LogAssert.Expect(LogType.Warning, $"[UiCommandResultToaster] train_station.set_name failed: {rejected.ToWireCode()} (DuplicateName)");
@@ -76,8 +76,8 @@ namespace Client.Tests.Ui.State
         [Test]
         public void SpecialBlockFailureToastShowsTheFailureCode()
         {
-            // 特殊族の失敗は文言の {code} に失敗コードが入る。枠の無い文言は余った引数を使わない（A-261）
-            // A special block failure fills {code} with the failure code; texts without the slot ignore the extra param (A-261)
+            // 失敗コードが {code} に入る
+            // Failure code fills {code} (A-261)
             LogAssert.Expect(LogType.Warning, "[UiCommandResultToaster] rocket_launch_pad.command failed: rocket_command_missing_materials");
             _toaster.Report("rocket_launch_pad.command", UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockRequestFailed, "rocket_command_missing_materials"));
             Assert.AreEqual(1, _shown.Count);

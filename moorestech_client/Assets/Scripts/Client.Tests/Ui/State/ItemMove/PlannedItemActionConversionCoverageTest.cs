@@ -8,8 +8,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.ItemMove
 {
     /// <summary>
-    /// PlannedItemAction の全 Kind が、プレイヤー側とブロック側の 2 つの Conversion のどちらか 1 つへ必ず写ることを列挙で固定する（L0。DC-36）
-    /// Pins by enumeration that every PlannedItemAction kind maps to exactly one of the two conversions, player side or block side (L0; DC-36)
+    /// 全 Kind は 2 Conversion のどちらかへ写る
+    /// Every kind maps to one of two conversions (DC-36)
     /// </summary>
     public class PlannedItemActionConversionCoverageTest
     {
@@ -18,8 +18,8 @@ namespace Client.Tests.Ui.State.ItemMove
         {
             var planned = PlannedActionOfEveryKind();
 
-            // 全 Kind の計画を作れていること（Kind を足して下の表を足し忘れたらここで落ちる）
-            // Every kind has a plan (adding a kind without extending the table below fails here)
+            // 全 Kind の計画を作れていること
+            // Every kind has a plan
             foreach (PlannedItemActionKind kind in Enum.GetValues(typeof(PlannedItemActionKind)))
             {
                 Assert.IsTrue(planned.ContainsKey(kind), $"no plan built for {kind}");

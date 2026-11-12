@@ -5,15 +5,15 @@ using Client.Ui.State.Toast;
 namespace Client.Ui.Screens.BlockInventory.Parts
 {
     /// <summary>
-    /// ブロックの枠の押下を型付きコマンドへ写し、結果をトーストへ渡す（Web useBlockSlotGestures。BlockItemGrid と機械の帯が共有する）
-    /// Maps block slot gestures onto typed block commands and reports the result to the toaster (Web useBlockSlotGestures; shared by BlockItemGrid and the machine bands)
+    /// 枠の押下を型付きコマンドへ写しトーストへ渡す
+    /// Maps slot gestures to commands and toasts the result
     /// </summary>
     public static class BlockSlotGestureCommands
     {
         public static void Run(IBlockSlotCommands commands, UiCommandResultToaster toaster, int blockSlot, SlotGesture gesture)
         {
-            // ブロックの枠は押下・右押下・ダブルクリックだけ（Web と同じ）
-            // Block slots react to press, right press and double click only (same as the Web)
+            // 押下・右押下・ダブルクリックだけ反応する
+            // React to press, right press, double click only
             switch (gesture.Kind)
             {
                 case SlotGestureKind.LeftDown:

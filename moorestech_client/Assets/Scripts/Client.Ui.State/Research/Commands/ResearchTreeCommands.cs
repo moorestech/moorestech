@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Ui.State.Research.Commands
 {
     /// <summary>
-    /// 研究ツリー操作の本番実装。研究の結果は返すだけで、トーストは呼び手の View が出す（A-262）
-    /// Production research tree operations; the research result is only returned and the calling view toasts it (A-262)
+    /// 研究ツリー操作の本番実装（A-262）
+    /// Production research tree operations (A-262)
     /// </summary>
     public sealed class ResearchTreeCommands : IResearchTreeCommands
     {
@@ -43,8 +43,8 @@ namespace Client.Ui.State.Research.Commands
             return ToCommandResult(response, _store, researchGuid);
         }
 
-        // 応答を状態へ反映し結果へ写す（送信境界の外の L0 が通る口）
-        // Applies the response states and maps it to a result (the seam L0 tests drive past the send boundary)
+        // 応答を状態へ反映し結果へ写す
+        // Apply the response to state and map to a result
         internal static UiCommandResult ToCommandResult(CompleteResearchProtocol.ResponseCompleteResearchMessagePack response, ResearchNodeStateStore store, Guid researchGuid)
         {
             // 応答なしは失敗として扱う

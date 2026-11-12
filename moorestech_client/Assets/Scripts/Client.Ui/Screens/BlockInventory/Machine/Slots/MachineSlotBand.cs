@@ -40,7 +40,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
         {
             // 加工中は状態更新が毎 tick 届くので、番地が変わったときだけ作り直す（ダブルクリックの数え直しを防ぐ）
             // Updates arrive every tick while processing, so rebuild only when the indices change (avoids resetting the double-click count)
-            if (!_slots.HasSameKeys(BoundIndices())) Rebuild();
+            if (_slots.ClearIfKeysChanged(BoundIndices())) Rebuild();
             for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(MachineSlotContents.For(BlockSlotIndexReader.Read(itemSlots, _slots.KeyAt(i), nameof(MachineSlotBand), _slotTestidPrefix), bound[i], showsRequirement, _content));
 
             #region Internal
@@ -55,7 +55,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
             void Rebuild()
             {
                 Grid.ClearItems();
-                _slots.Clear();
                 _subscriptions.Clear();
                 for (var position = 0; position < bound.Count; position++)
                 {

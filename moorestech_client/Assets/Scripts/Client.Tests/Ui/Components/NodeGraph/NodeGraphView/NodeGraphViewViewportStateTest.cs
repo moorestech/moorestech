@@ -1,38 +1,32 @@
-using System.Collections.Generic;
 using Client.Ui.Components.NodeGraph;
 using NUnit.Framework;
-using UniRx;
 using UnityEngine;
 
 namespace Client.Tests.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ビューポートの保持・初回の中央寄せ・ホイールの基準・寸法の追従（Web TreeViewViewportState.test.ts の 1〜6 件目の写し）
-    /// Viewport holding, initial centering, wheel anchoring and resize-follow (copy of tests 1–6 of the Web TreeViewViewportState.test.ts)
+    /// 視点の保持・中央寄せ・ホイール基準・寸法追従
+    /// Viewport holding, centering, wheel anchor, resize-follow
     /// </summary>
     /// <remarks>
-    /// Web の viewportKey ごとの Map（セッション内の保持）は、UITK では画面が最初に 1 回作った View を出し入れすることで同じ寿命になる。ここでは View を隠して戻す役で写す
-    /// The Web per-viewportKey Map (in-session holding) has the same lifetime in UITK because the screen shows and hides the one View it built; here that is played by hiding and re-showing the View
+    /// Web の Map は View の出し入れで写す
+    /// Web Map is played by hiding and re-showing the View
     /// </remarks>
     public class NodeGraphViewViewportStateTest : NodeGraphTestStage
     {
         /// <web-test file="src/shared/treeView/TreeViewViewportState.test.ts">restores the panned viewport after unmount and remount with the same key</web-test>
         [Test]
-        public void 隠して戻してもパンしたビューポートのままで何も流れない()
+        public void 隠して戻してもパンしたビューポートのまま()
         {
             var host = MountHost(400f, 300f);
             var view = MountView(host);
-            var emitted = new List<NodeGraphViewport>();
-            view.OnViewportChanged.Subscribe(emitted.Add);
             view.SetGraph(OneNode(NodeGraphFocus.None));
             simulate.FrameUpdate();
             Drag(ContentOrigin(view) + new Vector2(10f, 10f), new Vector2(10f, 5f));
-            var emittedBeforeHide = emitted.Count;
-            Assert.Greater(emittedBeforeHide, 0, "panning emits the viewport");
+            AssertViewport(10f, 5f, 1f, ReadViewport(view));
 
             HideAndShow(host, 300f);
             AssertViewport(10f, 5f, 1f, ReadViewport(view));
-            Assert.AreEqual(emittedBeforeHide, emitted.Count, "hide and show emit nothing");
         }
 
         /// <web-test file="src/shared/treeView/TreeViewViewportState.test.ts">keeps the restored viewport across a size change</web-test>

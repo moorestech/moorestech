@@ -46,8 +46,8 @@ namespace Client.Ui.Components.Slots
             {
                 // 読めないときは前の形のまま（LogError は Reader が出す）
                 // Keep the previous shape when unreadable (the Reader logs the error)
-                // 倍率は先に読む。他の読み口が失敗しても回復の旗戻しを見逃さない
-                // Read the scale first so a failure in another reader never hides the flag reset on recovery
+                // 倍率を先に読み、旗戻しを見逃さない
+                // Read scale first so flag reset is not missed
                 if (!TryReadScale(out var pixelsPerPoint)) return;
                 if (!TryReadGrowsInward(out var growsInward)) return;
                 // 全層を読み切ってから書く。途中で読めない層があっても帯が新旧混在で残らない
@@ -80,8 +80,8 @@ namespace Client.Ui.Components.Slots
 
             bool TryReadScale(out float scale)
             {
-                // 倍率は StageScaleMeasure だけが読む。読めない間は前の形のまま、入ったときに 1 回だけ知らせ、回復で旗を戻す
-                // Only StageScaleMeasure reads the scale; keep the previous shape while unreadable, report once on entry, and clear the flag on recovery
+                // 倍率は Measure だけが読む
+                // Only StageScaleMeasure reads the scale; warn once on entry
                 return _scaleReadGuard.TryRead(panel, "SlotFrameRing", "the bevel bands keep their previous shape", out scale);
             }
 

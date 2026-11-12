@@ -12,8 +12,8 @@ namespace Client.Ui.State.Research.Commands
     {
         void ToggleNodeSelection(Guid researchGuid);
         void CloseDetail();
-        // 結果を返すだけで、トーストへは呼び手の View が渡す（A-262）
-        // Only returns the result; the calling view hands it to the toaster (A-262)
+        // 結果を返すだけ。トーストは View（A-262）
+        // Only returns the result; the view toasts it (A-262)
         UniTask<UiCommandResult> CompleteResearch(Guid researchGuid);
     }
 }

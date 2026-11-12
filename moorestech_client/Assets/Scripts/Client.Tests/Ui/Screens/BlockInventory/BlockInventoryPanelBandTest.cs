@@ -48,18 +48,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Chest()), new FakeLargePanelRule(true));
             simulate.FrameUpdate();
 
-            // 安全帯（上の padding + 下 70）より低く縮める。入ったフレームで 1 回
-            // Shrink below the safe areas (top padding + 70 bottom); one warning on entry
+            // 安全帯より低く縮め、入口で 1 回
+            // Shrink below safe area; once on entry
             shell.Stage.style.height = 40f;
             LogAssert.Expect(LogType.Warning, new Regex("below the safe areas"));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
+            LogAssert.NoUnexpectedReceived();
 
-            // さらに縮めても同じ異常なので出ない（未期待のログがあれば失敗する）
-            // Shrinking further is the same anomaly, so nothing more is logged (an unexpected log fails the test)
+            // さらに縮めても同じ異常なので出ない（Warning は未期待でも自動では落ちないので明示して確かめる）
+            // Shrinking further is the same anomaly, so nothing more is logged (a Warning does not fail the test by itself, so check explicitly)
             shell.Stage.style.height = 30f;
             simulate.FrameUpdate();
             simulate.FrameUpdate();
+            LogAssert.NoUnexpectedReceived();
 
             // 回復で旗が戻り、再び狭めると出る
             // Recovery clears the flag, and narrowing again warns again
@@ -70,6 +72,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             LogAssert.Expect(LogType.Warning, new Regex("below the safe areas"));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
+            LogAssert.NoUnexpectedReceived();
         }
     }
 }

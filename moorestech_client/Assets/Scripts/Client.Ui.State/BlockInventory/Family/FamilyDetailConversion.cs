@@ -16,8 +16,8 @@ namespace Client.Ui.State.BlockInventory.Family
     {
         public static MinerDetail Miner(CommonMinerBlockStateDetail miner, CommonMachineBlockStateDetail common, IMinerParam param, bool gearDriven)
         {
-            // 1 個あたりの秒を毎分にし採掘中の品だけ並べる
-            // Convert seconds per item to per-minute, mined items only
+            // 毎分にして採掘中の品だけ並べる
+            // Per-minute, mined items only
             var items = new List<MinerMiningItem>();
             if (0 < miner.MiningSeconds)
             {

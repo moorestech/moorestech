@@ -73,8 +73,8 @@ namespace Client.Ui.State.Train.Timetable
 
         private TrainTimetableViewState NoTrainOpen()
         {
-            // 貨車を開いていない間は欠けの旗を戻し、回復後の同じ異常をもう一度出せるようにする
-            // Clear the missing-car flag while no car is open so the same anomaly is reported again after recovery
+            // 貨車が無い間は旗を戻し再警告に備える
+            // Clear flag while no car so it warns again
             _missingCarReport.Clear();
             return TrainTimetableViewState.Unavailable;
         }

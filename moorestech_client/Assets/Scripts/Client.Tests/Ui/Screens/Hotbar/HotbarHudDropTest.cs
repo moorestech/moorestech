@@ -86,8 +86,8 @@ namespace Client.Tests.Ui.Screens.Hotbar
             CollectionAssert.AreEqual(new[] { $"entry:{EntryId:D}->gap" }, _commands.Calls);
         }
 
-        // 画面の左上に本物のエントリの源を単独で置く（パネル越しの結線は S3-ladder。計画 D-16）
-        // Put the real entry source alone at the top-left (wiring through the panel is S3-ladder; plan D-16)
+        // 左上に本物のエントリ源を単独で置く
+        // Put the real entry source alone at top-left
         private VisualElement MountEntryAlone(RecordingBuildMenuEntryHandler entryHandler)
         {
             var entry = new VisualElement { name = "build-menu-entry-alone" };

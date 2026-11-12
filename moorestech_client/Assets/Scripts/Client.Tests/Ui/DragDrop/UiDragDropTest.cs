@@ -92,8 +92,8 @@ namespace Client.Tests.Ui.DragDrop
         [Test]
         public void 源と違う型の落とし先は飛ばして同じ型の祖先へ落とす()
         {
-            // 別の型だけの印を持つ枠は、同じ型の祖先（列）へ落ちる
-            // A slot marked only with another type falls through to the same-type ancestor (the row)
+            // 別の型の印は同型の祖先へ落ちる
+            // Another-type mark falls to same-type ancestor
             var otherSlot = AddSlotMarkedWith(new OtherKindDropTarget());
 
             Press(_source.worldBound.center, otherSlot.worldBound.center);

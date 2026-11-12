@@ -1,8 +1,8 @@
 namespace Client.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 特殊族の View が占める場所。出る条件は SpecialDetailVisibility がこの値ごとに決める
-    /// Where a special-family view sits; SpecialDetailVisibility decides the showing condition per value
+    /// 特殊族 View の場所。出す条件は別クラス
+    /// Special view slot; showing is decided elsewhere
     /// </summary>
     public enum SpecialDetailSection
     {

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Client.Ui.Screens.BlockInventory.Parts.Rows
 {
     /// <summary>
-    /// 鍵の列が同じ間は行（枠）を残して中身だけ差し替える並びの比較 1 本（採掘機・ポンプの毎分の行、ブロックの枠の並びが共有する。D-37）
-    /// The single keyed-list comparison that keeps rows (slots) while the key sequence is unchanged and only swaps contents (shared by miner/pump per-minute rows and block slot lists; D-37)
+    /// 鍵列が同じ間は行を残し中身だけ差し替える（D-37）
+    /// Keeps rows while keys match; swaps contents only (D-37)
     /// </summary>
     public sealed class KeyedRowList<TKey, TRow>
     {
@@ -23,9 +23,19 @@ namespace Client.Ui.Screens.BlockInventory.Parts.Rows
             return _rows[index];
         }
 
-        // 件数と添字ごとの鍵の一致で比べる（同じ鍵が並んでも添字で見る）
-        // Compare by count and per-index key equality (duplicate keys are told apart by index)
-        public bool HasSameKeys(IReadOnlyList<TKey> keys)
+        // 鍵の並びが変わったときだけ行を空にして true を返す（呼び手は true のときだけ作り直す。空にし忘れて鍵が積み増されるのを防ぐ）
+        // Empties the rows and returns true only when the key sequence changed (callers rebuild only on true; avoids forgetting to clear and piling up keys)
+        public bool ClearIfKeysChanged(IReadOnlyList<TKey> keys)
+        {
+            if (HasSameKeys(keys)) return false;
+            _keys.Clear();
+            _rows.Clear();
+            return true;
+        }
+
+        // 件数と添字ごとの鍵で比べる
+        // Compare by count and per-index key
+        private bool HasSameKeys(IReadOnlyList<TKey> keys)
         {
             if (keys.Count != _keys.Count) return false;
             var comparer = EqualityComparer<TKey>.Default;
@@ -34,12 +44,6 @@ namespace Client.Ui.Screens.BlockInventory.Parts.Rows
                 if (!comparer.Equals(keys[i], _keys[i])) return false;
             }
             return true;
-        }
-
-        public void Clear()
-        {
-            _keys.Clear();
-            _rows.Clear();
         }
 
         public void Add(TKey key, TRow row)

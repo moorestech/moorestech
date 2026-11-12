@@ -44,8 +44,8 @@ namespace Client.Ui.State.PauseMenu
         {
             if (delivery is PlaytestDeliveryAllSent) return new UiText(LocalizationKeys.Ui.BugReport.DeliveryAllSent);
 
-            // 在庫の読みの 2 種で行を組み、失敗件数があれば末尾へ足す
-            // Compose the line per inventory-read kind, appending the failed count when present
+            // 読みの 2 種で行を組み失敗件数を足す
+            // Compose per read kind; append failed count
             var parts = new List<UiText>();
             switch (InventoryOf(delivery))
             {
@@ -62,28 +62,18 @@ namespace Client.Ui.State.PauseMenu
             return UiText.Join(Separator, parts);
         }
 
-        // Idle は行なし。呼ぶ側が HasExportLine で先に絞る
-        // Idle has no line; callers filter with HasExportLine first
-        public static bool HasExportLine(PlaytestExportStatus export)
+        // Idle は false、他は line を入れ true
+        // Idle returns false; others set line and return true
+        public static bool TryDescribeExport(PlaytestExportStatus export, out UiText line)
         {
+            line = null;
             switch (export)
             {
                 case PlaytestExportIdle _: return false;
-                case PlaytestExportRunning _:
-                case PlaytestExportFailed _:
-                case PlaytestExportDone _: return true;
+                case PlaytestExportRunning _: line = new UiText(LocalizationKeys.Ui.BugReport.ExportRunning); return true;
+                case PlaytestExportFailed failed: line = new UiText(LocalizationKeys.Ui.BugReport.ExportFailed, Params(("reason", failed.Reason))); return true;
+                case PlaytestExportDone done: line = DescribeExportDone(done); return true;
                 default: throw new ArgumentOutOfRangeException(nameof(export), export, "[BugReportFormText] unknown export status");
-            }
-        }
-
-        public static UiText DescribeExport(PlaytestExportStatus export)
-        {
-            switch (export)
-            {
-                case PlaytestExportRunning _: return new UiText(LocalizationKeys.Ui.BugReport.ExportRunning);
-                case PlaytestExportFailed failed: return new UiText(LocalizationKeys.Ui.BugReport.ExportFailed, Params(("reason", failed.Reason)));
-                case PlaytestExportDone done: return DescribeExportDone(done);
-                default: throw new ArgumentOutOfRangeException(nameof(export), export, "[BugReportFormText] export status has no line; check HasExportLine first");
             }
         }
 

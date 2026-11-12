@@ -5,8 +5,8 @@ using Client.Ui.State.Text;
 namespace Client.Ui.State.BlockInventory.Special.Text
 {
     /// <summary>
-    /// 特殊区画の文に入れる数値の JS の書式（toFixed(0)・toPrecision(2)）の写し。String(number) と float 補正は UiNumberFormat
-    /// Port of the JS number formats of the special-section sentences: toFixed(0) and toPrecision(2); String(number) and float correction live in UiNumberFormat
+    /// 特殊区画の文の JS 数値書式の写し
+    /// Port of JS number formats for special sentences
     /// </summary>
     public static class JsNumberText
     {

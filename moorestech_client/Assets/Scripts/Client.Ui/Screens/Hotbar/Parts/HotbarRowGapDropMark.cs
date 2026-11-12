@@ -16,8 +16,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
             _commands = commands;
         }
 
-        // 隙間は枠外（解除）と別の先として渡し、何が起きるかは HotbarDropResolver が決める
-        // Pass the gap as a target distinct from outside (clear); HotbarDropResolver decides the outcome
+        // 隙間は枠外と別の先で渡し結果は Resolver が決める
+        // Pass the gap apart from outside; Resolver decides
         public void Receive(HotbarDragSource source)
         {
             _commands.Drop(source, HotbarRowGapDropTarget.Instance);

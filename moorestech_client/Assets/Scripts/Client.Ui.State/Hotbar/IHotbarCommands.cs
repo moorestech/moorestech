@@ -11,8 +11,8 @@ namespace Client.Ui.State.Hotbar
     {
         UiCommandResult Select(int slotIndex);
 
-        // 落としはすべてここを通り、何が起きるかは HotbarDropResolver が決める（印や源は判断しない）
-        // Every drop goes through here and HotbarDropResolver decides the outcome (marks and sources never decide)
+        // 落としは全部ここを通り結果は Resolver が決める
+        // Every drop passes here; Resolver decides the outcome
         void Drop(HotbarDragSource source, HotbarDropTarget target);
     }
 }

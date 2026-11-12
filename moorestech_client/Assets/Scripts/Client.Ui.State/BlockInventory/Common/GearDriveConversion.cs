@@ -17,15 +17,15 @@ namespace Client.Ui.State.BlockInventory.Common
 
         public static GearDriveReading Read(GearStateDetail gear, object param)
         {
-            // 歯車の詳細が無ければ電力駆動、役割はサーバーの GearStateDetail.Role に従う
-            // No gear state detail means electric; the role follows the server-sent GearStateDetail.Role
-            if (gear == null) return new GearDriveReading(GearDriveKind.Electric, null, null);
-            if (gear.Role == GearRole.Generator) return new GearDriveReading(GearDriveKind.Generator, null, null);
+            // 詳細が無ければ電力駆動
+            // No detail means electric
+            if (gear == null) return GearDriveReading.Electric();
+            if (gear.Role == GearRole.Generator) return GearDriveReading.Generator();
 
-            // 消費側なのに消費の param が無いのはマスタの食い違い
-            // A consumer without a consumption param is a master mismatch
-            if (param is IGearConsumptionParam consumption) return new GearDriveReading(GearDriveKind.Consumer, consumption, null);
-            return new GearDriveReading(GearDriveKind.InconsistentConsumer, null, $"Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam");
+            // 消費側の param 無しは食い違い
+            // Consumer without param is a master mismatch
+            if (param is IGearConsumptionParam consumption) return GearDriveReading.Consumer(consumption);
+            return GearDriveReading.InconsistentConsumer($"Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam");
         }
     }
 
@@ -40,22 +40,56 @@ namespace Client.Ui.State.BlockInventory.Common
     public readonly struct GearDriveReading
     {
         public readonly GearDriveKind Kind;
-        // 消費側の消費の値。Consumer 以外は null
-        // The consumer's consumption param; null unless Consumer
-        public readonly IGearConsumptionParam ConsumptionParam;
-        // 異常の文面。InconsistentConsumer 以外は null
-        // Anomaly text; null unless InconsistentConsumer
-        public readonly string Anomaly;
+        private readonly IGearConsumptionParam _consumptionParam;
+        private readonly string _anomaly;
 
-        // 歯車で動くか（食い違いは Web と同じく電力扱い）
-        // Whether gear-driven (a mismatch counts as electric, as on the Web)
+        // 歯車駆動か（食い違いは電力扱い）
+        // Gear-driven? (mismatch counts as electric)
         public bool IsGearDriven => Kind == GearDriveKind.Generator || Kind == GearDriveKind.Consumer;
 
-        internal GearDriveReading(GearDriveKind kind, IGearConsumptionParam consumptionParam, string anomaly)
+        // 種別ごとの値は factory だけが組むので、種別と値の矛盾した組は作れない
+        // Only the factories build the per-kind values, so a kind can never pair with the wrong values
+        private GearDriveReading(GearDriveKind kind, IGearConsumptionParam consumptionParam, string anomaly)
         {
             Kind = kind;
-            ConsumptionParam = consumptionParam;
-            Anomaly = anomaly;
+            _consumptionParam = consumptionParam;
+            _anomaly = anomaly;
+        }
+
+        public static GearDriveReading Electric()
+        {
+            return new GearDriveReading(GearDriveKind.Electric, null, null);
+        }
+
+        public static GearDriveReading Generator()
+        {
+            return new GearDriveReading(GearDriveKind.Generator, null, null);
+        }
+
+        public static GearDriveReading Consumer(IGearConsumptionParam consumptionParam)
+        {
+            return new GearDriveReading(GearDriveKind.Consumer, consumptionParam, null);
+        }
+
+        public static GearDriveReading InconsistentConsumer(string anomaly)
+        {
+            return new GearDriveReading(GearDriveKind.InconsistentConsumer, null, anomaly);
+        }
+
+        // 消費側のときだけ消費の値を返す
+        // Returns the consumption param only for a consumer
+        public bool TryGetConsumption(out IGearConsumptionParam consumptionParam)
+        {
+            consumptionParam = _consumptionParam;
+            return Kind == GearDriveKind.Consumer;
+        }
+
+        // 食い違いのときだけ異常の文面を返す
+        // Returns the anomaly text only for a mismatch
+        public bool TryGetAnomaly(out string anomaly)
+        {
+            anomaly = _anomaly;
+            return Kind == GearDriveKind.InconsistentConsumer;
         }
     }
 }

@@ -30,8 +30,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
 
         public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // silent-ok: Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので無いのは届かない / 区画が隠れることを L0 SpecialDetailVisibilityTest と L1 が見る
-            if (!detail.TryGetGear(out var gear)) return;
+            // Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので、無いのは表と View の結線の誤り。隠れたまま古い値を残さず知らせる
+            // The Presenter calls only when SpecialDetailVisibility is true (detail present), so a missing detail is a table/View wiring mistake; report it instead of leaving stale values
+            if (!detail.TryGetGear(out var gear))
+            {
+                UnityEngine.Debug.LogError("[GearSectionView] Render called without gear detail; SpecialDetailVisibility and the view disagree");
+                return;
+            }
             var rows = GearRowDisplay.From(gear);
             _torque.SetText(rows.Torque);
             _rpm.SetText(rows.Rpm);

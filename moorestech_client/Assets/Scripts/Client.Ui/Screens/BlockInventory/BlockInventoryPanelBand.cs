@@ -65,8 +65,8 @@ namespace Client.Ui.Screens.BlockInventory
             var style = _stage.resolvedStyle;
             var band = style.height - style.paddingTop - _menuLower;
 
-            // 舞台が安全帯より狭いと帯が負になる。負の高さは当てず 0 で止め、狭すぎることを入ったときに 1 回だけ Warning で知らせ、回復で旗を戻す
-            // A stage narrower than the safe areas makes the band negative; clamp to 0 and warn once on entry, clearing the flag on recovery
+            // 帯が負なら 0 で止め入口で警告
+            // Clamp negative band to 0; warn once on entry
             if (band < 0)
             {
                 if (!_stageTooSmallReported) UnityEngine.Debug.LogWarning($"[BlockInventoryPanelBand] stage height {style.height} is below the safe areas (top {style.paddingTop}, bottom {_menuLower}); band clamped to 0");

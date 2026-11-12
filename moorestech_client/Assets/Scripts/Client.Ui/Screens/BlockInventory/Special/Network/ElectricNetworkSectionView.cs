@@ -37,8 +37,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
 
         public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // silent-ok: 呼び手（Presenter・包む本文）は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので無いのは届かない / 区画が隠れることを L0 SpecialDetailVisibilityTest と L1 が見る
-            if (!detail.TryGetElectricNetwork(out var network)) return;
+            // Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので、無いのは表と View の結線の誤り。隠れたまま古い値を残さず知らせる
+            // The Presenter calls only when SpecialDetailVisibility is true (detail present), so a missing detail is a table/View wiring mistake; report it instead of leaving stale values
+            if (!detail.TryGetElectricNetwork(out var network))
+            {
+                UnityEngine.Debug.LogError("[ElectricNetworkSectionView] Render called without electric-network detail; SpecialDetailVisibility and the view disagree");
+                return;
+            }
 
             var noDemand = network.ConsumerCount == 0;
             _stack.SetItemShown(_noDemand, noDemand);

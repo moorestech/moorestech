@@ -156,11 +156,10 @@ namespace Client.Tests.Ui.State
         [Test]
         public void 書き出しの進行を文にしidleは出さない()
         {
-            Assert.IsFalse(BugReportFormText.HasExportLine(PlaytestExportIdle.Instance));
-            Assert.IsTrue(BugReportFormText.HasExportLine(PlaytestExportRunning.Instance));
-            Assert.Throws<ArgumentOutOfRangeException>(() => BugReportFormText.DescribeExport(PlaytestExportIdle.Instance));
-            Assert.AreEqual("報告を書き出しています…", BugReportFormText.DescribeExport(PlaytestExportRunning.Instance).Resolve());
-            Assert.AreEqual("書き出せませんでした: desktop folder unavailable", BugReportFormText.DescribeExport(new PlaytestExportFailed("desktop folder unavailable")).Resolve());
+            Assert.IsFalse(BugReportFormText.TryDescribeExport(PlaytestExportIdle.Instance, out var idleLine));
+            Assert.IsNull(idleLine);
+            Assert.AreEqual("報告を書き出しています…", ExportLine(PlaytestExportRunning.Instance).Resolve());
+            Assert.AreEqual("書き出せませんでした: desktop folder unavailable", ExportLine(new PlaytestExportFailed("desktop folder unavailable")).Resolve());
         }
 
         [Test]
@@ -171,16 +170,16 @@ namespace Client.Tests.Ui.State
             Assert.AreEqual(
                 "17件を /exports/unsent-reports.zip に書き出しました。Googleドライブ等に上げて、共有リンクを開発者へ送ってください"
                 + " / 1件は入れられませんでした: reports/x/video.mp4 (IOException) / 上のフォルダを手動で開いてください",
-                BugReportFormText.DescribeExport(done).Resolve());
+                ExportLine(done).Resolve());
             var clean = new PlaytestExportDone("/z.zip", 1, Array.Empty<PlaytestExportMissing>(), true);
-            Assert.AreEqual("1件を /z.zip に書き出しました。Googleドライブ等に上げて、共有リンクを開発者へ送ってください", BugReportFormText.DescribeExport(clean).Resolve());
+            Assert.AreEqual("1件を /z.zip に書き出しました。Googleドライブ等に上げて、共有リンクを開発者へ送ってください", ExportLine(clean).Resolve());
         }
 
         [Test]
         public void 配送行と書き出し行は言語を切り替えると新しい言語の文になる()
         {
             var delivery = BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Counts(0, 2)));
-            var export = BugReportFormText.DescribeExport(new PlaytestExportDone("/z.zip", 1, Array.Empty<PlaytestExportMissing>(), false));
+            var export = ExportLine(new PlaytestExportDone("/z.zip", 1, Array.Empty<PlaytestExportMissing>(), false));
             var japaneseDelivery = delivery.Resolve();
             var japaneseExport = export.Resolve();
 
@@ -189,6 +188,12 @@ namespace Client.Tests.Ui.State
             Assert.AreNotEqual(japaneseDelivery, delivery.Resolve());
             Assert.AreNotEqual(japaneseExport, export.Resolve());
             Assert.IsTrue(delivery.Resolve().Contains(" / "));
+        }
+
+        private static UiText ExportLine(PlaytestExportStatus export)
+        {
+            Assert.IsTrue(BugReportFormText.TryDescribeExport(export, out var line));
+            return line;
         }
     }
 }

@@ -52,8 +52,8 @@ namespace Client.Ui.State.Text
             VerbatimText = verbatimText;
         }
 
-        // 解いた各部を区切りで連結した文。言語切替のたびに各部ごとに解き直す
-        // Parts joined by a separator; each part is re-resolved on every language change
+        // 各部を区切りで連結。言語切替で解き直す
+        // Parts joined by separator; re-resolved on language change
         public static UiText Join(string separator, IReadOnlyList<UiText> parts)
         {
             if (separator == null) throw new ArgumentNullException(nameof(separator), "[UiText] join separator must not be null");

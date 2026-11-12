@@ -25,13 +25,20 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             rootVisualElement.Add(button);
             simulate.FrameUpdate();
             var face = button.Q<RecipeActionButtonFace>(className: RecipeActionButtonFace.UssClassName);
+            var drawCount = 0;
+            face.generateVisualContent += _ => drawCount++;
+            simulate.FrameUpdate();
             var normal = BuildFaceStrip(face);
+            var drawCountBeforeHover = drawCount;
             AssertTint(ResolveColor("--recipe-action-background-start"), normal[0], "normal start");
 
             // 本番と同じポインタの移動で :hover を付け、面を組む入力（解決済みの 3 色）から帯を組み直して頂点を読む
             // Apply :hover through the same pointer move as production, then rebuild the strip from the face's resolved inputs and read its vertices
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();
+            // 本番の描き直し経路の通過を数える
+            // Count passes through the production repaint path
+            Assert.Greater(drawCount, drawCountBeforeHover, "hover repaints the face");
             var hover = BuildFaceStrip(face);
             AssertTint(ResolveColor("--recipe-action-hover-start"), hover[0], "hover start");
             AssertTint(ResolveColor("--recipe-action-hover-middle"), hover[RecipeActionFaceMesh.SegmentsPerHalf], "hover middle");

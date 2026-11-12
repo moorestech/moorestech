@@ -14,8 +14,8 @@ namespace Client.Ui.Components.NodeGraph
     /// Node graph with pan, zoom and inertia (research tree, challenge list); web: moorestech_web/webui/src/shared/treeView/TreeView.tsx
     /// </summary>
     /// <remarks>
-    /// ビューポートは View の寿命で保たれる（Web の viewportStore がセッション内で保つのと同じ寿命）。変化は OnViewportChanged で流す。一度でも視点が動いた後に非表示から戻すと、Web の復元と同じく初回の中央寄せと寸法の追従をしない。カードは押下を捕まえない・止めない（Button・Clickable を使わない）ので、カード上の押下もパンになり、タップは OnNodeTapped で受ける（Web TreeView.tsx と同じ）
-    /// The viewport lives as long as the View (the same lifetime as the Web viewportStore within a session); changes flow out on OnViewportChanged. Once the view has moved, coming back from hidden skips initial centering and resize-follow like the Web restore. Cards never capture or stop presses (do not use Button or Clickable), so a press on a card also pans and taps arrive on OnNodeTapped (same as the Web TreeView.tsx)
+    /// ビューポートは View の寿命で保たれる（Web の viewportStore がセッション内で保つのと同じ寿命）。一度でも視点が動いた後に非表示から戻すと、Web の復元と同じく初回の中央寄せと寸法の追従をしない。カードは押下を捕まえない・止めない（Button・Clickable を使わない）ので、カード上の押下もパンになり、タップは OnNodeTapped で受ける（Web TreeView.tsx と同じ）
+    /// The viewport lives as long as the View (the same lifetime as the Web viewportStore within a session). Once the view has moved, coming back from hidden skips initial centering and resize-follow like the Web restore. Cards never capture or stop presses (do not use Button or Clickable), so a press on a card also pans and taps arrive on OnNodeTapped (same as the Web TreeView.tsx)
     /// </remarks>
     public sealed class NodeGraphView : VisualElement
     {
@@ -26,7 +26,6 @@ namespace Client.Ui.Components.NodeGraph
         private readonly NodeGraphPanController _pan;
         private readonly NodeGraphPointerFeedback _pointerFeedback;
         private readonly Subject<string> _onNodeTapped = new();
-        private readonly Subject<NodeGraphViewport> _onViewportChanged = new();
         private bool _viewportHeld;
         private bool _hasEmittedViewport;
         private NodeGraphViewport _viewport;
@@ -37,7 +36,6 @@ namespace Client.Ui.Components.NodeGraph
         private Vector2 _lastContentSize;
 
         public IObservable<string> OnNodeTapped => _onNodeTapped;
-        public IObservable<NodeGraphViewport> OnViewportChanged => _onViewportChanged;
 
         public NodeGraphView(string testIdPrefix, IUiOsCursor osCursor)
         {
@@ -166,7 +164,6 @@ namespace Client.Ui.Components.NodeGraph
             _viewport = viewport;
             _hasEmittedViewport = true;
             ApplyViewport();
-            _onViewportChanged.OnNext(viewport);
         }
 
         private void ApplyViewport()

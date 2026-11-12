@@ -20,7 +20,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Common
 
             Assert.AreEqual(GearDriveKind.Electric, reading.Kind);
             Assert.IsFalse(reading.IsGearDriven);
-            Assert.IsNull(reading.Anomaly);
+            Assert.IsFalse(reading.TryGetAnomaly(out _));
         }
 
         [Test]
@@ -30,8 +30,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Common
 
             Assert.AreEqual(GearDriveKind.Generator, reading.Kind);
             Assert.IsTrue(reading.IsGearDriven);
-            Assert.IsNull(reading.ConsumptionParam);
-            Assert.IsNull(reading.Anomaly);
+            Assert.IsFalse(reading.TryGetConsumption(out _));
+            Assert.IsFalse(reading.TryGetAnomaly(out _));
         }
 
         [Test]
@@ -42,8 +42,9 @@ namespace Client.Tests.Ui.State.BlockInventory.Common
 
             Assert.AreEqual(GearDriveKind.Consumer, reading.Kind);
             Assert.IsTrue(reading.IsGearDriven);
-            Assert.AreSame(param, reading.ConsumptionParam);
-            Assert.IsNull(reading.Anomaly);
+            Assert.IsTrue(reading.TryGetConsumption(out var consumption));
+            Assert.AreSame(param, consumption);
+            Assert.IsFalse(reading.TryGetAnomaly(out _));
         }
 
         [Test]
@@ -53,8 +54,9 @@ namespace Client.Tests.Ui.State.BlockInventory.Common
 
             Assert.AreEqual(GearDriveKind.InconsistentConsumer, reading.Kind);
             Assert.IsFalse(reading.IsGearDriven);
-            Assert.IsNull(reading.ConsumptionParam);
-            StringAssert.Contains("has no IGearConsumptionParam", reading.Anomaly);
+            Assert.IsFalse(reading.TryGetConsumption(out _));
+            Assert.IsTrue(reading.TryGetAnomaly(out var anomaly));
+            StringAssert.Contains("has no IGearConsumptionParam", anomaly);
         }
 
         private sealed class GearConsumptionParamStub : IGearConsumptionParam

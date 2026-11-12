@@ -126,8 +126,9 @@ namespace Client.Ui.Screens.Notification
         private void OnAttachToPanel(AttachToPanelEvent attachEvent)
         {
             _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts());
-            // 外れると動きが止まるので、まだ Model に残る行は新しいハンドルで生存を頭から回し直す（Web の再マウントで CSS アニメが頭から回るのと同じ。止まった動きの再生し直しの口は持たない。A-267）
-            // Detaching stopped the motions, so rows still in the model restart their lifetime from the head with a new handle (like the Web remount restarting the CSS animation; no replay port on the stopped motion; A-267)
+            ReapplyTexts();
+            // 外れている間の言語切替は上の ReapplyTexts で行の文へ反映する。外れると動きが止まるので、まだ Model に残る行は新しいハンドルで生存を頭から回し直す（Web の再マウントで CSS アニメが頭から回るのと同じ。止まった動きの再生し直しの口は持たない。A-267）
+            // A language change while detached is applied to the row texts by the ReapplyTexts above. Detaching stopped the motions, so rows still in the model restart their lifetime from the head with a new handle (like the Web remount restarting the CSS animation; no replay port on the stopped motion; A-267)
             foreach (var shown in _shownRows.Values)
             {
                 shown.StopLifetime();
@@ -152,8 +153,8 @@ namespace Client.Ui.Screens.Notification
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            // 読めないトークンは Reader が値ごとに LogError を出し、ホストもまとめて 1 回出す（解決のたび）。通知を届けるのを優先し、出入り無し（尺 0・ずれ 0）で出す
-            // The reader logs each unreadable token and the host logs once per resolution; delivering the notification comes first, so show it without enter/exit (0 durations, 0 shift)
+            // 読めないトークンは出入り無しで出す
+            // Unreadable token shows without enter/exit; delivery comes first
             var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-enter-duration", out var enter);
             var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-exit-duration", out var exit);
             var hasShift = UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-shift", out var shift);

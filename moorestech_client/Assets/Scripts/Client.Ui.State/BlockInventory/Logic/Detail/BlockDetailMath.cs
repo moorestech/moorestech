@@ -8,8 +8,8 @@ namespace Client.Ui.State.BlockInventory.Logic.Detail
     /// </summary>
     public static class BlockDetailMath
     {
-        // 毎秒→毎分の換算の 1 か所（採掘・ポンプ・レシピ・ベルトの毎分がこれを使う）
-        // The single seconds-to-minutes factor (miner, pump, recipe and belt per-minute figures use it)
+        // 毎秒→毎分の換算の 1 か所
+        // The single per-second to per-minute factor
         public const double SecondsPerMinute = 60;
 
         // uGUI CommonMachineBlockStateDetail.PowerRate と同式。要求 0 は充足 1 とみなす

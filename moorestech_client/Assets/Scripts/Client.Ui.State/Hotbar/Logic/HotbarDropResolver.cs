@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.Hotbar.Logic
 {
     /// <summary>
-    /// ドラッグ元と落とし先の組を割当・入替・解除へ写す落としの規則の正本（Web hotbarDnd.ts と useHotbarDragSource の隙間の判定の写し）
-    /// The single source of the drop rules mapping a source and target pair to assign, swap or clear (port of the Web hotbarDnd.ts plus the useHotbarDragSource gap check)
+    /// 源と先の組を割当・入替・解除へ写す規則の正本
+    /// Single source mapping source-target pairs to outcomes
     /// </summary>
     public static class HotbarDropResolver
     {
@@ -12,8 +12,8 @@ namespace Client.Ui.State.Hotbar.Logic
         {
             switch (source)
             {
-                // 枠へ落とすと割当。枠外・列の隙間は何もしない
-                // Assigns only when dropped on a slot; outside and the row gap do nothing
+                // 枠へ落とすと割当、他は何もしない
+                // Assign only on a slot; others do nothing
                 case BuildMenuEntryDragSource entry:
                     return target is HotbarSlotDropTarget slot
                         ? new HotbarAssignAction(slot.SlotIndex, entry.TargetId)

@@ -6,8 +6,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 貨車の欠けは同じ貨車の間 1 回だけ警告し、回復後は再び警告する
-    /// A missing car warns once while it stays missing and warns again after recovery
+    /// 貨車の欠けは同じ間 1 回、回復後に再警告
+    /// Missing car warns once; again after recovery
     /// </summary>
     public class TrainTimetableMissingCarReportTest
     {
@@ -20,6 +20,10 @@ namespace Client.Tests.Ui.State.Train.Timetable
             report.ReportMissing(5);
             report.ReportMissing(5);
 
+            // 2 回目の警告は未期待ログで落ちる
+            // A second warning fails as an unexpected log
+            LogAssert.NoUnexpectedReceived();
+
             // 別の貨車は新しい異常として出る
             // A different car is a new anomaly
             LogAssert.Expect(LogType.Warning, "[TrainTimetableModel] Missing car snapshot: 6");
@@ -30,6 +34,7 @@ namespace Client.Tests.Ui.State.Train.Timetable
             report.Clear();
             LogAssert.Expect(LogType.Warning, "[TrainTimetableModel] Missing car snapshot: 6");
             report.ReportMissing(6);
+            LogAssert.NoUnexpectedReceived();
         }
     }
 }

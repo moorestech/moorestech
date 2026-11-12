@@ -31,8 +31,8 @@ namespace Client.Ui.State.SlotCommands.Block
 
             UiCommandResult Unavailable(string detail)
             {
-                // 説明文はログだけへ。wire は理由の既定コードのまま（ToWireCode が "invalid_slot" を返す）
-                // The description goes to the log only; the wire stays the reason's code (ToWireCode returns "invalid_slot")
+                // 説明文はログだけ。wire は理由の既定
+                // Description to log only; wire keeps reason code
                 Debug.LogWarning($"[BlockItemActionExecutor] {detail}");
                 return UiCommandRejected.Of(UiCommandRejectReason.BlockSlotUnavailable);
             }

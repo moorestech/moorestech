@@ -36,8 +36,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
 
         public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // silent-ok: Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので無いのは届かない / 区画が隠れることを L0 SpecialDetailVisibilityTest と L1 が見る
-            if (!detail.TryGetGearNetwork(out var network)) return;
+            // Presenter は SpecialDetailVisibility が真（詳細あり）のときだけ呼ぶので、無いのは表と View の結線の誤り。隠れたまま古い値を残さず知らせる
+            // The Presenter calls only when SpecialDetailVisibility is true (detail present), so a missing detail is a table/View wiring mistake; report it instead of leaving stale values
+            if (!detail.TryGetGearNetwork(out var network))
+            {
+                UnityEngine.Debug.LogError("[GearNetworkSectionView] Render called without gear-network detail; SpecialDetailVisibility and the view disagree");
+                return;
+            }
 
             // 止まっていれば理由の文を不足色で足す
             // Add the reason sentence in the shortage color when stopped

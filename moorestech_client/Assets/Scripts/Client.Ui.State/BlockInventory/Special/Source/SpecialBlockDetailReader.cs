@@ -16,7 +16,6 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Special.Source
 {
@@ -26,11 +25,14 @@ namespace Client.Ui.State.BlockInventory.Special.Source
     /// </summary>
     public static class SpecialBlockDetailReader
     {
-        public static SpecialBlockDetailViewModel Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache)
+        // gearAnomaly は歯車のマスタの食い違いの文面（無ければ null）。ログは同じ間 1 回だけ出すため呼び手（Model）が持つ
+        // gearAnomaly is the gear master-mismatch text (null when none); the caller (Model) logs it once while it persists
+        public static SpecialBlockDetailViewModel Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, out string gearAnomaly)
         {
             var param = block.BlockMasterElement.BlockParam;
+            var gearDetail = ReadGear(out gearAnomaly);
             return new SpecialBlockDetailViewModel(
-                ReadElectricToGear(), ReadGearToElectric(), ReadGear(), BeltThroughputReader.Read(block, beltCache),
+                ReadElectricToGear(), ReadGearToElectric(), gearDetail, BeltThroughputReader.Read(block, beltCache),
                 SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),
                 ReadRocketLaunchPad(), ReadSpaceElevator());
 
@@ -55,10 +57,11 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 return SpecialStateDetailReader.GearToElectric(state, UiNumberFormat.FromServerFloat(generatorParam.MaxGeneratedPower));
             }
 
-            GearDetail ReadGear()
+            GearDetail ReadGear(out string anomaly)
             {
-                // 歯車駆動の種類は族・機械・Web ホストと同じ 1 か所で読む
-                // Read the gear-drive kind at the same single place as the family, machine and Web host
+                anomaly = null;
+                // 歯車駆動の種類は共通の 1 か所で読む
+                // Read gear-drive kind at the shared single place
                 var gear = block.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
                 var drive = GearDriveConversion.Read(gear, param);
                 switch (drive.Kind)
@@ -66,14 +69,22 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                     // silent-ok: 歯車でないブロックは歯車の状態を持たない / 歯車ブロックで出ないなら録画（R-12）の歯車の段で気づく
                     case GearDriveKind.Electric: return null;
                     case GearDriveKind.Generator: return SpecialStateDetailReader.Generator(gear);
-                    case GearDriveKind.Consumer: return SpecialStateDetailReader.Consumer(gear, UiNumberFormat.FromServerFloat(drive.ConsumptionParam.GearConsumption.BaseRpm));
+                    case GearDriveKind.Consumer: return SpecialStateDetailReader.Consumer(gear, UiNumberFormat.FromServerFloat(ConsumptionOf(drive).GearConsumption.BaseRpm));
                     case GearDriveKind.InconsistentConsumer:
-                        // マスタの食い違いは歯車行を出さず知らせる（Web の橋と同じ）
-                        // A master mismatch omits the gear rows and is reported (same as the Web bridge)
-                        Debug.LogError($"[SpecialBlockDetailReader] {drive.Anomaly}; gear rows are omitted");
+                        // 食い違いは歯車行なしで文面を返す
+                        // Mismatch omits gear rows and returns the text
+                        drive.TryGetAnomaly(out anomaly);
                         return null;
                     default: throw new ArgumentOutOfRangeException(nameof(drive.Kind), drive.Kind, null);
                 }
+            }
+
+            IGearConsumptionParam ConsumptionOf(GearDriveReading drive)
+            {
+                // 種別が Consumer のときだけ呼ぶので必ず取れる
+                // Called only for the Consumer kind, so it is always available
+                drive.TryGetConsumption(out var consumption);
+                return consumption;
             }
 
             RocketLaunchPadDetail ReadRocketLaunchPad()

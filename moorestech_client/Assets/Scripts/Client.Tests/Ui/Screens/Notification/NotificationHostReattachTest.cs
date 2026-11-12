@@ -59,8 +59,8 @@ namespace Client.Tests.Ui.Screens.Notification
             // Detached with no rows, so no detach warning (it only fires when detaching with rows)
             Host.RemoveFromHierarchy();
             AdvancePanel(0);
-            // 外れている間に届いた通知は保留の理由を警告する（動きは再アタッチまで始めない）
-            // A notification arriving while detached logs why it is held (motion waits for re-attach)
+            // 外れ中の通知は保留理由を警告する
+            // Detached notification warns why it is held
             LogAssert.Expect(LogType.Warning, new Regex(@"^\[NotificationHostView\] notification \d+ held while detached"));
             Model.AddNotification(Earned(7, 1, "itemEarned.mined"));
             AdvancePanel(0);
@@ -89,8 +89,8 @@ namespace Client.Tests.Ui.Screens.Notification
 
         private void DetachAndReattach(VisualElement parent)
         {
-            // 外すと開発者への警告が出る。戻して 1 フレーム進めると生存が回り直す
-            // Detaching raises the developer warning; one frame after re-attaching the lifetime restarts
+            // 外すと警告、戻して 1 フレームで再生
+            // Detach warns; one frame after re-attach restarts
             LogAssert.Expect(LogType.Warning, DetachedWarning);
             Host.RemoveFromHierarchy();
             AdvancePanel(0);

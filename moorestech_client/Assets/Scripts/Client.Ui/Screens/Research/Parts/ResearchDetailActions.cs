@@ -39,8 +39,8 @@ namespace Client.Ui.Screens.Research.Parts
             Add(_reason);
         }
 
-        // 結果を待ってトースト係へ渡す（前例 SpecialViewKit.Run。A-262）
-        // Await the result and hand it to the toaster (precedent SpecialViewKit.Run; A-262)
+        // 結果を待ってトースト係へ渡す（A-262）
+        // Await result and hand to toaster (A-262)
         private void CompleteResearch()
         {
             _commands.CompleteResearch(_researchGuid).ContinueWith(result => _toaster.Report(ResearchTreeCommands.CompleteResearchCommandName, result)).Forget();

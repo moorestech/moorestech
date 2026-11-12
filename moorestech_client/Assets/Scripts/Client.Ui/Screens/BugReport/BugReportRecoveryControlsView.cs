@@ -32,8 +32,8 @@ namespace Client.Ui.Screens.BugReport
             _exportButton.OnClicked.Subscribe(_ => commands.ExportUnsentReports());
             _exportStatus = new LocalizedLabel { name = "bug-report-export-status" };
             _exportStatus.AddToClassList("bug-report__status");
-            // 行なし（Idle）の間は空の文を持たせて隠す。文なしで木に載せない
-            // While there is no line (Idle) it holds an empty sentence and stays hidden; never attached without text
+            // Idle は空文で隠す。文なしで載せない
+            // Idle holds empty text and hides; never attach textless
             _exportStatus.SetText(UiText.FromVerbatim(string.Empty));
             Add(_resendButton);
             Add(_exportButton);
@@ -50,11 +50,11 @@ namespace Client.Ui.Screens.BugReport
             _resendButton.SetEnabled(!exporting);
             _exportButton.SetEnabled(!exporting);
 
-            // Idle は行なしで隠し、ほかは文を入れる
-            // Idle hides the line; every other status sets its sentence
-            var hasLine = BugReportFormText.HasExportLine(export);
+            // Idle は隠し、他は文を入れる
+            // Idle hides the line; others set the sentence
+            var hasLine = BugReportFormText.TryDescribeExport(export, out var line);
             ShowIf(_exportStatus, hasLine);
-            if (hasLine) _exportStatus.SetText(BugReportFormText.DescribeExport(export));
+            if (hasLine) _exportStatus.SetText(line);
         }
 
         private static FormButton CreateButton(string testid, LocalizationKey label)

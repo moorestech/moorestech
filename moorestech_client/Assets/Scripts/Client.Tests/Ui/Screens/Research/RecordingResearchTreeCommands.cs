@@ -7,8 +7,8 @@ using Cysharp.Threading.Tasks;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究操作を記録する偽。研究の結果は既定で受理、SetCompleteResult で差し替える
-    /// Fake recording research operations; the research result is accepted unless SetCompleteResult replaces it
+    /// 研究操作を記録する偽。結果は既定で受理
+    /// Fake recording research operations; accepts by default
     /// </summary>
     internal sealed class RecordingResearchTreeCommands : CommandRecorder<string>, IResearchTreeCommands
     {

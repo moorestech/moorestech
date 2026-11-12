@@ -14,8 +14,8 @@ using Kit = Client.Tests.Ui.Screens.Research.ResearchScreenTestKit;
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究ボタンの結果は詳細ペインの View がトースト係へ渡す（L1。A-262）
-    /// The detail pane view hands the research button's result to the toaster (L1; A-262)
+    /// 研究結果は View がトースト係へ渡す（A-262）
+    /// The view hands the result to the toaster (A-262)
     /// </summary>
     public class ResearchDetailActionsToastTest : ScreenTestHost
     {

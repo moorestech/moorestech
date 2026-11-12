@@ -14,8 +14,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.Research.Wiring
 {
     /// <summary>
-    /// 研究の応答を状態へ反映し結果へ写す（L0。トーストは呼び手の View が出す〈ResearchDetailActionsToastTest〉。送信は録画が見る）
-    /// Applies the research response and maps it to a result (L0; the calling view toasts it, see ResearchDetailActionsToastTest; the send is covered by the recording)
+    /// 研究の応答を状態へ反映し結果へ写す（L0）
+    /// Applies research response to state and result (L0)
     /// </summary>
     public class ResearchTreeCommandsTest
     {
@@ -26,8 +26,8 @@ namespace Client.Tests.Ui.State.Research.Wiring
         [SetUp]
         public void SetUp()
         {
-            // Store は Initialize せず反映の口だけ使う
-            // The store is used without Initialize, only its apply port
+            // Store は反映の口だけ使う
+            // Use only the store's apply port
             _store = new ResearchNodeStateStore(null, null);
         }
 

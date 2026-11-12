@@ -30,8 +30,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         /// </summary>
         public static GearDetailDto BuildGearDetail(GearStateDetail gear, object param)
         {
-            // 役割と消費の param は UITK と同じ 1 か所で読む
-            // Read the role and consumption param at the same single place as UITK
+            // 役割と消費は UITK と同じ所で読む
+            // Read role and consumption at the same place as UITK
             var drive = GearDriveConversion.Read(gear, param);
             var gearDto = new GearDetailDto
             {
@@ -47,16 +47,20 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     return gearDto;
                 case GearDriveKind.Consumer:
                     gearDto.Role = ConsumerRole;
-                    gearDto.BaseRpm = (float)drive.ConsumptionParam.GearConsumption.BaseRpm;
+                    // 種別が Consumer なので必ず取れる
+                    // The kind is Consumer, so it is always available
+                    drive.TryGetConsumption(out var consumption);
+                    gearDto.BaseRpm = (float)consumption.GearConsumption.BaseRpm;
                     return gearDto;
                 case GearDriveKind.InconsistentConsumer:
                     // サーバーが消費側と言うのにマスタが消費パラメータを持たないのは不整合。歯車行を出さずログする
                     // A server-declared consumer without a consumption param in master is inconsistent; skip the gear rows and log it
-                    Debug.LogError($"[GearDetailDtoBuilder] {drive.Anomaly}; gear rows are omitted");
+                    drive.TryGetAnomaly(out var anomaly);
+                    Debug.LogError($"[GearDetailDtoBuilder] {anomaly}; gear rows are omitted");
                     return null;
                 default:
-                    // 歯車の状態は呼び手（Apply）が在るときだけ渡す
-                    // The caller (Apply) passes the gear state only when it exists
+                    // 歯車の状態は Apply があるときだけ
+                    // Pass gear state only when Apply exists
                     throw new ArgumentOutOfRangeException(nameof(gear), drive.Kind, "BuildGearDetail needs a gear state detail");
             }
         }

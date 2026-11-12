@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Screens.BlockInventory.Parts
 {
     /// <summary>
-    /// 鍵の列の比較 1 本（採掘機・ポンプの毎分の行と枠の並びが共有する）は件数と添字ごとの鍵で比べる
-    /// The single keyed-list comparison (shared by miner/pump rows and slot lists) compares count and per-index keys
+    /// 鍵列は件数と添字ごとの鍵で比べる
+    /// Keys compare by count and per-index key
     /// </summary>
     public class KeyedRowListTest
     {
@@ -14,7 +14,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
         {
             var list = Filled(3, 5, 5);
 
-            Assert.IsTrue(list.HasSameKeys(new[] { 3, 5, 5 }));
+            Assert.IsFalse(list.ClearIfKeysChanged(new[] { 3, 5, 5 }));
+            Assert.AreEqual(3, list.Count);
             Assert.AreEqual("row-3", list.RowAt(0));
             Assert.AreEqual(5, list.KeyAt(2));
         }
@@ -25,17 +26,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
         [TestCase(new[] { 3, 5, 6 }, TestName = "1 つでも鍵が違えば違う")]
         public void 並びが変わったら違う(int[] next)
         {
-            Assert.IsFalse(Filled(3, 5, 5).HasSameKeys(next));
+            var list = Filled(3, 5, 5);
+
+            Assert.IsTrue(list.ClearIfKeysChanged(next));
+            Assert.AreEqual(0, list.Count);
         }
 
         [Test]
-        public void 空にすると空の並びと同じ()
+        public void 空の並びを渡すと空にして変わった扱いになり_次の同じ並びは変わらない()
         {
             var list = Filled(3);
-            list.Clear();
 
+            Assert.IsTrue(list.ClearIfKeysChanged(new int[0]));
             Assert.AreEqual(0, list.Count);
-            Assert.IsTrue(list.HasSameKeys(new int[0]));
+            Assert.IsFalse(list.ClearIfKeysChanged(new int[0]));
         }
 
         private static KeyedRowList<int, string> Filled(params int[] keys)

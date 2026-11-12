@@ -19,8 +19,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
             _commands = commands;
         }
 
-        // 何が起きるか（割当・入替・無操作）は HotbarDropResolver が決める
-        // HotbarDropResolver decides the outcome (assign, swap or nothing)
+        // 割当・入替・無操作は Resolver が決める
+        // Resolver decides assign, swap or nothing
         public void Receive(HotbarDragSource source)
         {
             _commands.Drop(source, new HotbarSlotDropTarget(_slotIndex));

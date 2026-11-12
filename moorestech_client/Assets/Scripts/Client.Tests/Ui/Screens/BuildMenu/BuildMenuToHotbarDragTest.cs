@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BuildMenu
 {
-    // エントリ→枠・枠外の D&D がホットバーの Drop へ届く通し。本番と同じくメニューとホットバーは 1 つの操作を共有する（D-16・I-fix6 D-11）
-    // Run of entry-to-slot and entry-to-outside drags reaching the hotbar Drop; the menu and hotbar share one commands as in production (D-16, I-fix6 D-11)
+    // エントリの D&D がホットバーへ届く通し（D-16）
+    // Entry drags reach the hotbar Drop end to end (D-16)
     public class BuildMenuToHotbarDragTest : BuildMenuScreenTestHost
     {
         private HotbarHudView _hotbar;
@@ -45,8 +45,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             CollectionAssert.IsEmpty(Commands.Selected);
         }
 
-        // 枠外の落としも Drop を通り、何も起きないことは HotbarDropResolverTest が固定する（I-fix6 D-11）
-        // An outside drop also goes through Drop; HotbarDropResolverTest pins that nothing happens (I-fix6 D-11)
+        // 枠外も Drop を通る（D-11）
+        // Outside drops also pass Drop (D-11)
         [Test]
         public void エントリをメニューの見出しへドラッグすると枠外への落としが1回だけ出て選択は出ない()
         {

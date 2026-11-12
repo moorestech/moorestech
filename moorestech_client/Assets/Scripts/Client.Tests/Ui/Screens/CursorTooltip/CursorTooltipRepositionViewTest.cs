@@ -103,8 +103,8 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.WorldTarget)));
             simulate.FrameUpdate();
 
-            // 入ったときに 1 回、続く再配置では出ない
-            // Reported once on entry, not on the following re-placements
+            // 入口で 1 回、再配置では出ない
+            // Once on entry, not on re-placement
             LogAssert.Expect(LogType.Error, new Regex("stage scale is not positive"));
             _screen.SetScale(0f);
             simulate.FrameUpdate();
@@ -112,8 +112,8 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             simulate.FrameUpdate();
             LogAssert.NoUnexpectedReceived();
 
-            // 正に戻って旗が戻り、再び 0 になればまた出る
-            // Turning positive clears the flag, so a new zero is reported again
+            // 正で旗が戻り、再び 0 で出る
+            // Positive clears flag; a new zero reports again
             _screen.SetScale(1f);
             simulate.FrameUpdate();
             LogAssert.Expect(LogType.Error, new Regex("stage scale is not positive"));

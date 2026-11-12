@@ -34,8 +34,8 @@ namespace Client.Ui.Foundation.Theme
             return float.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value) && !float.IsNaN(value) && !float.IsInfinity(value);
         }
 
-        // "117deg" を 117 へ。customStyle は角度も文字列でしか返さない
-        // Turns "117deg" into 117; customStyle returns angles only as strings
+        // "117deg" を 117 へ（角度は文字列で返る）
+        // "117deg" to 117 (angles come as strings)
         public static bool TryParseDegrees(string text, out float degrees)
         {
             degrees = 0f;

@@ -125,8 +125,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
 
         private void AssertIdle()
         {
-            // 保留が解ければ駅一覧の追加ボタンは全部押せる
-            // Once pending clears, every add button in the station list is enabled
+            // 保留解除で追加ボタンは全部有効
+            // All add buttons enable once pending clears
             var addButtons = _body.Root.Query<Button>().ToList().FindAll(button => button.name != null && button.name.EndsWith("-add"));
             Assert.IsNotEmpty(addButtons);
             foreach (var addButton in addButtons) Assert.IsTrue(addButton.enabledSelf, addButton.name);

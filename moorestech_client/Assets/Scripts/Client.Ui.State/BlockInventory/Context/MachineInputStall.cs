@@ -4,8 +4,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 搬入が止まった理由と、待っているアイテム（文脈の詰まりの欄の値）
-    /// Why machine input is stalled, and the item it waits for (the value of the context stall entry)
+    /// 搬入が止まった理由と待つアイテム
+    /// Why input is stalled and the awaited item
     /// </summary>
     public sealed class MachineInputStall
     {

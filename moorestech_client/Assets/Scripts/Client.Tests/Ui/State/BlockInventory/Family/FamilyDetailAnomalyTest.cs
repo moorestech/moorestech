@@ -17,8 +17,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.BlockInventory.Family
 {
     /// <summary>
-    /// 詳細 Model の異常は同じ間は 1 回、閉じて回復すると再び出る
-    /// Detail model anomalies are reported once while they persist and again after a close-and-recover
+    /// 異常は同じ間 1 回、回復後に再び出る
+    /// Anomaly once while it persists; again after recovery
     /// </summary>
     public class FamilyDetailAnomalyTest
     {
@@ -49,8 +49,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
             _harness.NotifyStateChanged();
             _harness.NotifyStateChanged();
 
-            // 閉じると旗が戻り、開き直すと同じ異常がまた出る
-            // Closing clears the flag, so reopening reports the same anomaly again
+            // 閉じると旗が戻り、再度出る
+            // Closing clears flag; reopening reports again
             _harness.Track(null);
             LogAssert.Expect(LogType.Error, new Regex("unsupported pump param"));
             _harness.Track(block);

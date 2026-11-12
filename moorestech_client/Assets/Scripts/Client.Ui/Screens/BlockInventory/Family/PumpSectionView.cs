@@ -55,7 +55,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
             var hasTargets = 0 < detail.PumpingFluids.Count;
             _root.SetItemShown(_fluids, hasTargets);
             _root.SetItemShown(_noVein, !hasTargets);
-            if (!_rows.HasSameKeys(FluidIds())) Rebuild();
+            if (_rows.ClearIfKeysChanged(FluidIds())) Rebuild();
             for (var i = 0; i < _rows.Count; i++) _rows.RowAt(i).Render(detail.PumpingFluids[i].AmountPerMinute);
 
             #region Internal
@@ -70,7 +70,6 @@ namespace Client.Ui.Screens.BlockInventory.Family
             void Rebuild()
             {
                 _fluids.ClearItems();
-                _rows.Clear();
                 foreach (var fluid in detail.PumpingFluids)
                 {
                     var icon = new GameIcon();

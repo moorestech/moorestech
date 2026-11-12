@@ -21,8 +21,8 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
     }
 
     /// <summary>
-    /// Shift 配分の判断が読むブロック在庫の部分（Web の BlockInventoryData のうち blockSlotRestriction が読む所）。開いた・開くのに失敗したを sealed 派生で表す（判断記録 D-5）
-    /// The part of the block inventory the Shift-allocation decision reads (what Web blockSlotRestriction reads of BlockInventoryData); open and open-failed are sealed subtypes (D-5)
+    /// Shift 配分が読むブロック在庫の部分（D-5）
+    /// Block inventory part Shift allocation reads (D-5)
     /// </summary>
     public abstract class BlockSlotRestrictionInput
     {
@@ -80,8 +80,8 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
             return new OpenBlockSlotInput(BlockType, ItemSlotCount, new MachineBlockSlotDetail(machine));
         }
 
-        // 入れ口固定の種別の定義はここ 1 か所（入れ口の束縛の寄与もこれで種別を見分ける）
-        // The single definition of fixed-inlet types (the inlet binding contributor also tells types apart with it)
+        // 入れ口固定の種別の定義はここだけ
+        // Fixed-inlet types are defined only here
         internal static bool IsFixedInletBlockType(string blockType)
         {
             return blockType == BlockMasterElement.BlockTypeConst.RocketLaunchPad || blockType == BlockMasterElement.BlockTypeConst.SpaceElevatorBase;

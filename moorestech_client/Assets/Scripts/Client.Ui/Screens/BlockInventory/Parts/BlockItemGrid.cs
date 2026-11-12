@@ -59,7 +59,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
         {
             // 並ぶ枠の番号が変わったときだけ作り直し、同じなら中身だけ差し替える
             // Rebuild only when the slot indices change; otherwise just swap contents
-            if (!_slots.HasSameKeys(slotIndices)) Rebuild(slotIndices);
+            if (_slots.ClearIfKeysChanged(slotIndices)) Rebuild(slotIndices);
             for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(SlotItemContent.From(_content, BlockSlotIndexReader.Read(itemSlots, _slots.KeyAt(i), nameof(BlockItemGrid), _testId), false));
             ApplyColumns();
 
@@ -68,7 +68,6 @@ namespace Client.Ui.Screens.BlockInventory.Parts
             void Rebuild(IReadOnlyList<int> indices)
             {
                 _grid.ClearItems();
-                _slots.Clear();
                 foreach (var index in indices)
                 {
                     var slot = new ItemSlot($"{_testId}-slot-{index}");

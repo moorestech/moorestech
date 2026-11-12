@@ -8,13 +8,13 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 特殊族の区画の出る条件の表（View の Render が偽を返していた条件をそのまま移したもの。DC-35）
-    /// Table of when each special section shows (the conditions the views' Render used to return false on, moved as is; DC-35)
+    /// 特殊族の区画の表示条件の表（DC-35）
+    /// Table of special section visibility (DC-35)
     /// </summary>
     public class SpecialDetailVisibilityTest
     {
-        // 区画は自分の詳細があるときだけ出し、他の詳細だけでは出ない
-        // A section shows only with its own detail; other details alone never show it
+        // 区画は自分の詳細があるときだけ出る
+        // A section shows only with its own detail
         [TestCase(SpecialDetailSection.Gear, "empty", false)]
         [TestCase(SpecialDetailSection.Gear, "gear", true)]
         [TestCase(SpecialDetailSection.Gear, "allButGear", false)]
@@ -27,8 +27,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [TestCase(SpecialDetailSection.GearNetwork, "empty", false)]
         [TestCase(SpecialDetailSection.GearNetwork, "gearNetwork", true)]
         [TestCase(SpecialDetailSection.GearNetwork, "allButGearNetwork", false)]
-        // 本文と題の操作は詳細の未着でも出す（未着の見え方は View が中で持つ）
-        // Bodies and the title action show even before the detail arrives (the view owns the waiting look)
+        // 本文と題の操作は未着でも出す
+        // Body and title action show before detail arrives
         [TestCase(SpecialDetailSection.Body, "empty", true)]
         [TestCase(SpecialDetailSection.Body, "everything", true)]
         [TestCase(SpecialDetailSection.TitleAction, "empty", true)]
