@@ -1,3 +1,4 @@
+using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Special.Details;
 
 namespace Client.Ui.State.BlockInventory.Special.Selectors
