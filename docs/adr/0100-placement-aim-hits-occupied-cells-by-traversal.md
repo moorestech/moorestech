@@ -60,7 +60,7 @@ ADR 0099 決定2 は「セル座標→ブロックの索引をたどって計算
    出所: agent前提（依頼の本筋でない既存処理は変えない）
 
 ## 見込み
-当たり判定の GameObject 15,082個と `BoxCollider` 90,492枚が0になる。ワールド読み込みのブロック生成フレームは、B 案で増えた約2秒の大半が無くなる見込み。設置モードに入る・出る遷移は、当たり判定の有効化・無効化の分だけ短くなる見込み（推測。ほかのプレビュー部品の分は残る）。照準1本あたりの計算は、0099 時の Editor 実測で 0.046ms。効果は実装後に、ADR 0099 と同じ手順（`docs/performance/2026-11-12-placement-preview-frame/README.md`）で前後を測って記録する。そのとき、型名 `BlockPlacementHitFaces` を文字列で数えている `docs/performance/benchmark/snippets/placement-frame-count.cs` は、変更後に型が無いことを扱えるように直す。
+当たり判定の GameObject 15,082個と `BoxCollider` 90,492枚が0になる。ワールド読み込みのブロック生成フレームは、B 案で増えた約2秒の大半が無くなる見込み。設置モードに入る・出る遷移は、当たり判定の有効化・無効化の分だけ短くなる見込み（推測。ほかのプレビュー部品の分は残る）。照準1本あたりの計算は、0099 時の Editor 実測で 0.046ms。効果は実装後に、ADR 0099 と同じ手順（`docs/performance/2026-11-12-placement-preview-frame/README.md`）で前後を測って記録する。`docs/performance/benchmark/snippets/placement-frame-count.cs` は型を名前で引き、型が無ければ null を出すので、そのまま使える。
 
 ## 関連
 - ADR 0099（決定2をこの ADR で置き換える。決定3・4はそのまま）
