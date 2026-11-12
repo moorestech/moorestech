@@ -22,7 +22,13 @@ namespace Client.Tests.Ui.Conventions
             "Foundation/Text/WrapSafe/WrapSafeLabel.cs",
             "Foundation/Text/LineEndPunctuationMeasurer.cs",
         };
-        private static readonly Regex PlainTextElement = new(@"\bnew\s+(Label|TextElement)\s*[\(\{]|:\s*(Label|TextElement)\s*(\{|,|where\b|$)|\b(Label|TextElement)\s+\w+\s*=\s*new\s*\(");
+        // 素の Label・TextElement の生成と継承（名前空間つき・行末で改行・行末のコメントも）、自分で文を描く Button・Toggle・Foldout へ文を入れる生成
+        // Plain Label/TextElement construction and inheritance (qualified, broken at the line end or followed by a comment), and Button/Toggle/Foldout constructed with text they draw themselves
+        private static readonly Regex PlainTextElement = new(
+            @"\bnew\s+(UnityEngine\.UIElements\.)?(Label|TextElement)\s*([\(\{]|$)" +
+            @"|:\s*(UnityEngine\.UIElements\.)?(Label|TextElement)\s*(\{|,|where\b|//|$)" +
+            @"|\b(Label|TextElement)\s+\w+\s*=\s*new\s*\(" +
+            @"|\bnew\s+(UnityEngine\.UIElements\.)?(Button|Toggle|Foldout)\s*(\(\s*""|(\(\s*\))?\s*\{[^}]*\b(text|label)\s*=)");
 
         [Test]
         public void ClientUiCreatesNoPlainLabelOrTextElement()
@@ -44,6 +50,14 @@ namespace Client.Tests.Ui.Conventions
             Assert.AreEqual(1, FindViolations("A.cs", "public sealed class KeyCap : Label").Count);
             Assert.AreEqual(1, FindViolations("A.cs", "var t = new TextElement();").Count);
             Assert.AreEqual(1, FindViolations("A.cs", "private readonly Label _measurer = new();").Count);
+            Assert.AreEqual(1, FindViolations("A.cs", "var label = new Label").Count);
+            Assert.AreEqual(1, FindViolations("A.cs", "var label = new UnityEngine.UIElements.Label(text);").Count);
+            Assert.AreEqual(1, FindViolations("A.cs", "public sealed class KeyCap : Label // key").Count);
+            Assert.AreEqual(1, FindViolations("A.cs", "var button = new Button { text = \"OK\" };").Count);
+            Assert.AreEqual(1, FindViolations("A.cs", "var toggle = new Toggle(\"Sound\");").Count);
+            Assert.AreEqual(1, FindViolations("A.cs", "var foldout = new Foldout() { text = title };").Count);
+            Assert.IsEmpty(FindViolations("A.cs", "var button = new Button(OnClick) { name = \"x\" };"));
+            Assert.IsEmpty(FindViolations("A.cs", "var label = new LabelSet();"));
             Assert.IsEmpty(FindViolations("A.cs", "var label = new WrapSafeLabel { name = \"x\" };"));
             Assert.IsEmpty(FindViolations("A.cs", "public sealed class KeyCap : WrapSafeLabel"));
             Assert.IsEmpty(FindViolations("A.cs", "// a comment about new Label { }"));

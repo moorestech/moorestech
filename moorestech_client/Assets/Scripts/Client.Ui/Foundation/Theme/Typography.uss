@@ -135,3 +135,9 @@
     font-size: var(--title-heading-cjk-font-size);
     letter-spacing: 0;
 }
+
+/* WrapSafeLabel は測りの来ない固定の箱でも字の大きさ・字間の変化に気づくため、カスタムプロパティを 1 つ持って CustomStyleResolvedEvent を毎回の解決で受ける（設計書 A-224・bd moorestech-fcpzz） */
+/* WrapSafeLabel carries one custom property so every style resolution sends CustomStyleResolvedEvent and a fixed box with no measure still notices font size and spacing changes (design A-224, bd moorestech-fcpzz) */
+.wrap-safe-label {
+    --wrap-safe-label-style-probe: 1;
+}

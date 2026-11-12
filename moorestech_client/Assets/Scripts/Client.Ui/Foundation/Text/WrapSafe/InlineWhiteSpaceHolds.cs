@@ -10,7 +10,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
     /// 行末の約物の詰めと狭い幅の回避が同じ inline の値を書くので、止める前の inline の値と解決済みの値（USS が望む折り返し）を最初に止めたときに一度だけ写し、全部の理由が外れたら戻す。
     /// The line-end trim and the narrow-width guard write the same inline value, so the inline value and the resolved value (the wrap USS wants) are captured once on the first hold and restored when every reason is released.
     /// </remarks>
-    public class InlineWhiteSpaceHolds
+    internal class InlineWhiteSpaceHolds
     {
         private readonly VisualElement _element;
         private WhiteSpaceHoldReason _held;

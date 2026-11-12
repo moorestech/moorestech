@@ -7,7 +7,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
     /// Reasons for stopping a text's auto wrap
     /// </summary>
     [Flags]
-    public enum WhiteSpaceHoldReason
+    internal enum WhiteSpaceHoldReason
     {
         None = 0,
         // 行末の約物の詰めが測った改行を入れた表示文を描いている

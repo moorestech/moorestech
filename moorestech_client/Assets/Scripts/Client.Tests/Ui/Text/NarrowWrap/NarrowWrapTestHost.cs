@@ -16,8 +16,8 @@ namespace Client.Tests.Ui.Text.NarrowWrap
     /// L1 base for the narrow-width wrap guard (bd moorestech-fcpzz): the minimal freezing text, a frame-capped runner and a counter of the guard's logs
     /// </summary>
     /// <remarks>
-    /// 回避が効かないと FrameUpdate が戻らず Editor ごと固まる（テストの失敗では止まらない）。フレーム数に上限を置き、上限の内に終わることを通ったことの証にする
-    /// Without the guard FrameUpdate never returns and the Editor hangs (no test failure stops it); frames are capped and finishing within them is the pass
+    /// 回避が効かないと FrameUpdate が戻らず Editor ごと固まる（テストの失敗では止まらない。フレームの上限も FrameUpdate の中の無限ループは止めない）。上限の内に終わることを通ったことの証にし、固まった実行は TestWatchdog（既定 3 分）が Environment.FailFast で Editor ごと落として失敗にする（uloop・CI の batchmode とも同じ）
+    /// Without the guard FrameUpdate never returns and the Editor hangs (no test failure stops it, and the frame cap cannot break a loop inside FrameUpdate); finishing within the cap is the pass, and a hung run fails because TestWatchdog (3 minutes by default) kills the Editor with Environment.FailFast (same under uloop and CI batchmode)
     /// </remarks>
     public abstract class NarrowWrapTestHost : LineEndPunctuationArrangementHost
     {
