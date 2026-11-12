@@ -42,9 +42,7 @@ namespace Client.Tests.Ui.Screens.EventMode
         protected EventLanguageGate OpenWaitingGate()
         {
             var gate = new EventLanguageGate(true);
-            // Presenter は Task 4 で作る。Task 4 Step 1 でこの行のコメントを外す
-            // The presenter arrives in Task 4; Task 4 Step 1 uncomments this line
-            // new EventLanguageGatePresenter(gate, GateLayer, Scale(), LanguageCatalog.Languages).Initialize();
+            new EventLanguageGatePresenter(gate, GateLayer, Scale(), LanguageCatalog.Languages).Initialize();
             simulate.FrameUpdate();
             return gate;
         }

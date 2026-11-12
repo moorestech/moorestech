@@ -2,6 +2,7 @@ using System.Linq;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.EventMode;
 using Client.Ui.State.EventMode;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -65,6 +66,32 @@ namespace Client.Tests.Ui.Screens.EventMode
             Assert.AreEqual(GateLayer.worldBound.center.x, title.worldBound.center.x, 0.5f);
             Assert.IsTrue(title.ClassListContains(UiTypographyClass.TitleOrder1));
             Assert.LessOrEqual(title.worldBound.width * StageScale, 900.5f, "--full-screen-gate-text-width");
+        }
+
+        /// <web-test file="src/features/eventLanguageGate/EventLanguageGate.test.ts">待機中は母国語表記のボタンと英語固定の見出しを描く</web-test>
+        [Test]
+        public void 待機中は言語の一覧の順に母国語表記のボタンを並べ英語固定の見出しを出す()
+        {
+            OpenWaitingGate();
+            var options = Options();
+
+            // 並びと文言は生成済みの言語の一覧そのもの（Web の mock は 3 件、本物は 4 件）
+            // Order and labels are the generated language list itself (the Web mock has 3, the real list 4)
+            CollectionAssert.AreEqual(LanguageCatalog.Languages.Select(language => "event-language-gate-option-" + language.Code), options.Select(option => option.name));
+            CollectionAssert.AreEqual(LanguageCatalog.Languages.Select(language => language.DisplayName), options.Select(option => ReadPlainText(option.Q<LocalizedLabel>())));
+            Assert.AreEqual("日本語", ReadPlainText(Option("japanese").Q<LocalizedLabel>()), "native-name label");
+            Assert.AreEqual("Select Language", ReadPlainText(GateLayer.Q<Label>(EventLanguageGateView.TitleTestId)));
+            Assert.IsTrue(options.All(option => option.enabledSelf));
+        }
+
+        /// <web-test file="src/features/eventLanguageGate/EventLanguageGate.test.ts">見せないなら何も描かず一覧も購読しない</web-test>
+        [Test]
+        public void 待機しないゲートは何も描かない()
+        {
+            new EventLanguageGatePresenter(new EventLanguageGate(false), GateLayer, Scale(), LanguageCatalog.Languages).Initialize();
+            simulate.FrameUpdate();
+
+            Assert.AreEqual(0, GateLayer.childCount);
         }
     }
 }
