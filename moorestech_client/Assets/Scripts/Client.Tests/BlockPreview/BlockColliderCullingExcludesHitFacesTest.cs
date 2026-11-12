@@ -10,11 +10,21 @@ namespace Client.Tests
 {
     public class BlockColliderCullingExcludesHitFacesTest
     {
+        private GameObject _storeObject;
+        private GameObject _blockObject;
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_blockObject);
+            Object.DestroyImmediate(_storeObject);
+        }
+
         [Test]
         public void OutOfRange_KeepsHitFacesEnabled_AndDisablesBlockColliders()
         {
-            var storeObject = new GameObject("culling-test-store");
-            var blockObject = new GameObject("culling-test-block");
+            var storeObject = _storeObject = new GameObject("culling-test-store");
+            var blockObject = _blockObject = new GameObject("culling-test-block");
             var block = blockObject.AddComponent<BlockGameObject>();
             var bodyCollider = blockObject.AddComponent<BoxCollider>();
             var hitFaces = BlockPlacementHitFaces.Create(blockObject.transform, Vector3Int.one, BlockDirection.North);
@@ -24,10 +34,9 @@ namespace Client.Tests
             // Going out of range disables only the block body collider
             service.CreateEntry(block).Target.SetWithinRange(false);
             Assert.IsFalse(bodyCollider.enabled);
-            foreach (var faceCollider in hitFaces.GetComponents<BoxCollider>()) Assert.IsTrue(faceCollider.enabled);
-
-            Object.DestroyImmediate(blockObject);
-            Object.DestroyImmediate(storeObject);
+            var faceColliders = hitFaces.GetComponents<BoxCollider>();
+            Assert.AreEqual(6, faceColliders.Length);
+            foreach (var faceCollider in faceColliders) Assert.IsTrue(faceCollider.enabled);
         }
     }
 }

@@ -94,7 +94,7 @@ namespace Client.Game.InGame.Block
             _previewOnlyObjectsView = new BlockPreviewOnlyObjectsView(BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false));
             // 枠の辺は描画指示が来た時だけプールから借りる
             // Frame edges are rented from the pool only on a render instruction
-            _previewOnlyObjectsView.Add(new BlockPreviewEdgeFrameLease(this, ClientDIContext.BlockPreviewEdgeFramePool));
+            _previewOnlyObjectsView.Add(new BlockPreviewEdgeFrameLease(this));
 
             // 初期状態を要求。返答はtick末尾の束で届く
             // Ask the server for the initial block state; the reply arrives via BlockStateEventHandler in the tick-end bundle
