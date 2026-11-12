@@ -1,23 +1,20 @@
-// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みのuGUI型（CrosshairView）を参照しておりexecute-dynamic-codeでコンパイルできない。画面UIはWeb UI一本（ADR 0052）。雛形にしないこと。書き直しはCrosshairVisibility→CrosshairTopic→Web UIの表示をUntilUiElementで確認する
-// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): references removed uGUI types (CrosshairView) and does not compile under execute-dynamic-code. The screen UI is Web-only (ADR 0052); do not use this as a template. Rewrite it via CrosshairVisibility -> CrosshairTopic, confirming the Web UI display with UntilUiElement
-// FPS/TPS視点切替E2E検証: Vキーでゲーム画面・建設モードのどこでも視点を切替え、建設中もカメラが変化しないことを確認する
-// 検証項目: ゲーム画面でのV切替（FPS化・三人称復帰）→ 建設モード突入でカメラ距離/ピッチが不変（俯瞰化しない）→
-// 三人称マウス照準設置 → 建設中のV切替とFPS中央照準設置 → 削除モード・ゲーム画面復帰後もFPSが維持される
-// FPS/TPS view toggle E2E: toggle the view anywhere (game screen and build states) and verify the camera is
-// untouched when entering build mode. Covers toggling on the game screen, unchanged camera distance/pitch on
-// entering placement, third-person mouse-aim placement, FPS center-aim placement, and FPS memory across states.
+// クロスヘアは両系で CrosshairVisibility を読み、GameUi では UITK の crosshair 要素の可視も照会する（Web の Crosshair には testid が無い。S3-ladder）
+// The crosshair is read from CrosshairVisibility on both systems; GameUi also queries the visible UITK crosshair element (the Web Crosshair has no testid, S3-ladder)
+// FPS/TPS 視点切替: ゲーム画面・建設中のどこでも V で切り替わり、建設モード突入でカメラ距離/ピッチが変わらず、FPS が削除モード・ゲーム画面復帰後も保たれることを見る
+// FPS/TPS toggle: V switches anywhere (game screen and build states), entering build mode keeps camera distance/pitch, and FPS survives the delete state and returning to the game screen
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using Game.Context;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -26,23 +23,32 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
 {
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
     await p.SetupFlatGround();
+    await p.SkipOpeningSkitIfPlaying();
+    await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "開幕スキットを抜けて GameScreen とメインカメラに戻る");
     p.WarpPlayer(new Vector3(4f, 33.5f, 5f));
     await p.PrepareBlockForUiPlacement("木のチェスト", 4);
 
     // 検証に使う実体への参照を確保する
     // Grab references to the objects under verification
-    var camera = UnityEngine.Object.FindFirstObjectByType<InGameCameraController>();
+    var camera = UnityEngine.Object.FindFirstObjectByType<InGameCameraController>(FindObjectsInactive.Include);
     var viewModeController = ClientDIContext.DIContainer.DIContainerResolver.Resolve<PlayerViewModeController>();
-    var playerRenderers = UnityEngine.Object.FindFirstObjectByType<PlayerObjectController>().GetComponentsInChildren<Renderer>(true);
-    var crosshairDot = CrosshairView.Instance.transform.Find("Dot").gameObject;
+    var playerRenderers = ((MonoBehaviour)PlayerSystemContainer.Instance.PlayerObjectController).GetComponentsInChildren<Renderer>(true);
+    var crosshair = ClientDIContext.DIContainer.DIContainerResolver.Resolve<CrosshairVisibility>();
+    var queriesUitkCrosshair = UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi;
+    p.Note($"系={UiInputExclusivity.ActiveUiSystem}。クロスヘアは CrosshairVisibility{(queriesUitkCrosshair ? " と UITK の crosshair 要素" : " だけ（Web の Crosshair には testid が無い）")}で判定する");
 
     // 1: ゲーム画面の初期状態は三人称（クロスヘア無し・自機表示）
     // 1: The game screen starts in third-person (no crosshair, player visible)
     p.Note("ゲーム画面の初期状態が三人称であることを確認する");
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "GameScreenステート");
     p.Assert(viewModeController.GetCurrentMode() == PlayerViewMode.ThirdPerson, "初期視点はThirdPerson");
-    p.Assert(!crosshairDot.activeInHierarchy, "クロスヘア非表示");
+    await AssertCrosshair(false, "クロスヘア非表示");
     p.Assert(playerRenderers.All(r => r.enabled), "自機Rendererが表示中");
     var thirdPersonDistance = camera.CameraDistance;
     await p.Screenshot("01-gamescreen-tps");
@@ -54,7 +60,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.Until(() => viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson, 5f, "ゲーム画面でFirstPersonへ切替");
     await p.Until(() => camera.CameraDistance < 0.2f, 5f, "カメラ距離がFPS距離(0.15)付近");
     p.Assert(Cursor.lockState == CursorLockMode.Locked, "カーソルがロックされている");
-    p.Assert(crosshairDot.activeInHierarchy, "クロスヘアDotが表示中");
+    await AssertCrosshair(true, "クロスヘアDotが表示中");
     p.Assert(playerRenderers.All(r => !r.enabled), "自機Rendererが全て非表示");
     await p.Screenshot("02-gamescreen-fps");
 
@@ -64,7 +70,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.PressKey(Key.V);
     await p.Until(() => viewModeController.GetCurrentMode() == PlayerViewMode.ThirdPerson, 5f, "ThirdPersonへ復帰");
     await p.Until(() => Mathf.Abs(camera.CameraDistance - thirdPersonDistance) < 0.05f, 5f, "元の三人称カメラ距離へ復元");
-    p.Assert(!crosshairDot.activeInHierarchy, "クロスヘアが非表示に戻る");
+    await AssertCrosshair(false, "クロスヘアが非表示に戻る");
     p.Assert(playerRenderers.All(r => r.enabled), "自機Rendererが再表示");
     await p.Screenshot("03-gamescreen-tps-restored");
 
@@ -127,8 +133,8 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     p.Note("建設モード中にVでFPSへ切り替え、画面中央照準で設置する");
     await p.PressKey(Key.V);
     await p.Until(() => viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson, 5f, "建設モード中にFirstPersonへ切替");
-    p.Assert(crosshairDot.activeInHierarchy, "FPS建設でクロスヘア表示");
-    p.Assert(Cursor.lockState != CursorLockMode.Locked, "FPS建設でもUI側のカーソル解放を維持");
+    await AssertCrosshair(true, "FPS建設でクロスヘア表示");
+    p.Assert(Cursor.lockState == CursorLockMode.Locked, "FPS建設はカーソルをロックする（UiStateCameraPolicyServiceTest.BuildZoneFpsLocksCursorAndIgnoresRightClick の仕様）");
     var beforeFpsPlace = await p.ReadWorldBlockCount();
     await p.ClickPlace();
     var placeWait = p.BeginWait(10f, "FPS画面中央照準でブロックが設置される");
@@ -146,7 +152,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.PressKey(Key.G);
     await p.WaitUiState(UIStateEnum.DeleteBar, 10f);
     p.Assert(viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson, "削除モードでFPSが維持される");
-    p.Assert(crosshairDot.activeInHierarchy, "削除モードでもクロスヘア表示");
+    await AssertCrosshair(true, "削除モードでもクロスヘア表示");
     await p.Screenshot("09-deletebar-fps");
 
     // 8: 建設モードを抜けてゲーム画面へ戻ってもFPSのまま（旧仕様は三人称へ強制復帰していた）
@@ -156,7 +162,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     p.Assert(viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson, "ゲーム画面復帰後もFPSが維持される");
     p.Assert(camera.CameraDistance < 0.2f, "FPSカメラ距離が維持される");
-    p.Assert(crosshairDot.activeInHierarchy, "ゲーム画面でもクロスヘア表示");
+    await AssertCrosshair(true, "ゲーム画面でもクロスヘア表示");
     p.Assert(playerRenderers.All(r => !r.enabled), "自機Rendererは非表示のまま");
     await p.Screenshot("10-gamescreen-fps-kept");
 
@@ -178,6 +184,16 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.Until(() => viewModeController.GetCurrentMode() == PlayerViewMode.ThirdPerson, 5f, "三人称へ復帰");
     await p.Until(() => 0.5f < camera.CameraDistance, 5f, "三人称カメラ距離へ復帰");
     p.Assert(playerRenderers.All(r => r.enabled), "自機Rendererが復帰");
-    p.Assert(!crosshairDot.activeInHierarchy, "クロスヘアが非表示");
+    await AssertCrosshair(false, "クロスヘアが非表示");
     await p.Screenshot("12-gamescreen-tps-final");
+
+    #region Internal
+
+    async UniTask AssertCrosshair(bool expected, string label)
+    {
+        p.Assert(crosshair.IsVisible() == expected, $"{label}（CrosshairVisibility={crosshair.IsVisible()}）");
+        if (queriesUitkCrosshair) p.Assert((await PlaytestUiElementOps.FindUi("crosshair")).IsFound == expected, $"{label}（UITK の crosshair 要素）");
+    }
+
+    #endregion
 });

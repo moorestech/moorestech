@@ -128,6 +128,7 @@
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinMedium%20SDF.asset");
 }
 
+/* look-exception: LX-171 */
 /* CJK のロケールは段階 1 と同じく JP の字形を先頭にする（JP/KR は元から Medium なので 500 は段階 1 の JP のまま） */
 /* CJK locales lead with the JP face as in stage 1 (JP/KR are already Medium, so 500 stays on the stage-1 JP face) */
 .game-ui-locale--cjk .title--order-1,

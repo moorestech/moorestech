@@ -26,7 +26,7 @@
 |---|---|---|---|---|
 | 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 暗転 | 979725bcd1 | `uitk-lifeline` |
 | 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | Web | — | `uitk-opening-hud` |
-| 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | Web | — | `uitk-build-bp` |
+| 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | 暗転 | 0e81bbe3c3 | `uitk-build-bp` |
 | 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | Web | — | `uitk-production-loop`・`uitk-research-train` |
 | 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | Web | — | `uitk-challenge-gate` |
 
@@ -108,6 +108,24 @@
 | 1 | 18ae2ca640 | 写した | S4-special の特殊族の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
 | 1 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
 | 1 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
+| 3 | a97575e5b5 | 捨てた | 旧 R1 の Web 全面 unmount（UITK が主パネルを出す間 webUiSuspended で App を外す）。全体スイッチ（albof.17）で UITK 側は Web ホストを起動しなくなり休止の仕組みごと要らないので、W0-switch で外して master と同じ Web に戻した |
+| 3 | 05b9bdefa8 | 捨てた | Web が休止・カットシーンから描画を再開するときの stage 倍率の測り直しで、Web 自身の描画再開にだけ要る。UITK 側に写すものが無い |
+| 3 | 1095cab8bf | 捨てた | 旧 R1 の休止解除時の入力状態の送り直し。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
+| 3 | ccb3d512f7 | 捨てた | 旧 R1 の休止解除後に DOM 変化ごとにポインタを当たり判定し直す処理。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
+| 3 | 5421c7f9f0 | 捨てた | 旧 R1（画面別の Web 休止）の入力排他フックを src/shared/uiState/inputExclusivity/ へ移した自動修正。全体スイッチの作り直し（W0-switch・albof.17）で旧 R1 の Web 側変更ごと外して master と同じ Web に戻すので、UITK 側に写すものが無い |
+| 3 | 3e946e4bd3 | 写した | D-8 の拒否理由ごとのトースト文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits.ToLocalizationKey と localization.csv の文言 |
+| 3 | f044f5f5c4 | 捨てた | W0-switch（albof.17）の撤去コミット。旧 R1 の Web 側変更（a97575e5b5・05b9bdefa8・1095cab8bf・ccb3d512f7・5421c7f9f0）を外し、取り込み済み master と同じ Web に戻した（生成物 localizationKeys.ts は 3e946e4bd3 のまま）。UITK 側に写すものが無い |
+| 3 | 42279a73e4 | 写した | 同じコミットの localization.csv と C#（albof.16.2 の拒否理由の文言） |
+| 3 | 4052bf3372 | 写した | C4-e の持ち物・分割の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 3 | bc47bb655a | 写した | S4-alpha 自身の localization.csv への追加（ui.commandRejected.blockSlotUnavailable）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# |
+| 3 | 52015d7931 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 3 | 7ec6e61825 | 写した | S4-machine の拒否理由（ui.commandRejected.blockNotOpen・machineRecipeInvalid・machineRecipeLocked・machineRecipeRequestFailed）の localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 3 | 237eb39440 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 3 | 23bf17e0bb | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 3 | 18ae2ca640 | 写した | S4-special の特殊族の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 3 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
+| 3 | 5bf23c60a7 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 3 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
 
 ## 参照キャプチャ
 
@@ -119,6 +137,8 @@ Web 版の全画面と主要な状態（移行後も「意図した見た目」�
 - 目視検査: 同じ置き場の `visual-review.md` と `qa/` に全64静止画・全5動画の確認とフレーム証拠を残す。通知動画は入場・集約・全退出を含む12秒、ほかは3〜4秒
 - 2560×1080 の参照: 撮影元 moorestech `0e81bbe3c3`、置き場は `moorestech_logs` の `uitk/reference-captures/web-0e81bbe3c3-2560x1080/`（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-0e81bbe3c3-2560x1080 。撮影 id は 1280×720 と同じ名前・静止画 84 と動画 5。舞台は 1.5 倍で左右に 320px の余白）。Web の版が 1280×720 の撮影元と違うので、差が出たらまず版の差を疑う。撮り直すときは capture の前に `pnpm build` が要る（`compare-procedure.md` §3）
 - S4-train の自撮り（撮影表に無い列車族の場面）: 撮影元 moorestech `755c54a512`（uitk-lane/s4-train。Web は feature/uitk と同じ）。mock-host に一時の fixture（駅 `TrainStation`・時刻表の Unavailable・液体貨車・停車駅 15 件。コミットしない）を足して 1280×720 と 2560×1080 で撮った。撮影 id は `s4t-station`・`s4t-timetable-loading`（`train` の時刻表タブ）・`s4t-timetable-unavailable`・`s4t-timetable-busy`（`trainTimetable` で追加を押した直後。mock の配信を 4 秒遅らせた）・`s4t-fluid-car`・`s4t-timetable-15`。置き場は S4-train の worktree の `.uitk-capture/web-*/`（gitignore 下）で、撮影表 `referenceShots.ts` への追加は integrator へ依頼済み（`harness/uitk/S4-train/done.md`）
+- 束 3 の最新の参照（S3-ladder）: 撮影元 moorestech `8a585f742a`（origin/master。マスの絵が枠の中央になった af5fcc9cb3 の後の Web。`3-hotbar-equipment-empty` の枠 1 の絵が枠の中央にあることを目で見た）。1280×720 は `moorestech_logs` の `uitk/reference-captures/web-8a585f742a/`（91 件。https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a ）、2560×1080 は `uitk/reference-captures/web-8a585f742a-2560x1080/`（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a-2560x1080 。`shotRunner.ts` の `referenceViewport` を一時的に 2560×1080 にして撮り、戻した）
+- S3-hotbar-modal の 1920×1080 の参照: 撮影元 moorestech `8a585f742a`（origin/master）、置き場は `uitk/reference-captures/web-8a585f742a-1920x1080/`（91 件。https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a-1920x1080 ）
 - 各行の `参照キャプチャ` 列は撮影 id（PNG は `<id>.png`、動画は `<id>.webm`）。束を切り替える前に撮り直したら、ここの撮影元と置き場を新しい方へ書き換える
 
 ## 未撮影
@@ -241,10 +261,10 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | `tutorial-equip-challenge.cs` | 同上 | 2 | S2-ladder | 同上 |
 | `tutorial-tree-pin-nearest-search.cs` | 同上 | 2 | S2-ladder | 同上 |
 | `server-notification-smoke.cs` | 削除済みの研究 GUID を送る | 2 | S2-ladder（S2-notification が先に直す） | 現行の研究 GUID へ直し、`notification-host` を UITK のロケータで解決する |
-| `building/blueprint-copy-paste-via-ui.cs` | 削除済みの uGUI 型を参照してコンパイルできない | 3 | S3-ladder | `PlaytestBuildMenuOps`・`BlueprintNameInputState` へ移植（`uitk-build-bp` の下敷き） |
-| `building/blueprint-right-click-delete-via-ui.cs` | 同上 | 3 | S3-ladder | 同上 |
-| `connect/electric-wire-connect-via-ui.cs` | 同上 | 3 | S3-ladder | 削除（後継 `connect/electric-wire-tool-extend-chain-via-ui.cs` がある） |
-| `misc/fps-tps-view-toggle-via-ui.cs` | 削除済みの uGUI 型（CrosshairView）を参照 | 3 | S3-ladder | `CrosshairVisibility` の照会へ移植 |
+| `building/blueprint-copy-paste-via-ui.cs` | 削除済みの uGUI 型を参照してコンパイルできない | 3 | S3-ladder | 書き直した（S3-hotbar-modal 57a78b071e。S3-ladder で GameUi・Web とも緑） |
+| `building/blueprint-right-click-delete-via-ui.cs` | 同上 | 3 | S3-ladder | 書き直した（S3-ladder。GameUi・Web とも緑） |
+| `connect/electric-wire-connect-via-ui.cs` | 同上 | 3 | S3-ladder | 削除した（S3-ladder。後継 extend-chain は GameUi で緑） |
+| `misc/fps-tps-view-toggle-via-ui.cs` | 削除済みの uGUI 型（CrosshairView）を参照 | 3 | S3-ladder | 移植した（S3-ladder。CrosshairVisibility と crosshair の照会。GameUi・Web とも緑） |
 | `tutorial-research-renumber.cs` | 削除済みの研究 GUID と旧チェーン前提 | — | X-prerun | 削除（ADR 0038 で研究 1〜3 が消え、役目が終わった） |
 | `misc/research-node-state-label.cs` | 削除済みの研究 GUID を送る | 4 | X-prerun | 現行の研究 GUID へ書き直す（研究ツリーの UITK 化の後に流す） |
 
@@ -282,3 +302,5 @@ Web と同じにしない見た目の差（設計書 `docs/uitk-migration/execut
 | LX-72 | ビルドメニューの題「ビルドメニュー」（`BuildMenuPanelSkeleton.cs` の `SetTitle`。描き方は共有の `GamePanel.uss` の `.game-panel__title`） | 2560×1080 で、題の字の上（物理 x 749〜762・y 272 ほか）に Web に無い明るいかけら（横線と点、計 19 画素）が出る。字の右端が Web より 4 物理画素（舞台 2.7px）右で、字の画素数は 807 対 797（1.3% 多い）。1280×720 では字の箱が 1px 以内で、かけらは見えない | かけらは題の `text-shadow: 0.3px 0.3px 0` が出している。同じ撮影で影だけ消すと 19→0 画素になり、影ありでは 3 回撮って 3 回とも同じ 19 画素が出た（EditMode の `UiRuntimePanelCapture`・2560×1080・日本語）。LX-132 と同じ原因で、bd moorestech-albof.39 の欠片を決まって再現できる例になる。幅は GamePanel の題（Bold の字形と `letter-spacing: 2`）を 1.5 倍したときの丸めと推測している。どちらも共有部品 C2-a の描き方で、画面の USS は題のつまみを上書きしていない | 共有 `GamePanel` の題の影を外すか部品で直す（integrator への依頼。LX-132 と同じ依頼に再現例を足す） | （Task 10 の報告ページ） | agent 既定（S3-buildmenu Task 10 実測） |
 | LX-76 | ホットバーの未解決の枠と受理外の列の減光（`DerivedTokens.uss` の `--hotbar-unresolved-opacity`・`--hotbar-select-disabled-opacity`。`HotbarHud.uss` が `.hotbar-hud__cell--unresolved`・`.hotbar-hud__row--select-disabled` に当てる） | Web は opacity を枠・列の群にまとめて掛ける。USS の `filter: opacity(var(...))`（群をオフスクリーンに描いて合成。Unity 6000.3 で `var()` も効く）で群の合成は Web と同じになり、重なった画素は最大 4〜5 段（1280×720・`UiRuntimePanelCapture`・3 地）。残る差は、受理外の列の中の半透明の面（空き枠の面 α 0.5・番号タブ 0.68）が 4〜5 段暗く出ること（暗い地の空き枠の面 (38,40,50) が地 (40,42,48) より暗い）。原因は未確認（推測: 中間 RT での半透明の扱い）。群の外へのにじみは無い。2560×1080（倍率 1.5）では群の絵が約 1 物理 px ぼける（未解決の枠の輪が Web (184,129,90) に対し (198,137,96) で外へ 1 行広がり、番号タブと枠の間の 1 行の地が (205,129,77)〈Web は地のまま (223,130,61)〉。推測: 群をパネルの点の解像度で描いて拡大している。1280×720 では出ない） | 旧 `opacity` は要素ごとに掛かり、重なった画素が最大 53 段ずれた（未解決の枠の輪が暗い地でほぼ消える。参照 `web-869b2d4264/3-hotbar-equipment-empty.png` の輪 (180,120,84) に対し (189,153,133)）。帯の色を逆算した補正は地が変わると黙ってずれ、半透明を Web の値のまま書く規則（ref-uitk-design `css-to-uss.md` §6）に反するので採らない。`filter: opacity()` に替えて 53→5 段。LX-95 も同じ手で群の opacity にできる見込み | Web の値のまま（0.4・0.55）を `filter: opacity()` で当てる | 原本 `moorestech_client/.uloop/outputs/compare/S3-hotbar-modal/albof34-*.png`（S3-hotbar-modal の報告ページに載せる） | agent 既定（S3-hotbar-modal Task 10・Fix 実測）
 | LX-40 | 通知の行の日本語の折り返し（`Notification.uss` の `.notification-row__text`） | Chrome は既定の `text-spacing-trim: normal` で行末の閉じ括弧「）」を半角に詰める。参照の拒否の文「研究を完了できません（前提条件または素材が不足しています）」は Web が 2 行（2 行目の末尾の「す）」が幅 230px に入る）、UITK は「す）」が次の行へ送られて 3 行になり、行が 48px→67px（1280×720）と 19px 高く、下の行がその分下がる | UITK の TextCore に行末の約物を詰める仕組みが無い（L1 の使い捨てのプローブで、幅 230px・JP の行は `-unity-text-generator: standard`・`advanced` のどちらも 3 行〈ラベル 58px〉）。Chrome で同じ文を `text-spacing-trim: normal` は 2 行・`space-all` は 3 行（Playwright の Chromium 148・NotoSansJP-Medium で実測）で、差の原因はこの詰めだけ。起きるのは行末に閉じ括弧がちょうど来る文だけで、字の大きさ・字間・色・1 行目の改行位置は同じ。通知に限らず UITK の折り返す日本語すべてに共通の差 | 詰めないまま（直すなら共通の文字の描画で行末の約物を詰める。通知の USS では直さない） | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-12-uitk-s2-notification-compare/ | agent 既定（S2-notification Task 10 実測） |
+| LX-170 | モーダルの中身の 1px の線（`UiScreenPixelScope.cs` の `ApplyStageScale`。`UiModalHost` の `modal-scope` の中の入力欄・ボタン・面） | 2560×1080（舞台の倍率 1.5）で、Web は入力欄の枠 1px が 1 物理画素 (25,113,194) のまま。UITK は枠が 1.333 物理 px に太り端数の位置に置かれるので、左右の枠の内側に (39,68,95) の 2 列目、下の枠が y579 (32,91,145)・y580 (29,88,142) の 2 行ににじむ。面の高さも 232.67（1280×720 は 233）。1280×720（倍率 1）では出ない | 箱は寸法を倍率倍に広げ 1/倍率 に縮めて中身の 1px を実画面の 1px にするが、UITK の配置はパネルの倍率（1.5）の物理画素へ丸めるので、箱の中の座標では 0.667 刻みに丸まる（`resolvedStyle.borderTopWidth` が 1.333、入力欄の `worldBound` の y が 363.11＝物理 544.67。`UiRuntimePanelCapture`・2560×1080 の実測）。揃えるには丸めを箱の倍率に合わせる配置の仕組みか、箱を使わない置き方が要る。差は 1px の線の柔らかさだけで、並べて見分けられない | 箱の丸めのまま | 原本 `moorestech_client/.uloop/outputs/compare/S3-ladder/uitk-3-modal-2560x1080.png`（Task 12 の報告ページに載せる） | agent 既定（S3-ladder Task 9 実測） |
+| LX-171 | 和文ロケールの題・太字（`Foundation/Theme/Typography.uss` の `.game-ui-locale--cjk .title--order-1〜4` と `.text--bold` の Bold の字形の規則。モーダルの題＝`DialogFrame` の `title--order-4` で実測） | モーダルの題が Web より太い。字の濃さの和が 1280×720・2560×1080 とも Web の 1.38 倍 | Web は和文の字形を `NotoSansJP-Medium.otf`（font-weight 500）1 つしか読み込まず、`font-synthesis: none` なので `fw={700}` でも Medium で描く。UITK は設計書 A-36 で和文の題・`text--bold` を `GameUiJapaneseBold` にしている。題だけ `GameUiJapanese`（Medium）に差し替えると 0.97 倍に揃う（scratch で確認済み） | A-36 を「Web が実際に描く字形（和文は Medium）に合わせる」へ改め、この規則を `GameUiJapanese` に差し替える（実測 0.97 倍）。共有の規則で全画面の題と太字が一斉に変わるため、改めは integrator へ依頼。それまでは A-36 のまま（Bold の字形）の暫定記帳で、改めた時点で印と行を外す | 原本 `moorestech_client/.uloop/outputs/compare/S3-ladder/uitk-3-modal-1280x720.png` | agent 既定（S3-ladder Task 9 実測。A-36 の改めは integrator 依頼） |
