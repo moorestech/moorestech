@@ -20,7 +20,7 @@
 |---|---|---|
 | R-1 | ラダー 6 `uitk-challenge-gate` | `scenarios/uitk/stage5/uitk-challenge-gate.cs` を `exhibition-mode-run.sh ./moorestech_client GameUi <それ>` で流し、出展モードで起動 → DI より前の言語ゲート（初期化は未完了）→ `event-language-gate-option-japanese` を押す → その場で外れる → 初期化完了・言語 `japanese` → ゲーム画面 → `WebUiHost.Hub == null` → T で `UIStateEnum.ChallengeList`・`challenge-panel`・解放済みの先頭カテゴリの `challenge-category-<guid>`・進行中の `challenge-node-<guid>` が出る → T で GameScreen、を `Success: true`。初期化の完了の後の Error/Exception のログ 0 件と（起動からの）`[PlaytestUi] Web` のログ 0 件をシナリオ自身が主張し、選ぶ前の言語へ戻せたこと（`TrySetChosenLanguage` が真）を主張してから控えを消す。Note に `系=GameUi` |
 | R-2 | 出展モードの運転役の汎用化 | `scenarios/uitk/stage5/exhibition-mode-run.sh <project> <GameUi\|Web> <scenario.cs>` が系の切り替え・武装・`run-scenario.sh`・後始末（Disarm と言語の復元）を行い、引数が 3 つでない・系が 2 値でないときは何もせず終了コード 2。武装の EDC の戻り値が語 `armed` でなければ（PlayMode が残っている等）流さずに終了コード 1。言語の復元は EDC の戻り値の語 `language-restored` のときだけ控えを消し、外れたら `ERROR: … kept` を出して控えを残す（S5-gate の運転役と同じ判定）。S5-gate の `uitk-event-language-gate.sh <project>` は呼び方を変えずにこれへ委ね、S5-gate の録画 `uitk-event-language-gate` が `Success: true` のまま |
-| R-3 | ラダー 6 本が UITK で緑（plan §2.0 の 1・§2.6） | 最終 HEAD（Task 12 の取り込み後）の GameUi で 6 本が全部 `Success: true`・ErrorLogs 0（ラダー 6 の初期化の完了までの NRE は 2026-08-28 裁定で許容し、シナリオは初期化の完了の後だけ数える。S5-gate と同じ扱い）。ラダー 1 の「セーブして終了」の結果は呼び出し側のシェルで `save.json` の更新時刻を見る（`uitk-lifeline.cs` 冒頭の注記） |
+| R-3 | ラダー 6 本が UITK で緑（plan §2.0 の 1・§2.6） | 最終 HEAD（Task 12 の取り込み後）の GameUi で 6 本が全部 `Success: true`・ErrorLogs 0。取り込みで `moorestech_client/Assets`・`.agents/skills/unity-playmode-recorded-playtest/` に差分が入ったら 6 本を流し直す。入らなければ流した HEAD の sha と「取り込みの差分にこの 2 か所が無い」（`git diff --stat <流した sha> HEAD -- moorestech_client/Assets .agents/skills/unity-playmode-recorded-playtest` が空）を `done.md` に書く（ラダー 6 の初期化の完了までの NRE は 2026-08-28 裁定で許容し、シナリオは初期化の完了の後だけ数える。S5-gate と同じ扱い）。ラダー 1 の「セーブして終了」の結果は呼び出し側のシェルで `save.json` の更新時刻を見る（`uitk-lifeline.cs` 冒頭の注記） |
 | R-4 | UITK 側で DSL の Web ロケータが一度も要素を返さない（ログ） | R-3 の 6 本と R-10 の段階 5 の録画の GameUi の回のそれぞれで、`uloop get-logs --search-text "[PlaytestUi]"` に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` で始まる行が 0。L0 `SwitchedUiElementLocatorTest` が PASS（選んだ系だけを読む構造の固定）。証拠を `done.md` の表に 1 本 1 行 |
 | R-5 | `TutorialAnchorCoveragePending.cs` が空 | S5-challenge の後で `Owners` が 0 件であることを確かめてからファイルを消し、`TutorialAnchorCoverageTest` の 1 本目を「全てのアンカーIDはUITKで印が付いている」（未移植の表の分岐を外す）に書き換えて PASS |
 | R-6 | 束 5 の暗転と G1 全束 0 | 台帳「## 束」の束 5 が `暗転`・起点 10 桁。`python3 .github/scripts/check-uitk-web-follow.py --base origin/master --head HEAD` の出力で束 1〜5 の全部が「未記帳 0 件」・違反なし。取り込み後も同じ。PR の `UITK Web follow gate (G1)` が pass |
@@ -206,7 +206,7 @@ Expected: 束 1〜5 の「（暗転・起点 …）: 未記帳 k 件」。k が 
 - 旧 R1 の休止の撤去・W0-switch → `捨てた`（既存の束 1・2 の同じコミットの理由をそのまま写す）
 - Web の検証基盤（`e2e/`・mock-host・撮影）だけ → `捨てた`「Web の検証基盤の変更で、UITK の検証は Client.Playtest と NUnit が持つ」
 - 束 5 の画面（challenge・eventLanguageGate・tutorial の枠・横断層）の Web の変更 → UITK 側に同じ変更があれば `写した`（ファイル）。無ければ記帳せず、bd を `--parent <Task 0 の ID>` で立てて `done.md`「未完了」に書く（追従の実装は画面のレーンへ回す。記帳で 0 にしない）
-全束 0 になるまで繰り返す。違反（切替済みの束への変更）は 0 のはず。出たら停止して指揮へ
+全束 0 になるまで繰り返す。写しが無くて記帳できない行が残ったら R-6 を満たせない（PR の G1 は未記帳では赤にならない〈plan §4.7〉ので、マージを止めるのはこの停止）: `done.md` の 1 行目を「状態: 停止（G1 の束 n に写しの無い Web の変更 k 件）」にし、`cmux wait-for -S uitk-s5-ladder` を送って待つ。画面のレーンか I-fix の写しが入ったら取り込んで記帳し直す。違反（切替済みの束への変更）は 0 のはず。出たら停止して指揮へ
 
 - [ ] **Step 3: コミット**
 
@@ -1798,11 +1798,11 @@ uloop clear-console --project-path ./moorestech_client
 uloop get-logs --project-path ./moorestech_client --log-type All --search-text "[PlaytestUi]" --max-count 200
 uloop get-logs --project-path ./moorestech_client --log-type Error --max-count 50
 ```
-Expected: 6 本とも `exit=0`・`Success: true`・ErrorLogs 0（ラダー 6 はシナリオの主張。初期化の完了までの NRE は除く）。各回の get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行・Error 0。ラダー 1 の後に、`bash .agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で出た作業セーブの `save.json` を `stat -f "%Sm" <save.json>` で読み、更新時刻が流し始めた時刻より後。結果を `done.md`「証拠」に 1 本 1 行（パス・exit・ErrorLogs・locator 行の数・Web 行の数）
+Expected: 6 本とも `exit=0`・`Success: true`・ErrorLogs 0（ラダー 6 はシナリオの主張。初期化の完了までの NRE は除く）。各回の get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行・Error 0。ラダー 1 の後に、`bash .agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で出た作業セーブの `save.json` を `stat -f "%Sm" <save.json>` で読み、更新時刻が流し始めた時刻より後。結果を `done.md`「証拠」に 1 本 1 行（パス・流した HEAD の sha・exit・ErrorLogs・locator 行の数・Web 行の数）。1 本でも赤なら R-3・R-4 を満たさない: 緑にならない録画がある間は、bd を立てて `done.md` の 1 行目を「状態: 停止（<録画名> が赤: <理由>）」にし、`cmux wait-for -S uitk-s5-ladder` を送って待つ。出所のレーンか I-fix の直しが `feature/uitk` に入ったら取り込んで該当分を流し直す。未完了のままマージしない
 
 - [ ] **Step 3: 段階 5 に触る録画（GameUi）**
 
-同じ手順で `stage5/uitk-challenge-list.cs`・`stage5/uitk-challenge-hud-resident.cs`・`misc/walk-while-menus-open.cs`・`misc/ui-state-transition-matrix.cs`・`uitk-tutorial-cues.cs`（Task 0 Step 2 のパス）を、`stage5/uitk-event-language-gate.sh ./moorestech_client` を流す。Expected: 全部 `Success: true`・locator の行の条件は Step 2 と同じ。`misc/` の 2 本が段階 5 の前から GameUi で落ちていたら（S4-gamma の全録画の表 `../moorestech_logs/harness/uitk/S4-gamma/done.md` で引く）、同じ落ちなら「既知」と書き、新しい落ちならこのレーンの原因かを切り分ける（このレーンは本番を触らないので、出所のレーンへ bd）
+同じ手順で `stage5/uitk-challenge-list.cs`・`stage5/uitk-challenge-hud-resident.cs`・`misc/walk-while-menus-open.cs`・`misc/ui-state-transition-matrix.cs`・`uitk-tutorial-cues.cs`（Task 0 Step 2 のパス）を、`stage5/uitk-event-language-gate.sh ./moorestech_client` を流す。Expected: 全部 `Success: true`・locator の行の条件は Step 2 と同じ。`misc/` の 2 本が段階 5 の前から GameUi で落ちていたら（S4-gamma の全録画の表 `../moorestech_logs/harness/uitk/S4-gamma/done.md` で引く）、同じ落ちなら「既知」と書き、新しい落ちならこのレーンの原因かを切り分ける（このレーンは本番を触らないので、出所のレーンへ bd）。「既知」以外の赤は R-10 を満たさない: 緑にならない録画がある間は、bd を立てて `done.md` の 1 行目を「状態: 停止（<録画名> が赤: <理由>）」にし、`cmux wait-for -S uitk-s5-ladder` を送って待つ。出所のレーンか I-fix の直しが `feature/uitk` に入ったら取り込んで該当分を流し直す。未完了のままマージしない
 
 - [ ] **Step 4: Web 側の退行**
 
@@ -1828,7 +1828,7 @@ Expected: 出た Web の録画（起草時の見込み: `misc/walk-while-menus-o
 セッション終了可能状態にすること: pr-createスキルでPRを作成し、コンフリクトがあれば解消・コンパイル確認のうえpushする。このレーンは実行計画 §4.3 の形（base=feature/uitk、agent がマージ）。
 
 - [ ] **Step 1: PR**: pr-create で `base=feature/uitk`。報告ページ `https://review.moores.tech/pr/<番号>/report/` にラダー 6 の録画・並べ比べ（参照・組 0・組 2 の両系）・台帳の照合の表を、載せ先の生成器の書式（`~/hermes-agent/data/services/pr-review/publish/README.md` の manifest の group／caption）で載せ、本文の先頭行をその URL の h1 にする。公開スクリプトが失敗したら報告 URL 無しで完了にしない。disposition の PR の列の `—` を番号に置き換えてコミット・push
-- [ ] **Step 2: 取り込み**: `git merge origin/feature/uitk`。共有区画の衝突は両方の行を採る。push → `uloop compile`・`uloop run-tests ... "^Client\.Tests\.Ui\."`・`node tools/uitk/test-name-parity.mjs --bundle all`（exit 0）・G1 ローカル（全束 未記帳 0。取り込みで新しい Web のコミットが入ったら Task 1 Step 2 の型で記帳）・判定経路（ラダーのシナリオ・段階 5 の画面・DSL のロケータ）に触れた衝突なら Task 10 Step 2 の再走
+- [ ] **Step 2: 取り込み**: `git merge origin/feature/uitk`。共有区画の衝突は両方の行を採る。push → `uloop compile`・`uloop run-tests ... "^Client\.Tests\.Ui\."`・`node tools/uitk/test-name-parity.mjs --bundle all`（exit 0）・G1 ローカル（全束 未記帳 0。取り込みで新しい Web のコミットが入ったら Task 1 Step 2 の型で記帳）。`git diff --stat <Task 10 で流した sha> HEAD -- moorestech_client/Assets .agents/skills/unity-playmode-recorded-playtest` が空でなければ（衝突の有無によらず）Task 10 Step 2・3 を流し直し、新しい sha で `done.md`「証拠」を書き直す（R-3）。空なら流した sha と空の結果を `done.md` に書く
 - [ ] **Step 3: G1 とマージ**: PR の `UITK Web follow gate (G1)` が pass を見て `gh pr merge <番号> --merge`（Squash 禁止）
 - [ ] **Step 4: 片付け**: `moores-wt status` で自分の Editor だと確かめて Editor を閉じる。`winunity editor-stop <name>`（使ったなら）。録画・PlaytestResults・TestResults・撮影 PNG を消す。bd moorestech-albof.21 を「Task 3 で 16 件を写した」の reason で close、Task 0 の bd を close。worktree の `moores-wt rm` は指揮が行う（依頼文の指示。D-11）
 - [ ] **Step 5: 報告と合図**: `done.md` の 1 行目を「状態: 完了」（止まったら「状態: 停止（理由）」）にし、完了条件ごとの証拠（R-1〜R-13 の表）・PR URL・台帳の照合・差の表・未完了・要裁定・integrator への依頼（申し送りの処遇の「回す」行・下の「設計書・実行計画へ反映する行」・X-prerun への引き継ぎ）を書いて `../moorestech_logs` でコミット・push。最後に `cmux wait-for -S uitk-s5-ladder` を 1 回
@@ -1836,7 +1836,7 @@ Expected: 出た Web の録画（起草時の見込み: `misc/walk-while-menus-o
 ## Self-Review
 
 - Requirements の各行のタスク: R-1→T6、R-2→T5、R-3・R-4・R-10・R-13→T10（R-4 はラダー 6 のシナリオ自身も主張）、R-5→T2、R-6→T1（と T12 Step 2 の再確認）、R-7→T7、R-8→T4（と T3）、R-9→T3、R-11→T9、R-12→T8、R-14→各タスクと T12 Step 5、R-15→T11・T12
-- 保留の経路: 依存レーンの未マージ・ラダーの欠けは「状態: 停止（理由）」と合図で止まる（黙って 5 本で締めない）。Web の回で CEF が出ないときは RendererUnavailable の証拠付きで「未確認」。画面の不具合は直さず bd と `done.md`「未完了」。G1 の追従漏れは記帳で 0 にせず bd。台帳の照合で空欄が残れば「要裁定」でマージしない。運転役の引数の誤りは終了コード 2 で Unity に何も送らない
+- 保留の経路: 依存レーンの未マージ・ラダーの欠けは「状態: 停止（理由）」と合図で止まる（黙って 5 本で締めない）。ラダー 6 本・段階 5 の録画のどれかが赤（R-1・R-3・R-4・R-10。出所が依存レーンでも）、G1 に記帳できない Web の変更が残る（R-6）、束 1 の写す予定が残る（D-14 の 3）も同じく「状態: 停止（理由）」で合図して待ち、取り込みの後に該当分を流し直す（Task 12 の G1 は未記帳を赤にしないので、マージを止めるのはこの停止だけ）。Web の回で CEF が出ないときは RendererUnavailable の証拠付きで「未確認」。画面の不具合は直さず bd と `done.md`「未完了」。G1 の追従漏れは記帳で 0 にせず bd。台帳の照合で空欄が残れば「要裁定」でマージしない。運転役の引数の誤りは終了コード 2 で Unity に何も送らない
 - 最小構成: ラダー 6 は日本語の言語・一覧の開閉・ログの 0 件だけを主張し、中央寄せ・アンカー・パンは `uitk-challenge-list.cs`（S5-challenge）に任せる。並べ比べのシナリオは撮るだけで主張は解像度とゲートの消えだけ
 - 対照: Task 2 は新しいテストを 1 回だけ落ちる形（印の集合から 1 つ除く）で FAIL させてから戻す。Task 5 は引数の誤り 2 通りで `exit=2` を見てから正しい呼び方を流す。Task 4 の新しい NUnit は FAIL→PASS を見てから入れる
 - 型の一致: `ChallengeProgressState` の引き方（`Categories.First(c => c.IsUnlocked)`・`Category.Challenges`・`CurrentChallenges`・`ChallengeGuid`・`Category.CategoryGuid`）は S5-challenge 計画の `uitk-challenge-list.cs` と同じ。`PlaytestEventLanguageGateBoot.ArmForNextBoot()`・`Disarm()`・`language-before.txt` のパスは S5-gate 計画 Task 7 と同じ。Task 0 Step 3 でマージ後の実物と照合する
