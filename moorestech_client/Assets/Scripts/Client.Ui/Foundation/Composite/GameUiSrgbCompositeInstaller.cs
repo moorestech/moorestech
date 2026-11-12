@@ -31,7 +31,7 @@ namespace Client.Ui.Foundation.Composite
         // No screen-size change notification exists, so compare every frame (precedent ScreenFrameReader)
         public void Tick()
         {
-            // silent-ok: 生成失敗は Initialize の例外として初期化の失敗（MainGameSceneLoadedHandler の LogError → メインメニュー）になり Tick は回らない / 開発者は Console の最初の例外で、プレイヤーはメインメニューへ戻ることで気づく
+            // silent-ok: 生成失敗は Initialize の例外として初期化の失敗（MainGameSceneLoadedHandler の LogError。RT を作れないときはアプリ終了、それ以外はメインメニュー）になり Tick は回らない / 開発者は Console の最初の例外で、プレイヤーはアプリの終了かメインメニューへ戻ることで気づく
             if (_panelTarget == null) return;
             _panelTarget.SyncToScreenSize();
             UiSrgbCompositeSource.ReportWhenNotComposited();
