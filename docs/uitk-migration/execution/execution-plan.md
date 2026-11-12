@@ -93,17 +93,18 @@
 | X-5b | CEF と配布工程の撤去 | X-5a | 要 | 単位 | ○ | 5b（prefab は uloop で外す） |
 | X-5c | Web ホストと Web 資産の撤去 | X-5b | 要 | 単位 | ○ | 5c。テスト名の突き合わせで全束の差分 0。Web ホスト側の規則の重複一覧（`P/2026-11-10-uitk-s4-train.md` 末尾「本 PR 外のリファクタ提案」。State と `Client.WebUiHost` に同じ規則が 2 本ある導出）の Web ホスト側が消えている |
 | X-5d | NuGet の整理 | X-5c | 要 | 単位 | ○ | 5d（依存グラフを確かめてから） |
-| X-5e | 文書・スキル・改名・ADR・bd | X-5d | 末 | 単位 | ○ | 5e。`ref-webui-design` 廃止・`ref-uitk-design` 完成・ts/tsx 観点 12 本撤去。台帳と G1 は消さない |
-| X-switch-pr | 切替 PR | X-5e | 要 | int | ○ | `feature/uitk` 上の Web コミットを `捨てた` で記帳し `check-uitk-web-follow.py --base origin/master --head feature/uitk` 0 件。全束 `切替済み`・全行 `UITK`。G4 緑。Windows/Mac ビルド・Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh`、CEF の無いビルドでラダー 6 本と全録画、IME 一巡。焼くのは `feature/uitk` の HEAD の SHA（`release-playtest.sh` の既定の `origin/master` を使わない）。playtest-staging へのアップロードは裁定の「切替 PR の中の検証」の範囲として行い、playtest への反映（moores-playtest-release の手順 3 以降）はユーザーのマージ後の X-release でだけ行う。pr-create（head=`feature/uitk`、base=master）・moores-code-review（X-audit の head 以降）と独立評価 2 体（pr-independent-review は削除済み。E-24）。目視とマージはユーザー。検証中に master の Web 更新が入ったら I-follow で写して再検証 |
-| X-release | playtest への反映と 1 周期 | ユーザーのマージ | 否 | 指揮 | — | moores-playtest-release。Mac の確認項目をラダー 6 本の先頭操作のスクショへ。パッチノートに UITK 移行と既知の差分。7 日以上と報告の確認 1 回（plan §5.1-5） |
-| X-cleanup | 台帳と G1 の撤去 | ユーザーのマージ | 否 | 単位 | — | 台帳・G1 の workflow・スクリプト・テストを 1 本の master PR で消す（plan §2.6）。マージはユーザー |
+| X-5e | 文書・スキル・改名・ADR・bd | X-5d | 要 | 単位 | ○ | 5e。`ref-webui-design` 廃止・`ref-uitk-design` 完成・ts/tsx 観点 12 本撤去。台帳と G1 は消さない |
+| X-switch-pr | 切替 PR | X-5e | 要 | int | ○ | `feature/uitk` 上の Web コミットを `捨てた` で記帳し `check-uitk-web-follow.py --base origin/master --head feature/uitk` 0 件。全束 `切替済み`・全行 `UITK`。G4 緑。Windows/Mac ビルド・Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh`、CEF の無いビルドでラダー 6 本と全録画、IME 一巡。焼くのは `feature/uitk` の HEAD の SHA（`release-playtest.sh` の既定の `origin/master` を使わない）。playtest-staging へのアップロードは裁定の「切替 PR の中の検証」の範囲として行い、playtest への反映（moores-playtest-release の手順 3 以降）はユーザーのマージ後の X-release でだけ行う。pr-create（head=`feature/uitk`、base=master）・moores-code-review（`9f32a03390` より後の feature 側のコミット。master 側から来たコードは除く。X-switch-pr D-31）と独立評価（opus 2 体。X-switch-pr W6-1。pr-independent-review は削除済み。E-24）。目視とマージはユーザー。検証中に master の Web 更新が入ったら I-follow で写して再検証。master の取り込みでは撤去済みの場所に戻ったファイルを列挙して消し、中身は I-follow の手順でこのレーンが写す（停止しない）。server の配布ビルドは `build.yml` の `workflow_dispatch` で 1 回（Linux の DedicatedServer は matrix で無効）。今 playtest に出ている BuildID を戻す先として PR に書く（X-switch-pr D-29・D-30・D-36） |
+| X-release | playtest への反映と 1 周期 | ユーザーのマージ | 否 | 指揮 | — | moores-playtest-release（手順 4 の Mac の Steam は X-switch-pr が staging のビルドで済ませている。X-release は手順 3・5 と、反映前の Mac の追加の確認）。反映の前に、X-switch-pr が `promotion.md` の先頭に書いた『反映禁止』の行を外す（X-switch-pr D-32）。Mac の確認項目をラダー 6 本の先頭操作のスクショへ。パッチノートに UITK 移行と既知の差分。7 日以上と報告の確認 1 回（plan §5.1-5） |
+| X-cleanup | 台帳と G1 の撤去 | ユーザーのマージ | 否 | 単位 | — | 台帳・G1 の workflow・スクリプト・テストを 1 本の master PR で消す（plan §2.6）。マージはユーザー。台帳・G1・`test-name-parity` を消す PR で、G4 の許可リスト（`.github/scripts/uitk_no_web/allowlist.txt`）のそれらを指す行（起草時の初版で 5 行。Task 17 の後の実物の一覧を `done.md` に写す）と、`compare-procedure.md` の I-follow の手順を許す `line` の行も、同じ PR で消す（消さないと何も許していない行として G4 が exit 2 で落ちる）。I-follow の手順の節そのものも同じ PR で消す（X-5e D-23・D-35） |
 
 ### 1.6 常駐の integrator 作業
 
 | ID | 題 | いつ | Ed | 完了条件 |
 |---|---|---|---|---|
 | I-weekly | master の取り込みと追従の記帳 | 週 1 回と、レーンを切る直前（その週に master の Web 変更が入っていれば） | 否（C# に衝突が出たら要） | `feature/uitk` 向け PR で取り込み、G1 の未記帳 0 を見てマージ。新しい Web 変更は台帳へ `写した`/`捨てた`、写すものは I-follow を起こす。W0-cef のマージ後の回は cef-record §6 の表と機械検査 4 つ |
-| I-follow-n | 移し終えた画面の追従 | I-weekly が写すものを見つけたとき | 要 | **未移植画面のレーンより先に Editor 枠を取る**（裁定）。その画面の L1・録画を緑にし、master の worktree でその画面の参照を撮り直して（`web-<sha>`）比較 HTML と差の表を作り、差は直すか `LX-n` に記帳してから、台帳の該当記録を `写した` で閉じる（設計書 §3.3 (b)） |
+| I-follow-n | 移し終えた画面の追従 | I-weekly が写すものを見つけたとき | 要 | **未移植画面のレーンより先に Editor 枠を取る**（裁定）。その画面の L1・録画を緑にし、master の worktree でその画面の参照を撮り直して（`web-<sha>`）比較 HTML と差の表を作り、差は直すか `LX-n` に記帳してから、台帳の該当記録を `写した` で閉じる（設計書 §3.3 (b)）。X-5e の後は G4（`python3 .github/scripts/check-uitk-no-web.py --root .`）が exit 0。写したファイルに G4 の語が入ったら、このレーンが直す（出所の注記は `web@<写した master のコミットの sha10>/…`）。許可リストへ足すしかない語だけ I-fix へ bd（X-5e D-56） |
+| I-fix（X-5e の後の G4） | X-5e の後の G4 の違反の受け手（G4 の持ち主は X-5e の完了で無くなるため） | X-switch-pr・X-cleanup から bd で回る | — | 指揮が起こす。master の取り込みで入ったファイルに G4 の語が入ったとき、語がどうしても要って許可リストへ足すしかないとき、または許可リストの書式の誤り・何も許していない行（exit 2）が出たときに、bd の課題を受けて語を直すか許可リストを直す。I-follow の写しで入った語は受けない（写したレーンが直す）（X-5e D-39・D-56） |
 
 ---
 
@@ -197,7 +198,7 @@ flowchart LR
 | W3（C4-b は W3 の前に空いた枠で先行。E-21） | S3-buildmenu → C4-a → C4-c | C4-e → C4-d → S3-hotbar-modal | S4 の詳細計画 | S3-ladder |
 | W4 | S4-alpha → S4-inventory → S4-machine → S4-train | S4-research → S4-recipe → S4-special | S5 の詳細計画 | S4-gamma |
 | W5 | S5-crosscut | S5-challenge → S5-gate（Editor が空けば W4 中に前倒し可） | 撤去の詳細計画 | S5-ladder |
-| W6 | X-prerun → X-5a → X-5b → X-5c → X-5d | — | X-5e の文書部分 | X-switch-pr |
+| W6 | X-prerun → X-5a → X-5b → X-5c → X-5d → X-5e（Phase B） | — | X-5e の Phase A（文書・スキル・G4） | X-switch-pr |
 
 - **クリティカルパス**（各波で最も長い枠の直列の鎖）: `W0-merge → W0-switch → F1 → C2-c → C3-a → C4-e → S4-alpha → S4-inventory → S4-machine → S4-train → S4-gamma → S5-crosscut → S5-ladder → X-prerun → X-5a…5e → X-switch-pr`。W1 は C2-a と C2-c を並べ、C2-b は C2-c の取り込み後に枠 1 で C2-a に続ける（C3-a・C3-b はどちらも C2-c を待つので C2-c を先頭に置く）。W3 は C4-e（S4-alpha の前提）を枠 2 の頭に置く。Editor 2 本では W2〜W4 の Editor レーン合計が律速になるので、段階 2 の画面はクリティカルパスの隙間を埋める
 - **直列にする理由**: W0-merge → W0-switch（束 1 の暗転が先）、W0-switch → F1（composition root とスイッチを先に確定）、C2-c → C2-b（言語追従の束縛 `LocalizedTextBinding` を C2-c が作り C2-b が使う [A-31]）、L0-s4a → L0-s4b の Task 11 以降（`ownedCounts` と `blockSlotRestriction` の共有）、撤去 5a → 5e（plan §2.6 の順の根拠どおり）
@@ -257,7 +258,7 @@ integrator は共有ファイル（層 enum・全体スイッチ・composition r
 1. moores-code-review で全ブランチレビュー（自動適用の後は plan の録画を反映後のバイナリで再実施）
 2. pr-create で `base=feature/uitk` の PR を作る（報告ページ `https://review.moores.tech/pr/<番号>/report/` に比較 HTML・録画。E-2）
 3. `origin/feature/uitk` をレーンへマージし、共有区画（E-1 の列挙）の衝突は両方の行を採る。`uloop compile`、計画のテストフィルタ、録画の再走（判定経路に触れた衝突のときだけ）
-4. G1 が緑で未記帳 0 を見て `gh pr merge --merge`（Squash 禁止）
+4. G1 が緑で未記帳 0 を見て `gh pr merge --merge`（Squash 禁止）。ただし W6 の撤去レーン（X-prerun〜X-5e）は、`違反なし`、かつ各束の未記帳の件数が取り込んだ `origin/feature/uitk` と同じことを見る（暗転中の束 1・束 3 の未記帳と X-5c の `moorestech_web/` の削除コミットは X-switch-pr が `捨てた` で記帳するので、W6 では 0 にならない。未記帳 0 は切替 PR でだけ求める。X-5d D-22）
 5. `moores-wt rm <name>` で worktree と Editor を畳む。bd を閉じる
 
 W0-cef と X-switch-pr は master への PR で、pr-create まで（マージはユーザー）。X-cleanup も同じ。
@@ -272,9 +273,9 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 2. **予測レビュー**: user-simulator の review モード（moores-writing-plans の必須）
 3. **独立評価 2 体**: 目的（ゴール原文・裁定 7 本・設計書・このレーンの完了条件）と計画の実物だけを渡し、opus の subagent と codex-audit（gpt-6-astra）に別々に判定させる。観点は (a) Web と同じ見た目か（参照キャプチャの節とつまみの名前まで計画にあるか）、(b) 層の向きと部品の再利用（設計書 §2 の部品を使い、同じものを画面に作っていないか）、(c) ファイルの所有が他レーンと重ならないか、(d) 移すテストの件数と名前、(e) AGENTS.md の規約（200 行・10 ファイル・partial/`Func<>` 禁止・UniRx・try-catch・2 行コメント）。落ちたら計画を直し、基準は緩めない
 4. **判断に上げる前の再現**: 評価役の指摘のうち設計判断になるものは、別の subagent に再現させ、再現できたものだけを残す。ゴール・裁定から外れるものだけを §7 に足してユーザーへ上げ、残りは agent 既定として判断記録へ
-5. **取り込み**: 計画は `feature/uitk` 向けの docs PR（W0 の 12 本は W0-merge に同梱）で入れてからレーンを切る。設計書 §2 を改訂した PR は、W0-skill 計画 Task 1 Step 3 のコマンド（awk の写しと行の diff）で `.agents/skills/ref-uitk-design/references/component-catalog.md` を再生成して同じ PR に入れる（W0-skill のマージ前ならカタログは W0-skill が改訂後の設計書から作る）
+5. **取り込み**: 計画は `feature/uitk` 向けの docs PR（W0 の 12 本は W0-merge に同梱）で入れてからレーンを切る。設計書 §2 を改訂した PR は、W0-skill 計画 Task 1 Step 3 のコマンド（awk の写しと行の diff）で `.agents/skills/ref-uitk-design/references/component-catalog.md` を再生成して同じ PR に入れる（W0-skill のマージ前ならカタログは W0-skill が改訂後の設計書から作る）。X-5e の後はカタログが正本で、再生成しない（X-5e D-7）
 
-段の締め（*-ladder・S4-gamma）では、画面の並べ比べを codex-audit（画像付き）にかけ、例外の記帳と照合する（設計書 §3.3）。切替 PR は pr-independent-review を付ける。
+段の締め（*-ladder・S4-gamma）では、画面の並べ比べを codex-audit（画像付き）にかけ、例外の記帳と照合する（設計書 §3.3）。切替 PR は moores-code-review（`9f32a03390` より後の feature 側のコミット。master 側から来たコードは除く）と独立評価（opus 2 体）を付ける（X-switch-pr D-31・W6-1）。
 
 ---
 
@@ -335,7 +336,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | X-5c（`P/2026-11-12-uitk-x-5c.md`。PLAN-W6） | A-255 | — |
 | X-5d（`P/2026-11-12-uitk-x-5d.md`。PLAN-W6） | A-256 | — |
 | X-5e（`P/2026-11-12-uitk-x-5e.md`。PLAN-W6） | A-257・A-258 | — |
-| X-switch-pr（`P/2026-11-12-uitk-x-switch-pr.md`。PLAN-W6） | A-259 | LX-218〜219（目視と IME で見つかった直せない差の予約） |
+| X-switch-pr（`P/2026-11-12-uitk-x-switch-pr.md`。PLAN-W6） | A-259 | LX-218〜219（目視と IME で見つかった直せない差の予約。行と印は I-fix が置く） |
 
 - **`/// <web-test>` の書式**（E-13）: W0-tools 計画 R1・R3 の `/// <web-test file="<webui からの相対パス。src/… か e2e/…>"><it/test の第 1 引数></web-test>` が正本。describe は含めない（W0-tools D-2）。L0・C2 の計画はこの書式で書く
 - **FormButton の API**: 設計書 §2.4 の FormButton 行は C2-b の形（[A-28]）。L0-s3 の `ModalButtonTone` は S3-hotbar-modal の View が `Blue→Filled`・`Red→Danger` で写す
@@ -357,7 +358,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | U-1 | （取り下げ）裁定 `Q-1`: 文字の 13px 下限 | — | 裁定「全段階で Web 版と同じ見た目」から答えが決まるので agent 既定 E-11（設計書 [A-39]）にした。F1 は待たずに Web と同じ px へ戻す |
 | U-2 | CEF 停止の記録の PR のマージ（master） | W0-cef の PR 作成後 | — |
 | U-3 | 独立レビューの裁定（全体スイッチの作り直し） | W0-switch の pr-independent-review の後 | 指摘のうち設計判断になったものだけ |
-| U-4 | 切替 PR の目視とマージ・独立レビューの裁定 | X-switch-pr | 検証ビルドで 1 回だけ目視（IME の実キーボードの体感を含む） |
+| U-4 | 切替 PR の目視とマージ・moores-code-review と独立評価（opus 2 体）の裁定 | X-switch-pr | 検証ビルドで 1 回だけ目視（IME の実キーボードの体感を含む） |
 | U-5 | 切替後の戻しの判断 | UI が原因で進行を阻む不具合が出たときだけ | 切替前のビルドへ戻すか、master で前に進めて直すか |
 | U-6 | 台帳と G1 の撤去 PR のマージ | 切替 PR のマージ後 | plan §2.6 の後片付け |
 
@@ -369,8 +370,8 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 
 | ID | 判断 | 棄却した案と理由 |
 |---|---|---|
-| E-1 | `GameUiTheme.tss` を F1 で族別の区画（見出しコメント）に分け、部品・画面レーンは自分の区画に `@import` を 1 行足してよい。`MainGameUiRegistration` も画面登録区画を作り、画面は `Client.Starter/Registration/GameUi/<機能>GameUiRegistration.cs`（レーンの新規ファイル）を 1 行で呼ぶ。行は区画の末尾（最後の `Register` の次）に足し、特定の行の次とは決めない。複数レーンが ctor で受ける共有サービスは、作るレーンが本体の共有サービスの並びに登録する（S2-hud の `BlockingSkitPresence`。設計書 A-56）。Foundation の宿主と入口（`GameUi*Installer`）は画面登録区画でなく `FoundationGameUiRegistration.Register` の末尾に足し、衝突は両方採る（C4-e 計画 D-35・設計書 A-92）。`Foundation/Theme` の読み口（`UssCustomStyleReader`・`UssTokenValue`）とそのテストは、使い手のレーンが要る口だけを末尾に追記してよい（設計書 A-59）。`localization.csv` はレーンが追記し、衝突は両方採る。csv の追記で再生成される `Client.Localization/_CompileRequester.cs` と Web の `localizationKeys.ts` は、衝突したら両側の csv を採ったあと再生成し直して解く（手で行を混ぜない）。`Foundation/Theme/DerivedTokens.uss` の末尾にも、部品・画面レーンは名札付きのブロックを足してよい（設計書 A-52）。W4 以降の画面レーンの登録ファイル（`<機能>GameUiRegistration.cs`）は `Client.Starter/Registration/GameUi/Screens/` に置く（`GameUi/` 直下は S4-alpha で 10 本になり上限に達するため。最初に要したレーンがディレクトリを作る）。`Screens/` 直下も 10 本で上限に達したので、S5 以降の画面レーンは直下へ足さず機能のサブディレクトリ（`Screens/Challenge/ChallengeGameUiRegistration.cs` の形）に置く（S5-challenge）。マージ済みレーンの State の口（例: C4-e の `IPlayerInventoryOperations`）へ、使い手のレーンが合図・読み口を足してよく、その口の実装（本番と記録係）は同じ PR で全部直す。ホイール 1 ノッチの px（A-71）は、`GameScrollView` の外で最初に要したレーンが `Foundation` の共有の定数へ上げてよい。`Client.Ui.State.asmdef` の参照はレーンが追記し、同じ参照が衝突したら 1 行に畳む。`UiCommandRejectReason` の列挙とそれを網羅する switch はレーンが末尾に追記し、全列挙を見るテスト（`PauseMenuCommandsTest` ほか）を同じ PR で緑にする。`localization.csv` を足して Web の生成物 `W/shared/i18n/generated/localizationKeys.ts` を再生成したレーンは、その再生成コミットを台帳「## 追従記録」へ `写した`（写し先＝同じコミットの C# と CSV）で 1 行記帳する（W0-merge の `3e946e4bd3` と同じ書き方）。台帳の「## 実測の結論」「## 見た目の例外」（番号は §6.1 の範囲）「## 追従記録」の末尾もレーンが追記してよい。`docs/uitk/disposition.md`（設計書 §4.3）には、レーンが写さないと決めたテストの処遇の行を足す（写したテストは `/// <web-test>` タグだけに書く。両方に書くと `compareBundles.mjs` が書式誤りにする）。`TutorialAnchor.Mark` を足したレーンは同じ PR で `Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` から自分のアンカーの行を消し、USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける（S2-tutorial 以降の画面レーン全部。S2-tutorial 計画 D-9・設計書 [A-65]）（[A-249] で改めた: S5-ladder が表の空を確かめて消した後は、印を足したレーンは `TutorialAnchorCoverageTest` が全アンカーの UITK の印を直に見るので消す行は無い）。設計書と実行計画はレーンが書かず、integrator が §5 のレビューフローに通して入れる | integrator がレーンの取り込みで全部書く（plan §3.13）: 並列のレーンが毎回 integrator 待ちになり、Editor 2 本の律速が悪化する。共有区画の追記は行の衝突しか起きない |
-| E-2 | レーンは pr-create で `base=feature/uitk` の PR を開き、報告ページに比較 HTML と録画を載せ、レーン自身がマージコミットで取り込む | ローカルマージで push: G1 が切替 PR まで走らない（plan §4.7）。integrator がまとめてマージ: 待ちが増える |
+| E-1 | `GameUiTheme.tss` を F1 で族別の区画（見出しコメント）に分け、部品・画面レーンは自分の区画に `@import` を 1 行足してよい。`MainGameUiRegistration` も画面登録区画を作り、画面は `Client.Starter/Registration/GameUi/<機能>GameUiRegistration.cs`（レーンの新規ファイル）を 1 行で呼ぶ。行は区画の末尾（最後の `Register` の次）に足し、特定の行の次とは決めない。複数レーンが ctor で受ける共有サービスは、作るレーンが本体の共有サービスの並びに登録する（S2-hud の `BlockingSkitPresence`。設計書 A-56）。Foundation の宿主と入口（`GameUi*Installer`）は画面登録区画でなく `FoundationGameUiRegistration.Register` の末尾に足し、衝突は両方採る（C4-e 計画 D-35・設計書 A-92）。`Foundation/Theme` の読み口（`UssCustomStyleReader`・`UssTokenValue`）とそのテストは、使い手のレーンが要る口だけを末尾に追記してよい（設計書 A-59）。`localization.csv` はレーンが追記し、衝突は両方採る。csv の追記で再生成される `Client.Localization/_CompileRequester.cs` と Web の `localizationKeys.ts` は、衝突したら両側の csv を採ったあと再生成し直して解く（手で行を混ぜない）。`Foundation/Theme/DerivedTokens.uss` の末尾にも、部品・画面レーンは名札付きのブロックを足してよい（設計書 A-52）。W4 以降の画面レーンの登録ファイル（`<機能>GameUiRegistration.cs`）は `Client.Starter/Registration/GameUi/Screens/` に置く（`GameUi/` 直下は S4-alpha で 10 本になり上限に達するため。最初に要したレーンがディレクトリを作る）。`Screens/` 直下も 10 本で上限に達したので、S5 以降の画面レーンは直下へ足さず機能のサブディレクトリ（`Screens/Challenge/ChallengeGameUiRegistration.cs` の形）に置く（S5-challenge）。マージ済みレーンの State の口（例: C4-e の `IPlayerInventoryOperations`）へ、使い手のレーンが合図・読み口を足してよく、その口の実装（本番と記録係）は同じ PR で全部直す。ホイール 1 ノッチの px（A-71）は、`GameScrollView` の外で最初に要したレーンが `Foundation` の共有の定数へ上げてよい。`Client.Ui.State.asmdef` の参照はレーンが追記し、同じ参照が衝突したら 1 行に畳む。`UiCommandRejectReason` の列挙はレーンが末尾に追記し、`UiCommandRejectReasonTable` に同じ値の行を 1 行足して、全列挙を見るテスト（`UiCommandRejectReasonTableTest`）を同じ PR で緑にする（[A-258] で改めた。X-5e D-61）。`localization.csv` を足して Web の生成物 `W/shared/i18n/generated/localizationKeys.ts` を再生成したレーンは、その再生成コミットを台帳「## 追従記録」へ `写した`（写し先＝同じコミットの C# と CSV）で 1 行記帳する（W0-merge の `3e946e4bd3` と同じ書き方）。台帳の「## 実測の結論」「## 見た目の例外」（番号は §6.1 の範囲）「## 追従記録」の末尾もレーンが追記してよい。`docs/uitk/disposition.md`（設計書 §4.3）には、レーンが写さないと決めたテストの処遇の行を足す（写したテストは `/// <web-test>` タグだけに書く。両方に書くと `compareBundles.mjs` が書式誤りにする）。`TutorialAnchor.Mark` を足したレーンは同じ PR で `Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` から自分のアンカーの行を消し、USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける（S2-tutorial 以降の画面レーン全部。S2-tutorial 計画 D-9・設計書 [A-65]）（[A-249] で改めた: S5-ladder が表の空を確かめて消した後は、印を足したレーンは `TutorialAnchorCoverageTest` が全アンカーの UITK の印を直に見るので消す行は無い）。設計書と実行計画はレーンが書かず、integrator が §5 のレビューフローに通して入れる | integrator がレーンの取り込みで全部書く（plan §3.13）: 並列のレーンが毎回 integrator 待ちになり、Editor 2 本の律速が悪化する。共有区画の追記は行の衝突しか起きない |
+| E-2 | レーンは pr-create で `base=feature/uitk` の PR を開き、報告ページに比較 HTML と録画を載せ、レーン自身がマージコミットで取り込む。例外: X-switch-pr は head が `feature/uitk` そのものの切替 PR なので、記帳・取り込みのコミットは `feature/uitk` へ早送りで直接 push する。E-2 の棄却理由（G1 が切替 PR まで走らない）は、切替 PR 自身で G1 が走るので当たらない（X-switch-pr D-3） | ローカルマージで push: G1 が切替 PR まで走らない（plan §4.7）。integrator がまとめてマージ: 待ちが増える |
 | E-3 | integrator レーンも Codex セッションで回し、波の境の小作業は指揮が行う | integrator を Claude Code に固定: 2026-10-16 の Codex 固定の裁定と食い違う |
 | E-4 | Editor 枠の優先は I-follow → クリティカルパスの頭 → 段階 2・3 の画面 | 段階順: 段階 4 の部品が遅れ、全体が延びる |
 | E-5 | dww3（EDC の無言素通し）と wwxy の修理は `feature/uitk` のレーンで行う（W0-tools・各 ladder）。master で先に直ったら取り込みで master 側を採る | master へ別 PR: master への PR は 2 本の裁定の外になる |
