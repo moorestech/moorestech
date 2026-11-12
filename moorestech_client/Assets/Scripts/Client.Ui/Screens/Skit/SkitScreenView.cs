@@ -121,7 +121,7 @@ namespace Client.Ui.Screens.Skit
             // Reveal all while typing; advance when complete
             var outcome = CurrentClickOutcome();
             if (outcome == SkitClickOutcome.Reveal) _typewriter.RevealAll();
-            if (outcome == SkitClickOutcome.Advance) _toaster.Report("skit.advance", _commands.Advance(_model.SessionId, _model.SceneRevision));
+            if (outcome == SkitClickOutcome.Advance) _toaster.Report(SkitCommands.AdvanceCommandName, _commands.Advance(_model.SessionId, _model.SceneRevision));
         }
 
         private void ShowRevealedText()

@@ -1,5 +1,4 @@
 using Client.Ui.Components.Controls;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Skit;
 using Client.Ui.State.Toast;
 using UniRx;
@@ -41,10 +40,10 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
 
             // 押下時の session・版を付けて送る
             // Send with the session and revision at press
-            _auto.OnClicked.Subscribe(_ => Report("skit.set_auto", _commands.SetAuto(_model.SessionId, _model.SceneRevision, !_model.AutoEnabled)));
-            _skip.OnClicked.Subscribe(_ => Report("skit.skip", _commands.Skip(_model.SessionId, _model.SceneRevision)));
-            _hideUi.OnClicked.Subscribe(_ => Report("skit.set_ui_hidden", _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, true)));
-            _showUi.OnClicked.Subscribe(_ => Report("skit.set_ui_hidden", _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, false)));
+            _auto.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SetAutoCommandName, _commands.SetAuto(_model.SessionId, _model.SceneRevision, !_model.AutoEnabled)));
+            _skip.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SkipCommandName, _commands.Skip(_model.SessionId, _model.SceneRevision)));
+            _hideUi.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SetUiHiddenCommandName, _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, true)));
+            _showUi.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SetUiHiddenCommandName, _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, false)));
         }
 
         public void Render(SkitViewModel model)
@@ -84,11 +83,6 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             button.EnableInClassList(LeadToolUssClassName, lead);
             Add(button);
             return button;
-        }
-
-        private void Report(string commandName, UiCommandResult result)
-        {
-            _toaster.Report(commandName, result);
         }
 
         private static void SetShown(VisualElement element, bool shown)

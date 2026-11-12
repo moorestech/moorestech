@@ -9,6 +9,14 @@ namespace Client.Ui.State.Skit
     /// </summary>
     public sealed class SkitCommands : ISkitCommands
     {
+        // トーストに渡すコマンド名。Web の action 名と同じ綴り
+        // Command names passed to the toaster; spelled like the Web action names
+        public const string AdvanceCommandName = "skit.advance";
+        public const string SelectCommandName = "skit.select";
+        public const string SetAutoCommandName = "skit.set_auto";
+        public const string SkipCommandName = "skit.skip";
+        public const string SetUiHiddenCommandName = "skit.set_ui_hidden";
+
         private readonly SkitPresentationStateStore _store;
 
         public SkitCommands(SkitPresentationStateStore store)

@@ -50,7 +50,7 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
                     var choiceId = choices[i].ChoiceId;
                     var button = new SkitChoiceButton(choices[i], i == 0, _osCursor);
                     button.pickingMode = _interactive ? PickingMode.Position : PickingMode.Ignore;
-                    button.OnClicked.Subscribe(_ => _toaster.Report("skit.select", _commands.Select(_model.SessionId, _model.SceneRevision, choiceId)));
+                    button.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SelectCommandName, _commands.Select(_model.SessionId, _model.SceneRevision, choiceId)));
                     _buttons.Add(button);
                     Add(button);
                 }
