@@ -58,8 +58,10 @@ namespace Client.Tests.Ui.Stage
             LogAssert.Expect(LogType.Log, new Regex(@"^\[StageScale\] stage scale changed"));
             pixelsPerPoint = 1.5f;
             simulate.FrameUpdate();
+            simulate.FrameUpdate();
             LogAssert.Expect(LogType.Error, new Regex(@"^\[StageScale\] stage scale is unreadable"));
             pixelsPerPoint = 0f;
+            simulate.FrameUpdate();
             simulate.FrameUpdate();
         }
     }
