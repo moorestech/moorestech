@@ -92,6 +92,7 @@ def main() -> int:
         # Applied-diff re-review (Refix phase); reuses the applied-diff-correctness post-check as the reviewer
         "refixReviewerPath": str(SKILL_ROOT / "post-checks" / "applied-diff-correctness.md"),
         "refixSnapshotScript": str(SCRIPTS / "refix_snapshot.py"),
+        "designFromIntegratedScript": str(SCRIPTS / "design_from_integrated.py"),
         "refixMaxRounds": REFIX_MAX_ROUNDS,
         "workflowScriptPath": str(workflow_script_path(run_dir)),
         **plan,
