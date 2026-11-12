@@ -26,7 +26,7 @@
     /* Vertical padding is the Web 5px + 5px minus 3px; UITK's first line is the natural glyph height (Latin 21px), 3px taller than the Web 18px line, so the padding absorbs it (S4-research precedent of fixing the first-line gap with padding) */
     /* Fractional 1.5px each got pixel-rounded and grew the row by 1px, so split into whole 3px and 4px; the glyph top sits at 3px against the Web 3.5px */
     padding: 3px 12px 4px 12px;
-    border-width: 1px;
+    border-width: 1px; /* look-exception: LX-190 */
     border-color: var(--notification-border);
     background-color: var(--notification-face);
 }
