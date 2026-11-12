@@ -35,6 +35,7 @@ namespace Client.Ui.Screens.TrainHud
             _stack = new UiStack(UiGap.Px4);
             var title = new LocalizedLabel();
             title.AddToClassList(UiTypographyClass.TitleOrder4);
+            title.AddToClassList(UiTypographyClass.TitleHeadingFace);
             title.AddToClassList("train-riding-hud__title");
             title.SetKey(LocalizationKeys.Ui.TrainHud.Title);
             _stack.AddItem(title);

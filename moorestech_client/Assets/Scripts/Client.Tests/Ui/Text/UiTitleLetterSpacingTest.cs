@@ -6,12 +6,14 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// Title の字間を Web と同じく詰めないか
-    /// Checks titles keep the Web's untightened letter spacing
+    /// Title の段だけの題は字間を詰めず、見出しの字形の題は Web の字送りへ詰めるか
+    /// Checks plain title orders keep untightened spacing and heading-face titles match the Web advance
     /// </summary>
     public class UiTitleLetterSpacingTest : UiTestHost
     {
         private const string LatinTitleText = "Settings Language Graphics Inventory";
+        private const string GapSample = "IIIIIIIIII";
+        private const int GapCount = 9;
 
         // 題は Web と同じ Regular の字形なので字間を詰めない（設計書 A-220 で A-37 の -3.6 を外した）
         // Titles use the Web's Regular face, so their spacing is not tightened (design A-220 dropped A-37's -3.6)
@@ -38,6 +40,54 @@ namespace Client.Tests.Ui.Text
             var title = Mount(locale, className, "設定");
 
             Assert.AreEqual(0f, title.resolvedStyle.letterSpacing, 0.001f);
+        }
+
+        // Mantine の Title は OS の字体の 700 で描くので、欧文は Bold の字形を SF Pro の 700 の字送りへ詰める（設計書 A-220。値は Mac の Chrome の実測）
+        // Mantine Title draws with the OS face at 700, so Latin uses the Bold face tightened to SF Pro 700's advance (design A-220; values measured on Mac Chrome)
+        [TestCase(UiTypographyClass.TitleOrder1, 0.034f)]
+        [TestCase(UiTypographyClass.TitleOrder2, 0.032f)]
+        [TestCase(UiTypographyClass.TitleOrder3, 0.033f)]
+        [TestCase(UiTypographyClass.TitleOrder4, 0.020f)]
+        public void 欧文のTitleは見出しの字形をWebの字送りへ詰める(string className, float webTightenEm)
+        {
+            var (spaced, unspaced) = MountHeadingPair(rootVisualElement, className, GapSample);
+
+            Assert.AreEqual("GameUiLatinBold SDF", spaced.resolvedStyle.unityFontDefinition.fontAsset.name);
+            ExpectTightenedByGaps(spaced, unspaced, webTightenEm);
+        }
+
+        // 和文は Medium の字形を .Hiragino Kaku Gothic Interface W6 の字送り（全角 0.925em）へ詰める
+        // CJK keeps the Medium face tightened to the .Hiragino Kaku Gothic Interface W6 advance (0.925em full width)
+        [TestCase(UiTypographyClass.TitleOrder1)]
+        [TestCase(UiTypographyClass.TitleOrder2)]
+        public void CJKのTitleは見出しの字形をWebの字送りへ詰める(string className)
+        {
+            var locale = new VisualElement();
+            locale.AddToClassList(GameUiLocaleClass.CjkClassName);
+            rootVisualElement.Add(locale);
+            var (spaced, unspaced) = MountHeadingPair(locale, className, "一一一一一一一一一一");
+
+            Assert.AreEqual("GameUiJapanese SDF", spaced.resolvedStyle.unityFontDefinition.fontAsset.name);
+            ExpectTightenedByGaps(spaced, unspaced, 0.075f);
+        }
+
+        private (Label spaced, Label unspaced) MountHeadingPair(VisualElement parent, string className, string text)
+        {
+            var spaced = Mount(parent, className, text);
+            var unspaced = Mount(parent, className, text);
+            spaced.AddToClassList(UiTypographyClass.TitleHeadingFace);
+            unspaced.AddToClassList(UiTypographyClass.TitleHeadingFace);
+            unspaced.style.letterSpacing = 0f;
+            simulate.FrameUpdate();
+            return (spaced, unspaced);
+        }
+
+        // UITK は字の間 9 か所に字間を足す
+        // UITK adds the spacing at the 9 gaps between the 10 glyphs
+        private static void ExpectTightenedByGaps(Label spaced, Label unspaced, float webTightenEm)
+        {
+            var expected = webTightenEm * spaced.resolvedStyle.fontSize * GapCount;
+            Assert.AreEqual(expected, unspaced.layout.width - spaced.layout.width, 1f, $"{spaced.layout.width} vs {unspaced.layout.width}");
         }
 
         private Label Mount(VisualElement parent, string className, string text)
