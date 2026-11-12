@@ -25,6 +25,8 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         // 測りの中で contentRect を読むと、字形の atlas を空にした後の描画で UITK の文字のジョブが壊れた（D-17 の全件の実測）。箱の幅は配置の後に写して使う
         // Reading contentRect inside a measure broke UITK's text jobs after the glyph atlas was emptied (D-17 full-suite runs); copy the box width after layout instead
         private float _boxWidth;
+        private string _scannedText;
+        private int _longestRun;
 
         public NarrowWrapGuard(TextElement element, InlineWhiteSpaceHolds whiteSpace)
         {
@@ -38,8 +40,17 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         // Narrowest content width that wraps the current text and style without freezing (0 without a freezing sequence)
         public float MinimumWrapWidth()
         {
+            // 連なりは文が替わったときだけ数え直す。固まる並びの無い文（大半）はスタイルを読まずに 0 を返す
+            // Recount the run only when the text changes; texts without a freezing sequence (most) return 0 without reading style
+            var text = _element.text;
+            if (!ReferenceEquals(text, _scannedText))
+            {
+                _scannedText = text;
+                _longestRun = NarrowWrapWidth.LongestRunBetweenGlyphs(text, _element.enableRichText);
+            }
+            if (_longestRun == 0) return 0f;
             var resolved = _element.resolvedStyle;
-            return NarrowWrapWidth.Of(_element.text, _element.enableRichText, resolved.fontSize, resolved.letterSpacing);
+            return NarrowWrapWidth.OfRun(_longestRun, resolved.fontSize, resolved.letterSpacing);
         }
 
         // 測る幅。今の文が折り返す（止めていない）のに制約が必要な幅より狭ければ必要な幅で測る（その幅で折り返すと固まる）
@@ -47,12 +58,12 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         public float SafeMeasureWidth(float desiredWidth, VisualElement.MeasureMode widthMode)
         {
             if (widthMode == VisualElement.MeasureMode.Undefined) return desiredWidth;
-            var whiteSpace = _element.resolvedStyle.whiteSpace;
-            if (whiteSpace != WhiteSpace.Normal && whiteSpace != WhiteSpace.PreWrap) return desiredWidth;
             // 比較で書く（Mathf.Max は NaN の制約を 0 に変えてしまう）
             // Compare instead of Mathf.Max, which turns a NaN constraint into 0
             var minimumWidth = MinimumWrapWidth();
-            return desiredWidth < minimumWidth ? minimumWidth : desiredWidth;
+            if (!(desiredWidth < minimumWidth)) return desiredWidth;
+            var whiteSpace = _element.resolvedStyle.whiteSpace;
+            return whiteSpace == WhiteSpace.Normal || whiteSpace == WhiteSpace.PreWrap ? minimumWidth : desiredWidth;
         }
 
         // 測りの前に描く幅を見積もって止めるか決める。箱が分かっていれば今の箱、分からなければ受けた制約の幅
@@ -73,6 +84,12 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         {
             // 非表示の祖先の下の幅 0 は配置も描画もされないので止めない。戻ったときの最初の測りは制約の幅で決める
             // Width 0 under a hidden ancestor is neither laid out nor rendered, so do not hold; the first measure after re-showing decides by constraint
+            // silent-ok: 固まる並びの無い文は箱を追わない / 文が替われば次の測りが制約の幅で決める
+            if (MinimumWrapWidth() <= 0f && !_whiteSpace.IsHeld(WhiteSpaceHoldReason.NarrowWidth))
+            {
+                _boxKnown = false;
+                return;
+            }
             if (IsUnderHiddenAncestor())
             {
                 _boxKnown = false;
@@ -86,6 +103,8 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         private void Evaluate(float renderWidth)
         {
             var minimumWidth = MinimumWrapWidth();
+            // silent-ok: 固まる並びが無く止めてもいない文は何もしない / 文が替われば次の測りでここへ来る
+            if (minimumWidth <= 0f && !_whiteSpace.IsHeld(WhiteSpaceHoldReason.NarrowWidth)) return;
             var hold = _whiteSpace.WrapsWithout(WhiteSpaceHoldReason.NarrowWidth) && renderWidth < minimumWidth;
             if (hold == _whiteSpace.IsHeld(WhiteSpaceHoldReason.NarrowWidth)) return;
 

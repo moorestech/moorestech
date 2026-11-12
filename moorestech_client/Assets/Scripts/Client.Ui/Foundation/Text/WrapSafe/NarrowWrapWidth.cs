@@ -27,6 +27,13 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         {
             var longestRun = LongestRunBetweenGlyphs(text, richText);
             if (longestRun == 0) return 0f;
+            return OfRun(longestRun, fontSize, letterSpacing);
+        }
+
+        // 数えた連なりの字数から必要な幅を出す
+        // Needed width from a counted run length
+        public static float OfRun(int longestRun, float fontSize, float letterSpacing)
+        {
             return (longestRun + 1) * (fontSize + Mathf.Max(0f, letterSpacing)) + SafetyMarginPixels;
         }
 
