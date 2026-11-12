@@ -36,8 +36,19 @@ namespace Client.Playtest.Operations.Ui
                 throw new InvalidOperationException("[PlaytestGameViewOps] GameView is not docked (EditorWindow.m_Parent is null); cannot select its tab");
             }
 
-            var panes = (IList)dockArea.GetType().GetField("m_Panes", flags).GetValue(dockArea);
-            dockArea.GetType().GetProperty("selected", flags).SetValue(dockArea, panes.IndexOf(gameView));
+            var panesField = dockArea.GetType().GetField("m_Panes", flags);
+            if (panesField == null)
+            {
+                throw new InvalidOperationException("[PlaytestGameViewOps] DockArea.m_Panes not found; Unity internals changed, cannot select the GameView tab");
+            }
+            var selectedProperty = dockArea.GetType().GetProperty("selected", flags);
+            if (selectedProperty == null)
+            {
+                throw new InvalidOperationException("[PlaytestGameViewOps] DockArea.selected not found; Unity internals changed, cannot select the GameView tab");
+            }
+
+            var panes = (IList)panesField.GetValue(dockArea);
+            selectedProperty.SetValue(dockArea, panes.IndexOf(gameView));
         }
 
         public static async UniTask SetResolution(CancellationToken cancellationToken, int width, int height)

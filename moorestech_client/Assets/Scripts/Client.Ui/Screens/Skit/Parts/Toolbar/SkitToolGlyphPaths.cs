@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolGlyphPaths.cs
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;

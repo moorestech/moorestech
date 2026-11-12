@@ -1,4 +1,3 @@
-// S/Client.Tests/Input/UiSkitAdvanceInputTest.cs
 using Client.Input;
 using Client.Tests.Common;
 using NUnit.Framework;

@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Window/SkitTypewriter.cs
 using System;
 using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.State.Skit;
@@ -55,6 +54,24 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             }
             SetVisibleCount(0);
             _handle = UiMotionPlayer.Play(_clockHost, new SkitTypewriterAnimation(this, model.RevealIntervalMs, TotalCount));
+
+            #region Internal
+
+            bool ChangedFrom(SkitViewModel model)
+            {
+                return model.SessionId != _sessionId || model.Body != _body || model.RevealsByTypewriter != _revealsByTypewriter || model.RevealIntervalMs != _intervalMs || model.IsPresenting != _presenting;
+            }
+
+            void Remember(SkitViewModel model)
+            {
+                _sessionId = model.SessionId;
+                _body = model.Body;
+                _revealsByTypewriter = model.RevealsByTypewriter;
+                _intervalMs = model.RevealIntervalMs;
+                _presenting = model.IsPresenting;
+            }
+
+            #endregion
         }
 
         public void RevealAll()
@@ -68,20 +85,6 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             if (count == VisibleCount) return;
             VisibleCount = count;
             _onVisibleCountChanged.OnNext(Unit.Default);
-        }
-
-        private bool ChangedFrom(SkitViewModel model)
-        {
-            return model.SessionId != _sessionId || model.Body != _body || model.RevealsByTypewriter != _revealsByTypewriter || model.RevealIntervalMs != _intervalMs || model.IsPresenting != _presenting;
-        }
-
-        private void Remember(SkitViewModel model)
-        {
-            _sessionId = model.SessionId;
-            _body = model.Body;
-            _revealsByTypewriter = model.RevealsByTypewriter;
-            _intervalMs = model.RevealIntervalMs;
-            _presenting = model.IsPresenting;
         }
 
         private void StopTyping()

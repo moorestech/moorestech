@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolGlyph.cs
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;

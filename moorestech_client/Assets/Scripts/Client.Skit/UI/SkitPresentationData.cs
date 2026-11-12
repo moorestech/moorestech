@@ -24,7 +24,7 @@ namespace Client.Skit.UI
         // Whether the intent is in the allowed set; the store validation, the UITK view model and Playtest share this rule
         public static bool IsIntentAllowed(string[] allowedIntents, string intent)
         {
-            return Array.IndexOf(allowedIntents, intent) >= 0;
+            return 0 <= Array.IndexOf(allowedIntents, intent);
         }
 
         public string SessionId;

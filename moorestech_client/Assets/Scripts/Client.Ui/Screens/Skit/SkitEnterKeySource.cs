@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/SkitEnterKeySource.cs
 using System;
 using Client.Input;
 using UniRx;

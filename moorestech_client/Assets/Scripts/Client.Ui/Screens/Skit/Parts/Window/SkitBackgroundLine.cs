@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Window/SkitBackgroundLine.cs
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using UnityEngine.UIElements;

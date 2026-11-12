@@ -1,4 +1,3 @@
-// S/Client.Tests/Ui/Screens/Skit/RecordingSkitCommands.cs
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Skit;

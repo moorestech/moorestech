@@ -35,41 +35,45 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
         {
             _model = model;
             if (!SameChoices(model.Choices)) Rebuild(model.Choices);
-            style.display = model.Choices.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            style.display = 0 < model.Choices.Count ? DisplayStyle.Flex : DisplayStyle.None;
+
+            #region Internal
+
+            void Rebuild(IReadOnlyList<SkitChoiceItem> choices)
+            {
+                // 押したら押した時点の session と版で選ぶ
+                // A press selects with the session and revision at that moment
+                Clear();
+                _buttons.Clear();
+                for (var i = 0; i < choices.Count; i++)
+                {
+                    var choiceId = choices[i].ChoiceId;
+                    var button = new SkitChoiceButton(choices[i], i == 0, _osCursor);
+                    button.pickingMode = _interactive ? PickingMode.Position : PickingMode.Ignore;
+                    button.OnClicked.Subscribe(_ => _toaster.Report("skit.select", _commands.Select(_model.SessionId, _model.SceneRevision, choiceId)));
+                    _buttons.Add(button);
+                    Add(button);
+                }
+                _shownChoices = choices;
+            }
+
+            bool SameChoices(IReadOnlyList<SkitChoiceItem> choices)
+            {
+                if (choices.Count != _shownChoices.Count) return false;
+                for (var i = 0; i < choices.Count; i++)
+                {
+                    if (choices[i].ChoiceId != _shownChoices[i].ChoiceId || choices[i].Label != _shownChoices[i].Label) return false;
+                }
+                return true;
+            }
+
+            #endregion
         }
 
         public void SetInteractive(bool interactive)
         {
             _interactive = interactive;
             foreach (var button in _buttons) button.pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
-        }
-
-        private void Rebuild(IReadOnlyList<SkitChoiceItem> choices)
-        {
-            // 押したら押した時点の session と版で選ぶ
-            // A press selects with the session and revision at that moment
-            Clear();
-            _buttons.Clear();
-            for (var i = 0; i < choices.Count; i++)
-            {
-                var choiceId = choices[i].ChoiceId;
-                var button = new SkitChoiceButton(choices[i], i == 0, _osCursor);
-                button.pickingMode = _interactive ? PickingMode.Position : PickingMode.Ignore;
-                button.OnClicked.Subscribe(_ => _toaster.Report("skit.select", _commands.Select(_model.SessionId, _model.SceneRevision, choiceId)));
-                _buttons.Add(button);
-                Add(button);
-            }
-            _shownChoices = choices;
-        }
-
-        private bool SameChoices(IReadOnlyList<SkitChoiceItem> choices)
-        {
-            if (choices.Count != _shownChoices.Count) return false;
-            for (var i = 0; i < choices.Count; i++)
-            {
-                if (choices[i].ChoiceId != _shownChoices[i].ChoiceId || choices[i].Label != _shownChoices[i].Label) return false;
-            }
-            return true;
         }
     }
 }

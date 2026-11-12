@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolGlyphShape.cs
 namespace Client.Ui.Screens.Skit.Parts.Toolbar
 {
     /// <summary>

@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolbar.cs
 using Client.Ui.Components.Controls;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Skit;

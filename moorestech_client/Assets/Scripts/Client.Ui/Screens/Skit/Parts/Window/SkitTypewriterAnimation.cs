@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Window/SkitTypewriterAnimation.cs
 using Client.Ui.Foundation.Motion.Core;
 using Client.Ui.State.Skit.Logic;
 
@@ -30,7 +29,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
         {
             var count = SkitTypewriterRules.RevealCountAt(elapsedMilliseconds, _intervalMs, _totalCount);
             _typewriter.SetVisibleCount(count);
-            return count >= _totalCount;
+            return _totalCount <= count;
         }
     }
 }

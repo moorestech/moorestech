@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/SkitEnterKeyBinding.cs
 using System;
 using UniRx;
 

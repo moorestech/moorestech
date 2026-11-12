@@ -1,4 +1,3 @@
-// S/Client.Tests/Ui/Screens/Skit/SkitScreenViewTest.cs
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
@@ -68,6 +67,21 @@ namespace Client.Tests.Ui.Screens.Skit
 
             _view.Render(SkitTestData.Text(SkitTestData.SessionId, 3, SecondBody, new[] { "set-auto" }));
             Assert.IsFalse(IsShown(Find<VisualElement>(_view, "skit-advance-marker")));
+        }
+
+        [Test]
+        public void 打ち出し中に同じ本文で版と許可だけが変わっても頭から打ち直さない()
+        {
+            _view.Render(SkitTestData.Text(SkitTestData.SessionId, 1, "Blocking message", SkitTestData.TextIntents));
+            _view.Render(SkitTestData.Text(SkitTestData.SessionId, 2, SecondBody, SkitTestData.TextIntents));
+            simulate.FrameUpdateMs(600);
+            var typedSoFar = BodyText();
+            Assert.AreNotEqual(Expected(SecondBody, 0), typedSoFar, "前提: 600ms で少なくとも 1 字は出ている");
+
+            // 自動・ポーズ・UI 非表示の往復は版と許可 intent だけが進むので、続きから打つ
+            // Auto, pause and UI-hide round trips only advance the revision and intents, so typing continues
+            _view.Render(SkitTestData.Text(SkitTestData.SessionId, 3, SecondBody, new[] { "set-auto", "skip" }));
+            Assert.AreEqual(typedSoFar, BodyText(), "同じ本文の新しい版で 0 字から打ち直した");
         }
 
         /// <web-test file="e2e/tests/phaseC4.spec.ts">background skit snapshot renders speaker and body</web-test>

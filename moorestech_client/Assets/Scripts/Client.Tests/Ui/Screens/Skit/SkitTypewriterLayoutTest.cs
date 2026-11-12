@@ -1,4 +1,3 @@
-// S/Client.Tests/Ui/Screens/Skit/SkitTypewriterLayoutTest.cs
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Skit.Parts.Window;
 using Client.Ui.State.Skit.Logic;
@@ -39,7 +38,7 @@ namespace Client.Tests.Ui.Screens.Skit
             foreach (var (visible, label) in splits)
             {
                 Assert.AreEqual(full.layout.height, label.layout.height, 0.5f, $"先頭 {visible} 字で区切ると高さが全文と違う（{SkitRichText.HiddenTailOpenTag}）");
-                if (visible > 0 && visible < count && WrappingBody[visible - 1] != ' ' && WrappingBody[visible] != ' ') midWordSplits++;
+                if (0 < visible && visible < count && WrappingBody[visible - 1] != ' ' && WrappingBody[visible] != ' ') midWordSplits++;
             }
             Assert.Greater(midWordSplits, 10, "語の途中の区切りを十分に踏んでいない（測り方の前提）");
         }

@@ -1,4 +1,3 @@
-// S/Client.Tests/Ui/Screens/Skit/SkitToolbarViewTest.cs
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.Skit.Parts.Toolbar;
 using NUnit.Framework;

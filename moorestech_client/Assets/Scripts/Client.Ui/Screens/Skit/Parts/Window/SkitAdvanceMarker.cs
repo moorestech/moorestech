@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Window/SkitAdvanceMarker.cs
 using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;

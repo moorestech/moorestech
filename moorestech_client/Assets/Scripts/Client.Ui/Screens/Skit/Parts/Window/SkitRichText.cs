@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Window/SkitRichText.cs
 using Client.Ui.State.Skit.Logic;
 
 namespace Client.Ui.Screens.Skit.Parts.Window
@@ -29,7 +28,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
         public static string TypewriterBody(string body, int visibleCodePoints)
         {
             var shownLength = SkitTypewriterRules.PrefixLengthOfCodePoints(body, visibleCodePoints);
-            if (shownLength >= body.Length) return Literal(body);
+            if (body.Length <= shownLength) return Literal(body);
             return Literal(body.Substring(0, shownLength)) + HiddenTailOpenTag + Literal(body.Substring(shownLength));
         }
 

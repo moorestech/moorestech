@@ -1,4 +1,3 @@
-// S/Client.Tests/Ui/Screens/Skit/SkitTestData.cs
 using System;
 using Client.Skit.UI;
 using Client.Ui.State.Skit;

@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/Parts/Window/SkitDialogueWindow.cs
 using System;
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;

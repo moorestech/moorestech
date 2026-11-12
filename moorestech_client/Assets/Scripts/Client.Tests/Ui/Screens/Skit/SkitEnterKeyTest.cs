@@ -1,4 +1,3 @@
-// S/Client.Tests/Ui/Screens/Skit/SkitEnterKeyTest.cs
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Skit;

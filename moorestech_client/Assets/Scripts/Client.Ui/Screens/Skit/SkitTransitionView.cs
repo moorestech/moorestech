@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/SkitTransitionView.cs
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Skit

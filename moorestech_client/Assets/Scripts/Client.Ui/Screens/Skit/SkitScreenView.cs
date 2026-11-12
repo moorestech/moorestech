@@ -1,4 +1,3 @@
-// S/Client.Ui/Screens/Skit/SkitScreenView.cs
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Skit.Parts.Choices;
 using Client.Ui.Screens.Skit.Parts.Toolbar;

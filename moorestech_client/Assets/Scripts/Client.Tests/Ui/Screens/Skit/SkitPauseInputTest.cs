@@ -1,4 +1,3 @@
-// S/Client.Tests/Ui/Screens/Skit/SkitPauseInputTest.cs
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
