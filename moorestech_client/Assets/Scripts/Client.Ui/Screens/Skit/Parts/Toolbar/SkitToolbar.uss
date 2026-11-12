@@ -25,17 +25,17 @@
 }
 
 .skit-toolbar .skit-tool-glyph {
+    --skit-tool-glyph-stroke: var(--skit-tool-icon-stroke-width);
     --skit-tool-glyph-shadow-color: var(--skit-window-face);
     --skit-tool-glyph-shadow-offset: 1px; /* look-exception: LX-52 */
     width: var(--skit-tool-button-size);
     height: var(--skit-tool-button-size);
 }
 
-/* 通常の色と線幅。IconButton の .icon-button .icon-button__glyph（2 クラス）へ 3 クラスで勝つ。有効時のホバーは IconButton の 4 つ（:hover:enabled）が --text-high-contrast にし、自動 ON の上でも白になる（Web の :not(:disabled):hover が [data-enabled] より強いのと同じ） */
-/* Normal colour and stroke; three classes beat IconButton's two-class .icon-button .icon-button__glyph. Enabled hover is IconButton's four-part :hover:enabled rule (--text-high-contrast), which also wins over auto-on, as the Web :not(:disabled):hover beats [data-enabled] */
+/* 通常の色。IconButton の .icon-button .icon-button__glyph（2 クラス）へ 3 クラスで勝つ。有効時のホバーは IconButton の 4 つ（:hover:enabled）が --text-high-contrast にし、自動 ON の上でも白になる（Web の :not(:disabled):hover が [data-enabled] より強いのと同じ） */
+/* Normal colour; three classes beat IconButton's two-class .icon-button .icon-button__glyph. Enabled hover is IconButton's four-part :hover:enabled rule (--text-high-contrast), which also wins over auto-on, as the Web :not(:disabled):hover beats [data-enabled] */
 .skit-toolbar .skit-toolbar__tool .skit-tool-glyph {
     --icon-button-glyph-color: var(--text-high-contrast);
-    --icon-button-glyph-stroke: var(--skit-tool-icon-stroke-width);
 }
 
 /* 自動送り ON だけシアンで灯す（同じ 3 つで後に置く） */

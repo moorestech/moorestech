@@ -10,12 +10,13 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
     /// Draws a tool glyph over a copy shifted down as its shadow (a blur-less approximation of the Web drop-shadow(0 1px 1px); LX-52)
     /// </summary>
     /// <remarks>
-    /// 色と線幅は IconButton のつまみ（GlyphColorProperty・GlyphStrokeProperty）を読み、状態ごとの色は画面 USS が上書きする。影だけは IconButton に口が無いので自分の --skit-tool-glyph-shadow-* を読む（D-14・D-27）
-    /// Colour and stroke come from IconButton's knobs (GlyphColorProperty, GlyphStrokeProperty), overridden per state by the screen USS; only the shadow reads this glyph's own --skit-tool-glyph-shadow-*, as IconButton has no entry for it (D-14, D-27)
+    /// 色は IconButton のつまみ（GlyphColorProperty）を読み、状態ごとの色は画面 USS が上書きする。線幅（単位なし）と影は自分の --skit-tool-glyph-* を読む。IconButton の線幅つまみは px なので共有しない（D-14・D-27・D-79）
+    /// Colour comes from IconButton's knob (GlyphColorProperty), overridden per state by the screen USS; the unitless stroke and the shadow read this glyph's own --skit-tool-glyph-*, as IconButton's stroke knob is in px and is not shared (D-14, D-27, D-79)
     /// </remarks>
     public sealed class SkitToolGlyph : VisualElement
     {
         public const string UssClassName = "skit-tool-glyph";
+        private const string StrokeProperty = "--skit-tool-glyph-stroke";
 
         private readonly SkitToolGlyphShape _shape;
         private Color _color;
@@ -38,7 +39,7 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             // ホバー・無効・自動 ON のたびに解決し直されるので、読み直して描き直す（線幅は 24 単位の無次元の数）
             // Re-resolved on hover, disable and auto-on, so re-read and redraw (the stroke is a unitless number in 24 units)
             var hasColor = UssCustomStyleReader.TryReadColor(customStyle, IconButton.GlyphColorProperty, out _color);
-            var hasStroke = UssCustomStyleReader.TryReadNumber(customStyle, IconButton.GlyphStrokeProperty, out _stroke);
+            var hasStroke = UssCustomStyleReader.TryReadNumber(customStyle, StrokeProperty, out _stroke);
             var hasShadow = UssCustomStyleReader.TryReadColor(customStyle, "--skit-tool-glyph-shadow-color", out _shadowColor);
             var hasOffset = UssCustomStyleReader.TryReadPixels(customStyle, "--skit-tool-glyph-shadow-offset", out _shadowOffset);
             _hasTokens = hasColor && hasStroke && hasShadow && hasOffset;
