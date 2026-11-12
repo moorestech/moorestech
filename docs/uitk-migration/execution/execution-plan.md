@@ -88,13 +88,13 @@
 
 | ID | 題 | 依存 | Ed | 担当 | 計画 | 完了条件 |
 |---|---|---|---|---|---|---|
-| X-prerun | 撤去の前の全録画と全画面の並べ比べ | S5-ladder | 要 | int | ○ | 全体スイッチの Web 側と UITK 側で全録画を回す（plan §2.6。撤去後は Web 側が使えない）。wwxy の残りを直すか削除して閉じる。master の worktree で全画面の参照を撮り直し（`web-<最新 sha>`）、UITK の全画面と 720p・2560×1080 で並べ比べ、codex-audit（画像付き）にかけて差 0 か記帳済み（設計書 §3.3 (c)） |
+| X-prerun | 撤去の前の全録画と全画面の並べ比べ | S5-ladder | 要 | int | ○ | 全体スイッチの Web 側と UITK 側で全録画を回す（plan §2.6。撤去後は Web 側が使えない）。wwxy の残りを直すか削除して閉じる。master の worktree で全画面の参照を撮り直し（`web-<最新 sha>`）、UITK の全画面と 720p・2560×1080 で並べ比べ、opus の評価役 2 体の独立評価（画像付き。E-24）にかけて差 0 か記帳済み（設計書 §3.3 (c)）。全束のテスト名の突き合わせ差分 0 を撤去前の最後の記録として `disposition.md` に残し（A-251）、撤去レーンの見た目の物差し `scenarios/uitk/prerun/prerun-smoke-shots.cs` を作る |
 | X-5a | 起動配線と共存機構の撤去 | X-prerun | 要 | 単位 | ○ | plan §2.6 の 5a。スイッチ・DSL の Web ロケータ・入力の Web の項・CEF 停止の記録・manifest は v7 |
 | X-5b | CEF と配布工程の撤去 | X-5a | 要 | 単位 | ○ | 5b（prefab は uloop で外す） |
 | X-5c | Web ホストと Web 資産の撤去 | X-5b | 要 | 単位 | ○ | 5c。テスト名の突き合わせで全束の差分 0。Web ホスト側の規則の重複一覧（`P/2026-11-10-uitk-s4-train.md` 末尾「本 PR 外のリファクタ提案」。State と `Client.WebUiHost` に同じ規則が 2 本ある導出）の Web ホスト側が消えている |
 | X-5d | NuGet の整理 | X-5c | 要 | 単位 | ○ | 5d（依存グラフを確かめてから） |
 | X-5e | 文書・スキル・改名・ADR・bd | X-5d | 末 | 単位 | ○ | 5e。`ref-webui-design` 廃止・`ref-uitk-design` 完成・ts/tsx 観点 12 本撤去。台帳と G1 は消さない |
-| X-switch-pr | 切替 PR | X-5e | 要 | int | ○ | `feature/uitk` 上の Web コミットを `捨てた` で記帳し `check-uitk-web-follow.py --base origin/master --head feature/uitk` 0 件。全束 `切替済み`・全行 `UITK`。G4 緑。Windows/Mac ビルド・Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh`、CEF の無いビルドでラダー 6 本と全録画、IME 一巡。焼くのは `feature/uitk` の HEAD の SHA（`release-playtest.sh` の既定の `origin/master` を使わない）。playtest-staging へのアップロードは裁定の「切替 PR の中の検証」の範囲として行い、playtest への反映（moores-playtest-release の手順 3 以降）はユーザーのマージ後の X-release でだけ行う。pr-create（head=`feature/uitk`、base=master）・pr-independent-review。目視とマージはユーザー。検証中に master の Web 更新が入ったら I-follow で写して再検証 |
+| X-switch-pr | 切替 PR | X-5e | 要 | int | ○ | `feature/uitk` 上の Web コミットを `捨てた` で記帳し `check-uitk-web-follow.py --base origin/master --head feature/uitk` 0 件。全束 `切替済み`・全行 `UITK`。G4 緑。Windows/Mac ビルド・Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh`、CEF の無いビルドでラダー 6 本と全録画、IME 一巡。焼くのは `feature/uitk` の HEAD の SHA（`release-playtest.sh` の既定の `origin/master` を使わない）。playtest-staging へのアップロードは裁定の「切替 PR の中の検証」の範囲として行い、playtest への反映（moores-playtest-release の手順 3 以降）はユーザーのマージ後の X-release でだけ行う。pr-create（head=`feature/uitk`、base=master）・moores-code-review（X-audit の head 以降）と独立評価 2 体（pr-independent-review は削除済み。E-24）。目視とマージはユーザー。検証中に master の Web 更新が入ったら I-follow で写して再検証 |
 | X-release | playtest への反映と 1 周期 | ユーザーのマージ | 否 | 指揮 | — | moores-playtest-release。Mac の確認項目をラダー 6 本の先頭操作のスクショへ。パッチノートに UITK 移行と既知の差分。7 日以上と報告の確認 1 回（plan §5.1-5） |
 | X-cleanup | 台帳と G1 の撤去 | ユーザーのマージ | 否 | 単位 | — | 台帳・G1 の workflow・スクリプト・テストを 1 本の master PR で消す（plan §2.6）。マージはユーザー |
 
@@ -325,6 +325,13 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | S4-train（`P/2026-11-10-uitk-s4-train.md`。PLAN-W4a） | A-155〜A-159 | LX-121〜125 |
 | S4-special（`P/2026-11-10-uitk-s4-special.md`。PLAN-W4b） | A-160〜A-164 | LX-126〜LX-130 |
 | I-fix4（`P/2026-11-10-uitk-i-fix4.md`。integrator） | A-190〜A-199 | LX-156〜160 |
+| X-prerun（`P/2026-11-12-uitk-x-prerun.md`。PLAN-W6） | A-250・A-251 | LX-210〜217（撤去の前の全画面の並べ比べで再現した差のうち例外にするもの） |
+| X-5a（`P/2026-11-12-uitk-x-5a.md`。PLAN-W6） | A-252・A-253 | —（撤去レーンは LX を使わない。撤去で見た目が変わったら直す） |
+| X-5b（`P/2026-11-12-uitk-x-5b.md`。PLAN-W6） | A-254 | — |
+| X-5c（`P/2026-11-12-uitk-x-5c.md`。PLAN-W6） | A-255 | — |
+| X-5d（`P/2026-11-12-uitk-x-5d.md`。PLAN-W6） | A-256 | — |
+| X-5e（`P/2026-11-12-uitk-x-5e.md`。PLAN-W6） | A-257・A-258 | — |
+| X-switch-pr（`P/2026-11-12-uitk-x-switch-pr.md`。PLAN-W6） | A-259 | LX-218〜219（目視と IME で見つかった直せない差の予約） |
 
 - **`/// <web-test>` の書式**（E-13）: W0-tools 計画 R1・R3 の `/// <web-test file="<webui からの相対パス。src/… か e2e/…>"><it/test の第 1 引数></web-test>` が正本。describe は含めない（W0-tools D-2）。L0・C2 の計画はこの書式で書く
 - **FormButton の API**: 設計書 §2.4 の FormButton 行は C2-b の形（[A-28]）。L0-s3 の `ModalButtonTone` は S3-hotbar-modal の View が `Blue→Filled`・`Red→Danger` で写す
@@ -381,6 +388,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | E-21 | C4-b は依存の C2-c が済んでいるので W3 の波を待たず、空いた Editor 枠で先に起こす。C4-a の `FluidSlotRow` が `ProgressArrowBar` を描くので C4-b → C4-a の辺を足す（C4-a 計画 D-3・A-98 の辺の部分。A-98 の「枠 2 の先頭を C4-b」はこの E-21 が置き換える）。W3 の枠 2 の先頭はクリティカルパスの C4-e のまま | C4-a の計画どおり枠 2 の先頭を C4-b にする: クリティカルパスの C4-e が C4-b の分だけ遅れる。W3 まで待つ: 依存が済んでいる部品を寝かせ、C4-a の Task 5（`FluidSlotRow`）と C4-c が待つ |
 | E-22 | C4-e の依存から C3-b を外す（計画が C3-b の型を使わない。C3-b の遅れがクリティカルパスの C4-e → S4-alpha に及ばない）。C4-e 経由で S4 の鎖が持っていた「C3-b の後」の前提は、C3-b の型を使う S4 のレーンが自分の依存に C3-b を書いて持つ（S4-inventory のツールチップ・S4-recipe。S4-alpha・S4-machine・S4-train は詳細計画の頭で C3-b の型を使うかを確かめ、使うなら依存と DAG に足す）。参照の組に無い状態（掴み絵）を比べるレーンは、同じ撮り方の使い捨てスクリプトで自分で撮って比べ、撮影表へ足すのは integrator へ依頼する（C4-e 計画 D-27。設計書 §3.3） | C3-b を待つ: 使わない型のために critical path が延びる。integrator の撮影を待つ: レーンが閉じられず、比べないまま合格にする抜け道になる |
 | E-23 | W4 の画面の持ち主の境界（PLAN-W4a と PLAN-W4b の申し合わせ）: ブロックインベントリは S4-alpha が外殻・`Registry/`・`SectionStack/`・`Parts/` と拡張口を持ち、S4-machine（`Screens/BlockInventory/Machine/`・`Context/`・`Family/`・`Fluid/`。採掘機・ポンプ・発電機と文脈の区画を含む）・S4-special（`Special/`）・S4-train（`Train/`）は自分のディレクトリと `Client.Starter/Registration/GameUi/Screens/` の自分の登録ファイル（E-1）から VContainer の複数登録で差し込むだけ（alpha のファイルを書かない）。解放済みの機械レシピの源は recipe・blockInventory の大型パネル・機械が読むので（research は未解放も引くためマスタから直接読む）、最初にマージされる S4-alpha が中立の `Client.Ui.State/Recipe/Source/` に作る。液体の中身表示（Web `FluidInventoryContents`）は C4-a に依存する S4-machine が `Fluid/` に作り、S4-train が使う（S4-machine → S4-train の辺）。ホイール素通しの印 `WheelPassthroughMark`（`Client.Ui/Foundation/Input/`）は S3-hotbar-modal より先にマージされた S4-inventory が作り、S3-hotbar-modal は新設せず列に `Mark` を呼ぶ（S4-inventory → S3-hotbar-modal の辺。設計書 A-194） | 機械レシピの源を S4-machine に置く: recipe が machine の State を読み、W4 の並走で machine を待つ。液体の中身表示を alpha に置く: alpha が C4-a を待ち、クリティカルパスの頭が延びる。S3-hotbar-modal が印を作る（当初の A-109）: S3-hotbar-modal が未着手のまま S4-inventory が装備のホイールに判定を要したので、持ち主を S4-inventory へ移した（A-194） |
+| E-24 | W6（X-prerun〜X-switch-pr）の実装はこのホストの Claude Code の subagent（opus）で行い、§5・§3.3 の codex-audit と外部監査は opus の subagent 2 体の独立評価（目的・裁定・設計書・完了条件と成果物の実物だけを渡して別々に判定。設計判断になる指摘は別の subagent に再現させ、再現したものだけ残す）で代える。Unity Editor は Mac mini 全体で 1 本まで、2 本目以降は Windows の `winunity`。切替 PR の pr-independent-review（スキルは削除済み）は moores-code-review（X-audit の head からの範囲）と独立評価 2 体で代える。ユーザーの指揮への指示（`moorestech_logs/harness/uitk/conductor.md`「一旦codexは使わず、claudeセッションで今からこの計画の遂行をして」・「やはりunity2つは安定しないので1つに絞ってほしい」）が E-3 と `.decisions/2026-10-16-moores-writing-plansの実装引き継ぎはCodexセッションに固定する.md` を W6 について上書きする（PLAN-W6） | Codex セッションで回す（E-3）: ユーザーの指示に反する。Editor 2 本: ユーザーの指示に反し、Mac mini で不安定 |
 
 ---
 
