@@ -4,8 +4,8 @@ using Client.Ui.State.Commands;
 namespace Client.Ui.State.Skit
 {
     /// <summary>
-    /// 操作を store の Try* へ写す。session・版・許可の検証は store が 1 か所で行い、失敗コードは Detail として返す（A-84）
-    /// Maps operations onto the store's Try* methods; the store validates session, revision and allowance in one place, and the failure code returns as Detail (A-84)
+    /// 操作を store の Try* へ写す。session・版・許可の検証は store が 1 か所で行い、失敗コードは wire の上書きとして返す（A-84・A-260）
+    /// Maps operations onto the store's Try* methods; the store validates session, revision and allowance in one place, and the failure code returns as the wire code override (A-84, A-260)
     /// </summary>
     public sealed class SkitCommands : ISkitCommands
     {
@@ -52,7 +52,7 @@ namespace Client.Ui.State.Skit
         private static UiCommandResult ToResult(SkitIntentResult result)
         {
             if (result.Ok) return UiCommandAccepted.Instance;
-            return new UiCommandRejected(UiCommandRejectReason.SkitIntentRejected, result.Error);
+            return UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SkitIntentRejected, result.Error);
         }
     }
 }

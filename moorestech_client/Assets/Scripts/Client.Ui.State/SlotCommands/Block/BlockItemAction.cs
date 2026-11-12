@@ -62,9 +62,9 @@ namespace Client.Ui.State.SlotCommands.Block
         {
             // 半分の計算はホストの SplitGrabActionHandler と同じ床関数。1 個以下は成功扱いの何もしない
             // Half uses the same floor as the host; a stack of one or less is a successful no-op
-            if (!grabEmpty) return new UiCommandRejected(UiCommandRejectReason.SplitGrabNotEmpty, "");
+            if (!grabEmpty) return UiCommandRejected.Of(UiCommandRejectReason.SplitGrabNotEmpty);
             var slot = slots[_blockSlot];
-            if (slot.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, "");
+            if (slot.IsEmpty) return UiCommandRejected.Of(UiCommandRejectReason.ItemSourceSlotEmpty);
             var half = slot.Count / 2;
             // silent-ok: 1 個の枠の右押下は Web と同じく何もしない / 枠に 1 個残っているのがプレイヤーに見えている
             if (half == 0) return UiCommandAccepted.Instance;

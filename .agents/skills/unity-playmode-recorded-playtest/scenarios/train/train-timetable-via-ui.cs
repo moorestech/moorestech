@@ -173,7 +173,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
         if (condition.Contains("Hash mismatch detected")) mismatchCount++;
         // Web 系の拒否と UITK 系の拒否の Warning を同じ数え方で数え、両系で 0 件を主張する
         // Count Web-side and UITK-side rejection warnings the same way so both systems assert zero
-        if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected") || condition.Contains("[TrainTimetableCommands] rejected:")) rejectCount++;
+        if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected") || condition.Contains("[UiCommandResultToaster] train_")) rejectCount++;
         if (condition.Contains("[TrainTimetableFetcher] requesting timetable")) timetableRequestCount++;
     }
     // 車両は駅の構内にあり横から狙うと駅ブロックが先に当たるため、北向き固定カメラに合わせ駅の外の後端（南）側からFの届く2m以内（InteractTargetSelector.InteractDistance）で狙う

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
@@ -11,6 +12,8 @@ using Client.Ui.State.Text;
 using Core.Master;
 using Game.Block.Interface.State;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special
@@ -71,13 +74,29 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             action.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(phase)));
             simulate.FrameUpdate();
             simulate.Click(Find<Button>(action, testid));
-            Commands.SetNextResult(new UiCommandRejected(UiCommandRejectReason.SpecialBlockCommandStale, command == RocketCommand.Build ? "rocket_command_not_awaiting_build" : "rocket_command_not_awaiting_launch"));
+            Commands.SetNextResult(UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockCommandStale, command == RocketCommand.Build ? "rocket_command_not_awaiting_build" : "rocket_command_not_awaiting_launch"));
             simulate.Click(Find<Button>(action, testid));
 
             Assert.AreEqual(2, Commands.Issued.Count);
             CollectionAssert.IsEmpty(ShownToasts);
             action.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(nextPhase)));
             Assert.IsFalse(IsShown(Find<Button>(action, testid)));
+        }
+
+        [Test]
+        public void 材料不足で建造の合図が断られると失敗コードを添えてトーストする()
+        {
+            // Web の bridge/transport/actions.ts と同じく、トーストに失敗コードが出る（A-261）
+            // Like the Web bridge/transport/actions.ts, the toast shows the failure code (A-261)
+            var action = Mount(new RocketLaunchPadTitleActionView(Kit(null)));
+            action.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(RocketLaunchPadPhase.AwaitingBuildCommand)));
+            simulate.FrameUpdate();
+            Commands.SetNextResult(UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockRequestFailed, "rocket_command_missing_materials"));
+            LogAssert.Expect(LogType.Warning, new Regex(@"rocket_launch_pad\.command failed: rocket_command_missing_materials$"));
+            simulate.Click(Find<Button>(action, "rocket-launch-pad-build"));
+
+            Assert.AreEqual(1, ShownToasts.Count);
+            StringAssert.Contains("rocket_command_missing_materials", ShownToasts[0].Text);
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx">renders DTO groups and preserves their absolute indices through real mouse gestures</web-test>

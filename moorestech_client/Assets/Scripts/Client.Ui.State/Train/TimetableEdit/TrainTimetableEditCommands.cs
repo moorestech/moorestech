@@ -13,7 +13,6 @@ namespace Client.Ui.State.Train.TimetableEdit
     public sealed class TrainTimetableEditCommands
     {
         private const string SetAutoRunCommandName = "train_timetable.set_auto_run";
-        private const string LogTag = "TrainTimetableEdit";
         private readonly TrainTimetableEditState _state;
         private readonly ITrainTimetableCommands _commands;
         private readonly UiCommandResultToaster _toaster;
@@ -57,7 +56,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         // An operation without an open timetable is not sent and its refusal is toasted, as the Web host's train_not_open is (D-32)
         private void NotOpen(string commandName)
         {
-            var rejected = TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.BlockNotOpen, string.Empty);
+            var rejected = UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
             _toaster.Report(commandName, rejected);
         }
 

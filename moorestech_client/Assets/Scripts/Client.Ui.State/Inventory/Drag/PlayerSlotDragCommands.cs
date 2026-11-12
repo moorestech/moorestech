@@ -140,7 +140,7 @@ namespace Client.Ui.State.Inventory.Drag
             {
                 var share = SplitDragDistribution.Plan(_operations.ReadSnapshot(), passed);
                 if (0 < share.IgnoredStaleCount) Debug.LogWarning($"[PlayerSlotDragCommands] split-drag dropped {share.IgnoredStaleCount} stale slot(s)");
-                if (share.Destinations.Count == 0) return new UiCommandRejected(UiCommandRejectReason.SplitDragNoValidSlots, "");
+                if (share.Destinations.Count == 0) return UiCommandRejected.Of(UiCommandRejectReason.SplitDragNoValidSlots);
                 // silent-ok: 1 か所あたり 0 個はホストと同じ成功の何もしない / grab が残ったままなのはプレイヤーが掴み絵で見る
                 if (share.CountPerSlot <= 0) return UiCommandAccepted.Instance;
 

@@ -31,10 +31,10 @@ namespace Client.Ui.State.SlotCommands.Block
 
             UiCommandResult Unavailable(string detail)
             {
-                // 説明文はログだけへ。Detail は失敗コードの欄なので空（UiCommandResult の契約。ToWireCode が "invalid_slot" を返す）
-                // The description goes to the log only; Detail is the failure-code field and stays empty (UiCommandResult contract; ToWireCode returns "invalid_slot")
+                // 説明文はログだけへ。wire は理由の既定コードのまま（ToWireCode が "invalid_slot" を返す）
+                // The description goes to the log only; the wire stays the reason's code (ToWireCode returns "invalid_slot")
                 Debug.LogWarning($"[BlockItemActionExecutor] {detail}");
-                return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
+                return UiCommandRejected.Of(UiCommandRejectReason.BlockSlotUnavailable);
             }
 
             #endregion

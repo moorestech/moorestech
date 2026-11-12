@@ -83,7 +83,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public void 拒否された追加を巻き戻し次の追加で戻る()
         {
             Click("train-timetable-station--8_0_3-add");
-            LogAssert.Expect(LogType.Warning, new Regex(@"train_timetable\.replace failed: test"));
+            LogAssert.Expect(LogType.Warning, new Regex(@"train_timetable\.replace failed: replace_failed \(test\)$"));
             _bodies.TimetableCommands.Reject(UiCommandRejectReason.TrainTimetableReplaceFailed, "test");
             simulate.FrameUpdate();
             AssertIdle();

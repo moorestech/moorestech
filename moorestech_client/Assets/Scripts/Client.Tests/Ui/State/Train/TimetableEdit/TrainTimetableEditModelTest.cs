@@ -85,11 +85,13 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
         {
             // 開いていないブロックへの操作と同じ理由で拒否し、Web と同じくトーストする（非良性。D-32）
             // Refused with the same reason as an operation on a block that is not open, and toasted like the Web (not benign; D-32)
+            // 拒否のログはトースト係の 1 行だけ（A-260）
+            // The refusal logs only the toaster's one line (A-260)
             _sources.SetTimetable(TrainTimetableViewState.Unavailable);
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableEdit\] rejected: block_not_open"));
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_timetable\.replace failed: block_not_open"));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_timetable\.replace failed: block_not_open$"));
             _edit.Add(North);
             Assert.IsEmpty(_send.SentReplaces);
+            LogAssert.NoUnexpectedReceived();
         }
 
         private TrainTimetableSectionViewModel Section()

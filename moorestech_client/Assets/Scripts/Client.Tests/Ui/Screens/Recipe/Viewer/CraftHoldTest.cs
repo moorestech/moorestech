@@ -89,7 +89,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void 拒否はトーストへ渡り1フレームの経過は上限で頭打ち()
         {
-            _commands.SetResult(new UiCommandRejected(UiCommandRejectReason.MachineRecipeLocked, ""));
+            _commands.SetResult(UiCommandRejected.Of(UiCommandRejectReason.MachineRecipeLocked));
             var view = Mount(new CraftRecipeEntryView(CraftVm(RecipeFixtures.RecipeGuid(1), 0.3, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
             simulate.MouseDown(view.Q<RecipeActionButton>().worldBound.center);
 

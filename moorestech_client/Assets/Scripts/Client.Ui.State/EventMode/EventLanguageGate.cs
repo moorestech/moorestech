@@ -38,8 +38,8 @@ namespace Client.Ui.State.EventMode
         public UiCommandResult SelectLanguage(string languageCode)
         {
             // silent-ok: 拒否は結果で返す / Web action が already_selected・unknown_locale を応答し、UITK は UiCommandResultToaster がログと良性以外のトーストを出す
-            if (!IsWaitingSelection) return new UiCommandRejected(UiCommandRejectReason.LanguageAlreadySelected, "");
-            if (!Localize.TrySetChosenLanguage(languageCode)) return new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, "");
+            if (!IsWaitingSelection) return UiCommandRejected.Of(UiCommandRejectReason.LanguageAlreadySelected);
+            if (!Localize.TrySetChosenLanguage(languageCode)) return UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage);
 
             IsWaitingSelection = false;
             _onWaitingChanged.OnNext(Unit.Default);

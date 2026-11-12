@@ -39,7 +39,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             // A left press with an empty grab sends nothing
             var grab = _grab.Current.Value;
             var action = FilterSplitterLogic.ClickAction(grab.Count, clear);
-            if (action == FilterSlotClickAction.Noop) return new UiCommandRejected(UiCommandRejectReason.FilterSplitterGrabEmpty, "");
+            if (action == FilterSlotClickAction.Noop) return UiCommandRejected.Of(UiCommandRejectReason.FilterSplitterGrabEmpty);
             var itemId = action == FilterSlotClickAction.Clear ? ItemMaster.EmptyItemId : grab.ItemId;
             return ToResult(await _sender.SetFilterItem(block.Position, block.BlockInstanceId, directionIndex, slotIndex, itemId));
         }
@@ -70,12 +70,12 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             block = null;
             if (_panels.Current.Value is not OpenBlockInventoryPanel { Error: BlockInventoryPanelError.None } open)
             {
-                rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "");
+                rejected = UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
                 return false;
             }
             block = open;
             if (block.BlockType == expectedBlockType) return true;
-            rejected = new UiCommandRejected(UiCommandRejectReason.BlockNotOpen, "invalid_block_type");
+            rejected = UiCommandRejected.OverridingWireCode(UiCommandRejectReason.BlockNotOpen, "invalid_block_type");
             return false;
         }
 
@@ -84,8 +84,8 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             return outcome.Kind switch
             {
                 SpecialBlockRequestOutcomeKind.Accepted => UiCommandAccepted.Instance,
-                SpecialBlockRequestOutcomeKind.Stale => new UiCommandRejected(UiCommandRejectReason.SpecialBlockCommandStale, outcome.WireCode),
-                _ => new UiCommandRejected(UiCommandRejectReason.SpecialBlockRequestFailed, outcome.WireCode),
+                SpecialBlockRequestOutcomeKind.Stale => UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockCommandStale, outcome.WireCode),
+                _ => UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockRequestFailed, outcome.WireCode),
             };
         }
     }

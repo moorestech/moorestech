@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.State
         {
             // 開発者向けログと利用者向け翻訳文
             // Developer log and player translation
-            var rejected = new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, "");
+            var rejected = UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage);
             LogAssert.Expect(LogType.Warning, $"[UiCommandResultToaster] localization.setLocale failed: {rejected.ToWireCode()}");
             _toaster.Report("localization.setLocale", rejected);
 
@@ -52,12 +52,37 @@ namespace Client.Tests.Ui.State
         }
 
         [Test]
-        public void RejectedWithDetailLogsTheDetailAsWireCode()
+        public void RejectedWithWireCodeOverrideLogsTheOverride()
         {
-            var rejected = new UiCommandRejected(UiCommandRejectReason.BundleWriteFailed, "bundle_write_failed:disk_full");
+            var rejected = UiCommandRejected.OverridingWireCode(UiCommandRejectReason.BundleWriteFailed, "bundle_write_failed:disk_full");
             LogAssert.Expect(LogType.Warning, "[UiCommandResultToaster] bug_report.submit failed: bundle_write_failed:disk_full");
             _toaster.Report("bug_report.submit", rejected);
             Assert.AreEqual(1, _shown.Count);
+        }
+
+        [Test]
+        public void RejectedWithDiagnosticLogsReasonCodeAndDiagnosticInOneLine()
+        {
+            // 診断はログだけに載り、Web へ返す失敗コードは理由の既定のまま（A-260）
+            // The diagnostic rides only in the log; the wire code stays the reason's code (A-260)
+            var rejected = UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainStationNameFailed, "DuplicateName");
+            Assert.AreEqual(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.TrainStationNameFailed), rejected.ToWireCode());
+            LogAssert.Expect(LogType.Warning, $"[UiCommandResultToaster] train_station.set_name failed: {rejected.ToWireCode()} (DuplicateName)");
+            _toaster.Report("train_station.set_name", rejected);
+            Assert.AreEqual(1, _shown.Count);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void SpecialBlockFailureToastShowsTheFailureCode()
+        {
+            // 特殊族の失敗は文言の {code} に失敗コードが入る。枠の無い文言は余った引数を使わない（A-261）
+            // A special block failure fills {code} with the failure code; texts without the slot ignore the extra param (A-261)
+            LogAssert.Expect(LogType.Warning, "[UiCommandResultToaster] rocket_launch_pad.command failed: rocket_command_missing_materials");
+            _toaster.Report("rocket_launch_pad.command", UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockRequestFailed, "rocket_command_missing_materials"));
+            Assert.AreEqual(1, _shown.Count);
+            StringAssert.Contains("rocket_command_missing_materials", _shown[0].Text);
+            LogAssert.NoUnexpectedReceived();
         }
     }
 }

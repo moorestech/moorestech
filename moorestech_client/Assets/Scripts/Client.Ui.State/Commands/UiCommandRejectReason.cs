@@ -149,8 +149,8 @@ namespace Client.Ui.State.Commands
             };
         }
 
-        // 理由ごとの Web の失敗コード。送信手続き由来の 2 種と SkitIntentRejected（store の失敗コード）は Detail が優先される（UiCommandRejected.ToWireCode）
-        // Web failure code per reason; for the two submitter-derived reasons and SkitIntentRejected (the store's failure code) the Detail wins (UiCommandRejected.ToWireCode)
+        // 理由ごとの Web の失敗コード。送信手続き由来の 2 種・SkitIntentRejected・特殊族の応答は WireCodeOverride が優先される（UiCommandRejected.ToWireCode）
+        // Web failure code per reason; for the two submitter-derived reasons, SkitIntentRejected and special block responses the WireCodeOverride wins (UiCommandRejected.ToWireCode)
         public static string ToWireCode(UiCommandRejectReason reason)
         {
             return reason switch
