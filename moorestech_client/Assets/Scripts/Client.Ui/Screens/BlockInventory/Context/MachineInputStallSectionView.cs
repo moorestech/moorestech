@@ -36,12 +36,11 @@ namespace Client.Ui.Screens.BlockInventory.Context
             }
             // 取得不可でも在るでもない（欄が無い）まま届くのは結線の誤りなので知らせて戻る
             // Neither unavailable nor present (absent) means a wiring mistake, so report it and return
-            if (!entry.TryGetPresent(out var detail))
+            if (!entry.TryGetPresent(out var stall))
             {
                 Debug.LogError("[MachineInputStallSectionView] Render called with an absent entry; the caller must hide absent sections");
                 return;
             }
-            var stall = detail;
             var itemName = _content.ItemName(stall.WaitingItemId).Resolve();
             _stall.Render(new UiText(MachineInputStallLogic.MessageKey(stall.Reason), new[] { new LocalizationTextParam("itemName", itemName) }), true);
             ContextRowList.MountOnly(this, _stall);

@@ -11,7 +11,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
     /// フィルタ分配器の本文。方向を縦に積む（Web FilterSplitterInventory。詳細の未着は何も出さない）
     /// Filter splitter body stacking directions vertically (Web FilterSplitterInventory; nothing before the detail arrives)
     /// </summary>
-    public sealed class FilterSplitterBodyView : VisualElement, ISpecialDetailRenderer
+    public sealed class FilterSplitterBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         private readonly SpecialViewKit _kit;
         private readonly UiStack _stack = new(UiGap.Sm);

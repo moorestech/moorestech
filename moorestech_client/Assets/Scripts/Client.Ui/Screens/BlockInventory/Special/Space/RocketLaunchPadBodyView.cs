@@ -17,7 +17,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// 発射台の本文: 資材・積荷の群、状態文、進捗、出力の群（サーバーの絶対添字のまま）。詳細の未着は取得待ち（Web RocketLaunchPadInventory）
     /// Launch pad body: material and payload groups, status, progress, output group (server absolute indices); pending detail shows loading (Web RocketLaunchPadInventory)
     /// </summary>
-    public sealed class RocketLaunchPadBodyView : VisualElement, ISpecialDetailRenderer
+    public sealed class RocketLaunchPadBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         private readonly LocalizedLabel _loading = SpecialViewParts.Label("rocket-launch-pad-loading", UiTypographyClass.TextSm, UiTypographyClass.TextMuted);
         private readonly UiStack _view = new(UiGap.Sm) { name = "rocket-launch-pad-view" };

@@ -8,8 +8,8 @@ using UniRx;
 
 namespace Client.Ui.Screens.BlockInventory.Special.Registration
 {
-    // 同じパネルの枠と特殊族の詳細の流れ。本文・題の操作・区画の Presenter が共有する
-    // The same panel's slots joined with the special detail; shared by the body, title-action and section presenters
+    // 同じパネルの枠と特殊族の詳細の流れ。本文・題の操作・区画の SpecialSectionPresenter が共有する
+    // The same panel's slots joined with the special detail; shared by SpecialSectionPresenter for bodies, title actions and sections
     public static class SpecialDetailStream
     {
         public static IObservable<(IReadOnlyList<SlotItem> slots, SpecialBlockDetailViewModel detail)> Of(IBlockInventoryPanelSource panels, ISpecialBlockDetailModel model, OpenBlockInventoryPanel attached)

@@ -117,7 +117,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             return view;
         }
 
-        private VisualElement RenderInto<TView>(TView view, SpecialBlockDetailViewModel detail) where TView : VisualElement, ISpecialDetailRenderer
+        private VisualElement RenderInto<TView>(TView view, SpecialBlockDetailViewModel detail) where TView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
         {
             Mount(view);
             view.Render(NoSlots, detail);

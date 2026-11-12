@@ -79,7 +79,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void Presenterは同じパネルの枠の変化を流し別のパネルの値は描かない()
         {
             var view = new RecordingRenderer();
-            var presenter = Presenters.Of(view);
+            var presenter = Presenters.Section(view, new WholeSpecialDetailSelector());
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             presenter.Attach(OpenPanel("ElectricPole"));
             Panels.State.Value = BlockInventoryTestPanels.OfType("ElectricPole", new SlotItem(new ItemId(1), 3));
@@ -98,7 +98,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
 
         // 渡された枠を覚えるだけの View
         // A view that only remembers the slots it was given
-        private sealed class RecordingRenderer : VisualElement, ISpecialDetailRenderer
+        private sealed class RecordingRenderer : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
         {
             public IReadOnlyList<SlotItem> LastSlots { get; private set; }
             public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)

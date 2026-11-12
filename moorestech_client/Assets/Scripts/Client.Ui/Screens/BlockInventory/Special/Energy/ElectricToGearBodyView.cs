@@ -18,7 +18,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
     /// 回転生成機の本文。縦の択一で出力モード、充足率のゲージ、消費電力（Web ElectricToGearInventory）
     /// Electric-to-gear body: vertical exclusive switch of output modes, fulfillment gauge, consumed power (Web ElectricToGearInventory)
     /// </summary>
-    public sealed class ElectricToGearBodyView : VisualElement, ISpecialDetailRenderer
+    public sealed class ElectricToGearBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         public const string CommandName = "electric_to_gear.set_output_mode";
 

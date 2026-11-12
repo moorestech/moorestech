@@ -15,7 +15,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// 宇宙エレベーターの本文: 入口・出口の群（サーバーの絶対添字・ホストの並びのまま）、状態区画、電力網の区画（Web SpaceElevatorInventory）
     /// Space elevator body: inlet and outlet groups (server absolute indices in host order), state section, electric network section (Web SpaceElevatorInventory)
     /// </summary>
-    public sealed class SpaceElevatorBodyView : VisualElement, ISpecialDetailRenderer
+    public sealed class SpaceElevatorBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         private readonly UiStack _grid = new(UiGap.Sm) { name = "space-elevator-grid" };
         private readonly BlockItemGridGroup _inputGroup;

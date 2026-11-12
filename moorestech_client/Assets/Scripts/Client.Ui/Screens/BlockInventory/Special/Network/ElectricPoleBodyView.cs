@@ -11,7 +11,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
     /// 電柱の本文。電力網の区画だけを包む（Web ElectricPoleInventory）
     /// Electric pole body wrapping only the electric network section (Web ElectricPoleInventory)
     /// </summary>
-    public sealed class ElectricPoleBodyView : VisualElement, ISpecialDetailRenderer
+    public sealed class ElectricPoleBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         private readonly ElectricNetworkSectionView _network = new();
         private readonly ElectricNetworkDetailSelector _networkSelector = new();

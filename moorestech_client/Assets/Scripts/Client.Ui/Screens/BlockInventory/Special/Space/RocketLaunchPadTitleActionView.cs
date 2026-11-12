@@ -13,7 +13,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// 発射台の題の操作。合図待ちの段階だけ建造/発射のボタンを 1 つ出す（Web RocketLaunchPadCommandAction）
     /// Launch pad title action; shows the single build or launch button only while waiting for a command (Web RocketLaunchPadCommandAction)
     /// </summary>
-    public sealed class RocketLaunchPadTitleActionView : VisualElement, ISpecialDetailRenderer
+    public sealed class RocketLaunchPadTitleActionView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         public const string CommandName = "rocket_launch_pad.command";
 
