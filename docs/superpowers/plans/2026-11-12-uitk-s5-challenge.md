@@ -152,8 +152,9 @@ namespace Client.Ui.State.Routing
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 注目点 7 件のうち 6 件を反映（横スクロールを画面の部品で写す・状態の文言キーを State へ・Commands と View の置き場・死活表 4 行）
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 注目点 7 件のうち 6 件を反映（横スクロールを画面の部品で写す〈評価の反映で `GameScrollView` の横向きに改めた〉・状態の文言キーを State へ・Commands と View の置き場・死活表 4 行）
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱2・第3バケツ3 / 選択の二重を畳み表示判定を 1 本に、カーソルと開き直しは Web・裁定どおりで A-191 を改める。第3バケツはレビュー依頼文へ
+- 独立評価・予測レビューの反映: 実施済み / 再現 13 件を反映・不再現 8 件 / 視点を View の寿命で持ち I-fix6 に合わせ、横スクロールは `GameScrollView` の横向き、並走レーンとの照合・選択と Model の L0・常駐 HUD の録画のブロックインベントリと列車の入れ子ポーズを足した（処遇は判断記録の末尾）
 
 ## 死活表（Phase 2.5）
 
@@ -3791,11 +3792,29 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-22 Commands と View の置き場**（指揮の agent 既定（PLAN-W5 設計検査）・N-3/N-6）: 操作は `Client.Ui.State/Challenge/Commands/`（前例 `Client.Ui.State/Research/Commands/IResearchTreeCommands.cs`）。View・Presenter・USS は `Client.Ui/Screens/Challenge/Tree/`（`Screens/Challenge/` 直下は 0、`CurrentHud/`・`Parts/` と並ぶ。名前は D-16）。どのディレクトリも 10 ファイル以下
 - **D-23 状態の文言キーは State が決める**（指揮の agent 既定（PLAN-W5 設計検査）・N-2）: 状態→文言キーは `ChallengeListLogic.DeriveStateLabelKey`（前例 `ResearchLogic.DeriveNodeStateLabelKey`）で、`ChallengeNodeCardViewModel.StateLabelKey`（`LocalizationKey`）としてカードへ渡す。画面は状態の修飾クラスだけを決める。前例との差: 研究は工場がキーを引いて VM へ渡すが、チャレンジは VM の ctor で引く（L1 の材料が ctor で VM を組むので、どの組み方でもキーが状態とずれない）。L0 で状態ごとのキーを固定する
 - **D-24 受信順とマスタの並び、前提なしの扱い**（指揮の agent 既定（PLAN-W5 設計検査）・10a/10b）: 握手（`GetChallengeInfoProtocol`）も完了イベントも `CompletedChallengeEventPacket.GetChallengeCategories` がマスタの `ChallengeCategoryMasterElements` 順に組むので、受信順＝マスタの並びと書きそろえる（計画の中で「受信順」「マスタ順」を混ぜない）。`PrevChallengeGuids` はスキーマで optional（`VanillaSchema/challenges.yml:54-56`）で、サーバーも null を前提なし扱いする（`ChallengeMaster.cs:117`）ので、工場は null を空と同じに扱い、同じ行に `silent-ok` で理由を書く（`ChallengeDtoBuilder.cs:43` は null を確かめずに回すが、Web の橋の欠けで仕様ではない）
+- **D-25 表示の書き口は S5-crosscut の `UiDisplay` があればそれ**（指揮の agent 既定（PLAN-W5 評価））: `ChallengeListView.SetShown` は Task 1 Step 1 の照合で `Foundation/Layout/UiDisplay` があれば `UiDisplay.SetShown(this, shown)`、無ければ `style.display` の直書き（S5-crosscut D-20 の置換対象に入る）。取り込みの後にもう一度見る（Task 9 Step 2）。棄却: 直書きだけを書く — S5-crosscut が先に入ると「表示の唯一の書き口」（S5-crosscut R-4）を破る行が 1 つ増え、grep の検査でしか見えない
+- **D-26 全画面の載り先の L3 に一覧を足す**（指揮の agent 既定（PLAN-W5 評価））: S5-crosscut T14 の `GameUiScreenMountTest`（`Client.Tests/EditModeInPlayingTest/Ui/Crosscut/`）があれば、その一覧に `ChallengeListView` の行を足す（Task 5 Step 4）。無ければ `done.md` の「integrator への依頼」に「S5-crosscut T14 の一覧に ChallengeListView を足す」と書く
+- **D-27 設計書の A 行は入ったものを照らす**（指揮の agent 既定（PLAN-W5 評価））: 設計書 §7.1 の A-240・A-241 は入り済みなので、`done.md` の雛形は「足す」でなく「設計書に入った A-240・A-241 を実装と照らす」にした。A-240 の本文（視点は View の寿命）・A-191 と §2 の OS カーソルの行の改め・`GameScrollView` の横向きの A 行は notes から指揮が設計書へ写す。実行計画 §6.1 の LX-200 は既に「予備」に直っている
+- **D-28 第 3 バケツは本 PR 外のリファクタ提案に置く**（指揮の agent 既定（PLAN-W5 評価））: Web の橋 `ChallengeDtoBuilder.BuildTree` と State の工場の同じ規則、研究の `ResearchNodeCardSet` の bool 返し、研究の `ResearchTreeView.Render` の渡し直しの式の 3 つは、この PR では直さず「## 本PR外のリファクタ提案」に 1 行ずつ書いた（このレーンの持ち物でなく、研究の挙動に触れるため）
+
+### 評価の指摘の処遇
+
+独立評価 2 本・予測レビュー・再検査の指摘のうち、直さなかったものと既に直っていたもの。
+- 実行計画 §6.1 の LX-200 が「カテゴリ列の横スクロールなし」のまま（評価 1・再検査 6b）: 既に直っている。§6.1 :328 は「A-240〜A-241 / LX-200〜202（予備）」
+- `ChallengeCategoryGraphHost` の `_hasGraph` と `_shown` の二重の不在（再検査 5-A/5-B）と `UnmountGraph` の 2 口（再検査 5-F）: 視点を View の寿命で持つ形（D-1）に書き換えたことで消えた。置き場は Guid→`ChallengeCategoryGraph` の辞書だけを持ち、`UnmountGraph` は View の空の分岐の 1 口
+- `ChallengeScreenVisibility.IsShown` が 3 か所に出る・`TryGetInitialFocus` が 2 回呼ばれる（再検査 弱）: 直さない。3 か所は役割が違う購読（選択の戻し・組み直し・層への出し入れ）で 1 本の判定を呼ぶだけ、`TryGetInitialFocus` は値の比較と渡す中身の組み立てで、どちらも誤動作に至る入力が組めない
+- 「3 か所はこれだけを呼ぶ」を見張るガードが無い（再検査 5-E）: 直さない。外れても表示の判定が 2 本になるだけで、故障シナリオが組めない。レビューで見る
+- `ChallengeListLogic.SameGuidSequence` が既存の `SequenceEqual` と違う書き方（再検査 注目点 4）: 違反ではないので直さない。実装時に `SequenceEqual` で足りれば置き換えてよい
+- 工場の `PrevChallengeGuids ?? Array.Empty<Guid>()`（予測レビュー Warning）: 直さない。スキーマが `optional: true` でサーバーも null を前提なしとして読む既存仕様に沿う（D-24）
+- View の置き場を指揮の指定 `List/` から `Tree/` にした（再検査 注目点 5・予測レビュー Warning）: 直さない。D-16 に理由を書き、指揮の判断で足りる
+- CEF の既定の横バーとの差が台帳に載らない（評価 1 軽・予測レビュー Warning）: 例外にはせず台帳の「## 未撮影」に 1 行足した（Task 7）。差が測れる状態が撮れたら並べ比べる
 
 ## 未確認
 
 - 言語を日本語へ切り替えた後に、L1 で合成したマスタの原文が残るか（Task 3 Step 7 に直し方を書いた）
 - 実マスタで解放済みのカテゴリが 1 つのため、カテゴリの切り替えと横スクロールは録画で見ない（L1 だけ）
+- 常駐 HUD の録画のチェストの高さ（足場の地面 y 32）は、同じ足場で y 32 に置く前例 `uitk-stage3-compare` からの推定。外れたら Task 6 Step 4 の直し方で合わせる
+- 並走レーン（I-fix6・S5-crosscut）がどの順で入るかは未定。Task 1 Step 1 と Task 9 Step 2 の照合で分岐する（Global Constraints）
 - 複数行に折り返す名前・概要の行送り（Web の line-height 1.55/1.45/1.4）は参照に無く、比べていない
 - CEF（Chromium）の既定の横バーの見た目と、場所を取るか重なるかは未計測（参照キャプチャはどちらも幅に収まりバーが写らない）。`GameScrollView` の横向きのバー（流れの中・太さ 12）で写し、台帳の「## 未撮影」に足す（D-7）
 - `GameScrollView` の横向きで縦のホイールが横送りになるか（UITK は送る見込み、Chromium の `overflow-x: auto` は既定で送らない）は未計測。L1 は「ホイールが装備・ホットバーへ抜けない」だけを固定する
