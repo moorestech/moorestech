@@ -13,6 +13,9 @@ namespace Client.Starter.EventMode
         internal const string EditorOptInEnvKey = "MOORESTECH_EVENT_MODE_EDITOR";
         internal const string IdleTimeoutEnvKey = "MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS";
         internal const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
+        // 有効の値。武装する側（録画の起動口）と受け手で同じ定義を使う
+        // The enabled value; the arming side (recording boot entry) and the reader share one definition
+        internal const string EnabledValue = "1";
         private const int DefaultIdleTimeoutSeconds = 180;
 
         public readonly bool IsEnabled;
@@ -47,7 +50,7 @@ namespace Client.Starter.EventMode
         // The Editor wipes a developer's world irreversibly, so it stays off without the dedicated opt-in key
         public static EventExhibitionSettings Parse(EventModeEnvironmentValues raw, bool isEditor)
         {
-            var isEnabled = raw.Enable == "1" && (!isEditor || raw.EditorOptIn == "1");
+            var isEnabled = raw.Enable == EnabledValue && (!isEditor || raw.EditorOptIn == EnabledValue);
             var idleTimeoutSeconds = int.TryParse(raw.IdleTimeoutSeconds, out var seconds) && 0 < seconds ? seconds : DefaultIdleTimeoutSeconds;
             return new EventExhibitionSettings(isEnabled, idleTimeoutSeconds, raw.Language);
         }
