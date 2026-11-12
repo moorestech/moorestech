@@ -8,18 +8,19 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// text--sm/xs の行の高さが Web と同じか（和文・欧文）
-    /// Checks text--sm/xs line heights match the Web (CJK and Latin)
+    /// Typography の行の高さが Web と同じか（和文・欧文）
+    /// Checks Typography line heights match the Web (CJK and Latin)
     /// </summary>
     public class TypographyLineHeightTest : UiTestHost
     {
         private const string JapaneseLine = "研究を完了できません";
         private const string LatinLine = "Research complete";
 
-        // Web の line-height（Mantine の sm 14px×1.45・xs 12px×1.4）
-        // Web line-heights (Mantine sm 14px x 1.45, xs 12px x 1.4)
+        // Web の line-height（Mantine の sm 14px×1.45・xs 12px×1.4・Title 4 段 18px×1.45）
+        // Web line-heights (Mantine sm 14px x 1.45, xs 12px x 1.4, Title order 4 18px x 1.45)
         [TestCase(UiTypographyClass.TextSm, 20.3f)]
         [TestCase(UiTypographyClass.TextXs, 16.8f)]
+        [TestCase(UiTypographyClass.TitleOrder4, 26.1f)]
         public void 和文1行の高さがWebの行の高さと同じ(string className, float webLineHeight)
         {
             var label = Mount(CjkLocale(), className, JapaneseLine);
@@ -36,8 +37,8 @@ namespace Client.Tests.Ui.Text
             Assert.AreEqual(webLineHeight, label.layout.height, 0.3f);
         }
 
-        // 3 行の高さが Web の 3 行（行の高さ×3）と 1 行分の端数以内。行送りは 1 行あたり Web と同じ
-        // Three lines stay within one line's remainder of the Web's three lines, and the pitch per line equals the Web
+        // 3 行の高さが Web の 3 行（行の高さ×3）と同じで、行送りも 1 行あたり Web と同じ
+        // Three lines are as tall as the Web's three lines (line height x 3) and the pitch per line equals the Web
         [TestCase(UiTypographyClass.TextSm, 20.3f)]
         [TestCase(UiTypographyClass.TextXs, 16.8f)]
         public void 和文3行の行送りがWebの行の高さと同じ(string className, float webLineHeight)
@@ -48,7 +49,7 @@ namespace Client.Tests.Ui.Text
             var pitch = (three.layout.height - one.layout.height) / 2f;
             Debug.Log($"[TypographyLineHeight] cjk {className} 3 lines: {three.layout.height:F2}px, pitch {pitch:F2}px");
             Assert.AreEqual(webLineHeight, pitch, 0.3f);
-            Assert.AreEqual(webLineHeight * 3f, three.layout.height, 1f);
+            Assert.AreEqual(webLineHeight * 3f, three.layout.height, 0.3f);
         }
 
         private VisualElement CjkLocale()

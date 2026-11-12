@@ -10,10 +10,10 @@
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
 }
 
-/* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0 で、行の高さは USS に無いので min-height = 字 × line-height */
-/* Title は Web と同じ px。Web は Regular 1 字形で題を描き、GameUi は Bold の字形（約 3.3% em ずつ字送りが広い）なので letter-spacing で詰めて題の幅を Web に寄せる（設計書 A-37）。UITK の letter-spacing は px と書いても字の大きさの 1/100 単位で効くので、4 段とも同じ -3.6 で、Regular と幅が 3% 以内になる（C2-c Task 11 の実測） */
-/* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0, and USS has no line-height so min-height = size x line-height */
-/* Titles use the Web px; the Web draws titles with its single Regular face while GameUi uses Bold (about 3.3% em wider per glyph), so letter-spacing tightens the title width to the Web's (design A-37); UITK applies letter-spacing in 1/100 of the font size even when written as px, so one -3.6 for all four steps keeps the width within 3% of Regular (measured in C2-c Task 11) */
+/* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0。USS に line-height は無いので、1 行は min-height＝字×line-height、LocalizedLabel は --localized-label-line-height で行送りと高さ（行数×行の高さ）を Web と同じにする（設計書 A-221） */
+/* 和文の字の高さ 1.448em を画素へ切り上げると sm 21px・xs 18px になり Web（20.3・16.8）より高いので、高さは字でなく行の箱で決める */
+/* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0. USS has no line-height, so one line uses min-height = size x line-height and LocalizedLabel gets the Web pitch and height (lines x line height) from --localized-label-line-height (design A-221) */
+/* The CJK glyph extent 1.448em ceiled to pixels gives sm 21px and xs 18px, taller than the Web (20.3, 16.8), so height comes from the line box, not the glyphs */
 .text--xs,
 .text--sm,
 .text--md,
@@ -30,48 +30,45 @@
 .text--xs {
     font-size: var(--mantine-font-size-xs);
     min-height: 16.8px;
+    --localized-label-line-height: 16.8px;
 }
 
 .text--sm {
     font-size: var(--mantine-font-size-sm);
     min-height: 20.3px;
+    --localized-label-line-height: 20.3px;
 }
 
 .text--md {
     font-size: var(--mantine-font-size-md);
     min-height: 24.8px;
+    --localized-label-line-height: 24.8px;
 }
 
 .title--order-1 {
     --title-order-1-row-height: 44.2px;
     font-size: 34px;
     min-height: var(--title-order-1-row-height);
+    --localized-label-line-height: var(--title-order-1-row-height);
 }
 
 .title--order-2 {
     --title-order-2-row-height: 35.1px;
     font-size: 26px;
     min-height: var(--title-order-2-row-height);
+    --localized-label-line-height: var(--title-order-2-row-height);
 }
 
 .title--order-3 {
     font-size: 22px;
     min-height: 30.8px;
+    --localized-label-line-height: 30.8px;
 }
 
 .title--order-4 {
     font-size: 18px;
     min-height: 26.1px;
-}
-
-/* 4 段の字間は 1 つの名前で持つ。祖先から上書きするつまみではないので、題のクラス自身で宣言する */
-/* The four steps share one named spacing; it is not an ancestor-overridable knob, so the title classes declare it themselves */
-.title--order-1,
-.title--order-2,
-.title--order-3,
-.title--order-4 {
-    --title-letter-spacing: -3.6px;
-    letter-spacing: var(--title-letter-spacing);
+    --localized-label-line-height: 26.1px;
 }
 
 .text--dimmed {
@@ -113,42 +110,18 @@
     text-shadow: var(--key-hint-text-shadow-face); /* look-exception: LX-86 */
 }
 
-/* Mantine の Title（700）と fw={500}/{700}、keyHintText（500）の太さ。合成の太字は使わず太さ違いの字形を当てる（設計書 A-36） */
-/* Weights of Mantine Title (700), fw={500}/{700} and keyHintText (500); weight-variant faces are used instead of synthetic bold (design A-36) */
-.title--order-1,
-.title--order-2,
-.title--order-3,
-.title--order-4,
-.text--bold {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset");
-}
-
+/* 太さ。Web は欧文を Regular（MooresUI）、和文ロケールを NotoSansJP の Medium（欧文の字も含む）の各 1 字形だけ読み込み font-synthesis: none なので、Title（700）と fw={700} もその字形で描く。題と text--bold は字形を替えず親の字形（欧文 Regular・和文 Medium）を継ぐ（設計書 A-220。字の濃さは C2-c の Bold で和文 1.38 倍だった） */
+/* text--medium・keyHintText（500）の欧文 Medium は C2-b の実測（LX-10）で当てたまま。合成の太字は使わない */
+/* Weights: the Web loads one face each, Regular for Latin (MooresUI) and NotoSansJP Medium (Latin glyphs included) for CJK locales, with font-synthesis: none, so Title (700) and fw={700} draw with that face; titles and text--bold keep the inherited face (Latin Regular, CJK Medium) (design A-220; the Bold face made CJK titles 1.38x as dark) */
+/* text--medium and keyHintText (500) keep the Latin Medium face set by the C2-b measurement (LX-10); no synthetic bold */
 .text--medium,
 .key-hint-text {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinMedium%20SDF.asset");
 }
 
-/* look-exception: LX-171 */
 /* CJK のロケールは段階 1 と同じく JP の字形を先頭にする（JP/KR は元から Medium なので 500 は段階 1 の JP のまま） */
 /* CJK locales lead with the JP face as in stage 1 (JP/KR are already Medium, so 500 stays on the stage-1 JP face) */
-.game-ui-locale--cjk .title--order-1,
-.game-ui-locale--cjk .title--order-2,
-.game-ui-locale--cjk .title--order-3,
-.game-ui-locale--cjk .title--order-4,
-.game-ui-locale--cjk .text--bold {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapaneseBold%20SDF.asset");
-}
-
 .game-ui-locale--cjk .text--medium,
 .game-ui-locale--cjk .key-hint-text {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
-}
-
-/* 和文は字送りが全角 1 字で Web の Medium と GameUi の Bold が同じ幅なので、題の字間を詰めない（C2-c Task 11 の実測） */
-/* CJK glyphs advance one full em, so the Web Medium and GameUi Bold widths match and titles are not tightened (measured in C2-c Task 11) */
-.game-ui-locale--cjk .title--order-1,
-.game-ui-locale--cjk .title--order-2,
-.game-ui-locale--cjk .title--order-3,
-.game-ui-locale--cjk .title--order-4 {
-    letter-spacing: 0;
 }

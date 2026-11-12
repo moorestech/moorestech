@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// Title 字間が Web の幅へ寄る確認
-    /// Checks Title spacing nears the Web width
+    /// Title の幅が Web の題の幅と同じか
+    /// Checks Title widths match the Web title width
     /// </summary>
     public class UiTitleLetterSpacingTest : UiTestHost
     {
@@ -35,17 +35,15 @@ namespace Client.Tests.Ui.Text
             Assert.AreEqual(1f, title.layout.width / webWidthTitle.layout.width, 0.03f, $"{className}: {title.layout.width} vs {webWidthTitle.layout.width}");
         }
 
-        // 4 段の字間は --title-letter-spacing の 1 つの値を var() で引く
-        // All four steps read the single --title-letter-spacing value through var()
+        // 題は Web と同じ Regular の字形なので字間を詰めない（設計書 A-220 で A-37 の -3.6 を外した）
+        // Titles use the Web's Regular face, so their spacing is not tightened (design A-220 dropped A-37's -3.6)
         [TestCase(UiTypographyClass.TitleOrder1)]
-        [TestCase(UiTypographyClass.TitleOrder2)]
-        [TestCase(UiTypographyClass.TitleOrder3)]
         [TestCase(UiTypographyClass.TitleOrder4)]
-        public void 欧文の題の字間は共有の値を引く(string className)
+        public void 欧文の題の字間を詰めない(string className)
         {
             var title = Mount(rootVisualElement, className, LatinTitleText);
 
-            Assert.AreEqual(-3.6f, title.resolvedStyle.letterSpacing, 0.001f);
+            Assert.AreEqual(0f, title.resolvedStyle.letterSpacing, 0.001f);
         }
 
         // 和文は全角 1 字の字送りで太さによらず幅が同じなので、CJK のロケールでは詰めない

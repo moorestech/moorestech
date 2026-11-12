@@ -15,10 +15,12 @@ namespace Client.Tests.Ui.Text
     {
         private const string Folder = "Assets/UI Toolkit/GameUi/Fonts";
 
-        [TestCase(UiTypographyClass.TitleOrder1, "GameUiLatinBold SDF")]
-        [TestCase(UiTypographyClass.TitleOrder4, "GameUiLatinBold SDF")]
-        [TestCase("text--bold", "GameUiLatinBold SDF")]
-        [TestCase("text--medium", "GameUiLatinMedium SDF")]
+        // Web は欧文を Regular の 1 字形だけ読み込むので、Title（700）と fw={700} も Regular で描く（設計書 A-220）
+        // The Web loads only the Latin Regular face, so Title (700) and fw={700} draw with Regular too (design A-220)
+        [TestCase(UiTypographyClass.TitleOrder1, "GameUiLatin SDF")]
+        [TestCase(UiTypographyClass.TitleOrder4, "GameUiLatin SDF")]
+        [TestCase(UiTypographyClass.TextBold, "GameUiLatin SDF")]
+        [TestCase(UiTypographyClass.TextMedium, "GameUiLatinMedium SDF")]
         [TestCase(UiTypographyClass.KeyHintText, "GameUiLatinMedium SDF")]
         public void 太さのクラスはWebの太さの字形を当てる(string className, string assetName)
         {
@@ -26,14 +28,18 @@ namespace Client.Tests.Ui.Text
             Assert.AreEqual(Load(assetName), label.resolvedStyle.unityFontDefinition.fontAsset);
         }
 
-        [Test]
-        public void CJKのロケールでは題に日本語の太字を先に当てる()
+        // Web は和文ロケールを NotoSansJP の Medium 1 字形で描くので、題と太字も Medium（設計書 A-220・LX-171）
+        // The Web draws CJK locales with the single NotoSansJP Medium face, so titles and bold use Medium too (design A-220, LX-171)
+        [TestCase(UiTypographyClass.TitleOrder2)]
+        [TestCase(UiTypographyClass.TitleOrder4)]
+        [TestCase(UiTypographyClass.TextBold)]
+        public void CJKのロケールでは題と太字に日本語のMediumを当てる(string className)
         {
             var locale = new VisualElement();
-            locale.AddToClassList("game-ui-locale--cjk");
+            locale.AddToClassList(GameUiLocaleClass.CjkClassName);
             rootVisualElement.Add(locale);
-            var label = Mount(locale, UiTypographyClass.TitleOrder2);
-            Assert.AreEqual(Load("GameUiJapaneseBold SDF"), label.resolvedStyle.unityFontDefinition.fontAsset);
+            var label = Mount(locale, className);
+            Assert.AreEqual(Load("GameUiJapanese SDF"), label.resolvedStyle.unityFontDefinition.fontAsset);
         }
 
         private Label Mount(VisualElement parent, string className)
