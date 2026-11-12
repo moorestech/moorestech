@@ -88,7 +88,7 @@
 
 | ID | 題 | 依存 | Ed | 担当 | 計画 | 完了条件 |
 |---|---|---|---|---|---|---|
-| X-prerun | 撤去の前の全録画と全画面の並べ比べ | S5-ladder | 要 | int | ○ | 全体スイッチの Web 側と UITK 側で全録画を回す（plan §2.6。撤去後は Web 側が使えない）。wwxy の残りを直すか削除して閉じる。master の worktree で全画面の参照を撮り直し（`web-<最新 sha>`）、UITK の全画面と 720p・2560×1080 で並べ比べ、opus の評価役 2 体の独立評価（画像付き。E-24）にかけて差 0 か記帳済み（設計書 §3.3 (c)）。全束のテスト名の突き合わせ差分 0 を撤去前の最後の記録として `disposition.md` に残し（A-251）、撤去レーンの見た目の物差し `scenarios/uitk/prerun/prerun-smoke-shots.cs` を作る |
+| X-prerun | 撤去の前の全録画と全画面の並べ比べ | S5-ladder | 要 | int | ○ | 全体スイッチの Web 側と UITK 側で全録画を回す（plan §2.6。撤去後は Web 側が使えない）。wwxy の残りを直すか削除して閉じる。master の worktree で全画面の参照を撮り直し（`web-<最新 sha>`）、UITK の全画面と 720p・2560×1080 で並べ比べ、opus の評価役 2 体の独立評価（画像付き。E-24）にかけて差 0 か記帳済み（設計書 §3.3 (c)）。全束のテスト名の突き合わせ差分 0 を撤去前の最後の記録として `disposition.md` に残し（A-251）、撤去レーンの見た目の物差し `scenarios/uitk/prerun/prerun-smoke-shots.cs` を作る。出展モードの 3 本（ラダー 6・`uitk-event-language-gate`・`uitk-stage5-compare`）は `stage5/exhibition-mode-run.sh` 経由・Mac の Editor で流し、運転役の後は全体スイッチが流した系のまま残るので、次の録画は必ず `UiSystemEditorSwitch.Set` してから流す（S5-ladder D-8） |
 | X-5a | 起動配線と共存機構の撤去 | X-prerun | 要 | 単位 | ○ | plan §2.6 の 5a。スイッチ・DSL の Web ロケータ・入力の Web の項・CEF 停止の記録・manifest は v7 |
 | X-5b | CEF と配布工程の撤去 | X-5a | 要 | 単位 | ○ | 5b（prefab は uloop で外す） |
 | X-5c | Web ホストと Web 資産の撤去 | X-5b | 要 | 単位 | ○ | 5c。テスト名の突き合わせで全束の差分 0。Web ホスト側の規則の重複一覧（`P/2026-11-10-uitk-s4-train.md` 末尾「本 PR 外のリファクタ提案」。State と `Client.WebUiHost` に同じ規則が 2 本ある導出）の Web ホスト側が消えている |
