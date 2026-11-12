@@ -22,7 +22,7 @@
 | R-2 | ViewModel の工場: `ChallengeProgressState.Categories`（`ChallengeCategoryResponse` の列）から、`IsUnlocked` のカテゴリだけを受信順（＝マスタの順）で写し（Web `ChallengeDtoBuilder.BuildTree`）、各カテゴリのノードはマスタの `Challenges` の順で、状態は完了＞進行中＞未解放、状態の文言キーは State の `ChallengeListLogic`、座標は `DisplayListParam.UIPosition`、倍率は `UIScale` の x・y、前提は `PrevChallengeGuids`（省略〈null〉は前提なし）のうち同じカテゴリにあるものだけ（C4-d D-5 の申し送り (2)）。選択したカテゴリが出ていなければ先頭（Web の `find(...) ?? categories[0]`）。解放済みが無ければ空の一覧（`EmptyChallengeListViewModel`。選択を持たない） | `ChallengeListViewModelFactoryTest`（L0）の 4 件が緑 |
 | R-3 | Model と選択: 完了の知らせ・選択の変化・一覧への突入で同期で組み直す。組み直すのは一覧の表示中だけ（前例 `ResearchTreeModel`）で、表示中かは経路の今の値を `ChallengeScreenVisibility.IsShown` で読む（購読の順に依らない）。カテゴリの選択は一覧を離れると「無し」に戻り、開き直すと先頭のカテゴリになる（Web はパネルのアンマウントで `useState` が消える） | `ChallengeListViewportTest`「閉じて開き直すと先頭のカテゴリへ戻り…」が緑。録画 `uitk-challenge-list` の開き直しの段 |
 | R-4 | 視点: 訪れたカテゴリごとに `NodeGraphView("challenge", …)` を 1 本作って控え（`ChallengeCategoryGraph`。カテゴリ Guid → View。画面の寿命）、選んだカテゴリが変わったら置き場に付ける View を付け替える（置き場の子は表示中のカテゴリの 1 本だけ）。View を作ったときだけ部品が進行中へ 1 回寄せ、再訪と開き直しは控えた View の視点のまま（View の寿命で保つ。I-fix6 D-3 と同じ形。`RestoreViewport` と State の視点の Session は使わない） | `ChallengeListViewportTest`（L1）の 3 件が緑（`challenge.spec.ts` の 1 件と裁定 2026-11-04 の 2 件。再訪は同じ View のインスタンスが付け直され、木の中の `NodeGraphView` が常に 1 本であることも見る） |
-| R-5 | 一覧の枠: `challenge-panel`（アンカー `challenge.panel`）は舞台の上端から `--menu-upper-safe-area`（168px）下・左右下 0、地 `--mantine-color-dark-8`、内側の余白 `--mantine-spacing-md`、縦積み。中に題（`title--order-2`・`ui.challenge.title`）・カテゴリのボタン列 `challenge-categories`（アンカー `challenge.categories`。中に横の `ScrollView` `challenge-categories-scroll`、その中に `UiGroup(UiGap.Md)`＋`ui-group--nowrap`）・`NodeGraphView`（`challenge-viewport`・`challenge-canvas`。残りの高さいっぱい）。カテゴリ列はボタンが幅を越えたら横に送れ、越えなければバーを出さない（Web の `Group` の `flex-wrap: nowrap`・`overflow-x: auto`）。バーはゲームの共通のバー（`Theme.uss` の `.unity-scroller`。溝は透明・つまみ `--theme-scroller-thumb-face`・角丸 4・矢印なし）を横に写し高さ 8px。一覧の上（題・カテゴリ列）のホイールは装備・ホットバーへ抜けない | `ChallengeListViewTest`（L1）の 5 件が緑。並べ比べ（R-11） |
+| R-5 | 一覧の枠: `challenge-panel`（アンカー `challenge.panel`）は舞台の上端から `--menu-upper-safe-area`（168px）下・左右下 0、地 `--mantine-color-dark-8`、内側の余白 `--mantine-spacing-md`、縦積み。中に題（`title--order-2`・`ui.challenge.title`）・カテゴリのボタン列 `challenge-categories`（アンカー `challenge.categories`。中に `GameScrollView("challenge-categories-scroll", GameScrollAxis.Horizontal)`、その中に `UiGroup(UiGap.Md)`＋`ui-group--nowrap`）・`NodeGraphView`（`challenge-viewport`・`challenge-canvas`。残りの高さいっぱい）。カテゴリ列はボタンが幅を越えたら横に送れ、越えなければバーを出さない（Web の `Group` の `flex-wrap: nowrap`・`overflow-x: auto`）。バーはゲームのスクロール領域と同じ `GameScrollView` のバー（太さ `--scrollarea-scrollbar-size`・溝 `--game-scroll-view-track-face`・つまみ `--game-scroll-view-thumb-face`）を本文の下の流れに置き、越えたときだけ列がバーの太さの分だけ高くなる。画面の USS は部品の内側のクラスを書かない。一覧の上（題・カテゴリ列）のホイールは装備・ホットバーへ抜けない | `ChallengeListViewTest`（L1）の 5 件が緑。並べ比べ（R-11） |
 | R-6 | カテゴリのボタン: 各カテゴリに `FormButton("challenge-category-<guid>", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), …)`。選んだカテゴリは `Filled`、他は `Subtle`。押すと `IChallengeListCommands.SelectCategory(guid)` | `ChallengeListViewportTest`（押下で選択の操作が 1 回出て、選んだカテゴリが Filled）が緑 |
 | R-7 | ノードカード: 根は `PaperSurface("challenge-node-<guid>")`（面 `--paper-face`・角丸 `--paper-radius`）に幅 240px・内側の余白 `--mantine-spacing-sm`・`translate: -50% -50%`、倍率は `style.scale = (UIScale.x, UIScale.y)`。中は名前（`text--md`＋`text--bold`）・概要（`text--sm`）・状態（`text--xs`。キーは VM の `StateLabelKey`＝`ui.challenge.stateLocked/stateCurrent/stateCompleted`）の縦積み。未解放は不透明度 0.55、進行中は `--mantine-color-blue-5`・完了は `--mantine-color-green-6` の 2px の輪（Web の outline を拾わない子で写す）。高さは中身なり（包みの高さ 0 で潰れない。S4-research の事後承認）。アンカー `challenge.node-<guid>`。指のカーソルは付けない（Web のカードに `cursor: pointer` もタップも無く、ビューポートの `cursor: grab` を継ぐ。`W/src/shared/treeView/TreeView.module.css:11`。設計書 A-191 のチャレンジの部分を改める） | `ChallengeListViewTest`「カードは中身なりの高さで…」が緑 |
 | R-8 | 層と表示: 一覧は `OverlayPanel`/`Stage` 層。表示は `UiScreen.ChallengeList` のときだけ。進行中チャレンジ HUD（`Chrome` 層。S2-hud の持ち物）は一覧を開いても同じ位置・寸法のまま、一覧の上端とカテゴリのボタンより上に出て、中心の当たりが HUD 自身 | `ChallengeHudOverListTest`（L1。`challenge.spec.ts`「常駐HUDを…維持する」の一覧の部分）が緑 |
@@ -34,15 +34,16 @@
 | R-14 | テストの名前: 写した 5 件に `<web-test>`。このレーンの持ち分（challenge.spec の 3 件・challengeLogic.test の 2 件）は処遇の行を足さない | `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing` で持ち分の未対応 0。終了コードが 2 でない |
 | R-15 | 記帳: 台帳の「## 実測の結論」の末尾にカードの高さの実測 1 行（見た目の例外は足さない。LX-200〜202 は並べ比べの差の予備）。設計書 §7.1 の A-240・A-241 の本文は `done.md` の「integrator への依頼」へ（指揮が設計書へ写す） | `done.md` に A 行の本文。台帳の実測の行 |
 | R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → Editor を閉じる・bd を閉じる・`done.md` → `cmux wait-for -S uitk-s5-challenge` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
+| R-17 | 部品 `GameScrollView` の横向き（Components の変更）: ctor を `GameScrollView(string testid, GameScrollAxis axis)` にし、`Horizontal` は横の `ScrollView`。バーは中身が見える幅を越えたときだけ本文の下の流れに出し、縦のバーは出さない。太さ・溝・つまみは縦と同じつまみ。縦の振る舞いは今のまま、呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数を作らない）。`Theme.uss` は変えない | `GameScrollViewHorizontalTest`（L1）の 2 件が緑。既存の `GameScrollViewTest`・`GameScrollViewKnobTest`・`GameScrollViewSpyPortTest`・`RecipeListScrollViewTest` と呼び出し側の画面の L1 が緑 |
 
 **やらないこと（スコープ境界）**
 
-- 部品（`NodeGraphView`・`PaperSurface`・`FormButton`・`LocalizedLabel`）と Foundation（`UiGroup`・`UiLayer`・`UiScreenTraits`・`TutorialAnchor`・`AnchorIds`・`UiPickingIgnore`・Tokens/DerivedTokens/Typography）は変えない。足りなければ `done.md` の「integrator への依頼」に書く。`NodeGraphView.uss` は S4-research が直した形のまま使い、事後承認を記録するだけ
+- 部品（`NodeGraphView`・`PaperSurface`・`FormButton`・`LocalizedLabel`）と Foundation（`UiGroup`・`UiLayer`・`UiScreenTraits`・`TutorialAnchor`・`AnchorIds`・`UiPickingIgnore`・Tokens/DerivedTokens/Typography）は変えない（部品の変更は次の次の行の `GameScrollView` の横向きだけ）。足りなければ `done.md` の「integrator への依頼」に書く。`NodeGraphView.uss` は S4-research が直した形のまま使い、事後承認を記録するだけ
 - 進行中チャレンジ HUD（`Client.Ui/Screens/Challenge/CurrentHud/`・`Client.Ui.State/Challenge/CurrentChallengeHud*`。S2-hud の持ち物）と `ChallengeProgressState` は触らない。HUD の L1 は既存の View を載せて見るだけ
 - 画面の遷移（`ChallengeListState`・`GameScreenState` の T キー）とキーヒント（`ChallengeListStateHints`）は触らない（Client.Game。UI の系を読まない）
 - ラダー `uitk-challenge-gate`（S5-ladder）・束 5 の `状態` の切り替え・`TutorialAnchorCoveragePending.cs` の削除（S5-ladder）は持たない
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない
-- カテゴリ列の横スクロールを共有部品（`Components/`）にしない。使い手が 1 画面なので画面の部品 `Screens/Challenge/Parts/ChallengeCategoryScrollView` に置く（設計書 §5.1。2 機能目が来たら integrator が上げる。D-7）。`Theme.uss` の共通のバーの規則も変えない（横のバーの上書きは画面 USS の中だけ）
+- 部品で変えるのは `GameScrollView` に横向きを足すことだけ（Task 2b。R-17）。画面だけの横スクロール部品は作らず、画面の USS は部品の内側のクラス（`unity-scroller__slider`・`unity-base-slider__*` など `__` 付き）を書かない（S5-crosscut T10 が `UiStyleConventionTest` に足す検査・A-167。D-7）。`Theme.uss` は変えない
 - L3（EditModeInPlayingTest）は持たない（段の締め S5-ladder）
 
 ## Global Constraints
@@ -103,8 +104,9 @@ namespace Client.Ui.Foundation.Text
 namespace Client.Ui.Foundation.Anchor { public static class TutorialAnchor { public static void Mark(VisualElement element, params string[] ids); } }   // TutorialAnchor.cs:14
 namespace Client.Ui.Foundation.Input { public static class UiPickingIgnore { public static void ApplyToSubtree(VisualElement root); } }            // UiPickingIgnore.cs:15
 namespace Client.Ui.Foundation.Input { public static class WebWheelScale { public const float PixelsPerNotch = 60f; } }                          // WebWheelScale.cs:11（GameScrollView.cs:39 が mouseWheelScrollSize に使う）
-// UnityEngine.UIElements.ScrollView(ScrollViewMode.Horizontal)・horizontalScrollerVisibility（ScrollerVisibility.Hidden/AlwaysVisible）・contentViewport・contentContainer・horizontalScroller・ScrollTo(VisualElement)（Unity 組み込み）
-// 共通のバーの見た目: Theme.uss:105-134（.unity-scroller--vertical 8px・溝 transparent・矢印 display none・つまみ角丸 4px・var(--theme-scroller-thumb-face)）。--theme-scroller-thumb-face: rgba(255, 255, 255, 0.4)（DerivedTokens.uss:25）。横のバーの規則は無い
+namespace Client.Ui.Components.Controls { public sealed class GameScrollView : ScrollView { public GameScrollView(string testid); } } // Components/Controls/GameScrollView/GameScrollView.cs（128 行。縦だけ。バーは本文に重なり、有無は流れの高さで決める :43-63。太さ --scrollarea-scrollbar-size 12px・溝 --game-scroll-view-track-face・つまみ --game-scroll-view-thumb-face。A-35・A-167）。Task 2b で ctor を (string testid, GameScrollAxis axis) にし横向きを足す
+// 呼び出し側（起草時 13 か所。git grep -n "new GameScrollView("）: RecipeListScrollView:27・BlockInventoryNaturalScroll:20・MachineSectionView:72・TrainInventoryBodyView:37・BuildMenuPanelSkeleton:46・PauseMenuSubPageView:32・ItemListView:41・ResearchDetailPane:50・GameScrollViewGalleryEntry:20・テスト 4（GameScrollViewKnobTest:100・GameScrollViewSpyPortTest:25・GameScrollViewTest:31・EquipmentWheelFlowTest:96）
+// UnityEngine.UIElements.ScrollView の horizontalScroller・contentViewport・contentContainer・ScrollTo(VisualElement)（Unity 組み込み。L1 が読む）。Theme.uss:105-134 の .unity-scroller の規則（縦向けの width 8px・溝 transparent・矢印 display none）は変えない
 // Client.Ui.Screens.Inventory.Wheel.EquipmentWheelPickJudge.IsBlockingUi(VisualElement picked)（EquipmentWheelPickJudge.cs:12。装備・ホットバーのホイールの読み手 EquipmentWheelInput.cs:45 が使う。L1 が読むだけ）
 namespace Client.Ui.Foundation.Input.OsCursor { public interface IUiOsCursor { } public sealed class UiOsCursorRequestStack : IUiOsCursor { } }
 namespace Client.Ui.Foundation.Root { public sealed class GameUiRoot : MonoBehaviour { public VisualElement GetLayer(UiLayer layer, UiFamily family); } } // GameUiRoot.cs:48
@@ -130,7 +132,7 @@ namespace Client.Ui.State.Routing
     // UiScreen.ChallengeList。UiScreenTraitsTable の行は (grab F, pause F, skitInput T, backdrop T, alwaysOnHud T, trainHud F, collapse F, covers F)（UiScreenTraits.cs:60）
 }
 // ===== 前例（読むだけ）=====
-// 画面: Client.Ui/Screens/Research/ResearchTreePresenter.cs・ResearchTreeView.cs・Parts/ResearchNodeCard.cs・Parts/ResearchNodeCardSet.cs、バーの有無を幅の比較で決める Components/Controls/GameScrollView/GameScrollView.cs:43-63
+// 画面: Client.Ui/Screens/Research/ResearchTreePresenter.cs・ResearchTreeView.cs・Parts/ResearchNodeCard.cs・Parts/ResearchNodeCardSet.cs
 // State: Client.Ui.State/Research/Tree/ResearchSelectionStore.cs・ResearchSelection.cs・ResearchTreeModel.cs、Research/Commands/IResearchTreeCommands.cs、状態→文言キー Research/Logic/ResearchLogic.cs:75（DeriveNodeStateLabelKey → ResearchNodeCardViewModel.StateLabelKey）、表示判定 BlockInventory/Panel/BlockInventoryScreenVisibility.cs（X-audit DC-8 の <機能>ScreenVisibility.IsShown）、選択を型で分ける BlockInventory の ClosedBlockInventoryPanel : BlockInventoryPanelState、Client.Ui.State/BuildMenu/Session/BuildMenuSessionStore.cs
 // 登録: Client.Starter/Registration/GameUi/Screens/ResearchGameUiRegistration.cs
 // L1: Client.Tests/Ui/Screens/Research/ResearchTreeViewportTest.cs（Drag・EmptyBackgroundPoint・Settle）・ResearchScreenTestKit.cs、Client.Tests/Ui/Screens/Challenge/CurrentChallengeHudLayoutTest.cs（ThemeTokenFile.ResolvePixels）
@@ -138,14 +140,14 @@ namespace Client.Ui.State.Routing
 ```
 
 - **画面だけの部品の置き場**: `S/Client.Ui/Screens/Challenge/Parts/`（設計書 §2.7「1 feature だけが使うもの」。C4-d 計画の「チャレンジのノードカードは S5-challenge が `Screens/Challenge/Parts/` に作る」）
-- **つまみの上書き**: Web の `features/challenge/style.module.css` に局所の上書き変数は無いので、画面 USS が宣言するつまみはカテゴリ列の横のバーの 2 つだけ（`.challenge-list__categories` に `--challenge-categories-scrollbar-height: 8px`・`--challenge-categories-scrollbar-thumb-face: var(--theme-scroller-thumb-face)`。値は `Theme.uss` の縦のバーと同じ）。ほかの値は既存のトークン（`--menu-upper-safe-area`・`--mantine-color-dark-8`・`--mantine-spacing-md`・`--mantine-spacing-sm`・`--mantine-color-blue-5`・`--mantine-color-green-6`）を `var()` で引く。`--paper-face`・`--paper-radius` は上書きしない（Web は Paper の既定のまま）
+- **つまみの上書き**: Web の `features/challenge/style.module.css` に局所の上書き変数は無いので、画面 USS はつまみを宣言しない（カテゴリ列のバーは `GameScrollView` の既定のつまみのまま）。値は既存のトークン（`--menu-upper-safe-area`・`--mantine-color-dark-8`・`--mantine-spacing-md`・`--mantine-spacing-sm`・`--mantine-color-blue-5`・`--mantine-color-green-6`）を `var()` で引く。`--paper-face`・`--paper-radius` は上書きしない（Web は Paper の既定のまま）
 - **USS**: 色リテラル・`z-index`・構造擬似クラス・合成太字は書かない（`UiStyleConventionTest`）。`opacity` の数値・寸法の px は可。Web の CSS を写した行は `/* web: … */` の出所を付ける
 - **コード**: 1 ファイル 200 行以下・1 ディレクトリ 10 ファイル以下・`partial` 禁止・`Func<>` 禁止・イベントは UniRx・try-catch 禁止・主要な処理に日本語→英語の 2 行コメント・`#region Internal` はメソッド内のローカル関数だけ・null チェックは外部データだけ・黙って続行する分岐には `silent-ok: <理由> / <誰がどこで気づくか>`
 - **全体スイッチ**: Editor で GameUi を動かすときは PlayMode を止めた状態で `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'` を実行してから起動・録画する。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）
 - **参照キャプチャ**: `REF/web-8a585f742a/5-challenge-list.png`（1280×720）・`REF/web-8a585f742a-2560x1080/5-challenge-list.png`（2560×1080。座標は `x' = 320 + 1.5x`・`y' = 1.5y`）。状態の出所は `W/e2e/uitk-reference/referenceShots.ts:114`（controls: topic `challengeActive`・ui `ChallengeList`、steps visible `challenge-panel`）。mock-host のデータ（`W/e2e/mock-host/fixtures/presentationFixtures.ts` の challengeTree: Basics〈First Craft 完了 (0,0)・Second Step 進行中 (220,0)〉・Logistics）なので、UITK の撮影（実マスタ）とはカテゴリ数・名前・ノード数が違う。差の表はデータの違いを「捨てる」とし、位置・寸法・色・装飾・段組を比べる。参照の実測（1280×720）: 一覧の上端 y=168、地 (31,31,31)、題の上端 y≈184、ボタンの列 y=219〜255（高さ 36）、Basics は x=16〜96、Logistics の字頭 x≈130、ビューポートの中心 (640, 479.5)、カードは幅 240・高さ約 86（面 (36,36,36)）、完了の輪 (64,192,87)・進行中の輪 (51,154,240) が 2px、2 枚は隣接し後のカードの輪が前のカードの上に重なる
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S5-challenge/` に置き、`LOGS` へ入れない。`LOGS` へ書く前に `LOGS/README.md` を読む
 - **報告**: `LOGS/harness/uitk/S5-challenge/done.md`（1 行目「状態: 完了」。止まるときは「状態: 停止（理由）」）。節は「証拠」「差の表」「要裁定」「integrator への依頼」「未確認」
-- **共有区画は追記だけ**: `GameUiTheme.tss` の `/* == section: Screens == */`（末尾に 1 行）・`MainGameUiRegistration.cs` の画面登録区画（末尾に 1 行）と `using` の 1 行・`docs/uitk/TODO.md` の「## 実測の結論」の末尾（と、並べ比べで LX-200〜202 の予備を使うときだけ「## 見た目の例外」の末尾）。衝突は両方の行を採る
+- **共有区画は追記だけ**: `GameUiTheme.tss` の `/* == section: Screens == */`（末尾に 1 行）・`MainGameUiRegistration.cs` の画面登録区画（末尾に 1 行）と `using` の 1 行・`docs/uitk/TODO.md` の「## 実測の結論」と「## 未撮影」の末尾（と、並べ比べで LX-200〜202 の予備を使うときだけ「## 見た目の例外」の末尾）。衝突は両方の行を採る
 
 ## 設計検査記録
 
@@ -161,7 +163,7 @@ namespace Client.Ui.State.Routing
 | T キーで一覧を開く・T／ESC で閉じる・Tab でインベントリへ | 生きる（このレーンの外） | `GameScreenState`・`ChallengeListState` の遷移は Client.Game で UI の系を読まない。View は経路（`UiRoutingState`）で `SetShown` するだけ（Task 5） |
 | 一覧の外（上の 168px の世界）の右短押しで閉じる・一覧の上では閉じない | 生きる | `ChallengeListState` が `UiPointerHitTest.IsPointerOverAnyUi` で判定（既存）。一覧の根と `NodeGraphView` は拾う（Task 3）。録画の流れで一覧の上の右短押しで閉じないことを見る（Task 6） |
 | 解放済みのカテゴリのボタン列と選択 | 生きる | `ChallengeListViewModelFactory`（`IsUnlocked` だけ）→ `ChallengeCategoryButtons`（Task 1・3） |
-| カテゴリ列の横スクロール（Web `overflow-x: auto`。ボタンが幅を越えたら端のボタンへ送れる） | 生きる | `ChallengeCategoryScrollView`（横の `ScrollView`。越えたときだけバー。Task 3）。L1 `ChallengeListViewTest`「カテゴリのボタンが幅を越えたら…」が送れることとバーの有無を固定する |
+| カテゴリ列の横スクロール（Web `overflow-x: auto`。ボタンが幅を越えたら端のボタンへ送れる） | 生きる | `GameScrollView` の横向き（Task 2b。越えたときだけ流れの中のバー）を `ChallengeCategoryButtons` が使う（Task 3）。L1 `ChallengeListViewTest`「カテゴリのボタンが幅を越えたら…」が送れることとバーの有無を固定する |
 | 一覧の後ろの暗幕（traits の backdrop=T） | 生きる（このレーンの外） | `Screens/Shell/ScreenBackdropPresenter.cs:37-45` が経路ごとに `UiScreenTraitsTable.Get(..).Backdrop` を読んで `UiLayer.Backdrop` へ出す。`ChallengeList` の行は Backdrop=T（`UiScreenTraits.cs:60`） |
 | 一覧を開いている間のスキット入力（traits の skitInput=T） | 生きる（このレーンの外） | `Screens/Skit/SkitScreenPresenter.cs:55-65` が経路ごとに `SkitInput` 列を読む。スキットは `UiLayer.SkitStage` で一覧（`OverlayPanel`）より上の層（`UiLayer` の並び。Web `--z-stage-skit` ＞ `--z-stage-overlay-panel`） |
 | 一覧を開いている間のプレイヤー移動とカメラ | 生きる（このレーンの外。両系で同じ） | `ChallengeListState`（Client.Game）は `LocksPlayerMovement` が false で移動を止めない（`UIStateControl.cs:123` が読む）。`OnEnter` の `InputManager.MouseCursorVisible(true)` でカーソルを出し、見回しはカーソルのロックと対（`PlayerCameraInteractionApplier.cs:20`）。どれも UI の系を読まない |
@@ -217,10 +219,13 @@ namespace Client.Ui.State.Routing
 | `S/Client.Ui/Screens/Challenge/Tree/ChallengeListPresenter.cs` | 1 回載せ、経路で表示、Model で描く | 新規 |
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCard.cs` | カード 1 枚（`PaperSurface` の根の持ち手） | 新規 |
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCardSet.cs` | カードを GUID で使い回し、グラフの中身を組む | 新規 |
-| `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryScrollView.cs` | カテゴリ列の横スクロール（越えたときだけバー） | 新規 |
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs` | カテゴリのボタン列 | 新規 |
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs` | 訪れたカテゴリの View を控え、表示するカテゴリの View を置き場へ付け替える | 新規 |
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraph.cs` | カテゴリ 1 つの `NodeGraphView`・カードの組・最後に渡した中身（視点は View の寿命） | 新規 |
+| `S/Client.Ui/Components/Controls/GameScrollView/GameScrollAxis.cs` | `GameScrollView` の向き（縦・横） | 新規（Components） |
+| `S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs`・`GameScrollView.uss` | ctor に向き。横はバーを本文の下の流れに置く。縦の規則を `.unity-scroller--vertical` に絞る | 変更（Components） |
+| `new GameScrollView(` の呼び出し側 13 か所（Task 2b の Files） | `GameScrollAxis.Vertical` を足す | 変更 |
+| `S/Client.Tests/Ui/Components/Controls/GameScrollViewAxis/GameScrollViewHorizontalTest.cs` | L1（横向き 2 件） | 新規 |
 | `S/Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs` | 登録 | 新規 |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | `using` 1 行・画面登録区画 1 行 | 変更 |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | `Screens` 区画に `@import` 1 行 | 変更 |
@@ -237,7 +242,7 @@ namespace Client.Ui.State.Routing
 | `docs/uitk/TODO.md` | 「## 実測の結論」の末尾に 1 行 | 変更（追記） |
 | `LOGS/harness/uitk/S5-challenge/done.md` | 作業報告 | 新規（moorestech_logs） |
 
-ディレクトリのファイル数（.cs・.uss を数える）: `Client.Ui.State/Challenge/` 直下 4（既存 3＋`ChallengeScreenVisibility`）・`Challenge/Tree/` 9・`Tree/Selection/` 2・`Challenge/Commands/` 2・`Screens/Challenge/` 直下 0（`CurrentHud/`・`Tree/`・`Parts/` の 3 つのサブディレクトリだけ）・`Screens/Challenge/Tree/` 3・`Parts/` 5・`Registration/GameUi/Screens/Challenge/` 1（直下は既に 10）・`Client.Tests/Ui/State/Challenge/` 2（`Ui/State/` 直下は既に 10）・`Client.Tests/Ui/Screens/Challenge/Tree/` 5。どれも 10 以下。名前空間に `List` を使わない（一覧の View の置き場は `Screens/Challenge/Tree/`。`List` だと `System.Collections.Generic.List` と読み違える。State の `Challenge.Tree`・L1 の `Screens.Challenge.Tree`・研究の `Research.Tree` と同じ名前になり、HUD の `CurrentHud/` と並ぶサブディレクトリになる。D-16）。
+ディレクトリのファイル数（.cs・.uss を数える）: `Client.Ui.State/Challenge/` 直下 4（既存 3＋`ChallengeScreenVisibility`）・`Challenge/Tree/` 9・`Tree/Selection/` 2・`Challenge/Commands/` 2・`Screens/Challenge/` 直下 0（`CurrentHud/`・`Tree/`・`Parts/` の 3 つのサブディレクトリだけ）・`Screens/Challenge/Tree/` 3・`Parts/` 5（カード・カードの組・ボタン列・グラフの置き場・カテゴリ 1 つのグラフ）・`Components/Controls/GameScrollView/` 3・`Client.Tests/Ui/Components/Controls/GameScrollViewAxis/` 1（`Controls/` 直下は既に 10）・`Registration/GameUi/Screens/Challenge/` 1（直下は既に 10）・`Client.Tests/Ui/State/Challenge/` 2（`Ui/State/` 直下は既に 10）・`Client.Tests/Ui/Screens/Challenge/Tree/` 5。どれも 10 以下。名前空間に `List` を使わない（一覧の View の置き場は `Screens/Challenge/Tree/`。`List` だと `System.Collections.Generic.List` と読み違える。State の `Challenge.Tree`・L1 の `Screens.Challenge.Tree`・研究の `Research.Tree` と同じ名前になり、HUD の `CurrentHud/` と並ぶサブディレクトリになる。D-16）。
 
 **写すテスト（5 件）**
 
@@ -250,7 +255,7 @@ namespace Client.Ui.State.Routing
 
 タグの付かない L1/L0（裁定・事後承認・工場・死活表）: `ChallengeListViewTest` 4 件・`ChallengeListViewportTest` 2 件・`ChallengeListViewModelFactoryTest` 4 件。`challenge.spec.ts` の残り 4 件（HUD）は S2-hud が `CurrentChallengeHudStateTest` で写し済み。
 
-テストのフィルタ（以後 `$FILTER`）: `^Client\.Tests\.Ui\.(State\.Challenge|Screens\.Challenge\.Tree|Anchor|Conventions|Theme|Layers|Screens\.Challenge\.Current)`
+テストのフィルタ（以後 `$FILTER`）: `^Client\.Tests\.Ui\.(State\.Challenge|Screens\.Challenge\.Tree|Components\.Controls|Anchor|Conventions|Theme|Layers|Screens\.Challenge\.Current)`（`Components\.Controls` は `GameScrollView` の縦横の L1）
 
 ---
 
@@ -310,8 +315,9 @@ grep -n "section: Screens" "moorestech_client/Assets/UI Toolkit/GameUi/GameUiThe
 grep -n "menu-upper-safe-area:\|tutorial-anchor-clip-inset:" $S/Client.Ui/Foundation/Theme/Tokens.uss
 grep -n "mantine-color-dark-8:\|mantine-color-blue-5:\|mantine-color-green-6:\|mantine-color-body:\|mantine-spacing-sm:\|mantine-spacing-md:" $S/Client.Ui/Foundation/Theme/MantineTokens.uss
 grep -rn "\-\-paper-face\|\-\-paper-radius" $S/Client.Ui/Foundation/Theme/ | head -4
-grep -n "theme-scroller-thumb-face:" $S/Client.Ui/Foundation/Theme/DerivedTokens.uss
-grep -n "unity-scroller" $S/Client.Ui/Foundation/Theme/Theme.uss
+grep -n "public GameScrollView(\|ScrollViewMode" $S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs
+git grep -n "new GameScrollView(" -- $S | wc -l
+grep -n "scrollarea-scrollbar-size:\|game-scroll-view-track-face:\|game-scroll-view-thumb-face:" $S/Client.Ui/Foundation/Theme/DerivedTokens.uss
 grep -n "PixelsPerNotch" $S/Client.Ui/Foundation/Input/WebWheelScale.cs
 grep -n "public static bool IsBlockingUi" $S/Client.Ui/Screens/Inventory/Wheel/EquipmentWheelPickJudge.cs
 grep -n "^using Mooresmaster.Localization.Generated" $S/Client.Ui.State/Research/Tree/ResearchNodeCardViewModel.cs
@@ -319,7 +325,7 @@ ls $S/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l
 ls $S/Client.Tests/Ui/State/*.cs | wc -l
 ls -d SK/scenarios/uitk/*/ 2>/dev/null; ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ | head -40
 ```
-Expected: worktree の絶対パス。`NodeGraphView.cs` の 4 行（:39/:41/:49/:66 付近）と `RestoreViewport` の数（1 なら I-fix6 未取り込み・0 なら取り込み済み。どちらでも進む。`done.md` の「証拠」に数を書く）、`NodeGraphView.uss` に `height` の行が無い（S4-research の修正後）、`PaperSurface(string testid)`、`FormButton(string testid, UiText label, FormButtonVariant variant)` と 2 つの定数と `SetVariant`、`UiGroup(UiGap gap)` と `GroupNoWrap`、AnchorIds の 4 行、Pending の 3 行、`ChallengeList` の 2 行、`Categories` と `OnChallengeCompleted`、`MainGameUiStateRegistration` の登録、`UIPosition`・`UIScale` の 4 行、csv の 4 行、`section: Screens`、トークン 2 つ・6 つ・`--paper-*` の定義、`--theme-scroller-thumb-face` の定義と `Theme.uss` の `.unity-scroller` の規則（縦のバーだけ）、`PixelsPerNotch = 60f`、`IsBlockingUi`、研究の VM の `using Mooresmaster.Localization.Generated`（`LocalizationKey` の名前空間）、`Registration/GameUi/Screens/*.cs` が 10、`Ui/State/*.cs` が 10、`scenarios/uitk/` の下の段のサブディレクトリの有無
+Expected: worktree の絶対パス。`NodeGraphView.cs` の 4 行（:39/:41/:49/:66 付近）と `RestoreViewport` の数（1 なら I-fix6 未取り込み・0 なら取り込み済み。どちらでも進む。`done.md` の「証拠」に数を書く）、`NodeGraphView.uss` に `height` の行が無い（S4-research の修正後）、`PaperSurface(string testid)`、`FormButton(string testid, UiText label, FormButtonVariant variant)` と 2 つの定数と `SetVariant`、`UiGroup(UiGap gap)` と `GroupNoWrap`、AnchorIds の 4 行、Pending の 3 行、`ChallengeList` の 2 行、`Categories` と `OnChallengeCompleted`、`MainGameUiStateRegistration` の登録、`UIPosition`・`UIScale` の 4 行、csv の 4 行、`section: Screens`、トークン 2 つ・6 つ・`--paper-*` の定義、`GameScrollView(string testid)` と `ScrollViewMode.Vertical`（横向きがまだ無い。あれば Task 2b は実物の口に合わせて読み替える）・呼び出し 13・バーのつまみ 3 つの定義、`PixelsPerNotch = 60f`、`IsBlockingUi`、研究の VM の `using Mooresmaster.Localization.Generated`（`LocalizationKey` の名前空間）、`Registration/GameUi/Screens/*.cs` が 10、`Ui/State/*.cs` が 10、`scenarios/uitk/` の下の段のサブディレクトリの有無
 - どれかの依存が無ければ止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
 - 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く
 - `NodeGraphView.uss` に `height: 0` が戻っていたら止めて指揮へ（S4-research の修正が消えている）
@@ -1136,13 +1142,383 @@ git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択�
 
 ---
 
+### Task 2b: `GameScrollView` に横向きのモードを足す（Components の変更。R-17）
+
+カテゴリ列の横スクロール（Web `.categories` の `overflow-x: auto`）は `Components/Controls/GameScrollView` で写す。今の `GameScrollView` は縦だけなので、部品に向きの引数を足す。画面の USS は部品の内側のクラス（`unity-scroller__slider`・`unity-base-slider__*` など `__` 付き）を書かない（S5-crosscut T10 が `UiStyleConventionTest` に足す検査。A-167 の「部品のクラスを画面が書かない」）。画面だけの横スクロール部品は作らない。`Theme.uss` は触らない。
+
+**Files:**
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollAxis.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs`（ctor に `GameScrollAxis axis`。バーの有無・太さ・スクロール量の通知を向きの軸で）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss`（縦の規則を `.unity-scroller--vertical` に絞り、横の規則を足す）
+- Modify（呼び出し側。`GameScrollAxis.Vertical` を足すだけ。起草時の 13 か所。S 相対）: `Client.Ui/Components/Controls/RecipeListScrollView/RecipeListScrollView.cs:27`・`Client.Ui/Screens/BlockInventory/BlockInventoryNaturalScroll.cs:20`・`Client.Ui/Screens/BlockInventory/Machine/MachineSectionView.cs:72`・`Client.Ui/Screens/BlockInventory/Train/TrainInventoryBodyView.cs:37`・`Client.Ui/Screens/BuildMenu/Parts/BuildMenuPanelSkeleton.cs:46`・`Client.Ui/Screens/PauseMenu/PauseMenuSubPageView.cs:32`・`Client.Ui/Screens/Recipe/ItemListView.cs:41`・`Client.Ui/Screens/Research/Parts/ResearchDetailPane.cs:50`・`Client.Ui.Editor/Gallery/Entries/Controls/GameScrollViewGalleryEntry.cs:20`・`Client.Tests/Ui/Components/Controls/GameScrollViewKnobTest.cs:100`・`Client.Tests/Ui/Components/Controls/GameScrollViewSpy/GameScrollViewSpyPortTest.cs:25`・`Client.Tests/Ui/Components/Controls/GameScrollViewTest.cs:31`・`Client.Tests/Ui/Screens/Inventory/EquipmentWheelFlowTest.cs:96`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Controls/GameScrollViewAxis/GameScrollViewHorizontalTest.cs`（`Client.Tests/Ui/Components/Controls/` 直下は既に 10 ファイルなのでサブディレクトリ）
+
+**Interfaces:**
+- Consumes: 今の `GameScrollView(string testid)`（`origin/feature/uitk` 9c83052273 の実物。128 行）・`GameScrollView.uss`・`DerivedTokens.uss` の `--scrollarea-scrollbar-size`（12px）・`--game-scroll-view-track-face`・`--game-scroll-view-thumb-face`・`--game-scroll-view-scrollbar-padding-ratio`
+- Produces:
+  - `public enum GameScrollAxis { Vertical, Horizontal }`（`Client.Ui.Components.Controls`）
+  - `GameScrollView(string testid, GameScrollAxis axis)`。根のクラスに `game-scroll-view--vertical` か `game-scroll-view--horizontal`。横はバーを本文の下の流れの中に置き、中身が見える幅を越えたときだけ出す。縦のバーは出さない。太さは `--scrollarea-scrollbar-size`、溝とつまみの色は縦と同じつまみ。`OnScrollOffsetChanged` は向きの軸のバーの値。`SetScrollOffset`・`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop` はスクロールスパイの縦の口のまま（横では使わない）
+
+- [ ] **Step 1: 実物を開き、横の L1 を書いて赤を見る**
+
+Run:
+```bash
+S=moorestech_client/Assets/Scripts
+wc -l $S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs
+git grep -n "new GameScrollView(" -- $S
+ls $S/Client.Tests/Ui/Components/Controls/ | grep -v meta | wc -l
+```
+Expected: 128 行（違えば実物に下の差分だけを当てる）。`new GameScrollView(` は上の Files の 13 か所（増えていれば全部に `GameScrollAxis.Vertical` を足す）。`Controls/` 直下は 10
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Controls/GameScrollViewAxis/GameScrollViewHorizontalTest.cs`:
+```csharp
+using Client.Tests.Ui.TestHost;
+using Client.Ui.Components.Controls;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+using static Client.Tests.Ui.Components.ComponentStyleAssert;
+
+namespace Client.Tests.Ui.Components.Controls.GameScrollViewAxis
+{
+    /// <summary>
+    /// GameScrollView の横向き（越えたときだけ流れの中に横のバー・縦のバーは出さない・太さと色は縦と同じつまみ）
+    /// GameScrollView horizontal mode (an in-flow horizontal bar only on overflow, never a vertical bar, the same knobs for size and colors)
+    /// </summary>
+    public class GameScrollViewHorizontalTest : UiTestHost
+    {
+        private GameScrollView _view;
+        private VisualElement _last;
+
+        [SetUp]
+        public void MountRowThatFits()
+        {
+            // 幅 300 の親に幅 80・高さ 36 の箱を 3 つ（計 240 で収まる）
+            // Three 80x36 boxes in a 300-wide parent (240 in total, so they fit)
+            var host = new VisualElement();
+            host.style.width = 300;
+            _view = new GameScrollView("probe-horizontal-scroll", GameScrollAxis.Horizontal);
+            for (var i = 0; i < 3; i++) AddBox();
+            host.Add(_view);
+            rootVisualElement.Add(host);
+            Settle();
+        }
+
+        [Test]
+        public void 横向きは収まるときバーを出さず高さは中身の高さ()
+        {
+            Assert.AreEqual(ScrollViewMode.Horizontal, _view.mode);
+            Assert.IsTrue(_view.ClassListContains("game-scroll-view--horizontal"));
+            Assert.AreEqual(DisplayStyle.None, _view.horizontalScroller.resolvedStyle.display, "横のバー");
+            Assert.AreEqual(DisplayStyle.None, _view.verticalScroller.resolvedStyle.display, "縦のバー");
+            Assert.AreEqual(36f, _view.worldBound.height, 0.5f);
+        }
+
+        [Test]
+        public void 越えると本文の下に横のバーが出て末尾まで送れ縦のバーは出さない()
+        {
+            // 箱を 6 つ（計 480）にして幅 300 を越えさせる
+            // Six boxes (480 in total) overflow the 300 width
+            for (var i = 0; i < 3; i++) AddBox();
+            Settle();
+            var scroller = _view.horizontalScroller;
+            var dragger = scroller.Q(className: "unity-base-slider__dragger");
+
+            // バーは本文の下の流れの中で太さ 12。本文の高さを削らず、全体が中身 36＋バー 12 になる
+            // The bar sits in the flow below the body, 12 thick; the body keeps its height and the whole is 36 + 12
+            Assert.AreEqual(DisplayStyle.Flex, scroller.resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, _view.verticalScroller.resolvedStyle.display);
+            Assert.AreEqual(12f, scroller.worldBound.height, 0.01f);
+            Assert.AreEqual(_view.contentViewport.worldBound.yMax, scroller.worldBound.yMin, 0.5f);
+            Assert.AreEqual(36f + 12f, _view.worldBound.height, 0.5f);
+
+            // 溝とつまみは縦と同じつまみ（gauge-track・角なしの bevel-c2）。つまみは内側 2px（整数丸め）を空けた太さ 8
+            // Track and thumb use the vertical knobs (gauge-track, square bevel-c2); the thumb is 8 thick inside the 2px (snapped) inset
+            AssertColor(Rgba(10, 14, 27, 0.8f), scroller.resolvedStyle.backgroundColor, "track");
+            AssertColor(Rgba(104, 106, 120, 1f), dragger.resolvedStyle.backgroundColor, "thumb");
+            Assert.AreEqual(8f, dragger.worldBound.height, 0.5f, "つまみの太さ");
+            Assert.Less(dragger.worldBound.width, scroller.worldBound.width, "つまみの長さが溝より短い");
+
+            // 末尾の箱まで送れる（Web overflow-x: auto）
+            // The last box scrolls into view (Web overflow-x: auto)
+            _view.ScrollTo(_last);
+            Settle();
+            Assert.Greater(_view.scrollOffset.x, 0f);
+            Assert.LessOrEqual(_last.worldBound.xMax, _view.contentViewport.worldBound.xMax + 0.5f);
+        }
+
+        private void AddBox()
+        {
+            var box = new VisualElement();
+            box.style.width = 80;
+            box.style.height = 36;
+            box.style.flexShrink = 0;
+            _view.Add(box);
+            _last = box;
+        }
+
+        private void Settle()
+        {
+            // バーの出し入れで 2 回目のレイアウトが走る
+            // Showing or hiding the bar triggers a second layout
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+        }
+    }
+}
+```
+
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: `GameScrollView(string, GameScrollAxis)` と `GameScrollAxis` が無いのでコンパイルエラー（赤）
+
+- [ ] **Step 2: 部品に向きを足す**
+
+`moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollAxis.cs`:
+```csharp
+namespace Client.Ui.Components.Controls
+{
+    /// <summary>
+    /// GameScrollView の向き（縦はバーを本文に重ね、横はバーを本文の下の流れに置く）
+    /// GameScrollView orientation (vertical overlays the bar on the body; horizontal puts it in the flow below the body)
+    /// </summary>
+    public enum GameScrollAxis
+    {
+        Vertical,
+        Horizontal,
+    }
+}
+```
+
+`GameScrollView.cs` は次の形にする（縦の振る舞いは今のまま。変わるのは ctor の引数・根の向きのクラス・バーの有無と太さとスクロール量の通知を向きの軸で読むところだけ）:
+```csharp
+// moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs
+using System;
+using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Theme;
+using UniRx;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Components.Controls
+{
+    /// <summary>
+    /// スクロール領域。縦はバーが本文に重なり、横はバーが本文の下の流れに入る
+    /// Scroll area; the vertical bar overlays the body and the horizontal bar sits in the flow below it
+    /// </summary>
+    /// <remarks>
+    /// 縦は Mantine ScrollArea の写し（A-35）、横は Web の overflow-x: auto の写し（チャレンジのカテゴリ列）。SetScrollOffset・高さ・上端はスクロールスパイの縦の口で、横では使わない
+    /// Vertical copies Mantine ScrollArea (A-35) and horizontal copies the Web overflow-x: auto (challenge category row); SetScrollOffset, heights and content top are the scroll spy's vertical ports, unused for horizontal
+    /// </remarks>
+    public sealed class GameScrollView : ScrollView
+    {
+        private const string ScrollbarSizeProperty = "--game-scroll-view-scrollbar-size";
+
+        // バーの内側余白＝太さ×比（既定 0.2 は Mantine ScrollArea の size / 5。一覧は Web と同じく 0 に上書きする）
+        // Bar padding = size x ratio (the default 0.2 is Mantine ScrollArea's size / 5; the item list overrides it to 0 as on the Web)
+        private const string ScrollbarPaddingRatioProperty = "--game-scroll-view-scrollbar-padding-ratio-resolved";
+
+        private readonly GameScrollAxis _axis;
+        private readonly Subject<float> _onScrollOffsetChanged = new();
+
+        private readonly Subject<Unit> _onContentLayoutChanged = new();
+        private float _publishedContentHeight = float.NaN;
+        private float _publishedViewportHeight = float.NaN;
+
+        public IObservable<float> OnScrollOffsetChanged => _onScrollOffsetChanged;
+        public IObservable<Unit> OnContentLayoutChanged => _onContentLayoutChanged;
+
+        public GameScrollView(string testid, GameScrollAxis axis) : base(axis == GameScrollAxis.Horizontal ? ScrollViewMode.Horizontal : ScrollViewMode.Vertical)
+        {
+            _axis = axis;
+            name = testid;
+            AddToClassList("game-scroll-view");
+            AddToClassList(axis == GameScrollAxis.Horizontal ? "game-scroll-view--horizontal" : "game-scroll-view--vertical");
+            // Web（CEF）の 1 ノッチの px（A-71）を UITK の WheelEvent の行へ直す
+            // Convert the Web (CEF) pixels per notch (A-71) into UITK WheelEvent lines
+            mouseWheelScrollSize = WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+
+            // バーの有無は向きの軸の流れの寸法で決める。Auto は子の変形（押下の 1px 沈み）まで数えて押す間だけバーを出す
+            // Bar presence follows the flow size along the axis; Auto counts child transforms (the 1px press sink) and flashes the bar while pressed
+            horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            verticalScrollerVisibility = ScrollerVisibility.Hidden;
+            contentContainer.RegisterCallback<GeometryChangedEvent>(_ => UpdateScrollerVisibility());
+            contentViewport.RegisterCallback<GeometryChangedEvent>(_ => UpdateScrollerVisibility());
+
+            // スクロール量の変化は向きの軸のバーの値の変化で拾う（ホイール・ドラッグ・ScrollTo・SetScrollOffset のどれでも来る）
+            // Offset changes come from the axis bar value (wheel, drag, ScrollTo and SetScrollOffset all move it)
+            AxisScroller().valueChanged += offset => _onScrollOffsetChanged.OnNext(offset);
+            RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
+
+            // 中身と視口の寸法の変化をスクロールスパイへ知らせる（スクロールでも事象が来る場合に備え、高さの比較で重複を落とす）
+            // Tell the scroll spy about content and viewport size changes (heights are compared to drop duplicates in case scrolling also raises the event)
+            contentContainer.RegisterCallback<GeometryChangedEvent>(_ => PublishWhenHeightsChanged());
+            contentViewport.RegisterCallback<GeometryChangedEvent>(_ => PublishWhenHeightsChanged());
+
+            #region Internal
+
+            void UpdateScrollerVisibility()
+            {
+                // 向きの軸で中身が見える寸法を越えたときだけバーを出す。交差の軸のバーは常に出さない
+                // Show the bar only when the content exceeds the visible size along the axis; the cross-axis bar never shows
+                var overflows = _axis == GameScrollAxis.Horizontal
+                    ? contentViewport.layout.width < contentContainer.layout.width
+                    : contentViewport.layout.height < contentContainer.layout.height;
+                var visibility = overflows ? ScrollerVisibility.AlwaysVisible : ScrollerVisibility.Hidden;
+                if (_axis == GameScrollAxis.Horizontal) horizontalScrollerVisibility = visibility;
+                else verticalScrollerVisibility = visibility;
+            }
+
+            void PublishWhenHeightsChanged()
+            {
+                var contentHeight = GetContentHeight();
+                var viewportHeight = GetViewportHeight();
+                if (Mathf.Approximately(contentHeight, _publishedContentHeight) && Mathf.Approximately(viewportHeight, _publishedViewportHeight)) return;
+                _publishedContentHeight = contentHeight;
+                _publishedViewportHeight = viewportHeight;
+                _onContentLayoutChanged.OnNext(Unit.Default);
+            }
+
+            #endregion
+        }
+
+        public void SetScrollOffset(float y)
+        {
+            scrollOffset = new Vector2(scrollOffset.x, y);
+        }
+
+        public float GetViewportHeight()
+        {
+            return contentViewport.layout.height;
+        }
+
+        public float GetContentHeight()
+        {
+            return contentContainer.layout.height;
+        }
+
+        // 中身の上端からの距離。スクロールの平行移動は両者に同じく掛かるので打ち消し合う
+        // Distance from the content top; the scroll translation applies to both and cancels out
+        public bool TryGetContentTop(VisualElement descendant, out float top)
+        {
+            // 中身の外の要素は基準が違う。取り違えを黙って 0 にせず知らせる
+            // An element outside the content has another origin; report the mix-up instead of silently returning 0
+            if (!contentContainer.Contains(descendant))
+            {
+                Debug.LogError($"[GameScrollView] {name}: {descendant.name} is not inside the content");
+                top = 0f;
+                return false;
+            }
+            top = descendant.ChangeCoordinatesTo(contentContainer, Vector2.zero).y;
+            return true;
+        }
+
+        private Scroller AxisScroller()
+        {
+            return _axis == GameScrollAxis.Horizontal ? horizontalScroller : verticalScroller;
+        }
+
+        private void OnCustomStyleResolved()
+        {
+            // 読めないときは UssCustomStyleReader が LogError を出し、バーは Theme.uss の既定の太さのまま
+            // When unreadable, UssCustomStyleReader logs an error and the bar keeps the Theme.uss default thickness
+            if (!UssCustomStyleReader.TryReadPixels(customStyle, ScrollbarSizeProperty, out var size)) return;
+            // 比も読めなければ UssCustomStyleReader が LogError を出し、バーは前の太さと余白のまま
+            // If the ratio is unreadable too, UssCustomStyleReader logs an error and the bar keeps its previous thickness and padding
+            if (!UssCustomStyleReader.TryReadNumber(customStyle, ScrollbarPaddingRatioProperty, out var ratio)) return;
+
+            // 太さは交差の軸（縦は幅・横は高さ）。内側の余白はレイアウトで整数 px に丸まる（look-exception: LX-42）
+            // Thickness runs across the axis (width for vertical, height for horizontal); the padding snaps to whole px in layout (look-exception: LX-42)
+            var padding = size * ratio;
+            var bar = AxisScroller();
+            if (_axis == GameScrollAxis.Horizontal) bar.style.height = size;
+            else bar.style.width = size;
+            bar.style.paddingLeft = padding;
+            bar.style.paddingRight = padding;
+            bar.style.paddingTop = padding;
+            bar.style.paddingBottom = padding;
+        }
+    }
+}
+```
+（向きの分岐は ctor の基底呼び出し・根のクラス・バーの有無・太さ・`AxisScroller` の 5 か所で、どれも「どの軸か」だけを選ぶ。縦横で振る舞いの違う処理は増やさない。200 行未満）
+
+`GameScrollView.uss` の縦の 4 規則（`.game-scroll-view .unity-scroller__slider`・`.game-scroll-view .unity-scroller .unity-base-slider__drag-container`・`… __tracker`・`… __dragger`）のセレクタの `.unity-scroller` を `.unity-scroller--vertical` に替え（`.unity-scroller__slider` の規則は `.game-scroll-view .unity-scroller--vertical .unity-scroller__slider`。縦では横のバーが常に隠れているので見た目は変わらない）、`:hover` の規則はそのまま残す（縦横の両方に当たる）。末尾に横の区画を足す:
+```css
+/* 横: バーは本文の下の流れに置く（Web の overflow-x: auto。重ねると末尾の行の下が押せない）。太さと内側は GameScrollView.cs が高さと padding で当てる */
+/* Horizontal: the bar sits in the flow below the body (Web overflow-x: auto; overlaying would block presses on the row bottom); GameScrollView.cs applies thickness and inset as height and padding */
+.game-scroll-view--horizontal .unity-scroll-view__content-container {
+    flex-shrink: 0;
+}
+
+.game-scroll-view--horizontal .unity-scroll-view__horizontal-scroller {
+    min-height: 0;
+    margin: 0;
+    border-width: 0;
+    background-color: var(--game-scroll-view-track-face);
+}
+
+.game-scroll-view .unity-scroller--horizontal .unity-scroller__slider {
+    flex-grow: 1;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+}
+
+.game-scroll-view .unity-scroller--horizontal .unity-base-slider__drag-container {
+    height: 100%;
+    margin: 0;
+}
+
+/* Theme.uss の .unity-scroller の溝（縦向けの width 8px・height auto）を横向きに戻す */
+/* Undo Theme.uss's .unity-scroller track (vertical width 8px, height auto) for the horizontal bar */
+.game-scroll-view .unity-scroller--horizontal .unity-base-slider__tracker {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-width: 0;
+    background-color: transparent;
+}
+
+/* つまみ: Theme.uss の縦向けの width 8px と Slider 向けの top: 50% を戻す。長さは Unity がインラインで当てる */
+/* Thumb: undo Theme.uss's vertical width 8px and the Slider top: 50%; Unity sets the length inline */
+.game-scroll-view .unity-scroller--horizontal .unity-base-slider__dragger {
+    top: 0;
+    left: 0;
+    height: 100%;
+    margin: 0;
+    border-width: 0;
+    border-radius: 0;
+    background-color: var(--game-scroll-view-thumb-face);
+}
+```
+
+呼び出し側の 13 か所は `new GameScrollView(<今の引数>)` を `new GameScrollView(<今の引数>, GameScrollAxis.Vertical)` に替える（デフォルト引数・引数 1 つの多重定義は作らない。AGENTS.md「引数の追加は呼び出し側を変更する」）
+
+- [ ] **Step 3: コンパイルし、部品と呼び出し側のテストを流す**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Components\.Controls|Screens\.(BuildMenu|PauseMenu|Recipe|Research|BlockInventory|Inventory))"`
+Expected: ErrorCount 0 / PASS（`GameScrollViewHorizontalTest` 2 件、既存の `GameScrollViewTest`・`GameScrollViewKnobTest`・`GameScrollViewSpyPortTest`・`RecipeListScrollViewTest` と各画面の L1 が今のまま緑）
+- 横のバーの高さ・つまみの色が違えば、`Theme.uss` の `.unity-scroller` の規則（縦向けの `width: 8px`・`height: auto`）と Slider の `top: 50%` のどれが勝っているかを `uloop execute-dynamic-code` で `resolvedStyle` を読み、`GameScrollView.uss` の横の区画で上書きを足す（`Theme.uss` は触らない）
+- つまみの長さが溝いっぱい（`dragger.worldBound.width == scroller.worldBound.width`）なら、横の dragger の幅を USS の `width: 100%` が潰している。横の区画に `width` を書いていないかを確かめる（長さは Unity がインラインで当てる）
+- 収まるときの高さが 0 なら、横の `ScrollView` の content container が流れから外れている。`GameScrollView.uss` の横の区画の `.unity-scroll-view__content-container` に `position: relative` を足す
+- 既存の縦のテストが落ちたら、セレクタを `.unity-scroller--vertical` に絞った規則の取りこぼし（`:hover` 以外）を見る
+
+- [ ] **Step 4: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/Controls moorestech_client/Assets/Scripts/Client.Ui moorestech_client/Assets/Scripts/Client.Ui.Editor/Gallery moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Inventory/EquipmentWheelFlowTest.cs
+git commit -m "feat(uitk): GameScrollView に横向きのモードを足す（S5-challenge のカテゴリ列。呼び出し側は Vertical を明示）"
+```
+（Unity が作った `.meta` も同じコミットに入れる。手で作らない）
+
+---
+
 ### Task 3: 画面の USS・カード・カテゴリのボタン列と横スクロール・グラフの置き場・一覧の View と L1
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Tree/ChallengeList.uss`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCard.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCardSet.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryScrollView.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraph.cs`
@@ -1154,16 +1530,15 @@ git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewTest.cs`
 
 **Interfaces:**
-- Consumes: Task 1・2 の型（`SelectedChallengeListViewModel`・`EmptyChallengeListViewModel`・`ChallengeCategoryViewModel.HasSameGraphAs`・`ChallengeNodeCardViewModel.StateLabelKey`・`ChallengeListLogic.SameGuidSequence`・`IChallengeListCommands`）、Global Constraints の部品（`NodeGraphView`・`PaperSurface`・`FormButton`・`UiGroup`・`LocalizedLabel`・`TutorialAnchor`・`UiPickingIgnore`・`WebWheelScale`・Unity の `ScrollView`）
+- Consumes: Task 1・2 の型（`SelectedChallengeListViewModel`・`EmptyChallengeListViewModel`・`ChallengeCategoryViewModel.HasSameGraphAs`・`ChallengeNodeCardViewModel.StateLabelKey`・`ChallengeListLogic.SameGuidSequence`・`IChallengeListCommands`）、Task 2b の `GameScrollView(string, GameScrollAxis.Horizontal)`、Global Constraints の部品（`NodeGraphView`・`PaperSurface`・`FormButton`・`UiGroup`・`LocalizedLabel`・`TutorialAnchor`・`UiPickingIgnore`）
 - Produces:
   - `ChallengeListView(IChallengeListCommands commands, IUiOsCursor osCursor)`（`Client.Ui.Screens.Challenge.Tree`）・`void Render(ChallengeListViewModel model)`（`SelectedChallengeListViewModel`／`EmptyChallengeListViewModel` の分岐はここの 1 か所）・`void SetShown(bool shown)`。`name = "challenge-panel"`
   - `ChallengeNodeCard(Guid challengeGuid)`・`PaperSurface Root`・`void Render(ChallengeNodeCardViewModel node)`（`Client.Ui.Screens.Challenge.Parts`）
   - `ChallengeNodeCardSet`・`void RenderCards(IReadOnlyList<ChallengeNodeCardViewModel> nodes)`・`NodeGraphContent BuildContent(IReadOnlyList<ChallengeNodeCardViewModel> nodes, NodeGraphFocus focus)`
-  - `ChallengeCategoryScrollView : ScrollView`・`ChallengeCategoryScrollView(string testid)`（横。越えたときだけバー）
   - `ChallengeCategoryButtons(IChallengeListCommands commands)`・`void Render(SelectedChallengeListViewModel model)`・`void ClearButtons()`。`name = "challenge-categories"`、中の横スクロール `challenge-categories-scroll`、ボタン `challenge-category-<guid>`
   - `ChallengeCategoryGraphHost(IUiOsCursor osCursor)`・`void Render(ChallengeCategoryViewModel category)`・`void UnmountGraph()`
   - `ChallengeCategoryGraph(ChallengeCategoryViewModel category, IUiOsCursor osCursor)`・`NodeGraphView View`・`void Render(ChallengeCategoryViewModel category)`
-  - USS のクラス: `challenge-list`・`challenge-list__title`・`challenge-list__categories`・`challenge-list__categories-scroll`・`challenge-list__category-group`・`challenge-list__category-button`・`challenge-list__graph-host`・`challenge-list__card`・`challenge-list__card--locked/--current/--completed`・`challenge-list__card-ring`・`challenge-list__card-title`・`challenge-list__card-summary`・`challenge-list__card-state`。つまみ `--challenge-categories-scrollbar-height`・`--challenge-categories-scrollbar-thumb-face`
+  - USS のクラス: `challenge-list`・`challenge-list__title`・`challenge-list__categories`・`challenge-list__category-group`・`challenge-list__category-button`・`challenge-list__graph-host`・`challenge-list__card`・`challenge-list__card--locked/--current/--completed`・`challenge-list__card-ring`・`challenge-list__card-title`・`challenge-list__card-summary`・`challenge-list__card-state`（つまみは宣言しない）
   - テストの材料 `ChallengeListScreenTestKit`（`Basics`・`Logistics`・`FirstCraft`・`SecondStep`・`LockedStep`・`LogisticsDone`・`LogisticsCurrent`・`LoadMasterAndDictionary()`・`Tree(ChallengeCategorySelection)`・`MountList(UiLayerStack, IChallengeListCommands)`・`MountHud(UiLayerStack)`・`Card(VisualElement, Guid)`・`PlainText(Label)`・`ButtonText(Button)`）・`RecordingChallengeListCommands.Selected`
 
 - [ ] **Step 1: 画面の USS を書く**
@@ -1172,10 +1547,10 @@ git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択�
 ```css
 /* web: moorestech_web/webui/src/features/challenge/style.module.css（.panel・.categories・.node・.locked・.current・.completed）と ChallengePanel.tsx・ChallengeNodeCard.tsx の Mantine の既定（Title order 2・Group gap md・Button sm・Paper・Text） */
 /* outline は拾わない子の輪で写す。gap は UiGroup が配る。translate(-50%, -50%) はここ、scale(UIScale) は C# がカードの style へ当てる。カードの根で flex-shrink を書かない（C4-d D-23） */
-/* カテゴリ列の横のバーは Theme.uss の縦のバー（Mantine ScrollArea の写し）を横に写す。Theme.uss の規則は変えず、ここで横のバーだけを上書きする */
+/* カテゴリ列の横スクロールとバーは GameScrollView の横向きが持つ。部品の内側のクラス（__ 付き）はここに書かない */
 /* web: moorestech_web/webui/src/features/challenge/style.module.css (.panel, .categories, .node, .locked, .current, .completed) and the Mantine defaults in ChallengePanel.tsx and ChallengeNodeCard.tsx (Title order 2, Group gap md, Button sm, Paper, Text) */
 /* The outline becomes a non-picking child ring; UiGroup hands out the gap; translate(-50%, -50%) lives here and C# applies scale(UIScale) to the card style; the card root never sets flex-shrink (C4-d D-23) */
-/* The category row's horizontal bar copies Theme.uss's vertical bar (a copy of Mantine ScrollArea) sideways; Theme.uss stays as is and only the horizontal bar is overridden here */
+/* GameScrollView's horizontal mode owns the category row scrolling and bar; component inner classes (with __) are never written here */
 
 /* 一覧: 舞台の上の安全帯の下から下端まで、地は dark-8、余白 md の縦積み（Web inset: var(--menu-upper-safe-area) 0 0） */
 /* List: from below the stage's upper safe area to the bottom, dark-8 ground, md padding, stacked vertically (Web inset: var(--menu-upper-safe-area) 0 0) */
@@ -1197,71 +1572,20 @@ git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択�
     flex-shrink: 0;
 }
 
-/* カテゴリ列: 折り返さず、幅を越えたら横に送る（Web .categories の flex-wrap: nowrap・overflow-x: auto）。バーは越えたときだけ C# が出す */
-/* Category row: no wrapping, scrolls sideways when it overflows (Web .categories flex-wrap: nowrap, overflow-x: auto); C# shows the bar only on overflow */
+/* カテゴリ列: 折り返さず、幅を越えたら横に送る（Web .categories の flex-wrap: nowrap・overflow-x: auto）。送りとバーは GameScrollView の横向き */
+/* Category row: no wrapping, scrolls sideways when it overflows (Web .categories flex-wrap: nowrap, overflow-x: auto); GameScrollView's horizontal mode scrolls and draws the bar */
 .challenge-list__categories {
-    --challenge-categories-scrollbar-height: 8px;
-    --challenge-categories-scrollbar-thumb-face: var(--theme-scroller-thumb-face);
     flex-shrink: 0;
 }
 
-/* 中身は縮めない。ボタンは文言なりの幅で並ぶ（Web の Button の文言は折り返さず縮まない） */
-/* Content never shrinks; buttons line up at their label width (the Web Button label neither wraps nor shrinks) */
-.challenge-list__categories-scroll .unity-scroll-view__content-container {
-    flex-shrink: 0;
-}
-
+/* ボタンは文言なりの幅で並び縮まない（Web の Button の文言は折り返さず縮まない） */
+/* Buttons line up at their label width and never shrink (the Web Button label neither wraps nor shrinks) */
 .challenge-list__category-group {
     flex-shrink: 0;
 }
 
 .challenge-list__category-button {
     flex-shrink: 0;
-}
-
-/* 横のバー: 高さはつまみ、溝は透明・枠なし（Theme.uss の .unity-scroller--vertical を横にした形。矢印は Theme.uss が消す） */
-/* Horizontal bar: knob height, transparent track, no border (Theme.uss .unity-scroller--vertical laid sideways; Theme.uss already hides the arrows) */
-.challenge-list__categories-scroll .unity-scroller--horizontal {
-    height: var(--challenge-categories-scrollbar-height);
-    min-height: 0;
-    margin: 0;
-    border-width: 0;
-    background-color: transparent;
-}
-
-.challenge-list__categories-scroll .unity-scroller--horizontal .unity-scroller__slider {
-    flex-grow: 1;
-    height: 100%;
-    min-height: 0;
-    margin: 0;
-}
-
-.challenge-list__categories-scroll .unity-scroller--horizontal .unity-base-slider__drag-container {
-    height: 100%;
-    margin: 0;
-}
-
-.challenge-list__categories-scroll .unity-scroller--horizontal .unity-base-slider__tracker {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: auto;
-    height: auto;
-    margin: 0;
-    border-width: 0;
-    background-color: transparent;
-}
-
-/* つまみ: Theme.uss の .unity-scroller の dragger（width 8px・height auto）と Slider 向けの top: 50% を横向きに戻す。長さは Unity がインラインで当てる */
-/* Thumb: undo Theme.uss's .unity-scroller dragger (width 8px, height auto) and the Slider top: 50% for the horizontal case; Unity sets the length inline */
-.challenge-list__categories-scroll .unity-scroller--horizontal .unity-base-slider__dragger {
-    top: 0;
-    height: 100%;
-    margin: 0;
-    border-width: 0;
-    border-radius: 4px;
-    background-color: var(--challenge-categories-scrollbar-thumb-face);
 }
 
 .challenge-list__graph-host {
@@ -1464,53 +1788,6 @@ namespace Client.Ui.Screens.Challenge.Parts
 
 - [ ] **Step 3: カテゴリ列の横スクロール・ボタン列・グラフの置き場を書く**
 
-`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryScrollView.cs`:
-```csharp
-using Client.Ui.Foundation.Input;
-using UnityEngine.UIElements;
-
-namespace Client.Ui.Screens.Challenge.Parts
-{
-    /// <summary>
-    /// チャレンジのカテゴリ列の横スクロール（Web .categories の overflow-x: auto）。バーは越えたときだけ出す
-    /// Horizontal scroll for the challenge category row (the Web .categories overflow-x: auto); the bar shows only on overflow
-    /// </summary>
-    /// <remarks>
-    /// 使い手が 1 画面なので画面の部品（設計書 §5.1）。2 機能目が来たら integrator が Components へ上げる
-    /// One screen uses it, so it is a screen part (design §5.1); the integrator promotes it to Components when a second feature arrives
-    /// </remarks>
-    public sealed class ChallengeCategoryScrollView : ScrollView
-    {
-        public ChallengeCategoryScrollView(string testid) : base(ScrollViewMode.Horizontal)
-        {
-            name = testid;
-            AddToClassList("challenge-list__categories-scroll");
-            verticalScrollerVisibility = ScrollerVisibility.Hidden;
-
-            // Web（CEF）の 1 ノッチの px（A-71）を UITK の WheelEvent の行へ直す（前例 GameScrollView）
-            // Convert the Web (CEF) pixels per notch (A-71) into UITK WheelEvent lines (precedent GameScrollView)
-            mouseWheelScrollSize = WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
-
-            // バーの有無は流れの幅で決める。Auto は子の変形（押下の 1px 沈み）まで数えて押す間だけバーを出すので使わない（前例 GameScrollView）
-            // Bar presence follows the flow widths; Auto counts child transforms (the 1px press sink) and flashes the bar while pressed, so it is not used (precedent GameScrollView)
-            horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            contentContainer.RegisterCallback<GeometryChangedEvent>(_ => UpdateHorizontalScrollerVisibility());
-            contentViewport.RegisterCallback<GeometryChangedEvent>(_ => UpdateHorizontalScrollerVisibility());
-
-            #region Internal
-
-            void UpdateHorizontalScrollerVisibility()
-            {
-                var overflows = contentViewport.layout.width < contentContainer.layout.width;
-                horizontalScrollerVisibility = overflows ? ScrollerVisibility.AlwaysVisible : ScrollerVisibility.Hidden;
-            }
-
-            #endregion
-        }
-    }
-}
-```
-
 `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs`:
 ```csharp
 using System;
@@ -1548,7 +1825,7 @@ namespace Client.Ui.Screens.Challenge.Parts
             AddToClassList("challenge-list__categories");
             _group.AddToClassList(UiLayoutClass.GroupNoWrap);
             _group.AddToClassList("challenge-list__category-group");
-            var scroll = new ChallengeCategoryScrollView("challenge-categories-scroll");
+            var scroll = new GameScrollView("challenge-categories-scroll", GameScrollAxis.Horizontal);
             scroll.Add(_group);
             Add(scroll);
             TutorialAnchor.Mark(this, AnchorIds.ChallengeCategories);
@@ -2062,7 +2339,7 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             // 2 つのボタンは一覧の幅に収まるのでバーは出ず、列の高さはボタンの 36
             // Two buttons fit the list width, so no bar shows and the row is the 36 button height
             var row = Find<VisualElement>(rootVisualElement, "challenge-categories");
-            var scroll = Find<ScrollView>(rootVisualElement, "challenge-categories-scroll");
+            var scroll = Find<GameScrollView>(rootVisualElement, "challenge-categories-scroll");
             Assert.IsFalse(IsShown(scroll.horizontalScroller), "収まるときのバー");
             Assert.AreEqual(36f, row.layout.height, 0.5f, "収まるときの列の高さ");
 
@@ -2077,13 +2354,13 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Settle();
             Assert.LessOrEqual(last.worldBound.xMax, scroll.contentViewport.worldBound.xMax + 0.5f, "送ると末尾のボタンが見える");
 
-            // バーはゲームの共通のバーを横にした形（高さ 8・つまみ theme-scroller-thumb-face・角丸 4）で、列はバーの分だけ高い
-            // The bar is the game's shared bar laid sideways (8 tall, theme-scroller-thumb-face thumb, radius 4), and the row grows by the bar
-            Assert.AreEqual(8f, scroll.horizontalScroller.layout.height, 0.5f, "バーの高さ");
+            // バーはゲームのスクロール領域と同じ GameScrollView のバー（太さ --scrollarea-scrollbar-size・つまみ game-scroll-view-thumb-face）で、列はバーの分だけ高い
+            // The bar is the game's GameScrollView bar (--scrollarea-scrollbar-size thick, game-scroll-view-thumb-face thumb), and the row grows by the bar
+            var barSize = ThemeTokenFile.ResolvePixels("--scrollarea-scrollbar-size");
+            Assert.AreEqual(barSize, scroll.horizontalScroller.layout.height, 0.5f, "バーの太さ");
             var thumb = scroll.horizontalScroller.Q(className: "unity-base-slider__dragger");
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--theme-scroller-thumb-face"), thumb.resolvedStyle.backgroundColor, "つまみの色");
-            Assert.AreEqual(4f, thumb.resolvedStyle.borderTopLeftRadius, 0.01f, "つまみの角丸");
-            Assert.AreEqual(36f + 8f, row.layout.height, 0.5f, "越えたときの列の高さ");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--game-scroll-view-thumb-face"), thumb.resolvedStyle.backgroundColor, "つまみの色");
+            Assert.AreEqual(36f + barSize, row.layout.height, 0.5f, "越えたときの列の高さ");
         }
 
         [Test]
@@ -2126,8 +2403,8 @@ Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --p
 Expected: ErrorCount 0 / PASS（`ChallengeListViewTest` 5 件・`TutorialAnchorCoverageTest`・`UiStyleConventionTest`・`UiThemeImportBundleTest`・`UiLayerDependencyDirectionTest` を含む）
 - 日本語へ切り替えた後に名前が `[!challenge…]` になったら、言語の切り替えで合成し直した辞書にマスタの原文が残っていない。`done.md` の「未確認」に書き、`Localize.TrySetChosenLanguage("japanese")` の後に `Kit.LoadMasterAndDictionary()` の `MergeGameDictionaries` の 1 行をもう一度呼ぶ形に直す（本番は `MasterSourceTextCollector` を起動口で合成するので同じ欠けは無い。直した理由を同じ行に書く）
 - カードの高さが 0 か 18 前後なら `NodeGraphView.uss` の包みが中身を潰している。部品を直さず止めて指揮へ（S4-research の修正の後退）
-- 横スクロールの列の高さが 0 なら、横の `ScrollView` の content container が流れから外れている。`ChallengeList.uss` の `.challenge-list__categories-scroll .unity-scroll-view__content-container` に `position: relative` を足す。ボタンが縮んで越えないなら `.challenge-list__category-button`・`.challenge-list__category-group` の `flex-shrink: 0` が当たっているかを `uloop execute-dynamic-code` で `resolvedStyle.flexShrink` を読んで確かめる
-- バーの高さ・つまみの色・角丸が違えば、`Theme.uss` の `.unity-scroller` の規則（縦向けの `width: 8px`・`height: auto`）と Slider の `top: 50%` のどれが勝っているかを `resolvedStyle` で読み、`ChallengeList.uss` の横のバーの区画で上書きを足す（`Theme.uss` は触らない）
+- 横スクロールの列の高さが 0 なら、`GameScrollView` の横向きの content container が流れから外れている。Task 2b の `GameScrollViewHorizontalTest` が緑かを先に見て、部品の側（`GameScrollView.uss` の横の区画）で直す。画面の USS に `.unity-scroll-view__*` を書かない。ボタンが縮んで越えないなら `.challenge-list__category-button`・`.challenge-list__category-group` の `flex-shrink: 0` が当たっているかを `uloop execute-dynamic-code` で `resolvedStyle.flexShrink` を読んで確かめる
+- バーの太さ・つまみの色が違えば部品の横向きの不具合なので、Task 2b の切り分け（`GameScrollView.uss` の横の区画）へ戻る。画面の USS で上書きしない（`Theme.uss` も触らない）
 
 - [ ] **Step 8: コミットする**
 
@@ -2851,7 +3128,7 @@ git commit -m "test(uitk): S5-challenge の録画 uitk-challenge-list・uitk-cha
 ### Task 7: Web との並べ比べ・記帳・テスト名の突き合わせ
 
 **Files:**
-- Modify: `docs/uitk/TODO.md`（「## 実測の結論」の末尾に 1 行。並べ比べで例外を使うときだけ「## 見た目の例外」に LX-200〜202 の行）
+- Modify: `docs/uitk/TODO.md`（「## 実測の結論」の末尾に 1 行・「## 未撮影」の表の末尾に 1 行。並べ比べで例外を使うときだけ「## 見た目の例外」に LX-200〜202 の行）
 - Modify: `LOGS/harness/uitk/S5-challenge/done.md`（差の表）
 
 **Interfaces:**
@@ -2884,7 +3161,12 @@ cp <同>/01b-open-centered-2560x1080.png moorestech_client/.uloop/outputs/compar
 
 - [ ] **Step 3: 台帳に記帳する**
 
-`docs/uitk/TODO.md` の「## 実測の結論」の末尾（最後の箇条の次）に 1 行（見た目の例外の行は Step 2 で予備を使ったときだけ。カテゴリ列の横スクロールは写したので例外にしない）:
+`docs/uitk/TODO.md` の「## 未撮影」の表の末尾に 1 行:
+```markdown
+| 5 | challenge: カテゴリ列 | カテゴリが一覧の幅を越えたときの横のバー（UITK は `GameScrollView` の横向き: 流れの中・太さ `--scrollarea-scrollbar-size`・溝 `--game-scroll-view-track-face`・つまみ `--game-scroll-view-thumb-face`） | mock-host の challengeTree はカテゴリ 2 つで幅に収まり、実マスタは解放済みのカテゴリが 1 つ。Web は `::-webkit-scrollbar` の装飾が無く CEF の既定のバーになる（見た目と場所の取り方は未計測）。越える状態が撮れたら並べ比べ、差が残れば予備の LX-200 |
+```
+
+「## 実測の結論」の末尾（最後の箇条の次）に 1 行（見た目の例外の行は Step 2 で予備を使ったときだけ。カテゴリ列の横スクロールは写したので例外にしない）:
 ```markdown
 - S5-challenge カードの高さ（`NodeGraphView.uss` の包みの高さ 0 の削除の事後承認）: チャレンジのカードは包みの中で中身なりの高さ（L1 `ChallengeListViewTest` で上下の余白 24＋3 行。録画 `uitk-challenge-list` の進行中のカード <幅>×<高さ>）。部品は変えていない
 ```
@@ -2905,7 +3187,7 @@ Expected: PASS
 
 ```bash
 git add docs/uitk/TODO.md
-git commit -m "docs(uitk): S5-challenge のカードの高さの実測"
+git commit -m "docs(uitk): S5-challenge のカードの高さの実測とカテゴリ列の横バーの未撮影"
 ```
 `done.md` は `LOGS` 側（`LOGS/README.md` の手順でコミット・push）
 
@@ -2928,7 +3210,7 @@ git commit -m "docs(uitk): S5-challenge のカードの高さの実測"
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`
 Expected: ErrorCount 0 / PASS
-- 反映がソースの判定経路・条件式・その評価の時点（`ChallengeCategoryGraphHost.Render` の View の作成と付け替えの条件・`ChallengeCategoryGraph.Render` の渡し直しの条件・`ChallengeListModel` の組み直しの条件・選択ストアの戻し・`ChallengeScreenVisibility`・工場の状態の写し・`ChallengeCategoryScrollView` のバーの出し入れ）に触れたら、Task 6 の録画 2 本を反映後のバイナリで流し直し、`Success: true` を見てから完了にする
+- 反映がソースの判定経路・条件式・その評価の時点（`ChallengeCategoryGraphHost.Render` の View の作成と付け替えの条件・`ChallengeCategoryGraph.Render` の渡し直しの条件・`ChallengeListModel` の組み直しの条件・選択ストアの戻し・`ChallengeScreenVisibility`・工場の状態の写し・`GameScrollView` の横向きのバーの出し入れ）に触れたら、Task 6 の録画 2 本を反映後のバイナリで流し直し、`Success: true` を見てから完了にする
 
 - [ ] **Step 3: コミットする**
 
@@ -2958,7 +3240,8 @@ push して PR を作る（`gh pr create --base feature/uitk`）。セッショ�
   "summary": [
     "チャレンジ一覧（題・カテゴリのボタン列・NodeGraphView のノードカード）を UITK に移した。カードは PaperSurface に名前・概要・状態、進行中は青・完了は緑の 2px の輪、未解放は 0.55。カテゴリ列は幅を越えたら横に送れる（Web の overflow-x: auto）",
     "訪れたカテゴリごとに NodeGraphView を 1 本控えて付け替え、視点は View の寿命で保つ（I-fix6 と同じ形）。初回訪問だけ進行中へ寄せ、再訪と開き直しは前回の視点（裁定 2026-11-04）",
-    "S4-research の NodeGraphView.uss（包みの高さ 0 の削除）を事後承認し、カードが中身なりの高さで描かれることを L1 で固定した"
+    "S4-research の NodeGraphView.uss（包みの高さ 0 の削除）を事後承認し、カードが中身なりの高さで描かれることを L1 で固定した",
+    "部品 GameScrollView に横向き（GameScrollAxis）を足し、カテゴリ列の横スクロールに使った。画面の USS は部品の内側のクラスを書かない。縦の呼び出し側 13 か所は Vertical を明示"
   ],
   "media": [
     {"file": "<uitk-challenge-list の recording.mp4>", "caption": "uitk/stage5/uitk-challenge-list（UITK 側）", "group": "unityプレイ録画テスト"},
@@ -3017,12 +3300,12 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 
 ## Self-Review
 
-1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア）・Task 4（開き直しの L1）・Task 6。R-4 → Task 3（`ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`）・Task 4（L1 3 件。付け替えと View の数）。R-5 → Task 3（View・USS・`ChallengeCategoryScrollView`・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
-2. **Placeholder scan**: 「TBD」「後で」は無い。`<幅>×<高さ>`・`<PR番号>`・`<bd>`・出力ディレクトリは実行時に決まる値で、埋め方を同じ Step に書いた。横の `ScrollView` の content container の配置とバーの上書きの勝ち負けは実装時に `resolvedStyle` で確かめ、外れたときの直し方を Task 3 Step 7 に書いた
+1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア）・Task 4（開き直しの L1）・Task 6。R-4 → Task 3（`ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`）・Task 4（L1 3 件。付け替えと View の数）。R-5 → Task 3（View・USS・`GameScrollView` の横向き・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9。R-17 → Task 2b（`GameScrollAxis`・L1 2 件・呼び出し側 13 か所）。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
+2. **Placeholder scan**: 「TBD」「後で」は無い。`<幅>×<高さ>`・`<PR番号>`・`<bd>`・出力ディレクトリは実行時に決まる値で、埋め方を同じ Step に書いた。`GameScrollView` の横向きの content container の配置とバーの上書きの勝ち負けは実装時に `resolvedStyle` で確かめ、外れたときの直し方を Task 2b Step 3 に書いた
 3. **Type consistency**: `ChallengeNodeCardViewModel(Guid, Vector2, Vector2, IReadOnlyList<Guid>, ChallengeNodeState)`・`StateLabelKey`・`HasSameGraphPlacementAs` は Task 1・3（Kit・カード）・4 で同じ。`ChallengeListViewModel.Create(categories, selection)`・`ChallengeListViewModel.Empty`・`SelectedChallengeListViewModel.Categories/CategoryGuids/Selected`・`EmptyChallengeListViewModel` は Task 1・2・3・4 で同じ（View の switch と L0 の `AsSelected`）。`ChallengeCategoryViewModel.Create(guid, nodes)`・`TryGetInitialFocus`・`HasSameGraphAs` は Task 1・3 で同じ。`ChallengeListLogic.SameGuidSequence`・`DeriveStateLabelKey` は Task 1・3 で同じ。`ChallengeScreenVisibility.IsShown(UiRoutingSnapshot)` は Task 2・5 で同じ。`ChallengeCategoryGraph(ChallengeCategoryViewModel, IUiOsCursor)`・`View`・`Render` と `ChallengeCategoryGraphHost(IUiOsCursor)` は Task 3・4 で同じ。`ChallengeListView(IChallengeListCommands, IUiOsCursor)` と `Kit.MountList(UiLayerStack, IChallengeListCommands)` は Task 3・4・5 で同じ。`IChallengeListCommands.SelectCategory(Guid)` は `Client.Ui.State.Challenge.Commands` で Task 2・3・4・5 同じ。名前空間は State が `Client.Ui.State.Challenge`・`.Tree`・`.Tree.Selection`・`.Commands`、画面が `Client.Ui.Screens.Challenge.Tree`・`.Parts`、L1 が `Client.Tests.Ui.Screens.Challenge.Tree` で全タスク同じ
 4. **保留・縮退経路の解消可能性**: (a) `ChallengeListModel` は閉画面で組まず、解消の条件は「一覧への突入」（経路の通知で必ず来る）。表示中かは経路の今の値で読むので、選択ストアとの購読順で組み漏れも余分な組み直しも起きない。(b) 最小構成: 解放済みのカテゴリ 0（`EmptyChallengeListViewModel`。題だけ・グラフ無し。L1 `解放済みのカテゴリが無ければ…`）、カテゴリ 1・進行中 0（注目点無し → 寄せない・視点は原点。部品の既定）、初回（View を作る → 部品が寄せる）、カテゴリ列が幅に収まる（バーなし。L1）。どれも恒久の保留にならない。(c) `ChallengeCategoryGraph` の「中身が同じなら渡し直さない」は、カードの描き直しを先に済ませるので表示が古いまま残らない
 5. **「決定的にする」を根拠にした選択**: 「先頭のカテゴリ」「最初の進行中」は Web と同じ規則（`categories[0]`・`nodes.find`）で、順序は受信順＝マスタの並び（D-24）に従う（決定性ではなく Web と同じ結果になることが根拠）。開き直しで先頭へ戻すのは裁定 2026-11-04 の「今のまま」（D-2）。L0 で固定
-6. **呼び出し側への責務漏出**: 一覧を出すかの判定は `ChallengeScreenVisibility.IsShown` の 1 本（選択ストア・Model・Presenter が呼ぶ）。Guid の並びの比較は `ChallengeListLogic.SameGuidSequence` の 1 本（ボタン列とグラフの形の比較が呼ぶ）。状態→文言キーは State の `ChallengeListLogic.DeriveStateLabelKey` の 1 本で、画面は修飾クラスだけ。空か選択ありかの分岐は View の `Render` の 1 か所。前提の絞り込みは `ChallengeCategoryViewModel.Create` の 1 か所、View を作るか付け替えるかは `ChallengeCategoryGraphHost.Render` の 1 か所、渡し直すかは `ChallengeCategoryGraph.Render` の 1 か所（視点は部品の中にあり、画面は値を控えない）。バーの有無の幾何は `ChallengeCategoryScrollView` の 1 か所（`GameScrollView` と同じ式だが縦横が違い、共有部品にしない理由は D-7）
+6. **呼び出し側への責務漏出**: 一覧を出すかの判定は `ChallengeScreenVisibility.IsShown` の 1 本（選択ストア・Model・Presenter が呼ぶ）。Guid の並びの比較は `ChallengeListLogic.SameGuidSequence` の 1 本（ボタン列とグラフの形の比較が呼ぶ）。状態→文言キーは State の `ChallengeListLogic.DeriveStateLabelKey` の 1 本で、画面は修飾クラスだけ。空か選択ありかの分岐は View の `Render` の 1 か所。前提の絞り込みは `ChallengeCategoryViewModel.Create` の 1 か所、View を作るか付け替えるかは `ChallengeCategoryGraphHost.Render` の 1 か所、渡し直すかは `ChallengeCategoryGraph.Render` の 1 か所（視点は部品の中にあり、画面は値を控えない）。バーの有無の幾何は `GameScrollView` の `UpdateScrollerVisibility` の 1 か所（縦横の軸だけを選ぶ。D-7）
 
 ---
 
@@ -3036,7 +3319,7 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-4 S4-research の `NodeGraphView.uss` の事後承認（設計書 §7.1 に A-241 を足す。本文はこの D-4）**: `.node-graph__node` から `height: 0` を消した S4-research の修正（9a58258265。包みは幅 0・高さは中身なり・`align-items: flex-start`・子は `flex-shrink: 0`）を承認する。Web の包みは静的な div でカード自身が絶対配置なので中身なりの高さになる。UITK はカードが包みのフローの子なので、高さ 0 の包みは中身なりのカードを 0 に潰す（S4-research の実測 132×18 → 141）。画面の USS は `.node-graph*` を書けないので部品で直すのが正しい。チャレンジのカードが上下の余白 24＋3 行の高さで描かれることを `ChallengeListViewTest`（L1）と録画 `uitk-challenge-list` で固定した。持ち主 C4-d の部品の変更として記録し、このレーンは部品を変えない
 - **D-5 カードの組み立て**: 根は `PaperSurface`（sealed なので持ち手 `ChallengeNodeCard` が組み立てて `Root` で渡す）。Web の outline は拾わない子の輪（研究の前例）で、半径 6px（Paper の角丸 4px に沿う outline の外周）の数値は Web の CSS に無いブラウザの描き方なので画面 USS に直書きする（つまみを作らない）。`translate(-50%, -50%)` は USS、`scale(UIScale)` は C# の `style.scale`（中心を軸。Web と同じ）。指のカーソルは付けず、ビューポートの掴む手（`TreeView.module.css:11` の `cursor: grab`）を継ぐ（C4-d/done.md:67 の申し送りは研究のカードのもの。Web のチャレンジのカードは `cursor: pointer` もタップも持たない）。設計書 A-191 と §2 部品表（research・challenge は「ノードグラフの掴む手・カードの指」）はチャレンジのカードにも指を置くと読めるので、A-241 の本文案でチャレンジの部分を「カードは指を持たずビューポートの掴む手を継ぐ」に改める（`done.md` の「integrator への依頼」。設計書は指揮が写す）
 - **D-6 未解放の減光 0.55 は USS のリテラル**: GameUi は sRGB で合成する（設計書 A-180・I-blend）ので Web の値がそのまま使える。研究の `--research-node-locked-opacity` は Linear 合成の頃の補正のつまみで、チャレンジには作らない。`DerivedTokens.uss` に足さない（I-fix5 がファイルを分ける最中で、重ねない）
-- **D-7 カテゴリ列は `UiGroup(UiGap.Md)`＋nowrap を横の `ScrollView` に入れて写す**: Web の `.categories` は `flex-wrap: nowrap`・`overflow-x: auto` で、ボタンが一覧の幅を越えたら横に送れる。UITK は画面の部品 `Screens/Challenge/Parts/ChallengeCategoryScrollView`（`ScrollView(ScrollViewMode.Horizontal)`）に入れ、バーは流れの幅が見える幅を越えたときだけ出す（`Auto` は押下の 1px 沈みでバーが点滅するので、`GameScrollView.cs:43-63` と同じく幾何で決める）。ホイールの 1 ノッチは `WebWheelScale.PixelsPerNotch`。バーの見た目は Web にネイティブのバーの装飾が無く、参照キャプチャはどちらも幅に収まってバーが写っていない（CEF の既定の横バーは未計測）ので、ゲームの共通のバー（`Theme.uss:105-134` の縦バー＝Mantine ScrollArea の写し：8px・溝透明・つまみ `--theme-scroller-thumb-face`・角丸 4）を横にした形を画面 USS で当てる。`Theme.uss` は変えない。使い手が 1 画面なので共有部品にしない（§5.1。2 機能目で integrator が Components へ上げる）。見た目の例外は足さない（LX-200〜202 は並べ比べの差の予備）。L1 で「越えたら送れる・越えなければバーなし・バーの高さと色」を固定する。棄却: `overflow: hidden` で切って台帳に例外を記帳する — Web で届くボタンが UITK で押せなくなり、カテゴリが増えた時点で黙って壊れる
+- **D-7 カテゴリ列は `UiGroup(UiGap.Md)`＋nowrap を `GameScrollView` の横向きに入れて写す**（指揮の agent 既定（PLAN-W5 評価））: Web の `.categories` は `flex-wrap: nowrap`・`overflow-x: auto` で、ボタンが一覧の幅を越えたら横に送れる。UITK は `Components/Controls/GameScrollView` に向きの引数 `GameScrollAxis` を足し（Task 2b。Components の変更）、`GameScrollView("challenge-categories-scroll", GameScrollAxis.Horizontal)` に入れる。バーは中身が見える幅を越えたときだけ出し（`Auto` は押下の 1px 沈みでバーが点滅するので、縦と同じく幾何で決める）、本文の下の流れに置く（重ねると越えたときにボタンの下の 12px が押せなくなる。Web の `overflow-x: auto` の CEF の既定のバーも場所を取る。推測）。太さ・溝・つまみは縦と同じつまみで、ゲームの他のスクロール領域のバーと同じ見た目になる。ホイールの 1 ノッチは `WebWheelScale.PixelsPerNotch`。画面の USS は部品の内側のクラス（`unity-scroller__slider`・`unity-base-slider__*`・`unity-scroll-view__*`）を書かない（S5-crosscut T10 が `UiStyleConventionTest` に足す「`Screens/**/*.uss` のセレクタが `Components/**/*.uss` の定義する `__` 付きの内側クラスを含まない」に当たり、A-167 の「部品のクラスを画面が書かない」とも食い違うため）。`Theme.uss` は変えない。縦の呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数と引数 1 つの多重定義を作らない）。参照キャプチャはどちらも幅に収まってバーが写っていない（Web の CEF の既定の横バーは未計測。`W/src/**/*.css` に `::-webkit-scrollbar` は無い）ので、越えたときの見た目は台帳の「## 未撮影」に 1 行足す（Task 7。差が測れたら並べ比べ、要るなら予備の LX-200 を使う）。棄却: (a) 画面の部品 `Screens/Challenge/Parts/ChallengeCategoryScrollView`（`ScrollView` 派生）と画面 USS の内側のクラスの上書き（旧 D-7）— 部品の内側のクラスを画面が書き、S5-crosscut の検査に当たる。バーの有無の式とホイールの換算が `GameScrollView` と 2 本になる（A-167 の「画面ごとに別のスクロール部品」）。(b) `overflow: hidden` で切って台帳に例外を記帳する — Web で届くボタンが UITK で押せなくなり、カテゴリが増えた時点で黙って壊れる。(c) バーを縦と同じく本文に重ねる — 越えたときにボタンの下が押せない
 - **D-8 層と表示**: 一覧は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`。舞台の倍率と左右の余白に従う）。Presenter が 1 回だけ載せ、経路で `SetShown`（前例 `ResearchTreePresenter`）。Model は一覧の表示中だけ組む（前例 `ResearchTreeModel`）。進行中 HUD・ホットバー・キーヒントは上の層にあり、このレーンは触らない
 - **D-9 写すテストの割り振り**: `challengeLogic.test.ts` 2 件は L0。`challenge.spec.ts` の画面 2 件は L1。「常駐HUDをインベントリ・メニュー・操作モードで維持する」は、一覧の部分（HUD の位置が変わらない・一覧とカテゴリのボタンより上・層の順序）を L1 `ChallengeHudOverListTest` に `<web-test>` を付けて写し、画面を跨ぐ部分（インベントリ・一覧・研究・ビルドメニュー・ポーズ・配置・削除・1024×576）は録画 `uitk-challenge-hud-resident` で見る。L1 で全画面を載せると他レーンの View と Model を組む必要があり、テストが他レーンの持ち物に依存するため。帰結: `SubInventory` と列車の入れ子ポーズの 2 状態はブロックの設置と乗車が要るので録画に入れず、このレーンでは未検証（`done.md` の「未確認」）
 - **D-10 録画を 2 本にする**: 画面の録画 `uitk-challenge-list` と HUD の契約の録画 `uitk-challenge-hud-resident`。1 本にまとめると 200 行を越える。どちらもこのレーンの持ち分（ラダー `uitk-challenge-gate` は S5-ladder）。置き場は `scenarios/uitk/stage5/`（段のサブディレクトリの前例 `stage3/`、I-fix5 の 10n と同じ向き）
@@ -3060,6 +3343,6 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - 言語を日本語へ切り替えた後に、L1 で合成したマスタの原文が残るか（Task 3 Step 7 に直し方を書いた）
 - 実マスタで解放済みのカテゴリが 1 つのため、カテゴリの切り替えと横スクロールは録画で見ない（L1 だけ）
 - 複数行に折り返す名前・概要の行送り（Web の line-height 1.55/1.45/1.4）は参照に無く、比べていない
-- CEF（Chromium）の既定の横バーの見た目は未計測（参照キャプチャはどちらも幅に収まりバーが写らない）。ゲームの共通のバーを横にした形で写した（D-7）
-- 横の `ScrollView` で縦のホイールが横送りになるか（UITK は送る見込み、Chromium の `overflow-x: auto` は既定で送らない）は未計測。L1 は「ホイールが装備・ホットバーへ抜けない」だけを固定する
-- 横の `ScrollView` の content container が行の高さを持つか（0 なら `position: relative` を足す。Task 3 Step 7）は実装時に確かめる
+- CEF（Chromium）の既定の横バーの見た目と、場所を取るか重なるかは未計測（参照キャプチャはどちらも幅に収まりバーが写らない）。`GameScrollView` の横向きのバー（流れの中・太さ 12）で写し、台帳の「## 未撮影」に足す（D-7）
+- `GameScrollView` の横向きで縦のホイールが横送りになるか（UITK は送る見込み、Chromium の `overflow-x: auto` は既定で送らない）は未計測。L1 は「ホイールが装備・ホットバーへ抜けない」だけを固定する
+- `GameScrollView` の横向きの content container が行の高さを持つか（0 なら部品の横の区画に `position: relative` を足す。Task 2b Step 3）は実装時に確かめる
