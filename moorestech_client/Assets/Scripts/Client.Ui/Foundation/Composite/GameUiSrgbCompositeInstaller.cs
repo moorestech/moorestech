@@ -9,8 +9,8 @@ namespace Client.Ui.Foundation.Composite
     /// Only in the GameUi system, draws the panel into the sRGB composite RT and follows the screen size (A-180, A-183)
     /// </summary>
     /// <remarks>
-    /// Web の系では登録されないので RT も合成パスも作られない。パネルを差し替えるので、root.panel を控える入口より先に登録する
-    /// Not registered in the Web system, so neither the RT nor the composite passes exist; it swaps the panel, so it is registered before entry points that keep root.panel
+    /// Web の系では作られないので RT も合成パスも無い。GameUi の系では DI より前に GameUiPreDiFoundation が作って Initialize し、DI へは ITickable として渡す（S5-gate D-2）。パネルを差し替えるので root.panel を控える入口より先に立つ
+    /// Never built in the Web system, so neither the RT nor the composite passes exist; in the GameUi system GameUiPreDiFoundation builds and initializes it before DI and hands it to DI as an ITickable (S5-gate D-2); it swaps the panel, so it starts before entry points that keep root.panel
     /// </remarks>
     public sealed class GameUiSrgbCompositeInstaller : IInitializable, ITickable, IDisposable
     {
@@ -31,7 +31,7 @@ namespace Client.Ui.Foundation.Composite
         // No screen-size change notification exists, so compare every frame (precedent ScreenFrameReader)
         public void Tick()
         {
-            // silent-ok: 生成失敗は Initialize の例外として VContainer が LogException 済み / 開発者は Console の最初の例外で気づく
+            // silent-ok: 生成失敗は Initialize の例外として初期化の失敗（MainGameSceneLoadedHandler の LogError → メインメニュー）になり Tick は回らない / 開発者は Console の最初の例外で、プレイヤーはメインメニューへ戻ることで気づく
             if (_panelTarget == null) return;
             _panelTarget.SyncToScreenSize();
             UiSrgbCompositeSource.ReportWhenNotComposited();

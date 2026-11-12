@@ -45,13 +45,17 @@ namespace Client.Starter.Initialization
 
         private async UniTask FinalizeAsync(CancellationToken exitToken)
         {
+            var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
+
+            // GameUi の系では DI より前に土台を 1 本だけ立てる。言語ゲートも DI もこれを使う
+            // In the GameUi system the foundation is built once before DI; both the language gate and DI use it
+            starter.PrepareUiBeforeDi();
+
             // 出展モードは言語が決まるまで開始を止める。スキットとチュートリアルが英語で走り出す前に挟む
             // Event mode holds the start until a language is chosen, ahead of skits and tutorials starting in English
             // プレイテストの同意と前回異常終了の確認はタイトルで済んでいる（ADR 0065）
             // The playtest consent and the previous-crash confirmation were settled at the title (ADR 0065)
             await EventMode.EventModeStartGate.WaitForLanguageSelectionAsync(exitToken);
-
-            var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
             var resolver = starter.StartGame(_serverResult.HandshakeResponse, _serverResult.SaveGenerationWaiter, _collectsPlaytestRecords);
             new ClientDIContext(new DIContainer(resolver));
