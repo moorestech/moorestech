@@ -130,9 +130,11 @@
 ```bash
 pwd
 git fetch origin
-for lane in s5-challenge s5-gate s5-crosscut s2-ladder s3-ladder s4-gamma i-fix5; do echo "$lane $(git log origin/feature/uitk --merges --oneline --grep "uitk-lane/$lane" | head -1)"; done
+for lane in s5-challenge s5-gate s5-crosscut s2-ladder s3-ladder s4-gamma i-fix5 i-fix6; do echo "$lane $(git log origin/feature/uitk --merges --oneline --grep "uitk-lane/$lane" | head -1)"; done
 ```
-Expected: 7 行すべてにマージコミットが出る。S5-challenge・S5-gate・S5-crosscut・S2-ladder・S4-gamma のどれかが無ければ、無いレーンを `done.md`「状態: 停止（<レーン> 未マージ）」に書いて `cmux wait-for -S uitk-s5-ladder` を送り止める（ラダー 2・4・6 の前提と段階 5 の画面が無い）。I-fix5 が無いだけなら続け、Task 0 Step 2 のパスは実物に合わせる。レーンのブランチを `origin/feature/uitk` から切り直していなければ `git merge origin/feature/uitk`
+Expected: 8 行すべてにマージコミットが出る。S5-challenge・S5-gate・S5-crosscut・S2-ladder・S4-gamma のどれかが無ければ、無いレーンを `done.md`「状態: 停止（<レーン> 未マージ）」に書いて `cmux wait-for -S uitk-s5-ladder` を送り止める（ラダー 2・4・6 の前提と段階 5 の画面が無い）。I-fix5・I-fix6 が無いだけなら続け、次の読み替えをして `done.md`「証拠」に 1 行ずつ書く（どちらも並走で、このレーンより後に入るなら、入った後の取り込みで下の形へ戻す）:
+- I-fix5 が未マージ: Task 0 Step 2 のパスは実物に合わせる（段ごとの移動の前）。`Client.Tests/Ui/TestHost/LabelPlainText.cs` と `LocalizedLabel.SourceText` が無いので、Task 3 の `.PlainText()` を `.text` に、`using Client.Tests.Ui.TestHost;` を消し、Task 6 のローカル関数 `PlainText` を `label.text` から印を外すだけにする（I-fix5 の前は行送りの印も付かない）。`PauseMenu/` は 6→8 本（I-fix5 の後は `PauseMenuSubPageFlexTest.cs` が入って 7→9 本）
+- I-fix6 が未マージ: Task 3 の 8〜12 の前提の file:line（`BugReportFormView.cs:90`・`BugReportRecoveryControlsView.cs:49-51`）は素の Label の形のまま。テストはどちらでも同じに書ける（言語を切り替えてから `Apply`、読みは `.PlainText()`）。I-fix6 が後から入って `BugReportRecoveryControlsViewTest.cs` が衝突したら両方の行を採るレーンのブランチを `origin/feature/uitk` から切り直していなければ `git merge origin/feature/uitk`
 
 - [ ] **Step 2: ラダー 6 本と段階 5 の録画のパス**
 
@@ -148,12 +150,16 @@ Expected: 11 行すべてに 1 本ずつパスが出る（2 本出たら古い�
 grep -n "public static string ArmForNextBoot\|public static string Disarm" moorestech_client/Assets/Scripts/Client.Playtest/Boot/PlaytestEventLanguageGateBoot.cs
 grep -rn "class GameInitializedEvent" moorestech_client/Assets/Scripts | head -2
 grep -rn "class WebUiHost\b\|public static .* Hub" moorestech_client/Assets/Scripts/Client.WebUiHost/Boot/*.cs | head -3
-grep -n "public .*Categories\|public .*CurrentChallenges\|public .*IsUnlocked" -r moorestech_client/Assets/Scripts/Client.Ui.State/Challenge | head -5
+grep -n "public .*Categories" -r moorestech_client/Assets/Scripts/Client.Ui.State/Challenge | head -3
+grep -n "IsUnlocked\|CurrentChallenges" moorestech_client/Assets/Scripts/Client.Network/API/Responses.cs | head -4
+git grep -n "public void Dispose" -- moorestech_client/Assets/Scripts/Client.Ui/Screens/PauseMenu/PauseMenuScreenPresenter.cs
+ls moorestech_client/Assets/Scripts/Client.Tests/Ui/TestHost/LabelPlainText.cs; grep -n "SourceText" moorestech_client/Assets/Scripts/Client.Ui/Foundation/Text/LocalizedLabel.cs | head -2
+git grep -n "ChallengeListView" -- 'moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiScreenMountTest.cs'
 grep -rn "\"challenge-panel\"\|challenge-category-\|challenge-node-" moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge | head -5
 grep -rn "event-language-gate-option-" moorestech_client/Assets/Scripts/Client.Ui | head -2
 grep -c "{ AnchorIds" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
 ```
-Expected: 起動口の 2 つの public static、`GameInitializedEvent` の名前空間（Task 6 の `using Client.Game.Common;` と違えば直す）、`WebUiHost.Hub`（`Client.WebUiHost.Boot`）、`ChallengeProgressState` の `Categories`・`IsUnlocked`・`CurrentChallenges`（Task 6 のシナリオが使う。名前が違えば S5-challenge の `uitk-challenge-list.cs` の書き方へ合わせる）、testid 3 種、ゲートのボタンの名前、未移植の表の行 0（1 以上なら S5-challenge の消し忘れ。消すのはこのレーン Task 2 で、残っていた行と持ち主を `done.md` に書く）
+Expected: 起動口の 2 つの public static、`GameInitializedEvent` の名前空間（Task 6 の `using Client.Game.Common;` と違えば直す）、`WebUiHost.Hub`（`Client.WebUiHost.Boot`）、`ChallengeProgressState.Categories`（`Client.Ui.State/Challenge`）と、その要素 `ChallengeCategoryResponse` の `IsUnlocked`・`CurrentChallenges`（`Client.Network/API/Responses.cs:71-77`。Task 6 のシナリオが使う。名前が違えば S5-challenge の `uitk-challenge-list.cs` の書き方へ合わせる）、`PauseMenuScreenPresenter` の `Dispose` が 0 件（S5-crosscut T13 の後。残っていれば Task 3 のテスト 2・3 の TearDown で呼ぶ）、`LabelPlainText.cs` と `SourceText` の有無（I-fix5。無ければ Step 1 の読み替え）、`GameUiScreenMountTest` に `ChallengeListView` が載っているか（無ければ D-6 の「一覧の載り先は GameUiScreenMountTest」が成り立たないので、`done.md`「integrator への依頼」に「S5-crosscut の L3 の型の一覧に `ChallengeListView` を足す」を書き、D-6 の理由を「一覧の載りはラダー 6 の実起動が見る」に読み替えて `done.md` に書く）、testid 3 種、ゲートのボタンの名前、未移植の表の行 0（1 以上なら S5-challenge の消し忘れ。消すのはこのレーン Task 2 で、残っていた行と持ち主を `done.md` に書く）
 
 - [ ] **Step 4: 申し送りの見直し**
 
@@ -304,8 +310,8 @@ git commit -m "test(uitk): アンカーの未移植の表を消し、全アン�
 ### Task 3: 束 1 の写す予定 16 件を NUnit へ写す（R-9・bd moorestech-albof.21）
 
 **Files:**（`CT` = `moorestech_client/Assets/Scripts/Client.Tests`。.meta は書かない）
-- Create: `CT/Ui/Screens/PauseMenu/PauseMenuScreenPresenterTest.cs`・`CT/Ui/Screens/PauseMenu/PauseMenuFeedbackReportLabelsTest.cs`（PauseMenu 6→8 本）
-- Modify: `CT/Ui/Screens/PauseMenu/PauseMenuViewTest.cs`（180→約 188 行）
+- Create: `CT/Ui/Screens/PauseMenu/PauseMenuScreenPresenterTest.cs`・`CT/Ui/Screens/PauseMenu/PauseMenuFeedbackReportLabelsTest.cs`（PauseMenu 6→8 本。I-fix5 の `PauseMenuSubPageFlexTest.cs` が先に入っていれば 7→9 本。どちらも 10 本以下）
+- Modify: `CT/Ui/Screens/PauseMenu/PauseMenuViewTest.cs`（180→約 188 行。I-fix5 の後は 181→約 189 行）
 - Create: `CT/Ui/Screens/Settings/GraphicsQualityItemCommandsTest.cs`（Settings 4→5 本）
 - Modify: `CT/Ui/Screens/Settings/SettingsViewTest.cs`（173→約 187 行）
 - Create: `CT/Ui/Screens/BugReport/BugReportDeliveryStatusViewTest.cs`（BugReport 6→7 本）
@@ -351,6 +357,7 @@ using System.Linq;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.Commands;
@@ -433,7 +440,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 
         private string SendLabel()
         {
-            return Find<FormButton>(_view, "bug-report-send").Q<Label>().text;
+            return Find<FormButton>(_view, "bug-report-send").Q<Label>().PlainText();
         }
 
         // ページはホストが決めるので、押した後に偽モデルへ入れて描き直させる。スクロールバーの出し入れで 2 フレーム要る
@@ -454,7 +461,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 - `RecordingPauseMenuCommands.CompleteSubmit`・`PauseMenuCommandRecord`: `RecordingPauseMenuCommands.cs:22-36,60-65`
 - `PauseMenuView` の ctor・SetShown・ロケール印: `Client.Ui/Screens/PauseMenu/PauseMenuView.cs:36,74,155`
 - `SettingsCommands.SetLanguage` が `Localize.TrySetChosenLanguage` を呼ぶ: `Client.Ui.State/Settings/SettingsCommands.cs:31-35`（前例 `Client.Tests/Ui/State/SettingsCommandsTest.cs:41`）
-- 送信ボタン文言の読み方 `Q<Label>().text`: `BugReportFormSendViewTest.cs:102`
+- 送信ボタン文言の読み方 `Q<Label>().text`: `BugReportFormSendViewTest.cs:102`。I-fix5 の後は `LocalizedLabel.text` が行送りの印 `<line-height=Npx>` を前に付け、行末の約物を詰める改行も入るので、`Client.Tests.Ui.TestHost.LabelPlainText.PlainText()`（`origin/uitk-lane/i-fix5` の `Client.Tests/Ui/TestHost/LabelPlainText.cs:15-23`。`SourceText` から印を外す。素の Label は `text` から印を外す）で読む（I-fix5 が同じメソッドの題の読みをこの形へ変えた: `PauseMenuViewTest.cs:117`）
 - ページを 2 フレームで落ち着かせる: `PauseMenuViewTest.cs:171-178`
 - 期待の文言: `Localization/localization.csv:345-347`（Web の期待値と同じ）
 
@@ -474,6 +481,7 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.Screens.Settings;
 using Client.Tests.Ui.State;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
@@ -515,9 +523,10 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         }
 
         [TearDown]
-        public void DisposePresenter()
+        public void DestroyHost()
         {
-            _presenter.Dispose();
+            // Presenter はゲーム寿命で Dispose を持たない（S5-crosscut T13）。購読する源・ルータ・層はテストごとに作り直すので宿主を消すだけ
+            // The presenter is game-lifetime with no Dispose (S5-crosscut T13); its sources, router and layers are rebuilt per test, so only the host goes
             Object.DestroyImmediate(_host);
         }
 
@@ -564,7 +573,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.AreEqual("", Find<TextField>(view, "bug-report-description").value);
             Assert.AreEqual("", _draft.Description);
             Assert.AreEqual(PlaytestReportKind.Bug, _draft.Kind);
-            Assert.AreEqual("Send bug report", Find<FormButton>(view, "bug-report-send").Q<Label>().text);
+            Assert.AreEqual("Send bug report", Find<FormButton>(view, "bug-report-send").Q<Label>().PlainText());
         }
 
         // 本番の PauseMenuState.OnEnter と同じく、遷移したら開いたことを知らせる
@@ -589,7 +598,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 ```
 
 前提にした既存 API:
-- `PauseMenuScreenPresenter` の ctor・Initialize（View を `UiLayer.PauseMenu` の層へ載せ、`OnPauseMenuOpened` で `_draft.Reset()`、ルータで SetShown）・Dispose: `Client.Ui/Screens/PauseMenu/PauseMenuScreenPresenter.cs:33,46-68,70-75`
+- `PauseMenuScreenPresenter` の ctor・Initialize（View を `UiLayer.PauseMenu` の層へ載せ、`OnPauseMenuOpened` で `_draft.Reset()`、ルータで SetShown）: `Client.Ui/Screens/PauseMenu/PauseMenuScreenPresenter.cs:33,46-68`。起草時の `Dispose`（:70-75）は S5-crosscut T13（DC-32 A）がゲーム寿命の型から外すので、テストは呼ばない。購読の源（`PauseMenuModel`・`UiRoutingState`）はどちらもテストごとに作る物で、静的な源を購読しないので漏れない。Task 0 Step 3 の grep で `PauseMenuScreenPresenter` に `Dispose` が残っていたら（T13 が D-16 で残した型）、TearDown の先頭で `_presenter.Dispose();` を呼ぶ形に戻す
 - `UiRoutingStateTestFactory.CreateSwitchable`・`Transit`: `Client.Tests/Ui/Screens/Inventory/Support/UiRoutingStateTestFactory.cs:26,53`（前例 `Client.Tests/Ui/Screens/Recipe/Input/RecipeSelectionCloseResetTest.cs:30,49`）
 - `GameUiRootTestFactory.Create`: `Client.Tests/Ui/Screens/Inventory/Support/GameUiRootTestFactory.cs:15`（前例 `Client.Tests/Ui/Screens/Skit/SkitScreenPresenterTest.cs:103`）
 - `PauseMenuModelTestFactory.Create`（internal・同じ Tests.asmdef）: `Client.Tests/Ui/State/PauseMenuModelTestFactory.cs:15-20`
@@ -601,8 +610,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 
 #### 4. `src/features/pauseMenu/PauseMenuPanel.test.ts`「設定画面は言語選択と戻るボタンを出し、戻るはtopへのshow_pageを送る」
 
-- 置き場: **Modify** `Client.Tests/Ui/Screens/PauseMenu/PauseMenuViewTest.cs`。既存メソッド `設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る`（112-128 行）を下で置き換える（web-test の 1 行と、走りと画質の節の assert を足す）
-- using の追加: `using Client.Ui.Screens.Settings;`
+- 置き場: **Modify** `Client.Tests/Ui/Screens/PauseMenu/PauseMenuViewTest.cs`。既存メソッド `設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る`（起草時 112-128 行。I-fix5 の後は 113-129 行で、題の読みが `.PlainText()`）を、メソッド名で探して下で置き換える（web-test の 1 行と、走りと画質の節の assert を足す。題の読みは I-fix5 の後の `.PlainText()` のまま。メソッド全体を `.text` の形で上書きして I-fix5 の変更を戻さない）
+- using の追加: `using Client.Ui.Screens.Settings;`（`using Client.Tests.Ui.TestHost;` は I-fix5 が足す。I-fix5 が未マージなら足さず、下の `.PlainText()` を `.text` に読み替える）
 - 埋める穴: Web が見る `sprint-mode-select` と `graphics-quality-settings` が設定画面に出ること。`graphics-quality-settings` は Web テストのモックが付けた testid で、本番の Web にも UITK にも無いので、UITK では型 `GraphicsQualitySettingsView` と、その先頭の択一 `graphics-preset` で見る
 - 期待: PASS（推測）
 
@@ -612,7 +621,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         public void 設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る()
         {
             ShowPage(PauseMenuPage.Settings);
-            Assert.AreEqual("Settings", _view.Q<Label>(className: "pause-menu__title").text);
+            Assert.AreEqual("Settings", _view.Q<Label>(className: "pause-menu__title").PlainText());
             Assert.IsNotNull(_view.Q("language-select"));
             Assert.IsNull(_view.Q("pause-menu-save"));
             Assert.IsInstanceOf<GameScrollView>(Find<VisualElement>(_view, "pause-menu-body"));
@@ -810,7 +819,7 @@ namespace Client.Tests.Ui.Screens.Settings
 
 - 置き場: **Create** `Client.Tests/Ui/Screens/BugReport/BugReportDeliveryStatusViewTest.cs`
 - 埋める穴: 8 は配送の行と状態の行（送れない理由）を同じ画面に同時に出すこと。文言は BugReportFormTextTest にあるが View のテストが無い。9・10 は全言語の本番辞書（UITK は日本語だけ）
-- 配送の行は素の Label で、`Apply` の時に解決した文字列が入る（`BugReportFormView.cs:90`）。Web は辞書を後から差し替えて描き直すが、UITK は言語を切り替えてから `Apply` する（下の「確かめられなかった前提」4）
+- 配送の行は起草時は素の Label で、`Apply` の時に解決した文字列が入る（`BugReportFormView.cs:90`）。I-fix6 の後は `LocalizedLabel` で `SetText(DescribeDelivery(...))`（`DescribeDelivery` が `UiText` を返す。`origin/uitk-lane/i-fix6` の `BugReportFormView.cs:71,90`）。Web は辞書を後から差し替えて描き直すが、UITK はどちらの形でも言語を切り替えてから `Apply` すれば同じ文になる。読みは `.PlainText()`（I-fix5 の行送りの印を外す）
 - 期待: どれも PASS（推測）
 
 ```csharp
@@ -822,6 +831,7 @@ using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.PauseMenu;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.State.PauseMenu;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -860,7 +870,7 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             // 確保セッションが無い状態で配送状況を流す
             // Push the delivery status while there is no capture session
-            Localize.TrySetChosenLanguage("japanese");
+            Assert.IsTrue(Localize.TrySetChosenLanguage("japanese"), "日本語へ切り替えられる");
             Type("broken belt");
             View.Apply(new PauseMenuViewModel(PauseMenuPage.BugReport, false, FakePauseMenuModel.Capture(BugReportCaptureStatus.NoSession), delivery, PlaytestExportIdle.Instance));
 
@@ -868,10 +878,10 @@ namespace Client.Tests.Ui.Screens.BugReport
             // Both the delivery line and one status line with the blocking reason show, and send is disabled
             var deliveryLine = Find<Label>(View, "bug-report-delivery");
             Assert.IsTrue(IsShown(deliveryLine));
-            Assert.AreEqual(expected, deliveryLine.text);
+            Assert.AreEqual(expected, deliveryLine.PlainText());
             var statusLines = View.Query<Label>("bug-report-status").ToList();
             Assert.AreEqual(1, statusLines.Count);
-            Assert.AreEqual("記録を確保するためポーズメニューを開き直してください", statusLines[0].text);
+            Assert.AreEqual("記録を確保するためポーズメニューを開き直してください", statusLines[0].PlainText());
             Assert.IsFalse(SendButton().enabledSelf);
         }
 
@@ -879,12 +889,12 @@ namespace Client.Tests.Ui.Screens.BugReport
         [TestCaseSource(nameof(LanguageCodes))]
         public void 各言語の本番辞書で配送不能件数を出し旧い復旧案内を出さない(string languageCode)
         {
-            Localize.TrySetChosenLanguage(languageCode);
+            Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             ApplyDelivery(new PlaytestDeliveryPending(Counts(0, 2)));
 
             // 失敗件数が数字で残り、未翻訳キーと旧い再送復旧の案内が出ない
             // The failed count stays as a number, with no untranslated key and no old resend-recovery guidance
-            var text = Find<Label>(View, "bug-report-delivery").text;
+            var text = Find<Label>(View, "bug-report-delivery").PlainText();
             StringAssert.Contains("2", text);
             StringAssert.DoesNotContain(UntranslatedKeyPrefix, text);
             StringAssert.DoesNotMatch("再送復旧|recover|Wiederherstellung|재전송 복구", text);
@@ -894,12 +904,12 @@ namespace Client.Tests.Ui.Screens.BugReport
         [TestCaseSource(nameof(LanguageCodes))]
         public void 各言語の本番辞書で件数不明を完了や0件にしない(string languageCode)
         {
-            Localize.TrySetChosenLanguage(languageCode);
+            Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxInventoryUnavailable("access denied")));
 
             // 読めなかった理由が残り、0 件や未翻訳キーにならない
             // The unreadable reason stays, never turning into zero counts or an untranslated key
-            var text = Find<Label>(View, "bug-report-delivery").text;
+            var text = Find<Label>(View, "bug-report-delivery").PlainText();
             StringAssert.Contains("access denied", text);
             StringAssert.DoesNotContain("0", text);
             StringAssert.DoesNotContain(UntranslatedKeyPrefix, text);
@@ -932,10 +942,10 @@ namespace Client.Tests.Ui.Screens.BugReport
 #### 11. `src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts`「%s辞書でボタン2つと書き出し中の文言が未翻訳キーにならない」
 #### 12. 同「%s辞書で完了・欠落・開けなかった案内・失敗の文言が未翻訳キーにならない」
 
-- 置き場: **Modify** `Client.Tests/Ui/Screens/BugReport/BugReportRecoveryControlsViewTest.cs`。`救出ボタンは配送状況で出し分け書き出し中は押せない`（53 行の `}`）の直後に下の 3 メンバ（LanguageCodes と 2 テスト）を足す
-- using の追加: `using System.Collections.Generic;`・`using Client.Localization;`・`using Client.PlaytestReceiver.Recovery;`（既にある）・`using Client.Ui.Components.Controls;`・`using Mooresmaster.Localization.Generated;`
+- 置き場: **Modify** `Client.Tests/Ui/Screens/BugReport/BugReportRecoveryControlsViewTest.cs`。`救出ボタンは配送状況で出し分け書き出し中は押せない` の閉じ括弧（起草時 53 行）の直後に下の 3 メンバ（LanguageCodes と 2 テスト）を足す。行番号でなくメソッド名で位置を探す（I-fix6 が同じファイルの 37 行目を `DescribeDelivery(...).Resolve()` へ変えている。取り込みの衝突は両方を採る）
+- using の追加: `using System.Collections.Generic;`・`using Client.Localization;`・`using Client.PlaytestReceiver.Recovery;`（既にある）・`using Client.Tests.Ui.TestHost;`・`using Client.Ui.Components.Controls;`・`using Mooresmaster.Localization.Generated;`
 - 埋める穴: 全言語。汎用の LocalizationDictionaryCoverageTest は空訳だけを見て、差し込み値が残るかは見ない
-- 書き出しの行も素の Label で `Apply` の時に解決する（`BugReportRecoveryControlsView.cs:49-51`）。言語を切り替えてから `Apply` する
+- 書き出しの行は起草時は素の Label で `Apply` の時に解決する（`BugReportRecoveryControlsView.cs:49-51`）。I-fix6 の後は `LocalizedLabel` で `SetText(UiText)` し、言語の変更で解き直す（`origin/uitk-lane/i-fix6` の同じファイル。`HasExportLine` で行の有無を決める）。どちらでも言語を切り替えてから `Apply` すれば同じ文が出るので、テストはそのまま通る見込み。読みは `.PlainText()`
 - 期待: どちらも PASS（推測）
 
 ```csharp
@@ -950,13 +960,13 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             // 失敗ありの書き出し中で、再送・書き出し・書き出し状況の 3 つを出す
             // Exporting with failures shows all three: resend, export and the export status
-            Localize.TrySetChosenLanguage(languageCode);
+            Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(1, 16)), PlaytestExportRunning.Instance);
             var texts = new[]
             {
-                Find<FormButton>(View, "bug-report-resend-failed").Q<Label>().text,
-                Find<FormButton>(View, "bug-report-export-unsent").Q<Label>().text,
-                Find<Label>(View, "bug-report-export-status").text,
+                Find<FormButton>(View, "bug-report-resend-failed").Q<Label>().PlainText(),
+                Find<FormButton>(View, "bug-report-export-unsent").Q<Label>().PlainText(),
+                Find<Label>(View, "bug-report-export-status").PlainText(),
             };
 
             // どれも空でなく未翻訳キーでもない
@@ -974,10 +984,10 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             // 完了・欠落・開けなかった案内を 1 行にした文に、差し込み値が全部残る
             // The done, missing and not-revealed sentence keeps every inserted value
-            Localize.TrySetChosenLanguage(languageCode);
+            Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             var missing = new[] { new PlaytestExportMissing("reports/x/video.mp4", "IOException") };
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(1, 16)), new PlaytestExportDone("/exports/unsent-reports.zip", 17, missing, false));
-            var done = Find<Label>(View, "bug-report-export-status").text;
+            var done = Find<Label>(View, "bug-report-export-status").PlainText();
             StringAssert.Contains("/exports/unsent-reports.zip", done);
             StringAssert.Contains("17", done);
             StringAssert.Contains("reports/x/video.mp4", done);
@@ -987,7 +997,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             // 失敗の文に理由が残る
             // The failure sentence keeps its reason
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(1, 16)), new PlaytestExportFailed("desktop folder unavailable"));
-            var failed = Find<Label>(View, "bug-report-export-status").text;
+            var failed = Find<Label>(View, "bug-report-export-status").PlainText();
             StringAssert.Contains("desktop folder unavailable", failed);
             StringAssert.DoesNotContain("ui.bugReport.", failed);
         }
@@ -1006,7 +1016,7 @@ namespace Client.Tests.Ui.Screens.BugReport
 - 置き場: **Modify** `Client.Tests/Ui/Screens/BugReport/BugReportFormViewTest.cs`
   - 13: 既存メソッド `応答待ちが終わってもホスト送信中は種別と本文を保護する`（63-73 行）を下の `応答待ちが終わってもホスト送信中は種別と本文を保護しreadyで解く` で**置き換える**（既存はホストの Submitting を Apply するだけで、送信を通らない）
   - 14: クラスの末尾（置き換えたメソッドの後）に足す
-- using の追加: `using Client.Game.InGame.BugReport.Playtest;`・`using Client.Localization;`・`using Client.Tests.Ui.Screens.PauseMenu;`・`using Client.Ui.State.Commands;`・`using Client.Ui.State.Toast;`
+- using の追加: `using Client.Game.InGame.BugReport.Playtest;`・`using Client.Localization;`・`using Client.Tests.Ui.Screens.PauseMenu;`・`using Client.Tests.Ui.TestHost;`・`using Client.Ui.State.Commands;`・`using Client.Ui.State.Toast;`
 - 13 で埋める穴: 送信 → ホスト送信中 → ローカルの応答が終わる、の後もロックが残り、成功のトーストを出さず、ready で解けること。Web はローカルの応答を失敗（`resolveSubmit(false)`）で終えるので、UITK も拒否で終える
 - 14 で埋める穴: 本番辞書の文言そのもの（UITK はキーの選び分けだけを見ていた）
 - 期待: どちらも PASS（推測）
@@ -1032,7 +1042,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsFalse(SendButton().enabledSelf);
             var statusLines = View.Query<Label>("bug-report-status").ToList();
             Assert.AreEqual(1, statusLines.Count);
-            Assert.AreEqual("Writing the impressions…", statusLines[0].text);
+            Assert.AreEqual("Writing the impressions…", statusLines[0].PlainText());
 
             // 送った中身は感想で、成功のトーストは出ない
             // The payload was impressions and no success toast shows
@@ -1066,12 +1076,12 @@ namespace Client.Tests.Ui.Screens.BugReport
             // 辞書を切り替えてからホスト送信中へ移る（Web と同じく辞書の差し替え後の状態遷移を見る）
             // Switch the dictionary, then move to host submitting (the transition after a dictionary swap, as on the Web)
             Draft.SetKind(kind);
-            Localize.TrySetChosenLanguage(locale);
+            Assert.IsTrue(Localize.TrySetChosenLanguage(locale), $"言語 {locale} へ切り替えられる");
             View.Apply(Model(BugReportCaptureStatus.Submitting));
 
             var statusLines = View.Query<Label>("bug-report-status").ToList();
             Assert.AreEqual(1, statusLines.Count);
-            Assert.AreEqual(expected, statusLines[0].text);
+            Assert.AreEqual(expected, statusLines[0].PlainText());
         }
 ```
 
@@ -1086,7 +1096,7 @@ namespace Client.Tests.Ui.Screens.BugReport
 #### 15. `src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts`「感想でも欠損時は従来の通知を出す」
 #### 16. 同「感想送信中の表示とロックを保ち、送信開始時の種別で完了を伝える」
 
-- 置き場: **Modify** `Client.Tests/Ui/Screens/BugReport/BugReportFormSendViewTest.cs`。クラスの末尾（`送信が拒否されると成功通知を出さず下書きを残す` の後）に 2 つ足す。using の追加は無し（`Localize`・`LocalizationKeys`・`GameUiToastVariant`・`PlaytestReportKind`・`UiCommandAccepted` は既にある）
+- 置き場: **Modify** `Client.Tests/Ui/Screens/BugReport/BugReportFormSendViewTest.cs`。クラスの末尾（`送信が拒否されると成功通知を出さず下書きを残す` の後）に 2 つ足す。using の追加は `using Client.Tests.Ui.TestHost;` だけ（`Localize`・`LocalizationKeys`・`GameUiToastVariant`・`PlaytestReportKind`・`UiCommandAccepted` は既にある）
 - 15 で埋める穴: 欠損のエラーのトーストは種別バグでしか見ていなかった
 - 16 で埋める穴: 送信中に下書きの種別が変わっても、完了は送信開始時の種別で伝えること
 - 期待: どちらも PASS（推測）
@@ -1122,7 +1132,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
             Type("感想");
             simulate.Click(SendButton());
-            Assert.AreEqual("Writing the impressions…", Status().text);
+            Assert.AreEqual("Writing the impressions…", Status().PlainText());
             Assert.IsFalse(SendButton().enabledSelf);
             Assert.IsFalse(Find<Button>(View, "bug-report-kind-feedback").enabledSelf);
             Assert.IsFalse(Find<Button>(View, "bug-report-kind-bug").enabledSelf);
@@ -1153,7 +1163,7 @@ namespace Client.Tests.Ui.Screens.BugReport
 uloop compile --project-path ./moorestech_client
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.(PauseMenu|Settings|BugReport)\."
 ```
-Expected: `ErrorCount: 0`、テスト 5 以外の 15 本（展開後の全件）が PASS、既存のテストも PASS。新しいテストは 1 回だけ期待値を壊して FAIL を見てから戻す（例: テスト 1 の期待の文字列を 1 字変える）。PASS しないものは、テストの前提（クリック・スクロール・遷移の同期）の誤りか本番の不具合かを切り分け、テストの誤りなら直し、本番の不具合なら bd（`--parent <Task 0 の ID>`）と `done.md`「未完了」へ書いてそのテストの処遇を Step 2 と同じ判定にかける（このレーンは本番を直さない）
+Expected: `ErrorCount: 0`、テスト 5 以外の 15 本（展開後の全件）が PASS、既存のテストも PASS。置き換える既存の 2 メソッド（テスト 4・13）は、旧メソッドの assert が新メソッドに全部残っていることを `git diff` で見る（死活表の 2 行）。言語の切り替えは `Assert.IsTrue(Localize.TrySetChosenLanguage(..))` で真を主張する（偽のまま前の言語で読んで通ることを防ぐ）。新しいテストは 1 回だけ期待値を壊して FAIL を見てから戻す（例: テスト 1 の期待の文字列を 1 字変える）。PASS しないものは、テストの前提（クリック・スクロール・遷移の同期）の誤りか本番の不具合かを切り分け、テストの誤りなら直し、本番の不具合なら bd（`--parent <Task 0 の ID>`）と `done.md`「未完了」へ書いてそのテストの処遇を Step 2 と同じ判定にかける（このレーンは本番を直さない）
 
 - [ ] **Step 2: テスト 5（画質の連続操作）の判定**
 
@@ -1168,7 +1178,7 @@ Expected: `ErrorCount: 0`、テスト 5 以外の 15 本（展開後の全件）
 ```bash
 node tools/uitk/test-name-parity.mjs --bundle 1; echo "exit=$?"
 ```
-Expected: 「束 1: … / 写す予定 0 / 未対応 0」・exit=0（Step 2 の 3 の分岐なら写す予定 1）。テスト 13 は「成功（Info）のトーストを出さない」だけを見る（Web は失敗でも何も出さないが、UITK の拒否は `UiCommandResultToaster.Report` がエラーのトーストにする。この差を `done.md`「差の表」に書き、並べ比べの対象外として X-prerun へ回す）
+Expected: 「束 1: … / 写す予定 0 / 未対応 0」・exit=0（Step 2 の 3 の分岐なら写す予定 1）。テスト 13 は「成功（Info）のトーストを出さない」だけを見る（拒否のエラーのトーストは Web も出す: `dispatchAction` が失敗をトーストにする〈`moorestech_web/webui/src/bridge/transport/actions.ts:79`・`src/features/pauseMenu/BugReportForm.tsx:50`〉。UITK は `UiCommandResultToaster.Report` が同じくエラーのトーストにするので差ではなく、差の表にも X-prerun にも回さない）
 
 - [ ] **Step 4: コミット**
 
