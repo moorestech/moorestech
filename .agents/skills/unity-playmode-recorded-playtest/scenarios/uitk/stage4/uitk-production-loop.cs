@@ -11,6 +11,7 @@ using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
 using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -35,7 +36,12 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     InputSystem.EnableDevice(Mouse.current);
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    // 重い機械では1回の Skip で開幕スキットが終わらないことがあるので、Story のままなら飛ばし直し回数を Note に残す
+    // On a loaded machine one skip may not end the opening skit, so skip again while in Story and note the rounds
+    var skitSkipRounds = 1;
     await p.SkipOpeningSkitIfPlaying();
+    while (skitSkipRounds < 4 && !await PlaytestUiOps.PollUiState(UIStateEnum.GameScreen, 5f)) { skitSkipRounds++; await p.SkipOpeningSkitIfPlaying(); }
+    p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
     await p.ExitToGameScreen();
     p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi（UITK側）");
     p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（UITK側）");
@@ -45,7 +51,9 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     var bronzeDust = PlaytestItemOps.ResolveItemId("青銅鉱石の粉");
     var ingot = PlaytestItemOps.ResolveItemId("青銅インゴット");
     await p.GiveItem("原木", 12);
-    await p.GiveItem("青銅鉱石の粉", 4);
+    // 粉は1個だけ渡し、出力が1個で止まるようにする（2個目ができると出力枠の「1」の確認が競る）
+    // Give a single dust so the output stops at one ingot (a second one would race the "1" check on the output slot)
+    await p.GiveItem("青銅鉱石の粉", 1);
 
     // 掴みの申し送り（C4-e D-36・Warning）の警告を数え、終わりに Note へ出す
     // Count the grab hand-off warnings (C4-e D-36 and Warnings) and note them at the end
