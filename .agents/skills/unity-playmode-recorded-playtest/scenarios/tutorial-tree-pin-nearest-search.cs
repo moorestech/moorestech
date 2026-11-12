@@ -49,7 +49,10 @@ return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =
     // 2. (a) 索引の最寄りが総当たりの最寄りと同じ距離
     // 2. (a) The index's nearest has the same distance as the brute-force nearest
     var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
-    await p.Until(() => datastore.IsAllInstantiated.Value, 30f, "マップオブジェクトが全部生成された");
+    // 後着の生成は 1 フレーム 4ms で数分かかるので待たない。索引と総当たりは同じフレームで同じ生成済みの集合を見る
+    // Background instantiation runs at 4ms a frame and takes minutes, so skip it; index and brute force read the same instantiated set in one frame
+    await p.Until(() => datastore.SearchNearestMapObject(treeCandidates, p.PlayerPosition) != null, 30f, "索引が最寄りの木を返す");
+    p.Note($"全生成済み={datastore.IsAllInstantiated.Value}");
     var position = p.PlayerPosition;
     var indexed = datastore.SearchNearestMapObject(treeCandidates, position);
     var brute = BruteForceNearest(position, -1);
