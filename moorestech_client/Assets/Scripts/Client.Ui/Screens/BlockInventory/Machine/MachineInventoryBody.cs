@@ -4,6 +4,7 @@ using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Machine;
@@ -99,7 +100,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                     var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
                     label.AddToClassList(UiTypographyClass.TextMd);
                     label.SetKey(LocalizationKeys.Ui.BlockInventory.ProductionPerMinute);
-                    var number = new Label { pickingMode = PickingMode.Ignore };
+                    var number = new WrapSafeLabel { pickingMode = PickingMode.Ignore };
                     number.AddToClassList(UiTypographyClass.TextMd);
                     row.AddItem(label);
                     row.AddItem(number);

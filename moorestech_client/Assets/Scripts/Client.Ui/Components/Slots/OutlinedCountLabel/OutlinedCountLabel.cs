@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.State.Text;
 using UniRx;
 using UnityEngine.UIElements;
@@ -36,7 +37,7 @@ namespace Client.Ui.Components.Slots
 
             Label CreateLayer(string layerClass)
             {
-                var layer = new Label { pickingMode = PickingMode.Ignore };
+                var layer = new WrapSafeLabel { pickingMode = PickingMode.Ignore };
                 layer.AddToClassList("outlined-count-label");
                 layer.AddToClassList(layerClass);
                 layer.AddToClassList(placementClass);

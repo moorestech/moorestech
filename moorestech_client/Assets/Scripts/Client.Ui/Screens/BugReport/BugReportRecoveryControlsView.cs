@@ -1,6 +1,7 @@
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -29,7 +30,7 @@ namespace Client.Ui.Screens.BugReport
             _resendButton.OnClicked.Subscribe(_ => commands.ResendFailedReports());
             _exportButton = CreateButton("bug-report-export-unsent", LocalizationKeys.Ui.BugReport.ExportUnsent);
             _exportButton.OnClicked.Subscribe(_ => commands.ExportUnsentReports());
-            _exportStatus = new Label { name = "bug-report-export-status" };
+            _exportStatus = new WrapSafeLabel { name = "bug-report-export-status" };
             _exportStatus.AddToClassList("bug-report__status");
             Add(_resendButton);
             Add(_exportButton);

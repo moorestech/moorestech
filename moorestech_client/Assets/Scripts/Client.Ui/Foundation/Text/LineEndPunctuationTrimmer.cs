@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Text.WrapSafe;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,6 +19,7 @@ namespace Client.Ui.Foundation.Text
         private const int TicksBeforeReading = 2;
 
         private readonly Label _label;
+        private readonly InlineWhiteSpaceHolds _whiteSpace;
         private readonly LineEndPunctuationLayoutWidth _layoutWidth = new();
         private LineEndPunctuationMeasurer _measurer;
         private string _prefix;
@@ -26,12 +28,11 @@ namespace Client.Ui.Foundation.Text
         private TrimPhase _phase = TrimPhase.Plain;
         private float _measuredWidth;
         private LineEndTextStyle _measuredStyle;
-        private bool _wrapOverridden;
-        private StyleEnum<WhiteSpace> _inlineWhiteSpaceBeforeOverride;
 
-        public LineEndPunctuationTrimmer(Label label)
+        public LineEndPunctuationTrimmer(Label label, InlineWhiteSpaceHolds whiteSpace)
         {
             _label = label;
+            _whiteSpace = whiteSpace;
             _label.RegisterCallback<GeometryChangedEvent>(_ => OnGeometryChanged());
             _label.RegisterCallback<CustomStyleResolvedEvent>(_ => OnStyleResolved());
             _label.RegisterCallback<DetachFromPanelEvent>(_ => OnDetachedFromPanel());
@@ -68,7 +69,7 @@ namespace Client.Ui.Foundation.Text
         {
             _generation++;
             _measurer?.End();
-            RestoreInlineWhiteSpace();
+            _whiteSpace.Release(WhiteSpaceHoldReason.LineEndTrim);
             _layoutWidth.ForgetConstraints();
             _label.text = _prefix + _source;
             _phase = LineEndPunctuationTrim.CanTrim(_source) ? TrimPhase.WaitingForLayout : TrimPhase.Plain;
@@ -95,9 +96,14 @@ namespace Client.Ui.Foundation.Text
             var width = _label.contentRect.width;
             // silent-ok: パネルに載って幅が決まるまで原文を普通に折り返して描く / 載った後の GeometryChangedEvent でここへ戻る
             if (_label.panel == null || !(width > 0f)) return;
+            var measureWidth = _layoutWidth.ChooseMeasureWidth(_label);
+            // 測り役が折り返すと UITK が固まる幅では測らず原文のまま待つ
+            // Too narrow for the measurer to wrap without freezing UITK; keep the source and wait
+            // silent-ok: 見えるラベルは NarrowWrapGuard が折り返しを止めて LogWarning を出す / 広がった GeometryChangedEvent でここへ戻る
+            if (measureWidth < NarrowWrapWidth.Of(_label.text, _label.enableRichText, _label.resolvedStyle.fontSize, _label.resolvedStyle.letterSpacing)) return;
 
             _phase = TrimPhase.Measuring;
-            _measuredWidth = _layoutWidth.ChooseMeasureWidth(_label);
+            _measuredWidth = measureWidth;
             _measuredStyle = LineEndTextStyle.Read(_label);
             // 測り役は詰める文を初めて測るときに作る（詰める文を持たないラベルには作らない）
             // Create the measurer on the first trimmable text (labels that never hold one never get it)
@@ -122,7 +128,7 @@ namespace Client.Ui.Foundation.Text
             var lineEnds = _measurer.ReadLineEndIndices(LineEndPunctuationTrim.CountPresentedGlyphs(_source));
             _measurer.End();
             // silent-ok: normal 以外の文は原文のまま（nowrap は行末で折れず、pre-wrap は詰めない） / pre-wrap の差は台帳 LX-180 が例外として持つ
-            if (_label.resolvedStyle.whiteSpace != WhiteSpace.Normal)
+            if (_whiteSpace.Wanted != WhiteSpace.Normal)
             {
                 _phase = TrimPhase.Plain;
                 return;
@@ -132,18 +138,7 @@ namespace Client.Ui.Foundation.Text
             // Put newlines at the measured breaks and stop auto wrap so line-end marks may overhang
             _phase = TrimPhase.Displayed;
             _label.text = _prefix + LineEndPunctuationTrim.Apply(_source, lineEnds);
-            _inlineWhiteSpaceBeforeOverride = _label.style.whiteSpace;
-            _wrapOverridden = true;
-            _label.style.whiteSpace = WhiteSpace.NoWrap;
-        }
-
-        // 自動の折り返しを止める前の inline の指定（多くは未指定）へ戻す
-        // Restore the inline value from before auto wrap was stopped (usually unset)
-        private void RestoreInlineWhiteSpace()
-        {
-            if (!_wrapOverridden) return;
-            _label.style.whiteSpace = _inlineWhiteSpaceBeforeOverride;
-            _wrapOverridden = false;
+            _whiteSpace.Hold(WhiteSpaceHoldReason.LineEndTrim);
         }
 
         private void OnGeometryChanged()

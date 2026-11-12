@@ -4,6 +4,7 @@ using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
@@ -68,7 +69,7 @@ namespace Client.Ui.Screens.BugReport
             // The status line joins the tree only when it has a sentence, never without a key
             _status = new LocalizedLabel { name = "bug-report-status" };
             _status.AddToClassList("bug-report__status");
-            _delivery = new Label { name = "bug-report-delivery" };
+            _delivery = new WrapSafeLabel { name = "bug-report-delivery" };
             _delivery.AddToClassList("bug-report__status");
             Add(_delivery);
             _recovery = new BugReportRecoveryControlsView(commands);

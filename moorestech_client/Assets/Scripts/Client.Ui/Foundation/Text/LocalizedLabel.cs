@@ -1,4 +1,5 @@
 using System.Globalization;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -22,7 +23,7 @@ namespace Client.Ui.Foundation.Text
     /// --localized-label-line-height sets only the pitch, keeping the natural first-line height (declared per screen; it wins when both are present)
     /// LineEndPunctuationTrimmer wraps with line-end closing punctuation trimmed to half width like Chrome's text-spacing-trim: normal (design A-223)
     /// </remarks>
-    public class LocalizedLabel : Label
+    public class LocalizedLabel : WrapSafeLabel
     {
         private const string LineHeightProperty = "--localized-label-line-height";
         private const string LineBoxProperty = "--localized-label-line-box";
@@ -37,7 +38,7 @@ namespace Client.Ui.Foundation.Text
         public LocalizedLabel()
         {
             _binding = new LocalizedTextBinding(this);
-            _lineEndPunctuationTrimmer = new LineEndPunctuationTrimmer(this);
+            _lineEndPunctuationTrimmer = new LineEndPunctuationTrimmer(this, WhiteSpaceHolds);
             _binding.OnResolved.Subscribe(resolved =>
             {
                 SourceText = resolved;

@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Text.WrapSafe;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Gauges
@@ -24,7 +25,7 @@ namespace Client.Ui.Components.Gauges
             strip.AddToClassList("toast-item__strip");
             Add(strip);
 
-            var label = new Label(text) { pickingMode = PickingMode.Ignore };
+            var label = new WrapSafeLabel(text) { pickingMode = PickingMode.Ignore };
             label.AddToClassList("toast-item__text");
             Add(label);
         }
