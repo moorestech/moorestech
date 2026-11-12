@@ -14,6 +14,7 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
     {
         private readonly LocalizedLabel _label = new();
         private readonly VisualElement _marker = new();
+        private readonly VisualElement _markerGlyph = new();
         private Color _face;
         private Color _stroke;
         private bool _hasColors;
@@ -23,7 +24,11 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             AddToClassList("world-pin");
             _label.AddToClassList("world-pin__label");
             _marker.AddToClassList("world-pin__marker");
-            _marker.generateVisualContent += DrawMarker;
+            // 描くのは子。Web の svg は viewBox の上へはみ出た頂を切るので、20×20 の箱（overflow: hidden）の中で描いて同じく切る（前例 WorldPinEdgeArrowView の _glyph）
+            // The child draws; the Web svg clips the apex above its viewBox, so draw inside the 20x20 box (overflow: hidden) to clip it the same (precedent WorldPinEdgeArrowView._glyph)
+            _markerGlyph.AddToClassList("world-pin__marker-glyph");
+            _markerGlyph.generateVisualContent += DrawMarker;
+            _marker.Add(_markerGlyph);
             Add(_label);
             Add(_marker);
             UiPickingIgnore.ApplyToSubtree(this);
@@ -44,14 +49,14 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             _face = face;
             _stroke = stroke;
             _hasColors = true;
-            _marker.MarkDirtyRepaint();
+            _markerGlyph.MarkDirtyRepaint();
         }
 
         private void DrawMarker(MeshGenerationContext context)
         {
             // silent-ok: 色の解決前は描かない / 解決できなければ UssCustomStyleReader が LogError を出す
             if (!_hasColors) return;
-            WorldPinGlyphs.DrawMarker(context.painter2D, _marker.contentRect.width, _face, _stroke);
+            WorldPinGlyphs.DrawMarker(context.painter2D, _markerGlyph.contentRect.width, _face, _stroke);
         }
     }
 }
