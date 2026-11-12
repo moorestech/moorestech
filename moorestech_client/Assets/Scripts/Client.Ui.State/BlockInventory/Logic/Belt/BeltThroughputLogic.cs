@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Localization;
+using Core.Update;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 
@@ -65,9 +66,6 @@ namespace Client.Ui.State.BlockInventory.Logic.Belt
         // The bar chart shows nine one-second averages (user ruling 2026-10-20)
         public const int RecentSecondBarCount = 9;
 
-        private const int TicksPerSecond = 20;
-        private const int TicksPerMinute = TicksPerSecond * 60;
-
         // 選んだ長さの窓。一覧に無ければ先頭の窓へ落とし、一覧が空なら選べない
         // The window of the chosen length; falls back to the first, and none can be chosen from an empty list
         public static bool TrySelectBeltWindow(IReadOnlyList<BeltThroughputWindow> windows, int ticks, out BeltThroughputWindow selected)
@@ -100,7 +98,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Belt
 
         public static BeltThroughputRowDisplay RowDisplay(BeltThroughputWindow window)
         {
-            var seconds = new LocalizationTextParam("seconds", FormatCount(window.Ticks / (double)TicksPerSecond));
+            var seconds = new LocalizationTextParam("seconds", FormatCount(window.Ticks / (double)GameUpdater.TicksPerSecond));
             if (!(window is MeasuredBeltWindow measured)) return new MeasuringBeltRowDisplay(new UiText(LocalizationKeys.Ui.BlockInventory.BeltThroughputMeasuring, new[] { seconds }));
 
             // 停止中（最大 0）は割合を出せないので 0% にする
@@ -113,7 +111,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Belt
                 new LocalizationTextParam("max", FormatCount(measured.MaxCount)),
                 new LocalizationTextParam("percent", UiNumberFormat.Integer(percent)),
             });
-            var itemsPerMinute = UiNumberFormat.Fixed(measured.ExitCount * (double)TicksPerMinute / measured.Ticks, 1);
+            var itemsPerMinute = UiNumberFormat.Fixed(measured.ExitCount * (double)(GameUpdater.TicksPerSecond * 60) / measured.Ticks, 1);
             return new MeasuredBeltRowDisplay(text, itemsPerMinute);
 
             #region Internal
