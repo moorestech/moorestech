@@ -20,6 +20,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
         private readonly LocalizedLabel _speaker;
         private readonly LocalizedLabel _body;
         private readonly SkitAdvanceMarker _advanceMarker;
+        private readonly UiOsCursorHoverRequest _sectionHover;
         private readonly Subject<Unit> _onTextClicked = new();
 
         public IObservable<Unit> OnTextClicked => _onTextClicked;
@@ -43,9 +44,9 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             _section.RegisterCallback<ClickEvent>(_ => _onTextClicked.OnNext(Unit.Default));
             _surface.Add(_section);
 
-            // 押せる印の指は文の区画で要求する（Web .window の cursor: pointer。ポーズで Ignore になると PointerLeave で外れる）
-            // The pointer finger is requested on the text section (Web .window cursor: pointer; turning Ignore on pause withdraws it via PointerLeave)
-            new UiOsCursorHoverRequest(_section, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            // 押せる印の指は文の区画で要求する（Web .window の cursor: pointer。ポーズでは SetInteractive が外す）
+            // The pointer finger is requested on the text section (Web .window cursor: pointer; SetInteractive withdraws it on pause)
+            _sectionHover = new UiOsCursorHoverRequest(_section, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
 
             // Web と同順に積む
             // Stack in Web order
@@ -81,11 +82,12 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             _advanceMarker.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        // ポーズ中は文の区画も拾わず、クリックは背後の何にも当たらない（Web の .inputBlocked）
-        // While paused the text section stops picking too, so a click hits nothing behind (Web .inputBlocked)
+        // ポーズ中は文の区画も拾わず、クリックは背後の何にも当たらない（Web の .inputBlocked）。乗っていた指は PointerLeave を待たずに外す
+        // While paused the text section stops picking too, so a click hits nothing behind (Web .inputBlocked); a held finger is withdrawn without waiting for PointerLeave
         public void SetInteractive(bool interactive)
         {
             _section.pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
+            if (!interactive) _sectionHover.Release();
         }
 
         private static LocalizedLabel CreateText(string testid, string className)

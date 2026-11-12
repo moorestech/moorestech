@@ -21,12 +21,14 @@ namespace Client.Tests.Ui.Screens.Skit
 
         private RecordingSkitCommands _commands;
         private SkitScreenView _view;
+        private FakeUiOsCursorApplier _cursorApplier;
 
         [SetUp]
         public void MountScreen()
         {
             _commands = new RecordingSkitCommands();
-            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _cursorApplier = new FakeUiOsCursorApplier();
+            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier)));
         }
 
         /// <web-test file="e2e/tests/skitPauseInput.spec.ts">ポーズ中は会話窓とツールを実クリックしても全文表示も操作も出さず、再開後は操作できる</web-test>
@@ -116,6 +118,25 @@ namespace Client.Tests.Ui.Screens.Skit
             Assert.IsTrue(IsShown(Find<VisualElement>(_view, "skit-tool-auto")));
             Assert.AreEqual(1f, Find<VisualElement>(_view, "skit-window").resolvedStyle.opacity);
             Assert.IsTrue(ShowsWholeBody());
+        }
+
+        [Test]
+        public void ポーズに入った時点でPointerLeaveを待たずに会話窓と選択肢の指を外す()
+        {
+            // フレームを進めないので、外れるのは SetInteractive の明示の Release だけ
+            // No frame advances, so only SetInteractive's explicit Release can withdraw it
+            _view.Render(SkitTestData.Choices(1, SkitTestData.ChoiceIntents));
+            simulate.FrameUpdate();
+            simulate.MouseMove(Find<Button>(_view, "skit-choice-route-a").worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current);
+            _view.SetInteractive(false);
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "選択肢の指がポーズ直後に残る");
+
+            _view.SetInteractive(true);
+            simulate.MouseMove(Find<VisualElement>(_view, "blocking-skit").worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current);
+            _view.SetInteractive(false);
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "会話窓の指がポーズ直後に残る");
         }
 
         // 復元後、別 session で打ち出しを進める

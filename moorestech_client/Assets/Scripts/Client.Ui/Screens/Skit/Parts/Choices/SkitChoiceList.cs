@@ -49,7 +49,7 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
                 {
                     var choiceId = choices[i].ChoiceId;
                     var button = new SkitChoiceButton(choices[i], i == 0, _osCursor);
-                    button.pickingMode = _interactive ? PickingMode.Position : PickingMode.Ignore;
+                    button.SetInteractive(_interactive);
                     button.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SelectCommandName, _commands.Select(_model.SessionId, _model.SceneRevision, choiceId)));
                     _buttons.Add(button);
                     Add(button);
@@ -73,7 +73,7 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
         public void SetInteractive(bool interactive)
         {
             _interactive = interactive;
-            foreach (var button in _buttons) button.pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
+            foreach (var button in _buttons) button.SetInteractive(interactive);
         }
     }
 }

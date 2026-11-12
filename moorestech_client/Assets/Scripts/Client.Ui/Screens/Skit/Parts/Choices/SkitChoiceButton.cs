@@ -17,6 +17,7 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
     public sealed class SkitChoiceButton : Button
     {
         private readonly Subject<Unit> _onClicked = new();
+        private readonly UiOsCursorHoverRequest _hover;
 
         public IObservable<Unit> OnClicked => _onClicked;
 
@@ -52,7 +53,15 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
 
             // 押せる印の指は要素の層で要求する（Web .choice の cursor: pointer。ポーズ中は Ignore で PointerEnter が来ず出ない）
             // The pointer finger is requested on the element layer (Web .choice cursor: pointer; while paused Ignore sends no PointerEnter so none shows)
-            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            _hover = new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+        }
+
+        // ポーズ中は拾わない（Web の pointer-events: none）。乗っていた指は PointerLeave を待たずに外す
+        // Not pickable while paused (Web pointer-events: none); a held finger is withdrawn without waiting for PointerLeave
+        public void SetInteractive(bool interactive)
+        {
+            pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
+            if (!interactive) _hover.Release();
         }
 
         private static VisualElement CreateDecor(string className)
