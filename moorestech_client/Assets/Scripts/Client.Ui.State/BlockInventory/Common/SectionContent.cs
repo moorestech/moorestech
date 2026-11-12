@@ -8,33 +8,40 @@ namespace Client.Ui.State.BlockInventory.Common
     /// </summary>
     public readonly struct SectionContent<T>
     {
-        public readonly bool IsPresent;
         public readonly T Value;
-        private readonly bool _isUnavailable;
+        private readonly SectionContentKind _kind;
         private readonly BlockInfoFetchState _fetchState;
+
+        public bool IsPresent => _kind == SectionContentKind.Present;
 
         // 欄ごと出さないか（「取得できません」の行も出さない）
         // Whether the whole entry is hidden (no unavailable line either)
-        public bool IsAbsent => !IsPresent && !_isUnavailable;
+        public bool IsAbsent => _kind == SectionContentKind.Absent;
 
-        private SectionContent(bool isPresent, T value, bool isUnavailable, BlockInfoFetchState fetchState)
+        private SectionContent(SectionContentKind kind, T value, BlockInfoFetchState fetchState)
         {
-            IsPresent = isPresent;
+            _kind = kind;
             Value = value;
-            _isUnavailable = isUnavailable;
             _fetchState = fetchState;
         }
 
-        public static SectionContent<T> Absent => new(false, default, false, default);
-        public static SectionContent<T> Present(T value) => new(true, value, false, default);
-        public static SectionContent<T> Unavailable(BlockInfoFetchState fetchState) => new(false, default, true, fetchState);
+        public static SectionContent<T> Absent => new(SectionContentKind.Absent, default, default);
+        public static SectionContent<T> Present(T value) => new(SectionContentKind.Present, value, default);
+        public static SectionContent<T> Unavailable(BlockInfoFetchState fetchState) => new(SectionContentKind.Unavailable, default, fetchState);
 
         // 照会が取れていないなら取得状態を返す（「取得できません」の行の文を選ぶため）
         // Returns the fetch state when the query is unavailable (to pick the unavailable line's text)
         public bool TryGetUnavailable(out BlockInfoFetchState fetchState)
         {
             fetchState = _fetchState;
-            return _isUnavailable;
+            return _kind == SectionContentKind.Unavailable;
         }
+    }
+
+    internal enum SectionContentKind
+    {
+        Absent,
+        Unavailable,
+        Present,
     }
 }
