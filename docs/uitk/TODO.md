@@ -25,7 +25,7 @@
 | 束 | 中身 | 状態 | 暗転の起点 | 物差し |
 |---|---|---|---|---|
 | 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 暗転 | 979725bcd1 | `uitk-lifeline` |
-| 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | Web | — | `uitk-opening-hud` |
+| 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | 暗転 | 0e81bbe3c3 | `uitk-opening-hud` |
 | 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | 暗転 | 0e81bbe3c3 | `uitk-build-bp` |
 | 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | Web | — | `uitk-production-loop`・`uitk-research-train` |
 | 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | Web | — | `uitk-challenge-gate` |
@@ -127,6 +127,30 @@
 | 3 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
 | 3 | 5bf23c60a7 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 | 3 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
+| 2 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
+| 2 | 5bf23c60a7 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 2 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
+| 2 | 18ae2ca640 | 写した | S4-special の特殊族の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 2 | 23bf17e0bb | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 2 | 237eb39440 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 2 | 7ec6e61825 | 写した | S4-machine の拒否理由（ui.commandRejected.blockNotOpen・machineRecipeInvalid・machineRecipeLocked・machineRecipeRequestFailed）の localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 2 | 52015d7931 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 2 | bc47bb655a | 写した | S4-alpha 自身の localization.csv への追加（ui.commandRejected.blockSlotUnavailable）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# |
+| 2 | 4052bf3372 | 写した | C4-e の持ち物・分割の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 2 | 42279a73e4 | 写した | 同じコミットの localization.csv と C#（albof.16.2 の拒否理由の文言） |
+| 2 | f044f5f5c4 | 捨てた | W0-switch（albof.17）の撤去コミット。旧 R1 の Web 側変更（a97575e5b5・05b9bdefa8・1095cab8bf・ccb3d512f7・5421c7f9f0）を外し、取り込み済み master と同じ Web に戻した（生成物 localizationKeys.ts は 3e946e4bd3 のまま）。UITK 側に写すものが無い |
+| 2 | 3e946e4bd3 | 写した | D-8 の拒否理由ごとのトースト文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits.ToLocalizationKey と localization.csv の文言 |
+| 2 | 5421c7f9f0 | 捨てた | 旧 R1（画面別の Web 休止）の入力排他フックを src/shared/uiState/inputExclusivity/ へ移した自動修正。全体スイッチの作り直し（W0-switch・albof.17）で旧 R1 の Web 側変更ごと外して master と同じ Web に戻すので、UITK 側に写すものが無い |
+| 2 | ccb3d512f7 | 捨てた | 旧 R1 の休止解除後に DOM 変化ごとにポインタを当たり判定し直す処理。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
+| 2 | 1095cab8bf | 捨てた | 旧 R1 の休止解除時の入力状態の送り直し。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
+| 2 | 05b9bdefa8 | 捨てた | Web が休止・カットシーンから描画を再開するときの stage 倍率の測り直しで、Web 自身の描画再開にだけ要る。UITK 側に写すものが無い |
+| 2 | a97575e5b5 | 捨てた | 旧 R1 の Web 全面 unmount（UITK が主パネルを出す間 webUiSuspended で App を外す）。全体スイッチ（albof.17）で UITK 側は Web ホストを起動しなくなり休止の仕組みごと要らないので、W0-switch で外して master と同じ Web に戻した |
+| 1 | 77f336e432 | 写した | S2-skit の会話の拒否の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 1 | 5bf23c60a7 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 1 | 23bf17e0bb | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 1 | 237eb39440 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 1 | 52015d7931 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 3 | 77f336e432 | 写した | S2-skit の会話の拒否の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
 
 ## 参照キャプチャ
 
@@ -140,6 +164,7 @@ Web 版の全画面と主要な状態（移行後も「意図した見た目」�
 - S4-train の自撮り（撮影表に無い列車族の場面）: 撮影元 moorestech `755c54a512`（uitk-lane/s4-train。Web は feature/uitk と同じ）。mock-host に一時の fixture（駅 `TrainStation`・時刻表の Unavailable・液体貨車・停車駅 15 件。コミットしない）を足して 1280×720 と 2560×1080 で撮った。撮影 id は `s4t-station`・`s4t-timetable-loading`（`train` の時刻表タブ）・`s4t-timetable-unavailable`・`s4t-timetable-busy`（`trainTimetable` で追加を押した直後。mock の配信を 4 秒遅らせた）・`s4t-fluid-car`・`s4t-timetable-15`。置き場は S4-train の worktree の `.uitk-capture/web-*/`（gitignore 下）で、撮影表 `referenceShots.ts` への追加は integrator へ依頼済み（`harness/uitk/S4-train/done.md`）
 - 束 3 の最新の参照（S3-ladder）: 撮影元 moorestech `8a585f742a`（origin/master。マスの絵が枠の中央になった af5fcc9cb3 の後の Web。`3-hotbar-equipment-empty` の枠 1 の絵が枠の中央にあることを目で見た）。1280×720 は `moorestech_logs` の `uitk/reference-captures/web-8a585f742a/`（91 件。https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a ）、2560×1080 は `uitk/reference-captures/web-8a585f742a-2560x1080/`（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a-2560x1080 。`shotRunner.ts` の `referenceViewport` を一時的に 2560×1080 にして撮り、戻した）
 - S3-hotbar-modal の 1920×1080 の参照: 撮影元 moorestech `8a585f742a`（origin/master）、置き場は `uitk/reference-captures/web-8a585f742a-1920x1080/`（91 件。https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a-1920x1080 ）
+- 束 2 の最新の参照（S2-ladder）: 撮影元 8a585f742a（Web の src は origin/master 8d1c7fbda9 まで不変）
 - 各行の `参照キャプチャ` 列は撮影 id（PNG は `<id>.png`、動画は `<id>.webm`）。束を切り替える前に撮り直したら、ここの撮影元と置き場を新しい方へ書き換える
 
 ## 未撮影
@@ -262,10 +287,10 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 
 | シナリオ（`scenarios/` から） | 壊れ方 | 束 | 直すレーン | 方針 |
 |---|---|---|---|---|
-| `tutorial-pebble-challenge.cs` | 待つチャレンジ・チュートリアルの GUID がピン先マスタに無い | 2 | S2-ladder | ピン先マスタの GUID を引く形へ書き直す（`uitk-opening-hud` の下敷き） |
-| `tutorial-equip-challenge.cs` | 同上 | 2 | S2-ladder | 同上 |
-| `tutorial-tree-pin-nearest-search.cs` | 同上 | 2 | S2-ladder | 同上 |
-| `server-notification-smoke.cs` | 削除済みの研究 GUID を送る | 2 | S2-ladder（S2-notification が先に直す） | 現行の研究 GUID へ直し、`notification-host` を UITK のロケータで解決する |
+| `tutorial-opening-log-challenge.cs`（旧 `tutorial-pebble-challenge.cs`） | 待つチャレンジ・チュートリアルの GUID がピン先マスタに無い | 2 | S2-ladder | 書き直した（S2-ladder。先頭チャレンジ〈原木〉の連鎖をマスタから引く。GameUi・Web とも緑） |
+| `tutorial-craft-guidance.cs`（旧 `tutorial-equip-challenge.cs`） | 同上 | 2 | S2-ladder | 書き直した（S2-ladder。2 番目〈木の板〉のクラフト誘導へ用途替え。GameUi・Web とも緑だが、Web の回は木の板の選択とクラフトボタンの長押しを UI で確かめていない〈R3 で Web に testid を足せないため、Web の回はクラフト要求で作る〉） |
+| `tutorial-tree-pin-nearest-search.cs` | 同上 | 2 | S2-ladder | 書き直した（S2-ladder。木をサーバーで壊してピンの追従を見る。GameUi・Web とも緑） |
+| `server-notification-smoke.cs` | 削除済みの研究 GUID を送る | 2 | S2-ladder | 直した（S2-notification #1649。S2-ladder で系の判定を全体スイッチに揃え GameUi・Web とも緑） |
 | `building/blueprint-copy-paste-via-ui.cs` | 削除済みの uGUI 型を参照してコンパイルできない | 3 | S3-ladder | 書き直した（S3-hotbar-modal 57a78b071e。S3-ladder で GameUi・Web とも緑） |
 | `building/blueprint-right-click-delete-via-ui.cs` | 同上 | 3 | S3-ladder | 書き直した（S3-ladder。GameUi・Web とも緑） |
 | `connect/electric-wire-connect-via-ui.cs` | 同上 | 3 | S3-ladder | 削除した（S3-ladder。後継 extend-chain は GameUi で緑） |
@@ -312,3 +337,5 @@ Web と同じにしない見た目の差（設計書 `docs/uitk-migration/execut
 | LX-51 | 会話窓の本文のタイプライタ（`SkitRichText.cs` の `HiddenTailOpenTag`。`SkitTypewriter`） | Web は出した分だけ切り出すので、打ち出し中に行末の語が次の行へ跳ぶ。UITK は全文で折り返しを決めて未表示の字を `<alpha=#00>` で透明にするので、語が跳ばない（1280×720 の実測で打ち出し中と全文の 1 語目の字の箱が一致） | ユーザー裁定で跳ばさない形を選んだ。棄却: Web と同じ切り出し | 透明な残りのまま | 原本 `moorestech_client/.uloop/outputs/compare/S2-skit/`（S2-skit の PR 報告ページに載せる） | `.decisions/2026-11-09-会話シーンの文字送りは行末の語を跳ばさない.md`（ユーザー 2026-11-09） |
 | LX-52 | スキットのツールの図形の影（`SkitToolGlyph.cs`・`SkitToolbar.uss` の `--skit-tool-glyph-shadow-offset`） | Web は `drop-shadow(0 1px 1px var(--skit-window-face))` の 1px のぼかし、UITK はぼかし無しで下へ 1px ずらした写し | Painter2D にぼかしが無く、同じにするには影のテクスチャを自作する必要がある（LX-35 と同じ）。差は影の縁の柔らかさだけで、図形の位置と大きさは 1280×720・2560×1080 の並べ比べで 1px 以内 | ずらした写しのまま | 原本 `moorestech_client/.uloop/outputs/compare/S2-skit/`（S2-skit の PR 報告ページに載せる） | agent 既定 |
 | LX-54 | 打ち出しの途中で Ctrl+U（全体非表示）を往復したときの本文（`SkitTypewriter.cs` の `Follow`） | Web は全体非表示の間 `App.tsx` が早期 return で会話窓をアンマウントし、戻すと再マウントで頭から打ち直す（実測: mock-host の 1 字 1 秒の本文で、往復の前 5 字・非表示中は会話窓 0 件・戻した直後 0 字・2 秒後 2 字。全文即時ではない。`SkitPresentation.tsx` の `previousConnectionStatus` の初期値が接続中なので即時表示にならない）。UITK はルートの `display` で隠すだけで打ち出しの続きになる（実測: 打ち始めから約 1 秒で往復した直後に 21 字・全文は 104 字） | 全体非表示はルートの `display` で隠す設計（A-80）で、画面の状態を捨てない。頭からの打ち直しを写すには全体非表示の戻りを会話窓へ配る口が要る。差は Ctrl+U を打ち出し中に往復したときの打ち直しの有無だけ | 続きのまま | 原本 `moorestech_client/.uloop/outputs/compare/S2-skit/`（S2-skit の PR 報告ページに載せる） | agent 既定（D-44） |
+| LX-190 | 通知の行の枠（`Notification.uss` の `.notification-row` の `border-width: 1px`） | 2560×1080（倍率 1.5）で、Web は枠 1px が 1.5 物理 px（1 行＋AA の 1 行。上の枠 y540 (104,106,120)・y541 (79,74,79)）、UITK は 2 物理 px（y540・541 とも (104,106,120)）。行の高さは 1 件あたり枠で 1 物理 px 高い。1280×720 では出ない | UITK の枠幅は物理画素へ丸まり、0 より大きい枠は 1 物理画素が下限で、1.5 は 2 に丸まる（台帳「実測の結論」の C2-a craft の枠・LX-60 と同じ）。差は枠の 0.5 物理 px（舞台 0.33px）だけで、並べて見分けられない | 丸めのまま | 原本 S2-ladder の波の並べ比べ（参照・組 1・組 2 GameUi の `2-notifications` 2560×1080。測り方 `repro/r09_notification_border.py`。S2-ladder の PR 報告ページに載せる） | 指揮の判定 2026-11-13 |
+| LX-191 | 配置モード HUD の置けない理由の行（`ModeHud/Parts/PlacementModeHudPanel.cs`。Web の `PlacementModeHud.tsx` の `.warning`） | 参照 `2-placement-unavailable` は 3 行目に赤字の理由（「Blocked by terrain」）が出て面が 31px 高い。UITK は理由の行を持たず、面は 2 行のまま | 実ゲームでは理由の書き手が無い。Web の橋 `PlacementModeTopic.cs` は理由に常に空文字を渡し、Web でもこの行は出ない（S2-mode-tooltip 計画 D-7）。理由を持つ型と行を mock の値のためだけに足すのは「将来の拡張性は考慮不要」（AGENTS.md）に反する。実ゲームの両系で差は出ない | 行を持たないまま。C# 側で置けない理由を流すようになったら、そのとき Web と同じ行を足してこの行を消す | 原本 S2-ladder の波の並べ比べ（参照・組 1 の `2-placement-unavailable` 1280×720・2560×1080。測り方 `repro/r01_placement_unavailable.py`。S2-ladder の PR 報告ページに載せる） | 指揮の判定 2026-11-13 |

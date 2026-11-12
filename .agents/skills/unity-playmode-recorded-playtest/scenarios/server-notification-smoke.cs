@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
+using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Ui.Foundation.Layers;
@@ -97,8 +98,9 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
 
     // GameUi では通知が背面の層の実画面の族に居て、研究名の入った文言が出ていることを確かめる
     // On GameUi, check the host sits in the viewport family of the behind-stage layer and shows the text with the research name
-    if (WebUiHost.Hub == null)
+    if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi)
     {
+        p.Assert(WebUiHost.Hub == null, "GameUi の回は Web ホストが居ない");
         var behindStage = GameUiRoot.Instance.GetLayer(UiLayer.BehindStage, UiFamily.Viewport);
         p.Assert(behindStage.Q("notification-host") != null, "通知ホストは背面の層（BehindStage・Viewport）に居る");
         var researchName = Localize.GetContent(ContentLocalizationKeys.ResearchName(firstResearchGuid));

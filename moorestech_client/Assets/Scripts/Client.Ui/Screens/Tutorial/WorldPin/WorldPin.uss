@@ -34,6 +34,12 @@
 .world-pin__marker {
     width: 20px;
     height: 20px;
+    overflow: hidden;
+}
+
+.world-pin__marker-glyph {
+    width: 100%;
+    height: 100%;
 }
 
 .world-pin__arrow {
