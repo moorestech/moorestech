@@ -13,6 +13,7 @@ using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Client.Ui.State.Recipe.Logic;
 
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
@@ -78,7 +79,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 var time = new LocalizedLabel { name = "machine-selected-recipe-time", pickingMode = PickingMode.Ignore };
                 time.AddToClassList(UiTypographyClass.TextSm);
                 time.AddToClassList(UiTypographyClass.TextDimmed);
-                time.SetText(MachineRecipeNames.Duration(recipe.Time));
+                time.SetText(RecipeDurationText.Create(recipe.Time));
                 _group.AddItem(time);
             }
 

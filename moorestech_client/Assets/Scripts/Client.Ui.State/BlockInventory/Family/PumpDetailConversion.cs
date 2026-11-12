@@ -4,6 +4,7 @@ using Client.Ui.State.BlockInventory.Machine.Detail;
 using Core.Master;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
+using Client.Ui.State.Text;
 
 namespace Client.Ui.State.BlockInventory.Family
 {
@@ -29,7 +30,7 @@ namespace Client.Ui.State.BlockInventory.Family
                         anomaly = $"[PumpDetailConversion] unknown CurrentStateType: '{common.CurrentStateType}'";
                         return false;
                     }
-                    detail = new ElectricPumpDetail(state, common.CurrentPower, common.RequestPower, Fluids());
+                    detail = new ElectricPumpDetail(state, UiNumberFormat.FromServerFloat(common.CurrentPower), UiNumberFormat.FromServerFloat(common.RequestPower), Fluids());
                     return true;
                 case GearPumpBlockParam:
                     detail = new GearPumpDetail(Fluids());

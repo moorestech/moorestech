@@ -44,7 +44,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
             if (LevelInheritanceBadgeText.TryBuild(recipe.LevelInheritance, out var badgeText)) badge.Show(badgeText);
             else badge.Hide();
             Add(badge);
-            var duration = MachineRecipeNames.Duration(recipe.Time);
+            var duration = RecipeDurationText.Create(recipe.Time);
             var recipeRow = new RecipeRow($"{rowId}-row", $"{rowId}-arrow", duration);
             recipeRow.SetSlots(MachineRecipeRowContentBuilder.Materials(rowId, recipe, content), MachineRecipeRowContentBuilder.Results(rowId, recipe, content));
             recipeRow.SetIdle();

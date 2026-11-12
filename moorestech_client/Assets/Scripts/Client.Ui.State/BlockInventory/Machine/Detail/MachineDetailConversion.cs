@@ -6,6 +6,7 @@ using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 using UnityEngine;
+using Client.Ui.State.Text;
 
 namespace Client.Ui.State.BlockInventory.Machine.Detail
 {
@@ -41,7 +42,7 @@ namespace Client.Ui.State.BlockInventory.Machine.Detail
             var running = MasterHolder.MachineRecipesMaster.GetRecipeElement(runningGuid);
             var selected = selection is SelectedMachineRecipe s ? MasterHolder.MachineRecipesMaster.GetRecipeElement(s.RecipeGuid) : null;
             var binding = MachineSlotBindingConversion.Build(selected, param);
-            detail = new MachineDetail(selection, state, common.CurrentPower, common.RequestPower, machine.ProcessingRate, machine.IsOutputSpaceShort, gearDriven, RunningTime(running), RunningOutputs(running), binding);
+            detail = new MachineDetail(selection, state, UiNumberFormat.FromServerFloat(common.CurrentPower), UiNumberFormat.FromServerFloat(common.RequestPower), machine.ProcessingRate, machine.IsOutputSpaceShort, gearDriven, RunningTime(running), RunningOutputs(running), binding);
             return true;
 
             #region Internal

@@ -7,6 +7,7 @@ using Client.Ui.State.BlockInventory.Special.Text;
 using Game.Gear.Common;
 using Server.Protocol.PacketResponse;
 using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;
+using Client.Ui.State.Text;
 
 namespace Client.Ui.State.BlockInventory.Special.Source
 {
@@ -20,14 +21,14 @@ namespace Client.Ui.State.BlockInventory.Special.Source
         {
             // silent-ok: 未取得はポーリングの到着待ちで、区画を出さないのが Web と同じ表示 / 届かないままなら録画（R-12）の電柱の段で気づく
             if (snapshot == null) return null;
-            return new ElectricNetworkDetail(JsNumberText.FromServerFloat(snapshot.TotalGeneratePower), JsNumberText.FromServerFloat(snapshot.TotalRequiredPower), snapshot.ConsumerCount, JsNumberText.FromServerFloat(snapshot.PowerRate));
+            return new ElectricNetworkDetail(UiNumberFormat.FromServerFloat(snapshot.TotalGeneratePower), UiNumberFormat.FromServerFloat(snapshot.TotalRequiredPower), snapshot.ConsumerCount, UiNumberFormat.FromServerFloat(snapshot.PowerRate));
         }
 
         public static GearNetworkDetail Gear(GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot snapshot)
         {
             // silent-ok: 未取得はポーリングの到着待ち / 届かないままなら録画（R-12）の歯車の段で気づく
             if (snapshot == null) return null;
-            return new GearNetworkDetail(snapshot.TotalGenerateGearPower, snapshot.TotalRequiredGearPower, ToStopReasonKind(snapshot.StopReason));
+            return new GearNetworkDetail(UiNumberFormat.FromServerFloat(snapshot.TotalGenerateGearPower), UiNumberFormat.FromServerFloat(snapshot.TotalRequiredGearPower), ToStopReasonKind(snapshot.StopReason));
         }
 
         public static FilterSplitterDetail FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response)

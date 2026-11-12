@@ -4,6 +4,7 @@ using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
+using Client.Ui.State.Text;
 
 namespace Client.Ui.State.BlockInventory.Family
 {
@@ -27,12 +28,12 @@ namespace Client.Ui.State.BlockInventory.Family
                     if (currentIds.Contains(itemId)) items.Add(new MinerMiningItem(itemId, BlockDetailMath.SecondsPerMinute / miner.MiningSeconds));
                 }
             }
-            return new MinerDetail(common.CurrentPower, common.RequestPower, common.ProcessingRate, gearDriven, items);
+            return new MinerDetail(UiNumberFormat.FromServerFloat(common.CurrentPower), UiNumberFormat.FromServerFloat(common.RequestPower), common.ProcessingRate, gearDriven, items);
         }
 
         public static GeneratorDetail Generator(PowerGeneratorStateDetail generator)
         {
-            return new GeneratorDetail(generator.RemainingFuelTime, generator.CurrentFuelTime, generator.OperatingRate);
+            return new GeneratorDetail(generator.RemainingFuelTime, generator.CurrentFuelTime, UiNumberFormat.FromServerFloat(generator.OperatingRate));
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Globalization;
 using Client.Localization;
 using Client.Ui.Content;
 using Client.Ui.State.BlockInventory.Logic.Machine;
-using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.Screens.BlockInventory.Machine
@@ -24,13 +23,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 FluidRecipeDisplaySubject fluid => content.Fluid(fluid.FluidId).Label,
                 _ => throw new ArgumentOutOfRangeException(nameof(subject), subject, "RecipeDisplaySubject has only the item and fluid kinds"),
             };
-        }
-
-        // レシピ秒の文。数値をそのまま差す
-        // Recipe seconds text; seconds are interpolated as the plain number like Web, same format on rows and header
-        public static UiText Duration(double seconds)
-        {
-            return new UiText(LocalizationKeys.Ui.BlockInventory.RecipeDuration, new[] { new LocalizationTextParam("seconds", seconds.ToString(CultureInfo.InvariantCulture)) });
         }
 
         // 選択行の名前。複数なら他 N 件
