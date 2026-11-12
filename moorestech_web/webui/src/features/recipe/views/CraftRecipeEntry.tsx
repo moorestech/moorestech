@@ -61,7 +61,6 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
         action={(
           <Button
             {...tutorialAnchorProps}
-            data-testid={`craft-button-${recipe.recipeGuid}`}
             className={styles.craftButton}
             disabled={!isCraftable}
             title={t(L.ui.recipe.holdToCraft)}
