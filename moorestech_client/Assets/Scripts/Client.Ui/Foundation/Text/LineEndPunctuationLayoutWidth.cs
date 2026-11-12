@@ -57,6 +57,15 @@ namespace Client.Ui.Foundation.Text
             _lastSourceMeasuredWidth = measured.x;
         }
 
+        // 原文の間に覚えていない幅の制約か（表示文の間なら測り直しになる制約）。Exactly は箱の幅の変化として別に受け、制約の幅で測るラベルの Undefined は測り直さない
+        // Whether this width constraint is unseen with the source (one that would re-measure while the display text is shown); Exactly arrives as a box width change, and constraint-measured labels ignore Undefined
+        public bool IsUnseenConstraint(float desiredWidth, VisualElement.MeasureMode widthMode)
+        {
+            if (widthMode == VisualElement.MeasureMode.Exactly) return false;
+            if (FollowsConstraint && widthMode == VisualElement.MeasureMode.Undefined) return false;
+            return !_sourceWidths.ContainsKey(KeyOf(desiredWidth, widthMode));
+        }
+
         // 最後の原文の測りが AtMost で、その結果がいまの幅なら制約の幅で測る。縦の並びに伸ばされて原文の最長行より広い幅なら、伸ばした包みが受けた制約の幅で測る。どちらでもなければ箱の幅で測る
         // Measure at the constraint when the last source measure was AtMost and produced the current width, at the wrapper's constraint when stretched in a column wider than the source's longest line, otherwise at the box width
         public float ChooseMeasureWidth(Label label)

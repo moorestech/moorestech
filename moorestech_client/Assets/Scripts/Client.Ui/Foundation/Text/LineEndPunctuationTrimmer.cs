@@ -53,15 +53,13 @@ namespace Client.Ui.Foundation.Text
         public Vector2 ToSourceSize(Vector2 measured, float desiredWidth, VisualElement.MeasureMode widthMode)
         {
             if (_phase == TrimPhase.Plain) return measured;
-            if (_phase != TrimPhase.Displayed)
-            {
-                _layoutWidth.RecordSource(measured, desiredWidth, widthMode);
-                return measured;
-            }
-            var size = _layoutWidth.ForDisplayed(measured, desiredWidth, widthMode, out var needsRestart);
+            var needsRestart = _phase == TrimPhase.Measuring && _layoutWidth.IsUnseenConstraint(desiredWidth, widthMode);
+            var size = measured;
+            if (_phase == TrimPhase.Displayed) size = _layoutWidth.ForDisplayed(measured, desiredWidth, widthMode, out needsRestart);
+            else _layoutWidth.RecordSource(measured, desiredWidth, widthMode);
             if (!needsRestart) return size;
-            // 測ったときと違う制約（親の幅が変わった）。配置の最中は文を替えられないので次の刻みで原文に戻して測り直す
-            // A constraint unlike the measured one (the parent resized); text cannot change mid-layout, so restart on the next tick
+            // 測り始めた後に覚えていない制約が来た（親の幅が変わった）。配置の最中は文を替えられないので次の刻みで原文に戻して測り直す
+            // An unseen constraint after measuring began (the parent resized); text cannot change mid-layout, so restart on the next tick
             OnNextTickIfCurrent(Restart);
             return size;
         }
@@ -176,10 +174,13 @@ namespace Client.Ui.Foundation.Text
             Restart();
         }
 
-        // 測る途中で外されたら測り役を畳み、載り直した後の配置で測り直す
-        // Detached mid-measure: fold the measurer and measure again after the next layout on a panel
+        // 原文の間に外されたら外す前の配置の制約を捨て（残すと戻した幅で測り直さない）、測る途中なら測り役を畳んで載り直した後に測り直す
+        // Detached with the source drawn: drop the old layout's constraints (kept, returning to that width skips the re-measure); mid-measure also fold the measurer and measure again after re-mounting
         private void OnDetachedFromPanel()
         {
+            // silent-ok: 表示文の間は覚えた制約が測った配置のまま / 載り直した配置の制約が違えば ForDisplayed が測り直す
+            if (_phase != TrimPhase.WaitingForLayout && _phase != TrimPhase.Measuring) return;
+            _layoutWidth.ForgetConstraints();
             if (_phase != TrimPhase.Measuring) return;
             _generation++;
             _measurer?.EndLater();

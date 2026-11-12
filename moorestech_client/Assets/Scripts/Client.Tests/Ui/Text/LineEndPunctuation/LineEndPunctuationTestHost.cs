@@ -79,11 +79,19 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
 
         protected VisualElement Attach(VisualElement element)
         {
+            var locale = AttachWithoutFrames(element);
+            Frames();
+            return locale;
+        }
+
+        // CJK のロケールの下に載せるだけでフレームを回さない（測りの途中に割り込むテスト用）
+        // Mount under the CJK locale without running frames (for tests that interrupt a measurement)
+        protected VisualElement AttachWithoutFrames(VisualElement element)
+        {
             var locale = new VisualElement();
             locale.AddToClassList(GameUiLocaleClass.CjkClassName);
             rootVisualElement.Add(locale);
             locale.Add(element);
-            Frames();
             return locale;
         }
 
