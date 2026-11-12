@@ -4,6 +4,7 @@
 // Facing east swaps the footprint to x=7, z=3, so the X run should land at origins 0,7,14 and the Z run at 10,13,16
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
@@ -16,7 +17,10 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("drag-place-rotated-rect-block", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnPosition = new Vector3(8f, 33.5f, -14f) });
-    await p.SkipOpeningSkit();
+    // Skip受理後もStoryに残るレース（bd moorestech-yx4if.1）を避けるため、飛ばせる間は飛ばし直してからGameScreenを待つ
+    // Re-skip while skip is allowed, then wait for GameScreen, to dodge the race that leaves UIState in Story (bd moorestech-yx4if.1)
+    await p.SkipOpeningSkitIfPlaying();
+    await p.WaitUiState(UIStateEnum.GameScreen, 30f);
 
     // ---------------------------------------------------------------- 1. 東向きにして X 方向へドラッグ
     p.Note("フェーズ1: 東向き（R 1回）で X 方向へドラッグ → 原点 x=0,7,14 に隙間なく並ぶ");
