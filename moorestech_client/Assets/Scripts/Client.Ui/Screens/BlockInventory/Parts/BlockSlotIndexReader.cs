@@ -8,7 +8,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
     /// ブロックの枠の番地から中身を読む 1 か所（BlockItemGrid と機械の帯が共有する）
     /// The single place that reads a block slot by index (shared by BlockItemGrid and the machine bands)
     /// </summary>
-    public static class BlockSlotReader
+    public static class BlockSlotIndexReader
     {
         // 番地が枠数を超えるのは呼び手（区画）の誤り。購読を例外で止めず空きで描き、LogError で知らせる
         // An index beyond the slot count is the caller's (section's) bug; draw it empty instead of killing the subscription, and LogError

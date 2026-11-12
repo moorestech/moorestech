@@ -60,7 +60,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
             // 並ぶ枠の番号が変わったときだけ作り直し、同じなら中身だけ差し替える
             // Rebuild only when the slot indices change; otherwise just swap contents
             if (!_slots.HasSameKeys(slotIndices)) Rebuild(slotIndices);
-            for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(SlotItemContent.From(_content, BlockSlotReader.Read(itemSlots, _slots.KeyAt(i), nameof(BlockItemGrid), _testId), false));
+            for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(SlotItemContent.From(_content, BlockSlotIndexReader.Read(itemSlots, _slots.KeyAt(i), nameof(BlockItemGrid), _testId), false));
             ApplyColumns();
 
             #region Internal
