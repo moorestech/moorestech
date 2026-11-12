@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using NUnit.Framework;
 using UnityEngine.UIElements;
@@ -57,26 +59,75 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
         }
 
         [Test]
-        public void 幅を内容で決めるラベルは親が広がると1行に戻る()
+        public void 幅を内容で決めるラベルもChromeと同じ詰めた2行になる()
         {
-            // 列の親に左寄せで置き、ラベル自身は幅を持たない（Unity は折り返した面を最長行の幅に縮める）
-            // Placed left-aligned in a column parent without its own width (Unity shrinks a wrapped face to its longest line)
-            var column = new VisualElement();
-            column.style.width = ReferenceWidth;
-            column.style.alignItems = Align.FlexStart;
-            var label = CreateLocalized(ReferenceSentence, 0f);
-            label.style.position = Position.Relative;
-            column.Add(label);
-            Attach(column);
-            Assert.Greater(label.layout.height, LineHeight(1) + 1f, label.text);
+            // Unity は折り返した面を原文の最長行に縮めるが、測るのは受けた列の幅（Chrome の fit-content は詰めた字で幅を決める）
+            // Unity shrinks a wrapped face to the source's longest line, but the trim measures at the column width (Chrome's fit-content sizes with trimmed glyphs)
+            var label = MountContentSized(ReferenceSentence);
+            AssertShowsDisplayText(label);
+            Assert.AreEqual(LineHeight(2), label.layout.height, 0.5f, label.text);
+            Assert.LessOrEqual(label.layout.width, ReferenceWidth + 0.5f, label.text);
+        }
 
+        [Test]
+        public void 幅を内容で決めるラベルに載った後で文を替えても原文から表示文へ1回で替わる()
+        {
+            var label = MountContentSized("研究");
+            label.SetText(UiText.FromVerbatim(ReferenceSentence));
+            var shownTexts = new List<string> { label.text };
+            for (var frame = 0; frame < 8; frame++)
+            {
+                simulate.FrameUpdate();
+                if (shownTexts[^1] != label.text) shownTexts.Add(label.text);
+            }
+            Assert.AreEqual(2, shownTexts.Count, string.Join(" | ", shownTexts));
+            AssertShowsDisplayText(label);
+            Assert.AreEqual(LineHeight(2), label.layout.height, 0.5f, label.text);
+        }
+
+        [Test]
+        public void 幅を内容で決めるラベルは親が広がると1行に戻り狭まると詰めた2行に戻る()
+        {
+            var label = MountContentSized(ReferenceSentence);
+            var column = label.parent;
             column.style.width = 1000f;
             Frames();
             Assert.AreEqual(LineHeight(1), label.layout.height, 0.5f, $"widened: {label.text}");
 
             column.style.width = ReferenceWidth;
             Frames();
-            Assert.Greater(label.layout.height, LineHeight(1) + 1f, $"narrowed: {label.text}");
+            Assert.AreEqual(LineHeight(2), label.layout.height, 0.5f, $"narrowed: {label.text}");
+        }
+
+        [Test]
+        public void 大きさの変わらない字間の変化でも測り直す()
+        {
+            // 幅も高さも固定のラベルは GeometryChangedEvent が来ないので、スタイルの解決で拾う（text--sm は行の箱のつまみを持つ）
+            // A fixed-size label gets no GeometryChangedEvent, so the change is caught on style resolution (text--sm carries the line-box knob)
+            var label = CreateLocalized(ReferenceSentence, ReferenceWidth);
+            label.AddToClassList("text--sm");
+            label.style.fontSize = 15f;
+            label.style.height = 100f;
+            Attach(label);
+            Assert.AreEqual(1, label.text.Split('\n').Length - 1, label.text);
+
+            label.style.letterSpacing = 9f;
+            Frames();
+            Assert.Greater(label.text.Split('\n').Length - 1, 1, label.text);
+        }
+
+        // 幅 230px の列に左寄せで置き、ラベル自身は幅を持たない
+        // Placed left-aligned in a 230px column without its own width
+        private LocalizedLabel MountContentSized(string text)
+        {
+            var column = new VisualElement();
+            column.style.width = ReferenceWidth;
+            column.style.alignItems = Align.FlexStart;
+            var label = CreateLocalized(text, 0f);
+            label.style.position = Position.Relative;
+            column.Add(label);
+            Attach(column);
+            return label;
         }
     }
 }
