@@ -1,6 +1,7 @@
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Text;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -17,7 +18,7 @@ namespace Client.Ui.Screens.BugReport
     {
         private readonly FormButton _resendButton;
         private readonly FormButton _exportButton;
-        private readonly Label _exportStatus;
+        private readonly LocalizedLabel _exportStatus;
 
         public BugReportRecoveryControlsView(IPauseMenuCommands commands)
         {
@@ -29,7 +30,7 @@ namespace Client.Ui.Screens.BugReport
             _resendButton.OnClicked.Subscribe(_ => commands.ResendFailedReports());
             _exportButton = CreateButton("bug-report-export-unsent", LocalizationKeys.Ui.BugReport.ExportUnsent);
             _exportButton.OnClicked.Subscribe(_ => commands.ExportUnsentReports());
-            _exportStatus = new Label { name = "bug-report-export-status" };
+            _exportStatus = new LocalizedLabel { name = "bug-report-export-status" };
             _exportStatus.AddToClassList("bug-report__status");
             Add(_resendButton);
             Add(_exportButton);
@@ -46,9 +47,11 @@ namespace Client.Ui.Screens.BugReport
             _resendButton.SetEnabled(!exporting);
             _exportButton.SetEnabled(!exporting);
 
-            var statusLine = BugReportFormText.DescribeExport(export);
-            ShowIf(_exportStatus, statusLine != null);
-            _exportStatus.text = statusLine ?? "";
+            // Idle は行なし。ほかは文を入れる
+            // Idle has no line; every other status sets its sentence
+            var hasLine = BugReportFormText.HasExportLine(export);
+            ShowIf(_exportStatus, hasLine);
+            if (hasLine) _exportStatus.SetText(BugReportFormText.DescribeExport(export));
         }
 
         private static FormButton CreateButton(string testid, LocalizationKey label)

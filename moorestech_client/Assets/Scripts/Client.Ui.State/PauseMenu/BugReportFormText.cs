@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -39,25 +40,50 @@ namespace Client.Ui.State.PauseMenu
             return new UiText(LocalizationKeys.Ui.BugReport.Missing, Params(("items", string.Join(", ", capture.Missing))));
         }
 
-        public static string DescribeDelivery(PlaytestDeliveryStatus delivery)
+        public static UiText DescribeDelivery(PlaytestDeliveryStatus delivery)
         {
-            if (delivery is PlaytestDeliveryAllSent) return new UiText(LocalizationKeys.Ui.BugReport.DeliveryAllSent).Resolve();
+            if (delivery is PlaytestDeliveryAllSent) return new UiText(LocalizationKeys.Ui.BugReport.DeliveryAllSent);
 
-            var inventory = InventoryOf(delivery);
-            var line = inventory is PlaytestOutboxInventoryUnavailable unavailable ? DescribeUnknownCounts(delivery, unavailable) : DescribeKnownCounts(delivery, (PlaytestOutboxDeliveryCounts)inventory);
-            if (inventory is PlaytestOutboxDeliveryCounts counts && 0 < counts.FailedCount)
-                line += Separator + new UiText(LocalizationKeys.Ui.BugReport.DeliveryFailed, Params(("count", Number(counts.FailedCount)))).Resolve();
-            return line;
+            // 在庫の読みの 2 種で行を組み、失敗件数があれば末尾へ足す
+            // Compose the line per inventory-read kind, appending the failed count when present
+            var parts = new List<UiText>();
+            switch (InventoryOf(delivery))
+            {
+                case PlaytestOutboxInventoryUnavailable unavailable:
+                    parts.AddRange(DescribeUnknownCounts(delivery, unavailable));
+                    break;
+                case PlaytestOutboxDeliveryCounts counts:
+                    parts.Add(DescribeKnownCounts(delivery, counts));
+                    if (0 < counts.FailedCount) parts.Add(new UiText(LocalizationKeys.Ui.BugReport.DeliveryFailed, Params(("count", Number(counts.FailedCount)))));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(delivery), delivery, "[BugReportFormText] delivery carries no known inventory read");
+            }
+            return UiText.Join(Separator, parts);
         }
 
-        public static string DescribeExport(PlaytestExportStatus export)
+        // Idle は行なし。呼ぶ側が HasExportLine で先に絞る
+        // Idle has no line; callers filter with HasExportLine first
+        public static bool HasExportLine(PlaytestExportStatus export)
         {
             switch (export)
             {
-                case PlaytestExportRunning _: return new UiText(LocalizationKeys.Ui.BugReport.ExportRunning).Resolve();
-                case PlaytestExportFailed failed: return new UiText(LocalizationKeys.Ui.BugReport.ExportFailed, Params(("reason", failed.Reason))).Resolve();
+                case PlaytestExportIdle _: return false;
+                case PlaytestExportRunning _:
+                case PlaytestExportFailed _:
+                case PlaytestExportDone _: return true;
+                default: throw new ArgumentOutOfRangeException(nameof(export), export, "[BugReportFormText] unknown export status");
+            }
+        }
+
+        public static UiText DescribeExport(PlaytestExportStatus export)
+        {
+            switch (export)
+            {
+                case PlaytestExportRunning _: return new UiText(LocalizationKeys.Ui.BugReport.ExportRunning);
+                case PlaytestExportFailed failed: return new UiText(LocalizationKeys.Ui.BugReport.ExportFailed, Params(("reason", failed.Reason)));
                 case PlaytestExportDone done: return DescribeExportDone(done);
-                default: return null;
+                default: throw new ArgumentOutOfRangeException(nameof(export), export, "[BugReportFormText] export status has no line; check HasExportLine first");
             }
         }
 
@@ -98,25 +124,25 @@ namespace Client.Ui.State.PauseMenu
             return delivery is IPlaytestDeliveryWithInventory withInventory ? withInventory.Inventory : null;
         }
 
-        private static string DescribeUnknownCounts(PlaytestDeliveryStatus delivery, PlaytestOutboxInventoryUnavailable unavailable)
+        private static IEnumerable<UiText> DescribeUnknownCounts(PlaytestDeliveryStatus delivery, PlaytestOutboxInventoryUnavailable unavailable)
         {
-            var inventoryLine = new UiText(LocalizationKeys.Ui.BugReport.DeliveryInventoryUnavailable, Params(("reason", unavailable.Reason))).Resolve();
+            var inventoryLine = new UiText(LocalizationKeys.Ui.BugReport.DeliveryInventoryUnavailable, Params(("reason", unavailable.Reason)));
             switch (delivery)
             {
-                case PlaytestDeliveryRefused _: return new UiText(LocalizationKeys.Ui.BugReport.DeliveryRefusedUnknown).Resolve() + Separator + inventoryLine;
-                case PlaytestDeliveryLocalOnly localOnly: return new UiText(LocalOnlyUnknownKey(localOnly.Reason)).Resolve() + Separator + inventoryLine;
-                default: return inventoryLine;
+                case PlaytestDeliveryRefused _: return new[] { new UiText(LocalizationKeys.Ui.BugReport.DeliveryRefusedUnknown), inventoryLine };
+                case PlaytestDeliveryLocalOnly localOnly: return new[] { new UiText(LocalOnlyUnknownKey(localOnly.Reason)), inventoryLine };
+                default: return new[] { inventoryLine };
             }
         }
 
-        private static string DescribeKnownCounts(PlaytestDeliveryStatus delivery, PlaytestOutboxDeliveryCounts counts)
+        private static UiText DescribeKnownCounts(PlaytestDeliveryStatus delivery, PlaytestOutboxDeliveryCounts counts)
         {
             var countParams = Params(("count", Number(counts.PendingCount)));
             switch (delivery)
             {
-                case PlaytestDeliveryRefused _: return new UiText(LocalizationKeys.Ui.BugReport.DeliveryRefused, countParams).Resolve();
-                case PlaytestDeliveryLocalOnly localOnly: return new UiText(LocalOnlyKnownKey(localOnly.Reason), countParams).Resolve();
-                default: return new UiText(LocalizationKeys.Ui.BugReport.DeliveryPending, countParams).Resolve();
+                case PlaytestDeliveryRefused _: return new UiText(LocalizationKeys.Ui.BugReport.DeliveryRefused, countParams);
+                case PlaytestDeliveryLocalOnly localOnly: return new UiText(LocalOnlyKnownKey(localOnly.Reason), countParams);
+                default: return new UiText(LocalizationKeys.Ui.BugReport.DeliveryPending, countParams);
             }
         }
 
@@ -140,16 +166,16 @@ namespace Client.Ui.State.PauseMenu
             }
         }
 
-        private static string DescribeExportDone(PlaytestExportDone done)
+        private static UiText DescribeExportDone(PlaytestExportDone done)
         {
-            var parts = new List<string> { new UiText(LocalizationKeys.Ui.BugReport.ExportDone, Params(("count", Number(done.BoxCount)), ("path", done.ZipPath))).Resolve() };
+            var parts = new List<UiText> { new UiText(LocalizationKeys.Ui.BugReport.ExportDone, Params(("count", Number(done.BoxCount)), ("path", done.ZipPath))) };
             if (0 < done.Missing.Count)
             {
                 var items = string.Join(", ", done.Missing.Select(missing => $"{missing.Item} ({missing.Reason})"));
-                parts.Add(new UiText(LocalizationKeys.Ui.BugReport.ExportMissing, Params(("count", Number(done.Missing.Count)), ("items", items))).Resolve());
+                parts.Add(new UiText(LocalizationKeys.Ui.BugReport.ExportMissing, Params(("count", Number(done.Missing.Count)), ("items", items))));
             }
-            if (!done.Revealed) parts.Add(new UiText(LocalizationKeys.Ui.BugReport.ExportNotRevealed).Resolve());
-            return string.Join(Separator, parts);
+            if (!done.Revealed) parts.Add(new UiText(LocalizationKeys.Ui.BugReport.ExportNotRevealed));
+            return UiText.Join(Separator, parts);
         }
 
         private static string Number(int value)

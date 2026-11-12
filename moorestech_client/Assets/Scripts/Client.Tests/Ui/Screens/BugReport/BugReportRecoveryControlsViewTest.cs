@@ -34,7 +34,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             simulate.Click(Find<Button>(View, "bug-report-resend-failed"));
             simulate.Click(Find<Button>(View, "bug-report-export-unsent"));
             CollectionAssert.AreEqual(new[] { PauseMenuCommandKind.ResendFailedReports, PauseMenuCommandKind.ExportUnsentReports }, Commands.Issued.Select(record => record.Kind));
-            Assert.AreEqual(BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(0, 2))), Find<Label>(View, "bug-report-delivery").text);
+            Assert.AreEqual(BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(0, 2))).Resolve(), Find<Label>(View, "bug-report-delivery").text);
 
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(3, 0)), PlaytestExportIdle.Instance);
             AssertRecovery(false, true);
