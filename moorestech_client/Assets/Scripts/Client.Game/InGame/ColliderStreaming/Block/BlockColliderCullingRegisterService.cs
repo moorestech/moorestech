@@ -1,3 +1,5 @@
+using System.Linq;
+using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Block.DistanceCulling;
 using UnityEngine;
@@ -25,9 +27,9 @@ namespace Client.Game.InGame.ColliderStreaming.Block
 
         public BlockDistanceCullingEntry CreateEntry(BlockGameObject block)
         {
-            // 有効コライダー範囲と対象を登録
-            // Register enabled collider bounds and the target
-            var colliders = block.GetComponentsInChildren<Collider>(true);
+            // 設置照準専用レイヤーの当たり判定は距離に関係なく有効のまま残す（ADR 0083 決定4）
+            // Colliders on the placement-aim-only layer stay enabled regardless of distance (ADR 0083 decision 4)
+            var colliders = block.GetComponentsInChildren<Collider>(true).Where(collider => collider.gameObject.layer != LayerConst.BlockBoundingBoxLayer).ToArray();
             return new BlockDistanceCullingEntry(CalcWorldBounds(colliders, block.transform.position), new BlockColliderCullingTarget(colliders));
 
             #region Internal

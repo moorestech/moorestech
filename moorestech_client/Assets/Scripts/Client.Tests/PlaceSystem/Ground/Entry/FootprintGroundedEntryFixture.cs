@@ -1,8 +1,8 @@
-using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Construction;
 using Client.Tests.PlaceSystem.TrainCostIntegration;
+using Game.Block.Interface;
 using Game.Construction;
 using UnityEngine;
 
@@ -47,16 +47,15 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
             Physics.SyncTransforms();
         }
 
-        protected BlockPreviewBoundingBoxSurface CreateFace()
+        protected PreviewSurfaceType CreateFace()
         {
-            var face = CreateObject("BlockFace");
-            face.layer = LayerConst.BlockBoundingBoxLayer;
-            face.transform.position = new Vector3(501.5f, 24.5f, 600.5f);
-            face.AddComponent<BoxCollider>().size = new Vector3(10, 1, 10);
-            var surface = face.AddComponent<BlockPreviewBoundingBoxSurface>();
-            surface.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Y, null);
+            // 上面の中心が旧テストの面と同じ位置に来るよう、10マス角のブロックとして作る
+            // Build it as a 10-cell block so the top face center matches the old test face
+            var block = CreateObject("BlockFace");
+            block.transform.position = new Vector3(496.5f, 15f, 595.5f);
+            BlockPlacementHitFaces.Create(block.transform, new Vector3Int(10, 10, 10), BlockDirection.North);
             Physics.SyncTransforms();
-            return surface;
+            return PreviewSurfaceType.XZ_Y;
         }
     }
 }
