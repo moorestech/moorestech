@@ -664,7 +664,7 @@ SKILL.md の目次:
 | A-266 | **D-29（研究の未受信警告）を改める（DC-38）。** 研究画面の突入時は受信済みのときだけ欠けたノードの件数を検査する（`entering && HasReceivedNodeStates`）。未受信の突入は取得が始まったばかりの正常状態で、直後の受信で `OnNodeStatesReceived` が検査し、取得失敗は `ResearchNodeStateStore` が LogWarning する。「突入時に未受信を警告する」は取り下げ。`ResearchTreeModelTest` は未受信の突入で警告 0・受信時と受信済みの突入時に件数を警告、に改めた |
 | A-267 | **動きの基盤は止まった動きを再生し直さない（DC-24）。** `UiMotionHandle`・`UiMotionTimeline` に再生し直しの口は無い。`NotificationHostView` は外して戻したとき、Model にまだ残る行（入場中・表示中・外れている間に届いた行）を消さず、行ごとに新しいハンドルで生存（入場→滞在→退場）を頭から回し直し、最後は退場の終わりで書き口から除く。Web の再マウントで CSS アニメが頭から回り、追加から 8 秒の保険まで表示が続くのと同じ（`NotificationHostReattachTest`） |
 | A-268 | **研究画面の表示判定は `ResearchScreenVisibility.IsShown(UiRoutingSnapshot)` 1 か所（DC-8。前例 `BlockInventoryScreenVisibility`）。** `ResearchTreePresenter`・`ResearchTreeModel`・`ResearchSelectionStore` が呼ぶ |
-| A-269 | **常駐ホストの「トークン待ち→尺を読む」は Toast と Notification で別実装のまま保つ（DC-28 案 A。部品化の案 B は S5-crosscut）。** 読めない理由は両方が同じ書式で LogError する（Notification は解決のたびにまとめて 1 回。`NotificationHostViewTokensTest`） |
+| A-269 | **常駐ホストの「トークン待ち→尺を読む」は Toast と Notification で別実装のまま保つ（DC-28 案 A。部品化の案 B は S5-crosscut）。** 読めない理由は両方が同じ書式で LogError する（Notification は解決のたびにまとめて 1 回。`NotificationHostReattachTest`） |
 
 ### 7.2 ユーザーに上げるもの
 
