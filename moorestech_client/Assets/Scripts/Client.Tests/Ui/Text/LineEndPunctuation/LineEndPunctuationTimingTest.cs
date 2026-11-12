@@ -62,5 +62,25 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             mount.RemoveFromHierarchy();
             LogAssert.NoUnexpectedReceived();
         }
+
+        [Test]
+        public void 測り直しの途中のどの刻みで外して同じ幅で載せ直しても表示文に替わる(
+            [Values] Arrangement arrangement, [Values(0, 1, 2, 3)] int detachAfterFrames, [Values(0, 1)] int framesDetached)
+        {
+            var context = $"{arrangement} detach +{detachAfterFrames}f for {framesDetached}f";
+            var moved = Build(arrangement, ReferenceWidth, out _);
+            var mount = AttachWithoutFrames(moved.root);
+
+            // 大きさが変わらない載せ直しでも、載った後の GeometryChangedEvent（外すと箱が 0 に戻る）で測り直す
+            // Even a same-size re-mount re-measures on the GeometryChangedEvent after mounting (detaching resets the box to 0)
+            RunFrames(detachAfterFrames);
+            mount.RemoveFromHierarchy();
+            RunFrames(framesDetached);
+            rootVisualElement.Add(mount);
+            AssertSettlesLikeFresh(arrangement, moved.label, ReferenceWidth, context);
+            AssertShowsDisplayText(moved.label);
+            mount.RemoveFromHierarchy();
+            LogAssert.NoUnexpectedReceived();
+        }
     }
 }
