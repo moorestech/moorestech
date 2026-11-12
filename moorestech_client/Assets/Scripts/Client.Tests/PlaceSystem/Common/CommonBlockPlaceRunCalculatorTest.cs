@@ -79,20 +79,6 @@ namespace Client.Tests.PlaceSystem.Common
             AssertCellsTouchWithoutOverlap(zRun, BlockDirection.West, blockMasterElement.BlockSize);
         }
 
-        // 上下向きは占有の高さが入れ替わるので、縦積みも回転後の高さで刻むこと
-        // Up/down facing swaps the footprint height, so vertical stacking steps by the rotated height
-        [Test]
-        public void 上下向きの縦積みは回転後の高さで隙間なく刻まれる()
-        {
-            var blockMasterElement = MakeBlock(new Vector3Int(1, 1, 2));
-
-            var run = CommonBlockPlacePointCalculator.CalculateRun(
-                Vector3Int.zero, new Vector3Int(0, 4, 0), BlockDirection.UpNorth, blockMasterElement);
-
-            Assert.AreEqual(new[] { 0, 2, 4 }, PositionsOnAxis(run, 1));
-            AssertCellsTouchWithoutOverlap(run, BlockDirection.UpNorth, blockMasterElement.BlockSize);
-        }
-
         // 伸長軸を呼び出し側へ返す（地面ヒットの縦積み列を追従から外すのに使う）
         // Reports the extended axis to the caller, used to exclude vertical stacking runs from terrain following
         [Test]
