@@ -286,10 +286,10 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 
 | シナリオ（`scenarios/` から） | 壊れ方 | 束 | 直すレーン | 方針 |
 |---|---|---|---|---|
-| `tutorial-opening-log-challenge.cs`（旧 `tutorial-pebble-challenge.cs`） | 待つチャレンジ・チュートリアルの GUID がピン先マスタに無い | 2 | S2-ladder | 先頭チャレンジ（原木）の通しへ書き直した（S2-ladder。GameUi・Web とも緑） |
-| `tutorial-craft-guidance.cs`（旧 `tutorial-equip-challenge.cs`） | 同上 | 2 | S2-ladder | 2 番目（木の板）のクラフト誘導へ書き直した（S2-ladder。GameUi・Web とも緑） |
-| `tutorial-tree-pin-nearest-search.cs` | 同上 | 2 | S2-ladder | 先頭の木ピンで書き直し、木はサーバーで壊す（S2-ladder。GameUi・Web とも緑） |
-| `server-notification-smoke.cs` | 削除済みの研究 GUID を送る | 2 | S2-ladder（S2-notification が先に直す） | 現行の研究 GUID へ直し、`notification-host` を UITK のロケータで解決する |
+| `tutorial-opening-log-challenge.cs`（旧 `tutorial-pebble-challenge.cs`） | 待つチャレンジ・チュートリアルの GUID がピン先マスタに無い | 2 | S2-ladder | 書き直した（S2-ladder。先頭チャレンジ〈原木〉の連鎖をマスタから引く。GameUi・Web とも緑） |
+| `tutorial-craft-guidance.cs`（旧 `tutorial-equip-challenge.cs`） | 同上 | 2 | S2-ladder | 書き直した（S2-ladder。2 番目〈木の板〉のクラフト誘導へ用途替え。GameUi・Web とも緑だが、Web の回は木の板の選択とクラフトボタンの長押しを UI で確かめていない〈R3 で Web に testid を足せないため、Web の回はクラフト要求で作る〉） |
+| `tutorial-tree-pin-nearest-search.cs` | 同上 | 2 | S2-ladder | 書き直した（S2-ladder。木をサーバーで壊してピンの追従を見る。GameUi・Web とも緑） |
+| `server-notification-smoke.cs` | 削除済みの研究 GUID を送る | 2 | S2-ladder | 直した（S2-notification #1649。S2-ladder で系の判定を全体スイッチに揃え GameUi・Web とも緑） |
 | `building/blueprint-copy-paste-via-ui.cs` | 削除済みの uGUI 型を参照してコンパイルできない | 3 | S3-ladder | 書き直した（S3-hotbar-modal 57a78b071e。S3-ladder で GameUi・Web とも緑） |
 | `building/blueprint-right-click-delete-via-ui.cs` | 同上 | 3 | S3-ladder | 書き直した（S3-ladder。GameUi・Web とも緑） |
 | `connect/electric-wire-connect-via-ui.cs` | 同上 | 3 | S3-ladder | 削除した（S3-ladder。後継 extend-chain は GameUi で緑） |
