@@ -18,9 +18,9 @@
 
 | # | 要件 | 受け入れ基準 |
 |---|---|---|
-| R-1 | ラダー 6 `uitk-challenge-gate` | `scenarios/uitk/stage5/uitk-challenge-gate.cs` を `exhibition-mode-run.sh ./moorestech_client GameUi <それ>` で流し、出展モードで起動 → DI より前の言語ゲート（初期化は未完了）→ `event-language-gate-option-japanese` を押す → その場で外れる → 初期化完了・言語 `japanese` → ゲーム画面 → `WebUiHost.Hub == null` → T で `UIStateEnum.ChallengeList`・`challenge-panel`・解放済みの先頭カテゴリの `challenge-category-<guid>`・進行中の `challenge-node-<guid>` が出る → T で GameScreen、を `Success: true`。ゲートを閉じた後の Error/Exception のログ 0 件と `[PlaytestUi] Web` のログ 0 件をシナリオ自身が主張する。Note に `系=GameUi` |
-| R-2 | 出展モードの運転役の汎用化 | `scenarios/uitk/stage5/exhibition-mode-run.sh <project> <GameUi\|Web> <scenario.cs>` が系の切り替え・武装・`run-scenario.sh`・後始末（Disarm と言語の復元）を行い、引数が 3 つでない・系が 2 値でないときは何もせず終了コード 2。S5-gate の `uitk-event-language-gate.sh <project>` は呼び方を変えずにこれへ委ね、S5-gate の録画 `uitk-event-language-gate` が `Success: true` のまま |
-| R-3 | ラダー 6 本が UITK で緑（plan §2.0 の 1・§2.6） | 最終 HEAD（Task 12 の取り込み後）の GameUi で 6 本が全部 `Success: true`・ErrorLogs 0（ラダー 6 のゲート待機中の NRE は 2026-08-28 裁定で許容。S5-gate と同じ扱い）。ラダー 1 の「セーブして終了」の結果は呼び出し側のシェルで `save.json` の更新時刻を見る（`uitk-lifeline.cs` 冒頭の注記） |
+| R-1 | ラダー 6 `uitk-challenge-gate` | `scenarios/uitk/stage5/uitk-challenge-gate.cs` を `exhibition-mode-run.sh ./moorestech_client GameUi <それ>` で流し、出展モードで起動 → DI より前の言語ゲート（初期化は未完了）→ `event-language-gate-option-japanese` を押す → その場で外れる → 初期化完了・言語 `japanese` → ゲーム画面 → `WebUiHost.Hub == null` → T で `UIStateEnum.ChallengeList`・`challenge-panel`・解放済みの先頭カテゴリの `challenge-category-<guid>`・進行中の `challenge-node-<guid>` が出る → T で GameScreen、を `Success: true`。初期化の完了の後の Error/Exception のログ 0 件と（起動からの）`[PlaytestUi] Web` のログ 0 件をシナリオ自身が主張し、選ぶ前の言語へ戻せたこと（`TrySetChosenLanguage` が真）を主張してから控えを消す。Note に `系=GameUi` |
+| R-2 | 出展モードの運転役の汎用化 | `scenarios/uitk/stage5/exhibition-mode-run.sh <project> <GameUi\|Web> <scenario.cs>` が系の切り替え・武装・`run-scenario.sh`・後始末（Disarm と言語の復元）を行い、引数が 3 つでない・系が 2 値でないときは何もせず終了コード 2。武装の EDC の戻り値が語 `armed` でなければ（PlayMode が残っている等）流さずに終了コード 1。言語の復元は EDC の戻り値の語 `language-restored` のときだけ控えを消し、外れたら `ERROR: … kept` を出して控えを残す（S5-gate の運転役と同じ判定）。S5-gate の `uitk-event-language-gate.sh <project>` は呼び方を変えずにこれへ委ね、S5-gate の録画 `uitk-event-language-gate` が `Success: true` のまま |
+| R-3 | ラダー 6 本が UITK で緑（plan §2.0 の 1・§2.6） | 最終 HEAD（Task 12 の取り込み後）の GameUi で 6 本が全部 `Success: true`・ErrorLogs 0（ラダー 6 の初期化の完了までの NRE は 2026-08-28 裁定で許容し、シナリオは初期化の完了の後だけ数える。S5-gate と同じ扱い）。ラダー 1 の「セーブして終了」の結果は呼び出し側のシェルで `save.json` の更新時刻を見る（`uitk-lifeline.cs` 冒頭の注記） |
 | R-4 | UITK 側で DSL の Web ロケータが一度も要素を返さない（ログ） | R-3 の 6 本と R-10 の段階 5 の録画の GameUi の回のそれぞれで、`uloop get-logs --search-text "[PlaytestUi]"` に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` で始まる行が 0。L0 `SwitchedUiElementLocatorTest` が PASS（選んだ系だけを読む構造の固定）。証拠を `done.md` の表に 1 本 1 行 |
 | R-5 | `TutorialAnchorCoveragePending.cs` が空 | S5-challenge の後で `Owners` が 0 件であることを確かめてからファイルを消し、`TutorialAnchorCoverageTest` の 1 本目を「全てのアンカーIDはUITKで印が付いている」（未移植の表の分岐を外す）に書き換えて PASS |
 | R-6 | 束 5 の暗転と G1 全束 0 | 台帳「## 束」の束 5 が `暗転`・起点 10 桁。`python3 .github/scripts/check-uitk-web-follow.py --base origin/master --head HEAD` の出力で束 1〜5 の全部が「未記帳 0 件」・違反なし。取り込み後も同じ。PR の `UITK Web follow gate (G1)` が pass |
@@ -66,7 +66,12 @@
 | 操作 | 計画後も生きるか | 根拠 |
 |---|---|---|
 | S5-gate の録画 `uitk-event-language-gate.sh <project>` | 生きる | 呼び方を変えず `exhibition-mode-run.sh` へ委ねる。Task 5 Step 3 で流し直して `Success: true` を見る |
-| 出展モードの武装の後始末（Disarm・言語の復元） | 生きる | 中身を移すだけ（trap の処理は同じ）。ラダー 6 と並べ比べも同じ後始末を通る。Task 5 Step 3 で中断時の復元も 1 回確かめる |
+| 出展モードの武装の後始末（Disarm・言語の復元） | 生きる | 中身を移すだけ（trap の処理は S5-gate の検査後の形と同じく、復元の成否を EDC の戻り値の語で判定し、戻せたときだけ控えを消す）。ラダー 6 と並べ比べも同じ後始末を通り、シナリオ側も `TrySetChosenLanguage` の真偽を主張してから控えを消す。Task 5 Step 3 で中断時の復元も 1 回確かめる |
+| 武装の失敗（PlayMode が残っている） | 生きる（強まる） | `ArmForNextBoot` は PlayMode 中に `ERROR: already playing` を返し EDC の終了コードは 0。運転役は戻り値の語 `armed` を見て、外れたら流さず終了コード 1（武装の無い通常の起動で流れ、ゲート待ちの時間切れが依存レーンの不具合に見える誤りを防ぐ）。Task 5 Step 3 の対照で見る |
+| Editor の全体スイッチ（`UiSystemEditorSwitch`。SessionState）の運転役の後の値 | 生きる（流した系のまま残る） | 運転役は後始末で全体スイッチを戻さない（`Web` で流すと、同じ Editor の次の Play も Web で起動する）。S5-gate の運転役は GameUi 固定だったので、この状態は汎用化で新しく生じる。このレーンの録画は毎回 `Set(...)` してから流し（Global Constraints・Task 10）、X-prerun への引き継ぎにも「運転役の後は流した系のまま。次の録画は必ず Set してから」と書く |
+| 置き換える既存 NUnit `PauseMenuViewTest.設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る` | 生きる | 置き換え後のメソッドは既存の assert（`PauseMenuViewTest.cs:112-128`）を全部含み、走りと画質の節の assert を足すだけ。I-fix5 の後は題の読みを `.PlainText()` にした形（`origin/uitk-lane/i-fix5` の同じメソッド）を土台にする |
+| 置き換える既存 NUnit `BugReportFormViewTest.応答待ちが終わってもホスト送信中は種別と本文を保護する` | 生きる（推測。Task 3 Step 1 で確かめる） | 旧テストは「ローカルの送信なしでホストが Submitting」でロックと文言を見ていた。新テストは必ずローカルの送信を通るが、拒否の応答の後は `_sending=false` になりロックの出どころは同じ `capture == Submitting`（`BugReportFormView.cs:154-171`）。Task 3 Step 1 で、旧テストの assert（種別 2 つ・本文・送信の無効と状態行の文言）が新テストに全部含まれることを見る |
+| I-fix5 の段ごとの移動の後に古いパスに残った録画 | 回す | Task 0 Step 2 で 2 本出たら新しい段のディレクトリの方を流し、古い方は `done.md`「未完了」に I-fix5 の消し漏れとして書く（持ち物は I-fix5。このレーンは消さない） |
 | チュートリアルのアンカーの網羅の検査 | 生きる（強まる） | 未移植の表を消し「全アンカーが UITK で印」を直に主張する。新しいアンカーを足して印を付け忘れると落ちる（今までは表に載せて逃げられた） |
 | G1（`check-uitk-web-follow.py`） | 生きる | 束 5 の状態の列だけを `暗転` にし、表の形は変えない。束 5 の Web パスを触る以後の master の取り込みは記帳が要る（X-prerun・取り込みの PR の運用。台帳「読み方と運用」） |
 | `test-name-parity.mjs` | 生きる | 処遇の行と `/// <web-test>` を足すだけ。自己テスト `node --test tools/uitk/testNameParity/tests/*.test.mjs` を Task 4 で流す |
@@ -1260,11 +1265,11 @@ git commit -m "test(uitk): 束 5 の Web テストの残りを処遇し突き合
 
 **Interfaces:**
 - Consumes: `Client.Playtest.Boot.PlaytestEventLanguageGateBoot.ArmForNextBoot()`・`.Disarm()`（S5-gate。`public static string`）、`Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem)`、`Client.Localization.Localize.TrySetChosenLanguage(string)`、`SK/scripts/run-scenario.sh <project> <scenario.cs>`（終了コード 0/1/2）
-- Produces: `exhibition-mode-run.sh <project> <GameUi|Web> <scenario.cs>`（終了コードは `run-scenario.sh` のもの。引数の誤りは 2）。シナリオは選ぶ前の言語を `<project>/PlaytestResults/scratch/event-language-gate/language-before.txt` に書き、戻したら消す（S5-gate の取り決めのまま）
+- Produces: `exhibition-mode-run.sh <project> <GameUi|Web> <scenario.cs>`（終了コードは `run-scenario.sh` のもの。引数の誤りは 2、武装の戻り値が `armed` でなければ 1）。シナリオは選ぶ前の言語を `<project>/PlaytestResults/scratch/event-language-gate/language-before.txt` に書き、戻したら消す（S5-gate の取り決めのまま）
 
 - [ ] **Step 1: 実物の運転役を読む**
 
-`git show origin/feature/uitk:.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-event-language-gate.sh` を読み、起草時の S5-gate 計画（Task 7 Step 3）の本文と違う所があれば、違う所を下の `exhibition-mode-run.sh` に反映してから書く（実物が正）
+`git show origin/feature/uitk:.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-event-language-gate.sh` を読み、下の `exhibition-mode-run.sh` と後始末・武装の判定を突き合わせる。下のコード片は S5-gate 計画（Task 7 Step 3）の検査後の形（言語の復元は EDC の戻り値の語 `language-restored`／`language-restore-failed` で判定し、戻せたときだけ控えを消す）に、武装の判定（戻り値の語 `armed`）を足したもの。実物がこれより進んだ形なら実物を写し、実物が終了コードで判定する古い形なら下の形を採る（後退させない）。どちらを採ったかを `done.md`「証拠」に 1 行
 
 - [ ] **Step 2: 汎用の運転役を書く**
 
@@ -1303,14 +1308,25 @@ on_exit() {
   local code
   code=$(cat "$SCRATCH/language-before.txt")
   echo "WARN: the scenario left the language changed; restoring $code"
-  uloop execute-dynamic-code --project-path "$PROJECT" --code "return Client.Localization.Localize.TrySetChosenLanguage(\"$code\");" \
-    && rm -f "$SCRATCH/language-before.txt" \
-    || echo "ERROR: language restore failed; language-before.txt kept ($SCRATCH)"
+  # 戻せたかは EDC の戻り値の語で見る（終了コードは EDC が走ったかだけを表す）。戻せたときだけ控えを消す
+  # Judge the restore by the word EDC returns (the exit code only says EDC ran); delete the note only on success
+  local restored
+  restored=$(uloop execute-dynamic-code --project-path "$PROJECT" --code "return Client.Localization.Localize.TrySetChosenLanguage(\"$code\") ? \"language-restored\" : \"language-restore-failed\";")
+  if echo "$restored" | grep -q "language-restored"; then
+    rm -f "$SCRATCH/language-before.txt"
+  else
+    echo "ERROR: language restore to $code failed; language-before.txt kept ($SCRATCH): $restored"
+  fi
 }
 trap on_exit EXIT
 
-uloop execute-dynamic-code --project-path "$PROJECT" --code "Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.$SYSTEM); return Client.Playtest.Boot.PlaytestEventLanguageGateBoot.ArmForNextBoot();" \
-  || { echo "NG: could not switch to $SYSTEM or arm exhibition mode"; exit 1; }
+# 武装できたかも戻り値の語で見る（PlayMode が残っていると "ERROR: already playing" を返し、終了コードは 0 のまま）
+# Judge arming by the returned word too (a lingering PlayMode returns "ERROR: already playing" with exit code 0)
+armed=$(uloop execute-dynamic-code --project-path "$PROJECT" --code "Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.$SYSTEM); return Client.Playtest.Boot.PlaytestEventLanguageGateBoot.ArmForNextBoot();")
+if echo "$armed" | grep -q "ERROR" || ! echo "$armed" | grep -q "armed"; then
+  echo "NG: could not switch to $SYSTEM or arm exhibition mode (stop PlayMode first): $armed"
+  exit 1
+fi
 bash "$SKILL_DIR/scripts/run-scenario.sh" "$PROJECT" "$SCENARIO"
 ```
 
@@ -1334,6 +1350,7 @@ bash .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhib
 bash .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client Classic x.cs; echo "exit=$?"
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-event-language-gate.sh ./moorestech_client; echo "exit=$?"
 ```
+加えて、PlayMode を手で起こした状態（`uloop control-play-mode --project-path ./moorestech_client --action play`）で `exhibition-mode-run.sh ./moorestech_client GameUi <uitk-event-language-gate.cs のパス>` を流し、`exit=1` と `NG: could not switch … ERROR: already playing` の行を見てから PlayMode を止める（武装できないまま通常の起動で流れない対照）。
 Expected: 1 本目と 2 本目は `exit=2`（Unity に何も送らない）。3 本目は `exit=0`・`result.json` が `Success: true`・Note の `系=GameUi`（S5-gate の録画が呼び方を変えずに通る）。続けて `uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Localization.Localize.GetCurrentLanguageCode();'` が流す前の言語のまま、`ls moorestech_client/PlaytestResults/scratch/event-language-gate/` に `language-before.txt` が無い
 
 - [ ] **Step 4: コミット**
@@ -1367,6 +1384,7 @@ git commit -m "test(uitk): 出展モードの運転役を系とシナリオを�
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
@@ -1375,6 +1393,7 @@ using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Text;
 using Client.Ui.State.Challenge;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
@@ -1398,81 +1417,92 @@ return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record
     var initialized = false;
     var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => initialized = true);
 
-    // 2. DI より前の言語ゲート。選ぶまで初期化は止まっている
-    // 2. The pre-DI language gate; initialization holds until a choice
-    await p.UntilUiElement("event-language-gate", 60f);
-    var root = GameUiRoot.Instance.GetRootElement();
-    p.Assert(!initialized, "言語を選ぶまで初期化が完了しない");
-    await p.Screenshot("01-event-language-gate");
-
-    // 選ぶ前の言語を控え、途中で落ちても運転役が戻せるようにする
-    // Note the pre-choice language so the driver can restore it even if this dies midway
-    var languageBefore = Localize.GetCurrentLanguageCode();
-    var languageBeforePath = LanguageBeforePath();
-    Directory.CreateDirectory(Path.GetDirectoryName(languageBeforePath));
-    File.WriteAllText(languageBeforePath, languageBefore);
-
-    // 3. 日本語を押すとその場で外れ、初期化が完了する。ここから後のエラーと Web ロケータのログを数える
-    // 3. Pressing Japanese removes the gate at once and initialization completes; errors and Web-locator logs are counted from here
-    await p.ClickUi("event-language-gate-option-japanese");
-    await p.Until(() => root.Q("event-language-gate") == null, 5f, "押したその場でゲートが外れる");
-    var errorsAfterGate = new List<string>();
+    // Web ロケータのログは最初から、エラーは初期化の完了から数える（DI の前の毎フレームの NRE は 2026-08-28 裁定で許容）
+    // Web-locator logs count from the start and errors from initialization completion (per-frame NREs before DI are allowed by the 2026-08-28 ruling)
+    var errorsAfterInitialization = new List<string>();
     var webLocatorLogs = new List<string>();
     Application.logMessageReceived += CountLog;
-    await p.Until(() => initialized, 180f, "選択の後に初期化が完了する");
-    p.Assert(Localize.GetCurrentLanguageCode() == "japanese", "日本語で始まる");
+    try
+    {
+        // 2. DI より前の言語ゲート。選ぶまで初期化は止まっている
+        // 2. The pre-DI language gate; initialization holds until a choice
+        await p.UntilUiElement("event-language-gate", 60f);
+        var root = GameUiRoot.Instance.GetRootElement();
+        p.Assert(!initialized, "言語を選ぶまで初期化が完了しない");
+        await p.Screenshot("01-event-language-gate");
 
-    // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る
-    // 4. Reach the game screen and check that no web host started
-    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkitIfPlaying();
-    await p.ExitToGameScreen();
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
+        // 選ぶ前の言語を控え、途中で落ちても運転役が戻せるようにする
+        // Note the pre-choice language so the driver can restore it even if this dies midway
+        var languageBefore = Localize.GetCurrentLanguageCode();
+        var languageBeforePath = LanguageBeforePath();
+        Directory.CreateDirectory(Path.GetDirectoryName(languageBeforePath));
+        File.WriteAllText(languageBeforePath, languageBefore);
 
-    // 5. 解放済みの先頭カテゴリと最初の進行中を源から引く（uitk-challenge-list と同じ引き方）
-    // 5. Take the first unlocked category and its first current challenge from the source (same as uitk-challenge-list)
-    var progress = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ChallengeProgressState>();
-    var category = progress.Categories.First(c => c.IsUnlocked);
-    var current = category.Category.Challenges.First(c => category.CurrentChallenges.Contains(c));
-    p.Note($"カテゴリ {category.Category.CategoryGuid}・進行中 {current.ChallengeGuid}");
+        // 3. 日本語を押すとその場で外れ、初期化が完了する
+        // 3. Pressing Japanese removes the gate at once and initialization completes
+        await p.ClickUi("event-language-gate-option-japanese");
+        await p.Until(() => root.Q("event-language-gate") == null, 5f, "押したその場でゲートが外れる");
+        await p.Until(() => initialized, 180f, "選択の後に初期化が完了する");
+        p.Assert(Localize.GetCurrentLanguageCode() == "japanese", "日本語で始まる");
 
-    // 6. T で一覧を開き、枠・先頭カテゴリのボタン・進行中のカードが UITK のロケータで解ける
-    // 6. Open the list with T; the frame, first category button and current card resolve through the UITK locator
-    await p.PressKey(Key.T);
-    await p.WaitUiState(UIStateEnum.ChallengeList, 10f);
-    await p.UntilUiElement("challenge-panel", 5f);
-    await p.UntilUiElement($"challenge-category-{category.Category.CategoryGuid}", 5f);
-    await p.UntilUiElement($"challenge-node-{current.ChallengeGuid}", 5f);
-    var cardTexts = root.Q($"challenge-node-{current.ChallengeGuid}").Query<Label>().ToList().Select(label => label.text).Where(text => !string.IsNullOrEmpty(text)).ToList();
-    p.Note($"進行中のカードの文字 {string.Join(" / ", cardTexts)}");
-    p.Assert(cardTexts.Count > 0, "進行中のカードに文字が出る");
-    await p.WaitSeconds(1f);
-    await p.Screenshot("02-challenge-list-japanese");
+        // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る
+        // 4. Reach the game screen and check that no web host started
+        await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+        await p.SkipOpeningSkitIfPlaying();
+        await p.ExitToGameScreen();
+        p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
 
-    // 7. T で閉じてゲーム画面へ戻る
-    // 7. Close with T and return to the game screen
-    await p.PressKey(Key.T);
-    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-    await p.Screenshot("03-after-close");
+        // 5. 解放済みの先頭カテゴリと最初の進行中を源から引く（uitk-challenge-list と同じ引き方）
+        // 5. Take the first unlocked category and its first current challenge from the source (same as uitk-challenge-list)
+        var progress = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ChallengeProgressState>();
+        var category = progress.Categories.First(c => c.IsUnlocked);
+        var current = category.Category.Challenges.First(c => category.CurrentChallenges.Contains(c));
+        p.Note($"カテゴリ {category.Category.CategoryGuid}・進行中 {current.ChallengeGuid}");
 
-    // 8. ゲートの後のエラーと Web ロケータのログが 0 件（完了条件「UITK 側で Web ロケータが一度も要素を返さない」）
-    // 8. Zero errors and zero Web-locator logs after the gate (exit criterion: the Web locator never returns an element on UITK)
-    Application.logMessageReceived -= CountLog;
-    p.Note($"ゲートの後のエラー {errorsAfterGate.Count} 件・Web ロケータのログ {webLocatorLogs.Count} 件");
-    p.Assert(errorsAfterGate.Count == 0, $"ゲートの後の Error/Exception が 0 件（最初: {errorsAfterGate.FirstOrDefault()}）");
+        // 6. T で一覧を開き、枠・先頭カテゴリのボタン・進行中のカードが UITK のロケータで解ける
+        // 6. Open the list with T; the frame, first category button and current card resolve through the UITK locator
+        await p.PressKey(Key.T);
+        await p.WaitUiState(UIStateEnum.ChallengeList, 10f);
+        await p.UntilUiElement("challenge-panel", 5f);
+        await p.UntilUiElement($"challenge-category-{category.Category.CategoryGuid}", 5f);
+        await p.UntilUiElement($"challenge-node-{current.ChallengeGuid}", 5f);
+        var cardTexts = root.Q($"challenge-node-{current.ChallengeGuid}").Query<Label>().ToList().Select(PlainText).Where(text => !string.IsNullOrEmpty(text)).ToList();
+        p.Note($"進行中のカードの文字 {string.Join(" / ", cardTexts)}");
+        p.Assert(cardTexts.Count > 0, "進行中のカードに文字が出る");
+        await p.WaitSeconds(1f);
+        await p.Screenshot("02-challenge-list-japanese");
+
+        // 7. T で閉じてゲーム画面へ戻る
+        // 7. Close with T and return to the game screen
+        await p.PressKey(Key.T);
+        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+        await p.Screenshot("03-after-close");
+
+        // 言語を戻せたときだけ控えを消す。戻せなければ控えを残し、運転役がもう一度戻して結果を出す
+        // Delete the note only when the language came back; otherwise keep it so the driver retries and reports
+        var languageRestored = Localize.TrySetChosenLanguage(languageBefore);
+        p.Assert(languageRestored, $"選ぶ前の言語 {languageBefore} へ戻せる");
+        if (languageRestored) File.Delete(languageBeforePath);
+    }
+    finally
+    {
+        // 途中の時間切れで抜けても購読を残さない（前例 uitk-machine-ui.cs）
+        // Never leave the subscriptions behind, even when a timeout exits midway (precedent uitk-machine-ui.cs)
+        Application.logMessageReceived -= CountLog;
+        initializedSubscription.Dispose();
+    }
+
+    // 8. 初期化の後のエラーと Web ロケータのログが 0 件（完了条件「UITK 側で Web ロケータが一度も要素を返さない」の補助の証拠。主の証拠は locator の行と Hub == null）
+    // 8. Zero errors after initialization and zero Web-locator logs (supporting evidence for the exit criterion; the main evidence is the locator line and Hub == null)
+    p.Note($"初期化の後のエラー {errorsAfterInitialization.Count} 件・Web ロケータのログ {webLocatorLogs.Count} 件");
+    p.Assert(errorsAfterInitialization.Count == 0, $"初期化の後の Error/Exception が 0 件（最初: {errorsAfterInitialization.FirstOrDefault()}）");
     p.Assert(webLocatorLogs.Count == 0, $"[PlaytestUi] Web のログが 0 件（最初: {webLocatorLogs.FirstOrDefault()}）");
-
-    // 言語を戻して控えを消す
-    // Restore the language and remove the note
-    Localize.TrySetChosenLanguage(languageBefore);
-    File.Delete(languageBeforePath);
-    initializedSubscription.Dispose();
 
     #region Internal
 
     void CountLog(string condition, string stackTrace, LogType type)
     {
-        if (type == LogType.Error || type == LogType.Exception) errorsAfterGate.Add(condition);
+        if (initialized && (type == LogType.Error || type == LogType.Exception)) errorsAfterInitialization.Add(condition);
         if (condition.StartsWith("[PlaytestUi] Web")) webLocatorLogs.Add(condition);
     }
 
@@ -1481,9 +1511,19 @@ return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record
         return Path.Combine(Application.dataPath, "..", "PlaytestResults", "scratch", "event-language-gate", "language-before.txt");
     }
 
+    // LocalizedLabel の表示文は行送りの印を前に付ける（I-fix5）ので、原文から印を外して読む
+    // LocalizedLabel's display text carries a line-height tag (I-fix5), so read the source with tags dropped
+    string PlainText(Label label)
+    {
+        var text = label is LocalizedLabel { SourceText: not null } localized ? localized.SourceText : label.text;
+        return Regex.Replace(text ?? string.Empty, "<[^>]+>", string.Empty);
+    }
+
     #endregion
 });
 ```
+
+`LocalizedLabel.SourceText` は I-fix5 が足す（`origin/uitk-lane/i-fix5` の `Client.Ui/Foundation/Text/LocalizedLabel.cs`）。Task 0 Step 1 で I-fix5 が未マージなら、ローカル関数 `PlainText` は `label.text` から印を外すだけにする（I-fix5 の前は行送りの印も付かない）。
 
 - [ ] **Step 2: 流す**
 
@@ -1493,7 +1533,7 @@ uloop clear-console --project-path ./moorestech_client
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client GameUi .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-gate.cs; echo "exit=$?"
 uloop get-logs --project-path ./moorestech_client --log-type All --search-text "[PlaytestUi]" --max-count 200
 ```
-Expected: `exit=0`、`result.json` が `Success: true`、Note に `系=GameUi`・「ゲートの後のエラー 0 件・Web ロケータのログ 0 件」、mp4 とスクショ 3 枚。get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行。落ちたら: ゲートが出ない → S5-gate の Task 8 Step 1 の切り分け（`[EventLanguageGate]`・`[UiSrgbPanelTarget]` のログ）。T で一覧が出ない → `uitk-challenge-list.cs` を GameUi で流して同じく落ちるかを見て、落ちるなら S5-challenge の不具合として bd（`--parent <Task 0 の ID>`）と `done.md`「未完了」へ（このレーンで画面を直さない）。ゲートの後のエラーが出たら、1 行目を `done.md` に書き、出所のレーンへ bd で回す（シナリオの Assert は緩めない）
+Expected: `exit=0`、`result.json` が `Success: true`、Note に `系=GameUi`・「初期化の後のエラー 0 件・Web ロケータのログ 0 件」、mp4 とスクショ 3 枚。get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行。落ちたら、まず運転役の出力を見る: `NG: could not switch … or arm` が出ていれば運転役の側（PlayMode が残っていた等。`uloop control-play-mode --action stop` の後に流し直す）で、依存レーンへは回さない。`ERROR: language restore` が出ていれば控えが残っているので、出た言語へ戻してから次を流す。運転役が通っていて落ちたら: ゲートが出ない → S5-gate の Task 8 Step 1 の切り分け（`[EventLanguageGate]`・`[UiSrgbPanelTarget]` のログ）。T で一覧が出ない → `uitk-challenge-list.cs` を GameUi で流して同じく落ちるかを見て、落ちるなら S5-challenge の不具合として bd（`--parent <Task 0 の ID>`）と `done.md`「未完了」へ（このレーンで画面を直さない）。初期化の後のエラーが出たら、1 行目を `done.md` に書き、出所のレーンへ bd で回す（シナリオの Assert は緩めない）。**どの分岐でも、緑にならないまま先へ進めない**: R-1 が満たせないので、bd を立てて `done.md` の 1 行目を「状態: 停止（ラダー 6 が赤: <理由>）」にし、`cmux wait-for -S uitk-s5-ladder` を送って待つ。出所のレーンか I-fix の直しが `feature/uitk` に入ったら取り込んで流し直す。未完了のままマージしない
 
 - [ ] **Step 3: コミット**
 
@@ -1645,12 +1685,13 @@ return PlaytestRunner.Run("uitk-stage5-compare", options, async p =>
     await MoveCursorOffPanelsAsync();
     await ShootBothResolutionsAsync("5-challenge-list");
 
-    // 4. 閉じて言語を戻し、控えを消す
-    // 4. Close, restore the language and remove the note
+    // 4. 閉じて言語を戻す。戻せたときだけ控えを消し、戻せなければ控えを残して運転役に戻させる
+    // 4. Close and restore the language; delete the note only on success, else keep it for the driver to retry
     await p.PressKey(Key.T);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-    Localize.TrySetChosenLanguage(languageBefore);
-    File.Delete(languageBeforePath);
+    var languageRestored = Localize.TrySetChosenLanguage(languageBefore);
+    p.Assert(languageRestored, $"選ぶ前の言語 {languageBefore} へ戻せる");
+    if (languageRestored) File.Delete(languageBeforePath);
     initializedSubscription.Dispose();
 
     #region Internal
@@ -1747,7 +1788,7 @@ uloop clear-console --project-path ./moorestech_client
 uloop get-logs --project-path ./moorestech_client --log-type All --search-text "[PlaytestUi]" --max-count 200
 uloop get-logs --project-path ./moorestech_client --log-type Error --max-count 50
 ```
-Expected: 6 本とも `exit=0`・`Success: true`・ErrorLogs 0（ラダー 6 はシナリオの主張。ゲート待機中の NRE は除く）。各回の get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行・Error 0。ラダー 1 の後に、`bash .agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で出た作業セーブの `save.json` を `stat -f "%Sm" <save.json>` で読み、更新時刻が流し始めた時刻より後。結果を `done.md`「証拠」に 1 本 1 行（パス・exit・ErrorLogs・locator 行の数・Web 行の数）
+Expected: 6 本とも `exit=0`・`Success: true`・ErrorLogs 0（ラダー 6 はシナリオの主張。初期化の完了までの NRE は除く）。各回の get-logs に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` が 0 行・Error 0。ラダー 1 の後に、`bash .agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で出た作業セーブの `save.json` を `stat -f "%Sm" <save.json>` で読み、更新時刻が流し始めた時刻より後。結果を `done.md`「証拠」に 1 本 1 行（パス・exit・ErrorLogs・locator 行の数・Web 行の数）
 
 - [ ] **Step 3: 段階 5 に触る録画（GameUi）**
 
