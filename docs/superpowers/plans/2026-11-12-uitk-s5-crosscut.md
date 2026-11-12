@@ -34,11 +34,11 @@
 | R-14 | DC-34 A 不足の旗 | `BuildMenuRequiredItem.Lacking` を消し、不足は `BuildMenuMaterialLine.IsInsufficient`（免除込み）だけ。`BuildMenuShortage` は `Held < Count` から決める。既存の L0 緑 |
 | R-15 | DC-30 A トークン値の CI | `convert-web-tokens.mjs`・`convert-mantine-tokens.mjs` が `--check`（書かずに差があれば exit 1）を持ち、`run_test.yml` の webui-test が base（か head）が `feature/uitk` の PR でだけ両方を回す（G1 と同じ条件）。依存の無い `node --test tools/uitk/webTokens/tests/*.test.mjs`（2 件）は `uitk-web-follow-gate.yml` の自己テストの job に並べる。手元で両方 `--check` が exit 0 |
 | R-16 | DC-31 A Presenter の結線 | L1 `PresenterMountTest`（本番の `UiLayerStack`・`GameUiRootTestFactory`・切り替えられる `UiRoutingState`）が `uiState.spec` の 5 件を写して緑。L3 `GameUiScreenMountTest` が実ゲームの起動後に、全画面の View が Presenter の決めた層（`GameUiRoot.GetLayer(UiLayer, UiFamily)`）に 1 つだけあり、Render が届いていること（ホットバーの枠の数が 0 でない・持ち物を開くと枠が 0 でない）を見る（DI 登録漏れ・層の取り違え・購読の消し忘れの網）。段ごとの L3 は各ラダーのレーンの物を数える（D-14） |
-| R-17 | 比較撮影と独立評価 | 1-pause-top・2-skit-choices・2-skit-text・2-challenge-hud-multiple-long・3-build-menu・3-modal・4-item-list-large・4-research・4-block-chest・4-block-machine・1-toast・2-notifications・5-japanese-inventory・1-bug-report と recipe（`web-9ce5557bdb-s4-recipe`）を 1280×720 と 2560×1080 で撮り、参照と並べて opus の評価役 2 体が別々に判定。再現した差は直すか LX-205〜206 に記帳。`done.md`「差の表」に全行の処遇 |
+| R-17 | 比較撮影と独立評価 | 1-pause-top・2-skit-choices・2-skit-text・2-challenge-hud-multiple-long・3-build-menu・3-modal・4-item-list-large・4-research・4-block-chest・4-block-machine・1-toast・2-notifications・5-japanese-inventory・1-bug-report・2-world-pin-offscreen・5-tutorial-outline-label・2-train-hud・2-tooltip・2-key-control-hint・2-progress-labeled・3-hotbar-equipment-empty と recipe の `4-recipe-selected-craft`（`web-9ce5557bdb-s4-recipe`）を 1280×720 と 2560×1080 で撮り、参照と並べて opus の評価役 2 体が別々に判定。再現した差は直すか LX-205〜206 に記帳。`done.md`「差の表」に全行の処遇 |
 | R-18 | DC-32 A Presenter の型 | ゲーム寿命の Presenter・Relay・Binder・Installer 17 本と `RecipeSelectionCloseReset` から例外なく `IDisposable` を外し、`Dispose` を呼ぶテストの 3 行を消す（D-16）。S5-gate の DI 前の土台 `GameUiPreDiFoundation` もこの 2 型の `Dispose` を呼ばない形で、どちらが先に入ってもコンパイルが通る（T0 Step 3 で照合）。設計書 §4.2 の型の改訂案をメモへ |
 | R-19 | DC-23 A Web ホストの判定 | `UiStateActions.IsAllowed` を消して `UiStateTransitionRules.IsAllowed` を呼ぶ、`CraftActions`・`CraftingRecipesTopic`・`RecipeViewerItemListTopic`・列車の 7 組（s4-train 計画「## 本 PR 外のリファクタ提案」の 1〜8 行目）が State の Catalog・Commands・変換を呼ぶ。`Client.Tests/WebUi/` の既存テスト緑、Web 系の録画（R-21）が退行 0 |
 | R-20 | AC-5・Warning | AC-5 の 48 件（除外 3 件は D-18）を単一参照のローカル関数へ移す。`BugReportFormView` の 3 件（:107・:173・:185）は I-fix6（DC-22 の持ち主）の取り込み後の実物で、移しても 200 行未満に収まるときだけ移し、収まらなければ新しい型を作らず落として `done.md` に理由を書く（D-24）。Warning の S5-crosscut 候補 4 行を拾う／見送るで 1 行ずつ処遇（c22-si×2・c46-cc は拾う、c63-cc は見送る） |
-| R-21 | 録画 | 反映後のバイナリで、GameUi のラダー 1〜5（`uitk-lifeline`・`stage2/uitk-opening-hud`・`stage3/uitk-build-bp`・`stage4/uitk-production-loop`・`stage4/uitk-research-train`）と横断の録画 9 本（T20 の表）が `Success: true`。Web 系で `misc/ui-state-transition-matrix`・`misc/localization-language-switch-via-ui`・`train/fluid-inventory-via-interact`・`train/train-timetable-via-ui`・`train/train-station-default-name` が CEF の出る環境なら `Success: true`（出なければ RendererUnavailable の行を証拠に「未確認」） |
+| R-21 | 録画 | 反映後のバイナリで、GameUi のラダー 1〜5（`uitk-lifeline`・`stage2/uitk-opening-hud`・`stage3/uitk-build-bp`・`stage4/uitk-production-loop`・`stage4/uitk-research-train`）と横断の録画 9 本（T20 Step 2）が `Success: true`。Web 系で `misc/ui-state-transition-matrix`・`misc/localization-language-switch-via-ui`・`train/fluid-inventory-via-interact`・`train/train-timetable-via-ui`・`train/train-station-default-name`・`playtest-receiver/developer-report-delivery`・`playtest-receiver/developer-report-interrupt`（manifest v7。`webUiHealth` が Web ホストの起動を見るので Web の系）が CEF の出る環境なら `Success: true`（出なければ RendererUnavailable の行を証拠に「未確認」） |
 | R-22 | 指揮の割り当ての完了 | DC-8 B・DC-10 A・DC-11 A・DC-12 A・DC-16 C・DC-18 A・DC-19 A・DC-21 A（Timetable.uss の PanelActionButton 無効の上書きは I-fix5 のため除く）・DC-23 A・DC-27 A・DC-28 B・DC-30 A・DC-31 A・DC-32 A・DC-34 A・AC-5・Warning の候補が、`done.md`「割り当ての処遇」の表で全行「やった（Task n・証拠）／見送った（理由）」 |
 | R-23 | 申し送りの処遇 | 「## 申し送りの処遇」の全行が `done.md` に写る |
 
@@ -87,7 +87,7 @@
 | `GamePanelSurface` の hud・skit の面（チャレンジの HUD・会話窓） | 生きる | 面の規則をつまみの受け直しに変える（T10 Step 4）。L1 `GamePanelSurfaceTest` に種別ごとの面の値の件（T10 Step 4 で足す）・並べ比べ 2-challenge-hud-multiple-long・2-skit-text |
 | 頂点カラーで描く装飾（ヴィネット・GamePanel の面・ダイアログの影・クラフトのボタン・レシピ行の枠・× の図形・スキットの送りの印・進捗の矢印の影） | 生きる | index の並び・square cap・影の定数を 1 か所へ移すだけで値は同じ（T4。並びの違う 2 か所は置換しない）。L1 `GridMeshIndexWriterTest`・`Painter2DSquareCapTest`・各部品の既存 L1・並べ比べ 3-modal（影）・recipe（ボタン・行の枠）・4-block-machine（進捗の矢印）・2-skit-text（送りの印）・4-block-chest（面・×） |
 | Web 系: レシピ一覧と解放済みクラフトの表示・列車のホームの積み降ろしモード・駅名の変更・列車の液体インベントリ | 生きる | 判定を State へ付け替えるだけで wire は変えない（T15）。`Client.Tests/WebUi/` の対応テスト・録画 `train/fluid-inventory-via-interact`・`train/train-timetable-via-ui`・`train/train-station-default-name`（T20 Step 3。CEF が出ない環境なら「未確認」） |
-| バグ報告フォームの送信（送信中の無効化・状態の表示・送信後のトースト） | 生きる | このレーンは送信の手順を動かさない（`BugReportFormSender` は作らない。D-24）。AC-5 で移すのは単一参照の helper だけ。L1 `BugReportForm` の既存テスト・録画 `playtest-receiver/developer-report-delivery`（T20 Step 2）・並べ比べ 1-bug-report |
+| バグ報告フォームの送信（送信中の無効化・状態の表示・送信後のトースト） | 生きる | このレーンは送信の手順を動かさない（`BugReportFormSender` は作らない。D-24）。AC-5 で移すのは単一参照の helper だけ。L1 `BugReportForm` の既存テスト・録画 `playtest-receiver/developer-report-delivery`（T20 Step 3。Web の系）・並べ比べ 1-bug-report |
 | 入力の共通規則・ドラッグ・押下ジェスチャ・OS カーソルのスタック・モーダル（AC-5 の移動先: `GameUiInputRules`・`UiDragDrop`・`UiPressGesture`・`UiOsCursorRequestStack`・`ModalView`） | 生きる | 挙動不変の移動（T17）。全 UI の L1（`^Client\.Tests\.Ui\.`）と WebUi の L0 で見る（T17 Step 5） |
 | 各画面の出し入れ（display） | 生きる | 出すときはインラインを外して USS に戻す。USS が既定で `display: none` の要素は T2 Step 2 の照合で状態クラスへ替える |
 | スクロールの端の見え方（5 画面） | 生きる | 式を 1 本にするだけ。並べ比べで確かめる（T3・T19） |
@@ -1609,7 +1609,7 @@ namespace Client.Ui.State.Recipe.Commands
             if (rejection.HasValue) return ActionResult.Fail(UiCommandRejectReasonTraits.ToWireCode(rejection.Value));
 ```
 
-Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 対を 1 対 1 コミットで進める
+同じ関数の :32-33（`JValue` でない・`Guid.TryParse` が失敗）の `ActionResult.Fail("invalid_recipe")` も `ActionResult.Fail(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.RecipeInvalid))` にする（同じ失敗コードを文字列と写像の 2 か所で綴らない。wire の文字列は `invalid_recipe` のまま）。Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 対を 1 対 1 コミットで進める
 - [ ] **Step 3: テスト**: 対ごとに `uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.WebUi\.|UiStateTransitionRules|RecipeCommands|CraftRecipeCatalog|RecipeViewerItemCatalog|TrainTimetable|TrainPlatform|TrainBlockCommands"` → 失敗 0
 - [ ] **Step 4: 判断記録**: D-17 に「conductor 11-10 04:50 の『据え置き・X-5 で Web ホスト側を消す』を、この決定（DC-23 A）で覆す。X-5 は付け替え済みの Web ホストを消すだけ」を書く
 - [ ] **Step 5: コミット**: 対ごとに `refactor(webui-host): <対> の判定を State の <型> へ付け替える（DC-23 A。S5-crosscut T15）`
@@ -1646,7 +1646,7 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 
 ### Task 18: 束 5 の横断テストの写し（R-3）
 
-**Files:** Create: `S/Client.Tests/Ui/Crosscut/Localization/LanguageRoundTripTest.cs`・`S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/AllScreensLanguageSwitchTest.cs`・`S/Client.Tests/Ui/Crosscut/TextSelection/TextSelectionTest.cs`。Modify: `S/Client.Tests/Localization/Resolution/LocalizationDictionaryCoverageTest.cs`（1 件足す＋タグ）・`S/Client.Tests/WebUi/Localization/LocalizationLanguageSelectionContractTest.cs` か `LocalizedLabelTest`（タグ）・`S/Client.Tests/Ui/Input/GameUiInputRulesTest.cs`（タグ 2・試験 1）・L3 の Esc（下）
+**Files:** Create: `S/Client.Tests/Ui/Crosscut/Localization/LanguageRoundTripTest.cs`・`S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/AllScreensLanguageSwitchTest.cs`・`S/Client.Tests/Ui/Crosscut/TextSelection/TextSelectionTest.cs`。Modify: `S/Client.Tests/Localization/Resolution/LocalizationDictionaryCoverageTest.cs`（1 件足す＋タグ）・`S/Client.Tests/Localization/Resolution/LocalizeTest.cs`（1 件足す＋タグ）・`S/Client.Tests/Ui/Input/GameUiInputRulesTest.cs`（タグ 2・試験 1）・L3 の Esc（下）
 
 **Interfaces:** Consumes: `Localize.TrySetChosenLanguage(string)`（`Client.Localization/Localize.cs`:91）・`Localize.OnLanguageChanged`・`VanillaLocalizationTable.SourceTexts`・`LanguageCatalog.Languages`・`LanguageSelectView`（`ModeSwitch` の選択肢の testid）・`GameUiInputRules.Attach(VisualElement)`・`ITextSelection.isSelectable`（UITK の `Label.selection`・`TextField.textSelection`）
 
@@ -1657,7 +1657,7 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 | `e2e/tests/system/i18n.spec.ts` | `localization.current切替でlocale別辞書を再取得し表示を更新する` | `LanguageRoundTripTest`: ポーズメニューの設定を載せ、`Localize.TrySetChosenLanguage("japanese")` で見出しの文が日本語の辞書の値に変わる（「再取得」は UITK では辞書の切替） |
 | 同 | `ポーズメニューの言語選択で英語と日本語を往復する` | `LanguageRoundTripTest`: `LanguageSelectView` の日本語の選択肢を `simulate.Click` → 文が日本語、英語を押す → 英語に戻る（後始末で言語と PlayerPrefs を戻す。前例 `LocalizedLabelTest`:23-41） |
 | `src/shared/i18n/allScreensI18n.test.ts` | `re-renders translated screen copy after localization.current changes with no legacy screen exemptions` | `AllScreensLanguageSwitchTest`（L3）: GameUi で起動し、英語の文のうち日本語と違うものの集合 E を辞書から作り、日本語へ切り替えた次のフレームに、ルート以下の全 `Label` の text が E に入っていない（除外の画面を作らない） |
-| 同 | `marks a failed requested locale without replacing the previous ready dictionary` | 既存の言語選択の L0（`LocalizationLanguageSelectionContractTest`）に「存在しない言語コードで `TrySetChosenLanguage` が false、前の言語のまま」を足す（既にあればタグだけ） |
+| 同 | `marks a failed requested locale without replacing the previous ready dictionary` | UITK 側の言語の L0 `Client.Tests/Localization/Resolution/LocalizeTest.cs` に 1 件: `japanese` を選んだ後に存在しない言語コード（`klingon`）で `TrySetChosenLanguage` が false、`GetCurrentLanguageCode()` が `japanese` のまま、辞書の文も日本語のまま、`OnLanguageChanged` が流れない（拒否の LogWarning は `LogAssert.Expect`。前例 `LocalizeUnchosenLanguageTest.cs`:101-118 は未選択の状態からの拒否だけを見る）。Web ホストの契約テスト `Client.Tests/WebUi/Localization/LocalizationLanguageSelectionContractTest.cs` には置かない（X-5c が「5c-消す」で丸ごと消し、UITK 側でこの挙動を守る試験が一緒に消える） |
 | 同 | `requires non-empty Source and every language cell for every generated key` | `LocalizationDictionaryCoverageTest.EveryVanillaKeyHasNonEmptyTextInEveryLanguage` にタグ、同ファイルに `EveryVanillaKeyHasNonEmptySourceText`（`VanillaLocalizationTable.SourceTexts` の値が全部非空）を足しタグを付ける。1 つの Web テストに 2 つの NUnit が付くので、ツールの数え方（Step 3）で 1 件として数えられるかを確かめ、数えないなら 2 つ目はタグ無し |
 | `e2e/tests/uiState.spec.ts` | 5 件 | T14 で写した |
 | `e2e/tests/regression/inputLayer.spec.ts` | `block inventory上のEscapeはGameScreen遷移を要求する` | L3（既存 `EditModeInPlayingTest/Ui/GameUiInputTest.cs` に 1 件足すか、`Crosscut/` に置く）: チェストを開き、Esc（`InputManager.UI.CloseUI.SetKeyDownForTest(true)` 前例 `UiInputExclusivityEscapeLatch` 系）で UIState が GameScreen |
@@ -1670,7 +1670,7 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 `regression/inputLayer.spec.ts` の残る 1 件（ホイール）は既に `EquipmentWheelFlowTest.cs`:112 にある。
 
 - [ ] **Step 1: 書く**: 上の表のとおり。新しいファイルは `Client.Tests/Ui/Crosscut/` の下（10 ファイルを超えるならサブディレクトリ）。L3 は 45 秒待ちの注意を守る
-- [ ] **Step 2: 走らせる**: `uloop run-tests … --filter-type regex --filter-value "LanguageRoundTripTest|LocalizationDictionaryCoverageTest|LocalizationLanguageSelectionContractTest|GameUiInputRulesTest|TextSelectionTest"` → 失敗 0。L3 は `--filter-value "AllScreensLanguageSwitchTest|GameUiInputTest"`（別の回）→ 失敗 0
+- [ ] **Step 2: 走らせる**: `uloop run-tests … --filter-type regex --filter-value "LanguageRoundTripTest|LocalizationDictionaryCoverageTest|LocalizeTest|GameUiInputRulesTest|TextSelectionTest"` → 失敗 0。L3 は `--filter-value "AllScreensLanguageSwitchTest|GameUiInputTest"`（別の回）→ 失敗 0
 - [ ] **Step 3: 突き合わせ**: `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing > moorestech_client/.uloop/outputs/compare/S5-crosscut/parity-t18.txt; echo "exit=$?"`。`grep -E "i18n.spec|allScreensI18n|uiState.spec|inputLayer.spec|textSelection.spec|connection.spec" parity-t18.txt` が 0 行。束 5 の他のファイル（チャレンジ・言語ゲート・チュートリアル等）の未対応は S5-challenge・S5-gate・S5-ladder の物なので exit 1 でもよい。件数（Web／写した／捨てた／未対応）を `done.md` に写す
 - [ ] **Step 4: コミット**: `test(uitk): 束 5 の横断テスト（i18n・allScreensI18n・uiState・inputLayer・textSelection）を写す（S5-crosscut T18）`
 
@@ -1684,12 +1684,13 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 |---|---|---|
 | `1-pause-top` | ボタンの幅（T10）・指カーソルの副作用なし（T9） | 既存のポーズメニューの撮影（`git grep -ln "CaptureToPng" -- moorestech_client/Assets/Scripts` で持ち主のレーンが作った撮影の試験を探して回す） |
 | `2-skit-choices`・`2-skit-text` | 選択肢の板・ツールの色（T10）・スキットの面（T10 Step 4）・送りの印（T4） | 既存のスキットの撮影（`uitk-skit-compare.cs` の録画の撮影段か EditMode の撮影） |
-| `3-build-menu`・`4-item-list-large`・`4-research`・`4-block-chest`・recipe（`web-9ce5557bdb-s4-recipe`） | スクロールの端（T3）・表示（T2）・× の色（3-build-menu・4-block-chest。T10 Step 3）・GamePanel の面と ×（T4）・クラフトのボタンとレシピ行の枠（recipe。T4）・材料不足の赤（3-build-menu。T11） | 各画面の既存の撮影 |
+| `3-build-menu`・`4-item-list-large`・`4-research`・`4-block-chest`・recipe の `4-recipe-selected-craft`（`web-9ce5557bdb-s4-recipe`。3 枚のうちクラフトのボタン・レシピ行の枠・`RecipeEntryList` の端が同時に写るもの。`4-recipe-holding`・`4-recipe-selected-machine` は T4・T3 の変更が写らないので比べない） | スクロールの端（T3。`4-item-list-large` は `ItemListView` を置き換えないので退行 0 の確かめ）・表示（T2）・× の色（3-build-menu・4-block-chest。T10 Step 3）・GamePanel の面と ×（T4）・クラフトのボタンとレシピ行の枠（4-recipe-selected-craft。T4）・材料不足の赤（3-build-menu。T11） | 各画面の既存の撮影 |
 | `2-challenge-hud-multiple-long` | `GamePanelSurface` の hud の面（T10 Step 4） | 既存のチャレンジ HUD の撮影（S5-challenge が先に入っていればその撮影） |
 | `3-modal`・`4-block-machine` | ダイアログの影・進捗の矢印の影（T4） | 既存の撮影 |
 | `1-toast`・`2-notifications` | 出入り（T5） | 既存の撮影（`uitk-notification-compare.cs`） |
 | `5-japanese-inventory` | 日本語の折り返し（T16・T18） | 持ち物の撮影を日本語で |
 | `1-bug-report` | フォームの分割（T17） | 既存の撮影 |
+| `2-world-pin-offscreen`・`5-tutorial-outline-label`・`2-train-hud`・`2-tooltip`・`2-key-control-hint`・`2-progress-labeled`・`3-hotbar-equipment-empty` | T2 で「インラインの Flex」から「インラインを外して USS に任せる」へ変えた HUD・チュートリアルの要素（`WorldPinEdgeArrowView`・`TutorialHighlightLabelView`・`TrainRidingHudView`・`CursorTooltipView`・`KeyControlHintView`・`ProgressHudView`・`HotbarHudView`）が出ている。親の子孫セレクタが既定で `display: none` にしていた要素は、これまでインラインの Flex で勝っていて、T2 の後は出なくなりうる（T2 Step 2 の `grep -B3` では要素と結び付けにくい形） | 既存の撮影（`uitk-hud.cs`・`uitk-tutorial-cues.cs`・`uitk-mode-hud-and-tooltip.cs` の撮影段か EditMode の撮影。道具で撮れない状態は Step 1 の扱い） |
 
 - [ ] **Step 1: 撮る**: 上の各状態を 1280×720 と 2560×1080 で撮る（既存の撮影の試験・録画の撮影段を回すだけ。使い捨ての撮影スクリプトを書かない）。道具で撮れない状態は理由を `done.md`「integrator への依頼」に書く
 - [ ] **Step 2: 評価**: opus の subagent 2 体に、別々に「参照の PNG と UITK の PNG の組・読者は UITK と Web の見た目を揃える開発者・記帳済みの LX の一覧（台帳「## 見た目の例外」）」だけを渡し、差を「場所・差・画素か寸法の実測」で返させる（経緯は渡さない）
@@ -1700,9 +1701,11 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 
 ### Task 20: 録画（R-21）
 
+下のシナリオのパスは起草時の `scenarios/uitk/` 直下のもの。I-fix5 の 10n が段ごとのサブディレクトリへ移すので、T0 Step 3 の「読み替え」の実物のパスで流す（`run-scenario.sh` は見つからないパスを流せない）。
+
 - [ ] **Step 1: GameUi のラダー**: 全体スイッチを GameUi にして、`uitk/uitk-lifeline.cs`・`uitk/stage2/uitk-opening-hud.cs`（無ければ D-21）・`uitk/stage3/uitk-build-bp.cs`・`uitk/stage4/uitk-production-loop.cs`・`uitk/stage4/uitk-research-train.cs` を `run-scenario.sh` で 1 本ずつ（S4-gamma の `tools/uitk/run-all-recordings.sh` があればそれで）。全部 `Success: true`
-- [ ] **Step 2: 横断の GameUi**: 触った経路の録画 9 本 — `uitk/uitk-skit.cs`（Enter・T6）・`uitk/uitk-skit-choice-pause-cursor.cs`（指・T9）・`uitk/uitk-recipe-craft.cs`（Esc で選択が外れる・T6。段が無ければ足す）・`uitk/uitk-block-special-panels.cs`（ベルトの ←→・T6）・`uitk/uitk-build-menu.cs`（開いた時の組み直し・T7）・`uitk/uitk-research-tree.cs`（T7）・`uitk/uitk-notification-compare.cs`（T5）・`uitk/uitk-train-inventory.cs`（T2・T15 の State 側）・`playtest-receiver/developer-report-delivery.cs`（manifest v7 の送信が通る・T1）。全部 `Success: true`
-- [ ] **Step 3: Web 系**: 全体スイッチを Web にして `misc/ui-state-transition-matrix.cs`・`misc/localization-language-switch-via-ui.cs`・`train/fluid-inventory-via-interact.cs`・`train/train-timetable-via-ui.cs`・`train/train-station-default-name.cs`（T15 の付け替え。ホームの積み降ろしモードとレシピ一覧の topic は録画が無いので `Client.Tests/WebUi/` の L0 を根拠にする）。CEF が出ない環境なら Editor ログの RendererUnavailable の行を証拠に「未確認」（裁定「UITK 切替まで CEF 由来の不具合は直さない」）
+- [ ] **Step 2: 横断の GameUi**: 触った経路の録画 9 本 — `uitk/uitk-skit.cs`（Enter・T6）・`uitk/uitk-skit-choice-pause-cursor.cs`（指・T9）・`uitk/uitk-recipe-craft.cs`（Esc で選択が外れる・T6。段が無ければ足す）・`uitk/uitk-block-special-panels.cs`（ベルトの ←→・T6）・`uitk/uitk-build-menu.cs`（開いた時の組み直し・T7）・`uitk/uitk-research-tree.cs`（T7）・`uitk/uitk-notification-compare.cs`（T5）・`uitk/uitk-train-inventory.cs`（T2・T15 の State 側）・`uitk/uitk-tutorial-cues.cs`（チュートリアルの枠・札・ワールドピンの出し入れ・T2）。全部 `Success: true`。パスは I-fix5 の 10n（`scenarios/uitk/` 直下を段ごとのサブディレクトリへ移す）の後の実物に T0 Step 3 で読み替えたもの。`playtest-receiver/developer-report-delivery.cs`・`developer-report-interrupt.cs` は `webUiHealth.hostStartup == "started"` を見るので、GameUi の系（Web ホストは `SkippedByEditorSwitch`）では通らない。Step 3 で流す（manifest v7 の GameUi の系の形は T1 の L0 が見る）
+- [ ] **Step 3: Web 系**: 全体スイッチを Web にして `misc/ui-state-transition-matrix.cs`・`misc/localization-language-switch-via-ui.cs`・`train/fluid-inventory-via-interact.cs`・`train/train-timetable-via-ui.cs`・`train/train-station-default-name.cs`（T15 の付け替え）と `playtest-receiver/developer-report-delivery.cs`・`developer-report-interrupt.cs`（manifest v7 の版の照合・T1）。T15 のうちホームの積み降ろしモードとレシピ一覧の topic は録画が無いので `Client.Tests/WebUi/` の L0 を根拠にする。CEF が出ない環境なら Editor ログの RendererUnavailable の行を証拠に「未確認」（裁定「UITK 切替まで CEF 由来の不具合は直さない」）
 - [ ] **Step 4**: 失敗は原因を直して流し直す。録画は報告ページに載せる分だけ残し、他は消す。`list-work-saves.sh` でワールドを消す
 
 ---
@@ -1758,7 +1761,7 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 - D-14（agent 既定）: DC-31 は A。段ごとの L3 は各ラダーのレーン（S2-ladder・S3-ladder・S4-gamma・S5-ladder）が作った物を数え、このレーンは全画面の載り先の L3 を 1 本足す。棄却: 段ごとの L3 をこのレーンで作る — `Stage<n>/` は持ち主がいる
 - D-15（agent 既定）: DC-12 は A（`TryItem`）。棄却: 代替を `Item()` 自体に入れる（B）— 未知の ID で全画面が黙って代わりの絵を出し、開発者が気づく経路（例外）が消える
 - D-16（agent 既定。設計書 §4.2 の改訂案はメモ）: ゲーム寿命の型は `IInitializable` だけ（終わらせ方の所有者は D-22）。17 本と `RecipeSelectionCloseReset` は例外なく `IDisposable` を外し、`Dispose` を呼ぶテストの 3 行は消す（T13 Step 2。どのテストも源をテストごとに作り直す）。棄却: テストの後始末だけが使う型に IDisposable を残す分岐 — 実物で当たる型が 0 件で（評価の指摘を再現）、残すと AGENTS.md「デバッグ/テスト専用 public をプロダクションに残さない」に反する形を選ぶ余地だけが残る。`GameUiSrgbCompositeInstaller`・`GameUiLocaleClassBinder` から Dispose を外すのは S5-gate の DI 前の土台と衝突しない: S5-gate の DI 前の土台 `GameUiPreDiFoundation` もこの 2 型の `Dispose` を呼ばない（S5-gate の計画どおり。指揮の agent 既定（PLAN-W5 評価））。T13 Step 1 の表をここへ足す
-- D-17（agent 既定）: DC-23 は A。conductor 11-10 04:50 の「据え置き・X-5 で Web ホスト側を消す」をこの決定で覆す。X-5 は付け替え済みの Web ホストを消すだけ。wire（文字列・DTO）は変えない。理由から wire の失敗コードへの写像は既存の正本 `UiCommandRejectReasonTraits.ToWireCode` だけが持ち、Web ホストは switch を書かない（同じ写像が 2 か所になると I-fix5 の改名の追従も 2 か所に要る。指揮の agent 既定（PLAN-W5 設計検査））。T15 Step 1 の対ごとの表をここへ足す
+- D-17（agent 既定）: DC-23 は A。conductor 11-10 04:50 の「据え置き・X-5 で Web ホスト側を消す」をこの決定で覆す。X-5 は付け替え済みの Web ホストを消すだけ。wire（文字列・DTO）は変えない。理由から wire の失敗コードへの写像は既存の正本 `UiCommandRejectReasonTraits.ToWireCode` だけが持ち、Web ホストは switch を書かない（同じ写像が 2 か所になると I-fix5 の改名の追従も 2 か所に要る。指揮の agent 既定（PLAN-W5 設計検査））。T15 Step 1 の対ごとの表をここへ足す。棄却: 予測レビューが出した B（T15 を落とし X-5c で Web ホストごと消す）・C（新しい型の要らない 2 つだけ付け替える）— 指揮の X-audit 決定（11-12。DC-23 は A）
 - D-18（agent 既定）: AC-5 は 48 件。除外 3 件（`UiScreenTraits.BuildTraits`・`UiOsCursorRequestStack.Withdraw`・`HoverTooltipHost.OnTrackedDetached`）は T17 の理由。AC-8 とイベントコールバック約 45 件（DC-33・X-5）は触らない
 - D-19（agent 既定）: Warning の候補 4 行 — c22-si 表示 helper（拾う・T2）、c22-si 空ラベル（拾う・T16）、c46-cc（拾う・T7）、c63-cc（見送る: 規約はどちらも許し故障シナリオが無い。X-5 の規約の整理へ）
 - D-20（agent 既定）: S5-challenge・S5-gate の持つファイルは、相手が先に入っていれば当日の実物へ、後なら取り込み（T22 Step 2）で同じ置換を当てる。相手の計画が先に `UiDisplay`・`IUiKeyPressSource`・3 部品の新しい ctor を使えるよう、A-245〜A-248 の本文を指揮に先に渡す。
