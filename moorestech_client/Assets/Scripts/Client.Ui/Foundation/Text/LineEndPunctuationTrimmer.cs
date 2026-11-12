@@ -5,26 +5,29 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Text
 {
     /// <summary>
-    /// ラベルの文を行末の閉じ約物を詰めた折り返しで描く（測る文で折り返し位置を読み、改行を入れた文を自動の折り返し無しで描く）
-    /// Draws a label's text wrapped with line-end closing punctuation trimmed (reads breaks from a measuring text, then draws the newline-split text without auto wrap)
+    /// ラベルの文を行末の閉じ約物を詰めた折り返しで描く（見えない測り役で折り返し位置を読み、改行を入れた文を自動の折り返し無しで描く）
+    /// Draws a label's text wrapped with line-end closing punctuation trimmed (an invisible measurer reads the breaks, then the newline-split text is drawn without auto wrap)
     /// </summary>
     /// <remarks>
-    /// 文が変わるか幅が変わるたびに測る文を描き、スケジューラの 2 回目の刻み（＝測る文の配置と描画の後）で字の位置を読んで表示文へ替える。1 回目の刻みは文を配置前に入れたとき配置より前に来るので待つ。
-    /// 測る文と表示文は折り返しが同じなので高さは変わらない。表示文に替えて 2 刻み後の幅（行末の約物が半分はみ出す分を含む）を落ち着いた幅とし、それへの変化では測り直さない（測り直すと幅が往復する）。
-    /// Each text or width change draws the measuring text, reads glyph positions on the second scheduler tick (after it is laid out and drawn) and swaps in the display text; the first tick precedes layout when the text was set before layout, so it waits.
-    /// Both texts wrap the same, so the height does not change; the width two ticks after the swap (including the half mark overhanging at line end) is the settled width, and changes to it do not re-measure, which would make the width oscillate.
+    /// 見えるラベルは測り終えるまで原文を普通の折り返しで描き、測り終えたら表示文に替える（測る文を見えるラベルに描かない）。測り直すのは原文・前置き・幅・文字のスタイルのどれかが変わったときだけ。
+    /// 表示文は自動で折り返さないので、幅を内容で決めるラベルの幅は原文のときに測った幅を返し（DoMeasure）、原文で測っていない幅の制約が来たら（親の幅が変わった）測り直す。こうして表示文に替えても配置の幅は原文と同じに保ち、幅の往復を起こさない。
+    /// The visible label draws the source with normal wrapping until measured, then swaps in the display text (the measuring text is never drawn there); it re-measures only when the source, prefix, width or text style changes.
+    /// The display text does not auto-wrap, so a content-sized label reports the width measured with the source (DoMeasure) and re-measures when an unseen width constraint arrives (the parent resized); the layout width stays that of the source and never oscillates.
     /// </remarks>
     internal class LineEndPunctuationTrimmer
     {
         private const int TicksBeforeReading = 2;
+        private const float WidthTolerance = 0.5f;
 
         private readonly Label _label;
-        private string _prefix = string.Empty;
+        private readonly LineEndPunctuationMeasurer _measurer = new();
+        private readonly Dictionary<(VisualElement.MeasureMode, float), float> _sourceWidths = new();
+        private string _prefix;
         private string _source;
         private int _generation;
-        private WaitPhase _phase = WaitPhase.None;
-        private float _measuredWidth = float.NaN;
-        private float _settledWidth = float.NaN;
+        private TrimPhase _phase = TrimPhase.Plain;
+        private float _measuredWidth;
+        private LineEndTextStyle _measuredStyle;
         private bool _wrapOverridden;
         private StyleEnum<WhiteSpace> _inlineWhiteSpaceBeforeOverride;
 
@@ -32,78 +35,104 @@ namespace Client.Ui.Foundation.Text
         {
             _label = label;
             _label.RegisterCallback<GeometryChangedEvent>(_ => OnGeometryChanged());
+            _label.RegisterCallback<DetachFromPanelEvent>(_ => OnDetachedFromPanel());
         }
 
-        // 前置き（行送りの印）と原文を受け、閉じ約物があれば測る文から始める
-        // Take the prefix (line-height tag) and source; start from the measuring text when it has closing marks
+        // 前置き（行送りの印）と原文を受ける。同じ入力なら進行中の測りも出し終えた表示文も壊さない
+        // Take the prefix (line-height tag) and source; the same input keeps an ongoing measurement or the shown display text
         public void Show(string prefix, string source)
         {
+            if (prefix == _prefix && source == _source) return;
             _prefix = prefix;
             _source = source;
-            _generation++;
-            _phase = WaitPhase.None;
-            _measuredWidth = float.NaN;
-            _settledWidth = float.NaN;
-            RestoreInlineWhiteSpace();
-
-            if (!LineEndPunctuationTrim.ContainsClosingPunctuation(source))
-            {
-                _label.text = prefix + source;
-                return;
-            }
-            // 原文の rich text の印と描かれる字の番号を確かに対応づけられないので詰めない
-            // Rich-text tags in the source cannot be mapped to presented glyph indices reliably, so do not trim
-            if (source.IndexOf('<') >= 0)
-            {
-                Debug.LogWarning($"[LineEndPunctuationTrimmer] rich text in the source; line-end punctuation is not trimmed: {_label.name} '{source}'");
-                _label.text = prefix + source;
-                return;
-            }
-
-            _label.text = prefix + LineEndPunctuationTrim.ToBreakMeasureText(source);
-            WaitTicks(WaitPhase.Reading);
+            Restart();
         }
 
-        private void WaitTicks(WaitPhase phase)
+        // 表示文のときは原文で測った幅を返し、配置の幅を原文と同じに保つ
+        // While showing the display text, report the width measured with the source so the layout width matches the source
+        public Vector2 ToSourceSize(Vector2 measured, float desiredWidth, VisualElement.MeasureMode widthMode)
         {
-            _phase = phase;
+            if (widthMode == VisualElement.MeasureMode.Exactly || _phase == TrimPhase.Plain) return measured;
+            // 幅の制約は 1/4px に丸めて引く（同じ配置から来る制約の浮動小数の揺れを同じとみなす）
+            // Constraints are keyed at quarter-pixel precision so float noise from the same layout matches
+            var constraint = (widthMode, widthMode == VisualElement.MeasureMode.Undefined ? 0f : Mathf.Round(desiredWidth * 4f));
+            if (_phase != TrimPhase.Displayed)
+            {
+                _sourceWidths[constraint] = measured.x;
+                return measured;
+            }
+            if (_sourceWidths.TryGetValue(constraint, out var sourceWidth)) return new Vector2(sourceWidth, measured.y);
+
+            // 原文で測っていない制約（親の幅が変わった）。配置の最中は文を替えられないので次の刻みで原文に戻して測り直す
+            // A constraint unseen with the source (the parent resized); text cannot change mid-layout, so restart on the next tick
+            var generation = _generation;
+            _label.schedule.Execute(() =>
+            {
+                // silent-ok: 待つ間に別の理由で測り直したら重ねない / 測り直した側が新しい制約で測る
+                if (generation == _generation) Restart();
+            });
+            return measured;
+        }
+
+        private void Restart()
+        {
+            _generation++;
+            _measurer.End();
+            RestoreInlineWhiteSpace();
+            _sourceWidths.Clear();
+            _label.text = _prefix + _source;
+            _phase = LineEndPunctuationTrim.CanTrim(_source) ? TrimPhase.WaitingForLayout : TrimPhase.Plain;
+            if (_phase == TrimPhase.WaitingForLayout) TryBeginMeasuring();
+        }
+
+        private void TryBeginMeasuring()
+        {
+            var width = _label.contentRect.width;
+            // silent-ok: パネルに載って幅が決まるまで原文を普通に折り返して描く / 載った後の GeometryChangedEvent でここへ戻る
+            if (_label.panel == null || !(width > 0f)) return;
+
+            _phase = TrimPhase.Measuring;
+            _measuredWidth = width;
+            _measuredStyle = LineEndTextStyle.Read(_label);
+            _measurer.Begin(_label, _prefix + LineEndPunctuationTrim.ToBreakMeasureText(_source), width, _measuredStyle);
             AfterTicks(_generation, TicksBeforeReading);
         }
 
+        // 1 回目の刻みは測り役の配置より前に来うるので、2 回目の刻みで字の位置を読む
+        // The first tick may precede the measurer's layout, so read glyph positions on the second
         private void AfterTicks(int generation, int ticksLeft)
         {
             _label.schedule.Execute(() =>
             {
-                // silent-ok: 待つ途中で文か幅が替わったら古い刻みは捨てる / 新しい Show が刻みを積み直す
+                // silent-ok: 待つ途中で入力が替わったら古い刻みは捨てる / 新しい Restart が刻みを積み直す
                 if (generation != _generation) return;
                 if (ticksLeft > 1)
                 {
                     AfterTicks(generation, ticksLeft - 1);
                     return;
                 }
-                if (_phase == WaitPhase.Reading) ApplyMeasuredBreaks();
-                else SettleWidth();
+                ApplyMeasuredBreaks();
             });
         }
 
         private void ApplyMeasuredBreaks()
         {
+            var lineEnds = _measurer.ReadLineEndIndices(LineEndPunctuationTrim.CountPresentedGlyphs(_source));
+            _measurer.End();
             // silent-ok: 自動で折り返さない指定の文は行末で折れないので原文のまま / 詰めは LineEndPunctuationTrimTest が normal で確かめる
             if (_label.resolvedStyle.whiteSpace != WhiteSpace.Normal)
             {
-                _phase = WaitPhase.None;
-                _label.text = _prefix + _source;
+                _phase = TrimPhase.Plain;
                 return;
             }
 
             // 測った折り返しで改行を入れ、自動の折り返しを止めて行末の約物をはみ出させる
             // Put newlines at the measured breaks and stop auto wrap so line-end marks may overhang
-            _measuredWidth = _label.layout.width;
-            _label.text = _prefix + LineEndPunctuationTrim.Apply(_source, ReadLineEndIndices());
+            _phase = TrimPhase.Displayed;
+            _label.text = _prefix + LineEndPunctuationTrim.Apply(_source, lineEnds);
             _inlineWhiteSpaceBeforeOverride = _label.style.whiteSpace;
             _wrapOverridden = true;
             _label.style.whiteSpace = WhiteSpace.NoWrap;
-            WaitTicks(WaitPhase.Settling);
         }
 
         // 自動の折り返しを止める前の inline の指定（多くは未指定）へ戻す
@@ -115,55 +144,39 @@ namespace Client.Ui.Foundation.Text
             _wrapOverridden = false;
         }
 
-        private void SettleWidth()
-        {
-            _phase = WaitPhase.None;
-            _settledWidth = _label.layout.width;
-        }
-
         private void OnGeometryChanged()
         {
-            // silent-ok: 測る・落ち着くのを待つ間の幅の変化は刻みが拾う / 詰めない文は幅で変わらない
-            if (_phase != WaitPhase.None || float.IsNaN(_measuredWidth)) return;
-
-            // 外から幅が変わったときだけ測り直す（測った幅・落ち着いた幅のどちらでもない）
-            // Re-measure only when the width changed from outside (neither the measured nor the settled width)
-            var width = _label.layout.width;
-            if (Mathf.Approximately(width, _measuredWidth) || Mathf.Approximately(width, _settledWidth)) return;
-            Show(_prefix, _source);
-        }
-
-        // 字ごとの位置を読み、次の字が下の行へ移る字を行末とする（位置は選択可能のあいだだけ読める）
-        // Read each glyph's position; a glyph whose next glyph moves down a line is a line end (positions are readable only while selectable)
-        private List<int> ReadLineEndIndices()
-        {
-            var selection = _label.selection;
-            var wasSelectable = selection.isSelectable;
-            var wasFocusable = _label.focusable;
-            selection.isSelectable = true;
-
-            var lineEnds = new List<int>();
-            selection.cursorIndex = 0;
-            var previousY = selection.cursorPosition.y;
-            for (var index = 1; index <= _source.Length; index++)
+            if (_phase == TrimPhase.WaitingForLayout)
             {
-                selection.cursorIndex = index;
-                var y = selection.cursorPosition.y;
-                if (y > previousY + 0.5f) lineEnds.Add(index - 1);
-                previousY = y;
+                TryBeginMeasuring();
+                return;
             }
+            // silent-ok: 詰めない文は幅で変わらない / 詰める文に替われば Show が測り始める
+            if (_phase == TrimPhase.Plain) return;
 
-            selection.cursorIndex = 0;
-            selection.isSelectable = wasSelectable;
-            _label.focusable = wasFocusable;
-            return lineEnds;
+            // silent-ok: 非表示の祖先の下で幅 0 になった間は今の表示を保つ / 表示し直した幅が違えば次の GeometryChangedEvent で測り直す
+            var width = _label.contentRect.width;
+            if (!(width > 0f)) return;
+            if (Mathf.Abs(width - _measuredWidth) <= WidthTolerance && LineEndTextStyle.Read(_label).SameAs(_measuredStyle)) return;
+            Restart();
         }
 
-        private enum WaitPhase
+        // 測る途中で外されたら測り役を畳み、載り直した後の配置で測り直す
+        // Detached mid-measure: fold the measurer and measure again after the next layout on a panel
+        private void OnDetachedFromPanel()
         {
-            None,
-            Reading,
-            Settling,
+            if (_phase != TrimPhase.Measuring) return;
+            _generation++;
+            _measurer.End();
+            _phase = TrimPhase.WaitingForLayout;
+        }
+
+        private enum TrimPhase
+        {
+            Plain,
+            WaitingForLayout,
+            Measuring,
+            Displayed,
         }
     }
 }

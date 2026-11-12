@@ -64,7 +64,7 @@ namespace Client.Ui.Foundation.Text
         // Size to line count x line height like the Web, not to the glyph extent (CJK 1.448em ceiled to pixels)
         protected override Vector2 DoMeasure(float desiredWidth, MeasureMode widthMode, float desiredHeight, MeasureMode heightMode)
         {
-            var measured = base.DoMeasure(desiredWidth, widthMode, desiredHeight, heightMode);
+            var measured = _lineEndPunctuationTrimmer.ToSourceSize(base.DoMeasure(desiredWidth, widthMode, desiredHeight, heightMode), desiredWidth, widthMode);
             // silent-ok: 行の高さを宣言しないラベルは字の高さのまま / 宣言した Typography のクラスは TypographyLineHeightTest が高さを確かめる
             if (_lineBoxPixels <= 0f || heightMode == MeasureMode.Exactly) return measured;
 
@@ -84,7 +84,11 @@ namespace Client.Ui.Foundation.Text
             var pitch = ReadPixels(LineHeightStyle, LineHeightProperty);
             _lineBoxPixels = pitch > 0f ? 0f : ReadPixels(LineBoxStyle, LineBoxProperty);
             if (pitch <= 0f) pitch = _lineBoxPixels;
-            _lineHeightTag = pitch > 0f ? $"<line-height={pitch.ToString(CultureInfo.InvariantCulture)}px>" : string.Empty;
+            var lineHeightTag = pitch > 0f ? $"<line-height={pitch.ToString(CultureInfo.InvariantCulture)}px>" : string.Empty;
+            // 行送りの印が変わったときだけ描き直す（スタイルの再計算のたびに文を入れ直すと行末の約物の詰めが振り出しへ戻る）
+            // Redraw only when the line-height tag changed (re-setting the text on every style pass would restart the line-end trim)
+            if (lineHeightTag == _lineHeightTag) return;
+            _lineHeightTag = lineHeightTag;
             ShowResolvedText();
 
             #region Internal

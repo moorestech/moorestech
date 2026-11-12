@@ -27,13 +27,29 @@ namespace Client.Ui.Foundation.Text
             return c == '）' || c == '」' || c == '』' || c == '】' || c == '〕' || c == '》' || c == '〉' || c == '。' || c == '、';
         }
 
-        public static bool ContainsClosingPunctuation(string source)
+        // 詰める対象か（閉じ約物を含み、rich text の印を含まない）。印のある文は TextCore が印と見なすかを同じに判定できず字の番号がずれうるので詰めない
+        // Whether to trim: has closing marks and no rich-text tags; a tagged text is left untrimmed since TextCore's tag recognition cannot be mirrored and glyph indices could drift
+        public static bool CanTrim(string source)
         {
+            // silent-ok: rich text の文（会話の本文の打ち出し等）は詰めずに 1 行多く折れうる / 台帳 docs/uitk/TODO.md の LX-180 が例外として持つ
+            if (source.IndexOf('<') >= 0) return false;
             foreach (var c in source)
             {
                 if (IsClosingPunctuation(c)) return true;
             }
             return false;
+        }
+
+        // 描かれる字の数（サロゲートペアは 1 字。TextCore の字の番号と同じ数え方）
+        // Number of presented glyphs (a surrogate pair is one, as TextCore numbers glyphs)
+        public static int CountPresentedGlyphs(string source)
+        {
+            var count = 0;
+            foreach (var c in source)
+            {
+                if (!char.IsHighSurrogate(c)) count++;
+            }
+            return count;
         }
 
         // 閉じ約物ごとに前で 0.5em 戻し後ろで 0.5em 進めた、折り返し位置を測るための文
@@ -53,8 +69,8 @@ namespace Client.Ui.Foundation.Text
             return builder.ToString();
         }
 
-        // 行末の字（描かれる字の通し番号。rich text の印は数えない）の直後に改行を入れる。既に改行の位置には足さない
-        // Insert a newline after each line-end glyph (index among presented glyphs, rich-text tags not counted); skip ones that are already newlines
+        // 行末の字（描かれる字の通し番号。rich text の印は数えず、サロゲートペアは 1 字）の直後に改行を入れる。既に改行の位置には足さない
+        // Insert a newline after each line-end glyph (index among presented glyphs, tags not counted, a surrogate pair as one); skip ones that are already newlines
         public static string Apply(string source, IReadOnlyList<int> lineEndIndices)
         {
             var builder = new StringBuilder(source.Length + lineEndIndices.Count);
@@ -66,6 +82,9 @@ namespace Client.Ui.Foundation.Text
                 builder.Append(c);
                 if (IsTagBoundary(c)) continue;
                 if (insideTag) continue;
+                // サロゲートペアは後ろの半分で 1 字と数える
+                // A surrogate pair counts as one glyph at its low half
+                if (char.IsHighSurrogate(c)) continue;
 
                 if (nextLineEnd < lineEndIndices.Count && lineEndIndices[nextLineEnd] == presentedIndex)
                 {
