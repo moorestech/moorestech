@@ -59,7 +59,9 @@
     min-width: 0;
     margin: 0;
     padding: 0;
-    white-space: normal;
+    /* 倍率 1.5 では字の大きさが物理画素へ丸まり（15px→23 物理px）字が 2% 広がるので、行末の約物を詰めても Web より 1 行多く折れることがある */
+    /* At scale 1.5 the font size rounds to physical pixels (15px -> 23 physical px) and glyphs widen 2%, so text may still wrap one line more than Web despite the line-end trim */
+    white-space: normal; /* look-exception: LX-40 */
     -unity-text-align: middle-left;
     font-size: 15px;
     /* 0.055em×15px=0.825px。UITK の letter-spacing の px は「文字の大きさ/100×値」で効くので 0.825÷0.15 */
