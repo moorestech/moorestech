@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Tutorial.UIHighlight;
 
 namespace Client.Tests.Ui.Anchor
 {
@@ -9,11 +8,6 @@ namespace Client.Tests.Ui.Anchor
     /// </summary>
     public static class TutorialAnchorCoveragePending
     {
-        public static readonly IReadOnlyDictionary<string, string> Owners = new Dictionary<string, string>
-        {
-            { AnchorIds.ChallengePanel, "S5-challenge" },
-            { AnchorIds.ChallengeCategories, "S5-challenge" },
-            { AnchorIds.ChallengeNodePrefix, "S5-challenge" },
-        };
+        public static readonly IReadOnlyDictionary<string, string> Owners = new Dictionary<string, string>();
     }
 }
