@@ -121,6 +121,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
                     await TransitionTo(uiStateControl, UIStateEnum.DeleteBar);
                     AssertMountedIn(root, UIStateEnum.DeleteBar);
+                    AssertDeleteBandsBeforeHotbar(root);
                     Assert.IsTrue(Visible(root, Stage2HudSurfaces.DeleteModeWarning), "削除モードで帯が出ない");
                     Assert.IsTrue(Visible(root, Stage2HudSurfaces.DeleteBoxHeightHud), "削除モードで削除箱の高さ HUD が出ない");
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);

@@ -60,9 +60,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
         public static readonly Stage2HudSurface ChallengeHud = Stage2HudSurface.Resident("challenge-hud", false, UiLayer.Chrome, UiFamily.Viewport);
         public static readonly Stage2HudSurface TrainRidingHud = Stage2HudSurface.Resident("train-riding-hud", true, UiLayer.Screen, UiFamily.Stage);
         public static readonly Stage2HudSurface ScreenBackdrop = Stage2HudSurface.Resident("screen-backdrop", false, UiLayer.Backdrop, UiFamily.Viewport);
-        public static readonly Stage2HudSurface PlacementModeHud = Stage2HudSurface.DuringMode("placement-mode-hud", UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.PlaceBlock);
-        public static readonly Stage2HudSurface DeleteModeWarning = Stage2HudSurface.DuringMode("delete-mode-warning", UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.DeleteBar);
-        public static readonly Stage2HudSurface DeleteBoxHeightHud = Stage2HudSurface.DuringMode("delete-box-height-hud", UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.DeleteBar);
+        public static readonly Stage2HudSurface PlacementModeHud = Stage2HudSurface.DuringMode("placement-mode-hud", UiLayer.OverlayPanel, UiFamily.Viewport, UIStateEnum.PlaceBlock);
+        public static readonly Stage2HudSurface DeleteModeWarning = Stage2HudSurface.DuringMode("delete-mode-warning", UiLayer.OverlayPanel, UiFamily.Viewport, UIStateEnum.DeleteBar);
+        public static readonly Stage2HudSurface DeleteBoxHeightHud = Stage2HudSurface.DuringMode("delete-box-height-hud", UiLayer.OverlayPanel, UiFamily.Viewport, UIStateEnum.DeleteBar);
         public static readonly Stage2HudSurface CursorTooltip = Stage2HudSurface.Resident("cursor-tooltip", false, UiLayer.Tooltip, UiFamily.Viewport);
         public static readonly Stage2HudSurface TutorialOverlay = Stage2HudSurface.Resident("tutorial-overlay", false, UiLayer.Tutorial, UiFamily.Viewport);
         public static readonly Stage2HudSurface KeyControlHintHud = Stage2HudSurface.Resident("key-control-hint-hud", false, UiLayer.OverlayPanel, UiFamily.Viewport);
