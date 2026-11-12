@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
@@ -8,7 +9,6 @@ using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
 using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Root;
-using Client.Ui.State.SkitPresence;
 using Client.Ui.State.WholeUiVisibility;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -29,6 +29,10 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
     [Category("CiShardClientPlay1")]
     public class Stage2HudGameUiTest : UiSystemPlayModeTestBase
     {
+        // 開幕スキットの再生開始を待つ期限（無ければこの秒数で抜ける）
+        // Deadline for an opening skit to start (returns after this when none plays)
+        private const float OpeningSkitStartWaitSeconds = 5f;
+
         [UnityTest]
         public IEnumerator UITK側で段階2のHUDが各層に1つずつ載り画面遷移とCtrlUで出て消える()
         {
@@ -54,6 +58,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                 var uiStateControl = resolver.Resolve<UIStateControl>();
                 var wholeUi = resolver.Resolve<WholeUiVisibilityModel>();
                 var crosshair = resolver.Resolve<CrosshairVisibility>();
+                var viewMode = resolver.Resolve<PlayerViewModeController>();
                 var root = GameUiRoot.Instance.GetRootElement();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
 
@@ -62,9 +67,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                 Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
 
-                // 開幕の blocking スキットが走っていれば抜けるまで待つ（走ると key-hints が隠れる）
-                // Wait out an opening blocking skit if one runs (it hides key-hints)
-                if (resolver.Resolve<BlockingSkitPresence>().IsBlocking.Value) await PlaytestSkitOps.SkipOpeningSkitIfPlaying(30f);
+                // 開幕スキットの開始を期限まで待って飛ばす（走ると key-hints が隠れる）
+                // Wait for an opening skit to start and skip it (it hides key-hints)
+                await PlaytestSkitOps.SkipOpeningSkitIfPlaying(OpeningSkitStartWaitSeconds);
                 Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "開幕スキットを飛ばした後にゲーム画面でない");
 
                 // 巡る間のエラーだけを集める（起動の後に購読し、必ず外す。例外は握らない）
@@ -82,52 +87,54 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
 
                 async UniTask Cycle()
                 {
-                    // 常駐 HUD が期待の層に 1 つずつ載る
-                    // Each resident HUD mounts once on its layer
+                    // ゲーム画面で載る HUD が期待の層に 1 つずつ載る
+                    // Each HUD mounted on the game screen sits once on its layer
                     AssertMountedIn(root, UIStateEnum.GameScreen);
 
                     // ゲーム画面で出るもの・出ないもの
                     // What shows and what does not on the game screen
-                    Assert.IsTrue(Visible(root, "key-hints"), "ゲーム画面で key-hints が見えない");
-                    // 開始は三人称（PlayerViewModeController の初期値）。V で一人称へ切り替えると crosshair が出る
-                    // The game starts in third person (PlayerViewModeController default); V switches to first person and shows the crosshair
-                    Assert.IsFalse(crosshair.IsVisible(), "前提: ゲーム画面の開始が三人称でない");
-                    Assert.IsFalse(Visible(root, "crosshair"), "三人称なのに crosshair が見える");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.KeyHints), "ゲーム画面で key-hints が見えない");
+                    // 開始は三人称。V で一人称へ切り替えると crosshair が出る
+                    // The game starts in third person; V switches to first person and shows the crosshair
+                    Assert.AreEqual(PlayerViewMode.ThirdPerson, viewMode.GetCurrentMode(), "前提: ゲーム画面の開始が三人称でない");
+                    Assert.IsFalse(crosshair.IsVisible(), "三人称なのに crosshair の可視フラグが立つ");
+                    Assert.IsFalse(Visible(root, Stage2HudSurfaces.Crosshair), "三人称なのに crosshair が見える");
                     await SemanticInput.TapKey(Key.V);
                     await UniTask.DelayFrame(3);
-                    Assert.IsTrue(crosshair.IsVisible(), "V で一人称へ切り替わらない");
-                    Assert.IsTrue(Visible(root, "crosshair"), "一人称なのに crosshair が見えない");
-                    Assert.IsTrue(Visible(root, "challenge-hud"), "ゲーム画面で目標 HUD が見えない");
-                    Assert.IsFalse(Visible(root, "screen-backdrop"), "ゲーム画面で幕が見える");
-                    Assert.IsFalse(Visible(root, "delete-mode-warning"), "ゲーム画面で削除の帯が見える");
+                    Assert.AreEqual(PlayerViewMode.FirstPerson, viewMode.GetCurrentMode(), "V で一人称へ切り替わらない");
+                    Assert.IsTrue(crosshair.IsVisible(), "一人称なのに crosshair の可視フラグが立たない");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.Crosshair), "一人称なのに crosshair が見えない");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.ChallengeHud), "ゲーム画面で目標 HUD が見えない");
+                    Assert.IsFalse(Visible(root, Stage2HudSurfaces.ScreenBackdrop), "ゲーム画面で幕が見える");
+                    Assert.IsFalse(Visible(root, Stage2HudSurfaces.DeleteModeWarning), "ゲーム画面で削除の帯が見える");
 
                     // UI 状態の遷移で出し分けが変わる
                     // Transitions switch what is shown
                     await TransitionTo(uiStateControl, UIStateEnum.PauseMenu);
-                    Assert.IsFalse(Visible(root, "key-hints"), "ポーズ中に key-hints が見える");
-                    Assert.IsTrue(Visible(root, "screen-backdrop"), "ポーズ中に幕が出ない");
+                    Assert.IsFalse(Visible(root, Stage2HudSurfaces.KeyHints), "ポーズ中に key-hints が見える");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.ScreenBackdrop), "ポーズ中に幕が出ない");
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
                     await TransitionTo(uiStateControl, UIStateEnum.DeleteBar);
                     AssertMountedIn(root, UIStateEnum.DeleteBar);
-                    Assert.IsTrue(Visible(root, "delete-mode-warning"), "削除モードで帯が出ない");
-                    Assert.IsTrue(Visible(root, "delete-box-height-hud"), "削除モードで削除箱の高さ HUD が出ない");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.DeleteModeWarning), "削除モードで帯が出ない");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.DeleteBoxHeightHud), "削除モードで削除箱の高さ HUD が出ない");
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
-                    Assert.IsFalse(Visible(root, "delete-mode-warning"), "ゲーム画面へ戻っても帯が残る");
+                    Assert.IsFalse(Visible(root, Stage2HudSurfaces.DeleteModeWarning), "ゲーム画面へ戻っても帯が残る");
                     await TransitionTo(uiStateControl, UIStateEnum.PlaceBlock);
                     AssertMountedIn(root, UIStateEnum.PlaceBlock);
-                    Assert.IsTrue(Visible(root, "placement-mode-hud"), "設置モードで配置 HUD が出ない");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.PlacementModeHud), "設置モードで配置 HUD が出ない");
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
-                    Assert.IsFalse(Visible(root, "placement-mode-hud"), "ゲーム画面へ戻っても配置 HUD が残る");
+                    Assert.IsFalse(Visible(root, Stage2HudSurfaces.PlacementModeHud), "ゲーム画面へ戻っても配置 HUD が残る");
 
                     // Ctrl+U で根ごと消え、再度で戻る
                     // Ctrl+U hides the root, again restores it
                     await ToggleCtrlU();
                     Assert.IsFalse(wholeUi.IsShown.Value, "Ctrl+U で全体非表示にならない");
                     Assert.AreEqual(DisplayStyle.None, root.resolvedStyle.display, "Ctrl+U で根が隠れない");
-                    foreach (var surface in Stage2HudSurfaces.All) Assert.IsFalse(Visible(root, surface.Name), $"{surface.Name} が Ctrl+U 中も見える");
+                    foreach (var surface in Stage2HudSurfaces.All) Assert.IsFalse(Visible(root, surface), $"{surface.Name} が Ctrl+U 中も見える");
                     await ToggleCtrlU();
                     Assert.IsTrue(wholeUi.IsShown.Value, "2 回目の Ctrl+U で戻らない");
-                    Assert.IsTrue(Visible(root, "key-hints"), "Ctrl+U の往復の後に key-hints が見えない");
+                    Assert.IsTrue(Visible(root, Stage2HudSurfaces.KeyHints), "Ctrl+U の往復の後に key-hints が見えない");
                 }
 
                 void Collect(string condition, string stackTrace, LogType type)
@@ -139,13 +146,13 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
             #endregion
         }
 
-        // その UI 状態の行が期待の層に 1 つずつ載る
-        // Each row of the UI state mounts once under its layer
+        // その UI 状態で載る行（常駐を含む）が期待の層に 1 つずつ載る
+        // Each row mounted in the UI state (residents included) sits once under its layer
         private static void AssertMountedIn(VisualElement root, UIStateEnum state)
         {
             foreach (var surface in Stage2HudSurfaces.All)
             {
-                if (surface.MountedState != state) continue;
+                if (!surface.IsMountedIn(state)) continue;
                 var matches = Matches(root, surface.Name, surface.ByClass);
                 Assert.AreEqual(1, matches.Count, $"{surface.Name} が {state} で {matches.Count} 件載っている（期待 1 件）");
                 var layer = GameUiRoot.Instance.GetLayer(surface.Layer, surface.Family);
@@ -153,13 +160,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
             }
         }
 
-        // 名前かクラスで引き、どれかが見えていれば真（判定は DSL の GameUiElementQuery を使う）
-        // True when any element found by name or class is visible (uses the DSL's GameUiElementQuery)
-        private static bool Visible(VisualElement root, string name)
+        // 表の ByClass に従って引き、どれかが見えていれば真（判定は DSL の GameUiElementQuery）
+        // True when any element found per the row's ByClass is visible (uses the DSL's GameUiElementQuery)
+        private static bool Visible(VisualElement root, Stage2HudSurface surface)
         {
-            var candidates = Matches(root, name, false);
-            candidates.AddRange(Matches(root, name, true));
-            foreach (var element in candidates)
+            foreach (var element in Matches(root, surface.Name, surface.ByClass))
             {
                 if (GameUiElementQuery.IsVisible(element)) return true;
             }

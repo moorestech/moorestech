@@ -5,8 +5,8 @@ using Client.Ui.Foundation.Stage;
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
 {
     /// <summary>
-    /// 段階 2 HUD の根要素・層・UI 状態の 1 行
-    /// One row: stage-2 HUD root, layer, and UI state
+    /// 段階 2 HUD の根要素・層・木に載る UI 状態の 1 行
+    /// One row: stage-2 HUD root, layer, and the UI states it is mounted in
     /// </summary>
     internal readonly struct Stage2HudSurface
     {
@@ -15,17 +15,36 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
         public readonly UiLayer Layer;
         public readonly UiFamily Family;
 
-        // 操作モード HUD は該当モードの間だけ木に載る（ModeHudView が出さない組を木から外す）。常駐は GameScreen
-        // Operation-mode HUDs are in the tree only during their mode (ModeHudView unmounts hidden groups); residents use GameScreen
-        public readonly UIStateEnum MountedState;
+        // 常駐は全状態で木に載る。操作モード HUD は該当モードの間だけ載る（ModeHudView が外す）
+        // Residents stay mounted in every state; mode HUDs only during their mode (ModeHudView unmounts them)
+        public readonly bool IsResident;
+        private readonly UIStateEnum _modeState;
 
-        public Stage2HudSurface(string name, bool byClass, UiLayer layer, UiFamily family, UIStateEnum mountedState)
+        private Stage2HudSurface(string name, bool byClass, UiLayer layer, UiFamily family, bool isResident, UIStateEnum modeState)
         {
             Name = name;
             ByClass = byClass;
             Layer = layer;
             Family = family;
-            MountedState = mountedState;
+            IsResident = isResident;
+            _modeState = modeState;
+        }
+
+        public static Stage2HudSurface Resident(string name, bool byClass, UiLayer layer, UiFamily family)
+        {
+            // 常駐の行は _modeState を読まない
+            // Resident rows never read _modeState
+            return new Stage2HudSurface(name, byClass, layer, family, true, default);
+        }
+
+        public static Stage2HudSurface DuringMode(string name, UiLayer layer, UiFamily family, UIStateEnum modeState)
+        {
+            return new Stage2HudSurface(name, false, layer, family, false, modeState);
+        }
+
+        public bool IsMountedIn(UIStateEnum state)
+        {
+            return IsResident || _modeState == state;
         }
     }
 
@@ -35,23 +54,27 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
     /// </summary>
     internal static class Stage2HudSurfaces
     {
+        public static readonly Stage2HudSurface Crosshair = Stage2HudSurface.Resident("crosshair", false, UiLayer.ViewportStage, UiFamily.Stage);
+        public static readonly Stage2HudSurface KeyHints = Stage2HudSurface.Resident("key-hints", false, UiLayer.Chrome, UiFamily.Viewport);
+        public static readonly Stage2HudSurface ProgressBar = Stage2HudSurface.Resident("progress-bar", false, UiLayer.Chrome, UiFamily.Viewport);
+        public static readonly Stage2HudSurface ChallengeHud = Stage2HudSurface.Resident("challenge-hud", false, UiLayer.Chrome, UiFamily.Viewport);
+        public static readonly Stage2HudSurface TrainRidingHud = Stage2HudSurface.Resident("train-riding-hud", true, UiLayer.Screen, UiFamily.Stage);
+        public static readonly Stage2HudSurface ScreenBackdrop = Stage2HudSurface.Resident("screen-backdrop", false, UiLayer.Backdrop, UiFamily.Viewport);
+        public static readonly Stage2HudSurface PlacementModeHud = Stage2HudSurface.DuringMode("placement-mode-hud", UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.PlaceBlock);
+        public static readonly Stage2HudSurface DeleteModeWarning = Stage2HudSurface.DuringMode("delete-mode-warning", UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.DeleteBar);
+        public static readonly Stage2HudSurface DeleteBoxHeightHud = Stage2HudSurface.DuringMode("delete-box-height-hud", UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.DeleteBar);
+        public static readonly Stage2HudSurface CursorTooltip = Stage2HudSurface.Resident("cursor-tooltip", false, UiLayer.Tooltip, UiFamily.Viewport);
+        public static readonly Stage2HudSurface TutorialOverlay = Stage2HudSurface.Resident("tutorial-overlay", false, UiLayer.Tutorial, UiFamily.Viewport);
+        public static readonly Stage2HudSurface KeyControlHintHud = Stage2HudSurface.Resident("key-control-hint-hud", false, UiLayer.OverlayPanel, UiFamily.Viewport);
+        public static readonly Stage2HudSurface WorldPinOverlay = Stage2HudSurface.Resident("world-pin-overlay", false, UiLayer.WorldPin, UiFamily.Viewport);
+        public static readonly Stage2HudSurface NotificationHost = Stage2HudSurface.Resident("notification-host", false, UiLayer.BehindStage, UiFamily.Viewport);
+        public static readonly Stage2HudSurface BlockingSkit = Stage2HudSurface.Resident("blocking-skit", false, UiLayer.SkitStage, UiFamily.Viewport);
+
         public static readonly Stage2HudSurface[] All =
         {
-            new("crosshair", false, UiLayer.ViewportStage, UiFamily.Stage, UIStateEnum.GameScreen),
-            new("key-hints", false, UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("progress-bar", false, UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("challenge-hud", false, UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("train-riding-hud", true, UiLayer.Screen, UiFamily.Stage, UIStateEnum.GameScreen),
-            new("screen-backdrop", false, UiLayer.Backdrop, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("placement-mode-hud", false, UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.PlaceBlock),
-            new("delete-mode-warning", false, UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.DeleteBar),
-            new("delete-box-height-hud", false, UiLayer.Chrome, UiFamily.Viewport, UIStateEnum.DeleteBar),
-            new("cursor-tooltip", false, UiLayer.Tooltip, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("tutorial-overlay", false, UiLayer.Tutorial, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("key-control-hint-hud", false, UiLayer.OverlayPanel, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("world-pin-overlay", false, UiLayer.WorldPin, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("notification-host", false, UiLayer.BehindStage, UiFamily.Viewport, UIStateEnum.GameScreen),
-            new("blocking-skit", false, UiLayer.SkitStage, UiFamily.Viewport, UIStateEnum.GameScreen),
+            Crosshair, KeyHints, ProgressBar, ChallengeHud, TrainRidingHud, ScreenBackdrop,
+            PlacementModeHud, DeleteModeWarning, DeleteBoxHeightHud,
+            CursorTooltip, TutorialOverlay, KeyControlHintHud, WorldPinOverlay, NotificationHost, BlockingSkit,
         };
     }
 }
