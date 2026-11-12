@@ -27,7 +27,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
 using Object = UnityEngine.Object;
-
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
 {
@@ -45,7 +44,10 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
     PlaytestGameViewOps.BringToFront();
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     p.Assert(isGameUi == (WebUiHost.Hub == null), isGameUi ? "GameUi の回は Web ホストが無い" : "Web の回は Web ホストがある");
-
+    // 参照は日本語で撮る。他のシナリオ（uitk-notification-compare）が Editor の言語を英語で残すので、撮る前に固定する
+    // References are in Japanese; another scenario (uitk-notification-compare) leaves the Editor in English, so pin it before shooting
+    Localize.TrySetChosenLanguage("japanese");
+    p.Assert(Localize.GetCurrentLanguageCode() == "japanese", "言語が日本語");
     // 開幕スキットと背景スキットを抜け、参照に無い操作オーバーレイを切る（前例 uitk-skit-compare）
     // Leave the opening and background skits and turn off the operation overlay absent from the references (precedent uitk-skit-compare)
     await p.SkipOpeningSkitIfPlaying();
@@ -55,7 +57,6 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
     Object.FindFirstObjectByType<PlaytestOverlayView>().enabled = false;
     await p.Hotbar.UnlockConnectTool("電線");
     await p.Until(() => Camera.main != null, 10f, "MainCameraの起動");
-
     // 先頭チャレンジのピン先の木（前例 uitk-opening-hud）
     // The tree the first challenge pins (precedent uitk-opening-hud)
     var category = MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements.Single(c => c.InitialUnlocked);
@@ -192,7 +193,6 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await PlaytestUiElementOps.WaitUiTextContains(testid, text, 10f);
         p.Note($"表示を確認 {testid} 「{text}」");
     }
-
     string PinId() => WorldPinStateStore.Instance.GetCurrent().Pins.Single().PinId;
     Vector3 Flat(Vector3 position) => new(position.x, 0f, position.z);
     #endregion
