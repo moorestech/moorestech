@@ -32,13 +32,13 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         protected override Vector2 DoMeasure(float desiredWidth, MeasureMode widthMode, float desiredHeight, MeasureMode heightMode)
         {
             _narrowWrapGuard.EvaluateBeforeMeasure(desiredWidth, widthMode);
-            if (!_narrowWrapGuard.FreezesWhenMeasuredAt(desiredWidth, widthMode)) return base.DoMeasure(desiredWidth, widthMode, desiredHeight, heightMode);
+            var measureWidth = _narrowWrapGuard.SafeMeasureWidth(desiredWidth, widthMode);
+            if (!(measureWidth > desiredWidth)) return base.DoMeasure(desiredWidth, widthMode, desiredHeight, heightMode);
 
-            // 折り返すと固まる幅なので 1 行で測り、受けた幅へ収める（nowrap で測ったのと同じ大きさ）
-            // Wrapping would freeze at this width, so measure one line and fit it to the constraint (the size nowrap would give)
-            var singleLine = base.DoMeasure(float.NaN, MeasureMode.Undefined, desiredHeight, heightMode);
-            var width = widthMode == MeasureMode.Exactly ? desiredWidth : Mathf.Min(singleLine.x, desiredWidth);
-            return new Vector2(width, singleLine.y);
+            // 受けた幅で折り返すと固まるので必要な幅で折り返して測り、幅だけ受けた幅へ収める（箱が狭いままなら NarrowWrapGuard が nowrap にして測り直させる）
+            // Wrapping at the constraint freezes, so wrap at the needed width and fit only the width (if the box stays narrow NarrowWrapGuard applies nowrap and it re-measures)
+            var measured = base.DoMeasure(measureWidth, widthMode, desiredHeight, heightMode);
+            return new Vector2(Mathf.Min(measured.x, desiredWidth), measured.y);
         }
     }
 }

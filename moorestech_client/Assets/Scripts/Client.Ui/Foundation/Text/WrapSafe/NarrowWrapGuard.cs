@@ -10,10 +10,10 @@ namespace Client.Ui.Foundation.Text.WrapSafe
     /// <remarks>
     /// 固まるのは測り（DoMeasure）と描画の両方なので、測りは WrapSafeLabel が狭い幅で折り返さずに測り、描画は箱の幅でここが nowrap を当てる（配置の後の GeometryChangedEvent で当てた inline は同じフレームの配置のやり直しに入り、描画より先に効く）。
     /// 箱の幅を読めるのは配置の後なので、新しく組んだ・非表示から戻った・外された後の最初の測りは受けた制約の幅で決める。文やスタイルだけが変わり箱が変わらないときは測りで今の箱の幅を使う。
-    /// 止めた・戻したときだけ開発者向けのログを出す（毎フレームは出さない）。設計書 A-224・台帳 LX-182
+    /// 止めた・戻したときだけ開発者向けのログを出す（毎フレームは出さない）。設計書 A-224・台帳 LX-184
     /// Both measuring (DoMeasure) and rendering freeze, so WrapSafeLabel measures unwrapped at narrow widths and this guard applies nowrap by box width for rendering (inline set in GeometryChangedEvent joins the same frame's layout pass and lands before rendering).
     /// The box width is only known after layout, so the first measure of a new, re-shown or re-attached label decides from the constraint width; a text or style change that keeps the box uses the current box width.
-    /// It logs for developers only when it starts or stops holding (never per frame). Design A-224, ledger LX-182
+    /// It logs for developers only when it starts or stops holding (never per frame). Design A-224, ledger LX-184
     /// </remarks>
     public class NarrowWrapGuard
     {
@@ -22,6 +22,9 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         private readonly TextElement _element;
         private readonly InlineWhiteSpaceHolds _whiteSpace;
         private bool _boxKnown;
+        // 測りの中で contentRect を読むと、字形の atlas を空にした後の描画で UITK の文字のジョブが壊れた（D-17 の全件の実測）。箱の幅は配置の後に写して使う
+        // Reading contentRect inside a measure broke UITK's text jobs after the glyph atlas was emptied (D-17 full-suite runs); copy the box width after layout instead
+        private float _boxWidth;
 
         public NarrowWrapGuard(TextElement element, InlineWhiteSpaceHolds whiteSpace)
         {
@@ -39,13 +42,17 @@ namespace Client.Ui.Foundation.Text.WrapSafe
             return NarrowWrapWidth.Of(_element.text, _element.enableRichText, resolved.fontSize, resolved.letterSpacing);
         }
 
-        // この制約の幅で折り返して測ると固まるか
-        // Whether measuring wrapped at this constraint width would freeze
-        public bool FreezesWhenMeasuredAt(float desiredWidth, VisualElement.MeasureMode widthMode)
+        // 測る幅。今の文が折り返す（止めていない）のに制約が必要な幅より狭ければ必要な幅で測る（その幅で折り返すと固まる）
+        // Width to measure at: when the text currently wraps (not held) and the constraint is under the needed width, measure at the needed width (wrapping narrower freezes)
+        public float SafeMeasureWidth(float desiredWidth, VisualElement.MeasureMode widthMode)
         {
-            if (widthMode == VisualElement.MeasureMode.Undefined) return false;
-            if (!_whiteSpace.WrapsWithout(WhiteSpaceHoldReason.NarrowWidth)) return false;
-            return desiredWidth < MinimumWrapWidth();
+            if (widthMode == VisualElement.MeasureMode.Undefined) return desiredWidth;
+            var whiteSpace = _element.resolvedStyle.whiteSpace;
+            if (whiteSpace != WhiteSpace.Normal && whiteSpace != WhiteSpace.PreWrap) return desiredWidth;
+            // 比較で書く（Mathf.Max は NaN の制約を 0 に変えてしまう）
+            // Compare instead of Mathf.Max, which turns a NaN constraint into 0
+            var minimumWidth = MinimumWrapWidth();
+            return desiredWidth < minimumWidth ? minimumWidth : desiredWidth;
         }
 
         // 測りの前に描く幅を見積もって止めるか決める。箱が分かっていれば今の箱、分からなければ受けた制約の幅
@@ -54,7 +61,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         {
             if (_boxKnown)
             {
-                Evaluate(_element.contentRect.width);
+                Evaluate(_boxWidth);
                 return;
             }
             // silent-ok: 制約の無い測りは幅が決まらない / 配置の後の GeometryChangedEvent が箱の幅で決める
@@ -72,7 +79,8 @@ namespace Client.Ui.Foundation.Text.WrapSafe
                 return;
             }
             _boxKnown = true;
-            Evaluate(_element.contentRect.width);
+            _boxWidth = _element.contentRect.width;
+            Evaluate(_boxWidth);
         }
 
         private void Evaluate(float renderWidth)
@@ -86,7 +94,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
             if (hold)
             {
                 _whiteSpace.Hold(WhiteSpaceHoldReason.NarrowWidth);
-                Debug.LogWarning($"[NarrowWrapGuard] '{_element.name}' stops wrapping: width {renderWidth:0.#}px < {minimumWidth:0.#}px needed to wrap \"{Excerpt()}\" without freezing UITK TextCore (bd moorestech-fcpzz, LX-182)");
+                Debug.LogWarning($"[NarrowWrapGuard] '{_element.name}' stops wrapping: width {renderWidth:0.#}px < {minimumWidth:0.#}px needed to wrap \"{Excerpt()}\" without freezing UITK TextCore (bd moorestech-fcpzz, LX-184)"); // look-exception: LX-184
                 return;
             }
             _whiteSpace.Release(WhiteSpaceHoldReason.NarrowWidth);
