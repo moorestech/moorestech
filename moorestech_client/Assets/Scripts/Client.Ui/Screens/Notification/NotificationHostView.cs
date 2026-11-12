@@ -20,6 +20,7 @@ namespace Client.Ui.Screens.Notification
     public sealed class NotificationHostView : VisualElement
     {
         private const string StyleNotResolvedMessage = "[NotificationHostView] custom style not resolved after layout; is Notification.uss imported by GameUiTheme.tss and the notification-host class present?";
+        private const string TokensUnreadableMessage = "[NotificationHostView] notification enter/exit/shift tokens are unreadable; showing rows without enter or exit motion";
 
         private readonly NotificationModel _model;
         private readonly INotificationTextLookup _textLookup;
@@ -43,19 +44,8 @@ namespace Client.Ui.Screens.Notification
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
-            // 内容名・アイテム名は解決済みの文字列で UiText に入るので、言語が変わったら行ごとに解き直す
-            // Content and item names enter the UiText as resolved strings, so re-resolve every row when the language changes
-            RegisterCallback<AttachToPanelEvent>(attachEvent => _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts()));
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
-
-            #region Internal
-
-            void ReapplyTexts()
-            {
-                foreach (var shown in _shownRows.Values) shown.View.SetText(TextOf(shown.View.Row));
-            }
-
-            #endregion
         }
 
         public void Render(NotificationListViewModel viewModel)
@@ -130,13 +120,32 @@ namespace Client.Ui.Screens.Notification
             return NotificationText.Resolve(row.Content, _textLookup);
         }
 
+        private void OnAttachToPanel(AttachToPanelEvent attachEvent)
+        {
+            _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts());
+            // 外れていた間に動きが止まった行は再生し直さず、生存の最終の姿（退場の終わり）に揃えて書き口から除く（再生し直しの API は持たない。A-267）
+            // Rows whose motion stopped while detached are not replayed: set them to the lifetime's final pose (the exit end) and remove them through the write side (no replay API; A-267)
+            foreach (var pair in _shownRows.ToList())
+            {
+                pair.Value.StopLifetime();
+                NotificationRowLifetime.ApplyFinalPose(pair.Value.View, _timing);
+                _model.RemoveNotification(pair.Key);
+            }
+        }
+
+        // 内容名・アイテム名は解決済みの文字列で UiText に入るので、言語が変わったら行ごとに解き直す
+        // Content and item names enter the UiText as resolved strings, so re-resolve every row when the language changes
+        private void ReapplyTexts()
+        {
+            foreach (var shown in _shownRows.Values) shown.View.SetText(TextOf(shown.View.Row));
+        }
+
         private void OnDetachFromPanel(DetachFromPanelEvent detachEvent)
         {
             _languageSubscription?.Dispose();
-
             // 外れると行の動きが止まり退場の終わりが来ない＝行が Model に残る。常駐のホストが外れるのは Dispose だけのはずなので、それ以外で起きたら開発者に知らせる
             // Detaching stops the row motions, so no exit end comes and rows stay in the model; a resident host should only detach on Dispose, so tell developers otherwise
-            if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop and they will not be removed");
+            if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop; they are finalized and removed only if the host is attached again");
         }
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
@@ -148,6 +157,7 @@ namespace Client.Ui.Screens.Notification
             var hasShift = UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-shift", out var shift);
             if (UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-screen-left", out var screenLeft)) _screenLeftPixels = screenLeft;
             ApplyScreenLeft();
+            if (!(hasEnter && hasExit && hasShift)) Debug.LogError(TokensUnreadableMessage);
             _timing = hasEnter && hasExit && hasShift
                 ? new NotificationRowTiming(enter, exit, NotificationModel.DisplayMilliseconds, shift)
                 : new NotificationRowTiming(0f, 0f, NotificationModel.DisplayMilliseconds, 0f);

@@ -34,6 +34,13 @@ namespace Client.Ui.Screens.Notification.Parts
             return new NotificationRowLifetimeHandle(enter, exit);
         }
 
+        // 生存の最終の姿（退場の終わり）を書く。動きが止まったあとの行を揃える口
+        // Writes the lifetime's final pose (the exit end); the port that settles a row after its motion stopped
+        public static void ApplyFinalPose(VisualElement row, NotificationRowTiming timing)
+        {
+            new NotificationRowFadeSlideStep(row, 1f, 0f, 0f, -timing.ShiftPixels).Apply(1f);
+        }
+
         private static NotificationRowFadeSlideStep EnterStep(VisualElement row, NotificationRowTiming timing)
         {
             return new NotificationRowFadeSlideStep(row, 0f, 1f, -timing.ShiftPixels, 0f);
