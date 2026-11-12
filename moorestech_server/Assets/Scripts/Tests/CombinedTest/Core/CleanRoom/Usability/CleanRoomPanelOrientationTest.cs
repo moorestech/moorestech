@@ -18,8 +18,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
         {
             var datastore = CleanRoomHatchTest.CreateServer();
 
-            // 外殻(0..6,0..4,0..6)の各セルへ、12向きを順に割り当てて境界ブロックを置く
-            // Place boundary blocks on the shell (0..6,0..4,0..6), cycling through all 12 directions
+            // 外殻の各セルへ4向きを順に割り当て配置
+            // Place boundary blocks on the shell cycling through 4 directions
             var directions = (BlockDirection[])Enum.GetValues(typeof(BlockDirection));
             var placedCount = 0;
             for (var x = 0; x <= 6; x++)

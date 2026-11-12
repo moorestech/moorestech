@@ -151,19 +151,18 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
         }
 
         [Test]
-        public void 変換元の版は8で現在版は9Test()
+        public void 変換元の版は8Test()
         {
             Assert.AreEqual(8, new SaveMigrationStepV8ToV9().FromVersion);
-            Assert.AreEqual(9, WorldSaveAllInfo.CurrentVersion);
         }
 
         [Test]
         public void 版8のセーブは連鎖で現在版まで変換されるTest()
         {
-            var result = SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9() }).Migrate(MasterV8Save());
+            var result = SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9(), new SaveMigrationStepV9ToV10(), new SaveMigrationStepV10ToV11() }).Migrate(MasterV8Save());
 
             Assert.IsTrue(result.CanLoad, result.BlockedReason);
-            Assert.AreEqual(9, result.Save["worldVersion"].Value<int>());
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, result.Save["worldVersion"].Value<int>());
             Assert.AreEqual(JTokenType.Null, Pending(result.Save)["drawRecord"].Type);
         }
 
@@ -181,11 +180,18 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
             {
                 ["worldVersion"] = 8,
                 ["world"] = new JArray(
-                    new JObject { ["blockGuid"] = "a", ["state"] = new JObject { [VanillaKey] = JObject.Parse($"{{\"outputSlot\":[{{\"itemGuid\":\"{TransistorWaferG3}\",\"count\":5}}]}}") } },
-                    new JObject { ["blockGuid"] = "b", ["state"] = new JObject { [CleanRoomKey] = dicing } },
-                    new JObject { ["blockGuid"] = "c", ["state"] = new JObject { [CleanRoomKey] = packaging } }),
+                    PlacedBlock(0, new JObject { [VanillaKey] = JObject.Parse($"{{\"outputSlot\":[{{\"itemGuid\":\"{TransistorWaferG3}\",\"count\":5}}]}}") }),
+                    PlacedBlock(1, new JObject { [CleanRoomKey] = dicing }),
+                    PlacedBlock(2, new JObject { [CleanRoomKey] = packaging })),
                 ["gameUnlockState"] = JObject.Parse($"{{\"itemUnlockStateInfos\":[{{\"guid\":\"{TransistorWaferG1}\",\"isUnlocked\":true}},{{\"guid\":\"{TransistorWaferG3}\",\"isUnlocked\":false}}]}}"),
             };
+        }
+
+        // 水平北・座標・guidを持つ最小ブロック（guidは架空）
+        // Minimal block with flat north, position, guid (guid is fictional)
+        private static JObject PlacedBlock(int x, JObject state)
+        {
+            return new JObject { ["blockGuid"] = $"00000000-0000-0000-0000-00000000000{x}", ["instanceId"] = x, ["X"] = x, ["Y"] = 0, ["Z"] = 0, ["direction"] = 4, ["state"] = state };
         }
 
         private static JObject Pending(JObject save)

@@ -28,7 +28,7 @@ namespace Client.Tests.PlaceSystem
             Assert.NotNull(observed);
             Assert.AreEqual(NotificationCategory.OperationDenied, observed.Category);
             Assert.AreEqual("denied.blueprintCreate.EmptyArea", observed.MessageId);
-            Assert.AreEqual(0, observed.MessageParams.Length);
+            Assert.AreEqual(0, observed.MessageParams.Count);
         }
 
         [Test]

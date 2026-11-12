@@ -42,12 +42,15 @@ namespace Client.Tests.Player
             InputSystem.Update();
 
             _playerRoot = new GameObject("PlayerMovementUiLockTestPlayer");
+            _playerRoot.SetActive(false);
             _playerRoot.AddComponent<CharacterController>();
             _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_playerRoot);
             var thirdPersonController = _playerRoot.AddComponent<ThirdPersonController>();
 
             _controller = _playerRoot.AddComponent<PlayerObjectController>();
             typeof(PlayerObjectController).GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_controller, thirdPersonController);
+            _playerRoot.SetActive(true);
+            TestReflection.InvokePrivate(_controller, "Awake");
             _controller.Initialize(Vector3.zero, Vector3.zero);
         }
 

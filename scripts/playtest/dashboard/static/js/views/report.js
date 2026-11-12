@@ -83,6 +83,17 @@ function mediaBlock(report) {
   return card("記録", { action: links.length ? h("span", { class: "file-links" }, links) : null }, h("div", { class: "media-list" }, items));
 }
 
+// 報告時のWeb・CEFの3行。集計側の status だけで分岐し、欄なし・前回分の不明・読めないを「未受信」と取り違えない
+// Three rows for the web and CEF at report time; branching only on the collector's status keeps absent/unknown/unreadable apart from never-received
+const WEB_UI_HEALTH_BLANKS = { absent: "記録なし", unknown: "不明（前回セッション）", unreadable: "読めない（ダッシュボードのログ）" };
+function webUiHealthRows(health) {
+  const blank = WEB_UI_HEALTH_BLANKS[health.status];
+  if (blank) return [["Webホスト", blank], ["CEF", blank], ["最後のWS受信", blank]];
+  const seconds = health.secondsSinceLastWebMessage;
+  return [["Webホスト", health.hostStartup], ["CEF", health.cefProcess],
+    ["最後のWS受信", seconds == null ? "一度も受信していない" : `${seconds.toFixed(1)}秒前`]];
+}
+
 // 詳細は「誰が・どのビルドで・どんな状態で・どう扱われたか」の4群に分けて並べる
 // Details are grouped as who, which build, what state, and how it was handled
 function infoGroups(report) {
@@ -98,7 +109,8 @@ function infoGroups(report) {
       ["送信", fmtDateTime(report.createdAt || report.readyAt)],
       ["画面", report.uiState || "不明"],
       ["tick", report.reportTick ?? "不明"],
-      ["録画", report.videoSeconds ? `${report.videoSeconds.toFixed(0)}秒` : "なし"]]],
+      ["録画", report.videoSeconds ? `${report.videoSeconds.toFixed(0)}秒` : "なし"],
+      ...webUiHealthRows(report.webUiHealth)]],
     ["取り扱い", [
       ["遠隔実行", report.remoteExecReason ? `${report.remoteExec}（${report.remoteExecReason}）` : (report.remoteExec || "不明")],
       ["報告ID", h("code", null, report.id)]]],

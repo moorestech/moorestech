@@ -44,7 +44,6 @@ namespace Client.Game.InGame.Block.IconCapture
                 DestroyByPlayState(captureTarget);
                 return null;
             }
-            var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
 
             // 生成直後にARGB32の出力先を固定し、メイン画面へ描画される隙を作らない
             // Bind an ARGB32 target right after creation so the Camera never draws to the main screen
@@ -56,7 +55,8 @@ namespace Client.Game.InGame.Block.IconCapture
                 autoGenerateMips = false
             };
             blockImageCamera.targetTexture = renderTexture;
-            AimCamera(blockImageCamera, bounds.Select(b => b.min).Aggregate(Vector3.Min), bounds.Select(b => b.max).Aggregate(Vector3.Max), center);
+            blockImageCamera.aspect = (float)renderTexture.width / renderTexture.height;
+            AimCamera(blockImageCamera, bounds.Select(b => b.min).Aggregate(Vector3.Min), bounds.Select(b => b.max).Aggregate(Vector3.Max));
 
             if (Application.isPlaying)
             {
@@ -113,15 +113,20 @@ namespace Client.Game.InGame.Block.IconCapture
             }
         }
 
-        private static void AimCamera(Camera blockImageCamera, Vector3 minPos, Vector3 maxPos, Vector3 center)
+        private static void AimCamera(Camera blockImageCamera, Vector3 minPos, Vector3 maxPos)
         {
-            // 上30度・Y45度から、視野角と最大寸法で決めた距離に置く
-            // Place the Camera 30 degrees down and 45 degrees around Y at a distance derived from FOV and extent
+            // 部品数の偏りに依存せず、外形全体の中心へ上30度・Y45度から向ける
+            // Aim from 30 degrees down and 45 degrees around Y at the union center, independent of part counts
             blockImageCamera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
-            var maxSize = Vector3.Distance(minPos, maxPos);
-            var fovRad = blockImageCamera.fieldOfView * Mathf.Deg2Rad;
-            var distance = maxSize * 0.5f / Mathf.Tan(fovRad * 0.5f);
-            blockImageCamera.transform.position = center - blockImageCamera.transform.forward * (distance * 0.8f);
+            var center = (minPos + maxPos) * 0.5f;
+            var radius = Vector3.Distance(minPos, maxPos) * 0.5f;
+
+            // 狭い側の視野へ外接球を余白付きで収め、近クリップ面も避ける
+            // Fit the bounding sphere inside the narrower field of view with padding and near-plane clearance
+            var verticalHalfFov = blockImageCamera.fieldOfView * Mathf.Deg2Rad * 0.5f;
+            var horizontalHalfFov = Mathf.Atan(Mathf.Tan(verticalHalfFov) * blockImageCamera.aspect);
+            var distance = Mathf.Max(radius / Mathf.Sin(Mathf.Min(verticalHalfFov, horizontalHalfFov)) * 1.05f, radius + blockImageCamera.nearClipPlane);
+            blockImageCamera.transform.position = center - blockImageCamera.transform.forward * distance;
             blockImageCamera.transform.LookAt(center);
 
             // 白背景の単色で塗りつぶす

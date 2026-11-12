@@ -180,10 +180,12 @@ Playwright スクリプトで次を出力する:
   適用は tokens.css の共有クラス `iconTextOutlineLight` / `iconTextOutlineDark` を TSX で合成して行い（前例 `keyHintText`）、
   featureのCSSは位置決めと文字色だけを持つ。現在の適用先は `ItemSlot .count` / `ItemSlot .shortageCount` /
   `FluidSlot .amount` / `FluidAmountSlot .amount` / `HotbarPanel .num` の5箇所。
-- **素材の「所持/必要」は `ItemSlot` の `shortage`（`{ ownedCount, requiredCount, tooltipKey }`）だけが描く。**
-  クラフト・研究・建設メニューの3系統はこの1箇所へ集約済みで、feature側に絶対配置のカウント要素とそのCSSを複製しない。
-  赤字にするかは呼び出し側の `insufficient` が決め（免除等の合成は呼び出し側の責務）、位置だけ
-  `--shortage-count-right` / `--shortage-count-bottom` で用途ごとに寄せる（レシピ行はスロット内へ収める・§8.17）。
+- **素材の「所持/必要」は `ItemSlot` の `shortage`（`{ ownedCount, requiredCount, lacking, tooltipKey }`）だけが描く。**
+  クラフト・研究・建設メニュー・機械の素材スロットの4系統はこの1箇所へ集約済みで、feature側に絶対配置のカウント要素とそのCSSを複製しない。
+  `shortage` があるスロットは通常の個数バッジを出さない（数字を1か所にまとめる）。
+  赤字は `shortage.lacking`、枠の減光は `insufficient` が別々に決める（免除等の合成は呼び出し側の責務）。クラフト・研究・建設メニューは両方を立て、
+  機械の素材スロットは実物を入れた手応えを消さないため赤字だけにする。`tooltipKey: null` は素材の語彙で語らずアイテム名のツールチップを保つ。
+  位置と字の大きさだけ `--shortage-count-right` / `--shortage-count-bottom` / `--shortage-count-font-size` で用途ごとに寄せる（レシピ行・機械の素材スロットはスロット内へ収める・§8.17）。
   アイコンに重なっていない文字（通知・キーヒント・目標HUD・ボタンラベル）はこの様式の対象外で、従来の文字影のままにする。
 
 ## 5. 色・トーン

@@ -14,7 +14,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
@@ -81,17 +81,17 @@ return PlaytestRunner.Run("t31r3b-acceptance", new PlaytestRunOptions { Record =
     p.WarpPlayer(new Vector3(715.5f, 97.5f, 615.8f));
     await p.WaitSeconds(1f);
     await p.PressInteract();
-    await p.UntilWebUiElement("block-inventory", 15f);
-    await PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable($"machine-recipe-{recipeGuid}", "block-inventory", 30f);
-    await p.ClickWebUi($"machine-recipe-{recipeGuid}");
+    await p.UntilUiElement("block-inventory", 15f);
+    await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable($"machine-recipe-{recipeGuid}", "block-inventory", 30f);
+    await p.ClickUi($"machine-recipe-{recipeGuid}");
 
     // 出口998・入口1をUIで投入し、レシピ1回分以上のゲーム時間と実10秒以上を待つ
     // Insert 998 into the outlet and 1 into the inlet via UI, then wait at least one recipe of game time and 10 real seconds
     var local = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
-    await p.ClickWebUi("main-slot-" + FindSlot(cable));
-    await p.ClickWebUi("machine-output-slots");
-    await p.ClickWebUi("main-slot-" + FindSlot(sheet));
-    await p.ClickWebUi("machine-input-slots");
+    await p.ClickUi("main-slot-" + FindSlot(cable));
+    await p.ClickUi("machine-output-slots");
+    await p.ClickUi("main-slot-" + FindSlot(sheet));
+    await p.ClickUi("machine-input-slots");
     var block = p.GetBlock(origin);
     var inventory = block.GetComponent<IOpenableBlockInventoryComponent>();
     await p.WaitForItemCount(inventory, cable, 998, 998, 10f, "出口998個をUIで投入");
@@ -106,21 +106,21 @@ return PlaytestRunner.Run("t31r3b-acceptance", new PlaytestRunOptions { Record =
     // 停止中のパネルを採って判定2を見る
     // Capture the stalled panel and evaluate check 2
     await p.Screenshot("01-stalled-output-space");
-    var stalledPanel = (await PlaytestDomQuery.Query("block-inventory", 2f)).Text ?? "";
+    var stalledPanel = (await PlaytestUiElementOps.FindUi("block-inventory")).Text ?? "";
     p.Note("STALLED_PANEL_TEXT: " + stalledPanel.Replace("\n", "|"));
     var outputReasonWords = new[] { "出力", "出口", "いっぱい", "満杯", "空き", "Output", "output", "full", "space" };
     p.Assert(outputReasonWords.Any(stalledPanel.Contains), "受入2: 停止中の機械パネルに出力側の空き不足が示される");
 
     // 出口だけUIで空けて本物の加工を完了させ、入力切れで待機する同じ機械のパネルを採る
     // Clear only the outlet via UI, let real processing finish, then capture the same machine idling on missing input
-    await p.ClickWebUi("machine-output-slots");
-    await p.ClickWebUi("main-slot-" + FindEmpty());
+    await p.ClickUi("machine-output-slots");
+    await p.ClickUi("main-slot-" + FindEmpty());
     await p.WaitForItemCount(inventory, cable, 5, 5, 150f, "出口を空けると実加工でケーブル5個が完成");
     await p.WaitForItemCount(inventory, sheet, 0, 0, 10f, "入口シートが本物の加工で消費された");
     await p.WaitSeconds(1f);
     p.Assert(await p.ReadMachineState(block) == ProcessState.Idle, "前提: 加工後は入力切れでIdle");
     await p.Screenshot("02-idle-missing-input");
-    var starvedPanel = (await PlaytestDomQuery.Query("block-inventory", 2f)).Text ?? "";
+    var starvedPanel = (await PlaytestUiElementOps.FindUi("block-inventory")).Text ?? "";
     p.Note("INPUT_STARVED_PANEL_TEXT: " + starvedPanel.Replace("\n", "|"));
 
     // 判定1: 数字を除いた2つのパネルが同じなら、出口空き不足と入力切れを画面で区別できない

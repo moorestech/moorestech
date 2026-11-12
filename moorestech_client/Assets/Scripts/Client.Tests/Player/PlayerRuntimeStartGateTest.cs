@@ -1,5 +1,6 @@
 using System.Reflection;
 using Client.Common;
+using Client.Tests.Common;
 using Client.Game.InGame.Player;
 using NUnit.Framework;
 using StarterAssets;
@@ -24,6 +25,7 @@ namespace Client.Tests.Player
         public void StartPlayerRuntimeまでWarpも落下復帰も起きない()
         {
             var controller = CreatePlayerObjectController();
+            Assert.IsFalse(_thirdPersonController.enabled, "Awakeから初期化前の移動が止まっていない");
 
             // 地形構築前を模す。Initializeだけでは保存座標へ動かないこと
             // Emulate the pre-terrain window: Initialize alone must not move the player to the saved position
@@ -85,11 +87,14 @@ namespace Client.Tests.Player
         private PlayerObjectController CreatePlayerObjectController()
         {
             _playerRoot = new GameObject("PlayerRuntimeStartGateTestPlayer");
+            _playerRoot.SetActive(false);
             _playerRoot.AddComponent<CharacterController>();
             _playerRoot.AddComponent<StarterAssetsInputs>();
             _thirdPersonController = _playerRoot.AddComponent<ThirdPersonController>();
             var playerObjectController = _playerRoot.AddComponent<PlayerObjectController>();
             SetField(playerObjectController, "controller", _thirdPersonController);
+            _playerRoot.SetActive(true);
+            TestReflection.InvokePrivate(playerObjectController, "Awake");
             return playerObjectController;
         }
 

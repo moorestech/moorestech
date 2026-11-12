@@ -17,6 +17,7 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Client.Ui.State.BlockDetail;
 
 namespace Client.Tests.WebUi.BlockDetail
 {

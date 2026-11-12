@@ -69,7 +69,7 @@ return PlaytestRunner.Run("tier9-4b-rocket-cargo-shift-reject", new PlaytestRunO
     // Shift+クリックはケーブル枠へ一括で入り、表示もサーバーと一致する
     // Shift-click lands the whole stack in the cable slot and the view matches the server
     p.Note("所持ケーブル1000本をShift+クリックで発射台へ送る");
-    await p.HoverWebUi("main-slot-" + cableSlot);
+    await p.HoverUi("main-slot-" + cableSlot);
     SemanticInput.KeyDown(Key.LeftShift);
     await UniTask.DelayFrame(3);
     p.Assert(Keyboard.current.shiftKey.isPressed, "Shiftの押下が入力系に届いた");
@@ -88,9 +88,9 @@ return PlaytestRunner.Run("tier9-4b-rocket-cargo-shift-reject", new PlaytestRunO
     // Use the second cargo slot so this step stays independent of any step-1 drift (phantom stack left at slot 3 when unfixed)
     var refusingSlot = param.LaunchMaterials.Length + 1;
     p.Note($"鋼鉄板を掴み、受け付けない積荷枠slot{refusingSlot}へ置く");
-    await p.ClickWebUi("main-slot-" + plateSlot);
+    await p.ClickUi("main-slot-" + plateSlot);
     await p.WaitSeconds(0.5f);
-    await p.ClickWebUi("rocket-launch-pad-payload-slots-slot-" + refusingSlot);
+    await p.ClickUi("rocket-launch-pad-payload-slots-slot-" + refusingSlot);
     await p.WaitSeconds(1.5f);
     var afterReject = await ReadServer();
     p.Note($"拒否後 server grab={afterReject.Grab} pad={Dump(afterReject.Pad)} / local grab={local.GrabInventory} pad={Dump(LocalPad())}");
@@ -150,7 +150,7 @@ return PlaytestRunner.Run("tier9-4b-rocket-cargo-shift-reject", new PlaytestRunO
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement("block-inventory-close", 10f);
     }
 
     #endregion

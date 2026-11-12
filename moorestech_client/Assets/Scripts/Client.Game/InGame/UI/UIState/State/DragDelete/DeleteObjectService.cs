@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
+using Client.Localization;
 using UniRx;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
 using System.Collections.Generic;
@@ -79,7 +80,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             UpdateHoldConfirm();
 
-            if (_selection.HasSelection()) _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount, new[] { _selection.Count.ToString() }));
+            if (_selection.HasSelection()) _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount, new[] { new LocalizationTextParam("count", _selection.Count.ToString()) }));
 
             // 対象がある間だけ長押し削除を案内
             // Show the hold-to-delete hint while a target exists
@@ -116,6 +117,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             void UpdateHoldConfirm()
             {
                 if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
+
+                // 確定前に前回の拒否・未確認表示を畳む
+                // Fold previous rejected/unconfirmed lines before commit
+                _results.ClearSettled();
                 var confirmedSubject = _selection.HasSelection() ? SelectionHoldSubject() : subject;
                 _isStroking = false;
                 if (!_selection.TryCommit(confirmedSubject, out var reason)) AddDenyLine(reason);
@@ -151,6 +156,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _hold.Reset();
             _tooltip.Hide(_tooltipOwner);
             _isStroking = false;
+            _results.ClearSettled();
             _selection.CancelSelection();
         }
     }

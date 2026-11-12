@@ -78,10 +78,10 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     ClientContext.VanillaApi.SendOnly.CompleteResearch(firstResearchGuid);
     await p.Until(() => achievementBefore < AchievementResearchCount(), 10f, "研究完了で実績通知(achievement.researchCompleted)がクライアントに届く");
 
-    // 実ペイロードの研究名パラメータまで検証する(Web側テンプレ「Research completed: {p0}」に流し込まれる値)
-    // Assert the actual research-name param carried in the payload (fed into the web template "Research completed: {p0}")
+    // ワイヤ値は研究GUIDであり、表示名はWeb側が解決する
+    // The wire value is the research GUID; the web layer resolves its display name
     var achievement = received.Last(n => n.Category == NotificationCategory.Achievement && n.MessageId == "achievement.researchCompleted");
-    p.Assert(1 <= achievement.MessageParams.Length && achievement.MessageParams[0] == "原始研究1", $"実績通知の研究名パラメータが『原始研究1』 実際:{string.Join(",", achievement.MessageParams)}");
+    p.Assert(achievement.MessageParams.TryGetValue("research", out var researchParam) && researchParam == firstResearchGuid.ToString(), $"実績通知の研究GUIDが送信した研究と一致する 実際:{string.Join(",", achievement.MessageParams)}");
 
     await UntilHudVisible("notification-host", 10f);
     await p.Screenshot("03-achievement-notification");
@@ -93,8 +93,8 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
         var deadline = UnityEngine.Time.realtimeSinceStartup + timeoutSeconds;
         while (UnityEngine.Time.realtimeSinceStartup < deadline)
         {
-            var result = await Client.Playtest.WebUi.PlaytestDomQuery.Query(testid, 2f);
-            if (result.Found && 0 < result.Width) return;
+            var result = await Client.Playtest.Operations.PlaytestUiElementOps.FindUi(testid);
+            if (result.IsFound && 0 < result.ScreenRect.width) return;
             await UniTask.Delay(TimeSpan.FromMilliseconds(250), ignoreTimeScale: true);
         }
         throw new Exception($"HUD要素が可視にならない: {testid}");

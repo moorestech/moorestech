@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Pruning;
@@ -31,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var message = MessagePackSerializer.Deserialize<NotificationMessagePack>(sink.Events[0].Payload);
             Assert.AreEqual(NotificationCategory.SaveMigration, message.Category);
             Assert.AreEqual("saveMigration.missingMasterPruned", message.MessageId);
-            Assert.AreEqual(new[] { "3", "4", "5" }, message.MessageParams);
+            Assert.AreEqual(new Dictionary<string, string> { ["blockCount"] = "3", ["itemStackCount"] = "4", ["researchCount"] = "5" }, message.MessageParams);
         }
 
         // 本番DIの結線で届くこと。手組みnewでは登録漏れ・別インスタンス注入を検出できない
@@ -54,7 +55,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1, notifications.Count);
             Assert.AreEqual(NotificationCategory.SaveMigration, notifications[0].Category);
             Assert.AreEqual("saveMigration.missingMasterPruned", notifications[0].MessageId);
-            Assert.AreEqual(new[] { "3", "4", "5" }, notifications[0].MessageParams);
+            Assert.AreEqual(new Dictionary<string, string> { ["blockCount"] = "3", ["itemStackCount"] = "4", ["researchCount"] = "5" }, notifications[0].MessageParams);
         }
 
         // 除去0件（本番の常態）で通知が出ないこと

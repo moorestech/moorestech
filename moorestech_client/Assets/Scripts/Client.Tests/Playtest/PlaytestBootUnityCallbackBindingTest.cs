@@ -10,7 +10,6 @@ using Client.Starter.Playtest.TitleGates;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.SceneManagement;
-using Client.WebUiHost.Boot;
 
 namespace Client.Tests.Playtest
 {
@@ -49,18 +48,18 @@ namespace Client.Tests.Playtest
         }
 
         [Test]
-        public void InitializeScenePipeline_WebUi起動後の実ポートで遠隔実行を有効化する()
+        public void InitializeScenePipeline_起動印の後かつWebUi起動より前に遠隔実行を有効化する()
         {
-            // Web UI起動完了後に実ポートを読み、その値で有効化する呼び出し順を守る
-            // Preserve calls that read the actual port after Web UI startup and pass it to activation
+            // Webホストの成否に依らず遠隔実行が開く順を、本番の非同期入口で固定する
+            // Pin, in the production async entry, the order that opens remote exec regardless of the Web host's outcome
             var moveNext = FindInitializeMoveNext();
-            var startWebUi = typeof(WebUiStartup).GetMethod(nameof(WebUiStartup.StartAsync), BindingFlags.Static | BindingFlags.NonPublic);
-            var getPort = typeof(Client.WebUiHost.Boot.WebUiHost).GetProperty(nameof(Client.WebUiHost.Boot.WebUiHost.KestrelPort)).GetGetMethod();
+            var beginMarks = typeof(PreviousSessionStartupTasks).GetMethod(nameof(PreviousSessionStartupTasks.BeginCurrentSessionMarks));
             var activate = typeof(RemoteExecActivation).GetMethod(nameof(RemoteExecActivation.ActivateIfRequested));
+            var startWebUi = typeof(WebUiStartup).GetMethod(nameof(WebUiStartup.StartAsync), BindingFlags.Static | BindingFlags.NonPublic);
 
             Assert.That(startWebUi, Is.Not.Null);
-            Assert.That(MethodCallInspector.CallsInOrder(moveNext, startWebUi, getPort), Is.True);
-            Assert.That(MethodCallInspector.CallsInOrder(moveNext, getPort, activate), Is.True);
+            Assert.That(MethodCallInspector.CallsInOrder(moveNext, beginMarks, activate), Is.True);
+            Assert.That(MethodCallInspector.CallsInOrder(moveNext, activate, startWebUi), Is.True);
         }
 
         private static MethodInfo FindInitializeMoveNext()

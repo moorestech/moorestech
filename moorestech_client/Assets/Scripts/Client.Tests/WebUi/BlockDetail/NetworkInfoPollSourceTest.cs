@@ -1,4 +1,4 @@
-using Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo;
+using Client.Ui.State.BlockDetail.NetworkInfo;
 using Game.Gear.Common;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;

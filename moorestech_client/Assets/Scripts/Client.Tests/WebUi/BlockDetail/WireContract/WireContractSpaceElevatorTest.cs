@@ -22,6 +22,7 @@ using Client.WebUiHost.Game.Topics.BlockDetail;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using Client.Ui.State.BlockDetail;
 
 namespace Client.Tests.WebUi.BlockDetail
 {

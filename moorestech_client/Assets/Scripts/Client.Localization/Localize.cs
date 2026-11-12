@@ -46,9 +46,9 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
-        public static string GetFormatted(LocalizationKey key, IReadOnlyList<string> textParams)
+        public static string GetFormatted(LocalizationKey key, IReadOnlyList<LocalizationTextParam> textParams)
         {
-            return LocalizationTextInterpolator.Interpolate(Get(key), textParams);
+            return LocalizationTextInterpolator.Interpolate(key.Key, Get(key), textParams);
         }
 
         // TextMeshProLocalizeのInspector入力キー専用のレガシー経路（型付きキーはGet/GetContent）

@@ -116,13 +116,13 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
 
             Assert.AreEqual(3, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(RailMaterial1Guid)), feedback.Lines[0].TextParams[0]);
-            Assert.AreEqual("1", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("12", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(RailMaterial1Guid)), feedback.Lines[0].TextParams[0].Value);
+            Assert.AreEqual("1", feedback.Lines[0].TextParams[1].Value);
+            Assert.AreEqual("12", feedback.Lines[0].TextParams[2].Value);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[1].Key.Key);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(RailMaterial2Guid)), feedback.Lines[1].TextParams[0]);
-            Assert.AreEqual("2", feedback.Lines[1].TextParams[1]);
-            Assert.AreEqual("5", feedback.Lines[1].TextParams[2]);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(RailMaterial2Guid)), feedback.Lines[1].TextParams[0].Value);
+            Assert.AreEqual("2", feedback.Lines[1].TextParams[1].Value);
+            Assert.AreEqual("5", feedback.Lines[1].TextParams[2].Value);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[2].Key.Key);
 
         }
@@ -143,7 +143,7 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             Assert.IsFalse(previewData.IsPlaceable);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("12", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("12", feedback.Lines[0].TextParams[2].Value);
 
         }
 
@@ -161,7 +161,7 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             Assert.IsFalse(previewData.IsPlaceable);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("4", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("4", feedback.Lines[0].TextParams[2].Value);
 
         }
 

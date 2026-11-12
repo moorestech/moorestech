@@ -2,22 +2,15 @@
 name: moores-writing-plans
 description: moorestech専用の実装計画。マルチステップタスクの設計（grillのADR）と要件が揃っていて、コードに着手する前に使う
 hooks:
-  PreToolUse:
-    - matcher: "AskUserQuestion"
-      hooks:
-        - type: command
-          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh preask"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
-        - type: command
-          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh track"
         - type: command
           command: "python3 .claude/skills/moores-code-review/scripts/ledger_gate.py track"
   Stop:
     - hooks:
         - type: command
-          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh stop"
+          command: "node .dev-hooks/logs-hook.mjs record-deviations"
         - type: command
           command: "python3 .claude/skills/moores-code-review/scripts/ledger_gate.py stop"
 ---
@@ -38,6 +31,8 @@ hooks:
 ## Scope Check
 
 要件が複数の独立したサブシステムにまたがる場合、設計セッション（grill）の段階でサブプロジェクトごとに分割されているはず。分割されていなければ、サブシステムごとに別々のplanへ分けることを提案する。各planはそれ単体で動作しテスト可能なソフトウェアを生み出すべき。
+
+並行する plan 間の依存が 2 件以上あるときは、依存を 1 件ずつ解く案に加え、依存が集まる層（マスタの中身など）を全 plan の後の統合タスクへ寄せる案を出す（1 件ずつ解くと別の箇所でまた詰まるため）。
 
 ## File Structure
 
@@ -212,12 +207,12 @@ git commit -m "feat: <specific feature>"
 
 Self-Review（内容）の次に、このファイル後半の **spec-architecture-review** を plan に対して実行する。Phase 1〜2.5（配置検査。fresh-context subagent が違反を返し、本体がその場で直す）と **Phase 2.6（型閉包・重複・ADR矛盾。fresh-context subagent に委譲し、発火をユーザーへ質問する）** の両方が対象で、どちらも省略しない。どちらも全タスクを書き終えてから回す。検査後にタスクの追加・機構の変更をしたら、変えた範囲に両方を fresh-context で回し直す（本体の再照合で済ませない。書いた本人は自分の書いた前例引用を理由ごと読んで通すため）。終えたら plan の `## 設計検査記録` の2行を `実施済み` と件数・要約へ書き換える。
 
-## Simulator Review + 判断記録（ADR）— required, after 設計検査
+## 反証検査 + 判断記録（ADR）— required, after 設計検査
 
 設計検査を終えたら、Execution Handoff の**前**に必ず:
 
-1. **user-simulator スキルを実行する**（reviewモード）— `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。設計ADR（`docs/adr/`）とplanの判断記録をcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外し（追加指摘/誤検知）は即ハンドオフ発行。
-2. **plan末尾に `## 判断記録（ADR）` を置く** — 設計セッションのADR（`docs/adr/`）へのリンク＋planning中に新たに生じた判断（タスク分割・機構比較・シミュレーター裁定）を追記する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。
+1. **反証検査を fresh-context の subagent（opus）1 体に任せる** — 渡すのは plan のパス、設計 ADR（`docs/adr/`）と plan の判断記録（裁定済み事項として蒸し返させない）、`references/plan-review-lenses/` の 6 本。subagent は各レンズの「開くトリガー」に合うものだけ読み、リポジトリを Grep・実験して反証できた欠陥だけを返す。出力契約は「Critical（plan のタスクが壊れる・脱落する。根拠の実パス・ヒット数付き）／Warning（確信一段弱い）／設計判断（ユーザーにしか決められない分岐。選択肢付き）」の 3 節で、plan は書き換えない。本体は Critical と Warning をその場で plan に反映し、設計判断は AskUserQuestion へ回す（問いの作り方は moores-grill-with-docs §1.6 に従い、互換だけが理由の分岐は聞かない）。
+2. **plan末尾に `## 判断記録（ADR）` を置く** — 設計セッションのADR（`docs/adr/`）へのリンク＋planning中に新たに生じた判断（タスク分割・機構比較・反証検査で出た裁定）を追記する。
 
 ## Execution Handoff
 
@@ -407,7 +402,7 @@ No なら、それはドメイン層に置くべきものである。
 
 **検査範囲**: plan の構造化6節（Files / Interfaces / Produces・Consumes / 配置表 / コードブロック / 判断記録・やらないこと）のみ。散文節は読ませない。発火条件は表の字面で当てる。表に無い形を「悪そうだから」で足すのは禁止（迷ったら ok）。
 
-**出力**: 1発火＝1行「〈検査番号・パターン〉[強|弱] / plan の行 / 表の問い」。表の「出力の畳み方」に従い、同じ行の複数箇所は1件にまとめ、テストコードは 5-D／5-F／検査6 の対象外、強弱の印を付ける。subagent は plan を書き換えない。本体は **強を AskUserQuestion の1問ずつ**（選択肢: 表の問いの Yes／このままでよい）、**弱は plan 全体で1問**（箇所を列挙し「拾うものはあるか」）にしてユーザーへ出し、裁定を `## 判断記録（ADR）` に書く。「このままでよい」も裁定として残す。
+**出力**: 1発火＝1行「〈検査番号・パターン〉[強|弱] / plan の行 / 表の問い」。表の「出力の畳み方」に従い、同じ行の複数箇所は1件にまとめ、テストコードは 5-D／5-F／検査6 の対象外、強弱の印を付ける。subagent は plan を書き換えない。本体は **強のうち、プレイヤーに見える差（挙動・画面・セーブ）を1行で書けるものを AskUserQuestion の1問ずつ**（その1行を質問文の先頭に置く。選択肢: 表の問いの Yes／このままでよい）、書けない強は表の問いの Yes を agent前提として判断記録に書いて最終報告で示し（見える差の無い内部の形はユーザーが判断できないため）、**弱は plan 全体で1問**（箇所を列挙し「拾うものはあるか」）にしてユーザーへ出し、裁定を `## 判断記録（ADR）` に書く。「このままでよい」も裁定として残す。
 
 **第3バケツ**: 検査6の最終行（Produces の新設判定と同役割の既存実装が plan 外のファイルに見つかる）だけは plan の問いにせず、レビュー依頼文の **「本PR外のリファクタ提案」節**に1行ずつ列挙して人間に渡す。plan のタスクには決して足さない（範囲の膨張は別の失敗）。
 

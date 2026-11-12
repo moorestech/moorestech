@@ -68,26 +68,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
             {
                 Position = _position,
                 Direction = _direction,
-                VerticalDirection = ToVerticalDirection(_direction),
+                VerticalDirection = BlockVerticalDirection.Horizontal,
                 BlockId = _blockId,
                 Placeable = true,
                 CreateParams = _createParams,
             });
             return BlockRestoreOutcome.Appended;
-
-            #region Internal
-
-            BlockVerticalDirection ToVerticalDirection(BlockDirection direction)
-            {
-                return direction switch
-                {
-                    BlockDirection.UpNorth or BlockDirection.UpEast or BlockDirection.UpSouth or BlockDirection.UpWest => BlockVerticalDirection.Up,
-                    BlockDirection.DownNorth or BlockDirection.DownEast or BlockDirection.DownSouth or BlockDirection.DownWest => BlockVerticalDirection.Down,
-                    _ => BlockVerticalDirection.Horizontal,
-                };
-            }
-
-            #endregion
         }
 
         public bool TrySendConnectionRestore(IRemovalRestoreSender sender, HashSet<Vector3Int> skippedBlockPositions)

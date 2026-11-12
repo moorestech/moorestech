@@ -20,15 +20,12 @@ using UniRx;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-
 namespace Client.Game.Skit
 {
     public class SkitManager : MonoBehaviour, IInitializable
     {
-        [SerializeField] private SkitUI skitUI;
         [SerializeField] private SkitCamera skitCamera;
         [SerializeField] private VoiceDefine voiceDefine;
-        
         [Inject] private ISkitActionController _skitActionController;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
@@ -36,9 +33,7 @@ namespace Client.Game.Skit
         [Inject] private IReadOnlyList<ITutorialWorldPin> worldPins;
         [Inject] private IReadOnlyList<ISkitWorldObjectControl> worldObjectControls;
         [Inject] private SkitOrigin skitOrigin;
-        
         public bool IsPlayingSkit { get; private set; }
-        
         // 会話UIの表示状態はstoreが単一の正。拒否と未隠蔽を畳まず帰結をそのまま呼び出し元へ返す
         // The store is the single source of truth for dialogue-UI visibility; the outcome reaches the caller without folding refusal into "nothing hidden"
         public SkitUiRestoreResult TryRestoreHiddenSkitUi()
@@ -46,22 +41,15 @@ namespace Client.Game.Skit
             var store = SkitPresentationStateStore.Instance;
             var current = store.GetCurrent();
             if (!current.PresentationState.UiHidden) return SkitUiRestoreResult.NothingHidden;
-
             var result = store.TrySetUiHidden(current.SessionId, current.SceneRevision, false);
             return result.Ok ? SkitUiRestoreResult.Restored : SkitUiRestoreResult.Rejected;
         }
         private bool _isSkip;
-        
         // 執筆ツールが本編・SkitTestの双方で同じ原点を引けるよう、シーン上の実体から公開する
         // Expose the origin from the scene instance so authoring tools read the same value in both the main game and SkitTest
         public SkitOrigin GetSkitOrigin()
         {
             return skitOrigin;
-        }
-        
-        private void Awake()
-        {
-            skitUI.SetActive(false);
         }
         public void Initialize()
         {
@@ -70,13 +58,11 @@ namespace Client.Game.Skit
                 _isSkip = true;
             }).AddTo(this);
         }
-        
         public async UniTask StartSkit(string addressablePath)
         {
             // ロードのawaitを跨ぐ前に再生中を立て、多重起動が互いの世界復元を奪い合うのを防ぐ
             // Raise the playing flag before the load await, so a double start cannot fight over restoring the world
             IsPlayingSkit = true;
-
             var storyCsv = await AddressableLoader.LoadAsyncDefault<TextAsset>(addressablePath);
             if (!storyCsv)
             {
@@ -84,10 +70,8 @@ namespace Client.Game.Skit
                 IsPlayingSkit = false;
                 return;
             }
-
             await StartSkit(storyCsv);
         }
-        
         private async UniTask StartSkit(TextAsset skitJson)
         {
             IsPlayingSkit = true;
@@ -156,9 +140,6 @@ namespace Client.Game.Skit
                     }
                 }
                 
-                // UI ToolkitのスキットビューはWeb UIへ移行済みで伏せたままにする
-                // The UI Toolkit skit view is superseded by Web UI and stays hidden
-                skitUI.SetActive(false);
 
                 // 抑止できたピンだけを控え、途中で失敗しても解除漏れで消えたままにしない
                 // Track only the pins actually suppressed so a mid-way failure cannot leave one hidden forever
@@ -174,7 +155,6 @@ namespace Client.Game.Skit
                 skitCamera.SetSkitOrigin(skitOrigin);
                 
                 var builder = new ContainerBuilder();
-                builder.RegisterInstance(skitUI);
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(characterContainer);
@@ -192,9 +172,6 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform, skitOrigin));
                 builder.RegisterInstance(skitOrigin);
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
-                // Web表示のみを持つためモードは固定。UI Toolkit経路の撤去は moorestech-lnsf.8
-                // Presentation is web-only, so the mode is fixed; retiring the UI Toolkit path is moorestech-lnsf.8
-                builder.RegisterInstance(new SkitPresentationMode(true));
                 builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
 
                 return new StoryContext(builder.Build());
@@ -204,7 +181,6 @@ namespace Client.Game.Skit
             {
                 // 唯一のfinallyから、実際に変更した再生状態だけを通常状態へ戻す
                 // Restore only the playback state actually changed, from the single finally
-                skitUI.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
                 foreach (var suppressedWorldPin in suppressedWorldPins) suppressedWorldPin.EndSkitSuppress();
                 visibilityLedger?.RestoreHiddenWindows();

@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "com.annulusgames.debug-ui": {
-      "version": "https://github.com/AnnulusGames/DebugUI.git?path=src/DebugUI/Assets/DebugUI",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "eadce6b0604ad8a5a06117751eeae7de2d64707b"
-    },
     "com.annulusgames.tween-playables": {
       "version": "https://github.com/AnnulusGames/TweenPlayables.git?path=/Assets/TweenPlayables",
       "depth": 0,
@@ -77,13 +70,6 @@
       "source": "git",
       "dependencies": {},
       "hash": "6baeccf6c544c155497164327cca72f28163a578"
-    },
-    "com.singtaa.onejs": {
-      "version": "https://github.com/Singtaa/OneJS.git#onejs-v3",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "d16ed851ec346d391737187e440dd0751de525c9"
     },
     "com.tayx.graphy": {
       "version": "https://github.com/Tayx94/graphy.git",
@@ -394,6 +380,16 @@
       "dependencies": {
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
+      }
+    },
+    "com.unity.ui.test-framework": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.ext.nunit": "2.0.3",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.uielements": "1.0.0"
       }
     },
     "com.unity.visualeffectgraph": {

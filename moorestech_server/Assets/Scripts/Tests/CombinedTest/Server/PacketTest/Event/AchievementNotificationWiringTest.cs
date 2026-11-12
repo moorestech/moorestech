@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 表示名でなくGuidを送るワイヤ契約を固定する（Web側辞書解決の前提）
             // Pin the wire contract: GUIDs are sent, not display names, for web-side dictionary resolution
-            Assert.AreEqual(new[] { Research1Guid.ToString("D") }, notifications[0].MessageParams);
+            Assert.AreEqual(new Dictionary<string, string> { ["research"] = Research1Guid.ToString("D") }, notifications[0].MessageParams);
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // 期待値はテスト側のGuidリテラルから組み、本番の送出式に依存させない
             // The expectation is built from a test-side GUID literal, not from the production expression
             var craftChallengeGuid = new Guid("00000000-0000-0000-4567-000000000001");
-            Assert.AreEqual(new[] { craftChallengeGuid.ToString("D") }, notifications[0].MessageParams);
+            Assert.AreEqual(new Dictionary<string, string> { ["challenge"] = craftChallengeGuid.ToString("D") }, notifications[0].MessageParams);
         }
 
         private static List<NotificationMessagePack> TakeAchievementNotifications(CapturedEventSink sink, string messageId)

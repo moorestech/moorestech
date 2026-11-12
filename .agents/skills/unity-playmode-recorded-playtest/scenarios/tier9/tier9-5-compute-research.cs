@@ -84,10 +84,10 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     }
     await p.PressKey(Key.R);
     await p.WaitUiState(UIStateEnum.ResearchTree, 10f);
-    await p.ClickWebUi($"research-node-{upgrade.ResearchNodeGuid}");
-    await p.UntilWebUiElement($"research-button-{upgrade.ResearchNodeGuid}", 10f);
+    await p.ClickUi($"research-node-{upgrade.ResearchNodeGuid}");
+    await p.UntilUiElement($"research-button-{upgrade.ResearchNodeGuid}", 10f);
     await p.Screenshot("02-upgrade-node-detail");
-    await p.ClickWebUi($"research-button-{upgrade.ResearchNodeGuid}");
+    await p.ClickUi($"research-button-{upgrade.ResearchNodeGuid}");
     await p.WaitForResearch(new[] { upgrade.ResearchNodeGuid }, Array.Empty<Guid>(), 10f, "UI から品質モジュールLv2 を研究した");
     await p.Until(() => costs.All(c => p.CountItem(c.name) == 0), 10f, "研究素材がすべて消費された");
     var capIsTwo = false;
@@ -177,9 +177,9 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement("block-inventory-close", 10f);
         await p.Screenshot(screenshotName);
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 

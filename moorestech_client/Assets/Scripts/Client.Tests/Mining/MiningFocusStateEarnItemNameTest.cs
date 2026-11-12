@@ -23,7 +23,7 @@ namespace Client.Tests.Mining
             Assert.AreSame(focusState, next);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedMineHold.Key, ShownTooltipKey());
             CollectionAssert.AreEqual(
-                new[] { Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid)) },
+                new[] { new LocalizationTextParam("name", Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid))) },
                 ShownTooltipParams());
         }
 
@@ -56,16 +56,16 @@ namespace Client.Tests.Mining
             Assert.AreSame(focusState, next);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedRequiredItems.Key, ShownTooltipKey());
 
-            // 名前が{p0}・必要ツールが{p1}
-            // Pin the ordering: the name is {p0} and the required tools are {p1}
+            // 名称・ツールの順で枠を照合
+            // Check placeholders in name/tool order
             var shownParams = ShownTooltipParams();
             Assert.AreEqual(2, shownParams.Count);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid)), shownParams[0]);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(ToolItemGuid)), shownParams[1]);
+            Assert.AreEqual(new LocalizationTextParam("name", Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid))), shownParams[0]);
+            Assert.AreEqual(new LocalizationTextParam("items", Localize.GetContent(ContentLocalizationKeys.ItemName(ToolItemGuid))), shownParams[1]);
 
             // 同一文字列だと取り違えを見逃す
             // Identical strings would hide a swapped route, so the two must differ
-            Assert.AreNotEqual(shownParams[0], shownParams[1]);
+            Assert.AreNotEqual(shownParams[0].Value, shownParams[1].Value);
         }
     }
 }

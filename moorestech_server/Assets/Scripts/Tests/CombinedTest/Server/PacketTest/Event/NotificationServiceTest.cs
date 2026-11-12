@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,15 +23,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 同一キー2連打は1件だけ通る
             // Two same-key bursts pass only once
-            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.denied", new[] { "p0" }));
-            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.denied", new[] { "p0" }));
+            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.denied", new Dictionary<string, string> { ["x"] = "p0" }));
+            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.denied", new Dictionary<string, string> { ["x"] = "p0" }));
             var events = sink.TakeAll().Where(e => e.Tag == NotificationService.EventTag).ToList();
             Assert.AreEqual(1, events.Count);
 
             var data = MessagePackSerializer.Deserialize<NotificationMessagePack>(events[0].Payload);
             Assert.AreEqual(NotificationCategory.OperationDenied, data.Category);
             Assert.AreEqual("test.denied", data.MessageId);
-            Assert.AreEqual("p0", data.MessageParams[0]);
+            Assert.AreEqual("p0", data.MessageParams["x"]);
         }
 
         [Test]
@@ -42,15 +43,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 別MessageIdは抑制されない
             // A different MessageId is not suppressed
-            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.a", Array.Empty<string>()));
-            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.b", Array.Empty<string>()));
+            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.a", new Dictionary<string, string>()));
+            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.b", new Dictionary<string, string>()));
             Assert.AreEqual(2, sink.TakeAll().Count(e => e.Tag == NotificationService.EventTag));
 
             // クールダウン0なら同一キーも再送される
             // With zero cooldown the same key is sent again
             service.SetCooldownDuration(TimeSpan.Zero);
-            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.a", Array.Empty<string>()));
-            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.a", Array.Empty<string>()));
+            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.a", new Dictionary<string, string>()));
+            service.Notify(PlayerId, NotificationMessagePack.CreateOperationDenied("test.a", new Dictionary<string, string>()));
             Assert.AreEqual(2, sink.TakeAll().Count(e => e.Tag == NotificationService.EventTag));
         }
 
@@ -61,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var service = serviceProvider.GetService<NotificationService>();
 
-            service.NotifyAll(NotificationMessagePack.CreateAchievement("test.achievement", Array.Empty<string>()));
+            service.NotifyAll(NotificationMessagePack.CreateAchievement("test.achievement", new Dictionary<string, string>()));
             var events = sink.TakeAll().Where(e => e.Tag == NotificationService.EventTag).ToList();
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual(NotificationCategory.Achievement, MessagePackSerializer.Deserialize<NotificationMessagePack>(events[0].Payload).Category);

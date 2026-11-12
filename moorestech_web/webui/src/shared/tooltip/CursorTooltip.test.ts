@@ -8,8 +8,8 @@ const testState = vi.hoisted(() => ({
   locale: "english",
   data: {
     visible: true,
-    lines: [{ textKey: "ui.mainMenu.playLocally", textParams: [] as string[] }],
-  } as { visible: boolean; lines: { textKey: string; textParams: string[] }[] },
+    lines: [{ textKey: "ui.mainMenu.playLocally", textParams: {} as Record<string, string> }],
+  } as { visible: boolean; lines: { textKey: string; textParams: Record<string, string> }[] },
   // 渡された pointer に応じた値を返し、どの pointer で計算したかを描画結果から読めるようにする
   // Return a pointer-dependent value so the rendered style reveals which pointer the calculation used
   clamp: vi.fn((x: number, y: number) => ({ x: x + 12, y: y + 12 })),
@@ -53,19 +53,32 @@ describe("CursorTooltip", () => {
     testState.locale = "english";
     testState.data = {
       visible: true,
-      lines: [{ textKey: "ui.mainMenu.playLocally", textParams: [] }],
+      lines: [{ textKey: "ui.mainMenu.playLocally", textParams: {} }],
     };
     testState.clamp.mockClear();
     vi.restoreAllMocks();
   });
 
   it("interpolates textParams into the localized template", () => {
-    setDictionaries("english", { [L.ui.tooltip.requiredItems]: "Requires: {p0}" }, {}, {});
+    setDictionaries("english", { [L.ui.tooltip.requiredItems]: "Requires: {items}" }, {}, {});
 
     expect(resolveTooltipLines({
       visible: true,
-      lines: [{ textKey: L.ui.tooltip.requiredItems, textParams: ["Iron Pickaxe, Stone Pickaxe"] }],
+      lines: [{ textKey: L.ui.tooltip.requiredItems, textParams: { items: "Iron Pickaxe, Stone Pickaxe" } }],
     }, createTranslator(getI18nSnapshot()))).toEqual(["Requires: Iron Pickaxe, Stone Pickaxe"]);
+  });
+
+  it("preserves a missing count and warns once across renders", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setDictionaries("english", { [L.ui.tooltip.placeWireCost]: "Wire x{count}" }, {}, {});
+    const data = { visible: true as const, lines: [{ textKey: L.ui.tooltip.placeWireCost, textParams: {} }] };
+    expect(resolveTooltipLines(data, createTranslator(getI18nSnapshot()))).toEqual(["Wire x{count}"]);
+    resolveTooltipLines(data, createTranslator(getI18nSnapshot()));
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn).toHaveBeenCalledWith(`[i18n] Missing interpolation value: ${L.ui.tooltip.placeWireCost} {count}`);
+    data.lines[0].textParams = { count: "0" };
+    expect(resolveTooltipLines(data, createTranslator(getI18nSnapshot()))).toEqual(["Wire x0"]);
+    expect(warn).toHaveBeenCalledOnce();
   });
 
   it("resolves a content key from the dictionary without a raw-text fallback", () => {
@@ -74,7 +87,7 @@ describe("CursorTooltip", () => {
 
     expect(resolveTooltipLines({
       visible: true,
-      lines: [{ textKey: itemNameKey(ironIngotGuid), textParams: [] }],
+      lines: [{ textKey: itemNameKey(ironIngotGuid), textParams: {} }],
     }, createTranslator(getI18nSnapshot()))).toEqual(["Iron Ingot"]);
     expect(warn).not.toHaveBeenCalled();
   });
@@ -82,16 +95,16 @@ describe("CursorTooltip", () => {
   it("renders every line in order", () => {
     setDictionaries("english", {
       [L.ui.tooltip.placeBlockedByTerrain]: "Blocked by terrain",
-      // 辞書はこのテストが注入するので、ここで検証できるのは{pN}補間の責務だけ
-      // The dictionary is injected by this test, so only the {pN} interpolation responsibility is verified here
-      [L.ui.tooltip.placeMaterialShortage]: "Missing item: {p0} {p1}/{p2}",
+      // 辞書はこのテストが注入するので、ここで検証できるのは名前付き補間の責務だけ
+      // The dictionary is injected by this test, so only the named interpolation responsibility is verified here
+      [L.ui.tooltip.placeMaterialShortage]: "Missing item: {itemName} {ownedCount}/{requiredCount}",
     }, {}, {});
 
     expect(resolveTooltipLines({
       visible: true,
       lines: [
-        { textKey: L.ui.tooltip.placeBlockedByTerrain, textParams: [] },
-        { textKey: L.ui.tooltip.placeMaterialShortage, textParams: ["Iron Plate", "3", "10"] },
+        { textKey: L.ui.tooltip.placeBlockedByTerrain, textParams: {} },
+        { textKey: L.ui.tooltip.placeMaterialShortage, textParams: { itemName: "Iron Plate", ownedCount: "3", requiredCount: "10" } },
       ],
     }, createTranslator(getI18nSnapshot()))).toEqual(["Blocked by terrain", "Missing item: Iron Plate 3/10"]);
   });
@@ -101,7 +114,7 @@ describe("CursorTooltip", () => {
     setDictionaries("english", {}, {}, {});
     const data = {
       visible: true as const,
-      lines: [{ textKey: "ui.tooltip.unknown", textParams: [] as string[] }],
+      lines: [{ textKey: "ui.tooltip.unknown", textParams: {} as Record<string, string> }],
     };
 
     expect(resolveTooltipLines(data, vi.fn())).toEqual(["[!ui.tooltip.unknown]"]);
@@ -157,7 +170,7 @@ describe("CursorTooltip", () => {
     // Reproduce only the pre-lock centered warp arriving while hidden, with no pointermove afterwards
     act(() => pointerMove?.({ clientX: 640, clientY: 360 }));
     act(() => {
-      testState.data = { visible: true, lines: [{ textKey: "ui.mainMenu.playLocally", textParams: [] }] };
+      testState.data = { visible: true, lines: [{ textKey: "ui.mainMenu.playLocally", textParams: {} }] };
       renderer.update(createElement(CursorTooltip));
     });
 

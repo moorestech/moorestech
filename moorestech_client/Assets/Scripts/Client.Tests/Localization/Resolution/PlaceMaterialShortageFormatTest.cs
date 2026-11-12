@@ -22,9 +22,9 @@ namespace Client.Tests.Localization.Resolution
         {
             var text = GetShortageText(languageCode);
 
-            var itemNameIndex = text.IndexOf("{p0}", StringComparison.Ordinal);
-            var heldIndex = text.IndexOf("{p1}", StringComparison.Ordinal);
-            var requiredIndex = text.IndexOf("{p2}", StringComparison.Ordinal);
+            var itemNameIndex = text.IndexOf("{itemName}", StringComparison.Ordinal);
+            var heldIndex = text.IndexOf("{ownedCount}", StringComparison.Ordinal);
+            var requiredIndex = text.IndexOf("{requiredCount}", StringComparison.Ordinal);
 
             Assert.Less(-1, itemNameIndex, $"{languageCode}: {ShortageKey} lost the item name placeholder");
             Assert.Less(itemNameIndex, heldIndex, $"{languageCode}: {ShortageKey} must place the held count after the item name");
@@ -38,7 +38,7 @@ namespace Client.Tests.Localization.Resolution
 
             // 接頭辞が消えるとアイテム名だけの行になり、不足であることが読み取れなくなる
             // Without the prefix the line degrades to a bare item name and no longer reads as a shortage
-            var prefix = text.Substring(0, text.IndexOf("{p0}", StringComparison.Ordinal));
+            var prefix = text.Substring(0, text.IndexOf("{itemName}", StringComparison.Ordinal));
             Assert.IsNotEmpty(prefix.Trim(), $"{languageCode}: {ShortageKey} lost its shortage prefix");
         }
 

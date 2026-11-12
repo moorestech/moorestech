@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Tooltip;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Core.Master;
@@ -13,7 +15,6 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
-
 namespace Client.Tests.WebUi
 {
     public class WireContractC2Test
@@ -24,7 +25,6 @@ namespace Client.Tests.WebUi
             new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
-
         [Test]
         public void PlacementModeMatchesFixture()
         {
@@ -38,7 +38,6 @@ namespace Client.Tests.WebUi
                 },
                 "placement_mode.json");
         }
-
         [Test]
         public void PlacementModeFactoryPublishesOnlyResolvableBlockIdentity()
         {
@@ -48,14 +47,12 @@ namespace Client.Tests.WebUi
                 2,
                 "",
                 wheelOwnedByTool: false);
-
             // 原文を運ばずWeb用Guidを固定
             // Pin Web GUIDs without carrying source names
             Assert.AreEqual("block", dto.SelectedTargetType);
             Assert.AreEqual(blockMaster.BlockGuid.ToString("D"), dto.SelectedBlockGuid);
             Assert.IsNull(dto.SelectedName);
         }
-
         [Test]
         public void PlacementModeConnectToolMatchesFixture()
         {
@@ -135,11 +132,8 @@ namespace Client.Tests.WebUi
         public void TooltipMatchesFixture()
         {
             AssertMatches(
-                new TooltipDto
-                {
-                    Visible = true,
-                    Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new[] { "Iron Pickaxe" } } },
-                },
+                TooltipTopic.ToDto(new TooltipPresentation(new[] { new TooltipLine(
+                    LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { new LocalizationTextParam("items", "Iron Pickaxe") }) })),
                 "tooltip.json");
         }
 
@@ -148,11 +142,9 @@ namespace Client.Tests.WebUi
         [Test]
         public void TooltipWireCarriesOnlyVisibilityAndLines()
         {
-            var wire = JToken.Parse(WebUiJson.Serialize(new TooltipDto
-            {
-                Visible = true,
-                Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new[] { "Iron Pickaxe" } } },
-            }));
+            var presentation = new TooltipPresentation(new[] { new TooltipLine(
+                LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { new LocalizationTextParam("items", "Iron Pickaxe") }) });
+            var wire = JToken.Parse(WebUiJson.Serialize(TooltipTopic.ToDto(presentation)));
             var wireKeys = wire.Children<JProperty>().Select(property => property.Name).OrderBy(name => name).ToArray();
             var lineKeys = wire["lines"][0].Children<JProperty>().Select(property => property.Name).OrderBy(name => name).ToArray();
 
@@ -168,6 +160,19 @@ namespace Client.Tests.WebUi
             var wire = JToken.Parse(WebUiJson.Serialize(TooltipTopic.ToDto(TooltipPresentation.Hidden)));
             Assert.IsFalse(wire.Value<bool>("visible"));
             Assert.AreEqual(0, wire["lines"].Count());
+        }
+
+        // 名前と値の取り違えも本番変換で検出する
+        // Detect swapped names and values through the production conversion
+        [Test]
+        public void TooltipWirePreservesMultipleNamedValues()
+        {
+            var presentation = new TooltipPresentation(new[] { new TooltipLine(
+                LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage, new[] {
+                    new LocalizationTextParam("itemName", "Iron"), new LocalizationTextParam("ownedCount", "2"),
+                    new LocalizationTextParam("requiredCount", "7") }) });
+            var wire = JToken.Parse(WebUiJson.Serialize(TooltipTopic.ToDto(presentation)));
+            Assert.IsTrue(JToken.DeepEquals(JObject.Parse("{'itemName':'Iron','ownedCount':'2','requiredCount':'7'}"), wire["lines"][0]["textParams"]));
         }
 
         private static void AssertMatches(object dto, string fixtureName)

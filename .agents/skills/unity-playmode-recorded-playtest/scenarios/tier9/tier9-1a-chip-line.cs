@@ -160,9 +160,9 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement("block-inventory-close", 10f);
         await p.Screenshot(screenshotName);
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
     async UniTask BuildRoom()

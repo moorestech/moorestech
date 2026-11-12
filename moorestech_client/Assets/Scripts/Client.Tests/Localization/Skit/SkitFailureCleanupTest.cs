@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Client.Game.InGame.Tutorial;
 using Client.Game.Skit;
 using Client.Game.Skit.Localization;
-using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;
 using NUnit.Framework;
@@ -17,7 +16,7 @@ namespace Client.Tests.Localization.Skit
     {
         private const string SkitKey = "skit.opening.7.body";
 
-        private readonly List<GameObject> _createdObjects = new();
+        private readonly List<UnityEngine.Object> _createdObjects = new();
 
         [TearDown]
         public void TearDown()
@@ -31,14 +30,11 @@ namespace Client.Tests.Localization.Skit
         public void SkitFailureRestoresPlaybackStateAndLeavesUntouchedMapPinAlone()
         {
             var root = new GameObject("SkitManagerTest");
+            _createdObjects.Add(root);
             root.SetActive(false);
-            var skitUiObject = new GameObject("SkitUI");
-            skitUiObject.transform.SetParent(root.transform);
-            var skitUi = skitUiObject.AddComponent<SkitUI>();
             var manager = root.AddComponent<SkitManager>();
             var mapObjectPin = new RecordingWorldPin();
             var veinPin = new RecordingWorldPin();
-            SetPrivateField(manager, "skitUI", skitUi);
             SetPrivateField(manager, "worldPins", new List<ITutorialWorldPin> { mapObjectPin, veinPin });
 
             // 失敗したskitはfinallyだけで後始末し、まだ隠していないpinには触れない
@@ -50,15 +46,14 @@ namespace Client.Tests.Localization.Skit
                 new[] { typeof(TextAsset) },
                 null);
             var invalidTitleAsset = new TextAsset("[]");
+            _createdObjects.Add(invalidTitleAsset);
             var startTask = (UniTask)startSkit.Invoke(manager, new object[] { invalidTitleAsset });
 
             Assert.ThrowsAsync<ArgumentException>(async () => await startTask);
             Assert.IsFalse(manager.IsPlayingSkit);
-            Assert.IsFalse(skitUiObject.activeSelf);
             Assert.AreEqual(0, mapObjectPin.SetActiveCallCount);
             Assert.AreEqual(0, veinPin.SetActiveCallCount);
 
-            UnityEngine.Object.DestroyImmediate(root);
         }
 
         [Test]

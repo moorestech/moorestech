@@ -21,8 +21,9 @@
   right: var(--shortage-count-right, -2px);
   bottom: var(--shortage-count-bottom, -4px);
   z-index: 2;
+  pointer-events: none;
   color: var(--count-text);
-  font-size: 11px;
+  font-size: var(--shortage-count-font-size, 11px);
   line-height: 1;
   white-space: nowrap;
 }

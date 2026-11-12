@@ -3,7 +3,7 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEngine;
@@ -54,8 +54,8 @@ return PlaytestRunner.Run("ui-place-then-open-machine", options, async p =>
 
     // Unity側の状態だけでなく、Web側のblock inventoryパネルが実際に描画されていることまで確かめる
     // Verify not only the Unity-side state but that the web block inventory panel is actually rendered
-    var blockInventoryDom = await PlaytestDomQuery.Query("block-inventory", 10f);
-    p.Note($"[Web UI DOM] block-inventory found={blockInventoryDom.Found}");
-    p.Assert(blockInventoryDom.Found, "Web側のblock inventoryパネルが描画されている");
+    var blockInventoryDom = await PlaytestUiElementOps.FindUi("block-inventory");
+    p.Note($"[Web UI DOM] block-inventory found={blockInventoryDom.IsFound}");
+    p.Assert(blockInventoryDom.IsFound, "Web側のblock inventoryパネルが描画されている");
     await p.Screenshot("02-machine-ui-opened");
 });

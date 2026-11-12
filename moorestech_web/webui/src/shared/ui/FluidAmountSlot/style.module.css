@@ -10,6 +10,11 @@
 /* Never clip an overflow: a right-aligned band overflows leftward, so clipping silently drops the leading digits and the number reads as another one */
 .amount {
   composes: count from "../slotContent.module.css";
+}
+
+/* 合成元 .count と同じ詳細度だと出力順で勝敗が変わるため、クラスを重ねて寸法を必ず上書きする（composes は単一クラスのルールにしか書けない） */
+/* Equal specificity with the composed .count would make the winner depend on emit order, so the doubled class always wins on metrics (composes only fits a single-class rule) */
+.amount.amount {
   font-size: var(--fluid-amount-font-size);
   letter-spacing: 0;
 }

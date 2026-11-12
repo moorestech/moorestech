@@ -32,7 +32,7 @@ namespace Client.Tests.BugReport
                 VideoSeconds = 0,
             };
             var json = JObject.Parse(manifest.ToJson());
-            foreach (var key in new[] { "schemaVersion", "createdAt", "description", "platform", "isEditor", "reportTick", "snapshotTicks", "snapshotFiles", "packetLogFiles", "repository", "masterData", "serverData", "clientState", "missing", "videoSeconds", "remoteExec" })
+            foreach (var key in new[] { "schemaVersion", "createdAt", "description", "platform", "isEditor", "reportTick", "snapshotTicks", "snapshotFiles", "packetLogFiles", "repository", "masterData", "serverData", "clientState", "missing", "videoSeconds", "remoteExec", "webUiHealth" })
             {
                 Assert.IsTrue(json.ContainsKey(key), $"キー {key} が無い");
             }

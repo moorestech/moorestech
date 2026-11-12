@@ -42,12 +42,12 @@ namespace Server.Protocol.PacketResponse
             // Identify the reason, notify, and abort
             if (!CanInsertResult())
             {
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftResultFull", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftResultFull", new Dictionary<string, string>()));
                 return null;
             }
             if (!HasRequiredItems())
             {
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftMaterialShortage", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftMaterialShortage", new Dictionary<string, string>()));
                 return null;
             }
 

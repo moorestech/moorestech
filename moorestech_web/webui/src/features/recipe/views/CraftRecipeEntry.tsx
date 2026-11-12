@@ -41,18 +41,22 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
         arrowValue={isHolding ? progress : 0}
         arrowTestId={`craft-progress-arrow-${recipe.recipeGuid}`}
         duration={t(L.ui.recipe.duration, { seconds: recipe.craftTime })}
-        materials={recipe.requiredItems.map((r, i) => (
+        materials={recipe.requiredItems.map((r, i) => {
+          const owned = ownedCountOf(counts, r.itemId);
+          const lacking = owned < r.count;
+          return (
           <Box className={styles.materialSlot} key={i}>
             {/* 所持数不足の素材は既存どおり40%透過にし、数値も赤で示す */}
             {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
             <ItemSlot
               itemId={r.itemId}
-              insufficient={ownedCountOf(counts, r.itemId) < r.count}
-              shortage={{ ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count, tooltipKey: L.ui.recipe.materialTooltip }}
+              insufficient={lacking}
+              shortage={{ ownedCount: owned, requiredCount: r.count, lacking, tooltipKey: L.ui.recipe.materialTooltip }}
               onLeftDown={() => onSelect(r.itemId)}
             />
           </Box>
-        ))}
+          );
+        })}
         actionMode="slot"
         action={(
           <Button

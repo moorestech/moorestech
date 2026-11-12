@@ -28,7 +28,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             Assert.IsTrue(ElectricWireFeedbackLines.TryWireCost(3, out var line));
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireCost.Key, line.Key.Key);
-            CollectionAssert.AreEqual(new[] { "3" }, line.TextParams);
+            CollectionAssert.AreEqual(new[] { new LocalizationTextParam("count", "3") }, line.TextParams);
         }
 
         [Test]
@@ -47,10 +47,10 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             Assert.AreEqual(2, lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, lines[0].Key.Key);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid)), lines[0].TextParams[0]);
-            CollectionAssert.AreEqual(new[] { "1", "4" }, new[] { lines[0].TextParams[1], lines[0].TextParams[2] });
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material2Guid)), lines[1].TextParams[0]);
-            CollectionAssert.AreEqual(new[] { "0", "2" }, new[] { lines[1].TextParams[1], lines[1].TextParams[2] });
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid)), lines[0].TextParams[0].Value);
+            CollectionAssert.AreEqual(new[] { "1", "4" }, new[] { lines[0].TextParams[1].Value, lines[0].TextParams[2].Value });
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material2Guid)), lines[1].TextParams[0].Value);
+            CollectionAssert.AreEqual(new[] { "0", "2" }, new[] { lines[1].TextParams[1].Value, lines[1].TextParams[2].Value });
 
             #region Internal
 

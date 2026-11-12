@@ -1,5 +1,6 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.UI.Tooltip;
+using Client.Localization;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
@@ -12,7 +13,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy
     {
         public static void ReportBlocksInRange(int count, PlacementFeedback feedback)
         {
-            feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.BlueprintCopyBlocksInRange, new[] { count.ToString() }));
+            feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.BlueprintCopyBlocksInRange, new[] { new LocalizationTextParam("count", count.ToString()) }));
             if (count == 0) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.BlueprintCopyEmptyRange));
         }
     }

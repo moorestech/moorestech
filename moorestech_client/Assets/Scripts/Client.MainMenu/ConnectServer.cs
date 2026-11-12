@@ -62,7 +62,7 @@ namespace Client.MainMenu
 
             if (!TryProbe(properties, out var failureDetail))
             {
-                serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { failureDetail }));
+                serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { new LocalizationTextParam("detail", failureDetail) }));
                 return;
             }
 

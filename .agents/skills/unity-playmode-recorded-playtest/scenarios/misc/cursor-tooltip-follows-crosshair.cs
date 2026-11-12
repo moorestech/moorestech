@@ -18,7 +18,8 @@ using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
-using Client.Playtest.WebUi;
+using Client.Playtest.Operations;
+using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -106,35 +107,28 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     async UniTask<bool> IsTooltipNearAsync(Vector2 expectedScreenPoint, string expectedLabel)
     {
         var tooltip = await PollUntilQueryAsync("cursor-tooltip", 20);
-        if (!tooltip.Found)
+        if (!tooltip.IsFound)
         {
             p.Note($"ツールチップDOMが見つからない（期待位置={expectedLabel}{expectedScreenPoint}）");
             return false;
         }
 
-        // ツールチップはpointer-events:noneでヒットテストを通らないため、矩形中心を直接ブラウザpxへ換算する
-        // The tooltip is pointer-events:none and fails the hit test, so convert its rect center to browser px directly
-        var tooltipBrowserPoint = new Vector2(
-            (tooltip.X + tooltip.Width * 0.5f) * tooltip.DevicePixelRatio,
-            (tooltip.Y + tooltip.Height * 0.5f) * tooltip.DevicePixelRatio);
-        if (!CefScreenMapper.TryBrowserToScreen(tooltipBrowserPoint, out var tooltipScreenPoint))
-        {
-            p.Note($"ツールチップDOM矩形をスクリーン座標へ変換できない（css={tooltip.X},{tooltip.Y}）");
-            return false;
-        }
+        // 統合ロケータが返す画面矩形の中心で位置を比較する。
+        // Compare position using the center of the locator's screen rectangle.
+        var tooltipScreenPoint = tooltip.ScreenRect.center;
 
         var distance = Vector2.Distance(tooltipScreenPoint, expectedScreenPoint);
         p.Note($"ツールチップ中心={tooltipScreenPoint} 期待={expectedLabel}{expectedScreenPoint} 距離={distance:F1}px 文字='{tooltip.Text}'");
         return distance < 200f;
     }
 
-    async UniTask<DomQueryResult> PollUntilQueryAsync(string testid, int seconds)
+    async UniTask<UiElementSnapshot> PollUntilQueryAsync(string testid, int seconds)
     {
-        var result = await PlaytestDomQuery.Query(testid, 1f);
-        for (var i = 0; i < seconds && !result.Found; i++)
+        var result = await PlaytestUiElementOps.FindUi(testid);
+        for (var i = 0; i < seconds && !result.IsFound; i++)
         {
             await p.WaitSeconds(1f);
-            result = await PlaytestDomQuery.Query(testid, 1f);
+            result = await PlaytestUiElementOps.FindUi(testid);
         }
 
         return result;

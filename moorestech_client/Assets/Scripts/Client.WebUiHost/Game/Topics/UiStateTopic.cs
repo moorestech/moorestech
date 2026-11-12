@@ -18,6 +18,7 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "ui_state.current";
 
+        private readonly IDisposable _uiStateSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly UIStateDictionary _uiStateDictionary;
@@ -33,7 +34,7 @@ namespace Client.WebUiHost.Game.Topics
 
             // state遷移と、入れ子ポーズを持つ全画面の表示変化を購読して push する
             // Subscribe to state transitions and to every nested-pause screen's presentation changes, then push
-            _uiStateControl.OnStateChanged += OnStateChanged;
+            _uiStateSubscription = _uiStateControl.OnStateChanged.Subscribe(OnStateChanged);
             _nestedStateSubscriptions = nestedPauseScreens
                 .Select(nested => nested.OnPresentationChanged.Subscribe(_ => SchedulePublish()))
                 .ToArray();
@@ -47,7 +48,7 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose()
         {
             _disposed = true;
-            _uiStateControl.OnStateChanged -= OnStateChanged;
+            _uiStateSubscription.Dispose();
             foreach (var subscription in _nestedStateSubscriptions) subscription.Dispose();
         }
 

@@ -44,18 +44,18 @@ namespace Client.Tests.Starter
             var progressLog = new LoadingProgressLog(loadingLog, stopwatch);
 
             progressLog.AppendElapsed(LocalizationKeys.Ui.Loading.ServerConnected);
-            progressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, "3");
+            progressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, new LocalizationTextParam("chunkCount", "3"));
 
             var lines = loadingLog.text.Split('\n');
             Assert.AreEqual(3, lines.Length);
             Assert.AreEqual(string.Empty, lines[0]);
 
             var elapsed = stopwatch.Elapsed.ToString();
-            Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.ServerConnected, new[] { elapsed }), lines[1]);
+            Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.ServerConnected, new[] { new LocalizationTextParam("elapsed", elapsed) }), lines[1]);
 
-            // {p0}にチャンク数、{p1}に経過時間が入る順序を固定する
-            // Pins that {p0} takes the chunk count and {p1} the elapsed time
-            Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { "3", elapsed }), lines[2]);
+            // チャンク数と経過時間の枠を照合
+            // Check the chunk-count and elapsed-time placeholders
+            Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { new LocalizationTextParam("chunkCount", "3"), new LocalizationTextParam("elapsed", elapsed) }), lines[2]);
             StringAssert.Contains("3", lines[2]);
         }
     }

@@ -13,6 +13,9 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEngine.TestTools;
 using static Client.Tests.BlockInfoPolling.BlockInfoFetchStateSectionTestUtil;
+using Client.Ui.State.BlockDetail.CleanRoom;
+using Client.Ui.State.BlockDetail.MachineInput;
+using Client.Ui.State.BlockDetail;
 
 namespace Client.Tests.BlockInfoPolling
 {

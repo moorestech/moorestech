@@ -10,6 +10,7 @@ using Client.Tests.Common;
 using Client.Tests.UIState.Fakes;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using Client.Localization;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -152,10 +153,26 @@ namespace Client.Tests.UIState.DragDelete.Service
             Box.Update(Selection, lines, false, DeleteSelectionIntent.Remove);
             Assert.AreEqual(DeleteBoxPhase.SelectingEnd, Model().Phase);
             Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange)));
-            Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) && line.TextParams.Count == 1 && line.TextParams[0] == "0"));
+            Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) && line.TextParams.Count == 1 && line.TextParams[0].Equals(new LocalizationTextParam("count", "0"))));
             Assert.AreEqual(1, Selection.Count);
             Assert.IsTrue(Selection.IsSelected(child));
             Assert.AreEqual(0, selected.ResetCount);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 箱件数は意図ごとのキーと名前付き件数を渡す(bool removing)
+        {
+            var car = CreateCar();
+            if (removing) Selection.ApplyBoxTargets(new[] { car }, DeleteSelectionIntent.Add);
+            Frame(true, removing ? new[] { Key.LeftShift, Key.LeftCtrl } : new[] { Key.LeftShift });
+            Service.Update(0, false);
+            Frame(false, Array.Empty<Key>());
+            var lines = new List<TooltipLine>();
+            Box.Update(Selection, lines, false, removing ? DeleteSelectionIntent.Remove : DeleteSelectionIntent.Add);
+            var key = removing ? LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange : LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange;
+            Assert.IsTrue(lines.Exists(line => line.Key.Equals(key) && line.TextParams.Count == 1 &&
+                line.TextParams[0].Equals(new LocalizationTextParam("count", "1"))));
         }
 
         private void StartRemoveBox()

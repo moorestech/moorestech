@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Net;
 using Client.Common;
@@ -7,8 +8,8 @@ namespace Client.Starter
 {
     public class InitializeProprieties
     {
-        // 許容ポート範囲。文言へは{p0}で供給する
-        // The allowed port range; the wording receives it through {p0}
+        // 文言の{max}/{min}へ渡す
+        // Supply the wording placeholders {max}/{min}
         private const int MinExclusivePort = 1024;
         private const int MaxPort = 65535;
 
@@ -63,13 +64,13 @@ namespace Client.Starter
 
             if (MaxPort < port)
             {
-                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooLarge, MaxPort.ToString());
+                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooLarge, new LocalizationTextParam("max", MaxPort.ToString()));
                 return false;
             }
 
             if (port <= MinExclusivePort)
             {
-                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooSmall, MinExclusivePort.ToString());
+                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooSmall, new LocalizationTextParam("min", MinExclusivePort.ToString()));
                 return false;
             }
 

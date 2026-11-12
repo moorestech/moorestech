@@ -58,6 +58,14 @@ namespace Game.Block.Blocks.ElectricWire
                 {
                     continue;
                 }
+
+                // マスタ変更で相手が電線口を失った場合、相手側は自分を復元しないため片側だけの接続になる。ここで捨てて次のセーブから消す
+                // If a master change removed the partner's wire ports, the partner never restores us, leaving a one-sided edge; drop it here so the next save forgets it
+                if (connector.MaxWireConnectionCount <= 0)
+                {
+                    Debug.LogWarning($"[ElectricWire] Saved connection to a block without wire ports dropped: {selfId} -> {targetId}");
+                    continue;
+                }
                 connections.Add(targetId, (connector, record));
             }
             return true;

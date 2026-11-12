@@ -47,11 +47,6 @@ namespace Client.Skit.Skit
             voiceAudioSource.Play();
         }
         
-        public void StopVoice()
-        {
-            voiceAudioSource.Stop();
-        }
-        
         public void SetEmotion(string emoteBlendShapeName, float duration, float weight)
         {
             var index =faceSkinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(emoteBlendShapeName);

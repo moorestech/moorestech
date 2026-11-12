@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -133,7 +134,7 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
                 .Select(e => MessagePackSerializer.Deserialize<NotificationMessagePack>(e.Payload)).Single();
             Assert.AreEqual(NotificationCategory.SaveMigration, notice.Category);
             Assert.AreEqual("saveMigration.missingMasterPruned", notice.MessageId);
-            CollectionAssert.AreEqual(new[] { "0", "1", "0" }, notice.MessageParams);
+            Assert.AreEqual(new Dictionary<string, string> { ["blockCount"] = "0", ["itemStackCount"] = "1", ["researchCount"] = "0" }, notice.MessageParams);
 
             #region Internal
             void AssertPreserved()

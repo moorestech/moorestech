@@ -1,0 +1,2 @@
+Opening in existing browser session.
+[CefUnity] Init failed: System.InvalidOperationException: CEF initialization failed (code -6)

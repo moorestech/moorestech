@@ -10,6 +10,10 @@
   - X: next_x 方式。各 depth を配置後 next_x = その depth の最大 x + X_SPACING
   - 同一 depth・同一グループの複数ノードは nodeGraph x 昇順に base_x から X_SPACING 間隔
   - 孤立ノード (依存なし・被依存なし) は x=0, y=400,800,... にオフセット
+  - 本線 = --goal-research の研究とその祖先。上の depth/グループ/next_x で置く
+  - 枝 (本線に無い研究) は本線の下 (y=-600 から 200 刻みで下へ) にまとめる。列・行は
+    nodeGraph の x・y をそれぞれ閾値 100 でまとめた順番。列の起点は枝が依存する本線の
+    研究のうち最も深いものの x (そこから SIDE_X_SPACING 刻みで右へ)
 """
 import argparse, json, sys
 from collections import defaultdict
@@ -17,12 +21,16 @@ from pathlib import Path
 
 X_SPACING = 170
 GROUP_Y = {"main": 0, "upper": 200, "lower": -200}
+SIDE_X_SPACING = 255
+SIDE_TOP_Y = -600
+SIDE_ROW_SPACING = 200
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mod-dir", required=True, help="mod ルート (master/ と .mooreseditor/ を含む) の絶対パス")
     ap.add_argument("--quiet", action="store_true", help="最終配置一覧の出力を省略")
+    ap.add_argument("--goal-research", required=True, help="本線の終点の研究 GUID。ここへ至らない研究は枝として本線の下に置く")
     args = ap.parse_args()
 
     mod = Path(args.mod_dir)
@@ -78,8 +86,21 @@ def main():
         # un-placed nodes sort last within their depth
         return gpos[g][0] if g in gpos else float("inf")
 
-    # depth ごとにレイアウト対象 (孤立以外) を集約
-    layout_nodes = [g for g in nodes if g not in orphan_set]
+    # 本線＝終点の研究とその祖先。それ以外は枝として本線の下にまとめる
+    # Main line = goal research and its ancestors; everything else is a side branch placed below it
+    assert args.goal_research in nodes, f"goal research not found: {args.goal_research}"
+    main_set = set()
+    stack = [args.goal_research]
+    while stack:
+        g = stack.pop()
+        if g in main_set or g not in nodes:
+            continue
+        main_set.add(g)
+        stack.extend(nodes[g]["prevResearchNodeGuids"])
+    side_nodes = [g for g in nodes if g not in orphan_set and g not in main_set]
+
+    # depth ごとにレイアウト対象 (孤立・枝以外) を集約
+    layout_nodes = [g for g in nodes if g not in orphan_set and g in main_set]
     by_depth = defaultdict(list)
     for g in layout_nodes:
         by_depth[memo[g]].append(g)
@@ -100,6 +121,31 @@ def main():
                 positions[g] = [x, y]
                 max_x = max(max_x, x)
         next_x = max_x + X_SPACING
+
+    # 枝: 列・行とも nodeGraph の並びを写し、本線の下へ置く
+    # Side branch: copy the nodeGraph column/row order and place it below the main line
+    if side_nodes:
+        anchors = [p for g in side_nodes for p in nodes[g]["prevResearchNodeGuids"] if p in main_set]
+        anchor = max(anchors, key=lambda p: (memo[p], positions[p][0]))
+        anchor_x, anchor_d = positions[anchor][0], memo[anchor]
+        # nodeGraph の座標を閾値でまとめ、列・行の番号にする
+        # Cluster nodeGraph coordinates into column / row indices
+        def cluster_index(values):
+            index, last, current = {}, None, -1
+            for v in sorted(set(values)):
+                if last is None or v - last > 100:
+                    current += 1
+                last = v
+                index[v] = current
+            return index
+        missing = [nodes[g]["researchNodeName"] for g in side_nodes if g not in gpos]
+        assert not missing, f"side-branch research not placed in nodeGraph: {missing}"
+        col_index = cluster_index([gpos[g][0] for g in side_nodes])
+        row_index = cluster_index([gpos[g][1] for g in side_nodes])
+        for g in side_nodes:
+            col = col_index[gpos[g][0]]
+            row = row_index[gpos[g][1]]
+            positions[g] = [anchor_x + (col + 1) * SIDE_X_SPACING, SIDE_TOP_Y - row * SIDE_ROW_SPACING]
 
     # 孤立ノードを下方へオフセット配置
     for i, g in enumerate(orphans):
@@ -124,7 +170,7 @@ def main():
 
     if not args.quiet:
         for g in sorted(nodes, key=lambda g: (memo[g], positions[g][0], -positions[g][1])):
-            tag = "ORPHAN" if g in orphan_set else group(g) if g in gpos else "?"
+            tag = "ORPHAN" if g in orphan_set else "SIDE" if g not in main_set else group(g) if g in gpos else "?"
             print(f"  d{memo[g]:>2} {str(positions[g]):>14} [{tag:>6}] {nodes[g]['researchNodeName']}")
     print(f"\nupdated {len(nodes)} nodes -> {research_path}")
 

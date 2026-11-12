@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Game.Block.Blocks.Machine.Inventory;
@@ -33,10 +33,10 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
 
             if (result == InventoryItemMoveResult.RejectedPartialSwap)
             {
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMovePartialSwap", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMovePartialSwap", new Dictionary<string, string>()));
                 return;
             }
-            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveSlotRejected", Array.Empty<string>()));
+            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveSlotRejected", new Dictionary<string, string>()));
 
             #region Internal
 
@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
         internal void ReportUnresolved(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, bool fromResolved, int fromSlot, InventoryIdentifierMessagePack toIdentifier, bool toResolved, int toSlot, int requestedCount)
         {
             Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result=UnresolvedInventory player={requesterPlayerId} from={FormatIdentifier(fromIdentifier, requesterPlayerId)}[{fromSlot}] fromResolved={fromResolved} to={FormatIdentifier(toIdentifier, requesterPlayerId)}[{toSlot}] toResolved={toResolved} requestedCount={requestedCount}");
-            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveUnresolved", Array.Empty<string>()));
+            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveUnresolved", new Dictionary<string, string>()));
         }
 
         private static string FormatIdentifier(InventoryIdentifierMessagePack identifier, int requesterPlayerId)

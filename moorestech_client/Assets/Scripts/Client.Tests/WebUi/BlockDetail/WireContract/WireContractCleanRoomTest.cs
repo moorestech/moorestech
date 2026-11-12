@@ -22,6 +22,8 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
+using Client.Ui.State.BlockDetail.CleanRoom;
+using Client.Ui.State.BlockDetail;
 
 namespace Client.Tests.WebUi.BlockDetail
 {

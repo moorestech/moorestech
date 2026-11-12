@@ -192,3 +192,21 @@ test("クラフト可能数0のアイテムは個数バッジを出さない", a
   await expect(grid.locator('[data-item-id="101"]').locator('[class*="_count_"]')).toHaveCount(0);
   await expect(grid.locator('[data-item-id="100"]').locator('[class*="_count_"]')).toHaveCount(1);
 });
+
+test("機械レシピの一覧に液体の入力を量付きで出す", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
+  // item7は水入力レシピの出力
+  // item7 is the output of the water-input recipe
+  await page.getByTestId("item-list-grid").locator('[data-item-id="7"]').click();
+
+  const entry = page.getByTestId("machine-recipe-entry-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const fluid = entry.getByTestId("machine-recipe-entry-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb-input-fluid-0");
+  await expect(fluid).toBeVisible();
+  await expect(fluid).toContainText("10");
+  // 液体は結果ではなく素材側（矢印の左）に並ぶ
+  // The fluid sits on the material side (left of the arrow), not the result side
+  const arrowBox = await entry.locator('[data-testid^="machine-progress-arrow-"]').boundingBox();
+  const fluidBox = await fluid.boundingBox();
+  expect(fluidBox!.x + fluidBox!.width).toBeLessThanOrEqual(arrowBox!.x);
+});

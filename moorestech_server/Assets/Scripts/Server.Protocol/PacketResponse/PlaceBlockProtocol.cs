@@ -66,10 +66,10 @@ namespace Server.Protocol.PacketResponse
             // Collapse the wallet notifications into one at the very end so a drag never amplifies them per cell
             _cellPlacementExecutor.FlushRemainingCountChanges();
 
-            if (0 < notUnlockedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
-            if (0 < costShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
-            if (0 < wireShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", Array.Empty<string>()));
-            if (0 < restoreFailedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { restoreFailedCount.ToString() }));
+            if (0 < notUnlockedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", new Dictionary<string, string>()));
+            if (0 < costShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", new Dictionary<string, string>()));
+            if (0 < wireShortageCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", new Dictionary<string, string>()));
+            if (0 < restoreFailedCount) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new Dictionary<string, string> { ["count"] = restoreFailedCount.ToString() }));
 
             return null;
 

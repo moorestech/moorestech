@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Recording;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace Client.Tests.BugReport.Capture
         public UIStateEnum CurrentUiState = UIStateEnum.PauseMenu;
         public bool HasCamera = true;
         public bool HasPlayer = true;
+        public WebUiHealthReading WebUiHealthReading = new();
 
         // 録画は既定で即座に確定する。境界の確定と排出待ちを分けたいテストだけが Hold する
         // The recording settles immediately by default; only tests separating the boundary from the drain hold it open
@@ -88,6 +90,7 @@ namespace Client.Tests.BugReport.Capture
         public IReadOnlyList<UnityLogEntry> Logs() => new List<UnityLogEntry>();
         public void SetCurrentUiState(UIStateEnum uiState) => CurrentUiState = uiState;
         public ClientStateSnapshot ClientState() => new(Vector3.zero, Vector3.zero, Vector3.zero, CurrentUiState.ToString(), 2, HasCamera, HasPlayer);
+        public WebUiHealthReading WebUiHealth() => WebUiHealthReading;
         public UniTaskCompletionSource<string> ScreenshotTask;
 
         public UniTask<string> CaptureScreenshot(string workDirectory)

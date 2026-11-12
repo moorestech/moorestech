@@ -124,9 +124,9 @@ namespace Client.Tests.PlaceSystem.Blueprint.Paste
             BlueprintPasteFeedbackReporter.Report(plan, feedback);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(guid)), feedback.Lines[0].TextParams[0]);
-            Assert.AreEqual("2", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("5", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(guid)), feedback.Lines[0].TextParams[0].Value);
+            Assert.AreEqual("2", feedback.Lines[0].TextParams[1].Value);
+            Assert.AreEqual("5", feedback.Lines[0].TextParams[2].Value);
         }
 
         [Test]

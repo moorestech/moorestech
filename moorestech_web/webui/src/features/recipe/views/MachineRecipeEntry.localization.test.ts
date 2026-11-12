@@ -13,6 +13,7 @@ vi.mock("@mantine/core", () => ({
 }));
 vi.mock("@/shared/ui", () => ({
   ItemSlot: (props: object) => createElement("mock-item-slot", props),
+  FluidAmountSlot: (props: object) => createElement("mock-fluid-amount-slot", props),
   BlockIcon: (props: object) => createElement("mock-block-icon", props),
   ProgressArrowGlyph: (props: object) => createElement("mock-progress-arrow-glyph", props),
 }));

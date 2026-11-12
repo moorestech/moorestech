@@ -16,7 +16,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Client.PlaytestReceiver.Recovery;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
@@ -69,33 +69,32 @@ return PlaytestRunner.Run("unsent-report-export", new PlaytestRunOptions { Recor
     p.Note("Escapeでポーズし、バグ報告画面を開きます");
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
-    await p.ClickWebUi("pause-menu-open-settings");
-    await p.UntilWebUiElement("language-select", 15f);
-    await p.ClickWebUi("language-select-option-japanese");
-    await p.UntilWebUiElement("pause-menu-locale-japanese", 15f);
-    await p.ClickWebUi("pause-menu-back");
-    await p.ClickWebUi("pause-menu-open-bug-report");
-    await p.UntilWebUiElement("bug-report-description", 15f);
+    await p.ClickUi("pause-menu-open-settings");
+    await p.UntilUiElement("language-select", 15f);
+    await p.ClickUi("language-select-option-japanese");
+    await p.UntilUiElement("pause-menu-locale-japanese", 15f);
+    await p.ClickUi("pause-menu-back");
+    await p.ClickUi("pause-menu-open-bug-report");
+    await p.UntilUiElement("bug-report-description", 15f);
 
     // 配送状況の行と、その下の2つのボタンをDOMで確かめる
     // Verify the delivery row and the two buttons below it through the DOM
     p.Note("配送状況に送信できない報告1件と、再送・書き出しの2ボタンが出ることを確かめます");
-    await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "送信できない報告 1件", 60f);
-    await p.UntilWebUiElement("bug-report-resend-failed", 15f);
-    await p.UntilWebUiElement("bug-report-export-unsent", 15f);
-    var delivery = await PlaytestDomQuery.Query("bug-report-delivery", 5f);
-    var resend = await PlaytestDomQuery.Query("bug-report-resend-failed", 5f);
-    var export = await PlaytestDomQuery.Query("bug-report-export-unsent", 5f);
+    await PlaytestUiElementOps.WaitUiTextContains("bug-report-delivery", "送信できない報告 1件", 60f);
+    await p.UntilUiElement("bug-report-resend-failed", 15f);
+    await p.UntilUiElement("bug-report-export-unsent", 15f);
+    var delivery = await PlaytestUiElementOps.FindUi("bug-report-delivery");
+    var resend = await PlaytestUiElementOps.FindUi("bug-report-resend-failed");
+    var export = await PlaytestUiElementOps.FindUi("bug-report-export-unsent");
     p.Note("配送状況: " + delivery.Text);
-    p.Assert(delivery.Found && delivery.Text.Contains("送信できない報告 1件"), "配送状況に送信できない報告 1件");
-    p.Assert(resend.Found && resend.Visible && resend.Text == "再送する", "再送するボタンが出る");
-    p.Assert(export.Found && export.Visible && export.Text == "未送信の報告を書き出す", "未送信の報告を書き出すボタンが出る");
-    p.Assert(resend.Y >= delivery.Y + delivery.Height - 1f && export.Y >= delivery.Y + delivery.Height - 1f, "2ボタンは配送状況の行の下");
+    p.Assert(delivery.IsFound && delivery.Text.Contains("送信できない報告 1件"), "配送状況に送信できない報告 1件");
+    p.Assert(resend.IsFound && resend.Visible && resend.Text == "再送する", "再送するボタンが出る");
+    p.Assert(export.IsFound && export.Visible && export.Text == "未送信の報告を書き出す", "未送信の報告を書き出すボタンが出る");
+    p.Assert(resend.ScreenRect.yMax <= delivery.ScreenRect.yMin + 1f && export.ScreenRect.yMax <= delivery.ScreenRect.yMin + 1f, "2ボタンは配送状況の行の下");
 
     // 誤って再送を押さないよう、2ボタンの矩形が重ならないことをクリック前に保証する
     // Guarantee the two button rects are disjoint before clicking so resend can never be hit
-    var overlap = export.X < resend.X + resend.Width && resend.X < export.X + export.Width &&
-                  export.Y < resend.Y + resend.Height && resend.Y < export.Y + export.Height;
+    var overlap = export.ScreenRect.Overlaps(resend.ScreenRect);
     p.Assert(!overlap, "再送と書き出しの矩形が重ならない");
     if (overlap) throw new System.Exception("再送ボタンと書き出しボタンの矩形が重なるためクリックを中止します");
     await p.Screenshot("02-recovery-buttons");
@@ -103,14 +102,14 @@ return PlaytestRunner.Run("unsent-report-export", new PlaytestRunOptions { Recor
     // 書き出しを押し、完了の文言とデスクトップのzipパスを待つ
     // Press export and wait for the completion text with the desktop zip path
     p.Note("未送信の報告を書き出すを押します（再送するは押しません）");
-    await p.ClickWebUi("bug-report-export-unsent");
+    await p.ClickUi("bug-report-export-unsent");
     await p.Until(() => PlaytestExportStatusBoard.Current.Value is PlaytestExportDone || PlaytestExportStatusBoard.Current.Value is PlaytestExportFailed, 60f, "書き出しの終了");
     if (PlaytestExportStatusBoard.Current.Value is PlaytestExportFailed failed) throw new System.Exception("書き出し失敗: " + failed.Reason);
     var done = (PlaytestExportDone)PlaytestExportStatusBoard.Current.Value;
     var desktop = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop);
     p.Note("zip: " + done.ZipPath);
-    await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-export-status", "書き出しました", 60f);
-    var status = await PlaytestDomQuery.Query("bug-report-export-status", 5f);
+    await PlaytestUiElementOps.WaitUiTextContains("bug-report-export-status", "書き出しました", 60f);
+    var status = await PlaytestUiElementOps.FindUi("bug-report-export-status");
     p.Note("書き出し状態: " + status.Text);
     p.Assert(status.Text.Contains(done.ZipPath), "書き出し状態にzipのパスが出る");
     p.Assert(Path.GetDirectoryName(done.ZipPath) == desktop && Path.GetFileName(done.ZipPath).StartsWith("moorestech-reports-"), "zipはデスクトップのmoorestech-reports-*.zip");

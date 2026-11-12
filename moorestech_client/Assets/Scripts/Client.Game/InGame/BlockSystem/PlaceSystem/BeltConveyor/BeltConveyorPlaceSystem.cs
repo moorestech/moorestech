@@ -3,6 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Input;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
@@ -88,7 +89,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             PlacementHeightKeyInput.Apply(_placementHeightOffset);
-            _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
+            // 傾斜は経路から解決するので回転キーは通常設置と同じ水平4方向だけ
+            // Slopes come from the path, so the rotate key cycles the same four horizontal directions as normal placement
+            _currentBlockDirection = PlacementDirectionKeyInput.Apply(_currentBlockDirection);
             var isSendable = GroundClickControl();
             PlaceBlockOnRelease();
 
@@ -118,13 +121,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 var holdingBlock = BeltConveyorHoldingBlock.Resolve(target.BlockId);
                 var holdingBlockMaster = holdingBlock.BlockMaster;
 
-                if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurface)) { return false; }
+                if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurfaceType)) { return false; }
 
                 if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
 
                 _previewBlockController.SetActive(true);
 
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, ToHitSurfaceKind(hitSurfaceType));
 
                 var (placeCauses, beltReasons, terrainClimbAbandoned) = UpdateCurrentPlaceInfos(placePoint, holdingBlock);
 

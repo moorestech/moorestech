@@ -7,9 +7,13 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "crosshairVisible");
   await setTopicScenario(page, "miningHidden");
   await setTopicScenario(page, "tooltipHidden");
+  await setTopicScenario(page, "japanese");
 });
 
 test("設置情報と削除警告帯を操作モードへ反映する", async ({ page }) => {
+  // 英語の期待値に合わせて表示言語を固定する
+  // Pin the display locale to match the English assertion
+  await setTopicScenario(page, "english");
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");

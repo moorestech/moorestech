@@ -95,21 +95,21 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await AimAtCar();
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
-        await p.UntilWebUiElement("train-tab-timetable", 10f);
+        await p.UntilUiElement("train-tab-timetable", 10f);
         await p.WaitSeconds(1f);
         p.Assert(timetableRequestCount == 0, $"列車インベントリを開いただけでは時刻表を取得しない (count={timetableRequestCount})");
-        await p.ClickWebUi("train-tab-timetable");
-        await p.UntilWebUiElement("train-timetable-section", 10f);
+        await p.ClickUi("train-tab-timetable");
+        await p.UntilUiElement("train-timetable-section", 10f);
         p.Assert(timetableRequestCount == 1, $"時刻表タブを選ぶと時刻表を1回取得する (count={timetableRequestCount})");
-        await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stations", "北駅", 10f);
-        await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stations", "南駅", 10f);
+        await PlaytestUiElementOps.WaitUiTextContains("train-timetable-stations", "北駅", 10f);
+        await PlaytestUiElementOps.WaitUiTextContains("train-timetable-stations", "南駅", 10f);
         await p.Screenshot("01-timetable-tab");
 
         p.Note("北駅・南駅を追加して適用");
-        await p.ClickWebUi($"train-timetable-station-{stationAPos.x}_{stationAPos.y}_{stationAPos.z}-add");
-        await p.ClickWebUi($"train-timetable-station-{stationBPos.x}_{stationBPos.y}_{stationBPos.z}-add");
-        await p.UntilWebUiElement("train-timetable-stop-1", 5f);
-        await p.ClickWebUi("train-timetable-apply");
+        await p.ClickUi($"train-timetable-station-{stationAPos.x}_{stationAPos.y}_{stationAPos.z}-add");
+        await p.ClickUi($"train-timetable-station-{stationBPos.x}_{stationBPos.y}_{stationBPos.z}-add");
+        await p.UntilUiElement("train-timetable-stop-1", 5f);
+        await p.ClickUi("train-timetable-apply");
         await p.WaitForTrainState(train, 2, null, null, 10f, "サーバーの時刻表が2駅になる");
         var station0Matches = false;
         await p.RunOnServer("時刻表の停車駅を読む", () => station0Matches = ReferenceEquals(train.trainDiagram.Entries[0].Node.StationRef.StationBlock, stationA));
@@ -122,9 +122,9 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         // ===== UI: 自動運転ON → 走行 =====
         // ===== UI: auto-run on → moving =====
         p.Note("自動運転ONで出発を待つ");
-        await p.ClickWebUi("train-timetable-auto-run-on");
+        await p.ClickUi("train-timetable-auto-run-on");
         await p.WaitForTrainState(train, null, true, null, 10f, "サーバーの自動運転がON");
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
         var before = SpawnedCar().transform.position;
         await p.WaitForTrainState(train, null, null, true, 15f, "列車が加速開始（1秒待機後に発車）");
@@ -139,13 +139,13 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await AimAtCar();
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
-        await p.ClickWebUi("train-tab-timetable");
-        await p.UntilWebUiElement("train-timetable-section", 10f);
+        await p.ClickUi("train-tab-timetable");
+        await p.UntilUiElement("train-timetable-section", 10f);
         p.Assert(timetableRequestCount == 2, $"開き直して時刻表タブを選ぶと再取得する (count={timetableRequestCount})");
-        await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stops", "南駅", 10f);
-        await p.ClickWebUi("train-timetable-auto-run-off");
+        await PlaytestUiElementOps.WaitUiTextContains("train-timetable-stops", "南駅", 10f);
+        await p.ClickUi("train-timetable-auto-run-off");
         await p.WaitForTrainState(train, null, false, null, 10f, "サーバーの自動運転がOFF");
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitForTrainState(train, null, null, false, 30f, "惰性停止");
         await p.Screenshot("04-stopped");
 

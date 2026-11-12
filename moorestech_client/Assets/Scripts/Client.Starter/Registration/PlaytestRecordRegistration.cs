@@ -3,7 +3,9 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.Submit;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Playtest.Progress;
+using Client.WebUiHost.Health;
 using VContainer;
 using VContainer.Unity;
 
@@ -40,6 +42,7 @@ namespace Client.Starter.Registration
             // Always-on capture for bug reports (log ring, frame recording ring) and the capture triggers
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
+            builder.Register<IWebUiHealthProbe, WebUiHealthProbe>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
             builder.RegisterEntryPoint<BugReportUiStatePusher>();

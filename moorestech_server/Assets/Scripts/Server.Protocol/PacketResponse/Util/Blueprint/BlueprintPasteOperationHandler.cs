@@ -153,7 +153,7 @@ namespace Server.Protocol.PacketResponse.Util.Blueprint
             void Notify(BlueprintFailureReason reason, int count)
             {
                 _notifications.Notify(requesterPlayerId,
-                    NotificationMessagePack.CreateOperationDenied($"denied.blueprint.{reason}", new[] { count.ToString() }));
+                    NotificationMessagePack.CreateOperationDenied($"denied.blueprint.{reason}", new Dictionary<string, string> { ["count"] = count.ToString() }));
             }
 
             BlueprintResponse Failure(BlueprintFailureReason reason)

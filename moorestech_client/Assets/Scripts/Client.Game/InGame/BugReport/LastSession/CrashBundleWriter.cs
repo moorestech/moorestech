@@ -3,6 +3,7 @@ using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
@@ -50,6 +51,11 @@ namespace Client.Game.InGame.BugReport.LastSession
             var steamIdAbsenceReason = origin == null ? "前回セッションの出所の印が無いため、前回のテスター識別（SteamID）が分からない" : origin.SteamIdAbsenceReason;
             var manifest = BugReportManifest.CreateHeader(description, PlaytestReportKind.Crash, origin?.SteamId, steamIdAbsenceReason, buildOrigin);
             manifest.Missing.AddRange(artifacts.Missing);
+
+            // 落ちたセッションのWebホスト・CEFの値は残っていない。今回起動の値や既定値を載せると別セッションの事実になるので不明と書く
+            // The crashed session's web host and CEF values were not kept; this boot's values or defaults would be another session's facts, so unknown is written
+            manifest.WebUiHealth = WebUiHealthReading.UnknownForPreviousSession();
+            manifest.AddMissing("webUiHealth", "前回セッションのWebホスト・CEFの値は記録していない");
 
             string directory;
             // 箱の置き場作りはディスクIO。満杯や権限で失敗しても前回クラッシュの検知自体は続けたい

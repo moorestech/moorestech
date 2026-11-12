@@ -10,10 +10,15 @@ import { type MaterialTooltipKey, useMaterialTooltipText } from "@/shared/materi
 
 // 所持/必要を1枠に載せる素材表示。ツールチップ本文もキーから共有側で組み立てる
 // The owned/required material presentation for one slot; the tooltip body is composed here from the key
+// 赤字は lacking、枠の減光は insufficient と分ける。減光させず数字だけ赤くする用途（機械の素材スロット）があるため
+// tooltipKey が null のときは通常のアイテム名ツールチップのまま（素材の語彙で語らない用途）
+// Red text follows lacking while frame dimming follows insufficient, since some usages (machine material slots) redden only the numbers
+// A null tooltipKey keeps the ordinary item-name tooltip (usages that should not speak in material vocabulary)
 type Shortage = {
   ownedCount: number;
   requiredCount: number;
-  tooltipKey: MaterialTooltipKey;
+  lacking: boolean;
+  tooltipKey: MaterialTooltipKey | null;
 };
 
 // 素のdiv属性はSlotFrameへ素通しする。呼び出し側の関心事（アンカー等）に共有側が名前を与えないため
@@ -29,8 +34,8 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
   // "catalog" is for the recipe list: unowned shows a gray face + icon, only owned (count>0) shows a white face + count
   catalog?: boolean;
   insufficient?: boolean;
-  // 赤字にするかは insufficient が決める。数値と文言だけをここが持つ
-  // insufficient decides the red text; this only carries the numbers and the wording
+  // 所持/必要の数値。あれば個数バッジは出さない
+  // Held/required numbers; hides the ordinary count badge
   shortage?: Shortage;
   // 空スロットに置く「入るべきアイテム」の半透明プレビュー。実物（itemId>0）があれば無視する
   // Translucent preview of the item that belongs in an empty slot; ignored when a real item (itemId>0) is present
@@ -63,7 +68,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
   const shownCount = ghostShown ? ghost.count : count;
   const resolvedName = resolveItemName(shownItemId);
 
-  const shortageTooltip = shortage === undefined ? undefined : (
+  const shortageTooltip = shortage === undefined || shortage.tooltipKey === null ? undefined : (
     <span style={{ whiteSpace: "pre-line" }}>
       {materialTooltipText(shortage.tooltipKey, itemId, shortage.requiredCount, shortage.ownedCount)}
     </span>
@@ -71,8 +76,6 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
   const label = shortageTooltip ?? tooltip;
 
   const slot = (
-    // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
-    // The tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
     <HoverTooltip label={label ?? resolvedName} disabled={!(hasItem || ghostShown) || (!label && !resolvedName)}>
       <SlotFrame
         {...divProps}
@@ -92,23 +95,23 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
         {hasItem || ghostShown ? (
           <>
             <ItemIcon itemId={shownItemId} fallback={{ kind: "idText" }} className={styles.icon} />
-            {(owned || ghostShown) && shownCount !== undefined && shownCount > 0 ? <span className={`iconTextOutlineLight ${styles.count}`}>{formatSlotAmount(shownCount)}</span> : null}
+            {shortage === undefined && (owned || ghostShown) && shownCount !== undefined && shownCount > 0 ? <span className={`iconTextOutlineLight ${styles.count}`}>{formatSlotAmount(shownCount)}</span> : null}
           </>
         ) : null}
       </SlotFrame>
     </HoverTooltip>
   );
 
-  if (shortage === undefined) return slot;
-
-  // 所持/必要の数値は枠外へはみ出し、不足減光(opacity)も受けないため枠の外側に置く
-  // The owned/required numbers overflow the frame and must escape its shortage dimming, so they sit outside it
+  // 要素型を固定し、実物の出し入れで shortage の有無が変わってもツールチップ等を再マウントさせない
+  // The wrapper is always present so toggling shortage never remounts the tooltip or frame
   return (
     <div className={styles.shortageSlot}>
       {slot}
-      <span className={`iconTextOutlineLight ${styles.shortageCount}`} data-lack={insufficient || undefined}>
-        {t(L.ui.recipe.itemCountSummary, { ownedCount: formatSlotAmount(shortage.ownedCount), requiredCount: formatSlotAmount(shortage.requiredCount) })}
-      </span>
+      {shortage === undefined ? null : (
+        <span className={`iconTextOutlineLight ${styles.shortageCount}`} data-lack={shortage.lacking || undefined}>
+          {t(L.ui.recipe.itemCountSummary, { ownedCount: formatSlotAmount(shortage.ownedCount), requiredCount: formatSlotAmount(shortage.requiredCount) })}
+        </span>
+      )}
     </div>
   );
 }

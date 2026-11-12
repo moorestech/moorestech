@@ -1,0 +1,13 @@
+total 96296
+drwxr-xr-x@  12 sakastudio  wheel       384 10月 26 03:57 .
+drwxr-xr-x@   8 sakastudio  wheel       256 10月 26 03:59 ..
+-rw-r--r--@   1 sakastudio  wheel        21 10月 26 03:57 app.info
+-rw-r--r--@   1 sakastudio  wheel       134 10月 26 03:57 boot.config
+-rw-r--r--@   1 sakastudio  wheel  30164890 10月 26 03:57 data.unity3d.tmp
+drwxr-xr-x@ 331 sakastudio  wheel     10592 10月 26 03:57 Managed
+drwxr-xr-x@   3 sakastudio  wheel        96 10月 26 03:57 Resources
+-rw-r--r--@   1 sakastudio  wheel      9769 10月 26 03:57 RuntimeInitializeOnLoads.json
+-rw-r--r--@   1 sakastudio  wheel     10645 10月 26 03:57 ScriptingAssemblies.json
+-rw-r--r--@   1 sakastudio  wheel   3654707 10月 26 03:57 sharedassets0.resource
+-rw-r--r--@   1 sakastudio  wheel  15444224 10月 26 03:57 sharedassets2.resource
+drwxr-xr-x@   5 sakastudio  wheel       160 10月 26 03:57 StreamingAssets

@@ -74,10 +74,10 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             Assert.AreEqual(2, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("1", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("2", feedback.Lines[0].TextParams[2]);
-            Assert.AreEqual("0", feedback.Lines[1].TextParams[1]);
-            Assert.AreEqual("3", feedback.Lines[1].TextParams[2]);
+            Assert.AreEqual("1", feedback.Lines[0].TextParams[1].Value);
+            Assert.AreEqual("2", feedback.Lines[0].TextParams[2].Value);
+            Assert.AreEqual("0", feedback.Lines[1].TextParams[1].Value);
+            Assert.AreEqual("3", feedback.Lines[1].TextParams[2].Value);
         }
 
         [Test]
@@ -110,8 +110,8 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             // 素材行は1本だけで、必要数は予約分を含む合計側になる
             // Only one material line remains and its required count is the reservation-inclusive total
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("0", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("11", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("0", feedback.Lines[0].TextParams[1].Value);
+            Assert.AreEqual("11", feedback.Lines[0].TextParams[2].Value);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireCost.Key, feedback.Lines[1].Key.Key);
             Assert.AreEqual(2, feedback.Lines.Count);
         }

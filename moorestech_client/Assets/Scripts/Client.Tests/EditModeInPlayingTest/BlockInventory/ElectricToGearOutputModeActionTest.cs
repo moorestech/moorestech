@@ -56,31 +56,41 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 await LoadMainGame();
                 BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
-                // 起動後の例外をテスト失敗として扱う
-                // Fail the test on exceptions after startup
+                // 検出境界を保存終了まで保つ
+                // Keep error detection until shutdown saves
                 LogAssert.ignoreFailingMessages = false;
+                try
+                {
+                    // ブロック配置し初期選択0を確認
+                    // Place the block and confirm initial selection 0
+                    var pos = new Vector3Int(0, 0, 0);
+                    var serverBlock = await ServerBlockPlacement.PlaceAsync(BlockName, pos, BlockDirection.North);
+                    var component = serverBlock.GetComponent<ElectricToGearGeneratorComponent>();
+                    Assert.AreEqual(0, component.SelectedIndex);
 
-                // テストブロックを配置し、サーバーコンポーネントの初期選択が0であることを確認
-                // Place the test block and confirm the server component's initial selection is 0.
-                var pos = new Vector3Int(0, 0, 0);
-                var serverBlock = await ServerBlockPlacement.PlaceAsync(BlockName, pos, BlockDirection.North);
-                var component = serverBlock.GetComponent<ElectricToGearGeneratorComponent>();
-                Assert.AreEqual(0, component.SelectedIndex);
+                    var blockGameObject = await WaitBlockGameObjectSpawn(pos);
+                    var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                var blockGameObject = await WaitBlockGameObjectSpawn(pos);
-                var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
+                    // 登録ハンドラで行2を選択
+                    // Select row 2 via the registered handler
+                    var result = await WebUiActionInvoker.ExecuteAsync("electric_to_gear.set_output_mode", new JObject { ["modeIndex"] = 2 });
+                    Assert.IsTrue(result.Ok, $"action failed: {result.Error}");
 
-                // Web UIが使う登録済みハンドラをhubから引いて行index 2を選択
-                // Select row index 2 through the registered handler the Web UI uses, resolved from the hub
-                var result = await WebUiActionInvoker.ExecuteAsync("electric_to_gear.set_output_mode", new JObject { ["modeIndex"] = 2 });
-                Assert.IsTrue(result.Ok, $"action failed: {result.Error}");
+                    // 往復後の選択2を確認
+                    // Confirm selection 2 after the round-trip
+                    for (var i = 0; i < 120 && component.SelectedIndex != 2; i++) await UniTask.Yield();
+                    Assert.AreEqual(2, component.SelectedIndex, "row select did not reach server SelectedIndex");
 
-                // ネットワーク往復後にサーバーの選択indexが2になることを確認
-                // Confirm the server selected index becomes 2 after the network round-trip.
-                for (var i = 0; i < 120 && component.SelectedIndex != 2; i++) await UniTask.Yield();
-                Assert.AreEqual(2, component.SelectedIndex, "row select did not reach server SelectedIndex");
+                    BlockSubInventoryOpener.Close(subInventoryState);
 
-                BlockSubInventoryOpener.Close(subInventoryState);
+                    // assert後に保存・終了待ち
+                    // After asserts, await save and shutdown
+                    await AssertIntentionalShutdownFlushedAsync("ElectricToGearShutdown");
+                }
+                finally
+                {
+                    LogAssert.ignoreFailingMessages = true;
+                }
             }
 
             #endregion

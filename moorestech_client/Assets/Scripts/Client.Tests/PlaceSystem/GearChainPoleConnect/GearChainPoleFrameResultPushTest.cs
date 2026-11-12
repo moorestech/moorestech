@@ -47,7 +47,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 
             Assert.AreEqual(2, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("4", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("4", feedback.Lines[0].TextParams[2].Value);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, feedback.Lines[1].Key.Key);
         }
 

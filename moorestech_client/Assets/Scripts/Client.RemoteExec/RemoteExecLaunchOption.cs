@@ -1,5 +1,4 @@
 using System;
-using Client.RemoteExec.Access;
 using UnityEngine;
 
 namespace Client.RemoteExec
@@ -15,11 +14,11 @@ namespace Client.RemoteExec
         public static void ResolveFromCommandLine(string[] args)
         {
             IsEnabled = 0 <= Array.IndexOf(args, Marker);
-            // 無効な起動では前回の入口を撤去する。残すと死んだプロセスのトークンが有効な入口として読まれる
-            // A disabled boot withdraws the previous entry; leaving it lets a dead process's token read as a live one
+            // 無効な起動では前回の入口（待受と接続情報）を撤去する。残すと死んだプロセスのトークンが有効な入口として読まれる
+            // A disabled boot withdraws the previous entry (listener and access details); leaving it lets a dead process's token read as a live one
             if (!IsEnabled)
             {
-                RemoteExecAccessFile.Remove();
+                RemoteExecActivation.Deactivate();
                 return;
             }
             // サーバー側実行は送信コードがtickスレッドを占有しうる。無音停止と区別できるよう起動時に明示する

@@ -1,5 +1,5 @@
 import { Box, Stack, Text } from "@mantine/core";
-import { ItemSlot, BlockIcon } from "@/shared/ui";
+import { ItemSlot, BlockIcon, FluidAmountSlot } from "@/shared/ui";
 import type { MachineRecipe } from "@/bridge";
 import RecipeRow from "./RecipeRow";
 import LevelInheritanceBadge from "./LevelInheritanceBadge";
@@ -29,11 +29,18 @@ export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) 
         arrowValue={null}
         arrowTestId={`machine-progress-arrow-${recipe.recipeGuid}`}
         duration={t(L.ui.recipe.duration, { seconds: recipe.time })}
-        materials={recipe.inputItems.map((r, i) => (
+        materials={[
           // 機械レシピは手クラフトしないため必要数のみ表示する（所持数チェックなし）
           // Machine recipes are not hand-crafted, so show required counts only (no owned-count check)
-          <ItemSlot key={i} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
-        ))}
+          ...recipe.inputItems.map((r, i) => (
+            <ItemSlot key={`item-${i}`} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
+          )),
+          // 液体はレシピ一覧の遷移先を持たないため量の表示だけ（前例 MachineRecipeSelectionRow）
+          // Fluids have no recipe-list destination, so they only show the amount (precedent: MachineRecipeSelectionRow)
+          ...recipe.inputFluids.map((fluid, i) => (
+            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} badge={{ kind: "show", amount: fluid.amount }} testId={`${testId}-input-fluid-${i}`} />
+          )),
+        ]}
         actionMode="slot"
         action={(
           <Stack className={styles.machineInfo} gap={2} align="center">
@@ -42,9 +49,14 @@ export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) 
             <LevelInheritanceBadge inheritance={recipe.levelInheritance} testId={`machine-recipe-level-inheritance-${recipe.recipeGuid}`} />
           </Stack>
         )}
-        result={recipe.outputItems.map((r, i) => (
-          <ItemSlot key={i} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
-        ))}
+        result={[
+          ...recipe.outputItems.map((r, i) => (
+            <ItemSlot key={`item-${i}`} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
+          )),
+          ...recipe.outputFluids.map((fluid, i) => (
+            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} badge={{ kind: "show", amount: fluid.amount }} testId={`${testId}-output-fluid-${i}`} />
+          )),
+        ]}
       />
     </Box>
   );

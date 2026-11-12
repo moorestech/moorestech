@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Master;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +36,7 @@ namespace Server.Protocol.PacketResponse
             if (!success)
             {
                 Debug.LogWarning($"[ElectricWireDisconnect] denied: {failureReason} posA={request.PosAVector} posB={request.PosBVector} player={requesterPlayerId}");
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", new Dictionary<string, string>()));
             }
 
             return new ElectricWireDisconnectResponse(success, failureReason);

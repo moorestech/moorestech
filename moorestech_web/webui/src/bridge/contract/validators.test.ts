@@ -41,11 +41,11 @@ describe("common HUD schemas", () => {
 describe("tooltip schema", () => {
   it("requires a complete cursor-tooltip snapshot with lines", () => {
     expect(parseTopicPayload(Topics.tooltip, {
-      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"] }],
+      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: { items: "Iron Pickaxe" } }],
     }).valid).toBe(true);
     expect(parseTopicPayload(Topics.tooltip, { visible: false, lines: [] }).valid).toBe(true);
     expect(parseTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "ui.tooltip.requiredItems", textParams: [],
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: {},
     }).valid).toBe(false);
     expect(parseTopicPayload(Topics.tooltip, {
       visible: true, lines: [{ textKey: "Cannot remove" }],
@@ -56,12 +56,12 @@ describe("tooltip schema", () => {
   it("rejects a visibility flag that disagrees with the lines", () => {
     expect(parseTopicPayload(Topics.tooltip, { visible: true, lines: [] }).valid).toBe(false);
     expect(parseTopicPayload(Topics.tooltip, {
-      visible: false, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: [] }],
+      visible: false, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: {} }],
     }).valid).toBe(false);
   });
   it("rejects sizes smuggled in alongside the lines", () => {
     expect(parseTopicPayload(Topics.tooltip, {
-      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: [] }], width: 240,
+      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: {} }], width: 240,
     }).valid).toBe(false);
   });
 });

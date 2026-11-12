@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Client.Input;
 using Client.WebUiHost.Common;
@@ -27,6 +28,9 @@ namespace Client.WebUiHost.Boot
         // Parse the received JSON and route by op; parse failure is caught at the boundary to keep the connection alive
         public async UniTask DispatchAsync(WebSocketConnection conn, string json)
         {
+            // 中身を問わず受信の事実を残す。JSが止まりWSだけ残る経路をここで見分ける（plan §3.11）
+            // Record every receipt regardless of content; this tells apart a stopped JS whose WS stays open (plan §3.11)
+            WebUiInputExclusivity.RecordWebMessageReceived(Stopwatch.GetTimestamp());
             if (!WebUiJson.TryDeserialize<WsClientMessage>(json, out var msg) || msg.Op == null) return;
 
             switch (msg.Op)
@@ -98,7 +102,8 @@ namespace Client.WebUiHost.Boot
             if (string.IsNullOrEmpty(msg.RequestId)) return;
 
             var handler = msg.Type == null ? null : _hub.ResolveAction(msg.Type);
-            if (handler == null)
+            var connectionHandler = msg.Type == null ? null : _hub.ConnectionActions.Resolve(msg.Type);
+            if (handler == null && connectionHandler == null)
             {
                 conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "unknown_action"));
                 return;
@@ -108,12 +113,19 @@ namespace Client.WebUiHost.Boot
             // Handlers touch game state, so always run them on the main thread
             await UniTask.SwitchToMainThread();
 
-            // 停止処理と競合した場合はハンドラを実行しない（解体済みゲーム状態の保護）
-            // Skip execution if shutdown cleared the registry while we awaited the main thread
-            if (_hub.ResolveAction(msg.Type) == null)
+            // 停止が始まったらハンドラを実行しない（解体中のゲーム状態の保護）。停止かどうかは IsStopping だけで決める
+            // Skip execution once stopping began (protects game state being torn down); only IsStopping decides stopping
+            if (_hub.IsStopping)
             {
-                await UniTask.SwitchToTaskPool();
-                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "host_stopping"));
+                await RejectAsync("host_stopping", "the host is stopping");
+                return;
+            }
+
+            // 待つ間に登録が外れた action は停止と名乗らず、未知の action として理由付きで返す
+            // An action whose registration was cleared meanwhile is not reported as stopping but as unknown, with the reason logged
+            if (_hub.ResolveAction(msg.Type) == null && _hub.ConnectionActions.Resolve(msg.Type) == null)
+            {
+                await RejectAsync("unknown_action", "its registration was cleared while waiting for the main thread");
                 return;
             }
 
@@ -121,13 +133,24 @@ namespace Client.WebUiHost.Boot
             await UniTask.SwitchToTaskPool();
             conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, result.Ok, result.Error));
 
+            #region Internal
+
+            async UniTask RejectAsync(string error, string reason)
+            {
+                UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' rejected: {error} ({reason})");
+                await UniTask.SwitchToTaskPool();
+                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, error));
+            }
+
             async UniTask<ActionResult> ExecuteHandlerAsync()
             {
                 // ハンドラ実行の例外を境界で握り、接続維持のため必ず結果を返す（2-C）
                 // Catch handler exceptions at the boundary and always return a result to keep the connection alive (2-C)
                 try
                 {
-                    return await handler.ExecuteAsync(msg.Payload);
+                    return connectionHandler != null
+                        ? await connectionHandler.ExecuteAsync(conn.Id, msg.Payload)
+                        : await handler.ExecuteAsync(msg.Payload);
                 }
                 catch (Exception e)
                 {
@@ -135,6 +158,8 @@ namespace Client.WebUiHost.Boot
                     return ActionResult.Fail("internal_error");
                 }
             }
+
+            #endregion
         }
 
         // snapshot 生成はメインスレッドでゲーム状態を読むため例外があり得る。境界で握って bool 化する（2-C）

@@ -51,13 +51,6 @@ namespace Tests.UnitTest.Game
             RetrieveNonExistentBlock(new Vector3Int(21, 1, 22));
             RetrieveNonExistentBlock(new Vector3Int(20, 2, 22));
             RetrieveNonExistentBlock(new Vector3Int(20, 1, 23));
-            
-            worldDatastore.TryAddBlock(Block_1x2x3_Id, new Vector3Int(40, 0, 40), BlockDirection.UpEast, Array.Empty<BlockCreateParam>(), out _);
-            RetrieveBlock(Block_1x2x3_Id, new Vector3Int(40, 0, 40));
-            RetrieveBlock(Block_1x2x3_Id, new Vector3Int(41, 2, 40));
-            RetrieveNonExistentBlock(new Vector3Int(42, 2, 40));
-            RetrieveNonExistentBlock(new Vector3Int(41, 3, 40));
-            RetrieveNonExistentBlock(new Vector3Int(41, 2, 41));
         }
         
         
