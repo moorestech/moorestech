@@ -33,14 +33,14 @@ Status: Accepted
    棄却: `Graphics.RenderMeshInstanced` で GameObject 無しに描く
 
 4. プールの形は次のとおり（2026-11-09 にユーザーへ提示し「ok」を得た設計）。
-   - 枠のプールはゲーム中に1つで、DI で配る。プールの親 Transform の下に「辺12本の枠」（今のプレハブから面を除いたもの）を置く。空きがあれば貸し、無ければ新しく作って貸す。返されたら非表示にして空きへ戻し、数は減らさない。
+   - 枠のプールはゲーム中に1つで、DI に Singleton 登録し、`ClientDIContext` の static プロパティで配る（`BlockGameObject` が `ClientContext.VanillaApi` を引くのと同じ形。2026-11-12 計画時に具体化）。プールの親 Transform の下に「辺12本の枠」（今のプレハブから面を除いたもの）を置く。空きがあれば貸し、無ければ新しく作って貸す。返されたら非表示にして空きへ戻し、数は減らさない。
    - ブロック側には「枠の借り口」（GameObject ではないクラス）を `IPreviewOnlyObject` の1つとして持たせ、今の `BlockPreviewOnlyObjectsView` の表示切り替えに乗せる。描画の指示（設置モードで半径内、またはデバッグのホバー）で借り、今の `BlockPreviewBoundingBox.SetBoundingBox` と同じ計算で位置・向き・大きさを合わせる。描画しない指示で返す。
-   - 枠はブロックの子にしない。ブロックの撤去（`DestroyBlock`）で、借りていた枠を返す。
+   - 枠はブロックの子にしない。ブロックの GameObject が破棄されたとき（`OnDestroyAsObservable`）に、借りていた枠を返す。撤去（`DestroyBlock`）だけでなく、`BlockGameObjectDataStore.PlaceBlock` の置き換え経路（`Destroy(oldBlock.gameObject)` で `DestroyBlock` を通らない）でも返すため（2026-11-12 計画時に修正）。
    - 前例は `BlockPlacePreviewObjectPool`（空きを探して貸す・無ければ作る・使い終わったら非表示）。前例は「全部まとめて返す」方式だが、20m の出入りでブロック単位に増減するので、1つずつ返す形にする。
    出所: agent前提（前例 `BlockPlacePreviewObjectPool`、既存の表示切り替え `BlockPreviewOnlyObjectsView`）。ユーザーは提示した設計に「ok」と回答（2026-11-09）
 
 ## 見込み
-枠の GameObject は約55.8万個から、当たり判定の約1.5万個＋描画中の枠（数百組×約13個）になる見込み。物理エンジンに登録する当たり判定の数（約9万）は今と同じ（推測。効果は実装後にベンチマークと読み込み計測で前後比較する）。
+枠の GameObject は約55.8万個から、当たり判定の約1.5万個＋描画中の枠（数百組×25個。面を除いたプレハブは root 1・辺の親12・辺12）になる見込み。物理エンジンに登録する当たり判定の数（約9万）は今と同じ（推測。効果は実装後にベンチマークと読み込み計測で前後比較する）。
 
 ## 後続（今回の範囲外）
 - ブループリント「工場」のサムネイル被写体が、撮影後も約3.7万 GameObject 残っていた件。撮り損ねると被写体を破棄しない作りが原因と見ている（推測）。再現して原因を測ってから直す。
