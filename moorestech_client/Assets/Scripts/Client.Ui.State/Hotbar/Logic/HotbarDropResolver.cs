@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.Hotbar.Logic
 {
     /// <summary>
-    /// ドラッグ元と落とし先の組を割当・入替・解除へ写す。Web hotbarDnd.ts の写し
-    /// Maps a drag source and drop target pair to assign, swap or clear; a port of the Web hotbarDnd.ts
+    /// ドラッグ元と落とし先の組を割当・入替・解除へ写す落としの規則の正本（Web hotbarDnd.ts と useHotbarDragSource の隙間の判定の写し）
+    /// The single source of the drop rules mapping a source and target pair to assign, swap or clear (port of the Web hotbarDnd.ts plus the useHotbarDragSource gap check)
     /// </summary>
     public static class HotbarDropResolver
     {
@@ -12,8 +12,8 @@ namespace Client.Ui.State.Hotbar.Logic
         {
             switch (source)
             {
-                // 枠へ落とすと割当
-                // Assigns only when dropped on a slot
+                // 枠へ落とすと割当。枠外・列の隙間は何もしない
+                // Assigns only when dropped on a slot; outside and the row gap do nothing
                 case BuildMenuEntryDragSource entry:
                     return target is HotbarSlotDropTarget slot
                         ? new HotbarAssignAction(slot.SlotIndex, entry.TargetId)
@@ -38,6 +38,10 @@ namespace Client.Ui.State.Hotbar.Logic
                             : new HotbarSwapAction(sourceSlotIndex, slot.SlotIndex);
                     case OutsideHotbarDropTarget:
                         return new HotbarClearAction(sourceSlotIndex);
+                    // 隙間はまだ HUD の中なので解除せず何もしない（Web useHotbarDragSource の data-hotbar-row）
+                    // The gap is still inside the HUD, so it does nothing instead of clearing (Web useHotbarDragSource data-hotbar-row)
+                    case HotbarRowGapDropTarget:
+                        return HotbarNoDropAction.Instance;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(dropTarget), dropTarget, "未知のホットバーの落とし先");
                 }

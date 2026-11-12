@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.Screens.BuildMenu.Support;
+using Client.Tests.Ui.Screens.Hotbar;
 using Client.Ui.Content;
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.Screens.BuildMenu.Parts;
@@ -26,6 +27,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
     {
         private GameContentPresentation _content;
         private RecordingBuildMenuEntryHandler _handler;
+        private RecordingHotbarCommands _hotbarCommands;
 
         [SetUp]
         public void SetUpContent()
@@ -33,6 +35,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _content = new GameContentPresentation(new FakeContentTextureSource(Texture2D.whiteTexture, Texture2D.whiteTexture, Texture2D.whiteTexture));
             _handler = new RecordingBuildMenuEntryHandler();
+            _hotbarCommands = new RecordingHotbarCommands();
         }
 
         [Test]
@@ -85,18 +88,22 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
             var id = Guid.NewGuid();
             var receiver = new RecordingHotbarReceiver();
 
-            new BuildMenuEntryDragPayload(id, _handler).OnDropped(receiver);
+            new BuildMenuEntryDragPayload(id, _handler, _hotbarCommands).OnDropped(receiver);
 
             Assert.AreEqual(1, receiver.Received.Count);
             Assert.AreEqual(id, ((BuildMenuEntryDragSource)receiver.Received[0]).TargetId);
             CollectionAssert.IsEmpty(_handler.Selected);
+            CollectionAssert.IsEmpty(_hotbarCommands.Calls);
             LogAssert.NoUnexpectedReceived();
         }
 
+        // 枠外の落としも Drop へ渡り、何も起きないことは HotbarDropResolverTest が固定する（D-11）
+        // An outside drop also reaches Drop; HotbarDropResolverTest pins that nothing happens (D-11)
         [Test]
-        public void 受け口でない落とし先と断られた落としは何もしない()
+        public void 受け口でない落とし先へ落とすと選択も削除もせず枠外への落としを渡す()
         {
-            var slot = MountSlot(Block(Guid.NewGuid()));
+            var id = Guid.NewGuid();
+            var slot = MountSlot(Block(id));
 
             // マスの横に別の型の印を付けた箱を置く。源の型（IHotbarDropReceiver）と違うので Foundation が飛ばす
             // Put a box marked with another type beside the slot; Foundation skips it since it differs from the source type (IHotbarDropReceiver)
@@ -114,6 +121,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 
             CollectionAssert.IsEmpty(_handler.Selected);
             CollectionAssert.IsEmpty(_handler.DeleteRequested);
+            CollectionAssert.AreEqual(new[] { $"entry:{id:D}->outside" }, _hotbarCommands.Calls);
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -124,7 +132,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 
         private BuildMenuEntrySlot MountSlot(BuildMenuEntryViewModel entry)
         {
-            var slot = new BuildMenuEntrySlot(entry, _content, BuildMenuSamples.Icons(_content), _handler);
+            var slot = new BuildMenuEntrySlot(entry, _content, BuildMenuSamples.Icons(_content), _handler, _hotbarCommands);
             Mount(slot.Frame);
             return slot;
         }

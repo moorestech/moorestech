@@ -10,6 +10,9 @@ namespace Client.Ui.State.Hotbar
     public interface IHotbarCommands
     {
         UiCommandResult Select(int slotIndex);
-        void Apply(HotbarDropAction action);
+
+        // 落としはすべてここを通り、何が起きるかは HotbarDropResolver が決める（印や源は判断しない）
+        // Every drop goes through here and HotbarDropResolver decides the outcome (marks and sources never decide)
+        void Drop(HotbarDragSource source, HotbarDropTarget target);
     }
 }
