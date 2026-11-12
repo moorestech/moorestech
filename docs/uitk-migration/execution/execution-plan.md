@@ -325,7 +325,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | S4-train（`P/2026-11-10-uitk-s4-train.md`。PLAN-W4a） | A-155〜A-159 | LX-121〜125 |
 | S4-special（`P/2026-11-10-uitk-s4-special.md`。PLAN-W4b） | A-160〜A-164 | LX-126〜LX-130 |
 | I-fix4（`P/2026-11-10-uitk-i-fix4.md`。integrator） | A-190〜A-199 | LX-156〜160 |
-| S5-challenge（`P/2026-11-12-uitk-s5-challenge.md`。PLAN-W5） | A-240〜A-241 | LX-200〜202（LX-200 カテゴリ列の横スクロールなし。LX-201・202 は並べ比べの差の予備） |
+| S5-challenge（`P/2026-11-12-uitk-s5-challenge.md`。PLAN-W5） | A-240〜A-241 | LX-200〜202（並べ比べの差の予備。カテゴリ列の横スクロールは写したので例外にしない） |
 | S5-gate（`P/2026-11-12-uitk-s5-gate.md`。PLAN-W5） | A-242〜A-243 | LX-203〜204（LX-203 見出しの字の太さ・字間など並べ比べで差が出たときの候補、LX-204 予備） |
 
 - **`/// <web-test>` の書式**（E-13）: W0-tools 計画 R1・R3 の `/// <web-test file="<webui からの相対パス。src/… か e2e/…>"><it/test の第 1 引数></web-test>` が正本。describe は含めない（W0-tools D-2）。L0・C2 の計画はこの書式で書く
