@@ -25,11 +25,13 @@ return PlaytestRunner.Run("skit-opening-spawn-relative-origin", options, async p
     // even after 100s; that is an environment issue, not a skit defect)
     p.Note("WebUiHost(CEF)のVite devサーバー起動待ち");
     var webUiDeadline = Time.realtimeSinceStartup + 15f;
-    while (Time.realtimeSinceStartup < webUiDeadline && !(Client.WebUiHost.Boot.WebUiHost.Hub is { HasConnections: true }))
+    // 接続の有無を読む口（HasConnections）は消えたので、Web ホストが居る間だけ時間で待つ。GameUi の系では Hub が null ですぐ抜ける
+    // The connection probe (HasConnections) is gone, so wait by time only while a Web host exists; under GameUi the Hub is null and this exits at once
+    while (Time.realtimeSinceStartup < webUiDeadline && Client.WebUiHost.Boot.WebUiHost.Hub != null)
     {
         await UniTask.Delay(500);
     }
-    p.Note($"WebUiHost WS接続: {(Client.WebUiHost.Boot.WebUiHost.Hub is { HasConnections: true })}");
+    p.Note($"WebUiHost 起動: {Client.WebUiHost.Boot.WebUiHost.Hub != null}");
 
     // 検証対象が開幕スキットの座標そのものなのでSkipOpeningSkitは呼ばない
     // The opening skit's own coordinates are under test, so SkipOpeningSkit is deliberately not called

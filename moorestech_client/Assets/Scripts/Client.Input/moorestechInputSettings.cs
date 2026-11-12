@@ -556,6 +556,15 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SkitAdvance"",
+                    ""type"": ""Button"",
+                    ""id"": ""78c0a24d-ac38-463e-953f-5c8698af150b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -800,6 +809,28 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                     ""action"": ""BlockPlace"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d0250f92-f471-4a4f-ba91-172be9e27366"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SkitAdvance"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bbb4c6cc-98fb-4e80-97b5-aaa41d82c231"",
+                    ""path"": ""<Keyboard>/numpadEnter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SkitAdvance"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -883,6 +914,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         m_UI_OneStackCraft = m_UI.FindAction("OneStackCraft", throwIfNotFound: true);
         m_UI_QuestUI = m_UI.FindAction("QuestUI", throwIfNotFound: true);
         m_UI_ItemDirectMove = m_UI.FindAction("ItemDirectMove", throwIfNotFound: true);
+        m_UI_SkitAdvance = m_UI.FindAction("SkitAdvance", throwIfNotFound: true);
     }
 
     ~@MoorestechInputSettings()
@@ -1258,6 +1290,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
     private readonly InputAction m_UI_OneStackCraft;
     private readonly InputAction m_UI_QuestUI;
     private readonly InputAction m_UI_ItemDirectMove;
+    private readonly InputAction m_UI_SkitAdvance;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
     /// </summary>
@@ -1321,6 +1354,10 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         /// Provides access to the underlying input action "UI/ItemDirectMove".
         /// </summary>
         public InputAction @ItemDirectMove => m_Wrapper.m_UI_ItemDirectMove;
+        /// <summary>
+        /// Provides access to the underlying input action "UI/SkitAdvance".
+        /// </summary>
+        public InputAction @SkitAdvance => m_Wrapper.m_UI_SkitAdvance;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1386,6 +1423,9 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
             @ItemDirectMove.started += instance.OnItemDirectMove;
             @ItemDirectMove.performed += instance.OnItemDirectMove;
             @ItemDirectMove.canceled += instance.OnItemDirectMove;
+            @SkitAdvance.started += instance.OnSkitAdvance;
+            @SkitAdvance.performed += instance.OnSkitAdvance;
+            @SkitAdvance.canceled += instance.OnSkitAdvance;
         }
 
         /// <summary>
@@ -1436,6 +1476,9 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
             @ItemDirectMove.started -= instance.OnItemDirectMove;
             @ItemDirectMove.performed -= instance.OnItemDirectMove;
             @ItemDirectMove.canceled -= instance.OnItemDirectMove;
+            @SkitAdvance.started -= instance.OnSkitAdvance;
+            @SkitAdvance.performed -= instance.OnSkitAdvance;
+            @SkitAdvance.canceled -= instance.OnSkitAdvance;
         }
 
         /// <summary>
@@ -1705,5 +1748,12 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnItemDirectMove(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SkitAdvance" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSkitAdvance(InputAction.CallbackContext context);
     }
 }

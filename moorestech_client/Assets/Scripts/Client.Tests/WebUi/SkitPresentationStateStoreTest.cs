@@ -131,6 +131,30 @@ namespace Client.Tests.WebUi
             Assert.IsTrue(_store.TryAdvance(resumed.SessionId, resumed.SceneRevision).Ok);
         }
 
+        // 送りの解放は次の revision を配信してから待機を解く（同じ Action の再送を stale にする順）
+        // Releasing an advance publishes the next revision before the wait completes, so a replayed Action is stale
+        [Test]
+        public void AdvancePublishesNextRevisionBeforeReleasingWait()
+        {
+            _store.PresentBlockingText("Moore", "Hello");
+            var before = _store.GetCurrent();
+            var advanceWait = _store.WaitForAdvanceAsync();
+            var publishedRevision = -1;
+            var waitCompletedAtPublish = true;
+            var subscription = _store.ObserveChanged().Subscribe(data =>
+            {
+                publishedRevision = data.SceneRevision;
+                waitCompletedAtPublish = advanceWait.Status.IsCompleted();
+            });
+
+            var result = _store.TryAdvance(before.SessionId, before.SceneRevision);
+            subscription.Dispose();
+            Assert.IsTrue(result.Ok);
+            Assert.AreEqual(before.SceneRevision + 1, publishedRevision);
+            Assert.IsFalse(waitCompletedAtPublish, "版の配信より先に待ちが解けた");
+            Assert.IsTrue(advanceWait.Status.IsCompleted());
+        }
+
         private class StubSkitActionController : ISkitActionController
         {
             private readonly Subject<Unit> _onSkip = new();

@@ -47,7 +47,7 @@ namespace Client.Playtest.Operations.Ui
             while (Time.realtimeSinceStartup < deadline)
             {
                 var current = skitStore.GetCurrent();
-                var canSkip = current != null && 0 <= Array.IndexOf(current.AllowedIntents, "skip");
+                var canSkip = current != null && SkitPresentationData.IsIntentAllowed(current.AllowedIntents, SkitPresentationData.SkipIntent);
 
                 // 飛ばし終えたあとにskipが引けなくなったら完了。まだ一度も出ていないなら再生開始を待ち続ける
                 // Once skipped, losing the skip intent means it ended; before that, keep waiting for it to start

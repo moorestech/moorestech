@@ -120,6 +120,7 @@ namespace Client.Input
         public readonly InputKey OpenMenu;
         public readonly InputKey QuestUI;
         public readonly InputKey SwitchHotBar;
+        public readonly InputKey SkitAdvance;
         
         public UIInputManager(MoorestechInputSettings settings)
         {
@@ -135,6 +136,10 @@ namespace Client.Input
             OneStackCraft = new InputKey(settings.UI.OneStackCraft, InputSuppressionScope.Keyboard);
             QuestUI = new InputKey(settings.UI.QuestUI, InputSuppressionScope.Keyboard);
             ItemDirectMove = new InputKey(settings.UI.ItemDirectMove, InputSuppressionScope.Keyboard);
+
+            // スキットの送りの Enter。入力欄の Enter と取り合わないようキーボード抑止スコープに入れる
+            // Skit-advance Enter; keep it under the keyboard suppression scope so it never competes with text-field Enter
+            SkitAdvance = new InputKey(settings.UI.SkitAdvance, InputSuppressionScope.Keyboard);
         }
     }
 }

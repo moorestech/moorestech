@@ -60,3 +60,26 @@
     --game-panel-top-fade: var(--skit-window-top-fade);
     --game-panel-bottom-fade: 0px;
 }
+
+/* skit-choice: スキットの選択肢の板。持ち主のボタンいっぱいに敷き、左右だけを水平フェードさせ、押している間は面をシアン寄りにする（Web SkitChoiceList.module.css の .choice::before と .choice:active::before） */
+/* skit-choice: plate under a skit choice button; fills the owner button, fades only left and right, and pushes the face toward cyan while pressed (Web SkitChoiceList.module.css .choice::before and .choice:active::before) */
+.game-panel-surface--skit-choice {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.game-panel-surface--skit-choice > .game-panel-surface__face {
+    --game-panel-face: var(--gauge-track);
+    --game-panel-edge-fade: var(--skit-choice-edge-fade);
+    --game-panel-top-fade: 0px;
+    --game-panel-bottom-fade: 0px;
+}
+
+/* 押下の状態は持ち主のボタンが持つので、ボタンの :active から板の面を引く（Theme.uss の .unity-button:active と同じ起点） */
+/* The pressed state lives on the owner button, so the plate face keys off the button's :active (same anchor as Theme.uss .unity-button:active) */
+.unity-button:active > .game-panel-surface--skit-choice > .game-panel-surface__face {
+    --game-panel-face: var(--skit-choice-active-face);
+}
