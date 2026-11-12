@@ -28,6 +28,7 @@
 | 2026-11-10 | 4 | 91e3f7f5c5 | 457 | 189 | 9 | 1 | 258 |
 | 2026-11-10 | 5 | 91e3f7f5c5 | 528 | 132 | 4 | 0 | 392 |
 | 2026-11-11 | 4 | 9e2228c658 | 457 | 371 | 22 | 2 | 62 |
+| 2026-11-12 | 3 | 6028360d76 | 99 | 99 | 0 | 0 | 0 |
 
 ## 処遇
 
@@ -87,4 +88,5 @@
 | 4 | `e2e/mock-host/detailActions.test.ts` | setはrecipeGuidを選択状態へ反映する | 捨てる | mock-host 自身の契約。UITK は `MachineRecipeSelectionProtocol` を直に送り、解放の検査は `MachineRecipeSelectCommandTest` が持つ（S4-machine D-11） | — |
 | 4 | `e2e/mock-host/detailActions.test.ts` | recipeGuidなしsetとclearは空GUIDへ戻す | 捨てる | 同上（S4-machine D-11） | — |
 | 4 | `e2e/mock-host/detailActions.test.ts` | 対象machineがないblockと未知operationを拒否する | 捨てる | 同上（S4-machine D-11） | — |
+| 2 | `src/features/notification/notificationStore.test.ts` | 退場アニメが発火しなくても保険タイマーで消える | 捨てる | UITK の通知ホストは背面の層に常駐し、外れるのは Dispose だけなので退場の終わりが必ず来る。保険タイマーを持たない（Web の保険は React の unmount で onAnimationEnd が来ない場合のもの）。外れた場合は NotificationHostView の LogWarning が知らせる | #1649 |
 | 4 | `src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx` | accepts panel data and narrows inside the dedicated view | 捨てる | TS の型検査（`expectTypeOf`）。C# は型がコンパイルで閉じる | S4-special |

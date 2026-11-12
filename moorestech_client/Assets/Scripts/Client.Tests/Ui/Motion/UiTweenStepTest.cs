@@ -27,6 +27,21 @@ namespace Client.Tests.Ui.Motion
             Assert.AreEqual(expectedY, translate.y.value, 0.001f);
         }
 
+        [TestCase(0f, -12f)]
+        [TestCase(0.5f, -6f)]
+        [TestCase(1f, 0f)]
+        [TestCase(1.25f, 3f)]
+        public void TranslateXは横だけを補間し縦は0に置く(float progress, float expectedX)
+        {
+            var target = new VisualElement();
+            new TranslateXTweenStep(target, -12f, 0f).Apply(progress);
+
+            var translate = target.style.translate.value;
+            Assert.AreEqual(0f, translate.y.value);
+            Assert.AreEqual(LengthUnit.Pixel, translate.x.unit);
+            Assert.AreEqual(expectedX, translate.x.value, 0.001f);
+        }
+
         [Test]
         public void ScrollOffsetは進捗どおりにスクロール位置を書く()
         {

@@ -59,6 +59,13 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, rawKey);
         }
 
+        // GetContent 等が返した text が、key の全言語欠けの印かを判定する
+        // Tells whether text returned by GetContent etc. is the every-language-missing marker for key
+        public static bool IsMissingText(string text, string key)
+        {
+            return text == LocalizationTextResolver.MissingMark(key);
+        }
+
         public static string GetContent(ContentLocalizationKey key)
         {
             var snapshot = Volatile.Read(ref publishedSnapshot);
