@@ -26,14 +26,14 @@
 | R-6 | カテゴリのボタン: 各カテゴリに `FormButton("challenge-category-<guid>", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), …)`。選んだカテゴリは `Filled`、他は `Subtle`。押すと `IChallengeListCommands.SelectCategory(guid)` | `ChallengeListViewportTest`（押下で選択の操作が 1 回出て、選んだカテゴリが Filled）が緑 |
 | R-7 | ノードカード: 根は `PaperSurface("challenge-node-<guid>")`（面 `--paper-face`・角丸 `--paper-radius`）に幅 240px・内側の余白 `--mantine-spacing-sm`・`translate: -50% -50%`、倍率は `style.scale = (UIScale.x, UIScale.y)`。中は名前（`text--md`＋`text--bold`）・概要（`text--sm`）・状態（`text--xs`。キーは VM の `StateLabelKey`＝`ui.challenge.stateLocked/stateCurrent/stateCompleted`）の縦積み。未解放は不透明度 0.55、進行中は `--mantine-color-blue-5`・完了は `--mantine-color-green-6` の 2px の輪（Web の outline を拾わない子で写す）。高さは中身なり（包みの高さ 0 で潰れない。S4-research の事後承認）。アンカー `challenge.node-<guid>`。指のカーソルは付けない（Web のカードに `cursor: pointer` もタップも無く、ビューポートの `cursor: grab` を継ぐ。`W/src/shared/treeView/TreeView.module.css:11`。設計書 A-191 のチャレンジの部分を改める） | `ChallengeListViewTest`「カードは中身なりの高さで…」が緑 |
 | R-8 | 層と表示: 一覧は `OverlayPanel`/`Stage` 層。表示は `UiScreen.ChallengeList` のときだけ。進行中チャレンジ HUD（`Chrome` 層。S2-hud の持ち物）は一覧を開いても同じ位置・寸法のまま、一覧の上端とカテゴリのボタンより上に出て、中心の当たりが HUD 自身 | `ChallengeHudOverListTest`（L1。`challenge.spec.ts`「常駐HUDを…維持する」の一覧の部分）が緑 |
-| R-9 | 常駐 HUD の画面を跨ぐ契約: ゲーム画面で測った HUD の位置・寸法のまま、インベントリ・チャレンジ一覧・研究・ビルドメニュー・ポーズ・配置モード・削除モードで出続け、上の安全帯のあるメニュー（インベントリ・一覧・ビルドメニュー・ポーズ）では中身より上、配置 HUD と横に分かれ、削除の上の帯より下。1024×576 でも同じ論理の位置で、インベントリより上 | 録画 `uitk-challenge-hud-resident` の `result.json` が `Success: true` |
+| R-9 | 常駐 HUD の画面を跨ぐ契約: ゲーム画面で測った HUD の位置・寸法のまま、インベントリ・チャレンジ一覧・研究・ビルドメニュー・ポーズ・配置モード・削除モード・ブロックインベントリ（`SubInventory`）・列車の入れ子ポーズ（`TrainHUDScreen`＋`PauseMenuScreen`）で出続け、上の安全帯のあるメニュー（インベントリ・一覧・ビルドメニュー・ポーズ・ブロックインベントリの持ち物の格子・列車の入れ子ポーズ）では中身より上、配置 HUD と横に分かれ、削除の上の帯より下。1024×576 でも同じ論理の位置で、インベントリより上（Web `challenge.spec.ts:77-90` の状態の並び） | 録画 `uitk-challenge-hud-resident` と `uitk-challenge-hud-resident-train` の `result.json` が `Success: true` |
 | R-10 | アンカー: `challenge.panel`・`challenge.categories`・`challenge.node-<guid>` に印を付け、`TutorialAnchorCoveragePending` の S5-challenge の 3 行を同じ PR で消す | `TutorialAnchorCoverageTest` が緑。録画で先頭カテゴリの全ノード・枠・カテゴリ列のアンカーが Unique |
 | R-11 | 並べ比べ: 参照 `5-challenge-list`（`web-8a585f742a`・`web-8a585f742a-2560x1080`）と、録画 `uitk-challenge-list` の中で撮った UITK（1280×720・2560×1080）を並べ、差の表を `done.md` に書く | 組が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれか |
-| R-12 | 録画: 新しい `uitk-challenge-list`（T で開く・進行中へ中央寄せ・2560×1080 でも中央・アンカー・カードが中身なりの高さ・HUD が一覧より上・パンして T で閉じて T で開き直しても視点が残る・一覧の上の右短押しでは閉じない・Tab でインベントリ）と `uitk-challenge-hud-resident`（R-9） | 2 本の `result.json` が `Success: true`、録画 mp4、Note の `系=GameUi` |
+| R-12 | 録画: 新しい `uitk-challenge-list`（T で開く・進行中へ中央寄せ・2560×1080 でも中央・アンカー・カードが中身なりの高さ・HUD が一覧より上・パンして T で閉じて T で開き直しても視点が残る・一覧の上の右短押しでは閉じない・Tab でインベントリ）と `uitk-challenge-hud-resident`・`uitk-challenge-hud-resident-train`（R-9） | 3 本の `result.json` が `Success: true`、録画 mp4、Note の `系=GameUi` |
 | R-13 | 登録: `Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs`（直下は 10 ファイルで上限なのでサブディレクトリ）、`MainGameUiRegistration` の画面登録区画に 1 行、`GameUiTheme.tss` の `Screens` 区画に `@import` 1 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`TutorialAnchorCoverageTest`）が緑 |
 | R-14 | テストの名前: 写した 5 件に `<web-test>`。このレーンの持ち分（challenge.spec の 3 件・challengeLogic.test の 2 件）は処遇の行を足さない | `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing` で持ち分の未対応 0。終了コードが 2 でない |
 | R-15 | 記帳: 台帳の「## 実測の結論」の末尾にカードの高さの実測 1 行、「## 未撮影」にカテゴリ列の横バーの 1 行（見た目の例外は足さない。LX-200〜202 は並べ比べの差の予備）。設計書 §7.1 に入った A-240・A-241（と `GameScrollView` の横向きの A 行。番号は指揮が振る）を実装と照らし、食い違いは `done.md` の「integrator への依頼」へ | `done.md` に照らした結果。台帳の 2 行 |
-| R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → Editor を閉じる・bd を閉じる・`done.md` → `cmux wait-for -S uitk-s5-challenge` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
+| R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge`（録画・L1 が他レーンの原因で赤のまま残ったら、マージせず `done.md` を「状態: 停止（<名前> が <持ち主> の原因で赤）」にして指揮へ報告する。基準を緩めず、赤を残してマージしない）→ Editor を閉じる・bd を閉じる・`done.md` → `cmux wait-for -S uitk-s5-challenge` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
 | R-17 | 部品 `GameScrollView` の横向き（Components の変更）: ctor を `GameScrollView(string testid, GameScrollAxis axis)` にし、`Horizontal` は横の `ScrollView`。バーは中身が見える幅を越えたときだけ本文の下の流れに出し、縦のバーは出さない。太さ・溝・つまみは縦と同じつまみ。縦の振る舞いは今のまま、呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数を作らない）。`Theme.uss` は変えない | `GameScrollViewHorizontalTest`（L1）の 2 件が緑。既存の `GameScrollViewTest`・`GameScrollViewKnobTest`・`GameScrollViewSpyPortTest`・`RecipeListScrollViewTest` と呼び出し側の画面の L1 が緑 |
 
 **やらないこと（スコープ境界）**
@@ -192,7 +192,7 @@ namespace Client.Ui.State.Routing
 | C4-d 計画 申し送り (2)・D-5 | グラフに無い親のキーは LogError なので、別カテゴリの前提のキーを `PreviousKeys` から除く（Web は黙って省く） | 受ける（D-3。`ChallengeCategoryViewModel.Create`。L0 で固定） |
 | C4-d 計画 D-23(1)・L100 | カードの根で `flex-shrink` を書かない。カードの根は `PickingMode.Position`。中心寄せ `translate(-50%,-50%)` と `scale(UIScale)` はカード側 | 受ける（Task 3 の USS と `ChallengeNodeCard`） |
 | C4-d/done.md:67 | カードの指カーソルは `new UiOsCursorHoverRequest(card, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element)` で当てる | 適用しない。Web の `ChallengeNodeCard` は `cursor: pointer` を持たず（`features/challenge/style.module.css` に cursor が無い）、`TreeView` に `onNodeTap` も渡さないので、ビューポートの `cursor: grab`（`W/src/shared/treeView/TreeView.module.css:11`）を継ぐ。研究のカードだけの申し送り。設計書 A-191 の「研究・チャレンジのカードの指は画面が当てる」のチャレンジの部分を改める（A-241 の本文案に足す。D-5） |
-| S2-hud/done.md:135・PLAN-W2a/done.md:27 | `challenge.spec.ts` の「常駐HUDをインベントリ・メニュー・操作モードで維持する」と画面 2 件は S5-challenge が写す | 受ける。一覧の部分は L1（`ChallengeHudOverListTest`）に `<web-test>` を付け、画面を跨ぐ部分は録画 `uitk-challenge-hud-resident`（D-9） |
+| S2-hud/done.md:135・PLAN-W2a/done.md:27 | `challenge.spec.ts` の「常駐HUDをインベントリ・メニュー・操作モードで維持する」と画面 2 件は S5-challenge が写す | 受ける。一覧の部分は L1（`ChallengeHudOverListTest`）に `<web-test>` を付け、画面を跨ぐ部分は録画 `uitk-challenge-hud-resident`・`uitk-challenge-hud-resident-train`（D-9） |
 | C4-d/done.md（参照の実測） | `5-challenge-list.png` の地 (460,280)=#1f1f1f、2 枚のカードは隣接し線は隠れる | 並べ比べの前提として Global Constraints の参照の実測に入れた（Task 7） |
 | S4-research 計画 D-9 | `NodeGraphView` の切り口に `TutorialAnchor.MarkClipContainer` を付ける（2 機能が使う） | 済み（`NodeGraphView.cs:49`）。このレーンは何もしない |
 | I-fix5 計画 10i | `NodeGraphView.uss` の事後承認の申し送り（文書項目） | 上の 1 行目と同じ。I-fix5 が文書を直しても、このレーンの L1 と A-241 の本文案はそのまま |
@@ -240,7 +240,8 @@ namespace Client.Ui.State.Routing
 | `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewportTest.cs` | L1（中央寄せとカテゴリ切替・再訪・開き直し） | 新規 |
 | `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeHudOverListTest.cs` | L1（常駐 HUD と一覧） | 新規 |
 | `SK/scenarios/uitk/stage5/uitk-challenge-list.cs` | 録画（画面と比較の撮影） | 新規 |
-| `SK/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs` | 録画（HUD の画面を跨ぐ契約） | 新規 |
+| `SK/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs` | 録画（HUD の画面を跨ぐ契約。ブロックインベントリまで） | 新規 |
+| `SK/scenarios/uitk/stage5/uitk-challenge-hud-resident-train.cs` | 録画（HUD の列車の入れ子ポーズ） | 新規 |
 | `docs/uitk/TODO.md` | 「## 実測の結論」の末尾に 1 行 | 変更（追記） |
 | `LOGS/harness/uitk/S5-challenge/done.md` | 作業報告 | 新規（moorestech_logs） |
 
@@ -253,7 +254,7 @@ namespace Client.Ui.State.Routing
 | `src/features/challenge/challengeLogic.test.ts`「進行中(current)のノードを返す」「進行中が無ければ寄せない」 | 2 | `ChallengeListLogicTest` の 2 件 | L0 |
 | `e2e/tests/challenge.spec.ts`「チャレンジ画面が開きツリーだけを翻訳済み表示する」 | 1 | `ChallengeListViewTest.チャレンジ画面が開きツリーだけを翻訳済み表示する` | L1 |
 | `e2e/tests/challenge.spec.ts`「チャレンジ画面は進行中のチャレンジを中央にして開き、カテゴリ切替でもその進行中へ寄せる」 | 1 | `ChallengeListViewportTest.進行中のチャレンジを中央にして開きカテゴリ切替でもその進行中へ寄せる` | L1 |
-| `e2e/tests/challenge.spec.ts`「常駐HUDをインベントリ・メニュー・操作モードで維持する」 | 1 | `ChallengeHudOverListTest.常駐HUDはチャレンジ一覧を開いても同じ位置のまま一覧とカテゴリより上に出る`（一覧の部分）＋録画 `uitk-challenge-hud-resident`（画面を跨ぐ部分） | L1＋録画 |
+| `e2e/tests/challenge.spec.ts`「常駐HUDをインベントリ・メニュー・操作モードで維持する」 | 1 | `ChallengeHudOverListTest.常駐HUDはチャレンジ一覧を開いても同じ位置のまま一覧とカテゴリより上に出る`（一覧の部分）＋録画 `uitk-challenge-hud-resident`・`uitk-challenge-hud-resident-train`（画面を跨ぐ部分） | L1＋録画 |
 
 タグの付かない L1/L0（裁定・事後承認・工場・死活表）: `ChallengeListViewTest` 4 件・`ChallengeListViewportTest` 2 件・`ChallengeListViewModelFactoryTest` 4 件・`ChallengeListModelTest` 4 件・`ChallengeCategorySelectionStoreTest` 1 件。`challenge.spec.ts` の残り 4 件（HUD）は S2-hud が `CurrentChallengeHudStateTest` で写し済み。
 
@@ -3109,15 +3110,16 @@ git commit -m "feat(uitk): S5-challenge のチャレンジ一覧を GameUi に�
 
 ---
 
-### Task 6: unityプレイ録画テスト（`uitk-challenge-list`・`uitk-challenge-hud-resident`）
+### Task 6: unityプレイ録画テスト（`uitk-challenge-list`・`uitk-challenge-hud-resident`・`uitk-challenge-hud-resident-train`）
 
 **Files:**
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-list.cs`
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-hud-resident-train.cs`
 
 **Interfaces:**
-- Consumes: Task 5 までの GameUi のチャレンジ一覧、`ChallengeProgressState`（`ClientDIContext.DIContainer.DIContainerResolver.Resolve<T>()`）、DSL（`PressKey`・`WaitUiState`・`UntilUiElement`・`ExitToGameScreen`・`Hotbar.AssignHotbar`・`Hotbar.EnterBuildMode`・`Screenshot`・`PlaytestGameViewOps.SetResolution`）
-- Produces: 2 本の `result.json`・mp4・スクショ（`01-open-centered-1280x720`・`01b-open-centered-2560x1080` は Task 7 の並べ比べに使う）
+- Consumes: Task 5 までの GameUi のチャレンジ一覧、`ChallengeProgressState`（`ClientDIContext.DIContainer.DIContainerResolver.Resolve<T>()`）、DSL（`PressKey`・`WaitUiState`・`UntilUiElement`・`ExitToGameScreen`・`Hotbar.AssignHotbar`・`Hotbar.EnterBuildMode`・`PlaceBlockDirect`・`WarpPlayer`・`AimAt`・`PressInteract`・`PressRide`・`Screenshot`・`PlaytestGameViewOps.SetResolution`）
+- Produces: 3 本の `result.json`・mp4・スクショ（`01-open-centered-1280x720`・`01b-open-centered-2560x1080` は Task 7 の並べ比べに使う）
 
 - [ ] **Step 1: 画面の録画を書く**
 
@@ -3283,8 +3285,8 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
 
 `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs`:
 ```csharp
-// 進行中チャレンジ HUD の常駐を UITK（GameUi）で通す（Web challenge.spec「常駐HUDをインベントリ・メニュー・操作モードで維持する」の画面を跨ぐ部分）: ゲーム画面の位置のまま各画面で出続け、上の安全帯のあるメニューの中身より上、配置 HUD と横に分かれ、削除の帯より下、1024×576 でも同じ論理の位置
-// Runs the resident current-challenge HUD on UITK (GameUi) (cross-screen part of the Web challenge.spec resident HUD test): same position as the game screen everywhere, above menu content with an upper safe area, beside the placement HUD, below the delete band, same logical position at 1024x576
+// 進行中チャレンジ HUD の常駐を UITK（GameUi）で通す（Web challenge.spec「常駐HUDをインベントリ・メニュー・操作モードで維持する」の画面を跨ぐ部分。列車の入れ子ポーズは -train の 1 本）: ゲーム画面の位置のまま各画面とブロックインベントリで出続け、上の安全帯のあるメニューの中身より上、配置 HUD と横に分かれ、削除の帯より下、1024×576 でも同じ論理の位置
+// Runs the resident current-challenge HUD on UITK (GameUi) (cross-screen part of the Web challenge.spec resident HUD test; the train nested pause is the -train scenario): same position as the game screen everywhere including the block inventory, above menu content with an upper safe area, beside the placement HUD, below the delete band, same logical position at 1024x576
 // 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
 // Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using Client.Game.InGame.UI.UIState;
@@ -3294,10 +3296,12 @@ using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
 using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
+var chestPosition = new Vector3Int(4, 32, 4);
 return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions { Record = true }, async p =>
 {
     p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
@@ -3325,6 +3329,23 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     await CheckMenu(Key.R, UIStateEnum.ResearchTree, "research-tree", false);
     await CheckMenu(Key.B, UIStateEnum.BuildMenu, "build-menu-panel", true);
     await CheckMenu(Key.Escape, UIStateEnum.PauseMenu, "pause-menu", true);
+
+    // ブロックインベントリ: チェストを開いても持ち物の格子より上（Web の SubInventory・main-grid。開き方は前例 uitk-block-inventory）
+    // Block inventory: opening a chest keeps the HUD above the inventory grid (Web SubInventory, main-grid; opening follows uitk-block-inventory)
+    await p.PlaceBlockDirect("木のチェスト", chestPosition, BlockDirection.North);
+    await p.WaitBlockGameObject(chestPosition);
+    p.WarpPlayer(new Vector3(chestPosition.x + 0.5f, 32.5f, chestPosition.z - 1.5f));
+    await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "着地");
+    SemanticInput.KeyDown(Key.LeftAlt);
+    await p.AimAt(new Vector3(chestPosition.x + 0.5f, 32.5f, chestPosition.z));
+    await p.PressInteract();
+    await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+    SemanticInput.KeyUp(Key.LeftAlt);
+    await p.UntilUiElement("main-grid", 10f);
+    var subInventory = await HudRect("SubInventory");
+    AssertSame(world, subInventory, "SubInventory");
+    p.Assert(subInventory.yMax <= root.Q("main-grid").worldBound.yMin + 0.5f, "SubInventory で HUD が main-grid より上");
+    await p.ExitToGameScreen();
 
     // 配置モード: 配置 HUD と横に分かれる
     // Placement mode: the HUD and the placement HUD are separated horizontally
@@ -3403,7 +3424,135 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
 });
 ```
 
-- [ ] **Step 3: 2 本を流す**
+- [ ] **Step 3: 列車の入れ子ポーズの録画を書く**
+
+`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-hud-resident-train.cs`（乗車の組み立ては前例 `scenarios/uitk/uitk-nested-pause-train.cs` の `PrepareAndRideTrain`・`PlacePier` をそのまま写す。HUD の録画に足すと 200 行を越えるので別の 1 本にする。D-10）:
+```csharp
+// 進行中チャレンジ HUD を列車の入れ子ポーズで UITK（GameUi）に通す（Web challenge.spec の TrainHUDScreen＋PauseMenuScreen・pause-menu）: ゲーム画面と同じ位置・寸法のまま、ポーズの中身より上
+// Runs the current-challenge HUD through the train nested pause on UITK (GameUi) (Web challenge.spec TrainHUDScreen + PauseMenuScreen, pause-menu): same rect as the game screen, above the pause content
+// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
+// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
+using Client.Input;
+using Client.Playtest;
+using Client.Playtest.Input;
+using Client.Playtest.Operations;
+using Client.Ui.Foundation.Root;
+using Core.Master;
+using Cysharp.Threading.Tasks;
+using Game.Block.Blocks.TrainRail;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Context;
+using Game.Paths;
+using Game.Train.RailGraph;
+using Game.Train.RailPositions;
+using Game.UnlockState;
+using MessagePack;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
+using VContainer;
+using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarEntityObject;
+
+return PlaytestRunner.Run("uitk-challenge-hud-resident-train", new PlaytestRunOptions { Record = true }, async p =>
+{
+    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
+    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
+    // Ignore focus so injected input reaches a background Editor
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
+    var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+    var root = GameUiRoot.Instance.GetRootElement();
+    var world = await HudRect("ゲーム画面");
+
+    // 列車に乗り、列車 HUD の入れ子ポーズを開く（前例 uitk-nested-pause-train）
+    // Ride a train and open the train HUD nested pause (precedent uitk-nested-pause-train)
+    await PrepareAndRideTrain();
+    var trainHud = resolver.Resolve<UIStateDictionary>().GetState(UIStateEnum.TrainHUDScreen) as TrainHUDScreenState;
+    await p.Until(() => p.CurrentUiState == UIStateEnum.TrainHUDScreen && trainHud.IsRiding, 15f, "列車HUDで乗車済み");
+    p.Note($"乗車中の HUD {root.Q("challenge-hud")?.worldBound}");
+    await p.PressKey(Key.Escape);
+    await p.Until(() => trainHud.SubState == NestedPauseSubStateEnum.PauseMenuScreen, 15f, "列車HUDの入れ子ポーズ表示");
+    await p.UntilUiElement("pause-menu", 10f);
+
+    // 入れ子ポーズ: ゲーム画面と同じ位置・寸法で、ポーズの中身より上（上の安全帯のあるメニュー）
+    // Nested pause: same rect as the game screen and above the pause content (a menu with an upper safe area)
+    var paused = await HudRect("列車の入れ子ポーズ");
+    var same = Mathf.Abs(world.x - paused.x) <= 1f && Mathf.Abs(world.y - paused.y) <= 1f && Mathf.Abs(world.width - paused.width) <= 1f && Mathf.Abs(world.height - paused.height) <= 1f;
+    p.Assert(same, $"列車の入れ子ポーズの HUD がゲーム画面と同じ位置・寸法（{paused} / {world}）");
+    p.Assert(paused.yMax <= root.Q("pause-menu").worldBound.yMin + 0.5f, "列車の入れ子ポーズで HUD が pause-menu より上");
+    await p.Screenshot("01-train-nested-pause");
+    await p.PressKey(Key.Escape);
+    await p.Until(() => trainHud.SubState == NestedPauseSubStateEnum.GameScreen, 15f, "入れ子ポーズを閉じる");
+
+    #region Internal
+
+    // HUD が出るまで待って矩形を読む
+    // Wait for the HUD and read its rect
+    async UniTask<Rect> HudRect(string where)
+    {
+        await p.UntilUiElement("challenge-hud", 10f);
+        var hud = root.Q("challenge-hud");
+        p.Assert(hud.resolvedStyle.display == DisplayStyle.Flex && hud.worldBound.width > 0f, $"{where} で HUD が出ている");
+        p.Note($"{where} の HUD {hud.worldBound}");
+        return hud.worldBound;
+    }
+
+    // 下の 2 つは uitk-nested-pause-train.cs の同名のローカル関数の写し（レール 2 本・列車の解放・本番プロトコルでの配置・乗車）
+    // The two below copy the same-named local functions of uitk-nested-pause-train.cs (two rails, unlocking the car, placing it via the production protocol, riding)
+    async UniTask<TrainCarEntityObject> PrepareAndRideTrain()
+    {
+        var a = new Vector3Int(10, 32, 6); var b = new Vector3Int(10, 32, 22);
+        await PlacePier(a); await PlacePier(b);
+        await p.WaitBlockGameObject(a); await p.WaitBlockGameObject(b);
+        var railA = p.GetBlock(a).GetComponent<RailComponent>(); var railB = p.GetBlock(b).GetComponent<RailComponent>();
+        var master = MasterHolder.TrainUnitMaster.Train.TrainCars.First(trainCar => trainCar.Length <= 7);
+        await p.RunOnServer("レール2本を接続して列車を解放する", () =>
+        {
+            railA.FrontNode.ConnectNode(railB.FrontNode); railB.BackNode.ConnectNode(railA.BackNode);
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
+        });
+        foreach (var required in master.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
+        var position = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
+        var response = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(position, master.TrainCarGuid, CancellationToken.None);
+        p.Assert(response != null && response.Success, "乗車用の列車を本番プロトコルで配置できる");
+        TrainCarEntityObject Spawned() => Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
+        await p.Until(() => Spawned() != null, 15f, "乗車用列車のクライアント表示");
+        var spawned = Spawned(); var collider = spawned.GetComponentInChildren<Collider>();
+        p.WarpPlayer(collider.bounds.center + new Vector3(0f, 0f, -2f));
+        await p.AimAt(collider.bounds.center); await p.PressRide();
+        return spawned;
+    }
+    async UniTask PlacePier(Vector3Int position)
+    {
+        var blockId = PlaytestBlockOps.ResolveBlockId("レール橋脚");
+        var detail = new RailBridgePierComponentStateDetail(RailComponent.ToVector3(BlockDirection.North));
+        var parameters = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(detail)) };
+        var placed = false;
+        await p.RunOnServer($"レール橋脚を配置 {position}", () => placed = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, BlockDirection.North, parameters, out _));
+        p.Assert(placed, $"レール橋脚を配置 {position}");
+    }
+
+    #endregion
+});
+```
+（約 120 行。`PrepareAndRideTrain`・`PlacePier` は起草時の前例の写し。取り込みで前例が変わっていたら前例に合わせる）
+
+- [ ] **Step 4: 3 本を流す**
 
 Run（PlayMode を止めた状態で）:
 ```bash
@@ -3411,18 +3560,20 @@ SKILL=.agents/skills/unity-playmode-recorded-playtest
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'
 "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage5/uitk-challenge-list.cs"
 "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage5/uitk-challenge-hud-resident-train.cs"
 ```
-Expected: 2 本とも `result.json` が `Success: true`、Note に `系=GameUi`、mp4 とスクショが出る。`uitk-challenge-list` の Note のカードの寸法（幅 240・高さ）を控え、Task 7 の実測の行に使う
+Expected: 3 本とも `result.json` が `Success: true`、Note に `系=GameUi`、mp4 とスクショが出る。`uitk-challenge-list` の Note のカードの寸法（幅 240・高さ）を控え、Task 7 の実測の行に使う
 - Mac の Editor が別作業で塞がっているときは `~/bin/winunity play uitk-lane/s5-challenge "$SKILL/scenarios/uitk/stage5/<名前>.cs" --ui-system GameUi`（push 済みが前提）で流し、`~/.cache/winunity/runs/` から結果を取る
 - 解放済みのカテゴリが 1 つ（実マスタ）なので、カテゴリの切り替えは録画では見ない（L1 が持つ）。Note のカテゴリの数を `done.md` の「未確認」に「録画のカテゴリ切替: 実マスタでカテゴリ 1 つのため L1 だけ」と書く
-- `SubInventory` と列車の入れ子ポーズ（`TrainHUDScreen`＋`PauseMenuScreen`）は録画に入れない（ブロックの設置と乗車が要る。D-9）。`done.md` の「未確認」に「常駐 HUD の SubInventory・列車の入れ子ポーズの 2 状態は未検証」と書く
-- 落ちたら Assert の行と Note を読み、UITK 側（このレーンのファイル）の原因なら直して流し直す。他レーンの HUD・画面の原因（例: ビルドメニューの中身の上端が安全帯に無い）なら直さず、`done.md` の「integrator への依頼」に「名前／正本のパス／見た状態／持ち主」で 1 行書き、`bd note <bd>` に残し、その Assert を外さずに失敗のまま報告する（基準を緩めない）
+- `uitk-challenge-hud-resident` の「着地」で止まったら、足場の地面が y 32 でない。Note の `p.PlayerPosition` を見て `chestPosition` の y と `WarpPlayer`・`AimAt` の y を合わせる（前例 `uitk-stage3-compare` は同じ足場で y 32 に置いている）
+- `uitk-challenge-hud-resident-train` が乗車の前で止まったら、前例 `uitk-nested-pause-train` を同じ Editor で流し、前例も止まるなら乗車の組み立ての問題として前例の持ち主へ回す（下の他レーンの扱い）
+- 落ちたら Assert の行と Note を読み、UITK 側（このレーンのファイル）の原因なら直して流し直す。他レーンの HUD・画面の原因（例: ビルドメニューの中身の上端が安全帯に無い）なら直さず、`done.md` の「integrator への依頼」に「名前／正本のパス／見た状態／持ち主」で 1 行書き、`bd note <bd>` に残し、その Assert を外さずに失敗のまま報告する（基準を緩めない）。赤が残ったままマージしない（R-16。Task 9 で `done.md` を「状態: 停止」にする）
 
-- [ ] **Step 4: コミットする**
+- [ ] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5
-git commit -m "test(uitk): S5-challenge の録画 uitk-challenge-list・uitk-challenge-hud-resident"
+git commit -m "test(uitk): S5-challenge の録画 uitk-challenge-list・uitk-challenge-hud-resident・-train"
 ```
 
 ---
@@ -3548,6 +3699,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。セッショ�
   "media": [
     {"file": "<uitk-challenge-list の recording.mp4>", "caption": "uitk/stage5/uitk-challenge-list（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<uitk-challenge-hud-resident の recording.mp4>", "caption": "uitk/stage5/uitk-challenge-hud-resident（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "<uitk-challenge-hud-resident-train の recording.mp4>", "caption": "uitk/stage5/uitk-challenge-hud-resident-train（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "../moorestech_logs/uitk/reference-captures/web-8a585f742a/5-challenge-list.png", "caption": "Web 5-challenge-list 1280×720", "group": "5-challenge-list"},
     {"file": "<worktree>/moorestech_client/.uloop/outputs/compare/S5-challenge/uitk-5-challenge-list-1280x720.png", "caption": "UITK 5-challenge-list 1280×720", "group": "5-challenge-list"},
     {"file": "../moorestech_logs/uitk/reference-captures/web-8a585f742a-2560x1080/5-challenge-list.png", "caption": "Web 5-challenge-list 2560×1080", "group": "5-challenge-list"},
@@ -3555,9 +3707,9 @@ push して PR を作る（`gh pr create --base feature/uitk`）。セッショ�
   ],
   "verification": [
     "Unityコンパイル: エラー0",
-    "L0/L1: State.Challenge 11 件・Screens.Challenge.Tree 9 件 PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
+    "L0/L1: State.Challenge 11 件・Screens.Challenge.Tree 9 件・Components.Controls（GameScrollView の縦横）PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
     "test-name-parity 束 5: このレーンの持ち分 5 件の未対応 0",
-    "unityプレイ録画テスト: uitk-challenge-list PASS・uitk-challenge-hud-resident PASS（全体スイッチ GameUi）"
+    "unityプレイ録画テスト: uitk-challenge-list PASS・uitk-challenge-hud-resident PASS・uitk-challenge-hud-resident-train PASS（全体スイッチ GameUi）"
   ],
   "notes": ["差の表は moorestech_logs/harness/uitk/S5-challenge/done.md。参照は mock-host のデータ、UITK は実マスタなので中身の違いは捨てる"]
 }
@@ -3575,11 +3727,11 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の `using` と画面登録区画・`docs/uitk/TODO.md` の節の末尾）の衝突は両方の行を採る。`TutorialAnchorCoveragePending.cs` に他レーンが行を足していたらその行を残し、S5-challenge の 3 行だけを消した形にする。I-fix5 が `scenarios/uitk/` を段のサブディレクトリへ移していたら、このレーンの `stage5/` の 2 本はそのまま（パスが変わらない）。判定経路に触れる衝突（`ChallengeProgressState`・`NodeGraphView`・`UiRoutingState` の変更）を解いたときだけ Task 6 の録画を流し直す。取り込みの後に並走レーンとの照合（Global Constraints）をもう一度見る: `git grep -n "new GameScrollView(" -- moorestech_client/Assets/Scripts` に引数 1 つの呼び出しが増えていれば `GameScrollAxis.Vertical` を足す・`UiDisplay.cs` が入っていれば `ChallengeListView.SetShown` を `UiDisplay.SetShown` に替える・`GameUiScreenMountTest.cs` が入っていれば Task 5 Step 4 の行を足して L3 を流す（足したら `done.md` の依頼の行を消す）・`git grep -n "RestoreViewport" -- moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge` が 0（このレーンは使わない）。直したら compile と `$FILTER` を流し直す。G1 が緑で、未記帳 0
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の `using` と画面登録区画・`docs/uitk/TODO.md` の節の末尾）の衝突は両方の行を採る。`TutorialAnchorCoveragePending.cs` に他レーンが行を足していたらその行を残し、S5-challenge の 3 行だけを消した形にする。I-fix5 が `scenarios/uitk/` を段のサブディレクトリへ移していたら、このレーンの `stage5/` の 3 本はそのまま（パスが変わらない）。判定経路に触れる衝突（`ChallengeProgressState`・`NodeGraphView`・`UiRoutingState` の変更）を解いたときだけ Task 6 の録画を流し直す。取り込みの後に並走レーンとの照合（Global Constraints）をもう一度見る: `git grep -n "new GameScrollView(" -- moorestech_client/Assets/Scripts` に引数 1 つの呼び出しが増えていれば `GameScrollAxis.Vertical` を足す・`UiDisplay.cs` が入っていれば `ChallengeListView.SetShown` を `UiDisplay.SetShown` に替える・`GameUiScreenMountTest.cs` が入っていれば Task 5 Step 4 の行を足して L3 を流す（足したら `done.md` の依頼の行を消す）・`git grep -n "RestoreViewport" -- moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge` が 0（このレーンは使わない）。直したら compile と `$FILTER` を流し直す。G1 が緑で、未記帳 0
 
 - [ ] **Step 3: マージコミットで取り込む**
 
-Run: `gh pr merge <PR番号> --merge`
+Run（Task 6 の 3 本と `$FILTER` が緑のときだけ。他レーンの原因で赤が残るならマージせず、`done.md` を「状態: 停止（<名前> が <持ち主> の原因で赤）」にして Step 4 の合図へ進む。R-16）: `gh pr merge <PR番号> --merge`
 Expected: マージされ、`git fetch origin && git log -1 --format='%H %P' origin/feature/uitk` の親が 2 つ（Squash しない）
 
 - [ ] **Step 4: Editor を閉じ、bd を閉じ、報告を締め、合図を送る**
@@ -3602,7 +3754,7 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 
 ## Self-Review
 
-1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア・L0 5 件）・Task 4（開き直しの L1）・Task 6。R-4 → Task 3（`ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`）・Task 4（L1 3 件。付け替えと View の数）。R-5 → Task 3（View・USS・`GameScrollView` の横向き・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9。R-17 → Task 2b（`GameScrollAxis`・L1 2 件・呼び出し側 13 か所）。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
+1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア・L0 5 件）・Task 4（開き直しの L1）・Task 6。R-4 → Task 3（`ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`）・Task 4（L1 3 件。付け替えと View の数）。R-5 → Task 3（View・USS・`GameScrollView` の横向き・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`・`uitk-challenge-hud-resident-train`。Web の状態の並びのブロックインベントリと列車の入れ子ポーズを含む）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9（赤が残ればマージせず停止）。R-17 → Task 2b（`GameScrollAxis`・L1 2 件・呼び出し側 13 か所）。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
 2. **Placeholder scan**: 「TBD」「後で」は無い。`<幅>×<高さ>`・`<PR番号>`・`<bd>`・出力ディレクトリは実行時に決まる値で、埋め方を同じ Step に書いた。`GameScrollView` の横向きの content container の配置とバーの上書きの勝ち負けは実装時に `resolvedStyle` で確かめ、外れたときの直し方を Task 2b Step 3 に書いた
 3. **Type consistency**: `ChallengeNodeCardViewModel(Guid, Vector2, Vector2, IReadOnlyList<Guid>, ChallengeNodeState)`・`StateLabelKey`・`HasSameGraphPlacementAs` は Task 1・3（Kit・カード）・4 で同じ。`ChallengeListViewModel.Create(categories, selection)`・`ChallengeListViewModel.Empty`・`SelectedChallengeListViewModel.Categories/CategoryGuids/Selected`・`EmptyChallengeListViewModel` は Task 1・2・3・4 で同じ（View の switch と L0 の `AsSelected`）。`ChallengeCategoryViewModel.Create(guid, nodes)`・`TryGetInitialFocus`・`HasSameGraphAs` は Task 1・3 で同じ。`ChallengeListLogic.SameGuidSequence`・`DeriveStateLabelKey` は Task 1・3 で同じ。`ChallengeScreenVisibility.IsShown(UiRoutingSnapshot)` は Task 2・5 で同じ。`ChallengeCategoryGraph(ChallengeCategoryViewModel, IUiOsCursor)`・`View`・`Render` と `ChallengeCategoryGraphHost(IUiOsCursor)` は Task 3・4 で同じ。`ChallengeListView(IChallengeListCommands, IUiOsCursor)` と `Kit.MountList(UiLayerStack, IChallengeListCommands)` は Task 3・4・5 で同じ。`IChallengeListCommands.SelectCategory(Guid)` は `Client.Ui.State.Challenge.Commands` で Task 2・3・4・5 同じ。名前空間は State が `Client.Ui.State.Challenge`・`.Tree`・`.Tree.Selection`・`.Commands`、画面が `Client.Ui.Screens.Challenge.Tree`・`.Parts`、L1 が `Client.Tests.Ui.Screens.Challenge.Tree` で全タスク同じ
 4. **保留・縮退経路の解消可能性**: (a) `ChallengeListModel` は閉画面で組まず、解消の条件は「一覧への突入」（経路の通知で必ず来る）。表示中かは経路の今の値で読むので、選択ストアとの購読順で組み漏れも余分な組み直しも起きない。(b) 最小構成: 解放済みのカテゴリ 0（`EmptyChallengeListViewModel`。題だけ・グラフ無し。L1 `解放済みのカテゴリが無ければ…`）、カテゴリ 1・進行中 0（注目点無し → 寄せない・視点は原点。部品の既定）、初回（View を作る → 部品が寄せる）、カテゴリ列が幅に収まる（バーなし。L1）。どれも恒久の保留にならない。(c) `ChallengeCategoryGraph` の「中身が同じなら渡し直さない」は、カードの描き直しを先に済ませるので表示が古いまま残らない
@@ -3623,8 +3775,8 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-6 未解放の減光 0.55 は USS のリテラル**: GameUi は sRGB で合成する（設計書 A-180・I-blend）ので Web の値がそのまま使える。研究の `--research-node-locked-opacity` は Linear 合成の頃の補正のつまみで、チャレンジには作らない。`DerivedTokens.uss` に足さない（I-fix5 がファイルを分ける最中で、重ねない）
 - **D-7 カテゴリ列は `UiGroup(UiGap.Md)`＋nowrap を `GameScrollView` の横向きに入れて写す**（指揮の agent 既定（PLAN-W5 評価））: Web の `.categories` は `flex-wrap: nowrap`・`overflow-x: auto` で、ボタンが一覧の幅を越えたら横に送れる。UITK は `Components/Controls/GameScrollView` に向きの引数 `GameScrollAxis` を足し（Task 2b。Components の変更）、`GameScrollView("challenge-categories-scroll", GameScrollAxis.Horizontal)` に入れる。バーは中身が見える幅を越えたときだけ出し（`Auto` は押下の 1px 沈みでバーが点滅するので、縦と同じく幾何で決める）、本文の下の流れに置く（重ねると越えたときにボタンの下の 12px が押せなくなる。Web の `overflow-x: auto` の CEF の既定のバーも場所を取る。推測）。太さ・溝・つまみは縦と同じつまみで、ゲームの他のスクロール領域のバーと同じ見た目になる。ホイールの 1 ノッチは `WebWheelScale.PixelsPerNotch`。画面の USS は部品の内側のクラス（`unity-scroller__slider`・`unity-base-slider__*`・`unity-scroll-view__*`）を書かない（S5-crosscut T10 が `UiStyleConventionTest` に足す「`Screens/**/*.uss` のセレクタが `Components/**/*.uss` の定義する `__` 付きの内側クラスを含まない」に当たり、A-167 の「部品のクラスを画面が書かない」とも食い違うため）。`Theme.uss` は変えない。縦の呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数と引数 1 つの多重定義を作らない）。参照キャプチャはどちらも幅に収まってバーが写っていない（Web の CEF の既定の横バーは未計測。`W/src/**/*.css` に `::-webkit-scrollbar` は無い）ので、越えたときの見た目は台帳の「## 未撮影」に 1 行足す（Task 7。差が測れたら並べ比べ、要るなら予備の LX-200 を使う）。棄却: (a) 画面の部品 `Screens/Challenge/Parts/ChallengeCategoryScrollView`（`ScrollView` 派生）と画面 USS の内側のクラスの上書き（旧 D-7）— 部品の内側のクラスを画面が書き、S5-crosscut の検査に当たる。バーの有無の式とホイールの換算が `GameScrollView` と 2 本になる（A-167 の「画面ごとに別のスクロール部品」）。(b) `overflow: hidden` で切って台帳に例外を記帳する — Web で届くボタンが UITK で押せなくなり、カテゴリが増えた時点で黙って壊れる。(c) バーを縦と同じく本文に重ねる — 越えたときにボタンの下が押せない
 - **D-8 層と表示**: 一覧は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`。舞台の倍率と左右の余白に従う）。Presenter が 1 回だけ載せ、経路で `SetShown`（前例 `ResearchTreePresenter`）。Model は一覧の表示中だけ組む（前例 `ResearchTreeModel`）。進行中 HUD・ホットバー・キーヒントは上の層にあり、このレーンは触らない
-- **D-9 写すテストの割り振り**: `challengeLogic.test.ts` 2 件は L0。`challenge.spec.ts` の画面 2 件は L1。「常駐HUDをインベントリ・メニュー・操作モードで維持する」は、一覧の部分（HUD の位置が変わらない・一覧とカテゴリのボタンより上・層の順序）を L1 `ChallengeHudOverListTest` に `<web-test>` を付けて写し、画面を跨ぐ部分（インベントリ・一覧・研究・ビルドメニュー・ポーズ・配置・削除・1024×576）は録画 `uitk-challenge-hud-resident` で見る。L1 で全画面を載せると他レーンの View と Model を組む必要があり、テストが他レーンの持ち物に依存するため。帰結: `SubInventory` と列車の入れ子ポーズの 2 状態はブロックの設置と乗車が要るので録画に入れず、このレーンでは未検証（`done.md` の「未確認」）
-- **D-10 録画を 2 本にする**: 画面の録画 `uitk-challenge-list` と HUD の契約の録画 `uitk-challenge-hud-resident`。1 本にまとめると 200 行を越える。どちらもこのレーンの持ち分（ラダー `uitk-challenge-gate` は S5-ladder）。置き場は `scenarios/uitk/stage5/`（段のサブディレクトリの前例 `stage3/`、I-fix5 の 10n と同じ向き）
+- **D-9 写すテストの割り振り**: `challengeLogic.test.ts` 2 件は L0。`challenge.spec.ts` の画面 2 件は L1。「常駐HUDをインベントリ・メニュー・操作モードで維持する」は、一覧の部分（HUD の位置が変わらない・一覧とカテゴリのボタンより上・層の順序）を L1 `ChallengeHudOverListTest` に `<web-test>` を付けて写し、画面を跨ぐ部分（インベントリ・一覧・研究・ビルドメニュー・ポーズ・配置・削除・1024×576）は録画 `uitk-challenge-hud-resident` で見る。L1 で全画面を載せると他レーンの View と Model を組む必要があり、テストが他レーンの持ち物に依存するため。Web の状態の並び（`challenge.spec.ts:77-90`）の `SubInventory`（main-grid）と列車の入れ子ポーズ（`TrainHUDScreen`＋`PauseMenuScreen`・pause-menu）も録画で見る（指揮の agent 既定（PLAN-W5 評価））。ブロックの設置と乗車は前例 `uitk-block-inventory`・`uitk-nested-pause-train` の組み立てを写す。棄却: 2 状態を未検証のまま `done.md` の「未確認」に送る（旧 D-9）— Web が見ている状態を落とし、写したと言えない
+- **D-10 録画を 3 本にする**: 画面の録画 `uitk-challenge-list`、HUD の契約の録画 `uitk-challenge-hud-resident`（ブロックインベントリまで）、列車の入れ子ポーズの `uitk-challenge-hud-resident-train`。乗車の組み立て（前例の約 45 行）を HUD の録画に足すと 200 行を越える。どちらもこのレーンの持ち分（ラダー `uitk-challenge-gate` は S5-ladder）。置き場は `scenarios/uitk/stage5/`（段のサブディレクトリの前例 `stage3/`、I-fix5 の 10n と同じ向き）
 - **D-11 登録はサブディレクトリ**: `Client.Starter/Registration/GameUi/Screens/` は直下 10 ファイルで上限なので `Screens/Challenge/ChallengeGameUiRegistration.cs`（名前空間 `Client.Starter.Registration.GameUi.Screens.Challenge`）。`MainGameUiRegistration` に `using` 1 行と画面登録区画の 1 行
 - **D-12 Model は言語で組み直さない**: 文言はすべて `LocalizedLabel`（`FormButton` の中も）で、言語の変化で自分で解決し直す。研究の Model が言語を購読するのは詳細ペインの文を組むためで、チャレンジには組む文が無い
 - **D-13 比較の撮影は録画の中で**: 参照（mock-host）と同じデータは本番の経路で作れないので、実マスタの一覧を `uitk-challenge-list` の中で `PlaytestGameViewOps.SetResolution` を使って 1280×720・2560×1080 で撮る。中身（カテゴリの数・名前・ノードの数）の差は「捨てる（データの違い）」とし、位置・寸法・色・装飾・段組を比べる。部品だけの見本（`UiRuntimePanelCapture`）は使わない（画面の比較なので）
