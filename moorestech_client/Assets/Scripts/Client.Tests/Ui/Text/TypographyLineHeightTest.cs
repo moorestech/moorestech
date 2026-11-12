@@ -2,7 +2,6 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using NUnit.Framework;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Text
@@ -24,7 +23,6 @@ namespace Client.Tests.Ui.Text
         public void 和文1行の高さがWebの行の高さと同じ(string className, float webLineHeight)
         {
             var label = Mount(CjkLocale(), className, JapaneseLine);
-            Debug.Log($"[TypographyLineHeight] cjk {className} 1 line: {label.layout.height:F2}px");
             Assert.AreEqual(webLineHeight, label.layout.height, 0.3f);
         }
 
@@ -33,7 +31,6 @@ namespace Client.Tests.Ui.Text
         public void 欧文1行の高さがWebの行の高さと同じ(string className, float webLineHeight)
         {
             var label = Mount(rootVisualElement, className, LatinLine);
-            Debug.Log($"[TypographyLineHeight] latin {className} 1 line: {label.layout.height:F2}px");
             Assert.AreEqual(webLineHeight, label.layout.height, 0.3f);
         }
 
@@ -47,8 +44,20 @@ namespace Client.Tests.Ui.Text
             var one = Mount(locale, className, JapaneseLine);
             var three = Mount(locale, className, $"{JapaneseLine}\n{JapaneseLine}\n{JapaneseLine}");
             var pitch = (three.layout.height - one.layout.height) / 2f;
-            Debug.Log($"[TypographyLineHeight] cjk {className} 3 lines: {three.layout.height:F2}px, pitch {pitch:F2}px");
-            Assert.AreEqual(webLineHeight, pitch, 0.3f);
+            Assert.AreEqual(webLineHeight, pitch, 0.3f, $"3 lines {three.layout.height}px");
+            Assert.AreEqual(webLineHeight * 3f, three.layout.height, 0.5f);
+        }
+
+        // 欧文の字の自然な行送り（sm で 19.07）ではなく、Web の行の高さで送る
+        // Latin lines advance by the Web line height, not the glyphs' natural pitch (19.07 at sm)
+        [TestCase(UiTypographyClass.TextSm, 20.3f)]
+        [TestCase(UiTypographyClass.TextXs, 16.8f)]
+        public void 欧文3行の行送りがWebの行の高さと同じ(string className, float webLineHeight)
+        {
+            var one = Mount(rootVisualElement, className, LatinLine);
+            var three = Mount(rootVisualElement, className, $"{LatinLine}\n{LatinLine}\n{LatinLine}");
+            var pitch = (three.layout.height - one.layout.height) / 2f;
+            Assert.AreEqual(webLineHeight, pitch, 0.3f, $"3 lines {three.layout.height}px");
             Assert.AreEqual(webLineHeight * 3f, three.layout.height, 0.5f);
         }
 

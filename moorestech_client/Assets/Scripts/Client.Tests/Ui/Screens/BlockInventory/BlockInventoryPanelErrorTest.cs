@@ -1,7 +1,7 @@
-using Client.Tests.Ui.TestHost;
 using System;
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
 using Client.Ui.State.Text;

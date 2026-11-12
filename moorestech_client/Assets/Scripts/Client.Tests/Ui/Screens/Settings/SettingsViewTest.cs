@@ -1,8 +1,8 @@
-using Client.Tests.Ui.TestHost;
 using System.Linq;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Input;
 using Client.Localization;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.Settings;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;

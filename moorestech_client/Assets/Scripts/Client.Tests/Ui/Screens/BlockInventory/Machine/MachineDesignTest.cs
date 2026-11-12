@@ -1,8 +1,8 @@
-using Client.Tests.Ui.TestHost;
 using System.IO;
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Components.Recipe;
 using Client.Ui.Foundation.Text;

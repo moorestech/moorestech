@@ -1,7 +1,7 @@
-using Client.Tests.Ui.TestHost;
 using System;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.Screens.BlockInventory.Machine.RecipeSelection;

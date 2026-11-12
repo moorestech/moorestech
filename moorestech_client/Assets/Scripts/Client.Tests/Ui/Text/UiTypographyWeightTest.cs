@@ -15,25 +15,27 @@ namespace Client.Tests.Ui.Text
     {
         private const string Folder = "Assets/UI Toolkit/GameUi/Fonts";
 
-        // Web は欧文を Regular の 1 字形だけ読み込むので、Title（700）と fw={700} も Regular で描く（設計書 A-220）
-        // The Web loads only the Latin Regular face, so Title (700) and fw={700} draw with Regular too (design A-220)
-        [TestCase(UiTypographyClass.TitleOrder1, "GameUiLatin SDF")]
-        [TestCase(UiTypographyClass.TitleOrder4, "GameUiLatin SDF")]
-        [TestCase(UiTypographyClass.TextBold, "GameUiLatin SDF")]
-        [TestCase(UiTypographyClass.TextMedium, "GameUiLatinMedium SDF")]
-        [TestCase(UiTypographyClass.KeyHintText, "GameUiLatinMedium SDF")]
-        public void 太さのクラスはWebの太さの字形を当てる(string className, string assetName)
+        // Web は欧文を Regular の 1 字形だけ読み込むので、Title（700）と fw={700}・fw={500}・keyHintText も Regular で描く（設計書 A-220）
+        // The Web loads only the Latin Regular face, so Title (700), fw={700}, fw={500} and keyHintText draw with Regular too (design A-220)
+        [TestCase(UiTypographyClass.TitleOrder1)]
+        [TestCase(UiTypographyClass.TitleOrder4)]
+        [TestCase(UiTypographyClass.TextBold)]
+        [TestCase(UiTypographyClass.TextMedium)]
+        [TestCase(UiTypographyClass.KeyHintText)]
+        public void 欧文のロケールでは太さのクラスに欧文のRegularを当てる(string className)
         {
             var label = Mount(rootVisualElement, className);
-            Assert.AreEqual(Load(assetName), label.resolvedStyle.unityFontDefinition.fontAsset);
+            Assert.AreEqual(Load("GameUiLatin SDF"), label.resolvedStyle.unityFontDefinition.fontAsset);
         }
 
-        // Web は和文ロケールを NotoSansJP の Medium 1 字形で描くので、題と太字も Medium（設計書 A-220）
-        // The Web draws CJK locales with the single NotoSansJP Medium face, so titles and bold use Medium too (design A-220)
+        // Web は和文ロケールを NotoSansJP の Medium 1 字形で描くので、題・太字・500 も Medium（設計書 A-220）
+        // The Web draws CJK locales with the single NotoSansJP Medium face, so titles, bold and 500 use Medium too (design A-220)
         [TestCase(UiTypographyClass.TitleOrder2)]
         [TestCase(UiTypographyClass.TitleOrder4)]
         [TestCase(UiTypographyClass.TextBold)]
-        public void CJKのロケールでは題と太字に日本語のMediumを当てる(string className)
+        [TestCase(UiTypographyClass.TextMedium)]
+        [TestCase(UiTypographyClass.KeyHintText)]
+        public void CJKのロケールでは太さのクラスに日本語のMediumを当てる(string className)
         {
             var locale = new VisualElement();
             locale.AddToClassList(GameUiLocaleClass.CjkClassName);

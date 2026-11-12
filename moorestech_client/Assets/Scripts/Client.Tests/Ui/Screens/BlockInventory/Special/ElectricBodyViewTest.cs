@@ -1,6 +1,6 @@
-using Client.Tests.Ui.TestHost;
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Special.Energy;
 using Client.Ui.Screens.BlockInventory.Special.Network;

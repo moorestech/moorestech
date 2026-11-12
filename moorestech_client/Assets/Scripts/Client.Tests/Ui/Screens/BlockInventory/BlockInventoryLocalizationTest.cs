@@ -1,8 +1,8 @@
-using Client.Tests.Ui.TestHost;
 using System;
 using Client.Localization;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.ModeHud;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
 using Client.Ui.State.Text;

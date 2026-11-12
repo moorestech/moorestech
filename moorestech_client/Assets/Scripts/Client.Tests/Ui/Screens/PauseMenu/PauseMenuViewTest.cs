@@ -1,4 +1,3 @@
-using Client.Tests.Ui.TestHost;
 using System.Linq;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Tutorial.UIHighlight;
@@ -7,6 +6,7 @@ using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;

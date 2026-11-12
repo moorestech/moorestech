@@ -1,5 +1,5 @@
-using Client.Tests.Ui.TestHost;
 using System.Collections.Generic;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Gauges;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Family;

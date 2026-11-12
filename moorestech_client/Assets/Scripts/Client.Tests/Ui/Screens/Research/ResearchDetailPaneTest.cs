@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
 using Client.Ui.Screens.Research.Parts;
@@ -68,7 +69,7 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.IsFalse(ResearchButton().enabledSelf);
             var reason = Find<Label>(rootVisualElement, "research-detail-reason");
             Assert.IsTrue(IsShown(reason));
-            Assert.AreEqual("Not enough research items.", Kit.PlainText(reason));
+            Assert.AreEqual("Not enough research items.", reason.PlainText());
             Click(Find<VisualElement>(rootVisualElement, "research-detail-close"));
             CollectionAssert.AreEqual(new[] { "close" }, _commands.Issued);
         }

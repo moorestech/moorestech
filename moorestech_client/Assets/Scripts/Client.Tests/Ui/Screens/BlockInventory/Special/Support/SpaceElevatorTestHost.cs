@@ -1,5 +1,5 @@
-using Client.Tests.Ui.TestHost;
 using System.Linq;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;

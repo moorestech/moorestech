@@ -1,10 +1,10 @@
-using Client.Tests.Ui.TestHost;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Input.ArrowKeys;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Content;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.SectionStack;
