@@ -31,7 +31,7 @@ return PlaytestRunner.Run("uitk-event-language-gate", options, async p =>
     await p.UntilUiElement("event-language-gate", 60);
     var root = GameUiRoot.Instance.GetRootElement();
     p.Assert(!initialized, "言語を選ぶまで初期化が完了しない");
-    p.Assert(Cursor.visible && Cursor.lockState == CursorLockMode.None, "待機中は実カーソルが見えてロックされない");
+    p.Assert(UnityEngine.Cursor.visible && UnityEngine.Cursor.lockState == CursorLockMode.None, "待機中は実カーソルが見えてロックされない");
     // 字だけを比べる（I-fix5 の後の text は行の高さの印 <line-height=…px> を前に付けるので、印を外す。S5-gate D-19）
     // Compare only the words (after I-fix5 the text carries a <line-height=...px> tag up front, so drop tags; S5-gate D-19)
     var titleWords = Regex.Replace(root.Q<Label>("event-language-gate-title").text, "<[^>]+>", string.Empty);
