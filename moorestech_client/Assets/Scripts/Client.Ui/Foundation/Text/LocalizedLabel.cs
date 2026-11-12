@@ -1,4 +1,5 @@
 using System.Globalization;
+using Client.Ui.Foundation.Text.SizeRounding;
 using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Text;
@@ -18,10 +19,12 @@ namespace Client.Ui.Foundation.Text
     /// --localized-label-line-box は Web の line-height そのもの: 行送りをその px にし、高さを行数×その px にする（字は -unity-text-align で行の箱の中央に置かれ Web の half-leading と同じ位置。Typography のクラスが宣言する）。
     /// --localized-label-line-height は行送りだけ: 1 行目は字の自然な高さのまま（画面が個別に宣言する。両方あればこちらを採る）
     /// 行末の閉じ約物は LineEndPunctuationTrimmer が Chrome の text-spacing-trim: normal と同じく半角に詰めて折り返す（設計書 A-223）
+    /// 字の大きさの物理 px への丸めで広がった字の送りは、RoundedFontSizeSpacing の字間の印を前置きに足して Web の送りへ戻す（設計書 A-225）
     /// Language subscription and missing-text reporting are delegated to LocalizedTextBinding. USS has no line-height, so two knobs carry it and a <line-height> tag sets the pitch.
     /// --localized-label-line-box is the Web line-height itself: the pitch is that px and the height is line count x that px (-unity-text-align centres glyphs in the line box like the Web half-leading; declared by the Typography classes).
     /// --localized-label-line-height sets only the pitch, keeping the natural first-line height (declared per screen; it wins when both are present)
     /// LineEndPunctuationTrimmer wraps with line-end closing punctuation trimmed to half width like Chrome's text-spacing-trim: normal (design A-223)
+    /// Advances widened by rounding the font size to physical px return to the Web advance through RoundedFontSizeSpacing's spacing tag added to the prefix (design A-225)
     /// </remarks>
     public class LocalizedLabel : WrapSafeLabel
     {
@@ -32,6 +35,7 @@ namespace Client.Ui.Foundation.Text
 
         private readonly LocalizedTextBinding _binding;
         private readonly LineEndPunctuationTrimmer _lineEndPunctuationTrimmer;
+        private readonly RoundedFontSizeSpacing _roundedFontSizeSpacing;
         private string _lineHeightTag = string.Empty;
         private float _lineBoxPixels;
 
@@ -39,6 +43,7 @@ namespace Client.Ui.Foundation.Text
         {
             _binding = new LocalizedTextBinding(this);
             _lineEndPunctuationTrimmer = new LineEndPunctuationTrimmer(this, WhiteSpaceHolds);
+            _roundedFontSizeSpacing = new RoundedFontSizeSpacing(this);
             _binding.OnResolved.Subscribe(resolved =>
             {
                 SourceText = resolved;
@@ -85,11 +90,9 @@ namespace Client.Ui.Foundation.Text
             var pitch = ReadPixels(LineHeightStyle, LineHeightProperty);
             _lineBoxPixels = pitch > 0f ? 0f : ReadPixels(LineBoxStyle, LineBoxProperty);
             if (pitch <= 0f) pitch = _lineBoxPixels;
-            var lineHeightTag = pitch > 0f ? $"<line-height={pitch.ToString(CultureInfo.InvariantCulture)}px>" : string.Empty;
-            // 行送りの印が変わったときだけ描き直す（スタイルの再計算のたびに文を入れ直すと行末の約物の詰めが振り出しへ戻る）
-            // Redraw only when the line-height tag changed (re-setting the text on every style pass would restart the line-end trim)
-            if (lineHeightTag == _lineHeightTag) return;
-            _lineHeightTag = lineHeightTag;
+            _lineHeightTag = pitch > 0f ? $"<line-height={pitch.ToString(CultureInfo.InvariantCulture)}px>" : string.Empty;
+            // 倍率・字の大きさの変化で字間の印も変わりうる。前置きと原文が同じなら LineEndPunctuationTrimmer.Show が何もしない（文を入れ直すと詰めが振り出しへ戻るため）
+            // A scale or font size change may change the spacing tag too; LineEndPunctuationTrimmer.Show ignores an unchanged prefix and source (re-setting the text would restart the trim)
             ShowResolvedText();
 
             #region Internal
@@ -116,7 +119,7 @@ namespace Client.Ui.Foundation.Text
         {
             // silent-ok: 文が来るまで出さない / 載って 1 フレーム後も無ければ LocalizedTextBinding が LogError を出す
             if (SourceText == null) return;
-            _lineEndPunctuationTrimmer.Show(_lineHeightTag, SourceText);
+            _lineEndPunctuationTrimmer.Show(_lineHeightTag + _roundedFontSizeSpacing.TagFor(SourceText), SourceText);
         }
     }
 }

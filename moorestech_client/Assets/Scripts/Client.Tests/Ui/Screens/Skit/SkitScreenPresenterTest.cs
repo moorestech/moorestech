@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Client.Game.InGame.UI.UIState;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -55,8 +54,8 @@ namespace Client.Tests.Ui.Screens.Skit
             _store.PresentBlockingText("Moore", Body);
             Mount();
 
-            var text = Find<LocalizedLabel>(rootVisualElement, "skit-body").text;
-            Assert.IsTrue(Regex.IsMatch(text, "^(<line-height=[^>]*>)?" + Regex.Escape(SkitRichText.TypewriterBody(Body, Body.Length)) + "$"), $"途中から開いて本文が打ち直された: {text}");
+            var text = Find<LocalizedLabel>(rootVisualElement, "skit-body").SourceText;
+            Assert.AreEqual(SkitRichText.TypewriterBody(Body, Body.Length), text, "途中から開いて本文が打ち直された");
         }
 
         [Test]
