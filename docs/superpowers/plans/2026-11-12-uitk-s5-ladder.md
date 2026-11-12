@@ -160,7 +160,7 @@ grep -rn "\"challenge-panel\"\|challenge-category-\|challenge-node-" moorestech_
 grep -rn "event-language-gate-option-" moorestech_client/Assets/Scripts/Client.Ui | head -2
 grep -c "{ AnchorIds" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
 ```
-Expected: 起動口の 2 つの public static、`GameInitializedEvent` の名前空間（Task 6 の `using Client.Game.Common;` と違えば直す）、`WebUiHost.Hub`（`Client.WebUiHost.Boot`）、`ChallengeProgressState.Categories`（`Client.Ui.State/Challenge`）と、その要素 `ChallengeCategoryResponse` の `IsUnlocked`・`CurrentChallenges`（`Client.Network/API/Responses.cs:71-77`。Task 6 のシナリオが使う。名前が違えば S5-challenge の `uitk-challenge-list.cs` の書き方へ合わせる）、`PauseMenuScreenPresenter` の `Dispose` が 0 件（S5-crosscut T13 の後。残っていれば Task 3 のテスト 2・3 の TearDown で呼ぶ）、`LabelPlainText.cs` と `SourceText` の有無（I-fix5。無ければ Step 1 の読み替え）、`GameUiScreenMountTest` に `ChallengeListView` が載っているか（無ければ D-6 の「一覧の載り先は GameUiScreenMountTest」が成り立たないので、`done.md`「integrator への依頼」に「S5-crosscut の L3 の型の一覧に `ChallengeListView` を足す」を書き、D-6 の理由を「一覧の載りはラダー 6 の実起動が見る」に読み替えて `done.md` に書く）、testid 3 種、ゲートのボタンの名前、未移植の表の行 0（1 以上なら S5-challenge の消し忘れ。消すのはこのレーン Task 2 で、残っていた行と持ち主を `done.md` に書く）
+Expected: 起動口の 2 つの public static、`GameInitializedEvent` の名前空間（Task 6 の `using Client.Game.Common;` と違えば直す）、`WebUiHost.Hub`（`Client.WebUiHost.Boot`）、`ChallengeProgressState.Categories`（`Client.Ui.State/Challenge`）と、その要素 `ChallengeCategoryResponse` の `IsUnlocked`・`CurrentChallenges`（`Client.Network/API/Responses.cs:71-77`。Task 6 のシナリオが使う。名前が違えば S5-challenge の `uitk-challenge-list.cs` の書き方へ合わせる）、`PauseMenuScreenPresenter` の `Dispose` が 0 件（S5-crosscut T13 の後。残っていれば Task 3 のテスト 2・3 の TearDown で呼ぶ）、`LabelPlainText.cs` と `SourceText` の有無（I-fix5。無ければ Step 1 の読み替え）、`PauseMenuScreenPresenter`・`PauseMenuView`・`GraphicsQualitySettingsView`・`SprintModeSelectView` の ctor の最後の引数が `IUiOsCursor` か（S5-crosscut T9 の後。無ければ上のコード片の `new UiOsCursorRequestStack(new FakeUiOsCursorApplier())` を外す）、`GameUiScreenMountTest` に `ChallengeListView` が載っているか（無ければ D-6 の「一覧の載り先は GameUiScreenMountTest」が成り立たないので、`done.md`「integrator への依頼」に「S5-crosscut の L3 の型の一覧に `ChallengeListView` を足す」を書き、D-6 の理由を「一覧の載りはラダー 6 の実起動が見る」に読み替えて `done.md` に書く）、testid 3 種、ゲートのボタンの名前、未移植の表の行 0（1 以上なら S5-challenge の消し忘れ。消すのはこのレーン Task 2 で、残っていた行と持ち主を `done.md` に書く）
 
 - [ ] **Step 4: 申し送りの見直し**
 
@@ -354,6 +354,8 @@ git commit -m "test(uitk): アンカーの未移植の表を消し、全アン�
 - 期待: PASS（推測）
 
 ```csharp
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
 using System.Linq;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
@@ -388,7 +390,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
             _commands = new RecordingPauseMenuCommands();
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new SettingsCommands(), Toasts, Toaster, new BugReportDraft()));
+            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new SettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
             simulate.FrameUpdate();
         }
@@ -475,6 +477,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 - 期待: どちらも PASS（推測）
 
 ```csharp
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
 using System.Linq;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.UI.UIState;
@@ -518,7 +522,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
             var root = GameUiRootTestFactory.Create(_host, rootVisualElement);
-            _presenter = new PauseMenuScreenPresenter(root, routing, PauseMenuModelTestFactory.Create(_pauseMenuState), new SettingsModel(), _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft);
+            _presenter = new PauseMenuScreenPresenter(root, routing, PauseMenuModelTestFactory.Create(_pauseMenuState), new SettingsModel(), _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _presenter.Initialize();
             simulate.FrameUpdate();
         }
@@ -659,6 +663,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 - 期待: 6 は PASS（推測）。**5 は今の本番コードでは FAIL の見込み**（コードを読んだ推測で、実行していない）。`GraphicsQualityRowSwitch` は `_current` を `Apply` でしか更新しないため（`GraphicsQualityRow.cs:58,69,72-76`）、モデルが変わらないまま 2 回目を押すと影の値を Medium に戻して送る。プリセットを押しても各行の `_current` は変わらないので（`GraphicsQualitySettingsView.cs:37`）、プリセット直後の操作もプリセットを巻き戻す。ただし `ExpectedAfterPress` の testid が `graphics-shadows-off` のときは、前半の assert は通る。扱いは「足りない API・確かめられなかった前提」1
 
 ```csharp
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
 using System;
 using System.Linq;
 using Client.Game.InGame.GraphicsQuality;
@@ -687,7 +693,7 @@ namespace Client.Tests.Ui.Screens.Settings
             // 末尾の行が 720px の外へ出ても押せるよう、スクロールに入れて載せる
             // Mount inside a scroller so the last rows stay pressable beyond the 720px panel
             _commands = new RecordingSettingsCommands();
-            _view = new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands);
+            _view = new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _scroll = new ScrollView(ScrollViewMode.Vertical);
             _scroll.style.height = 720f;
             _scroll.Add(_view);
@@ -790,13 +796,15 @@ namespace Client.Tests.Ui.Screens.Settings
 - 期待: PASS（推測）
 
 ```csharp
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
         /// <web-test file="src/features/settings/SprintModeSelect.test.ts">holdの初期表示からtoggleを選択できる</web-test>
         [Test]
         public void 走りはholdの初期表示からtoggleを選択できる()
         {
             // hold で開くと hold だけが選ばれている
             // Opening on hold selects only hold
-            var view = Mount(new SprintModeSelectView(Settings(GraphicsQualityPresetChoice.Medium, false, SprintInputMode.Hold, false), _commands));
+            var view = Mount(new SprintModeSelectView(Settings(GraphicsQualityPresetChoice.Medium, false, SprintInputMode.Hold, false), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.IsTrue(IsSelected(view, "sprint-mode-option-hold"));
             Assert.IsFalse(IsSelected(view, "sprint-mode-option-toggle"));
 

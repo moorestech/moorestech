@@ -3408,7 +3408,9 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     // Wait for the HUD and read its rect
     async UniTask<Rect> HudRect(string where)
     {
-        await p.UntilUiElement("challenge-hud", 10f);
+        // HUD は Pick を拾わない（UiPickingIgnore）ので UntilUiElement（Clickable 待ち）は使わず、存在と幅だけを待つ
+        // The HUD ignores picking, so skip UntilUiElement (waits for Clickable) and wait only for existence and width
+        await UniTask.WaitUntil(() => root.Q("challenge-hud") is { } shown && shown.worldBound.width > 0f).TimeoutWithoutException(TimeSpan.FromSeconds(10));
         var hud = root.Q("challenge-hud");
         p.Assert(hud.resolvedStyle.display == DisplayStyle.Flex && hud.worldBound.width > 0f, $"{where} で HUD が出ている");
         p.Note($"{where} の HUD {hud.worldBound}");
@@ -3519,7 +3521,9 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident-train", new PlaytestRunOp
     // Wait for the HUD and read its rect
     async UniTask<Rect> HudRect(string where)
     {
-        await p.UntilUiElement("challenge-hud", 10f);
+        // HUD は Pick を拾わない（UiPickingIgnore）ので UntilUiElement（Clickable 待ち）は使わず、存在と幅だけを待つ
+        // The HUD ignores picking, so skip UntilUiElement (waits for Clickable) and wait only for existence and width
+        await UniTask.WaitUntil(() => root.Q("challenge-hud") is { } shown && shown.worldBound.width > 0f).TimeoutWithoutException(TimeSpan.FromSeconds(10));
         var hud = root.Q("challenge-hud");
         p.Assert(hud.resolvedStyle.display == DisplayStyle.Flex && hud.worldBound.width > 0f, $"{where} で HUD が出ている");
         p.Note($"{where} の HUD {hud.worldBound}");

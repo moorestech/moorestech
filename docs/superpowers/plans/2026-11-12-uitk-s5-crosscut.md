@@ -35,7 +35,7 @@
 | R-15 | DC-30 A トークン値の CI | `convert-web-tokens.mjs`・`convert-mantine-tokens.mjs` が `--check`（書かずに差があれば exit 1）を持ち、`run_test.yml` の webui-test が base（か head）が `feature/uitk` の PR でだけ両方を回す（G1 と同じ条件）。依存の無い `node --test tools/uitk/webTokens/tests/*.test.mjs`（2 件）は `uitk-web-follow-gate.yml` の自己テストの job に並べる。手元で両方 `--check` が exit 0 |
 | R-16 | DC-31 A Presenter の結線 | L1 `PresenterMountTest`（本番の `UiLayerStack`・`GameUiRootTestFactory`・切り替えられる `UiRoutingState`）が `uiState.spec` の 5 件を写して緑。L3 `GameUiScreenMountTest` が実ゲームの起動後に、全画面の View が Presenter の決めた層（`GameUiRoot.GetLayer(UiLayer, UiFamily)`）に 1 つだけあり、Render が届いていること（ホットバーの枠の数が 0 でない・持ち物を開くと枠が 0 でない）を見る（DI 登録漏れ・層の取り違え・購読の消し忘れの網）。段ごとの L3 は各ラダーのレーンの物を数える（D-14） |
 | R-17 | 比較撮影と独立評価 | 1-pause-top・2-skit-choices・2-skit-text・2-challenge-hud-multiple-long・3-build-menu・3-modal・4-item-list-large・4-research・4-block-chest・4-block-machine・1-toast・2-notifications・5-japanese-inventory・1-bug-report・2-world-pin-offscreen・5-tutorial-outline-label・2-train-hud・2-tooltip・2-key-control-hint・2-progress-labeled・3-hotbar-equipment-empty・1-settings・4-block-train・4-block-trainTimetable・4-block-trainPlatform・4-block-electricToGear・4-block-filterSplitter・4-block-electricPole・4-block-spaceElevator と recipe の `4-recipe-selected-craft`（`web-9ce5557bdb-s4-recipe`）を 1280×720 と 2560×1080 で撮り、参照と並べて opus の評価役 2 体が別々に判定。再現した差は直すか LX-205〜206 に記帳。`done.md`「差の表」に全行の処遇 |
-| R-18 | DC-32 A Presenter の型 | ゲーム寿命の Presenter・Relay・Binder・Installer・Applier 18 本と `RecipeSelectionCloseReset` から例外なく（X-audit DC-32 の 19 本。実物でも 19 本） `IDisposable` を外し、`Dispose` を呼ぶテストの 3 行を消す（D-16）。S5-gate の DI 前の土台 `GameUiPreDiFoundation` もこの 2 型の `Dispose` を呼ばない形で、どちらが先に入ってもコンパイルが通る（T0 Step 3 で照合）。設計書 §4.2 の型の改訂案をメモへ |
+| R-18 | DC-32 A Presenter の型 | ゲーム寿命の Presenter・Relay・Binder・Installer・Applier 18 本と `RecipeSelectionCloseReset` から例外なく（X-audit DC-32 の 19 本。実物でも 19 本） `IDisposable` を外し、`Dispose` を呼ぶテストの 4 行（`RecipeSelectionCloseResetTest.cs`:40・:74 を含む）を消す（D-16）。S5-gate の DI 前の土台 `GameUiPreDiFoundation` もこの 2 型の `Dispose` を呼ばない形で、どちらが先に入ってもコンパイルが通る（T0 Step 3 で照合）。設計書 §4.2 の型の改訂案をメモへ |
 | R-19 | DC-23 A Web ホストの判定 | `UiStateActions.IsAllowed` を消して `UiStateTransitionRules.IsAllowed` を呼ぶ、`CraftActions`・`CraftingRecipesTopic`・`RecipeViewerItemListTopic`・列車の 7 組（s4-train 計画「## 本 PR 外のリファクタ提案」の 1〜8 行目）が State の Catalog・Commands・変換を呼ぶ。付け替え先のうちインスタンスの 3 型（`RecipeViewerItemCatalog`・`ITrainTimetableCommands`・`ITrainBlockCommands`）は両方の系で走る `MainGameUiStateRegistration` で登録し（D-36）、L3 `WebUiSystemStateRegistrationTest` 1 件が Web の系の起動で 3 型の解決を見る（CEF の有無に依らない）。`Client.Tests/WebUi/` の既存テスト緑、Web 系の録画（R-21）が退行 0 |
 | R-20 | AC-5・Warning | AC-5 の 48 件（除外 3 件は D-18）を単一参照のローカル関数へ移す。`BugReportFormView` の 3 件（:107・:173・:185）は I-fix6（DC-22 の持ち主）の取り込み後の実物で、移しても 200 行未満に収まるときだけ移し、収まらなければ新しい型を作らず落として `done.md` に理由を書く（D-24）。Warning の S5-crosscut 候補 4 行を拾う／見送るで 1 行ずつ処遇（c22-si×2・c46-cc は拾う、c63-cc は見送る） |
 | R-21 | 録画 | 反映後のバイナリで、GameUi のラダー 1〜5（`uitk-lifeline`・`stage2/uitk-opening-hud`・`stage3/uitk-build-bp`・`stage4/uitk-production-loop`・`stage4/uitk-research-train`）と横断の録画 9 本（T20 Step 2）が `Success: true`。Web 系で `misc/ui-state-transition-matrix`・`misc/localization-language-switch-via-ui`・`train/fluid-inventory-via-interact`・`train/train-timetable-via-ui`・`train/train-station-default-name`・`playtest-receiver/developer-report-delivery`・`playtest-receiver/developer-report-interrupt`（manifest v7。`webUiHealth` が Web ホストの起動を見るので Web の系）が CEF の出る環境なら `Success: true`（出なければ RendererUnavailable の行を証拠に「未確認」） |
@@ -100,7 +100,7 @@
 | ポーズメニュー・スキットの見た目 | 生きる | 上書きの経路だけ替える。並べ比べ 1-pause-top・2-skit-choices・2-skit-text で確かめる（T10・T19） |
 | Web ホストの遷移の許可・クラフト・列車の時刻表（Web 系） | 生きる | 判定を State の 1 本へ付け替えるだけで wire の文字列は変えない（T15。`Client.Tests/WebUi/` の既存テスト・Web 系の録画） |
 | Web の系の起動（`WebUiGameBinder.Bind` の DI の解決） | 生きる | 付け替え先のインスタンス 3 型を両方の系で登録する（T15 Step 2b・D-36）。L3 `WebUiSystemStateRegistrationTest` が Web の系で解決を見る（CEF・hub の有無に依らない）。GameUi の系は `GameUiSkeletonTest`・録画のラダー 4 で見る |
-| Presenter の破棄（シーンを畳むとき） | 消える（意図） | ゲームはメインメニューへ戻らない設計で破棄は来ない（AGENTS.md 既知の制約）。L1 の後始末で呼んでいた 3 行は消す（どれも源をテストごとに作り直す。D-16） |
+| Presenter の破棄（シーンを畳むとき） | 消える（意図） | ゲームはメインメニューへ戻らない設計で破棄は来ない（AGENTS.md 既知の制約）。L1 の後始末で呼んでいた 4 行は消す（どれも源をテストごとに作り直す。D-16） |
 
 ## 申し送りの処遇
 
@@ -739,7 +739,7 @@ Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-v
 - Modify: `Screens/Recipe/Parts/RecipeEntryList.cs`（:31,124-149。:142 の `_scroll.Q<GameScrollView>().contentContainer` の直書き）・`Components/Controls/RecipeListScrollView/RecipeListScrollView.cs`（:12・:27 のローカル変数 `scroll` をフィールド `_scroll` へ）・`Screens/BuildMenu/CategoryScroll/BuildMenuScrollClipInset.cs`（呼び手 `BuildMenuScrollBinding.cs`:23）・`Components/NodeGraph/NodeGraphView/NodeGraphView.cs`（:22,140-159）・`Screens/BlockInventory/BlockInventoryNaturalScroll.cs`（:14,30-41）・`Screens/Research/Parts/ResearchCalcKnobs.cs`（:32 `ApplyScrollBleed`。左右だけ）
 - 置き換えない（D-6）: `Screens/Recipe/ItemListView.cs`:106-127 の `ApplyClipClearance`（左・上・下の 3 辺で右を持たず、margin に実測の基準値〈`--…-margin-left-base`・`-top-base`〉を足す。Web `features/recipe/panels/ItemListPanel.module.css`:32-55 も同じ 3 辺と基準値で、右は `margin-right: 4.435px` でつまみの位置を詰める。共有の式に入れると右の margin と padding が増え、縦のつまみが inset px 右へずれる）
 
-**Interfaces:** Consumes: `GameScrollView`（`ctor(string testid)`・`contentContainer`・`OnContentLayoutChanged`）。Produces: `UiScrollClipInset.Apply(VisualElement outer, VisualElement inner, float inset)`（4 辺）・`UiScrollClipInset.ApplyOuterMargin(VisualElement outer, float inset)`・`UiScrollClipInset.ApplyInnerPadding(VisualElement inner, float inset)`（外と内が別の持ち主のとき）・`UiScrollClipInset.ApplyHorizontal(VisualElement outer, VisualElement inner, float inset)`（左右だけ）・`RecipeListScrollView.SetClipPadding(float inset)`
+**Interfaces:** Consumes: `GameScrollView`（`ctor(string testid)`。S5-challenge が先に入っていれば `ctor(string testid, GameScrollAxis axis)`・`contentContainer`・`OnContentLayoutChanged`）。Produces: `UiScrollClipInset.Apply(VisualElement outer, VisualElement inner, float inset)`（4 辺）・`UiScrollClipInset.ApplyOuterMargin(VisualElement outer, float inset)`・`UiScrollClipInset.ApplyInnerPadding(VisualElement inner, float inset)`（外と内が別の持ち主のとき）・`UiScrollClipInset.ApplyHorizontal(VisualElement outer, VisualElement inner, float inset)`（左右だけ）・`RecipeListScrollView.SetClipPadding(float inset)`
 
 - [ ] **Step 1: 実装を読み、式を表にする**: 各実装の「外側に負の margin・内側に正の padding」の向き（4 辺か左右だけか）・元の margin を足すか・margin と padding を当てる要素が同じ持ち主か・つまみ名（USS の `--*-clip-inset`）を判断記録 D-6 に表で書く。起草時の実測（評価の指摘を実物で確かめた形）:
 
@@ -887,7 +887,7 @@ Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-v
 **Interfaces:** Consumes: `MeshWriteData.SetNextIndex(ushort)`・`Painter2D.MoveTo/LineTo`。Produces: `GridMeshIndexWriter.WriteQuads(MeshWriteData mesh, int rows, int columns, int stride)`・`Painter2DSquareCap.AddSegment(Painter2D painter, Vector2 from, Vector2 to, float halfWidth)`・`Painter2DSquareCap.Extend(Vector2 end, Vector2 from, float length)`・`ShadowRingMeshWriter.RingCount`（8）・`ShadowRingMeshWriter.CenterMargin`（0.01f）
 
 - [ ] **Step 1: 並びの照合**: 5 か所の index が「左上・右上・右下」「左上・右下・左下」（`GamePanelFace.cs`:106-115 の形）と同じかを読み、違う並び（`ItemHeaderRule`:67-72・`CrosshairShadowRing`:90-95 は起草時に別の並び）は置換しない。同じ並びのものだけを表にして D-7 に書く
-- [ ] **Step 2: L1（赤）**: `GridMeshIndexWriterTest` — 2×3 の格子（stride 4）で 36 個の index の最初の 6 個が `0,1,5,0,5,4`、最後の 6 個が `6,7,11,6,11,10`（`MeshWriteData` は `MeshGenerationContext` の外で作れないので、`WriteQuads` の内部の並びを `GridMeshIndexWriter.QuadIndices(int row, int column, int stride)`〈`ushort[6]` を返す〉に出し、それを試す）。`Painter2DSquareCapTest` — `Extend(new Vector2(10,0), Vector2.zero, 2f)` が `(12,0)`
+- [ ] **Step 2: L1（赤）**: `GridMeshIndexWriterTest` — 2×3 の格子（stride 4）で 36 個の index の最初の 6 個が `0,1,5,0,5,4`、最後の 6 個が `6,7,11,6,11,10`（`MeshWriteData` は `MeshGenerationContext` の外で作れないので、`WriteQuads` の内部の並びを `GridMeshIndexWriter.QuadIndices(int row, int column, int stride)`〈4 欄の `GridQuadIndices` 構造体を返す。`WriteTo(mesh)` が並び `TopLeft,TopRight,BottomRight,TopLeft,BottomRight,BottomLeft` を書く〉に出し、その 4 欄が `(0,1,5,4)` のように並ぶこと（6 個の並びは `WriteTo` が固定）を試す）。`Painter2DSquareCapTest` — `Extend(new Vector2(10,0), Vector2.zero, 2f)` が `(12,0)`
 - [ ] **Step 3: 作る**
 
 ```csharp
@@ -907,23 +907,44 @@ namespace Client.Ui.Foundation.Theme.Mesh
             for (var row = 0; row < rows; row++)
             for (var column = 0; column < columns; column++)
             {
-                foreach (var index in QuadIndices(row, column, stride)) mesh.SetNextIndex(index);
+                QuadIndices(row, column, stride).WriteTo(mesh);
             }
         }
 
-        public static ushort[] QuadIndices(int row, int column, int stride)
+        public static GridQuadIndices QuadIndices(int row, int column, int stride)
         {
             var topLeft = (ushort)(row * stride + column);
-            var topRight = (ushort)(topLeft + 1);
             var bottomLeft = (ushort)(topLeft + stride);
-            var bottomRight = (ushort)(bottomLeft + 1);
-            return new[] { topLeft, topRight, bottomRight, topLeft, bottomRight, bottomLeft };
+            return new GridQuadIndices(topLeft, (ushort)(topLeft + 1), (ushort)(bottomLeft + 1), bottomLeft);
+        }
+    }
+
+    // 四角 1 枚の 4 頂点の index。配列を作らず描き直しの割り当てを 0 に保つ
+    // The 4 vertex indices of one quad; no array is allocated so redraws stay allocation-free
+    public readonly struct GridQuadIndices
+    {
+        public readonly ushort TopLeft, TopRight, BottomRight, BottomLeft;
+
+        public GridQuadIndices(ushort topLeft, ushort topRight, ushort bottomRight, ushort bottomLeft)
+        {
+            TopLeft = topLeft;
+            TopRight = topRight;
+            BottomRight = bottomRight;
+            BottomLeft = bottomLeft;
+        }
+
+        public void WriteTo(MeshWriteData mesh)
+        {
+            mesh.SetNextIndex(TopLeft);
+            mesh.SetNextIndex(TopRight);
+            mesh.SetNextIndex(BottomRight);
+            mesh.SetNextIndex(TopLeft);
+            mesh.SetNextIndex(BottomRight);
+            mesh.SetNextIndex(BottomLeft);
         }
     }
 }
 ```
-
-`WriteQuads` が毎フレーム配列を作るのが重ければ（描き直しの多い `ScreenVignette`）、`QuadIndices` を `SetNextIndex` 6 回に展開した私的な版を `WriteQuads` の中に置き、`QuadIndices` は同じ並びを返すテスト用ではなく `WriteQuads` が使う唯一の並びとして残す（テスト専用の public を作らない。`QuadIndices` を `WriteQuads` が呼ばない形にはしない）
 
 ```csharp
 // S/Client.Ui/Foundation/Theme/Mesh/Painter2DSquareCap.cs
@@ -1349,7 +1370,7 @@ Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-v
 
 **Files:**
 - Modify: `Components/Controls/IconButton/IconButton.cs`・`PanelActionButton/PanelActionButton.cs`・`ModeSwitch/ModeSwitch.cs`（:101 `CreateOptionButton`）
-- Modify（呼び手）: IconButton — `Screens/BlockInventory/BlockInventoryView.cs`:55・`Screens/Skit/Parts/Toolbar/SkitToolbar.cs`:81・`Screens/BuildMenu/Parts/BuildMenuPanelSkeleton.cs`:71／PanelActionButton — `RocketLaunchPadTitleActionView`:55・`TrainStationNameRow`:34・`TrainTimetableStationListView`:65・`PauseMenuTopPageView`:48・`InventoryView`:48・`TrainTimetableStopListView`:105・`PauseMenuSubPageView`:37／ModeSwitch — `LanguageSelectView`:33・`SprintModeSelectView`:33・`TrainInventoryBodyView`:29・`BugReportFormView`:54・`GraphicsQualitySettingsView`:36・`GraphicsQualityRow`:50・`FilterDirectionView`:46・`ElectricToGearBodyView`:72・`TrainPlatformModeSection`:24・`TrainTimetableSectionView`:39・`BuildMenuCategorySidebar`:48／ギャラリー（`Client.Ui.Editor` の 7 か所）／テスト（IconButton 1・PanelActionButton 3）。起草後に増えた呼び手は `git grep -n "new IconButton(\|new PanelActionButton(\|new ModeSwitch<" -- moorestech_client/Assets/Scripts` で拾う
+- Modify（呼び手）: IconButton — `Screens/BlockInventory/BlockInventoryView.cs`:55・`Screens/Skit/Parts/Toolbar/SkitToolbar.cs`:81・`Screens/BuildMenu/Parts/BuildMenuPanelSkeleton.cs`:71／PanelActionButton — `RocketLaunchPadTitleActionView`:55・`TrainStationNameRow`:34・`TrainTimetableStationListView`:65・`PauseMenuTopPageView`:48・`InventoryView`:48・`TrainTimetableStopListView`:105・`PauseMenuSubPageView`:37・`SpaceElevatorSectionView`:30（`private readonly PanelActionButton _connect = new("space-elevator-connect", …);` の型省略の初期化。`_connect` の生成を ctor へ移して `IUiOsCursor` を受け、生成元 `SpaceElevatorBodyView`:38 の `new SpaceElevatorSectionView(kit)` へ `IUiOsCursor` を渡す。`SpecialViewKit` 経由でもよい）／ModeSwitch — `LanguageSelectView`:33・`SprintModeSelectView`:33・`TrainInventoryBodyView`:29・`BugReportFormView`:54・`GraphicsQualitySettingsView`:36・`GraphicsQualityRow`:50・`FilterDirectionView`:46・`ElectricToGearBodyView`:72・`TrainPlatformModeSection`:24・`TrainTimetableSectionView`:39・`BuildMenuCategorySidebar`:48／ギャラリー（`Client.Ui.Editor` の 7 か所）／テスト（IconButton 1・PanelActionButton 3）。起草後に増えた呼び手は `git grep -nE "new IconButton\(|new PanelActionButton\(|new ModeSwitch<|(PanelActionButton|IconButton|ModeSwitch[A-Za-z<>]*) [_a-zA-Z]+ = new\(" -- moorestech_client/Assets/Scripts` で拾う
 - Test: `S/Client.Tests/Ui/Components/Controls/PointerCursor/CommonButtonPointerCursorTest.cs`（`Controls/` 直下は .cs 9 本＋`ControlKnobOverrides.uss` で既に 10 ファイルなのでサブディレクトリ。既存の `ModeSwitch/`・`RecipeAction/` と同じ形）
 
 **Interfaces:** Consumes: `IUiOsCursor.Request(UiOsCursorShape, UiOsCursorLayer)`・`UiOsCursorHoverRequest(VisualElement, IUiOsCursor, UiOsCursorShape, UiOsCursorLayer)`（`Foundation/Input/OsCursor/UiOsCursorHoverRequest.cs`）・テスト `UiOsCursorRequestStack(new FakeUiOsCursorApplier())`（`Client.Tests/Ui/TestDoubles/FakeUiOsCursorApplier.cs`）。Produces: `IconButton(string testid, VisualElement glyph, IUiOsCursor osCursor)`・`PanelActionButton(string testid, <I-fix6 後のラベルの型> label, IUiOsCursor osCursor)`・`ModeSwitch<TValue>(string, ModeSwitchOrientation, ModeSwitchRole, IReadOnlyList<ModeSwitchOption<TValue>>, IUiOsCursor osCursor)`
@@ -1547,7 +1568,7 @@ export function writeOrCheck(repositoryRoot, relativePath, text, checkMode) {
 **Interfaces:** Produces: 各型の宣言が `: IInitializable`（または元の基底）だけ
 
 - [ ] **Step 1: 一覧の照合**: `git grep -n "IDisposable" -- 'moorestech_client/Assets/Scripts/Client.Ui/**/*.cs' 'moorestech_client/Assets/Scripts/Client.Ui.State/**/*.cs'` を読み、ゲーム寿命（DI の Singleton・EntryPoint）か、短命（行・区画・ハンドル・購読の器）かを分ける。外すのは前者だけ。表を D-16 に書く
-- [ ] **Step 2: Dispose を呼ぶテスト**: `NotificationLayeringTest.cs`:43（`_presenter?.Dispose()`）・`NotificationFeedRelayTest.cs`:42（`_relay.Dispose()`）・`RecipeSelectionCloseResetTest.cs`:40（`_reset.Dispose()`）の 3 行を消す（`TearDown` の残りの行は残す）。どれも源をテストごとに作り直すので、購読がテストの間で漏れない: `NotificationFeedRelay` は注入された `_feed.OnNotified`（`NotificationFeedRelay.cs`:30）を、`NotificationLayerPresenter` は `_model.Current`・`_stageScaleSource.Scale`（:46-47）を購読し、テストの `SetUp` が `NotificationFeed`・`NotificationModel`・`ReactiveProperty<float>` を毎回作る。`RecipeSelectionCloseReset` は `UiRoutingState` をテストごとに作り直す。静的な源（`Localize.OnLanguageChanged`・`UiInputExclusivity.TextInputFocused`）を購読する `GameUiLocaleClassBinder`・`GameUiSrgbCompositeInstaller`・`ImeCompositionModeApplier` を作るテストは 0 件（再評価の時点の `git grep -ln "new GameUiLocaleClassBinder\|new GameUiSrgbCompositeInstaller\|new ImeCompositionModeApplier" -- moorestech_client/Assets/Scripts/Client.Tests`）。よって 18 本と `RecipeSelectionCloseReset` は例外なく外す（D-16）
+- [ ] **Step 2: Dispose を呼ぶテスト**: `NotificationLayeringTest.cs`:43（`_presenter?.Dispose()`）・`NotificationFeedRelayTest.cs`:42（`_relay.Dispose()`）・`RecipeSelectionCloseResetTest.cs`:40（`_reset.Dispose()`）・:74（`lateReset.Dispose()`）の 4 行を消す（`TearDown` の残りの行は残す）。どれも源をテストごとに作り直すので、購読がテストの間で漏れない: `NotificationFeedRelay` は注入された `_feed.OnNotified`（`NotificationFeedRelay.cs`:30）を、`NotificationLayerPresenter` は `_model.Current`・`_stageScaleSource.Scale`（:46-47）を購読し、テストの `SetUp` が `NotificationFeed`・`NotificationModel`・`ReactiveProperty<float>` を毎回作る。`RecipeSelectionCloseReset` は `UiRoutingState` をテストごとに作り直す。静的な源（`Localize.OnLanguageChanged`・`UiInputExclusivity.TextInputFocused`）を購読する `GameUiLocaleClassBinder`・`GameUiSrgbCompositeInstaller`・`ImeCompositionModeApplier` を作るテストは 0 件（再評価の時点の `git grep -ln "new GameUiLocaleClassBinder\|new GameUiSrgbCompositeInstaller\|new ImeCompositionModeApplier" -- moorestech_client/Assets/Scripts/Client.Tests`）。よって 18 本と `RecipeSelectionCloseReset` は例外なく外す（D-16）
 - [ ] **Step 3: 外す**: 各型の `IDisposable` と `Dispose()` と、そのためだけのフィールド（`_subscription` の保持など）を消す。購読は `Subscribe(...)` の戻り値を捨てる形でよい（ゲーム寿命）。Step 2 の 0 件が取り込み後に変わっていない（静的な源を購読する型を EditMode の L1 が作っていない）ことを `git grep -n "Localize.OnLanguageChanged\|InputManager\.\|InputSystem.on"` と上の `new` の grep（3 型）で確かめる。作るテストが増えていたら、IDisposable を残さず、そのテストが源の側を作り直す形へ直す
 - [ ] **Step 4: 設計書**: §4.2 の型（:338-344 の `IInitializable, IDisposable` と `public void Dispose();`）を `IInitializable` だけにする改訂案をメモへ
 - [ ] **Step 5**: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.Ui\."`（`--timeout-seconds 1500`）→ 失敗 0。コミット `refactor(uitk): ゲーム寿命の Presenter・Relay・Binder・Installer から IDisposable を外す（DC-32 A。S5-crosscut T13）`
@@ -1747,7 +1768,7 @@ Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStat
 セッション終了可能状態にすること: pr-createスキルでPRを作成し、コンフリクトがあれば解消・コンパイル確認のうえpushする。このレーンは実行計画 §4.3 の形（base=feature/uitk、agent がマージ）。
 
 - [ ] **Step 1: PR**: pr-create で `base=feature/uitk`。報告ページ `https://review.moores.tech/pr/<番号>/report/` に並べ比べ（参照・UITK の組）と録画を、`Mac mini の環境ローカル規約（CLAUDE.local の「PR の成果物の載せ先」）が指す publish の README` の manifest の書式で載せ、本文の先頭行をその URL の h1（`# <URL>`）にする。公開に失敗したら報告 URL 無しで完了にしない
-- [ ] **Step 2: 取り込み**: `git merge origin/feature/uitk`。共有区画の衝突は両方の行を採る。S5-challenge・S5-gate が先に入っていれば、その画面の直書き（T2）・`IDisposable`（T13）・指カーソルの呼び手（T9）・`Screens/Challenge/CurrentHud/` に同じ置換を当てる（D-20）。`uloop compile`・T2 Step 5 と T18 Step 3 の検査・`uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.Ui\."`。判定経路に触れた衝突なら Task 20 の該当録画を再走。push
+- [ ] **Step 2: 取り込み**: `git merge origin/feature/uitk`。共有区画の衝突は両方の行を採る。S5-challenge・S5-gate が先に入っていれば、その画面の直書き（T2）・`IDisposable`（T13）・指カーソルの呼び手（T9）・`Screens/Challenge/CurrentHud/` に同じ置換を当てる（D-20）。S5-challenge が先に入っていれば `new GameScrollView(` の引数 1 つの呼び出しが 0 件であることも確かめる（あれば `GameScrollAxis.Vertical` を足す。`RecipeListScrollView.cs` の呼び出しが 1 件目）。`uloop compile`・T2 Step 5 と T18 Step 3 の検査・`uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.Ui\."`。判定経路に触れた衝突なら Task 20 の該当録画を再走。push
 - [ ] **Step 3: G1 とマージ**: PR の `UITK Web follow gate (G1)` が pass・未記帳 0 を見て `gh pr merge <番号> --merge`（Squash 禁止）
 - [ ] **Step 4: 片付け**: `moores-wt status` で自分の Editor だと確かめて閉じる。録画・`PlaytestResults/`・TestResults・撮影 PNG を消す。bd を close。worktree の `moores-wt rm` は指揮が行う
 - [ ] **Step 5: 報告と合図**: `done.md` の 1 行目を「状態: 完了」（止まったら「状態: 停止（理由）」）にし、証拠・PR URL・割り当ての処遇（R-22 の表）・差の表・未完了・要裁定・integrator への依頼（A-244〜A-248 の本文案・設計書 §1.1／§2.7／§4.2 の改訂案・未使用の番号・段ごとの L3 の欠け）を書いて `../moorestech_logs` でコミット・push。最後に `cmux wait-for -S uitk-s5-crosscut` を 1 回
