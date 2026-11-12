@@ -15,43 +15,50 @@
 | # | 要件 | 受け入れ基準 |
 |---|---|---|
 | R-1 | 前提がそろっている | Task 1 で次を全部確かめて `done.md`「## 起点」に書く: X-5a〜X-5e の `done.md` の 1 行目が「状態: 完了」・各 PR が `feature/uitk` にマージ済み、HEAD に `moorestech_web/`・`moorestech_client/Assets/Scripts/Client.WebUiHost/` が無い、`manifest.json`・`packages-lock.json` に `jp.juha.cefunity` が 0、`UiSystemEditorSwitch` が 0、束 2・4・5 が `暗転` で起点がある、ラダー 6 本と全録画のスクリプト・G4 のスクリプトが実在する。1 つでも欠ければ `done.md` を「状態: 停止（前提の欠け: <何が>）」にして合図して止まる |
-| R-2 | master の取り込み | 最新の `origin/master` を `feature/uitk` へマージし、`merge-base(origin/master, HEAD)` が `origin/master` の HEAD と一致する。消したファイルとの衝突は消す側で解く。取り込みで入った master の Web コミットは束ごとに記帳する（「判定」の欄は `写した` か `捨てた` の 2 語のどちらかだけ。写し先・理由は 4 列目。`ledger.py:190,193`）。UITK へ写す必要のある Web の変更があれば、写すのは I-follow（指揮が起こす）で、このレーンは「停止（I-follow 待ち）」にして待つ |
+| R-2 | master の取り込み | 最新の `origin/master` を `feature/uitk` へマージし、`merge-base(origin/master, HEAD)` が `origin/master` の HEAD と一致する。消したファイルとの衝突（modify/delete）は、`moorestech_web/**`・`Client.WebUiHost/**` に加えて 5a〜5d が消したパスも全部消す側で解く。git は消したディレクトリの中へ master が新しく足したファイルを衝突にせず黙って入れるので、取り込みの直後（マージのコミットの前）に「撤去済みの場所に在るファイル」（Task 2 Step 2 の R-LIST）を列挙して 0 を確かめ、在ればその中身を UITK 側へ写して（I-follow の手順。このレーンが行い、停止しない）記帳し、ファイルは `git rm` で消してマージのコミットに含める。取り込みで入った master の Web コミットは束ごとに記帳する（「判定」の欄は `写した` か `捨てた` の 2 語のどちらかだけ。写し先・理由は 4 列目。`ledger.py:190,193`）。取り込みの後に C-1〜C-9・G4・compile・`^Client\.Tests\.Ui\.` が通る（D-29） |
 | R-3 | `feature/uitk` 上の Web コミットの記帳 | 全束の「暗転の起点」より後に、その束の Web パスを触った非マージコミット（休止の撤去・5c の `moorestech_web/` 削除・`localizationKeys.ts` の再生成・その他の Web 変更）が「## 追従記録」に束ごとに 1 行ずつある。`localizationKeys.ts` の再生成だけのコミットは前例どおり判定 `写した`（4 列目に同じコミットの csv と C#）、それ以外は判定 `捨てた`（4 列目に理由。空だと台帳のパースエラー `ledger.py:193`）。判定の欄に括弧書きを付けない（`写した`・`捨てた` の完全一致しか通らない `ledger.py:190`） |
 | R-4 | 全束 `切替済み`・全行 `UITK` | 「## 束」の 5 行の状態が `切替済み`（起点は変えない）、「## 行」の全行（起草時 48 行）の所有者が `UITK`。`python3 .github/scripts/check-uitk-web-follow.py --base origin/master --head HEAD` が exit 0 で「違反なし」・全束「未記帳 0 件」。push 後に `--head origin/feature/uitk` でも同じ。`python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_web_follow_real_ledger.py' -v` が OK |
 | R-5 | G4 緑 | X-5e が作った G4（期待 `python3 .github/scripts/check-uitk-no-web.py --root .`。X-5e 計画 Task 2 の Produces）がローカルで exit 0（許可リストの外で `WebUi`・`webui`・`Cef`・`CEF`・`Kestrel`・`moorestech_web` が 0 件）。切替 PR の `UITK no-Web gate (G4)` の job が pass。統合計画 §5.1-2 の「`Client.WebUiHost`・`moorestech_web/`・Web 用の Kestrel が無い」を、パスの不在と「`.cs`・`.asmdef`・`packages.config` のコメント以外の行に `Kestrel`・`Microsoft.AspNetCore` が 0」で確かめる（コメントに残る語は G4 の許可リストが理由付きで持つ。D-24） |
-| R-6 | 独立レビュー（pr-independent-review の代わり） | moores-code-review を base `9f32a03390`（X-audit が見た範囲の終わり）で 1 回回し、自動適用を反映。切替 PR の全体を opus の評価役 2 体に別々に判定させ、設計判断になる指摘は別の subagent に再現させて再現したものだけ残す。ゴール・裁定から外れるものは `done.md`「要裁定」と PR 本文へ |
-| R-7 | 凍結する HEAD のテスト | 凍結する HEAD（以後のビルド・録画の対象）で `uloop compile` が ErrorCount 0。`winunity test-all feature/uitk`（`Client.Tests` だけ。`~/bin/winunity:10`）の summary の失敗が、Windows だけの既知の失敗（I-fix5 R-19。X-audit の `done.md` の 14 件: `-nographics` の描画で UiSrgbComposite 10・UiRuntimePanelCapture 2、パス区切りで TutorialAttentionToken 2）の名前の集合に含まれ、それ以外が 0。既知の 3 クラスは Mac の Editor で `uloop run-tests` の失敗 0。サーバーの `^Tests\.` は Mac の Editor で失敗 0。playtest の契約テスト 5 本（`test-release-playtest-mac.sh` を含む）が PASS（D-23） |
+| R-6 | 独立レビュー（pr-independent-review の代わり） | moores-code-review を `9f32a03390`（X-audit が見た範囲の終わり）より後の feature 側のコミット（`9f32a03390..$PRE_MERGE_HEAD`・取り込みの後の feature 側の非マージのコミット・取り込みのマージの `--remerge-diff`。master 側から来たコードは対象にしない。D-31）で 1 回回し、自動適用を反映。切替 PR の全体を opus の評価役 2 体に別々に判定させ、設計判断になる指摘は別の subagent に再現させて再現したものだけ残す。ゴール・裁定から外れるものは `done.md`「要裁定」と PR 本文へ |
+| R-7 | 凍結する HEAD のテスト | 凍結する HEAD（以後のビルド・録画の対象）で `uloop compile` が ErrorCount 0。Windows（winunity）で Task 6 Step 2 の 18 本の regex（`Client.Tests` の全部と `^Tests\.` の全部を重なりなく覆う。1 本 10 分未満で前景）を流し、各本の total が 0 でなく `timedOut`・`NO RESULT` が 0、失敗の名前が「既知の Windows だけの失敗」の集合に含まれ、それ以外が 0。既知の集合は、X-audit の `done.md` の 14 件（`-nographics` の描画の UiSrgbComposite 10・UiRuntimePanelCapture 2、パス区切りの TutorialAttentionToken 2。I-fix5 R-19）と、前のレーンの最新の Windows の全体の記録（X-5d の `done.md` の撤去後の 18 本、X-5a の `done.md` の `winunity test-all` の起点と最終 HEAD）の失敗の名前の和。集合の名前は全部 Mac の Editor でクラスのフィルタで流し直して失敗 0（Mac でも落ちたら Windows だけの失敗ではないので既知に数えない）。playtest の契約テスト 5 本（`test-release-playtest-mac.sh` を含む）が PASS（D-23・D-28） |
 | R-8 | CEF の無いプロジェクトでラダー 6 本 | 凍結した HEAD の Mac の Editor で `uitk-lifeline`・`uitk-opening-hud`・`uitk-build-bp`・`uitk-production-loop`・`uitk-research-train`・`uitk-challenge-gate` が `Success: true`・ErrorLogs 0（W6-17 の読み） |
 | R-9 | CEF の無いプロジェクトで全録画 | 凍結した HEAD で全録画のスクリプトの一覧を全本流し、1 本 1 行の TSV（設計書 [A-177] の列 `scenario・system・exit・seconds・run_dir`。スクリプトの TSV は X-5a が `system` を外したので、`done.md` の表で `system` に `GameUi` を入れる）と [A-177] の 6 分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）を `done.md`「## 全録画の結果」に書く。`束 5 未移植`・`wwxy`・`Web 専用`・`不具合` が 0（見つけたものは bd で持ち主へ回し、直って再走で PASS）。exit 0 以外の行に X-prerun と同じ比べ方の印（`既存`／`退行`／`比較不能（新設）`／`比較不能（変更）`。基準は X-prerun の UITK 側の結果）を付け、`退行` 0（D-8） |
-| R-10 | Windows/Mac の配布ビルドと playtest-staging | 凍結した HEAD の 40 桁 SHA を `MOORESTECH_BUILD_BRANCH=feature/uitk` で `release-playtest.sh` に渡して焼き、`release_require_windows_artifact`・`release_require_mac_artifact`（5b が反転した CEF 0 の検査を含む）が通り、steamcmd で playtest-staging へ上がり、`validate_staging.py` が `validated-steam-build.json` を書く。`build-info.json` の `commit` が凍結した SHA・`branch` が `feature/uitk`。playtest への反映（`promote_playtest.py`・Steamworks の手動ライブ設定）とパッチノートはしない |
-| R-11 | CEF のファイルが 0（統合計画 §5.1-1） | release.log に CEF の検査の失敗が無いことに加え、Steam から入った実物で確かめる: Mac の `moorestech.app` の下に `cef-unity-server.app` も名前に `cef` を含むファイルも 0、Windows 検証機のインストール先の `moorestech_Data/Plugins/x86_64` に名前に `cef` を含むファイルが 0 |
+| R-10 | Windows/Mac の配布ビルドと playtest-staging | 凍結した HEAD の 40 桁 SHA を `MOORESTECH_BUILD_BRANCH=feature/uitk` で `release-playtest.sh` に渡して焼き、`release_require_windows_artifact`・`release_require_mac_artifact`（5b が反転した CEF 0 の検査を含む）が通り、steamcmd で playtest-staging へ上がり、`validate_staging.py` が `validated-steam-build.json` を書く。`build-info.json` の `commit` が凍結した SHA・`branch` が `feature/uitk`。`promotion.md` の先頭に「反映禁止」の行がある（Task 8 Step 7。D-32）。playtest への反映（`promote_playtest.py`・Steamworks の手動ライブ設定）とパッチノートはしない |
+| R-11 | CEF のファイルが 0（統合計画 §5.1-1） | release.log に CEF の検査の失敗が無いことに加え、Steam から入った実物で確かめる: Mac の `moorestech.app` の下に `cef-unity-server.app` も名前に `cef` を含むファイルも 0、Windows 検証機のインストール先の `moorestech_Data/Plugins/x86_64` に名前に `cef` を含むファイルが 0。あわせて両 OS の `StreamingAssets/WebUi` が無い（X-5c の申し送り。Web の配布物の前処理〈`WebUiProductionArtifactBuilder`〉が消えたことの確かめ。R-11 の名前の検査は `cef` だけなので別に見る） |
 | R-12 | Windows 検証機の通し検証 | `verify-on-windows.sh` の phase1・phase2 がどちらも `success:true`、受け口の READY を確認して ACK（`[verify] passed`）。phase1・phase2 の Player.log（`verify-on-windows.sh` は `results` しか回収しないので、Task 9 で上書きされる前に検証機の `Player.log`〈phase2〉と `Player-prev.log`〈phase1〉を ssh で取る。D-26）に `DllNotFoundException`・`TypeLoadException`・`FileNotFoundException`・`MissingMethodException` が 0（X-5d の申し送り）。phase2 の録画が成立している（ffmpeg の同梱。X-5b の申し送り `FfmpegRuntimeBundler.cs:49-52` の `Plugins/x86_64` 前提） |
 | R-13 | 遠隔実行の 3 点（統合計画 §5.1-3・ADR 0072） | Windows 検証機の staging ビルドを Steam 経由で起動し、(1) `--remoteExec` ありで `return 1 + 1;` が `Succeeded`・`2`、(2) Harmony の Postfix の差し込みと解除が `Succeeded`・`20,777777,20`、(3) `--remoteExec` なしで 25100〜25119 に待受が無く `access.json` が無く Player.log に「起動オプションが無いため遠隔実行は無効です」 |
 | R-14 | Mac の Steam（moores-playtest-release の手順 4） | Mac mini の Steam（ベータ playtest-staging）で `appmanifest_1958160.acf` の `buildid` が release.log の BuildID と一致・`StateFlags` 4 → `steam://run/1958160` → ワールドに入る → Tab でインベントリ（UITK）が開くスクショ → Cmd+Q。回避操作の要否・Player.log の 3 行を `promotion.md` と `done.md` に書く |
-| R-15 | IME の一巡（統合計画 §4.9・W6-17） | Windows 検証機と Mac の配布ビルド（どちらも staging）で、入力欄 4 つ（バグ報告 `bug-report-description`・検索 `build-menu-search`・BP 名 `modal-input`・駅名 `train-station-name-input`）ごとに、遠隔実行で画面を開いてフォーカスし、OS 段の合成キーで `nihongo`→変換→確定し、遠隔実行で値が `日本語` を含み・確定後の ESC で値が残ってフォーカスだけ外れることを読む。各欄の変換中のスクショ 1 枚（下線と候補窓の位置）。合否と証拠を `done.md`「## IME の一巡」の表へ |
-| R-16 | 検証中の master の Web 更新 | Task 6〜12 の各タスクの頭で `git fetch origin` し、`git log --oneline HEAD..origin/master -- moorestech_web/` が空でなければ Task 2 の手順で取り込んで記帳し、D-9 の基準で影響する検証をやり直す。最後の検証の後にも同じ確認をして空であることを `done.md` に書く |
-| R-17 | 切替 PR | pr-create で head=`feature/uitk`・base=`master` の PR（中継ブランチなし）。本文の先頭行は報告ページの URL の h1、続けて「何を切り替えたか・検証の結果・既知の差・要裁定・ユーザーの目視の手順・マージの方法（マージコミット。Squash しない）」。報告ページにラダー 6 本の録画・Mac の Steam のスクショ・IME のスクショ・検証の要約。PR の `UITK Web follow gate (G1)` と `UITK no-Web gate (G4)` の job が pass。マージはしない |
+| R-15 | IME の一巡（統合計画 §4.9・W6-17） | Windows 検証機と Mac の配布ビルド（どちらも staging）で、入力欄 4 つ（バグ報告 `bug-report-description`・検索 `build-menu-search`・BP 名 `modal-input`・駅名 `train-station-name-input`）ごとに、遠隔実行で画面を開いてフォーカスし、OS 段の合成キーで次を打って遠隔実行で値を読む（Task 11 Step 3）: (a) `nihongo`→変換→変換中の ESC で取り消す（画面は開いたまま・フォーカスは残る・値に `日本語` が無い）(b) `nihongo`→変換→確定（値が `日本語` を含み `composition=[]`）(c) フォーカスを外して戻した後の再入力が値に入る (d) 確定後の ESC: バグ報告・検索・駅名は値が残ってフォーカスだけ外れる、BP 名（`modal-input`）は同じ 1 回でモーダルが取り消される（`ModalView.cs:71-73,110-114`。ModalScreenPresenterTest の仕様）。各欄の変換中のスクショ 1 枚（下線と候補窓の位置）。画面を開けなかった欄は IME の合否と別の行に「開けない（手順の失敗）」と書き、IME の不合格に数えない。合否と証拠を `done.md`「## IME の一巡」の表へ |
+| R-16 | 検証中の master の Web 更新 | Task 6〜12 の各タスクの頭で `git fetch origin` し、`git log --oneline HEAD..origin/master -- "${RLIST[@]}"`（Task 2 の撤去済みの場所の一覧）が空でなければ Task 2 の手順で取り込んで記帳し、D-9 の基準で影響する検証をやり直す。最後の検証の後にも同じ確認をして空であることを `done.md` に書く |
+| R-17 | 切替 PR | pr-create で head=`feature/uitk`・base=`master` の PR（中継ブランチなし）。本文の先頭行は報告ページの URL の h1、続けて「何を切り替えたか・検証の結果と検証の範囲・既知の差・要裁定・ユーザーの目視の手順・マージの方法（マージコミット。Squash しない）・戻す先（今 playtest に出ている BuildID。Task 12 Step 3）」。報告ページにラダー 6 本の録画・Mac の Steam のスクショ・IME のスクショ・検証の要約。PR の `UITK Web follow gate (G1)` と `UITK no-Web gate (G4)` の job が pass。マージはしない |
 | R-18 | ユーザーへ渡すもの | 目視の手順（検証ビルドの起動の仕方・見る項目＝統合計画 §4.9 の実機の項目と IME の体感・出展モードを付けて起動する操作〈Task 9 Step 5 で検証機で通した操作〉と、出展モードは起動時に既定のワールドを消す注意〈`EventModeAutoStartActions.cs:12`〉・X-prerun の全画面の並べ比べの報告ページ）を PR 本文と `done.md`「ユーザーの残タスク」に。独立評価の設計判断は `done.md`「要裁定」へ |
 | R-19 | LX-218〜219 | 目視・IME で見つけた差のうち直せないもの（設計書 §3.4 の条件に当たるもの）だけ、文面を `done.md`「## 見た目の例外の案」に LX-218・219 で書き、行と印は I-fix が同じ PR で置く（このレーンは USS・C# を持たない）。配置・色の系統・装飾の有無・文字の大きさの差は例外にせず `要裁定` の Q-n へ |
 | R-20 | 完了の定義の証拠 | `done.md`「## 完了の定義」に統合計画 §5.1 の 1〜4 の各行の証拠（コマンドの出力・ログの行・スクショ）を書き、5（playtest で 1 周期）は X-release の持ち物と書く。§5.1-4 の「壊れている 10 本」（台帳「## 壊れた録画の割り振り」の 10 行。X-prerun R-5 が 1 行ずつ現存／削除／後継に分けて片付けた。起草時は 10 行のうち現存 8 本・削除 2）は bd `moorestech-wwxy` が CLOSED であることを `bd show` で確かめ、現存の本と後継が R-9 の全録画で PASS であることを書く |
+| R-22 | 前の段からの申し送り | Task 1 Step 11 で X-prerun・X-5a〜X-5e の `done.md` の「申し送り」「integrator への依頼」「未確認」（と同じ役の節）を読み、X-switch-pr 宛て（切替 PR・配布ビルド・検証機・IME 宛てを含む）の項を全部 `done.md`「## 申し送りの受け」へ写し、各項を受けるタスクを 1 行ずつ書く。起草時に計画から見込んだ項（下の「## 申し送りの受け」の表）は全部タスクがあり、表に無い項が出たら同じ形で受けるタスクを決めて足す（受け先の無い項 0） |
+| R-23 | server の配布ビルド（X-5d の申し送り） | 凍結した HEAD で `gh workflow run build.yml --ref feature/uitk` を 1 回流し、`Server Build - StandaloneWindows64`・`Server Build - StandaloneOSX` が success、そのログに X-5d の `done.md` が写す消した server の NuGet 13 件の名前が 0 件。同じ run の `Client Build - *` の結論も `done.md` に書く。Linux の DedicatedServer は `build.yml:65-68` で matrix からコメントアウトされていて dispatch でも焼けないので、焼けないことを `done.md`「## 未確認」と PR 本文の「検証の範囲」に書く（D-30） |
 | R-21 | 締め | 最終タスク対（moores-code-review → pr-create・G1/G4 緑）→ Editor を閉じる → 録画・撮影・`Saves/` の片付け → `done.md`（1 行目「状態: 完了」）をコミット・push → `cmux wait-for -S uitk-x-switch-pr` を 1 回 |
 
 ### やらないこと
 - 切替 PR のマージ・`gh pr merge`・`feature/uitk` 向けの PR（このレーンのコミットは `feature/uitk` へ直接積む。D-3）
 - playtest への反映（moores-playtest-release の手順 3 のパッチノートと手順 5。`promote_playtest.py`・`promotion.md` の「反映」節の手作業）。X-release の持ち物
-- コードの新規作成・画面の修正・シナリオの書き換え（シナリオは X-5a の持ち物〈W6-8〉、USS は X-prerun、画面は各レーン。見つけた不具合は bd で回して止まる）
+- コードの新規作成・画面の修正・シナリオの書き換え（シナリオは X-5a の持ち物〈W6-8〉、USS は X-prerun、画面は各レーン。見つけた不具合は bd で回して止まる）。例外は master の取り込みで入った Web の変更を UITK へ写す I-follow の手順（Task 2 Step 4。指揮の補足で、このレーンが停止せずに行う。D-29）
 - 台帳の「## 束」「## 行」「## 追従記録」以外の節（「## 実測の結論」「## 見た目の例外」等）・`docs/uitk/disposition.md`・設計書・実行計画の本文（改訂の下書きは末尾）
 - 台帳と G1（`docs/uitk/TODO.md`・`.github/scripts/check-uitk-web-follow.py`・`uitk_web_follow/`・`uitk-web-follow-gate.yml`）の削除（切替 PR の中で消すと G1 が起動しない。X-cleanup が消す）
-- 配布ビルドで DSL を動かす仕組み（W6-17）。CI の `ビルド検証` ラベル（配布ビルドは手元の `release-playtest.sh` で焼いたものを検証する。D-14）
-- Codex（ユーザー指示「一旦 Codex セッションは使わない」）。pr-independent-review（スキルは ed461b35de で削除済み）
+- 配布ビルドで DSL を動かす仕組み（W6-17）。CI の `ビルド検証` ラベル（client の配布ビルドは手元の `release-playtest.sh` で焼いたものを検証する。server の配布ビルドだけ `build.yml` を `workflow_dispatch` で 1 回流す。D-14・D-30）
+- Codex（ユーザー指示「一旦codexは使わず、claudeセッションで今からこの計画の遂行をして」〈`conductor.md`、2026-11-06 15:55〉）。pr-independent-review（スキルは ed461b35de で削除済み）
 
 ## Global Constraints
 
 1. AGENTS.md 全部（1 ファイル 200 行未満・1 ディレクトリ 10 ファイル・partial と `Func<>` 禁止・try-catch は外部境界だけ・UniRx・2 行コメント〈日本語 1 行→英語 1 行〉・`#region Internal` はメソッド内のローカル関数だけ・デフォルト引数禁止・.meta を手で作らない・Prefab/シーンを手で編集しない〈uloop execute-dynamic-code 経由はよい〉・fail-closed の経路はログ・コード変更後は必ず compile）
-2. 実装はこのホスト（Mac mini）の Claude Code の subagent（opus）で行う。Codex は使わない（指揮の指示「一旦 Codex セッションは使わない」）。実行計画 §5 の codex-audit・外部監査は **opus の subagent 2 体の独立評価**で代える（目的・裁定・設計書・完了条件と成果物の実物だけを渡して別々に判定。設計判断になる指摘は別の subagent に再現させ、再現したものだけ残す）
-3. Unity Editor: **Mac mini の Editor は全体で 1 本まで**（このレーンの worktree の 1 本。起動・停止の前に `moores-wt status` で所有を確かめる）。2 本目以降が要るときは Windows（RTX2060）の `~/bin/winunity`（push 済みのブランチを使う。`winunity compile|test|test-all|play <branch> <scenario.cs>|edc`。X-5a の後なので `--ui-system` は付けない）。subagent は Editor を起動しない。配布ビルドの batchmode の Unity が動く間は Mac の Editor を閉じる（D-13）
-4. 区切り（タスク）ごとにコミットする。subagent はバックグラウンドのポーリングで待たず前景で実行する。`.superpowers/` はコミットしない。唯一の例外は約 70 分の `release-playtest.sh` で、本体（controller）が Bash の `run_in_background` で起動し Monitor でログの行を受ける（moores-playtest-release 手順 1 の形。D-12）
-5. 録画: `run-scenario.sh`（`.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh`）。X-5a の後なので全体スイッチは無く、録画の前に何も流さない。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）。録画の前に push する（未 push の HEAD でバグ報告の箱が巨大になり送信トーストが 60 秒を超える。C2-b の申し送り）。受け口は `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` で本番へ送らない（Editor の録画。配布ビルドの検証機の phase2 は本番の受け口へ送り、`verify-on-windows.sh` が自分で ACK する）
+2. 実装はこのホスト（Mac mini）の Claude Code の subagent（opus）で行う。Codex は使わない（ユーザー指示「一旦codexは使わず、claudeセッションで今からこの計画の遂行をして」〈`conductor.md`、2026-11-06 15:55〉）。実行計画 §5 の codex-audit・外部監査は **opus の subagent 2 体の独立評価**で代える（目的・裁定・設計書・完了条件と成果物の実物だけを渡して別々に判定。設計判断になる指摘は別の subagent に再現させ、再現したものだけ残す）
+3. Unity Editor: **Mac mini の Editor は全体で 1 本まで**（このレーンの worktree の 1 本。起動・停止の前に `moores-wt status` で所有を確かめる）。2 本目以降が要るときは Windows（RTX2060）の `~/bin/winunity`（push 済みのブランチを使う。`winunity compile|test|play <branch> <scenario.cs>|edc`。`test-all` は前景の 600 秒に収まらないので使わない〈Global Constraints 4〉。X-5a の後なので `--ui-system` は付けない）。subagent は Editor を起動しない。配布ビルドの batchmode の Unity が動く間は Mac の Editor を閉じる（D-13）
+4. 区切り（タスク）ごとにコミットする。subagent はバックグラウンドのポーリングで待たず前景で実行する。`.superpowers/` はコミットしない。前景の Bash 1 回の上限は 600 秒なので、10 分を超えうるコマンドは 1 本 10 分未満に分けて前景で流す: テストは `winunity test-all` も `--timeout-seconds 1500` の大きな `uloop run-tests` も使わず、Task 6 Step 2 の 18 本の regex（否定先読みの補集合で全体を重なりなく覆う。1 本が `timedOut` なら表の割り方で 2 本に割る）、CI は `timeout 580 gh run watch <id> --exit-status` を exit 124 の間だけ繰り返す（Task 8 Step 8）。分けられないものだけ、本体（controller。subagent ではない）が Bash の `run_in_background` で 1 回起動し、完了の通知で受ける（ポーリングしない）: 約 70 分の `release-playtest.sh`（ログの行は Monitor で受ける。moores-playtest-release 手順 1 の形。D-12）・Windows に worktree を作る初回の `winunity compile`・GUI Editor の起動を含む最初の `--editor` の本・1 クラスで 600 秒を超えるテスト（D-28）
+5. 録画: `run-scenario.sh`（`.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh`）。X-5a の後なので全体スイッチは無く、スイッチを立てるコマンドは流さない。`run-scenario.sh` は起動済みの Editor へシナリオを投げるだけで、シェルの環境変数は Editor のプロセスに届かない（`uitk-lifeline.cs:31-32` は Editor のプロセスの値が `http://127.0.0.1:9` でなければ「本番へ送るので中止」の例外を投げる）。そこで Editor を起動するたび（Task 1 Step 9・Task 13 の起動し直し・D-9 の流し直しの前）と、各録画・撮影の前に、次の**録画の前置き**を流して戻り値を見る（前例 X-5a 計画 Task の「受け口だけ外す」・X-5d 計画 Global Constraints の「録画の前置き」・X-prerun 計画 Global Constraints 5。X-prerun の `done.md`「## 5a への申し送り」の前置きが違えば、そこから全体スイッチの行を除いたものに替える）:
+   ```bash
+   uloop control-play-mode --project-path ./moorestech_client --action Stop
+   uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE","http://127.0.0.1:9"); Client.Localization.Localize.Initialize(); var ja = Client.Localization.Localize.TrySetChosenLanguage("japanese"); return System.Environment.GetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE") + " ja=" + ja;'
+   ```
+   Expected: `http://127.0.0.1:9 ja=True`。違えば録画に入らない（前置きの欠けで落ちた録画を不具合として持ち主へ回さない）。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）。録画の前に push する（未 push の HEAD でバグ報告の箱が巨大になり送信トーストが 60 秒を超える。C2-b の申し送り）。受け口は `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` で本番へ送らない（Editor の録画。配布ビルドの検証機の phase2 は本番の受け口へ送り、`verify-on-windows.sh` が自分で ACK する）
 6. 録画 mp4・`PlaytestResults/`・TestResults xml・撮影 PNG は worktree の gitignore 下に置き、検証後に消す（報告ページへ載せる分は先に載せる）。`../moorestech_logs` に置くのは md と小さな JSON とスクショ 3 枚程度まで（書く前に `../moorestech_logs/README.md` を読む）。テストで `Saves/` に作ったワールドは `.agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で探して消す
 7. 番号: 設計書 §7.1 の行は **A-259** だけ、見た目の例外は **LX-218〜LX-219** だけ（W6-18）。計画は設計書・実行計画を書かない（改訂の下書きは末尾の「## 設計書・実行計画へ反映する行」）
 8. 共有ファイル（`docs/uitk/TODO.md`・`docs/uitk/disposition.md`・`localization.csv`・`Registration/GameUi`・`MainGameUiRegistration`・tss・asmdef）は自分の行・節だけ触る。取り込みの衝突は両方の行を採る
@@ -97,10 +104,12 @@
 | 台帳 `docs/uitk/TODO.md` の「## 束」（全束 `切替済み`）・「## 行」（全行 `UITK`）・「## 追従記録」の行（feature/uitk 上の Web を触った全コミットと、取り込んだ master の Web コミット） | 書く（持ち主） |
 | 切替 PR の本文・報告ページの manifest（`$SP` に置き repo に入れない） | 書く |
 | 検証の記録 `$H/X-switch-pr/done.md`（repo 外） | 書く |
-| master の取り込みの衝突の解決（Task 2） | 書く（I-weekly の役をこのレーンが持つ。D-6） |
+| master の取り込みの衝突の解決と、撤去済みの場所に戻ったファイルの `git rm`（Task 2） | 書く（I-weekly の役をこのレーンが持つ。D-6・D-29） |
+| 取り込みで入った master の Web の変更を UITK へ写す I-follow の手順（Task 2 Step 4。写し先の `Client.Ui/**`・`Client.Ui.State/**`・`localization.csv`・L1 テスト・その画面の録画） | 書く（指揮の補足。このレーンが停止せずに行う。写した行は台帳へ `写した` で記帳。D-29） |
 | moores-code-review の自動適用（Task 5・Task 13） | 書く（レビューの必須の対。D-11） |
 | 台帳の他の節（「## 読み方と運用」「## 参照キャプチャ」「## 未撮影」「## agent 既定」「## 実測の結論」「## 壊れた録画の割り振り」「## 見た目の例外」）・`docs/uitk/disposition.md` | 触らない（X-prerun・X-5c・各レーン） |
-| `Client.Ui/**`・`Client.Ui.State/**`・`Client.Starter/**`・シナリオ（`S/**`）・`tools/uitk/**`・`scripts/playtest/**`・`.github/**`・スキル・ADR・`.decisions/` | 触らない（X-prerun・X-5a〜5e。見つけた不具合は bd で回す） |
+| `Client.Ui/**`・`Client.Ui.State/**`・`Client.Starter/**`・シナリオ（`S/**`）・`tools/uitk/**`・`scripts/playtest/**`・`.github/**`・スキル・ADR・`.decisions/` | 触らない（X-prerun・X-5a〜5e。見つけた不具合は bd で回す。`Client.Ui/**`・`Client.Ui.State/**` は上の I-follow の手順の写し先だけ例外） |
+| `$RUNS/<LABEL>/promotion.md` の先頭の「反映禁止」の 1 行と「Mac 版の手動確認」の欄（repo 外） | 書く（Task 8 Step 7・Task 10 Step 5。「反映」節は触らない。D-32） |
 
 ---
 
@@ -111,7 +120,7 @@
 | 区分 | 確かめるもの | コマンド（下のブロックの番号） | 期待 |
 |---|---|---|---|
 | 5a | 全体スイッチ・Web ロケータ・入力の Web の項・CEF 停止の記録 | C-1 | 0 |
-| 5a | manifest v7 | C-2 | 1 以上 |
+| 5a | manifest v7（付け直されていればその版。X-5a 計画 D-28） | C-2 | 1 以上 |
 | 5b | CEF のパッケージ・prefab | C-3 | どれも 0 |
 | 5b | 配布の CEF 0 の検査 | C-4 | 「CEF のファイルが 0」の検査の行だけ（helper の存在を要求する行が無い） |
 | 5c | Web ホストと Web 資産 | C-5 | `gone` |
@@ -125,7 +134,7 @@
 # C-1（起草時の HEAD では 70 件と 1 件。enum は `-P` の \b で数える）
 git grep -n -E 'UiSystemEditorSwitch|UiSystemBootSelection|WebUiHostEditorSkip|SwitchedUiElementLocator|WebUiHealthReading|IWebUiHealthProbe' -- moorestech_client/Assets/Scripts | wc -l
 git grep -n -P 'enum UiSystem\b' -- moorestech_client/Assets/Scripts | wc -l
-# C-2
+# C-2（7 は 5a が webUiHealth を外した版。切替までに master が manifest の版を上げて取り込まれ、5a〈か取り込みのレーン〉が「webUiHealth を外した版」を次の番号へ付け直していたら、付け直した版の番号に読み替える。X-5a 計画 D-28。番号は X-5a の done.md の「integrator への依頼」と、取り込みのレーンの done.md から写し、D-15 に「7 → <n>」を書く）
 git grep -n 'SchemaVersion = 7' -- moorestech_client/Assets/Scripts | wc -l
 # C-3（起草時の HEAD では prefab が 3）
 grep -c 'jp.juha.cefunity' moorestech_client/Packages/manifest.json moorestech_client/Packages/packages-lock.json
@@ -145,6 +154,25 @@ ls tools/uitk/test-name-parity.mjs
 
 ---
 
+## 申し送りの受け（前の段からこのレーン宛ての項）
+
+起草時に X-prerun・X-5a〜X-5e の計画から見込んだ項。実行時は Task 1 Step 11 で各 `done.md` の「申し送り」「integrator への依頼」「未確認」を読み、表に無い項を同じ形で足す（受け先の無い項を残さない。R-22）。
+
+| 出所 | 項 | 受けるタスク |
+|---|---|---|
+| X-5a R-4・死活表 | 配布ビルドで Client.Ui が登録され UITK で描く | Task 10 Step 4（Tab のインベントリ・Player.log に `WebUiHost`・`Cef` の行 0）・Task 11 |
+| X-5b R-15 (1) | Windows の `moorestech_Data/Plugins/x86_64` が CEF 無しでも作られ ffmpeg が同梱される（`FfmpegRuntimeBundler.cs:49-52` の前提） | Task 8 Step 5（phase2 の録画）・Step 6（`ffmpeg=1` 以上・`plugins-dir=True`） |
+| X-5b R-15 (1) | `release_require_no_cef_files` が実ビルドで誤検知しない（とくに `icudtl.dat`・`chrome_*_percent.pak`） | Task 8 Step 3 の「CEF の検査で落ちた」の分岐（当たったファイルが CEF の物か Unity の物かを見分ける）・Step 7（検査の行を写す） |
+| X-5b R-15 (1) | Linux クライアントの除外の bd の id | Task 14 Step 2 の PR 本文「検証の範囲」 |
+| X-5c R-11・R-16 | 削除コミット `D` を暗転中の各束の `捨てた` で記帳 | Task 1 Step 6（SHA を写す）・Task 3 Step 4（`<5c 削除>` の行） |
+| X-5c やらないこと | `StreamingAssets/WebUi` が配布物に無い | Task 8 Step 6（Windows）・Task 10 Step 2（Mac） |
+| X-5d R-12 (1) | client の配布ビルドで消した DLL 55 件が足りなくならない | Task 8 Step 5（検証機の Player.log の例外 0 と、55 件の名前が例外の行に 0）・Task 10 Step 3（Mac の Player.log） |
+| X-5d R-12 (2)・D-20 | server の配布ビルド（`build.yml` の Server Build。Windows・Mac）が通り、消した 13 件の名前がログに 0 | Task 8 Step 8（R-23） |
+| X-5e の bd の処遇 | `moorestech-s2zk.1`（配布ビルド・steamcmd・検証機の通し）をこのレーンの bd へ `bd dep` で結ぶ | Task 1 Step 10 |
+| X-5e の bd の処遇・X-prerun の「## 未撮影」 | IME（`moorestech-lc9ty.3` の駅名入力を含む）と変換中の見た目 | Task 11（変換中のスクショ） |
+
+---
+
 ## File Structure
 
 | ファイル | 種類 | 責務 |
@@ -153,6 +181,8 @@ ls tools/uitk/test-name-parity.mjs
 | `$H/X-switch-pr/done.md` | Create（repo 外。`../moorestech_logs` でコミット・push） | 状態・起点・完了条件ごとの証拠・全録画の結果・IME の一巡・完了の定義・PR URL・未完了・要裁定・ユーザーの残タスク・integrator への依頼 |
 | `$SP/x-switch-pr/` | 作業用（コミットしない） | 台帳を書き換える Python・記帳の下書き・遠隔実行の snippet と PowerShell・IME の鍵送りのスクリプト・評価役への依頼文と報告・報告ページの manifest |
 | `moorestech_client/Temp/uitk-recordings/` | 作業用（gitignore 下） | 全録画の一覧と TSV |
+| `moorestech_client/.uloop/outputs/compare/X-switch-pr/` | 作業用（gitignore 下） | W6-6 (a)(b) の基準と撮り直し（Task 1 Step 12・D-9）、I-follow の比較の撮影（Task 2 Step 4） |
+| I-follow の写し先（`Client.Ui/**`・`Client.Ui.State/**`・`localization.csv`・L1 テスト） | Modify/Create（写すものがあるときだけ） | master の取り込みで入った Web の変更を UITK へ写す（Task 2 Step 4・D-29） |
 
 ---
 
@@ -165,7 +195,7 @@ ls tools/uitk/test-name-parity.mjs
 
 **Interfaces:**
 - Consumes: X-5a〜X-5e・X-prerun の `done.md`（`$H/<ID>/done.md`）、X-5e の G4（期待: `python3 .github/scripts/check-uitk-no-web.py --root <repo> [--allowlist <path>] [--report]` が許可リスト外 0 件で exit 0〈1＝許可リスト外に語がある・2＝許可リストの書式誤りか腐った行〉、workflow `.github/workflows/uitk-no-web-gate.yml` の job 名 `UITK no-Web gate (G4)`。X-5e 計画 `docs/superpowers/plans/2026-11-12-uitk-x-5e.md` Task 2 の Produces から写した形で、実物と違えば D-15 に書いて以後のコマンドを読み替える）、全録画のスクリプト（期待: X-5a が系の引数を外した `tools/uitk/list-recordings.sh`〈引数なし。標準出力に 1 行 1 本・標準エラーに外した名前と理由〉と `tools/uitk/run-all-recordings.sh <list.txt> <out.tsv> <開始行> <本数>`〈TSV の列 `scenario exit seconds run_dir`〉。`tools/uitk/recordings/` の下の場合あり。`usage:` の行から写し、違えば D-15）、ラダー 6 本（期待のパス: `S/uitk/uitk-lifeline.cs`・`S/uitk/stage2/uitk-opening-hud.cs`・`S/uitk/stage3/uitk-build-bp.cs`・`S/uitk/stage4/uitk-production-loop.cs`・`S/uitk/stage4/uitk-research-train.cs`・`S/uitk/stage5/uitk-challenge-gate.cs`）
-- Produces: `done.md`「## 起点」（凍結前の HEAD・`origin/master` の SHA・前提の確認の結果・G4 と全録画のスクリプトの実際のコマンド・ラダー 6 本の実際のパス・X-prerun の報告ページの URL と GameUi の全録画の TSV の在処）、bd `<bd>`
+- Produces: `done.md`「## 起点」（凍結前の HEAD・`origin/master` の SHA・前提の確認の結果・G4 と全録画のスクリプトの実際のコマンド・ラダー 6 本の実際のパス・X-prerun の報告ページの URL と GameUi の全録画の TSV の在処・X-prerun の全録画を流した HEAD の 40 桁 SHA〈以後 `<PRERUN_HEAD>`〉・既知の Windows だけの失敗の名前の集合〈R-7〉）、`done.md`「## 申し送りの受け」（R-22）、W6-6 の基準の撮影（Step 12）、bd `<bd>`
 
 - [ ] **Step 1: 場所と枝を確かめる**
 
@@ -210,7 +240,7 @@ Expected: 5 行とも状態 `暗転` で起点がある。`Web` の束が残っ�
 
 - [ ] **Step 6: X-prerun の基準を写す**
 
-`$H/X-prerun/done.md` から、PR の報告ページの URL（全画面の並べ比べ）・全録画の GameUi 側の結果の表・撤去前の最後の突き合わせの記録（A-251）を `done.md`「## 起点」へ写す。X-5c の `done.md` から 5c の削除コミットの SHA を写し、`git log --diff-filter=D --format=%H -1 -- moorestech_web/webui/package.json` と一致することを確かめる（以後 `<5c 削除>` と書く）。
+`$H/X-prerun/done.md` から、PR の報告ページの URL（全画面の並べ比べ）・全録画の GameUi 側の結果の表・その全録画を流した HEAD の 40 桁 SHA（`<PRERUN_HEAD>`。Task 7 Step 3 の `比較不能（変更）` と `退行` の分け目。`done.md` に無ければ X-prerun の PR の head の SHA を `gh pr view <番号> --json headRefOid` で取り、そう書く）・撤去前の最後の突き合わせの記録（A-251）を `done.md`「## 起点」へ写す。既知の Windows だけの失敗の集合（R-7）を、X-audit の `done.md` の 14 件・X-5a の `done.md` の `winunity test-all` の起点と最終 HEAD の FAIL・X-5d の `done.md` の撤去後の 18 本の FAIL の名前の和で作り、`$SP/x-switch-pr/known-win-failures.txt` と `done.md`「## 起点」に書く。X-5c の `done.md` から 5c の削除コミットの SHA を写し、`git log --diff-filter=D --format=%H -1 -- moorestech_web/webui/package.json` と一致することを確かめる（以後 `<5c 削除>` と書く）。
 
 - [ ] **Step 7: Windows の 2 つの役を確かめる**
 
@@ -230,72 +260,125 @@ Expected: exit 0。失敗したら、その場でユーザーに「スマホの 
 
 - [ ] **Step 9: Editor を起動する**
 
-`moores-wt status` で Mac の Editor（`-batchMode` を除く）が 0 本であることを確かめ、`uloop launch --project-path ./moorestech_client` → `uloop compile --project-path ./moorestech_client`。Expected: ErrorCount 0。他者の Editor が居れば終わるまで待つ（落とさない）。
+`moores-wt status` で Mac の Editor（`-batchMode` を除く）が 0 本であることを確かめ、`uloop launch --project-path ./moorestech_client` → `uloop compile --project-path ./moorestech_client` → Global Constraints 5 の「録画の前置き」。Expected: ErrorCount 0・`http://127.0.0.1:9 ja=True`。他者の Editor が居れば終わるまで待つ（落とさない）。
 
 - [ ] **Step 10: bd と done.md**
 
 ```bash
 bd create "UITK X-switch-pr: 切替 PR（記帳・全束切替・G4・ラダー6本と全録画・配布ビルドと検証機・遠隔実行・Mac Steam・IME・master への PR）" --parent moorestech-albof -t task
 bd update <bd> --claim
+bd dep add <bd> moorestech-s2zk.1   # X-5e が「X-switch-pr の bd があれば結ぶ」とした配布ビルドの人手検証の bd（X-5e が閉じていれば結ばずにそう書く）
 ```
 `$H/X-switch-pr/done.md` を作る: 1 行目「状態: 作業中」、節「## 起点」「## 完了条件ごとの証拠」（R-1〜R-21 の行を空で）「## 全録画の結果」「## IME の一巡」「## 完了の定義」「## 見た目の例外の案」「## PR」「## 未完了」「## 要裁定」「## ユーザーの残タスク」「## integrator への依頼」。`../moorestech_logs/README.md` を読んでから `../moorestech_logs` でコミット・push。
 
+- [ ] **Step 11: 前の段の申し送りを全部受ける（R-22）**
+
+```bash
+for id in X-prerun X-5a X-5b X-5c X-5d X-5e; do echo "### $id"; awk '/^## /{f=($0 ~ /申し送り|integrator への依頼|未確認|未完了/)} f' "$H/$id/done.md"; done > "$SP/x-switch-pr/handoffs.txt"
+grep -n -E 'X-switch-pr|切替 ?PR|配布ビルド|検証機|IME|integrator' "$SP/x-switch-pr/handoffs.txt"
+```
+Expected: 各レーンの節が出る（節の無いレーンは「無し」と書く）。X-switch-pr 宛ての項（切替 PR・配布ビルド・検証機・IME・integrator 宛てでこのレーンの検証の範囲のもの）を全部 `done.md`「## 申し送りの受け」へ「出所・項・受けるタスク」で写す。上の「## 申し送りの受け」の表の項は表のタスクで受け、表に無い項は受けるタスクを決めて表と同じ形で足し、判断記録 D-15 に 1 行ずつ書く。設計書・実行計画の改訂（integrator 宛てで検証でないもの）は「## integrator への依頼」へ回す。受け先の無い項 0 を確かめる。X-5d の `done.md` から、消した client の DLL 55 件と server の 13 件の名前の一覧を `$SP/x-switch-pr/x5d-names-client.txt`・`x5d-names-server.txt` へ写す（Task 8 Step 5・8 で使う）。
+
+- [ ] **Step 12: W6-6 の基準を撮る（D-9 の `Client.Ui/**` の行の比べ直しの起点）**
+
+このレーンの起点（X-5e の後）で W6-6 (a)(b) を撮る。(a) `$SP/x-switch-pr/gallery_capture.cs`（X-5d 計画 Task 2 Step 4 の写し。置き場の名前だけ替える）:
+```csharp
+var dir = "__WT__/moorestech_client/.uloop/outputs/compare/X-switch-pr/gallery-__LABEL__";
+var ground = new UnityEngine.Color32(35, 29, 30, 255);
+var widths = new[] { 1280, 2560 };
+var heights = new[] { 720, 1080 };
+var entries = Client.Ui.Editor.Gallery.UiGalleryEntryCatalog.CreateAll();
+var written = 0;
+for (var i = 0; i < entries.Count; i++)
+{
+    var entry = entries[i];
+    var safeName = System.Text.RegularExpressions.Regex.Replace(entry.ComponentName, "[^A-Za-z0-9_-]", "_");
+    for (var s = 0; s < widths.Length; s++)
+    {
+        var png = $"{dir}/{i:D3}-{entry.Family}-{safeName}-{widths[s]}x{heights[s]}.png";
+        Client.Ui.Editor.Capture.UiRuntimePanelCapture.CaptureToPng(entry.CreateSample(), widths[s], heights[s], ground, Client.Ui.Editor.Capture.UiCaptureLocalization.InitializeDictionary, png);
+        written++;
+    }
+}
+return $"entries={entries.Count} png={written}";
+```
+Run（PlayMode を止めた状態で）:
+```bash
+sed -e "s#__WT__#$PWD#" -e "s#__LABEL__#base#" "$SP/x-switch-pr/gallery_capture.cs" > "$SP/x-switch-pr/gallery_capture_run.cs"
+uloop execute-dynamic-code --project-path ./moorestech_client --code "$(cat "$SP/x-switch-pr/gallery_capture_run.cs")"
+```
+(b) 「録画の前置き」の後に `run-scenario.sh ./moorestech_client S/uitk/prerun/prerun-smoke-shots.cs` を流し、run dir の `*.png` を `moorestech_client/.uloop/outputs/compare/X-switch-pr/smoke-base/` へ写す。Expected: `entries=<N> png=<2N>`・`Success: true`・PNG 20 枚（流し方・比べ方〈PSNR か UITK の要素の矩形の差〉は X-5d の `done.md` の W6-6 の記録に従い、X-5d が揺れる組として記録した組は同じ扱いにする）。凍結までに `Client.Ui/**` に触れる変更が無ければ、この撮影は使わずに消す（Task 14 Step 5）
+
 ---
 
-### Task 2: master の取り込み（I-weekly の役）と取り込んだ Web コミットの記帳
+### Task 2: master の取り込み（I-weekly の役）・撤去済みの場所に戻ったファイルの処理・取り込んだ Web コミットの記帳
 
 **Files:**
 - Modify: `docs/uitk/TODO.md`（「## 追従記録」の末尾）
 - Modify（衝突したときだけ）: 衝突したファイル（D-6）
+- Delete（戻ったときだけ）: 撤去済みの場所に master が足したファイル（D-29）
+- Modify/Create（写すものがあるときだけ）: I-follow の写し先（`Client.Ui/**`・`Client.Ui.State/**`・`localization.csv`・その画面の L1 テスト。D-29）
 
 **Interfaces:**
-- Consumes: `origin/master`、G1 `python3 .github/scripts/check-uitk-web-follow.py --base <rev> --head <rev>`
-- Produces: `merge-base(origin/master, HEAD) == origin/master`、取り込んだ master の Web コミットの記帳
+- Consumes: `origin/master`、G1 `python3 .github/scripts/check-uitk-web-follow.py --base <rev> --head <rev>`、「## 消えているべきもの」の C-1〜C-9、Task 1 Step 4 の G4 のコマンド
+- Produces: `merge-base(origin/master, HEAD) == origin/master`、`PRE_MERGE_HEAD`（取り込みの前の HEAD。Task 5 のレビューの終わり）、取り込んだ master の Web コミットと戻ったファイルの記帳
 
-始める前に通るべきもの: Task 1 の compile 0。終えた後に通るべきもの: compile 0・`^Client\.Tests\.Ui\.` と取り込みで衝突したファイルのテスト・G1「違反なし」。
+始める前に通るべきもの: Task 1 の compile 0。終えた後に通るべきもの: R-LIST が 0 行・C-1〜C-9 が表の「期待」のとおり・G4 が exit 0・compile 0・`^Client\.Tests\.Ui\.` と取り込みで衝突したファイルのテスト・G1「違反なし」。
+
+撤去済みの場所の一覧（R-LIST。5a〜5e が消したもののうち、master が新しいファイルを足しうるディレクトリとファイル。Task 1 Step 11 で 5a〜5d の `done.md` の削除の全件表と突き合わせ、足りなければ足す）:
+```bash
+RLIST=(moorestech_web moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Playtest/WebUi moorestech_client/Assets/Scripts/Editor/Cef moorestech_client/Assets/StreamingAssets/WebUi scripts/setup-cef.sh scripts/setup-cef.ps1 .agents/skills/ref-webui-design docs/webui)   # 配列にする（この Mac の既定の zsh は引用符なしの文字列を語に割らず、1 つのパスとして渡して 0 件の偽の合格になる）
+git ls-files -- "${RLIST[@]}" | grep -v -E '^docs/webui/archive/'   # 0 行が期待（docs/webui の行き先は X-5e の done.md で確かめて読み替える）
+```
+`RLIST=(…)` の 1 行は `$SP/x-switch-pr/rlist.sh` に書き、Bash の呼び出しごとに `. "$SP/x-switch-pr/rlist.sh"` で読んでから使う（シェルの変数は呼び出しをまたいで残らない。R-16・Task 6・Task 12 も同じ）。引用符なしの文字列 `RLIST='a b'` と `$RLIST` で渡すと、この Mac の zsh では 1 つのパスになり 0 件の偽の合格になる（起草時に実測: 配列 1147 行・文字列 0 行）
 
 - [ ] **Step 1: 入る Web コミットを列挙する**
 
 ```bash
 cd "$WT" && git fetch -q origin
+PRE_MERGE_HEAD=$(git rev-parse HEAD); echo "$PRE_MERGE_HEAD"   # done.md「## 起点」へ
 OLD_BASE=$(git merge-base origin/master HEAD)
-git log --no-merges --format='%h %s' "$OLD_BASE"..origin/master -- moorestech_web/
+git log --no-merges --format='%h %s' "$OLD_BASE"..origin/master -- moorestech_web/ moorestech_client/Assets/Scripts/Client.WebUiHost/
+git log --no-merges --diff-filter=A --name-only --format='%h %s' "$OLD_BASE"..origin/master -- "${RLIST[@]}"
 git log --no-merges --format='%h' "$OLD_BASE"..origin/master | wc -l
 ```
-Expected: 一覧（起草時 `0e81bbe3c3..origin/master` で `ebe26dc6e8`・その revert `622953fe5f` の 2 件を含む）。
+Expected: 一覧（起草時 `0e81bbe3c3..origin/master` で `ebe26dc6e8`・その revert `622953fe5f` の 2 件を含む。足したファイルは 0 件）。2 行目に出たコミットは Step 2 で戻るファイルの出所。
 
-- [ ] **Step 2: 取り込む**
+- [ ] **Step 2: 取り込む（コミットの前に戻ったファイルを消す）**
 
 ```bash
-git merge --no-ff origin/master -m "merge: origin/master を feature/uitk へ取り込む（X-switch-pr）"
+git merge --no-ff --no-commit origin/master
 git status --porcelain | grep -E '^(DU|UD|UU|AA|DD) '
+git ls-files -- "${RLIST[@]}" | grep -v -E '^docs/webui/archive/' > "$SP/x-switch-pr/restored.txt"; wc -l < "$SP/x-switch-pr/restored.txt"
 ```
-衝突の解き方: `moorestech_web/**` と `Client.WebUiHost/**` の modify/delete は消す側で解く（`git rm <path>`）。中身が UITK に写す要る変更（新しい画面・機能・文言・挙動）なら、写すのは I-follow の持ち物なので Step 4 で止まる。C# の衝突は opus の subagent に「両方の意図を保つ」「UITK 側の設計に従う」で解かせ、解いた内容を判断記録 D-6 の下に 1 行ずつ足す。`localization.csv` の衝突は両方の行を採る。
+（`--no-commit` で止めるのは、衝突が無いと `--no-ff` がその場でマージのコミットを作り、戻ったファイルが入ったまま次へ進むため。git は消したディレクトリの中へ master が足したファイルを衝突にせず黙って入れ、`git status` の衝突の印〈`DU` 等〉にも出ない。起草時に scratch の repo で再現した）
+衝突の解き方: modify/delete（`DU`・`UD`）は、`moorestech_web/**`・`Client.WebUiHost/**` に加えて 5a〜5d が消したパス（`Client.Starter` の Web 配線・`Client.Playtest/WebUi`・`Editor/Cef`・CEF の型を使うテスト・`release-artifact.sh` の helper の検査など、各レーンの `done.md` の削除の全件表に載るもの）も全部消す側で解く（`git rm <path>`。「両方の意図を保つ」で残さない）。master 側の変更の中身は Step 4 で分ける。C# の衝突（`UU`）のうち両方に残るファイルだけを opus の subagent に「両方の意図を保つ」「UITK 側の設計に従う」で解かせ、解いた内容を判断記録 D-6 の下に 1 行ずつ足す。`localization.csv` の衝突は両方の行を採る。master 側の `BugReportManifest.SchemaVersion`（`git show origin/master:moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/BugReportManifest.cs | grep -n 'SchemaVersion ='`）が feature 側の版以上なら、X-5a 計画 D-28 と同じ形で「webUiHealth を外した版」を次の番号へ付け直し（直す先は X-5a の `done.md`「integrator への依頼」の一覧）、C-2 の期待をその番号へ読み替えて D-6・D-15 に書く。
+戻ったファイル（`restored.txt` の行）: 中身を Step 4 の分け方にかける（どのコミットが足したかは Step 1 の 2 行目）。そのうえで全部 `git rm -q -- <path>` で消し、`git ls-files -- "${RLIST[@]}" | grep -v -E '^docs/webui/archive/' | wc -l` が 0 になってから `git commit --no-edit -m "merge: origin/master を feature/uitk へ取り込む（X-switch-pr）"`。消したパスの一覧を `done.md`「## 取り込み」に書く。
 
-- [ ] **Step 3: 取り込みの後の compile とテスト**
+- [ ] **Step 3: 取り込みの後の検査**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\." --timeout-seconds 1500`
-Expected: ErrorCount 0・失敗 0（件数を `done.md` へ）。
+Run: 「## 消えているべきもの」の C-1〜C-9 と Task 1 Step 4 の G4 → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\." --timeout-seconds 540`（Mac の実績は 600 秒の内。超えたら `^Client\.Tests\.Ui\.(Screens|State)\.` と `^Client\.Tests\.Ui\.(?!Screens\.|State\.)` に割る）
+Expected: C-1〜C-9 が表の「期待」のとおり・G4 exit 0・ErrorCount 0・失敗 0（件数を `done.md` へ）。G4 が取り込みで入った master のファイルで exit 1 になったら、X-5e は済んでいるので X-5e へは回さず、改名・許可リストの持ち主として I-fix へ bd を `--parent <bd>` で立てて指揮へ返し、`done.md` を「状態: 停止（G4 の違反 n 件の修正待ち）」にする（このレーンは許可リストを書かない）。
 
-- [ ] **Step 4: 入った Web コミットを分ける**
+- [ ] **Step 4: 入った Web コミットと戻ったファイルを分け、写すものは I-follow の手順で写す**
 
-Step 1 の各コミットを `git show --stat <sha> -- moorestech_web/` と本文で読み、次に分ける:
+Step 1 の各コミットを `git show --stat <sha> -- moorestech_web/ moorestech_client/Assets/Scripts/Client.WebUiHost/` と本文で読み、戻ったファイル（`restored.txt`）は `git show origin/master:<path>` で中身を読み、次に分ける:
 - `捨てた`: UITK に写すものが無い（revert で打ち消し合う組・Web の内部の描画・mock-host・e2e・Web の依存の更新・CEF への手当て〈裁定「CEF 由来の不具合は直さない」〉）
-- `写した`: 同じ取り込みで UITK 側に写し先がある（例: `localization.csv` の追加に連動した `localizationKeys.ts` の再生成だけで、キーを使う UITK 側が既にある）
-- I-follow が要る: Web の画面・機能・文言・挙動の変更で、UITK 側に写し先が無い
+- `写した`（写し先が既にある）: 同じ取り込みで UITK 側に写し先がある（例: `localization.csv` の追加に連動した `localizationKeys.ts` の再生成だけで、キーを使う UITK 側が既にある）
+- 写すもの（I-follow の手順）: Web の画面・機能・文言・挙動の変更で、UITK 側に写し先が無い
 
-I-follow が要るものが 1 件でもあれば、bd を `--parent <bd>` で 1 件ずつ立て（シナリオ: Web のコミット・変わった画面・UITK の写し先の候補）、`done.md` の 1 行目を「状態: 停止（I-follow 待ち: <sha の並び>）」にして Task 14 Step 5 の合図を送り止まる。I-follow がマージされたら Task 2 からやり直す（同じ SHA は判定 `写した`、4 列目に「I-follow <PR> で <UITK の写し先>」と記帳する。判定の欄に括弧書きを足すと台帳のパースエラー。`ledger.py:190`）。
+写すものは停止せず、このレーンが I-follow の手順（実行計画 §1.4 の I-follow-n 行・設計書 §3.3 (b)）で写す。1 件ずつ bd を `--parent <bd>` で立て（Web のコミット・変わった画面・UITK の写し先）、opus の subagent に実装させる（依頼文に「バックグラウンドのポーリングで待たず全部前景で実行する／区切りごとにコミットする」と、ref-uitk-design スキル・AGENTS.md の規約に従うことを書く）。手順: (1) 写し先の UITK の画面・部品へ変更を写し、L1 テスト（`/// <web-test>` の付く Web のテストがあればその写し）を足す (2) `uloop compile` 0・その画面のテストのクラスのフィルタで失敗 0 (3) その画面の録画（Global Constraints 5 の前置きの後に、その画面を通るシナリオ。無ければラダーのうちその画面を通る本）が `Success: true` (4) master の worktree（`moores-wt new <名前> --from origin/master --no-editor`）でその画面の Web の参照を撮り直し（`web-<sha>`）、UITK の同じ状態を撮って 720p と 2560×1080 の比較 HTML と差の表を作る（W6-4 の 2560×1080 の撮り方。比べ方は `.agents/skills/ref-uitk-design/references/compare-procedure.md`）(5) 差は直す。直せない差は R-19 の LX-218・219 の案へ書く（行と印は I-fix） (6) 台帳の記録は判定 `写した`、4 列目に「I-follow（X-switch-pr Task 2）で <UITK の写し先> <コミット>」（判定の欄に括弧書きを足すと台帳のパースエラー。`ledger.py:190`）。写したコミットは Task 5 のレビューの対象に入る（Task 5 Step 1）。写す量が 1 件で Editor 1 本の 1 日に収まらない（新しい画面の丸ごとの追加など）と分かったら、そのときだけ `done.md` を「状態: 停止（I-follow の規模: <sha>）」にして指揮へ返す（D-29）。
 
 - [ ] **Step 5: 記帳する**
 
-各コミットの持ち主の束を G1 の出力で知る（束はまだ暗転なので、G1 は件数しか出さない。SHA は Task 3 Step 3 でまとめて出るので、ここでは Step 4 の分けを `$SP/x-switch-pr/master-records.md` に `| <sha10> | <判定> | <理由・写し先> |` で下書きし、Task 3 Step 4 で束ごとの行に展開する）。
+各コミットの持ち主の束を G1 の出力で知る（束はまだ暗転なので、G1 は件数しか出さない。SHA は Task 3 Step 3 でまとめて出るので、ここでは Step 4 の分けを `$SP/x-switch-pr/master-records.md` に `| <sha10> | <判定> | <理由・写し先> |` で下書きし、Task 3 Step 4 で束ごとの行に展開する）。戻ったファイルは、それを足した master のコミットの行の 4 列目に「撤去済みの場所に戻った <path> を git rm（中身は <写し先 or 写すもの無し>）」と書き足す。
 
 - [ ] **Step 6: コミットと push**
 
 ```bash
 git push origin HEAD:feature/uitk
 ```
-（マージコミットは Step 2 で作った。衝突を解いたファイルはマージコミットに入る）
+（マージコミットは Step 2 で作った。衝突を解いたファイルと戻ったファイルの削除はマージコミットに入る。I-follow の写しは別のコミット）
 
 ---
 
@@ -411,7 +494,7 @@ Expected: exit 0・「違反なし」（実行計画の完了条件の形 `--hea
 - [ ] **Step 1: G4**
 
 Run: Task 1 Step 4 で写したコマンド（期待 `python3 .github/scripts/check-uitk-no-web.py --root .; echo "exit=$?"` と `python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_no_web.py'`）
-Expected: 許可リスト外 0 件・exit 0、unittest OK。exit 1（`G4: <path>:<line>: <語>: …` の行）か exit 2（許可リストの書式誤り・腐った行）なら中身を `done.md` に貼り、改名・許可リストの持ち主の X-5e へ bd を立てて停止（このレーンは許可リストを書かない）。
+Expected: 許可リスト外 0 件・exit 0、unittest OK。exit 1（`G4: <path>:<line>: <語>: …` の行）か exit 2（許可リストの書式誤り・腐った行）なら中身を `done.md` に貼り、改名・許可リストの持ち主へ bd を立てて停止（X-5e は済んでいるので、X-5e の後に入ったもの〈取り込み・I-follow〉の違反は I-fix へ回す。このレーンは許可リストを書かない）。
 
 - [ ] **Step 2: 完了の定義 §5.1-2 の grep**
 
@@ -442,14 +525,14 @@ Expected: 全部 pass（G1 の workflow の自己テストの job と同じも�
 - Modify（自動適用のときだけ）: moores-code-review が直したファイル（D-11）
 
 **Interfaces:**
-- Consumes: moores-code-review スキル（base `9f32a03390`）、統合計画 §5.1、実行計画 §1.5 の X-switch-pr 行
+- Consumes: moores-code-review スキル（base `9f32a03390`）、Task 2 の `PRE_MERGE_HEAD` と取り込みのマージコミット、統合計画 §5.1、実行計画 §1.5 の X-switch-pr 行
 - Produces: `done.md`「## 独立レビュー」（指摘の数・処遇・要裁定）、凍結の候補の HEAD
 
 始める前に通るべきもの: Task 4 が全部 0。終えた後に通るべきもの: compile 0・自動適用が触れたファイルのテスト（クラスのフィルタ）・G1 0・G4 0。
 
 - [ ] **Step 1: moores-code-review を X-audit の後の全部に回す**
 
-moores-code-review スキルを、対象 `9f32a03390..HEAD`（X-audit #1656 が `9f32a03390` までの全体を見た。それより後の I-fix・S2〜S5・X-prerun・X-5a〜5e・取り込み・台帳）で実行する。記録は `../moorestech_logs/harness/` へ（スキルの規定）。設計判断は agent 既定で推奨案を採り、判断記録に「agent 既定（moores-code-review Dn）」と書く。ゴール・裁定から外れるものだけ `done.md`「要裁定」。自動適用・反映がソースの判定経路・条件式に触れたら、そのファイルを持つ画面のラダーを Task 7 で必ず流す（Task 7 は凍結の後なので、ここで直ったものも含めて全部を流す）。
+moores-code-review スキルを、feature 側のコミットだけに絞って実行する（X-audit #1656 が `9f32a03390` までの全体を見た。それより後の I-fix・S2〜S5・X-prerun・X-5a〜5e・I-follow の写し・台帳）。Task 2 の取り込みの後の `9f32a03390..HEAD` は、`9f32a03390` が master の祖先でないので master 側の非 UITK の作業（起草時の模擬で 68 コミット・非 UITK の .cs 32 本）を丸ごと含み、自動適用が master の作業者のコードに当たる（D-31）。対象は (1) 範囲 `9f32a03390..$PRE_MERGE_HEAD`（取り込みの前の feature 側）、(2) 取り込みの後の feature 側の非マージのコミット（`git log --first-parent --no-merges --format=%H $PRE_MERGE_HEAD..HEAD`。I-follow の写し・台帳。連続する並びは 1 つの範囲で渡す）、(3) 取り込みのマージコミットごとの `git show --remerge-diff <sha>`（衝突の解き方と戻ったファイルの `git rm` だけが出る）をレビュー依頼に添える。master 側から来たコードへの指摘は自動適用せず、bd で master の持ち主へ回して `done.md`「## 独立レビュー」に書く。記録は `../moorestech_logs/harness/` へ（スキルの規定）。設計判断は agent 既定で推奨案を採り、判断記録に「agent 既定（moores-code-review Dn）」と書く。ゴール・裁定から外れるものだけ `done.md`「要裁定」。自動適用・反映がソースの判定経路・条件式に触れたら、そのファイルを持つ画面のラダーを Task 7 で必ず流す（Task 7 は凍結の後なので、ここで直ったものも含めて全部を流す）。
 
 - [ ] **Step 2: 評価役 2 体に別々に判定させる（本体が派遣する）**
 
@@ -475,26 +558,50 @@ opus の subagent を 2 体、同じ依頼文で別々に起こす（互いの�
 **Files:** なし（記録だけ）
 
 **Interfaces:**
-- Consumes: Task 5 の HEAD
+- Consumes: Task 5 の HEAD、X-5d 計画 Task 2 Step 1 の 18 本の表と割り方・集計の python（と X-5d の `done.md` の割った本）、Task 1 Step 6 の `known-win-failures.txt`
 - Produces: **凍結した SHA**（`FROZEN=$(git rev-parse HEAD)`。以後のビルド・録画・検証の対象）を `done.md`「## 起点」へ
 
-始める前に通るべきもの: R-16 の確認（`git fetch -q origin && git log --oneline HEAD..origin/master -- moorestech_web/` が空。空でなければ Task 2 へ戻る）・HEAD が push 済み（`git rev-parse HEAD` と `origin/feature/uitk` が同じ）。終えた後に通るべきもの: 下の 3 つ。
+始める前に通るべきもの: R-16 の確認（`git fetch -q origin && git log --oneline HEAD..origin/master -- "${RLIST[@]}"` が空。空でなければ Task 2 へ戻る）・HEAD が push 済み（`git rev-parse HEAD` と `origin/feature/uitk` が同じ）。終えた後に通るべきもの: 下の 3 つ。
 
 - [ ] **Step 1: compile**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0。
 
-- [ ] **Step 2: テスト全体（Windows）**
+- [ ] **Step 2: テスト全体（Windows で 1 本 10 分未満に分けて前景で 1 本ずつ・既知の失敗は Mac で流し直す）**
 
-Run: `~/bin/winunity test-all feature/uitk --timeout 3000`（`Client.Tests` を 6 本に分けて回す。サーバーの `Tests.*` は含まない。`~/bin/winunity:10`）
-Expected: summary-all.txt の失敗の名前が、Windows だけの既知の失敗（I-fix5 R-19。X-audit の `done.md` の「コンパイル・テスト」の行の 14 件: `-nographics` の描画の UiSrgbComposite 10・UiRuntimePanelCapture 2、パス区切りの TutorialAttentionToken 2）の集合に含まれ、それ以外の失敗が 0（件数と既知の件数を `done.md` へ。既知が直っていて 0 ならそれも書く）。既知の外の失敗があれば持ち主へ bd を立てて停止（D-23）。
-続けて Mac の Editor で、既知の 3 クラスとサーバーのテストを流す:
-```bash
-uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "UiSrgbComposite|UiRuntimePanelCapture|TutorialAttentionToken" --timeout-seconds 1500
-uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\." --timeout-seconds 1500
-```
-Expected: どちらも失敗 0（既知の 14 件が Windows の `-nographics`・パス区切りだけの失敗であることの確かめと、test-all に入らないサーバーの全体）。winunity が使えないとき（検証機と同じ PC で使用中など）は Mac で `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\." --timeout-seconds 1500` を流す（サーバーは上で流した。`Client.Tests` は 1500 秒に収まらなければ `^Client\.Tests\.(Ui|UIState|Input)\.` と残りに分ける）。
+`winunity test-all` は使わない（`~/bin/winunity` は ssh で Windows のジョブの終わりまで同期に待ち〈`:87-90`〉、6 本を順に流すので通しで約 40 分〈`$H/S2-ladder/done.md:11`〉。前景の 600 秒で切れると `summary-all.txt` が回収できない。D-28）。X-5d 計画 Task 2 Step 1 の 18 本の表（否定先読みの補集合で `Client.Tests` の全部と `^Tests\.` の全部を重なりなく覆う。起草時に X-5d が CI #1656 の xml の全テスト名で確かめた）をそのまま使う。X-5d の `done.md` に割った本（`W-E4a` 等）があればその割り方で流す。
+
+1. 初回の準備（**本体**。割れない）: このブランチで Windows に worktree が無ければ、本体が Bash の `run_in_background` で `~/bin/winunity compile feature/uitk --name xsw` を 1 回起動し、完了の通知で受ける（準備だけで最大 494 秒の実績）。続けて表の最初の `--editor` の本 W-E1 も、GUI Editor の起動を含むので本体が `run_in_background` で 1 回起動し通知で受ける
+2. 残りの本を表の順に前景で 1 本ずつ（`--editor` の 8 本を先に続けて）: `~/bin/winunity test feature/uitk --regex '<regex>' [--editor] --name xsw --timeout <秒> 2>&1 | tee "$SP/x-switch-pr/win-<#>.txt"`（`--editor` の本は `--timeout 240`、batchmode の本は `--timeout 480`。Bash の timeout は 600000）
+
+| # | `--regex` | `--editor` |
+|---|---|---|
+| W-E1 | `^Client\.Tests\.EditModeInPlayingTest\.BugReport\.BugReportBundleWriteTest` | 付ける |
+| W-E2 | `^Client\.Tests\.EditModeInPlayingTest\.(BugReport\.(?!BugReportBundleWriteTest)\|Playtest\.)` | 付ける |
+| W-E3 | `^Client\.Tests\.EditModeInPlayingTest\.(Belt\|Block(?!Inventory\.)\|RemoteExec\.)` | 付ける |
+| W-E4 | `^Client\.Tests\.EditModeInPlayingTest\.BlockInventory\.` | 付ける |
+| W-E5 | `^Client\.Tests\.EditModeInPlayingTest\.Ui\.` | 付ける |
+| W-E6 | `^Client\.Tests\.EditModeInPlayingTest\.(Util\|MachineUpgrade\|MapObjects)\.` | 付ける |
+| W-E7 | `^Client\.Tests\.EditModeInPlayingTest\.(?!(BugReport\|Playtest\|RemoteExec\|BlockInventory\|Ui\|Util\|MachineUpgrade\|MapObjects)\.\|Belt\|Block)[A-L]` | 付ける |
+| W-E8 | W-E7 の末尾を `[M-Z]` にしたもの | 付ける |
+| W-C1 | `^Client\.Tests\.Ui\.` | — |
+| W-C2 | `^Client\.Tests\.Map\.` | — |
+| W-C3 | `^Client\.Tests\.BugReport\.` | — |
+| W-C4 | `^Client\.Tests\.(?!EditModeInPlayingTest\.\|BugReport\.)[A-L]` | — |
+| W-C5 | `^Client\.Tests\.(?!Map\.\|Ui\.)[M-Z]` | — |
+| W-S1 | `^Tests\.UnitTest\.Game\.MapGeneration\.(Tiling\|Facade\|Provisioning\|Placement)\.` | — |
+| W-S2 | `^Tests\.UnitTest\.Game\.MapGeneration\.(Visual\|Surface)\.` | — |
+| W-S3 | `^Tests\.UnitTest\.Game\.MapGeneration\.(?!(Tiling\|Facade\|Provisioning\|Placement\|Visual\|Surface)\.)` | — |
+| W-S4 | `^Tests\.UnitTest\.(?!Game\.MapGeneration\.)` | — |
+| W-S5 | `^Tests\.(?!UnitTest\.)` | — |
+
+（表の `\|` は Markdown の表のための書き方で、コマンドでは `|`。割り方は X-5d 計画 Task 2 Step 1 の「割り方」と同じ: 1 本が `timedOut=True` か件数無しで終わったら、その本だけを次の名前の区切りの頭文字で 2 本に割って流し直し、元の本の `.txt` は `.timedout` へ改名して集計から外す。前景の 1 本が 10 分で切れて `[mac] results:` が出なかったら同じ本を流し直さず〈Windows でジョブが続いている〉、X-5d 計画の同じ段の `ssh winbuild … _runs` の手順で run を探して結果を取る。1 クラスで上限を超えるものは `--class <名前> --timeout 1500` にして本体が `run_in_background` で 1 回起動し完了の通知で受ける）
+
+3. 集める（X-5d 計画 Task 2 Step 1 の 3. の集計の python をそのまま、出力先を `$SP/x-switch-pr/win-all.txt` に替えて流す）。Expected: `TOTAL` の行が流した本の数・各本の total が 0 でない・`NO RESULT` と `timedOut=True` が 0 行。失敗の名前（`$SP/x-switch-pr/win-failed.txt`）が Task 1 Step 6 の `known-win-failures.txt` に全部含まれ、それ以外が 0（件数と既知の件数を `done.md` へ。既知が直っていて 0 ならそれも書く）。既知の外の失敗があれば持ち主へ bd を立てて停止（D-23）
+4. 既知の名前を Mac で流し直す: `known-win-failures.txt` のクラスごとに `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value '<クラスの完全名>' --timeout-seconds 540`。Expected: 全部失敗 0（Mac でも落ちたものは Windows だけの失敗ではないので既知に数えず、持ち主へ bd を立てて停止）
+
+winunity が使えないとき（検証機と同じ PC で使用中など）は、同じ 18 本を Mac の Editor で `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value '<regex>' --timeout-seconds 540` で 1 本ずつ前景で流す（`--editor` の本も同じ。1 本が 540 秒で切れたら同じ割り方で割る）。
 
 - [ ] **Step 3: 配布の契約テスト**
 
@@ -519,11 +626,12 @@ Expected: 5 本とも `PASS: …`、`FAIL` 0（`test-release-playtest-mac.sh` �
 
 - [ ] **Step 1: ラダー 6 本**
 
+先に Global Constraints 5 の「録画の前置き」を流し、`http://127.0.0.1:9 ja=True` を見る（新しく起動した Editor では受け口の値が立っておらず、`uitk-lifeline.cs:31-32` が「本番へ送るので中止」で必ず落ちる。D-9 で流し直すときも同じ）。
 ```bash
 R=.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh
 for s in <Task 1 Step 4 のラダー 6 本のパス>; do "$R" ./moorestech_client "$s"; echo "exit=$? $s"; done
 ```
-（1 回の呼び出しが 600 秒に収まらなければ 2 本ずつに分ける）
+（1 回の呼び出しが 600 秒に収まらなければ 2 本ずつに分け、各呼び出しの前に前置きを流し直す）。ラダー 1 が `MOORESTECH_PLAYTEST_RECEIVER_BASE が起動前に…` の例外で落ちたら前置きの欠けなので、不具合として回さず前置きを流してやり直す
 Expected: 6 本とも exit 0・`result.json` の `Success: true`・ErrorLogs 0。各 run dir の `recording.mp4` を `$SP/x-switch-pr/report/ladder-<n>.mp4` へ写す（Task 14 の報告ページ用）。
 
 - [ ] **Step 2: 全録画の一覧を作る**
@@ -543,7 +651,7 @@ Run（前景で。1 回の呼び出しが 600 秒に収まるよう 3 本ずつ�
 tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/all.tsv 1 3
 tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/all.tsv 4 3
 ```
-（開始行を 3 ずつ進めて最後まで。一覧の後半を winunity で流してよい: `~/bin/winunity play feature/uitk <シナリオ>` を 1 本ずつ、結果を同じ列で `all-win.tsv` に書く。検証機と同じ PC なら Task 8〜11 と重ねない）
+（開始行を 3 ずつ進めて最後まで。一覧の後半を winunity で流してよい: `~/bin/winunity play feature/uitk <シナリオ>` を 1 本ずつ、結果を同じ列で `all-win.tsv` に書く。`winunity play` は受け口の環境変数を Windows の Editor に立てないので、`MOORESTECH_PLAYTEST_RECEIVER_BASE` を見るシナリオ〈`grep -l MOORESTECH_PLAYTEST_RECEIVER_BASE` で当たる本〉は Mac で流す。検証機と同じ PC なら Task 8〜11 と重ねない）
 続けて [A-177] の列にそろえた TSV を作る（スクリプトの TSV は X-5a が `system` の列を外した `scenario exit seconds run_dir`。撤去の後は系が 1 つなので `GameUi` を入れる）:
 ```bash
 awk -F'\t' 'BEGIN{OFS="\t"} NR==1{print "scenario","system","exit","seconds","run_dir"} $1=="scenario"{next} {print $1,"GameUi",$2,$3,$4}' moorestech_client/Temp/uitk-recordings/all.tsv > moorestech_client/Temp/uitk-recordings/all-a177.tsv
@@ -555,7 +663,7 @@ Expected: TSV の行数＝一覧の本数。exit 0 以外の行ごとに `result
 - `前提つき`（`playtest-receiver/*`・IME の `.sh` など。シナリオのヘッダの手順で 1 回流し直し、PASS／不具合に振り直す。`uitk-c2b-ime-mac.cs` は `bash S/uitk/uitk-c2b-ime-mac-keys.sh ./moorestech_client S/uitk/uitk-c2b-ime-mac.cs`）
 - `Web 専用`（CEF・Web の DOM・`webUiHealth` を見るもの）: X-5a が全部書き直すか消した（W6-8）ので 0 のはず。出たら `不具合`（持ち主は X-5a を引き継ぐ I-fix）
 - `不具合`（それ以外）
-あわせて exit 0 以外の行に、X-prerun の UITK 側の結果（Task 1 Step 6 で写した表）と比べた印を付ける（X-prerun の Web 側の比べ方 Task 4 Step 3 と同じ名前）: X-prerun でも落ちていた → `既存`、X-prerun に無い → `比較不能（新設）`、`git diff --quiet <X-prerun の HEAD> "$FROZEN" -- <シナリオ>` が差ありを返す（X-5a の書き直し・削除の後継）→ `比較不能（変更）`、X-prerun で PASS・中身も同じ → `退行`。印は分類の置き換えではなく、どれも `不具合` の扱い（Step 4）は同じ（D-8）
+あわせて exit 0 以外の行に、X-prerun の UITK 側の結果（Task 1 Step 6 で写した表）と比べた印を付ける（X-prerun の Web 側の比べ方 Task 4 Step 3 と同じ名前）: X-prerun でも落ちていた → `既存`、X-prerun に無い → `比較不能（新設）`、`git diff --quiet "<PRERUN_HEAD>" "$FROZEN" -- <シナリオ>`（`<PRERUN_HEAD>` は Task 1 Step 6 で写した X-prerun の全録画の HEAD）が差ありを返す（X-5a の書き直し・削除の後継）→ `比較不能（変更）`、X-prerun で PASS・中身も同じ → `退行`。印は分類の置き換えではなく、どれも `不具合` の扱い（Step 4）は同じ（D-8）
 
 - [ ] **Step 4: 不具合を回す**
 
@@ -575,7 +683,7 @@ Expected: TSV の行数＝一覧の本数。exit 0 以外の行ごとに `result
 - Consumes: `FROZEN`、`$WT/scripts/playtest/release-playtest.sh`（5b が CEF 0 の検査へ反転した `lib/release-artifact.sh` を含む、凍結した HEAD の版。D-2）、moores-playtest-release の手順 1・2
 - Produces: `LABEL`（`playtest-YYYYMMDD-HHMM`）、`$RUNS/$LABEL/`（`validated-steam-build.json`・`verify/`・`promotion.md`）、release.log の BuildID、検証機の `$SP/x-switch-pr/win-Player.log`・`win-Player-prev.log`（Step 5）
 
-始める前に通るべきもの: HEAD＝`FROZEN`＝`origin/feature/uitk`・Task 6 Step 3 の契約テスト 5 本 PASS・Task 1 Step 8 の保存資格 exit 0・R-16 の確認。終えた後に通るべきもの: R-10〜R-12。
+始める前に通るべきもの: HEAD＝`FROZEN`＝`origin/feature/uitk`・Task 6 Step 3 の契約テスト 5 本 PASS・Task 1 Step 8 の保存資格 exit 0・R-16 の確認。終えた後に通るべきもの: R-10〜R-12・R-23。
 
 - [ ] **Step 1: Mac の Editor を閉じる**
 
@@ -597,7 +705,7 @@ Expected: release.log に `[release-playtest] label=<LABEL> commit=<FROZEN> bran
 - [ ] **Step 3: 止まったとき**
 
 - `Cached credentials not found` → `ERROR (Invalid Password)`: moores-playtest-release の手順 2。メインクローンの `~/hermes-agent/data/repos/moorestech/.agents/skills/moores-playtest-release/scripts/upload_and_verify.sh $RUNS/<label>` を run_in_background で起動し、Monitor で `steam_guard_required|uploaded|failed|rejected|FAILED|VERIFY_EXIT|LOCK_FAILED|passed` を受ける（このスクリプトは中身に CEF を見ないのでメインクローンの版でよい。取り込みロックの置き場がメインクローン基準のため、worktree の版を使わない）。`steam_guard_required` が出たら**その場で**ユーザーへ「スマホの Steam アプリで承認して」と伝える
-- 成果物の検査で落ちた（`ERROR: 成果物に … がありません`・CEF の検査）: Steam には何も上がっていない。メッセージを `done.md` に貼り、持ち主（CEF 0 の検査は X-5b、成果物の構成はその持ち主）へ bd を立てて停止
+- 成果物の検査で落ちた（`ERROR: 成果物に … がありません`・CEF の検査）: Steam には何も上がっていない。メッセージを `done.md` に貼り、持ち主（CEF 0 の検査は X-5b、成果物の構成はその持ち主）へ bd を立てて停止。`ERROR: 成果物に CEF のファイルが残っています（<pattern>）: <path>` のときは、当たったファイルが CEF の物か Unity・他の物か（とくに `icudtl.dat`・`chrome_*_percent.pak`。X-5b の申し送り）を `<path>` の置き場と `strings`・`ls -l` で見分けて bd に書く（Unity の物なら誤検知で、名前を列から外す理由を X-5b の持ち物を引き継ぐ I-fix へ渡す）
 - `verify-on-windows.sh` で落ちた: `$RUNS/<label>/verify/` の `result.json`・Player.log を読み、UI の原因なら bd を立てて停止。検証機の環境（WoL・Steam の更新待ち）なら `upload_and_verify.sh $RUNS/<label> --skip-upload` で検証だけやり直す
 - master data のピンのずれ（Gotchas）: ピンに合わせて Mac だけやり直す（moores-playtest-release の Gotchas どおり）
 
@@ -619,8 +727,9 @@ grep -c -E 'DllNotFoundException|TypeLoadException|FileNotFoundException|Missing
 for f in Player.log Player-prev.log; do verify_ssh_remote "powershell -NoProfile -Command \"Get-Content -Raw \$env:USERPROFILE/AppData/LocalLow/sakastudio/moorestech/$f\"" > "$SP/x-switch-pr/win-$f"; echo "$f lines=$(wc -l < "$SP/x-switch-pr/win-$f")"; done
 grep -c -E 'DllNotFoundException|TypeLoadException|FileNotFoundException|MissingMethodException' "$SP/x-switch-pr/win-Player.log" "$SP/x-switch-pr/win-Player-prev.log"
 grep -h -E 'smokePhase|phase1|phase2' "$SP/x-switch-pr/win-Player.log" "$SP/x-switch-pr/win-Player-prev.log" | head -4
+grep -h -E 'DllNotFoundException|TypeLoadException|FileNotFoundException|MissingMethodException|Could not load' "$SP/x-switch-pr/win-Player.log" "$SP/x-switch-pr/win-Player-prev.log" | grep -c -F -f <(sed 's/\.dll$//' "$SP/x-switch-pr/x5d-names-client.txt")   # X-5d が消した 55 件の名前（Task 1 Step 11）
 ```
-Expected: phase1・phase2 とも `"success": true`、2 本とも行数が 0 でなく、例外の数が全部 0。4 行目でどちらの log がどの phase かを確かめる（`Player-prev.log` が phase1 でなければ、取れた分だけで判定し `done.md` に「phase1 の Player.log は取れなかった」と書く）。phase2 の `result.json` に録画（ffmpeg）とバグ報告の送信が成功した項目がある（項目名は `StandalonePlaytestSmokeRunner` の書くもの。X-5b の申し送りの `Plugins/x86_64` の ffmpeg が動いた証拠）。（D-26）
+Expected: phase1・phase2 とも `"success": true`、2 本とも行数が 0 でなく、例外の数が全部 0、X-5d の 55 件の名前が例外・読み込み失敗の行に 0（X-5d R-12 (1)）。4 行目でどちらの log がどの phase かを確かめる（`Player-prev.log` が phase1 でなければ、取れた分だけで判定し `done.md` に「phase1 の Player.log は取れなかった」と書く）。phase2 の `result.json` に録画（ffmpeg）とバグ報告の送信が成功した項目がある（項目名は `StandalonePlaytestSmokeRunner` の書くもの。X-5b の申し送りの `Plugins/x86_64` の ffmpeg が動いた証拠）。（D-26）
 
 - [ ] **Step 6: Windows のインストール先の CEF 0（R-11）**
 
@@ -631,11 +740,26 @@ $game = Join-Path $steam "steamapps\common\moorestech"
 "build=" + (Get-Content (Join-Path $game "moorestech_Data\StreamingAssets\build-info.json") -Raw | ConvertFrom-Json).commit
 "cef-files=" + @(Get-ChildItem -Recurse -File (Join-Path $game "moorestech_Data\Plugins\x86_64") | Where-Object { $_.Name -match "cef" }).Count
 "ffmpeg=" + @(Get-ChildItem -Recurse -File $game -Filter "ffmpeg*.exe").Count
+"plugins-dir=" + (Test-Path (Join-Path $game "moorestech_Data\Plugins\x86_64"))
+"webui-dir=" + (Test-Path (Join-Path $game "moorestech_Data\StreamingAssets\WebUi"))
 ```
 （ライブラリを既定以外に置いていれば `steamapps\libraryfolders.vdf` から探す）
-Expected: `build=<FROZEN>`・`cef-files=0`・`ffmpeg=1` 以上。`build=` が空・別の SHA・PowerShell のエラーはどれも不合格（欠損の分岐は置かず、この照合で気づく。D-22）。
+Expected: `build=<FROZEN>`・`cef-files=0`・`ffmpeg=1` 以上・`plugins-dir=True`（X-5b の申し送り: CEF 無しでも `Plugins/x86_64` が作られ ffmpeg が入る。`FfmpegRuntimeBundler.cs:49-52`）・`webui-dir=False`（X-5c の申し送り）。`build=` が空・別の SHA・PowerShell のエラーはどれも不合格（欠損の分岐は置かず、この照合で気づく。D-22）。
 
-- [ ] **Step 7: 記録**: `done.md` の冒頭（1 行目の状態の直後）に「指揮の依頼文はメインクローンの `scripts/playtest` から焼くと書いていたが、凍結した HEAD の worktree の `scripts/playtest` から焼いた。master の版は Mac 成果物に CEF helper を要求して必ず落ちるため（D-2）」の 1 行を書く。release.log の要所（label・commit・branch・検査・BuildID・`[verify] passed`）と Step 4〜6 の出力を `done.md` の R-10〜R-12 へ。`promotion.md` の「反映」節は実行しない（X-release）と `done.md` に書く。Mac の Editor は Task 9〜11 で要らないので閉じたままにする
+- [ ] **Step 7: 記録**: `done.md` の冒頭（1 行目の状態の直後）に「指揮の依頼文はメインクローンの `scripts/playtest` から焼くと書いていたが、凍結した HEAD の worktree の `scripts/playtest` から焼いた。master の版は Mac 成果物に CEF helper を要求して必ず落ちるため（D-2）」の 1 行を書く。release.log の要所（label・commit・branch・検査・BuildID・`[verify] passed`）と Step 4〜6 の出力を `done.md` の R-10〜R-12 へ。`promotion.md` の「反映」節は実行しない（X-release）と `done.md` に書く。`$RUNS/$LABEL/promotion.md` の先頭に「反映禁止: このビルドは切替 PR（feature/uitk <FROZEN 10 桁>）のマージ前の検証ビルド。playtest への反映は、ユーザーのマージの後に X-release がユーザーの指示で行い、そのときにこの行を外す（裁定「切替前のビルドはどこにも配らない」）」の 1 行を足す（`release-playtest.sh` の `promotion.md` は commit だけで branch を書かず、`promote_playtest.py` は `promotion.md` を読まないので、この行は機械を止めない。別のセッションが「playtest に反映して」と頼まれて最新の run を選ぶ前に、`promotion.md` を開いた人とエージェントへ知らせる印。D-32）。Mac の Editor は Task 9〜11 で要らないので閉じたままにする
+
+- [ ] **Step 8: server の配布ビルド（X-5d の申し送り。R-23）**
+
+client の配布ビルドは `release-playtest.sh` が焼くが、server（`moorestech_server/` の単体ビルド）を焼く工程は配布の道具に無い（`release-playtest.sh`・`lib/*.sh` に `moorestech_server` の参照 0）。PR ごとの `Platform Compile Check` は server のスクリプトのコンパイルだけを見るので、プレイヤービルドで初めて出る不足（ビルド時の参照の解決・プラグインの .meta の設定など。推測）は、master へ入った後の日次 cron（`build.yml:11-12`）まで出ない。切替 PR の中で 1 回だけ dispatch で焼く（裁定「ビルドは切替 PR の中でだけ回す」の範囲。D-30）:
+```bash
+cd "$WT"
+gh workflow run build.yml --ref feature/uitk
+RUN=$(gh run list --workflow build.yml --branch feature/uitk --event workflow_dispatch --limit 1 --json databaseId,headSha --jq '.[0] | "\(.databaseId) \(.headSha)"'); echo "$RUN"   # headSha が $FROZEN と同じこと（違えばまだ一覧に出ていないので流し直す）
+timeout 580 gh run watch "${RUN%% *}" --exit-status; echo "exit=$?"   # 124 の間は同じ行を前景で繰り返す（間に他の記録の作業をする。sleep で待たない）
+gh run view "${RUN%% *}" --json jobs --jq '.jobs[] | "\(.name) \(.conclusion)"'
+gh run view "${RUN%% *}" --log 2>/dev/null | grep -i -F -f <(sed 's/\.dll$//' "$SP/x-switch-pr/x5d-names-server.txt") | grep -i -E 'error|not found|missing|could not' | wc -l
+```
+Expected: `Server Build - StandaloneWindows64 success`・`Server Build - StandaloneOSX success`・最後の行が 0（X-5d が消した server の NuGet 13 件の名前が、ビルドのエラー・欠落の行に 0）。`Client Build - *` の結論も `done.md` の R-23 に書く（落ちたら原因を読み、配布物の client は `release-playtest.sh` 側で通っているので、CI だけの原因〈runner の環境〉か切替の原因かを書いて持ち主へ bd）。Server Build が落ちたら `error CS` と欠落の行を `done.md` に貼り、NuGet の持ち主の X-5d を引き継ぐ I-fix へ bd を立てて停止。Linux の DedicatedServer は matrix でコメントアウト（`build.yml:65-68`）なので焼けない。そのことを `done.md`「## 未確認」と PR 本文の「検証の範囲」に書く（この工程で `build.yml` は変えない。`.github/**` はこのレーンの外）。この run は配布物にしない（Steam へ上げない）
 
 ---
 
@@ -777,20 +901,21 @@ Expected: どちらかの操作で `True`。両方 `False` なら、オーナー
 ```bash
 APP="$HOME/Library/Application Support/Steam/steamapps/common/moorestech/moorestech.app"
 find "$APP" -iname '*cef*' | wc -l
+test -e "$APP/Contents/Resources/Data/StreamingAssets/WebUi" && echo webui-present || echo webui-absent
 python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["commit"])' "$APP/Contents/Resources/Data/StreamingAssets/build-info.json"
 ```
-Expected: 0・`<FROZEN>`。
+Expected: 0・`webui-absent`（X-5c の申し送り）・`<FROZEN>`。
 
 - [ ] **Step 3: 起動してワールドに入る**
 
-`open "steam://run/1958160"`。cua-driver の games.md の手順（`screencapture` で撮り、`cliclick` の長押しクリックと `osascript` のキー入力。前面化が要る）で、同意画面「了解」→ 前回異常終了の報告「送らない」→「ローカルでプレイ」。`~/Library/Logs/sakastudio/moorestech/Player.log` の `[PlaytestTitleGates] step`・`[InitializeScenePipeline] mod icon capture completed`・`[TerrainRuntimeBuilder] Terrain built` を確かめる。Gatekeeper などの回避操作が要ったかを記録する。
+`open "steam://run/1958160"`。cua-driver の games.md の手順（`screencapture` で撮り、`cliclick` の長押しクリックと `osascript` のキー入力。前面化が要る）で、同意画面「了解」→ 前回異常終了の報告「送らない」→「ローカルでプレイ」。`~/Library/Logs/sakastudio/moorestech/Player.log` の `[PlaytestTitleGates] step`・`[InitializeScenePipeline] mod icon capture completed`・`[TerrainRuntimeBuilder] Terrain built` を確かめ、`grep -E 'DllNotFoundException|TypeLoadException|FileNotFoundException|MissingMethodException|Could not load' ~/Library/Logs/sakastudio/moorestech/Player.log | grep -c -F -f <(sed 's/\.dll$//' "$SP/x-switch-pr/x5d-names-client.txt")` が 0（X-5d の申し送り）。Gatekeeper などの回避操作が要ったかを記録する。
 
 - [ ] **Step 4: Tab でインベントリ**
 
 Tab → スクショ（`$SP/x-switch-pr/report/mac-inventory.png`）。UITK のインベントリが出ていることを目で見る（CEF の Web の描画ではない＝Player.log に `[WebUiHost]`・`Cef` の行が 0: `grep -c -E 'WebUiHost|Cef' ~/Library/Logs/sakastudio/moorestech/Player.log`）。Cmd+Q で終える。
 Expected: スクショにインベントリ・grep が 0。
 
-- [ ] **Step 5: 記録**: `promotion.md` の「Mac 版の手動確認」のチェック欄を埋め、BuildID・セーブ変換の行・スクショで見たことを追記する（moores-playtest-release の手順 4-5。「反映」節は触らない）。`done.md` の R-14 へ
+- [ ] **Step 5: 記録**: `promotion.md` の「Mac 版の手動確認」のチェック欄を埋め、BuildID・セーブ変換の行・スクショで見たことを追記する（moores-playtest-release の手順 4-5。「反映」節は触らない）。Task 8 Step 7 の先頭の「反映禁止」の行は残す（外すのは X-release）。`done.md` の R-14 へ
 
 ---
 
@@ -799,8 +924,8 @@ Expected: スクショにインベントリ・grep が 0。
 **Files:** なし（`$SP/x-switch-pr/ime/` に snippet と鍵送りのスクリプト）
 
 **Interfaces:**
-- Consumes: Task 8・10 で入った staging ビルド、`remote-exec.sh`（Mac はローカル・Windows は `--windows`）、`Client.Ui.Foundation.Root.GameUiRoot.Instance.GetRootElement()`（`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Root/GameUiRoot.cs:41`）、入力欄の testid（`GameTextField` が内側の `UnityEngine.UIElements.TextField` の name に付ける。`GameTextField.cs:51`）: `bug-report-description`（`BugReportFormView.cs:60`・複数行）・`build-menu-search`（`BuildMenuPanelSkeleton.cs:43`）・`modal-input`（`ModalView.cs:67`）・`train-station-name-input`（`TrainStationNameRow.cs:29`）、BP 名の入口 `Client.Game.InGame.UI.Blueprint.BlueprintNameInputState.Open()`（`ClientDIContext.DIContainer.DIContainerResolver` から引く）、駅の設置はサーバーの `Game.Context.ServerContext.WorldBlockDatastore.TryAddBlock`（`Client.Playtest/Operations/PlaytestBlockOps.cs:51-61` の写し。駅は名前 `蒸気機関車駅` で `MasterHolder.BlockMaster.GetBlockAllIds()` から引く）、S9 の Windows の鍵送りの方法（`~/share/2026-10-28-uitk-s9-ime-result/s9-ime-win-report.md` §2〜§4）、Mac の鍵送りの前例 `S/uitk/uitk-c2b-ime-mac-keys.sh`
-- Produces: `done.md`「## IME の一巡」の 8 行（2 OS × 4 欄）、変換中のスクショ 8 枚（報告ページには各 OS 1 枚）
+- Consumes: Task 8・10 で入った staging ビルド、`remote-exec.sh`（Mac はローカル・Windows は `--windows`）、`Client.Ui.Foundation.Root.GameUiRoot.Instance.GetRootElement()`（`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Root/GameUiRoot.cs:41`）、入力欄の testid（`GameTextField` が内側の `UnityEngine.UIElements.TextField` の name に付ける。`GameTextField.cs:51`）: `bug-report-description`（`BugReportFormView.cs:60`・複数行）・`build-menu-search`（`BuildMenuPanelSkeleton.cs:43`）・`modal-input`（`ModalView.cs:67`）・`train-station-name-input`（`TrainStationNameRow.cs:29`）、BP 名の入口 `Client.Game.InGame.UI.Blueprint.BlueprintNameInputState.Open()`（`ClientDIContext.DIContainer.DIContainerResolver` から引く）、駅の設置はサーバーの `Game.Context.ServerContext.WorldBlockDatastore.TryAddBlock`（`Client.Playtest/Operations/PlaytestBlockOps.cs:51-61` の写し。駅は名前 `蒸気機関車駅` で `MasterHolder.BlockMaster.GetBlockAllIds()` から引く）、駅を開く前例 `S/uitk/uitk-train-inventory.cs:171-185` の `OpenStation` と、それを写すクライアントの API（`Client.Game.InGame.Player.PlayerSystemContainer.Instance.PlayerObjectController` の `Position`・`SetPlayerPosition(Vector3)`〈`IPlayerObjectController`〉、`ClientContext.VanillaApi.SendOnly.SendPlayerPosition(Vector3)`〈`PlaytestSetup.WarpPlayer` の写し〉、`ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(Vector3Int)`、`UnityEngine.InputSystem.Mouse.current.WarpCursorPosition(Vector2)`〈推測〉）、S9 の Windows の鍵送りの方法（`~/share/2026-10-28-uitk-s9-ime-result/s9-ime-win-report.md` §2〜§4）、Mac の鍵送りの前例 `S/uitk/uitk-c2b-ime-mac-keys.sh`
+- Produces: `done.md`「## IME の一巡」の 8 行（2 OS × 4 欄。開けなかった欄は「開けない」の印つき）、変換中のスクショ 8 枚（報告ページには各 OS 1 枚）
 
 始める前に通るべきもの: Task 9（Windows）・Task 10（Mac）が済み、ゲームが動いていない。終えた後に通るべきもの: 8 行とも合格か、不合格の行に bd。
 
@@ -843,7 +968,9 @@ state.Open();
 return "opened";
 ```
 （モーダルが出ない〈`read.cs` が `missing:modal-input`〉なら、UIState が BP コピーの状態を要する読み（推測）。そのときは BP 名の欄だけ配布ビルドでの一巡を `未確認` にし、Editor の `S/uitk/stage3/uitk-build-bp.cs` の BP 名を Mac の合成キーで打つ形を `done.md` に書き、ユーザーの目視の項目に足す。D-16）
-- `place-station.cs`（`--target server`。プレイヤーの前に駅を置く。座標は `camera-front.cs`〈クライアント〉で `Vector3Int.FloorToInt(Camera.main.transform.position + Camera.main.transform.forward * 4f)` を返させ、その値を書き込む）:
+- 駅（`蒸気機関車駅`）は 7×1×20 のブロック（moorestech_master の `blocks.json` の `blockSize`）で、カメラの前に原点を合わせて置くだけではプレイヤーに重なるか照準が外れて F が何も開かない。前例 `S/uitk/uitk-train-inventory.cs:171-185` の `OpenStation`（駅の外の南側へワープ → コライダーへ照準 → LeftAlt を押したまま Interact〈F〉。LeftAlt の長押しはカーソルを自由にする〈`UiStateCameraPolicyService.cs:95,106`・`GameScreenState.cs:142`〉）を、DSL の代わりに遠隔実行と OS の鍵で写す。snippet は 3 つ:
+  - `player-pos.cs`（クライアント）: `var q = Client.Game.InGame.Player.PlayerSystemContainer.Instance.PlayerObjectController.Position; return $"{UnityEngine.Mathf.FloorToInt(q.x)},{UnityEngine.Mathf.FloorToInt(q.y)},{UnityEngine.Mathf.FloorToInt(q.z)}";` → `<px>,<py>,<pz>`
+  - `place-station.cs`（`--target server`。原点はプレイヤーの足もとから北へ 8 マス〈`<px>`, `<py>`, `<pz>+8`〉。前例は平らな地面の `(10,32,4)`・South で、配布ビルドのワールドは平らでないので足もとの高さに合わせる〈推測〉）:
 ```csharp
 using Core.Master;
 using Game.Block.Interface;
@@ -860,27 +987,50 @@ if (!found) return "missing:蒸気機関車駅";
 var placed = ServerContext.WorldBlockDatastore.TryAddBlock(stationId, new UnityEngine.Vector3Int(<x>, <y>, <z>), BlockDirection.South, System.Array.Empty<BlockCreateParam>(), out var block);
 return $"placed={placed}";
 ```
-（`ServerContext` は `Game.Context`〈`moorestech_server/Assets/Scripts/Game.Context/ServerContext.cs:9-11`〉。駅は名前で引く〈`PlaytestBlockOps.ResolveBlockId`〈`PlaytestBlockOps.cs:23-30`〉と同じ引き方。名前はシナリオ `uitk/uitk-train-inventory.cs:57` の `"蒸気機関車駅"`〉。`--target server` はサーバーの更新スレッドの tick 末尾で走るので、`PlaytestBlockOps.PlaceBlockDirect`〈`:51-61`〉の `PlaytestServerThreadAction` と同じ位置で書く〈ADR 0072:42〉。置けたら OS の F キーで開く＝プレイヤーの経路）
+  （`ServerContext` は `Game.Context`〈`moorestech_server/Assets/Scripts/Game.Context/ServerContext.cs:9-11`〉。駅は名前で引く〈`PlaytestBlockOps.ResolveBlockId`〈`PlaytestBlockOps.cs:23-30`〉と同じ引き方。名前はシナリオ `uitk/uitk-train-inventory.cs:57` の `"蒸気機関車駅"`〉。`--target server` はサーバーの更新スレッドの tick 末尾で走るので、`PlaytestBlockOps.PlaceBlockDirect`〈`:51-61`〉の `PlaytestServerThreadAction` と同じ位置で書く〈ADR 0072:42〉）
+  - `aim-station.cs`（クライアント。`<x>,<y>,<z>` は置いた原点。前例の `OpenStation` の写し: コライダーの外接箱を取り、南の外へワープし、照準の点へ OS のカーソルを置く）:
+```csharp
+using System.Linq;
+using UnityEngine;
+var go = Client.Game.InGame.Context.ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(new Vector3Int(<x>, <y>, <z>));
+var colliders = go.GetComponentsInChildren<Collider>(true).Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger && c.bounds.size != Vector3.zero).ToList();
+if (colliders.Count == 0) return "missing:station-collider";
+var bounds = colliders[0].bounds; foreach (var c in colliders) bounds.Encapsulate(c.bounds);
+var feet = new Vector3(bounds.center.x, bounds.min.y + 1.5f, bounds.min.z - 1f);
+Client.Game.InGame.Player.PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(feet);
+Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.SendPlayerPosition(feet);
+var screen = Camera.main.WorldToScreenPoint(new Vector3(bounds.center.x, bounds.min.y + 0.4f, bounds.min.z + 0.1f));
+if (screen.z <= 0f || screen.x < 0f || Screen.width < screen.x || screen.y < 0f || Screen.height < screen.y) return $"offscreen:{screen}";
+UnityEngine.InputSystem.Mouse.current.WarpCursorPosition(new Vector2(screen.x, screen.y));
+return $"aimed={screen.x:F0},{screen.y:F0}";
+```
+  （前例の 33.5 と 32.4 は駅の原点 y=32 からの +1.5・+0.4 なので、外接箱の下端からの差に置き換えた。ワープの後にカメラが落ち着くまで 1 秒置いてから `aim-station.cs` をもう 1 回流し、2 回目の照準で F を押す〈前例の `DelayFrame(10)`・`AimAt` の静定待ちの代わり〉。`Mouse.current.WarpCursorPosition` が遠隔実行の snippet から使えるか・OS のカーソルを動かすかは推測。D-16）
 
 - [ ] **Step 2: 鍵送りを用意する**
 
-- Mac（`$SP/x-switch-pr/ime/mac-keys.sh`）: `uitk-c2b-ime-mac-keys.sh` の形で、ゲームの pid を前面にしてから 1 鍵ずつ `osascript -e 'tell application "System Events" to key code <n>'`（0.25 秒おき）。毎回前面が moorestech か確かめ、違えば送らずに止める。終わり方によらず英数（102）へ戻す（`trap`）。鍵: かな 104・英数 102・n 45・i 34・h 4・o 31・g 5・Space 49・Return 36・Esc 53・B 11・Tab 48
-- Windows（`$SP/x-switch-pr/ime/win-keys.ps1`）: S9 の報告 §2〜§4 の形。対話セッションの scheduled task から PowerShell で `SendInput` を呼び、仮想キーコード＋スキャンコードで送る（`KEYEVENTF_UNICODE` は使わない）。IME のオンは `VK_IME_ON`（0x16）、オフは `VK_IME_OFF`（0x1A）。鍵（VK/スキャン）: N 0x4E/0x31・I 0x49/0x17・H 0x48/0x23・O 0x4F/0x18・G 0x47/0x22・Space 0x20/0x39・Return 0x0D/0x1C・Esc 0x1B/0x01・B 0x42/0x30・F 0x46/0x21。送る前に前面の窓が moorestech でなければ送らない。`finally` で IME をオフに戻す
+- Mac（`$SP/x-switch-pr/ime/mac-keys.sh`）: `uitk-c2b-ime-mac-keys.sh` の形で、ゲームの pid を前面にしてから 1 鍵ずつ `osascript -e 'tell application "System Events" to key code <n>'`（0.25 秒おき）。修飾の長押しは `key down option`／`key up option`。毎回前面が moorestech か確かめ、違えば送らずに止める。終わり方によらず英数（102）へ戻し、`key up option` を送る（`trap`）。鍵: かな 104・英数 102・n 45・i 34・h 4・o 31・g 5・x 7・F 3・Space 49・Return 36・Esc 53・B 11・Tab 48・左 Option（Alt）58
+- Windows（`$SP/x-switch-pr/ime/win-keys.ps1`）: S9 の報告 §2〜§4 の形。対話セッションの scheduled task から PowerShell で `SendInput` を呼び、仮想キーコード＋スキャンコードで送る（`KEYEVENTF_UNICODE` は使わない）。IME のオンは `VK_IME_ON`（0x16）、オフは `VK_IME_OFF`（0x1A）。鍵（VK/スキャン）: N 0x4E/0x31・I 0x49/0x17・H 0x48/0x23・O 0x4F/0x18・G 0x47/0x22・X 0x58/0x2D・Space 0x20/0x39・Return 0x0D/0x1C・Esc 0x1B/0x01・B 0x42/0x30・F 0x46/0x21・左 Alt（VK_LMENU）0xA4/0x38（長押しは KEYDOWN と KEYUP を分けて送る）。送る前に前面の窓が moorestech でなければ送らない。`finally` で IME をオフに戻し、左 Alt の KEYUP を送る
 
-- [ ] **Step 3: 1 欄の手順（4 欄 × 2 OS で同じ）**
+- [ ] **Step 3: 1 欄の手順（4 欄 × 2 OS で同じ。ただし 8 の Expected は欄で分ける）**
+
+`blur.cs`（`FIELD` を欄ごとに置き換える）: `var f = Client.Ui.Foundation.Root.GameUiRoot.Instance.GetRootElement().Q<UnityEngine.UIElements.TextField>("FIELD"); if (f == null) return "missing:FIELD"; f.Blur(); return "blurred";`
 
 1. ゲームを起動してワールドに入る（Mac は Task 10 Step 3 と同じ。Windows は Task 9 の `launch.ps1 -CaseName ime -RemoteExec` と `hold.cs`。Mac は `open "steam://run/1958160//--remoteExec/"` で起動し、Player.log に `[RemoteExec] 待受を開きました` が出たことを確かめる。出なければ Steam の起動オプションに `--remoteExec` を入れる手を cua-driver で行い、終わったら外す）
-2. 画面を開く: バグ報告は Esc → `open-bug-report.cs`、検索は B、BP 名は `open-bp-name.cs`、駅名は `camera-front.cs` → `place-station.cs` → F
+2. 画面を開く: バグ報告は Esc → `open-bug-report.cs`、検索は B、BP 名は `open-bp-name.cs`、駅名は `player-pos.cs` → `place-station.cs`（`placed=True`）→ 1 秒置いて `aim-station.cs` を 2 回（`aimed=…`）→ 左 Alt を押したまま F → 左 Alt を離す。開いたかは `focus.cs` が `missing:` を返さないことで見る。`missing:`・`offscreen:`・`placed=False` のときは「開けない（手順の失敗）」として、その欄の行を IME の合否と別に書き（どの段で止まったか・返り値）、置き方・照準を直して 1 回だけやり直す。それでも開けなければその欄は IME を `未確認（開けない）` にし、ユーザーの目視の項目（Task 14 Step 3 の IME の行に駅名・BP 名は既にある）で見てもらう旨を書く。`GameTextField` の持ち主へは回さない
 3. `focus.cs` → `focused=True`
-4. 鍵: IME オン（Mac 104・Windows VK_IME_ON）→ n i h o n g o → Space → スクショ（変換中。下線と候補窓の位置）→ Return（Mac は候補一覧からの 1 回目が確定にならないことがある〈台帳 R-15 の記録〉。そのときはもう 1 回）
-5. `read.cs` → `value` に `日本語` を含む・`composition=[]`
-6. 鍵: Esc → `read.cs` → `value` は 5 と同じ・`focused=False`。画面は開いたまま（バグ報告・ビルドメニュー・モーダルは閉じていない。`read.cs` が `missing` を返さない）
-7. IME オフ（Mac 102・Windows VK_IME_OFF）。画面を閉じる（Esc。モーダルは Esc で取消）
-Expected: 3・5・6 のとおり。8 行それぞれ「OS / 欄 / 変換中の文字 / 確定後の値 / ESC 後の値とフォーカス / 候補窓の位置（スクショから: キャレットの直下か） / 合否」を `done.md`「## IME の一巡」へ。
+4. 変換中の取消: IME オン（Mac 104・Windows VK_IME_ON）→ n i h o n g o → Space → スクショ（変換中。下線と候補窓の位置）→ Esc → `read.cs`。`composition=[]` でなければ、もう 1 回 Esc → `read.cs`（変換中の ESC は IME が受け、UITK にもゲームにも届かない〈S9 の報告〉。`composition=[]` になった後は Esc を送らない＝余計な Esc は確定後の ESC になり欄が外れる）。Expected: 画面は開いたまま（`missing` を返さない。BP 名のモーダルも閉じない〈`ModalView.cs:110-114` の「変換中のESCでは取り消さない」〉）・`focused=True`・`value` に `日本語` が無い
+5. 確定: n i h o n g o → Space → Return → `read.cs`。Mac で `composition=[]` でないときだけ（候補一覧からの 1 回目が確定にならないことがある〈台帳 R-15 の記録〉）、もう 1 回 Return → `read.cs`。`composition=[]` のときに 2 回目の Return を送らない（単行のモーダルでは BP 名の確定になって閉じる）
+6. `read.cs` → `value` に `日本語` を含む・`composition=[]`
+7. フォーカスの往復: `blur.cs` → `read.cs` で `focused=False` → `focus.cs` で `focused=True` → IME オフ（Mac 102・Windows VK_IME_OFF）→ x → `read.cs` → `value` に `日本語` を含み `x` で終わる・`focused=True`（S9 の「フォーカス往復の後の再入力」）
+8. 確定後の ESC: Esc → `read.cs`。Expected は欄で分ける:
+   - バグ報告・検索・駅名: `value` は 7 と同じ・`focused=False`。画面は開いたまま（`missing` を返さない）
+   - BP 名（`modal-input`）: 同じ 1 回でモーダルが取り消される（`read.cs` が `missing:modal-input`。`ModalView.cs:71-73,110-114`。Web の Mantine と同じ 1 回で、ModalScreenPresenterTest が見る仕様）。値の確かめは 6・7 で済んでいる
+9. 画面を閉じる（Esc。BP 名は 8 で閉じている）
+Expected: 3〜8 のとおり。8 行それぞれ「OS / 欄 / 開けたか / 変換中の取消 / 確定後の値 / 往復の後の値 / ESC 後の値とフォーカス（BP 名はモーダルが閉じたか） / 候補窓の位置（スクショから: キャレットの直下か） / 合否」を `done.md`「## IME の一巡」へ。
 
 - [ ] **Step 4: 不合格の処遇**
 
-不合格は 1 行ずつ bd を `--parent <bd>` で立て（OS・欄・手順の番号・値・スクショ）、`GameTextField` の持ち主へ回す依頼を指揮へ返して `done.md` を「状態: 停止（IME の不合格 n 件の修正待ち）」にする。直らない見た目の差（候補窓の位置の数 px など、設計書 §3.4 に当たるもの）は R-19 の LX-218・219 の案に書き、止まらない。
+「開けない（手順の失敗）」と `未確認（開けない）` は不合格に数えない（Step 3-2）。不合格（3〜8 の Expected 外れ）は 1 行ずつ bd を `--parent <bd>` で立て（OS・欄・手順の番号・値・スクショ）、`GameTextField` の持ち主へ回す依頼を指揮へ返して `done.md` を「状態: 停止（IME の不合格 n 件の修正待ち）」にする。直らない見た目の差（候補窓の位置の数 px など、設計書 §3.4 に当たるもの）は R-19 の LX-218・219 の案に書き、止まらない。
 
 - [ ] **Step 5: 片付け**: 両 OS でゲームを閉じ、IME をオフに戻したことを確かめる。Windows の `C:/moorestech-smoke/x-switch-pr/` を消す。スクショは各 OS 1 枚を `$SP/x-switch-pr/report/` に残し、他は消す
 
@@ -896,20 +1046,28 @@ Expected: 3・5・6 のとおり。8 行それぞれ「OS / 欄 / 変換中の�
 
 - [ ] **Step 1: 最後の master の確認（R-16）**
 
-Run: `git fetch -q origin && git log --oneline "$FROZEN"..origin/master -- moorestech_web/ && git log --oneline "$FROZEN"..origin/master | wc -l`
+Run: `git fetch -q origin && git log --oneline "$FROZEN"..origin/master -- "${RLIST[@]}" && git log --oneline "$FROZEN"..origin/master | wc -l`（`"${RLIST[@]}"` は Task 2 の撤去済みの場所の一覧。`moorestech_web/` だけでなく `Client.WebUiHost/` など撤去済みの場所への master の変更も Web の更新として拾う）
 Expected: Web のコミットが空。空でなければ Task 2 へ戻り、D-9 の表で再検証する。Web 以外の master のコミットの数は PR 本文の「検証の範囲」に「検証ビルド `<FROZEN 10 桁>` の後に master へ入った Web 以外のコミット n 件は検証ビルドに入っていない」と書く（D-10）。
 
 - [ ] **Step 2: 完了の定義の表**
 
 `done.md`「## 完了の定義」に統合計画 §5.1 の 1〜5 を 1 行ずつ: 1＝Task 1 Step 3 の 5b 行の出力＋Task 8 Step 6・Task 10 Step 2 の CEF 0、2＝Task 4 Step 1・2、3＝Task 9、4＝Task 7（ラダー 6 本・全録画）＋`bd show moorestech-wwxy` の CLOSED、5＝「X-release の持ち物（ユーザーのマージの後に playtest へ反映して 7 日以上と報告の確認 1 回）」。
 
-- [ ] **Step 3: 記録**: `../moorestech_logs` でコミット・push
+- [ ] **Step 3: 戻す先を記録する（統合計画 §7.4・U-5）**
+
+裁定の帰結は「切替の後に不具合が出たら、切替前のビルドへ戻すしかない」。マージの後に戻す判断が要ったとき PR から辿れるよう、今 playtest に出ているビルドを記録する:
+```bash
+python3 "$WT/.agents/skills/moores-playtest-release/scripts/find_live_playtest.py" "$RUNS"
+```
+Expected: 配信中の playtest の BuildID・run・コミット（moores-playtest-release 手順 3-1 の比較元と同じもの）。`done.md` の「## integrator への依頼」（X-release 宛て）と PR 本文の「マージの方法」の後に「戻す先: playtest の BuildID <id>（run <label>・commit <sha10>）。戻す手順は moores-playtest-release で Steamworks の playtest のライブをこの BuildID に戻す」と 1 行書く。取れなければ（スクリプトのエラー・該当なし）その出力を貼り、`done.md`「## 未完了」に残す（止まらない）
+
+- [ ] **Step 4: 記録**: `../moorestech_logs` でコミット・push
 
 ---
 
 ### Task 13: moores-code-review で全ブランチレビュー（必須）
 
-必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。対象は `<Task 5 Step 1 で見た HEAD>..HEAD`（X-audit が `9f32a03390` まで、Task 5 がその後から凍結の前までを見たので、残りは取り込み・台帳・レビューの適用だけ。D-11）。差分が台帳だけでも省略しない。設計判断は agent 既定で推奨案を採り判断記録へ、ゴール・裁定から外れるものだけ `done.md`「要裁定」。自動適用・反映がソースの判定経路・条件式に触れたら、`FROZEN` が変わるので D-9 の表に従ってラダー 6 本と影響する録画を反映後のバイナリで流し直し、配布物に入るコードに触れたら Task 8〜11 をやり直してから完了とする。
+必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。対象は Task 5 Step 1 と同じ絞り方で、Task 5 の後の feature 側のコミット（`git log --first-parent --no-merges <Task 5 Step 1 で見た HEAD>..HEAD`）と、Task 5 の後の取り込みのマージコミットの `git show --remerge-diff`（X-audit が `9f32a03390` まで、Task 5 がその後から凍結の前までを見たので、残りは取り込み・台帳・レビューの適用だけ。master 側から来たコードは対象にしない。D-11・D-31）。差分が台帳だけでも省略しない。自動適用・反映が `.cs` に触れたら、Mac の Editor は Task 8 から閉じたままなので、`moores-wt status` で自分の worktree の Editor が無いこと（他者の Editor を落とさない）を確かめて `uloop launch --project-path ./moorestech_client` → `uloop compile --project-path ./moorestech_client`（ErrorCount 0）→ Global Constraints 5 の「録画の前置き」を流してから、テストと録画をやり直す（AGENTS.md の compile の門）。設計判断は agent 既定で推奨案を採り判断記録へ、ゴール・裁定から外れるものだけ `done.md`「要裁定」。自動適用・反映がソースの判定経路・条件式に触れたら、`FROZEN` が変わるので D-9 の表に従ってラダー 6 本と影響する録画を反映後のバイナリで流し直し、配布物に入るコードに触れたら Task 8〜11 をやり直してから完了とする。
 
 ---
 
@@ -941,7 +1099,8 @@ Expected: Web のコミットが空。空でなければ Task 2 へ戻り、D-9 
   "verification": [
     "G1: 全束 未記帳 0 件・違反なし（--base origin/master --head origin/feature/uitk）",
     "G4: 違反 0",
-    "Unity コンパイル: エラー 0 / Client.Tests 全体（winunity test-all）: 既知の Windows だけの失敗 <k> 件（I-fix5 R-19）の外は失敗 0・既知の 3 クラスは Mac で失敗 0 / サーバーの Tests: 失敗 0",
+    "server の配布ビルド（build.yml の workflow_dispatch）: Server Build Windows・Mac success・X-5d が消した 13 件の名前のエラー 0（Linux の DedicatedServer は matrix で無効のため焼いていない）",
+    "Unity コンパイル: エラー 0 / Client.Tests とサーバーの Tests の全体（Windows で 18 本の regex）: 既知の Windows だけの失敗 <k> 件の外は失敗 0・既知の名前は Mac で流し直して失敗 0",
     "全録画: <n> 本中 PASS <a>・前提つき（流し直して PASS）<c>・不具合 0",
     "配布ビルド <LABEL>（BuildID <id>・commit <FROZEN 10 桁>・branch feature/uitk）: Windows/Mac の成果物の検査（CEF 0 を含む）合格・Windows 検証機 phase1/phase2 合格",
     "CEF のファイル: Mac の moorestech.app 0・Windows の Plugins/x86_64 0",
@@ -958,11 +1117,11 @@ Expected: Web のコミットが空。空でなければ Task 2 へ戻り、D-9 
 pr-create スキルで head=`feature/uitk`・base=`master`（中継ブランチを作らない。cwd の枝が `feature/uitk` でなければ head を明示する）。題: 「UITK 一気切替: 全画面を UITK にし CEF と Web を撤去する（切替 PR）」。PR を作った後に `python3 ~/hermes-agent/data/services/pr-review/publish/publish_pr_report.py <番号> "$SP/x-switch-pr/report/manifest.json"` で報告ページを公開し（失敗したら報告 URL 無しで完了にしない）、本文を次の順で書く（先頭行はその URL の h1。tailnet の URL は書かない）:
 1. `# https://review.moores.tech/pr/<番号>/report/`
 2. 何を切り替えたか（撤去 5a〜5e の PR へのリンク・台帳の切替。このレーンの記帳・取り込みのコミットは PR を通さず `feature/uitk` へ直接積み、この PR の G1 で検査した旨の 1 行。D-3）
-3. 検証の結果（manifest の verification と同じ。凍結した SHA と BuildID）・検証の範囲（D-10 の 1 行）
+3. 検証の結果（manifest の verification と同じ。凍結した SHA と BuildID）・検証の範囲（D-10 の 1 行・server の配布ビルドは CI の dispatch で Windows・Mac だけ焼き、Linux の DedicatedServer は matrix でコメントアウトのため焼いていない〈R-23〉・Linux クライアントの除外の bd の id〈X-5b の申し送り〉・IME で開けなかった欄があればそれ）
 4. 既知の差（台帳の「## 見た目の例外」の件数と LX-218・219 の案。目視で見てほしいもの）
 5. 要裁定（独立評価で残った設計判断。無ければ「無し」）
 6. ユーザーの目視の手順（下の Step 3 の文）
-7. マージの方法: 「マージコミットでマージする（Squash and merge を使わない）。マージの後に X-release（playtest への反映）と X-cleanup（台帳と G1 の撤去 PR）を指揮が起こす。`delete-merged-branch.yml` により `feature/uitk` はマージ時に消える（D-17）」
+7. マージの方法: 「マージコミットでマージする（Squash and merge を使わない）。マージの後に X-release（playtest への反映）と X-cleanup（台帳と G1 の撤去 PR）を指揮が起こす。`delete-merged-branch.yml` により `feature/uitk` はマージ時に消える（D-17）」。続けて Task 12 Step 3 の「戻す先」の 1 行
 
 - [ ] **Step 3: 目視の手順の文（PR 本文と done.md「ユーザーの残タスク」に同じ文）**
 
@@ -983,24 +1142,25 @@ pr-create スキルで head=`feature/uitk`・base=`master`（中継ブランチ�
 - [ ] **Step 4: G1・G4 を見る**
 
 Run: `gh pr checks <番号> --watch=false` を、job が終わったことを確かめるまで前景で数回（間は他の記録の作業をする。`sleep` で待たない）。
-Expected: `UITK Web follow gate (G1)` と `UITK no-Web gate (G4)`（Task 1 Step 4 で写した job 名）が `pass`。他の必須の check（Unity Test・Platform Compile Check 等）の結果も `done.md` に書く。落ちたら原因を直す（台帳ならこのレーン、他は持ち主へ bd で停止）。`CONFLICTING` なら pr-create の手順で master を取り込み（Task 2）、D-9 で再検証してから push。
+Expected: `UITK Web follow gate (G1)` と `UITK no-Web gate (G4)`（Task 1 Step 4 で写した job 名）が `pass`。他の必須の check（Unity Test・Platform Compile Check 等）の結果も `done.md` に書く。落ちたら原因を直す（台帳ならこのレーン、他は持ち主へ bd で停止）。`CONFLICTING` なら pr-create の手順で master を取り込み（Task 2 の Step 1〜6 をそのまま。`--no-commit` で止め、撤去済みの場所に戻ったファイルを列挙して消し、写すものは I-follow の手順で写して記帳する）、D-9 で再検証してから push。
 
 - [ ] **Step 5: 片付け・報告・合図**
 
-1. `moores-wt status` で自分の Editor だと確かめて閉じる（Task 8 から閉じたままなら確かめるだけ）。録画・`PlaytestResults/`・TestResults・撮影 PNG・`moorestech_client/Temp/uitk-recordings/` を消す（報告ページへ載せた後）。テストのワールドを `list-work-saves.sh` で探して消す
+1. `moores-wt status` で自分の Editor だと確かめて閉じる（Task 8 から閉じたままなら確かめるだけ）。録画・`PlaytestResults/`・TestResults・撮影 PNG・`moorestech_client/Temp/uitk-recordings/`・`moorestech_client/.uloop/outputs/compare/X-switch-pr/` を消す（報告ページへ載せた後）。I-follow の参照を撮るために作った master の worktree があれば `moores-wt rm <名前>` で畳む。テストのワールドを `list-work-saves.sh` で探して消す
 2. bd は閉じない。`bd update <bd> --notes "切替 PR #<番号> 作成。G1・G4 緑。ユーザーの目視とマージ待ち。マージ後に X-release が閉じる"`（D-18）
-3. `done.md` の 1 行目を「状態: 完了」（止まったら「状態: 停止（理由）」）にし、完了条件ごとの証拠・PR URL・未完了・要裁定・ユーザーの残タスク（目視・マージ・要裁定の判断・Steam Guard の承認が要ったならその記録）・integrator への依頼（下の「## 設計書・実行計画へ反映する行」・LX-218・219 の案があれば I-fix で行と印を置く依頼・X-release への申し送り〈LABEL・BuildID・run dir・`promotion.md` の Mac の欄は済み〉・X-cleanup への申し送り）を書いて `../moorestech_logs` でコミット・push
+3. `done.md` の 1 行目を「状態: 完了」（止まったら「状態: 停止（理由）」）にし、完了条件ごとの証拠・PR URL・未完了・要裁定・ユーザーの残タスク（目視・マージ・要裁定の判断・Steam Guard の承認が要ったならその記録）・integrator への依頼（下の「## 設計書・実行計画へ反映する行」・LX-218・219 の案があれば I-fix で行と印を置く依頼・X-release への申し送り〈LABEL・BuildID・run dir・`promotion.md` の Mac の欄は済み・先頭の「反映禁止」の行は反映の前に外す・戻す先の BuildID〈Task 12 Step 3〉〉・X-cleanup への申し送り）を書いて `../moorestech_logs` でコミット・push
 4. 最後に `cmux wait-for -S uitk-x-switch-pr` を 1 回（途中で止まる場合も同じ合図を送る）。worktree の `moores-wt rm` は指揮が行う
 
 ## Self-Review
 
-- Requirements の各行のタスク: R-1→T1、R-2→T2、R-3・R-4→T3、R-5→T4、R-6→T5、R-7→T6、R-8・R-9→T7、R-10〜R-12→T8、R-13→T9、R-14→T10（R-11 の Mac も）、R-15→T11、R-16→T6〜T12 の頭と T12 Step 1、R-17→T14、R-18→T9 Step 5（出展モードの起動の手）・T14 Step 3、R-19→T11 Step 4・T14 Step 5、R-20→T12 Step 2、R-21→T13・T14
-- プレースホルダ: `<FROZEN>`・`<LABEL>`・`<BuildID>`・`<番号>`・`<5c 削除>` は前のタスクの Produces で決まる実行時の値。G4 と全録画のスクリプトの名前は期待の形を書き、Task 1 Step 4 で実物から写して違えば D-15 に書く（まだ無い型の扱い）。`place-station.cs` は実物（`Game.Context.ServerContext`・名前で引く `ResolveBlockId` の形）から写して埋めた。残る `<x>`・`<y>`・`<z>` は `camera-front.cs` の実行時の値
-- 保留の経路: 前提の欠け（T1）・I-follow 待ち（T2）・全録画の不具合（T7）・IME の不合格（T11）・G4 の違反（T4）はどれも「停止（理由）」と合図で指揮に届き、解ける条件（持ち主のマージ）と再開の位置（T2 か T6）を書いた。最小構成: master に Web のコミットが 0 件のとき T2 Step 4・5 は空で進む。未記帳が 0 件のとき（起こらない。5c の削除が必ず全束に当たる）でも T3 Step 2 の exit 0 で進む
+- Requirements の各行のタスク: R-1→T1、R-2→T2、R-3・R-4→T3、R-5→T4、R-6→T5、R-7→T6、R-8・R-9→T7、R-10〜R-12→T8、R-13→T9、R-14→T10（R-11 の Mac も）、R-15→T11、R-16→T6〜T12 の頭と T12 Step 1、R-17→T14、R-18→T9 Step 5（出展モードの起動の手）・T14 Step 3、R-19→T11 Step 4・T14 Step 5、R-20→T12 Step 2、R-21→T13・T14、R-22→T1 Step 11（受けるタスクは「## 申し送りの受け」の表）、R-23→T8 Step 8
+- プレースホルダ: `<FROZEN>`・`<LABEL>`・`<BuildID>`・`<番号>`・`<5c 削除>` は前のタスクの Produces で決まる実行時の値。G4 と全録画のスクリプトの名前は期待の形を書き、Task 1 Step 4 で実物から写して違えば D-15 に書く（まだ無い型の扱い）。`place-station.cs`・`aim-station.cs` は実物（`Game.Context.ServerContext`・名前で引く `ResolveBlockId` の形・前例 `OpenStation`）から写して埋めた。残る `<x>`・`<y>`・`<z>` は `player-pos.cs` の実行時の値から決める原点
+- 保留の経路: 前提の欠け（T1）・I-follow の規模が 1 日に収まらないとき（T2。それ以外の写すものは停止せず写す。D-29）・取り込みの後の G4 の違反（T2 Step 3）・全録画の不具合（T7）・IME の不合格（T11。開けない欄は不合格に数えない）・G4 の違反（T4）・server の配布ビルドの失敗（T8 Step 8）はどれも「停止（理由）」と合図で指揮に届き、解ける条件（持ち主のマージ）と再開の位置（T2 か T6）を書いた。最小構成: master に Web のコミットが 0 件のとき T2 Step 4・5 は空で進む。未記帳が 0 件のとき（起こらない。5c の削除が必ず全束に当たる）でも T3 Step 2 の exit 0 で進む
 - 凍結と再検証: HEAD が変わる経路（取り込み・レビューの適用・I-fix の取り込み）を D-9 の 1 つの表に集め、T6・T7・T8・T13・T14 から同じ表を引く
 - 「台帳と G1 は消さない」: Files は台帳の 3 節だけで、`check-uitk-web-follow.py`・`uitk_web_follow/`・`uitk-web-follow-gate.yml` を触らない
 - 検査の反映: 撤去の確かめのコマンドを表の外のコードブロックへ移した（表の `\|` が `-E` の下で偽の合格になるため）。G4 の名前は X-5e 計画の Produces（`check-uitk-no-web.py`・`UITK no-Web gate (G4)`）にそろえ、R-5・Task 1・Task 4・消えているべきものの表・manifest で同じ名前にした。全録画の列と分類は R-9・Task 7・D-8・反映する行の A-177 の改めで同じにした。テストの判定（既知の Windows の失敗の扱い）は R-7・Task 6・manifest・D-23 で同じにした
-- unityプレイ録画テスト: 含む（T7 のラダー 6 本と全録画。このレーンはランタイムのコードを変えないが、切替 PR の完了条件そのもの）
+- 独立評価 1 周目の反映（D-28〜D-37）: 10 分を超えるコマンドは Global Constraints 4・T6 Step 2・T8 Step 8 で同じ割り方（18 本の regex・`timeout 580 gh run watch` の繰り返し・割れないものだけ本体の `run_in_background`）にした。受け口の環境変数は Global Constraints 5 の前置き 1 つにし、T1 Step 9・T1 Step 12・T7 Step 1・T13・D-9 の表の末尾から同じ前置きを引く。master の取り込みは T2 の手順 1 つ（`--no-commit`・R-LIST・I-follow の手順）にし、R-2・R-16・T6・T12 Step 1・T14 Step 4 から同じ手順と同じ `"${RLIST[@]}"` を引く。I-follow の写しでコードに触れる例外は「やらないこと」・ファイルの持ち主・D-29 で同じ書き方にした。レビューの絞り方は T5 Step 1・T13・D-11・D-31 で同じ。IME の欄ごとの Expected は R-15・T11 Step 3・D-34 で同じ。申し送りは R-22・「## 申し送りの受け」・T1 Step 11・D-35 で同じ表を引く
+- unityプレイ録画テスト: 含む（T7 のラダー 6 本と全録画。このレーンはランタイムのコードを変えないが、切替 PR の完了条件そのもの。I-follow の写しがあれば T2 Step 4 でその画面の録画も流す）
 
 ## 判断記録（ADR）
 
@@ -1033,27 +1193,42 @@ W6 の agent 既定（指揮の割り振りの写し）:
 |---|---|
 | 台帳・`.md`・`.github/scripts` の G1/G4 だけ（ビルドの入力に入らない） | Task 3 Step 5・Task 4。ビルドと録画はやり直さない（PR 本文に「検証ビルドと HEAD の差は台帳・文書だけ」と書く） |
 | master の取り込みで `moorestech_web/`・`Client.WebUiHost/` の削除の解決だけ | 同上 |
-| `moorestech_client/**`・`moorestech_server/**`・`Packages/**`・`scripts/playtest/**` に触れた取り込み・レビューの適用・I-fix | Task 6〜11 の全部（配布物が変わるため） |
+| master の取り込みで撤去済みの場所に戻ったファイルの `git rm` だけ（写すもの無し） | 同上（戻ったファイルは消えてマージの結果に残らない。Task 2 Step 2 の R-LIST が 0 行であることを `done.md` に書く） |
+| `moorestech_client/**`・`moorestech_server/**`・`Packages/**`・`scripts/playtest/**` に触れた取り込み・レビューの適用・I-fix・I-follow の写し | Task 6〜11 の全部（配布物が変わるため）と、server に触れたら Task 8 Step 8 |
+| 上の行のうち `Client.Ui/**`（USS・C#）に触れたもの | 加えて W6-6 (a)(b) を撮り直し、Task 1 Step 12 の基準と比べる（`gallery-after`・`smoke-after` に撮り、X-5d 計画 Task 5 Step 3 の比較の 2 行で比べる）。Expected: 組が同じ・基準で `inf` の組は全組 `inf`。`inf` でない組は「状態名・解像度・PSNR・差の場所・原因」を `done.md` に表で書き、触れた変更が原因なら直して撮り直す（撤去 5a〜5e がそろえた見た目の不変の確かめを、このレーンの変更にも掛ける。D-33） |
 | シナリオ（`S/**`）・`tools/uitk/**` だけ | Task 7 の該当シナリオとラダー 6 本 |
 
+どの行でも、Editor を起動し直したら・録画を流し直す前に、Global Constraints 5 の「録画の前置き」を流す（受け口の値は Editor のプロセスにしか残らない）。
+
 - D-10（agent 既定）: 検証中に master へ入った Web 以外のコミットは、衝突しない限り取り込まない。裁定が再検証を求めるのは Web の更新で、Web 以外の変更まで取り込むたびに 70 分のビルドからやり直すと切替が延び続ける。取り込まなかった件数を PR 本文の「検証の範囲」に書く
-- D-11（agent 既定）: レビューは 2 回に分ける。Task 5 で X-audit の後の全部（`9f32a03390..HEAD`）を凍結の前に見て、ビルドと検証が直した後のコードに当たるようにする。最終タスク対の Task 13 は Task 5 の後の差分（取り込み・台帳）だけを見る。自動適用がコードに触れたら D-9 の表でやり直す。持ち主のあるファイルの機械的でない修正は、このレーンが直さず bd で I-fix へ回す
+- D-11（agent 既定）: レビューは 2 回に分ける。Task 5 で X-audit の後の feature 側の全部（`9f32a03390` より後。master 側から来たコードは除く。D-31）を凍結の前に見て、ビルドと検証が直した後のコードに当たるようにする。最終タスク対の Task 13 は Task 5 の後の差分（取り込み・台帳）だけを見る。自動適用がコードに触れたら D-9 の表でやり直す。持ち主のあるファイルの機械的でない修正は、このレーンが直さず bd で I-fix へ回す
 - D-12（agent 既定）: 約 70 分の `release-playtest.sh` は、moores-playtest-release 手順 1 のとおり本体が Bash の `run_in_background` で起動し、Monitor でログの行を受ける（前景の上限 600 秒に収まらず、スクリプトは途中で分けられない。Steam Guard の承認は約 1 分で切れるので、ログの行をすぐ受ける必要がある）。subagent には渡さない。ほかの待ちは前景（検証機の上の待ちは PowerShell の中で回す・Steam の更新待ちは Monitor の until ループ・CI は `gh pr checks` を前景で見る）
 - D-13（agent 既定）: 配布ビルドの batchmode の Unity が動く間は Mac の Editor を閉じる（Mac の Editor 1 本の指示と同じ理由で、Unity を 2 本動かさない）。検証機と winunity が同じ Windows PC なら、検証機を使う Task 8〜11 の間は winunity を使わない（同じ対話セッションで Steam のゲームと Editor が前面を取り合う）
-- D-14（agent 既定）: CI の `ビルド検証` ラベルは付けない。完了条件のビルドは「焼くのは feature/uitk の HEAD の SHA」の配布ビルドで、それは手元の `release-playtest.sh` が焼いて Steam と検証機で確かめる。CI のビルドは配布物にならず、Linux クライアントの除外（5b）と重なる
+- D-14（agent 既定。独立評価 1 周目で改めた → D-30）: CI の `ビルド検証` ラベルは付けない。完了条件の client のビルドは「焼くのは feature/uitk の HEAD の SHA」の配布ビルドで、それは手元の `release-playtest.sh` が焼いて Steam と検証機で確かめる。server の配布ビルドだけは配布の道具に工程が無いので、`build.yml` を `workflow_dispatch` で 1 回流す（Task 8 Step 8）。CI のビルドは配布物にしない
 - D-15（agent 既定・実行時に足す）: Task 1 Step 4 で写した G4・全録画のスクリプト・ラダーの実際のパスが期待と違えば、ここに「期待 → 実物」を 1 行ずつ足し、以後のコマンドを読み替える
-- D-16（agent 既定・推測を含む）: IME の一巡で画面を開くのは、プレイヤーの経路（Esc・B・F）を OS の鍵で通せる所はそれを使い、ボタンとモーダルは遠隔実行で開く（DSL が配布ビルドで動かないため。W6-17）。`NavigationSubmitEvent` で `Button.clicked` が呼ばれる・`BlueprintNameInputState.Open()` だけでモーダルが出る、はどちらも推測で、最初の 1 回で確かめる。外れたら代わりの手（OS のクリック／BP 名だけ Editor の合成キーと目視へ）を実行時にここへ書く
+- D-16（agent 既定・推測を含む）: IME の一巡で画面を開くのは、プレイヤーの経路（Esc・B・F）を OS の鍵で通せる所はそれを使い、ボタンとモーダルは遠隔実行で開く（DSL が配布ビルドで動かないため。W6-17）。`NavigationSubmitEvent` で `Button.clicked` が呼ばれる・`BlueprintNameInputState.Open()` だけでモーダルが出る、はどちらも推測で、最初の 1 回で確かめる。外れたら代わりの手（OS のクリック／BP 名だけ Editor の合成キーと目視へ）を実行時にここへ書く。駅は前例 `OpenStation` を遠隔実行（ワープ・`Mouse.current.WarpCursorPosition` の照準）と OS の鍵（左 Alt の長押し＋F）で写す（独立評価 1 周目。D-34）。開けなかった欄は「開けない（手順の失敗）」として IME の合否と分け、`GameTextField` の持ち主へ回さない
 - D-17（agent 既定）: `.github/workflows/delete-merged-branch.yml` はマージされた PR の head のブランチを消すので、切替 PR のマージで `feature/uitk` が消える。X-release・X-cleanup は master で行い、切替後に `feature/uitk` を使う工程は無いので止めない。PR 本文に書いてユーザーに知らせる
 - D-18（agent 既定）: このレーンの bd は PR を作った時点では閉じない（完了条件の残り＝ユーザーの目視とマージが残る）。X-release が閉じる
 - D-19（agent 既定）: 目視と IME で見つけた直せない差の LX-218・219 は、文面だけこのレーンが `done.md` に書き、台帳の行と USS・C# の印は I-fix が同じ PR で置く（`LookExceptionLedgerTest` が行と印の一致を見るので、行だけを先に置けない。このレーンは USS・C# を持たない。前例は S4-gamma 計画 `docs/superpowers/plans/2026-11-10-uitk-s4-gamma.md` の LX-141〜145 の段取り〈起草時は計画の中だけで、台帳にはまだ無い〉）
 - D-20（agent 既定）: moores-playtest-release の手順 4（Mac の Steam）はこのレーンが staging のビルドで行い、`promotion.md` の Mac の欄を埋める。X-release の「Mac の確認項目をラダー 6 本の先頭操作のスクショへ」は反映の前の別の確認として X-release が持つ（実行計画の 2 行の重なりの読み）
 - D-21（Phase 2.6 5-B: `hold.cs`・`harmony.cs` が局所関数を `method.Name.Contains("g__Hold|")` の部分一致で引くのを、列挙で閉じるべきか → このままでよい。出所 agent 既定）: 前例 `$RUNS/remote-exec-listener-20261026-172117/snippets/` の写しで、コミットしない検証用の snippet。C# のコンパイラが局所関数に付ける名前（`<…>g__Hold|n_m`）を引く口はほかに無く、`Single` は 0 件・2 件以上で例外を投げ、遠隔実行の応答の `outcome` が `RuntimeException` になって Task 9 の Expected と食い違うので気づける
 - D-22（Phase 2.6 5-I: `build-info.json` の `commit` を空・欠損の分岐なしで表示へ出すのを直すか → このままでよい。Expected に「空・別の SHA・エラーは不合格」と書いた。出所 agent 既定）: 値は表示して `<FROZEN>` と目で照合するだけで、欠損は照合の不一致として必ず落ちる（Task 8 Step 6・Task 10 Step 2）。分岐を足しても気づく人と場所は同じ
-- D-23（設計検査〈実物〉: Windows の `^Client\.Tests\.Ui\.` に既知の失敗 14 件があり、R-7 の「全 shard で失敗 0」が必ず落ちる → 既知の名前の集合の外を 0 にする判定へ改め、既知の 3 クラスは Mac の Editor で失敗 0 を確かめる。サーバーの `Tests.*` は `winunity test-all` に入らないので Mac で流す。出所 agent 既定）: 14 件は `-nographics` の描画とパス区切りの Windows だけの失敗で（X-audit `done.md` の「コンパイル・テスト」の行。I-fix5 R-19 の既知）、切替の可否と関係しない。既知を許すと新しい失敗が紛れるので、許すのは名前の集合だけにし、件数と顔ぶれを `done.md` に書く
+- D-23（設計検査〈実物〉: Windows の `^Client\.Tests\.Ui\.` に既知の失敗 14 件があり、R-7 の「全 shard で失敗 0」が必ず落ちる → 既知の名前の集合の外を 0 にする判定へ改め、既知の 3 クラスは Mac の Editor で失敗 0 を確かめる。サーバーの `Tests.*` は `winunity test-all` に入らないので Mac で流す。出所 agent 既定。流し方と既知の集合の出所は D-28 で改めた）: 14 件は `-nographics` の描画とパス区切りの Windows だけの失敗で（X-audit `done.md` の「コンパイル・テスト」の行。I-fix5 R-19 の既知）、切替の可否と関係しない。既知を許すと新しい失敗が紛れるので、許すのは名前の集合だけにし、件数と顔ぶれを `done.md` に書く
 - D-24（設計検査〈実物〉: Task 4 Step 2 の `git grep -E 'Kestrel|Microsoft\.AspNetCore'` は撤去計画の外に残るコメント〈`RemoteExecHttpListener.cs:14-15,45-46`・`EventModeStartGate.cs:22-23`〉に当たって 0 にならず、DLL まで舐めて 120 秒を超える → `.cs`・`.asmdef`・`packages.config` のコメント以外の行だけを 0 の判定にし、コメントに残る語は G4〈`Kestrel` を検出する語に持つ〉の許可リストに任せる。出所 agent 既定）: 統合計画 §5.1-2 の「Web 用の Kestrel が無い」はコードとして無いことで、コメントの語の掃除は X-5e の持ち物（X-5c 計画 D-6 が 5e の掃除へ申し送った）
 - D-25（シミュレーター予測〈agent 前提・拒否権つき〉: オーナーの目視の手順の「`MOORESTECH_EVENT_MODE=1` を付けて起動」は、Steam から起動するビルドに環境変数を付ける具体の操作が無く、出展モードが既定のワールドを消すことも書いていない → Task 9 Step 5 で検証機で起動の手を確かめ、通った操作とワールドの置き場の指定〈`MOORESTECH_DEFAULT_WORLD_DIRECTORY`〉を手順に書く。UI を隠すのは左 Ctrl+U だけ〈`UIRoot.cs:18`〉と書く）: 出展モードの有効化は環境変数だけ（`EventExhibitionSettings.cs:12,48`）。起動時に `GameSystemPaths.DeleteDefaultWorldDirectory()`（`EventModeAutoStartActions.cs:12`）が走るので、置き場を替えずに起動させるとオーナーのワールドが消える
 - D-26（シミュレーター予測〈agent 前提・拒否権つき〉: `verify-on-windows.sh` は Player.log を回収せず、phase1 の分は `Player-prev.log` に回り、Task 9 の起動で両方が上書きされる → Task 8 Step 5 で Task 9 の前に 2 本を ssh で取る）: 回収は `results` の scp だけ（`verify-on-windows.sh:81`）。`Player-prev.log` に phase1 が入るのは Unity の既定の動きの推測で、取れた log の中身で phase を確かめる
 - D-27（シミュレーター予測〈agent 前提・拒否権つき〉: 依頼文はメインクローンの `scripts/playtest` から焼くと書くのに計画は worktree の版から焼く → D-2 のまま。依頼文から外れたことを `done.md` の冒頭に 1 行書く〈Task 8 Step 7〉）: ユーザー規約「同じものが使えず別のものを使ったら、何を何に替えたかと理由を報告の最初に書く」
+- D-28（独立評価 1 周目: `winunity test-all`〈通しで約 40 分。`~/bin/winunity:87-90` は ssh で同期に待つ〉と `--timeout-seconds 1500` の `uloop run-tests` は前景の 600 秒で切れ、`summary-all.txt` が回収できず R-7 が判定できない。既知の失敗の集合が X-audit の `^Client\.Tests\.Ui\.` の 14 件だけで、Ui 以外の本の Windows だけの既知の失敗が「既知の外」になる → 1 本 10 分未満の 18 本の regex〈X-5d 計画 Task 2 Step 1 の表と割り方。否定先読みの補集合で `Client.Tests` と `^Tests\.` を重なりなく覆う〉を前景で 1 本ずつ流し、割れないもの〈初回の `winunity compile`・最初の `--editor` の本・1 クラスで上限を超えるもの〉だけを本体が `run_in_background` で 1 回起動し完了の通知で受ける。既知の集合は X-audit の 14 件・X-5a の `test-all` の起点と最終 HEAD・X-5d の撤去後の 18 本の失敗の名前の和にし、名前は全部 Mac で流し直して失敗 0 を確かめる。出所 agent 既定〈指揮の全レーン共通の補足〉）: 前例 X-5d が同じ 18 本を起点と撤去後に流すので、同じ表を使えば既知の集合と比べ方がそろう
+- D-29（独立評価 1 周目〈2 体とも重〉: master の取り込みで、消したディレクトリの中へ master が足したファイルは衝突にならず黙って入り、`git status` の衝突の印にも出ない〈別の subagent が scratch の repo で再現: 衝突なし・status 空・grep 0 行。modify/delete は `DU`、新規は `A `〉。`--no-ff` は衝突が無いとその場でコミットし、戻ったファイルは Task 4 まで、push の後まで気づかれない。`Client.WebUiHost/` へ .cs が戻れば asmdef の無い C# になる。さらに 5a〜5d が消した C# の modify/delete を「両方の意図を保つ」で解くと消したファイルが戻りうる → 取り込みを `--no-commit` で止め、撤去済みの場所の一覧〈R-LIST〉に在るファイルを列挙して 0 を確かめ、在れば中身を UITK 側へ写して〈I-follow の手順〉記帳し、ファイルは `git rm` でマージのコミットに含める。5a〜5d が消したパスの modify/delete も消す側で解く。取り込みの後に C-1〜C-9 と G4 を流す。出所 指揮の補足〈「取り込みの直後に『撤去済みの場所に在るファイル』を列挙して 0 を確かめ、在れば中身を UITK 側へ写して〈I-follow の手順〉記帳し、ファイルは消す手順にする〈停止にしない〉」〉）: 起草時の今の master では分岐点〈11/06〉の後の追加は 0 件だが、9〜11 月に `moorestech_web/` へ 85 件・`Client.WebUiHost/` へ 49 件の追加があった〈再現役の実測〉。指揮の補足は戻ったファイルについて停止にしないと決めたので、同じ「写すものがある master の Web 変更」である modify/delete の中身と、取り込んだ Web コミットの写すものも同じ手順にそろえ、このレーンが停止せずに I-follow の手順で写す（前の版は「停止（I-follow 待ち）」だった。agent 既定）。写す規模が Editor 1 本の 1 日に収まらないときだけ停止して指揮へ返す。棄却: 戻ったファイルを消すだけで写さない（master の Web の変更が UITK に入らず、裁定「最終検証中に master へ Web の更新が入ったら取り込んで追従」から外れる）／I-follow を待って停止（戻ったファイルを消す手順が無く、やり直しても同じ所で止まり続ける）
+- D-30（独立評価 1 周目と X-5d の依頼〈X-5d R-12 (2)・D-20〉: server の配布ビルドを焼く工程がどこにも無い → 切替 PR の HEAD で `gh workflow run build.yml --ref feature/uitk` を 1 回流し、`Server Build` の Windows・Mac の success と、X-5d が消した 13 件の名前のエラー 0 を R-23 の証拠にする。出所 agent 既定〈指揮の補足〉）: 別の subagent の再現では「一部」: server のスクリプトのコンパイル不足は PR ごとの `Platform Compile Check`〈`platform-compile.yml`。プレイヤービルドはしない〉が切替 PR で拾うので、cron まで出ないのはプレイヤービルドで初めて出る不足〈ビルド時の参照の解決・プラグインの .meta 等。推測〉に限られる。それでも裁定「ビルドは切替 PR の中でだけ回す」の下で server を焼ける場所はここだけなので足す。指揮の依頼文は「DedicatedServer を含む」と書くが、Linux の DedicatedServer は `build.yml:65-68` で matrix からコメントアウトされていて dispatch でも焼けない。このレーンは `.github/**` を持たないので matrix は変えず、焼けないことを `done.md`「## 未確認」と PR 本文に書く。同じ run の `Client Build` は配布物にしない
+- D-31（独立評価 1 周目〈軽〉: Task 5 の対象 `9f32a03390..HEAD` は、Task 2 の取り込みの後なので master 側の非 UITK の作業を丸ごと含み、自動適用が master の作業者のコードに当たる → 対象を feature 側に絞る: `9f32a03390..$PRE_MERGE_HEAD`・取り込みの後の feature 側の非マージのコミット・取り込みのマージコミットの `git show --remerge-diff`〈衝突の解き方と戻ったファイルの `git rm` だけが出る〉。Task 13 も同じ絞り方。出所 agent 既定）: 別の subagent が再現した（`9f32a03390` は master の祖先でなく、模擬の取り込みで差分が 10 から 219 ファイルに増え、非 UITK の .cs 32 本と master 側の moores-code-review の変更が入る）。棄却: 取り込みの前に Task 5 を回す（衝突の解き方と I-follow の写しがレビューを通らない）
+- D-32（独立評価 1 周目〈軽〉: `promotion.md` の Mac の欄を埋めると反映の前提がそろって見え、別のセッションがマージ前の切替ビルドを playtest へ出しうる → `promotion.md` の先頭に「反映禁止（切替 PR 未マージ。反映と行の削除は X-release）」の 1 行を足し、Task 10 Step 5 の後も残す。出所 agent 既定）: 別の subagent の再現では「一部」: `promote_playtest.py` は `promotion.md` を読まず `--mac-checked` は申告だけなので、欄を埋めても前提はそろわず、この行は機械を止めない。危険は「playtest に反映して」と頼まれた別のセッションが最新の run を選ぶ経路で、`release-playtest.sh` の `promotion.md` は branch を書かないので、この 1 行が人とエージェントへの唯一の手がかりになる。X-release が同じ run を反映に使うので「X-release が外す」と添える。機械で止める改修（`promote_playtest.py` が release.log の `branch=` を見て master 以外を拒む）はこのレーンの持ち物の外（`.agents/skills`）なので「## 本PR外のリファクタ提案」に置く
+- D-33（独立評価 1 周目〈2 体とも軽〉: 撤去 5a〜5e はどれも W6-6 で見た目の不変を証拠にしたのに、このレーンだけが `Client.Ui/**` に触れうる経路〈取り込みの衝突の解決・I-follow の写し・レビューの自動適用〉の後に見た目の比べ直しを持たない → Task 1 Step 12 でこのレーンの起点の W6-6 (a)(b) を撮り、D-9 の `Client.Ui/**` の行で撮り直して比べる。出所 agent 既定）: ラダーは USS の値やトークンの書き換えでは落ちないので、比べ直しが無いとユーザーの目視の前に Web との差が入っても気づけない。I-follow の写しは意図して見た目を変えるので、写した画面の組は I-follow の比較 HTML〈Task 2 Step 4〉を証拠にし、それ以外の組の不変をここで見る
+- D-34（独立評価 1 周目: IME の一巡の手順が実物と合わない 3 点 → 直す。出所 agent 既定）: (1) BP 名の `modal-input` は入力欄の ESC でフォーカスが外れるのを見て同じ 1 回でモーダルを取り消す〈`ModalView.cs:71-73,110-114`〉ので、「ESC の後も画面は開いたまま」は仕様どおりでも必ず外れる → 欄ごとに Expected を分け、BP 名は「ESC でモーダルが閉じる」を合格にする。Mac の「もう 1 回 Return」は `composition=[]` でないときだけにする（確定済みに 2 回目を送ると BP 名の確定で閉じる）(2) 駅は 7×1×20 で、カメラの前に置くだけでは F で開かない。Mac の鍵の一覧に F が無かった → 前例 `OpenStation`〈`uitk-train-inventory.cs:171-185`〉を遠隔実行と OS の鍵で写し、F〈key code 3〉と左 Option〈58〉・Windows の左 Alt を足す。開けなかった欄は「開けない（手順の失敗）」として IME の合否と分け、`GameTextField` の持ち主へ回さない (3) S9〈`s9-ime-win-report.md:11`〉と統合計画 §2.2 の段階 1 の完了条件〈`plan.md:217`〉・§4.9 の S9〈`plan.md:692`〉が見た「変換中の取消」と「フォーカスの往復の後の再入力」が一巡に無かった → Step 3 の 4 と 7 に 1 手ずつ足す
+- D-35（独立評価 1 周目: 前の段からこのレーンへの申し送りを拾う手順が無い〈Task 1 は `done.md` の 1 行目しか読まない〉。X-5d の server の配布ビルド・X-5c の `StreamingAssets/WebUi`・X-5b の誤検知と `Plugins/x86_64`・X-5a の manifest の版の付け直し〈X-5a 計画 D-28〉が落ちていた → Task 1 Step 11 で各 `done.md` の「申し送り」「integrator への依頼」「未確認」を読んで全部を受けるタスクに割り当て、起草時に見込んだ項を「## 申し送りの受け」の表に置く〈R-22〉。出所 agent 既定〈指揮の補足〉）: 受け先の無い項 0 を Task 1 で確かめる。X-5a 計画 D-28 の版の付け直しは C-2 の読み替えと Task 2 Step 2 の取り込みの手順に入れた
+- D-36（独立評価 1 周目〈軽〉: R-18・Task 14 Step 3 の目視の前に、切替の後に戻す先〈今 playtest に出ているビルド〉が記録されず、PR から辿れない → Task 12 Step 3 で `find_live_playtest.py` を流し、BuildID・run・コミットを `done.md` と PR 本文に書く。出所 agent 既定）: 裁定の帰結「切替の後に不具合が出たら、切替前のビルドへ戻すしかない」の戻す先を、マージの前に固定しておく
+- D-37（独立評価 1 周目〈軽〉: Task 7 Step 3 の `<X-prerun の HEAD>` を決める手順が無い → Task 1 Step 6 で X-prerun の全録画を流した HEAD の 40 桁 SHA を `<PRERUN_HEAD>` として写す。出所 agent 既定）
+- 独立評価 1 周目で退けた指摘: 無し（全部を実物で確かめて直した。再現役が「一部」とした D-30・D-32 は、成り立つ部分〈server のプレイヤービルドの不足・人とエージェントへの印〉に合わせて直し方を絞った）
 - 要裁定（done.md へ上げる）: 起草時点で 0 件（Phase 2.6 の強 3 件・弱 2 件と検査の指摘は、どれもゴール・裁定から外れない読みで agent 既定に決めた）。実行時に独立評価・moores-code-review・目視の準備で出たゴール・裁定から外れる判断を `done.md`「要裁定」に足す
 - unityプレイ録画テスト: 含む（Task 7）
 
@@ -1070,10 +1245,15 @@ W6 の agent 既定（指揮の割り振りの写し）:
 - 出展モードを付けて起動する操作（直接起動で環境変数が効くか、ユーザーの環境変数と Steam の起動し直しが要るか）と、出展モードの起動で遠隔実行の待受が開くか（Task 9 Step 5。D-25）
 - 検証機の `Player-prev.log` に phase1 の分が入っているか（Task 8 Step 5。D-26）
 - Windows だけの既知の失敗 14 件（I-fix5 R-19）が切替までに直るか（Task 6 Step 2 で実数を書く。D-23）
+- X-5d の 18 本の regex の割り方が、5a〜5e の後のテストの並びでもそのまま重なりなく覆うか（Task 6 Step 2。X-5d の `done.md` に割った本があればその形）
+- 撤去済みの場所の一覧（R-LIST）が 5a〜5e の削除の全件と合っているか・`docs/webui` の行き先（Task 1 Step 11 で 5a〜5e の `done.md` と突き合わせる）
+- 駅を開く手（遠隔実行のワープと `Mouse.current.WarpCursorPosition` の照準、OS の左 Alt の長押し＋F）が配布ビルドで効くか・足もとから北へ 8 マスの原点が配布ビルドのワールドで地形に埋まらないか（Task 11 Step 3-2。D-16・D-34）
+- server の配布ビルドの所要と、Linux の DedicatedServer が焼けないことの扱い（Task 8 Step 8。D-30）
 
 ## 本PR外のリファクタ提案
 
-- なし（このレーンはコードを書かない）
+- `promote_playtest.py`（`.agents/skills/moores-playtest-release/scripts/`）が release.log の `branch=` を読み、master 以外のビルドの反映を拒む（D-32 の印を機械の止めにする。今は `promotion.md` を読まず `--mac-checked` は申告だけ）。`release-playtest.sh` の `promotion.md` に branch を書く。持ち主は moores-playtest-release のスキル（X-release か X-cleanup）
+- `build.yml` の Linux の DedicatedServer の matrix の再開（D-30。統合計画 §5.2 の Linux の判断と一緒に）
 
 ## 設計書・実行計画へ反映する行
 
@@ -1082,7 +1262,9 @@ W6 の agent 既定（指揮の割り振りの写し）:
 - 設計書 §7.1 の [A-177] の改め（本文の末尾に足す）: 「切替 PR（撤去の後）は Web 側が流せないので、`system` は `GameUi` で埋め、Web 側の流し直しの代わりに exit 0 以外の行を X-prerun の UITK 側の結果と比べて `既存`／`退行`／`比較不能（新設）`／`比較不能（変更）` の印を付ける（印の名前は X-prerun の Web 側の比べ方と同じ）。`束 5 未移植`・`wwxy`・`Web 専用` は 0 のはずで、出たら不具合として扱う（X-switch-pr D-8）」
 - 実行計画 §8 の E-2 の行に注記: 「例外: X-switch-pr は head が `feature/uitk` そのものの切替 PR なので、記帳・取り込みのコミットは `feature/uitk` へ早送りで直接 push する。E-2 の棄却理由（G1 が切替 PR まで走らない）は、切替 PR 自身で G1 が走るので当たらない（X-switch-pr D-3）」
 - 実行計画 §6.1 の表に足す行: `| X-switch-pr（`P/2026-11-12-uitk-x-switch-pr.md`。PLAN-W6） | A-259 | LX-218〜219（目視と IME で見つかった直せない差の予約。行と印は I-fix が置く） |`
-- 実行計画 §1.5 の X-switch-pr 行: 「pr-independent-review」→「moores-code-review（`9f32a03390..HEAD`）と独立評価（opus 2 体。W6-1）」。§5 の末尾「切替 PR は pr-independent-review を付ける」と §7 の U-4「独立レビューの裁定」を同じ読みに改める
+- 実行計画 §1.5 の X-switch-pr 行: 「pr-independent-review」→「moores-code-review（`9f32a03390` より後の feature 側のコミット。master 側から来たコードは除く。D-31）と独立評価（opus 2 体。W6-1）」。§5 の末尾「切替 PR は pr-independent-review を付ける」と §7 の U-4「独立レビューの裁定」を同じ読みに改める
+- 実行計画 §1.5 の X-switch-pr 行の完了条件に足す: 「master の取り込みでは撤去済みの場所に戻ったファイルを列挙して消し、中身は I-follow の手順でこのレーンが写す（停止しない）。server の配布ビルドは `build.yml` の `workflow_dispatch` で 1 回（Linux の DedicatedServer は matrix で無効）。今 playtest に出ている BuildID を戻す先として PR に書く（X-switch-pr D-29・D-30・D-36）」
+- 実行計画 §1.5 の X-release 行に足す: 「反映の前に、X-switch-pr が `promotion.md` の先頭に書いた『反映禁止』の行を外す（D-32）」
 - 実行計画 §1.5 の X-release 行: 「moores-playtest-release」の後に「（手順 4 の Mac の Steam は X-switch-pr が staging のビルドで済ませている。X-release は手順 3・5 と、反映前の Mac の追加の確認）」を足す
 - 統合計画 §2.6「切替 PR の作り方」の「ラダー 6 本と全録画を CEF の存在しないビルドで流す」に「（DSL は Editor 専用なので、CEF パッケージの無い HEAD の Editor で流す。A-259）」を足す。§5.1-4 の観測のしかたも同じ
 - moores-playtest-release（スキル本文）への申し送り（X-5e か X-cleanup が持つ。このレーンは書かない）: 「`feature/uitk` の SHA を焼くときは `MOORESTECH_BUILD_BRANCH=feature/uitk` を付け、その SHA の worktree の `scripts/playtest` から流す」は切替 PR の後は不要になるので、スキルには書かない（記録は A-259 だけ）
