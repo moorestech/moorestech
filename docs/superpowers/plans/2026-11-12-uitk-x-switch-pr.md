@@ -22,7 +22,7 @@
 | R-6 | 独立レビュー（pr-independent-review の代わり） | moores-code-review を `9f32a03390`（X-audit が見た範囲の終わり）より後の feature 側のコミット（`9f32a03390..$PRE_MERGE_HEAD` のうち `--not origin/master` の非マージのコミット・取り込みの後の feature 側の非マージのコミット・各取り込みのマージの `--remerge-diff`。master 側から来たコードは対象にしない。D-31）で 1 回回し、自動適用を反映。切替 PR の全体を opus の評価役 2 体に別々に判定させ、設計判断になる指摘は別の subagent に再現させて再現したものだけ残す。ゴール・裁定から外れるものは `done.md`「要裁定」と PR 本文へ |
 | R-7 | 凍結する HEAD のテスト | 凍結する HEAD（以後のビルド・録画の対象）で `uloop compile` が ErrorCount 0。Windows（winunity）で Task 6 Step 2 の 19 本の regex（X-5d の `done.md`「## Windows の 19 本の割り方」。`Client.Tests` の全部・`^Tests\.` の全部・そのどちらでもない名前〈namespace の無いテストクラス・パッケージのテスト。W-C6〉を重なりなく覆う。1 本 10 分未満で前景）を流し、各本の total が 0 でなく `timedOut`・`NO RESULT` が 0、失敗の名前が「既知の Windows だけの失敗」の集合に含まれ、それ以外が 0。既知の集合は、X-audit の `done.md` の 14 件（`-nographics` の描画の UiSrgbComposite 10・UiRuntimePanelCapture 2、パス区切りの TutorialAttentionToken 2。I-fix5 R-19）と、前のレーンの最新の Windows の全体の記録（X-5d の `done.md` の撤去後の 19 本、X-5a の `done.md` の `winunity test-all` の起点と最終 HEAD）の失敗の名前の和。集合の名前は全部 Mac の Editor でクラスのフィルタで流し直して失敗 0（Mac でも落ちたら Windows だけの失敗ではないので既知に数えない）。playtest の契約テスト 5 本（`test-release-playtest-mac.sh` を含む）が PASS（D-23・D-28） |
 | R-8 | CEF の無いプロジェクトでラダー 6 本 | 凍結した HEAD の Mac の Editor で `uitk-lifeline`・`uitk-opening-hud`・`uitk-build-bp`・`uitk-production-loop`・`uitk-research-train`・`uitk-challenge-gate` が `Success: true`・ErrorLogs 0（W6-17 の読み） |
-| R-9 | CEF の無いプロジェクトで全録画 | 凍結した HEAD で全録画のスクリプトの一覧を全本流し、1 本 1 行の TSV（設計書 [A-177] の列 `scenario・system・exit・seconds・run_dir`。スクリプトの TSV は X-5a が `system` を外したので、`done.md` の表で `system` に `GameUi` を入れる）と [A-177] の 6 分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）を `done.md`「## 全録画の結果」に書く。exit 0 以外の行は 1 回流し直し、2 回目に通った行は `PASS（揺れ: 1 回目 FAIL）`、2 回とも落ちた行だけを分類と印にかける（X-prerun R-6・D-36 と同じ。D-41）。`束 5 未移植`・`wwxy`・`Web 専用`・`不具合` が 0（見つけたものは bd で持ち主へ回し、直って再走で PASS）。2 回とも落ちた行に X-prerun と同じ比べ方の印（`既存`／`退行`／`比較不能（新設）`／`比較不能（変更）`。基準は X-prerun の UITK 側の結果で、X-prerun の `PASS（揺れ: 1 回目 FAIL）` は PASS と同じに扱う）を付け、`退行` 0（D-8・D-41） |
+| R-9 | CEF の無いプロジェクトで全録画 | 凍結した HEAD で全録画のスクリプトの一覧を全本流し、1 本 1 行の TSV（設計書 [A-177] の列 `scenario・system・exit・seconds・run_dir`。スクリプトの TSV は X-5a が `system` を外したので、`done.md` の表で `system` に `GameUi` を入れる）と [A-177] の 6 分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）を `done.md`「## 全録画の結果」に書く。exit 0 以外の行は 1 回流し直し、2 回目に通った行は `PASS（揺れ: 1 回目 FAIL）`、2 回とも落ちた行だけを分類と印にかける（X-prerun R-6・D-36 と同じ。D-41）。`束 5 未移植`・`wwxy`・`Web 専用`・`不具合` が 0（見つけたものは bd で持ち主へ回し、直って再走で PASS）。2 回とも落ちた行に X-prerun と同じ比べ方の印（`既存`／`退行`／`比較不能（新設）`／`比較不能（変更）`。基準は X-prerun の UITK 側の結果で、X-prerun の `PASS（揺れ: 1 回目 FAIL）` は PASS と同じに扱う）を付け、`退行` 0（D-8・D-41）。`run-scenario.sh` では流せない 3 行（EDC の手動投入のスニペット `playtest-receiver/developer-report-interrupt.cs`・`developer-report-resume.cs`〈どちらも `PlaytestRunner.Run` を呼ばず run dir を返さないので `run-scenario.sh` は必ず exit 1。ヘッダに流し直しの手順も無い〉と、運転役 `.sh` から流す `uitk/stage5/uitk-event-language-gate.cs`〈`.cs` を直接流すと出展モードにならない〉）は一覧から外して TSV の exit で判定せず、Task 7 Step 3b の流し方で判定する: interrupt は X-5a 計画 Task 8 Step 7 の手動投入で `Result` が `pending upload interrupted: <箱名>`、または開発者トークンの無い機材で例外文がちょうど `Not pending before stop` なら `前提つき（手動投入で PASS）`、言語ゲートは運転役 `uitk-event-language-gate.sh` で `Success: true` なら `前提つき（運転役で PASS）`、resume は `前提つき（判定の対象外）`で PASS にも不具合にも数えない（interrupt の対で、受け口を外した前置きでは本番送信が再開せず、作者の機材にしか無い進捗の箱を読む。X-5a も判定しない）。2 本は落ちたら同じ流し方で 1 回流し直し、2 回とも落ちたら `不具合`（D-44） |
 | R-10 | Windows/Mac の配布ビルドと playtest-staging | 凍結した HEAD の 40 桁 SHA を `MOORESTECH_BUILD_BRANCH=feature/uitk` で `release-playtest.sh` に渡して焼き、`release_require_windows_artifact`・`release_require_mac_artifact`（5b が反転した CEF 0 の検査を含む）が通り、steamcmd で playtest-staging へ上がり、`validate_staging.py` が `validated-steam-build.json` を書く。`build-info.json` の `commit` が凍結した SHA・`branch` が `feature/uitk`。`promotion.md` の先頭に「反映禁止」の行がある（Task 8 Step 7。D-32）。playtest への反映（`promote_playtest.py`・Steamworks の手動ライブ設定）とパッチノートはしない |
 | R-11 | CEF のファイルが 0（統合計画 §5.1-1） | release.log に CEF の検査の失敗が無いことに加え、Steam から入った実物で確かめる: Mac の `moorestech.app` の下に `cef-unity-server.app` も名前に `cef` を含むファイルも 0、Windows 検証機のインストール先の `moorestech_Data/Plugins/x86_64` に名前に `cef` を含むファイルが 0。あわせて両 OS の `StreamingAssets/WebUi` が無い（X-5c の申し送り。Web の配布物の前処理〈`WebUiProductionArtifactBuilder`〉が消えたことの確かめ。R-11 の名前の検査は `cef` だけなので別に見る） |
 | R-12 | Windows 検証機の通し検証 | `verify-on-windows.sh` の phase1・phase2 がどちらも `success:true`、受け口の READY を確認して ACK（`[verify] passed`）。phase1・phase2 の Player.log（`verify-on-windows.sh` は `results` しか回収しないので、Task 9 で上書きされる前に検証機の `Player.log`〈phase2〉と `Player-prev.log`〈phase1〉を ssh で取る。D-26）に `DllNotFoundException`・`TypeLoadException`・`FileNotFoundException`・`MissingMethodException` が 0（X-5d の申し送り）。phase2 の録画が成立している（ffmpeg の同梱。X-5b の申し送り `FfmpegRuntimeBundler.cs:49-52` の `Plugins/x86_64` 前提） |
@@ -174,6 +174,7 @@ ls tools/uitk/test-name-parity.mjs
 | X-5e R-1・R-5 | `docs/webui`・`docs/webui-parity`・`docs/webui-feature-videos-2026-06-14` を `docs/archive/` の下へ移し、`.agents/skills/ref-webui-design`・`.claude/rules/ref-webui-design.md` を消した（`done.md`「## 撤去済みの場所」） | Task 1 Step 11（R-LIST との突き合わせ）・Task 2 の前文（R-LIST） |
 | X-prerun R-6 | 全録画の HEAD は `done.md`「## 全録画の結果」の頭の `- 全録画の HEAD（GameUi）: <40 桁>`。UITK の分類に `PASS（揺れ: 1 回目 FAIL）` がある | Task 1 Step 6（`<PRERUN_HEAD>`）・Task 7 Step 3（揺れの扱い。D-41） |
 | X-prerun D-37 | 参照の撮影元の master にだけある Web の変更による差（master の未追従）を `done.md`「integrator への依頼」にコミットと撮影 id で書く | Task 1 Step 11（写す候補へ）・Task 2 Step 4（I-follow の写す候補。D-42） |
+| X-5a R-15・R-16・Task 8 Step 6・7 | `list-recordings.sh` は全 `.cs` を出し標準エラーに何も出さない。`run-scenario.sh` では流せない 3 本（`developer-report-interrupt.cs`・`developer-report-resume.cs`・`uitk/stage5/uitk-event-language-gate.cs`）は TSV の exit で判定せず、interrupt は手動投入・言語ゲートは運転役 `.sh`・resume は判定の対象外 | Task 7 Step 2（`list-run.txt`・`list-excluded.txt` は空）・Step 3b・Step 5（D-44・D-45） |
 | X-5e の bd の処遇 | `moorestech-s2zk.1`（配布ビルド・steamcmd・検証機の通し）をこのレーンの bd へ `bd dep` で結ぶ | Task 1 Step 10 |
 | X-5e の bd の処遇・X-prerun の「## 未撮影」 | IME（`moorestech-lc9ty.3` の駅名入力を含む）と変換中の見た目 | Task 11（変換中のスクショ） |
 
@@ -200,7 +201,7 @@ ls tools/uitk/test-name-parity.mjs
 - Create（repo 外）: `$H/X-switch-pr/done.md`
 
 **Interfaces:**
-- Consumes: X-5a〜X-5e・X-prerun の `done.md`（`$H/<ID>/done.md`）、X-5e の G4（期待: `python3 .github/scripts/check-uitk-no-web.py --root <repo> [--allowlist <path>] [--report]` が許可リスト外 0 件で exit 0〈1＝許可リスト外に語がある・2＝許可リストの書式誤りか腐った行〉、workflow `.github/workflows/uitk-no-web-gate.yml` の job 名 `UITK no-Web gate (G4)`。X-5e 計画 `docs/superpowers/plans/2026-11-12-uitk-x-5e.md` Task 2 の Produces から写した形で、実物と違えば D-15 に書いて以後のコマンドを読み替える）、全録画のスクリプト（期待: X-5a が系の引数を外した `tools/uitk/list-recordings.sh`〈引数なし。標準出力に 1 行 1 本・標準エラーに外した名前と理由〉と `tools/uitk/run-all-recordings.sh <list.txt> <out.tsv> <開始行> <本数>`〈TSV の列 `scenario exit seconds run_dir`〉。`tools/uitk/recordings/` の下の場合あり。`usage:` の行から写し、違えば D-15）、ラダー 6 本（期待のパス: `S/uitk/uitk-lifeline.cs`・`S/uitk/stage2/uitk-opening-hud.cs`・`S/uitk/stage3/uitk-build-bp.cs`・`S/uitk/stage4/uitk-production-loop.cs`・`S/uitk/stage4/uitk-research-train.cs`・`S/uitk/stage5/uitk-challenge-gate.cs`）
+- Consumes: X-5a〜X-5e・X-prerun の `done.md`（`$H/<ID>/done.md`）、X-5e の G4（期待: `python3 .github/scripts/check-uitk-no-web.py --root <repo> [--allowlist <path>] [--report]` が許可リスト外 0 件で exit 0〈1＝許可リスト外に語がある・2＝許可リストの書式誤りか腐った行〉、workflow `.github/workflows/uitk-no-web-gate.yml` の job 名 `UITK no-Web gate (G4)`。X-5e 計画 `docs/superpowers/plans/2026-11-12-uitk-x-5e.md` Task 2 の Produces から写した形で、実物と違えば D-15 に書いて以後のコマンドを読み替える）、全録画のスクリプト（期待: X-5a が系の引数を外した `tools/uitk/list-recordings.sh`〈引数なし。`scenarios` 配下の全 `.cs` を標準出力に 1 行 1 本で出し、台帳を読まず標準エラーには何も出さない。X-5a 計画 Task 8 Step 6 の全文。D-45〉と `tools/uitk/run-all-recordings.sh <list.txt> <out.tsv> <開始行> <本数>`〈TSV の列 `scenario exit seconds run_dir`〉。`tools/uitk/recordings/` の下の場合あり。`usage:` の行から写し、違えば D-15）、`run-scenario.sh` では流せない 3 本（`S/playtest-receiver/developer-report-interrupt.cs`・`S/playtest-receiver/developer-report-resume.cs`・`S/uitk/stage5/uitk-event-language-gate.cs` と運転役 `S/uitk/stage5/uitk-event-language-gate.sh <unity-project-path>`〈S5-gate の `usage:` の行。X-5a は全体スイッチの文だけを消す〉。D-44）、ラダー 6 本（期待のパス: `S/uitk/uitk-lifeline.cs`・`S/uitk/stage2/uitk-opening-hud.cs`・`S/uitk/stage3/uitk-build-bp.cs`・`S/uitk/stage4/uitk-production-loop.cs`・`S/uitk/stage4/uitk-research-train.cs`・`S/uitk/stage5/uitk-challenge-gate.cs`）
 - Produces: `done.md`「## 起点」（凍結前の HEAD・`origin/master` の SHA・前提の確認の結果・G4 と全録画のスクリプトの実際のコマンド・ラダー 6 本の実際のパス・X-prerun の報告ページの URL と GameUi の全録画の TSV の在処・X-prerun の全録画を流した HEAD の 40 桁 SHA〈以後 `<PRERUN_HEAD>`〉・既知の Windows だけの失敗の名前の集合〈R-7〉）、`done.md`「## 申し送りの受け」（R-22）、W6-6 の基準の撮影（Step 12）、bd `<bd>`
 
 - [ ] **Step 1: 場所と枝を確かめる**
@@ -236,8 +237,11 @@ cd "$WT"
 ls .github/scripts/check-uitk-no-web.py .github/scripts/uitk_no_web/ .github/workflows/uitk-no-web-gate.yml; grep -n -E 'name: UITK no-Web gate|check-uitk-no-web' .github/workflows/*.yml
 ls tools/uitk tools/uitk/recordings 2>/dev/null; grep -rn -i 'usage' --include='*recordings*.sh' tools/uitk   # glob を使わない（この Mac の zsh は当たらない glob が 1 つでもあるとコマンドごと実行しない）
 for f in uitk/uitk-lifeline.cs uitk/stage2/uitk-opening-hud.cs uitk/stage3/uitk-build-bp.cs uitk/stage4/uitk-production-loop.cs uitk/stage4/uitk-research-train.cs uitk/stage5/uitk-challenge-gate.cs; do ls ".agents/skills/unity-playmode-recorded-playtest/scenarios/$f" || find .agents/skills/unity-playmode-recorded-playtest/scenarios -name "$(basename "$f")"; done
+S=.agents/skills/unity-playmode-recorded-playtest/scenarios
+ls "$S/playtest-receiver/developer-report-interrupt.cs" "$S/playtest-receiver/developer-report-resume.cs" "$S/uitk/stage5/uitk-event-language-gate.cs" "$S/uitk/stage5/uitk-event-language-gate.sh"
+grep -c 'PlaytestRunner.Run' "$S/playtest-receiver/developer-report-interrupt.cs" "$S/playtest-receiver/developer-report-resume.cs"; grep -n 'usage' "$S/uitk/stage5/uitk-event-language-gate.sh"
 ```
-Expected: G4 のスクリプトと workflow の job 名、全録画の 2 本の usage、ラダー 6 本のパスが分かる。G4 が無ければ停止（R-5。X-5e の持ち物）。ラダーが 1 本でも無ければ停止（持ち主: 2 は S2-ladder、4 は S4-gamma、5 は S5-ladder）。実際の値を `done.md`「## 起点」に書き、期待と違えば D-15 に 1 行足す。
+Expected: G4 のスクリプトと workflow の job 名、全録画の 2 本の usage、ラダー 6 本のパスが分かる。Task 7 Step 3b の 3 本と運転役が在り、interrupt・resume の `PlaytestRunner.Run` が 0 件、運転役の usage が分かる（D-44）。G4 が無ければ停止（R-5。X-5e の持ち物）。ラダーが 1 本でも無ければ停止（持ち主: 2 は S2-ladder、4 は S4-gamma、5 は S5-ladder）。実際の値を `done.md`「## 起点」に書き、期待と違えば D-15 に 1 行足す。
 
 - [ ] **Step 5: 台帳の束 2・4・5 を確かめる**
 
@@ -640,7 +644,7 @@ Expected: 5 本とも `PASS: …`、`FAIL` 0（`test-release-playtest-mac.sh` �
 - Consumes: Task 1 Step 4 で写した全録画の 2 本のコマンドとラダー 6 本のパス、X-prerun の GameUi 側の全録画の結果（Task 1 Step 6）
 - Produces: ラダー 6 本の `recording.mp4`（報告ページ用。Task 14 まで残す）、`done.md`「## 全録画の結果」
 
-始める前に通るべきもの: HEAD が `FROZEN`・Task 1 の表の 5b 行（manifest・lock に `jp.juha.cefunity` が 0）・R-16 の確認・compile 0。終えた後に通るべきもの: ラダー 6 本 `Success: true`・全録画の不具合 0。
+始める前に通るべきもの: HEAD が `FROZEN`・Task 1 の表の 5b 行（manifest・lock に `jp.juha.cefunity` が 0）・R-16 の確認・compile 0。終えた後に通るべきもの: ラダー 6 本 `Success: true`・全録画の不具合 0・Step 3b の interrupt と言語ゲートが PASS（D-44）。
 
 - [ ] **Step 1: ラダー 6 本**
 
@@ -658,30 +662,69 @@ Run（Task 1 Step 4 で写した実際のコマンド。期待の形）:
 ```bash
 mkdir -p moorestech_client/Temp/uitk-recordings
 tools/uitk/list-recordings.sh > moorestech_client/Temp/uitk-recordings/list.txt 2> moorestech_client/Temp/uitk-recordings/list-excluded.txt
-wc -l moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/list-excluded.txt
+grep -v -E '/playtest-receiver/developer-report-(interrupt|resume)\.cs$|/uitk/stage5/uitk-event-language-gate\.cs$' moorestech_client/Temp/uitk-recordings/list.txt > moorestech_client/Temp/uitk-recordings/list-run.txt
+wc -l moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/list-run.txt moorestech_client/Temp/uitk-recordings/list-excluded.txt
 ```
-Expected: 一覧の本数が X-5c の `done.md` の全録画の本数と同じ（違えば差を書く）。`list-excluded.txt` が空か、外した理由が全部「削除済み」。
+Expected: 一覧の本数が X-5c の `done.md` の全録画の本数と同じ（違えば差を書く）。`list-run.txt` は一覧から Step 3b の 3 本を引いた本数（`run-scenario.sh` では流せないので `run-all-recordings.sh` に渡さない。D-44）。`list-excluded.txt` は空（X-5a の版は台帳を読まず標準エラーに何も出さない。空でなければスクリプトが期待の形と違うので、中身を `done.md` に写して D-15 に書く。D-45）。
 
 - [ ] **Step 3: 全本を流す**
 
 Run（前景で。1 回の呼び出しが 600 秒に収まるよう 3 本ずつ。1 本で 600 秒を超えたものは 1 本ずつ）:
 ```bash
-tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/all.tsv 1 3
-tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/all.tsv 4 3
+tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/list-run.txt moorestech_client/Temp/uitk-recordings/all.tsv 1 3
+tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/list-run.txt moorestech_client/Temp/uitk-recordings/all.tsv 4 3
 ```
 （開始行を 3 ずつ進めて最後まで。一覧の後半を winunity で流してよい: `~/bin/winunity play feature/uitk <シナリオ>` を 1 本ずつ、結果を同じ列で `all-win.tsv` に書く。`winunity play` は `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` を立てて GUI Editor を起こし、値の無い Editor は起こし直す〈`~/bin/winunity.d/interactive.ps1:30-31,50,68-81`〉ので、受け口を見る本も Windows で流してよい。ただし表示言語を日本語に固定しない〈前置きの `TrySetChosenLanguage` が無い〉ので、Windows で落ちた本は分類の前に Mac で流し直し、Mac で通れば言語の差として `all.tsv` の行を Mac の結果に替える。検証機と同じ PC なら Task 8〜11 と重ねない）
 続けて [A-177] の列にそろえた TSV を作る（スクリプトの TSV は X-5a が `system` の列を外した `scenario exit seconds run_dir`。撤去の後は系が 1 つなので `GameUi` を入れる）:
 ```bash
 awk -F'\t' 'BEGIN{OFS="\t"} NR==1{print "scenario","system","exit","seconds","run_dir"} $1=="scenario"{next} {print $1,"GameUi",$2,$3,$4}' moorestech_client/Temp/uitk-recordings/all.tsv > moorestech_client/Temp/uitk-recordings/all-a177.tsv
 ```
-Expected: TSV の行数＝一覧の本数。先に exit 0 以外の行だけを 1 回流し直す（揺れで落ちた行を不具合と読まない。X-prerun R-6・D-36 と同じ。D-41）: `awk -F'\t' 'NR>1 && $2!=0 {print $1}' moorestech_client/Temp/uitk-recordings/all.tsv > moorestech_client/Temp/uitk-recordings/rerun.txt` → `tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/rerun.txt moorestech_client/Temp/uitk-recordings/all-rerun.tsv <開始行> 3` を 3 本ずつ前景で（`all.tsv` は X-5a の後の列 `scenario exit seconds run_dir` なので exit は `$2`）。2 回目に通った行は分類を `PASS（揺れ: 1 回目 FAIL）` にする。2 回とも落ちた行ごとに `result.json` と `uloop get-logs --project-path ./moorestech_client --log-type Error` を読み、[A-177] の 6 分類に分ける（名前は X-prerun Task 3 と同じ。`前提つき` はヘッダの手順の流し直しを 2 回目に数える）:
+Expected: TSV の行数＝`list-run.txt` の本数（Step 3b の 3 本は TSV に入らない）。先に exit 0 以外の行だけを 1 回流し直す（揺れで落ちた行を不具合と読まない。X-prerun R-6・D-36 と同じ。D-41）: `awk -F'\t' 'NR>1 && $2!=0 {print $1}' moorestech_client/Temp/uitk-recordings/all.tsv > moorestech_client/Temp/uitk-recordings/rerun.txt` → `tools/uitk/run-all-recordings.sh moorestech_client/Temp/uitk-recordings/rerun.txt moorestech_client/Temp/uitk-recordings/all-rerun.tsv <開始行> 3` を 3 本ずつ前景で（`all.tsv` は X-5a の後の列 `scenario exit seconds run_dir` なので exit は `$2`）。2 回目に通った行は分類を `PASS（揺れ: 1 回目 FAIL）` にする。2 回とも落ちた行ごとに `result.json` と `uloop get-logs --project-path ./moorestech_client --log-type Error` を読み、[A-177] の 6 分類に分ける（名前は X-prerun Task 3 と同じ。`前提つき` はヘッダの手順の流し直しを 2 回目に数える）:
 - `PASS`
 - `束 5 未移植`: 段階 4 だけの分類で、ここでは 0 のはず。出たら `不具合` として扱う
 - `wwxy`: 台帳「## 壊れた録画の割り振り」の 10 行のうち現存の本と後継 `connect/electric-wire-tool-extend-chain-via-ui.cs`。X-prerun で直して wwxy を閉じたので、落ちたら `不具合`
-- `前提つき`（`playtest-receiver/*`・IME の `.sh` など。シナリオのヘッダの手順で 1 回流し直し、PASS／不具合に振り直す。`uitk-c2b-ime-mac.cs` は `bash S/uitk/uitk-c2b-ime-mac-keys.sh ./moorestech_client S/uitk/uitk-c2b-ime-mac.cs`）
+- `前提つき`（`playtest-receiver/*` のうちヘッダに前提の手順を書いたもの〈例 `unsent-report-export.cs` の偽の箱〉・IME の `.sh` など。シナリオのヘッダの手順で 1 回流し直し、PASS／不具合に振り直す。ヘッダの手順を持たない `developer-report-interrupt.cs`・`developer-report-resume.cs` と運転役の要る言語ゲートは Step 2 で外したので Step 3b で扱う。`uitk-c2b-ime-mac.cs` は `bash S/uitk/uitk-c2b-ime-mac-keys.sh ./moorestech_client S/uitk/uitk-c2b-ime-mac.cs`）
 - `Web 専用`（CEF・Web の DOM・`webUiHealth` を見るもの）: X-5a が全部書き直すか消した（W6-8）ので 0 のはず。出たら `不具合`（持ち主は X-5a を引き継ぐ I-fix）
 - `不具合`（それ以外）
 あわせて 2 回とも落ちた行に、X-prerun の UITK 側の結果（Task 1 Step 6 で写した表。X-prerun の `PASS（揺れ: 1 回目 FAIL）` は PASS と同じに扱う）と比べた印を付ける（X-prerun の Web 側の比べ方 Task 4 Step 3 と同じ名前）: X-prerun でも落ちていた → `既存`、X-prerun に無い → `比較不能（新設）`、`git diff --quiet "<PRERUN_HEAD>" "$FROZEN" -- <シナリオ>`（`<PRERUN_HEAD>` は Task 1 Step 6 で写した X-prerun の全録画の HEAD）が差ありを返す（X-5a の書き直し・削除の後継）→ `比較不能（変更）`、X-prerun で PASS・中身も同じ → `退行`。印は分類の置き換えではなく、どれも `不具合` の扱い（Step 4）は同じ（D-8）
+
+- [ ] **Step 3b: `run-scenario.sh` では流せない 3 本（D-44）**
+
+Step 2 で一覧から外した 3 本を、それぞれの流し方で判定する（`run-scenario.sh` は run dir を返さないシナリオを必ず exit 1 にし〈`run-scenario.sh:140-145`〉、言語ゲートの `.cs` を直接流すと出展モードにならないので、TSV の exit では判定しない）。interrupt と言語ゲートは落ちたら同じ流し方で 1 回流し直し（D-41 と同じ）、2 回とも落ちたら Step 3 と同じ決め方で印を付けて `不具合` にする。
+
+1. `developer-report-interrupt.cs`（EDC の手動投入。X-5a 計画 Task 8 Step 7 の写しで、その元は W0-cef 計画 `docs/superpowers/plans/2026-11-06-uitk-w0-cef.md` Task 4 Step 6）。Global Constraints 5 の前置きの後に:
+```bash
+. "$SP/x-switch-pr/vars.sh"; cd "$WT"
+SKILL=.agents/skills/unity-playmode-recorded-playtest
+mkdir -p "$SP/x-switch-pr/interrupt"
+COMMIT=$(git show HEAD:.moorestech-external-revisions.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(next(r['commitHash'] for r in d['repositories'] if r.get('key')=='moorestech_master'))")
+MASTER_WT=$(git -C ../moorestech_master worktree list --porcelain | awk -v c="$COMMIT" '/^worktree /{p=substr($0,10)} /^HEAD /{if($2==c){print p; exit}}')
+echo "master: $MASTER_WT/server_v8"   # 空なら run-scenario.sh の resolve_master_dir と同じく停止して互換コミットの master の worktree を用意する
+uloop control-play-mode --project-path ./moorestech_client --action Stop
+uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Game.Paths.GameSystemPaths.BugReportOutboxDirectory;'
+```
+`Result` の絶対パスを `OUTBOX=<値>`、`echo` の master を `MASTER_WT=<値>` で `vars.sh` に書き（Global Constraints 11）、次の呼び出しで:
+```bash
+. "$SP/x-switch-pr/vars.sh"; cd "$WT"
+ls "$OUTBOX" | sort > "$SP/x-switch-pr/interrupt/outbox-before.txt"
+uloop execute-dynamic-code --project-path ./moorestech_client --code "using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode(\"$MASTER_WT/server_v8\", true);"
+```
+`Result` の絶対パスを `SESSION_DIR=<値>` で `vars.sh` に書き、次の呼び出しで:
+```bash
+. "$SP/x-switch-pr/vars.sh"; cd "$WT"
+for i in $(seq 1 150); do [ -f "$SESSION_DIR/ready.marker" ] && break; sleep 2; done; ls "$SESSION_DIR/ready.marker"
+uloop execute-dynamic-code --project-path ./moorestech_client --code-file .agents/skills/unity-playmode-recorded-playtest/scenarios/playtest-receiver/developer-report-interrupt.cs
+ls "$OUTBOX" | sort | comm -13 "$SP/x-switch-pr/interrupt/outbox-before.txt" -
+```
+Expected（開発者トークンの有無で 2 通り。どちらも X-5a が足した v7 の 2 つの検査は通った後）: トークンあり → `Result` が `pending upload interrupted: <箱名>` で PlayMode が止まる。トークンなし → 例外文がちょうど `Not pending before stop`。どちらも `前提つき（手動投入で PASS）`。例外文が `schemaVersion is not 7`・`webUiHealth is still …`・`READY failed` か、スニペットのコンパイルの失敗なら不合格。どちらの場合も、最後の `comm -13` で出た箱（この投入が作った 1 件）を `rm -rf "$OUTBOX/<箱名>"` で消し（トークンありでも送信の途中で止めた箱が残る。残すと受け口の値の無い Editor の次の再生で本番へ送られうる〈推測〉）、`rm -f .superpowers/sdd/task10-interrupted-id.txt`（トークンありのときスニペットが書く）・`uloop control-play-mode --project-path ./moorestech_client --action Stop`。結果（`Result` か例外文・箱名・トークンの有無）を Step 5 の表の行に書く。
+
+2. `uitk-event-language-gate`（運転役。`ArmForNextBoot()` で次の起動 1 回だけを出展モードにしてから `run-scenario.sh` を流し、終わり方によらず武装を解いて言語を戻す）。前置きの後に（引数は Task 1 Step 4 で写した usage の形）:
+```bash
+.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-event-language-gate.sh ./moorestech_client; echo "exit=$?"
+```
+Expected: exit 0・`result.json` が `Success: true` → `前提つき（運転役で PASS）`。秒と run dir は `run-scenario.sh` の出力から写す。次の録画の前に前置きを流し直す
+
+3. `developer-report-resume.cs`: 流さず `前提つき（判定の対象外）` と書く。interrupt の対で、次の再生で本番送信が再開して `UPLOADED` が付くことを見るシナリオで、受け口を `http://127.0.0.1:9` へ外した前置きでは再開せず、作者の機材にしか無い進捗の箱 `20261014_151419_783aca75` を読む（`developer-report-resume.cs:15-16`）ので、どの機材でも通らない。X-5a も判定しない（X-5a 計画 R-16・Task 8 Step 7）
 
 - [ ] **Step 4: 不具合を回す**
 
@@ -689,7 +732,7 @@ Expected: TSV の行数＝一覧の本数。先に exit 0 以外の行だけを 
 
 - [ ] **Step 5: 記録**
 
-`done.md`「## 全録画の結果」に `all-a177.tsv` を「シナリオ / system / exit / 秒 / 分類 / X-prerun と比べた印」の表で写す（run dir は書かない。X-prerun の表と同じ扱い）。要約 1 行「<n> 本中 PASS <a>（うち揺れ〈2 回目に PASS〉<s>）・前提つき（流し直して PASS）<c>・束 5 未移植 0・wwxy 0・Web 専用 0・不具合 0（途中で見つけた <k> 件は bd <ids> で直して再走 PASS）。X-prerun の UITK 側と比べた退行 0」。テストのワールドを `bash .agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で探して消す。ラダー以外の run dir（mp4・PNG）を消す。
+`done.md`「## 全録画の結果」に `all-a177.tsv` を「シナリオ / system / exit / 秒 / 分類 / X-prerun と比べた印」の表で写す（run dir は書かない。X-prerun の表と同じ扱い）。Step 3b の 3 本も同じ表に 1 行ずつ足す（system は `GameUi`、exit の欄は interrupt が `Result` か例外文・言語ゲートが運転役の exit・resume が `-`、分類は Step 3b の語。D-44）。要約 1 行「<n> 本中 PASS <a>（うち揺れ〈2 回目に PASS〉<s>）・前提つき（流し直して PASS）<c>（うち Step 3b の手動投入と運転役 2）・判定の対象外 1（resume）・束 5 未移植 0・wwxy 0・Web 専用 0・不具合 0（途中で見つけた <k> 件は bd <ids> で直して再走 PASS）。X-prerun の UITK 側と比べた退行 0」。テストのワールドを `bash .agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で探して消す。ラダー以外の run dir（mp4・PNG）を消す。
 
 ---
 
@@ -1121,7 +1164,7 @@ Expected: 配信中の playtest の BuildID・run・コミット（moores-playte
     "G4: 違反 0",
     "server の配布ビルド（build.yml の workflow_dispatch）: Server Build Windows・Mac success・X-5d が消した server の 17 名のエラー 0（Linux の DedicatedServer は matrix で無効のため焼いていない）",
     "Unity コンパイル: エラー 0 / Client.Tests とサーバーの Tests の全体（Windows で 19 本の regex）: 既知の Windows だけの失敗 <k> 件の外は失敗 0・既知の名前は Mac で流し直して失敗 0",
-    "全録画: <n> 本中 PASS <a>（うち揺れ〈2 回目に PASS〉<s>）・前提つき（流し直して PASS）<c>・不具合 0",
+    "全録画: <n> 本中 PASS <a>（うち揺れ〈2 回目に PASS〉<s>）・前提つき（流し直して PASS）<c>（うち手動投入の interrupt と運転役の言語ゲート 2）・判定の対象外 1（resume）・不具合 0",
     "配布ビルド <LABEL>（BuildID <id>・commit <FROZEN 10 桁>・branch feature/uitk）: Windows/Mac の成果物の検査（CEF 0 を含む）合格・Windows 検証機 phase1/phase2 合格",
     "CEF のファイル: Mac の moorestech.app 0・Windows の Plugins/x86_64 0",
     "遠隔実行 3 点: 有効時 2・Harmony 20,777777,20・無効時に待受なし",
@@ -1181,6 +1224,7 @@ Expected: `UITK Web follow gate (G1)` と `UITK no-Web gate (G4)`（Task 1 Step 
 - 検査の反映: 撤去の確かめのコマンドを表の外のコードブロックへ移した（表の `\|` が `-E` の下で偽の合格になるため）。G4 の名前は X-5e 計画の Produces（`check-uitk-no-web.py`・`UITK no-Web gate (G4)`）にそろえ、R-5・Task 1・Task 4・消えているべきものの表・manifest で同じ名前にした。全録画の列と分類は R-9・Task 7・D-8・反映する行の A-177 の改めで同じにした。テストの判定（既知の Windows の失敗の扱い）は R-7・Task 6・manifest・D-23 で同じにした
 - 独立評価 1 周目の反映（D-28〜D-37）: 10 分を超えるコマンドは Global Constraints 4・T6 Step 2・T8 Step 8 で同じ割り方（19 本の regex・`timeout 580 gh run watch` の繰り返し・割れないものだけ本体の `run_in_background`）にした。受け口の環境変数は Global Constraints 5 の前置き 1 つにし、T1 Step 9・T1 Step 12・T7 Step 1・T13・D-9 の表の末尾から同じ前置きを引く。master の取り込みは T2 の手順 1 つ（`--no-commit`・R-LIST・I-follow の手順）にし、R-2・R-16・T6・T12 Step 1・T14 Step 4 から同じ手順と同じ `"${RLIST[@]}"` を引く。I-follow の写しでコードに触れる例外は「やらないこと」・ファイルの持ち主・D-29 で同じ書き方にした。レビューの絞り方は T5 Step 1・T13・D-11・D-31 で同じ。IME の欄ごとの Expected は R-15・T11 Step 3・D-34 で同じ。申し送りは R-22・「## 申し送りの受け」・T1 Step 11・D-35 で同じ表を引く
 - 独立評価 2 周目の反映（D-38〜D-43）: マージ直前の確認は R-16・R-17・T14 Step 2 の 7.・Step 3 の 4.・Step 5 の integrator への依頼・D-9 の空のコミットの行で同じ手順にした。19 本・61 名・17 名は R-7・R-23・Global Constraints 4・申し送りの表・T1 Step 6/11・T6・T8 Step 5/8・T10 Step 3・manifest で同じ数にした。実行時の値と R-LIST は Global Constraints 11 の `vars.sh`・`rlist.sh` を R-LIST を使う全ブロック（T2 Step 1/2・T6〜T12 の頭・T12 Step 1）と `$LABEL`・`$FROZEN` を使うブロック（T8 Step 2/4/5/8）で読む。駅の開き方（Alt を照準より先）は T11 の Interfaces・Step 1・Step 2・Step 3-2・D-39 で同じ。揺れの扱いは R-9・T7 Step 3/5・manifest・D-41 で同じ
+- X-5a からの依頼の反映（D-44・D-45）: `run-scenario.sh` では流せない 3 本の扱いは R-9・T1 の Interfaces と Step 4・T7 の始める前/終えた後・Step 2（`list-run.txt`）・Step 3 の `前提つき`・Step 3b・Step 5・申し送りの表・manifest で同じにした。`list-recordings.sh` の標準エラーは空の前提で T1 の Interfaces・T7 Step 2・申し送りの表をそろえた
 - unityプレイ録画テスト: 含む（T7 のラダー 6 本と全録画。このレーンはランタイムのコードを変えないが、切替 PR の完了条件そのもの。I-follow の写しがあれば T2 Step 4 でその画面の録画も流す）
 
 ## 判断記録（ADR）
@@ -1255,6 +1299,8 @@ W6 の agent 既定（指揮の割り振りの写し）:
 - D-41（X-prerun の直し役からの依頼 3: X-prerun の UITK の分類に `PASS（揺れ: 1 回目 FAIL）` が入る → このレーンの全録画も exit 0 以外の行を 1 回流し直し、2 回とも落ちた行だけを分類と印にかける。X-prerun の揺れの行は PASS と同じに扱う。出所 agent 既定）: 比べる基準とこちらで揺れの扱いが違うと、揺れで 1 回落ちた行が `退行` に数えられる
 - D-42（X-prerun の直し役からの依頼 1・2: `<PRERUN_HEAD>` は X-prerun の `done.md`「## 全録画の結果」の頭の `全録画の HEAD（GameUi）:` の行から取り、`gh pr view` はその行が無いときだけにする。X-prerun が「master の未追従」として申し送るコミットと撮影 id〈X-prerun D-37〉を Task 2 Step 4 の写す候補に入れる → Task 1 Step 6・Step 11・Task 2 Step 4・申し送りの表を直した。出所 agent 既定）
 - D-43（独立評価 2 周目〈軽〉: Task 5 の範囲 (1) `9f32a03390..$PRE_MERGE_HEAD` は、I-weekly や各レーンの取り込みで master が `feature/uitk` に入っていれば master 側の非マージのコミットも含み、D-31 が避けた「自動適用が master の作業者のコードに当たる」が残る → (1) を `git rev-list --no-merges 9f32a03390..$PRE_MERGE_HEAD --not origin/master` にし、その範囲の取り込みのマージには `--remerge-diff` を添える。出所 agent 既定）: 起草時の `origin/feature/uitk` では範囲の 3 コミットがどちらでも同じ（取り込みのマージは 0）で、差は今後の取り込みで出る
+- D-44（X-5a の直し役からの依頼 1: X-5a の `list-recordings.sh` は scenarios 配下の全 `.cs` を出すので、`run-scenario.sh` では流せない 3 本が全録画に入る。`playtest-receiver/developer-report-interrupt.cs`・`developer-report-resume.cs` は `PlaytestRunner.Run` を呼ばず run dir でない文字列を返す EDC の手動投入のスニペットで、`run-scenario.sh:140-145` が必ず exit 1 にし〈run dir も `result.json` も出ない〉、ヘッダに流し直しの手順も無いので、Task 7 Step 3 の「`前提つき` はヘッダの手順で流し直す」に当てはまらない。`uitk/stage5/uitk-event-language-gate.cs` は運転役 `.sh` の武装〈`PlaytestEventLanguageGateBoot.ArmForNextBoot()`〉が無いと出展モードにならず、ゲートを待って落ちる → 3 本を Task 7 Step 2 で一覧から外して `list-run.txt` にし、Step 3b で interrupt は X-5a 計画 Task 8 Step 7 の手動投入、言語ゲートは運転役で判定し、resume は判定の対象外にする。R-9 に 3 本の扱いを書いた。出所 agent 既定〈X-5a の依頼。2 本の実物〈`origin/feature/uitk`〉・`run-scenario.sh`・X-5a 計画 Task 8 Step 7・S5-gate 計画の運転役で確かめた〉）: X-5a R-16 のように一覧に残して exit を読み捨てる形にしないのは、interrupt を `run-scenario.sh` で流すと本物の報告の箱を実 outbox に作ったまま後始末されず〈トークンなしは例外で止まり、トークンありは送信の途中で PlayMode を止める〉、揺れの流し直しでもう 1 箱増えるため。resume を対象外にするのは、受け口を外した前置きでは本番送信が再開せず、作者の機材にしか無い進捗の箱〈`developer-report-resume.cs:15-16`〉を読むので、どの機材でも通らないため（X-5a も判定しない）。棄却: resume のために受け口を本番へ戻す（Editor の録画から本番へ送らない Global Constraints 5 に反する）
+- D-45（X-5a の直し役からの依頼 2: Task 1 の Interfaces と Task 7 Step 2 は `list-recordings.sh` が標準エラーに外した名前と理由を出す〈S4-gamma 計画 `docs/superpowers/plans/2026-11-10-uitk-s4-gamma.md` の系の引数つきの版〉と読んでいたが、X-5a 計画 Task 8 Step 6 の全文は引数なしで `find "$root" -name '*.cs' | sort` を出すだけで、台帳を読まず標準エラーに何も出さない → `list-excluded.txt` は空を期待にし、外した名前の記録はこのレーンの `list.txt` と `list-run.txt` の差〈D-44 の 3 本〉だけにした。空でなければスクリプトが期待の形と違うので、中身を `done.md` に写して D-15 に書く。出所 agent 既定〈X-5a の依頼。X-5a 計画 Task 8 Step 6 と S4-gamma 計画の版で確かめた〉）
 - 独立評価 2 周目のその他（軽。手順・数の直しで設計を変えない。出所 agent 既定）: X-5d の Windows の表は W-C6 を足した 19 本・名前の一覧は client 61 名・server 17 名（X-5d D-26・D-28。取り出しは X-5d の依頼の awk で、行数が見出しと同じで空でないことを確かめてから使う）／R-LIST に X-5e が移した `docs/webui-parity`・`docs/webui-feature-videos-2026-06-14` と消した `.claude/rules/ref-webui-design.md` を足し、外すパスの指定 `docs/webui/archive/` を消した（戻った文書は `docs/archive/` へ `git mv`）／Task 9〜11 の頭に R-16 の確認／`winunity play` は受け口の値を立てて Editor を起こす（`interactive.ps1:30-31,68-81`）ので、言語の差だけを Mac で流し直す形にした／衝突の列挙を未マージの 7 種に／Task 1 Step 4 の glob をやめた／C-3 に prefab の `--- !u!222`・`223`・`225` を足した（X-5b R-1。§5.1-1 の「Canvas が無い」の証拠）／D-6 の古い句を D-29 に合わせた
 - 独立評価 2 周目で退けた指摘: 無し（2 体の 9 件〈重複 1 組〉と X-5d・X-prerun からの依頼 6 件を全部、実物で確かめて直した）
 - 独立評価 1 周目で退けた指摘: 無し（全部を実物で確かめて直した。再現役が「一部」とした D-30・D-32 は、成り立つ部分〈server のプレイヤービルドの不足・人とエージェントへの印〉に合わせて直し方を絞った）
@@ -1265,6 +1311,7 @@ W6 の agent 既定（指揮の割り振りの写し）:
 
 - G4 のスクリプトの名前・引数・workflow の job 名（X-5e が作る。Task 1 Step 4 で写す）
 - 全録画のスクリプトの X-5a の後の引数（Task 1 Step 4）
+- 言語ゲートの運転役 `uitk-event-language-gate.sh` の引数の形と、X-5a が書き換えた後の `developer-report-interrupt.cs` の検査の文面（S5-gate・X-5a が作る・書き換える。Task 1 Step 4 で写す。D-44）
 - `test_uitk_web_follow_real_ledger.py` が `moorestech_web/webui/src/` の無い HEAD で通るか（5c.md の推測。Task 3 Step 5 で実測）
 - release.log に出る 5b の CEF 0 の検査の行の文面（5b が書く。Task 8 Step 2 で読んで `done.md` に写す）
 - phase2 の `result.json` で録画（ffmpeg）の成否を示す項目名（Task 8 Step 5 で読む）
