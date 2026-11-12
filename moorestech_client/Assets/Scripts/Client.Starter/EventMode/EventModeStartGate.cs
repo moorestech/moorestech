@@ -14,38 +14,68 @@ namespace Client.Starter.EventMode
     /// </summary>
     public static class EventModeStartGate
     {
-        public static UniTask WaitForLanguageSelectionAsync(CancellationToken ct)
+        // 系の出し分けはここ 1 か所。系ごとの待ちは、それぞれの描き手（GameUi は画面の境界、Web は hub）を必須で受ける
+        // The UI-system dispatch lives only here; each system's wait takes its own drawer as required (GameUi the screen seam, Web the hub)
+        public static UniTask WaitForLanguageSelectionAsync(MainGameStarter starter, CancellationToken ct)
         {
-            return WaitForLanguageSelectionWithHubAsync(Client.WebUiHost.Boot.WebUiHost.Hub, EventExhibitionSettings.FromEnvironment(), ct);
+            var settings = EventExhibitionSettings.FromEnvironment();
+            var armer = new EventIdleQuitWatcherArmer();
+
+            // GameUi の系は Web ホストを立てないので hub を見ず、DI より前に GameUiRoot へゲートを出す
+            // The GameUi system starts no web host, so it never looks at the hub and shows the gate on GameUiRoot before DI
+            if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi) return WaitOnGameUiAsync(settings, starter.CreateEventLanguageGateScreen(), armer, ct);
+
+            // Web の系で Web ホストが立っていなければ画面を出せない（起動の失敗はWebUiStartupがLogError済み）
+            // In the Web system a missing web host means no screen (WebUiStartup has already logged the startup failure)
+            var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
+            if (hub == null)
+            {
+                StartInEnglishWithoutWebHost(settings, armer);
+                return UniTask.CompletedTask;
+            }
+            return WaitOnWebAsync(hub, settings, armer, ct);
         }
 
-        // hubと設定を引数で受ける本体。Kestrelを立てずに通常モードの無条件登録を検証できるよう分ける（PlaytestStartGatesと同形）
-        // The body takes the hub and settings so the unconditional registration in normal mode is verifiable without Kestrel (same shape as PlaytestStartGates)
-        internal static async UniTask WaitForLanguageSelectionWithHubAsync(WebSocketHub hub, EventExhibitionSettings settings, CancellationToken ct)
+        // GameUi の系の待ち。出す前提（層のパネル・言語の一覧）は土台の Initialize と生成時のビルドが保証するので、英語開始の縮退は無い（S5-gate D-3）
+        // The GameUi system's wait; the foundation's Initialize and the generator's build guarantee the preconditions (layer panel, language list), so there is no English fallback (S5-gate D-3)
+        internal static async UniTask WaitOnGameUiAsync(EventExhibitionSettings settings, IEventLanguageGateScreen screen, IEventIdleWatchArmer armer, CancellationToken ct)
+        {
+            // silent-ok: 通常の起動に言語ゲートは無い / 出展モードで起動したのにゲートが出なければ来場者と録画（uitk-event-language-gate）がその場で気づく
+            if (!settings.IsEnabled) return;
+
+            var gate = new EventLanguageGate(true);
+            screen.Open(gate);
+
+            ShowCursorAfterSceneStartAsync(ct).Forget();
+            await AwaitSelectionThenArmAsync(gate, settings.IdleTimeoutSeconds, armer, ct);
+        }
+
+        // Web の系の待ち。hubを引数で受け、Kestrelを立てずに通常モードの無条件登録を検証できるよう分ける（PlaytestStartGatesと同形）
+        // The Web system's wait; takes the hub so the unconditional registration in normal mode is verifiable without Kestrel (same shape as PlaytestStartGates)
+        internal static async UniTask WaitOnWebAsync(WebSocketHub hub, EventExhibitionSettings settings, IEventIdleWatchArmer armer, CancellationToken ct)
         {
             // topicの登録は出展モードか否かに関わらず無条件に行う。条件付き登録だとWeb側の購読が固着する
             // Registration happens unconditionally regardless of exhibition mode; conditional registration would wedge the web-side subscription
-            EventLanguageGate gate = null;
-            if (hub != null) gate = EventLanguageGateBinder.Bind(hub, settings.IsEnabled);
+            var gate = EventLanguageGateBinder.Bind(hub, settings.IsEnabled);
 
             if (!settings.IsEnabled) return;
-
-            var armer = new EventIdleQuitWatcherArmer();
-
-            // 画面を出せないなら無人ブースを止めない方を採る。英語のまま開始し監視だけ始める
-            // With no screen to show, keeping the unattended booth alive wins: start in English and only begin watching
-            if (hub == null)
-            {
-                Debug.LogError("EventModeStartGate: WebUiHostが起動しておらず言語選択を出せないため英語のまま開始します");
-                armer.ArmIdleWatch(settings.IdleTimeoutSeconds);
-                return;
-            }
 
             // 来場者が言語ボタンを押せるよう待機中は実カーソルを出す。選択後のロックはGameScreenStateの入場が担う
             // Show the real cursor while waiting so visitors can press a language button; GameScreenState re-locks it after the choice
             ShowCursorAfterSceneStartAsync(ct).Forget();
 
             await AwaitSelectionThenArmAsync(gate, settings.IdleTimeoutSeconds, armer, ct);
+        }
+
+        // Web の系で Web ホストが立っていないとき。画面を出せないなら無人ブースを止めない方を採り、英語のまま開始し監視だけ始める
+        // The Web system without a web host: with no screen to show, keeping the unattended booth alive wins, so start in English and only begin watching
+        internal static void StartInEnglishWithoutWebHost(EventExhibitionSettings settings, IEventIdleWatchArmer armer)
+        {
+            // silent-ok: 通常の起動に言語ゲートは無い / Web ホストの起動の失敗は WebUiStartup が LogError 済み
+            if (!settings.IsEnabled) return;
+
+            Debug.LogError("EventModeStartGate: WebUiHostが起動しておらず言語選択を出せないため英語のまま開始します");
+            armer.ArmIdleWatch(settings.IdleTimeoutSeconds);
         }
 
         // 待機開始はsceneLoaded内でGameStateController.Start()より先に走り、Startがカーソルをロックする。1フレーム待って後勝ちにする

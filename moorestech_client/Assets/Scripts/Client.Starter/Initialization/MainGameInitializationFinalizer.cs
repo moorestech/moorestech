@@ -55,7 +55,7 @@ namespace Client.Starter.Initialization
             // Event mode holds the start until a language is chosen, ahead of skits and tutorials starting in English
             // プレイテストの同意と前回異常終了の確認はタイトルで済んでいる（ADR 0065）
             // The playtest consent and the previous-crash confirmation were settled at the title (ADR 0065)
-            await EventMode.EventModeStartGate.WaitForLanguageSelectionAsync(exitToken);
+            await EventMode.EventModeStartGate.WaitForLanguageSelectionAsync(starter, exitToken);
 
             var resolver = starter.StartGame(_serverResult.HandshakeResponse, _serverResult.SaveGenerationWaiter, _collectsPlaytestRecords);
             new ClientDIContext(new DIContainer(resolver));
