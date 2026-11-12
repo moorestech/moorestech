@@ -23,21 +23,21 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
 
             // 内部セル解決を迂回せず公開レイ入口を検証する
             // Verify the public ray entry rather than invoking internal cell resolution
-            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, offset, BlockDirection.North, master, out var cell, out var surface);
+            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, offset, BlockDirection.North, master, out var cell, out var surfaceType);
 
             Assert.AreEqual(FootprintGroundedCellResult.Resolved, result);
             Assert.AreEqual(new Vector3Int(500, expectedY, 599), cell);
-            Assert.IsNull(surface);
+            Assert.IsNull(surfaceType);
         }
 
         [Test]
         public void RayEntryPreservesBlockFaceCellAndOffset()
         {
             var face = CreateFace();
-            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, 2, BlockDirection.North, CreateWidePole(), out var cell, out var surface);
+            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, 2, BlockDirection.North, CreateWidePole(), out var cell, out var surfaceType);
 
             Assert.AreEqual(FootprintGroundedCellResult.Resolved, result);
-            Assert.AreSame(face, surface);
+            Assert.AreEqual(face, surfaceType);
             Assert.AreEqual(new Vector3Int(500, 27, 599), cell);
         }
 

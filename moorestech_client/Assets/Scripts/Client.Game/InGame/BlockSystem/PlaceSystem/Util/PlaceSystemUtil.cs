@@ -29,31 +29,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return PlacementDistanceRule.IsWithinReach(playerPosition, placePoint);
         }
 
-        public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out PreviewSurfaceType? surfaceType)
         {
             var rotatedSize = currentBlockDirection.GetCoordinateConvertAction()(holdingBlock.BlockSize).Abs();
-            return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface);
+            return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surfaceType);
         }
 
         // 地形ゲート付き1セル版。Yは占有セル最高点で決める
         // Single-cell terrain-gated entry; Y comes from the footprint max
-        public static FootprintGroundedCellResult ResolveFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        public static FootprintGroundedCellResult ResolveFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out PreviewSurfaceType? surfaceType)
         {
-            if (!TryGetRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out var rayHitCell, out surface))
+            if (!TryGetRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out var rayHitCell, out surfaceType))
             {
                 pos = rayHitCell;
                 return FootprintGroundedCellResult.NoPlacementSurface;
             }
 
-            var surfaceKind = surface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace;
+            var surfaceKind = ToHitSurfaceKind(surfaceType);
             return ResolveFootprintGroundedCell(rayHitCell, surfaceKind, currentBlockDirection, holdingBlock.BlockSize, heightOffset, out pos);
         }
 
         // 理由行を積める呼び出し側向け。地表なしは理由を積んで不可、照準面なしは理由なしで不可
         // For callers holding feedback; no ground pushes its reason, no aim surface fails without a line
-        public static bool TryGetFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, PlacementFeedback feedback, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        public static bool TryGetFootprintGroundedRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, PlacementFeedback feedback, out Vector3Int pos, out PreviewSurfaceType? surfaceType)
         {
-            var result = ResolveFootprintGroundedRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out pos, out surface);
+            var result = ResolveFootprintGroundedRayHitBlockPosition(mainCamera, heightOffset, currentBlockDirection, holdingBlock, out pos, out surfaceType);
             if (result == FootprintGroundedCellResult.GroundNotFound) feedback.AddGroundNotFound();
             // silent-ok: 照準が地面にもブロックにも当たらないのは操作中の通常状態 / プレビューが出ないことでプレイヤーが気づく
             return result == FootprintGroundedCellResult.Resolved;
@@ -75,42 +75,52 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
         // 通常設置とBPのセル解決が共有する、レイキャスト→設置セルの本体
         // Shared raycast-to-placement-cell body for normal placement and blueprint cell resolution
-        public static bool TryGetRayHitPlacePointBySize(Camera mainCamera, Vector3Int rotatedSize, int heightOffset, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        public static bool TryGetRayHitPlacePointBySize(Camera mainCamera, Vector3Int rotatedSize, int heightOffset, out Vector3Int pos, out PreviewSurfaceType? surfaceType)
         {
-            return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surface, out _);
+            return TryGetRayHitPlacePointBySize(mainCamera, rotatedSize, heightOffset, out pos, out surfaceType, out _);
         }
 
         internal static bool TryGetRayHitPlacePointBySize(Camera mainCamera, Vector3Int rotatedSize, int heightOffset,
-            out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface, out Vector3 hitPoint)
+            out Vector3Int pos, out PreviewSurfaceType? surfaceType, out Vector3 hitPoint)
         {
             pos = Vector3Int.zero;
             hitPoint = default;
-            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surface)) return false;
+            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surfaceType)) return false;
             hitPoint = hit.point;
 
-            var surfaceType = surface == null ? (PreviewSurfaceType?)null : surface.PreviewSurfaceType;
             pos = CalcPlacePointBySize(rotatedSize, hit.point, heightOffset, surfaceType);
             return true;
         }
 
-        public static bool TryGetRayHitPosition(Camera mainCamera, out Vector3 pos, out BlockPreviewBoundingBoxSurface surface)
+        public static bool TryGetRayHitPosition(Camera mainCamera, out Vector3 pos, out PreviewSurfaceType? surfaceType)
         {
             pos = Vector3Int.zero;
-            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surface)) return false;
+            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surfaceType)) return false;
 
             pos = hit.point;
             return true;
         }
 
-        internal static bool TryRaycastPlacementSurface(Camera mainCamera, out RaycastHit hit, out BlockPreviewBoundingBoxSurface surface)
+        internal static bool TryRaycastPlacementSurface(Camera mainCamera, out RaycastHit hit, out PreviewSurfaceType? surfaceType)
         {
-            surface = null;
+            surfaceType = null;
             var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
 
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
-            //そのrayが地面のオブジェクトかブロックのバウンディングボックスにヒットしてるか
-            return hit.transform.TryGetComponent<GroundGameObject>(out _) || hit.transform.TryGetComponent(out surface);
+            // 地面か、ブロックの設置用当たり判定に当たった時だけ設置面とする
+            // Only the ground or a block's placement hit faces count as a placement surface
+            if (hit.transform.TryGetComponent<GroundGameObject>(out _)) return true;
+            if (!hit.transform.TryGetComponent<BlockPlacementHitFaces>(out var hitFaces)) return false;
+            surfaceType = hitFaces.GetSurfaceType(hit.collider);
+            return true;
+        }
+
+        // 照準の結果を、地面かブロックの面かの区別へ読み替える
+        // Map an aim result to whether it hit the ground or a block face
+        public static PlacementHitSurfaceKind ToHitSurfaceKind(PreviewSurfaceType? surfaceType)
+        {
+            return surfaceType == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace;
         }
 
         public static Vector3Int SnapHitPointToCell(Vector3 hitPoint)

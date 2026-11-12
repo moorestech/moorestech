@@ -131,11 +131,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { HideConnectPreviews(); return false; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurfaceType)) { HideConnectPreviews(); return false; }
 
                 // ドラッグ中は押下時の面種別で通す
                 // A drag keeps the surface kind from its press
-                var surfaceKind = _dragState.ResolveSurfaceKind(hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
+                var surfaceKind = _dragState.ResolveSurfaceKind(ToHitSurfaceKind(hitSurfaceType));
 
                 //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
                 if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(cursorCell, surfaceKind);

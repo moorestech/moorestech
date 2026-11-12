@@ -121,13 +121,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 var holdingBlock = BeltConveyorHoldingBlock.Resolve(target.BlockId);
                 var holdingBlockMaster = holdingBlock.BlockMaster;
 
-                if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurface)) { return false; }
+                if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurfaceType)) { return false; }
 
                 if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
 
                 _previewBlockController.SetActive(true);
 
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, ToHitSurfaceKind(hitSurfaceType));
 
                 var (placeCauses, beltReasons, terrainClimbAbandoned) = UpdateCurrentPlaceInfos(placePoint, holdingBlock);
 

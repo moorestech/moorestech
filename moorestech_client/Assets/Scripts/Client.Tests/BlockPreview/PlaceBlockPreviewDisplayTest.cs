@@ -53,8 +53,6 @@ namespace Client.Tests
                 display.OnEnter();
                 var near = store.GetBlockGameObject(Vector3Int.zero);
                 var far = store.GetBlockGameObject(farPosition);
-                await WaitForBoundingBox(near);
-                await WaitForBoundingBox(far);
                 AssertPreview(near, true);
                 AssertPreview(far, false);
 
@@ -66,8 +64,6 @@ namespace Client.Tests
                 store.PlaceBlock(newFarPosition, blockId, BlockDirection.North, new BlockInstanceId(900004), false);
                 var newNear = store.GetBlockGameObject(newNearPosition);
                 var newFar = store.GetBlockGameObject(newFarPosition);
-                await WaitForBoundingBox(newNear);
-                await WaitForBoundingBox(newFar);
                 AssertPreview(newNear, true);
                 AssertPreview(newFar, false);
 
@@ -97,42 +93,43 @@ namespace Client.Tests
                 display.OnEnter();
                 AssertPreview(far, true);
                 display.OnExit();
-                Assert.IsFalse(far.GetComponentInChildren<BlockPreviewBoundingBox>(true).gameObject.activeSelf);
+                // 出ると有効な枠は0個。出入りをくり返しても総数は増え続けない
+                // Leaving leaves no active frame, and repeated entry does not keep growing the total
+                Assert.AreEqual(0, Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsSortMode.None).Length);
+                var totalAfterFirstCycle = Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+                display.OnEnter();
+                display.OnExit();
+                display.OnEnter();
+                display.OnExit();
+                Assert.AreEqual(totalAfterFirstCycle, Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length);
                 Object.Destroy(storeObject);
-            }
-
-            async UniTask WaitForBoundingBox(BlockGameObject block)
-            {
-                // 非同期ロードの失敗は有限待機後のアサートで検出する
-                // Detect asynchronous loading failures with a bounded wait and assertion
-                for (var frame = 0; frame < 300; frame++)
-                {
-                    if (block.GetComponentInChildren<BlockPreviewBoundingBox>(true) != null) return;
-                    await UniTask.Yield();
-                }
-                Assert.Fail($"Bounding box did not load for {block.name}");
             }
 
             void AssertPreview(BlockGameObject block, bool rendered)
             {
-                var box = block.GetComponentInChildren<BlockPreviewBoundingBox>(true);
-                Assert.IsNotNull(box);
-                Assert.IsTrue(box.gameObject.activeInHierarchy, "枠線と面は半径外でも有効");
-                var renderers = box.GetComponentsInChildren<Renderer>(true);
-                Assert.IsNotEmpty(renderers);
-                foreach (var renderer in renderers) Assert.AreEqual(rendered, renderer.enabled, renderer.name);
+                // 旧枠はブロック配下に無い
+                // No old frame lives under the block
+                Assert.IsNull(block.GetComponentInChildren<BlockPreviewBoundingBox>(true));
 
                 // 描画抑止が隣接設置の面コライダーを失わせない
                 // Rendering suppression must preserve face colliders used for adjacent placement
-                var surfaces = box.GetComponentsInChildren<BlockPreviewBoundingBoxSurface>(true);
-                Assert.IsNotEmpty(surfaces);
-                foreach (var surface in surfaces)
-                {
-                    var collider = surface.GetComponent<Collider>();
-                    Assert.IsNotNull(collider);
-                    Assert.IsTrue(collider.enabled);
-                    Assert.IsTrue(collider.gameObject.activeInHierarchy);
-                }
+                var hitFaces = block.GetComponentInChildren<BlockPlacementHitFaces>(true);
+                Assert.IsNotNull(hitFaces);
+                Assert.IsTrue(hitFaces.gameObject.activeInHierarchy, "当たり判定は半径外でも有効");
+                var colliders = hitFaces.GetComponents<BoxCollider>();
+                Assert.AreEqual(6, colliders.Length);
+                foreach (var collider in colliders) Assert.IsTrue(collider.enabled);
+
+                // 半径内のブロック位置にだけ、プールの枠が有効で置かれる
+                // Only blocks within the radius get an active pooled frame at their position
+                Assert.AreEqual(rendered, ActiveFrameAt(block) != null, block.name);
+            }
+
+            BlockPreviewBoundingBox ActiveFrameAt(BlockGameObject block)
+            {
+                foreach (var frame in Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsSortMode.None))
+                    if (frame.transform.position == block.transform.position) return frame;
+                return null;
             }
 
             #endregion
