@@ -3,6 +3,7 @@ using System.Globalization;
 using Client.Localization;
 using Client.Ui.Content;
 using Client.Ui.State.BlockInventory.Logic.Machine;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.Screens.BlockInventory.Machine
