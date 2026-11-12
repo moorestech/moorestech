@@ -94,7 +94,8 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             for (var frame = 0; frame < 6; frame++)
             {
                 simulate.FrameUpdate();
-                rootVisualElement.Query<Label>().ForEach(label => Assert.IsFalse(label.text.Contains(MeasuringTextMark), $"frame {frame} drew the measuring text: {label.text}"));
+                rootVisualElement.Query<Label>().Where(label => label.name != LineEndPunctuationMeasurer.ElementName)
+                    .ForEach(label => Assert.IsFalse(label.text.Contains(MeasuringTextMark), $"frame {frame} drew the measuring text: {label.text}"));
             }
         }
 

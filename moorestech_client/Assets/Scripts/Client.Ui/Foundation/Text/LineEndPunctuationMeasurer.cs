@@ -15,11 +15,14 @@ namespace Client.Ui.Foundation.Text
     /// </remarks>
     internal class LineEndPunctuationMeasurer
     {
+        public const string ElementName = "line-end-punctuation-measurer";
+
         private readonly Label _measurer = new();
+        private bool _detachPending;
 
         public LineEndPunctuationMeasurer()
         {
-            _measurer.name = "line-end-punctuation-measurer";
+            _measurer.name = ElementName;
             _measurer.ClearClassList();
             _measurer.pickingMode = PickingMode.Ignore;
             _measurer.focusable = false;
@@ -43,6 +46,7 @@ namespace Client.Ui.Foundation.Text
 
         public void Begin(Label label, string measureText, float width, LineEndTextStyle textStyle)
         {
+            _detachPending = false;
             label.panel.visualTree.Add(_measurer);
             textStyle.ApplyTo(_measurer.style);
             _measurer.enableRichText = true;
@@ -75,6 +79,19 @@ namespace Client.Ui.Foundation.Text
         {
             _measurer.text = string.Empty;
             _measurer.RemoveFromHierarchy();
+        }
+
+        // ラベルが外される最中（親の Clear の途中など）は兄弟の並びを触れないので、外すのを測り役の次の刻みへ送る
+        // While the label is being detached (e.g. mid parent Clear) sibling order must not change, so detach on the measurer's next tick
+        public void EndLater()
+        {
+            _measurer.text = string.Empty;
+            _detachPending = true;
+            _measurer.schedule.Execute(() =>
+            {
+                // silent-ok: 待つ間に測り直しで載り直したら外さない / 載り直した側が End で外す
+                if (_detachPending) _measurer.RemoveFromHierarchy();
+            });
         }
     }
 }

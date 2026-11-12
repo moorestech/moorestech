@@ -119,7 +119,7 @@ namespace Client.Ui.Foundation.Text
         {
             var lineEnds = _measurer.ReadLineEndIndices(LineEndPunctuationTrim.CountPresentedGlyphs(_source));
             _measurer.End();
-            // silent-ok: 自動で折り返さない指定の文は行末で折れないので原文のまま / 詰めは LineEndPunctuationTrimTest が normal で確かめる
+            // silent-ok: normal 以外の文は原文のまま（nowrap は行末で折れず、pre-wrap は詰めない） / pre-wrap の差は台帳 LX-180 が例外として持つ
             if (_label.resolvedStyle.whiteSpace != WhiteSpace.Normal)
             {
                 _phase = TrimPhase.Plain;
@@ -167,7 +167,7 @@ namespace Client.Ui.Foundation.Text
         {
             if (_phase != TrimPhase.Measuring) return;
             _generation++;
-            _measurer.End();
+            _measurer.EndLater();
             _phase = TrimPhase.WaitingForLayout;
         }
 

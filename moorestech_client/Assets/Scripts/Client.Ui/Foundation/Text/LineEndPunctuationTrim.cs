@@ -32,7 +32,7 @@ namespace Client.Ui.Foundation.Text
         public static bool CanTrim(string source)
         {
             // silent-ok: rich text の文（会話の本文の打ち出し等）は詰めずに 1 行多く折れうる / 台帳 docs/uitk/TODO.md の LX-180 が例外として持つ
-            if (source.IndexOf('<') >= 0) return false;
+            if (source.IndexOf('<') >= 0) return false; // look-exception: LX-180
             foreach (var c in source)
             {
                 if (IsClosingPunctuation(c)) return true;
