@@ -20,7 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // silent-ok: ブロックが無い・照準が外れているのは操作中の通常状態 / 呼び出し側が物理レイの結果へ戻す
             // silent-ok: no blocks or a missed aim is a normal aim state / the caller falls back to the physics result
             if (!cells.TryGetBounds(out var minCell, out var maxCell)) return false;
-            if (!PlacementAimBoxSlab.TryIntersect(ray, minCell, maxCell + Vector3Int.one, out var tEnter, out var enterAxis, out var tExit, out _)) return false;
+            if (!PlacementAimBoxSlab.TryIntersect(ray, minCell, maxCell + Vector3Int.one, out var tEnter, out _, out var tExit, out _)) return false;
             var tEnd = Mathf.Min(tExit, maxDistance);
 
             // 始点がブロックの内側なら、そのブロックから出る面を返す
@@ -39,23 +39,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 return true;
             }
 
-            // 外から入るときは、入る点のセルを外接直方体の中へ収めて最初のセルにする
-            // From outside, the entry point's cell clamped into the bounds is the first cell
-            if (tEnter <= 0f) return TryWalk(cells, ray, startCell, tEnd, float.NaN, -1, out distance, out surfaceType);
-            // silent-ok: 射程が外接直方体に届かないのは照準先にブロックが無い通常状態 / 呼び出し側が物理レイの結果へ戻す
-            // silent-ok: range ending before the bounds means no block on the aim path / the caller falls back to the physics result
-            if (tEnter > tEnd) return false;
-            var entryCell = Vector3Int.Min(Vector3Int.Max(Vector3Int.FloorToInt(ray.GetPoint(tEnter)), minCell), maxCell);
-            if (cells.TryGetBlockAt(entryCell, out _))
-            {
-                distance = tEnter;
-                surfaceType = PlacementAimBoxSlab.EnterFace(enterAxis, ray.direction[enterAxis] > 0f);
-                return true;
-            }
-            return TryWalk(cells, ray, entryCell, tEnd, tEnter, enterAxis, out distance, out surfaceType);
+            // 外から入るときは入る直前のセルから走査し、入口の辺・角も走査の同値規則にまかせる
+            // From outside, walk from the cell just before entry so entry edges and corners follow the walk's tie rule
+            var firstCell = tEnter > 0f ? CellJustBefore(ray, tEnter) : startCell;
+            return TryWalk(cells, ray, firstCell, tEnd, out distance, out surfaceType);
         }
 
-        private static bool TryWalk(BlockOccupiedCellIndex cells, Ray ray, Vector3Int cell, float tEnd, float lastT, int faceAxis, out float distance, out PreviewSurfaceType surfaceType)
+        private static bool TryWalk(BlockOccupiedCellIndex cells, Ray ray, Vector3Int cell, float tEnd, out float distance, out PreviewSurfaceType surfaceType)
         {
             distance = 0f;
             surfaceType = default;
@@ -67,12 +57,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             var step = Vector3Int.zero;
             var tMax = Vector3.positiveInfinity;
             var tDelta = Vector3.positiveInfinity;
+            var lastT = float.NaN;
+            var faceAxis = -1;
             for (var axis = 0; axis < 3; axis++)
             {
                 if (direction[axis] == 0f) continue;
                 step[axis] = direction[axis] > 0f ? 1 : -1;
-                var boundary = direction[axis] > 0f ? cell[axis] + 1 : cell[axis];
-                tMax[axis] = (boundary - origin[axis]) / direction[axis];
+                tMax[axis] = NextBoundaryTime(origin[axis], direction[axis], cell[axis]);
                 tDelta[axis] = 1f / Mathf.Abs(direction[axis]);
             }
 
@@ -88,9 +79,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 cell[nextAxis] += step[nextAxis];
                 tMax[nextAxis] += tDelta[nextAxis];
 
-                // 同じ t の越境（辺・角）は、その組の最初の軸を面の軸として保つ
-                // Crossings at the same t (edge or corner) keep the first axis of that group as the face axis
-                if (t != lastT) faceAxis = nextAxis;
+                // 同じ t の越境（辺・角）の組では、Y → X → Z で先の軸を面の軸にする
+                // Within a group of crossings at the same t (edge or corner), the earlier axis in Y -> X -> Z is the face axis
+                if (t != lastT || PlacementAimBoxSlab.IsHigherPriority(nextAxis, faceAxis)) faceAxis = nextAxis;
                 lastT = t;
 
                 // 入ったセルが占有されていれば、入った向きの面を返す
@@ -100,6 +91,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 surfaceType = PlacementAimBoxSlab.EnterFace(faceAxis, direction[faceAxis] > 0f);
                 return true;
             }
+        }
+
+        private static Vector3Int CellJustBefore(Ray ray, float t)
+        {
+            var origin = ray.origin;
+            var direction = ray.direction;
+            var cell = Vector3Int.FloorToInt(ray.GetPoint(t));
+            for (var axis = 0; axis < 3; axis++)
+            {
+                var d = direction[axis];
+                if (d == 0f) continue;
+
+                // 境界の時刻で寄せ、次の境界が t 以上・手前の境界が t 未満のセルにする（境界ちょうどは手前側）
+                // Snap by boundary times so the next boundary is at or after t and the previous one before t (exact boundary stays behind)
+                var step = d > 0f ? 1 : -1;
+                while (NextBoundaryTime(origin[axis], d, cell[axis]) < t) cell[axis] += step;
+                while (NextBoundaryTime(origin[axis], d, cell[axis] - step) >= t) cell[axis] -= step;
+            }
+            return cell;
+        }
+
+        private static float NextBoundaryTime(float origin, float direction, int cell)
+        {
+            var boundary = direction > 0f ? cell + 1 : cell;
+            return (boundary - origin) / direction;
         }
     }
 }

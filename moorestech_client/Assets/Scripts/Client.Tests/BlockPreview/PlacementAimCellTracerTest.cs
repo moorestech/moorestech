@@ -141,6 +141,18 @@ namespace Client.Tests
             Assert.AreEqual(PreviewSurfaceType.XZ_Y, surface);
         }
 
+        [Test]
+        public void EdgeGraze_EnteringBoundsThroughX_StillPrefersY()
+        {
+            // 外接直方体 (0..6) へ x=6 面の点 (6,1) で入り、同じ t の Y 越境と X 越境で (5,0,0) に入る（X と Y の境界時刻はともに -2/d で一致する）
+            // The ray enters the bounds (0..6) via the x=6 plane at (6,1), reaching (5,0,0) by Y and X crossings at the same t (both boundary times are -2/d)
+            var cells = CreateUnitBlocks(new Vector3Int(5, 0, 0), new Vector3Int(0, 5, 0));
+
+            var ray = new Ray(new Vector3(8f, 3f, 0.5f), new Vector3(-1f, -1f, 0f).normalized);
+            Assert.IsTrue(PlacementAimCellTracer.TryTrace(cells, ray, 100f, out _, out var surface));
+            Assert.AreEqual(PreviewSurfaceType.XZ_Y, surface);
+        }
+
         private static BlockOccupiedCellIndex CreateUnitBlocks(Vector3Int first, Vector3Int second)
         {
             var cells = new BlockOccupiedCellIndex();
