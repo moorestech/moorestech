@@ -29,7 +29,11 @@
 }
 
 /* 見出しの最大幅: Web .title の max-width */
+/* 見出しは 1 行なので行を Web の 34px×1.3 に固定する（前例 PauseMenu.uss の .pause-menu__title。UITK の字の自然な高さ Latin 47px は Web の行より高い） */
 /* Heading max width: the Web .title max-width */
+/* The heading is one line, so its row is fixed at the Web 34px x 1.3 (precedent .pause-menu__title in PauseMenu.uss; UITK's natural Latin glyph height of 47px exceeds the Web row) */
 .event-language-gate__title {
     max-width: var(--full-screen-gate-text-width);
+    flex-shrink: 0;
+    height: var(--title-order-1-row-height);
 }
