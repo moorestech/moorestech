@@ -20,6 +20,10 @@ namespace Client.Skit.UI
         public const string TypewriterRevealMode = "typewriter";
         public const string InstantRevealMode = "instant";
 
+        // 背景スキットの 1 字あたりの打ち出し間隔（ms）。blocking の間隔は store の TypewriterIntervalMs が持つ
+        // Per-character typing interval (ms) of a background skit; the blocking interval is the store's TypewriterIntervalMs
+        private const int BackgroundTypewriterIntervalMs = 24;
+
         // 許可 intent に含まれるか。store の検証・UITK の ViewModel・Playtest が同じ規則を読む
         // Whether the intent is in the allowed set; the store validation, the UITK view model and Playtest share this rule
         public static bool IsIntentAllowed(string[] allowedIntents, string intent)
@@ -41,7 +45,7 @@ namespace Client.Skit.UI
         public static SkitPresentationData CreateBackground(string sessionId, int revision, string speaker, string body)
         {
             return CreateBlocking(sessionId, revision, speaker, body, Array.Empty<SkitChoice>(), true, false,
-                false, false, false, TypewriterRevealMode, 24, Array.Empty<string>(), BackgroundMode);
+                false, false, false, TypewriterRevealMode, BackgroundTypewriterIntervalMs, Array.Empty<string>(), BackgroundMode);
         }
 
         public static SkitPresentationData CreateBlocking(string sessionId, int revision, string speaker, string body,
