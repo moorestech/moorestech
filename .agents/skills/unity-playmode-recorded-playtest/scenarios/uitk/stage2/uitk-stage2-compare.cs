@@ -89,8 +89,8 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await p.Screenshot($"{res}-2-key-control-hint");
         TutorialPresentationStateStore.Instance.EndSession(session);
 
-        // 木の 5m 手前でピンを画面内に、真後ろを向いて画面外の矢印にする
-        // From 5m short of the tree, put the pin on screen, then face away for the edge arrow
+        // 木の 5m 手前でピンを画面内に、木を越えた先へ飛んで（木が背後）画面外の矢印にする
+        // From 5m short of the tree, put the pin on screen, then warp past it (tree behind) for the edge arrow
         var tree = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SearchNearestMapObject(treeGuids, scaffold);
         var treeCenter = tree.GetComponentInChildren<Collider>(true).bounds.center;
         var forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
@@ -101,13 +101,13 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await p.Until(() => WorldPinStateStore.Instance.GetCurrent().Pins.Any(pin => pin.OnScreen), 10f, "ピンが画面内");
         await p.WaitSeconds(0.5f);
         await p.Screenshot($"{res}-2-world-pin-onscreen");
-        await p.AimAt(p.PlayerPosition - (treeCenter - p.PlayerPosition));
+        p.WarpPlayer(tree.transform.position + forward * 6f + Vector3.up * 0.5f);
         await p.Until(() => WorldPinStateStore.Instance.GetCurrent().Pins.Any(pin => !pin.OnScreen), 10f, "ピンが画面外");
-        await p.WaitSeconds(0.5f);
         await p.Screenshot($"{res}-2-world-pin-offscreen");
 
         // 木へ歩いて寄り F で採掘中のゲージを出し、満ちる前に離す（原木を取らずチャレンジを進めない）
         // Walk to the tree and hold F for the gauge, releasing before it fills (no logs, the challenge stays)
+        p.WarpPlayer(tree.transform.position - forward * 5f + Vector3.up * 0.5f);
         await p.AimAt(treeCenter);
         SemanticInput.KeyDown(Key.W);
         await p.Until(() => Vector3.Distance(Flat(p.PlayerPosition), Flat(tree.transform.position)) < 1.6f, 10f, "歩いて木に寄った");
@@ -120,8 +120,8 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await p.Screenshot($"{res}-2-mining");
         SemanticInput.KeyUp(Key.F);
 
-        // 足場で木のチェストの設置モード（2-placement）と、空へ照準して置けない所（2-placement-unavailable）
-        // On the scaffold, wooden-chest placement (2-placement) and aiming at the sky where nothing places (2-placement-unavailable)
+        // 足場で木のチェストの設置モード（2-placement）と、届かない遠くの地面へ照準して置けない所（2-placement-unavailable）
+        // On the scaffold, wooden-chest placement (2-placement) and aiming at far ground out of reach (2-placement-unavailable)
         p.WarpPlayer(scaffold);
         await p.Hotbar.AssignHotbar(0, "木のチェスト");
         await p.PressKey(Key.Digit1);
@@ -130,7 +130,7 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await p.WaitSeconds(0.5f);
         NoteRect(res, "placement-mode-hud");
         await p.Screenshot($"{res}-2-placement");
-        await p.AimAt(p.PlayerPosition + Vector3.up * 40f + forward);
+        await p.AimAt(scaffold + forward * 40f + Vector3.down * 2f);
         await p.WaitSeconds(0.5f);
         await p.Screenshot($"{res}-2-placement-unavailable");
         await p.PressKey(Key.Escape);
