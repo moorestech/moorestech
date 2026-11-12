@@ -1,0 +1,1360 @@
+# UITK S5-crosscut（横断層の残り: UI の例外の経路・作らない横断層の記帳・X-audit の設計判断 15 件・AC-5・束 5 の横断テストの写し）Implementation Plan
+
+> **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
+
+**Goal:** Web の横断層のうち UITK に残っていた「UI の例外の受け皿（`AppErrorBoundary` の代わり）」を、例外をログ（`LogType.Exception`）とバグ報告の manifest（v7 `gameUiExceptions`）へ必ず出す経路として作り、出る場面の無い再接続オーバーレイ・辞書エラー・`ConnectingPlaceholder` は作らず disposition に理由を残し、X-audit が S5-crosscut へ割り振った設計判断（DC-8 B・DC-10・DC-11・DC-12・DC-16 C・DC-18・DC-19・DC-21・DC-23・DC-27・DC-28 B・DC-30・DC-31・DC-32・DC-34）と AC-5 を部品・Foundation の 1 か所へ寄せる形で当て、束 5 の横断テスト（`i18n.spec` 2・`allScreensI18n` 6・`uiState.spec` 5・`regression/inputLayer.spec` 4・`textSelection` 2）の意図を NUnit へ写して `feature/uitk` へマージする。
+
+**Architecture:** 単位レーン（Mac の Editor 1 本）。新設は Foundation の小さな共有 5 本（`UiDisplay`・`UiScrollClipInset`・`GridMeshIndexWriter`／`Painter2DSquareCap`・`UssStyleResolutionGate`）と Client.Input の 1 本（`IUiKeyPressSource`）とバグ報告の読み取り 2 本（`GameUiExceptionReading`・`BugReportManifestReadings`）で、残りは既存の直書き・重複をそこへ付け替える置換と、部品の ctor・USS のつまみの付け替え。Web ホスト（`Client.WebUiHost`）は State の表・Catalog・Commands を呼ぶ形へ付け替え、判定の正を State の 1 か所にする。各タスクは L0/L1 を先に赤で書き、置換後に緑、並べ比べ（1280×720・2560×1080）と録画（ラダー 1〜5 と横断の録画）で退行 0 を確かめる。
+
+**Tech Stack:** Unity 6 / UI Toolkit（`Client.Ui`・`Client.Ui.State`・`Client.Input`）、VContainer、UniRx、NUnit（`ScreenTestHost` の panel simulate・`InputTestFixture`・EditModeInPlayingTest）、プレイテスト DSL（`.agents/skills/unity-playmode-recorded-playtest`）、Node（`tools/uitk/*.mjs`・`node --test`）、Python（`scripts/playtest/dashboard`）
+
+設計の出所: 実行計画 `docs/uitk-migration/execution/execution-plan.md` の S5-crosscut 行と §8 E-17、設計書 `docs/uitk-migration/execution/component-architecture.md` の [A-13]（:479）・[A-38]（:504）・§3.2（:279-288）・§4.2（:335-）・§2.7 の OS カーソル行（:234）、統合計画 `plan.md` §2.6「最後の束の対象」、X-audit の `done.md`（`../moorestech_logs/harness/uitk/X-audit/done.md` の「## 設計判断」:118-250 と「## Warning 全件」:337-）、指揮の割り当て（brief `brief-s5-crosscut.md`）、裁定 `.decisions/2026-11-06-*` 7 本（UITK 6 本と CEF 停止。「UITK 切替まで CEF 由来の不具合は直さない」を含む）。ゴール原文:「WebUIと同じ見た目で、適切な設計、コンポーネント化されたUITKベースのUIを開発すること」。
+
+## Requirements
+
+レーン行（実行計画の原文）:
+
+`| S5-crosscut | 横断層の残り | 5・W5 | S4-gamma | 要 | 単位 | UI の例外を LogError と manifest へ（`AppErrorBoundary` の代わり）、再接続オーバーレイ・辞書エラー・`ConnectingPlaceholder` は作らず disposition に理由（[A-13]・[A-38]。統合計画 §2.6 との差は E-17）。写す: `system/i18n.spec`(2)・`allScreensI18n`(6)・`uiState.spec`(5)・`regression/inputLayer.spec`(4。ホイールの 1 件は S4-inventory)・`textSelection`(2) の意図 |`
+
+| # | 要件 | 受け入れ基準 |
+|---|---|---|
+| R-1 | UI の例外の経路（`AppErrorBoundary` の代わり） | (a) UITK のイベントコールバックと UniRx の購読の中で投げた例外が `LogType.Exception` でログに出て、`UnityLogRing` が拾うことを L1 `GameUiExceptionLoggingTest` が固定（2 件）。(b) バグ報告の manifest が `schemaVersion: 7` と `gameUiExceptions`（`status` が `recorded`／`unknown`、`count`、`samples` 最大 5 件〈`tick`・`message`・`frame`〉）を必ず持ち、ログ未確保とクラッシュの箱は `unknown`＋`missing` に `gameUiExceptions` の行（L0 `GameUiExceptionManifestTest` 4 件）。(c) ダッシュボードが `gameUiExceptions` を欄なし（v6 以前）・不明・読めない・記録ありで出し分ける（`python3 -m unittest scripts/playtest/tests/test_dashboard_game_ui_exceptions.py` 緑）。(d) フォールバック画面は作らない（D-1） |
+| R-2 | 作らない横断層の記帳 | `docs/uitk/disposition.md` の `## 処遇` に、`e2e/tests/regression/connection.spec.ts` の 3 件（restoring・connecting placeholder・再接続バナー）と `allScreensI18n.test.ts` の辞書の HTTP 取得 3 件が `捨てる` で理由（[A-13]・[A-38]・E-17）付きで載り、`node tools/uitk/test-name-parity.mjs --bundle 5` がそれらを未対応に数えない。`AppErrorBoundary` のフォールバック画面を作らない理由は設計書 §7.1 の A-244（本文は D-1） |
+| R-3 | 束 5 の横断テストの写し | `i18n.spec` 2・`allScreensI18n` 3（残る 3 は R-2 の捨てる）・`uiState.spec` 5・`inputLayer.spec` 4・`textSelection` 2 の計 16 件に `/// <web-test file="…">…</web-test>` が付いた NUnit が緑。`test-name-parity.mjs --bundle 5 --emit-missing` の出力にこの 5 ファイルの行が 0 |
+| R-4 | DC-11 表示の出し入れ | `Foundation/Layout/UiDisplay.SetShown(VisualElement, bool)`（出すときは `StyleKeyword.Null`）が唯一の口。4 つの helper（`SpecialViewParts.SetShown`・`SettingsSectionParts.ShowIf`・`BugReportRecoveryControlsView`:61・`SkitToolbar`:88）を消し、`git grep -nE "style\.display\s*=" -- 'moorestech_client/Assets/Scripts/Client.Ui/**/*.cs'` が `UiDisplay.cs` と `UiGapContainer.cs` の 2 か所だけ（S5-challenge・S5-gate が持つファイルは取り込み後に同じ置換）。L1 `UiDisplayTest` 3 件 |
+| R-5 | DC-19 スクロールのクリップ逃げ | `Foundation/Layout/UiScrollClipInset.Apply(VisualElement outer, VisualElement inner, float inset)` が唯一の式。5 実装（`ItemListView.ApplyClipClearance`・`RecipeEntryList`・`BuildMenuScrollClipInset`・`NodeGraphView`・`BlockInventoryNaturalScroll`）と `ResearchCalcKnobs.ApplyScrollBleed` が呼ぶ。`RecipeEntryList` は部品の `RecipeListScrollView.SetClipInset(float)` を呼び、`contentContainer` を直に触らない。L1 `UiScrollClipInsetTest` 2 件。並べ比べ（R-17）でスクロールの端が退行 0 |
+| R-6 | DC-27 描画ヘルパ | `Foundation/Theme/Mesh/GridMeshIndexWriter.WriteQuads`・`Painter2DSquareCap.AddSegment`・`ShadowRingMeshWriter.RingCount`／`CenterMargin` が唯一。格子の index 5 か所・square cap 2 か所・影の定数 2 部品が呼ぶ。L1 `GridMeshIndexWriterTest` 2 件・`Painter2DSquareCapTest` 1 件。部品の L1 と並べ比べが退行 0 |
+| R-7 | DC-28 B トークン待ちの宿主 | `Foundation/Theme/UssStyleResolutionGate` が「解決待ち→解決の通知→配置後も未解決なら LogError」を持ち、`ToastHostView`・`NotificationHostView` が使う。読めないトークンの診断は両方が同じ文（`[<宿主>] … unreadable`）。L1 `UssStyleResolutionGateTest` 3 件、既存の Toast/Notification の L1 緑 |
+| R-8 | DC-10 画面がキーを受ける口 | `Client.Input/KeyPress/IUiKeyPressSource`（`IObservable<Unit> OnPressed`）と `InputKeyPressSource(InputKey)` が唯一。`SkitEnterKeySource`・`IUiCloseKeyProbe`・`InputManagerCloseKeyProbe`・`InputSystemArrowKeyStream` を消し、`RecipeSelectionCloseReset` を `Client.Ui.State/Recipe/Screen/` へ移す。矢印は `UIInputManager.ArrowLeft`／`ArrowRight`（キーボード抑止スコープ）で、`BeltThroughputSectionPresenter` の `UiInputExclusivity.IsTextInputFocused` を消す。L0/L1 で入力欄のフォーカス中に 3 口とも流れないこと（`UiKeyPressSourceSuppressionTest` 3 件） |
+| R-9 | DC-8 B 画面の表示判定 | 画面の開閉を読む State は `<機能>ScreenVisibility.IsShown(UiRoutingSnapshot …)` を通す（`BuildMenuScreenVisibility`・`RecipeScreenVisibility` を新設、`ResearchScreenVisibility`〈I-fix6 が作る〉・`BlockInventoryScreenVisibility` は既存）。`BuildMenuModel`・`BuildMenuCommands.IsBuildMenuOpen`・`ResearchNodeStateStore` が `UIStateControl.CurrentState` を読まない。`UiScreen` に無い状態（GameScreen・PlaceBlock 等）を読む箇所は理由の 1 行コメント付きで残す。既存の L0/L1 緑 |
+| R-10 | DC-12 マスタに無い ItemId | `GameContentPresentation.TryItem(ItemId, out UiIcon)` を足し、`GameContentNotificationRowIcons` が `MasterHolder` を直に読まない。L1 1 件 |
+| R-11 | DC-16 C ItemSlot の中身 | `ItemSlotContent` の優先（実物 > ゴースト、白面は実物だけ）を型コメントと部品カタログ（設計書の改訂案）に書き、`FluidSlotContent`（sealed 派生）との違いの理由を D-9 に残す。コードの型は変えない |
+| R-12 | DC-18 指カーソル | `IconButton`・`PanelActionButton`・`ModeSwitch<TValue>` が ctor で `IUiOsCursor` を受け、自分（ModeSwitch は各選択肢）のホバーで `UiOsCursorHoverRequest(…, Pointer, Element)` を出す。全呼び出し側を更新。L1 `CommonButtonPointerCursorTest` 3 件（乗ると Pointer・外れると Default） |
+| R-13 | DC-21 部品の内側の上書き | `PauseMenu.uss`:73・`SkitToolbar.uss`:35-49・`SkitChoices.uss`:36-40・`GamePanelSurface.uss`:83 の、他部品の内側クラス／`.unity-button` への上書きを、部品ルートのつまみ（`--panel-action-button-width`・`--icon-button-color`・`--game-panel-surface-face` ほか）へ置き換える。`GamePanelSurfaceKind.SkitChoice` を消す（`Skit` は Web の variant と 1 対 1 なので残す）。`UiStyleConventionTest` に「画面 USS が他部品の `__` 内側クラスを書かない」検査 1 件。並べ比べ 1-pause-top・2-skit-choices・2-skit-text が退行 0 |
+| R-14 | DC-34 A 不足の旗 | `BuildMenuRequiredItem.Lacking` を消し、不足は `BuildMenuMaterialLine.IsInsufficient`（免除込み）だけ。`BuildMenuShortage` は `Held < Count` から決める。既存の L0 緑 |
+| R-15 | DC-30 A トークン値の CI | `convert-web-tokens.mjs`・`convert-mantine-tokens.mjs` が `--check`（書かずに差があれば exit 1）を持ち、`run_test.yml` の webui-test が両方を回す。`node --test tools/uitk/webTokens/tests/*.test.mjs` 緑（2 件）、手元で両方 `--check` が exit 0 |
+| R-16 | DC-31 A Presenter の結線 | L1 `PresenterMountTest`（本番の `UiLayerStack`・`GameUiRootTestFactory`・切り替えられる `UiRoutingState`）が `uiState.spec` の 5 件を写して緑。L3 `GameUiScreenMountTest` が実ゲームの起動後に全画面の View が載り先の層にあることを見る（DI 登録漏れの網）。段ごとの L3 は各ラダーのレーンの物を数える（D-14） |
+| R-17 | 比較撮影と独立評価 | 1-pause-top・2-skit-choices・2-skit-text・3-build-menu・4-item-list-large・4-research・4-block-chest・1-toast・2-notifications・5-japanese-inventory・1-bug-report と recipe（`web-9ce5557bdb-s4-recipe`）を 1280×720 と 2560×1080 で撮り、参照と並べて opus の評価役 2 体が別々に判定。再現した差は直すか LX-205〜206 に記帳。`done.md`「差の表」に全行の処遇 |
+| R-18 | DC-32 A Presenter の型 | ゲーム寿命の Presenter・Relay・Binder・Installer 17 本と `RecipeSelectionCloseReset` から `IDisposable` を外す（テストが `Dispose` を呼ぶ 2 型は D-16 の扱い）。設計書 §4.2 の型の改訂案をメモへ |
+| R-19 | DC-23 A Web ホストの判定 | `UiStateActions.IsAllowed` を消して `UiStateTransitionRules.IsAllowed` を呼ぶ、`CraftActions`・`CraftingRecipesTopic`・`RecipeViewerItemListTopic`・列車の 7 組（s4-train 計画「## 本 PR 外のリファクタ提案」の 1〜8 行目）が State の Catalog・Commands・変換を呼ぶ。`Client.Tests/WebUi/` の既存テスト緑、Web 系の録画（R-21）が退行 0 |
+| R-20 | AC-5・Warning | AC-5 の 48 件（除外 3 件は D-18）を単一参照のローカル関数へ移し、`BugReportFormView` は先に分けて 200 行未満。Warning の S5-crosscut 候補 4 行を拾う／見送るで 1 行ずつ処遇（c22-si×2・c46-cc は拾う、c63-cc は見送る） |
+| R-21 | 録画 | 反映後のバイナリで、GameUi のラダー 1〜5（`uitk-lifeline`・`stage2/uitk-opening-hud`・`stage3/uitk-build-bp`・`stage4/uitk-production-loop`・`stage4/uitk-research-train`）と横断の録画 9 本（T20 の表）が `Success: true`。Web 系で `misc/ui-state-transition-matrix`・`misc/localization-language-switch-via-ui`・`train/fluid-inventory-via-interact` が CEF の出る環境なら `Success: true`（出なければ RendererUnavailable の行を証拠に「未確認」） |
+| R-22 | 指揮の割り当ての完了 | DC-8 B・DC-10 A・DC-11 A・DC-12 A・DC-16 C・DC-18 A・DC-19 A・DC-21 A（Timetable.uss の PanelActionButton 無効の上書きは I-fix5 のため除く）・DC-23 A・DC-27 A・DC-28 B・DC-30 A・DC-31 A・DC-32 A・DC-34 A・AC-5・Warning の候補が、`done.md`「割り当ての処遇」の表で全行「やった（Task n・証拠）／見送った（理由）」 |
+| R-23 | 申し送りの処遇 | 「## 申し送りの処遇」の全行が `done.md` に写る |
+
+### やらないこと
+
+- 再接続オーバーレイ・辞書エラー・`ConnectingPlaceholder`・エラー境界のフォールバック画面（[A-13]・[A-38]・E-17・D-1）
+- DC-37（S5-gate）、DC-15・DC-29・DC-33・DC-5 B（X-5）、DC-8 A・DC-16 A・DC-28 A・DC-9・DC-13・DC-14・DC-17・DC-20・DC-22・DC-24・DC-25・DC-26（I-fix6）
+- `Timetable.uss` の PanelActionButton 無効時の上書きの除去（I-fix5）
+- Web ホストの削除（X-5。このレーンは付け替えまで）
+- `Screens/Challenge/`（S5-challenge）・言語ゲートと `Client.Ui.State/EventMode`・`Client.Starter/EventMode`（S5-gate）の新しいファイル。既存の `Screens/Challenge/CurrentHud/` は取り込み後に置換だけ当てる（D-20）
+- 束 5 の暗転・突き合わせの締め・並べ比べの締め（S5-ladder）
+- Codex（指揮の指示。§5・§3.3 の codex-audit は opus の subagent 2 体の独立評価で代える）
+
+## Global Constraints
+
+- AGENTS.md 全部（1 ファイル 200 行未満・1 ディレクトリ 10 ファイル・partial と `Func<>` の禁止・try-catch は外部境界だけ・UniRx・2 行コメント〈日本語 1 行→英語 1 行〉・`#region Internal` はメソッド内のローカル関数だけ・デフォルト引数禁止・単純な getter/setter プロパティ禁止〈`{ get; private set; }` は可〉・.meta を手で作らない・Prefab/シーンを手で編集しない・fail-closed の経路はログ）
+- Mac mini で同時に動かす Unity Editor は全体で 1 本（このレーンの worktree の 1 本。起動前に `moores-wt status` で所有を見る）。subagent は Editor を起動しない。並列が要るときは Windows の `~/bin/winunity`（push 済みブランチ。結果は `~/.cache/winunity/runs/`）
+- 実装は moores-subagent-driven-development で Claude Code の opus subagent に渡す。subagent への依頼文に「バックグラウンドのポーリングで待たず全部前景で実行する」「区切り（タスク）ごとにコミットする」を書く
+- コンパイル: `uloop compile --project-path ./moorestech_client`（.cs を触ったタスクは毎回）。テスト: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。ドメインリロード中のエラーは 45 秒待って再試行
+- 録画は PlayMode を止めた状態で `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'`（Web は `UiSystem.Web`）を実行してから `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client <scenario.cs>`。終了コード 0 成功・1 失敗・2 コンパイル不可。失敗したら次の前に `uloop control-play-mode --project-path ./moorestech_client --action Stop`。初回 "already playing" は 1 回だけ投入し直す
+- 番号: 設計書の行は A-244〜A-248、見た目の例外は LX-205〜LX-206 だけ（[A-13]・[A-38] は参照のみ）。使わなかった番号は `done.md` に「未使用」と書く
+- 共有区画は追記だけ: tss の族別区画・`MainGameUiRegistration` の画面登録区画・`localization.csv`・台帳 `docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`docs/uitk/disposition.md` の `## 処遇` の末尾。取り込みの衝突は両方の行を採る
+- 比較撮影の出力は `moorestech_client/.uloop/outputs/compare/S5-crosscut/`。使い捨ての撮影スクリプトを書かない（部品・EditMode は `Client.Ui.Editor.Capture.UiRuntimePanelCapture.CaptureToPng(VisualElement, int, int, Color32, UiCaptureLocalization, string)`、画面・PlayMode は `GameViewResolution.Set`／`PlaytestGameViewOps.SetResolution(ct, w, h)`）。手順の正本は `.agents/skills/ref-uitk-design/references/compare-procedure.md`
+- 参照キャプチャ: `../moorestech_logs/uitk/reference-captures/web-8a585f742a/`（1280×720）と `web-8a585f742a-2560x1080/`（recipe だけ `web-9ce5557bdb-s4-recipe`／`-2560x1080`）
+- 録画 mp4・`PlaytestResults/`・TestResults xml・撮影 PNG は検証後に消す（報告ページへ載せる分は先に載せる）。テストで作ったワールドは `.agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で探して消す。`.superpowers/` はコミットしない
+- 新しい共有を見つけたら、このレーンの範囲（下の File Structure）に無いものは自分で作らず `done.md`「integrator への依頼」に書く
+
+## 設計検査記録
+
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+
+## 死活表（Phase 2.5）
+
+| 操作 | 計画後も生きるか | 根拠 |
+|---|---|---|
+| UI のコールバックで例外が出たときのゲーム続行 | 生きる | 例外の扱いは Unity のまま（ログに出て次のイベントは届く）。足すのは manifest の数え上げだけ（T1） |
+| バグ報告の送信・書き出し・クラッシュ箱の回収 | 生きる | manifest に欄を 1 つ足すだけ。v6 以前の箱はダッシュボードが「欄なし」と出す（T1。`test_dashboard_game_ui_exceptions.py`） |
+| スキットの Enter 送り・Esc での選択解除・ベルトの ←→ | 生きる（入力欄中の抑止が 1 か所になる） | 3 口とも `InputKey` の抑止を通る（T6。`UiKeyPressSourceSuppressionTest`・録画 `uitk-skit`・`uitk-recipe-craft`・`uitk-block-special-panels`） |
+| ←→ を他に使う操作（移動・カメラ） | 生きる | 新しい UI のアクション 2 本を足すだけで、既存のアクションの割り当ては変えない（T6 Step 1 で既存の `<Keyboard>/leftArrow` の割り当てを grep して重なりを記録） |
+| 各画面の出し入れ（display） | 生きる | 出すときはインラインを外して USS に戻す。USS が既定で `display: none` の要素は T2 Step 2 の照合で状態クラスへ替える |
+| スクロールの端の見え方（5 画面） | 生きる | 式を 1 本にするだけ。並べ比べで確かめる（T3・T19） |
+| ビルドメニューの開いた時の BP 取り直し・組み直し | 生きる | 開閉の読み先を `UiRoutingState` に替えるだけ（T7。`BuildMenuModelTest`・録画 `uitk-build-menu`） |
+| 研究ノードの状態の購読 | 生きる | 同上（T7。`ResearchNodeStateStoreTest`・録画 `uitk-research-tree`） |
+| 部品の指カーソル | 生きる（増える） | 画面が個別に足していた所（`SkitChoiceButton` ほか）は部品のものと重ならないよう T9 Step 4 で外す |
+| ポーズメニュー・スキットの見た目 | 生きる | 上書きの経路だけ替える。並べ比べ 1-pause-top・2-skit-choices・2-skit-text で確かめる（T10・T19） |
+| Web ホストの遷移の許可・クラフト・列車の時刻表（Web 系） | 生きる | 判定を State の 1 本へ付け替えるだけで wire の文字列は変えない（T15。`Client.Tests/WebUi/` の既存テスト・Web 系の録画） |
+| Presenter の破棄（シーンを畳むとき） | 消える（意図） | ゲームはメインメニューへ戻らない設計で破棄は来ない（AGENTS.md 既知の制約）。L1 の後始末だけが使っていた 2 型は D-16 |
+
+## 申し送りの処遇
+
+| 出所 | 項目 | 処遇 |
+|---|---|---|
+| 指揮（`conductor.md`:186） | DC-23 A は 11-10 04:50 の「据え置き・X-5 で Web ホスト側を消す」を新しい決定で覆す | やる（T15・D-17） |
+| X-audit `done.md` 割り振り | DC-8 B・DC-10・DC-11・DC-12・DC-16 B/C・DC-18・DC-19・DC-21・DC-23・DC-27・DC-28 B・DC-30・DC-31・DC-32・DC-34・AC-5（全対象） | やる（R-22 の表） |
+| X-audit Warning | S5-crosscut 候補 4 行（c22-si 表示 helper・c22-si 空ラベル・c46-cc 研究の現在画面の読み・c63-cc readonly と `{ get; }`） | 拾う 3・見送る 1（T16・D-19） |
+| s4-train 計画「## 本 PR 外のリファクタ提案」 | Web ホストと State の写しの 9 項目 | 1〜8 行目をやる（T15）。9 行目は記録だけの行（新設しなかった旨）なので処遇不要 |
+| 他レーンの `done.md` | X-audit 以外に S5-crosscut 宛ての依頼 | 無し（起草時の grep。T0 Step 4 で最新を見直す） |
+
+## File Structure
+
+S = `moorestech_client/Assets/Scripts`。持ち主が他レーンのファイルは「取り込み後」と書いた。
+
+| パス | 作る/直す | 役割 |
+|---|---|---|
+| `S/Client.Game/InGame/BugReport/Readings/GameUiExceptionReading.cs` | 作る | ログから UI の例外を数える値（v7） |
+| `S/Client.Game/InGame/BugReport/Readings/BugReportManifestReadings.cs` | 作る | 確保データ → manifest の読み取り欄（webUiHealth を Writer から移し、gameUiExceptions を足す） |
+| `S/Client.Game/InGame/BugReport/BugReportManifest.cs`・`BugReportBundleWriter.cs`・`LastSession/CrashBundleWriter.cs` | 直す | v7・欄・Writer は 200 行未満に縮む |
+| `scripts/playtest/dashboard/display_fields.py`・`collect_reports.py`・`static/js/views/report.js` | 直す | `gameUiExceptions` の表示 |
+| `scripts/playtest/tests/test_dashboard_game_ui_exceptions.py` | 作る | 表示の 4 状態 |
+| `S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs`・`WebUiHealthManifestTest.cs` | 作る・直す | v7 の L0（後者は版の数だけ） |
+| `S/Client.Tests/Ui/Crosscut/` 一式（`GameUiExceptionLoggingTest`・`PresenterMountTest`・`Localization/`・`Input/`・`TextSelection/`） | 作る | 横断の L1。10 ファイルを超えたらサブディレクトリ |
+| `S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiScreenMountTest.cs`・`AllScreensLanguageSwitchTest.cs` | 作る | L3（Stage<n> はラダーのレーンの持ち物なので使わない） |
+| `S/Client.Ui/Foundation/Layout/UiDisplay.cs`・`UiScrollClipInset.cs` | 作る | DC-11・DC-19 |
+| `S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs` | 作る | DC-27 |
+| `S/Client.Ui/Foundation/Theme/ShadowRingMeshWriter.cs` | 直す | `RingCount`・`CenterMargin` |
+| `S/Client.Ui/Foundation/Theme/UssStyleResolutionGate.cs` | 作る | DC-28 B |
+| `S/Client.Input/KeyPress/IUiKeyPressSource.cs`・`InputKeyPressSource.cs`・`InputKeyHorizontalArrowKeySource.cs` | 作る | DC-10 |
+| `S/Client.Input/InputManager.cs`・`moorestech_client/Assets/Asset/Common/moorestechInputSettings.inputactions`・`S/Client.Input/moorestechInputSettings.cs`（Unity が生成） | 直す | 矢印の UI アクション 2 本 |
+| `S/Client.Ui.State/Recipe/Screen/RecipeSelectionCloseReset.cs` | 移す | `Screens/Recipe/Input/` から |
+| `S/Client.Ui.State/BuildMenu/BuildMenuScreenVisibility.cs`・`S/Client.Ui.State/Recipe/Screen/RecipeScreenVisibility.cs` | 作る | DC-8 B |
+| `S/Client.Ui/Content/GameContentPresentation.cs` | 直す | `TryItem` |
+| `S/Client.Ui/Components/Controls/{IconButton,PanelActionButton,ModeSwitch}/*.cs`・`.uss` | 直す | 指カーソル・つまみ |
+| `S/Client.Ui/Components/Panels/GamePanelSurface/*` | 直す | `SkitChoice` を消し面のつまみをルートへ |
+| `S/Client.Ui/Screens/**`（置換の対象は各タスクの Files） | 直す | 直書き・helper・ctor の更新 |
+| `S/Client.WebUiHost/Game/**`（T15 の Files） | 直す | State の呼び出しへ付け替え |
+| `tools/uitk/webTokens/writeOrCheck.mjs`・`tools/uitk/webTokens/tests/writeOrCheck.test.mjs` | 作る | DC-30 |
+| `tools/uitk/convert-web-tokens.mjs`・`convert-mantine-tokens.mjs`・`.github/workflows/run_test.yml` | 直す | `--check` と CI |
+| `docs/uitk/disposition.md`（`## 処遇` の末尾）・`docs/uitk/TODO.md`（「## 実測の結論」「## 見た目の例外」末尾） | 追記 | R-2・R-17 |
+| `../moorestech_logs/harness/uitk/S5-crosscut/done.md` | 作る | 報告 |
+
+---
+
+### Task 0: 前提の照合と骨組み
+
+依存: S4-gamma（実行計画のレーン行）。加えて、同じファイルを先に直すレーン I-fix5・I-fix6 のマージを待つ（D-2）。
+
+**Files:** `../moorestech_logs/harness/uitk/S5-crosscut/done.md`（骨組み）
+
+**Interfaces:** Consumes: `origin/feature/uitk`（S4-gamma・I-fix5・I-fix6 のマージ後）。Produces: 判断記録の「読み替え」行（実物とのずれ）
+
+- [ ] **Step 1: 場所と土台**: `pwd` が自分の worktree。`git fetch origin && git log --oneline --merges origin/feature/uitk | head -20` で S4-gamma・I-fix5・I-fix6 の 3 本のマージを確かめる。無いものがあれば `cmux wait-for uitk-<レーン小文字>`（例 `uitk-s4-gamma`・`uitk-i-fix5`・`uitk-i-fix6`）で 1 本ずつ待ち、来たら `git merge origin/feature/uitk`。合図名が違えば `git log --merges --grep` で確かめて先へ進む
+- [ ] **Step 2: Editor と疎通**: `moores-wt status` で自分の worktree の Editor が 1 本だけ（他の worktree の Editor が居れば起動を待つ）。`uloop compile --project-path ./moorestech_client` が通る
+- [ ] **Step 3: 実物の照合**: 下の API を実物で開き、名前・引数・行番号を本計画と照合する。ずれは判断記録の末尾「読み替え」に `計画の名前 → 実物の名前（ファイル:行）` で 1 行ずつ書き、以降のタスクはその読み替えで進める
+  - I-fix6: `ResearchScreenVisibility`（DC-8 A）・`ItemSlotMarks.None`（DC-16 A）・Toast の診断を写した `NotificationHostView`（DC-28 A）・`PanelActionButton`／`HudSectionHeading` の `UiText` 化（DC-17 A）・`BugReportFormText.DescribeDelivery`/`DescribeExport` の戻り型（DC-22 A）・`IBlockInventoryPanelCommands.Close()` の戻り型（DC-13 A）
+  - I-fix5: `UiCommandRejectReason.RecipeInvalid`/`RecipeLocked`（改名）・`Client.Ui/Content/MachineRecipeRowContentBuilder.cs`（移動）・`LocalizedLabel` の ctor・`DerivedTokens.uss` の分割先・`PauseMenuView.cs` の行
+  - S4-gamma: `tools/uitk/list-recordings.sh`・`run-all-recordings.sh` の引数、ラダー 4・5 のシナリオのパス（`scenarios/uitk/stage4/uitk-production-loop.cs`・`uitk-research-train.cs`）、`UiSystemPlayModeTestBase` の置き場
+  - S2-ladder: `scenarios/uitk/stage2/uitk-opening-hud.cs` の有無（無ければ T20 で D-21 の扱い）
+- [ ] **Step 4: 他レーンの状況**: S5-challenge・S5-gate・S5-ladder のマージ状況と、`../moorestech_logs/harness/uitk/*/done.md` の S5-crosscut 宛ての依頼を `grep -rn "S5-crosscut" ../moorestech_logs/harness/uitk/*/done.md` で見直し、増えていれば「## 申し送りの処遇」に行を足す
+- [ ] **Step 5: bd と骨組み**: `bd create "UITK S5-crosscut: 横断層の残り（例外の経路・DC 15 件・AC-5・束 5 の横断テスト）" --parent moorestech-albof` → `bd update <id> --claim`。`../moorestech_logs/README.md` を読んでから `harness/uitk/S5-crosscut/done.md` を「状態: 作業中」で作る（見出し: 証拠・PR・割り当ての処遇・差の表・未完了・要裁定・integrator への依頼）
+- [ ] **Step 6: コミット**: moorestech_logs 側だけコミット・push（本 repo は変更なし）
+
+---
+
+### Task 1: UI の例外の経路（R-1・R-2）
+
+**Files:**
+- Create: `S/Client.Game/InGame/BugReport/Readings/GameUiExceptionReading.cs`・`Readings/BugReportManifestReadings.cs`
+- Modify: `S/Client.Game/InGame/BugReport/BugReportManifest.cs`（:37 版・:76 の下に欄）・`BugReportBundleWriter.cs`（:71-77 を移す）・`LastSession/CrashBundleWriter.cs`（:57-58 の下）
+- Modify: `scripts/playtest/dashboard/display_fields.py`・`collect_reports.py`（:18・:77・:126）・`static/js/views/report.js`（:89・:113）
+- Test: `S/Client.Tests/Ui/Crosscut/GameUiExceptionLoggingTest.cs`・`S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs`・`WebUiHealthManifestTest.cs`（:32 の 6→7）・`scripts/playtest/tests/test_dashboard_game_ui_exceptions.py`
+- Modify: `docs/uitk/disposition.md`（`## 処遇` の末尾に 6 行）
+
+**Interfaces:** Consumes: `UnityLogRing.Dump()`・`UnityLogEntry{Time,Tick,Type,Message,StackTrace}`（`BugReport/UnityLogRing.cs`:9-25）・`BugReportCapturedData.Logs`／`.WebUiHealth`（`Capture/BugReportCaptureStatus.cs`:117・:121）・`BugReportManifest.AddMissing(string, string)`（:106）。Produces: `GameUiExceptionReading.FromLogs(IReadOnlyList<UnityLogEntry>)`・`GameUiExceptionReading.Unknown()`・`BugReportManifestReadings.Apply(BugReportManifest, BugReportCapturedData)`・manifest `gameUiExceptions`
+
+- [ ] **Step 1: 例外がログに出ることを固定する L1（赤→緑の確認）**
+
+```csharp
+// S/Client.Tests/Ui/Crosscut/GameUiExceptionLoggingTest.cs
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Client.Game.InGame.BugReport;
+using NUnit.Framework;
+using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Crosscut
+{
+    // AppErrorBoundary の代わりの前提: UI の例外は握られずに LogType.Exception で出て、バグ報告のログ環が拾う
+    // Premise standing in for AppErrorBoundary: UI exceptions are never swallowed, surface as LogType.Exception and land in the bug-report log ring
+    public class GameUiExceptionLoggingTest : Client.Tests.Ui.Screens.ScreenTestHost
+    {
+        [Test]
+        public void UIのクリックの中の例外はExceptionでログに出て環に入る()
+        {
+            var ring = new UnityLogRing();
+            ring.Initialize();
+            var button = Mount(new ThrowingButton());
+            LogAssert.Expect(LogType.Exception, new Regex("GameUiExceptionProbe"));
+            simulate.Click(button.worldBound.center);
+            var entry = ring.Dump().Last(log => log.Type == LogType.Exception);
+            StringAssert.Contains("GameUiExceptionProbe", entry.Message);
+            StringAssert.Contains("Client.Tests.Ui.Crosscut", entry.StackTrace);
+        }
+
+        [Test]
+        public void UniRxの購読の中の例外はExceptionでログに出る()
+        {
+            var ring = new UnityLogRing();
+            ring.Initialize();
+            var subject = new Subject<Unit>();
+            subject.Subscribe(_ => throw new InvalidOperationException("GameUiExceptionProbe rx"));
+            LogAssert.Expect(LogType.Exception, new Regex("GameUiExceptionProbe rx"));
+            // UniRx は onError 未指定の例外を投げ直す。UI のイベント配送の中で投げ直されたものは UITK がログへ出す
+            // UniRx rethrows when no onError is given; rethrown inside UI event dispatch, UITK logs it
+            var button = Mount(new Button(() => subject.OnNext(Unit.Default)) { name = "rx-probe" });
+            simulate.Click(button.worldBound.center);
+            Assert.IsTrue(ring.Dump().Any(log => log.Type == LogType.Exception && log.Message.Contains("GameUiExceptionProbe rx")));
+        }
+
+        private sealed class ThrowingButton : Button
+        {
+            public ThrowingButton() : base(() => throw new InvalidOperationException("GameUiExceptionProbe click"))
+            {
+                name = "exception-probe";
+                style.width = 40;
+                style.height = 40;
+            }
+        }
+    }
+}
+```
+
+`UnityLogRing` が `Client.Tests` から見えない（internal）なら `Client.Game` の AssemblyInfo の `InternalsVisibleTo` を確かめる。`simulate.Click` から例外が外へ抜けて（UITK がログへ出さず）テストが落ちたら、それが実測の結論: 本番では PlayerLoop がログへ出すので経路は保たれるが、台帳「## 実測の結論」に「UITK の配送は例外を握らず投げ直す（EditMode の simulate で観測）」と書き、テストは `Assert.Throws` で配送が投げ直すことを固定する形へ替える。どちらでも「握り潰されない」ことが固定される。
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Crosscut.GameUiExceptionLoggingTest"` → 2 件 PASS（または上の実測の形で 2 件 PASS）
+
+- [ ] **Step 2: manifest v7 の L0 を先に書く（赤）**
+
+```csharp
+// S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Readings;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Client.Tests.BugReport.Bundle
+{
+    // manifest.gameUiExceptions の綴りと数え方を固定する。ダッシュボードはこの語で UI の故障を出す（A-244）
+    // Pins manifest.gameUiExceptions' spelling and counting; the dashboard shows UI failures by these words (A-244)
+    public class GameUiExceptionManifestTest
+    {
+        [Test]
+        public void Client_Uiを含む例外だけを数え見本は5件まで()
+        {
+            var logs = new List<UnityLogEntry>();
+            for (var i = 0; i < 7; i++) logs.Add(Entry(LogType.Exception, $"boom {i}", "Client.Ui.Screens.Probe.OnClick () (at Assets/Probe.cs:1)\nUnityEngine.UIElements.EventDispatcher.ProcessEvent ()"));
+            logs.Add(Entry(LogType.Exception, "world", "Client.Game.InGame.World.Tick ()"));
+            logs.Add(Entry(LogType.Error, "ui error", "Client.Ui.Screens.Probe.OnClick ()"));
+            var reading = GameUiExceptionReading.FromLogs(logs);
+            Assert.AreEqual(GameUiExceptionStatus.Recorded, reading.Status);
+            Assert.AreEqual(7, reading.Count);
+            Assert.AreEqual(GameUiExceptionReading.SampleLimit, reading.Samples.Count);
+            Assert.AreEqual("Client.Ui.Screens.Probe.OnClick () (at Assets/Probe.cs:1)", reading.Samples[0].Frame);
+        }
+
+        [Test]
+        public void 例外が無ければrecordedで0件()
+        {
+            var reading = GameUiExceptionReading.FromLogs(new List<UnityLogEntry>());
+            var json = JObject.Parse(new BugReportManifest { GameUiExceptions = reading }.ToJson());
+            Assert.AreEqual(7, (int)json["schemaVersion"]);
+            Assert.AreEqual("recorded", (string)json["gameUiExceptions"]["status"]);
+            Assert.AreEqual(0, (int)json["gameUiExceptions"]["count"]);
+        }
+
+        [Test]
+        public void ログが無ければunknownで欠損に書く()
+        {
+            var manifest = new BugReportManifest();
+            BugReportManifestReadings.Apply(manifest, new Client.Game.InGame.BugReport.Capture.BugReportCapturedData { Logs = null, WebUiHealth = new Client.Game.InGame.BugReport.WebUiHealth.WebUiHealthReading() });
+            var json = JObject.Parse(manifest.ToJson());
+            Assert.AreEqual("unknown", (string)json["gameUiExceptions"]["status"]);
+            Assert.AreEqual(JTokenType.Null, json["gameUiExceptions"]["count"].Type);
+            CollectionAssert.Contains(manifest.Missing.ConvertAll(item => item.Item), "gameUiExceptions");
+        }
+
+        [Test]
+        public void 新しいmanifestの既定はunknown()
+        {
+            var json = JObject.Parse(new BugReportManifest().ToJson());
+            Assert.AreEqual("unknown", (string)json["gameUiExceptions"]["status"]);
+        }
+
+        private static UnityLogEntry Entry(LogType type, string message, string stackTrace)
+        {
+            return new UnityLogEntry(DateTime.UtcNow, 1UL, type, message, stackTrace);
+        }
+    }
+}
+```
+
+Run: `uloop compile …` → コンパイルエラー（型が無い）を確かめる
+
+- [ ] **Step 3: 読み取り 2 本を作る**
+
+```csharp
+// S/Client.Game/InGame/BugReport/Readings/GameUiExceptionReading.cs
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Client.Game.InGame.BugReport.Readings
+{
+    public enum GameUiExceptionStatus
+    {
+        Recorded,
+        Unknown,
+    }
+
+    /// <summary>
+    /// 確保したログから UI（Client.Ui・Client.Ui.State）の例外を数える。Web の AppErrorBoundary の代わりに、テスターの箱から UI の故障を引けるようにする（A-244）
+    /// Counts UI (Client.Ui, Client.Ui.State) exceptions in the captured log, so tester boxes reveal UI failures in place of the Web AppErrorBoundary (A-244)
+    /// </summary>
+    public sealed class GameUiExceptionReading
+    {
+        public const int SampleLimit = 5;
+        private const string UiNamespaceMarker = "Client.Ui.";
+
+        public GameUiExceptionStatus Status = GameUiExceptionStatus.Unknown;
+        // null は数えていない（ログ未確保・前回セッション）。0 は数えて無かった
+        // null means not counted (no log captured, previous session); 0 means counted and none found
+        public int? Count;
+        public List<GameUiExceptionSample> Samples = new();
+
+        public static GameUiExceptionReading Unknown()
+        {
+            return new GameUiExceptionReading();
+        }
+
+        public static GameUiExceptionReading FromLogs(IReadOnlyList<UnityLogEntry> logs)
+        {
+            var reading = new GameUiExceptionReading { Status = GameUiExceptionStatus.Recorded, Count = 0 };
+            foreach (var entry in logs)
+            {
+                // 例外の種別で、スタックに UI の名前空間が載るものだけ（UI の購読・コールバックが止まった印）
+                // Only exceptions whose stack carries a UI namespace (the sign that a UI subscription or callback broke)
+                if (entry.Type != LogType.Exception || !entry.StackTrace.Contains(UiNamespaceMarker)) continue;
+                reading.Count++;
+                if (reading.Samples.Count < SampleLimit) reading.Samples.Add(new GameUiExceptionSample(entry.Tick, entry.Message, FirstUiFrame(entry.StackTrace)));
+            }
+            return reading;
+
+            #region Internal
+
+            string FirstUiFrame(string stackTrace)
+            {
+                foreach (var line in stackTrace.Split('\n'))
+                {
+                    if (line.Contains(UiNamespaceMarker)) return line.Trim();
+                }
+                return string.Empty;
+            }
+
+            #endregion
+        }
+    }
+
+    public sealed class GameUiExceptionSample
+    {
+        public ulong Tick;
+        public string Message;
+        public string Frame;
+
+        public GameUiExceptionSample(ulong tick, string message, string frame)
+        {
+            Tick = tick;
+            Message = message;
+            Frame = frame;
+        }
+    }
+}
+```
+
+```csharp
+// S/Client.Game/InGame/BugReport/Readings/BugReportManifestReadings.cs
+using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.WebUiHealth;
+using UnityEngine;
+
+namespace Client.Game.InGame.BugReport.Readings
+{
+    /// <summary>
+    /// 確保データから manifest の読み取り欄（webUiHealth・gameUiExceptions）を詰める。欠けた欄は unknown と欠損の両方に残す
+    /// Fills the manifest's reading fields (webUiHealth, gameUiExceptions) from captured data; a missing field leaves both unknown and a gap entry
+    /// </summary>
+    public static class BugReportManifestReadings
+    {
+        public static void Apply(BugReportManifest manifest, BugReportCapturedData data)
+        {
+            ApplyWebUiHealth();
+            ApplyGameUiExceptions();
+
+            #region Internal
+
+            void ApplyWebUiHealth()
+            {
+                // 確保が箱を埋め損ねたら unknown を入れ、常時非 null の契約を守りつつ欠損と開発者ログへ残す
+                // If the capture left the box empty, unknown is recorded so the always-non-null contract holds, with the gap in the manifest and the developer log
+                if (data.WebUiHealth == null)
+                {
+                    Debug.LogError("[BugReport] 確保データにWebホスト・CEFの値が無い。webUiHealth は unknown で出す");
+                    manifest.WebUiHealth = WebUiHealthReading.UnknownForPreviousSession();
+                    manifest.AddMissing("webUiHealth", "確保データにWebホスト・CEFの値が無い");
+                    return;
+                }
+                manifest.WebUiHealth = data.WebUiHealth;
+            }
+
+            void ApplyGameUiExceptions()
+            {
+                // ログが無ければ数えられない。0 件と取り違えないよう unknown と欠損に書く（ログの欠損は WriteLogs が別に書く）
+                // Without logs nothing can be counted; write unknown and a gap so it is never mistaken for zero (WriteLogs records the log gap itself)
+                if (data.Logs == null)
+                {
+                    manifest.GameUiExceptions = GameUiExceptionReading.Unknown();
+                    manifest.AddMissing("gameUiExceptions", "Unityログを確保できていなかったため UI の例外を数えられない");
+                    return;
+                }
+                manifest.GameUiExceptions = GameUiExceptionReading.FromLogs(data.Logs);
+            }
+
+            #endregion
+        }
+    }
+}
+```
+
+- [ ] **Step 4: manifest と 2 つの Writer**: `BugReportManifest.cs` の `SchemaVersion = 6` を `7` にし、`WebUiHealth` の欄（:76）の下に次の 3 行を足す（`using Client.Game.InGame.BugReport.Readings;` も）。enum の綴りは `WebUiHealth` と同じ camelCase の変換器に乗る（`WebUiHealthManifestTest`:32-34 が同じ形を見ている）
+
+```csharp
+        // UI の例外の数と見本（A-244。Web の AppErrorBoundary の代わり）。v7 で追加、常に非 null
+        // Count and samples of UI exceptions (A-244, standing in for the Web AppErrorBoundary); added in v7, never null
+        public GameUiExceptionReading GameUiExceptions = GameUiExceptionReading.Unknown();
+```
+
+`BugReportBundleWriter.cs` の :69-77（コメント 2 行と if/else）を `BugReportManifestReadings.Apply(manifest, data);` の 1 行へ置き換える（200 行→192 行前後）。`CrashBundleWriter.cs` の :58 の下に:
+
+```csharp
+            // 落ちたセッションのログは前回の Player.log にしか無く、ここでは数えない。0 件と読ませないよう不明と書く
+            // The crashed session's log lives only in the previous Player.log and is not counted here; write unknown so it never reads as zero
+            manifest.GameUiExceptions = GameUiExceptionReading.Unknown();
+            manifest.AddMissing("gameUiExceptions", "前回セッションの UI の例外は数えていない");
+```
+
+`WebUiHealthManifestTest.cs`:32 の `Assert.AreEqual(6, …)` を `7` に直す。`git grep -n "schemaVersion\"\]\|SchemaVersion" -- moorestech_client scripts` で 6 を見ている他の照合を探し、manifest の版を読むもの（`digest_schema.py` の `schemaVersion` は record.json の版で別物）だけ直す
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "GameUiExceptionManifestTest|WebUiHealthManifestTest|CrashBundleWebUiHealthTest|BugReportBundleWriterIdentityTest"` → 全件 PASS
+
+- [ ] **Step 5: ダッシュボード**: `display_fields.py` の末尾に `game_ui_exceptions(raw, source)` を足す（`web_ui_health` と同じ 4 状態。`"gameUiExceptions" not in raw` → `{"status": "absent"}`／dict でない・`status` が `recorded`・`unknown` 以外・`count` が int でない recorded → `warn` して `{"status": "unreadable"}`／`unknown` → `{"status": "unknown"}`／recorded → `{"status": "recorded", "count": n, "samples": [{"tick", "message", "frame"} …最大 5]}`）。`collect_reports.py` の :18 の import に足し、:77 の既定の行に `"gameUiExceptions": {"status": "unreadable"},`、:126 の下に `"gameUiExceptions": game_ui_exceptions(raw, source),`。`report.js` に `gameUiExceptionRows(value)` を `webUiHealthRows`（:89）の形で足し、:113 の並びに加える（欄なし＝「UI の例外: 記録なし（v6 以前）」・不明・読めない・`N 件`＋見本の `frame` を 1 行ずつ）
+- [ ] **Step 6: ダッシュボードのテスト**: `scripts/playtest/tests/test_dashboard_game_ui_exceptions.py` を `test_dashboard.py`:93-110（`test_web_ui_health_status_…`）の土台（`add_report`・`reports_by_id`）を import して書く。4 件: 欄なし→absent、unknown→unknown、`{"status":"recorded","count":"x"}`→unreadable、`{"status":"recorded","count":2,"samples":[…]}`→recorded と count 2
+
+Run: `python3 -m unittest discover -s scripts/playtest/tests -p 'test_dashboard*.py' -v` → 全件 OK
+
+- [ ] **Step 7: disposition の 6 行**: `docs/uitk/disposition.md` の `## 処遇` の末尾に、列 `| 束 | Web のファイル | Web のテスト名 | 処遇 | 証跡のパスか理由 | PR |` で:
+  - `| 5 | e2e/tests/regression/connection.spec.ts | 切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する | 捨てる | UITK には Web↔C# の WS が無く切断・復元の状態が起きない（設計書 A-38・実行計画 E-17） | <PR> |`
+  - `| 5 | e2e/tests/regression/connection.spec.ts | inventory未受信中はconnecting placeholderを表示する | 捨てる | UITK に「未受信」の状態が無い（設計書 A-13） | <PR> |`
+  - `| 5 | e2e/tests/regression/connection.spec.ts | WS切断時は再接続バナーをz-reconnect層に表示する | 捨てる | 同 A-38・E-17 | <PR> |`
+  - `allScreensI18n.test.ts` の `fetches fallback only once while also loading source for the fallback locale`・`waits for the localization topic before the first dictionary fetch`・`keeps the newest locale when StrictMode cleanup aborts an older dictionary generation` を `捨てる`・「UITK の辞書は起動時に同期で読み込み、HTTP 取得・取得の世代・topic 待ちが無い（設計書 A-38）」で 3 行
+  - `connection.spec.ts` が束 5 でないとツールが言えば（Step 8 の出力で分かる）、その 3 行は束の列をツールの束に合わせる
+- [ ] **Step 8: 突き合わせ**: `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing > moorestech_client/.uloop/outputs/compare/S5-crosscut/parity-t1.txt; echo "exit=$?"`。出力に Step 7 の 6 件が無い（書式誤りの行が出たら直す）
+- [ ] **Step 9: コミット**: `git add` した範囲で `git commit -m "feat(uitk): UI の例外を manifest v7 の gameUiExceptions へ数え、作らない横断層を disposition に記帳（S5-crosscut T1）"`
+
+---
+
+### Task 2: DC-11 表示の出し入れを `UiDisplay` 1 本へ（R-4）
+
+**Files:**
+- Create: `S/Client.Ui/Foundation/Layout/UiDisplay.cs`、Test: `S/Client.Tests/Ui/Foundation/Layout/UiDisplayTest.cs`（置き場は既存の `UiGapContainer` の L1 の横。`find S/Client.Tests -name "UiGapContainer*Test.cs"` で確かめる）
+- Modify（helper 4）: `Screens/BlockInventory/Special/SpecialViewParts.cs`:30・`Screens/Settings/SettingsSectionParts.cs`:30・`Screens/BugReport/BugReportRecoveryControlsView.cs`:61・`Screens/Skit/Parts/Toolbar/SkitToolbar.cs`:88（と各呼び手）
+- Modify（直書き。Screens 相対）: Research `ResearchTreeView`:90・`Parts/ResearchDetailActions`:51・`ResearchDetailPane`:97,109・`ResearchConsumeItemsSection`:41,52／CommonHud `CrosshairHudView`:36／Skit `Choices/SkitChoiceList`:31,38・`SkitTransitionView`:16,21・`Window/SkitDialogueWindow`:67,82・`SkitBackgroundLine`:19,29／Tutorial `DragGuide/TutorialDragGuideView`:42,54・`WorldPin/WorldPinOverlayView`:40,54・`WorldPinEdgeArrowView`:46,51・`Overlay/TutorialOutlineView`:64,99・`TutorialHighlightLabelView`:36,45・`KeyControlHint/KeyControlHintView`:33,44／TrainHud `TrainRidingHudView`:52／BlockInventory `BlockInventoryView`:66,71,114,127・`Train/TrainInventoryBodyView`:48,49・`TrainInventoryContentsView`:30,31・`Train/Timetable/TrainTimetableAreaView`:65,66／Progress `ProgressHudView`:36／KeyHints `KeyHintHudView`:33,39／Notification `NotificationRowView`:56,60／Recipe `ItemListView`:88・`RecipeViewerView`:59,60,106／Shell `ScreenBackdropView`:23,35／Hotbar `HotbarHudView`:66／PauseMenu `PauseMenuTopPageView`:61・`PauseMenuView`:71,78／Inventory `Panel/InventoryView`:91・`Equipment/EquipmentHudView`:51／BuildMenu `Parts/BuildMenuPanelSkeleton`:81,82・`BuildMenuView`:58,95,103／Components `RecipeActionButton/RecipeActionLabelShadow`:63・`GameTextField/ImeCompositionUnderline`:35,60,82・`Text/ShortcutHintLabel`:79（:89 は読み）
+- 取り込み後（D-20）: `Screens/Challenge/CurrentHud/CurrentChallengeHudView`:38,43 と、S5-challenge・S5-gate が新設した画面の直書き
+
+**Interfaces:** Consumes: `UiGapContainer.SetItemShown`（`Foundation/Layout/UiGapContainer.cs`:53-59。既に `StyleKeyword.Null` の規則）。Produces: `UiDisplay.SetShown(VisualElement element, bool shown)`・`UiDisplay.IsShownInline(VisualElement element)`
+
+- [ ] **Step 1: L1（赤）**
+
+```csharp
+// S/Client.Tests/Ui/Foundation/Layout/UiDisplayTest.cs
+using Client.Ui.Foundation.Layout;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Foundation.Layout
+{
+    public class UiDisplayTest : Client.Tests.Ui.TestHost.UiTestHost
+    {
+        [Test]
+        public void 隠すとインラインのnoneが付く()
+        {
+            var element = new VisualElement();
+            UiDisplay.SetShown(element, false);
+            Assert.AreEqual(DisplayStyle.None, element.style.display.value);
+            Assert.AreEqual(StyleKeyword.Undefined, element.style.display.keyword);
+        }
+
+        [Test]
+        public void 出すとインラインが外れUSSの値に戻る()
+        {
+            var element = new VisualElement();
+            UiDisplay.SetShown(element, false);
+            UiDisplay.SetShown(element, true);
+            Assert.AreEqual(StyleKeyword.Null, element.style.display.keyword);
+            Assert.IsTrue(UiDisplay.IsShownInline(element));
+        }
+
+        // 部品の USS が状態クラスで隠している要素は、画面が出しても隠れたまま（Flex を当てると状態クラスに勝ってしまうのが DC-11 の症状）
+        // An element hidden by its component USS state class stays hidden when the screen shows it (inline Flex beating the class was the DC-11 symptom)
+        [Test]
+        public void 状態クラスのnoneは出しても負けない()
+        {
+            var sheet = UnityEngine.ScriptableObject.CreateInstance<StyleSheet>();
+            Assert.IsTrue(UiTestStyleSheets.TryCompile(".probe--hidden { display: none; }", sheet));
+            rootVisualElement.styleSheets.Add(sheet);
+            var element = new VisualElement();
+            element.AddToClassList("probe--hidden");
+            rootVisualElement.Add(element);
+            UiDisplay.SetShown(element, true);
+            simulate.FrameUpdate();
+            Assert.AreEqual(DisplayStyle.None, element.resolvedStyle.display);
+        }
+    }
+}
+```
+
+`UiTestHost` の名前空間と、テストで USS を文字列からコンパイルする既存の口（`UiTestStyleSheets.TryCompile` は仮の名前）を `git grep -n "StyleSheet>()\|ImportStyleSheet\|CompileStyleSheet" -- moorestech_client/Assets/Scripts/Client.Tests` で探して実物の名前に読み替える。口が無ければ 3 件目は `.uss` を `Client.Tests` の既存のテスト用 USS の横に置いて読み込む形（前例を grep で探す）にし、新しい口は作らない。
+
+- [ ] **Step 2: USS の既定 none の照合**: 置換する要素ごとに、その要素のクラスが USS で既定 `display: none` になっていないかを照合する。`grep -rn -B3 "display: none" --include='*.uss' moorestech_client/Assets/Scripts/Client.Ui` の一覧（起草時 21 か所: `ResearchTree.uss`:55 `.research-tree__card-ring`・`UiModalHost.uss`:6・`MachineRecipeSelection.uss`:43・`GrabOverlay.uss`:6・`GamePanel.uss`:85,129 ほか部品内の状態クラス）と、上の置換対象の要素のクラスを突き合わせ、重なる要素は「USS の既定 none を外し、出し入れは `UiDisplay.SetShown` だけ」か「状態クラスの付け外し（`EnableInClassList`）」に揃える。どちらにしたかを判断記録 D-5 の下に 1 行ずつ書く
+- [ ] **Step 3: 作る**
+
+```csharp
+// S/Client.Ui/Foundation/Layout/UiDisplay.cs
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Foundation.Layout
+{
+    /// <summary>
+    /// 要素の出し入れの唯一の口。隠すときはインラインの none、出すときはインラインを外して USS（状態クラスの none を含む）へ戻す（A-245）
+    /// The single entry for showing and hiding; hiding sets inline none, showing removes the inline value so USS (including state-class none) applies again (A-245)
+    /// </summary>
+    public static class UiDisplay
+    {
+        public static void SetShown(VisualElement element, bool shown)
+        {
+            // 出すときに Flex を当てると部品の状態クラスの none に勝ってしまうので、Null で USS に任せる
+            // Showing with inline Flex would beat a component's state-class none, so Null hands the value back to USS
+            element.style.display = shown ? new StyleEnum<DisplayStyle>(StyleKeyword.Null) : new StyleEnum<DisplayStyle>(DisplayStyle.None);
+        }
+
+        // インラインで隠していないか（配置前でも読める。USS の結果は resolvedStyle で読む）
+        // Whether no inline hide is set (readable before layout; read USS results through resolvedStyle)
+        public static bool IsShownInline(VisualElement element)
+        {
+            return element.style.display.keyword == StyleKeyword.Null || element.style.display.value != DisplayStyle.None;
+        }
+    }
+}
+```
+
+`UiGapContainer.SetItemShown`（:53-59）の本体は `UiDisplay.SetShown` を呼ぶ形へ替える（規則が 1 か所になる）
+
+- [ ] **Step 4: 置換**: 4 つの helper を消して呼び手を `UiDisplay.SetShown` へ。直書き約 60 か所（`style.display = x ? DisplayStyle.Flex : DisplayStyle.None` と、出す/隠すの 2 行に分かれたもの）を `UiDisplay.SetShown(<要素>, <真偽>)` へ。読む側（`ShortcutHintLabel`:89 など `style.display.value == DisplayStyle.Flex` を読むもの）は `UiDisplay.IsShownInline` へ。`SpecialViewParts.IsDisplayedInHierarchy` は読みの関数で別物なので残す
+- [ ] **Step 5: 検査**: `git grep -nE "style\.display\s*=" -- 'moorestech_client/Assets/Scripts/Client.Ui/**/*.cs'` が `UiDisplay.cs` だけ（S5-challenge・S5-gate の持ち物は除いて数え、`done.md` に残りのパスを書く）。テストが `style.display.value == DisplayStyle.Flex` を見ている所は `git grep -n "DisplayStyle.Flex" -- moorestech_client/Assets/Scripts/Client.Tests` で探し、`resolvedStyle.display` か `UiDisplay.IsShownInline` に直す（`style.display.value` は Null のとき既定の Flex を返すので多くはそのまま通る）
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.Ui\."`（全 UI の L1。既定 600 秒で足りなければ `--timeout-seconds 1500`）→ 失敗 0
+
+- [ ] **Step 6: コミット**: `feat(uitk): 表示の出し入れを UiDisplay.SetShown の 1 本へ寄せる（DC-11。S5-crosscut T2）`
+
+---
+
+### Task 3: DC-19 スクロールのクリップ逃げを `UiScrollClipInset` 1 本へ（R-5）
+
+**Files:**
+- Create: `S/Client.Ui/Foundation/Layout/UiScrollClipInset.cs`、Test: `S/Client.Tests/Ui/Foundation/Layout/UiScrollClipInsetTest.cs`
+- Modify: `Screens/Recipe/ItemListView.cs`（:23,44,106-127）・`Screens/Recipe/Parts/RecipeEntryList.cs`（:17,31,124-149。:142 の `contentContainer` 直書き）・`Components/Controls/RecipeListScrollView/RecipeListScrollView.cs`（:12）・`Screens/BuildMenu/CategoryScroll/BuildMenuScrollClipInset.cs`（呼び手 `BuildMenuScrollBinding.cs`:23）・`Components/NodeGraph/NodeGraphView/NodeGraphView.cs`（:22,140-159）・`Screens/BlockInventory/BlockInventoryNaturalScroll.cs`（:14,30-41）・`Screens/Research/ResearchCalcKnobs.cs`（:32 `ApplyScrollBleed`。左右だけ）
+
+**Interfaces:** Consumes: `GameScrollView`（`ctor(string testid)`・`contentContainer`・`OnContentLayoutChanged`）。Produces: `UiScrollClipInset.Apply(VisualElement outer, VisualElement inner, float inset)`・`UiScrollClipInset.ApplyHorizontal(VisualElement outer, VisualElement inner, float inset)`・`RecipeListScrollView.SetClipInset(float inset)`
+
+- [ ] **Step 1: 5 実装を読み、式を表にする**: 各実装の「外側に負の margin・内側に正の padding」の向き（4 辺か左右だけか）・元の margin を足すか（`ItemListView` の `outerBaseMargin` 相当）・つまみ名（USS の `--*-clip-inset`）を判断記録 D-6 に表で書く。式が「外 margin = 元の margin − inset、内 padding = inset」から外れる実装があれば、その差が Web のどの CSS から来るかを書き、外れる分は `Apply` の引数に足さず呼び手に残す（共有の式は 1 つにする）
+- [ ] **Step 2: L1（赤）**
+
+```csharp
+// S/Client.Tests/Ui/Foundation/Layout/UiScrollClipInsetTest.cs
+using Client.Ui.Foundation.Layout;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Foundation.Layout
+{
+    // Web の margin: calc(-1 * clip-inset) と padding: clip-inset の写し（4 辺と左右だけの 2 形）
+    // Port of the Web margin: calc(-1 * clip-inset) plus padding: clip-inset (all four sides, or left and right only)
+    public class UiScrollClipInsetTest
+    {
+        [Test]
+        public void 四辺に負のmarginと正のpaddingが付く()
+        {
+            var outer = new VisualElement();
+            var inner = new VisualElement();
+            UiScrollClipInset.Apply(outer, inner, 6f);
+            Assert.AreEqual(-6f, outer.style.marginTop.value.value);
+            Assert.AreEqual(-6f, outer.style.marginLeft.value.value);
+            Assert.AreEqual(6f, inner.style.paddingBottom.value.value);
+            Assert.AreEqual(6f, inner.style.paddingRight.value.value);
+        }
+
+        [Test]
+        public void 左右だけは上下を触らない()
+        {
+            var outer = new VisualElement();
+            var inner = new VisualElement();
+            UiScrollClipInset.ApplyHorizontal(outer, inner, 4f);
+            Assert.AreEqual(-4f, outer.style.marginLeft.value.value);
+            Assert.AreEqual(StyleKeyword.Null, outer.style.marginTop.keyword);
+            Assert.AreEqual(4f, inner.style.paddingRight.value.value);
+            Assert.AreEqual(StyleKeyword.Null, inner.style.paddingTop.keyword);
+        }
+    }
+}
+```
+
+- [ ] **Step 3: 作る**
+
+```csharp
+// S/Client.Ui/Foundation/Layout/UiScrollClipInset.cs
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Foundation.Layout
+{
+    /// <summary>
+    /// スクロールの切り抜きの外へ縁取り・影を逃がす唯一の式（Web の margin:-clip-inset と padding:clip-inset。A-245）
+    /// The single formula that lets outlines and shadows escape the scroll clip (Web margin:-clip-inset plus padding:clip-inset; A-245)
+    /// </summary>
+    public static class UiScrollClipInset
+    {
+        public static void Apply(VisualElement outer, VisualElement inner, float inset)
+        {
+            ApplyHorizontal(outer, inner, inset);
+            outer.style.marginTop = -inset;
+            outer.style.marginBottom = -inset;
+            inner.style.paddingTop = inset;
+            inner.style.paddingBottom = inset;
+        }
+
+        // 縦は Web が逃がさない画面（研究の計算の帯）用
+        // For screens where the Web does not escape vertically (the research calculation band)
+        public static void ApplyHorizontal(VisualElement outer, VisualElement inner, float inset)
+        {
+            outer.style.marginLeft = -inset;
+            outer.style.marginRight = -inset;
+            inner.style.paddingLeft = inset;
+            inner.style.paddingRight = inset;
+        }
+    }
+}
+```
+
+`RecipeListScrollView` に `public void SetClipInset(float inset) { UiScrollClipInset.Apply(this, _scroll.contentContainer, inset); }`（`_scroll` は実物の内側の `GameScrollView` のフィールド名に合わせる）を足し、`RecipeEntryList`:142 の直書きを `_scroll.SetClipInset(inset)` へ。他 5 か所は自前の式を消して `Apply`／`ApplyHorizontal` を呼ぶ。`BuildMenuScrollClipInset` が `Apply` を呼ぶだけになったら、呼び手から直に呼んでファイルを消す
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "UiScrollClipInsetTest|ItemList|RecipeEntryList|RecipeViewer|BuildMenuScroll|NodeGraph|BlockInventoryNaturalScroll|ResearchCalc"` → 失敗 0
+
+- [ ] **Step 4: コミット**: `refactor(uitk): スクロールのクリップ逃げを UiScrollClipInset の 1 式へ（DC-19。S5-crosscut T3）`
+
+---
+
+### Task 4: DC-27 描画ヘルパ（R-6）
+
+**Files:**
+- Create: `S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs`、Test: `S/Client.Tests/Ui/Foundation/Theme/GridMeshIndexWriterTest.cs`・`Painter2DSquareCapTest.cs`
+- Modify: `Screens/Shell/ScreenVignette.cs`（:85-97）・`Components/Panels/GamePanel/GamePanelFace.cs`（:101-116）・`Components/Panels/DialogFrame/DialogFrameShadow.cs`（:108-120）・`Components/Controls/RecipeActionButton/RecipeActionFaceMesh.cs`（:74-87）・`Components/Recipe/RecipeRow/RecipeRowFrame.cs`（:123-128）・`Components/Controls/IconButton/IconButtonCloseGlyph.cs`（:63 のローカル関数）・`SkitAdvanceMarker.cs`（`ExtendedEnd`）・`Foundation/Theme/ShadowRingMeshWriter.cs`・`Components/Recipe/RecipeRow/RecipeRowFrameShadowMesh.cs`（:21,29）・`Components/Gauges/ProgressArrowGlyph/ProgressArrowGlyphShadowMesh.cs`（:19,29）
+
+**Interfaces:** Consumes: `MeshWriteData.SetNextIndex(ushort)`・`Painter2D.MoveTo/LineTo`。Produces: `GridMeshIndexWriter.WriteQuads(MeshWriteData mesh, int rows, int columns, int stride)`・`Painter2DSquareCap.AddSegment(Painter2D painter, Vector2 from, Vector2 to, float halfWidth)`・`Painter2DSquareCap.Extend(Vector2 end, Vector2 from, float length)`・`ShadowRingMeshWriter.RingCount`（8）・`ShadowRingMeshWriter.CenterMargin`（0.01f）
+
+- [ ] **Step 1: 並びの照合**: 5 か所の index が「左上・右上・右下」「左上・右下・左下」（`GamePanelFace.cs`:106-115 の形）と同じかを読み、違う並び（`ItemHeaderRule`:67-72・`CrosshairShadowRing`:90-95 は起草時に別の並び）は置換しない。同じ並びのものだけを表にして D-7 に書く
+- [ ] **Step 2: L1（赤）**: `GridMeshIndexWriterTest` — 2×3 の格子（stride 4）で 36 個の index の最初の 6 個が `0,1,5,0,5,4`、最後の 6 個が `6,7,11,6,11,10`（`MeshWriteData` は `MeshGenerationContext` の外で作れないので、`WriteQuads` の内部の並びを `GridMeshIndexWriter.QuadIndices(int row, int column, int stride)`〈`ushort[6]` を返す〉に出し、それを試す）。`Painter2DSquareCapTest` — `Extend(new Vector2(10,0), Vector2.zero, 2f)` が `(12,0)`
+- [ ] **Step 3: 作る**
+
+```csharp
+// S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Foundation.Theme.Mesh
+{
+    /// <summary>
+    /// 格子の頂点から四角を 2 枚の三角で書く唯一の並び（画面座標で時計回り。y は下向き）
+    /// The single ordering that writes each grid quad as two triangles (clockwise in screen space, y down)
+    /// </summary>
+    public static class GridMeshIndexWriter
+    {
+        public static void WriteQuads(MeshWriteData mesh, int rows, int columns, int stride)
+        {
+            for (var row = 0; row < rows; row++)
+            for (var column = 0; column < columns; column++)
+            {
+                foreach (var index in QuadIndices(row, column, stride)) mesh.SetNextIndex(index);
+            }
+        }
+
+        public static ushort[] QuadIndices(int row, int column, int stride)
+        {
+            var topLeft = (ushort)(row * stride + column);
+            var topRight = (ushort)(topLeft + 1);
+            var bottomLeft = (ushort)(topLeft + stride);
+            var bottomRight = (ushort)(bottomLeft + 1);
+            return new[] { topLeft, topRight, bottomRight, topLeft, bottomRight, bottomLeft };
+        }
+    }
+}
+```
+
+`WriteQuads` が毎フレーム配列を作るのが重ければ（描き直しの多い `ScreenVignette`）、`QuadIndices` を `SetNextIndex` 6 回に展開した私的な版を `WriteQuads` の中に置き、`QuadIndices` は同じ並びを返すテスト用ではなく `WriteQuads` が使う唯一の並びとして残す（テスト専用の public を作らない。`QuadIndices` を `WriteQuads` が呼ばない形にはしない）
+
+```csharp
+// S/Client.Ui/Foundation/Theme/Mesh/Painter2DSquareCap.cs
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Foundation.Theme.Mesh
+{
+    /// <summary>
+    /// Painter2D に無い square の線端を、端を線幅の半分だけ線の向きへ延ばして作る（SVG stroke-linecap: square の写し）
+    /// Makes the square line cap Painter2D lacks by extending each end by half the stroke width along the line (port of SVG stroke-linecap: square)
+    /// </summary>
+    public static class Painter2DSquareCap
+    {
+        public static void AddSegment(Painter2D painter, Vector2 from, Vector2 to, float halfWidth)
+        {
+            painter.MoveTo(Extend(from, to, halfWidth));
+            painter.LineTo(Extend(to, from, halfWidth));
+        }
+
+        // end を from から離れる向きへ length だけ延ばす
+        // Extends end by length, away from from
+        public static Vector2 Extend(Vector2 end, Vector2 from, float length)
+        {
+            return end + (end - from).normalized * length;
+        }
+    }
+}
+```
+
+`ShadowRingMeshWriter` に `public const int RingCount = 8;` と `public const float CenterMargin = 0.01f;`（中心の縫い目を避ける余白）を足し、2 部品の私有の定数をそれへ（`RecipeRowFrameShadowMesh.RingCount` を外から読む所があれば `ShadowRingMeshWriter.RingCount` に読み替える）。5 か所の index・2 か所の square cap を置換する
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "GridMeshIndexWriterTest|Painter2DSquareCapTest|ScreenVignette|GamePanel|DialogFrame|RecipeAction|RecipeRow|IconButton|SkitAdvance|ProgressArrow"` → 失敗 0
+
+- [ ] **Step 4: コミット**: `refactor(uitk): 格子の index・square cap・影の輪の定数を Foundation/Theme/Mesh へ（DC-27。S5-crosscut T4）`
+
+---
+
+### Task 5: DC-28 B トークン待ちの宿主を `UssStyleResolutionGate` へ（R-7）
+
+**Files:**
+- Create: `S/Client.Ui/Foundation/Theme/UssStyleResolutionGate.cs`、Test: `S/Client.Tests/Ui/Foundation/Theme/UssStyleResolutionGateTest.cs`
+- Modify: `Screens/Toast/ToastHostView.cs`（:23-27,38-45,70-86）・`Screens/Notification/NotificationHostView.cs`（:22,33,44,61-71,142-168。I-fix6 の DC-28 A 反映後の実物）
+
+**Interfaces:** Consumes: `UssCustomStyleReader.TryReadMilliseconds`／`TryReadPixels`（`Foundation/Theme/UssCustomStyleReader.cs`）。Produces: `UssStyleResolutionGate(VisualElement host, string ownerName)`・`bool IsResolved { get; private set; }`・`IObservable<ICustomStyle> OnResolved`・`void ReportHeldWhileUnresolved(string what)`・`void ReportUnreadable(string what)`
+
+- [ ] **Step 1: L1（赤）**: 3 件 —（1）パネルに載せて USS を解決すると `OnResolved` が 1 回流れ `IsResolved` が真、（2）USS の無いまま配置まで進むと `LogAssert.Expect(LogType.Error, new Regex(@"\[ProbeHost\] custom style not resolved"))`、（3）解決前に `ReportHeldWhileUnresolved` を呼んでも配置前は何も出さず、配置後に呼ぶと LogError
+- [ ] **Step 2: 作る**
+
+```csharp
+// S/Client.Ui/Foundation/Theme/UssStyleResolutionGate.cs
+using System;
+using UniRx;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Foundation.Theme
+{
+    /// <summary>
+    /// USS のトークンを読む常駐の宿主の「解決待ち→解決の通知→配置後も未解決なら開発者へ」を持つ。預かる要求と読むトークンは宿主が持つ
+    /// Holds "wait for resolution, announce it, tell developers if still unresolved after layout" for resident hosts reading USS tokens; held requests and token names stay with the host
+    /// </summary>
+    public sealed class UssStyleResolutionGate
+    {
+        private readonly string _ownerName;
+        private readonly Subject<ICustomStyle> _onResolved = new();
+        private bool _laidOutWithoutStyle;
+
+        public bool IsResolved { get; private set; }
+        public IObservable<ICustomStyle> OnResolved => _onResolved;
+
+        public UssStyleResolutionGate(VisualElement host, string ownerName)
+        {
+            _ownerName = ownerName;
+            host.RegisterCallback<CustomStyleResolvedEvent>(evt =>
+            {
+                IsResolved = true;
+                _onResolved.OnNext(evt.customStyle);
+            });
+            host.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                // 配置まで進んでも解決が来ないのは tss の @import 漏れかクラスの付け忘れ
+                // Layout without resolution means a missing tss @import or a missing class
+                if (IsResolved || _laidOutWithoutStyle) return;
+                _laidOutWithoutStyle = true;
+                Debug.LogError($"[{_ownerName}] custom style not resolved after layout; is the host's USS imported by GameUiTheme.tss and its class present?");
+            });
+        }
+
+        // 解決前に預かった要求があるとき宿主が呼ぶ。配置前の預かりは一時的なので黙る
+        // Hosts call this when holding a request before resolution; holding before layout is transient, so it stays quiet
+        public void ReportHeldWhileUnresolved(string what)
+        {
+            // silent-ok: 配置前の預かりは解決を待つ正常系 / 配置後も未解決なら GeometryChanged とここが LogError を出す
+            if (!_laidOutWithoutStyle) return;
+            Debug.LogError($"[{_ownerName}] {what} is held because the custom style never resolved");
+        }
+
+        // 解決したがトークンが読めず、動き無しで出すとき宿主が毎回呼ぶ
+        // Hosts call this every time they show something without motion because tokens resolved but were unreadable
+        public void ReportUnreadable(string what)
+        {
+            Debug.LogError($"[{_ownerName}] motion tokens are unreadable; showing without motion: {what}");
+        }
+    }
+}
+```
+
+- [ ] **Step 3: 2 宿主を載せ替える**: `ToastHostView` は `_styleResolved` と `OnCustomStyleResolved` の登録をやめ、ctor で `_gate = new UssStyleResolutionGate(this, nameof(ToastHostView)); _gate.OnResolved.Subscribe(ReadDurations);`。`Push` の先頭は `if (!_gate.IsResolved) { _toastsWaitingForStyle.Add(toast); _gate.ReportHeldWhileUnresolved($"toast {toast.Text}"); return; }`、読めないときは `_gate.ReportUnreadable(toast.Text.ToString())`。`NotificationHostView` も同じ形（`StyleNotResolvedMessage`・`_laidOutWithoutStyle`・`OnGeometryChanged` を消し、`Render` の預かりで `ReportHeldWhileUnresolved("notification rows")`、尺 0 の時刻で出すとき `ReportUnreadable`）。両ファイルとも行数が減る
+- [ ] **Step 4: テスト**: 既存の Toast・Notification の L1 で `[NotificationHostView] custom style not resolved` の文を `LogAssert.Expect` している所は、新しい文に合わせる（`git grep -n "custom style not resolved\|fade tokens are unreadable" -- moorestech_client/Assets/Scripts/Client.Tests`）
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "UssStyleResolutionGateTest|Toast|Notification"` → 失敗 0
+
+- [ ] **Step 5: コミット**: `refactor(uitk): トーストと通知のトークン待ちを UssStyleResolutionGate へ（DC-28 B。S5-crosscut T5）`
+
+---
+
+### Task 6: DC-10 画面がキーを受ける口（R-8）
+
+**Files:**
+- Create: `S/Client.Input/KeyPress/IUiKeyPressSource.cs`・`InputKeyPressSource.cs`・`InputKeyHorizontalArrowKeySource.cs`
+- Modify: `moorestech_client/Assets/Asset/Common/moorestechInputSettings.inputactions`（UI の map に `ArrowLeft`・`ArrowRight` の Button と `<Keyboard>/leftArrow`・`<Keyboard>/rightArrow`。前例 0fa3806a6d の SkitAdvance と同じ JSON の書き足し。id は `uuidgen` の小文字）・`S/Client.Input/InputManager.cs`（`UIInputManager` に 2 本）・`S/Client.Input/moorestechInputSettings.cs`（Unity の再生成をそのままコミット。前例 83c6cf7300）
+- Move: `S/Client.Ui/Screens/Recipe/Input/RecipeSelectionCloseReset.cs` → `S/Client.Ui.State/Recipe/Screen/RecipeSelectionCloseReset.cs`
+- Delete: `S/Client.Ui/Screens/Skit/SkitEnterKeySource.cs`・`Screens/Recipe/Input/IUiCloseKeyProbe.cs`・`InputManagerCloseKeyProbe.cs`・`S/Client.Input/ArrowKeys/InputSystemArrowKeyStream.cs`（`IHorizontalArrowKeySource` は残す）と各 .meta
+- Modify: `Screens/Skit/SkitScreenPresenter.cs`（:57）・`Screens/BlockInventory/Special/Belt/BeltThroughputSectionPresenter.cs`（:63）・`S/Client.Starter/Registration/GameUi/Screens/RecipeGameUiRegistration.cs`（:27-28）・`Registration/GameUi/Hud/SkitGameUiRegistration.cs`（:23）・`Registration/GameUi/Screens/BlockInventorySpecialGameUiRegistration.cs`（:29）
+- Test: `S/Client.Tests/Ui/Crosscut/Input/UiKeyPressSourceSuppressionTest.cs`（作る）・`RecipeSelectionCloseResetTest`・`FakeCloseKeyProbe`・`InputSystemArrowKeyStreamTest`・`SkitEnterKeyTest`・`SkitScreenPresenterTest`（:104）を新しい口へ直す
+
+**Interfaces:** Consumes: `InputKey.OnGetKeyDown`（`InputKey.cs`。抑止は `FilterPress` → `InputSuppressionFilter.FilterKeyPress`）・`InputKey.SetKeyDownForTest(bool)`（`#if UNITY_EDITOR` の internal）。Produces: `IUiKeyPressSource { IObservable<Unit> OnPressed { get; } }`・`InputKeyPressSource(InputKey key)`・`InputKeyHorizontalArrowKeySource(IUiKeyPressSource left, IUiKeyPressSource right) : IHorizontalArrowKeySource`・`UIInputManager.ArrowLeft`／`ArrowRight`・`RecipeSelectionCloseReset(UiRoutingState routing, IUiKeyPressSource closeKey, RecipeItemSelection selection)`・`SkitScreenPresenter` の ctor に `IUiKeyPressSource skitAdvance`
+
+- [ ] **Step 1: 既存の割り当ての照合**: `grep -n "leftArrow\|rightArrow" moorestech_client/Assets/Asset/Common/moorestechInputSettings.inputactions` で既に矢印を使うアクションを列挙し、D-8 に書く。UI の map に足すアクションは既存の割り当てを変えない
+- [ ] **Step 2: L0/L1（赤）**: `UiKeyPressSourceSuppressionTest`（`InputTestFixture` を継ぐ。前例 `Client.Tests/Input/UiSkitAdvanceInputTest.cs`）3 件 —（1）`InputKeyPressSource(InputManager.UI.SkitAdvance)` は Enter で 1 回流れ、`UiInputExclusivity.SetGameUiTextInputFocused(true)` の間は流れない、（2）CloseUI 同様、（3）`InputKeyHorizontalArrowKeySource` は ← で `Left`、→ で `Right`、入力欄のフォーカス中は流れない。各件の後始末で旗を下ろす
+- [ ] **Step 3: 作る**
+
+```csharp
+// S/Client.Input/KeyPress/IUiKeyPressSource.cs
+using System;
+using UniRx;
+
+namespace Client.Input.KeyPress
+{
+    /// <summary>
+    /// 画面がキーの押下を受ける唯一の口。入力欄のフォーカス中の抑止は InputKey の InputSuppressionFilter が持つ（A-246）
+    /// The single entry through which screens receive key presses; suppression while a text field has focus lives in the InputKey's InputSuppressionFilter (A-246)
+    /// </summary>
+    public interface IUiKeyPressSource
+    {
+        IObservable<Unit> OnPressed { get; }
+    }
+}
+```
+
+```csharp
+// S/Client.Input/KeyPress/InputKeyPressSource.cs
+using System;
+using UniRx;
+
+namespace Client.Input.KeyPress
+{
+    /// <summary>
+    /// InputKey の押下の瞬間を流す（抑止を通った後の OnGetKeyDown）
+    /// Publishes the moment an InputKey is pressed (OnGetKeyDown after suppression)
+    /// </summary>
+    public sealed class InputKeyPressSource : IUiKeyPressSource
+    {
+        public IObservable<Unit> OnPressed { get; }
+
+        public InputKeyPressSource(InputKey key)
+        {
+            OnPressed = Observable.FromEvent(handler => key.OnGetKeyDown += handler, handler => key.OnGetKeyDown -= handler);
+        }
+    }
+}
+```
+
+```csharp
+// S/Client.Input/KeyPress/InputKeyHorizontalArrowKeySource.cs
+using System;
+using Client.Input.ArrowKeys;
+using UniRx;
+
+namespace Client.Input.KeyPress
+{
+    /// <summary>
+    /// ← / → の押下を 1 本の流れにする（抑止は各 InputKey が持つ。Web の window keydown の代わり）
+    /// Merges ← / → presses into one stream (each InputKey owns suppression; stands in for the Web window keydown)
+    /// </summary>
+    public sealed class InputKeyHorizontalArrowKeySource : IHorizontalArrowKeySource
+    {
+        public IObservable<HorizontalArrowKey> OnArrowPressed { get; }
+
+        public InputKeyHorizontalArrowKeySource(IUiKeyPressSource left, IUiKeyPressSource right)
+        {
+            OnArrowPressed = left.OnPressed.Select(_ => HorizontalArrowKey.Left).Merge(right.OnPressed.Select(_ => HorizontalArrowKey.Right));
+        }
+    }
+}
+```
+
+`UIInputManager`（`InputManager.cs`:109-144）に `public readonly InputKey ArrowLeft;`・`ArrowRight;` と ctor の 2 行（`new InputKey(settings.UI.ArrowLeft, InputSuppressionScope.Keyboard)`。コメント 2 行「ベルトの窓の切替。入力欄の矢印と取り合わないようキーボード抑止スコープに入れる」）を足す。`.inputactions` を書き足したら `uloop compile` で Unity が `moorestechInputSettings.cs` を作り直すのを待ち、差分にアクション 2 本が出たことを確かめる
+
+`RecipeSelectionCloseReset` は State へ移し、CloseUI の押下のフレームを覚えて、同じフレームの画面の変化だけで選択を外す:
+
+```csharp
+        public void Initialize()
+        {
+            // UITK のキーイベントは届かないので、CloseUI の押下のフレームを覚え、同じフレームの遷移で選択を外す（A-83 と同じく InputManager を正にする）
+            // UITK key events never arrive, so remember the CloseUI press frame and clear on a transition in that frame (InputManager is authoritative, as in A-83)
+            _closeKey.OnPressed.Subscribe(_ => _closePressedFrame = Time.frameCount);
+            _routing.Current.Skip(1).Subscribe(_ => OnScreenChanged());
+
+            #region Internal
+
+            void OnScreenChanged()
+            {
+                if (_closePressedFrame != Time.frameCount) return; // silent-ok: Esc 以外の遷移（Tab 等）は選択を残す仕様 / RecipeSelectionCloseResetTest の CloseUIなし の件が見る
+                _selection.Clear();
+            }
+
+            #endregion
+        }
+```
+
+押下の配送（InputSystem の更新）が `UIStateControl` の遷移より前に来ることは L1 で固定できないので、T20 の録画 `uitk-recipe-craft` の「Esc で選択が外れる」段で確かめる（無ければ段を足す）
+
+- [ ] **Step 4: DI**: `RecipeGameUiRegistration` の :27-28 を `builder.RegisterEntryPoint<RecipeSelectionCloseReset>().WithParameter<IUiKeyPressSource>(new InputKeyPressSource(InputManager.UI.CloseUI));`。`SkitGameUiRegistration`:23 を `.WithParameter<IUiKeyPressSource>(new InputKeyPressSource(InputManager.UI.SkitAdvance))`。`BlockInventorySpecialGameUiRegistration`:29 を `builder.RegisterInstance<IHorizontalArrowKeySource>(new InputKeyHorizontalArrowKeySource(new InputKeyPressSource(InputManager.UI.ArrowLeft), new InputKeyPressSource(InputManager.UI.ArrowRight)));`。`SkitScreenPresenter`:57 は `_skitAdvance.OnPressed.Subscribe(_ => view.HandleEnterKey())`、`BeltThroughputSectionPresenter`:63 の条件から `UiInputExclusivity.IsTextInputFocused ||` を消し、:60-62 のコメントを「ベルトが無い・表示されていない」に直す
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "UiKeyPressSource|RecipeSelectionCloseReset|Skit|BeltThroughput|ArrowKey|InputSuppression"` → 失敗 0
+
+- [ ] **Step 5: コミット**: `refactor(uitk): 画面のキーの口を IUiKeyPressSource 1 本へ（DC-10。S5-crosscut T6）`
+
+---
+
+### Task 7: DC-8 B 画面の表示判定（R-9。Warning c46-cc）
+
+**Files:**
+- Create: `S/Client.Ui.State/BuildMenu/BuildMenuScreenVisibility.cs`・`S/Client.Ui.State/Recipe/Screen/RecipeScreenVisibility.cs`
+- Modify: `S/Client.Ui.State/BuildMenu/Source/BuildMenuModel.cs`（:47,67）・`BuildMenu/Commands/BuildMenuCommands.cs`（:71 `IsBuildMenuOpen`）・`Research/ResearchNodeStateStore.cs`（:25,54,75）・`Recipe/Screen/RecipeScreenModel.cs`（:105 `IsScreenShown`）と各 DI・テストの組み立て
+- 読むだけで残す（理由のコメントを 1 行）: `OpenBlockDetailTracker.cs`:56・`HotbarSelectRule.cs`:15・`HotbarCommands.cs`:30・`KeyHintHudModel.cs`:54-56・`ModeHudModel.cs`:52・`KeyControlHintModel.cs`:41・`TrainTimetableModel.cs`:50・`OpenTrainTimetableTracker.cs`:38,72
+
+**Interfaces:** Consumes: `UiRoutingState.Current`（`IReadOnlyReactiveProperty<UiRoutingSnapshot>`）・`UiRoutingSnapshot.Screen`・`UiScreen`・前例 `BlockInventoryScreenVisibility.IsShown(UiRoutingSnapshot, BlockInventoryPanelState)`・I-fix6 の `ResearchScreenVisibility.IsShown(UiRoutingSnapshot)`。Produces: `BuildMenuScreenVisibility.IsShown(UiRoutingSnapshot snapshot)`・`RecipeScreenVisibility.IsShown(UiRoutingSnapshot snapshot)`
+
+- [ ] **Step 1: 分類**: 上の UIStateEnum の読み 15 か所を「`UiScreen` で言える（画面の開閉）」「`UiScreen` に無い状態（GameScreen・PlaceBlock・DeleteBar 等）」に分け D-10 に表で書く。前者は `<機能>ScreenVisibility` へ、後者は `// UiScreen に無い状態（<状態名>）なので UIStateEnum を読む（A-248）` の 1 行と英訳を足して残す
+- [ ] **Step 2: 作る**
+
+```csharp
+// S/Client.Ui.State/BuildMenu/BuildMenuScreenVisibility.cs
+using Client.Ui.State.Routing;
+
+namespace Client.Ui.State.BuildMenu
+{
+    /// <summary>
+    /// ビルドメニューの画面を出すか（前例 BlockInventoryScreenVisibility。A-248）
+    /// Whether to show the build-menu screen (precedent BlockInventoryScreenVisibility; A-248)
+    /// </summary>
+    public static class BuildMenuScreenVisibility
+    {
+        public static bool IsShown(UiRoutingSnapshot snapshot)
+        {
+            return snapshot.Screen == UiScreen.BuildMenu;
+        }
+    }
+}
+```
+
+`RecipeScreenVisibility` は `RecipeScreenModel.IsScreenShown`（:105）の本体をそのまま移し、Model は呼ぶだけにする
+
+- [ ] **Step 3: 付け替え**: `BuildMenuModel` は ctor の `UIStateControl` を `UiRoutingState` へ替え、:47 を `_routing.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Where(shown => shown).Subscribe(_ => { … })`、:67 を `if (!BuildMenuScreenVisibility.IsShown(_routing.Current.Value)) return;`。`BuildMenuCommands.IsBuildMenuOpen` と `ResearchNodeStateStore` の 3 か所も同じ形。`UiRoutingState` は `UIStateControl.OnStateChanged` から写すので、開いた瞬間の順序（BP の取り直し→組み直し）は変わらない。テストは `UiRoutingStateTestFactory.Create(_host, state)`／`CreateSwitchable`（`Client.Tests/Ui/Screens/Inventory/Support/UiRoutingStateTestFactory.cs`:19,26）で組む
+- [ ] **Step 4: 設計書の行**: 設計書 §1.1 に「画面の開閉は `UiRoutingState` と `<機能>ScreenVisibility.IsShown` で読む。`UiScreen` に無い状態だけ `UIStateEnum` を読む」を足す案をメモへ（A-248）
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "BuildMenu|Research|Recipe|Routing"` → 失敗 0
+
+- [ ] **Step 5: コミット**: `refactor(uitk): 画面の開閉の読みを UiRoutingState と ScreenVisibility へ揃える（DC-8 B。S5-crosscut T7）`
+
+---
+
+### Task 8: DC-12 と DC-16 C（R-10・R-11）
+
+**Files:** Modify: `S/Client.Ui/Content/GameContentPresentation.cs`（:23 の下）・`Screens/Notification/GameContentNotificationRowIcons.cs`（:26）・`Components/Slots/ItemSlot/ItemSlotContent.cs`（型コメント）。Test: 既存の通知のアイコンの L1（`git grep -ln "GameContentNotificationRowIcons" -- moorestech_client/Assets/Scripts/Client.Tests`）に 1 件
+
+**Interfaces:** Produces: `bool GameContentPresentation.TryItem(ItemId id, out UiIcon icon)`
+
+- [ ] **Step 1: L1（赤）**: マスタに無い `ItemId(99999)` で `TryItem` が false・`icon` が null、ある ID で true と `Item(id)` と同じ絵
+- [ ] **Step 2: 作る**
+
+```csharp
+        // マスタに無い ID なら false（未知の ID を受けうる口だけが使う。他は Item を使い、無ければ例外で開発者が気づく）
+        // False for an id absent from the master (only for paths that may receive unknown ids; others use Item and throw so developers notice)
+        public bool TryItem(ItemId id, out UiIcon icon)
+        {
+            icon = MasterHolder.ItemMaster.ExistItemId(id) ? Item(id) : null;
+            return icon != null;
+        }
+```
+
+`GameContentNotificationRowIcons.ItemIcon` の先頭を `if (_content.TryItem(itemId, out var icon)) return icon;` にし、`using Core.Master;` の `MasterHolder` 直読みを消す（`ItemId` の using は残す）
+
+- [ ] **Step 3: DC-16 C**: `ItemSlotContent` の `<remarks>` に「優先: 実物 > ゴースト。白面は実物だけで決める（`ItemSlotPresentation.From`）。Web の props と同じ平らな形で、Fluid の sealed 派生とは揃えない（D-9）」を日英 1 行ずつ足す。部品カタログの改訂案はメモへ
+- [ ] **Step 4**: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "Notification|GameContent|ItemSlot"` → 失敗 0。コミット `feat(uitk): GameContentPresentation.TryItem と ItemSlotContent の優先の明記（DC-12・DC-16 C。S5-crosscut T8）`
+
+---
+
+### Task 9: DC-18 共通部品の指カーソル（R-12）
+
+**Files:**
+- Modify: `Components/Controls/IconButton/IconButton.cs`・`PanelActionButton/PanelActionButton.cs`・`ModeSwitch/ModeSwitch.cs`（:101 `CreateOptionButton`）
+- Modify（呼び手）: IconButton — `Screens/BlockInventory/BlockInventoryView.cs`:55・`Screens/Skit/Parts/Toolbar/SkitToolbar.cs`:81・`Screens/BuildMenu/Parts/BuildMenuPanelSkeleton.cs`:71／PanelActionButton — `RocketLaunchPadTitleActionView`:55・`TrainStationNameRow`:34・`TrainTimetableStationListView`:65・`PauseMenuTopPageView`:48・`InventoryView`:48・`TrainTimetableStopListView`:105・`PauseMenuSubPageView`:37／ModeSwitch — `LanguageSelectView`:33・`SprintModeSelectView`:33・`TrainInventoryBodyView`:29・`BugReportFormView`:54・`GraphicsQualitySettingsView`:36・`GraphicsQualityRow`:50・`FilterDirectionView`:46・`ElectricToGearBodyView`:72・`TrainPlatformModeSection`:24・`TrainTimetableSectionView`:39・`BuildMenuCategorySidebar`:48／ギャラリー（`Client.Ui.Editor` の 7 か所）／テスト（IconButton 1・PanelActionButton 3）。起草後に増えた呼び手は `git grep -n "new IconButton(\|new PanelActionButton(\|new ModeSwitch<" -- moorestech_client/Assets/Scripts` で拾う
+- Test: `S/Client.Tests/Ui/Components/Controls/CommonButtonPointerCursorTest.cs`
+
+**Interfaces:** Consumes: `IUiOsCursor.Request(UiOsCursorShape, UiOsCursorLayer)`・`UiOsCursorHoverRequest(VisualElement, IUiOsCursor, UiOsCursorShape, UiOsCursorLayer)`（`Foundation/Input/OsCursor/UiOsCursorHoverRequest.cs`）・テスト `UiOsCursorRequestStack(new FakeUiOsCursorApplier())`（`Client.Tests/Ui/TestDoubles/FakeUiOsCursorApplier.cs`）。Produces: `IconButton(string testid, VisualElement glyph, IUiOsCursor osCursor)`・`PanelActionButton(string testid, <I-fix6 後のラベルの型> label, IUiOsCursor osCursor)`・`ModeSwitch<TValue>(string, ModeSwitchOrientation, ModeSwitchRole, IReadOnlyList<ModeSwitchOption<TValue>>, IUiOsCursor osCursor)`
+
+- [ ] **Step 1: L1（赤）**: 3 件 — 各部品を `UiOsCursorRequestStack(applier)` で作り、`simulate` でポインタを乗せると `applier` の最後の形が `Pointer`、外すと `Default`。ModeSwitch は 2 つ目の選択肢に乗せて `Pointer`。`FakeUiOsCursorApplier` の記録の名前は実物から読む
+- [ ] **Step 2: 部品**: 3 部品が ctor の最後の引数で `IUiOsCursor` を受け、IconButton・PanelActionButton は `new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);`、ModeSwitch は `CreateOptionButton` で各 `button` に同じ 1 行（コメント「Web の cursor: pointer（IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）」）。Web の ModeSwitch の無効の選択肢は `cursor: default`（ModeSwitch/style.module.css:50-53）で、UITK の無効の要素はポインタの事象を受けないので同じになる。PanelActionButton・IconButton の無効は Web では指のまま（`:disabled` の除外が無い）。UITK で無効の要素に指が出ないなら、その差を D-11 に書き、並べ比べで見えない差（静止画で写らない）として LX-205 に記帳する
+- [ ] **Step 3: 呼び手**: Presenter が持つ `IUiOsCursor`（`ResearchTreePresenter`・`SkitScreenPresenter` は既に ctor で受ける）を View へ渡す。持っていない Presenter は ctor に `IUiOsCursor osCursor` を足す（DI は登録済みの `IUiOsCursor` を解く）。View の ctor にも足す（デフォルト引数は使わない）
+- [ ] **Step 4: 二重の外し**: 画面が同じ部品に個別に付けていた指（`git grep -n "new UiOsCursorHoverRequest" -- moorestech_client/Assets/Scripts/Client.Ui/Screens`。起草時は `SkitChoiceButton`:56・`SkitDialogueWindow`:49・`SelectedRecipeHeader`:48・`MachineRecipeSelectionRowView`:62 で、どれも 3 部品ではない）が 3 部品の上に乗っていないかを確かめ、乗っていれば画面側を消す
+- [ ] **Step 5: 設計書**: §2.7 の OS カーソルの行（:234）の「画面が付ける」を「Web で `cursor: pointer` を持つ共通部品（IconButton・PanelActionButton・ModeSwitch）は部品が自分で出す。画面固有の要素だけ画面が付ける」へ改める案をメモへ（A-247）
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "CommonButtonPointerCursorTest|IconButton|PanelActionButton|ModeSwitch|OsCursor|PauseMenu|Settings|BuildMenu|BlockInventory|Skit|Train"` → 失敗 0
+
+- [ ] **Step 6: コミット**: `feat(uitk): IconButton・PanelActionButton・ModeSwitch が自分で指カーソルを出す（DC-18。S5-crosscut T9）`
+
+---
+
+### Task 10: DC-21 部品の内側の上書きをつまみへ（R-13）
+
+**Files:**
+- Modify: `Screens/PauseMenu/PauseMenu.uss`（:71-75）・`Components/Controls/IconButton/IconButton.uss`・`Screens/Skit/Parts/Toolbar/SkitToolbar.uss`（:35-49）・`Screens/Skit/Parts/Choices/SkitChoices.uss`（:34-40）・`Screens/Skit/Parts/Choices/SkitChoiceButton.cs`・`Components/Panels/GamePanelSurface/GamePanelSurface.uss`（:66-90）・`GamePanelSurfaceKind.cs`・`GamePanelSurface.cs`
+- Test: `S/Client.Tests/Ui/Conventions/UiStyleConventionTest.cs`（1 件足す）・`Client.Tests/Ui/Components/Panels/` の GamePanelSurface の L1・`Screens/Skit` の L1
+
+**Interfaces:** Produces: USS つまみ `--icon-button-color`（IconButton のルート。Web は `color` を root に当てて `currentColor` で受ける）・`--game-panel-surface-face`／`--game-panel-surface-edge-fade`／`--game-panel-surface-top-fade`／`--game-panel-surface-bottom-fade`（GamePanelSurface のルート）。既存のつまみ `--panel-action-button-width`（`PanelActionButton.uss`:13 が `width: var(--panel-action-button-width)` で読む）
+
+- [ ] **Step 1: 規約の検査（赤）**: `UiStyleConventionTest` に「`Screens/**/*.uss` の規則のセレクタが、`Components/**` の USS が定義する `__` 付きの内側クラス・`.unity-button` を含まない」を足す（部品 USS のクラス名の集合を `Components/**/*.uss` の `.name__part` から集め、画面 USS のセレクタと照合。前例は同ファイルの既存の検査の読み方）。起草時の違反は `PauseMenu.uss`:73・`SkitChoices.uss`:36-37 の 2 規則（`SkitToolbar.uss` は自分の `.skit-tool-glyph` に `--icon-button-glyph-color` を当てる形なので、検査は「部品のカスタムプロパティを部品の内側要素に当てる」も見る）。赤を確かめる
+- [ ] **Step 2: ポーズメニュー**: `.pause-menu .panel-action-button.unity-button { width: auto; }` を `.pause-menu .panel-action-button { --panel-action-button-width: auto; }` に（Web `features/pauseMenu/style.module.css`:6 と同じつまみ）。USS の変数に `auto` を入れて `width: var(…)` が `auto` になるかは未確認なので、ポーズメニューの L1 で `resolvedStyle.width` が 77px でない（文字幅で決まる）ことを見る件を 1 件足し、通らなければ PanelActionButton.uss に Web の `--panel-action-button-width` の受け直し（`§3.2.7` の C# 導出）を足す
+- [ ] **Step 3: IconButton の色**: `IconButton.uss` の色の規則をルートのつまみへ:
+
+```css
+/* 図形の色は置く側がルートの --icon-button-color で変える（Web は root の color を図形が currentColor で受ける） */
+/* Callers recolour the glyph through the root's --icon-button-color (the Web glyph takes the root's color as currentColor) */
+.icon-button.unity-button {
+    --icon-button-color: var(--text-muted);
+}
+
+.icon-button.unity-button:hover:enabled {
+    --icon-button-color: var(--text-high-contrast);
+}
+
+.icon-button .icon-button__glyph {
+    --icon-button-glyph-color: var(--icon-button-color);
+    --icon-button-glyph-stroke: var(--bevel-1);
+}
+```
+
+`SkitToolbar.uss` の :35-49 の 3 規則は `.skit-toolbar .skit-toolbar__tool { --icon-button-color: var(--text-high-contrast); }`・`.skit-toolbar .skit-toolbar__tool--active { --icon-button-color: var(--select-cyan); }`・`.skit-toolbar .skit-toolbar__tool:disabled { --icon-button-color: var(--text-muted); }` へ（Web `SkitToolbar.module.css`:22 の `color`）。詳細度は IconButton の `:hover:enabled`（2 クラス＋2 擬似）が自動 ON（2 クラス）に勝ち、Web の `:not(:disabled):hover` と同じ。`.skit-tool-glyph` の寸法と影の規則（自分の要素）は残す
+
+- [ ] **Step 4: スキットの選択肢**: `SkitChoiceButton` の ctor で `RemoveFromClassList(Button.ussClassName)`（Web の `.choice` は素の button。Theme.uss の `.unity-button` の面・沈みを最初から受けない）し、`SkitChoices.uss`:34-40 の打ち消しを消す。`GamePanelSurfaceKind.SkitChoice` を消し、選択肢の板は `GamePanelSurfaceKind.Hud` の骨格に画面のクラス `skit-choice__plate` を付けて、`SkitChoices.uss` から `.skit-choice__plate { position: absolute; top: 0; right: 0; bottom: 0; left: 0; --game-panel-surface-face: var(--gauge-track); --game-panel-surface-edge-fade: var(--skit-choice-edge-fade); --game-panel-surface-top-fade: 0px; --game-panel-surface-bottom-fade: 0px; }` と `.skit-choice:active > .skit-choice__plate { --game-panel-surface-face: var(--skit-choice-active-face); }` を当てる。このために `GamePanelSurface.uss` の面の規則を `.game-panel-surface > .game-panel-surface__face { --game-panel-face: var(--game-panel-surface-face); --game-panel-edge-fade: var(--game-panel-surface-edge-fade); --game-panel-top-fade: var(--game-panel-surface-top-fade); --game-panel-bottom-fade: var(--game-panel-surface-bottom-fade); }` の受け直しにし、種別 `--hud`・`--skit` はルートで 4 つのつまみの既定を置く。`Hud` の骨格に選択肢の板に要らない子（装飾等）があれば `GamePanelSurface.cs` で読んで D-12 に書き、その場合は種別を消さず `SkitChoice` を「Web の variant に無い画面語彙」として残す理由を書いて、USS の `.unity-button:active` の参照だけを `.skit-choice:active` 起点へ移す（`GamePanelSurface.uss`:83 が画面のクラスを知らない形にする）
+- [ ] **Step 5: 記帳**: `GamePanelSurfaceKind.Skit` は Web の `GamePanelVariant` の `"skit"` と 1 対 1 なので残す旨を D-12 に書く（DC-21 A の「1 対 1 なら記帳」）
+
+Run: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "UiStyleConventionTest|PauseMenu|Skit|GamePanelSurface|IconButton|LookExceptionLedgerTest"` → 失敗 0
+
+- [ ] **Step 6: コミット**: `refactor(uitk): 画面 USS の部品の内側への上書きをルートのつまみへ（DC-21。S5-crosscut T10）`
+
+---
+
+### Task 11: DC-34 A 不足の旗を 1 つに（R-14）
+
+**Files:** Modify: `S/Client.Ui.State/BuildMenu/Logic/BuildMenuRequiredItem.cs`（`Lacking` と ctor の引数）・`Logic/BuildMenuShortage.cs`（:13）・`Source/BuildMenuMaterialRowsBuilder.cs`（:39）・テスト `BuildMenuEntryFactoryTest.cs`:122・`Screens/BuildMenu/Support/BuildMenuReferenceDemo.cs`:83・`BuildMenuSamples.cs`:91
+
+**Interfaces:** Produces: `BuildMenuRequiredItem(Guid itemGuid, int count, int held)`・`BuildMenuShortage.IsItemInsufficient(BuildMenuCatalogEntry entry, BuildMenuRequiredItem item)` は `!entry.PaymentWaived && item.Held < item.Count`
+
+- [ ] **Step 1**: 既存の L0（`BuildMenuEntryFactoryTest`・`BuildMenuShortage` の L0）が緑なのを確かめる
+- [ ] **Step 2**: `Lacking` を消し、`BuildMenuShortage` を `Held < Count` に。`BuildMenuMaterialRowsBuilder`:39 の第 4 引数を消す。`BuildMenuEntryFactoryTest`:122 の比較は DTO の `item.Lacking` と `line.Row.Item.Held < line.Row.Item.Count` を並べる形に（Web の DTO と同じ判定であることを見続ける）。`Client.WebUiHost` の DTO は State の型を使っていない（起草時の grep で 0 件）ので触らない
+- [ ] **Step 3**: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "BuildMenu"` → 失敗 0。コミット `refactor(uitk): ビルドメニューの不足の旗を IsInsufficient の 1 つへ（DC-34 A。S5-crosscut T11）`
+
+---
+
+### Task 12: DC-30 A トークンの値を CI で見る（R-15）
+
+**Files:** Create: `tools/uitk/webTokens/writeOrCheck.mjs`・`tools/uitk/webTokens/tests/writeOrCheck.test.mjs`。Modify: `tools/uitk/convert-web-tokens.mjs`（:75-81 `writeOutput`）・`convert-mantine-tokens.mjs`（:44-46）・`.github/workflows/run_test.yml`（webui-test の run の末尾）
+
+**Interfaces:** Produces: `writeOrCheck(repositoryRoot, relativePath, text, checkMode)`（check のとき書かずに比べ、違えば `process.exitCode = 1`）・両変換器の `--check`
+
+- [ ] **Step 1: テスト（赤）**
+
+```js
+// tools/uitk/webTokens/tests/writeOrCheck.test.mjs
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { writeOrCheck } from "../writeOrCheck.mjs";
+
+test("check は同じ内容なら書かず exit 0 のまま", () => {
+  const root = mkdtempSync(join(tmpdir(), "tokens-"));
+  writeFileSync(join(root, "a.uss"), "same\n");
+  process.exitCode = 0;
+  writeOrCheck(root, "a.uss", "same\n", true);
+  assert.equal(process.exitCode, 0);
+});
+
+test("check は違えば書かず exit 1", () => {
+  const root = mkdtempSync(join(tmpdir(), "tokens-"));
+  writeFileSync(join(root, "a.uss"), "old\n");
+  process.exitCode = 0;
+  writeOrCheck(root, "a.uss", "new\n", true);
+  assert.equal(process.exitCode, 1);
+  assert.equal(readFileSync(join(root, "a.uss"), "utf8"), "old\n");
+  process.exitCode = 0;
+});
+```
+
+- [ ] **Step 2: 作る**
+
+```js
+// tools/uitk/webTokens/writeOrCheck.mjs
+// 生成物を書くか、--check のときは書かずに今のファイルと比べる（手で変えた・変換し忘れたトークンを CI で止める。DC-30）
+// Write a generated file, or with --check compare it against the current file without writing (CI stops hand-edited or unconverted tokens; DC-30)
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+export function writeOrCheck(repositoryRoot, relativePath, text, checkMode) {
+  const absolutePath = join(repositoryRoot, relativePath);
+  if (!checkMode) {
+    writeFileSync(absolutePath, text);
+    console.log(`wrote ${relativePath}`);
+    return;
+  }
+  const current = existsSync(absolutePath) ? readFileSync(absolutePath, "utf8") : null;
+  if (current === text) {
+    console.log(`up to date ${relativePath}`);
+    return;
+  }
+  console.error(`${relativePath} differs from the converter output; run the converter without --check and commit the result`);
+  process.exitCode = 1;
+}
+```
+
+両変換器の書き出し（`writeFileSync(join(repositoryRoot, …), …)` と `console.log("wrote …")`）を `writeOrCheck(repositoryRoot, <相対パス>, <本文>, process.argv.includes("--check"))` へ。200 行の検査（throw）は check でもそのまま走らせる
+
+- [ ] **Step 3: 手元**: `node tools/uitk/convert-web-tokens.mjs --check; echo "exit=$?"` と `pnpm --dir moorestech_web/webui install --frozen-lockfile && node tools/uitk/convert-mantine-tokens.mjs --check; echo "exit=$?"` が両方 exit 0。1 でれば、差が手の変更か変換し忘れかを `git log -p` で調べ、変換器を回した結果をコミットして判断記録に 1 行（Web の値が正。I-fix6 の DC-20 が直したトークンと重なればその PR を書く）
+- [ ] **Step 4: CI**: `run_test.yml` の webui-test の run の末尾に、日英のコメント 2 行「UITK のトークンが Web の CSS の変換と一致するか（DC-30）」と `"$pnpm_binary" --dir webui exec node ../../tools/uitk/convert-web-tokens.mjs --check`・同 `convert-mantine-tokens.mjs --check`・`"$pnpm_binary" --dir webui exec node --test ../../tools/uitk/webTokens/tests/*.test.mjs` を足す（webui-test は `working-directory: moorestech_web`。`--dir webui exec` の cwd は `moorestech_web/webui` なので相対は `../../tools`）。変換器はスクリプトの位置から repo の根を決めるので cwd に依らない
+- [ ] **Step 5**: `node --test tools/uitk/webTokens/tests/*.test.mjs` → 2 件 pass。コミット `ci(uitk): トークンの変換器に --check を足し webui-test で回す（DC-30 A。S5-crosscut T12）`
+
+---
+
+### Task 13: DC-32 A ゲーム寿命の型から IDisposable を外す（R-18）
+
+**Files:** Modify: `GameUiInputInstaller`・`GameUiSrgbCompositeInstaller`・`GameUiLocaleClassBinder`（`Foundation/Text/GameUiLocaleClassBinder.cs`:13）・`CrosshairHudPresenter`・`TrainRidingHudPresenter`・`ProgressHudPresenter`・`KeyHintHudPresenter`・`CurrentChallengeHudPresenter`（取り込み後。D-20）・`NotificationLayerPresenter`・`ToastLayerPresenter`・`RecipeScreenPresenter`・`InventoryScreenPresenter`・`EquipmentHudPresenter`・`ScreenBackdropPresenter`・`PauseMenuScreenPresenter`・`BuildMenuScreenPresenter`・`NotificationFeedRelay`・`RecipeSelectionCloseReset`（T6 で移した先）
+
+**Interfaces:** Produces: 各型の宣言が `: IInitializable`（または元の基底）だけ
+
+- [ ] **Step 1: 一覧の照合**: `git grep -n "IDisposable" -- 'moorestech_client/Assets/Scripts/Client.Ui/**/*.cs' 'moorestech_client/Assets/Scripts/Client.Ui.State/**/*.cs'` を読み、ゲーム寿命（DI の Singleton・EntryPoint）か、短命（行・区画・ハンドル・購読の器）かを分ける。外すのは前者だけ。表を D-16 に書く
+- [ ] **Step 2: Dispose を呼ぶテスト**: `NotificationLayeringTest.cs`:41-44（`_presenter?.Dispose()`）と `NotificationFeedRelayTest.cs`:42。前者は源（`NotificationModel`）をテストごとに作り直しているかを読み、作り直しているなら Dispose の行を消す。後者の `NotificationFeedRelay` が静的な源（`Localize.OnLanguageChanged` 等）を購読していてテストの間で漏れるなら、その型だけ IDisposable を残し、宣言の上に「テストの後始末だけが使う。本番では破棄は来ない（AGENTS.md 既知の制約。D-16）」の日英 1 行ずつを書く
+- [ ] **Step 3: 外す**: 各型の `IDisposable` と `Dispose()` と、そのためだけのフィールド（`_subscription` の保持など）を消す。購読は `Subscribe(...)` の戻り値を捨てる形でよい（ゲーム寿命）。静的な源を購読する型が EditMode の L1 で複数回作られるなら、Step 2 と同じ扱いにする（`git grep -n "Localize.OnLanguageChanged\|InputManager\.\|InputSystem.on" ` で型ごとに確かめる）
+- [ ] **Step 4: 設計書**: §4.2 の型（:338-344 の `IInitializable, IDisposable` と `public void Dispose();`）を `IInitializable` だけにする改訂案をメモへ
+- [ ] **Step 5**: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.Ui\."`（`--timeout-seconds 1500`）→ 失敗 0。コミット `refactor(uitk): ゲーム寿命の Presenter・Relay・Binder・Installer から IDisposable を外す（DC-32 A。S5-crosscut T13）`
+
+---
+
+### Task 14: DC-31 A Presenter の結線と `uiState.spec`（R-16・R-3 の一部）
+
+**Files:** Create: `S/Client.Tests/Ui/Crosscut/PresenterMountTest.cs`・`S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiScreenMountTest.cs`。Modify: `S/Client.Tests/Ui/Screens/BlockInventory/BlockInventoryPanelFlowTest.cs`:54（タグを 1 行足す）
+
+**Interfaces:** Consumes: `GameUiRootTestFactory.Create(GameObject, VisualElement)`（`Client.Tests/Ui/Screens/Inventory/Support/GameUiRootTestFactory.cs`）・`UiRoutingStateTestFactory.CreateSwitchable(GameObject, UIStateEnum, IReadOnlyList<UIStateEnum>, out UIStateControl)`（同 `UiRoutingStateTestFactory.cs`:26）・`StageColumnsLayout`・`InventoryScreenPresenter(StageColumnsLayout, UiRoutingState, PlayerInventoryPanelModel, IPlayerSlotCommands, IInventorySortCommands, GameContentPresentation, UiCommandResultToaster)`・`RecipeScreenPresenter(StageColumnsLayout, UiRoutingState, RecipeScreenModel, GameContentPresentation, IRecipeCommands, UiCommandResultToaster, RecipeItemSelection …)`・`BlockInventoryScreenPresenter(StageColumnsLayout, UiRoutingState, BlockInventoryPanelLayoutModel, BlockInventoryPartRegistry, IBlockInventoryPanelCommands)`・`UiStateControlTransitionRequester.RequestTransition(UIStateEnum)`・`UiSystemPlayModeTestBase`（S4-gamma が作った L3 の基底。T0 で置き場を確かめる）
+
+- [ ] **Step 1: PresenterMountTest（赤→緑）**: 組み立ては既存のテストの SetUp から写す（持ち物 `InventoryScreenVisibilityTest.cs`:32-41、レシピは `git grep -ln "new RecipeScreenPresenter(" -- moorestech_client/Assets/Scripts/Client.Tests` の SetUp、ブロックは `BlockInventoryPanelFlowTest` の SetUp）。新しい土台の型は作らず、写した組み立てはこのクラスの private メソッドにする（200 行を超えるなら `Crosscut/PresenterMount/` に土台 1 本と試験 1 本へ分ける）。試験 5 件（1 件ずつ `/// <web-test file="e2e/tests/uiState.spec.ts">…</web-test>`）:
+  - `既定(PlayerInventory)でインベントリ画面が表示される` → 切り替えられる routing を PlayerInventory で作り、持ち物の View が出ている・レシピの View が出ている
+  - `GameScreen でパネルが消え、PlayerInventory への event で再表示される` → control を GameScreen へ → 持ち物・レシピが隠れる → PlayerInventory へ → 再び出る
+  - `SubInventory でインベントリ+ブロックパネルが出てレシピビューアは消える` → SubInventory（ブロックのパネルを開いた状態の源）→ 持ち物とブロックが出て、レシピが隠れる
+  - `許可表で拒否されたui_state.requestはtransition_not_allowedを返し画面を維持する` → BuildMenu で `RequestTransition(UIStateEnum.PlayerInventory)` が false・`LogAssert.Expect(LogType.Warning, …)`（拒否のログ）・画面が BuildMenu のまま
+  - 4 件目 `ブロックパネルの✕で ui_state.request(GameScreen) を送り画面が閉じる` は既存の `BlockInventoryPanelFlowTest`:54「閉じるを押すと遷移を頼み状態が閉になると消える」に `/// <web-test file="e2e/tests/uiState.spec.ts">ブロックパネルの✕で ui_state.request(GameScreen) を送り画面が閉じる</web-test>` を足す（同じ意図。新しい試験は作らない）
+- [ ] **Step 2: L3 の網（赤→緑）**: `GameUiScreenMountTest`（`[UnityTest]`。editmode-in-playing-test スキルの形。`yield return new EnterPlayMode` は `[UnityTest]` の直下）: 全体スイッチ GameUi で起動し、`GameUiRoot.Instance.GetRootElement()` から、Presenter が載せる最上位の View 型（`InventoryView`・`RecipeViewerView`・`BlockInventoryView`・`BuildMenuView`・`ResearchTreeView`・`PauseMenuView`・`HotbarHudView`・`EquipmentHudView`・`ProgressHudView`・`KeyHintHudView`・`CrosshairHudView`・`TrainRidingHudView`・`NotificationHostView`・`ToastHostView`・`CursorTooltipView`・`ScreenBackdropView`・`TutorialOutlineView`・`WorldPinOverlayView`・`KeyControlHintView`・`ModeHudView`・`GrabOverlayView`・`CurrentChallengeHudView`・スキットの View。名前は実物の Presenter を `git grep -n "new \w*View(" -- '…/Screens/**/*Presenter.cs'` で拾って確定）が 1 つずつあることを `Q<T>()` で見る。足りない型の名前を全部並べて 1 回で落とす
+- [ ] **Step 3: 段ごとの L3**: 各段の L3（S2-ladder の `Stage2/`・S3 の L3・S4-gamma の `Stage4/`・S5-ladder の段 5）は持ち主のレーンの物を数え、無い段を `done.md`「integrator への依頼」に書く（D-14）
+- [ ] **Step 4**: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "PresenterMountTest|BlockInventoryPanelFlowTest|GameUiScreenMountTest"` → 失敗 0（L3 の後は 45 秒待ってから次）。コミット `test(uitk): Presenter の結線の L1 と全画面の載り先の L3 を足す（DC-31 A・uiState.spec。S5-crosscut T14）`
+
+---
+
+### Task 15: DC-23 A Web ホストの判定を State へ付け替え（R-19）
+
+**Files（左を右の呼び出しへ付け替える）:**
+- `S/Client.WebUiHost/Game/Actions/UiStateActions.cs`（:54 `IsAllowed`）→ `UiStateTransitionRules.IsAllowed`（`Client.Ui.State/Routing/UiStateTransitionRules.cs`:11）
+- `Client.WebUiHost/Game/Actions/CraftActions.cs`（:26 `ResolveCraftRecipe`）→ 解放の検査を State の純関数 `CraftRecipeUnlockCheck.Check(IGameUnlockStateData, Guid) : UiCommandRejectReason?`（新設。`RecipeCommands.Craft`:29-30 もそれを呼ぶ）。wire は `invalid_recipe`・`recipe_locked` のまま（CraftActions の中で理由→wire を switch で写す）
+- `Client.WebUiHost/Game/Topics/CraftingRecipesTopic.cs`（:45-60）→ `CraftRecipeCatalog.BuildUnlocked`（`Client.Ui.State/Recipe/Catalog/CraftRecipeCatalog.cs`:15）の結果を DTO へ写すだけ
+- `Client.WebUiHost/Game/Topics/RecipeViewerItemListTopic.cs`（:56-82）→ `RecipeViewerItemCatalog.BuildVisibleItems`
+- 列車（s4-train 計画 :5587-5594 の 1〜8 行目）: `TrainTimetableDtoBuilder.Build`/`SortStations` → `TrainTimetableStationCatalog`・`TrainTimetableReadyDataFactory`／`TrainTimetableStopParser` → `TrainTimetableDeparture.ToServerStops`／`TrainTimetableActions`（置換・`AppliedIsAutoRun`・拒否の文字列）→ `TrainTimetableCommands`・`TrainCommandRejection`／`TrainPlatformDetailDtoBuilder`・`TrainStationDetailDtoBuilder` → `TrainPlatformDetailReader.Read`／`TrainPlatformActions.IsTrainPlatform` → `BlockComponentRegistry` の判定（`TrainBlockCommands.SetTransferMode` と同じ）／`ToWireMode`・`ParseMode` → `TrainPlatformTransferModeConversion.FromServer`・`ToServer`／`TrainStationActions` → `TrainBlockCommands.SetStationName` の解決・検査／`TrainInventoryDtoFactory` の液体 → `TrainCarFluidConversion`
+- Create: `S/Client.Ui.State/Recipe/Commands/CraftRecipeUnlockCheck.cs`
+- Test: `S/Client.Tests/WebUi/` の既存（`git grep -ln "UiStateActions\|CraftActions\|CraftingRecipesTopic\|RecipeViewerItemListTopic\|TrainTimetable\|TrainPlatform\|TrainStation\|TrainInventoryDto" -- moorestech_client/Assets/Scripts/Client.Tests/WebUi`）
+
+**Interfaces:** Consumes: 上の State の型（`Client.WebUiHost.asmdef` は既に `Client.Ui.State` を参照）。Produces: `CraftRecipeUnlockCheck.Check(IGameUnlockStateData unlockState, Guid recipeGuid)`（解放表に無い→`RecipeInvalid`、未解放→`RecipeLocked`、解放済み→null。I-fix5 の改名後の名前）
+
+- [ ] **Step 1: 対ごとの照合（赤の代わり）**: 各対で、Web 側の判定と State 側の判定が同じ入力で同じ結果を返すかを読む。違う所（例: Web は辞書に無いレシピを黙って飛ばし、State は `silent-ok` で飛ばす）は表にして D-17 に書き、Web の wire（文字列・DTO の形）を変えない向きに State を呼ぶ。変えざるをえない対は付け替えず、理由を D-17 と `done.md` に書く
+- [ ] **Step 2: 付け替え**: 遷移とクラフトから。`UiStateActions.IsAllowed` を消して呼び手を `UiStateTransitionRules.IsAllowed` に。`CraftRecipeUnlockCheck` を作り、`RecipeCommands.Craft` と `CraftActions.ResolveCraftRecipe` が呼ぶ（`JValue` の型検査と `Guid.TryParse` は Web 側に残す）。Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 対を 1 対 1 コミットで進める
+- [ ] **Step 3: テスト**: 対ごとに `uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.WebUi\.|UiStateTransitionRules|RecipeCommands|CraftRecipeCatalog|RecipeViewerItemCatalog|TrainTimetable|TrainPlatform|TrainBlockCommands"` → 失敗 0
+- [ ] **Step 4: 判断記録**: D-17 に「conductor 11-10 04:50 の『据え置き・X-5 で Web ホスト側を消す』を、この決定（DC-23 A）で覆す。X-5 は付け替え済みの Web ホストを消すだけ」を書く
+- [ ] **Step 5: コミット**: 対ごとに `refactor(webui-host): <対> の判定を State の <型> へ付け替える（DC-23 A。S5-crosscut T15）`
+
+---
+
+### Task 16: Warning の拾い（R-20 の一部。c22-si・c46-cc・c63-cc）
+
+**Files:** Modify: `S/Client.Ui.State/Text/UiText.cs`（`Empty`）・`S/Client.Ui/Foundation/Text/LocalizedLabel.cs`（ctor `LocalizedLabel(UiText initial)`。I-fix5 後の実物）・`Screens/BlockInventory/Special/SpecialViewParts.cs`（:23 `SeedEmptyText` と 5 呼び手）・`Screens/BlockInventory/Fluid/FluidInventoryRow.cs`（:56）・`Screens/Skit/Parts/Window/SkitDialogueWindow.cs`（:97）・`Screens/Skit/Parts/SkitBackgroundLine.cs`（:18）
+
+**Interfaces:** Produces: `UiText.Empty`（`FromVerbatim(string.Empty)` の静的な 1 つ）・`LocalizedLabel(UiText initial)`
+
+- [ ] **Step 1**: c22-si（表示 helper）は T2 で拾った。c46-cc（研究の現在画面の読み）は T7 で拾った。c63-cc（readonly フィールド 31 ファイルと `{ get; }`）は見送る: 規約はどちらも許し、故障シナリオが無い。X-5 の規約の整理へ申し送る（D-19）
+- [ ] **Step 2: 空ラベル（赤→緑）**: `LocalizedLabelTest` に「`new LocalizedLabel(UiText.Empty)` を載せても『文なし』の警告が出ず text が空」を足す。`UiText` に `public static readonly UiText Empty = FromVerbatim(string.Empty);`、`LocalizedLabel` に ctor を足し、4 か所と `SeedEmptyText` の 5 呼び手を置き換えて `SeedEmptyText` を消す
+- [ ] **Step 3**: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "LocalizedLabel|UiText|Special|Fluid|Skit"` → 失敗 0。コミット `refactor(uitk): 空の LocalizedLabel を ctor で作る（X-audit c22-si。S5-crosscut T16）`
+
+---
+
+### Task 17: AC-5 単一参照の helper をローカル関数へ（R-20）
+
+**Files（48 件。S 相対。「→」は呼び手）:** BlockNetworkInfoCache.cs:172 FetchFilterSplitter→Track（既存の region へ）・SpecialStateDetailReader.cs:31→GearToElectric・HotbarSelection.cs:23 Of→FromOrigin・BugReportFormText.cs:101,112,123,133,143（123→112・133→101 は入れ子。I-fix6 の DC-22 A 後の実物）・ResearchTreeModel.cs:92 Rebuild→RebuildWhileShown・TrainPlatformEditCommands.cs:45,52・TrainStationNameEditState.cs:54→Initialize・TrainTimetableModel.cs:92→Build・TrainTimetableReadyDataFactory.cs:46→TryCreate・TrainTimetableEditCommands.cs:64→SetAutoRun・TrainTimetableEditSession.cs:78,99,108（3 段の入れ子）・TrainTimetableEditState.cs:53,65,77（3 段の入れ子）・ModeSwitch.cs:101→ctor（T9 の後）・ToastItem.cs:32→ctor・UiDragDrop.cs:83→TryFindTarget（外の TTarget を使う）・GameUiInputRules.cs:84→OnKeyDown・:97,:123→OnFocusIn・UiPressGesture.cs:113→ctor・UiOsCursorRequestStack.cs:44 FindTopShape→ApplyTopIfChanged・UiScreenPixelScope.cs:31→ctor・TrainTimetableStationListView.cs:51→Render・TrainTimetableStopListView.cs:60→Render・BugReportFormView.cs:107,173,185（先に分ける）・BuildMenuEntrySlot.cs:52→ctor・CursorTooltipView.cs:63→OnAttached・HotbarHudView.cs:55→Render（既存の region へ）・ModalView.cs:65→ctor・:110→CreateInput（入れ子）・PauseMenuView.cs:160→SetShown・ItemListView.cs:106→ctor（T3 で式が `UiScrollClipInset` へ移った後の残り）・CraftHoldDriver.cs:71→Start・RecipeScreenPresenter.cs:55→Initialize・GraphicsQualitySettingsView.cs:68→ctor・LanguageSelectView.cs:51→ctor・ToastHostView.cs:89 ToneOf→Push（T5 の後）・WorldPinOverlayView.cs:112→ctor
+
+除外（D-18）: `UiScreenTraits.cs`:49 BuildTraits（呼び手が静的フィールドの初期化子で、移すと静的 ctor が要る）・`UiOsCursorRequestStack.cs`:29 Withdraw（入れ子の型 `ShapeRequest.Dispose` から呼ぶ）・`HoverTooltipHost.cs`:143 OnTrackedDetached（`Track` の中で登録と解除に同じ method group を渡し、`Track` が複数回走る。ローカル関数が `this` 以外を捕まえると解除の等価が崩れる）・`BlockSlotRestrictionInput.cs`:91（AC-8）・イベントコールバックの約 45 件（DC-33。X-5）
+
+**Interfaces:** なし（挙動不変）
+
+- [ ] **Step 1: 照合**: 各行を実物で開き、呼び手が 1 つだけかを `git grep -n "<名前>"` で確かめる（同名の別クラスの私有メソッドは別物）。前のタスクで消えた・形が変わったもの（T3 の `ItemListView`・T5 の `ToastHostView`・T9 の `ModeSwitch`）は今の形で判断する
+- [ ] **Step 2: BugReportFormView を先に分ける**: 194 行で region が 2 つ増えると 200 を超えるので、`SendAsync`（約 65 行）とその状態表示を `Screens/BugReport/BugReportFormSender.cs`（View が持つ送信の手順。`BugReportFormView` から ctor で作る）へ移し、その中で `SendAsync`／`ShowStatus` を単一参照のローカル関数にする。View は 150 行前後へ
+- [ ] **Step 3: 移す**: 1 ファイルずつ、helper を呼び手の `#region Internal` へ（無ければ作る。`#endregion` の下にコードを書かない）。入れ子の 4 組は内側から移す
+- [ ] **Step 4: 行数**: `wc -l` で触ったファイルが全部 200 行未満（起草時の見込みで危ういのは `BlockNetworkInfoCache.cs` 187→189・`HoverTooltipHost.cs` は除外・`TrainTimetableEditSession.cs` 175→177）
+- [ ] **Step 5**: `uloop compile …` → `uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.Ui\.|^Client\.Tests\.WebUi\."`（`--timeout-seconds 1500`）→ 失敗 0。コミットはディレクトリごと（`refactor(uitk): 単一参照の helper をローカル関数へ（AC-5 <範囲>。S5-crosscut T17）`）
+
+---
+
+### Task 18: 束 5 の横断テストの写し（R-3）
+
+**Files:** Create: `S/Client.Tests/Ui/Crosscut/Localization/LanguageRoundTripTest.cs`・`S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/AllScreensLanguageSwitchTest.cs`・`S/Client.Tests/Ui/Crosscut/TextSelection/TextSelectionTest.cs`。Modify: `S/Client.Tests/Localization/Resolution/LocalizationDictionaryCoverageTest.cs`（1 件足す＋タグ）・`S/Client.Tests/WebUi/Localization/LocalizationLanguageSelectionContractTest.cs` か `LocalizedLabelTest`（タグ）・`S/Client.Tests/Ui/Input/GameUiInputRulesTest.cs`（タグ 2・試験 1）・L3 の Esc（下）
+
+**Interfaces:** Consumes: `Localize.TrySetChosenLanguage(string)`（`Client.Localization/Localize.cs`:91）・`Localize.OnLanguageChanged`・`VanillaLocalizationTable.SourceTexts`・`LanguageCatalog.Languages`・`LanguageSelectView`（`ModeSwitch` の選択肢の testid）・`GameUiInputRules.Attach(VisualElement)`・`ITextSelection.isSelectable`（UITK の `Label.selection`・`TextField.textSelection`）
+
+写す 16 件と置き場（1 件ずつ `/// <web-test file="<webui 相対>"><第 1 引数></web-test>`。describe は含めない）:
+
+| Web のファイル | Web のテスト名 | 写し先 |
+|---|---|---|
+| `e2e/tests/system/i18n.spec.ts` | `localization.current切替でlocale別辞書を再取得し表示を更新する` | `LanguageRoundTripTest`: ポーズメニューの設定を載せ、`Localize.TrySetChosenLanguage("japanese")` で見出しの文が日本語の辞書の値に変わる（「再取得」は UITK では辞書の切替） |
+| 同 | `ポーズメニューの言語選択で英語と日本語を往復する` | `LanguageRoundTripTest`: `LanguageSelectView` の日本語の選択肢を `simulate.Click` → 文が日本語、英語を押す → 英語に戻る（後始末で言語と PlayerPrefs を戻す。前例 `LocalizedLabelTest`:23-41） |
+| `src/shared/i18n/allScreensI18n.test.ts` | `re-renders translated screen copy after localization.current changes with no legacy screen exemptions` | `AllScreensLanguageSwitchTest`（L3）: GameUi で起動し、英語の文のうち日本語と違うものの集合 E を辞書から作り、日本語へ切り替えた次のフレームに、ルート以下の全 `Label` の text が E に入っていない（除外の画面を作らない） |
+| 同 | `marks a failed requested locale without replacing the previous ready dictionary` | 既存の言語選択の L0（`LocalizationLanguageSelectionContractTest`）に「存在しない言語コードで `TrySetChosenLanguage` が false、前の言語のまま」を足す（既にあればタグだけ） |
+| 同 | `requires non-empty Source and every language cell for every generated key` | `LocalizationDictionaryCoverageTest.EveryVanillaKeyHasNonEmptyTextInEveryLanguage` にタグ、同ファイルに `EveryVanillaKeyHasNonEmptySourceText`（`VanillaLocalizationTable.SourceTexts` の値が全部非空）を足しタグを付ける。1 つの Web テストに 2 つの NUnit が付くので、ツールの数え方（Step 3）で 1 件として数えられるかを確かめ、数えないなら 2 つ目はタグ無し |
+| `e2e/tests/uiState.spec.ts` | 5 件 | T14 で写した |
+| `e2e/tests/regression/inputLayer.spec.ts` | `block inventory上のEscapeはGameScreen遷移を要求する` | L3（既存 `EditModeInPlayingTest/Ui/GameUiInputTest.cs` に 1 件足すか、`Crosscut/` に置く）: チェストを開き、Esc（`InputManager.UI.CloseUI.SetKeyDownForTest(true)` 前例 `UiInputExclusivityEscapeLatch` 系）で UIState が GameScreen |
+| 同 | `Tabはブラウザのフォーカスを動かさない` | `GameUiInputRulesTest.NavigationMoveNextDoesNotMoveFocus`（:142）にタグ |
+| 同 | `ボタンにフォーカスしてSpaceを押してもclickせずキーハンドラにも届かない` | `GameUiInputRulesTest.NavigationSubmitDoesNotClickFocusedButton`（:127）にタグ（ボタンがフォーカスを持てないことは `ButtonFocusIsBlurredWithWarning`:99 が見る） |
+| 同 | `checkboxではSpaceでトグルせず、contenteditableには空白が入る` | `GameUiInputRulesTest` に 1 件: `Toggle` に submit を送っても値が変わらず、`TextField` に Space の文字入力を送ると空白が入る |
+| `e2e/tests/system/textSelection.spec.ts` | `入力欄以外はテキスト選択できない` | `TextSelectionTest`: 持ち物・ビルドメニュー・ポーズメニューを載せ、全 `Label` の `selection.isSelectable` が false |
+| 同 | `建設メニューの検索入力はテキスト選択できる` | `TextSelectionTest`: ビルドメニューの検索欄の `TextField` の `textSelection.isSelectable` が true |
+
+`regression/inputLayer.spec.ts` の残る 1 件（ホイール）は既に `EquipmentWheelFlowTest.cs`:112 にある。
+
+- [ ] **Step 1: 書く**: 上の表のとおり。新しいファイルは `Client.Tests/Ui/Crosscut/` の下（10 ファイルを超えるならサブディレクトリ）。L3 は 45 秒待ちの注意を守る
+- [ ] **Step 2: 走らせる**: `uloop run-tests … --filter-type regex --filter-value "LanguageRoundTripTest|LocalizationDictionaryCoverageTest|LocalizationLanguageSelectionContractTest|GameUiInputRulesTest|TextSelectionTest"` → 失敗 0。L3 は `--filter-value "AllScreensLanguageSwitchTest|GameUiInputTest"`（別の回）→ 失敗 0
+- [ ] **Step 3: 突き合わせ**: `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing > moorestech_client/.uloop/outputs/compare/S5-crosscut/parity-t18.txt; echo "exit=$?"`。`grep -E "i18n.spec|allScreensI18n|uiState.spec|inputLayer.spec|textSelection.spec|connection.spec" parity-t18.txt` が 0 行。束 5 の他のファイル（チャレンジ・言語ゲート・チュートリアル等）の未対応は S5-challenge・S5-gate・S5-ladder の物なので exit 1 でもよい。件数（Web／写した／捨てた／未対応）を `done.md` に写す
+- [ ] **Step 4: コミット**: `test(uitk): 束 5 の横断テスト（i18n・allScreensI18n・uiState・inputLayer・textSelection）を写す（S5-crosscut T18）`
+
+---
+
+### Task 19: 比較撮影と独立評価（R-17）
+
+**Files:** 出力 `moorestech_client/.uloop/outputs/compare/S5-crosscut/`（コミットしない）・台帳 `docs/uitk/TODO.md`（「## 実測の結論」「## 見た目の例外」の末尾）
+
+| 状態（参照の id） | 見るもの | 撮り方 |
+|---|---|---|
+| `1-pause-top` | ボタンの幅（T10）・指カーソルの副作用なし（T9） | 既存のポーズメニューの撮影（`git grep -ln "CaptureToPng" -- moorestech_client/Assets/Scripts` で持ち主のレーンが作った撮影の試験を探して回す） |
+| `2-skit-choices`・`2-skit-text` | 選択肢の板・ツールの色（T10） | 既存のスキットの撮影（`uitk-skit-compare.cs` の録画の撮影段か EditMode の撮影） |
+| `3-build-menu`・`4-item-list-large`・`4-research`・`4-block-chest`・recipe（`web-9ce5557bdb-s4-recipe`） | スクロールの端（T3）・表示（T2） | 各画面の既存の撮影 |
+| `1-toast`・`2-notifications` | 出入り（T5） | 既存の撮影（`uitk-notification-compare.cs`） |
+| `5-japanese-inventory` | 日本語の折り返し（T16・T18） | 持ち物の撮影を日本語で |
+| `1-bug-report` | フォームの分割（T17） | 既存の撮影 |
+
+- [ ] **Step 1: 撮る**: 上の各状態を 1280×720 と 2560×1080 で撮る（既存の撮影の試験・録画の撮影段を回すだけ。使い捨ての撮影スクリプトを書かない）。道具で撮れない状態は理由を `done.md`「integrator への依頼」に書く
+- [ ] **Step 2: 評価**: opus の subagent 2 体に、別々に「参照の PNG と UITK の PNG の組・読者は UITK と Web の見た目を揃える開発者・記帳済みの LX の一覧（台帳「## 見た目の例外」）」だけを渡し、差を「場所・差・画素か寸法の実測」で返させる（経緯は渡さない）
+- [ ] **Step 3: 再現**: 別の subagent に、指摘ごとに画素・寸法を測って再現させ、再現したものだけ残す。このレーンの変更が原因なら直して撮り直す。このレーン以前からの差は持ち主（S5-ladder の締め）へ `done.md` で回す。直さない差は LX-205〜206 に記帳（台帳の行とコードの `/* look-exception: LX-n */`）
+- [ ] **Step 4**: `done.md`「差の表」に全行の処遇。台帳「## 実測の結論」に T1 の UITK の例外の扱いの実測を 1 行。コミット `docs(uitk): S5-crosscut の並べ比べの結論を台帳へ（S5-crosscut T19）`
+
+---
+
+### Task 20: 録画（R-21）
+
+- [ ] **Step 1: GameUi のラダー**: 全体スイッチを GameUi にして、`uitk/uitk-lifeline.cs`・`uitk/stage2/uitk-opening-hud.cs`（無ければ D-21）・`uitk/stage3/uitk-build-bp.cs`・`uitk/stage4/uitk-production-loop.cs`・`uitk/stage4/uitk-research-train.cs` を `run-scenario.sh` で 1 本ずつ（S4-gamma の `tools/uitk/run-all-recordings.sh` があればそれで）。全部 `Success: true`
+- [ ] **Step 2: 横断の GameUi**: 触った経路の録画 9 本 — `uitk/uitk-skit.cs`（Enter・T6）・`uitk/uitk-skit-choice-pause-cursor.cs`（指・T9）・`uitk/uitk-recipe-craft.cs`（Esc で選択が外れる・T6。段が無ければ足す）・`uitk/uitk-block-special-panels.cs`（ベルトの ←→・T6）・`uitk/uitk-build-menu.cs`（開いた時の組み直し・T7）・`uitk/uitk-research-tree.cs`（T7）・`uitk/uitk-notification-compare.cs`（T5）・`uitk/uitk-train-inventory.cs`（T2・T15 の State 側）・`playtest-receiver/developer-report-delivery.cs`（manifest v7 の送信が通る・T1）。全部 `Success: true`
+- [ ] **Step 3: Web 系**: 全体スイッチを Web にして `misc/ui-state-transition-matrix.cs`・`misc/localization-language-switch-via-ui.cs`・`train/fluid-inventory-via-interact.cs`（T15 の付け替え）。CEF が出ない環境なら Editor ログの RendererUnavailable の行を証拠に「未確認」（裁定「UITK 切替まで CEF 由来の不具合は直さない」）
+- [ ] **Step 4**: 失敗は原因を直して流し直す。録画は報告ページに載せる分だけ残し、他は消す。`list-work-saves.sh` でワールドを消す
+
+---
+
+### Task 21: moores-code-review で全ブランチレビュー（必須）
+
+必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。base は `origin/feature/uitk`。設計判断は agent 既定で推奨案を採り、判断記録に「agent 既定（moores-code-review Dn）」と書く（ゴール・裁定から外れるものだけ `done.md`「要裁定」）。自動適用・反映がソースの判定経路・条件式・その評価時点に触れたら、Task 20 の録画を反映後のバイナリで流し直してから完了とする（実行計画 §4.3 の 1）。
+
+---
+
+### Task 22: feature/uitk への PR・取り込み・マージ（必須）
+
+セッション終了可能状態にすること: pr-createスキルでPRを作成し、コンフリクトがあれば解消・コンパイル確認のうえpushする。このレーンは実行計画 §4.3 の形（base=feature/uitk、agent がマージ）。
+
+- [ ] **Step 1: PR**: pr-create で `base=feature/uitk`。報告ページ `https://review.moores.tech/pr/<番号>/report/` に並べ比べ（参照・UITK の組）と録画を、`Mac mini の環境ローカル規約（CLAUDE.local の「PR の成果物の載せ先」）が指す publish の README` の manifest の書式で載せ、本文の先頭行をその URL の h1（`# <URL>`）にする。公開に失敗したら報告 URL 無しで完了にしない
+- [ ] **Step 2: 取り込み**: `git merge origin/feature/uitk`。共有区画の衝突は両方の行を採る。S5-challenge・S5-gate が先に入っていれば、その画面の直書き（T2）・`IDisposable`（T13）・指カーソルの呼び手（T9）・`Screens/Challenge/CurrentHud/` に同じ置換を当てる（D-20）。`uloop compile`・T2 Step 5 と T18 Step 3 の検査・`uloop run-tests … --filter-type regex --filter-value "^Client\.Tests\.Ui\."`。判定経路に触れた衝突なら Task 20 の該当録画を再走。push
+- [ ] **Step 3: G1 とマージ**: PR の `UITK Web follow gate (G1)` が pass・未記帳 0 を見て `gh pr merge <番号> --merge`（Squash 禁止）
+- [ ] **Step 4: 片付け**: `moores-wt status` で自分の Editor だと確かめて閉じる。録画・`PlaytestResults/`・TestResults・撮影 PNG を消す。bd を close。worktree の `moores-wt rm` は指揮が行う
+- [ ] **Step 5: 報告と合図**: `done.md` の 1 行目を「状態: 完了」（止まったら「状態: 停止（理由）」）にし、証拠・PR URL・割り当ての処遇（R-22 の表）・差の表・未完了・要裁定・integrator への依頼（A-244〜A-248 の本文案・設計書 §1.1／§2.7／§4.2 の改訂案・未使用の番号・段ごとの L3 の欠け）を書いて `../moorestech_logs` でコミット・push。最後に `cmux wait-for -S uitk-s5-crosscut` を 1 回
+
+## Self-Review
+
+1. **Requirements coverage**: R-1→T1、R-2→T1 Step 7-8、R-3→T14・T18、R-4→T2（取り込み後の残りは T22 Step 2）、R-5→T3、R-6→T4、R-7→T5、R-8→T6、R-9→T7、R-10・R-11→T8、R-12→T9、R-13→T10、R-14→T11、R-15→T12、R-16→T14、R-17→T19、R-18→T13、R-19→T15、R-20→T16・T17、R-21→T20（反映後の再走は T21）、R-22→T22 Step 5、R-23→T0 Step 4・T22 Step 5
+2. **Placeholder scan**: 実物の名前が起草時に確かめられないもの（`UiTestStyleSheets.TryCompile`・`FakeUiOsCursorApplier` の記録名・`RecipeListScrollView` の内側のフィールド名・I-fix6 の型）は、探す grep と読み替えの書き先（判断記録の末尾）を書いた。「適切に」「必要なら」で閉じたステップは無い
+3. **Type consistency**: `UiDisplay.SetShown`/`IsShownInline`（T2→T16 以降）、`UiScrollClipInset.Apply`/`ApplyHorizontal`（T3）、`GridMeshIndexWriter.WriteQuads`/`QuadIndices`・`Painter2DSquareCap.AddSegment`/`Extend`（T4）、`UssStyleResolutionGate.IsResolved`/`OnResolved`/`ReportHeldWhileUnresolved`/`ReportUnreadable`（T5→T17 の ToastHostView）、`IUiKeyPressSource.OnPressed`・`InputKeyPressSource(InputKey)`・`InputKeyHorizontalArrowKeySource(IUiKeyPressSource, IUiKeyPressSource)`（T6）、`GameUiExceptionReading.FromLogs`/`Unknown`/`SampleLimit`・`GameUiExceptionStatus`・`BugReportManifestReadings.Apply`（T1 のテストと本体）は計画内で一致。既存 API（`UnityLogEntry` の 5 引数 ctor・`InputKey.OnGetKeyDown`・`UiOsCursorHoverRequest` の 4 引数・`GameUiRootTestFactory.Create`・`UiRoutingStateTestFactory.CreateSwitchable`・`Localize.TrySetChosenLanguage`）は実物の file:line で照合した
+4. **保留・縮退経路**: (a) `UssStyleResolutionGate` の預かりは「解決が来る」で解け、来ないまま配置へ進めば LogError（最小構成: 1 件の Push・0 件の Render。配置前は黙り、配置後は必ず出る。T5 Step 1 の 3 件目が両方を見る）。(b) `gameUiExceptions` の unknown はログが無いときだけで、`missing` に必ず行が立つ（T1 Step 2 の 3 件目）。クラッシュ箱は恒久に unknown で、それを 0 件と読ませない表示（ダッシュボードの unknown）を対で試す。(c) `RecipeSelectionCloseReset` の「同じフレーム」の判定は、押下が遷移より後のフレームに来ると選択が残る（恒久の保留ではなく 1 回の取りこぼし）。録画で順序を確かめる（T6 Step 3）
+5. **「決定的にする」**: 選択の規則は無い（`GameUiExceptionReading` の見本は時系列の先頭 5 件で、どれを選んでも件数は同じ）
+6. **呼び出し側への責務漏出**: `GameContentPresentation.TryItem` は判定（bool）と値を返し、未知の ID の代替の組み立て（`UiIcon(null, idText, FallbackItemName)`）は通知の口に残る。代替を全画面で共有する DC-12 B を採らなかったため（D-15）。`UssStyleResolutionGate` は判定（`IsResolved`）を返し、預かりと流し直しは宿主に残る。宿主ごとに預かるもの（トースト列・最新の 1 つの VM）が違うため（D-13）
+
+## 判断記録（ADR）
+
+従う裁定: `.decisions/2026-11-06-*`（UITK 6 本と CEF 停止）。依頼文の指示: Codex を使わない・Mac の Editor 1 本（2 本目以降は Windows）・問いは agent 既定・worktree の片付けは指揮。ランタイムの UI・入力・バグ報告に触れるので unityプレイ録画テスト（T20）を含む。
+
+- D-1（agent 既定。設計書 §7.1 に A-244 を足す）: `AppErrorBoundary` の代わりは「例外を握らずログ（`LogType.Exception`）へ出し、バグ報告の manifest v7 `gameUiExceptions` で数える」。フォールバック画面と再読み込みのボタンは作らない。棄却: Web と同じフォールバック画面 — ゲームはメインメニューへ戻らない設計で `location.reload` に当たる戻り先が無く、画面を出しても押せる操作が無い。棄却: UI 全体の例外ハンドラ（try-catch で包む）— AGENTS.md の try-catch 禁止の外部境界に当たらず、握ると壊れた購読が黙って残る
+- D-2（agent 既定）: レーン行の依存は S4-gamma だけだが、同じファイルを先に直す I-fix5・I-fix6 のマージを T0 で待つ。棄却: 並走して取り込みで解く — DC-8 A・DC-16 A・DC-28 A・DC-17 A・DC-22 A の上にこのレーンの B/C 側が乗るので、先に入らないと同じ行を 2 回書き換える
+- D-3（agent 既定）: 再接続オーバーレイ・辞書エラー・`ConnectingPlaceholder` は作らず、Web の 6 件を disposition の `捨てる` にする（[A-13]・[A-38]・E-17）
+- D-4（agent 既定）: 横断の L1 の置き場は `Client.Tests/Ui/Crosscut/`、L3 は `EditModeInPlayingTest/Ui/Crosscut/`。棄却: `Stage5/` — S5-ladder の持ち物と重なる
+- D-5（agent 既定。設計書 §7.1 に A-245 を足す。本文はメモ）: 表示の出し入れは `UiDisplay.SetShown`（出すときは Null）の 1 本。USS が既定で none の要素の扱いは T2 Step 2 の表をここへ足す。棄却: Flex 明示に揃え `SetItemShown` だけ例外（DC-11 B）— 状態クラスの none に勝つ症状が残る
+- D-6（agent 既定。A-245 に含める）: スクロールのクリップ逃げは `UiScrollClipInset` の 1 式。T3 Step 1 の 5 実装の表をここへ足す。棄却: USS の共通トークンだけ揃える（DC-19 B）— 実装 5 本が残る
+- D-7（agent 既定）: 格子の index と square cap と影の輪の定数は `Foundation/Theme/Mesh/`。Theme 直下は 10 ファイルに近いのでサブディレクトリ。並びの違う 2 か所は置換しない（T4 Step 1）
+- D-8（agent 既定。設計書 §7.1 に A-246 を足す）: 画面がキーを受ける口は `IUiKeyPressSource` 1 本。矢印は UI の map に 2 アクションを足して `InputKey` の抑止を通す。DI は `WithParameter` で口ごとの `InputKey` を渡す。棄却: 3 通りを ref-uitk-design に書いて残す（DC-10 B）— 抑止の持ち方が 2 通り残る。棄却: 4 つの口を持つ集約型を 1 つ注入 — 使わない口まで見える
+- D-9（agent 既定）: DC-16 は C を採る。`ItemSlotContent` は Web の props（`itemId`・`count?`・`ghost?`・`catalog`・`shortage`）と同じ平らな形で、`ItemSlotPresentation.From` が Web の式の写し。I-fix6 の A で組み立てが `SlotItemContent.From` を通るようになり症状は消える。B（sealed 派生）は Web の `count` の 3 状態と catalog の組み合わせを派生へ割ると型が Web の props から離れ、呼び出し 60 余を書き換えても見た目と挙動は変わらない
+- D-10（agent 既定。設計書 §7.1 に A-248 を足す。§1.1 の改訂案はメモ）: 画面の開閉は `UiRoutingState` と `<機能>ScreenVisibility.IsShown`。`UiScreen` に無い状態だけ `UIStateEnum` を読み、その行に理由を 1 行書く。T7 Step 1 の表をここへ足す。棄却: `UiScreenTraits` に画面ごとの真偽を足す（DC-8 C）— Routing に機能の語彙が増える
+- D-11（agent 既定。設計書 §7.1 に A-247 を足す）: Web で `cursor: pointer` を持つ共通部品は部品が指を出す（§2.7 の「画面が付ける」を覆す）。無効のボタンで指が出ない差が残れば LX-205
+- D-12（agent 既定。A-247 に含める）: 画面 USS は部品の内側クラス・`.unity-button` を書かず、部品ルートのつまみだけを上書きする。内側の要素が customStyle で読む値は、部品 USS がルートのつまみから受け直す（§3.2 の 7 と同じ形）。`GamePanelSurfaceKind.Skit` は Web の `"skit"` と 1 対 1 なので残し、`SkitChoice` は消す（T10 Step 4 の条件で残すときは理由をここへ足す）。新しいつまみ `--icon-button-color`・`--game-panel-surface-*` は Web に同名の変数が無い（Web は `color` と `::before` の CSS）ので、部品名で始まる名前にした
+- D-13（agent 既定）: DC-28 は B。預かりと流し直しは宿主に残し、門は解決と診断だけを持つ（Self-Review 6）
+- D-14（agent 既定）: DC-31 は A。段ごとの L3 は各ラダーのレーン（S2-ladder・S3-ladder・S4-gamma・S5-ladder）が作った物を数え、このレーンは全画面の載り先の L3 を 1 本足す。棄却: 段ごとの L3 をこのレーンで作る — `Stage<n>/` は持ち主がいる
+- D-15（agent 既定）: DC-12 は A（`TryItem`）。棄却: 代替を `Item()` 自体に入れる（B）— 未知の ID で全画面が黙って代わりの絵を出し、開発者が気づく経路（例外）が消える
+- D-16（agent 既定。設計書 §4.2 の改訂案はメモ）: ゲーム寿命の型は `IInitializable` だけ。テストの後始末だけが使う型は IDisposable を残し、宣言の上に理由を書く。T13 Step 1 の表をここへ足す
+- D-17（agent 既定）: DC-23 は A。conductor 11-10 04:50 の「据え置き・X-5 で Web ホスト側を消す」をこの決定で覆す。X-5 は付け替え済みの Web ホストを消すだけ。wire（文字列・DTO）は変えない。T15 Step 1 の対ごとの表をここへ足す
+- D-18（agent 既定）: AC-5 は 48 件。除外 3 件（`UiScreenTraits.BuildTraits`・`UiOsCursorRequestStack.Withdraw`・`HoverTooltipHost.OnTrackedDetached`）は T17 の理由。AC-8 とイベントコールバック約 45 件（DC-33・X-5）は触らない
+- D-19（agent 既定）: Warning の候補 4 行 — c22-si 表示 helper（拾う・T2）、c22-si 空ラベル（拾う・T16）、c46-cc（拾う・T7）、c63-cc（見送る: 規約はどちらも許し故障シナリオが無い。X-5 の規約の整理へ）
+- D-20（agent 既定）: S5-challenge・S5-gate の持つファイルは、相手が先に入っていれば当日の実物へ、後なら取り込み（T22 Step 2）で同じ置換を当てる。相手の計画が先に `UiDisplay`・`IUiKeyPressSource`・3 部品の新しい ctor を使えるよう、A-245〜A-248 の本文を指揮に先に渡す
+- D-21（agent 既定）: `stage2/uitk-opening-hud.cs` が最終 HEAD に無ければ、ラダー 2 を除いて録画を締め、`done.md`「要裁定」に 1 行（S3-ladder D-3 と同じ扱い）
+
+読み替え（T0 Step 3 で足す）:
+
+## 設計書・実行計画へ反映する行
+
+- 設計書 §7.1: A-244（D-1）・A-245（D-5・D-6）・A-246（D-8）・A-247（D-11・D-12）・A-248（D-10・D-16 の型）。本文の案は scratchpad の `notes-s5-crosscut.md`
+- 設計書 §1.1（D-10）・§2.7 の OS カーソルの行（D-11）・§3.2 の 2（D-12）・§4.2 の型（D-16）・部品カタログの ItemSlot の行（D-9）の改訂案は同メモ
+- 実行計画 §6.1 の表に S5-crosscut の行（同メモ）

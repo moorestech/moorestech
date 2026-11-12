@@ -1,0 +1,2750 @@
+# UITK S5-challenge（段階 5 画面: チャレンジ一覧・カテゴリのボタン列・ノードカード）Implementation Plan
+
+> **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
+
+**Goal:** Web 版の `features/challenge`（`ChallengePanel`・`ChallengeNodeCard`・`challengeLogic`）を、C4-d の `NodeGraphView`・C2-a の `PaperSurface`・C2-b の `FormButton`・Foundation の `UiGroup` で Web と同じ見た目の UITK 画面にし、各カテゴリの初回訪問だけ進行中へ寄せ再訪と開き直しでは前回の視点を戻す（裁定 2026-11-04）。L0/L1・並べ比べ（1280×720・2560×1080）・録画 2 本まで済ませて `feature/uitk` へ取り込む。
+
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Challenge/Tree/`）は `ChallengeProgressState` の全カテゴリから、解放済みのカテゴリだけをマスタの順で `ChallengeListViewModel` に写す純関数（`ChallengeListViewModelFactory`）と、表示中だけ組み直す `ChallengeListModel`、離れたら先頭へ戻すカテゴリの選択ストア（前例 `ResearchSelectionStore`）を持つ。視点はカテゴリごとに素の値で `Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore` が持つ（C4-d の申し送り (1)）。View（`Client.Ui/Screens/Challenge/`）は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`）へ Presenter が 1 回だけ載せ、経路で `SetShown` する。カテゴリが変わるたびに `NodeGraphView` を作り直し（Web の `key={selected.guid}`）、控えた視点があれば載せる前に `RestoreViewport` で戻す。無ければ部品が初回だけ進行中へ寄せる。カードは `PaperSurface` を根にした持ち手 `ChallengeNodeCard`（`Screens/Challenge/Parts/`）。
+
+**Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`panel.Pick`）、UniRx、VContainer、NUnit＋`com.unity.ui.test-framework`（`UITestFixture`・`PanelSimulator`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`・`PlaytestGameViewOps`）、node（`tools/uitk/test-name-parity.mjs`）、gh CLI、bd（Beads）、Windows の `~/bin/winunity`
+
+## Requirements
+
+設計の出所: 実行計画 §1.4 の S5-challenge 行（原文）:
+
+> | S5-challenge | チャレンジ一覧 | 5・W5 | C4-d・C2-a・C2-b | 要 | 単位 | `NodeGraphView` の再利用・カテゴリのボタン列（`FormButton` の文言は `UiText.FromContent` [A-40]）・`PaperSurface` のノードカード・`FormButton`。写す: `challenge.spec.ts` 3 件（画面 2 件＋常駐 HUD 維持 1 件） [A-58]・`challengeLogic.test.ts`(2) |
+
+指揮の追加の完了条件（原文の要旨）: (1) S4-research の `NodeGraphView.uss` の `.node-graph__node { height: 0 }` 削除の事後承認（conductor.md「11-11 05:37」節「指揮の判断（agent 既定）: NodeGraphView.uss の .node-graph__node height:0 削除を事後承認（Web の包みは静的でカードが中身なりの高さ。S5-challenge へ申し送る）」・S4-research/done.md:91）。チャレンジのノードカードが中身なりの高さで描かれることを L1 で固定し、承認を判断記録と設計書の A 行案に残す。(2) 裁定 `.decisions/2026-11-04-チャレンジ画面は各カテゴリの初回訪問だけ進行中へ寄せ再訪は前回の視点を戻す.md`（決定: 各カテゴリを初めて開いたときだけ進行中のチャレンジへ寄せる。一度開いたカテゴリへ戻ったとき・パネルを開き直したときは、前回見ていた位置を戻す）を UITK で同じ振る舞いにする。Web は `TreeView` の `viewportStore`（モジュールの Map）と `key={selected.guid}` の作り直しでそうなっている（`W/src/features/challenge/ChallengePanel.tsx`・`W/src/shared/treeView/TreeView.tsx`。確認済み）。
+
+| ID | 要件 | 受け入れ基準 |
+|---|---|---|
+| R-1 | 注目点の論理: ノードの列から状態が進行中の最初のノードを返し、無ければ寄せない（Web `findChallengeInitialFocusNode`） | `ChallengeListLogicTest`（L0。`challengeLogic.test.ts` の 2 件）が緑 |
+| R-2 | ViewModel の工場: `ChallengeProgressState.Categories`（`ChallengeCategoryResponse` の列）から、`IsUnlocked` のカテゴリだけを受信順で写し（Web `ChallengeDtoBuilder.BuildTree`）、各カテゴリのノードはマスタの `Challenges` の順で、状態は完了＞進行中＞未解放、座標は `DisplayListParam.UIPosition`、倍率は `UIScale` の x・y、前提は `PrevChallengeGuids` のうち同じカテゴリにあるものだけ（C4-d D-5 の申し送り (2)）。選択したカテゴリが出ていなければ先頭（Web の `find(...) ?? categories[0]`） | `ChallengeListViewModelFactoryTest`（L0）の 3 件が緑 |
+| R-3 | Model と選択: 完了の知らせ・選択の変化・一覧への突入で同期で組み直す。組み直すのは一覧の表示中だけ（前例 `ResearchTreeModel`）。カテゴリの選択は一覧を離れると「無し」に戻り、開き直すと先頭のカテゴリになる（Web はパネルのアンマウントで `useState` が消える） | `ChallengeListViewportTest`「閉じて開き直すと先頭のカテゴリへ戻り…」が緑。録画 `uitk-challenge-list` の開き直しの段 |
+| R-4 | 視点: カテゴリが変わるたびに `NodeGraphView("challenge", …)` を作り直し、カテゴリの視点（x・y・倍率）は `OnViewportChanged` の最後の値を `ChallengeViewportSessionStore` へ控え、作り直した部品へ載せる前に `RestoreViewport` で戻す。控えが無ければ部品が進行中へ 1 回だけ寄せる。同じカテゴリのまま閉じて開き直したときは作り直さず視点がそのまま残る | `ChallengeListViewportTest`（L1）の 3 件が緑（`challenge.spec.ts` の 1 件と裁定 2026-11-04 の 2 件） |
+| R-5 | 一覧の枠: `challenge-panel`（アンカー `challenge.panel`）は舞台の上端から `--menu-upper-safe-area`（168px）下・左右下 0、地 `--mantine-color-dark-8`、内側の余白 `--mantine-spacing-md`、縦積み。中に題（`title--order-2`・`ui.challenge.title`）・カテゴリのボタン列 `challenge-categories`（アンカー `challenge.categories`。`UiGroup(UiGap.Md)`＋`ui-group--nowrap`）・`NodeGraphView`（`challenge-viewport`・`challenge-canvas`。残りの高さいっぱい） | `ChallengeListViewTest`（L1）の 3 件が緑。並べ比べ（R-11） |
+| R-6 | カテゴリのボタン: 各カテゴリに `FormButton("challenge-category-<guid>", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), …)`。選んだカテゴリは `Filled`、他は `Subtle`。押すと `IChallengeListCommands.SelectCategory(guid)` | `ChallengeListViewportTest`（押下で選択の操作が 1 回出て、選んだカテゴリが Filled）が緑 |
+| R-7 | ノードカード: 根は `PaperSurface("challenge-node-<guid>")`（面 `--paper-face`・角丸 `--paper-radius`）に幅 240px・内側の余白 `--mantine-spacing-sm`・`translate: -50% -50%`、倍率は `style.scale = (UIScale.x, UIScale.y)`。中は名前（`text--md`＋`text--bold`）・概要（`text--sm`）・状態（`text--xs`。`ui.challenge.stateLocked/stateCurrent/stateCompleted`）の縦積み。未解放は不透明度 0.55、進行中は `--mantine-color-blue-5`・完了は `--mantine-color-green-6` の 2px の輪（Web の outline を拾わない子で写す）。高さは中身なり（包みの高さ 0 で潰れない。S4-research の事後承認）。アンカー `challenge.node-<guid>`。指のカーソルは付けない（Web に `cursor: pointer` もタップも無い） | `ChallengeListViewTest`「カードは中身なりの高さで…」が緑 |
+| R-8 | 層と表示: 一覧は `OverlayPanel`/`Stage` 層。表示は `UiScreen.ChallengeList` のときだけ。進行中チャレンジ HUD（`Chrome` 層。S2-hud の持ち物）は一覧を開いても同じ位置・寸法のまま、一覧の上端とカテゴリのボタンより上に出て、中心の当たりが HUD 自身 | `ChallengeHudOverListTest`（L1。`challenge.spec.ts`「常駐HUDを…維持する」の一覧の部分）が緑 |
+| R-9 | 常駐 HUD の画面を跨ぐ契約: ゲーム画面で測った HUD の位置・寸法のまま、インベントリ・チャレンジ一覧・研究・ビルドメニュー・ポーズ・配置モード・削除モードで出続け、上の安全帯のあるメニュー（インベントリ・一覧・ビルドメニュー・ポーズ）では中身より上、配置 HUD と横に分かれ、削除の上の帯より下。1024×576 でも同じ論理の位置で、インベントリより上 | 録画 `uitk-challenge-hud-resident` の `result.json` が `Success: true` |
+| R-10 | アンカー: `challenge.panel`・`challenge.categories`・`challenge.node-<guid>` に印を付け、`TutorialAnchorCoveragePending` の S5-challenge の 3 行を同じ PR で消す | `TutorialAnchorCoverageTest` が緑。録画で先頭カテゴリの全ノード・枠・カテゴリ列のアンカーが Unique |
+| R-11 | 並べ比べ: 参照 `5-challenge-list`（`web-8a585f742a`・`web-8a585f742a-2560x1080`）と、録画 `uitk-challenge-list` の中で撮った UITK（1280×720・2560×1080）を並べ、差の表を `done.md` に書く | 組が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれか |
+| R-12 | 録画: 新しい `uitk-challenge-list`（T で開く・進行中へ中央寄せ・2560×1080 でも中央・アンカー・カードが中身なりの高さ・HUD が一覧より上・パンして T で閉じて T で開き直しても視点が残る・一覧の上の右短押しでは閉じない・Tab でインベントリ）と `uitk-challenge-hud-resident`（R-9） | 2 本の `result.json` が `Success: true`、録画 mp4、Note の `系=GameUi` |
+| R-13 | 登録: `Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs`（直下は 10 ファイルで上限なのでサブディレクトリ）、`MainGameUiRegistration` の画面登録区画に 1 行、`GameUiTheme.tss` の `Screens` 区画に `@import` 1 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が緑 |
+| R-14 | テストの名前: 写した 5 件に `<web-test>`。このレーンの持ち分（challenge.spec の 3 件・challengeLogic.test の 2 件）は処遇の行を足さない | `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing` で持ち分の未対応 0。終了コードが 2 でない |
+| R-15 | 記帳: 台帳の「## 見た目の例外」に LX-200（カテゴリ列の横スクロール）、「## 実測の結論」の末尾にカードの高さの実測 1 行。設計書 §7.1 の A-240・A-241 の本文は `done.md` の「integrator への依頼」へ（指揮が設計書へ写す） | `LookExceptionLedgerTest` が緑。`done.md` に A 行の本文 |
+| R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → Editor を閉じる・bd を閉じる・`done.md` → `cmux wait-for -S uitk-s5-challenge` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
+
+**やらないこと（スコープ境界）**
+
+- 部品（`NodeGraphView`・`PaperSurface`・`FormButton`・`LocalizedLabel`）と Foundation（`UiGroup`・`UiLayer`・`UiScreenTraits`・`TutorialAnchor`・`AnchorIds`・`UiPickingIgnore`・Tokens/DerivedTokens/Typography）は変えない。足りなければ `done.md` の「integrator への依頼」に書く。`NodeGraphView.uss` は S4-research が直した形のまま使い、事後承認を記録するだけ
+- 進行中チャレンジ HUD（`Client.Ui/Screens/Challenge/CurrentHud/`・`Client.Ui.State/Challenge/CurrentChallengeHud*`。S2-hud の持ち物）と `ChallengeProgressState` は触らない。HUD の L1 は既存の View を載せて見るだけ
+- 画面の遷移（`ChallengeListState`・`GameScreenState` の T キー）とキーヒント（`ChallengeListStateHints`）は触らない（Client.Game。UI の系を読まない）
+- ラダー `uitk-challenge-gate`（S5-ladder）・束 5 の `状態` の切り替え・`TutorialAnchorCoveragePending.cs` の削除（S5-ladder）は持たない
+- Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない
+- 横スクロールのカテゴリ列（Web `overflow-x: auto`）は作らない（LX-200。新しい共有部品になるため。D-7）
+- L3（EditModeInPlayingTest）は持たない（段の締め S5-ladder）
+
+## Global Constraints
+
+- **作業場所**: 指揮が `moores-wt new uitk-lane/s5-challenge --from origin/feature/uitk` で用意した worktree（Editor 要）。最初に `pwd` で worktree にいることを確かめる。略記: `S` = `moorestech_client/Assets/Scripts`、`W` = `moorestech_web/webui`、`SK` = `.agents/skills/unity-playmode-recorded-playtest`、`LOGS` = `../moorestech_logs`（この Mac mini では `../moorestech_logs`）、`REF` = `$LOGS/uitk/reference-captures`
+- **Unity**: Mac mini で同時に動かす Unity Editor は全体で 1 本（このレーンの worktree の 1 本）。起動・停止の前に `moores-wt status` で所有を確かめ、他者の Editor を落とさない。2 本目が要る作業（並列のテスト・録画の並走）は Windows（RTX2060）の `~/bin/winunity`（`compile`・`test`・`play` を ssh で回し `~/.cache/winunity/runs/` へ回収。push 済みのブランチが前提）。subagent は Editor を起動しない（本体が起動して compile の疎通を見てから渡す）
+- **実装**: moores-subagent-driven-development で、このホストの Claude Code の subagent（opus）が行う。subagent への依頼文には「バックグラウンドのポーリングで待たず全部前景で実行する」「区切りごとにコミットする」を書く
+- **依存（マージ済み）**: C4-d（`NodeGraphView`）・C2-a（`PaperSurface`）・C2-b（`FormButton`）・S4-research（前例の画面・`NodeGraphView.uss` の修正 9a58258265）・S2-hud（`CurrentChallengeHudView`）
+- **使う部品と公開 API**（`origin/feature/uitk` 9c83052273 の実物から写した。`S/` 相対）
+
+```csharp
+// ===== Components =====
+namespace Client.Ui.Components.NodeGraph
+{
+    public sealed class NodeGraphView : VisualElement                                    // Components/NodeGraph/NodeGraphView/NodeGraphView.cs
+    {
+        public IObservable<string> OnNodeTapped { get; }                                   // :38（チャレンジは使わない）
+        public IObservable<NodeGraphViewport> OnViewportChanged { get; }                   // :39 中央寄せ・パン・ズーム・寸法の追従のたびに流す
+        public NodeGraphView(string testIdPrefix, IUiOsCursor osCursor);                   // :41 name = "<prefix>-viewport"、キャンバス "<prefix>-canvas"。:49 で TutorialAnchor.MarkClipContainer(this) 済み
+        public void SetGraph(NodeGraphContent content);                                    // :66 注目点への中央寄せはインスタンスにつき 1 回だけ
+        public void RestoreViewport(NodeGraphViewport viewport);                           // :73 以後の中央寄せと寸法の追従を止める。値は流さない。載せる前に呼ぶ（C4-d D-22）
+    }
+    public sealed class NodeGraphContent { public NodeGraphContent(IReadOnlyList<NodeGraphNode> nodes, NodeGraphFocus initialFocus); }   // Graph/NodeGraphContent.cs:14
+    public sealed class NodeGraphNode { public NodeGraphNode(string key, Vector2 treePosition, IReadOnlyList<string> previousKeys, VisualElement card); } // Graph/NodeGraphNode.cs:22 座標は Y 上向き。グラフに無い親のキー・重なったキーは LogError
+    public readonly struct NodeGraphFocus { public static NodeGraphFocus None { get; } public static NodeGraphFocus At(Vector2 treePoint); } // Graph/NodeGraphFocus.cs:20-22
+    public readonly struct NodeGraphViewport { public float X { get; } public float Y { get; } public float Scale { get; } public NodeGraphViewport(float x, float y, float scale); } // Viewport/NodeGraphViewport.cs:9-13
+}
+// NodeGraphView.uss（S4-research 後）: .node-graph { --node-graph-clip-inset: var(--tutorial-anchor-clip-inset); flex-grow 1; min-height 0; overflow hidden }・.node-graph__node { position absolute; width 0; align-items flex-start }・.node-graph__node > * { flex-shrink 0 }（カードの根で flex-shrink を書かない。C4-d D-23(1)）
+namespace Client.Ui.Components.Panels
+{
+    public sealed class PaperSurface : VisualElement { public PaperSurface(string testid); } // Components/Panels/PaperSurface/PaperSurface.cs:15。name = testid・.paper-surface（面 var(--paper-face)・角丸 var(--paper-radius)。枠なし・文字色は継承）
+}
+namespace Client.Ui.Components.Controls
+{
+    public sealed class FormButton : Button                                                // Components/Controls/FormButton/FormButton.cs
+    {
+        public const string FilledUssClassName = "form-button--filled";                  // :22
+        public const string SubtleUssClassName = "form-button--subtle";                  // :24
+        public IObservable<Unit> OnClicked { get; }                                        // :30
+        public FormButton(string testid, UiText label, FormButtonVariant variant);         // :32 高さ 36・左右 18・文言は LocalizedLabel（text--medium）
+        public void SetVariant(FormButtonVariant variant);                                 // :62
+    }
+    public enum FormButtonVariant { Filled, Danger, Subtle }                               // FormButtonVariant.cs:7（Subtle は面透明・文字 --mantine-color-blue-light-color）
+}
+// ===== Foundation =====
+namespace Client.Ui.Foundation.Layout
+{
+    public sealed class UiGroup : UiGapContainer { public UiGroup(UiGap gap); }            // Foundation/Layout/UiGroup.cs:19（横並び・縦中央・gap は子の margin。行頭行末に gap なし）
+    public abstract class UiGapContainer : VisualElement { public void AddItem(VisualElement item); public void ClearItems(); } // UiGapContainer.cs:43・61
+    public enum UiGap { None, Px2, Px4, Xs, Sm, Md, Lg, Xl }                               // UiGap.cs:9
+    public static class UiLayoutClass { public const string GroupNoWrap = "ui-group--nowrap"; } // UiLayoutClass.cs:12
+}
+namespace Client.Ui.Foundation.Text
+{
+    public class LocalizedLabel : Label { public LocalizedLabel(); public void SetText(UiText text); } // LocalizedLabel.cs:30・46（言語の変化で解決し直す。text の頭に <line-height> を前置する）
+    public static class UiTypographyClass { TextXs = "text--xs"; TextSm = "text--sm"; TextMd = "text--md"; TextBold = "text--bold"; TitleOrder2 = "title--order-2"; } // UiTypographyClass.cs:10-23
+}
+namespace Client.Ui.Foundation.Anchor { public static class TutorialAnchor { public static void Mark(VisualElement element, params string[] ids); } }   // TutorialAnchor.cs:14
+namespace Client.Ui.Foundation.Input { public static class UiPickingIgnore { public static void ApplyToSubtree(VisualElement root); } }            // UiPickingIgnore.cs:15
+namespace Client.Ui.Foundation.Input.OsCursor { public interface IUiOsCursor { } public sealed class UiOsCursorRequestStack : IUiOsCursor { } }
+namespace Client.Ui.Foundation.Root { public sealed class GameUiRoot : MonoBehaviour { public VisualElement GetLayer(UiLayer layer, UiFamily family); } } // GameUiRoot.cs:48
+namespace Client.Ui.Foundation.Layers { public sealed class UiLayerStack { public static UiLayerStack Build(VisualElement root); public VisualElement GetLayer(UiLayer layer, UiFamily family); } } // UiLayerStack.cs:25・57
+// UiLayer.OverlayPanel（Web --z-stage-overlay-panel）・UiLayer.Chrome・UiFamily.Stage・UiFamily.Viewport（Client.Ui.Foundation.Layers・Client.Ui.Foundation.Stage）
+// AnchorIds.ChallengePanel = "challenge.panel"・ChallengeCategories = "challenge.categories"・ChallengeNodePrefix = "challenge.node-"・ChallengeNode(string guid)（Client.Game.InGame.Tutorial.UIHighlight。AnchorIds.cs:24・25・43・59）
+// ===== State =====
+namespace Client.Ui.State.Text { public sealed class UiText { public UiText(LocalizationKey key); public static UiText FromContent(ContentLocalizationKey key); public static UiText FromVerbatim(string text); public string Resolve(); } } // UiText.cs:34・49・56・77
+// ContentLocalizationKeys.ChallengeTitle(Guid)・ChallengeSummary(Guid)・ChallengeCategoryName(Guid)、LocalizationKeys.Ui.Challenge.Title・StateLocked・StateCurrent・StateCompleted（Mooresmaster.Localization.Generated。localization.csv 88-91 行に既存）
+namespace Client.Ui.State.Challenge
+{
+    public sealed class ChallengeProgressState : IInitializable                           // Client.Ui.State/Challenge/ChallengeProgressState.cs（両系で登録済み）
+    {
+        public IReadOnlyList<ChallengeCategoryResponse> Categories { get; private set; }  // :21 初期は握手の応答、完了の知らせで全量を置き換える
+        public IObservable<Guid> OnChallengeCompleted { get; }                             // :22 Categories を置き換えた後に流す
+    }
+}
+// Client.Network.API.ChallengeCategoryResponse（Client.Network/API/Responses.cs:71）: Category（ChallengeCategoryMasterElement: CategoryGuid・Challenges〈ChallengeMasterElement: ChallengeGuid・PrevChallengeGuids・DisplayListParam.UIPosition〈Vector2〉・UIScale〈Vector3〉〉）・IsUnlocked・CurrentChallenges・CompletedChallenges
+namespace Client.Ui.State.Routing
+{
+    public sealed class UiRoutingState { public IReadOnlyReactiveProperty<UiRoutingSnapshot> Current { get; } }   // UiRoutingState.cs:15
+    public sealed class UiRoutingSnapshot { public UiScreen Screen { get; } }
+    // UiScreen.ChallengeList。UiScreenTraitsTable の行は (grab F, pause F, skitInput T, backdrop T, alwaysOnHud T, trainHud F, collapse F, covers F)（UiScreenTraits.cs:60）
+}
+// ===== 前例（読むだけ）=====
+// 画面: Client.Ui/Screens/Research/ResearchTreePresenter.cs・ResearchTreeView.cs・Parts/ResearchNodeCard.cs・Parts/ResearchNodeCardSet.cs
+// State: Client.Ui.State/Research/Tree/ResearchSelectionStore.cs・ResearchSelection.cs・ResearchTreeModel.cs、Client.Ui.State/BuildMenu/Session/BuildMenuSessionStore.cs
+// 登録: Client.Starter/Registration/GameUi/Screens/ResearchGameUiRegistration.cs
+// L1: Client.Tests/Ui/Screens/Research/ResearchTreeViewportTest.cs（Drag・EmptyBackgroundPoint・Settle）・ResearchScreenTestKit.cs、Client.Tests/Ui/Screens/Challenge/CurrentChallengeHudLayoutTest.cs（ThemeTokenFile.ResolvePixels）
+// 録画: SK/scenarios/uitk/uitk-research-tree.cs・uitk-mode-hud-and-tooltip.cs・uitk-gameview-resolution-switch.cs
+```
+
+- **画面だけの部品の置き場**: `S/Client.Ui/Screens/Challenge/Parts/`（設計書 §2.7「1 feature だけが使うもの」。C4-d 計画の「チャレンジのノードカードは S5-challenge が `Screens/Challenge/Parts/` に作る」）
+- **つまみの上書き**: Web の `features/challenge/style.module.css` に局所の上書き変数は無いので、画面 USS は新しいつまみを宣言しない。値は既存のトークン（`--menu-upper-safe-area`・`--mantine-color-dark-8`・`--mantine-spacing-md`・`--mantine-spacing-sm`・`--mantine-color-blue-5`・`--mantine-color-green-6`）を `var()` で引く。`--paper-face`・`--paper-radius` は上書きしない（Web は Paper の既定のまま）
+- **USS**: 色リテラル・`z-index`・構造擬似クラス・合成太字は書かない（`UiStyleConventionTest`）。`opacity` の数値・寸法の px は可。Web の CSS を写した行は `/* web: … */` の出所を付ける
+- **コード**: 1 ファイル 200 行以下・1 ディレクトリ 10 ファイル以下・`partial` 禁止・`Func<>` 禁止・イベントは UniRx・try-catch 禁止・主要な処理に日本語→英語の 2 行コメント・`#region Internal` はメソッド内のローカル関数だけ・null チェックは外部データだけ・黙って続行する分岐には `silent-ok: <理由> / <誰がどこで気づくか>`
+- **全体スイッチ**: Editor で GameUi を動かすときは PlayMode を止めた状態で `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'` を実行してから起動・録画する。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）
+- **参照キャプチャ**: `REF/web-8a585f742a/5-challenge-list.png`（1280×720）・`REF/web-8a585f742a-2560x1080/5-challenge-list.png`（2560×1080。座標は `x' = 320 + 1.5x`・`y' = 1.5y`）。状態の出所は `W/e2e/uitk-reference/referenceShots.ts:114`（controls: topic `challengeActive`・ui `ChallengeList`、steps visible `challenge-panel`）。mock-host のデータ（`W/e2e/mock-host/fixtures/presentationFixtures.ts` の challengeTree: Basics〈First Craft 完了 (0,0)・Second Step 進行中 (220,0)〉・Logistics）なので、UITK の撮影（実マスタ）とはカテゴリ数・名前・ノード数が違う。差の表はデータの違いを「捨てる」とし、位置・寸法・色・装飾・段組を比べる。参照の実測（1280×720）: 一覧の上端 y=168、地 (31,31,31)、題の上端 y≈184、ボタンの列 y=219〜255（高さ 36）、Basics は x=16〜96、Logistics の字頭 x≈130、ビューポートの中心 (640, 479.5)、カードは幅 240・高さ約 86（面 (36,36,36)）、完了の輪 (64,192,87)・進行中の輪 (51,154,240) が 2px、2 枚は隣接し後のカードの輪が前のカードの上に重なる
+- **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S5-challenge/` に置き、`LOGS` へ入れない。`LOGS` へ書く前に `LOGS/README.md` を読む
+- **報告**: `LOGS/harness/uitk/S5-challenge/done.md`（1 行目「状態: 完了」。止まるときは「状態: 停止（理由）」）。節は「証拠」「差の表」「要裁定」「integrator への依頼」「未確認」
+- **共有区画は追記だけ**: `GameUiTheme.tss` の `/* == section: Screens == */`（末尾に 1 行）・`MainGameUiRegistration.cs` の画面登録区画（末尾に 1 行）と `using` の 1 行・`docs/uitk/TODO.md` の「## 見た目の例外」「## 実測の結論」の末尾。衝突は両方の行を採る
+
+## 設計検査記録
+
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+
+## 死活表（Phase 2.5）
+
+全体スイッチ UITK（`UiInputExclusivity.ActiveUiSystem == GameUi`）で起動したとき、Web の系で動いていたチャレンジ一覧の振る舞いが生きるか。Web の橋（`ChallengeTreeTopic`）は Web の系でだけ登録され、源の `ChallengeProgressState` は両系で登録済み（`MainGameUiStateRegistration`）。
+
+| 振る舞い | GameUi で生きるか | 根拠 |
+|---|---|---|
+| T キーで一覧を開く・T／ESC で閉じる・Tab でインベントリへ | 生きる（このレーンの外） | `GameScreenState`・`ChallengeListState` の遷移は Client.Game で UI の系を読まない。View は経路（`UiRoutingState`）で `SetShown` するだけ（Task 5） |
+| 一覧の外（上の 168px の世界）の右短押しで閉じる・一覧の上では閉じない | 生きる | `ChallengeListState` が `UiPointerHitTest.IsPointerOverAnyUi` で判定（既存）。一覧の根と `NodeGraphView` は拾う（Task 3）。録画の流れで一覧の上の右短押しで閉じないことを見る（Task 6） |
+| 解放済みのカテゴリのボタン列と選択 | 生きる | `ChallengeListViewModelFactory`（`IsUnlocked` だけ）→ `ChallengeCategoryButtons`（Task 1・3） |
+| カテゴリの初回訪問だけ進行中へ寄せ、再訪・開き直しで前回の視点（裁定 2026-11-04） | 生きる | カテゴリごとの作り直し＋`ChallengeViewportSessionStore`＋`RestoreViewport`（Task 2・3。L1 は Task 4） |
+| パン・ズーム・慣性 | 生きる | C4-d の `NodeGraphView`（部品の L1 は C4-d 済み） |
+| 完了の知らせで状態が変わる（表示中） | 生きる | `ChallengeProgressState.OnChallengeCompleted` → `ChallengeListModel` が組み直す（Task 2）。閉じている間の変化は次の突入で組む |
+| カードの 3 状態・輪・減光・中身なりの高さ | 生きる | `ChallengeNodeCard`・`ChallengeList.uss`（Task 3。L1） |
+| チュートリアルの強調（`challenge.panel`・`challenge.categories`・`challenge.node-<guid>`） | S2-tutorial の描き手で生きる | 印を付け（Task 3）、`TutorialAnchorCoveragePending` の 3 行を消す。切り口の印は `NodeGraphView` が自分で付けている（`NodeGraphView.cs:49`） |
+| 進行中チャレンジ HUD が一覧に遮られない・一覧の上に出る | 生きる | HUD は `Chrome` 層（上）、一覧は `OverlayPanel` 層。L1（Task 4）と録画（Task 6） |
+| 一覧の中でホットバー・キーヒントが出る | 生きる（持ち主は各 HUD） | `UiScreenTraits.AlwaysOnHud` が `ChallengeList` で true。描くのは S3-hotbar・S2-hud（参照にも写る） |
+| 言語の切り替え | 生きる | 文言はすべて `LocalizedLabel`（`FormButton` の中も）で、自分で解決し直す。Model は言語で組み直さない（D-12） |
+
+---
+
+## 申し送りの処遇
+
+`LOGS/harness/uitk/*/done.md` と `conductor.md` を `S5-challenge\|チャレンジ一覧\|ChallengePanel` で grep した、このレーン宛ての依頼の全件。
+
+| 出所 | 依頼（要旨） | 処遇 |
+|---|---|---|
+| conductor.md:126・131（11-11 05:37 節）・S4-research/done.md:91 | `NodeGraphView.uss` の `.node-graph__node { height: 0 }` 削除を事後承認する。チャレンジのカードも同じ故障を受けるはず | 受ける。カードが中身なりの高さ（上下の余白 24＋3 行）で描かれることを `ChallengeListViewTest`（Task 3）で固定し、承認を D-4 と設計書 A-241 の本文案に残す。部品の USS は変えない |
+| C4-d 計画 L100-104 の申し送り (1)・D-22 | 視点の保持は画面の State の Session（素の値）に置き、`OnViewportChanged` の最後の値を控えて、作り直した `NodeGraphView` へ載せる前に `RestoreViewport` で渡す（チャレンジはカテゴリごとに 1 つ） | 受ける（D-1。Task 2・3） |
+| C4-d 計画 申し送り (2)・D-5 | グラフに無い親のキーは LogError なので、別カテゴリの前提のキーを `PreviousKeys` から除く（Web は黙って省く） | 受ける（D-3。`ChallengeCategoryViewModel.Create`。L0 で固定） |
+| C4-d 計画 D-23(1)・L100 | カードの根で `flex-shrink` を書かない。カードの根は `PickingMode.Position`。中心寄せ `translate(-50%,-50%)` と `scale(UIScale)` はカード側 | 受ける（Task 3 の USS と `ChallengeNodeCard`） |
+| C4-d/done.md:67 | カードの指カーソルは `new UiOsCursorHoverRequest(card, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element)` で当てる | 適用しない。Web の `ChallengeNodeCard` は `cursor: pointer` を持たず、`TreeView` に `onNodeTap` も渡さない（パンの grab を継ぐ）。研究のカードだけの申し送り（D-5） |
+| S2-hud/done.md:135・PLAN-W2a/done.md:27 | `challenge.spec.ts` の「常駐HUDをインベントリ・メニュー・操作モードで維持する」と画面 2 件は S5-challenge が写す | 受ける。一覧の部分は L1（`ChallengeHudOverListTest`）に `<web-test>` を付け、画面を跨ぐ部分は録画 `uitk-challenge-hud-resident`（D-9） |
+| C4-d/done.md（参照の実測） | `5-challenge-list.png` の地 (460,280)=#1f1f1f、2 枚のカードは隣接し線は隠れる | 並べ比べの前提として Global Constraints の参照の実測に入れた（Task 7） |
+| S4-research 計画 D-9 | `NodeGraphView` の切り口に `TutorialAnchor.MarkClipContainer` を付ける（2 機能が使う） | 済み（`NodeGraphView.cs:49`）。このレーンは何もしない |
+| I-fix5 計画 10i | `NodeGraphView.uss` の事後承認の申し送り（文書項目） | 上の 1 行目と同じ。I-fix5 が文書を直しても、このレーンの L1 と A-241 の本文案はそのまま |
+
+## File Structure
+
+| パス | 責務 | 新規／変更 |
+|---|---|---|
+| `S/Client.Ui.State/Challenge/Tree/ChallengeNodeState.cs` | ノードの 3 状態 | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/ChallengeNodeCardViewModel.cs` | カード 1 枚の表示（GUID・座標・倍率・前提・状態） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/ChallengeCategoryViewModel.cs` | カテゴリ 1 つ（同じカテゴリの前提だけ残す・注目点） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/ChallengeListViewModel.cs` | 一覧の表示（カテゴリの列・選んだカテゴリ） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/ChallengeListLogic.cs` | 注目点（Web `challengeLogic.ts`） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/ChallengeListViewModelFactory.cs` | 応答の列 → ViewModel（Web `ChallengeDtoBuilder.BuildTree` と同じ規則） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/ChallengeListModel.cs` | 表示中だけ組み直して配る | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelection.cs` | カテゴリの選択（無いことを型で持つ） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelectionStore.cs` | 選択の持ち主（一覧を離れたら無し） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/Selection/IChallengeListCommands.cs` | 画面からの操作（カテゴリを選ぶ） | 新規 |
+| `S/Client.Ui.State/Challenge/Tree/Selection/ChallengeListCommands.cs` | 操作の実装（選択ストアへ） | 新規 |
+| `S/Client.Ui.State/Challenge/Session/ChallengeViewportSnapshot.cs` | 視点の素の値（x・y・倍率） | 新規 |
+| `S/Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore.cs` | カテゴリごとの視点（寿命はゲーム） | 新規 |
+| `S/Client.Ui/Screens/Challenge/ChallengeList.uss` | 一覧の枠・カテゴリ列・カードの見た目 | 新規 |
+| `S/Client.Ui/Screens/Challenge/ChallengeListView.cs` | 一覧の枠（題・カテゴリ列・グラフの置き場） | 新規 |
+| `S/Client.Ui/Screens/Challenge/ChallengeListPresenter.cs` | 1 回載せ、経路で表示、Model で描く | 新規 |
+| `S/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCard.cs` | カード 1 枚（`PaperSurface` の根の持ち手） | 新規 |
+| `S/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCardSet.cs` | カードを GUID で使い回し、グラフの中身を組む | 新規 |
+| `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs` | カテゴリのボタン列 | 新規 |
+| `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs` | カテゴリごとの `NodeGraphView` の作り直しと視点の控え・復元 | 新規 |
+| `S/Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs` | 登録 | 新規 |
+| `S/Client.Starter/Registration/MainGameUiRegistration.cs` | `using` 1 行・画面登録区画 1 行 | 変更 |
+| `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | `Screens` 区画に `@import` 1 行 | 変更 |
+| `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | S5-challenge の 3 行を消す（表は空） | 変更 |
+| `S/Client.Tests/Ui/State/Challenge/ChallengeListLogicTest.cs` | L0（Web 2 件） | 新規 |
+| `S/Client.Tests/Ui/State/Challenge/ChallengeListViewModelFactoryTest.cs` | L0（工場 3 件） | 新規 |
+| `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListScreenTestKit.cs` | L1 の共通材料 | 新規 |
+| `S/Client.Tests/Ui/Screens/Challenge/Tree/RecordingChallengeListCommands.cs` | 操作の記録 | 新規 |
+| `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewTest.cs` | L1（翻訳済み表示・カードの見た目・空） | 新規 |
+| `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewportTest.cs` | L1（中央寄せとカテゴリ切替・再訪・開き直し） | 新規 |
+| `S/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeHudOverListTest.cs` | L1（常駐 HUD と一覧） | 新規 |
+| `SK/scenarios/uitk/stage5/uitk-challenge-list.cs` | 録画（画面と比較の撮影） | 新規 |
+| `SK/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs` | 録画（HUD の画面を跨ぐ契約） | 新規 |
+| `docs/uitk/TODO.md` | 「## 見た目の例外」に LX-200、「## 実測の結論」の末尾に 1 行 | 変更（追記） |
+| `LOGS/harness/uitk/S5-challenge/done.md` | 作業報告 | 新規（moorestech_logs） |
+
+ディレクトリのファイル数: `Challenge/Tree/` 7・`Tree/Selection/` 4・`Session/` 2・`Screens/Challenge/` 3（＋既存の `CurrentHud/`）・`Parts/` 4・`Registration/GameUi/Screens/Challenge/` 1（直下は既に 10）・`Client.Tests/Ui/State/Challenge/` 2（`Ui/State/` 直下は既に 10）・`Client.Tests/Ui/Screens/Challenge/Tree/` 5。名前空間に `List` を使わない（`Tree` にする。`List<T>` と読み違えないため。研究の `Research.Tree` と揃える）。
+
+**写すテスト（5 件）**
+
+| Web | 件 | NUnit | 層 |
+|---|---|---|---|
+| `src/features/challenge/challengeLogic.test.ts`「進行中(current)のノードを返す」「進行中が無ければ寄せない」 | 2 | `ChallengeListLogicTest` の 2 件 | L0 |
+| `e2e/tests/challenge.spec.ts`「チャレンジ画面が開きツリーだけを翻訳済み表示する」 | 1 | `ChallengeListViewTest.チャレンジ画面が開きツリーだけを翻訳済み表示する` | L1 |
+| `e2e/tests/challenge.spec.ts`「チャレンジ画面は進行中のチャレンジを中央にして開き、カテゴリ切替でもその進行中へ寄せる」 | 1 | `ChallengeListViewportTest.進行中のチャレンジを中央にして開きカテゴリ切替でもその進行中へ寄せる` | L1 |
+| `e2e/tests/challenge.spec.ts`「常駐HUDをインベントリ・メニュー・操作モードで維持する」 | 1 | `ChallengeHudOverListTest.常駐HUDはチャレンジ一覧を開いても同じ位置のまま一覧とカテゴリより上に出る`（一覧の部分）＋録画 `uitk-challenge-hud-resident`（画面を跨ぐ部分） | L1＋録画 |
+
+タグの付かない L1/L0（裁定・事後承認・工場）: `ChallengeListViewTest` 2 件・`ChallengeListViewportTest` 2 件・`ChallengeListViewModelFactoryTest` 3 件。`challenge.spec.ts` の残り 4 件（HUD）は S2-hud が `CurrentChallengeHudStateTest` で写し済み。
+
+テストのフィルタ（以後 `$FILTER`）: `^Client\.Tests\.Ui\.(State\.Challenge|Screens\.Challenge\.Tree|Anchor|Conventions|Theme|Layers|Screens\.Challenge\.Current)`
+
+---
+
+## Tasks
+
+### Task 1: 前提の確認・記録の準備・State の ViewModel と論理（L0）
+
+**Files:**
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeNodeState.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeNodeCardViewModel.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeCategoryViewModel.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListViewModel.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListLogic.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListViewModelFactory.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelection.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeListLogicTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeListViewModelFactoryTest.cs`
+- Create: `LOGS/harness/uitk/S5-challenge/done.md`（雛形）
+
+**Interfaces:**
+- Consumes: `origin/feature/uitk`（C4-d・C2-a・C2-b・S4-research・S2-hud マージ済み）、Global Constraints の「使う部品と公開 API」
+- Produces:
+  - `enum ChallengeNodeState { Locked, Current, Completed }`（`Client.Ui.State.Challenge.Tree`）
+  - `ChallengeNodeCardViewModel(Guid guid, Vector2 treePosition, Vector2 scale, IReadOnlyList<Guid> previousGuids, ChallengeNodeState state)`・`Guid`・`TreePosition`・`Scale`・`PreviousGuids`・`State`
+  - `ChallengeCategoryViewModel.Create(Guid guid, IReadOnlyList<ChallengeNodeCardViewModel> nodes)`・`Guid`・`Nodes`・`bool TryGetInitialFocus(out Vector2 treePoint)`
+  - `ChallengeListViewModel.Empty`・`ChallengeListViewModel.Create(IReadOnlyList<ChallengeCategoryViewModel> categories, ChallengeCategorySelection selection)`・`Categories`・`bool TryGetSelectedCategory(out ChallengeCategoryViewModel category)`
+  - `ChallengeListLogic.TryFindInitialFocusNode(IReadOnlyList<ChallengeNodeCardViewModel> nodes, out ChallengeNodeCardViewModel focusNode)`
+  - `ChallengeListViewModelFactory.Create(IReadOnlyList<ChallengeCategoryResponse> responses, ChallengeCategorySelection selection)`
+  - `ChallengeCategorySelection.None`・`ChallengeCategorySelection.Of(Guid)`・`bool Is(Guid)`（`Client.Ui.State.Challenge.Tree.Selection`）
+  - bd のレーン ID（以下 `<bd>`）、`done.md` の雛形
+
+- [ ] **Step 1: 作業場所と部品の実物を確かめる**
+
+Run:
+```bash
+pwd
+git log -1 --format='%H %s' origin/feature/uitk
+S=moorestech_client/Assets/Scripts
+grep -n "public NodeGraphView(\|public void SetGraph(\|public void RestoreViewport(\|OnViewportChanged =>\|MarkClipContainer" $S/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.cs
+grep -n "height" $S/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.uss
+grep -n "public PaperSurface(" $S/Client.Ui/Components/Panels/PaperSurface/PaperSurface.cs
+grep -n "public FormButton(\|FilledUssClassName =\|SubtleUssClassName =\|public void SetVariant" $S/Client.Ui/Components/Controls/FormButton/FormButton.cs
+grep -n "public UiGroup(\|GroupNoWrap" $S/Client.Ui/Foundation/Layout/UiGroup.cs $S/Client.Ui/Foundation/Layout/UiLayoutClass.cs
+grep -n "ChallengePanel\|ChallengeCategories\|ChallengeNodePrefix\|ChallengeNode(" $S/Client.Game/InGame/Tutorial/UIHighlight/AnchorIds.cs
+grep -n "S5-challenge" $S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
+grep -n "ChallengeList" $S/Client.Ui.State/Routing/UiScreen.cs $S/Client.Ui.State/Routing/UiScreenTraits.cs
+grep -n "public IReadOnlyList<ChallengeCategoryResponse> Categories\|OnChallengeCompleted =>" $S/Client.Ui.State/Challenge/ChallengeProgressState.cs
+grep -n "ChallengeProgressState" $S/Client.Starter/Registration/*.cs
+grep -n "DisplayListParam.UIPosition\|DisplayListParam.UIScale" $S/Client.WebUiHost/Game/Topics/Challenge/ChallengeDtoBuilder.cs
+grep -n "^ui\.challenge\.\(title\|stateLocked\|stateCurrent\|stateCompleted\)," Localization/localization.csv
+grep -n "section: Screens" "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
+grep -n "menu-upper-safe-area:\|tutorial-anchor-clip-inset:" $S/Client.Ui/Foundation/Theme/Tokens.uss
+grep -n "mantine-color-dark-8:\|mantine-color-blue-5:\|mantine-color-green-6:\|mantine-color-body:\|mantine-spacing-sm:\|mantine-spacing-md:" $S/Client.Ui/Foundation/Theme/MantineTokens.uss
+grep -rn "\-\-paper-face\|\-\-paper-radius" $S/Client.Ui/Foundation/Theme/ | head -4
+ls $S/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l
+ls $S/Client.Tests/Ui/State/*.cs | wc -l
+ls -d SK/scenarios/uitk/*/ 2>/dev/null; ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ | head -40
+```
+Expected: worktree の絶対パス。`NodeGraphView.cs` の 5 行（:38/:39/:41/:49/:66/:73 付近）、`NodeGraphView.uss` に `height` の行が無い（S4-research の修正後）、`PaperSurface(string testid)`、`FormButton(string testid, UiText label, FormButtonVariant variant)` と 2 つの定数と `SetVariant`、`UiGroup(UiGap gap)` と `GroupNoWrap`、AnchorIds の 4 行、Pending の 3 行、`ChallengeList` の 2 行、`Categories` と `OnChallengeCompleted`、`MainGameUiStateRegistration` の登録、`UIPosition`・`UIScale` の 4 行、csv の 4 行、`section: Screens`、トークン 2 つ・6 つ・`--paper-*` の定義、`Registration/GameUi/Screens/*.cs` が 10、`Ui/State/*.cs` が 10、`scenarios/uitk/` の下の段のサブディレクトリの有無
+- どれかの依存が無ければ止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
+- 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く
+- `NodeGraphView.uss` に `height: 0` が戻っていたら止めて指揮へ（S4-research の修正が消えている）
+- `scenarios/uitk/` がすでに段ごとのサブディレクトリへ移っている（I-fix5 の 10n が先に入った）なら、そこに `stage5/` が無ければ作る。以後の録画のパスは `SK/scenarios/uitk/stage5/` のまま
+
+- [ ] **Step 2: bd を積み、done.md の雛形を置く**
+
+Run:
+```bash
+bd create "UITK S5-challenge: チャレンジ一覧（カテゴリのボタン列・ノードカード・視点の保持）を UITK へ" --parent moorestech-albof -t task -p 2
+bd update <bd> --claim
+mkdir -p ../moorestech_logs/harness/uitk/S5-challenge
+```
+`done.md` に次を書く（1 行目は終わるまで「状態: 作業中」）:
+```markdown
+状態: 作業中
+
+# S5-challenge 作業報告
+
+## 証拠
+## 差の表
+## 要裁定
+なし
+## integrator への依頼
+- 設計書 §7.1 に A-240・A-241 を足す（本文は計画 docs/superpowers/plans/2026-11-12-uitk-s5-challenge.md の判断記録 D-1・D-4。案は下の「設計書の行の本文」）
+- Registration/GameUi/Screens/ は直下 10 ファイルで上限。S5-challenge は Screens/Challenge/ のサブディレクトリに置いた。以後のレーンも直下へ足さず機能のサブディレクトリへ
+## 未確認
+```
+Expected: bd の ID が出る。以後 `<bd>` をその ID で読む
+
+- [ ] **Step 3: ViewModel と論理を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeNodeState.cs`:
+```csharp
+namespace Client.Ui.State.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジのノードの状態（Web の locked・current・completed）
+    /// Challenge node state (the Web locked, current and completed)
+    /// </summary>
+    public enum ChallengeNodeState
+    {
+        Locked,
+        Current,
+        Completed,
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeNodeCardViewModel.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Client.Ui.State.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジのカード1枚の表示（座標は Y 上向きのツリー座標・倍率はマスタの UIScale の x と y）
+    /// Display of one challenge card (Y-up tree position; scale is the master UIScale x and y)
+    /// </summary>
+    public sealed class ChallengeNodeCardViewModel
+    {
+        public Guid Guid { get; }
+        public Vector2 TreePosition { get; }
+        public Vector2 Scale { get; }
+        public IReadOnlyList<Guid> PreviousGuids { get; }
+        public ChallengeNodeState State { get; }
+
+        public ChallengeNodeCardViewModel(Guid guid, Vector2 treePosition, Vector2 scale, IReadOnlyList<Guid> previousGuids, ChallengeNodeState state)
+        {
+            Guid = guid;
+            TreePosition = treePosition;
+            Scale = scale;
+            PreviousGuids = previousGuids;
+            State = state;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListLogic.cs`:
+```csharp
+using System.Collections.Generic;
+
+namespace Client.Ui.State.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジ一覧の注目点。web: moorestech_web/webui/src/features/challenge/challengeLogic.ts
+    /// Challenge list focus; web: moorestech_web/webui/src/features/challenge/challengeLogic.ts
+    /// </summary>
+    public static class ChallengeListLogic
+    {
+        // 寄せ先は並びで最初の進行中。無ければ寄せない
+        // Focus the first in-progress node in order; none means no focus
+        public static bool TryFindInitialFocusNode(IReadOnlyList<ChallengeNodeCardViewModel> nodes, out ChallengeNodeCardViewModel focusNode)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.State != ChallengeNodeState.Current) continue;
+                focusNode = node;
+                return true;
+            }
+            focusNode = null;
+            return false;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeCategoryViewModel.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Client.Ui.State.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジのカテゴリ1つの表示（線は同じカテゴリの前提だけ）
+    /// Display of one challenge category (edges only to prerequisites in the same category)
+    /// </summary>
+    public sealed class ChallengeCategoryViewModel
+    {
+        public Guid Guid { get; }
+        public IReadOnlyList<ChallengeNodeCardViewModel> Nodes { get; }
+
+        private ChallengeCategoryViewModel(Guid guid, IReadOnlyList<ChallengeNodeCardViewModel> nodes)
+        {
+            Guid = guid;
+            Nodes = nodes;
+        }
+
+        public static ChallengeCategoryViewModel Create(Guid guid, IReadOnlyList<ChallengeNodeCardViewModel> nodes)
+        {
+            // カテゴリの中のキーを集める
+            // Collect the keys inside the category
+            var keys = new HashSet<Guid>();
+            foreach (var node in nodes) keys.Add(node.Guid);
+
+            // 別カテゴリの前提は線にしない（Web も描かない。NodeGraphView はグラフに無い親を LogError にするので渡す前に除く。C4-d D-5）
+            // Prerequisites in other categories get no edge (the Web draws none; NodeGraphView logs an error for a missing parent, so drop them first; C4-d D-5)
+            var linked = new List<ChallengeNodeCardViewModel>(nodes.Count);
+            foreach (var node in nodes)
+            {
+                var previous = new List<Guid>(node.PreviousGuids.Count);
+                // silent-ok: 別カテゴリの前提に線を引かないのは Web と同じ仕様 / L0 ChallengeListViewModelFactoryTest が除くことを固定する
+                foreach (var previousGuid in node.PreviousGuids) if (keys.Contains(previousGuid)) previous.Add(previousGuid);
+                linked.Add(new ChallengeNodeCardViewModel(node.Guid, node.TreePosition, node.Scale, previous, node.State));
+            }
+            return new ChallengeCategoryViewModel(guid, linked);
+        }
+
+        public bool TryGetInitialFocus(out Vector2 treePoint)
+        {
+            // 注目点は進行中のノードの座標
+            // The focus point is the in-progress node position
+            var found = ChallengeListLogic.TryFindInitialFocusNode(Nodes, out var node);
+            treePoint = found ? node.TreePosition : Vector2.zero;
+            return found;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelection.cs`:
+```csharp
+using System;
+
+namespace Client.Ui.State.Challenge.Tree.Selection
+{
+    /// <summary>
+    /// 選んだチャレンジのカテゴリ。無いことを型で持つ
+    /// The selected challenge category; absence is part of the type
+    /// </summary>
+    public sealed class ChallengeCategorySelection
+    {
+        public static readonly ChallengeCategorySelection None = new(false, Guid.Empty);
+
+        private readonly bool _hasCategory;
+        private readonly Guid _categoryGuid;
+
+        private ChallengeCategorySelection(bool hasCategory, Guid categoryGuid)
+        {
+            _hasCategory = hasCategory;
+            _categoryGuid = categoryGuid;
+        }
+
+        public static ChallengeCategorySelection Of(Guid categoryGuid)
+        {
+            return new ChallengeCategorySelection(true, categoryGuid);
+        }
+
+        public bool Is(Guid categoryGuid)
+        {
+            return _hasCategory && _categoryGuid == categoryGuid;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListViewModel.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Ui.State.Challenge.Tree.Selection;
+
+namespace Client.Ui.State.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジ一覧の表示（解放済みのカテゴリの列と選んだカテゴリ。等価なし）
+    /// Challenge list display (unlocked categories and the selected one; no equality)
+    /// </summary>
+    public sealed class ChallengeListViewModel
+    {
+        public static readonly ChallengeListViewModel Empty = Create(Array.Empty<ChallengeCategoryViewModel>(), ChallengeCategorySelection.None);
+
+        private readonly bool _hasSelected;
+        private readonly ChallengeCategoryViewModel _selected;
+
+        public IReadOnlyList<ChallengeCategoryViewModel> Categories { get; }
+
+        private ChallengeListViewModel(IReadOnlyList<ChallengeCategoryViewModel> categories, bool hasSelected, ChallengeCategoryViewModel selected)
+        {
+            Categories = categories;
+            _hasSelected = hasSelected;
+            _selected = selected;
+        }
+
+        public static ChallengeListViewModel Create(IReadOnlyList<ChallengeCategoryViewModel> categories, ChallengeCategorySelection selection)
+        {
+            // 選んだカテゴリが出ていればそれ、無ければ先頭（Web の find(...) ?? categories[0]）
+            // The selected category when listed, otherwise the first (the Web find(...) ?? categories[0])
+            foreach (var category in categories)
+            {
+                if (selection.Is(category.Guid)) return new ChallengeListViewModel(categories, true, category);
+            }
+            if (categories.Count == 0) return new ChallengeListViewModel(categories, false, null);
+            return new ChallengeListViewModel(categories, true, categories[0]);
+        }
+
+        public bool TryGetSelectedCategory(out ChallengeCategoryViewModel category)
+        {
+            category = _selected;
+            return _hasSelected;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListViewModelFactory.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Network.API;
+using Client.Ui.State.Challenge.Tree.Selection;
+using UnityEngine;
+
+namespace Client.Ui.State.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジの応答の列から一覧の表示を組む（規則は Web の橋 ChallengeDtoBuilder.BuildTree と同じ）
+    /// Builds the list display from challenge responses (same rules as the Web bridge ChallengeDtoBuilder.BuildTree)
+    /// </summary>
+    public static class ChallengeListViewModelFactory
+    {
+        public static ChallengeListViewModel Create(IReadOnlyList<ChallengeCategoryResponse> responses, ChallengeCategorySelection selection)
+        {
+            // 解放済みのカテゴリだけを受信順に写す
+            // Copy only unlocked categories in received order
+            var categories = new List<ChallengeCategoryViewModel>();
+            foreach (var response in responses)
+            {
+                // silent-ok: 未解放のカテゴリを出さないのは Web の橋と同じ仕様 / L0 ChallengeListViewModelFactoryTest が固定する
+                if (!response.IsUnlocked) continue;
+                categories.Add(ChallengeCategoryViewModel.Create(response.Category.CategoryGuid, BuildNodes(response)));
+            }
+            return ChallengeListViewModel.Create(categories, selection);
+
+            #region Internal
+
+            // マスタの順で、完了＞進行中＞未解放の状態と座標・倍率・前提を写す
+            // In master order, copy state (completed over current over locked), position, scale and prerequisites
+            List<ChallengeNodeCardViewModel> BuildNodes(ChallengeCategoryResponse response)
+            {
+                var completed = new HashSet<Guid>();
+                foreach (var challenge in response.CompletedChallenges) completed.Add(challenge.ChallengeGuid);
+                var current = new HashSet<Guid>();
+                foreach (var challenge in response.CurrentChallenges) current.Add(challenge.ChallengeGuid);
+
+                var nodes = new List<ChallengeNodeCardViewModel>();
+                foreach (var challenge in response.Category.Challenges)
+                {
+                    var guid = challenge.ChallengeGuid;
+                    var state = completed.Contains(guid) ? ChallengeNodeState.Completed : current.Contains(guid) ? ChallengeNodeState.Current : ChallengeNodeState.Locked;
+                    var param = challenge.DisplayListParam;
+                    var position = new Vector2(param.UIPosition.x, param.UIPosition.y);
+                    var scale = new Vector2(param.UIScale.x, param.UIScale.y);
+                    nodes.Add(new ChallengeNodeCardViewModel(guid, position, scale, challenge.PrevChallengeGuids, state));
+                }
+                return nodes;
+            }
+
+            #endregion
+        }
+    }
+}
+```
+（`PrevChallengeGuids` は `Guid[]`（`ChallengeMaster.cs:117` が `.Length` を読む）。マスタで省略されると null になりうるので、null なら `Array.Empty<Guid>()` を渡す: `challenge.PrevChallengeGuids ?? Array.Empty<Guid>()`。`silent-ok: 前提の省略は前提なしというマスタの仕様 / ChallengeMaster.cs:117 も同じ扱い` を同じ行に書く）
+
+- [ ] **Step 4: L0 を書く**
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeListLogicTest.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Ui.State.Challenge.Tree;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Client.Tests.Ui.State.Challenge
+{
+    /// <summary>
+    /// チャレンジ一覧の注目点（L0。Web の challengeLogic.test.ts）
+    /// Challenge list focus (L0; Web challengeLogic.test.ts)
+    /// </summary>
+    public class ChallengeListLogicTest
+    {
+        private static readonly Guid A = Guid.Parse("00000000-0000-0000-0000-00000000000a");
+        private static readonly Guid B = Guid.Parse("00000000-0000-0000-0000-00000000000b");
+        private static readonly Guid C = Guid.Parse("00000000-0000-0000-0000-00000000000c");
+
+        /// <web-test file="src/features/challenge/challengeLogic.test.ts">進行中(current)のノードを返す</web-test>
+        [Test]
+        public void 進行中のノードを返す()
+        {
+            var nodes = new[] { Node(A, ChallengeNodeState.Completed), Node(B, ChallengeNodeState.Current), Node(C, ChallengeNodeState.Locked) };
+            Assert.IsTrue(ChallengeListLogic.TryFindInitialFocusNode(nodes, out var focus));
+            Assert.AreEqual(B, focus.Guid);
+        }
+
+        /// <web-test file="src/features/challenge/challengeLogic.test.ts">進行中が無ければ寄せない</web-test>
+        [Test]
+        public void 進行中が無ければ寄せない()
+        {
+            var nodes = new[] { Node(A, ChallengeNodeState.Completed), Node(C, ChallengeNodeState.Locked) };
+            Assert.IsFalse(ChallengeListLogic.TryFindInitialFocusNode(nodes, out _));
+            Assert.IsFalse(ChallengeListLogic.TryFindInitialFocusNode(Array.Empty<ChallengeNodeCardViewModel>(), out _));
+        }
+
+        private static ChallengeNodeCardViewModel Node(Guid guid, ChallengeNodeState state)
+        {
+            return new ChallengeNodeCardViewModel(guid, Vector2.zero, Vector2.one, new List<Guid>(), state);
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge/ChallengeListViewModelFactoryTest.cs`:
+```csharp
+using System;
+using System.Linq;
+using Client.Network.API;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using Core.Master;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UnityEngine;
+
+namespace Client.Tests.Ui.State.Challenge
+{
+    /// <summary>
+    /// チャレンジの応答から一覧の表示を組む規則（L0。テスト mod の challenges.json）
+    /// Rules that build the list display from challenge responses (L0; test mod challenges.json)
+    /// </summary>
+    public class ChallengeListViewModelFactoryTest
+    {
+        private static readonly Guid Category1 = Guid.Parse("03ca4ded-3b2b-4e7f-bb6e-430f060c4ed1");
+        private static readonly Guid Category2 = Guid.Parse("35330f9d-f44f-493d-a6bc-07ae6413d7c4");
+        private static readonly Guid Test1 = Guid.Parse("00000000-0000-0000-4567-000000000001");
+        private static readonly Guid Test2 = Guid.Parse("00000000-0000-0000-4567-000000000002");
+        private static readonly Guid Test3 = Guid.Parse("00000000-0000-0000-4567-000000000003");
+        private static readonly Guid Test4 = Guid.Parse("00000000-0000-0000-4567-000000000004");
+        private static readonly Guid Research1 = Guid.Parse("00000000-0000-0000-4567-000000000101");
+        private static readonly Guid Category2First = Guid.Parse("c2d84cfb-73cb-4ffa-99b5-9703c550f330");
+
+        [SetUp]
+        public void LoadMaster()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
+
+        [Test]
+        public void 未解放のカテゴリを除きマスタの順で状態と座標と前提を写す()
+        {
+            var model = ChallengeListViewModelFactory.Create(new[] { Response(Category1, true, new[] { Test2 }, new[] { Test1 }), Response(Category2, false, new Guid[0], new Guid[0]) }, ChallengeCategorySelection.None);
+
+            // 未解放の Category2 は出ない。ノードはマスタの順
+            // Locked Category2 is absent; nodes follow master order
+            Assert.AreEqual(1, model.Categories.Count);
+            var nodes = model.Categories[0].Nodes;
+            var master = MasterHolder.ChallengeMaster.GetChallengeCategory(Category1).Challenges;
+            CollectionAssert.AreEqual(master.Select(c => c.ChallengeGuid).ToList(), nodes.Select(n => n.Guid).ToList());
+
+            // 完了・進行中・未解放
+            // Completed, current, locked
+            Assert.AreEqual(ChallengeNodeState.Completed, nodes.Single(n => n.Guid == Test1).State);
+            Assert.AreEqual(ChallengeNodeState.Current, nodes.Single(n => n.Guid == Test2).State);
+            Assert.AreEqual(ChallengeNodeState.Locked, nodes.Single(n => n.Guid == Test3).State);
+
+            // 座標と倍率はマスタの displayListParam、前提はマスタの prevChallengeGuids
+            // Position and scale come from the master displayListParam; prerequisites from prevChallengeGuids
+            var research1 = master.Single(c => c.ChallengeGuid == Research1).DisplayListParam;
+            Assert.AreEqual(new Vector2(research1.UIPosition.x, research1.UIPosition.y), nodes.Single(n => n.Guid == Research1).TreePosition);
+            Assert.AreEqual(new Vector2(research1.UIScale.x, research1.UIScale.y), nodes.Single(n => n.Guid == Research1).Scale);
+            CollectionAssert.AreEqual(new[] { Test1 }, nodes.Single(n => n.Guid == Test4).PreviousGuids);
+
+            // 注目点は進行中の座標
+            // The focus is the current node position
+            Assert.IsTrue(model.Categories[0].TryGetInitialFocus(out var focus));
+            Assert.AreEqual(nodes.Single(n => n.Guid == Test2).TreePosition, focus);
+        }
+
+        [Test]
+        public void 選択が無いか出ていないカテゴリなら先頭を選び出ていればそれを選ぶ()
+        {
+            var both = new[] { Response(Category1, true, new[] { Test2 }, new[] { Test1 }), Response(Category2, true, new[] { Category2First }, new Guid[0]) };
+            Assert.AreEqual(Category1, Selected(ChallengeListViewModelFactory.Create(both, ChallengeCategorySelection.None)));
+            Assert.AreEqual(Category2, Selected(ChallengeListViewModelFactory.Create(both, ChallengeCategorySelection.Of(Category2))));
+            Assert.AreEqual(Category1, Selected(ChallengeListViewModelFactory.Create(both, ChallengeCategorySelection.Of(Guid.NewGuid()))));
+
+            // 選んだカテゴリが未解放なら出ないので先頭、解放済みが無ければ選ばない
+            // A selected but locked category is absent so the first is used; with no unlocked categories nothing is selected
+            var lockedSecond = new[] { both[0], Response(Category2, false, new Guid[0], new Guid[0]) };
+            Assert.AreEqual(Category1, Selected(ChallengeListViewModelFactory.Create(lockedSecond, ChallengeCategorySelection.Of(Category2))));
+            var none = ChallengeListViewModelFactory.Create(new[] { Response(Category1, false, new Guid[0], new Guid[0]) }, ChallengeCategorySelection.None);
+            Assert.IsFalse(none.TryGetSelectedCategory(out _));
+        }
+
+        [Test]
+        public void 別カテゴリの前提は線のキーから除く()
+        {
+            var foreign = Guid.Parse("00000000-0000-0000-0000-00000000f00d");
+            var inside = new ChallengeNodeCardViewModel(Test1, Vector2.zero, Vector2.one, new Guid[0], ChallengeNodeState.Completed);
+            var crossing = new ChallengeNodeCardViewModel(Test2, new Vector2(220f, 0f), Vector2.one, new[] { Test1, foreign }, ChallengeNodeState.Current);
+            var category = ChallengeCategoryViewModel.Create(Category1, new[] { inside, crossing });
+            CollectionAssert.AreEqual(new[] { Test1 }, category.Nodes[1].PreviousGuids);
+            CollectionAssert.IsEmpty(category.Nodes[0].PreviousGuids);
+        }
+
+        private static ChallengeCategoryResponse Response(Guid category, bool unlocked, Guid[] current, Guid[] completed)
+        {
+            var master = MasterHolder.ChallengeMaster;
+            return new ChallengeCategoryResponse(master.GetChallengeCategory(category), unlocked, current.Select(master.GetChallenge).ToList(), completed.Select(master.GetChallenge).ToList());
+        }
+
+        private static Guid Selected(ChallengeListViewModel model)
+        {
+            Assert.IsTrue(model.TryGetSelectedCategory(out var category));
+            return category.Guid;
+        }
+    }
+}
+```
+
+- [ ] **Step 5: コンパイルしテストを実行して通ることを確かめる**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.State\.Challenge\."`
+Expected: ErrorCount 0 / 5 件 PASS
+
+- [ ] **Step 6: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Challenge
+git commit -m "feat(uitk): S5-challenge のチャレンジ一覧の ViewModel・注目点・工場と L0"
+```
+
+---
+
+### Task 2: 選択・操作・視点の保持・Model（`Client.Ui.State/Challenge`）
+
+**Files:**
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelectionStore.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/IChallengeListCommands.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/ChallengeListCommands.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSnapshot.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListModel.cs`
+
+**Interfaces:**
+- Consumes: Task 1 の `ChallengeListViewModelFactory.Create`・`ChallengeListViewModel.Empty`・`ChallengeCategorySelection`、`ChallengeProgressState.Categories`・`OnChallengeCompleted`、`UiRoutingState.Current`
+- Produces:
+  - `ChallengeCategorySelectionStore(UiRoutingState routing)`（`IInitializable`）・`IReadOnlyReactiveProperty<ChallengeCategorySelection> Current`・`void Select(Guid categoryGuid)`
+  - `interface IChallengeListCommands { void SelectCategory(Guid categoryGuid); }`・`ChallengeListCommands(ChallengeCategorySelectionStore selection)`
+  - `readonly struct ChallengeViewportSnapshot(float x, float y, float scale)`・`X`・`Y`・`Scale`（`Client.Ui.State.Challenge.Session`）
+  - `ChallengeViewportSessionStore`・`bool TryGet(Guid categoryGuid, out ChallengeViewportSnapshot viewport)`・`void Save(Guid categoryGuid, ChallengeViewportSnapshot viewport)`
+  - `ChallengeListModel(ChallengeProgressState progress, ChallengeCategorySelectionStore selection, UiRoutingState routing)`（`IInitializable`）・`IReadOnlyReactiveProperty<ChallengeListViewModel> Current`
+
+- [ ] **Step 1: 選択と操作を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelectionStore.cs`:
+```csharp
+using System;
+using Client.Ui.State.Routing;
+using UniRx;
+using VContainer.Unity;
+
+namespace Client.Ui.State.Challenge.Tree.Selection
+{
+    /// <summary>
+    /// チャレンジ一覧で選んだカテゴリ（離れたら捨てて先頭へ戻す。Web はパネルのアンマウントで消える）
+    /// Category selected in the challenge list (dropped on leaving so the first returns; the Web loses it on unmount)
+    /// </summary>
+    public sealed class ChallengeCategorySelectionStore : IInitializable
+    {
+        private readonly UiRoutingState _routing;
+        private readonly ReactiveProperty<ChallengeCategorySelection> _current = new(ChallengeCategorySelection.None);
+
+        public IReadOnlyReactiveProperty<ChallengeCategorySelection> Current => _current;
+
+        public ChallengeCategorySelectionStore(UiRoutingState routing)
+        {
+            _routing = routing;
+        }
+
+        public void Initialize()
+        {
+            _routing.Current.Subscribe(snapshot =>
+            {
+                // silent-ok: 一覧の中の経路の通知は選択を保つ / 離れて先頭へ戻ることは L1 ChallengeListViewportTest と録画 uitk-challenge-list が見る
+                if (snapshot.Screen == UiScreen.ChallengeList) return;
+                _current.Value = ChallengeCategorySelection.None;
+            });
+        }
+
+        public void Select(Guid categoryGuid)
+        {
+            _current.Value = ChallengeCategorySelection.Of(categoryGuid);
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/IChallengeListCommands.cs`:
+```csharp
+using System;
+
+namespace Client.Ui.State.Challenge.Tree.Selection
+{
+    /// <summary>
+    /// チャレンジ一覧の画面からの操作（サーバーへは送らない）
+    /// Operations from the challenge list screen (nothing is sent to the server)
+    /// </summary>
+    public interface IChallengeListCommands
+    {
+        void SelectCategory(Guid categoryGuid);
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/ChallengeListCommands.cs`:
+```csharp
+using System;
+
+namespace Client.Ui.State.Challenge.Tree.Selection
+{
+    /// <summary>
+    /// チャレンジ一覧の操作（カテゴリの選択を選択ストアへ）
+    /// Challenge list operations (category selection goes to the selection store)
+    /// </summary>
+    public sealed class ChallengeListCommands : IChallengeListCommands
+    {
+        private readonly ChallengeCategorySelectionStore _selection;
+
+        public ChallengeListCommands(ChallengeCategorySelectionStore selection)
+        {
+            _selection = selection;
+        }
+
+        public void SelectCategory(Guid categoryGuid)
+        {
+            _selection.Select(categoryGuid);
+        }
+    }
+}
+```
+
+- [ ] **Step 2: 視点の保持を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSnapshot.cs`:
+```csharp
+namespace Client.Ui.State.Challenge.Session
+{
+    /// <summary>
+    /// チャレンジのカテゴリ1つの視点（平行移動と倍率の素の値。NodeGraphViewport との詰め替えは画面）
+    /// Viewport of one challenge category (plain translate and scale; the screen converts to NodeGraphViewport)
+    /// </summary>
+    public readonly struct ChallengeViewportSnapshot
+    {
+        public float X { get; }
+        public float Y { get; }
+        public float Scale { get; }
+
+        public ChallengeViewportSnapshot(float x, float y, float scale)
+        {
+            X = x;
+            Y = y;
+            Scale = scale;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+
+namespace Client.Ui.State.Challenge.Session
+{
+    /// <summary>
+    /// カテゴリごとの視点を控える（寿命はゲーム。Web の treeView/viewportStore の challenge-<guid> と同じ）
+    /// Keeps the viewport per category (game lifetime; same as the Web treeView/viewportStore challenge-<guid>)
+    /// </summary>
+    public sealed class ChallengeViewportSessionStore
+    {
+        private readonly Dictionary<Guid, ChallengeViewportSnapshot> _viewports = new();
+
+        // 控えが無いカテゴリは初回訪問（部品が進行中へ寄せる）
+        // A category without a saved viewport is a first visit (the component centers on the current node)
+        public bool TryGet(Guid categoryGuid, out ChallengeViewportSnapshot viewport)
+        {
+            return _viewports.TryGetValue(categoryGuid, out viewport);
+        }
+
+        public void Save(Guid categoryGuid, ChallengeViewportSnapshot viewport)
+        {
+            _viewports[categoryGuid] = viewport;
+        }
+    }
+}
+```
+
+- [ ] **Step 3: Model を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListModel.cs`:
+```csharp
+using Client.Ui.State.Challenge.Tree.Selection;
+using Client.Ui.State.Routing;
+using UniRx;
+using VContainer.Unity;
+
+namespace Client.Ui.State.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジ一覧の表示の組み直しと配信（表示中だけ組む）
+    /// Rebuilds and publishes the challenge list display (only while shown)
+    /// </summary>
+    public sealed class ChallengeListModel : IInitializable
+    {
+        private readonly ChallengeProgressState _progress;
+        private readonly ChallengeCategorySelectionStore _selection;
+        private readonly UiRoutingState _routing;
+        private readonly ReactiveProperty<ChallengeListViewModel> _current = new(ChallengeListViewModel.Empty);
+        private bool _screenShown;
+
+        public IReadOnlyReactiveProperty<ChallengeListViewModel> Current => _current;
+
+        public ChallengeListModel(ChallengeProgressState progress, ChallengeCategorySelectionStore selection, UiRoutingState routing)
+        {
+            _progress = progress;
+            _selection = selection;
+            _routing = routing;
+        }
+
+        public void Initialize()
+        {
+            // 完了の知らせ（Categories の置き換えの後に来る）と選択の変化で組み直す。ゲーム寿命なので購読は解かない
+            // Rebuild on completion notices (after Categories is replaced) and selection changes; game lifetime, so subscriptions stay
+            _progress.OnChallengeCompleted.Subscribe(_ => RebuildWhileShown());
+            _selection.Current.Skip(1).Subscribe(_ => RebuildWhileShown());
+
+            // 一覧の表示の間だけ組む。突入で 1 回組む（前例 ResearchTreeModel）
+            // Build only while the list is shown, once on entering (precedent ResearchTreeModel)
+            _routing.Current.Subscribe(snapshot =>
+            {
+                _screenShown = snapshot.Screen == UiScreen.ChallengeList;
+                RebuildWhileShown();
+            });
+        }
+
+        private void RebuildWhileShown()
+        {
+            if (!_screenShown) return; // silent-ok: 閉画面では組まない / 次の突入で最新を組み、録画 uitk-challenge-list の開き直しの段が見る
+            _current.Value = ChallengeListViewModelFactory.Create(_progress.Categories, _selection.Current.Value);
+        }
+    }
+}
+```
+
+- [ ] **Step 4: コンパイルする**
+
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: ErrorCount 0（振る舞いは Task 4 の L1 と Task 6 の録画で見る）
+
+- [ ] **Step 5: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Ui.State/Challenge
+git commit -m "feat(uitk): S5-challenge のカテゴリの選択・操作・カテゴリごとの視点の保持・Model"
+```
+
+---
+
+### Task 3: 画面の USS・カード・カテゴリのボタン列・グラフの置き場・一覧の View と L1
+
+**Files:**
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeList.uss`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCard.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCardSet.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeListView.cs`
+- Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（`Screens` 区画の末尾に 1 行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs`（3 行を消す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListScreenTestKit.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/RecordingChallengeListCommands.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewTest.cs`
+
+**Interfaces:**
+- Consumes: Task 1・2 の型、Global Constraints の部品（`NodeGraphView`・`PaperSurface`・`FormButton`・`UiGroup`・`LocalizedLabel`・`TutorialAnchor`・`UiPickingIgnore`）
+- Produces:
+  - `ChallengeListView(IChallengeListCommands commands, ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)`（`Client.Ui.Screens.Challenge`）・`void Render(ChallengeListViewModel model)`・`void SetShown(bool shown)`。`name = "challenge-panel"`
+  - `ChallengeNodeCard(Guid challengeGuid)`・`PaperSurface Root`・`void Render(ChallengeNodeCardViewModel node)`（`Client.Ui.Screens.Challenge.Parts`）
+  - `ChallengeNodeCardSet`・`bool RenderCards(IReadOnlyList<ChallengeNodeCardViewModel> nodes)`・`NodeGraphContent BuildContent(IReadOnlyList<ChallengeNodeCardViewModel> nodes, NodeGraphFocus focus)`
+  - `ChallengeCategoryButtons(IChallengeListCommands commands)`・`void Render(ChallengeListViewModel model)`。`name = "challenge-categories"`、ボタン `challenge-category-<guid>`
+  - `ChallengeCategoryGraphHost(ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)`・`void Render(ChallengeListViewModel model)`
+  - USS のクラス: `challenge-list`・`challenge-list__title`・`challenge-list__categories`・`challenge-list__graph-host`・`challenge-list__card`・`challenge-list__card--locked/--current/--completed`・`challenge-list__card-ring`・`challenge-list__card-title`・`challenge-list__card-summary`・`challenge-list__card-state`
+  - テストの材料 `ChallengeListScreenTestKit`（`Basics`・`Logistics`・`FirstCraft`・`SecondStep`・`LockedStep`・`LogisticsDone`・`LogisticsCurrent`・`LoadMasterAndDictionary()`・`Tree(ChallengeCategorySelection)`・`MountList(UiLayerStack, IChallengeListCommands, ChallengeViewportSessionStore)`・`MountHud(UiLayerStack)`・`Card(VisualElement, Guid)`・`PlainText(Label)`・`ButtonText(Button)`）・`RecordingChallengeListCommands.Selected`
+
+- [ ] **Step 1: 画面の USS を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeList.uss`:
+```css
+/* web: moorestech_web/webui/src/features/challenge/style.module.css（.panel・.categories・.node・.locked・.current・.completed）と ChallengePanel.tsx・ChallengeNodeCard.tsx の Mantine の既定（Title order 2・Group gap md・Button sm・Paper・Text） */
+/* outline は拾わない子の輪で写す。gap は UiGroup が配る。translate(-50%, -50%) はここ、scale(UIScale) は C# がカードの style へ当てる。カードの根で flex-shrink を書かない（C4-d D-23） */
+/* web: moorestech_web/webui/src/features/challenge/style.module.css (.panel, .categories, .node, .locked, .current, .completed) and the Mantine defaults in ChallengePanel.tsx and ChallengeNodeCard.tsx (Title order 2, Group gap md, Button sm, Paper, Text) */
+/* The outline becomes a non-picking child ring; UiGroup hands out the gap; translate(-50%, -50%) lives here and C# applies scale(UIScale) to the card style; the card root never sets flex-shrink (C4-d D-23) */
+
+/* 一覧: 舞台の上の安全帯の下から下端まで、地は dark-8、余白 md の縦積み（Web inset: var(--menu-upper-safe-area) 0 0） */
+/* List: from below the stage's upper safe area to the bottom, dark-8 ground, md padding, stacked vertically (Web inset: var(--menu-upper-safe-area) 0 0) */
+.challenge-list {
+    position: absolute;
+    top: var(--menu-upper-safe-area);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    padding-left: var(--mantine-spacing-md);
+    padding-right: var(--mantine-spacing-md);
+    padding-top: var(--mantine-spacing-md);
+    padding-bottom: var(--mantine-spacing-md);
+    background-color: var(--mantine-color-dark-8);
+}
+
+.challenge-list__title {
+    flex-shrink: 0;
+}
+
+/* カテゴリ列は折り返さない。Web の横スクロールは写さずはみ出しを切る */
+/* The category row does not wrap; the Web horizontal scroll is not copied and overflow is clipped */
+.challenge-list__categories {
+    flex-shrink: 0;
+    overflow: hidden; /* look-exception: LX-200 */
+}
+
+.challenge-list__graph-host {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* カード: 幅 240・余白 sm。中心をノードの点に据える（Web .node と translate(-50%, -50%)） */
+/* Card: 240 wide with sm padding, centered on the node point (Web .node and translate(-50%, -50%)) */
+.challenge-list__card {
+    width: 240px;
+    padding-left: var(--mantine-spacing-sm);
+    padding-right: var(--mantine-spacing-sm);
+    padding-top: var(--mantine-spacing-sm);
+    padding-bottom: var(--mantine-spacing-sm);
+    translate: -50% -50%;
+}
+
+/* 未解放の減光は Web の値のまま（GameUi は sRGB で合成する。設計書 A-180） */
+/* Locked dimming keeps the Web value (GameUi composites in sRGB; design A-180) */
+.challenge-list__card--locked {
+    opacity: 0.55;
+}
+
+/* 輪: Web の outline 2px（枠の外）。Paper は枠なしなので padding 辺から 2px 外。角は Paper の角丸 4px に沿う outline の外周 6px */
+/* Ring: the Web 2px outline outside the border; Paper has no border, so 2px outside the padding edge; corners follow the outline around Paper's 4px radius (6px outer) */
+.challenge-list__card-ring {
+    display: none;
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.challenge-list__card--current > .challenge-list__card-ring {
+    display: flex;
+    border-left-color: var(--mantine-color-blue-5);
+    border-right-color: var(--mantine-color-blue-5);
+    border-top-color: var(--mantine-color-blue-5);
+    border-bottom-color: var(--mantine-color-blue-5);
+}
+
+.challenge-list__card--completed > .challenge-list__card-ring {
+    display: flex;
+    border-left-color: var(--mantine-color-green-6);
+    border-right-color: var(--mantine-color-green-6);
+    border-top-color: var(--mantine-color-green-6);
+    border-bottom-color: var(--mantine-color-green-6);
+}
+```
+
+- [ ] **Step 2: カードとカードの組を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCard.cs`:
+```csharp
+using System;
+using Client.Game.InGame.Tutorial.UIHighlight;
+using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Text;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Text;
+using Mooresmaster.Localization.Generated;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.Challenge.Parts
+{
+    /// <summary>
+    /// チャレンジのノードカード1枚（Paper の面に名前・概要・状態）。web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
+    /// One challenge node card (title, summary and state on a Paper face); web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
+    /// </summary>
+    /// <remarks>
+    /// PaperSurface は sealed なので、根の PaperSurface を組み立てて Root で渡す。根は拾う（Ignore だと押下の対象がビューポートに変わる。C4-d）。指のカーソルは付けない（Web に cursor: pointer もタップも無い）
+    /// PaperSurface is sealed, so this builds the root PaperSurface and hands it out as Root; the root picks (Ignore would retarget presses to the viewport; C4-d); no pointer cursor (the Web has neither cursor: pointer nor taps)
+    /// </remarks>
+    public sealed class ChallengeNodeCard
+    {
+        private readonly LocalizedLabel _state;
+
+        public PaperSurface Root { get; }
+
+        public ChallengeNodeCard(Guid challengeGuid)
+        {
+            // 根は Paper の面。名前は testid、アンカーはチャレンジの GUID
+            // The root is the Paper face; its name is the testid and its anchor is the challenge GUID
+            var key = challengeGuid.ToString();
+            Root = new PaperSurface($"challenge-node-{key}");
+            Root.AddToClassList("challenge-list__card");
+            TutorialAnchor.Mark(Root, AnchorIds.ChallengeNode(key));
+
+            // 名前（太字 md）・概要（sm）・状態（xs）を縦に積む。名前と概要はチャレンジで決まる
+            // Stack title (bold md), summary (sm) and state (xs); title and summary are fixed per challenge
+            var title = AddText(UiTypographyClass.TextMd, "challenge-list__card-title");
+            title.AddToClassList(UiTypographyClass.TextBold);
+            title.SetText(UiText.FromContent(ContentLocalizationKeys.ChallengeTitle(challengeGuid)));
+            var summary = AddText(UiTypographyClass.TextSm, "challenge-list__card-summary");
+            summary.SetText(UiText.FromContent(ContentLocalizationKeys.ChallengeSummary(challengeGuid)));
+            _state = AddText(UiTypographyClass.TextXs, "challenge-list__card-state");
+
+            // 輪は Web の outline。拾わない子を最後に重ねる
+            // The ring is the Web outline; a non-picking child laid on top last
+            var ring = new VisualElement { pickingMode = PickingMode.Ignore };
+            ring.AddToClassList("challenge-list__card-ring");
+            Root.Add(ring);
+
+            #region Internal
+
+            // 文字は拾わない。押下はカードの根へ浮かぶ
+            // Text never picks; presses bubble to the card root
+            LocalizedLabel AddText(string sizeClass, string partClass)
+            {
+                var label = new LocalizedLabel();
+                label.AddToClassList(sizeClass);
+                label.AddToClassList(partClass);
+                UiPickingIgnore.ApplyToSubtree(label);
+                Root.Add(label);
+                return label;
+            }
+
+            #endregion
+        }
+
+        public void Render(ChallengeNodeCardViewModel node)
+        {
+            // 状態は修飾クラスと文言、Web の scale(UIScale) は style の scale（中心を軸に拡縮）
+            // State becomes a modifier class and its label; the Web scale(UIScale) goes to style scale (about the center)
+            Root.EnableInClassList("challenge-list__card--locked", node.State == ChallengeNodeState.Locked);
+            Root.EnableInClassList("challenge-list__card--current", node.State == ChallengeNodeState.Current);
+            Root.EnableInClassList("challenge-list__card--completed", node.State == ChallengeNodeState.Completed);
+            _state.SetText(new UiText(StateLabelKey(node.State)));
+            Root.style.scale = new Scale(new Vector2(node.Scale.x, node.Scale.y));
+        }
+
+        // Web resolveChallengeStateKey と同じ写し
+        // Same mapping as the Web resolveChallengeStateKey
+        private static LocalizationKey StateLabelKey(ChallengeNodeState state)
+        {
+            return state switch
+            {
+                ChallengeNodeState.Locked => LocalizationKeys.Ui.Challenge.StateLocked,
+                ChallengeNodeState.Current => LocalizationKeys.Ui.Challenge.StateCurrent,
+                ChallengeNodeState.Completed => LocalizationKeys.Ui.Challenge.StateCompleted,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
+            };
+        }
+    }
+}
+```
+（`LocalizationKey` の名前空間が `Mooresmaster.Localization.Generated` でなければ、研究の `ResearchNodeCardViewModel.cs` の `using` に合わせる）
+
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCardSet.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Ui.Components.NodeGraph;
+using Client.Ui.State.Challenge.Tree;
+
+namespace Client.Ui.Screens.Challenge.Parts
+{
+    /// <summary>
+    /// チャレンジのカードを GUID で使い回し、グラフの中身を組む（前例 ResearchNodeCardSet）
+    /// Reuses challenge cards by GUID and builds the graph content (precedent ResearchNodeCardSet)
+    /// </summary>
+    public sealed class ChallengeNodeCardSet
+    {
+        private readonly Dictionary<Guid, ChallengeNodeCard> _cards = new();
+        private readonly List<Guid> _order = new();
+
+        // 全カードを描き直し、ノードの並びが前回と違えば true
+        // Redraw every card and return true when the node order differs from last time
+        public bool RenderCards(IReadOnlyList<ChallengeNodeCardViewModel> nodes)
+        {
+            var orderChanged = nodes.Count != _order.Count;
+            for (var i = 0; i < nodes.Count; i++)
+            {
+                var node = nodes[i];
+                if (!orderChanged && _order[i] != node.Guid) orderChanged = true;
+                if (!_cards.TryGetValue(node.Guid, out var card))
+                {
+                    card = new ChallengeNodeCard(node.Guid);
+                    _cards.Add(node.Guid, card);
+                }
+                card.Render(node);
+            }
+            if (!orderChanged) return false;
+            _order.Clear();
+            foreach (var node in nodes) _order.Add(node.Guid);
+            return true;
+        }
+
+        public NodeGraphContent BuildContent(IReadOnlyList<ChallengeNodeCardViewModel> nodes, NodeGraphFocus focus)
+        {
+            // キーは GUID の文字列。前提は同じカテゴリのものだけが来る（ChallengeCategoryViewModel）
+            // Keys are GUID strings; only same-category prerequisites arrive (ChallengeCategoryViewModel)
+            var graphNodes = new List<NodeGraphNode>(nodes.Count);
+            foreach (var node in nodes)
+            {
+                var previousKeys = new List<string>(node.PreviousGuids.Count);
+                foreach (var previous in node.PreviousGuids) previousKeys.Add(previous.ToString());
+                graphNodes.Add(new NodeGraphNode(node.Guid.ToString(), node.TreePosition, previousKeys, _cards[node.Guid].Root));
+            }
+            return new NodeGraphContent(graphNodes, focus);
+        }
+    }
+}
+```
+
+- [ ] **Step 3: カテゴリのボタン列とグラフの置き場を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Tutorial.UIHighlight;
+using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Layout;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using Client.Ui.State.Text;
+using Mooresmaster.Localization.Generated;
+using UniRx;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.Challenge.Parts
+{
+    /// <summary>
+    /// チャレンジのカテゴリのボタン列（Web の Group gap md・nowrap と Button filled/subtle）
+    /// Challenge category button row (the Web Group gap md, nowrap and Button filled/subtle)
+    /// </summary>
+    public sealed class ChallengeCategoryButtons : VisualElement
+    {
+        private readonly IChallengeListCommands _commands;
+        private readonly UiGroup _group = new(UiGap.Md);
+        private readonly Dictionary<Guid, FormButton> _buttons = new();
+        private readonly List<Guid> _order = new();
+
+        public ChallengeCategoryButtons(IChallengeListCommands commands)
+        {
+            // 列の根がアンカー。行は折り返さない
+            // The row root carries the anchor; the row never wraps
+            _commands = commands;
+            name = "challenge-categories";
+            AddToClassList("challenge-list__categories");
+            _group.AddToClassList(UiLayoutClass.GroupNoWrap);
+            Add(_group);
+            TutorialAnchor.Mark(this, AnchorIds.ChallengeCategories);
+        }
+
+        public void Render(ChallengeListViewModel model)
+        {
+            // カテゴリの並びが変わったときだけボタンを作り直す
+            // Rebuild the buttons only when the category order changes
+            if (OrderChanged(model.Categories)) Rebuild(model.Categories);
+
+            // 選んだカテゴリは filled、他は subtle
+            // The selected category is filled, the others subtle
+            var hasSelected = model.TryGetSelectedCategory(out var selected);
+            foreach (var category in model.Categories)
+            {
+                var isSelected = hasSelected && category.Guid == selected.Guid;
+                _buttons[category.Guid].SetVariant(isSelected ? FormButtonVariant.Filled : FormButtonVariant.Subtle);
+            }
+        }
+
+        private bool OrderChanged(IReadOnlyList<ChallengeCategoryViewModel> categories)
+        {
+            if (categories.Count != _order.Count) return true;
+            for (var i = 0; i < categories.Count; i++)
+            {
+                if (categories[i].Guid != _order[i]) return true;
+            }
+            return false;
+        }
+
+        private void Rebuild(IReadOnlyList<ChallengeCategoryViewModel> categories)
+        {
+            // 文言はマスタの内容キー（A-40）。押すとカテゴリを選ぶ
+            // Labels are master content keys (A-40); pressing selects the category
+            _group.ClearItems();
+            _buttons.Clear();
+            _order.Clear();
+            foreach (var category in categories)
+            {
+                var guid = category.Guid;
+                var button = new FormButton($"challenge-category-{guid}", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), FormButtonVariant.Subtle);
+                button.OnClicked.Subscribe(_ => _commands.SelectCategory(guid));
+                _group.AddItem(button);
+                _buttons.Add(guid, button);
+                _order.Add(guid);
+            }
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs`:
+```csharp
+using System;
+using Client.Ui.Components.NodeGraph;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.State.Challenge.Session;
+using Client.Ui.State.Challenge.Tree;
+using UniRx;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.Challenge.Parts
+{
+    /// <summary>
+    /// 選んだカテゴリのグラフを置く。カテゴリが変わるたびに NodeGraphView を作り直し、控えた視点を載せる前に戻す（Web の key={selected.guid} と viewportStore）
+    /// Hosts the selected category's graph; rebuilds NodeGraphView per category change and restores the saved viewport before attaching (the Web key={selected.guid} and viewportStore)
+    /// </summary>
+    /// <remarks>
+    /// 控えが無いカテゴリは部品が進行中へ 1 回だけ寄せる（裁定 2026-11-04 の初回訪問）。同じカテゴリのまま閉じて開き直すときは作り直さず視点を保つ
+    /// A category without a saved viewport is centered once on its current node by the component (first visit, ruling 2026-11-04); closing and reopening on the same category keeps the view without rebuilding
+    /// </remarks>
+    public sealed class ChallengeCategoryGraphHost : VisualElement
+    {
+        private readonly ChallengeViewportSessionStore _viewports;
+        private readonly IUiOsCursor _osCursor;
+        private readonly ChallengeNodeCardSet _cards = new();
+        private NodeGraphView _graph;
+        private IDisposable _viewportSubscription;
+        private bool _hasGraph;
+        private Guid _categoryGuid;
+        private bool _hasFocus;
+        private Vector2 _focus;
+
+        public ChallengeCategoryGraphHost(ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)
+        {
+            _viewports = viewports;
+            _osCursor = osCursor;
+            AddToClassList("challenge-list__graph-host");
+            pickingMode = PickingMode.Ignore;
+        }
+
+        public void Render(ChallengeListViewModel model)
+        {
+            // 解放済みのカテゴリが無ければグラフを置かない（Web は selected が無いと TreeView を描かない）
+            // With no unlocked category there is no graph (the Web skips TreeView without a selection)
+            if (!model.TryGetSelectedCategory(out var category))
+            {
+                UnmountGraph();
+                return;
+            }
+
+            // カテゴリが変わったら作り直し、並びか注目点が変わったときだけ中身を渡し直す
+            // Rebuild on a category change, and hand over content only when order or focus changes
+            var orderChanged = _cards.RenderCards(category.Nodes);
+            var hasFocus = category.TryGetInitialFocus(out var focus);
+            var focusChanged = hasFocus != _hasFocus || (hasFocus && focus != _focus);
+            var categoryChanged = !_hasGraph || category.Guid != _categoryGuid;
+            if (categoryChanged) MountGraph(category.Guid);
+            if (!categoryChanged && !orderChanged && !focusChanged) return;
+            _graph.SetGraph(_cards.BuildContent(category.Nodes, hasFocus ? NodeGraphFocus.At(focus) : NodeGraphFocus.None));
+            _hasFocus = hasFocus;
+            _focus = focus;
+        }
+
+        private void MountGraph(Guid categoryGuid)
+        {
+            // 前のカテゴリのグラフを外し、新しい部品に控えた視点を載せる前に戻す（C4-d D-22）
+            // Detach the previous category's graph and restore the saved viewport before attaching the new one (C4-d D-22)
+            UnmountGraph();
+            _graph = new NodeGraphView("challenge", _osCursor);
+            if (_viewports.TryGet(categoryGuid, out var saved)) _graph.RestoreViewport(new NodeGraphViewport(saved.X, saved.Y, saved.Scale));
+
+            // 中央寄せ・操作・寸法の追従のたびにカテゴリの視点を控える
+            // Save the category viewport on every centering, operation and resize-follow
+            _viewportSubscription = _graph.OnViewportChanged.Subscribe(viewport => _viewports.Save(categoryGuid, new ChallengeViewportSnapshot(viewport.X, viewport.Y, viewport.Scale)));
+            Add(_graph);
+            _hasGraph = true;
+            _categoryGuid = categoryGuid;
+        }
+
+        private void UnmountGraph()
+        {
+            // silent-ok: 置いていなければ外すものが無い / 正常系（初回と解放済みのカテゴリが無いとき）
+            if (!_hasGraph) return;
+            _viewportSubscription.Dispose();
+            _graph.RemoveFromHierarchy();
+            _hasGraph = false;
+            _hasFocus = false;
+        }
+    }
+}
+```
+
+- [ ] **Step 4: 一覧の View を書き、tss に取り込み、Pending の行を消す**
+
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeListView.cs`:
+```csharp
+using Client.Game.InGame.Tutorial.UIHighlight;
+using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Text;
+using Client.Ui.Screens.Challenge.Parts;
+using Client.Ui.State.Challenge.Session;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using Client.Ui.State.Text;
+using Mooresmaster.Localization.Generated;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.Challenge
+{
+    /// <summary>
+    /// チャレンジ一覧（題・カテゴリのボタン列・ノードグラフ）。web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
+    /// Challenge list (title, category buttons, node graph); web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
+    /// </summary>
+    public sealed class ChallengeListView : VisualElement
+    {
+        private readonly ChallengeCategoryButtons _categories;
+        private readonly ChallengeCategoryGraphHost _graphHost;
+
+        public ChallengeListView(IChallengeListCommands commands, ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)
+        {
+            // 根は一覧の面。拾うので一覧の上の押下は UI に当たる（右短押しで閉じない）
+            // The root is the list face; it picks, so presses over the list hit UI (a right short press does not close)
+            name = "challenge-panel";
+            AddToClassList("challenge-list");
+            TutorialAnchor.Mark(this, AnchorIds.ChallengePanel);
+
+            // 題（Title order 2）・カテゴリ列・グラフの置き場を縦に積む
+            // Stack the title (Title order 2), the category row and the graph host
+            var title = new LocalizedLabel();
+            title.AddToClassList(UiTypographyClass.TitleOrder2);
+            title.AddToClassList("challenge-list__title");
+            title.SetText(new UiText(LocalizationKeys.Ui.Challenge.Title));
+            Add(title);
+            _categories = new ChallengeCategoryButtons(commands);
+            Add(_categories);
+            _graphHost = new ChallengeCategoryGraphHost(viewports, osCursor);
+            Add(_graphHost);
+        }
+
+        public void Render(ChallengeListViewModel model)
+        {
+            _categories.Render(model);
+            _graphHost.Render(model);
+        }
+
+        public void SetShown(bool shown)
+        {
+            // 隠す間も要素を残し、同じカテゴリの視点を保つ
+            // Keep the element while hidden so the same category keeps its view
+            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` の `/* == section: Screens == */` 区画の末尾（今の最終行 `Skit.uss` の次）に 1 行足す:
+```css
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeList.uss");
+```
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の辞書の 3 行（`AnchorIds.ChallengePanel`・`AnchorIds.ChallengeCategories`・`AnchorIds.ChallengeNodePrefix` の `"S5-challenge"`）を消し、辞書を空にする（クラスと規則の説明コメントは残す。ファイルを消すのは S5-ladder）:
+```csharp
+        public static readonly IReadOnlyDictionary<string, string> Owners = new Dictionary<string, string>();
+```
+`using Client.Game.InGame.Tutorial.UIHighlight;` が使われなくなったら消す。
+
+- [ ] **Step 5: L1 の材料を書く**
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/RecordingChallengeListCommands.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Ui.State.Challenge.Tree.Selection;
+
+namespace Client.Tests.Ui.Screens.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジ一覧の操作を記録するだけの差し替え
+    /// Test double that only records challenge list operations
+    /// </summary>
+    internal sealed class RecordingChallengeListCommands : IChallengeListCommands
+    {
+        public List<Guid> Selected { get; } = new();
+
+        public void SelectCategory(Guid categoryGuid)
+        {
+            Selected.Add(categoryGuid);
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListScreenTestKit.cs`:
+```csharp
+using System;
+using System.Text.RegularExpressions;
+using Client.Game.Localization;
+using Client.Localization;
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Stage;
+using Client.Ui.Screens.Challenge;
+using Client.Ui.Screens.Challenge.CurrentHud;
+using Client.Ui.State.Challenge;
+using Client.Ui.State.Challenge.Session;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using Client.Ui.State.Text;
+using Core.Master;
+using Game.Context;
+using Mod.Loader;
+using Mooresmaster.Localization.Generated;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Screens.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジ一覧の L1 の共通材料（テスト mod の GUID で Web の mock と同じ形の木を組む）
+    /// Shared material for challenge list L1 tests (builds the Web mock's tree shape with test mod GUIDs)
+    /// </summary>
+    internal static class ChallengeListScreenTestKit
+    {
+        public static readonly Guid Basics = Guid.Parse("03ca4ded-3b2b-4e7f-bb6e-430f060c4ed1");
+        public static readonly Guid Logistics = Guid.Parse("35330f9d-f44f-493d-a6bc-07ae6413d7c4");
+        public static readonly Guid FirstCraft = Guid.Parse("00000000-0000-0000-4567-000000000001");
+        public static readonly Guid SecondStep = Guid.Parse("00000000-0000-0000-4567-000000000002");
+        public static readonly Guid LockedStep = Guid.Parse("00000000-0000-0000-4567-000000000003");
+        public static readonly Guid LogisticsDone = Guid.Parse("c2d84cfb-73cb-4ffa-99b5-9703c550f330");
+        public static readonly Guid LogisticsCurrent = Guid.Parse("74fe5f1f-5671-4924-ad36-4447fd80a9c3");
+
+        private static readonly Regex RichTextTag = new("<[^>]+>");
+
+        // テスト mod を読み、名前・概要・カテゴリ名をマスタの原文で引けるようにする（前例 LocalizeContentTest）
+        // Load the test mod so titles, summaries and category names resolve to master source text (precedent LocalizeContentTest)
+        public static void LoadMasterAndDictionary()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var masterContainer = ServerContext.GetService<MasterJsonFileContainer>();
+            Localize.MergeGameDictionaries(ServerContext.GetService<ModsResource>(), masterContainer.SortedModIds, MasterSourceTextCollector.Collect());
+        }
+
+        // Web の mock（presentationFixtures.ts の challengeTree）と同じ形。Basics に未解放を 1 つ足す
+        // Same shape as the Web mock (challengeTree in presentationFixtures.ts) plus one locked node in Basics
+        public static ChallengeListViewModel Tree(ChallengeCategorySelection selection)
+        {
+            var basics = ChallengeCategoryViewModel.Create(Basics, new[]
+            {
+                Node(FirstCraft, Vector2.zero, ChallengeNodeState.Completed),
+                Node(SecondStep, new Vector2(220f, 0f), ChallengeNodeState.Current, FirstCraft),
+                Node(LockedStep, new Vector2(0f, -200f), ChallengeNodeState.Locked, SecondStep),
+            });
+            var logistics = ChallengeCategoryViewModel.Create(Logistics, new[]
+            {
+                Node(LogisticsDone, Vector2.zero, ChallengeNodeState.Completed),
+                Node(LogisticsCurrent, new Vector2(1400f, 700f), ChallengeNodeState.Current, LogisticsDone),
+            });
+            return ChallengeListViewModel.Create(new[] { basics, logistics }, selection);
+        }
+
+        // 一覧を描いてから OverlayPanel・Stage 層へ載せる（前例 ResearchTreePresenter）
+        // Render the list, then mount it on the OverlayPanel/Stage layer (precedent ResearchTreePresenter)
+        public static ChallengeListView MountList(UiLayerStack layers, IChallengeListCommands commands, ChallengeViewportSessionStore viewports)
+        {
+            var view = new ChallengeListView(commands, viewports, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            view.Render(Tree(ChallengeCategorySelection.None));
+            view.SetShown(true);
+            layers.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);
+            return view;
+        }
+
+        // 進行中チャレンジ HUD（S2-hud）を Chrome・Viewport 層へ載せる
+        // Mount the current-challenge HUD (S2-hud) on the Chrome/Viewport layer
+        public static CurrentChallengeHudView MountHud(UiLayerStack layers)
+        {
+            var hud = new CurrentChallengeHudView();
+            layers.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(hud);
+            hud.Render(CurrentChallengeHudViewModel.Create(new[] { UiText.FromContent(ContentLocalizationKeys.ChallengeTitle(SecondStep)) }, false));
+            return hud;
+        }
+
+        public static VisualElement Card(VisualElement root, Guid challengeGuid)
+        {
+            return root.Q($"challenge-node-{challengeGuid}");
+        }
+
+        // LocalizedLabel は行高のタグを前置するので外す（前例 ChallengeHudTestText.Plain）
+        // LocalizedLabel prefixes a line-height tag, so strip it (precedent ChallengeHudTestText.Plain)
+        public static string PlainText(Label label)
+        {
+            return RichTextTag.Replace(label.text, string.Empty);
+        }
+
+        public static string ButtonText(Button button)
+        {
+            return PlainText(button.Q<Label>());
+        }
+
+        private static ChallengeNodeCardViewModel Node(Guid guid, Vector2 position, ChallengeNodeState state, params Guid[] previous)
+        {
+            return new ChallengeNodeCardViewModel(guid, position, Vector2.one, previous, state);
+        }
+    }
+}
+```
+
+- [ ] **Step 6: 一覧の L1 を書く**
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewTest.cs`:
+```csharp
+using System;
+using System.Linq;
+using Client.Localization;
+using Client.Tests.Ui.Components;
+using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Screens.Challenge;
+using Client.Ui.State.Challenge.Session;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using Core.Master;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+using Kit = Client.Tests.Ui.Screens.Challenge.Tree.ChallengeListScreenTestKit;
+
+namespace Client.Tests.Ui.Screens.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジ一覧の表示（L1。Web の challenge.spec の画面 1 件・カードの見た目・空の一覧）
+    /// Challenge list display (L1; one Web challenge.spec screen test, card look, empty list)
+    /// </summary>
+    public class ChallengeListViewTest : ScreenTestHost
+    {
+        private ChallengeListView _view;
+
+        [SetUp]
+        public void SetUp()
+        {
+            Kit.LoadMasterAndDictionary();
+            var layers = UiLayerStack.Build(rootVisualElement);
+            _view = Kit.MountList(layers, new RecordingChallengeListCommands(), new ChallengeViewportSessionStore());
+            Kit.MountHud(layers);
+            Settle();
+        }
+
+        /// <web-test file="e2e/tests/challenge.spec.ts">チャレンジ画面が開きツリーだけを翻訳済み表示する</web-test>
+        [Test]
+        public void チャレンジ画面が開きツリーだけを翻訳済み表示する()
+        {
+            // Web と同じく日本語で見る
+            // Read it in Japanese like the Web
+            Localize.TrySetChosenLanguage("japanese");
+            Settle();
+
+            // 枠・カテゴリのボタン・2 枚のカード・題が出る
+            // The frame, category button, two cards and title show
+            Assert.IsTrue(IsShown(Find<VisualElement>(rootVisualElement, "challenge-panel")));
+            var basics = Find<FormButton>(rootVisualElement, $"challenge-category-{Kit.Basics}");
+            Assert.AreEqual(MasterHolder.ChallengeMaster.GetChallengeCategory(Kit.Basics).CategoryName, Kit.ButtonText(basics));
+            Assert.IsTrue(IsShown(Kit.Card(rootVisualElement, Kit.FirstCraft)));
+            Assert.IsTrue(IsShown(Kit.Card(rootVisualElement, Kit.SecondStep)));
+            Assert.AreEqual("チャレンジ", Kit.PlainText(_view.Q<Label>(className: "challenge-list__title")));
+
+            // 名前と状態は翻訳済み
+            // Titles and states are localized
+            var first = Kit.Card(rootVisualElement, Kit.FirstCraft);
+            Assert.AreEqual(MasterHolder.ChallengeMaster.GetChallenge(Kit.FirstCraft).Title, Kit.PlainText(first.Q<Label>(className: "challenge-list__card-title")));
+            var states = _view.Query<Label>(className: "challenge-list__card-state").ToList().Select(Kit.PlainText).ToList();
+            CollectionAssert.Contains(states, "完了");
+            CollectionAssert.Contains(states, "進行中");
+
+            // 内部キーと欠けの印が残らず、進行中 HUD も出ている
+            // No internal keys or missing markers remain, and the current-challenge HUD shows
+            foreach (var label in _view.Query<Label>().ToList())
+            {
+                StringAssert.DoesNotContain("challenge.", label.text);
+                StringAssert.DoesNotContain("[!", label.text);
+            }
+            Assert.IsTrue(IsShown(Find<VisualElement>(rootVisualElement, "challenge-hud")));
+        }
+
+        [Test]
+        public void カードは中身なりの高さで幅240と状態の輪と減光を持つ()
+        {
+            // 包みの高さ 0 で潰れず、上下の余白 12 と 3 行の高さの和になる（S4-research の NodeGraphView.uss の事後承認）
+            // Not crushed by a zero-height wrapper: 12 padding on each side plus three rows (post-approval of S4-research's NodeGraphView.uss)
+            var padding = ThemeTokenFile.ResolvePixels("--mantine-spacing-sm");
+            foreach (var guid in new[] { Kit.FirstCraft, Kit.SecondStep, Kit.LockedStep })
+            {
+                var card = Kit.Card(rootVisualElement, guid);
+                var rows = card.Query<Label>().ToList().Sum(label => label.layout.height);
+                Assert.AreEqual(240f, card.layout.width, 0.5f, $"{guid} の幅");
+                Assert.AreEqual(rows + padding * 2f, card.layout.height, 0.5f, $"{guid} の高さ");
+                Assert.GreaterOrEqual(card.layout.height, 24.8f + 20.3f + 16.8f + padding * 2f - 0.5f, $"{guid} が 3 行の最小より低い");
+            }
+
+            // 完了は green-6・進行中は blue-5 の 2px の輪、未解放は輪なしで 0.55
+            // Completed has a 2px green-6 ring, current blue-5, locked none and 0.55 opacity
+            AssertRing(Kit.FirstCraft, "--mantine-color-green-6");
+            AssertRing(Kit.SecondStep, "--mantine-color-blue-5");
+            var locked = Kit.Card(rootVisualElement, Kit.LockedStep);
+            Assert.AreEqual(DisplayStyle.None, locked.Q(className: "challenge-list__card-ring").resolvedStyle.display);
+            Assert.AreEqual(0.55f, locked.resolvedStyle.opacity, 0.001f);
+
+            // 面は Paper（body）、一覧の地は dark-8、一覧の上端は上の安全帯
+            // Card face is Paper (body), the list ground is dark-8, and the list top is the upper safe area
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-body"), Kit.Card(rootVisualElement, Kit.FirstCraft).resolvedStyle.backgroundColor, "カードの面");
+            var panel = Find<VisualElement>(rootVisualElement, "challenge-panel");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-dark-8"), panel.resolvedStyle.backgroundColor, "一覧の地");
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--menu-upper-safe-area"), panel.worldBound.yMin, 0.5f);
+        }
+
+        [Test]
+        public void 解放済みのカテゴリが無ければ題だけでグラフを置かない()
+        {
+            _view.Render(ChallengeListViewModel.Create(Array.Empty<ChallengeCategoryViewModel>(), ChallengeCategorySelection.None));
+            Settle();
+            Assert.IsNull(rootVisualElement.Q("challenge-viewport"));
+            Assert.AreEqual(0, rootVisualElement.Query<FormButton>().ToList().Count);
+            Assert.IsTrue(IsShown(_view.Q<Label>(className: "challenge-list__title")));
+        }
+
+        private void AssertRing(Guid guid, string colorToken)
+        {
+            var ring = Kit.Card(rootVisualElement, guid).Q(className: "challenge-list__card-ring");
+            Assert.AreEqual(DisplayStyle.Flex, ring.resolvedStyle.display, $"{guid} の輪");
+            Assert.AreEqual(2f, ring.resolvedStyle.borderTopWidth, 0.01f, $"{guid} の輪の幅");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor(colorToken), ring.resolvedStyle.borderTopColor, $"{guid} の輪の色");
+        }
+
+        // 中央寄せと逃げの読み取りの数フレームを流す
+        // Run a few frames for clearance reads and centering
+        private void Settle()
+        {
+            for (var i = 0; i < 4; i++) simulate.FrameUpdate();
+        }
+    }
+}
+```
+
+- [ ] **Step 7: コンパイルしテストを実行して通ることを確かめる**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.Challenge\.Tree\.ChallengeListViewTest|Anchor|Conventions|Theme|Layers)"`
+Expected: ErrorCount 0 / PASS（`ChallengeListViewTest` 3 件・`TutorialAnchorCoverageTest`・`UiStyleConventionTest`・`UiThemeImportBundleTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest` を含む。`LookExceptionLedgerTest` が LX-200 の行の無さで落ちたら Task 7 Step 3 の台帳の行をこのタスクで先に足す）
+- 日本語へ切り替えた後に名前が `[!challenge…]` になったら、言語の切り替えで合成し直した辞書にマスタの原文が残っていない。`done.md` の「未確認」に書き、`Localize.TrySetChosenLanguage("japanese")` の後に `Kit.LoadMasterAndDictionary()` の `MergeGameDictionaries` の 1 行をもう一度呼ぶ形に直す（本番は `MasterSourceTextCollector` を起動口で合成するので同じ欠けは無い。直した理由を同じ行に書く）
+- カードの高さが 0 か 18 前後なら `NodeGraphView.uss` の包みが中身を潰している。部品を直さず止めて指揮へ（S4-research の修正の後退）
+
+- [ ] **Step 8: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree
+git commit -m "feat(uitk): S5-challenge の一覧の View・カード・カテゴリ列・カテゴリごとのグラフと L1"
+```
+（Unity が作った `.meta` も同じコミットに入れる。手で作らない）
+
+---
+
+### Task 4: 視点と常駐 HUD の L1
+
+**Files:**
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewportTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeHudOverListTest.cs`
+
+**Interfaces:**
+- Consumes: Task 3 の `ChallengeListView`・`ChallengeListScreenTestKit`・`RecordingChallengeListCommands`、Task 2 の `ChallengeViewportSessionStore`
+- Produces: L1 4 件（タグ付き 2・裁定 2）
+
+- [ ] **Step 1: 視点の L1 を書く**
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewportTest.cs`:
+```csharp
+using System;
+using Client.Ui.Components.Controls;
+using Client.Ui.Components.NodeGraph;
+using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Screens.Challenge;
+using Client.Ui.State.Challenge.Session;
+using Client.Ui.State.Challenge.Tree.Selection;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.UIElements;
+using Kit = Client.Tests.Ui.Screens.Challenge.Tree.ChallengeListScreenTestKit;
+
+namespace Client.Tests.Ui.Screens.Challenge.Tree
+{
+    /// <summary>
+    /// チャレンジ一覧の視点（L1。Web の challenge.spec 1 件と裁定 2026-11-04 の初回訪問・再訪・開き直し）
+    /// Challenge list viewport (L1; one Web challenge.spec test and the 2026-11-04 ruling on first visit, revisit and reopen)
+    /// </summary>
+    public class ChallengeListViewportTest : ScreenTestHost
+    {
+        private RecordingChallengeListCommands _commands;
+        private ChallengeListView _view;
+
+        [SetUp]
+        public void SetUp()
+        {
+            Kit.LoadMasterAndDictionary();
+            _commands = new RecordingChallengeListCommands();
+            _view = Kit.MountList(UiLayerStack.Build(rootVisualElement), _commands, new ChallengeViewportSessionStore());
+            Settle();
+        }
+
+        /// <web-test file="e2e/tests/challenge.spec.ts">チャレンジ画面は進行中のチャレンジを中央にして開き、カテゴリ切替でもその進行中へ寄せる</web-test>
+        [Test]
+        public void 進行中のチャレンジを中央にして開きカテゴリ切替でもその進行中へ寄せる()
+        {
+            AssertCentered(Kit.SecondStep);
+
+            // ボタンでカテゴリを選ぶと操作が 1 回出て、選んだカテゴリの進行中へ寄る
+            // Pressing a category button issues one operation and centers on that category's current node
+            Click(CategoryButton(Kit.Logistics));
+            CollectionAssert.AreEqual(new[] { Kit.Logistics }, _commands.Selected);
+            Select(Kit.Logistics);
+            AssertCentered(Kit.LogisticsCurrent);
+            Assert.IsTrue(CategoryButton(Kit.Logistics).ClassListContains(FormButton.FilledUssClassName));
+            Assert.IsTrue(CategoryButton(Kit.Basics).ClassListContains(FormButton.SubtleUssClassName));
+        }
+
+        [Test]
+        public void 一度開いたカテゴリへ戻ると寄せ直さず前回の視点を戻す()
+        {
+            // 先頭のカテゴリでパンし、別のカテゴリへ移って戻る
+            // Pan in the first category, move to another and come back
+            var panned = PanBy(new Vector2(-60f, 30f));
+            Select(Kit.Logistics);
+            Select(Kit.Basics);
+            var back = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;
+            Assert.AreEqual(panned.x, back.x, 1f);
+            Assert.AreEqual(panned.y, back.y, 1f);
+
+            // 2 つ目のカテゴリも初回の寄せのまま残る
+            // The second category keeps its first-visit centering
+            Select(Kit.Logistics);
+            AssertCentered(Kit.LogisticsCurrent);
+        }
+
+        [Test]
+        public void 閉じて開き直すと先頭のカテゴリへ戻り前回の視点を戻す()
+        {
+            var panned = PanBy(new Vector2(-60f, 30f));
+            Select(Kit.Logistics);
+
+            // 閉じると選択ストアが無しに戻すので、開き直しは選択無しで描く（先頭のカテゴリ）
+            // Closing resets the selection store, so reopening renders with no selection (the first category)
+            _view.SetShown(false);
+            Settle();
+            _view.SetShown(true);
+            _view.Render(Kit.Tree(ChallengeCategorySelection.None));
+            Settle();
+            var reopened = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;
+            Assert.AreEqual(panned.x, reopened.x, 1f);
+            Assert.AreEqual(panned.y, reopened.y, 1f);
+            Assert.IsTrue(CategoryButton(Kit.Basics).ClassListContains(FormButton.FilledUssClassName));
+        }
+
+        #region Helpers
+
+        private FormButton CategoryButton(Guid category)
+        {
+            return Find<FormButton>(rootVisualElement, $"challenge-category-{category}");
+        }
+
+        private void Select(Guid category)
+        {
+            _view.Render(Kit.Tree(ChallengeCategorySelection.Of(category)));
+            Settle();
+        }
+
+        private void AssertCentered(Guid challenge)
+        {
+            var viewport = Find<VisualElement>(rootVisualElement, "challenge-viewport").worldBound.center;
+            var node = Kit.Card(rootVisualElement, challenge).worldBound.center;
+            Assert.AreEqual(viewport.x, node.x, 1.5f, $"{challenge} の中心 x");
+            Assert.AreEqual(viewport.y, node.y, 1.5f, $"{challenge} の中心 y");
+        }
+
+        // 空の背景を掴んで動かし、進行中のカードが同じだけ動いたことを見て、その位置を返す
+        // Drag the empty background, check the current card moved by the same amount, and return its rect
+        private Rect PanBy(Vector2 delta)
+        {
+            var before = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;
+            Drag(EmptyBackgroundPoint(), delta);
+            var after = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;
+            Assert.LessOrEqual(after.x - before.x, delta.x + 0.5f);
+            Assert.GreaterOrEqual(after.y - before.y, delta.y - 0.5f);
+            return after;
+        }
+
+        // カードの無い点を右上から探す
+        // Probe from the top right for a point without a card
+        private Vector2 EmptyBackgroundPoint()
+        {
+            var box = Find<VisualElement>(rootVisualElement, "challenge-viewport").worldBound;
+            for (var inset = 40f; inset < Mathf.Min(box.width, box.height) / 2f; inset += 8f)
+            {
+                var point = new Vector2(box.xMax - inset, box.yMin + inset);
+                var picked = rootVisualElement.panel.Pick(point);
+                if (picked == null || picked.GetFirstAncestorOfType<NodeGraphView>() == null && !(picked is NodeGraphView)) continue;
+                if (picked is PaperSurface || picked.GetFirstAncestorOfType<PaperSurface>() != null) continue;
+                return point;
+            }
+            throw new InvalidOperationException("チャレンジ一覧に空の背景の掴み点が無い");
+        }
+
+        private void Click(VisualElement target)
+        {
+            simulate.MouseDown(target.worldBound.center, MouseButton.LeftMouse);
+            simulate.MouseUp(target.worldBound.center, MouseButton.LeftMouse);
+            Settle();
+        }
+
+        private void Drag(Vector2 from, Vector2 delta)
+        {
+            simulate.MouseDown(from, MouseButton.LeftMouse);
+            simulate.MouseMove(from + delta * 0.5f);
+            simulate.MouseMove(from + delta);
+            simulate.MouseUp(from + delta, MouseButton.LeftMouse);
+            Settle();
+        }
+
+        // 逃げの読み取り・中央寄せ・滑走の数フレームを流す
+        // Run a few frames for clearance reads, centering and glide
+        private void Settle()
+        {
+            for (var i = 0; i < 4; i++) simulate.FrameUpdate();
+        }
+
+        #endregion
+    }
+}
+```
+
+- [ ] **Step 2: 常駐 HUD の L1 を書く**
+
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeHudOverListTest.cs`:
+```csharp
+using Client.Ui.Foundation.Layers;
+using Client.Ui.State.Challenge.Session;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+using Kit = Client.Tests.Ui.Screens.Challenge.Tree.ChallengeListScreenTestKit;
+
+namespace Client.Tests.Ui.Screens.Challenge.Tree
+{
+    /// <summary>
+    /// 進行中チャレンジ HUD とチャレンジ一覧の重なり（L1。Web の challenge.spec の常駐 HUD の一覧の部分。画面を跨ぐ部分は録画 uitk-challenge-hud-resident）
+    /// Current-challenge HUD over the challenge list (L1; the list part of the Web challenge.spec resident HUD test; the cross-screen part is the uitk-challenge-hud-resident recording)
+    /// </summary>
+    public class ChallengeHudOverListTest : ScreenTestHost
+    {
+        /// <web-test file="e2e/tests/challenge.spec.ts">常駐HUDをインベントリ・メニュー・操作モードで維持する</web-test>
+        [Test]
+        public void 常駐HUDはチャレンジ一覧を開いても同じ位置のまま一覧とカテゴリより上に出る()
+        {
+            // 一覧を隠した状態（ゲーム画面）で HUD の位置を測る
+            // Measure the HUD with the list hidden (the game screen)
+            Kit.LoadMasterAndDictionary();
+            var layers = UiLayerStack.Build(rootVisualElement);
+            var list = Kit.MountList(layers, new RecordingChallengeListCommands(), new ChallengeViewportSessionStore());
+            var hud = Kit.MountHud(layers);
+            list.SetShown(false);
+            Settle();
+            var world = hud.worldBound;
+
+            // 一覧を開いても HUD は出たまま、位置と寸法は変わらない
+            // Opening the list keeps the HUD shown with the same position and size
+            list.SetShown(true);
+            Settle();
+            Assert.IsTrue(IsShown(hud));
+            Assert.AreEqual(world.x, hud.worldBound.x, 0.05f);
+            Assert.AreEqual(world.y, hud.worldBound.y, 0.05f);
+            Assert.AreEqual(world.width, hud.worldBound.width, 0.05f);
+            Assert.AreEqual(world.height, hud.worldBound.height, 0.05f);
+
+            // 一覧（上の安全帯つき）とカテゴリのボタンより上
+            // Above the list (with its upper safe area) and the category buttons
+            Assert.LessOrEqual(hud.worldBound.yMax, Find<VisualElement>(rootVisualElement, "challenge-panel").worldBound.yMin + 0.05f);
+            Assert.LessOrEqual(hud.worldBound.yMax, Find<VisualElement>(rootVisualElement, $"challenge-category-{Kit.Basics}").worldBound.yMin + 0.05f);
+
+            // 中心の当たりは HUD 自身（Chrome 層が OverlayPanel 層より上）。判定の間だけ根を拾わせる
+            // A hit at the center lands on the HUD (Chrome is above OverlayPanel); the root picks only during the check
+            var savedPicking = hud.pickingMode;
+            hud.pickingMode = PickingMode.Position;
+            var picked = rootVisualElement.panel.Pick(hud.worldBound.center);
+            hud.pickingMode = savedPicking;
+            Assert.IsTrue(picked == hud || hud.Contains(picked), picked?.name);
+        }
+
+        private void Settle()
+        {
+            for (var i = 0; i < 4; i++) simulate.FrameUpdate();
+        }
+    }
+}
+```
+
+- [ ] **Step 3: コンパイルしテストを実行して通ることを確かめる**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.Challenge\.Tree\."`
+Expected: ErrorCount 0 / 7 件 PASS
+- 2 つ目・3 つ目が 1px を超えてずれたら、`RestoreViewport` を `Add` の後に呼んでいないか（C4-d D-22）と、`OnViewportChanged` の購読が `RestoreViewport` の後か（復元値を流さないので順序は不問のはず）を確かめる。部品は直さない
+
+- [ ] **Step 4: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree
+git commit -m "test(uitk): S5-challenge の視点（初回の寄せ・再訪・開き直し）と常駐 HUD の L1"
+```
+
+---
+
+### Task 5: Presenter と登録、全体スイッチ UITK での起動
+
+**Files:**
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeListPresenter.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（`using` 1 行・画面登録区画の末尾 1 行）
+
+**Interfaces:**
+- Consumes: Task 2 の `ChallengeListModel`・`ChallengeCategorySelectionStore`・`ChallengeListCommands`・`ChallengeViewportSessionStore`、Task 3 の `ChallengeListView`
+- Produces: `ChallengeListPresenter`（`IInitializable`）、`ChallengeGameUiRegistration.Register(ContainerBuilder builder)`
+
+- [ ] **Step 1: Presenter を書く**
+
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeListPresenter.cs`:
+```csharp
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
+using Client.Ui.State.Challenge.Session;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using Client.Ui.State.Routing;
+using UniRx;
+using VContainer.Unity;
+
+namespace Client.Ui.Screens.Challenge
+{
+    /// <summary>
+    /// チャレンジ一覧の登録・表示・描画（前例 ResearchTreePresenter）
+    /// Mounts, shows and draws the challenge list (precedent ResearchTreePresenter)
+    /// </summary>
+    public sealed class ChallengeListPresenter : IInitializable
+    {
+        private readonly GameUiRoot _gameUiRoot;
+        private readonly ChallengeListModel _model;
+        private readonly UiRoutingState _routing;
+        private readonly IChallengeListCommands _commands;
+        private readonly ChallengeViewportSessionStore _viewports;
+        private readonly IUiOsCursor _osCursor;
+
+        public ChallengeListPresenter(GameUiRoot gameUiRoot, ChallengeListModel model, UiRoutingState routing, IChallengeListCommands commands, ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)
+        {
+            _gameUiRoot = gameUiRoot;
+            _model = model;
+            _routing = routing;
+            _commands = commands;
+            _viewports = viewports;
+            _osCursor = osCursor;
+        }
+
+        public void Initialize()
+        {
+            // 描いてから載せる（キーの無いラベルを載せない）。一覧は Web の --z-stage-overlay-panel
+            // Render before mounting (no keyless labels attached); the list is the Web --z-stage-overlay-panel
+            var view = new ChallengeListView(_commands, _viewports, _osCursor);
+            view.Render(_model.Current.Value);
+            _gameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);
+            _routing.Current.Subscribe(snapshot => view.SetShown(snapshot.Screen == UiScreen.ChallengeList));
+            _model.Current.Subscribe(view.Render);
+        }
+    }
+}
+```
+
+- [ ] **Step 2: 登録を書く**
+
+`moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs`:
+```csharp
+using Client.Ui.Screens.Challenge;
+using Client.Ui.State.Challenge.Session;
+using Client.Ui.State.Challenge.Tree;
+using Client.Ui.State.Challenge.Tree.Selection;
+using VContainer;
+using VContainer.Unity;
+
+namespace Client.Starter.Registration.GameUi.Screens.Challenge
+{
+    // チャレンジ一覧（GameUi）の登録。状態の源 ChallengeProgressState は MainGameUiStateRegistration が持つ
+    // Registers the GameUi challenge list; the ChallengeProgressState source lives in MainGameUiStateRegistration
+    internal static class ChallengeGameUiRegistration
+    {
+        public static void Register(ContainerBuilder builder)
+        {
+            builder.Register<ChallengeViewportSessionStore>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<ChallengeCategorySelectionStore>().AsSelf();
+            builder.RegisterEntryPoint<ChallengeListModel>().AsSelf();
+            builder.Register<ChallengeListCommands>(Lifetime.Singleton).As<IChallengeListCommands>();
+            builder.RegisterEntryPoint<ChallengeListPresenter>();
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`:
+- `using Client.Starter.Registration.GameUi.Screens;` の次の行に `using Client.Starter.Registration.GameUi.Screens.Challenge;` を足す
+- 画面登録区画の末尾（今の最終行 `SkitGameUiRegistration.Register(builder);` の次）に `ChallengeGameUiRegistration.Register(builder);` を足す
+
+- [ ] **Step 3: コンパイルし、全体スイッチ UITK で起動してエラーが無いことを確かめる**
+
+Run:
+```bash
+uloop compile --project-path ./moorestech_client
+uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'
+uloop clear-console --project-path ./moorestech_client
+uloop control-play-mode --project-path ./moorestech_client --action Play
+```
+45 秒待ってから:
+```bash
+uloop get-logs --project-path ./moorestech_client --log-type Error
+uloop control-play-mode --project-path ./moorestech_client --action Stop
+```
+Expected: ErrorCount 0、起動後の Error ログ 0 件（`[NodeGraphScene]` の LogError・VContainer の解決失敗が無い）。出たらその行を読んで直してから先へ進む
+
+- [ ] **Step 4: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/ChallengeListPresenter.cs moorestech_client/Assets/Scripts/Client.Starter/Registration
+git commit -m "feat(uitk): S5-challenge のチャレンジ一覧を GameUi に登録"
+```
+
+---
+
+### Task 6: unityプレイ録画テスト（`uitk-challenge-list`・`uitk-challenge-hud-resident`）
+
+**Files:**
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-list.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs`
+
+**Interfaces:**
+- Consumes: Task 5 までの GameUi のチャレンジ一覧、`ChallengeProgressState`（`ClientDIContext.DIContainer.DIContainerResolver.Resolve<T>()`）、DSL（`PressKey`・`WaitUiState`・`UntilUiElement`・`ExitToGameScreen`・`Hotbar.AssignHotbar`・`Hotbar.EnterBuildMode`・`Screenshot`・`PlaytestGameViewOps.SetResolution`）
+- Produces: 2 本の `result.json`・mp4・スクショ（`01-open-centered-1280x720`・`01b-open-centered-2560x1080` は Task 7 の並べ比べに使う）
+
+- [ ] **Step 1: 画面の録画を書く**
+
+`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-list.cs`:
+```csharp
+// チャレンジ一覧を UITK（GameUi）で通す: T で開いて進行中のカードへ中央寄せ・2560×1080 でも中央・アンカー・中身なりの高さのカード・HUD が一覧より上・パンして T で閉じて開き直しても視点が残る・一覧の上の右短押しでは閉じない・Tab でインベントリ
+// Runs the challenge list on UITK (GameUi): open with T centered on the current card, still centered at 2560x1080, anchors, content-height cards, HUD above the list, pan then close and reopen with T keeps the view, a right short press over the list does not close, Tab goes to the inventory
+// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
+// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+using System.Linq;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Tutorial.UIHighlight;
+using Client.Game.InGame.UI.UIState;
+using Client.Input;
+using Client.Playtest;
+using Client.Playtest.Input;
+using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
+using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Root;
+using Client.Ui.State.Challenge;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
+using VContainer;
+
+return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record = true }, async p =>
+{
+    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
+    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
+    // Ignore focus so injected input reaches a background Editor
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
+    var root = GameUiRoot.Instance.GetRootElement();
+
+    // 解放済みの先頭カテゴリと、マスタの順で最初の進行中を源から引く（Web の categories[0] と findChallengeInitialFocusNode）
+    // Take the first unlocked category and its first current challenge in master order from the source (Web categories[0] and findChallengeInitialFocusNode)
+    var progress = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ChallengeProgressState>();
+    var category = progress.Categories.First(c => c.IsUnlocked);
+    var current = category.Category.Challenges.First(c => category.CurrentChallenges.Contains(c));
+    var cardId = $"challenge-node-{current.ChallengeGuid}";
+    p.Note($"カテゴリ {category.Category.CategoryName}（解放 {progress.Categories.Count(c => c.IsUnlocked)} 個）・進行中 {current.Title}");
+
+    // T で開き、進行中のカードがビューポートの中央にある
+    // Open with T; the current card sits at the viewport center
+    await p.PressKey(Key.T);
+    await p.WaitUiState(UIStateEnum.ChallengeList, 10f);
+    await p.UntilUiElement("challenge-panel", 5f);
+    var offset = await CenterOffset();
+    p.Note($"進行中のカードの中心とビューポートの中心の差 {offset}");
+    p.Assert(offset.magnitude <= 2f, "進行中のカードがビューポートの中心から 2px 以内");
+    await p.Screenshot("01-open-centered-1280x720");
+
+    // 2560×1080 でも寸法の追従で中央のまま。並べ比べの UITK 側を撮って 1280×720 へ戻す
+    // At 2560x1080 resize-follow keeps it centered; take the UITK comparison shot and return to 1280x720
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 2560, 1080);
+    await UniTask.DelayFrame(3);
+    var wideOffset = await CenterOffset();
+    p.Note($"2560×1080 の差 {wideOffset}");
+    p.Assert(wideOffset.magnitude <= 3f, "2560×1080 でも進行中のカードが中央（3 物理 px 以内）");
+    await p.Screenshot("01b-open-centered-2560x1080");
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
+    await UniTask.DelayFrame(3);
+
+    // 枠・カテゴリ列・先頭カテゴリの全ノードのアンカーが一意に引ける
+    // The frame, category row and every node of the first category resolve uniquely
+    var anchorIds = new[] { AnchorIds.ChallengePanel, AnchorIds.ChallengeCategories }.Concat(category.Category.Challenges.Select(c => AnchorIds.ChallengeNode(c.ChallengeGuid.ToString()))).ToList();
+    var unique = anchorIds.Count(id => TutorialAnchorRegistry.Resolve(root, id) is TutorialAnchorResolution.Unique);
+    p.Note($"アンカー 一意 {unique}/{anchorIds.Count}");
+    p.Assert(unique == anchorIds.Count, "枠・カテゴリ列・全ノードのアンカーが Unique");
+
+    // カードは幅 240・中身なりの高さ（包みの高さ 0 で潰れない）
+    // Cards are 240 wide with content height (not crushed by a zero-height wrapper)
+    var card = root.Q(cardId);
+    p.Note($"進行中のカードの寸法 {card.layout.size}");
+    p.Assert(Mathf.Abs(card.layout.width - 240f) < 0.5f && card.layout.height > 60f, "カードが幅 240・中身なりの高さ");
+
+    // 進行中 HUD は一覧とカテゴリのボタンより上、中心の当たりが HUD 自身（判定の間だけ根を拾わせる）
+    // The current HUD is above the list and category buttons, and its center hit is the HUD (the root picks only during the check)
+    var hud = root.Q("challenge-hud");
+    p.Assert(hud.worldBound.yMax <= root.Q("challenge-panel").worldBound.yMin + 0.5f, "HUD が一覧の上端より上");
+    p.Assert(hud.worldBound.yMax <= root.Q($"challenge-category-{category.Category.CategoryGuid}").worldBound.yMin + 0.5f, "HUD がカテゴリのボタンより上");
+    var savedPicking = hud.pickingMode;
+    hud.pickingMode = PickingMode.Position;
+    var picked = root.panel.Pick(hud.worldBound.center);
+    hud.pickingMode = savedPicking;
+    p.Assert(picked != null && (picked == hud || hud.Contains(picked)), $"HUD の中心の当たりが HUD 自身（当たり={picked?.name}）");
+
+    // 空の背景をパンし、T で閉じて T で開き直しても視点が残る
+    // Pan on empty background; closing and reopening with T keeps the view
+    var viewport = await PlaytestUiElementOps.FindUi("challenge-viewport");
+    var empty = new Vector2(viewport.ScreenRect.xMax - 40f, viewport.ScreenRect.yMin + 40f);
+    var beforePan = await CardCenter();
+    SemanticInput.MouseMoveTo(empty);
+    await p.WaitSeconds(0.5f);
+    // 押下・移動・解放は 0.2 秒ずつ空ける（前例 uitk-research-tree の実測）
+    // Space press, move and release by 0.2 s (measured in uitk-research-tree)
+    SemanticInput.MouseButtonDown(0);
+    await p.WaitSeconds(0.2f);
+    await SemanticInput.MouseGlideTo(empty + new Vector2(-60f, 30f), 0.4f);
+    await p.WaitSeconds(0.2f);
+    SemanticInput.MouseButtonUp(0);
+    var panned = await SettledCardCenter();
+    p.Note($"パンでカードが {panned - beforePan} 動いた");
+    p.Assert((panned - beforePan).magnitude > 30f, "背景のドラッグでパンした");
+    await p.PressKey(Key.T);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await p.PressKey(Key.T);
+    await p.WaitUiState(UIStateEnum.ChallengeList, 10f);
+    await p.UntilUiElement("challenge-panel", 5f);
+    var reopened = await CardCenter();
+    p.Note($"開き直したカードの中心 {reopened}（閉じる前 {panned}）");
+    p.Assert((reopened - panned).magnitude <= 1f, "開き直しても視点が残る（1px 以内）");
+    await p.Screenshot("02-reopen-kept");
+
+    // 一覧の上の右短押しでは閉じず、Tab でインベントリへ移ると一覧が消える
+    // A right short press over the list does not close; Tab moves to the inventory and the list goes away
+    SemanticInput.MouseMoveTo(empty);
+    await p.WaitSeconds(0.5f);
+    SemanticInput.MouseButtonDown(1);
+    await p.WaitSeconds(0.1f);
+    SemanticInput.MouseButtonUp(1);
+    await p.WaitSeconds(0.5f);
+    p.Assert(p.CurrentUiState == UIStateEnum.ChallengeList, "一覧の上の右短押しでは閉じない");
+    await p.PressKey(Key.Tab);
+    await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
+    p.Assert(!(await PlaytestUiElementOps.FindUi("challenge-panel")).IsFound, "インベントリへ移ると一覧が消える");
+
+    #region Internal
+
+    async UniTask<Vector2> CardCenter() => (await PlaytestUiElementOps.FindUi(cardId)).ScreenRect.center;
+
+    async UniTask<Vector2> CenterOffset() => (await CardCenter()) - (await PlaytestUiElementOps.FindUi("challenge-viewport")).ScreenRect.center;
+
+    // パンの滑走が止まるまで待ってからカードの中心を読む
+    // Wait for the pan glide to stop before reading the card center
+    async UniTask<Vector2> SettledCardCenter()
+    {
+        var last = await CardCenter();
+        for (var i = 0; i < 25; i++)
+        {
+            await p.WaitSeconds(0.2f);
+            var now = await CardCenter();
+            if (now == last) return now;
+            last = now;
+        }
+        return last;
+    }
+
+    #endregion
+});
+```
+
+- [ ] **Step 2: 常駐 HUD の録画を書く**
+
+`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs`:
+```csharp
+// 進行中チャレンジ HUD の常駐を UITK（GameUi）で通す（Web challenge.spec「常駐HUDをインベントリ・メニュー・操作モードで維持する」の画面を跨ぐ部分）: ゲーム画面の位置のまま各画面で出続け、上の安全帯のあるメニューの中身より上、配置 HUD と横に分かれ、削除の帯より下、1024×576 でも同じ論理の位置
+// Runs the resident current-challenge HUD on UITK (GameUi) (cross-screen part of the Web challenge.spec resident HUD test): same position as the game screen everywhere, above menu content with an upper safe area, beside the placement HUD, below the delete band, same logical position at 1024x576
+// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
+// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+using Client.Game.InGame.UI.UIState;
+using Client.Input;
+using Client.Playtest;
+using Client.Playtest.Input;
+using Client.Playtest.Operations.Ui;
+using Client.Ui.Foundation.Root;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
+
+return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions { Record = true }, async p =>
+{
+    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
+    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
+    // Ignore focus so injected input reaches a background Editor
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
+    // 木のチェストは研究で解放されるので無料設置（全解放）の足場で始める（前例 uitk-mode-hud-and-tooltip）
+    // The wooden chest is research-locked, so start on the free-placement scaffold (precedent uitk-mode-hud-and-tooltip)
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
+    await p.Hotbar.AssignHotbar(0, "木のチェスト");
+    var root = GameUiRoot.Instance.GetRootElement();
+    var world = await HudRect("ゲーム画面");
+
+    // 上の安全帯のあるメニューは中身より上。研究は持ち物の右を上端まで使うので位置だけ見る（Web の ADR 0014）
+    // Menus with an upper safe area keep the HUD above their content; research uses the full height right of the inventory, so only the position is checked (Web ADR 0014)
+    await CheckMenu(Key.Tab, UIStateEnum.PlayerInventory, "main-grid", true);
+    await CheckMenu(Key.T, UIStateEnum.ChallengeList, "challenge-panel", true);
+    await CheckMenu(Key.R, UIStateEnum.ResearchTree, "research-tree", false);
+    await CheckMenu(Key.B, UIStateEnum.BuildMenu, "build-menu-panel", true);
+    await CheckMenu(Key.Escape, UIStateEnum.PauseMenu, "pause-menu", true);
+
+    // 配置モード: 配置 HUD と横に分かれる
+    // Placement mode: the HUD and the placement HUD are separated horizontally
+    await p.Hotbar.EnterBuildMode(0);
+    await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
+    await p.UntilUiElement("placement-mode-hud", 10f);
+    var placement = root.Q("placement-mode-hud").worldBound;
+    var placementHud = await HudRect("配置モード");
+    p.Assert(placementHud.xMax <= placement.xMin || placement.xMax <= placementHud.xMin, $"HUD {placementHud} と配置 HUD {placement} が横に分かれる");
+    AssertSame(world, placementHud, "配置モード");
+    await p.ExitToGameScreen();
+
+    // 削除モード: 上の帯が HUD より上
+    // Delete mode: the top band is above the HUD
+    await p.PressKey(Key.G);
+    await p.WaitUiState(UIStateEnum.DeleteBar, 10f);
+    await p.UntilUiElement("delete-mode-warning", 10f);
+    var band = root.Q("delete-mode-warning").Q("delete-mode-warning-band").worldBound;
+    var deleteHud = await HudRect("削除モード");
+    p.Assert(band.yMax <= deleteHud.yMin + 0.5f, $"削除の上の帯 {band} が HUD {deleteHud} より上");
+    AssertSame(world, deleteHud, "削除モード");
+    await p.Screenshot("01-delete-band");
+    await p.PressKey(Key.G);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+
+    // 1024×576: 舞台の倍率に従い論理の位置は同じ、画面内でインベントリより上
+    // 1024x576: follows the stage scale with the same logical rect, inside the screen and above the inventory
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1024, 576);
+    await UniTask.DelayFrame(3);
+    AssertSame(world, await HudRect("1024×576 のゲーム画面"), "1024×576 のゲーム画面");
+    await p.PressKey(Key.Tab);
+    await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
+    await p.UntilUiElement("main-grid", 10f);
+    var small = await HudRect("1024×576 のインベントリ");
+    var screen = root.worldBound;
+    p.Assert(screen.Contains(small.min) && screen.Contains(small.max), $"HUD {small} が画面 {screen} の中");
+    p.Assert(small.yMax <= root.Q("main-grid").worldBound.yMin + 0.5f, "1024×576 でも HUD がインベントリより上");
+    await p.Screenshot("02-1024x576-inventory");
+    await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
+    await UniTask.DelayFrame(3);
+    await p.ExitToGameScreen();
+
+    #region Internal
+
+    // HUD が出るまで待って矩形を読む
+    // Wait for the HUD and read its rect
+    async UniTask<Rect> HudRect(string where)
+    {
+        await p.UntilUiElement("challenge-hud", 10f);
+        var hud = root.Q("challenge-hud");
+        p.Assert(hud.resolvedStyle.display == DisplayStyle.Flex && hud.worldBound.width > 0f, $"{where} で HUD が出ている");
+        p.Note($"{where} の HUD {hud.worldBound}");
+        return hud.worldBound;
+    }
+
+    void AssertSame(Rect expected, Rect actual, string where)
+    {
+        var same = Mathf.Abs(expected.x - actual.x) <= 1f && Mathf.Abs(expected.y - actual.y) <= 1f && Mathf.Abs(expected.width - actual.width) <= 1f && Mathf.Abs(expected.height - actual.height) <= 1f;
+        p.Assert(same, $"{where} の HUD がゲーム画面と同じ位置・寸法（{actual} / {expected}）");
+    }
+
+    // メニューを開き、HUD が同じ位置で（安全帯があれば）中身より上にあることを見て、ゲーム画面へ戻る
+    // Open a menu, check the HUD keeps its rect (and sits above the content when there is a safe area), then return
+    async UniTask CheckMenu(Key key, UIStateEnum state, string contentId, bool hasUpperSafeArea)
+    {
+        await p.PressKey(key);
+        await p.WaitUiState(state, 10f);
+        await p.UntilUiElement(contentId, 10f);
+        var hud = await HudRect(state.ToString());
+        AssertSame(world, hud, state.ToString());
+        if (hasUpperSafeArea) p.Assert(hud.yMax <= root.Q(contentId).worldBound.yMin + 0.5f, $"{state} で HUD が {contentId} より上");
+        await p.ExitToGameScreen();
+    }
+
+    #endregion
+});
+```
+
+- [ ] **Step 3: 2 本を流す**
+
+Run（PlayMode を止めた状態で）:
+```bash
+SKILL=.agents/skills/unity-playmode-recorded-playtest
+uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage5/uitk-challenge-list.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage5/uitk-challenge-hud-resident.cs"
+```
+Expected: 2 本とも `result.json` が `Success: true`、Note に `系=GameUi`、mp4 とスクショが出る。`uitk-challenge-list` の Note のカードの寸法（幅 240・高さ）を控え、Task 7 の実測の行に使う
+- Mac の Editor が別作業で塞がっているときは `~/bin/winunity play uitk-lane/s5-challenge "$SKILL/scenarios/uitk/stage5/<名前>.cs" --ui-system GameUi`（push 済みが前提）で流し、`~/.cache/winunity/runs/` から結果を取る
+- 解放済みのカテゴリが 1 つ（実マスタ）なので、カテゴリの切り替えは録画では見ない（L1 が持つ）。Note のカテゴリの数を `done.md` の「未確認」に「録画のカテゴリ切替: 実マスタでカテゴリ 1 つのため L1 だけ」と書く
+- `SubInventory` と列車の入れ子ポーズ（`TrainHUDScreen`＋`PauseMenuScreen`）は録画に入れない（ブロックの設置と乗車が要る。D-9）。`done.md` の「未確認」に「常駐 HUD の SubInventory・列車の入れ子ポーズの 2 状態は未検証」と書く
+- 落ちたら Assert の行と Note を読み、UITK 側（このレーンのファイル）の原因なら直して流し直す。他レーンの HUD・画面の原因（例: ビルドメニューの中身の上端が安全帯に無い）なら直さず、`done.md` の「integrator への依頼」に「名前／正本のパス／見た状態／持ち主」で 1 行書き、`bd note <bd>` に残し、その Assert を外さずに失敗のまま報告する（基準を緩めない）
+
+- [ ] **Step 4: コミットする**
+
+```bash
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5
+git commit -m "test(uitk): S5-challenge の録画 uitk-challenge-list・uitk-challenge-hud-resident"
+```
+
+---
+
+### Task 7: Web との並べ比べ・記帳・テスト名の突き合わせ
+
+**Files:**
+- Modify: `docs/uitk/TODO.md`（「## 見た目の例外」に LX-200、「## 実測の結論」の末尾に 1 行）
+- Modify: `LOGS/harness/uitk/S5-challenge/done.md`（差の表）
+
+**Interfaces:**
+- Consumes: Task 6 のスクショ 2 枚、`REF/web-8a585f742a/5-challenge-list.png`・`REF/web-8a585f742a-2560x1080/5-challenge-list.png`
+- Produces: 差の表、台帳の 2 行、test-name-parity の結果
+
+- [ ] **Step 1: 画像を比べ場へ置く**
+
+Run:
+```bash
+mkdir -p moorestech_client/.uloop/outputs/compare/S5-challenge
+cp <uitk-challenge-list の出力ディレクトリ>/01-open-centered-1280x720.png moorestech_client/.uloop/outputs/compare/S5-challenge/uitk-5-challenge-list-1280x720.png
+cp <同>/01b-open-centered-2560x1080.png moorestech_client/.uloop/outputs/compare/S5-challenge/uitk-5-challenge-list-2560x1080.png
+```
+（撮影は Task 6 の録画の中で `PlaytestGameViewOps.SetResolution` を使って撮った。使い捨ての撮影スクリプトは書かない）
+
+- [ ] **Step 2: 並べて差の表を書く**
+
+2 組（1280×720・2560×1080）を Read で開いて並べ、`done.md` の「## 差の表」に `compare-procedure.md` §4 の書式で書く。比べる項目と Web の値（1280×720）:
+
+| 観点 | Web（`5-challenge-list`） | 見るところ |
+|---|---|---|
+| 位置・寸法 | 一覧の上端 168、左右は舞台の端、題の上端 ≈184・高さ 35、ボタンの列 219〜255、先頭のボタン x=16〜96、ビューポートの中心 (640, 479.5)、カード 240×≈86 | UITK の同じ点（2px 以内）。カードの数・名前・カテゴリの数は実マスタなので「捨てる（データの違い）」 |
+| 色 | 地 (31,31,31)、カードの面 (36,36,36)、filled のボタン (25,113,194)、subtle の字 blue-light-color、完了の輪 (64,192,87)、進行中の輪 (51,154,240) | トークン経由で同じ値か（UITK に未解放のカードがあれば減光 0.55 の色も記録） |
+| 装飾 | 輪 2px・角丸、線は dark-4・3px（カードの下）、影なし | 輪の太さと角、線がカードの下に隠れる |
+| 文字の段組 | 題 26px（和文）、カードの名前 16px 太字・概要 14px・状態 12px の 3 行、左寄せ | 行の高さ・左の余白 12 |
+
+- 差が出たら、まず画面の USS・C#（このレーンのファイル）で直す。部品・Foundation の差なら直さず「integrator への依頼」へ
+- 同じにできない差で §3.4 の例外の条件に当たるものだけ LX-201・LX-202 を使う（2 つで足りなければ指揮へ）。題の字形（和文 Bold）の濃さの差は既存の LX-171 を指す
+
+- [ ] **Step 3: 台帳に記帳する**
+
+`docs/uitk/TODO.md` の「## 見た目の例外」の表の末尾に 1 行:
+```markdown
+| LX-200 | チャレンジ一覧のカテゴリ列（`ChallengeList.uss` の `.challenge-list__categories` の `overflow: hidden`） | Web は `overflow-x: auto` で、ボタンが一覧の幅を越えると横スクロールになる。UITK は折り返さずはみ出しを切る | 横スクロールの部品が無く（`GameScrollView` は縦だけ）、足すと新しい共有部品になる。実マスタのカテゴリは 1 つ、参照の mock は 2 つで、どちらも幅を越えない | 切ったまま（カテゴリが増えて越えたら横スクロールの部品を integrator へ依頼） | （Task 7 の報告ページ） | agent 既定（S5-challenge D-7） |
+```
+「## 実測の結論」の末尾（最後の箇条の次）に 1 行:
+```markdown
+- S5-challenge カードの高さ（`NodeGraphView.uss` の包みの高さ 0 の削除の事後承認）: チャレンジのカードは包みの中で中身なりの高さ（L1 `ChallengeListViewTest` で上下の余白 24＋3 行。録画 `uitk-challenge-list` の進行中のカード <幅>×<高さ>）。部品は変えていない
+```
+（`<幅>×<高さ>` は Task 6 の Note の値で埋める）
+
+- [ ] **Step 4: テスト名を突き合わせる**
+
+Run:
+```bash
+node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing; echo "exit=$?"
+```
+Expected: 終了コードが 2 でない。出力の未対応の列に `challenge.spec.ts` の 3 件・`challengeLogic.test.ts` の 2 件が無い（S2-hud の 4 件も無い）。他レーンの持ち分（言語ゲート・横断層）が残るのは正常。このレーンの 5 件が未対応に出たら `<web-test>` の文字列を Web の第 1 引数と 1 字ずつ見比べて直す
+
+- [ ] **Step 5: L2 とこのレーンのテストを流し、コミットする**
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`
+Expected: PASS（`LookExceptionLedgerTest` が LX-200 の印と行を照合して緑）
+
+```bash
+git add docs/uitk/TODO.md
+git commit -m "docs(uitk): S5-challenge の見た目の例外 LX-200 とカードの高さの実測"
+```
+`done.md` は `LOGS` 側（`LOGS/README.md` の手順でコミット・push）
+
+---
+
+### Task 8: moores-code-review で全ブランチレビュー（必須）
+
+**Files:**
+- Modify: レビューの自動適用が触ったファイル
+
+**Interfaces:**
+- Consumes: Task 1〜7 の HEAD
+- Produces: レビュー済みの HEAD、記録 `LOGS/harness/` の `$RUNDIR`
+
+- [ ] **Step 1: 必ず moores-code-review スキルで全ブランチレビューを実行する（自動実行・ゴール文言による省略不可）**
+
+対象は `origin/feature/uitk...HEAD`。記録は `LOGS/harness/` に置き、ブランチにコミットしない。設計判断の指摘（裁定 2026-11-04・D-1〜D-17 に関わるもの）は、別の subagent に再現させて再現したものだけ残し、ゴール・裁定から外れるものだけ `done.md` の「要裁定」へ、それ以外は agent 既定として判断記録の流儀で `done.md` に書いて進める
+
+- [ ] **Step 2: 反映後のバイナリで確かめ直す**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`
+Expected: ErrorCount 0 / PASS
+- 反映がソースの判定経路・条件式・その評価の時点（`ChallengeCategoryGraphHost.Render` の作り直しの条件・`ChallengeListModel` の組み直しの条件・選択ストアの戻し・工場の状態の写し）に触れたら、Task 6 の録画 2 本を反映後のバイナリで流し直し、`Success: true` を見てから完了にする
+
+- [ ] **Step 3: コミットする**
+
+```bash
+git add -A moorestech_client/Assets/Scripts .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5 docs/uitk/TODO.md
+git commit -m "fix(uitk): S5-challenge のレビュー指摘の反映"
+```
+（反映が無ければコミットしない）
+
+---
+
+### Task 9: feature/uitk への PR・取り込み・マージ・報告（必須）
+
+**Files:**
+- Modify: `LOGS/harness/uitk/S5-challenge/done.md`
+
+**Interfaces:**
+- Consumes: Task 8 後の HEAD
+- Produces: `origin/feature/uitk` のマージコミット。以後 S5-ladder（ラダー `uitk-challenge-gate`・`TutorialAnchorCoveragePending` の空の確認）が使える
+
+- [ ] **Step 1: pr-create スキルで `base=feature/uitk` の PR を作る**
+
+push して PR を作る（`gh pr create --base feature/uitk`）。セッション終了可能状態にすること: pr-create スキルで PR を作成し、コンフリクトがあれば `origin/feature/uitk` をマージして解消・コンパイル確認のうえ push する。PR 本文の先頭行は報告ページ `# https://review.moores.tech/pr/<番号>/report/` だけ（画像・動画の URL を本文に並べない。tailnet の URL も書かない）。報告ページは `~/hermes-agent/data/services/pr-review/publish/README.md` の手順で、manifest は次の形（`file` は絶対パス。並べ比べは Web を先に同じ `group` へ置く）:
+```json
+{
+  "head": "<HEAD 10 桁>",
+  "summary": [
+    "チャレンジ一覧（題・カテゴリのボタン列・NodeGraphView のノードカード）を UITK に移した。カードは PaperSurface に名前・概要・状態、進行中は青・完了は緑の 2px の輪、未解放は 0.55",
+    "カテゴリが変わるたびにグラフを作り直し、カテゴリごとの視点を控えて戻す。初回訪問だけ進行中へ寄せ、再訪と開き直しは前回の視点（裁定 2026-11-04）",
+    "S4-research の NodeGraphView.uss（包みの高さ 0 の削除）を事後承認し、カードが中身なりの高さで描かれることを L1 で固定した"
+  ],
+  "media": [
+    {"file": "<uitk-challenge-list の recording.mp4>", "caption": "uitk/stage5/uitk-challenge-list（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "<uitk-challenge-hud-resident の recording.mp4>", "caption": "uitk/stage5/uitk-challenge-hud-resident（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "../moorestech_logs/uitk/reference-captures/web-8a585f742a/5-challenge-list.png", "caption": "Web 5-challenge-list 1280×720", "group": "5-challenge-list"},
+    {"file": "<worktree>/moorestech_client/.uloop/outputs/compare/S5-challenge/uitk-5-challenge-list-1280x720.png", "caption": "UITK 5-challenge-list 1280×720", "group": "5-challenge-list"},
+    {"file": "../moorestech_logs/uitk/reference-captures/web-8a585f742a-2560x1080/5-challenge-list.png", "caption": "Web 5-challenge-list 2560×1080", "group": "5-challenge-list"},
+    {"file": "<worktree>/moorestech_client/.uloop/outputs/compare/S5-challenge/uitk-5-challenge-list-2560x1080.png", "caption": "UITK 5-challenge-list 2560×1080", "group": "5-challenge-list"}
+  ],
+  "verification": [
+    "Unityコンパイル: エラー0",
+    "L0/L1: State.Challenge 5 件・Screens.Challenge.Tree 7 件 PASS、L2（Conventions・Theme・Layers・Anchor）PASS",
+    "test-name-parity 束 5: このレーンの持ち分 5 件の未対応 0",
+    "unityプレイ録画テスト: uitk-challenge-list PASS・uitk-challenge-hud-resident PASS（全体スイッチ GameUi）"
+  ],
+  "notes": ["差の表は moorestech_logs/harness/uitk/S5-challenge/done.md。参照は mock-host のデータ、UITK は実マスタなので中身の違いは捨てる"]
+}
+```
+`python3 ~/hermes-agent/data/services/pr-review/publish/publish_pr_report.py <PR番号> <manifest.json>` が失敗したら、報告 URL 無しで完了にしない
+
+- [ ] **Step 2: feature/uitk の進みを取り込み、G1 緑を見る**
+
+Run:
+```bash
+git fetch origin
+git merge --no-ff --no-edit origin/feature/uitk
+uloop compile --project-path ./moorestech_client
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"
+git push
+gh pr checks <PR番号>
+```
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の `using` と画面登録区画・`docs/uitk/TODO.md` の節の末尾）の衝突は両方の行を採る。`TutorialAnchorCoveragePending.cs` に他レーンが行を足していたらその行を残し、S5-challenge の 3 行だけを消した形にする。I-fix5 が `scenarios/uitk/` を段のサブディレクトリへ移していたら、このレーンの `stage5/` の 2 本はそのまま（パスが変わらない）。判定経路に触れる衝突（`ChallengeProgressState`・`NodeGraphView`・`UiRoutingState` の変更）を解いたときだけ Task 6 の録画 2 本を流し直す。G1 が緑で、未記帳 0
+
+- [ ] **Step 3: マージコミットで取り込む**
+
+Run: `gh pr merge <PR番号> --merge`
+Expected: マージされ、`git fetch origin && git log -1 --format='%H %P' origin/feature/uitk` の親が 2 つ（Squash しない）
+
+- [ ] **Step 4: Editor を閉じ、bd を閉じ、報告を締め、合図を送る**
+
+Run:
+```bash
+moores-wt status
+uloop control-play-mode --project-path ./moorestech_client --action Stop
+bd close <bd> --reason "PR #<番号> を feature/uitk へマージ（チャレンジ一覧・カテゴリのボタン列・ノードカード・カテゴリごとの視点）"
+git status --short
+git log origin/uitk-lane/s5-challenge..HEAD
+```
+Expected: closed、`git status --short` と `git log` が空。このレーンの Editor を閉じる（`moores-wt status` で自分の worktree の Editor だけを確かめ、他者の Editor は落とさない）。テストで `Saves/` に作ったワールドが残っていれば `list-work-saves.sh` で探して消す。`done.md` の 1 行目を「状態: 完了」にし、「## 証拠」に PR 番号・マージコミット・G1 のジョブ URL・各テストと録画の結果・報告ページの URL を足して、`LOGS/README.md` の手順でコミット・push する。最後に:
+```bash
+cmux wait-for -S uitk-s5-challenge
+```
+worktree の `moores-wt rm` は指揮が行う（このレーンは行わない）。途中で止まる場合も `done.md` を「状態: 停止（理由）」にして同じ合図を送る
+
+---
+
+## Self-Review
+
+1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0）。R-2 → Task 1（工場・L0 3 件）。R-3 → Task 2（Model・選択ストア）・Task 4（開き直しの L1）・Task 6。R-4 → Task 2（Session）・Task 3（`ChallengeCategoryGraphHost`）・Task 4（L1 3 件）。R-5 → Task 3（View・USS・L1）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼）。R-16 → Task 8・9。漏れなし
+2. **Placeholder scan**: 「TBD」「後で」は無い。`<幅>×<高さ>`・`<PR番号>`・`<bd>`・出力ディレクトリは実行時に決まる値で、埋め方を同じ Step に書いた
+3. **Type consistency**: `ChallengeNodeCardViewModel(Guid, Vector2, Vector2, IReadOnlyList<Guid>, ChallengeNodeState)` は Task 1・3（Kit）・4 で同じ。`ChallengeListViewModel.Create(categories, selection)`・`TryGetSelectedCategory`・`ChallengeCategoryViewModel.Create(guid, nodes)`・`TryGetInitialFocus` は Task 1・3・4 で同じ。`ChallengeViewportSessionStore.TryGet/Save` と `ChallengeViewportSnapshot(X, Y, Scale)` は Task 2・3 で同じ。`ChallengeListView(IChallengeListCommands, ChallengeViewportSessionStore, IUiOsCursor)` は Task 3・4・5 で同じ。`IChallengeListCommands.SelectCategory(Guid)` は Task 2・3・4 で同じ。名前空間は `Client.Ui.State.Challenge.Tree`・`.Tree.Selection`・`.Session` で全タスク同じ
+4. **保留・縮退経路の解消可能性**: (a) `ChallengeListModel` は閉画面で組まず、解消の条件は「一覧への突入」（経路の通知で必ず来る）。(b) 最小構成: 解放済みのカテゴリ 0（題だけ・グラフ無し。L1 `解放済みのカテゴリが無ければ…`）、カテゴリ 1・進行中 0（注目点無し → 寄せない・視点は原点。部品の既定。控えは操作した時だけ）、初回（控え無し → 部品が寄せる）。どれも恒久の保留にならない。(c) 空のテストは L1 にある。グラフの作り直しは同じフレームの同じプロセスの中で閉じる
+5. **「決定的にする」を根拠にした選択**: 「先頭のカテゴリ」「最初の進行中」は Web と同じ規則（`categories[0]`・`nodes.find`）で、順序は受信順・マスタの順に従う（決定性ではなく Web と同じ結果になることが根拠）。L0 で固定
+6. **呼び出し側への責務漏出**: 前提の絞り込みは `ChallengeCategoryViewModel.Create` の 1 か所、`NodeGraphViewport` と素の値の詰め替えは `ChallengeCategoryGraphHost` の 1 か所（保存と復元の対）。状態→文言の写しはカードの 1 か所（Web の `resolveChallengeStateKey` と同じ場所）。同じ算術の重複は無い
+
+---
+
+## 判断記録（ADR）
+
+ゴール（ユーザー原文）:「WebUIと同じ見た目で、適切な設計、コンポーネント化されたUITKベースのUIを開発すること」。裁定: `.decisions/2026-11-06-*` の UITK 6 本・CEF 停止の記録・`.decisions/2026-11-04-チャレンジ画面は各カテゴリの初回訪問だけ進行中へ寄せ再訪は前回の視点を戻す.md`。以下はすべて **agent 既定**（ゴール・裁定から外れる判断は無い。要裁定 0）。
+
+- **D-1 視点はカテゴリごとの作り直し＋State の Session（設計書 §7.1 に A-240 を足す。本文はこの D-1）**: カテゴリが変わるたびに `NodeGraphView` を作り直し（Web の `key={selected.guid}`）、カテゴリの視点は `OnViewportChanged` の最後の値を `Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore` に素の値（x・y・倍率）で控え、作り直した部品へ載せる前に `RestoreViewport` で戻す。控えが無ければ部品が進行中へ 1 回だけ寄せる。これで裁定 2026-11-04（初回訪問だけ寄せる・再訪と開き直しは前回の視点）と同じになる。C4-d 計画の申し送り (1)・D-22 の形そのもの。棄却: (a) 研究と同じ常駐の `NodeGraphView` 1 つ（A-172）— 中央寄せがインスタンスにつき 1 回なので 2 つ目のカテゴリの初回訪問で寄せられない。(b) カテゴリごとに常駐の `NodeGraphView` を作り非選択を `display: none` で並べる — 名前 `challenge-viewport`・`challenge-canvas` が重なり、テストの ID と `PlaytestUiElementOps.FindUi` が隠れた方を拾いうる。チュートリアルのアンカーも隠れたカテゴリのカードが木に残る（Web は選んだカテゴリしか描かない）。帰結: 同じカテゴリのまま閉じて開き直したときは作り直さないので寸法の追従が続く（Web は復元した後は追従しない）。研究 A-172 と同じ差で、開き直しの位置は同じ
+- **D-2 カテゴリの選択は State の選択ストア**: `ChallengeCategorySelectionStore` が一覧を離れると「無し」に戻し、工場が先頭を選ぶ（Web はパネルのアンマウントで `useState` が消え `categories[0]`）。前例 `ResearchSelectionStore`。操作は `IChallengeListCommands.SelectCategory`（前例 `IResearchTreeCommands`。L1 で記録の差し替えに替えるため）
+- **D-3 未解放のカテゴリと別カテゴリの前提**: 未解放のカテゴリは出さない（Web の橋 `ChallengeDtoBuilder.BuildTree`）。別カテゴリの前提は `ChallengeCategoryViewModel.Create` で線のキーから除く（C4-d D-5 の申し送り (2)。部品はグラフに無い親を LogError にする。Web は黙って省く）。どちらも Web の仕様なので `silent-ok` を付け、L0 で固定する
+- **D-4 S4-research の `NodeGraphView.uss` の事後承認（設計書 §7.1 に A-241 を足す。本文はこの D-4）**: `.node-graph__node` から `height: 0` を消した S4-research の修正（9a58258265。包みは幅 0・高さは中身なり・`align-items: flex-start`・子は `flex-shrink: 0`）を承認する。Web の包みは静的な div でカード自身が絶対配置なので中身なりの高さになる。UITK はカードが包みのフローの子なので、高さ 0 の包みは中身なりのカードを 0 に潰す（S4-research の実測 132×18 → 141）。画面の USS は `.node-graph*` を書けないので部品で直すのが正しい。チャレンジのカードが上下の余白 24＋3 行の高さで描かれることを `ChallengeListViewTest`（L1）と録画 `uitk-challenge-list` で固定した。持ち主 C4-d の部品の変更として記録し、このレーンは部品を変えない
+- **D-5 カードの組み立て**: 根は `PaperSurface`（sealed なので持ち手 `ChallengeNodeCard` が組み立てて `Root` で渡す）。Web の outline は拾わない子の輪（研究の前例）で、半径 6px（Paper の角丸 4px に沿う outline の外周）の数値は Web の CSS に無いブラウザの描き方なので画面 USS に直書きする（つまみを作らない）。`translate(-50%, -50%)` は USS、`scale(UIScale)` は C# の `style.scale`（中心を軸。Web と同じ）。指のカーソルは付けない（C4-d/done.md:67 の申し送りは研究のカードのもの。Web のチャレンジのカードは `cursor: pointer` もタップも持たない）
+- **D-6 未解放の減光 0.55 は USS のリテラル**: GameUi は sRGB で合成する（設計書 A-180・I-blend）ので Web の値がそのまま使える。研究の `--research-node-locked-opacity` は Linear 合成の頃の補正のつまみで、チャレンジには作らない。`DerivedTokens.uss` に足さない（I-fix5 がファイルを分ける最中で、重ねない）
+- **D-7 カテゴリ列は `UiGroup(UiGap.Md)`＋nowrap、横スクロールは写さない（LX-200）**: Web の `Group` は gap md・`flex-wrap: nowrap`・`overflow-x: auto`。UITK に横スクロールの部品は無く（`GameScrollView` は縦だけ）、作ると新しい共有部品になる（計画の範囲外。§5.1 は申告）。実マスタのカテゴリは 1、参照は 2 で幅を越えないので、はみ出しは `overflow: hidden` で切り、台帳 LX-200 に記帳する。越える状態が来たら integrator へ横スクロールの部品を依頼する
+- **D-8 層と表示**: 一覧は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`。舞台の倍率と左右の余白に従う）。Presenter が 1 回だけ載せ、経路で `SetShown`（前例 `ResearchTreePresenter`）。Model は一覧の表示中だけ組む（前例 `ResearchTreeModel`）。進行中 HUD・ホットバー・キーヒントは上の層にあり、このレーンは触らない
+- **D-9 写すテストの割り振り**: `challengeLogic.test.ts` 2 件は L0。`challenge.spec.ts` の画面 2 件は L1。「常駐HUDをインベントリ・メニュー・操作モードで維持する」は、一覧の部分（HUD の位置が変わらない・一覧とカテゴリのボタンより上・層の順序）を L1 `ChallengeHudOverListTest` に `<web-test>` を付けて写し、画面を跨ぐ部分（インベントリ・一覧・研究・ビルドメニュー・ポーズ・配置・削除・1024×576）は録画 `uitk-challenge-hud-resident` で見る。L1 で全画面を載せると他レーンの View と Model を組む必要があり、テストが他レーンの持ち物に依存するため。帰結: `SubInventory` と列車の入れ子ポーズの 2 状態はブロックの設置と乗車が要るので録画に入れず、このレーンでは未検証（`done.md` の「未確認」）
+- **D-10 録画を 2 本にする**: 画面の録画 `uitk-challenge-list` と HUD の契約の録画 `uitk-challenge-hud-resident`。1 本にまとめると 200 行を越える。どちらもこのレーンの持ち分（ラダー `uitk-challenge-gate` は S5-ladder）。置き場は `scenarios/uitk/stage5/`（段のサブディレクトリの前例 `stage3/`、I-fix5 の 10n と同じ向き）
+- **D-11 登録はサブディレクトリ**: `Client.Starter/Registration/GameUi/Screens/` は直下 10 ファイルで上限なので `Screens/Challenge/ChallengeGameUiRegistration.cs`（名前空間 `Client.Starter.Registration.GameUi.Screens.Challenge`）。`MainGameUiRegistration` に `using` 1 行と画面登録区画の 1 行
+- **D-12 Model は言語で組み直さない**: 文言はすべて `LocalizedLabel`（`FormButton` の中も）で、言語の変化で自分で解決し直す。研究の Model が言語を購読するのは詳細ペインの文を組むためで、チャレンジには組む文が無い
+- **D-13 比較の撮影は録画の中で**: 参照（mock-host）と同じデータは本番の経路で作れないので、実マスタの一覧を `uitk-challenge-list` の中で `PlaytestGameViewOps.SetResolution` を使って 1280×720・2560×1080 で撮る。中身（カテゴリの数・名前・ノードの数）の差は「捨てる（データの違い）」とし、位置・寸法・色・装飾・段組を比べる。部品だけの見本（`UiRuntimePanelCapture`）は使わない（画面の比較なので）
+- **D-14 文言は既存のキーだけ**: `ui.challenge.title/stateLocked/stateCurrent/stateCompleted` と内容キー（`ChallengeTitle`・`ChallengeSummary`・`ChallengeCategoryName`）。`localization.csv` に足さない
+- **D-15 ランタイムに触れるので録画を持つ**: moores-writing-plans の規定どおり unityプレイ録画テストを Task 6 に置いた。レビューの反映が判定経路に触れたら反映後のバイナリで流し直す（Task 8 Step 2）
+- **D-16 名前空間に `List` を使わない**: State と L1 のディレクトリは `Tree`（`Client.Ui.State.Challenge.Tree`・`Client.Tests.Ui.Screens.Challenge.Tree`）。`List` だと `System.Collections.Generic.List` と読み違える。研究の `Research.Tree` と揃う
+- **D-17 アンカーの未移植の表**: 印を付けたので `TutorialAnchorCoveragePending` の S5-challenge の 3 行を同じ PR で消す（規則: 印を付けたレーンが同じ PR で消す）。表は空になり、ファイルの削除と空の確認は S5-ladder
+
+## 未確認
+
+- 言語を日本語へ切り替えた後に、L1 で合成したマスタの原文が残るか（Task 3 Step 7 に直し方を書いた）
+- 実マスタで解放済みのカテゴリが 1 つのため、カテゴリの切り替えは録画で見ない（L1 だけ）
+- 複数行に折り返す名前・概要の行送り（Web の line-height 1.55/1.45/1.4）は参照に無く、比べていない
