@@ -25,6 +25,8 @@ namespace Client.Ui.Foundation.Text
         private WaitPhase _phase = WaitPhase.None;
         private float _measuredWidth = float.NaN;
         private float _settledWidth = float.NaN;
+        private bool _wrapOverridden;
+        private StyleEnum<WhiteSpace> _inlineWhiteSpaceBeforeOverride;
 
         public LineEndPunctuationTrimmer(Label label)
         {
@@ -42,7 +44,7 @@ namespace Client.Ui.Foundation.Text
             _phase = WaitPhase.None;
             _measuredWidth = float.NaN;
             _settledWidth = float.NaN;
-            _label.style.whiteSpace = StyleKeyword.Null;
+            RestoreInlineWhiteSpace();
 
             if (!LineEndPunctuationTrim.ContainsClosingPunctuation(source))
             {
@@ -98,8 +100,19 @@ namespace Client.Ui.Foundation.Text
             // Put newlines at the measured breaks and stop auto wrap so line-end marks may overhang
             _measuredWidth = _label.layout.width;
             _label.text = _prefix + LineEndPunctuationTrim.Apply(_source, ReadLineEndIndices());
+            _inlineWhiteSpaceBeforeOverride = _label.style.whiteSpace;
+            _wrapOverridden = true;
             _label.style.whiteSpace = WhiteSpace.NoWrap;
             WaitTicks(WaitPhase.Settling);
+        }
+
+        // 自動の折り返しを止める前の inline の指定（多くは未指定）へ戻す
+        // Restore the inline value from before auto wrap was stopped (usually unset)
+        private void RestoreInlineWhiteSpace()
+        {
+            if (!_wrapOverridden) return;
+            _label.style.whiteSpace = _inlineWhiteSpaceBeforeOverride;
+            _wrapOverridden = false;
         }
 
         private void SettleWidth()
