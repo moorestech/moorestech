@@ -32,7 +32,7 @@
 | R-12 | 録画: 新しい `uitk-challenge-list`（T で開く・進行中へ中央寄せ・2560×1080 でも中央・アンカー・カードが中身なりの高さ・HUD が一覧より上・パンして T で閉じて T で開き直しても視点が残る・一覧の上の右短押しでは閉じない・Tab でインベントリ）と `uitk-challenge-hud-resident`（R-9） | 2 本の `result.json` が `Success: true`、録画 mp4、Note の `系=GameUi` |
 | R-13 | 登録: `Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs`（直下は 10 ファイルで上限なのでサブディレクトリ）、`MainGameUiRegistration` の画面登録区画に 1 行、`GameUiTheme.tss` の `Screens` 区画に `@import` 1 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`TutorialAnchorCoverageTest`）が緑 |
 | R-14 | テストの名前: 写した 5 件に `<web-test>`。このレーンの持ち分（challenge.spec の 3 件・challengeLogic.test の 2 件）は処遇の行を足さない | `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing` で持ち分の未対応 0。終了コードが 2 でない |
-| R-15 | 記帳: 台帳の「## 実測の結論」の末尾にカードの高さの実測 1 行（見た目の例外は足さない。LX-200〜202 は並べ比べの差の予備）。設計書 §7.1 の A-240・A-241 の本文は `done.md` の「integrator への依頼」へ（指揮が設計書へ写す） | `done.md` に A 行の本文。台帳の実測の行 |
+| R-15 | 記帳: 台帳の「## 実測の結論」の末尾にカードの高さの実測 1 行、「## 未撮影」にカテゴリ列の横バーの 1 行（見た目の例外は足さない。LX-200〜202 は並べ比べの差の予備）。設計書 §7.1 に入った A-240・A-241（と `GameScrollView` の横向きの A 行。番号は指揮が振る）を実装と照らし、食い違いは `done.md` の「integrator への依頼」へ | `done.md` に照らした結果。台帳の 2 行 |
 | R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → Editor を閉じる・bd を閉じる・`done.md` → `cmux wait-for -S uitk-s5-challenge` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
 | R-17 | 部品 `GameScrollView` の横向き（Components の変更）: ctor を `GameScrollView(string testid, GameScrollAxis axis)` にし、`Horizontal` は横の `ScrollView`。バーは中身が見える幅を越えたときだけ本文の下の流れに出し、縦のバーは出さない。太さ・溝・つまみは縦と同じつまみ。縦の振る舞いは今のまま、呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数を作らない）。`Theme.uss` は変えない | `GameScrollViewHorizontalTest`（L1）の 2 件が緑。既存の `GameScrollViewTest`・`GameScrollViewKnobTest`・`GameScrollViewSpyPortTest`・`RecipeListScrollViewTest` と呼び出し側の画面の L1 が緑 |
 
@@ -139,6 +139,7 @@ namespace Client.Ui.State.Routing
 // 録画: SK/scenarios/uitk/uitk-research-tree.cs・uitk-mode-hud-and-tooltip.cs・uitk-gameview-resolution-switch.cs
 ```
 
+- **並走レーンとの照合**（Task 1 Step 1 で見て、Task 9 Step 2 の取り込みの後にもう一度見る）: (1) I-fix6（`origin/uitk-lane/i-fix6`）は `NodeGraphView.RestoreViewport` を消す。このレーンは使わない（D-1）。(2) S5-crosscut は `Foundation/Layout/UiDisplay`（`SetShown(VisualElement, bool)`。表示の唯一の書き口。R-4）を作る。あれば `ChallengeListView.SetShown` は `UiDisplay.SetShown(this, shown)` を使い、無ければ `style.display` の直書きのまま（S5-crosscut D-20 の置換対象に入る）。(3) S5-crosscut T10 は `UiStyleConventionTest` に「画面の USS が部品の内側のクラスを書かない」を足す。このレーンの USS は当たらない（D-7）。`$FILTER` の `Conventions` が見る。(4) S5-crosscut T14 の L3 `GameUiScreenMountTest`（全画面の View が載り先の層にあるか）。あれば一覧に `ChallengeListView` の行を足す（Task 5 Step 4）。無ければ `done.md` の「integrator への依頼」に書く
 - **画面だけの部品の置き場**: `S/Client.Ui/Screens/Challenge/Parts/`（設計書 §2.7「1 feature だけが使うもの」。C4-d 計画の「チャレンジのノードカードは S5-challenge が `Screens/Challenge/Parts/` に作る」）
 - **つまみの上書き**: Web の `features/challenge/style.module.css` に局所の上書き変数は無いので、画面 USS はつまみを宣言しない（カテゴリ列のバーは `GameScrollView` の既定のつまみのまま）。値は既存のトークン（`--menu-upper-safe-area`・`--mantine-color-dark-8`・`--mantine-spacing-md`・`--mantine-spacing-sm`・`--mantine-color-blue-5`・`--mantine-color-green-6`）を `var()` で引く。`--paper-face`・`--paper-radius` は上書きしない（Web は Paper の既定のまま）
 - **USS**: 色リテラル・`z-index`・構造擬似クラス・合成太字は書かない（`UiStyleConventionTest`）。`opacity` の数値・寸法の px は可。Web の CSS を写した行は `/* web: … */` の出所を付ける
@@ -317,6 +318,9 @@ grep -n "mantine-color-dark-8:\|mantine-color-blue-5:\|mantine-color-green-6:\|m
 grep -rn "\-\-paper-face\|\-\-paper-radius" $S/Client.Ui/Foundation/Theme/ | head -4
 grep -n "public GameScrollView(\|ScrollViewMode" $S/Client.Ui/Components/Controls/GameScrollView/GameScrollView.cs
 git grep -n "new GameScrollView(" -- $S | wc -l
+ls $S/Client.Ui/Foundation/Layout/UiDisplay.cs 2>/dev/null; grep -n "public static void SetShown" $S/Client.Ui/Foundation/Layout/UiDisplay.cs 2>/dev/null
+find $S/Client.Tests -name "GameUiScreenMountTest.cs"
+grep -n "__\|inner" $S/Client.Tests/Ui/Conventions/UiStyleConventionTest.cs | head -5
 grep -n "scrollarea-scrollbar-size:\|game-scroll-view-track-face:\|game-scroll-view-thumb-face:" $S/Client.Ui/Foundation/Theme/DerivedTokens.uss
 grep -n "PixelsPerNotch" $S/Client.Ui/Foundation/Input/WebWheelScale.cs
 grep -n "public static bool IsBlockingUi" $S/Client.Ui/Screens/Inventory/Wheel/EquipmentWheelPickJudge.cs
@@ -329,6 +333,7 @@ Expected: worktree の絶対パス。`NodeGraphView.cs` の 4 行（:39/:41/:49/
 - どれかの依存が無ければ止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
 - 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く
 - `NodeGraphView.uss` に `height: 0` が戻っていたら止めて指揮へ（S4-research の修正が消えている）
+- 並走レーンとの照合（Global Constraints）の結果を `done.md` の「証拠」に 1 行で書く: `RestoreViewport` の数・`UiDisplay.SetShown` の有無・`GameUiScreenMountTest.cs` の有無・`UiStyleConventionTest` の内側クラスの検査の有無。`UiDisplay` があれば Task 3 Step 4 の `SetShown` を `UiDisplay.SetShown(this, shown)` で書く。`GameUiScreenMountTest` があれば Task 5 Step 4 で行を足す
 - `scenarios/uitk/` がすでに段ごとのサブディレクトリへ移っている（I-fix5 の 10n が先に入った）なら、そこに `stage5/` が無ければ作る。以後の録画のパスは `SK/scenarios/uitk/stage5/` のまま
 
 - [ ] **Step 2: bd を積み、done.md の雛形を置く**
@@ -350,7 +355,7 @@ mkdir -p ../moorestech_logs/harness/uitk/S5-challenge
 ## 要裁定
 なし
 ## integrator への依頼
-- 設計書 §7.1 に A-240・A-241 を足す（本文は計画 docs/superpowers/plans/2026-11-12-uitk-s5-challenge.md の判断記録 D-1・D-4・D-5。A-241 は A-191 の「研究・チャレンジのカードの指」のチャレンジの部分を改める文を含む。案は下の「設計書の行の本文」）
+- 設計書 §7.1 に入った A-240・A-241（と GameScrollView の横向きの A 行）を実装と照らした結果（計画 docs/superpowers/plans/2026-11-12-uitk-s5-challenge.md の判断記録 D-1・D-4・D-5・D-7 と食い違いが無いか。食い違えば行と直す向きを書く。A-191 の「研究・チャレンジのカードの指」と §2 の OS カーソルの行のチャレンジの部分の改めは A-241 に従う）
 - Registration/GameUi/Screens/ は直下 10 ファイルで上限。S5-challenge は Screens/Challenge/ のサブディレクトリに置いた。以後のレーンも直下へ足さず機能のサブディレクトリへ
 ## 未確認
 ```
@@ -2055,13 +2060,15 @@ namespace Client.Ui.Screens.Challenge.Tree
 
         public void SetShown(bool shown)
         {
-            // 隠す間も要素を残し、控えた各カテゴリの View の視点を保つ
-            // Keep the element while hidden so every kept category view keeps its viewport
+            // 隠す間も要素を残し、控えた各カテゴリの View の視点を保つ（Foundation の UiDisplay があればその 1 行に替える）
+            // Keep the element while hidden so every kept category view keeps its viewport (replace with the Foundation UiDisplay line when it exists)
             style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }
 ```
+
+`SetShown` の本体は Task 1 Step 1 の照合で分ける: `Foundation/Layout/UiDisplay.cs` があれば（S5-crosscut が先に入った）`UiDisplay.SetShown(this, shown);` の 1 行にし、`using Client.Ui.Foundation.Layout;` を足す（S5-crosscut R-4「表示の唯一の書き口」）。無ければ上の直書きのまま（S5-crosscut D-20 の置換対象に入る）。どちらにしたかを `done.md` の「証拠」に書く
 
 `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` の `/* == section: Screens == */` 区画の末尾（今の最終行 `Skit.uss` の次）に 1 行足す:
 ```css
@@ -2798,10 +2805,17 @@ uloop control-play-mode --project-path ./moorestech_client --action Stop
 ```
 Expected: ErrorCount 0、起動後の Error ログ 0 件（`[NodeGraphScene]` の LogError・VContainer の解決失敗が無い）。出たらその行を読んで直してから先へ進む
 
-- [ ] **Step 4: コミットする**
+- [ ] **Step 4: 全画面の載り先の L3 に一覧を足す（S5-crosscut T14 が先に入っているときだけ）**
+
+Task 1 Step 1 で `GameUiScreenMountTest.cs` があったら、その「Presenter が載せる最上位の View 型」の一覧（`Q<T>()` で 1 つずつあることを見る並び。`CurrentChallengeHudView` の行の近く）に `ChallengeListView` の行を 1 つ足し、`using Client.Ui.Screens.Challenge.Tree;` を足す。足し方は実物の並びの書き方に合わせる。
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GameUiScreenMountTest"`（L3。終わったら 45 秒待ってから次）
+Expected: PASS。一覧の型が見つからないと落ちるなら、Presenter の登録（Step 2）が GameUi の系で解かれていない
+- 無ければ足さず、`done.md` の「integrator への依頼」に「S5-crosscut T14 の `GameUiScreenMountTest` の一覧に `ChallengeListView`（`Client.Ui.Screens.Challenge.Tree`。`UiLayer.OverlayPanel`・`UiFamily.Stage`）を足す」と書く
+
+- [ ] **Step 5: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Tree/ChallengeListPresenter.cs moorestech_client/Assets/Scripts/Client.Starter/Registration
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Tree/ChallengeListPresenter.cs moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest
 git commit -m "feat(uitk): S5-challenge のチャレンジ一覧を GameUi に登録"
 ```
 
@@ -3273,7 +3287,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git push
 gh pr checks <PR番号>
 ```
-Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の `using` と画面登録区画・`docs/uitk/TODO.md` の節の末尾）の衝突は両方の行を採る。`TutorialAnchorCoveragePending.cs` に他レーンが行を足していたらその行を残し、S5-challenge の 3 行だけを消した形にする。I-fix5 が `scenarios/uitk/` を段のサブディレクトリへ移していたら、このレーンの `stage5/` の 2 本はそのまま（パスが変わらない）。判定経路に触れる衝突（`ChallengeProgressState`・`NodeGraphView`・`UiRoutingState` の変更）を解いたときだけ Task 6 の録画 2 本を流し直す。G1 が緑で、未記帳 0
+Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の `using` と画面登録区画・`docs/uitk/TODO.md` の節の末尾）の衝突は両方の行を採る。`TutorialAnchorCoveragePending.cs` に他レーンが行を足していたらその行を残し、S5-challenge の 3 行だけを消した形にする。I-fix5 が `scenarios/uitk/` を段のサブディレクトリへ移していたら、このレーンの `stage5/` の 2 本はそのまま（パスが変わらない）。判定経路に触れる衝突（`ChallengeProgressState`・`NodeGraphView`・`UiRoutingState` の変更）を解いたときだけ Task 6 の録画を流し直す。取り込みの後に並走レーンとの照合（Global Constraints）をもう一度見る: `git grep -n "new GameScrollView(" -- moorestech_client/Assets/Scripts` に引数 1 つの呼び出しが増えていれば `GameScrollAxis.Vertical` を足す・`UiDisplay.cs` が入っていれば `ChallengeListView.SetShown` を `UiDisplay.SetShown` に替える・`GameUiScreenMountTest.cs` が入っていれば Task 5 Step 4 の行を足して L3 を流す（足したら `done.md` の依頼の行を消す）・`git grep -n "RestoreViewport" -- moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge` が 0（このレーンは使わない）。直したら compile と `$FILTER` を流し直す。G1 が緑で、未記帳 0
 
 - [ ] **Step 3: マージコミットで取り込む**
 
@@ -3317,7 +3331,7 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-2 カテゴリの選択は State の選択ストア、開き直しは先頭のカテゴリ**: `ChallengeCategorySelectionStore` が一覧を離れると「無し」に戻し、工場が先頭（受信順＝マスタの並び）を選ぶ。前例 `ResearchSelectionStore`。操作は `IChallengeListCommands.SelectCategory`（前例 `IResearchTreeCommands`。L1 で記録の差し替えに替えるため）。開き直しで先頭へ戻す根拠: 裁定 2026-11-04 の本人の明示の引用は「初回だけ寄せる（研究と同じ・今のまま）」で、「今のまま」は当時の Web（`ChallengePanel.tsx:14-15` の `useState` はパネルのアンマウントで消えて `categories[0]` に戻り、視点はカテゴリごとに `viewportStore` が持つ）を指す。決定文の「前回見ていた位置を戻す」はカテゴリの視点のことで、選んでいたカテゴリの記憶ではない。読み方（指揮の agent 既定（PLAN-W5 評価））: 各カテゴリの View を控えるので、開き直して出る先頭のカテゴリの視点は前回のまま戻る。別のカテゴリを見ていて閉じたとき、開き直しでそのカテゴリへ戻すことは含まない（Web の実挙動: `W/src/app/App.tsx:102` の `{screen === "challengeList" && <ChallengePanel />}` がパネルをアンマウントし、`ChallengePanel.tsx:14-15` の `useState` が消えて `categories[0]` に戻る）。表示中かは `ChallengeScreenVisibility.IsShown` で読み、Model は控えた旗でなく経路の今の値を読むので、選択ストアと Model のどちらの購読が先に呼ばれても隠れた後の選択の変化では組まない（DI の登録順に依らない。D-21）
 - **D-3 未解放のカテゴリと別カテゴリの前提**: 未解放のカテゴリは出さない（Web の橋 `ChallengeDtoBuilder.BuildTree`）。別カテゴリの前提は `ChallengeCategoryViewModel.Create` で線のキーから除く（C4-d D-5 の申し送り (2)。部品はグラフに無い親を LogError にする。Web は黙って省く）。どちらも Web の仕様なので `silent-ok` を付け、L0 で固定する
 - **D-4 S4-research の `NodeGraphView.uss` の事後承認（設計書 §7.1 に A-241 を足す。本文はこの D-4）**: `.node-graph__node` から `height: 0` を消した S4-research の修正（9a58258265。包みは幅 0・高さは中身なり・`align-items: flex-start`・子は `flex-shrink: 0`）を承認する。Web の包みは静的な div でカード自身が絶対配置なので中身なりの高さになる。UITK はカードが包みのフローの子なので、高さ 0 の包みは中身なりのカードを 0 に潰す（S4-research の実測 132×18 → 141）。画面の USS は `.node-graph*` を書けないので部品で直すのが正しい。チャレンジのカードが上下の余白 24＋3 行の高さで描かれることを `ChallengeListViewTest`（L1）と録画 `uitk-challenge-list` で固定した。持ち主 C4-d の部品の変更として記録し、このレーンは部品を変えない
-- **D-5 カードの組み立て**: 根は `PaperSurface`（sealed なので持ち手 `ChallengeNodeCard` が組み立てて `Root` で渡す）。Web の outline は拾わない子の輪（研究の前例）で、半径 6px（Paper の角丸 4px に沿う outline の外周）の数値は Web の CSS に無いブラウザの描き方なので画面 USS に直書きする（つまみを作らない）。`translate(-50%, -50%)` は USS、`scale(UIScale)` は C# の `style.scale`（中心を軸。Web と同じ）。指のカーソルは付けず、ビューポートの掴む手（`TreeView.module.css:11` の `cursor: grab`）を継ぐ（C4-d/done.md:67 の申し送りは研究のカードのもの。Web のチャレンジのカードは `cursor: pointer` もタップも持たない）。設計書 A-191 と §2 部品表（research・challenge は「ノードグラフの掴む手・カードの指」）はチャレンジのカードにも指を置くと読めるので、A-241 の本文案でチャレンジの部分を「カードは指を持たずビューポートの掴む手を継ぐ」に改める（`done.md` の「integrator への依頼」。設計書は指揮が写す）
+- **D-5 カードの組み立て**: 根は `PaperSurface`（sealed なので持ち手 `ChallengeNodeCard` が組み立てて `Root` で渡す）。Web の outline は拾わない子の輪（研究の前例）で、半径 6px（Paper の角丸 4px に沿う outline の外周）の数値は Web の CSS に無いブラウザの描き方なので画面 USS に直書きする（つまみを作らない）。`translate(-50%, -50%)` は USS、`scale(UIScale)` は C# の `style.scale`（中心を軸。Web と同じ）。指のカーソルは付けず、ビューポートの掴む手（`TreeView.module.css:11` の `cursor: grab`）を継ぐ（C4-d/done.md:67 の申し送りは研究のカードのもの。Web のチャレンジのカードは `cursor: pointer` もタップも持たない）。設計書 A-191 と §2 の OS カーソルの行（:234。使い手の列 research・challenge「ノードグラフの掴む手・カードの指」）はチャレンジのカードにも指を置くと読めるので、A-241 の本文でチャレンジの部分を「カードは指を持たずビューポートの掴む手を継ぐ」に改める（A-241 の本文は設計書に入り済み。A-191 そのものと §2 の行の書き換えは指揮が設計書へ写す。指揮の agent 既定（PLAN-W5 評価））
 - **D-6 未解放の減光 0.55 は USS のリテラル**: GameUi は sRGB で合成する（設計書 A-180・I-blend）ので Web の値がそのまま使える。研究の `--research-node-locked-opacity` は Linear 合成の頃の補正のつまみで、チャレンジには作らない。`DerivedTokens.uss` に足さない（I-fix5 がファイルを分ける最中で、重ねない）
 - **D-7 カテゴリ列は `UiGroup(UiGap.Md)`＋nowrap を `GameScrollView` の横向きに入れて写す**（指揮の agent 既定（PLAN-W5 評価））: Web の `.categories` は `flex-wrap: nowrap`・`overflow-x: auto` で、ボタンが一覧の幅を越えたら横に送れる。UITK は `Components/Controls/GameScrollView` に向きの引数 `GameScrollAxis` を足し（Task 2b。Components の変更）、`GameScrollView("challenge-categories-scroll", GameScrollAxis.Horizontal)` に入れる。バーは中身が見える幅を越えたときだけ出し（`Auto` は押下の 1px 沈みでバーが点滅するので、縦と同じく幾何で決める）、本文の下の流れに置く（重ねると越えたときにボタンの下の 12px が押せなくなる。Web の `overflow-x: auto` の CEF の既定のバーも場所を取る。推測）。太さ・溝・つまみは縦と同じつまみで、ゲームの他のスクロール領域のバーと同じ見た目になる。ホイールの 1 ノッチは `WebWheelScale.PixelsPerNotch`。画面の USS は部品の内側のクラス（`unity-scroller__slider`・`unity-base-slider__*`・`unity-scroll-view__*`）を書かない（S5-crosscut T10 が `UiStyleConventionTest` に足す「`Screens/**/*.uss` のセレクタが `Components/**/*.uss` の定義する `__` 付きの内側クラスを含まない」に当たり、A-167 の「部品のクラスを画面が書かない」とも食い違うため）。`Theme.uss` は変えない。縦の呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数と引数 1 つの多重定義を作らない）。参照キャプチャはどちらも幅に収まってバーが写っていない（Web の CEF の既定の横バーは未計測。`W/src/**/*.css` に `::-webkit-scrollbar` は無い）ので、越えたときの見た目は台帳の「## 未撮影」に 1 行足す（Task 7。差が測れたら並べ比べ、要るなら予備の LX-200 を使う）。棄却: (a) 画面の部品 `Screens/Challenge/Parts/ChallengeCategoryScrollView`（`ScrollView` 派生）と画面 USS の内側のクラスの上書き（旧 D-7）— 部品の内側のクラスを画面が書き、S5-crosscut の検査に当たる。バーの有無の式とホイールの換算が `GameScrollView` と 2 本になる（A-167 の「画面ごとに別のスクロール部品」）。(b) `overflow: hidden` で切って台帳に例外を記帳する — Web で届くボタンが UITK で押せなくなり、カテゴリが増えた時点で黙って壊れる。(c) バーを縦と同じく本文に重ねる — 越えたときにボタンの下が押せない
 - **D-8 層と表示**: 一覧は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`。舞台の倍率と左右の余白に従う）。Presenter が 1 回だけ載せ、経路で `SetShown`（前例 `ResearchTreePresenter`）。Model は一覧の表示中だけ組む（前例 `ResearchTreeModel`）。進行中 HUD・ホットバー・キーヒントは上の層にあり、このレーンは触らない
@@ -3346,3 +3360,9 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - CEF（Chromium）の既定の横バーの見た目と、場所を取るか重なるかは未計測（参照キャプチャはどちらも幅に収まりバーが写らない）。`GameScrollView` の横向きのバー（流れの中・太さ 12）で写し、台帳の「## 未撮影」に足す（D-7）
 - `GameScrollView` の横向きで縦のホイールが横送りになるか（UITK は送る見込み、Chromium の `overflow-x: auto` は既定で送らない）は未計測。L1 は「ホイールが装備・ホットバーへ抜けない」だけを固定する
 - `GameScrollView` の横向きの content container が行の高さを持つか（0 なら部品の横の区画に `position: relative` を足す。Task 2b Step 3）は実装時に確かめる
+
+## 本PR外のリファクタ提案
+
+- Web の橋 `Client.WebUiHost/Game/Topics/Challenge/ChallengeDtoBuilder.cs` の `BuildTree` と State の `ChallengeListViewModelFactory.Create` が同じ規則（解放済みのカテゴリだけ・状態の優先 完了＞進行中＞未解放・`DisplayListParam.UIPosition`/`UIScale` の写し）を 2 本持つ。Web の撤去（裁定 2026-11-06「一気切替の日に CEF と Web を同時に撤去する」）で橋ごと消えて 1 本になる見込み。それまでに規則を変えるなら両方を直す
+- 研究の `Screens/Research/Parts/ResearchNodeCardSet.cs:28-40` の `bool RenderCards`（並びが変わったかを bool で返す）と Guid→キー文字列の詰め替えは `ChallengeNodeCardSet` と同じ形。D-20 で棄却した「カードの組が並びの変化を bool で返す形」（座標と前提の変化を見落とす）が研究に残っている。NodeGraph 用のカードの使い回しを 1 本にし、渡し直しの判定を VM の値の比較（チャレンジの `HasSameGraphAs`）へ寄せられる
+- 研究の `Screens/Research/ResearchTreeView.cs:60-73` の `Render` の渡し直しの条件（`orderChanged || focusChanged`・`hasFocus != _hasFocus || (hasFocus && focus != _focus)`）は、チャレンジの `ChallengeCategoryGraph.Render`（`HasSameGraphAs`）と同じ役割を別の式で持つ。研究も VM の値で比べる形へ寄せると、座標・前提の変化も渡し直しに入る（A-172 の改めになる）
