@@ -96,7 +96,9 @@ namespace Client.Ui.Components.Text
             foreach (var child in Children())
             {
                 var label = (LocalizedLabel)child;
-                var naturalWidth = label.MeasureTextSize(label.text, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined).x;
+                // 表示文は行末の約物の詰めで改行を含むことがあるので、1 行の幅は原文で測る
+                // The display text may hold trim newlines, so measure the one-line width from the source
+                var naturalWidth = label.MeasureTextSize(label.SourceText ?? string.Empty, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined).x;
                 if (innerMaxWidth < naturalWidth) wrapped = true;
             }
             EnableInClassList("tooltip-face--wrapped", wrapped);

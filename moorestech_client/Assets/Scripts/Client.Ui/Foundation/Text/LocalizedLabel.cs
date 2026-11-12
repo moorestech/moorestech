@@ -16,9 +16,11 @@ namespace Client.Ui.Foundation.Text
     /// 言語購読と文が無いときの報告は LocalizedTextBinding に任せる。USS に line-height が無いので、行の高さは 2 つのつまみで受け、行送りは <line-height> を前に付けて写す。
     /// --localized-label-line-box は Web の line-height そのもの: 行送りをその px にし、高さを行数×その px にする（字は -unity-text-align で行の箱の中央に置かれ Web の half-leading と同じ位置。Typography のクラスが宣言する）。
     /// --localized-label-line-height は行送りだけ: 1 行目は字の自然な高さのまま（画面が個別に宣言する。両方あればこちらを採る）
+    /// 行末の閉じ約物は LineEndPunctuationTrimmer が Chrome の text-spacing-trim: normal と同じく半角に詰めて折り返す（設計書 A-223）
     /// Language subscription and missing-text reporting are delegated to LocalizedTextBinding. USS has no line-height, so two knobs carry it and a <line-height> tag sets the pitch.
     /// --localized-label-line-box is the Web line-height itself: the pitch is that px and the height is line count x that px (-unity-text-align centres glyphs in the line box like the Web half-leading; declared by the Typography classes).
     /// --localized-label-line-height sets only the pitch, keeping the natural first-line height (declared per screen; it wins when both are present)
+    /// LineEndPunctuationTrimmer wraps with line-end closing punctuation trimmed to half width like Chrome's text-spacing-trim: normal (design A-223)
     /// </remarks>
     public class LocalizedLabel : Label
     {
@@ -28,20 +30,25 @@ namespace Client.Ui.Foundation.Text
         private static readonly CustomStyleProperty<string> LineBoxStyle = new(LineBoxProperty);
 
         private readonly LocalizedTextBinding _binding;
-        private string _resolvedText;
+        private readonly LineEndPunctuationTrimmer _lineEndPunctuationTrimmer;
         private string _lineHeightTag = string.Empty;
         private float _lineBoxPixels;
 
         public LocalizedLabel()
         {
             _binding = new LocalizedTextBinding(this);
+            _lineEndPunctuationTrimmer = new LineEndPunctuationTrimmer(this);
             _binding.OnResolved.Subscribe(resolved =>
             {
-                _resolvedText = resolved;
+                SourceText = resolved;
                 ShowResolvedText();
             });
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
         }
+
+        // 解決した原文。text は行送りの印と行末の約物の詰めの改行を含む表示文なので、文の中身はこちらで読む
+        // The resolved source text; text is the display text with the line-height tag and trim newlines, so read the words here
+        public string SourceText { get; private set; }
 
         public void SetKey(LocalizationKey key)
         {
@@ -103,8 +110,8 @@ namespace Client.Ui.Foundation.Text
         private void ShowResolvedText()
         {
             // silent-ok: 文が来るまで出さない / 載って 1 フレーム後も無ければ LocalizedTextBinding が LogError を出す
-            if (_resolvedText == null) return;
-            text = _lineHeightTag + _resolvedText;
+            if (SourceText == null) return;
+            _lineEndPunctuationTrimmer.Show(_lineHeightTag, SourceText);
         }
     }
 }
