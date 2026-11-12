@@ -19,16 +19,16 @@
 | R-3 | wwxy: `tutorial-research-renumber.cs` を削除 | `scenarios/tutorial-research-renumber.cs` が無い（`git ls-files` 0 件）。台帳の行の方針に「削除した（X-prerun）」 |
 | R-4 | wwxy: `misc/research-node-state-label.cs` を現行の研究 GUID へ書き直す | 削除済み GUID（837e9697・424be8c1・07d6226c）がファイルに 0 件。ピン先マスタの研究（起草時 e0c913033c: 原始研究1 `858bcb10-b8ba-478e-9bc5-473ca61281a2`・原始研究2 `b47c5e3c-1b58-42c5-a477-d485d2eae747`・原始研究3 `bc5e7786-6759-4271-8095-836703b54490`）で「完了済み／研究可能／研究不可」の 3 状態を作り、GameUi で `Success: true`・ErrorLogs 0・Assert 5/5。Web でも流し、落ちたら原因を分ける: シナリオの誤り（素材・GUID・待ち）なら直して両系で流し直す。Web の画面・CEF の不具合なら直さず、分類と原因を `done.md`「## 全録画の結果」と台帳の行に記録して進む（Web 側の失敗は記録だけ。D-36） |
 | R-5 | wwxy を閉じる | 台帳「## 壊れた録画の割り振り」の 10 行すべての方針の列に結果（書き直した・削除した・移植した）が入り、X-prerun の 2 行に GameUi/Web の run を書く。全録画の GameUi 側で 10 行のうち現存する 8 本（起草時: S2-ladder の 4 本・S3-ladder の 3 本・state-label。数は Task 5 Step 1 で 10 行を 1 行ずつ「現存／削除／後継」に分けて数え直す）と、削除した electric-wire の後継 `connect/electric-wire-tool-extend-chain-via-ui.cs`（GameUi）が PASS。bd `moorestech-wwxy` を close（理由に PR URL） |
-| R-6 | 全録画の UITK 側（全体スイッチ GameUi） | `list-recordings.sh GameUi` の全本と書き直した state-label から、`run-scenario.sh` で流せない行（EDC の手動投入の `playtest-receiver/developer-report-interrupt.cs`・`developer-report-resume.cs` と、運転役 `.sh` から流す `uitk/stage5/uitk-event-language-gate.cs`）と撮影シナリオ `uitk/prerun/` を外した一覧を `run-all-recordings.sh` で流し、TSV の行数＝一覧の本数。外した手動の行は Task 3 Step 2b の流し方で判定する（interrupt は手動投入、言語ゲートは運転役、resume は `前提つき（判定の対象外）`。D-48）。exit 0 以外の全行を [A-177] の 6 分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）に分け、`束 5 未移植` 0・`不具合` 0（途中で見つけたものは持ち主へ回して入ったら流し直して PASS）。exit 0 以外の行は 1 回流し直し、2 回とも落ちた行だけを分類する（2 回目に通った行は `PASS（揺れ: 1 回目 FAIL）`。D-36）。どのシナリオも先回りで分類せず流した結果で分ける。表を作った HEAD の 40 桁を、控えたその場で `done.md`「## 全録画の結果」の頭に `全録画の HEAD（GameUi）:` で書く（X-switch-pr の `<PRERUN_HEAD>`。一覧・TSV は Unity が消さない `moorestech_client/.uloop/outputs/X-prerun/recordings/` に置く。D-43）。表は「シナリオ / UITK の分類 / Web の分類 / 秒 / 原因・注記」で、分類の欄は分類の語だけ（`Web 専用` の行はちょうど `Web 専用`）。`Web 専用` はシナリオ全体が Web に依るものだけで、assert の一部だけが Web に依るものは `前提つき（5a が assert を書き直す）`（Task 3 Step 3。D-29） |
-| R-7 | 全録画の Web 側（全体スイッチ Web） | `list-recordings.sh Web` の全本と state-label を流し（手動投入の 2 本は Task 4 Step 2b。interrupt は Mac の Editor で Web の前置きの後に手動投入、resume は `前提つき（判定の対象外）`。D-48）、exit 0 以外の行を S4-gamma の Web 側の TSV（S4-gamma `done.md`「## 全録画の結果」）と比べ、S4-gamma で PASS だった行だけを S4-gamma の HEAD で流し直して `既存`／`退行`／`比較不能（新設）`／`比較不能（変更）` に分ける。exit 0 以外の行は 1 回流し直し、2 回とも落ちた行だけを分類する。Web 側の失敗はどの分類でも直さず停止しない（裁定「UITK 切替まで CEF 由来の不具合は直さない」と、Web が切替で消えること。CEF 由来か否かを問わず撤去前の基準として記録する。A-251・D-36）。exit 0 以外の全行に分類と原因（ログに CEF の描画停止・待ちがあれば `（CEF 由来）`）が付き、`退行` の件数と名前が台帳の行と `done.md` にある |
+| R-6 | 全録画の UITK 側（全体スイッチ GameUi） | `list-recordings.sh GameUi` の全本と書き直した state-label から、`run-scenario.sh` で流せない行（EDC の手動投入の `playtest-receiver/developer-report-interrupt.cs`・`developer-report-resume.cs` と、出展モードの運転役 `uitk/stage5/exhibition-mode-run.sh` から Mac の Editor で流す `uitk/stage5/` の 3 本〈ラダー 6 `uitk-challenge-gate.cs`・`uitk-event-language-gate.cs`・`uitk-stage5-compare.cs`〉。S5-ladder D-8）と撮影シナリオ `uitk/prerun/` を外した一覧を `run-all-recordings.sh` で流し、TSV の行数＝一覧の本数。外した手動の行は Task 3 Step 2b の流し方で判定する（interrupt は手動投入、出展モードの 3 本は運転役、resume は `前提つき（判定の対象外）`。D-48・D-55）。exit 0 以外の全行を [A-177] の 6 分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）に分け、`束 5 未移植` 0・`不具合` 0（途中で見つけたものは持ち主へ回して入ったら流し直して PASS）。exit 0 以外の行は 1 回流し直し、2 回とも落ちた行だけを分類する（2 回目に通った行は `PASS（揺れ: 1 回目 FAIL）`。D-36）。どのシナリオも先回りで分類せず流した結果で分ける。表を作った HEAD の 40 桁を、控えたその場で `done.md`「## 全録画の結果」の頭に `全録画の HEAD（GameUi）:` で書く（X-switch-pr の `<PRERUN_HEAD>`。一覧・TSV は Unity が消さない `moorestech_client/.uloop/outputs/X-prerun/recordings/` に置く。D-43）。表は「シナリオ / UITK の分類 / Web の分類 / 秒 / 原因・注記」で、分類の欄は分類の語だけ（`Web 専用` の行はちょうど `Web 専用`）。`Web 専用` はシナリオ全体が Web に依るものだけで、assert の一部だけが Web に依るものは `前提つき（5a が assert を書き直す）`（Task 3 Step 3。D-29） |
+| R-7 | 全録画の Web 側（全体スイッチ Web） | `list-recordings.sh Web` の全本と state-label を流し（手動投入の 2 本は Task 4 Step 2b。interrupt は Mac の Editor で Web の前置きの後に手動投入、resume は `前提つき（判定の対象外）`。D-48）、exit 0 以外の行を S4-gamma の Web 側の TSV（S4-gamma `done.md`「## 全録画の結果」）と比べ、S4-gamma で PASS だった行だけを S4-gamma の HEAD で流し直して `既存`／`退行`／`比較不能（新設）`／`比較不能（変更）` に分ける。exit 0 以外の行は 1 回流し直し、2 回とも落ちた行だけを分類する。Web 側の失敗はどの分類でも直さず停止しない（裁定「UITK 切替まで CEF 由来の不具合は直さない」と、Web が切替で消えること。CEF 由来か否かを問わず撤去前の基準として記録する。A-251・D-36）。exit 0 以外の全行に分類と原因（ログに CEF の描画停止・待ちがあれば `（CEF 由来）`）が付き、`退行` の件数と名前が台帳の行と `done.md` にある。`（CEF 由来）` の付かない `退行` で、`$S4G..HEAD` の `moorestech_web/` のコミットに master のものがあれば、master の Web の持ち主宛ての bd がある（停止しない。D-54）。Web の本も 1 本ごとに表示言語を日本語に固定してから流す（D-52） |
 | R-8 | 5a への申し送り（Web 専用の一覧） | `done.md`「## 5a への申し送り」を 2 つの小節に分ける。「### 消す（シナリオ全体が Web 専用）」に分類が `Web 専用` のシナリオ全部、「### 書き直す（Web に依る assert だけを持つ）」に流した結果で落ちた assert が Web に依るものだけだったシナリオ（起草時の見込み: `playtest-receiver/developer-report-delivery.cs` の webUiHealth の 3 つ。分類は先回りで決めず Task 3 Step 3 の結果で決める。D-29）と `Client.WebUiHost` を直接参照する 8 本（起草時の実測）。どちらも、パス（`scenarios/` からの相対。「## 全録画の結果」の表の 2 列目と同じ形。5a が 2 つを突き合わせる）・落ちた assert・5a でどうするかの案。後者の分類の語に `Web 専用` の文字列を含めない（5a の grep が消す側だけに当たるように）。UITK の分類の欄がちょうど `Web 専用` の行の数と「### 消す」のパスの数が同じ（Task 5 Step 1）。物差しの流し方は 3 つ目の小節「### 物差し（prerun-smoke-shots）」に書く（Task 10 Step 3） |
 | R-9 | 参照の撮り直し | origin/master の使い捨て worktree で `capture.ts` を 1280×720 と 2560×1080（W6-4）で撮り（1 回ごとに本体が background で起動して完了の通知で受け、流し直す前は出力先を消す。所要を `done.md` へ）、`moorestech_logs/uitk/reference-captures/web-<sha10>/`・`web-<sha10>-2560x1080/` に置く。両方の `manifest.json` の `viewport` が `1280x720`・`2560x1080`、`entries` の件数が同じ。台帳「## 参照キャプチャ」に撤去前の最後の参照として 1 行（撮影元・置き場・件数） |
 | R-10 | 撮影の対応表（W6-5） | `done.md`「## 撮影の対応表」に新しい manifest の全 id が 1 行ずつ（撮り方 P/N/E/V/X・出所・UITK のファイル名・判定）。X は [A-38] で UITK に作らない画面だけで、出所に [A-38] と `disposition.md` の理由の行がある。Task 7 の検査スクリプトが「manifest にあって表に無い 0・表にあって manifest に無い 0・重複 0・撮り方の誤り 0（X の根拠の欠けを含む）」で exit 0 |
 | R-11 | UITK の全画面の撮影 | 表の全静止画 id（X を除く。X は撮る相手が無いので R-11 と Task 11 の組の対象外で、`done.md` の表の行が根拠）について `moorestech_client/.uloop/outputs/compare/X-prerun/<id>-1280x720.png` と `<id>-2560x1080.png` が実在（Task 8〜9 の `ls` の数え上げ）。Task 9 Step 2 の逃げ道（撮れない状態を各レーンの PR の並べ比べで代える）を使った id は R-11 未達として数え、`done.md`「要裁定」に Q-n（外した id・代わりの証拠の URL・外した理由）で上げる（0 件なら何もしない。D-23）。E の id は、先に実行時に作れる状態 1 つ（`4-block-chest`）で EditMode と PlayMode の panel の寸法と panel 原点からの閉じるボタンの相対位置の差が 1280×720 で 2px 以内であることを記録してから撮る（[A-164]。panel の画面上の絶対位置は外殻の列の組み方で変わるので比べない。前例 S4-special。D-46）。E の各 id の面（対応表の `面=<testid>`）の矩形が `compare/X-prerun/uitk-panel-rects.tsv`（UITK）と `web-panel-rects-<解像度>.json`（Web。Task 7 Step 4）に両解像度ともある |
-| R-12 | 動画 5 件 | 表の V の 5 件について、1280×720 は UITK 側を録画し、Web の webm と同じ相（長さの 10%・50%・90%）の 3 フレームを両方から ffmpeg で抜く。2560×1080 は録画が 1280×720 の出力に固定（`PlaytestRecorder.cs:33`）なので、同じ操作の同じ相で UITK の静止画を撮り、Web の 2560×1080 の webm から同じ相を抜く（D-32）。`compare/X-prerun/video/<id>-{start,mid,end}-{web,uitk}-{1280x720,2560x1080}.png` の 60 枚。各動画は Web の `steps` の `visible(...)` に当たる UITK の要素が出たことを Assert してから相を数える（D-33）。Web の webm の t=0 は ready の手順の後の境界で、脈動の 4 件はもう脈動の途中、通知は境界の 0.5 秒後（`EFFECT_LEAD_IN_MS`）に出るので、両解像度の動画の組で動きの位相の差を数えず、効果の出始め・通知の 0.5 秒の遅れ・実ゲームのワールドピンとチャレンジ 1 の枠とラベルを `states.md` の状態の差に書く（脈動の振幅と周期は `uitk-tutorial-cues.cs` の Assert と UI テストが見る。D-35） |
+| R-12 | 動画 5 件 | 表の V の 5 件について、UITK 側は両解像度とも同じ操作の同じ相（Web の `durationMs` の 10%・50%・90%）で静止画を撮り、Web 側は 1280×720 と 2560×1080 の webm から同じ相のフレームを ffmpeg で抜く（D-32）。UITK の録画（1280×720 に固定。`PlaytestRecorder.cs:33`）は動きの目視用で、フレームを抜かない（録画は 30fps の一定の刻みで書かれ、Timeline の実時間の秒と後の動画ほどずれうるので。D-53）。`compare/X-prerun/video/<id>-{start,mid,end}-{web,uitk}-{1280x720,2560x1080}.png` の 60 枚。各動画は Web の `steps` の `visible(...)` に当たる UITK の要素が出たことを Assert してから相を数える（D-33）。Web の webm の t=0 は ready の手順の後の境界で、脈動の 4 件はもう脈動の途中、通知は境界の 0.5 秒後（`EFFECT_LEAD_IN_MS`）に出るので、両解像度の動画の組で動きの位相の差を数えず、効果の出始め・通知の 0.5 秒の遅れ・実ゲームのワールドピンとチャレンジ 1 の枠とラベルを `states.md` の状態の差に書く（脈動の振幅と周期は `uitk-tutorial-cues.cs` の Assert と UI テストが見る。D-35） |
 | R-13 | 独立評価 2 系統と再現 | このレーンが取りまとめ役として（D-16）、並べ比べの組（左 Web・右 UITK の合成画像。E は両側を面の矩形に切り抜き、外殻の外は数えない。D-46）を opus の評価役 A・B に互いの結果を見せずに、1 回 24 組までに分けて判定させ、指摘を別の subagent が画素で再現し、再現したものだけを `done.md`「## 差の表」に残す。再現しなかったものも 1 行で残す |
 | R-14 | 差 0 か記帳済み（設計書 §3.3 (c)・§3.4） | 「## 差の表」の全行が「直した（USS・撮り直しの PNG）／状態の差（`states.md` に足して閉じた。根拠の行つき。記録だけで停止しない。D-44）／LX-210〜217（台帳の行と `/* look-exception: LX-n */` を同じコミット。`LookExceptionLedgerTest` PASS。9 件目からは「LX（番号待ち）」で停止。D-24）／要裁定 Q-n（`done.md`「要裁定」）／持ち主へ bd（入って再撮影して閉じた）」のどれか。配置・色の系統・装飾の有無・文字の大きさの差は LX にしない。USS を直した後と、撮影の後に `Client.Ui`・`UI Toolkit` を変える取り込み（持ち主の修正・Task 16 Step 2）をした後は、全 id を撮り直して前の回と比べ、`inf` でない id 全部を並べ比べ直す（D-34・D-45・D-49）。生成物の USS（先頭に `Generated … do not edit by hand` を持つ `Tokens.uss`・`SlotTokens.uss`・`SkitTokens.uss`・`MantineTokens.uss`）は手で直さない。参照の撮影元 master と `feature/uitk` の Web の食い違い（Task 7 Step 3 の表）に当たる差は「feature/uitk 側が正（master の Web 側の残り）」として差の表から外し、表の行に記録する（D-37） |
-| R-15 | 撤去レーンの物差し `prerun-smoke-shots.cs`（W6-6 (b)） | `scenarios/uitk/prerun/prerun-smoke-shots.cs`（200 行未満・全体スイッチと Web の型を参照しない）が束ごとに 2 状態・計 10 状態を 1280×720 と 2560×1080 で撮り、最終 HEAD で `Success: true`・PNG 20 枚。`grep -nE "UiSystem|ActiveUiSystem|UiSystemEditorSwitch|WebUiHost|PlaytestDomQuery|Cef" scenarios/uitk/prerun/*.cs` が 0 件（Task 10 Step 2・Task 14 Step 1。D-18）。`done.md` に撮影名の一覧 |
+| R-15 | 撤去レーンの物差し `prerun-smoke-shots.cs`（W6-6 (b)） | `scenarios/uitk/prerun/prerun-smoke-shots.cs`（200 行未満・全体スイッチと Web の型を参照しない）が束ごとに 2 状態・計 10 状態を 1280×720 と 2560×1080 で撮り、撮るたびに名前の付いた表示中の要素の矩形を run dir の `smoke-rects.tsv`（列 `state res name index x y w h`。layout で測るので脈動で動かない）に書く。最終 HEAD で `Success: true`・PNG 20 枚・TSV に 20 組（状態×解像度）の行。Task 10 Step 2 の 2 回の run で `diff` が exit 0（矩形の出力が一致。世界に追従して揺れる要素は名前で外し、理由をシナリオと `done.md` に書く）。`grep -nE "UiSystem|ActiveUiSystem|UiSystemEditorSwitch|WebUiHost|PlaytestDomQuery|Cef" scenarios/uitk/prerun/*.cs` が 0 件（Task 10 Step 2・Task 14 Step 1。D-18）。`done.md` の「### 物差し（prerun-smoke-shots）」に撮影名の一覧・TSV の列・写し方・比べ方（TSV の `diff` 一致を全状態に、PNG の `inf` を「PSNR で比べる状態」に。D-51） |
 | R-16 | 台帳の記録 | 台帳「## 実測の結論」の末尾に 2 行（全録画の 3 回目の UITK 側・Web 側）。「## 参照キャプチャ」に 1 行（R-9）。「## 壊れた録画の割り振り」の 2 行（R-3・R-4） |
 | R-17 | 申し送りの処遇 | 「## 申し送りの処遇」の全行に「やった（Task n・証拠）／回した（bd id・宛先）／閉じた（理由）」が付き、`done.md` に写す |
 | R-18 | 最終 HEAD でラダー 6 本と UI テスト全体 | 最終 HEAD（取り込み後）で `uloop compile` ErrorCount 0、`^Client\.Tests\.Ui\.` 全 PASS（1 本 `--timeout-seconds 570`。時間切れなら Global Constraints 4 の割り方）、ラダー 6 本が GameUi で `Success: true`・ErrorLogs 0 |
@@ -52,7 +52,7 @@
 2. 実装はこのホスト（Mac mini）の Claude Code の subagent（opus）で行う。Codex は使わない（D-17）。実行計画 §5 の codex-audit・外部監査は **opus の subagent 2 系統の独立評価**で代える（目的・裁定・設計書・完了条件と成果物の実物だけを渡して別々に判定。設計判断になる指摘は別の subagent に再現させ、再現したものだけ残す）
 3. Unity Editor: **Mac mini の Editor は全体で 1 本まで**（このレーンの worktree の 1 本。起動・停止の前に `moores-wt status` で所有を確かめる）。2 本目以降が要るときは Windows（RTX2060）の `~/bin/winunity`（push 済みのブランチを使う。`winunity compile|test|test-all|play <branch> <scenario.cs> [--ui-system GameUi|Web]|edc`）。**Editor の起動・停止・付け替え（Task 1 Step 4・Task 4 Step 3 の経路 M）は本体（制御セッション）が行い、subagent には起動済みの Editor だけを渡す。subagent はそこへ来たら作業を止めて本体へ返す。10 分を超えうる分けられないコマンド（参照の撮影の `capture.ts`。Task 6 Step 2〜3）も本体が Bash の `run_in_background` で 1 回起動し、完了の通知で受ける（ポーリングしない）。** Editor を起動したら毎回、使う前に Global Constraints 5 の前置きを流す（起動済みの Editor にはシェルの環境変数が届かない）。master の参照の撮影は `--no-editor` の worktree で行う
 4. 区切り（タスク）ごとにコミットする。subagent はバックグラウンドのポーリングで待たず前景で実行する（1 回の Bash は 600 秒以内に収める。全録画は 3 本ずつ）。`run-scenario.sh` は result.json を 420 秒（`RESULT_TIMEOUT=420`。固定）しか待たないので、`prerun/` のシナリオの `ScenarioTimeoutSeconds` は 360 秒にし、最初の run の所要を `done.md`「## 証拠」に書く（350 秒を超えたシナリオは 2 本に分ける）。UI テストは `^Client\.Tests\.Ui\.` を 1 本 `--timeout-seconds 570` で前景で流し（X-5a の計画の実績で約 2 分）、時間切れなら `^Client\.Tests\.Ui\.[A-L]` と `^Client\.Tests\.Ui\.[M-Z]` の 2 本に割って流し直す。`.superpowers/` はコミットしない
-5. 録画: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client <scenario.cs>`。このレーンは X-5a より前なので、PlayMode を止めた状態で `uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE","http://127.0.0.1:9"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); Client.Localization.Localize.Initialize(); return Client.Localization.Localize.TrySetChosenLanguage("japanese");'`（Web は `UiSystem.Web`）を流し、戻り値が `true` であることを見てから入る（`run-all-recordings.sh` は 1 本ごとに系を自分で立てる）。**撮影（Task 8〜10・12・14 の撮り直しを含む）の前は毎回この前置きで表示言語を日本語に固定する**: Web の参照は mock-host の既定の日本語（`e2e/mock-host/topics/topicFixtures.ts:44` `locale: "japanese"`）で、ゲームは `PlayerPrefs` の言語（無ければ english。`Client.Localization/Localize.cs:14,35-37`）で起き、`TrySetChosenLanguage` は `PlayerPrefs` へ保存するので、前に流したシナリオ（P の出所の `uitk/uitk-notification-compare.cs:57` は最後に english にする）の言語が次の撮影へ残る。edit mode では辞書が未初期化なので先に `Localize.Initialize()` を呼ぶ（`IsSelectable` が辞書を引く。`Localize.cs:156-160`）。`prerun/` の 5 本と state-label は本体の冒頭でも `p.Assert(Localize.TrySetChosenLanguage("japanese"), …)` を呼ぶ（前例 `connect/rotary-generator-ui.cs:54`。D-30）。UI テスト（`UiTestHost`）の TearDown はスイッチを Web に戻すので、テストの後の録画の前に必ず立て直す（W0-switch:41）。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）。録画の前に push する（未 push の HEAD でバグ報告の箱が巨大になり送信トーストが 60 秒を超える。C2-b の申し送り）。受け口は `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` で本番へ送らない（winunity play は Windows の Editor に同じ値を入れて起こす。`winunity.d/interactive.ps1:30`）
+5. 録画: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client <scenario.cs>`。このレーンは X-5a より前なので、PlayMode を止めた状態で `uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE","http://127.0.0.1:9"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); Client.Localization.Localize.Initialize(); return Client.Localization.Localize.TrySetChosenLanguage("japanese");'`（Web は `UiSystem.Web`）を流し、戻り値が `true` であることを見てから入る（`run-all-recordings.sh` は 1 本ごとに系を自分で立てる）。**撮影（Task 8〜10・12・14 の撮り直しを含む）の前は毎回この前置きで表示言語を日本語に固定する**: Web の参照は mock-host の既定の日本語（`e2e/mock-host/topics/topicFixtures.ts:44` `locale: "japanese"`）で、ゲームは `PlayerPrefs` の言語（無ければ english。`Client.Localization/Localize.cs:14,35-37`）で起き、`TrySetChosenLanguage` は `PlayerPrefs` へ保存するので、前に流したシナリオ（P の出所の `uitk/uitk-notification-compare.cs:57` は最後に english にする）の言語が次の撮影へ残る。edit mode では辞書が未初期化なので先に `Localize.Initialize()` を呼ぶ（`IsSelectable` が辞書を引く。`Localize.cs:156-160`）。`prerun/` の 5 本と state-label は本体の冒頭でも `p.Assert(Localize.TrySetChosenLanguage("japanese"), …)` を呼ぶ（前例 `connect/rotary-generator-ui.cs:54`。D-30）。UI テスト（`UiTestHost`）の TearDown はスイッチを Web に戻すので、テストの後の録画の前に必ず立て直す（W0-switch:41）。出展モードのシナリオ（`uitk/stage5/` の `uitk-challenge-gate.cs`・`uitk-event-language-gate.cs`・`uitk-stage5-compare.cs`）は `uitk/stage5/exhibition-mode-run.sh <project> GameUi <scenario.cs>` 経由で Mac の Editor でだけ流す（`winunity play` は武装を挟めない）。運転役は言語を戻すが全体スイッチは流した系のまま残すので、運転役の後の次の録画・撮影の前は必ずこの前置き（`UiSystemEditorSwitch.Set` を含む）を流す（S5-ladder D-8・Global Constraints。D-55）。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）。録画の前に push する（未 push の HEAD でバグ報告の箱が巨大になり送信トーストが 60 秒を超える。C2-b の申し送り）。受け口は `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` で本番へ送らない（winunity play は Windows の Editor に同じ値を入れて起こす。`winunity.d/interactive.ps1:30`）
 6. 録画 mp4・`PlaytestResults/`・TestResults xml・撮影 PNG は worktree の gitignore 下に置き（全録画の一覧・TSV と G1・申し送りの控えは `$O=moorestech_client/.uloop/outputs/X-prerun`〈全録画は `$D=$O/recordings`〉、撮影は `$C=moorestech_client/.uloop/outputs/compare/X-prerun/`。どちらも `.gitignore:102` の `/moorestech_*/.uloop/outputs/` の下で、前例 C2-a・C3-a の `compare/<レーン>/` と同じ置き場）、検証後に消す。**`moorestech_client/Temp/` には何も置かない**: Unity は Editor を正常に閉じるとプロジェクトの `Temp/` を消し（起草時の観測: Editor の居ないメインクローンと worktree に `Temp/` が無く、Editor が動いている worktree だけにある）、このレーンは経路 M（Task 4 Step 3）と停止（Task 3 Step 3・Task 12）の間に Editor を閉じる。あとで読む値（全録画の HEAD・G1 の起点の件数）は控えた時点で `done.md` にも書き、後の手順は `done.md` から読む（D-43）（報告ページへ載せる分は先に載せる）。`../moorestech_logs` に置くのは md と小さな JSON とスクショ 3 枚程度まで（書く前に `../moorestech_logs/README.md` を読む）。参照キャプチャの置き場 `moorestech_logs/uitk/reference-captures/` は既存の運用（台帳から辿る正本）。テストで `Saves/` に作ったワールドは `.agents/skills/unity-playmode-recorded-playtest/scripts/list-work-saves.sh` で探して消す
 7. 番号: 設計書 §7.1 の行は **A-250**（撮り方と独立評価）・**A-251**（撤去前の最後の Web の基準）、見た目の例外は **LX-210〜LX-217** だけ。計画・レーンは設計書・実行計画を書かない
 8. 共有ファイル（`docs/uitk/TODO.md`・`docs/uitk/disposition.md`・USS・tss）は自分の行・節だけ触る。取り込みの衝突は両方の行を採る。`DerivedTokens.uss`（起草時 195 行）など 190 行を超える USS へ足すときは、先に責務で分けてから足す。分けた先は、元のディレクトリが 10 ファイル以上ならサブディレクトリにする（`Client.Ui/Foundation/Theme/` は起草時 14 ファイル〈USS 9・.cs 4・txt 1〉なので、`DerivedTokens.uss` を分けるなら `Foundation/Theme/Derived/<責務>.uss`。`GameUiTheme.tss` の `@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Derived/<責務>.uss");` は元の `DerivedTokens.uss` の行の直後に置き、変数の定義の順を保つ）。生成物の USS（1 行目が `/* Generated from … — do not edit by hand. */` の `Tokens.uss`・`SlotTokens.uss`・`SkitTokens.uss`・`MantineTokens.uss`）は手で直さない（D-37）
@@ -165,9 +165,9 @@
 | 5-tutorial-recipe-item | 5 | E | S2-tutorial（レシピのアイテムのアンカー） | — |
 | 5-reconnect | 5 | X | [A-38]（再接続オーバーレイは UITK に作らない。Web↔C# の WS が無く状態が起きない）・`docs/uitk/disposition.md` の S5-crosscut の理由の行 | — |
 | 5-japanese-inventory | 5 | N | `prerun/prerun-shots-b5.cs` | `b5-5-japanese-inventory-<w>x<h>` |
-| 2-notification-enter-aggregate-exit・2-key-control-hint-pulse・2-world-pin-pulse・4-drag-guide・5-tutorial-pulse（5 件） | 2・4・5 | V | `prerun/prerun-videos.cs` | 1280×720: `recording.mp4` と Note の `[video] <id> 1280x720`／2560×1080: `vid-<id>-{start,mid,end}-2560x1080`（D-32） |
+| 2-notification-enter-aggregate-exit・2-key-control-hint-pulse・2-world-pin-pulse・4-drag-guide・5-tutorial-pulse（5 件） | 2・4・5 | V | `prerun/prerun-videos.cs` | `vid-<id>-{start,mid,end}-{1280x720,2560x1080}`（静止画。`recording.mp4` は動きの目視用。D-32・D-53） |
 
-S5-ladder が段 5 の撮影シナリオ（`scenarios/uitk/stage5/`）を持っていれば、束 5 の N の行はそちらを P に切り替え、`prerun-shots-b5.cs` は残った id だけを撮る。P の出所のシナリオが無ければ N に切り替えて `prerun/` に足す（10 ファイルまで）。
+S5-ladder が段 5 の撮影シナリオ（`scenarios/uitk/stage5/`）を持っていれば、束 5 の N の行はそちらを P に切り替え、`prerun-shots-b5.cs` は残った id だけを撮る。出展モードの撮影シナリオ（S5-ladder の `stage5/uitk-stage5-compare.cs`）を出所にする P は `exhibition-mode-run.sh ./moorestech_client GameUi <その .cs>` で流す（Global Constraints 5）。`5-event-language-gate` は、`uitk-stage5-compare.cs` が実物で `uitk-5-event-language-gate-{1280x720,2560x1080}` を撮っていれば（Run: `grep -n 'Screenshot\|event-language-gate' <その .cs>`）、E をやめて P（出力名はその 2 枚）にする。実ゲームの起動の前段で出るゲートをそのまま撮れ、外殻の組み方の逃げ道（Task 9 Step 2 の Q-n）に入らないため。ゲートで選ぶ言語はそのシナリオの決め（英語）のままにし、選ぶ前のゲートの画面だけを組にする（D-55）。P の出所のシナリオが無ければ N に切り替えて `prerun/` に足す（10 ファイルまで）。
 
 ## File Structure
 
@@ -228,8 +228,9 @@ for n in uitk-lifeline uitk-opening-hud uitk-build-bp uitk-production-loop uitk-
 ls tools/uitk/list-recordings.sh tools/uitk/run-all-recordings.sh tools/uitk/recordings/list-recordings.sh tools/uitk/recordings/run-all-recordings.sh 2>/dev/null
 grep -n "## 全録画の結果" ../moorestech_logs/harness/uitk/S4-gamma/done.md
 grep -n "全録画の 2 回目・Web 側" docs/uitk/TODO.md
+ls $S/uitk/stage5/exhibition-mode-run.sh; grep -l 'exhibition-mode-run' $S/uitk/stage5/*.cs $S/uitk/stage5/*.sh
 ```
-Expected: マージコミット 5 本・5 つとも「状態: 完了」・ラダー 6 本のパスが 1 つずつ（起草時の予定: `uitk/uitk-lifeline.cs`・`uitk/stage2/uitk-opening-hud.cs`・`uitk/stage3/uitk-build-bp.cs`・`uitk/stage4/uitk-production-loop.cs`・`uitk/stage4/uitk-research-train.cs`・S5-ladder の置き場）・スクリプト 2 本がどちらかの置き場に揃う（その置き場を `$REC` とする）・S4-gamma の「## 全録画の結果」の節と台帳の Web 側の行がある。台帳の行の `<HEAD 10 桁>` を `$S4G` とする。どれかが欠けたら `done.md` 1 行目を「状態: 停止（前提の欠け: <欠けたもの>）」にして push し、`cmux wait-for -S uitk-x-prerun` を 1 回送って止まる（D-10）
+Expected: マージコミット 5 本・5 つとも「状態: 完了」・ラダー 6 本のパスが 1 つずつ（起草時の予定: `uitk/uitk-lifeline.cs`・`uitk/stage2/uitk-opening-hud.cs`・`uitk/stage3/uitk-build-bp.cs`・`uitk/stage4/uitk-production-loop.cs`・`uitk/stage4/uitk-research-train.cs`・S5-ladder の置き場）・スクリプト 2 本がどちらかの置き場に揃う（その置き場を `$REC` とする）・S4-gamma の「## 全録画の結果」の節と台帳の Web 側の行がある・出展モードの運転役 `uitk/stage5/exhibition-mode-run.sh`（S5-ladder R-2。`<project> <GameUi|Web> <scenario.cs>`）があり、最後の grep に出展モードで流す 3 本（ラダー 6 `uitk-challenge-gate.cs`・`uitk-event-language-gate.cs`〈とその `.sh`〉・`uitk-stage5-compare.cs`。S5-ladder D-8）が出る（3 本の他に `.cs` が出たら、それも Task 3 Step 1 の出展モードの一覧に足す。D-55）。台帳の行の `<HEAD 10 桁>` を `$S4G` とする。どれかが欠けたら `done.md` 1 行目を「状態: 停止（前提の欠け: <欠けたもの>）」にして push し、`cmux wait-for -S uitk-x-prerun` を 1 回送って止まる（D-10）
 
 - [ ] **Step 3: 台帳と突き合わせの前提**
 
@@ -272,14 +273,14 @@ git push -u origin HEAD
 ```
 Expected: exit 0 なら Web 側の全録画を Windows で回す（Task 4 の経路 W）。exit 1 で `play/result.json` か `log-excerpt.txt` に CEF の描画の失敗（RendererUnavailable 等）があれば、Web 側は Mac で GameUi の後に流す（経路 M）。どちらにしたかと run dir を `done.md`「## 前提」に書く（D-1）
 
-- [ ] **Step 6: Web 側の録画の準備（経路 M のときだけ）**
+- [ ] **Step 6: Web 側の録画の準備（経路に依らず流す）**
 
 Run:
 ```bash
 test -d moorestech_web/node || cp -Rc ~/hermes-agent/data/repos/moorestech/moorestech_web/node moorestech_web/node
 (cd moorestech_web/webui && pnpm install --frozen-lockfile)
 ```
-Expected: `moorestech_web/node/` がある・install が 0 で終わる（`docs/development/worktree-and-review-pitfalls.md`「新しい worktree で録画シナリオが ready 後に止まる」）
+Expected: `moorestech_web/node/` がある・install が 0 で終わる（`docs/development/worktree-and-review-pitfalls.md`「新しい worktree で録画シナリオが ready 後に止まる」）。経路 W でも流す: Task 4 Step 2b の interrupt の Web の回は経路に依らず Mac の Editor で流し、`moores-wt` は gitignore 下の `moorestech_web/node` を複製しないので、無いと WebUiHost が `Node binary not found` で起きず、環境の欠けが `前提つき（5a が assert を書き直す）` や `不具合` の顔で記録に残る（独立評価 4 周目の軽）。Task 4 Step 2b の前にも `ls moorestech_web/node moorestech_web/webui/node_modules >/dev/null && echo web-ready` で `web-ready` を見る
 
 - [ ] **Step 7: bd と done.md の骨組み**
 
@@ -470,36 +471,41 @@ D=moorestech_client/.uloop/outputs/X-prerun/recordings; mkdir -p $D
 $REC/list-recordings.sh GameUi > $D/list.txt 2> $D/list-excluded.txt
 echo .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/research-node-state-label.cs >> $D/list.txt
 sort -u -o $D/list.txt $D/list.txt
-grep -E 'playtest-receiver/developer-report-(interrupt|resume)\.cs$|uitk/stage5/uitk-event-language-gate\.cs$' $D/list.txt > $D/list-manual.txt
-grep -vE 'playtest-receiver/developer-report-(interrupt|resume)\.cs$|uitk/stage5/uitk-event-language-gate\.cs$|/scenarios/uitk/prerun/' $D/list.txt > $D/list.tmp && mv $D/list.tmp $D/list.txt
+grep -E 'playtest-receiver/developer-report-(interrupt|resume)\.cs$|uitk/stage5/(uitk-challenge-gate|uitk-event-language-gate|uitk-stage5-compare)\.cs$' $D/list.txt > $D/list-manual.txt
+grep -vE 'playtest-receiver/developer-report-(interrupt|resume)\.cs$|uitk/stage5/(uitk-challenge-gate|uitk-event-language-gate|uitk-stage5-compare)\.cs$|/scenarios/uitk/prerun/' $D/list.txt > $D/list.tmp && mv $D/list.tmp $D/list.txt
 wc -l $D/list.txt $D/list-manual.txt; cat $D/list-excluded.txt
 ```
-Expected: `list-excluded.txt` に state-label の 1 行だけ（renumber は消えたので出ない。台帳の行の `X-prerun` で外れる。W6-9 でスクリプトは書き換えず一覧へ明示で足す。D-8）。`list-manual.txt` に `run-scenario.sh` では流せない行（起草時の HEAD では `developer-report-interrupt.cs`・`developer-report-resume.cs` の 2 本。`uitk-event-language-gate.cs` は S5-gate の後にできる）。この行は Step 3b で流す（D-48）。`scenarios/uitk/prerun/` は撮影シナリオで全録画の表の外（Task 3 の時点ではまだ無いが、Task 14 Step 3 で同じ手順を流すときに外れるよう、ここで外す。独立評価 3 周目の軽）。`list.txt` と `list-manual.txt` の本数を `done.md` へ
+Expected: `list-excluded.txt` に state-label の 1 行だけ（renumber は消えたので出ない。台帳の行の `X-prerun` で外れる。W6-9 でスクリプトは書き換えず一覧へ明示で足す。D-8）。`list-manual.txt` に `run-scenario.sh` では流せない行（起草時の HEAD では `developer-report-interrupt.cs`・`developer-report-resume.cs` の 2 本。出展モードの 3 本〈`uitk/stage5/uitk-challenge-gate.cs`・`uitk-event-language-gate.cs`・`uitk-stage5-compare.cs`〉は S5-gate・S5-ladder の後にできる。Task 1 Step 2 の grep で他の出展モードの `.cs` が見つかっていれば、両方の grep の式に足してから流す）。この行は Step 3b で流す（D-48）。`scenarios/uitk/prerun/` は撮影シナリオで全録画の表の外（Task 3 の時点ではまだ無いが、Task 14 Step 3 で同じ手順を流すときに外れるよう、ここで外す。独立評価 3 周目の軽）。`list.txt` と `list-manual.txt` の本数を `done.md` へ
 
 - [ ] **Step 2: 3 本ずつ流す**
 
-Run（前景で。開始行を 3 ずつ進めて最後まで。1 本で 600 秒を超えたシナリオは次から 1 本ずつ）:
+Run（前景で。開始行 `S` を 3 ずつ進めて最後まで。1 本で 600 秒を超えたシナリオは次から 1 本ずつ）。`run-all-recordings.sh` は 1 本ごとに受け口と系だけを立て直し、表示言語は立て直さない（S4-gamma 計画 Task 9 Step 2 の本文）。言語は `PlayerPrefs` に残るので、前の本（`misc/localization-language-switch-via-ui.cs` が英語へ切り替えた後に落ちた回・`uitk/uitk-notification-compare.cs:57`・言語ゲートの運転役）の言語が次の本へ持ち越され、日本語の文言を Assert する本（例 `misc/feedback-report-labels.cs:39,46`・`graphics-quality/quality-recovery-ui.cs:55`）が言語の取り違えで落ちる。だから 1 本ずつ、Global Constraints 5 の前置き（日本語の固定つき）を流してから 1 本だけ流す（D-52。以後「1 本ごとの前置きつきで流す」はこの形）:
 ```bash
 git push
-$REC/run-all-recordings.sh GameUi $D/list.txt $D/gameui.tsv 1 3
-$REC/run-all-recordings.sh GameUi $D/list.txt $D/gameui.tsv 4 3
+SYS=GameUi; LIST=$D/list.txt; OUT=$D/gameui.tsv; PRE="System.Environment.SetEnvironmentVariable(\"MOORESTECH_PLAYTEST_RECEIVER_BASE\",\"http://127.0.0.1:9\"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.$SYS); Client.Localization.Localize.Initialize(); return \"prerun-pre ja=\" + Client.Localization.Localize.TrySetChosenLanguage(\"japanese\");"
+for i in $S $((S+1)) $((S+2)); do
+  uloop control-play-mode --project-path ./moorestech_client --action Stop >/dev/null 2>&1
+  uloop execute-dynamic-code --project-path ./moorestech_client --code "$PRE" | grep -q 'prerun-pre ja=True' || { echo "preamble-failed line $i"; break; }
+  $REC/run-all-recordings.sh $SYS $LIST $OUT $i 1
+done
 ```
+`preamble-failed` が出たら、その行から先を流さず前置きの失敗の原因（Editor のコンパイル中・ドメインリロード中は 45 秒待って再試行）を見てから同じ開始行で流し直す。
 Expected: 最後に `tail -n +2 $D/gameui.tsv | wc -l` が `list.txt` の本数と同じ。流した HEAD（Run: `git rev-parse HEAD`。40 桁。X-switch-pr の `<PRERUN_HEAD>`）を**控えたその場で** `done.md`「## 全録画の結果」の見出しの直下に `- 全録画の HEAD（GameUi）: <40 桁>` と書き、`../moorestech_logs` でコミット・push する（`$D` が消えても、worktree が `moores-wt rm` で消えた後も残る形にする。以後この HEAD は Run: `PH=$(grep -m1 '全録画の HEAD（GameUi）' ../moorestech_logs/harness/uitk/X-prerun/done.md | grep -oE '[0-9a-f]{40}')` で読む。D-43）
 
 - [ ] **Step 2b: `run-scenario.sh` で流せない行（`list-manual.txt`）を流す（D-48）**
 
 - `playtest-receiver/developer-report-interrupt.cs`（`PlaytestRunner.Run` を呼ばない EDC の手動投入のスニペット。`run-scenario.sh` では run dir も result.json も出ず必ず exit 1）: W0-cef 計画 `docs/superpowers/plans/2026-11-06-uitk-w0-cef.md` Task 4 Step 6 の手動投入（boot を `PlaytestBoot.PrepareAndEnterPlayMode` で行い、`ready.marker` の後にスニペットを投入）で、GameUi の前置きの後に 1 回流す。`Result` が `pending upload interrupted: <箱名>`、または開発者トークンの無い機材で例外文が `Not pending before stop` なら `前提つき（手動投入で PASS）`。manifest の webUiHealth の検査（CEF の生の値 3 つ）の例外で落ちたら `前提つき（5a が assert を書き直す）`（5a は X-5a 計画 Task 8 Step 7 で v7 へ書き直して手動投入で判定する）。それ以外の例外は 1 回流し直し、2 回とも落ちたら Step 3 の `前提つき` の規則で Web 側の同じ行（Task 4 Step 2b）と並べて分ける
 - `playtest-receiver/developer-report-resume.cs`（interrupt の対。再生停止前に保存した箱を次の再生で照合し、作者の機材の進捗の箱を読む）: 流さず `前提つき（判定の対象外）`。PASS にも不具合にも数えない（受け口を外した前置きでは本番送信が再開しない。X-5a・X-switch-pr も判定しない）
-- `uitk/stage5/uitk-event-language-gate.cs`（あれば。`.cs` を直接流すと出展モードにならない）: 同じディレクトリの運転役 `uitk-event-language-gate.sh` をそのヘッダの手順で流し、`Success: true` なら `前提つき（運転役で PASS）`、2 回とも落ちたら `不具合`
-結果を `$D/gameui-manual.tsv`（`scenario system exit seconds run_dir` の形。exit の欄は interrupt が `Result` か例外文・言語ゲートが運転役の exit・resume が `-`）に書く
+- 出展モードの 3 本（`uitk/stage5/uitk-challenge-gate.cs`〈ラダー 6〉・`uitk-event-language-gate.cs`・`uitk-stage5-compare.cs`。`.cs` を `run-scenario.sh` で直接流すと出展モードにならない。`winunity play` は運転役の武装を挟めないので Mac の Editor で。S5-ladder D-8）: 1 本ずつ `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client GameUi <その .cs>; echo "exit=$?"` で流し、`Success: true` なら `前提つき（運転役で PASS）`（X-switch-pr R-9 と同じ語）、2 回とも落ちたら `不具合`。運転役は後始末で全体スイッチを戻さず、流した系のまま残す（S5-ladder Global Constraints）ので、運転役の後の次の録画・撮影は必ず Global Constraints 5 の前置き（`UiSystemEditorSwitch.Set` と日本語の固定）を流してから入る（D-55）
+結果を `$D/gameui-manual.tsv`（`scenario system exit seconds run_dir` の形。exit の欄は interrupt が `Result` か例外文・出展モードの 3 本が運転役の exit・resume が `-`）に書く
 
 - [ ] **Step 3: 落ちた行を分ける**
 
-先に exit 0 以外の行だけを 1 回流し直す（揺れで落ちた行を不具合と読まない。D-36）。Run: `awk -F'\t' 'NR>1 && $3!=0 {print $1}' $D/gameui.tsv > $D/rerun.txt; wc -l $D/rerun.txt` → `$REC/run-all-recordings.sh GameUi $D/rerun.txt $D/gameui-rerun.tsv <開始行> 3` を 3 本ずつ前景で。2 回目に通った行は分類を `PASS（揺れ: 1 回目 FAIL）` にする。2 回とも落ちた行ごとに `result.json` と `uloop get-logs --project-path ./moorestech_client --log-type Error` の該当部分を読み、[A-177] の 6 分類に分ける（`前提つき` の行はヘッダの手順の流し直しを 2 回目に数える）:
+先に exit 0 以外の行だけを 1 回流し直す（揺れで落ちた行を不具合と読まない。D-36）。Run: `awk -F'\t' 'NR>1 && $3!=0 {print $1}' $D/gameui.tsv > $D/rerun.txt; wc -l $D/rerun.txt` → Step 2 の 1 本ごとの前置きつきの形（`LIST=$D/rerun.txt; OUT=$D/gameui-rerun.tsv`）で 3 本ずつ前景で（Step 2b の言語ゲートの運転役の後も、次の本は前置きで日本語に戻る。D-52）。2 回目に通った行は分類を `PASS（揺れ: 1 回目 FAIL）` にする。2 回とも落ちた行ごとに `result.json` と `uloop get-logs --project-path ./moorestech_client --log-type Error` の該当部分を読み、[A-177] の 6 分類に分ける（`前提つき` の行はヘッダの手順の流し直しを 2 回目に数える）:
 - `PASS`（0）。S2-ladder の `tutorial-craft-guidance` は Web の回だけ「PASS（Web は UI 未確認・既知）」
 - `束 5 未移植`: 0 のはず。出たら `不具合` として扱う（S5 の完了条件の崩れ）
 - `wwxy`: 台帳の 10 行のうち現存する 8 本（起草時: S2-ladder の 4 本〈pebble・equip・tree-pin-nearest-search・server-notification-smoke〉・S3-ladder の 3 本〈blueprint-copy-paste・blueprint-right-click-delete・fps-tps-view-toggle〉・state-label）と、行の外の後継 `connect/electric-wire-tool-extend-chain-via-ui.cs` が落ちたら `不具合`。現存の数は台帳の 10 行を 1 行ずつ `find` で「現存／削除／後継」に分けて数え直してから当てる（固定の数を当てない）
-- `前提つき`（`playtest-receiver/` のうち `PlaytestRunner.Run` で流れる行・IME の `.sh`。手動投入の 2 本と運転役の言語ゲートは Step 2b）: そのシナリオのヘッダの手順で 1 回流し直し、落ちた assert ごとに次で振り直す（先回りで分類しない。`playtest-receiver/developer-report-delivery.cs` も同じ。D-29）。全部通る → `PASS`。落ちたのが Web に依る assert（`webUiHealth` の欄を見るもの）だけ → `前提つき（5a が assert を書き直す）`（`Web 専用` の文字列を含めない。5a は v7 の assert へ書き直す側で、消さない）。それ以外の assert が GameUi で落ちる → Task 4 の Web 側の同じシナリオの行と並べ（経路 M では Web 側がまだ無いので、この行は Task 4 Step 2 の後に決める）、Web では通るなら `不具合`（下の手順で持ち主へ）、Web でも同じ assert が落ちるなら受け口の前提の崩れなので `前提つき（両系で落ちる: <assert>）` として 5a への申し送りに書き、bd を `--parent <bd>` で 5a 宛てに立てる（実箱ロックの NRE〈C2-b:71「受け口の差し替えの影響か GameUi が原因かは未切り分け」〉はこの比べで切り分ける）
+- `前提つき`（`playtest-receiver/` のうち `PlaytestRunner.Run` で流れる行・IME の `.sh`。手動投入の 2 本と運転役の出展モードの 3 本は Step 2b）: そのシナリオのヘッダの手順で 1 回流し直し、落ちた assert ごとに次で振り直す（先回りで分類しない。`playtest-receiver/developer-report-delivery.cs` も同じ。D-29）。全部通る → `PASS`。落ちたのが Web に依る assert（`webUiHealth` の欄を見るもの）だけ → `前提つき（5a が assert を書き直す）`（`Web 専用` の文字列を含めない。5a は v7 の assert へ書き直す側で、消さない）。それ以外の assert が GameUi で落ちる → Task 4 の Web 側の同じシナリオの行と並べ（経路 M では Web 側がまだ無いので、この行は Task 4 Step 2 の後に決める）、Web では通るなら `不具合`（下の手順で持ち主へ）、Web でも同じ assert が落ちるなら受け口の前提の崩れなので `前提つき（両系で落ちる: <assert>）` として 5a への申し送りに書き、bd を `--parent <bd>` で 5a 宛てに立てる（実箱ロックの NRE〈C2-b:71「受け口の差し替えの影響か GameUi が原因かは未切り分け」〉はこの比べで切り分ける）
 - `Web 専用`（シナリオ全体が CEF・Web の DOM を見るもの。例 `misc/cef-webui-showcase.cs`）: 落ちた assert を `done.md`「## 5a への申し送り」の「### 消す」へ。assert の一部だけが Web に依るシナリオはここに入れない（上の `前提つき` の規則）
 - `不具合`（UITK の画面・操作の誤り）: 1 本ずつ bd を `--parent <bd>` で立て、持ち主（その画面のレーン。取り込み済みなら I-fix）への依頼文（シナリオのパス・落ちた assert・Error の行・run dir の録画）を指揮へ返し、`done.md` 1 行目を「状態: 停止（全録画の不具合 n 件の修正待ち）」にして push・`cmux wait-for -S uitk-x-prerun` を 1 回送り、指揮の再開の連絡を待つ。入ったら `git merge --no-ff origin/feature/uitk` で取り込み、compile のあと `不具合` の行だけを `grep` で作り直した一覧で流し直す（前例 S4-gamma Task 9 Step 3。停止の間に Editor を閉じても `$D` は残る。D-43）。撮影（Task 8〜9）の後の取り込み（Task 14 Step 3 の停止からの再開）で `Client.Ui`・`UI Toolkit` が変わっていれば、Task 12 Step 2 の撮り直しの手順も回す（D-45）。シナリオ側の誤り（古い testid・Web の型の参照）なら 5a への申し送りに書いて `Web 専用` か「シナリオの誤り（5a）」に分ける
 
@@ -530,18 +536,21 @@ Expected: `scenarios/uitk/` の全本（`prerun/` を含む）が外れる。手
 
 - [ ] **Step 2: 流す**
 
-経路 M: Task 3 Step 2 と同じ小分けで `$REC/run-all-recordings.sh Web $D/list-web.txt $D/web.tsv <開始行> 3`。
+経路 M: Task 3 Step 2 の 1 本ごとの前置きつきの形（`SYS=Web; LIST=$D/list-web.txt; OUT=$D/web.tsv`。前置きの系も Web になる）で 3 本ずつ。Web の一覧は `scenarios/uitk/` を含まないが、直前の GameUi の回（言語ゲートの運転役・notification-compare の流し直し）の言語が持ち越されるので、Web の本でも 1 本ごとに日本語へ戻す（D-52）。
 経路 W（Task 3 と並走してよい。Mac の Editor は使わない）:
 ```bash
-B=$(git rev-parse --abbrev-ref HEAD)
+B=$(git rev-parse --abbrev-ref HEAD); O=moorestech_client/.uloop/outputs/X-prerun
+printf '%s\n' 'Client.Localization.Localize.Initialize(); return "prerun-pre ja=" + Client.Localization.Localize.TrySetChosenLanguage("japanese");' > $O/lang-ja.cs
 [ -f $D/web.tsv ] || printf "scenario\tsystem\texit\tseconds\trun_dir\n" > $D/web.tsv
 tail -n +<開始行> $D/list-web.txt | head -n 3 | while IFS= read -r s; do
+  r=$(~/bin/winunity edc "$B" $O/lang-ja.cs 2>&1 </dev/null | grep -o '\[mac\] results: .*' | sed 's/^\[mac\] results: //')
+  grep -q 'prerun-pre ja=True' "$r/edc.out.txt" || { echo "preamble-failed $s"; break; }
   began=$(date +%s); out=$(~/bin/winunity play "$B" "$s" --ui-system Web 2>&1 </dev/null); code=$?
   dir=$(printf '%s\n' "$out" | grep -o '\[mac\] results: .*' | sed 's/^\[mac\] results: //')
   printf "%s\tWeb\t%s\t%s\t%s\n" "$s" "$code" "$(( $(date +%s) - began ))" "${dir:--}" >> $D/web.tsv
 done
 ```
-（winunity は 1 本ごとに Windows の Editor に受け口と系を立てる。1 回の呼び出しが 600 秒を超えるなら 1 本ずつ。`~/bin/winunity` の中の `ssh` は標準入力を閉じないので、`</dev/null` が無いとパイプの残りの行を ssh が読み切って 1 本しか流れない。D-21）
+（winunity は 1 本ごとに Windows の Editor に受け口と系を立てるが、表示言語は立てない〈`winunity.d/interactive.ps1` は受け口と系だけ〉ので、1 本ごとに `winunity edc` で日本語に固定してから流す。`lang-ja.cs` は Task 3 Step 2 の前置きの言語の部分と同じ。D-52。1 回の呼び出しが 600 秒を超えるなら 1 本ずつ。`~/bin/winunity` の中の `ssh` は標準入力を閉じないので、`</dev/null` が無いとパイプの残りの行を ssh が読み切って 1 本しか流れない。D-21）
 Expected: `web.tsv` の行数が `list-web.txt` の本数と同じ。続けて exit 0 以外の行だけの一覧（Run: `awk -F'\t' 'NR>1 && $3!=0 {print $1}' $D/web.tsv > $D/rerun-web.txt`）を同じ経路でもう 1 回流し（出力 `$D/web-rerun.tsv`）、2 回目に通った行は `PASS（揺れ: 1 回目 FAIL）`、2 回とも落ちた行だけを Step 3 へ回す（D-36）。流した HEAD の 40 桁を控えたその場で `done.md`「## 全録画の結果」の頭に `- 全録画の HEAD（Web）: <40 桁>` と書いて logs でコミット・push する（D-43）
 
 - [ ] **Step 2b: 手動投入の 2 本（Web。D-48）**
@@ -565,7 +574,7 @@ uloop execute-dynamic-code --project-path $T/moorestech_client --code 'System.En
 .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $T/moorestech_client $T/<シナリオのパス>; echo "exit=$?"
 ```
 戻り値 `true` を見てから流す。流し終えたら `moores-wt rm prerun-s4g-base --force --prune-branch`（`rm` は worktree の名かパスで引く。ブランチ名では「worktreeが見つかりません」で止まる）で畳み、自分の Editor を `uloop launch ./moorestech_client` で起こし直して前置き（Global Constraints 5）を流す（D-6）。
-どの行も、ログ（`result.json` の `ErrorLogs`・`log-excerpt.txt`・`uloop get-logs`）に CEF の描画停止・待ち（`RendererUnavailable`・CEF の待ちの時間切れ）があれば分類の後に `（CEF 由来）` を付け、落ちた assert と原因の 1 行を書く。`退行` は件数と名前を Task 5 の台帳の行と `done.md` に書き、`done.md`「## 未確認」に「Web 側の退行 n 件（記録だけ。CEF 由来でないものは裁定により master の Web の不具合として扱う範囲で、このレーンは直さない）」を書く。bd も停止もしない。流し終えたら `git push origin --delete uitk-tmp/prerun-s4g-base`
+どの行も、ログ（`result.json` の `ErrorLogs`・`log-excerpt.txt`・`uloop get-logs`）に CEF の描画停止・待ち（`RendererUnavailable`・CEF の待ちの時間切れ）があれば分類の後に `（CEF 由来）` を付け、落ちた assert と原因の 1 行を書く。`退行` は件数と名前を Task 5 の台帳の行と `done.md` に書き、`done.md`「## 未確認」に「Web 側の退行 n 件（記録だけ。CEF 由来でないものは裁定により master の Web の不具合として扱う範囲で、このレーンは直さない）」を書く。停止はしない。`（CEF 由来）` の付かない `退行` は、原因が master の取り込みかを機械で見る（Run: `for c in $(git rev-list "$S4G"..HEAD -- moorestech_web/); do git merge-base --is-ancestor $c origin/master && echo "master: $(git log -1 --format='%h %s' $c)"; done`。`feature/uitk` の Web は master の取り込みでしか変わらない〈plan.md §3.3 R3〉）。`master:` の行が 1 件以上なら、master の Web の持ち主宛ての bd を `--parent <bd>` で立てる（本文にシナリオ・落ちた assert・run dir・`master:` の行を原因の候補〈推測〉として。裁定「CEF 由来でない Web 画面の不具合は従来どおり master で直す」へ届く経路。D-54）。0 件なら原因は `feature/uitk` 側（Web は切替で消える）なので bd は立てず記録だけにする（誤配を防ぐ）。流し終えたら `git push origin --delete uitk-tmp/prerun-s4g-base`
 
 - [ ] **Step 4: コミットは無し**
 
@@ -683,7 +692,7 @@ git commit -m "docs(uitk): 撤去の前の全画面の参照を撮り直して�
 
 - [ ] **Step 1: 起草時の案を新しい manifest の id で 1 行ずつに展開する**
 
-新しい manifest の `entries` を順に読み、起草時の案の行（まとめて書いた行は 1 id ずつに割る）から撮り方を写す。新しく増えた id は、同じ `ledgerRow` の既存の行の撮り方を初期値にする。E の行は「前例」列のレーンの `done.md` を `grep -n "<id>\|UiRuntimePanelCapture\|EditMode" ../moorestech_logs/harness/uitk/<レーン>/done.md` で読み、そのレーンが使った外殻と偽の Model の組み方（型名・見本の名前）を「出所」列に写す。見つからなければ「前例なし」と書き、Task 9 Step 2 で組み方を決めて書く。E の行の「出所」列には、比べる面（外殻の一番外の要素）の testid を `面=<testid>` で必ず書く（Web と UITK で同じ名前の要素。例 ブロックは `面=block-inventory-panel`。Web は `referenceShots.ts` のその id の `steps` の testid と Web の DOM、UITK は外殻の要素の `name` で確かめる。Task 7 Step 4 と Task 11 Step 1 がこの面の矩形で両側を切り抜く。D-46）。P の出所のシナリオが実在しない行（Run: `ls <パス>`）は N に切り替える。X の行は `grep -n "再接続" docs/uitk/disposition.md` で S5-crosscut の理由の行を確かめて出所に行番号を書く（無ければ X のまま `done.md`「integrator への依頼」に「S5-crosscut の disposition の行の欠け」と書く）。新しく増えた id が [A-38] の画面（辞書エラー等）なら X にする。それ以外を X にしない
+新しい manifest の `entries` を順に読み、起草時の案の行（まとめて書いた行は 1 id ずつに割る）から撮り方を写す。新しく増えた id は、同じ `ledgerRow` の既存の行の撮り方を初期値にする。E の行は「前例」列のレーンの `done.md` を `grep -n "<id>\|UiRuntimePanelCapture\|EditMode" ../moorestech_logs/harness/uitk/<レーン>/done.md` で読み、そのレーンが使った外殻と偽の Model の組み方（型名・見本の名前）を「出所」列に写す。見つからなければ「前例なし」と書き、Task 9 Step 2 で組み方を決めて書く。E の行の「出所」列には、比べる面（外殻の一番外の要素）の testid を `面=<testid>` で必ず書く（Web と UITK で同じ名前の要素。例 ブロックは `面=block-inventory`〈Web は origin/master `BlockInventoryPanel.tsx:48` の `data-testid="block-inventory"` の div、UITK は `BlockInventoryView.cs:39` の外殻 `block-inventory`。どちらも GamePanel を包む同じ段。UITK の `block-inventory-panel` は Web に testid が無いので使わない〉。Web は `referenceShots.ts` のその id の `steps` の testid と Web の DOM、UITK は外殻の要素の `name` で確かめる。Task 7 Step 4 と Task 11 Step 1 がこの面の矩形で両側を切り抜く。D-46）。P の出所のシナリオが実在しない行（Run: `ls <パス>`）は N に切り替える。X の行は `grep -n "再接続" docs/uitk/disposition.md` で S5-crosscut の理由の行を確かめて出所に行番号を書く（無ければ X のまま `done.md`「integrator への依頼」に「S5-crosscut の disposition の行の欠け」と書く）。新しく増えた id が [A-38] の画面（辞書エラー等）なら X にする。それ以外を X にしない
 
 - [ ] **Step 2: 機械で確かめる**
 
@@ -764,7 +773,10 @@ async function main(): Promise<void> {
     const context = await browser.newContext({ viewport: { width, height } });
     const page = await context.newPage();
     await openShot(page, `http://127.0.0.1:${port}`, shot);
-    rects[shot.id] = await page.getByTestId(targets[shot.id]).first().boundingBox();
+    // testid が無い id は要素待ちで止めず null を書く（対応表の `面=` の誤りとして下の python が挙げる）
+    // Write null instead of waiting when the testid is absent (the python below reports it as a wrong 面= in the table)
+    const panel = page.getByTestId(targets[shot.id]).first();
+    rects[shot.id] = (await panel.count()) === 0 ? null : await panel.boundingBox();
     await context.close();
     await stopMockHost(host);
   }
@@ -777,17 +789,33 @@ void main().catch((error: unknown) => {
   process.exitCode = 1;
 });
 EOF
-cd $R/moorestech_web/webui
-for vp in 1280x720 2560x1080; do UITK_REFERENCE_PORT=5791 PRERUN_VIEWPORT=$vp PRERUN_PANEL_TESTIDS=$CA/e-panels.json PRERUN_PANEL_RECTS_OUT=$CA/web-panel-rects-$vp.json node --import tsx e2e/uitk-reference/prerun-panel-rects.ts; echo "$vp exit=$?"; done
 python3 - $CA <<'EOF'
 import json, sys
-want = set(json.load(open(f"{sys.argv[1]}/e-panels.json")))
+d = sys.argv[1]; ids = json.load(open(f"{d}/e-panels.json")); keys = list(ids)
+for k in range(0, len(keys), 6):
+    json.dump({i: ids[i] for i in keys[k:k + 6]}, open(f"{d}/e-panels-part{k // 6}.json", "w"))
+print("parts", (len(keys) + 5) // 6)
+EOF
+```
+続けて、解像度（`1280x720`・`2560x1080`）と部分（`part0` から `parts` の数まで）の組ごとに 1 回ずつ別の Bash で前景で流す（1 回は 6 id。mock-host の起動と `openShot` が 1 id ごとなので、1 回の所要を 600 秒より十分短く保つ。Global Constraints 4。分けて前景で流せるので background にしない）:
+```bash
+cd $R/moorestech_web/webui
+time (UITK_REFERENCE_PORT=5791 PRERUN_VIEWPORT=<vp> PRERUN_PANEL_TESTIDS=$CA/e-panels-part<k>.json PRERUN_PANEL_RECTS_OUT=$CA/web-panel-rects-<vp>-part<k>.json node --import tsx e2e/uitk-reference/prerun-panel-rects.ts); echo "<vp> part<k> exit=$?"
+```
+最初の 1 回（`1280x720` の `part0`）の `real` を `done.md`「## 証拠」に書き、それが 300 秒を超えたら部分の大きさを 3 id に割り直して（`rm -f $CA/e-panels-part*.json $CA/web-panel-rects-*-part*.json` の後、上の python の `6` を `3` にして流し直す）から全部の部分を流す。全部流したら束ねて確かめる:
+```bash
+python3 - $CA <<'EOF'
+import glob, json, sys
+d = sys.argv[1]; want = set(json.load(open(f"{d}/e-panels.json")))
 for vp in ("1280x720", "2560x1080"):
-    got = json.load(open(f"{sys.argv[1]}/web-panel-rects-{vp}.json"))
+    got = {}
+    for part in sorted(glob.glob(f"{d}/web-panel-rects-{vp}-part*.json")):
+        got.update(json.load(open(part)))
+    json.dump(got, open(f"{d}/web-panel-rects-{vp}.json", "w"), indent=2)
     print(vp, "抜け", sorted(want - set(got)), "矩形なし", sorted(k for k, v in got.items() if v is None))
 EOF
 ```
-Expected: 2 回とも `exit=0`、どちらの解像度も `抜け []`・`矩形なし []`。抜けは `referenceShots.ts` に無い id（E の id は全部参照にある）、矩形なしは testid の誤りなので、対応表の `面=` を直して流し直す。所要が 600 秒を超えるなら Task 6 Step 2 と同じく本体が background で流す。測り終えたら Run: `git -C $R status --short`（`prerun-panel-rects.ts` の 1 本だけが未追跡）→ `moores-wt rm uitk-prerun-ref --force --prune-branch`（`--dir` で付けた worktree の名で引く。ブランチ名 `uitk-tmp/prerun-ref` では `resolve_worktree` が「worktreeが見つかりません」で止まる。未参照の master ピンが報告されたら `--prune-master` を足して流し直す）
+Expected: 各回 `exit=0`、どちらの解像度も `抜け []`・`矩形なし []`。抜けは `referenceShots.ts` に無い id（E の id は全部参照にある）か流し忘れた部分、矩形なしは testid の誤り（Web の DOM にその testid が無い。スクリプトは要素を待たず `null` を書く）なので、対応表の `面=` を Web の DOM と UITK の外殻の両方にある名前へ直し、`e-panels.json` を作り直して、その id を含む部分だけ流し直す。測り終えたら Run: `git -C $R status --short`（`prerun-panel-rects.ts` の 1 本だけが未追跡）→ `moores-wt rm uitk-prerun-ref --force --prune-branch`（`--dir` で付けた worktree の名で引く。ブランチ名 `uitk-tmp/prerun-ref` では `resolve_worktree` が「worktreeが見つかりません」で止まる。未参照の master ピンが報告されたら `--prune-master` を足して流し直す）
 
 - [ ] **Step 5: コミットは無し**（`done.md` を logs でコミット・push）
 
@@ -1082,10 +1110,10 @@ Expected: Run: `for id in <表の E の id>; do for r in 1280x720 2560x1080; do 
 
 - [ ] **Step 3: 動画の UITK 側のシナリオ**
 
-`prerun/prerun-videos.cs`（200 行未満。`Record = true`。冒頭は Task 8 Step 1 と同じ前置き〈日本語の固定を含む〉・受け口の確かめ〈`uitk-tutorial-cues.cs:31-32` の throw〉・`SetResolution`・オーバーレイを消す処理）。録画は 1280×720 の出力に固定（`Client.Playtest/Recording/PlaytestRecorder.cs:33` `OutputWidth = 1280, OutputHeight = 720`）なので、1280×720 は録画から 3 フレームを抜き、2560×1080 は同じ操作をもう 1 周して Web の `durationMs`（`referenceVideos.ts:11-17`。通知 `NOTIFICATION_DISPLAY_MS`〈7000〉+5000＝12000・ヒント 3000・ピン 3000・DragGuide 4000・枠 3000）の 10%・50%・90% の時刻に静止画を撮る（DSL に録画の解像度の口を足さない。D-32）。各動画は Web の `steps` の `visible(...)` と同じ要素が出たことを Assert してから相を数える（要素が出ないまま撮って見せかけの「欠け」を作らない。D-33）:
+`prerun/prerun-videos.cs`（200 行未満。`Record = true`。冒頭は Task 8 Step 1 と同じ前置き〈日本語の固定を含む〉・受け口の確かめ〈`uitk-tutorial-cues.cs:31-32` の throw〉・`SetResolution`・オーバーレイを消す処理）。録画は 1280×720 の出力に固定（`Client.Playtest/Recording/PlaytestRecorder.cs:33` `OutputWidth = 1280, OutputHeight = 720`）で、録画のフレームの時刻は Timeline の実時間の秒とずれうる（D-53）ので、両解像度とも同じ操作を 1 周ずつして Web の `durationMs`（`referenceVideos.ts:11-17`。通知 `NOTIFICATION_DISPLAY_MS`〈7000〉+5000＝12000・ヒント 3000・ピン 3000・DragGuide 4000・枠 3000）の 10%・50%・90% の時刻に静止画を撮る（DSL に録画の解像度の口を足さない。D-32）。各動画は Web の `steps` の `visible(...)` と同じ要素が出たことを Assert してから相を数える（要素が出ないまま撮って見せかけの「欠け」を作らない。D-33）:
 ```csharp
-    // 1280×720 は録画から、2560×1080 は同じ相の静止画で比べる
-    // Compare 1280x720 via the recording and 2560x1080 via stills at the same phases
+    // 両解像度とも同じ相の静止画で比べる（録画は動きの目視用）
+    // Compare both resolutions via stills at the same phases (the recording is only for watching motion)
     foreach (var (w, h) in new[] { (1280, 720), (2560, 1080) })
     {
         await SetResolution(w, h);
@@ -1157,8 +1185,8 @@ Expected: Run: `for id in <表の E の id>; do for r in 1280x720 2560x1080; do 
         TutorialPresentationStateStore.Instance.EndSession(session);
     }
 
-    // 相の時刻: 1280×720 は録画から抜くので待つだけ、2560×1080 は静止画を撮る
-    // Phase times: at 1280x720 just wait (frames come from the recording); at 2560x1080 shoot a still
+    // 相の時刻に静止画を撮る（実時間で待つので Timeline の秒と一致する）
+    // Shoot a still at each phase time (waits use real time, so they match the Timeline seconds)
     float Mark(string id, int w, int h)
     {
         p.Note($"[video] {id} {w}x{h}");
@@ -1176,7 +1204,7 @@ Expected: Run: `for id in <表の E の id>; do for r in 1280x720 2560x1080; do 
     async UniTask ShootAt(string id, string phase, float start, float seconds, int w, int h)
     {
         await WaitUntil(start, seconds);
-        if (w == 2560) await p.Screenshot($"vid-{id}-{phase}-{w}x{h}");
+        await p.Screenshot($"vid-{id}-{phase}-{w}x{h}");
     }
 
     async UniTask WaitUntil(float start, float seconds)
@@ -1185,23 +1213,23 @@ Expected: Run: `for id in <表の E の id>; do for r in 1280x720 2560x1080; do 
         if (rest > 0f) await p.WaitSeconds(rest);
     }
 ```
-本体の冒頭（ループの前）に `var root = GameUiRoot.Instance.GetRootElement();`・`var tutorialGuid = …`（Task 8 Step 3 と同じ）・`var research = MasterHolder.ResearchMaster.GetAllResearches().First();`・`void Notify(NotificationMessagePack m) => ClientDIContext.ClientLocalNotificationSource.Notify(m);` に当たる呼び出し（ローカル関数として `#region Internal` に置く）・`var dragFrom = AnchorIds.RecipeItem(<実ゲームの持ち物のレシピ一覧に並ぶアイテムの ItemId>);` を置く。`dragFrom` のアイテムは mock-host の `fx.TUTORIAL_RECIPE_ITEM_ID` を写さず、ピン先マスタで持ち物のレシピ一覧に最初から並ぶもの（木の板などのクラフトの結果）を選ぶ（mock の id は実ゲームの持ち物に無いことがあり、ガイドが描かれないまま撮れてしまう。上の `Until` で始点のセルがあることを確かめる）。`IsShown`・`IsShownElement`（`uitk-tutorial-cues.cs:150-166`）と `TurnUntilPin`・`Turn`（同 182-197）を `#region Internal` へ写す（`ScaleRange` は写さない）。写した結果が 200 行に届くなら、2560×1080 の周を `prerun/prerun-videos-2560.cs`（`Record = false`）に分ける（`prerun/` は 6 本で 10 本まで。File Structure の行を足す）。何を使ったか（`dragFrom` のアイテム名）を `done.md` に書く。Run: Task 8 Step 4 と同じ前置きで `run-scenario.sh ./moorestech_client $S/scenarios/uitk/prerun/prerun-videos.cs`。Expected: exit 0・Assert の要素待ちが全部通る・`recording.mp4` と、`result.json` の Timeline に `[video] <id> 1280x720` と `[video] <id> 2560x1080` が 5 行ずつ・run dir に `vid-<id>-{start,mid,end}-2560x1080.png` が 15 枚
+本体の冒頭（ループの前）に `var root = GameUiRoot.Instance.GetRootElement();`・`var tutorialGuid = …`（Task 8 Step 3 と同じ）・`var research = MasterHolder.ResearchMaster.GetAllResearches().First();`・`void Notify(NotificationMessagePack m) => ClientDIContext.ClientLocalNotificationSource.Notify(m);` に当たる呼び出し（ローカル関数として `#region Internal` に置く）・`var dragFrom = AnchorIds.RecipeItem(<実ゲームの持ち物のレシピ一覧に並ぶアイテムの ItemId>);` を置く。`dragFrom` のアイテムは mock-host の `fx.TUTORIAL_RECIPE_ITEM_ID` を写さず、ピン先マスタで持ち物のレシピ一覧に最初から並ぶもの（木の板などのクラフトの結果）を選ぶ（mock の id は実ゲームの持ち物に無いことがあり、ガイドが描かれないまま撮れてしまう。上の `Until` で始点のセルがあることを確かめる）。`IsShown`・`IsShownElement`（`uitk-tutorial-cues.cs:150-166`）と `TurnUntilPin`・`Turn`（同 182-197）を `#region Internal` へ写す（`ScaleRange` は写さない）。写した結果が 200 行に届くなら、2560×1080 の周を `prerun/prerun-videos-2560.cs`（`Record = false`）に分ける（`prerun/` は 6 本で 10 本まで。File Structure の行を足す）。何を使ったか（`dragFrom` のアイテム名）を `done.md` に書く。Run: Task 8 Step 4 と同じ前置きで `run-scenario.sh ./moorestech_client $S/scenarios/uitk/prerun/prerun-videos.cs`。Expected: exit 0・Assert の要素待ちが全部通る・`recording.mp4` と、`result.json` の Timeline に `[video] <id> 1280x720` と `[video] <id> 2560x1080` が 5 行ずつ・run dir に `vid-<id>-{start,mid,end}-{1280x720,2560x1080}.png` が 30 枚
 
 - [ ] **Step 4: 3 フレームを抜く**
 
-Run（id ごとに。`T` は Timeline の `[video] <id> 1280x720` の行の秒、`dur` は 1280×720 の webm の長さ）:
+Run（id ごとに。`dur` は 1280×720 の webm の長さ、`dur2` は 2560×1080 の webm の長さ。UITK 側は Step 3 の静止画を写すだけで、録画からは抜かない。D-53）:
 ```bash
 mkdir -p $C/video
 W=$L/web-$SHA/<id>.webm; dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$W")
 W2=$L/web-$SHA-2560x1080/<id>.webm; dur2=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$W2")
 for ph in start:0.1 mid:0.5 end:0.9; do n=${ph%%:*}; f=${ph##*:}
   ffmpeg -v error -y -ss "$(python3 -c "print($dur*$f)")" -i "$W" -frames:v 1 $C/video/<id>-$n-web-1280x720.png
-  ffmpeg -v error -y -ss "$(python3 -c "print($T+$dur*$f)")" -i <run dir>/recording.mp4 -frames:v 1 $C/video/<id>-$n-uitk-1280x720.png
+  cp <run dir>/vid-<id>-$n-1280x720.png $C/video/<id>-$n-uitk-1280x720.png
   ffmpeg -v error -y -ss "$(python3 -c "print($dur2*$f)")" -i "$W2" -frames:v 1 $C/video/<id>-$n-web-2560x1080.png
   cp <run dir>/vid-<id>-$n-2560x1080.png $C/video/<id>-$n-uitk-2560x1080.png
 done
 ```
-Expected: 5 件 × 3 相 × 2 系 × 2 解像度＝60 枚。録画の時刻と Timeline の秒がずれる（録画の始まりが RunStart と違う）ときは、最初の `[video]` の操作の直後に出る要素が最初に写るフレームを探して差を測り、`T` に足す（`done.md` に差の秒）。Web の webm の t=0 は ready の後の境界で、脈動の 4 件は t=0 で脈動の途中、通知は 0.5 秒後に出る（Task 7 Step 3 の V の行）。UITK は `Mark` の後に出し始め、2560×1080 は静止画の撮影に数フレームかかる。だから両解像度の動画の組で相がそろわず、評価役には「動画の組（1280×720 と 2560×1080 の両方）は動きの位相の差〈脈動の大きさ・透明度・通知の出入りの途中〉を数えず、位置・寸法・色・装飾だけを見る」と渡す（Task 11 Step 2。脈動の振幅と周期は `uitk-tutorial-cues.cs` と UI テストが見る。D-35）
+Expected: 5 件 × 3 相 × 2 系 × 2 解像度＝60 枚。UITK の `recording.mp4` は動きの目視用で、組には使わない（録画は `RecorderControllerSettings.FrameRate = 30`〈`PlaytestRecorder.cs:39`〉の一定の刻みで書かれ、描画が 30fps を割ると動画の時刻が実時間〈Timeline の秒・`p.WaitSeconds`〉より遅れ、後の動画ほどずれが積もる。推測で未実測。D-53）。Web の webm の t=0 は ready の後の境界で、脈動の 4 件は t=0 で脈動の途中、通知は 0.5 秒後に出る（Task 7 Step 3 の V の行）。UITK は `Mark` の後に出し始め、静止画の撮影に数フレームかかる。だから両解像度の動画の組で相がそろわず、評価役には「動画の組（1280×720 と 2560×1080 の両方）は動きの位相の差〈脈動の大きさ・透明度・通知の出入りの途中〉を数えず、位置・寸法・色・装飾だけを見る」と渡す（Task 11 Step 2。脈動の振幅と周期は `uitk-tutorial-cues.cs` と UI テストが見る。D-35）
 
 - [ ] **Step 5: コミット**
 
@@ -1219,24 +1247,29 @@ git commit -m "test(uitk): 撤去の前の並べ比べの動画の撮影シナ�
 
 **Interfaces:**
 - Consumes: Task 8 の Interfaces と同じ口（全体スイッチと Web の型は使わない）
-- Produces: `prerun-smoke-shots.cs`。run dir に `smoke-<状態名>-<w>x<h>.png` の 20 枚（状態名は下の 10 個）。5a〜5e が起点と撤去後で流し、同じ名前の PNG を `ffmpeg -i a.png -i b.png -lavfi psnr -f null -` で比べる（W6-6 (b)）
+- Produces: `prerun-smoke-shots.cs`。run dir（`run-scenario.sh` の出力の `run dir: <パス>`）に `smoke-<状態名>-<w>x<h>.png` の 20 枚（状態名は下の 10 個）と `smoke-rects.tsv` の 1 本（タブ区切り。1 行目が見出し `state res name index x y w h`、以下 1 行 1 要素。`state` は状態名、`res` は `1280x720`／`2560x1080`、`name` は要素の `name`、`index` は同じ `state`・`res`・`name` の中の文書順の番号〈0 から〉、`x`・`y`・`w`・`h` は `GameUiRoot` の根からの layout の px〈小数 1 桁。transform の scale・translate を含まないので脈動・入場の tween で動かない〉。撮影の直後に、名前が付き display が Flex・visibility が Visible の要素を `hierarchy` の文書順に書く。祖先が display None の要素と `rectExcludedNames` の名前の木は書かない）。5a〜5e が起点と撤去後で流し、`diff` で `smoke-rects.tsv` の一致（全状態・両解像度）を、「PSNR で比べる状態」の PNG を `ffmpeg -i a.png -i b.png -lavfi psnr -f null -` の `inf` で確かめる（W6-6 (b)。状態の振り分けは Step 2 で決めて「### 物差し」の小節に書く。D-12・D-51）
 
 - [ ] **Step 1: 書く**
 
 ```csharp
 // 撤去レーン（X-5a〜5e）の見た目の不変の物差し: 束ごとに 2 状態・計 10 状態を 1280×720 と 2560×1080 で撮る（X-prerun）
 // 全体スイッチと Web の型を参照しないので 5a〜5e のどの HEAD でもそのまま流せる。Editor の受け口を http://127.0.0.1:9 にしてから流す
-// 1 回の run で両解像度を撮る。出力は run dir の smoke-<状態>-<幅>x<高さ>.png の 20 枚。表示言語は日本語に固定して撮る（Web の参照と同じ）
+// 1 回の run で両解像度を撮る。出力は run dir の smoke-<状態>-<幅>x<高さ>.png の 20 枚と、撮るたびの要素の矩形 smoke-rects.tsv 1 本。表示言語は日本語に固定（Web の参照と同じ）
 // 状態: 1-pause-top・1-settings・2-game-hud・2-placement・3-build-menu・3-build-menu-search・4-player-inventory・4-research・5-challenge-list・5-tutorial-outline-label
 // 前置き: 撤去の前は uloop execute-dynamic-code で受け口・全体スイッチ GameUi・日本語を立て、全体スイッチの撤去の後はスイッチの行を除いた同じ前置き
-// 比べ方: 起点と撤去後の同じ名前の PNG を ffmpeg -lavfi psnr で比べる（揺れる状態の扱いは harness/uitk/X-prerun/done.md の 5a への申し送り）
+// 比べ方: 起点と撤去後の smoke-rects.tsv を diff で一致させ、PSNR で比べる状態の PNG は ffmpeg -lavfi psnr で inf（状態の一覧は harness/uitk/X-prerun/done.md の 5a への申し送り）
+// smoke-rects.tsv: 列 state res name index x y w h。名前付きで表示中の要素を文書順に、位置は根からの layout の和（脈動の scale・translate を含まない）
 // Visual-invariance yardstick for the removal lanes (X-5a..5e): 2 states per bundle, 10 in all, shot at 1280x720 and 2560x1080 (X-prerun)
 // It references neither the global switch nor Web types, so it runs unchanged on any 5a..5e HEAD; set the Editor receiver to http://127.0.0.1:9 first
-// One run shoots both resolutions; output is 20 PNGs named smoke-<state>-<width>x<height>.png in the run dir, shot with the language pinned to Japanese (same as the Web reference)
+// One run shoots both resolutions; output is 20 PNGs named smoke-<state>-<width>x<height>.png plus one per-shot element-rect file smoke-rects.tsv in the run dir, language pinned to Japanese
 // States: 1-pause-top, 1-settings, 2-game-hud, 2-placement, 3-build-menu, 3-build-menu-search, 4-player-inventory, 4-research, 5-challenge-list, 5-tutorial-outline-label
 // Preamble: before removal set the receiver, the global switch to GameUi and Japanese via uloop execute-dynamic-code; after the switch is removed use the same preamble without the switch line
-// Comparison: diff same-named PNGs from the baseline and post-removal runs with ffmpeg -lavfi psnr (see the 5a handoff in harness/uitk/X-prerun/done.md for unstable states)
+// Comparison: smoke-rects.tsv from the baseline and post-removal runs must match under diff, and PSNR-compared states must give inf (state lists in the 5a handoff of harness/uitk/X-prerun/done.md)
+// smoke-rects.tsv: columns state res name index x y w h; named displayed elements in document order, position is the sum of layouts from the root (pulse scale/translate excluded)
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState;
@@ -1277,6 +1310,11 @@ return PlaytestRunner.Run("prerun-smoke-shots", options, async p =>
     await p.Hotbar.AssignHotbar(0, "木のチェスト");
     await p.WaitSeconds(6f);
 
+    // 撮るたびの要素の矩形を溜める。世界に追従して 2 回の run で揺れる要素は名前で木ごと外す（Task 10 Step 2 で決める）
+    // Collect element rects per shot; elements that follow the world and vary across runs are excluded by name with their subtree (decided in Task 10 Step 2)
+    var rects = new StringBuilder("state\tres\tname\tindex\tx\ty\tw\th\n");
+    var rectExcludedNames = new HashSet<string>();
+    var runDirectory = "";
     foreach (var (w, h) in new[] { (1280, 720), (2560, 1080) })
     {
         await PlaytestGameViewOps.SetResolution(p.CancellationToken, w, h);
@@ -1285,6 +1323,7 @@ return PlaytestRunner.Run("prerun-smoke-shots", options, async p =>
         await ShootAll($"{w}x{h}");
     }
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
+    File.WriteAllText(Path.Combine(runDirectory, "smoke-rects.tsv"), rects.ToString());
 
     #region Internal
 
@@ -1364,7 +1403,31 @@ return PlaytestRunner.Run("prerun-smoke-shots", options, async p =>
         foreach (var overlay in UnityEngine.Object.FindObjectsByType<PlaytestOverlayView>(FindObjectsSortMode.None)) overlay.gameObject.SetActive(false);
         SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.03f, Screen.height * 0.5f));
         await p.WaitSeconds(0.5f);
-        await p.Screenshot($"smoke-{state}-{res}");
+        runDirectory = Path.GetDirectoryName(await p.Screenshot($"smoke-{state}-{res}"));
+        AppendRects(state, res);
+    }
+
+    // 名前付き・表示中の要素を文書順に。位置は根までの layout の和で、脈動の scale・translate に動かされない
+    // Named displayed elements in document order; position sums layouts up to the root, so pulse scale/translate never moves it
+    void AppendRects(string state, string res)
+    {
+        var seen = new Dictionary<string, int>();
+        Walk(root);
+
+        void Walk(VisualElement element)
+        {
+            if (element.resolvedStyle.display == DisplayStyle.None || rectExcludedNames.Contains(element.name)) return;
+            if (!string.IsNullOrEmpty(element.name) && element.resolvedStyle.visibility == Visibility.Visible)
+            {
+                seen.TryGetValue(element.name, out var index);
+                seen[element.name] = index + 1;
+                var x = 0f;
+                var y = 0f;
+                for (var e = element; e != null && e != root; e = e.parent) { x += e.layout.x; y += e.layout.y; }
+                rects.Append(FormattableString.Invariant($"{state}\t{res}\t{element.name}\t{index}\t{x:F1}\t{y:F1}\t{element.layout.width:F1}\t{element.layout.height:F1}\n"));
+            }
+            foreach (var child in element.hierarchy.Children()) Walk(child);
+        }
     }
 
     #endregion
@@ -1375,8 +1438,19 @@ return PlaytestRunner.Run("prerun-smoke-shots", options, async p =>
 - [ ] **Step 2: 2 回流して決定的かを見る**
 
 先に Run: `grep -nE "UiSystem|ActiveUiSystem|UiSystemEditorSwitch|WebUiHost|PlaytestDomQuery|Cef" .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/*.cs; echo "guard-exit=$?"`。Expected: 何も出ず `guard-exit=1`（grep の 0 件。D-2 の「5a〜5e の全 HEAD でそのままコンパイルできる」の前提を機械で確かめる。当たったら参照を `GameUiRoot` の要素の照会へ書き換えてから流す。D-18）。
-Run（Task 8 Step 4 と同じ前置きで GameUi）: `run-scenario.sh ./moorestech_client $S/scenarios/uitk/prerun/prerun-smoke-shots.cs` を 2 回。2 つの run dir の同じ名前の PNG を `ffmpeg -v error -i <run1>/smoke-<state>-<res>.png -i <run2>/smoke-<state>-<res>.png -lavfi psnr -f null - 2>&1 | tail -1` で比べる。
-Expected: 2 回とも exit 0・PNG 20 枚。PSNR が `inf` でない状態（世界の動き・カーソル・時刻で揺れる）は、その状態の撮影の前の待ちを延ばすか、揺れる部分（世界の空・水面）を `done.md` に書いて 5a〜5e の比べ方を「PSNR ではなく UITK の要素の矩形の差 0」に替える旨を「5a への申し送り」の「### 物差し（prerun-smoke-shots）」の小節（Step 3）に書く（D-12）
+Run（Task 8 Step 4 と同じ前置きで GameUi）: `run-scenario.sh ./moorestech_client $S/scenarios/uitk/prerun/prerun-smoke-shots.cs` を 2 回（1 回ずつ別の Bash・各回の前に前置き）。2 つの run dir を控えの置き場へ写して比べる:
+```bash
+O=moorestech_client/.uloop/outputs/X-prerun/smoke; mkdir -p $O/run1 $O/run2
+cp <run1 dir>/smoke-*.png <run1 dir>/smoke-rects.tsv $O/run1/
+cp <run2 dir>/smoke-*.png <run2 dir>/smoke-rects.tsv $O/run2/
+diff $O/run1/smoke-rects.tsv $O/run2/smoke-rects.tsv; echo "rects-diff-exit=$?"
+tail -n +2 $O/run1/smoke-rects.tsv | cut -f1,2 | sort -u | wc -l
+for f in $O/run1/*.png; do n=$(basename "$f"); echo "$n $(ffmpeg -hide_banner -i "$f" -i "$O/run2/$n" -lavfi psnr -f null - 2>&1 | grep -o 'average:[^ ]*')"; done | tee $O/psnr-run1-run2.txt
+```
+Expected: 2 回とも exit 0・PNG 20 枚・`smoke-rects.tsv` あり。`rects-diff-exit=0`（2 回の run の矩形の出力が一致）と、`state`・`res` の組が `20`（どの撮影にも行がある）。
+- `diff` に行が出たら、その要素の名前と原因を見る。世界に追従して位置が決まる要素（ワールドピンのマーカー・画面端の矢印など。カメラと時刻で動く）や時刻で文の幅が変わる要素なら、`rectExcludedNames` にその名前を足し（木ごと外れる。足した名前ごとに 2 行コメントで理由）、入場の tween の途中を測った（要素の待ちが短い）なら、その状態の `Shoot` の前の待ちを延ばして、もう 2 回流し直す。`rects-diff-exit=0` になるまで繰り返す（外した名前と理由を `done.md`「## 証拠」へ）。脈動する枠（`tutorial-outline__clip` の 1.03 の脈動。チャレンジ 1 の本物の枠と `5-tutorial-outline-label` の足した枠）は scale の transform で動くだけで layout は動かないので外さない（D-51）
+- PSNR は `psnr-run1-run2.txt` で、両解像度とも `average:inf` の状態を「PSNR で比べる状態」、それ以外（世界の空・水面・カーソル・時刻・脈動で揺れる状態）を「矩形だけで比べる状態」に分け、揺れる部分を `done.md` に書く。PSNR の待ちを延ばして `inf` にできる状態は延ばしてよい
+- 2 つの振り分けと外した名前を「5a への申し送り」の「### 物差し（prerun-smoke-shots）」の小節（Step 3）に書く（D-12・D-51）
 
 - [ ] **Step 3: コミット**
 
@@ -1384,7 +1458,13 @@ Expected: 2 回とも exit 0・PNG 20 枚。PSNR が `inf` でない状態（世
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/prerun-smoke-shots.cs
 git commit -m "test(uitk): 撤去レーンの見た目の物差し prerun-smoke-shots を足す（X-prerun）"
 ```
-`done.md`「## 5a への申し送り」の「### 書き直す」の小節の後に小節「### 物差し（prerun-smoke-shots）」を立て、その中に、流し方（Task 8 Step 4 の前置き〈日本語の固定を含む〉。5a の後は全体スイッチの行を消した前置き）・出力名の形 `smoke-<状態>-<w>x<h>.png`（run dir 内・1 回の run で 20 枚）・状態名 10 個・揺れた状態の扱い（Step 2 と D-12）を書く（見出しが無いと、X-5a Task 1 Step 4b の `awk '/^### 書き直す/{f=1;next} /^##/{f=0} f'` が次の `##` までを拾い、流し方の文の `prerun-smoke-shots.cs`・`run-scenario.sh` が書き直すシナリオの一覧に混ざる。`### 物差し` の行は `/^##/` に当たるのでそこで止まる。独立評価 3 周目の軽）。ヘッダの 2 言語のコメントにも同じ 4 点（出力名と置き場・状態名・前置き・比べ方）があることを Run: `head -14 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/prerun-smoke-shots.cs` で見る（X-5a Task 1 Step 4 がヘッダの「撮影の解像度と出力先の説明」を前提に読む）
+`done.md`「## 5a への申し送り」の「### 書き直す」の小節の後に小節「### 物差し（prerun-smoke-shots）」を立て、その中に次を書く（後のレーン X-5a〜5e が読む形。D-51）:
+- 流し方: Task 8 Step 4 の前置き〈日本語の固定を含む〉。5a の後は全体スイッチの行を消した前置き
+- 出力: run dir（`run-scenario.sh` の出力の `run dir: <パス>`）に `smoke-<状態>-<w>x<h>.png` の 20 枚と `smoke-rects.tsv` の 1 本。TSV の列は `state res name index x y w h`（タブ区切り・1 行目が見出し・値の意味は Task 10 の Interfaces）。状態名 10 個
+- 写し方: 起点と撤去後で `cp <run dir>/smoke-*.png <run dir>/smoke-rects.tsv <自レーンの置き場>/`（PNG だけを写さない）
+- 比べ方: (1) `diff <起点>/smoke-rects.tsv <撤去後>/smoke-rects.tsv` が exit 0（全 10 状態・両解像度で要素の矩形の差 0。これはどの状態にも求める）。(2) 「PSNR で比べる状態」（Step 2 で両解像度とも `inf` だった状態の名前の一覧）は全 PNG が `average:inf`。(3) 「矩形だけで比べる状態」（一覧）の PSNR は記録だけで合否に使わない。`diff` に行が出たら、その行の状態・要素名・前後の値を表にし、原因（撤去で変わったもの／撤去と無関係）を書く
+- `rectExcludedNames` で外した要素の名前と理由（Step 2。無ければ「なし」）
+（見出しが無いと、X-5a Task 1 Step 4b の `awk '/^### 書き直す/{f=1;next} /^##/{f=0} f'` が次の `##` までを拾い、流し方の文の `prerun-smoke-shots.cs`・`run-scenario.sh` が書き直すシナリオの一覧に混ざる。`### 物差し` の行は `/^##/` に当たるのでそこで止まる。独立評価 3 周目の軽）。ヘッダの 2 言語のコメントにも同じ 5 点（出力名と置き場・状態名・前置き・比べ方・`smoke-rects.tsv` の列）があることを Run: `head -14 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun/prerun-smoke-shots.cs` で見る（X-5a Task 1 Step 4 がヘッダの「撮影の解像度と出力先の説明」を前提に読む）
 
 ---
 
@@ -1523,13 +1603,13 @@ uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE","http://127.0.0.1:9"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); Client.Localization.Localize.Initialize(); return Client.Localization.Localize.TrySetChosenLanguage("japanese");'
 $S/scripts/run-scenario.sh ./moorestech_client <ラダー 1 のパス>; echo "exit=$?"
 ```
-同じ前置きでラダー 2〜6（Task 1 Step 2 のパス）と `prerun/prerun-smoke-shots.cs`。
-Expected: 7 本とも exit 0・`Success: true`・ErrorLogs 0。`done.md`「## 証拠」に run dir 名と Assert の数。mp4 はラダー 6 本を報告ページ用に残し、他は消す
+同じ前置きでラダー 2〜5（Task 1 Step 2 のパス）と `prerun/prerun-smoke-shots.cs`。ラダー 6 `uitk-challenge-gate.cs` は出展モードなので `run-scenario.sh` でなく `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client GameUi <ラダー 6 のパス>` で流し（S5-ladder D-8）、運転役は系を戻さないので、その次の 1 本の前にも前置き（`UiSystemEditorSwitch.Set` を含む）を流す（D-55）。
+Expected: 7 本とも exit 0・`Success: true`・ErrorLogs 0。`prerun-smoke-shots` は run dir に PNG 20 枚と `smoke-rects.tsv`（Run: `tail -n +2 <run dir>/smoke-rects.tsv | cut -f1,2 | sort -u | wc -l` が `20`）。`done.md`「## 証拠」に run dir 名と Assert の数。mp4 はラダー 6 本を報告ページ用に残し、他は消す
 
 - [ ] **Step 3: 全録画の GameUi 側を最終 HEAD で流し直す（USS を直したとき・不具合の修正を取り込んだとき）**
 
 Task 3 の後にこのレーンが USS を直した（Task 12・Task 15 の自動適用）か、Task 3 Step 3・Task 12 (b) で持ち主の修正を取り込んだときは、全録画の GameUi 側を今の HEAD で流し直す（Run: `PH=$(grep -m1 '全録画の HEAD（GameUi）' ../moorestech_logs/harness/uitk/X-prerun/done.md | grep -oE '[0-9a-f]{40}'); git diff --stat "$PH" HEAD -- moorestech_client/Assets .agents/skills/unity-playmode-recorded-playtest/scenarios ':!.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/prerun'` が空なら流さない。`prerun/` は Task 3 の後に足した撮影シナリオで全録画の表の外。`PH` が空なら `done.md` の行の欠けなので Task 3 Step 2 の書き方で直してから流す。D-43）。共有の部品・トークンの USS は要素の寸法と重なりを変え、testid のクリックと可視判定（`GameUiElementQuery` の `worldBound` と `panel.Pick`）に効く。流し直さないと、X-5a（R-16・Task 9）と X-switch-pr（R-9）がこのレーンの USS の修正で落ちた行を自分の退行として追う（D-38）。
-Task 3 Step 1〜3 を同じ手順（一覧から手動投入の行と `uitk/prerun/` を外す・3 本ずつ・落ちた行の 1 回の流し直し・Step 2b の手動投入・分類・`不具合` なら停止）で流し、`$D/gameui-final.tsv` に書き、流した HEAD をその場で `done.md` の `全録画の HEAD（GameUi）` の行へ書き替えて logs でコミット・push する（D-43）。`不具合` で停止して持ち主の修正を取り込んだら、Task 12 Step 2 の冒頭の判定で撮り直しも回す（D-45）。`done.md`「## 全録画の結果」の UITK の分類の列をこの結果へ差し替え（表の行の集合は Task 3 と同じ。Task 5 Step 1 の python と `Web 専用` の数の確かめを流し直す）、Task 3 の結果から分類の変わった行を「### Task 3 からの変化」の小節に残す。台帳「## 実測の結論」に Task 5 Step 2 の UITK 側の行の形で 1 行足す（Task 16 Step 1 の後にコミット）。
+Task 3 Step 1〜3 を同じ手順（一覧から手動投入の行・出展モードの 3 本・`uitk/prerun/` を外す・1 本ごとの前置きつきで 3 本ずつ〈`OUT=$D/gameui-final.tsv`。表示言語の持ち越しを防ぐ。D-52〉・落ちた行の 1 回の流し直し・Step 2b の手動投入と運転役・分類・`不具合` なら停止）で流し、`$D/gameui-final.tsv` に書き、流した HEAD をその場で `done.md` の `全録画の HEAD（GameUi）` の行へ書き替えて logs でコミット・push する（D-43）。`不具合` で停止して持ち主の修正を取り込んだら、Task 12 Step 2 の冒頭の判定で撮り直しも回す（D-45）。`done.md`「## 全録画の結果」の UITK の分類の列をこの結果へ差し替え（表の行の集合は Task 3 と同じ。Task 5 Step 1 の python と `Web 専用` の数の確かめを流し直す）、Task 3 の結果から分類の変わった行を「### Task 3 からの変化」の小節に残す。台帳「## 実測の結論」に Task 5 Step 2 の UITK 側の行の形で 1 行足す（Task 16 Step 1 の後にコミット）。
 
 - [ ] **Step 4: コミットは無し**（記録のみ。台帳の行を足したときは `git add docs/uitk/TODO.md && git commit -m "docs(uitk): 最終 HEAD の全録画の UITK 側を台帳に記録する（X-prerun）"`）
 
@@ -1554,13 +1634,13 @@ Task 3 Step 1〜3 を同じ手順（一覧から手動投入の行と `uitk/prer
 ## Self-Review
 
 - Requirements の各行のタスク: R-1→T1（wwxy の 8 行は T1 Step 3・T2 Step 4）、R-2→T1 Step 3・T13・T16 Step 2、R-3・R-4→T2、R-5→T2・T5・T16 Step 4、R-6→T3（手動の行は T3 Step 2b）・T5 Step 1・T14 Step 3、R-7→T4（手動の行は T4 Step 2b）・T5、R-8→T5・T10 Step 3、R-9→T6、R-10→T7、R-11→T7 Step 4・T8・T9、R-12→T9、R-13→T11、R-14→T12・T16 Step 2、R-15→T10、R-16→T2・T5・T6、R-17→T1 Step 3b・各タスクと T16、R-18→T14、R-19→T1 Step 3・T16 Step 2〜3、R-20→T15・T16
-- 保留の経路（停止して待つ）: 前提の欠け（T1）・突き合わせの差分（T1・T13・T16 Step 2）・全録画の UITK 側の不具合（T3・T14 Step 3）・USS で直らない差（T12 (b)）・LX の番号の枠切れ（T12 Step 3）。Web 側の失敗はどの分類でも停止せず記録だけ（T2 Step 3・T4 Step 3。D-36）。どれも `done.md` 1 行目・bd・合図 1 回で指揮に届き、解消の条件は「持ち主の修正が `feature/uitk` に入る」（枠切れは「番号が足される」）。撮れない E の id（T9 Step 2）は停止せず `done.md`「要裁定」の Q-n で届く。状態の差（T12 (f)）は停止せず `states.md` と差の表に記録だけ。停止の間に Editor を閉じても全録画の TSV・控えは `.uloop/outputs/X-prerun/` に、全録画の HEAD と G1 の起点は `done.md` に残る（D-43）。入った後にこのレーンが該当分だけ流し直す経路を各タスクに書いた。最小構成: 不具合 0 件なら停止に入らない。全 id が P のときも E の一致の確かめ（T9 Step 1）は `4-block-chest` が N なので必ず走る
-- 対照: 物差しは 2 回流して決定的かを見る（T10 Step 2）。EditMode は先に実行時と、panel の寸法と panel 原点からの相対位置で 2px 以内の一致を 1280×720 と 2560×1080 の両方で見る（T9 Step 1。絶対位置は比べない。D-46）。全録画は両系とも exit 0 以外の行を 1 回流し直し、2 回とも落ちた行だけを分類する（T3 Step 3・T4 Step 2。D-36）。Web 側の失敗は S4-gamma の HEAD で 2 回まで流し直して既存と退行を分け、記録だけにする（T4 Step 3）。USS を直したか修正を取り込んだら、全録画の GameUi 側を最終 HEAD で流し直し、表と `全録画の HEAD（GameUi）`〈40 桁〉を差し替える（T14 Step 3。D-38）。USS を直したら・撮影の後に `Client.Ui`・`UI Toolkit` を変える取り込みをしたら全 id を撮り直し、前の回と PSNR で比べて `inf` でない id を全部（揺れと分けずに）並べ比べ直す（T12 Step 2・T15・T16 Step 2。D-34・D-45・D-49）。GameUi だけで落ちた assert は Web 側の同じ行と並べて不具合と前提の崩れを分ける（T3 Step 3。D-29）
-- 撮影の条件: 撮影の前は毎回、前置きと各シナリオの冒頭で表示言語を日本語に固定する（Global Constraints 5・T8〜T10・T9 の EditMode。Web の参照は日本語。D-30）。透かしは入れない（D-39）。足した枠とラベルの待ちは足す前の数より増えたことで見る（チャレンジ 1 の本物の枠で最初から真にならない。T8 Step 3・T9 Step 3・T10。D-47）。`prerun/` のシナリオは `ScenarioTimeoutSeconds = 360f`（`run-scenario.sh` の 420 秒より短く。ブロックは 7 種ずつ 2 本。D-40）
+- 保留の経路（停止して待つ）: 前提の欠け（T1）・突き合わせの差分（T1・T13・T16 Step 2）・全録画の UITK 側の不具合（T3・T14 Step 3）・USS で直らない差（T12 (b)）・LX の番号の枠切れ（T12 Step 3）。Web 側の失敗はどの分類でも停止せず記録だけ（T2 Step 3・T4 Step 3。D-36）。CEF 由来でない `退行` のうち原因の候補が master の取り込みにあるものは、停止せず master の Web の持ち主へ bd で届ける（T4 Step 3。D-54）。どれも `done.md` 1 行目・bd・合図 1 回で指揮に届き、解消の条件は「持ち主の修正が `feature/uitk` に入る」（枠切れは「番号が足される」）。撮れない E の id（T9 Step 2）は停止せず `done.md`「要裁定」の Q-n で届く。状態の差（T12 (f)）は停止せず `states.md` と差の表に記録だけ。停止の間に Editor を閉じても全録画の TSV・控えは `.uloop/outputs/X-prerun/` に、全録画の HEAD と G1 の起点は `done.md` に残る（D-43）。入った後にこのレーンが該当分だけ流し直す経路を各タスクに書いた。最小構成: 不具合 0 件なら停止に入らない。全 id が P のときも E の一致の確かめ（T9 Step 1）は `4-block-chest` が N なので必ず走る
+- 対照: 物差しは 2 回流して決定的かを見る。要素の矩形の TSV は `diff` で一致を、PNG は PSNR で `inf` の状態を分けて申し送る（T10 Step 2〜3。D-51）。EditMode は先に実行時と、panel の寸法と panel 原点からの相対位置で 2px 以内の一致を 1280×720 と 2560×1080 の両方で見る（T9 Step 1。絶対位置は比べない。D-46）。全録画は両系とも exit 0 以外の行を 1 回流し直し、2 回とも落ちた行だけを分類する（T3 Step 3・T4 Step 2。D-36）。Web 側の失敗は S4-gamma の HEAD で 2 回まで流し直して既存と退行を分け、記録だけにする（T4 Step 3）。USS を直したか修正を取り込んだら、全録画の GameUi 側を最終 HEAD で流し直し、表と `全録画の HEAD（GameUi）`〈40 桁〉を差し替える（T14 Step 3。D-38）。USS を直したら・撮影の後に `Client.Ui`・`UI Toolkit` を変える取り込みをしたら全 id を撮り直し、前の回と PSNR で比べて `inf` でない id を全部（揺れと分けずに）並べ比べ直す（T12 Step 2・T15・T16 Step 2。D-34・D-45・D-49）。GameUi だけで落ちた assert は Web 側の同じ行と並べて不具合と前提の崩れを分ける（T3 Step 3。D-29）
+- 撮影の条件: 撮影の前は毎回、前置きと各シナリオの冒頭で表示言語を日本語に固定する（Global Constraints 5・T8〜T10・T9 の EditMode。Web の参照は日本語。D-30）。全録画も両系とも 1 本ごとに前置きで日本語に固定してから流す（`run-all-recordings.sh` と winunity は言語を立てない。T3 Step 2〜3・T4 Step 2・T14 Step 3。D-52）。出展モードの 3 本は運転役で流し、運転役の後は `UiSystemEditorSwitch.Set` を含む前置きを流し直す（T3 Step 2b・T14 Step 2。D-55）。動画の UITK 側は両解像度とも同じ相の静止画で、録画からフレームを抜かない（T9 Step 3〜4。D-53）。透かしは入れない（D-39）。足した枠とラベルの待ちは足す前の数より増えたことで見る（チャレンジ 1 の本物の枠で最初から真にならない。T8 Step 3・T9 Step 3・T10。D-47）。`prerun/` のシナリオは `ScenarioTimeoutSeconds = 360f`（`run-scenario.sh` の 420 秒より短く。ブロックは 7 種ずつ 2 本。D-40）
 - 並べ比べの基準: 動画の組は両解像度で位相を数えず、効果の出始め・通知の 0.5 秒・実ゲームのワールドピンを `states.md` の状態の差に書く（T7 Step 3・T9 Step 4・T11 Step 2。D-35）。実ゲームだけにあるチャレンジ 1 の枠とラベルは状態の差に名指しで書き、`states.md` に無かった状態の差は (f) で閉じる（T7 Step 3・T12 (f)。D-44）。E は両側を面の矩形に切り抜き、位置は面の原点からの相対で、外殻の外は数えない（T7 Step 3〜4・T11 Step 1〜2。D-46）。参照（master）と `feature/uitk` の Web の食い違いを先に洗い出し、「feature/uitk 側が正」「master の未追従」の差は寄せない。生成物の USS は手で直さない（T7 Step 3・T12 (a)(e)。D-37）
 - 担い手: Editor の起動・停止・付け替えは本体、subagent は起動済みの Editor だけを使う（Global Constraints 3・T1 Step 4・T4 Step 3。D-41）。評価役は 1 回 24 組まで（T11 Step 2）。10 分を超えうる `capture.ts` は本体が background で 1 回起動し、流し直す前に出力先を消す（T6 Step 2〜3）
 - 撮り方の区分: P/N/E/V に X（[A-38] で UITK に作らない画面。撮らない）を足し、機械検査は X の根拠（A-38 と disposition の行）の欠けも誤りに数える（T7 Step 2。D-31）。言語ゲートは起動後に出し直せないので E（T9 Step 2）
-- 他レーンとの境界: 5a は「## 全録画の結果」の `Web 専用` を grep して消す。この計画は `Web 専用` の文字列をシナリオ全体が Web 専用の行だけに使い（T5 Step 1 で grep して確かめる）、assert の書き直しは別の小節で申し送る（D-29）。表と小節のパスは `scenarios/` からの相対にそろえ、python で突き合わせる（T5 Step 1）。X-switch-pr の `<PRERUN_HEAD>` は `done.md`「## 全録画の結果」の `全録画の HEAD（GameUi）` の 40 桁（T5 Step 1・T14 Step 3）。前のレーンの `done.md` の申し送りは T1 Step 3b で全部受ける。UITK の分類の欄はちょうど `Web 専用` で、その数と「### 消す」の数を X-5a と同じ式で突き合わせる（T5 Step 1）。物差しは「### 物差し」の小節に書き、X-5a の「### 書き直す」の抜き出しに混ざらない（T10 Step 3）。手動投入の 2 本と運転役の言語ゲートは一覧から外して X-switch-pr R-9 と同じ語で判定する（T3 Step 2b・T4 Step 2b。D-48）。全録画の一覧は Task 3 と Task 14 Step 3 で同じ集合（`uitk/prerun/` を外す）
+- 他レーンとの境界: 5a は「## 全録画の結果」の `Web 専用` を grep して消す。この計画は `Web 専用` の文字列をシナリオ全体が Web 専用の行だけに使い（T5 Step 1 で grep して確かめる）、assert の書き直しは別の小節で申し送る（D-29）。表と小節のパスは `scenarios/` からの相対にそろえ、python で突き合わせる（T5 Step 1）。X-switch-pr の `<PRERUN_HEAD>` は `done.md`「## 全録画の結果」の `全録画の HEAD（GameUi）` の 40 桁（T5 Step 1・T14 Step 3）。前のレーンの `done.md` の申し送りは T1 Step 3b で全部受ける。UITK の分類の欄はちょうど `Web 専用` で、その数と「### 消す」の数を X-5a と同じ式で突き合わせる（T5 Step 1）。物差しは「### 物差し」の小節に書き、X-5a の「### 書き直す」の抜き出しに混ざらない（T10 Step 3）。物差しの出力は PNG 20 枚と `smoke-rects.tsv`（列 `state res name index x y w h`）で、5a〜5e には TSV も写して `diff` で一致を求める形で渡す。各計画の今の読み方との食い違いは直し役の記録の「他レーンへの依頼」へ（D-51）。手動投入の 2 本と運転役の言語ゲートは一覧から外して X-switch-pr R-9 と同じ語で判定する（T3 Step 2b・T4 Step 2b。D-48）。全録画の一覧は Task 3 と Task 14 Step 3 で同じ集合（`uitk/prerun/` を外す）
 - 型の一致: `UiRuntimePanelCapture.CaptureToPng(VisualElement, int, int, Color, UiCaptureLocalization, string)`・`PlaytestGameViewOps.SetResolution(CancellationToken, int, int)`・`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`AnchorIds.PauseSettings`／`ResearchNode(string)`／`ChallengePanel`・`GameUiRoot.Instance.GetRootElement()`・testid `research-node-state-<guid>`・`block-inventory-panel`・`block-inventory-close`・`placement-mode-hud`・`inventory-panel`・`research-tree`・`pause-menu-open-settings`・`language-select`・`build-menu-search`・`p.RemoveBlock(Vector3Int) : UniTask<bool>`・`PlaytestSetup.GroundCenter`／`GroundSize` は起草時の HEAD `9c83052273` の実物と一致。S5 のレーンが足すもの（チャレンジ一覧の中身・言語ゲート）は T8 Step 3 で実物から写す
 
 ## 判断記録（ADR）
@@ -1590,7 +1670,7 @@ W6 の agent 既定の写し:
 - **D-9** 旧 `connect/electric-wire-connect-via-ui.cs` だけが見ていた検証を後継へ移すかは、シナリオの持ち主が 5a（W6-8）なので、このレーンは bd を立てて回す
 - **D-10** 停止するときは `done.md` 1 行目・bd・`cmux wait-for -S uitk-x-prerun` を 1 回送り、指揮の再開の連絡を待つ（指揮が止まったレーンに気づく経路。最後の合図と同じ名前）
 - **D-11** UITK の撮影は P（既存の段の撮影シナリオを書き換えずに流し、出力名を対応表で `<id>-<w>x<h>.png` にそろえる）・N・E・V の 4 種。既存のシナリオの出力名を直さない（シナリオは 5a の持ち物）
-- **D-12** 物差しは 2 回流して PSNR を見る。世界の動きで揺れる状態は待ちを延ばし、それでも揺れれば 5a〜5e の比べ方を要素の矩形の差 0 に替える旨を申し送る（W6-6 の「差があれば表にして原因を書く」の前提を固める）
+- **D-12** 物差しは 2 回流して PSNR と要素の矩形を見る。世界の動きで揺れる状態は待ちを延ばし、それでも揺れれば、その状態は「矩形だけで比べる状態」として申し送る（W6-6 の「差があれば表にして原因を書く」の前提を固める。矩形の出力と比べ方は D-51 で改めた）
 - **D-13** 物差しの 10 状態は、束 1: `1-pause-top`・`1-settings`、束 2: `2-game-hud`・`2-placement`、束 3: `3-build-menu`・`3-build-menu-search`、束 4: `4-player-inventory`・`4-research`、束 5: `5-challenge-list`・`5-tutorial-outline-label`（キーと testid で決定的に作れ、撤去で触る入力排他・起動配線・ロケータに近い画面を選んだ。出展モードの言語ゲートは起動の前段を要するので外した。並べ比べでは E で撮る。D-31）
 - **D-14** §4.3 の 5（`moores-wt rm`）は依頼文の「worktree の片付けは指揮が行う」に従い、このレーンは Editor を閉じるまで
 - **D-15**（独立評価 2 周目で改めた。D-37）申し送りのバグ報告の記述欄の幅は、`feature/uitk` の Web（`tokens.css:149`）と UITK（生成物 `Tokens.uss:59`）が I-fix2 ad2ff7d2ae で両方 354px に直り（台帳「## 追従記録」束 1 `写した`）、master の Web だけが 356px で右枠が切れる。参照（master）だけが切れるので、Task 7 Step 3 の食い違いの表に「feature/uitk 側が正（master の Web 側の残り）」と書いて並べ比べの差から外し、UITK を寄せない・Q-n にも上げない（起草時の「Web と UITK が同じ見た目」は実物と合わなかった）
@@ -1640,6 +1720,12 @@ W6 の agent 既定の写し:
 - **D-49**（独立評価 3 周目〈評価役 2・軽〉: USS を直した後の PSNR の比べで、P・N・V は世界〈空・水面・ワールドピン〉が写るので前後がほぼ `inf` にならず、「同じ id を 2 回撮って揺れか USS の影響かを分ける」の分け方が決まっていない。波及が揺れとして外れ、D-34 が防ぎたかったことが残る → `inf` でない id は揺れか波及かを分けず全部「変わった」に数え、組の作り直しと評価役・再現の対象にする。比べる相手は回ごとの `before/`〈その回の修正・取り込みの直前〉にした。費用は P・N・V の組を回ごとに評価し直す分だけ増える。棄却: P・N を UITK の panel の矩形で切り抜いて比べる〈HUD の id には panel が無く、切り抜きの外の波及を落とす〉。出所 agent 既定）
 - **D-50**（独立評価 3 周目〈評価役 2・軽〉: 台帳「## 壊れた録画の割り振り」の S2-ladder の 4 行〈pebble・equip・tree-pin・server-notification-smoke〉は今の HEAD で方針の列が方針の文のままで、R-5「10 行すべての方針の列に結果」を満たす手順も、満たさないときの扱いも無かった。X-prerun がこの行へ `X-prerun` の語を書くと、S4-gamma の `list-recordings.sh`〈行のどこかに `X-prerun` を含む行を外す〉がその本を全録画から黙って外す → R-1・Task 1 Step 3 で 8 行に結果があるかを見て、無ければ直すレーンの `done.md` の記録から `X-prerun` の語を含めずに写し〈台帳のこの節は W6 の持ち主の表で X-prerun の範囲〉、記録も無ければ前提の欠けで止まる。出所 agent 既定）
 - 軽の指摘の直し（判断を伴わない。独立評価 3 周目）: 物差しの流し方を「## 5a への申し送り」の小節「### 物差し（prerun-smoke-shots）」に書く（X-5a Task 1 Step 4b の `awk '/^### 書き直す/{f=1;next} /^##/{f=0} f'` に流し方の `.cs`・`.sh` が混ざらない。Task 5 Step 1 の python もこの小節を見ない）・全録画の表を「シナリオ / UITK の分類 / Web の分類 / 秒 / 原因・注記」にし、分類の欄は分類の語だけ（`Web 専用` の行はちょうど `Web 専用`）、その数と「### 消す」の数を X-5a と同じ式で突き合わせる・全録画の一覧から `uitk/prerun/` を外し（Task 3 Step 1）、Task 14 Step 3 の流し直しも同じ集合にする・`capture.ts` は 10 分を超えうる分けられないコマンドなので本体が background で 1 回起動して完了の通知で受け、流し直す前に出力先を消し（`capture.ts:22` は空でない出力先で止まる）、所要を `done.md` に書く
+- **D-51**（独立評価 4 周目〈評価役 2・重〉: Task 10 Step 2 は揺れた状態の比べ方を「UITK の要素の矩形の差 0」に替えると申し送るが、物差しは PNG しか出さず〈`PlaytestScreenshot.Capture` は `ScreenCapture.CaptureScreenshot` で PNG を書くだけ。`Client.Playtest/Operations/PlaytestScreenshot.cs:14-21`〉、比べる起点にも撤去後にも矩形が無い。揺れは見込まれる経路で〈D-49 の世界の写り込み・チャレンジ 1 の常時の枠の脈動 `TutorialOutlineView.cs:39` が `style.scale` の tween〈`ScaleTweenStep.cs:27`〉〉、5b〜5e はシナリオを書かないので口も足せない → `prerun-smoke-shots.cs` が撮るたびに、`GameUiRoot` の木の名前付き・display Flex・visibility Visible の要素の矩形を run dir の `smoke-rects.tsv`〈列 `state res name index x y w h`〉へ書く。位置は根までの `layout` の和で、transform〈脈動の scale・入場の translate〉を含まないので脈動で動かない。Task 10 Step 2 で 2 回の run の TSV が `diff` で一致することを確かめ、世界に追従して揺れる要素は `rectExcludedNames` で名前ごと〈木ごと〉外して理由を書く。後のレーンには「TSV の `diff` 一致を全状態に、PNG の `inf` を 2 回とも `inf` だった状態に」求める形で、ファイル名・列・写し方を「### 物差し」の小節に書く。置き場は run dir〈`PlaytestResults/`。gitignore 下で Unity が消さない〉と控えの `.uloop/outputs/X-prerun/smoke/`〈D-43 と同じ考え〉。棄却: 撮影の間だけ世界と脈動を止める口を本番に足して PSNR を `inf` にする〈本番に検査の口を足さない〉・`worldBound` で測る〈scale の脈動で揺れる〉。出所 agent 既定〈指揮の補足〉）
+- **D-52**（独立評価 4 周目〈評価役 1・軽〉: `run-all-recordings.sh` は 1 本ごとに受け口と系だけを立て直し表示言語を立て直さず〈S4-gamma 計画 Task 9 Step 2 の本文〉、winunity も受け口と系だけ〈`winunity.d/interactive.ps1`〉。言語は `PlayerPrefs` に残るので、`misc/localization-language-switch-via-ui.cs` が英語へ切り替えた後に落ちた回〈:74 で english、:103 で japanese へ戻す前〉・`uitk/uitk-notification-compare.cs:57`・言語ゲートの運転役の後の本が英語で流れ、日本語の文言を Assert する本〈`misc/feedback-report-labels.cs:39,46`・`graphics-quality/quality-recovery-ui.cs:55` ほか〉が言語の取り違えで落ちて `退行`・`不具合` に入る → 全録画は両系とも 1 本ずつ、日本語の固定を含む前置きを流して戻り値 `prerun-pre ja=True` を見てから `run-all-recordings.sh … <行> 1` で流す〈Task 3 Step 2〜3・Task 4 Step 2 の経路 M・Task 14 Step 3〉。経路 W は 1 本ごとに `winunity edc <branch> lang-ja.cs` で日本語に固定して `edc.out.txt` の戻り値を見てから流す。棄却: 3 本ずつの呼び出しの前だけ前置きを流す〈評価の直し方。同じ呼び出しの中で 2 本目以降へ言語が持ち越される〉。全録画のスクリプトは書き換えない〈W6-9〉。出所 agent 既定）
+- **D-53**（独立評価 4 周目〈評価役 1・軽〉: 動画の 1280×720 の UITK のフレームを `recording.mp4` から Timeline の秒〈`Time.realtimeSinceStartup` からの実時間。`PlaytestReporter.cs:76`〉で抜いていたが、録画は `RecorderControllerSettings.FrameRate = 30`〈`PlaytestRecorder.cs:39`〉の一定の刻みで書かれ、描画が 30fps を割ると動画の時刻が実時間より遅れて後の動画ほどずれが積もる〈推測。未実測〉。最初の `[video]` で 1 回だけ測る補正では足りず、end の相が EndSession の後になると評価役が「欠け」を挙げて再現する → UITK 側は両解像度とも同じ操作の同じ相で静止画を撮り〈`ShootAt` が解像度に依らず `p.Screenshot`〉、録画は動きの目視用にとどめてフレームを抜かない。Web 側は従来どおり webm から抜く。棄却: 動画ごとに最初に写るフレームを探してずれを測り直す〈5 件 × 3 相の手作業が増え、相の途中のずれは測れない〉。出所 agent 既定）
+- **D-54**（独立評価 4 周目〈評価役 2・軽〉・別 subagent が再現: 裁定「UITK 切替まで CEF 由来の不具合は直さない」は「CEF 由来でない Web 画面の不具合は従来どおり master で直す」も決めているが、計画は CEF 由来でない `退行` を `done.md` と台帳に書くだけで、`feature/uitk` の Web は master の取り込みでしか変わらない〈plan.md §3.3 R3〉ので、取り込みで入った master の Web の不具合が master の持ち主に届かない〈Task 16 Step 5 の integrator への依頼も記録だけ〉 → `（CEF 由来）` の付かない `退行` は `git rev-list "$S4G"..HEAD -- moorestech_web/` の各コミットを `git merge-base --is-ancestor <c> origin/master` で見て、master のものが 1 件以上なら master の Web の持ち主宛ての bd を `--parent <bd>` で立てる〈原因の候補は推測と書く〉。停止しない・Web を直さないのは D-36 のまま。0 件なら原因は `feature/uitk` 側なので記録だけ。出所 agent 既定）
+- **D-55**（PLAN-W5 の「integrator への依頼」〈`harness/uitk/PLAN-W5/done.md`〉と S5-ladder 計画 D-8・Global Constraints: 出展モードの 3 本〈ラダー 6 `uitk/stage5/uitk-challenge-gate.cs`・`uitk-event-language-gate.cs`・`uitk-stage5-compare.cs`〉は `uitk/stage5/exhibition-mode-run.sh <project> <GameUi|Web> <scenario.cs>` 経由・Mac の Editor でしか流せず〈`winunity play` は武装を挟めない〉、運転役は後始末で全体スイッチを戻さない → 全録画の一覧から 3 本を外して Task 3 Step 2b で運転役から流し `前提つき（運転役で PASS）`〈X-switch-pr R-9 と同じ語〉、Task 14 Step 2 のラダー 6 も運転役で流す。運転役の後の次の録画・撮影は必ず `UiSystemEditorSwitch.Set` を含む前置きを流す〈Global Constraints 5〉。Task 1 Step 2 で運転役と 3 本の実在を見る。あわせて `5-event-language-gate` は、`uitk-stage5-compare.cs` が実物でゲートを両解像度で撮っていれば E をやめて P にする〈実ゲームの起動の前段のゲートをそのまま撮れ、外殻の逃げ道〈Q-n〉に入らない。撮影の対応表の下の注記〉。出所 agent 既定〈指揮の補足〉）
+- 軽の指摘の直し（判断を伴わない。独立評価 4 周目）: E の面の例を `面=block-inventory` に（Web の testid は origin/master `BlockInventoryPanel.tsx:48` の `block-inventory` だけで、`block-inventory-panel` は Web に無い。UITK は `BlockInventoryView.cs:39` の外殻 `block-inventory`）・`prerun-panel-rects.ts` は testid が無ければ要素を待たず `null` を書く（`count()` が 0 のとき。時間切れの例外で JSON を書かずに終わらない）・Web の面の矩形の測定を解像度と 6 id ずつの部分に分けて 1 回ずつ前景で流し（最初の 1 回の所要を見て 3 id に割り直す）、background の逃げ道を外した・Task 1 Step 6（`moorestech_web/node` と `pnpm install`）を経路に依らず流す（Task 4 Step 2b の interrupt の Web の回は経路 W でも Mac の Editor で流すため）
 
 ## 未確認
 
@@ -1649,7 +1735,10 @@ W6 の agent 既定の写し:
 - 新しい参照の manifest の id の数（起草時 89）。master で増えていれば Task 7 で表を足す
 - E の各 id の外殻の組み方は、前例のレーンの `done.md` の記述から写す（repo に撮影のコードが無い）。前例の無い id は Task 9 Step 2 で決める
 - `prerun-shots-blocks-a.cs`・`-b.cs` の 14 種のうち、平らな地面で開けないもの（油井・宇宙エレベーター拠点・電柱の UI の有無）は Task 8 の run で分かる。置く向き North で大きなブロックが原点のどちら側へ伸びるかは確かめていない（(-6,32,-6) はどちらへ 13 マス伸びても足場の内側）
-- 動画の録画の始まりと Timeline の秒のずれ（Task 9 Step 4 で測る）
+- 動画の録画の時刻と Timeline の実時間の秒のずれ（推測。UITK 側は静止画で比べるので結果に依らない。D-53）
+- `smoke-rects.tsv` が 2 回の run で一致するか（名前付きの要素のうち、世界に追従するワールドピンや時刻で文が変わる要素が揺れるかは Task 10 Step 2 で分かる。外す名前は起草時に決めていない。D-51）
+- `uloop execute-dynamic-code` の戻り値の文字列 `prerun-pre ja=True` が出力にそのまま出る形か（`grep -q` で見る。出なければ出力の形を見て grep の式を合わせる。D-52）・`winunity edc` の 1 回の所要（1 本ごとに挟むので、3 本で 600 秒を超えるなら 1 本ずつ）
+- `uitk-stage5-compare.cs`・`exhibition-mode-run.sh` は起草時の HEAD に無い（S5-ladder の後にできる。名前は S5-ladder 計画 R-2・Task 9 の実物で Task 1 Step 2 で確かめる。D-55）
 - Windows の Editor で CEF が描けるか（Task 1 Step 5。winunity の Library の不調〈`winunity-play-fix.md`〉が再発したら経路 M）
 - `prerun/` の各シナリオの所要（起草時の見積もりは推測。ブロック 7 種で 200 秒前後）。最初の run で測る（D-40）
 - 参照の撮影元と `feature/uitk` の Web の食い違いの件数（起草時の模擬は `1-bug-report` の幅の 1 件と生成物の `localizationKeys.ts`）。Task 7 Step 3 で数え直す（D-37）
