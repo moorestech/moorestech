@@ -64,6 +64,9 @@ namespace Client.Ui.Foundation.Text
             // 測った高さ＝(行数−1)×行送り＋1 行目の字の高さ。字の高さは行の高さの 0.5〜1.5 倍に収まるので四捨五入で行数になる
             // Measured height = (lines - 1) x pitch + first-line glyph extent; that extent is 0.5-1.5 line heights, so rounding yields the line count
             var lineCount = Mathf.Max(1, Mathf.RoundToInt(measured.y / _lineBoxPixels));
+            // 1 行は同じ値を持つ Typography の min-height に任せ、行の箱をスタイルの経路で決める（測った値の経路にすると設定画面の縦が 2.9px 伸びた）
+            // One line is left to the Typography min-height of the same value so the style path sizes it (the measured path grew the settings page by 2.9px)
+            if (lineCount == 1) return new Vector2(measured.x, 0f);
             return new Vector2(measured.x, lineCount * _lineBoxPixels);
         }
 
