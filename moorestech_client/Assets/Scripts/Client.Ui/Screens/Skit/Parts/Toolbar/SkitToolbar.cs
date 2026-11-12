@@ -32,15 +32,15 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             AddToClassList("skit-toolbar");
             pickingMode = PickingMode.Ignore;
 
-            // 自動送りの ON/OFF は同じ図形の色替えで示し、図形は差し替えない
-            // Auto-advance on/off is a color swap on one glyph; the glyph is never replaced
+            // 自動送りの ON/OFF は色替えで示す
+            // Auto-advance on/off is shown by color swap
             _auto = AddTool("skit-tool-auto", SkitToolGlyphShape.Auto, true);
             _skip = AddTool("skit-tool-skip", SkitToolGlyphShape.Skip, false);
             _hideUi = AddTool("skit-tool-hide-ui", SkitToolGlyphShape.HideUi, false);
             _showUi = AddTool("skit-show-ui", SkitToolGlyphShape.ShowUi, true);
 
-            // 押した時点の session と版を付けて送る
-            // Send with the session and revision at the moment of the press
+            // 押下時の session・版を付けて送る
+            // Send with the session and revision at press
             _auto.OnClicked.Subscribe(_ => Report("skit.set_auto", _commands.SetAuto(_model.SessionId, _model.SceneRevision, !_model.AutoEnabled)));
             _skip.OnClicked.Subscribe(_ => Report("skit.skip", _commands.Skip(_model.SessionId, _model.SceneRevision)));
             _hideUi.OnClicked.Subscribe(_ => Report("skit.set_ui_hidden", _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, true)));
@@ -49,8 +49,8 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
 
         public void Render(SkitViewModel model)
         {
-            // 3 つのツールは窓かツールだけの面で出し、復帰は UI 非表示の面でだけ出す
-            // The three tools show on the window and toolbar-only surfaces; restore shows only on the hidden-UI surface
+            // ツールは窓面で、復帰は UI 非表示面でだけ出す
+            // Tools on window surfaces; restore only on the hidden-UI surface
             _model = model;
             var controlsShown = model.Surface == SkitSurface.Window || model.Surface == SkitSurface.ToolbarOnly;
             SetShown(_auto, controlsShown);
@@ -58,8 +58,8 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             SetShown(_hideUi, controlsShown);
             SetShown(_showUi, model.Surface == SkitSurface.RestoreOnly);
 
-            // 押せるかは許可から決め、自動送り ON だけシアンで灯す
-            // Pressability follows the allowance, and only auto-advance ON lights cyan
+            // 押せるかは許可で決め、自動 ON だけシアン
+            // Pressability follows allowance; only auto ON is cyan
             _auto.SetEnabled(model.CanSetAuto);
             _skip.SetEnabled(model.CanSkip);
             _hideUi.SetEnabled(model.CanSetUiHidden);

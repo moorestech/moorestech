@@ -37,8 +37,8 @@ namespace Client.Ui.Screens.Skit
             AddToClassList("skit-screen");
             pickingMode = PickingMode.Ignore;
 
-            // Web と同じ順に重ねる（窓 → 選択肢 → 背景の 1 行 → ツール）
-            // Stack in the Web order: window, choices, background line, tools
+            // Web と同順に重ねる
+            // Stack in Web order
             _window = new SkitDialogueWindow(osCursor);
             _choices = new SkitChoiceList(commands, toaster, osCursor);
             _backgroundLine = new SkitBackgroundLine();
@@ -48,8 +48,8 @@ namespace Client.Ui.Screens.Skit
             Add(_backgroundLine);
             Add(_toolbar);
 
-            // 字の進みは自分を時計にして数え、変わるたびに文と送りの印を描き直す
-            // Count the typing with this element as the clock and redraw the text and marker on each change
+            // 自身を時計に字数を数え、変化で再描画
+            // Count characters with self as clock; redraw on change
             _typewriter = new SkitTypewriter(this);
             _typewriter.OnVisibleCountChanged.Subscribe(_ => ShowRevealedText());
             _window.OnTextClicked.Subscribe(_ => HandleTextIntent());
@@ -65,8 +65,8 @@ namespace Client.Ui.Screens.Skit
             _model = model;
             _typewriter.Follow(model, restoring);
 
-            // 面ごとの出し分けは ViewModel が決めた Surface だけを見る
-            // Each surface follows only the Surface decided by the view model
+            // 出し分けは Surface だけを見る
+            // Follow only the Surface
             _window.SetShown(model.Surface == SkitSurface.Window);
             _window.SetSpeaker(model.SpeakerName);
             _backgroundLine.SetShown(model.Surface == SkitSurface.BackgroundLine);
@@ -102,8 +102,8 @@ namespace Client.Ui.Screens.Skit
                 return;
             }
 
-            // 打ち出し中は全文、全文なら送り、どちらでもなければ何もしない
-            // While typing reveal all, when complete advance, otherwise nothing
+            // 打ち出し中は全文、全文なら送り
+            // Reveal all while typing; advance when complete
             var outcome = CurrentClickOutcome();
             if (outcome == SkitClickOutcome.Reveal) _typewriter.RevealAll();
             if (outcome == SkitClickOutcome.Advance) _toaster.Report("skit.advance", _commands.Advance(_model.SessionId, _model.SceneRevision));
@@ -116,8 +116,8 @@ namespace Client.Ui.Screens.Skit
             _backgroundLine.SetLine(_model.SpeakerName, _model.Body, _typewriter.VisibleCount);
         }
 
-        // 今の字数と許可でのクリックの帰結。挙動と送りの印が同じ 1 式を読む（D-36）
-        // The click outcome for the current count and allowance; behavior and the advance marker read this one expression (D-36)
+        // 現在のクリックの帰結（D-36）
+        // Current click outcome (D-36)
         private SkitClickOutcome CurrentClickOutcome()
         {
             return SkitTypewriterRules.ClickOutcome(_typewriter.VisibleCount, _typewriter.TotalCount, _model.CanAdvance);

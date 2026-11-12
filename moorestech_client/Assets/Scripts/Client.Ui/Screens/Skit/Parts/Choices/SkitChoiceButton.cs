@@ -38,8 +38,8 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
             Add(new SkitChoiceMarker("skit-choice__marker--start"));
             Add(new SkitChoiceMarker("skit-choice__marker--end"));
 
-            // 文は両端の菱形を避けた箱の中央に置き、はみ出しは省略記号にする
-            // The label centers in a box that clears the diamonds, with an ellipsis on overflow
+            // 文は菱形を避けた中央に置き、はみ出しは省略
+            // Center the label clear of the diamonds; ellipsis on overflow
             var labelBox = CreateDecor("skit-choice__label-box");
             var label = new LocalizedLabel();
             label.AddToClassList("skit-choice__label");

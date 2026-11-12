@@ -92,8 +92,8 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
         [Test]
         public void 隠す前に入力欄のフォーカスを外しキーの抑止を残さない()
         {
-            // 入力規則を付けたモーダルの層の入力欄にフォーカスを置く（不具合報告の入力中にカットシーンへ入る形）
-            // Focus a text field on the modal layer carrying the input rules (as when a cutscene starts while typing a bug report)
+            // モーダル層の入力欄にフォーカスを置く
+            // Focus a text field on the modal layer
             var modal = _stack.GetLayer(UiLayer.Modal, UiFamily.Stage);
             GameUiInputRules.Attach(modal);
             var textField = new TextField { name = "hiding-text" };

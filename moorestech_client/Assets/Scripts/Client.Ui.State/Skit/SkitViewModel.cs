@@ -50,8 +50,8 @@ namespace Client.Ui.State.Skit
 
         public static SkitViewModel From(SkitPresentationData data)
         {
-            // 出す面を Web と同じ順の分岐で決め、選択肢は窓が出ていて select が許可されたときだけ渡す
-            // Decide the surface with the Web's branch order, and pass choices only when the window shows and select is allowed
+            // 面を Web と同順で決め、選択肢は select 許可時だけ渡す
+            // Decide the surface in Web order; pass choices only when select is allowed
             var state = data.PresentationState;
             var intents = data.AllowedIntents;
             var presenting = state.Mode == SkitPresentationData.BlockingMode || state.Mode == SkitPresentationData.BackgroundMode;
@@ -68,8 +68,8 @@ namespace Client.Ui.State.Skit
 
             SkitSurface SurfaceOf()
             {
-                // 未知のモードは何も出さず、名前を開発者ログへ出す
-                // An unknown mode shows nothing and its name goes to the developer log
+                // 未知モードは名前をログへ出す
+                // Log the name of an unknown mode
                 if (state.Mode == SkitPresentationData.NoneMode) return SkitSurface.None;
                 if (!presenting)
                 {

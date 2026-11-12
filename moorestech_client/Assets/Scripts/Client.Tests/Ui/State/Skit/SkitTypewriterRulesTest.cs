@@ -34,8 +34,8 @@ namespace Client.Tests.Ui.State.Skit
         [Test]
         public void 一刻みにコードポイントを1つずつ出す()
         {
-            // 2 刻み目で "A" と絵文字（サロゲートペア 1 つ）が出る
-            // At the second tick "A" and the emoji (one surrogate pair) are out
+            // 2 刻みで "A" と絵文字が出る
+            // At tick 2 "A" and the emoji are out
             const string body = "A😊B";
             var count = SkitTypewriterRules.RevealCountAt(100f, 50, SkitTypewriterRules.CountCodePoints(body));
             Assert.AreEqual(2, count);

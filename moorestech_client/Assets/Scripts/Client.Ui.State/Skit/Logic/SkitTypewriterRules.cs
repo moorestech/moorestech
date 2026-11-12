@@ -8,23 +8,23 @@ namespace Client.Ui.State.Skit.Logic
     /// </summary>
     public static class SkitTypewriterRules
     {
-        // クリックの帰結は 1 か所で決め、挙動と送りの印の両方が同じ値を使う
-        // The click outcome is decided in one place and both the behavior and the advance marker share it
+        // クリックの帰結を 1 か所で決める
+        // Decide the click outcome in one place
         public static SkitClickOutcome ClickOutcome(int visibleCount, int bodyLength, bool advanceAllowed)
         {
             if (visibleCount < bodyLength) return SkitClickOutcome.Reveal;
             return advanceAllowed ? SkitClickOutcome.Advance : SkitClickOutcome.None;
         }
 
-        // Web の setInterval と同じく、間隔 1 つごとに 1 字ずつ増える
-        // Like the Web setInterval, one character is added per interval
+        // 間隔ごとに 1 字増える（Web setInterval 同様）
+        // One character per interval (like Web setInterval)
         public static int RevealCountAt(float elapsedMilliseconds, int intervalMs, int totalCount)
         {
             return Math.Min(totalCount, (int)Math.Floor(elapsedMilliseconds / intervalMs));
         }
 
-        // 復元の提示（View が載って最初の描画）・即時表示の方式・間隔 0 は打ち出さない
-        // Restored snapshots (the first draw after mounting), the instant mode and a zero interval skip the typing
+        // 復元・即時表示・間隔 0 は打ち出さない
+        // Restore, instant mode and zero interval skip typing
         public static bool ShouldRevealImmediately(bool restoringSnapshot, bool revealsByTypewriter, int intervalMs)
         {
             return restoringSnapshot || !revealsByTypewriter || intervalMs <= 0;
@@ -37,8 +37,8 @@ namespace Client.Ui.State.Skit.Logic
             return count;
         }
 
-        // 先頭から codePoints 個のコードポイントが占める UTF-16 の長さ
-        // UTF-16 length taken by the first codePoints code points
+        // 先頭 codePoints 個分の UTF-16 長
+        // UTF-16 length of the first codePoints
         public static int PrefixLengthOfCodePoints(string text, int codePoints)
         {
             var index = 0;

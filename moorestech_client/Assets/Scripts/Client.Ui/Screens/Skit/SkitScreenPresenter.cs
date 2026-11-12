@@ -45,8 +45,8 @@ namespace Client.Ui.Screens.Skit
             var transition = new SkitTransitionView();
             _gameUiRoot.GetLayer(UiLayer.SkitTransition, UiFamily.Viewport).Add(transition);
 
-            // 提示と入力可否を購読し、Enter を窓の評価器へつなぐ
-            // Subscribe to the presentation and input allowance, and wire Enter to the window evaluator
+            // 提示・入力可否を購読し Enter をつなぐ
+            // Subscribe to presentation and allowance; wire Enter
             _model.Current.Subscribe(model =>
             {
                 view.Render(model);

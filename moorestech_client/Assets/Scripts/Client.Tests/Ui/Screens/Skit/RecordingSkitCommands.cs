@@ -13,8 +13,8 @@ namespace Client.Tests.Ui.Screens.Skit
         SetUiHidden,
     }
 
-    // 発行された会話の操作 1 件。choiceId と真偽は該当する操作だけが持つ
-    // One issued skit operation; the choice id and the flag are set only by the operations that carry them
+    // 発行された操作 1 件
+    // One issued operation
     public readonly struct SkitCommandRecord
     {
         public readonly SkitCommandKind Kind;

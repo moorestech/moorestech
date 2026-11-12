@@ -41,8 +41,8 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
 
             void Rebuild(IReadOnlyList<SkitChoiceItem> choices)
             {
-                // 押したら押した時点の session と版で選ぶ
-                // A press selects with the session and revision at that moment
+                // 押下時の session・版で選ぶ
+                // Select with the session and revision at press
                 Clear();
                 _buttons.Clear();
                 for (var i = 0; i < choices.Count; i++)

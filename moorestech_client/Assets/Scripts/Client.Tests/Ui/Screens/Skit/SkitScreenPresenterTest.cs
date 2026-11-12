@@ -44,8 +44,8 @@ namespace Client.Tests.Ui.Screens.Skit
         [Test]
         public void 本文が打ち出し中の提示で開いても最初の描画は全文を出す()
         {
-            // 打ち出しの提示が既にある状態でスキットの画面を組む
-            // Build the skit screen while a typewriter presentation already exists
+            // 提示ありの状態で画面を組む
+            // Build the screen with a presentation present
             _store.BeginBlocking(new SkitActionContext());
             _store.PresentBlockingText("Moore", Body);
             Mount();

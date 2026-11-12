@@ -74,9 +74,12 @@ namespace Client.Tests.Ui.Screens.Skit
         {
             _view.Render(SkitTestData.Text(SkitTestData.SessionId, 1, "Blocking message", SkitTestData.TextIntents));
             _view.Render(SkitTestData.Text(SkitTestData.SessionId, 2, SecondBody, SkitTestData.TextIntents));
-            simulate.FrameUpdateMs(600);
+            // 時計は最初のスケジューラ呼び出しで開始するので、先に 1 フレーム回してから途中まで進める
+            // The clock starts on the first scheduler call, so run one frame first and then advance partway
+            simulate.FrameUpdate();
+            simulate.FrameUpdateMs(300);
             var typedSoFar = BodyText();
-            Assert.AreNotEqual(Expected(SecondBody, 0), typedSoFar, "前提: 600ms で少なくとも 1 字は出ている");
+            Assert.AreEqual(Expected(SecondBody, 6), typedSoFar, "前提: 300ms で 6 字まで出ている");
 
             // 自動・ポーズ・UI 非表示の往復は版と許可 intent だけが進むので、続きから打つ
             // Auto, pause and UI-hide round trips only advance the revision and intents, so typing continues
@@ -150,8 +153,8 @@ namespace Client.Tests.Ui.Screens.Skit
         [Test]
         public void blockingスキットの間は会話窓が出て終われば消える()
         {
-            // ホットバーが退く側は HotbarHudViewTest が見る
-            // That the hotbar retreats is checked by HotbarHudViewTest
+            // 退く側は HotbarHudViewTest
+            // The hotbar retreat is checked by HotbarHudViewTest
             _view.Render(SkitTestData.Text(SkitTestData.SessionId, 1, "Blocking message", SkitTestData.TextIntents));
             Assert.IsTrue(IsShownWithAncestors(Find<VisualElement>(_view, "blocking-skit")));
 
@@ -170,8 +173,8 @@ namespace Client.Tests.Ui.Screens.Skit
             simulate.FrameUpdate();
             Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "ポーズに入っても選択肢の指が残る");
 
-            // 会話窓の文の区画も同じく、乗ったままポーズに入ったら指を外す
-            // The window's text section likewise drops the finger when paused while hovered
+            // 文の区画も、乗ったままポーズなら指を外す
+            // The text section also drops the finger when paused while hovered
             _view.SetInteractive(true);
             simulate.MouseMove(Find<VisualElement>(_view, "blocking-skit").worldBound.center);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "Web .window の cursor: pointer");
@@ -196,8 +199,8 @@ namespace Client.Tests.Ui.Screens.Skit
             return Regex.IsMatch(prefix, "^(<line-height=[^>]*>)?$") ? actual : expected;
         }
 
-        // 祖先のどれかが display:none なら画面には出ていない
-        // Not on screen when any ancestor is display:none
+        // 祖先が display:none なら非表示
+        // Hidden when any ancestor is display:none
         private bool IsShownWithAncestors(VisualElement element)
         {
             simulate.FrameUpdate();

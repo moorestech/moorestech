@@ -20,8 +20,8 @@ namespace Client.Tests.Ui.Screens.Skit
         [Test]
         public void 打ち出し中も本文の箱の高さが全文と変わらない()
         {
-            // 明示の改行を含まない長い 1 段落を窓の本文より狭い幅で自動に折り返し、行末の語の途中を含む多くの区切りで高さを比べる
-            // A long single paragraph without explicit newlines wraps automatically at a narrow width; heights are compared at many splits including mid-word ones
+            // 長い 1 段落を狭い幅で折り返し、各区切りの高さを比べる
+            // Wrap a long paragraph at a narrow width and compare heights per split
             var count = SkitTypewriterRules.CountCodePoints(WrappingBody);
             var single = MountBody("Wrap", WrapWidth);
             var full = MountBody(SkitRichText.TypewriterBody(WrappingBody, count), WrapWidth);
@@ -29,8 +29,8 @@ namespace Client.Tests.Ui.Screens.Skit
             for (var visible = 0; visible <= count; visible += 3) splits.Add((visible, MountBody(SkitRichText.TypewriterBody(WrappingBody, visible), WrapWidth)));
             simulate.FrameUpdate();
 
-            // 測った値は D-10 の計測として結果の出力に残す
-            // Keep the measured values in the result output as the D-10 measurement
+            // 測定値は D-10 として出力に残す
+            // Keep the measured values in the output as D-10
             TestContext.WriteLine($"[D-10] {SkitRichText.HiddenTailOpenTag} single={single.layout.height} full={full.layout.width}x{full.layout.height}");
             Assert.False(WrappingBody.Contains("\n"), "本文に明示の改行がある（測り方の前提）");
             Assert.Greater(full.layout.height, single.layout.height * 1.8f, "全文が自動で 2 行以上に折り返していない（測り方の前提）");
@@ -75,8 +75,8 @@ namespace Client.Tests.Ui.Screens.Skit
 
         private LocalizedLabel MountBody(string richText, float width)
         {
-            // 窓の本文と同じクラスで、折り返しが起きる指定の幅で測る
-            // Measure with the window body's class at the given width where wrapping occurs
+            // 窓の本文と同じクラスで折り返す幅を測る
+            // Measure at a wrapping width with the window body's class
             var label = new LocalizedLabel();
             label.style.width = width;
             label.SetText(UiText.FromVerbatim(richText));
@@ -84,8 +84,8 @@ namespace Client.Tests.Ui.Screens.Skit
             return label;
         }
 
-        // 幅を字の並びに合わせる。固定幅だとどの文も同じ幅になり比べられない
-        // Size the width to the glyph run; a fixed width would make every text equally wide and uncomparable
+        // 幅は字の並びに合わせる（固定幅だと比べられない）
+        // Width follows the glyph run (a fixed width is uncomparable)
         private LocalizedLabel MountShrunkBody(string richText)
         {
             var label = new LocalizedLabel();
@@ -105,8 +105,8 @@ namespace Client.Tests.Ui.Screens.Skit
 
         private void MountWithBodyClass(TextElement label)
         {
-            // 窓の本文と同じクラス（字の大きさ・余白・行高）を当てる。比べるのは余白を除いた contentRect
-            // Apply the window body's class (size, padding, line height); comparisons use contentRect without the padding
+            // 本文と同じクラスを当て、contentRect で比べる
+            // Apply the body's class and compare by contentRect
             label.AddToClassList("skit-window__body");
             var host = new VisualElement();
             host.AddToClassList("skit-screen");

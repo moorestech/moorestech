@@ -32,8 +32,8 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             AddToClassList("skit-window");
             pickingMode = PickingMode.Ignore;
 
-            // 面と本文の器は拾わず、クリックは文の区画だけが受ける
-            // The face and body container never pick; only the text section takes clicks
+            // クリックは文の区画だけが受ける
+            // Only the text section takes clicks
             _surface = new GamePanelSurface("skit-panel", GamePanelSurfaceKind.Skit);
             _surface.pickingMode = PickingMode.Ignore;
             _surface.contentContainer.pickingMode = PickingMode.Ignore;
@@ -47,8 +47,8 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             // The pointer finger is requested on the text section (Web .window cursor: pointer; turning Ignore on pause withdraws it via PointerLeave)
             new UiOsCursorHoverRequest(_section, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
 
-            // 話者・罫線・本文・送りの印を Web と同じ順に積む
-            // Stack speaker, rule, body and advance marker in the Web order
+            // Web と同順に積む
+            // Stack in Web order
             _speaker = CreateText("skit-speaker", "skit-window__speaker");
             var rule = new VisualElement { pickingMode = PickingMode.Ignore };
             rule.AddToClassList("skit-window__rule");

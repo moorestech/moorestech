@@ -65,8 +65,8 @@ namespace Client.Ui.Foundation.Layers
         {
             if (visible)
             {
-                // 戻すときはインラインの指定を外し、USS の既定へ返す
-                // When showing again, drop the inline value and return to the USS default
+                // 戻すときはインライン指定を外す
+                // When restoring, drop the inline value
                 _root.style.display = StyleKeyword.Null;
                 return;
             }

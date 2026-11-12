@@ -52,8 +52,8 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
                 painter.Stroke();
             }
 
-            // 座標の組を順に結ぶ。closed なら始点へ戻して閉じる（SVG の Z）
-            // Joins coordinate pairs in order; when closed, return to the start (SVG Z)
+            // 座標を順に結び、closed なら閉じる（SVG の Z）
+            // Join coordinates in order; close when closed (SVG Z)
             void StrokePolyline(bool closed, params float[] points)
             {
                 painter.BeginPath();

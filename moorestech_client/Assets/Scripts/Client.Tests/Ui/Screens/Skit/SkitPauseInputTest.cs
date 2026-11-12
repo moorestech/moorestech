@@ -40,8 +40,8 @@ namespace Client.Tests.Ui.Screens.Skit
             var auto = Find<VisualElement>(_view, "skit-tool-auto");
             var typingText = BodyText();
 
-            // 窓・自動・スキップ・UI 非表示の中心を押しても、スキットの要素は拾われない
-            // Pressing the centers of the window, auto, skip and hide-UI picks no skit element
+            // 各要素の中心を押しても拾われない
+            // Pressing each element center picks no skit element
             foreach (var testid in new[] { "blocking-skit", "skit-tool-auto", "skit-tool-skip", "skit-tool-hide-ui" })
             {
                 var center = Find<VisualElement>(_view, testid).worldBound.center;
@@ -85,8 +85,8 @@ namespace Client.Tests.Ui.Screens.Skit
         [TestCase(true)]
         public void ポーズ中はEnterで全文表示せず警告を出す(bool emptyIntents)
         {
-            // 許可が空でも、ローカルの全文表示の入口が閉じていることを見る
-            // Even with an empty allowed set, check that the local reveal entry is closed
+            // 許可が空でも全文表示の入口は閉じる
+            // With an empty allowance the reveal entry stays closed
             StartTyping(emptyIntents ? new string[0] : SkitTestData.TextIntents);
             var enter = new Subject<Unit>();
             new SkitEnterKeyBinding(enter, _view, new ReactiveProperty<bool>(true));
@@ -99,8 +99,8 @@ namespace Client.Tests.Ui.Screens.Skit
             Assert.AreEqual(typingText, BodyText());
             Assert.AreEqual(0, _commands.Issued.Count);
 
-            // 再開後は同じ Enter で全文を出し、操作は送らない（Web の同じテストの後半）
-            // On resume the same Enter reveals the full body without sending a command (second half of the Web test)
+            // 再開後の Enter は全文表示のみ（Web の同テスト後半）
+            // After resume Enter only reveals the body (Web test, second half)
             _view.SetInteractive(true);
             enter.OnNext(Unit.Default);
             Assert.IsTrue(ShowsWholeBody(), "再開後の Enter で全文が出ない");
@@ -121,8 +121,8 @@ namespace Client.Tests.Ui.Screens.Skit
             Assert.IsTrue(ShowsWholeBody());
         }
 
-        // 復元で 1 つ目を出し、別の session の同じ本文で打ち出しを始めて少し進める
-        // Show the first as a restore, then start typing the same body in another session and advance a little
+        // 復元後、別 session で打ち出しを進める
+        // After restore, advance typing in another session
         private void StartTyping(string[] intents)
         {
             _view.Render(SkitTestData.Text("restore-0", 0, "Restored line", intents));
