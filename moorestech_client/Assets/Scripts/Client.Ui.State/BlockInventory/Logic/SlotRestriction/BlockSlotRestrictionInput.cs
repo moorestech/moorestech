@@ -80,7 +80,9 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
             return new OpenBlockSlotInput(BlockType, ItemSlotCount, new MachineBlockSlotDetail(machine));
         }
 
-        private static bool IsFixedInletBlockType(string blockType)
+        // 入れ口固定の種別の定義はここ 1 か所（入れ口の束縛の寄与もこれで種別を見分ける）
+        // The single definition of fixed-inlet types (the inlet binding contributor also tells types apart with it)
+        internal static bool IsFixedInletBlockType(string blockType)
         {
             return blockType == BlockMasterElement.BlockTypeConst.RocketLaunchPad || blockType == BlockMasterElement.BlockTypeConst.SpaceElevatorBase;
         }

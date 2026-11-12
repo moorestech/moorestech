@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.Items;
 using Client.Ui.State.SlotCommands.Block;

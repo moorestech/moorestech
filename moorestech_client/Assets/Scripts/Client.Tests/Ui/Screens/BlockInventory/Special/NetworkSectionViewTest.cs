@@ -65,7 +65,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             Assert.IsFalse(presenter.IsApplicable.Value, "集約が消えたら隠す側へ変わる");
             Assert.AreEqual(StyleKeyword.Null, view.style.display.keyword, "区画は自分の display を触らない（出し入れは親の SetItemShown）");
 
+            Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             presenter.Detach();
+            Assert.IsFalse(presenter.IsApplicable.Value, "Detach で偽へ戻る（前のパネルの出し入れを持ち越さない）");
+            Model.Set(SpecialBlockDetailViewModel.Empty);
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             Assert.IsFalse(presenter.IsApplicable.Value, "Detach の後は購読しない");
         }

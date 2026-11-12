@@ -48,11 +48,12 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
 
         public void Detach()
         {
-            // 外れたら窓を既定へ戻す（Web のコンポーネントの破棄と同じ）
-            // Reset the window when detached (same as the Web component unmount)
+            // 外れたら窓を既定へ戻し偽へ戻す（Web のコンポーネントの破棄と同じ）
+            // Reset the window and applicability when detached (same as the Web component unmount)
             _subscriptions.Clear();
             _cursor.Reset();
             _belt = null;
+            _isApplicable.Value = false;
         }
 
         private void OnArrowPressed(HorizontalArrowKey key)

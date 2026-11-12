@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Theme;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Items;
 using Client.Ui.State.SlotCommands.Block;
 using Client.Ui.State.Toast;
@@ -83,7 +82,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                 {
                     var slot = new ItemSlot($"{_testId}-slot-{index}");
                     var capturedIndex = index;
-                    slot.OnSlotGestured.Subscribe(gesture => OnGestured(capturedIndex, gesture));
+                    slot.OnSlotGestured.Subscribe(gesture => BlockSlotGestureCommands.Run(_commands, _toaster, capturedIndex, gesture));
                     _grid.AddItem(slot);
                     _slots.Add((index, slot));
                 }
@@ -99,22 +98,6 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                 if (0 <= index && index < itemSlots.Count) return itemSlots[index];
                 UnityEngine.Debug.LogError($"[BlockItemGrid] {_testId}: slot index {index} is out of range (slot count {itemSlots.Count}); drawn as empty");
                 return default;
-            }
-
-            void OnGestured(int index, SlotGesture gesture)
-            {
-                // ブロックの枠は押下・右押下・ダブルクリックだけ（Web useBlockSlotGestures）
-                // Block slots react to press, right press and double click only (Web useBlockSlotGestures)
-                UiCommandResult result;
-                switch (gesture.Kind)
-                {
-                    case SlotGestureKind.LeftDown: result = _commands.LeftDown(index, gesture.Shift); break;
-                    case SlotGestureKind.RightDown: result = _commands.RightDown(index); break;
-                    case SlotGestureKind.DoubleClick: result = _commands.DoubleClick(index); break;
-                    // silent-ok: 進入とホバーはブロックの枠では使わない（Web と同じ） / 名前のツールチップは ItemSlot が出す
-                    default: return;
-                }
-                _toaster.Report(BlockSlotCommands.CommandName, result);
             }
 
             #endregion

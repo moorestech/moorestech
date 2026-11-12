@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Panel;
@@ -16,7 +15,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
         private readonly IReadOnlyReactiveProperty<SectionContent<T>> _source;
         private readonly IDetailSectionView<T> _view;
         private readonly ReactiveProperty<bool> _isApplicable = new(false);
-        private IDisposable _subscription;
+        private readonly CompositeDisposable _subscriptions = new();
 
         public VisualElement Root => _view.Root;
         public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
@@ -29,7 +28,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
         public void Attach(OpenBlockInventoryPanel panel)
         {
-            _subscription = _source.Subscribe(Apply);
+            _source.Subscribe(Apply).AddTo(_subscriptions);
 
             #region Internal
 
@@ -46,7 +45,10 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
         public void Detach()
         {
-            _subscription.Dispose();
+            // 外れたら偽へ戻す（前のパネルの適用可否を次のパネルへ持ち越さない）
+            // Reset to false when detached so the previous panel's applicability is not carried over
+            _subscriptions.Clear();
+            _isApplicable.Value = false;
         }
     }
 }

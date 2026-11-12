@@ -2,16 +2,18 @@ using Client.Ui.Components.Slots;
 using Client.Ui.State.SlotCommands.Block;
 using Client.Ui.State.Toast;
 
-namespace Client.Ui.Screens.BlockInventory.Machine.Slots
+namespace Client.Ui.Screens.BlockInventory.Parts
 {
     /// <summary>
-    /// 枠の押下を型付きコマンドへ写す
-    /// Maps machine slot gestures onto typed block commands as alpha BlockItemGrid: left, right, double; no enter
+    /// ブロックの枠の押下を型付きコマンドへ写し、結果をトーストへ渡す（Web useBlockSlotGestures。BlockItemGrid と機械の帯が共有する）
+    /// Maps block slot gestures onto typed block commands and reports the result to the toaster (Web useBlockSlotGestures; shared by BlockItemGrid and the machine bands)
     /// </summary>
     public static class BlockSlotGestureCommands
     {
         public static void Run(IBlockSlotCommands commands, UiCommandResultToaster toaster, int blockSlot, SlotGesture gesture)
         {
+            // ブロックの枠は押下・右押下・ダブルクリックだけ（Web と同じ）
+            // Block slots react to press, right press and double click only (same as the Web)
             switch (gesture.Kind)
             {
                 case SlotGestureKind.LeftDown:
@@ -24,7 +26,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
                     toaster.Report(BlockSlotCommands.CommandName, commands.DoubleClick(blockSlot));
                     return;
                 default:
-                    // silent-ok: 進入とホバーはブロックの枠では使わない（Web と同じ） / 掴みの分割ドラッグは C4-e が持ち、録画 uitk-machine-ui で見る
+                    // silent-ok: 進入とホバーはブロックの枠では使わない（Web と同じ） / 名前のツールチップは ItemSlot が出し、掴みの分割ドラッグは C4-e が持ち録画 uitk-machine-ui で見る
                     return;
             }
         }
