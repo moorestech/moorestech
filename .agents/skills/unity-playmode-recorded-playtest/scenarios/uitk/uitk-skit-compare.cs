@@ -12,9 +12,12 @@ using Client.Playtest.Overlay;
 using Client.Playtest.Operations.Ui;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 const string LongBody = "Blocking message. The conveyor is jammed again, check the splitter near the furnace before the night shift starts.";
@@ -115,6 +118,7 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         // Hover colours are absent from the reference captures, so shoot UITK only and check against the Web CSS values
         await p.HoverUi("skit-choice-route-b");
         await p.WaitSeconds(0.3f);
+        NoteHover("skit-choice-route-b");
         await p.Screenshot($"{prefix}-uitk-skit-choice-hover");
         await p.HoverUi("skit-tool-auto");
         await p.WaitSeconds(0.3f);
@@ -147,6 +151,19 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         await p.WaitSeconds(1.5f);
         await p.Screenshot($"{prefix}-uitk-skit-background");
         store.End();
+    }
+
+    // ホバーの擬似状態・罫線の色・マウスの下の要素を記録する（ホバーの絵が変わらないときの切り分け）
+    // Record the hover pseudo-state, rule colour and the element under the mouse (to triage a hover shot that does not change)
+    void NoteHover(string testid)
+    {
+        var root = GameUiRoot.Instance.GetRootElement();
+        var button = root.Q<VisualElement>(testid);
+        var rule = button.Q<VisualElement>(className: "skit-choice__rule");
+        var pseudo = typeof(VisualElement).GetProperty("pseudoStates", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(button);
+        var mouse = Mouse.current.position.ReadValue();
+        var picked = root.panel.Pick(RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(mouse.x, Screen.height - mouse.y)));
+        p.Note($"ホバー {testid}: pseudo={pseudo} 罫線={rule.resolvedStyle.borderTopColor} mouse={mouse} 箱={button.worldBound} 拾う={picked?.name}");
     }
 
     #endregion
