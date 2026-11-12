@@ -48,6 +48,7 @@
 .title--order-1 {
     --title-heading-latin-letter-spacing: -3.4px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 34px で 0.034em 狭い（Mac の Chrome の実測） */
     --title-order-1-row-height: 44.2px;
+    --title-heading-cjk-font-size: 31.45px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 34px の 0.925 倍（NotoSansJP 比） */
     font-size: 34px;
     min-height: var(--title-order-1-row-height);
     --localized-label-line-box: var(--title-order-1-row-height);
@@ -56,6 +57,7 @@
 .title--order-2 {
     --title-heading-latin-letter-spacing: -3.2px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 26px で 0.032em 狭い（Mac の Chrome の実測） */
     --title-order-2-row-height: 35.1px;
+    --title-heading-cjk-font-size: 24.05px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 26px の 0.925 倍（NotoSansJP 比） */
     font-size: 26px;
     min-height: var(--title-order-2-row-height);
     --localized-label-line-box: var(--title-order-2-row-height);
@@ -63,6 +65,7 @@
 
 .title--order-3 {
     --title-heading-latin-letter-spacing: -3.3px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 22px で 0.033em 狭い（Mac の Chrome の実測） */
+    --title-heading-cjk-font-size: 20.35px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 22px の 0.925 倍（NotoSansJP 比） */
     font-size: 22px;
     min-height: 30.8px;
     --localized-label-line-box: 30.8px;
@@ -70,6 +73,7 @@
 
 .title--order-4 {
     --title-heading-latin-letter-spacing: -2px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 18px で 0.020em 狭い（Mac の Chrome の実測） */
+    --title-heading-cjk-font-size: 16.65px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 18px の 0.925 倍（NotoSansJP 比） */
     font-size: 18px;
     min-height: 26.1px;
     --localized-label-line-box: 26.1px;
@@ -117,16 +121,17 @@
 /* 太さ。Web は欧文を Regular（MooresUI）、和文ロケールを NotoSansJP の Medium（欧文の字も含む）の各 1 字形だけ読み込み font-synthesis: none なので、fw={700}・fw={500}・keyHintText（500）・Modal.Title もその字形で描く。text--bold・text--medium・key-hint-text と title--order-N だけの題は字形を替えず親の字形（欧文 Regular・和文 Medium）を継ぐ。Mantine の Title だけは下の title--heading-face（設計書 A-220）。合成の太字は使わない */
 /* Weights: the Web loads one face each, Regular for Latin (MooresUI) and NotoSansJP Medium (Latin glyphs included) for CJK locales, with font-synthesis: none, so fw={700}, fw={500}, keyHintText (500) and Modal.Title draw with that face; text--bold, text--medium, key-hint-text and plain title--order-N keep the inherited face (Latin Regular, CJK Medium); only Mantine Title takes title--heading-face below (design A-220); no synthetic bold */
 
-/* Mantine の Title は本文の字体を継がず --mantine-font-family-headings（OS の字体の 700）で描く。参照を撮った Mac の Chrome では欧文が SF Pro の 700、和文が .Hiragino Kaku Gothic Interface W6（字送り 0.925em の UI 用の字体）。Title で描く題（Modal.Title は除く）に付ける（設計書 A-220） */
-/* 欧文は Bold の字形で字送りを SF Pro に寄せる（光学サイズで大きさごとに違うので値は Title の段が持つ）。和文は Medium の字形（濃さの和が W6 の 0.98 倍）で字送りを 0.075em 詰める。UITK の letter-spacing は 1px が字の大きさの 1/100 */
-/* Mantine Title ignores the body face and draws with --mantine-font-family-headings (the OS face at 700); on the Mac Chrome that shot the reference that is SF Pro 700 for Latin and .Hiragino Kaku Gothic Interface W6 (a UI face with a 0.925em advance) for CJK; attach it to titles drawn with Title, not Modal.Title (design A-220) */
-/* Latin takes the Bold face with SF Pro's advance (optical sizing differs per size, so each Title order holds the value); CJK keeps the Medium face (0.98x the W6 ink) and tightens the advance by 0.075em; UITK letter-spacing 1px is 1/100 of the font size */
+/* Mantine の Title は本文の字体を継がず --mantine-font-family-headings（OS の字体の 700）で描く。参照を撮った Mac の Chrome では欧文が SF Pro の 700、和文が .Hiragino Kaku Gothic Interface W6。Windows の CEF では Web 自体の字体が変わる（LX-183）。Title で描く題（Modal.Title は除く）に付ける（設計書 A-220） */
+/* 欧文は Bold の字形で字送りを SF Pro に寄せる（光学サイズで大きさごとに違うので値は Title の段が持つ）。和文は NotoSansJP Bold を字の大きさの 0.925 倍で描き、W6 の字の面・字送りに合わせる（字間は詰めない）。UITK の letter-spacing は 1px が字の大きさの 1/100 */
+/* Mantine Title ignores the body face and draws with --mantine-font-family-headings (the OS face at 700); on the Mac Chrome that shot the reference that is SF Pro 700 for Latin and .Hiragino Kaku Gothic Interface W6 for CJK, and the Web face itself changes on Windows CEF (LX-183); attach it to titles drawn with Title, not Modal.Title (design A-220) */
+/* Latin takes the Bold face with SF Pro's advance (optical sizing differs per size, so each Title order holds the value); CJK draws NotoSansJP Bold at 0.925x the size to match the W6 glyph face and advance (no tightening); UITK letter-spacing 1px is 1/100 of the font size */
 .title--heading-face {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset");
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset"); /* look-exception: LX-183 */
     letter-spacing: var(--title-heading-latin-letter-spacing);
 }
 
 .game-ui-locale--cjk .title--heading-face {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
-    letter-spacing: -7.5px; /* look-exception: LX-181 */ /* web: .Hiragino Kaku Gothic Interface W6 は NotoSansJP Medium より字送りが 0.075em 狭い（題の語 11 個の平均） */
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapaneseBold%20SDF.asset"); /* look-exception: LX-181 */
+    font-size: var(--title-heading-cjk-font-size);
+    letter-spacing: 0;
 }

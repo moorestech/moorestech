@@ -56,19 +56,24 @@ namespace Client.Tests.Ui.Text
             ExpectTightenedByGaps(spaced, unspaced, webTightenEm);
         }
 
-        // 和文は Medium の字形を .Hiragino Kaku Gothic Interface W6 の字送り（全角 0.925em）へ詰める
-        // CJK keeps the Medium face tightened to the .Hiragino Kaku Gothic Interface W6 advance (0.925em full width)
-        [TestCase(UiTypographyClass.TitleOrder1)]
-        [TestCase(UiTypographyClass.TitleOrder2)]
-        public void CJKのTitleは見出しの字形をWebの字送りへ詰める(string className)
+        // 和文は NotoSansJP Bold を 0.925 倍の大きさで字間を詰めずに描く（.Hiragino Kaku Gothic Interface W6 の字の面と字送り 0.925em）
+        // CJK draws NotoSansJP Bold at 0.925x the size without tightening (.Hiragino Kaku Gothic Interface W6's glyph face and 0.925em advance)
+        [TestCase(UiTypographyClass.TitleOrder1, 34f)]
+        [TestCase(UiTypographyClass.TitleOrder2, 26f)]
+        [TestCase(UiTypographyClass.TitleOrder3, 22f)]
+        [TestCase(UiTypographyClass.TitleOrder4, 18f)]
+        public void CJKのTitleは見出しのBoldを字送り0_925emの大きさで描く(string className, float orderFontSize)
         {
             var locale = new VisualElement();
             locale.AddToClassList(GameUiLocaleClass.CjkClassName);
             rootVisualElement.Add(locale);
-            var (spaced, unspaced) = MountHeadingPair(locale, className, "一一一一一一一一一一");
+            var heading = Mount(locale, className, "一一一一一一一一一一");
+            heading.AddToClassList(UiTypographyClass.TitleHeadingFace);
+            simulate.FrameUpdate();
 
-            Assert.AreEqual("GameUiJapanese SDF", spaced.resolvedStyle.unityFontDefinition.fontAsset.name);
-            ExpectTightenedByGaps(spaced, unspaced, 0.075f);
+            Assert.AreEqual("GameUiJapaneseBold SDF", heading.resolvedStyle.unityFontDefinition.fontAsset.name);
+            Assert.AreEqual(orderFontSize * 0.925f, heading.resolvedStyle.fontSize, 0.01f);
+            Assert.AreEqual(0f, heading.resolvedStyle.letterSpacing, 0.001f);
         }
 
         private (Label spaced, Label unspaced) MountHeadingPair(VisualElement parent, string className, string text)

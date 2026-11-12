@@ -75,6 +75,26 @@ namespace Client.Ui.Components.Controls
             #endregion
         }
 
+        // Web の ScrollArea の flex: 1（basis 0%）は、高さが内容で決まる親では内容の高さとして解かれ、親が max-height に当たると兄弟と比で縮む。それを写すため basis を中身の高さに追従させる
+        // On the Web, ScrollArea's flex: 1 (basis 0%) resolves to the content height inside a content-sized parent, which then shrinks alongside its siblings at max-height; mirror that by tracking the content height as the basis
+        public void FollowContentHeightAsFlexBasis()
+        {
+            contentContainer.RegisterCallback<GeometryChangedEvent>(_ => ApplyContentHeightAsFlexBasis());
+
+            #region Internal
+
+            void ApplyContentHeightAsFlexBasis()
+            {
+                var frame = resolvedStyle.paddingTop + resolvedStyle.paddingBottom + resolvedStyle.borderTopWidth + resolvedStyle.borderBottomWidth;
+                var viewportPadding = contentViewport.resolvedStyle.paddingTop + contentViewport.resolvedStyle.paddingBottom;
+                var basis = contentContainer.layout.height + frame + viewportPadding;
+                if (Mathf.Approximately(resolvedStyle.flexBasis.value, basis)) return;
+                style.flexBasis = basis;
+            }
+
+            #endregion
+        }
+
         public void SetScrollOffset(float y)
         {
             scrollOffset = new Vector2(scrollOffset.x, y);

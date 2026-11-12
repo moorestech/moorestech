@@ -1,7 +1,9 @@
 /* PanelActionButton。寸法と色は moorestech_web/webui/src/shared/ui/PanelActionButton/style.module.css を写す */
-/* Web の color-mix（ホバー面）は USS に無いので DerivedTokens.uss の前計算トークンで受ける。4 方向 0.3px の text-shadow は文字の縁で近似する */
+/* Web の color-mix（ホバー面）は USS に無いので DerivedTokens.uss の前計算トークンで受ける。4 方向 0.3px の text-shadow は文字の縁で近似する（幅は面を削らない --panel-action-text-outline-width） */
+/* 縦の並びが溢れたとき Chrome はボタンを min-height: auto（文字の行の箱）まで縮めるので、min-height にその値を持つ */
 /* PanelActionButton; sizes and colors copy moorestech_web/webui/src/shared/ui/PanelActionButton/style.module.css */
-/* The Web color-mix (hover face) has no USS equivalent, so it comes from a precomputed DerivedTokens.uss token; the four-way 0.3px text-shadow is approximated by a text outline */
+/* The Web color-mix (hover face) has no USS equivalent, so it comes from a precomputed DerivedTokens.uss token; the four-way 0.3px text-shadow is approximated by a text outline (width --panel-action-text-outline-width, which keeps the face) */
+/* When a column overflows Chrome shrinks the button down to min-height: auto (the text line box), so min-height carries that value */
 
 /* 既定テーマの .unity-button より強くするため 2 クラスで当てる */
 /* Two classes so these beat the default theme's .unity-button */
@@ -12,6 +14,7 @@
     --panel-action-button-outline: var(--panel-action-text-outline);
     width: var(--panel-action-button-width);
     height: var(--panel-action-button-height);
+    min-height: var(--panel-action-button-min-content-height);
     margin: 0;
     padding: 0;
     border-width: 0;
@@ -40,7 +43,7 @@
     padding: 0;
     color: var(--panel-action-button-text);
     -unity-text-align: middle-center;
-    -unity-text-outline-width: 0.3px; /* look-exception: LX-2 */
+    -unity-text-outline-width: var(--panel-action-text-outline-width); /* look-exception: LX-2 */
     -unity-text-outline-color: var(--panel-action-button-outline);
     flex-grow: 1;
 }

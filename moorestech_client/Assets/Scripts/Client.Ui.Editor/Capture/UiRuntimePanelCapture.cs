@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Client.Localization;
+using Client.Ui.Editor.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -35,6 +36,10 @@ namespace Client.Ui.Editor.Capture
             if (EditorApplication.isPlaying) throw new InvalidOperationException("[UiRuntimePanelCapture] EditMode only; use ScreenCapture in PlayMode");
             var source = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
             if (source == null) throw new InvalidOperationException($"[UiRuntimePanelCapture] missing {PanelSettingsPath}");
+
+            // 古い字の欠片を写さないよう、PlayMode に入るときと同じく動的フォントの atlas を空にしてから描く
+            // Empty the dynamic font atlases first, as on entering PlayMode, so stale glyph fragments never show
+            GameUiFontAtlasReset.ClearGameUiFontAtlases();
 
             // 実行時パネルの描画口は internal なので反射で引く。一時リソースを作る前に解決し、見つからなければ Unity の更新で口が変わったので止める
             // The runtime panel render entry points are internal, so resolve them via reflection before creating temp resources; stop if a Unity update renamed them

@@ -16,6 +16,8 @@
     --panel-action-hover-face: rgba(35, 38, 51, 0.844); /* web: color-mix 22% = rgba(35, 38, 51, 0.844) */
     --mode-switch-selected-face: rgba(43, 46, 59, 0.86); /* web: color-mix 30% = rgba(43, 46, 59, 0.86) */
     --panel-action-text-outline: rgba(0, 0, 0, 0.7); /* web: rgb(0 0 0 / 70%) */
+    --panel-action-text-outline-width: 0.05px; /* web: 4 方向 0.3px の text-shadow。影は字の外だけを暗くするが UITK の縁取りは縁の内側にも掛かり面を削るので、字の濃さの和が Web と揃う幅（1280・2560 の実測で Web の 0.97〜1.07 倍。0.3px では 0.80〜0.86 倍） */
+    --panel-action-button-min-content-height: 23.25px; /* web: Chrome の min-height: auto＝文字の行の箱（15px × --mantine-line-height 1.55）。縦の並びが溢れるとボタンはここまで縮む */
 
     /* ポーズの枠の面と線。Web の pauseMenu/style.module.css の .panel が直書きする色 */
     --pause-menu-face: rgba(16, 20, 28, 0.92); /* web: rgb(16 20 28 / 92%) */

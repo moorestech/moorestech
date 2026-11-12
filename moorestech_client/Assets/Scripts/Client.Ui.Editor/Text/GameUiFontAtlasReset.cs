@@ -13,6 +13,8 @@ namespace Client.Ui.Editor.Text
     /// ビルドは ClearDynamicDataOnBuild で空の atlas から始まるので、Editor の PlayMode だけを毎回同じ空の状態から始める。
     /// In the Editor only the glyph table can get rebuilt while the atlas pixels stay, so new glyphs pack over stale ones and the stale fragments outside a glyph's box show as dots and short lines around glyphs and shadows at scale 1.5 (I-fix5 Task 2: the CJK atlas held 306 glyphs over 5 pages and the dots vanished once emptied).
     /// Builds start from an empty atlas through ClearDynamicDataOnBuild, so each Editor PlayMode also starts from the same empty state.
+    /// EditMode の撮影（UiRuntimePanelCapture）も描く前に同じく空にする。
+    /// EditMode captures (UiRuntimePanelCapture) empty them the same way before drawing.
     /// </remarks>
     [InitializeOnLoad]
     public static class GameUiFontAtlasReset
@@ -30,17 +32,20 @@ namespace Client.Ui.Editor.Text
             ClearGameUiFontAtlases();
         }
 
-        private static void ClearGameUiFontAtlases()
+        internal static void ClearGameUiFontAtlases()
         {
-            // 字の表と atlas を一緒に空にし、空にした数を Console に出す
-            // Empty the glyph tables together with the atlases and report the count to the Console
+            // 字の表と atlas を一緒に空にする。字が残っていた資産があったときだけ件数を Console に出す
+            // Empty the glyph tables together with the atlases; report to the Console only when some asset still held glyphs
             var guids = AssetDatabase.FindAssets("t:FontAsset", new[] { FontFolder });
+            var clearedGlyphs = 0;
             foreach (var guid in guids)
             {
                 var fontAsset = AssetDatabase.LoadAssetAtPath<FontAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                clearedGlyphs += fontAsset.glyphTable.Count;
                 fontAsset.ClearFontAssetData(true);
             }
-            Debug.Log($"[GameUiFontAtlasReset] cleared {guids.Length} GameUi font atlases before PlayMode");
+            if (clearedGlyphs == 0) return; // silent-ok: 空の atlas を空にしただけで状態は変わらない / 字が残っていた回は下の行が Console に出る
+            Debug.Log($"[GameUiFontAtlasReset] cleared {clearedGlyphs} glyphs from {guids.Length} GameUi font atlases");
         }
     }
 }
