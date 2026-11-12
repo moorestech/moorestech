@@ -52,6 +52,17 @@ namespace Client.Tests.Ui.Text
             }
         }
 
+        [Test]
+        public void 和文の題の字形は韓国語の字をKRのBoldで描く()
+        {
+            // Mac の Chrome の題（Apple SD Gothic Neo Bold）と太さを揃えるため、JP Bold に無い字は KR Bold から引く（設計書 A-220）
+            // To match the Mac Chrome title weight (Apple SD Gothic Neo Bold), glyphs missing from JP Bold come from KR Bold (design A-220)
+            var japaneseBold = Load("GameUiJapaneseBold SDF");
+            Assert.IsFalse(japaneseBold.HasCharacter('설', false, true), "JP Bold has no Hangul");
+            CollectionAssert.AreEqual(new[] { Load("GameUiKoreanBold SDF") }, japaneseBold.fallbackFontAssetTable);
+            Assert.IsTrue(Load("GameUiKoreanBold SDF").HasCharacter('설', false, true));
+        }
+
         private static bool HasInChain(FontAsset asset, char character)
         {
             if (asset.HasCharacter(character, false, true)) return true;

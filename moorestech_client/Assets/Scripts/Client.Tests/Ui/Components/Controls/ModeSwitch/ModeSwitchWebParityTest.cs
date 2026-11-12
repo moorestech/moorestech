@@ -130,6 +130,31 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
             Assert.AreEqual(33f, Option(modeSwitch, "mode-a").resolvedStyle.height, 0.05f);
         }
 
+        // Web の輪は box-shadow で面の外へ --bevel-1 広がり、面の箱と選択肢の送りには入らない
+        // The Web ring is a box-shadow spreading --bevel-1 outside the face, outside the face box and the option pitch
+        [Test]
+        public void 輪は面の外へbevel1だけ広がり面の箱と送りを変えない()
+        {
+            var modeSwitch = Mount(ModeSwitchOrientation.Vertical, ModeSwitchRole.Group);
+            modeSwitch.SetSelected("b");
+            simulate.FrameUpdate();
+            var face = Option(modeSwitch, "mode-a");
+            var ring = face.Q(className: "mode-switch__ring");
+            Assert.AreEqual(0f, face.resolvedStyle.borderTopWidth, 0.001f, "the face draws no border");
+            Assert.AreEqual(PickingMode.Ignore, ring.pickingMode);
+            // 位置と枠線の幅は画素へ丸まる（±0.78px は ±1px に解ける）
+            // Positions and border widths snap to pixels (±0.78px resolves to ±1px)
+            Assert.AreEqual(-0.782875f, ring.resolvedStyle.top, 0.25f);
+            Assert.AreEqual(-0.782875f, ring.resolvedStyle.left, 0.25f);
+            Assert.AreEqual(0.782875f, ring.resolvedStyle.borderBottomWidth, 0.25f);
+            Assert.AreEqual(4f, Option(modeSwitch, "mode-b").layout.yMin - face.layout.yMax, 0.6f, "--mode-switch-gap between faces");
+
+            // 選んでいない輪は --bevel-c1、選んだ輪は --bevel-c2
+            // An unselected ring is --bevel-c1 and the selected one --bevel-c2
+            Assert.AreEqual(new UnityEngine.Color32(56, 58, 72, 255), (UnityEngine.Color32)ring.resolvedStyle.borderTopColor);
+            Assert.AreEqual(new UnityEngine.Color32(104, 106, 120, 255), (UnityEngine.Color32)Option(modeSwitch, "mode-b").Q(className: "mode-switch__ring").resolvedStyle.borderTopColor);
+        }
+
         private ModeSwitchString Mount(ModeSwitchOrientation orientation, ModeSwitchRole role)
         {
             var options = new List<ModeSwitchOption<string>>

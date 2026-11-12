@@ -77,22 +77,22 @@ namespace Client.Ui.Components.Controls
 
         // Web の ScrollArea の flex: 1（basis 0%）は、高さが内容で決まる親では内容の高さとして解かれ、親が max-height に当たると兄弟と比で縮む。それを写すため basis を中身の高さに追従させる
         // On the Web, ScrollArea's flex: 1 (basis 0%) resolves to the content height inside a content-sized parent, which then shrinks alongside its siblings at max-height; mirror that by tracking the content height as the basis
+        // 同じメソッドの登録は UITK が 1 つにまとめるので、2 回呼んでも購読は 1 つ
+        // UITK keeps one registration per method, so calling twice still subscribes once
         public void FollowContentHeightAsFlexBasis()
         {
-            contentContainer.RegisterCallback<GeometryChangedEvent>(_ => ApplyContentHeightAsFlexBasis());
+            contentContainer.RegisterCallback<GeometryChangedEvent>(ApplyContentHeightAsFlexBasis);
+        }
 
-            #region Internal
-
-            void ApplyContentHeightAsFlexBasis()
-            {
-                var frame = resolvedStyle.paddingTop + resolvedStyle.paddingBottom + resolvedStyle.borderTopWidth + resolvedStyle.borderBottomWidth;
-                var viewportPadding = contentViewport.resolvedStyle.paddingTop + contentViewport.resolvedStyle.paddingBottom;
-                var basis = contentContainer.layout.height + frame + viewportPadding;
-                if (Mathf.Approximately(resolvedStyle.flexBasis.value, basis)) return;
-                style.flexBasis = basis;
-            }
-
-            #endregion
+        // 中身が伸びても縮んでも basis を中身の高さへ合わせ直す
+        // Re-fit the basis to the content height whether it grows or shrinks
+        private void ApplyContentHeightAsFlexBasis(GeometryChangedEvent _)
+        {
+            var frame = resolvedStyle.paddingTop + resolvedStyle.paddingBottom + resolvedStyle.borderTopWidth + resolvedStyle.borderBottomWidth;
+            var viewportPadding = contentViewport.resolvedStyle.paddingTop + contentViewport.resolvedStyle.paddingBottom;
+            var basis = contentContainer.layout.height + frame + viewportPadding;
+            if (Mathf.Approximately(resolvedStyle.flexBasis.value, basis)) return;
+            style.flexBasis = basis;
         }
 
         public void SetScrollOffset(float y)

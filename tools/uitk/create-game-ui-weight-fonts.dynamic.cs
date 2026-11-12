@@ -1,7 +1,7 @@
-// GameUi の見出し用の Bold の SDF FontAsset 2 つ（Mantine Title の題の字形。設計書 A-220）を作る。uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)" で実行する
-// 元の Font と fallback の FontAsset が全部読めてから作り、2 つとも作れてから古い asset を置き換える（途中で失敗しても既存の FontAsset を消さない）
-// Creates the two Bold GameUi SDF FontAssets for headings (the Mantine Title face, design A-220); run with uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)"
-// Creation starts only after every source Font and fallback FontAsset loads, and old assets are replaced only after both are created (a failure never deletes the existing FontAssets)
+// GameUi の見出し用の Bold の SDF FontAsset 3 つ（Mantine Title の題の字形。設計書 A-220）を作る。uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)" で実行する
+// 元の Font と fallback の FontAsset が全部読めてから作り、3 つとも作れてから古い asset を置き換える（途中で失敗しても既存の FontAsset を消さない）
+// Creates the three Bold GameUi SDF FontAssets for headings (the Mantine Title face, design A-220); run with uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)"
+// Creation starts only after every source Font and fallback FontAsset loads, and old assets are replaced only after all three are created (a failure never deletes the existing FontAssets)
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -17,6 +17,7 @@ var specs = new[]
 {
     (source: $"{FontFolder}/NotoSansJP-Bold.ttf", name: "GameUiJapaneseBold SDF"),
     (source: $"{FontFolder}/NotoSans-Bold.ttf", name: "GameUiLatinBold SDF"),
+    (source: $"{FontFolder}/NotoSansKR-Bold.ttf", name: "GameUiKoreanBold SDF"),
 };
 
 // 元の Font と、fallback にする段階 1 の JP/KR（Medium）を先に全部読む。欠けていれば何も消さずに止める
@@ -33,8 +34,8 @@ if (japaneseMedium == null) return Abort($"fallback FontAsset not found: {Folder
 var koreanMedium = AssetDatabase.LoadAssetAtPath<FontAsset>($"{Folder}/GameUiKorean SDF.asset");
 if (koreanMedium == null) return Abort($"fallback FontAsset not found: {Folder}/GameUiKorean SDF.asset (run create-game-ui-fonts.dynamic.cs first)");
 
-// 2 つを一時パスへ作る。1 つでも作れなければ作った一時ファイルを消して止める
-// Create both at temporary paths; if any fails, delete the temporaries and stop
+// 3 つを一時パスへ作る。1 つでも作れなければ作った一時ファイルを消して止める
+// Create all three at temporary paths; if any fails, delete the temporaries and stop
 var created = new List<FontAsset>();
 for (var i = 0; i < specs.Length; i++)
 {
@@ -48,16 +49,18 @@ for (var i = 0; i < specs.Length; i++)
 }
 var japaneseBold = created[0];
 var latinBold = created[1];
+var koreanBold = created[2];
 
-// 韓国語の Bold は持たないので、Bold は段階 1 の JP/KR（Medium）へ落とす
-// No Korean Bold exists, so the Bold faces fall back to the stage-1 JP/KR (Medium)
-japaneseBold.fallbackFontAssetTable = new List<FontAsset> { koreanMedium };
+// 和文の題の字形は韓国語の字を KR Bold で描く（Mac の Chrome の Apple SD Gothic Neo Bold と太さが揃う。設計書 A-220）。欧文の題は段階 1 の JP/KR（Medium）へ落とす
+// The CJK heading face draws Hangul with KR Bold (matching Apple SD Gothic Neo Bold in Mac Chrome, design A-220); the Latin heading falls back to the stage-1 JP/KR (Medium)
+japaneseBold.fallbackFontAssetTable = new List<FontAsset> { koreanBold };
+koreanBold.fallbackFontAssetTable = new List<FontAsset>();
 latinBold.fallbackFontAssetTable = new List<FontAsset> { japaneseMedium, koreanMedium };
 foreach (var asset in created) { asset.ClearFontAssetData(true); EditorUtility.SetDirty(asset); }
 AssetDatabase.SaveAssets();
 
 // 全部作れたので古い asset を消し、一時パスから本来の名前へ移す
-// Both exist, so delete the old assets and move the temporaries to their real names
+// All exist, so delete the old assets and move the temporaries to their real names
 foreach (var spec in specs)
 {
     var finalPath = FinalPath(spec.name);
@@ -69,7 +72,7 @@ foreach (var spec in specs)
 // 作り直すと GUID が変わるので、フォントを指す Typography.uss を読み直す
 // Recreation changes the GUIDs, so reimport Typography.uss which points at the fonts
 AssetDatabase.ImportAsset("Assets/Scripts/Client.Ui/Foundation/Theme/Typography.uss", ImportAssetOptions.ForceUpdate);
-return $"latinBold={AssetDatabase.GetAssetPath(latinBold)} japaneseBold={AssetDatabase.GetAssetPath(japaneseBold)}";
+return $"latinBold={AssetDatabase.GetAssetPath(latinBold)} japaneseBold={AssetDatabase.GetAssetPath(japaneseBold)} koreanBold={AssetDatabase.GetAssetPath(koreanBold)}";
 
 string FinalPath(string assetName) => $"{Folder}/{assetName}.asset";
 string TemporaryPath(string assetName) => $"{Folder}/{assetName}.creating.asset";
