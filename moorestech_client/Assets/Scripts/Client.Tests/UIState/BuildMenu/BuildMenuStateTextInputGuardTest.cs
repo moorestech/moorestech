@@ -10,8 +10,8 @@ using NUnit.Framework;
 namespace Client.Tests.UIState.BuildMenu
 {
     /// <summary>
-    /// GameUi の入力中・ESC 消費のフレームはビルドメニューの状態が閉じない（L1・UIState 側）
-    /// The build-menu state does not close while GameUi text is focused or ESC was consumed (L1, state side)
+    /// 入力中・ESC消費フレームは状態が閉じない（L1）
+    /// State stays open on text input or ESC-consumed frames (L1)
     /// </summary>
     public class BuildMenuStateTextInputGuardTest : UIStateTestFixtureBase
     {

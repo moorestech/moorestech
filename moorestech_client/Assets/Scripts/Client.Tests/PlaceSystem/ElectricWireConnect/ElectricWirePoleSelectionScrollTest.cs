@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Input;
 using Client.Tests.Common;
 using Core.Master;
 using Game.Context;
@@ -12,8 +13,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.PlaceSystem.ElectricWireConnect
 {
     /// <summary>
-    /// 本番の読み取り経路（Mouse.current.scroll→蓄積器）で、ホイール1ノッチが電柱の種類を1段進めることを見る
-    /// Through the production read path (Mouse.current.scroll to the accumulator), one wheel notch advances the pole type by one
+    /// 実スクロール経路で1ノッチ1段を見る
+    /// One wheel notch advances one step via the real scroll path
     /// </summary>
     public class ElectricWirePoleSelectionScrollTest : InputTestFixture
     {
@@ -23,13 +24,18 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         public override void Setup()
         {
             base.Setup();
+
+            // UI 上判定の静的状態を固定し、先行テストの残りでスクロールが捨てられないようにする
+            // Pin the static UI-hit state so leftovers from earlier tests cannot discard the scroll
+            UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
+            UiInputExclusivity.SetState(false, false);
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             InputSystem.AddDevice<Keyboard>();
             _mouse = InputSystem.AddDevice<Mouse>();
             TestReflection.ResetInputManagerCache();
 
-            // ロック済み電柱も解放し、サイクルが成り立つ2種にする
-            // Also unlock the locked pole so there are two types to cycle through
+            // ロック電柱も解放し2種にする
+            // Unlock the locked pole too for two types
             var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
             unlockState.UnlockBlock(MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.LockedElectricPoleId).BlockGuid);
             _selection = new ElectricWirePoleSelection();

@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BuildMenu
 {
     /// <summary>
-    /// 検索欄の入力中はゲームのキーを止め、ESC はフォーカスを外すだけ（L1・画面側）
-    /// While typing in search the game keys stop, and ESC only drops focus (L1, screen side)
+    /// 検索欄入力中はキー停止、ESCは解除のみ（L1）
+    /// Search typing stops game keys; ESC only drops focus (L1)
     /// </summary>
     public class BuildMenuSearchInputGuardTest : BuildMenuScreenTestHost
     {

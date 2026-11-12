@@ -10,12 +10,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BuildMenu
 {
-    // hotbar.spec「ビルドメニューエントリを空き枠へドラッグするとhotbar.assign{slot,id}を送る」のパネル越しの通し（S3-hotbar-modal D-16 の残り）
-    // Panel-crossing run of the hotbar.spec build-menu-drag case (the remainder of S3-hotbar-modal D-16)
-    /// <summary>
-    /// ビルドメニューのエントリを本番の層越しにホットバーへ落とす（L1。段階 3 の締め）
-    /// Drops a build-menu entry onto the hotbar across the production layers (L1, stage 3 closing)
-    /// </summary>
+    // エントリ→空き枠D&DでAssignHotbarを送る通し（D-16）
+    // Run of entry-to-empty-slot drag sending AssignHotbar (D-16)
     public class BuildMenuToHotbarDragTest : BuildMenuScreenTestHost
     {
         private RecordingHotbarCommands _hotbarCommands;
@@ -24,8 +20,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         [SetUp]
         public void PlaceOnProductionLayers()
         {
-            // 本番と同じ層と族へメニューとホットバーを載せる
-            // Put the menu and the hotbar on the same layers and families as production
+            // 本番と同じ層・族へ載せる
+            // Mount on the same layers and families as production
             var layers = UiLayerStack.Build(rootVisualElement);
             View.RemoveFromHierarchy();
             layers.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(View);
