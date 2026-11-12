@@ -5,7 +5,6 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Skit;
 using Client.Ui.Screens.Skit.Parts.Window;
 using NUnit.Framework;
-using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -88,13 +87,11 @@ namespace Client.Tests.Ui.Screens.Skit
             // 許可が空でも全文表示の入口は閉じる
             // With an empty allowance the reveal entry stays closed
             StartTyping(emptyIntents ? new string[0] : SkitTestData.TextIntents);
-            var enter = new Subject<Unit>();
-            new SkitEnterKeyBinding(enter, _view, new ReactiveProperty<bool>(true));
             _view.SetInteractive(false);
             var typingText = BodyText();
 
             LogAssert.Expect(LogType.Warning, "[skit.text] input rejected: presentation is not interactive");
-            enter.OnNext(Unit.Default);
+            _view.HandleEnterKey();
 
             Assert.AreEqual(typingText, BodyText());
             Assert.AreEqual(0, _commands.Issued.Count);
@@ -102,7 +99,7 @@ namespace Client.Tests.Ui.Screens.Skit
             // 再開後の Enter は全文表示のみ（Web の同テスト後半）
             // After resume Enter only reveals the body (Web test, second half)
             _view.SetInteractive(true);
-            enter.OnNext(Unit.Default);
+            _view.HandleEnterKey();
             Assert.IsTrue(ShowsWholeBody(), "再開後の Enter で全文が出ない");
             Assert.AreEqual(0, _commands.Issued.Count, "再開後の Enter で操作を送った");
         }

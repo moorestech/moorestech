@@ -18,6 +18,7 @@ namespace Client.Ui.Screens.Skit
     public sealed class SkitScreenView : VisualElement
     {
         private const string NotInteractiveWarning = "[skit.text] input rejected: presentation is not interactive";
+        private const string WholeUiHiddenLog = "[skit.text] Enter ignored: the whole UI is hidden";
 
         private readonly ISkitCommands _commands;
         private readonly UiCommandResultToaster _toaster;
@@ -28,6 +29,7 @@ namespace Client.Ui.Screens.Skit
         private readonly SkitTypewriter _typewriter;
         private SkitViewModel _model = SkitViewModel.Empty;
         private bool _interactive = true;
+        private bool _wholeUiShown = true;
         private bool _hasRendered;
 
         public SkitScreenView(ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
@@ -85,10 +87,23 @@ namespace Client.Ui.Screens.Skit
             _toolbar.SetInteractive(interactive);
         }
 
+        // 全体非表示（Ctrl+U・カットシーン）の間は Enter を受けない。どの入力源から呼んでもここで止める（Web は会話 UI ごと外れている）
+        // Refuse Enter while the whole UI is hidden (Ctrl+U, cutscene); stopped here whichever input calls it (on the Web the skit UI is unmounted)
+        public void SetWholeUiShown(bool shown)
+        {
+            _wholeUiShown = shown;
+        }
+
         // Enter は会話窓が出ている提示でだけクリックと同じ評価器を通す（Web は窓にフォーカスがあるときだけ）
         // Enter goes through the click evaluator only while the window shows (the Web only while the window has focus)
         public void HandleEnterKey()
         {
+            if (!_wholeUiShown)
+            {
+                Debug.Log(WholeUiHiddenLog);
+                return;
+            }
+
             // silent-ok: 窓が無い提示では Web も Enter を受ける窓が無い / 窓の出し分けは SkitScreenViewTest が見る
             if (_model.Surface != SkitSurface.Window) return;
             HandleTextIntent();

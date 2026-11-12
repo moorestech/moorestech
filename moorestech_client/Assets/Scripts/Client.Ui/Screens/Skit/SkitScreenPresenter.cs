@@ -12,8 +12,8 @@ using VContainer.Unity;
 namespace Client.Ui.Screens.Skit
 {
     /// <summary>
-    /// スキットの画面と暗転を層へ 1 回だけ載せ、store の提示・入力可否・Enter を View へ押す。ゲームと同じ寿命なので購読は張りっぱなしで IDisposable を付けない
-    /// Mounts the skit screen and blackout on their layers once and pushes the store presentation, input allowance and Enter into the views; game-lifetime, so the subscriptions stay and it carries no IDisposable
+    /// スキットの画面と暗転を層へ 1 回だけ載せ、store の提示・入力可否・全体表示・Enter を View へ押す。ゲームと同じ寿命なので購読は張りっぱなしで IDisposable を付けない
+    /// Mounts the skit screen and blackout on their layers once and pushes the store presentation, input allowance, whole-UI visibility and Enter into the views; game-lifetime, so the subscriptions stay and it carries no IDisposable
     /// </summary>
     public sealed class SkitScreenPresenter : IInitializable
     {
@@ -45,15 +45,16 @@ namespace Client.Ui.Screens.Skit
             var transition = new SkitTransitionView();
             _gameUiRoot.GetLayer(UiLayer.SkitTransition, UiFamily.Viewport).Add(transition);
 
-            // 提示・入力可否を購読し Enter をつなぐ
-            // Subscribe to presentation and allowance; wire Enter
+            // 提示・入力可否・全体表示を購読し Enter をつなぐ
+            // Subscribe to presentation, allowance and whole-UI visibility; wire Enter
             _model.Current.Subscribe(model =>
             {
                 view.Render(model);
                 transition.SetShown(model.TransitionVisible);
             });
             _routingState.Current.Subscribe(snapshot => view.SetInteractive(AcceptsSkitInput(snapshot)));
-            new SkitEnterKeyBinding(SkitEnterKeySource.ObservePressed(), view, _wholeUiVisibility.IsShown);
+            _wholeUiVisibility.IsShown.Subscribe(view.SetWholeUiShown);
+            SkitEnterKeySource.ObservePressed().Subscribe(_ => view.HandleEnterKey());
 
             #region Internal
 
