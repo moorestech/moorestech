@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System;
 using System.Collections.Generic;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
@@ -35,7 +36,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             view.OnPressed.Subscribe(pressed.Add);
 
             Assert.IsTrue(view.ClassListContains(MachineRecipeSelectionRowView.SelectedClassName));
-            Assert.AreEqual("Test Item 1", Find<Label>(view, $"machine-recipe-{RecipeA}-name").text);
+            Assert.AreEqual("Test Item 1", Find<Label>(view, $"machine-recipe-{RecipeA}-name").PlainText());
             simulate.Click(view.worldBound.center);
             CollectionAssert.AreEqual(new[] { RecipeA }, pressed);
         }
@@ -48,7 +49,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             var view = MountRow(recipe, false);
 
             Assert.IsFalse(view.ClassListContains(MachineRecipeSelectionRowView.SelectedClassName));
-            Assert.AreEqual("Test Water", Find<Label>(view, $"machine-recipe-{RecipeA}-name").text);
+            Assert.AreEqual("Test Water", Find<Label>(view, $"machine-recipe-{RecipeA}-name").PlainText());
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/recipeSelection/MachineRecipeSelectionRow.test.ts">入出力の液体はFluidAmountSlotへ量とtestIdを渡して描く</web-test>
@@ -66,7 +67,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
                 var slot = Find<VisualElement>(view, frameName).GetFirstAncestorOfType<FluidAmountSlot>();
                 Assert.IsNotNull(slot, frameName);
                 var band = Find<VisualElement>(slot, $"{frameName}-amount");
-                Assert.AreEqual(amount, band.Q<Label>().text, frameName);
+                Assert.AreEqual(amount, band.Q<Label>().PlainText(), frameName);
             }
         }
 
@@ -78,7 +79,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             var view = MountRow(Fixtures.Recipe(RecipeA, 7, new[] { new ItemAmount(SecondItem, 2) }, new RecipeFluidAmount[0], new[] { new ItemAmount(FirstItem, 1) }, new RecipeFluidAmount[0], capped), false);
 
             var expected = new UiText(LocalizationKeys.Ui.Recipe.LevelInheritanceCapped, new[] { new Client.Localization.LocalizationTextParam("level", "2") }).Resolve();
-            Assert.AreEqual(expected, Find<Label>(view, $"machine-recipe-{RecipeA}-level-inheritance").text);
+            Assert.AreEqual(expected, Find<Label>(view, $"machine-recipe-{RecipeA}-level-inheritance").PlainText());
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/recipeSelection/MachineRecipeSelectionRow.test.ts">継承しないレシピにはバッジを出さない</web-test>

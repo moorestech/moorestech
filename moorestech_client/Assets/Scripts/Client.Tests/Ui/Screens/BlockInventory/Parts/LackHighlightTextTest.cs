@@ -1,4 +1,5 @@
 using Client.Tests.Ui.Screens;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.Text;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
             text.Render(UiText.FromVerbatim("トルク 1.0 / 2.0"), false);
             Mount(text);
             Assert.AreEqual("torque", text.name);
-            Assert.AreEqual("トルク 1.0 / 2.0", text.text);
+            Assert.AreEqual("トルク 1.0 / 2.0", text.PlainText());
             Assert.IsFalse(text.ClassListContains(LackHighlightText.InsufficientClassName));
         }
 

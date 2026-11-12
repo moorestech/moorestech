@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
@@ -150,7 +151,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var root = MountSection(MachineScreenViewModels.WithRecipe(recipe, true, true), false).Root;
 
             AssertWaitReasonShown(root);
-            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.MachineStateIdle).Resolve(), root.Q<Label>("machine-state-label").text);
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.MachineStateIdle).Resolve(), root.Q<Label>("machine-state-label").PlainText());
 
             // 選択モードでもフッタに理由が出る
             // The footer shows the reason in selection mode too
@@ -165,7 +166,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
                 var reasons = Shown(section, "machine-wait-reason");
                 Assert.AreEqual(1, reasons.Count);
                 Assert.IsTrue(reasons[0].ClassListContains(InsufficientClass));
-                Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.MachineWaitOutputSpaceShort).Resolve(), ((Label)reasons[0]).text);
+                Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.MachineWaitOutputSpaceShort).Resolve(), ((Label)reasons[0]).PlainText());
             }
 
             #endregion

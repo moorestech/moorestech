@@ -10,9 +10,9 @@
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
 }
 
-/* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0。USS に line-height は無いので、1 行は min-height＝字×line-height、LocalizedLabel は --localized-label-line-height で行送りと高さ（行数×行の高さ）を Web と同じにする（設計書 A-221） */
+/* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0。USS に line-height は無いので、1 行は min-height＝字×line-height、LocalizedLabel は --localized-label-line-box で行送りと高さ（行数×行の高さ）を Web と同じにする（設計書 A-221） */
 /* 和文の字の高さ 1.448em を画素へ切り上げると sm 21px・xs 18px になり Web（20.3・16.8）より高いので、高さは字でなく行の箱で決める */
-/* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0. USS has no line-height, so one line uses min-height = size x line-height and LocalizedLabel gets the Web pitch and height (lines x line height) from --localized-label-line-height (design A-221) */
+/* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0. USS has no line-height, so one line uses min-height = size x line-height and LocalizedLabel gets the Web pitch and height (lines x line height) from --localized-label-line-box (design A-221) */
 /* The CJK glyph extent 1.448em ceiled to pixels gives sm 21px and xs 18px, taller than the Web (20.3, 16.8), so height comes from the line box, not the glyphs */
 .text--xs,
 .text--sm,
@@ -30,45 +30,45 @@
 .text--xs {
     font-size: var(--mantine-font-size-xs);
     min-height: 16.8px;
-    --localized-label-line-height: 16.8px;
+    --localized-label-line-box: 16.8px;
 }
 
 .text--sm {
     font-size: var(--mantine-font-size-sm);
     min-height: 20.3px;
-    --localized-label-line-height: 20.3px;
+    --localized-label-line-box: 20.3px;
 }
 
 .text--md {
     font-size: var(--mantine-font-size-md);
     min-height: 24.8px;
-    --localized-label-line-height: 24.8px;
+    --localized-label-line-box: 24.8px;
 }
 
 .title--order-1 {
     --title-order-1-row-height: 44.2px;
     font-size: 34px;
     min-height: var(--title-order-1-row-height);
-    --localized-label-line-height: var(--title-order-1-row-height);
+    --localized-label-line-box: var(--title-order-1-row-height);
 }
 
 .title--order-2 {
     --title-order-2-row-height: 35.1px;
     font-size: 26px;
     min-height: var(--title-order-2-row-height);
-    --localized-label-line-height: var(--title-order-2-row-height);
+    --localized-label-line-box: var(--title-order-2-row-height);
 }
 
 .title--order-3 {
     font-size: 22px;
     min-height: 30.8px;
-    --localized-label-line-height: 30.8px;
+    --localized-label-line-box: 30.8px;
 }
 
 .title--order-4 {
     font-size: 18px;
     min-height: 26.1px;
-    --localized-label-line-height: 26.1px;
+    --localized-label-line-box: 26.1px;
 }
 
 .text--dimmed {

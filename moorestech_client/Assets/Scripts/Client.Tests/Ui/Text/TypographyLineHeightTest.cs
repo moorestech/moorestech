@@ -37,8 +37,8 @@ namespace Client.Tests.Ui.Text
             Assert.AreEqual(webLineHeight, label.layout.height, 0.3f);
         }
 
-        // 3 行の高さが Web の 3 行（行の高さ×3）と同じで、行送りも 1 行あたり Web と同じ
-        // Three lines are as tall as the Web's three lines (line height x 3) and the pitch per line equals the Web
+        // 3 行の高さが Web の 3 行（行の高さ×3）と同じで、行送りも 1 行あたり Web と同じ。layout は画素に丸まるので 3 行は 0.5px まで
+        // Three lines are as tall as the Web's three lines (line height x 3) and the pitch per line equals the Web; layout snaps to pixels, so three lines allow 0.5px
         [TestCase(UiTypographyClass.TextSm, 20.3f)]
         [TestCase(UiTypographyClass.TextXs, 16.8f)]
         public void 和文3行の行送りがWebの行の高さと同じ(string className, float webLineHeight)
@@ -49,7 +49,7 @@ namespace Client.Tests.Ui.Text
             var pitch = (three.layout.height - one.layout.height) / 2f;
             Debug.Log($"[TypographyLineHeight] cjk {className} 3 lines: {three.layout.height:F2}px, pitch {pitch:F2}px");
             Assert.AreEqual(webLineHeight, pitch, 0.3f);
-            Assert.AreEqual(webLineHeight * 3f, three.layout.height, 0.3f);
+            Assert.AreEqual(webLineHeight * 3f, three.layout.height, 0.5f);
         }
 
         private VisualElement CjkLocale()

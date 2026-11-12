@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System.Linq;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Tutorial.UIHighlight;
@@ -87,7 +88,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         [Test]
         public void トップの題とアンカーはWebと同じ綴り()
         {
-            Assert.AreEqual("Pause Menu", _view.Q<Label>(className: "pause-menu__title").text);
+            Assert.AreEqual("Pause Menu", _view.Q<Label>(className: "pause-menu__title").PlainText());
             Assert.IsTrue(Frame().ClassListContains(AnchorIds.PauseMenu));
             Assert.IsTrue(Find<Button>(_view, "pause-menu-save").ClassListContains(AnchorIds.PauseSave));
             Assert.IsTrue(Find<Button>(_view, "pause-menu-save-and-quit").ClassListContains(AnchorIds.PauseBack));
@@ -105,7 +106,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _model.Set(new PauseMenuViewModel(PauseMenuPage.Top, true, FakePauseMenuModel.Capture(BugReportCaptureStatus.Ready), PlaytestDeliveryAllSent.Instance, PlaytestExportIdle.Instance));
             simulate.FrameUpdate();
             Assert.IsTrue(IsShown(line));
-            Assert.AreEqual("Disconnected from server", line.text);
+            Assert.AreEqual("Disconnected from server", line.PlainText());
             Assert.AreEqual(new Color(0xff / 255f, 0x87 / 255f, 0x87 / 255f), line.resolvedStyle.color);
         }
 
@@ -113,7 +114,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         public void 設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る()
         {
             ShowPage(PauseMenuPage.Settings);
-            Assert.AreEqual("Settings", _view.Q<Label>(className: "pause-menu__title").text);
+            Assert.AreEqual("Settings", _view.Q<Label>(className: "pause-menu__title").PlainText());
             Assert.IsNotNull(_view.Q("language-select"));
             Assert.IsNull(_view.Q("pause-menu-save"));
             Assert.IsInstanceOf<GameScrollView>(Find<VisualElement>(_view, "pause-menu-body"));
@@ -132,7 +133,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         public void バグ報告の書きかけはトップへ戻って再び開いても残る()
         {
             ShowPage(PauseMenuPage.BugReport);
-            Assert.AreEqual("Bug report", _view.Q<Label>(className: "pause-menu__title").text);
+            Assert.AreEqual("Bug report", _view.Q<Label>(className: "pause-menu__title").PlainText());
             Find<TextField>(_view, "bug-report-description").value = "keep me";
             Assert.AreEqual("keep me", _draft.Description);
 
@@ -149,7 +150,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Localize.TrySetChosenLanguage("japanese");
             Assert.IsNotNull(_view.Q("pause-menu-locale-japanese"));
             Assert.IsNull(_view.Q("pause-menu-locale-english"));
-            Assert.AreEqual("ポーズメニュー", _view.Q<Label>(className: "pause-menu__title").text);
+            Assert.AreEqual("ポーズメニュー", _view.Q<Label>(className: "pause-menu__title").PlainText());
         }
 
         [Test]

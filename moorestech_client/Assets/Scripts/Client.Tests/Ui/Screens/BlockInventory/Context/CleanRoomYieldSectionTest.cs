@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
@@ -41,8 +42,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             CollectionAssert.AreEqual(
                 new[] { "clean-room-yield-quality-tier", "clean-room-yield-die-loss-rate", "clean-room-yield-level-rate-1", "clean-room-yield-level-rate-2", "clean-room-yield-failed-rate" },
                 ShownNames(view.Q<VisualElement>("clean-room-yield-section")));
-            Assert.AreEqual("Quality module tier 1", view.Q<Label>("clean-room-yield-quality-tier").text);
-            Assert.AreEqual("Lv2 share 10.0%", view.Q<Label>("clean-room-yield-level-rate-2").text);
+            Assert.AreEqual("Quality module tier 1", view.Q<Label>("clean-room-yield-quality-tier").PlainText());
+            Assert.AreEqual("Lv2 share 10.0%", view.Q<Label>("clean-room-yield-level-rate-2").PlainText());
         }
 
         /// <web-test file="src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomYieldSection.test.ts">読めない応答の間は取得状態の1行だけを描き、率を出さない</web-test>
@@ -52,7 +53,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var view = Render(ContextEntry<CleanRoomYieldFetched>.Unavailable(BlockInfoFetchState.Unreadable));
 
             CollectionAssert.AreEqual(new[] { "clean-room-yield-fetch-state" }, ShownNames(view));
-            Assert.AreEqual("Draw details: received data could not be read (retrying)", view.Q<Label>("clean-room-yield-fetch-state").text);
+            Assert.AreEqual("Draw details: received data could not be read (retrying)", view.Q<Label>("clean-room-yield-fetch-state").PlainText());
         }
     }
 }

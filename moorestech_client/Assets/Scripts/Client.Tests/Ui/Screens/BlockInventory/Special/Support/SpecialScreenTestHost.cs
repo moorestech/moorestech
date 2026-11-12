@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,7 +80,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         protected static string TextOf(VisualElement root, string testid)
         {
-            return Find<Label>(root, testid).text;
+            return Find<Label>(root, testid).PlainText();
         }
 
         protected static string Resolved(UiText text)

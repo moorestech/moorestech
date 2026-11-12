@@ -28,8 +28,8 @@ namespace Client.Tests.Ui.Text
             Assert.AreEqual(Load(assetName), label.resolvedStyle.unityFontDefinition.fontAsset);
         }
 
-        // Web は和文ロケールを NotoSansJP の Medium 1 字形で描くので、題と太字も Medium（設計書 A-220・LX-171）
-        // The Web draws CJK locales with the single NotoSansJP Medium face, so titles and bold use Medium too (design A-220, LX-171)
+        // Web は和文ロケールを NotoSansJP の Medium 1 字形で描くので、題と太字も Medium（設計書 A-220）
+        // The Web draws CJK locales with the single NotoSansJP Medium face, so titles and bold use Medium too (design A-220)
         [TestCase(UiTypographyClass.TitleOrder2)]
         [TestCase(UiTypographyClass.TitleOrder4)]
         [TestCase(UiTypographyClass.TextBold)]

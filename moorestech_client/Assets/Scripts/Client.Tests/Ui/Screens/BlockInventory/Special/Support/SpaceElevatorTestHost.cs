@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System.Linq;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Special.Details;
@@ -51,7 +52,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         protected static string AllText(VisualElement root)
         {
-            return string.Join(" ", root.Query<Label>().ToList().Select(l => l.text));
+            return string.Join(" ", root.Query<Label>().ToList().Select(l => l.PlainText()));
         }
     }
 }

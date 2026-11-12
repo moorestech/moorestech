@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Components.Controls;
@@ -64,7 +65,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         // A mode option carries its text on the LocalizedLabel inside the Button (Button.text stays empty)
         private static string ModeLabel(VisualElement root, string optionTestid)
         {
-            return Find<Button>(root, optionTestid).Q<Label>().text;
+            return Find<Button>(root, optionTestid).Q<Label>().PlainText();
         }
     }
 }

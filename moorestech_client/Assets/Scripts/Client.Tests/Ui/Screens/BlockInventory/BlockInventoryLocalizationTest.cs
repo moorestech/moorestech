@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System;
 using Client.Localization;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
@@ -84,7 +85,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             simulate.FrameUpdate();
 
             var error = Find<Label>(shell.View, "block-inventory-error");
-            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.InventoryOpenFailed).Resolve(), error.text);
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.InventoryOpenFailed).Resolve(), error.PlainText());
             Assert.IsNull(shell.View.Q("chest-grid"));
             Assert.IsNull(shell.View.Q("block-inventory-title-action"));
         }
