@@ -34,6 +34,14 @@ namespace Client.Ui.Foundation.Theme
             return float.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value) && !float.IsNaN(value) && !float.IsInfinity(value);
         }
 
+        // "117deg" を 117 へ。customStyle は角度も文字列でしか返さない
+        // Turns "117deg" into 117; customStyle returns angles only as strings
+        public static bool TryParseDegrees(string text, out float degrees)
+        {
+            degrees = 0f;
+            return text.EndsWith("deg") && TryParseNumber(text.Substring(0, text.Length - 3), out degrees);
+        }
+
         // "82%" を 0.82 へ。customStyle は % の値を文字列でしか返さない
         // Turns "82%" into 0.82; customStyle returns percentages only as strings
         public static bool TryParsePercent(string text, out float ratio)

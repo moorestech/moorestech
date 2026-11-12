@@ -48,5 +48,23 @@ namespace Client.Tests.Ui.Theme
         {
             Assert.IsFalse(UssTokenValue.TryParsePercent(text, out _));
         }
+
+        [TestCase("117deg", 117f)]
+        [TestCase("-30deg", -30f)]
+        [TestCase("0deg", 0f)]
+        public void ParsesDegrees(string text, float expected)
+        {
+            Assert.IsTrue(UssTokenValue.TryParseDegrees(text, out var degrees));
+            Assert.AreEqual(expected, degrees, 0.0001f);
+        }
+
+        [TestCase("117")]
+        [TestCase("deg")]
+        [TestCase("1.2rad")]
+        [TestCase("")]
+        public void RejectsNonDegrees(string text)
+        {
+            Assert.IsFalse(UssTokenValue.TryParseDegrees(text, out _));
+        }
     }
 }
