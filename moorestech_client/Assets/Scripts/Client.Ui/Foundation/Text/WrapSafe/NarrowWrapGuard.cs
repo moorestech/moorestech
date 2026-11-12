@@ -22,8 +22,8 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         private readonly TextElement _element;
         private readonly InlineWhiteSpaceHolds _whiteSpace;
         private bool _boxKnown;
-        // 測りの中で contentRect を読むと、字形の atlas を空にした後の描画で UITK の文字のジョブが壊れた（D-17 の全件の実測）。箱の幅は配置の後に写して使う
-        // Reading contentRect inside a measure broke UITK's text jobs after the glyph atlas was emptied (D-17 full-suite runs); copy the box width after layout instead
+        // 測りの中で配置の途中の contentRect を読まないよう、配置の後に写した箱の幅を使う
+        // Use the box width copied after layout so a measure never reads a mid-layout contentRect
         private float _boxWidth;
         private string _scannedText;
         private int _longestRun;
