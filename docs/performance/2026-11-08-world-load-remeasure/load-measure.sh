@@ -10,8 +10,11 @@ OUTDIR="${2:?outdir}"
 HOST=windows-desktop
 PROJECT='G:\GitHub\moorestech\moorestech_client'
 SN='C:\moorestech-perf\snippets'
-LT=/Users/juha/Documents/GitHub/moorestech/docs/performance/2026-10-22-world-load-time
-BS=/Users/juha/Documents/GitHub/moorestech/docs/performance/benchmark/snippets
+# スニペットはこのスクリプトと同じチェックアウトから送る（別 worktree の古い版を送らないため）
+# Send snippets from the same checkout as this script (not an older copy in another worktree)
+HERE="$(cd "$(dirname "$0")" && pwd)"
+LT="$HERE/../2026-10-22-world-load-time"
+BS="$HERE/../benchmark/snippets"
 SSH_OPTS=(-o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3)
 remote() { ssh "${SSH_OPTS[@]}" "$HOST" "$@"; }
 run() {

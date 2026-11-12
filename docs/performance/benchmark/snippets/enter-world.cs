@@ -8,6 +8,10 @@ using System.Runtime.InteropServices;
 var bf = BindingFlags.NonPublic | BindingFlags.Instance;
 // ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED（cleanup.cs で解除）
 SetThreadExecutionState(0x80000003u);
+// 既に画面が消えていると上の抑止だけでは点かず約6fpsに間引かれるので、マウスを1px往復させて画面を起こす
+// If the display is already off the flag above does not wake it (updates drop to ~6fps), so nudge the mouse 1px and back
+mouse_event(0x0001, 1, 0, 0, System.UIntPtr.Zero);
+mouse_event(0x0001, -1, 0, 0, System.UIntPtr.Zero);
 var editorWindow = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
 var wasMinimized = IsIconic(editorWindow);
 if (wasMinimized) ShowWindow(editorWindow, 9);
@@ -32,3 +36,4 @@ return "started world=" + Game.Paths.GameSystemPaths.DefaultWorldDirectory + " w
 [DllImport("user32.dll")] static extern bool IsIconic(System.IntPtr hWnd);
 [DllImport("user32.dll")] static extern bool ShowWindow(System.IntPtr hWnd, int nCmdShow);
 [DllImport("user32.dll")] static extern bool SetForegroundWindow(System.IntPtr hWnd);
+[DllImport("user32.dll")] static extern void mouse_event(uint flags, int dx, int dy, uint data, System.UIntPtr extraInfo);
