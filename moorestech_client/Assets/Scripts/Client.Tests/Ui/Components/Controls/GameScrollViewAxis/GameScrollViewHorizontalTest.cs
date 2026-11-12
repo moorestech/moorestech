@@ -1,6 +1,7 @@
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
 
@@ -70,6 +71,29 @@ namespace Client.Tests.Ui.Components.Controls.GameScrollViewAxis
             Settle();
             Assert.Greater(_view.scrollOffset.x, 0f);
             Assert.LessOrEqual(_last.worldBound.xMax, _view.contentViewport.worldBound.xMax + 0.5f);
+        }
+
+        [Test]
+        public void 横向きは縦ホイールで送らず横の量の1ノッチで60px送る()
+        {
+            // 箱を 6 つ（計 480）にして幅 300 を越えさせる
+            // Six boxes (480 in total) overflow the 300 width
+            for (var i = 0; i < 3; i++) AddBox();
+            Settle();
+            var center = _view.contentViewport.worldBound.center;
+
+            // 縦 1 ノッチでは横の位置が動かない（Web の overflow-x: auto）
+            // One vertical notch leaves the horizontal offset unchanged (Web overflow-x: auto)
+            simulate.ScrollWheel(new Vector2(0f, WheelEvent.scrollDeltaPerTick), center);
+            Settle();
+            Assert.AreEqual(0f, _view.scrollOffset.x, 0.01f, "縦ホイール");
+
+            // 横 1 ノッチで Web の 1 ノッチ（60px）だけ送る
+            // One horizontal notch scrolls by one Web notch (60px)
+            simulate.ScrollWheel(new Vector2(WheelEvent.scrollDeltaPerTick, 0f), center);
+            Settle();
+            Assert.AreEqual(60f, _view.scrollOffset.x, 0.01f, "横ホイール");
+            Assert.AreEqual(0f, _view.scrollOffset.y, 0.01f);
         }
 
         private void AddBox()

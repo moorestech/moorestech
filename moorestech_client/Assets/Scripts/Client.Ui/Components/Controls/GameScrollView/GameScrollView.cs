@@ -43,6 +43,7 @@ namespace Client.Ui.Components.Controls
             // Web（CEF）の 1 ノッチの px（A-71）を UITK の WheelEvent の行へ直す
             // Convert the Web (CEF) pixels per notch (A-71) into UITK WheelEvent lines
             mouseWheelScrollSize = WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+            if (axis == GameScrollAxis.Horizontal) UseOnlyHorizontalWheelDelta();
 
             // バーの有無は向きの軸の流れの寸法で決める。Auto は子の変形（押下の 1px 沈み）まで数えて押す間だけバーを出す
             // Bar presence follows the flow size along the axis; Auto counts child transforms (the 1px press sink) and flashes the bar while pressed
@@ -62,6 +63,14 @@ namespace Client.Ui.Components.Controls
             contentViewport.RegisterCallback<GeometryChangedEvent>(_ => PublishWhenHeightsChanged());
 
             #region Internal
+
+            void UseOnlyHorizontalWheelDelta()
+            {
+                // Web の overflow-x: auto は縦ホイールで横へ送らない。Unity の既定は縦量を横送りに変え横量を捨てるので、その送りを 0 にして横量だけ自前で送る
+                // The Web overflow-x: auto does not scroll sideways on a vertical wheel; Unity turns the vertical delta into sideways scroll and drops the horizontal one, so zero that and scroll by the horizontal delta here
+                mouseWheelScrollSize = 0f;
+                RegisterCallback<WheelEvent>(ScrollByHorizontalWheelDelta);
+            }
 
             void UpdateScrollerVisibility()
             {
@@ -117,6 +126,15 @@ namespace Client.Ui.Components.Controls
             }
             top = descendant.ChangeCoordinatesTo(contentContainer, Vector2.zero).y;
             return true;
+        }
+
+        private void ScrollByHorizontalWheelDelta(WheelEvent evt)
+        {
+            // 横量 1 ノッチを Web の 1 ノッチの px（A-71）で送る。動いたときだけ祖先へ渡さない（縦量は祖先のスクロールへ抜ける）
+            // Scroll one horizontal notch by the Web pixels per notch (A-71); stop propagation only when it moved (vertical deltas pass on to ancestor scrolling)
+            var before = horizontalScroller.value;
+            horizontalScroller.value = before + evt.delta.x * WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+            if (!Mathf.Approximately(before, horizontalScroller.value)) evt.StopPropagation();
         }
 
         private Scroller AxisScroller()
