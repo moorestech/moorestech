@@ -89,7 +89,13 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                     // ゲーム画面で出るもの・出ないもの
                     // What shows and what does not on the game screen
                     Assert.IsTrue(Visible(root, "key-hints"), "ゲーム画面で key-hints が見えない");
-                    Assert.IsTrue(crosshair.IsVisible(), "前提: ゲーム画面の開始で一人称（偽なら一人称へ切り替える手順を足す）");
+                    // 開始は三人称（PlayerViewModeController の初期値）。V で一人称へ切り替えると crosshair が出る
+                    // The game starts in third person (PlayerViewModeController default); V switches to first person and shows the crosshair
+                    Assert.IsFalse(crosshair.IsVisible(), "前提: ゲーム画面の開始が三人称でない");
+                    Assert.IsFalse(Visible(root, "crosshair"), "三人称なのに crosshair が見える");
+                    await SemanticInput.TapKey(Key.V);
+                    await UniTask.DelayFrame(3);
+                    Assert.IsTrue(crosshair.IsVisible(), "V で一人称へ切り替わらない");
                     Assert.IsTrue(Visible(root, "crosshair"), "一人称なのに crosshair が見えない");
                     Assert.IsTrue(Visible(root, "challenge-hud"), "ゲーム画面で目標 HUD が見えない");
                     Assert.IsFalse(Visible(root, "screen-backdrop"), "ゲーム画面で幕が見える");
