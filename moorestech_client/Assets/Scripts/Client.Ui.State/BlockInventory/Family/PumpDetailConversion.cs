@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Machine.Detail;
+using Client.Ui.State.Text;
 using Core.Master;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
-using Client.Ui.State.Text;
 
 namespace Client.Ui.State.BlockInventory.Family
 {

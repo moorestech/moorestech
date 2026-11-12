@@ -43,12 +43,14 @@ namespace Client.Ui.State.Text
         public static double FromServerFloat(float value)
         {
             if (float.IsNaN(value) || float.IsInfinity(value) || value == 0) return value;
-            for (var precision = 1; precision < 9; precision++)
+            for (var precision = 1; precision <= 9; precision++)
             {
                 var text = value.ToString("E" + (precision - 1), CultureInfo.InvariantCulture);
                 if (float.Parse(text, CultureInfo.InvariantCulture) == value) return double.Parse(text, CultureInfo.InvariantCulture);
             }
-            return value;
+            // float は 9 桁で必ず往復するのでここへは来ない
+            // A float always round-trips within 9 digits, so this is unreachable
+            throw new InvalidOperationException($"float {value:R} did not round-trip within 9 digits");
         }
 
         // JS の String(number): 整数は小数点なし、他は最短の往復表記、1e21 以上と 1e-7 未満は「1e+21」「1e-7」の指数表記

@@ -8,6 +8,7 @@ using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Text;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
 using Game.Block.Blocks.SpaceElevator;
@@ -51,7 +52,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 var state = block.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
                 // silent-ok: 状態の初回到着待ちは区画を出さない / 届かないままなら録画（R-12）の回転発電機の段で気づく
                 if (state == null) return null;
-                return SpecialStateDetailReader.GearToElectric(state, generatorParam.MaxGeneratedPower);
+                return SpecialStateDetailReader.GearToElectric(state, UiNumberFormat.FromServerFloat(generatorParam.MaxGeneratedPower));
             }
 
             GearDetail ReadGear()
@@ -65,7 +66,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                     // silent-ok: 歯車でないブロックは歯車の状態を持たない / 歯車ブロックで出ないなら録画（R-12）の歯車の段で気づく
                     case GearDriveKind.Electric: return null;
                     case GearDriveKind.Generator: return SpecialStateDetailReader.Generator(gear);
-                    case GearDriveKind.Consumer: return SpecialStateDetailReader.Consumer(gear, drive.ConsumptionParam.GearConsumption.BaseRpm);
+                    case GearDriveKind.Consumer: return SpecialStateDetailReader.Consumer(gear, UiNumberFormat.FromServerFloat(drive.ConsumptionParam.GearConsumption.BaseRpm));
                     case GearDriveKind.InconsistentConsumer:
                         // マスタの食い違いは歯車行を出さず知らせる（Web の橋と同じ）
                         // A master mismatch omits the gear rows and is reported (same as the Web bridge)

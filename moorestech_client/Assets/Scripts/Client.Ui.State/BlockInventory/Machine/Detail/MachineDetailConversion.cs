@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Machine;
+using Client.Ui.State.Text;
 using Core.Master;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 using UnityEngine;
-using Client.Ui.State.Text;
 
 namespace Client.Ui.State.BlockInventory.Machine.Detail
 {

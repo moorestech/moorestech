@@ -70,6 +70,16 @@ namespace Client.Tests.Ui.Text
         }
 
         [Test]
+        public void サーバーfloatは9桁要る値でもWebと同じ文字になる()
+        {
+            // 最短表記が 9 桁の float。8 桁までで打ち切ると 10.138720512390137 のような長い桁が出る
+            // Floats whose shortest form needs 9 digits; stopping at 8 would print long tails like 10.138720512390137
+            Assert.AreEqual("12.2914095", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(12.291409492492676f)));
+            Assert.AreEqual("0.112309806", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(0.11230980604887009f)));
+            Assert.AreEqual("10.1387205", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(10.1387205f)));
+        }
+
+        [Test]
         public void サーバーfloatの小数1桁はWebと同じ丸めになる()
         {
             // 12.35f は 12.350000381 で「12.4」になるが、Web は 12.35（実体 12.3499…）を toFixed(1) して「12.3」

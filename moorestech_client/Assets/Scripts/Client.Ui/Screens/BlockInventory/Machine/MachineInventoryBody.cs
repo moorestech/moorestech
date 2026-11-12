@@ -7,10 +7,10 @@ using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.SlotCommands.Block;
+using Client.Ui.State.Text;
 using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
-using Client.Ui.State.Text;
 
 namespace Client.Ui.Screens.BlockInventory.Machine
 {

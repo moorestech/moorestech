@@ -4,10 +4,10 @@ using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Text;
+using Client.Ui.State.Text;
 using Game.Gear.Common;
 using Server.Protocol.PacketResponse;
 using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;
-using Client.Ui.State.Text;
 
 namespace Client.Ui.State.BlockInventory.Special.Source
 {

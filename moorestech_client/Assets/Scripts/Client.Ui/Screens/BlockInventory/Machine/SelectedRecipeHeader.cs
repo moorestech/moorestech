@@ -8,12 +8,12 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Tooltip;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.BlockInventory.Machine;
+using Client.Ui.State.Recipe.Logic;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Client.Ui.State.Recipe.Logic;
 
 namespace Client.Ui.Screens.BlockInventory.Machine
 {
