@@ -30,7 +30,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         // Builds only the run skeleton; every block cause is None here and gets evaluated once Y is final
         public static PlacementRun CalculateRun(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
-            var runPositions = PlacementRunPositionCalculator.Calculate(startPoint, endPoint, holdingBlockMasterElement.BlockSize);
+            // 刻みは向きで回した占有寸法にする。未回転寸法だと東西・上下向きで隙間や重なりが出る
+            // Step by the direction-rotated footprint; the unrotated size leaves gaps or overlaps when facing east/west or up/down
+            var rotatedFootprint = BlockPositionInfo.CalcBlockMaxPos(Vector3Int.zero, blockDirection, holdingBlockMasterElement.BlockSize) + Vector3Int.one;
+            var runPositions = PlacementRunPositionCalculator.Calculate(startPoint, endPoint, rotatedFootprint);
             var cells = CalcPlaceCells(runPositions.Positions);
             var blockCauses = new List<PlacementBlockCause>(cells.Count);
             for (var i = 0; i < cells.Count; i++) blockCauses.Add(PlacementBlockCause.None);
