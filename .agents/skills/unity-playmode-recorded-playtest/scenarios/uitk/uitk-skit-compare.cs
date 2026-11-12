@@ -14,7 +14,6 @@ using Client.Skit.Skit;
 using Client.Skit.UI;
 using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -118,13 +117,13 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         // Hover colours are absent from the reference captures, so shoot UITK only and check against the Web CSS values
         // store を直に動かすので UIState はゲーム画面のままでカーソルが固定され、ポインタが UI へ届かない。本番の選択肢は Story（カーソル解放）で出るので、撮る間だけ外す
         // Driving the store directly leaves the UIState on the game screen with the cursor locked, so the pointer never reaches the UI; real choices appear in Story (cursor free), so unlock only while shooting
-        p.Note($"ホバー前のカーソル lockState={UnityEngine.Cursor.lockState}");
-        UnityEngine.Cursor.lockState = CursorLockMode.None;
-        var enterCount = 0;
-        GameUiRoot.Instance.GetRootElement().Q<VisualElement>("skit-choice-route-b").RegisterCallback<PointerEnterEvent>(_ => enterCount++);
+        // 固定の正本 InputManager.IsCursorLocked と揃うよう、唯一の書き手 MouseCursorVisible で外して撮影後に戻す
+        // Unlock and restore through the only writer MouseCursorVisible so the lock source of truth InputManager.IsCursorLocked stays in step
+        var wasCursorLocked = InputManager.IsCursorLocked;
+        InputManager.MouseCursorVisible(true);
+        p.Note($"ホバー前のカーソル 固定={wasCursorLocked} → 解放後 固定={InputManager.IsCursorLocked} lockState={UnityEngine.Cursor.lockState}");
         await p.HoverUi("skit-choice-route-b");
         await p.WaitSeconds(0.3f);
-        p.Note($"PointerEnter の回数={enterCount}");
         NoteHover("skit-choice-route-b");
         await p.Screenshot($"{prefix}-uitk-skit-choice-hover");
         // 押したまま撮り、選ばないよう選択肢の外で離す
@@ -140,6 +139,9 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         await p.WaitSeconds(0.3f);
         await p.Screenshot($"{prefix}-uitk-skit-tool-hover");
         await p.HoverUi("blocking-skit");
+        InputManager.MouseCursorVisible(!wasCursorLocked);
+        p.Note($"撮影後のカーソル 固定={InputManager.IsCursorLocked} lockState={UnityEngine.Cursor.lockState}");
+        p.Assert(InputManager.IsCursorLocked == wasCursorLocked, "撮影後にカーソルの固定がホバー前へ戻る");
 
         store.SetTransitionVisible(true);
         await p.WaitSeconds(0.5f);
@@ -169,17 +171,16 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
         store.End();
     }
 
-    // ホバーの擬似状態・罫線の色・マウスの下の要素を記録する（ホバーの絵が変わらないときの切り分け）
-    // Record the hover pseudo-state, rule colour and the element under the mouse (to triage a hover shot that does not change)
+    // ホバーの罫線の色・マウスの下の要素を記録する（ホバーの絵が変わらないときの切り分け）
+    // Record the hover rule colour and the element under the mouse (to triage a hover shot that does not change)
     void NoteHover(string testid)
     {
         var root = GameUiRoot.Instance.GetRootElement();
         var button = root.Q<VisualElement>(testid);
         var rule = button.Q<VisualElement>(className: "skit-choice__rule");
-        var pseudo = typeof(VisualElement).GetProperty("pseudoStates", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(button);
         var mouse = Mouse.current.position.ReadValue();
         var picked = root.panel.Pick(RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(mouse.x, Screen.height - mouse.y)));
-        p.Note($"ホバー {testid}: pseudo={pseudo} 罫線={rule.resolvedStyle.borderTopColor} mouse={mouse} 箱={button.worldBound} 拾う={picked?.name}");
+        p.Note($"ホバー {testid}: 罫線={rule.resolvedStyle.borderTopColor} mouse={mouse} 箱={button.worldBound} 拾う={picked?.name}");
     }
 
     #endregion
