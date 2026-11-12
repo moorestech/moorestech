@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,6 +15,7 @@ namespace Client.Ui.Components.Slots
         private static readonly string[] BevelWidthProperties = { "--slot-frame-bevel-1", "--slot-frame-bevel-2", "--slot-frame-bevel-3" };
 
         private readonly VisualElement[] _bands = new VisualElement[BevelWidthProperties.Length];
+        private bool _scaleUnreadableReported;
 
         public SlotFrameRing()
         {
@@ -48,7 +50,7 @@ namespace Client.Ui.Components.Slots
                 // 全層を読み切ってから書く。途中で読めない層があっても帯が新旧混在で残らない
                 // Read every layer before writing so an unreadable layer never leaves bands half old, half new
                 if (!TryReadBevelWidths(out var widths)) return;
-                var pixelsPerPoint = scaledPixelsPerPoint;
+                if (!TryReadScale(out var pixelsPerPoint)) return;
                 var rawCovered = 0f;
                 var snappedCovered = 0f;
                 for (var i = 0; i < _bands.Length; i++)
@@ -72,6 +74,21 @@ namespace Client.Ui.Components.Slots
                     rawCovered = Mathf.Max(rawCovered, width);
                     snappedCovered = snappedOuter;
                 }
+            }
+
+            bool TryReadScale(out float scale)
+            {
+                // 倍率は StageScaleMeasure だけが読む。読めない間は前の形のまま、入ったときに 1 回だけ知らせ、回復で旗を戻す
+                // Only StageScaleMeasure reads the scale; keep the previous shape while unreadable, report once on entry, and clear the flag on recovery
+                if (StageScaleMeasure.TryRead(panel, out scale))
+                {
+                    _scaleUnreadableReported = false;
+                    return true;
+                }
+                if (_scaleUnreadableReported) return false;
+                _scaleUnreadableReported = true;
+                Debug.LogError("[SlotFrameRing] stage scale is unreadable; the bevel bands keep their previous shape");
+                return false;
             }
 
             bool TryReadBevelWidths(out float[] widths)

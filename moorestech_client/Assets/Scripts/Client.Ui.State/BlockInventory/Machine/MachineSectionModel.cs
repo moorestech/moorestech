@@ -4,11 +4,13 @@ using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Diagnostics;
 using Client.Ui.State.Recipe.Source;
 using Game.Block.Interface.MachineUpgrade;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.State.BlockInventory.Machine
@@ -25,6 +27,7 @@ namespace Client.Ui.State.BlockInventory.Machine
         private readonly IModuleSlotStackLimitLookup _stackLimit;
         private readonly IFluidReplicaReader _fluidReplica;
         private readonly ReactiveProperty<SectionContent<MachineSectionViewModel>> _current = new(SectionContent<MachineSectionViewModel>.Absent);
+        private readonly AnomalyReportGate _gearAnomalyGate = new();
         private MachineRecipeCatalog _catalog = MachineRecipeCatalog.Empty;
 
         public IReadOnlyReactiveProperty<SectionContent<MachineSectionViewModel>> Current => _current;
@@ -74,15 +77,18 @@ namespace Client.Ui.State.BlockInventory.Machine
                 return SectionContent<MachineSectionViewModel>.Present(MachineSectionViewModelBuilder.Build(panel, detail, panel.ItemSlots, fluids, _catalog, _stackLimit.CurrentStackLimit));
             }
 
-            static bool TryReadMachine(BlockGameObject block, out MachineDetail detail)
+            bool TryReadMachine(BlockGameObject block, out MachineDetail detail)
             {
                 detail = null;
                 var common = block.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
                 var machine = block.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
                 // silent-ok: 2 つの状態詳細と機械の param が揃うブロックだけが機械（Web ホストと同じ判定） / 区画が出ないことを並べ比べで見る
                 if (common == null || machine == null || block.BlockMasterElement.BlockParam is not IMachineParam param) return false;
-                var gearDriven = GearDriveConversion.IsGearDriven(block, param);
-                return MachineDetailConversion.TryBuild(common, machine, param, gearDriven, out detail);
+                // 歯車駆動の異常は、同じ間は 1 回だけ出す
+                // Report a gear-drive anomaly once while it persists
+                var gear = GearDriveConversion.Read(block, param);
+                if (_gearAnomalyGate.ShouldReport(gear.Anomaly)) Debug.LogError(gear.Anomaly);
+                return MachineDetailConversion.TryBuild(common, machine, param, gear.IsGearDriven, out detail);
             }
 
             #endregion

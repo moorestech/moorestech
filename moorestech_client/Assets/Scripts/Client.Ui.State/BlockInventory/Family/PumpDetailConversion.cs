@@ -3,19 +3,19 @@ using Client.Ui.State.BlockInventory.Machine.Detail;
 using Core.Master;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Family
 {
     /// <summary>
     /// ポンプの詳細を状態詳細と param から組む
-    /// Builds the pump detail from state detail and param; an unknown param logs an error instead of throwing
+    /// Builds the pump detail from state detail and param; pure: an unknown state or param is returned as an anomaly text, not thrown or logged (the Model reports it once)
     /// </summary>
     public static class PumpDetailConversion
     {
-        public static bool TryBuild(PumpBlockStateDetail pump, IBlockParam param, CommonMachineBlockStateDetail common, out PumpDetail detail)
+        public static bool TryBuild(PumpBlockStateDetail pump, IBlockParam param, CommonMachineBlockStateDetail common, out PumpDetail detail, out string anomaly)
         {
             detail = null;
+            anomaly = null;
             // 種別の正はマスタの param
             // The master's param settles the kind, never common's presence
             switch (param)
@@ -25,7 +25,7 @@ namespace Client.Ui.State.BlockInventory.Family
                     if (common == null) return false;
                     if (!MachineStateTypeConversion.TryConvert(common.CurrentStateType, out var state))
                     {
-                        Debug.LogError($"[PumpDetailConversion] unknown CurrentStateType: '{common.CurrentStateType}'");
+                        anomaly = $"[PumpDetailConversion] unknown CurrentStateType: '{common.CurrentStateType}'";
                         return false;
                     }
                     detail = new ElectricPumpDetail(state, common.CurrentPower, common.RequestPower, Fluids());
@@ -34,9 +34,9 @@ namespace Client.Ui.State.BlockInventory.Family
                     detail = new GearPumpDetail(Fluids());
                     return true;
                 default:
-                    // 未知の param は投げず開発者ログへ
-                    // Unknown param is a code inconsistency; log it instead of throwing so the subscription survives
-                    Debug.LogError($"[PumpDetailConversion] unsupported pump param: {param?.GetType().Name}");
+                    // 未知の param は投げず異常として返す
+                    // An unknown param is a code inconsistency; return it as an anomaly instead of throwing so the subscription survives
+                    anomaly = $"[PumpDetailConversion] unsupported pump param: {param?.GetType().Name}";
                     return false;
             }
 

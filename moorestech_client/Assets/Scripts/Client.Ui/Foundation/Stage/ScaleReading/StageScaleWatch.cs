@@ -45,6 +45,9 @@ namespace Client.Ui.Foundation.Stage.ScaleReading
                 Debug.LogError($"[StageScale] stage scale is unreadable; keeping {_scale.Value:0.###}");
                 return;
             }
+            // 読めたら旗を戻し、次に読めなくなったときもう一度知らせる
+            // Once readable, clear the flag so the next unreadable spell is reported again
+            _unreadableReported = false;
             if (Mathf.Approximately(_scale.Value, scale)) return;
 
             // 解像度の変更は稀なので、変化を開発者のログに残す（録画の確認にも使う）

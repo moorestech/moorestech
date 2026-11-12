@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Ui.State.Diagnostics;
 using Client.Ui.State.Train.Logic;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
@@ -14,6 +15,7 @@ namespace Client.Ui.State.Train.Timetable
     public sealed class TrainTimetableReadyDataFactory
     {
         private readonly HashSet<Vector3Int> _lastWarnedMissingStationPositions = new();
+        private readonly AnomalyReportGate _unknownSideGate = new();
 
         public bool TryCreate(TrainTimetableSnapshot timetable, IReadOnlyList<TrainTimetableStation> stations, out TrainTimetableReadyData data)
         {
@@ -29,12 +31,16 @@ namespace Client.Ui.State.Train.Timetable
             {
                 if (!Enum.IsDefined(typeof(StationNodeSide), stop.Side))
                 {
-                    Debug.LogError($"[TrainTimetableModel] discarding timetable with unknown side: {timetable.TrainUnitInstanceId}");
+                    // 同じ時刻表を捨てている間は 1 回だけ出す
+                    // Report once while the same timetable keeps being discarded
+                    var unknownSide = $"[TrainTimetableModel] discarding timetable with unknown side: {timetable.TrainUnitInstanceId}";
+                    if (_unknownSideGate.ShouldReport(unknownSide)) Debug.LogError(unknownSide);
                     return false;
                 }
                 if (!stationNames.TryGetValue(stop.StationPosition, out var name)) missingStationPositions.Add(stop.StationPosition);
                 stops.Add(new TimetableEditStop(stop.StationPosition, name ?? string.Empty, stop.Side));
             }
+            _unknownSideGate.ShouldReport(null);
             WarnMissingStationsWhenChanged(timetable.TrainUnitInstanceId, missingStationPositions);
 
             data = new TrainTimetableReadyData(timetable.TrainUnitInstanceId, timetable.IsAutoRun, timetable.CurrentIndex, stops, stations);

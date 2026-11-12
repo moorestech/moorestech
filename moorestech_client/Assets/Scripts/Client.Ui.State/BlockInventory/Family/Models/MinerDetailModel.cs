@@ -1,8 +1,10 @@
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockInventory.Common;
+using Client.Ui.State.Diagnostics;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.State.BlockInventory.Family.Models
@@ -14,6 +16,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
     public sealed class MinerDetailModel : IMinerDetailModel, IInitializable
     {
         private readonly OpenBlockDetailTracker _tracker;
+        private readonly AnomalyReportGate _gearAnomalyGate = new();
         private readonly ReactiveProperty<SectionContent<MinerDetail>> _current = new(SectionContent<MinerDetail>.Absent);
 
         public IReadOnlyReactiveProperty<SectionContent<MinerDetail>> Current => _current;
@@ -51,8 +54,11 @@ namespace Client.Ui.State.BlockInventory.Family.Models
                 _current.Value = SectionContent<MinerDetail>.Absent;
                 return;
             }
-            var gearDriven = GearDriveConversion.IsGearDriven(block, param);
-            _current.Value = SectionContent<MinerDetail>.Present(FamilyDetailConversion.Miner(miner, common, minerParam, gearDriven));
+            // 歯車駆動の異常は、同じ間は 1 回だけ出す
+            // Report a gear-drive anomaly once while it persists
+            var gear = GearDriveConversion.Read(block, param);
+            if (_gearAnomalyGate.ShouldReport(gear.Anomaly)) Debug.LogError(gear.Anomaly);
+            _current.Value = SectionContent<MinerDetail>.Present(FamilyDetailConversion.Miner(miner, common, minerParam, gear.IsGearDriven));
         }
     }
 }

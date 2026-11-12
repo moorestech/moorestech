@@ -1,8 +1,10 @@
+using System.Text.RegularExpressions;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Ui.Screens.CursorTooltip;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.CursorTooltip
@@ -92,6 +94,31 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             simulate.FrameUpdate();
             Assert.AreEqual(106f, face.worldBound.xMin, 0.5f);
             Assert.AreEqual(156f, face.worldBound.yMin, 0.5f);
+        }
+
+        [Test]
+        public void 倍率が正でない間のErrorは入ったとき1回で正に戻ると次はまた出る()
+        {
+            _screen.MovePointer(new Vector2(200f, 300f));
+            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.WorldTarget)));
+            simulate.FrameUpdate();
+
+            // 入ったときに 1 回、続く再配置では出ない
+            // Reported once on entry, not on the following re-placements
+            LogAssert.Expect(LogType.Error, new Regex("stage scale is not positive"));
+            _screen.SetScale(0f);
+            simulate.FrameUpdate();
+            _screen.MovePointer(new Vector2(250f, 300f));
+            simulate.FrameUpdate();
+            LogAssert.NoUnexpectedReceived();
+
+            // 正に戻って旗が戻り、再び 0 になればまた出る
+            // Turning positive clears the flag, so a new zero is reported again
+            _screen.SetScale(1f);
+            simulate.FrameUpdate();
+            LogAssert.Expect(LogType.Error, new Regex("stage scale is not positive"));
+            _screen.SetScale(0f);
+            simulate.FrameUpdate();
         }
     }
 }
