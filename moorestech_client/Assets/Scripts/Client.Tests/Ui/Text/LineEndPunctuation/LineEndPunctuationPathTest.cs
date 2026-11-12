@@ -100,6 +100,43 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
         }
 
         [Test]
+        public void 行の中の左寄せの包みに入れても原文と表示文を往復しない()
+        {
+            // 包みは flex-basis を行の幅（AtMost 300）で、縮めた後を AtMost 230 で測られる。表示文の間に flex-basis の測りが来ても測り直さない
+            // The wrapper is measured for its flex-basis at the row width (AtMost 300) and after shrinking at AtMost 230; a flex-basis pass during the display text must not restart
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.width = 300f;
+            var wrapper = new VisualElement();
+            wrapper.style.alignItems = Align.FlexStart;
+            wrapper.style.flexShrink = 1f;
+            row.Add(wrapper);
+            row.Add(FixedSibling(70f));
+            var label = CreateLocalized(ReferenceSentence, 0f);
+            label.style.position = Position.Relative;
+            wrapper.Add(label);
+            AssertSettlesInTwoLines(label, Attach(row));
+        }
+
+        [Test]
+        public void 兄弟で幅の決まる包みに伸ばされてもChromeと同じ詰めた2行になる()
+        {
+            // 包みは兄弟の 225 で決まり原文の最長行（221）より広い。Chrome の fit-content は詰めた字で包みを列の幅 230 まで広げる
+            // The wrapper is set by its 225 sibling, wider than the source's longest line (221); Chrome's fit-content widens it to the 230 column with trimmed glyphs
+            var column = new VisualElement();
+            column.style.width = ReferenceWidth;
+            column.style.alignItems = Align.FlexStart;
+            var wrapper = new VisualElement();
+            column.Add(wrapper);
+            var label = CreateLocalized(ReferenceSentence, 0f);
+            label.style.position = Position.Relative;
+            wrapper.Add(label);
+            wrapper.Add(FixedSibling(225f));
+            AssertSettlesInTwoLines(label, Attach(column));
+            Assert.LessOrEqual(label.layout.width, ReferenceWidth + 0.5f, label.text);
+        }
+
+        [Test]
         public void 大きさの変わらない字間の変化でも測り直す()
         {
             // 幅も高さも固定のラベルは GeometryChangedEvent が来ないので、スタイルの解決で拾う（text--sm は行の箱のつまみを持つ）
@@ -114,6 +151,35 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             label.style.letterSpacing = 9f;
             Frames();
             Assert.Greater(label.text.Split('\n').Length - 1, 1, label.text);
+        }
+
+        // 60 フレームのうち後半 30 フレームで文が替わらず、詰めた 2 行に落ち着く（Attach の 6 フレームの後から数える）
+        // No text swap in the last 30 of 60 frames and settled in the trimmed 2 lines (counted after Attach's 6 frames)
+        private void AssertSettlesInTwoLines(LocalizedLabel label, VisualElement mounted)
+        {
+            var swapsInLastHalf = 0;
+            var lastText = label.text;
+            for (var frame = 0; frame < 60; frame++)
+            {
+                simulate.FrameUpdate();
+                if (label.text == lastText) continue;
+                if (frame >= 30) swapsInLastHalf++;
+                lastText = label.text;
+            }
+            Assert.AreEqual(0, swapsInLastHalf, label.text);
+            AssertShowsDisplayText(label);
+            var height = label.layout.height;
+            mounted.RemoveFromHierarchy();
+            Assert.AreEqual(LineHeight(2), height, 0.5f, label.text);
+        }
+
+        private static VisualElement FixedSibling(float width)
+        {
+            var sibling = new VisualElement();
+            sibling.style.width = width;
+            sibling.style.height = 4f;
+            sibling.style.flexShrink = 0f;
+            return sibling;
         }
 
         // 幅 230px の列に左寄せで置き、ラベル自身は幅を持たない

@@ -16,7 +16,6 @@ namespace Client.Ui.Foundation.Text
     internal class LineEndPunctuationTrimmer
     {
         private const int TicksBeforeReading = 2;
-        private const float WidthTolerance = 0.5f;
 
         private readonly Label _label;
         private readonly LineEndPunctuationLayoutWidth _layoutWidth = new();
@@ -72,6 +71,7 @@ namespace Client.Ui.Foundation.Text
             _generation++;
             _measurer?.End();
             RestoreInlineWhiteSpace();
+            _layoutWidth.ForgetConstraints();
             _label.text = _prefix + _source;
             _phase = LineEndPunctuationTrim.CanTrim(_source) ? TrimPhase.WaitingForLayout : TrimPhase.Plain;
             if (_phase != TrimPhase.WaitingForLayout) return;
@@ -99,7 +99,7 @@ namespace Client.Ui.Foundation.Text
             if (_label.panel == null || !(width > 0f)) return;
 
             _phase = TrimPhase.Measuring;
-            _measuredWidth = _layoutWidth.ChooseMeasureWidth(width);
+            _measuredWidth = _layoutWidth.ChooseMeasureWidth(_label);
             _measuredStyle = LineEndTextStyle.Read(_label);
             // 測り役は詰める文を初めて測るときに作る（詰める文を持たないラベルには作らない）
             // Create the measurer on the first trimmable text (labels that never hold one never get it)
@@ -161,9 +161,7 @@ namespace Client.Ui.Foundation.Text
             // silent-ok: 非表示の祖先の下で幅 0 になった間は今の表示を保つ / 表示し直した幅が違えば次の GeometryChangedEvent で測り直す
             var width = _label.contentRect.width;
             if (!(width > 0f)) return;
-            // 制約の幅で測るラベルは自分の箱の幅が測った幅と違って当然なので、制約の変化（ToSourceSize）だけで測り直す
-            // A label measured at its constraint naturally differs from its own box width, so only a constraint change (ToSourceSize) re-measures it
-            var widthChanged = !_layoutWidth.FollowsConstraint && Mathf.Abs(width - _measuredWidth) > WidthTolerance;
+            var widthChanged = _layoutWidth.NeedsRemeasureForBoxWidth(width, _measuredWidth);
             if (!widthChanged && LineEndTextStyle.Read(_label).SameAs(_measuredStyle)) return;
             Restart();
         }

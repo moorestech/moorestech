@@ -25,17 +25,27 @@ namespace Client.Ui.Foundation.Text
         private float _lastSourceMeasuredWidth;
         private (VisualElement.MeasureMode, float) _measuredKey;
         private float _reportedDisplayWidth;
+        private bool _followsStretchedBox;
+        private bool _stretchedFollowRefused;
 
         // 受けた制約の幅で測っている（幅を内容で決めるラベル）。このときラベルの箱の幅の変化では測り直さない
         // Measuring at the constraint width (content-sized label); the label's own box width changes then do not trigger a re-measure
         public bool FollowsConstraint { get; private set; }
 
-        // 原文が替わったら前の原文の幅を捨てる
-        // A new source discards the widths measured with the previous one
+        // 原文が替わったら前の原文の測りを捨てる
+        // A new source discards the measures taken with the previous one
         public void ForgetSource()
         {
-            _sourceWidths.Clear();
+            ForgetConstraints();
             _hasLastSourceMeasure = false;
+            _stretchedFollowRefused = false;
+        }
+
+        // 測り直す前に前の配置で覚えた制約を捨てる（残すと親の幅が変わった後も古い制約の幅を返し、測り直さない）
+        // Discard the constraints remembered from the previous layout before re-measuring (kept, they would answer for a parent that has since resized)
+        public void ForgetConstraints()
+        {
+            _sourceWidths.Clear();
         }
 
         // 原文を描いている間の測りを覚える
@@ -50,18 +60,45 @@ namespace Client.Ui.Foundation.Text
             _lastSourceMeasuredWidth = measured.x;
         }
 
-        // 最後の原文の測りが AtMost で、その結果がいまの幅なら制約の幅で、そうでなければ箱の幅で測る
-        // Measure at the constraint when the last source measure was AtMost and produced the current width; otherwise at the box width
-        public float ChooseMeasureWidth(float contentWidth)
+        // 最後の原文の測りが AtMost で、その結果がいまの幅なら制約の幅で測る。縦の並びに伸ばされて原文の最長行より広い幅なら、伸ばした包みが受けた制約の幅で測る。どちらでもなければ箱の幅で測る
+        // Measure at the constraint when the last source measure was AtMost and produced the current width, at the wrapper's constraint when stretched in a column wider than the source's longest line, otherwise at the box width
+        public float ChooseMeasureWidth(Label label)
         {
-            FollowsConstraint = _hasLastSourceMeasure
+            var contentWidth = label.contentRect.width;
+            var lastAtMostUnderBox = _hasLastSourceMeasure
                 && _lastSourceKey.Item1 == VisualElement.MeasureMode.AtMost
-                && Mathf.Abs(_lastSourceMeasuredWidth - contentWidth) <= WidthTolerance
+                && _lastSourceMeasuredWidth <= contentWidth + WidthTolerance
                 && _lastSourceDesiredWidth > contentWidth + WidthTolerance;
+            var shrunkToSource = lastAtMostUnderBox && Mathf.Abs(_lastSourceMeasuredWidth - contentWidth) <= WidthTolerance;
+            _followsStretchedBox = lastAtMostUnderBox && !shrunkToSource && !_stretchedFollowRefused && IsStretchedInColumn(label);
+            FollowsConstraint = shrunkToSource || _followsStretchedBox;
             if (!FollowsConstraint) return contentWidth;
             _measuredKey = _lastSourceKey;
             _reportedDisplayWidth = _lastSourceDesiredWidth;
             return _lastSourceDesiredWidth;
+        }
+
+        // 箱の幅の変化で測り直すか。制約の幅で測るラベルは箱の幅が測った幅と違って当然なので測り直さない。ただし伸ばされた幅で測ったのに包みが返した幅まで広がらなければ、同じ原文の間は箱の幅で測り直す
+        // Whether a box width change re-measures; constraint-measured labels ignore it, except a stretched-box follow whose wrapper did not widen to the reported width, which falls back to the box width for this source
+        public bool NeedsRemeasureForBoxWidth(float boxWidth, float measuredWidth)
+        {
+            if (!FollowsConstraint) return Mathf.Abs(boxWidth - measuredWidth) > WidthTolerance;
+            if (!_followsStretchedBox || boxWidth >= _reportedDisplayWidth - WidthTolerance) return false;
+            Debug.LogWarning($"[LineEndPunctuation] wrapper stayed {boxWidth:0.#}px under the reported {_reportedDisplayWidth:0.#}px; re-measuring at the box width");
+            _stretchedFollowRefused = true;
+            return true;
+        }
+
+        // 縦の並びの中で横に伸ばされる（Chrome では包みの fit-content が詰めた字で決まり、伸ばされた子もその幅になる）
+        // Stretched across a column (in Chrome the wrapper's fit-content is decided with trimmed glyphs and the stretched child follows it)
+        private static bool IsStretchedInColumn(Label label)
+        {
+            var parent = label.hierarchy.parent;
+            if (parent == null) return false;
+            var direction = parent.resolvedStyle.flexDirection;
+            if (direction != FlexDirection.Column && direction != FlexDirection.ColumnReverse) return false;
+            var align = label.resolvedStyle.alignSelf == Align.Auto ? parent.resolvedStyle.alignItems : label.resolvedStyle.alignSelf;
+            return align == Align.Stretch;
         }
 
         // 表示文の間に配置へ返す大きさ。測ったときと違う制約が来たら needsRestart を立てる（原文に戻して測り直す）
@@ -79,10 +116,13 @@ namespace Client.Ui.Foundation.Text
                     _reportedDisplayWidth = Mathf.Min(measured.x, desiredWidth);
                     return new Vector2(_reportedDisplayWidth, measured.y);
                 }
-                if (widthMode == VisualElement.MeasureMode.Undefined) return _sourceWidths.TryGetValue(key, out var maxContent) ? new Vector2(maxContent, measured.y) : measured;
                 // 返した幅で高さを測り直す Exactly は同じ配置の続き
                 // An Exactly pass at the reported width is the same layout re-measuring the height
                 if (widthMode == VisualElement.MeasureMode.Exactly && Mathf.Abs(desiredWidth - _reportedDisplayWidth) <= WidthTolerance) return measured;
+                // 原文の間に覚えた別の制約（包みの flex-basis の測り等）は原文の幅を返す。測り直すと原文と表示文を往復し続ける
+                // Another constraint seen with the source (e.g. a wrapper's flex-basis pass) gets the source width; re-measuring would swap source and display forever
+                if (widthMode != VisualElement.MeasureMode.Exactly && _sourceWidths.TryGetValue(key, out var seenWidth)) return new Vector2(seenWidth, measured.y);
+                if (widthMode == VisualElement.MeasureMode.Undefined) return measured;
                 needsRestart = true;
                 return measured;
             }
