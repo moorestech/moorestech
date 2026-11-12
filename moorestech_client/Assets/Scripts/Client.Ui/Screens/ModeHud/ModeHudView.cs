@@ -47,10 +47,6 @@ namespace Client.Ui.Screens.ModeHud
                     throw new System.ArgumentOutOfRangeException(nameof(viewModel), viewModel, "unknown ModeHud view model");
             }
 
-            // 帯は層の中で前へ
-            // Bring the bands to the front of the layer
-            if (viewModel is not ModeHudHidden) BringToFront();
-
             #region Internal
 
             void MountOnly(params VisualElement[] shown)

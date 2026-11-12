@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             View.RemoveFromHierarchy();
             layers.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(View);
             _hotbar = new HotbarHudView(HotbarCommands, HotbarTestPresentation.Create(), Toaster);
-            layers.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_hotbar);
+            layers.GetLayer(HotbarHudPresenter.HostLayer, HotbarHudPresenter.HostFamily).Add(_hotbar);
             _hotbar.Render(HotbarViewModelSamples.WebFixture());
             OpenMenu(BuildMenuSamples.Create());
         }
