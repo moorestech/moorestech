@@ -43,7 +43,6 @@ namespace Client.Ui.Screens.Notification
             pickingMode = PickingMode.Ignore;
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
@@ -64,7 +63,6 @@ namespace Client.Ui.Screens.Notification
             foreach (var row in viewModel.Rows) ShowRow(row);
 
             #region Internal
-
             void ShowRow(NotificationRow row)
             {
                 if (_shownRows.TryGetValue(row.Id, out var shown))
@@ -100,7 +98,6 @@ namespace Client.Ui.Screens.Notification
                 _shownRows.Remove(id);
                 }
             }
-
             #endregion
         }
 
