@@ -24,7 +24,7 @@
 | R-4 | UITK 側で DSL の Web ロケータが一度も要素を返さない（ログ） | R-3 の 6 本と R-10 の段階 5 の録画の GameUi の回のそれぞれで、`uloop get-logs --search-text "[PlaytestUi]"` に `[PlaytestUi] locator reads only the GameUi UI` が 1 行以上・`[PlaytestUi] Web` で始まる行が 0。L0 `SwitchedUiElementLocatorTest` が PASS（選んだ系だけを読む構造の固定）。証拠を `done.md` の表に 1 本 1 行 |
 | R-5 | `TutorialAnchorCoveragePending.cs` が空 | S5-challenge の後で `Owners` が 0 件であることを確かめてからファイルを消し、`TutorialAnchorCoverageTest` の 1 本目を「全てのアンカーIDはUITKで印が付いている」（未移植の表の分岐を外す）に書き換えて PASS |
 | R-6 | 束 5 の暗転と G1 全束 0 | 台帳「## 束」の束 5 が `暗転`・起点 10 桁。`python3 .github/scripts/check-uitk-web-follow.py --base origin/master --head HEAD` の出力で束 1〜5 の全部が「未記帳 0 件」・違反なし。取り込み後も同じ。PR の `UITK Web follow gate (G1)` が pass |
-| R-7 | 台帳の全行が UITK で作られている | 台帳「## 行」の全行（起草時 49 行）について、UITK 側の実体（`Client.Ui`・`Client.Ui.State`・`Client.Playtest` のディレクトリかファイル）か「作らない（理由: 設計書 A-n・disposition の行）」を `done.md`「台帳の照合」の表に 1 行 1 行で書き、空欄 0。実体のパスは `git ls-files` で実在を確かめる |
+| R-7 | 台帳の全行が UITK で作られている | 台帳「## 行」の全行（起草時 48 行）について、UITK 側の実体（`Client.Ui`・`Client.Ui.State`・`Client.Playtest` のディレクトリかファイル）か「作らない（理由: 設計書 A-n・disposition の行）」を `done.md`「台帳の照合」の表に 1 行 1 行で書き、空欄 0。実体のパスは `git ls-files` で実在を確かめる |
 | R-8 | 全束の突き合わせ差分 0 | `node tools/uitk/test-name-parity.mjs --bundle all` の終了コード 0。束 1〜5 の全部で「写す予定 0 / 未対応 0」。`docs/uitk/disposition.md`「## 突き合わせの記録」に束ごとの 5 行 |
 | R-9 | 束 1 の写す予定 16 件を NUnit へ写す（bd moorestech-albof.21） | Task 3 の NUnit 16 本が PASS し、各テストの直前に元の Web テスト 1 件につき 1 行の `/// <web-test>`。disposition の束 1 の `写す予定` 16 行を消す |
 | R-10 | 段階 5 に触る録画（plan §2.0 の 2） | GameUi で `stage5/uitk-challenge-list.cs`・`stage5/uitk-challenge-hud-resident.cs`（S5-challenge）・`stage5/uitk-event-language-gate.sh`（S5-gate）・`misc/walk-while-menus-open.cs`・`misc/ui-state-transition-matrix.cs`・`uitk-tutorial-cues.cs`（段階 5 のチャレンジ一覧と枠に触る既存）が `Success: true`。Web 側は Task 10 Step 4 の列挙で出た Web の録画を `--ui-system Web` で流し、段階 5 の前の合否と比べて退行 0（CEF が出なければ RendererUnavailable を証拠に「未確認」） |
@@ -47,7 +47,7 @@
 
 - AGENTS.md 全部（1 ファイル 200 行未満・1 ディレクトリ 10 ファイル・partial と `Func<>` の禁止・try-catch は外部境界だけ・イベントは UniRx・2 行コメント〈日本語 1 行→英語 1 行〉・`#region Internal` はメソッド内のローカル関数だけ・デフォルト引数禁止・.meta を手で作らない・Prefab/シーンを手で編集しない・失敗の分岐は理由をログへ）
 - Mac mini で同時に動かす Unity Editor は全体で 1 本（このレーンの worktree の 1 本。起動・停止の前に `moores-wt status` で持ち主を確かめる）。subagent は Editor を起動しない。並列が要るとき（test-all・Web 側の録画）は Windows の `~/bin/winunity`（push 済みブランチ。結果は `~/.cache/winunity/runs/<runId>/`）
-- 出展モードの録画（ラダー 6・S5-gate の録画・並べ比べ）は Mac の Editor で運転役から流す（`winunity play` は運転役の武装を挟めない。D-8）
+- 出展モードの録画（ラダー 6・S5-gate の録画・並べ比べ）は Mac の Editor で運転役から流す（`winunity play` は運転役の武装を挟めない。D-8）。運転役は後始末で全体スイッチを戻さないので、運転役の後の Editor は流した系のまま（`Web` で流した後の次の Play は Web で起動する）。次の録画は必ず `UiSystemEditorSwitch.Set(...)` を済ませてから流す
 - 録画シナリオは PlayMode を止めた状態で、運転役か `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'` の後に `run-scenario.sh` を呼ぶ。`run-scenario.sh` が初回 "already playing" で終わったら 1 回だけ投入し直す（bd moorestech-trfka）。シナリオは `IgnoreFocus`・`EnableDevice` を入れる（前例どおり）
 - ラダー 1 は PlayMode の前に Editor のプロセスへ `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` を立てる（`uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE", "http://127.0.0.1:9"); return System.Environment.GetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE");'`。前例 F1。立っていないとシナリオが送信前に throw する）
 - 録画 mp4・`PlaytestResults/`・TestResults xml・撮影 PNG は検証後に消す（報告ページへ載せる分は先に載せる）。テストで作ったワールドは `list-work-saves.sh` で探して消す。`.superpowers/` はコミットしない
@@ -192,9 +192,9 @@ moores-wt status
 
 ```bash
 grep -n "束 5.*起点\|暗転の起点" ../moorestech_logs/harness/uitk/conductor.md | tail -3
-for b in s5-challenge s5-gate s5-crosscut; do m=$(git log origin/feature/uitk --merges --format=%H --grep "uitk-lane/$b" | head -1); echo "$b $(git merge-base ${m}^2 origin/master | cut -c1-10)"; done
+for b in s5-challenge s5-gate s5-crosscut; do m=$(git log origin/feature/uitk --merges --format=%H --grep "uitk-lane/$b" | head -1); first=$(git rev-list --first-parent ${m}^2 --not ${m}^1 | tail -1); echo "$b first=$(echo $first | cut -c1-10) $(git merge-base ${first}^ origin/master | cut -c1-10)"; done
 ```
-Expected: 指揮の記録に束 5 の起点があればそれを使う。無ければ 3 行の master 側の点のうち最も古いもの（S5 の 3 レーンが分かれた時点で取り込み済みの master。台帳「束のレーンを始めるとき」の規則。前例 S2-ladder D-5・S3-ladder D-2）。起草時の見込みは `0e81bbe3c3`。どちらを使ったかと 3 行を `done.md`「証拠」に書き、台帳の束 5 の行を `| 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | 暗転 | <起点> | \`uitk-challenge-gate\` |` にする（中身と物差しの列はそのまま）
+Expected: 指揮の記録に束 5 の起点があればそれを使う。無ければ 3 行の master 側の点のうち最も古いもの（各レーンの最初のコミットの親、つまりレーンが分かれた時点で取り込み済みの master。台帳「束のレーンを始めるとき」の規則。前例 S2-ladder D-5・S3-ladder D-2）。レーンの先端（`${m}^2`）で merge-base を取ると、レーンの途中で `feature/uitk` を取り込んだときに取り込み後の master が返り、その間の束 5 の Web の変更が G1 から漏れるので使わない。迷ったら古い側を採る（古い起点は記帳が増えるだけで漏れない）。起草時の見込みは `0e81bbe3c3`。どちらを使ったかと 3 行を `done.md`「証拠」に書き、台帳の束 5 の行を `| 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | 暗転 | <起点> | \`uitk-challenge-gate\` |` にする（中身と物差しの列はそのまま）
 
 - [ ] **Step 2: G1 を回して記帳する**
 
@@ -281,7 +281,7 @@ Expected: 参照は `TutorialAnchorCoverageTest.cs` の 2 か所と定義だけ�
             #endregion
         }
 ```
-`TutorialAnchorCoveragePending.cs` をまだ消さずに書き換えだけで流して、新しいテストが PASS することを見る（印が全部あるので PASS）。対照として、`var marked = MarkedAnchorIds();` の次に `marked.Remove(AnchorIds.ChallengePanel);` の 1 行を一時に足して流し、FAIL（メッセージに `challenge-panel` が並ぶ）を見てからその行を消す（コミットしない）:
+`TutorialAnchorCoveragePending.cs` をまだ消さずに書き換えだけで流して、新しいテストが PASS することを見る（印が全部あるので PASS）。対照として、`var marked = MarkedAnchorIds();` の次に `marked.Remove(AnchorIds.ChallengePanel);` の 1 行を一時に足して流し、FAIL（メッセージに `AnchorIds.ChallengePanel` の値 `challenge.panel` が並ぶ。`AnchorIds.cs:24`）を見てからその行を消す（コミットしない）:
 
 ```bash
 uloop compile --project-path ./moorestech_client
@@ -1230,7 +1230,7 @@ Expected: exit=1。件数は約 329。`challenge.spec`・`challengeLogic`・`eve
 
 - [ ] **Step 3: 1 件ずつ処遇するファイル**
 
-次のファイルは 1 件ずつ見る。各 Web テストの本文（`moorestech_web/webui/<file>`）と候補の NUnit を読み、同じことを主張していれば候補のメソッドの直前に `/// <web-test file="<file>"><Web のテスト名そのまま></web-test>` を足す。主張していなければ、UITK に挙動があるなら同じディレクトリの既存クラスへ NUnit を足し（200 行を超えるなら新しいクラス）、UITK に無ければ「## 処遇」に 1 件 1 行で `捨てる`（理由）を書く:
+次のファイルは 1 件ずつ見る。各 Web テストの本文（`moorestech_web/webui/<file>`）と候補の NUnit を読み、同じことを主張していれば候補のメソッドの直前に `/// <web-test file="<file>"><Web のテスト名そのまま></web-test>` を足す。主張していなければ、UITK に挙動があるなら同じディレクトリの既存クラスへ NUnit を足し（200 行を超えるなら新しいクラス。新しいクラスを足す前に `ls <dir>/*.cs | wc -l` で 1 ディレクトリ 10 本を超えないことを見て、超えるならサブディレクトリへ分ける）、UITK に無ければ「## 処遇」に 1 件 1 行で `捨てる`（理由）を書く:
 
 | Web のファイル | 起草時の件数 | 候補の NUnit（`CT/` から） | 捨てる理由の型 |
 |---|---|---|---|
@@ -1563,7 +1563,7 @@ git commit -m "test(uitk): ラダー 6 uitk-challenge-gate（出展モードの�
 ```bash
 sed -n '/^## 行/,/^## 追従記録/p' docs/uitk/TODO.md | grep '^| ' | tail -n +2 | awk -F' \\| ' '{print $1" | "$3}' | sed 's/^| //'
 ```
-Expected: 行名と束の一覧（起草時 49 行）。各行について UITK の実体を `git ls-files` で確かめ、`done.md`「台帳の照合」に `| 行 | 束 | UITK の実体（ディレクトリかファイル） | 確かめたコマンド |` か `| 行 | 束 | 作らない | 理由（設計書 A-n・disposition の行・台帳の agent 既定） |` で書く。起草時の対応の見込み（実物で確かめてから書く）:
+Expected: 行名と束の一覧（起草時 48 行。`| wc -l` で数を見る）。各行について UITK の実体を `git ls-files` で確かめ、`done.md`「台帳の照合」に `| 行 | 束 | UITK の実体（ディレクトリかファイル） | 確かめたコマンド |` か `| 行 | 束 | 作らない | 理由（設計書 A-n・disposition の行・台帳の agent 既定） |` で書く。起草時の対応の見込み（実物で確かめてから書く）:
 
 | 台帳の行 | 見込みの実体（`moorestech_client/Assets/Scripts/` から） |
 |---|---|
@@ -1583,7 +1583,7 @@ Expected: 行名と束の一覧（起草時 49 行）。各行について UITK 
 | オーバーレイ: 8 行（背景スキット・Ctrl+U・カットシーン中の退避・背面の通知層・カーソル追従・常駐 HUD の可否・マウント点と背景ディム・再接続/辞書エラー/エラー境界） | `Client.Ui.State/SkitPresence/`・`Client.Ui.State/WholeUiVisibility/`・`Client.Ui/Screens/WholeUiVisibility/`・`Client.Ui/Foundation/Layers/`（BehindStage）・`Client.Ui/Foundation/Tooltip/`・`Client.Ui/Screens/Shell/`。再接続と辞書エラーは「作らない（A-13・A-38）」、エラー境界は S5-crosscut の例外の受け皿 |
 | bridge（通信・契約・ストア） | 作らない（A-13。UITK は同じプロセスのモデルを直に読む。disposition の束 5 の bridge の行） |
 | アプリ殻（起動・トークン・層） | `Client.Ui/Foundation/Root/GameUiRoot.cs`・`Foundation/Theme/`・`Foundation/Layers/` |
-| Web の検証基盤（mock-host・Playwright・撮影） | `Client.Playtest/`（DSL）・`Client.Ui/Editor/Capture/`（撮影）。mock-host は作らない |
+| Web の検証基盤（mock-host・Playwright・撮影） | `Client.Playtest/`（DSL）・`Client.Ui.Editor/Capture/`（撮影）。mock-host は作らない |
 
 空欄が残る行（UITK の実体が見つからず「作らない」の根拠も無い）が出たら、その行を `done.md`「要裁定」に書く（完了条件「台帳の全行が UITK で作られ」を満たさない。指揮の判定を待ち、マージは進めない）
 
@@ -1599,10 +1599,11 @@ Expected: 行名と束の一覧（起草時 49 行）。各行について UITK 
 - [ ] **Step 1: Web の変化を見る**
 
 ```bash
-ls ../moorestech_logs/uitk/reference-captures/ | sort | tail -4
-git log --oneline 8a585f742a..origin/master -- moorestech_web/webui/src/features/challenge moorestech_web/webui/src/features/eventLanguageGate moorestech_web/webui/src/shared/ui/treeView moorestech_web/webui/src/shared/ui moorestech_web/webui/src/app moorestech_web/webui/e2e/mock-host/topics moorestech_web/webui/e2e/uitk-reference | wc -l
+ls ../moorestech_logs/uitk/reference-captures/ | grep 8a585f742a
+ls ../moorestech_logs/uitk/reference-captures/web-8a585f742a/ ../moorestech_logs/uitk/reference-captures/web-8a585f742a-2560x1080/ | grep "^5-"
+git log --oneline 8a585f742a..origin/master -- moorestech_web/webui/src/features/challenge moorestech_web/webui/src/features/eventLanguageGate moorestech_web/webui/src/shared/treeView moorestech_web/webui/src/shared/ui moorestech_web/webui/src/app moorestech_web/webui/e2e/mock-host/topics moorestech_web/webui/e2e/uitk-reference | wc -l
 ```
-Expected: 最新は `web-8a585f742a/`・`web-8a585f742a-2560x1080/`（`5-challenge-list.png`・`5-event-language-gate.png` がある）。件数 0 なら撮り直さない。1 以上なら compare-procedure.md §2 の手順で master の worktree（`moores-wt new` ではなく `git -C <master の作業コピー>`。手順は同 §2）から `capture.ts` を 1280×720 と 2560×1080 で流し、`web-<origin/master の 10 桁>/`・`-2560x1080/` を置く（Web の録画には `moorestech_web/node` の複製と `pnpm install` が要る。S3-ladder の依頼）
+Expected: `web-8a585f742a/`・`web-8a585f742a-2560x1080/` があり、どちらにも `5-challenge-list.png`・`5-event-language-gate.png` がある（ディレクトリ名は sha の文字順で並ぶので `sort | tail` では最新が分からない。段階 5 の参照の撮影元は 8a585f742a）。チャレンジ一覧のツリーは `src/shared/treeView/`（`ChallengePanel.tsx` が `@/shared/treeView` を読む）。件数 0 なら撮り直さない。1 以上なら compare-procedure.md §2 の手順で master の worktree（`moores-wt new` ではなく `git -C <master の作業コピー>`。手順は同 §2）から `capture.ts` を 1280×720 と 2560×1080 で流し、`web-<origin/master の 10 桁>/`・`-2560x1080/` を置く（Web の録画には `moorestech_web/node` の複製と `pnpm install` が要る。S3-ladder の依頼）
 
 - [ ] **Step 2: 台帳に 1 行**
 
@@ -1751,7 +1752,7 @@ return PlaytestRunner.Run("uitk-stage5-compare", options, async p =>
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client GameUi .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-stage5-compare.cs; echo "exit=$?"
 .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/exhibition-mode-run.sh ./moorestech_client Web .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-stage5-compare.cs; echo "exit=$?"
 ```
-Expected: 両方 `exit=0`・Note の系がそれぞれ。各 run dir のスクショ 4 枚を `moorestech_client/.uloop/outputs/compare/S5-ladder/` へ写す。Web の回で CEF が出なければ（`uloop get-logs --log-type All --search-text "RendererUnavailable"` が出る）、その行を証拠に「Web 側の組 2 は未撮影」と `done.md` に書き、参照と組 0 と組 2 の GameUi で判定する
+Expected: 両方 `exit=0`・Note の系がそれぞれ。各 run dir のスクショ 4 枚を `moorestech_client/.uloop/outputs/compare/S5-ladder/` へ写す。Web の回で落ちたら原因を切り分ける: 運転役の `NG: could not switch … or arm` は運転役の側（PlayMode を止めて流し直す）。CEF が出なければ（`uloop get-logs --log-type All --search-text "RendererUnavailable"` が出る）、その行を証拠に「Web 側の組 2 は未撮影」と `done.md` に書き、参照と組 0 と組 2 の GameUi で判定する。CEF は出たのにゲートが出ない・ready が書かれない（Web の系で出展モードの起動口と Web 版のゲート `EventModeStartGate.WaitOnWebAsync` を録画でつなぐのはこれが初めて）なら、`[EventLanguageGate]`・`[PlaytestEventLanguageGateBoot]` のログの 1 行目を `done.md`「未完了」に書き、S5-gate へ bd で回して「Web 側の組 2 は未撮影（起動口の不成立）」とする（CEF の不在と書き分ける）
 
 - [ ] **Step 3: 評価役 2 体に別々に判定させる（本体が派遣する）**
 
@@ -1849,7 +1850,7 @@ Expected: 出た Web の録画（起草時の見込み: `misc/walk-while-menus-o
 
 - D-1（agent 既定）: §5 の独立評価は opus の subagent 2 体（Codex の代わり。前例 S3-ladder D-1・S2-ladder D-1）
 - D-2（agent 既定・設計書 A-249 の本文。plan §4.4 の文言の改めを integrator へ依頼）: ラダー 6 は「出展モードの言語ゲートを通る → チャレンジ一覧を開く」の順にする。plan §4.4 の語順（一覧 → ゲート）は通せない: ゲートは DI より前に 1 回だけ出て（2026-08-28 裁定・S5-gate の A-242）、出展モードの無操作は `EventIdleQuitWatcher` のアプリ終了でゲートへ戻らない。棄却: 一覧を通常の起動で見てから出展モードで再起動する 2 本立て（1 本のシナリオで PlayMode を 2 回起こせず、ラダーが 7 本になる）
-- D-3（agent 既定）: 「UITK 側で Web ロケータが一度も要素を返さない（ログ）」は、(1) `SwitchedUiElementLocator` が ctor で出す `[PlaytestUi] locator reads only the GameUi UI`（選んだ系だけに委ねる。L0 `SwitchedUiElementLocatorTest` が構造を固定）、(2) `WebUiElementLocator` だけが出す `[PlaytestUi] Web …` の行が 0、(3) `WebUiHost.Hub == null`（Web ロケータは Hub が無いと Unavailable しか返さない）の 3 つで示す。ラダー 6 は (2) をシナリオの中で `Application.logMessageReceived` で数えて主張し、他の録画は `uloop get-logs` で見る。棄却: Web ロケータに「返した」ログを足す（本番の DSL を変えるレーンになり、X-5a で消える物に手を入れる）
+- D-3（agent 既定）: 「UITK 側で Web ロケータが一度も要素を返さない（ログ）」は、(1) `SwitchedUiElementLocator` が ctor で出す `[PlaytestUi] locator reads only the GameUi UI`（選んだ系だけに委ねる。L0 `SwitchedUiElementLocatorTest` が構造を固定）、(2) `WebUiElementLocator` だけが出す `[PlaytestUi] Web …` の行が 0、(3) `WebUiHost.Hub == null`（Web ロケータは Hub が無いと Unavailable しか返さない）の 3 つで示す。主の証拠は (1)＋L0 と (3) の構造で、(2) は補助（`WebUiElementLocator` が `[PlaytestUi] Web …` を出すのは失敗・警告の 4 種だけ〈`WebUiElementLocator.cs:70,77,112,131`〉で、要素を返したときは何も出さない。成功時の `[PlaytestUi] {testid} resolved`〈`PlaytestUiElementOps.cs:145`〉は両系で出る）。`done.md` の表は (1)・(3) を主の列、(2) を「Web 経路の失敗が起きていない補助」の列として書き分ける。ラダー 6 は (2) をシナリオの中で `Application.logMessageReceived` で数えて主張し、他の録画は `uloop get-logs` で見る。棄却: Web ロケータに「返した」ログを足す（本番の DSL を変えるレーンになり、X-5a で消える物に手を入れる）
 - D-4（agent 既定）: 出展モードの運転役は S5-gate の `uitk-event-language-gate.sh` の中身を `exhibition-mode-run.sh <project> <系> <scenario.cs>` へ移し、元の名前は委ねる 1 行にする（呼び方は不変）。ラダー 6・並べ比べ・S5-gate の録画の 3 本が同じ後始末を通る。S5-gate の「起動口を流用しファイルを足さない」は起動口（C#）についての申し送りで、運転役の bash の重複を避けるのはこれと両立する。棄却: ラダー 6 用に同じ 40 行の運転役を複製する（後始末の直しが 2 か所に割れる）。S5-gate の運転役の第 2 引数を任意にする（引数の有無で挙動が変わる。デフォルト引数禁止の趣旨）
 - D-5（agent 既定）: `TutorialAnchorCoveragePending.cs` は空を確かめてから消し、`TutorialAnchorCoverageTest` の 1 本目を「全アンカーが UITK で印」へ書き換える。完了条件「空」は表が 0 行であることで満たし、消すことで以後の画面のアンカーの印の付け忘れを表へ逃がせなくする（切替後に Web の印が消えると表の意味も無くなる）。棄却: 空の表を残す（使い手の無い規則が残る）
 - D-6（agent 既定）: 段階 5 の L3 は作らない。完了条件と plan §2.0 に L3 は無く、一覧の載り先は S5-crosscut の `GameUiScreenMountTest`、ゲートは DI より前の実起動でしか出ずラダー 6 と S5-gate の録画が見る。S5-crosscut D-14 の「段ごとの L3 の数え上げ」にはこの理由で答える。棄却: `EditModeInPlayingTest/Ui/Stage5/` を作る（一覧の載りは GameUiScreenMountTest と重なり、ゲートは EditModeInPlayingTest の起動経路で出せない）
@@ -1858,9 +1859,9 @@ Expected: 出た Web の録画（起草時の見込み: `misc/walk-while-menus-o
 - D-9（agent 既定・前例 S2-ladder D-14）: 段階 5 の並べ比べは設計書 [A-179] に従い、両系で撮る組を足し、差は処理の案と LX-207〜LX-209 の文面だけを書いて指揮の判定へ回す（USS を直さず、台帳の LX の行と印を置かない）
 - D-10（agent 既定）: 並べ比べの組 2 はゲートで英語を選ぶ（参照の fixture の文言が英語。日本語で撮ると字形と幅の差が全部差に出る）。ラダー 6 は日本語（plan §4.4 のラダー 1 と同じく、多言語で通ることを命綱で見る）
 - D-11（agent 既定）: §4.3 の 5（`moores-wt rm`）は依頼文の「worktree の片付けは指揮が行う」に従い、このレーンは Editor を閉じるまで
-- D-12（agent 既定）: 束 5 の暗転の起点は S5 の 3 レーンの分岐点で取り込み済みの master のうち最も古いもの（起草時の見込み `0e81bbe3c3`。台帳「束のレーンを始めるとき」の規則を、締めのレーンが束を代表して当てる。前例 S2-ladder D-5）。束 5 の画面の Web の変更で UITK 側に写しが無いものは記帳で 0 にせず bd で画面のレーンへ回す
-- D-14（agent 既定・条件付き）: 束 1 の「topicを固定したまま連続操作とpreset直後に%sを送る」は、UITK の画質の行が `_current` を `Apply` でしか更新しないため Fake のモデルでは前の操作を巻き戻す。本番で送信から `Apply` までが同じ呼び出しの中で回ると実物で確かめたら、モデルが追いつかない状態が起きないので `捨てる`（理由に file:line）。回らなければ本番の不具合として bd と「要裁定」に上げ、このレーンでは直さない（本番コードを書かないレーン）。棄却: View が送った値を持つように本番を変える（設定のレーンの範囲で、故障シナリオが立たないなら要らない変更）
+- D-12（agent 既定）: 束 5 の暗転の起点は S5 の 3 レーンの分岐点（各レーンの最初のコミットの親）で取り込み済みの master のうち最も古いもの（起草時の見込み `0e81bbe3c3`。レーンの先端の merge-base は途中の取り込みで遅い側へ寄るので使わない。迷ったら古い側。台帳「束のレーンを始めるとき」の規則を、締めのレーンが束を代表して当てる。前例 S2-ladder D-5）。束 5 の画面の Web の変更で UITK 側に写しが無いものは記帳で 0 にせず bd で画面のレーンへ回す
 - D-13（agent 既定）: 「台帳の全行が UITK で作られ」は台帳の列を足さず（G1 のパーサを守る）、`done.md` の照合の表で行ごとに実体のパスか「作らない」の根拠を示す。空欄が残れば完了条件を満たさないので「要裁定」に書きマージしない
+- D-14（agent 既定・条件付き）: 束 1 の「topicを固定したまま連続操作とpreset直後に%sを送る」は、UITK の画質の行が `_current` を `Apply` でしか更新しないため Fake のモデルでは前の操作を巻き戻す。本番で送信から `Apply` までが同じ呼び出しの中で回ると実物で確かめたら、モデルが追いつかない状態が起きないので `捨てる`（理由に file:line）。回らなければ本番の不具合として bd と「要裁定」に上げ、このレーンでは直さない（本番コードを書かないレーン）。棄却: View が送った値を持つように本番を変える（設定のレーンの範囲で、故障シナリオが立たないなら要らない変更）
 - unityプレイ録画テスト: 含む（Task 5・6・9・10）
 
 ## 設計書・実行計画へ反映する行（integrator への依頼の案。このレーンは書かない）
