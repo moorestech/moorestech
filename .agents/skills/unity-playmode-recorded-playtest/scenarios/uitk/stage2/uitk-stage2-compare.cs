@@ -112,7 +112,7 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         SemanticInput.KeyDown(Key.W);
         await p.Until(() => Vector3.Distance(Flat(p.PlayerPosition), Flat(tree.transform.position)) < 1.6f, 10f, "歩いて木に寄った");
         SemanticInput.KeyUp(Key.W);
-        await p.AimAt(treeCenter);
+        await p.AimAt(treeCenter + Vector3.down * 1.5f);
         SemanticInput.KeyDown(Key.F);
         await UntilFound("progress-bar", 10f);
         await p.WaitSeconds(0.3f);
