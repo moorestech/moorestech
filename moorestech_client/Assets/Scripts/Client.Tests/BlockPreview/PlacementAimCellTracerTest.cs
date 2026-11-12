@@ -97,6 +97,58 @@ namespace Client.Tests
             Assert.IsFalse(PlacementAimCellTracer.TryTrace(cells, new Ray(above, Vector3.right), float.PositiveInfinity, out _, out _));
         }
 
+        [Test]
+        public void WalkThroughEmptyCells_HitsFarBlock()
+        {
+            var cells = CreateUnitBlocks(new Vector3Int(10, 5, 20), new Vector3Int(20, 5, 20));
+
+            var ray = new Ray(new Vector3(17.5f, 5.5f, 20.5f), Vector3.left);
+            Assert.IsTrue(PlacementAimCellTracer.TryTrace(cells, ray, 100f, out var distance, out var surface));
+            Assert.AreEqual(PreviewSurfaceType.YZ_X, surface);
+            Assert.AreEqual(6.5f, distance, 1e-4f);
+        }
+
+        [Test]
+        public void WalkInsideBounds_MissesWithInfiniteMax()
+        {
+            var cells = CreateUnitBlocks(Vector3Int.zero, new Vector3Int(5, 0, 0));
+
+            var ray = new Ray(new Vector3(2.5f, 0.5f, -3f), Vector3.forward);
+            Assert.IsFalse(PlacementAimCellTracer.TryTrace(cells, ray, float.PositiveInfinity, out _, out _));
+        }
+
+        [Test]
+        public void EdgeGraze_WithFarBlock_StillPrefersY()
+        {
+            // 遠いブロックで外接直方体が X に伸び、入口セル (1,0,0) は空で、同じ t の X 越境で (0,0,0) に入る
+            // The far block widens the bounds along X, so the entry cell (1,0,0) is empty and (0,0,0) is entered by an X crossing at the same t
+            var cells = CreateUnitBlocks(Vector3Int.zero, new Vector3Int(5, 0, 0));
+
+            var ray = new Ray(new Vector3(3f, 3f, 0.5f), new Vector3(-1f, -1f, 0f).normalized);
+            Assert.IsTrue(PlacementAimCellTracer.TryTrace(cells, ray, 100f, out _, out var surface));
+            Assert.AreEqual(PreviewSurfaceType.XZ_Y, surface);
+        }
+
+        [Test]
+        public void EdgeGraze_DiagonalAfterEmptyNeighbour_PrefersY()
+        {
+            // 外接直方体 (0..6) の内側から対角に進み、点 (1,1) の辺で Y 越境で空の (1,0,0)、同じ t の X 越境で (0,0,0) に入る
+            // Starting inside the bounds (0..6) diagonally, at the edge (1,1) a Y crossing enters empty (1,0,0), then an X crossing at the same t enters (0,0,0)
+            var cells = CreateUnitBlocks(Vector3Int.zero, new Vector3Int(5, 5, 0));
+
+            var ray = new Ray(new Vector3(2.5f, 2.5f, 0.5f), new Vector3(-1f, -1f, 0f).normalized);
+            Assert.IsTrue(PlacementAimCellTracer.TryTrace(cells, ray, 100f, out _, out var surface));
+            Assert.AreEqual(PreviewSurfaceType.XZ_Y, surface);
+        }
+
+        private static BlockOccupiedCellIndex CreateUnitBlocks(Vector3Int first, Vector3Int second)
+        {
+            var cells = new BlockOccupiedCellIndex();
+            cells.Register(new BlockPositionInfo(first, BlockDirection.North, Vector3Int.one));
+            cells.Register(new BlockPositionInfo(second, BlockDirection.North, Vector3Int.one));
+            return cells;
+        }
+
         private static (BlockOccupiedCellIndex, BlockPositionInfo) CreateSingle(BlockDirection direction)
         {
             var cells = new BlockOccupiedCellIndex();

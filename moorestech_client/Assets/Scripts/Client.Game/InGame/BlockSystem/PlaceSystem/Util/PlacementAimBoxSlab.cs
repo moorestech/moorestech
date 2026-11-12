@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     {
         // 同値のときに優先する軸の順（Y → X → Z）
         // Axis priority on ties (Y -> X -> Z)
-        public static readonly int[] AxisPriority = { 1, 0, 2 };
+        private static readonly int[] AxisPriority = { 1, 0, 2 };
 
         public static bool TryIntersect(Ray ray, Vector3 boxMin, Vector3 boxMax, out float tEnter, out int enterAxis, out float tExit, out int exitAxis)
         {
@@ -51,6 +51,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             }
 
             return tEnter <= tExit && tExit >= 0f;
+        }
+
+        public static int NearestAxis(Vector3 tMax)
+        {
+            // 最小の値を持つ軸を、同値なら優先順の先を選ぶ
+            // Pick the axis with the smallest value, preferring the earlier priority on ties
+            var best = AxisPriority[0];
+            foreach (var axis in AxisPriority)
+            {
+                if (tMax[axis] < tMax[best]) best = axis;
+            }
+            return best;
         }
 
         public static PreviewSurfaceType EnterFace(int axis, bool positiveStep)
