@@ -2,6 +2,7 @@ using System.Collections;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState.State.PlaceBlock;
 using Cysharp.Threading.Tasks;
@@ -51,10 +52,14 @@ namespace Client.Tests
                 manager.Tick();
                 var display = new PlaceBlockPreviewDisplay(store);
                 display.OnEnter();
+                Assert.AreSame(store.OccupiedCells, PlacementAimTargetCells.Current);
                 var near = store.GetBlockGameObject(Vector3Int.zero);
                 var far = store.GetBlockGameObject(farPosition);
                 AssertPreview(near, true);
                 AssertPreview(far, false);
+                // 描画しない半径外のブロックにも照準は当たる（ADR 0083 決定4）
+                // The aim still hits blocks outside the render radius (ADR 0083 decision 4)
+                Assert.IsTrue(store.OccupiedCells.TryGetBlockAt(farPosition, out _));
 
                 // 入場後の非アニメ設置通知で表示更新
                 // Update display on nonanimated placement notifications after entry
@@ -79,29 +84,39 @@ namespace Client.Tests
                 // 状態を書き換えず実アニメーションの開始・完了を通す
                 // Exercise actual animation start and completion without assigning its state
                 display.OnExit();
+                Assert.IsNull(PlacementAimTargetCells.Current);
                 var animation = far.PlayPlaceAnimation();
                 display.OnEnter();
                 Assert.IsTrue(far.IsPlayingPlaceAnimation);
                 AssertPreview(far, false);
                 display.OnExit();
+                Assert.IsNull(PlacementAimTargetCells.Current);
                 display.OnEnter();
                 AssertPreview(far, false);
                 await animation;
                 Assert.IsFalse(far.IsPlayingPlaceAnimation);
                 AssertPreview(far, true);
                 display.OnExit();
+                Assert.IsNull(PlacementAimTargetCells.Current);
                 display.OnEnter();
                 AssertPreview(far, true);
                 display.OnExit();
+                Assert.IsNull(PlacementAimTargetCells.Current);
                 // 出ると有効な枠は0個。出入りをくり返しても総数は増え続けない
                 // Leaving leaves no active frame, and repeated entry does not keep growing the total
                 Assert.AreEqual(0, Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsSortMode.None).Length);
                 var totalAfterFirstCycle = Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
                 display.OnEnter();
                 display.OnExit();
+                Assert.IsNull(PlacementAimTargetCells.Current);
                 display.OnEnter();
                 display.OnExit();
+                Assert.IsNull(PlacementAimTargetCells.Current);
                 Assert.AreEqual(totalAfterFirstCycle, Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length);
+                // 撤去アニメーション中のブロックには照準が当たらない
+                // The aim no longer hits a block once its removal animation starts
+                store.RemoveBlock(newFarPosition);
+                Assert.IsFalse(store.OccupiedCells.TryGetBlockAt(newFarPosition, out _));
                 Object.Destroy(storeObject);
             }
 
@@ -110,15 +125,6 @@ namespace Client.Tests
                 // 旧枠はブロック配下に無い
                 // No old frame lives under the block
                 Assert.IsNull(block.GetComponentInChildren<BlockPreviewBoundingBox>(true));
-
-                // 描画抑止が隣接設置の面コライダーを失わせない
-                // Rendering suppression must preserve face colliders used for adjacent placement
-                var hitFaces = block.GetComponentInChildren<BlockPlacementHitFaces>(true);
-                Assert.IsNotNull(hitFaces);
-                Assert.IsTrue(hitFaces.gameObject.activeInHierarchy, "当たり判定は半径外でも有効");
-                var colliders = hitFaces.GetComponents<BoxCollider>();
-                Assert.AreEqual(6, colliders.Length);
-                foreach (var collider in colliders) Assert.IsTrue(collider.enabled);
 
                 // 半径内のブロック位置にだけ、プールの枠が有効で置かれる
                 // Only blocks within the radius get an active pooled frame at their position
