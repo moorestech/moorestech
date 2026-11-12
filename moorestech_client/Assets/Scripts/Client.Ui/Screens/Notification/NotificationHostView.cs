@@ -106,6 +106,13 @@ namespace Client.Ui.Screens.Notification
 
         private void StartLifetime(NotificationShownRow shown, NotificationRow row)
         {
+            // パネルに載っていない間は動きを始めない（再アタッチが頭から回す）。行は書き口に残り、戻したときに表示される
+            // Do not start motion while off the panel (re-attach restarts from the head); the row stays in the model and shows on return
+            if (panel == null)
+            {
+                shown.SetLifetime(row.LifetimeEpoch, null, null);
+                return;
+            }
             // 退場の終わりで行を書き口から除く。除去と退場が同じパネルの時計に乗る（除去の経路はこれだけ。D-2）
             // Remove the row through the write side at the exit end, so removal and exit share the panel clock (the only removal path, D-2)
             var handle = NotificationRowLifetime.Play(shown.View, _timing);
