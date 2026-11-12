@@ -1,4 +1,3 @@
-using Client.Tests.Ui.TestHost;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.Tests.Ui.Screens.Settings;
@@ -63,12 +62,11 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             MountSettings("english");
             var body = Find<GameScrollView>(_view, "pause-menu-body");
             var sb = new System.Text.StringBuilder();
-            void Dump(VisualElement e, int depth)
+            foreach (var section in body.contentContainer.Children())
             {
-                sb.Append($"{new string('>', depth)}{e.GetType().Name}.{string.Join(".", e.GetClasses())} y{e.layout.y:F2} h{e.layout.height:F2} {(e is Label l ? l.PlainText() : "")} | ");
-                if (depth < 4) foreach (var c in e.Children()) Dump(c, depth + 1);
+                sb.Append($"[{string.Join(".", section.GetClasses())} {section.layout.height:F2}] ");
+                foreach (var child in section.Children()) sb.Append($"{string.Join(".", child.GetClasses())}:{child.layout.height:F2}:{(child is Label l ? l.text : "")}; ");
             }
-            Dump(body.contentContainer.ElementAt(2), 0);
             Assert.Fail(sb.ToString());
         }
 
