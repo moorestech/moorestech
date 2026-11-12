@@ -41,7 +41,10 @@
 ```sh
 docs/performance/benchmark/run-buildmode-entry.sh <label>
 ```
-1回のワールド読み込みで、定常後に Transform 内訳（`../2026-10-22-gameobject-count/go-breakdown.cs`）と `placement-frame-count.cs` を取り、設置モードの出入りを3回測る。結果は `results/<日時>_<label>_buildmode.txt`。初出は [2026-11-12 の前後計測](../2026-11-12-placement-preview-frame/README.md)。
+1回のワールド読み込みで、定常後に Transform 内訳（`../2026-10-22-gameobject-count/go-breakdown.cs`）と `placement-frame-count.cs` を取り、`buildmode-probe-start.cs` で設置モードの出入り（入る→出るを4回、最後にもう1回入る）を PlayerLoop の中から起こして測る。結果は `results/<日時>_<label>_buildmode.txt`。読み込みごとに1回目（変更後はプールの初回生成を含む）が1回しか取れないので、比べるときは読み込みを3回以上（スクリプトを3回）実行する。初出と読み方は [2026-11-12 の前後計測](../2026-11-12-placement-preview-frame/README.md#設置モードに入る瞬間測り直しrun-buildmode-entrysh実測)。
+
+- スニペットを実行している間は Editor が止まり、その間に溜まった受信イベントが直後のフレームで処理される。遷移の前後にスニペットを挟むと、そのフレームが最大フレームになって遷移のコストが見えなくなる（2026-11-12 の最初の計測で起きた）。このため遷移は差し込んだ PlayerLoop の処理が、スニペットの実行から200フレーム後に起こす。計測中（約40秒）は他のスニペットを呼ばない。
+- 「処理時間」は `RequestTransition` と `UIStateControl.Update`（反射で即時に呼ぶ）を囲んだ Stopwatch、「超過時間」は遷移のフレームから6フレームの、直前30フレームの中央値を超えた分の合計。
 
 ### 注意
 - **ProfilerMarker は `perf/event-dispatch-profiler-markers` ブランチにしか無い。** マーカーの無いコミットを測ると `PacketExchange.*`・`BlockState.*` の行が「—」になる。fps・フレーム時間・イベント件数は、マーカーが無くても比較できる。
@@ -74,10 +77,9 @@ docs/performance/benchmark/run-buildmode-entry.sh <label>
 | `profiler-start.cs` / `profiler-collect.cs` | Profiler 窓 |
 | `events-start.cs` / `events-collect.cs` | 受信イベントの件数窓（受信 Subject を一時的に差し替える） |
 | `cleanup.cs` | ワールド差し替え・画面スリープ抑止の解除と Profiler 停止 |
-| `profiler-stop.cs` | Profiler の記録だけを止める（重い記録は止めた後のフレームで読めるようになるので、集計は別に呼ぶ） |
-| `buildmode-enter.cs` / `buildmode-exit.cs` | Profiler を始めてから `UIStateControl.RequestTransition` で設置モードに入る／通常画面へ戻す |
-| `buildmode-frames-collect.cs` | 記録したフレームの最大・合計・一覧、最大フレームと遷移を処理したフレーム（`UIStateControl.Update` が最大）の self 上位 |
-| `placement-frame-count.cs` | 設置プレビュー枠・当たり判定・`PreviewOnlyObject` の数を、ブロック配下とそれ以外に分けて数える（型は名前で引くので変更前後どちらでも動く） |
+| `buildmode-probe-start.cs` / `buildmode-probe-collect.cs` | PlayerLoop の Update フェーズの先頭に差し込み、予定のフレームで設置モードに出入りして、遷移の処理時間（Stopwatch）・前後のフレーム時間・遷移の前後数フレームの Profiler を記録する／集計して外す |
+| `buildmode-exit.cs` | `UIStateControl.RequestTransition` で通常画面へ戻す |
+| `placement-frame-count.cs` | 設置プレビュー枠・当たり判定・`PreviewOnlyObject` の数を、ブロック配下とそれ以外、有効と描画中（配下の Renderer が1つでも enabled）に分けて数える（型は名前で引くので変更前後どちらでも動く） |
 
 ## 結果一覧
 | 日時 | label | コミット | fps | PlayerLoop ms | 受信イベント 件/秒 | 受信処理 µs/件 | メモ |
@@ -110,7 +112,7 @@ docs/performance/benchmark/run-buildmode-entry.sh <label>
 | 2026-11-12 12:52 r1 | before-placement-frame | b6b549239b | 23.97 | 35.6 | 54 | 1719.6 | 設置プレビュー枠の GameObject 削減の前。開始時にマウスを1px動かして画面を起こす版の `enter-world.cs` で計測（[前後計測](../2026-11-12-placement-preview-frame/README.md)） |
 | 2026-11-12 12:52 r2 | before-placement-frame | b6b549239b | 23.63 | 34.5 | 60 | 1477.4 | |
 | 2026-11-12 12:52 r3 | before-placement-frame | b6b549239b | 24.44 | 34.0 | 61 | 1453.0 | |
-| 2026-11-12 13:15 r1 | after-placement-frame | 9057b17296 | 26.56 | 32.6 | 57 | 1993.8 | 設置プレビュー枠を、ブロックごとの当たり判定1個と周囲20mにだけ貸す使い回しの辺に分ける（ADR 0099）。Transform 971,609→428,711 |
+| 2026-11-12 13:15 r1 | after-placement-frame | 9057b17296 | 26.56 | 32.6 | 57 | 1993.8 | 設置プレビュー枠を、ブロックごとの当たり判定1個と周囲20mにだけ貸す使い回しの辺に分ける（ADR 0099）。Transform 971,661→428,711 |
 | 2026-11-12 13:15 r2 | after-placement-frame | 9057b17296 | 26.33 | 31.0 | 57 | 1513.8 | |
 | 2026-11-12 13:15 r3 | after-placement-frame | 9057b17296 | 26.65 | 30.8 | 57 | 1542.4 | |
 

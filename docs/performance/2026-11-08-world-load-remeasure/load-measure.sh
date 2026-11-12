@@ -25,6 +25,9 @@ d=json.loads(t[s:]) if s>=0 else {}
 print(d.get("Result","") if d.get("Success") else "FAIL "+t[:800])'
 }
 mkdir -p "$OUTDIR"
+# 「開始→定常」の秒（stable=… elapsed=…）は標準出力にしか出ないので、生データと突合できるよう出力先にも残す
+# The start-to-steady seconds (stable=… elapsed=…) only go to stdout, so keep a copy next to the raw data
+exec > >(tee "$OUTDIR/load-measure-stdout.txt") 2>&1
 remote "New-Item -ItemType Directory -Force -Path $SN | Out-Null"
 scp -q "${SSH_OPTS[@]}" "$BS"/*.cs "$LT"/tl-start.cs "$LT"/tl-collect.cs "$LT"/heavy-collect.cs "$(dirname "$0")"/subtree-collect.cs "$HOST:C:/moorestech-perf/snippets/"
 remote "uloop control-play-mode --action Stop --project-path $PROJECT" >/dev/null 2>&1 || true
