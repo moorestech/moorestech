@@ -58,8 +58,9 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み（違反 1〈運転役の言語の復元を終了コードで判定〉・注目点 6・死活表の不足 3。違反は D-15、注目点 2・3・5・6 と死活表の 3 行は本文へ反映、注目点 1・4 は「評価の指摘の処遇」）
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み（強 2〈ラダー 6 の順・評価役〉は D-16・D-1、弱 1〈`TrySetChosenLanguage` の bool〉は D-15、弱 1〈文字列の部分一致〉は「評価の指摘の処遇」）
+- 独立評価・予測レビューの反映: 実施済み / 再現 28 件を反映・不再現 4 件 / 言語の復元と武装を戻り値の語で判定し、赤の録画と G1 の残りで停止してマージせず、I-fix5・I-fix6・S5-crosscut T13 の後の名前で Task 3 を書き、起点・鮮度・件数・証拠の書き分けを実物に合わせた
 
 ## 死活表（Phase 2.5）
 
@@ -1868,6 +1869,13 @@ Expected: 出た Web の録画（起草時の見込み: `misc/walk-while-menus-o
 - D-19（指揮の agent 既定〈PLAN-W5 評価〉）: 並走の I-fix5（`LocalizedLabel.text` が行送りの印を前に付け、テストは `LabelPlainText.PlainText()` で読む）と I-fix6（配送と書き出しの行が `LocalizedLabel`）は、取り込み後の名前で書き（Task 3 の読みは `.PlainText()`、ラダー 6 は `SourceText` から印を外す）、未マージなら Task 0 Step 1 の読み替えで `.text` に戻す
 - D-20（指揮の agent 既定〈PLAN-W5 評価〉）: D-14（束 1 の画質の連続操作のテストが本番で落ちる見込み）は条件付きの要裁定のまま残す（実物の同期の連鎖を確かめるまで決めない）
 - unityプレイ録画テスト: 含む（Task 5・6・9・10）
+
+### 評価の指摘の処遇
+
+- 配置検査の注目点 1（汎用の運転役の置き場が `stage5/`）／変えない: 使う 3 本が全部 `stage5/` にあり出展モード専用。X-prerun が段階 5 の外から呼ぶなら `scripts/` へ移す判断を X-prerun の引き継ぎに書く
+- 配置検査の注目点 4（scratch のディレクトリ名 `event-language-gate` がゲート固有のまま）／変えない: S5-gate のシナリオ `uitk-event-language-gate.cs` が同じパスを直書きしており、名前を変えると S5-gate のファイルに手が入る。取り決めは S5-gate のまま
+- 型閉包の弱 4（`Contains("TutorialAnchor.Mark(")`・`GetField(name + "Prefix")`・`StartsWith("[PlaytestUi] Web")` の文字列の判定）／反映しない: アンカーの 2 つのローカル関数は既存の `TutorialAnchorCoverageTest.cs:26-71` をそのまま残すもので、このレーンは 1 本目の主張だけを替える。ログの頭の文字は Web ロケータの 4 種のログの唯一の共通の印で、D-3 で (2) を補助の証拠に下げ、主の証拠は `SwitchedUiElementLocator` の行と `Hub == null` の構造にした
+- 予測レビューの Warning（Task 0 Step 3 の未移植の表が今 3 行）／不再現: S5-challenge が同じ PR で 3 行を消す前提を計画が既に持ち、行が残れば Task 2 Step 1 の分岐で扱う。直す箇所が無い
 
 ## 設計書・実行計画へ反映する行（integrator への依頼の案。このレーンは書かない）
 
