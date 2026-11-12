@@ -34,7 +34,7 @@ namespace Client.Ui.Foundation.Stage
             // Grow the size by the scale, then shrink by 1/scale; it still looks parent-sized while one content px is one real-screen px
             style.width = Length.Percent(100f * stageScale);
             style.height = Length.Percent(100f * stageScale);
-            style.scale = new Scale(new Vector3(1f / stageScale, 1f / stageScale, 1f));
+            style.scale = new Scale(new Vector3(1f / stageScale, 1f / stageScale, 1f)); // look-exception: LX-170。配置はパネルの倍率の物理画素へ丸まり、箱の中では 0.667 刻みになる
         }
     }
 }
