@@ -18,7 +18,7 @@
 
 | # | 要件 | 受け入れ基準 |
 |---|---|---|
-| R-1 | UI の例外の経路（`AppErrorBoundary` の代わり） | (a) UITK のイベントコールバックと UniRx の購読の中で投げた例外が `LogType.Exception` でログに出て、`UnityLogRing` が拾うことを L1 `GameUiExceptionLoggingTest` が固定（2 件）。(b) バグ報告の manifest が `schemaVersion: 7` と `gameUiExceptions` を必ず持つ。形は判別 union で、`{"status":"recorded","count":n,"samples":[最大 5 件〈tick・message・frame〉]}` か `{"status":"unknown"}`（unknown は `count`・`samples` の欄を持たない）。ログ未確保とクラッシュの箱は `BugReportManifestReadings.MarkGameUiExceptionsUnknown` 1 本で `unknown`＋`missing` の `gameUiExceptions` 行を組で書く（L0 `GameUiExceptionManifestTest` 5 件。版を見る既存の `WebUiHealthManifestTest`・`RemoteExecBundleMarkTest` も 7 へ）。(c) ダッシュボードが `gameUiExceptions` を欄なし（v6 以前）・不明・読めない・記録ありで出し分ける（`python3 -m unittest scripts/playtest/tests/test_dashboard_game_ui_exceptions.py` 緑）。(d) フォールバック画面は作らない（D-1） |
+| R-1 | UI の例外の経路（`AppErrorBoundary` の代わり） | (a) UITK のイベントコールバックと UniRx の購読の中で投げた例外が `LogType.Exception` でログに出て、`UnityLogRing` が拾うことを L1 `GameUiExceptionLoggingTest` が固定（2 件）。(b) バグ報告の manifest が `schemaVersion: 7` と `gameUiExceptions` を必ず持つ。形は判別 union で、`{"status":"recorded","count":n,"samples":[最大 5 件〈tick・message・frame〉]}` か `{"status":"unknown"}`（unknown は `count`・`samples` の欄を持たない）。件数は 2000 件で古い順に捨てるログ環（`UnityLogRing`）からでなく、ログを受けた時点で `GameUiExceptionTally` がセッション通算として数え、見本は先頭 5 件（環が溢れても序盤の例外が 0 件にならない）。確保時に数を取れなかった箱とクラッシュの箱は `BugReportManifestReadings.MarkGameUiExceptionsUnknown` 1 本で `unknown`＋`missing` の `gameUiExceptions` 行を組で書く（前例 `CrashBundleWriter`:57-58 の webUiHealth と同じ組。L0 `GameUiExceptionManifestTest` 6 件〈うち 1 件が「環が溢れた後でも序盤の例外が数に残る」〉。版を見る既存の `WebUiHealthManifestTest`・`CrashBundleWebUiHealthTest`・`RemoteExecBundleMarkTest` と録画シナリオ `playtest-receiver/developer-report-delivery.cs`・`developer-report-interrupt.cs` も 7 へ）。(c) ダッシュボードが `gameUiExceptions` を欄なし（v6 以前）・不明・読めない・記録ありで出し分ける（`python3 -m unittest scripts/playtest/tests/test_dashboard_game_ui_exceptions.py` 緑）。(d) フォールバック画面は作らない（D-1） |
 | R-2 | 作らない横断層の記帳 | `docs/uitk/disposition.md` の `## 処遇` に、`e2e/tests/regression/connection.spec.ts` の 3 件（restoring・connecting placeholder・再接続バナー）と `allScreensI18n.test.ts` の辞書の HTTP 取得 3 件が `捨てる` で理由（[A-13]・[A-38]・E-17）付きで載り、`node tools/uitk/test-name-parity.mjs --bundle 5` がそれらを未対応に数えない。`AppErrorBoundary` のフォールバック画面を作らない理由は設計書 §7.1 の A-244（本文は D-1） |
 | R-3 | 束 5 の横断テストの写し | `i18n.spec` 2・`allScreensI18n` 3（残る 3 は R-2 の捨てる）・`uiState.spec` 5・`inputLayer.spec` 4・`textSelection` 2 の計 16 件に `/// <web-test file="…">…</web-test>` が付いた NUnit が緑。`test-name-parity.mjs --bundle 5 --emit-missing` の出力にこの 5 ファイルの行が 0 |
 | R-4 | DC-11 表示の出し入れ | `Foundation/Layout/UiDisplay.SetShown(VisualElement, bool)`（出すときは `StyleKeyword.Null`）が唯一の書き口、`UiDisplay.IsShownInline` が唯一の読み口。4 つの helper（`SpecialViewParts`:32・`SettingsSectionParts`:32・`BugReportRecoveryControlsView`:63・`SkitToolbar`:90）を消し、`UiGapContainer`・`UiLayerStack`・`CursorTooltipView` を含む直書き 74 か所（T2 の Files の全一覧。起草時の実測 76 行 44 ファイルから `CurrentChallengeHudView` の 2 行を除く）を置換する。検査 `git grep -nE "style\.display[[:space:]]*=[^=]" -- 'moorestech_client/Assets/Scripts/Client.Ui/*.cs'` の結果が `Foundation/Layout/UiDisplay.cs` の 1 行だけ（T22 Step 2 の取り込みまでは S5-challenge の持ち物 `Screens/Challenge/CurrentHud/CurrentChallengeHudView.cs`:38,43 の 2 行も残り、取り込みで置換して 1 行になる）。読み `style\.display[[:space:]]*==` は 0 行。L1 `UiDisplayTest` 3 件 |
@@ -115,12 +115,14 @@ S = `moorestech_client/Assets/Scripts`。持ち主が他レーンのファイル
 | パス | 作る/直す | 役割 |
 |---|---|---|
 | `S/Client.Game/InGame/BugReport/GameUiExceptions/GameUiExceptionReading.cs` | 作る | manifest v7 `gameUiExceptions` の契約（判別 union: `GameUiExceptionsRecorded`／`GameUiExceptionsUnknown`・見本 `GameUiExceptionSample`）。置き場は読み取りごとのディレクトリ（前例 `BugReport/WebUiHealth/`） |
-| `S/Client.Game/InGame/BugReport/GameUiExceptions/GameUiExceptionCounter.cs` | 作る | ログから UI の例外を数える唯一の判定（名前付き定数 1 つ・`TryFindFirstUiFrame` 1 つ） |
+| `S/Client.Game/InGame/BugReport/GameUiExceptions/GameUiExceptionTally.cs` | 作る | ログを受けた時点で UI の例外をセッション通算で数える唯一の数え手（`Application.logMessageReceivedThreaded` を購読。名前付き定数 1 つ・`TryFindFirstUiFrame` 1 つ・見本は先頭 5 件）。2000 件の環 `UnityLogRing` からは数えない |
 | `S/Client.Game/InGame/BugReport/Readings/BugReportManifestReadings.cs` | 作る | 確保データ → manifest の読み取り欄（webUiHealth を Writer から移し、gameUiExceptions を足す）と「不明と欠損を組で書く」唯一の口 `MarkGameUiExceptionsUnknown`。`BugReport/` 直下は .cs が既に 10 本なのでサブディレクトリ |
 | `S/Client.Game/InGame/BugReport/BugReportManifest.cs`・`BugReportBundleWriter.cs`・`LastSession/CrashBundleWriter.cs` | 直す | v7・欄・Writer は 200 行未満に縮む |
+| `S/Client.Game/InGame/BugReport/Capture/BugReportCaptureStatus.cs`・`BugReportCaptureSources.cs`・`BugReportCaptureSession.cs`・`S/Client.Starter/Registration/PlaytestRecordRegistration.cs`・`UncollectedBugReportCaptureSources.cs` | 直す | 確保の瞬間に数え手の値を写す（`IBugReportCaptureSources.GameUiExceptions()`・`BugReportCapturedData.GameUiExceptions`）と数え手の登録 |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/playtest-receiver/developer-report-delivery.cs`・`developer-report-interrupt.cs` | 直す | manifest の版の照合 6→7 |
 | `scripts/playtest/dashboard/display_fields.py`・`collect_reports.py`・`static/js/views/report.js` | 直す | `gameUiExceptions` の表示 |
 | `scripts/playtest/tests/test_dashboard_game_ui_exceptions.py` | 作る | 表示の 4 状態 |
-| `S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs`・`WebUiHealthManifestTest.cs`・`S/Client.Tests/RemoteExec/RemoteExecBundleMarkTest.cs` | 作る・直す | v7 の L0（後の 2 本は版の数だけ） |
+| `S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs`・`WebUiHealthManifestTest.cs`・`CrashBundleWebUiHealthTest.cs`・`S/Client.Tests/RemoteExec/RemoteExecBundleMarkTest.cs`・`S/Client.Tests/BugReport/Capture/FakeBugReportCaptureSources.cs`・`S/Client.Tests/BugReport/Playtest/NullBugReportCaptureSources.cs` | 作る・直す | v7 の L0（後の 3 本は版の数だけ、偽物 2 本は口を 1 つ足すだけ） |
 | `S/Client.Tests/Ui/Crosscut/` 一式（`GameUiExceptionLoggingTest`・`PresenterMountTest`・`Localization/`・`Input/`・`TextSelection/`） | 作る | 横断の L1。10 ファイルを超えたらサブディレクトリ |
 | `S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiScreenMountTest.cs`・`AllScreensLanguageSwitchTest.cs` | 作る | L3（Stage<n> はラダーのレーンの持ち物なので使わない） |
 | `S/Client.Ui/Foundation/Layout/UiDisplay.cs`・`UiScrollClipInset.cs` | 作る | DC-11・DC-19 |
@@ -172,13 +174,15 @@ S = `moorestech_client/Assets/Scripts`。持ち主が他レーンのファイル
 ### Task 1: UI の例外の経路（R-1・R-2）
 
 **Files:**
-- Create: `S/Client.Game/InGame/BugReport/GameUiExceptions/GameUiExceptionReading.cs`・`GameUiExceptions/GameUiExceptionCounter.cs`・`S/Client.Game/InGame/BugReport/Readings/BugReportManifestReadings.cs`
+- Create: `S/Client.Game/InGame/BugReport/GameUiExceptions/GameUiExceptionReading.cs`・`GameUiExceptions/GameUiExceptionTally.cs`・`S/Client.Game/InGame/BugReport/Readings/BugReportManifestReadings.cs`
 - Modify: `S/Client.Game/InGame/BugReport/BugReportManifest.cs`（:42 版・:78 の下に欄）・`BugReportBundleWriter.cs`（:69-77 を移す）・`LastSession/CrashBundleWriter.cs`（:58 の下）
+- Modify（確保の瞬間に数え手の値を写す。D-1）: `Capture/BugReportCaptureStatus.cs`（`BugReportCapturedData` の :117 `Logs` の下に `public GameUiExceptionReading GameUiExceptions = new GameUiExceptionsUnknown();`、`IBugReportCaptureSources` の :191 `Logs();` の下に `GameUiExceptionReading GameUiExceptions();` の 1 行ずつ。コメントは型の側に書き、196→198 行）・`Capture/BugReportCaptureSources.cs`（ctor に `GameUiExceptionTally`、口は `_tally.Snapshot()`）・`Capture/BugReportCaptureSession.cs`（:60 `data.Logs = …` の下に `data.GameUiExceptions = _sources.GameUiExceptions();`）・`S/Client.Starter/Registration/PlaytestRecordRegistration.cs`（:44 `UnityLogRing` の下に `builder.RegisterEntryPoint<GameUiExceptionTally>().AsSelf();`）・`S/Client.Starter/Registration/UncollectedBugReportCaptureSources.cs`（`new GameUiExceptionsUnknown()` を返す。前例は同ファイルの `WebUiHealth()` の「不明で返す」）
 - Modify: `scripts/playtest/dashboard/display_fields.py`・`collect_reports.py`（:18・:77・:126）・`static/js/views/report.js`（:89・:113）
-- Test: `S/Client.Tests/Ui/Crosscut/GameUiExceptionLoggingTest.cs`・`S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs`・`WebUiHealthManifestTest.cs`（:32 の 6→7）・`S/Client.Tests/RemoteExec/RemoteExecBundleMarkTest.cs`（:69 の 6→7）・`scripts/playtest/tests/test_dashboard_game_ui_exceptions.py`
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/playtest-receiver/developer-report-delivery.cs`（:104 の `schemaVersion == 6`）・`developer-report-interrupt.cs`（:29 の `!= 6`）を 7 へ。どちらも `webUiHealth` が `started`・`observedAfterBrowserStart` であることも見るので、流すのは Web の系（T20 Step 3）
+- Test: `S/Client.Tests/Ui/Crosscut/GameUiExceptionLoggingTest.cs`・`S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs`・`WebUiHealthManifestTest.cs`（:32 の 6→7）・`CrashBundleWebUiHealthTest.cs`（:25 の 6→7）・`S/Client.Tests/RemoteExec/RemoteExecBundleMarkTest.cs`（:70 の 6→7）・`S/Client.Tests/BugReport/Capture/FakeBugReportCaptureSources.cs`（:90 の下に `public GameUiExceptionReading GameUiExceptionsReading = new GameUiExceptionsRecorded(0, Array.Empty<GameUiExceptionSample>());` と口）・`S/Client.Tests/BugReport/Playtest/NullBugReportCaptureSources.cs`（:30 の下に `new GameUiExceptionsUnknown()` を返す口）・`scripts/playtest/tests/test_dashboard_game_ui_exceptions.py`
 - Modify: `docs/uitk/disposition.md`（`## 処遇` の末尾に 6 行）
 
-**Interfaces:** Consumes: `UnityLogRing.Dump()`・`UnityLogEntry{Time,Tick,Type,Message,StackTrace}`（`BugReport/UnityLogRing.cs`:9-25）・`BugReportCapturedData.Logs`／`.WebUiHealth`（`Capture/BugReportCaptureStatus.cs`:117・:121）・`BugReportManifest.AddMissing(string, string)`（:106）・前例 `WebUiHealthReading` の欄ごとの `[JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]`（`WebUiHealth/WebUiHealthReading.cs`:33-37）。Produces: `abstract class GameUiExceptionReading { readonly GameUiExceptionStatus Status; }`・`GameUiExceptionsRecorded(int count, IReadOnlyList<GameUiExceptionSample> samples)`・`GameUiExceptionsUnknown()`・`GameUiExceptionCounter.SampleLimit`・`GameUiExceptionCounter.FromLogs(IReadOnlyList<UnityLogEntry>) : GameUiExceptionsRecorded`・`GameUiExceptionCounter.TryFindFirstUiFrame(string stackTrace, out string frame)`・`BugReportManifestReadings.Apply(BugReportManifest, BugReportCapturedData)`・`BugReportManifestReadings.MarkGameUiExceptionsUnknown(BugReportManifest, string reason)`・manifest `gameUiExceptions`
+**Interfaces:** Consumes: `UnityLogEntry{Time,Tick,Type,Message,StackTrace}`（`BugReport/UnityLogRing.cs`:9-25）・前例の数え手 `UnityLogRing`（`IInitializable` で `Application.logMessageReceivedThreaded` を購読し、`Add(LogType, string, string)` が `GameUpdater.CurrentTick` を付けてロックの中で積む。:29-62）・`BugReportCapturedData.Logs`／`.WebUiHealth`（`Capture/BugReportCaptureStatus.cs`:117・:121）・`IBugReportCaptureSources`（同 :172-195）・`BugReportManifest.AddMissing(string, string)`（:106）・前例 `WebUiHealthReading` の欄ごとの `[JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]`（`WebUiHealth/WebUiHealthReading.cs`:33-37）。Produces: `abstract class GameUiExceptionReading { readonly GameUiExceptionStatus Status; }`・`GameUiExceptionsRecorded(int count, IReadOnlyList<GameUiExceptionSample> samples)`・`GameUiExceptionsUnknown()`・`GameUiExceptionTally : IInitializable`（`SampleLimit`・`Add(LogType type, string message, string stackTrace)`・`Snapshot() : GameUiExceptionsRecorded`・`static TryFindFirstUiFrame(string stackTrace, out string frame)`）・`IBugReportCaptureSources.GameUiExceptions() : GameUiExceptionReading`・`BugReportCapturedData.GameUiExceptions`・`BugReportManifestReadings.Apply(BugReportManifest, BugReportCapturedData)`・`BugReportManifestReadings.MarkGameUiExceptionsUnknown(BugReportManifest, string reason)`・manifest `gameUiExceptions`
 
 - [ ] **Step 1: 例外がログに出ることを固定する L1（赤→緑の確認）**
 
@@ -249,8 +253,7 @@ Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --p
 
 ```csharp
 // S/Client.Tests/BugReport/Bundle/GameUiExceptionManifestTest.cs
-using System;
-using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.GameUiExceptions;
@@ -266,49 +269,81 @@ namespace Client.Tests.BugReport.Bundle
     // Pins manifest.gameUiExceptions' spelling and counting; the dashboard shows UI failures by these words (A-244)
     public class GameUiExceptionManifestTest
     {
+        private const string UiStack = "Client.Ui.Screens.Probe.OnClick () (at Assets/Probe.cs:1)\nUnityEngine.UIElements.EventDispatcher.ProcessEvent ()";
+
         [Test]
         public void Client_Uiを含む例外だけを数え見本は5件まで()
         {
-            var logs = new List<UnityLogEntry>();
-            for (var i = 0; i < 7; i++) logs.Add(Entry(LogType.Exception, $"boom {i}", "Client.Ui.Screens.Probe.OnClick () (at Assets/Probe.cs:1)\nUnityEngine.UIElements.EventDispatcher.ProcessEvent ()"));
-            logs.Add(Entry(LogType.Exception, "world", "Client.Game.InGame.World.Tick ()"));
-            logs.Add(Entry(LogType.Error, "ui error", "Client.Ui.Screens.Probe.OnClick ()"));
-            var recorded = GameUiExceptionCounter.FromLogs(logs);
+            var tally = new GameUiExceptionTally();
+            for (var i = 0; i < 7; i++) tally.Add(LogType.Exception, $"boom {i}", UiStack);
+            tally.Add(LogType.Exception, "world", "Client.Game.InGame.World.Tick ()");
+            tally.Add(LogType.Error, "ui error", "Client.Ui.Screens.Probe.OnClick ()");
+            var recorded = tally.Snapshot();
             Assert.AreEqual(GameUiExceptionStatus.Recorded, recorded.Status);
             Assert.AreEqual(7, recorded.Count);
-            Assert.AreEqual(GameUiExceptionCounter.SampleLimit, recorded.Samples.Count);
+            Assert.AreEqual(GameUiExceptionTally.SampleLimit, recorded.Samples.Count);
+            Assert.AreEqual("boom 0", recorded.Samples[0].Message);
             Assert.AreEqual("Client.Ui.Screens.Probe.OnClick () (at Assets/Probe.cs:1)", recorded.Samples[0].Frame);
+        }
+
+        // 環（2000 件で古い順に捨てる）が溢れても、序盤の UI の例外は数と見本に残る（0 件と読ませない）
+        // Even after the ring (dropping the oldest past 2000) overflows, an early UI exception stays in the count and samples (never reads as zero)
+        [Test]
+        public void 環が溢れた後でも序盤の例外が数に残る()
+        {
+            var ring = new UnityLogRing();
+            var tally = new GameUiExceptionTally();
+            Log(LogType.Exception, "early ui boom", UiStack);
+            for (var i = 0; i < UnityLogRing.Capacity + 1; i++) Log(LogType.Log, $"noise {i}", "");
+            Assert.IsFalse(ring.Dump().Any(entry => entry.Message == "early ui boom"), "前提: 環から序盤の例外が押し出されている");
+            var recorded = tally.Snapshot();
+            Assert.AreEqual(1, recorded.Count);
+            Assert.AreEqual("early ui boom", recorded.Samples[0].Message);
+
+            #region Internal
+
+            // 本番と同じく、受けたログを環と数え手の両方へ渡す
+            // As in production, every received log goes to both the ring and the tally
+            void Log(LogType type, string message, string stackTrace)
+            {
+                ring.Add(type, message, stackTrace);
+                tally.Add(type, message, stackTrace);
+            }
+
+            #endregion
         }
 
         [Test]
         public void UIのフレームが無いスタックは見つからないと返す()
         {
-            Assert.IsFalse(GameUiExceptionCounter.TryFindFirstUiFrame("Client.Game.InGame.World.Tick ()\nUnityEngine.PlayerLoop ()", out _));
-            Assert.IsTrue(GameUiExceptionCounter.TryFindFirstUiFrame("UnityEngine.Foo ()\n  Client.Ui.State.Probe.Run () ", out var frame));
+            Assert.IsFalse(GameUiExceptionTally.TryFindFirstUiFrame("Client.Game.InGame.World.Tick ()\nUnityEngine.PlayerLoop ()", out _));
+            Assert.IsTrue(GameUiExceptionTally.TryFindFirstUiFrame("UnityEngine.Foo ()\n  Client.Ui.State.Probe.Run () ", out var frame));
             Assert.AreEqual("Client.Ui.State.Probe.Run ()", frame);
         }
 
         [Test]
         public void 例外が無ければrecordedで0件()
         {
-            var recorded = GameUiExceptionCounter.FromLogs(new List<UnityLogEntry>());
-            var json = JObject.Parse(new BugReportManifest { GameUiExceptions = recorded }.ToJson());
+            var manifest = new BugReportManifest();
+            BugReportManifestReadings.Apply(manifest, new BugReportCapturedData { GameUiExceptions = new GameUiExceptionTally().Snapshot(), WebUiHealth = new WebUiHealthReading() });
+            var json = JObject.Parse(manifest.ToJson());
             Assert.AreEqual(7, (int)json["schemaVersion"]);
             Assert.AreEqual("recorded", (string)json["gameUiExceptions"]["status"]);
             Assert.AreEqual(0, (int)json["gameUiExceptions"]["count"]);
             Assert.AreEqual(0, ((JArray)json["gameUiExceptions"]["samples"]).Count);
+            Assert.IsFalse(manifest.Missing.Any(item => item.Item == "gameUiExceptions"));
         }
 
         [Test]
-        public void ログが無ければunknownで件数の欄を持たず欠損に書く()
+        public void 確保時に数を取れなければunknownで件数の欄を持たず欠損に書く()
         {
             var manifest = new BugReportManifest();
-            BugReportManifestReadings.Apply(manifest, new BugReportCapturedData { Logs = null, WebUiHealth = new WebUiHealthReading() });
+            BugReportManifestReadings.Apply(manifest, new BugReportCapturedData { GameUiExceptions = new GameUiExceptionsUnknown(), WebUiHealth = new WebUiHealthReading() });
             var json = JObject.Parse(manifest.ToJson());
             Assert.AreEqual("unknown", (string)json["gameUiExceptions"]["status"]);
             Assert.IsNull(json["gameUiExceptions"]["count"], "unknown は件数の欄を持たない（0 件と読ませない）");
             Assert.IsNull(json["gameUiExceptions"]["samples"]);
-            CollectionAssert.Contains(manifest.Missing.ConvertAll(item => item.Item), "gameUiExceptions");
+            Assert.IsTrue(manifest.Missing.Any(item => item.Item == "gameUiExceptions"));
         }
 
         [Test]
@@ -317,18 +352,13 @@ namespace Client.Tests.BugReport.Bundle
             var json = JObject.Parse(new BugReportManifest().ToJson());
             Assert.AreEqual("unknown", (string)json["gameUiExceptions"]["status"]);
         }
-
-        private static UnityLogEntry Entry(LogType type, string message, string stackTrace)
-        {
-            return new UnityLogEntry(DateTime.UtcNow, 1UL, type, message, stackTrace);
-        }
     }
 }
 ```
 
 Run: `uloop compile …` → コンパイルエラー（型が無い）を確かめる
 
-- [ ] **Step 3: 読み取りを作る（契約・数える判定・詰める口の 3 本）**
+- [ ] **Step 3: 読み取りを作る（契約・数え手・詰める口の 3 本）**
 
 契約は判別 union にする。「数えた（recorded）」と「数えていない（unknown）」を型で分け、unknown は件数も見本も持たない（null と判別子で同じことを 2 通りに表さない）。JSON の判別子 `status` の綴りは、manifest の `Settings`（`BugReportManifest.cs`:20-25）が enum の変換器を持たないので、前例 `WebUiHealthReading`（:33-37）と同じく欄に属性を付けて契約にする。
 
@@ -364,8 +394,8 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
         }
     }
 
-    // ログを数えた箱。0 件は「数えて無かった」という実値
-    // A box whose log was counted; zero is the real value "counted, none found"
+    // セッション通算で数えた箱。0 件は「数えて無かった」という実値
+    // A box counted over the whole session; zero is the real value "counted, none found"
     public sealed class GameUiExceptionsRecorded : GameUiExceptionReading
     {
         public readonly int Count;
@@ -378,8 +408,8 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
         }
     }
 
-    // ログが無く数えていない箱（ログ未確保・前回セッションのクラッシュ）。理由は manifest の missing が持つ
-    // A box with no counted log (log not captured, previous-session crash); the reason lives in the manifest's missing list
+    // 数えていない箱（確保時に数え手の値が無い・前回セッションのクラッシュ）。理由は manifest の missing が持つ
+    // An uncounted box (no tally value at capture, previous-session crash); the reason lives in the manifest's missing list
     public sealed class GameUiExceptionsUnknown : GameUiExceptionReading
     {
         public GameUiExceptionsUnknown() : base(GameUiExceptionStatus.Unknown)
@@ -404,17 +434,19 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
 ```
 
 ```csharp
-// S/Client.Game/InGame/BugReport/GameUiExceptions/GameUiExceptionCounter.cs
+// S/Client.Game/InGame/BugReport/GameUiExceptions/GameUiExceptionTally.cs
 using System.Collections.Generic;
+using Core.Update;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace Client.Game.InGame.BugReport.GameUiExceptions
 {
     /// <summary>
-    /// 確保したログから UI（Client.Ui・Client.Ui.State）の例外を数える。UI の例外かの判定は TryFindFirstUiFrame の 1 本だけが持つ（A-244）
-    /// Counts UI (Client.Ui, Client.Ui.State) exceptions in the captured log; only TryFindFirstUiFrame decides whether an exception is a UI one (A-244)
+    /// ログを受けた時点で UI（Client.Ui・Client.Ui.State）の例外をセッション通算で数える。2000 件で古い順に捨てる UnityLogRing から数えると、序盤の例外が押し出されて 0 件に見えるため（A-244）
+    /// Counts UI (Client.Ui, Client.Ui.State) exceptions for the whole session as each log arrives; counting from UnityLogRing, which drops the oldest past 2000, would push early exceptions out and read as zero (A-244)
     /// </summary>
-    public static class GameUiExceptionCounter
+    public sealed class GameUiExceptionTally : IInitializable
     {
         public const int SampleLimit = 5;
 
@@ -422,19 +454,37 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
         // The UI namespace prefix found on stack lines (Client.Ui. also covers Client.Ui.State.)
         private const string UiNamespaceMarker = "Client.Ui.";
 
-        public static GameUiExceptionsRecorded FromLogs(IReadOnlyList<UnityLogEntry> logs)
+        // どのスレッドのログも受けるためロックで守る（前例 UnityLogRing）
+        // Locked because logs arrive from any thread (precedent UnityLogRing)
+        private readonly object _lock = new();
+        private readonly List<GameUiExceptionSample> _samples = new(SampleLimit);
+        private int _count;
+
+        public void Initialize()
         {
-            var count = 0;
-            var samples = new List<GameUiExceptionSample>();
-            foreach (var entry in logs)
+            Application.logMessageReceivedThreaded += OnLogReceived;
+        }
+
+        public void Add(LogType type, string message, string stackTrace)
+        {
+            // 例外の種別で、スタックに UI のフレームが載るものだけ（UI の購読・コールバックが止まった印）
+            // Only exceptions whose stack carries a UI frame (the sign that a UI subscription or callback broke)
+            if (type != LogType.Exception || !TryFindFirstUiFrame(stackTrace, out var frame)) return;
+            lock (_lock)
             {
-                // 例外の種別で、スタックに UI のフレームが載るものだけ（UI の購読・コールバックが止まった印）
-                // Only exceptions whose stack carries a UI frame (the sign that a UI subscription or callback broke)
-                if (entry.Type != LogType.Exception || !TryFindFirstUiFrame(entry.StackTrace, out var frame)) continue;
-                count++;
-                if (samples.Count < SampleLimit) samples.Add(new GameUiExceptionSample(entry.Tick, entry.Message, frame));
+                _count++;
+                if (_samples.Count < SampleLimit) _samples.Add(new GameUiExceptionSample(GameUpdater.CurrentTick, message, frame));
             }
-            return new GameUiExceptionsRecorded(count, samples);
+        }
+
+        // 確保の瞬間の写し。件数はセッション通算、見本は先頭 5 件
+        // The capture-moment copy; the count covers the whole session and the samples are the first five
+        public GameUiExceptionsRecorded Snapshot()
+        {
+            lock (_lock)
+            {
+                return new GameUiExceptionsRecorded(_count, new List<GameUiExceptionSample>(_samples));
+            }
         }
 
         // UI の例外かの唯一の判定。見つかれば最初の UI のフレームの行を返す
@@ -449,6 +499,11 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
             }
             frame = null;
             return false;
+        }
+
+        private void OnLogReceived(string condition, string stackTrace, LogType type)
+        {
+            Add(type, condition, stackTrace);
         }
     }
 }
@@ -492,14 +547,14 @@ namespace Client.Game.InGame.BugReport.Readings
 
             void ApplyGameUiExceptions()
             {
-                // ログが無ければ数えられない（ログの欠損そのものは WriteLogs が別に書く）
-                // Without logs nothing can be counted (WriteLogs records the log gap itself)
-                if (data.Logs == null)
+                // 確保時に数え手の値を取れなかった箱（記録を集めない起動など）は数えていない。0 件と読ませない
+                // A box whose capture got no tally value (such as a boot that collects no records) was not counted; never let it read as zero
+                if (data.GameUiExceptions.Status == GameUiExceptionStatus.Unknown)
                 {
-                    MarkGameUiExceptionsUnknown(manifest, "Unityログを確保できていなかったため UI の例外を数えられない");
+                    MarkGameUiExceptionsUnknown(manifest, "確保時に UI の例外の数を取れなかった（記録を集めない起動）");
                     return;
                 }
-                manifest.GameUiExceptions = GameUiExceptionCounter.FromLogs(data.Logs);
+                manifest.GameUiExceptions = data.GameUiExceptions;
             }
 
             #endregion
@@ -516,7 +571,7 @@ namespace Client.Game.InGame.BugReport.Readings
 }
 ```
 
-- [ ] **Step 4: manifest と 2 つの Writer**: `BugReportManifest.cs` の `SchemaVersion = 6` を `7` にし、その上の版の注記に `// v7: gameUiExceptions（UI の例外の数と見本。数えていない箱は status だけの unknown）を常時非nullで追加` と英訳の 1 行を足す。`WebUiHealth` の欄（:76）の下に次の 3 行を足す（`using Client.Game.InGame.BugReport.GameUiExceptions;` も）。判別子の綴りは型の側の属性が決める（`WebUiHealthReading` と同じく欄に属性を付ける形。manifest の `Settings` には足さない）。Newtonsoft は宣言型でなく実行時の型（`GameUiExceptionsRecorded`／`GameUiExceptionsUnknown`）の欄を書くので、unknown の箱には `count`・`samples` が出ない（Step 2 の 4 件目が見る）
+- [ ] **Step 4: manifest と 2 つの Writer**: `BugReportManifest.cs` の `SchemaVersion = 6` を `7` にし、その上の版の注記に `// v7: gameUiExceptions（UI の例外の数と見本。数えていない箱は status だけの unknown）を常時非nullで追加` と英訳の 1 行を足す。`WebUiHealth` の欄（:76）の下に次の 3 行を足す（`using Client.Game.InGame.BugReport.GameUiExceptions;` も）。判別子の綴りは型の側の属性が決める（`WebUiHealthReading` と同じく欄に属性を付ける形。manifest の `Settings` には足さない）。Newtonsoft は宣言型でなく実行時の型（`GameUiExceptionsRecorded`／`GameUiExceptionsUnknown`）の欄を書くので、unknown の箱には `count`・`samples` が出ない（Step 2 の 5 件目が見る）
 
 ```csharp
         // UI の例外の数と見本（A-244。Web の AppErrorBoundary の代わり）。v7 で追加、常に非 null。既定は数えていない箱
@@ -532,20 +587,24 @@ namespace Client.Game.InGame.BugReport.Readings
             BugReportManifestReadings.MarkGameUiExceptionsUnknown(manifest, "前回セッションの UI の例外は数えていない");
 ```
 
-`WebUiHealthManifestTest.cs`:32 と `RemoteExecBundleMarkTest.cs`:69 の `Assert.AreEqual(6, …schemaVersion…)` を `7` に直す。`git grep -n -e "schemaVersion\"\]" -e "SchemaVersion" -- moorestech_client scripts` で 6 を見ている他の照合を探し、manifest の版を読むもの（`digest_schema.py` の `schemaVersion` は record.json の版で別物）だけ直す
+確保の口（D-1。前例は同じ箱の `Logs`・`WebUiHealth` の写し方）: `IBugReportCaptureSources` の :191 `Logs();` の下に `GameUiExceptionReading GameUiExceptions();`、`BugReportCapturedData` の :117 `Logs` の下に `public GameUiExceptionReading GameUiExceptions = new GameUiExceptionsUnknown();` を 1 行ずつ足す（`BugReportCaptureStatus.cs` は 196→198 行。コメントは型の側に書いてここには足さない。`wc -l` が 200 を超えたら止めて `done.md`「要裁定」へ）。`BugReportCaptureSources` は ctor の最後に `GameUiExceptionTally tally` を受け、`public GameUiExceptionReading GameUiExceptions() { return _tally.Snapshot(); }`。`BugReportCaptureSession` の :60 の下に `data.GameUiExceptions = _sources.GameUiExceptions();`（`Logs` と同じ確保の瞬間に写す）。`PlaytestRecordRegistration` の :44 の下に `builder.RegisterEntryPoint<GameUiExceptionTally>().AsSelf();`（:42 のコメントの「ログリング・録画リング」に「UI の例外の数え手」を足す）。`UncollectedBugReportCaptureSources` は `WebUiHealth()` と同じ形で `new GameUiExceptionsUnknown()` を返す（この起動は数えない。確保の起点が無いので本来は呼ばれない）。テストの偽物 `FakeBugReportCaptureSources` は既定 `new GameUiExceptionsRecorded(0, Array.Empty<GameUiExceptionSample>())` の欄を返し、`NullBugReportCaptureSources` は `new GameUiExceptionsUnknown()` を返す。`BugReportDependencyCycleTest` の対応表は数え手が依存を持たないので変えない
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GameUiExceptionManifestTest|WebUiHealthManifestTest|CrashBundleWebUiHealthTest|BugReportBundleWriterIdentityTest|RemoteExecBundleMarkTest"` → 全件 PASS
+版の照合: `WebUiHealthManifestTest.cs`:32・`CrashBundleWebUiHealthTest.cs`:25・`RemoteExecBundleMarkTest.cs`:70 の `Assert.AreEqual(6, …schemaVersion…)` と、録画シナリオ `playtest-receiver/developer-report-delivery.cs`:104 の `== 6`・`developer-report-interrupt.cs`:29 の `!= 6`（例外の文 `schemaVersion is not 6` も）を `7` に直す。`git grep -n -e "schemaVersion\"\]" -e "SchemaVersion" -- moorestech_client scripts .agents/skills/unity-playmode-recorded-playtest/scenarios` で 6 を見ている他の照合を探し、manifest の版を読むもの（`digest_schema.py` の `schemaVersion` は record.json の版で別物）だけ直す。2 本のシナリオは `webUiHealth.hostStartup == "started"`・`cefProcess == "observedAfterBrowserStart"` も見るので、GameUi の系（Web ホストは `SkippedByEditorSwitch`。`WebUiStartup.cs`:19-27）では通らない。流すのは T20 Step 3 の Web の系
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GameUiExceptionManifestTest|WebUiHealthManifestTest|CrashBundleWebUiHealthTest|BugReportBundleWriterIdentityTest|RemoteExecBundleMarkTest|UnityLogRingTest|BugReportDependencyCycleTest|BugReportCapture"` → 全件 PASS
 
 - [ ] **Step 5: ダッシュボード**: `display_fields.py` の末尾に `game_ui_exceptions(raw, source)` を足す（`web_ui_health` と同じ 4 状態。`"gameUiExceptions" not in raw` → `{"status": "absent"}`／dict でない・`status` が `recorded`・`unknown` 以外・`count` が int でない recorded → `warn` して `{"status": "unreadable"}`／`unknown` → `{"status": "unknown"}`／recorded → `{"status": "recorded", "count": n, "samples": [{"tick", "message", "frame"} …最大 5]}`）。`collect_reports.py` の :18 の import に足し、:77 の既定の行に `"gameUiExceptions": {"status": "unreadable"},`、:126 の下に `"gameUiExceptions": game_ui_exceptions(raw, source),`。`report.js` に `gameUiExceptionRows(value)` を `webUiHealthRows`（:89）の形で足し、:113 の並びに加える（欄なし＝「UI の例外: 記録なし（v6 以前）」・不明・読めない・`N 件`＋見本の `frame` を 1 行ずつ）
 - [ ] **Step 6: ダッシュボードのテスト**: `scripts/playtest/tests/test_dashboard_game_ui_exceptions.py` を `test_dashboard.py`:93-110（`test_web_ui_health_status_…`）の土台（`add_report`・`reports_by_id`）を import して書く。4 件: 欄なし→absent、unknown→unknown、`{"status":"recorded","count":"x"}`→unreadable、`{"status":"recorded","count":2,"samples":[…]}`→recorded と count 2
 
 Run: `python3 -m unittest discover -s scripts/playtest/tests -p 'test_dashboard*.py' -v` → 全件 OK
 
-- [ ] **Step 7: disposition の 6 行**: `docs/uitk/disposition.md` の `## 処遇` の末尾に、列 `| 束 | Web のファイル | Web のテスト名 | 処遇 | 証跡のパスか理由 | PR |` で:
-  - `| 5 | e2e/tests/regression/connection.spec.ts | 切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する | 捨てる | UITK には Web↔C# の WS が無く切断・復元の状態が起きない（設計書 A-38・実行計画 E-17） | <PR> |`
-  - `| 5 | e2e/tests/regression/connection.spec.ts | inventory未受信中はconnecting placeholderを表示する | 捨てる | UITK に「未受信」の状態が無い（設計書 A-13） | <PR> |`
-  - `| 5 | e2e/tests/regression/connection.spec.ts | WS切断時は再接続バナーをz-reconnect層に表示する | 捨てる | 同 A-38・E-17 | <PR> |`
-  - `allScreensI18n.test.ts` の `fetches fallback only once while also loading source for the fallback locale`・`waits for the localization topic before the first dictionary fetch`・`keeps the newest locale when StrictMode cleanup aborts an older dictionary generation` を `捨てる`・「UITK の辞書は起動時に同期で読み込み、HTTP 取得・取得の世代・topic 待ちが無い（設計書 A-38）」で 3 行
+- [ ] **Step 7: disposition の 6 行**: `docs/uitk/disposition.md` の `## 処遇` の末尾に、列 `| 束 | Web のファイル | Web のテスト名 | 処遇 | 証跡のパスか理由 | PR |` で（「Web のファイル」は webui 相対をバッククォートで囲む。`tools/uitk/testNameParity/disposition.mjs`:27,34 が囲まない列を書式の誤りとして落とす。前例は同ファイル :86-92 の行）:
+  - ``| 5 | `e2e/tests/regression/connection.spec.ts` | 切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する | 捨てる | UITK には Web↔C# の WS が無く切断・復元の状態が起きない（設計書 A-38・実行計画 E-17） | <PR> |``
+  - ``| 5 | `e2e/tests/regression/connection.spec.ts` | inventory未受信中はconnecting placeholderを表示する | 捨てる | UITK に「未受信」の状態が無い（設計書 A-13） | <PR> |``
+  - ``| 5 | `e2e/tests/regression/connection.spec.ts` | WS切断時は再接続バナーをz-reconnect層に表示する | 捨てる | 同 A-38・E-17 | <PR> |``
+  - ``| 5 | `src/shared/i18n/allScreensI18n.test.ts` | fetches fallback only once while also loading source for the fallback locale | 捨てる | UITK の辞書は起動時に同期で読み込み、HTTP 取得・取得の世代・topic 待ちが無い（設計書 A-38） | <PR> |``
+  - ``| 5 | `src/shared/i18n/allScreensI18n.test.ts` | waits for the localization topic before the first dictionary fetch | 捨てる | 同上（A-38） | <PR> |``
+  - ``| 5 | `src/shared/i18n/allScreensI18n.test.ts` | keeps the newest locale when StrictMode cleanup aborts an older dictionary generation | 捨てる | 同上（A-38） | <PR> |``
   - `connection.spec.ts` が束 5 でないとツールが言えば（Step 8 の出力で分かる）、その 3 行は束の列をツールの束に合わせる
 - [ ] **Step 8: 突き合わせ**: `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing > moorestech_client/.uloop/outputs/compare/S5-crosscut/parity-t1.txt; echo "exit=$?"`。出力に Step 7 の 6 件が無い（書式誤りの行が出たら直す）
 - [ ] **Step 9: コミット**: `git add` した範囲で `git commit -m "feat(uitk): UI の例外を manifest v7 の gameUiExceptions へ数え、作らない横断層を disposition に記帳（S5-crosscut T1）"`
@@ -1617,7 +1676,7 @@ Topic 2 本は Catalog を呼んで DTO へ写すだけにする。列車の 8 �
 
 従う裁定: `.decisions/2026-11-06-*`（UITK 6 本と CEF 停止）。依頼文の指示: Codex を使わない・Mac の Editor 1 本（2 本目以降は Windows）・問いは agent 既定・worktree の片付けは指揮。ランタイムの UI・入力・バグ報告に触れるので unityプレイ録画テスト（T20）を含む。
 
-- D-1（agent 既定。設計書 §7.1 に A-244 を足す。契約の形は指揮の agent 既定（PLAN-W5 設計検査））: `AppErrorBoundary` の代わりは「例外を握らずログ（`LogType.Exception`）へ出し、バグ報告の manifest v7 `gameUiExceptions` で数える」。フォールバック画面と再読み込みのボタンは作らない。棄却: Web と同じフォールバック画面 — ゲームはメインメニューへ戻らない設計で `location.reload` に当たる戻り先が無く、画面を出しても押せる操作が無い。棄却: UI 全体の例外ハンドラ（try-catch で包む）— AGENTS.md の try-catch 禁止の外部境界に当たらず、握ると壊れた購読が黙って残る。契約は判別 union（`GameUiExceptionsRecorded(count, samples)`／`GameUiExceptionsUnknown`）で、判別子 `status` の綴りは前例 `WebUiHealthReading`:33-37 と同じく欄の `StringEnumConverter`＋`CamelCaseNamingStrategy` の属性で決める。棄却: 1 つの型に `Status` と `int? Count` を持つ — 「数えていない」を null と判別子の 2 通りで表し、片方だけ見た読み手が食い違う。UI の例外かの判定は `GameUiExceptionCounter` の名前付き定数 `UiNamespaceMarker` と `TryFindFirstUiFrame` の 1 本（見つからないを空文字で表さない）、数えていない箱の書き方は `BugReportManifestReadings.MarkGameUiExceptionsUnknown` の 1 本（不明と欠損を組で書く。バグ報告の箱とクラッシュの箱が同じ口を通る）。置き場は前例 `BugReport/WebUiHealth/` に倣い読み取りごとの `BugReport/GameUiExceptions/`、詰める口は `BugReport/` 直下が .cs 10 本なので `BugReport/Readings/`
+- D-1（agent 既定。設計書 §7.1 に A-244 を足す。契約の形は指揮の agent 既定（PLAN-W5 設計検査））: `AppErrorBoundary` の代わりは「例外を握らずログ（`LogType.Exception`）へ出し、バグ報告の manifest v7 `gameUiExceptions` で数える」。フォールバック画面と再読み込みのボタンは作らない。棄却: Web と同じフォールバック画面 — ゲームはメインメニューへ戻らない設計で `location.reload` に当たる戻り先が無く、画面を出しても押せる操作が無い。棄却: UI 全体の例外ハンドラ（try-catch で包む）— AGENTS.md の try-catch 禁止の外部境界に当たらず、握ると壊れた購読が黙って残る。契約は判別 union（`GameUiExceptionsRecorded(count, samples)`／`GameUiExceptionsUnknown`）で、判別子 `status` の綴りは前例 `WebUiHealthReading`:33-37 と同じく欄の `StringEnumConverter`＋`CamelCaseNamingStrategy` の属性で決める。棄却: 1 つの型に `Status` と `int? Count` を持つ — 「数えていない」を null と判別子の 2 通りで表し、片方だけ見た読み手が食い違う。UI の例外かの判定は `GameUiExceptionTally` の名前付き定数 `UiNamespaceMarker` と `TryFindFirstUiFrame` の 1 本（見つからないを空文字で表さない）、数えていない箱の書き方は `BugReportManifestReadings.MarkGameUiExceptionsUnknown` の 1 本（不明と欠損を組で書く。バグ報告の箱で確保時に数を取れなかったときとクラッシュの箱が同じ口を通る。前例 `CrashBundleWriter`:57-58 の webUiHealth も不明と `missing` の組）。置き場は前例 `BugReport/WebUiHealth/` に倣い読み取りごとの `BugReport/GameUiExceptions/`、詰める口は `BugReport/` 直下が .cs 10 本なので `BugReport/Readings/`。件数の数え方（指揮の agent 既定（PLAN-W5 評価））: 件数はログを受けた時点で `GameUiExceptionTally`（`IInitializable` で `Application.logMessageReceivedThreaded` を購読。前例 `UnityLogRing` と同じ受け方）がセッション通算として数え、見本は先頭 5 件、確保の瞬間に `IBugReportCaptureSources.GameUiExceptions()` で写す。棄却: 確保した `UnityLogRing.Dump()` から数える — 環は Log・Warning も含めて 2000 件で古い順に捨てる（`UnityLogRing.cs`:31,41-49）ので、序盤の UI の例外が押し出されると `{"status":"recorded","count":0}` になり「0 件」と黙って読める。棄却: 環が溢れた事実を契約に足す — 窓の中の数は報告ごとに意味が変わり、ダッシュボードで比べられない。同じ manifest に兄弟 `webUiHealth`（平らな sealed class。不在は enum の Unknown と `double?` の null）と形の違う判別 union が並ぶ。揃えないのは、webUiHealth の欄は「値ごとに取れない」が独立に起きるのに対し、gameUiExceptions は「数えたか」の 1 点で件数と見本の有無が決まるため（平らにすると `int? Count` の null と判別子で同じことを 2 通りに表す）。版（指揮の agent 既定（PLAN-W5 評価））: manifest の v7 はこのレーンが先に使う（`gameUiExceptions` を足した版。`webUiHealth` は持つ）。X-5a の計画は v7 を「`webUiHealth` を外した版」と定めているので、X-5a は 8 を使う（`done.md`「integrator への依頼」と notes に書く。ADR 0057:76 の「7 へ上げる」も X-5a が 8 と書き直す）
 - D-2（agent 既定）: レーン行の依存は S4-gamma だけだが、同じファイルを先に直す I-fix5・I-fix6 のマージを T0 で待つ。棄却: 並走して取り込みで解く — DC-8 A・DC-16 A・DC-28 A・DC-17 A・DC-22 A の上にこのレーンの B/C 側が乗るので、先に入らないと同じ行を 2 回書き換える
 - D-3（agent 既定）: 再接続オーバーレイ・辞書エラー・`ConnectingPlaceholder` は作らず、Web の 6 件を disposition の `捨てる` にする（[A-13]・[A-38]・E-17）
 - D-4（agent 既定）: 横断の L1 の置き場は `Client.Tests/Ui/Crosscut/`、L3 は `EditModeInPlayingTest/Ui/Crosscut/`。棄却: `Stage5/` — S5-ladder の持ち物と重なる
