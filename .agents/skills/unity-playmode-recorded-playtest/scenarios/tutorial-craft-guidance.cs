@@ -71,26 +71,13 @@ return PlaytestRunner.Run("tutorial-craft-guidance", options, async p =>
     if (isGameUi) await p.Until(() => TutorialAnchorRegistry.Resolve(Root(), plankAnchor) is TutorialAnchorResolution.Unique, 10f, $"UITK で {plankAnchor} のアンカーが一意");
     await p.Screenshot("02-plank-outline");
 
-    // 4. 木の板を押すとクラフトボタンに枠が移る
-    // 4. Pressing the plank moves the outline to the craft button
-    await p.UntilUiElement(plankCell, 10f);
-    await p.ClickUi(plankCell);
-    await p.UntilUiElement(craftButton, 10f);
-    await p.Until(() => HasOutline(AnchorIds.RecipeCraftButton), 15f, "store にクラフトボタンの枠がある");
-    if (isGameUi) await p.Until(() => TutorialAnchorRegistry.Resolve(Root(), AnchorIds.RecipeCraftButton) is TutorialAnchorResolution.Unique, 10f, "UITK で recipe.craft-button のアンカーが一意");
-    await p.Screenshot("03-craft-button-outline");
+    // 4. GameUi は木の板を押して枠を確かめ長押しで 1 枚作る。Web は R3 で testid を足せずセルとボタンを引けないため store の枠だけ見る
+    // 4. GameUi presses the plank, checks the outline and holds for one; Web cannot get testids under R3, so it checks only the store outline
+    if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi) await SelectPlankAndHoldCraft();
+    else await p.Until(() => HasOutline(AnchorIds.RecipeCraftButton), 15f, "store にクラフトボタンの枠がある");
 
-    // 5. クラフトボタンを長押しして 1 枚作る（前例 uitk-recipe-craft）。残りはクラフト要求で作る
-    // 5. Hold the craft button to make one plank (precedent uitk-recipe-craft); craft the rest by request
-    var before = p.CountItem(plankName);
-    var buttonRect = (await PlaytestUiElementOps.FindUi(craftButton)).ScreenRect;
-    SemanticInput.MouseMoveTo(buttonRect.center);
-    await p.WaitSeconds(0.5f);
-    SemanticInput.MouseButtonDown(0);
-    await p.Until(() => p.CountItem(plankName) > before, 3f * (float)plankRecipe.CraftTime + 3f, "クラフトボタンの長押しで木の板が増えた");
-    SemanticInput.MouseButtonUp(0);
-    await p.WaitSeconds(0.5f);
-    p.Note($"長押しで {plankName} {before}→{p.CountItem(plankName)}");
+    // 5. 残りの木の板はクラフト要求で作る
+    // 5. Craft the remaining planks by request
     for (var made = p.CountItem(plankName); made < secondTask.ItemCount; made++) ClientContext.VanillaApi.SendOnly.Craft(plankRecipe.CraftRecipeGuid);
     await p.WaitForChallenge(second.ChallengeGuid, true, 30, $"{plankName}を {secondTask.ItemCount} 枚作って 2 番目が完了した");
     await p.WaitForChallenge(third.ChallengeGuid, false, 30, "3 番目のチャレンジがカレント");
@@ -108,6 +95,30 @@ return PlaytestRunner.Run("tutorial-craft-guidance", options, async p =>
     IEnumerable<TutorialOverlayElementData> Elements() => TutorialPresentationStateStore.Instance.GetCurrent().Sessions.SelectMany(s => s.Elements);
 
     bool HasOutline(string anchorId) => Elements().OfType<TutorialOutlineElementData>().Any(o => o.AnchorId == anchorId);
+
+    // 木の板を押すとクラフトボタンに枠が移り、長押しで 1 枚作る（前例 uitk-recipe-craft）
+    // Pressing the plank moves the outline to the craft button and holding makes one plank (precedent uitk-recipe-craft)
+    async UniTask SelectPlankAndHoldCraft()
+    {
+        await p.UntilUiElement(plankCell, 10f);
+        await p.ClickUi(plankCell);
+        await p.UntilUiElement(craftButton, 10f);
+        await p.Until(() => HasOutline(AnchorIds.RecipeCraftButton), 15f, "store にクラフトボタンの枠がある");
+        await p.Until(() => TutorialAnchorRegistry.Resolve(Root(), AnchorIds.RecipeCraftButton) is TutorialAnchorResolution.Unique, 10f, "UITK で recipe.craft-button のアンカーが一意");
+        await p.Screenshot("03-craft-button-outline");
+
+        // ボタン中央を押し続け、木の板が増えたら離す
+        // Keep pressing the button center and release once a plank appears
+        var before = p.CountItem(plankName);
+        var buttonRect = (await PlaytestUiElementOps.FindUi(craftButton)).ScreenRect;
+        SemanticInput.MouseMoveTo(buttonRect.center);
+        await p.WaitSeconds(0.5f);
+        SemanticInput.MouseButtonDown(0);
+        await p.Until(() => p.CountItem(plankName) > before, 3f * (float)plankRecipe.CraftTime + 3f, "クラフトボタンの長押しで木の板が増えた");
+        SemanticInput.MouseButtonUp(0);
+        await p.WaitSeconds(0.5f);
+        p.Note($"長押しで {plankName} {before}→{p.CountItem(plankName)}");
+    }
 
     // チャレンジの keyControl が store にマスタどおり載り、key-control-hint が出る
     // The challenge's keyControl sits in the store as the master says and key-control-hint shows
