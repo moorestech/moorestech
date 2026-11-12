@@ -70,6 +70,7 @@
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / `gameUiExceptions.status` に前例どおり欄の StringEnumConverter＋CamelCase 属性、`CraftActions` は switch を書かず `UiCommandRejectReasonTraits.ToWireCode` を呼ぶ。注目点 N1〜N9 は D-8（pull を保つ・キーごとの型の DI）・D-1（`GameUiExceptions/`）・D-7（`Theme/StyleResolution/`）・D-12（`SkitChoice` は Web に variant が無く削除）・D-23（CI の置き場）・D-24（`BugReportFormSender` を作らない）へ、死活表に 10 行
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱3・第3バケツ4 / 例外の読み取りを判別 union に畳み判定と「不明＋欠損」の口を 1 本ずつに、A-162 を保って矢印の抑止を stream 内の `InputSuppressionFilter` へ（A-246 で A-162 の一部を改める）、A-84 は A-247 で改める。弱 5-F5 は AGENTS.md の既知の制約（D-22）。第3バケツは B-1 を T2 へ取り込み、B-2〜B-4 は「## 本PR外のリファクタ提案」
+- 独立評価・予測レビューの反映: 実施済み / 再現 27 件を反映・不再現 8 件 / UI の例外の件数をログ受信時のセッション通算へ（環の溢れで 0 件にしない）、manifest v7 は先取りし X-5a を v8 へ、T3 は `ItemListView` を外し `RecipeEntryList` に片側ずつの口、L3 は層と Render まで見る、S5-gate とは Dispose を呼ばない形で揃え、写し先・版の照合・パス・置き場の軽微を直した（処遇は判断記録の末尾）
 
 ## 死活表（Phase 2.5）
 
