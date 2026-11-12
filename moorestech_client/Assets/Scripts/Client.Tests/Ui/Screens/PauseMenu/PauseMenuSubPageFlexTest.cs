@@ -1,3 +1,4 @@
+using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.PauseMenu;
@@ -24,6 +25,9 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         [SetUp]
         public void MountSubPage()
         {
+            // 戻るの文は辞書で解くので、単独で流しても読めるよう先に辞書を読む
+            // Back resolves its text from the dictionary, so load it first even when run alone
+            Localize.Initialize();
             // 高さを内容で決め max-height だけを持つ枠（Web の .panel と同じ形）に子画面を載せる
             // Mount the sub-page in a content-sized frame with only a max-height (the shape of the Web .panel)
             var host = new VisualElement();
@@ -65,6 +69,19 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             SetSectionHeight(80f);
             Assert.AreEqual(80f, _body.resolvedStyle.flexBasis.value, PixelSnapTolerance);
             Assert.AreEqual(80f, _body.layout.height, PixelSnapTolerance);
+        }
+
+        [Test]
+        public void 追従を2回頼んでも本文のbasisは中身の高さのまま伸び縮みする()
+        {
+            // 同じメソッドの登録は UITK が 1 つにまとめるので、2 回目の呼び出しで basis の解き方は変わらない
+            // UITK keeps one registration per method, so a second call leaves how the basis resolves unchanged
+            _body.FollowContentHeightAsFlexBasis();
+            SetSectionHeight(120f);
+            Assert.AreEqual(120f, _body.resolvedStyle.flexBasis.value, PixelSnapTolerance);
+            SetSectionHeight(60f);
+            Assert.AreEqual(60f, _body.resolvedStyle.flexBasis.value, PixelSnapTolerance);
+            Assert.AreEqual(60f, _body.layout.height, PixelSnapTolerance);
         }
 
         private void SetSectionHeight(float height)
