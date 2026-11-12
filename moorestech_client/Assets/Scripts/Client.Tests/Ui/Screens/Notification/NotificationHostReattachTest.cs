@@ -48,7 +48,8 @@ namespace Client.Tests.Ui.Screens.Notification
         public void 外れている間に届いた通知は戻したときに表示される()
         {
             var parent = Host.parent;
-            LogAssert.Expect(LogType.Warning, DetachedWarning);
+            // 行が無いうちに外すので外れた警告は出ない（警告は行を抱えて外れたときだけ）
+            // Detached with no rows, so no detach warning (it only fires when detaching with rows)
             Host.RemoveFromHierarchy();
             AdvancePanel(0);
             Model.AddNotification(Earned(7, 1, "itemEarned.mined"));
