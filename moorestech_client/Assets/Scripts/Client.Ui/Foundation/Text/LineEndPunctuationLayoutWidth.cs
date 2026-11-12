@@ -25,8 +25,6 @@ namespace Client.Ui.Foundation.Text
         private float _lastSourceMeasuredWidth;
         private (VisualElement.MeasureMode, float) _measuredKey;
         private float _reportedDisplayWidth;
-        private bool _followsStretchedBox;
-        private bool _stretchedFollowRefused;
 
         // 受けた制約の幅で測っている（幅を内容で決めるラベル）。このときラベルの箱の幅の変化では測り直さない
         // Measuring at the constraint width (content-sized label); the label's own box width changes then do not trigger a re-measure
@@ -38,7 +36,6 @@ namespace Client.Ui.Foundation.Text
         {
             ForgetConstraints();
             _hasLastSourceMeasure = false;
-            _stretchedFollowRefused = false;
         }
 
         // 測り直す前に前の配置で覚えた制約を捨てる（残すと親の幅が変わった後も古い制約の幅を返し、測り直さない）
@@ -70,23 +67,19 @@ namespace Client.Ui.Foundation.Text
                 && _lastSourceMeasuredWidth <= contentWidth + WidthTolerance
                 && _lastSourceDesiredWidth > contentWidth + WidthTolerance;
             var shrunkToSource = lastAtMostUnderBox && Mathf.Abs(_lastSourceMeasuredWidth - contentWidth) <= WidthTolerance;
-            _followsStretchedBox = lastAtMostUnderBox && !shrunkToSource && !_stretchedFollowRefused && IsStretchedInColumn(label);
-            FollowsConstraint = shrunkToSource || _followsStretchedBox;
+            var followsStretchedBox = lastAtMostUnderBox && !shrunkToSource && IsStretchedInColumn(label);
+            FollowsConstraint = shrunkToSource || followsStretchedBox;
             if (!FollowsConstraint) return contentWidth;
             _measuredKey = _lastSourceKey;
             _reportedDisplayWidth = _lastSourceDesiredWidth;
             return _lastSourceDesiredWidth;
         }
 
-        // 箱の幅の変化で測り直すか。制約の幅で測るラベルは箱の幅が測った幅と違って当然なので測り直さない。ただし伸ばされた幅で測ったのに包みが返した幅まで広がらなければ、同じ原文の間は箱の幅で測り直す
-        // Whether a box width change re-measures; constraint-measured labels ignore it, except a stretched-box follow whose wrapper did not widen to the reported width, which falls back to the box width for this source
+        // 箱の幅の変化で測り直すか。制約の幅で測るラベルは箱の幅が測った幅と違って当然なので測り直さない（親の幅が変われば覚えていない制約が ForDisplayed に来て測り直す）
+        // Whether a box width change re-measures; constraint-measured labels ignore it (a parent resize reaches ForDisplayed as an unseen constraint and re-measures there)
         public bool NeedsRemeasureForBoxWidth(float boxWidth, float measuredWidth)
         {
-            if (!FollowsConstraint) return Mathf.Abs(boxWidth - measuredWidth) > WidthTolerance;
-            if (!_followsStretchedBox || boxWidth >= _reportedDisplayWidth - WidthTolerance) return false;
-            Debug.LogWarning($"[LineEndPunctuation] wrapper stayed {boxWidth:0.#}px under the reported {_reportedDisplayWidth:0.#}px; re-measuring at the box width");
-            _stretchedFollowRefused = true;
-            return true;
+            return !FollowsConstraint && Mathf.Abs(boxWidth - measuredWidth) > WidthTolerance;
         }
 
         // 縦の並びの中で横に伸ばされる（Chrome では包みの fit-content が詰めた字で決まり、伸ばされた子もその幅になる）
