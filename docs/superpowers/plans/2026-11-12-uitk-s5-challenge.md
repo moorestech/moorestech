@@ -4,7 +4,7 @@
 
 **Goal:** Web 版の `features/challenge`（`ChallengePanel`・`ChallengeNodeCard`・`challengeLogic`）を、C4-d の `NodeGraphView`・C2-a の `PaperSurface`・C2-b の `FormButton`・Foundation の `UiGroup` で Web と同じ見た目の UITK 画面にし、各カテゴリの初回訪問だけ進行中へ寄せ再訪と開き直しでは前回の視点を戻す（裁定 2026-11-04）。L0/L1・並べ比べ（1280×720・2560×1080）・録画 2 本まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Challenge/Tree/`）は `ChallengeProgressState` の全カテゴリから、解放済みのカテゴリだけを受信順（＝マスタの順。握手の応答と完了の知らせはどちらも `CompletedChallengeEventPacket.GetChallengeCategories` がマスタの `ChallengeCategoryMasterElements` の順に並べる）で写す純関数（`ChallengeListViewModelFactory`）と、表示中だけ組み直す `ChallengeListModel`、離れたら先頭へ戻すカテゴリの選択ストア（前例 `ResearchSelectionStore`）を持つ。一覧の表示は型で 2 つに分かれる（解放済みのカテゴリが無い `EmptyChallengeListViewModel`／選んだカテゴリを必ず持つ `SelectedChallengeListViewModel`）。一覧が出ているかの判定は `ChallengeScreenVisibility.IsShown` の 1 本。視点はカテゴリごとに素の値で `Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore` が持つ（C4-d の申し送り (1)）。View（`Client.Ui/Screens/Challenge/Tree/`）は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`）へ Presenter が 1 回だけ載せ、経路で `SetShown` する。カテゴリが変わるたびに `NodeGraphView` を作り直し（Web の `key={selected.guid}`）、控えた視点があれば載せる前に `RestoreViewport` で戻す。無ければ部品が初回だけ進行中へ寄せる。カテゴリのボタン列は横の `ScrollView` の画面部品 `ChallengeCategoryScrollView` に入れ、幅を越えたら横に送れる（Web `overflow-x: auto`）。カードは `PaperSurface` を根にした持ち手 `ChallengeNodeCard`（`Screens/Challenge/Parts/`）。
+**Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Challenge/Tree/`）は `ChallengeProgressState` の全カテゴリから、解放済みのカテゴリだけを受信順（＝マスタの順。握手の応答と完了の知らせはどちらも `CompletedChallengeEventPacket.GetChallengeCategories` がマスタの `ChallengeCategoryMasterElements` の順に並べる）で写す純関数（`ChallengeListViewModelFactory`）と、表示中だけ組み直す `ChallengeListModel`、離れたら先頭へ戻すカテゴリの選択ストア（前例 `ResearchSelectionStore`）を持つ。一覧の表示は型で 2 つに分かれる（解放済みのカテゴリが無い `EmptyChallengeListViewModel`／選んだカテゴリを必ず持つ `SelectedChallengeListViewModel`）。一覧が出ているかの判定は `ChallengeScreenVisibility.IsShown` の 1 本。View（`Client.Ui/Screens/Challenge/Tree/`）は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`）へ Presenter が 1 回だけ載せ、経路で `SetShown` する。視点は View の寿命で持つ（I-fix6 D-3 が `RestoreViewport` を消し、視点の保持を View の寿命にした形に乗る）: 訪れたカテゴリごとに `NodeGraphView` を 1 本作って控え（カテゴリ Guid → View。画面の寿命）、選んだカテゴリが変わったら表示する View を付け替える。View を作ったときだけ部品が進行中へ 1 回寄せる（裁定 2026-11-04 の初回訪問）。カテゴリのボタン列は `Components/Controls/GameScrollView` の横向き（このレーンが部品に足す `GameScrollAxis.Horizontal`）に入れ、幅を越えたら横に送れる（Web `overflow-x: auto`）。カードは `PaperSurface` を根にした持ち手 `ChallengeNodeCard`（`Screens/Challenge/Parts/`）。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`panel.Pick`）、UniRx、VContainer、NUnit＋`com.unity.ui.test-framework`（`UITestFixture`・`PanelSimulator`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`・`PlaytestGameViewOps`）、node（`tools/uitk/test-name-parity.mjs`）、gh CLI、bd（Beads）、Windows の `~/bin/winunity`
 
@@ -21,7 +21,7 @@
 | R-1 | 注目点の論理: ノードの列から状態が進行中の最初のノードを返し、無ければ寄せない（Web `findChallengeInitialFocusNode`） | `ChallengeListLogicTest`（L0。`challengeLogic.test.ts` の 2 件）が緑 |
 | R-2 | ViewModel の工場: `ChallengeProgressState.Categories`（`ChallengeCategoryResponse` の列）から、`IsUnlocked` のカテゴリだけを受信順（＝マスタの順）で写し（Web `ChallengeDtoBuilder.BuildTree`）、各カテゴリのノードはマスタの `Challenges` の順で、状態は完了＞進行中＞未解放、状態の文言キーは State の `ChallengeListLogic`、座標は `DisplayListParam.UIPosition`、倍率は `UIScale` の x・y、前提は `PrevChallengeGuids`（省略〈null〉は前提なし）のうち同じカテゴリにあるものだけ（C4-d D-5 の申し送り (2)）。選択したカテゴリが出ていなければ先頭（Web の `find(...) ?? categories[0]`）。解放済みが無ければ空の一覧（`EmptyChallengeListViewModel`。選択を持たない） | `ChallengeListViewModelFactoryTest`（L0）の 4 件が緑 |
 | R-3 | Model と選択: 完了の知らせ・選択の変化・一覧への突入で同期で組み直す。組み直すのは一覧の表示中だけ（前例 `ResearchTreeModel`）で、表示中かは経路の今の値を `ChallengeScreenVisibility.IsShown` で読む（購読の順に依らない）。カテゴリの選択は一覧を離れると「無し」に戻り、開き直すと先頭のカテゴリになる（Web はパネルのアンマウントで `useState` が消える） | `ChallengeListViewportTest`「閉じて開き直すと先頭のカテゴリへ戻り…」が緑。録画 `uitk-challenge-list` の開き直しの段 |
-| R-4 | 視点: カテゴリが変わるたびに `NodeGraphView("challenge", …)` を作り直し、カテゴリの視点（x・y・倍率）は `OnViewportChanged` の最後の値を `ChallengeViewportSessionStore` へ控え、作り直した部品へ載せる前に `RestoreViewport` で戻す。控えが無ければ部品が進行中へ 1 回だけ寄せる。同じカテゴリのまま閉じて開き直したときは作り直さず視点がそのまま残る | `ChallengeListViewportTest`（L1）の 3 件が緑（`challenge.spec.ts` の 1 件と裁定 2026-11-04 の 2 件） |
+| R-4 | 視点: 訪れたカテゴリごとに `NodeGraphView("challenge", …)` を 1 本作って控え（`ChallengeCategoryGraph`。カテゴリ Guid → View。画面の寿命）、選んだカテゴリが変わったら置き場に付ける View を付け替える（置き場の子は表示中のカテゴリの 1 本だけ）。View を作ったときだけ部品が進行中へ 1 回寄せ、再訪と開き直しは控えた View の視点のまま（View の寿命で保つ。I-fix6 D-3 と同じ形。`RestoreViewport` と State の視点の Session は使わない） | `ChallengeListViewportTest`（L1）の 3 件が緑（`challenge.spec.ts` の 1 件と裁定 2026-11-04 の 2 件。再訪は同じ View のインスタンスが付け直され、木の中の `NodeGraphView` が常に 1 本であることも見る） |
 | R-5 | 一覧の枠: `challenge-panel`（アンカー `challenge.panel`）は舞台の上端から `--menu-upper-safe-area`（168px）下・左右下 0、地 `--mantine-color-dark-8`、内側の余白 `--mantine-spacing-md`、縦積み。中に題（`title--order-2`・`ui.challenge.title`）・カテゴリのボタン列 `challenge-categories`（アンカー `challenge.categories`。中に横の `ScrollView` `challenge-categories-scroll`、その中に `UiGroup(UiGap.Md)`＋`ui-group--nowrap`）・`NodeGraphView`（`challenge-viewport`・`challenge-canvas`。残りの高さいっぱい）。カテゴリ列はボタンが幅を越えたら横に送れ、越えなければバーを出さない（Web の `Group` の `flex-wrap: nowrap`・`overflow-x: auto`）。バーはゲームの共通のバー（`Theme.uss` の `.unity-scroller`。溝は透明・つまみ `--theme-scroller-thumb-face`・角丸 4・矢印なし）を横に写し高さ 8px。一覧の上（題・カテゴリ列）のホイールは装備・ホットバーへ抜けない | `ChallengeListViewTest`（L1）の 5 件が緑。並べ比べ（R-11） |
 | R-6 | カテゴリのボタン: 各カテゴリに `FormButton("challenge-category-<guid>", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), …)`。選んだカテゴリは `Filled`、他は `Subtle`。押すと `IChallengeListCommands.SelectCategory(guid)` | `ChallengeListViewportTest`（押下で選択の操作が 1 回出て、選んだカテゴリが Filled）が緑 |
 | R-7 | ノードカード: 根は `PaperSurface("challenge-node-<guid>")`（面 `--paper-face`・角丸 `--paper-radius`）に幅 240px・内側の余白 `--mantine-spacing-sm`・`translate: -50% -50%`、倍率は `style.scale = (UIScale.x, UIScale.y)`。中は名前（`text--md`＋`text--bold`）・概要（`text--sm`）・状態（`text--xs`。キーは VM の `StateLabelKey`＝`ui.challenge.stateLocked/stateCurrent/stateCompleted`）の縦積み。未解放は不透明度 0.55、進行中は `--mantine-color-blue-5`・完了は `--mantine-color-green-6` の 2px の輪（Web の outline を拾わない子で写す）。高さは中身なり（包みの高さ 0 で潰れない。S4-research の事後承認）。アンカー `challenge.node-<guid>`。指のカーソルは付けない（Web のカードに `cursor: pointer` もタップも無く、ビューポートの `cursor: grab` を継ぐ。`W/src/shared/treeView/TreeView.module.css:11`。設計書 A-191 のチャレンジの部分を改める） | `ChallengeListViewTest`「カードは中身なりの高さで…」が緑 |
@@ -63,7 +63,7 @@ namespace Client.Ui.Components.NodeGraph
         public IObservable<NodeGraphViewport> OnViewportChanged { get; }                   // :39 中央寄せ・パン・ズーム・寸法の追従のたびに流す
         public NodeGraphView(string testIdPrefix, IUiOsCursor osCursor);                   // :41 name = "<prefix>-viewport"、キャンバス "<prefix>-canvas"。:49 で TutorialAnchor.MarkClipContainer(this) 済み
         public void SetGraph(NodeGraphContent content);                                    // :66 注目点への中央寄せはインスタンスにつき 1 回だけ
-        public void RestoreViewport(NodeGraphViewport viewport);                           // :73 以後の中央寄せと寸法の追従を止める。値は流さない。載せる前に呼ぶ（C4-d D-22）
+        // RestoreViewport（:73）は使わない。並走の I-fix6（origin/uitk-lane/i-fix6 の 3614f5c0df。計画 R-15・D-3）が消し、視点は View の寿命で保つ形になる（D-1）
     }
     public sealed class NodeGraphContent { public NodeGraphContent(IReadOnlyList<NodeGraphNode> nodes, NodeGraphFocus initialFocus); }   // Graph/NodeGraphContent.cs:14
     public sealed class NodeGraphNode { public NodeGraphNode(string key, Vector2 treePosition, IReadOnlyList<string> previousKeys, VisualElement card); } // Graph/NodeGraphNode.cs:22 座標は Y 上向き。グラフに無い親のキー・重なったキーは LogError
@@ -166,7 +166,7 @@ namespace Client.Ui.State.Routing
 | 一覧を開いている間のスキット入力（traits の skitInput=T） | 生きる（このレーンの外） | `Screens/Skit/SkitScreenPresenter.cs:55-65` が経路ごとに `SkitInput` 列を読む。スキットは `UiLayer.SkitStage` で一覧（`OverlayPanel`）より上の層（`UiLayer` の並び。Web `--z-stage-skit` ＞ `--z-stage-overlay-panel`） |
 | 一覧を開いている間のプレイヤー移動とカメラ | 生きる（このレーンの外。両系で同じ） | `ChallengeListState`（Client.Game）は `LocksPlayerMovement` が false で移動を止めない（`UIStateControl.cs:123` が読む）。`OnEnter` の `InputManager.MouseCursorVisible(true)` でカーソルを出し、見回しはカーソルのロックと対（`PlayerCameraInteractionApplier.cs:20`）。どれも UI の系を読まない |
 | グラフの外（題・カテゴリ列）でのホイール | 生きる（装備・ホットバーへ抜けない） | ホイールの読み手 `EquipmentWheelInput.cs:45` はパネルで拾った要素を `EquipmentWheelPickJudge.IsBlockingUi` に通し、`WheelPassthroughMark` の付かない UI の上なら `EquipmentWheelGate` が止める（`ChallengeList` は traits の covers=F なので層では止まらず、UI の上かで決まる）。一覧の根・題・カテゴリ列は拾い、印を付けない。L1 `ChallengeListViewTest`「一覧の題とカテゴリ列の上のホイールは…」が題・カテゴリ列・空の背景で `IsBlockingUi` が真を固定する。グラフの上のホイールは `NodeGraphView` のズーム（C4-d） |
-| カテゴリの初回訪問だけ進行中へ寄せ、再訪・開き直しで前回の視点（裁定 2026-11-04） | 生きる | カテゴリごとの作り直し＋`ChallengeViewportSessionStore`＋`RestoreViewport`（Task 2・3。L1 は Task 4） |
+| カテゴリの初回訪問だけ進行中へ寄せ、再訪・開き直しで前回の視点（裁定 2026-11-04） | 生きる | 訪れたカテゴリごとの `NodeGraphView` を控えて付け替える `ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`（Task 3。部品は中央寄せをインスタンスにつき 1 回だけ行う。L1 は Task 4） |
 | パン・ズーム・慣性 | 生きる | C4-d の `NodeGraphView`（部品の L1 は C4-d 済み） |
 | 完了の知らせで状態が変わる（表示中） | 生きる | `ChallengeProgressState.OnChallengeCompleted` → `ChallengeListModel` が組み直す（Task 2）。閉じている間の変化は次の突入で組む |
 | カードの 3 状態・輪・減光・中身なりの高さ | 生きる | `ChallengeNodeCard`・`ChallengeList.uss`（Task 3。L1） |
@@ -184,7 +184,8 @@ namespace Client.Ui.State.Routing
 | 出所 | 依頼（要旨） | 処遇 |
 |---|---|---|
 | conductor.md:126・131（11-11 05:37 節）・S4-research/done.md:91 | `NodeGraphView.uss` の `.node-graph__node { height: 0 }` 削除を事後承認する。チャレンジのカードも同じ故障を受けるはず | 受ける。カードが中身なりの高さ（上下の余白 24＋3 行）で描かれることを `ChallengeListViewTest`（Task 3）で固定し、承認を D-4 と設計書 A-241 の本文案に残す。部品の USS は変えない |
-| C4-d 計画 L100-104 の申し送り (1)・D-22 | 視点の保持は画面の State の Session（素の値）に置き、`OnViewportChanged` の最後の値を控えて、作り直した `NodeGraphView` へ載せる前に `RestoreViewport` で渡す（チャレンジはカテゴリごとに 1 つ） | 受ける（D-1。Task 2・3） |
+| C4-d 計画 L100-104 の申し送り (1)・D-22 | 視点の保持は画面の State の Session（素の値）に置き、`OnViewportChanged` の最後の値を控えて、作り直した `NodeGraphView` へ載せる前に `RestoreViewport` で渡す（チャレンジはカテゴリごとに 1 つ） | 形を替えて受ける（D-1）。並走の I-fix6 が `RestoreViewport` を消し、視点を View の寿命で保つ形にした（次の行）ので、State の Session は作らず、訪れたカテゴリごとの View を画面が控えて付け替える。「カテゴリごとに 1 つの視点」は View 1 本ずつで満たす |
+| I-fix6 計画 R-15・D-3（`origin/uitk-lane/i-fix6` の 3614f5c0df。push 済み・未マージ） | `NodeGraphView.RestoreViewport` を消し、視点の保持は View の寿命で持つ（研究は起動時に 1 回作った View を出し入れするだけで Web と同じ寿命） | 合わせる（D-1）。このレーンは `RestoreViewport` を呼ばないので、I-fix6 とどちらが先に `feature/uitk` へ入っても壊れない。Task 1 Step 1 で `RestoreViewport` の有無を見るのは記録のためだけ（有っても使わない） |
 | C4-d 計画 申し送り (2)・D-5 | グラフに無い親のキーは LogError なので、別カテゴリの前提のキーを `PreviousKeys` から除く（Web は黙って省く） | 受ける（D-3。`ChallengeCategoryViewModel.Create`。L0 で固定） |
 | C4-d 計画 D-23(1)・L100 | カードの根で `flex-shrink` を書かない。カードの根は `PickingMode.Position`。中心寄せ `translate(-50%,-50%)` と `scale(UIScale)` はカード側 | 受ける（Task 3 の USS と `ChallengeNodeCard`） |
 | C4-d/done.md:67 | カードの指カーソルは `new UiOsCursorHoverRequest(card, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element)` で当てる | 適用しない。Web の `ChallengeNodeCard` は `cursor: pointer` を持たず（`features/challenge/style.module.css` に cursor が無い）、`TreeView` に `onNodeTap` も渡さないので、ビューポートの `cursor: grab`（`W/src/shared/treeView/TreeView.module.css:11`）を継ぐ。研究のカードだけの申し送り。設計書 A-191 の「研究・チャレンジのカードの指は画面が当てる」のチャレンジの部分を改める（A-241 の本文案に足す。D-5） |
@@ -211,8 +212,6 @@ namespace Client.Ui.State.Routing
 | `S/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelectionStore.cs` | 選択の持ち主（一覧を離れたら無し） | 新規 |
 | `S/Client.Ui.State/Challenge/Commands/IChallengeListCommands.cs` | 画面からの操作（カテゴリを選ぶ） | 新規 |
 | `S/Client.Ui.State/Challenge/Commands/ChallengeListCommands.cs` | 操作の実装（選択ストアへ） | 新規 |
-| `S/Client.Ui.State/Challenge/Session/ChallengeViewportSnapshot.cs` | 視点の素の値（x・y・倍率） | 新規 |
-| `S/Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore.cs` | カテゴリごとの視点（寿命はゲーム） | 新規 |
 | `S/Client.Ui/Screens/Challenge/Tree/ChallengeList.uss` | 一覧の枠・カテゴリ列と横のバー・カードの見た目 | 新規 |
 | `S/Client.Ui/Screens/Challenge/Tree/ChallengeListView.cs` | 一覧の枠（題・カテゴリ列・グラフの置き場）。空か選択ありかの分岐の 1 か所 | 新規 |
 | `S/Client.Ui/Screens/Challenge/Tree/ChallengeListPresenter.cs` | 1 回載せ、経路で表示、Model で描く | 新規 |
@@ -220,7 +219,8 @@ namespace Client.Ui.State.Routing
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeNodeCardSet.cs` | カードを GUID で使い回し、グラフの中身を組む | 新規 |
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryScrollView.cs` | カテゴリ列の横スクロール（越えたときだけバー） | 新規 |
 | `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs` | カテゴリのボタン列 | 新規 |
-| `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs` | カテゴリごとの `NodeGraphView` の作り直しと視点の控え・復元 | 新規 |
+| `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs` | 訪れたカテゴリの View を控え、表示するカテゴリの View を置き場へ付け替える | 新規 |
+| `S/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraph.cs` | カテゴリ 1 つの `NodeGraphView`・カードの組・最後に渡した中身（視点は View の寿命） | 新規 |
 | `S/Client.Starter/Registration/GameUi/Screens/Challenge/ChallengeGameUiRegistration.cs` | 登録 | 新規 |
 | `S/Client.Starter/Registration/MainGameUiRegistration.cs` | `using` 1 行・画面登録区画 1 行 | 変更 |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | `Screens` 区画に `@import` 1 行 | 変更 |
@@ -237,7 +237,7 @@ namespace Client.Ui.State.Routing
 | `docs/uitk/TODO.md` | 「## 実測の結論」の末尾に 1 行 | 変更（追記） |
 | `LOGS/harness/uitk/S5-challenge/done.md` | 作業報告 | 新規（moorestech_logs） |
 
-ディレクトリのファイル数（.cs・.uss を数える）: `Client.Ui.State/Challenge/` 直下 4（既存 3＋`ChallengeScreenVisibility`）・`Challenge/Tree/` 9・`Tree/Selection/` 2・`Challenge/Commands/` 2・`Session/` 2・`Screens/Challenge/` 直下 0（`CurrentHud/`・`Tree/`・`Parts/` の 3 つのサブディレクトリだけ）・`Screens/Challenge/Tree/` 3・`Parts/` 5・`Registration/GameUi/Screens/Challenge/` 1（直下は既に 10）・`Client.Tests/Ui/State/Challenge/` 2（`Ui/State/` 直下は既に 10）・`Client.Tests/Ui/Screens/Challenge/Tree/` 5。どれも 10 以下。名前空間に `List` を使わない（一覧の View の置き場は `Screens/Challenge/Tree/`。`List` だと `System.Collections.Generic.List` と読み違える。State の `Challenge.Tree`・L1 の `Screens.Challenge.Tree`・研究の `Research.Tree` と同じ名前になり、HUD の `CurrentHud/` と並ぶサブディレクトリになる。D-16）。
+ディレクトリのファイル数（.cs・.uss を数える）: `Client.Ui.State/Challenge/` 直下 4（既存 3＋`ChallengeScreenVisibility`）・`Challenge/Tree/` 9・`Tree/Selection/` 2・`Challenge/Commands/` 2・`Screens/Challenge/` 直下 0（`CurrentHud/`・`Tree/`・`Parts/` の 3 つのサブディレクトリだけ）・`Screens/Challenge/Tree/` 3・`Parts/` 5・`Registration/GameUi/Screens/Challenge/` 1（直下は既に 10）・`Client.Tests/Ui/State/Challenge/` 2（`Ui/State/` 直下は既に 10）・`Client.Tests/Ui/Screens/Challenge/Tree/` 5。どれも 10 以下。名前空間に `List` を使わない（一覧の View の置き場は `Screens/Challenge/Tree/`。`List` だと `System.Collections.Generic.List` と読み違える。State の `Challenge.Tree`・L1 の `Screens.Challenge.Tree`・研究の `Research.Tree` と同じ名前になり、HUD の `CurrentHud/` と並ぶサブディレクトリになる。D-16）。
 
 **写すテスト（5 件）**
 
@@ -293,7 +293,8 @@ Run:
 pwd
 git log -1 --format='%H %s' origin/feature/uitk
 S=moorestech_client/Assets/Scripts
-grep -n "public NodeGraphView(\|public void SetGraph(\|public void RestoreViewport(\|OnViewportChanged =>\|MarkClipContainer" $S/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.cs
+grep -n "public NodeGraphView(\|public void SetGraph(\|OnViewportChanged =>\|MarkClipContainer" $S/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.cs
+grep -c "public void RestoreViewport(" $S/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.cs   # 記録だけ（I-fix6 が入ると 0。このレーンは使わない）
 grep -n "height" $S/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.uss
 grep -n "public PaperSurface(" $S/Client.Ui/Components/Panels/PaperSurface/PaperSurface.cs
 grep -n "public FormButton(\|FilledUssClassName =\|SubtleUssClassName =\|public void SetVariant" $S/Client.Ui/Components/Controls/FormButton/FormButton.cs
@@ -318,7 +319,7 @@ ls $S/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l
 ls $S/Client.Tests/Ui/State/*.cs | wc -l
 ls -d SK/scenarios/uitk/*/ 2>/dev/null; ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ | head -40
 ```
-Expected: worktree の絶対パス。`NodeGraphView.cs` の 5 行（:38/:39/:41/:49/:66/:73 付近）、`NodeGraphView.uss` に `height` の行が無い（S4-research の修正後）、`PaperSurface(string testid)`、`FormButton(string testid, UiText label, FormButtonVariant variant)` と 2 つの定数と `SetVariant`、`UiGroup(UiGap gap)` と `GroupNoWrap`、AnchorIds の 4 行、Pending の 3 行、`ChallengeList` の 2 行、`Categories` と `OnChallengeCompleted`、`MainGameUiStateRegistration` の登録、`UIPosition`・`UIScale` の 4 行、csv の 4 行、`section: Screens`、トークン 2 つ・6 つ・`--paper-*` の定義、`--theme-scroller-thumb-face` の定義と `Theme.uss` の `.unity-scroller` の規則（縦のバーだけ）、`PixelsPerNotch = 60f`、`IsBlockingUi`、研究の VM の `using Mooresmaster.Localization.Generated`（`LocalizationKey` の名前空間）、`Registration/GameUi/Screens/*.cs` が 10、`Ui/State/*.cs` が 10、`scenarios/uitk/` の下の段のサブディレクトリの有無
+Expected: worktree の絶対パス。`NodeGraphView.cs` の 4 行（:39/:41/:49/:66 付近）と `RestoreViewport` の数（1 なら I-fix6 未取り込み・0 なら取り込み済み。どちらでも進む。`done.md` の「証拠」に数を書く）、`NodeGraphView.uss` に `height` の行が無い（S4-research の修正後）、`PaperSurface(string testid)`、`FormButton(string testid, UiText label, FormButtonVariant variant)` と 2 つの定数と `SetVariant`、`UiGroup(UiGap gap)` と `GroupNoWrap`、AnchorIds の 4 行、Pending の 3 行、`ChallengeList` の 2 行、`Categories` と `OnChallengeCompleted`、`MainGameUiStateRegistration` の登録、`UIPosition`・`UIScale` の 4 行、csv の 4 行、`section: Screens`、トークン 2 つ・6 つ・`--paper-*` の定義、`--theme-scroller-thumb-face` の定義と `Theme.uss` の `.unity-scroller` の規則（縦のバーだけ）、`PixelsPerNotch = 60f`、`IsBlockingUi`、研究の VM の `using Mooresmaster.Localization.Generated`（`LocalizationKey` の名前空間）、`Registration/GameUi/Screens/*.cs` が 10、`Ui/State/*.cs` が 10、`scenarios/uitk/` の下の段のサブディレクトリの有無
 - どれかの依存が無ければ止め、`done.md` を「状態: 停止（<依存> 未取り込み）」にして指揮へ報告する
 - 名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く
 - `NodeGraphView.uss` に `height: 0` が戻っていたら止めて指揮へ（S4-research の修正が消えている）
@@ -936,15 +937,13 @@ git commit -m "feat(uitk): S5-challenge のチャレンジ一覧の ViewModel・
 
 ---
 
-### Task 2: 表示判定・選択・操作・視点の保持・Model（`Client.Ui.State/Challenge`）
+### Task 2: 表示判定・選択・操作・Model（`Client.Ui.State/Challenge`）
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/ChallengeScreenVisibility.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/Selection/ChallengeCategorySelectionStore.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Commands/IChallengeListCommands.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Commands/ChallengeListCommands.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSnapshot.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListModel.cs`
 
 **Interfaces:**
@@ -953,8 +952,6 @@ git commit -m "feat(uitk): S5-challenge のチャレンジ一覧の ViewModel・
   - `public static class ChallengeScreenVisibility { public static bool IsShown(UiRoutingSnapshot snapshot); }`（`Client.Ui.State.Challenge`。X-audit DC-8 の `<機能>ScreenVisibility.IsShown` の形。経路を読んで一覧の表示を決める 3 か所〈選択ストア・Model・Presenter〉はこれだけを呼ぶ）
   - `ChallengeCategorySelectionStore(UiRoutingState routing)`（`IInitializable`）・`IReadOnlyReactiveProperty<ChallengeCategorySelection> Current`・`void Select(Guid categoryGuid)`
   - `interface IChallengeListCommands { void SelectCategory(Guid categoryGuid); }`・`ChallengeListCommands(ChallengeCategorySelectionStore selection)`（`Client.Ui.State.Challenge.Commands`。前例 `Client.Ui.State.Research.Commands`）
-  - `readonly struct ChallengeViewportSnapshot(float x, float y, float scale)`・`X`・`Y`・`Scale`（`Client.Ui.State.Challenge.Session`）
-  - `ChallengeViewportSessionStore`・`bool TryGet(Guid categoryGuid, out ChallengeViewportSnapshot viewport)`・`void Save(Guid categoryGuid, ChallengeViewportSnapshot viewport)`
   - `ChallengeListModel(ChallengeProgressState progress, ChallengeCategorySelectionStore selection, UiRoutingState routing)`（`IInitializable`）・`IReadOnlyReactiveProperty<ChallengeListViewModel> Current`
 
 - [ ] **Step 1: 表示判定・選択・操作を書く**
@@ -1067,63 +1064,7 @@ namespace Client.Ui.State.Challenge.Commands
 }
 ```
 
-- [ ] **Step 2: 視点の保持を書く**
-
-`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSnapshot.cs`:
-```csharp
-namespace Client.Ui.State.Challenge.Session
-{
-    /// <summary>
-    /// チャレンジのカテゴリ1つの視点（平行移動と倍率の素の値。NodeGraphViewport との詰め替えは画面）
-    /// Viewport of one challenge category (plain translate and scale; the screen converts to NodeGraphViewport)
-    /// </summary>
-    public readonly struct ChallengeViewportSnapshot
-    {
-        public float X { get; }
-        public float Y { get; }
-        public float Scale { get; }
-
-        public ChallengeViewportSnapshot(float x, float y, float scale)
-        {
-            X = x;
-            Y = y;
-            Scale = scale;
-        }
-    }
-}
-```
-
-`moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore.cs`:
-```csharp
-using System;
-using System.Collections.Generic;
-
-namespace Client.Ui.State.Challenge.Session
-{
-    /// <summary>
-    /// カテゴリごとの視点を控える（寿命はゲーム。Web の treeView/viewportStore の challenge-<guid> と同じ）
-    /// Keeps the viewport per category (game lifetime; same as the Web treeView/viewportStore challenge-<guid>)
-    /// </summary>
-    public sealed class ChallengeViewportSessionStore
-    {
-        private readonly Dictionary<Guid, ChallengeViewportSnapshot> _viewports = new();
-
-        // 控えが無いカテゴリは初回訪問（部品が進行中へ寄せる）
-        // A category without a saved viewport is a first visit (the component centers on the current node)
-        public bool TryGet(Guid categoryGuid, out ChallengeViewportSnapshot viewport)
-        {
-            return _viewports.TryGetValue(categoryGuid, out viewport);
-        }
-
-        public void Save(Guid categoryGuid, ChallengeViewportSnapshot viewport)
-        {
-            _viewports[categoryGuid] = viewport;
-        }
-    }
-}
-```
-
-- [ ] **Step 3: Model を書く**
+- [ ] **Step 2: Model を書く**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/Challenge/Tree/ChallengeListModel.cs`:
 ```csharp
@@ -1181,16 +1122,16 @@ namespace Client.Ui.State.Challenge.Tree
 }
 ```
 
-- [ ] **Step 4: コンパイルする**
+- [ ] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0（振る舞いは Task 4 の L1 と Task 6 の録画で見る）
 
-- [ ] **Step 5: コミットする**
+- [ ] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Challenge
-git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択・操作・カテゴリごとの視点の保持・Model"
+git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択・操作・Model"
 ```
 
 ---
@@ -1204,6 +1145,7 @@ git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択�
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryScrollView.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryButtons.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraph.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Tree/ChallengeListView.cs`
 - Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（`Screens` 区画の末尾に 1 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs`（3 行を消す）
@@ -1214,14 +1156,15 @@ git commit -m "feat(uitk): S5-challenge の表示判定・カテゴリの選択�
 **Interfaces:**
 - Consumes: Task 1・2 の型（`SelectedChallengeListViewModel`・`EmptyChallengeListViewModel`・`ChallengeCategoryViewModel.HasSameGraphAs`・`ChallengeNodeCardViewModel.StateLabelKey`・`ChallengeListLogic.SameGuidSequence`・`IChallengeListCommands`）、Global Constraints の部品（`NodeGraphView`・`PaperSurface`・`FormButton`・`UiGroup`・`LocalizedLabel`・`TutorialAnchor`・`UiPickingIgnore`・`WebWheelScale`・Unity の `ScrollView`）
 - Produces:
-  - `ChallengeListView(IChallengeListCommands commands, ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)`（`Client.Ui.Screens.Challenge.Tree`）・`void Render(ChallengeListViewModel model)`（`SelectedChallengeListViewModel`／`EmptyChallengeListViewModel` の分岐はここの 1 か所）・`void SetShown(bool shown)`。`name = "challenge-panel"`
+  - `ChallengeListView(IChallengeListCommands commands, IUiOsCursor osCursor)`（`Client.Ui.Screens.Challenge.Tree`）・`void Render(ChallengeListViewModel model)`（`SelectedChallengeListViewModel`／`EmptyChallengeListViewModel` の分岐はここの 1 か所）・`void SetShown(bool shown)`。`name = "challenge-panel"`
   - `ChallengeNodeCard(Guid challengeGuid)`・`PaperSurface Root`・`void Render(ChallengeNodeCardViewModel node)`（`Client.Ui.Screens.Challenge.Parts`）
   - `ChallengeNodeCardSet`・`void RenderCards(IReadOnlyList<ChallengeNodeCardViewModel> nodes)`・`NodeGraphContent BuildContent(IReadOnlyList<ChallengeNodeCardViewModel> nodes, NodeGraphFocus focus)`
   - `ChallengeCategoryScrollView : ScrollView`・`ChallengeCategoryScrollView(string testid)`（横。越えたときだけバー）
   - `ChallengeCategoryButtons(IChallengeListCommands commands)`・`void Render(SelectedChallengeListViewModel model)`・`void ClearButtons()`。`name = "challenge-categories"`、中の横スクロール `challenge-categories-scroll`、ボタン `challenge-category-<guid>`
-  - `ChallengeCategoryGraphHost(ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)`・`void Render(ChallengeCategoryViewModel category)`・`void UnmountGraph()`
+  - `ChallengeCategoryGraphHost(IUiOsCursor osCursor)`・`void Render(ChallengeCategoryViewModel category)`・`void UnmountGraph()`
+  - `ChallengeCategoryGraph(ChallengeCategoryViewModel category, IUiOsCursor osCursor)`・`NodeGraphView View`・`void Render(ChallengeCategoryViewModel category)`
   - USS のクラス: `challenge-list`・`challenge-list__title`・`challenge-list__categories`・`challenge-list__categories-scroll`・`challenge-list__category-group`・`challenge-list__category-button`・`challenge-list__graph-host`・`challenge-list__card`・`challenge-list__card--locked/--current/--completed`・`challenge-list__card-ring`・`challenge-list__card-title`・`challenge-list__card-summary`・`challenge-list__card-state`。つまみ `--challenge-categories-scrollbar-height`・`--challenge-categories-scrollbar-thumb-face`
-  - テストの材料 `ChallengeListScreenTestKit`（`Basics`・`Logistics`・`FirstCraft`・`SecondStep`・`LockedStep`・`LogisticsDone`・`LogisticsCurrent`・`LoadMasterAndDictionary()`・`Tree(ChallengeCategorySelection)`・`MountList(UiLayerStack, IChallengeListCommands, ChallengeViewportSessionStore)`・`MountHud(UiLayerStack)`・`Card(VisualElement, Guid)`・`PlainText(Label)`・`ButtonText(Button)`）・`RecordingChallengeListCommands.Selected`
+  - テストの材料 `ChallengeListScreenTestKit`（`Basics`・`Logistics`・`FirstCraft`・`SecondStep`・`LockedStep`・`LogisticsDone`・`LogisticsCurrent`・`LoadMasterAndDictionary()`・`Tree(ChallengeCategorySelection)`・`MountList(UiLayerStack, IChallengeListCommands)`・`MountHud(UiLayerStack)`・`Card(VisualElement, Guid)`・`PlainText(Label)`・`ButtonText(Button)`）・`RecordingChallengeListCommands.Selected`
 
 - [ ] **Step 1: 画面の USS を書く**
 
@@ -1655,39 +1598,81 @@ namespace Client.Ui.Screens.Challenge.Parts
 }
 ```
 
+`moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraph.cs`:
+```csharp
+using Client.Ui.Components.NodeGraph;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.State.Challenge.Tree;
+
+namespace Client.Ui.Screens.Challenge.Parts
+{
+    /// <summary>
+    /// チャレンジのカテゴリ 1 つのグラフ（NodeGraphView・カードの組・最後に渡した中身）。画面の寿命で控えられ、視点は View が持つ
+    /// One challenge category's graph (NodeGraphView, card set and the last content handed over); kept for the screen lifetime, the view holds the viewport
+    /// </summary>
+    public sealed class ChallengeCategoryGraph
+    {
+        private readonly ChallengeNodeCardSet _cards = new();
+        private ChallengeCategoryViewModel _shown;
+
+        public NodeGraphView View { get; }
+
+        public ChallengeCategoryGraph(ChallengeCategoryViewModel category, IUiOsCursor osCursor)
+        {
+            // 作ったときに中身を渡す。部品は寸法が揃った最初の回だけ進行中へ寄せる（裁定 2026-11-04 の初回訪問）
+            // Hand the content over on creation; the component centers on the current node once, when its size first arrives (first visit, ruling 2026-11-04)
+            View = new NodeGraphView("challenge", osCursor);
+            _shown = category;
+            _cards.RenderCards(category.Nodes);
+            View.SetGraph(BuildContent(category));
+        }
+
+        public void Render(ChallengeCategoryViewModel category)
+        {
+            // カードは毎回描き直す（状態・倍率）。渡す中身（並び・座標・線・注目点）が変わったときだけ渡し直す（D-20）
+            // Cards are redrawn every time (state, scale); content is handed over only when it changes (order, positions, edges, focus; D-20)
+            _cards.RenderCards(category.Nodes);
+            var contentChanged = !category.HasSameGraphAs(_shown);
+            _shown = category;
+            // silent-ok: 中身が同じなら渡し直さない（部品の作り直しを避ける） / カードの描き直しは上で済み、L1 ChallengeListViewportTest が視点の保持を見る
+            if (!contentChanged) return;
+            View.SetGraph(BuildContent(category));
+        }
+
+        private NodeGraphContent BuildContent(ChallengeCategoryViewModel category)
+        {
+            var hasFocus = category.TryGetInitialFocus(out var focus);
+            return _cards.BuildContent(category.Nodes, hasFocus ? NodeGraphFocus.At(focus) : NodeGraphFocus.None);
+        }
+    }
+}
+```
+
 `moorestech_client/Assets/Scripts/Client.Ui/Screens/Challenge/Parts/ChallengeCategoryGraphHost.cs`:
 ```csharp
 using System;
-using Client.Ui.Components.NodeGraph;
+using System.Collections.Generic;
 using Client.Ui.Foundation.Input.OsCursor;
-using Client.Ui.State.Challenge.Session;
 using Client.Ui.State.Challenge.Tree;
-using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Challenge.Parts
 {
     /// <summary>
-    /// 選んだカテゴリのグラフを置く。カテゴリが変わるたびに NodeGraphView を作り直し、控えた視点を載せる前に戻す（Web の key={selected.guid} と viewportStore）
-    /// Hosts the selected category's graph; rebuilds NodeGraphView per category change and restores the saved viewport before attaching (the Web key={selected.guid} and viewportStore)
+    /// 選んだカテゴリのグラフを置く。訪れたカテゴリごとに NodeGraphView を 1 本控え、選択が変わったら置く View を付け替える（Web の key={selected.guid} と viewportStore）
+    /// Hosts the selected category's graph; keeps one NodeGraphView per visited category and swaps the attached view on selection changes (the Web key={selected.guid} and viewportStore)
     /// </summary>
     /// <remarks>
-    /// 控えが無いカテゴリは部品が進行中へ 1 回だけ寄せる（裁定 2026-11-04 の初回訪問）。同じカテゴリのまま閉じて開き直すときは作り直さず視点を保つ。_shown は _hasGraph の間だけ読む
-    /// A category without a saved viewport is centered once on its current node by the component (first visit, ruling 2026-11-04); closing and reopening on the same category keeps the view without rebuilding; _shown is read only while _hasGraph
+    /// 視点は View の寿命で保たれる（I-fix6 D-3）。View を作ったときだけ部品が進行中へ 1 回寄せ、再訪と開き直しは控えた View の視点のまま（裁定 2026-11-04）。置き場の子は表示中のカテゴリの View 1 本だけなので、名前 challenge-viewport とカードのアンカーは木の中で重ならない
+    /// The viewport lives as long as the view (I-fix6 D-3); the component centers once only when a view is created, and revisits and reopens keep that view's viewport (ruling 2026-11-04); the host holds only the shown category's view, so the challenge-viewport name and card anchors never repeat in the tree
     /// </remarks>
     public sealed class ChallengeCategoryGraphHost : VisualElement
     {
-        private readonly ChallengeViewportSessionStore _viewports;
         private readonly IUiOsCursor _osCursor;
-        private readonly ChallengeNodeCardSet _cards = new();
-        private NodeGraphView _graph;
-        private IDisposable _viewportSubscription;
-        private bool _hasGraph;
-        private ChallengeCategoryViewModel _shown;
+        private readonly Dictionary<Guid, ChallengeCategoryGraph> _graphs = new();
 
-        public ChallengeCategoryGraphHost(ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)
+        public ChallengeCategoryGraphHost(IUiOsCursor osCursor)
         {
-            _viewports = viewports;
             _osCursor = osCursor;
             AddToClassList("challenge-list__graph-host");
             pickingMode = PickingMode.Ignore;
@@ -1695,41 +1680,28 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public void Render(ChallengeCategoryViewModel category)
         {
-            // カードは毎回描き直す（状態・倍率）。カテゴリが変わったら作り直し、渡す中身（並び・座標・線・注目点）が変わったときだけ渡し直す
-            // Cards are redrawn every time (state, scale); rebuild on a category change and hand over content only when it changes (order, positions, edges, focus)
-            _cards.RenderCards(category.Nodes);
-            var categoryChanged = !_hasGraph || category.Guid != _shown.Guid;
-            var contentChanged = categoryChanged || !category.HasSameGraphAs(_shown);
-            if (categoryChanged) MountGraph(category.Guid);
-            _shown = category;
-            // silent-ok: 中身が同じなら渡し直さない（部品の作り直しを避ける） / カードの描き直しは上で済み、L1 ChallengeListViewportTest が視点の保持を見る
-            if (!contentChanged) return;
-            var hasFocus = category.TryGetInitialFocus(out var focus);
-            _graph.SetGraph(_cards.BuildContent(category.Nodes, hasFocus ? NodeGraphFocus.At(focus) : NodeGraphFocus.None));
+            // 初めて訪れたカテゴリは View を作る（作った View だけが進行中へ寄せる）。訪れたことがあれば中身を描き直す
+            // A first visit creates a view (only a new view centers on the current node); a visited category redraws its content
+            if (_graphs.TryGetValue(category.Guid, out var graph)) graph.Render(category);
+            else
+            {
+                graph = new ChallengeCategoryGraph(category, _osCursor);
+                _graphs.Add(category.Guid, graph);
+            }
+
+            // 表示中のカテゴリの View だけを置く。前のカテゴリの View は外して控え、視点を持ったまま待つ
+            // Attach only the shown category's view; the previous one is detached and kept with its viewport
+            // silent-ok: 既に置いてあれば付け替えない / 正常系（同じカテゴリの描き直し）。付け替えと視点は L1 ChallengeListViewportTest が見る
+            if (graph.View.parent == this) return;
+            Clear();
+            Add(graph.View);
         }
 
         public void UnmountGraph()
         {
-            // silent-ok: 置いていなければ外すものが無い / 正常系（初回と解放済みのカテゴリが無いとき）
-            if (!_hasGraph) return;
-            _viewportSubscription.Dispose();
-            _graph.RemoveFromHierarchy();
-            _hasGraph = false;
-        }
-
-        private void MountGraph(Guid categoryGuid)
-        {
-            // 前のカテゴリのグラフを外し、新しい部品に控えた視点を載せる前に戻す（C4-d D-22）
-            // Detach the previous category's graph and restore the saved viewport before attaching the new one (C4-d D-22)
-            UnmountGraph();
-            _graph = new NodeGraphView("challenge", _osCursor);
-            if (_viewports.TryGet(categoryGuid, out var saved)) _graph.RestoreViewport(new NodeGraphViewport(saved.X, saved.Y, saved.Scale));
-
-            // 中央寄せ・操作・寸法の追従のたびにカテゴリの視点を控える
-            // Save the category viewport on every centering, operation and resize-follow
-            _viewportSubscription = _graph.OnViewportChanged.Subscribe(viewport => _viewports.Save(categoryGuid, new ChallengeViewportSnapshot(viewport.X, viewport.Y, viewport.Scale)));
-            Add(_graph);
-            _hasGraph = true;
+            // 解放済みのカテゴリが無い一覧はグラフを置かない（控えた View は残す）
+            // A list without unlocked categories attaches no graph (kept views stay)
+            Clear();
         }
     }
 }
@@ -1746,7 +1718,6 @@ using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Challenge.Parts;
 using Client.Ui.State.Challenge.Commands;
-using Client.Ui.State.Challenge.Session;
 using Client.Ui.State.Challenge.Tree;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -1763,7 +1734,7 @@ namespace Client.Ui.Screens.Challenge.Tree
         private readonly ChallengeCategoryButtons _categories;
         private readonly ChallengeCategoryGraphHost _graphHost;
 
-        public ChallengeListView(IChallengeListCommands commands, ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)
+        public ChallengeListView(IChallengeListCommands commands, IUiOsCursor osCursor)
         {
             // 根は一覧の面。拾うので一覧の上の押下とホイールは UI に当たる（右短押しで閉じず、ホットバーへ抜けない）
             // The root is the list face; it picks, so presses and wheels over the list hit UI (no close on a right short press, no wheel to the hotbar)
@@ -1780,7 +1751,7 @@ namespace Client.Ui.Screens.Challenge.Tree
             Add(title);
             _categories = new ChallengeCategoryButtons(commands);
             Add(_categories);
-            _graphHost = new ChallengeCategoryGraphHost(viewports, osCursor);
+            _graphHost = new ChallengeCategoryGraphHost(osCursor);
             Add(_graphHost);
         }
 
@@ -1807,8 +1778,8 @@ namespace Client.Ui.Screens.Challenge.Tree
 
         public void SetShown(bool shown)
         {
-            // 隠す間も要素を残し、同じカテゴリの視点を保つ
-            // Keep the element while hidden so the same category keeps its view
+            // 隠す間も要素を残し、控えた各カテゴリの View の視点を保つ
+            // Keep the element while hidden so every kept category view keeps its viewport
             style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
@@ -1866,7 +1837,6 @@ using Client.Ui.Screens.Challenge.CurrentHud;
 using Client.Ui.Screens.Challenge.Tree;
 using Client.Ui.State.Challenge;
 using Client.Ui.State.Challenge.Commands;
-using Client.Ui.State.Challenge.Session;
 using Client.Ui.State.Challenge.Tree;
 using Client.Ui.State.Challenge.Tree.Selection;
 using Client.Ui.State.Text;
@@ -1926,9 +1896,9 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
 
         // 一覧を描いてから OverlayPanel・Stage 層へ載せる（前例 ResearchTreePresenter）
         // Render the list, then mount it on the OverlayPanel/Stage layer (precedent ResearchTreePresenter)
-        public static ChallengeListView MountList(UiLayerStack layers, IChallengeListCommands commands, ChallengeViewportSessionStore viewports)
+        public static ChallengeListView MountList(UiLayerStack layers, IChallengeListCommands commands)
         {
-            var view = new ChallengeListView(commands, viewports, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var view = new ChallengeListView(commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             view.Render(Tree(ChallengeCategorySelection.None));
             view.SetShown(true);
             layers.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);
@@ -1982,7 +1952,6 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Screens.Challenge.Tree;
 using Client.Ui.Screens.Inventory.Wheel;
-using Client.Ui.State.Challenge.Session;
 using Client.Ui.State.Challenge.Tree;
 using Core.Master;
 using NUnit.Framework;
@@ -2005,7 +1974,7 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         {
             Kit.LoadMasterAndDictionary();
             var layers = UiLayerStack.Build(rootVisualElement);
-            _view = Kit.MountList(layers, new RecordingChallengeListCommands(), new ChallengeViewportSessionStore());
+            _view = Kit.MountList(layers, new RecordingChallengeListCommands());
             Kit.MountHud(layers);
             Settle();
         }
@@ -2177,7 +2146,7 @@ git commit -m "feat(uitk): S5-challenge の一覧の View・カード・カテ�
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeHudOverListTest.cs`
 
 **Interfaces:**
-- Consumes: Task 3 の `ChallengeListView`・`ChallengeListScreenTestKit`・`RecordingChallengeListCommands`、Task 2 の `ChallengeViewportSessionStore`
+- Consumes: Task 3 の `ChallengeListView`・`ChallengeCategoryGraphHost`・`ChallengeListScreenTestKit`・`RecordingChallengeListCommands`
 - Produces: L1 4 件（タグ付き 2・裁定 2）
 
 - [ ] **Step 1: 視点の L1 を書く**
@@ -2185,12 +2154,12 @@ git commit -m "feat(uitk): S5-challenge の一覧の View・カード・カテ�
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeListViewportTest.cs`:
 ```csharp
 using System;
+using System.Linq;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.NodeGraph;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Screens.Challenge.Tree;
-using Client.Ui.State.Challenge.Session;
 using Client.Ui.State.Challenge.Tree.Selection;
 using NUnit.Framework;
 using UnityEngine;
@@ -2213,7 +2182,7 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         {
             Kit.LoadMasterAndDictionary();
             _commands = new RecordingChallengeListCommands();
-            _view = Kit.MountList(UiLayerStack.Build(rootVisualElement), _commands, new ChallengeViewportSessionStore());
+            _view = Kit.MountList(UiLayerStack.Build(rootVisualElement), _commands);
             Settle();
         }
 
@@ -2236,11 +2205,17 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         [Test]
         public void 一度開いたカテゴリへ戻ると寄せ直さず前回の視点を戻す()
         {
-            // 先頭のカテゴリでパンし、別のカテゴリへ移って戻る
-            // Pan in the first category, move to another and come back
+            // 先頭のカテゴリでパンし、別のカテゴリへ移って戻る。木の中の NodeGraphView は常に 1 本
+            // Pan in the first category, move to another and come back; the tree always holds one NodeGraphView
+            var basicsView = SingleGraph();
             var panned = PanBy(new Vector2(-60f, 30f));
             Select(Kit.Logistics);
+            Assert.AreNotSame(basicsView, SingleGraph(), "別のカテゴリは別の View");
             Select(Kit.Basics);
+
+            // 戻ると控えた同じ View が付け直され、作り直さないので寄せ直さない
+            // Coming back re-attaches the same kept view; no rebuild, so no re-centering
+            Assert.AreSame(basicsView, SingleGraph(), "再訪は控えた View の付け直し");
             var back = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;
             Assert.AreEqual(panned.x, back.x, 1f);
             Assert.AreEqual(panned.y, back.y, 1f);
@@ -2281,6 +2256,15 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         {
             _view.Render(Kit.Tree(ChallengeCategorySelection.Of(category)));
             Settle();
+        }
+
+        // 置き場に付いている View は常に 1 本（名前とアンカーが重ならない）
+        // Exactly one view is attached (names and anchors never repeat)
+        private NodeGraphView SingleGraph()
+        {
+            var graphs = rootVisualElement.Query<NodeGraphView>().ToList();
+            Assert.AreEqual(1, graphs.Count, "木の中の NodeGraphView の数");
+            return graphs[0];
         }
 
         private void AssertCentered(Guid challenge)
@@ -2352,7 +2336,6 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Challenge/Tree/ChallengeHudOverListTest.cs`:
 ```csharp
 using Client.Ui.Foundation.Layers;
-using Client.Ui.State.Challenge.Session;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 using Kit = Client.Tests.Ui.Screens.Challenge.Tree.ChallengeListScreenTestKit;
@@ -2373,7 +2356,7 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             // Measure the HUD with the list hidden (the game screen)
             Kit.LoadMasterAndDictionary();
             var layers = UiLayerStack.Build(rootVisualElement);
-            var list = Kit.MountList(layers, new RecordingChallengeListCommands(), new ChallengeViewportSessionStore());
+            var list = Kit.MountList(layers, new RecordingChallengeListCommands());
             var hud = Kit.MountHud(layers);
             list.SetShown(false);
             Settle();
@@ -2415,7 +2398,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.Challenge\.Tree\."`
 Expected: ErrorCount 0 / 9 件 PASS（`ChallengeListViewTest` 5・`ChallengeListViewportTest` 3・`ChallengeHudOverListTest` 1）
-- 2 つ目・3 つ目が 1px を超えてずれたら、`RestoreViewport` を `Add` の後に呼んでいないか（C4-d D-22）と、`OnViewportChanged` の購読が `RestoreViewport` の後か（復元値を流さないので順序は不問のはず）を確かめる。部品は直さない
+- 2 つ目・3 つ目が 1px を超えてずれたら、戻ったカテゴリで `ChallengeCategoryGraph` を作り直していないか（`_graphs` に控えた View を付け直しているか・`AreSame` が通るか）と、付け直しの `GeometryChangedEvent` で部品の寸法の追従が働いていないか（寸法が変わっていないなら動かないはず）を `uloop execute-dynamic-code` で `contentRect` を読んで確かめる。部品は直さない
+- `SingleGraph` が 2 本以上を数えたら、`ChallengeCategoryGraphHost.Render` が前の View を外さずに足している。置き場の子を見て直す
 
 - [ ] **Step 4: コミットする**
 
@@ -2434,7 +2418,7 @@ git commit -m "test(uitk): S5-challenge の視点（初回の寄せ・再訪・�
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs`（`using` 1 行・画面登録区画の末尾 1 行）
 
 **Interfaces:**
-- Consumes: Task 2 の `ChallengeScreenVisibility.IsShown`・`ChallengeListModel`・`ChallengeCategorySelectionStore`・`ChallengeListCommands`・`ChallengeViewportSessionStore`、Task 3 の `ChallengeListView`
+- Consumes: Task 2 の `ChallengeScreenVisibility.IsShown`・`ChallengeListModel`・`ChallengeCategorySelectionStore`・`ChallengeListCommands`、Task 3 の `ChallengeListView`
 - Produces: `ChallengeListPresenter`（`IInitializable`。`Client.Ui.Screens.Challenge.Tree`）、`ChallengeGameUiRegistration.Register(ContainerBuilder builder)`
 
 - [ ] **Step 1: Presenter を書く**
@@ -2447,7 +2431,6 @@ using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Challenge;
 using Client.Ui.State.Challenge.Commands;
-using Client.Ui.State.Challenge.Session;
 using Client.Ui.State.Challenge.Tree;
 using Client.Ui.State.Routing;
 using UniRx;
@@ -2465,16 +2448,14 @@ namespace Client.Ui.Screens.Challenge.Tree
         private readonly ChallengeListModel _model;
         private readonly UiRoutingState _routing;
         private readonly IChallengeListCommands _commands;
-        private readonly ChallengeViewportSessionStore _viewports;
         private readonly IUiOsCursor _osCursor;
 
-        public ChallengeListPresenter(GameUiRoot gameUiRoot, ChallengeListModel model, UiRoutingState routing, IChallengeListCommands commands, ChallengeViewportSessionStore viewports, IUiOsCursor osCursor)
+        public ChallengeListPresenter(GameUiRoot gameUiRoot, ChallengeListModel model, UiRoutingState routing, IChallengeListCommands commands, IUiOsCursor osCursor)
         {
             _gameUiRoot = gameUiRoot;
             _model = model;
             _routing = routing;
             _commands = commands;
-            _viewports = viewports;
             _osCursor = osCursor;
         }
 
@@ -2482,7 +2463,7 @@ namespace Client.Ui.Screens.Challenge.Tree
         {
             // 描いてから載せる（キーの無いラベルを載せない）。一覧は Web の --z-stage-overlay-panel
             // Render before mounting (no keyless labels attached); the list is the Web --z-stage-overlay-panel
-            var view = new ChallengeListView(_commands, _viewports, _osCursor);
+            var view = new ChallengeListView(_commands, _osCursor);
             view.Render(_model.Current.Value);
             _gameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);
             _routing.Current.Subscribe(snapshot => view.SetShown(ChallengeScreenVisibility.IsShown(snapshot)));
@@ -2498,7 +2479,6 @@ namespace Client.Ui.Screens.Challenge.Tree
 ```csharp
 using Client.Ui.Screens.Challenge.Tree;
 using Client.Ui.State.Challenge.Commands;
-using Client.Ui.State.Challenge.Session;
 using Client.Ui.State.Challenge.Tree;
 using Client.Ui.State.Challenge.Tree.Selection;
 using VContainer;
@@ -2512,7 +2492,6 @@ namespace Client.Starter.Registration.GameUi.Screens.Challenge
     {
         public static void Register(ContainerBuilder builder)
         {
-            builder.Register<ChallengeViewportSessionStore>(Lifetime.Singleton);
             builder.RegisterEntryPoint<ChallengeCategorySelectionStore>().AsSelf();
             builder.RegisterEntryPoint<ChallengeListModel>().AsSelf();
             builder.Register<ChallengeListCommands>(Lifetime.Singleton).As<IChallengeListCommands>();
@@ -2949,7 +2928,7 @@ git commit -m "docs(uitk): S5-challenge のカードの高さの実測"
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$FILTER"`
 Expected: ErrorCount 0 / PASS
-- 反映がソースの判定経路・条件式・その評価の時点（`ChallengeCategoryGraphHost.Render` の作り直しと渡し直しの条件・`ChallengeListModel` の組み直しの条件・選択ストアの戻し・`ChallengeScreenVisibility`・工場の状態の写し・`ChallengeCategoryScrollView` のバーの出し入れ）に触れたら、Task 6 の録画 2 本を反映後のバイナリで流し直し、`Success: true` を見てから完了にする
+- 反映がソースの判定経路・条件式・その評価の時点（`ChallengeCategoryGraphHost.Render` の View の作成と付け替えの条件・`ChallengeCategoryGraph.Render` の渡し直しの条件・`ChallengeListModel` の組み直しの条件・選択ストアの戻し・`ChallengeScreenVisibility`・工場の状態の写し・`ChallengeCategoryScrollView` のバーの出し入れ）に触れたら、Task 6 の録画 2 本を反映後のバイナリで流し直し、`Success: true` を見てから完了にする
 
 - [ ] **Step 3: コミットする**
 
@@ -2978,7 +2957,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。セッショ�
   "head": "<HEAD 10 桁>",
   "summary": [
     "チャレンジ一覧（題・カテゴリのボタン列・NodeGraphView のノードカード）を UITK に移した。カードは PaperSurface に名前・概要・状態、進行中は青・完了は緑の 2px の輪、未解放は 0.55。カテゴリ列は幅を越えたら横に送れる（Web の overflow-x: auto）",
-    "カテゴリが変わるたびにグラフを作り直し、カテゴリごとの視点を控えて戻す。初回訪問だけ進行中へ寄せ、再訪と開き直しは前回の視点（裁定 2026-11-04）",
+    "訪れたカテゴリごとに NodeGraphView を 1 本控えて付け替え、視点は View の寿命で保つ（I-fix6 と同じ形）。初回訪問だけ進行中へ寄せ、再訪と開き直しは前回の視点（裁定 2026-11-04）",
     "S4-research の NodeGraphView.uss（包みの高さ 0 の削除）を事後承認し、カードが中身なりの高さで描かれることを L1 で固定した"
   ],
   "media": [
@@ -3038,12 +3017,12 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 
 ## Self-Review
 
-1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア）・Task 4（開き直しの L1）・Task 6。R-4 → Task 2（Session）・Task 3（`ChallengeCategoryGraphHost`）・Task 4（L1 3 件）。R-5 → Task 3（View・USS・`ChallengeCategoryScrollView`・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
+1. **Requirements coverage**: R-1 → Task 1（`ChallengeListLogic`・L0 2 件）。R-2 → Task 1（工場・空と選択ありの型・文言キー・null の前提・L0 工場 4 件）。R-3 → Task 2（`ChallengeScreenVisibility`・Model・選択ストア）・Task 4（開き直しの L1）・Task 6。R-4 → Task 3（`ChallengeCategoryGraphHost`・`ChallengeCategoryGraph`）・Task 4（L1 3 件。付け替えと View の数）。R-5 → Task 3（View・USS・`ChallengeCategoryScrollView`・L1 5 件の横スクロールとホイール）・Task 7。R-6 → Task 3（`ChallengeCategoryButtons`）・Task 4（押下の L1）。R-7 → Task 1（`StateLabelKey`）・Task 3（カード・USS・L1）。R-8 → Task 4（HUD の L1）・Task 6。R-9 → Task 6（`uitk-challenge-hud-resident`）。R-10 → Task 3（印と Pending）・Task 6（Unique）。R-11 → Task 6（撮影）・Task 7。R-12 → Task 6。R-13 → Task 3（tss）・Task 5。R-14 → Task 1・3・4（タグ）・Task 7 Step 4。R-15 → Task 7 Step 3・Task 1 Step 2（A 行の本文の依頼。A-241 に A-191 の改め）。R-16 → Task 8・9。死活表の 5 行（横スクロール・暗幕・スキット入力・移動とカメラ・グラフ外ホイール）は Task 3 の L1 と前提の確認（Task 1 Step 1 の grep）が持つ。漏れなし
 2. **Placeholder scan**: 「TBD」「後で」は無い。`<幅>×<高さ>`・`<PR番号>`・`<bd>`・出力ディレクトリは実行時に決まる値で、埋め方を同じ Step に書いた。横の `ScrollView` の content container の配置とバーの上書きの勝ち負けは実装時に `resolvedStyle` で確かめ、外れたときの直し方を Task 3 Step 7 に書いた
-3. **Type consistency**: `ChallengeNodeCardViewModel(Guid, Vector2, Vector2, IReadOnlyList<Guid>, ChallengeNodeState)`・`StateLabelKey`・`HasSameGraphPlacementAs` は Task 1・3（Kit・カード）・4 で同じ。`ChallengeListViewModel.Create(categories, selection)`・`ChallengeListViewModel.Empty`・`SelectedChallengeListViewModel.Categories/CategoryGuids/Selected`・`EmptyChallengeListViewModel` は Task 1・2・3・4 で同じ（View の switch と L0 の `AsSelected`）。`ChallengeCategoryViewModel.Create(guid, nodes)`・`TryGetInitialFocus`・`HasSameGraphAs` は Task 1・3 で同じ。`ChallengeListLogic.SameGuidSequence`・`DeriveStateLabelKey` は Task 1・3 で同じ。`ChallengeScreenVisibility.IsShown(UiRoutingSnapshot)` は Task 2・5 で同じ。`ChallengeViewportSessionStore.TryGet/Save` と `ChallengeViewportSnapshot(X, Y, Scale)` は Task 2・3 で同じ。`ChallengeListView(IChallengeListCommands, ChallengeViewportSessionStore, IUiOsCursor)` は Task 3・4・5 で同じ。`IChallengeListCommands.SelectCategory(Guid)` は `Client.Ui.State.Challenge.Commands` で Task 2・3・4・5 同じ。名前空間は State が `Client.Ui.State.Challenge`・`.Tree`・`.Tree.Selection`・`.Commands`・`.Session`、画面が `Client.Ui.Screens.Challenge.Tree`・`.Parts`、L1 が `Client.Tests.Ui.Screens.Challenge.Tree` で全タスク同じ
-4. **保留・縮退経路の解消可能性**: (a) `ChallengeListModel` は閉画面で組まず、解消の条件は「一覧への突入」（経路の通知で必ず来る）。表示中かは経路の今の値で読むので、選択ストアとの購読順で組み漏れも余分な組み直しも起きない。(b) 最小構成: 解放済みのカテゴリ 0（`EmptyChallengeListViewModel`。題だけ・グラフ無し。L1 `解放済みのカテゴリが無ければ…`）、カテゴリ 1・進行中 0（注目点無し → 寄せない・視点は原点。部品の既定。控えは操作した時だけ）、初回（控え無し → 部品が寄せる）、カテゴリ列が幅に収まる（バーなし。L1）。どれも恒久の保留にならない。(c) `GraphHost` の「中身が同じなら渡し直さない」は、カードの描き直しを先に済ませるので表示が古いまま残らない
+3. **Type consistency**: `ChallengeNodeCardViewModel(Guid, Vector2, Vector2, IReadOnlyList<Guid>, ChallengeNodeState)`・`StateLabelKey`・`HasSameGraphPlacementAs` は Task 1・3（Kit・カード）・4 で同じ。`ChallengeListViewModel.Create(categories, selection)`・`ChallengeListViewModel.Empty`・`SelectedChallengeListViewModel.Categories/CategoryGuids/Selected`・`EmptyChallengeListViewModel` は Task 1・2・3・4 で同じ（View の switch と L0 の `AsSelected`）。`ChallengeCategoryViewModel.Create(guid, nodes)`・`TryGetInitialFocus`・`HasSameGraphAs` は Task 1・3 で同じ。`ChallengeListLogic.SameGuidSequence`・`DeriveStateLabelKey` は Task 1・3 で同じ。`ChallengeScreenVisibility.IsShown(UiRoutingSnapshot)` は Task 2・5 で同じ。`ChallengeCategoryGraph(ChallengeCategoryViewModel, IUiOsCursor)`・`View`・`Render` と `ChallengeCategoryGraphHost(IUiOsCursor)` は Task 3・4 で同じ。`ChallengeListView(IChallengeListCommands, IUiOsCursor)` と `Kit.MountList(UiLayerStack, IChallengeListCommands)` は Task 3・4・5 で同じ。`IChallengeListCommands.SelectCategory(Guid)` は `Client.Ui.State.Challenge.Commands` で Task 2・3・4・5 同じ。名前空間は State が `Client.Ui.State.Challenge`・`.Tree`・`.Tree.Selection`・`.Commands`、画面が `Client.Ui.Screens.Challenge.Tree`・`.Parts`、L1 が `Client.Tests.Ui.Screens.Challenge.Tree` で全タスク同じ
+4. **保留・縮退経路の解消可能性**: (a) `ChallengeListModel` は閉画面で組まず、解消の条件は「一覧への突入」（経路の通知で必ず来る）。表示中かは経路の今の値で読むので、選択ストアとの購読順で組み漏れも余分な組み直しも起きない。(b) 最小構成: 解放済みのカテゴリ 0（`EmptyChallengeListViewModel`。題だけ・グラフ無し。L1 `解放済みのカテゴリが無ければ…`）、カテゴリ 1・進行中 0（注目点無し → 寄せない・視点は原点。部品の既定）、初回（View を作る → 部品が寄せる）、カテゴリ列が幅に収まる（バーなし。L1）。どれも恒久の保留にならない。(c) `ChallengeCategoryGraph` の「中身が同じなら渡し直さない」は、カードの描き直しを先に済ませるので表示が古いまま残らない
 5. **「決定的にする」を根拠にした選択**: 「先頭のカテゴリ」「最初の進行中」は Web と同じ規則（`categories[0]`・`nodes.find`）で、順序は受信順＝マスタの並び（D-24）に従う（決定性ではなく Web と同じ結果になることが根拠）。開き直しで先頭へ戻すのは裁定 2026-11-04 の「今のまま」（D-2）。L0 で固定
-6. **呼び出し側への責務漏出**: 一覧を出すかの判定は `ChallengeScreenVisibility.IsShown` の 1 本（選択ストア・Model・Presenter が呼ぶ）。Guid の並びの比較は `ChallengeListLogic.SameGuidSequence` の 1 本（ボタン列とグラフの形の比較が呼ぶ）。状態→文言キーは State の `ChallengeListLogic.DeriveStateLabelKey` の 1 本で、画面は修飾クラスだけ。空か選択ありかの分岐は View の `Render` の 1 か所。前提の絞り込みは `ChallengeCategoryViewModel.Create` の 1 か所、`NodeGraphViewport` と素の値の詰め替えは `ChallengeCategoryGraphHost` の 1 か所（保存と復元の対）。バーの有無の幾何は `ChallengeCategoryScrollView` の 1 か所（`GameScrollView` と同じ式だが縦横が違い、共有部品にしない理由は D-7）
+6. **呼び出し側への責務漏出**: 一覧を出すかの判定は `ChallengeScreenVisibility.IsShown` の 1 本（選択ストア・Model・Presenter が呼ぶ）。Guid の並びの比較は `ChallengeListLogic.SameGuidSequence` の 1 本（ボタン列とグラフの形の比較が呼ぶ）。状態→文言キーは State の `ChallengeListLogic.DeriveStateLabelKey` の 1 本で、画面は修飾クラスだけ。空か選択ありかの分岐は View の `Render` の 1 か所。前提の絞り込みは `ChallengeCategoryViewModel.Create` の 1 か所、View を作るか付け替えるかは `ChallengeCategoryGraphHost.Render` の 1 か所、渡し直すかは `ChallengeCategoryGraph.Render` の 1 か所（視点は部品の中にあり、画面は値を控えない）。バーの有無の幾何は `ChallengeCategoryScrollView` の 1 か所（`GameScrollView` と同じ式だが縦横が違い、共有部品にしない理由は D-7）
 
 ---
 
@@ -3051,8 +3030,8 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 
 ゴール（ユーザー原文）:「WebUIと同じ見た目で、適切な設計、コンポーネント化されたUITKベースのUIを開発すること」。裁定: `.decisions/2026-11-06-*` の UITK 6 本・CEF 停止の記録・`.decisions/2026-11-04-チャレンジ画面は各カテゴリの初回訪問だけ進行中へ寄せ再訪は前回の視点を戻す.md`。以下はすべて **agent 既定**（ゴール・裁定から外れる判断は無い。要裁定 0）。
 
-- **D-1 視点はカテゴリごとの作り直し＋State の Session（設計書 §7.1 に A-240 を足す。本文はこの D-1）**: カテゴリが変わるたびに `NodeGraphView` を作り直し（Web の `key={selected.guid}`）、カテゴリの視点は `OnViewportChanged` の最後の値を `Client.Ui.State/Challenge/Session/ChallengeViewportSessionStore` に素の値（x・y・倍率）で控え、作り直した部品へ載せる前に `RestoreViewport` で戻す。控えが無ければ部品が進行中へ 1 回だけ寄せる。これで裁定 2026-11-04（初回訪問だけ寄せる・再訪と開き直しは前回の視点）と同じになる。C4-d 計画の申し送り (1)・D-22 の形そのもの。棄却: (a) 研究と同じ常駐の `NodeGraphView` 1 つ（A-172）— 中央寄せがインスタンスにつき 1 回なので 2 つ目のカテゴリの初回訪問で寄せられない。(b) カテゴリごとに常駐の `NodeGraphView` を作り非選択を `display: none` で並べる — 名前 `challenge-viewport`・`challenge-canvas` が重なり、テストの ID と `PlaytestUiElementOps.FindUi` が隠れた方を拾いうる。チュートリアルのアンカーも隠れたカテゴリのカードが木に残る（Web は選んだカテゴリしか描かない）。帰結: 同じカテゴリのまま閉じて開き直したときは作り直さないので寸法の追従が続く（Web は復元した後は追従しない）。研究 A-172 と同じ差で、開き直しの位置は同じ
-- **D-2 カテゴリの選択は State の選択ストア、開き直しは先頭のカテゴリ**: `ChallengeCategorySelectionStore` が一覧を離れると「無し」に戻し、工場が先頭（受信順＝マスタの並び）を選ぶ。前例 `ResearchSelectionStore`。操作は `IChallengeListCommands.SelectCategory`（前例 `IResearchTreeCommands`。L1 で記録の差し替えに替えるため）。開き直しで先頭へ戻す根拠: 裁定 2026-11-04 の本人の明示の引用は「初回だけ寄せる（研究と同じ・今のまま）」で、「今のまま」は当時の Web（`ChallengePanel.tsx:14-15` の `useState` はパネルのアンマウントで消えて `categories[0]` に戻り、視点はカテゴリごとに `viewportStore` が持つ）を指す。決定文の「前回見ていた位置を戻す」はカテゴリの視点のことで、選んでいたカテゴリの記憶ではない。表示中かは `ChallengeScreenVisibility.IsShown` で読み、Model は控えた旗でなく経路の今の値を読むので、選択ストアと Model のどちらの購読が先に呼ばれても隠れた後の選択の変化では組まない（DI の登録順に依らない。D-21）
+- **D-1 視点は View の寿命で持つ: 訪れたカテゴリごとの `NodeGraphView` を控えて付け替える（設計書 §7.1 の A-240。本文はこの D-1）**（指揮の agent 既定（PLAN-W5 評価））: `ChallengeCategoryGraphHost` が訪れたカテゴリごとに `NodeGraphView("challenge", …)` を 1 本作って控え（`ChallengeCategoryGraph`。カテゴリ Guid → View。画面の寿命）、選んだカテゴリが変わったら置き場の子を表示するカテゴリの View へ付け替える（前の View は外して控える）。部品は中央寄せをインスタンスにつき 1 回だけ行うので、View を作ったとき＝そのカテゴリの初回訪問だけ進行中へ寄せ、再訪は控えた View の視点のまま、一覧を閉じて開き直したときも控えた View が戻る（裁定 2026-11-04 を「View を作った時だけ初回の寄せを行う」で満たす）。Web の `key={selected.guid}`（カテゴリごとの作り直し）＋`viewportStore`（カテゴリごとの視点。セッション内）と同じ結果を、視点の寿命＝View の寿命で出す。並走の I-fix6（`origin/uitk-lane/i-fix6` の 3614f5c0df。計画 R-15・D-3）が `NodeGraphView.RestoreViewport` を消し、研究の視点を View の寿命で保つ形にした。その上に乗るので、I-fix6 とどちらが先に `feature/uitk` へ入っても壊れない。置き場の子は常に 1 本なので、`challenge-viewport`・`challenge-canvas` の名前とカードのアンカーは木の中で重ならない（外したカテゴリのカードはパネルに載っていない）。State の `ChallengeViewportSessionStore` は作らない。棄却: (a) カテゴリごとの作り直し＋State の Session に控えて `RestoreViewport` で戻す（旧 D-1・C4-d 申し送り (1)）— I-fix6 が消す口に頼り、I-fix6 が先に入れば Task 1 の前提が外れ、後に入れば取り込みでコンパイルが壊れる。(b) 研究と同じ常駐 1 つ（A-172）— 寄せがインスタンスにつき 1 回なので 2 つ目のカテゴリの初回訪問で寄せられない。(c) カテゴリごとの View を全部置いて非選択を `display: none` で並べる — 名前とアンカーが重なり、テストの ID と `PlaytestUiElementOps.FindUi` が隠れた方を拾いうる。帰結: 外している間に画面の寸法が変わると、付け直したときに部品の寸法の追従で中心を保ち直しうる（Web は復元した視点を寸法に追従させない。研究 A-172 と同じ種類の差。推測で、L1 は寸法を変えない）。控える View の数は訪れたカテゴリの数まで（マスタのカテゴリ数が上限）
+- **D-2 カテゴリの選択は State の選択ストア、開き直しは先頭のカテゴリ**: `ChallengeCategorySelectionStore` が一覧を離れると「無し」に戻し、工場が先頭（受信順＝マスタの並び）を選ぶ。前例 `ResearchSelectionStore`。操作は `IChallengeListCommands.SelectCategory`（前例 `IResearchTreeCommands`。L1 で記録の差し替えに替えるため）。開き直しで先頭へ戻す根拠: 裁定 2026-11-04 の本人の明示の引用は「初回だけ寄せる（研究と同じ・今のまま）」で、「今のまま」は当時の Web（`ChallengePanel.tsx:14-15` の `useState` はパネルのアンマウントで消えて `categories[0]` に戻り、視点はカテゴリごとに `viewportStore` が持つ）を指す。決定文の「前回見ていた位置を戻す」はカテゴリの視点のことで、選んでいたカテゴリの記憶ではない。読み方（指揮の agent 既定（PLAN-W5 評価））: 各カテゴリの View を控えるので、開き直して出る先頭のカテゴリの視点は前回のまま戻る。別のカテゴリを見ていて閉じたとき、開き直しでそのカテゴリへ戻すことは含まない（Web の実挙動: `W/src/app/App.tsx:102` の `{screen === "challengeList" && <ChallengePanel />}` がパネルをアンマウントし、`ChallengePanel.tsx:14-15` の `useState` が消えて `categories[0]` に戻る）。表示中かは `ChallengeScreenVisibility.IsShown` で読み、Model は控えた旗でなく経路の今の値を読むので、選択ストアと Model のどちらの購読が先に呼ばれても隠れた後の選択の変化では組まない（DI の登録順に依らない。D-21）
 - **D-3 未解放のカテゴリと別カテゴリの前提**: 未解放のカテゴリは出さない（Web の橋 `ChallengeDtoBuilder.BuildTree`）。別カテゴリの前提は `ChallengeCategoryViewModel.Create` で線のキーから除く（C4-d D-5 の申し送り (2)。部品はグラフに無い親を LogError にする。Web は黙って省く）。どちらも Web の仕様なので `silent-ok` を付け、L0 で固定する
 - **D-4 S4-research の `NodeGraphView.uss` の事後承認（設計書 §7.1 に A-241 を足す。本文はこの D-4）**: `.node-graph__node` から `height: 0` を消した S4-research の修正（9a58258265。包みは幅 0・高さは中身なり・`align-items: flex-start`・子は `flex-shrink: 0`）を承認する。Web の包みは静的な div でカード自身が絶対配置なので中身なりの高さになる。UITK はカードが包みのフローの子なので、高さ 0 の包みは中身なりのカードを 0 に潰す（S4-research の実測 132×18 → 141）。画面の USS は `.node-graph*` を書けないので部品で直すのが正しい。チャレンジのカードが上下の余白 24＋3 行の高さで描かれることを `ChallengeListViewTest`（L1）と録画 `uitk-challenge-list` で固定した。持ち主 C4-d の部品の変更として記録し、このレーンは部品を変えない
 - **D-5 カードの組み立て**: 根は `PaperSurface`（sealed なので持ち手 `ChallengeNodeCard` が組み立てて `Root` で渡す）。Web の outline は拾わない子の輪（研究の前例）で、半径 6px（Paper の角丸 4px に沿う outline の外周）の数値は Web の CSS に無いブラウザの描き方なので画面 USS に直書きする（つまみを作らない）。`translate(-50%, -50%)` は USS、`scale(UIScale)` は C# の `style.scale`（中心を軸。Web と同じ）。指のカーソルは付けず、ビューポートの掴む手（`TreeView.module.css:11` の `cursor: grab`）を継ぐ（C4-d/done.md:67 の申し送りは研究のカードのもの。Web のチャレンジのカードは `cursor: pointer` もタップも持たない）。設計書 A-191 と §2 部品表（research・challenge は「ノードグラフの掴む手・カードの指」）はチャレンジのカードにも指を置くと読めるので、A-241 の本文案でチャレンジの部分を「カードは指を持たずビューポートの掴む手を継ぐ」に改める（`done.md` の「integrator への依頼」。設計書は指揮が写す）
