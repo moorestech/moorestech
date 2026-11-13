@@ -159,8 +159,8 @@ return PlaytestRunner.Run("uitk-machine-ui", new PlaytestRunOptions { Record = t
     MachineSectionViewModel Vm()
     {
         var current = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMachineSectionModel>().Current.Value;
-        if (!current.IsPresent) throw new InvalidOperationException("機械の区画の値が無い（機械を開いていない）");
-        return current.Value;
+        if (!current.TryGetPresent(out var machine)) throw new InvalidOperationException("機械の区画の値が無い（機械を開いていない）");
+        return machine;
     }
 
     bool Shown(string testid)
@@ -184,7 +184,7 @@ return PlaytestRunner.Run("uitk-machine-ui", new PlaytestRunOptions { Record = t
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.Until(() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMachineSectionModel>().Current.Value.IsPresent, 10f, "機械の区画の値が届く");
+        await p.Until(() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMachineSectionModel>().Current.Value.TryGetPresent(out _), 10f, "機械の区画の値が届く");
     }
 
     async UniTask Close()
