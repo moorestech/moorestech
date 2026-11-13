@@ -31,7 +31,10 @@ namespace Client.Tests.Ui.Screens.Tutorial.Design
         {
             var root = Application.dataPath + ScreenDirectory;
             var files = Directory.GetFiles(root + relativeDirectory, searchPattern, SearchOption.AllDirectories);
-            return files.Select(path => path.Substring(root.Length)).OrderBy(path => path).ToArray();
+
+            // Windows の区切り \ を / へ揃え、どの OS でも同じ相対パスで比べる
+            // Normalise Windows \ separators to / so relative paths compare the same on every OS
+            return files.Select(path => path.Substring(root.Length).Replace('\\', '/')).OrderBy(path => path).ToArray();
         }
 
         public static string Rule(string uss, string selector)

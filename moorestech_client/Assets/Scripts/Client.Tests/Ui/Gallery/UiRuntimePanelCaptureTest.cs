@@ -1,5 +1,6 @@
 using System.Linq;
 using Client.Localization;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Editor.Capture;
 using NUnit.Framework;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 不透明な箱と地を1280x720の画素で読める()
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.InitializeDictionary);
 
             AssertPixel(new Color32(255, 0, 0, 255), texture, 30, 30);
@@ -29,6 +31,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 横長2560x1080では本番の倍率1_5で描く()
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 2560, 1080, Ground, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.InitializeDictionary);
 
             Assert.AreEqual(60, MeasureRedRunWidth(texture, 45), 1);
@@ -62,6 +65,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 幕を敷くと地が幕の色で沈み中身は手前に描かれる()
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             // 画面中央はヴィネットが透明なので、地 30 に黒 42% の幕が載った値だけになる（Web .backdrop）
             // The vignette is clear at the centre, so the ground 30 only gets the 42% black dim (Web .backdrop)
             var backdrop = new UiCaptureBackdrop(UiCaptureShell.VignetteAndDim, null);
@@ -75,6 +79,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 幕なしの外殻は中央の地を変えず隅をヴィネットで沈める()
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             var backdrop = new UiCaptureBackdrop(UiCaptureShell.VignetteOnly, null);
             var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, backdrop, UiCaptureLocalization.InitializeDictionary);
 
@@ -86,6 +91,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 地の画像は地の色の代わりに全面を覆う()
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             // 単色の画像を cover で敷くと、中身の外はどこも画像の色になる
             // A solid image laid with cover makes everything outside the content the image colour
             var image = new Texture2D(4, 4, TextureFormat.RGBA32, false);
