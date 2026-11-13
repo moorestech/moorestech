@@ -74,8 +74,9 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     const string craftButton = "craft-button-37623c6d-e1cf-4985-abfb-8239e6e33981";
     await p.UntilUiElement(craftButton, 10f);
     var planksBefore = PlaytestItemOps.CountItemClientSide(plank);
-    await HoldOn(craftButton, 2.5f);
+    await PressOn(craftButton, 0);
     await p.Until(() => planksBefore + 2 <= PlaytestItemOps.CountItemClientSide(plank), 10f, "長押しで木の板が2枚以上増える");
+    SemanticInput.MouseButtonUp(0);
     await p.Screenshot("01-hold-craft");
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -162,19 +163,18 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     string MainSlotOf(ItemId id) => $"main-slot-{Enumerable.Range(0, Local().MainSlotCount).First(i => Local()[i].Id == id)}";
     int[] EmptyMainSlots(int count) => Enumerable.Range(0, Local().MainSlotCount).Where(i => Local()[i].Id == ItemMaster.EmptyItemId).Take(count).ToArray();
 
-    async UniTask HoldOn(string testid, float seconds)
+    // 移動と押下を同じフレームに積むと押下が元の位置に届くので、移動の後に間を置いて押す（前例 uitk-recipe-craft）
+    // Queuing the move and press in one frame lands the press at the old position, so wait after moving (precedent uitk-recipe-craft)
+    async UniTask PressOn(string testid, int button)
     {
-        var center = (await PlaytestUiElementOps.FindUi(testid)).ScreenRect.center;
-        SemanticInput.MouseMoveTo(center);
-        SemanticInput.MouseButtonDown(0);
-        await p.WaitSeconds(seconds);
-        SemanticInput.MouseButtonUp(0);
+        SemanticInput.MouseMoveTo((await PlaytestUiElementOps.FindUi(testid)).ScreenRect.center);
+        await p.WaitSeconds(0.5f);
+        SemanticInput.MouseButtonDown(button);
     }
 
     async UniTask RightClickOn(string testid)
     {
-        SemanticInput.MouseMoveTo((await PlaytestUiElementOps.FindUi(testid)).ScreenRect.center);
-        SemanticInput.MouseButtonDown(1);
+        await PressOn(testid, 1);
         await p.WaitSeconds(0.1f);
         SemanticInput.MouseButtonUp(1);
         await p.WaitSeconds(0.3f);
@@ -182,9 +182,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
 
     async UniTask DragWithButton(int button, int[] slots)
     {
-        var first = (await PlaytestUiElementOps.FindUi($"main-slot-{slots[0]}")).ScreenRect.center;
-        SemanticInput.MouseMoveTo(first);
-        SemanticInput.MouseButtonDown(button);
+        await PressOn($"main-slot-{slots[0]}", button);
         foreach (var slot in slots.Skip(1)) await SemanticInput.MouseGlideTo((await PlaytestUiElementOps.FindUi($"main-slot-{slot}")).ScreenRect.center, 0.3f);
         SemanticInput.MouseButtonUp(button);
         await p.WaitSeconds(0.5f);
