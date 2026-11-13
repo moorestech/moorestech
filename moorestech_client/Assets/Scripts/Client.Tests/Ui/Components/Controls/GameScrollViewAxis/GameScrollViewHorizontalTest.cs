@@ -105,9 +105,10 @@ namespace Client.Tests.Ui.Components.Controls.GameScrollViewAxis
             for (var i = 0; i < 3; i++) AddBox();
             Settle();
 
-            // Shift+縦 1 ノッチは横量として送る（Chromium の Shift+ホイール）
-            // Shift plus one vertical notch scrolls sideways (Chromium's Shift+wheel)
-            simulate.ScrollWheel(new Vector2(0f, WheelEvent.scrollDeltaPerTick), _view.contentViewport.worldBound.center, EventModifiers.Shift);
+            // Shift+縦 1 ノッチは横量として送る（Chromium の Shift+ホイール。simulate.ScrollWheel は修飾キーを取らないので事象を直に送る）
+            // Shift plus one vertical notch scrolls sideways (Chromium's Shift+wheel; simulate.ScrollWheel takes no modifiers, so send the event directly)
+            var shiftWheel = new Event { type = EventType.ScrollWheel, delta = new Vector2(0f, WheelEvent.scrollDeltaPerTick), mousePosition = _view.contentViewport.worldBound.center, modifiers = EventModifiers.Shift };
+            using (var evt = WheelEvent.GetPooled(shiftWheel)) _view.contentViewport.SendEvent(evt);
             Settle();
             Assert.AreEqual(60f, _view.scrollOffset.x, 0.01f, "Shift+縦ホイール");
             Assert.AreEqual(0f, _view.scrollOffset.y, 0.01f);
