@@ -45,6 +45,9 @@ namespace Client.Tests.Ui.Text.SizeRounding
             // 15px は倍率 1 で丸まらないので Web と同じ幅。載ったまま倍率を替えても字間の印を組み直す
             // 15px does not round at scale 1, so that width is the Web's; switching the scale while mounted rebuilds the spacing tag
             pixelsPerPoint = 1f;
+            MountLocalized(LatinSentence, 0f);
+            // 1 本目の箱は文の幅より広いまま残る（Mac 244 対 236・Windows 244 対 230。bd albof.70）ので、2 本目の幅を Web の幅にする
+            // The first box stays wider than the text (Mac 244 vs 236, Windows 244 vs 230; bd albof.70), so the second label's width is the Web width
             var label = MountLocalized(LatinSentence, 0f);
             var webWidth = label.layout.width;
 
