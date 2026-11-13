@@ -69,7 +69,10 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 |---|---|
 | `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋選択後0.6s待機。**スロットはUIロケータ経由でクリックする。描画系が15秒以内に使えなければ例外** |
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
-| `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
+| `RoutePlaceViaUi(name, from, startDir, to, endDir)` | ベルトの2クリック設置。始点クリック→終点クリックで最短経路（坂込み）を置く。向きはRの回転で合わせる（選択直後は北） |
+| `BranchPlaceViaUi(name, beltCell, sideIsRight, to, endDir)` | Ctrl+クリックで既存の直線ベルトを分岐器へ置き換え、横の出口から終点まで経路を置く |
+| `SetOverlayPanels(showLog, showInput)` | 録画オーバーレイのログ欄・入力欄の表示切り替え（カーソルは常に出る） |
+| `HideMapObjects()` | 地形オブジェクト（木・岩・メサ）をスキットと同じ経路で非表示にする。足場y=32は地形の山の中にあるので、設置物を録画に写すときに使う |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
 | `Hotbar.SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。建築モードのトグル: 割当済み対象を持って入り、同じ枠で抜ける |
 | `Hotbar.AssignHotbar(slot, targetName)` | ビルドメニューと同一供給源(`PlacementTargetCatalog.UnlockedEntries`)から表示名でホットバーへ割当てる |

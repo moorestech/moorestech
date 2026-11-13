@@ -1,75 +1,83 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Input;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Input;
 using Common.Debug;
 using Game.Block.Interface;
 using Game.Construction;
 using Server.Protocol.PacketResponse;
+using UniRx;
 using UnityEngine;
-using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
-using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceBlockProtocolSender;
 using static Client.Game.DebugConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 {
     /// <summary>
-    /// ベルトコンベアファミリー専用の1セル単位設置システム
-    /// Dedicated per-cell placement system for belt-conveyor families
+    ///     ベルトの2クリック設置。1回目で始点を決め、カーソルのセルまでの最短経路を毎フレーム出し、2回目で置く
+    ///     Two-click belt placement: the first click fixes the start, the shortest route to the cursor cell is previewed every frame, the second click places it
     /// </summary>
     public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
+        private readonly Camera _mainCamera;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        private readonly BlockGameObjectDataStore _blocks;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly ConstructionWalletQuery _constructionWalletQuery;
-        private readonly Camera _mainCamera;
-        private readonly BeltConveyorPlaceRunBuilder _placeRunBuilder;
-
         private readonly PlacementHeightOffset _placementHeightOffset;
+        private readonly BeltRouteWorldScanner _scanner;
 
-        private readonly CommonBlockPlaceDragState _dragState;
-
-        private BlockDirection _currentBlockDirection = BlockDirection.North;
-        private List<PlaceInfo> _currentPlaceInfos = new();
+        private BeltConveyorHoldingBlock _holding;
+        private BlockDirection _currentDirection = BlockDirection.North;
+        private bool _branchSideIsRight = true;
+        private BeltRouteStepPriority _priority = BeltRouteStepPriority.Default;
+        private BeltRouteSession _session;
+        private bool _obstaclesDirty;
 
         public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery, PlacementHeightOffset placementHeightOffset)
         {
-            _placementHeightOffset = placementHeightOffset;
-            _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
+            _blocks = blockGameObjectDataStore;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
-            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState, new GroundConveyorTerrainFloor(placementHeightOffset));
+            _placementHeightOffset = placementHeightOffset;
+            _scanner = new BeltRouteWorldScanner(blockGameObjectDataStore);
+
+            // 箱と重なる設置・撤去があれば次フレームで占有を作り直す
+            // A placement or removal overlapping the box triggers an occupancy rebuild on the next frame
+            blockGameObjectDataStore.OnBlockPlaced.Subscribe(block => MarkObstaclesDirty(block.BlockPosInfo.OriginalPos));
+            blockGameObjectDataStore.OnBlockRemoved.Subscribe(MarkObstaclesDirty);
         }
 
         // Q/Eで動かす設置高さを読む系
         // A system that reads the placement height moved by Q/E
         public override bool UsesPlacementHeight => true;
 
+        // 持ち替え直後は北向きから始める。プレイテストの操作も同じ前提で回す
+        // A fresh selection starts facing north; playtest operations rely on the same premise
         public override void Enable()
         {
-            _dragState.ClearDrag();
+            _session = null;
+            _currentDirection = BlockDirection.North;
+            _branchSideIsRight = true;
+            _priority = BeltRouteStepPriority.Default;
         }
 
-        // ドラッグ中の右短押し/Escは進行中のドラッグだけを畳み、建築モードには留まる
-        // A right short press or Esc during a drag folds only that drag and stays in build mode
+        // 右短押し/Escは始点だけ解除し、建築モードには留まる
+        // A right short press or Esc drops only the start and stays in build mode
         public override bool TryCancelInProgressOperation()
         {
-            if (!_dragState.IsDragging) return false;
-
-            _dragState.EndDrag();
+            if (_session == null) return false;
+            _session = null;
             return true;
         }
 
@@ -78,102 +86,110 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // デバッグモード時はプレビューを維持
             // Keep preview in debug mode
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) _previewBlockController.SetActive(false);
-
-            // 連続設置状態をリセット。高さは持ち替えまで保つ
-            // Reset the continuous placement state; the height stays until a block switch
-            _dragState.ClearDrag();
-            _currentPlaceInfos.Clear();
+            _session = null;
         }
 
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
-            _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
+            // 手持ちはブロックIDが変わったときだけ解決し直す。持ち替えは始点の選び直しから
+            // The held family is re-resolved only when the block id changes; a switch restarts from start selection
+            if (isSelectionChanged || _holding == null || _holding.SelectedBlockId != target.BlockId)
+            {
+                _holding = BeltConveyorHoldingBlock.Resolve(target.BlockId);
+                _currentDirection = target.ResolveDirectionOnSelection(_currentDirection, isSelectionChanged);
+                _session = null;
+            }
             PlacementHeightKeyInput.Apply(_placementHeightOffset);
-            // 傾斜は経路から解決するので回転キーは通常設置と同じ水平4方向だけ
-            // Slopes come from the path, so the rotate key cycles the same four horizontal directions as normal placement
-            _currentBlockDirection = PlacementDirectionKeyInput.Apply(_currentBlockDirection);
-            var isSendable = GroundClickControl();
-            PlaceBlockOnRelease();
+            _previewBlockController.SetActive(false);
+            RefreshObstaclesIfDirty();
 
-            #region Internal
+            if (_session == null) UpdateStartSelection(feedback);
+            else UpdateRouting(feedback);
+        }
 
-            void PlaceBlockOnRelease()
+        private void MarkObstaclesDirty(Vector3Int blockOrigin)
+        {
+            if (_session != null && _session.IsNearBox(blockOrigin)) _obstaclesDirty = true;
+        }
+
+        private void RefreshObstaclesIfDirty()
+        {
+            if (!_obstaclesDirty) return;
+            _obstaclesDirty = false;
+            if (_session == null) return;
+            _session.RebuildObstacles();
+            if (_session.IsStartUsable(_blocks)) return;
+
+            Debug.Log($"[BeltRoute] start at {_session.StartCell} became unusable after a block change; back to start selection");
+            _session = null;
+        }
+
+        private void UpdateStartSelection(PlacementFeedback feedback)
+        {
+            if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, feedback, out var hit)) return;
+
+            // Ctrlを押したまま既存ベルトを狙うと分岐の始点候補になる
+            // Aiming at an existing belt with Ctrl held makes it a branch start candidate
+            if (BeltRouteKeyInput.IsBranchModifierHeld && hit.HitBlock != null && BeltRouteBlockEdgeScanner.IsBelt(hit.HitBlock.BlockMasterElement))
             {
-                // 解放の畳みと送信可否は1つの入口で決める
-                // Folding and sending on release are decided by a single entry
-                if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))) return;
-
-                // ベルトは電線を伴わないためワイヤー判定は常に許可
-                // Belts never carry wires, so the wire check is always allowed
-                TrySendOnClickRelease(_currentPlaceInfos, true);
+                UpdateBranchCandidate(hit.HitBlock, feedback);
+                return;
             }
 
-            // 戻り値はカーソル位置に送信できる設置列があるか
-            // Returns whether the cursor has a sendable placement run
-            bool GroundClickControl()
+            if (BeltRouteKeyInput.IsRotatePressed) _currentDirection = _currentDirection.HorizonRotation();
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(hit.Cell)) { feedback.AddTooFar(); return; }
+
+            var reason = BeltRouteCellCheck.JudgeInWorld(_blocks, hit.Cell);
+            var placeable = reason == BeltRouteCellBlockReason.None;
+            if (!placeable) feedback.Add(BeltRouteTooltipKey.CellLine(reason));
+            ShowPreview(new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.Single(hit.Cell, _currentDirection, _holding.BlockId, placeable) });
+
+            if (placeable && BeltRouteKeyInput.IsConfirmPressed) _session = BeltRouteSession.CreateAtCell(hit.Cell, _currentDirection, _scanner);
+        }
+
+        private void UpdateBranchCandidate(BlockGameObject belt, PlacementFeedback feedback)
+        {
+            if (BeltRouteKeyInput.IsRotatePressed) _branchSideIsRight = !_branchSideIsRight;
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(belt.BlockPosInfo.OriginalPos)) { feedback.AddTooFar(); return; }
+
+            var reason = BeltRouteBranchOrigin.Judge(_blocks, belt, _holding, _branchSideIsRight, out var branch);
+            if (reason != BeltRouteBranchBlockReason.None)
             {
-                // 選択変更時に連続設置をリセット
-                // Reset continuous placement when the selection changes
-                if (isSelectionChanged) _dragState.DiscardForBlockChange(target.BlockGuid);
-
-                _previewBlockController.SetActive(false);
-
-                var holdingBlock = BeltConveyorHoldingBlock.Resolve(target.BlockId);
-                var holdingBlockMaster = holdingBlock.BlockMaster;
-
-                if (!TryGetFootprintGroundedRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, feedback, out var placePoint, out var hitSurfaceType)) { return false; }
-
-                if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
-
-                _previewBlockController.SetActive(true);
-
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, ToHitSurfaceKind(hitSurfaceType));
-
-                var (placeCauses, beltReasons, terrainClimbAbandoned) = UpdateCurrentPlaceInfos(placePoint, holdingBlock);
-
-                _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
-                var terrainSinks = PlacementTerrainSinkQuery.DetectSunkCells(_currentPlaceInfos);
-
-                // 共通の重複・地形埋まり理由を通知
-                // Report shared overlap and terrain-sink causes
-                var cursorIndex = PlacementCellReasonReporter.ApplyTerrainSinksAndReport(_currentPlaceInfos, placeCauses, placePoint, terrainSinks, feedback);
-
-                // 固有理由と地形断念を通知
-                // Report belt-specific reasons and terrain-climb abandonment
-                // -1は共用カーソル解決の既存契約。列外なら固有理由なしにする（型化は後続bd）
-                // -1 is the shared cursor resolver's existing contract; use no reason outside the run (typed in follow-up bd)
-                var cursorCellReason = cursorIndex < 0 ? BeltConveyorPlacementBlockReason.None : beltReasons[cursorIndex];
-                BeltConveyorFeedbackReporter.Report(feedback, cursorCellReason, terrainClimbAbandoned);
-
-                // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
-                // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-                // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
-                // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
-                var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
-                if (0 <= representativeIndex)
-                {
-                    var representativeBlockId = _currentPlaceInfos[representativeIndex].BlockId;
-                    ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
-                    ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory);
-                }
-
-                // 最終的なPlaceable状態でプレビュー色を更新
-                // Update preview colors based on the final Placeable state
-                _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
-
-                return true;
+                feedback.Add(BeltRouteTooltipKey.BranchLine(reason));
+                ShowPreview(new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.Single(belt.BlockPosInfo.OriginalPos, belt.BlockPosInfo.BlockDirection, _holding.BlockId, false) });
+                return;
             }
 
-            // 原因列と列全体の地形乗り越え断念を返す
-            // Return cause columns and terrain-climb abandonment for the run
-            (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons, bool terrainClimbAbandoned) UpdateCurrentPlaceInfos(Vector3Int placePoint, BeltConveyorHoldingBlock holdingBlock)
-            {
-                var dragStartPoint = _dragState.ResolveDragStartCell(placePoint);
-                _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons, out var climbAbandoned);
-                return (cellCauses, cellBeltReasons, climbAbandoned);
-            }
+            // 分岐器と、横の出口の先に出る最初のセルを候補として見せる
+            // Show the splitter and the first cell beyond the side exit as the candidate
+            ShowPreview(new List<PlaceInfo> { BeltRoutePlaceInfoBuilder.SplitterInfo(branch, true), BeltRoutePlaceInfoBuilder.Single(branch.Cell + BeltRouteDirection.Forward(branch.SideDirection), branch.SideDirection, _holding.BlockId, true) });
+            if (!BeltRouteKeyInput.IsConfirmPressed) return;
 
-            #endregion
+            _session = BeltRouteSession.CreateBranch(branch, _scanner);
+            _currentDirection = branch.SideDirection;
+        }
+
+        private void UpdateRouting(PlacementFeedback feedback)
+        {
+            if (BeltRouteKeyInput.IsRotatePressed) _currentDirection = _currentDirection.HorizonRotation();
+            if (BeltRouteKeyInput.IsCyclePriorityPressed) _priority = _priority.Next();
+            if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, feedback, out var hit)) return;
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(hit.Cell)) { feedback.AddTooFar(); return; }
+
+            var infos = BeltRouteRoutingFrame.Resolve(_session, hit, _priority, _holding, feedback, out var placeable);
+            if (placeable) placeable = BeltRouteCostGate.Apply(infos, _constructionWalletQuery, _localPlayerInventory, feedback);
+            ShowPreview(infos);
+            if (!placeable || !BeltRouteKeyInput.IsConfirmPressed) return;
+
+            if (_session.IsBranch) BeltRouteBranchReplaceSender.ReplaceAndPlace(_session.Branch, infos);
+            else PlaceBlockProtocolSender.SendPlaceBlockProtocol(infos);
+            _session = null;
+        }
+
+        private void ShowPreview(List<PlaceInfo> infos)
+        {
+            _previewBlockController.SetActive(true);
+            _previewBlockController.SetPreview(infos, _holding.BlockMaster);
         }
     }
 }

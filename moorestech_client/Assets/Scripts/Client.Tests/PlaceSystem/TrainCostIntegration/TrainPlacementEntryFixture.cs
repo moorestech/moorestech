@@ -109,5 +109,12 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
         {
             _packets.AssertNoRequest();
         }
+
+        // 2クリック設置のように押下だけで進む系で、次の押下を別フレームに分けるための解放
+        // Releases the button so two-click systems that act on press can receive the next press in another frame
+        protected void ReleaseClick()
+        {
+            Release(_mouse.leftButton);
+        }
     }
 }
