@@ -6,6 +6,7 @@ using Client.Ui.Content;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Logic;
+using Client.Ui.State.Hotbar;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BuildMenu.Parts
@@ -19,7 +20,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         private const int Columns = 8;
         private readonly List<BuildMenuEntrySlot> _slots = new();
 
-        public BuildMenuSectionView(BuildMenuSection section, BuildMenuViewModel viewModel, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
+        public BuildMenuSectionView(BuildMenuSection section, BuildMenuViewModel viewModel, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler, IHotbarCommands hotbarCommands)
         {
             name = $"build-menu-section-{section.CategoryGuid:D}-{section.SubCategoryGuid:D}";
             AddToClassList("build-menu__section");
@@ -38,7 +39,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             grid.AddToClassList("build-menu__stacked");
             foreach (var catalog in section.Entries)
             {
-                var slot = new BuildMenuEntrySlot(EntryOf(viewModel, catalog.TargetId), content, icons, handler);
+                var slot = new BuildMenuEntrySlot(EntryOf(viewModel, catalog.TargetId), content, icons, handler, hotbarCommands);
                 _slots.Add(slot);
                 grid.AddItem(slot.Frame);
             }

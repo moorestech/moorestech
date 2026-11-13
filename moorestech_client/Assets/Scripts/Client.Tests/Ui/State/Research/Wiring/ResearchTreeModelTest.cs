@@ -64,13 +64,40 @@ namespace Client.Tests.Ui.State.Research.Wiring
         }
 
         [Test]
-        public void 研究画面へ入ると全ノードを組み状態の未受信を警告する()
+        public void 状態の未受信のまま研究画面へ入ると全ノードを組み警告は出さない()
         {
-            LogAssert.Expect(LogType.Warning, new Regex(@"no research node state received yet"));
+            // 突入と同じ契機で取得が始まるので未受信は正常。警告は直後の受信が検査する
+            // Entry starts the fetch, so not-yet-received is normal; the receipt that follows does the check
             UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ResearchTree);
 
+            LogAssert.NoUnexpectedReceived();
             Assert.AreEqual(_catalog.Nodes.Count, _model.Current.Value.Nodes.Count);
             Assert.IsFalse(_model.Current.Value.TryGetDetail(out _));
+        }
+
+        [Test]
+        public void 研究画面の表示中に状態の欠けた受信が来ると件数を警告する()
+        {
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ResearchTree);
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"1 research node\(s\) have no server state"));
+            var states = AllStates(ResearchNodeState.Researchable);
+            states.Remove(_catalog.Nodes[0].Guid);
+            _store.ApplyNodeStates(states);
+        }
+
+        [Test]
+        public void 受信済みで研究画面へ入ると欠けた件数を警告する()
+        {
+            var states = AllStates(ResearchNodeState.Researchable);
+            states.Remove(_catalog.Nodes[0].Guid);
+            // 閉画面の受信でも警告が 1 回出るので、受信と突入で計 2 回を期待する
+            // A receipt while closed also warns once, so expect two in total: the receipt and the entry
+            var expected = new Regex(@"1 research node\(s\) have no server state");
+            LogAssert.Expect(LogType.Warning, expected);
+            _store.ApplyNodeStates(states);
+            LogAssert.Expect(LogType.Warning, expected);
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ResearchTree);
         }
 
         [Test]

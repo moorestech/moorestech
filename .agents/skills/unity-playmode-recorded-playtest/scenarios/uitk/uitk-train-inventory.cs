@@ -127,7 +127,7 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         await p.ClickUi($"train-timetable-station-{stationAPos.x}_{stationAPos.y}_{stationAPos.z}-add");
         await p.WaitForTrainState(train, 1, null, null, 10f, "サーバーの時刻表が1駅になる");
         await p.Until(() => resolver.Resolve<IClientTrainTimetableLookup>().TryGet(train.TrainUnitInstanceId, out var snapshot) && snapshot.Stops.Count == 1, 10f, "クライアントの時刻表が1駅になる");
-        await p.Until(() => !Has("train-timetable-section", "train-timetable-section--busy"), 10f, "保留が解ける");
+        await p.Until(AddButtonsEnabled, 10f, "保留が解ける");
         // 6: 自動運転を入れ、閉じたら編集の Model が使えない状態へ戻る
         // 6: turn auto-run on; closing returns the edit Model to unavailable
         await p.ClickUi("train-timetable-auto-run-on");
@@ -153,6 +153,8 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
     string StationName() => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(stationAPos).GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName;
     TransferMode? Mode() => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(stationAPos).GetStateDetail<TrainPlatformTransferStateDetail>(TrainPlatformTransferStateDetail.BlockStateDetailKey)?.Mode;
     bool Has(string testid, string className) => GameUiRoot.Instance.GetRootElement().Q<VisualElement>(testid)?.ClassListContains(className) == true;
+    // 保留中は追加ボタンが全部無効なので、全部押せれば保留が解けている / Pending disables all add buttons
+    bool AddButtonsEnabled() => GameUiRoot.Instance.GetRootElement().Query<Button>().ToList().FindAll(b => b.name != null && b.name.StartsWith("train-timetable-station-") && b.name.EndsWith("-add")) is { Count: > 0 } add && add.All(b => b.enabledSelf);
 
     // 入力欄を押してフォーカスを置き、キーを注入して 5 秒以内に閉じたかを返す
     // Click the field to focus it, inject the key and return whether the panel closed within 5 seconds

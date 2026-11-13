@@ -57,16 +57,6 @@ namespace Client.Ui.Foundation.DragDrop
             target.AddToClassList(TargetClassName);
         }
 
-        public static void UnmarkTarget<TTarget>(VisualElement target) where TTarget : class
-        {
-            Marks<TTarget>.Targets.Remove(target);
-            // クラスは全部の型の印が外れたときだけ消す
-            // The class goes only when every type's mark is gone
-            if (!TargetTypesByElement.TryGetValue(target, out var types)) return;
-            types.Remove(typeof(TTarget));
-            if (types.Count == 0) target.RemoveFromClassList(TargetClassName);
-        }
-
         internal static bool TryFindTarget<TTarget>(VisualElement from, out TTarget target) where TTarget : class
         {
             for (var current = from; current != null; current = current.parent)

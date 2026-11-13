@@ -16,7 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
     /// 歯車網の集約と停止理由の区画（Web GearNetworkSection）
     /// Gear network aggregate and stop reason section (Web GearNetworkSection)
     /// </summary>
-    public sealed class GearNetworkSectionView : VisualElement, ISpecialDetailRenderer
+    public sealed class GearNetworkSectionView : VisualElement, ISpecialSectionRenderer<GearNetworkDetail>
     {
         private readonly UiStack _stack = new(UiGap.Px2);
         private readonly LackHighlightText _summary;
@@ -34,19 +34,14 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             Add(_stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, GearNetworkDetail network)
         {
-            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
-            // Without the detail draw nothing and return false so the caller hides the section
-            if (!detail.TryGetGearNetwork(out var network)) return false;
-
             // 止まっていれば理由の文を不足色で足す
             // Add the reason sentence in the shortage color when stopped
             _summary.Render(SpecialDetailTexts.GearNetworkSummary(network), false);
             var stopped = BlockDetailStateDisplay.TryGetStopReasonKey(network.StopReason, out var reasonKey);
             _stack.SetItemShown(_stopReason, stopped);
             if (stopped) _stopReason.SetText(new UiText(reasonKey));
-            return true;
         }
     }
 }

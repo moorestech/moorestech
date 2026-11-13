@@ -21,6 +21,7 @@ namespace Client.Ui.Screens.CursorTooltip
         private readonly TooltipFace _face;
         private Vector2 _pointerOnScreen;
         private bool _visible;
+        private bool _scaleNotPositiveReported;
         private CompositeDisposable _screenSubscriptions;
 
         public CursorTooltipView(ICursorTooltipScreen screen, IUiScreenPointer pointer, StageScaleSource stageScale)
@@ -88,14 +89,17 @@ namespace Client.Ui.Screens.CursorTooltip
             // silent-ok: 隠れている間と載る前・寸法の決まる前は置かない / 次の GeometryChangedEvent で置き直され、L1 の位置の主張が外れを見る
             if (!_visible || panel == null || float.IsNaN(_face.layout.width) || float.IsNaN(layout.width) || layout.width <= 0f) return;
 
-            // 倍率が正でないと配置の換算が NaN になるので、理由を出して置かない
-            // A non-positive scale makes the placement NaN, so report why and skip
+            // 倍率が正でないと配置の換算が NaN になるので置かない。入ったときに 1 回だけ理由を出し、正に戻れば旗を戻す
+            // A non-positive scale makes the placement NaN, so skip; report once on entry and clear the flag when it turns positive again
             var scale = _stageScale.Scale.Value;
             if (scale <= 0f)
             {
+                if (_scaleNotPositiveReported) return;
+                _scaleNotPositiveReported = true;
                 Debug.LogError($"[CursorTooltipView] stage scale is not positive ({scale}); the tooltip is not placed");
                 return;
             }
+            _scaleNotPositiveReported = false;
 
             // 指す点は実画面、換算は共有ポインタ
             // The screen decides the point; the shared pointer owns the conversion to panel coordinates

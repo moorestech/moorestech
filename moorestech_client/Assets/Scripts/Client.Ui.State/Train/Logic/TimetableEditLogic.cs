@@ -17,13 +17,6 @@ namespace Client.Ui.State.Train.Logic
         // The UI fixes the arrival direction; new stops always use the back side (ruling 2026-09-25)
         private const StationNodeSide UiFixedStopSide = StationNodeSide.Back;
 
-        // 行の識別子。座標の文字列化は UiNumberFormat（InvariantCulture）に通し、ロケールで記号が変わらないようにする
-        // Row identifier; coordinates go through UiNumberFormat (InvariantCulture) so locale never changes the signs
-        public static string StationKey(Vector3Int position)
-        {
-            return $"{UiNumberFormat.Integer(position.x)},{UiNumberFormat.Integer(position.y)},{UiNumberFormat.Integer(position.z)}";
-        }
-
         public static IReadOnlyList<TimetableEditStop> AddStop(IReadOnlyList<TimetableEditStop> stops, TrainTimetableStation station)
         {
             var added = new List<TimetableEditStop>(stops) { new TimetableEditStop(station.Position, station.Name, UiFixedStopSide) };

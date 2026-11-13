@@ -13,7 +13,6 @@ namespace Client.Tests.Ui.Input.OsCursor
         [TearDown]
         public void ResetProcessStack()
         {
-            ProcessUiOsCursor.UseApplierForNextProcessStack(null);
             ProcessUiOsCursor.DropProcessStack();
         }
 
@@ -21,10 +20,9 @@ namespace Client.Tests.Ui.Input.OsCursor
         public void スタックを捨てた後に生き残ったインスタンスがRequestしても落ちず形が当たる()
         {
             ProcessUiOsCursor.DropProcessStack();
-            var cursor = new ProcessUiOsCursor();
-            ProcessUiOsCursor.DropProcessStack();
             var applier = new FakeUiOsCursorApplier();
-            ProcessUiOsCursor.UseApplierForNextProcessStack(applier);
+            var cursor = new ProcessUiOsCursor(applier);
+            ProcessUiOsCursor.DropProcessStack();
 
             using var request = cursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
 
@@ -35,12 +33,10 @@ namespace Client.Tests.Ui.Input.OsCursor
         public void 古い世代の要求をDisposeしても新しい記録は変わらない()
         {
             ProcessUiOsCursor.DropProcessStack();
-            ProcessUiOsCursor.UseApplierForNextProcessStack(new FakeUiOsCursorApplier());
-            var cursor = new ProcessUiOsCursor();
+            var newApplier = new FakeUiOsCursorApplier();
+            var cursor = new ProcessUiOsCursor(newApplier);
             var stale = cursor.Request(UiOsCursorShape.Grab, UiOsCursorLayer.Surface);
             ProcessUiOsCursor.DropProcessStack();
-            var newApplier = new FakeUiOsCursorApplier();
-            ProcessUiOsCursor.UseApplierForNextProcessStack(newApplier);
             using var fresh = cursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
             var appliedBefore = newApplier.AppliedShapes.Count;
 

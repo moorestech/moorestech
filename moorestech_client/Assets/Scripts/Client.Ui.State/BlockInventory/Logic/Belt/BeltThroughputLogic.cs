@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Localization;
 using Core.Update;
+using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 
@@ -111,7 +112,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Belt
                 new LocalizationTextParam("max", FormatCount(measured.MaxCount)),
                 new LocalizationTextParam("percent", UiNumberFormat.Integer(percent)),
             });
-            var itemsPerMinute = UiNumberFormat.Fixed(measured.ExitCount * (double)(GameUpdater.TicksPerSecond * 60) / measured.Ticks, 1);
+            var itemsPerMinute = UiNumberFormat.Fixed(measured.ExitCount * (GameUpdater.TicksPerSecond * BlockDetailMath.SecondsPerMinute) / measured.Ticks, 1);
             return new MeasuredBeltRowDisplay(text, itemsPerMinute);
 
             #region Internal

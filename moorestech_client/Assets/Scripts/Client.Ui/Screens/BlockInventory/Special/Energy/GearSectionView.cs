@@ -13,7 +13,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
     /// 歯車の区画（トルク・RPM の 2 行。Web GearSection）
     /// Gear section with torque and RPM rows (Web GearSection)
     /// </summary>
-    public sealed class GearSectionView : VisualElement, ISpecialDetailRenderer
+    public sealed class GearSectionView : VisualElement, ISpecialSectionRenderer<GearDetail>
     {
         private readonly LocalizedLabel _torque = SpecialViewParts.Label("gear-torque", UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
         private readonly LocalizedLabel _rpm = SpecialViewParts.Label("gear-rpm", UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
@@ -28,15 +28,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             Add(stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, GearDetail gear)
         {
-            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
-            // Without the detail draw nothing and return false so the caller hides the section
-            if (!detail.TryGetGear(out var gear)) return false;
             var rows = GearRowDisplay.From(gear);
             _torque.SetText(rows.Torque);
             _rpm.SetText(rows.Rpm);
-            return true;
         }
     }
 }

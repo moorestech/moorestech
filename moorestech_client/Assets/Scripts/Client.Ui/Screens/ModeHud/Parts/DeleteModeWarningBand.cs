@@ -38,7 +38,7 @@ namespace Client.Ui.Screens.ModeHud.Parts
             // Draw only when all three resolve
             var hasYellow = UssCustomStyleReader.TryReadColor(evt.customStyle, YellowProperty, out _yellow);
             var hasSize = UssCustomStyleReader.TryReadPixels(evt.customStyle, StripeSizeProperty, out _stripeSize);
-            var hasAngle = DegreeCustomStyle.TryReadDegrees(evt.customStyle, StripeAngleProperty, out _angleDegrees);
+            var hasAngle = UssCustomStyleReader.TryReadDegrees(evt.customStyle, StripeAngleProperty, out _angleDegrees);
             // 刻み幅 0 以下は帯を作れない（周期のループが進まない）。黙らず理由を出して描かない
             // A stripe size of 0 or less cannot make stripes (the period loop never advances); log why and skip drawing
             if (hasSize && _stripeSize <= 0f) Debug.LogError($"[DeleteModeWarningBand] {StripeSizeProperty} must be positive but was {_stripeSize}");

@@ -54,14 +54,14 @@ namespace Client.Ui.State.PauseMenu
             if (!PlaytestReportKindText.IsSubmittableFromPauseMenu(kind))
             {
                 Debug.LogWarning($"プレイ報告の種別がポーズから送れないため送信しません kind:{kind}");
-                return new UiCommandRejected(UiCommandRejectReason.UnsubmittableReportKind, "");
+                return UiCommandRejected.Of(UiCommandRejectReason.UnsubmittableReportKind);
             }
 
             var trimmed = description.Trim();
             if (trimmed.Length == 0)
             {
                 Debug.LogWarning("バグ報告の説明文が空のため送信しません");
-                return new UiCommandRejected(UiCommandRejectReason.EmptyDescription, "");
+                return UiCommandRejected.Of(UiCommandRejectReason.EmptyDescription);
             }
 
             // 書き出し・送信記録・送信要求の手続きは通し検証と共有する1本に寄せる
@@ -69,7 +69,7 @@ namespace Client.Ui.State.PauseMenu
             var submitted = await _submitter.SubmitAsync(trimmed, kind);
             if (!submitted.Submitted)
             {
-                return new UiCommandRejected(UiCommandRejectReasonTraits.FromSubmitFailureCode(submitted.FailureCode), submitted.FailureCode);
+                return UiCommandRejected.OverridingWireCode(UiCommandRejectReasonTraits.FromSubmitFailureCode(submitted.FailureCode), submitted.FailureCode);
             }
 
             // 送れたらポーズは開いたままトップへ戻す。失敗時は画面を動かさず書きかけを残す

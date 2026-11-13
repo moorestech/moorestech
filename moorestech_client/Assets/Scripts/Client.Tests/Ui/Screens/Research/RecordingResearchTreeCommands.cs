@@ -1,16 +1,24 @@
 using System;
 using Client.Tests.Ui.TestDoubles;
+using Client.Ui.State.Commands;
 using Client.Ui.State.Research.Commands;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究操作を記録する偽
-    /// Fake recording research operations
+    /// 研究操作を記録する偽。結果は既定で受理
+    /// Fake recording research operations; accepts by default
     /// </summary>
     internal sealed class RecordingResearchTreeCommands : CommandRecorder<string>, IResearchTreeCommands
     {
+        private UiCommandResult _completeResult = UiCommandAccepted.Instance;
+
+        public void SetCompleteResult(UiCommandResult result)
+        {
+            _completeResult = result;
+        }
+
         public void ToggleNodeSelection(Guid researchGuid)
         {
             Record($"toggle:{researchGuid}");
@@ -21,10 +29,10 @@ namespace Client.Tests.Ui.Screens.Research
             Record("close");
         }
 
-        public UniTask CompleteResearch(Guid researchGuid)
+        public UniTask<UiCommandResult> CompleteResearch(Guid researchGuid)
         {
             Record($"complete:{researchGuid}");
-            return UniTask.CompletedTask;
+            return UniTask.FromResult(_completeResult);
         }
     }
 }

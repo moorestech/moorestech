@@ -2,6 +2,7 @@ using Client.Localization;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Family;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.Text;

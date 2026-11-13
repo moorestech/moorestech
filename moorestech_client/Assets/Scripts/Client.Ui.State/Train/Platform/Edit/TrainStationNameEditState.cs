@@ -62,7 +62,7 @@ namespace Client.Ui.State.Train.Platform.Edit
 
         private void SyncDraft()
         {
-            if (_bodies.Current.Value is OpenTrainPlatformBody { StationName: { IsPresent: true } stationName }) Draft.Sync(stationName.Value);
+            if (_bodies.Current.Value is OpenTrainPlatformBody open && open.StationName.TryGetPresent(out var stationName)) Draft.Sync(stationName);
             _input.Value = Draft.Input;
         }
     }

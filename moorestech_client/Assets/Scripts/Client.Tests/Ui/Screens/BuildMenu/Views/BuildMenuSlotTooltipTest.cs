@@ -1,6 +1,7 @@
 using System;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.Screens.BuildMenu.Support;
+using Client.Tests.Ui.Screens.Hotbar;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Tooltip;
 using Client.Ui.Screens.BuildMenu.Parts;
@@ -71,7 +72,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         private BuildMenuEntrySlot MountSlot(BuildMenuMaterialRow first, BuildMenuMaterialRow second, bool paymentWaived)
         {
             var entry = BuildMenuSamples.Block(Guid.NewGuid(), BuildMenuSamples.Logistics, "木のチェスト", new[] { first, second }, paymentWaived, BuildMenuSetPlacementNone.Instance);
-            var slot = new BuildMenuEntrySlot(entry, _content, BuildMenuSamples.Icons(_content), new RecordingBuildMenuEntryHandler());
+            var slot = new BuildMenuEntrySlot(entry, _content, BuildMenuSamples.Icons(_content), new RecordingBuildMenuEntryHandler(), new RecordingHotbarCommands());
             rootVisualElement.Add(slot.Frame);
             simulate.FrameUpdate();
             return slot;

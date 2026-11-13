@@ -38,3 +38,9 @@
 .game-scroll-view-ratio-probe {
     --game-scroll-view-scrollbar-padding-ratio: 0;
 }
+
+/* 通知ホストの出入りのトークンを読めない値にし、読めない理由のログが出ることを確かめる */
+/* Makes the notification host enter/exit/shift tokens unreadable to check that the unreadable-token log is raised */
+.notification-host.notification-host-unreadable-tokens-probe {
+    --notification-host-enter-duration: none;
+}

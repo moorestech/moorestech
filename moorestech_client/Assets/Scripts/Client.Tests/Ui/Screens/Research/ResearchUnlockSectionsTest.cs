@@ -117,7 +117,7 @@ namespace Client.Tests.Ui.Screens.Research
 
         private void MountPane(ResearchUnlockSet unlocks)
         {
-            var pane = new ResearchDetailPane(new RecordingResearchTreeCommands(), _content);
+            var pane = new ResearchDetailPane(new RecordingResearchTreeCommands(), _content, Toaster);
             pane.Render(Kit.Detail(ResearchNodeState.Researchable, 3, 0, unlocks));
             Mount(pane);
             simulate.FrameUpdate();

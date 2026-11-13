@@ -2,6 +2,7 @@ using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.Screens.BlockInventory.Special.Belt;
 using Client.Ui.Screens.BlockInventory.Special.Energy;
 using Client.Ui.Screens.BlockInventory.Special.Network;
+using Client.Ui.State.BlockInventory.Special.Selectors;
 
 namespace Client.Ui.Screens.BlockInventory.Special.Registration
 {
@@ -12,7 +13,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         private readonly SpecialPresenters _presenters;
         public GearToElectricSectionFactory(SpecialPresenters presenters) { _presenters = presenters; }
         public SectionStackSlot Slot => SectionStackSlot.GearToElectric;
-        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Of(new GearToElectricSectionView());
+        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Section(new GearToElectricSectionView(), new GearToElectricDetailSelector());
     }
 
     public sealed class BeltThroughputSectionFactory : ISectionStackSectionFactory
@@ -28,7 +29,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         private readonly SpecialPresenters _presenters;
         public GearSectionFactory(SpecialPresenters presenters) { _presenters = presenters; }
         public SectionStackSlot Slot => SectionStackSlot.Gear;
-        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Of(new GearSectionView());
+        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Section(new GearSectionView(), new GearDetailSelector());
     }
 
     public sealed class ElectricNetworkSectionFactory : ISectionStackSectionFactory
@@ -36,7 +37,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         private readonly SpecialPresenters _presenters;
         public ElectricNetworkSectionFactory(SpecialPresenters presenters) { _presenters = presenters; }
         public SectionStackSlot Slot => SectionStackSlot.ElectricNetwork;
-        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Of(new ElectricNetworkSectionView());
+        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Section(new ElectricNetworkSectionView(), new ElectricNetworkDetailSelector());
     }
 
     public sealed class GearNetworkSectionFactory : ISectionStackSectionFactory
@@ -44,6 +45,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         private readonly SpecialPresenters _presenters;
         public GearNetworkSectionFactory(SpecialPresenters presenters) { _presenters = presenters; }
         public SectionStackSlot Slot => SectionStackSlot.GearNetwork;
-        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Of(new GearNetworkSectionView());
+        public IBlockInventorySection Create(SectionStackSectionMount mount) => _presenters.Section(new GearNetworkSectionView(), new GearNetworkDetailSelector());
     }
 }

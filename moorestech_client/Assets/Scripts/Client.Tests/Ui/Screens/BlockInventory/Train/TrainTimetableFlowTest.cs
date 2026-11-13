@@ -83,7 +83,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public void 拒否された追加を巻き戻し次の追加で戻る()
         {
             Click("train-timetable-station--8_0_3-add");
-            LogAssert.Expect(LogType.Warning, new Regex(@"train_timetable\.replace failed: test"));
+            LogAssert.Expect(LogType.Warning, new Regex(@"train_timetable\.replace failed: replace_failed \(test\)$"));
             _bodies.TimetableCommands.Reject(UiCommandRejectReason.TrainTimetableReplaceFailed, "test");
             simulate.FrameUpdate();
             AssertIdle();
@@ -125,7 +125,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
 
         private void AssertIdle()
         {
-            Assert.IsFalse(_body.Root.Q("train-timetable-section").ClassListContains(TrainTimetableSectionView.BusyClass));
+            // 保留解除で追加ボタンは全部有効
+            // All add buttons enable once pending clears
+            var addButtons = _body.Root.Query<Button>().ToList().FindAll(button => button.name != null && button.name.EndsWith("-add"));
+            Assert.IsNotEmpty(addButtons);
+            foreach (var addButton in addButtons) Assert.IsTrue(addButton.enabledSelf, addButton.name);
         }
 
         private Label StopLabel(int index)

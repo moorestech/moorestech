@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Ui.State.BlockDetail.CleanRoom;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Core.Master;
@@ -29,16 +30,26 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             return classified ? CleanRoomSummaryMessagePack.CreateClassified("ISO5", 0, 1.5, 2.5, 10, filters) : CleanRoomSummaryMessagePack.CreateOut(1.5, 2.5, 10, filters);
         }
 
-        private static CleanRoomFetchedDetail Detail(ContextEntry<CleanRoomFetchedDetail> entry) => ((FetchedContextEntry<CleanRoomFetchedDetail>)entry).Value;
+        private static T PresentValue<T>(SectionContent<T> entry)
+        {
+            Assert.IsTrue(entry.TryGetPresent(out var value), "取得済みの欄である");
+            return value;
+        }
+
+        private static BlockInfoFetchState UnavailableState<T>(SectionContent<T> entry)
+        {
+            Assert.IsTrue(entry.TryGetUnavailable(out var fetchState), "取得できない欄である");
+            return fetchState;
+        }
 
         private static CleanRoomFetchedDetail Machined(CleanRoomInfoView view, CleanRoomOperability operability) =>
-            Detail(CleanRoomViewConversion.Build(Machine, Fetched, view, new CleanRoomOperabilityStateDetail(operability)));
+            PresentValue(CleanRoomViewConversion.Build(Machine, Fetched, view, new CleanRoomOperabilityStateDetail(operability)));
 
         [Test]
         public void 部屋の未取得は取得状態の1行で_密閉は級と値を写す()
         {
             var unavailable = CleanRoomViewConversion.Build(Machine, BlockInfoFetchState.NotFetched, null, null);
-            Assert.AreEqual(BlockInfoFetchState.NotFetched, ((UnavailableContextEntry<CleanRoomFetchedDetail>)unavailable).FetchState, "稼働可否の詳細が無くても取得状態を先に見る");
+            Assert.AreEqual(BlockInfoFetchState.NotFetched, UnavailableState(unavailable), "稼働可否の詳細が無くても取得状態を先に見る");
 
             var enclosed = (EnclosedCleanRoomDetail)Machined(new CleanRoomEnclosedView(Room(true)), CleanRoomOperability.Operable);
             Assert.AreEqual("ISO5", ((ClassCleanRoomHeadline)enclosed.Room.Headline).ClassName);
@@ -69,7 +80,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             Assert.AreEqual(CleanRoomHaltReason.ClassOut, Machined(view, CleanRoomOperability.ClassOut).HaltReason);
             Assert.AreEqual(CleanRoomHaltReason.None, Machined(view, CleanRoomOperability.Operable).HaltReason);
             var airFilter = CleanRoomViewConversion.Build(CleanRoomDetailTarget.AirFilter, Fetched, view, null);
-            Assert.AreEqual(CleanRoomHaltReason.None, Detail(airFilter).HaltReason);
+            Assert.AreEqual(CleanRoomHaltReason.None, PresentValue(airFilter).HaltReason);
 
             LogAssert.Expect(LogType.Error, "[CleanRoomViewConversion] unsupported operability: 99");
             Assert.IsFalse(CleanRoomViewConversion.TryGetHaltReason((CleanRoomOperability)99, out _));
@@ -89,7 +100,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         [Test]
         public void 抽選は室内機械の層とダイシング_出力待ちの有無を分ける()
         {
-            Assert.AreEqual(BlockInfoFetchState.TransportFailed, ((UnavailableContextEntry<CleanRoomYieldFetched>)ContextViewConversion.Yield(BlockInfoFetchState.TransportFailed, null)).FetchState);
+            Assert.AreEqual(BlockInfoFetchState.TransportFailed, UnavailableState(ContextViewConversion.Yield(BlockInfoFetchState.TransportFailed, null)));
 
             var layer = Yielded(new CleanRoomYieldLayerExposureView(new LayerExposureYieldMessagePack(0.1), null));
             Assert.IsInstanceOf<SettledCleanRoomYield>(layer);
@@ -109,7 +120,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 
             #region Internal
 
-            CleanRoomYieldFetched Yielded(CleanRoomYieldView view) => ((FetchedContextEntry<CleanRoomYieldFetched>)ContextViewConversion.Yield(Fetched, view)).Value;
+            CleanRoomYieldFetched Yielded(CleanRoomYieldView view) => PresentValue(ContextViewConversion.Yield(Fetched, view));
 
             #endregion
         }
@@ -117,19 +128,20 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         [Test]
         public void 詰まりは未取得なら取得状態_停止なら理由と品_止まっていなければ欄なし()
         {
-            Assert.AreEqual(BlockInfoFetchState.NotFetched, ((UnavailableContextEntry<MachineInputStall>)ContextViewConversion.Stall(BlockInfoFetchState.NotFetched, null)).FetchState);
-            var stalled = (FetchedContextEntry<MachineInputStall>)ContextViewConversion.Stall(Fetched, new MachineInputStalledView(new MachineInputStallMessagePack(MachineInputStallReasonKind.AboveCraftCap, 5)));
-            Assert.AreEqual(MachineInputStallReasonKind.AboveCraftCap, stalled.Value.Reason);
-            Assert.AreEqual(new ItemId(5), stalled.Value.WaitingItemId);
+            Assert.AreEqual(BlockInfoFetchState.NotFetched, UnavailableState(ContextViewConversion.Stall(BlockInfoFetchState.NotFetched, null)));
+            var stalled = ContextViewConversion.Stall(Fetched, new MachineInputStalledView(new MachineInputStallMessagePack(MachineInputStallReasonKind.AboveCraftCap, 5)));
+            Assert.IsTrue(stalled.TryGetPresent(out var stall));
+            Assert.AreEqual(MachineInputStallReasonKind.AboveCraftCap, stall.Reason);
+            Assert.AreEqual(new ItemId(5), stall.WaitingItemId);
             Assert.IsTrue(ContextViewConversion.Stall(Fetched, MachineInputNotStalledView.Instance).IsAbsent);
         }
 
         [Test]
         public void 区画を出すのは機械でなく_3欄のどれかが無しでないときだけ()
         {
-            var stall = ContextEntry<MachineInputStall>.Fetched(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, new ItemId(1)));
-            var withStall = new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Absent, ContextEntry<CleanRoomYieldFetched>.Absent, stall);
-            var unavailableRoom = new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Absent);
+            var stall = SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, new ItemId(1)));
+            var withStall = new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldFetched>.Absent, stall);
+            var unavailableRoom = new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent);
 
             Assert.IsFalse(ContextSectionVisibility.Shows(true, withStall), "機械は専用の区画");
             Assert.IsFalse(ContextSectionVisibility.Shows(false, BlockContextViewModel.None), "3 欄とも無し");

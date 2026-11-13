@@ -57,6 +57,16 @@ namespace Client.Ui.Foundation.Theme
             return false;
         }
 
+        // 角度（"117deg"）は文字列で読み、度の数に直す
+        // Angles ("117deg") read as strings and become degrees
+        public static bool TryReadDegrees(ICustomStyle style, string propertyName, out float degrees)
+        {
+            if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out var text) && UssTokenValue.TryParseDegrees(text, out degrees)) return true;
+            Debug.LogError($"[UssCustomStyleReader] {propertyName} is not a resolved angle (got '{text}')");
+            degrees = 0f;
+            return false;
+        }
+
         // inset・outset などのキーワードは文字列で読む。空も読めない扱い
         // Keywords such as inset and outset read as strings; empty counts as unreadable
         public static bool TryReadKeyword(ICustomStyle style, string propertyName, out string keyword)

@@ -26,7 +26,7 @@ namespace Client.Ui.State.Research.Tree
             _routing.Current.Subscribe(snapshot =>
             {
                 // silent-ok: 研究画面の中の経路の通知は選択を保つ / 離れたときの None は録画 uitk-research-tree が見る
-                if (snapshot.Screen == UiScreen.ResearchTree) return;
+                if (ResearchScreenVisibility.IsShown(snapshot)) return;
                 _current.Value = ResearchSelection.None;
             });
         }

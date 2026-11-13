@@ -35,8 +35,8 @@ namespace Client.Ui.Screens.Hotbar.Parts
         {
             // silent-ok: 空き枠は掴む物が無い（Web の source === null） / HotbarSlotDragGestureTest「空き枠を引きずって…」が固定する
             if (!TryGetDragSource(out var source)) return;
-            // ホットバーの印（枠・列の隙間）だけがここへ来て、入替か無操作かは受け手が解く。他の画面の印は Foundation が飛ばし OnDroppedOutside になる
-            // Only hotbar marks (slot, row gap) arrive here and the receiver resolves swap or no-op; other screens' marks are skipped by Foundation into OnDroppedOutside
+            // ホットバーの印だけ受ける。他は枠外
+            // Only hotbar marks arrive; other marks become outside
             receiver.Receive(source);
         }
 
@@ -44,9 +44,9 @@ namespace Client.Ui.Screens.Hotbar.Parts
         {
             // silent-ok: 空き枠は掴む物が無い（Web の source === null） / HotbarSlotDragGestureTest「空き枠を引きずって…」が固定する
             if (!TryGetDragSource(out var source)) return;
-            // 枠外は規則で解除
-            // Outside a slot resolves to a clear by rule
-            _commands.Apply(HotbarDropResolver.Resolve(source, OutsideHotbarDropTarget.Instance));
+            // 枠外として渡す
+            // Pass as outside
+            _commands.Drop(source, OutsideHotbarDropTarget.Instance);
         }
 
         // 掴める物があるかの判定はここ 1 か所。空き枠は掴む物が無い

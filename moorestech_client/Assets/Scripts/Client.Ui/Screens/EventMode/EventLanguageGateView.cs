@@ -80,7 +80,7 @@ namespace Client.Ui.Screens.EventMode
 
                 // 本番の押下で拒否は起きない（D-6）が、返れば言語は変わっていないので黙らずに残す。DI 前で Toaster が無いので同じ書式でここに出す
                 // Real presses never get rejected (D-6), but a rejection leaves the language unchanged, so log it; no toaster exists before DI, so use its format here
-                if (result is UiCommandRejected rejected) Debug.LogWarning($"[EventLanguageGate] {SelectLanguageCommandName} failed: {rejected.ToWireCode()}");
+                if (result is UiCommandRejected rejected) Debug.LogWarning($"[EventLanguageGate] {SelectLanguageCommandName} failed: {rejected.ToLogText()}");
             }
 
             #endregion

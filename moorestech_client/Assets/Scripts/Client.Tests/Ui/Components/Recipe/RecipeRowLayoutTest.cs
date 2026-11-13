@@ -117,11 +117,6 @@ namespace Client.Tests.Ui.Components.Recipe
             Assert.AreEqual(DisplayStyle.Flex, action.resolvedStyle.display);
             Assert.AreEqual(ResolvePixels("--recipe-action-button-height"), action.layout.height, 0.5f);
             Assert.AreEqual(row.Q(ArrowTestId).worldBound.yMax + 2f, action.worldBound.yMin, 0.5f);
-
-            row.ClearAction();
-            simulate.FrameUpdate();
-            Assert.AreEqual(DisplayStyle.None, action.resolvedStyle.display);
-            Assert.IsNull(row.Q("action-probe"));
         }
 
         [Test]

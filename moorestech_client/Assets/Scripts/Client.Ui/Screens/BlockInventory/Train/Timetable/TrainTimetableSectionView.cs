@@ -15,9 +15,6 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     /// </summary>
     public sealed class TrainTimetableSectionView : VisualElement
     {
-        // 保留中の目印（見た目は SetEnabled が担う）
-        // Marker for the pending state (the look is carried by SetEnabled)
-        internal const string BusyClass = "train-timetable-section--busy";
         private readonly UiStack _stack = new(UiGap.Xs);
         private readonly ModeSwitch<bool> _autoRun;
         private readonly LocalizedLabel _autoRunUnavailable;
@@ -62,7 +59,6 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
         {
             // 保留中は全操作封鎖、停車駅0件はONも封鎖
             // Pending blocks all; ON also blocked with no stops
-            EnableInClassList(BusyClass, model.IsPending);
             _autoRun.SetSelected(model.IsAutoRun);
             _autoRun.SetOptionEnabled(true, !model.IsPending && model.CanEnableAutoRun);
             _autoRun.SetOptionEnabled(false, !model.IsPending);

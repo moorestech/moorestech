@@ -1,4 +1,5 @@
 using Client.Ui.Content;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Machine;
@@ -27,7 +28,7 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
 
         public IBlockInventorySection Create(SectionStackSectionMount mount)
         {
-            if (mount.Config.Fluid is RowSectionStackFluid row) return new FluidRowSectionPresenter(row, new FluidRowView(row.RowId, _content), _fluids, _machine);
+            if (mount.Config.Fluid is RowSectionStackFluid row) return new DetailSectionPresenter<BlockFluidSlotsViewModel>(new FluidRowSectionSource(_fluids, _machine), new FluidRowView(row.RowId, row.ShowProgress, _content));
             return new NotApplicableSection();
         }
     }

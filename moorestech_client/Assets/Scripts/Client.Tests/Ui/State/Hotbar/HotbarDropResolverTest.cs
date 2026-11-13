@@ -49,5 +49,21 @@ namespace Client.Tests.Ui.State.Hotbar
             var action = HotbarDropResolver.Resolve(new BuildMenuEntryDragSource(EntryId), OutsideHotbarDropTarget.Instance);
             Assert.AreSame(HotbarNoDropAction.Instance, action);
         }
+
+        // 列の隙間はまだ HUD の中なので、枠から落としても解除しない（Web useHotbarDragSource の data-hotbar-row）
+        // The row gap is still inside the HUD, so a drop from a slot does not clear (Web useHotbarDragSource data-hotbar-row)
+        [Test]
+        public void 枠を列の隙間へ落としても何も変わらない()
+        {
+            var action = HotbarDropResolver.Resolve(new HotbarSlotDragSource(1), HotbarRowGapDropTarget.Instance);
+            Assert.AreSame(HotbarNoDropAction.Instance, action);
+        }
+
+        [Test]
+        public void ビルドメニューのエントリを列の隙間へ落としても何も変わらない()
+        {
+            var action = HotbarDropResolver.Resolve(new BuildMenuEntryDragSource(EntryId), HotbarRowGapDropTarget.Instance);
+            Assert.AreSame(HotbarNoDropAction.Instance, action);
+        }
     }
 }

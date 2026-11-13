@@ -72,6 +72,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             Assert.AreEqual(before, TextOf(view, "belt-throughput-window"), "Detach の後は既定の窓へ戻る");
         }
 
+        [Test]
+        public void Detachで出し入れを偽へ戻す()
+        {
+            var (_, presenter) = Attach(SpecialDetailSamples.Only(SpecialDetailSamples.Belt));
+            Assert.IsTrue(presenter.IsApplicable.Value);
+            presenter.Detach();
+            Assert.IsFalse(presenter.IsApplicable.Value, "前のパネルの出し入れを持ち越さない");
+        }
+
         private (BeltThroughputSectionView view, BeltThroughputSectionPresenter presenter) Attach(SpecialBlockDetailViewModel detail)
         {
             var view = Mount(new BeltThroughputSectionView());
