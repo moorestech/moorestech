@@ -14,20 +14,23 @@ namespace Client.Starter.EventMode
     /// </summary>
     public static class EventModeStartGate
     {
-        // 系の出し分けはここ 1 か所。系ごとの待ちは、それぞれの描き手（GameUi は画面の境界、Web は hub）を必須で受ける
-        // The UI-system dispatch lives only here; each system's wait takes its own drawer as required (GameUi the screen seam, Web the hub)
-        public static UniTask WaitForLanguageSelectionAsync(MainGameStarter starter, CancellationToken ct)
+        // 画面は GameUi の系で MainGameStarter が土台の上に作ったもの（Web の系は null）。実際の値を読んで Dispatch へ渡す
+        // The screen is the one MainGameStarter built on the GameUi foundation (null in the Web system); reads the live values and hands them to Dispatch
+        public static UniTask WaitForLanguageSelectionAsync(IEventLanguageGateScreen gameUiScreenOrNull, CancellationToken ct)
         {
-            var settings = EventExhibitionSettings.FromEnvironment();
-            var armer = new EventIdleQuitWatcherArmer();
+            return Dispatch(UiInputExclusivity.ActiveUiSystem, EventExhibitionSettings.FromEnvironment(), gameUiScreenOrNull, Client.WebUiHost.Boot.WebUiHost.Hub, new EventIdleQuitWatcherArmer(), ct);
+        }
 
+        // 言語ゲートの系の出し分けはここ。土台と画面を立てるか否かは MainGameStarter.PrepareUiBeforeDi が同じスイッチで決める
+        // The language gate's UI-system dispatch lives here; whether the foundation and screen exist is decided by MainGameStarter.PrepareUiBeforeDi on the same switch
+        internal static UniTask Dispatch(UiSystem system, EventExhibitionSettings settings, IEventLanguageGateScreen gameUiScreen, WebSocketHub hub, IEventIdleWatchArmer armer, CancellationToken ct)
+        {
             // GameUi の系は hub を見ず UITK ゲートを出す
             // GameUi system skips the hub and shows the UITK gate
-            if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi) return WaitOnGameUiAsync(settings, starter.CreateEventLanguageGateScreen(), armer, ct);
+            if (system == UiSystem.GameUi) return WaitOnGameUiAsync(settings, gameUiScreen, armer, ct);
 
             // Web の系で Web ホストが立っていなければ画面を出せない（起動の失敗はWebUiStartupがLogError済み）
             // In the Web system a missing web host means no screen (WebUiStartup has already logged the startup failure)
-            var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
             if (hub == null)
             {
                 StartInEnglishWithoutWebHost(settings, armer);

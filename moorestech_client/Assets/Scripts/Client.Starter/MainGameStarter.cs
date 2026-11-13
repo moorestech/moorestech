@@ -30,8 +30,11 @@ using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Starter.EventMode;
 using Client.Starter.Registration;
+using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using CommandForgeGenerator.Command;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 using UnityEngine.Serialization;
 using VContainer;
@@ -104,19 +107,16 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
 
-        // GameUi の系で DI 前に土台を立てる
-        // Build the foundation before DI in the GameUi system
-        internal void PrepareUiBeforeDi()
+        // GameUi の系で DI 前に土台を立て、その上の言語ゲート画面を返す。Web の系は土台も画面も無く null
+        // Builds the pre-DI foundation in the GameUi system and returns the language-gate screen on it; the Web system has neither and gets null
+        internal IEventLanguageGateScreen PrepareUiBeforeDi()
         {
-            // silent-ok: Web の系は Client.Ui を立てない / 起動の系は UiSystemBootSelection がログに出している
-            if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi) return;
+            // silent-ok: Web の系は Client.Ui を立てず言語ゲートは hub が描く / 起動の系は UiSystemBootSelection がログに出している
+            if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi) return null;
             _gameUiFoundation = new GameUiPreDiFoundation(gameUiRoot);
             _gameUiFoundation.Initialize();
+            return new EventLanguageGateBootHost(gameUiRoot.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport), _gameUiFoundation.StageScale, LanguageCatalog.Languages);
         }
-
-        // 言語ゲートの画面（GameUi の系のみ）
-        // Language-gate screen (GameUi system only)
-        internal IEventLanguageGateScreen CreateEventLanguageGateScreen() => _gameUiFoundation.CreateEventLanguageGateScreen();
         
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter, bool collectsPlaytestRecords)
         {

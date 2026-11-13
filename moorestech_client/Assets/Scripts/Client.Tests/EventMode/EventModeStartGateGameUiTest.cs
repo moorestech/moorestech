@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using Client.Input;
 using Client.Localization;
 using Client.Starter.EventMode;
 using Client.Ui.State.Commands;
@@ -13,8 +14,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.EventMode
 {
     /// <summary>
-    /// GameUi の待ちと Web 無し縮退を検証
-    /// Pins the GameUi wait and the no-web fallback
+    /// 系の出し分けの入口と GameUi の待ち・Web 無し縮退を検証
+    /// Pins the UI-system dispatch entry, the GameUi wait and the no-web fallback
     /// </summary>
     public class EventModeStartGateGameUiTest
     {
@@ -84,6 +85,35 @@ namespace Client.Tests.EventMode
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
             CollectionAssert.IsEmpty(calls);
+        }
+
+        // 入口の出し分け: GameUi の系では hub を見ず、渡された画面を開く（条件の反転・枝の削除で赤になる）
+        // Dispatch entry: the GameUi system ignores the hub and opens the given screen (goes red if the branch is flipped or removed)
+        [Test]
+        public void 入口はGameUiの系で出展モードなら画面を開く()
+        {
+            var calls = new List<string>();
+            using var exit = new CancellationTokenSource();
+
+            var task = EventModeStartGate.Dispatch(UiSystem.GameUi, Settings("1"), new RecordingGateScreen(calls), null, new RecordingArmer(calls), exit.Token);
+
+            CollectionAssert.AreEqual(new[] { "open" }, calls);
+            exit.Cancel();
+            Assert.IsTrue(task.Status.IsCanceled());
+        }
+
+        // 入口の出し分け: Web の系で hub が無ければ画面を開かず英語のまま武装だけする
+        // Dispatch entry: the Web system without a hub never opens the screen and only arms in English
+        [Test]
+        public void 入口はWebの系でhubが無ければ英語のまま武装だけする()
+        {
+            var calls = new List<string>();
+            LogAssert.Expect(LogType.Error, "EventModeStartGate: WebUiHostが起動しておらず言語選択を出せないため英語のまま開始します");
+
+            var task = EventModeStartGate.Dispatch(UiSystem.Web, Settings("1"), new RecordingGateScreen(calls), null, new RecordingArmer(calls), CancellationToken.None);
+
+            Assert.IsTrue(task.Status.IsCompletedSuccessfully());
+            CollectionAssert.AreEqual(new[] { "arm:180" }, calls);
         }
 
         private static EventExhibitionSettings Settings(string enable)

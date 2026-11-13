@@ -1,11 +1,7 @@
-using Client.Starter.EventMode;
 using Client.Ui.Foundation.Composite;
-using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
-using Client.Ui.Foundation.Stage;
 using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Foundation.Text;
-using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
@@ -13,8 +9,8 @@ using VContainer.Unity;
 namespace Client.Starter
 {
     /// <summary>
-    /// GameUi の系で DI より前に 1 本だけ立てる土台（sRGB 合成・ロケールのクラス・倍率の見張り）。出展モードの言語ゲートが DI 前に使い、DI へは作り済みのまま渡す
-    /// The GameUi foundation built once before DI (sRGB composite, locale class, scale watch); the exhibition language gate uses it before DI and DI receives it as built
+    /// GameUi の系で DI より前に 1 本だけ立てる土台（sRGB 合成・ロケールのクラス・倍率の見張り）。DI 前の画面は倍率の読み口を使い、DI へは作り済みのまま渡す
+    /// The GameUi foundation built once before DI (sRGB composite, locale class, scale watch); pre-DI screens read its scale source and DI receives it as built
     /// </summary>
     /// <remarks>
     /// 出展モードか否かで DI の登録の形を分けないため、GameUi の系では常にここで立てる（A-183・A-75 の置き場を改めた。S5-gate D-2）。ゲーム寿命なので破棄の口を持たない（ゲームはメインメニューへ戻らない。AGENTS.md の既知の制約）
@@ -22,11 +18,14 @@ namespace Client.Starter
     /// </remarks>
     internal sealed class GameUiPreDiFoundation
     {
+        // DI 前の画面と DI が共有する倍率の読み口
+        // Scale source shared by pre-DI screens and DI
+        public StageScaleSource StageScale { get; }
+
         private readonly GameUiRoot _gameUiRoot;
         private readonly GameUiSrgbCompositeInstaller _composite;
         private readonly GameUiLocaleClassBinder _localeClass;
         private readonly GameUiStageScaleWatch _stageScaleWatch;
-        private readonly StageScaleSource _stageScale;
         private IVisualElementScheduledItem _compositeTickBeforeDi;
 
         public GameUiPreDiFoundation(GameUiRoot gameUiRoot)
@@ -35,7 +34,7 @@ namespace Client.Starter
             _composite = new GameUiSrgbCompositeInstaller(gameUiRoot);
             _localeClass = new GameUiLocaleClassBinder(gameUiRoot);
             _stageScaleWatch = new GameUiStageScaleWatch(gameUiRoot);
-            _stageScale = new StageScaleSource(_stageScaleWatch.Scale);
+            StageScale = new StageScaleSource(_stageScaleWatch.Scale);
         }
 
         public void Initialize()
@@ -51,20 +50,13 @@ namespace Client.Starter
             _compositeTickBeforeDi = _gameUiRoot.GetRootElement().schedule.Execute(_composite.Tick).Every(0);
         }
 
-        // 言語ゲート画面。層と倍率の読み口を渡す
-        // Language-gate screen given the layer and scale source
-        public IEventLanguageGateScreen CreateEventLanguageGateScreen()
-        {
-            return new EventLanguageGateBootHost(_gameUiRoot.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport), _stageScale, LanguageCatalog.Languages);
-        }
-
         // DI へ作り済みのまま渡す。DI 前の毎フレームはここで止め、以後は DI の ITickable が回す（同じ物を二度 Initialize しない）
         // Hand over to DI as built; the pre-DI per-frame tick stops here and DI's ITickable runs it from now on (never Initialize the same object twice)
         public void HandOverTo(ContainerBuilder builder)
         {
             _compositeTickBeforeDi.Pause();
             builder.RegisterInstance(_composite).As<ITickable>();
-            builder.RegisterInstance(_stageScale);
+            builder.RegisterInstance(StageScale);
         }
     }
 }
