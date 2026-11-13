@@ -65,14 +65,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return best;
         }
 
-        public static bool IsHigherPriority(int axis, int other)
-        {
-            // 未設定(-1)の相手より常に優先する
-            // Always wins over an unset (-1) axis
-            if (other < 0) return true;
-            return System.Array.IndexOf(AxisPriority, axis) < System.Array.IndexOf(AxisPriority, other);
-        }
-
         public static PreviewSurfaceType EnterFace(int axis, bool positiveStep)
         {
             // 正の向きに入るなら原点側の面、負の向きなら奥側の面

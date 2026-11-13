@@ -4,6 +4,7 @@ using System;
 using Client.Game.InGame.Block.Index;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.NearestSearch;
 using CommandForgeGenerator.Command;
@@ -43,25 +44,10 @@ namespace Client.Game.InGame.Block
         // Per-block-GUID nearest index, so no per-frame full scan is needed for nearest lookups (precedent: OutcropGameObjectDatastore)
         private readonly NearestTargetIndex<BlockGameObject> _nearestIndex = new();
 
-        public BlockGameObject GetBlockGameObject(Vector3Int position)
-        {
-            return _blockObjectsDictionary.GetValueOrDefault(position);
-        }
-        
-        public bool ContainsBlockGameObject(Vector3Int position)
-        {
-            return _blockObjectsDictionary.ContainsKey(position);
-        }
-        
-        public bool TryGetBlockGameObject(Vector3Int position, out BlockGameObject blockGameObject)
-        {
-            return _blockObjectsDictionary.TryGetValue(position, out blockGameObject);
-        }
-
-        public bool TryGetBlockGameObject(BlockInstanceId blockInstanceId, out BlockGameObject blockGameObject)
-        {
-            return _blockObjectsByInstanceIdDictionary.TryGetValue(blockInstanceId, out blockGameObject);
-        }
+        public BlockGameObject GetBlockGameObject(Vector3Int position) => _blockObjectsDictionary.GetValueOrDefault(position);
+        public bool ContainsBlockGameObject(Vector3Int position) => _blockObjectsDictionary.ContainsKey(position);
+        public bool TryGetBlockGameObject(Vector3Int position, out BlockGameObject blockGameObject) => _blockObjectsDictionary.TryGetValue(position, out blockGameObject);
+        public bool TryGetBlockGameObject(BlockInstanceId blockInstanceId, out BlockGameObject blockGameObject) => _blockObjectsByInstanceIdDictionary.TryGetValue(blockInstanceId, out blockGameObject);
 
         public bool TryGetPosition(BlockInstanceId instanceId, out Vector3Int position)
         {
@@ -78,6 +64,13 @@ namespace Client.Game.InGame.Block
         public BlockGameObject SearchNearestBlock(Guid blockGuid, Vector3 position)
         {
             return _nearestIndex.TrySearchNearest(blockGuid, position, out var block, out _) ? block : null;
+        }
+
+        // 設置モードを抜けずにシーンが破棄されても、照準が古い索引を持ち続けないよう自分の索引なら外す
+        // If the scene is destroyed without leaving placement mode, release the aim target when it is this store's index
+        private void OnDestroy()
+        {
+            if (PlacementAimTargetCells.Current == OccupiedCells) PlacementAimTargetCells.Disable();
         }
 
         public void SetActive(bool active)

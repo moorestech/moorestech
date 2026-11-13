@@ -79,9 +79,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 cell[nextAxis] += step[nextAxis];
                 tMax[nextAxis] += tDelta[nextAxis];
 
-                // 同じ t の越境（辺・角）の組では、Y → X → Z で先の軸を面の軸にする
-                // Within a group of crossings at the same t (edge or corner), the earlier axis in Y -> X -> Z is the face axis
-                if (t != lastT || PlacementAimBoxSlab.IsHigherPriority(nextAxis, faceAxis)) faceAxis = nextAxis;
+                // 同じ t の越境（辺・角）の組は NearestAxis が Y → X → Z の順に返すので、組の最初の軸を面の軸にする
+                // NearestAxis returns a same-t group (edge or corner) in Y -> X -> Z order, so the group's first axis is the face axis
+                if (t != lastT) faceAxis = nextAxis;
                 lastT = t;
 
                 // 入ったセルが占有されていれば、入った向きの面を返す
