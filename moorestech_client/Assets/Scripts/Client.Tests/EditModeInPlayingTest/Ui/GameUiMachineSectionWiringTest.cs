@@ -62,11 +62,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 await LoadMainGame();
                 var ground = TestPlayerGround.Create();
 
-                // 起動ログを流してから想定外のエラーを拾う（VContainer の解決失敗もここで落ちる）
-                // Drain the startup logs, then catch unexpected errors (VContainer resolution failures fail here too)
+                // 足場へ降りるまでは地形の無いワールドの落下復帰ログが出うるので流し、接地後から想定外のエラーを拾う（VContainer の解決失敗は直後の解決で落ちる）
+                // Until the player lands, fall recovery in the terrain-free world may log, so drain it and catch unexpected errors from landing on (VContainer failures fail at the resolve right after)
                 await UniTask.Yield();
-                LogAssert.ignoreFailingMessages = false;
                 await TestPlayerGround.AssertGroundedAsync();
+                LogAssert.ignoreFailingMessages = false;
                 AssertRegistrationsResolve();
 
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
