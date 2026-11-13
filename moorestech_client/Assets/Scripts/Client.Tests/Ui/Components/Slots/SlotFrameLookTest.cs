@@ -28,7 +28,7 @@ namespace Client.Tests.Ui.Components.Slots
             var frame = Mount(null, new SlotFrameState(false, false, false, false, false));
 
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--slot-size"), frame.layout.width, 0.01f);
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-face"), frame.resolvedStyle.backgroundColor, "face");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-face"), frame.Q(className: "slot-frame__face").resolvedStyle.backgroundColor, "face");
             var ring = frame.Q(className: "slot-frame__ring");
             var band1 = ring.Q(className: "slot-frame__band--1");
             var band2 = ring.Q(className: "slot-frame__band--2");
@@ -73,9 +73,9 @@ namespace Client.Tests.Ui.Components.Slots
             var catalog = Mount(null, new SlotFrameState(false, false, true, false, false));
             var both = Mount(null, new SlotFrameState(false, true, true, false, false));
 
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-filled-face"), filled.resolvedStyle.backgroundColor, "filled");
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-catalog-face"), catalog.resolvedStyle.backgroundColor, "catalog");
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-filled-face"), both.resolvedStyle.backgroundColor, "catalog+filled");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-filled-face"), filled.Q(className: "slot-frame__face").resolvedStyle.backgroundColor, "filled");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-catalog-face"), catalog.Q(className: "slot-frame__face").resolvedStyle.backgroundColor, "catalog");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-filled-face"), both.Q(className: "slot-frame__face").resolvedStyle.backgroundColor, "catalog+filled");
         }
 
         [Test]

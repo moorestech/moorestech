@@ -6,6 +6,7 @@ using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.Screens.BuildMenu.Parts;
 using Client.Ui.Screens.Hotbar;
+using Client.Ui.Screens.Hotbar.Parts;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -60,10 +61,11 @@ namespace Client.Tests.Ui.Screens.Hotbar
         public void 未解決の割当枠は白面のまま減光され枠外へ落とすと解除を送る()
         {
             var slot4 = Slot(4);
-            Assert.IsTrue(slot4.parent.ClassListContains("hotbar-hud__cell--unresolved"));
+            var cell4 = slot4.GetFirstAncestorOfType<HotbarCell>();
+            Assert.IsTrue(cell4.ClassListContains("hotbar-hud__cell--unresolved"));
             Assert.IsTrue(slot4.ClassListContains("slot-frame--filled"));
             Assert.IsNull(slot4.Q<PlacementTargetFace>());
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-unresolved-opacity"), CultureInfo.InvariantCulture), GroupOpacity.Read(slot4.parent), 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-unresolved-opacity"), CultureInfo.InvariantCulture), GroupOpacity.Read(cell4), 0.001f);
 
             Drag(slot4.worldBound.center, new Vector2(slot4.worldBound.center.x, 5f));
             CollectionAssert.AreEqual(new[] { "clear:4" }, _commands.Calls);

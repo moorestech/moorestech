@@ -9,10 +9,7 @@
     height: var(--recipe-action-height);
     min-height: var(--recipe-action-height);
     margin: 0;
-    padding-top: var(--recipe-action-padding-block);
-    padding-bottom: var(--recipe-action-padding-block);
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0;
     border-width: 0;
     border-radius: 0;
     background-color: transparent;
@@ -40,9 +37,21 @@
     translate: 0 0;
 }
 
+/* 群はボタンいっぱいに広がり、ボタンの上下の余白は群の中身が持つ（面は中身の余白ごと覆う） */
+/* The group fills the button and its content carries the button's block padding (the face covers the padding too) */
+.recipe-action-button > .pixel-filter-group {
+    flex-grow: 1;
+    align-self: stretch;
+}
+
+.recipe-action-button > .pixel-filter-group > .pixel-filter-group__content {
+    padding-top: var(--recipe-action-padding-block);
+    padding-bottom: var(--recipe-action-padding-block);
+}
+
 /* 研究の無効は面と文字を 1 枚の群にして淡くする（Web の opacity は群に掛かる。要素の opacity は子ごとに掛かり文字が明るく出る） */
 /* Research disabled fades face and label as one group (the Web opacity applies to the group; element opacity applies per child and brightens the label) */
-.recipe-action-button--research.unity-button:disabled {
+.recipe-action-button--research.unity-button:disabled > .pixel-filter-group {
     filter: opacity(var(--research-action-disabled-opacity));
 }
 

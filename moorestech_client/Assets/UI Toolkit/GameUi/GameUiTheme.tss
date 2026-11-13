@@ -13,6 +13,8 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/UiStageFrame.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/UiScreenPixelScope.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/Columns/StageColumnsLayout.uss");
+/* == section: Foundation/Filter == */
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Filter/PixelFilterGroup.uss");
 /* == section: Foundation/Tooltip == */
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Tooltip/HoverTooltipHost.uss");
 /* == section: Foundation/Modal == */

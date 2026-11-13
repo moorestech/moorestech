@@ -54,7 +54,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             var label = Label(button);
             Assert.AreEqual(ResolvePixels("--recipe-craft-button-width"), button.resolvedStyle.width, 0.5f);
             Assert.AreEqual(ResolvePixels("--recipe-action-button-height"), button.resolvedStyle.height, 0.5f);
-            Assert.AreEqual(0f, button.resolvedStyle.paddingTop, 0.01f);
+            Assert.AreEqual(0f, button.Q(className: Client.Ui.Foundation.Filter.PixelFilterGroup.ContentUssClassName).resolvedStyle.paddingTop, 0.01f);
             Assert.AreEqual(12f, label.resolvedStyle.fontSize, 0.01f);
             Assert.AreEqual(12f, label.resolvedStyle.letterSpacing, 0.01f);
             Assert.AreEqual(0f, label.resolvedStyle.unityTextOutlineWidth, 0.01f);
@@ -68,7 +68,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             var expected = new[] { new Vector2(offset, 0f), new Vector2(-offset, 0f), new Vector2(0f, offset), new Vector2(0f, -offset) };
             var glyphs = ShadowGlyphs(button).ToList();
             Assert.AreEqual(4, glyphs.Count);
-            Assert.Less(button.IndexOf(glyphs[0].parent), button.IndexOf(label), "shadow sits under the label");
+            Assert.Less(label.parent.IndexOf(glyphs[0].parent), label.parent.IndexOf(label), "shadow sits under the label");
             Assert.AreEqual(DisplayStyle.Flex, glyphs[0].parent.resolvedStyle.display);
             for (var i = 0; i < glyphs.Count; i++)
             {

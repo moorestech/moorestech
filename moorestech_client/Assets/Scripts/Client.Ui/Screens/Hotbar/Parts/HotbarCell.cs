@@ -1,5 +1,6 @@
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Filter;
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
@@ -36,10 +37,14 @@ namespace Client.Ui.Screens.Hotbar.Parts
 
             // 枠 → タブの順に足し、タブを枠の上に描く（Web .num の z-index 2）
             // Add the frame then the tab so the tab draws above the frame (Web .num z-index 2)
+            // 枠とタブを群に入れ、未解決の減光を Web と同じく枠の群に掛ける（A-222・A-226）
+            // Frame and tab share a group so unresolved dimming applies to the cell group as on the Web (A-222, A-226)
+            var group = new PixelFilterGroup(PixelFilterGroupFlow.Flow);
+            Add(group);
             _frame = new SlotFrame($"hotbar-slot-{slotIndex}");
             _face = new PlacementTargetFace();
-            Add(_frame);
-            Add(new HotbarNumberTab(slotIndex));
+            group.Add(_frame);
+            group.Add(new HotbarNumberTab(slotIndex));
 
             // 落とし先の印は枠の箱に付ける（Web の data-hotbar-slot-index は .cell。枠もタブもここへ辿る）
             // The drop mark goes on the cell box (the Web data-hotbar-slot-index is on .cell; frame and tab both walk up to it)

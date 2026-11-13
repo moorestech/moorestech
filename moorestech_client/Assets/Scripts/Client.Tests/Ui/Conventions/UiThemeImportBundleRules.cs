@@ -19,7 +19,7 @@ namespace Client.Tests.Ui.Conventions
         // Fixed section order
         public static readonly string[] SectionOrder =
         {
-            "Foundation/Theme", "Foundation/Stage", "Foundation/Tooltip", "Foundation/Modal",
+            "Foundation/Theme", "Foundation/Stage", "Foundation/Filter", "Foundation/Tooltip", "Foundation/Modal",
             "Components/Panels", "Components/Slots", "Components/Controls", "Components/Gauges",
             "Components/Text", "Components/Decor", "Components/Recipe", "Components/NodeGraph",
             "Screens",
