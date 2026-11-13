@@ -2,6 +2,7 @@ using Client.Input.Pointer;
 using Client.Starter.Registration.GameUi.Hud;
 using Client.Starter.Registration.GameUi.Shared;
 using Client.Starter.Registration.GameUi.Screens;
+using Client.Starter.Registration.GameUi.Screens.Challenge;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Screens.BlockInventory.Parts;
@@ -85,6 +86,7 @@ namespace Client.Starter.Registration
             ModalGameUiRegistration.Register(builder);
             NotificationGameUiRegistration.Register(builder);
             SkitGameUiRegistration.Register(builder);
+            ChallengeGameUiRegistration.Register(builder);
         }
     }
 }

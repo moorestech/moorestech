@@ -29,7 +29,7 @@ namespace Client.Ui.Screens.PauseMenu
 
             // 節は本文の中で Stack gap=md に並べる
             // Sections stack with gap=md inside the body
-            var body = new GameScrollView("pause-menu-body");
+            var body = new GameScrollView("pause-menu-body", GameScrollAxis.Vertical);
             _sections = new UiStack(UiGap.Md);
             body.Add(_sections);
             column.AddItem(body);

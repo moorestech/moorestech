@@ -28,7 +28,7 @@ namespace Client.Tests.Ui.Components.Controls
             _host = new VisualElement();
             _host.style.width = 300;
             _host.style.height = 200;
-            _view = new GameScrollView("probe-scroll");
+            _view = new GameScrollView("probe-scroll", GameScrollAxis.Vertical);
             for (var i = 0; i < 20; i++)
             {
                 var row = new VisualElement();

@@ -65,7 +65,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
         public static readonly Stage2HudSurface DeleteBoxHeightHud = Stage2HudSurface.DuringMode("delete-box-height-hud", UiLayer.OverlayPanel, UiFamily.Viewport, UIStateEnum.DeleteBar);
         public static readonly Stage2HudSurface CursorTooltip = Stage2HudSurface.Resident("cursor-tooltip", false, UiLayer.Tooltip, UiFamily.Viewport);
         public static readonly Stage2HudSurface TutorialOverlay = Stage2HudSurface.Resident("tutorial-overlay", false, UiLayer.Tutorial, UiFamily.Viewport);
-        public static readonly Stage2HudSurface KeyControlHintHud = Stage2HudSurface.Resident("key-control-hint-hud", false, UiLayer.OverlayPanel, UiFamily.Viewport);
+        public static readonly Stage2HudSurface KeyControlHintHud = Stage2HudSurface.Resident("key-control-hint-hud", false, UiLayer.Chrome, UiFamily.Viewport);
         public static readonly Stage2HudSurface WorldPinOverlay = Stage2HudSurface.Resident("world-pin-overlay", false, UiLayer.WorldPin, UiFamily.Viewport);
         public static readonly Stage2HudSurface NotificationHost = Stage2HudSurface.Resident("notification-host", false, UiLayer.BehindStage, UiFamily.Viewport);
         public static readonly Stage2HudSurface BlockingSkit = Stage2HudSurface.Resident("blocking-skit", false, UiLayer.SkitStage, UiFamily.Viewport);

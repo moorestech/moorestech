@@ -13,8 +13,8 @@ namespace Client.Ui.Screens.ModeHud
     /// </summary>
     public sealed class ModeHudPresenter : IInitializable
     {
-        // Web の帯と配置 HUD は viewportOverlay の z stage-overlay-panel。層の中ではホットバーより前の兄弟（登録順）
-        // On the Web the bands and placement HUD sit in viewportOverlay at z stage-overlay-panel; in the layer they precede the hotbar (registration order)
+        // Web の帯と配置 HUD は viewportOverlay の先頭の子で、ホットバー（Chrome）・キーヒント（Chrome）より下。舞台の画面とは同時に開かないので OverlayPanel に置く
+        // On the Web the bands and placement HUD are viewportOverlay's first children, below the hotbar and key hints (Chrome); they never coexist with stage screens, so they stay in OverlayPanel
         internal const UiLayer HostLayer = UiLayer.OverlayPanel;
         internal const UiFamily HostFamily = UiFamily.Viewport;
 

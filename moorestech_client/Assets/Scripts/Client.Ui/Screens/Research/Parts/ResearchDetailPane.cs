@@ -48,7 +48,7 @@ namespace Client.Ui.Screens.Research.Parts
 
             // 見出しとボタンの間だけスクロール
             // Scroll only between header and button
-            _scroll = new GameScrollView("research-detail-scroll");
+            _scroll = new GameScrollView("research-detail-scroll", GameScrollAxis.Vertical);
             _scroll.AddToClassList("research-tree__detail-scroll");
             var scrollContent = new VisualElement();
             scrollContent.AddToClassList("research-tree__detail-scroll-content");
