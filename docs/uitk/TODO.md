@@ -299,6 +299,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 - S2-skit `white-space: pre-wrap`: USS の取り込みで警告が出ず、そのまま使える（Task 8 の Editor.log に `white-space` の警告なし）。連続する空白が保たれることは画素で見ていない
 - S2-skit Enter の送り（Task 11）: 入力アセットの `SkitAdvance`（`InputManager.UI.SkitAdvance`）の Enter は注入入力で届き、UITK の会話窓が送る。Space では送らない（録画 `uitk-skit`・winunity run 20261112-071418 の「Enter で送られた」「Space では送らない」が PASS）
 - S2-skit 会話窓の 1 行目の高さ: 1 行の話者（28.7px）は字形の既定の行の高さで Web の line-height 34.44px より高く、並べ比べ（1280×720）で話者の字が 5px・罫線が 8px・本文の字が 7px Web より下にあった。話者の上下の margin から差の半分 3.77px を引き（`Skit.uss`）、本文に 0.4px の上下 padding を足して、話者・罫線・本文・送りの印・背景の 1 行が 1280×720 で 1px 以内・2560×1080 で 1 論理 px 以内（録画 `uitk-skit-compare`・winunity run 20261112-091619 以降。差の表は `moorestech_logs/harness/uitk/S2-skit/done.md`）
+- 段階 4 の UI の CPU 時間（S4-gamma、55f3089244、Windows・RTX2060・Editor〈winunity play の GUI Editor の PlayMode〉・1920×1080・全体スイッチ UITK、ProfilerRecorder で PreLateUpdate.UIElementsUpdatePanels+PostLateUpdate.UIElementsRepaintPanels の和を各 240 フレーム。測定時は他レーンの GUI Editor 2 本が並走・CPU 負荷 62%。winunity run 20261113-151222-uitk-lane-s4-gamma）: GameScreen 平均 0.458ms／p95 0.561ms、PlayerInventory 平均 0.863ms／p95 1.002ms、ResearchTree 平均 1.401ms／p95 1.816ms。目安 1ms 以下（PoC 0.27ms）に超えた: 超えたのは ResearchTree の平均と p95、PlayerInventory の p95（平均は収まった）。未確認として bd moorestech-albof.67.3。プレイヤービルドでは測っていない
 
 ## 壊れた録画の割り振り（bd moorestech-wwxy）
 
