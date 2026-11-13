@@ -89,6 +89,25 @@ namespace Client.Tests.Ui.State.Challenge
             Assert.AreEqual(Source.Category1, AsSelected(_model.Current.Value).Selected.Guid);
         }
 
+        [Test]
+        public void 開いたまま暗黙の先頭を見ている間に前のカテゴリが解放されても見ているカテゴリを保つ()
+        {
+            // 先頭の Category1 が未解放のまま開くと Category2 が暗黙の先頭になる
+            // Opening while the first Category1 is locked makes Category2 the implicit first
+            Build(true);
+            _source.LockCategory1();
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ChallengeList);
+            Assert.AreEqual(Source.Category2, AsSelected(_model.Current.Value).Selected.Guid);
+            Assert.IsTrue(_selection.Current.Value.Is(Source.Category2), "暗黙の先頭が選択として確定する");
+
+            // 開いたまま前の Category1 が解放されても Category2 のまま（Web の sticky）
+            // Category1 unlocking while open keeps Category2 (the Web sticky selection)
+            _source.CompleteTest2();
+            var afterUnlock = AsSelected(_model.Current.Value);
+            CollectionAssert.AreEqual(new[] { Source.Category1, Source.Category2 }, afterUnlock.CategoryGuids);
+            Assert.AreEqual(Source.Category2, afterUnlock.Selected.Guid);
+        }
+
         private void Build(bool selectionFirst)
         {
             // テスト mod のマスタで経路を組む

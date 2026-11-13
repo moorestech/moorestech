@@ -46,7 +46,16 @@ namespace Client.Ui.State.Challenge.Tree
             // ReactiveProperty は値を書いてから購読者へ流すので、通知の中でも今の経路が読める
             // ReactiveProperty stores the value before notifying, so the current route is readable inside any notice
             if (!ChallengeScreenVisibility.IsShown(_routing.Current.Value)) return; // silent-ok: 閉画面では組まない / 閉画面で組まず突入で組むことは L0 ChallengeListModelTest が固定し、録画 uitk-challenge-list の開き直しの段が見る
-            _current.Value = ChallengeListViewModelFactory.Create(_progress.Categories, _selection.Current.Value);
+            var built = ChallengeListViewModelFactory.Create(_progress.Categories, _selection.Current.Value);
+
+            // 暗黙の先頭を選択として確定し、前のカテゴリが解放されても差し替えない（Web の useEffect と同じ sticky）。選択の購読で組み直すので、ここでは配信しない
+            // Pin the implicit first category as the selection so a newly unlocked earlier one does not swap it (sticky like the Web useEffect); the selection subscription rebuilds, so do not publish here
+            if (built is SelectedChallengeListViewModel selected && !_selection.Current.Value.Is(selected.Selected.Guid))
+            {
+                _selection.Select(selected.Selected.Guid);
+                return;
+            }
+            _current.Value = built;
         }
     }
 }

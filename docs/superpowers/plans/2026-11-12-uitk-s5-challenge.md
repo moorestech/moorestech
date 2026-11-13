@@ -3814,6 +3814,10 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-27 設計書の A 行は入ったものを照らす**（指揮の agent 既定（PLAN-W5 評価））: 設計書 §7.1 の A-240・A-241 は入り済みなので、`done.md` の雛形は「足す」でなく「設計書に入った A-240・A-241 を実装と照らす」にした。A-240 の本文（視点は View の寿命）・A-191 と §2 の OS カーソルの行の改めは notes から指揮が設計書へ写す。`GameScrollView` の横向きは A-241 に入れた。A-35 を縦に限る改めと §2.7 の行の書き換えを含む（指揮の agent 既定（PLAN-W5 評価））。実行計画 §6.1 の LX-200 は既に「予備」に直っている
 - **D-28 第 3 バケツは本 PR 外のリファクタ提案に置く**（指揮の agent 既定（PLAN-W5 評価））: Web の橋 `ChallengeDtoBuilder.BuildTree` と State の工場の同じ規則、研究の `ResearchNodeCardSet` の bool 返し、研究の `ResearchTreeView.Render` の渡し直しの式の 3 つは、この PR では直さず「## 本PR外のリファクタ提案」に 1 行ずつ書いた（このレーンの持ち物でなく、研究の挙動に触れるため）
 - **D-29 `GameScrollView` の向きは enum で持つ 1 型、横で縦の口を呼んでも止めない**（指揮の agent 既定（PLAN-W5 評価））: 軸を `GameScrollAxis` で持つ 1 型にしたのは、USS・つまみ・バーの有無の式を縦と横で共有し、横の使い手がチャレンジのカテゴリ列の 1 つだけだから（横を別の型にすると式とつまみの受け口が 2 本になる。A-167）。本番ブロックの `_axis == GameScrollAxis.Horizontal` の分岐（5 回）はどれも軸を選ぶだけ。横のインスタンスで縦の口（`SetScrollOffset`・`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop`）を呼んでも止めないのは、横の使い手がその口を呼ばず、呼んでも縦のバーの値を読み書きするだけで誤動作に至る入力が組めないから（ガードとテストを足さない）
+- **D-30 moores-code-review の設計判断の裁定**（指揮の agent 既定（S5-challenge moores-code-review））: D2 案A — `GameScrollView` の縦専用の口（`SetScrollOffset`・`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop`・`OnContentLayoutChanged`）を横で呼ぶと `Debug.LogError` で理由を出して何もしない（fail-closed のログ。横は寸法の通知の発火元を繋がない）。D-29 の「止めない」を改める。公開シグネチャは不変、L1 `GameScrollViewHorizontalTest` で固定
+  - D3 案A — 横向きのホイールは Shift が立っていて横量が 0 なら縦量を横量に使う（Chromium の Shift+ホイール）。L1 で Shift+縦 1 ノッチ 60px を固定
+  - D4 案A — `ChallengeListModel` が選択ありの表示を組んだとき、選択ストアが同じ Guid でなければ 1 回 `Select` して暗黙の先頭を確定する（Web の sticky。配信は選択の購読の組み直しの 1 回だけ）。離脱時の None 戻し・開き直しで先頭（D-2）は変えない。L0 `ChallengeListModelTest` で固定
+  - D5 案B — 部品 `NodeGraphView` は変えず、外している間の寸法変化で付け直したときに中心を保ち直す帰結（D-1）を見た目の例外 LX-200 に記帳し、L1 `ChallengeListViewportTest` で固定
 
 ### 評価の指摘の処遇
 

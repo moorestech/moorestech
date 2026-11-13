@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.NodeGraph;
-using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Screens.Challenge.Tree;
 using Client.Ui.State.Challenge.Tree.Selection;
@@ -90,6 +89,29 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Assert.IsTrue(CategoryButton(Kit.Basics).ClassListContains(FormButton.FilledUssClassName));
         }
 
+        [Test]
+        public void 外している間に寸法が変わると付け直したとき中央に見えていた点を中央に保つ()
+        {
+            PanBy(new Vector2(-60f, 30f));
+            var offsetFromCenter = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound.center - GraphContentCenter();
+            var sizeBefore = SingleGraph().contentRect.size;
+            Select(Kit.Logistics);
+
+            // B を見ている間に一覧の寸法を変える
+            // Resize the list while showing B
+            rootVisualElement.style.width = 1000f;
+            rootVisualElement.style.height = 600f;
+            Settle();
+            Assert.AreNotEqual(sizeBefore, SingleGraph().contentRect.size, "寸法が変わっている");
+
+            // A に戻ると中央に見えていた点が中央のまま（Web は保存視点のまま。例外 LX-200・計画 D-1 の帰結）
+            // Back on A, the point seen at the center stays there (the Web keeps the saved viewport; look exception LX-200, plan D-1)
+            Select(Kit.Basics);
+            var offsetAfter = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound.center - GraphContentCenter();
+            Assert.AreEqual(offsetFromCenter.x, offsetAfter.x, 1f);
+            Assert.AreEqual(offsetFromCenter.y, offsetAfter.y, 1f);
+        }
+
         #region Helpers
 
         private FormButton CategoryButton(Guid category)
@@ -112,6 +134,12 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             return graphs[0];
         }
 
+        private Vector2 GraphContentCenter()
+        {
+            var graph = SingleGraph();
+            return graph.LocalToWorld(graph.contentRect.center);
+        }
+
         private void AssertCentered(Guid challenge)
         {
             var viewport = Find<VisualElement>(rootVisualElement, "challenge-viewport").worldBound.center;
@@ -125,27 +153,11 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         private Rect PanBy(Vector2 delta)
         {
             var before = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;
-            Drag(EmptyBackgroundPoint(), delta);
+            Drag(Kit.EmptyBackgroundPoint(rootVisualElement), delta);
             var after = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;
             Assert.LessOrEqual(after.x - before.x, delta.x + 0.5f);
             Assert.GreaterOrEqual(after.y - before.y, delta.y - 0.5f);
             return after;
-        }
-
-        // カードの無い点を右上から探す
-        // Probe from the top right for a point without a card
-        private Vector2 EmptyBackgroundPoint()
-        {
-            var box = Find<VisualElement>(rootVisualElement, "challenge-viewport").worldBound;
-            for (var inset = 40f; inset < Mathf.Min(box.width, box.height) / 2f; inset += 8f)
-            {
-                var point = new Vector2(box.xMax - inset, box.yMin + inset);
-                var picked = rootVisualElement.panel.Pick(point);
-                if (picked == null || picked.GetFirstAncestorOfType<NodeGraphView>() == null && !(picked is NodeGraphView)) continue;
-                if (picked is PaperSurface || picked.GetFirstAncestorOfType<PaperSurface>() != null) continue;
-                return point;
-            }
-            throw new InvalidOperationException("チャレンジ一覧に空の背景の掴み点が無い");
         }
 
         private void Click(VisualElement target)

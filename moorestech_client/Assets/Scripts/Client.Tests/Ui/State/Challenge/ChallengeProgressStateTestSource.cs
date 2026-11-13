@@ -41,20 +41,32 @@ namespace Client.Tests.Ui.State.Challenge
             Progress.Initialize();
         }
 
-        // Test2 を完了にした全量を流す
-        // Dispatch the full state with Test2 completed
+        // Test2 を完了にした全量を流す（2 カテゴリとも解放済み）
+        // Dispatch the full state with Test2 completed (both categories unlocked)
         public void CompleteTest2()
+        {
+            Dispatch(Test2, Category(Category1, true, Array.Empty<Guid>(), new[] { Test1, Test2 }));
+        }
+
+        // 先頭の Category1 を未解放にした全量を流す（後で CompleteTest2 が解放し直す）
+        // Dispatch the full state with the first Category1 locked (CompleteTest2 unlocks it again later)
+        public void LockCategory1()
+        {
+            Dispatch(Test1, Category(Category1, false, new[] { Test2 }, new[] { Test1 }));
+        }
+
+        private void Dispatch(Guid completed, ChallengeCategoryMessagePack category1)
         {
 #pragma warning disable CS0618
             var message = new CompletedChallengeEventMessagePack
             {
-                CompletedChallengeGuidStr = Test2.ToString(),
+                CompletedChallengeGuidStr = completed.ToString(),
                 NextChallengeGuidsStr = new List<string>(),
                 PlayedSkitIds = new List<string>(),
                 ChallengeCategories = new List<ChallengeCategoryMessagePack>
                 {
-                    Category(Category1, Array.Empty<Guid>(), new[] { Test1, Test2 }),
-                    Category(Category2, new[] { Category2First }, Array.Empty<Guid>()),
+                    category1,
+                    Category(Category2, true, new[] { Category2First }, Array.Empty<Guid>()),
                 },
             };
 #pragma warning restore CS0618
@@ -67,12 +79,12 @@ namespace Client.Tests.Ui.State.Challenge
             return new ChallengeCategoryResponse(master.GetChallengeCategory(category), true, current.Select(master.GetChallenge).ToList(), completed.Select(master.GetChallenge).ToList());
         }
 
-        private static ChallengeCategoryMessagePack Category(Guid category, Guid[] current, Guid[] completed)
+        private static ChallengeCategoryMessagePack Category(Guid category, bool isUnlocked, Guid[] current, Guid[] completed)
         {
             return new ChallengeCategoryMessagePack
             {
                 ChallengeCategoryGuid = category,
-                IsUnlocked = true,
+                IsUnlocked = isUnlocked,
                 CurrentChallengeGuidsStr = current.Select(guid => guid.ToString()).ToList(),
                 CompletedChallengeGuidsStr = completed.Select(guid => guid.ToString()).ToList(),
             };

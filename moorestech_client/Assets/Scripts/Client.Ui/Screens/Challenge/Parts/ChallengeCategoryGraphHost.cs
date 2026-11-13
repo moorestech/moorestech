@@ -42,7 +42,7 @@ namespace Client.Ui.Screens.Challenge.Parts
             // silent-ok: 既に置いてあれば付け替えない / 正常系（同じカテゴリの描き直し）。付け替えと視点は L1 ChallengeListViewportTest が見る
             if (graph.View.parent == this) return;
             Clear();
-            Add(graph.View);
+            Add(graph.View); // look-exception: LX-200
         }
 
         public void UnmountGraph()

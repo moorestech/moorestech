@@ -2,6 +2,7 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
 
@@ -94,6 +95,37 @@ namespace Client.Tests.Ui.Components.Controls.GameScrollViewAxis
             Settle();
             Assert.AreEqual(60f, _view.scrollOffset.x, 0.01f, "横ホイール");
             Assert.AreEqual(0f, _view.scrollOffset.y, 0.01f);
+        }
+
+        [Test]
+        public void 横向きはShiftと縦ホイールの1ノッチで60px横へ送る()
+        {
+            // 箱 6 つで幅 300 を越える
+            // Six boxes overflow the 300 width
+            for (var i = 0; i < 3; i++) AddBox();
+            Settle();
+
+            // Shift+縦 1 ノッチは横量として送る（Chromium の Shift+ホイール）
+            // Shift plus one vertical notch scrolls sideways (Chromium's Shift+wheel)
+            simulate.ScrollWheel(new Vector2(0f, WheelEvent.scrollDeltaPerTick), _view.contentViewport.worldBound.center, EventModifiers.Shift);
+            Settle();
+            Assert.AreEqual(60f, _view.scrollOffset.x, 0.01f, "Shift+縦ホイール");
+            Assert.AreEqual(0f, _view.scrollOffset.y, 0.01f);
+        }
+
+        [Test]
+        public void 横向きで縦専用の口を呼ぶとLogErrorを出しオフセットを変えない()
+        {
+            for (var i = 0; i < 3; i++) AddBox();
+            Settle();
+            var before = _view.scrollOffset;
+
+            // 誤用を無音にせず知らせ、何もしない（fail-closed）
+            // Report the misuse instead of staying silent and do nothing (fail-closed)
+            LogAssert.Expect(LogType.Error, "[GameScrollView] probe-horizontal-scroll: SetScrollOffset is vertical-only");
+            _view.SetScrollOffset(40f);
+            Settle();
+            Assert.AreEqual(before, _view.scrollOffset);
         }
 
         private void AddBox()

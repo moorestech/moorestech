@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 using Client.Game.Localization;
 using Client.Localization;
 using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Components.NodeGraph;
+using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Stage;
@@ -91,6 +93,22 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         public static VisualElement Card(VisualElement root, Guid challengeGuid)
         {
             return root.Q($"challenge-node-{challengeGuid}");
+        }
+
+        // カードの無い点を右上から探す
+        // Probe from the top right for a point without a card
+        public static Vector2 EmptyBackgroundPoint(VisualElement root)
+        {
+            var box = root.Q("challenge-viewport").worldBound;
+            for (var inset = 40f; inset < Mathf.Min(box.width, box.height) / 2f; inset += 8f)
+            {
+                var point = new Vector2(box.xMax - inset, box.yMin + inset);
+                var picked = root.panel.Pick(point);
+                if (picked == null || picked.GetFirstAncestorOfType<NodeGraphView>() == null && !(picked is NodeGraphView)) continue;
+                if (picked is PaperSurface || picked.GetFirstAncestorOfType<PaperSurface>() != null) continue;
+                return point;
+            }
+            throw new InvalidOperationException("チャレンジ一覧に空の背景の掴み点が無い");
         }
 
         // LocalizedLabel は行高のタグを前置するので外す（前例 ChallengeHudTestText.Plain）
