@@ -189,6 +189,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | 4 | blockInventory（汎用族・特殊族・列車族） | 機械 UI を開いたまま中身が更新される動き | 実機械の稼働 |
 | 1〜5 | i18n | IME の変換中の入力欄（駅名・BP 名・検索・バグ報告） | 人手の確認（S9） |
 | 1〜5 | オーバーレイ: 画面のマウント点と背景ディム | CEF が固まって最後のフレームが残る状態 | CEF の実プロセスが要る |
+| 5 | challenge: カテゴリ列 | カテゴリが一覧の幅を越えたときの横のバー（UITK は `GameScrollView` の横向き: 流れの中・太さ `--scrollarea-scrollbar-size`・溝 `--game-scroll-view-track-face`・つまみ `--game-scroll-view-thumb-face`） | mock-host の challengeTree はカテゴリ 2 つで幅に収まり、実マスタは解放済みのカテゴリが 1 つ。Web は `::-webkit-scrollbar` の装飾が無く CEF の既定のバーになる（見た目と場所の取り方は未計測）。越える状態が撮れたら並べ比べ、差が残れば予備の LX-200 |
 
 ## agent 既定（ユーザー未裁定）
 
@@ -280,6 +281,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 - S2-skit `white-space: pre-wrap`: USS の取り込みで警告が出ず、そのまま使える（Task 8 の Editor.log に `white-space` の警告なし）。連続する空白が保たれることは画素で見ていない
 - S2-skit Enter の送り（Task 11）: 入力アセットの `SkitAdvance`（`InputManager.UI.SkitAdvance`）の Enter は注入入力で届き、UITK の会話窓が送る。Space では送らない（録画 `uitk-skit`・winunity run 20261112-071418 の「Enter で送られた」「Space では送らない」が PASS）
 - S2-skit 会話窓の 1 行目の高さ: 1 行の話者（28.7px）は字形の既定の行の高さで Web の line-height 34.44px より高く、並べ比べ（1280×720）で話者の字が 5px・罫線が 8px・本文の字が 7px Web より下にあった。話者の上下の margin から差の半分 3.77px を引き（`Skit.uss`）、本文に 0.4px の上下 padding を足して、話者・罫線・本文・送りの印・背景の 1 行が 1280×720 で 1px 以内・2560×1080 で 1 論理 px 以内（録画 `uitk-skit-compare`・winunity run 20261112-091619 以降。差の表は `moorestech_logs/harness/uitk/S2-skit/done.md`）
+- S5-challenge カードの高さ（`NodeGraphView.uss` の包みの高さ 0 の削除の事後承認）: チャレンジのカードは包みの中で中身なりの高さ（L1 `ChallengeListViewTest` で上下の余白 24＋3 行。録画 `uitk-challenge-list` の進行中のカード 240×108〈日本語・概要 2 行〉、Web の 1 行の 86 に概要 1 行 20.3 を足した 106.2 と 1.8px 差）。部品は変えていない。同じ並べ比べで、和文の題（Title order=2）の字の自然な高さ 38px がカテゴリ列を Web より 3px 押し下げていたので、`ChallengeList.uss` で題の行を `--title-order-2-row-height`（35.1px）に固定した（前例 `Settings.uss`。カテゴリのボタンは 1280×720 で y219〜254 と Web と同じ・2560×1080 で 1 物理 px 差。winunity run 20261113-142506）
 
 ## 壊れた録画の割り振り（bd moorestech-wwxy）
 
