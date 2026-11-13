@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var master = MasterHolder.CleanRoomMaster;
             Assert.IsTrue(master.IsAvailable);
             Assert.AreEqual(4, master.Thresholds.Count);
-            // 良い順（A→D）で並び、必要換気回数が単調減少であること
+            // 良い順で必要換気回数が単調減少
             // Rows are ordered best-to-worst with monotonically decreasing required air change rates
             Assert.AreEqual(0.017, master.Thresholds[0].RequiredAirChangeRate, 0.0001);
             Assert.AreEqual(0.0014, master.Thresholds[3].RequiredAirChangeRate, 0.0001);

@@ -8,7 +8,7 @@ namespace Game.CleanRoom.Util
     /// </summary>
     public static class CleanRoomPurityLogic
     {
-        // 昇格時のみ課すヒステリシス係数（換気を多めに要求）
+        // 昇格時のヒステリシス係数
         // Hysteresis factor imposed only on promotion (more air change required)
         public const double PromoteAirChangeFactor = 1.25;
 
@@ -27,7 +27,7 @@ namespace Game.CleanRoom.Util
             {
                 var isPromotion = i < currentIndex;
                 var requiredAirChange = isPromotion ? requiredAirChangeRates[i] * PromoteAirChangeFactor : requiredAirChangeRates[i];
-                if (airChangeRate >= requiredAirChange) return i;
+                if (requiredAirChange <= airChangeRate) return i;
             }
 
             // どの行も満たさなければ Out（行数）を返す

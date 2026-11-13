@@ -10,7 +10,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void InsufficientAirChangeRateIsOutTest()
         {
-            // どの行の必要換気回数にも届かなければ Out（行数）になる
+            // 届かなければOut（行数）
             // Falling short of every row's required rate yields Out (the row count)
             var index = CleanRoomPurityLogic.DecideThresholdIndex(4, 0.0010, RequiredAirChangeRates);
             Assert.AreEqual(4, index);
@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void CurrentClassIsKeptAtExactRequiredRateTest()
         {
-            // 現在のクラスは昇格マージン無しの素の必要換気回数で維持できる
+            // 現クラスは素の必要値で維持
             // The current class is kept at its raw required rate without the promotion margin
             Assert.AreEqual(1, CleanRoomPurityLogic.DecideThresholdIndex(1, 0.0083, RequiredAirChangeRates));
         }
@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void LowerAirChangeRateDemotesImmediatelyTest()
         {
-            // 必要換気回数を下回ったその判定で1つ下の行へ降格する
+            // 下回ったら1つ降格
             // Dropping below the required rate demotes to the next row in the same decision
             Assert.AreEqual(2, CleanRoomPurityLogic.DecideThresholdIndex(1, 0.0082, RequiredAirChangeRates));
         }
@@ -44,7 +44,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void ZeroVolumeAirChangeRateIsZeroTest()
         {
-            // 体積0の部屋は換気回数0になり、NaN や無限大を判定へ渡さない
+            // 体積0は換気回数0（NaN回避）
             // A zero-volume room yields a zero air change rate, never passing NaN or infinity to the decision
             Assert.AreEqual(0d, CleanRoomPurityLogic.AirChangeRate(5d, 0));
             Assert.AreEqual(0.5d, CleanRoomPurityLogic.AirChangeRate(5d, 10), 1e-9);

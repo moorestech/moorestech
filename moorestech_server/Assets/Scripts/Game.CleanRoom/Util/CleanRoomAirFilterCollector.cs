@@ -19,7 +19,7 @@ namespace Game.CleanRoom.Util
     }
 
     /// <summary>
-    ///     部屋セルに重なる清浄機をブロック単位で重複なく集める（クラス判定とUI照会で共有）
+    ///     部屋内の清浄機を重複なく集める
     ///     Collects air purifiers overlapping room cells once per block, shared by the class decision and UI queries
     /// </summary>
     public static class CleanRoomAirFilterCollector
@@ -38,9 +38,14 @@ namespace Game.CleanRoom.Util
             return entries;
         }
 
-        // クラス判定と部屋の要約が共有する、清浄機の実効除去体積の合計
-        // Sum of the purifiers' effective removal volumes, shared by the class decision and the room summary
-        public static double SumRemovalVolume(IReadOnlyList<CleanRoomAirFilterEntry> entries)
+        // クラス判定と部屋の要約が共有する換気回数（除去体積合計÷部屋体積）
+        // Air change rate (total removal volume / room volume) shared by the class decision and the room summary
+        public static double AirChangeRate(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries)
+        {
+            return CleanRoomPurityLogic.AirChangeRate(SumRemovalVolume(entries), room.Volume);
+        }
+
+        private static double SumRemovalVolume(IReadOnlyList<CleanRoomAirFilterEntry> entries)
         {
             var removalVolume = 0d;
             foreach (var entry in entries) removalVolume += entry.Filter.RemovalVolumePerSecond;

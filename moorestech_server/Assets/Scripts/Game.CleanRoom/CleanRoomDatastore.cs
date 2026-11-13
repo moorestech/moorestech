@@ -47,8 +47,8 @@ namespace Game.CleanRoom
             }));
         }
 
-        // MasterTickUpdaterが毎tick、本体(ブロック更新・ベルト搬送)の後に呼ぶ。「①差分再検出 ②クラス判定 ③機械効果反映」の順
-        // Called by MasterTickUpdater every tick after the body (block updates and belt transport): detection, class decision, then machine effect pushes
+        // 本体更新後に毎tick呼ぶ。①再検出②クラス判定③効果反映
+        // Called every tick after the body update: detection, class decision, then machine effect pushes
         public void Update()
         {
             _detectionService.ProcessDirtySeeds();
@@ -118,18 +118,16 @@ namespace Game.CleanRoom
 
             foreach (var room in _detectionService.Rooms)
             {
-                // 清浄機の除去能力合計と空きセル数から、毎tick閾値行を決める
+                // 除去能力と空きセル数で閾値行を決める
                 // Decide the threshold row each tick from the purifiers' total removal volume and the empty cell count
-                var filters = CleanRoomAirFilterCollector.Collect(room, _world);
-                var removalVolume = CleanRoomAirFilterCollector.SumRemovalVolume(filters);
-                var airChangeRate = CleanRoomPurityLogic.AirChangeRate(removalVolume, room.Volume);
+                var airChangeRate = CleanRoomAirFilterCollector.AirChangeRate(room, CleanRoomAirFilterCollector.Collect(room, _world));
                 room.SetThresholdIndex(CleanRoomPurityLogic.DecideThresholdIndex(room.ThresholdIndex, airChangeRate, _requiredAirChangeRates));
             }
         }
 
         private static List<double> BuildRequiredAirChangeRates()
         {
-            // マスタの閾値行から必要換気回数だけを初期化時に1回取り出す
+            // 必要換気回数を初期化時に取り出す
             // Extract only the required air change rates from the master threshold rows once at initialization
             var rates = new List<double>();
             foreach (var threshold in MasterHolder.CleanRoomMaster.Thresholds) rates.Add(threshold.RequiredAirChangeRate);

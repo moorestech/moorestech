@@ -5,14 +5,16 @@ using Newtonsoft.Json.Linq;
 namespace Game.SaveLoad.Migration.Steps.V11ToV12
 {
     /// <summary>
-    /// 清浄機の state の摩耗量を消し、経過秒0を入れる（冪等）。旧値は吸い取った不純物の量で経過時間へ換算する根拠が無いため、装填中のフィルターを新品扱いにする
-    /// Drop the purifier state's wear and set zero elapsed seconds (idempotent); the old value was absorbed impurity with no basis for an elapsed time, so the loaded filter is treated as new
+    /// 清浄機の摩耗量を消し新品扱いにする（冪等）
+    /// Drop purifier wear and treat the loaded filter as new (idempotent)
     /// </summary>
     internal sealed class CleanRoomAirFilterWearConverter : ISaveMigrationPart
     {
         // 清浄機コンポーネントのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
         // The purifier component's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
         private const string AirFilterSaveKey = "Game.Block.Blocks.CleanRoom.CleanRoomAirFilterComponent";
+        // 旧摩耗量は時間へ換算できず新品扱い
+        // The old wear cannot be converted to time, so the filter is treated as new
         private const string WearAccumulationKey = "wearAccumulation";
         private const string FilterWearSecondsKey = "filterWearSeconds";
 
@@ -21,7 +23,7 @@ namespace Game.SaveLoad.Migration.Steps.V11ToV12
 
         public bool TryPrepare(JObject save, out string failureReason)
         {
-            // world→ブロック→state の走査と拒否文は全部品で共有する
+            // 走査と拒否文を全部品で共有
             // The world->block->state walk and its refusal texts are shared by every part
             if (!MigrationSaveJson.TryCollectBlockStates(save, out var states, out failureReason)) return false;
 
@@ -49,8 +51,8 @@ namespace Game.SaveLoad.Migration.Steps.V11ToV12
 
         public string ApplyAndSummarize()
         {
-            // 経過秒が既にある清浄機（変換済み）は触らず、旧摩耗量だけを消して新品扱いにする
-            // Leave purifiers that already have elapsed seconds (already converted) untouched; drop only the old wear and treat the filter as new
+            // 変換済みは触らず摩耗量だけ消す
+            // Leave already-converted purifiers untouched; drop only the old wear
             var convertedCount = 0;
             foreach (var airFilterState in _targets)
             {

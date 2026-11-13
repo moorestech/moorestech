@@ -24,7 +24,7 @@ namespace Game.CleanRoom.Util
                     maxOverlapRoom = oldRoom;
                 }
 
-                // 重なる旧部屋が無ければ初期状態（行=Out）のまま
+                // 旧部屋が無ければ初期状態（Out）
                 // With no overlapping old room, keep the fresh state (row=Out)
                 if (maxOverlapRoom == null) continue;
                 newRoom.SetThresholdIndex(maxOverlapRoom.ThresholdIndex);

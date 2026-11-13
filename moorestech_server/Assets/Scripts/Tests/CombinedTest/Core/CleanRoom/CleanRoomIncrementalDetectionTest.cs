@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.AreEqual(1, service.Rooms.Count);
             service.Rooms[0].SetThresholdIndex(1);
 
-            // 中央に壁を置いて2部屋へ分割すると、両方の部屋が元の行を引き継ぐ
+            // 2部屋へ分割し両方が行を引き継ぐ
             // Placing a wall in the middle splits the room, and both rooms carry the original row
             CleanRoomDetectionTest.AddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(2, 1, 1));
             service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(2, 1, 1)));
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             for (var i = 0; i < 5; i++) GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, datastore.Rooms.Count);
 
-            // 内部にチェストを置くと部屋は1つのまま Volume だけ減る
+            // チェスト設置でVolumeだけ減る
             // An interior chest keeps a single room and only reduces Volume
             CleanRoomDetectionTest.AddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(2, 1, 2));
             for (var i = 0; i < 5; i++) GameUpdater.UpdateOneTick();
@@ -147,7 +147,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(2, 1, 1)));
             service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(12, 1, 1)));
 
-            // 1tick目：部屋Aのバッチだけが丸ごと処理され、両サブ部屋が行を引き継ぐ
+            // 1tick目はAのバッチだけ処理
             // Tick 1: only room A's batch is processed whole, and both sub-rooms carry its row
             service.ProcessDirtySeeds();
             Assert.AreEqual(1, FindRoom(service, new Vector3Int(1, 1, 1)).ThresholdIndex);
@@ -159,7 +159,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             service.ProcessDirtySeeds();
             Assert.AreEqual(4, service.Rooms.Count);
 
-            // どのサブ部屋も Out へリセットされず、各元部屋の行が保たれる
+            // 各元部屋の行が保たれる
             // No sub-room resets to Out; each original room's row is preserved
             Assert.AreEqual(1, FindRoom(service, new Vector3Int(1, 1, 1)).ThresholdIndex);
             Assert.AreEqual(1, FindRoom(service, new Vector3Int(3, 1, 1)).ThresholdIndex);

@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V11ToV12
             Assert.AreEqual("C", migratedRoom["className"].Value<string>());
             Assert.IsTrue(JToken.DeepEquals(expectedCells, migratedRoom["cells"]));
 
-            // 清浄機は摩耗量が消えて経過秒0になり、フィルターの在庫は元のまま
+            // 摩耗量が消え経過秒0・在庫は元のまま
             // The purifier loses its wear, gets zero elapsed seconds, and keeps its filter stock
             var migratedFilter = (JObject)result.Save["world"][0]["state"][AirFilterSaveKey];
             Assert.IsFalse(migratedFilter.ContainsKey("wearAccumulation"));
@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V11ToV12
 
             var result = new SaveMigrationStepV11ToV12().Migrate(save);
 
-            // world は正しいので、拒否理由は部屋の一覧の形であること
+            // 拒否理由は部屋一覧の形
             // The world is valid, so the refusal must come from the rooms list's shape
             Assert.IsFalse(result.IsConverted);
             StringAssert.Contains("cleanRoomRooms", result.FailureReason);

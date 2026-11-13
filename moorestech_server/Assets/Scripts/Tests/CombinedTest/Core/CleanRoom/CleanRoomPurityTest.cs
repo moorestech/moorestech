@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
             Assert.AreEqual(0, room.ThresholdIndex);
 
-            // フィルターを抜くと除去能力が0になり、次のtickで Out になる
+            // フィルターを抜くと次tickでOut
             // Pulling the filter zeroes the removal volume, dropping the room to Out on the next tick
             block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, 0);
             GameUpdater.UpdateOneTick();

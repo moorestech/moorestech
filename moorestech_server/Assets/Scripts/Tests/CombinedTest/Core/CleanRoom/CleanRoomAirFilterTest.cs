@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             GameUpdater.UpdateOneTick();
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out _));
 
-            // 供給50/要求100で実効q=5×0.5=2.5になる
+            // 実効q=5×0.5=2.5
             // Supplying 50 of 100 yields an effective q=5x0.5=2.5
             TickWithPower(block, 50f, 20);
             Assert.AreEqual(2.5, block.GetComponent<ICleanRoomAirFilter>().RemovalVolumePerSecond, 0.001);
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             GameUpdater.UpdateOneTick();
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
 
-            // フィルター未装填では満電でも除去0で、行はOutのまま
+            // 未装填は除去0でOut
             // Without a loaded filter, removal is zero even at full power and the row stays Out
             TickWithPower(block, 100f, 100);
             Assert.AreEqual(0, block.GetComponent<ICleanRoomAirFilter>().RemovalVolumePerSecond, 0.001);
@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
             LoadFilterItems(block, 1);
 
-            // 満電で5秒ぶん回し、装填中のフィルターに5秒の経過を溜める
+            // 満電5秒で経過を溜める
             // Run five seconds at full power so the loaded filter accrues five seconds of use
             TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(5));
 
@@ -91,7 +91,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);
             var loaded = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(int.MaxValue), states, positionInfo);
 
-            // スロット内容と経過5秒が新インスタンスへそのまま引き継がれる
+            // スロットと経過が引き継がれる
             // Both the slot contents and the five elapsed seconds carry over to the new instance
             IOpenableInventory loadedInventory = loaded.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.AreEqual(1, loadedInventory.GetItem(0).Count);

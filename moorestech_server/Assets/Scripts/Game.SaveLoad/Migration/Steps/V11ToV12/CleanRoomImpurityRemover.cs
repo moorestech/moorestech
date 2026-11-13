@@ -5,8 +5,8 @@ using Newtonsoft.Json.Linq;
 namespace Game.SaveLoad.Migration.Steps.V11ToV12
 {
     /// <summary>
-    /// クリーンルームの部屋レコードから不純物量を消す（冪等）。版12で濃度が廃止され、クラスは換気回数だけで決まる
-    /// Remove the impurity count from clean-room room records (idempotent); version 12 dropped concentration and decides the class by air change rate alone
+    /// 部屋レコードの不純物量を消す（冪等）
+    /// Remove the impurity count from room records (idempotent)
     /// </summary>
     internal sealed class CleanRoomImpurityRemover : ISaveMigrationPart
     {

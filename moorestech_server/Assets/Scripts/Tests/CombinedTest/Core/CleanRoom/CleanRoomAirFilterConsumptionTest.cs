@@ -14,7 +14,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
 {
     public class CleanRoomAirFilterConsumptionTest
     {
-        // テスト用modの filterLifeSeconds は12秒（毎分5個）
+        // 寿命12秒（毎分5個）
         // The test mod's filterLifeSeconds is 12 seconds (five per minute)
         private const double FilterLifeSeconds = 12;
 
@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
             CleanRoomAirFilterTest.LoadFilterItems(block, 10);
 
-            // 部屋の外でも、満電で60秒動かせばちょうど5個減る
+            // 満電60秒でちょうど5個減る
             // Even outside any room, sixty seconds at full power consume exactly five filters
             CleanRoomAirFilterTest.TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(60));
             Assert.AreEqual(5, FilterCount(block));
@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
             CleanRoomAirFilterTest.LoadFilterItems(block, 10);
 
-            // 無通電のまま60秒回してもフィルター数も残り寿命も変わらない
+            // 無通電では寿命が進まない
             // Sixty seconds without power change neither the filter count nor the remaining life
             for (var i = 0; i < GameUpdater.SecondsToTicks(60); i++) GameUpdater.UpdateOneTick();
             Assert.AreEqual(10, FilterCount(block));
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             ElectricWireTestUtil.Connect(second.BlockPositionInfo.OriginalPos, CleanRoomAirFilterTest.PowerPolePosition);
             ElectricWireTestUtil.WirePower(first.BlockPositionInfo.OriginalPos, CleanRoomAirFilterTest.PowerPolePosition, 200f);
 
-            // 台数で消費は薄まらず、60秒で各5個（合計10個）減る
+            // 台数に依らず各5個減る
             // Consumption is not diluted by the count; each loses five (ten in total) in sixty seconds
             for (var i = 0; i < GameUpdater.SecondsToTicks(60); i++) GameUpdater.UpdateOneTick();
             Assert.AreEqual(5, FilterCount(first));
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
             CleanRoomAirFilterTest.LoadFilterItems(block, 1);
 
-            // 寿命1回ぶんで最後の1個が尽き、除去能力が0になる
+            // 最後の1個が尽きる
             // One life consumes the last filter and drops the removal volume to zero
             CleanRoomAirFilterTest.TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(FilterLifeSeconds));
             Assert.AreEqual(0, FilterCount(block));

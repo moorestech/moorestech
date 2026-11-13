@@ -32,9 +32,16 @@ namespace Core.Master.Validator
 
                     // クラス判定は良い行から走査するため、必要換気回数は前行より小さい（降順）こと
                     // The class decision scans best-first, so required air change rates must be strictly descending across rows
-                    if (i > 0 && threshold.RequiredAirChangeRate >= element.Thresholds[i - 1].RequiredAirChangeRate)
+                    if (0 < i && element.Thresholds[i - 1].RequiredAirChangeRate <= threshold.RequiredAirChangeRate)
                     {
                         logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{threshold.ClassName} RequiredAirChangeRate:{threshold.RequiredAirChangeRate} is not descending.\n";
+                    }
+
+                    // 必要換気回数が0・負・非有限だとクラス条件が空洞化するため正の有限値を要求する
+                    // A zero, negative or non-finite required rate hollows out the class condition, so require a positive finite value
+                    if (!(0 < threshold.RequiredAirChangeRate) || double.IsInfinity(threshold.RequiredAirChangeRate))
+                    {
+                        logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{threshold.ClassName} RequiredAirChangeRate:{threshold.RequiredAirChangeRate} is not positive and finite.\n";
                     }
 
                     if (!classNames.Add(threshold.ClassName))
