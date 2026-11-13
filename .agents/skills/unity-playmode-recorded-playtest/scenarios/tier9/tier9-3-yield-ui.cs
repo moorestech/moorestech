@@ -171,7 +171,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         // F reaches 2 m, so land 1 m south of the face and open it by aiming with the Alt cursor
         var origin = machine.BlockPositionInfo.OriginalPos;
         p.WarpPlayer(new Vector3(origin.x + 1.3f, 33.5f, origin.z - 1f));
-        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, $"床パネルの板の上(y≈32.85)に着地した（y={p.PlayerPosition.y:F2}）");
+        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, "床パネルの板の上(y≈32.85)に着地した");
         SemanticInput.KeyDown(Key.LeftAlt);
         await p.AimAt(new Vector3(origin.x + 1.5f, 34f, origin.z + 0.5f));
         await p.PressInteract();

@@ -25,7 +25,7 @@ using VContainer;
 const string PanelName = "クリーンルームパネル";
 const string WallPanelName = "クリーンルーム壁パネル";
 var outsidePosition = new Vector3(3.5f, 33.5f, -3.5f); // ドア正面の室外（床の上）
-var uiPanelCell = new Vector3Int(6, 33, 4); // 壁パネルを R で東向きに回して UI で置く東の壁
+var uiPanelOrigin = new Vector3Int(6, 33, 1); // 壁パネル(5x5x1)を R で東向きに回して UI で置く東の壁。x=6・y33..37・z1..5 を占める
 var hatchCell = new Vector3Int(4, 34, 0); // 南の壁上段のアイテムハッチ
 return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { Record = true }, async p =>
 {
@@ -36,10 +36,10 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     // Terrain (mesas, rocks, trees) pokes through the scaffold and skews footing, aim and view, with large far-origin pieces spawning late, so stop terrain display and spawning via the skit path
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
-    // 開始位置(0,33.5,0)は壁の角になるので、建てる前に室外へ退く。床は室外まで北向き(水平)のパネルで敷く
-    // The spawn (0,33.5,0) becomes a wall corner, so step outside first; the floor is north-facing (flat) panels reaching outdoors
+    // 開始位置(0,33.5,0)は壁の角になるので、建てる前に室外へ退く。床は室外まで北向き(水平)の 5x1x5 のパネルを x-4..10・z-6..8 に 3x3 枚敷く
+    // The spawn (0,33.5,0) becomes a wall corner, so step outside first; the floor is 3x3 north-facing (flat) 5x1x5 panels over x-4..10 / z-6..8 reaching outdoors
     p.WarpPlayer(outsidePosition);
-    for (var x = -2; x <= 8; x++) for (var z = -6; z <= 8; z++) await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
+    for (var x = -4; x <= 6; x += 5) for (var z = -6; z <= 4; z += 5) await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(6, 32, 4));
     await p.WaitSeconds(1f);
     #region 壁パネルを R で回して UI で置く / Rotate a wall panel with R and place it via the UI
@@ -49,28 +49,27 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     await p.PrepareBlockForUiPlacement(WallPanelName, 1);
     await p.OpenBuildMenuAndSelectBlock(WallPanelName);
     await p.PressKey(Key.R);
-    await p.AimAt(new Vector3(6.5f, 33f, 4.5f));
+    await p.AimAt(new Vector3(6.5f, 33f, 3.5f));
     // 照準直後はプレビューが追従していないので待ってから置く
     // The preview lags the aim, so wait before placing
     await p.WaitSeconds(0.5f);
     await p.ClickPlace();
-    await p.Until(() => p.GetBlock(uiPanelCell) != null, 15f, "UIで置いた壁パネルがサーバーに載った");
-    p.Assert(p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection == BlockDirection.East, $"R1回で壁パネルが東向き(板が室内側の西の面)になった(向き={p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection})");
+    await p.Until(() => p.GetBlock(uiPanelOrigin) != null, 15f, "UIで置いた壁パネルがサーバーに載った");
+    var uiPanelInfo = p.GetBlock(uiPanelOrigin).BlockPositionInfo;
+    p.Assert(uiPanelInfo.OriginalPos == uiPanelOrigin && uiPanelInfo.BlockDirection == BlockDirection.East, $"R1回で壁パネルが東向きになり x=6・z1..5 を占めた(原点={uiPanelInfo.OriginalPos} 向き={uiPanelInfo.BlockDirection})");
     await p.ExitToGameScreen();
     #endregion
-    // 東西南の壁は板が室内側に来る向きの壁パネル、北の壁は壁ブロック、天井は北向きのパネルにする
-    // East/west/south walls are upright panels with the plate facing inside, the north wall is wall blocks, the ceiling is north-facing panels
+    // 内寸 x1..5・z1..5・y33..37。東西北の壁は板が室内側に来る向きの壁パネル 1 枚ずつ、ドアとハッチの穴が要る南の壁と四隅の柱はブロック、天井は北向きのパネル 1 枚にする
+    // Interior x1..5 / z1..5 / y33..37; east/west/north walls are one upright panel each with the plate inside, the south wall (door and hatch holes) and corner posts are blocks, the ceiling is one north-facing panel
     p.WarpPlayer(outsidePosition);
+    await p.PlaceBlockDirect(WallPanelName, new Vector3Int(0, 33, 1), BlockDirection.West);
+    await p.PlaceBlockDirect(WallPanelName, new Vector3Int(1, 33, 6), BlockDirection.North);
+    await p.PlaceBlockDirect(PanelName, new Vector3Int(1, 38, 1), BlockDirection.North);
     for (var x = 0; x <= 6; x++)
-    for (var z = 0; z <= 6; z++)
+    for (var y = 33; y <= 37; y++)
     {
-        await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 35, z), BlockDirection.North);
-        if (x != 0 && x != 6 && z != 0 && z != 6) continue;
-        foreach (var cell in new[] { new Vector3Int(x, 33, z), new Vector3Int(x, 34, z) }.Where(cell => !(x == 3 && z == 0) && cell != uiPanelCell && cell != hatchCell))
-            if (x == 0) await p.PlaceBlockDirect(WallPanelName, cell, BlockDirection.West);
-            else if (x == 6) await p.PlaceBlockDirect(WallPanelName, cell, BlockDirection.East);
-            else if (z == 0) await p.PlaceBlockDirect(WallPanelName, cell, BlockDirection.South);
-            else await p.PlaceBlockDirect("クリーンルームブロック", cell, BlockDirection.North);
+        if (!(x == 3 && y <= 34) && new Vector3Int(x, y, 0) != hatchCell) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, 0), BlockDirection.North);
+        if (x == 0 || x == 6) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, 6), BlockDirection.North);
     }
     await p.PlaceBlockDirect("クリーンルームドア", new Vector3Int(3, 33, 0), BlockDirection.North);
     await p.PlaceBlockDirect("クリーンルームアイテムハッチ", hatchCell, BlockDirection.North);
@@ -78,10 +77,10 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     var machineBlock = await p.PlaceBlockDirect("EUV露光式半導体製造装置", new Vector3Int(3, 33, 3), BlockDirection.North);
     await WirePower(filterBlock, machineBlock);
     await p.WaitBlockGameObject(new Vector3Int(3, 33, 0));
-    // 床(水平)・西・南・UIで置いた東の壁パネルの板が、それぞれ自分のセルの中に描かれる
-    // The floor (flat), west, south and UI-placed east wall-panel plates each render inside their own cell
-    foreach (var (plateCell, upright) in new[] { (new Vector3Int(2, 32, 2), false), (new Vector3Int(0, 33, 2), true), (new Vector3Int(1, 33, 0), true), (uiPanelCell, true) })
-        await AssertPanelPlateInCell(plateCell, upright);
+    // 床(水平)・西・北・UIで置いた東の壁パネルの板が、それぞれ自分の占める範囲の中に描かれる
+    // The floor (flat), west, north and UI-placed east wall-panel plates each render inside their own footprint
+    foreach (var (origin, size, upright) in new[] { (new Vector3Int(1, 32, -1), new Vector3Int(5, 1, 5), false), (new Vector3Int(0, 33, 1), new Vector3Int(1, 5, 5), true), (new Vector3Int(1, 33, 6), new Vector3Int(5, 5, 1), true), (uiPanelOrigin, new Vector3Int(1, 5, 5), true) })
+        await AssertPanelPlateInFootprint(origin, size, upright);
     // 密閉された部屋が検出されるのを待つ（クラスは問わない）
     // Wait for the sealed room to be detected, whatever its class
     await p.WaitForCleanRoom(machineBlock, false, 15f, "部屋が検出された");
@@ -118,21 +117,22 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     await p.Screenshot("04-euv-room-section");
     await CloseBlockUi();
     #endregion
-    async UniTask AssertPanelPlateInCell(Vector3Int cell, bool expectUpright)
+    async UniTask AssertPanelPlateInFootprint(Vector3Int origin, Vector3Int size, bool expectUpright)
     {
-        // 板の描画範囲がセルの中に収まり、縦なら高さ1・厚さ0.1、横なら高さ0.1になる
-        // The plate's rendered bounds stay inside the cell: height 1 and thickness 0.1 when upright, height 0.1 when flat
-        var bounds = (await p.WaitBlockGameObject(cell)).GetComponentsInChildren<MeshRenderer>(true).First(renderer => renderer.gameObject.name == "PanelPlate").bounds;
-        var cellBounds = new Bounds(cell + Vector3.one * 0.5f, Vector3.one * 1.02f);
-        var isUpright = 0.9f < bounds.size.y && Mathf.Min(bounds.size.x, bounds.size.z) < 0.15f;
-        p.Assert(cellBounds.Contains(bounds.min) && cellBounds.Contains(bounds.max) && isUpright == expectUpright, $"{cell} のパネルの板がセル内に{(expectUpright ? "縦" : "横")}で描かれる(bounds={bounds})");
+        // 板の描画範囲がパネルの占める範囲に収まり、縦なら高さ5で厚さは1マス未満、横なら5x5で高さ1マス未満になる（板は厚さ0.7で層の中央）
+        // The plate's rendered bounds stay inside the panel footprint: 5 tall and under one cell thick when upright, 5x5 and under one cell tall when flat (the plate is 0.7 thick, centred in its layer)
+        var bounds = (await p.WaitBlockGameObject(origin)).GetComponentsInChildren<MeshRenderer>(true).First(renderer => renderer.gameObject.name == "PanelPlate").bounds;
+        var footprint = new Bounds(origin + (Vector3)size * 0.5f, (Vector3)size + Vector3.one * 0.02f);
+        var isUpright = 4.5f < bounds.size.y && Mathf.Min(bounds.size.x, bounds.size.z) < 0.9f;
+        var isFlat = bounds.size.y < 0.9f && 4.5f < Mathf.Min(bounds.size.x, bounds.size.z);
+        p.Assert(footprint.Contains(bounds.min) && footprint.Contains(bounds.max) && (expectUpright ? isUpright : isFlat), $"{origin} のパネルの板が占める範囲内に{(expectUpright ? "縦" : "横")}で描かれる(bounds={bounds})");
     }
     async UniTask OpenBlockUi(Vector3 standPosition, Vector3 aimPoint)
     {
         // Fは三人称だと画面中央を狙い射程2m。電線の上を避けて床に着地しカメラが天井の下に来てから、Altのカーソル照準で開く
         // In third person F aims at screen center with 2 m reach; land on the floor off the wires (camera below the ceiling), then open via the Alt cursor
         p.WarpPlayer(standPosition);
-        await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 33f) < 0.05f, 5f, "床パネルの上(y=33.0)に着地した");
+        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, "床パネルの板の上(y≈32.85)に着地した");
         SemanticInput.KeyDown(Key.LeftAlt);
         await p.AimAt(aimPoint);
         await p.PressInteract();

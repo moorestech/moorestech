@@ -145,7 +145,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         // F reaches 2 m, so land 1 m south of the face (west of the feed belt) and open by aiming at the south face with the Alt cursor (same as cleanroom-room-usability)
         var origin = block.BlockPositionInfo.OriginalPos;
         p.WarpPlayer(new Vector3(origin.x + 0.3f, 33.5f, origin.z - 1f));
-        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, $"床パネルの板の上(y≈32.85)に着地した（y={p.PlayerPosition.y:F2}）");
+        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, "床パネルの板の上(y≈32.85)に着地した");
         SemanticInput.KeyDown(Key.LeftAlt);
         await p.AimAt(new Vector3(origin.x + 1f, 34f, origin.z + 0.5f));
         await p.PressInteract();
