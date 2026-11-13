@@ -28,7 +28,8 @@ Usage:
         "event_action":         [...],  # moores-cs-domain-boundaryの裏付けデータ（UniRx規約）
         "mutable_auto_property":[...],  # moores-cs-redundant-member-duplicationの裏付けデータ
         "passthrough_property": [...]   # moores-cs-redundant-member-duplicationの裏付けデータ
-      }
+      },
+      "dependency_changes": [...]  # 宣言ファイル（asmdef 等）で増えた参照（checks_dependency）。違反ではない。integrator が向きを判定
     }
 
 confirmed は汎用(checks_static: partial・try-catch・デフォルト引数・SerializeField命名・200行・10ファイル)
@@ -47,6 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import checks_comment_length
 import checks_comparison
+import checks_dependency
 import checks_external_repo
 import checks_moores_reviewer_evidence
 import checks_moores
@@ -85,6 +87,7 @@ def main(argv: list[str]) -> int:
             "mutable_auto_property": checks_moores_reviewer_evidence.mutable_auto_property(files),
             "passthrough_property": checks_moores_reviewer_evidence.passthrough_property(files),
         },
+        "dependency_changes": checks_dependency.run(files),
     }
     json.dump(result, sys.stdout, ensure_ascii=False, indent=2)
     print()

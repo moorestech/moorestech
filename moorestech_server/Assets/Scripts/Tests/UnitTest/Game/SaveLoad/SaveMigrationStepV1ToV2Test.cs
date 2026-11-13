@@ -1,5 +1,5 @@
 using Core.Update;
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V1ToV2;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 

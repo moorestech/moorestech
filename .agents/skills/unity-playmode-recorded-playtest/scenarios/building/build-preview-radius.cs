@@ -65,10 +65,10 @@ return PlaytestRunner.Run("build-preview-radius", options, async p =>
     p.Note($"avgFrameMs={elapsed * 1000f / frames:F2}");
     await p.Screenshot("01-build-mode-dense");
 
-    // 非同期ロード後に内外の枠線を判定する
-    // Judge nearby and distant outlines after asynchronous loading
+    // 当たり判定の生成後に内外の枠線を判定する
+    // Judge nearby and distant outlines after hit faces are created
     foreach (var probe in new[] { new Vector3Int(0, 32, 0), new Vector3Int(-30, 32, -30), new Vector3Int(0, 32, 28) })
-        await p.Until(() => BoxAt(probe) != null, 30f, $"枠線ロード {probe}");
+        await p.Until(() => HitFacesAt(probe) != null, 30f, $"枠線ロード {probe}");
     p.Note("プレイヤー周囲だけ枠線が描画されることを確認");
     p.WarpPlayer(new Vector3(0, 33.5f, 0));
     await UniTask.DelayFrame(5);
@@ -95,18 +95,22 @@ return PlaytestRunner.Run("build-preview-radius", options, async p =>
     await p.Until(() => p.GetBlock(farTarget + Vector3Int.up) != null, 10f, "半径外ブロックの上へ設置できた");
     await p.WaitBlockGameObject(farTarget + Vector3Int.up);
     await p.Until(() => !ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(farTarget + Vector3Int.up).IsPlayingPlaceAnimation, 10f, "新規設置アニメーション完了");
-    await p.Until(() => BoxAt(farTarget + Vector3Int.up) != null, 30f, "新規ブロックの枠線ロード");
+    await p.Until(() => HitFacesAt(farTarget + Vector3Int.up) != null, 30f, "新規ブロックの枠線ロード");
     p.Assert(!IsBoxRendered(farTarget + Vector3Int.up), "半径外の新規ブロックも枠線なし");
     await p.Screenshot("03-place-on-far-block");
 
     #region Internal
 
-    BlockPreviewBoundingBox BoxAt(Vector3Int pos) => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos).GetComponentInChildren<BlockPreviewBoundingBox>(true);
+    BlockPlacementHitFaces HitFacesAt(Vector3Int pos) => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos).GetComponentInChildren<BlockPlacementHitFaces>(true);
 
+    // プールの枠がそのブロックの位置で有効なら描画中
+    // A block is outlined when an active pooled frame sits at its position
     bool IsBoxRendered(Vector3Int pos)
     {
-        var box = BoxAt(pos);
-        return box.gameObject.activeInHierarchy && box.GetComponentInChildren<Renderer>(true).enabled;
+        var block = ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos);
+        foreach (var frame in UnityEngine.Object.FindObjectsByType<BlockPreviewBoundingBox>(FindObjectsSortMode.None))
+            if (frame.transform.position == block.transform.position) return frame.GetComponentInChildren<Renderer>(true).enabled;
+        return false;
     }
 
     #endregion

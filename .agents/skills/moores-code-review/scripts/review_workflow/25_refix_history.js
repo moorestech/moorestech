@@ -21,7 +21,16 @@ function trackRefix(result, round, history) {
     ids.add(finding.id)
     if (finding.recurs_from !== null) {
       const previous = history.find((h) => h.round === finding.recurs_from && h.id === finding.id)
-      if (!previous) throw new Error(`Refix r${round}: 再発の参照先が無い ${finding.recurs_from}:${finding.id}`)
+      if (!previous) {
+        // 履歴は Critical だけを持つので、前周の Warning を指す Warning の再発は昇格させずログに残して続ける。
+        // History holds only Criticals, so a Warning recurring from a prior Warning is logged and not promoted.
+        if (finding.severity === 'Warning') {
+          log(`Refix r${round}: Warning→Warning の再発は昇格しない ${finding.recurs_from}:${finding.id}`)
+          finding.recurs_from = null
+          continue
+        }
+        throw new Error(`Refix r${round}: 再発の参照先が無い ${finding.recurs_from}:${finding.id}`)
+      }
       if (finding.severity === 'Warning') promoted++
       finding.severity = 'Critical'
       finding.summary += '（前回の修正が不完全な可能性）'

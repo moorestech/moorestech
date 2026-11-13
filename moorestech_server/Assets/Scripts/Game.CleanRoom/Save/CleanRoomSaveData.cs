@@ -5,7 +5,6 @@ namespace Game.CleanRoom.Save
 {
     public class CleanRoomSaveData
     {
-        [JsonProperty("impurityCount")] public double ImpurityCount;
         [JsonProperty("className")] public string ClassName;
 
         // セル座標は配列順序に依存させず、JSONキーで永続化する
