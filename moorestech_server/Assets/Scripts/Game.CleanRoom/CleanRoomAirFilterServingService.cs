@@ -24,6 +24,17 @@ namespace Game.CleanRoom
             foreach (var entry in entries) _currentServingFilters.Add(entry.Filter);
         }
 
+        // 清浄機が保持する在室から前tick集合を作り直す。trueを送った清浄機だけがtrueを持つので、稼働中の世界で呼んでも集合は変わらない
+        // Rebuild the previous-tick set from the purifiers' held serving state; only purifiers sent true hold true, so calling this on a live world leaves the set unchanged
+        public void SeedPreviousServing(IReadOnlyList<ICleanRoomAirFilter> filters)
+        {
+            _previousServingFilters.Clear();
+            foreach (var filter in filters)
+            {
+                if (filter.IsServingRoom) _previousServingFilters.Add(filter);
+            }
+        }
+
         public void PushChanges()
         {
             // 新たに部屋へ入った清浄機へだけtrueを送る

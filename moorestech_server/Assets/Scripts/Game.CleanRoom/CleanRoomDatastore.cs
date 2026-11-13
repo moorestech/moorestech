@@ -98,10 +98,9 @@ namespace Game.CleanRoom
         {
             _detectionService.RebuildAll();
 
-            // 在室は保存しないので、ロード直後の最初のtickから稼働中と同じ在室で回るよう再検出した部屋からすぐ配る
-            // Serving state is not saved, so push it from the rebuilt rooms at once to run the first tick after load as a live world would
-            foreach (var room in _detectionService.Rooms) CollectAndMarkServing(room);
-            _airFilterServingService.PushChanges();
+            // 在室は清浄機がセーブから戻した値を正とし、再検出の結果からは配らない。保存tickの末尾で壁が変わっても、ロード後最初のtickが稼働中と同じ在室で回る
+            // Purifiers' restored serving state is authoritative and is not re-pushed from the rebuild, so a wall change at the end of the save tick still lets the first tick after load run as the live world would
+            _airFilterServingService.SeedPreviousServing(CollectAllAirFilters());
         }
 
         // クリーンルーム保存復元は専用ヘルパーへ委譲する
@@ -143,6 +142,19 @@ namespace Game.CleanRoom
         {
             var filters = CleanRoomAirFilterCollector.Collect(room, _world);
             _airFilterServingService.MarkServing(filters);
+            return filters;
+        }
+
+        // 部屋の外にある清浄機も含め、世界の全清浄機を集める
+        // Collect every purifier in the world, including ones outside any room
+        private List<ICleanRoomAirFilter> CollectAllAirFilters()
+        {
+            var filters = new List<ICleanRoomAirFilter>();
+            foreach (var blockData in _world.BlockMasterDictionary.Values)
+            {
+                if (blockData.Block.TryGetComponent<ICleanRoomAirFilter>(out var filter)) filters.Add(filter);
+            }
+
             return filters;
         }
 

@@ -17,5 +17,9 @@ namespace Game.Block.Interface.Component
         // 成立した部屋に属しているかを判定段から受け取る。属している間だけフィルターを消費する
         // Receive from the clean-room pass whether it serves a detected room; filters are consumed only while serving
         void SetServingRoom(bool isServingRoom);
+
+        // 判定段から最後に受け取った在室。セーブされ、ロード時に判定段の前tick集合を作り直すのに使う
+        // The serving state last received from the pass; it is saved and rebuilds the pass's previous-tick set on load
+        bool IsServingRoom { get; }
     }
 }

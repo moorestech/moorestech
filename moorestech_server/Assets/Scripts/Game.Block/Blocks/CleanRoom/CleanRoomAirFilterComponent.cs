@@ -44,9 +44,9 @@ namespace Game.Block.Blocks.CleanRoom
         // Ticks the loaded filter has been in use; advances by whole ticks, the power ratio rounded probabilistically
         private uint _filterWearTicks;
 
-        // 成立した部屋に属しているか。クリーンルーム判定段が変化時にプッシュし、ロード時は部屋の再検出直後に配られる
-        // Whether the purifier serves a detected room; the clean-room pass pushes changes, and on load it is pushed right after room rebuild
-        private bool _isServingRoom;
+        // 成立した部屋に属しているか。クリーンルーム判定段が変化時にプッシュし、ロード時はセーブから戻す
+        // Whether the purifier serves a detected room; the clean-room pass pushes changes, and on load it is restored from the save
+        public bool IsServingRoom { get; private set; }
 
         public CleanRoomAirFilterComponent(BlockInstanceId blockInstanceId, CleanRoomAirFilterBlockParam param)
         {
@@ -65,6 +65,10 @@ namespace Game.Block.Blocks.CleanRoom
         {
             if (!BlockComponentStateReader.TryRead<CleanRoomAirFilterSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
             _filterWearTicks = ReadSavedWearTicks(saveData.FilterWearSeconds);
+
+            // 保存tickの判定段が最後に配った在室を戻し、ロード直後のtickを稼働中の世界と同じ在室で回す
+            // Restore the serving state the save tick's pass last pushed so the first tick after load runs as the live world would
+            IsServingRoom = saveData.IsServingRoom;
 
             // ロード時はブロック未登録のためイベント無しでスロットを復元する
             // Restore the slot without events since the block is not yet registered on load
@@ -92,7 +96,7 @@ namespace Game.Block.Blocks.CleanRoom
 
             // 部屋の中で通電しフィルターがある間だけ、採掘機と同じく電力割合を確率で丸めたtick数ぶん寿命を進める
             // Only while serving a room, powered and loaded, advance the life by power-scaled sub-ticks as the miner does
-            if (!_isServingRoom || PowerRatio <= 0 || !HasFilterItem) return;
+            if (!IsServingRoom || PowerRatio <= 0 || !HasFilterItem) return;
             _filterWearTicks += MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, _requiredPower);
 
             // 寿命に達したらフィルターを1個消費し、採掘機の周期と同じく次の1個は0から数える
@@ -105,7 +109,7 @@ namespace Game.Block.Blocks.CleanRoom
         public void SetServingRoom(bool isServingRoom)
         {
             CheckDestroy(this);
-            _isServingRoom = isServingRoom;
+            IsServingRoom = isServingRoom;
         }
 
         public CleanRoomAirFilterStatus GetStatus()
@@ -128,6 +132,7 @@ namespace Game.Block.Blocks.CleanRoom
             var saveData = new CleanRoomAirFilterSaveJsonObject
             {
                 FilterWearSeconds = GameUpdater.TicksToSeconds(_filterWearTicks),
+                IsServingRoom = IsServingRoom,
                 Items = FilterSlot.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             return saveData;
@@ -174,6 +179,11 @@ namespace Game.Block.Blocks.CleanRoom
     {
         [JsonProperty("filterWearSeconds")]
         public double FilterWearSeconds;
+
+        // 欠けたセーブを在室なしで黙って読むと稼働中の世界と寿命がずれるので、キー欠落はロードで止める
+        // A missing key would silently read as not serving and drift from the live world, so loading fails on it
+        [JsonProperty("isServingRoom", Required = Required.Always)]
+        public bool IsServingRoom;
 
         [JsonProperty("inventory")]
         public List<ItemStackSaveJsonObject> Items;

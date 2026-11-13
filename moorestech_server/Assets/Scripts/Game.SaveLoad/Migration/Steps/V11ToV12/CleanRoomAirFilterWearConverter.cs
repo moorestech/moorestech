@@ -5,8 +5,8 @@ using Newtonsoft.Json.Linq;
 namespace Game.SaveLoad.Migration.Steps.V11ToV12
 {
     /// <summary>
-    /// 清浄機の摩耗量を消し新品扱いにする（冪等）
-    /// Drop purifier wear and treat the loaded filter as new (idempotent)
+    /// 清浄機の摩耗量を消し新品扱いにし、在室なしを書く（冪等）
+    /// Drop purifier wear, treat the loaded filter as new, and write not-serving (idempotent)
     /// </summary>
     internal sealed class CleanRoomAirFilterWearConverter : ISaveMigrationPart
     {
@@ -17,6 +17,9 @@ namespace Game.SaveLoad.Migration.Steps.V11ToV12
         // The old wear cannot be converted to time, so the filter is treated as new
         private const string WearAccumulationKey = "wearAccumulation";
         private const string FilterWearSecondsKey = "filterWearSeconds";
+        // 旧版は在室を持たないので在室なしで始め、ロード後最初の判定段で部屋の中の清浄機へ配られる
+        // Old saves lack serving state, so start not serving; the first pass after load pushes it to purifiers inside rooms
+        private const string IsServingRoomKey = "isServingRoom";
 
         private readonly List<JObject> _targets = new();
         private int _nullAirFilterCount;
@@ -51,18 +54,21 @@ namespace Game.SaveLoad.Migration.Steps.V11ToV12
 
         public string ApplyAndSummarize()
         {
-            // 変換済みは触らず摩耗量だけ消す
-            // Leave already-converted purifiers untouched; drop only the old wear
+            // 変換済みのキーは触らず、旧摩耗量を消して欠けたキーだけ足す
+            // Keep already-converted keys; drop the old wear and add only the missing keys
             var convertedCount = 0;
             foreach (var airFilterState in _targets)
             {
                 airFilterState.Remove(WearAccumulationKey);
-                if (airFilterState.ContainsKey(FilterWearSecondsKey)) continue;
-                airFilterState[FilterWearSecondsKey] = 0d;
+                var hasWearSeconds = airFilterState.ContainsKey(FilterWearSecondsKey);
+                var hasServingRoom = airFilterState.ContainsKey(IsServingRoomKey);
+                if (hasWearSeconds && hasServingRoom) continue;
+                if (!hasWearSeconds) airFilterState[FilterWearSecondsKey] = 0d;
+                if (!hasServingRoom) airFilterState[IsServingRoomKey] = false;
                 convertedCount++;
             }
 
-            return $"摩耗量を経過秒0へ置き換えた清浄機={convertedCount}台 state が null で飛ばした清浄機={_nullAirFilterCount}台";
+            return $"摩耗量を経過秒0・在室なしへ置き換えた清浄機={convertedCount}台 state が null で飛ばした清浄機={_nullAirFilterCount}台";
         }
     }
 }

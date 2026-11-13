@@ -7,8 +7,8 @@ using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.SaveLoad.Migration.V11ToV12
 {
-    // 部屋の不純物量が消え、清浄機の摩耗量が経過秒0へ置き換わり、他は残ることを検証
-    // Verify room impurity is dropped, purifier wear becomes zero elapsed seconds, and everything else stays
+    // 部屋の不純物量が消え、清浄機の摩耗量が経過秒0・在室なしへ置き換わり、他は残ることを検証
+    // Verify room impurity is dropped, purifier wear becomes zero elapsed seconds with not-serving, and everything else stays
     public class SaveMigrationStepV11ToV12Test
     {
         private const string AirFilterSaveKey = "Game.Block.Blocks.CleanRoom.CleanRoomAirFilterComponent";
@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V11ToV12
         private const string AirFilterBlockGuid = "00000000-0000-0000-0000-000000000123";
 
         [Test]
-        public void 部屋の不純物量を消し清浄機の摩耗量を経過秒0へ置き換えるTest()
+        public void 部屋の不純物量を消し清浄機の摩耗量を経過秒0と在室なしへ置き換えるTest()
         {
             var room = new JObject { ["impurityCount"] = 18757.79, ["className"] = "C", ["cells"] = new JArray(new JObject { ["x"] = 1, ["y"] = 2, ["z"] = 3 }) };
             var inventory = new JArray(new JObject { ["itemGuid"] = FilterItemGuid, ["count"] = 100 });
@@ -41,12 +41,30 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V11ToV12
             Assert.AreEqual("C", migratedRoom["className"].Value<string>());
             Assert.IsTrue(JToken.DeepEquals(expectedCells, migratedRoom["cells"]));
 
-            // 摩耗量が消え経過秒0・在庫は元のまま
-            // The purifier loses its wear, gets zero elapsed seconds, and keeps its filter stock
+            // 摩耗量が消え経過秒0・在室なし・在庫は元のまま
+            // The purifier loses its wear, gets zero elapsed seconds and not-serving, and keeps its filter stock
             var migratedFilter = (JObject)result.Save["world"][0]["state"][AirFilterSaveKey];
             Assert.IsFalse(migratedFilter.ContainsKey("wearAccumulation"));
             Assert.AreEqual(0d, migratedFilter["filterWearSeconds"].Value<double>());
+            Assert.AreEqual(JTokenType.Boolean, migratedFilter["isServingRoom"].Type);
+            Assert.IsFalse(migratedFilter["isServingRoom"].Value<bool>());
             Assert.IsTrue(JToken.DeepEquals(expectedInventory, migratedFilter["inventory"]));
+        }
+
+        [Test]
+        public void 変換済みの清浄機は値を変えないTest()
+        {
+            // 再実行で経過秒と在室を上書きしない（冪等）
+            // Re-running does not overwrite elapsed seconds or serving state (idempotent)
+            var airFilterState = new JObject { ["filterWearSeconds"] = 3.5, ["isServingRoom"] = true, ["inventory"] = new JArray() };
+            var save = new JObject { ["worldVersion"] = 11, ["world"] = new JArray(WorldBlock(new JObject { [AirFilterSaveKey] = airFilterState })) };
+            var expected = save.DeepClone();
+            LogAssert.Expect(LogType.Log, new Regex("版11から版12へ変換しました"));
+
+            var result = new SaveMigrationStepV11ToV12().Migrate(save);
+
+            Assert.IsTrue(result.IsConverted, result.FailureReason);
+            Assert.IsTrue(JToken.DeepEquals(expected, result.Save));
         }
 
         [Test]
