@@ -10,14 +10,14 @@ using VContainer.Unity;
 namespace Client.Ui.Screens.Hotbar
 {
     /// <summary>
-    /// ホットバーを起動時に 1 回 OverlayPanel 層へ載せる
-    /// Mounts the hotbar once into the OverlayPanel layer
+    /// ホットバーを起動時に 1 回 Chrome 層へ載せる
+    /// Mounts the hotbar once into the Chrome layer
     /// </summary>
     public sealed class HotbarHudPresenter : IInitializable
     {
-        // Web は viewportOverlay の z stage-overlay-panel。キー操作ヒント（Chrome）の下で、削除の帯より後の兄弟
-        // On the Web it sits in viewportOverlay at z stage-overlay-panel; below the key hints (Chrome) and after the delete bands
-        internal const UiLayer HostLayer = UiLayer.OverlayPanel;
+        // Web は viewportOverlay（z stage-overlay-panel-chrome の積み重ね文脈）の中なので、舞台の一覧・研究より前の Chrome 層
+        // On the Web it lives inside viewportOverlay (a stacking context at z stage-overlay-panel-chrome), so the Chrome layer, in front of stage lists and research
+        internal const UiLayer HostLayer = UiLayer.Chrome;
         internal const UiFamily HostFamily = UiFamily.Viewport;
 
         private readonly GameUiRoot _gameUiRoot;
