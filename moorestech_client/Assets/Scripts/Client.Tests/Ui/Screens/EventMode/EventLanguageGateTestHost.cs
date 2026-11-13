@@ -17,8 +17,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.EventMode
 {
     /// <summary>
-    /// 言語ゲートの L1 の土台。本番の層を組み、舞台の倍率 1.5 でゲートを最前面の層へ載せる
-    /// L1 base for the language gate; builds the production layers and mounts the gate on the frontmost layer at stage scale 1.5
+    /// 言語ゲート L1 の土台（倍率 1.5）
+    /// L1 base for the language gate (scale 1.5)
     /// </summary>
     public abstract class EventLanguageGateTestHost : ScreenTestHost
     {

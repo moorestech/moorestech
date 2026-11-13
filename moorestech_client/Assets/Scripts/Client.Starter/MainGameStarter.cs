@@ -104,8 +104,8 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
 
-        // GameUi の系では DI より前に土台（sRGB 合成・ロケールのクラス・倍率の見張り）を 1 本だけ立てる。出展モードか否かによらない
-        // In the GameUi system build the foundation (sRGB composite, locale class, scale watch) once before DI, whether or not in exhibition mode
+        // GameUi の系で DI 前に土台を立てる
+        // Build the foundation before DI in the GameUi system
         internal void PrepareUiBeforeDi()
         {
             // silent-ok: Web の系は Client.Ui を立てない / 起動の系は UiSystemBootSelection がログに出している
@@ -114,8 +114,8 @@ namespace Client.Starter
             _gameUiFoundation.Initialize();
         }
 
-        // 出展モードの言語ゲートの画面。EventModeStartGate が GameUi の系でだけ PrepareUiBeforeDi の後に呼ぶ
-        // The exhibition language-gate screen; EventModeStartGate calls it only in the GameUi system, after PrepareUiBeforeDi
+        // 言語ゲートの画面（GameUi の系のみ）
+        // Language-gate screen (GameUi system only)
         internal IEventLanguageGateScreen CreateEventLanguageGateScreen() => _gameUiFoundation.CreateEventLanguageGateScreen();
         
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter, bool collectsPlaytestRecords)

@@ -47,8 +47,8 @@ namespace Client.Starter.Initialization
         {
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
-            // GameUi の系では DI より前に土台を 1 本だけ立てる。言語ゲートも DI もこれを使う
-            // In the GameUi system the foundation is built once before DI; both the language gate and DI use it
+            // DI 前に土台を 1 本立てる
+            // Build one foundation before DI
             starter.PrepareUiBeforeDi();
 
             // 出展モードは言語が決まるまで開始を止める。スキットとチュートリアルが英語で走り出す前に挟む

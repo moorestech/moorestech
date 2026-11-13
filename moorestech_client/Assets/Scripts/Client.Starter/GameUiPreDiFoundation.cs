@@ -51,8 +51,8 @@ namespace Client.Starter
             _compositeTickBeforeDi = _gameUiRoot.GetRootElement().schedule.Execute(_composite.Tick).Every(0);
         }
 
-        // 出展モードの言語ゲートの画面。最前面の層と、この土台の倍率の読み口を渡す
-        // The exhibition language-gate screen, given the frontmost layer and this foundation's scale source
+        // 言語ゲート画面。層と倍率の読み口を渡す
+        // Language-gate screen given the layer and scale source
         public IEventLanguageGateScreen CreateEventLanguageGateScreen()
         {
             return new EventLanguageGateBootHost(_gameUiRoot.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport), _stageScale, LanguageCatalog.Languages);

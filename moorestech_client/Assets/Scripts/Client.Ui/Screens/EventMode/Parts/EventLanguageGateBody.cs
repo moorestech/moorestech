@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.EventMode.Parts
 {
     /// <summary>
-    /// 言語のボタンの列（Web EventLanguageGateBody の写し。待機中に出ない結末の 1 行は持たない）
-    /// The row of language buttons (mirrors Web EventLanguageGateBody, without the outcome line that never shows while waiting)
+    /// 言語ボタンの列（Web の写し）
+    /// Row of language buttons (mirrors Web)
     /// </summary>
     public sealed class EventLanguageGateBody : VisualElement
     {
@@ -26,8 +26,8 @@ namespace Client.Ui.Screens.EventMode.Parts
             AddToClassList("event-language-gate__body");
             pickingMode = PickingMode.Ignore;
 
-            // 母国語表記のボタンを一覧の順に並べる（Web Group justify center gap lg・Button size xl）
-            // Native-name buttons in list order (Web Group justify center gap lg, Button size xl)
+            // ボタンを一覧順に並べる
+            // Buttons in list order
             var group = new UiGroup(UiGap.Lg) { pickingMode = PickingMode.Ignore };
             group.AddToClassList(UiLayoutClass.GroupJustifyCenter);
             foreach (var language in languages) group.AddItem(CreateOption(language));

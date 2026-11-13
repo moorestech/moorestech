@@ -21,8 +21,8 @@ namespace Client.Starter.EventMode
             var settings = EventExhibitionSettings.FromEnvironment();
             var armer = new EventIdleQuitWatcherArmer();
 
-            // GameUi の系は Web ホストを立てないので hub を見ず、DI より前に GameUiRoot へゲートを出す
-            // The GameUi system starts no web host, so it never looks at the hub and shows the gate on GameUiRoot before DI
+            // GameUi の系は hub を見ず UITK ゲートを出す
+            // GameUi system skips the hub and shows the UITK gate
             if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi) return WaitOnGameUiAsync(settings, starter.CreateEventLanguageGateScreen(), armer, ct);
 
             // Web の系で Web ホストが立っていなければ画面を出せない（起動の失敗はWebUiStartupがLogError済み）

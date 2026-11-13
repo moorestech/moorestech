@@ -29,8 +29,8 @@ namespace Client.Starter.Registration
         public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot, GameUiPreDiFoundation gameUiFoundation)
         {
             builder.RegisterComponent(gameUiRoot);
-            // パネルの描き先の差し替えは DI より前に済んでいる。合成の Tick と倍率の読み口を作り済みのまま渡す
-            // The panel's target swap finished before DI; hand over the composite tick and the scale source as built
+            // 作り済みの合成 Tick と倍率を渡す
+            // Hand over the built composite tick and scale
             gameUiFoundation.HandOverTo(builder);
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();

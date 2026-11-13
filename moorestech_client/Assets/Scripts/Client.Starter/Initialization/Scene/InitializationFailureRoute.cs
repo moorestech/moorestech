@@ -12,8 +12,8 @@ namespace Client.Starter.Initialization.Scene
     }
 
     /// <summary>
-    /// 初期化の失敗の例外から、アプリを終了するかメインメニューへ戻るかを決める
-    /// Decides from an initialization failure whether to quit the app or return to the main menu
+    /// 失敗の行き先（終了／メニュー）を決める
+    /// Decides the failure route (quit or menu)
     /// </summary>
     /// <remarks>
     /// sRGB 合成の RT を作れないときは、色の外れた UI を出し続けることも、無操作監視の無いメインメニューで止まることもさせず終了する（S5-gate D-18 裁定 b）。それ以外は今どおりメインメニューへ戻す

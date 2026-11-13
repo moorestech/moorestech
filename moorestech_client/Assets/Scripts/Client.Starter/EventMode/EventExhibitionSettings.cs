@@ -13,8 +13,8 @@ namespace Client.Starter.EventMode
         internal const string EditorOptInEnvKey = "MOORESTECH_EVENT_MODE_EDITOR";
         internal const string IdleTimeoutEnvKey = "MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS";
         internal const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
-        // 有効の値。武装する側（録画の起動口）と受け手で同じ定義を使う
-        // The enabled value; the arming side (recording boot entry) and the reader share one definition
+        // 有効の値（武装側と受け手で共有）
+        // The enabled value, shared by arming side and reader
         internal const string EnabledValue = "1";
         private const int DefaultIdleTimeoutSeconds = 180;
 

@@ -13,8 +13,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.EventMode
 {
     /// <summary>
-    /// GameUi の系の待ちと Web ホスト無しの縮退を、画面と武装の窓口の呼ばれ方で押さえる
-    /// Pins the GameUi-system wait and the no-web-host fallback through how the screen and arming windows are called
+    /// GameUi の待ちと Web 無し縮退を検証
+    /// Pins the GameUi wait and the no-web fallback
     /// </summary>
     public class EventModeStartGateGameUiTest
     {
@@ -40,8 +40,8 @@ namespace Client.Tests.EventMode
             Localize.Initialize();
         }
 
-        // GameUi の系は DI より前に UITK のゲートを開き、選ばれてから武装する
-        // The GameUi system opens the UITK gate before DI and arms only after the choice
+        // ゲートを開き、選択後に武装する
+        // Opens the gate and arms after the choice
         [UnityTest]
         public IEnumerator GameUiの系ではゲートを開き選択の後に武装する()
         {

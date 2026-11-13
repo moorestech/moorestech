@@ -49,8 +49,8 @@ namespace Client.Ui.Screens.EventMode
             scope.Add(overlay);
             Add(scope);
 
-            // 見出し（英語固定）と本体を中央揃えで縦に積む（Web Stack align center gap xl）
-            // Stack the fixed-English heading and the body, centred (Web Stack align center gap xl)
+            // 見出しと本体を中央で縦積み
+            // Stack heading and body, centred
             var column = new UiStack(UiGap.Xl) { pickingMode = PickingMode.Ignore };
             column.AddToClassList(UiLayoutClass.StackAlignCenter);
             column.AddItem(CreateTitle());
@@ -72,18 +72,18 @@ namespace Client.Ui.Screens.EventMode
                 return title;
             }
 
+            void Choose(string languageCode)
+            {
+                // 受理なら Presenter が外す
+                // On acceptance the presenter removes it
+                var result = _gate.SelectLanguage(languageCode);
+
+                // 本番の押下で拒否は起きない（D-6）が、返れば言語は変わっていないので黙らずに残す。DI 前で Toaster が無いので同じ書式でここに出す
+                // Real presses never get rejected (D-6), but a rejection leaves the language unchanged, so log it; no toaster exists before DI, so use its format here
+                if (result is UiCommandRejected rejected) Debug.LogWarning($"[EventLanguageGate] {SelectLanguageCommandName} failed: {rejected.ToWireCode()}");
+            }
+
             #endregion
-        }
-
-        private void Choose(string languageCode)
-        {
-            // 受理ならこの呼び出しの中で Presenter がゲートを外す
-            // On acceptance the presenter removes the gate inside this call
-            var result = _gate.SelectLanguage(languageCode);
-
-            // 本番の押下で拒否は起きない（D-6）が、返れば言語は変わっていないので黙らずに残す。DI 前で Toaster が無いので同じ書式でここに出す
-            // Real presses never get rejected (D-6), but a rejection leaves the language unchanged, so log it; no toaster exists before DI, so use its format here
-            if (result is UiCommandRejected rejected) Debug.LogWarning($"[EventLanguageGate] {SelectLanguageCommandName} failed: {rejected.ToWireCode()}");
         }
     }
 }
