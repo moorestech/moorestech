@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
@@ -32,7 +33,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
             var row = view.Q<Label>("machine-input-stall");
             Assert.IsTrue(row.ClassListContains(InsufficientClass));
-            Assert.AreEqual("Stopped: Test Plate of a different level arrived", row.text);
+            Assert.AreEqual("Stopped: Test Plate of a different level arrived", row.PlainText());
         }
 
         /// <web-test file="src/features/blockInventory/details/machineInputStall/__tests__/MachineInputStallSection.test.ts">上限超えは製作上限の文言で描く</web-test>
@@ -41,7 +42,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         {
             var view = Render(SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.AboveCraftCap, PlateId)));
 
-            Assert.AreEqual("Stopped: Test Plate above the craft cap arrived", view.Q<Label>("machine-input-stall").text);
+            Assert.AreEqual("Stopped: Test Plate above the craft cap arrived", view.Q<Label>("machine-input-stall").PlainText());
         }
 
         /// <web-test file="src/features/blockInventory/details/machineInputStall/__tests__/MachineInputStallSection.test.ts">取得できていない間は赤字にせず取得状態の1行だけを描く</web-test>
@@ -53,7 +54,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             Assert.IsNull(view.Q<VisualElement>("machine-input-stall"));
             var row = view.Q<Label>("machine-input-stall-fetch-state");
             Assert.IsFalse(row.ClassListContains(InsufficientClass));
-            Assert.AreEqual("Inflow stall: not available for this block", row.text);
+            Assert.AreEqual("Inflow stall: not available for this block", row.PlainText());
         }
     }
 }

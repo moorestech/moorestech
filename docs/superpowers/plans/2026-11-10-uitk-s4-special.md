@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版 `features/blockInventory` の特殊族（FilterSplitter・ElectricToGearGenerator・ElectricPole・SpaceElevatorBase・RocketLaunchPad〈題の合図ボタン付き〉の本文 5 つと、SectionStackView に差し込む区画 GearToElectric・BeltThroughput〈`BarSeries`〉・Gear・ElectricNetwork・GearNetwork の 5 つ）を、S4-alpha の拡張口（blockType ごとの本文・題の操作・SectionStackView の固定順の区画）へ「登録するだけ」で載る UITK の View にし、Web と同じ見た目（720p・2560×1080 の並べ比べ）・同じ操作（フィルタのモードと枠・出力モード・接続・建造/発射の合図・ベルトの窓の←/→）を、L0/L1・録画 `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject`・`tier9/tier9-6-fusion-elevator`・新規 `uitk/uitk-block-special-panels` まで確かめて `feature/uitk` へ取り込む。
+**Goal:** Web 版 `features/blockInventory` の特殊族（FilterSplitter・ElectricToGearGenerator・ElectricPole・SpaceElevatorBase・RocketLaunchPad〈題の合図ボタン付き〉の本文 5 つと、SectionStackView に差し込む区画 GearToElectric・BeltThroughput〈`BarSeries`〉・Gear・ElectricNetwork・GearNetwork の 5 つ）を、S4-alpha の拡張口（blockType ごとの本文・題の操作・SectionStackView の固定順の区画）へ「登録するだけ」で載る UITK の View にし、Web と同じ見た目（720p・2560×1080 の並べ比べ）・同じ操作（フィルタのモードと枠・出力モード・接続・建造/発射の合図・ベルトの窓の←/→）を、L0/L1・録画 `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject`・`tier9/tier9-6-fusion-elevator`・新規 `uitk/stage4/uitk-block-special-panels` まで確かめて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。外殻（パネル・題・閉じる・自然高のスクロール器）・`blockComponentRegistry` の解決・SectionStackView の並び・`BlockItemGrid`・`LackHighlightText` は S4-alpha が持ち、このレーンは自分のディレクトリ（`Screens/BlockInventory/Special/`・`Client.Ui.State/BlockInventory/Special/`）と自分の登録ファイル（`BlockInventorySpecialGameUiRegistration.cs`）からだけ差し込む。特殊族の詳細（state detail・電力網/歯車網の集約・フィルタの状態・ベルトの搬出統計）は、Web の橋の `BlockDetailDtoBuilder` 系と同じ源を `SpecialBlockDetailReader` が純関数で読み、`SpecialBlockDetailModel`（`OpenBlockDetailTracker`・`BlockNetworkInfoCache`・`BeltSegmentExitStatisticsTable` を購読し、変化ごとに同期で組み直す [A-57]）が不変の `SpecialBlockDetailViewModel` を `IReadOnlyReactiveProperty` で配る。差し込む部分は alpha の形（S4-alpha 計画（feature/uitk・#1630）の「差し込みの形」）どおり Presenter＋View で、Presenter（`SpecialDetailPresenter`・ベルトだけ `BeltThroughputSectionPresenter`）が `Attach(panel)` で alpha のパネルの源（同じパネルの枠）と自分の詳細 Model を購読して View の `Render` へ流し、`Detach()` で切る。View は購読しない。区画の Presenter は `IsApplicable`（`IReadOnlyReactiveProperty<bool>`）を詳細の有無で書き、alpha の `SectionStackBody` がそれを購読して `SetItemShown` で出し入れと先頭の間隔を組み直す（区画は自分の `display` を触らない。D-23）。開いたブロックの識別は alpha のパネル（`BlockInstanceId`・位置・blockType）の 1 本で、詳細の Model・操作・Shift の寄与がそれに揃える（D-26）。操作は `ISpecialBlockCommands`（`UniTask<UiCommandResult>`。前例 `PauseMenuCommands.SubmitBugReport`）を View が直に呼び [A-8]、拒否は `UiCommandResultToaster` へ渡す。表示は Web と同じく楽観更新しない（サーバーの後続の状態で変わる）。見た目は既存の部品（`ModeSwitch`・`ItemSlot`・`GaugeBar`・`BarSeries`・`PanelActionButton`・`UiStack`/`UiGroup`・`LocalizedLabel`）と alpha の `LackHighlightText`・`BlockItemGridGroup` だけで組み、新しい共有部品は作らない。
 
@@ -30,7 +30,7 @@
 | R-9 | Shift の入れ口: 発射台・宇宙エレベーターの入れ口の受け入れ（サーバーと同じ定義）を alpha の Shift の判断へ渡す（受け付けない物・詳細未着の Shift は送らずに通知） | `SpecialInletBindingContributorTest`（L0。Web `shiftRejection.spec.ts` 2 件を判断まで写す）が緑。送らない・通知は alpha の Shift の実行器と録画 `tier9-4b-rocket-cargo-shift-reject`（alpha の拡張口 (6) が無ければ Task 1 Step 2 の分岐 B） |
 | R-10 | 操作: `ISpecialBlockCommands` の 5 つ（フィルタのモード・フィルタの枠・出力モード・接続・合図）は開いたブロックの種別を確かめ、サーバーへ送り、結果を `UiCommandResult` で返す。Web の BENIGN_ERRORS と同じもの（合図の重ね押し・接続済み・掴みが空のフィルタ設定）は良性、他はトースト | `SpecialBlockCommandsTest`（L0）が緑。`RocketLaunchPadViewTest` の「%sの成功後topicが遅れても二度目の拒否を誤報しない」が緑 |
 | R-11 | 登録: `MainGameUiRegistration` の画面登録区画に 1 行（`BlockInventorySpecialGameUiRegistration.Register(builder);`）。alpha の拡張口へ本文 5・題の操作 1・区画 5 を登録する | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
-| R-12 | 録画（全体スイッチ UITK）: 既存の `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject`・`tier9/tier9-6-fusion-elevator`（宇宙エレベーターの接続を UI から押す。先に S4-machine の発電機の区画を待つ）と、新規 `uitk/uitk-block-special-panels`（フィルタ分配器のモードと枠・回転生成機の出力モード・電柱・ベルトの窓の←/→・歯車の区画・宇宙エレベーターの表示と接続の押下）を通す | 5 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に `系=GameUi` の Note がある |
+| R-12 | 録画（全体スイッチ UITK）: 既存の `connect/rotary-generator-ui`・`tier9/tier9-4-rocket-launch`・`tier9/tier9-4b-rocket-cargo-shift-reject`・`tier9/tier9-6-fusion-elevator`（宇宙エレベーターの接続を UI から押す。先に S4-machine の発電機の区画を待つ）と、新規 `uitk/stage4/uitk-block-special-panels`（フィルタ分配器のモードと枠・回転生成機の出力モード・電柱・ベルトの窓の←/→・歯車の区画・宇宙エレベーターの表示と接続の押下）を通す | 5 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に `系=GameUi` の Note がある |
 | R-13 | 並べ比べ: 15 状態（電柱・回転生成機・フィルタ分配器・歯車発電機・歯車・ベルト・回転発電機 2・発射台・宇宙エレベーター 6）×2 解像度（1280×720・2560×1080）の 30 セルを、セルごとに Web の参照 id と UITK の撮影 id を決めて並べる（Task 10 の撮影表。参照に無いセルは自分で撮り、実行時に作れない状態は EditMode の本番 PanelSettings で撮る。D-34）。差の表を `done.md` に書く | 差の表が 30 行そろい、全行に「同じ／直した／LX-n／捨てる」のどれか（撮れていないセルが 1 つでもあれば未完了）。合否の目安は設計書 [A-14]（720p で 2px） |
 | R-14 | 写した Web テストは `<web-test>` で示し、捨てる 1 件（TS の型検査）だけ処遇の表（`docs/uitk/disposition.md`）に行を足す | `node tools/uitk/test-name-parity.mjs --bundle 4 --emit-missing` でこのレーンの持ち分（File Structure の「写すテスト」の表）の未対応が 0、書式・整合の誤り 0 |
 | R-15 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
@@ -247,7 +247,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 - **字間・色の罠（持ち越し）**: UITK の字間は字の大きさ/100 × 値。このレーンは字間を書かない（Web も `normal`）。部品ギャラリーは sRGB 合成なので、色の比較はランタイムの PanelSettings（Linear 合成）で撮る（Task 10）。暗い半透明の α は I-fix1 で指数 1.85 に選び直し済み、明るい色の α は未実測（このレーンは半透明を足さない）
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/BlockInventory/Special/`（区画・本文の L1）・`S/Client.Tests/Ui/State/BlockInventory/Special/`（L0）・`S/Client.Tests/Input/ArrowKeys/`（矢印キー）、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>"><it/test の第 1 引数></web-test>`（describe は含めない。`it.each`・`for` の中の `test` は第 1 引数の書式文字列そのまま〈`${…}`・`%s` を展開しない〉。同じタグの NUnit が複数あってよい。実行計画 E-13・W0-tools 書式）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.(Ui\.(Screens\.BlockInventory|State\.BlockInventory|State\.PauseMenuCommandsTest|Conventions|Theme|Layers|Tooltip)|Input\.ArrowKeys)\.`（`PauseMenuCommandsTest` は良性の一覧を固定するので名指し。alpha・S4-machine・S4-train の BlockInventory のテストも同じフィルタに入り、取り込み後の回帰を見る）。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`S/Client.Starter/Registration/MainGameUiRegistration.cs` の画面登録区画の 1 行、`S/Client.Ui.State/Client.Ui.State.asmdef` の `references` の末尾 4 要素（`Game.Block`・`Game.Gear`・`Core.BeltTransport`・`Core.Update`。D-8）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に 4 値）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 4 行と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-126`〜`LX-130`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾 1 行（D-13）。シナリオ `SKILL/scenarios/uitk/uitk-block-special-panels.cs` はこのレーンが持つ。既存の `connect/rotary-generator-ui.cs`・`tier9/tier9-4-rocket-launch.cs`・`tier9/tier9-4b-rocket-cargo-shift-reject.cs` は書き換えない（GameUi で通すだけ。落ちたら Task 11 の分岐）
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`S/Client.Starter/Registration/MainGameUiRegistration.cs` の画面登録区画の 1 行、`S/Client.Ui.State/Client.Ui.State.asmdef` の `references` の末尾 4 要素（`Game.Block`・`Game.Gear`・`Core.BeltTransport`・`Core.Update`。D-8）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に 4 値）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 4 行と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-126`〜`LX-130`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾 1 行（D-13）。シナリオ `SKILL/scenarios/uitk/stage4/uitk-block-special-panels.cs` はこのレーンが持つ。既存の `connect/rotary-generator-ui.cs`・`tier9/tier9-4-rocket-launch.cs`・`tier9/tier9-4b-rocket-cargo-shift-reject.cs` は書き換えない（GameUi で通すだけ。落ちたら Task 11 の分岐）
 - **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンの View・Presenter はすべて `SP/` の下（族ごとのサブディレクトリ）。新しい汎用部品は作らない（D-18）。矢印キーの流れ `InputSystemArrowKeyStream` は `Client.Ui` が Input System を参照しないため `S/Client.Input/ArrowKeys/` に新規ファイルで置く（前例 C4-e の `Client.Input/Pointer/InputSystemPointerButtonStream.cs`・E-19 の「最初の使い手が小さな基盤を持つ」。D-7）
 - **新しい共有部品・口を見つけたときの手順**: 作業中に「別の画面でも要る部品」「alpha の口に無い差し込み」を見つけたら作らない。`LOGS/harness/uitk/S4-special/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: 無し（Task 1 Step 2 の照合で増えたらそこで書く）。ただし、マージ済みのレーンの State の口（例: `OpenBlockDetailTracker`・`BlockNetworkInfoCache` の合図・読み口）に合図や読み口が足りないときは、依頼にせずこのレーンが足してよい。そのときは本番の実装と記録係・偽物を同じ PR で全部直す（E-1 の追記 ad92a44777）。ホイール 1 ノッチの px（A-71）を `GameScrollView` の外で使うことになったら、Foundation の共有定数へ上げてよい（同。いまの計画には使い所が無い）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-a9d5123537/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080）の `4-block-electricPole`・`4-block-electricToGear`・`4-block-filterSplitter`・`4-block-gearGenerator`（SimpleGearGenerator の fixture。このレーンの Gear と GearNetwork の 2 区画だけが出る）、2560×1080 だけにある `4-block-spaceElevator{,Climbing,Insufficient,Loading,OutputBlocked,Reordered}`。どのセルをどの参照・撮影で比べるかは Task 10 の撮影表（15 状態×2 解像度）が正本。参照に無いセルは Task 10 Step 1 で master の使い捨て worktree の mock-host に一時の fixture を足して撮る（E-22・D-15）
@@ -383,7 +383,7 @@ Screens（`SP` = `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInvent
 | `…/Special/SectionStack/SpecialSectionStackSpacingTest.cs` | L1（統合） | alpha の標準の本文に本物の区画 5 つを差し、先頭の区画が後着・消失したときの後続の余白（D-23） |
 | `…/Special/SectionStack/SpecialSectionStackOrderTest.cs` | L1（統合） | `SectionStackView.test.tsx`「親から状態・供給・歯車・電力網・歯車網を順に描画する」の中身（本物の区画 5 つ。順は alpha が偽の区画で見る） |
 | `…/Special/SectionStack/SpecialBlockDetailsTest.cs` | L1（統合） | `blockDetails.spec.ts` の歯車とフィルタの面 4 名（ケース 5）・`regression/sectionStack.spec.ts` の特殊族の面 1 名（ケース 9） |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-special-panels.cs` | 録画 | 新規（R-12） |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-block-special-panels.cs` | 録画 | 新規（R-12） |
 
 （`…` = `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory`。ディレクトリのファイル数: `SS/Details` 8・`SS/Source` 5・`SS/Commands` 7・`SS/Text` 2・`SS` 直下 2、`SP/*` は各 2〜5、`Client.Tests/Ui/State/BlockInventory/Special` 9、`…/Special` 9＋`Support/` 6＋`SectionStack/` 3＋`Space/` 2、`SP/Registration` 6・`SP/Belt` 3。どれも 10 以下）
 
@@ -6110,7 +6110,7 @@ git commit -m "fix(uitk): 特殊族の並べ比べの差を直し、直せない
 ### Task 11: unityプレイ録画テスト（全体スイッチ UITK）
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-special-panels.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-block-special-panels.cs`
 - 成果物（コミットしない）: 各シナリオの `result.json`・mp4（worktree の gitignore 下）
 
 **Interfaces:**
@@ -6119,7 +6119,7 @@ git commit -m "fix(uitk): 特殊族の並べ比べの差を直し、直せない
 
 - [ ] **Step 1: 新シナリオを書く**
 
-`uitk-block-special-panels.cs`（前例 `connect/rotary-generator-ui.cs` の開き方〈照準 → F → `SubInventory`〉と `uitk/uitk-grab-overlay.cs` の GameUi の確かめ方。ブロックの日本語名はマスタ〈`../moorestech_master/server_v8/mods/*/master/blocks.json` の `name`〉で確かめて定数を直す）:
+`uitk-block-special-panels.cs`（前例 `connect/rotary-generator-ui.cs` の開き方〈照準 → F → `SubInventory`〉と `uitk/stage4/uitk-grab-overlay.cs` の GameUi の確かめ方。ブロックの日本語名はマスタ〈`../moorestech_master/server_v8/mods/*/master/blocks.json` の `name`〉で確かめて定数を直す）:
 ```csharp
 // ブロックインベントリの特殊族（フィルタ分配器・回転生成機・電柱・ベルト・歯車・宇宙エレベーター）を UITK（GameUi）で通す
 // Runs the block-inventory special family (filter splitter, electric-to-gear, pole, belt, gear, space elevator) on UITK (GameUi)
@@ -6284,14 +6284,14 @@ return PlaytestRunner.Run("uitk-block-special-panels", options, async p =>
     #endregion
 });
 ```
-（`UntilUiElement` は中心のヒット〈`GameUiElementQuery` の `IsClickable`〉まで待つので、拾わない要素〈`GaugeBar` は自身も子も `PickingMode.Ignore`〉には使わず `Shown` を `p.Until` で待つ。このシナリオで `UntilUiElement` を使う他の要素〈本文の根・区画の根・状態文の Label・接続ボタン〉は既定の拾い方で、中心のヒットが自分か子孫になる。`Detail()` は前例 `tier9-6-fusion-elevator` と同じ読み方。`PlaytestUiElements.HasClass`・`ReadText` は GameUi の要素を testid で読む DSL の実物の名前に合わせる〈無ければ `GameUiRoot.Instance.GetRootElement().Q<…>(testid)` で読む。前例 `uitk-grab-overlay.cs`〉。照準の位置は前例の `AimAtClickCollider` に合わせて直す。`PlaytestGameViewOps.SetResolution` は前例 `uitk/uitk-gameview-resolution-switch.cs` の書き方。宇宙エレベーターの状態文〈Note〉が「ケーブルが足りません」〈`insufficientCable`〉でなければ、Task 10 の行 11 を EditMode の撮影〈Step 3〉に回し、`done.md` に書く。`PlaceBlockDirect` がティックと競合して落ちる既知の不具合〈bd `moorestech-xyuaf.2.10`〉に当たったら、置いた後に `p.WaitSeconds(0.5f)` を挟み、それでも落ちれば `done.md` の「## 未確認」に書いて既存の 4 本で代える。ローカル関数の式本体は `Func` を使わない）
+（`UntilUiElement` は中心のヒット〈`GameUiElementQuery` の `IsClickable`〉まで待つので、拾わない要素〈`GaugeBar` は自身も子も `PickingMode.Ignore`〉には使わず `Shown` を `p.Until` で待つ。このシナリオで `UntilUiElement` を使う他の要素〈本文の根・区画の根・状態文の Label・接続ボタン〉は既定の拾い方で、中心のヒットが自分か子孫になる。`Detail()` は前例 `tier9-6-fusion-elevator` と同じ読み方。`PlaytestUiElements.HasClass`・`ReadText` は GameUi の要素を testid で読む DSL の実物の名前に合わせる〈無ければ `GameUiRoot.Instance.GetRootElement().Q<…>(testid)` で読む。前例 `uitk-grab-overlay.cs`〉。照準の位置は前例の `AimAtClickCollider` に合わせて直す。`PlaytestGameViewOps.SetResolution` は前例 `uitk/integrator/uitk-gameview-resolution-switch.cs` の書き方。宇宙エレベーターの状態文〈Note〉が「ケーブルが足りません」〈`insufficientCable`〉でなければ、Task 10 の行 11 を EditMode の撮影〈Step 3〉に回し、`done.md` に書く。`PlaceBlockDirect` がティックと競合して落ちる既知の不具合〈bd `moorestech-xyuaf.2.10`〉に当たったら、置いた後に `p.WaitSeconds(0.5f)` を挟み、それでも落ちれば `done.md` の「## 未確認」に書いて既存の 4 本で代える。ローカル関数の式本体は `Func` を使わない）
 
 - [ ] **Step 2: 5 本を流す**
 
 Run（各本の前に PlayMode を止め、`uloop execute-dynamic-code --project-path ./moorestech_client --code "Client.Input.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return 0;"` を流す）:
 ```bash
 SK=.agents/skills/unity-playmode-recorded-playtest
-$SK/scripts/run-scenario.sh $SK/scenarios/uitk/uitk-block-special-panels.cs
+$SK/scripts/run-scenario.sh $SK/scenarios/uitk/stage4/uitk-block-special-panels.cs
 $SK/scripts/run-scenario.sh $SK/scenarios/connect/rotary-generator-ui.cs
 $SK/scripts/run-scenario.sh $SK/scenarios/tier9/tier9-4-rocket-launch.cs
 $SK/scripts/run-scenario.sh $SK/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs
@@ -6303,7 +6303,7 @@ Expected: 5 本とも `result.json` が `Success: true`、mp4 がある。UITK �
 
 `done.md` の「## 証拠」に 5 本の `result.json` の要約（Success・Note の `系=GameUi`・mp4 のパス）を書く。
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-special-panels.cs moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-block-special-panels.cs moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special
 git commit -m "test(uitk): 特殊族の録画シナリオを足し、既存の 4 本と GameUi で通す（S4-special）
 
 <実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
@@ -6417,7 +6417,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 - **D-13 捨てる 1 件**: `RocketLaunchPadInventory.test.tsx` の「accepts panel data and narrows inside the dedicated view」は TS の型検査なので捨てる（`disposition.md` に 1 行）
 - **D-14 回転発電機の i18n の件を写す**: §1.4 に無いが同じ区画の Web テストなので持ち分に入れる
 - **D-15 参照に無い状態は使い捨ての master の worktree で撮る**: Web の mock-host に一時の fixture を足して撮り、fixture はコミットしない（E-22）
-- **D-16 録画**: 既存の 4 本（書き換えない。`tier9-6-fusion-elevator` は宇宙エレベーターの前に S4-machine の `generator-section` を待つので、S4-machine の未着時は接続まで届かない）と新規 `uitk/uitk-block-special-panels`（宇宙エレベーターの段でケーブルを到着させ UI の接続ボタンを押す。接続の本物の送信の証拠をこのレーンの中で閉じる）の 5 本。却下: S4-machine のマージを Task 11 の前提にする（依存に無いレーンの順に完了が縛られる）。ランタイムの挙動（入力・UI）に触れるので unityプレイ録画テストを入れる
+- **D-16 録画**: 既存の 4 本（書き換えない。`tier9-6-fusion-elevator` は宇宙エレベーターの前に S4-machine の `generator-section` を待つので、S4-machine の未着時は接続まで届かない）と新規 `uitk/stage4/uitk-block-special-panels`（宇宙エレベーターの段でケーブルを到着させ UI の接続ボタンを押す。接続の本物の送信の証拠をこのレーンの中で閉じる）の 5 本。却下: S4-machine のマージを Task 11 の前提にする（依存に無いレーンの順に完了が縛られる）。ランタイムの挙動（入力・UI）に触れるので unityプレイ録画テストを入れる
 - **D-17 Shift の入れ口**: alpha の拡張口 (6) `IBlockSlotRestrictionContributor` に `SpecialInletBindingContributor` を差し込む（分岐 A）。口が実物に無ければ分岐 B（静的な判断だけ作り integrator へ依頼）。L0 は判断まで、送らない・通知は alpha と録画
 - **D-18 新しい汎用部品を作らない**: 使う部品は既存の `ModeSwitch`・`GaugeBar`・`BarSeries`・`PanelActionButton`・`ItemSlot` と alpha の `Parts/`
 - **D-19 L3 を持たない**: 段の締め（S4-gamma）が持つ
@@ -6488,7 +6488,7 @@ bd close <bd> --reason "PR #<PR番号> を feature/uitk へマージ"
 
 | レーン | 完了条件 |
 |---|---|
-| S4-special | FilterSplitter・ElectricToGear・GearToElectric・ElectricPole・Gear・ベルトの流量（`BarSeries`）・ロケット・宇宙エレベーター。写す（宣言/ケース）: `blockDetails` の歯車とフィルタの面（S4-machine 計画の対応表で S4-special に回したもの。歯車機械のトルク・RPM・網、歯車発電機、歯車ポンプの歯車行、`renders ${type}` の gearMachine・filterSplitter。4/5）・`regression/sectionStack` の filterSplitter と特殊族の区画の id（1/9）・`electricPole`(1/1)・`electricToGear`(1/1)・`filterSplitter`(3/3)・`spaceElevator/*`(8/11〈`spaceElevator` 6/9・`shiftRejection` 2/2〉)・C（GearToElectric 7/13＋i18n 1/1・BeltThroughput 3/3・RocketLaunchPad 6/7〈写す 5/6・捨てる 1/1〉・SpaceElevatorSection 5/11＋SpaceElevatorInventory 1/2・Gear 3/3）・`blockInventoryDesign` の special の面（`%s…` の gear・filterSplitter・electricToGear・network、ゲージとモード切替の部品、フィルタの縦積み、モード切替のトークン。4/7）。`SectionStackView.test` の回転発電機の 4 区画の中身（1/1）。計 16 ファイル・宣言 49（写す 48）・ケース 78（写す 77）。並べ比べは 15 状態×2 解像度の 30 セル。録画 `connect/rotary-generator-ui`・`tier9` のロケット 2 本・`tier9-6-fusion-elevator`（接続）・新規 `uitk/uitk-block-special-panels` |
+| S4-special | FilterSplitter・ElectricToGear・GearToElectric・ElectricPole・Gear・ベルトの流量（`BarSeries`）・ロケット・宇宙エレベーター。写す（宣言/ケース）: `blockDetails` の歯車とフィルタの面（S4-machine 計画の対応表で S4-special に回したもの。歯車機械のトルク・RPM・網、歯車発電機、歯車ポンプの歯車行、`renders ${type}` の gearMachine・filterSplitter。4/5）・`regression/sectionStack` の filterSplitter と特殊族の区画の id（1/9）・`electricPole`(1/1)・`electricToGear`(1/1)・`filterSplitter`(3/3)・`spaceElevator/*`(8/11〈`spaceElevator` 6/9・`shiftRejection` 2/2〉)・C（GearToElectric 7/13＋i18n 1/1・BeltThroughput 3/3・RocketLaunchPad 6/7〈写す 5/6・捨てる 1/1〉・SpaceElevatorSection 5/11＋SpaceElevatorInventory 1/2・Gear 3/3）・`blockInventoryDesign` の special の面（`%s…` の gear・filterSplitter・electricToGear・network、ゲージとモード切替の部品、フィルタの縦積み、モード切替のトークン。4/7）。`SectionStackView.test` の回転発電機の 4 区画の中身（1/1）。計 16 ファイル・宣言 49（写す 48）・ケース 78（写す 77）。並べ比べは 15 状態×2 解像度の 30 セル。録画 `connect/rotary-generator-ui`・`tier9` のロケット 2 本・`tier9-6-fusion-elevator`（接続）・新規 `uitk/stage4/uitk-block-special-panels` |
 
 実行計画 §6.1 へ:
 

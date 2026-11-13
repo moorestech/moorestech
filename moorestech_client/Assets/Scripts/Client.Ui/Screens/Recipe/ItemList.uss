@@ -14,7 +14,7 @@
     --panel-bottom: -9.17px;
     --panel-left: -1.04px;
     --title-shift-x: 1.57px;
-    --title-scale-x: 0.963; /* look-exception: LX-132 */
+    --title-scale-x: 0.963;
     --title-scale-y: 0.861;
 }
 
@@ -45,6 +45,12 @@
     --icon-pad: 5px;
     --count-bottom: -1px;
     --count-font-size: 16px;
-    --count-letter-spacing: 12px; /* look-exception: LX-131 */
+    --count-letter-spacing: 12px;
     padding-bottom: var(--item-list-count-bleed);
+}
+
+/* 字間 0.12em の最後の字の後ろの字間（0.12 × 16px）。Chrome は足し UITK は足さないので SlotContent のつまみで受け直す */
+/* The trailing 0.12em gap after the last glyph (0.12 x 16px); Chrome adds it and UITK does not, so the SlotContent knob takes it */
+.item-list #item-list-grid .slot-content {
+    --slot-content-count-trailing-spacing: 1.92px;
 }

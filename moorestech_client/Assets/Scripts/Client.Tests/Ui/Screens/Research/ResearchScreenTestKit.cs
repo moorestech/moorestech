@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Client.Tests.Ui.Content;
 using Client.Ui.Content;
 using Client.Ui.State.Research.Catalog;
@@ -34,7 +33,6 @@ namespace Client.Tests.Ui.Screens.Research
         public static readonly Guid CraftCapResearch = Guid.Parse("c0de0000-0000-4000-8000-000000000001");
         public static readonly Guid RewardResearch = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
 
-        private static readonly Regex RichTextTag = new("<[^>]+>");
 
         public static GameContentPresentation LoadMasterAndContent(Texture2D texture)
         {
@@ -80,12 +78,6 @@ namespace Client.Tests.Ui.Screens.Research
             return detail;
         }
 
-        // LocalizedLabel は --localized-label-line-height を <line-height=Npx> で前置するので外す（前例 ChallengeHudTestText.Plain）
-        // LocalizedLabel prefixes --localized-label-line-height as <line-height=Npx>, so strip it (precedent ChallengeHudTestText.Plain)
-        public static string PlainText(Label label)
-        {
-            return RichTextTag.Replace(label.text, string.Empty);
-        }
 
         public static ResearchUnlockSet NoUnlocks()
         {

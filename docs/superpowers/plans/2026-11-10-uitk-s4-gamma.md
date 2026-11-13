@@ -1816,7 +1816,7 @@ Expected: `ErrorCount: 0`
 
 Run:
 ```bash
-printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-build-bp.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs > moorestech_client/Temp/uitk-recordings/ladders.txt
+printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs > moorestech_client/Temp/uitk-recordings/ladders.txt
 tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 1 2
 tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 3 2
 tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 5 1

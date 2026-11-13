@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/research`（`ResearchTreePanel`・`ResearchNodeCard`・`ResearchDetailPane`・`unlock/*`）を、C4-d の `NodeGraphView`・C4-c の `RecipeActionButton`・C3-a の `ItemSlot`/`BlockSlot`・C2 の `GamePanel`/`GameScrollView` で Web と同じ見た目の UITK 画面にし、Model は Web の topic の源（`ResearchNodeStateStore`・研究マスタ・持ち物）から直に組み、L0/L1・並べ比べ（720p・2560×1080）・録画 `uitk/uitk-research-tree` と既存 `tier9/tier9-5-compute-research` まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/research`（`ResearchTreePanel`・`ResearchNodeCard`・`ResearchDetailPane`・`unlock/*`）を、C4-d の `NodeGraphView`・C4-c の `RecipeActionButton`・C3-a の `ItemSlot`/`BlockSlot`・C2 の `GamePanel`/`GameScrollView` で Web と同じ見た目の UITK 画面にし、Model は Web の topic の源（`ResearchNodeStateStore`・研究マスタ・持ち物）から直に組み、L0/L1・並べ比べ（720p・2560×1080）・録画 `uitk/stage4/uitk-research-tree` と既存 `tier9/tier9-5-compute-research` まで済ませて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Research/`）は研究マスタを静的な定義の列 `ResearchNodeCatalog` に 1 回だけ写し（機械レシピの出力は Web の橋と同じく機械レシピのマスタから引く。D-13）、`ResearchTreeModel` が定義・サーバーの状態（`ResearchNodeStateStore`）・持ち物の所持数・選択（`ResearchSelectionStore`）を購読して、同期で `ResearchTreeViewModel` を組み直す（[A-57]）。View（`Client.Ui/Screens/Research/`）は `UiLayer.OverlayPanel`・`UiFamily.Stage`（Web の `--z-stage-overlay-panel`）へ Presenter が 1 回だけ載せ、表示は経路（`UiRoutingState`）で `SetShown` する。ツリーは常駐の `NodeGraphView` 1 つにカードを使い回して渡し、ノードの集合か注目点が変わったときだけ `SetGraph` を呼ぶ（閉じて開き直しても視野が残る。C4-d D-23(3)）。詳細ペインは研究エリアの右上に浮かべ、研究ボタンは `RecipeActionButton` を画面 USS の祖先で研究の組に上書きする（[A-46]）。操作は `IResearchTreeCommands`（選択の切り替え・閉じる・研究の実行 `UniTask<UiCommandResult>`）で、失敗は `UiCommandResultToaster` の 1 本へ渡す。
 
@@ -14,7 +14,7 @@
 
 ## Requirements
 
-設計の出所: 実行計画 §1.4 の S4-research 行（完了条件の原文:「ResearchTreePanel（`NodeGraphView` を常駐 1 つ [A-172]）・ノードカード 4 状態・詳細ペイン・解放物・研究ボタン（`RecipeActionButton` に無効の面を `rgb(50 52 67)` へ上書き [A-46]・[A-173]）。研究画面の左余白 0 は `UiScreenTraits.CollapsesStageLeftPadding`（C4-e D-34）。アンカー `research.node-<guid>`（マスタ 7 件）。写す: research 33（P19 から `tmp-icon-click` を除く 18・C15〈`ResearchNodeCard.test.ts` は `it` 1＋`it.each` 1〉。L22 は L0-s4b 済み。うち写す 28・処遇 5。処遇の表には持ち分外の `tmp-icon-click` を足して 6 行）。録画 `uitk/uitk-research-tree`（新規）・`tier9/tier9-5-compute-research`。研究の右の領域の `left` は画面 USS（列ではない）[A-171]。研究の失敗は `ResearchFailed` [A-174]」。依存 C4-d・C3-a・C4-c・C4-e・L0-s4b）、§6.2、設計書 [A-46]・[A-92]、C4-e done.md の D-34（左余白の畳みは `UiScreenTraits.CollapsesStageLeftPadding` の列に移った）、指揮の追加指示（2026-11-10: 解放物の機械レシピの出力の State 側の源は S4-alpha が中立の置き場に作る。依存に S4-alpha を足す）。ただし S4-alpha 計画 14a85b146c の源 `UnlockedMachineRecipeSource` は解放済みの機械レシピだけを配り、研究が解放する前のレシピを引けないので使わない（D-13）。
+設計の出所: 実行計画 §1.4 の S4-research 行（完了条件の原文:「ResearchTreePanel（`NodeGraphView` を常駐 1 つ [A-172]）・ノードカード 4 状態・詳細ペイン・解放物・研究ボタン（`RecipeActionButton` に無効の面を `rgb(50 52 67)` へ上書き [A-46]・[A-173]）。研究画面の左余白 0 は `UiScreenTraits.CollapsesStageLeftPadding`（C4-e D-34）。アンカー `research.node-<guid>`（マスタ 7 件）。写す: research 33（P19 から `tmp-icon-click` を除く 18・C15〈`ResearchNodeCard.test.ts` は `it` 1＋`it.each` 1〉。L22 は L0-s4b 済み。うち写す 28・処遇 5。処遇の表には持ち分外の `tmp-icon-click` を足して 6 行）。録画 `uitk/stage4/uitk-research-tree`（新規）・`tier9/tier9-5-compute-research`。研究の右の領域の `left` は画面 USS（列ではない）[A-171]。研究の失敗は `ResearchFailed` [A-174]」。依存 C4-d・C3-a・C4-c・C4-e・L0-s4b）、§6.2、設計書 [A-46]・[A-92]、C4-e done.md の D-34（左余白の畳みは `UiScreenTraits.CollapsesStageLeftPadding` の列に移った）、指揮の追加指示（2026-11-10: 解放物の機械レシピの出力の State 側の源は S4-alpha が中立の置き場に作る。依存に S4-alpha を足す）。ただし S4-alpha 計画 14a85b146c の源 `UnlockedMachineRecipeSource` は解放済みの機械レシピだけを配り、研究が解放する前のレシピを引けないので使わない（D-13）。
 
 | ID | 要件 | 受け入れ基準 |
 |---|---|---|
@@ -30,7 +30,7 @@
 | R-10 | 解放物の節: Web の `UnlockSections` と同じ 5 節（ブロック `research-unlock-blocks`・機械レシピ `research-unlock-machine-recipes`・アイテム `research-unlock-items`・報酬 `research-reward-items`・その他 `research-unlock-others`）を初出順に並べ、ブロックは `BlockSlot`、機械レシピはアイテムの `ItemSlot` と液体の量のラベル `research-unlock-fluid`、報酬は個数付き、その他は 13px の文の行（接続ツール・車両・`research-unlock-module-slot-stack-limit`・`research-unlock-craft-cap-<itemId>`） | `ResearchUnlockSectionsTest`（Web `ResearchDetailPane.test.ts` 4 件・`research.spec.ts` 2 件・`researchMachineUpgradeUnlock.spec.ts` 1 件）が緑 |
 | R-11 | 研究ボタン: `RecipeActionButtonVariant.Research` で作り（研究の組〈無効の面 `--research-action-disabled-face`・無効の字 `--text-default`・無効の淡さ `--research-action-disabled-opacity`・ホバーで面を変えない・14px・字間 0・縁なし・沈まない〉は部品 USS が持つ。設計書 A-190）、画面 USS は寸法 `--research-action-width`（既定 `auto` のままでよければ書かない。幅はペインの本文の幅）と `--research-action-height`（撮影で決めた値）だけを書き、文言は完了なら「完了済み」、それ以外は「研究」。押すと `IResearchTreeCommands.CompleteResearch` を呼び、応答の全状態を `ResearchNodeStateStore.ApplyNodeStates` へ入れ、失敗（応答なし・サーバーの拒否）は良性でない `ResearchFailed`（wire `research_failed`）でトーストに出す | `ResearchDetailPaneTest`（Web `research.spec.ts`「research button sends research.complete…」・`ResearchDetailPane.test.ts` 1 件）と `ResearchTreeViewTest` の研究ボタンの幅（本文の幅 253）が緑。録画（R-13） |
 | R-12 | 並べ比べ: 参照 `4-research`・`5-tutorial-research-node`（1280×720・2560×1080）と、参照の組に無い詳細ペインの 3 状態（研究可能・素材不足・完了）を master の mock-host で自撮りして、UITK と並べた差の表を `done.md` に書く | 組が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれか |
-| R-13 | 録画: 新しい `uitk/uitk-research-tree`（全体スイッチ UITK。開く・中央寄せ・ノードのタップで詳細・研究の実行で完了・閉じて開き直しで視野が残り選択が消える・チャレンジ HUD とキーヒントが Pick で遮られない〈判定の間だけ HUD の根を拾う設定にする〉・マスタの研究ノードのアンカー 7 件が引ける）と、既存 `tier9/tier9-5-compute-research` を全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4、Note の `系=GameUi` |
+| R-13 | 録画: 新しい `uitk/stage4/uitk-research-tree`（全体スイッチ UITK。開く・中央寄せ・ノードのタップで詳細・研究の実行で完了・閉じて開き直しで視野が残り選択が消える・チャレンジ HUD とキーヒントが Pick で遮られない〈判定の間だけ HUD の根を拾う設定にする〉・マスタの研究ノードのアンカー 7 件が引ける）と、既存 `tier9/tier9-5-compute-research` を全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4、Note の `系=GameUi` |
 | R-14 | 登録: `MainGameUiRegistration` の画面登録区画に `ResearchGameUiRegistration.Register(builder);` 1 行。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行（`ResearchTree.uss`・`ResearchDetailPane.uss`）。`TutorialAnchorCoveragePending` に `ResearchNodePrefix` の行があれば同じ PR で消す（表がまだ無ければ integrator へ申し送る） | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`。`TutorialAnchorCoverageTest` は在れば）が緑 |
 | R-15 | テストの名前: 写したものは `<web-test>`、写さないもの 6 件は `docs/uitk/disposition.md` の「## 処遇」に行を足す | `node tools/uitk/test-name-parity.mjs --bundle 4 --emit-missing` で、このレーンの持ち分（下の「写すテスト」の表）の未対応 0。終了コードが 2 でない |
 | R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
@@ -180,7 +180,7 @@ namespace Client.Ui.Components.Controls
 - **字間・色の罠（持ち越し）**: UITK の字間は字の大きさ/100 × 値（px のまま書くと 100/字の大きさ 倍に効く）。このレーンは字間を書かない（研究ボタンは C4-c の `--recipe-action-letter-spacing: 0px` を当てるだけ）。部品ギャラリーは sRGB 合成なので、色はランタイムの PanelSettings（Linear 合成）で比べる。暗い半透明の α は I-fix1 が指数 1.85 で選び直した。明るい色の α は未実測。このレーンの減光（ロックのカード `opacity: .45`）は要素ごとの opacity で、暗い面の上に明るい字と枠が乗る。前例 `--slot-frame-insufficient-opacity`（Web 0.4 → Linear 合成で明るい中身が淡く残るので 0.2 へ下げた。C3-a Task 8）のとおり、暗い半透明の色の式（1.85）は当てはまらない。初期値は Web と同じ 0.45 にし、Task 11 Step 3 で字・枠・面の画素を Web と比べて RGB 7 段以内になる値に決める（決められなければ `LX-136`）
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/Research/`・`S/Client.Tests/Ui/State/Research/`（既存 4 本と同じ所）、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。`it.each` は第 1 引数の書式文字列そのままで展開しない。1 つの NUnit が複数の Web テストを写したら行を並べる。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.Research|State\.(Research|PauseMenuCommandsTest)|Conventions|Theme|Layers|Anchor|Routing|Components\.(NodeGraph|Controls))\.`。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 1 行（と `using Client.Starter.Registration.GameUi.Screens;` が無ければ using の並びに 1 行。他レーンと同じ行が衝突したら 1 行に畳む）、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S4-research」（[A-52]。opacity の 1 行だけで、色の前計算の表 `handWrittenDerivedRows.mjs` は色の行しか持たないので触らない）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-136`〜`LX-140`）「## 追従記録」の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾 6 行、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.ResearchNodePrefix` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `ResearchFailed` を 1 行ずつ）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（良性でない値なので一覧は変わらないが、全値の網羅の行があれば 1 つ足す）、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 1 行（`ui.commandRejected.researchFailed`）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行）・`S/Client.Localization/_CompileRequester.cs`（生成の印）、`S/Client.Ui.State/Client.Ui.State.asmdef` の `references` に `Core.Item` の 1 行。シナリオ `SKILL/scenarios/uitk/uitk-research-tree.cs` はこのレーンが持つ。他の S4 レーン（S4-alpha・S4-inventory・S4-machine・S4-train・S4-recipe・S4-special・S4-gamma）のファイルは書かない
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 1 行（と `using Client.Starter.Registration.GameUi.Screens;` が無ければ using の並びに 1 行。他レーンと同じ行が衝突したら 1 行に畳む）、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S4-research」（[A-52]。opacity の 1 行だけで、色の前計算の表 `handWrittenDerivedRows.mjs` は色の行しか持たないので触らない）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-136`〜`LX-140`）「## 追従記録」の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾 6 行、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.ResearchNodePrefix` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `ResearchFailed` を 1 行ずつ）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs`（良性でない値なので一覧は変わらないが、全値の網羅の行があれば 1 つ足す）、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 1 行（`ui.commandRejected.researchFailed`）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行）・`S/Client.Localization/_CompileRequester.cs`（生成の印）、`S/Client.Ui.State/Client.Ui.State.asmdef` の `references` に `Core.Item` の 1 行。シナリオ `SKILL/scenarios/uitk/stage4/uitk-research-tree.cs` はこのレーンが持つ。他の S4 レーン（S4-alpha・S4-inventory・S4-machine・S4-train・S4-recipe・S4-special・S4-gamma）のファイルは書かない
 - **画面専用の部品の置き場**（設計書 §2.7・§5.1-2）: ノードカード・カードの集合・詳細ペイン・研究ボタンの行・消費アイテムの節・解放物の節・calc の受け直しは 1 機能目なので `S/Client.Ui/Screens/Research/Parts/` に置く。チャレンジ（S5-challenge）と共有しうるもの（`NodeGraphView` の切り口の印・カードの選択の輪）は作らず宣言だけする（D-9・D-6）
 - **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品・Foundation の口」を見つけたら作らない。`LOGS/harness/uitk/S4-research/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) `NodeGraphView` の切り口（`overflow: hidden`）に `TutorialAnchor.MarkClipContainer` を部品が自分で付ける（研究・チャレンジの 2 機能。D-9）(2) `Registration/GameUi/` が 10 ファイルを超えるならサブディレクトリの切り方（Task 1 Step 1）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-a9d5123537/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080。座標は `x' = 320 + 1.5x`・`y' = 1.5y`）の `4-research.png`（状態の出所は `W/e2e/uitk-reference/referenceShots.ts:112` の controls: topic `researchOwnedItems`・ui `ResearchTree`。`manifest.json` は id・bundle・ledgerRow・file・kind しか持たない。参照で見えるノードは 3 つ〈研究可能・素材不足・ロック〉で、完了の `1111…` は持ち物の背後の左へ切れている〈線だけが左端へ出る〉。差の表はこれを前提に比べる）・`5-tutorial-research-node.png`（`referenceShots.ts:118` の topic `tutorialResearchNode`）。詳細ペインの 3 状態は参照に無いので Task 11 Step 1 で master の mock-host で撮る（E-22。C4-c が Task 8 Step 2 で撮った `web-research-*.png` があればそれを先に使う）
@@ -268,7 +268,7 @@ namespace Client.Ui.Components.Controls
 | `S/Client.Tests/Ui/Screens/Research/ResearchDetailPaneTest.cs` | ボタン・理由・閉じる・消費アイテムの不足・完了・上位レベル | 新規 |
 | `S/Client.Tests/Ui/Screens/Research/ResearchUnlockSectionsTest.cs` | 解放物の節・報酬の個数・機械レシピの液体・その他の行 | 新規 |
 | `S/Client.Tests/Ui/Screens/Research/ResearchStageLayoutTest.cs` | 研究画面の左余白 0・常駐 HUD を出さない（表の値） | 新規 |
-| `SKILL/scenarios/uitk/uitk-research-tree.cs` | 研究ツリーを UITK で通す録画 | 新規 |
+| `SKILL/scenarios/uitk/stage4/uitk-research-tree.cs` | 研究ツリーを UITK で通す録画 | 新規 |
 | `docs/uitk/disposition.md` | 「## 処遇」の末尾に 6 行 | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.ResearchNodePrefix` の 1 行を消す | 変更（共有区画・在れば） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」（ロックの減光）・「## 見た目の例外」（`LX-136`〜`LX-140`）・「## 追従記録」（gen:i18n）の末尾 | 変更（共有区画） |
@@ -290,7 +290,7 @@ namespace Client.Ui.Components.Controls
 
 | Web のファイル（`W/` から） | 件数 | 写す | 写さない（処遇） | 写し先 |
 |---|---|---|---|---|
-| `e2e/tests/research/research.spec.ts`（P） | 12 | 9 | 捨てる 2（`expectCraftGrip` の自己テスト 2 件「translate後のグリップ矩形だけに重なる境界buttonを…」「padding box外の境界buttonを…」: DOM の補助関数の検査で UITK に同じ物が無い）、録画 1（「研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない」: 両 HUD は Presenter と状態の源が要り L1 に並べにくいので録画 `uitk/uitk-research-tree` の Pick で見る。採掘の進捗バーの 1 件は本物の `ProgressHudView` を L1 で重ねて写す。D-18） | `ResearchTreeViewTest` 4・`ResearchDetailPaneTest` 1・`ResearchUnlockSectionsTest` 2・`ResearchStageLayoutTest` 2 |
+| `e2e/tests/research/research.spec.ts`（P） | 12 | 9 | 捨てる 2（`expectCraftGrip` の自己テスト 2 件「translate後のグリップ矩形だけに重なる境界buttonを…」「padding box外の境界buttonを…」: DOM の補助関数の検査で UITK に同じ物が無い）、録画 1（「研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない」: 両 HUD は Presenter と状態の源が要り L1 に並べにくいので録画 `uitk/stage4/uitk-research-tree` の Pick で見る。採掘の進捗バーの 1 件は本物の `ProgressHudView` を L1 で重ねて写す。D-18） | `ResearchTreeViewTest` 4・`ResearchDetailPaneTest` 1・`ResearchUnlockSectionsTest` 2・`ResearchStageLayoutTest` 2 |
 | `e2e/tests/research/researchMachineUpgradeUnlock.spec.ts`（P） | 1 | 1 | 0 | `ResearchUnlockSectionsTest`（`ResearchDetailPane.test.ts` 11 件目と同じ NUnit に 2 行） |
 | `e2e/tests/research/researchViewport.spec.ts`（P） | 5 | 5 | 0 | `ResearchTreeViewportTest` |
 | `e2e/tests/research/tmp-icon-click.spec.ts`（P） | 1 | 0 | 捨てる 1（`tmp:` の付いた一時の調査テスト。完了条件で除外） | — |
@@ -1443,7 +1443,7 @@ namespace Client.Ui.State.Research.Tree
 - [ ] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: ErrorCount 0（Model の振る舞いは Task 3 の純関数の L0 と Task 12 の録画が見る。表示中だけ組むことは録画 `uitk/uitk-research-tree` の開き直しの段で見る。持ち物の源は MonoBehaviour と通信を要するので L0 を持たない。`OwnedItemCounts.Build` の引数の型が `IReadOnlyList<SlotItem>` でなければ実物に合わせる）
+Expected: ErrorCount 0（Model の振る舞いは Task 3 の純関数の L0 と Task 12 の録画が見る。表示中だけ組むことは録画 `uitk/stage4/uitk-research-tree` の開き直しの段で見る。持ち物の源は MonoBehaviour と通信を要するので L0 を持たない。`OwnedItemCounts.Build` の引数の型が `IReadOnlyList<SlotItem>` でなければ実物に合わせる）
 
 - [ ] **Step 4: コミットする**
 
@@ -3867,10 +3867,10 @@ git commit -m "fix(uitk): 研究ツリーを Web との並べ比べで揃え、�
 
 ---
 
-### Task 12: unityプレイ録画テスト（`uitk/uitk-research-tree`・`tier9/tier9-5-compute-research`）
+### Task 12: unityプレイ録画テスト（`uitk/stage4/uitk-research-tree`・`tier9/tier9-5-compute-research`）
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-research-tree.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-tree.cs`
 
 **Interfaces:**
 - Consumes: プレイテスト DSL（`p.SetupDebugEnvironment`・`p.SkipOpeningSkitIfPlaying`・`p.ExitToGameScreen`・`p.PressKey`・`p.WaitUiState`・`p.ClickUi`・`p.UntilUiElement`・`p.WaitForResearch`・`p.RunOnServer`・`p.Screenshot`・`p.Note`・`p.Assert`・`PlaytestUiElementOps.FindUi`・`SemanticInput.MouseMoveTo`・`MouseButtonDown`・`MouseGlideTo`・`MouseButtonUp`）、`IResearchDataStore`、`MasterHolder.ResearchMaster`、`GameUiRoot`、`TutorialAnchorRegistry.Resolve`・`AnchorIds.ResearchNode`、`UiInputExclusivity.ActiveUiSystem`
@@ -3878,7 +3878,7 @@ git commit -m "fix(uitk): 研究ツリーを Web との並べ比べで揃え、�
 
 - [ ] **Step 1: 録画を書く**
 
-`uitk-research-tree.cs`（前例 `scenarios/uitk/uitk-mode-hud-and-tooltip.cs` の冒頭の入力準備と系の主張、`scenarios/tier9/tier9-5-compute-research.cs` の研究の前提の閉包・`WaitForResearch`・R キー）。流れ:
+`uitk-research-tree.cs`（前例 `scenarios/uitk/stage2/uitk-mode-hud-and-tooltip.cs` の冒頭の入力準備と系の主張、`scenarios/tier9/tier9-5-compute-research.cs` の研究の前提の閉包・`WaitForResearch`・R キー）。流れ:
 1. 冒頭で `p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}")` と `p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）")`。入力の準備は前例と同じ
 2. `p.SetupDebugEnvironment(new PlaytestEnvironmentConfig())` → `p.SkipOpeningSkitIfPlaying()` → `p.ExitToGameScreen()`。研究可能なノードを 1 つ選ぶ（`MasterHolder.ResearchMaster.GetAllResearches()` から前提が無いか前提を `IResearchDataStore.LoadResearchData` で完了扱いにでき、消費アイテムを `p.RunOnServer` で持たせられるもの。前例 tier9-5 の `WithPrerequisites` と同じ閉包）。前提を完了扱いにし、消費アイテムを持たせる
 3. `p.PressKey(Key.R)` → `p.WaitUiState(UIStateEnum.ResearchTree, 10f)` → `FindUi("research-tree")` と `FindUi("research-viewport")` が見える。研究可能なノード（`ResearchLogic.TryFindInitialFocusNode` の選ぶもの。サーバーの状態で 1 つ目の研究可能）のカードの中心がビューポートの中心から 2px 以内（`ScreenRect.center`）。`p.Screenshot("01-open-centered")`
@@ -3898,7 +3898,7 @@ Run:
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Current.ToString();'
 SKILL=.agents/skills/unity-playmode-recorded-playtest
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/uitk-research-tree.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage4/uitk-research-tree.cs"
 ```
 2 行目の `GameUi` を流し直してから `"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/tier9/tier9-5-compute-research.cs"`
 Expected: 2 本とも `result.json` が `Success: true`、録画 mp4 がある。`uitk-research-tree` の Note に `系=GameUi` とアンカーの件数。初回に "already playing" で落ちたら PlayMode を止めて同じコマンドをもう 1 回だけ流す。失敗したら `result.json` と `uloop get-logs --log-type Error` を読み、原因を `done.md` に書いて直す（直したらテストを回し、このステップの 2 行目から流し直す）。tier9-5 が Web 前提の操作で落ちるなら、シナリオを直さずに止めて `done.md` の「要裁定」に書く（既存シナリオの持ち主は S4-ladder の横断）
@@ -3907,7 +3907,7 @@ Expected: 2 本とも `result.json` が `Success: true`、録画 mp4 がある�
 
 `done.md` の「## 証拠」に 2 本の `result.json` のパス・`Success`・録画 mp4 のパス・Note の `系=GameUi` の行を書く。録画とスクショの原本は worktree の gitignore 下に置いたまま。テストで `Saves/` に作ったワールドは `list-work-saves.sh` で探して消す
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-research-tree.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-tree.cs
 git commit -m "test(uitk): 研究ツリーを UITK の録画で通す（S4-research）
 
 <実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
@@ -3930,7 +3930,7 @@ git commit -m "test(uitk): 研究ツリーを UITK の録画で通す（S4-resea
 ```markdown
 | 4 | `e2e/tests/research/research.spec.ts` | translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する | 捨てる | Playwright の補助関数 expectCraftGrip 自身の検査で、DOM の translate とボックスの境界に依る。UITK に同じ補助が無く、写す対象の挙動が無い | #<PR番号> |
 | 4 | `e2e/tests/research/research.spec.ts` | padding box外の境界buttonをexpectCraftGripが重なりなしと判定する | 捨てる | 同上（expectCraftGrip の自己テスト） | #<PR番号> |
-| 4 | `e2e/tests/research/research.spec.ts` | 研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-research-tree.cs（研究画面を開いたまま、判定の間だけ HUD の根を拾う設定にして challenge-hud・key-hints の中心の Pick が各 HUD を返す。層の順序の主張） | #<PR番号> |
+| 4 | `e2e/tests/research/research.spec.ts` | 研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-tree.cs（研究画面を開いたまま、判定の間だけ HUD の根を拾う設定にして challenge-hud・key-hints の中心の Pick が各 HUD を返す。層の順序の主張） | #<PR番号> |
 | 4 | `e2e/tests/research/tmp-icon-click.spec.ts` | * | 捨てる | tmp の付いた一時の調査テストで、実行計画 §1.4 の完了条件が写す数から除いた | #<PR番号> |
 | 4 | `src/features/research/ResearchTreePanel.test.ts` | インベントリtopic未受信中は詳細ペインへ所持数をnullで渡す(D4) | 捨てる | UITK は持ち物を同期で持ち、所持数の未受信の状態が無い（設計書 [A-13] の ConnectingPlaceholder と同じ理由） | #<PR番号> |
 | 4 | `src/features/research/ResearchDetailPane.test.ts` | 所持数未受信中(owned=null)は不足表示も所持/必要も出さない | 捨てる | 同上（[A-13]。所持数は常に有る） | #<PR番号> |
@@ -4005,7 +4005,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR ができ�
     "研究エリアは OverlayPanel 層で持ち物の幅と列の間隔の右から舞台の端まで。ロックの減光と研究ボタンの高さはランタイムの画素で Web に合わせた"
   ],
   "media": [
-    {"file": "<uitk-research-tree の recording.mp4>", "caption": "uitk/uitk-research-tree（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "<uitk-research-tree の recording.mp4>", "caption": "uitk/stage4/uitk-research-tree（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<tier9-5-compute-research の recording.mp4>", "caption": "tier9/tier9-5-compute-research（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<web-a9d5123537/4-research.png>", "caption": "Web 4-research 1280×720", "group": "4-research"},
     {"file": "<compare/S4-research/uitk-4-research-1280x720.png>", "caption": "UITK 4-research 1280×720", "group": "4-research"},
@@ -4104,7 +4104,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 - **D-20 ロックの減光は opacity のトークンで持ち、Task 11 の画素で決める**（初期 0.45。前例 `--slot-frame-insufficient-opacity`）。暗い半透明の色の式（指数 1.85）は要素の opacity に当てはまらない
 - **D-21 研究ボタンの幅は本文の幅に従わせ（`--research-action-width` は部品の既定 `auto` のまま書かない。A-190）、高さ 36 は初期値（`--research-action-height`）**で Task 11 Step 3 で Web の画素から決め直す（C4-c は研究の組の幅と高さをこのレーンに残した）。Web の `.researchButton` は幅の指定が無く、`.detailBody` の列で伸びて 300 − 枠 2 − `GamePanel(craft)` の padding 25 − 本文 20 ＝ 253（`W/src/shared/ui/GamePanel/style.module.css` の `.craft`・UITK の `GamePanel.uss` の `.game-panel--craft` が同じ値）。固定 px にすると本文やペインの幅の変更に追従しないので幅は持たない。部品の USS は `width`・`min-width` を `var(--recipe-action-width)`（研究の組では `var(--research-action-width)`）で読むので、既定の `auto` が `var()` 越しに効けば画面は幅を書かずに済む。効かなければ画面 USS に `--research-action-width: 100%`、それも効かなければ `253px` を置き、C4-c の部品が受けられるようにする依頼を integrator へ出す。棄却: 280px（本文より 27px 広く、ペインの右の余白と枠を越える）
 - **D-22 Web の `gap` は子の margin で写す**（USS の規約）。カードは名前とアイコンの下 6px、詳細の本文は見出しとスクロールの下 8px・理由の上 8px、節は上 8px、枠は右と下 4px
-- **D-23 録画を持つ**: ランタイムの挙動（入力・UI）に触れるので、unityプレイ録画テスト 2 本（`uitk/uitk-research-tree` 新規・`tier9/tier9-5-compute-research` 既存）を Task 12 に置く。L3（EditModeInPlayingTest）は持たない（段の締め S4-ladder）
+- **D-23 録画を持つ**: ランタイムの挙動（入力・UI）に触れるので、unityプレイ録画テスト 2 本（`uitk/stage4/uitk-research-tree` 新規・`tier9/tier9-5-compute-research` 既存）を Task 12 に置く。L3（EditModeInPlayingTest）は持たない（段の締め S4-ladder）
 - **D-24 設計検査 Phase 2.6 の裁定（user-simulator の予測で代えた。出所: 起草役の既定）**:
   - 5-A（private ctor の null・`ItemSlotContent` の null）→ このままでよい。`ResearchTreeViewModel` の null は private ctor の内側に閉じ、公開面は `TryGetDetail` と生成の別（`Create`／`CreateWithDetail`）で表す。`ItemSlotContent` の null は C3-a の部品の API の「無い」の書き方で、このレーンは部品を変えない
   - 5-D（`ResearchSelectionStore` の読み書きの未分離）→ このままでよい。書き手は `ResearchTreeCommands` 1 つ、読み手は Model 1 つで、画面の内の UI 状態（前例 `HotbarModel` 周りも interface を分けない）。2 人目の書き手が出たら分ける
@@ -4155,7 +4155,7 @@ Expected: worktree と Editor が畳まれ、`moores-wt status` にこのレー�
 
 ### 実行計画 §1.4 の S4-research 行の改め案
 
-| S4-research | 研究ツリー | 4・W4 | C4-d・C3-a・C4-c（`RecipeActionButton`）・C4-e（`StageColumnsLayout`）・L0-s4b | 要 | 単位 | ResearchTreePanel（`NodeGraphView` を常駐 1 つ [A-172]）・ノードカード 4 状態・詳細ペイン・解放物・研究ボタン（`RecipeActionButton` に無効の面を `rgb(50 52 67)` へ上書き [A-46]・[A-173]）。研究画面の左余白 0 は `UiScreenTraits.CollapsesStageLeftPadding`（C4-e D-34）。アンカー `research.node-<guid>`（マスタ 7 件）。写す: research 33（P19 から `tmp-icon-click` を除く 18・C15〈`ResearchNodeCard.test.ts` は `it` 1＋`it.each` 1〉。L22 は L0-s4b 済み。うち写す 28・処遇 5。処遇の表には持ち分外の `tmp-icon-click` を足して 6 行）。録画 `uitk/uitk-research-tree`（新規）・`tier9/tier9-5-compute-research`。研究の右の領域の `left` は画面 USS（列ではない）[A-171]。研究の失敗は `ResearchFailed` [A-174] |
+| S4-research | 研究ツリー | 4・W4 | C4-d・C3-a・C4-c（`RecipeActionButton`）・C4-e（`StageColumnsLayout`）・L0-s4b | 要 | 単位 | ResearchTreePanel（`NodeGraphView` を常駐 1 つ [A-172]）・ノードカード 4 状態・詳細ペイン・解放物・研究ボタン（`RecipeActionButton` に無効の面を `rgb(50 52 67)` へ上書き [A-46]・[A-173]）。研究画面の左余白 0 は `UiScreenTraits.CollapsesStageLeftPadding`（C4-e D-34）。アンカー `research.node-<guid>`（マスタ 7 件）。写す: research 33（P19 から `tmp-icon-click` を除く 18・C15〈`ResearchNodeCard.test.ts` は `it` 1＋`it.each` 1〉。L22 は L0-s4b 済み。うち写す 28・処遇 5。処遇の表には持ち分外の `tmp-icon-click` を足して 6 行）。録画 `uitk/stage4/uitk-research-tree`（新規）・`tier9/tier9-5-compute-research`。研究の右の領域の `left` は画面 USS（列ではない）[A-171]。研究の失敗は `ResearchFailed` [A-174] |
 
 ### 指揮・S4-alpha への申し送り
 

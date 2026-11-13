@@ -1,4 +1,5 @@
 using System.Linq;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Editor.Capture;
 using Client.Ui.Foundation.Composite;
 using NUnit.Framework;
@@ -50,12 +51,13 @@ namespace Client.Tests.Ui.Composite
         [TestCase(10f / 255f, 14f / 255f, 27f / 255f, 0.8f, 243)]
         public void UIの面の上の半透明はWebの式と同じ色になる(float red, float green, float blue, float alpha, int ground)
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             var swatch = new VisualElement();
             swatch.style.width = 40;
             swatch.style.height = 40;
             swatch.style.backgroundColor = new Color(red, green, blue, alpha);
             var groundColor = new Color32((byte)ground, (byte)ground, (byte)ground, 255);
-            var texture = UiRuntimePanelCapture.Render(swatch, 1280, 720, groundColor, UiCaptureLocalization.InitializeDictionary);
+            var texture = UiRuntimePanelCapture.Render(swatch, 1280, 720, groundColor, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.InitializeDictionary);
 
             // 読み戻しは左下原点。左上 40×40 の中央を読む
             // Read-back is bottom-left origin; read the centre of the top-left 40x40

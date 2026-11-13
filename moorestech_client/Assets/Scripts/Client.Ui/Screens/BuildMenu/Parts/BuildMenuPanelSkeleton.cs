@@ -35,7 +35,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
             var frame = new GamePanel("build-menu-frame", GamePanelFrame.Default);
             frame.AddToClassList("build-menu__frame");
-            frame.SetTitle(new UiText(LocalizationKeys.Ui.BuildMenu.Title)); /* look-exception: LX-72。題の影のかけらと 2560×1080 の幅は共有 GamePanel の題の描き方 */
+            frame.SetTitle(new UiText(LocalizationKeys.Ui.BuildMenu.Title));
             panel.Add(frame);
 
             // 中央列: 検索→スクロール

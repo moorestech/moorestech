@@ -6020,9 +6020,9 @@ git commit -m "feat(cleanroom): webui に部屋欄・停止理由・清浄機の
 - Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/CleanRoomUiRegistration.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs:109`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateTestFixtureBase.cs`（`CreateCleanRoomHoverService()` を足す）
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateCameraInteractionTest.cs:33,134`
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateFocusRestorationTest.cs:34`
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs:137`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs:33,134`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateFocusRestorationTest.cs:34`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs:137`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/CleanRoom/CleanRoomTooltipLinesTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/CleanRoom/CleanRoomTooltipPresenterTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Tooltip/OwnedTooltipLinesWriterTest.cs`

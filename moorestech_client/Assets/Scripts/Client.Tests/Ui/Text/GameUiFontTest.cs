@@ -52,6 +52,26 @@ namespace Client.Tests.Ui.Text
             }
         }
 
+        [Test]
+        public void 和文の題の字形は韓国語の字をKRのBoldで描く()
+        {
+            // Mac の Chrome の題（Apple SD Gothic Neo Bold）と太さを揃えるため、JP Bold に無い字は KR Bold から引く（設計書 A-220）
+            // To match the Mac Chrome title weight (Apple SD Gothic Neo Bold), glyphs missing from JP Bold come from KR Bold (design A-220)
+            var japaneseBold = Load("GameUiJapaneseBold SDF");
+            Assert.IsFalse(japaneseBold.HasCharacter('설', false, true), "JP Bold has no Hangul");
+            CollectionAssert.AreEqual(new[] { Load("GameUiKoreanBold SDF") }, japaneseBold.fallbackFontAssetTable);
+            Assert.IsTrue(Load("GameUiKoreanBold SDF").HasCharacter('설', false, true));
+        }
+
+        [Test]
+        public void 和文の題の字形はBoldの面を細らせてHiraginoW6の線に寄せる()
+        {
+            // Bold の 0.925 倍は W6 より線が太いので、SDF の面を −0.45 だけ細らせる（LX-181 の実測で線と濃さの差が最も小さい値）
+            // Bold at 0.925x is heavier than W6, so the SDF face is thinned by -0.45 (the LX-181 measured value with the smallest stroke and ink gap)
+            Assert.AreEqual(-0.45f, Load("GameUiJapaneseBold SDF").regularStyleWeight, 1e-4f);
+            Assert.AreEqual(-0.45f, Load("GameUiKoreanBold SDF").regularStyleWeight, 1e-4f);
+        }
+
         private static bool HasInChain(FontAsset asset, char character)
         {
             if (asset.HasCharacter(character, false, true)) return true;

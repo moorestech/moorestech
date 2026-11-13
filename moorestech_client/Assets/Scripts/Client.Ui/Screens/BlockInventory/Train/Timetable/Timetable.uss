@@ -49,9 +49,8 @@
     padding: 0 var(--mode-switch-padding-inline) var(--mode-switch-padding-block);
 }
 
-/* 無効な操作の文字は --text-muted（Web .list button:disabled）。部品のつまみを画面のルートで上書き（D-11） */
-/* Disabled control text uses --text-muted (Web .list button:disabled) via the part knob at the screen root (D-11) */
+/* 無効な操作の文字は --text-muted（画面の様式 Web .list button:disabled。実測 rgb(166,167,171)）。部品のつまみを画面のルートで上書きする */
+/* Disabled control text uses --text-muted (the screen style Web .list button:disabled, measured rgb(166,167,171)) via the part knob at the screen root */
 .train-timetable .train-timetable__control:disabled {
     --panel-action-button-text: var(--text-muted);
-    opacity: 1;
 }

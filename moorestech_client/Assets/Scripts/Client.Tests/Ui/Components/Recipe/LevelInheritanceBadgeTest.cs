@@ -38,7 +38,7 @@ namespace Client.Tests.Ui.Components.Recipe
             simulate.FrameUpdate();
 
             Assert.AreEqual(DisplayStyle.Flex, badge.resolvedStyle.display);
-            Assert.AreEqual(text.Resolve(), rootVisualElement.Q<Label>(TestId).text);
+            Assert.AreEqual(text.Resolve(), rootVisualElement.Q<Label>(TestId).PlainText());
         }
 
         [Test]

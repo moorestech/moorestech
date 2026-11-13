@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using Client.Tests.Ui.TestHost;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.Challenge
@@ -12,20 +12,12 @@ namespace Client.Tests.Ui.Screens.Challenge
     /// </summary>
     internal static class ChallengeHudTestText
     {
-        private static readonly Regex RichTextTag = new("<[^>]+>");
         private static readonly FieldInfo ComputedStyleField = typeof(VisualElement).GetField("m_Style", BindingFlags.NonPublic | BindingFlags.Instance);
         private static readonly PropertyInfo TextShadowProperty = typeof(VisualElement).Assembly.GetType("UnityEngine.UIElements.ComputedStyle").GetProperty("textShadow");
 
-        // LocalizedLabel は --localized-label-line-height を <line-height=Npx> で前置するので外す
-        // LocalizedLabel prefixes --localized-label-line-height as <line-height=Npx>, so strip it
-        public static string Plain(Label label)
-        {
-            return RichTextTag.Replace(label.text, string.Empty);
-        }
-
         public static List<string> Objectives(VisualElement hud)
         {
-            return hud.Query<Label>("challenge-objective").ToList().Select(Plain).ToList();
+            return hud.Query<Label>("challenge-objective").ToList().Select(label => label.PlainText()).ToList();
         }
 
         // resolvedStyle に textShadow が無い（Unity 6.3）ので、解決済みの計算スタイルを反射で読む

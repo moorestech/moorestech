@@ -1,0 +1,11 @@
+/* Text 族（通知の文・キー操作ヒント）の字の影の手書きの派生トークン。Web が color-mix・半透明・直書きで出す色と寸法を前計算し、各行に web の元の式と決め方を残す（設計書 §3.1） */
+/* Hand-written derived tokens for glyph shadows of the Text family (notification text, key hints); precomputes colors and sizes the Web derives with color-mix, translucency or literals, each row keeping the web source and how it was settled (design §3.1) */
+:root {
+    /* I-fix2: 通知の文字影。Web は notification/style.module.css:38 に直書きでトークンが無い。値はキーヒントの影と同じ（設計書 A-112） */
+    /* I-fix2: notification text shadow; the Web writes it inline in notification/style.module.css:38 with no token. Same value as the key-hint shadow (design A-112) */
+    --notification-text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8); /* web: 0.35px 0.35px 0 rgb(0 0 0 / 80%) */
+
+    /* キー操作ヒントの字の影。Web の 0.35px は Chrome では字の縁に約 1 画素の暗い縁として出るが、UITK の SDF の影は字の面の下にほぼ隠れるので、縁の暗さを Web に合わせた値で描く */
+    /* Key hint glyph shadow; Chrome renders the Web 0.35px as a ~1px dark rim, but the UITK SDF shadow hides under the face, so draw it with a value matching the Web rim darkness */
+    --key-hint-text-shadow-face: 1px 1px 0 rgba(0, 0, 0, 0.8); /* look-exception: LX-86 */ /* web: --key-hint-text-shadow 0.35px 0.35px 0 rgb(0 0 0 / 80%)。ずれだけを変え、字の右下の縁の暗さと色を 1280・2560 で Web と比べて選んだ（I-fix3: 縁の輝度の低下の平均/中央は Web 74/84・78/87、0.35px は 13/10・20/17、1px は 49/52・66/80。0.7〜1.5px と α 0.8〜1 を比べ、縁の色の差が両解像度の合計で最小。α 1 は縁に黒い点が出る。残る差は Chrome の字の面が太いこと） */
+}

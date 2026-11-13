@@ -29,7 +29,10 @@ namespace Client.Ui.Screens.PauseMenu
 
             // 節は本文の中で Stack gap=md に並べる
             // Sections stack with gap=md inside the body
+            // Web は本文の basis を内容の高さとして解き、溢れると戻るも行の箱まで縮める
+            // The Web resolves the body basis as its content height, so on overflow Back also shrinks to its line box
             var body = new GameScrollView("pause-menu-body", GameScrollAxis.Vertical);
+            body.FollowContentHeightAsFlexBasis();
             _sections = new UiStack(UiGap.Md);
             body.Add(_sections);
             column.AddItem(body);

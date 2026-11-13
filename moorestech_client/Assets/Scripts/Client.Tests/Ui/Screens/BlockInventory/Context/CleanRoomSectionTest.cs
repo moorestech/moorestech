@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
@@ -57,7 +58,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             CollectionAssert.AreEqual(new[] { "clean-room-headline" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
             var headline = view.Q<Label>("clean-room-headline");
             Assert.IsTrue(headline.ClassListContains(InsufficientClass));
-            Assert.AreEqual("Not sealed: 2 gaps", headline.text);
+            Assert.AreEqual("Not sealed: 2 gaps", headline.PlainText());
         }
 
         /// <web-test file="src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomSection.test.ts">取得できていない間は欄の名前と取得状態の1行だけを描き、部屋の値を出さない</web-test>
@@ -68,7 +69,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
             CollectionAssert.AreEqual(new[] { "clean-room-fetch-state" }, ShownNames(view));
             Assert.IsNull(view.Q<VisualElement>("clean-room-section"));
-            Assert.AreEqual("Room: no reply from the server (retrying)", view.Q<Label>("clean-room-fetch-state").text);
+            Assert.AreEqual("Room: no reply from the server (retrying)", view.Q<Label>("clean-room-fetch-state").PlainText());
         }
     }
 }

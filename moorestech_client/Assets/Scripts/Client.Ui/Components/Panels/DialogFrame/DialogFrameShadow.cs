@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Rendering;
 using System.Collections.Generic;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;

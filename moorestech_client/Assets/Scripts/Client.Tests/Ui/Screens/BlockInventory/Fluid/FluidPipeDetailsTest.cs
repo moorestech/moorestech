@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.BlockInventory.Logic.Common;
@@ -23,7 +24,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 
             Assert.AreEqual(0, Shown<VisualElement>(body.Root, "progress-arrow-bar", null).Count);
             var texts = Shown<LocalizedLabel>(body.Root, null, "text--sm");
-            Assert.AreEqual(new[] { "Test Water", "40 / 100" }, texts.ConvertAll(label => label.text).ToArray());
+            Assert.AreEqual(new[] { "Test Water", "40 / 100" }, texts.ConvertAll(label => label.PlainText()).ToArray());
 
             SetFluids(null, BlockFluidSlotState.Filled(Water, 60, 100));
             Assert.AreEqual("60", AmountOf(body.Root.Q(Slot0)));
@@ -67,12 +68,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         private static string AmountText(VisualElement root)
         {
             var texts = Shown<LocalizedLabel>(root, null, "text--sm");
-            return texts[texts.Count - 1].text;
+            return texts[texts.Count - 1].PlainText();
         }
 
         private static string AmountOf(VisualElement slotRow)
         {
-            return slotRow.Q<Label>(null, "fluid-slot__amount", "outlined-count-label--glyph").text;
+            return slotRow.Q<Label>(null, "fluid-slot__amount", "outlined-count-label--glyph").PlainText();
         }
     }
 }

@@ -45,6 +45,12 @@
     --count-letter-spacing: 12px;
 }
 
+/* 字間 0.12em の最後の字の後ろの字間（0.12 × 16px。Chrome は足し UITK は足さない） */
+/* The trailing 0.12em gap after the last glyph (0.12 x 16px; Chrome adds it, UITK does not) */
+.recipe-row__slots .slot-content {
+    --slot-content-count-trailing-spacing: 1.92px;
+}
+
 /* 素材は左寄せで、所持/必要の文字はスロットの外へ出さない（Web の .materialSlot） */
 /* Materials align left and keep owned/required text inside the slot (Web .materialSlot) */
 .recipe-row__materials {
@@ -90,17 +96,19 @@
     align-items: center;
 }
 
-/* 秒数。Web の line-height: 1 は OutlinedCountLabel と同じく高さを字の大きさにして基線を 18.1% 下げる */
-/* Duration; the Web line-height: 1 sets the height to the font size and lowers the baseline by 18.1%, as OutlinedCountLabel does */
+/* 秒数。Web の line-height: 1 は OutlinedCountLabel と同じく字の大きさの高さの箱で基線を字の大きさの 18.1% 下げる */
+/* 字の上端は字の大きさの箱より約 2px 上に出て overflow: hidden に切られる（1280×720 で 2px・2560×1080 で 1〜3 物理画素）。上へ 4px の逃げ（padding と同じ量の負の margin）を足し、字と流れの位置は変えずに切る範囲だけ広げる */
+/* Duration; the Web line-height: 1 is a font-size-tall box with the baseline lowered by 18.1% of the font size, as OutlinedCountLabel does */
+/* The glyph top rises about 2px above the font-size box and overflow: hidden cut it (2px at 1280x720, 1-3 device px at 2560x1080); a 4px headroom (padding with an equal negative margin) widens only the clip, keeping glyph and flow in place */
 .recipe-row__duration {
     max-width: 100%;
-    height: var(--recipe-duration-text-size);
-    margin: 0;
-    padding: 0;
+    height: var(--recipe-duration-box-height);
+    margin: -4px 0 0 0;
+    padding: 4px 0 0 0;
     font-size: var(--recipe-duration-text-size);
     color: var(--text-high-contrast);
     -unity-text-align: lower-center;
-    translate: 0 18.1%;
+    translate: 0 var(--recipe-duration-baseline-shift);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

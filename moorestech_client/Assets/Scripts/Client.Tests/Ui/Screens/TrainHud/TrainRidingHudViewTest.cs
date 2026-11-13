@@ -1,6 +1,7 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Localization;
 using Client.Tests.Ui.Components;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.TrainHud;
@@ -39,7 +40,7 @@ namespace Client.Tests.Ui.Screens.TrainHud
             _view.Render(Riding(1, 0));
             var paper = Find<VisualElement>(_view, "train-riding-hud");
             Assert.IsTrue(IsShown(paper));
-            StringAssert.Contains(Localize.Get(LocalizationKeys.Ui.TrainHud.Title), paper.Q<Label>(className: "train-riding-hud__title").text);
+            StringAssert.Contains(Localize.Get(LocalizationKeys.Ui.TrainHud.Title), paper.Q<Label>(className: "train-riding-hud__title").PlainText());
             Assert.IsFalse(IsShown(Find<Label>(_view, "train-branch-selection")));
 
             // 降りたら消える
@@ -56,8 +57,8 @@ namespace Client.Tests.Ui.Screens.TrainHud
             var branch = Find<Label>(_view, "train-branch-selection");
             Assert.IsTrue(IsShown(branch));
             var expected = Localize.GetFormatted(LocalizationKeys.Ui.TrainHud.BranchSelection, new[] { new LocalizationTextParam("current", "2"), new LocalizationTextParam("count", "3") });
-            Assert.AreEqual(expected, branch.text);
-            StringAssert.Contains("2/3", branch.text);
+            Assert.AreEqual(expected, branch.PlainText());
+            StringAssert.Contains("2/3", branch.PlainText());
         }
 
         [Test]

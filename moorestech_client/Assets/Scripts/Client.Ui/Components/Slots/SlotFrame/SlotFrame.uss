@@ -2,9 +2,19 @@
 /* 選択白面の下端のグラデ（calc の位置）は、位置と高さがつまみそのものなので帯の要素の bottom・height に var() で写す（設計書 A-51） */
 /* web: .slot and the data-* states in moorestech_web/webui/src/shared/ui/SlotFrame/style.module.css; the four box-shadow layers are border bands in __ring, and SlotFrameRing.cs reads --bevel-inset to grow them outward or inward */
 /* The selected white face's bottom gradient (calc positions) maps straight onto the trim element's bottom and height via var(), since both are the knobs themselves (design A-51) */
+/* 面の色は群の中の面の要素が持つ（枠自身は箱と当たり判定だけ。群の淡さに面も入れるため） */
+/* The face color lives on the face element inside the group (the frame itself is only box and hit area, so the face joins the group fading) */
 .slot-frame {
     width: var(--slot-size);
     height: var(--slot-size);
+}
+
+.slot-frame__face {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     background-color: var(--slot-frame-face);
 }
 
@@ -12,16 +22,24 @@
 /* Catalog uses the gray face and resets the face inset; filled comes later so a catalog cell that is also filled shows white (same order as the Web) */
 .slot-frame--catalog {
     --face-inset: 0px;
+}
+
+.slot-frame--catalog .slot-frame__face {
     background-color: var(--slot-frame-catalog-face);
 }
 
 .slot-frame--filled {
     --face-inset: var(--filled-face-inset);
+}
+
+.slot-frame--filled .slot-frame__face {
     background-color: var(--slot-frame-filled-face);
 }
 
-.slot-frame--insufficient {
-    opacity: var(--slot-frame-insufficient-opacity);
+/* 不足は面・リング・中身を 1 枚の群にして淡くする（Web の opacity は群に掛かる。要素の opacity だと重なった子が明るく出る） */
+/* Insufficient fades face, ring and content as one group (the Web opacity applies to the group; element opacity brightens overlapping children) */
+.slot-frame--insufficient > .pixel-filter-group {
+    filter: opacity(var(--slot-frame-insufficient-opacity));
 }
 
 .slot-frame--selected {
@@ -40,7 +58,7 @@
     background-color: var(--slot-frame-selected-trim-face);
 }
 
-.slot-frame--selected.slot-frame--filled > .slot-frame__selected-trim {
+.slot-frame--selected.slot-frame--filled .slot-frame__selected-trim {
     display: flex;
 }
 
@@ -92,6 +110,6 @@
 
 /* ゴーストは面とリングをそのままに中身だけを透かす */
 /* A ghost keeps face and ring and fades only the content */
-.slot-frame--ghost > .slot-frame__content {
+.slot-frame--ghost .slot-frame__content {
     opacity: var(--slot-ghost-opacity);
 }

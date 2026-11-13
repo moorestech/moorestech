@@ -75,7 +75,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
             // Web の 40% そのままのトークンの値になる
             // Resolves to the token holding the Web 40% as is
             Assert.IsTrue(_frame.ClassListContains("slot-frame--insufficient"));
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), _frame.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), GroupOpacity.Read(_frame), 0.001f);
         }
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">不足状態の省略時はdata属性を付けない</web-test>

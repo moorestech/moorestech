@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Screens.Research.Parts;
@@ -49,7 +50,7 @@ namespace Client.Tests.Ui.Screens.Research
             var section = Find<VisualElement>(rootVisualElement, "research-reward-items");
             Assert.AreEqual("Reward items", SectionLabel(section));
             var count = unlocks.RewardItems[0].Count.ToString(CultureInfo.InvariantCulture);
-            Assert.IsTrue(section.Query<Label>().ToList().Exists(label => Kit.PlainText(label) == count), $"count {count}");
+            Assert.IsTrue(section.Query<Label>().ToList().Exists(label => label.PlainText() == count), $"count {count}");
         }
 
         /// <web-test file="e2e/tests/research/research.spec.ts">詳細ペインに解放物が種類別ラベル付きで並ぶ</web-test>
@@ -96,7 +97,7 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.IsNotNull(Find<VisualElement>(rootVisualElement, "research-unlock-items").Q<ItemSlot>());
             var lines = Find<VisualElement>(rootVisualElement, "research-unlock-others").Query<Label>(className: "research-tree__unlock-other").ToList();
             Assert.AreEqual(master.ConnectToolGuids.Count + master.TrainCarGuids.Count, lines.Count);
-            Assert.AreEqual(UiText.FromContent(ContentLocalizationKeys.ConnectToolName(master.ConnectToolGuids[0])).Resolve(), Kit.PlainText(lines[0]));
+            Assert.AreEqual(UiText.FromContent(ContentLocalizationKeys.ConnectToolName(master.ConnectToolGuids[0])).Resolve(), lines[0].PlainText());
         }
 
         /// <web-test file="src/features/research/ResearchDetailPane.test.ts">スロット上限と製作上限の解放を「その他」の行に出す</web-test>
@@ -108,9 +109,9 @@ namespace Client.Tests.Ui.Screens.Research
             var cap = Kit.MasterUnlocks(Kit.CraftCapResearch).LevelInheritanceCraftCaps[0];
             MountPane(Kit.Unlocks(new List<UnlockBlock>(), new List<UnlockMachineRecipe>(), new List<ItemId>(), new List<RewardItem>(), new List<Guid>(), new List<Guid>(), new List<int> { limit }, new List<LevelInheritanceCraftCap> { cap }));
 
-            Assert.AreEqual($"Module slot limit: {limit} per slot", Kit.PlainText(Find<Label>(rootVisualElement, "research-unlock-module-slot-stack-limit")));
+            Assert.AreEqual($"Module slot limit: {limit} per slot", Find<Label>(rootVisualElement, "research-unlock-module-slot-stack-limit").PlainText());
             var capLine = Find<Label>(rootVisualElement, $"research-unlock-craft-cap-{cap.ItemId.AsPrimitive()}");
-            StringAssert.EndsWith($"up to Lv{cap.Level}", Kit.PlainText(capLine));
+            StringAssert.EndsWith($"up to Lv{cap.Level}", capLine.PlainText());
         }
 
         #region Helpers
@@ -125,7 +126,7 @@ namespace Client.Tests.Ui.Screens.Research
 
         private static string SectionLabel(VisualElement section)
         {
-            return Kit.PlainText(section.Q<Label>(className: "research-tree__section-label"));
+            return section.Q<Label>(className: "research-tree__section-label").PlainText();
         }
 
         #endregion

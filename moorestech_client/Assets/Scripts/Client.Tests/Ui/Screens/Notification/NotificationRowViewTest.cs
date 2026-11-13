@@ -1,4 +1,5 @@
 using Client.Tests.Ui.Components;
+using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Text;
@@ -60,6 +61,27 @@ namespace Client.Tests.Ui.Screens.Notification
             // Web is an 18px line + 5px vertical padding + 1px border = 30px; UITK is the 21px Latin first line + 3px top and 4px bottom padding + 1px border, also 30px
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--notification-width"), row.resolvedStyle.width, 1f);
             Assert.AreEqual(30f, row.layout.height, 0.5f);
+        }
+
+        [Test]
+        public void 拒否の参照文は行末の括弧を詰めてWebと同じ2行の行になる()
+        {
+            // 通知の行の文は行送りのつまみを持つので、スタイルの解決のたびに CustomStyleResolvedEvent が来る。それでも表示文に替わり測る文を描かない
+            // The row text carries the pitch knob so CustomStyleResolvedEvent arrives on every style pass; it still swaps to the display text and never draws the measuring text
+            rootVisualElement.EnableInClassList(GameUiLocaleClass.CjkClassName, true);
+            var row = MountShown(new NotificationRow(1, 0, Denied("denied.researchNotCompletable", NoParams, NoIcon)), UiText.FromVerbatim("研究を完了できません（前提条件または素材が不足しています）"));
+            var text = row.Q<LocalizedLabel>(className: "notification-row__text");
+            for (var frame = 0; frame < 6; frame++)
+            {
+                simulate.FrameUpdate();
+                Assert.IsFalse(text.text.Contains("<space="), $"frame {frame}: {text.text}");
+            }
+
+            // 1 行目は JP の字の自然な高さ 22px、2 行目は 18px 送り。行は上下の padding と枠で +9px（NotificationHostViewLayoutTest と同じ内訳）
+            // First line is the JP natural 22px, the second advances 18px; padding and border add 9px (same breakdown as NotificationHostViewLayoutTest)
+            StringAssert.Contains("\n", text.text);
+            Assert.AreEqual(22f + 18f, text.layout.height, 0.5f, text.text);
+            Assert.AreEqual(22f + 18f + 9f, row.layout.height, 1f, "two-line row");
         }
 
         // ホストと同じく文を入れてからパネルに載せる（文の無いラベルが付くと LocalizedTextBinding が LogError を出す）

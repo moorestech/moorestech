@@ -107,6 +107,10 @@ namespace Client.Ui.Components.Controls
             // Spacing class from the second option on
             if (following) button.AddToClassList("mode-switch__option--following");
 
+            // Web の box-shadow の輪は面の外へ出した子で描く（ModeSwitchRing）
+            // The Web box-shadow ring is a child pushed outside the face (ModeSwitchRing)
+            button.Add(new ModeSwitchRing());
+
             // 文は辞書の切替で解き直すラベルに載せる
             // The label re-resolves on dictionary switches
             var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };

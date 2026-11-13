@@ -67,10 +67,17 @@ namespace Client.Tests.Ui.Screens.Skit
             // 透明な残りも幅を持つので、どの区切りも全文と同じ幅。字が消えれば縮み、タグとして読まれれば幅が変わる
             // The transparent tail keeps its width, so every split matches the full width; a dropped character shrinks it and a parsed tag changes it
             Assert.Greater(reference.contentRect.width, 0f, "生の文が描かれていない（測り方の前提）");
+            var full = splits[count].contentRect.width;
             for (var visible = 0; visible <= count; visible++)
             {
-                Assert.AreEqual(reference.contentRect.width, splits[visible].contentRect.width, 0.5f, $"先頭 {visible} 字で区切ると幅が生の文と違う");
+                Assert.AreEqual(full, splits[visible].contentRect.width, 0.5f, $"先頭 {visible} 字で区切ると幅が全文と違う");
             }
+
+            // 生の素の Label は字の大きさ 21.3px を 21 物理 px へ丸めた送りで組む。LocalizedLabel は Web の送りへ戻すので、その比だけ広い（設計書 A-225）
+            // The raw plain Label lays out at 21.3px rounded to 21 physical px; LocalizedLabel returns to the Web advance, so it is wider by exactly that ratio (design A-225)
+            var fontSize = reference.resolvedStyle.fontSize;
+            var webWidth = reference.contentRect.width * fontSize / (float)System.Math.Round(fontSize, System.MidpointRounding.AwayFromZero);
+            Assert.AreEqual(webWidth, full, 1f, "全文の幅が生の文の Web の送りと違う");
         }
 
         private LocalizedLabel MountBody(string richText, float width)

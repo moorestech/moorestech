@@ -33,6 +33,9 @@ namespace Client.Starter.Registration
             // 作り済みの合成 Tick と倍率を渡す
             // Hand over the built composite tick and scale
             gameUiFoundation.HandOverTo(builder);
+            // Pick の probe を作り入力とホイールへ渡す
+            // A single Pick probe, injected into the input installer and the equipment wheel
+            builder.RegisterInstance(new GameUiPointerProbe(gameUiRoot.GetRootElement()));
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);

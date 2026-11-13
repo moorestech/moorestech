@@ -87,7 +87,7 @@
 | Modify | `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/Object/Core/TrainCarObjectDatastore.cs` | `EnumerateTrainCars()` 追加 |
 | Modify | `Localization/localization.csv`、`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` | キー追加・再生成 |
 | Modify | `docs/adr/0032-key-hint-hud-owned-by-ui-state.md` | 破壊モード行を 11 件へ |
-| Test | `Client.Tests/PlaceSystem/Common/RangeBox/CellRangeBoxTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxRuleTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs`、`Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs`、`Client.Tests/UIState/DeleteSelectionTest.cs`（旧 `DragDeleteSelectionTest.cs`）、既存 `DragDeleteDenyReasonTest.cs`／`DeleteSelectionCategoryTest.cs`／`DragDelete/DestroyedSelectionTest.cs`／`BuildUndo/RemoveOperationHistoryTest.cs`／`UIStateKeyHintCatalogTest.cs`／`UIStateFocusRestorationTest.cs`／`UIStateCameraInteractionTest.cs`／`RightShortPressTransitionTest.cs` | 更新 |
+| Test | `Client.Tests/PlaceSystem/Common/RangeBox/CellRangeBoxTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxRuleTest.cs`、`Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs`、`Client.Tests/UIState/DragDelete/DeleteHoldConfirmTest.cs`、`Client.Tests/UIState/DragDelete/Selection/DeleteSelectionTest.cs`（旧 `DragDeleteSelectionTest.cs`）、既存 `DragDeleteDenyReasonTest.cs`／`DeleteSelectionCategoryTest.cs`／`DragDelete/DestroyedSelectionTest.cs`／`BuildUndo/RemoveOperationHistoryTest.cs`／`UIStateKeyHintCatalogTest.cs`／`UIStateFocusRestorationTest.cs`／`UIStateCameraInteractionTest.cs`／`RightShortPressTransitionTest.cs` | 更新 |
 | Scenario | `.claude/skills/unity-playmode-recorded-playtest/scenarios/building/delete-tool-box-select-hold-confirm.cs`（新規）、`scenarios/building/build-undo-ctrl-z.cs`／`scenarios/train/delete-tool-pier-removal-undo-rail.cs`／`scenarios/connect/delete-tool-cut-and-undo-connection-lines.cs`（更新） | unityプレイ録画テスト |
 
 ### データフロー地図（Phase 1.5）
@@ -508,8 +508,8 @@ git commit -m "feat: 削除ツールの箱に入る判定（点・レール曲�
 **Files:**
 - Rename: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DragDeleteSelection.cs` → `.../DragDelete/DeleteSelection.cs`（`.meta` も `git mv`）
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteAddOutcome.cs`
-- Rename: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionTest.cs` → `.../UIState/DeleteSelectionTest.cs`（`.meta` も）
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteDenyReasonTest.cs`、`.../UIState/DeleteSelectionCategoryTest.cs`、`.../UIState/DragDelete/DestroyedSelectionTest.cs`、`.../BuildUndo/RemoveOperationHistoryTest.cs:23,30,46,47`（型名・`BeginDrag`→`BeginStroke`・`CanCommit`→`IsStrokeAlive`・`TryAddTarget(t, out r)`→`TryAddTarget(t)` の結果型）
+- Rename: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionTest.cs` → `.../UIState/DragDelete/Selection/DeleteSelectionTest.cs`（`.meta` も）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Service/DragDeleteDenyReasonTest.cs`、`.../UIState/DragDelete/Selection/DeleteSelectionCategoryTest.cs`、`.../UIState/DragDelete/DestroyedSelectionTest.cs`、`.../BuildUndo/RemoveOperationHistoryTest.cs:23,30,46,47`（型名・`BeginDrag`→`BeginStroke`・`CanCommit`→`IsStrokeAlive`・`TryAddTarget(t, out r)`→`TryAddTarget(t)` の結果型）
 - Modify: `.claude/skills/unity-playmode-recorded-playtest/scenarios/building/build-undo-ctrl-z.cs:2-4`（コメント中の `DragDeleteSelection.CommitDelete` → `DeleteSelection.CommitDelete`）
 
 **Interfaces:**
@@ -976,7 +976,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
 ```bash
 cd moorestech_client/Assets/Scripts/Client.Tests
-sed -i '' -e 's/DragDeleteSelection/DeleteSelection/g' -e 's/BeginDrag()/BeginStroke()/g' -e 's/CanCommit()/IsStrokeAlive()/g' UIState/DragDeleteDenyReasonTest.cs UIState/DeleteSelectionCategoryTest.cs UIState/DragDelete/DestroyedSelectionTest.cs BuildUndo/RemoveOperationHistoryTest.cs
+sed -i '' -e 's/DragDeleteSelection/DeleteSelection/g' -e 's/BeginDrag()/BeginStroke()/g' -e 's/CanCommit()/IsStrokeAlive()/g' UIState/DragDelete/Service/DragDeleteDenyReasonTest.cs UIState/DragDelete/Selection/DeleteSelectionCategoryTest.cs UIState/DragDelete/DestroyedSelectionTest.cs BuildUndo/RemoveOperationHistoryTest.cs
 grep -rn "TryAddTarget(.*out " UIState BuildUndo   # 残った out 版の呼び出しを DeleteAddOutcome 版へ手で直す（例: `Assert.IsFalse(selection.TryAddTarget(t, out var r))` → `var o = selection.TryAddTarget(t); Assert.IsFalse(o.IsAdded); Assert.AreEqual(expected, o.DenyReason)`）
 grep -rn "DragDeleteSelection\|BeginDrag\|CanCommit" . ../Client.Game   # DeleteObjectService.cs 以外に残っていないこと
 sed -i '' 's/DragDeleteSelection\.CommitDelete/DeleteSelection.CommitDelete/g' ../../../../.claude/skills/unity-playmode-recorded-playtest/scenarios/building/build-undo-ctrl-z.cs
@@ -1691,8 +1691,8 @@ git commit -m "feat: 削除ツールの箱選択（Shift+クリック2点・Q/E�
 - Modify: `Localization/localization.csv`（`ui.keyHint.key.leftAltHold` 行の直後に `ui.keyHint.key.fHold`、`ui.keyHint.text.dragSelect` 行の直後に 4 行）
 - Modify: `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`（再生成）
 - Modify: `docs/adr/0032-key-hint-hud-owned-by-ui-state.md:52`
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs`（破壊モード 7→11）
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateFocusRestorationTest.cs:119`、`.../UIStateCameraInteractionTest.cs:92`、`.../RightShortPressTransitionTest.cs:68`（コンストラクタ引数追加）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs`（破壊モード 7→11）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateFocusRestorationTest.cs:119`、`.../UIStateCameraInteractionTest.cs:92`、`.../RightShortPressTransitionTest.cs:68`（コンストラクタ引数追加）
 
 **Interfaces:**
 - Consumes: Task 3〜5 の `DeleteSelection`・`DeleteAddOutcome`・`DeleteHoldSubject`・`DeleteHoldConfirm`・`DeleteBoxInput`・`DeleteBoxTargetResolver`、`DeleteTargetRaycaster.AimAt(DeleteAimFilter)` → `DeleteAimResult`（`Target`、`GetDragDenyReason()`）、`IMouseCursorTooltip.Show(TooltipOwner, IReadOnlyList<TooltipLine>)`/`Hide(TooltipOwner)`、`InputManager.Playable.Interact.GetKey`

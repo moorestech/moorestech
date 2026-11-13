@@ -14,7 +14,7 @@ namespace Client.Ui.Foundation.Layers
         PauseMenu,       // --z-stage-pause-menu
         Tooltip,         // --z-stage-tooltip
         Grab,            // --z-viewport-grab
-        WorldPin,        // --z-portal-world-pin
+        WorldPin,        // --z-portal-world-pin（ここから Portal。z の無い .viewport の全層より前）
         Modal,           // --z-portal-modal
         SkitTransition,  // --z-portal-skit-transition
         Toast,           // --z-portal-toast

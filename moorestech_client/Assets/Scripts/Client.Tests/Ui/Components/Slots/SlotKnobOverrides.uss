@@ -36,6 +36,10 @@
     --count-letter-spacing: 12px;
 }
 
+.slot-knob-item-list .slot-content {
+    --slot-content-count-trailing-spacing: 1.92px;
+}
+
 .slot-knob-shortage {
     --shortage-count-right: 3px;
     --shortage-count-bottom: 2px;

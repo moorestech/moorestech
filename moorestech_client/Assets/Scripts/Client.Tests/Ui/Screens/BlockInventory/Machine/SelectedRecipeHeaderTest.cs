@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Items;
@@ -42,7 +43,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             Assert.IsNotNull(header.Q<ItemSlot>());
             Assert.IsNotNull(header.Q("machine-selected-recipe-item"));
             Assert.IsNull(header.Q<FluidAmountSlot>());
-            Assert.AreEqual("7 seconds", header.Q<Label>("machine-selected-recipe-time").text);
+            Assert.AreEqual("7 seconds", header.Q<Label>("machine-selected-recipe-time").PlainText());
         }
 
         [Test]
@@ -52,7 +53,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             // "and N more" belongs to the selection rows only
             var root = MountSelected(MachineScreenViewModels.Recipe(7, new[] { new ItemAmount(FirstItem, 1), new ItemAmount(SecondItem, 1) }, new RecipeFluidAmount[0]));
 
-            Assert.AreEqual("Test Item 1", root.Q<Label>("machine-selected-recipe-name").text);
+            Assert.AreEqual("Test Item 1", root.Q<Label>("machine-selected-recipe-name").PlainText());
         }
 
         [Test]

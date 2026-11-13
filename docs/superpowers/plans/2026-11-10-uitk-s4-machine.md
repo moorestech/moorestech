@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/blockInventory` のうち、機械（`MachineSection`: レシピ選択モードとインベントリモードの往復・選択中レシピのヘッダ・加工行・モジュール帯・液体の行・分間生産数・共通フッタ）、採掘機・ポンプ・発電機の区画、文脈の 3 欄（清浄室の部屋欄・抽選の中身・搬入停止の理由）、液体の行と液体の詳細（`FluidSlotRow`・`FluidInventoryContents`）を、S4-alpha の拡張口（区画・大型パネル判定の寄与・Shift 配分の束縛の寄与）と型付きのスロット操作、C4-a の液体部品、C4-b のゲージ、C4-c の `RecipeRow`、L0-s4b のロジックで、Web と同じ見た目・同じ操作の UITK 画面にする。Web ホストにしかない詳細の導出（機械・採掘機・ポンプ・発電機・液体・部屋・抽選・詰まり）を State に写し直し、L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-machine-ui` と既存の機械系）まで済ませて `feature/uitk` へ取り込む。S4-train が使う液体の部品（`Screens/BlockInventory/Fluid/`）もここで作る。
+**Goal:** Web 版の `features/blockInventory` のうち、機械（`MachineSection`: レシピ選択モードとインベントリモードの往復・選択中レシピのヘッダ・加工行・モジュール帯・液体の行・分間生産数・共通フッタ）、採掘機・ポンプ・発電機の区画、文脈の 3 欄（清浄室の部屋欄・抽選の中身・搬入停止の理由）、液体の行と液体の詳細（`FluidSlotRow`・`FluidInventoryContents`）を、S4-alpha の拡張口（区画・大型パネル判定の寄与・Shift 配分の束縛の寄与）と型付きのスロット操作、C4-a の液体部品、C4-b のゲージ、C4-c の `RecipeRow`、L0-s4b のロジックで、Web と同じ見た目・同じ操作の UITK 画面にする。Web ホストにしかない詳細の導出（機械・採掘機・ポンプ・発電機・液体・部屋・抽選・詰まり）を State に写し直し、L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/stage4/uitk-machine-ui` と既存の機械系）まで済ませて `feature/uitk` へ取り込む。S4-train が使う液体の部品（`Screens/BlockInventory/Fluid/`）もここで作る。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。設計書 §4.2「Model の購読は Presenter、View は Render だけ」と alpha の拡張口（alpha 計画「## 後続レーンへの Produces 一覧」: `OpenBlockInventoryPanel` は識別子・エラー・枠だけで `BlockGameObject` を持たず、区画の工場は「区画の Presenter〈`IBlockInventorySection`〉＋View」の組を作る）に従う。State（`Client.Ui.State/BlockInventory/`）に族ごとの詳細 Model を置き、各 Model は `OpenBlockDetailTracker`（追跡替え・状態変化）ほかを購読して `IReadOnlyReactiveProperty<…ViewModel>` を配る。(1) `Machine/`: `MachineSectionModel`（追跡ブロックの状態詳細とマスタから `MachineDetail` を組み〈選択レシピは `MachineRecipeSelection` の union〈未選択／選択中〉へ境界 1 か所で解く。L0-s4b D-27〉、alpha の `UnlockedMachineRecipeSource`・`IModuleSlotStackLimitLookup`・パネルの枠・液体の列と合わせて `MachineSectionViewModel` を配る）、選ぶコマンド `IMachineRecipeSelectCommand`（解放の検査 → `MachineRecipeSelectionProtocol` の送信。失敗はログ）、alpha の口への寄与（大型パネル判定 `RecipeMachineLargePanelRule`・Shift 配分の束縛 `MachineSlotRestrictionContributor`。どちらも機械の Model を読む）。(2) `Family/`: 族ごとの Model `MinerDetailModel`・`PumpDetailModel`（電気／歯車の union）・`GeneratorDetailModel`（それぞれ `Current` 1 本）。(3) `Fluid/`: `BlockFluidSlotsModel`（タンクの入力→出力と、パイプはクライアントの流体複製。進捗つき）。(4) `Context/`: `BlockContextModel`（`BlockNetworkInfoCache` の部屋・抽選・詰まりを L0-s4b の入力型と未取得の状態へ写し、1 秒ポーリングの `OnUpdated` で配り直す）。状態詳細 → 値の写しは `BlockGameObject` を取らない純関数（状態詳細の型とマスタの param を引数に取る）にして L0 で試す。Client.Ui（`Screens/BlockInventory/`）は `Machine/`（機械の区画の Presenter・View。選択モードの局所状態 `MachineSelectionModeState` は Presenter が持つ）・`Machine/RecipeSelection/`（選択リスト。C4-c の `RecipeRow`・`RecipeListScrollView`）・`Context/`（文脈の 3 欄と `BlockInfoUnavailableLine`）・`Family/`（採掘機・ポンプ・発電機）・`Fluid/`（液体の 2 区画と `FluidInventoryContents`。S4-train も View を使う）を置き、各区画は alpha の区画の工場の口として自分の登録ファイル `BlockInventoryMachineGameUiRegistration` から差し込む。Presenter は Attach で自分の Model（と区画の出し入れに要る他族の Model）を購読して View.Render と `IsApplicable` へ流し、Detach で切る。View は自分で購読しない。L1 は Model の口（`IMachineSectionModel` 等）を偽の `ReactiveProperty` に差し替えて Presenter＋View を試す。
 
@@ -35,7 +35,7 @@
 | R-16 | 並べ比べ: 参照 `4-block-machine`・`-machine-recipe-selection`・`-gearMachine`・`-generator`・`-gearGenerator`・`-miner`・`-gearMiner`・`-pump`・`-pumpNoVein`・`-gearPump`・`-tank`・`-generic`（1280×720 は `web-a9d5123537/`、2560×1080 は `web-0e81bbe3c3-2560x1080/`）と、1280×720 に無い `machineShortInput`・`machineFilledOutput`・清浄室 12 を E-22 の形で自分で撮って比べる（この 14 場面は 2560×1080 の既存の参照とも比べる）。差の表を `done.md` に書く | 差の表の全行が「同じ／直した／LX-116〜LX-120／他レーン持ち（歯車・特殊族の区画）」のどれか |
 | R-17 | 登録: `BlockInventoryMachineGameUiRegistration.Register(builder)` を `MainGameUiRegistration` の画面登録区画に 1 行、USS 4 本を `GameUiTheme.tss` の `Screens` 区画に `@import` | 全体スイッチ UITK で機械を開いて `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
 | R-18 | 写すテスト（下の「写すテスト」表。タグ付き NUnit 81 件・捨てる 4 件・S4-special へ 2 件）・`docs/uitk/disposition.md` の行・`node tools/uitk/test-name-parity.mjs --bundle 4` で本レーンのファイルの未対応 0 | parity の出力に本レーンのファイルの未対応が無い（S4-special と分け合うタグは双方の NUnit が揃うまで「写す予定: S4-special」で残ってよい） |
-| R-19 | 録画: 新設 `uitk/uitk-machine-ui`（機械を置き、レシピを選び、素材を入れて開いたまま進捗・出力・状態が変わる。ヘッダで選択へ戻る）と、既存の `tier9/tier9-1b-mixed-level-sorting`・`tier9/tier9-3-yield-ui`・`tier9/tier9-6-fusion-elevator`・`tier9/task31-r3/t31r3b-cable-output-space-acceptance`・`misc/cleanroom-room-usability` を全体スイッチ UITK で回す | 6 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-19 | 録画: 新設 `uitk/stage4/uitk-machine-ui`（機械を置き、レシピを選び、素材を入れて開いたまま進捗・出力・状態が変わる。ヘッダで選択へ戻る）と、既存の `tier9/tier9-1b-mixed-level-sorting`・`tier9/tier9-3-yield-ui`・`tier9/tier9-6-fusion-elevator`・`tier9/task31-r3/t31r3b-cable-output-space-acceptance`・`misc/cleanroom-room-usability` を全体スイッチ UITK で回す | 6 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-20 | 終わりは moores-code-review の全ブランチレビュー（自動適用の後は録画を反映後のバイナリで撮り直す）→ pr-create（base `feature/uitk`・報告ページに並べ比べの HTML と録画）→ `origin/feature/uitk` の取り込み（共有区画は両側を残す）・compile・絞ったテスト → G1 緑 → `gh pr merge --merge` → `done.md` 1 行目「状態: 完了」→ `cmux wait-for -S uitk-s4-machine` | `git log origin/feature/uitk` にこのレーンのマージコミット。`LOGS/harness/uitk/S4-machine/done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -394,7 +394,7 @@ Client.Ui（`Client.Ui/Screens/BlockInventory/`）
 - `Screens/BlockInventory/Family/BlockDetailsFamilyTest.cs`・`FamilyDesignTest.cs`
 - `Screens/BlockInventory/Fluid/FluidSlotTest.cs`・`FluidSectionsTest.cs`
 
-録画: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-machine-ui.cs`
+録画: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-machine-ui.cs`
 
 変更（共有区画への追記だけ）:
 - `moorestech_client/Assets/Scripts/Client.Ui.State/Client.Ui.State.asmdef` — 参照の末尾に `Game.Block`・`Game.Fluid`・`Game.Gear`
@@ -3133,11 +3133,11 @@ git commit -m "docs(uitk): 機械と汎用族の並べ比べの差を閉じる�
 ### Task 15: 録画
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-machine-ui.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-machine-ui.cs`
 
 - [ ] **Step 1: シナリオを書く**
 
-前例 `scenarios/uitk/uitk-grab-overlay.cs` の形（冒頭で `UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContext.DIContainer.DIContainerResolver` から型を引く〈同シナリオ 61 行〉）に従い、次を順に主張する:
+前例 `scenarios/uitk/stage4/uitk-grab-overlay.cs` の形（冒頭で `UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContext.DIContainer.DIContainerResolver` から型を引く〈同シナリオ 61 行〉）に従い、次を順に主張する:
 1. `SetupFlatGround` → 電気の機械（レシピを 2 つ以上持つもの。マスタから選ぶ）と発電機・電柱を `PlaceBlockDirect` → `WaitBlockGameObject`
 2. 機械を `PressInteract` → `block-inventory` が大型（`block-inventory--large`）・`machine-recipe-selection` が出る（未選択）
 3. `machine-recipe-<guid>` を押す → `machine-selected-recipe` と `machine-inventory-body` が出る（サーバーの選択が届くのを `WaitUntil` で待つ）
@@ -3151,7 +3151,7 @@ git commit -m "docs(uitk): 機械と汎用族の並べ比べの差を閉じる�
 
 - [ ] **Step 2: 回す**
 
-Run: unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で `uitk/uitk-machine-ui`・`tier9/tier9-1b-mixed-level-sorting`・`tier9/tier9-3-yield-ui`・`tier9/tier9-6-fusion-elevator`・`tier9/task31-r3/t31r3b-cable-output-space-acceptance`・`misc/cleanroom-room-usability` を、全体スイッチ UITK で（既存の 5 本は冒頭で UITK へ切り替えて回す。シナリオ本体を変えずに回せる口が DSL に無ければ、切り替えの 1 行を足した UITK 用の写しを `scenarios/uitk/` に置く）
+Run: unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で `uitk/stage4/uitk-machine-ui`・`tier9/tier9-1b-mixed-level-sorting`・`tier9/tier9-3-yield-ui`・`tier9/tier9-6-fusion-elevator`・`tier9/task31-r3/t31r3b-cable-output-space-acceptance`・`misc/cleanroom-room-usability` を、全体スイッチ UITK で（既存の 5 本は冒頭で UITK へ切り替えて回す。シナリオ本体を変えずに回せる口が DSL に無ければ、切り替えの 1 行を足した UITK 用の写しを `scenarios/uitk/` に置く）
 Expected: 6 本の `result.json` が PASS、mp4 がある。既存の 5 本は Error の計数を持たないので、`result.json` の `ErrorLogs` が空であることを `done.md`「証拠」に書く（空でなければ中身を読み、本レーン由来なら直す）。Task 11 で録画に回した高さ 600・1080 の件も `uitk-gameview-resolution-switch.cs` の前例で撮る。`done.md`「証拠」に result.json のパス・mp4・`UiInputExclusivity.ActiveUiSystem` の値（GameUi）を書く。生の録画は worktree の gitignore 下、`LOGS` へはスクショ 3 枚までと報告だけ
 
 - [ ] **Step 3: コミット**

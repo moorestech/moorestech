@@ -23,6 +23,7 @@ namespace Client.Ui.Foundation.Text
         public const string TitleOrder2 = "title--order-2";
         public const string TitleOrder3 = "title--order-3";
         public const string TitleOrder4 = "title--order-4";
+        public const string TitleHeadingFace = "title--heading-face";
         public const string KeyHintText = "key-hint-text";
     }
 }

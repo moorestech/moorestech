@@ -33,7 +33,7 @@
 - 作業ブランチ: `uitk-lane/s2-notification`（`moores-wt new uitk-lane/s2-notification --from origin/feature/uitk --no-editor` で指揮が作る。Task 5 と Task 6 以降で Editor を `uloop launch` する）。Task 1〜4 は C3-a に依存しない。Task 6 以降は C3-a（`GameContentPresentation`・`UiIcon`・`GameIcon` と `Client.Ui.asmdef` の `Core.Master` 参照）と C3-b（倍率の読み口 `StageScaleSource`。設計書 [A-41]）が `origin/feature/uitk` に入ってから始める（実行計画のレーン行の依存。W2 の枠 2 で C3-b はこのレーンより先に流れる。Task 6 Step 1 で確かめ、無ければ止めて指揮へ返す）
 - 正本の優先: 裁定（`.decisions/2026-11-06-UITK*`）→ 統合計画（`origin/master:docs/uitk-migration/plan.md`）→ 設計書 `docs/uitk-migration/execution/component-architecture.md`（このレーンの割り当ては §7.1 の A-67〜A-69）→ 実行計画 `docs/uitk-migration/execution/execution-plan.md`（E-19）→ この計画
 - 層の向き（設計書 §1.1）: `Client.Ui.State` は `Client.Ui`・`UnityEngine.UIElements` を参照しない。Screens は State・Content・Components・Foundation を参照してよい。Components は Content（`GameContentPresentation`）と `Client.Game` を参照しない
-- 所有: `S/Client.Ui/Screens/Notification/**`・`S/Client.Ui.State/Notification/**`（既存の `NotificationFeed.cs`・`SequencedNotification.cs` を含む）・`S/Client.Tests/Ui/Screens/Notification/**`・`S/Client.Tests/Ui/State/Notification/**`・`S/Client.Starter/Registration/GameUi/NotificationGameUiRegistration.cs`・`SC/server-notification-smoke.cs`・新規 `SC/uitk/uitk-notification-compare.cs`
+- 所有: `S/Client.Ui/Screens/Notification/**`・`S/Client.Ui.State/Notification/**`（既存の `NotificationFeed.cs`・`SequencedNotification.cs` を含む）・`S/Client.Tests/Ui/Screens/Notification/**`・`S/Client.Tests/Ui/State/Notification/**`・`S/Client.Starter/Registration/GameUi/NotificationGameUiRegistration.cs`・`SC/server-notification-smoke.cs`・新規 `SC/uitk/stage2/uitk-notification-compare.cs`
 - **E-19 による Foundation/Motion の例外**（指揮の割り当て。実行計画 E-19・設計書 A-69）: このレーンは `S/Client.Ui/Foundation/Motion/Tween/UiEasing.cs`（enum に `CssEaseOut`・`CssEaseIn` を足し `UiEasingFunctions.Evaluate` に分岐を足す）と新規 `S/Client.Ui/Foundation/Motion/Steps/TranslateXTweenStep.cs`、そのテスト（新規 `S/Client.Tests/Ui/Motion/UiEasingCssCurveTest.cs`・既存 `S/Client.Tests/Ui/Motion/UiTweenStepTest.cs` への 1 メソッド）を書いてよい。W2 で `UiEasing` を書き換えるのはこのレーンだけ。Foundation/Motion のほかのファイル（`UiTweenAnimation`・`UiMotionPlayer`・既存の Step）は変えない
 - 共有ファイルに書いてよいのは: `GameUiTheme.tss` の Screens 区画の `@import` 1 行、`MainGameUiRegistration` の画面登録区画の 1 行、`Localization/localization.csv`（このレーンは足す予定なし）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-39`〜`LX-41`）「## 追従記録」の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾。`Tokens.uss`・`DerivedTokens.uss`・`MantineTokens.uss`・`UiLayer`・`UiScreenTraits`・`AnchorIds`・`Components/**`・`Foundation/**`は書かない。要るものは done.md の「integrator への依頼」に書いて、このレーンでは Screens の中で済ませる（設計書 §5.1-2）
 - AGENTS.md: 1 ファイル 200 行未満、1 ディレクトリ 10 ファイルまで、`partial` 禁止、`Func<>` 禁止、デフォルト引数禁止、イベントは UniRx、try-catch 禁止（ファイル読みの境界も使わない。`File.Exists` で分岐）、主要処理に日本語→英語の 2 行コメント（各 1 行）、fail-closed の早期 return はログか `silent-ok: <理由> / <誰がどこで気づくか>`、単純な get/set プロパティ禁止（`{ get; }`・`{ get; private set; }` は可）、`.meta` は手で作らない、`Update()` を使わない
@@ -194,7 +194,7 @@ UITK だけのテストは別に 23 メソッド（タグ無し。各タスク�
 | `S/Client.Tests/Ui/Screens/Notification/NotificationViewportScalingTest.cs` | R5・R9（portalLayerScaling の通知の 1 件を 2 解像度で） | 8 |
 | `S/Client.Tests/Ui/Screens/Notification/NotificationLayeringTest.cs` | R7 | 9 |
 | `SC/server-notification-smoke.cs` | 録画（直す） | 11 |
-| `SC/uitk/uitk-notification-compare.cs` | 並べ比べの撮影 | 10 |
+| `SC/uitk/stage2/uitk-notification-compare.cs` | 並べ比べの撮影 | 10 |
 | `docs/uitk/disposition.md` | 処遇の 2 行 | 10 |
 | `docs/uitk/TODO.md` | 実測の結論・見た目の例外（必要時）・追従記録（必要時） | 10・12 |
 
@@ -3794,7 +3794,7 @@ git commit -m "feat(uitk): 通知のホストを背面の層へ常駐させ Game
 ### Task 10: 参照との並べ比べ（720p・2560×1080）と処遇
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-notification-compare.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-notification-compare.cs`
 - Modify: `docs/uitk/disposition.md`（「## 処遇」の末尾に 1 行）
 - Modify: `docs/uitk/TODO.md`（差を例外にするときだけ「## 見た目の例外」の末尾に `LX-39`〜`LX-41`。実測を書くときだけ「## 実測の結論」の末尾）
 - 直すものが出たら: `Notification.uss`・`NotificationRowView.cs`・`NotificationHostView.cs`
@@ -3808,7 +3808,7 @@ git commit -m "feat(uitk): 通知のホストを背面の層へ常駐させ Game
 Run: `uloop control-play-mode --project-path ./moorestech_client --action Stop` → `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Current.ToString();'`
 Expected: 戻り値 `GameUi`
 
-- [ ] **Step 2: 並べ比べの撮影シナリオを書く**（`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-notification-compare.cs`）
+- [ ] **Step 2: 並べ比べの撮影シナリオを書く**（`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-notification-compare.cs`）
 
 ```csharp
 // 通知の並べ比べ撮影: GameUi（UITK）で参照 2-notifications と同じ 4 行（獲得・研究完了・アイテム解放・拒否）を日本語で出して 1280×720 の画面を撮り、PanelSettings の複製に描いた通知の層を 1280×720 と 2560×1080 で撮る
@@ -3927,7 +3927,7 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
 
 - [ ] **Step 3: UITK を撮る**
 
-Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-notification-compare.cs`
+Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-notification-compare.cs`
 Expected: `result.json` が成功、1280×720 の実画面のスクショと `.superpowers/uitk-notification-compare/uitk-2-notifications-panel-1280x720.png`・`uitk-2-notifications-panel-2560x1080.png`。`git status` に `GameUiPanelSettings.asset` の変更が無い。1 回目に "already playing" で落ちたら 1 回だけ再実行する
 
 - [ ] **Step 4: Web の 2560×1080 を撮る**（参照は 1280×720 しか無い）
@@ -3978,7 +3978,7 @@ Expected: `$OUT/2-notifications.png`（2560×1080）。`git status` に `shotRun
 Run: 参照 720p と Web 2560 を `.superpowers/uitk-notification-compare/` へ写してから `share-put .superpowers/uitk-notification-compare -n uitk-s2-notification-compare` → 出た URL を done.md と disposition の行に書く
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-notification-compare.cs docs/uitk/disposition.md docs/uitk/TODO.md moorestech_client/Assets/Scripts/Client.Ui/Screens/Notification
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-notification-compare.cs docs/uitk/disposition.md docs/uitk/TODO.md moorestech_client/Assets/Scripts/Client.Ui/Screens/Notification
 git commit -m "test(uitk): 通知を参照と 720p・2560×1080 で並べ比べ、保険タイマーの 1 件を捨てるに記帳する（S2-notification）"
 ```
 

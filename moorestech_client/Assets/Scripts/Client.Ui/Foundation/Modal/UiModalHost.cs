@@ -68,9 +68,8 @@ namespace Client.Ui.Foundation.Modal
             // silent-ok: 中身が無ければ外すものが無い / 表示の有無は ApplyShown の状態クラスが写す
             if (_content == null) return;
 
-            // フォーカスを持ったまま外すとパネルから外れた後に外れの知らせが根の入力規則へ届かず、入力中の旗が残る。外す前に根まで届く形で外す
-            // Removing focused contents blurs after leaving the panel, so the root input rules never hear it and the text-input flag sticks; blur while still attached
-            if (_content.focusController?.focusedElement is VisualElement focused && _content.Contains(focused)) focused.Blur();
+            // フォーカス中の入力欄ごと外したときの旗は、根の入力規則が入力欄の取り外しを購読して下ろす
+            // The text-input flag for a field removed with focus is lowered by the root input rules, which watch the field's detach
             _content.RemoveFromHierarchy();
         }
 

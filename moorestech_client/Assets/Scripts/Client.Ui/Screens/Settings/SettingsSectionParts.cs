@@ -12,7 +12,11 @@ namespace Client.Ui.Screens.Settings
     {
         public static LocalizedLabel Title(LocalizationKey key)
         {
-            return Create(key, "settings-section__title", UiTypographyClass.TitleOrder2);
+            // Web の Title は見出しの字体で描く
+            // The Web Title draws with the heading face
+            var title = Create(key, "settings-section__title", UiTypographyClass.TitleOrder2);
+            title.AddToClassList(UiTypographyClass.TitleHeadingFace);
+            return title;
         }
 
         public static LocalizedLabel Caption(LocalizationKey key)

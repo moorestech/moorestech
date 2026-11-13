@@ -22,7 +22,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             var button = AddButton(RulesRoot, RecipeActionButtonVariant.Research);
             Assert.IsTrue(button.ClassListContains(RecipeActionButton.ResearchUssClassName));
             Assert.AreEqual("GameUiLatin SDF", Label(button).resolvedStyle.unityFontDefinition.fontAsset.name, "research is the default 400 face");
-            Assert.AreEqual(8f, button.resolvedStyle.paddingTop, 0.01f);
+            Assert.AreEqual(8f, button.Q(className: Client.Ui.Foundation.Filter.PixelFilterGroup.ContentUssClassName).resolvedStyle.paddingTop, 0.01f, "the block padding sits on the group content");
             Assert.AreEqual(0f, button.resolvedStyle.borderLeftWidth, 0.01f);
             Assert.AreEqual(14f, Label(button).resolvedStyle.fontSize, 0.01f);
             Assert.AreEqual(DisplayStyle.None, ShadowGlyphs(button).First().parent.resolvedStyle.display, "research has no text shadow");
@@ -43,7 +43,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             simulate.FrameUpdate();
             AssertFace(button, "--research-action-disabled-face", "--research-action-disabled-face", "--research-action-disabled-face");
             AssertSameColor(ResolveColor("--text-default"), Label(button).resolvedStyle.color, "disabled text");
-            Assert.AreEqual(float.Parse(Resolve("--research-action-disabled-opacity"), System.Globalization.CultureInfo.InvariantCulture), button.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(Resolve("--research-action-disabled-opacity"), System.Globalization.CultureInfo.InvariantCulture), GroupOpacity.Read(button), 0.001f);
         }
 
         [Test]

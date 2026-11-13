@@ -45,13 +45,13 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 
 - 計画を書くときは、比較の撮影の手順にこの節の道具を名指しで書く（実行計画 §6.2「計画に必ず書くこと」）。道具で撮れない状態（例: Web の参照の組に無い掴み絵）だけ、計画に理由を書いて使い捨てで撮り、道具の拡張を integrator へ依頼する
 
-- **部品をランタイムの合成で PNG にする**（EditMode。PlayMode 中は止める）: `Client.Ui.Editor.Capture.UiRuntimePanelCapture`。倍率は本番の ScaleWithScreenSize が幅×高さから決める（2560×1080 なら 1.5）。地の色は参照の画素を 1 色で渡す。画素を数で見たいときは `Render(...)` が読める `Texture2D` を返す（左下原点。捨てるのは呼び手）。辞書は引数 `UiCaptureLocalization` で選ぶ（`InitializeDictionary` は撮る前に読み直す・`KeepCurrentDictionary` はテストで足した辞書を残す）。フォント資産を作り直した直後の Editor は太さ違いの字を描かないことがあるので、作り直したら Editor を起動し直してから撮る
+- **部品をランタイムの合成で PNG にする**（EditMode。PlayMode 中は止める）: `Client.Ui.Editor.Capture.UiRuntimePanelCapture`。倍率は本番の ScaleWithScreenSize が幅×高さから決める（2560×1080 なら 1.5）。地の色は参照の画素を 1 色で渡す。画素を数で見たいときは `Render(...)` が読める `Texture2D` を返す（左下原点。捨てるのは呼び手）。辞書は引数 `UiCaptureLocalization` で選ぶ（`InitializeDictionary` は撮る前に読み直す・`KeepCurrentDictionary` はテストで足した辞書を残す）。地と幕は引数 `UiCaptureBackdrop` で選ぶ（部品は `UiCaptureBackdrop.GroundColorOnly`。画面を Web の DEMO と並べるときは `new UiCaptureBackdrop(UiCaptureShell.VignetteAndDim, 地の画像)` で本番の `ScreenBackdropView`〈ヴィネット・幕〉を中身の奥に敷き、地の画像〈Web の `moorestech_web/webui/public/mock-orange-gradient.png` を `Texture2D.LoadImage` で読んだもの・cover〉を地の色の代わりにする。幕は traits の Backdrop 列の画面だけ。画像の破棄は呼び手）。フォント資産を作り直した直後の Editor は太さ違いの字を描かないことがあるので、作り直したら Editor を起動し直してから撮る
 
 ```bash
-uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.UiRuntimePanelCapture.CaptureToPng(new Client.Ui.Editor.Gallery.Entries.Slots.ItemSlotGalleryEntry().CreateSample(), 2560, 1080, new UnityEngine.Color32(35, 29, 30, 255), Client.Ui.Editor.Capture.UiCaptureLocalization.InitializeDictionary, "<worktree の絶対パス>/moorestech_client/.uloop/outputs/compare/<レーンID>/itemslot-2560x1080.png");'
+uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.UiRuntimePanelCapture.CaptureToPng(new Client.Ui.Editor.Gallery.Entries.Slots.ItemSlotGalleryEntry().CreateSample(), 2560, 1080, new UnityEngine.Color32(35, 29, 30, 255), Client.Ui.Editor.Capture.UiCaptureBackdrop.GroundColorOnly, Client.Ui.Editor.Capture.UiCaptureLocalization.InitializeDictionary, "<worktree の絶対パス>/moorestech_client/.uloop/outputs/compare/<レーンID>/itemslot-2560x1080.png");'
 ```
 
-- **Game View の解像度を切り替える**: uloop では `uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.GameViewResolution.Set(2560, 1080);'`（無ければ固定解像度を足して選ぶ。撮り終えたら 1280×720 へ戻す）。録画 DSL では `await PlaytestGameViewOps.SetResolution(p.CancellationToken, 2560, 1080);`（`using Client.Playtest.Operations.Ui;`。`Screen` が追いつくまで待つ）。例は `scenarios/uitk/uitk-gameview-resolution-switch.cs`
+- **Game View の解像度を切り替える**: uloop では `uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.GameViewResolution.Set(2560, 1080);'`（無ければ固定解像度を足して選ぶ。撮り終えたら 1280×720 へ戻す）。録画 DSL では `await PlaytestGameViewOps.SetResolution(p.CancellationToken, 2560, 1080);`（`using Client.Playtest.Operations.Ui;`。`Screen` が追いつくまで待つ）。例は `scenarios/uitk/integrator/uitk-gameview-resolution-switch.cs`
 - 2560×1080 の Web の参照は `web-0e81bbe3c3-2560x1080`（台帳「## 参照キャプチャ」）。撮り直すときは capture の前に `pnpm build` が要る
 
 ## 4. 並べ比べの載せ方

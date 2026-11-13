@@ -53,7 +53,7 @@
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DragDeleteSelection.cs:84-134`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Fakes/FakeDeleteTarget.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/ResetFailureRecoveryTest.cs`
-- Modify (Test): `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateControlTest.cs`
+- Modify (Test): `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateControlTest.cs`
 
 **Interfaces:**
 - Consumes: `IDeleteTarget`（既存。`SetRemovePreviewing()` / `ResetMaterial()` / `IsRemovable(out LocalizationKey?)`）

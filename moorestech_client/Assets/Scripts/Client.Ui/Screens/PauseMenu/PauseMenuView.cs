@@ -57,6 +57,7 @@ namespace Client.Ui.Screens.PauseMenu
             _title = new LocalizedLabel();
             _title.AddToClassList("pause-menu__title");
             _title.AddToClassList(UiTypographyClass.TitleOrder1);
+            _title.AddToClassList(UiTypographyClass.TitleHeadingFace);
             _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
             panel.Add(_title);
 

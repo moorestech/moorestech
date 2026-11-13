@@ -1,5 +1,6 @@
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Special.Energy;
 using Client.Ui.Screens.BlockInventory.Special.Network;
@@ -64,7 +65,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         // A mode option carries its text on the LocalizedLabel inside the Button (Button.text stays empty)
         private static string ModeLabel(VisualElement root, string optionTestid)
         {
-            return Find<Button>(root, optionTestid).Q<Label>().text;
+            return Find<Button>(root, optionTestid).Q<Label>().PlainText();
         }
     }
 }

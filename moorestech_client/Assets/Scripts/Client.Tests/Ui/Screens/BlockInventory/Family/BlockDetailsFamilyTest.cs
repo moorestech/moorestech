@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Gauges;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Family;
@@ -74,9 +75,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
             simulate.FrameUpdate();
 
             Assert.AreEqual(1, Shown(body.Root, "pump-state-label").Count);
-            StringAssert.Contains("100%", body.Root.Q<Label>("pump-power-rate").text);
+            StringAssert.Contains("100%", body.Root.Q<Label>("pump-power-rate").PlainText());
             Assert.AreEqual(1, Shown(body.Root, "pump-pumping-fluids").Count);
-            StringAssert.Contains("3600.0", body.Root.Q("pump-pumping-fluids").Q<Label>().text);
+            StringAssert.Contains("3600.0", body.Root.Q("pump-pumping-fluids").Q<Label>().PlainText());
             Assert.AreEqual(0, Shown(body.Root, "pump-no-vein").Count);
 
             Pump.Set(SectionContent<PumpDetail>.Present(ElectricPump()));
@@ -109,7 +110,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
 
             var fill = body.Root.Q<GaugeBar>("generator-fuel-progress").Q(className: "gauge-bar__fill");
             Assert.AreEqual(30f, fill.style.width.value.value, 0.01f);
-            Assert.AreEqual("Operating rate 46%", body.Root.Q<Label>("generator-operating-rate").text);
+            Assert.AreEqual("Operating rate 46%", body.Root.Q<Label>("generator-operating-rate").PlainText());
         }
 
         [Test]
@@ -136,7 +137,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
             Miner.Set(SectionContent<MinerDetail>.Present(MinerOf(100, 100, 0.6f, false, new MinerMiningItem(FirstItem, 60))));
             simulate.FrameUpdate();
             Assert.AreSame(before, body.Root.Q(slotName));
-            StringAssert.Contains("60.0", body.Root.Q("miner-mining-items").Q<Label>(null, "per-minute-rate-row__text").text);
+            StringAssert.Contains("60.0", body.Root.Q("miner-mining-items").Q<Label>(null, "per-minute-rate-row__text").PlainText());
 
             // 品の並びが変わると行は作り直される
             // A changed item sequence rebuilds the rows

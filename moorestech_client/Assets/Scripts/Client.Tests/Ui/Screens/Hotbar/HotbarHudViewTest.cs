@@ -65,7 +65,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
 
             // 空き枠の面は部品の既定（Web の値のまま。sRGB 合成なので上書きしない）、ベベルはホットバーの色
             // The empty face is the part default (the Web value; sRGB blending needs no override); the bevel uses the hotbar colors
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-face"), slot1.resolvedStyle.backgroundColor, "empty face");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-face"), slot1.Q(className: "slot-frame__face").resolvedStyle.backgroundColor, "empty face");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--hotbar-bevel-c1"), slot1.Q(className: "slot-frame__band--1").resolvedStyle.borderTopColor, "bevel c1");
         }
 
@@ -89,7 +89,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             simulate.FrameUpdate();
             var row = Find<VisualElement>(_view, "hotbar-grid");
             Assert.IsTrue(row.ClassListContains("hotbar-hud__row--select-disabled"));
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-select-disabled-opacity"), CultureInfo.InvariantCulture), HotbarGroupOpacity.Read(row), 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-select-disabled-opacity"), CultureInfo.InvariantCulture), GroupOpacity.Read(row), 0.001f);
         }
 
         /// <web-test file="e2e/tests/hotbar/hotbar.spec.ts">blockingスキット中はホットバーHUDだけが退き、会話窓は残る</web-test>

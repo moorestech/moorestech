@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/hotbar`（9 枠・番号タブ・選択・未解決の減光・選択を受けない画面の減光・割当/入替/解除の落とし先・ホイール素通しの印）と `features/modal`（Mantine Modal の題・本文・BP 名の入力・確定ボタン・幕のクリックで取消）を、C3-a（`SlotFrame`・`PlacementTargetFace`）・C3-b（`UiDragDrop`・`UiModalHost`・`DialogFrame`）・C2-b（`FormButton`・`GameTextField`）の部品で Web と同じ見た目の UITK 画面にし、全体スイッチ UITK でモーダルの描き手を UITK 1 本にする。Model は Web の topic の源（`ClientHotbarDatastore`・`PlacementTargetResolver`・`PlaceSystemStateController`・`ModalRequestService`）から直に組み、L1・並べ比べ（720p・2560×1080、モーダルは 1080p も実画面 px で [A-41]）・録画 `uitk/uitk-hotbar-and-bp-modal` まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/hotbar`（9 枠・番号タブ・選択・未解決の減光・選択を受けない画面の減光・割当/入替/解除の落とし先・ホイール素通しの印）と `features/modal`（Mantine Modal の題・本文・BP 名の入力・確定ボタン・幕のクリックで取消）を、C3-a（`SlotFrame`・`PlacementTargetFace`）・C3-b（`UiDragDrop`・`UiModalHost`・`DialogFrame`）・C2-b（`FormButton`・`GameTextField`）の部品で Web と同じ見た目の UITK 画面にし、全体スイッチ UITK でモーダルの描き手を UITK 1 本にする。Model は Web の topic の源（`ClientHotbarDatastore`・`PlacementTargetResolver`・`PlaceSystemStateController`・`ModalRequestService`）から直に組み、L1・並べ比べ（720p・2560×1080、モーダルは 1080p も実画面 px で [A-41]）・録画 `uitk/stage3/uitk-hotbar-and-bp-modal` まで済ませて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。ホットバーの Model（`Client.Ui.State/Hotbar`）は源を購読して不変の `HotbarViewModel` を `IReadOnlyReactiveProperty` で配り、View（`Client.Ui/Screens/Hotbar`）は `Render(HotbarViewModel)` で部品へ流す。Presenter が起動時に 1 回だけ View を `UiLayer.Chrome`・`UiFamily.Viewport`（Web の `.viewportOverlay` z31。前例 S2-mode-tooltip D-1）へ載せ、`_model.Current.Subscribe(view.Render)` で繋ぐ。ドラッグは C3-b の `UiDragDrop`（源が解く・ゴースト無し [A-78]）に、枠の印 `HotbarSlotDropMark`・列の隙間の印 `HotbarRowGapDropMark` と、L0-s3 の `HotbarDropResolver` を呼んで `IHotbarCommands` へ流す解き方 を画面内（`Screens/Hotbar/Parts/`）で与える。枠の印は S3-buildmenu が State に作る `IHotbarDropReceiver`（`void Receive(HotbarDragSource)`）だけを実装して `UiDragDrop.MarkTarget<IHotbarDropReceiver>` で付き、操作（`IHotbarCommands`）を持って自分で解く。源はどちらも `IUiDragPayload<IHotbarDropReceiver>` で、Foundation は解放点から同じ型の最寄りの印だけを渡し、別の型の印は飛ばす（[A-132]）。ビルドメニューの源（`BuildMenuEntryDragPayload`）は最初から `OnDropped(IHotbarDropReceiver receiver)` で `receiver.Receive(Source)` を呼ぶので、このレーンはビルドメニューのファイルを書き換えない。配置対象の絵の出どころ（`PlacementTargetIcon`・`PlacementTargetIconResolver`・`PlacementTargetIcons.TryToUiIcon`）も S3-buildmenu が最終の置き場に作り、ホットバーは使うだけ（面へ当てる分岐は枠が持つ）。選択を受ける画面の規則は `HotbarSelectRule` の 1 か所で、Model（減光）と `HotbarCommands`（受理）が同じものを読む。ホットバーの Model は源の変化ごとに同期で組み直す（[A-57]。前例 ModeHudModel・BuildMenuModel）。操作は `UiCommandResult` を返し、拒否は `UiCommandResultToaster` へ渡す（[A-8]）。モーダルは状態の正が既に `ModalRequestService` にあるので Model を作らず、`ModalScreenPresenter` が `OnPendingChanged` を購読して `ModalView`（`DialogFrame`＋`LocalizedLabel`＋`GameTextField(MantineInput)`＋`FormButton`）を C3-b の `UiModalHost` に `Show`/`Hide` する。確定・ESC（1 回）・幕のクリックはどれも View が `IModalCommands.Respond`（[A-8]）を呼ぶ。見た目の値は Web と同名のトークン・つまみだけを使い、Web が直書きする色は `DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」に前計算して足す（[A-52]）。ホットバーは世界の上に直に置くので `--slot-frame-face` を画面ルートで世界の地向けの α に上書きし、列と未解決枠の減光（Web の opacity 0.55・0.4）はランタイムの PanelSettings（Linear 合成）で明るい地の画素を Web の sRGB 合成と照合して決める（bd `moorestech-albof.34`）。
 
@@ -29,7 +29,7 @@
 | R-9 | モーダルは実画面 px で Web と同じ（[A-41]）: 720p・1080p・2560×1080 で幅 440 実画面 px・画面の中央 | `ModalScreenPresenterTest` の倍率 1.5 の主張が緑。並べ比べ（R-10）の 3 解像度 |
 | R-10 | 並べ比べ: 参照 `3-hotbar-equipment-empty`（1280×720・2560×1080）と `3-modal`（1280×720・1920×1080・2560×1080）を UITK と並べ、差の表を `done.md` に書く | 2 状態の組（ホットバー 2 解像度・モーダル 3 解像度）が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれかがある |
 | R-11 | 登録: `MainGameUiRegistration` の画面登録区画に 2 行（`HotbarGameUiRegistration.Register(builder);`・`ModalGameUiRegistration.Register(builder);`）。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行。BP 名のブリッジは確定の検証を `ModalLogic.HasConfirmableText` に委ねる | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が緑 |
-| R-12 | 録画 `uitk/uitk-hotbar-and-bp-modal`（全体スイッチ UITK）: 枠のクリックで建築モードへ入る・枠の入替・枠外へのドラッグで解除・BP コピーの名前入力をモーダルで打って確定し BP ができる・ESC 1 回でモーダルが閉じ、ポーズも建築モードの解除も起きない（入力欄にフォーカスがあるとき・無いときの両方）。既存の `building/blueprint-copy-paste-via-ui` も全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（Note の `系=GameUi`）がある。録画に ESC 1 回でモーダルが閉じポーズが出ない段がある |
+| R-12 | 録画 `uitk/stage3/uitk-hotbar-and-bp-modal`（全体スイッチ UITK）: 枠のクリックで建築モードへ入る・枠の入替・枠外へのドラッグで解除・BP コピーの名前入力をモーダルで打って確定し BP ができる・ESC 1 回でモーダルが閉じ、ポーズも建築モードの解除も起きない（入力欄にフォーカスがあるとき・無いときの両方）。既存の `building/blueprint-copy-paste-via-ui` も全体スイッチ UITK で通す | 2 本の `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（Note の `系=GameUi`）がある。録画に ESC 1 回でモーダルが閉じポーズが出ない段がある |
 | R-13 | 写した Web テストは `<web-test>` だけで示し、処遇の表（`docs/uitk/disposition.md`）には行を足さない。一部だけ写した 2 件の残りの範囲と持ち主は `done.md` の「## 部分移植の残り」に書く。移植で処遇の表の「写す予定」（albof.30 の行）が要らなくなるので、その行を移植と同じコミットで消す | `node tools/uitk/test-name-parity.mjs --bundle 3 --emit-missing` で、このレーンの持ち分（下の「写すテスト」の表）の未対応が 0。`--bundle 2` と `--bundle 3` の終了コードが 2 でない（書式・整合の誤りなし） |
 | R-14 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd（レーン・`albof.30`・`albof.34`）を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
 
@@ -259,7 +259,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 - **字間・色の罠（持ち越し）**: UITK の字間は字の大きさ/100 × 値（px のまま書くと 100/字の大きさ 倍に効く）。このレーンは字間を書かない（番号タブ・モーダルは Web も `normal`）。部品ギャラリーは sRGB 合成なので、色はランタイムの PanelSettings（Linear 合成）で比べる。暗い半透明の α は I-fix1（e26010aa0c）が指数 1.85 で選び直した（LX-43）が、明るい色の式（α^2.2）は実測されていない。このレーンの明るい半透明（番号タブの枠）は並べ比べで確かめ、外れたら `LX-77` に記帳する
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/{Hotbar,Modal}/`・`S/Client.Tests/Ui/State/{Hotbar,Modal}/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。`it.each` は第 1 引数の書式文字列そのまま。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(Hotbar|Modal)|State\.(Hotbar|Modal|PauseMenuCommandsTest)|Conventions|Theme|Layers|Anchor|DragDrop|Modal|Content)\.`（`PauseMenuCommandsTest` は namespace `Client.Tests.Ui.State` 直下なので名指しで入れる。S3-buildmenu と共有のテスト）。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の albof.30 の行の削除（行は足さない）、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは、`MainGameUiRegistration.cs` の画面登録区画の 2 行、`GameUiTheme.tss` の `Screens` 区画の `@import` 2 行、`THEME/DerivedTokens.uss` の末尾の名札付きブロック「S3-hotbar-modal」（[A-52]）と、その半透明 3 行を前計算の表へ載せる `tools/uitk/webTokens/handWrittenDerivedRows.mjs` の `rowSources` の末尾 3 件・再生成した `docs/uitk/translucent-tokens.md`（前例 S2-hud [A-55]）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-76`〜`LX-80`）の末尾、`docs/uitk/disposition.md` の「## 処遇」の albof.30 の行の削除（行は足さない）、`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.HotbarHud` の 1 行の削除（在るときだけ）、`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の共有区画（enum と 3 つの switch の末尾に `HotbarSelectNotAccepted`・`ModalResponseStale` を 1 行ずつ。前例 S2-skit [A-84]）と良性の一覧を固定する `S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の「良性の拒否理由は…」1 件、`Localization/localization.csv` の `ui.commandRejected.*` の群の末尾 2 行（`ui.commandRejected.hotbarSelectNotAccepted`・`ui.commandRejected.modalResponseStale`。良性で表示されないが `ToLocalizationKey` が全値を要る）と再生成した `W/src/shared/i18n/generated/localizationKeys.ts`（`npm run gen:i18n`。台帳「## 追従記録」へ 1 行。E-1）。S3-buildmenu のファイルは書き換えない（使うだけ）。画面の文言の `localization.csv` は足さない（ホットバーは数字だけ、モーダルの文言は要求側が解いた文。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/uitk/stage3/uitk-hotbar-and-bp-modal.cs` はこのレーンが持つ
 - **画面専用の部品の置き場**（設計書 §5.1-2）: このレーンで作る汎用になりそうなもの（`HotbarCalcKnobs`・`HotbarNumberTab`）は 1 機能目なので `S/Client.Ui/Screens/Hotbar/Parts/` に置く。`WheelPassthroughMark` （`S/Client.Ui/Foundation/Input/WheelPassthroughMark.cs`）は S4-inventory が先に作ったので新設せず、列に `WheelPassthroughMark.Mark(<ホットバーの列>)` を呼ぶだけ（設計書 A-194。D-21 の持ち主を改めた）。落とし先の印（`HotbarSlotDropMark`・`HotbarRowGapDropMark`。State の `IHotbarDropReceiver` だけを実装し `MarkTarget<IHotbarDropReceiver>` で付く）はホットバーの語彙なので昇格させず、同じ `Parts/` に置く（D-5）。配置対象の絵の出どころと State の口 `IHotbarDropReceiver` は S3-buildmenu が作る（D-6）
 - **新しい共有部品を見つけたときの手順**: 作業中に「別の画面でも要る部品」を見つけたら作らない。`LOGS/harness/uitk/S3-hotbar-modal/done.md` の「## integrator への依頼」に「部品名／Web の正本のパス／使う画面／このレーンで作らない理由」を 1 行で書き、`bd note <bd> "<同じ 1 行>"` にも残して先へ進む。既知の依頼（Task 1 Step 3 で雛形に書く）: (1) 無し（`OutlinedCountLabel` の縁の色のつまみは、既存部品へのつまみ 1 つの追加でこのレーンが足す。Task 6 Step 3・D-7）
 - **参照キャプチャ**: `LOGS/uitk/reference-captures/web-869b2d4264/`（1280×720）・`web-0e81bbe3c3-2560x1080/`（2560×1080）の `3-hotbar-equipment-empty.png`・`3-modal.png`。1920×1080 の `3-modal` は無いので Task 11 Step 1 で撮る
@@ -357,7 +357,7 @@ public class BlueprintNameInputState { public IObservable<bool> OnOpenChanged { 
 | `S/Client.Tests/Ui/Screens/Modal/RecordingModalCommands.cs` | 応答を記録する偽 | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/ModalViewTest.cs` | 描画・確定の可否と空白の除去・色・ID が変わると空にする（P4 1・4） | 新規 |
 | `S/Client.Tests/Ui/Screens/Modal/ModalScreenPresenterTest.cs` | OK で確定して消える・幕で取消・入力欄の ESC 1 回で取消（ワールドへ渡さない）・欄の外の押下では閉じない・入力欄にフォーカスがあるまま外から取り消されてもゲームのキー入力を止めたままにしない・実画面 px（P4 2・3、[A-41]）の 7 件 | 新規 |
-| `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs` | ホットバーの操作と BP 名のモーダルを UITK で通す録画 | 新規 |
+| `SKILL/scenarios/uitk/stage3/uitk-hotbar-and-bp-modal.cs` | ホットバーの操作と BP 名のモーダルを UITK で通す録画 | 新規 |
 | `docs/uitk/disposition.md` | 「## 処遇」の albof.30 の「写す予定」の行（`alwaysOnHudWheel.test.ts`「クリックを持つスロット列だけが…」）を消す（Task 7 で `<web-test>` を付けるのと同じコミット）。行は足さない | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.HotbarHud` の 1 行を消す | 変更（共有区画・在れば） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（世界の地の減光の照合）、要れば「## 見た目の例外」末尾（`LX-76`〜`LX-80`） | 変更（共有区画） |
@@ -3617,7 +3617,7 @@ foreach (var (label, ground) in new[] { ("bright", new UnityEngine.Color32(240, 
 }
 return "ok";'
 ```
-Expected: `ok`（`IObjectResolverExtensions` の呼び方・`ClientDIContext` の名前が違えば、`scenarios/uitk/uitk-mode-hud-and-tooltip.cs` の `ClientDIContext.DIContainer.DIContainerResolver.Resolve<…>()` に揃える。この口が作れなければ止めて `done.md` の「integrator への依頼」に書き、指揮へ報告する）
+Expected: `ok`（`IObjectResolverExtensions` の呼び方・`ClientDIContext` の名前が違えば、`scenarios/uitk/stage2/uitk-mode-hud-and-tooltip.cs` の `ClientDIContext.DIContainer.DIContainerResolver.Resolve<…>()` に揃える。この口が作れなければ止めて `done.md` の「integrator への依頼」に書き、指揮へ報告する）
 
 - [ ] **Step 3: 画素を読む（受理あり → 受理なし）**
 
@@ -3742,10 +3742,10 @@ git commit -m "fix(uitk): ホットバーとモーダルを Web との並べ比�
 
 ---
 
-### Task 12: unityプレイ録画テスト（`uitk/uitk-hotbar-and-bp-modal`・`building/blueprint-copy-paste-via-ui`）
+### Task 12: unityプレイ録画テスト（`uitk/stage3/uitk-hotbar-and-bp-modal`・`building/blueprint-copy-paste-via-ui`）
 
 **Files:**
-- Create: `SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs`
+- Create: `SKILL/scenarios/uitk/stage3/uitk-hotbar-and-bp-modal.cs`
 
 **Interfaces:**
 - Consumes: プレイテスト DSL（`p.SetupDebugEnvironment`・`p.SkipOpeningSkitIfPlaying`・`p.ExitToGameScreen`・`p.Hotbar.AssignHotbar`・`p.Hotbar.UnlockBlueprint`・`p.ClickUi`・`p.SetText`・`p.UntilUiElement`・`p.WaitUiState`・`p.WaitForBlueprint`・`p.Screenshot`・`PlaytestUiElementOps.FindUi`・`SemanticInput.MouseMoveTo`・`MouseButtonDown`・`MouseGlideTo`・`MouseButtonUp`）、`ClientHotbarDatastore`、`HotbarModel`、`IGameUnlockStateData`、`PlaytestBlockOps.UnlockBlockServerSide`、`UnlockedEventPacket.EventTag`、`BlueprintCopyPasteScenarioChecks`（既存シナリオと同じ）、`UiInputExclusivity.ActiveUiSystem`
@@ -3753,7 +3753,7 @@ git commit -m "fix(uitk): ホットバーとモーダルを Web との並べ比�
 
 - [ ] **Step 1: 録画を書く**
 
-`uitk-hotbar-and-bp-modal.cs`（前例 `SKILL/scenarios/uitk/uitk-mode-hud-and-tooltip.cs` の冒頭の入力準備と系の主張、`building/blueprint-copy-paste-via-ui.cs` の BP コピーの選び方と始点・終点）。流れ:
+`uitk-hotbar-and-bp-modal.cs`（前例 `SKILL/scenarios/uitk/stage2/uitk-mode-hud-and-tooltip.cs` の冒頭の入力準備と系の主張、`building/blueprint-copy-paste-via-ui.cs` の BP コピーの選び方と始点・終点）。流れ:
 1. 冒頭で `p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}")` と `p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）")`。入力の準備は前例と同じ
 2. `p.SetupDebugEnvironment(new PlaytestEnvironmentConfig())` → `p.SkipOpeningSkitIfPlaying()` → `p.ExitToGameScreen()` → `p.Hotbar.AssignHotbar(0, "木のチェスト")`・`AssignHotbar(1, "石窯")`。`FindUi("hotbar-grid")` が見つかり、`FindUi("hotbar-slot-0")` の状態名に `filled` がある（状態名は USS クラスから作られる。名前の実物は `UiElementSnapshot.StateFlags` を Note に出して合わせる）。`p.Screenshot("01-hotbar")`
 3. 枠のクリックで建築モード: `p.ClickUi("hotbar-slot-0")` → `p.WaitUiState(UIStateEnum.PlaceBlock, 10f)`、`FindUi("hotbar-slot-0")` の状態名に `selected`。`p.Screenshot("02-slot-click-build")` → `p.PressKey(Key.Escape)` → `GameScreen`
@@ -3763,7 +3763,7 @@ git commit -m "fix(uitk): ホットバーとモーダルを Web との並べ比�
 7. 幕で取消: もう一度始点・終点 → モーダル → 幕の左上（`FindUi("modal-backdrop").ScreenRect` の左上から内側へ 5px）をクリック → `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま、BP もブロックも増えない（幕の上のクリックが設置にならない）。名前を打つ間（流れ 6）にプレイヤーの位置が動かないことも `p.Note` に出して見る
 7b. ESC 1 回で取消（D-11・Task 8 Step 0）: もう一度始点・終点 → `p.UntilUiElement("modal-input", 10f)` → `p.SetText("modal-input", "途中")` → `p.PressKey(Key.Escape)` を 1 回 → 次のフレームで `FindUi("modal")` が消え、`UIStateEnum.PlaceBlock` のまま（建築モードを抜けない）、ポーズが出ない（`p.Assert(uiStateControl.CurrentState != UIStateEnum.PauseMenu, …)`）、BP が増えない。`p.Screenshot("07b-esc-in-field")`。続けてもう一度始点・終点 → モーダル → 本文 `modal-message` をクリックして入力欄のフォーカスを外し（閉じないことを Assert）→ `p.PressKey(Key.Escape)` を 1 回 → モーダルが消え、`PlaceBlock` のまま・ポーズが出ない（既存のゲーム入力の経路での取消）。`p.Screenshot("07b-esc-unfocused")`
 8. 解放の直後の解決（D-18）: 流れ 2 の `PlaytestEnvironmentConfig()` は `FreeBlockPlacement = true` で、解決器（`PlacementTargetResolver.UnlockedEntries`）が未解放のブロックも解決するので、まず無料設置を切る: `p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, CreateFlatGround = false, SpawnPosition = <今のプレイヤーの位置> })`（足場は流れ 2 で作り済み。前例 `building/placement-reason-tooltip.cs` の `FreeBlockPlacement = false`）。`IGameUnlockStateData.BlockUnlockStateInfos` から未解放のブロックを 1 つ選ぶ（無ければ止めて `done.md` の「未確認」に書く）。`ClientHotbarDatastore.RequestAssign(8, その BlockGuid)` → `p.Until` で `Assignments[8]` が一致 → `HotbarModel.Current.Value.Slots[8] is HotbarUnresolvedSlot` を Assert（偽なら、無料設置の値 `DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)` と枠 8 の型を `p.Note` に出して止める。流れ 8 の主張を外して通さない）。次に `ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => resolvedAtPacket = model.Current.Value.Slots[8] is HotbarAssignedSlot)` を購読し（`HotbarModel` より後の購読なので同じ配送の中で組み直しの後に走る）、`PlaytestBlockOps.UnlockBlockServerSide(ct, 名前)` → `p.Assert(resolvedAtPacket, "解放パケットの配送の中で枠 8 が解決済みになる（間引き無しの同期の組み直し）")`。偽なら間引きを足さず、購読の順とパケットの時点の値を `done.md` に実測付きで申告して止める
-ファイルは 200 行未満、`#region Internal` にローカル関数（ドラッグ・枠の中心）をまとめる。200 行を超えるなら、流れ 8（解放の直後の解決）を `SKILL/scenarios/uitk/uitk-hotbar-unlock-resolve.cs` へ分ける（流れ 2 の準備〈`SetupDebugEnvironment`・スキット飛ばし・`ExitToGameScreen`〉を写し、無料設置は最初から `FreeBlockPlacement = false`）。分けたら Step 2 で 3 本を回し、R-12 の完了条件と報告ページの録画は 3 本の `result.json`（どれも `Success: true`）にする
+ファイルは 200 行未満、`#region Internal` にローカル関数（ドラッグ・枠の中心）をまとめる。200 行を超えるなら、流れ 8（解放の直後の解決）を `SKILL/scenarios/uitk/stage3/uitk-hotbar-unlock-resolve.cs` へ分ける（流れ 2 の準備〈`SetupDebugEnvironment`・スキット飛ばし・`ExitToGameScreen`〉を写し、無料設置は最初から `FreeBlockPlacement = false`）。分けたら Step 2 で 3 本を回し、R-12 の完了条件と報告ページの録画は 3 本の `result.json`（どれも `Success: true`）にする
 
 - [ ] **Step 2: 全体スイッチが GameUi であることを確かめてから 2 本を回す**
 
@@ -3772,7 +3772,7 @@ Run:
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Current.ToString();'
 SKILL=.agents/skills/unity-playmode-recorded-playtest
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/uitk-hotbar-and-bp-modal.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage3/uitk-hotbar-and-bp-modal.cs"
 ```
 2 行目の `GameUi` を流し直してから `"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/building/blueprint-copy-paste-via-ui.cs"`
 Expected: 2 本とも `result.json` が `Success: true`、Note に `系=GameUi`、録画 mp4 がある。既存シナリオの「Web キャンセル（`nameState.Cancel`）」「右短押し」で UITK のモーダルが閉じる（死活表の右短押しの行）。初回に "already playing" で落ちたら PlayMode を止めて同じコマンドをもう 1 回だけ流す。失敗したら `result.json` と `uloop get-logs --log-type Error` を読み、原因を `done.md` に書いて直す（直したらテストを回し、このステップの 2 行目から流し直す）。既存シナリオが Web 前提の操作で落ちるなら、シナリオを直さずに止めて `done.md` の「要裁定」に書く（既存シナリオの持ち主は S3-ladder の横断）
@@ -3781,7 +3781,7 @@ Expected: 2 本とも `result.json` が `Success: true`、Note に `系=GameUi`�
 
 `done.md` の「## 証拠」に 2 本の `result.json` のパス・`Success`・録画 mp4 のパス・Note の `系=GameUi` の行を書く。録画とスクショの原本は worktree の gitignore 下に置いたまま。テストで `Saves/` に作ったワールドは `list-work-saves.sh` で探して消す
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-hotbar-and-bp-modal.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-hotbar-and-bp-modal.cs
 git commit -m "test(uitk): ホットバーの操作と BP 名のモーダルを UITK の録画で通す（S3-hotbar-modal）
 
 <実行ホストの指示する帰属行（Co-Authored-By 等。モデル名は実行したモデル）>"
@@ -3872,7 +3872,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
     "モーダル（BP 名の入力）を DialogFrame・GameTextField・FormButton で UITK に移し、全体スイッチ UITK の描き手を UITK 1 本にした。実画面 px で 720p・1080p・2560×1080 を確かめた"
   ],
   "media": [
-    {"file": "<uitk-hotbar-and-bp-modal の recording.mp4>", "caption": "uitk/uitk-hotbar-and-bp-modal（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "<uitk-hotbar-and-bp-modal の recording.mp4>", "caption": "uitk/stage3/uitk-hotbar-and-bp-modal（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<blueprint-copy-paste-via-ui の recording.mp4>", "caption": "building/blueprint-copy-paste-via-ui（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<web-869b2d4264/3-hotbar-equipment-empty.png>", "caption": "Web 3-hotbar 1280×720", "group": "3-hotbar"},
     {"file": "<compare/S3-hotbar-modal/uitk-3-hotbar-equipment-empty-1280x720.png>", "caption": "UITK 3-hotbar 1280×720", "group": "3-hotbar"},

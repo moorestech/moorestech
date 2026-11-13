@@ -56,13 +56,13 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
         public void 未解放のレシピはrecipe_lockedで拒否する()
         {
             _unlock.SetMachineRecipe(RecipeB, false);
-            AssertRejected(RecipeB, UiCommandRejectReason.MachineRecipeLocked, "recipe_locked");
+            AssertRejected(RecipeB, UiCommandRejectReason.RecipeLocked, "recipe_locked");
         }
 
         [Test]
         public void 未知のレシピはinvalid_recipeで拒否する()
         {
-            AssertRejected(RecipeB, UiCommandRejectReason.MachineRecipeInvalid, "invalid_recipe");
+            AssertRejected(RecipeB, UiCommandRejectReason.RecipeInvalid, "invalid_recipe");
         }
 
         [Test]
@@ -79,8 +79,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
             // Web はどの拒否もトーストする（BENIGN_ERRORS に machine_recipe.select の項目は無い。D-38）
             // Web toasts every rejection (BENIGN_ERRORS has no machine_recipe.select entry; D-38)
             Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.BlockNotOpen));
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.MachineRecipeInvalid));
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.MachineRecipeLocked));
+            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.RecipeInvalid));
+            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.RecipeLocked));
             Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.MachineRecipeRequestFailed));
             Assert.AreEqual("machine_recipe_request_failed", UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.MachineRecipeRequestFailed));
         }

@@ -29,6 +29,10 @@
     --count-letter-spacing: 12px;
 }
 
+.slot-gallery__inventory .slot-content {
+    --slot-content-count-trailing-spacing: 1.48px; /* web: 0.12em の最後の字の後ろの字間 */
+}
+
 /* 4-block-machine の入力の素材（machineInventoryBody.module.css の .inputSide） */
 /* Machine input materials in 4-block-machine (.inputSide in machineInventoryBody.module.css) */
 .slot-gallery__machine-input {
@@ -67,6 +71,10 @@
     --count-bottom: -1px;
     --count-font-size: 16px;
     --count-letter-spacing: 12px;
+}
+
+.slot-gallery__item-list .slot-content {
+    --slot-content-count-trailing-spacing: 1.92px; /* web: 0.12em の最後の字の後ろの字間 */
 }
 
 /* 3-build-menu（BuildMenuSlot の ICON_PAD_STYLE） */

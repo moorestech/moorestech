@@ -59,7 +59,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             var inputFluid = view.Q($"machine-recipe-entry-{guid}-input-fluid-0");
             var outputFluid = view.Q($"machine-recipe-entry-{guid}-output-fluid-0");
             var arrow = view.Q($"machine-progress-arrow-{guid}");
-            var inputItem = view.Q($"machine-recipe-box-{guid}-input-0");
+            var inputItem = view.Q($"machine-recipe-entry-{guid}-input-item-0");
             Assert.Less(inputFluid.worldBound.xMax, arrow.worldBound.xMin);
             Assert.Greater(outputFluid.worldBound.xMin, arrow.worldBound.xMax);
             Assert.Less(inputItem.worldBound.xMin, inputFluid.worldBound.xMin);

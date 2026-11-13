@@ -64,7 +64,7 @@
 | Modify | `.../State/DeleteObjectState.cs` | キーヒント追加 |
 | Modify | `Localization/localization.csv`、`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` | キー4件追加・再生成 |
 | Modify | `docs/adr/0032-key-hint-hud-owned-by-ui-state.md` | 破壊モードのヒント表 |
-| Test | `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm/DeleteHoldDurationTest.cs`（新規）、`.../DragDelete/DeleteHoldConfirmTest.cs`（書き換え）、`.../DragDelete/Selection/DeleteSelectionDeselectTest.cs`（新規）、`.../DragDelete/DeleteBoxSelectionTest.cs`、`.../UIState/UIStateKeyHintCatalogTest.cs` | 単体 |
+| Test | `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Confirm/DeleteHoldDurationTest.cs`（新規）、`.../DragDelete/DeleteHoldConfirmTest.cs`（書き換え）、`.../DragDelete/Selection/DeleteSelectionDeselectTest.cs`（新規）、`.../DragDelete/DeleteBoxSelectionTest.cs`、`.../UIState/Control/UIStateKeyHintCatalogTest.cs` | 単体 |
 | Scenario | `.agents/skills/unity-playmode-recorded-playtest/scenarios/building/delete-tool/delete-ctrl-deselect-and-hold-tiers.cs`（新規）、`.../scenarios/building/delete-tool-box-select-hold-confirm.cs`・`.../scenarios/train/delete-tool-pier-removal-undo-rail.cs`・`.../scenarios/connect/delete-tool-cut-and-undo-connection-lines.cs`（文言更新） | unityプレイ録画テスト |
 
 ## 配置と前例
@@ -454,7 +454,7 @@ git commit -m "feat: 削除のF長押しを選択件数で0.75/1.25/1.75秒の3�
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectedTargetSet.cs`、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectionIntent.cs`、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectionModifierKey.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs`（内部 Dictionary・設置演出購読・解除キュー・Revision 通知を `DeleteSelectedTargetSet` へ移し、`BeginStroke(intent)`・`TryRemoveStrokeTarget`・`ApplyBoxTargets`・`IsSelected` を足す。193行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs:92`（`_selection.BeginStroke()` → `_selection.BeginStroke(DeleteSelectionIntent.Add)` と using 追加。Ctrl の配線は Task 3 で置き換える）
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/` 配下の `BeginStroke()` 呼び出し 13 ファイルと `UIState/DragDelete/Completion/PendingBoxTargetTest.cs`（`AddBoxTargets`）、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs:114`（Task 2 時点のコンパイル用に `ApplyBoxTargets(targets, DeleteSelectionIntent.Add)`）（`BuildUndo/RemoveOperationHistoryTest.cs`、`UIState/DeleteSelectionCategoryTest.cs`、`UIState/DeleteSelectionTest.cs`、`UIState/DragDelete/Completion/DeleteCompletionBatchTest.cs`、`UIState/DragDelete/Completion/LateRemovalUndoTest.cs`、`UIState/DragDelete/DeleteSelectionPreviewTest.cs`、`UIState/DragDelete/DestroyedSelectionTest.cs`、`UIState/DragDelete/Recovery/PendingPreviewReleaseTest.cs`、`UIState/DragDelete/Recovery/SharedPreviewKeyTest.cs`、`UIState/DragDelete/ResetFailureRecoveryTest.cs`、`UIState/DragDelete/SharedResetRecoveryTest.cs`、`UIState/DragDeleteDenyReasonTest.cs`、`UIState/UIStateControlTest.cs`）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/` 配下の `BeginStroke()` 呼び出し 13 ファイルと `UIState/DragDelete/Completion/PendingBoxTargetTest.cs`（`AddBoxTargets`）、`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs:114`（Task 2 時点のコンパイル用に `ApplyBoxTargets(targets, DeleteSelectionIntent.Add)`）（`BuildUndo/RemoveOperationHistoryTest.cs`、`UIState/DragDelete/Selection/DeleteSelectionCategoryTest.cs`、`UIState/DragDelete/Selection/DeleteSelectionTest.cs`、`UIState/DragDelete/Completion/DeleteCompletionBatchTest.cs`、`UIState/DragDelete/Completion/LateRemovalUndoTest.cs`、`UIState/DragDelete/DeleteSelectionPreviewTest.cs`、`UIState/DragDelete/DestroyedSelectionTest.cs`、`UIState/DragDelete/Recovery/PendingPreviewReleaseTest.cs`、`UIState/DragDelete/Recovery/SharedPreviewKeyTest.cs`、`UIState/DragDelete/ResetFailureRecoveryTest.cs`、`UIState/DragDelete/SharedResetRecoveryTest.cs`、`UIState/DragDelete/Service/DragDeleteDenyReasonTest.cs`、`UIState/Control/UIStateControlTest.cs`）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection/DeleteSelectionDeselectTest.cs`（新規）
 
 **Interfaces:**
@@ -963,7 +963,7 @@ git commit -m "feat: 削除ツールの選択モデルに追加と除外の意�
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`
 - Modify: `Localization/localization.csv`、`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`（再生成）
 - Modify: `docs/adr/0032-key-hint-hud-owned-by-ui-state.md:52`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs`
 
 **Interfaces:**
 - Consumes: Task 2 の `DeleteSelectionIntent`・`DeleteSelectionModifierKey.ReadIntent()`・`BeginStroke(DeleteSelectionIntent)`・`ApplyBoxTargets(...)`・`IsSelected(...)`、Task 1 の `SelectionHoldSubject()`
@@ -1488,7 +1488,7 @@ Expected: ErrorCount 0 / 全 PASS
 - [x] **Step 6: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts docs/adr/0032-key-hint-hud-owned-by-ui-state.md moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts docs/adr/0032-key-hint-hud-owned-by-ui-state.md moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs
 git commit -m "feat: Ctrl+なぞり・Ctrl+Shift箱で削除候補を選択から外す"
 ```
 

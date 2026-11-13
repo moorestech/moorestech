@@ -82,9 +82,9 @@ namespace Client.Tests.Ui.Components.Controls
             AssertColor(Hex("#1971C2"), button.resolvedStyle.backgroundColor, "face");
             AssertColor(Hex("#FFFFFF"), Label(button).resolvedStyle.color, "text");
 
-            // 文言は 500 の字形（実測で Web の 600 に近い方）
-            // The label uses the 500 face (measured nearest to the Web's 600)
-            Assert.AreEqual("GameUiLatinMedium SDF", Label(button).resolvedStyle.unityFontDefinition.fontAsset.name);
+            // 文言は Web の 600 と同じく欧文の Regular 1 字形（設計書 A-220）
+            // The label uses the single Latin Regular face like the Web's 600 (design A-220)
+            Assert.AreEqual("GameUiLatin SDF", Label(button).resolvedStyle.unityFontDefinition.fontAsset.name);
 
             // ホバーは blue-9（--mantine-color-blue-filled-hover）
             // Hover is blue-9 (--mantine-color-blue-filled-hover)

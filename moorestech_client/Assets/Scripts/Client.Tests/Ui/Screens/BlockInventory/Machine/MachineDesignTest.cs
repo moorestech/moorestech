@@ -2,6 +2,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Components.Recipe;
 using Client.Ui.Foundation.Text;
@@ -129,7 +130,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var label = Find<Label>(root, "machine-module-label");
             Assert.IsTrue(label.ClassListContains(UiTypographyClass.TextSm));
             Assert.IsTrue(label.ClassListContains(UiTypographyClass.TextDimmed));
-            Assert.AreEqual(new Client.Ui.State.Text.UiText(Mooresmaster.Localization.Generated.LocalizationKeys.Ui.BlockInventory.UpgradeSlots).Resolve(), label.text);
+            Assert.AreEqual(new Client.Ui.State.Text.UiText(Mooresmaster.Localization.Generated.LocalizationKeys.Ui.BlockInventory.UpgradeSlots).Resolve(), label.PlainText());
 
             // Web は xs×2 の間隔
             // On Web gap=xs plus mt=xs gives xs×2 from row bottom to label top
