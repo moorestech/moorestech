@@ -17,9 +17,11 @@ namespace Client.Tests.Ui.Layers
         private static readonly string[] WebTokenCssPaths = { "moorestech_web/webui/src/app/tokens.css", "moorestech_web/webui/src/app/skitTokens.css" };
         private const string ViewportStageToken = "--z-viewport-stage";
         private const string ChromeToken = "--z-stage-overlay-panel-chrome";
+        private const string AppStylesPath = "moorestech_web/webui/src/app/App.module.css";
 
         private static readonly Regex CommentPattern = new(@"/\*[\s\S]*?\*/");
         private static readonly Regex ZTokenPattern = new(@"(--z-[\w-]+)\s*:\s*(-?\d+)\s*;");
+        private static readonly Regex ViewportRulePattern = new(@"(?m)^\.viewport\s*\{([^}]*)\}");
 
         // Webの重なり文脈
         // Web stacking contexts
@@ -63,6 +65,18 @@ namespace Client.Tests.Ui.Layers
             }
         }
 
+        // Portal 群を viewport 群の全層より前に置く根拠。.viewport は position: fixed・z-index 無しなのでルートの z 0 で描かれ、body 直下の Portal（ワールドピン z 10 以上）が常に前に出る（I-fix5 R-7 の Web 撮影で、ピンがブロックのパネルと研究の詳細の前に出るのを確かめた）
+        // Basis for ranking the Portal group above every viewport layer: .viewport is position: fixed with no z-index, so it paints at z 0 in the root context and the body-level Portal (world pin z 10 and up) always draws in front (confirmed by the I-fix5 R-7 Web capture: the pin draws over the block panel and the research detail)
+        [Test]
+        public void ViewportDeclaresNoZIndexSoPortalOutranksIt()
+        {
+            var text = CommentPattern.Replace(File.ReadAllText(Path.Combine(RepositoryRoot(), AppStylesPath)), "");
+            var rule = ViewportRulePattern.Match(text);
+            Assert.IsTrue(rule.Success, $".viewport rule is not found in {AppStylesPath}");
+            StringAssert.Contains("position: fixed", rule.Groups[1].Value);
+            StringAssert.DoesNotContain("z-index", rule.Groups[1].Value, ".viewport got a z-index; re-check whether the Portal group (UiLayer.WorldPin and later) still outranks every viewport layer");
+        }
+
         [Test]
         public void CompositeStackingKeyIncreasesInEnumOrder()
         {
@@ -96,12 +110,12 @@ namespace Client.Tests.Ui.Layers
                 return values;
             }
 
-            string RepositoryRoot()
-            {
-                return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
-            }
-
             #endregion
+        }
+
+        private static string RepositoryRoot()
+        {
+            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
         }
 
         private static (int portalRank, int viewportZ, int stageZ, int chromeZ) CompositeKey(UiLayer layer, Dictionary<string, int> zValues)
