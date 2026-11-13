@@ -57,7 +57,7 @@ namespace Client.Ui.Foundation.Input
 
         private static void OnFocusOut(FocusOutEvent evt)
         {
-            // 外れた要素の取り外しの購読は、旗を保つ場合も含めて先に解く
+            // 外れた要素の購読は先に解く
             // Drop the detach subscription of the element losing focus first, even when the flag stays up
             ((VisualElement)evt.target).UnregisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
 

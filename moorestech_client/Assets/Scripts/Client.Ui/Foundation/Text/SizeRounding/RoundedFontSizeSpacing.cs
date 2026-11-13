@@ -26,7 +26,7 @@ namespace Client.Ui.Foundation.Text.SizeRounding
         private bool _hasLastInput;
         private string _lastText;
         private float _lastPixelsPerPoint;
-        private LineEndTextStyle _lastStyle;
+        private TextLayoutStyleSnapshot _lastStyle;
         private string _lastTag = string.Empty;
 
         public RoundedFontSizeSpacing(TextElement element)
@@ -41,42 +41,46 @@ namespace Client.Ui.Foundation.Text.SizeRounding
             // silent-ok: パネルに載る前は倍率が無い / 載った後のスタイルの解決で LocalizedLabel が問い直す
             if (_element.panel == null) return string.Empty;
             var pixelsPerPoint = _element.scaledPixelsPerPoint;
-            var style = LineEndTextStyle.Read(_element);
+            var style = TextLayoutStyleSnapshot.Read(_element);
             if (_hasLastInput && text == _lastText && Mathf.Approximately(pixelsPerPoint, _lastPixelsPerPoint) && style.SameAs(_lastStyle)) return _lastTag;
 
             _hasLastInput = true;
             _lastText = text;
             _lastPixelsPerPoint = pixelsPerPoint;
             _lastStyle = style;
-            _lastTag = ComputeTag(text, pixelsPerPoint);
+            _lastTag = ComputeTag();
             return _lastTag;
-        }
 
-        private string ComputeTag(string text, float pixelsPerPoint)
-        {
-            // UITKTextHandle と同じ丸め（AwayFromZero）で、文字生成が使う物理 px の大きさを出す
-            // Same rounding as UITKTextHandle (AwayFromZero) gives the physical size the generator uses
-            var exactPixels = _element.resolvedStyle.fontSize * pixelsPerPoint;
-            var roundedPixels = (float)Math.Round(exactPixels, MidpointRounding.AwayFromZero);
-            // silent-ok: 丸めで大きさが変わらなければ送りも Web と同じ / RoundedFontSizeSpacingTest が倍率 1 で印が無いことを確かめる
-            if (roundedPixels < 1f || Mathf.Abs(roundedPixels - exactPixels) < 0.001f) return string.Empty;
+            #region Internal
 
-            // 1 行で測った幅と、字ごとに 10px 足した幅の差から字の数を出す（改行のある文は一番長い行）
-            // Glyph count comes from the single-line width and the width with 10px per glyph (the longest line for multi-line text)
-            var width = MeasureSingleLine(text);
-            var spacedGlyphs = (MeasureSingleLine(CountingTag + text) - width) / CountingSpacingPixels;
-            // silent-ok: 空の文・印だけの文は送りが無い / 字を含む文に替われば TagFor が測り直す
-            if (spacedGlyphs < 0.5f) return string.Empty;
+            string ComputeTag()
+            {
+                // UITKTextHandle と同じ丸め（AwayFromZero）で、文字生成が使う物理 px の大きさを出す
+                // Same rounding as UITKTextHandle (AwayFromZero) gives the physical size the generator uses
+                var exactPixels = _element.resolvedStyle.fontSize * pixelsPerPoint;
+                var roundedPixels = (float)Math.Round(exactPixels, MidpointRounding.AwayFromZero);
+                // silent-ok: 丸めで大きさが変わらなければ送りも Web と同じ / RoundedFontSizeSpacingTest が倍率 1 で印が無いことを確かめる
+                if (roundedPixels < 1f || Mathf.Abs(roundedPixels - exactPixels) < 0.001f) return string.Empty;
 
-            // 広がった分＝幅×(1−本来の大きさ／丸めた大きさ)。字ごとに等分して引く。字の形は丸めた大きさのまま残る
-            // The widening is width x (1 - exact / rounded), subtracted evenly per glyph; glyph shapes stay at the rounded size
-            var excessPerGlyph = width * (1f - exactPixels / roundedPixels) / spacedGlyphs;
-            return $"<cspace={(-excessPerGlyph).ToString("0.####", CultureInfo.InvariantCulture)}px>"; // look-exception: LX-185
-        }
+                // 1 行で測った幅と、字ごとに 10px 足した幅の差から字の数を出す（改行のある文は一番長い行）
+                // Glyph count comes from the single-line width and the width with 10px per glyph (the longest line for multi-line text)
+                var width = MeasureSingleLine(text);
+                var spacedGlyphs = (MeasureSingleLine(CountingTag + text) - width) / CountingSpacingPixels;
+                // silent-ok: 空の文・印だけの文は送りが無い / 字を含む文に替われば TagFor が測り直す
+                if (spacedGlyphs < 0.5f) return string.Empty;
 
-        private float MeasureSingleLine(string text)
-        {
-            return _element.MeasureTextSize(text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined).x;
+                // 広がった分＝幅×(1−本来の大きさ／丸めた大きさ)。字ごとに等分して引く。字の形は丸めた大きさのまま残る
+                // The widening is width x (1 - exact / rounded), subtracted evenly per glyph; glyph shapes stay at the rounded size
+                var excessPerGlyph = width * (1f - exactPixels / roundedPixels) / spacedGlyphs;
+                return $"<cspace={(-excessPerGlyph).ToString("0.####", CultureInfo.InvariantCulture)}px>"; // look-exception: LX-185
+            }
+
+            float MeasureSingleLine(string measured)
+            {
+                return _element.MeasureTextSize(measured, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined).x;
+            }
+
+            #endregion
         }
     }
 }

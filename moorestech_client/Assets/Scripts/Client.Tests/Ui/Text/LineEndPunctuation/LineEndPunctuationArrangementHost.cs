@@ -66,7 +66,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             {
                 simulate.FrameUpdate();
                 if (label.text == lastText) continue;
-                if (frame >= SettleFrames - QuietFrames) lateSwaps++;
+                if (SettleFrames - QuietFrames <= frame) lateSwaps++;
                 lastText = label.text;
             }
             return (lateSwaps, label.text, label.layout.height, label.layout.width);
@@ -81,7 +81,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
                 return (label, label);
             }
 
-            // 固定幅以外は親が幅を持ち、ラベルは配置の流れに載る
+            // 固定幅以外は親が幅を持つ
             // Other than the fixed width, the parent owns the width and the label joins the flow
             label.style.position = Position.Relative;
             var outer = new VisualElement();

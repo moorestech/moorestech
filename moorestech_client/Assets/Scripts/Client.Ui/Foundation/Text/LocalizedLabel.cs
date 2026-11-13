@@ -83,14 +83,24 @@ namespace Client.Ui.Foundation.Text
             return new Vector2(measured.x, lineCount * _lineBoxPixels);
         }
 
+        // 1 行の自然幅。表示文は行末の約物の詰めで改行を含むので原文で測り、字間の印だけを前置きして描画と同じ送りにする
+        // One-line natural width; the display text holds trim newlines so measure the source, prefixed only with the spacing tag to match the rendered advance
+        public float MeasureSingleLineWidth()
+        {
+            // silent-ok: 文が来る前は幅 0 / 来なければ LocalizedTextBinding が LogError を出す
+            if (SourceText == null) return 0f;
+            var prefixed = _lineHeightTag + _roundedFontSizeSpacing.TagFor(SourceText) + SourceText;
+            return MeasureTextSize(prefixed, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined).x;
+        }
+
         private void OnCustomStyleResolved()
         {
-            // 画面の行送りのつまみがあれば行送りだけ、無ければ Typography の行の箱で行送りと高さを決める
+            // 行送りのつまみ優先、無ければ行の箱で決める
             // A screen pitch knob sets only the pitch; otherwise the Typography line box sets both pitch and height
             var pitch = ReadPixels(LineHeightStyle, LineHeightProperty);
-            _lineBoxPixels = pitch > 0f ? 0f : ReadPixels(LineBoxStyle, LineBoxProperty);
+            _lineBoxPixels = 0f < pitch ? 0f : ReadPixels(LineBoxStyle, LineBoxProperty);
             if (pitch <= 0f) pitch = _lineBoxPixels;
-            _lineHeightTag = pitch > 0f ? $"<line-height={pitch.ToString(CultureInfo.InvariantCulture)}px>" : string.Empty;
+            _lineHeightTag = 0f < pitch ? $"<line-height={pitch.ToString(CultureInfo.InvariantCulture)}px>" : string.Empty;
             // 倍率・字の大きさの変化で字間の印も変わりうる。前置きと原文が同じなら LineEndPunctuationTrimmer.Show が何もしない（文を入れ直すと詰めが振り出しへ戻るため）
             // A scale or font size change may change the spacing tag too; LineEndPunctuationTrimmer.Show ignores an unchanged prefix and source (re-setting the text would restart the trim)
             ShowResolvedText();

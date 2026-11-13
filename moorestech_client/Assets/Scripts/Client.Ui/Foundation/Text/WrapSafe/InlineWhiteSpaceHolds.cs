@@ -22,7 +22,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
             _element = element;
         }
 
-        // 止めていなければ解決済みの値、止めていれば止める前に USS が望んでいた値
+        // 解決済みの値、止め中は止める前の USS 値
         // The resolved value when nothing holds, otherwise the value USS wanted before the first hold
         public WhiteSpace Wanted => _held == WhiteSpaceHoldReason.None ? _element.resolvedStyle.whiteSpace : _resolvedBeforeHold;
 

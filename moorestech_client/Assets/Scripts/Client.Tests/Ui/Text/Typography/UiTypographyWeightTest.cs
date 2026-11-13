@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Text
+namespace Client.Tests.Ui.Text.Typography
 {
     /// <summary>
     /// Title・fw の太さと CJK 字形の確認

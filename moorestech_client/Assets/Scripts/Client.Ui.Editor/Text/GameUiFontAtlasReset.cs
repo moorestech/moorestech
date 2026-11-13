@@ -27,30 +27,34 @@ namespace Client.Ui.Editor.Text
             // Asset import worker processes never draw text, so they leave the assets alone
             if (AssetDatabase.IsAssetImportWorkerProcess()) return; // silent-ok: 取り込み用の子プロセスは字を描かない / 本体の Editor のドメインの読み込みで空にする
             ClearGameUiFontAtlases();
-        }
 
-        private static void ClearGameUiFontAtlases()
-        {
-            // 字の表と atlas を一緒に空にする。字が残っていた資産があったときだけ件数を Console に出す
-            // Empty the glyph tables together with the atlases; report to the Console only when some asset still held glyphs
-            var guids = AssetDatabase.FindAssets("t:FontAsset", new[] { FontFolder });
-            var clearedGlyphs = 0;
-            foreach (var guid in guids)
+            #region Internal
+
+            void ClearGameUiFontAtlases()
             {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                var fontAsset = AssetDatabase.LoadAssetAtPath<FontAsset>(path);
-                // 初回の取り込みの途中など、まだ読めない資産は空にできない。読めた回に空になる
-                // An asset not loadable yet (e.g. mid first import) cannot be emptied; it is emptied on a later load
-                if (fontAsset == null)
+                // 字の表と atlas を一緒に空にする。字が残っていた資産があったときだけ件数を Console に出す
+                // Empty the glyph tables together with the atlases; report to the Console only when some asset still held glyphs
+                var guids = AssetDatabase.FindAssets("t:FontAsset", new[] { FontFolder });
+                var clearedGlyphs = 0;
+                foreach (var guid in guids)
                 {
-                    Debug.LogWarning($"[GameUiFontAtlasReset] skipped {path}: the font asset could not be loaded during the domain load");
-                    continue;
+                    var path = AssetDatabase.GUIDToAssetPath(guid);
+                    var fontAsset = AssetDatabase.LoadAssetAtPath<FontAsset>(path);
+                    // 初回の取り込みの途中など、まだ読めない資産は空にできない。読めた回に空になる
+                    // An asset not loadable yet (e.g. mid first import) cannot be emptied; it is emptied on a later load
+                    if (fontAsset == null)
+                    {
+                        Debug.LogWarning($"[GameUiFontAtlasReset] skipped {path}: the font asset could not be loaded during the domain load");
+                        continue;
+                    }
+                    clearedGlyphs += fontAsset.glyphTable.Count;
+                    fontAsset.ClearFontAssetData(true);
                 }
-                clearedGlyphs += fontAsset.glyphTable.Count;
-                fontAsset.ClearFontAssetData(true);
+                if (clearedGlyphs == 0) return; // silent-ok: 空の atlas を空にしただけで状態は変わらない / 字が残っていた回は下の行が Console に出る
+                Debug.Log($"[GameUiFontAtlasReset] cleared {clearedGlyphs} glyphs from {guids.Length} GameUi font atlases");
             }
-            if (clearedGlyphs == 0) return; // silent-ok: 空の atlas を空にしただけで状態は変わらない / 字が残っていた回は下の行が Console に出る
-            Debug.Log($"[GameUiFontAtlasReset] cleared {clearedGlyphs} glyphs from {guids.Length} GameUi font atlases");
+
+            #endregion
         }
     }
 }

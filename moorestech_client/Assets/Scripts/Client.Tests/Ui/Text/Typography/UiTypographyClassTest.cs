@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Text
+namespace Client.Tests.Ui.Text.Typography
 {
     /// <summary>
     /// Typography が Mantine を写す確認

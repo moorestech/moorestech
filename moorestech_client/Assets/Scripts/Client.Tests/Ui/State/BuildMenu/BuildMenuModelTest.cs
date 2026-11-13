@@ -87,7 +87,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         {
             yield return OpenAndHold(0, FirstMaterialItemId(), 1);
 
-            // 先頭のエントリの表示名で引くと、そのエントリが残り、残る全部がその語を含む
+            // 先頭の表示名で引くと残りも語を含む
             // Searching by the first entry's label keeps that entry, and every kept entry contains the word
             var current = _model.Current.Value;
             var first = current.CatalogEntries[0];
@@ -107,7 +107,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             for (var frame = 0; frame < 5; frame++) yield return null;
             Assert.AreSame(BuildMenuViewModel.Empty, _model.Current.Value);
 
-            // 開いている間の変化は、閉じている間の分も合わせて、その素材を使う全行の所持数に載る
+            // 閉じ中の分も合算して所持数に載る
             // A change while open puts the total, including the closed-time change, on every row using that material
             yield return OpenAndHold(1, material, 3);
             var current = _model.Current.Value;

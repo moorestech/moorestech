@@ -15,7 +15,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
     /// </remarks>
     public class WrapSafeLabel : Label
     {
-        public const string StyleResolvedProbeClassName = "wrap-safe-label";
+        private const string StyleResolvedProbeClassName = "wrap-safe-label";
 
         private readonly NarrowWrapGuard _narrowWrapGuard;
 
@@ -55,7 +55,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
             // This may rewrite the inline white-space inside a measure; it costs one extra re-measure in the same layout, but deciding here keeps any wrap at a freezing width from ever running
             _narrowWrapGuard.EvaluateBeforeMeasure(desiredWidth, widthMode);
             var measureWidth = _narrowWrapGuard.SafeMeasureWidth(desiredWidth, widthMode);
-            if (!(measureWidth > desiredWidth))
+            if (!(desiredWidth < measureWidth))
             {
                 var measured = base.DoMeasure(desiredWidth, widthMode, desiredHeight, heightMode);
                 _narrowWrapGuard.RecordMeasure(desiredWidth, widthMode, measured.x);

@@ -11,7 +11,7 @@ namespace Client.Ui.Foundation.Text
     /// 測り役はラベルの子にできない（子を持つラベルは自分の文で大きさを測らなくなる）ので、ラベルの解決済みの値を inline で写す。値が前回と同じかで測り直すかも決める
     /// The measurer cannot be the label's child (a label with children stops sizing itself to its text), so the label's resolved values are copied inline; equality with the last snapshot also decides whether to re-measure
     /// </remarks>
-    internal readonly struct LineEndTextStyle
+    internal readonly struct TextLayoutStyleSnapshot
     {
         private readonly float _fontSize;
         private readonly float _letterSpacing;
@@ -22,7 +22,7 @@ namespace Client.Ui.Foundation.Text
         private readonly FontStyle _fontStyle;
         private readonly TextGeneratorType _generator;
 
-        private LineEndTextStyle(IResolvedStyle resolved)
+        private TextLayoutStyleSnapshot(IResolvedStyle resolved)
         {
             _fontSize = resolved.fontSize;
             _letterSpacing = resolved.letterSpacing;
@@ -34,9 +34,9 @@ namespace Client.Ui.Foundation.Text
             _generator = resolved.unityTextGenerator;
         }
 
-        public static LineEndTextStyle Read(VisualElement element)
+        public static TextLayoutStyleSnapshot Read(VisualElement element)
         {
-            return new LineEndTextStyle(element.resolvedStyle);
+            return new TextLayoutStyleSnapshot(element.resolvedStyle);
         }
 
         public void ApplyTo(IStyle style)
@@ -51,7 +51,7 @@ namespace Client.Ui.Foundation.Text
             style.unityTextGenerator = _generator;
         }
 
-        public bool SameAs(LineEndTextStyle other)
+        public bool SameAs(TextLayoutStyleSnapshot other)
         {
             return Mathf.Approximately(_fontSize, other._fontSize)
                 && Mathf.Approximately(_letterSpacing, other._letterSpacing)

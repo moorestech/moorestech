@@ -39,7 +39,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         // Whether the longest line measured for this text, font and needed width fits this width
         public bool Fits(string text, FontDefinition font, float minimumWidth, float renderWidth)
         {
-            return _recorded && ReferenceEquals(text, _text) && font.Equals(_font) && minimumWidth == _minimumWidth && renderWidth >= _measuredWidth;
+            return _recorded && ReferenceEquals(text, _text) && font.Equals(_font) && minimumWidth == _minimumWidth && _measuredWidth <= renderWidth;
         }
     }
 }

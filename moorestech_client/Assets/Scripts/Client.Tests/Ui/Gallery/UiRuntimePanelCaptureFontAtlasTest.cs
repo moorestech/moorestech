@@ -26,7 +26,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 和文のatlasが2枚以上ある状態で撮り直してもatlasを破棄せず同じ字を描ける()
         {
-            // 多くの漢字と「日本語」を撮り、和文の atlas を 2 枚以上に育てる
+            // 多数の漢字で和文 atlas を 2 枚以上にする
             // Capture many kanji plus "日本語" so the CJK atlas grows to two or more pages
             var both = new VisualElement();
             both.Add(CreateLabel(ManyKanji()));
@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.Gallery
             Assert.GreaterOrEqual(fontAsset.atlasTextureCount, 2, "precondition: the CJK atlas must span two or more pages");
             var pagesBefore = fontAsset.atlasTextures.Take(fontAsset.atlasTextureCount).ToArray();
 
-            // 新しいラベルで同じ字を撮り直す。atlas が破棄されると DrawText の例外がログに出てこのテストが落ちる
+            // 同じ字を新ラベルで撮り直す
             // Capture the same text with a fresh label; destroyed pages would log a DrawText exception and fail this test
             Capture(CreateLabel("日本語"));
 

@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.Text.NarrowWrap
             parent.Add(label);
             AttachWithoutFrames(parent);
 
-            // 後半のフレームで高さか折り返しが替わったら往復している
+            // 後半で高さ・折返しが替われば往復
             // A height or wrap change in the later frames means it toggles
             var lateChanges = 0;
             var lastHeight = -1f;
@@ -46,7 +46,7 @@ namespace Client.Tests.Ui.Text.NarrowWrap
             {
                 simulate.FrameUpdate();
                 var changed = label.layout.height != lastHeight || label.resolvedStyle.whiteSpace != lastWhiteSpace;
-                if (changed && frame >= SettleFrames - QuietFrames) lateChanges++;
+                if (changed && SettleFrames - QuietFrames <= frame) lateChanges++;
                 lastHeight = label.layout.height;
                 lastWhiteSpace = label.resolvedStyle.whiteSpace;
             }
@@ -60,7 +60,7 @@ namespace Client.Tests.Ui.Text.NarrowWrap
             LogAssert.NoUnexpectedReceived();
         }
 
-        // 短い文の縮んだ箱で判定せず、次の測りが受けた広い制約で決める
+        // 縮んだ箱でなく次の測りの広い制約で決める
         // The shrunk box of the short text does not decide; the next measure decides from the wide constraint
         [Test]
         public void 広い親の内容幅のラベルを固まる並びのある文に替えても止めない([Values] bool localized)

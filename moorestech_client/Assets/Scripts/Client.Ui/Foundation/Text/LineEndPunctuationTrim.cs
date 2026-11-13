@@ -32,7 +32,7 @@ namespace Client.Ui.Foundation.Text
         public static bool CanTrim(string source)
         {
             // silent-ok: rich text の文（会話の本文の打ち出し等）は詰めずに 1 行多く折れうる / 台帳 docs/uitk/TODO.md の LX-180 が例外として持つ
-            if (source.IndexOf('<') >= 0) return false; // look-exception: LX-180
+            if (0 <= source.IndexOf('<')) return false; // look-exception: LX-180
             foreach (var c in source)
             {
                 if (IsClosingPunctuation(c)) return true;
@@ -69,20 +69,17 @@ namespace Client.Ui.Foundation.Text
             return builder.ToString();
         }
 
-        // 行末の字（描かれる字の通し番号。rich text の印は数えず、サロゲートペアは 1 字）の直後に改行を入れる。既に改行の位置には足さない
-        // Insert a newline after each line-end glyph (index among presented glyphs, tags not counted, a surrogate pair as one); skip ones that are already newlines
+        // CanTrim を通った原文（rich text の印を含まない）だけを受け、行末の字（サロゲートペアは 1 字）の直後に改行を入れる。既に改行の位置には足さない。印の扱いを広げるときは NarrowWrapWidth の規則に寄せる
+        // Takes only a CanTrim-passed source (no rich-text tags) and inserts a newline after each line-end glyph (a surrogate pair as one), skipping existing newlines; widen tag handling by following NarrowWrapWidth
         public static string Apply(string source, IReadOnlyList<int> lineEndIndices)
         {
             var builder = new StringBuilder(source.Length + lineEndIndices.Count);
             var presentedIndex = 0;
             var nextLineEnd = 0;
-            var insideTag = false;
             foreach (var c in source)
             {
                 builder.Append(c);
-                if (IsTagBoundary(c)) continue;
-                if (insideTag) continue;
-                // サロゲートペアは後ろの半分で 1 字と数える
+                // サロゲートは後ろ半分で 1 字
                 // A surrogate pair counts as one glyph at its low half
                 if (char.IsHighSurrogate(c)) continue;
 
@@ -94,19 +91,6 @@ namespace Client.Ui.Foundation.Text
                 presentedIndex++;
             }
             return builder.ToString();
-
-            #region Internal
-
-            // rich text の印（<…>）の中は描かれる字に数えない
-            // Characters inside a rich-text tag (<...>) are not presented glyphs
-            bool IsTagBoundary(char c)
-            {
-                if (c == '<') { insideTag = true; return true; }
-                if (c == '>' && insideTag) { insideTag = false; return true; }
-                return false;
-            }
-
-            #endregion
         }
     }
 }

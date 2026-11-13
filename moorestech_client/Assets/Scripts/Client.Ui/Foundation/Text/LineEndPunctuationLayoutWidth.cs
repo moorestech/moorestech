@@ -28,7 +28,7 @@ namespace Client.Ui.Foundation.Text
 
         // 受けた制約の幅で測っている（幅を内容で決めるラベル）。このときラベルの箱の幅の変化では測り直さない
         // Measuring at the constraint width (content-sized label); the label's own box width changes then do not trigger a re-measure
-        public bool FollowsConstraint { get; private set; }
+        private bool _followsConstraint;
 
         // 原文が替わったら前の原文の測りを捨てる
         // A new source discards the measures taken with the previous one
@@ -62,7 +62,7 @@ namespace Client.Ui.Foundation.Text
         public bool IsUnseenConstraint(float desiredWidth, VisualElement.MeasureMode widthMode)
         {
             if (widthMode == VisualElement.MeasureMode.Exactly) return false;
-            if (FollowsConstraint && widthMode == VisualElement.MeasureMode.Undefined) return false;
+            if (_followsConstraint && widthMode == VisualElement.MeasureMode.Undefined) return false;
             return !_sourceWidths.ContainsKey(KeyOf(desiredWidth, widthMode));
         }
 
@@ -74,33 +74,37 @@ namespace Client.Ui.Foundation.Text
             var lastAtMostUnderBox = _hasLastSourceMeasure
                 && _lastSourceKey.Item1 == VisualElement.MeasureMode.AtMost
                 && _lastSourceMeasuredWidth <= contentWidth + WidthTolerance
-                && _lastSourceDesiredWidth > contentWidth + WidthTolerance;
+                && contentWidth + WidthTolerance < _lastSourceDesiredWidth;
             var shrunkToSource = lastAtMostUnderBox && Mathf.Abs(_lastSourceMeasuredWidth - contentWidth) <= WidthTolerance;
-            var followsStretchedBox = lastAtMostUnderBox && !shrunkToSource && IsStretchedInColumn(label);
-            FollowsConstraint = shrunkToSource || followsStretchedBox;
-            if (!FollowsConstraint) return contentWidth;
+            var followsStretchedBox = lastAtMostUnderBox && !shrunkToSource && IsStretchedInColumn();
+            _followsConstraint = shrunkToSource || followsStretchedBox;
+            if (!_followsConstraint) return contentWidth;
             _measuredKey = _lastSourceKey;
             _reportedDisplayWidth = _lastSourceDesiredWidth;
             return _lastSourceDesiredWidth;
+
+            #region Internal
+
+            // 縦の並びの中で横に伸ばされる（Chrome では包みの fit-content が詰めた字で決まり、伸ばされた子もその幅になる）
+            // Stretched across a column (in Chrome the wrapper's fit-content is decided with trimmed glyphs and the stretched child follows it)
+            bool IsStretchedInColumn()
+            {
+                var parent = label.hierarchy.parent;
+                if (parent == null) return false;
+                var direction = parent.resolvedStyle.flexDirection;
+                if (direction != FlexDirection.Column && direction != FlexDirection.ColumnReverse) return false;
+                var align = label.resolvedStyle.alignSelf == Align.Auto ? parent.resolvedStyle.alignItems : label.resolvedStyle.alignSelf;
+                return align == Align.Stretch;
+            }
+
+            #endregion
         }
 
         // 箱の幅の変化で測り直すか。制約の幅で測るラベルは箱の幅が測った幅と違って当然なので測り直さない（親の幅が変われば覚えていない制約が ForDisplayed に来て測り直す）
         // Whether a box width change re-measures; constraint-measured labels ignore it (a parent resize reaches ForDisplayed as an unseen constraint and re-measures there)
         public bool NeedsRemeasureForBoxWidth(float boxWidth, float measuredWidth)
         {
-            return !FollowsConstraint && Mathf.Abs(boxWidth - measuredWidth) > WidthTolerance;
-        }
-
-        // 縦の並びの中で横に伸ばされる（Chrome では包みの fit-content が詰めた字で決まり、伸ばされた子もその幅になる）
-        // Stretched across a column (in Chrome the wrapper's fit-content is decided with trimmed glyphs and the stretched child follows it)
-        private static bool IsStretchedInColumn(Label label)
-        {
-            var parent = label.hierarchy.parent;
-            if (parent == null) return false;
-            var direction = parent.resolvedStyle.flexDirection;
-            if (direction != FlexDirection.Column && direction != FlexDirection.ColumnReverse) return false;
-            var align = label.resolvedStyle.alignSelf == Align.Auto ? parent.resolvedStyle.alignItems : label.resolvedStyle.alignSelf;
-            return align == Align.Stretch;
+            return !_followsConstraint && WidthTolerance < Mathf.Abs(boxWidth - measuredWidth);
         }
 
         // 表示文の間に配置へ返す大きさ。測ったときと違う制約が来たら needsRestart を立てる（原文に戻して測り直す）
@@ -109,7 +113,7 @@ namespace Client.Ui.Foundation.Text
         {
             needsRestart = false;
             var key = KeyOf(desiredWidth, widthMode);
-            if (FollowsConstraint)
+            if (_followsConstraint)
             {
                 // 測った制約では詰めた行の幅（制約を超えない）を返す。行末の約物の空白の半分は Chrome と同じく箱の外へはみ出す
                 // Under the measured constraint report the trimmed lines' width capped at the constraint; half of a line-end mark's space overhangs like Chrome
@@ -118,7 +122,7 @@ namespace Client.Ui.Foundation.Text
                     _reportedDisplayWidth = Mathf.Min(measured.x, desiredWidth);
                     return new Vector2(_reportedDisplayWidth, measured.y);
                 }
-                // 返した幅で高さを測り直す Exactly は同じ配置の続き
+                // Exactly は同じ配置の続き
                 // An Exactly pass at the reported width is the same layout re-measuring the height
                 if (widthMode == VisualElement.MeasureMode.Exactly && Mathf.Abs(desiredWidth - _reportedDisplayWidth) <= WidthTolerance) return measured;
                 // 原文の間に覚えた別の制約（包みの flex-basis の測り等）は原文の幅を返す。測り直すと原文と表示文を往復し続ける

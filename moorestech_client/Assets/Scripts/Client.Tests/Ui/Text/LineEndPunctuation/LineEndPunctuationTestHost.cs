@@ -67,7 +67,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             // 通知の行の文（Notification.uss の .notification-row__text）と同じ文字組みで、絶対配置にして親に引き伸ばされないようにする
             // Same typography as the notification row text, absolutely positioned so the parent does not stretch it
             label.style.position = Position.Absolute;
-            if (width > 0f) label.style.width = width;
+            if (0f < width) label.style.width = width;
             label.style.fontSize = 15f;
             label.style.letterSpacing = 5.5f;
             label.style.whiteSpace = WhiteSpace.Normal;

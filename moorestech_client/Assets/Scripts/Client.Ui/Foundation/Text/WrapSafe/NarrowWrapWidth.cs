@@ -51,7 +51,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
                 {
                     // silent-ok: 閉じない < は字として読む / 印でなければ TextCore も字として描く
                     var tagEnd = text.IndexOf('>', index);
-                    if (tagEnd > index)
+                    if (index < tagEnd)
                     {
                         index = tagEnd;
                         continue;
@@ -66,12 +66,12 @@ namespace Client.Ui.Foundation.Text.WrapSafe
                     hasGlyphBeforeRun = false;
                     continue;
                 }
-                if (NoBreakAfterCharacters.IndexOf(c) >= 0)
+                if (0 <= NoBreakAfterCharacters.IndexOf(c))
                 {
                     run++;
                     continue;
                 }
-                if (run > 0 && hasGlyphBeforeRun) longest = Mathf.Max(longest, run);
+                if (0 < run && hasGlyphBeforeRun) longest = Mathf.Max(longest, run);
                 run = 0;
                 hasGlyphBeforeRun = true;
             }

@@ -4,7 +4,7 @@ using Client.Ui.State.Text;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Text
+namespace Client.Tests.Ui.Text.Typography
 {
     /// <summary>
     /// Typography の行の高さが Web と同じか（和文・欧文）
@@ -71,7 +71,7 @@ namespace Client.Tests.Ui.Text
 
         private LocalizedLabel Mount(VisualElement parent, string className, string text)
         {
-            // 本番と同じ LocalizedLabel にし、親に引き伸ばされないよう絶対配置にする
+            // 本番同様の LocalizedLabel を絶対配置にする
             // Use the production LocalizedLabel, absolutely positioned so the parent does not stretch it
             var label = new LocalizedLabel();
             label.AddToClassList(className);

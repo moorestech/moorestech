@@ -21,7 +21,7 @@ namespace Client.Tests.Ui.Filter
             pixelsPerPoint = scale;
             var (host, group, child) = MountFill();
 
-            // 外の層は 1/倍率・中の層は倍率で、見た目の箱は置き場と同じ
+            // 外層 1/倍率・内層 倍率
             // Outer layer at 1/scale, inner at scale; the visible box equals the host
             Assert.AreEqual(1f / scale, group.resolvedStyle.scale.value.x, 0.0001f);
             Assert.AreEqual(scale, group.contentContainer.resolvedStyle.scale.value.x, 0.0001f);

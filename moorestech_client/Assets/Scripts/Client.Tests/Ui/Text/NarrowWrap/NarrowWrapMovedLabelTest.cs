@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.Text.NarrowWrap
             AttachWithoutFrames(parent);
             RunCappedFrames();
 
-            // 兄弟を高くしてラベルを下へずらし、動いたことを確かめる
+            // 兄弟を高くしラベルを下へずらす
             // Grow the sibling to push the label down and confirm it moved
             var topBefore = label.layout.y;
             sibling.style.height = 30f;

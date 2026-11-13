@@ -26,7 +26,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             var moved = Build(arrangement, walk[0], out var widthTarget);
             var mount = AttachWithoutFrames(moved.root);
 
-            // 組んだ直後と、各組の 1 つ目の幅で始まった測り直しに、ずらした刻みで次の幅を当てる
+            // 測り直しへ刻みをずらして次の幅を当てる
             // Hit the next width at the shifted tick after the mount and after each pair's first width starts a re-measure
             RunFrames(interruptAfterFrames);
             widthTarget.style.width = walk[1];

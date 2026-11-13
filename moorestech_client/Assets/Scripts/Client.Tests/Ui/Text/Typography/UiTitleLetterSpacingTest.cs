@@ -3,7 +3,7 @@ using Client.Ui.Foundation.Text;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Text
+namespace Client.Tests.Ui.Text.Typography
 {
     /// <summary>
     /// Title の段だけの題は字間を詰めず、見出しの字形の題は Web の字送りへ詰めるか
@@ -97,7 +97,7 @@ namespace Client.Tests.Ui.Text
 
         private Label Mount(VisualElement parent, string className, string text)
         {
-            // 親の幅に引き伸ばされないよう絶対配置で字の幅だけにする
+            // 絶対配置で字の幅だけにする
             // Absolute positioning keeps the label at its text width instead of stretching to the parent
             var label = new Label(text);
             label.AddToClassList(className);

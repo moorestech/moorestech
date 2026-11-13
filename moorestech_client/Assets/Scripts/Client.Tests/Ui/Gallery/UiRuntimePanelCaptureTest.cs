@@ -92,7 +92,7 @@ namespace Client.Tests.Ui.Gallery
         public void 地の画像は地の色の代わりに全面を覆う()
         {
             GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
-            // 単色の画像を cover で敷くと、中身の外はどこも画像の色になる
+            // cover の単色画像は全面その色
             // A solid image laid with cover makes everything outside the content the image colour
             var image = new Texture2D(4, 4, TextureFormat.RGBA32, false);
             image.SetPixels32(Enumerable.Repeat(new Color32(0, 200, 0, 255), 16).ToArray());

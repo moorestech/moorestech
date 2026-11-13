@@ -10,7 +10,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
     internal enum WhiteSpaceHoldReason
     {
         None = 0,
-        // 行末の約物の詰めが測った改行を入れた表示文を描いている
+        // 測った改行入りの表示文を描画中
         // The line-end trim shows display text with its measured newlines
         LineEndTrim = 1,
         // 箱が狭く、折り返すと UITK TextCore が固まる（bd moorestech-fcpzz）

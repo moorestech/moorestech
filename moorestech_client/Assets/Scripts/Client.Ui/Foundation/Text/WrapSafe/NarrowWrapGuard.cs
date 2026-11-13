@@ -20,7 +20,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         private readonly InlineWhiteSpaceHolds _whiteSpace;
         private readonly WrappedMeasureFit _wrappedMeasureFit = new();
         private bool _boxKnown;
-        // 測りの中で配置の途中の contentRect を読まないよう、配置の後に写した箱の幅を使う
+        // 配置後に写した箱の幅を使う
         // Use the box width copied after layout so a measure never reads a mid-layout contentRect
         private float _boxWidth;
         private bool _boxSizedByMeasure;
@@ -43,7 +43,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
 
         // 今の文とスタイルで折り返しても固まらない最小の内容の幅（固まる並びが無ければ 0）
         // Narrowest content width that wraps the current text and style without freezing (0 without a freezing sequence)
-        public float MinimumWrapWidth()
+        private float MinimumWrapWidth()
         {
             // 連なりは文が替わったときだけ数え直す。固まる並びの無い文（大半）はスタイルを読まずに 0 を返す
             // Recount the run only when the text changes; texts without a freezing sequence (most) return 0 without reading style

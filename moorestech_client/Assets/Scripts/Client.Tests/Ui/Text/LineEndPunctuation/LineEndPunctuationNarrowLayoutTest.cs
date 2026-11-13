@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             if (maxWidthFull) label.style.maxWidth = Length.Percent(100);
             var mount = AttachWithoutFrames(outer);
 
-            // 幅 0 のまま回し、230 → 0 → 300 と広げ縮めする
+            // 幅 0 から 230→0→300 と往復
             // Run at zero width, then widen to 230, collapse to 0 and widen to 300
             RunFrames(framesAtZero);
             outer.style.width = ReferenceWidth;
@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             var (outer, label) = BuildContentSized(ReferenceWidth);
             var mount = AttachWithoutFrames(outer);
 
-            // 測りの途中のどこかで祖先を display:none にし、隠れている間は測りが来ないことを確かめる
+            // 測り中に祖先を display:none にし測りが来ないか見る
             // Hide an ancestor somewhere mid-measure and check no measure arrives while hidden
             RunFrames(framesBeforeHiding);
             mount.style.display = DisplayStyle.None;

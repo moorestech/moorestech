@@ -22,7 +22,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             [Values] Arrangement arrangement, [Values(0, 1)] int walkIndex)
         {
             var widthSteps = WidthWalks[walkIndex];
-            // 幅の段ごとに、入れ替わりが止まることと、新しく組んだ同じ幅の結果と一致することを見る
+            // 幅ごとに入れ替わり停止と新規組みとの一致を見る
             // At each width step, check the swaps stop and the result matches a fresh layout at the same width
             var moved = Build(arrangement, widthSteps[0], out var movedWidthTarget);
             var movedMount = Attach(moved.root);

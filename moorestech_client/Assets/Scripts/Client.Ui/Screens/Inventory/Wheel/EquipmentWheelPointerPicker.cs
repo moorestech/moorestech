@@ -15,7 +15,7 @@ namespace Client.Ui.Screens.Inventory.Wheel
 
         public VisualElement PickAt(Vector2 screenPosition)
         {
-            // 拾いと座標換算は DI の probe に任せる
+            // 拾いと座標換算は probe に任せる
             // Picking and conversion live in the DI probe
             return _probe.PickAt(screenPosition);
         }

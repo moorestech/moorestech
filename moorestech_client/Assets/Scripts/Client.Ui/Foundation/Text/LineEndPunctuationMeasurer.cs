@@ -44,7 +44,7 @@ namespace Client.Ui.Foundation.Text
             style.borderRightWidth = 0f;
         }
 
-        public void Begin(Label label, string measureText, float width, LineEndTextStyle textStyle)
+        public void Begin(Label label, string measureText, float width, TextLayoutStyleSnapshot textStyle)
         {
             _detachPending = false;
             label.panel.visualTree.Add(_measurer);
@@ -66,7 +66,7 @@ namespace Client.Ui.Foundation.Text
             {
                 selection.cursorIndex = index;
                 var y = selection.cursorPosition.y;
-                if (y > previousY + 0.5f) lineEnds.Add(index - 1);
+                if (previousY + 0.5f < y) lineEnds.Add(index - 1);
                 previousY = y;
             }
             selection.cursorIndex = 0;

@@ -27,7 +27,7 @@ namespace Client.Ui.Foundation.Text
         private int _generation;
         private TrimPhase _phase = TrimPhase.Plain;
         private float _measuredWidth;
-        private LineEndTextStyle _measuredStyle;
+        private TextLayoutStyleSnapshot _measuredStyle;
 
         public LineEndPunctuationTrimmer(Label label, InlineWhiteSpaceHolds whiteSpace)
         {
@@ -95,16 +95,16 @@ namespace Client.Ui.Foundation.Text
         {
             var width = _label.contentRect.width;
             // silent-ok: パネルに載って幅が決まるまで原文を普通に折り返して描く / 載った後の GeometryChangedEvent でここへ戻る
-            if (_label.panel == null || !(width > 0f)) return;
+            if (_label.panel == null || !(0f < width)) return;
             var measureWidth = _layoutWidth.ChooseMeasureWidth(_label);
-            // 測り役が折り返すと UITK が固まる幅では測らず原文のまま待つ
+            // 固まる幅では測らず原文で待つ
             // Too narrow for the measurer to wrap without freezing UITK; keep the source and wait
             // silent-ok: 見えるラベルは NarrowWrapGuard が折り返しを止めて LogWarning を出す / 広がった GeometryChangedEvent でここへ戻る
             if (measureWidth < NarrowWrapWidth.Of(_label.text, _label.enableRichText, _label.resolvedStyle.fontSize, _label.resolvedStyle.letterSpacing)) return;
 
             _phase = TrimPhase.Measuring;
             _measuredWidth = measureWidth;
-            _measuredStyle = LineEndTextStyle.Read(_label);
+            _measuredStyle = TextLayoutStyleSnapshot.Read(_label);
             // 測り役は詰める文を初めて測るときに作る（詰める文を持たないラベルには作らない）
             // Create the measurer on the first trimmable text (labels that never hold one never get it)
             _measurer ??= new LineEndPunctuationMeasurer();
@@ -118,7 +118,7 @@ namespace Client.Ui.Foundation.Text
         {
             OnNextTickIfCurrent(() =>
             {
-                if (ticksLeft > 1) AfterTicks(ticksLeft - 1);
+                if (1 < ticksLeft) AfterTicks(ticksLeft - 1);
                 else ApplyMeasuredBreaks();
             });
         }
@@ -134,7 +134,7 @@ namespace Client.Ui.Foundation.Text
                 return;
             }
 
-            // 測った折り返しで改行を入れ、自動の折り返しを止めて行末の約物をはみ出させる
+            // 測った折返しで改行を入れ自動折返しを止める
             // Put newlines at the measured breaks and stop auto wrap so line-end marks may overhang
             _phase = TrimPhase.Displayed;
             _label.text = _prefix + LineEndPunctuationTrim.Apply(_source, lineEnds);
@@ -153,9 +153,9 @@ namespace Client.Ui.Foundation.Text
 
             // silent-ok: 非表示の祖先の下で幅 0 になった間は今の表示を保つ / 表示し直した幅が違えば次の GeometryChangedEvent で測り直す
             var width = _label.contentRect.width;
-            if (!(width > 0f)) return;
+            if (!(0f < width)) return;
             var widthChanged = _layoutWidth.NeedsRemeasureForBoxWidth(width, _measuredWidth);
-            if (!widthChanged && LineEndTextStyle.Read(_label).SameAs(_measuredStyle)) return;
+            if (!widthChanged && TextLayoutStyleSnapshot.Read(_label).SameAs(_measuredStyle)) return;
             Restart();
         }
 
@@ -165,7 +165,7 @@ namespace Client.Ui.Foundation.Text
         {
             // silent-ok: 測る前・詰めない文は比べる写しが無い / 測り始めるときに今のスタイルを写す
             if (_phase != TrimPhase.Measuring && _phase != TrimPhase.Displayed) return;
-            if (LineEndTextStyle.Read(_label).SameAs(_measuredStyle)) return;
+            if (TextLayoutStyleSnapshot.Read(_label).SameAs(_measuredStyle)) return;
             Restart();
         }
 

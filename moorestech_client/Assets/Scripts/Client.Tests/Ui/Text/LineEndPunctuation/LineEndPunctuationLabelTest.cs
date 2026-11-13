@@ -77,7 +77,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
         [Test]
         public void 行中の閉じ括弧の送り幅は全角のまま()
         {
-            // 行中の「）」の直後の字の位置が、詰めないラベルと同じ
+            // 「）」直後の字の位置が詰め無しと同じ
             // The glyph right after a mid-line closing bracket sits where it does in an untrimmed label
             const string sentence = "研究（前提）条件を完了できません前提条件または素材が不足しています）";
             var afterMidBracket = sentence.IndexOf('）') + 1;

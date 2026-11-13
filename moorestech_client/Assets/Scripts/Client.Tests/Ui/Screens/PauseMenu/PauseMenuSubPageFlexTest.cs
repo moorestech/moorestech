@@ -86,7 +86,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 
         private void SetSectionHeight(float height)
         {
-            // 中身の寸法の変化は GeometryChangedEvent で basis へ届き、次の配置で効く
+            // 寸法変化は GeometryChangedEvent→basis へ届く
             // A content size change reaches the basis through GeometryChangedEvent and applies on the next layout
             _section.style.height = height;
             simulate.FrameUpdate();

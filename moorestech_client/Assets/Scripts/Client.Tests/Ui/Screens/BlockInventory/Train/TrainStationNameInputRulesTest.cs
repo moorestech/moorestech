@@ -29,7 +29,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         [SetUp]
         public void MountStationUnderRules()
         {
-            // 本番と同じく層の根に規則を付け、その下へ駅の本文を載せる
+            // 本番同様に層の根へ規則を付ける
             // Attach the rules at a layer root as in production and mount the station body below it
             _rulesRoot = new VisualElement { name = "rules-root", pickingMode = PickingMode.Ignore };
             _rulesRoot.style.position = Position.Absolute;
@@ -91,7 +91,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
 
         private TextField FocusAndType(string text)
         {
-            // 人と同じくクリックでフォーカスし、打鍵で値を入れる
+            // クリックでフォーカスし打鍵で入力
             // Focus by clicking and enter the value by typing, as a person does
             var input = Find<TextField>(_body.Root, InputTestId);
             simulate.Click(input.worldBound.center);

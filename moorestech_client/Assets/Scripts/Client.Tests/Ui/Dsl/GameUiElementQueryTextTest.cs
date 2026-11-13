@@ -16,7 +16,7 @@ namespace Client.Tests.Ui.Dsl
     {
         private const string Testid = "dsl-text-target";
 
-        // 行の箱を宣言した LocalizedLabel は text に行送りの印を持つが、照会は原文だけを返す
+        // 照会は印を除く原文だけ返す
         // A LocalizedLabel with a declared line box carries a pitch tag in text, yet the lookup returns only the source
         [Test]
         public void LocalizedLabelReadsSourceTextWithoutPitchTag()
@@ -28,7 +28,7 @@ namespace Client.Tests.Ui.Dsl
             Assert.AreEqual("発電中", Find().Text);
         }
 
-        // 子の LocalizedLabel を連結する箱も、印を含まない原文の連結を返す
+        // 連結も印を除く原文を返す
         // A box concatenating child LocalizedLabels also returns the concatenated sources without tags
         [Test]
         public void ContainerConcatenatesLocalizedLabelSources()
@@ -48,7 +48,7 @@ namespace Client.Tests.Ui.Dsl
             return GameUiElementQuery.Find(rootVisualElement, Testid, new FlipOnlyScreenMapper());
         }
 
-        // 本番と同じ LocalizedLabel を Typography のクラス付きで置き、行の印が付くまでレイアウトを回す
+        // 本番同様に置き、行の印までレイアウトを回す
         // Mount the production LocalizedLabel with a Typography class and run layout until the pitch tag is attached
         private LocalizedLabel Mount(VisualElement parent, string words)
         {

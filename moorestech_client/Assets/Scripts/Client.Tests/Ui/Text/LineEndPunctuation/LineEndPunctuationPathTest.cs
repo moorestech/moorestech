@@ -163,7 +163,7 @@ namespace Client.Tests.Ui.Text.LineEndPunctuation
             {
                 simulate.FrameUpdate();
                 if (label.text == lastText) continue;
-                if (frame >= 30) swapsInLastHalf++;
+                if (30 <= frame) swapsInLastHalf++;
                 lastText = label.text;
             }
             Assert.AreEqual(0, swapsInLastHalf, label.text);
