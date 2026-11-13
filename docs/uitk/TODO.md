@@ -185,6 +185,7 @@ Web 版の全画面と主要な状態（移行後も「意図した見た目」�
 - S3-hotbar-modal の 1920×1080 の参照: 撮影元 moorestech `8a585f742a`（origin/master）、置き場は `uitk/reference-captures/web-8a585f742a-1920x1080/`（91 件。https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a-1920x1080 ）
 - 束 2 の最新の参照（S2-ladder）: 撮影元 8a585f742a（Web の src は origin/master 8d1c7fbda9 まで不変）
 - 各行の `参照キャプチャ` 列は撮影 id（PNG は `<id>.png`、動画は `<id>.webm`）。束を切り替える前に撮り直したら、ここの撮影元と置き場を新しい方へ書き換える
+- 段階 4 の自撮りの参照（E-22。1280×720 の参照に無い状態を各レーンが自分で撮った。S4-machine は報告ページの並べ比べ、S4-recipe・S4-research は master 9ce5557bdb の mock-host）: S4-machine 報告ページ https://review.moores.tech/pr/1640/report/ （実体 `~/hermes-agent/data/services/pr-review/reports/pr-1640/`。`4-block-machineShortInput`・`4-block-machineFilledOutput`・清浄室 12）、S4-recipe `moorestech_logs` の `uitk/reference-captures/web-9ce5557bdb-s4-recipe/`・`web-9ce5557bdb-s4-recipe-2560x1080/`（`4-recipe-selected-craft`・`4-recipe-selected-machine`・`4-recipe-holding`）、S4-research `uitk/reference-captures/web-9ce5557bdb-research-detail/`・`web-9ce5557bdb-research-detail-2560x1080/`（詳細ペイン `4-research-detail-{ready,lacking,completed}`）。撮影表 `referenceShots.ts` には足していない（Web の撮影の基盤は束 5 の持ち物）
 
 ## 未撮影
 
