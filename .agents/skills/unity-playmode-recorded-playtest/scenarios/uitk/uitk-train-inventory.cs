@@ -71,15 +71,21 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
         await p.ClickUi("train-station-name-apply");
         await p.Until(() => StationName() == "中央駅", 10f, "クライアントの駅名が中央駅になる");
         await PlaytestUiElementOps.WaitUiTextContains("train-station-name-input", "中央駅", 10f);
-        // 3: 入力欄にフォーカスがあるときの Esc・E での閉じを記録する（閉じないことを C2-b へ上げた。このレーンでは入力の振り分けを変えない）
-        // 3: record closing by Esc and E while the text field has focus (not closing is raised to C2-b; this lane leaves input routing unchanged)
-        foreach (var key in new[] { Key.Escape, Key.E })
-        {
-            p.Note($"フォーカス中の {key} で閉じたか: {await ClosesWhileFocused(key)}");
-            if (p.CurrentUiState == UIStateEnum.SubInventory) await p.ClickUi("block-inventory-close");
-            await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-            await OpenStation();
-        }
+        // 3: 入力中の Esc 1 回はフォーカスだけを外して閉じず、E は文字になり閉じない。入力欄にフォーカスを残したまま閉じても入力中の旗は残らない（R-9）
+        // 3: one Esc while typing only drops focus without closing, E types without closing, and closing with focus still in the field leaves no typing flag (R-9)
+        await p.ClickUi("train-station-name-input");
+        p.Assert(UiInputExclusivity.IsTextInputFocused, "入力欄を押すと入力中の旗が立つ");
+        await p.PressKey(Key.Escape);
+        await p.Until(() => !UiInputExclusivity.IsTextInputFocused, 5f, "入力中の Esc 1 回で入力中の旗が下りる");
+        p.Assert(p.CurrentUiState == UIStateEnum.SubInventory && GameUiRoot.Instance.GetRootElement().focusController.focusedElement is not TextField, $"Esc 1 回目はフォーカスを外すだけで閉じない (state={p.CurrentUiState})");
+        await p.ClickUi("train-station-name-input");
+        await p.PressKey(Key.E);
+        await p.WaitSeconds(1f);
+        p.Assert(p.CurrentUiState == UIStateEnum.SubInventory && UiInputExclusivity.IsTextInputFocused, $"入力中の E は文字になり閉じない (state={p.CurrentUiState} 入力中={UiInputExclusivity.IsTextInputFocused})");
+        await p.ClickUi("block-inventory-close");
+        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+        p.Assert(!UiInputExclusivity.IsTextInputFocused, "入力欄にフォーカスを残したまま閉じても入力中の旗が残らない");
+        await OpenStation();
         // 4: 卸しを押しても、クライアントの状態が替わるまで選択は替わらない
         // 4: pressing unload does not change the selection until the client state changes
         var selectedBeforeState = false;
@@ -154,18 +160,6 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
     TransferMode? Mode() => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(stationAPos).GetStateDetail<TrainPlatformTransferStateDetail>(TrainPlatformTransferStateDetail.BlockStateDetailKey)?.Mode;
     bool Has(string testid, string className) => GameUiRoot.Instance.GetRootElement().Q<VisualElement>(testid)?.ClassListContains(className) == true;
 
-    // 入力欄を押してフォーカスを置き、キーを注入して 5 秒以内に閉じたかを返す
-    // Click the field to focus it, inject the key and return whether the panel closed within 5 seconds
-    async UniTask<bool> ClosesWhileFocused(Key key)
-    {
-        await p.ClickUi("train-station-name-input");
-        p.Note($"{key} の前: フォーカス={GameUiRoot.Instance.GetRootElement().focusController.focusedElement?.GetType().Name} 文字入力中={UiInputExclusivity.IsTextInputFocused}");
-        await p.PressKey(key);
-        var deadline = Time.realtimeSinceStartup + 5f;
-        while (p.CurrentUiState != UIStateEnum.GameScreen && Time.realtimeSinceStartup < deadline) await UniTask.Yield();
-        p.Note($"{key} の後: 状態={p.CurrentUiState} 文字入力中={UiInputExclusivity.IsTextInputFocused}");
-        return p.CurrentUiState == UIStateEnum.GameScreen;
-    }
     // 駅の外の南側からコライダーへ照準を合わせて開く（Task 8 の駅を開く手順と同じ）
     // Aim at the station collider from outside its south side and open it (same as Task 8's station opening)
     async UniTask OpenStation()
