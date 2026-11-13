@@ -92,11 +92,13 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     // 1024x576: follows the stage scale with the same logical rect, inside the screen and above the inventory
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1024, 576);
     await UniTask.DelayFrame(3);
-    AssertSame(world, await HudRect("1024×576 のゲーム画面"), "1024×576 のゲーム画面");
+    var scaledWorld = await HudRect("1024×576 のゲーム画面");
+    AssertSame(world, scaledWorld, "1024×576 のゲーム画面");
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
     await WaitShown("main-grid");
     var small = await HudRect("1024×576 のインベントリ");
+    AssertSame(scaledWorld, small, "1024×576 のインベントリ");
     var screen = root.worldBound;
     p.Assert(screen.Contains(small.min) && screen.Contains(small.max), $"HUD {small} が画面 {screen} の中");
     p.Assert(small.yMax <= root.Q("main-grid").worldBound.yMin + 0.5f, "1024×576 でも HUD がインベントリより上");
@@ -125,15 +127,22 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     // Wait only for the content's existence and width (the grid center is a slot gap and the placement/delete HUDs ignore picking, so a Clickable wait never passes)
     async UniTask WaitShown(string id)
     {
-        await UniTask.WaitUntil(() => root.Q(id) is { } shown && shown.worldBound.width > 0f).TimeoutWithoutException(System.TimeSpan.FromSeconds(10));
-        p.Assert(root.Q(id) is { } content && content.worldBound.width > 0f, $"{id} が出ている");
+        await UniTask.WaitUntil(() => IsVisible(root.Q(id))).TimeoutWithoutException(System.TimeSpan.FromSeconds(10));
+        p.Assert(IsVisible(root.Q(id)), $"{id} が出ている（幅あり・visible・不透明度 > 0）");
+    }
+
+    // Web の toBeVisible に寄せ、幅に加えて visibility と不透明度も見る
+    // Close to Web toBeVisible: check visibility and opacity in addition to width
+    bool IsVisible(VisualElement element)
+    {
+        return element != null && element.worldBound.width > 0f && element.resolvedStyle.visibility == Visibility.Visible && element.resolvedStyle.opacity > 0f;
     }
 
     void AssertSame(Rect expected, Rect actual, string where)
     {
-        // 許容は物理 1px を論理へ換算した値（1280 幅で 1、1024 幅で 1.25。端が物理ピクセルへ丸まり、論理 1 未満の差は 0.8 倍で表せない）
-        // Tolerance is one physical pixel in logical units (1 at 1280 wide, 1.25 at 1024; edges snap to physical pixels, so sub-1 logical gaps cannot exist at 0.8x)
-        var tolerance = Mathf.Max(1f, 1280f / Screen.width) + 0.01f;
+        // 許容は物理 1px の論理換算（1280 幅で 1、1024 幅で 1.25）。子要素ごとの物理ピクセル丸めが積み重なり、高さ等が 1 物理 px までずれる
+        // Tolerance is one physical pixel in logical units (1 at 1280 wide, 1.25 at 1024); per-child physical pixel rounding accumulates up to one physical pixel
+        var tolerance = Mathf.Max(1f, root.worldBound.width / Screen.width) + 0.01f;
         var same = Mathf.Abs(expected.x - actual.x) <= tolerance && Mathf.Abs(expected.y - actual.y) <= tolerance && Mathf.Abs(expected.width - actual.width) <= tolerance && Mathf.Abs(expected.height - actual.height) <= tolerance;
         p.Assert(same, $"{where} の HUD がゲーム画面と同じ位置・寸法（物理 1px 以内={tolerance:0.00}。{actual} / {expected}）");
     }
