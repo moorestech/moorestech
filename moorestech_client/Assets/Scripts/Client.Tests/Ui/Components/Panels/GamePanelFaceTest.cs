@@ -73,6 +73,20 @@ namespace Client.Tests.Ui.Components.Panels
             Assert.AreEqual(12f, bottomFade, 0.0001f);
         }
 
+        // 三角の帯は面の兄弟なので、下端のフェードはパネルのルートから継いで面と同じ値を読む
+        // The triangle band is the face's sibling, so it inherits the bottom fade from the panel root and reads the face's value
+        [Test]
+        public void 三角の帯は三角の幅と下端のフェード幅をUSSから受け取り面と同じフェード幅になる()
+        {
+            simulate.FrameUpdate();
+            var style = _panel.Q(className: "game-panel__bottom-deco").customStyle;
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(style, "--game-panel-deco-triangle-width", out var triangleWidth));
+            Assert.AreEqual(68f, triangleWidth, 0.0001f);
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(style, "--game-panel-bottom-fade", out var decoFade));
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(Face().customStyle, "--game-panel-bottom-fade", out var faceFade));
+            Assert.AreEqual(faceFade, decoFade, 0.0001f);
+        }
+
         [Test]
         public void 祖先でつまみpanel_leftを上書きすると面の左のはみ出しが変わる()
         {
