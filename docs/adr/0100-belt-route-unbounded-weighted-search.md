@@ -39,7 +39,7 @@ ADR 0097 の探索は、始点クリック時に X64×Z64 の箱を固定し、�
 ### C キーの廃止
 
 - 同コスト候補を送る C キー（ADR 0097「操作」）を無くす。`BeltRouteStepPriority` と `BeltRouteQuery.Priority` を削除する（出所: ユーザー裁定 2026-11-09「Cキー一旦撤廃で」）。
-- `HybridInput` のキー対応表の C は残す（他の機能が使えるよう。agent前提）。
+- `HybridInput` のキー対応表の C（ADR 0097 で足したもの）も外す。C を使う機能は他に無い（`Key.C` の参照なし）。
 
 ### 変えないもの
 

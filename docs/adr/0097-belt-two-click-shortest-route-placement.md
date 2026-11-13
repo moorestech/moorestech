@@ -83,7 +83,7 @@
 ### 置き換える範囲
 
 - ドラッグ設置（L字、`ConveyorOverpassRaiser` / `ConveyorVerticalEnvelope` の立体交差、地形の乗り越え、坂のドラッグ）とそのテスト・シナリオ（`belt-terrain-climb-via-ui.cs`）を削除。
-- プレイテストの `DragPlaceViaUi` は `RoutePlaceViaUi` / `BranchPlaceViaUi` に置き換え、録画オーバーレイにログ欄と入力欄を隠す切り替え（`SetOverlayPanels`）を足す。
+- プレイテストの `DragPlaceViaUi` は `RoutePlaceViaUi` / `BranchPlaceViaUi` に置き換える。
 
 ## Considered Options
 
@@ -98,6 +98,5 @@
   - EditMode で X64×Z64×Y12・障害2割の箱を端から端へ探索して最悪 4.6 ms（内側の高速化前は 12.5 ms）。
   - 経路なし（X64×Z64、箱の高さ 6/12/24）: 塗りつぶしで弾ける配置（囲われた終点・地形の尾根・真上だけ開いた縦穴）は 1〜8 ms。規則だけで届かない台座の配置は本探索が箱全体を舐めて 15/45/105 ms（探索単体、5回の実測）。高速化前は囲われた終点で 206/484/1063 ms だった。録画シナリオ `belt-route-two-click-via-ui.cs` が終点を4か所振って測った Editor 実機のフレーム時間は最悪 19.3〜23.0 ms（3回の実行、描画込みの1フレーム全体）。
 - プレイテストDSLへの波及: 録画で設置物を写すため `HideMapObjects()`（スキットと同じ `MapObjectGameObjectDatastore.SetActive(false)` 経路）を足した。足場 y=32 は地形の山の中にあり、隠さないとベルトが写らない。
-- `HybridInput` のキー対応表に C を足した。対応表に無いキーは legacy Input へ落ちるため、プレイテストの注入では C が押されたことにならず、実機でだけ動く状態だった。
 - 角の分岐は、周囲の入出力辺だけで向きと出口を決める幾何（`BeltRouteBranchGeometryTest`）、テスト用サーバーで角を分岐器に置き換えて両方へ流れる試験（`BeltRouteConveyanceTest`）、録画シナリオ `belt-route-branch-via-ui.cs` の角のフェーズで守る。プレイテストDSLの `BranchPlaceViaUi` は「右か左か」ではなく「既定の出口か R で切り替えた出口か」と、経路が出る向きを受ける形に変わる（2026-11-09）。
 - 坂なしのファミリー（分岐器）は水平経路のみ。上り・下りが片方しか無いファミリーも坂を使わない。

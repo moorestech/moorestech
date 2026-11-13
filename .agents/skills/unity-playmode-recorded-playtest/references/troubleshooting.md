@@ -97,7 +97,7 @@ EditModeInPlayingTestを一括実行すると、後半のテストが
   サーバーテストと同経路でcreate param付き生成）。クライアント側の橋脚出現をWaitBlockGameObjectで待てば
   PlaceBlockイベント同期の検証を兼ねられる
 
-- **ベルトの2クリック設置で終点が赤のまま置かれない**。`RoutePlaceViaUi`は始点クリック→終点クリックの2回で置く。終点のセルに既存ブロック・地形・既存坂の真上があるか、箱（始点中心X64×Z64）の外か、建設コスト不足かのいずれか。ツールチップの理由行（`ui.tooltip.placeBeltRoute*`）を`IMouseCursorTooltip.GetPresentation()`で読むと切り分けられる
+- **ベルトの2クリック設置で終点が赤のまま置かれない**。`RoutePlaceViaUi`は始点クリック→終点クリックの2回で置く。終点のセルに既存ブロック・地形・既存坂の真上があるか、経路が見つからない（探索上限に達する・終点が囲まれている）か、建設コスト不足かのいずれか。ツールチップの理由行（`ui.tooltip.placeBeltRoute*`）を`IMouseCursorTooltip.GetPresentation()`で読むと切り分けられる
 
 - PlayMode中のスキーマ再コンパイル発火→ドメインリロードで初期化破壊。worktree初回はPlayMode前に`uloop compile`
 - `.moorestech-external-revisions.json` / `_CompileRequester.cs` はUnityが自動書き換え。スキーマ未更新なら`git checkout --`
