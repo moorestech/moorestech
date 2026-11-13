@@ -10,11 +10,10 @@ using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BuildMenu
 {
-    // エントリ→空き枠D&DでAssignHotbarを送る通し（D-16）
-    // Run of entry-to-empty-slot drag sending AssignHotbar (D-16)
+    // エントリの D&D がホットバーへ届く通し（D-16）
+    // Entry drags reach the hotbar Drop end to end (D-16)
     public class BuildMenuToHotbarDragTest : BuildMenuScreenTestHost
     {
-        private RecordingHotbarCommands _hotbarCommands;
         private HotbarHudView _hotbar;
 
         [SetUp]
@@ -25,15 +24,14 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             var layers = UiLayerStack.Build(rootVisualElement);
             View.RemoveFromHierarchy();
             layers.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(View);
-            _hotbarCommands = new RecordingHotbarCommands();
-            _hotbar = new HotbarHudView(_hotbarCommands, HotbarTestPresentation.Create(), Toaster);
-            layers.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_hotbar);
+            _hotbar = new HotbarHudView(HotbarCommands, HotbarTestPresentation.Create(), Toaster);
+            layers.GetLayer(HotbarHudPresenter.HostLayer, HotbarHudPresenter.HostFamily).Add(_hotbar);
             _hotbar.Render(HotbarViewModelSamples.WebFixture());
             OpenMenu(BuildMenuSamples.Create());
         }
 
         [Test]
-        public void エントリを枠1へドラッグすると割当が1回だけ出て選択は出ない()
+        public void エントリを枠1へドラッグすると枠1への落としが1回だけ出て選択は出ない()
         {
             var from = Entry("block", BuildMenuSamples.WoodChest).worldBound.center;
             var to = Slot(1).worldBound.center;
@@ -41,14 +39,22 @@ namespace Client.Tests.Ui.Screens.BuildMenu
 
             // 5px の閾値を越えてから枠へ運ぶ
             // Cross the 5px threshold, then carry it to the slot
-            simulate.MouseDown(from, MouseButton.LeftMouse);
-            simulate.MouseMove(from + new Vector2(8f, -8f));
-            simulate.MouseMove(Vector2.Lerp(from, to, 0.5f));
-            simulate.MouseMove(to);
-            simulate.MouseUp(to, MouseButton.LeftMouse);
-            Settle();
+            DragPastThreshold(from, to);
 
-            CollectionAssert.AreEqual(new[] { $"assign:1:{BuildMenuSamples.WoodChest:D}" }, _hotbarCommands.Calls);
+            CollectionAssert.AreEqual(new[] { $"entry:{BuildMenuSamples.WoodChest:D}->slot:1" }, HotbarCommands.Calls);
+            CollectionAssert.IsEmpty(Commands.Selected);
+        }
+
+        // 枠外も Drop を通る（D-11）
+        // Outside drops also pass Drop (D-11)
+        [Test]
+        public void エントリをメニューの見出しへドラッグすると枠外への落としが1回だけ出て選択は出ない()
+        {
+            var from = Entry("block", BuildMenuSamples.WoodChest).worldBound.center;
+            var to = Find<VisualElement>(View, $"build-menu-category-heading-{BuildMenuSamples.Logistics:D}").worldBound.center;
+            DragPastThreshold(from, to);
+
+            CollectionAssert.AreEqual(new[] { $"entry:{BuildMenuSamples.WoodChest:D}->outside" }, HotbarCommands.Calls);
             CollectionAssert.IsEmpty(Commands.Selected);
         }
 
@@ -62,7 +68,19 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             Settle();
 
             CollectionAssert.AreEqual(new[] { BuildMenuSamples.WoodChest }, Commands.Selected);
-            CollectionAssert.IsEmpty(_hotbarCommands.Calls);
+            CollectionAssert.IsEmpty(HotbarCommands.Calls);
+        }
+
+        // 5px の閾値を越えてから運んで離す
+        // Cross the 5px threshold, carry it over and release
+        private void DragPastThreshold(Vector2 from, Vector2 to)
+        {
+            simulate.MouseDown(from, MouseButton.LeftMouse);
+            simulate.MouseMove(from + new Vector2(8f, -8f));
+            simulate.MouseMove(Vector2.Lerp(from, to, 0.5f));
+            simulate.MouseMove(to);
+            simulate.MouseUp(to, MouseButton.LeftMouse);
+            Settle();
         }
 
         private SlotFrame Slot(int index)

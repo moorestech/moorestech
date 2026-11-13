@@ -7,7 +7,6 @@ using Client.Ui.State.Commands;
 using Client.Ui.State.Train.Logic;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
-using UnityEngine;
 
 namespace Client.Ui.State.Train.TimetableEdit.Send
 {
@@ -17,7 +16,6 @@ namespace Client.Ui.State.Train.TimetableEdit.Send
     /// </summary>
     public sealed class TrainTimetableCommands : ITrainTimetableCommands
     {
-        private const string LogTag = "TrainTimetableCommands";
         private readonly SubInventoryState _subInventoryState;
         private readonly TrainUnitClientCache _cache;
         private readonly TrainTimetableFetcher _fetcher;
@@ -39,31 +37,30 @@ namespace Client.Ui.State.Train.TimetableEdit.Send
 
         public async UniTask<UiCommandResult> Replace(IReadOnlyList<TimetableReplaceStop> stops)
         {
-            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.BlockNotOpen, string.Empty);
+            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
 
             // 応答はネットワーク由来なので null（切断・時間切れ）を拒否として扱う
             // The response comes from the network, so null (disconnect or timeout) counts as a refusal
             var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateReplaceTimetableRequest(trainUnitId, TrainTimetableDeparture.ToServerStops(stops));
             var response = await ClientContext.VanillaApi.Response.Train.SendTrainScheduleEdit(request, CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.TrainTimetableReplaceFailed, response == null ? string.Empty : response.FailureReason.ToString());
+            if (response == null || !response.Success) return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainTimetableReplaceFailed, response == null ? "no response" : response.FailureReason.ToString());
             return UiCommandAccepted.Instance;
         }
 
         public async UniTask<UiCommandResult> SetAutoRun(bool enabled)
         {
-            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.BlockNotOpen, string.Empty);
+            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
 
             // 受理されても求めた値で適用されていなければ拒否（Web ホストと同じ照合）
             // Even when accepted, refuse if the applied value differs from the request (same check as the Web host)
             var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateSetAutoRunRequest(trainUnitId, enabled);
             var response = await ClientContext.VanillaApi.Response.Train.SendTrainScheduleEdit(request, CancellationToken.None);
-            if (response == null || !response.Success) return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.TrainAutoRunFailed, response == null ? string.Empty : response.FailureReason.ToString());
+            if (response == null || !response.Success) return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainAutoRunFailed, response == null ? "no response" : response.FailureReason.ToString());
             if (response.AppliedIsAutoRun == enabled) return UiCommandAccepted.Instance;
 
-            // 適用された値はサーバーの失敗理由ではないので Detail に入れず、ログにだけ残す（Web ホストの set_auto_run_not_applied:<値> と同じ情報）
-            // The applied value is not a server failure reason, so it stays out of Detail and goes to the log only (same information as the Web host's set_auto_run_not_applied:<value>)
-            Debug.LogWarning($"[{LogTag}] auto-run applied as {response.AppliedIsAutoRun}, requested {enabled}");
-            return TrainCommandRejection.Reject(LogTag, UiCommandRejectReason.TrainAutoRunNotApplied, string.Empty);
+            // 適用値は wire でなく診断へ
+            // Applied value goes to diagnostic, not the wire
+            return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainAutoRunNotApplied, $"applied {response.AppliedIsAutoRun}, requested {enabled}");
         }
     }
 }

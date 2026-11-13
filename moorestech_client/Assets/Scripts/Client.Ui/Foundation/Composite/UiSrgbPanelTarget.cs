@@ -41,7 +41,7 @@ namespace Client.Ui.Foundation.Composite
             if (_texture != null && _texture.width == Screen.width && _texture.height == Screen.height) return;
             var previous = _texture;
             _texture = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
-            if (!_texture.Create()) throw new InvalidOperationException($"[UiSrgbPanelTarget] failed to create the {Screen.width}x{Screen.height} panel RT");
+            if (!_texture.Create()) throw new UiSrgbPanelRenderTextureUnavailableException(Screen.width, Screen.height);
             _settings.targetTexture = _texture;
             UiSrgbCompositeSource.SetTexture(_texture);
             if (previous != null) Release(previous);

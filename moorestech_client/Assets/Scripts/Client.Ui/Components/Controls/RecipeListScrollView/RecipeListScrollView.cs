@@ -24,7 +24,7 @@ namespace Client.Ui.Components.Controls
 
             // 先頭の内容と列を 1 つのスクロールに入れる（Web の ScrollArea の子 2 つ）
             // Leading content and the list share one scroll (the Web ScrollArea's two children)
-            var scroll = new GameScrollView($"{listTestid}-scroll");
+            var scroll = new GameScrollView($"{listTestid}-scroll", GameScrollAxis.Vertical);
             scroll.AddToClassList("recipe-list-scroll-view__scroll");
             Add(scroll);
             _leading = new VisualElement();

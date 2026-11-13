@@ -34,8 +34,8 @@ namespace Client.Ui.State.Inventory.Actions
             {
                 PlayerItemMoveOutcome.Moved => UiCommandAccepted.Instance,
                 PlayerItemMoveOutcome.NoEffect => UiCommandAccepted.Instance,
-                PlayerItemMoveOutcome.SourceEmpty => new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, ""),
-                PlayerItemMoveOutcome.SourceCountShort => new UiCommandRejected(UiCommandRejectReason.ItemSourceCountShort, ""),
+                PlayerItemMoveOutcome.SourceEmpty => UiCommandRejected.Of(UiCommandRejectReason.ItemSourceSlotEmpty),
+                PlayerItemMoveOutcome.SourceCountShort => UiCommandRejected.Of(UiCommandRejectReason.ItemSourceCountShort),
                 _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null),
             };
         }

@@ -43,7 +43,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             Search = new GameTextField("build-menu-search", false, GameTextFieldLook.GaugeInset);
             Search.AddToClassList("build-menu__search");
             Search.SetPlaceholder(new UiText(LocalizationKeys.Ui.BuildMenu.SearchPlaceholder));
-            Scroll = new GameScrollView("build-menu-scroll-area");
+            Scroll = new GameScrollView("build-menu-scroll-area", GameScrollAxis.Vertical);
             Scroll.AddToClassList("build-menu__scroll");
             _noResults.AddToClassList(UiTypographyClass.TextMd);
             _noResults.AddToClassList("build-menu__no-results");

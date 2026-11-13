@@ -7,37 +7,25 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Motion
 {
     /// <summary>
-    /// 段階3以降で使う translate・scrollOffset の補間ステップが、進捗どおりの値を要素へ書くことを確かめる（L1）
-    /// Verifies the translate and scrollOffset tween steps used from stage 3 write values that follow the progress onto the element (L1)
+    /// 補間ステップが進捗どおり値を書く（L1）
+    /// Tween steps write progress values (L1)
     /// </summary>
     public class UiTweenStepTest : UiTestHost
     {
-        [TestCase(0f, 40f)]
-        [TestCase(0.5f, 20f)]
-        [TestCase(1f, 0f)]
-        [TestCase(1.25f, -10f)]
-        public void TranslateYは縦だけを補間し横は0に置く(float progress, float expectedY)
-        {
-            var target = new VisualElement();
-            new TranslateYTweenStep(target, 40f, 0f).Apply(progress);
-
-            var translate = target.style.translate.value;
-            Assert.AreEqual(0f, translate.x.value);
-            Assert.AreEqual(LengthUnit.Pixel, translate.y.unit);
-            Assert.AreEqual(expectedY, translate.y.value, 0.001f);
-        }
-
         [TestCase(0f, -12f)]
         [TestCase(0.5f, -6f)]
         [TestCase(1f, 0f)]
         [TestCase(1.25f, 3f)]
-        public void TranslateXは横だけを補間し縦は0に置く(float progress, float expectedX)
+        public void TranslateXは横だけを補間し縦は現在値を保つ(float progress, float expectedX)
         {
+            // 縦のずらしを先に置き、横の補間がそれを 0 へ戻さないことを見る
+            // Set a vertical offset first and check the horizontal tween does not reset it to 0
             var target = new VisualElement();
+            target.style.translate = new Translate(0, 7f);
             new TranslateXTweenStep(target, -12f, 0f).Apply(progress);
 
             var translate = target.style.translate.value;
-            Assert.AreEqual(0f, translate.y.value);
+            Assert.AreEqual(7f, translate.y.value, 0.001f);
             Assert.AreEqual(LengthUnit.Pixel, translate.x.unit);
             Assert.AreEqual(expectedX, translate.x.value, 0.001f);
         }

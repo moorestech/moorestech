@@ -36,9 +36,9 @@ namespace Client.Ui.State.BlockInventory.Machine
             {
                 // 判定の入力（有無・ブロック・行の有無）が変わったときだけ流す。加工中の毎 tick の状態更新では流さない（D-39）
                 // Emit only when the rule's inputs (presence, block, any rows) change; never on per-tick processing updates (D-39)
-                var present = current.IsPresent;
-                var blockInstanceId = present ? current.Value.BlockInstanceId : default;
-                var hasRows = present && 0 < current.Value.Rows.Count;
+                var present = current.TryGetPresent(out var machine);
+                var blockInstanceId = present ? machine.BlockInstanceId : default;
+                var hasRows = present && 0 < machine.Rows.Count;
                 if (present == _lastPresent && blockInstanceId.Equals(_lastBlockInstanceId) && hasRows == _lastHasRows) return;
                 _lastPresent = present;
                 _lastBlockInstanceId = blockInstanceId;
@@ -51,8 +51,7 @@ namespace Client.Ui.State.BlockInventory.Machine
 
         public bool IsLargePanel(OpenBlockInventoryPanel panel)
         {
-            var current = _model.Current.Value;
-            return current.IsPresent && current.Value.IsFor(panel) && 0 < current.Value.Rows.Count;
+            return _model.Current.Value.TryGetPresent(out var machine) && machine.IsFor(panel) && 0 < machine.Rows.Count;
         }
     }
 }

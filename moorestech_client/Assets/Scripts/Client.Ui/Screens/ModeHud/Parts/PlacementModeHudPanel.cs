@@ -36,6 +36,8 @@ namespace Client.Ui.Screens.ModeHud.Parts
 
             _selected = Detail("operation-mode-detail", false);
             _height = Detail("operation-mode-detail", true);
+            // 置けない理由の行（Web の .warning）は持たない。実ゲームでは理由の書き手が無い（look-exception: LX-191）
+            // No unavailable-reason line (Web .warning); nothing writes a reason in the real game (look-exception: LX-191)
             heading.Add(_selected);
             heading.Add(_height);
 

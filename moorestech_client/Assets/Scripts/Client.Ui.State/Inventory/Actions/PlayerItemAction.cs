@@ -82,13 +82,13 @@ namespace Client.Ui.State.Inventory.Actions
             // grab を持っていれば拒否、中身が無ければ拒否、半分が 0 なら成功の何もしない（ホストと同じ順）
             // Reject while holding, reject an empty slot, and treat a zero half as a successful no-op (host order)
             var snapshot = operations.ReadSnapshot();
-            if (!snapshot.Grab.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.SplitGrabNotEmpty, "");
+            if (!snapshot.Grab.IsEmpty) return UiCommandRejected.Of(UiCommandRejectReason.SplitGrabNotEmpty);
             if (!snapshot.TryResolveSlot(_from.ToItemMoveSlotRef(), out var slot))
             {
                 Debug.LogWarning($"[PlayerItemAction] split on stale slot {_from} ignored");
                 return UiCommandAccepted.Instance;
             }
-            if (slot.IsEmpty) return new UiCommandRejected(UiCommandRejectReason.ItemSourceSlotEmpty, "");
+            if (slot.IsEmpty) return UiCommandRejected.Of(UiCommandRejectReason.ItemSourceSlotEmpty);
             var half = slot.Count / 2;
             // silent-ok: 1 個の分割は半分が 0 でホストと同じ成功の何もしない / grab が空のままなのはプレイヤーが掴み絵の無いことで見る
             if (half <= 0) return UiCommandAccepted.Instance;

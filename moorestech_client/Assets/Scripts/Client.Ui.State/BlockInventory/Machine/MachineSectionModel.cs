@@ -4,11 +4,13 @@ using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Diagnostics;
 using Client.Ui.State.Recipe.Source;
 using Game.Block.Interface.MachineUpgrade;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.State.BlockInventory.Machine
@@ -25,6 +27,7 @@ namespace Client.Ui.State.BlockInventory.Machine
         private readonly IModuleSlotStackLimitLookup _stackLimit;
         private readonly IFluidReplicaReader _fluidReplica;
         private readonly ReactiveProperty<SectionContent<MachineSectionViewModel>> _current = new(SectionContent<MachineSectionViewModel>.Absent);
+        private readonly AnomalyReportGate _gearAnomalyGate = new();
         private MachineRecipeCatalog _catalog = MachineRecipeCatalog.Empty;
 
         public IReadOnlyReactiveProperty<SectionContent<MachineSectionViewModel>> Current => _current;
@@ -63,26 +66,44 @@ namespace Client.Ui.State.BlockInventory.Machine
             SectionContent<MachineSectionViewModel> Read()
             {
                 // silent-ok: 閉・列車・取得失敗のパネルに機械の区画は無い（alpha の外殻が本文を作らない） / 並べ比べと録画
-                if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return SectionContent<MachineSectionViewModel>.Absent;
+                if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return AbsentWithoutGear();
                 // silent-ok: 追跡ブロックが未解決の間は区画を出さない（閉と同じ見え方） / 追跡替えでパネルが組み直され直ちに再計算
                 var block = _tracker.TrackedBlock;
-                if (block == null) return SectionContent<MachineSectionViewModel>.Absent;
+                if (block == null) return AbsentWithoutGear();
                 // silent-ok: 追跡替え直後はパネルが前のブロックのまま届くことがある（パネルの ID と詳細を混ぜない） / パネルの組み直しで直ちに再計算
-                if (!panel.BlockInstanceId.Equals(block.BlockInstanceId)) return SectionContent<MachineSectionViewModel>.Absent;
+                if (!panel.BlockInstanceId.Equals(block.BlockInstanceId)) return AbsentWithoutGear();
+                // 旗は TryReadMachine が戻す。歯車を読んだ後の失敗で戻すと、同じ異常が更新ごとに出るため
+                // TryReadMachine owns the flag; clearing it on a failure after the gear read would re-report the same anomaly on every update
                 if (!TryReadMachine(block, out var detail)) return SectionContent<MachineSectionViewModel>.Absent;
                 var fluids = BlockFluidSlotReading.Read(block, _fluidReplica).Slots;
                 return SectionContent<MachineSectionViewModel>.Present(MachineSectionViewModelBuilder.Build(panel, detail, panel.ItemSlots, fluids, _catalog, _stackLimit.CurrentStackLimit));
             }
 
-            static bool TryReadMachine(BlockGameObject block, out MachineDetail detail)
+            SectionContent<MachineSectionViewModel> AbsentWithoutGear()
+            {
+                // 区画が無い間は旗を戻し再出力に備える
+                // Clear flag while absent so recovery reports again
+                _gearAnomalyGate.Clear();
+                return SectionContent<MachineSectionViewModel>.Absent;
+            }
+
+            bool TryReadMachine(BlockGameObject block, out MachineDetail detail)
             {
                 detail = null;
                 var common = block.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
                 var machine = block.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
                 // silent-ok: 2 つの状態詳細と機械の param が揃うブロックだけが機械（Web ホストと同じ判定） / 区画が出ないことを並べ比べで見る
-                if (common == null || machine == null || block.BlockMasterElement.BlockParam is not IMachineParam param) return false;
-                var gearDriven = GearDriveConversion.IsGearDriven(block, param);
-                return MachineDetailConversion.TryBuild(common, machine, param, gearDriven, out detail);
+                if (common == null || machine == null || block.BlockMasterElement.BlockParam is not IMachineParam param)
+                {
+                    _gearAnomalyGate.Clear();
+                    return false;
+                }
+                // 歯車の異常は同じ間 1 回だけ出す
+                // Report gear anomaly once while it persists
+                var gear = GearDriveConversion.Read(block, param);
+                var anomaly = gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
+                if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MachineSectionModel] {anomaly}; treated as electric like the Web host");
+                return MachineDetailConversion.TryBuild(common, machine, param, gear.IsGearDriven, out detail);
             }
 
             #endregion

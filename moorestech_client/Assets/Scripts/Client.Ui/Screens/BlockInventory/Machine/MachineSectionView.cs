@@ -69,7 +69,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
             static VisualElement WrapInScroll(VisualElement inventoryContent)
             {
-                var scroll = new GameScrollView("machine-inventory-scroll");
+                var scroll = new GameScrollView("machine-inventory-scroll", GameScrollAxis.Vertical);
                 scroll.AddToClassList("machine-section__inventory-scroll");
                 scroll.Add(inventoryContent);
                 return scroll;

@@ -6,6 +6,7 @@ using Client.Ui.Content;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Logic;
+using Client.Ui.State.Hotbar;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -20,6 +21,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         private readonly GameContentPresentation _content;
         private readonly PlacementTargetIcons _icons;
         private readonly IBuildMenuEntryHandler _handler;
+        private readonly IHotbarCommands _hotbarCommands;
         private readonly VisualElement _groupsRoot = new();
         private readonly Dictionary<Guid, VisualElement> _headings = new();
         private readonly Dictionary<Guid, VisualElement> _groups = new();
@@ -35,11 +37,12 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         // Some group's size changed (the Web observes each group; catches redistribution with an unchanged total height, D-9)
         public IObservable<Unit> OnGroupGeometryChanged => _groupGeometryChanged;
 
-        public BuildMenuCategoryList(GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
+        public BuildMenuCategoryList(GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler, IHotbarCommands hotbarCommands)
         {
             _content = content;
             _icons = icons;
             _handler = handler;
+            _hotbarCommands = hotbarCommands;
             AddToClassList("build-menu__list");
             name = "build-menu-sections";
             Add(_groupsRoot);
@@ -111,7 +114,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 // Sections stack with 6px, and later sections add another 6px (Web .section + .section)
                 for (var s = 0; s < group.Sections.Count; s++)
                 {
-                    var view = new BuildMenuSectionView(group.Sections[s], viewModel, _content, _icons, _handler);
+                    var view = new BuildMenuSectionView(group.Sections[s], viewModel, _content, _icons, _handler, _hotbarCommands);
                     view.AddToClassList("build-menu__stacked");
                     view.EnableInClassList("build-menu__section--following", 0 < s);
                     _sectionViews.Add(view);

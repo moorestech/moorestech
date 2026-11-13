@@ -46,7 +46,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         private GearSectionView Render(GearDetail gear)
         {
             var view = Mount(new GearSectionView());
-            view.Render(NoSlots, SpecialDetailSamples.Only(gear));
+            view.Render(NoSlots, gear);
             return view;
         }
     }

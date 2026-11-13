@@ -107,3 +107,5 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolbar.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Skit/Parts/Choices/SkitChoices.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Skit/Skit.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/EventMode/EventLanguageGate.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Challenge/Tree/ChallengeList.uss");

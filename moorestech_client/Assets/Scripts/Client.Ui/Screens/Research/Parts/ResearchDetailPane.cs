@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
 using Client.Ui.State.Text;
+using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -26,7 +27,7 @@ namespace Client.Ui.Screens.Research.Parts
         private bool _hasRendered;
         private Guid _renderedGuid;
 
-        public ResearchDetailPane(IResearchTreeCommands commands, GameContentPresentation content)
+        public ResearchDetailPane(IResearchTreeCommands commands, GameContentPresentation content, UiCommandResultToaster toaster)
         {
             name = "research-detail-pane";
             AddToClassList("research-tree__detail");
@@ -47,7 +48,7 @@ namespace Client.Ui.Screens.Research.Parts
 
             // 見出しとボタンの間だけスクロール
             // Scroll only between header and button
-            _scroll = new GameScrollView("research-detail-scroll");
+            _scroll = new GameScrollView("research-detail-scroll", GameScrollAxis.Vertical);
             _scroll.AddToClassList("research-tree__detail-scroll");
             var scrollContent = new VisualElement();
             scrollContent.AddToClassList("research-tree__detail-scroll-content");
@@ -61,7 +62,7 @@ namespace Client.Ui.Screens.Research.Parts
             _scroll.Add(scrollContent);
             ResearchCalcKnobs.ApplyScrollBleed(_scroll, scrollContent);
 
-            _actions = new ResearchDetailActions(commands);
+            _actions = new ResearchDetailActions(commands, toaster);
             body.Add(header);
             body.Add(_scroll);
             body.Add(_actions);

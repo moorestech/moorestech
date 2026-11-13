@@ -144,7 +144,7 @@ namespace Client.Tests.Ui.Screens.Research
         {
             // キーの無いラベルを載せないよう、描いてから載せる
             // Render before mounting so no keyless label is attached
-            var pane = new ResearchDetailPane(_commands, _content);
+            var pane = new ResearchDetailPane(_commands, _content, Toaster);
             pane.Render(detail);
             Mount(pane);
             simulate.FrameUpdate();

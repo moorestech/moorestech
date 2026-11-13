@@ -1,0 +1,102 @@
+/* web: moorestech_web/webui/src/features/challenge/style.module.css（.panel・.categories・.node・.locked・.current・.completed）と ChallengePanel.tsx・ChallengeNodeCard.tsx の Mantine の既定（Title order 2・Group gap md・Button sm・Paper・Text） */
+/* outline は拾わない子の輪で写す。gap は UiGroup が配る。translate(-50%, -50%) はここ、scale(UIScale) は C# がカードの style へ当てる。カードの根で flex-shrink を書かない（C4-d D-23） */
+/* カテゴリ列の横スクロールとバーは GameScrollView の横向きが持つ。部品の内側のクラス（__ 付き）はここに書かない */
+/* web: moorestech_web/webui/src/features/challenge/style.module.css (.panel, .categories, .node, .locked, .current, .completed) and the Mantine defaults in ChallengePanel.tsx and ChallengeNodeCard.tsx (Title order 2, Group gap md, Button sm, Paper, Text) */
+/* The outline becomes a non-picking child ring; UiGroup hands out the gap; translate(-50%, -50%) lives here and C# applies scale(UIScale) to the card style; the card root never sets flex-shrink (C4-d D-23) */
+/* GameScrollView's horizontal mode owns the category row scrolling and bar; component inner classes (with __) are never written here */
+
+/* 一覧: 舞台の上の安全帯の下から下端まで、地は dark-8、余白 md の縦積み（Web inset: var(--menu-upper-safe-area) 0 0） */
+/* List: from below the stage's upper safe area to the bottom, dark-8 ground, md padding, stacked vertically (Web inset: var(--menu-upper-safe-area) 0 0) */
+.challenge-list {
+    position: absolute;
+    top: var(--menu-upper-safe-area);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    padding-left: var(--mantine-spacing-md);
+    padding-right: var(--mantine-spacing-md);
+    padding-top: var(--mantine-spacing-md);
+    padding-bottom: var(--mantine-spacing-md);
+    background-color: var(--mantine-color-dark-8);
+}
+
+/* 題は全言語で 1 行に収まるので、行を Web の Title order=2（26px×1.35）に固定する。UITK の字の自然な高さ（JP 38px）は Web の行より高く、カテゴリ列を 3px 押し下げていた（前例 Settings.uss） */
+/* The title fits on one line in every locale, so the row is fixed at the Web Title order=2 (26px x 1.35); UITK's natural glyph height (JP 38px) exceeds it and pushed the category row down 3px (precedent Settings.uss) */
+.challenge-list__title {
+    flex-shrink: 0;
+    height: var(--title-order-2-row-height);
+}
+
+/* カテゴリ列: 折り返さず、幅を越えたら横に送る（Web .categories の flex-wrap: nowrap・overflow-x: auto）。送りとバーは GameScrollView の横向き */
+/* Category row: no wrapping, scrolls sideways when it overflows (Web .categories flex-wrap: nowrap, overflow-x: auto); GameScrollView's horizontal mode scrolls and draws the bar */
+.challenge-list__categories {
+    flex-shrink: 0;
+}
+
+/* ボタンは文言なりの幅で並び縮まない（Web の Button の文言は折り返さず縮まない） */
+/* Buttons line up at their label width and never shrink (the Web Button label neither wraps nor shrinks) */
+.challenge-list__category-group {
+    flex-shrink: 0;
+}
+
+.challenge-list__category-button {
+    flex-shrink: 0;
+}
+
+.challenge-list__graph-host {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* カード: 幅 240・余白 sm。中心をノードの点に据える（Web .node と translate(-50%, -50%)） */
+/* Card: 240 wide with sm padding, centered on the node point (Web .node and translate(-50%, -50%)) */
+.challenge-list__card {
+    width: 240px;
+    padding-left: var(--mantine-spacing-sm);
+    padding-right: var(--mantine-spacing-sm);
+    padding-top: var(--mantine-spacing-sm);
+    padding-bottom: var(--mantine-spacing-sm);
+    translate: -50% -50%;
+}
+
+/* 未解放の減光は Web の値のまま（GameUi は sRGB で合成する。設計書 A-180） */
+/* Locked dimming keeps the Web value (GameUi composites in sRGB; design A-180) */
+.challenge-list__card--locked {
+    opacity: 0.55;
+}
+
+/* 輪: Web の outline 2px（枠の外）。Paper は枠なしなので padding 辺から 2px 外。角は Paper の角丸 4px に沿う outline の外周 6px */
+/* Ring: the Web 2px outline outside the border; Paper has no border, so 2px outside the padding edge; corners follow the outline around Paper's 4px radius (6px outer) */
+.challenge-list__card-ring {
+    display: none;
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.challenge-list__card--current > .challenge-list__card-ring {
+    display: flex;
+    border-left-color: var(--mantine-color-blue-5);
+    border-right-color: var(--mantine-color-blue-5);
+    border-top-color: var(--mantine-color-blue-5);
+    border-bottom-color: var(--mantine-color-blue-5);
+}
+
+.challenge-list__card--completed > .challenge-list__card-ring {
+    display: flex;
+    border-left-color: var(--mantine-color-green-6);
+    border-right-color: var(--mantine-color-green-6);
+    border-top-color: var(--mantine-color-green-6);
+    border-bottom-color: var(--mantine-color-green-6);
+}

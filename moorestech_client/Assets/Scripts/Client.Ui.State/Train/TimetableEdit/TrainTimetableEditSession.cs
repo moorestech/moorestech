@@ -84,7 +84,7 @@ namespace Client.Ui.State.Train.TimetableEdit
             if (result is UiCommandRejected) _toaster.Report(ReplaceCommandName, result);
             if (_closed)
             {
-                var summary = result is UiCommandRejected rejected ? $"rejected {UiCommandRejectReasonTraits.ToWireCode(rejected.Reason)}:{rejected.Detail}" : "accepted";
+                var summary = result is UiCommandRejected rejected ? $"rejected {rejected.ToWireCode()}" : "accepted";
                 Debug.LogWarning($"[TrainTimetableEdit] result after close discarded: {summary}");
                 return;
             }

@@ -36,12 +36,23 @@ namespace Client.Tests.Ui.State.Train.Timetable
         }
 
         [Test]
-        public void 未知のSideがあれば作らずErrorログ()
+        public void 未知のSideがあれば作らずErrorログは入ったとき1回で回復後はまた出る()
         {
             var factory = new TrainTimetableReadyDataFactory();
-            var snapshot = Snapshot(new TrainTimetableStop(TrainTestData.North.Position, (StationNodeSide)99, TrainDiagram.DepartureConditionType.WaitForTicks, 20));
+            var broken = Snapshot(new TrainTimetableStop(TrainTestData.North.Position, (StationNodeSide)99, TrainDiagram.DepartureConditionType.WaitForTicks, 20));
             LogAssert.Expect(LogType.Error, new Regex(@"\[TrainTimetableModel\] discarding timetable with unknown side"));
-            Assert.IsFalse(factory.TryCreate(snapshot, Stations, out _));
+            Assert.IsFalse(factory.TryCreate(broken, Stations, out _));
+
+            // 同じ異常の間は 2 回目を出さない
+            // The same anomaly is not reported a second time
+            Assert.IsFalse(factory.TryCreate(broken, Stations, out _));
+            LogAssert.NoUnexpectedReceived();
+
+            // 正常で旗が戻り、次の異常は再び出る
+            // Healthy clears flag; next anomaly reports again
+            Assert.IsTrue(factory.TryCreate(Snapshot(StopAt(TrainTestData.North.Position)), Stations, out _));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[TrainTimetableModel\] discarding timetable with unknown side"));
+            Assert.IsFalse(factory.TryCreate(broken, Stations, out _));
         }
 
         [Test]

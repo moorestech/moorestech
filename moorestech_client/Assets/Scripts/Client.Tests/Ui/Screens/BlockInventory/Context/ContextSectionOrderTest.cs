@@ -52,9 +52,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
         private static BlockContextViewModel RoomAndYield()
         {
-            var room = ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Enclosed(Room, CleanRoomHaltReason.None));
-            var yield = ContextEntry<CleanRoomYieldFetched>.Fetched(CleanRoomYieldFetched.WithoutPendingDraw(CleanRoomYieldRates.LayerExposure(0.02)));
-            return new BlockContextViewModel(room, yield, ContextEntry<MachineInputStall>.Absent);
+            var room = SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(Room, CleanRoomHaltReason.None));
+            var yield = SectionContent<CleanRoomYieldFetched>.Present(CleanRoomYieldFetched.WithoutPendingDraw(CleanRoomYieldRates.LayerExposure(0.02)));
+            return new BlockContextViewModel(room, yield, SectionContent<MachineInputStall>.Absent);
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">部屋欄はセクション列の先頭に描く</web-test>
@@ -87,7 +87,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var body = MountBody();
             Assert.AreEqual(new[] { "section-stack-item-grid" }, ShownNames(body.Root));
 
-            _context.Set(new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Absent));
+            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent));
             simulate.FrameUpdate();
 
             Assert.AreEqual(new[] { "block-context-sections", "section-stack-item-grid" }, ShownNames(body.Root));
@@ -103,7 +103,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             simulate.FrameUpdate();
             Assert.IsNotNull(body.Root.Q<VisualElement>("clean-room-air-filter-0"));
 
-            _context.Set(new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.Vanished), ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Absent));
+            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.Vanished), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent));
             simulate.FrameUpdate();
 
             Assert.IsNull(body.Root.Q<VisualElement>("clean-room-section"));
@@ -117,7 +117,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             // 機械では文脈を本文の器の先頭に置く
             // On machines the context leads the body box
             _machine.Set(SectionContent<MachineSectionViewModel>.Present(MachineScreenViewModels.WithState(MachineProcessDisplayState.Processing, 1, 1, false, false)));
-            _context.Set(new BlockContextViewModel(ContextEntry<CleanRoomFetchedDetail>.Absent, ContextEntry<CleanRoomYieldFetched>.Absent, ContextEntry<MachineInputStall>.Fetched(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
+            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
             var panel = BlockInventoryTestPanels.OfType("ElectricMachine");
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Toaster, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
+using Client.Ui.State.BlockInventory.Special.Selectors;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
 using UnityEngine.UIElements;
@@ -10,9 +11,10 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
     /// 電柱の本文。電力網の区画だけを包む（Web ElectricPoleInventory）
     /// Electric pole body wrapping only the electric network section (Web ElectricPoleInventory)
     /// </summary>
-    public sealed class ElectricPoleBodyView : VisualElement, ISpecialDetailRenderer
+    public sealed class ElectricPoleBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         private readonly ElectricNetworkSectionView _network = new();
+        private readonly ElectricNetworkDetailSelector _networkSelector = new();
 
         public ElectricPoleBodyView()
         {
@@ -21,12 +23,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             Add(_network);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
-            // 区画は自分の display を触らないので、包む本文が詳細の有無で出し入れする（Web の ElectricNetworkSection の return null）
-            // Sections never touch their own display, so the wrapping body toggles it by detail presence (Web ElectricNetworkSection returns null)
-            SpecialViewParts.SetShown(_network, _network.Render(itemSlots, detail));
-            return true;
+            // 区画は自分の display を触らないので、包む本文が selector で決めて出し入れする（Web の ElectricNetworkSection の return null）
+            // Sections never touch their own display, so the wrapping body decides with the selector and toggles it (Web ElectricNetworkSection returns null)
+            var shows = _networkSelector.TryGet(detail, out var network);
+            if (shows) _network.Render(itemSlots, network);
+            SpecialViewParts.SetShown(_network, shows);
         }
     }
 }

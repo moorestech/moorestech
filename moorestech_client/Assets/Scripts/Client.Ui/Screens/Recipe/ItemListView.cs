@@ -38,7 +38,7 @@ namespace Client.Ui.Screens.Recipe
 
             // 本文いっぱいのスクロール領域と、その視口に掴みスクロールを付ける（バーの上の押下は拾わない）
             // A body-filling scroll area with grab scrolling on its viewport (presses on the bar are not taken)
-            _scroll = new GameScrollView("item-list-scroll");
+            _scroll = new GameScrollView("item-list-scroll", GameScrollAxis.Vertical);
             _scroll.AddToClassList("item-list__scroll");
             _scroll.Add(_grid);
             _scroll.RegisterCallback<CustomStyleResolvedEvent>(_ => ApplyClipClearance());

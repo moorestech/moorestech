@@ -15,6 +15,11 @@ namespace Client.Ui.Screens.Hotbar
     /// </summary>
     public sealed class HotbarHudPresenter : IInitializable
     {
+        // Web は viewportOverlay（z stage-overlay-panel-chrome の積み重ね文脈）の中なので、舞台の一覧・研究より前の Chrome 層
+        // On the Web it lives inside viewportOverlay (a stacking context at z stage-overlay-panel-chrome), so the Chrome layer, in front of stage lists and research
+        internal const UiLayer HostLayer = UiLayer.Chrome;
+        internal const UiFamily HostFamily = UiFamily.Viewport;
+
         private readonly GameUiRoot _gameUiRoot;
         private readonly HotbarModel _model;
         private readonly IHotbarCommands _commands;
@@ -35,7 +40,7 @@ namespace Client.Ui.Screens.Hotbar
             // 載せるのは 1 回だけ。出し分け（常駐 HUD の画面・スキット）は Model が Visible に畳むので、購読は常に持ち今の値で 1 回描く
             // Mount once; the model folds visibility (always-on-HUD screens, skits) into Visible, so the subscription is always held and draws once with the current value
             var view = new HotbarHudView(_commands, _icons, _toaster);
-            _gameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(view);
+            _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(view);
             _model.Current.Subscribe(view.Render);
         }
     }

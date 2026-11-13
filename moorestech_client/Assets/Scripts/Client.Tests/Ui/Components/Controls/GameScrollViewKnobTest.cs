@@ -97,7 +97,7 @@ namespace Client.Tests.Ui.Components.Controls
         {
             // 視口 200 に対して中身 800 で溢れさせる
             // Overflow with 800 of content against a 200 viewport
-            var scroll = new GameScrollView(testid);
+            var scroll = new GameScrollView(testid, GameScrollAxis.Vertical);
             for (var i = 0; i < 20; i++) scroll.Add(new VisualElement { style = { height = 40 } });
             parent.Add(scroll);
             Settle();

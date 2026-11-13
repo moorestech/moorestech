@@ -34,7 +34,7 @@ namespace Client.Ui.Screens.BlockInventory.Train
 
             // 時刻表は持ち物タブのあいだも作ったまま隠す（Web の hidden。D-5）
             // The timetable stays built but hidden on the inventory tab (Web hidden; D-5)
-            var scroll = new GameScrollView("train-body-scroll");
+            var scroll = new GameScrollView("train-body-scroll", GameScrollAxis.Vertical);
             scroll.AddToClassList("train-body__scroll");
             scroll.Add(Contents);
             scroll.Add(Timetable);

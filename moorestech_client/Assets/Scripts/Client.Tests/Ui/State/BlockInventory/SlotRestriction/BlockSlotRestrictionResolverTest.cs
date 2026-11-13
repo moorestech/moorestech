@@ -94,11 +94,10 @@ namespace Client.Tests.Ui.State.BlockInventory.SlotRestriction
         }
 
         [Test]
-        public void 束縛の無い機械と開いていない在庫は無制限()
+        public void 束縛の無い機械は無制限()
         {
             var unbound = BlockSlotRestrictionInput.OpenBlock("Machine", 7).WithMachine(MachineSlotGhostFixtures.Unbound());
             Assert.AreSame(BlockSlotRestriction.Unrestricted, BlockSlotRestrictionResolver.Resolve(unbound, new ItemId(5)));
-            Assert.AreSame(BlockSlotRestriction.Unrestricted, BlockSlotRestrictionResolver.Resolve(BlockSlotRestrictionInput.NotOpenBlock, new ItemId(5)));
         }
 
         private static OpenBlockSlotInput RocketPad()

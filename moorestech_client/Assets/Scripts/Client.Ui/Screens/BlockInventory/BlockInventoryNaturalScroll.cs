@@ -17,7 +17,7 @@ namespace Client.Ui.Screens.BlockInventory
 
         public BlockInventoryNaturalScroll()
         {
-            Root = new GameScrollView("block-inventory-natural-scroll");
+            Root = new GameScrollView("block-inventory-natural-scroll", GameScrollAxis.Vertical);
             Root.AddToClassList(ClassName);
 
             // USS に calc() が無いので、受け直した逃げの幅を C# で負号付きのマージンと正の内側余白に当てる

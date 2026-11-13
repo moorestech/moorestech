@@ -70,8 +70,8 @@ namespace Client.Ui.State.SlotCommands.Block
 
         private static UiCommandResult Unavailable(int blockSlot)
         {
-            Debug.LogWarning($"[{CommandName}] stale press ignored: block slot {blockSlot} is not available");
-            return new UiCommandRejected(UiCommandRejectReason.BlockSlotUnavailable, "");
+            Debug.LogWarning($"[{CommandName}] rejected (block_slot_unavailable): block slot {blockSlot} is closed or out of range");
+            return UiCommandRejected.Of(UiCommandRejectReason.BlockSlotUnavailable);
         }
     }
 }

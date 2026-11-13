@@ -47,7 +47,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.AreEqual("japanese", _commands.Issued.Single().LanguageCode);
             Assert.IsEmpty(ShownToasts);
 
-            _commands.SetLanguageResult(new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, ""));
+            _commands.SetLanguageResult(UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage));
             simulate.Click(Find<Button>(view, "language-select-option-japanese"));
             Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.UnknownLanguage), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);

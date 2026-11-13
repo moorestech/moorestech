@@ -5,8 +5,8 @@ using System.Numerics;
 namespace Client.Ui.State.Text
 {
     /// <summary>
-    /// 表示用の数値書式。de などで「,」にならないよう InvariantCulture を明示する（plan.md §3.9）。状態層の純ロジックも使うので State に置く
-    /// Display number formatting with explicit InvariantCulture so locales like de never print ',' (plan.md §3.9); lives in State because state-layer logic uses it too
+    /// 表示用の数値書式と、Web の数値の意味に合わせる変換（FromServerFloat）。de などで「,」にならないよう InvariantCulture を明示する（plan.md §3.9）。状態層の純ロジックも使うので State に置く
+    /// Display number formatting plus the conversion that matches the Web's number semantics (FromServerFloat); explicit InvariantCulture so locales like de never print ',' (plan.md §3.9); lives in State because state-layer logic uses it too
     /// </summary>
     public static class UiNumberFormat
     {
@@ -36,6 +36,48 @@ namespace Client.Ui.State.Text
             var sign = value < 0 ? "-" : "";
             if (decimals == 0) return sign + digits;
             return sign + digits.Substring(0, digits.Length - decimals) + "." + digits.Substring(digits.Length - decimals);
+        }
+
+        // サーバー float を Web と同じ double に
+        // Turn a server float into the Web's double
+        public static double FromServerFloat(float value)
+        {
+            return double.Parse(value.ToString("R", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+        }
+
+        // JS String(number) の書式（指数表記を含む）
+        // JS String(number) format incl. exponent form (1e21 up, below 1e-6)
+        public static string JsString(double value)
+        {
+            if (double.IsNaN(value)) return "NaN";
+            if (double.IsInfinity(value)) return 0 < value ? "Infinity" : "-Infinity";
+            if (value == 0) return "0";
+
+            // 最短の往復桁と n を求める
+            // Find shortest round-trip digits and n
+            var magnitude = Math.Abs(value);
+            var text = "";
+            for (var precision = 1; precision <= 17; precision++)
+            {
+                text = magnitude.ToString("E" + (precision - 1), CultureInfo.InvariantCulture);
+                // 型の最大値を越える候補は Parse が例外を投げるので、往復しない扱いで次の桁へ進む
+                // A candidate past the type maximum makes Parse throw, so treat it as not round-tripping and try more digits
+                if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) && parsed == magnitude) break;
+            }
+            var exponentIndex = text.IndexOf('E');
+            var digits = text.Substring(0, exponentIndex).Replace(".", "");
+            var n = int.Parse(text.Substring(exponentIndex + 1), CultureInfo.InvariantCulture) + 1;
+            var k = digits.Length;
+
+            // JS の toString の分岐
+            // The JS Number::toString branches
+            var sign = value < 0 ? "-" : "";
+            if (k <= n && n <= 21) return sign + digits + new string('0', n - k);
+            if (0 < n && n <= 21) return sign + digits.Substring(0, n) + "." + digits.Substring(n);
+            if (-6 < n && n <= 0) return sign + "0." + new string('0', -n) + digits;
+            var exponent = n - 1;
+            var exponentText = (exponent < 0 ? "-" : "+") + Math.Abs(exponent).ToString(CultureInfo.InvariantCulture);
+            return sign + (k == 1 ? digits : digits.Substring(0, 1) + "." + digits.Substring(1)) + "e" + exponentText;
         }
 
         public static string Integer(long value)

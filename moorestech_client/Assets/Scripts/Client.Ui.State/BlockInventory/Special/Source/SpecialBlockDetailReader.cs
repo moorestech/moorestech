@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Client.Ui.State.BlockDetail;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Text;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
 using Game.Block.Blocks.SpaceElevator;
@@ -13,7 +16,6 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Special.Source
 {
@@ -23,11 +25,14 @@ namespace Client.Ui.State.BlockInventory.Special.Source
     /// </summary>
     public static class SpecialBlockDetailReader
     {
-        public static SpecialBlockDetailViewModel Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache)
+        // gearAnomaly は歯車のマスタの食い違いの文面（無ければ null）。ログは同じ間 1 回だけ出すため呼び手（Model）が持つ
+        // gearAnomaly is the gear master-mismatch text (null when none); the caller (Model) logs it once while it persists
+        public static SpecialBlockDetailViewModel Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, out string gearAnomaly)
         {
             var param = block.BlockMasterElement.BlockParam;
+            var gearDetail = ReadGear(out gearAnomaly);
             return new SpecialBlockDetailViewModel(
-                ReadElectricToGear(), ReadGearToElectric(), ReadGear(), BeltThroughputReader.Read(block, beltCache),
+                ReadElectricToGear(), ReadGearToElectric(), gearDetail, BeltThroughputReader.Read(block, beltCache),
                 SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),
                 ReadRocketLaunchPad(), ReadSpaceElevator());
 
@@ -49,21 +54,37 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 var state = block.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
                 // silent-ok: 状態の初回到着待ちは区画を出さない / 届かないままなら録画（R-12）の回転発電機の段で気づく
                 if (state == null) return null;
-                return SpecialStateDetailReader.GearToElectric(state, generatorParam.MaxGeneratedPower);
+                return SpecialStateDetailReader.GearToElectric(state, UiNumberFormat.FromServerFloat(generatorParam.MaxGeneratedPower));
             }
 
-            GearDetail ReadGear()
+            GearDetail ReadGear(out string anomaly)
             {
+                anomaly = null;
+                // 歯車駆動の種類は共通の 1 か所で読む
+                // Read gear-drive kind at the shared single place
                 var gear = block.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
-                // silent-ok: 歯車でないブロックは歯車の状態を持たない / 歯車ブロックで出ないなら録画（R-12）の歯車の段で気づく
-                if (gear == null) return null;
-                if (gear.Role == GearRole.Generator) return SpecialStateDetailReader.Generator(gear);
-                if (param is IGearConsumptionParam consumptionParam) return SpecialStateDetailReader.Consumer(gear, consumptionParam.GearConsumption.BaseRpm);
+                var drive = GearDriveConversion.Read(gear, param);
+                switch (drive.Kind)
+                {
+                    // silent-ok: 歯車でないブロックは歯車の状態を持たない / 歯車ブロックで出ないなら録画（R-12）の歯車の段で気づく
+                    case GearDriveKind.Electric: return null;
+                    case GearDriveKind.Generator: return SpecialStateDetailReader.Generator(gear);
+                    case GearDriveKind.Consumer: return SpecialStateDetailReader.Consumer(gear, UiNumberFormat.FromServerFloat(ConsumptionOf(drive).GearConsumption.BaseRpm));
+                    case GearDriveKind.InconsistentConsumer:
+                        // 食い違いは歯車行なしで文面を返す
+                        // Mismatch omits gear rows and returns the text
+                        drive.TryGetAnomaly(out anomaly);
+                        return null;
+                    default: throw new ArgumentOutOfRangeException(nameof(drive.Kind), drive.Kind, null);
+                }
+            }
 
-                // 消費側なのに消費の param が無いのはマスタの食い違い（Web の橋と同じエラー）
-                // A consumer without a consumption param is a master mismatch (same error as the Web bridge)
-                Debug.LogError($"[SpecialBlockDetailReader] Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam; gear rows are omitted");
-                return null;
+            IGearConsumptionParam ConsumptionOf(GearDriveReading drive)
+            {
+                // 種別が Consumer のときだけ呼ぶので必ず取れる
+                // Called only for the Consumer kind, so it is always available
+                drive.TryGetConsumption(out var consumption);
+                return consumption;
             }
 
             RocketLaunchPadDetail ReadRocketLaunchPad()

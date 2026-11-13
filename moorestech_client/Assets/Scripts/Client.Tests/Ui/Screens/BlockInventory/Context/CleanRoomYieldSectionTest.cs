@@ -1,6 +1,7 @@
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Context;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using NUnit.Framework;
@@ -14,7 +15,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
     /// </summary>
     public class CleanRoomYieldSectionTest : ContextSectionTestHost
     {
-        private CleanRoomYieldSectionView Render(ContextEntry<CleanRoomYieldFetched> entry)
+        private CleanRoomYieldSectionView Render(SectionContent<CleanRoomYieldFetched> entry)
         {
             var view = new CleanRoomYieldSectionView();
             view.Render(entry);
@@ -27,7 +28,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         public void EUVは層の失敗率の行だけを描く()
         {
             var rates = CleanRoomYieldRates.LayerExposure(0.02);
-            var view = Render(ContextEntry<CleanRoomYieldFetched>.Fetched(CleanRoomYieldFetched.WithoutPendingDraw(rates)));
+            var view = Render(SectionContent<CleanRoomYieldFetched>.Present(CleanRoomYieldFetched.WithoutPendingDraw(rates)));
 
             CollectionAssert.AreEqual(new[] { "clean-room-yield-layer-fail-rate" }, ShownNames(view.Q<VisualElement>("clean-room-yield-section")));
         }
@@ -37,7 +38,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         public void ダイシングは品質Tier損失率0でないレベル割合失敗割合の行を描く()
         {
             var rates = CleanRoomYieldRates.Dicing(0.03, 1, new[] { 0.7, 0.1, 0 }, 0.2);
-            var view = Render(ContextEntry<CleanRoomYieldFetched>.Fetched(CleanRoomYieldFetched.WithoutPendingDraw(rates)));
+            var view = Render(SectionContent<CleanRoomYieldFetched>.Present(CleanRoomYieldFetched.WithoutPendingDraw(rates)));
 
             CollectionAssert.AreEqual(
                 new[] { "clean-room-yield-quality-tier", "clean-room-yield-die-loss-rate", "clean-room-yield-level-rate-1", "clean-room-yield-level-rate-2", "clean-room-yield-failed-rate" },
@@ -50,7 +51,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         [Test]
         public void 読めない応答の間は取得状態の1行だけを描き率を出さない()
         {
-            var view = Render(ContextEntry<CleanRoomYieldFetched>.Unavailable(BlockInfoFetchState.Unreadable));
+            var view = Render(SectionContent<CleanRoomYieldFetched>.Unavailable(BlockInfoFetchState.Unreadable));
 
             CollectionAssert.AreEqual(new[] { "clean-room-yield-fetch-state" }, ShownNames(view));
             Assert.AreEqual("Draw details: received data could not be read (retrying)", view.Q<Label>("clean-room-yield-fetch-state").PlainText());

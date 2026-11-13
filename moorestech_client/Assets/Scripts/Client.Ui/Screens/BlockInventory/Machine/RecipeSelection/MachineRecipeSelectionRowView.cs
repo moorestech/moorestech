@@ -44,7 +44,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
             if (LevelInheritanceBadgeText.TryBuild(recipe.LevelInheritance, out var badgeText)) badge.Show(badgeText);
             else badge.Hide();
             Add(badge);
-            var duration = MachineRecipeNames.Duration(recipe.Time);
+            var duration = RecipeDurationText.Create(recipe.Time);
             var recipeRow = new RecipeRow($"{rowId}-row", $"{rowId}-arrow", duration);
             // 枠の押下は購読せず行が押す対象（Web と同じ）
             // Slot presses are not subscribed; the row itself is the press target (same as the Web selection row)

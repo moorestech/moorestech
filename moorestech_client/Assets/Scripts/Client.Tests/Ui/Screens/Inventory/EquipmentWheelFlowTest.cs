@@ -93,7 +93,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         {
             // 一覧（S4-recipe の ItemListPanel）の代わりに、素通しの印の無いスクロール器を立てる（D-6）
             // Stand in for the list (S4-recipe's ItemListPanel) with a scroll view that has no passthrough mark (D-6)
-            var list = new GameScrollView("item-list-grid");
+            var list = new GameScrollView("item-list-grid", GameScrollAxis.Vertical);
             list.style.position = Position.Absolute;
             list.style.left = 100;
             list.style.top = 100;

@@ -55,8 +55,10 @@ namespace Client.Tests.Ui.State
             var result = commands.SubmitBugReport("説明", PlaytestReportKind.Feedback).GetAwaiter().GetResult();
 
             var rejected = AssertRejected(result, UiCommandRejectReason.CaptureRefused);
-            Assert.IsNotEmpty(rejected.Detail);
-            Assert.AreEqual(rejected.Detail, rejected.ToWireCode());
+            // 送信手続きの失敗コードはそのまま返る
+            // Submitter failure code is returned as is
+            Assert.IsNotEmpty(rejected.ToWireCode());
+            Assert.AreNotEqual(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.CaptureRefused), rejected.ToWireCode());
             Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
         }
 

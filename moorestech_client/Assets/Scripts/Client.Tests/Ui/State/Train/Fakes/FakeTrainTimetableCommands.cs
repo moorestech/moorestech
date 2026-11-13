@@ -39,11 +39,11 @@ namespace Client.Tests.Ui.State.Train.Fakes
             _pending.Dequeue().TrySetResult(UiCommandAccepted.Instance);
         }
 
-        // 理由ごとの拒否。Detail はサーバーの FailureReason の写し（無ければ空文字。D-31）
-        // Per-reason refusal; Detail mirrors the server FailureReason (empty when absent; D-31)
+        // 理由ごとの拒否。診断へ写す（D-31・A-260）
+        // Per-reason refusal; FailureReason to diagnostic (D-31, A-260)
         public void Reject(UiCommandRejectReason reason, string serverFailureReason)
         {
-            _pending.Dequeue().TrySetResult(new UiCommandRejected(reason, serverFailureReason));
+            _pending.Dequeue().TrySetResult(UiCommandRejected.WithDiagnostic(reason, serverFailureReason));
         }
 
         private UniTask<UiCommandResult> Enqueue()

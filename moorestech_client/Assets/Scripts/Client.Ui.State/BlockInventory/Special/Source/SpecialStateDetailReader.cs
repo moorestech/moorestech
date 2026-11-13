@@ -4,6 +4,7 @@ using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Text;
+using Client.Ui.State.Text;
 using Core.Master;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
@@ -20,12 +21,12 @@ namespace Client.Ui.State.BlockInventory.Special.Source
     {
         public static ElectricToGearDetail ElectricToGear(ElectricToGearGeneratorBlockStateDetail state, IReadOnlyList<ElectricToGearOutputMode> outputModes)
         {
-            return new ElectricToGearDetail(outputModes, state.SelectedIndex, state.ElectricFulfillmentRate, state.ConsumedElectricPower);
+            return new ElectricToGearDetail(outputModes, state.SelectedIndex, UiNumberFormat.FromServerFloat(state.ElectricFulfillmentRate), UiNumberFormat.FromServerFloat(state.ConsumedElectricPower));
         }
 
         public static GearToElectricDetail GearToElectric(GearToElectricGeneratorBlockStateDetail state, double maxGeneratedPower)
         {
-            return new GearToElectricDetail(ToDisplayState(state.GenerationState), JsNumberText.FromServerFloat(state.GeneratedElectricPower), maxGeneratedPower);
+            return new GearToElectricDetail(ToDisplayState(state.GenerationState), UiNumberFormat.FromServerFloat(state.GeneratedElectricPower), maxGeneratedPower);
         }
 
         private static GearToElectricDisplayState ToDisplayState(GearToElectricGenerationState state)
@@ -41,12 +42,12 @@ namespace Client.Ui.State.BlockInventory.Special.Source
 
         public static GearDetail Generator(GearStateDetail gear)
         {
-            return GearDetail.Generator(gear.CurrentRpm, gear.CurrentTorque);
+            return GearDetail.Generator(UiNumberFormat.FromServerFloat(gear.CurrentRpm), UiNumberFormat.FromServerFloat(gear.CurrentTorque));
         }
 
         public static GearDetail Consumer(GearStateDetail gear, double baseRpm)
         {
-            return GearDetail.Consumer(gear.CurrentRpm, gear.CurrentTorque, baseRpm);
+            return GearDetail.Consumer(UiNumberFormat.FromServerFloat(gear.CurrentRpm), UiNumberFormat.FromServerFloat(gear.CurrentTorque), baseRpm);
         }
 
         public static RocketLaunchPadDetail RocketLaunchPad(RocketLaunchPadStateDetail state, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, IReadOnlyList<InletSlotBinding> inletBindings, int outputSlotStart)

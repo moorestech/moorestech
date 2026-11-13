@@ -25,9 +25,9 @@ namespace Client.Ui.Screens.Tutorial.KeyControlHint
 
         public void Initialize()
         {
-            // Web は stage の viewportOverlay（z-stage-overlay-panel）に置くので、同じ層の Viewport 族へ常駐させる
-            // Web mounts it in the stage viewportOverlay (z-stage-overlay-panel), so keep it resident in that layer's Viewport family
-            Mount(_gameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Viewport), _model.Current);
+            // Web は viewportOverlay（z stage-overlay-panel-chrome の積み重ね文脈）の中なので、Chrome 層の Viewport 族へ常駐させる
+            // Web mounts it inside viewportOverlay (a stacking context at z stage-overlay-panel-chrome), so keep it resident in the Chrome layer's Viewport family
+            Mount(_gameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport), _model.Current);
         }
 
         public static KeyControlHintView Mount(VisualElement layer, IReadOnlyReactiveProperty<KeyControlHintViewModel> model)

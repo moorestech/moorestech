@@ -46,7 +46,7 @@ namespace Client.Ui.Screens.Hotbar
             _row = new VisualElement { name = "hotbar-grid" };
             _row.AddToClassList("hotbar-hud__row");
             WheelPassthroughMark.Mark(_row);
-            UiDragDrop.MarkTarget<IHotbarDropReceiver>(_row, HotbarRowGapDropMark.Instance);
+            UiDragDrop.MarkTarget<IHotbarDropReceiver>(_row, new HotbarRowGapDropMark(commands));
             TutorialAnchor.Mark(_row, AnchorIds.HotbarHud);
             _calcKnobs = new HotbarCalcKnobs(_row);
             Add(_row);

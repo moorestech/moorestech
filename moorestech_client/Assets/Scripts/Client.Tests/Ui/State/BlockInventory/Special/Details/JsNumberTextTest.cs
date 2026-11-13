@@ -4,8 +4,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// JS の数値書式（toFixed(0)・toPrecision(2)・String(number)）を Web と同じ文字にする
-    /// Formats numbers exactly like JS toFixed(0), toPrecision(2) and String(number)
+    /// JS の数値書式を Web と同じ文字にする
+    /// Format numbers like JS toFixed/toPrecision
     /// </summary>
     public class JsNumberTextTest
     {
@@ -31,14 +31,6 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 有効2桁はJSのtoPrecisionと同じ表記(double value, string expected)
         {
             Assert.AreEqual(expected, JsNumberText.Precision2(value));
-        }
-
-        [TestCase(10d, "10")]
-        [TestCase(2.5d, "2.5")]
-        [TestCase(0.1d, "0.1")]
-        public void 素の数値はJSのStringと同じ表記(double value, string expected)
-        {
-            Assert.AreEqual(expected, JsNumberText.Number(value));
         }
     }
 }

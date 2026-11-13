@@ -23,7 +23,7 @@ namespace Client.Ui.State.Modal
         public UiCommandResult Respond(ModalResponse response)
         {
             if (_service.Respond(response.RequestId, response.Result, response.Text)) return UiCommandAccepted.Instance;
-            return new UiCommandRejected(UiCommandRejectReason.ModalResponseStale, "");
+            return UiCommandRejected.Of(UiCommandRejectReason.ModalResponseStale);
         }
     }
 }

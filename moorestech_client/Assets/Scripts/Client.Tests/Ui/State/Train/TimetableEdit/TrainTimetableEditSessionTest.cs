@@ -101,9 +101,9 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
 
             // 拒否で保留を解き、表示は届いた最新の並び
             // Rejection releases the pending edit and shows the newest published order
-            // トースト係のログは Detail（サーバーの FailureReason）を出す（UiCommandRejected.ToWireCode）
-            // The toaster log prints the Detail (the server FailureReason; UiCommandRejected.ToWireCode)
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_timetable.replace failed: busy"));
+            // ログ 1 行に理由と診断（A-260）
+            // One log line holds reason and diagnostic (A-260)
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] train_timetable\.replace failed: replace_failed \(busy\)$"));
             _commands.Reject(UiCommandRejectReason.TrainTimetableReplaceFailed, "busy");
             Assert.IsFalse(_session.IsPending);
             CollectionAssert.AreEqual(remote, _session.DisplayedStops);

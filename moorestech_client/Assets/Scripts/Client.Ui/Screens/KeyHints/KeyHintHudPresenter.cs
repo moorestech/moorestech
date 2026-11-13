@@ -14,6 +14,9 @@ namespace Client.Ui.Screens.KeyHints
     /// </summary>
     public sealed class KeyHintHudPresenter : IInitializable, IDisposable
     {
+        internal const UiLayer HostLayer = UiLayer.Chrome;
+        internal const UiFamily HostFamily = UiFamily.Viewport;
+
         private readonly GameUiRoot _gameUiRoot;
         private readonly KeyHintHudModel _model;
         private KeyHintHudView _view;
@@ -30,7 +33,7 @@ namespace Client.Ui.Screens.KeyHints
             // Web は viewportOverlay（実画面）の z stage-overlay-panel-chrome
             // On the Web it sits in viewportOverlay (the real viewport) at z stage-overlay-panel-chrome
             _view = new KeyHintHudView();
-            _gameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_view);
+            _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(_view);
             _subscription = _model.Current.Subscribe(_view.Render);
         }
 

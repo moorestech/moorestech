@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
@@ -92,15 +93,15 @@ namespace Client.Ui.State.Inventory.Drag
 
             #region Internal
 
-            // 番地がプレイヤー側なので計画もプレイヤー側だけ。写せない計画は開発者向けのログへ
-            // The slot is player-side so plans are too; any unconvertible plan goes to the developer log
+            // 番地がプレイヤー側なので計画もプレイヤー側だけ。写せない計画は例外で開発者に気づかせる
+            // The slot is player-side so plans are too; any unconvertible plan throws so the developer notices
             List<PlayerItemAction> ToPlayerActions(IReadOnlyList<PlannedItemAction> actions)
             {
                 var converted = new List<PlayerItemAction>();
                 foreach (var action in actions)
                 {
                     if (PlayerItemActionConversion.TryConvert(action, out var playerAction)) converted.Add(playerAction);
-                    else Debug.LogWarning($"[PlayerSlotDragCommands] right-button enter skipped non-player action {action}");
+                    else throw new InvalidOperationException($"[PlayerSlotDragCommands] right-button enter got non-player action {action}");
                 }
                 return converted;
             }
@@ -139,7 +140,7 @@ namespace Client.Ui.State.Inventory.Drag
             {
                 var share = SplitDragDistribution.Plan(_operations.ReadSnapshot(), passed);
                 if (0 < share.IgnoredStaleCount) Debug.LogWarning($"[PlayerSlotDragCommands] split-drag dropped {share.IgnoredStaleCount} stale slot(s)");
-                if (share.Destinations.Count == 0) return new UiCommandRejected(UiCommandRejectReason.SplitDragNoValidSlots, "");
+                if (share.Destinations.Count == 0) return UiCommandRejected.Of(UiCommandRejectReason.SplitDragNoValidSlots);
                 // silent-ok: 1 か所あたり 0 個はホストと同じ成功の何もしない / grab が残ったままなのはプレイヤーが掴み絵で見る
                 if (share.CountPerSlot <= 0) return UiCommandAccepted.Instance;
 

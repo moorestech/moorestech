@@ -25,6 +25,7 @@ namespace Client.Ui.Screens.BlockInventory
         private bool _inventoryWidthResolved;
         private bool _columnGapResolved;
         private bool _large;
+        private bool _stageTooSmallReported;
 
         public BlockInventoryPanelBand(StageColumnsLayout stage, VisualElement shell)
         {
@@ -64,12 +65,17 @@ namespace Client.Ui.Screens.BlockInventory
             var style = _stage.resolvedStyle;
             var band = style.height - style.paddingTop - _menuLower;
 
-            // 舞台が安全帯より狭いと帯が負になる。負の高さは当てず 0 で止め、狭すぎることを Warning で知らせる
-            // A stage narrower than the safe areas makes the band negative; clamp to 0 instead of applying it and warn that it is too small
+            // 帯が負なら 0 で止め入口で警告
+            // Clamp negative band to 0; warn once on entry
             if (band < 0)
             {
-                UnityEngine.Debug.LogWarning($"[BlockInventoryPanelBand] stage height {style.height} is below the safe areas (top {style.paddingTop}, bottom {_menuLower}); band clamped to 0");
+                if (!_stageTooSmallReported) UnityEngine.Debug.LogWarning($"[BlockInventoryPanelBand] stage height {style.height} is below the safe areas (top {style.paddingTop}, bottom {_menuLower}); band clamped to 0");
+                _stageTooSmallReported = true;
                 band = 0;
+            }
+            else
+            {
+                _stageTooSmallReported = false;
             }
             _shell.style.maxHeight = band;
             _shell.style.height = _large ? new StyleLength(band) : new StyleLength(StyleKeyword.Auto);

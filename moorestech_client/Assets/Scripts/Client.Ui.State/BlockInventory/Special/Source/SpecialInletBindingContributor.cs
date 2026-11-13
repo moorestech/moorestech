@@ -1,7 +1,6 @@
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
-using Mooresmaster.Model.BlocksModule;
 
 namespace Client.Ui.State.BlockInventory.Special.Source
 {
@@ -20,7 +19,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
 
         public bool AppliesTo(OpenBlockInventoryPanel panel)
         {
-            return panel.BlockType == BlockMasterElement.BlockTypeConst.RocketLaunchPad || panel.BlockType == BlockMasterElement.BlockTypeConst.SpaceElevatorBase;
+            return OpenBlockSlotInput.IsFixedInletBlockType(panel.BlockType);
         }
 
         public OpenBlockSlotInput Contribute(OpenBlockInventoryPanel panel, OpenBlockSlotInput input)

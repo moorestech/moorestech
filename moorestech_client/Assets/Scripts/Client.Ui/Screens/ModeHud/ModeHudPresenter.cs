@@ -8,11 +8,16 @@ using VContainer.Unity;
 namespace Client.Ui.Screens.ModeHud
 {
     /// <summary>
-    /// 操作モード HUD を起動時に 1 回 Chrome 層へ載せる
-    /// Mounts the operation-mode HUD once into the Chrome layer
+    /// 操作モード HUD を起動時に 1 回 OverlayPanel 層へ載せる
+    /// Mounts the operation-mode HUD once into the OverlayPanel layer
     /// </summary>
     public sealed class ModeHudPresenter : IInitializable
     {
+        // Web の帯と配置 HUD は viewportOverlay の先頭の子で、ホットバー（Chrome）・キーヒント（Chrome）より下。舞台の画面とは同時に開かないので OverlayPanel に置く
+        // On the Web the bands and placement HUD are viewportOverlay's first children, below the hotbar and key hints (Chrome); they never coexist with stage screens, so they stay in OverlayPanel
+        internal const UiLayer HostLayer = UiLayer.OverlayPanel;
+        internal const UiFamily HostFamily = UiFamily.Viewport;
+
         private readonly GameUiRoot _gameUiRoot;
         private readonly ModeHudModel _model;
 
@@ -27,7 +32,7 @@ namespace Client.Ui.Screens.ModeHud
             // 載せるのは 1 回だけ。購読は Presenter が持ち、購読時の今の値で 1 回描く（前例 ToastLayerPresenter・PauseMenuScreenPresenter）
             // Mount once; the presenter owns the subscription, which draws once with the current value (precedent ToastLayerPresenter, PauseMenuScreenPresenter)
             var view = new ModeHudView();
-            _gameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(view);
+            _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(view);
             _model.Current.Subscribe(view.Render);
         }
     }

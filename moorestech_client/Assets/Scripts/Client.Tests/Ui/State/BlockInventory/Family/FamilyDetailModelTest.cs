@@ -52,8 +52,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
             Assert.IsFalse(model.Current.Value.IsPresent, "IMinerParam でない");
 
             _harness.Track(_harness.CreateBlock(Position, minerMaster, (CommonMinerBlockStateDetail.BlockStateDetailKey, miner), (CommonMachineBlockStateDetail.BlockStateDetailKey, common)));
-            Assert.IsTrue(model.Current.Value.IsPresent);
-            Assert.IsFalse(model.Current.Value.Value.GearDriven, "歯車の詳細が無ければ電力駆動");
+            Assert.IsTrue(model.Current.Value.TryGetPresent(out var minerDetail));
+            Assert.IsFalse(minerDetail.GearDriven, "歯車の詳細が無ければ電力駆動");
 
             _harness.Track(null);
             Assert.IsFalse(model.Current.Value.IsPresent, "閉");
@@ -70,12 +70,15 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
             var block = _harness.CreateBlock(Position, gearPumpMaster, (PowerGeneratorStateDetail.StateDetailKey, new PowerGeneratorStateDetail(10, 20, 0.5f)), (PumpBlockStateDetail.BlockStateDetailKey, new PumpBlockStateDetail(new System.Collections.Generic.List<PumpingFluidMessagePack>())));
 
             _harness.Track(block);
-            Assert.AreEqual(10, generator.Current.Value.Value.RemainingFuelTime, 1e-9);
-            Assert.IsInstanceOf<GearPumpDetail>(pump.Current.Value.Value);
+            Assert.IsTrue(generator.Current.Value.TryGetPresent(out var fueled));
+            Assert.AreEqual(10, fueled.RemainingFuelTime, 1e-9);
+            Assert.IsTrue(pump.Current.Value.TryGetPresent(out var pumpDetail));
+            Assert.IsInstanceOf<GearPumpDetail>(pumpDetail);
 
             _harness.ReplaceStates(block, (PowerGeneratorStateDetail.StateDetailKey, new PowerGeneratorStateDetail(7, 20, 0.5f)));
             _harness.NotifyStateChanged();
-            Assert.AreEqual(7, generator.Current.Value.Value.RemainingFuelTime, 1e-9);
+            Assert.IsTrue(generator.Current.Value.TryGetPresent(out var lowFuel));
+            Assert.AreEqual(7, lowFuel.RemainingFuelTime, 1e-9);
             Assert.IsFalse(pump.Current.Value.IsPresent, "ポンプの詳細が消えた");
         }
 
