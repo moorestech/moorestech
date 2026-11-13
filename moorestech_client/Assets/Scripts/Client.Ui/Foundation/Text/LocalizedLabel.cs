@@ -56,6 +56,10 @@ namespace Client.Ui.Foundation.Text
         // The resolved source text; text is the display text with the line-height tag and trim newlines, so read the words here
         public string SourceText { get; private set; }
 
+        // 文が届く前のラベルは何も描いていないので空と読む
+        // A label whose text has not arrived draws nothing, so it reads as empty
+        public override string WordsText => SourceText ?? string.Empty;
+
         public void SetKey(LocalizationKey key)
         {
             SetText(new UiText(key));

@@ -1,6 +1,7 @@
 using Client.Playtest.UiElements.GameUi;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.State.Text;
 using NUnit.Framework;
 using UnityEngine;
@@ -43,6 +44,19 @@ namespace Client.Tests.Ui.Dsl
             Assert.AreEqual("供給電力 0 / 最大 100", Find().Text);
         }
 
+        // LocalizedLabel 以外の派生も WordsText を上書きすれば照会が印を読まない
+        // Any other subclass that overrides WordsText keeps the lookup from reading its display tags
+        [Test]
+        public void WrapSafeLabelSubclassReadsWordsTextWithoutDisplayPrefix()
+        {
+            var label = new PrefixedWordsLabel("稼働中") { name = Testid };
+            rootVisualElement.Add(label);
+            simulate.FrameUpdate();
+
+            StringAssert.StartsWith("<cspace=", label.text);
+            Assert.AreEqual("稼働中", Find().Text);
+        }
+
         private Client.Playtest.UiElements.UiElementSnapshot Find()
         {
             return GameUiElementQuery.Find(rootVisualElement, Testid, new FlipOnlyScreenMapper());
@@ -59,6 +73,20 @@ namespace Client.Tests.Ui.Dsl
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             return label;
+        }
+
+        // 表示用の字間の印を前置きし、原文を WordsText で返す派生
+        // A subclass that prefixes a display spacing tag and returns the source through WordsText
+        private sealed class PrefixedWordsLabel : WrapSafeLabel
+        {
+            private readonly string _words;
+
+            public PrefixedWordsLabel(string words) : base("<cspace=0.1px>" + words)
+            {
+                _words = words;
+            }
+
+            public override string WordsText => _words;
         }
 
         // 倍率 1 の画面を仮定し、y の反転だけを行う

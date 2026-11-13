@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
-using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using UnityEngine.UIElements;
 
 namespace Client.Playtest.UiElements.GameUi
@@ -43,14 +43,11 @@ namespace Client.Playtest.UiElements.GameUi
                 return builder.ToString();
             }
 
-            // LocalizedLabel の text は行送り・字間の印と詰めの改行を含むので、Web の textContent に当たる原文を読む
-            // LocalizedLabel.text carries pitch/spacing tags and trim newlines, so read its source text, the Web textContent counterpart
+            // 本番のラベルの text は表示用の印を含みうるので、Web の textContent に当たる WordsText を読む
+            // A production label's text may carry display tags, so read WordsText, the Web textContent counterpart
             string WordsOf(TextElement textElement)
             {
-                if (textElement is not LocalizedLabel label) return textElement.text;
-                // 文が届く前のラベルは何も描いていないので空と読む
-                // A label whose text has not arrived draws nothing, so it reads as empty
-                return label.SourceText ?? string.Empty;
+                return textElement is WrapSafeLabel label ? label.WordsText : textElement.text;
             }
 
             // `--selected` のような修飾子クラスだけを状態名として返す

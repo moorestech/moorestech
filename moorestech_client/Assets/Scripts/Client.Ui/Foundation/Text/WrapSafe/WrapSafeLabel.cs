@@ -34,6 +34,10 @@ namespace Client.Ui.Foundation.Text.WrapSafe
         // Owner of the inline white-space; subclasses that stop wrapping (the line-end trim) go through it
         internal InlineWhiteSpaceHolds WhiteSpaceHolds { get; }
 
+        // 文の中身（Web の textContent に当たる）。text に表示用の印を前置きする派生は原文を返すよう上書きする
+        // The words, the Web textContent counterpart; subclasses that prefix display tags to text override this with the source
+        public virtual string WordsText => text;
+
         // 文の差し替えを測りの来ない固定の箱でも判定へ届ける（基底の構築中は回避がまだ無く、載る前なので判定は要らない）
         // Route text swaps to the guard even for a fixed box with no measure (during base construction the guard does not exist yet and nothing is attached)
         public override string text
