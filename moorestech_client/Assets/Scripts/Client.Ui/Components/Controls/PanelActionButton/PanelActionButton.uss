@@ -38,6 +38,13 @@
     background-color: var(--panel-action-button-face-hover);
 }
 
+/* Web の .button に :disabled の様式は無く、面も文字も有効時のまま（実測: 文字 rgb(255,255,255)・opacity 1）。既定テーマの半透明と沈みを打ち消す */
+/* The Web .button has no :disabled style, so face and text stay as enabled (measured: text rgb(255,255,255), opacity 1); cancel the default theme's translucency and sink */
+.panel-action-button.unity-button:disabled {
+    opacity: 1;
+    translate: 0 0;
+}
+
 .panel-action-button__label {
     margin: 0;
     padding: 0;

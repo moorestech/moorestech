@@ -12,6 +12,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using static Client.Tests.Ui.Components.ComponentStyleAssert;
 using static Client.Tests.Ui.State.Train.Fakes.TrainTestData;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
@@ -121,6 +122,17 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             _body.Attach((OpenTrainInventoryPanel)BlockInventoryTestPanels.Train(BlockInventoryPanelError.None));
             Assert.IsTrue(IsSelected(_body.Root, "train-tab-inventory"));
             Click("train-tab-timetable");
+        }
+
+        [Test]
+        public void 端の移動ボタンは文字だけ従属色で淡くしない()
+        {
+            // Web の実測: 先頭の「上へ」は無効で文字 rgb(166,167,171)・opacity 1（画面の .list button:disabled）
+            // Web measurement: the first "up" is disabled with text rgb(166,167,171) and opacity 1 (the screen's .list button:disabled)
+            var up = Find<Button>(_body.Root, "train-timetable-stop-0-up");
+            Assert.IsFalse(up.enabledSelf);
+            AssertColor(Hex("#A6A7AB"), up.Q<Label>().resolvedStyle.color, "text");
+            Assert.AreEqual(1f, up.resolvedStyle.opacity, 0.001f);
         }
 
         private void AssertIdle()

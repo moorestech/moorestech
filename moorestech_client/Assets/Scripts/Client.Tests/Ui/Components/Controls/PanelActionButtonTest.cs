@@ -9,6 +9,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static Client.Tests.Ui.Components.ComponentStyleAssert;
 
 namespace Client.Tests.Ui.Components.Controls
 {
@@ -107,6 +108,23 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(0f, _button.resolvedStyle.borderTopLeftRadius);
             Assert.AreEqual(0f, _button.resolvedStyle.marginLeft);
             Assert.AreEqual(0f, _button.resolvedStyle.borderLeftWidth);
+        }
+
+        [Test]
+        public void DisabledKeepsWebFaceAndTextWithoutThemeDimming()
+        {
+            // Web の .button に :disabled の様式は無い（宇宙エレベーターの「接続する」の実測: 文字 rgb(255,255,255)・opacity 1・面は有効時と同じ）
+            // The Web .button has no :disabled style (measured on the space elevator connect: text rgb(255,255,255), opacity 1, same face as enabled)
+            var enabledFace = _button.resolvedStyle.backgroundColor;
+            _button.SetEnabled(false);
+            simulate.FrameUpdate();
+
+            var label = _button.Q<LocalizedLabel>(className: "panel-action-button__label");
+            AssertColor(Hex("#FFFFFF"), label.resolvedStyle.color, "text");
+            AssertColor(enabledFace, _button.resolvedStyle.backgroundColor, "face");
+            Assert.AreEqual(1f, _button.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(1f, label.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(0f, _button.resolvedStyle.translate.y, 0.001f);
         }
     }
 }
