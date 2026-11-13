@@ -51,7 +51,7 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.UiRuntimePanelCapture.CaptureToPng(new Client.Ui.Editor.Gallery.Entries.Slots.ItemSlotGalleryEntry().CreateSample(), 2560, 1080, new UnityEngine.Color32(35, 29, 30, 255), Client.Ui.Editor.Capture.UiCaptureBackdrop.GroundColorOnly, Client.Ui.Editor.Capture.UiCaptureLocalization.InitializeDictionary, "<worktree の絶対パス>/moorestech_client/.uloop/outputs/compare/<レーンID>/itemslot-2560x1080.png");'
 ```
 
-- **Game View の解像度を切り替える**: uloop では `uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.GameViewResolution.Set(2560, 1080);'`（無ければ固定解像度を足して選ぶ。撮り終えたら 1280×720 へ戻す）。録画 DSL では `await PlaytestGameViewOps.SetResolution(p.CancellationToken, 2560, 1080);`（`using Client.Playtest.Operations.Ui;`。`Screen` が追いつくまで待つ）。例は `scenarios/uitk/uitk-gameview-resolution-switch.cs`
+- **Game View の解像度を切り替える**: uloop では `uloop execute-dynamic-code --project-path ./moorestech_client --code 'return Client.Ui.Editor.Capture.GameViewResolution.Set(2560, 1080);'`（無ければ固定解像度を足して選ぶ。撮り終えたら 1280×720 へ戻す）。録画 DSL では `await PlaytestGameViewOps.SetResolution(p.CancellationToken, 2560, 1080);`（`using Client.Playtest.Operations.Ui;`。`Screen` が追いつくまで待つ）。例は `scenarios/uitk/integrator/uitk-gameview-resolution-switch.cs`
 - 2560×1080 の Web の参照は `web-0e81bbe3c3-2560x1080`（台帳「## 参照キャプチャ」）。撮り直すときは capture の前に `pnpm build` が要る
 
 ## 4. 並べ比べの載せ方

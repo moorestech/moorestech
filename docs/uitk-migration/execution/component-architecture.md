@@ -382,7 +382,7 @@ public sealed class UiCommandResultToaster
 | L1（画面） | View＋Model＋Commands の結線、Web の C/P 種別の挙動 | `ScreenTestHost`・`FakeModel<T>`・`CommandRecorder<T>` | `Client.Tests/Ui/Screens/<機能>/` | Web の該当コンポーネントテストと e2e の P のうち、ブラウザ固有でないもの全件 |
 | L2 | 規約 | `UiStyleConventionTest` ほか 7 クラス | `Client.Tests/Ui/Conventions/` | F1 で足す: tss の束ね漏れ・余り／ルートクラスの一意／層の依存方向（§1.1）／`look-exception` の照合／`MantineTokens` のパリティ／calc 検算 |
 | L3 | 実ゲームでの結線（DI・層・入力） | EditModeInPlayingTest | `EditModeInPlayingTest/Ui/` | 段ごとに 1 本（その段の画面が全体スイッチ UITK で開く・閉じる） |
-| L4 | 録画プレイテストと CEF 無し起動ラダー | unity-playmode-recorded-playtest | `scenarios/uitk/` | plan §4.4 のラダー（段 2 `uitk-opening-hud` …） |
+| L4 | 録画プレイテストと CEF 無し起動ラダー | unity-playmode-recorded-playtest | `scenarios/uitk/<段>/`（`stage1`〜`stage4`・`integrator`） | plan §4.4 のラダー（段 2 `uitk-opening-hud` …） |
 
 - 写したテストの由来は NUnit の `/// <web-test>` タグに書き、`docs/uitk/disposition.md` には写さないと決めたテストの処遇の行だけをレーンが書く（写したテストに処遇の行もあると `tools/uitk/testNameParity/compareBundles.mjs` が書式誤りにする。束の最後のレーンで突き合わせスクリプトが差分 0 を見る。tests-ladder §3.4）
 - 部品の L1 は部品レーンの完了条件。画面レーンは部品の L1 を書き直さない

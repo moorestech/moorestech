@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/inventory` の `InventoryPanel`（持ち物パネル: 題・整理ボタン・10 列のスロット・所持品のアンカー）と `EquipmentPanel`（装備 HUD: 右下の縦列・選択枠・アンカー・掴める画面だけのクリック・ホイールでの装備の循環）を、C3-a・C3-b・C4-e の部品と口、L0-s4a のロジック、S4-alpha の `IPlayerSlotCommands`、S3-hotbar-modal の `WheelPassthroughMark` で Web と同じ見た目・同じ操作の UITK 画面にする。ホイールでの装備の循環は C# の 1 か所（State の `EquipmentWheelSelector`＋判定 `EquipmentWheelGate`）に置き、Web の未確認 FIFO と同じ規則で古いエコーに巻き戻されないようにする。L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-inventory-equipment`）まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/inventory` の `InventoryPanel`（持ち物パネル: 題・整理ボタン・10 列のスロット・所持品のアンカー）と `EquipmentPanel`（装備 HUD: 右下の縦列・選択枠・アンカー・掴める画面だけのクリック・ホイールでの装備の循環）を、C3-a・C3-b・C4-e の部品と口、L0-s4a のロジック、S4-alpha の `IPlayerSlotCommands`、S3-hotbar-modal の `WheelPassthroughMark` で Web と同じ見た目・同じ操作の UITK 画面にする。ホイールでの装備の循環は C# の 1 か所（State の `EquipmentWheelSelector`＋判定 `EquipmentWheelGate`）に置き、Web の未確認 FIFO と同じ規則で古いエコーに巻き戻されないようにする。L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/stage4/uitk-inventory-equipment`）まで済ませて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Inventory/`）に 2 つの塊を足す。(1) `Panel/`: C4-e の持ち物の口 `IPlayerInventoryOperations` に中身の変化の合図 `OnSnapshotChanged` を足し（本番は `LocalPlayerInventory.OnItemChange`・`LocalPlayerInventoryController.OnInventoryRefreshed`・`LocalPlayerEquipment.OnSlotsOrSelectionChanged` の 3 つを束ねる。Web ホスト `InventoryTopic` と同じ源）、それを購読して `ReadSnapshot()` から不変の `PlayerInventoryViewModel`（main・装備・選択・所持品の GUID の表）を組む `PlayerInventoryPanelModel`、整理の型付きコマンド `IInventorySortCommands`。(2) `Equipment/`: 装備の選択の口 `IEquipmentSelectionPort`（本番は `LocalPlayerEquipment`）、ホイールの累積・循環・未確認 FIFO を持つ `EquipmentWheelSelector`、層・UI の上・ツールの占有で止める純関数 `EquipmentWheelGate`、画面・モーダル・ツールの占有を State の実物から読んで判定し選択へ流す `EquipmentWheelRouter`。入力は `Client.Input/Pointer/InputSystemPointerWheelStream`（`InputSystem.onEvent` のホイールのノッチを流す。Editor の更新で届いたものは Game View の外の操作なので流さない。前例 `InputSystemPointerPositionStream`）。Client.Ui（`Screens/Inventory/`）は `Panel/`（`InventoryView`・Presenter。`StageColumnsLayout.Get(StageColumn.Inv)` へ載せる [A-92]）、`Equipment/`（`EquipmentHudView`・Presenter。`UiLayer.Chrome`・`UiFamily.Viewport` へ）、`Parts/`（`SlotGesture` → `IPlayerSlotCommands` の振り分けと、スロットの中身の写し）、`Wheel/`（ホイールの流れを購読し、ノッチを A-71 と同じ 60px〈このレーンが `GameScrollView` の private 定数から Foundation の共有の定数 `WebWheelScale.PixelsPerNotch` へ上げる。E-1〉へ直し、パネルで拾った要素と `WheelPassthroughMark` から「UI の上か」を bool にしてルーターへ渡す `IInitializable`）。登録は `Client.Starter/Registration/GameUi/Screens/InventoryGameUiRegistration.cs` の 1 本（E-1 の W4 以降の置き場）と、`MainGameUiRegistration` の画面登録区画の 1 行。
 
@@ -25,14 +25,14 @@
 | R-6 | 装備 HUD: `equipment-slots`（クラス `equipment-hud`）を Viewport の Chrome 層へ。右 `--equipment-right`・下 `--equipment-bottom`（＝`--hotbar-bottom`。床トークン）・縦に並べ・間 `--equipment-slot-gap`・最小幅高 `--equipment-slot-size`・枠の大きさ `--slot-size: var(--equipment-slot-size)`。枠 `ItemSlot(equipment-slot-<i>)`、選択枠は `ItemSlotMarks.selected`。アンカー: HUD に `equipment.hud`、枠に `equipment.slot-<i>`、選択枠に `equipment.selected-slot` も。HUD は拾う（Web `pointer-events: auto`） | `EquipmentHudViewTest`（Web `EquipmentPanel/index.test.ts`「装備枠がアンカーを名乗り…」・`equipment.spec`「装備枠0でも装備HUDは面積を保ちアンカーが解決する」）と `EquipmentHudFloorTokenTest` が緑 |
 | R-7 | ホイールの循環（C# 1 か所）: `EquipmentWheelSelector.Wheel(delta, unit)` は枠 1 以下なら何もせず、`EquipmentSelectionLogic.AccumulateWheelSteps` で累積し、段が出たら「未確認の末尾、無ければ今の選択」から `CycleEquipment` した番号を FIFO に積んで `IEquipmentSelectionPort.Select` を呼ぶ。確定の世代（`SelectionConfirmationRevision`）が進んだ数だけ FIFO の頭を捨てる（世代は単調増加なので、Web の「戻ったら空にする」は写さない。D-28） | `EquipmentWheelSelectorTest`（Web `EquipmentPanel/index.test.ts` 4 件・`regression/inputLayer.spec` 1 件）が緑 |
 | R-8 | ホイールの抑止: `EquipmentWheelRouter` が `UiRoutingState`・`ModalRequestService`・`PlaceSystemStateController` を自分で読んで状況を組み、`EquipmentWheelGate.Judge` は、モーダルの保留中・`SubInventory`・`ResearchTree`・`BuildMenu`（Web `readActiveLayer() != "game"`）、素通しの印の無い UI の上、`PlaceSystemStateController.IsWheelOwnedByTool` が真、のどれかで止める。占有は C# の値をそのまま読み、配置対象の種別から導き直さない。Client.Ui から渡るのは「UI の上か」の bool 1 つだけ | `EquipmentWheelGateTest`（Web `EquipmentPanel/index.test.ts` 4 件）と `EquipmentWheelFlowTest`（Web `equipment.spec` 4 件。ルーターは本物の State で組む）が緑 |
-| R-9 | 入力: `InputSystemPointerWheelStream`（`Client.Input/Pointer/`）が `InputSystem.onEvent` から縦のノッチ（上が正。0 は流さない。入力設定 `scrollDeltaBehavior` は既定の Uniform で 1 ノッチ＝1）を流し、`EquipmentWheelInput`（`IInitializable`）が購読して、A-71 と同じ 1 ノッチ＝60px（下が正）に直して `WheelDeltaUnit.Pixel` でルーターへ渡す。Web の本番（CEF の 60px/ノッチ・100px で 1 段）と同じく 1 ノッチ目では進まず、2 ノッチ目で 1 段進む。カーソルがロック中は UI の上ではない。ロックしていなければ `GameUiRoot` のパネルで拾った要素を `EquipmentWheelPickJudge.IsBlockingUi` に掛ける | `InputSystemPointerWheelStreamTest`・`ScrollDeltaBehaviorSettingTest`・`EquipmentWheelFlowTest`「1 ノッチ目では進まず 2 ノッチ目で 1 段進む」が緑。録画 `uitk/uitk-inventory-equipment` で 2 ノッチで 1 段進み、持ち物の上では進まない |
+| R-9 | 入力: `InputSystemPointerWheelStream`（`Client.Input/Pointer/`）が `InputSystem.onEvent` から縦のノッチ（上が正。0 は流さない。入力設定 `scrollDeltaBehavior` は既定の Uniform で 1 ノッチ＝1）を流し、`EquipmentWheelInput`（`IInitializable`）が購読して、A-71 と同じ 1 ノッチ＝60px（下が正）に直して `WheelDeltaUnit.Pixel` でルーターへ渡す。Web の本番（CEF の 60px/ノッチ・100px で 1 段）と同じく 1 ノッチ目では進まず、2 ノッチ目で 1 段進む。カーソルがロック中は UI の上ではない。ロックしていなければ `GameUiRoot` のパネルで拾った要素を `EquipmentWheelPickJudge.IsBlockingUi` に掛ける | `InputSystemPointerWheelStreamTest`・`ScrollDeltaBehaviorSettingTest`・`EquipmentWheelFlowTest`「1 ノッチ目では進まず 2 ノッチ目で 1 段進む」が緑。録画 `uitk/stage4/uitk-inventory-equipment` で 2 ノッチで 1 段進み、持ち物の上では進まない |
 | R-10 | 素通し（S3-hotbar-modal の `WheelPassthroughMark` を使う。マージ後に実物と照合）: 装備 HUD に印を付け、`IsBlockingUi` は「拾った要素があり、かつ素通しでない」。装備 HUD・ホットバーの列・ホットバーの帯の列外・クロスヘアの上では切り替わる | `EquipmentWheelPassthroughTest`（Web `equipment.spec` 3 件・`alwaysOnHudWheel.test.ts` 1 件）が緑 |
 | R-11 | 世界の上の色: 装備 HUD は世界の上に載るので、ホットバーの画面ルートと同じ枠の面のつまみ（`--slot-frame-face: var(--world-slot-frame-face)` ほか、S3-hotbar-modal がマージした `Hotbar.uss` の実物の上書き）を HUD のルートで上書きする（マージ後に実物と照合） | 並べ比べ `3-hotbar-equipment-empty`・`2-game-hud` の装備の枠の面が差の表で「同じ」か LX |
 | R-12 | ツールチップ: 持ち物の枠の上で、マスタ GUID の辞書名が C3-b のホバーの宿主に出る（`ItemSlot` の `HoverTooltipMark`） | `InventoryPanelTooltipTest`（Web `regression/itemSlot.spec`。bd `moorestech-albof.29`）が緑 |
 | R-13 | 並べ比べ: 参照 `4-player-inventory`・`4-player-inventory-full`・`3-hotbar-equipment-empty`・`2-game-hud`・`5-japanese-inventory` を 1280×720・2560×1080 で撮り、差の表を `done.md` に書く | 差の表の全行が「同じ／直した／LX-111〜LX-115／他レーン持ち」のどれか |
 | R-14 | 登録: `MainGameUiRegistration` の画面登録区画に `InventoryGameUiRegistration.Register(builder);` を 1 行、`TSS` の `Screens` 区画に `@import` を 1 行、`THEME/DerivedTokens.uss` の末尾に名札付きブロック「S4-inventory」（色 1 行） | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
 | R-15 | 写すテスト（実物で数え直した 34 件のうち 32 件を写し、2 件を処分表へ。下の「写すテスト」表）。`node tools/uitk/test-name-parity.mjs --bundle 4`・`--bundle 2`・`--bundle 5` でこのレーンのファイルの未対応 0。`docs/uitk/disposition.md` の albof.29・albof.31 の「写す予定」の行は、タグを足す同じコミットで消す | parity の出力にこのレーンのファイル（`inventory.spec.ts` のこのレーンの 4 件・`equipment.spec.ts`・`InventoryPanel/index.test.ts`・`EquipmentPanel/index.test.ts`・`inputLayer.spec.ts` のホイール 1 件・`itemSlot.spec.ts` のツールチップ 1 件・`alwaysOnHudWheel.test.ts` の装備 HUD 1 件）の未対応が無い |
-| R-16 | 録画: `uitk/uitk-inventory-equipment`（新設。持ち物を開く・整理・掴んで装備へ置く・装備の枠のクリックが移動になる・ゲーム画面でホイール 2 ノッチで 1 段ずつ循環（1 ノッチ目では進まない）・持ち物の上のホイールで進まない・装備 HUD の上で進む・チェストを開いた状態で main の枠の Shift＋左押下がチェストへ配分される〈S4-alpha D-33 から渡された完了条件〉）と `uitk/uitk-grab-overlay`（C4-e。押下の配線が alpha → このレーンへ移ったことの回帰）を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-16 | 録画: `uitk/stage4/uitk-inventory-equipment`（新設。持ち物を開く・整理・掴んで装備へ置く・装備の枠のクリックが移動になる・ゲーム画面でホイール 2 ノッチで 1 段ずつ循環（1 ノッチ目では進まない）・持ち物の上のホイールで進まない・装備 HUD の上で進む・チェストを開いた状態で main の枠の Shift＋左押下がチェストへ配分される〈S4-alpha D-33 から渡された完了条件〉）と `uitk/stage4/uitk-grab-overlay`（C4-e。押下の配線が alpha → このレーンへ移ったことの回帰）を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-17 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`LOGS/harness/uitk/S4-inventory/done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -136,7 +136,7 @@ public class PlaceSystemStateController { public PlaceSystemStateController(IPla
 // テスト用: Client.Tests.PlaceSystem.Common.Height.PlacementHeightWiringFakes.SwitchableSelector(IPlaceSystem)・.NullPresenter（internal。同じテストのアセンブリから使える）、EmptyPlaceSystem
 namespace Client.Game.InGame.UI.UIState
 public class UIStateControl : MonoBehaviour { public void Construct(UIStateDictionary dictionary, IPlayerObjectController player); public void Initialize(UIStateEnum initialState, UITransitContext initialContext); }
-// UiRoutingState(UIStateControl, IReadOnlyList<INestedPauseScreenState>)。テストでの組み方の前例は Client.Tests/UIState/UIStateControlTest.cs（CreateDictionary の反射・FakePlayerObjectController）
+// UiRoutingState(UIStateControl, IReadOnlyList<INestedPauseScreenState>)。テストでの組み方の前例は Client.Tests/UIState/Control/UIStateControlTest.cs（CreateDictionary の反射・FakePlayerObjectController）
 
 // ── 入力（既存）
 namespace Client.Input.Pointer
@@ -264,7 +264,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | `S/Client.Tests/Ui/Screens/Inventory/Support/`（`RecordingPlayerSlotCommands`・`InventoryScreenFixture`・`UiRoutingStateTestFactory`・`GameUiRootTestFactory`・`EquipmentWheelRouterFixture`・`FakeEquipmentWheelPointerPicker`） | L1 の土台 | 新規 |
 | `S/Client.Tests/Ui/Screens/Inventory/Wheel/EquipmentWheelInputFlowTest.cs` | L1（流れ → 入力 → ルーター。Editor の更新を除く。本体のディレクトリが 10 本なので下に分ける） | 新規 |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | S4-inventory 持ちの 4 行を消す | 変更 |
-| `SKILL/scenarios/uitk/uitk-inventory-equipment.cs` | 録画 | 新規 |
+| `SKILL/scenarios/uitk/stage4/uitk-inventory-equipment.cs` | 録画 | 新規 |
 | `docs/uitk/disposition.md`・`docs/uitk/TODO.md` | 処分表・見た目の例外 | 変更（末尾） |
 
 ディレクトリの本数: `Client.Ui.State/Inventory/Panel/` 5・`Equipment/` 6・`Client.Ui/Screens/Inventory/` は USS 1＋サブ 4（`Wheel/` 5・`Parts/` 2）、`Client.Ui/Foundation/Input/` 既存 5＋サブ 1＋1、`Client.Starter/Registration/GameUi/Screens/` 1、`Client.Tests/Input/Pointer/` 既存 2＋3、`Client.Tests/Ui/Screens/Inventory/` 10＋`Support/` 6＋`Wheel/` 1。どれも 10 以下。
@@ -2841,7 +2841,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
 }
 ```
 
-`Support/UiRoutingStateTestFactory.cs`（本物の `UiRoutingState` を指定の画面で組む。`UIStateControl` の組み方は前例 `Client.Tests/UIState/UIStateControlTest.cs` の `CreateDictionary` の反射と `FakePlayerObjectController`。`using` と `UIStateDictionary` の ctor の引数の数は実物に合わせる）:
+`Support/UiRoutingStateTestFactory.cs`（本物の `UiRoutingState` を指定の画面で組む。`UIStateControl` の組み方は前例 `Client.Tests/UIState/Control/UIStateControlTest.cs` の `CreateDictionary` の反射と `FakePlayerObjectController`。`using` と `UIStateDictionary` の ctor の引数の数は実物に合わせる）:
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -3922,11 +3922,11 @@ git commit -m "docs(uitk): 持ち物と装備の並べ比べの差を閉じる�
 ### Task 11: 録画
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-inventory-equipment.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-inventory-equipment.cs`
 
 - [ ] **Step 1: シナリオを書く**
 
-前例 `scenarios/uitk/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContext.DIContainer.DIContainerResolver` から型を引く〈同ファイル :61〉）に従い、次を順に主張する:
+前例 `scenarios/uitk/stage4/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContext.DIContainer.DIContainerResolver` から型を引く〈同ファイル :61〉）に従い、次を順に主張する:
 0. 頭で前例 `scenarios/building/blueprint-place-like-block.cs:35-40` と同じく `InputSystem.settings.backgroundBehavior = IgnoreFocus`・`editorInputBehaviorInPlayMode = AllDeviceInputAlwaysGoesToGameView` にし、`SemanticInput.EnsureDevices()` とマウス・キーボードの `EnableDevice` を呼ぶ（Editor が背景だと注入したホイールが Editor の更新で届き、D-25 の除外で落ちて録画が失敗するため）
 1. `SetupFlatGround` → main の 0 番へ木材 10 を `GiveItem`、装備の枠が 2 以上あることを `LocalPlayerEquipment.Slots.Count` で確かめる
 2. 持ち物を開く（`WaitUiState(UIStateEnum.PlayerInventory)`）→ `inventory-panel` が Inv 列に出る・`main-slot-0` に 10（`Screenshot`）
@@ -3935,20 +3935,20 @@ git commit -m "docs(uitk): 持ち物と装備の並べ比べの差を閉じる�
 5. `equipment-slot-1` を左押下 → 掴みに移る（選択は変わらない）→ 元へ戻す
 6. 持ち物を閉じてゲーム画面へ → `SemanticInput.MouseWheel(-1)`（下へ 1 ノッチ）→ `LocalPlayerEquipment.SelectedIndex` が変わらない（60px。Web の本番と同じく 1 ノッチ目では進まない）→ もう 1 ノッチで 1 進む → さらに 2 ノッチで次へ（末尾の次は先頭。D-10）
 7. 持ち物を開き、パネルの上へカーソルを置いて `MouseWheel(-1)` を 2 回 → 選択が変わらない → 装備 HUD の上で `MouseWheel(-1)` を 2 回 → 1 進む（Task 9 の後）
-8. S4-alpha から渡された完了条件（alpha D-33）: `PlaceBlockDirect("木のチェスト", pos, BlockDirection.North)` → `WaitBlockGameObject` → main の 2 番へ木材 5 を `GiveItem` → `PressInteract` → `WaitUiState(UIStateEnum.SubInventory)`（持ち物パネルも Inv 列に出ている）→ `main-slot-2` を Shift＋左押下 → main の 2 番が空になり、チェストの枠に木材 5 が入る（`Screenshot`）。押下は alpha の `uitk/uitk-block-inventory` の Shift 押下の書き方を使う
+8. S4-alpha から渡された完了条件（alpha D-33）: `PlaceBlockDirect("木のチェスト", pos, BlockDirection.North)` → `WaitBlockGameObject` → main の 2 番へ木材 5 を `GiveItem` → `PressInteract` → `WaitUiState(UIStateEnum.SubInventory)`（持ち物パネルも Inv 列に出ている）→ `main-slot-2` を Shift＋左押下 → main の 2 番が空になり、チェストの枠に木材 5 が入る（`Screenshot`）。押下は alpha の `uitk/stage4/uitk-block-inventory` の Shift 押下の書き方を使う
 9. Error ログが 0 件: DSL に Error を数えて落とす口は無い（`PlaytestRunner` は `result.json` の `ErrorLogs` に集めるだけで成否に効かない）ので、前例 `scenarios/train/train-timetable-via-ui.cs:36,158` と同じく頭で `Application.logMessageReceived` に計数のローカル関数を足し（`LogType.Error`・`LogType.Exception` を数える）、`finally` で外し、最後に `p.Assert(errorCount == 0, $"Error ログ 0 件 (count={errorCount})")` で主張する。3 の「Error ログが増えない」も同じ計数の前後差で見る
 
 押下は前例 `uitk-grab-overlay.cs` の UITK 要素の押下の書き方を使う。InputSystem の注入だけを使い OS の入力は使わない
 
 - [ ] **Step 2: 回す**
 
-Run: unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh uitk/uitk-inventory-equipment` と `uitk/uitk-grab-overlay`
+Run: unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh uitk/stage4/uitk-inventory-equipment` と `uitk/stage4/uitk-grab-overlay`
 Expected: 2 本の `result.json` が PASS、mp4 がある。`done.md`「証拠」に result.json のパス・mp4・`UiInputExclusivity.ActiveUiSystem` の値（GameUi）、`uitk-grab-overlay` の `result.json` の `ErrorLogs` が空であること（こちらのシナリオには Error の計数が無いので result.json を読む）、6 の 1 ノッチ目で進まず 2 ノッチ目で 1 段進んだこと（D-10 の刻みが本物の DI・入力の流れを通ること。値の正規化そのものは `SemanticInput.MouseWheel` が定義上 1 を注入するので録画では測れず、入力設定の既定〈Uniform〉で閉じた〈`ScrollDeltaBehaviorSettingTest`〉）を書く。生の録画は worktree の gitignore 下に置き、`LOGS` へはスクショ 3 枚までと報告だけ
 
 - [ ] **Step 3: コミット**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-inventory-equipment.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-inventory-equipment.cs
 git commit -m "test(uitk): 持ち物と装備の録画シナリオを足す（S4-inventory）
 
 <実行ホストの指示する帰属行>"

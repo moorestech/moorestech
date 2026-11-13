@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/blockInventory/train/*`（`TrainInventoryBody`・`TrainTimetableSection`・`StopList`・`useImmediateTimetable`）と `views/TrainPlatformInventory`（`TrainStationNameSection`・`TrainPlatformSection`）を、S4-alpha の外殻・拡張口と S4-machine の液体の中身表示（`FluidInventoryContents`）・液体の Model（`IBlockFluidSlotsModel`）を使って、Web と同じ見た目・同じ操作の UITK 画面にする。列車（source=train）の本文は貨車スロット・液体貨車・時刻表タブ（即時送信の編集・自動運転の切替）、ブロックの本文は TrainStation（駅名＋スロット＋積込/卸し）・TrainItemPlatform（スロット＋積込/卸し）・TrainFluidPlatform（液体＋積込/卸し）。L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-train-inventory`。古い適用ボタン前提で Web 系でも壊れている `train/train-timetable-via-ui` は両系で通る形に直す）まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/blockInventory/train/*`（`TrainInventoryBody`・`TrainTimetableSection`・`StopList`・`useImmediateTimetable`）と `views/TrainPlatformInventory`（`TrainStationNameSection`・`TrainPlatformSection`）を、S4-alpha の外殻・拡張口と S4-machine の液体の中身表示（`FluidInventoryContents`）・液体の Model（`IBlockFluidSlotsModel`）を使って、Web と同じ見た目・同じ操作の UITK 画面にする。列車（source=train）の本文は貨車スロット・液体貨車・時刻表タブ（即時送信の編集・自動運転の切替）、ブロックの本文は TrainStation（駅名＋スロット＋積込/卸し）・TrainItemPlatform（スロット＋積込/卸し）・TrainFluidPlatform（液体＋積込/卸し）。L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/stage4/uitk-train-inventory`。古い適用ボタン前提で Web 系でも壊れている `train/train-timetable-via-ui` は両系で通る形に直す）まで済ませて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。設計書 §4.2「Model の購読は Presenter、View は Render だけ」と A-8「View が型付きコマンドを直接呼ぶ（Presenter は中継しない）」に従う。State（`Client.Ui.State/Train/` の新しい 6 ディレクトリ）に源の Model と、編集の器・描画値の Model・コマンドを DI の単一インスタンスで置く。源の Model は源を購読して `IReadOnlyReactiveProperty<…>` を配る: (1) `TrainTimetableModel`（`TrainUnitClientCache`・`IClientTrainTimetableLookup`・`TrainTimetableFetcher`・`BlockGameObjectDataStore`・`OpenTrainTimetableTracker` から、Web ホスト `TrainTimetableDtoBuilder` と同じ規則で Loading / Unavailable / Ready を組む。同じ状態は流し直さない）、(2) `TrainInventoryBodyModel`（スロットは alpha の `IBlockInventoryPanelSource`、液体は `SubInventoryState`）、(3) `TrainPlatformBodyModel`（スロットはパネルの源、駅名・積込/卸しは追跡ブロックの StateDetail を純関数 `TrainPlatformDetailReader` で、液体は S4-machine の `IBlockFluidSlotsModel`）。編集は前例 `PauseMenuStateService`＋`PauseMenuModel`＋`IPauseMenuCommands` と同じく、器（State）・描画値の Model（`Current` だけ）・コマンド（View が直接呼び `UiCommandResult` を返す。A-8）に分ける（D-33）: 時刻表は器 `TrainTimetableEditState`（列車ごとの `TrainTimetableEditSession`〈`useImmediateTimetable` の写し。保留・受理・公開待ち 5000ms・拒否の巻き戻し〉を持つ）・`TrainTimetableEditModel`・`TrainTimetableEditCommands`（`Add`・`Move`・`Remove`・`SetAutoRun`）、駅名は器 `TrainStationNameEditState`（下書き）・`TrainPlatformEditModel`・`TrainPlatformEditCommands`（入力・決定・移送モード）。器を Model とコマンドで共有するのは、View が直接呼ぶコマンドと Presenter が購読する描画値が同じセッション・下書きを見るため。サーバーへの送信は `TimetableEdit/Send/` の `ITrainTimetableCommands` と `ITrainBlockCommands`。拒否は理由ごとの `UiCommandRejectReason`（「開いていない」は S4-machine と共有の `BlockNotOpen`。どれも非良性でトーストする。D-31・D-32）。View 側（`Client.Ui/Screens/BlockInventory/Train/`）は alpha の拡張口に差す工場 2 本（列車の本文・`BlockInventoryBodyKind.TrainPlatform` の本文）が「Presenter（Attach で Model の `Current` を購読して `View.Render` へ流す・Detach で切る）＋ View（押下でコマンドを直接呼ぶ）」の組を作る。パネルごとの局所状態（列車の本文のタブと取得の契機）は区画の Presenter が持ち、別のパネルで作り直す（S4-machine の `MachineSelectionModeState` と同じ。D-33）。見た目は Web と同名のトークン（`--mode-switch-gap`・`--mode-switch-padding-inline`・`--mode-switch-padding-block`・`--bevel-1`・`--bevel-c1`・`--text-high-contrast`・`--text-muted`）と `UiTypographyClass` だけを使い、ローカルなつまみは持たない。
 
@@ -25,15 +25,15 @@
 | R-6 | 時刻表の区画: `UiStack(Xs)`（`train-timetable-section`。保留中は `train-timetable-section--busy`）。自動運転の行（`ui.blockInventory.timetableAutoRun` ＋ `ModeSwitch<bool>(train-timetable-auto-run, Horizontal, Group)` の `-on` / `-off`）。on は保留中かサーバーの停車駅が 0 件で無効、off は保留中で無効。押すと楽観更新なしで View が `ITrainTimetableEditCommands.SetAutoRun` を直接呼び即送信。停車駅が 0 件なら `timetableAutoRunUnavailable` を出す。Mantine `Text size="sm"` の 9 か所は `UiTypographyClass.TextSm`、停車駅・駅一覧の行ラベルは Mantine の body 16px（`--mantine-font-size-md`）（D-22） | `TrainTimetableSectionViewTest`「blocks auto-run until an added stop is authoritative and sends toggles immediately」が緑 |
 | R-7 | 停車駅: `GamePanel(train-timetable-stops-panel, Craft)` の題 `timetableStops`＋`FadeRule`。0 件は文言 `train-timetable-stops`（`timetableStopsEmpty`）、それ以外は `train-timetable-stops` の列に行 `train-timetable-stop-{i}`（現在位置は `train-timetable-stop--current`＝`--text-high-contrast`。表示中の並びがサーバーの並びと同じときだけ。現在位置は `int?`）。行のラベルは `timetableStopLabel`（`{index}. {station}`）。操作 `-up`（先頭で無効）・`-down`（末尾で無効）・`-remove`（保留中は全部無効）。押下は View が `ITrainTimetableEditCommands.Move`・`Remove` を直接呼ぶ | `TrainTimetableSectionViewTest`「disables moves past either end and follows remote changes when idle」が緑 |
 | R-8 | 駅一覧: `GamePanel(train-timetable-stations-panel, Craft)` の題 `timetableStations`＋`FadeRule`。0 件は `timetableStationsEmpty`。行は駅のラベル（`TimetableEditLogic.StationLabel`。名前が空なら `timetableUnnamedStation`）と `PanelActionButton(train-timetable-station-{x}_{y}_{z}-add, timetableAdd)`（保留中は無効。押下は `ITrainTimetableEditCommands.Add` を直接呼ぶ）。行の右の子と左の間は画面のクラス `train-timetable__row-end` の `--mode-switch-padding-inline`。行の上の区切りは `--bevel-1 solid --bevel-c1`、無効な操作の文字は `--text-muted` | `TrainTimetableFlowTest` 2 件が緑。並べ比べ R-15 |
-| R-9 | 即時編集（`useImmediateTimetable` の写し）: 送信中・保留中の編集は警告して捨てる。並びが同じ編集は何もしない。編集は表示を即時に替え（保留）、受理されたら同じ並びの公開が届くまで保留を保つ（公開が先に届いていれば受理で解く）。受理後 5000ms 公開が無ければ警告して解く。拒否は警告・トースト・最新のサーバーの並びへ戻す。閉じた後に戻った結果は、表示・巻き戻し・保留の解除は捨てるが拒否のトーストだけ出す（D-40。閉じたことは `TrainTimetableModel` が `UIStateControl.OnStateChanged` で使えないへ倒して伝える。D-29）。列車が替わるとセッションを作り直す（セッションは器 `TrainTimetableEditState` が持つ。D-33） | `TrainTimetableEditSessionTest` 6 件・`TrainTimetableEditModelTest`「送った後に閉じると…」が緑。録画 `uitk/uitk-train-inventory` 手順 6 で閉じた後に編集の Model が使えないになる |
+| R-9 | 即時編集（`useImmediateTimetable` の写し）: 送信中・保留中の編集は警告して捨てる。並びが同じ編集は何もしない。編集は表示を即時に替え（保留）、受理されたら同じ並びの公開が届くまで保留を保つ（公開が先に届いていれば受理で解く）。受理後 5000ms 公開が無ければ警告して解く。拒否は警告・トースト・最新のサーバーの並びへ戻す。閉じた後に戻った結果は、表示・巻き戻し・保留の解除は捨てるが拒否のトーストだけ出す（D-40。閉じたことは `TrainTimetableModel` が `UIStateControl.OnStateChanged` で使えないへ倒して伝える。D-29）。列車が替わるとセッションを作り直す（セッションは器 `TrainTimetableEditState` が持つ。D-33） | `TrainTimetableEditSessionTest` 6 件・`TrainTimetableEditModelTest`「送った後に閉じると…」が緑。録画 `uitk/stage4/uitk-train-inventory` 手順 6 で閉じた後に編集の Model が使えないになる |
 | R-10 | 送信: 置換は `TrainScheduleEditRequest.CreateReplaceTimetableRequest(列車, 停車駅)`（出発条件は `WaitForTicks`・`GameUpdater.TicksPerSecond`。Web ホスト `TrainTimetableStopParser` と同じ）、自動運転は `CreateSetAutoRunRequest`（`AppliedIsAutoRun` が求めた値と違えば拒否）。列車・駅・PF が開いていなければ送らず拒否する。拒否は理由ごとの `UiCommandRejectReason`（R-13。Detail はサーバーの `FailureReason` を載せるときだけ。D-31）で表し、コマンド（`TrainTimetableEditCommands`・`TrainPlatformEditCommands`）は戻り値を持たず（void）、State が `UiCommandResultToaster.Report` へ渡す（D-39）。どれも非良性で、Web と同じくトーストする（D-32） | `TrainTimetableDepartureTest` と `TrainTimetableFlowTest`「拒否された追加を巻き戻し、次の追加で復帰する」が緑 |
 | R-11 | プラットフォームの本文（Kind `TrainPlatform`）: `UiStack(Sm)`（`train-platform-view`）に、描画値は `ClosedTrainPlatformBody`／`OpenTrainPlatformBody`（部分ごとの有無は S4-machine の `SectionContent<T>`。D-19・D-34）で、View は「あれば出す」の 1 規則。駅なら駅名の行、移送の状態がある品物 PF・駅ならパネルの源のスロットで `BlockItemGrid(train-platform-item-slots)`（空でも実枠を出す）、液体があれば `FluidInventoryContents(train-platform-fluid-slots)`（液体 PF は `IBlockFluidSlotsModel`。D-17）、移送の状態があれば `ModeSwitch<TrainPlatformTransferMode>(train-platform-mode, Horizontal, Group)` の `-load`（`trainPlatformLoad` 積込）/ `-unload`（`trainPlatformUnload` 卸し）。押すと楽観更新なしで View が `ITrainPlatformEditCommands.SelectTransferMode` を直接呼んで送る。描画値は追跡ブロックの状態変化 1 回につき 1 回だけ組む（D-35） | `TrainPlatformBodyTest` 3 件・`TrainPlatformDetailReaderTest` が緑 |
-| R-12 | 駅名: `GameTextField(train-station-name-input, false, GaugeInset)`（プレースホルダ `stationNamePlaceholder`）と `PanelActionButton(train-station-name-apply, stationNameApply)`。手を付けていない入力は同期した名前に従う。送るのは決定を押したときだけ（入力のたびには送らない）。拒否は同期済みの最新の名前へ戻す（送った回の下書きが今も有効なときだけ。閉じる・開き直すと下書きは作り直される。D-25）。下書きは器 `TrainStationNameEditState` が持ち（描画値は `TrainPlatformEditModel`。D-33）、View が `ITrainPlatformEditCommands.EditStationName`・`ApplyStationName` を直接呼ぶ。入力欄は伸ばさない。プラットフォームでは行を出さない | `TrainPlatformBodyTest`「sends station names only through Set and hides the field for platforms」・`TrainStationNameDraftTest`・`TrainPlatformEditModelTest` が緑。録画 `uitk/uitk-train-inventory` 手順 2 |
+| R-12 | 駅名: `GameTextField(train-station-name-input, false, GaugeInset)`（プレースホルダ `stationNamePlaceholder`）と `PanelActionButton(train-station-name-apply, stationNameApply)`。手を付けていない入力は同期した名前に従う。送るのは決定を押したときだけ（入力のたびには送らない）。拒否は同期済みの最新の名前へ戻す（送った回の下書きが今も有効なときだけ。閉じる・開き直すと下書きは作り直される。D-25）。下書きは器 `TrainStationNameEditState` が持ち（描画値は `TrainPlatformEditModel`。D-33）、View が `ITrainPlatformEditCommands.EditStationName`・`ApplyStationName` を直接呼ぶ。入力欄は伸ばさない。プラットフォームでは行を出さない | `TrainPlatformBodyTest`「sends station names only through Set and hides the field for platforms」・`TrainStationNameDraftTest`・`TrainPlatformEditModelTest` が緑。録画 `uitk/stage4/uitk-train-inventory` 手順 2 |
 | R-13 | 新しい断りの理由（理由ごとに 1 値・どれも非良性。D-31・D-32）: S4-machine と共有の `BlockNotOpen`（wire `block_not_open`。時刻表の `train_not_open` もこれ。先にマージした方が足し、後の方は使うだけ）、`TrainTimetableReplaceFailed`（`replace_failed`）・`TrainAutoRunFailed`（`set_auto_run_failed`）・`TrainAutoRunNotApplied`（`set_auto_run_not_applied`）・`TrainInvalidBlockType`（`invalid_block_type`）・`TrainStationNameFailed`（`set_name_failed`）・`TrainPlatformModeFailed`（`mode_request_failed`）。文言キーは値ごとに `ui.commandRejected.<値>`。`localization.csv` に 7 行（共有の 1 行が既にあれば 6 行）を足し `pnpm --dir moorestech_web/webui run gen:i18n` で再生成、`docs/uitk/TODO.md`「追従記録」に 1 行 | 既存の `PauseMenuCommandsTest`（`UiCommandRejectReason` の全列挙を回す良性の配列とトースト用の翻訳文の 2 件。配列もテスト名も変えない）が緑（D-32） |
 | R-14 | 写すテスト（実物で数え直した S4-train 分 20 件＋alpha が train に割り振った共有 2 件。下の「写すテスト」表）。`node tools/uitk/test-name-parity.mjs --bundle 4` で S4-train のファイルの未対応 0。`<web-test>` で写した件は `docs/uitk/disposition.md` に書かない | parity の出力に S4-train のファイルの未対応が無い |
 | R-15 | 並べ比べ: 参照 `4-block-train`・`4-block-trainTimetable`・`4-block-train-timetable-tab`・`4-block-trainPlatform`・`4-block-trainFluidPlatform` を 1280×720・2560×1080 で撮り差の表。参照の無い場面（駅名の行・Loading/Unavailable・保留中・液体貨車）は E-22 の自撮りで足す | 差の表の全行が「同じ／直した／LX-121〜LX-125／他レーン持ち」のどれか |
 | R-16 | 登録: `S/Client.Starter/Registration/GameUi/Screens/BlockInventoryTrainGameUiRegistration.cs`（E-1 ad92a44777。無ければ作る）（Model・コマンド・タイマー・工場 2 本）を `MainGameUiRegistration` の画面登録区画から 1 行で呼ぶ。`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
-| R-17 | 録画: 新設 `uitk/uitk-train-inventory`（駅名の入力→決定→クライアントの駅名を待つ・フォーカス中の Esc/E の閉じ・積込/卸し・時刻表の追加と自動運転）、`train/train-timetable-via-ui`（Web 系でも壊れている適用ボタンの押下を消し、待ちをサーバーとクライアントの時刻表の駅数だけにして両系で通す）、`train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` を全体スイッチ UITK で回し、Web 系でも `train/train-timetable-via-ui`・`train/train-station-default-name`（触らない）を回す（D-13） | 6 本の `result.json` が PASS、mp4、`done.md` に各回の `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-17 | 録画: 新設 `uitk/stage4/uitk-train-inventory`（駅名の入力→決定→クライアントの駅名を待つ・フォーカス中の Esc/E の閉じ・積込/卸し・時刻表の追加と自動運転）、`train/train-timetable-via-ui`（Web 系でも壊れている適用ボタンの押下を消し、待ちをサーバーとクライアントの時刻表の駅数だけにして両系で通す）、`train/fluid-inventory-via-interact`・`uitk/stage1/uitk-lifeline` を全体スイッチ UITK で回し、Web 系でも `train/train-timetable-via-ui`・`train/train-station-default-name`（触らない）を回す（D-13） | 6 本の `result.json` が PASS、mp4、`done.md` に各回の `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-18 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`LOGS/harness/uitk/S4-train/done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -49,7 +49,7 @@
 
 ## 死活表
 
-触る機構: `MainGameUiRegistration`（GameUi の系だけで登録。Web の系は登録の頭で return）・既存の `TrainTimetableFetcher`（取得の開始の合図 `OnFetchStarted` を足し、取得ラッチを別クラスへ出す。購読は `TrainTimetableModel` だけ。D-20）・`Client.Ui.State.asmdef`・`UiCommandRejectReason`（Settings・PauseMenu・分割ドラッグ・持ち物の移動・alpha のブロックの枠も使う）・`localization.csv`（Web の `localizationKeys.ts` も再生成）・`GameUiTheme.tss`・既存の `OpenTrainTimetableTracker`／`OpenTrainUnitResolver`／`SubInventoryState`／`OpenBlockDetailTracker`／`UIStateControl`（呼ぶ・読むだけ）・alpha の `IBlockInventoryPanelSource` と S4-machine の `IBlockFluidSlotsModel`（購読するだけ）・録画シナリオ `train/train-timetable-via-ui`（直す）と `uitk/uitk-train-inventory`（新設）。`Client.WebUiHost/**` は変えない（D-2）
+触る機構: `MainGameUiRegistration`（GameUi の系だけで登録。Web の系は登録の頭で return）・既存の `TrainTimetableFetcher`（取得の開始の合図 `OnFetchStarted` を足し、取得ラッチを別クラスへ出す。購読は `TrainTimetableModel` だけ。D-20）・`Client.Ui.State.asmdef`・`UiCommandRejectReason`（Settings・PauseMenu・分割ドラッグ・持ち物の移動・alpha のブロックの枠も使う）・`localization.csv`（Web の `localizationKeys.ts` も再生成）・`GameUiTheme.tss`・既存の `OpenTrainTimetableTracker`／`OpenTrainUnitResolver`／`SubInventoryState`／`OpenBlockDetailTracker`／`UIStateControl`（呼ぶ・読むだけ）・alpha の `IBlockInventoryPanelSource` と S4-machine の `IBlockFluidSlotsModel`（購読するだけ）・録画シナリオ `train/train-timetable-via-ui`（直す）と `uitk/stage4/uitk-train-inventory`（新設）。`Client.WebUiHost/**` は変えない（D-2）
 
 | 操作 | 計画後 | 根拠 |
 |---|---|---|
@@ -58,17 +58,17 @@
 | Web 系: 新しい文言キー | 生きる | キーが 1 つ増えるだけで、Web では使わない |
 | UITK 系: 貨車を開いて本文を出す（持ち物タブ・液体貨車） | 新しく使える | Task 5・7・8 |
 | UITK 系: 貨車の枠の左／右／ダブル／Shift | 新しく使える | alpha の `BlockItemGrid` → `IBlockSlotCommands`（`TryReadBlockSlots` はエラー無しの列車で真。alpha D-37） |
-| UITK 系: 時刻表タブ・追加／上下／削除・自動運転 | 新しく使える | Task 4・6・7、録画 `uitk/uitk-train-inventory` 手順 5・6 |
-| UITK 系: 駅名の入力・決定、PF の積込/卸し | 新しく使える | Task 5・7、録画 `uitk/uitk-train-inventory` 手順 2・4 |
+| UITK 系: 時刻表タブ・追加／上下／削除・自動運転 | 新しく使える | Task 4・6・7、録画 `uitk/stage4/uitk-train-inventory` 手順 5・6 |
+| UITK 系: 駅名の入力・決定、PF の積込/卸し | 新しく使える | Task 5・7、録画 `uitk/stage4/uitk-train-inventory` 手順 2・4 |
 | UITK 系: 液体 PF の液体 | 新しく使える | 追跡ブロックの `FluidMachineInventoryStateDetail` を S4-machine の `IBlockFluidSlotsModel` が読む（D-17）。Task 1 Step 2 で空でないことを確かめる |
-| UITK 系: テキスト欄にフォーカスがあるときの E・ESC での閉じる | 要確認 | C2-b の `UiInputExclusivity` の範囲。入力欄が閉じるキーを食えば閉じられなくなる（退化）。録画 `uitk/uitk-train-inventory` 手順 3（Task 7 Step 5・Task 11 Step 2）で確かめ、食うなら C2-b の持ち主へ上げる |
+| UITK 系: テキスト欄にフォーカスがあるときの E・ESC での閉じる | 要確認 | C2-b の `UiInputExclusivity` の範囲。入力欄が閉じるキーを食えば閉じられなくなる（退化）。録画 `uitk/stage4/uitk-train-inventory` 手順 3（Task 7 Step 5・Task 11 Step 2）で確かめ、食うなら C2-b の持ち主へ上げる |
 | 乗車 HUD（S2-hud） | 生きる | `TrainRidingHudModel` を触らない。Fetcher・Tracker の購読が増えるだけ |
 | 既存の拒否理由（Settings・PauseMenu・分割ドラッグ・ブロックの枠） | 生きる | enum と switch の末尾に足すだけ（E-1）。足す 7 値（S4-machine と共有の `BlockNotOpen` を含む）はどれも非良性なので `PauseMenuCommandsTest` の benign 配列も名前も変えない（D-31・D-32） |
 | 録画 `train/train-timetable-via-ui`（Web 系。X-prerun で回す） | 今は壊れている → 直る | 押していた `train-timetable-apply` は Web にも無い（`TrainTimetableImmediate.test.ts:38`）。押下を消し、待ちをサーバーとクライアントの時刻表の駅数だけにする（系ごとの保留の印は読まない）。Task 11 Step 1・Step 3 で Web 系でも回す |
 | 録画 `train/train-timetable-via-ui`（UITK 系） | 新しく通る | 同上 |
-| 録画 `train/train-station-default-name` | 生きる | 触らない（D-13）。UITK の駅名の入力・決定は新設の `uitk/uitk-train-inventory` が持つ。Task 11 Step 3 で Web 系でも回す |
-| 録画 `uitk/uitk-train-inventory` | 新設（UITK 系だけ） | Task 11 Step 2 |
-| 録画 `train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` | 生きる | 書き換えない。UITK 系で回すだけ |
+| 録画 `train/train-station-default-name` | 生きる | 触らない（D-13）。UITK の駅名の入力・決定は新設の `uitk/stage4/uitk-train-inventory` が持つ。Task 11 Step 3 で Web 系でも回す |
+| 録画 `uitk/stage4/uitk-train-inventory` | 新設（UITK 系だけ） | Task 11 Step 2 |
+| 録画 `train/fluid-inventory-via-interact`・`uitk/stage1/uitk-lifeline` | 生きる | 書き換えない。UITK 系で回すだけ |
 | ホットバー・HUD・他の常駐表示 | 生きる | 触らない |
 
 ## Global Constraints
@@ -318,7 +318,7 @@ UiStyleConventionRules { static List<UiStyleViolation> CheckUss(string ussText, 
 | `Screens/BlockInventory/Train/TrainTestText.cs` | 木の文字・液体名・液体のアイコンの有無を読む補助 |
 | `Screens/BlockInventory/Train/Timetable/TrainTimetableSectionViewTest.cs` | `TrainTimetableImmediate.test.ts` 7〜8 |
 
-**録画**: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs`（新設）、`scenarios/train/train-timetable-via-ui.cs`（両系で通る形に直す）。
+**録画**: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-train-inventory.cs`（新設）、`scenarios/train/train-timetable-via-ui.cs`（両系で通る形に直す）。
 
 ## Tasks
 
@@ -2898,7 +2898,7 @@ namespace Client.Ui.State.Train.Platform
         {
             // 駅名・移送モードはサーバーの StateDetail。届く前は名前は空・モードの切替は出さない（Web ホストと同じ）
             // Name and mode are server StateDetails; before they arrive the name is empty and no mode switch shows (same as the Web host)
-            // silent-ok: 駅名の StateDetail が届く前は空名の欄を出す（Web ホストと同じ）/ 届かないままなら欄が空のままで、録画 uitk/uitk-train-inventory 手順 2 の駅名の待ちが落ちて開発者が気づく
+            // silent-ok: 駅名の StateDetail が届く前は空名の欄を出す（Web ホストと同じ）/ 届かないままなら欄が空のままで、録画 uitk/stage4/uitk-train-inventory 手順 2 の駅名の待ちが落ちて開発者が気づく
             var namePart = blockType == BlockTypeConst.TrainStation
                 ? SectionContent<TrainStationNamePart>.Present(new TrainStationNamePart(stationName?.StationName ?? string.Empty))
                 : SectionContent<TrainStationNamePart>.Absent;
@@ -4924,7 +4924,7 @@ Expected: `ErrorCount: 0`、14 件 PASS（SectionView 2・Body 8〈タブの局�
 
 - [ ] **Step 5: テキスト欄にフォーカスがあるときの閉じを確かめる**
 
-死活表の「要確認」行。`TrainPlatformBodyTest` と同じ組み立てで駅名の欄にフォーカスを置き、E と Esc を `simulate` で送って、alpha の外殻の閉じる経路（`UiInputExclusivity` の範囲。C2-b）が効くかを Task 11 の録画 `uitk/uitk-train-inventory` の中で確かめる（L1 の外殻には入力の振り分けが無いので録画で見る）。結果を `done.md`「証拠」に書き、効かなければ C2-b の持ち主へ `done.md`「integrator への依頼」で上げる（このレーンでは入力の振り分けを変えない）
+死活表の「要確認」行。`TrainPlatformBodyTest` と同じ組み立てで駅名の欄にフォーカスを置き、E と Esc を `simulate` で送って、alpha の外殻の閉じる経路（`UiInputExclusivity` の範囲。C2-b）が効くかを Task 11 の録画 `uitk/stage4/uitk-train-inventory` の中で確かめる（L1 の外殻には入力の振り分けが無いので録画で見る）。結果を `done.md`「証拠」に書き、効かなければ C2-b の持ち主へ `done.md`「integrator への依頼」で上げる（このレーンでは入力の振り分けを変えない）
 
 - [ ] **Step 6: コミット**
 
@@ -5410,7 +5410,7 @@ git commit -m "docs(uitk): 列車族の並べ比べの差を閉じる（S4-train
 ### Task 11: 録画（UITK の録画を新設し、壊れた時刻表の録画を両系で通る形に直す）
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-train-inventory.cs`
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-timetable-via-ui.cs`
 - 触らない: `scenarios/train/train-station-default-name.cs`（Web 系の既定名の初期同期の主張のまま。D-13）
 
@@ -5430,13 +5430,13 @@ git commit -m "docs(uitk): 列車族の並べ比べの差を閉じる（S4-train
         await p.Until(() => ClientTimetableStopCount() == 2, 10f, "クライアントの時刻表が2駅になる");
         await p.UntilUiElement("train-timetable-stop-1", 5f);
 ```
-（`ClientTimetableStopCount()` はシナリオ内のローカル関数で、`IClientTrainTimetableLookup` を前例 `uitk/uitk-grab-overlay.cs` と同じく `ClientDIContainer` から引き、`TryGet(列車の TrainUnitInstanceId, out snapshot)` の `Stops.Count`〈無ければ 0〉を返す。クライアントの公開が届いた後は DSL のアクション間 0.5 秒の間に両系の UI が描き直されるので、次の追加は保留に当たらない）
+（`ClientTimetableStopCount()` はシナリオ内のローカル関数で、`IClientTrainTimetableLookup` を前例 `uitk/stage4/uitk-grab-overlay.cs` と同じく `ClientDIContainer` から引き、`TryGet(列車の TrainUnitInstanceId, out snapshot)` の `Stops.Count`〈無ければ 0〉を返す。クライアントの公開が届いた後は DSL のアクション間 0.5 秒の間に両系の UI が描き直されるので、次の追加は保留に当たらない）
 3. スクショ名 `02-timetable-applied` を `02-timetable-added` に替える
 4. 取得の回数の主張（開いた直後 0・タブ選択で 1）と拒否ログの数え方（`[TrainScheduleEdit] rejected`）はそのまま残し、UITK の拒否の Warning `[TrainTimetableCommands] rejected:` も同じ数え方に足す（両系で拒否 0 件を主張する）
 
-- [ ] **Step 2: `uitk/uitk-train-inventory.cs` を書く**
+- [ ] **Step 2: `uitk/stage4/uitk-train-inventory.cs` を書く**
 
-前例 `scenarios/uitk/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContainer` から型を引く）と、設置は `train/train-timetable-via-ui.cs` の前半（駅 2 つ・レール・貨車 1 両）をそのまま使う。次を順に主張する:
+前例 `scenarios/uitk/stage4/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContainer` から型を引く）と、設置は `train/train-timetable-via-ui.cs` の前半（駅 2 つ・レール・貨車 1 両）をそのまま使う。次を順に主張する:
 1. 駅 A を `PressInteract` で開く → `WaitUiState(UIStateEnum.SubInventory)` → `train-platform-view`・`train-station-name-section`・`train-platform-mode` が出る（`Screenshot("01-station")`）
 2. `PlaytestUiElementOps.SetText("train-station-name-input", "中央駅")` → 送らないこと（クライアントの駅名が既定名のまま）→ `ClickUi("train-station-name-apply")` → クライアントの駅名が「中央駅」になるのを待つ。駅名は `train-station-default-name.cs:88-91` と同じく `ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(stationAPos)` の `view.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName` で読む（サーバーの `TrainStationComponent` には `GetStateDetail` が無い）→ `WaitUiTextContains("train-station-name-input", "中央駅")`
 3. 死活表の要確認「テキスト欄にフォーカスがあるときの E・ESC での閉じる」: 入力欄にフォーカスを置いたまま Esc を InputSystem で注入し、`WaitUiState(UIStateEnum.GameScreen, 5f)` で閉じることを主張する。落ちたら `done.md`「証拠」に結果を書き、C2-b の持ち主へ「integrator への依頼」で上げ、この手順だけ `p.Note` の記録に替えて残りを回す（このレーンでは入力の振り分けを変えない）。閉じたら駅 A を開き直す。E も同じ形で 1 回確かめる
@@ -5449,13 +5449,13 @@ git commit -m "docs(uitk): 列車族の並べ比べの差を閉じる（S4-train
 
 - [ ] **Step 3: 回す**
 
-実行前に PlayMode を止め、`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)` を立ててから、unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で `uitk/uitk-train-inventory`・`train/train-timetable-via-ui`・`train/fluid-inventory-via-interact`・`uitk/uitk-lifeline` を回す。続けて全体スイッチを Web（`UiSystem.Web`。`Client.Input/UiInputExclusivity.cs` の列挙）に戻し、`train/train-timetable-via-ui` と `train/train-station-default-name` を回す（Web 系が直った／退化していないことの確かめ。死活表）
+実行前に PlayMode を止め、`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)` を立ててから、unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で `uitk/stage4/uitk-train-inventory`・`train/train-timetable-via-ui`・`train/fluid-inventory-via-interact`・`uitk/stage1/uitk-lifeline` を回す。続けて全体スイッチを Web（`UiSystem.Web`。`Client.Input/UiInputExclusivity.cs` の列挙）に戻し、`train/train-timetable-via-ui` と `train/train-station-default-name` を回す（Web 系が直った／退化していないことの確かめ。死活表）
 Expected: 6 本の `result.json` が PASS、mp4 がある。`done.md`「証拠」に result.json のパス・mp4・各回の `UiInputExclusivity.ActiveUiSystem` の値（GameUi 4 本・Web 2 本）、6 本の `result.json` の `ErrorLogs` が空であること（空でなければ行をそのまま貼り、原因を直すか「要裁定」へ）と、手順 3 のフォーカス中の閉じの結果を書く。生の録画は worktree の gitignore 下に置き、`LOGS` へはスクショ 3 枚までと報告だけ。終わりに `list-work-saves.sh` でテストのワールドを消す
 
 - [ ] **Step 4: コミット**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-timetable-via-ui.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-train-inventory.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/train/train-timetable-via-ui.cs
 git commit -m "test(uitk): 列車族の UITK 録画を足し、時刻表の録画を即時送信に直す（S4-train）
 
 <実行ホストの指示する帰属行>"
@@ -5477,7 +5477,7 @@ Expected: `ErrorCount: 0`、全件 PASS
 - [ ] **Step 3: コミット**
 
 ```bash
-git add -A moorestech_client docs .agents/skills/unity-playmode-recorded-playtest/scenarios/train .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-train-inventory.cs
+git add -A moorestech_client docs .agents/skills/unity-playmode-recorded-playtest/scenarios/train .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-train-inventory.cs
 git commit -m "fix(uitk): 全ブランチのレビューを反映（S4-train）
 
 <実行ホストの指示する帰属行>"
@@ -5538,7 +5538,7 @@ git merge origin/feature/uitk
 | D-10 | 停車駅のラベルの中の駅名（名前が空なら `timetableUnnamedStation`）は `TrainInventoryBodyPresenter` が `Localize.OnLanguageChanged` で描き直す | `LocalizedLabel` は自分のキーは描き直すが、引数に埋めた解決済みの文字列は変わらない | 引数に UiText を入れ子で渡す（`LocalizationTextParam` が文字列だけ） |
 | D-11 | 無効な操作の文字色は、画面のルートのクラスの下で部品のつまみ `--panel-action-button-text` を `--text-muted` に上書き（＋`opacity: 1`） | Web `.list button:disabled { color: var(--text-muted) }`。`PanelActionButton` に無効の見た目が無く、部品のクラスを画面 USS の主語にしない規約。既定テーマの無効の不透明度が乗ると Web と違うので打ち消す。integrator へ部品側の無効の状態を依頼 | 画面 USS で `.panel-action-button` を直接塗る（規約違反） |
 | D-12 | **覆した（D-33）**。旧: タブと取得の依頼の判定は State の `TrainInventoryTabModel`（`TrainTimetableFetchTrigger` を持つ単一インスタンス）が持ち、View のタブの押下が `SelectTab` を直接呼ぶ。出所: レビュー r1 | タブはパネルごとの局所状態で、サーバーの状態でも画面をまたぐ状態でもない。State の単一インスタンスに置くと Model に操作の口が混ざり（描画値とコマンドの分離に反する）、パネルの源を別に購読して「別のパネル」を見分け直す配線が要った。純粋な判定 `TrainTimetableFetchTrigger` は残して L0 で試す | — |
-| D-13 | UITK の操作の録画は `scenarios/uitk/uitk-train-inventory.cs` に新設する（alpha の `uitk-block-inventory`・S4-machine の `uitk-machine-ui` と同じ形）。`train/train-timetable-via-ui.cs` は Web 系でも今は壊れている（無い適用ボタンを押す）ので、その場で両系で通る形に直す（押下を消し、待ちはサーバーとクライアントの時刻表の駅数だけ）。`train/train-station-default-name.cs` は触らない。出所: レビュー r1 | Web 系で回す録画に UITK だけで成り立つ手順を足すと Web 系が退化する。時刻表の録画は直さないと Web 系の壊れが残り、両系で成り立つ待ち方がある。系ごとの保留の印（UITK `--busy`・Web `aria-busy`）は Web の DSL から読めない | 既存の 2 本をその場で UITK の操作へ延ばす（旧版。Web 系の `train-station-default-name` が退化する）／時刻表の録画も `uitk/` へ分ける（Web 系の壊れが残る） |
+| D-13 | UITK の操作の録画は `scenarios/uitk/stage4/uitk-train-inventory.cs` に新設する（alpha の `uitk-block-inventory`・S4-machine の `uitk-machine-ui` と同じ形）。`train/train-timetable-via-ui.cs` は Web 系でも今は壊れている（無い適用ボタンを押す）ので、その場で両系で通る形に直す（押下を消し、待ちはサーバーとクライアントの時刻表の駅数だけ）。`train/train-station-default-name.cs` は触らない。出所: レビュー r1 | Web 系で回す録画に UITK だけで成り立つ手順を足すと Web 系が退化する。時刻表の録画は直さないと Web 系の壊れが残り、両系で成り立つ待ち方がある。系ごとの保留の印（UITK `--busy`・Web `aria-busy`）は Web の DSL から読めない | 既存の 2 本をその場で UITK の操作へ延ばす（旧版。Web 系の `train-station-default-name` が退化する）／時刻表の録画も `uitk/` へ分ける（Web 系の壊れが残る） |
 | D-14 | 自動運転と積込/卸しは楽観更新しない。押すと即送り、選択はサーバーの公開でだけ替わる | Web と同じ。`ModeSwitch` も押下で自分では選ばない | 押した瞬間に選択を替える |
 | D-15 | 駅名の拒否は待ちのあいだに届いた最新の同期名へ戻す。「未編集」は前の同期値と同じ入力とみなす | Web `TrainStationNameSection`（`latestName` と `previousName` の比べ方）と同じ。拒否のまま dirty で残り再同期されないのを防ぐ | 編集フラグで持つ（打ち戻した入力が同期に従わない差が出る） |
 | D-16 | 貨車・PF のスロットは alpha のパネルの源（`IBlockInventoryPanelSource.Current` の `OpenTrainInventoryPanel`／`OpenBlockInventoryPanel`〈エラー無し〉の `ItemSlots`）を Model が購読して読む。液体だけを `SubInventoryState`（貨車）・`IBlockFluidSlotsModel`（PF）から読む。本文の工場は「Presenter＋View」の組を返し、Model は DI の単一インスタンスで起動時に源を購読する。出所: レビュー r1（スロットの源を替えた） | パネルの源はスロットの更新でも配り直すので、`Current` を購読すれば更新が届く。`IItemStack → SlotItem` の写しを State にもう 1 本作らない（alpha のパネルと `LocalPlayerInventoryOperations` に既にある） | `SubInventoryState` からスロットを自前で写す（旧版。同じ役目の 3 本目）／パネルの `ItemSlots` を `Attach` の引数で一度だけ描く（更新が届かない） |
@@ -5554,7 +5554,7 @@ git merge origin/feature/uitk
 | D-26 | **覆した（D-32）**。旧: 駅・PF の「開いていない」は良性の `TrainBlockNotOpen` で返しトーストに出さない。出所: レビュー r2 | 旧の理由「Web と同じく画面に出ない」は事実と逆だった。Web の `BENIGN_ERRORS`（`moorestech_web/webui/src/bridge/transport/actions.ts`）に `train_timetable.*`・`train_station.set_name`・`train_platform.set_transfer_mode` の項目は無く、Web はどの拒否もトーストする | — |
 | D-27 | `TrainInventoryBodyPresenter` は表示中のタブの Model だけを購読する（持ち物タブなら中身、時刻表タブなら時刻表と言語の変化。タブの購読の中で張り替え、購読の頭で最新値を 1 回描く）。区画と中身の要素は非表示のあいだも作ったまま（D-5）。出所: ADR の更新（ad92a44777 の §4.2 SetShown の注記）・レビュー r3（持ち物タブにも広げた） | 設計書 §4.2「SetShown は出し入れだけ。非表示の間に描かないのは Presenter が表示中だけ Model を購読して守る」。中身の Model はスロットの更新のたびに配り直す（D-16）。Web も持ち物タブ以外では中身を mount しない | 常に購読して非表示の区画・中身も描く（注記に反し、時刻表タブの間の貨物の更新で隠れた枠を描き直す）／時刻表だけ表示中購読（r2。持ち物側が却下した形のまま） |
 | D-28 | View は列車の型（`TrainUnitInstanceId`。`Game.Block.Interface`）を持たず、区画の作り直しは State の `ReadyTrainTimetableArea.IsSameTrain` で決める。出所: レビュー r2 | `Client.Ui.asmdef` は `Game.Block.Interface` を参照せず（asmdef の参照は推移しない）、D-8 も View にサーバーの型を持たせない | `Client.Ui.asmdef` に参照を足す（D-8 に反する） |
-| D-29 | 閉じたことは `TrainTimetableModel` が `UIStateControl.OnStateChanged` を購読して組み直し、使えないへ倒して編集の器に伝える（器 `TrainTimetableEditState` はセッションを閉じ、遅れて戻った受理・拒否を捨てる。D-33 で編集の Model から器へ移した）。L0 は器の約束（源が使えない → 捨てる）を、本番の通知経路は録画 `uitk/uitk-train-inventory` 手順 6 で確かめる。出所: レビュー r2 | `SubInventoryState` は開閉で `OnSubInventoryUpdated` を出さず、Tracker の開閉の購読も再公開を出さないので、閉じても Ready のまま編集が続き、閉じた後に拒否のトーストと巻き戻し・受理の 5000ms の時間切れが走っていた。Web ホスト `BlockInventoryTopic` も `UIStateControl.OnStateChanged` で配り直す | 編集の Model がパネルの源を購読して閉じる（時刻表の源は Ready のまま残るので、閉じた後に同じ列車を開き直すと同じ中身の Ready が配り直されずセッションが開かない。源と編集の Model の閉じの入力がずれる窓ができる。なお選んだ案でも State の閉じの入力は 2 系統〈時刻表は `UIStateControl.OnStateChanged`、本文・PF・駅名の下書きは alpha のパネルの源の `Closed`〉で、どちらが先に倒れても源が使えなくなった時点で閉じるので食い違いは起きない）／`TrainTimetableModel` を L0 で組む（`UIStateControl` は MonoBehaviour で組めない） |
+| D-29 | 閉じたことは `TrainTimetableModel` が `UIStateControl.OnStateChanged` を購読して組み直し、使えないへ倒して編集の器に伝える（器 `TrainTimetableEditState` はセッションを閉じ、遅れて戻った受理・拒否を捨てる。D-33 で編集の Model から器へ移した）。L0 は器の約束（源が使えない → 捨てる）を、本番の通知経路は録画 `uitk/stage4/uitk-train-inventory` 手順 6 で確かめる。出所: レビュー r2 | `SubInventoryState` は開閉で `OnSubInventoryUpdated` を出さず、Tracker の開閉の購読も再公開を出さないので、閉じても Ready のまま編集が続き、閉じた後に拒否のトーストと巻き戻し・受理の 5000ms の時間切れが走っていた。Web ホスト `BlockInventoryTopic` も `UIStateControl.OnStateChanged` で配り直す | 編集の Model がパネルの源を購読して閉じる（時刻表の源は Ready のまま残るので、閉じた後に同じ列車を開き直すと同じ中身の Ready が配り直されずセッションが開かない。源と編集の Model の閉じの入力がずれる窓ができる。なお選んだ案でも State の閉じの入力は 2 系統〈時刻表は `UIStateControl.OnStateChanged`、本文・PF・駅名の下書きは alpha のパネルの源の `Closed`〉で、どちらが先に倒れても源が使えなくなった時点で閉じるので食い違いは起きない）／`TrainTimetableModel` を L0 で組む（`UIStateControl` は MonoBehaviour で組めない） |
 | D-30 | 編集セッションはサーバーの時刻表（`TrainTimetableReadyData`）を `Server` として持ち、編集の Model は `_session` 1 本にする。値の列の比べは `Enumerable.SequenceEqual`（自前の `SameItems` を消す）。出所: レビュー r2（5-A1・N-7） | 組で立てる・倒す 2 つのフィールド（`_session` と `_server`）を言葉の注で保証する形をやめる。`SequenceEqual` は既定の比較子（値の構造体の `Equals`）で同じ判定（前例 `CursorTooltipViewModel`） | 2 フィールドのまま注で保証する（r1）／`TrainTimetableValueEquality` を残す |
 | D-31 | 列車の拒否は理由ごとの `UiCommandRejectReason` で返す（`TrainTimetableReplaceFailed`・`TrainAutoRunFailed`・`TrainAutoRunNotApplied`・`TrainInvalidBlockType`・`TrainStationNameFailed`・`TrainPlatformModeFailed`、と共有の `BlockNotOpen`）。理由の既定 wire（`UiCommandRejectReasonTraits.ToWireCode(reason)`）は Web ホストの理由の頭（`replace_failed` 等）で、`TrainCommandRejection.Reject` のログ `rejected: <wire>:<Detail>` に出る。ただし Detail がある拒否では `UiCommandRejected.ToWireCode()` が Detail（サーバーの列挙名。例 `TrainNotFound`）を返すので、トースト係 `UiCommandResultToaster` のログ `failed: <…>` に出るのは列挙名で、理由の頭ではない（Detail が空の拒否だけ理由の頭が出る）。文言キーは値ごとに `ui.commandRejected.<値>`。`Detail` は既定 `""` で、サーバーの `FailureReason` を載せるときだけ入れる。組み立ては `TrainCommandRejection.Reject(logTag, reason, serverFailureReason)` の 1 か所（D-9 を覆した）。出所: moores-code-review（設計判断 D1） | `ToWireCode` は「Detail があればそれ」を返すので、Detail に wire を詰めると Detail の意味（補足）が崩れる。前例 `PauseMenuCommands.SubmitBugReport` は失敗コードだけを Detail に入れる。理由ごとの文言があれば利用者に何が断られたかが伝わる | 1 つの `TrainEditRejected` に寄せ Detail に Web の理由文字列を入れる（D-9 の旧案。どれも同じ文言で、Detail の契約を曲げる） |
 | D-32 | 足す拒否は全部非良性でトーストする。「開いていない」（駅・PF の `block_not_open`、時刻表の `train_not_open`、時刻表が開いていない編集）は S4-machine と共有の `BlockNotOpen` 1 値（wire `block_not_open`・文言キー `ui.commandRejected.blockNotOpen`。csv の行は S4-machine 計画と一字一句同じ）。S4-machine と S4-train の先にマージした方が列挙・3 つの switch・csv に足し、後の方は使うだけ（着手時に grep で確かめ、取り込みで両側にあれば 1 行に畳む）。`PauseMenuCommandsTest` の良性の配列と名前は変えない（D-26 を覆した）。出所: moores-code-review（設計判断 D2。S4-machine D-38 と同じ裁き） | Web の `BENIGN_ERRORS` に列車の操作の項目は無く、Web はどの拒否もトーストする。`IsBenign` の契約（Web の BENIGN_ERRORS にあるものだけ良性）と alpha D-56 にそろう。同じ意味・同じ wire の値を 2 レーンで 2 つ持つと取り込みで衝突する。時刻表の wire が Web ホストの `train_not_open` と違うのはログの文字列だけで、利用者に見える振る舞い（トースト）は Web と同じ | 良性の `TrainBlockNotOpen`（D-26 の旧案。Web と挙動が逆）／時刻表だけ `TrainNotOpen` を別に足す（同じ意味の値が増える） |
@@ -5578,7 +5578,7 @@ git merge origin/feature/uitk
 | A-156 | 時刻表の即時編集 `TrainTimetableEditSession`（Web `useImmediateTimetable` の写し。段階は判別 union）: 編集は即送信・保留中の編集は捨てる・受理と同じ並びの公開で解く・受理後 5000ms 公開が無ければ解く（実時間。UI の通信待ちでティックの対象外）・拒否は最新のサーバーの並びへ戻す・閉じた後の結果は捨てる。閉じたことは `UIStateControl.OnStateChanged` で使えないへ倒して伝える。Web ホストにしかない導出は State に同じ規則でもう 1 本持ち（C4-e の agent 既定と同じ据え置き。負債が残る）、CEF 撤去の日に `Client.WebUiHost` 側を消す |
 | A-157 | 列車の断りの理由は理由ごとの `UiCommandRejectReason`（`TrainTimetableReplaceFailed`・`TrainAutoRunFailed`・`TrainAutoRunNotApplied`・`TrainInvalidBlockType`・`TrainStationNameFailed`・`TrainPlatformModeFailed`。文言キーは `ui.commandRejected.<値>`）と、S4-machine と共有の `BlockNotOpen`（wire `block_not_open`・文言キー `ui.commandRejected.blockNotOpen`。先にマージしたレーンが足し、後のレーンは使うだけ）。どれも非良性で、Web と同じくトーストする（Web の `BENIGN_ERRORS` に列車の操作の項目は無い）。`Detail` は既定 `""` で、サーバーの `FailureReason` を載せるときだけ入れる（S4-train 計画 D-31・D-32） |
 | A-158 | 駅名の欄は `GameTextField(GaugeInset)`＋`PanelActionButton`。送るのは決定の押下だけ、拒否は最新の同期名へ戻す。積込/卸しの選択肢の testid は `train-platform-mode-load` / `-unload`（Web に無い名前を UITK で足す） |
-| 実行計画 §1.4 | S4-train 行（設計書の裁定ではなく実行計画の行の直しの下書き）: 写すテストの数を実物の 20 件（`train.spec` 1・`timetable.spec` 2・`TrainTimetableImmediate` 8・`TrainTimetableSection` 5・`TrainInventoryBody` 1・`trainPlatform.spec` 2・`TrainPlatformInventory` 1）＋共有 2 件に直し、依存に S4-machine（`FluidInventoryContents`・`IBlockFluidSlotsModel`）を足す。録画は `uitk/uitk-train-inventory`（新設）と `train/train-timetable-via-ui`（両系で通る形に直す） |
+| 実行計画 §1.4 | S4-train 行（設計書の裁定ではなく実行計画の行の直しの下書き）: 写すテストの数を実物の 20 件（`train.spec` 1・`timetable.spec` 2・`TrainTimetableImmediate` 8・`TrainTimetableSection` 5・`TrainInventoryBody` 1・`trainPlatform.spec` 2・`TrainPlatformInventory` 1）＋共有 2 件に直し、依存に S4-machine（`FluidInventoryContents`・`IBlockFluidSlotsModel`）を足す。録画は `uitk/stage4/uitk-train-inventory`（新設）と `train/train-timetable-via-ui`（両系で通る形に直す） |
 
 ## 本 PR 外のリファクタ提案
 

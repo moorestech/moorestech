@@ -8,7 +8,7 @@
 set -u
 PROJECT="$1"
 SCENARIO="$2"
-SKILL_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+SKILL_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 MARKERS="$PROJECT/PlaytestResults/scratch/ime-mac"
 LOG="$PROJECT/PlaytestResults/scratch/ime-mac-runner.log"
 rm -rf "$MARKERS"

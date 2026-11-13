@@ -170,7 +170,7 @@ public sealed class IconButton : VisualElement
 | L1 画面 | View＋Model＋Commands の結線 | `ScreenTestHost`・`FakeModel<T>`・`CommandRecorder<T>` | `S/Client.Tests/Ui/Screens/<機能>/` | Web のコンポーネントテストと e2e のうちブラウザ固有でない全件 |
 | L2 | 規約 | `UiStyleConventionTest` ほか | `S/Client.Tests/Ui/Conventions/` | 規約を足したら違反の文字列のケースを 1 つ |
 | L3 | 実ゲームの結線 | EditModeInPlayingTest | `S/Client.Tests/EditModeInPlayingTest/Ui/` | 段ごとに 1 本（スイッチ UITK で開く・閉じる） |
-| L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/` | `origin/master:docs/uitk-migration/plan.md` §4.4 のラダー |
+| L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/<段>/`（`stage1`〜`stage4` はその段のレーン〈C2〜C4 は段 2〜4〉・`integrator` は I-fix・I-blend。1 ディレクトリ 10 本まで） | `origin/master:docs/uitk-migration/plan.md` §4.4 のラダー |
 
 - 回し方: `uloop compile --project-path ./moorestech_client` → L0〜L2 は `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\."`。L3 は別に `--filter-value "^Client\.Tests\.EditModeInPlayingTest\.Ui\."` で回す（PlayMode 遷移でドメインリロードが入る）
 - 写したテストと Web の元テストの対応は `docs/uitk/disposition.md` に書く

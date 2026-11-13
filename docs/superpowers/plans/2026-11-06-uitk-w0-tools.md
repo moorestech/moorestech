@@ -219,7 +219,7 @@ test("処遇の表の行を読み、テスト名の \\| を | に戻し、記録
     ...head,
     "| 1 | `src/features/toast/toastStore.test.ts` | a \\| b | 捨てる | 通信の契約は UITK に無い | — |",
     "| 1 | `e2e/tests/regression/actionErrors.spec.ts` | * | 捨てる | 通信失敗のトーストは撤去まで Web に残る | #1600 |",
-    "| 1 | `e2e/tests/system/pauseMenu.spec.ts` | x | 録画 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs` | — |",
+    "| 1 | `e2e/tests/system/pauseMenu.spec.ts` | x | 録画 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs` | — |",
     "| 1 | `src/features/settings/SprintModeSelect.test.ts` | y | 写す予定 | moorestech-abcd.1 | — |",
     "| 1 | `src/features/toast/ToastHost.test.tsx` | z | 目視 | 1-toast https://example.invalid/uitk-toast.png | — |",
   ].join("\n");
@@ -1095,7 +1095,7 @@ Expected: `exit=1`、1 行目が `束 1: Web N 件 / 写した 0 / 処遇 0 / �
 | `src/features/settings/LanguageSelect.test.ts` | 2 | `Screens/Settings/SettingsViewTest.cs`・`State/SettingsCommandsTest.cs` |
 | `src/features/settings/SprintModeSelect.test.ts` | 6 | 同上 |
 | `src/features/toast/toastStore.test.ts` | 2 | `Screens/Toast/ToastHostViewTest.cs` |
-| `e2e/tests/system/pauseMenu.spec.ts` | 4 | `Screens/PauseMenu/PauseMenuViewTest.cs`、録画 `scenarios/uitk/uitk-lifeline.cs` |
+| `e2e/tests/system/pauseMenu.spec.ts` | 4 | `Screens/PauseMenu/PauseMenuViewTest.cs`、録画 `scenarios/uitk/stage1/uitk-lifeline.cs` |
 | `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` | 2 | レイアウトの主張（目視の候補） |
 | `e2e/tests/system/feedbackReportLabels.spec.ts` | 1 | `Screens/BugReport/BugReportFormViewTest.cs`、録画 `scenarios/misc/feedback-report-labels.cs` |
 | `e2e/tests/regression/actionErrors.spec.ts` | 2 | なし（捨てる） |
@@ -1127,7 +1127,7 @@ Expected: `exit=1`、1 行目が `束 1: Web N 件 / 写した 0 / 処遇 0 / �
 `moorestech_client/Temp/w0-tools-bundle1-missing.txt` の未対応 1 件ごとに、Web のテスト本文（`sed -n '<行>,+25p' moorestech_web/webui/<ファイル>`）と Step 1 の表の NUnit を読み、次の順で決める。判定は「仕組み」ではなく「意図（同じ入力で同じ観測ができるか）」で行う。例: Web の「設定ボタンは settings への show_page を送る」は、UITK の「設定ボタンで設定画面へ遷移する（`RecordingPauseMenuCommands` かルータで観測）」NUnit があれば写した、とする。
 
 1. 同じ意図を確かめる NUnit がある → そのテストメソッドの `[Test]` の直前に `/// <web-test file="<ファイル>"><Web のテスト名そのまま></web-test>` を 1 行足す（名前は `--emit-missing` の行の 3 列目をそのまま写す。`\|` は `|` に戻し、`<` `>` `&` は実体参照にする）。Global Constraints の W0-switch が書き換える 6 本にはタグを書かない
-2. NUnit は無いが録画シナリオが同じ意図を assert している → `録画`（証跡にシナリオのパス。例 `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs`）
+2. NUnit は無いが録画シナリオが同じ意図を assert している → `録画`（証跡にシナリオのパス。例 `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs`）
 3. レイアウト・見た目だけの主張で L1 で主張できない → `目視`（証跡に参照キャプチャの撮影 id。束 1 は台帳の行の `参照キャプチャ` 列〈`1-pause-top`・`1-settings` など〉と、pauseMenu 行の `実測の結論` 列の UITK 側スクショの URL）
 4. UITK に同じものが無い（WS の action 名・HTTP・DOM の構造・CEF の休止など）→ `捨てる`（理由を 1 文で）
 5. UITK に挙動はあるが確かめる NUnit が無い → `写す予定`。まとめて bd の子課題を 1 つ作り、その ID を証跡に書く:

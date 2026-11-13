@@ -49,8 +49,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 
             simulate.Click(Find<Button>(View, "build-menu-close"));
 
-            // 遷移の結果パネルが隠れることは録画 uitk/uitk-build-menu が見る（D-27）
-            // The panel hiding after the transition is checked by the uitk/uitk-build-menu recording (D-27)
+            // 遷移の結果パネルが隠れることは録画 uitk/stage3/uitk-build-menu が見る（D-27）
+            // The panel hiding after the transition is checked by the uitk/stage3/uitk-build-menu recording (D-27)
             Assert.AreEqual(1, Commands.CloseCount);
         }
 

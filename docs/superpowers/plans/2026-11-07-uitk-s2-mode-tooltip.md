@@ -216,7 +216,7 @@ public sealed class TooltipOwner { }
 | `S/Client.Tests/Ui/Screens/CursorTooltip/CursorTooltipViewTest.cs` | 文言・行・面・未知のキーの印（C7 1・2・4・5、commonHud 3・4） | 新規 |
 | `S/Client.Tests/Ui/Screens/CursorTooltip/CursorTooltipPositionViewTest.cs` | 位置・ロック・言語変更（C7 6・7、commonHud 5） | 新規 |
 | `SKILL/scenarios/misc/cursor-tooltip-follows-crosshair.cs` | GameUi の系の分岐を足す | 変更 |
-| `SKILL/scenarios/uitk/uitk-mode-hud-and-tooltip.cs` | 配置 HUD・高さ・削除の帯を UITK で通す録画（並べ比べの実画面の撮影も兼ねる） | 新規 |
+| `SKILL/scenarios/uitk/stage2/uitk-mode-hud-and-tooltip.cs` | 配置 HUD・高さ・削除の帯を UITK で通す録画（並べ比べの実画面の撮影も兼ねる） | 新規 |
 | `docs/uitk/disposition.md` | 「## 処遇」の末尾に 2 行（設計書 §4.3） | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.PlacementHud`・`DeleteHud` の 2 行を消す（S2-tutorial が先にマージされた場合） | 変更（共有区画・在れば） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（ポインタの届き方・角度の読み方）、要れば「## 見た目の例外」末尾（LX-32〜34） | 変更（共有区画） |
@@ -3141,11 +3141,11 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
-### Task 11: unityプレイ録画テスト（`misc/cursor-tooltip-follows-crosshair`・`uitk/uitk-mode-hud-and-tooltip`）
+### Task 11: unityプレイ録画テスト（`misc/cursor-tooltip-follows-crosshair`・`uitk/stage2/uitk-mode-hud-and-tooltip`）
 
 **Files:**
 - Modify: `SKILL/scenarios/misc/cursor-tooltip-follows-crosshair.cs`
-- Create: `SKILL/scenarios/uitk/uitk-mode-hud-and-tooltip.cs`
+- Create: `SKILL/scenarios/uitk/stage2/uitk-mode-hud-and-tooltip.cs`
 - Modify: `docs/uitk/TODO.md`（Task 8 Step 5 の 2 行目）
 
 **Interfaces:**
@@ -3171,7 +3171,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 2: 操作モード HUD とポインタ追従の録画を書く**
 
-`uitk-mode-hud-and-tooltip.cs`（前例 `SKILL/scenarios/uitk/uitk-lifeline.cs` の冒頭の入力準備と、`misc/right-short-press-cancel.cs` の `AssignHotbar`・`EnterBuildMode`）。流れ:
+`uitk-mode-hud-and-tooltip.cs`（前例 `SKILL/scenarios/uitk/stage1/uitk-lifeline.cs` の冒頭の入力準備と、`misc/right-short-press-cancel.cs` の `AssignHotbar`・`EnterBuildMode`）。流れ:
 1. 冒頭で `p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）")`。入力の準備（`backgroundBehavior`・`EnsureDevices`・`EnableDevice`）は uitk-lifeline と同じ
 2. `p.SkipOpeningSkit()` → `p.Hotbar.AssignHotbar(0, "木のチェスト")` → `p.Hotbar.EnterBuildMode(0)` → `p.WaitUiState(UIStateEnum.PlaceBlock, 15f)`
 3. `PlaytestUiElementOps.FindUi("placement-mode-hud")` が見つかり、その配下の `operation-mode-detail`（同名 Label が 2 つあり `FindUi` は Ambiguous で文が空になるので、GameUi の木を親の配下で `Query("operation-mode-detail").ToList()` で引く）の 1 つ目の文に `木のチェスト` を含む。`p.Screenshot("01-placement")`
@@ -3194,7 +3194,7 @@ Expected: 2 行目が `GameUi`。`result.json` が `Success: true`、Note に `�
 
 - [ ] **Step 4: 2 本目を回す**
 
-Run: Step 3 の 2 行目（`GameUi` の確認）を流してから `"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/uitk-mode-hud-and-tooltip.cs"`
+Run: Step 3 の 2 行目（`GameUi` の確認）を流してから `"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage2/uitk-mode-hud-and-tooltip.cs"`
 Expected: `Success: true`、スクショ 4 枚と録画 mp4。7 のポインタ追従が落ちたら Task 7 Step 0 の停止と同じく止めて指揮へ報告する
 
 - [ ] **Step 5: 台帳の実測の 2 行目を足し、証拠を done.md に書いてコミット**
@@ -3259,7 +3259,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
   ],
   "media": [
     {"file": "<cursor-tooltip-follows-crosshair の recording.mp4>", "caption": "misc/cursor-tooltip-follows-crosshair（UITK 側）", "group": "unityプレイ録画テスト"},
-    {"file": "<uitk-mode-hud-and-tooltip の recording.mp4>", "caption": "uitk/uitk-mode-hud-and-tooltip（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "<uitk-mode-hud-and-tooltip の recording.mp4>", "caption": "uitk/stage2/uitk-mode-hud-and-tooltip（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<web-a9d5123537/2-placement.png>", "caption": "Web 2-placement", "group": "2-placement"},
     {"file": "<compare/S2-mode-tooltip/uitk-2-placement-1280x720.png>", "caption": "UITK 2-placement 1280×720", "group": "2-placement"},
     {"file": "<web-…-2560x1080/2-placement.png>", "caption": "Web 2-placement 2560×1080", "group": "2-placement"},
@@ -3340,7 +3340,7 @@ Expected: closed、`git status --short` と `git log` が空。`done.md` の 1 �
 | D-12 | Web `modeHudDesign.test.ts` の 5 件のうち 4 件を写す。構成（部品の型・帯の数）を L1 で、色と寸法のトークン経由を画面 USS とトークン USS の本文で主張する。5 件目（警告色を他 consumer と共有）は `捨てる` | 5 件目を写す: この画面は警告の行を持たず（D-7）、他 consumer（通知・列車の網・不足の強調）は別画面のレーンが写す | agent 既定（D-7 に従って改訂） |
 | D-13 | 引数の欠けは補間（`LocalizationTextInterpolator`）が解くたびに LogError を出す（Web は 1 回だけ warn）。引数 0 件の `UiText` は `Localize.Get` だけを通り補間に入らない（`UiText.cs:84`）ので、テストは別名の引数を 1 つ持つ行で補間に入れて Error と枠のまま残る文を主張し、続けて count=0 の「Wire x0」を主張する。本番で引数 0 件の行が `{count}` を残したまま無言で出る経路は Foundation の挙動なので、`done.md` の「integrator への依頼」に「引数 0 件の UiText も補間に通し、欠けた枠を LogError にしてほしい（UiText.cs:84）」と書く | 引数 0 件のまま LogError を期待する: 実物は補間に入らず落ちる。disposition で捨てる: 別名の引数で補間に入れれば Web の主張を写せる。回数を 1 回にする・UiText を直す: Foundation の持ち物 | 出所: 第 5 回修正（評価役 2 体の 2 巡目・実物確認）→ agent 既定 |
 | D-14 | 並べ比べは theme レーンの前例どおり、`GameUiPanelSettings.asset` を `Object.Instantiate` した複製に `targetTexture`（1280×720・2560×1080）を付けた UIDocument へ載せて RT を `ReadPixels` で撮る。操作モード HUD は Web と同じ固定値の ViewModel を `Render` し、ツールチップは `TooltipFace` を参照の面の位置へ置いて面の見た目だけを比べる。言語は Web の参照に揃える | `PlayModeWindow.SetCustomRenderingResolution` で Game ビューを変える: 3 計画で撮り方が割れ、theme レーンの実撮影の前例から外れる。実ゲームで同じ状態を作る: 参照は mock-host の固定値で、実ゲームに同じ対象名が無い。ツールチップの位置も撮る: 位置は L1 と録画が持ち、RT のパネルでは実画面のポインタと座標が合わない | 出所: 第 2 回修正（独立評価〈Codex〉・user-simulator・fresh-context 再検査・再現役で実物確認）→ agent 既定（前例 `../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` Step 7）。言語は 出所: 第 3 回修正（opus の独立評価・評価役が実物確認）→ agent 既定 |
-| D-15 | 完了条件の録画 `misc/cursor-tooltip-follows-crosshair` に GameUi の分岐（ロック中は隅へ注入しても中央に居続ける）を足し、このレーンが持つ。操作モード HUD とポインタ追従は新しい録画 `uitk/uitk-mode-hud-and-tooltip` で通す | 既存の録画をそのまま回す: Web 専用の前提（隅への追従を DOM で確かめる）が GameUi では D-4 により成り立たず落ちる。操作モード HUD の録画を作らない: Model の配線（源 4 本の購読）は L1 で見ていない（D-19） | agent 既定（moores-writing-plans の規定） |
+| D-15 | 完了条件の録画 `misc/cursor-tooltip-follows-crosshair` に GameUi の分岐（ロック中は隅へ注入しても中央に居続ける）を足し、このレーンが持つ。操作モード HUD とポインタ追従は新しい録画 `uitk/stage2/uitk-mode-hud-and-tooltip` で通す | 既存の録画をそのまま回す: Web 専用の前提（隅への追従を DOM で確かめる）が GameUi では D-4 により成り立たず落ちる。操作モード HUD の録画を作らない: Model の配線（源 4 本の購読）は L1 で見ていない（D-19） | agent 既定（moores-writing-plans の規定） |
 | D-16 | L3（EditModeInPlayingTest）は持たない | 持つ: 段の締め S2-ladder が束 2 の L3 を持つ（実行計画）。このレーンのランタイムの確認は録画 2 本で行う | 実行計画 §6.2 |
 | D-17 | commonHud.spec.ts は 1・3・4・5 件目に `<web-test>` を付け、3 件目は tooltip の部分だけを写す。2・6 件目と 3 件目の採掘進捗・クロスヘアは S2-hud | 3 件目をどちらか 1 レーンに寄せる: 1 件が 2 レーンの画面を跨いでいて、片方だけでは主張が欠ける。同名の付与は複数可（実行計画 E-13） | agent 既定（notes で S2-hud と共有） |
 | D-18 | 並べ比べの原本は worktree の `moorestech_client/.uloop/outputs/compare/S2-mode-tooltip/`（gitignore 下）に置き、報告ページに載せる。2560×1080 の Web 参照が無ければ master の worktree で撮る（`shotRunner.ts` の書き換えはコミットしない） | `moorestech_logs` に置く: AGENTS.md がスクショ 3 枚程度までに絞っている。2560×1080 を撮らない: 実行計画 §6.2 が 2 解像度を求める | agent 既定（compare-procedure） |

@@ -33,7 +33,7 @@
 | R-14 | 並べ比べ: 参照キャプチャ（1280×720）の `2-world-pin-onscreen`・`2-world-pin-offscreen`・`2-key-control-hint`・`5-tutorial-outline-label`・`5-tutorial-recipe-item`・`5-tutorial-research-node` と動画 `2-key-control-hint-pulse`・`2-world-pin-pulse`・`4-drag-guide`・`5-tutorial-pulse` のコマ、2560×1080 の撮影（master の worktree で撮る）と、Web と同じ撮影状態を fixture で作った UITK の撮影（Task 14 の対の表。DragGuide は Web の動画 `4-drag-guide` のコマと fixture の連番を並べる。ポーズ後だけ UITK のみの自己確認）を並べ、差の表を `done.md` に書き、報告ページに載せる | `done.md` の差の表。合否は ref-uitk-design の目安（720p で 2px 以内・トークン同値・装飾の有無・段組） |
 | R-15 | Web と同じにできない差は `LX-35`〜`LX-38` で台帳「## 見た目の例外」の末尾へ行を足し、該当行に `/* look-exception: LX-n */` を付ける | `LookExceptionLedgerTest` が緑 |
 | R-16 | 写さない Web テスト 2 件（item master 未ロード中の ack・同一 anchor を共有する全 highlight への ack）は `docs/uitk/disposition.md` に「捨てる」と理由を書く。`node tools/uitk/test-name-parity.mjs --bundle 2`・`--bundle 4`・`--bundle 5` でこのレーンの Web テスト名が未対応 0 | parity の出力 |
-| R-17 | unityプレイ録画テスト `uitk/uitk-tutorial-cues` を全体スイッチ UITK で回す | result.json が PASS、recording.mp4 |
+| R-17 | unityプレイ録画テスト `uitk/stage2/uitk-tutorial-cues` を全体スイッチ UITK で回す | result.json が PASS、recording.mp4 |
 | R-19 | 部品の直し（指揮の割り当て A。最初の使い手がこのレーン）: `ShortcutHintLabel.SetHint` は Prefix のとき印の引数を足さず、content・verbatim の文をそのまま受ける。`KeyCap` は色のつまみ `--key-cap-color`（未指定なら `var(--text-high-contrast)`）を持つ。S2-hud の KeyHintHud（Inline）の振る舞いは変えない | L1 `ShortcutHintLabelPrefixTextTest` に Prefix の content/verbatim 1 件、`KeyCapTest` につまみの上書き 1 件。既存の `Client.Tests.Ui.Components.Text.` の L1 と KeyHintHud の L1 が全件緑 |
 | R-18 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ付き）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑・未記帳 0 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット |
 
@@ -109,7 +109,7 @@
 | `S/Client.Tests/Ui/Screens/Tutorial/Cues/{FakeTutorialCueModels.cs,KeyControlHintTest.cs,WorldPinOverlayTest.cs,TutorialStageCueTest.cs,TutorialViewportScalingTest.cs}` | Create | L1（ヒント・ピン・e2e の写し） |
 | `S/Client.Tests/Ui/Screens/Tutorial/Design/{TutorialDesignSource.cs,TutorialAttentionTokenTest.cs,KeyControlHintDesignTest.cs,TutorialRingDesignTest.cs,WorldPinArrowDesignTest.cs}` | Create | 見た目の規則（21 件） |
 | `docs/uitk/TODO.md`・`docs/uitk/disposition.md` | Modify | 実測の結論・見た目の例外 LX-35〜38・追従記録・処遇 |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-tutorial-cues.cs` | Create | 録画シナリオ |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-tutorial-cues.cs` | Create | 録画シナリオ |
 
 `Screens/WorldPin/**`・`Client.Ui.State/WorldPin/**`・`WorldPinGameUiRegistration.cs` は所有表にあるが使わない（D-1）。
 
@@ -3486,13 +3486,13 @@ fixture の EDC のコードは `moorestech_client/PlaytestResults/s2-tutorial-c
 
 ---
 
-### Task 15: unityプレイ録画テスト（`uitk/uitk-tutorial-cues`）
+### Task 15: unityプレイ録画テスト（`uitk/stage2/uitk-tutorial-cues`）
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-tutorial-cues.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-tutorial-cues.cs`
 
 **Interfaces:**
-- Consumes: 前例 `scenarios/uitk/uitk-lifeline.cs`（`PlaytestRunner.Run`・`SetupDebugEnvironment`・`SkipOpeningSkitIfPlaying`・`ExitToGameScreen`・`PressKey`・`WaitUiState`・`PlaytestUiElementOps.FindUi`・`Screenshot`・`Note`・`Assert`）、`TutorialPresentationStateStore.Instance`（`BeginSession(Guid)`・`AddOutlineHighlight(string anchorId, Guid tutorialGuid)`・`AddDragGuide(string from, string to)`・`AddKeyControlHint(string tutorialGuid, string keyName, string uiState)`・`EndSession(Guid)`）、`WorldPinStateStore.Instance`、マスタのチャレンジ 1（`mapObjectPin` を持つ）
+- Consumes: 前例 `scenarios/uitk/stage1/uitk-lifeline.cs`（`PlaytestRunner.Run`・`SetupDebugEnvironment`・`SkipOpeningSkitIfPlaying`・`ExitToGameScreen`・`PressKey`・`WaitUiState`・`PlaytestUiElementOps.FindUi`・`Screenshot`・`Note`・`Assert`）、`TutorialPresentationStateStore.Instance`（`BeginSession(Guid)`・`AddOutlineHighlight(string anchorId, Guid tutorialGuid)`・`AddDragGuide(string from, string to)`・`AddKeyControlHint(string tutorialGuid, string keyName, string uiState)`・`EndSession(Guid)`）、`WorldPinStateStore.Instance`、マスタのチャレンジ 1（`mapObjectPin` を持つ）
 - Produces: result.json・recording.mp4・スクショ 6 枚（実プレイの自己確認。`05`・`06` は Task 14 の表に「UITK のみ（自己確認）」で載る）
 
 - [ ] **Step 1: シナリオを書く**
@@ -3571,7 +3571,7 @@ Expected: `GameUi`（名前空間・メソッド名は `uitk-lifeline.cs` の冒
 ```bash
 SCRATCH="$PWD/moorestech_client/PlaytestResults/scratch"
 mkdir -p "$SCRATCH"
-cp .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-tutorial-cues.cs "$SCRATCH/uitk-tutorial-cues.cs"
+cp .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-tutorial-cues.cs "$SCRATCH/uitk-tutorial-cues.cs"
 .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client "$SCRATCH/uitk-tutorial-cues.cs"
 ```
 Expected: result.json が PASS、recording.mp4 とスクショ 6 枚。初回に "already playing" で落ちたら PlayMode を止めて同じコマンドで投入し直す。録画で、ピンの脈動（矢印だけ）・ヒントの 1.08 の脈動・枠の 1.03 の脈動・DragGuide の移動と明滅・ポーズを閉じた後に枠が残らないことを目で確かめ、done.md に result.json と recording.mp4 のパスを書く。Task 13 Step 3 の fps の行をここで埋める
@@ -3579,7 +3579,7 @@ Expected: result.json が PASS、recording.mp4 とスクショ 6 枚。初回に
 - [ ] **Step 3: コミットし、作業で作ったワールドを片付ける**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-tutorial-cues.cs docs/uitk/TODO.md
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-tutorial-cues.cs docs/uitk/TODO.md
 git commit -m "test(uitk): チュートリアルの枠・ヒント・ワールドピンを UITK で通す録画シナリオを足す（S2-tutorial）
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
