@@ -30,7 +30,6 @@ return PlaytestRunner.Run("belt-route-branch-via-ui", options, async p =>
     // 足場は地形の山の中にあり、そのままでは設置物が録画に写らない
     // The scaffold sits inside a terrain mound, so placed blocks would not show on the recording
     p.HideMapObjects();
-    p.SetOverlayPanels(false, false);
 
     // ---------------------------------------------------------------- 1. 本線
     p.Note("フェーズ1: 東向きの本線(2,4)→(10,4)を2クリックで置く");

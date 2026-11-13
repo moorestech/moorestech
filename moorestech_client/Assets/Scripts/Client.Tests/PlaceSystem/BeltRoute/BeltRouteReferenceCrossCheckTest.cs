@@ -51,7 +51,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
                 var result = new BeltRoutePlanner(grid, RecoverySlack).Plan(query);
                 var rule = new BeltRouteTransitionRule(grid, query);
-                var referenceCost = new BeltRouteReferenceSolver(rule, CostCap, true).Solve();
+                var referenceCost = new BeltRouteReferenceSolver(rule, CostCap).Solve();
                 if (referenceCost != BeltRouteReferenceSolver.NotFound) referenceFound++;
                 if (result.HasPlan) BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, label);
                 var disagreement = Disagreement(result, referenceCost);
@@ -77,8 +77,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return null;
         }
 
-        // 終点の半分を始点の±NearRange以内に置く問い合わせ。性能試験からも使う
-        // A query whose end lands within ±NearRange of the start half of the time; the performance tests use it too
+        // 終点の半分を始点の±NearRange以内に置く問い合わせ
+        // A query whose end lands within ±NearRange of the start half of the time
         internal static bool TryPickQuery(System.Random random, BeltRouteGrid grid, out BeltRouteQuery query)
         {
             query = null;

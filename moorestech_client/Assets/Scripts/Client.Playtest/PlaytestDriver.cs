@@ -9,7 +9,6 @@ using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.Playtest.Overlay;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;
@@ -158,9 +157,6 @@ namespace Client.Playtest
             _reporter.Step("地形オブジェクトを隠す");
             PlaytestSetup.SetMapObjectsVisible(false);
         }
-        // 録画のログ欄と入力欄を隠す。機能紹介動画のように画面を広く見せたいときに使う
-        // Hides the recording's log and input panels, for footage that should show the screen unobstructed
-        public void SetOverlayPanels(bool showLogPanel, bool showInputPanel) => PlaytestOverlay.SetPanelsVisible(showLogPanel, showInputPanel);
         public void SendCommand(string command)
         {
             _reporter.Step($"コマンド送信: {command}");

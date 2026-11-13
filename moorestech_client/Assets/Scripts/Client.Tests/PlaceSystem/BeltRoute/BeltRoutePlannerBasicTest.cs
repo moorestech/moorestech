@@ -21,7 +21,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return grid;
         }
 
-        private static BeltRouteGrid FlatGrid(int size)
+        internal static BeltRouteGrid FlatGrid(int size)
         {
             var grid = new BeltRouteGrid(Vector3Int.zero, new Vector3Int(size, 3, size));
             for (var x = 0; x < size; x++)

@@ -23,8 +23,6 @@ namespace Client.Playtest.Overlay
             _view = overlayObject.AddComponent<PlaytestOverlayView>();
         }
 
-        public static void SetPanelsVisible(bool showLogPanel, bool showInputPanel) => State.SetPanelsVisible(showLogPanel, showInputPanel);
-
         public static void PushStep(string text) => State.PushLog(PlaytestOverlayLogKind.Step, text);
         public static void PushNote(string text) => State.PushLog(PlaytestOverlayLogKind.Note, text);
         public static PlaytestOverlayLogEntry PushWait(string text) => State.PushLog(PlaytestOverlayLogKind.Wait, text);

@@ -17,19 +17,15 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         private readonly BeltRouteTransitionRule _rule;
         private readonly BeltRouteQuery _query;
         private readonly int _costCap;
-        private readonly bool _enforceAssembly;
         private readonly HashSet<Vector3Int> _usedCells = new();
         private readonly HashSet<Vector3Int> _ownSlopeHeads = new();
         private int _best;
 
-        // enforceAssembly=false は組み立ての不変条件を外した「規則だけの最短」。本番のA*が出す値と一致するはずの対照用
-        // enforceAssembly=false drops the assembly invariants to get the rule-only shortest cost, the control value the production A* should match
-        public BeltRouteReferenceSolver(BeltRouteTransitionRule rule, int costCap, bool enforceAssembly)
+        public BeltRouteReferenceSolver(BeltRouteTransitionRule rule, int costCap)
         {
             _rule = rule;
             _query = rule.Query;
             _costCap = costCap;
-            _enforceAssembly = enforceAssembly;
         }
 
         // 上限コスト以下で組める最短コスト。無ければNotFound
@@ -127,9 +123,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         private bool TryPlace(BeltRouteState state)
         {
             var head = state.Cell + Vector3Int.up;
-            // 規則だけの最短でも、真上が始点か終点になる坂は規則として不可（探索もこれを知っている前提）
-            // Even the rule-only shortest rejects a slope whose head is the start or end, since the search is expected to know that rule
-            if (!_enforceAssembly) return !state.Kind.IsSlope() || (head != _query.StartCell && head != _query.EndCell);
             if (_usedCells.Contains(state.Cell) || _ownSlopeHeads.Contains(state.Cell)) return false;
             if (state.Kind.IsSlope() && _usedCells.Contains(head)) return false;
             _usedCells.Add(state.Cell);

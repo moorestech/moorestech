@@ -13,15 +13,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
     // Guards the distinct ways a search ends: reached, exhausted and cap reached
     public class BeltRouteSearchOutcomeTest
     {
-        private static BeltRouteGrid FlatGrid(int size)
-        {
-            var grid = new BeltRouteGrid(Vector3Int.zero, new Vector3Int(size, 3, size));
-            for (var x = 0; x < size; x++)
-            for (var z = 0; z < size; z++)
-                grid.SetColumnFloor(x, z, 0);
-            return grid;
-        }
-
         private static BeltRouteSearch RunSearch(BeltRouteGrid grid, Vector3Int end, int maxExpansions, out BeltRouteSearchOutcome outcome)
         {
             var start = new Vector3Int(2, 0, 2);
@@ -35,7 +26,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         [Test]
         public void CapStopsTheSearchBeforeAFarEndIsReached()
         {
-            var search = RunSearch(FlatGrid(40), new Vector3Int(35, 0, 35), 10, out var outcome);
+            var search = RunSearch(BeltRoutePlannerBasicTest.FlatGrid(40), new Vector3Int(35, 0, 35), 10, out var outcome);
 
             Assert.AreEqual(BeltRouteSearchOutcome.CapReached, outcome);
             Assert.AreEqual(10, search.Expansions);
@@ -44,7 +35,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         [Test]
         public void ClosedWorldWithAnEnclosedEndExhaustsTheQueue()
         {
-            var grid = FlatGrid(10);
+            var grid = BeltRoutePlannerBasicTest.FlatGrid(10);
             for (var dx = -1; dx <= 1; dx++)
             for (var dz = -1; dz <= 1; dz++)
             for (var y = 0; y < 3; y++)
@@ -60,7 +51,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         [Test]
         public void PlannerGivesUpAtTheExpansionCapBehindAWall()
         {
-            var grid = FlatGrid(200);
+            var grid = BeltRoutePlannerBasicTest.FlatGrid(200);
             for (var z = 0; z < 200; z++)
             for (var y = 0; y < 3; y++)
                 grid.MarkBlockCell(new Vector3Int(100, y, z));
@@ -75,7 +66,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         [Test]
         public void ReachableEndReportsReached()
         {
-            RunSearch(FlatGrid(10), new Vector3Int(7, 0, 7), 1000000, out var outcome);
+            RunSearch(BeltRoutePlannerBasicTest.FlatGrid(10), new Vector3Int(7, 0, 7), 1000000, out var outcome);
 
             Assert.AreEqual(BeltRouteSearchOutcome.Reached, outcome);
         }

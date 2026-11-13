@@ -30,7 +30,6 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
     p.HideMapObjects();
     // 機能紹介の録画なのでログ欄と入力欄は隠し、カーソルだけ残す
     // Hide the log and input panels for feature footage, keeping only the cursor
-    p.SetOverlayPanels(false, false);
 
     // ---------------------------------------------------------------- 1. 平地のL字
     p.Note("フェーズ1: 始点(2,2)北向き→終点(8,8)東向きの2クリックで最短経路を置く");
