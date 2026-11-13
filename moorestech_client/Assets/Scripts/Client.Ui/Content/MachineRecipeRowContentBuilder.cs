@@ -12,8 +12,6 @@ namespace Client.Ui.Content
     /// </summary>
     public static class MachineRecipeRowContentBuilder
     {
-        private static readonly ItemSlotMarks NoMarks = new(false, false, false);
-
         public static MachineRecipeSideSlots Materials(string rowId, MachineRecipeData recipe, GameContentPresentation content)
         {
             return Side($"{rowId}-input", recipe.InputItems, recipe.InputFluids, content);
@@ -33,7 +31,7 @@ namespace Client.Ui.Content
             for (var i = 0; i < items.Count; i++)
             {
                 var itemSlot = new ItemSlot($"{sideId}-item-{i}");
-                itemSlot.SetContent(new ItemSlotContent(content.Item(items[i].ItemId), items[i].Count, NoMarks, null, null, null));
+                itemSlot.SetContent(SlotItemContent.ForItem(content, items[i].ItemId, items[i].Count));
                 elements.Add(itemSlot);
                 itemSlots.Add(new MachineRecipeItemSlot(itemSlot, items[i].ItemId));
             }

@@ -18,7 +18,6 @@ namespace Client.Tests.Ui.Components.Slots.Item
     public class ItemSlotShortageTest : UiTestHost
     {
         private const string KnobPath = "Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss";
-        private static readonly ItemSlotMarks Plain = new(false, false, false);
 
         private bool _hadSavedLanguageCode;
         private string _savedLanguageCode;
@@ -53,7 +52,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         {
             var slot = Mount(null);
             var materialText = UiText.FromVerbatim("Iron 3/5");
-            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, new ItemSlotShortage(3, 5, true, materialText), null, null));
+            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, ItemSlotMarks.None, new ItemSlotShortage(3, 5, true, materialText), null, null));
             simulate.FrameUpdate();
 
             Assert.AreEqual("3/5", slot.Q<Label>(null, "item-slot__shortage", "outlined-count-label--glyph").text);
@@ -67,9 +66,9 @@ namespace Client.Tests.Ui.Components.Slots.Item
         public void 足りていれば黒で足りなければ赤にする()
         {
             var enough = Mount(null);
-            enough.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 5, Plain, new ItemSlotShortage(5, 5, false, null), null, null));
+            enough.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 5, ItemSlotMarks.None, new ItemSlotShortage(5, 5, false, null), null, null));
             var lacking = Mount(null);
-            lacking.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, Plain, new ItemSlotShortage(1, 5, true, null), null, null));
+            lacking.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, ItemSlotMarks.None, new ItemSlotShortage(1, 5, true, null), null, null));
             simulate.FrameUpdate();
 
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), enough.Q(null, "item-slot__shortage", "outlined-count-label--glyph").resolvedStyle.color, "enough");
@@ -81,7 +80,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         public void 実物入りで所持と必要があれば個数バッジを出さない()
         {
             var slot = Mount(null);
-            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
+            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, ItemSlotMarks.None, new ItemSlotShortage(3, 5, true, null), null, null));
             simulate.FrameUpdate();
 
             Assert.AreEqual(DisplayStyle.None, slot.Q(null, "slot-content__count", "outlined-count-label--glyph").resolvedStyle.display);
@@ -94,8 +93,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
         {
             var slot = Mount(null);
             var frameBefore = slot.Q<SlotFrame>();
-            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
-            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, null, null, null));
+            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, ItemSlotMarks.None, new ItemSlotShortage(3, 5, true, null), null, null));
+            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, ItemSlotMarks.None, null, null, null));
             simulate.FrameUpdate();
 
             Assert.AreSame(frameBefore, slot.Q<SlotFrame>());
@@ -109,7 +108,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         {
             var slot = Mount(null);
             var icon = SlotTestIcons.WithTexture("1", "Iron");
-            slot.SetContent(new ItemSlotContent(icon, 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
+            slot.SetContent(new ItemSlotContent(icon, 3, ItemSlotMarks.None, new ItemSlotShortage(3, 5, true, null), null, null));
 
             Assert.IsTrue(HoverTooltipMark.TryFindMarked(slot.Q<SlotFrame>().contentContainer, out _, out var text));
             Assert.AreSame(icon.Label, text);
@@ -119,7 +118,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         public void 所持と必要は枠の外へつまみの位置と大きさで出る()
         {
             var slot = Mount("slot-knob-shortage");
-            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
+            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, ItemSlotMarks.None, new ItemSlotShortage(3, 5, true, null), null, null));
             simulate.FrameUpdate();
 
             // 画素丸めのため 0.5px まで許す
@@ -136,7 +135,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         public void 所持と必要の白い縁は字の後ろの縁だけの層が同じ位置で描く()
         {
             var slot = Mount(null);
-            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, Plain, new ItemSlotShortage(1, 5, true, null), null, null));
+            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, ItemSlotMarks.None, new ItemSlotShortage(1, 5, true, null), null, null));
             simulate.FrameUpdate();
 
             // 縁の層は字より前の子で、字と同じ文字・位置を持ち、赤字の状態は字の層だけに付く
@@ -157,10 +156,10 @@ namespace Client.Tests.Ui.Components.Slots.Item
         {
             var slot = Mount(null);
             var icon = SlotTestIcons.WithTexture("1", "Iron");
-            slot.SetContent(new ItemSlotContent(icon, 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
+            slot.SetContent(new ItemSlotContent(icon, 3, ItemSlotMarks.None, new ItemSlotShortage(3, 5, true, null), null, null));
             simulate.FrameUpdate();
             Assert.IsTrue(slot.ClassListContains("item-slot--lack"));
-            slot.SetContent(new ItemSlotContent(icon, 3, Plain, null, null, null));
+            slot.SetContent(new ItemSlotContent(icon, 3, ItemSlotMarks.None, null, null, null));
             simulate.FrameUpdate();
             Assert.IsFalse(slot.ClassListContains("item-slot--lack"));
         }

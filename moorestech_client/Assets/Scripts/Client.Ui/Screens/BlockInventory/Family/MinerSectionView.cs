@@ -66,7 +66,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
                     // Web の採掘機の ItemSlot は testid を持たないが、UITK の枠は名前が要るので録画・テストの照準用に付ける
                     // The Web miner ItemSlot has no testid, but the UITK frame needs a name, so add one as an aim for recordings and tests
                     var slot = new ItemSlot($"miner-mining-item-{item.ItemId.AsPrimitive()}");
-                    slot.SetContent(new ItemSlotContent(_content.Item(item.ItemId), null, new ItemSlotMarks(false, false, false), null, null, null));
+                    slot.SetContent(SlotItemContent.ForItem(_content, item.ItemId, null));
                     var row = new PerMinuteRateRow(slot);
                     _items.AddItem(row);
                     _rows.Add(item.ItemId, row);

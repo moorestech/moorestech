@@ -16,7 +16,6 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
         public VisualElement CreateSample()
         {
             var root = SlotGallerySampleSheet.CreateSampleRoot();
-            var plain = new ItemSlotMarks(false, false, false);
             var icon = SlotGallerySampleSheet.Icon("1", "Iron Plate");
             // testid は行をまたいで一意にするため見本全体の通し番号で付ける
             // testids use a running number across the whole sample so they stay unique across rows
@@ -25,21 +24,21 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
             // 持ち物（4-player-inventory）
             // Inventory (4-player-inventory)
             var inventory = SlotGallerySampleSheet.AddRow(root, "slot-gallery__inventory");
-            Add(inventory, new ItemSlotContent(icon, 1, plain, null, null, null));
-            Add(inventory, new ItemSlotContent(icon, 12, plain, null, null, null));
-            Add(inventory, new ItemSlotContent(icon, 1500, plain, null, null, null));
-            Add(inventory, new ItemSlotContent(icon, null, plain, null, null, null));
-            Add(inventory, new ItemSlotContent(null, null, plain, null, null, null));
+            Add(inventory, new ItemSlotContent(icon, 1, ItemSlotMarks.None, null, null, null));
+            Add(inventory, new ItemSlotContent(icon, 12, ItemSlotMarks.None, null, null, null));
+            Add(inventory, new ItemSlotContent(icon, 1500, ItemSlotMarks.None, null, null, null));
+            Add(inventory, new ItemSlotContent(icon, null, ItemSlotMarks.None, null, null, null));
+            Add(inventory, new ItemSlotContent(null, null, ItemSlotMarks.None, null, null, null));
             Add(inventory, new ItemSlotContent(icon, 3, new ItemSlotMarks(true, false, false), null, null, null));
 
             // 機械の素材（4-block-machine）
             // Machine materials (4-block-machine)
             var machine = SlotGallerySampleSheet.AddRow(root, "slot-gallery__machine-input");
-            Add(machine, new ItemSlotContent(icon, 5, plain, null, null, null));
-            Add(machine, new ItemSlotContent(icon, 1, plain, new ItemSlotShortage(1, 5, true, UiText.FromVerbatim("Iron Plate 1/5")), null, null));
-            Add(machine, new ItemSlotContent(icon, 5, plain, new ItemSlotShortage(5, 5, false, null), null, null));
+            Add(machine, new ItemSlotContent(icon, 5, ItemSlotMarks.None, null, null, null));
+            Add(machine, new ItemSlotContent(icon, 1, ItemSlotMarks.None, new ItemSlotShortage(1, 5, true, UiText.FromVerbatim("Iron Plate 1/5")), null, null));
+            Add(machine, new ItemSlotContent(icon, 5, ItemSlotMarks.None, new ItemSlotShortage(5, 5, false, null), null, null));
             Add(machine, new ItemSlotContent(icon, 5, new ItemSlotMarks(false, false, true), null, null, null));
-            Add(machine, new ItemSlotContent(null, null, plain, null, new ItemSlotGhost(icon, 2), null));
+            Add(machine, new ItemSlotContent(null, null, ItemSlotMarks.None, null, new ItemSlotGhost(icon, 2), null));
 
             // カタログ（4-item-list-large）: 未所持の灰面・所持の白面
             // Catalog (4-item-list-large): unowned gray and owned white

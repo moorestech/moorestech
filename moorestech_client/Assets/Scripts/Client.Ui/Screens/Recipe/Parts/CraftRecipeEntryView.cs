@@ -99,7 +99,7 @@ namespace Client.Ui.Screens.Recipe.Parts
             // 素材の所持・不足とツールチップ、結果の数、ボタンの可否、長押しの可否を当て直す
             // Re-apply material owned/lacking and tooltips, result count, button state and hold eligibility
             for (var i = 0; i < _materialSlots.Length; i++) ApplyMaterial(i, vm.Materials[i]);
-            _resultSlot.SetContent(new ItemSlotContent(_context.Content.Item(vm.Recipe.ResultItemId), vm.Recipe.ResultCount, new ItemSlotMarks(false, false, false), null, null, null));
+            _resultSlot.SetContent(SlotItemContent.ForItem(_context.Content, vm.Recipe.ResultItemId, vm.Recipe.ResultCount));
             _button.SetEnabled(vm.Craftable);
             _hold.SetRecipe(vm.RecipeGuid, vm.Recipe.CraftTime, vm.Craftable);
 
@@ -113,7 +113,7 @@ namespace Client.Ui.Screens.Recipe.Parts
                 var itemName = _context.Content.ItemName(material.ItemId).Resolve();
                 var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.RecipeMaterial, itemName, material.Required, material.Owned);
                 var shortage = new ItemSlotShortage(material.Owned, material.Required, material.Lacking, tooltip);
-                _materialSlots[index].SetContent(new ItemSlotContent(_context.Content.Item(material.ItemId), null, new ItemSlotMarks(false, false, material.Lacking), shortage, null, null));
+                _materialSlots[index].SetContent(SlotItemContent.ForMaterial(_context.Content, material.ItemId, shortage));
             }
 
             #endregion

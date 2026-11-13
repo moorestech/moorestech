@@ -94,9 +94,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 var lacking = row.IsInsufficient;
                 var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuMaterial, _content.ItemName(row.Row.ItemId).Resolve(), row.Row.Item.Count, row.Row.Item.Held);
                 var slot = new ItemSlot($"build-menu-detail-material-{i}");
-                // ghost・tooltipOverride の null 渡しは SlotItemContent.From と同じ
-                // Passing null ghost and tooltipOverride follows SlotItemContent.From
-                slot.SetContent(new ItemSlotContent(_content.Item(row.Row.ItemId), null, new ItemSlotMarks(false, false, lacking), new ItemSlotShortage(row.Row.Item.Held, row.Row.Item.Count, lacking, tooltip), null, null));
+                slot.SetContent(SlotItemContent.ForMaterial(_content, row.Row.ItemId, new ItemSlotShortage(row.Row.Item.Held, row.Row.Item.Count, lacking, tooltip)));
                 grid.AddItem(slot);
             }
             Add(grid);

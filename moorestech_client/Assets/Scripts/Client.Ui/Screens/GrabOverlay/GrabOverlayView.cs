@@ -48,7 +48,7 @@ namespace Client.Ui.Screens.GrabOverlay
 
             // 中身の差し替えで子が増えても拾わないよう毎回かけ直す
             // Re-apply after each content change so newly created children never pick
-            _slot.SetContent(new ItemSlotContent(_content.Item(holding.ItemId), holding.Count, new ItemSlotMarks(false, false, false), null, null, null));
+            _slot.SetContent(SlotItemContent.ForItem(_content, holding.ItemId, holding.Count));
             UiPickingIgnore.ApplyToSubtree(this);
             var appearing = !_shown;
             _shown = true;

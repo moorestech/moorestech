@@ -61,7 +61,7 @@ namespace Client.Ui.Screens.Research.Parts
             {
                 var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.ResearchConsumeItem, _content.ItemName(slot.ItemId).Resolve(), slot.Required, slot.Allocated);
                 var shortage = new ItemSlotShortage(slot.Allocated, slot.Required, slot.Lacking, tooltip);
-                return new ItemSlotContent(_content.Item(slot.ItemId), null, new ItemSlotMarks(false, false, slot.Lacking), shortage, null, null);
+                return SlotItemContent.ForMaterial(_content, slot.ItemId, shortage);
             }
 
             #endregion

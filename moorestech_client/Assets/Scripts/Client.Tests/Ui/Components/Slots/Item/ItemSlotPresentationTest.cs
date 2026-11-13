@@ -10,14 +10,13 @@ namespace Client.Tests.Ui.Components.Slots.Item
     /// </summary>
     public class ItemSlotPresentationTest
     {
-        private static readonly ItemSlotMarks Plain = new(false, false, false);
         private static readonly ItemSlotMarks Catalog = new(false, true, false);
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">countがundefinedの時はバッジを表示しない</web-test>
         [Test]
         public void 個数が未指定なら白面で絵を出しバッジを出さない()
         {
-            var presentation = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), null, Plain, null, null, null));
+            var presentation = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), null, ItemSlotMarks.None, null, null, null));
 
             Assert.IsTrue(presentation.Filled);
             Assert.IsNotNull(presentation.ShownIcon);
@@ -27,7 +26,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         [Test]
         public void 個数が0なら空きマスでバッジもツールチップも出さない()
         {
-            var presentation = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 0, Plain, null, null, null));
+            var presentation = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 0, ItemSlotMarks.None, null, null, null));
 
             Assert.IsFalse(presentation.Filled);
             Assert.IsNull(presentation.ShownIcon);
@@ -39,7 +38,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         [Test]
         public void 個数が正ならバッジにその数を出す()
         {
-            var presentation = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 7, Plain, null, null, null));
+            var presentation = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 7, ItemSlotMarks.None, null, null, null));
 
             Assert.IsTrue(presentation.ShowsBadge);
             Assert.AreEqual(7, presentation.BadgeCount);
@@ -63,8 +62,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
         public void ゴーストは空きマスにだけ出て白面にしない()
         {
             var ghost = new ItemSlotGhost(SlotTestIcons.WithTexture("2", "Copper"), 3);
-            var onEmpty = ItemSlotPresentation.From(new ItemSlotContent(null, null, Plain, null, ghost, null));
-            var onItem = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 5, Plain, null, ghost, null));
+            var onEmpty = ItemSlotPresentation.From(new ItemSlotContent(null, null, ItemSlotMarks.None, null, ghost, null));
+            var onItem = ItemSlotPresentation.From(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 5, ItemSlotMarks.None, null, ghost, null));
 
             Assert.IsTrue(onEmpty.GhostShown);
             Assert.IsFalse(onEmpty.Filled);
@@ -80,8 +79,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
             var icon = SlotTestIcons.WithTexture("1", "Iron");
             var custom = UiText.FromVerbatim("custom");
 
-            Assert.AreSame(icon.Label, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, Plain, null, null, null)).Tooltip);
-            Assert.AreSame(custom, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, Plain, null, null, custom)).Tooltip);
+            Assert.AreSame(icon.Label, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, ItemSlotMarks.None, null, null, null)).Tooltip);
+            Assert.AreSame(custom, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, ItemSlotMarks.None, null, null, custom)).Tooltip);
         }
 
         [Test]
@@ -92,7 +91,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
             var shortageText = UiText.FromVerbatim("shortage");
             var shortage = new ItemSlotShortage(1, 3, true, shortageText);
 
-            Assert.AreSame(shortageText, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, Plain, shortage, null, custom)).Tooltip);
+            Assert.AreSame(shortageText, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, ItemSlotMarks.None, shortage, null, custom)).Tooltip);
         }
     }
 }
