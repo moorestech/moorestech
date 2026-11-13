@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Challenge;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -28,7 +29,7 @@ namespace Client.Ui.Screens.Challenge.CurrentHud
             // 面（hud）→ 見出し（題・罫線）→ 目標の列。目標の間隔は Web の --challenge-hud-objective-gap（2px）
             // Face (hud), then heading (title and rule), then the objectives; objective spacing is the Web --challenge-hud-objective-gap (2px)
             var surface = new GamePanelSurface("challenge-hud-surface", GamePanelSurfaceKind.Hud);
-            var heading = new HudSectionHeading("challenge-hud-label", LocalizationKeys.Ui.Challenge.CurrentTitle);
+            var heading = new HudSectionHeading("challenge-hud-label", new UiText(LocalizationKeys.Ui.Challenge.CurrentTitle));
             _objectives = new UiStack(UiGap.Px2);
             _objectives.AddToClassList("current-challenge-hud__objectives");
             heading.Add(_objectives);

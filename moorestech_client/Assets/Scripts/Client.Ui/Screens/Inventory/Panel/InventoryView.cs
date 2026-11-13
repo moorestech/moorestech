@@ -45,7 +45,7 @@ namespace Client.Ui.Screens.Inventory.Panel
             var panel = new GamePanel("inventory-panel", GamePanelFrame.Default);
             panel.AddToClassList("inventory-view__panel");
             panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
-            var sortButton = new PanelActionButton("inventory-sort", LocalizationKeys.Ui.Inventory.Sort);
+            var sortButton = new PanelActionButton("inventory-sort", new UiText(LocalizationKeys.Ui.Inventory.Sort));
             sortButton.OnClicked.Subscribe(_ => toaster.Report(InventorySortCommands.CommandName, sort.Sort()));
             panel.SetTitleAction(sortButton);
 

@@ -4,6 +4,7 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine.UIElements;
@@ -37,7 +38,7 @@ namespace Client.Ui.Screens.PauseMenu
             body.Add(_sections);
             column.AddItem(body);
 
-            var back = new PanelActionButton("pause-menu-back", LocalizationKeys.Ui.PauseMenu.Back);
+            var back = new PanelActionButton("pause-menu-back", new UiText(LocalizationKeys.Ui.PauseMenu.Back));
             back.AddToClassList("pause-menu__back");
             TutorialAnchor.Mark(back, AnchorIds.PauseBackToTop);
             back.OnClicked.Subscribe(_ => commands.ShowPage(PauseMenuPage.Top));

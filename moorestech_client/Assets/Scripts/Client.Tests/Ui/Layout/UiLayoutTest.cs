@@ -2,6 +2,7 @@ using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Layout;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine.UIElements;
@@ -82,8 +83,8 @@ namespace Client.Tests.Ui.Layout
             // LocalizedLabel looks up the dictionary on attach, so load it first
             Localize.Initialize();
             var stack = new UiStack(UiGap.Md);
-            var first = new PanelActionButton("layout-a", LocalizationKeys.Ui.PauseMenu.Back);
-            var second = new PanelActionButton("layout-b", LocalizationKeys.Ui.PauseMenu.Back);
+            var first = new PanelActionButton("layout-a", new UiText(LocalizationKeys.Ui.PauseMenu.Back));
+            var second = new PanelActionButton("layout-b", new UiText(LocalizationKeys.Ui.PauseMenu.Back));
             stack.AddItem(first);
             stack.AddItem(second);
             rootVisualElement.Add(stack);

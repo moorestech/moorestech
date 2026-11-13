@@ -1,6 +1,6 @@
 using System;
 using Client.Ui.Foundation.Text;
-using Mooresmaster.Localization.Generated;
+using Client.Ui.State.Text;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -16,7 +16,7 @@ namespace Client.Ui.Components.Controls
 
         public IObservable<Unit> OnClicked => _onClicked;
 
-        public PanelActionButton(string testid, LocalizationKey label)
+        public PanelActionButton(string testid, UiText label)
         {
             name = testid;
             AddToClassList("panel-action-button");
@@ -31,7 +31,7 @@ namespace Client.Ui.Components.Controls
 
             var localizedLabel = new LocalizedLabel { pickingMode = PickingMode.Ignore };
             localizedLabel.AddToClassList("panel-action-button__label");
-            localizedLabel.SetKey(label);
+            localizedLabel.SetText(label);
             Add(localizedLabel);
         }
     }
