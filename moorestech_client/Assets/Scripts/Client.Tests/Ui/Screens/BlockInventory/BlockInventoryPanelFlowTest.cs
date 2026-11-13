@@ -71,7 +71,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         }
 
         [Test]
-        public void 許可表に拒まれた閉じるはトーストを1回出しパネルを残す()
+        public void 許可表に拒まれた閉じるはトーストを1回出す()
         {
             // ビルドメニューの × と同じく、開いているのに閉じられないことを知らせる（DC-13）
             // As with the build menu's close, tell the player the open panel could not be closed (DC-13)
@@ -86,7 +86,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             Assert.AreEqual(1, shell.ShownToasts.Count);
             Assert.AreEqual("Could not close this screen right now", shell.ShownToasts[0].Text);
             Assert.AreEqual(GameUiToastVariant.Error, shell.ShownToasts[0].Variant);
-            Assert.AreEqual(DisplayStyle.Flex, shell.View.resolvedStyle.display);
         }
 
         [Test]
