@@ -16,7 +16,7 @@
   - Web が testid を子（ラベル）に付けている部品は、ctor の第 1 引数をその子の testid にし、名前を `<子>Testid` とする `[A-24]`
   - 表示する値は `SetXxx(値)` で外から入れる。値を返す素通しプロパティは作らない（`{ get; private set; }` は可）
   - 操作は `IObservable<T>`（UniRx の `Subject` を中に持つ）で出す。`Action`・`Func<>`・`partial` は使わない
-  - ボタン類は `focusable = false`（段階 1 の規則）。入力欄だけがフォーカスを持つ。例外: キーで操作するボタン（クラフトの Enter 長押し）は置く側がインスタンスに `focusable = true` と `UiKeyFocusKeepMark` を付け、`GameUiInputRules` はそれを外さない。フォーカスはクリックで乗り Tab では乗らない `[A-166]`。保ってよいフォーカス（入力欄・印付き）が表示されなくなったら根の入力規則が外すので、画面は隠すときに Blur しない `[A-275]`
+  - ボタン類は `focusable = false`（段階 1 の規則）。入力欄だけがフォーカスを持つ。例外: キーで操作するボタン（クラフトの Enter 長押し）は置く側がインスタンスに `focusable = true` と `UiKeyFocusKeepMark` を付け、`GameUiInputRules` はそれを外さない。フォーカスはクリックで乗り Tab では乗らない `[A-166]`。保ってよいフォーカス（入力欄・印付き）が表示されなくなったら、隠れている間に取ったものも含めて UITK が外す（Unity 6000.3 で実測）ので、画面は隠すときに Blur しない。L1 がこの UITK の挙動を守る `[A-275]`
   - `contentContainer` を持つ部品（枠・スクロール）は、子を `Add` で受ける
   - 色・寸法は C# に書かない。C# が値を要るとき（Painter2D）は `UssCustomStyleReader` でトークンを読む
 - **表示素材の値型**（Foundation/Icons と State/Text に置く）
