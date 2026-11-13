@@ -133,12 +133,11 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.WaitForItemCount(kilnInventory, ingot, 1, null, 20f, "石窯で青銅インゴットができる（サーバー）");
     await PlaytestUiElementOps.WaitUiTextContains("machine-output-slots", "1", 10f);
     await p.Screenshot("05-output-while-open");
-    // Shift で取り出し、閉じて整理する
-    // Shift-take the output, close and sort
-    var ingotsBefore = PlaytestItemOps.CountItemClientSide(ingot);
+    // Shift で取り出し（開いた機械の枠も数える CountItemClientSide でなく main と石窯で見る）、閉じて整理する
+    // Shift-take the output (check main and the kiln, not CountItemClientSide which also counts open machine slots), close and sort
     await ShiftClickOn("machine-output-slot-0");
-    p.Note($"取り出し直後: grab={Ops().ReadGrab()} 持ち物のインゴット={PlaytestItemOps.CountItemClientSide(ingot)}（前 {ingotsBefore}） main={string.Join(",", Main().Where(x => !x.IsEmpty))}");
-    await p.Until(() => ingotsBefore < PlaytestItemOps.CountItemClientSide(ingot), 10f, "Shiftで青銅インゴットを取り出す");
+    await p.Until(() => Main().Any(slot => slot.ItemId == ingot), 10f, "Shiftで青銅インゴットが持ち物（main）へ移る");
+    await p.WaitForItemCount(kilnInventory, ingot, 0, 0, 10f, "石窯の出力が空になる（サーバー）");
     await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     await p.PressKey(Key.Tab);
