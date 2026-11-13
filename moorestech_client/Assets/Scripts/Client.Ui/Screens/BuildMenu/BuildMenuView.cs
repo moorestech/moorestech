@@ -5,6 +5,7 @@ using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Session;
 using Client.Ui.State.Hotbar;
+using Client.Ui.State.Routing;
 using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine.UIElements;
@@ -17,8 +18,6 @@ namespace Client.Ui.Screens.BuildMenu
     /// </summary>
     public sealed class BuildMenuView : VisualElement
     {
-        private const string CloseCommandName = "ui_state.request";
-
         private readonly BuildMenuSessionStore _session;
         private readonly BuildMenuCategoryScrollTracker _tracker;
         private readonly BuildMenuPanelSkeleton _skeleton;
@@ -49,7 +48,7 @@ namespace Client.Ui.Screens.BuildMenu
 
             // 閉じる・検索・押下・現在地の追従
             // Close, search, category presses and following the current category
-            _skeleton.CloseButton.OnClicked.Subscribe(_ => toaster.Report(CloseCommandName, commands.Close()));
+            _skeleton.CloseButton.OnClicked.Subscribe(_ => toaster.Report(UiStateTransitionRules.RequestCommandName, commands.Close()));
             _skeleton.Search.OnValueChanged.Subscribe(OnQueryChanged);
             _sidebar.OnCategorySelected.Subscribe(tracker.JumpTo);
             tracker.ActiveCategory.Subscribe(_sidebar.SetActive);

@@ -91,10 +91,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
             for (var i = 0; i < entry.Materials.Count; i++)
             {
                 var row = entry.Materials[i];
-                var lacking = row.IsInsufficient;
-                var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.BuildMenuMaterial, _content.ItemName(row.Row.ItemId).Resolve(), row.Row.Item.Count, row.Row.Item.Held);
                 var slot = new ItemSlot($"build-menu-detail-material-{i}");
-                slot.SetContent(SlotItemContent.ForMaterial(_content, row.Row.ItemId, new ItemSlotShortage(row.Row.Item.Held, row.Row.Item.Count, lacking, tooltip)));
+                slot.SetContent(SlotItemContent.ForMaterial(_content, row.Row.ItemId, MaterialTooltipKind.BuildMenuMaterial, row.Row.Item.Held, row.Row.Item.Count, row.IsInsufficient));
                 grid.AddItem(slot);
             }
             Add(grid);

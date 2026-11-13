@@ -17,8 +17,8 @@
 
     /* I-fix6: GameTextField の寸法。Web は要素ごとの calc で出すので、UITK が使う形で前計算する */
     /* I-fix6: GameTextField sizes; the Web derives them with per-element calc, so they are precomputed for the form UITK uses */
-    --game-text-field-padding-x-sm: 12px; /* web: Mantine Input の要素ごとの --input-padding = calc(var(--input-height) / 3)。--input-height-sm の 1/3 で、高さが変わったら写し直す（今 36px で 12px） */
-    --game-text-field-focus-ring-inset: -1.56575px; /* web: textAreaField の :focus-visible の outline var(--bevel-1)＋outline-offset var(--bevel-1)。輪の外縁は箱から -(--bevel-1 0.782875px × 2) */
+    --game-text-field-padding-x-sm: 12px; /* calc: var(--input-height-sm) / 3; web: Mantine Input の要素ごとの --input-padding = calc(var(--input-height) / 3) */
+    --game-text-field-focus-ring-inset: -1.56575px; /* calc: -(var(--bevel-1) * 2); web: textAreaField の :focus-visible の outline var(--bevel-1)＋outline-offset var(--bevel-1) */
 
     /* C2-c: GameScrollView のバーの幅（Mantine ScrollArea の既定 0.75rem）・つまみのホバー・ShortcutHintLabel の kbd と文の間（設計書 A-34・A-35） */
     /* C2-c: GameScrollView bar width (Mantine ScrollArea default 0.75rem), thumb hover, and the kbd-to-text gap of ShortcutHintLabel (design A-34, A-35) */

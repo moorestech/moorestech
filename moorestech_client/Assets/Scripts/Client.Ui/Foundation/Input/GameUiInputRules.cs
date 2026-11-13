@@ -65,6 +65,17 @@ namespace Client.Ui.Foundation.Input
             // Blurring inside the focus-change dispatch fights the switch itself, so blur at the next opportunity
             var root = (VisualElement)evt.currentTarget;
             root.schedule.Execute(() => BlurNonTextFieldFocus(root));
+
+            #region Internal
+
+            // 保ってよいフォーカスで拒否の続きは途切れる。表示されなくなったフォーカスは UITK 自身が外すので見張らない
+            // An allowed focus ends the run of refusals; UITK itself blurs a focus that stops being displayed, so nothing watches it here
+            void EndRefusalRun()
+            {
+                _lastRefusedFocus = null;
+            }
+
+            #endregion
         }
 
         private static void OnFocusOut(FocusOutEvent evt)
@@ -128,13 +139,6 @@ namespace Client.Ui.Foundation.Input
             // silent-ok: if focus already moved to a text field, a marked element or nowhere there is nothing to blur / the non-text-field focus was already logged by OnFocusIn
             if (root.focusController?.focusedElement is not VisualElement focused || MayKeepFocus(focused)) return;
             focused.Blur();
-        }
-
-        // 保ってよいフォーカスで拒否の続きは途切れる。表示されなくなったフォーカスは UITK 自身が外すので見張らない
-        // An allowed focus ends the run of refusals; UITK itself blurs a focus that stops being displayed, so nothing watches it here
-        private static void EndRefusalRun()
-        {
-            _lastRefusedFocus = null;
         }
 
         // 入力欄と印付きだけがフォーカスを保ってよい

@@ -1,6 +1,9 @@
+using System.Linq;
+using Client.Localization;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.State.Items;
+using Client.Ui.State.MaterialTooltip;
 using Core.Master;
 using NUnit.Framework;
 using Server.Boot;
@@ -24,6 +27,7 @@ namespace Client.Tests.Ui.Content
             // 名前解決のためテスト mod のマスタを読む
             // Load the test mod master for name resolution
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            Localize.Initialize();
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
             _content = new GameContentPresentation(new FakeContentTextureSource(_texture, null, null));
         }
@@ -80,9 +84,20 @@ namespace Client.Tests.Ui.Content
         [TestCase(false)]
         public void 素材の枠は不足のときだけ減光の印を持ちバッジの数は持たない(bool lacking)
         {
-            var slot = SlotItemContent.ForMaterial(_content, new ItemId(1), new ItemSlotShortage(1, 3, lacking, null));
+            var slot = SlotItemContent.ForMaterial(_content, new ItemId(1), MaterialTooltipKind.RecipeMaterial, 1, 3, lacking);
             Assert.AreEqual(lacking, slot.Marks.Insufficient);
             Assert.IsNull(slot.Count);
+        }
+
+        [Test]
+        public void 素材の枠は所持と必要の順を不足情報とツールチップの両方で守る()
+        {
+            var slot = SlotItemContent.ForMaterial(_content, new ItemId(1), MaterialTooltipKind.RecipeMaterial, 1234.5, 2000, true);
+            Assert.AreEqual(1234.5, slot.Shortage.OwnedCount);
+            Assert.AreEqual(2000, slot.Shortage.RequiredCount);
+            var values = slot.Shortage.Tooltip.Params.ToDictionary(param => param.Name, param => param.Value);
+            Assert.AreEqual("1,234.5", values["ownedCount"]);
+            Assert.AreEqual("2,000", values["requiredCount"]);
         }
 
         [Test]

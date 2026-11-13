@@ -7,6 +7,7 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Text;
+using Client.Ui.State.Routing;
 using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -24,7 +25,6 @@ namespace Client.Ui.Screens.BlockInventory
         private const string NaturalClassName = "block-inventory--natural";
         private const string BlockErrorName = "block-inventory-error";
         private const string TrainErrorName = "train-inventory-error";
-        private const string CloseCommandName = "ui_state.request";
 
         private readonly GamePanel _panel;
         private readonly VisualElement _titleActionContainer;
@@ -57,7 +57,7 @@ namespace Client.Ui.Screens.BlockInventory
             _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph());
             _close.AddToClassList("block-inventory__close");
             TutorialAnchor.Mark(_close, AnchorIds.InventoryCloseButton);
-            _close.OnClicked.Subscribe(_ => toaster.Report(CloseCommandName, commands.Close()));
+            _close.OnClicked.Subscribe(_ => toaster.Report(UiStateTransitionRules.RequestCommandName, commands.Close()));
             Add(_close);
 
             _band = new BlockInventoryPanelBand(stage, this);

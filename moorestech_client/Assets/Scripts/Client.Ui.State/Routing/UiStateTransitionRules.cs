@@ -8,6 +8,10 @@ namespace Client.Ui.State.Routing
     /// </summary>
     public static class UiStateTransitionRules
     {
+        // Web ホストの ui_state.request の命令名（View の拒否ログとトーストの診断に使う）
+        // Command name of the Web host ui_state.request (used by Views for refusal log and toast diagnostics)
+        public const string RequestCommandName = "ui_state.request";
+
         public static bool IsAllowed(UIStateEnum current, UIStateEnum requested)
         {
             if (current == requested) return true;

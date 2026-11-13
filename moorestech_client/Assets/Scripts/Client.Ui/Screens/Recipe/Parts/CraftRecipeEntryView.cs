@@ -110,10 +110,7 @@ namespace Client.Ui.Screens.Recipe.Parts
                 // 数は所持/必要の表示が描くのでバッジの数は渡さない（Web の素材の ItemSlot は count を持たない）
                 // The owned/required text draws the numbers, so no badge count is passed (the Web material ItemSlot has no count)
                 _materialItemIds[index] = material.ItemId;
-                var itemName = _context.Content.ItemName(material.ItemId).Resolve();
-                var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.RecipeMaterial, itemName, material.Required, material.Owned);
-                var shortage = new ItemSlotShortage(material.Owned, material.Required, material.Lacking, tooltip);
-                _materialSlots[index].SetContent(SlotItemContent.ForMaterial(_context.Content, material.ItemId, shortage));
+                _materialSlots[index].SetContent(SlotItemContent.ForMaterial(_context.Content, material.ItemId, MaterialTooltipKind.RecipeMaterial, material.Owned, material.Required, material.Lacking));
             }
 
             #endregion

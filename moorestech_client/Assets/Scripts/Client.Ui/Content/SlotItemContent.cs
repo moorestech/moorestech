@@ -1,5 +1,6 @@
 using Client.Ui.Components.Slots;
 using Client.Ui.State.Items;
+using Client.Ui.State.MaterialTooltip;
 using Core.Master;
 
 namespace Client.Ui.Content
@@ -40,8 +41,12 @@ namespace Client.Ui.Content
 
         // 所持/必要を出す素材。不足なら枠も減光する（数は所持/必要が描くのでバッジは無い）
         // A material showing owned/required; a shortage also dims the frame (no badge, the owned/required text draws the numbers)
-        public static ItemSlotContent ForMaterial(GameContentPresentation content, ItemId itemId, ItemSlotShortage shortage)
+        public static ItemSlotContent ForMaterial(GameContentPresentation content, ItemId itemId, MaterialTooltipKind tooltipKind, double ownedCount, double requiredCount, bool lacking)
         {
+            // 所持/必要の順は ItemSlotShortage、必要/所持の順は MaterialTooltipText。ここ 1 か所で組む
+            // ItemSlotShortage takes owned/required while MaterialTooltipText takes required/owned; both are built in this one place
+            var tooltip = MaterialTooltipText.Create(tooltipKind, content.ItemName(itemId).Resolve(), requiredCount, ownedCount);
+            var shortage = new ItemSlotShortage(ownedCount, requiredCount, lacking, tooltip);
             return new ItemSlotContent(content.Item(itemId), null, new ItemSlotMarks(false, false, shortage.Lacking), shortage, null, null);
         }
 
