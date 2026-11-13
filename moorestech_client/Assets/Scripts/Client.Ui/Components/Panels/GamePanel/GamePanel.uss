@@ -15,7 +15,7 @@
     /* customStyle は継がないので、面と帯はそれぞれ自分の規則で var() で受け直す */
     /* The face (::before) and the triangle band (.bottomDeco) masks both write the literal calc(100% - 12px), so their parent holds it once */
     /* customStyle does not inherit, so the face and the band each take it again with var() in their own rules */
-    --game-panel-default-bottom-fade: 12px; /* look-exception: LX-220 */
+    --game-panel-default-bottom-fade: 12px;
 }
 
 /* craft は透明 1px の枠で外寸を保つ（Web の border: 1px solid transparent）。面はパネル自身の背景で、UITK も枠の下まで塗る（Web の background は border-box） */
@@ -180,5 +180,5 @@
     --game-panel-bottom-fade: var(--game-panel-default-bottom-fade);
     /* Web の .bottomDeco span の width: 68px（直書き）。個数 3 は Web の span の数で、C# の構造が持つ */
     /* The Web .bottomDeco span width: 68px (literal); the count of 3 is the Web span count, held by the C# structure */
-    --game-panel-deco-triangle-width: 68px; /* look-exception: LX-220 */
+    --game-panel-deco-triangle-width: 68px;
 }

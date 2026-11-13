@@ -1,14 +1,14 @@
 /* 通知のホストと行。Web W/features/notification/style.module.css の写し。ホストは実画面の左端・縦の中央線から下へ積み、舞台と同率で拡縮する（層の族 Viewport ＋ PanelSettings の倍率） */
 /* Notification host and rows, copied from Web W/features/notification/style.module.css; the host stacks down from the vertical center at the left edge of the real screen and scales with the stage (Viewport family plus PanelSettings scaling) */
-/* 寸法と文字組みは Web も直書きで --notification-* が無いので同じ値を直書きする（台帳 LX-221） */
-/* Sizes and typography are literals in the Web too, with no --notification-* token, so the same values are written here (ledger LX-221) */
+/* 寸法と文字組みは Web も直書きで --notification-* が無いので同じ値を直書きする（ref-uitk-design §6） */
+/* Sizes and typography are literals in the Web too, with no --notification-* token, so the same values are written here (ref-uitk-design §6) */
 
 .notification-host {
     position: absolute;
     top: 50%;
     /* 左端は実画面の 16px（Web .host の left: 1rem は --ui-scale の外）。C# が StageScaleSource の倍率で割って style.left に当てる */
     /* The left edge is 16 real-screen px (Web .host left: 1rem is outside --ui-scale); C# divides it by the StageScaleSource scale into style.left */
-    --notification-host-screen-left: 16px; /* look-exception: LX-221 */
+    --notification-host-screen-left: 16px;
     flex-direction: column;
     --notification-host-enter-duration: var(--notification-enter-duration);
     --notification-host-exit-duration: var(--notification-exit-duration);
@@ -22,12 +22,12 @@
     align-items: center;
     flex-shrink: 0;
     width: var(--notification-width);
-    margin-bottom: 10px; /* look-exception: LX-221 */
+    margin-bottom: 10px;
     /* 上下は Web の 5px＋5px から 3px 引く。UITK の 1 行目は字の自然な高さ（Latin 21px）で Web の 18px の行より 3px 高いので、その分を上下で吸う（S4-research の 1 行目の差を padding で調整する前例） */
     /* 半端な 1.5px ずつは画素に丸められて行が 1px 伸びたので、整数の 3px と 4px に分ける。字の上端は Web の 3.5px に対し 3px */
     /* Vertical padding is the Web 5px + 5px minus 3px; UITK's first line is the natural glyph height (Latin 21px), 3px taller than the Web 18px line, so the padding absorbs it (S4-research precedent of fixing the first-line gap with padding) */
     /* Fractional 1.5px each got pixel-rounded and grew the row by 1px, so split into whole 3px and 4px; the glyph top sits at 3px against the Web 3.5px */
-    padding: 3px 12px 4px 12px; /* look-exception: LX-221 */
+    padding: 3px 12px 4px 12px;
     border-width: 1px; /* look-exception: LX-190 */
     border-color: var(--notification-border);
     background-color: var(--notification-face);
@@ -36,14 +36,14 @@
 /* アイテムのアイコンは 1 行の文字高に収め、文との間は Web の gap 8px */
 /* The item icon fits within one line of text, with the Web 8px gap before the text */
 .notification-row__icon {
-    width: 22px; /* look-exception: LX-221 */
-    height: 22px; /* look-exception: LX-221 */
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
-    margin-right: 8px; /* look-exception: LX-221 */
+    margin-right: 8px;
     /* 行の上下の padding で削った 2px と 1px をアイコンの上下に戻し、アイコンの行を Web と同じ 22+10+2＝34px・アイコンの上端を Web と同じ 5px に保つ */
     /* Give back the 2px and 1px trimmed from the row padding above and below the icon so icon rows stay the Web 22+10+2 = 34px with the icon top at the Web 5px */
-    margin-top: 2px; /* look-exception: LX-221 */
-    margin-bottom: 1px; /* look-exception: LX-221 */
+    margin-top: 2px;
+    margin-bottom: 1px;
 }
 
 /* 枠の中の GameIcon 本体も 22px に揃える。部品のクラスは指さず、画面所有のクラスを View が付ける（前例 PauseMenuSubPageView の pause-menu__back） */
@@ -63,10 +63,10 @@
     padding: 0;
     white-space: normal;
     -unity-text-align: middle-left;
-    font-size: 15px; /* look-exception: LX-221 */
+    font-size: 15px;
     /* 0.055em×15px=0.825px。UITK の letter-spacing の px は「文字の大きさ/100×値」で効くので 0.825÷0.15 */
     /* 0.055em x 15px = 0.825px; a UITK letter-spacing px acts as font-size/100 x value, so 0.825 / 0.15 */
-    letter-spacing: 5.5px; /* look-exception: LX-221 */
+    letter-spacing: 5.5px;
     /* 2 行目以降の行送りは Web の 15px×1.2＝18px を LocalizedLabel のつまみで写す（TooltipFace.uss の前例） */
     /* 1 行目は字の自然な高さ（実測 Latin 21px・JP 22px）で縮められないので、Web との差は行の上下の padding で吸う（.notification-row） */
     /* Lines after the first advance the Web 15px x 1.2 = 18px through LocalizedLabel's knob (TooltipFace.uss precedent) */
