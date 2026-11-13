@@ -103,7 +103,10 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
             textField.Focus();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
 
+            // 隠した後の配置で根の入力規則がフォーカスを外す（A-275）
+            // The root input rules blur on the layout after hiding (A-275)
             _stack.SetAllLayersVisible(false);
+            simulate.FrameUpdate();
 
             Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠した後も入力欄がフォーカスを持っている");
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "隠している間もゲームのキーが抑止されたまま");

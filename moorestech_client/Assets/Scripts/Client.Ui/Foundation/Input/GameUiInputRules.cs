@@ -14,6 +14,10 @@ namespace Client.Ui.Foundation.Input
     /// </remarks>
     public sealed class GameUiInputRules
     {
+        // 直前に拒んだ要素。同じ要素が続けてフォーカスを取る間の警告を 1 回にする
+        // The element refused last; keeps the warning to one while the same element keeps taking focus
+        private static VisualElement _lastRefusedFocus;
+
         public static void Attach(VisualElement root)
         {
             // 子孫の既定処理より先に走らせるため、すべて TrickleDown で付ける
@@ -38,16 +42,24 @@ namespace Client.Ui.Foundation.Input
                 // Removal with focus never tells the root about the blur, so subscribe to the focused element's own detach
                 UiInputExclusivity.SetGameUiTextInputFocused(true);
                 element.RegisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
+                KeepFocus(element);
                 return;
             }
 
             // 印付き（キーで操作するボタン）はフォーカスを保つ。入力欄ではないので入力中の旗は立てない
             // Marked elements (key-operated buttons) keep focus; they are not text fields, so the text-input flag stays down
-            if (MayKeepFocus(element)) return;
+            if (MayKeepFocus(element))
+            {
+                KeepFocus(element);
+                return;
+            }
 
             // 入力欄と印付き以外はフォーカスを持たせない。focusable=false の付け忘れに開発者が気づけるよう名前を出す
             // Only text fields and marked elements may hold focus; log the element so developers notice a missing focusable=false
-            Debug.LogWarning($"[GameUiInput] non text-field, unmarked element took focus and was blurred: {DescribeElement(element)}");
+            // silent-ok: 同じ要素が続けて取った分は直前と同じ警告になる / 最初の 1 回の LogWarning で開発者が気づく
+            // silent-ok: the same element taking focus again repeats the previous warning / developers notice from the first LogWarning
+            if (element != _lastRefusedFocus) Debug.LogWarning($"[GameUiInput] non text-field, unmarked element took focus and was blurred: {DescribeElement(element)}");
+            _lastRefusedFocus = element;
 
             // フォーカス切替の配送中に外すと切替処理と競合するので、次の機会に外す
             // Blurring inside the focus-change dispatch fights the switch itself, so blur at the next opportunity
@@ -58,8 +70,10 @@ namespace Client.Ui.Foundation.Input
         private static void OnFocusOut(FocusOutEvent evt)
         {
             // 外れた要素の購読は先に解く
-            // Drop the detach subscription of the element losing focus first, even when the flag stays up
-            ((VisualElement)evt.target).UnregisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
+            // Drop the detach and hide subscriptions of the element losing focus first, even when the flag stays up
+            var leaving = (VisualElement)evt.target;
+            leaving.UnregisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
+            FocusedElementHideWatch.Unwatch(leaving);
 
             // 入力欄から入力欄へ移るときは true のまま保つ
             // Keep the flag up when focus moves from one text field to another
@@ -115,6 +129,14 @@ namespace Client.Ui.Foundation.Input
             // silent-ok: if focus already moved to a text field, a marked element or nowhere there is nothing to blur / the non-text-field focus was already logged by OnFocusIn
             if (root.focusController?.focusedElement is not VisualElement focused || MayKeepFocus(focused)) return;
             focused.Blur();
+        }
+
+        // 保ってよいフォーカスは隠れたら外す。拒否の続きは途切れる
+        // A focus allowed to stay is blurred once hidden, and the run of refusals ends
+        private static void KeepFocus(VisualElement element)
+        {
+            _lastRefusedFocus = null;
+            FocusedElementHideWatch.Watch(element);
         }
 
         // 入力欄と印付きだけがフォーカスを保ってよい

@@ -87,9 +87,6 @@ namespace Client.Ui.Screens.BuildMenu
             _shown = shown;
             if (!shown)
             {
-                // 入力欄にフォーカスが残ると隠しても入力中の扱いが残るので外す
-                // A focused field would stay counted as typing after hiding, so blur it
-                if (focusController?.focusedElement is VisualElement focused && Contains(focused)) focused.Blur();
                 // 位置を保存して視口を凍らせてから隠す（隠した ScrollView の位置は当てにならないため。D-7）
                 // Save the position and freeze the viewport before hiding, since a hidden ScrollView's offset is unreliable (D-7)
                 _scrollBinding.Detach();

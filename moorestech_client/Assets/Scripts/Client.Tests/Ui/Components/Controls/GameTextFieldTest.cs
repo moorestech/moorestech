@@ -81,37 +81,18 @@ namespace Client.Tests.Ui.Components.Controls
 
         [TestCase(false)]
         [TestCase(true)]
-        public void CompositionUnderlineShowsOnlyWhileComposing(bool multiline)
+        public void CompositionUnderlineIsHiddenWhileNotComposing(bool multiline)
         {
+            // 変換中の幅・色・位置は ImeCompositionUnderlineTest が下線の部品で見る
+            // ImeCompositionUnderlineTest covers the composing width, colour and position on the underline part itself
             var gameTextField = AddGameTextField(multiline);
-            var underline = gameTextField.Q(className: ImeCompositionUnderline.UssClassName);
             gameTextField.Field.Focus();
             simulate.TypingText("abc");
             simulate.FrameUpdate();
 
-            // 変換中でないときは出ない
-            // Hidden while not composing
-            Assert.AreEqual(DisplayStyle.None, underline.resolvedStyle.display);
-
-            // 変換中の下線の幅・色・位置
-            // Width, color and position of the composing underline
-            gameTextField.ApplyComposition("abc");
-            simulate.FrameUpdate();
-            Assert.AreEqual(DisplayStyle.Flex, underline.resolvedStyle.display);
-            Assert.Greater(underline.resolvedStyle.width, 0f);
-            Assert.AreEqual(1f, underline.resolvedStyle.height, 0.01f);
-            Assert.AreEqual(gameTextField.Field.Q<TextElement>().resolvedStyle.color, underline.resolvedStyle.backgroundColor);
-            var caretPanelPoint = gameTextField.Field.Q<TextElement>().LocalToWorld(gameTextField.Field.textSelection.cursorPosition);
-            // 位置と幅はそれぞれ画素へ丸められるので、端は 1px までずれうる
-            // Position and width are each snapped to pixels, so the edge may drift by up to 1px
-            Assert.AreEqual(caretPanelPoint.x, underline.worldBound.xMax, 1f);
-            Assert.AreEqual(caretPanelPoint.y, underline.worldBound.yMax, 1f);
-
-            // 確定（未確定文字列が空）で消える
-            // Committing (empty composition) hides it
-            gameTextField.ApplyComposition(string.Empty);
-            simulate.FrameUpdate();
-            Assert.AreEqual(DisplayStyle.None, underline.resolvedStyle.display);
+            var underlines = gameTextField.Query(className: ImeCompositionUnderline.UssClassName).ToList();
+            Assert.AreEqual(1, underlines.Count);
+            Assert.AreEqual(DisplayStyle.None, underlines[0].resolvedStyle.display);
         }
 
         [Test]

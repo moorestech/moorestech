@@ -40,8 +40,12 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Find<TextField>(view, "bug-report-description").Focus();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused, "前提: 入力欄にフォーカスが入っている");
 
+            // 隠した後の配置で根の入力規則がフォーカスを外す（画面は Blur しない。A-275）
+            // The root input rules blur on the layout after hiding; the screen itself never blurs (A-275)
             view.SetShown(false);
+            simulate.FrameUpdate();
 
+            Assert.IsNull(panel.focusController.focusedElement);
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
         }
     }

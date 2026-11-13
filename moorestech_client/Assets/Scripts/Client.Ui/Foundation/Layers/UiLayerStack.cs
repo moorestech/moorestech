@@ -71,9 +71,8 @@ namespace Client.Ui.Foundation.Layers
                 return;
             }
 
-            // 隠れた入力欄がフォーカスを持ち続けるとゲームのキー抑止が残るので先に外す（Web の focus fixup と同じ。フォーカス無しは外すものが無い）
-            // A hidden text field keeping focus would leave the game's key suppression on, so blur first (same as the Web focus fixup; no focus means nothing to blur)
-            _root.focusController.focusedElement?.Blur();
+            // 隠れた入力欄のフォーカスは根の入力規則が外す（Web の focus fixup と同じ。A-275）
+            // The root input rules blur a hidden text field's focus (same as the Web focus fixup; A-275)
             _root.style.display = DisplayStyle.None;
         }
     }
