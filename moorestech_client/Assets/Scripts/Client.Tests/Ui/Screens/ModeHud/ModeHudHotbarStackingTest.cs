@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Screens.ModeHud
         }
 
         [Test]
-        public void ホットバーは舞台の一覧より前で掴み・ツールチップ・ポーズより後ろ()
+        public void ホットバーは舞台の一覧より前で掴みとツールチップとポーズより後ろ()
         {
             // Web は一覧（.stage の z stage-overlay-panel）より viewportOverlay（31）が前、掴み 40・ポーズ 40・ツールチップ 250 が更に前
             // On the Web viewportOverlay (31) is in front of stage lists (z stage-overlay-panel); grab 40, pause 40 and tooltip 250 are further in front
