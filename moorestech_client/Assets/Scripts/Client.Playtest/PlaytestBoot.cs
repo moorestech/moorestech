@@ -1,4 +1,5 @@
 using Client.Game.Common;
+using Client.Playtest.Boot;
 using Client.Playtest.Core;
 using UniRx;
 using UnityEditor;
@@ -49,6 +50,9 @@ namespace Client.Playtest
             // PlayMode突入後のドメインリロードで再実行され、ここで初期化完了イベントを購読する
             // Re-runs after the play-mode domain reload; subscribe to the game-initialized event here
             if (!PlaytestBootLifecycle.RestoreAfterDomainReload(EditorApplication.isPlayingOrWillChangePlaymode)) return;
+            // 出展モードの言語ゲートで止まる起動は初期化完了が来ないので、MainGame の読み込みを ready にする
+            // A boot held at the exhibition language gate never reports initialization, so MainGame's load counts as ready
+            if (PlaytestEventLanguageGateBoot.ApplyIfArmed()) return;
             GameInitializedEvent.OnGameInitialized.First().Subscribe(_ => PlaytestPaths.WriteReadyMarker());
         }
     }

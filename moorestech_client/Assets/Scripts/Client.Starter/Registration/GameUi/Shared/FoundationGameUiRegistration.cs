@@ -3,7 +3,6 @@ using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Foundation.Modal;
 using Client.Ui.Foundation.Stage.Columns;
-using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Foundation.Tooltip;
 using VContainer;
 using VContainer.Unity;
@@ -18,11 +17,6 @@ namespace Client.Starter.Registration.GameUi.Shared
     {
         public static void Register(ContainerBuilder builder)
         {
-            // 倍率を読むのは監視の 1 点だけ。読み口はその流れを包んで配る
-            // Only the watch reads the scale; the source wraps its stream for consumers
-            builder.RegisterEntryPoint<GameUiStageScaleWatch>().AsSelf();
-            builder.Register(resolver => new StageScaleSource(resolver.Resolve<GameUiStageScaleWatch>().Scale), Lifetime.Singleton);
-
             // 画面追従 UI 共通のポインタ（1個）
             // One pointer for screen-following UI (grab picture, cursor tooltip)
             builder.Register<InputSystemUiScreenPointer>(Lifetime.Singleton).As<IUiScreenPointer>();

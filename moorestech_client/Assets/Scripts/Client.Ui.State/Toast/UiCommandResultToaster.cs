@@ -28,8 +28,7 @@ namespace Client.Ui.State.Toast
             // 名前・コード・診断を 1 行でログへ
             // Log name, code and diagnostic in one line
             var wireCode = rejected.ToWireCode();
-            var diagnostic = rejected.Diagnostic.Length == 0 ? string.Empty : $" ({rejected.Diagnostic})";
-            Debug.LogWarning($"[UiCommandResultToaster] {commandName} failed: {wireCode}{diagnostic}");
+            Debug.LogWarning($"[UiCommandResultToaster] {commandName} failed: {rejected.ToLogText()}");
             if (UiCommandRejectReasonTraits.IsBenign(rejected.Reason)) return;
 
             // 失敗コードは常に {code} へ

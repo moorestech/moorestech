@@ -28,9 +28,13 @@ using Client.Game.Skit;
 using Client.Input;
 using Client.Network.API;
 using Client.Skit.Skit;
+using Client.Starter.EventMode;
 using Client.Starter.Registration;
+using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using CommandForgeGenerator.Command;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 using UnityEngine.Serialization;
 using VContainer;
@@ -94,10 +98,24 @@ namespace Client.Starter
         [SerializeField] private GameObjectToolTipTargetController gameObjectToolTipTargetController;
 
         private IObjectResolver _resolver;
+        // GameUi の系でだけ DI より前に立てる土台。言語ゲートと DI の両方がこれを使う（S5-gate D-2）
+        // Foundation built before DI only in the GameUi system; both the language gate and DI use it (S5-gate D-2)
+        private GameUiPreDiFoundation _gameUiFoundation;
 
         protected override void OnDestroy()
         {
             _resolver?.Dispose();
+        }
+
+        // GameUi の系で DI 前に土台を立て、その上の言語ゲート画面を返す。Web の系は土台も画面も無く null
+        // Builds the pre-DI foundation in the GameUi system and returns the language-gate screen on it; the Web system has neither and gets null
+        internal IEventLanguageGateScreen PrepareUiBeforeDi()
+        {
+            // silent-ok: Web の系は Client.Ui を立てず言語ゲートは hub が描く / 起動の系は UiSystemBootSelection がログに出している
+            if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi) return null;
+            _gameUiFoundation = new GameUiPreDiFoundation(gameUiRoot);
+            _gameUiFoundation.Initialize();
+            return new EventLanguageGateBootHost(gameUiRoot.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport), _gameUiFoundation.StageScale, LanguageCatalog.Languages);
         }
         
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter, bool collectsPlaytestRecords)
@@ -109,7 +127,9 @@ namespace Client.Starter
             MainGameModelRegistration.Register(builder, initialHandshakeResponse, saveGenerationWaiter, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
             MainGameUiStateRegistration.Register(builder);
-            MainGameUiRegistration.Register(builder, gameUiRoot, UiInputExclusivity.ActiveUiSystem);
+            // 全体スイッチの分岐: Web の系では Client.Ui を 1 つも登録せず、GameUiRoot の層は空のまま残る。起動の系は UiSystemBootSelection がログに出している
+            // Global-switch branch: the Web system registers nothing from Client.Ui and the GameUiRoot layers stay empty; UiSystemBootSelection has logged the boot's system
+            if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi) MainGameUiRegistration.Register(builder, gameUiRoot, _gameUiFoundation);
 
             
             //Hierarchy上にあるcomponent

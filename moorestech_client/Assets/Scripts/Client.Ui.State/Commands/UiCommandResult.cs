@@ -61,5 +61,12 @@ namespace Client.Ui.State.Commands
         {
             return 0 < _wireCodeOverride.Length ? _wireCodeOverride : UiCommandRejectReasonTraits.ToWireCode(Reason);
         }
+
+        // 開発者ログの拒否の書き方。コードの後ろに診断を括弧で添える
+        // Developer-log text of a rejection: the code, then the diagnostic in parentheses
+        public string ToLogText()
+        {
+            return Diagnostic.Length == 0 ? ToWireCode() : $"{ToWireCode()} ({Diagnostic})";
+        }
     }
 }
