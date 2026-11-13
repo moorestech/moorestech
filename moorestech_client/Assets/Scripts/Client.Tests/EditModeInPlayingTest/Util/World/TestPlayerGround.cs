@@ -35,6 +35,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util.World
             // Lift the player onto the ground only when below it; place slightly above since overlapping feet ignore the ground
             if (position.y < groundTopY) playerController.SetPlayerPosition(new Vector3(position.x, groundTopY + 0.1f, position.z));
             Physics.SyncTransforms();
+            Debug.Log($"[DIAG-GROUND] create player:{position} after:{playerController.Position} groundTop:{groundTopY} scene:{ground.scene.name}");
             return ground;
         }
 
@@ -52,10 +53,14 @@ namespace Client.Tests.EditModeInPlayingTest.Util.World
             var startPosition = player.Position;
             var deadline = Time.realtimeSinceStartup + GroundedTimeoutSeconds;
             var frames = 0;
+            var probeGround = GameObject.Find("TestPlayerGround");
+            Debug.Log($"[DIAG-GROUND] start player:{player.Position} grounded:{character.isGrounded} ground:{(probeGround ? probeGround.transform.position.ToString() + " scene:" + probeGround.scene.name : "null")} active:{UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} players:{Object.FindObjectsByType<PlayerObjectController>(FindObjectsSortMode.None).Length} dt:{Time.deltaTime} maxDt:{Time.maximumDeltaTime}");
             while (!character.isGrounded && Time.realtimeSinceStartup < deadline)
             {
                 await UniTask.NextFrame();
                 frames++;
+                var g = GameObject.Find("TestPlayerGround");
+                Debug.Log($"[DIAG-GROUND] f{frames} player:{player.Position} local:{player.transform.localPosition} grounded:{character.isGrounded} ccEnabled:{character.enabled} ground:{(g ? g.transform.position.ToString() + " layer:" + g.layer + " active:" + g.activeInHierarchy : "null")} probe00:{GroundHeightProbe.TryGetGroundPoint(0, 0, out var gp)} {gp} dt:{Time.deltaTime}");
             }
             Assert.IsTrue(character.isGrounded, $"足場へ接地しない player:{player.Position} start:{startPosition} frames:{frames}");
             Debug.Log($"[TestPlayerGround] grounded player:{player.Position}");
