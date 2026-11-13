@@ -4,7 +4,6 @@ using Client.Input.Pointer;
 using Client.Tests.Input.Pointer;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Equipment;
-using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Screens.Inventory.Wheel;
 using NUnit.Framework;
 using UnityEngine;
@@ -34,7 +33,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
             _host = new GameObject("equipment-wheel-input-flow");
             _port = new FakeEquipmentSelectionPort(3);
             var router = new EquipmentWheelRouterFixture(_host, UIStateEnum.GameScreen, _port).Router;
-            new EquipmentWheelInput(new InputSystemPointerWheelStream(), new InputSystemUiScreenPointer(new InputSystemPointerPositionStream()), new FakeEquipmentWheelPointerPicker(), router).Initialize();
+            new EquipmentWheelInput(new InputSystemPointerWheelStream(), new FakeEquipmentWheelPointerPicker(), router).Initialize();
             _rawWheelUpdates = new List<InputUpdateType>();
             InputSystem.onEvent += RecordRawWheelUpdate;
         }

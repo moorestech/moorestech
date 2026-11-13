@@ -3,7 +3,6 @@ using Client.Input.Pointer;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Equipment;
 using Client.Ui.Foundation.Input;
-using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Screens.Inventory.Wheel;
 using NUnit.Framework;
 using UnityEngine;
@@ -34,7 +33,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
             _port = new FakeEquipmentSelectionPort(3);
             var router = new EquipmentWheelRouterFixture(_host, UIStateEnum.GameScreen, _port).Router;
             var picker = new PanelWheelPointerPicker(rootVisualElement);
-            new EquipmentWheelInput(new InputSystemPointerWheelStream(), new InputSystemUiScreenPointer(new InputSystemPointerPositionStream()), picker, router).Initialize();
+            new EquipmentWheelInput(new InputSystemPointerWheelStream(), picker, router).Initialize();
         }
 
         [TearDown]
@@ -58,6 +57,40 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
             var hud = AddBox(true);
             WheelDownTwoNotchesOver(hud);
             CollectionAssert.AreEqual(new[] { 1 }, _port.Selections);
+        }
+
+        [Test]
+        public void 縁をまたぐ移動とホイールが1つのイベントに載ってもそのイベントの位置で判定する()
+        {
+            var list = AddBox(false);
+            var outside = new Vector2(100f, 100f);
+            var inside = list.worldBound.center;
+
+            // 外から一覧の上へ入る移動とホイールを 1 つの MouseState に積む。デバイスの今の値で判定すると外と読んで選んでしまう
+            // Stack the move from outside onto the list and the wheel in one MouseState; judging by the device value reads outside and selects
+            for (var i = 0; i < 2; i++)
+            {
+                QueueAndUpdate(new MouseState { position = outside });
+                QueueAndUpdate(new MouseState { position = inside, scroll = new Vector2(0f, -1f) });
+            }
+            Assert.IsEmpty(_port.Selections, "一覧の上へ入った瞬間のホイールで装備を選んだ");
+
+            // 逆向き: 一覧の上から外へ出る移動とホイールを 1 つに積むと、外として選ぶ（何も流れていないのに緑になるのを防ぐ）
+            // Reverse: the move off the list plus the wheel in one event selects as outside (guards against a vacuous green)
+            for (var i = 0; i < 2; i++)
+            {
+                QueueAndUpdate(new MouseState { position = inside });
+                QueueAndUpdate(new MouseState { position = outside, scroll = new Vector2(0f, -1f) });
+            }
+            CollectionAssert.AreEqual(new[] { 1 }, _port.Selections);
+        }
+
+        private void QueueAndUpdate(MouseState state)
+        {
+            // 1 イベントずつ処理する。同じ更新に並べると Mouse がイベントを併合して前の位置が消える
+            // Process one event per update; queued together, the Mouse merges events and drops the earlier position
+            InputSystem.QueueStateEvent(_mouse, state);
+            InputSystem.Update();
         }
 
         private VisualElement AddBox(bool passthrough)
