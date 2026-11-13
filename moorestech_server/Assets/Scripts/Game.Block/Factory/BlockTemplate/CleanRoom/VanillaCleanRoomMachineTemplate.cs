@@ -50,8 +50,8 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
             var effectComponent = new MachineModuleEffectComponent(module);
             var processor = new CleanRoomMachineProcessorComponent(componentStates, blockInstanceId, input, output, module, machineParam.RequiredPower, machineParam.IdlePowerRate, effectComponent);
 
-            // CleanRoomMachineComponentは汚染判定と電力Consumerを兼ねる
-            // CleanRoomMachineComponent serves both pollution reporting and the electric consumer role
+            // CleanRoomMachineComponentは部屋の効果の受け口と電力Consumerを兼ねる
+            // CleanRoomMachineComponent serves both as the room effect receiver and the electric consumer
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var operabilityState = new CleanRoomOperabilityStateComponent();
             var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor, operabilityState);

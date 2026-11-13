@@ -12,7 +12,7 @@ const room: CleanRoomSummaryData = {
 };
 
 describe("cleanRoomDisplay", () => {
-  it("クラスに届いた部屋はクラス名・濃度・換気回数・清浄機ごとの行を出す", () => {
+  it("クラスに届いた部屋はクラス名・換気回数・清浄機ごとの行を出す", () => {
     const view = cleanRoomDisplay({ fetchState: "fetched", kind: "enclosed", room });
     expect(view.headline).toEqual({ key: L.ui.blockInventory.cleanRoomClass, params: { className: "A" } });
     expect(view.headlineInsufficient).toBe(false);
