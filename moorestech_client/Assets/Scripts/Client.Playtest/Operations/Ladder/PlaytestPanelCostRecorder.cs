@@ -30,7 +30,9 @@ namespace Client.Playtest.Operations
     // Measures UITK panel update and repaint time with ProfilerRecorder (as the PoC did)
     public static class PlaytestPanelCostRecorder
     {
-        private static readonly string[] MarkerKeywords = { "UpdatePanels", "RepaintPanels" };
+        // PlayerLoop の段のマーカー（PreLateUpdate.UIElementsUpdatePanels・PostLateUpdate.UIElementsRepaintPanels）を拾う
+        // Match the PlayerLoop stage markers (PreLateUpdate.UIElementsUpdatePanels, PostLateUpdate.UIElementsRepaintPanels)
+        private static readonly string[] MarkerKeywords = { "UIElementsUpdatePanels", "UIElementsRepaintPanels" };
 
         public static IReadOnlyList<ProfilerRecorderDescription> FindPanelMarkers()
         {
@@ -40,7 +42,7 @@ namespace Client.Playtest.Operations
             ProfilerRecorderHandle.GetAvailable(handles);
             return handles
                 .Select(ProfilerRecorderHandle.GetDescription)
-                .Where(d => d.Name.StartsWith("UIElements") && MarkerKeywords.Any(k => d.Name.Contains(k)))
+                .Where(d => MarkerKeywords.Any(k => d.Name.Contains(k)))
                 .ToList();
         }
 
