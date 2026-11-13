@@ -110,9 +110,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // Shift＋クリックで粉を入れ、原木は右クリックで半分掴んで素材順の 2 枠目へ置く（入力枠はレシピの素材順に固定）
     // Shift-click the dust in, then right-click to grab half the logs and drop them in the second slot (inputs follow recipe order)
     p.Note("Shiftで入れる・半分掴んで置く");
-    SemanticInput.KeyDown(Key.LeftShift);
-    await p.ClickUi(MainSlotOf(bronzeDust));
-    SemanticInput.KeyUp(Key.LeftShift);
+    await ShiftClickOn(MainSlotOf(bronzeDust));
     await RightClickOn(MainSlotOf(log));
     await p.ClickUi("machine-input-slot-1");
     var kilnInventory = p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>();
@@ -139,9 +137,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // Shift で取り出し、閉じて整理する
     // Shift-take the output, close and sort
     var ingotsBefore = PlaytestItemOps.CountItemClientSide(ingot);
-    SemanticInput.KeyDown(Key.LeftShift);
-    await p.ClickUi("machine-output-slot-0");
-    SemanticInput.KeyUp(Key.LeftShift);
+    await ShiftClickOn("machine-output-slot-0");
     await p.Until(() => ingotsBefore < PlaytestItemOps.CountItemClientSide(ingot), 10f, "Shiftで青銅インゴットを取り出す");
     await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -164,7 +160,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     ILocalPlayerInventory Local() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
     string MainSlotOf(ItemId id) => $"main-slot-{Enumerable.Range(0, Local().MainSlotCount).First(i => Local()[i].Id == id)}";
     int[] EmptyMainSlots(int count) => Enumerable.Range(0, Local().MainSlotCount).Where(i => Local()[i].Id == ItemMaster.EmptyItemId).Take(count).ToArray();
-
     // 移動と押下を同じフレームに積むと押下が元の位置に届くので、移動の後に間を置いて押す（前例 uitk-recipe-craft）
     // Queuing the move and press in one frame lands the press at the old position, so wait after moving (precedent uitk-recipe-craft)
     async UniTask PressOn(string testid, int button)
@@ -173,7 +168,18 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
         await p.WaitSeconds(0.5f);
         SemanticInput.MouseButtonDown(button);
     }
-
+    // UITK の修飾キーは InputSystem でなく PanelEventHandler.s_Modifiers から読むので Shift もそこへ入れる（前例 uitk-machine-ui）
+    // UITK reads modifiers from PanelEventHandler.s_Modifiers, not the Input System, so inject Shift there too (precedent uitk-machine-ui)
+    async UniTask ShiftClickOn(string testid)
+    {
+        var modifiers = typeof(UnityEngine.UIElements.PanelEventHandler).GetField("s_Modifiers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        if (modifiers == null) throw new InvalidOperationException("PanelEventHandler.s_Modifiers が見つからないので Shift を注入できない");
+        SemanticInput.KeyDown(Key.LeftShift);
+        modifiers.SetValue(null, EventModifiers.Shift);
+        await p.ClickUi(testid);
+        modifiers.SetValue(null, EventModifiers.None);
+        SemanticInput.KeyUp(Key.LeftShift);
+    }
     async UniTask RightClickOn(string testid)
     {
         await PressOn(testid, 1);
@@ -181,7 +187,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
         SemanticInput.MouseButtonUp(1);
         await p.WaitSeconds(0.3f);
     }
-
     async UniTask DragWithButton(int button, int[] slots)
     {
         await PressOn($"main-slot-{slots[0]}", button);
