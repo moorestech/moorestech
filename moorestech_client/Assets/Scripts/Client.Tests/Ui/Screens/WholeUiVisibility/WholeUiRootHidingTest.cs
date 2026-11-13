@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Client.Input;
+using Client.Tests.Ui.Screens.Modal;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Stage;
+using Client.Ui.Screens.Modal;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -110,6 +113,31 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
 
             Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠した後も入力欄がフォーカスを持っている");
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "隠している間もゲームのキーが抑止されたまま");
+        }
+
+        [Test]
+        public void 隠している間にモーダルの入力欄がフォーカスを取っても次のフレームで外れキーの抑止が解ける()
+        {
+            // 全 UI を隠してからモーダルを載せる。取り付け時の予約で隠れた入力欄がフォーカスを取る
+            // Hide the whole UI, then mount a modal; its attach-time focus lands on the hidden field
+            var modalLayer = _stack.GetLayer(UiLayer.Modal, UiFamily.Stage);
+            GameUiInputRules.Attach(modalLayer);
+            _stack.SetAllLayersVisible(false);
+            simulate.FrameUpdate();
+            var view = new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>());
+            var focusTaken = false;
+            view.RegisterCallback<FocusInEvent>(_ => focusTaken = true);
+            modalLayer.Add(view);
+            for (var frame = 0; frame < 3 && !focusTaken; frame++) simulate.FrameUpdate();
+            Assert.IsTrue(focusTaken, "前提: 隠れた入力欄がフォーカスを取る");
+            Assert.IsTrue(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "前提: 隠れた入力欄のフォーカスでキーが抑止される");
+
+            // 取った次のフレームに根の入力規則が外す（A-275）
+            // The root input rules blur it on the frame after it was taken (A-275)
+            simulate.FrameUpdate();
+
+            Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠れた入力欄がフォーカスを持ったまま");
+            Assert.IsFalse(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "隠している間もゲームのキーが抑止されたまま");
         }
     }
 }
