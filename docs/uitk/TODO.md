@@ -134,10 +134,11 @@
 
 Web 版の全画面と主要な状態（移行後も「意図した見た目」を辿るため）。mock-host（DEMO の高密度データとプレースホルダアイコン）で撮った。画素の一致は目標にしない（計画 §4.6）。
 
-- 撮影元: moorestech `a9d5123537`。撮り方: `moorestech_web/webui/e2e/uitk-reference/capture.ts`（撮影表は同じディレクトリの `referenceShots.ts`・`referenceVideos.ts`）
-- 置き場: `moorestech_logs` の `uitk/reference-captures/web-a9d5123537/`（一覧は `index.md`、機械向けは `manifest.json`）
-- URL: https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-a9d5123537
-- 目視検査: 同じ置き場の `visual-review.md` と `qa/` に全64静止画・全5動画の確認とフレーム証拠を残す。通知動画は入場・集約・全退出を含む12秒、ほかは3〜4秒
+- 撮影元（1280×720 の正本）: moorestech `c187485846`（origin/master の使い捨て worktree。I-fix5 Task 10b の撮り直し）。撮り方: `moorestech_web/webui/e2e/uitk-reference/capture.ts`（撮影表は同じディレクトリの `referenceShots.ts`・`referenceVideos.ts`。capture の前に `pnpm build`）
+- 置き場: `moorestech_logs` の `uitk/reference-captures/web-c187485846/`（静止画 84。一覧は `index.md`、機械向けは `manifest.json`）。動画 5 本は置かない（録画を記録 repo に入れない）。Web（`moorestech_web`）は `8a585f742a` から差分 0 なので、動画は `web-8a585f742a/` の同名の webm を使う。静止画は `web-8a585f742a` と 82 枚が画素まで同じで、`5-tutorial-outline-label`（7 画素・最大 1 段）・`5-tutorial-research-node`（779 画素・最大 11 段）だけ違う（推測: 拍動の動きの位相）
+- URL: https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-c187485846
+- 旧版: `web-a9d5123537`（持ち物の格子が 9 列・マスの絵の位置が af5fcc9cb3 より前）。`4-block-train`・`4-block-trainTimetable` は今の Web で 10 列なので、比べるときは `web-c187485846` を使う（S4-train の依頼）
+- 目視検査: 旧版の置き場の `visual-review.md` と `qa/` に全64静止画・全5動画の確認とフレーム証拠を残す。通知動画は入場・集約・全退出を含む12秒、ほかは3〜4秒
 - 2560×1080 の参照: 撮影元 moorestech `0e81bbe3c3`、置き場は `moorestech_logs` の `uitk/reference-captures/web-0e81bbe3c3-2560x1080/`（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-0e81bbe3c3-2560x1080 。撮影 id は 1280×720 と同じ名前・静止画 84 と動画 5。舞台は 1.5 倍で左右に 320px の余白）。Web の版が 1280×720 の撮影元と違うので、差が出たらまず版の差を疑う。撮り直すときは capture の前に `pnpm build` が要る（`compare-procedure.md` §3）
 - S4-train の自撮り（撮影表に無い列車族の場面）: 撮影元 moorestech `755c54a512`（uitk-lane/s4-train。Web は feature/uitk と同じ）。mock-host に一時の fixture（駅 `TrainStation`・時刻表の Unavailable・液体貨車・停車駅 15 件。コミットしない）を足して 1280×720 と 2560×1080 で撮った。撮影 id は `s4t-station`・`s4t-timetable-loading`（`train` の時刻表タブ）・`s4t-timetable-unavailable`・`s4t-timetable-busy`（`trainTimetable` で追加を押した直後。mock の配信を 4 秒遅らせた）・`s4t-fluid-car`・`s4t-timetable-15`。置き場は S4-train の worktree の `.uitk-capture/web-*/`（gitignore 下）で、撮影表 `referenceShots.ts` への追加は integrator へ依頼済み（`harness/uitk/S4-train/done.md`）
 - 束 3 の最新の参照（S3-ladder）: 撮影元 moorestech `8a585f742a`（origin/master。マスの絵が枠の中央になった af5fcc9cb3 の後の Web。`3-hotbar-equipment-empty` の枠 1 の絵が枠の中央にあることを目で見た）。1280×720 は `moorestech_logs` の `uitk/reference-captures/web-8a585f742a/`（91 件。https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a ）、2560×1080 は `uitk/reference-captures/web-8a585f742a-2560x1080/`（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-8a585f742a-2560x1080 。`shotRunner.ts` の `referenceViewport` を一時的に 2560×1080 にして撮り、戻した）
