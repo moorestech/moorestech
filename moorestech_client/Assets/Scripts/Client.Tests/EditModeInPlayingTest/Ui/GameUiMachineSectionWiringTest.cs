@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Linq;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -24,6 +26,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UniRx;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
@@ -38,6 +41,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     public class GameUiMachineSectionWiringTest : UiSystemPlayModeTestBase
     {
         private const string MachineBlockName = "釜";
+        private const float InitializationTimeoutSeconds = 60f;
 
         [UnityTest]
         public IEnumerator UITK起動で機械の区画が解決し開き直すと開いた機械の値へ替わる()
@@ -59,14 +63,19 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
             async UniTask TestBody()
             {
+                // LoadMainGame は固定 1 秒で戻る。自機を保存座標へ置くのは初期化の完了直前なので、完了を待ってから足場を置く
+                // LoadMainGame returns after a fixed second; the player is placed just before initialization completes, so wait for it before placing the ground
+                var isInitialized = false;
+                using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => isInitialized = true);
                 await LoadMainGame();
+                await UniTask.WaitUntil(() => isInitialized).Timeout(TimeSpan.FromSeconds(InitializationTimeoutSeconds));
                 var ground = TestPlayerGround.Create();
 
-                // 足場へ降りるまでは地形の無いワールドの落下復帰ログが出うるので流し、接地後から想定外のエラーを拾う（VContainer の解決失敗は直後の解決で落ちる）
-                // Until the player lands, fall recovery in the terrain-free world may log, so drain it and catch unexpected errors from landing on (VContainer failures fail at the resolve right after)
+                // 起動ログを流してから想定外のエラーを拾う（VContainer の解決失敗もここで落ちる）
+                // Drain the startup logs, then catch unexpected errors (VContainer resolution failures fail here too)
                 await UniTask.Yield();
-                await TestPlayerGround.AssertGroundedAsync();
                 LogAssert.ignoreFailingMessages = false;
+                await TestPlayerGround.AssertGroundedAsync();
                 AssertRegistrationsResolve();
 
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
