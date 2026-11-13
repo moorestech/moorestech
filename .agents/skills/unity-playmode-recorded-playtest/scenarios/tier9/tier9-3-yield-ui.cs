@@ -47,9 +47,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     // 床のパネルを敷き、専用機4種（EUV はトランジスタ設置用と露光用の2台）を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
     // Lay the panel floor, line up the four machine kinds (two EUVs: transistor and exposure) and shoot their looks (after the placement effect) before the walls go up
     p.Note("専用機4種（EUV は2台）を1列に置き、見た目の違いを撮る");
-    for (var x = 0; x <= 22; x++)
-    for (var z = 0; z <= 10; z++)
-        await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
+    await Slab(32);
     var machines = new IBlock[machineNames.Length];
     for (var i = 0; i < machineNames.Length; i++) machines[i] = await Place(machineNames[i], new Vector3Int(2 + i * 4, 33, 6));
     p.WarpPlayer(new Vector3(11.5f, 32.5f, -6f));
@@ -86,7 +84,6 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     p.Note("段3 完了");
 
     #region Internal
-
     IEnumerable<Guid> WithPrerequisites(Guid target)
     {
         // 前提を辿って閉包を作る（CompleteResearch は素材と前提が揃わないと拒むため使わない）
@@ -97,7 +94,6 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
             if (done.Add(guid)) foreach (var prev in MasterHolder.ResearchMaster.GetResearch(guid).PrevResearchNodeGuids) pending.Push(prev);
         return done;
     }
-
     async UniTask<IBlock> Place(string name, Vector3Int pos)
     {
         var block = await p.PlaceBlockDirect(name, pos, BlockDirection.North);
@@ -105,22 +101,29 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         return block;
     }
     async UniTask Give(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れる", () => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count));
-
+    async UniTask Slab(int y)
+    {
+        // x0..22・z0..10 の面を 5x1x5 のパネルで 5 の倍数の角から敷き、5 で割り切れない帯（x20..22・z10）はブロックで埋める
+        // Tile x0..22 / z0..10 with 5x1x5 panels from multiple-of-5 corners and fill the leftover strips (x20..22, z10) with blocks
+        for (var x = 0; x <= 22; x++)
+        for (var z = 0; z <= 10; z++)
+            if (20 <= x || 10 <= z) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
+            else if (x % 5 == 0 && z % 5 == 0) await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, y, z), BlockDirection.North);
+    }
     async UniTask BuildWallsAndCeiling()
     {
         // 内寸 x1..21 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 のパネルにする
         // Interior x1..21 / z1..9 / y33..36; the ceiling is y37 panels so the third-person camera (about 2.9 m above the feet) stays under it inside
         var door = new Vector3Int(11, 33, 0);
+        await Slab(37);
         for (var x = 0; x <= 22; x++)
         for (var z = 0; z <= 10; z++)
         {
-            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 37, z), BlockDirection.North);
             if (x != 0 && x != 22 && z != 0 && z != 10) continue;
             for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
         }
         await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }
-
     async UniTask SelectRecipeByFirstOutput(IBlock block, string firstOutputName)
     {
         // その機械の工程レシピのうち、最初の出力が指定アイテムのものを選ぶ
@@ -133,7 +136,6 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         await p.RunOnServer($"{block.BlockMasterElement.Name} のレシピを選ぶ", () => result = selector.SetSelectedRecipe(recipe, overflow));
         p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe -> {firstOutputName}");
     }
-
     async UniTask CheckYieldUi(IBlock machine, string screenshotName, string[] rowTestIds)
     {
         // 抽選欄と行を待ち、行の表示文字列を記録して撮り、Tab で閉じる
@@ -169,14 +171,13 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         // F reaches 2 m, so land 1 m south of the face and open it by aiming with the Alt cursor
         var origin = machine.BlockPositionInfo.OriginalPos;
         p.WarpPlayer(new Vector3(origin.x + 1.3f, 33.5f, origin.z - 1f));
-        await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 33f) < 0.05f, 5f, "床パネルの上(y=33.0)に着地した");
+        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, $"床パネルの板の上(y≈32.85)に着地した（y={p.PlayerPosition.y:F2}）");
         SemanticInput.KeyDown(Key.LeftAlt);
         await p.AimAt(new Vector3(origin.x + 1.5f, 34f, origin.z + 0.5f));
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
     }
-
     async UniTask PowerAll()
     {
         // 室外の発電機 → 広範囲電柱 → 室内の機械と清浄機へ配線する（結線で電力網の再構築は自動で予約される）
@@ -194,6 +195,5 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         });
         foreach (var (connected, label) in wired) p.Assert(connected, label);
     }
-
     #endregion
 });

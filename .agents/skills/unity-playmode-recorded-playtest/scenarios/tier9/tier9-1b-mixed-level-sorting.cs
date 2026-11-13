@@ -27,7 +27,6 @@ using Game.Research;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 var research = new[] { "019e3ad9-46e2-73fd-9555-8c1d0245d26d" }.Select(Guid.Parse).ToArray(); // 半導体製造（段1a と同じ先頭 GUID）。閉包で前提ごと完了させる
 return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions { Record = true }, async p =>
 {
@@ -46,7 +45,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     var consumers = new List<IBlock>();
     await p.RunOnServer("研究を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "半導体製造の研究が完了扱いになった");
-
     // 部屋の中にパッケージング2台を並べる。A の入口 (5,33,6) の手前、B の入口 (8,33,6) の手前に搬入路を作る
     // Place two packaging machines in the room; feed paths end in front of A's inlet (5,33,6) and B's inlet (8,33,6)
     p.Note("クリーンルームにパッケージング装置 A・B を置き、給電する");
@@ -59,7 +57,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     await PowerAll();
     await p.WaitForCleanRoom(packagingA, true, 30f, "クリーンルームが判定された");
     foreach (var machine in new[] { packagingA, packagingB }) await Give(machine, 1, "ICチップ基板", 20);
-
     // A の継承元に Lv1 を置き、分岐器→ベルトで Lv2 を届けると止まって理由が出る。ベルトへの押し込みは tick 内だけ受け付けるので、分岐器（block 更新で押す）へ入れる
     // With Lv1 in A's source slot, Lv2 via splitter -> belt stalls it with a reason; belts accept pushes only in-tick, so items go into the splitter (it pushes during block updates)
     p.Note("パッケージングA に Lv1 ダイを置き、分岐器とベルトで Lv2 ダイを届ける");
@@ -148,7 +145,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         // F reaches 2 m, so land 1 m south of the face (west of the feed belt) and open by aiming at the south face with the Alt cursor (same as cleanroom-room-usability)
         var origin = block.BlockPositionInfo.OriginalPos;
         p.WarpPlayer(new Vector3(origin.x + 0.3f, 33.5f, origin.z - 1f));
-        await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 33f) < 0.05f, 5f, "床パネルの上(y=33.0)に着地した");
+        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, $"床パネルの板の上(y≈32.85)に着地した（y={p.PlayerPosition.y:F2}）");
         SemanticInput.KeyDown(Key.LeftAlt);
         await p.AimAt(new Vector3(origin.x + 1f, 34f, origin.z + 0.5f));
         await p.PressInteract();
@@ -169,12 +166,14 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     {
         // 内寸 x1..13 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 にする
         // Interior x1..13 / z1..9 / y33..36; the ceiling sits at y37 so the third-person camera (about 2.9 m above the feet) stays under it when opening UIs inside
+        // 床と天井の 5x1x5 のパネルは 5 の倍数の角に置き、5 で割り切れない帯（z=10）はブロックで埋める
+        // Floor and ceiling 5x1x5 panels go at multiple-of-5 corners; the leftover strip (z=10) is filled with blocks
         var door = new Vector3Int(10, 33, 0);
         for (var x = 0; x <= 14; x++)
         for (var z = 0; z <= 10; z++)
         {
-            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
-            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 37, z), BlockDirection.North);
+            foreach (var y in new[] { 32, 37 })
+                if (z == 10 || (x % 5 == 0 && z % 5 == 0)) await p.PlaceBlockDirect(z == 10 ? "クリーンルームブロック" : "クリーンルームパネル", new Vector3Int(x, y, z), BlockDirection.North);
             if (x != 0 && x != 14 && z != 0 && z != 10) continue;
             for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
         }
