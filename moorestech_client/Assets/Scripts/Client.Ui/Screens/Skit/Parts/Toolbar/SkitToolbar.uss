@@ -17,7 +17,6 @@
     --icon-button-size: var(--skit-tool-button-size);
     --icon-button-icon-size: var(--skit-tool-button-size);
     margin-left: var(--skit-tool-gap);
-    filter: opacity(var(--skit-tool-icon-opacity));
 }
 
 .skit-toolbar .skit-toolbar__tool--lead {
