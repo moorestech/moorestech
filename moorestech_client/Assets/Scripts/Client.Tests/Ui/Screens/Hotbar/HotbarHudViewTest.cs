@@ -89,7 +89,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             simulate.FrameUpdate();
             var row = Find<VisualElement>(_view, "hotbar-grid");
             Assert.IsTrue(row.ClassListContains("hotbar-hud__row--select-disabled"));
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-select-disabled-opacity"), CultureInfo.InvariantCulture), HotbarGroupOpacity.Read(row), 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-select-disabled-opacity"), CultureInfo.InvariantCulture), GroupOpacity.Read(row), 0.001f);
         }
 
         /// <web-test file="e2e/tests/hotbar/hotbar.spec.ts">blockingスキット中はホットバーHUDだけが退き、会話窓は残る</web-test>

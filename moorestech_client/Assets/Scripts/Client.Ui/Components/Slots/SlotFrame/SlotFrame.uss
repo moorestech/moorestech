@@ -20,8 +20,10 @@
     background-color: var(--slot-frame-filled-face);
 }
 
+/* 不足は面・リング・中身を 1 枚の群にして淡くする（Web の opacity は群に掛かる。要素の opacity だと重なった子が明るく出る） */
+/* Insufficient fades face, ring and content as one group (the Web opacity applies to the group; element opacity brightens overlapping children) */
 .slot-frame--insufficient {
-    opacity: var(--slot-frame-insufficient-opacity);
+    filter: opacity(var(--slot-frame-insufficient-opacity));
 }
 
 .slot-frame--selected {

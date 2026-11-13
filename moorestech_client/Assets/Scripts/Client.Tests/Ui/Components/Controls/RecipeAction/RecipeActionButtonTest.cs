@@ -101,7 +101,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             simulate.FrameUpdate();
             AssertFace(button, "--recipe-action-background-start", "--recipe-action-background-middle", "--recipe-action-background-end");
             AssertSameColor(ResolveColor("--recipe-action-disabled-text"), Label(button).resolvedStyle.color, "disabled text");
-            Assert.AreEqual(1f, button.resolvedStyle.opacity, 0.001f);
+            GroupOpacity.AssertNone(button);
             Assert.AreEqual(1f, Label(button).resolvedStyle.opacity, 0.001f);
         }
 

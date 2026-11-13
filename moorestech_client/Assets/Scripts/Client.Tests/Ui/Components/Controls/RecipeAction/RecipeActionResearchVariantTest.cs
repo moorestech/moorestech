@@ -43,7 +43,7 @@ namespace Client.Tests.Ui.Components.Controls.RecipeAction
             simulate.FrameUpdate();
             AssertFace(button, "--research-action-disabled-face", "--research-action-disabled-face", "--research-action-disabled-face");
             AssertSameColor(ResolveColor("--text-default"), Label(button).resolvedStyle.color, "disabled text");
-            Assert.AreEqual(float.Parse(Resolve("--research-action-disabled-opacity"), System.Globalization.CultureInfo.InvariantCulture), button.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(Resolve("--research-action-disabled-opacity"), System.Globalization.CultureInfo.InvariantCulture), GroupOpacity.Read(button), 0.001f);
         }
 
         [Test]

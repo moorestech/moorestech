@@ -112,8 +112,8 @@ namespace Client.Tests.Ui.Components.Slots
 
             // 値は Web の 0.4・0.35 そのままのトークン
             // The values are the tokens holding the Web 0.4 and 0.35 as is
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), insufficient.resolvedStyle.opacity, 0.001f);
-            Assert.AreEqual(1f, ghost.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), GroupOpacity.Read(insufficient), 0.001f);
+            GroupOpacity.AssertNone(ghost);
             Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-ghost-opacity")), ghost.Q(className: "slot-frame__content").resolvedStyle.opacity, 0.001f);
         }
 

@@ -72,7 +72,7 @@
     /* C3-a: スロット族（Slots）。つまみの既定は Web の var() のフォールバック、色は Web の CSS module の直書きを前計算した値（設計書 A-52） */
     /* C3-a: slot family (Slots); knob defaults are the Web var() fallbacks, colors precompute literals in the Web CSS modules (design A-52) */
     --slot-frame-face: rgba(50, 52, 67, 0.5); /* web: SlotFrame .slot の background rgb(50 52 67 / 50%) */
-    --slot-frame-insufficient-opacity: 0.4; /* web: .slot[data-insufficient] の opacity: 0.4 */
+    --slot-frame-insufficient-opacity: 0.4; /* web: .slot[data-insufficient] の opacity: 0.4 */ /* look-exception: LX-76 */
     --slot-frame-catalog-face: rgb(124, 126, 136); /* web: .slot[data-catalog="true"] の background-color */
     --slot-frame-filled-face: rgb(254, 254, 254); /* web: .slot[data-filled="true"] の background-color */
     --slot-frame-selected-trim-face: rgb(50, 52, 67); /* web: .slot[data-selected][data-filled] の linear-gradient の帯の色 */
@@ -152,7 +152,6 @@
     --recipe-action-disabled-end: var(--recipe-action-background-end);
     --recipe-action-text: var(--text-high-contrast); /* web: .recipeActionButton の color */
     --recipe-action-disabled-text: rgba(255, 255, 255, 0.8); /* web: .craftButton:disabled の color rgb(255 255 255 / 80%) */
-    --recipe-action-disabled-opacity: 1; /* web: .craftButton:disabled の opacity: 1 */
     --recipe-action-width: var(--recipe-craft-button-width); /* web: .craftButton の width・min-width */
     --recipe-action-height: var(--recipe-action-button-height); /* web: .recipeActionButton の height・min-height */
     --recipe-action-padding-block: 0px; /* web: .craftButton の padding: 0 */
@@ -162,7 +161,7 @@
     --recipe-action-text-shadow: rgba(0, 40, 80, 0.55); /* web: text-shadow の rgb(0 40 80 / 55%) */
     --recipe-action-active-offset: 1px; /* web: Mantine Button の .mantine-active:active の translateY(1px) */
     --research-action-disabled-face: rgb(50, 52, 67); /* web: research .researchButton:disabled の background。RecipeActionButton の研究の組が --recipe-action-disabled-* へ当てる */
-    --research-action-disabled-opacity: 0.6; /* web: research .researchButton:disabled の opacity: 0.6。RecipeActionButton の研究の組が --recipe-action-disabled-opacity へ当てる */ /* look-exception: LX-95 */
+    --research-action-disabled-opacity: 0.6; /* web: research .researchButton:disabled の opacity: 0.6。RecipeActionButton が研究の無効へ filter: opacity() の群で当てる */ /* look-exception: LX-76 */
     --research-action-width: auto; /* web: research .researchButton は幅の指定なし（置き場所の幅に従う）。S4-research が画面で上書きする */
     --research-action-height: auto; /* web: research .researchButton は高さの指定なし（padding 8px 0 と行の高さ normal）。S4-research が画面で上書きする */
     --recipe-list-gap: var(--recipe-entry-gap); /* web: RecipeListScrollArea の listGap。機械のレシピ選択は --machine-recipe-row-gap へ上書き */
