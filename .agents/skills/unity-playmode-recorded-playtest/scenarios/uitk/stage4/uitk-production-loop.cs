@@ -107,15 +107,15 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.UntilUiElement("machine-input-slot-0", 10f);
     await p.Screenshot("03-kiln-open");
 
-    // Shift＋クリックで粉を入れ、原木は右クリックで半分掴んで素材順の 2 枠目へ置く（入力枠はレシピの素材順に固定）
-    // Shift-click the dust in, then right-click to grab half the logs and drop them in the second slot (inputs follow recipe order)
+    // Shift＋クリックで粉を入れ、原木は右クリックで半分掴んで素材順の 2 枠目へ置く（入力枠はレシピの素材順に固定。原木が揃うと粉は即消費されるので粉を先に確かめる）
+    // Shift-click the dust in, then right-click half the logs into the second slot (inputs follow recipe order; logs start processing and consume the dust, so check the dust first)
     p.Note("Shiftで入れる・半分掴んで置く");
+    var kilnInventory = p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>();
     await ShiftClickOn(MainSlotOf(bronzeDust));
+    await p.WaitForItemCount(kilnInventory, bronzeDust, 1, null, 10f, "石窯の入力に粉が入る（サーバー）");
     await RightClickOn(MainSlotOf(log));
     await p.ClickUi("machine-input-slot-1");
-    var kilnInventory = p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>();
     await p.WaitForItemCount(kilnInventory, log, 1, null, 10f, "石窯の入力に原木が入る（サーバー）");
-    await p.WaitForItemCount(kilnInventory, bronzeDust, 1, null, 10f, "石窯の入力に粉が入る（サーバー）");
 
     // 残りの原木を掴み右ドラッグで空き 3 枠へ配る
     // Grab the remaining logs and right-drag them across three empty slots
