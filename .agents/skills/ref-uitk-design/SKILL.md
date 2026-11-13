@@ -125,14 +125,15 @@ public sealed class IconButton : VisualElement
 - 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している（Web では pauseMenu 配下）。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない
 - View は C# で組む。UXML と UI Builder は使わない
 - 出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める
-- 毎フレームの値（採掘の進捗など）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（設計書 A-57）。View は `Update()` を持たない
+- 毎フレームの値（採掘の進捗など）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（設計書 A-57）。例外: 源の変化 1 件ごとに全エントリの VM を組み直す Model（`BuildMenuModel`）は、組み直しをフレーム末の 1 回に畳む（A-57）。View は `Update()` を持たない
 - USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける。付けないと、その中のアンカーを指すチュートリアル枠が容器の外へはみ出して描かれる（祖先クリップの判定は印のある容器しか見ない。設計書 A-65）
 
 ## 9. 動き
 
 - 入退場とホバーは USS の `transition`。追加した直後のクラスの付け外しは補間されないので `GeometryChangedEvent` を契機にする。`height: auto` は補間できないので px に固定してから動かす
 - ループ・キーフレーム・smooth scroll・慣性は `UiMotionPlayer`（`S/Client.Ui/Foundation/Motion/`）の Step で書く。足りない Step は使う段のレーンが足す
-- 尺と曲線はトークンに置き、既存の値を参照する（通知の生存 7000ms・入場 160ms・退場 200ms・脈動 1200ms）
+- 出入りと動きの尺・曲線はトークンに置き、既存の値を参照する（`--notification-enter-duration` 160ms・`--notification-exit-duration` 200ms・`--tutorial-pulse-duration` 1200ms）。表示の生存のようなロジックの尺はトークンに置かず、Model の定数を正にする（通知は `NotificationModel.DisplayMilliseconds`。View はそこから動きの長さを決める。設計書 A-67）
+- CSS の `ease-out`・`ease-in` は `UiEasing.CssEaseOut`・`CssEaseIn`、横の移動は `TranslateXTweenStep`（`EaseOutCubic` で代用しない。設計書 A-69）
 - テストのために尺を 0 にする抜け道を作らない。テストは時計（`IUiMotionClock`）を進める
 
 ## 10. 入力
