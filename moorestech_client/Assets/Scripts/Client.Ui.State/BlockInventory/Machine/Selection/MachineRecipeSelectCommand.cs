@@ -34,8 +34,8 @@ namespace Client.Ui.State.BlockInventory.Machine.Selection
             // 送れない要求は非良性の拒否で返す（Web と同じくトーストする。GUID はここでログへ出す。D-38）
             // Requests that cannot go return a non-benign rejection (toasts like Web; the GUID is logged here; D-38)
             if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return Reject(UiCommandRejectReason.BlockNotOpen, "");
-            if (!_unlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var unlock)) return Reject(UiCommandRejectReason.MachineRecipeInvalid, "");
-            if (!unlock.IsUnlocked) return Reject(UiCommandRejectReason.MachineRecipeLocked, "");
+            if (!_unlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var unlock)) return Reject(UiCommandRejectReason.RecipeInvalid, "");
+            if (!unlock.IsUnlocked) return Reject(UiCommandRejectReason.RecipeLocked, "");
 
             // 選択中と同じレシピは送らず受理
             // The already-selected recipe is accepted unsent, as Web onSelect; the mode closes on the request match

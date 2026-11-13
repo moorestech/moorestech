@@ -503,8 +503,8 @@ ui.commandRejected.blockSlotUnavailable,The block slot is no longer available,Th
 ui.commandRejected.itemUnknownInSlot,This item is unknown to the client and cannot be moved with Shift,This item is unknown to the client and cannot be moved with Shift,このアイテムはクライアントが知らないため Shift で移動できません,Dieser Gegenstand ist dem Client unbekannt und kann nicht mit Shift verschoben werden,이 아이템은 클라이언트가 알 수 없어 Shift로 옮길 수 없습니다
 ui.commandRejected.researchFailed,Research failed,Research failed,研究に失敗しました,Forschung fehlgeschlagen,연구에 실패했습니다
 ui.commandRejected.blockNotOpen,The block is not open,The block is not open,ブロックが開いていません,Der Block ist nicht geöffnet,블록이 열려 있지 않습니다
-ui.commandRejected.machineRecipeInvalid,This recipe does not exist,This recipe does not exist,このレシピは存在しません,Dieses Rezept existiert nicht,이 레시피는 존재하지 않습니다
-ui.commandRejected.machineRecipeLocked,This recipe is not unlocked yet,This recipe is not unlocked yet,このレシピはまだ解放されていません,Dieses Rezept ist noch nicht freigeschaltet,이 레시피는 아직 해금되지 않았습니다
+ui.commandRejected.recipeInvalid,This recipe does not exist,This recipe does not exist,このレシピは存在しません,Dieses Rezept existiert nicht,이 레시피는 존재하지 않습니다
+ui.commandRejected.recipeLocked,This recipe is not unlocked yet,This recipe is not unlocked yet,このレシピはまだ解放されていません,Dieses Rezept ist noch nicht freigeschaltet,이 레시피는 아직 해금되지 않았습니다
 ui.commandRejected.machineRecipeRequestFailed,Could not change the recipe,Could not change the recipe,レシピを変更できませんでした,Das Rezept konnte nicht geändert werden,레시피를 변경할 수 없습니다
 ui.commandRejected.trainTimetableReplaceFailed,The timetable change was rejected,The timetable change was rejected,時刻表の変更が受け付けられませんでした,Die Fahrplanänderung wurde abgelehnt,시간표 변경이 거부되었습니다
 ui.commandRejected.trainAutoRunFailed,Could not switch auto-run,Could not switch auto-run,自動運転を切り替えられませんでした,Automatikbetrieb konnte nicht umgeschaltet werden,자동 운전을 전환하지 못했습니다
