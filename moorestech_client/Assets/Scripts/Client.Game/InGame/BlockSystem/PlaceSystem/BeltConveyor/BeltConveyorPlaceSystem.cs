@@ -25,8 +25,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
     /// <summary>
     ///     2クリックでベルト設置。経路を毎フレーム表示
     ///     Two-click belt placement; the route is previewed every frame
-    ///     世界は始点選び中に改訂番号で作り直し、始点確定後は確定の瞬間にだけ読み直して検査する（ADR 0099）
-    ///     The world is rebuilt by revision during start selection; after the start is fixed it is re-read only at confirm to check (ADR 0099)
+    ///     世界は始点選び中に改訂番号で作り直し、始点確定後は確定の瞬間にだけ読み直して検査する（ADR 0100）
+    ///     The world is rebuilt by revision during start selection; after the start is fixed it is re-read only at confirm to check (ADR 0100)
     /// </summary>
     public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
@@ -121,7 +121,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             RefreshWorldIfChanged();
             if (Time.unscaledTime < _worldChangedNoticeUntil) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBeltRouteWorldChanged));
-            if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, feedback, out var hit)) return;
+            if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, _blocks, feedback, out var hit)) return;
 
             // Ctrlを押したまま既存ベルトを狙うと分岐の始点候補になる
             // Aiming at an existing belt with Ctrl held makes it a branch start candidate
@@ -168,7 +168,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             _worldChangedNoticeUntil = 0;
             if (BeltRouteKeyInput.IsRotatePressed) _currentDirection = _currentDirection.HorizonRotation();
-            if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, feedback, out var hit)) return;
+            if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, _blocks, feedback, out var hit)) return;
             if (!PlaceSystemUtil.IsPlaceableFromPlayer(hit.Cell)) { feedback.AddTooFar(); return; }
 
             var infos = BeltRouteRoutingFrame.Resolve(_session, hit, _holding, feedback, out var placeable);

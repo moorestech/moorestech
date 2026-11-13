@@ -11,8 +11,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     /// <summary>
     ///     始点確定後の状態。設置システムの世界を借りて探索し結果を使い回す
     ///     State after the start is fixed; searches the place system's world and reuses results
-    ///     世界は始点確定後に作り直さない。変化は確定時に検査する（ADR 0099）
-    ///     The world is not rebuilt after the start is fixed; changes are checked at confirm (ADR 0099)
+    ///     世界は始点確定後に作り直さない。変化は確定時に検査する（ADR 0100）
+    ///     The world is not rebuilt after the start is fixed; changes are checked at confirm (ADR 0100)
     /// </summary>
     public sealed class BeltRouteSession
     {

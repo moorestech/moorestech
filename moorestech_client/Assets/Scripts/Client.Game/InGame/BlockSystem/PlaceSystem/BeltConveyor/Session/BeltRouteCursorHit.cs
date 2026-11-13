@@ -29,13 +29,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             HitBlock = hitBlock;
         }
 
-        public static bool TryResolve(Camera camera, int heightOffset, BlockDirection keyDirection, BlockMasterElement holdingMaster, PlacementFeedback feedback, out BeltRouteCursorHit hit)
+        public static bool TryResolve(Camera camera, int heightOffset, BlockDirection keyDirection, BlockMasterElement holdingMaster, BlockGameObjectDataStore blocks, PlacementFeedback feedback, out BeltRouteCursorHit hit)
         {
             hit = default;
-            if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(camera, heightOffset, keyDirection, holdingMaster, feedback, out var cell, out var surface)) return false;
+            if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(camera, heightOffset, keyDirection, holdingMaster, feedback, out var cell, out var surfaceType)) return false;
 
-            var direction = surface == null ? keyDirection : ResolveFaceDirection(surface.PreviewSurfaceType, keyDirection);
-            hit = new BeltRouteCursorHit(cell, direction, surface == null ? null : surface.BlockGameObject);
+            var direction = surfaceType == null ? keyDirection : ResolveFaceDirection(surfaceType.Value, keyDirection);
+            hit = new BeltRouteCursorHit(cell, direction, surfaceType == null ? null : ResolveHitBlock(blocks, cell, surfaceType.Value, direction));
             return true;
         }
 
@@ -51,6 +51,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
                 PreviewSurfaceType.YZ_X => BlockDirection.West,
                 _ => keyDirection,
             };
+        }
+
+        // 照準は面の種別しか返さないので、当たった面の奥のセルからブロックを引く。原点以外のセルに当たる大きなブロックは分岐の対象外なのでnullでよい
+        // The aim reports only the face kind, so the block is looked up from the cell behind the face; a large block hit off its origin cell is never a branch source, so null is fine
+        private static BlockGameObject ResolveHitBlock(BlockGameObjectDataStore blocks, Vector3Int cell, PreviewSurfaceType surfaceType, BlockDirection direction)
+        {
+            var behindFace = surfaceType switch
+            {
+                PreviewSurfaceType.XZ_Y => cell + Vector3Int.down,
+                PreviewSurfaceType.XZ_Origin => cell + Vector3Int.up,
+                _ => cell + BeltRouteDirection.Forward(direction),
+            };
+            return blocks.TryGetBlockGameObject(behindFace, out var block) ? block : null;
         }
     }
 }

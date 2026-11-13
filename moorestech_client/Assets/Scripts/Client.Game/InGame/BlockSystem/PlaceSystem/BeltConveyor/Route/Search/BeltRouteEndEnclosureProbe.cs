@@ -6,8 +6,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
     /// <summary>
     ///     終点から空きセルを小さく塗りつぶし、囲まれているかを見る
     ///     Flood-fills free cells a little from the end to see whether it is enclosed
-    ///     囲まれた終点で上限まで探索しないためのもの。理由の区別には使わない（ADR 0099）
-    ///     Keeps an enclosed end from searching up to the cap; not used to tell reasons apart (ADR 0099)
+    ///     囲まれた終点で上限まで探索しないためのもの。理由の区別には使わない（ADR 0100）
+    ///     Keeps an enclosed end from searching up to the cap; not used to tell reasons apart (ADR 0100)
     ///     経路の隣り合うセルは水平に1歩・高さ差±1以内（坂）なので、その12近傍で塗る。真上・真下へは進まない
     ///     Consecutive route cells are one horizontal step apart with at most one level of height change (slopes), so the fill uses those 12 neighbours and never moves straight up or down
     /// </summary>

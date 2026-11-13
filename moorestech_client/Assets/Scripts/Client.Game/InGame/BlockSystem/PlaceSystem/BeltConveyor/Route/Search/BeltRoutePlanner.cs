@@ -16,12 +16,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         // The production slack: four straight cells; layouts whose shortest exists only through an own slope head assemble with a two-cell detour by measurement, so twice that is allowed (ADR 0097)
         public const int DefaultRecoverySlack = 20;
 
-        // 探索量の上限。囲いの大きい終点・遠すぎる終点はここで止まる。手元で約 100 ms に収まる見込みの値（実測は ADR 0099）
-        // The expansion cap; enclosed or far-away ends stop here. Chosen to stay around 100 ms locally (measurements in ADR 0099)
+        // 探索量の上限。囲いの大きい終点・遠すぎる終点はここで止まる。手元で約 100 ms に収まる見込みの値（実測は ADR 0100）
+        // The expansion cap; enclosed or far-away ends stop here. Chosen to stay around 100 ms locally (measurements in ADR 0100)
         public const int MaxExpansions = 20000;
 
-        // 囲まれた終点で上限まで探索しないための小さな塗りつぶし。理由の区別には使わない（ADR 0099）
-        // A small flood fill so an enclosed end does not search up to the cap; not used to tell reasons apart (ADR 0099)
+        // 囲まれた終点で上限まで探索しないための小さな塗りつぶし。理由の区別には使わない（ADR 0100）
+        // A small flood fill so an enclosed end does not search up to the cap; not used to tell reasons apart (ADR 0100)
         private const int EnclosureProbeCells = 512;
 
         // 組み立て失敗時の追加展開数

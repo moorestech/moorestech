@@ -11,8 +11,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     /// <summary>
     ///     確定の瞬間に読み直した世界で経路がまだ置けるか確かめる
     ///     Checks at the confirm instant that the route is still placeable in the re-read world
-    ///     設置中は世界の変化を追わないので、ここが唯一の検査になる（ADR 0099）
-    ///     World changes are not followed during placement, so this is the only check (ADR 0099)
+    ///     設置中は世界の変化を追わないので、ここが唯一の検査になる（ADR 0100）
+    ///     World changes are not followed during placement, so this is the only check (ADR 0100)
     /// </summary>
     public static class BeltRouteConfirmCheck
     {

@@ -18,8 +18,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
     /// <summary>
     ///     重み付きA*で状態コストを辞書へ埋める
     ///     Weighted A* filling state costs into a dictionary
-    ///     評価値は g + 2h。開けた場所では最短のまま、障害物の周りだけ遠回りを許して探索量を抑える（ADR 0099）
-    ///     The score is g + 2h: shortest in the open, detours allowed only around obstacles, keeping the explored set small (ADR 0099)
+    ///     評価値は g + 2h。開けた場所では最短のまま、障害物の周りだけ遠回りを許して探索量を抑える（ADR 0100）
+    ///     The score is g + 2h: shortest in the open, detours allowed only around obstacles, keeping the explored set small (ADR 0100)
     ///     箱を持たないので範囲の上限は無く、展開数の上限だけが探索を止める
     ///     Without a box there is no range limit; only the expansion cap stops the search
     /// </summary>

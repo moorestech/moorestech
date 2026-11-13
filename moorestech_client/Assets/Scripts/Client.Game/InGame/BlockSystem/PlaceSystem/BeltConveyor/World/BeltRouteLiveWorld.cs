@@ -10,8 +10,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
     /// <summary>
     ///     本番の世界。占有・辺は変化時に再構築、地形は列ごとに初回のみ測定
     ///     Live world: occupancy and edges rebuilt on change, terrain probed once per column
-    ///     箱を持たないので範囲の上限が無い（ADR 0099）
-    ///     There is no box, so there is no range limit (ADR 0099)
+    ///     箱を持たないので範囲の上限が無い（ADR 0100）
+    ///     There is no box, so there is no range limit (ADR 0100)
     /// </summary>
     public sealed class BeltRouteLiveWorld : IBeltRouteWorld, IBeltRouteEdgeSink
     {
