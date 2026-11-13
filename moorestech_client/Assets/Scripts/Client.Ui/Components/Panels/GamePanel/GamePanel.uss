@@ -101,7 +101,7 @@
     -unity-font-style: normal;
     letter-spacing: 2px;
     color: var(--color-content-primary);
-    text-shadow: 0.3px 0.3px 0 var(--game-panel-title-shadow);
+    text-shadow: none; /* look-exception: LX-187 */ /* web は 0.3px 0.3px 0 rgb(0 0 0 / 35%)。UITK の 0.3px の影は字の濃さを 0.5% しか変えず、atlas に残った字の欠片を字の外へ出しうる（推測）ので描かない */
     transform-origin: left center;
     white-space: nowrap;
     -unity-text-align: middle-left;

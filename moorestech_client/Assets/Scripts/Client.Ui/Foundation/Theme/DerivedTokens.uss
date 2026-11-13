@@ -3,7 +3,6 @@
 :root {
     /* GamePanel（default）の文字・罫線・下部の三角。Web の GamePanel/style.module.css が直書きする色 */
     --game-panel-text: #e8eaf0;
-    --game-panel-title-shadow: rgba(0, 0, 0, 0.35); /* web: GamePanel .title の text-shadow の色 */
     --game-panel-rule-top-start: rgba(146, 148, 167, 0.42); /* web: .rule の上の線の始点 */
     --game-panel-rule-top-peak: rgba(146, 148, 167, 0.59); /* web: 上の線の頂点 */
     --game-panel-rule-top-end: rgba(146, 148, 167, 0.38); /* web: 上の線の終点 */
@@ -138,6 +137,8 @@
     --recipe-row-bracket: #2fd0f0; /* web: .recipeBox::before/::after の linear-gradient(#2fd0f0, #2fd0f0) */
     --recipe-row-glow: rgba(0, 205, 255, 0.25); /* web: .recipeBox の box-shadow 0 0 2px 0 rgb(0 205 255 / 25%) */
     --recipe-row-bracket-shadow: rgba(47, 188, 255, 0.3); /* web: .recipeBox::before/::after の filter drop-shadow(0 0 1px rgb(47 188 255 / 30%)) */
+    --recipe-duration-box-height: 17px; /* calc: var(--recipe-duration-text-size) + 4px; 秒数の箱。字の上端は字の大きさの箱より約 2px 上に出るので、上に 4px の逃げを足して overflow: hidden で切らない（RecipeRow.uss） */
+    --recipe-duration-baseline-shift: 2.353px; /* calc: var(--recipe-duration-text-size) * 0.181; web: .recipeDuration の line-height: 1 の基線。逃げで箱が高くなっても字の大きさの 18.1% だけ下げる */
     --recipe-action-face-start: var(--recipe-action-background-start); /* web: .recipeActionButton の background: var(--recipe-action-background) */
     --recipe-action-face-middle: var(--recipe-action-background-middle);
     --recipe-action-face-end: var(--recipe-action-background-end);

@@ -112,6 +112,25 @@ namespace Client.Tests.Ui.Components.Slots
         }
 
         [Test]
+        public void 個数の字は置き場が受け直した末尾の字間のぶんだけ内へ寄る()
+        {
+            // 既定は 0。Chrome が最後の字の後ろに足す字間（0.12em × 16px）を置き場が受け直すと、右寄せの字の右端がそのぶん左へ動く
+            // Default 0; when the placement re-declares the gap Chrome adds after the last glyph (0.12em x 16px), the right-aligned glyphs' right edge moves left by it
+            var (_, plain) = Mount(null);
+            plain.SetCount(7);
+            var (_, placed) = Mount("slot-knob-item-list");
+            placed.SetCount(7);
+            simulate.FrameUpdate();
+
+            var plainCount = plain.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
+            var placedCount = placed.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
+            Assert.AreEqual(0f, plainCount.resolvedStyle.paddingRight, 0.01f);
+            Assert.AreEqual(1.92f, placedCount.resolvedStyle.paddingRight, 0.1f);
+            Assert.AreEqual(placedCount.layout.width - placedCount.resolvedStyle.paddingRight, placedCount.contentRect.xMax, 0.01f);
+            Assert.AreEqual(placedCount.resolvedStyle.paddingRight, placed.Q<Label>(null, "slot-content__count", "outlined-count-label--stroke").resolvedStyle.paddingRight, 0.01f);
+        }
+
+        [Test]
         public void 個数を消すと隠れる()
         {
             var (_, content) = Mount(null);
