@@ -3,27 +3,26 @@ using Client.Ui.Foundation.Composite;
 
 namespace Client.Starter.Initialization.Scene
 {
-    // 主シーンの初期化に失敗したあとの行き先
-    // Where the boot goes after main-scene initialization failed
-    public enum InitializationFailureExit
-    {
-        QuitApplication,
-        ReturnToMainMenu,
-    }
-
     /// <summary>
-    /// 失敗の行き先（終了／メニュー）を決める
-    /// Decides the failure route (quit or menu)
+    /// 初期化の失敗がアプリを終了させるものかを判定し、終了ログの文を作る
+    /// Decides whether an initialization failure quits the app and builds the quit log line
     /// </summary>
     /// <remarks>
-    /// sRGB 合成の RT を作れないときは、色の外れた UI を出し続けることも、無操作監視の無いメインメニューで止まることもさせず終了する（S5-gate D-18 裁定 b）。それ以外は今どおりメインメニューへ戻す
-    /// When the sRGB composite RT cannot be created, quit rather than show off-colour UI or idle at a main menu without the idle watch (S5-gate D-18 ruling b); every other failure still returns to the main menu
+    /// sRGB 合成の RT を作れないときは、色の外れた UI を出し続けることも、無操作監視の無いメインメニューで止まることもさせず終了する（S5-gate D-18 裁定 b）。それ以外は今どおりメインメニューへ戻す。型の知識はここ 1 か所に閉じ、呼び手はキャストしない
+    /// When the sRGB composite RT cannot be created, quit rather than show off-colour UI or idle at a main menu without the idle watch (S5-gate D-18 ruling b); every other failure still returns to the main menu. The type knowledge stays here so callers never cast
     /// </remarks>
     public static class InitializationFailureRoute
     {
-        public static InitializationFailureExit Decide(Exception exception)
+        public static bool TryGetQuitLog(Exception exception, out string quitLog)
         {
-            return exception is UiSrgbPanelRenderTextureUnavailableException ? InitializationFailureExit.QuitApplication : InitializationFailureExit.ReturnToMainMenu;
+            if (exception is UiSrgbPanelRenderTextureUnavailableException unavailableTexture)
+            {
+                quitLog = $"sRGB 合成の RT（{unavailableTexture.Width}x{unavailableTexture.Height}）を作れないため起動を止めてアプリを終了します: {unavailableTexture.Message}\n{unavailableTexture.StackTrace}";
+                return true;
+            }
+
+            quitLog = null;
+            return false;
         }
     }
 }

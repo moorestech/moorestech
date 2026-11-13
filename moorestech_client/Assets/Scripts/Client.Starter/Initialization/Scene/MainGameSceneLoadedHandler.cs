@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using Client.Common;
 using Client.Game.Common;
-using Client.Ui.Foundation.Composite;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -46,9 +45,12 @@ namespace Client.Starter.Initialization.Scene
 
                 // sRGB 合成の RT を作れないときはメインメニューへ戻さず起動で止めて終了する（S5-gate D-18 裁定 b）
                 // When the sRGB composite RT cannot be created, stop the boot and quit instead of returning to the main menu (S5-gate D-18 ruling b)
-                if (InitializationFailureRoute.Decide(exception) == InitializationFailureExit.QuitApplication)
+                if (InitializationFailureRoute.TryGetQuitLog(exception, out var quitLog))
                 {
-                    QuitOnUnavailableCompositeTexture((UiSrgbPanelRenderTextureUnavailableException)exception);
+                    // 配布物の Console は人に届かないが、アプリが落ちることがプレイヤーへ届く経路。ログは開発者向け
+                    // The shipped Console reaches nobody, but the app going down reaches the player; this log is for developers
+                    Debug.LogError(quitLog);
+                    GameShutdownEvent.QuitApplicationAfterInitializationFailureAsync().Forget(quitException => Debug.LogError($"初期化の失敗による終了処理が失敗しました: {quitException.GetType()} {quitException.Message}\n{quitException.StackTrace}"));
                     return;
                 }
 
@@ -58,14 +60,6 @@ namespace Client.Starter.Initialization.Scene
                 GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
             });
-        }
-
-        private static void QuitOnUnavailableCompositeTexture(UiSrgbPanelRenderTextureUnavailableException exception)
-        {
-            // 配布物の Console は人に届かないが、アプリが落ちることがプレイヤーへ届く経路。ログは開発者向け
-            // The shipped Console reaches nobody, but the app going down reaches the player; this log is for developers
-            Debug.LogError($"sRGB 合成の RT（{exception.Width}x{exception.Height}）を作れないため起動を止めてアプリを終了します: {exception.Message}\n{exception.StackTrace}");
-            GameShutdownEvent.QuitApplicationAfterInitializationFailureAsync().Forget(quitException => Debug.LogError($"初期化の失敗による終了処理が失敗しました: {quitException.GetType()} {quitException.Message}\n{quitException.StackTrace}"));
         }
     }
 }
