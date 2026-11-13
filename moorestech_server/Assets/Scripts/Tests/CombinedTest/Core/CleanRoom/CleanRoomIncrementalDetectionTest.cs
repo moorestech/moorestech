@@ -35,55 +35,48 @@ namespace Tests.CombinedTest.Core.CleanRoom
         }
 
         [Test]
-        public void SplitRoomRedistributesImpurityTest()
+        public void SplitRoomCarriesThresholdRowTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+            var (_, _) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
 
-            // 内寸3x1x1の部屋を作り N=90 を注入する
-            // Build a room with a 3x1x1 interior and inject N=90
+            // クラス判定を挟まない検出サービスで内寸3x1x1の部屋を作り、行B(1)を注入する
+            // Build a 3x1x1-interior room with the detection service alone (no class decision) and inject row B (1)
+            var service = new CleanRoomDetectionService(ServerContext.WorldBlockDatastore, CleanRoomDatastore.DirtyCellBudgetPerTick);
             CleanRoomDetectionTest.BuildBox(new Vector3Int(0, 0, 0), new Vector3Int(4, 2, 2));
-            for (var i = 0; i < 5; i++) GameUpdater.UpdateOneTick();
-            Assert.AreEqual(1, datastore.Rooms.Count);
-            datastore.Rooms[0].SetImpurity(90.0);
+            service.RebuildAll();
+            Assert.AreEqual(1, service.Rooms.Count);
+            service.Rooms[0].SetThresholdIndex(1);
 
-            // 中央に壁を置いて2部屋へ分割すると N がセル重なりで按分される
-            // Placing a wall in the middle splits the room and redistributes N by cell overlap
+            // 中央に壁を置いて2部屋へ分割すると、両方の部屋が元の行を引き継ぐ
+            // Placing a wall in the middle splits the room, and both rooms carry the original row
             CleanRoomDetectionTest.AddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(2, 1, 1));
-            for (var i = 0; i < 5; i++) GameUpdater.UpdateOneTick();
-            Assert.AreEqual(2, datastore.Rooms.Count);
-
-            // 部屋リストの順序は非決定的なため、両部屋とも約30.0であることを検証する
-            // Room list order is non-deterministic, so assert both rooms hold about 30.0
-            // tick中の純度積分が幾何汚染を微増させるため許容誤差を広めに取る
-            // The purity integration accrues small geometric pollution per tick, hence the wider delta
-            foreach (var room in datastore.Rooms) Assert.AreEqual(30.0, room.ImpurityCount, 0.2);
+            service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(2, 1, 1)));
+            service.ProcessDirtySeeds();
+            Assert.AreEqual(2, service.Rooms.Count);
+            Assert.AreEqual(1, FindRoom(service, new Vector3Int(1, 1, 1)).ThresholdIndex);
+            Assert.AreEqual(1, FindRoom(service, new Vector3Int(3, 1, 1)).ThresholdIndex);
         }
 
         [Test]
-        public void InteriorBlockPlacementCarriesImpurityAndLookupWorksTest()
+        public void InteriorBlockPlacementKeepsRoomAndLookupWorksTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<CleanRoomDatastore>();
 
-            // 内寸3x1x3の部屋を作り N=45 を注入する
-            // Build a room with a 3x1x3 interior and inject N=45
+            // 内寸3x1x3の部屋を作る
+            // Build a room with a 3x1x3 interior
             CleanRoomDetectionTest.BuildBox(new Vector3Int(0, 0, 0), new Vector3Int(4, 2, 4));
             for (var i = 0; i < 5; i++) GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, datastore.Rooms.Count);
-            datastore.Rooms[0].SetImpurity(45.0);
 
-            // 内部にチェストを置くと Volume が減るが Cells 全重なりで N は維持される
-            // An interior chest reduces Volume, but full cell overlap keeps N intact
+            // 内部にチェストを置くと部屋は1つのまま Volume だけ減る
+            // An interior chest keeps a single room and only reduces Volume
             CleanRoomDetectionTest.AddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(2, 1, 2));
             for (var i = 0; i < 5; i++) GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, datastore.Rooms.Count);
             Assert.AreEqual(8, datastore.Rooms[0].Volume);
-            // tick中の純度積分が幾何汚染を微増させるため許容誤差を広めに取る
-            // The purity integration accrues small geometric pollution per tick, hence the wider delta
-            Assert.AreEqual(45.0, datastore.Rooms[0].ImpurityCount, 1.0);
 
             // 全占有セルが同一部屋にあるブロックは部屋を引ける
             // A block whose occupied cells are all inside one room resolves to that room
@@ -129,7 +122,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         }
 
         [Test]
-        public void ConcurrentBatchesEachPreserveTheirRoomsImpurityTest()
+        public void ConcurrentBatchesEachPreserveTheirRoomsThresholdRowTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -142,10 +135,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
             service.RebuildAll();
             Assert.AreEqual(2, service.Rooms.Count);
 
-            // 各部屋へ既知のNを注入する（セル包含で引き当て、リスト順には依存しない）
-            // Inject known N into each room, looked up by cell containment, never by list order
-            FindRoom(service, new Vector3Int(1, 1, 1)).SetImpurity(90.0);
-            FindRoom(service, new Vector3Int(11, 1, 1)).SetImpurity(60.0);
+            // 各部屋へ別々の行を注入する（セル包含で引き当て、リスト順には依存しない）
+            // Inject a distinct row into each room, looked up by cell containment, never by list order
+            FindRoom(service, new Vector3Int(1, 1, 1)).SetThresholdIndex(1);
+            FindRoom(service, new Vector3Int(11, 1, 1)).SetThresholdIndex(2);
 
             // 同一tick内で両部屋の中央に壁を置き分割する。2バッチが同時に保留される
             // Split both rooms with a central wall in the same tick, leaving two batches pending
@@ -154,24 +147,24 @@ namespace Tests.CombinedTest.Core.CleanRoom
             service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(2, 1, 1)));
             service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(12, 1, 1)));
 
-            // 1tick目：部屋Aのバッチだけが丸ごと処理され、両サブ部屋へNが按分される
-            // Tick 1: only room A's batch is processed whole, splitting N across both sub-rooms
+            // 1tick目：部屋Aのバッチだけが丸ごと処理され、両サブ部屋が行を引き継ぐ
+            // Tick 1: only room A's batch is processed whole, and both sub-rooms carry its row
             service.ProcessDirtySeeds();
-            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(1, 1, 1)).ImpurityCount, 0.001);
-            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(3, 1, 1)).ImpurityCount, 0.001);
-            Assert.AreEqual(60.0, FindRoom(service, new Vector3Int(11, 1, 1)).ImpurityCount, 0.001);
+            Assert.AreEqual(1, FindRoom(service, new Vector3Int(1, 1, 1)).ThresholdIndex);
+            Assert.AreEqual(1, FindRoom(service, new Vector3Int(3, 1, 1)).ThresholdIndex);
+            Assert.AreEqual(2, FindRoom(service, new Vector3Int(11, 1, 1)).ThresholdIndex);
 
             // 2tick目：部屋Bのバッチが処理される。Aは既検出のまま維持される
             // Tick 2: room B's batch is processed while room A stays as already detected
             service.ProcessDirtySeeds();
             Assert.AreEqual(4, service.Rooms.Count);
 
-            // どのサブ部屋もN=0へリセットされず、各元部屋の残存セル分のNが保存される
-            // No sub-room resets to N=0; each original room preserves N over its surviving cells
-            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(1, 1, 1)).ImpurityCount, 0.001);
-            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(3, 1, 1)).ImpurityCount, 0.001);
-            Assert.AreEqual(20.0, FindRoom(service, new Vector3Int(11, 1, 1)).ImpurityCount, 0.001);
-            Assert.AreEqual(20.0, FindRoom(service, new Vector3Int(13, 1, 1)).ImpurityCount, 0.001);
+            // どのサブ部屋も Out へリセットされず、各元部屋の行が保たれる
+            // No sub-room resets to Out; each original room's row is preserved
+            Assert.AreEqual(1, FindRoom(service, new Vector3Int(1, 1, 1)).ThresholdIndex);
+            Assert.AreEqual(1, FindRoom(service, new Vector3Int(3, 1, 1)).ThresholdIndex);
+            Assert.AreEqual(2, FindRoom(service, new Vector3Int(11, 1, 1)).ThresholdIndex);
+            Assert.AreEqual(2, FindRoom(service, new Vector3Int(13, 1, 1)).ThresholdIndex);
         }
 
         private static global::Game.CleanRoom.CleanRoom FindRoom(CleanRoomDetectionService service, Vector3Int cell)

@@ -17,10 +17,6 @@ namespace Core.Master.Validator
             var roleRecipeGuids = new HashSet<Guid>();
             errorLogs += CleanRoomLayerExposureValidator.Validate(element.LayerExposures, roleRecipeGuids);
             errorLogs += CleanRoomDicingValidator.Validate(element.Dicings, roleRecipeGuids);
-
-            // 汚染接続点の集合の参照と重複を見る
-            // Check references and duplicates in the pollution connector set
-            errorLogs += CleanRoomBoundaryBlockSetValidator.Validate("PollutionConnectorBlockGuids", element.PollutionConnectorBlockGuids);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -34,11 +30,11 @@ namespace Core.Master.Validator
                 {
                     var threshold = element.Thresholds[i];
 
-                    // 濃度上限は前行より大きい（昇順）こと
-                    // Concentration caps must be strictly ascending across rows
-                    if (i > 0 && threshold.MaxConcentration <= element.Thresholds[i - 1].MaxConcentration)
+                    // クラス判定は良い行から走査するため、必要換気回数は前行より小さい（降順）こと
+                    // The class decision scans best-first, so required air change rates must be strictly descending across rows
+                    if (i > 0 && threshold.RequiredAirChangeRate >= element.Thresholds[i - 1].RequiredAirChangeRate)
                     {
-                        logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{threshold.ClassName} MaxConcentration:{threshold.MaxConcentration} is not ascending.\n";
+                        logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{threshold.ClassName} RequiredAirChangeRate:{threshold.RequiredAirChangeRate} is not descending.\n";
                     }
 
                     if (!classNames.Add(threshold.ClassName))

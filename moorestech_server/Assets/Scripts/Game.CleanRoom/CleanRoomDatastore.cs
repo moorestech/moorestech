@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
-using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -27,14 +26,14 @@ namespace Game.CleanRoom
         private readonly CleanRoomDetectionService _detectionService;
         private readonly CleanRoomMachineEffectService _machineEffectService = new();
         private readonly IWorldBlockDatastore _world;
-        private readonly List<CleanRoomThresholdRow> _thresholdRows;
+        private readonly List<double> _requiredAirChangeRates;
         private readonly List<IDisposable> _subscriptions = new();
 
         public CleanRoomDatastore(IWorldBlockDatastore worldBlockDatastore)
         {
             _world = worldBlockDatastore;
             _detectionService = new CleanRoomDetectionService(worldBlockDatastore, DirtyCellBudgetPerTick);
-            _thresholdRows = BuildThresholdRows();
+            _requiredAirChangeRates = BuildRequiredAirChangeRates();
 
             _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties =>
             {
@@ -48,8 +47,8 @@ namespace Game.CleanRoom
             }));
         }
 
-        // MasterTickUpdaterが毎tick、本体(ブロック更新・ベルト搬送)の後に呼ぶ。「①差分再検出 ②純度シミュレーション ③機械効果反映」の順
-        // Called by MasterTickUpdater every tick after the body (block updates and belt transport): detection, purity simulation, then machine effect pushes
+        // MasterTickUpdaterが毎tick、本体(ブロック更新・ベルト搬送)の後に呼ぶ。「①差分再検出 ②クラス判定 ③機械効果反映」の順
+        // Called by MasterTickUpdater every tick after the body (block updates and belt transport): detection, class decision, then machine effect pushes
         public void Update()
         {
             _detectionService.ProcessDirtySeeds();
@@ -113,58 +112,28 @@ namespace Game.CleanRoom
 
         private void UpdatePurity()
         {
-            // 閾値マスタが空なら純度シミュレーション全体を無効化する
-            // With no threshold master, the whole purity simulation is disabled
-            if (_thresholdRows.Count == 0) return;
+            // 閾値マスタが空ならクラス判定全体を無効化する
+            // With no threshold master, the whole class decision is disabled
+            if (_requiredAirChangeRates.Count == 0) return;
 
             foreach (var room in _detectionService.Rooms)
             {
-                // A_total算出 → 清浄機収集 → 積分 → 摩耗配分 → 閾値行更新の順に処理する
-                // Per room: compute A_total, collect filters, integrate, distribute wear, update row
-                var aTotal = CleanRoomPollution.ComputeATotal(room, _world);
+                // 清浄機の除去能力合計と空きセル数から、毎tick閾値行を決める
+                // Decide the threshold row each tick from the purifiers' total removal volume and the empty cell count
                 var filters = CleanRoomAirFilterCollector.Collect(room, _world);
                 var removalVolume = CleanRoomAirFilterCollector.SumRemovalVolume(filters);
-
-                IntegrateAndDistributeWear(room, aTotal, filters, removalVolume);
-                UpdateThresholdRow(room, removalVolume);
-            }
-
-            #region Internal
-
-            void IntegrateAndDistributeWear(CleanRoom room, double aTotal, List<CleanRoomAirFilterEntry> filters, double removalVolume)
-            {
-                var oldImpurity = room.ImpurityCount;
-                var deltaSeconds = GameUpdater.SecondsPerTick;
-                room.SetImpurity(CleanRoomPurityLogic.IntegrateTick(oldImpurity, room.Volume, aTotal, removalVolume, deltaSeconds));
-
-                // 今tickの除去量を各清浄機へ除去能力比で摩耗として配分する
-                // Distribute this tick's removed amount to filters proportionally to capacity
-                if (removalVolume <= 0 || room.Volume <= 0) return;
-                var removed = Math.Min(oldImpurity, removalVolume * (oldImpurity / room.Volume) * deltaSeconds);
-                if (removed <= 0) return;
-                foreach (var entry in filters) entry.Filter.ApplyRemovedImpurity(removed * entry.Filter.RemovalVolumePerSecond / removalVolume);
-            }
-
-            void UpdateThresholdRow(CleanRoom room, double removalVolume)
-            {
-                // 濃度 N/V と換気率 nq/V から毎tick閾値行を更新する
-                // Update the threshold row each tick from concentration N/V and ACH nq/V
-                var concentration = CleanRoomPurityLogic.Concentration(room.ImpurityCount, room.Volume);
                 var airChangeRate = CleanRoomPurityLogic.AirChangeRate(removalVolume, room.Volume);
-                room.SetThresholdIndex(CleanRoomPurityLogic.DecideThresholdIndex(room.ThresholdIndex, concentration, airChangeRate, _thresholdRows));
+                room.SetThresholdIndex(CleanRoomPurityLogic.DecideThresholdIndex(room.ThresholdIndex, airChangeRate, _requiredAirChangeRates));
             }
-
-            #endregion
         }
 
-        private static List<CleanRoomThresholdRow> BuildThresholdRows()
+        private static List<double> BuildRequiredAirChangeRates()
         {
-            // マスタの閾値行をロジック入力へ初期化時に1回だけ変換する
-            // Convert master threshold rows into logic inputs once at initialization
-            var rows = new List<CleanRoomThresholdRow>();
-            foreach (var threshold in MasterHolder.CleanRoomMaster.Thresholds)
-                rows.Add(new CleanRoomThresholdRow(threshold.MaxConcentration, threshold.RequiredAirChangeRate));
-            return rows;
+            // マスタの閾値行から必要換気回数だけを初期化時に1回取り出す
+            // Extract only the required air change rates from the master threshold rows once at initialization
+            var rates = new List<double>();
+            foreach (var threshold in MasterHolder.CleanRoomMaster.Thresholds) rates.Add(threshold.RequiredAirChangeRate);
+            return rates;
         }
 
         public void Destroy()

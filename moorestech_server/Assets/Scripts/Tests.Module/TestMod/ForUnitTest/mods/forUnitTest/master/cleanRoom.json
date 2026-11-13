@@ -1,17 +1,9 @@
 {
   "data": [
     {
-      "pollution": {
-        "aVolume": 0.1,
-        "aSurface": 0.05,
-        "aConnector": 0.5,
-        "aMachine": 2.0,
-        "kHatch": 0.3
-      },
       "thresholds": [
         {
           "className": "A",
-          "maxConcentration": 10,
           "requiredAirChangeRate": 0.017,
           "qualityMultiplier": 1.0,
           "layerFailRate": 0.1,
@@ -19,7 +11,6 @@
         },
         {
           "className": "B",
-          "maxConcentration": 50,
           "requiredAirChangeRate": 0.0083,
           "qualityMultiplier": 0.75,
           "layerFailRate": 0.15,
@@ -27,7 +18,6 @@
         },
         {
           "className": "C",
-          "maxConcentration": 200,
           "requiredAirChangeRate": 0.0042,
           "qualityMultiplier": 0.5,
           "layerFailRate": 0.2,
@@ -35,7 +25,6 @@
         },
         {
           "className": "D",
-          "maxConcentration": 1000,
           "requiredAirChangeRate": 0.0014,
           "qualityMultiplier": 0.25,
           "layerFailRate": 0.25,
@@ -93,10 +82,6 @@
             }
           ]
         }
-      ],
-      "pollutionConnectorBlockGuids": [
-        "d6268837-5326-480b-960a-ffdce4b5478e",
-        "8e425510-aa34-4a1b-9f40-5f8079183ab2"
       ]
     }
   ]

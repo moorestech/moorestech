@@ -11,30 +11,22 @@ using static Game.Block.Interface.BlockException;
 namespace Game.Block.Blocks.CleanRoom
 {
     /// <summary>
-    ///     アイテムを毎秒の上限まで中継しつつ搬送レートを汚染計算へ公開するハッチ
-    ///     Hatch that relays items up to a per-second cap and exposes its throughput to pollution
+    ///     部屋の境界でアイテムを毎秒の上限まで中継するハッチ
+    ///     Hatch on the room boundary that relays items up to a per-second cap
     /// </summary>
-    public class CleanRoomItemHatchComponent : IBlockInventory, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomItemHatch, IGetRefundItemsInfo
+    public class CleanRoomItemHatchComponent : IBlockInventory, IUpdatableBlockComponent, IBlockSaveState, IGetRefundItemsInfo
     {
         public const int TransitSlotCount = 4;
-        public const int ThroughputWindowTicks = 20;
 
         // 1tick分ずつ足す枠の浮動小数誤差で1個を取りこぼさないための余裕
         // Margin so floating-point error in the per-tick accrual never drops a whole item
         private const double AllowanceFloorTolerance = 1e-9;
 
-        // リング窓の合計を窓の実時間で割って毎秒レートにする
-        // Divide the ring-window sum by the window's wall time for a per-second rate
-        public double RecentThroughputPerSecond => _windowSum / (ThroughputWindowTicks * GameUpdater.SecondsPerTick);
-
         private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly IItemStack[] _transitSlots = new IItemStack[TransitSlotCount];
-        private readonly int[] _pushedPerTick = new int[ThroughputWindowTicks];
         private readonly double _maxItemsPerSecond;
         private readonly double _allowanceCapacity;
         private double _pushAllowance;
-        private int _windowIndex;
-        private int _windowSum;
 
         public CleanRoomItemHatchComponent(double maxItemsPerSecond, IBlockInventoryInserter blockInventoryInserter)
         {
@@ -68,9 +60,8 @@ namespace Game.Block.Blocks.CleanRoom
             // Add one tick of allowance, discarding whatever exceeds the storable amount
             _pushAllowance = Math.Min(_allowanceCapacity, _pushAllowance + _maxItemsPerSecond * GameUpdater.SecondsPerTick);
 
-            // 枠の範囲で中継スロットを接続先へ押し出し、押し出せた個数を数える
-            // Push transit slots to connected targets within the allowance, counting items actually moved
-            var pushedThisTick = 0;
+            // 枠の範囲で中継スロットを接続先へ押し出す
+            // Push transit slots to connected targets within the allowance
             var nextStartSlot = _nextPushSlot;
             for (var k = 0; k < TransitSlotCount; k++)
             {
@@ -86,17 +77,9 @@ namespace Game.Block.Blocks.CleanRoom
                 var pushedCount = PushUpTo(before, allowedCount);
                 _transitSlots[i] = before.SubItem(pushedCount);
                 _pushAllowance -= pushedCount;
-                pushedThisTick += pushedCount;
                 if (0 < pushedCount) nextStartSlot = (i + 1) % TransitSlotCount;
             }
             _nextPushSlot = nextStartSlot;
-
-            // リング窓を1tick進め、最古の記録を今tickの実績で置き換える
-            // Advance the ring window one tick, replacing the oldest record with this tick's count
-            _windowIndex = (_windowIndex + 1) % ThroughputWindowTicks;
-            _windowSum -= _pushedPerTick[_windowIndex];
-            _pushedPerTick[_windowIndex] = pushedThisTick;
-            _windowSum += pushedThisTick;
 
             #region Internal
 

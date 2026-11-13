@@ -19,7 +19,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         }
 
         public BlockInstanceId BlockInstanceId { get; }
-        public bool IsPolluting => _processor.IsPolluting;
         public ElectricPower RequestEnergy => new(_processor.EffectiveRequestPower);
 
         public void SetCleanRoomEffect(CleanRoomEffect effect)

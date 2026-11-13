@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
     public class CleanRoomAirFilterTest
     {
         [Test]
-        public void PoweredFilterConvergesToRowATest()
+        public void PoweredFilterReachesRowATest()
         {
             var datastore = CleanRoomHatchTest.CreateServer();
             var block = BuildBaseRoom();
@@ -35,12 +35,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.AreEqual(74, room.Volume);
             Assert.AreEqual(109, room.SurfaceArea);
 
-            // A_total = 0.1×74 + 0.05×109 + 0.5×1（ハッチ）= 13.35/秒、C_eq = 13.35/5 = 2.67
-            // A_total = 0.1x74 + 0.05x109 + 0.5x1 (hatch) = 13.35/sec; C_eq = 13.35/5 = 2.67
-            // 時定数 τ=V/q≈296tick なので2000tickで十分に収束する
-            // With time constant V/q ~= 296 ticks, 2000 ticks converge well enough
-            TickWithPower(block, 100f, 2000);
-            Assert.AreEqual(2.67, room.ImpurityCount / room.Volume, 2.67 * 0.02);
+            // ACH = 5/74 ≈ 0.068 は行Aの昇格条件 0.017×1.25 を満たすので、通電したtickで行Aになる
+            // ACH = 5/74 ~= 0.068 meets row A's promotion bar 0.017x1.25, so the room reaches row A once powered
+            TickWithPower(block, 100f, 2);
             Assert.AreEqual(0, room.ThresholdIndex);
         }
 
@@ -52,13 +49,12 @@ namespace Tests.CombinedTest.Core.CleanRoom
             LoadFilterItems(block, 5);
 
             GameUpdater.UpdateOneTick();
-            Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
+            Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out _));
 
-            // 供給50/要求100で実効q=5×0.5=2.5になり、C_eq = 13.35/2.5 = 5.34 に収束する
-            // Supplying 50 of 100 yields q=5x0.5=2.5, converging to C_eq = 13.35/2.5 = 5.34
-            TickWithPower(block, 50f, 3500);
+            // 供給50/要求100で実効q=5×0.5=2.5になる
+            // Supplying 50 of 100 yields an effective q=5x0.5=2.5
+            TickWithPower(block, 50f, 20);
             Assert.AreEqual(2.5, block.GetComponent<ICleanRoomAirFilter>().RemovalVolumePerSecond, 0.001);
-            Assert.AreEqual(5.34, room.ImpurityCount / room.Volume, 5.34 * 0.02);
         }
 
         [Test]
@@ -70,45 +66,11 @@ namespace Tests.CombinedTest.Core.CleanRoom
             GameUpdater.UpdateOneTick();
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
 
-            // フィルター未装填では満電でも除去0でNが増え続け、行はOutのまま
-            // Without a loaded filter, removal is zero even at full power and N keeps rising
+            // フィルター未装填では満電でも除去0で、行はOutのまま
+            // Without a loaded filter, removal is zero even at full power and the row stays Out
             TickWithPower(block, 100f, 100);
             Assert.AreEqual(0, block.GetComponent<ICleanRoomAirFilter>().RemovalVolumePerSecond, 0.001);
-
-            var beforeImpurity = room.ImpurityCount;
-            TickWithPower(block, 100f, 100);
-            Assert.Greater(room.ImpurityCount, beforeImpurity);
             Assert.AreEqual(MasterHolder.CleanRoomMaster.OutThresholdIndex, room.ThresholdIndex);
-        }
-
-        [Test]
-        public void WearConsumesFilterItemPerCapacityTest()
-        {
-            CleanRoomHatchTest.CreateServer();
-            var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
-            LoadFilterItems(block, 2);
-
-            var filter = block.GetComponent<ICleanRoomAirFilter>();
-            // GetItemの多重定義曖昧さを避けるためIOpenableInventoryとして扱う
-            // View as IOpenableInventory to avoid the GetItem overload ambiguity
-            IOpenableInventory inventory = block.GetComponent<IOpenableBlockInventoryComponent>();
-
-            // 累計3000は容量5000未満なので消費なし
-            // Cumulative 3000 stays below capacity 5000, so nothing is consumed
-            filter.ApplyRemovedImpurity(3000);
-            Assert.AreEqual(2, inventory.GetItem(0).Count);
-
-            // 累計5500で容量到達により1個消費し残量500に戻る
-            // Reaching 5500 consumes one filter, carrying over the remaining 500
-            filter.ApplyRemovedImpurity(2500);
-            Assert.AreEqual(1, inventory.GetItem(0).Count);
-
-            // 残量500+4600=5100で再度消費しスロットが空になり除去は0になる
-            // 500+4600=5100 consumes again, emptying the slot and zeroing removal
-            filter.ApplyRemovedImpurity(4600);
-            Assert.AreEqual(0, inventory.GetItem(0).Count);
-            TickWithPower(block, 100f, 2);
-            Assert.AreEqual(0, filter.RemovalVolumePerSecond, 0.001);
         }
 
         [Test]
@@ -117,7 +79,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
             CleanRoomHatchTest.CreateServer();
             var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
             LoadFilterItems(block, 1);
-            block.GetComponent<ICleanRoomAirFilter>().ApplyRemovedImpurity(4900);
+
+            // 満電で5秒ぶん回し、装填中のフィルターに5秒の経過を溜める
+            // Run five seconds at full power so the loaded filter accrues five seconds of use
+            TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(5));
 
             var saveComponent = block.GetComponent<IBlockSaveState>();
             var states = SaveLoadJsonTestHelper.ThroughJson(saveComponent.SaveKey, saveComponent.GetSaveState());
@@ -126,14 +91,14 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);
             var loaded = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(int.MaxValue), states, positionInfo);
 
-            // スロット内容と摩耗累計4900が新インスタンスへそのまま引き継がれる
-            // Both the slot contents and the wear of 4900 carry over to the new instance
+            // スロット内容と経過5秒が新インスタンスへそのまま引き継がれる
+            // Both the slot contents and the five elapsed seconds carry over to the new instance
             IOpenableInventory loadedInventory = loaded.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.AreEqual(1, loadedInventory.GetItem(0).Count);
             Assert.AreEqual(ForUnitTestItemId.TestCleanRoomFilter, loadedInventory.GetItem(0).Id);
 
             var resaved = (CleanRoomAirFilterSaveJsonObject)loaded.GetComponent<IBlockSaveState>().GetSaveState();
-            Assert.AreEqual(4900, resaved.WearAccumulation, 0.001);
+            Assert.AreEqual(5d, resaved.FilterWearSeconds, 0.001);
         }
 
         [Test]
@@ -164,7 +129,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
         // 内寸5×5×3の部屋（壁+ハッチ1+ドア1）に清浄機を1台設置して返す
         // Build a 5x5x3-interior room (walls + one hatch + one door) with one purifier inside
-        private static IBlock BuildBaseRoom()
+        internal static IBlock BuildBaseRoom()
         {
             CleanRoomDetectionTest.BuildBox(new Vector3Int(0, 0, 0), new Vector3Int(6, 4, 6));
             CleanRoomHatchTest.ReplaceBlock(ForUnitTestModBlockId.CleanRoomItemHatchId, new Vector3Int(3, 1, 0));
@@ -172,16 +137,16 @@ namespace Tests.CombinedTest.Core.CleanRoom
             return CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(3, 1, 3));
         }
 
-        private static void LoadFilterItems(IBlock block, int count)
+        internal static void LoadFilterItems(IBlock block, int count)
         {
             block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, count);
         }
 
         // 部屋の外に置く給電用電柱の位置
         // Position of the powering pole placed outside every room
-        private static readonly Vector3Int PowerPolePosition = new(30, 0, 30);
+        internal static readonly Vector3Int PowerPolePosition = new(30, 0, 30);
 
-        private static void TickWithPower(IBlock block, float power, int ticks)
+        internal static void TickWithPower(IBlock block, float power, int ticks)
         {
             // 電線経由の実経路で給電する。発電機が既に居るセグメントには追加しない
             // Power through the real wire path; skip registration when the segment already has a generator

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Master;
 using Mooresmaster.Model.CleanRoomModule;
@@ -23,7 +22,6 @@ namespace Game.CleanRoom
         public int Volume { get; }
         public int SurfaceArea { get; }
 
-        public double ImpurityCount { get; private set; }
         public int ThresholdIndex { get; private set; }
 
         private readonly HashSet<Vector3Int> _cells;
@@ -37,15 +35,7 @@ namespace Game.CleanRoom
 
             // 生成直後はクリーン度未達（Out）から始める
             // A fresh room starts at the out-of-class sentinel index
-            ImpurityCount = 0;
             ThresholdIndex = MasterHolder.CleanRoomMaster.OutThresholdIndex;
-        }
-
-        // 不純物数は負になり得ないため0でクランプする
-        // Impurity count can never be negative, so clamp at zero
-        public void SetImpurity(double value)
-        {
-            ImpurityCount = Math.Max(0, value);
         }
 
         public void SetThresholdIndex(int index)

@@ -36,8 +36,8 @@ namespace Server.Protocol.PacketResponse
                     filter.Status.CurrentFilterRemainingRatio)).ToList();
                 return room.Class switch
                 {
-                    CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.Concentration, room.AirChangeRate, room.Volume, filters),
-                    CleanRoomOutStanding _ => CleanRoomSummaryMessagePack.CreateOut(room.Concentration, room.AirChangeRate, room.Volume, filters),
+                    CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.AirChangeRate, room.Volume, filters),
+                    CleanRoomOutStanding _ => CleanRoomSummaryMessagePack.CreateOut(room.AirChangeRate, room.Volume, filters),
                     _ => throw new ArgumentOutOfRangeException(nameof(room.Class), room.Class.GetType().Name, "未対応のクラス種別 / Unsupported class standing"),
                 };
             }

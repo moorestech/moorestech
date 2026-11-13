@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         private static readonly Vector3Int MachinePosition = new(2, 1, 1);
 
         [Test]
-        public void RoomImpurityAndClassSurviveSaveLoadTest()
+        public void RoomClassSurvivesSaveLoadTest()
         {
             var (_, datastore1, assembleSaveJsonText1, _) = CreateBlockTestModule();
             var filter = BuildSmallCleanRoomWithFilter();
@@ -43,7 +43,6 @@ namespace Tests.CombinedTest.Core.CleanRoom
             TickUntilRealCleanClass(filter, datastore1, RoomCell, 800);
             Assert.IsTrue(datastore1.TryGetCleanRoomAt(RoomCell, out var room1));
             Assert.Less(room1.ThresholdIndex, MasterHolder.CleanRoomMaster.OutThresholdIndex);
-            var expectedImpurity = room1.ImpurityCount;
             var expectedClassName = MasterHolder.CleanRoomMaster.Thresholds[room1.ThresholdIndex].ClassName;
 
             // 通常の保存JSONから新しいDIへロードし、復元経路だけを検証する
@@ -53,7 +52,6 @@ namespace Tests.CombinedTest.Core.CleanRoom
             loader2.Load(json);
 
             Assert.IsTrue(datastore2.TryGetCleanRoomAt(RoomCell, out var room2));
-            Assert.AreEqual(expectedImpurity, room2.ImpurityCount, 0.0001);
             Assert.AreEqual(expectedClassName, MasterHolder.CleanRoomMaster.Thresholds[room2.ThresholdIndex].ClassName);
             Assert.Less(room2.ThresholdIndex, MasterHolder.CleanRoomMaster.OutThresholdIndex);
         }
@@ -77,7 +75,6 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var (_, datastore2, _, loader2) = CreateBlockTestModule();
             Assert.DoesNotThrow(() => loader2.Load(strippedJson));
             Assert.IsTrue(datastore2.TryGetCleanRoomAt(RoomCell, out var room2));
-            Assert.AreEqual(0, room2.ImpurityCount);
             Assert.AreEqual(MasterHolder.CleanRoomMaster.OutThresholdIndex, room2.ThresholdIndex);
         }
 
