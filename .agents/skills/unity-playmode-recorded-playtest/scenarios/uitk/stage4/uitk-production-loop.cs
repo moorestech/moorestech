@@ -3,15 +3,17 @@
 // winunity play <branch> <このファイル> --ui-system GameUi で流す（全体スイッチは winunity が立てて Current を確かめる）
 // Run with winunity play <branch> <this file> --ui-system GameUi (winunity sets the whole-UI switch and checks Current)
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Ui.State.Inventory.Actions;
+using Client.Ui.State.Items;
 using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -38,7 +40,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // A Game View behind a tab never renders and skit skip stalls at timeScale=0, so bring it to front (precedent uitk-opening-hud)
     PlaytestGameViewOps.BringToFront();
     await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
-
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     // 重い機械では1回の Skip で開幕スキットが終わらないことがあるので、Story のままなら飛ばし直し回数を Note に残す
     // On a loaded machine one skip may not end the opening skit, so skip again while in Story and note the rounds
@@ -49,7 +50,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.ExitToGameScreen();
     p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi（UITK側）");
     p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（UITK側）");
-
     var log = PlaytestItemOps.ResolveItemId("原木");
     var plank = PlaytestItemOps.ResolveItemId("木の板");
     var bronzeDust = PlaytestItemOps.ResolveItemId("青銅鉱石の粉");
@@ -58,12 +58,10 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // 粉は1個だけ渡し、出力が1個で止まるようにする（2個目ができると出力枠の「1」の確認が競る）
     // Give a single dust so the output stops at one ingot (a second one would race the "1" check on the output slot)
     await p.GiveItem("青銅鉱石の粉", 1);
-
     // 掴みの申し送り（C4-e D-36・Warning）の警告を数え、終わりに Note へ出す
     // Count the grab hand-off warnings (C4-e D-36 and Warnings) and note them at the end
     var splitDragWarnings = 0;
     Application.logMessageReceived += CountSplitDragWarnings;
-
     // Tab で持ち物を開き、木の板を選んで長押しでクラフトする
     // Open the inventory with Tab, select planks and hold to craft
     p.Note("Tab→木の板→長押しクラフト");
@@ -87,7 +85,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     var clientUnlock = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
     await p.RunOnServer("青銅インゴットのレシピを解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockMachineRecipe(bronzeRecipe));
     await p.Until(() => clientUnlock.MachineRecipeUnlockStateInfos.TryGetValue(bronzeRecipe, out var info) && info.IsUnlocked, 10f, "レシピの解放がクライアントへ届く");
-
     // 石窯を置いて F で開き、レシピを選ぶ
     // Place a stone kiln, open it with F and select the recipe
     var kilnPos = new Vector3Int(10, 32, 10);
@@ -120,13 +117,18 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // 残りの原木を掴み右ドラッグで空き 3 枠へ配る
     // Grab the remaining logs and right-drag them across three empty slots
     p.Note("右ドラッグで配る");
-    p.Assert(Enumerable.Range(0, Local().MainSlotCount).Any(i => Local()[i].Id == log), "半分掴みの後も手持ちに原木が残る");
+    p.Assert(Main().Any(slot => slot.ItemId == log), "半分掴みの後も手持ちに原木が残る");
     await p.ClickUi(MainSlotOf(log));
+    await p.Until(() => Ops().ReadGrab().ItemId == log, 5f, "残りの原木を掴む（クライアントの grab）");
+    var grabbed = Ops().ReadGrab().Count;
     var empties = EmptyMainSlots(3);
     await DragWithButton(1, empties);
-    p.Assert(empties.All(i => Local()[i].Id == log), "右ドラッグで空き3枠に原木が配られる");
+    // 解放後の LateTick で確定するので、配り終えと掴みの残り（掴んだ数−3）を待って見る（前例 uitk-grab-overlay）
+    // The split commits on the LateTick after release, so wait for the slots and the remaining grab (grabbed - 3) (precedent uitk-grab-overlay)
+    await p.Until(() => empties.All(i => Main()[i].ItemId == log) && Ops().ReadGrab().Count == grabbed - 3, 5f, $"右ドラッグで空き3枠に1個ずつ配り、掴みは {grabbed}-3 個");
     await p.Screenshot("04-right-drag");
-    await p.ClickUi(MainSlotOf(log));
+    if (0 < Ops().ReadGrab().Count) await p.ClickUi(MainSlotOf(log));
+    await p.Until(() => Ops().ReadGrab().IsEmpty, 5f, "掴みの残りを持ち物へ戻す");
 
     // 開いたまま出来上がりが出力枠に出るのを見る（機械 UI を開いたまま中身が更新される録画）
     // Watch the ingot appear in the output while the UI stays open
@@ -144,22 +146,21 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
     await p.ClickUi("inventory-sort");
-    await p.Until(() => Local()[0].Id != ItemMaster.EmptyItemId, 10f, "整理で先頭の枠が埋まる");
+    await p.Until(() => !Main()[0].IsEmpty, 10f, "整理で先頭の枠が埋まる");
     await p.Screenshot("06-sorted");
     Application.logMessageReceived -= CountSplitDragWarnings;
     p.Note($"split-drag-warnings={splitDragWarnings}（[SplitDrag]・stale・DiscardStaleSession を含む Warning/Error）");
 
     #region Internal
-
     void CountSplitDragWarnings(string condition, string stackTrace, LogType type)
     {
         if (type == LogType.Log) return;
         if (condition.Contains("[SplitDrag]") || condition.Contains("stale") || condition.Contains("DiscardStaleSession")) splitDragWarnings++;
     }
-
-    ILocalPlayerInventory Local() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
-    string MainSlotOf(ItemId id) => $"main-slot-{Enumerable.Range(0, Local().MainSlotCount).First(i => Local()[i].Id == id)}";
-    int[] EmptyMainSlots(int count) => Enumerable.Range(0, Local().MainSlotCount).Where(i => Local()[i].Id == ItemMaster.EmptyItemId).Take(count).ToArray();
+    IReadOnlyList<SlotItem> Main() => Ops().ReadSnapshot().MainSlots;
+    string MainSlotOf(ItemId id) => $"main-slot-{Enumerable.Range(0, Main().Count).First(i => Main()[i].ItemId == id)}";
+    IPlayerInventoryOperations Ops() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IPlayerInventoryOperations>();
+    int[] EmptyMainSlots(int count) => Enumerable.Range(0, Main().Count).Where(i => Main()[i].IsEmpty).Take(count).ToArray();
     // 移動と押下を同じフレームに積むと押下が元の位置に届くので、移動の後に間を置いて押す（前例 uitk-recipe-craft）
     // Queuing the move and press in one frame lands the press at the old position, so wait after moving (precedent uitk-recipe-craft)
     async UniTask PressOn(string testid, int button)
@@ -173,7 +174,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     async UniTask ShiftClickOn(string testid)
     {
         var modifiers = typeof(UnityEngine.UIElements.PanelEventHandler).GetField("s_Modifiers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        if (modifiers == null) throw new InvalidOperationException("PanelEventHandler.s_Modifiers が見つからないので Shift を注入できない");
         SemanticInput.KeyDown(Key.LeftShift);
         modifiers.SetValue(null, EventModifiers.Shift);
         await p.ClickUi(testid);
