@@ -4,13 +4,16 @@
 // Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
+using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Playtest.Overlay;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Root;
 using Client.Ui.State.Challenge;
@@ -19,6 +22,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
+using Object = UnityEngine.Object;
 
 return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record = true }, async p =>
 {
@@ -34,6 +38,12 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
+    // 参照は日本語で撮るので言語を固定し、参照に無い背景スキットの字幕が消えるまで待つ（前例 uitk-stage2-compare）
+    // References are in Japanese, so pin the language and wait out the background skit subtitle absent from them (precedent uitk-stage2-compare)
+    Localize.TrySetChosenLanguage("japanese");
+    p.Assert(Localize.GetCurrentLanguageCode() == "japanese", "言語が日本語");
+    var backgroundSkit = Object.FindFirstObjectByType<Client.Game.InGame.BackgroundSkit.BackgroundSkitManager>(FindObjectsInactive.Include);
+    await p.Until(() => !backgroundSkit.IsPlayingSkit, 120f, "背景スキットが終わる");
     var root = GameUiRoot.Instance.GetRootElement();
 
     // 解放済みの先頭カテゴリと、マスタの順で最初の進行中を源から引く（Web の categories[0] と findChallengeInitialFocusNode）
@@ -52,6 +62,13 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
     var offset = await CenterOffset();
     p.Note($"進行中のカードの中心とビューポートの中心の差 {offset}");
     p.Assert(offset.magnitude <= 2f, "進行中のカードがビューポートの中心から 2px 以内");
+
+    // 並べ比べの絵には参照に無い操作オーバーレイとチュートリアルの枠を写さない（撮り終えたらオーバーレイだけ戻す）
+    // Keep the operation overlay and tutorial outlines absent from the reference out of the comparison shots (restore only the overlay afterwards)
+    var overlay = Object.FindFirstObjectByType<PlaytestOverlayView>();
+    overlay.enabled = false;
+    foreach (var currentChallenge in progress.Categories.SelectMany(c => c.CurrentChallenges)) TutorialPresentationStateStore.Instance.EndSession(currentChallenge.ChallengeGuid);
+    await p.WaitSeconds(0.3f);
     await p.Screenshot("01-open-centered-1280x720");
 
     // 2560×1080 でも寸法の追従で中央のまま。並べ比べの UITK 側を撮って 1280×720 へ戻す
@@ -64,6 +81,7 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
     await p.Screenshot("01b-open-centered-2560x1080");
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     await UniTask.DelayFrame(3);
+    overlay.enabled = true;
 
     // 枠・カテゴリ列・先頭カテゴリの全ノードのアンカーが一意に引ける
     // The frame, category row and every node of the first category resolve uniquely
@@ -96,6 +114,11 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
     // ScreenRect is bottom-left origin so the lower-right corner hits the hotbar; press the gap left of and above the current card between rows
     var empty = viewport.ScreenRect.center + new Vector2(-200f, 120f);
     p.Note($"空の背景として押す点 {empty}（ビューポート {viewport.ScreenRect}）");
+    // 押す点がカードに乗っていない（当たりの祖先に challenge-node- が無い）。ScreenRect は左下原点なのでパネル座標へ直して引く
+    // The press point is not on a card (no challenge-node- ancestor in the hit); ScreenRect is bottom-left origin, so convert to panel space before picking
+    var emptyHit = root.panel.Pick(RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(empty.x, Screen.height - empty.y)));
+    var hitCard = FindCardAncestor(emptyHit);
+    p.Assert(hitCard == null, $"空の背景の点がカードでない（当たり={emptyHit?.name}・カード={hitCard?.name}）");
     var beforePan = await CardCenter();
     SemanticInput.MouseMoveTo(empty);
     await p.WaitSeconds(0.5f);
@@ -133,6 +156,13 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
     p.Assert(!(await PlaytestUiElementOps.FindUi("challenge-panel")).IsFound, "インベントリへ移ると一覧が消える");
 
     #region Internal
+
+    VisualElement FindCardAncestor(VisualElement element)
+    {
+        for (var e = element; e != null; e = e.parent)
+            if (e.name != null && e.name.StartsWith("challenge-node-")) return e;
+        return null;
+    }
 
     async UniTask<Vector2> CardCenter() => (await PlaytestUiElementOps.FindUi(cardId)).ScreenRect.center;
 
