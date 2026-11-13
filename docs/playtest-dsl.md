@@ -67,7 +67,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 
 ## UI経路操作（Phase 3） / UI-route operations (Phase 3)
 
-実プレイヤーと同じキーマウス経路（B→ビルドメニュー→設置プレビュー→クリック/ドラッグ設置）で
+実プレイヤーと同じキーマウス経路（B→ビルドメニュー→設置プレビュー→クリック設置/2クリック経路設置）で
 構築するAPI群。入力は`Client.Playtest/Input/SemanticInput.cs`がQueueStateEventで注入する
 （InputSystem.Update()は呼ばず通常フレーム更新に委ねる。フォーカス不要）。
 
@@ -77,8 +77,12 @@ SemanticInput via QueueStateEvent (no InputSystem.Update() calls; focus not requ
 ```csharp
 // UI設置の前提を1行で: アンロック＋マスタのRequiredItems×個数分の建設コスト付与（クライアント在庫反映待ち込み）
 await p.PrepareBlockForUiPlacement("ベルトコンベア", 15);
-// ドラッグ設置: ベルトの向きは経路から自動解決（(2,2)→(2,6)なら北向き5本）
-await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
+// 2クリック設置: 始点クリック→終点クリックで最短経路が置かれる（始点・終点の向きはRの回転回数で合わせる）
+await p.RoutePlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), BlockDirection.North, new Vector3Int(2, 32, 6), BlockDirection.North);
+// 録画に設置物を写す: 足場(y=32)を覆う地形オブジェクトを隠す
+p.HideMapObjects();
+// 分岐: Ctrl+クリックで既存のベルト（直線か L字の角）を分岐器に置き換え、指定した出口から終点まで経路を置く
+await p.BranchPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 4), false, BlockDirection.East, new Vector3Int(6, 32, 4), BlockDirection.East);
 // 単クリック設置: 向きはデフォルトNorth（回転キー注入は未実装）
 await p.PlaceBlockViaUi("木のコンベアチェスト", new Vector3Int(4, 32, 8), BlockDirection.North);
 await p.ExitToGameScreen();

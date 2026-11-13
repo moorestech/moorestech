@@ -1,6 +1,7 @@
 using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Common.Debug;
 using Cysharp.Threading.Tasks;
@@ -72,6 +73,13 @@ namespace Client.Playtest.Operations
             // Placement Y is decided by ground probing against the Ground layer (ADR 0047), so the scaffold must sit on that layer
             ground.layer = LayerConst.GroundLayer;
             return ground;
+        }
+
+        // 地形オブジェクト（木・岩・メサ）の表示をスキットと同じ経路で切り替える。足場(y=32)は地形の山の中にあり、隠さないと設置物が録画に写らない
+        // Toggles terrain objects (trees, rocks, mesas) through the same path skits use; the scaffold (y=32) sits inside a terrain mound, so placed blocks are invisible unless hidden
+        public static void SetMapObjectsVisible(bool visible)
+        {
+            Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include).SetActive(visible);
         }
 
         public static void WarpPlayer(Vector3 position)
