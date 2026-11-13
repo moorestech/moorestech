@@ -11,6 +11,7 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
 using Client.Playtest.Overlay;
+using Client.Ui.Foundation.Filter;
 using Client.Ui.Foundation.Root;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -85,7 +86,7 @@ return PlaytestRunner.Run("uitk-group-opacity-compare", options, async p =>
         foreach (var e in new[] { button, slotFrame })
         {
             e.style.visibility = StyleKeyword.Null;
-            e.style.filter = StyleKeyword.Null;
+            e.Q<PixelFilterGroup>().style.filter = StyleKeyword.Null;
             e.style.opacity = StyleKeyword.Null;
         }
         await UniTask.DelayFrame(4);
@@ -93,9 +94,11 @@ return PlaytestRunner.Run("uitk-group-opacity-compare", options, async p =>
 
     #region Internal
 
+    // 群の filter を外し、置き場の要素の opacity で淡くする（旧来の子ごとの合成）
+    // Drop the group filter and fade with the host element opacity (the old per-child compositing)
     void SetElementOpacity(VisualElement element, float opacity)
     {
-        element.style.filter = new StyleList<FilterFunction>(new List<FilterFunction>());
+        element.Q<PixelFilterGroup>().style.filter = new StyleList<FilterFunction>(new List<FilterFunction>());
         element.style.opacity = opacity;
     }
 
@@ -105,7 +108,8 @@ return PlaytestRunner.Run("uitk-group-opacity-compare", options, async p =>
     {
         var scale = Screen.width / root.layout.width;
         string R(VisualElement e) => e == null ? "-" : $"({e.worldBound.xMin * scale:F2},{e.worldBound.yMin * scale:F2})-({e.worldBound.xMax * scale:F2},{e.worldBound.yMax * scale:F2})";
-        return $"scale {scale:F3} button {R(button)} label {R(button.Q<Label>(className: "recipe-action-button__label"))} slot {R(slotFrame)}";
+        var groupScale = button.Q<PixelFilterGroup>().resolvedStyle.scale.value.x;
+        return $"scale {scale:F3} group-scale {groupScale:F4} button {R(button)} label {R(button.Q<Label>(className: "recipe-action-button__label"))} slot {R(slotFrame)}";
     }
 
     #endregion
