@@ -12,7 +12,9 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
+using Client.Ui.State.Inventory.Drag;
 using Client.Ui.State.Items;
 using Client.WebUiHost.Boot;
 using Core.Master;
@@ -78,7 +80,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.Screenshot("01-hold-craft");
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-
     // 青銅インゴットのレシピをサーバー直で解放する（未解放・未選択の機械は入力を受けない。研究の流れはラダー 5 が持つ）
     // Unlock the bronze ingot recipe server-side (a locked or unselected machine takes no input; ladder 5 owns the research flow)
     var bronzeRecipe = Guid.Parse("af78bd9a-39c9-440a-9b43-61dca495f8fb");
@@ -103,17 +104,17 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // The band's center hits a child slot and never counts as clickable, so wait on the first slot we press
     await p.UntilUiElement("machine-input-slot-0", 10f);
     await p.Screenshot("03-kiln-open");
-
     // Shift＋クリックで粉を入れ、原木は右クリックで半分掴んで素材順の 2 枠目へ置く（入力枠はレシピの素材順に固定。原木が揃うと粉は即消費されるので粉を先に確かめる）
     // Shift-click the dust in, then right-click half the logs into the second slot (inputs follow recipe order; logs start processing and consume the dust, so check the dust first)
     p.Note("Shiftで入れる・半分掴んで置く");
     var kilnInventory = p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>();
     await ShiftClickOn(MainSlotOf(bronzeDust));
     await p.WaitForItemCount(kilnInventory, bronzeDust, 1, null, 10f, "石窯の入力に粉が入る（サーバー）");
-    await RightClickOn(MainSlotOf(log));
+    await PressOn(MainSlotOf(log), 1);
+    await p.WaitSeconds(0.1f);
+    SemanticInput.MouseButtonUp(1);
     await p.ClickUi("machine-input-slot-1");
     await p.WaitForItemCount(kilnInventory, log, 1, null, 10f, "石窯の入力に原木が入る（サーバー）");
-
     // 残りの原木を掴み右ドラッグで空き 3 枠へ配る
     // Grab the remaining logs and right-drag them across three empty slots
     p.Note("右ドラッグで配る");
@@ -121,21 +122,18 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.Until(() => Ops().ReadGrab().ItemId == log, 5f, "残りの原木を掴む（クライアントの grab）");
     var grabbed = Ops().ReadGrab().Count;
     var empties = EmptyMainSlots(3);
-    await DragWithButton(1, empties);
-    p.Note($"右ドラッグ直後: grab={Ops().ReadGrab()} 枠={string.Join(",", empties.Select(i => $"{i}:{Main()[i]}"))}");
+    await RightDragAcross(empties);
     // 解放後の LateTick で確定するので、配り終えと掴みの残り（掴んだ数−3）を待って見る（前例 uitk-grab-overlay）
     // The split commits on the LateTick after release, so wait for the slots and the remaining grab (grabbed - 3) (precedent uitk-grab-overlay)
     await p.Until(() => empties.All(i => Main()[i].ItemId == log) && Ops().ReadGrab().Count == grabbed - 3, 5f, $"右ドラッグで空き3枠に1個ずつ配り、掴みは {grabbed}-3 個");
     await p.Screenshot("04-right-drag");
     if (0 < Ops().ReadGrab().Count) await p.ClickUi(MainSlotOf(log));
     await p.Until(() => Ops().ReadGrab().IsEmpty, 5f, "掴みの残りを持ち物へ戻す");
-
     // 開いたまま出来上がりが出力枠に出るのを見る（機械 UI を開いたまま中身が更新される録画）
     // Watch the ingot appear in the output while the UI stays open
     await p.WaitForItemCount(kilnInventory, ingot, 1, null, 20f, "石窯で青銅インゴットができる（サーバー）");
     await PlaytestUiElementOps.WaitUiTextContains("machine-output-slots", "1", 10f);
     await p.Screenshot("05-output-while-open");
-
     // Shift で取り出し、閉じて整理する
     // Shift-take the output, close and sort
     var ingotsBefore = PlaytestItemOps.CountItemClientSide(ingot);
@@ -150,7 +148,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.Screenshot("06-sorted");
     Application.logMessageReceived -= CountSplitDragWarnings;
     p.Note($"split-drag-warnings={splitDragWarnings}（[SplitDrag]・stale・DiscardStaleSession を含む Warning/Error）");
-
     #region Internal
     void CountSplitDragWarnings(string condition, string stackTrace, LogType type)
     {
@@ -180,18 +177,21 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
         modifiers.SetValue(null, EventModifiers.None);
         SemanticInput.KeyUp(Key.LeftShift);
     }
-    async UniTask RightClickOn(string testid)
+    // 注入入力の右押下中は他の枠の RightEnter が出ないので、押下は実入力・進入は命令で通す（前例 uitk-grab-overlay の左の分割ドラッグ）
+    // RightEnter never fires on other slots under an injected right press, so press for real and enter by command (precedent uitk-grab-overlay)
+    async UniTask RightDragAcross(int[] slots)
     {
-        await PressOn(testid, 1);
-        await p.WaitSeconds(0.1f);
+        await PressOn($"main-slot-{slots[0]}", 1);
+        var drag = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IPlayerSlotDragCommands>();
+        var realEnters = 0;
+        foreach (var slot in slots.Skip(1))
+        {
+            await SemanticInput.MouseGlideTo((await PlaytestUiElementOps.FindUi($"main-slot-{slot}")).ScreenRect.center, 0.3f);
+            if (!Main()[slot].IsEmpty) { realEnters++; continue; }
+            p.Assert(drag.EnterWithRightButton(PlayerSlotRef.Main(slot)) is UiCommandAccepted, $"右ボタンを押したままの進入（命令）が通る: main {slot}");
+        }
+        p.Note($"right-drag-real-enters={realEnters}/{slots.Length - 1}（注入の右押下中に実の進入で置けた枠の数）");
         SemanticInput.MouseButtonUp(1);
-        await p.WaitSeconds(0.3f);
-    }
-    async UniTask DragWithButton(int button, int[] slots)
-    {
-        await PressOn($"main-slot-{slots[0]}", button);
-        foreach (var slot in slots.Skip(1)) await SemanticInput.MouseGlideTo((await PlaytestUiElementOps.FindUi($"main-slot-{slot}")).ScreenRect.center, 0.3f);
-        SemanticInput.MouseButtonUp(button);
         await p.WaitSeconds(0.5f);
     }
 
