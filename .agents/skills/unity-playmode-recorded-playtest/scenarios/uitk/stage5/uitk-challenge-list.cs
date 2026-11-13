@@ -92,7 +92,10 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
     // 空の背景をパンし、T で閉じて T で開き直しても視点が残る
     // Pan on empty background; closing and reopening with T keeps the view
     var viewport = await PlaytestUiElementOps.FindUi("challenge-viewport");
-    var empty = new Vector2(viewport.ScreenRect.xMax - 40f, viewport.ScreenRect.yMin + 40f);
+    // ScreenRect は左下原点なので右下の隅はホットバーに当たる。進行中のカードの左上、行と行の間の空きを押す
+    // ScreenRect is bottom-left origin so the lower-right corner hits the hotbar; press the gap left of and above the current card between rows
+    var empty = viewport.ScreenRect.center + new Vector2(-200f, 120f);
+    p.Note($"空の背景として押す点 {empty}（ビューポート {viewport.ScreenRect}）");
     var beforePan = await CardCenter();
     SemanticInput.MouseMoveTo(empty);
     await p.WaitSeconds(0.5f);
