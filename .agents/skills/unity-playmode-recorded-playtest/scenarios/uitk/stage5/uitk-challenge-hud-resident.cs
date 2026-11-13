@@ -131,8 +131,11 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
 
     void AssertSame(Rect expected, Rect actual, string where)
     {
-        var same = Mathf.Abs(expected.x - actual.x) <= 1f && Mathf.Abs(expected.y - actual.y) <= 1f && Mathf.Abs(expected.width - actual.width) <= 1f && Mathf.Abs(expected.height - actual.height) <= 1f;
-        p.Assert(same, $"{where} の HUD がゲーム画面と同じ位置・寸法（{actual} / {expected}）");
+        // 許容は物理 1px を論理へ換算した値（1280 幅で 1、1024 幅で 1.25。端が物理ピクセルへ丸まり、論理 1 未満の差は 0.8 倍で表せない）
+        // Tolerance is one physical pixel in logical units (1 at 1280 wide, 1.25 at 1024; edges snap to physical pixels, so sub-1 logical gaps cannot exist at 0.8x)
+        var tolerance = Mathf.Max(1f, 1280f / Screen.width) + 0.01f;
+        var same = Mathf.Abs(expected.x - actual.x) <= tolerance && Mathf.Abs(expected.y - actual.y) <= tolerance && Mathf.Abs(expected.width - actual.width) <= tolerance && Mathf.Abs(expected.height - actual.height) <= tolerance;
+        p.Assert(same, $"{where} の HUD がゲーム画面と同じ位置・寸法（物理 1px 以内={tolerance:0.00}。{actual} / {expected}）");
     }
 
     // メニューを開き、HUD が同じ位置で（安全帯があれば）中身より上にあることを見て、ゲーム画面へ戻る
