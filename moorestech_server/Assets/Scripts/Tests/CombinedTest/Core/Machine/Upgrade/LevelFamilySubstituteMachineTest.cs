@@ -1,7 +1,7 @@
 using System;
 using Core.Item;
 using System.Text.RegularExpressions;
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V7ToV8;
 using Newtonsoft.Json.Linq;
 using UnityEngine.TestTools;
 using Core.Master;

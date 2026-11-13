@@ -20,10 +20,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var master = MasterHolder.CleanRoomMaster;
             Assert.IsTrue(master.IsAvailable);
             Assert.AreEqual(4, master.Thresholds.Count);
-            // 良い順（A→D）で並び、濃度上限が単調増加であること
-            // Rows are ordered best-to-worst with monotonically increasing concentration caps
-            Assert.AreEqual(10.0, master.Thresholds[0].MaxConcentration, 0.0001);
-            Assert.AreEqual(1000.0, master.Thresholds[3].MaxConcentration, 0.0001);
+            // 良い順で必要換気回数が単調減少
+            // Rows are ordered best-to-worst with monotonically decreasing required air change rates
+            Assert.AreEqual(0.017, master.Thresholds[0].RequiredAirChangeRate, 0.0001);
+            Assert.AreEqual(0.0014, master.Thresholds[3].RequiredAirChangeRate, 0.0001);
             Assert.AreEqual(4, master.OutThresholdIndex);
         }
 
@@ -163,5 +163,33 @@ namespace Tests.CombinedTest.Core.CleanRoom
             StringAssert.Contains("2147483648", logs);
         }
 
+        [Test]
+        public void TestMasterPassesValidationTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            Assert.IsTrue(new CleanRoomMaster(LoadTestCleanRoomJson()).Validate(out var logs), logs);
+        }
+
+        [Test]
+        public void RequiredAirChangeRatesMustDescendTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 行Bの必要換気回数を行A以上にすると、良い行から走査するクラス判定が成り立たないため起動時に止まる
+            // Raising row B's required rate to row A's or above breaks the best-first class scan, so boot validation stops it
+            var json = LoadTestCleanRoomJson();
+            json["data"][0]["thresholds"][1]["requiredAirChangeRate"] = 0.017;
+            Assert.IsFalse(new CleanRoomMaster(json).Validate(out var logs));
+            StringAssert.Contains("Thresholds[1] ClassName:B RequiredAirChangeRate:0.017 is not descending", logs);
+        }
+
+        #region TestHelper
+
+        private static JObject LoadTestCleanRoomJson()
+        {
+            return JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
+        }
+
+        #endregion
     }
 }

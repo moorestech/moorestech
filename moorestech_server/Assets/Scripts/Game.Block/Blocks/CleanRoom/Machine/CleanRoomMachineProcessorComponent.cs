@@ -23,7 +23,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public float RequestPower => _context.RequestPower;
         public float CurrentPower => _context.CurrentPower;
         public ProcessState CurrentState { get; private set; }
-        public bool IsPolluting => CurrentState == ProcessState.Processing;
 
         // 停止中は0、稼働中は通常機械と同じ倍率（率の導出はcontextが一元管理する）
         // Halted requests no power and operating states share the normal machine multipliers; the context owns the derivation

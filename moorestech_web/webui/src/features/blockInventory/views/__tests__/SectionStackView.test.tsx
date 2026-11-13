@@ -132,7 +132,7 @@ describe("SectionStackView", () => {
 
   it("抽選の中身欄は部屋欄のすぐ下に描く", () => {
     const data = dataFor("CleanRoomMachine", []);
-    data.cleanRoom = { fetchState: "fetched", kind: "enclosed", room: { headline: "class", className: "A", concentration: 0.1, airChangeRate: 2, volume: 26, airFilters: [{ x: 1, y: 1, z: 1, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 }] } };
+    data.cleanRoom = { fetchState: "fetched", kind: "enclosed", room: { headline: "class", className: "A", airChangeRate: 2, volume: 26, airFilters: [{ x: 1, y: 1, z: 1, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 }] } };
     data.cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 };
     const tree = render(data);
     const ids = tree.root.findAll((n) => typeof n.type === "string" && n.props["data-testid"] !== undefined).map((n) => n.props["data-testid"]);

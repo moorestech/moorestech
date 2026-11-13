@@ -125,8 +125,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
                     FilterRemainingRatio = filter.FilterRemainingRatio,
                 }).ToList();
                 return room.TryGetClass(out var className, out _)
-                    ? CleanRoomSummaryDto.CreateClass(className, room.Concentration, room.AirChangeRate, room.Volume, airFilters)
-                    : CleanRoomSummaryDto.CreateClassOut(room.Concentration, room.AirChangeRate, room.Volume, airFilters);
+                    ? CleanRoomSummaryDto.CreateClass(className, room.AirChangeRate, room.Volume, airFilters)
+                    : CleanRoomSummaryDto.CreateClassOut(room.AirChangeRate, room.Volume, airFilters);
             }
 
             #endregion

@@ -15,7 +15,7 @@ using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.SaveLoad.Json.WorldVersions;
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V3ToV4;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
