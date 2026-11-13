@@ -93,7 +93,7 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
         }
 
         [Test]
-        public void 隠す前に入力欄のフォーカスを外しキーの抑止を残さない()
+        public void 隠すと入力欄のフォーカスが外れキーの抑止が残らない()
         {
             // モーダル層の入力欄にフォーカスを置く
             // Focus a text field on the modal layer
@@ -106,8 +106,8 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
             textField.Focus();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
 
-            // 隠した後の配置で根の入力規則がフォーカスを外す（A-275）
-            // The root input rules blur on the layout after hiding (A-275)
+            // 隠すと UITK 自身がフォーカスを外し、外れが根を通って入力中の旗が下りる（画面は Blur しない。A-275）
+            // Hiding makes UITK itself blur the field, and the blur passing the root lowers the text-input flag; nothing blurs on hide (A-275)
             _stack.SetAllLayersVisible(false);
             simulate.FrameUpdate();
 
@@ -132,8 +132,8 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
             simulate.FrameUpdate();
             Assert.IsTrue(flagRaisedByHiddenFocus, "前提: 隠れた入力欄がフォーカスを取り入力中の旗が立つ");
 
-            // 取った次の機会に根の入力規則が外す（A-275）
-            // The root input rules blur it at the next opportunity after it was taken (A-275)
+            // 隠れた木の中で取ったフォーカスも UITK 自身が外し、入力中の旗が下りる（A-275）
+            // UITK itself also blurs a focus taken inside the hidden tree, lowering the text-input flag (A-275)
             simulate.FrameUpdate();
 
             Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠れた入力欄がフォーカスを持ったまま");

@@ -71,8 +71,8 @@ namespace Client.Ui.Foundation.Layers
                 return;
             }
 
-            // 隠れた入力欄のフォーカスは根の入力規則が外す（Web の focus fixup と同じ。A-275）
-            // The root input rules blur a hidden text field's focus (same as the Web focus fixup; A-275)
+            // 隠れた要素のフォーカスは UITK 自身が外すので、ここでは Blur しない（Web の focus fixup と同じ。A-275）
+            // UITK itself blurs the focus of a hidden element, so nothing blurs here (same as the Web focus fixup; A-275)
             _root.style.display = DisplayStyle.None;
         }
     }

@@ -92,8 +92,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         [Test]
         public void 駅名欄にフォーカスしたまま本文を隠してもWASDが効く()
         {
-            // パネルの SetShown(false) と同じく表示だけ切る。外すのは画面でなく根の入力規則（A-275）
-            // Hide only the display as the panel's SetShown(false) does; the root input rules blur, not the screen (A-275)
+            // パネルの SetShown(false) と同じく表示だけ切る。外すのは画面でなく UITK 自身（A-275）
+            // Hide only the display as the panel's SetShown(false) does; UITK itself blurs, not the screen (A-275)
             FocusAndType("中央");
             _body.Root.style.display = DisplayStyle.None;
             simulate.FrameUpdate();
