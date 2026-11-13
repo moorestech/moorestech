@@ -103,6 +103,18 @@ namespace Client.Tests.Ui.Components.Slots
         }
 
         [Test]
+        public void 隙間を指しても格子自身が当たる()
+        {
+            // 2 枠の中心は枠の間の隙間に落ちる（Web の grid の div は隙間でも elementFromPoint に当たる）
+            // The centre of two cells falls in the gap between them (the Web grid div is hit by elementFromPoint there too)
+            var (grid, cells) = Mount(null, 2, 2);
+            var gapCenter = new UnityEngine.Vector2((cells[0].worldBound.xMax + cells[1].worldBound.xMin) / 2f, cells[0].worldBound.center.y);
+
+            Assert.AreSame(grid, grid.panel.Pick(gapCenter));
+            Assert.AreSame(grid, grid.panel.Pick(grid.worldBound.center));
+        }
+
+        [Test]
         public void 列数1未満は止める()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new SlotGrid("grid", 0));

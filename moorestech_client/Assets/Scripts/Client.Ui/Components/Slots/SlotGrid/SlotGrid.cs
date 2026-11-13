@@ -20,8 +20,9 @@ namespace Client.Ui.Components.Slots
 
         public SlotGrid(string testid, int columns)
         {
+            // 根は拾う（Web の grid の div は隙間でも当たる。A-135）。偶数枠の中心が隙間に落ちても testid の要素が当たる
+            // The root is pickable (the Web grid div is hit in the gaps too, A-135), so a centre falling in a gap still hits the testid element
             name = testid;
-            pickingMode = PickingMode.Ignore;
             AddToClassList("slot-grid");
             _columns = RequirePositive(columns);
             _tracks = new VisualElement { pickingMode = PickingMode.Ignore };
