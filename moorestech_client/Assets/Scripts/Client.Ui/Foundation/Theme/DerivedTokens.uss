@@ -3,6 +3,7 @@
 :root {
     /* GamePanel（default）の文字・罫線・下部の三角。Web の GamePanel/style.module.css が直書きする色 */
     --game-panel-text: #e8eaf0;
+    --game-panel-title-shadow: rgba(0, 0, 0, 0.35); /* web: GamePanel .title の text-shadow の色 */
     --game-panel-rule-top-start: rgba(146, 148, 167, 0.42); /* web: .rule の上の線の始点 */
     --game-panel-rule-top-peak: rgba(146, 148, 167, 0.59); /* web: 上の線の頂点 */
     --game-panel-rule-top-end: rgba(146, 148, 167, 0.38); /* web: 上の線の終点 */
