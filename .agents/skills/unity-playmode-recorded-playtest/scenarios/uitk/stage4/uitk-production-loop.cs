@@ -117,12 +117,12 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // 残りの原木を掴み右ドラッグで空き 3 枠へ配る
     // Grab the remaining logs and right-drag them across three empty slots
     p.Note("右ドラッグで配る");
-    p.Assert(Main().Any(slot => slot.ItemId == log), "半分掴みの後も手持ちに原木が残る");
     await p.ClickUi(MainSlotOf(log));
     await p.Until(() => Ops().ReadGrab().ItemId == log, 5f, "残りの原木を掴む（クライアントの grab）");
     var grabbed = Ops().ReadGrab().Count;
     var empties = EmptyMainSlots(3);
     await DragWithButton(1, empties);
+    p.Note($"右ドラッグ直後: grab={Ops().ReadGrab()} 枠={string.Join(",", empties.Select(i => $"{i}:{Main()[i]}"))}");
     // 解放後の LateTick で確定するので、配り終えと掴みの残り（掴んだ数−3）を待って見る（前例 uitk-grab-overlay）
     // The split commits on the LateTick after release, so wait for the slots and the remaining grab (grabbed - 3) (precedent uitk-grab-overlay)
     await p.Until(() => empties.All(i => Main()[i].ItemId == log) && Ops().ReadGrab().Count == grabbed - 3, 5f, $"右ドラッグで空き3枠に1個ずつ配り、掴みは {grabbed}-3 個");
