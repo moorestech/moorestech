@@ -108,6 +108,7 @@
 | 1 | 18ae2ca640 | 写した | S4-special の特殊族の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
 | 1 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
 | 1 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
+| 1 | 1cd4cf6d91 | 写した | I-fix5 R-12 の拒否理由の改名（ui.commandRejected.machineRecipeInvalid・machineRecipeLocked → recipeInvalid・recipeLocked。wire は据え置き）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。Web は使わない。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 | 2 | 77f336e432 | 写した | S2-skit の会話の拒否の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
 | 3 | a97575e5b5 | 捨てた | 旧 R1 の Web 全面 unmount（UITK が主パネルを出す間 webUiSuspended で App を外す）。全体スイッチ（albof.17）で UITK 側は Web ホストを起動しなくなり休止の仕組みごと要らないので、W0-switch で外して master と同じ Web に戻した |
 | 3 | 05b9bdefa8 | 捨てた | Web が休止・カットシーンから描画を再開するときの stage 倍率の測り直しで、Web 自身の描画再開にだけ要る。UITK 側に写すものが無い |
@@ -127,6 +128,7 @@
 | 3 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
 | 3 | 5bf23c60a7 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 | 3 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
+| 3 | 1cd4cf6d91 | 写した | I-fix5 R-12 の拒否理由の改名（ui.commandRejected.machineRecipeInvalid・machineRecipeLocked → recipeInvalid・recipeLocked。wire は据え置き）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。Web は使わない。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 
 ## 参照キャプチャ
 
