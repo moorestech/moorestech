@@ -74,6 +74,23 @@ namespace Client.Tests.Ui.Input
         }
 
         [Test]
+        public void 同じフレームで隠して戻すと入力欄のフォーカスは保つ()
+        {
+            var textField = AddToScreen(new TextField { name = "watch-text" });
+            textField.Focus();
+            simulate.FrameUpdate();
+
+            // 配置の前に表示が戻っていれば表示されたままと同じに扱う
+            // If display comes back before the layout, treat it as never hidden
+            _screen.style.display = DisplayStyle.None;
+            _screen.style.display = DisplayStyle.Flex;
+            simulate.FrameUpdate();
+
+            Assert.IsNotNull(panel.focusController.focusedElement);
+            Assert.IsTrue(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard));
+        }
+
+        [Test]
         public void 印付きのボタンも隠すとフォーカスが外れる()
         {
             var button = new Button { name = "watch-keep-button", focusable = true };
