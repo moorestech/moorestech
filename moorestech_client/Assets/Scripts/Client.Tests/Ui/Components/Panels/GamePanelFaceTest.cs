@@ -73,8 +73,8 @@ namespace Client.Tests.Ui.Components.Panels
             Assert.AreEqual(12f, bottomFade, 0.0001f);
         }
 
-        // 三角の帯は面の兄弟なので、下端のフェードはパネルのルートから継いで面と同じ値を読む
-        // The triangle band is the face's sibling, so it inherits the bottom fade from the panel root and reads the face's value
+        // 三角の帯は面の兄弟なので、下端のフェードはパネルのルートの値を面と同じく var() で受け直して読む
+        // The triangle band is the face's sibling, so like the face it re-takes the panel root's bottom fade through var()
         [Test]
         public void 三角の帯は三角の幅と下端のフェード幅をUSSから受け取り面と同じフェード幅になる()
         {
