@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// スクロール領域。縦はバーが本文に重なり、横はバーが本文の下の流れに入る
-    /// Scroll area; the vertical bar overlays the body and the horizontal bar sits in the flow below it
+    /// スクロール領域（縦は重ね・横は流れにバー）
+    /// Scroll area (vertical overlays the bar, horizontal places it in flow)
     /// </summary>
     /// <remarks>
     /// 縦は Mantine ScrollArea の写し（A-35）、横は Web の overflow-x: auto の写し（チャレンジのカテゴリ列）。SetScrollOffset・高さ・上端はスクロールスパイの縦の口で、横では使わない
@@ -52,8 +52,8 @@ namespace Client.Ui.Components.Controls
             contentContainer.RegisterCallback<GeometryChangedEvent>(_ => UpdateScrollerVisibility());
             contentViewport.RegisterCallback<GeometryChangedEvent>(_ => UpdateScrollerVisibility());
 
-            // スクロール量の変化は向きの軸のバーの値の変化で拾う（ホイール・ドラッグ・ScrollTo・SetScrollOffset のどれでも来る）
-            // Offset changes come from the axis bar value (wheel, drag, ScrollTo and SetScrollOffset all move it)
+            // スクロール量の変化は軸のバーの値で拾う
+            // Offset changes come from the axis bar value
             AxisScroller().valueChanged += offset => _onScrollOffsetChanged.OnNext(offset);
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
 
@@ -72,10 +72,19 @@ namespace Client.Ui.Components.Controls
                 RegisterCallback<WheelEvent>(ScrollByHorizontalWheelDelta);
             }
 
+            void ScrollByHorizontalWheelDelta(WheelEvent evt)
+            {
+                // 横量 1 ノッチを Web の 1 ノッチの px（A-71）で送る。動いたときだけ祖先へ渡さない（縦量は祖先のスクロールへ抜ける）
+                // Scroll one horizontal notch by the Web pixels per notch (A-71); stop propagation only when it moved (vertical deltas pass on to ancestor scrolling)
+                var before = horizontalScroller.value;
+                horizontalScroller.value = before + evt.delta.x * WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+                if (!Mathf.Approximately(before, horizontalScroller.value)) evt.StopPropagation();
+            }
+
             void UpdateScrollerVisibility()
             {
-                // 向きの軸で中身が見える寸法を越えたときだけバーを出す。交差の軸のバーは常に出さない
-                // Show the bar only when the content exceeds the visible size along the axis; the cross-axis bar never shows
+                // 中身が見切れる軸だけバーを出す
+                // Show the bar only on the overflowing axis
                 var overflows = _axis == GameScrollAxis.Horizontal
                     ? contentViewport.layout.width < contentContainer.layout.width
                     : contentViewport.layout.height < contentContainer.layout.height;
@@ -128,15 +137,6 @@ namespace Client.Ui.Components.Controls
             return true;
         }
 
-        private void ScrollByHorizontalWheelDelta(WheelEvent evt)
-        {
-            // 横量 1 ノッチを Web の 1 ノッチの px（A-71）で送る。動いたときだけ祖先へ渡さない（縦量は祖先のスクロールへ抜ける）
-            // Scroll one horizontal notch by the Web pixels per notch (A-71); stop propagation only when it moved (vertical deltas pass on to ancestor scrolling)
-            var before = horizontalScroller.value;
-            horizontalScroller.value = before + evt.delta.x * WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
-            if (!Mathf.Approximately(before, horizontalScroller.value)) evt.StopPropagation();
-        }
-
         private Scroller AxisScroller()
         {
             return _axis == GameScrollAxis.Horizontal ? horizontalScroller : verticalScroller;
@@ -144,11 +144,11 @@ namespace Client.Ui.Components.Controls
 
         private void OnCustomStyleResolved()
         {
-            // 読めないときは UssCustomStyleReader が LogError を出し、バーは Theme.uss の既定の太さのまま
-            // When unreadable, UssCustomStyleReader logs an error and the bar keeps the Theme.uss default thickness
+            // 読めないとき LogError、既定の太さのまま
+            // When unreadable, LogError and keep the default thickness
             if (!UssCustomStyleReader.TryReadPixels(customStyle, ScrollbarSizeProperty, out var size)) return;
-            // 比も読めなければ UssCustomStyleReader が LogError を出し、バーは前の太さと余白のまま
-            // If the ratio is unreadable too, UssCustomStyleReader logs an error and the bar keeps its previous thickness and padding
+            // 比も読めなければ LogError、前の値のまま
+            // If the ratio is unreadable, LogError and keep the previous value
             if (!UssCustomStyleReader.TryReadNumber(customStyle, ScrollbarPaddingRatioProperty, out var ratio)) return;
 
             // 太さは交差の軸（縦は幅・横は高さ）。内側の余白はレイアウトで整数 px に丸まる（look-exception: LX-42）

@@ -3,8 +3,8 @@ using Client.Ui.State.Routing;
 namespace Client.Ui.State.Challenge
 {
     /// <summary>
-    /// チャレンジ一覧を出すか（画面ルータが ChallengeList。前例 BlockInventoryScreenVisibility）
-    /// Whether to show the challenge list (router on ChallengeList; precedent BlockInventoryScreenVisibility)
+    /// チャレンジ一覧を出すか（前例 BlockInventoryScreenVisibility）
+    /// Whether to show the challenge list (precedent BlockInventoryScreenVisibility)
     /// </summary>
     public static class ChallengeScreenVisibility
     {

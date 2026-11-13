@@ -7,15 +7,15 @@ using UnityEngine;
 namespace Client.Ui.State.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジの応答の列から一覧の表示を組む（規則は Web の橋 ChallengeDtoBuilder.BuildTree と同じ）
-    /// Builds the list display from challenge responses (same rules as the Web bridge ChallengeDtoBuilder.BuildTree)
+    /// 応答の列から一覧の表示を組む（規則は Web の ChallengeDtoBuilder.BuildTree と同じ）
+    /// Builds the list display from responses (same rules as Web ChallengeDtoBuilder.BuildTree)
     /// </summary>
     public static class ChallengeListViewModelFactory
     {
         public static ChallengeListViewModel Create(IReadOnlyList<ChallengeCategoryResponse> responses, ChallengeCategorySelection selection)
         {
-            // 解放済みのカテゴリだけを受信順に写す（握手と完了の知らせはどちらもサーバーがマスタの順で並べる）
-            // Copy only unlocked categories in received order (the server lists both the handshake and completions in master order)
+            // 解放済みカテゴリを受信順に写す
+            // Copy unlocked categories in received order
             var categories = new List<ChallengeCategoryViewModel>();
             foreach (var response in responses)
             {
@@ -27,8 +27,8 @@ namespace Client.Ui.State.Challenge.Tree
 
             #region Internal
 
-            // マスタの順で、完了＞進行中＞未解放の状態と座標・倍率・前提を写す
-            // In master order, copy state (completed over current over locked), position, scale and prerequisites
+            // マスタ順に状態・座標・倍率・前提を写す
+            // Copy state, position, scale and prerequisites in master order
             List<ChallengeNodeCardViewModel> BuildNodes(ChallengeCategoryResponse response)
             {
                 var completed = new HashSet<Guid>();

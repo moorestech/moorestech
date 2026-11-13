@@ -25,8 +25,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジ一覧の L1 の共通材料（テスト mod の GUID で Web の mock と同じ形の木を組む）
-    /// Shared material for challenge list L1 tests (builds the Web mock's tree shape with test mod GUIDs)
+    /// チャレンジ一覧 L1 の共通材料
+    /// Shared material for challenge list L1 tests
     /// </summary>
     internal static class ChallengeListScreenTestKit
     {
@@ -40,8 +40,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
 
         private static readonly Regex RichTextTag = new("<[^>]+>");
 
-        // テスト mod を読み、名前・概要・カテゴリ名をマスタの原文で引けるようにする（前例 LocalizeContentTest）
-        // Load the test mod so titles, summaries and category names resolve to master source text (precedent LocalizeContentTest)
+        // テスト mod を読み名前をマスタ原文で引く（前例 LocalizeContentTest）
+        // Load the test mod to resolve master text (precedent LocalizeContentTest)
         public static void LoadMasterAndDictionary()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -49,8 +49,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Localize.MergeGameDictionaries(ServerContext.GetService<ModsResource>(), masterContainer.SortedModIds, MasterSourceTextCollector.Collect());
         }
 
-        // Web の mock（presentationFixtures.ts の challengeTree）と同じ形。Basics に未解放を 1 つ足す
-        // Same shape as the Web mock (challengeTree in presentationFixtures.ts) plus one locked node in Basics
+        // Web mock と同形の木。Basics に未解放を足す
+        // Web mock-shaped tree plus one locked node in Basics
         public static ChallengeListViewModel Tree(ChallengeCategorySelection selection)
         {
             var basics = ChallengeCategoryViewModel.Create(Basics, new[]
@@ -67,8 +67,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             return ChallengeListViewModel.Create(new[] { basics, logistics }, selection);
         }
 
-        // 一覧を描いてから OverlayPanel・Stage 層へ載せる（前例 ResearchTreePresenter）
-        // Render the list, then mount it on the OverlayPanel/Stage layer (precedent ResearchTreePresenter)
+        // 一覧を描いて OverlayPanel・Stage 層へ載せる（前例 ResearchTreePresenter）
+        // Render the list onto the OverlayPanel/Stage layer (precedent ResearchTreePresenter)
         public static ChallengeListView MountList(UiLayerStack layers, IChallengeListCommands commands)
         {
             var view = new ChallengeListView(commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
@@ -78,8 +78,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             return view;
         }
 
-        // 進行中チャレンジ HUD（S2-hud）を Chrome・Viewport 層へ載せる
-        // Mount the current-challenge HUD (S2-hud) on the Chrome/Viewport layer
+        // 進行中 HUD を Chrome・Viewport 層へ載せる
+        // Mount the current HUD on the Chrome/Viewport layer
         public static CurrentChallengeHudView MountHud(UiLayerStack layers)
         {
             var hud = new CurrentChallengeHudView();

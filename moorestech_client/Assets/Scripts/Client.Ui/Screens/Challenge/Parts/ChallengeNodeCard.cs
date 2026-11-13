@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Challenge.Parts
 {
     /// <summary>
-    /// チャレンジのノードカード1枚（Paper の面に名前・概要・状態）。web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
-    /// One challenge node card (title, summary and state on a Paper face); web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
+    /// チャレンジのノードカード 1 枚。web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
+    /// One challenge node card; web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
     /// </summary>
     /// <remarks>
     /// PaperSurface は sealed なので、根の PaperSurface を組み立てて Root で渡す。根は拾う（Ignore だと押下の対象がビューポートに変わる。C4-d）。指のカーソルは付けない（Web のカードに cursor: pointer もタップも無く、ビューポートの grab を継ぐ）
@@ -28,15 +28,15 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public ChallengeNodeCard(Guid challengeGuid)
         {
-            // 根は Paper の面。名前は testid、アンカーはチャレンジの GUID
-            // The root is the Paper face; its name is the testid and its anchor is the challenge GUID
+            // 根は Paper の面。アンカーは GUID
+            // Root is the Paper face; anchor is the GUID
             var key = challengeGuid.ToString();
             Root = new PaperSurface($"challenge-node-{key}");
             Root.AddToClassList("challenge-list__card");
             TutorialAnchor.Mark(Root, AnchorIds.ChallengeNode(key));
 
-            // 名前（太字 md）・概要（sm）・状態（xs）を縦に積む。名前と概要はチャレンジで決まる
-            // Stack title (bold md), summary (sm) and state (xs); title and summary are fixed per challenge
+            // 名前・概要・状態を縦に積む
+            // Stack title, summary and state
             var title = AddText(UiTypographyClass.TextMd, "challenge-list__card-title");
             title.AddToClassList(UiTypographyClass.TextBold);
             title.SetText(UiText.FromContent(ContentLocalizationKeys.ChallengeTitle(challengeGuid)));
@@ -45,7 +45,7 @@ namespace Client.Ui.Screens.Challenge.Parts
             _state = AddText(UiTypographyClass.TextXs, "challenge-list__card-state");
 
             // 輪は Web の outline。拾わない子を最後に重ねる
-            // The ring is the Web outline; a non-picking child laid on top last
+            // Ring is the Web outline; a non-picking child goes on top last
             var ring = new VisualElement { pickingMode = PickingMode.Ignore };
             ring.AddToClassList("challenge-list__card-ring");
             Root.Add(ring);
@@ -69,8 +69,8 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public void Render(ChallengeNodeCardViewModel node)
         {
-            // 状態は修飾クラスと State が決めた文言キー、Web の scale(UIScale) は style の scale（中心を軸に拡縮）
-            // State becomes a modifier class and the label key State chose; the Web scale(UIScale) goes to style scale (about the center)
+            // 状態は修飾クラスと文言キーで決まる
+            // State is a modifier class and label key
             Root.EnableInClassList("challenge-list__card--locked", node.State == ChallengeNodeState.Locked);
             Root.EnableInClassList("challenge-list__card--current", node.State == ChallengeNodeState.Current);
             Root.EnableInClassList("challenge-list__card--completed", node.State == ChallengeNodeState.Completed);

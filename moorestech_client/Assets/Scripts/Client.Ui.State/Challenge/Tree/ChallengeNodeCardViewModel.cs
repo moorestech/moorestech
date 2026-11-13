@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Ui.State.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジのカード1枚の表示（座標は Y 上向きのツリー座標・倍率はマスタの UIScale の x と y）
-    /// Display of one challenge card (Y-up tree position; scale is the master UIScale x and y)
+    /// チャレンジのカード 1 枚の表示
+    /// Display of one challenge card
     /// </summary>
     public sealed class ChallengeNodeCardViewModel
     {
@@ -31,11 +32,11 @@ namespace Client.Ui.State.Challenge.Tree
             StateLabelKey = ChallengeListLogic.DeriveStateLabelKey(state);
         }
 
-        // グラフへ渡す置き方（キー・座標・線）が同じか。状態と倍率はカードの描き直しで足りる
-        // Whether the graph placement (key, position, edges) matches; state and scale only need a card redraw
+        // グラフへ渡す置き方が同じか
+        // Whether the placement handed to the graph matches
         public bool HasSameGraphPlacementAs(ChallengeNodeCardViewModel other)
         {
-            return Guid == other.Guid && TreePosition == other.TreePosition && ChallengeListLogic.SameGuidSequence(PreviousGuids, other.PreviousGuids);
+            return Guid == other.Guid && TreePosition == other.TreePosition && PreviousGuids.SequenceEqual(other.PreviousGuids);
         }
     }
 }

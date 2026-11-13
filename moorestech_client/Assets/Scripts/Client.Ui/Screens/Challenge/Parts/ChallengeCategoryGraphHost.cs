@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Challenge.Parts
 {
     /// <summary>
-    /// 選んだカテゴリのグラフを置く。訪れたカテゴリごとに NodeGraphView を 1 本控え、選択が変わったら置く View を付け替える（Web の key={selected.guid} と viewportStore）
-    /// Hosts the selected category's graph; keeps one NodeGraphView per visited category and swaps the attached view on selection changes (the Web key={selected.guid} and viewportStore)
+    /// 選んだカテゴリのグラフを置く（View はカテゴリごとに控える。Web の key={selected.guid} と viewportStore）
+    /// Hosts the selected category's graph (one view kept per category; Web key={selected.guid} and viewportStore)
     /// </summary>
     /// <remarks>
     /// 視点は View の寿命で保たれる（I-fix6 D-3）。View を作ったときだけ部品が進行中へ 1 回寄せ、再訪と開き直しは控えた View の視点のまま（裁定 2026-11-04）。置き場の子は表示中のカテゴリの View 1 本だけなので、名前 challenge-viewport とカードのアンカーは木の中で重ならない
@@ -28,8 +28,8 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public void Render(ChallengeCategoryViewModel category)
         {
-            // 初めて訪れたカテゴリは View を作る（作った View だけが進行中へ寄せる）。訪れたことがあれば中身を描き直す
-            // A first visit creates a view (only a new view centers on the current node); a visited category redraws its content
+            // 初訪問は View を作る。再訪は描き直す
+            // First visit creates a view; revisits redraw
             if (_graphs.TryGetValue(category.Guid, out var graph)) graph.Render(category);
             else
             {
@@ -37,8 +37,8 @@ namespace Client.Ui.Screens.Challenge.Parts
                 _graphs.Add(category.Guid, graph);
             }
 
-            // 表示中のカテゴリの View だけを置く。前のカテゴリの View は外して控え、視点を持ったまま待つ
-            // Attach only the shown category's view; the previous one is detached and kept with its viewport
+            // 表示中の View だけ置き、他は控える
+            // Attach only the shown view; keep the others
             // silent-ok: 既に置いてあれば付け替えない / 正常系（同じカテゴリの描き直し）。付け替えと視点は L1 ChallengeListViewportTest が見る
             if (graph.View.parent == this) return;
             Clear();
@@ -47,8 +47,8 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public void UnmountGraph()
         {
-            // 解放済みのカテゴリが無い一覧はグラフを置かない（控えた View は残す）
-            // A list without unlocked categories attaches no graph (kept views stay)
+            // 解放済みが無ければ置かない
+            // Attach nothing without unlocked categories
             Clear();
         }
     }

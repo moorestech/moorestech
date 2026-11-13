@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.Challenge
 {
     /// <summary>
-    /// チャレンジ一覧の注目点（L0。Web の challengeLogic.test.ts）
-    /// Challenge list focus (L0; Web challengeLogic.test.ts)
+    /// チャレンジ一覧の注目点（L0）
+    /// Challenge list focus (L0)
     /// </summary>
     public class ChallengeListLogicTest
     {

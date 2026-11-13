@@ -8,8 +8,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Screens.ModeHud
 {
     /// <summary>
-    /// 削除の帯・ホットバー・キー操作ヒントの重ね順が Web（App.tsx の viewportOverlay と z）と同じこと（L1）
-    /// The stacking of delete bands, hotbar and key hints matches the Web (App.tsx viewportOverlay and z) (L1)
+    /// 帯・ホットバー・ヒントの重ね順が Web と同じ（L1）
+    /// Band, hotbar and hint stacking matches the Web (L1)
     /// </summary>
     public class ModeHudHotbarStackingTest : ScreenTestHost
     {
@@ -25,8 +25,8 @@ namespace Client.Tests.Ui.Screens.ModeHud
             Assert.AreEqual(UiFamily.Viewport, HotbarHudPresenter.HostFamily);
             Assert.AreEqual(UiFamily.Viewport, KeyHintHudPresenter.HostFamily);
 
-            // 層の容器は後ろほど前に描かれるので、帯はホットバーより後ろ
-            // Later layer containers draw in front, so the bands stay behind the hotbar
+            // 帯はホットバーより後ろ
+            // The bands stay behind the hotbar
             var stack = UiLayerStack.Build(rootVisualElement);
             Assert.Less(IndexOfLayer(stack, ModeHudPresenter.HostLayer), IndexOfLayer(stack, HotbarHudPresenter.HostLayer));
         }

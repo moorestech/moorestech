@@ -14,8 +14,8 @@ using Source = Client.Tests.Ui.State.Challenge.ChallengeProgressStateTestSource;
 namespace Client.Tests.Ui.State.Challenge
 {
     /// <summary>
-    /// チャレンジ一覧の表示は一覧の表示中だけ組み、突入・選択・完了の知らせで組み直し、離れると先頭のカテゴリへ戻る（L0。前例 ResearchTreeModelTest）
-    /// The challenge list display builds only while shown, rebuilds on entry, selection and completion notices, and returns to the first category after leaving (L0; precedent ResearchTreeModelTest)
+    /// 一覧の表示は表示中だけ組み直す（L0。前例 ResearchTreeModelTest）
+    /// List display rebuilds only while shown (L0; precedent ResearchTreeModelTest)
     /// </summary>
     public class ChallengeListModelTest
     {
@@ -44,8 +44,8 @@ namespace Client.Tests.Ui.State.Challenge
         [Test]
         public void 一覧へ入ると先頭のカテゴリで組み表示中は選択と完了の知らせで組み直す()
         {
-            // 突入で解放済みの 2 カテゴリを受信順で組み、先頭を選ぶ
-            // Entering builds both unlocked categories in received order and selects the first
+            // 突入で 2 カテゴリを組み先頭を選ぶ
+            // Entering builds two categories and selects the first
             Build(true);
             UiRoutingStateTestFactory.Transit(_control, UIStateEnum.ChallengeList);
             var entered = AsSelected(_model.Current.Value);
@@ -57,8 +57,8 @@ namespace Client.Tests.Ui.State.Challenge
             _selection.Select(Source.Category2);
             Assert.AreEqual(Source.Category2, AsSelected(_model.Current.Value).Selected.Guid);
 
-            // 完了の知らせ（Categories の置き換えの後）で組み直し、Test2 が完了になる
-            // A completion notice (after Categories is replaced) rebuilds and Test2 becomes completed
+            // 完了の知らせで組み直す
+            // A completion notice rebuilds
             var beforeCompletion = _model.Current.Value;
             _source.CompleteTest2();
             Assert.AreNotSame(beforeCompletion, _model.Current.Value);
@@ -77,8 +77,8 @@ namespace Client.Tests.Ui.State.Challenge
             _selection.Select(Source.Category2);
             var shown = _model.Current.Value;
 
-            // 離れると選択は無しに戻るが、閉じた画面では組まない（最後に出した表示のまま）
-            // Leaving resets the selection, but a closed screen builds nothing (the last shown display stays)
+            // 離れると選択は無しに戻る
+            // Leaving resets the selection
             UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
             Assert.AreSame(ChallengeCategorySelection.None, _selection.Current.Value);
             Assert.AreSame(shown, _model.Current.Value);
@@ -91,8 +91,8 @@ namespace Client.Tests.Ui.State.Challenge
 
         private void Build(bool selectionFirst)
         {
-            // テスト mod のマスタを読み、ゲーム画面と一覧の間を行き来できる経路で組む
-            // Load the test mod master and build on a router that moves between the game screen and the list
+            // テスト mod のマスタで経路を組む
+            // Build the router on the test mod master
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _host = new GameObject("ChallengeListModelTest");
             var routing = UiRoutingStateTestFactory.CreateSwitchable(_host, UIStateEnum.GameScreen, new[] { UIStateEnum.GameScreen, UIStateEnum.ChallengeList }, out _control);

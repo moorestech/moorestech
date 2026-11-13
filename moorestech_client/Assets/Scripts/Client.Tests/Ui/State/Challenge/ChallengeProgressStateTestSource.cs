@@ -13,8 +13,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.Challenge
 {
     /// <summary>
-    /// テスト mod の 2 カテゴリで ChallengeProgressState を組み、完了の知らせを流す（前例 ChallengeProgressStateTest）
-    /// Builds ChallengeProgressState from the two test mod categories and dispatches completion notices (precedent ChallengeProgressStateTest)
+    /// テスト mod の 2 カテゴリで State を組み完了を流す（前例 ChallengeProgressStateTest）
+    /// Build State from two test mod categories and dispatch completion (precedent ChallengeProgressStateTest)
     /// </summary>
     internal sealed class ChallengeProgressStateTestSource
     {
@@ -30,8 +30,8 @@ namespace Client.Tests.Ui.State.Challenge
 
         public ChallengeProgressStateTestSource()
         {
-            // 2 カテゴリとも解放済み。Category1 は Test1 完了・Test2 進行中、Category2 は先頭が進行中（受信順＝マスタの順）
-            // Both categories unlocked; Category1 has Test1 done and Test2 current, Category2 has its first current (received order = master order)
+            // 2 カテゴリとも解放済み
+            // Both categories unlocked
             var initial = new List<ChallengeCategoryResponse>
             {
                 Response(Category1, new[] { Test2 }, new[] { Test1 }),
@@ -41,8 +41,8 @@ namespace Client.Tests.Ui.State.Challenge
             Progress.Initialize();
         }
 
-        // Test2 を完了にした全量を流す（サーバーの完了イベントと同じ形。Categories を置き換えてから知らせる）
-        // Dispatch the full state with Test2 completed (same shape as the server completion event; Categories is replaced before the notice)
+        // Test2 を完了にした全量を流す
+        // Dispatch the full state with Test2 completed
         public void CompleteTest2()
         {
 #pragma warning disable CS0618
@@ -79,7 +79,7 @@ namespace Client.Tests.Ui.State.Challenge
         }
 
         // チャレンジ以外は空で組む（前例 ChallengeProgressStateTest.CreateHandshake）
-        // Non-challenge handshake parts stay empty (precedent ChallengeProgressStateTest.CreateHandshake)
+        // Non-challenge parts stay empty (precedent ChallengeProgressStateTest.CreateHandshake)
         private static InitialHandshakeResponse Handshake(List<ChallengeCategoryResponse> challenges)
         {
 #pragma warning disable CS0618

@@ -4,8 +4,8 @@ using Client.Ui.State.Challenge.Tree.Selection;
 namespace Client.Ui.State.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジ一覧の表示。解放済みのカテゴリが無い空（EmptyChallengeListViewModel）か、選んだカテゴリを必ず持つ（SelectedChallengeListViewModel）かの 2 つだけ。等価なし
-    /// Challenge list display: only empty with no unlocked category (EmptyChallengeListViewModel) or always holding the selected one (SelectedChallengeListViewModel); no equality
+    /// チャレンジ一覧の表示（空か選択ありの 2 型）
+    /// Challenge list display (empty or with a selection)
     /// </summary>
     /// <remarks>
     /// 選択なしを bool と null の 2 つで持たないため、型で分ける（前例 BlockInventoryPanelState と ClosedBlockInventoryPanel）。派生はこのアセンブリの 2 つに閉じる
@@ -21,8 +21,8 @@ namespace Client.Ui.State.Challenge.Tree
 
         public static ChallengeListViewModel Create(IReadOnlyList<ChallengeCategoryViewModel> categories, ChallengeCategorySelection selection)
         {
-            // 解放済みが無ければ空。選んだカテゴリが出ていればそれ、無ければ先頭（Web の find(...) ?? categories[0]）
-            // Empty without an unlocked category; otherwise the selected one when listed, else the first (the Web find(...) ?? categories[0])
+            // 解放済みが無ければ空。選択が無ければ先頭
+            // Empty without unlocked categories; no selection uses the first
             if (categories.Count == 0) return Empty;
             foreach (var category in categories)
             {

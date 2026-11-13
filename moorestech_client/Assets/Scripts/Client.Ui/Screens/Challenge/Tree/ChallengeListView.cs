@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジ一覧（題・カテゴリのボタン列・ノードグラフ）。web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
-    /// Challenge list (title, category buttons, node graph); web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
+    /// チャレンジ一覧（題・ボタン列・グラフ）。web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
+    /// Challenge list (title, buttons, graph); web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
     /// </summary>
     public sealed class ChallengeListView : VisualElement
     {
@@ -29,8 +29,8 @@ namespace Client.Ui.Screens.Challenge.Tree
             AddToClassList("challenge-list");
             TutorialAnchor.Mark(this, AnchorIds.ChallengePanel);
 
-            // 題（Title order 2）・カテゴリ列・グラフの置き場を縦に積む
-            // Stack the title (Title order 2), the category row and the graph host
+            // 題・カテゴリ列・グラフ置き場を縦に積む
+            // Stack title, category row and graph host
             var title = new LocalizedLabel();
             title.AddToClassList(UiTypographyClass.TitleOrder2);
             title.AddToClassList("challenge-list__title");
@@ -53,8 +53,8 @@ namespace Client.Ui.Screens.Challenge.Tree
                     _graphHost.Render(selected.Selected);
                     break;
                 case EmptyChallengeListViewModel:
-                    // 解放済みのカテゴリが無ければ題だけ（Web は selected が無いと TreeView を描かない）
-                    // Without an unlocked category only the title remains (the Web skips TreeView without a selection)
+                    // 解放済みが無ければ題だけ
+                    // Only the title without unlocked categories
                     _categories.ClearButtons();
                     _graphHost.UnmountGraph();
                     break;

@@ -7,8 +7,8 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi.Screens.Challenge
 {
-    // チャレンジ一覧（GameUi）の登録。状態の源 ChallengeProgressState は MainGameUiStateRegistration が持つ
-    // Registers the GameUi challenge list; the ChallengeProgressState source lives in MainGameUiStateRegistration
+    // チャレンジ一覧の GameUi 登録（状態の源は MainGameUiStateRegistration）
+    // Registers the challenge list GameUi (state source is MainGameUiStateRegistration)
     internal static class ChallengeGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)

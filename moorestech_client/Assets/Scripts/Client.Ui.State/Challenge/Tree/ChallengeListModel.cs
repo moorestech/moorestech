@@ -36,8 +36,8 @@ namespace Client.Ui.State.Challenge.Tree
             _progress.OnChallengeCompleted.Subscribe(_ => RebuildWhileShown());
             _selection.Current.Skip(1).Subscribe(_ => RebuildWhileShown());
 
-            // 一覧の表示の間だけ組む。経路の通知（突入）で 1 回組む（前例 ResearchTreeModel）
-            // Build only while the list is shown, once per router notice (entering; precedent ResearchTreeModel)
+            // 表示中だけ組む。突入で 1 回組む（前例 ResearchTreeModel）
+            // Build only while shown, once on entry (precedent ResearchTreeModel)
             _routing.Current.Subscribe(_ => RebuildWhileShown());
         }
 

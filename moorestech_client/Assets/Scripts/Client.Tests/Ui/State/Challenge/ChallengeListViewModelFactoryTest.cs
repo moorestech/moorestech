@@ -13,8 +13,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.Challenge
 {
     /// <summary>
-    /// チャレンジの応答から一覧の表示を組む規則（L0。テスト mod の challenges.json）
-    /// Rules that build the list display from challenge responses (L0; test mod challenges.json)
+    /// 応答から一覧の表示を組む規則（L0）
+    /// Rules building the list display from responses (L0)
     /// </summary>
     public class ChallengeListViewModelFactoryTest
     {
@@ -38,15 +38,15 @@ namespace Client.Tests.Ui.State.Challenge
         {
             var model = AsSelected(ChallengeListViewModelFactory.Create(new[] { Response(Category1, true, new[] { Test2 }, new[] { Test1 }), Response(Category2, false, new Guid[0], new Guid[0]) }, ChallengeCategorySelection.None));
 
-            // 未解放の Category2 は出ない。ノードはマスタの順
-            // Locked Category2 is absent; nodes follow master order
+            // 未解放は出ない。順はマスタ順
+            // Locked is absent; master order
             Assert.AreEqual(1, model.Categories.Count);
             var nodes = model.Categories[0].Nodes;
             var master = MasterHolder.ChallengeMaster.GetChallengeCategory(Category1).Challenges;
             CollectionAssert.AreEqual(master.Select(c => c.ChallengeGuid).ToList(), nodes.Select(n => n.Guid).ToList());
 
-            // 完了・進行中・未解放と、その文言キー（Web resolveChallengeStateKey）
-            // Completed, current, locked and their label keys (Web resolveChallengeStateKey)
+            // 完了・進行中・未解放と文言キー（Web resolveChallengeStateKey）
+            // Completed, current, locked and label keys (Web resolveChallengeStateKey)
             Assert.AreEqual(ChallengeNodeState.Completed, nodes.Single(n => n.Guid == Test1).State);
             Assert.AreEqual(ChallengeNodeState.Current, nodes.Single(n => n.Guid == Test2).State);
             Assert.AreEqual(ChallengeNodeState.Locked, nodes.Single(n => n.Guid == Test3).State);
@@ -54,8 +54,8 @@ namespace Client.Tests.Ui.State.Challenge
             Assert.AreEqual(LocalizationKeys.Ui.Challenge.StateCurrent.Key, nodes.Single(n => n.Guid == Test2).StateLabelKey.Key);
             Assert.AreEqual(LocalizationKeys.Ui.Challenge.StateLocked.Key, nodes.Single(n => n.Guid == Test3).StateLabelKey.Key);
 
-            // 座標と倍率はマスタの displayListParam、前提はマスタの prevChallengeGuids
-            // Position and scale come from the master displayListParam; prerequisites from prevChallengeGuids
+            // 座標・倍率・前提はマスタ値
+            // Position, scale and prerequisites are master values
             var research1 = master.Single(c => c.ChallengeGuid == Research1).DisplayListParam;
             Assert.AreEqual(new Vector2(research1.UIPosition.x, research1.UIPosition.y), nodes.Single(n => n.Guid == Research1).TreePosition);
             Assert.AreEqual(new Vector2(research1.UIScale.x, research1.UIScale.y), nodes.Single(n => n.Guid == Research1).Scale);
@@ -75,8 +75,8 @@ namespace Client.Tests.Ui.State.Challenge
             Assert.AreEqual(Category2, Selected(ChallengeListViewModelFactory.Create(both, ChallengeCategorySelection.Of(Category2))));
             Assert.AreEqual(Category1, Selected(ChallengeListViewModelFactory.Create(both, ChallengeCategorySelection.Of(Guid.NewGuid()))));
 
-            // 選んだカテゴリが未解放なら出ないので先頭、解放済みが無ければ空の一覧（選択を持たない）
-            // A selected but locked category is absent so the first is used; with no unlocked categories the list is empty (no selection)
+            // 未選択は先頭、無ければ空
+            // No selection uses the first, else empty
             var lockedSecond = new[] { both[0], Response(Category2, false, new Guid[0], new Guid[0]) };
             Assert.AreEqual(Category1, Selected(ChallengeListViewModelFactory.Create(lockedSecond, ChallengeCategorySelection.Of(Category2))));
             var none = ChallengeListViewModelFactory.Create(new[] { Response(Category1, false, new Guid[0], new Guid[0]) }, ChallengeCategorySelection.Of(Category1));
@@ -106,8 +106,8 @@ namespace Client.Tests.Ui.State.Challenge
             // A scale-only difference needs just a card redraw, so the shape is the same
             Assert.IsTrue(shown.HasSameGraphAs(Category(first, Card(Test2, new Vector2(220f, 0f), new Vector2(2f, 2f), ChallengeNodeState.Current, Test1))));
 
-            // 座標・前提・並び・注目点のどれかが変われば違う形
-            // A change in position, prerequisites, order or focus is a different shape
+            // 座標・前提・並びが変われば違う形
+            // Position, prerequisite or order changes differ
             Assert.IsFalse(shown.HasSameGraphAs(Category(first, Card(Test2, new Vector2(240f, 0f), Vector2.one, ChallengeNodeState.Current, Test1))), "座標");
             Assert.IsFalse(shown.HasSameGraphAs(Category(first, Card(Test2, new Vector2(220f, 0f), Vector2.one, ChallengeNodeState.Current))), "前提");
             Assert.IsFalse(shown.HasSameGraphAs(Category(second, first)), "並び");

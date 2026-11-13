@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.Challenge.Commands
 {
     /// <summary>
-    /// チャレンジ一覧の画面からの操作（サーバーへは送らない。前例 IResearchTreeCommands）
-    /// Operations from the challenge list screen (nothing is sent to the server; precedent IResearchTreeCommands)
+    /// チャレンジ一覧の画面操作（前例 IResearchTreeCommands）
+    /// Challenge list screen operations (precedent IResearchTreeCommands)
     /// </summary>
     public interface IChallengeListCommands
     {

@@ -6,8 +6,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Challenge.Tree.Selection
 {
     /// <summary>
-    /// チャレンジ一覧で選んだカテゴリ（離れたら捨てて先頭へ戻す。Web はパネルのアンマウントで消える）
-    /// Category selected in the challenge list (dropped on leaving so the first returns; the Web loses it on unmount)
+    /// 選んだカテゴリ（離れたら先頭へ戻す）
+    /// Selected category (reset to the first on leaving)
     /// </summary>
     public sealed class ChallengeCategorySelectionStore : IInitializable
     {

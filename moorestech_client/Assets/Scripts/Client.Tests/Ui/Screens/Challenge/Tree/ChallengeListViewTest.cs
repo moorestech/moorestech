@@ -16,8 +16,8 @@ using Kit = Client.Tests.Ui.Screens.Challenge.Tree.ChallengeListScreenTestKit;
 namespace Client.Tests.Ui.Screens.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジ一覧の表示（L1。Web の challenge.spec の画面 1 件・カードの見た目・空の一覧・カテゴリ列の横スクロール・ホイールの行き先）
-    /// Challenge list display (L1; one Web challenge.spec screen test, card look, empty list, category row scrolling, wheel target)
+    /// チャレンジ一覧の表示（L1）
+    /// Challenge list display (L1)
     /// </summary>
     public class ChallengeListViewTest : ScreenTestHost
     {
@@ -42,8 +42,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Localize.TrySetChosenLanguage("japanese");
             Settle();
 
-            // 枠・カテゴリのボタン・2 枚のカード・題が出る
-            // The frame, category button, two cards and title show
+            // 枠・ボタン・カード 2 枚・題が出る
+            // Frame, button, two cards and title show
             Assert.IsTrue(IsShown(Find<VisualElement>(rootVisualElement, "challenge-panel")));
             var basics = Find<FormButton>(rootVisualElement, $"challenge-category-{Kit.Basics}");
             Assert.AreEqual(MasterHolder.ChallengeMaster.GetChallengeCategory(Kit.Basics).CategoryName, Kit.ButtonText(basics));
@@ -65,8 +65,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             CollectionAssert.Contains(states, "完了");
             CollectionAssert.Contains(states, "進行中");
 
-            // 内部キーと欠けの印が残らず、進行中 HUD も出ている
-            // No internal keys or missing markers remain, and the current-challenge HUD shows
+            // 内部キー・欠けの印が無く HUD も出る
+            // No internal keys or missing markers; HUD shows
             foreach (var label in _view.Query<Label>().ToList())
             {
                 StringAssert.DoesNotContain("challenge.", label.text);
@@ -90,16 +90,16 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
                 Assert.GreaterOrEqual(card.layout.height, 24.8f + 20.3f + 16.8f + padding * 2f - 0.5f, $"{guid} が 3 行の最小より低い");
             }
 
-            // 完了は green-6・進行中は blue-5 の 2px の輪、未解放は輪なしで 0.55
-            // Completed has a 2px green-6 ring, current blue-5, locked none and 0.55 opacity
+            // 完了 green-6・進行中 blue-5 の輪
+            // Completed green-6 and current blue-5 rings
             AssertRing(Kit.FirstCraft, "--mantine-color-green-6");
             AssertRing(Kit.SecondStep, "--mantine-color-blue-5");
             var locked = Kit.Card(rootVisualElement, Kit.LockedStep);
             Assert.AreEqual(DisplayStyle.None, locked.Q(className: "challenge-list__card-ring").resolvedStyle.display);
             Assert.AreEqual(0.55f, locked.resolvedStyle.opacity, 0.001f);
 
-            // 面は Paper（body）、一覧の地は dark-8、一覧の上端は上の安全帯
-            // Card face is Paper (body), the list ground is dark-8, and the list top is the upper safe area
+            // 面は Paper・地は dark-8
+            // Face is Paper, ground is dark-8
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-body"), Kit.Card(rootVisualElement, Kit.FirstCraft).resolvedStyle.backgroundColor, "カードの面");
             var panel = Find<VisualElement>(rootVisualElement, "challenge-panel");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--mantine-color-dark-8"), panel.resolvedStyle.backgroundColor, "一覧の地");
@@ -119,15 +119,15 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         [Test]
         public void カテゴリのボタンが幅を越えたら横に送れ越えなければバーが出ない()
         {
-            // 2 つのボタンは一覧の幅に収まるのでバーは出ず、列の高さはボタンの 36
-            // Two buttons fit the list width, so no bar shows and the row is the 36 button height
+            // ボタンは幅に収まりバー無し
+            // Buttons fit the width, no bar
             var row = Find<VisualElement>(rootVisualElement, "challenge-categories");
             var scroll = Find<GameScrollView>(rootVisualElement, "challenge-categories-scroll");
             Assert.IsFalse(IsShown(scroll.horizontalScroller), "収まるときのバー");
             Assert.AreEqual(36f, row.layout.height, 0.5f, "収まるときの列の高さ");
 
-            // 列を 120px に狭めると越えるので、バーが出て末尾のボタンまで送れる（Web overflow-x: auto）
-            // Narrowing the row to 120px overflows it, so the bar shows and the last button scrolls into view (Web overflow-x: auto)
+            // 120px に狭めるとバーが出る（Web overflow-x: auto）
+            // Narrowing to 120px shows the bar (Web overflow-x: auto)
             row.style.width = 120f;
             Settle();
             Assert.IsTrue(IsShown(scroll.horizontalScroller), "越えたときのバー");
@@ -137,8 +137,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Settle();
             Assert.LessOrEqual(last.worldBound.xMax, scroll.contentViewport.worldBound.xMax + 0.5f, "送ると末尾のボタンが見える");
 
-            // バーはゲームのスクロール領域と同じ GameScrollView のバー（太さ --scrollarea-scrollbar-size・つまみ game-scroll-view-thumb-face）で、列はバーの分だけ高い
-            // The bar is the game's GameScrollView bar (--scrollarea-scrollbar-size thick, game-scroll-view-thumb-face thumb), and the row grows by the bar
+            // バーは GameScrollView のバーと同じ
+            // The bar matches the GameScrollView bar
             var barSize = ThemeTokenFile.ResolvePixels("--scrollarea-scrollbar-size");
             Assert.AreEqual(barSize, scroll.horizontalScroller.layout.height, 0.5f, "バーの太さ");
             var thumb = scroll.horizontalScroller.Q(className: "unity-base-slider__dragger");

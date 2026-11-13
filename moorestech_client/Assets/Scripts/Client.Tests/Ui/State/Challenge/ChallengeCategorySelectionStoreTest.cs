@@ -9,8 +9,8 @@ using Source = Client.Tests.Ui.State.Challenge.ChallengeProgressStateTestSource;
 namespace Client.Tests.Ui.State.Challenge
 {
     /// <summary>
-    /// チャレンジのカテゴリの選択は一覧の中で保ち、離れると無しに戻る（L0。Web はパネルのアンマウントで useState が消える）
-    /// The challenge category selection holds inside the list and resets to none on leaving (L0; the Web loses useState on panel unmount)
+    /// カテゴリ選択は一覧中だけ保つ（L0）
+    /// Category selection holds only inside the list (L0)
     /// </summary>
     public class ChallengeCategorySelectionStoreTest
     {

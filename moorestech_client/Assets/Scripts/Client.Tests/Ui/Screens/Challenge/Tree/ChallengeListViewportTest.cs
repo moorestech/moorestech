@@ -14,8 +14,8 @@ using Kit = Client.Tests.Ui.Screens.Challenge.Tree.ChallengeListScreenTestKit;
 namespace Client.Tests.Ui.Screens.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジ一覧の視点（L1。Web の challenge.spec 1 件と裁定 2026-11-04 の初回訪問・再訪・開き直し）
-    /// Challenge list viewport (L1; one Web challenge.spec test and the 2026-11-04 ruling on first visit, revisit and reopen)
+    /// チャレンジ一覧の視点（L1）
+    /// Challenge list viewport (L1)
     /// </summary>
     public class ChallengeListViewportTest : ScreenTestHost
     {
@@ -37,8 +37,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         {
             AssertCentered(Kit.SecondStep);
 
-            // ボタンでカテゴリを選ぶと操作が 1 回出て、選んだカテゴリの進行中へ寄る
-            // Pressing a category button issues one operation and centers on that category's current node
+            // 選んだカテゴリの進行中へ寄る
+            // Centers on the selected category's current node
             Click(CategoryButton(Kit.Logistics));
             CollectionAssert.AreEqual(new[] { Kit.Logistics }, _commands.Selected);
             Select(Kit.Logistics);
@@ -50,8 +50,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         [Test]
         public void 一度開いたカテゴリへ戻ると寄せ直さず前回の視点を戻す()
         {
-            // 先頭のカテゴリでパンし、別のカテゴリへ移って戻る。木の中の NodeGraphView は常に 1 本
-            // Pan in the first category, move to another and come back; the tree always holds one NodeGraphView
+            // カテゴリ往復で NodeGraphView は常に 1 本
+            // NodeGraphView stays single across category round trips
             var basicsView = SingleGraph();
             var panned = PanBy(new Vector2(-60f, 30f));
             Select(Kit.Logistics);
@@ -103,8 +103,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Settle();
         }
 
-        // 置き場に付いている View は常に 1 本（名前とアンカーが重ならない）
-        // Exactly one view is attached (names and anchors never repeat)
+        // 置き場の View は常に 1 本
+        // Exactly one view is attached
         private NodeGraphView SingleGraph()
         {
             var graphs = rootVisualElement.Query<NodeGraphView>().ToList();
@@ -120,8 +120,8 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Assert.AreEqual(viewport.y, node.y, 1.5f, $"{challenge} の中心 y");
         }
 
-        // 空の背景を掴んで動かし、進行中のカードが同じだけ動いたことを見て、その位置を返す
-        // Drag the empty background, check the current card moved by the same amount, and return its rect
+        // 背景をドラッグし進行中カードの移動後位置を返す
+        // Drag the background and return the moved current card rect
         private Rect PanBy(Vector2 delta)
         {
             var before = Kit.Card(rootVisualElement, Kit.SecondStep).worldBound;

@@ -5,8 +5,8 @@ using Client.Ui.State.Challenge.Tree;
 namespace Client.Ui.Screens.Challenge.Parts
 {
     /// <summary>
-    /// チャレンジのカテゴリ 1 つのグラフ（NodeGraphView・カードの組・最後に渡した中身）。画面の寿命で控えられ、視点は View が持つ
-    /// One challenge category's graph (NodeGraphView, card set and the last content handed over); kept for the screen lifetime, the view holds the viewport
+    /// カテゴリ 1 つのグラフ（View・カード・最後の中身）
+    /// One category's graph (view, cards, last content)
     /// </summary>
     public sealed class ChallengeCategoryGraph
     {
@@ -17,8 +17,8 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public ChallengeCategoryGraph(ChallengeCategoryViewModel category, IUiOsCursor osCursor)
         {
-            // 作ったときに中身を渡す。部品は寸法が揃った最初の回だけ進行中へ寄せる（裁定 2026-11-04 の初回訪問）
-            // Hand the content over on creation; the component centers on the current node once, when its size first arrives (first visit, ruling 2026-11-04)
+            // 作成時に中身を渡す（初回訪問は裁定 2026-11-04）
+            // Hand content over on creation (first visit, ruling 2026-11-04)
             View = new NodeGraphView("challenge", osCursor);
             _shown = category;
             _cards.RenderCards(category.Nodes);

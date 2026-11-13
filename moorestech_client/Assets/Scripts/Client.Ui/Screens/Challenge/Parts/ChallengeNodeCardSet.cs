@@ -6,8 +6,8 @@ using Client.Ui.State.Challenge.Tree;
 namespace Client.Ui.Screens.Challenge.Parts
 {
     /// <summary>
-    /// チャレンジのカードを GUID で使い回し、グラフの中身を組む（前例 ResearchNodeCardSet）
-    /// Reuses challenge cards by GUID and builds the graph content (precedent ResearchNodeCardSet)
+    /// カードを GUID で使い回しグラフの中身を組む（前例 ResearchNodeCardSet）
+    /// Reuse cards by GUID and build graph content (precedent ResearchNodeCardSet)
     /// </summary>
     /// <remarks>
     /// 中身を渡し直すかの判定は State の ChallengeCategoryViewModel.HasSameGraphAs が持つ（並びの比較をここに置かない）

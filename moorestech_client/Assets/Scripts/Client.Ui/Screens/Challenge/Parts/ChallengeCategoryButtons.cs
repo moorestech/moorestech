@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
@@ -14,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Challenge.Parts
 {
     /// <summary>
-    /// チャレンジのカテゴリのボタン列（Web の Group gap md・nowrap・overflow-x: auto と Button filled/subtle）
-    /// Challenge category button row (the Web Group gap md, nowrap, overflow-x: auto and Button filled/subtle)
+    /// チャレンジのカテゴリのボタン列
+    /// Challenge category button row
     /// </summary>
     public sealed class ChallengeCategoryButtons : VisualElement
     {
@@ -26,8 +27,8 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public ChallengeCategoryButtons(IChallengeListCommands commands)
         {
-            // 列の根がアンカー。行は折り返さず、越えたら横に送る
-            // The row root carries the anchor; the row never wraps and scrolls sideways on overflow
+            // 根がアンカー。折り返さず横へ送る
+            // Root carries the anchor; scrolls sideways without wrapping
             _commands = commands;
             name = "challenge-categories";
             AddToClassList("challenge-list__categories");
@@ -41,43 +42,47 @@ namespace Client.Ui.Screens.Challenge.Parts
 
         public void Render(SelectedChallengeListViewModel model)
         {
-            // カテゴリの並びが変わったときだけボタンを作り直す（並びの比較は State の 1 本）
-            // Rebuild the buttons only when the category order changes (the order comparison is the single one in State)
-            if (!ChallengeListLogic.SameGuidSequence(_order, model.CategoryGuids)) Rebuild(model);
+            // 並びが変わったときだけ作り直す
+            // Rebuild only when the order changes
+            if (!_order.SequenceEqual(model.CategoryGuids)) Rebuild();
 
-            // 選んだカテゴリは filled、他は subtle
-            // The selected category is filled, the others subtle
+            // 選択は filled、他は subtle
+            // Selected is filled, others subtle
             foreach (var category in model.Categories)
             {
                 var isSelected = category.Guid == model.Selected.Guid;
                 _buttons[category.Guid].SetVariant(isSelected ? FormButtonVariant.Filled : FormButtonVariant.Subtle);
             }
+
+            #region Internal
+
+            void Rebuild()
+            {
+                // 文言はマスタ内容キー（A-40）。押すと選択
+                // Labels are master content keys (A-40); pressing selects
+                ClearButtons();
+                foreach (var category in model.Categories)
+                {
+                    var guid = category.Guid;
+                    var button = new FormButton($"challenge-category-{guid}", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), FormButtonVariant.Subtle);
+                    button.AddToClassList("challenge-list__category-button");
+                    button.OnClicked.Subscribe(_ => _commands.SelectCategory(guid));
+                    _group.AddItem(button);
+                    _buttons.Add(guid, button);
+                }
+                _order = model.CategoryGuids;
+            }
+
+            #endregion
         }
 
         public void ClearButtons()
         {
-            // 解放済みのカテゴリが無い一覧はボタンを持たない
-            // A list without unlocked categories holds no buttons
+            // 解放済みが無ければボタン無し
+            // No buttons without unlocked categories
             _group.ClearItems();
             _buttons.Clear();
             _order = Array.Empty<Guid>();
-        }
-
-        private void Rebuild(SelectedChallengeListViewModel model)
-        {
-            // 文言はマスタの内容キー（A-40）。押すとカテゴリを選ぶ。ボタンは縮めない
-            // Labels are master content keys (A-40); pressing selects the category; buttons never shrink
-            ClearButtons();
-            foreach (var category in model.Categories)
-            {
-                var guid = category.Guid;
-                var button = new FormButton($"challenge-category-{guid}", UiText.FromContent(ContentLocalizationKeys.ChallengeCategoryName(guid)), FormButtonVariant.Subtle);
-                button.AddToClassList("challenge-list__category-button");
-                button.OnClicked.Subscribe(_ => _commands.SelectCategory(guid));
-                _group.AddItem(button);
-                _buttons.Add(guid, button);
-            }
-            _order = model.CategoryGuids;
         }
     }
 }

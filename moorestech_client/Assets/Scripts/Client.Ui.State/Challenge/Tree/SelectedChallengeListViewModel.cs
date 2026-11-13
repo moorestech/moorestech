@@ -18,8 +18,8 @@ namespace Client.Ui.State.Challenge.Tree
             Categories = categories;
             Selected = selected;
 
-            // ボタン列の並びの比較（ChallengeListLogic.SameGuidSequence）に渡す Guid の列
-            // The Guid sequence handed to the button row order comparison (ChallengeListLogic.SameGuidSequence)
+            // ボタン列の比較に渡す Guid の列
+            // Guid sequence for the button row comparison
             var guids = new List<Guid>(categories.Count);
             foreach (var category in categories) guids.Add(category.Guid);
             CategoryGuids = guids;

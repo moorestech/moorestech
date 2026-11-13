@@ -48,8 +48,8 @@ namespace Client.Ui.State.Challenge.Tree
             return found;
         }
 
-        // グラフの形（並び順のノードの置き方と注目点）が同じか。部品へ中身を渡し直すかの判定の 1 本
-        // Whether the graph shape (node placements in order and the focus) matches; the single check for handing content to the component again
+        // グラフの形が同じか（部品へ渡し直す判定）
+        // Whether the graph shape matches (re-handing check)
         public bool HasSameGraphAs(ChallengeCategoryViewModel other)
         {
             if (Nodes.Count != other.Nodes.Count) return false;
