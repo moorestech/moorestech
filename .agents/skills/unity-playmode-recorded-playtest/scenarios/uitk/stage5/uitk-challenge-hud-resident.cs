@@ -59,7 +59,10 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     var subInventory = await HudRect("SubInventory");
     AssertSame(world, subInventory, "SubInventory");
     p.Assert(subInventory.yMax <= root.Q("main-grid").worldBound.yMin + 0.5f, "SubInventory で HUD が main-grid より上");
-    await p.ExitToGameScreen();
+    // チェストは閉じるボタンで閉じる（前例 uitk-block-inventory）
+    // Close the chest with its close button (precedent uitk-block-inventory)
+    await p.ClickUi("block-inventory-close");
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     // 配置モード: 配置 HUD と横に分かれる
     // Placement mode: the HUD and the placement HUD are separated horizontally
@@ -100,7 +103,8 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     await p.Screenshot("02-1024x576-inventory");
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     await UniTask.DelayFrame(3);
-    await p.ExitToGameScreen();
+    await p.PressKey(Key.Tab);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     #region Internal
 
@@ -141,7 +145,10 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
         var hud = await HudRect(state.ToString());
         AssertSame(world, hud, state.ToString());
         if (hasUpperSafeArea) p.Assert(hud.yMax <= root.Q(contentId).worldBound.yMin + 0.5f, $"{state} で HUD が {contentId} より上");
-        await p.ExitToGameScreen();
+        // ExitToGameScreen は B を押すだけで各メニューからは戻らないので、開いたキーで閉じる
+        // ExitToGameScreen only taps B and does not leave these menus, so close with the key that opened it
+        await p.PressKey(key);
+        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 
     #endregion
