@@ -81,7 +81,7 @@
 /* MantineInput: Mantine TextInput, dark, sm (default variant) */
 .game-text-field--mantine-input .unity-base-text-field__input {
     height: var(--input-height-sm);
-    padding: 0 var(--input-padding-sm);
+    padding: 0 var(--game-text-field-padding-x-sm);
     border-width: 1px; /* web: calc(0.0625rem * mantine-scale) solid var(--input-bd) */
     border-radius: var(--mantine-radius-default);
     border-color: var(--mantine-color-dark-4);
