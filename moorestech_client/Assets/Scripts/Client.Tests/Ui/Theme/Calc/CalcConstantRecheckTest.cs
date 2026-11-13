@@ -26,7 +26,7 @@ namespace Client.Tests.Ui.Theme.Calc
         {
             var declared = new Dictionary<string, string>();
             var calcRows = new List<(string name, string value, string expression)>();
-            // 生成物と、族ごとに分けた手書きの派生トークンの全ファイル
+            // 生成物と派生トークンの全ファイル
             // The generated files and every hand-written derived token file split per family
             var derivedFiles = Directory.GetFiles(Path.Combine(RepositoryRoot(), ThemeDirectory, DerivedTokenDirectory), "*.uss").OrderBy(path => path);
             var tokenPaths = GeneratedTokenFiles.Select(fileName => Path.Combine(RepositoryRoot(), ThemeDirectory, fileName)).Concat(derivedFiles);

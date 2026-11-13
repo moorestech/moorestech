@@ -15,8 +15,8 @@ namespace Client.Ui.Screens.Inventory.Wheel
 
         public VisualElement PickAt(Vector2 screenPosition)
         {
-            // 拾いと座標換算は DI の 1 つの probe に任せる（ルートのパネル接続は入力の導入が起動で確かめる）
-            // Picking and conversion live in the single DI probe (the input installer checks the root's panel at startup)
+            // 拾いと座標換算は DI の probe に任せる
+            // Picking and conversion live in the DI probe
             return _probe.PickAt(screenPosition);
         }
     }

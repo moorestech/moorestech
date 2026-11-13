@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Content
 {
     /// <summary>
-    /// 機械レシピの行の素材・結果の枠を組む唯一の口。機械 UI の選択行とレシピビューアの機械の 1 件が共有する
+    /// 機械レシピの行の枠を組む口（選択行とビューアが共有）
     /// The single builder of a machine recipe row's material and result slots, shared by the machine UI selection row and the recipe viewer's machine entry
     /// </summary>
     public static class MachineRecipeRowContentBuilder
@@ -26,7 +26,7 @@ namespace Client.Ui.Content
 
         private static MachineRecipeSideSlots Side(string sideId, IReadOnlyList<ItemAmount> items, IReadOnlyList<RecipeFluidAmount> fluids, GameContentPresentation content)
         {
-            // アイテム（必要数）の後ろに液体（量の帯）。押下の購読は使い手が決める
+            // アイテムの後ろに液体。押下の購読は使い手
             // Items (required counts) followed by fluids (amount band); the user decides which presses to subscribe
             var elements = new List<VisualElement>(items.Count + fluids.Count);
             var itemSlots = new List<MachineRecipeItemSlot>(items.Count);

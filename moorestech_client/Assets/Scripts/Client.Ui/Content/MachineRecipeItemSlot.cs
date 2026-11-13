@@ -4,7 +4,7 @@ using Core.Master;
 namespace Client.Ui.Content
 {
     /// <summary>
-    /// 機械レシピの行のアイテムの枠とその ID（押下でアイテムを選ぶ使い手が読む）
+    /// 機械レシピの行のアイテムの枠とその ID
     /// An item slot of a machine recipe row with its ID, read by users that select the item on press
     /// </summary>
     public readonly struct MachineRecipeItemSlot

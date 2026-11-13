@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// 画面座標の下の GameUi の拾える要素を答える。DI に 1 つだけ登録し、入力の導入と装備のホイールが共有する
+    /// 画面座標の下の拾える要素を答える（DI に 1 つ）
     /// Answers the pickable GameUi element under a screen position; registered once in DI and shared by the input installer and the equipment wheel
     /// </summary>
     public sealed class GameUiPointerProbe : IGameUiPointerProbe

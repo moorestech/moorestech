@@ -46,7 +46,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
             Add(badge);
             var duration = MachineRecipeNames.Duration(recipe.Time);
             var recipeRow = new RecipeRow($"{rowId}-row", $"{rowId}-arrow", duration);
-            // 枠の押下は購読せず、行そのものが押す対象（Web の選択行と同じ）
+            // 枠の押下は購読せず行が押す対象（Web と同じ）
             // Slot presses are not subscribed; the row itself is the press target (same as the Web selection row)
             recipeRow.SetSlots(MachineRecipeRowContentBuilder.Materials(rowId, recipe, content).Elements, MachineRecipeRowContentBuilder.Results(rowId, recipe, content).Elements);
             recipeRow.SetIdle();

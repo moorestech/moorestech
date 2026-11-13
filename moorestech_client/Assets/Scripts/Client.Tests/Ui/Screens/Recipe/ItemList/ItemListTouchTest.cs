@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.Recipe.ItemList
 {
     /// <summary>
-    /// タッチのポインタでも一覧のタップが選択に、ドラッグがスクロールになることを確かめる（L1・R-11）
+    /// タッチでもタップが選択・ドラッグがスクロール（L1）
     /// Verifies that with a touch pointer a tap on the list selects and a drag scrolls (L1, R-11)
     /// </summary>
     /// <remarks>
@@ -41,7 +41,7 @@ namespace Client.Tests.Ui.Screens.Recipe.ItemList
             scroll.SetScrollOffset(100);
             simulate.FrameUpdate();
 
-            // 移動のたびに押下点からの量だけ送られる（組み込みのタッチスクロールが重なれば量がずれ、捕捉を奪えば止まる）
+            // 移動ごとに押下点からの量だけ送られる
             // Each move scrolls by the distance from the press point (built-in touch scrolling would skew it if stacked, or stop it if it stole capture)
             var at = view.Q<ItemListCellView>("item-list-cell-40").worldBound.center;
             TouchDown(at);
@@ -52,20 +52,20 @@ namespace Client.Tests.Ui.Screens.Recipe.ItemList
                 TouchMove(last, next);
                 last = next;
                 Assert.AreEqual(100f - dy, scroll.scrollOffset.y, 0.5f, $"after moving {dy}");
-                // 捕捉は押下で掴んだ視口のまま（ScrollView の中身の容器へ移れば掴みは中断される）
+                // 捕捉は押下で掴んだ視口から移らない
                 // Capture stays on the viewport grabbed at press (moving to the ScrollView content container would abort the grab)
                 Assert.AreSame(scroll.contentViewport, rootVisualElement.panel.GetCapturingElement(PointerId.touchPointerIdBase), $"capture after moving {dy}");
             }
             TouchUp(last);
 
-            // 離した後も慣性で流れない（Web の useDragScroll と同じ）
+            // 離した後も慣性で流れない
             // No inertia after release (same as the Web useDragScroll)
             for (var i = 0; i < 10; i++) simulate.FrameUpdate();
             Assert.AreEqual(130f, scroll.scrollOffset.y, 0.5f);
             Assert.IsInstanceOf<NoRecipeSelection>(Selection.Current.Value);
         }
 
-        // 指 0 の押下・移動・解放をパネルへ送る（位置で拾われ、捕捉があれば捕捉先へ届く）
+        // 指 0 の押下・移動・解放をパネルへ送る
         // Send finger 0's press, move and release to the panel (picked by position, or routed to the capturing element)
         private void TouchDown(Vector2 at)
         {

@@ -31,7 +31,7 @@ namespace Client.Ui.Screens.Recipe.Parts
             // The row carries no progress and shows the recipe time (Web arrowValue null, duration recipe.time)
             var row = new RecipeRow($"machine-recipe-box-{guid}", $"machine-progress-arrow-{guid}", RecipeDurationText.Create(recipe.Time));
             row.SetIdle();
-            // 枠は機械の選択行と共有の組み立てで作り、アイテムだけ押すと選ぶ（Web onLeftDown はアイテムだけ）
+            // 共有の組み立てで枠を作り、アイテムだけ押下で選ぶ
             // Slots come from the builder shared with the machine selection row; only items select on press (Web onLeftDown is on items only)
             var materials = MachineRecipeRowContentBuilder.Materials(name, recipe, context.Content);
             var results = MachineRecipeRowContentBuilder.Results(name, recipe, context.Content);

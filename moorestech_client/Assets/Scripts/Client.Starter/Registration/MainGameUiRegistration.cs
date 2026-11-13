@@ -38,7 +38,7 @@ namespace Client.Starter.Registration
             // It swaps the panel's target to the sRGB composite RT, so it initializes before entry points that keep root.panel
             builder.RegisterEntryPoint<GameUiSrgbCompositeInstaller>();
             builder.RegisterEntryPoint<GameUiLocaleClassBinder>();
-            // Pick の probe は 1 つだけ作り、入力の導入と装備のホイールへ注入する
+            // Pick の probe を 1 つ作り入力の導入とホイールへ渡す
             // A single Pick probe, injected into the input installer and the equipment wheel
             builder.RegisterInstance(new GameUiPointerProbe(gameUiRoot.GetRootElement()));
             builder.RegisterEntryPoint<GameUiInputInstaller>();

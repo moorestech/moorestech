@@ -24,8 +24,8 @@ namespace Client.Ui.State.Recipe.Commands
 
         public UiCommandResult Craft(Guid recipeGuid)
         {
-            // 解放表に無い GUID・未解放は送らずに断る（拒否理由は機械レシピと共用のレシピの値）
-            // Refuse unknown or locked GUIDs unsent; the reasons are the recipe values shared with machine recipes
+            // 未知・未解放の GUID は送らずに断る
+            // Refuse unknown or locked GUIDs without sending
             if (!_unlockState.CraftRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var info)) return Reject(UiCommandRejectReason.RecipeInvalid);
             if (!info.IsUnlocked) return Reject(UiCommandRejectReason.RecipeLocked);
 
