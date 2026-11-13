@@ -55,7 +55,7 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     await p.PressInteract();
     await p.WaitUiState(UIStateEnum.SubInventory, 10f);
     SemanticInput.KeyUp(Key.LeftAlt);
-    await p.UntilUiElement("main-grid", 10f);
+    await WaitShown("main-grid");
     var subInventory = await HudRect("SubInventory");
     AssertSame(world, subInventory, "SubInventory");
     p.Assert(subInventory.yMax <= root.Q("main-grid").worldBound.yMin + 0.5f, "SubInventory で HUD が main-grid より上");
@@ -65,7 +65,7 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     // Placement mode: the HUD and the placement HUD are separated horizontally
     await p.Hotbar.EnterBuildMode(0);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
-    await p.UntilUiElement("placement-mode-hud", 10f);
+    await WaitShown("placement-mode-hud");
     var placement = root.Q("placement-mode-hud").worldBound;
     var placementHud = await HudRect("配置モード");
     p.Assert(placementHud.xMax <= placement.xMin || placement.xMax <= placementHud.xMin, $"HUD {placementHud} と配置 HUD {placement} が横に分かれる");
@@ -76,7 +76,7 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     // Delete mode: the top band is above the HUD
     await p.PressKey(Key.G);
     await p.WaitUiState(UIStateEnum.DeleteBar, 10f);
-    await p.UntilUiElement("delete-mode-warning", 10f);
+    await WaitShown("delete-mode-warning");
     var band = root.Q("delete-mode-warning").Q("delete-mode-warning-band").worldBound;
     var deleteHud = await HudRect("削除モード");
     p.Assert(band.yMax <= deleteHud.yMin + 0.5f, $"削除の上の帯 {band} が HUD {deleteHud} より上");
@@ -92,7 +92,7 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     AssertSame(world, await HudRect("1024×576 のゲーム画面"), "1024×576 のゲーム画面");
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
-    await p.UntilUiElement("main-grid", 10f);
+    await WaitShown("main-grid");
     var small = await HudRect("1024×576 のインベントリ");
     var screen = root.worldBound;
     p.Assert(screen.Contains(small.min) && screen.Contains(small.max), $"HUD {small} が画面 {screen} の中");
@@ -117,6 +117,14 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
         return hud.worldBound;
     }
 
+    // 中身は存在と幅だけを待つ（格子の中心はスロットの隙間、配置・削除の HUD は Pick を拾わず、Clickable 待ちが通らない）
+    // Wait only for the content's existence and width (the grid center is a slot gap and the placement/delete HUDs ignore picking, so a Clickable wait never passes)
+    async UniTask WaitShown(string id)
+    {
+        await UniTask.WaitUntil(() => root.Q(id) is { } shown && shown.worldBound.width > 0f).TimeoutWithoutException(System.TimeSpan.FromSeconds(10));
+        p.Assert(root.Q(id) is { } content && content.worldBound.width > 0f, $"{id} が出ている");
+    }
+
     void AssertSame(Rect expected, Rect actual, string where)
     {
         var same = Mathf.Abs(expected.x - actual.x) <= 1f && Mathf.Abs(expected.y - actual.y) <= 1f && Mathf.Abs(expected.width - actual.width) <= 1f && Mathf.Abs(expected.height - actual.height) <= 1f;
@@ -129,7 +137,7 @@ return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions 
     {
         await p.PressKey(key);
         await p.WaitUiState(state, 10f);
-        await p.UntilUiElement(contentId, 10f);
+        await WaitShown(contentId);
         var hud = await HudRect(state.ToString());
         AssertSame(world, hud, state.ToString());
         if (hasUpperSafeArea) p.Assert(hud.yMax <= root.Q(contentId).worldBound.yMin + 0.5f, $"{state} で HUD が {contentId} より上");
