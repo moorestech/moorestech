@@ -34,7 +34,10 @@ namespace Client.Ui.Foundation.Input
             var element = evt.target as VisualElement;
             if (IsInsideTextField(element))
             {
+                // フォーカスごとパネルから外れると外れの知らせが根へ届かないので、外れる要素自身の取り外しを購読する
+                // Removal with focus never tells the root about the blur, so subscribe to the focused element's own detach
                 UiInputExclusivity.SetGameUiTextInputFocused(true);
+                element.RegisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
                 return;
             }
 
@@ -54,9 +57,21 @@ namespace Client.Ui.Foundation.Input
 
         private static void OnFocusOut(FocusOutEvent evt)
         {
+            // 外れた要素の取り外しの購読は、旗を保つ場合も含めて先に解く
+            // Drop the detach subscription of the element losing focus first, even when the flag stays up
+            ((VisualElement)evt.target).UnregisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
+
             // 入力欄から入力欄へ移るときは true のまま保つ
             // Keep the flag up when focus moves from one text field to another
             if (IsInsideTextField(evt.relatedTarget as VisualElement)) return;
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
+        }
+
+        private static void OnFocusedTextFieldDetached(DetachFromPanelEvent evt)
+        {
+            // 外れた入力欄はもう打てないので、根を通らないフォーカスの外れの代わりに旗を下ろす
+            // The removed field can no longer be typed into, so lower the flag in place of the blur that bypasses the root
+            ((VisualElement)evt.currentTarget).UnregisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
             UiInputExclusivity.SetGameUiTextInputFocused(false);
         }
 
