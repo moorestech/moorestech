@@ -106,7 +106,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.Screenshot("03-kiln-open");
     // Shift＋クリックで粉を入れ、原木は右クリックで半分掴んで素材順の 2 枠目へ置く（入力枠はレシピの素材順に固定。原木が揃うと粉は即消費されるので粉を先に確かめる）
     // Shift-click the dust in, then right-click half the logs into the second slot (inputs follow recipe order; logs start processing and consume the dust, so check the dust first)
-    p.Note("Shiftで入れる・半分掴んで置く");
     var kilnInventory = p.GetBlock(kilnPos).GetComponent<IOpenableBlockInventoryComponent>();
     await ShiftClickOn(MainSlotOf(bronzeDust));
     await p.WaitForItemCount(kilnInventory, bronzeDust, 1, null, 10f, "石窯の入力に粉が入る（サーバー）");
@@ -125,6 +124,8 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // 解放後の LateTick で確定するので、配り終えと掴みの残り（掴んだ数−3）を待って見る（前例 uitk-grab-overlay）
     // The split commits on the LateTick after release, so wait for the slots and the remaining grab (grabbed - 3) (precedent uitk-grab-overlay)
     await p.Until(() => empties.All(i => Main()[i].ItemId == log) && Ops().ReadGrab().Count == grabbed - 3, 5f, $"右ドラッグで空き3枠に1個ずつ配り、掴みは {grabbed}-3 個");
+    var serverGrab = -1; await p.RunOnServer("サーバーの掴みを読む（C4-e D-36）", () => serverGrab = ServerContext.GetService<Game.PlayerInventory.Interface.IPlayerInventoryDataStore>().GetInventoryData(ClientContext.PlayerConnectionSetting.PlayerId).GrabInventory.GetItem(0).Count);
+    p.Note($"D-36: 右ドラッグ配りの後の掴み client={Ops().ReadGrab().Count} server={serverGrab}");
     await p.Screenshot("04-right-drag");
     if (0 < Ops().ReadGrab().Count) await p.ClickUi(MainSlotOf(log));
     await p.Until(() => Ops().ReadGrab().IsEmpty, 5f, "掴みの残りを持ち物へ戻す");
