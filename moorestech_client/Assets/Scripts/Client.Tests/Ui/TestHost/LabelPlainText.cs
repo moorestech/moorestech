@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.TestHost
@@ -9,8 +9,8 @@ namespace Client.Tests.Ui.TestHost
     /// Reads a label's text without its rich-text tags
     /// </summary>
     /// <remarks>
-    /// LocalizedLabel は行の高さを &lt;line-height=Npx&gt; で前置し、行末の約物を詰めるときは改行を入れるので、原文（SourceText）を読む。どちらも印は外す
-    /// LocalizedLabel prefixes the line height as &lt;line-height=Npx&gt; and inserts newlines when trimming line-end punctuation, so its source (SourceText) is read; tags are dropped either way
+    /// WrapSafeLabel の派生は表示用の印や改行を前置・挿入しうるので、原文（WordsText）を読む。どちらも印は外す
+    /// WrapSafeLabel subclasses may prefix display tags or insert newlines, so their source (WordsText) is read; tags are dropped either way
     /// </remarks>
     public static class LabelPlainText
     {
@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.TestHost
 
         public static string PlainText(this Label label)
         {
-            var text = label is LocalizedLabel { SourceText: not null } localized ? localized.SourceText : label.text;
+            var text = label is WrapSafeLabel wrapSafe ? wrapSafe.WordsText : label.text;
             return RichTextTag.Replace(text, string.Empty);
         }
     }

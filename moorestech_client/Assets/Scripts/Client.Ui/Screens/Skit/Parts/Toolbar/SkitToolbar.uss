@@ -13,6 +13,8 @@
 
 /* 既定は Tokens.uss の :root にあるので、要素自身に宣言すれば継承より勝つ（--icon-button-icon-size が効くのは既定の × だけで、図形の寸法は下の .skit-tool-glyph が持つ。Web と同じ上書きを写す） */
 /* The defaults live on :root in Tokens.uss, so declaring on the element beats inheritance (--icon-button-icon-size only sizes the default cross; the glyph size is set on .skit-tool-glyph below; mirrors the Web override) */
+/* --skit-tool-icon-opacity は Web で 1 なので filter を掛けない。1 未満になったら IconButton の中身を PixelFilterGroup に入れて群へ filter を掛ける（A-226） */
+/* --skit-tool-icon-opacity is 1 on the Web, so no filter is applied; if it drops below 1, wrap the IconButton content in a PixelFilterGroup and filter the group (A-226) */
 .skit-toolbar .skit-toolbar__tool {
     --icon-button-size: var(--skit-tool-button-size);
     --icon-button-icon-size: var(--skit-tool-button-size);
