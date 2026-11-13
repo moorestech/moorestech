@@ -65,10 +65,10 @@ return PlaytestRunner.Run("build-preview-radius", options, async p =>
     p.Note($"avgFrameMs={elapsed * 1000f / frames:F2}");
     await p.Screenshot("01-build-mode-dense");
 
-    // 当たり判定の生成後に内外の枠線を判定する
-    // Judge nearby and distant outlines after hit faces are created
+    // ブロックの反映後に内外の枠線を判定する
+    // Judge nearby and distant outlines after the blocks are reflected
     foreach (var probe in new[] { new Vector3Int(0, 32, 0), new Vector3Int(-30, 32, -30), new Vector3Int(0, 32, 28) })
-        await p.Until(() => HitFacesAt(probe) != null, 30f, $"枠線ロード {probe}");
+        await p.Until(() => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(probe) != null, 30f, $"枠線ロード {probe}");
     p.Note("プレイヤー周囲だけ枠線が描画されることを確認");
     p.WarpPlayer(new Vector3(0, 33.5f, 0));
     await UniTask.DelayFrame(5);
@@ -83,25 +83,25 @@ return PlaytestRunner.Run("build-preview-radius", options, async p =>
     p.Assert(!IsBoxRendered(new Vector3Int(0, 32, 0)), "移動後は元の足元の枠線なし");
     await p.Screenshot("02-after-move");
 
-    // 半径外でも面コライダー経由で設置する
-    // Place through the face collider even outside the radius
+    // 半径外でも占有セルの走査で設置する
+    // Place through the occupied-cell traversal even outside the radius
     var farTarget = new Vector3Int(0, 32, 28);
     p.Note("半径外のチェスト上面へ照準して設置");
     p.WarpPlayer(new Vector3(0, 33.5f, 0));
     await UniTask.DelayFrame(5);
     p.Assert(!IsBoxRendered(farTarget), "照準先は半径外");
-    await p.AimAt(new Vector3(0.5f, 33.1f, 28.5f));
+    // 占有セルの走査は面の厚みを持たないので、上面そのものの高さを狙う
+    // The traversal has no face thickness, so aim at the exact top surface height
+    await p.AimAt(new Vector3(0.5f, 33.0f, 28.5f));
     await p.ClickPlace();
     await p.Until(() => p.GetBlock(farTarget + Vector3Int.up) != null, 10f, "半径外ブロックの上へ設置できた");
     await p.WaitBlockGameObject(farTarget + Vector3Int.up);
     await p.Until(() => !ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(farTarget + Vector3Int.up).IsPlayingPlaceAnimation, 10f, "新規設置アニメーション完了");
-    await p.Until(() => HitFacesAt(farTarget + Vector3Int.up) != null, 30f, "新規ブロックの枠線ロード");
+    await p.Until(() => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(farTarget + Vector3Int.up) != null, 30f, "新規ブロックの枠線ロード");
     p.Assert(!IsBoxRendered(farTarget + Vector3Int.up), "半径外の新規ブロックも枠線なし");
     await p.Screenshot("03-place-on-far-block");
 
     #region Internal
-
-    BlockPlacementHitFaces HitFacesAt(Vector3Int pos) => ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos).GetComponentInChildren<BlockPlacementHitFaces>(true);
 
     // プールの枠がそのブロックの位置で有効なら描画中
     // A block is outlined when an active pooled frame sits at its position
