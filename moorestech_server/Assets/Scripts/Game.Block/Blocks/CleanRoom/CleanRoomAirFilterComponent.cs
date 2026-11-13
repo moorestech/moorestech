@@ -5,6 +5,7 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.Util;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -39,12 +40,12 @@ namespace Game.Block.Blocks.CleanRoom
         // The current power settled by the electric tick post-process
         private float _currentPower;
 
-        // 装填中のフィルター1個が使われたtick数。電力割合ぶんずつ進むので端数を持つ
-        // Ticks the loaded filter has been in use; it advances by the power ratio, so it keeps fractions
-        private double _filterWearTicks;
+        // 装填中のフィルター1個が使われたtick数。電力割合を確率で丸めた整数tickずつ進む
+        // Ticks the loaded filter has been in use; advances by whole ticks, the power ratio rounded probabilistically
+        private uint _filterWearTicks;
 
-        // 成立した部屋に属しているか。クリーンルーム判定段が変化時にプッシュし、ロード直後は最初の判定tickまでfalse
-        // Whether the purifier serves a detected room; the clean-room pass pushes changes, false until its first pass after load
+        // 成立した部屋に属しているか。クリーンルーム判定段が変化時にプッシュし、ロード時は部屋の再検出直後に配られる
+        // Whether the purifier serves a detected room; the clean-room pass pushes changes, and on load it is pushed right after room rebuild
         private bool _isServingRoom;
 
         public CleanRoomAirFilterComponent(BlockInstanceId blockInstanceId, CleanRoomAirFilterBlockParam param)
@@ -89,15 +90,15 @@ namespace Game.Block.Blocks.CleanRoom
         {
             CheckDestroy(this);
 
-            // 部屋の中で通電しフィルターがある間だけ、電力割合ぶん寿命を進める。クラスには依存しない
-            // Advance the life by the power ratio only while serving a room, powered and loaded; independent of the class
+            // 部屋の中で通電しフィルターがある間だけ、採掘機と同じく電力割合を確率で丸めたtick数ぶん寿命を進める
+            // Only while serving a room, powered and loaded, advance the life by power-scaled sub-ticks as the miner does
             if (!_isServingRoom || PowerRatio <= 0 || !HasFilterItem) return;
-            _filterWearTicks += PowerRatio;
+            _filterWearTicks += MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, _requiredPower);
 
-            // 寿命に達したらフィルターを1個消費し、超過分の端数は次の1個へ持ち越す
-            // Consume one filter when the life is reached and carry the overshoot into the next one
+            // 寿命に達したらフィルターを1個消費し、採掘機の周期と同じく次の1個は0から数える
+            // Consume one filter on reaching the life; like the miner's cycle, the next one counts from zero
             if (_filterWearTicks < _filterLifeTicks) return;
-            _filterWearTicks -= _filterLifeTicks;
+            _filterWearTicks = 0;
             FilterSlot.SetItem(0, FilterSlot.GetItem(0).SubItem(1));
         }
 
@@ -114,7 +115,7 @@ namespace Game.Block.Blocks.CleanRoom
             // 経過tickは装填中の1個に溜まるので、寿命tickとの比から残り寿命を出す
             // Elapsed ticks accrue on the loaded filter, so their ratio to the life ticks gives the remaining life
             var filterCount = HasFilterItem ? FilterSlot.GetItem(0).Count : 0;
-            var remainingRatio = filterCount == 0 ? 0d : Math.Max(0d, 1d - _filterWearTicks / _filterLifeTicks);
+            var remainingRatio = filterCount == 0 ? 0d : Math.Max(0d, 1d - (double)_filterWearTicks / _filterLifeTicks);
             return new CleanRoomAirFilterStatus(PowerRatio, RemovalVolumePerSecond, filterCount, remainingRatio);
         }
 
@@ -126,7 +127,7 @@ namespace Game.Block.Blocks.CleanRoom
 
             var saveData = new CleanRoomAirFilterSaveJsonObject
             {
-                FilterWearSeconds = _filterWearTicks * GameUpdater.SecondsPerTick,
+                FilterWearSeconds = GameUpdater.TicksToSeconds(_filterWearTicks),
                 Items = FilterSlot.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             return saveData;
@@ -152,15 +153,14 @@ namespace Game.Block.Blocks.CleanRoom
             }
         }
 
-        // 端数を保ったまま秒をtickへ戻す。負・非数・無限大の壊れたセーブ値は未使用として読み、ログに残す
-        // Convert seconds back to ticks keeping fractions; a broken negative, NaN or infinite value is read as unused and logged
-        private double ReadSavedWearTicks(double filterWearSeconds)
+        // 秒をtickへ戻し、寿命の変更で超えた値は採掘機と同じく寿命で頭打ちにする。負・非数・無限大の壊れたセーブ値は未使用として読み、ログに残す
+        // Convert seconds back to ticks, capping at the life like the miner when the life shrank; a broken negative, NaN or infinite value is read as unused and logged
+        private uint ReadSavedWearTicks(double filterWearSeconds)
         {
-            var wearTicks = filterWearSeconds * GameUpdater.TicksPerSecond;
-            if (0 <= wearTicks && !double.IsInfinity(wearTicks)) return wearTicks;
+            if (0 <= filterWearSeconds && !double.IsInfinity(filterWearSeconds)) return Math.Min(GameUpdater.SecondsToTicks(filterWearSeconds), _filterLifeTicks);
 
             Debug.LogError($"[CleanRoomAirFilter] BlockInstanceId:{BlockInstanceId} has invalid filterWearSeconds:{filterWearSeconds}; treating the loaded filter as unused");
-            return 0d;
+            return 0;
         }
 
         private void InvokeEvent(int slot, IItemStack itemStack)

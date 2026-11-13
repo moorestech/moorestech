@@ -97,6 +97,11 @@ namespace Game.CleanRoom
         public void RebuildAll()
         {
             _detectionService.RebuildAll();
+
+            // 在室は保存しないので、ロード直後の最初のtickから稼働中と同じ在室で回るよう再検出した部屋からすぐ配る
+            // Serving state is not saved, so push it from the rebuilt rooms at once to run the first tick after load as a live world would
+            foreach (var room in _detectionService.Rooms) CollectAndMarkServing(room);
+            _airFilterServingService.PushChanges();
         }
 
         // クリーンルーム保存復元は専用ヘルパーへ委譲する
@@ -115,10 +120,7 @@ namespace Game.CleanRoom
         {
             foreach (var room in _detectionService.Rooms)
             {
-                // 部屋内の清浄機を在室として記録する
-                // Record the purifiers inside the room as serving it
-                var filters = CleanRoomAirFilterCollector.Collect(room, _world);
-                _airFilterServingService.MarkServing(filters);
+                var filters = CollectAndMarkServing(room);
 
                 // 閾値マスタが空ならクラス判定を無効化する
                 // With no threshold master, the class decision is disabled
@@ -133,6 +135,15 @@ namespace Game.CleanRoom
             // 部屋への出入りがあった清浄機へだけ在室をプッシュする
             // Push serving state only to purifiers that entered or left a room
             _airFilterServingService.PushChanges();
+        }
+
+        // 部屋内の清浄機を在室として記録し、クラス判定にも使えるよう返す
+        // Record the purifiers inside the room as serving it and return them for the class decision
+        private List<CleanRoomAirFilterEntry> CollectAndMarkServing(CleanRoom room)
+        {
+            var filters = CleanRoomAirFilterCollector.Collect(room, _world);
+            _airFilterServingService.MarkServing(filters);
+            return filters;
         }
 
         private static List<double> BuildRequiredAirChangeRates()

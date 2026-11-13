@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Tests.CombinedTest.Core.CleanRoom
+namespace Tests.CombinedTest.Core.CleanRoom.AirFilter
 {
     public class CleanRoomAirFilterServingRoomTest
     {

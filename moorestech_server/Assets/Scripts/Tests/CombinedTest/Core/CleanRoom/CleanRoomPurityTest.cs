@@ -3,6 +3,7 @@ using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using NUnit.Framework;
+using Tests.CombinedTest.Core.CleanRoom.AirFilter;
 using Tests.Module.TestMod;
 using UnityEngine;
 

@@ -10,13 +10,15 @@ using Tests.Module.TestMod;
 using Tests.Util.EnergySystem;
 using UnityEngine;
 
-namespace Tests.CombinedTest.Core.CleanRoom
+namespace Tests.CombinedTest.Core.CleanRoom.AirFilter
 {
     public class CleanRoomAirFilterConsumptionTest
     {
         // 寿命12秒（毎分5個）
         // The test mod's filterLifeSeconds is 12 seconds (five per minute)
         private const double FilterLifeSeconds = 12;
+
+        private const ulong HalfPowerSeed = 20261113UL;
 
         [Test]
         public void FullPowerConsumesFiveFiltersPerMinuteTest()
@@ -32,19 +34,21 @@ namespace Tests.CombinedTest.Core.CleanRoom
         [Test]
         public void HalfPowerHalvesConsumptionTest()
         {
-            var block = BuildServingPurifier(10);
+            const int loadedFilterCount = 30;
+            var block = BuildServingPurifier(loadedFilterCount);
 
-            // 電力50%の60秒は2.5個相当。2個減り、3個目は寿命の半分まで進む
-            // Sixty seconds at 50% power equal 2.5 filters: two are consumed and the third is half worn
-            CleanRoomAirFilterTest.TickWithPower(block, 50f, (int)GameUpdater.SecondsToTicks(60));
-            Assert.AreEqual(8, FilterCount(block));
-            Assert.AreEqual(0.5d, RemainingRatio(block), 1e-9);
+            // 寿命は採掘機と同じ確率丸めで進むので、乱数の種を固定して結果を決定的にする
+            // The life advances by the miner's probabilistic rounding, so fix the random seed to keep the result deterministic
+            GameRandom.Reseed(HalfPowerSeed);
+            CleanRoomAirFilterTest.TickWithPower(block, 50f, (int)GameUpdater.SecondsToTicks(600));
 
-            // さらに60秒で計120秒、ちょうど5個減る
-            // Another sixty seconds (120 in total) consume exactly five
-            for (var i = 0; i < GameUpdater.SecondsToTicks(60); i++) GameUpdater.UpdateOneTick();
-            Assert.AreEqual(5, FilterCount(block));
-            Assert.AreEqual(1d, RemainingRatio(block), 1e-9);
+            // 使った寿命をフィルター個数で数える（消費済み＋装填中の経過分）
+            // Count the used life in filters: consumed ones plus the loaded one's elapsed part
+            var usedFilters = loadedFilterCount - FilterCount(block) + (1d - RemainingRatio(block));
+
+            // 電力50%の600秒は期待値25個。経過tickは二項分布B(12000,0.5)で標準偏差√3000≈54.8tick、±4σ≈219tick＝0.913個を許容幅にする
+            // 600 s at 50% power expect 25 filters; elapsed ticks follow B(12000,0.5) with sd sqrt(3000)~=54.8 ticks, so allow +/-4 sd ~= 219 ticks = 0.913 filters
+            Assert.AreEqual(25d, usedFilters, 0.92);
         }
 
         [Test]

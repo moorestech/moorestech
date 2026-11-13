@@ -126,7 +126,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
         #region TestHelper
 
-        private static (IWorldBlockDatastore, CleanRoomDatastore, AssembleSaveJsonText, WorldLoaderFromJson) CreateBlockTestModule()
+        internal static (IWorldBlockDatastore, CleanRoomDatastore, AssembleSaveJsonText, WorldLoaderFromJson) CreateBlockTestModule()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

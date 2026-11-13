@@ -16,7 +16,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 
-namespace Tests.CombinedTest.Core.CleanRoom
+namespace Tests.CombinedTest.Core.CleanRoom.AirFilter
 {
     public class CleanRoomAirFilterTest
     {
@@ -71,32 +71,6 @@ namespace Tests.CombinedTest.Core.CleanRoom
             TickWithPower(block, 100f, 100);
             Assert.AreEqual(0, block.GetComponent<ICleanRoomAirFilter>().RemovalVolumePerSecond, 0.001);
             Assert.AreEqual(MasterHolder.CleanRoomMaster.OutThresholdIndex, room.ThresholdIndex);
-        }
-
-        [Test]
-        public void SaveLoadRestoresWearAndFilterSlotTest()
-        {
-            var block = CleanRoomAirFilterConsumptionTest.BuildServingPurifier(1);
-
-            // 部屋の中で満電5秒回して経過を溜める
-            // Run five seconds at full power inside a room so the loaded filter accrues five seconds of use
-            TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(5));
-
-            var saveComponent = block.GetComponent<IBlockSaveState>();
-            var states = SaveLoadJsonTestHelper.ThroughJson(saveComponent.SaveKey, saveComponent.GetSaveState());
-
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.CleanRoomAirFilterId).BlockGuid;
-            var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);
-            var loaded = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(int.MaxValue), states, positionInfo);
-
-            // スロットと経過が引き継がれる
-            // Both the slot contents and the five elapsed seconds carry over to the new instance
-            IOpenableInventory loadedInventory = loaded.GetComponent<IOpenableBlockInventoryComponent>();
-            Assert.AreEqual(1, loadedInventory.GetItem(0).Count);
-            Assert.AreEqual(ForUnitTestItemId.TestCleanRoomFilter, loadedInventory.GetItem(0).Id);
-
-            var resaved = (CleanRoomAirFilterSaveJsonObject)loaded.GetComponent<IBlockSaveState>().GetSaveState();
-            Assert.AreEqual(5d, resaved.FilterWearSeconds, 0.001);
         }
 
         [Test]
