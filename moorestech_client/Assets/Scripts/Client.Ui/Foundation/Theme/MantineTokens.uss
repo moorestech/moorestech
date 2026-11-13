@@ -100,4 +100,9 @@
     --mantine-line-height-xl: 1.65; /* web: 1.65 */
     --mantine-radius-default: 4px; /* web: calc(0.25rem * var(--mantine-scale)) */
     --mantine-line-height: 1.55; /* web: 1.55 */
+    --button-height-sm: 36px; /* web: calc(2.25rem * var(--mantine-scale)) */
+    --button-height-xl: 60px; /* web: calc(3.75rem * var(--mantine-scale)) */
+    --button-padding-x-sm: 18px; /* web: calc(1.125rem * var(--mantine-scale)) */
+    --button-padding-x-xl: 32px; /* web: calc(2rem * var(--mantine-scale)) */
+    --input-height-sm: 36px; /* web: calc(2.25rem * var(--mantine-scale)) */
 }

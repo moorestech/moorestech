@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Challenge;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -25,11 +26,11 @@ namespace Client.Ui.Screens.Challenge.CurrentHud
             AddToClassList("current-challenge-hud");
             TutorialAnchor.Mark(this, AnchorIds.ChallengeCurrentHud);
 
-            // 面（hud）→ 見出し（題・罫線）→ 目標の列。目標の間隔は Web の --challenge-hud-objective-gap（2px）
-            // Face (hud), then heading (title and rule), then the objectives; objective spacing is the Web --challenge-hud-objective-gap (2px)
+            // 面（hud）→ 見出し（題・罫線）→ 目標の列。目標の間隔は USS が --ui-gap を --challenge-hud-objective-gap へ上書きする（前例 RecipeListScrollView）
+            // Face (hud), then heading (title and rule), then the objectives; USS overrides --ui-gap with --challenge-hud-objective-gap (precedent RecipeListScrollView)
             var surface = new GamePanelSurface("challenge-hud-surface", GamePanelSurfaceKind.Hud);
-            var heading = new HudSectionHeading("challenge-hud-label", LocalizationKeys.Ui.Challenge.CurrentTitle);
-            _objectives = new UiStack(UiGap.Px2);
+            var heading = new HudSectionHeading("challenge-hud-label", new UiText(LocalizationKeys.Ui.Challenge.CurrentTitle));
+            _objectives = new UiStack(UiGap.None);
             _objectives.AddToClassList("current-challenge-hud__objectives");
             heading.Add(_objectives);
             surface.Add(heading);

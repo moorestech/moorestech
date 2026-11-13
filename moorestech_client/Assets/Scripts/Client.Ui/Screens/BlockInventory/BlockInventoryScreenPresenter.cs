@@ -2,6 +2,7 @@ using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Routing;
+using Client.Ui.State.Toast;
 using UniRx;
 using VContainer.Unity;
 
@@ -18,19 +19,21 @@ namespace Client.Ui.Screens.BlockInventory
         private readonly BlockInventoryPanelLayoutModel _layout;
         private readonly BlockInventoryPartRegistry _parts;
         private readonly IBlockInventoryPanelCommands _commands;
+        private readonly UiCommandResultToaster _toaster;
 
-        public BlockInventoryScreenPresenter(StageColumnsLayout stage, UiRoutingState routing, BlockInventoryPanelLayoutModel layout, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands)
+        public BlockInventoryScreenPresenter(StageColumnsLayout stage, UiRoutingState routing, BlockInventoryPanelLayoutModel layout, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster)
         {
             _stage = stage;
             _routing = routing;
             _layout = layout;
             _parts = parts;
             _commands = commands;
+            _toaster = toaster;
         }
 
         public void Initialize()
         {
-            var view = new BlockInventoryView(_stage, _commands);
+            var view = new BlockInventoryView(_stage, _commands, _toaster);
             var host = new BlockInventoryBodyHost(_parts, view);
             _stage.Get(StageColumn.Viewer).Add(view);
 

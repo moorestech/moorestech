@@ -1,5 +1,7 @@
 /* 通知のホストと行。Web W/features/notification/style.module.css の写し。ホストは実画面の左端・縦の中央線から下へ積み、舞台と同率で拡縮する（層の族 Viewport ＋ PanelSettings の倍率） */
 /* Notification host and rows, copied from Web W/features/notification/style.module.css; the host stacks down from the vertical center at the left edge of the real screen and scales with the stage (Viewport family plus PanelSettings scaling) */
+/* 寸法と文字組みは Web も直書きで --notification-* が無いので同じ値を直書きする（ref-uitk-design §6） */
+/* Sizes and typography are literals in the Web too, with no --notification-* token, so the same values are written here (ref-uitk-design §6) */
 
 .notification-host {
     position: absolute;

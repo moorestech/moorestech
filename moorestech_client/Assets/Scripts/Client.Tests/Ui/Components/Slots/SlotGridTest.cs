@@ -59,6 +59,24 @@ namespace Client.Tests.Ui.Components.Slots
         }
 
         [Test]
+        public void 同じ列数を渡し直しても行もマスも作り直さない()
+        {
+            // スタイルの再解決のたびに列数が渡し直されても、マスが付け直されてドラッグの捕捉や :hover が外れない
+            // Re-passing the column count on every style resolve must not re-parent cells and drop drag capture or :hover
+            var (grid, cells) = Mount(null, 5, 12);
+            var firstRow = grid[1];
+            var tracks = grid[0];
+            grid.SetColumns(5);
+            simulate.FrameUpdate();
+
+            Assert.AreSame(tracks, grid[0]);
+            Assert.AreSame(firstRow, grid[1]);
+            Assert.AreSame(firstRow, cells[0].parent);
+            Assert.AreEqual(5, tracks.childCount);
+            Assert.Throws<ArgumentOutOfRangeException>(() => grid.SetColumns(0));
+        }
+
+        [Test]
         public void 祖先で列と行の間隔を別々に上書きできる()
         {
             var (_, cells) = Mount("slot-knob-item-list", 5, 10);

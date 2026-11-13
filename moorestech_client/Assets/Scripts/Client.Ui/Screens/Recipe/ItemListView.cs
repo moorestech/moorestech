@@ -52,7 +52,7 @@ namespace Client.Ui.Screens.Recipe
             // 並びが変われば作り直し、同じなら数だけ当て直す
             // Rebuild when the order changes, otherwise only re-apply counts
             if (!SameItems(vm.Cells)) Rebuild(vm.Cells);
-            for (var i = 0; i < vm.Cells.Count; i++) _cells[i].SetContent(_content.Item(vm.Cells[i].ItemId), vm.Cells[i].CraftableCount);
+            for (var i = 0; i < vm.Cells.Count; i++) _cells[i].SetContent(SlotItemContent.ForCatalog(_content, vm.Cells[i].ItemId, vm.Cells[i].CraftableCount));
 
             #region Internal
 

@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Client.Input;
+using Client.Tests.Ui.Screens.Modal;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Stage;
+using Client.Ui.Screens.Modal;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -90,7 +93,7 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
         }
 
         [Test]
-        public void 隠す前に入力欄のフォーカスを外しキーの抑止を残さない()
+        public void 隠すと入力欄のフォーカスが外れキーの抑止が残らない()
         {
             // モーダル層の入力欄にフォーカスを置く
             // Focus a text field on the modal layer
@@ -103,9 +106,37 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
             textField.Focus();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
 
+            // 隠すと UITK 自身がフォーカスを外し、外れが根を通って入力中の旗が下りる（画面は Blur しない。A-275）
+            // Hiding makes UITK itself blur the field, and the blur passing the root lowers the text-input flag; nothing blurs on hide (A-275)
             _stack.SetAllLayersVisible(false);
+            simulate.FrameUpdate();
 
             Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠した後も入力欄がフォーカスを持っている");
+            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "隠している間もゲームのキーが抑止されたまま");
+        }
+
+        [Test]
+        public void 隠している間にモーダルの入力欄がフォーカスを取っても外れキーの抑止が解ける()
+        {
+            // 全 UI を隠してからモーダルを載せる。取り付け時の予約で隠れた入力欄がフォーカスを取り、入力中の旗が立つ
+            // Hide the whole UI, then mount a modal; its attach-time focus lands on the hidden field and raises the text-input flag
+            var modalLayer = _stack.GetLayer(UiLayer.Modal, UiFamily.Stage);
+            GameUiInputRules.Attach(modalLayer);
+            _stack.SetAllLayersVisible(false);
+            simulate.FrameUpdate();
+            var view = new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>());
+            var flagRaisedByHiddenFocus = false;
+            view.RegisterCallback<FocusInEvent>(_ => flagRaisedByHiddenFocus |= UiInputExclusivity.IsTextInputFocused);
+            modalLayer.Add(view);
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.IsTrue(flagRaisedByHiddenFocus, "前提: 隠れた入力欄がフォーカスを取り入力中の旗が立つ");
+
+            // 隠れた木の中で取ったフォーカスも UITK 自身が外し、入力中の旗が下りる（A-275）
+            // UITK itself also blurs a focus taken inside the hidden tree, lowering the text-input flag (A-275)
+            simulate.FrameUpdate();
+
+            Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠れた入力欄がフォーカスを持ったまま");
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "隠している間もゲームのキーが抑止されたまま");
         }
     }

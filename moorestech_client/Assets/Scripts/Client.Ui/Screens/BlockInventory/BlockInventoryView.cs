@@ -7,6 +7,8 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Text;
+using Client.Ui.State.Routing;
+using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine.UIElements;
@@ -32,7 +34,7 @@ namespace Client.Ui.Screens.BlockInventory
         private readonly BlockInventoryNaturalScroll _naturalScroll;
         private LocalizedLabel _error;
 
-        public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands)
+        public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster)
         {
             // 外殻: block-inventory（Viewer 列の子）> GamePanel(block-inventory-panel, Default) > [エラー行, 本文の器]、閉じるは外殻に絶対配置
             // Shell: block-inventory (Viewer column child) > GamePanel(block-inventory-panel, Default) > [error row, body holder]; close is absolutely placed on the shell
@@ -50,12 +52,12 @@ namespace Client.Ui.Screens.BlockInventory
             _body.AddToClassList("block-inventory__body");
             _panel.Add(_body);
 
-            // 閉じるは Web と同じく外殻の右上に重ねる。自要素のクリックの結線で Model の購読ではない（前例 PauseMenuTopPageView）
-            // Close overlays the shell's top-right as on the Web; wiring its own click, not subscribing a model (precedent PauseMenuTopPageView)
+            // 閉じるは Web と同じく外殻の右上に重ねる。自要素のクリックの結線で、拒否はビルドメニューと同じく Report する（前例 BuildMenuView）
+            // Close overlays the shell's top-right as on the Web; wiring its own click, with refusals reported as the build menu does (precedent BuildMenuView)
             _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph());
             _close.AddToClassList("block-inventory__close");
             TutorialAnchor.Mark(_close, AnchorIds.InventoryCloseButton);
-            _close.OnClicked.Subscribe(_ => commands.Close());
+            _close.OnClicked.Subscribe(_ => toaster.Report(UiStateTransitionRules.RequestCommandName, commands.Close()));
             Add(_close);
 
             _band = new BlockInventoryPanelBand(stage, this);

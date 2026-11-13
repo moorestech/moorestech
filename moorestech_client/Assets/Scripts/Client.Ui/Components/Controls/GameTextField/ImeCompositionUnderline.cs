@@ -53,7 +53,7 @@ namespace Client.Ui.Components.Controls
             Apply(string.Empty);
         }
 
-        public void Apply(string compositionString)
+        private void Apply(string compositionString)
         {
             if (compositionString.Length == 0)
             {

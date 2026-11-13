@@ -35,7 +35,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
             for (var i = 0; i < InventoryCounts.Length; i++)
             {
                 var slot = new ItemSlot($"gallery-inventory-{i}");
-                slot.SetContent(new ItemSlotContent(0 < InventoryCounts[i] ? icon : null, InventoryCounts[i], new ItemSlotMarks(false, false, false), null, null, null));
+                slot.SetContent(new ItemSlotContent(0 < InventoryCounts[i] ? icon : null, InventoryCounts[i], ItemSlotMarks.None, null, null, null));
                 inventory.AddItem(slot);
             }
             inventoryRow.Add(inventory);

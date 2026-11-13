@@ -89,6 +89,19 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             Assert.IsNull(panel.focusController.focusedElement);
         }
 
+        [Test]
+        public void 駅名欄にフォーカスしたまま本文を隠してもWASDが効く()
+        {
+            // パネルの SetShown(false) と同じく表示だけ切る。外すのは画面でなく UITK 自身（A-275）
+            // Hide only the display as the panel's SetShown(false) does; UITK itself blurs, not the screen (A-275)
+            FocusAndType("中央");
+            _body.Root.style.display = DisplayStyle.None;
+            simulate.FrameUpdate();
+
+            Assert.IsFalse(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard));
+            Assert.IsNull(panel.focusController.focusedElement);
+        }
+
         private TextField FocusAndType(string text)
         {
             // クリックでフォーカスし打鍵で入力

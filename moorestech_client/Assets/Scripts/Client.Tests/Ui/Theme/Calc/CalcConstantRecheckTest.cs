@@ -17,7 +17,7 @@ namespace Client.Tests.Ui.Theme.Calc
     {
         private const string ThemeDirectory = "moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme";
         private const string DerivedTokenDirectory = "DerivedTokens";
-        private static readonly string[] GeneratedTokenFiles = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss" };
+        private static readonly string[] GeneratedTokenFiles = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss", "MantineTokens.uss" };
         private static readonly Regex Declaration = new(@"^\s*(--[\w-]+)\s*:\s*([^;]+);(?:\s*/\*\s*(.*?)\s*\*/)?", RegexOptions.Multiline);
         private const string CalcCommentPrefix = "calc: ";
 

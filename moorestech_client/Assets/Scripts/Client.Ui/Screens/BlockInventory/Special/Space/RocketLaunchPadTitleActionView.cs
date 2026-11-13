@@ -4,6 +4,7 @@ using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
+using Client.Ui.State.Text;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -50,7 +51,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 
             PanelActionButton CreateButton(RocketCommandButton source)
             {
-                var created = new PanelActionButton($"rocket-launch-pad-{source.Command.ToString().ToLowerInvariant()}", source.LabelKey);
+                var created = new PanelActionButton($"rocket-launch-pad-{source.Command.ToString().ToLowerInvariant()}", new UiText(source.LabelKey));
                 created.OnClicked.Subscribe(_ => _kit.Run(CommandName, _kit.Commands.SendRocketCommand(source.Command)));
                 Add(created);
                 return created;

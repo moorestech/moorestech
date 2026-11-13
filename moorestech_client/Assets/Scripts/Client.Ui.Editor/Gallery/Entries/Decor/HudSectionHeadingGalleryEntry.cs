@@ -1,6 +1,7 @@
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;
 using Client.Ui.Editor.Gallery.Entries.Panels;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -22,7 +23,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Decor
             // チャレンジ HUD（hud の面）
             // Challenge HUD (hud face)
             var challenge = new GamePanelSurface("gallery-challenge-hud", GamePanelSurfaceKind.Hud);
-            var challengeHeading = new HudSectionHeading("challenge-hud-label", LocalizationKeys.Ui.Challenge.CurrentTitle);
+            var challengeHeading = new HudSectionHeading("challenge-hud-label", new UiText(LocalizationKeys.Ui.Challenge.CurrentTitle));
             challengeHeading.Add(Line("Second Step", "gallery-samples__objective"));
             challenge.Add(challengeHeading);
             row.Add(PanelsAndDecorSampleSheet.Cell(challenge, "gallery-samples__challenge-hud"));
@@ -30,7 +31,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Decor
             // 設置モード HUD（craft の枠）
             // Placement-mode HUD (craft frame)
             var placement = new GamePanel("gallery-placement-hud", GamePanelFrame.Craft);
-            var placementHeading = new HudSectionHeading("operation-mode-label", LocalizationKeys.Ui.ModeHud.PlacementModeTitle);
+            var placementHeading = new HudSectionHeading("operation-mode-label", new UiText(LocalizationKeys.Ui.ModeHud.PlacementModeTitle));
             placementHeading.Add(Line("Selected: Assembler", "gallery-samples__mode-detail"));
             placementHeading.Add(Line("Height: 3", "gallery-samples__mode-detail"));
             placement.Add(placementHeading);

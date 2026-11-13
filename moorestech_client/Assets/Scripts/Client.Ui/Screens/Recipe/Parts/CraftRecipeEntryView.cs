@@ -99,7 +99,7 @@ namespace Client.Ui.Screens.Recipe.Parts
             // 素材の所持・不足とツールチップ、結果の数、ボタンの可否、長押しの可否を当て直す
             // Re-apply material owned/lacking and tooltips, result count, button state and hold eligibility
             for (var i = 0; i < _materialSlots.Length; i++) ApplyMaterial(i, vm.Materials[i]);
-            _resultSlot.SetContent(new ItemSlotContent(_context.Content.Item(vm.Recipe.ResultItemId), vm.Recipe.ResultCount, new ItemSlotMarks(false, false, false), null, null, null));
+            _resultSlot.SetContent(SlotItemContent.ForItem(_context.Content, vm.Recipe.ResultItemId, vm.Recipe.ResultCount));
             _button.SetEnabled(vm.Craftable);
             _hold.SetRecipe(vm.RecipeGuid, vm.Recipe.CraftTime, vm.Craftable);
 
@@ -110,10 +110,7 @@ namespace Client.Ui.Screens.Recipe.Parts
                 // 数は所持/必要の表示が描くのでバッジの数は渡さない（Web の素材の ItemSlot は count を持たない）
                 // The owned/required text draws the numbers, so no badge count is passed (the Web material ItemSlot has no count)
                 _materialItemIds[index] = material.ItemId;
-                var itemName = _context.Content.ItemName(material.ItemId).Resolve();
-                var tooltip = MaterialTooltipText.Create(MaterialTooltipKind.RecipeMaterial, itemName, material.Required, material.Owned);
-                var shortage = new ItemSlotShortage(material.Owned, material.Required, material.Lacking, tooltip);
-                _materialSlots[index].SetContent(new ItemSlotContent(_context.Content.Item(material.ItemId), null, new ItemSlotMarks(false, false, material.Lacking), shortage, null, null));
+                _materialSlots[index].SetContent(SlotItemContent.ForMaterial(_context.Content, material.ItemId, MaterialTooltipKind.RecipeMaterial, material.Owned, material.Required, material.Lacking));
             }
 
             #endregion

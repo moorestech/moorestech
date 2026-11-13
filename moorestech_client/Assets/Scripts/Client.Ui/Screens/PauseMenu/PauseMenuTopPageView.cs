@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine.UIElements;
@@ -45,7 +46,7 @@ namespace Client.Ui.Screens.PauseMenu
 
             PanelActionButton AddButton(string testid, LocalizationKey label, string anchorId)
             {
-                var button = new PanelActionButton(testid, label);
+                var button = new PanelActionButton(testid, new UiText(label));
                 TutorialAnchor.Mark(button, anchorId);
                 buttons.AddItem(button);
                 return button;

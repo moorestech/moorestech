@@ -1,6 +1,6 @@
 using Client.Game.InGame.UI.UIState;
+using Client.Ui.State.Commands;
 using Client.Ui.State.Routing;
-using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Panel
 {
@@ -13,11 +13,12 @@ namespace Client.Ui.State.BlockInventory.Panel
             _requester = requester;
         }
 
-        public void Close()
+        public UiCommandResult Close()
         {
-            // 許可表で拒まれた閉じるは何もしない。理由は開発者ログへ（口の側でも現状態をログに出す）
-            // A close refused by the allow table does nothing; the reason goes to the developer log (the port logs the current state too)
-            if (!_requester.RequestTransition(UIStateEnum.GameScreen)) Debug.LogWarning("[BlockInventoryPanelCommands] close refused by UiStateTransitionRules");
+            // 許可表に拒まれた閉じるはビルドメニューと同じ非良性の拒否で返し、View が Report でトーストとログへ出す
+            // A close refused by the allow table returns the same non-benign refusal as the build menu; the view reports it to the toast and the log
+            if (!_requester.RequestTransition(UIStateEnum.GameScreen)) return UiCommandRejected.Of(UiCommandRejectReason.ScreenCloseRefused);
+            return UiCommandAccepted.Instance;
         }
     }
 }

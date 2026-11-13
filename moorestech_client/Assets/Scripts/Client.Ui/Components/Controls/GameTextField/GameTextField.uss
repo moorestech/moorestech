@@ -64,10 +64,10 @@
 /* Web :focus-visible outline: var(--bevel-1) solid var(--text-high-contrast) with outline-offset: var(--bevel-1) */
 .game-text-field .game-text-field__focus-ring {
     position: absolute;
-    left: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
-    top: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
-    right: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
-    bottom: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
+    left: var(--game-text-field-focus-ring-inset);
+    top: var(--game-text-field-focus-ring-inset);
+    right: var(--game-text-field-focus-ring-inset);
+    bottom: var(--game-text-field-focus-ring-inset);
     border-width: var(--bevel-1);
     border-color: var(--text-high-contrast);
     display: none;
@@ -80,8 +80,8 @@
 /* MantineInput: Mantine TextInput の dark・sm（default variant） */
 /* MantineInput: Mantine TextInput, dark, sm (default variant) */
 .game-text-field--mantine-input .unity-base-text-field__input {
-    height: 36px; /* web: --input-height-sm */
-    padding: 0 12px; /* web: --input-padding = calc(var(--input-height) / 3) */
+    height: var(--input-height-sm);
+    padding: 0 var(--game-text-field-padding-x-sm);
     border-width: 1px; /* web: calc(0.0625rem * mantine-scale) solid var(--input-bd) */
     border-radius: var(--mantine-radius-default);
     border-color: var(--mantine-color-dark-4);

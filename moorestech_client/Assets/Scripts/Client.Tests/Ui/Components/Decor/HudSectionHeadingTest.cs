@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.Components.Decor
             rootVisualElement.styleSheets.Add(knobSheet);
             _screen = new VisualElement();
             _screen.style.width = ContainerWidth;
-            _heading = new HudSectionHeading("challenge-hud-label", LocalizationKeys.Ui.Challenge.CurrentTitle);
+            _heading = new HudSectionHeading("challenge-hud-label", new UiText(LocalizationKeys.Ui.Challenge.CurrentTitle));
             _heading.Add(new Label("Second Step"));
             _screen.Add(_heading);
             rootVisualElement.Add(_screen);

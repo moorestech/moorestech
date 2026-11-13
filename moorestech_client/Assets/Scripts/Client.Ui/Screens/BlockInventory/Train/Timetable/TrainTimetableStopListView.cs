@@ -102,7 +102,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 
         private static PanelActionButton Control(string testid, LocalizationKey label, bool disabled)
         {
-            var button = new PanelActionButton(testid, label);
+            var button = new PanelActionButton(testid, new UiText(label));
             button.AddToClassList("train-timetable__control");
             button.SetEnabled(!disabled);
             return button;

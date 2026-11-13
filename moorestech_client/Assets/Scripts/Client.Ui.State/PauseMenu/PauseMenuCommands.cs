@@ -69,13 +69,20 @@ namespace Client.Ui.State.PauseMenu
             var submitted = await _submitter.SubmitAsync(trimmed, kind);
             if (!submitted.Submitted)
             {
-                return UiCommandRejected.OverridingWireCode(UiCommandRejectReasonTraits.FromSubmitFailureCode(submitted.FailureCode), submitted.FailureCode);
+                return UiCommandRejected.OverridingWireCode(FromSubmitFailureCode(submitted.FailureCode), submitted.FailureCode);
             }
 
             // 送れたらポーズは開いたままトップへ戻す。失敗時は画面を動かさず書きかけを残す
             // After a send the pause stays open and returns to the top; on failure the page stays so the draft survives
             _pauseMenuStateService.ShowPage(PauseMenuPage.Top);
             return UiCommandAccepted.Instance;
+        }
+
+        // 送信手続きの失敗コードを拒否理由へ写す。書き出し失敗以外の拒否はどれも確保セッションの拒否
+        // Maps the submitter's failure code to a reject reason; every refusal other than a write failure comes from the capture session
+        internal static UiCommandRejectReason FromSubmitFailureCode(string failureCode)
+        {
+            return failureCode == BugReportSubmitResult.BundleWriteFailed ? UiCommandRejectReason.BundleWriteFailed : UiCommandRejectReason.CaptureRefused;
         }
 
         // 送信できない報告の再送。結果は配送状況の板で届く

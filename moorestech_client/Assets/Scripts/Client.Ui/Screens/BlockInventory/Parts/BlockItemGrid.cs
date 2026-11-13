@@ -28,7 +28,6 @@ namespace Client.Ui.Screens.BlockInventory.Parts
         private readonly SlotGrid _grid;
         private readonly KeyedRowList<int, ItemSlot> _slots = new();
         private int _inventoryColumns;
-        private int _appliedColumns;
 
         public BlockItemGrid(string testId, IBlockSlotCommands commands, GameContentPresentation content, UiCommandResultToaster toaster)
         {
@@ -76,9 +75,6 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                     _grid.AddItem(slot);
                     _slots.Add(index, slot);
                 }
-                // 並びが変わったので列数を当て直す
-                // The layout changed, so apply the column count again
-                _appliedColumns = 0;
             }
 
             #endregion
@@ -88,10 +84,9 @@ namespace Client.Ui.Screens.BlockInventory.Parts
         {
             // silent-ok: 最初のスタイル解決の前は列数を決めない / CustomStyleResolvedEvent で当て直し、読めなければ UssCustomStyleReader が LogError を出す
             if (_inventoryColumns <= 0) return;
-            var columns = Math.Min(_inventoryColumns, Math.Max(1, _slots.Count));
-            if (columns == _appliedColumns) return;
-            _appliedColumns = columns;
-            _grid.SetColumns(columns);
+            // 同じ列数なら SlotGrid が何もしない
+            // SlotGrid ignores an unchanged column count
+            _grid.SetColumns(Math.Min(_inventoryColumns, Math.Max(1, _slots.Count)));
         }
     }
 }

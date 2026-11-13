@@ -101,13 +101,6 @@ namespace Client.Ui.Components.Controls
             _placeholder.SetText(placeholder);
         }
 
-        // EditMode では未確定文字列を作れないので、L1 から直接呼べるよう下線の更新を分けている
-        // Composition text cannot be produced in EditMode, so the underline update is split out for L1 to call directly
-        internal void ApplyComposition(string compositionString)
-        {
-            _underline.Apply(compositionString);
-        }
-
         private void OnFocusGained()
         {
             // 輪と枠の色のためにフォーカスをクラスで USS へ渡す

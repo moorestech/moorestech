@@ -1,7 +1,6 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Icons;
 using Core.Master;
 using UnityEngine.UIElements;
 
@@ -26,11 +25,9 @@ namespace Client.Ui.Screens.Recipe.Parts
             TutorialAnchor.Mark(this, AnchorIds.RecipeItem(itemId.AsPrimitive()));
         }
 
-        public void SetContent(UiIcon icon, int craftableCount)
+        public void SetContent(ItemSlotContent content)
         {
-            // catalog の枠は数 0 でバッジを出さない（C3-a の ItemSlot が判定する）
-            // A catalog cell shows no badge at 0 (C3-a ItemSlot decides)
-            _slot.SetContent(new ItemSlotContent(icon, craftableCount, new ItemSlotMarks(false, true, false), null, null, null));
+            _slot.SetContent(content);
         }
     }
 }

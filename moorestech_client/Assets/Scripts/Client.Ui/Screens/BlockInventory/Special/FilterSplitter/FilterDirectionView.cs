@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Slots;
+using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
@@ -8,7 +9,6 @@ using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Text;
 using Client.Ui.State.Text;
-using Core.Master;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -56,7 +56,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
         {
             _mode.SetSelected(direction.Mode);
             EnsureSlotCount(direction.FilterItemIds.Count);
-            for (var i = 0; i < _slotViews.Count; i++) _slotViews[i].SetContent(Content(direction.FilterItemIds[i]));
+            for (var i = 0; i < _slotViews.Count; i++) _slotViews[i].SetContent(SlotItemContent.ForOptionalItem(_kit.Presentation, direction.FilterItemIds[i]));
 
             #region Internal
 
@@ -75,12 +75,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
                     _slotViews.Add(slot);
                     _slots.AddItem(slot);
                 }
-            }
-
-            ItemSlotContent Content(ItemId itemId)
-            {
-                var icon = itemId == ItemMaster.EmptyItemId ? null : _kit.Presentation.Item(itemId);
-                return new ItemSlotContent(icon, null, new ItemSlotMarks(false, false, false), null, null, null);
             }
 
             void OnGesture(int slotIndex, SlotGestureKind kind)

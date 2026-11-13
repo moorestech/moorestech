@@ -30,7 +30,7 @@ namespace Client.Ui.Screens.ModeHud.Parts
             // 枠 → 見出し（題・罫線）→ 詳細の列
             // Frame → heading (title, rule) → detail list
             var panel = new GamePanel("placement-mode-hud-panel", GamePanelFrame.Craft);
-            var heading = new HudSectionHeading("operation-mode-label", LocalizationKeys.Ui.ModeHud.PlacementModeTitle);
+            var heading = new HudSectionHeading("operation-mode-label", new UiText(LocalizationKeys.Ui.ModeHud.PlacementModeTitle));
             panel.Add(heading);
             Add(panel);
 

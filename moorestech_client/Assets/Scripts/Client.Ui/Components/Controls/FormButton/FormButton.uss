@@ -7,8 +7,8 @@
     --form-button-face: var(--mantine-color-blue-filled);
     --form-button-face-hover: var(--mantine-color-blue-filled-hover);
     --form-button-text: var(--mantine-color-white);
-    height: 36px; /* web: --button-height-sm */
-    padding: 0 18px; /* web: --button-padding-x-sm */
+    height: var(--button-height-sm);
+    padding: 0 var(--button-padding-x-sm);
     border-width: 1px; /* web: calc(0.0625rem * mantine-scale) solid transparent */
     border-color: transparent;
     border-radius: var(--mantine-radius-default);
@@ -38,8 +38,8 @@
 
 /* size="xl" */
 .form-button--xl.unity-button {
-    height: 60px; /* web: --button-height-xl */
-    padding: 0 32px; /* web: --button-padding-x-xl */
+    height: var(--button-height-xl);
+    padding: 0 var(--button-padding-x-xl);
     font-size: var(--mantine-font-size-xl);
 }
 

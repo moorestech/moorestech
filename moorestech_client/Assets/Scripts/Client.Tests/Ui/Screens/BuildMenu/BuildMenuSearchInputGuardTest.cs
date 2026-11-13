@@ -60,6 +60,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             SearchField().Focus();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused, "閉じる前は入力中の旗が立っている");
             CloseMenu();
+            Assert.IsNull(panel.focusController.focusedElement);
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
         }
 
