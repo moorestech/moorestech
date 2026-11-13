@@ -1,5 +1,4 @@
 using System;
-using Client.Game.InGame.BugReport.Submit;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.State.Commands
@@ -96,13 +95,6 @@ namespace Client.Ui.State.Commands
             };
         }
 
-        // 送信手続きの失敗コードを拒否理由へ写す。書き出し失敗以外の拒否はどれも確保セッションの拒否
-        // Maps the submitter's failure code to a reject reason; every refusal other than a write failure comes from the capture session
-        public static UiCommandRejectReason FromSubmitFailureCode(string failureCode)
-        {
-            return failureCode == BugReportSubmitResult.BundleWriteFailed ? UiCommandRejectReason.BundleWriteFailed : UiCommandRejectReason.CaptureRefused;
-        }
-
         // GameUi のトーストに出す文言。Web の失敗コードは利用者に意味が通じないので表示には使わない
         // Message shown in the GameUi toast; the Web failure code means nothing to players, so it is never displayed
         public static LocalizationKey ToLocalizationKey(UiCommandRejectReason reason)
@@ -160,7 +152,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.UnknownLanguage => "unknown_locale",
                 UiCommandRejectReason.LanguageAlreadySelected => "already_selected",
                 UiCommandRejectReason.CaptureRefused => "capture_refused",
-                UiCommandRejectReason.BundleWriteFailed => BugReportSubmitResult.BundleWriteFailed,
+                UiCommandRejectReason.BundleWriteFailed => "bundle_write_failed",
                 UiCommandRejectReason.ItemSourceSlotEmpty => "empty_slot",
                 UiCommandRejectReason.ItemSourceCountShort => "insufficient_count",
                 UiCommandRejectReason.SplitGrabNotEmpty => "grab_not_empty",
