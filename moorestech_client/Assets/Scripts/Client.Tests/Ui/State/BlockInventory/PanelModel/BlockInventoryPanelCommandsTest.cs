@@ -1,9 +1,8 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Commands;
 using Client.Ui.State.Routing;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 {
@@ -25,16 +24,21 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         public void Closeは遷移要求の口へGameScreenを1回渡す()
         {
             var requester = new FakeRequester();
-            new BlockInventoryPanelCommands(requester).Close();
+            var result = new BlockInventoryPanelCommands(requester).Close();
             CollectionAssert.AreEqual(new[] { UIStateEnum.GameScreen }, requester.Requested);
+            Assert.AreSame(UiCommandAccepted.Instance, result);
         }
 
         [Test]
-        public void 口が拒んだらWarningログを出す()
+        public void 口が拒んだらビルドメニューと共有の非良性の閉じ拒否を返す()
         {
+            // 開いているのに閉じられないのでトーストで知らせる（ビルドメニューの × と同じ扱い）
+            // Open yet not closable, so it must toast, the same as the build menu's close
             var requester = new FakeRequester { Result = false };
-            LogAssert.Expect(LogType.Warning, "[BlockInventoryPanelCommands] close refused by UiStateTransitionRules");
-            new BlockInventoryPanelCommands(requester).Close();
+            var refused = (UiCommandRejected)new BlockInventoryPanelCommands(requester).Close();
+            Assert.AreEqual(UiCommandRejectReason.ScreenCloseRefused, refused.Reason);
+            Assert.AreEqual("transition_not_allowed", refused.ToWireCode());
+            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(refused.Reason));
         }
     }
 }

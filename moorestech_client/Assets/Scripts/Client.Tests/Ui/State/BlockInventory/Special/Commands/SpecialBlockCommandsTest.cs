@@ -49,12 +49,16 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         }
 
         [Test]
-        public void 種別の違うブロックには送らない()
+        public void 種別の違うブロックには送らず種別違いの拒否を返す()
         {
+            // 開いているので「ブロックが開いていません」の文言を引かない（wire は Web と同じ invalid_block_type）
+            // The block is open, so the "block is not open" message must not be picked (wire stays invalid_block_type as on the Web)
             Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
             var result = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
-            Assert.AreEqual(UiCommandRejectReason.BlockNotOpen, result.Reason);
+            Assert.AreEqual(UiCommandRejectReason.BlockTypeMismatch, result.Reason);
             Assert.AreEqual("invalid_block_type", result.ToWireCode());
+            Assert.AreNotEqual(UiCommandRejectReasonTraits.ToLocalizationKey(UiCommandRejectReason.BlockNotOpen).Key, UiCommandRejectReasonTraits.ToLocalizationKey(result.Reason).Key);
+            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(result.Reason));
             CollectionAssert.IsEmpty(_sender.Sent);
         }
 

@@ -1,10 +1,14 @@
+using System.Text.RegularExpressions;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.ModeHud;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Commands;
 using Client.Ui.State.Items;
+using Client.Ui.State.Toast;
 using Core.Master;
 using NUnit.Framework;
 using UniRx;
+using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -59,10 +63,30 @@ namespace Client.Tests.Ui.Screens.BlockInventory
 
             simulate.Click(shell.View.Q<Button>("block-inventory-close").worldBound.center);
             Assert.AreEqual(1, shell.Commands.CloseCount);
+            Assert.IsEmpty(shell.ShownToasts);
 
             state.Value = BlockInventoryPanelState.Closed;
             simulate.FrameUpdate();
             Assert.AreEqual(DisplayStyle.None, shell.View.resolvedStyle.display);
+        }
+
+        [Test]
+        public void 許可表に拒まれた閉じるはトーストを1回出しパネルを残す()
+        {
+            // ビルドメニューの × と同じく、開いているのに閉じられないことを知らせる（DC-13）
+            // As with the build menu's close, tell the player the open panel could not be closed (DC-13)
+            var state = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Chest());
+            var shell = BlockInventoryTestShell.Create(this, state);
+            shell.Commands.SetCloseResult(UiCommandRejected.Of(UiCommandRejectReason.ScreenCloseRefused));
+            simulate.FrameUpdate();
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[UiCommandResultToaster\] ui_state\.request failed: transition_not_allowed"));
+            simulate.Click(shell.View.Q<Button>("block-inventory-close").worldBound.center);
+
+            Assert.AreEqual(1, shell.ShownToasts.Count);
+            Assert.AreEqual("Could not close this screen right now", shell.ShownToasts[0].Text);
+            Assert.AreEqual(GameUiToastVariant.Error, shell.ShownToasts[0].Variant);
+            Assert.AreEqual(DisplayStyle.Flex, shell.View.resolvedStyle.display);
         }
 
         [Test]

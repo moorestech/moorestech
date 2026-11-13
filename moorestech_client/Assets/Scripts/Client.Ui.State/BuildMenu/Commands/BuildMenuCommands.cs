@@ -62,7 +62,7 @@ namespace Client.Ui.State.BuildMenu.Commands
             // 閉じた後の再送は良性、許可表に拒まれた遷移は閉じられなかった非良性の拒否
             // A resend after close is benign; a transition refused by the allow table is a non-benign close refusal
             if (!IsBuildMenuOpen()) return UiCommandRejected.Of(UiCommandRejectReason.BuildMenuNotOpen);
-            if (!_transitionRequester.RequestTransition(UIStateEnum.GameScreen)) return UiCommandRejected.Of(UiCommandRejectReason.BuildMenuCloseRefused);
+            if (!_transitionRequester.RequestTransition(UIStateEnum.GameScreen)) return UiCommandRejected.Of(UiCommandRejectReason.ScreenCloseRefused);
             return UiCommandAccepted.Instance;
         }
 

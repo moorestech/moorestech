@@ -75,7 +75,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             }
             block = open;
             if (block.BlockType == expectedBlockType) return true;
-            rejected = UiCommandRejected.OverridingWireCode(UiCommandRejectReason.BlockNotOpen, "invalid_block_type");
+            rejected = UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
             return false;
         }
 

@@ -25,7 +25,7 @@ namespace Client.Ui.State.Train.Platform.Edit
         public async UniTask<UiCommandResult> SetStationName(string name)
         {
             if (!TryResolveOpenBlock(out var source, out var blockType)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
-            if (blockType != BlockTypeConst.TrainStation) return UiCommandRejected.Of(UiCommandRejectReason.TrainInvalidBlockType);
+            if (blockType != BlockTypeConst.TrainStation) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
 
             // 応答はネットワーク由来なので null を拒否として扱う
             // The response comes from the network, so null counts as a refusal
@@ -39,7 +39,7 @@ namespace Client.Ui.State.Train.Platform.Edit
             // 本文の種類はパネルと同じ登録表で判定する（blockType を並べない）
             // The body kind is judged by the same registry as the panel (no blockType list)
             if (!TryResolveOpenBlock(out var source, out var blockType)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
-            if (BlockComponentRegistry.Resolve(blockType).Body != BlockInventoryBodyKind.TrainPlatform) return UiCommandRejected.Of(UiCommandRejectReason.TrainInvalidBlockType);
+            if (BlockComponentRegistry.Resolve(blockType).Body != BlockInventoryBodyKind.TrainPlatform) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
 
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(source.BlockPosition, TrainPlatformTransferModeConversion.ToServer(mode), CancellationToken.None);
             if (response == null || !response.Success) return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainPlatformModeFailed, response == null ? "no response" : response.FailureReason.ToString());
