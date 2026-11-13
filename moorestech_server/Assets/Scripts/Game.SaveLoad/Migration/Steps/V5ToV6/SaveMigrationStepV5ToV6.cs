@@ -1,7 +1,7 @@
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V5ToV6
 {
     // V5→V6移行: 旧ベルコン(VanillaBeltConveyorComponent形式)のstateを落とす。載っていたアイテムは消滅する
     // V5→V6 migration: drop the old belt conveyor (VanillaBeltConveyorComponent shape) state; the items carried on it vanish

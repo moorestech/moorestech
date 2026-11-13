@@ -1,8 +1,7 @@
 using Game.SaveLoad.Migration.Steps.Shared;
-using Game.SaveLoad.Migration.Steps.V11ToV12;
 using Newtonsoft.Json.Linq;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V11ToV12
 {
     // V11→V12: 不純物量削除・摩耗を経過秒へ置換
     // V11->V12: drop room impurity and replace purifier wear with elapsed seconds

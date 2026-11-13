@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V11ToV12;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;

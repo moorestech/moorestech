@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V1ToV2
 {
     /// <summary>版1のセーブを版2へ上げる。stateのJSON文字列を展開し、版2で必須になった3項目を補う</summary>
     /// <summary>Raises a version 1 save to version 2: expands the JSON-string state and backfills the three fields version 2 requires</summary>

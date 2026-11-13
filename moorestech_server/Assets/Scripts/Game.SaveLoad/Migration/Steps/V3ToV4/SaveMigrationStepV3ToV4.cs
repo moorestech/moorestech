@@ -1,9 +1,8 @@
 using System;
-using Game.SaveLoad.Migration.Steps.V3ToV4;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V3ToV4
 {
     // V3→V4移行（ADR0076）: 電線・歯車チェーンの各接続へ、線種別ごとの唯一の種類を書き込む
     // V3→V4 migration (ADR 0076): write each kind's single connect tool into every wire and gear-chain connection

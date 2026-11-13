@@ -18,12 +18,15 @@ description: moorestech のセーブ形式を変えるとき、ロード時マ�
 ## 主手順: マイグレーションステップを書く
 
 1. **`WorldSaveAllInfo.CurrentVersion` を1つ上げる**（`Game.SaveLoad/Json/WorldVersions/`）。
-2. **`Game.SaveLoad/Migration/Steps/SaveMigrationStepV<n>ToV<n+1>.cs` を作る。**
-   `references/save-migration-step-template.md` の骨格と、実装済みの `SaveMigrationStepV1ToV2.cs` を写して書き始める。
+2. **`Game.SaveLoad/Migration/Steps/V<n>ToV<n+1>/SaveMigrationStepV<n>ToV<n+1>.cs` を作る。**
+   版フォルダに本体1本と、その版だけで使う部品を置く。namespace は `Game.SaveLoad.Migration.Steps.V<n>ToV<n+1>`（フォルダと一致）。
+   複数の版で使う部品は `Steps/Shared/` へ置く。`Steps/` 直下に `.cs` を置かない（版ごとに増えて1ディレクトリ10ファイル上限に掛かるため）。
+   `references/save-migration-step-template.md` の骨格と、実装済みの `V1ToV2/SaveMigrationStepV1ToV2.cs` を写して書き始める。
    変換は `JObject` の上だけで行い、`worldVersion` は触らない（連鎖が書く）。
-3. **`MoorestechServerDIContainerGenerator` の `new SaveMigrationChain(new ISaveMigrationStep[] {...}, WorldSaveAllInfo.CurrentVersion)` へ足す。**
+3. **`Server.Boot/Composition/SaveAndEventServiceRegistration.cs` の `SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] {...})` へ足し、`using Game.SaveLoad.Migration.Steps.V<n>ToV<n+1>;` を足す。**
+   全連鎖を組むテスト（`SaveMigrationChainTest`・`SaveLoadPreparerTestFixture`・`SaveMigrationStepV7ToV8Test`・`SaveMigrationStepV8ToV9Test` の `ForCurrentVersion`）にも同じく足す。
    `FromVersion` が `1..CurrentVersion-1` を欠番・重複なく覆っていないと、構築時（起動時）に `ArgumentException` で止まる。
-4. **単体テストを同じPRに入れる**（`Tests/UnitTest/Game/SaveLoad/SaveMigrationStepV<n>ToV<n+1>Test.cs`）。
+4. **単体テストを同じPRに入れる**（`Tests/UnitTest/Game/SaveLoad/Migration/V<n>ToV<n+1>/SaveMigrationStepV<n>ToV<n+1>Test.cs`）。
    テンプレートの「3. テスト」と既存 `SaveMigrationStepV1ToV2Test.cs` がそのまま雛形。
 5. **実ロードで確かめる**（下の「実ロード検証」）。デシリアライズ単体の確認では足りない。
 

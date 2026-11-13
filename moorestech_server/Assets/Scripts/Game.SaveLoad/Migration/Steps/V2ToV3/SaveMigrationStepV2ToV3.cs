@@ -1,10 +1,9 @@
 using System.Linq;
 using Game.PlayerIdentity;
-using Game.SaveLoad.Migration.Steps.V2ToV3;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V2ToV3
 {
     // V2→V3移行（ADR0073）
     // V2→V3 migration (ADR 0073)

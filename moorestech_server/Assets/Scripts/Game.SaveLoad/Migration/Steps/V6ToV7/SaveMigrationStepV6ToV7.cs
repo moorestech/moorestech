@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V6ToV7
 {
     // V6→V7移行: パイプの中身と面速度を double(流体量)から 10 億分の 1 単位の整数へ変える(ADR 0090)。`amount`→`amountNano`、`faceVelocities[].velocity`→`velocityNano`、どちらも最近傍に丸める
     // V6→V7 migration: convert pipe contents and face velocities from doubles (amount) to 10^-9-unit integers (ADR 0090). `amount`→`amountNano`, `faceVelocities[].velocity`→`velocityNano`, both rounded to nearest

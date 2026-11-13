@@ -1,7 +1,7 @@
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V4ToV5
 {
     // V4→V5: BP原点と配線を移行
     // V4 to V5: migrate blueprint origins and initialize line lists.
