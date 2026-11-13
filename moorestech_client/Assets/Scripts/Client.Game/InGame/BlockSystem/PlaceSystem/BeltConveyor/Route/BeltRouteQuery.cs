@@ -41,10 +41,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
             TurnByOutput = turnByOutput;
         }
 
-        // 終点が流す先の辺。ここへ受け手を置くと終点が既存ラインへ繋がってしまうため途中では使わない
-        // The edge the end flows into; a receiver there would wire the end into an existing line, so no mid-route cell may take it
-        public BeltRouteEdge EndOutputEdge => BeltRouteEdge.FromFace(EndCell, EndDirection, EndCell.y);
-
         public bool IsSameQuery(BeltRouteQuery other)
         {
             return StartCell == other.StartCell && StartDirection == other.StartDirection && StartIsExistingBelt == other.StartIsExistingBelt &&

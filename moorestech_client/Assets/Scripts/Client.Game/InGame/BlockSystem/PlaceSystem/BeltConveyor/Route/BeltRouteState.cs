@@ -24,8 +24,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
         public int ExitHeight => Cell.y + Kind.ExitHeightOffset();
         public int EntryHeight => Cell.y + Kind.EntryHeightOffset();
 
-        public BeltRouteEdge ExitEdge => BeltRouteEdge.FromFace(Cell, Outgoing, ExitHeight);
-
         public bool Equals(BeltRouteState other)
         {
             return Cell == other.Cell && Outgoing == other.Outgoing && Kind == other.Kind;
