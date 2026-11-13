@@ -21,8 +21,11 @@
     background-color: var(--mantine-color-dark-8);
 }
 
+/* 題は全言語で 1 行に収まるので、行を Web の Title order=2（26px×1.35）に固定する。UITK の字の自然な高さ（JP 38px）は Web の行より高く、カテゴリ列を 3px 押し下げていた（前例 Settings.uss） */
+/* The title fits on one line in every locale, so the row is fixed at the Web Title order=2 (26px x 1.35); UITK's natural glyph height (JP 38px) exceeds it and pushed the category row down 3px (precedent Settings.uss) */
 .challenge-list__title {
     flex-shrink: 0;
+    height: var(--title-order-2-row-height);
 }
 
 /* カテゴリ列: 折り返さず、幅を越えたら横に送る（Web .categories の flex-wrap: nowrap・overflow-x: auto）。送りとバーは GameScrollView の横向き */

@@ -106,6 +106,14 @@ return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record
     var picked = root.panel.Pick(hud.worldBound.center);
     hud.pickingMode = savedPicking;
     p.Assert(picked != null && (picked == hud || hud.Contains(picked)), $"HUD の中心の当たりが HUD 自身（当たり={picked?.name}）");
+    // 並べ比べの記録: Web はこの画面でもホットバーとキーヒントを一覧の上に出す（alwaysOnHud）。UITK の出方と中心の当たりを残す
+    // Comparison record: the Web keeps the hotbar and key hints above this screen (alwaysOnHud); note how UITK shows them and what their centers hit
+    foreach (var hudName in new[] { "hotbar-hud", "key-hints", "equipment-slots" })
+    {
+        var element = root.Q(hudName);
+        var hit = element == null ? null : root.panel.Pick(element.worldBound.center);
+        p.Note($"{hudName}: display={element?.resolvedStyle.display} 矩形={element?.worldBound} 子={element?.childCount} 中心の当たり={hit?.name}");
+    }
 
     // 空の背景をパンし、T で閉じて T で開き直しても視点が残る
     // Pan on empty background; closing and reopening with T keeps the view

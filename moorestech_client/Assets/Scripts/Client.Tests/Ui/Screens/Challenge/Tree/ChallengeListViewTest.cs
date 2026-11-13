@@ -51,6 +51,12 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             Assert.IsTrue(IsShown(Kit.Card(rootVisualElement, Kit.SecondStep)));
             Assert.AreEqual("チャレンジ", Kit.PlainText(_view.Q<Label>(className: "challenge-list__title")));
 
+            // 和文の題の行は Web の Title order=2（26px×1.35）で、カテゴリ列はその直下（字の自然な高さ 38px で下へずれない）
+            // The Japanese title row is the Web Title order=2 (26px x 1.35) and the category row sits right below it (not pushed down by the 38px natural glyph height)
+            var title = _view.Q<Label>(className: "challenge-list__title");
+            Assert.AreEqual(35.1f, title.layout.height, 0.5f, "題の行の高さ");
+            Assert.AreEqual(title.worldBound.yMax, Find<VisualElement>(rootVisualElement, "challenge-categories").worldBound.yMin, 0.5f, "カテゴリ列の上端");
+
             // 名前と状態は翻訳済み
             // Titles and states are localized
             var first = Kit.Card(rootVisualElement, Kit.FirstCraft);
