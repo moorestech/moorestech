@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -34,8 +35,12 @@ return PlaytestRunner.Run("uitk-block-inventory", new PlaytestRunOptions { Recor
         if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert) errorLogs.Add(condition);
     }
     Application.logMessageReceived += OnLog;
+    // 題を日本語で主張するため言語を japanese にし、元の言語は finally で戻す（PlayerPrefs は他の実行と共有される）
+    // Set the language to japanese to assert the Japanese title and restore the original in finally (PlayerPrefs is shared across runs)
+    var originalLanguageCode = Localize.GetCurrentLanguageCode();
     try
     {
+        p.Assert(Localize.TrySetChosenLanguage("japanese"), "言語を japanese にできる");
         p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
         p.Note($"UiInputExclusivity.ActiveUiSystem={UiInputExclusivity.ActiveUiSystem}");
 
@@ -135,6 +140,7 @@ return PlaytestRunner.Run("uitk-block-inventory", new PlaytestRunOptions { Recor
     }
     finally
     {
+        Localize.TrySetChosenLanguage(originalLanguageCode);
         Application.logMessageReceived -= OnLog;
     }
 
