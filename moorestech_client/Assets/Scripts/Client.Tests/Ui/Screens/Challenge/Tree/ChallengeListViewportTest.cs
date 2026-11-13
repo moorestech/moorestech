@@ -97,10 +97,10 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             var sizeBefore = SingleGraph().contentRect.size;
             Select(Kit.Logistics);
 
-            // B を見ている間に一覧の寸法を変える
-            // Resize the list while showing B
-            rootVisualElement.style.width = 1000f;
-            rootVisualElement.style.height = 600f;
+            // B を見ている間に一覧の寸法を変える（舞台の枠は層の中で決まるので一覧の右・下を詰める）
+            // Resize the list while showing B (the stage frame is set inside the layer, so pull in the list's right and bottom)
+            _view.style.right = 200f;
+            _view.style.bottom = 100f;
             Settle();
             Assert.AreNotEqual(sizeBefore, SingleGraph().contentRect.size, "寸法が変わっている");
 
