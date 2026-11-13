@@ -10,9 +10,14 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Root;
+using Client.Ui.Screens.Tutorial.Anchor;
+using Cysharp.Threading.Tasks;
 using Client.WebUiHost.Boot;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("uitk-master-anchors", options, async p =>
@@ -74,7 +79,13 @@ return PlaytestRunner.Run("uitk-master-anchors", options, async p =>
     await p.PressKey(Key.R);
     await p.WaitUiState(UIStateEnum.ResearchTree, 10f);
     await p.WaitSeconds(1f);
-    foreach (var a in anchors.Where(a => a.AnchorId.StartsWith(AnchorIds.ResearchNodePrefix))) await PlaytestAnchorChecks.CheckOutlineOnAnchor(p, a);
+    // 初期の視口の外にあるノードもあるので、本番のパン（左ドラッグ）で視口の中央へ寄せてから測る
+    // Some nodes start outside the viewport, so pan them to its center with the production left-drag before measuring
+    foreach (var a in anchors.Where(a => a.AnchorId.StartsWith(AnchorIds.ResearchNodePrefix)))
+    {
+        await PanResearchNodeToViewCenter(a.AnchorId);
+        await PlaytestAnchorChecks.CheckOutlineOnAnchor(p, a);
+    }
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
@@ -82,4 +93,52 @@ return PlaytestRunner.Run("uitk-master-anchors", options, async p =>
     // None of the 9 anchors is left out of the screen routing
     var routed = anchors.Count(a => a.AnchorId == AnchorIds.ChallengeCurrentHud || a.AnchorId == AnchorIds.RecipeCraftButton || a.AnchorId.StartsWith(AnchorIds.ResearchNodePrefix));
     p.Assert(routed == anchors.Count, $"全アンカーを画面に割り振った（{routed}/{anchors.Count}）");
+
+    #region Internal
+
+    async UniTask PanResearchNodeToViewCenter(string anchorId)
+    {
+        var root = GameUiRoot.Instance.GetRootElement();
+        for (var round = 1; round <= 6; round++)
+        {
+            // silent-ok: 解決しないときは寄せずに進む / 直後の CheckOutlineOnAnchor の Assert が落とす
+            var unique = TutorialAnchorRegistry.Resolve(root, anchorId) as TutorialAnchorResolution.Unique;
+            if (unique == null) return;
+
+            // 本番の枠と同じ見える範囲の中央とノードの中央の差を、根の座標で測る
+            // Measure the gap between the visible-region center (same as the production frame) and the node center in root space
+            var visible = TutorialAncestorClipWalker.ClipOf(unique.Element, root);
+            var viewCenter = new Vector2((visible.Left + visible.Right) / 2f, (visible.Top + visible.Bottom) / 2f);
+            var offset = viewCenter - root.WorldToLocal(unique.Element.worldBound).center;
+            if (offset.magnitude <= 20f) { p.Note($"{anchorId} を視口の中央へ寄せた（ドラッグ {round - 1} 回・残り {offset.magnitude:F1}px）"); return; }
+
+            // 1 回の移動は見える範囲の 4 割までにし、中央を挟んで押して離すので指が視口の外へ出ない
+            // Cap one move at 40% of the visible region and straddle the center so the pointer never leaves the viewport
+            var limit = new Vector2(visible.Right - visible.Left, visible.Bottom - visible.Top) * 0.4f;
+            var step = new Vector2(Mathf.Clamp(offset.x, -limit.x, limit.x), Mathf.Clamp(offset.y, -limit.y, limit.y));
+            await DragInRoot(root, viewCenter - step / 2f, viewCenter + step / 2f);
+        }
+        p.Note($"{anchorId} は 6 回のドラッグで視口の中央へ寄り切らなかった");
+    }
+
+    async UniTask DragInRoot(VisualElement root, Vector2 fromRoot, Vector2 toRoot)
+    {
+        // 根の座標を左下原点のスクリーン座標へ直す（GameUiScreenMapper と同じ換算）
+        // Convert root coordinates to bottom-left screen coordinates (same mapping as GameUiScreenMapper)
+        var scale = new Vector2(Screen.width / root.worldBound.width, Screen.height / root.worldBound.height);
+        Vector2 ToScreen(Vector2 v) => new Vector2(v.x * scale.x, Screen.height - v.y * scale.y);
+
+        // 押す前に間を置き、離す前に止まって滑走（慣性）を起こさない
+        // Pause before pressing and stop before releasing so no inertial glide starts
+        SemanticInput.MouseMoveTo(ToScreen(fromRoot));
+        await p.WaitSeconds(0.3f);
+        SemanticInput.MouseButtonDown(0);
+        await UniTask.DelayFrame(2);
+        await SemanticInput.MouseGlideTo(ToScreen(toRoot), 0.4f);
+        await p.WaitSeconds(0.3f);
+        SemanticInput.MouseButtonUp(0);
+        await p.WaitSeconds(0.3f);
+    }
+
+    #endregion
 });

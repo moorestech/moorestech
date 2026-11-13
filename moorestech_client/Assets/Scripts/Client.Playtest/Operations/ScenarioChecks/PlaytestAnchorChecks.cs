@@ -73,20 +73,14 @@ namespace Client.Playtest.Operations
             await UniTask.DelayFrame(2);
             var ring = own.Q(className: OutlineRingClass);
 
-            // 見える範囲は本番の枠と同じ判定（TutorialAncestorClipWalker）で根の座標に取り、アンカーが収まるときだけ中心を比べる
-            // Take the visible region with the production walker in root space and compare centers only when the anchor fits in it
+            // 見える範囲は本番の枠と同じ判定（TutorialAncestorClipWalker）で根の座標に取る。呼び手が視口へ寄せてから呼ぶので、収まらなければ落とす
+            // Take the visible region with the production walker in root space; callers bring the anchor into view first, so failing to fit is an error
             var anchorBound = root.WorldToLocal(unique.Element.worldBound);
             var visible = TutorialAncestorClipWalker.ClipOf(unique.Element, root);
             var fullyVisible = visible.Expand(0.5f).ContainsRect(new TutorialClipRect(anchorBound.xMin, anchorBound.yMin, anchorBound.xMax, anchorBound.yMax));
-            if (fullyVisible)
-            {
-                var distance = Vector2.Distance(root.WorldToLocal(ring.worldBound).center, anchorBound.center);
-                p.Assert(distance <= CenterTolerancePx, $"{anchor.AnchorId} の枠の中心がアンカーの中心から {distance:F1}px（{CenterTolerancePx}px 以内）");
-            }
-            else
-            {
-                p.Note($"{anchor.AnchorId} は画面外か切り抜きの容器で一部が隠れている（{anchorBound} のうち見える範囲 {visible.Left:F0},{visible.Top:F0}-{visible.Right:F0},{visible.Bottom:F0}）。枠の位置は見ない");
-            }
+            p.Assert(fullyVisible, $"{anchor.AnchorId} が見える範囲に収まる（{anchorBound} / 見える範囲 {visible.Left:F0},{visible.Top:F0}-{visible.Right:F0},{visible.Bottom:F0}）");
+            var distance = Vector2.Distance(root.WorldToLocal(ring.worldBound).center, anchorBound.center);
+            p.Assert(distance <= CenterTolerancePx, $"{anchor.AnchorId} の枠の中心がアンカーの中心から {distance:F1}px（{CenterTolerancePx}px 以内）");
             await p.Screenshot($"anchor-{anchor.AnchorId}");
 
             // 完了で自分の枠だけが木から外れ、控えた本番の枠は残る
