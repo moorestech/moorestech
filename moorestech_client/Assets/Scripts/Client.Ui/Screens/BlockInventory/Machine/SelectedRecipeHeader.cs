@@ -23,7 +23,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
     /// </summary>
     public sealed class SelectedRecipeHeader : VisualElement
     {
-
         private readonly UiGroup _group = new(UiGap.Xs);
         private readonly Subject<Unit> _pressed = new();
         private readonly GameContentPresentation _content;
