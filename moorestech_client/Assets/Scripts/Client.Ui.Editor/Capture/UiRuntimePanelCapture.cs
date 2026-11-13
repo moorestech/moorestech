@@ -30,7 +30,7 @@ namespace Client.Ui.Editor.Capture
 
         // 読める Texture2D を返す。破棄は呼び手
         // Returns a readable Texture2D; the caller disposes it
-        public static Texture2D Render(VisualElement content, int width, int height, Color ground, UiCaptureLocalization localization)
+        public static Texture2D Render(VisualElement content, int width, int height, Color ground, UiCaptureBackdrop backdrop, UiCaptureLocalization localization)
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("[UiRuntimePanelCapture] EditMode only; use ScreenCapture in PlayMode");
             var source = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
@@ -94,6 +94,9 @@ namespace Client.Ui.Editor.Capture
                 var groundElement = new VisualElement();
                 groundElement.style.flexGrow = 1;
                 groundElement.style.backgroundColor = ground;
+                // 地の画像と外殻を中身より先に敷く（後に足した子ほど手前）
+                // Lay the ground image and shell before the content (later children draw in front)
+                backdrop.ApplyTo(groundElement);
                 groundElement.Add(content);
                 return groundElement;
             }
@@ -125,9 +128,9 @@ namespace Client.Ui.Editor.Capture
 
         // PNG に書いてパスを返す。上下は画面と同じ（C3-a）
         // Writes a PNG and returns its path; upright like the screen (C3-a)
-        public static string CaptureToPng(VisualElement content, int width, int height, Color ground, UiCaptureLocalization localization, string pngPath)
+        public static string CaptureToPng(VisualElement content, int width, int height, Color ground, UiCaptureBackdrop backdrop, UiCaptureLocalization localization, string pngPath)
         {
-            var texture = Render(content, width, height, ground, localization);
+            var texture = Render(content, width, height, ground, backdrop, localization);
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(pngPath)));
             File.WriteAllBytes(pngPath, texture.EncodeToPNG());
             Object.DestroyImmediate(texture);

@@ -68,7 +68,7 @@ namespace Client.Tests.Ui.Gallery
 
         private static void Capture(VisualElement content)
         {
-            var texture = UiRuntimePanelCapture.Render(content, 1280, 720, Ground, UiCaptureLocalization.KeepCurrentDictionary);
+            var texture = UiRuntimePanelCapture.Render(content, 1280, 720, Ground, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.KeepCurrentDictionary);
             Object.DestroyImmediate(texture);
         }
 

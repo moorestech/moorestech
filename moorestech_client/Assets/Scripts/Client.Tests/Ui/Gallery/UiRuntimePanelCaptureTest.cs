@@ -1,3 +1,4 @@
+using System.Linq;
 using Client.Localization;
 using Client.Ui.Editor.Capture;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 不透明な箱と地を1280x720の画素で読める()
         {
-            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureLocalization.InitializeDictionary);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.InitializeDictionary);
 
             AssertPixel(new Color32(255, 0, 0, 255), texture, 30, 30);
             AssertPixel(Ground, texture, 100, 100);
@@ -28,7 +29,7 @@ namespace Client.Tests.Ui.Gallery
         [Test]
         public void 横長2560x1080では本番の倍率1_5で描く()
         {
-            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 2560, 1080, Ground, UiCaptureLocalization.InitializeDictionary);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 2560, 1080, Ground, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.InitializeDictionary);
 
             Assert.AreEqual(60, MeasureRedRunWidth(texture, 45), 1);
             Object.DestroyImmediate(texture);
@@ -41,7 +42,7 @@ namespace Client.Tests.Ui.Gallery
             // Keep skips Localize.Initialize so captures can use test-added dictionaries
             Localize.Initialize();
             var revision = Localize.GetDictionaryRevision();
-            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureLocalization.KeepCurrentDictionary);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.KeepCurrentDictionary);
             Object.DestroyImmediate(texture);
 
             Assert.AreEqual(revision, Localize.GetDictionaryRevision());
@@ -52,10 +53,52 @@ namespace Client.Tests.Ui.Gallery
         {
             Localize.Initialize();
             var revision = Localize.GetDictionaryRevision();
-            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureLocalization.InitializeDictionary);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, UiCaptureBackdrop.GroundColorOnly, UiCaptureLocalization.InitializeDictionary);
             Object.DestroyImmediate(texture);
 
             Assert.AreNotEqual(revision, Localize.GetDictionaryRevision());
+        }
+
+        [Test]
+        public void 幕を敷くと地が幕の色で沈み中身は手前に描かれる()
+        {
+            // 画面中央はヴィネットが透明なので、地 30 に黒 42% の幕が載った値だけになる（Web .backdrop）
+            // The vignette is clear at the centre, so the ground 30 only gets the 42% black dim (Web .backdrop)
+            var backdrop = new UiCaptureBackdrop(UiCaptureShell.VignetteAndDim, null);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, backdrop, UiCaptureLocalization.InitializeDictionary);
+
+            AssertPixel(new Color32(17, 17, 17, 255), texture, 640, 360);
+            AssertPixel(new Color32(255, 0, 0, 255), texture, 30, 30);
+            Object.DestroyImmediate(texture);
+        }
+
+        [Test]
+        public void 幕なしの外殻は中央の地を変えず隅をヴィネットで沈める()
+        {
+            var backdrop = new UiCaptureBackdrop(UiCaptureShell.VignetteOnly, null);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, backdrop, UiCaptureLocalization.InitializeDictionary);
+
+            AssertPixel(Ground, texture, 640, 360);
+            Assert.Less(ReadScreenPixel(texture, 1279, 719).r, Ground.r - 1, "右下の隅がヴィネットで沈まない");
+            Object.DestroyImmediate(texture);
+        }
+
+        [Test]
+        public void 地の画像は地の色の代わりに全面を覆う()
+        {
+            // 単色の画像を cover で敷くと、中身の外はどこも画像の色になる
+            // A solid image laid with cover makes everything outside the content the image colour
+            var image = new Texture2D(4, 4, TextureFormat.RGBA32, false);
+            image.SetPixels32(Enumerable.Repeat(new Color32(0, 200, 0, 255), 16).ToArray());
+            image.Apply();
+            var backdrop = new UiCaptureBackdrop(UiCaptureShell.None, image);
+            var texture = UiRuntimePanelCapture.Render(CreateRedBox(), 1280, 720, Ground, backdrop, UiCaptureLocalization.InitializeDictionary);
+
+            AssertPixel(new Color32(0, 200, 0, 255), texture, 640, 360);
+            AssertPixel(new Color32(0, 200, 0, 255), texture, 1270, 700);
+            AssertPixel(new Color32(255, 0, 0, 255), texture, 30, 30);
+            Object.DestroyImmediate(texture);
+            Object.DestroyImmediate(image);
         }
 
         #region Helpers
