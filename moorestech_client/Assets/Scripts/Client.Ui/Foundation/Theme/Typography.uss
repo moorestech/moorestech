@@ -7,7 +7,7 @@
 }
 
 .game-ui-locale--cjk {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset"); /* look-exception: LX-186 */
 }
 
 /* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0。USS に line-height は無いので、1 行は min-height＝字×line-height、LocalizedLabel は --localized-label-line-box で行送りと高さ（行数×行の高さ）を Web と同じにする（設計書 A-221） */

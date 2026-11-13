@@ -68,10 +68,10 @@ namespace Client.Ui.Foundation.Text.SizeRounding
             // silent-ok: 空の文・印だけの文は送りが無い / 字を含む文に替われば TagFor が測り直す
             if (spacedGlyphs < 0.5f) return string.Empty;
 
-            // 広がった分＝幅×(1−本来の大きさ／丸めた大きさ)。字ごとに等分して引く
-            // The widening is width x (1 - exact / rounded), subtracted evenly per glyph
+            // 広がった分＝幅×(1−本来の大きさ／丸めた大きさ)。字ごとに等分して引く。字の形は丸めた大きさのまま残る
+            // The widening is width x (1 - exact / rounded), subtracted evenly per glyph; glyph shapes stay at the rounded size
             var excessPerGlyph = width * (1f - exactPixels / roundedPixels) / spacedGlyphs;
-            return $"<cspace={(-excessPerGlyph).ToString("0.####", CultureInfo.InvariantCulture)}px>";
+            return $"<cspace={(-excessPerGlyph).ToString("0.####", CultureInfo.InvariantCulture)}px>"; // look-exception: LX-185
         }
 
         private float MeasureSingleLine(string text)
