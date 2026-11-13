@@ -28,21 +28,24 @@
 }
 
 .text--xs {
+    --text-xs-row-height: 16.8px;
     font-size: var(--mantine-font-size-xs);
-    min-height: 16.8px;
-    --localized-label-line-box: 16.8px;
+    min-height: var(--text-xs-row-height);
+    --localized-label-line-box: var(--text-xs-row-height);
 }
 
 .text--sm {
+    --text-sm-row-height: 20.3px;
     font-size: var(--mantine-font-size-sm);
-    min-height: 20.3px;
-    --localized-label-line-box: 20.3px;
+    min-height: var(--text-sm-row-height);
+    --localized-label-line-box: var(--text-sm-row-height);
 }
 
 .text--md {
+    --text-md-row-height: 24.8px;
     font-size: var(--mantine-font-size-md);
-    min-height: 24.8px;
-    --localized-label-line-box: 24.8px;
+    min-height: var(--text-md-row-height);
+    --localized-label-line-box: var(--text-md-row-height);
 }
 
 .title--order-1 {
@@ -64,19 +67,21 @@
 }
 
 .title--order-3 {
+    --title-order-3-row-height: 30.8px;
     --title-heading-latin-letter-spacing: -3.3px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 22px で 0.033em 狭い（Mac の Chrome の実測） */
     --title-heading-cjk-font-size: 20.35px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 22px の 0.925 倍（NotoSansJP 比） */
     font-size: 22px;
-    min-height: 30.8px;
-    --localized-label-line-box: 30.8px;
+    min-height: var(--title-order-3-row-height);
+    --localized-label-line-box: var(--title-order-3-row-height);
 }
 
 .title--order-4 {
+    --title-order-4-row-height: 26.1px;
     --title-heading-latin-letter-spacing: -2px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 18px で 0.020em 狭い（Mac の Chrome の実測） */
     --title-heading-cjk-font-size: 16.65px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 18px の 0.925 倍（NotoSansJP 比） */
     font-size: 18px;
-    min-height: 26.1px;
-    --localized-label-line-box: 26.1px;
+    min-height: var(--title-order-4-row-height);
+    --localized-label-line-box: var(--title-order-4-row-height);
 }
 
 .text--dimmed {
