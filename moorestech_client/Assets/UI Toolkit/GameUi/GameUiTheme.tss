@@ -4,8 +4,14 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/SkitTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/SlotTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/MantineTokens.uss");
-@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss");
-@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/SkitDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/PanelsDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/ControlsDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/TextDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/SlotsDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/GaugesDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/RecipeDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/ScreensDerivedTokens.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens/SkitDerivedTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Theme.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Typography.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Layout.uss");

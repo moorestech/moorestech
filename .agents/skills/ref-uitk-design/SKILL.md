@@ -94,11 +94,11 @@ public sealed class IconButton : VisualElement
 |---|---|---|
 | `Tokens.uss`・`SlotTokens.uss`・`SkitTokens.uss` | `W/app/tokens.css`・`slotTokens.css`・`skitTokens.css` | 生成物。手で直さず、リポジトリ直下で `node tools/uitk/convert-web-tokens.mjs`。名前の一致は `WebTokenParityTest` |
 | `MantineTokens.uss`〔F1〕 | Mantine の暗色テーマの `--mantine-*` | 生成物。手で直さない |
-| `DerivedTokens.uss`〔F1〕 | Web の `color-mix`・`rgb(from …)`・半透明・直書きの色 | 手で書く。各行に `/* web: 元の式 決め方 */` |
+| `DerivedTokens/*.uss`〔F1〕 | Web の `color-mix`・`rgb(from …)`・半透明・直書きの色 | 手で書く。各行に `/* web: 元の式 決め方 */` |
 | `Theme.uss` | Mantine の既定コントロール | 既定コントロールを `--mantine-*` で塗る〔F1〕 |
 | `Typography.uss`（クラスの拡充は〔C2-c〕）・`Layout.uss`〔C2-c〕 | Mantine の Text/Title・Stack/Group | カタログの「文字・装飾族」 |
 
-- 部品・画面の USS の色は `var(--…)` だけ。`#hex`・`rgb()` は `UiStyleConventionTest` が落とす。新しい色が要るときは `DerivedTokens.uss`〔F1〕に元の式と決め方を付けて足す
+- 部品・画面の USS の色は `var(--…)` だけ。`#hex`・`rgb()` は `UiStyleConventionTest` が落とす。新しい色が要るときは `Foundation/Theme/DerivedTokens/` の族のファイル（`<族>DerivedTokens.uss`。Panels・Controls・Text・Slots・Gauges・Recipe・Screens・Skit）に元の式と決め方を付けて足す。ファイルを足すときは tss の Foundation/Theme 区画と `UiStyleConventionRules.ColorLiteralExemptUssFileNames` にも足す〔F1・A-228〕
 - 寸法は Web がトークンで書く値はトークン、Web が直書きする値は同じ直書きで写す
 - 半透明は Web の α・opacity をそのまま使う（GameUi は sRGB 空間で合成する。A-180〜A-184）。決め方は `references/css-to-uss.md` の「半透明」
 - 文字の大きさは Web と同じ px にする。13px 下限は外す（設計書 [A-39]。`TokenFloorAndTranslucencyTest` の下限は F1 が外す〔F1〕。F1 の取り込み前は下限テストが残る）

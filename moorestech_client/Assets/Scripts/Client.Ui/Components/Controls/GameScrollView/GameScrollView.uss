@@ -1,10 +1,10 @@
 /* moorestech_client/Assets/Scripts/Client.Ui/Components/Controls/GameScrollView/GameScrollView.uss */
 /* 本文のスクロール領域。Mantine ScrollArea（type=auto・バーは本文に重なり右端）と moorestech_web/webui/src/shared/ui/panelBodyScrollArea.module.css を写す */
 /* 幅と内側は --scrollarea-scrollbar-size と --game-scroll-view-scrollbar-padding-ratio から GameScrollView.cs が計算する（size・size×比） */
-/* 溝・つまみの色と縦バーの上下右の逃げはつまみ（既定は DerivedTokens.uss の :root。ここで既定を書くと祖先の上書きを潰す） */
+/* 溝・つまみの色と縦バーの上下右の逃げはつまみ（既定は DerivedTokens/ControlsDerivedTokens.uss の :root。ここで既定を書くと祖先の上書きを潰す） */
 /* Body scroll area copying Mantine ScrollArea (type=auto, bar overlaid at the right edge) and moorestech_web/webui/src/shared/ui/panelBodyScrollArea.module.css */
 /* GameScrollView.cs computes width and inset from --scrollarea-scrollbar-size and --game-scroll-view-scrollbar-padding-ratio (size, size x ratio) */
-/* Track and thumb colors and the vertical bar's top/bottom/right insets are knobs (defaults live on :root in DerivedTokens.uss; a default here would block ancestor overrides) */
+/* Track and thumb colors and the vertical bar's top/bottom/right insets are knobs (defaults live on :root in DerivedTokens/ControlsDerivedTokens.uss; a default here would block ancestor overrides) */
 .game-scroll-view {
     --game-scroll-view-scrollbar-size: var(--scrollarea-scrollbar-size);
     --game-scroll-view-scrollbar-padding-ratio-resolved: var(--game-scroll-view-scrollbar-padding-ratio);

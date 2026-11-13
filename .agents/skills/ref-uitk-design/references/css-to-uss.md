@@ -14,7 +14,7 @@
 | `em` | 対象要素の font-size（px）を掛けて px にする（例 `GamePanel.uss` の 19px × 0.02em = 0.38px）。元の値をコメントに残す |
 | 定数だけの `calc()` | 計算済みの px にし、導出式をコメントに残す（`CalcConstantRecheckTest`〔F1〕が検算する）。例 `GamePanel.uss` の `top: -11.913894px;`（`calc(var(--panel-top, -8px) - 3.913894px)`） |
 | 要素・画面の寸法に依存する `calc()`・`%`・`vw`/`vh` | USS の `%`・中央寄せか、C# の幾何計算（`GeometryChangedEvent`）に置き換える。舞台の倍率は `UiStageFrame`〔F1〕が持つ |
-| `color-mix`・`rgb(from …)` | 事前に計算した色を `DerivedTokens.uss`〔F1〕の 1 行にし、`/* web: 元の式 */` を付ける |
+| `color-mix`・`rgb(from …)` | 事前に計算した色を `DerivedTokens/*.uss`〔F1〕の 1 行にし、`/* web: 元の式 */` を付ける |
 | `var(--x, 既定値)` の既定値 | 部品の USS で既定値を明示して受け直す（例 `--game-panel-edge-fade: var(--panel-edge-fade);`） |
 
 ## 2. 選択子と状態
@@ -72,7 +72,7 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 
 - Web の α・opacity をそのまま書く。GameUi のパネルは `forceGammaRendering` で sRGB の値のまま RT に描き、URP の最後（`Foundation/Composite` の `UiSrgbCompositeFeature`）に世界を sRGB にしてから重ねるので、Chrome と同じ sRGB 空間の合成になる（設計書 [A-180]〜[A-184]）。地の明るさで値を選び分けたり、α を式で補正したりしない
 - 重なる子を持つ群（枠と中身・面と文字）の `opacity` は `filter: opacity(var(--…))` で群に掛ける。要素の `opacity` は子ごとに掛かり、重なった子が明るく出る。群は Foundation の `PixelFilterGroup` にし、filter は `.<宿主>--<状態> > .pixel-filter-group` に書く（宿主に直に書くと中間 RT が論理 px で取られ、倍率 1.5 以上でぼける）。群にしない状態（`opacity: 1`）には `filter` を付けない（`opacity(1)` でもオフスクリーンに描かれ、暗い色が沈む。台帳 LX-76）（設計書 [A-222]・[A-226]）
-- 生成されるトークン（`Tokens.uss` 等）は Web の値をそのまま写す。手で書く半透明（`DerivedTokens.uss`）も行のコメントに Web の値の出所を書き、同じ値を書く
+- 生成されるトークン（`Tokens.uss` 等）は Web の値をそのまま写す。手で書く半透明（`DerivedTokens/*.uss`）も行のコメントに Web の値の出所を書き、同じ値を書く
 - 色の比べ方: ランタイムの PanelSettings（`UiRuntimePanelCapture`）か PlayMode の画面の撮影で比べる（`compare-procedure.md` §3）
 - 最後は実機の撮影で決める。決め直したら決め方のコメントを「実機で据え置き（何を撮って決めたか）」へ書き換える（前例 `--panel-action-hover-face`）
 

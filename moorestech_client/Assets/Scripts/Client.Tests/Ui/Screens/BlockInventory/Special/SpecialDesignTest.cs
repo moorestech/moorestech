@@ -92,8 +92,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         [Test]
         public void モード切替の間隔と内側の余白と選択面は専用トークンで決まる()
         {
-            // Web の --mode-switch-selected-mix は USS に color-mix が無いので DerivedTokens の --mode-switch-selected-face に焼いてある
-            // The Web's --mode-switch-selected-mix is baked into DerivedTokens' --mode-switch-selected-face because USS has no color-mix
+            // Web の --mode-switch-selected-mix は USS に color-mix が無いので DerivedTokens/ControlsDerivedTokens.uss の --mode-switch-selected-face に焼いてある
+            // The Web's --mode-switch-selected-mix is baked into ControlsDerivedTokens.uss' --mode-switch-selected-face because USS has no color-mix
             var uss = File.ReadAllText(Path.Combine(Application.dataPath, ModeSwitchUss));
             foreach (var token in new[] { "var(--mode-switch-gap)", "var(--mode-switch-padding-block)", "var(--mode-switch-padding-inline)", "var(--mode-switch-selected-face)" }) StringAssert.Contains(token, uss);
         }

@@ -1,7 +1,7 @@
 /* ModeSwitch。寸法と色は moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css を写す */
-/* box-shadow の輪は USS に無いので、面の外へ出した絡まない子（ModeSwitchRing・.mode-switch__ring）の枠線で描く。面の箱と送りは Web と同じで、輪はレイアウトに入らない。選択面の color-mix は DerivedTokens.uss の前計算トークンで受ける */
+/* box-shadow の輪は USS に無いので、面の外へ出した絡まない子（ModeSwitchRing・.mode-switch__ring）の枠線で描く。面の箱と送りは Web と同じで、輪はレイアウトに入らない。選択面の color-mix は DerivedTokens/ControlsDerivedTokens.uss の前計算トークンで受ける */
 /* ModeSwitch; sizes and colors copy moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css */
-/* USS has no box-shadow, so the ring is the border of a non-picking child (ModeSwitchRing, .mode-switch__ring) pushed outside the face; the face box and pitch match the Web and the ring stays out of layout; the selected face's color-mix comes from a precomputed DerivedTokens.uss token */
+/* USS has no box-shadow, so the ring is the border of a non-picking child (ModeSwitchRing, .mode-switch__ring) pushed outside the face; the face box and pitch match the Web and the ring stays out of layout; the selected face's color-mix comes from a precomputed DerivedTokens/ControlsDerivedTokens.uss token */
 
 .mode-switch {
     flex-direction: row;

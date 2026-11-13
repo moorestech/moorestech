@@ -31,11 +31,11 @@ namespace Client.Tests.Ui.Components
 
             string ReadDeclaredValue(string tokenName)
             {
-                // 宣言はテーマの USS のどれか 1 枚にある。名前の前に英数とハイフンが続かない所だけを拾う
-                // The declaration lives in one of the theme USS files; only matches not preceded by a word char or hyphen count
+                // 宣言はテーマの USS（派生トークンのサブディレクトリを含む）のどれか 1 枚にある。名前の前に英数とハイフンが続かない所だけを拾う
+                // The declaration lives in one of the theme USS files (including the derived token subdirectory); only matches not preceded by a word char or hyphen count
                 var pattern = new Regex(@"(?<![\w-])" + Regex.Escape(tokenName) + @"\s*:\s*([^;]+);");
                 var directory = Path.Combine(Path.GetDirectoryName(Application.dataPath), ThemeDirectory);
-                foreach (var path in Directory.GetFiles(directory, "*.uss").OrderBy(path => path))
+                foreach (var path in Directory.GetFiles(directory, "*.uss", SearchOption.AllDirectories).OrderBy(path => path))
                 {
                     var match = pattern.Match(File.ReadAllText(path));
                     if (match.Success) return Regex.Replace(match.Groups[1].Value, @"/\*.*?\*/", "").Trim();
