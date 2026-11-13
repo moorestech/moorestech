@@ -21,28 +21,66 @@ namespace Tests.CombinedTest.Core.CleanRoom
         [Test]
         public void FullPowerConsumesFiveFiltersPerMinuteTest()
         {
-            CleanRoomHatchTest.CreateServer();
-            var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
-            CleanRoomAirFilterTest.LoadFilterItems(block, 10);
+            var block = BuildServingPurifier(10);
 
-            // 満電60秒でちょうど5個減る
-            // Even outside any room, sixty seconds at full power consume exactly five filters
+            // 部屋の中で満電60秒ならちょうど5個減る
+            // Sixty seconds at full power inside a room consume exactly five filters
             CleanRoomAirFilterTest.TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(60));
             Assert.AreEqual(5, FilterCount(block));
         }
 
         [Test]
+        public void HalfPowerHalvesConsumptionTest()
+        {
+            var block = BuildServingPurifier(10);
+
+            // 電力50%の60秒は2.5個相当。2個減り、3個目は寿命の半分まで進む
+            // Sixty seconds at 50% power equal 2.5 filters: two are consumed and the third is half worn
+            CleanRoomAirFilterTest.TickWithPower(block, 50f, (int)GameUpdater.SecondsToTicks(60));
+            Assert.AreEqual(8, FilterCount(block));
+            Assert.AreEqual(0.5d, RemainingRatio(block), 1e-9);
+
+            // さらに60秒で計120秒、ちょうど5個減る
+            // Another sixty seconds (120 in total) consume exactly five
+            for (var i = 0; i < GameUpdater.SecondsToTicks(60); i++) GameUpdater.UpdateOneTick();
+            Assert.AreEqual(5, FilterCount(block));
+            Assert.AreEqual(1d, RemainingRatio(block), 1e-9);
+        }
+
+        [Test]
         public void UnpoweredFilterDoesNotWearTest()
         {
-            CleanRoomHatchTest.CreateServer();
-            var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
-            CleanRoomAirFilterTest.LoadFilterItems(block, 10);
+            var block = BuildServingPurifier(10);
 
-            // 無通電では寿命が進まない
-            // Sixty seconds without power change neither the filter count nor the remaining life
+            // 部屋の中でも無通電では寿命が進まない
+            // Even inside a room, sixty seconds without power change neither the filter count nor the remaining life
             for (var i = 0; i < GameUpdater.SecondsToTicks(60); i++) GameUpdater.UpdateOneTick();
             Assert.AreEqual(10, FilterCount(block));
-            Assert.AreEqual(1d, block.GetComponent<ICleanRoomAirFilter>().GetStatus().CurrentFilterRemainingRatio, 1e-9);
+            Assert.AreEqual(1d, RemainingRatio(block), 1e-9);
+        }
+
+        [Test]
+        public void EmptySlotDoesNotWearTest()
+        {
+            var block = BuildServingPurifier(0);
+
+            // 空スロットのまま満電5秒回しても、後から入れた1個は未使用のまま
+            // Five powered seconds with an empty slot leave a filter inserted afterwards unused
+            CleanRoomAirFilterTest.TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(5));
+            CleanRoomAirFilterTest.LoadFilterItems(block, 1);
+            Assert.AreEqual(1d, RemainingRatio(block), 1e-9);
+        }
+
+        [Test]
+        public void RemainingRatioFollowsElapsedLifeTest()
+        {
+            var block = BuildServingPurifier(3);
+
+            // 満電5秒で残り寿命は 1 - 5/12
+            // Five seconds at full power leave 1 - 5/12 of the life
+            CleanRoomAirFilterTest.TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(5));
+            Assert.AreEqual(3, FilterCount(block));
+            Assert.AreEqual(1d - 5d / FilterLifeSeconds, RemainingRatio(block), 1e-9);
         }
 
         [Test]
@@ -73,9 +111,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         [Test]
         public void LastFilterRunsOutAfterOneLifeTest()
         {
-            CleanRoomHatchTest.CreateServer();
-            var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
-            CleanRoomAirFilterTest.LoadFilterItems(block, 1);
+            var block = BuildServingPurifier(1);
 
             // 最後の1個が尽きる
             // One life consumes the last filter and drops the removal volume to zero
@@ -86,7 +122,25 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
         #region TestHelper
 
-        private static int FilterCount(IBlock block)
+        // 基準部屋に清浄機を置き、検出tickを1回回して在室にする。このtickは無通電なので寿命は進まない
+        // Place the purifier in the base room and run one detection tick so it serves the room; unpowered, so no wear
+        internal static IBlock BuildServingPurifier(int filterCount)
+        {
+            var datastore = CleanRoomHatchTest.CreateServer();
+            var block = CleanRoomAirFilterTest.BuildBaseRoom();
+            if (0 < filterCount) CleanRoomAirFilterTest.LoadFilterItems(block, filterCount);
+
+            GameUpdater.UpdateOneTick();
+            Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out _));
+            return block;
+        }
+
+        internal static double RemainingRatio(IBlock block)
+        {
+            return block.GetComponent<ICleanRoomAirFilter>().GetStatus().CurrentFilterRemainingRatio;
+        }
+
+        internal static int FilterCount(IBlock block)
         {
             // GetItemの多重定義曖昧さを避けるためIOpenableInventoryとして扱う
             // View as IOpenableInventory to avoid the GetItem overload ambiguity

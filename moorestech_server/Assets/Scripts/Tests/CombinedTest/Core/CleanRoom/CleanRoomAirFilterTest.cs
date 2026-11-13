@@ -76,12 +76,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
         [Test]
         public void SaveLoadRestoresWearAndFilterSlotTest()
         {
-            CleanRoomHatchTest.CreateServer();
-            var block = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0));
-            LoadFilterItems(block, 1);
+            var block = CleanRoomAirFilterConsumptionTest.BuildServingPurifier(1);
 
-            // 満電5秒で経過を溜める
-            // Run five seconds at full power so the loaded filter accrues five seconds of use
+            // 部屋の中で満電5秒回して経過を溜める
+            // Run five seconds at full power inside a room so the loaded filter accrues five seconds of use
             TickWithPower(block, 100f, (int)GameUpdater.SecondsToTicks(5));
 
             var saveComponent = block.GetComponent<IBlockSaveState>();

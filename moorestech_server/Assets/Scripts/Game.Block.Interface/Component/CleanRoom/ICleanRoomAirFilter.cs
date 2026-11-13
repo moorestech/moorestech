@@ -13,5 +13,9 @@ namespace Game.Block.Interface.Component
         // UI表示用に電力割合・フィルター数・残り寿命を読む
         // Read the power ratio, filter count and remaining life for UI display
         CleanRoomAirFilterStatus GetStatus();
+
+        // 成立した部屋に属しているかを判定段から受け取る。属している間だけフィルターを消費する
+        // Receive from the clean-room pass whether it serves a detected room; filters are consumed only while serving
+        void SetServingRoom(bool isServingRoom);
     }
 }

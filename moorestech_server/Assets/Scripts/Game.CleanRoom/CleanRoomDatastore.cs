@@ -25,6 +25,7 @@ namespace Game.CleanRoom
 
         private readonly CleanRoomDetectionService _detectionService;
         private readonly CleanRoomMachineEffectService _machineEffectService = new();
+        private readonly CleanRoomAirFilterServingService _airFilterServingService = new();
         private readonly IWorldBlockDatastore _world;
         private readonly List<double> _requiredAirChangeRates;
         private readonly List<IDisposable> _subscriptions = new();
@@ -47,8 +48,8 @@ namespace Game.CleanRoom
             }));
         }
 
-        // 本体更新後に毎tick呼ぶ。①再検出②クラス判定③効果反映
-        // Called every tick after the body update: detection, class decision, then machine effect pushes
+        // 本体更新後に毎tick呼ぶ。①再検出②クラス判定と清浄機の在室③効果反映
+        // Called every tick after the body update: detection, class decision with purifier serving, then machine effect pushes
         public void Update()
         {
             _detectionService.ProcessDirtySeeds();
@@ -112,17 +113,26 @@ namespace Game.CleanRoom
 
         private void UpdatePurity()
         {
-            // 閾値マスタが空ならクラス判定全体を無効化する
-            // With no threshold master, the whole class decision is disabled
-            if (_requiredAirChangeRates.Count == 0) return;
-
             foreach (var room in _detectionService.Rooms)
             {
+                // 部屋内の清浄機を在室として記録する
+                // Record the purifiers inside the room as serving it
+                var filters = CleanRoomAirFilterCollector.Collect(room, _world);
+                _airFilterServingService.MarkServing(filters);
+
+                // 閾値マスタが空ならクラス判定を無効化する
+                // With no threshold master, the class decision is disabled
+                if (_requiredAirChangeRates.Count == 0) continue;
+
                 // 除去能力と空きセル数で閾値行を決める
                 // Decide the threshold row each tick from the purifiers' total removal volume and the empty cell count
-                var airChangeRate = CleanRoomAirFilterCollector.AirChangeRate(room, CleanRoomAirFilterCollector.Collect(room, _world));
+                var airChangeRate = CleanRoomAirFilterCollector.AirChangeRate(room, filters);
                 room.SetThresholdIndex(CleanRoomPurityLogic.DecideThresholdIndex(room.ThresholdIndex, airChangeRate, _requiredAirChangeRates));
             }
+
+            // 部屋への出入りがあった清浄機へだけ在室をプッシュする
+            // Push serving state only to purifiers that entered or left a room
+            _airFilterServingService.PushChanges();
         }
 
         private static List<double> BuildRequiredAirChangeRates()

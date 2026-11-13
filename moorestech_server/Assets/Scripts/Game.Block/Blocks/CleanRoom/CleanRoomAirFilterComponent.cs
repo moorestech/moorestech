@@ -13,13 +13,14 @@ using Game.Context;
 using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
+using UnityEngine;
 using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.CleanRoom
 {
     /// <summary>
-    ///     電力割合とフィルター装填に応じて換気し、通電中はフィルターを定率で消費する清浄機
-    ///     Air purifier ventilating by power ratio and loaded filters, consuming filters at a fixed rate while powered
+    ///     電力割合とフィルター装填に応じて換気し、成立した部屋の中でだけ電力割合に比例してフィルターを消費する清浄機
+    ///     Air purifier ventilating by power ratio and loaded filters, consuming filters in proportion to power only while serving a detected room
     /// </summary>
     public class CleanRoomAirFilterComponent : IElectricConsumer, IElectricTickPostHandler, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter
     {
@@ -38,9 +39,13 @@ namespace Game.Block.Blocks.CleanRoom
         // The current power settled by the electric tick post-process
         private float _currentPower;
 
-        // 装填中のフィルター1個が使われたtick数
-        // Ticks the loaded filter has been in use
-        private uint _filterWearTicks;
+        // 装填中のフィルター1個が使われたtick数。電力割合ぶんずつ進むので端数を持つ
+        // Ticks the loaded filter has been in use; it advances by the power ratio, so it keeps fractions
+        private double _filterWearTicks;
+
+        // 成立した部屋に属しているか。クリーンルーム判定段が変化時にプッシュし、ロード直後は最初の判定tickまでfalse
+        // Whether the purifier serves a detected room; the clean-room pass pushes changes, false until its first pass after load
+        private bool _isServingRoom;
 
         public CleanRoomAirFilterComponent(BlockInstanceId blockInstanceId, CleanRoomAirFilterBlockParam param)
         {
@@ -58,7 +63,7 @@ namespace Game.Block.Blocks.CleanRoom
         public CleanRoomAirFilterComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, CleanRoomAirFilterBlockParam param) : this(blockInstanceId, param)
         {
             if (!BlockComponentStateReader.TryRead<CleanRoomAirFilterSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
-            _filterWearTicks = GameUpdater.SecondsToTicks(saveData.FilterWearSeconds);
+            _filterWearTicks = ReadSavedWearTicks(saveData.FilterWearSeconds);
 
             // ロード時はブロック未登録のためイベント無しでスロットを復元する
             // Restore the slot without events since the block is not yet registered on load
@@ -84,16 +89,22 @@ namespace Game.Block.Blocks.CleanRoom
         {
             CheckDestroy(this);
 
-            // 通電していてフィルターがある間だけ寿命を進める。部屋やクラスには依存しない
-            // Advance the life only while powered with a filter loaded; independent of rooms and classes
-            if (PowerRatio <= 0 || !HasFilterItem) return;
-            _filterWearTicks++;
+            // 部屋の中で通電しフィルターがある間だけ、電力割合ぶん寿命を進める。クラスには依存しない
+            // Advance the life by the power ratio only while serving a room, powered and loaded; independent of the class
+            if (!_isServingRoom || PowerRatio <= 0 || !HasFilterItem) return;
+            _filterWearTicks += PowerRatio;
 
-            // 寿命に達したらフィルターを1個消費して数え直す
-            // Consume one filter when the life is reached and start counting again
+            // 寿命に達したらフィルターを1個消費し、超過分の端数は次の1個へ持ち越す
+            // Consume one filter when the life is reached and carry the overshoot into the next one
             if (_filterWearTicks < _filterLifeTicks) return;
-            _filterWearTicks = 0;
+            _filterWearTicks -= _filterLifeTicks;
             FilterSlot.SetItem(0, FilterSlot.GetItem(0).SubItem(1));
+        }
+
+        public void SetServingRoom(bool isServingRoom)
+        {
+            CheckDestroy(this);
+            _isServingRoom = isServingRoom;
         }
 
         public CleanRoomAirFilterStatus GetStatus()
@@ -103,7 +114,7 @@ namespace Game.Block.Blocks.CleanRoom
             // 経過tickは装填中の1個に溜まるので、寿命tickとの比から残り寿命を出す
             // Elapsed ticks accrue on the loaded filter, so their ratio to the life ticks gives the remaining life
             var filterCount = HasFilterItem ? FilterSlot.GetItem(0).Count : 0;
-            var remainingRatio = filterCount == 0 ? 0d : Math.Max(0d, 1d - (double)_filterWearTicks / _filterLifeTicks);
+            var remainingRatio = filterCount == 0 ? 0d : Math.Max(0d, 1d - _filterWearTicks / _filterLifeTicks);
             return new CleanRoomAirFilterStatus(PowerRatio, RemovalVolumePerSecond, filterCount, remainingRatio);
         }
 
@@ -115,7 +126,7 @@ namespace Game.Block.Blocks.CleanRoom
 
             var saveData = new CleanRoomAirFilterSaveJsonObject
             {
-                FilterWearSeconds = GameUpdater.TicksToSeconds(_filterWearTicks),
+                FilterWearSeconds = _filterWearTicks * GameUpdater.SecondsPerTick,
                 Items = FilterSlot.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             return saveData;
@@ -139,6 +150,17 @@ namespace Game.Block.Blocks.CleanRoom
                 var stack = FilterSlot.GetItem(0);
                 return stack.Id == _filterItemId && stack.Count > 0;
             }
+        }
+
+        // 端数を保ったまま秒をtickへ戻す。負・非数・無限大の壊れたセーブ値は未使用として読み、ログに残す
+        // Convert seconds back to ticks keeping fractions; a broken negative, NaN or infinite value is read as unused and logged
+        private double ReadSavedWearTicks(double filterWearSeconds)
+        {
+            var wearTicks = filterWearSeconds * GameUpdater.TicksPerSecond;
+            if (0 <= wearTicks && !double.IsInfinity(wearTicks)) return wearTicks;
+
+            Debug.LogError($"[CleanRoomAirFilter] BlockInstanceId:{BlockInstanceId} has invalid filterWearSeconds:{filterWearSeconds}; treating the loaded filter as unused");
+            return 0d;
         }
 
         private void InvokeEvent(int slot, IItemStack itemStack)
