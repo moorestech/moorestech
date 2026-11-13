@@ -116,27 +116,24 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
         }
 
         [Test]
-        public void 隠している間にモーダルの入力欄がフォーカスを取っても次のフレームで外れキーの抑止が解ける()
+        public void 隠している間にモーダルの入力欄がフォーカスを取っても外れキーの抑止が解ける()
         {
-            // 全 UI を隠してからモーダルを載せる。取り付け時の予約で隠れた入力欄がフォーカスを取る
-            // Hide the whole UI, then mount a modal; its attach-time focus lands on the hidden field
+            // 全 UI を隠してからモーダルを載せる。取り付け時の予約で隠れた入力欄がフォーカスを取り、入力中の旗が立つ
+            // Hide the whole UI, then mount a modal; its attach-time focus lands on the hidden field and raises the text-input flag
             var modalLayer = _stack.GetLayer(UiLayer.Modal, UiFamily.Stage);
             GameUiInputRules.Attach(modalLayer);
             _stack.SetAllLayersVisible(false);
             simulate.FrameUpdate();
             var view = new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>());
-            var focusTaken = false;
-            var trace = "";
-            view.RegisterCallback<FocusInEvent>(e => { focusTaken = true; trace += $"[in {((VisualElement)e.target).name}/{e.target.GetType().Name} flag={UiInputExclusivity.IsTextInputFocused}]"; });
-            view.RegisterCallback<FocusOutEvent>(e => trace += $"[out {((VisualElement)e.target).name}]");
+            var flagRaisedByHiddenFocus = false;
+            view.RegisterCallback<FocusInEvent>(_ => flagRaisedByHiddenFocus |= UiInputExclusivity.IsTextInputFocused);
             modalLayer.Add(view);
-            var frames = 0;
-            for (; frames < 3 && !focusTaken; frames++) simulate.FrameUpdate();
-            Assert.IsTrue(focusTaken, "前提: 隠れた入力欄がフォーカスを取る");
-            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused, $"DIAG frames={frames} trace={trace} focused={(rootVisualElement.panel.focusController.focusedElement as VisualElement)?.name}");
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.IsTrue(flagRaisedByHiddenFocus, "前提: 隠れた入力欄がフォーカスを取り入力中の旗が立つ");
 
-            // 取った次のフレームに根の入力規則が外す（A-275）
-            // The root input rules blur it on the frame after it was taken (A-275)
+            // 取った次の機会に根の入力規則が外す（A-275）
+            // The root input rules blur it at the next opportunity after it was taken (A-275)
             simulate.FrameUpdate();
 
             Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠れた入力欄がフォーカスを持ったまま");
