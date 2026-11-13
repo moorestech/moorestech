@@ -42,7 +42,7 @@ namespace Client.Ui.Foundation.Input
                 // Removal with focus never tells the root about the blur, so subscribe to the focused element's own detach
                 UiInputExclusivity.SetGameUiTextInputFocused(true);
                 element.RegisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
-                KeepFocus(element);
+                EndRefusalRun();
                 return;
             }
 
@@ -50,7 +50,7 @@ namespace Client.Ui.Foundation.Input
             // Marked elements (key-operated buttons) keep focus; they are not text fields, so the text-input flag stays down
             if (MayKeepFocus(element))
             {
-                KeepFocus(element);
+                EndRefusalRun();
                 return;
             }
 
@@ -69,11 +69,10 @@ namespace Client.Ui.Foundation.Input
 
         private static void OnFocusOut(FocusOutEvent evt)
         {
-            // 外れた要素の購読は先に解く
-            // Drop the detach and hide subscriptions of the element losing focus first, even when the flag stays up
+            // 外れた要素の取り外しの購読は先に解く
+            // Drop the detach subscription of the element losing focus first, even when the flag stays up
             var leaving = (VisualElement)evt.target;
             leaving.UnregisterCallback<DetachFromPanelEvent>(OnFocusedTextFieldDetached);
-            FocusedElementHideWatch.Unwatch(leaving);
 
             // 入力欄から入力欄へ移るときは true のまま保つ
             // Keep the flag up when focus moves from one text field to another
@@ -131,12 +130,11 @@ namespace Client.Ui.Foundation.Input
             focused.Blur();
         }
 
-        // 保ってよいフォーカスは隠れたら外す。拒否の続きは途切れる
-        // A focus allowed to stay is blurred once hidden, and the run of refusals ends
-        private static void KeepFocus(VisualElement element)
+        // 保ってよいフォーカスで拒否の続きは途切れる。表示されなくなったフォーカスは UITK 自身が外すので見張らない
+        // An allowed focus ends the run of refusals; UITK itself blurs a focus that stops being displayed, so nothing watches it here
+        private static void EndRefusalRun()
         {
             _lastRefusedFocus = null;
-            FocusedElementHideWatch.Watch(element);
         }
 
         // 入力欄と印付きだけがフォーカスを保ってよい
