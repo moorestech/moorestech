@@ -1,12 +1,9 @@
-using Client.Input;
 using Client.Input.Pointer;
 using Client.Starter.Registration.GameUi.Hud;
 using Client.Starter.Registration.GameUi.Shared;
 using Client.Starter.Registration.GameUi.Screens;
-using Client.Ui.Foundation.Composite;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
-using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Panel;
@@ -23,21 +20,18 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration
 {
-    // Client.Ui の登録口。全体スイッチの分岐はここ 1 か所で、Presenter・View・部品はスイッチを読まない（plan §3.3 R1、設計書 §4.4・[A-16]）
-    // Registration entry for Client.Ui; the global switch branches only here, and presenters, views and parts never read it (plan §3.3 R1, design §4.4, [A-16])
+    // Client.Ui の登録口。全体スイッチの分岐は呼び手の MainGameStarter（composition root）にあり、Presenter・View・部品はスイッチを読まない（plan §3.3 R1、設計書 §4.4・[A-16]）
+    // Registration entry for Client.Ui; the global-switch branch lives in the caller MainGameStarter (composition root), and presenters, views and parts never read it (plan §3.3 R1, design §4.4, [A-16])
     internal static class MainGameUiRegistration
     {
-        public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot, UiSystem uiSystem)
+        // GameUi の系でだけ呼ばれる。DI より前に立てた土台（sRGB 合成・倍率・ロケール）は作り済みのまま受け取る（S5-gate D-2）
+        // Called only in the GameUi system; the foundation built before DI (sRGB composite, scale, locale) arrives as built (S5-gate D-2)
+        public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot, GameUiPreDiFoundation gameUiFoundation)
         {
-            // Web の系では Client.Ui を 1 つも登録せず、GameUiRoot の層は空のまま残る。起動の系は UiSystemBootSelection がログに出している
-            // In the Web system nothing from Client.Ui is registered and the GameUiRoot layers stay empty; UiSystemBootSelection has logged the boot's system
-            if (uiSystem != UiSystem.GameUi) return;
-
             builder.RegisterComponent(gameUiRoot);
-            // パネルの描き先を sRGB 合成の RT へ替えるので、root.panel を控える入口より先に初期化させる
-            // It swaps the panel's target to the sRGB composite RT, so it initializes before entry points that keep root.panel
-            builder.RegisterEntryPoint<GameUiSrgbCompositeInstaller>();
-            builder.RegisterEntryPoint<GameUiLocaleClassBinder>();
+            // 作り済みの合成 Tick と倍率を渡す
+            // Hand over the built composite tick and scale
+            gameUiFoundation.HandOverTo(builder);
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);

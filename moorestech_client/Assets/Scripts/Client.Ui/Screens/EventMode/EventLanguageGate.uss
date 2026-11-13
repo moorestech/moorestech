@@ -1,0 +1,39 @@
+/* 出展モードの言語ゲート。寸法は moorestech_web/webui/src/features/eventLanguageGate/style.module.css と EventLanguageGate.tsx の Overlay を写す */
+/* 面は層いっぱいの不透明の黒、中身は UiScreenPixelScope の中で実画面 px のまま中央に置く（Web はゲートの中身に --ui-scale を掛けない） */
+/* The exhibition language gate; sizes copy style.module.css and the Overlay in EventLanguageGate.tsx */
+/* The face is an opaque black filling the layer; the contents sit centred in real-screen px inside UiScreenPixelScope (the Web never applies --ui-scale inside the gate) */
+
+/* 面: Web Overlay の fixed・backgroundOpacity 1・color var(--full-screen-gate-face) */
+/* Face: the Web Overlay's fixed, backgroundOpacity 1 and color var(--full-screen-gate-face) */
+.event-language-gate {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--full-screen-gate-face);
+}
+
+/* 中央寄せと左右の余白: Web Overlay の center と .overlay の padding-inline */
+/* Centring and side gutters: the Web Overlay's center and .overlay's padding-inline */
+.event-language-gate__overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+    padding-left: var(--full-screen-gate-side-gutter);
+    padding-right: var(--full-screen-gate-side-gutter);
+}
+
+/* 見出しの最大幅: Web .title の max-width */
+/* 見出しは 1 行なので行を Web の 34px×1.3 に固定する（前例 PauseMenu.uss の .pause-menu__title。UITK の字の自然な高さ Latin 47px は Web の行より高い） */
+/* Heading max width: the Web .title max-width */
+/* The heading is one line, so its row is fixed at the Web 34px x 1.3 (precedent .pause-menu__title in PauseMenu.uss; UITK's natural Latin glyph height of 47px exceeds the Web row) */
+.event-language-gate__title {
+    max-width: var(--full-screen-gate-text-width);
+    flex-shrink: 0;
+    height: var(--title-order-1-row-height);
+}

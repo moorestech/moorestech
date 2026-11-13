@@ -37,7 +37,7 @@ namespace Client.Ui.State.EventMode
         // Already selected returns a benign rejection
         public UiCommandResult SelectLanguage(string languageCode)
         {
-            // silent-ok: 拒否は結果で返す / Web action が already_selected・unknown_locale を応答し、UITK は UiCommandResultToaster がログと良性以外のトーストを出す
+            // silent-ok: 拒否は結果で返す / Web action が already_selected・unknown_locale を応答し、UITK は EventLanguageGateView が Toaster と同じ書式で LogWarning する
             if (!IsWaitingSelection) return new UiCommandRejected(UiCommandRejectReason.LanguageAlreadySelected, "");
             if (!Localize.TrySetChosenLanguage(languageCode)) return new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, "");
 
