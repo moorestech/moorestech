@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Client.Ui.Foundation.Text;
 using UnityEngine.UIElements;
 
 namespace Client.Playtest.UiElements.GameUi
@@ -33,13 +34,23 @@ namespace Client.Playtest.UiElements.GameUi
             string ReadText(VisualElement element)
             {
                 if (element is TextField field) return field.value;
-                if (element is TextElement textElement && !string.IsNullOrEmpty(textElement.text)) return textElement.text;
+                if (element is TextElement textElement && !string.IsNullOrEmpty(WordsOf(textElement))) return WordsOf(textElement);
 
                 // 箱と、文字を子のラベルへ持つボタンは子孫の文字を順に連結する（Web の textContent と同じ扱い）
                 // A container or a button whose text lives in a child label concatenates descendant texts in order, like the Web textContent
                 var builder = new StringBuilder();
-                foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(descendant.text);
+                foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(WordsOf(descendant));
                 return builder.ToString();
+            }
+
+            // LocalizedLabel の text は行送り・字間の印と詰めの改行を含むので、Web の textContent に当たる原文を読む
+            // LocalizedLabel.text carries pitch/spacing tags and trim newlines, so read its source text, the Web textContent counterpart
+            string WordsOf(TextElement textElement)
+            {
+                if (textElement is not LocalizedLabel label) return textElement.text;
+                // 文が届く前のラベルは何も描いていないので空と読む
+                // A label whose text has not arrived draws nothing, so it reads as empty
+                return label.SourceText ?? string.Empty;
             }
 
             // `--selected` のような修飾子クラスだけを状態名として返す
