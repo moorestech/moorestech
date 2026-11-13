@@ -33,7 +33,10 @@ namespace Client.Ui.Components.Slots
 
         public void SetColumns(int columns)
         {
-            _columns = RequirePositive(columns);
+            // silent-ok: 同じ列数の渡し直しは冪等（作り直すとマスが付け直されドラッグの捕捉と :hover が外れる） / 並びは変わらない
+            // silent-ok: passing the same column count is idempotent (a rebuild re-parents cells, dropping drag capture and :hover) / the layout does not change
+            if (RequirePositive(columns) == _columns) return;
+            _columns = columns;
 
             // 列の幅の行と行を作り直し、マスを前から詰め直す
             // Rebuild the track row and the rows, then refill the cells from the front
