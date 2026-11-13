@@ -102,7 +102,9 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.WaitUiState(UIStateEnum.SubInventory, 10f);
     await p.Screenshot("02-kiln-recipe-select");
     await p.ClickUi($"machine-recipe-{bronzeRecipe}");
-    await p.UntilUiElement("machine-input-slots", 10f);
+    // 枠の帯は中心が子の枠に当たり押せる判定にならないので、押す先の 1 枠目で待つ
+    // The band's center hits a child slot and never counts as clickable, so wait on the first slot we press
+    await p.UntilUiElement("machine-input-slot-0", 10f);
     await p.Screenshot("03-kiln-open");
 
     // Shift＋クリックで粉を入れ、原木は右クリックで半分掴んで素材順の 2 枠目へ置く（入力枠はレシピの素材順に固定）
