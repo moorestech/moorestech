@@ -1,6 +1,6 @@
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Foundation.Theme
+namespace Client.Ui.Foundation.Rendering
 {
     /// <summary>
     /// 影の輪メッシュのインデックスを書く共有の口

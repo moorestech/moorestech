@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Ui.Foundation.Theme
+namespace Client.Ui.Foundation.Rendering
 {
     /// <summary>
     /// ガウスでぼかした縁の被覆率の唯一の式

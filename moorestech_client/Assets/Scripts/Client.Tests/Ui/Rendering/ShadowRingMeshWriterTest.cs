@@ -1,9 +1,9 @@
-using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Rendering;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Tests.Ui.Theme
+namespace Client.Tests.Ui.Rendering
 {
     /// <summary>
     /// 帯の結び順と時計回りの向き L0

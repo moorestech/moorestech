@@ -1,5 +1,5 @@
 using Client.Ui.Components.Gauges;
-using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Rendering;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
