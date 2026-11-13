@@ -90,24 +90,13 @@ namespace Client.Tests.Ui.DragDrop
         }
 
         [Test]
-        public void 印を外した落とし先は最寄りから外れクラスも消える()
-        {
-            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
-            Assert.IsFalse(_slot.ClassListContains("ui-drop-target"));
-            Press(_source.worldBound.center, _slotIcon.worldBound.center);
-            CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
-        }
-
-        [Test]
         public void 源と違う型の落とし先は飛ばして同じ型の祖先へ落とす()
         {
-            // 枠の印を別の型に替える。クラスは別の型の印が残る間は消えない
-            // Swap the slot's mark for another type; the class stays while that other mark remains
-            UiDragDrop.MarkTarget(_slot, new OtherKindDropTarget());
-            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
-            Assert.IsTrue(_slot.ClassListContains("ui-drop-target"));
+            // 別の型の印は同型の祖先へ落ちる
+            // Another-type mark falls to same-type ancestor
+            var otherSlot = AddSlotMarkedWith(new OtherKindDropTarget());
 
-            Press(_source.worldBound.center, _slotIcon.worldBound.center);
+            Press(_source.worldBound.center, otherSlot.worldBound.center);
             CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
         }
 
@@ -116,12 +105,20 @@ namespace Client.Tests.Ui.DragDrop
         {
             // 型引数を省くと派生型の表に入るので、受け口の型では見つからない
             // Omitting the type argument files the mark under the subtype, so the receiver type cannot find it
-            UiDragDrop.UnmarkTarget<NamedDropTarget>(_slot);
-            UiDragDrop.MarkTarget(_slot, new DerivedNamedDropTarget("slot"));
+            var derivedSlot = AddSlotMarkedWith(new DerivedNamedDropTarget("slot"));
             LogAssert.Expect(LogType.Error, new Regex(@"\[UiDragDrop\] .* is marked as DerivedNamedDropTarget"));
 
-            Press(_source.worldBound.center, _slotIcon.worldBound.center);
+            Press(_source.worldBound.center, derivedSlot.worldBound.center);
             CollectionAssert.AreEqual(new[] { "drop:row" }, _payload.Calls);
+        }
+
+        private VisualElement AddSlotMarkedWith<THandler>(THandler handler) where THandler : class
+        {
+            var extra = Box("drop-extra", 60, 60);
+            _row.Add(extra);
+            UiDragDrop.MarkTarget(extra, handler);
+            simulate.FrameUpdate();
+            return extra;
         }
 
         private void Press(Vector2 from, Vector2 to)

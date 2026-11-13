@@ -6,6 +6,7 @@ using Client.Ui.State.Train.Platform;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Mooresmaster.Model.BlocksModule;
+using Client.Ui.State.BlockInventory.Common;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -27,13 +28,21 @@ namespace Client.Tests.Ui.State.Train.Platform
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
+        // 在る欄の値を取り出す（在らなければ失敗）
+        // Takes the value of a present entry (fails when not present)
+        private static T Present<T>(SectionContent<T> entry)
+        {
+            Assert.IsTrue(entry.TryGetPresent(out var value), "在る欄である");
+            return value;
+        }
+
         [Test]
         public void 駅は名前と枠とモードを持つ()
         {
             var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), new TrainStationNameStateDetail("北駅"), Unload, Slots, NoFluids);
-            Assert.AreEqual("北駅", body.StationName.Value);
-            Assert.AreSame(Slots, body.ItemSlots.Value);
-            Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, body.Mode.Value);
+            Assert.AreEqual("北駅", Present(body.StationName));
+            Assert.AreSame(Slots, Present(body.ItemSlots));
+            Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, Present(body.Mode));
         }
 
         [Test]
@@ -41,7 +50,7 @@ namespace Client.Tests.Ui.State.Train.Platform
         {
             var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainItemPlatform, TestBlockParams.ItemPlatform(), null, Unload, Slots, NoFluids);
             Assert.IsFalse(body.StationName.IsPresent);
-            Assert.AreSame(Slots, body.ItemSlots.Value);
+            Assert.AreSame(Slots, Present(body.ItemSlots));
         }
 
         [Test]
@@ -51,7 +60,7 @@ namespace Client.Tests.Ui.State.Train.Platform
             var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainFluidPlatform, TestBlockParams.FluidPlatform(), null, Unload, Slots, fluids);
             Assert.IsFalse(body.ItemSlots.IsPresent);
             Assert.AreSame(fluids, body.Fluids);
-            Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, body.Mode.Value);
+            Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, Present(body.Mode));
         }
 
         [Test]
@@ -60,7 +69,7 @@ namespace Client.Tests.Ui.State.Train.Platform
             // Web ホストは状態が無ければ詳細ごと出さない。駅名の StateDetail が無ければ空名
             // The Web host omits the detail without a state; a missing name StateDetail gives an empty name
             var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), null, null, Slots, NoFluids);
-            Assert.AreEqual(string.Empty, body.StationName.Value);
+            Assert.AreEqual(string.Empty, Present(body.StationName));
             Assert.IsFalse(body.ItemSlots.IsPresent);
             Assert.IsFalse(body.Mode.IsPresent);
         }

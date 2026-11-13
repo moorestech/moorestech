@@ -5,8 +5,8 @@ using Client.Ui.State.Text;
 namespace Client.Ui.State.BlockInventory.Special.Text
 {
     /// <summary>
-    /// Web が文に入れる数値の JS の書式（toFixed(0)・toPrecision(2)・String(number)）の写し
-    /// Port of the JS number formats the Web puts into sentences: toFixed(0), toPrecision(2) and String(number)
+    /// 特殊区画の文の JS 数値書式の写し
+    /// Port of JS number formats for special sentences
     /// </summary>
     public static class JsNumberText
     {
@@ -41,20 +41,6 @@ namespace Client.Ui.State.BlockInventory.Special.Text
             // Plain decimals round to the digits that keep two significant figures
             var decimals = 1 - exponent;
             return Math.Round(value, decimals, MidpointRounding.AwayFromZero).ToString("F" + decimals, CultureInfo.InvariantCulture);
-        }
-
-        // サーバーの float を Web と同じ値の double にする（Newtonsoft の最短表記を JS が double で読む経路）
-        // Turns a server float into the double the Web sees (shortest-form text parsed as a JS double)
-        public static double FromServerFloat(float value)
-        {
-            return double.Parse(value.ToString("R", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
-        }
-
-        // String(number): 整数は小数点なし、他は最短の往復表記
-        // String(number): integers without a decimal point, others in the shortest round-trip form
-        public static string Number(double value)
-        {
-            return value.ToString("R", CultureInfo.InvariantCulture);
         }
     }
 }

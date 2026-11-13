@@ -38,6 +38,17 @@ namespace Client.Tests.Ui.State.Tutorial
             Assert.AreEqual("s1:o1", model.Outlines[0].Key);
         }
 
+        private sealed class UnknownElementData : TutorialOverlayElementData { }
+
+        [Test]
+        public void 未知の要素型はLogErrorを出し枠にも矢印にもしない()
+        {
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("unsupported tutorial element: UnknownElementData"));
+            var model = new TutorialOverlayProjection().Project(Data(1, new UnknownElementData { ElementId = "u1" }));
+            Assert.AreEqual(0, model.Outlines.Count);
+            Assert.AreEqual(0, model.DragGuides.Count);
+        }
+
         [Test]
         public void ラベルのGUIDがある枠だけがcontentの文を持つ()
         {

@@ -29,4 +29,15 @@ namespace Client.Ui.State.Hotbar.Logic
         {
         }
     }
+
+    // 列の枠の間の隙間。まだ HUD の中なので枠外（解除）とは別の先（Web の data-hotbar-row）
+    // The gap between slots in the row; still inside the HUD, so a different target from outside (Web data-hotbar-row)
+    public sealed class HotbarRowGapDropTarget : HotbarDropTarget
+    {
+        public static readonly HotbarRowGapDropTarget Instance = new();
+
+        private HotbarRowGapDropTarget()
+        {
+        }
+    }
 }

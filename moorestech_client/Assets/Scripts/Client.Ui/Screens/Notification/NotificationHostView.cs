@@ -20,6 +20,7 @@ namespace Client.Ui.Screens.Notification
     public sealed class NotificationHostView : VisualElement
     {
         private const string StyleNotResolvedMessage = "[NotificationHostView] custom style not resolved after layout; is Notification.uss imported by GameUiTheme.tss and the notification-host class present?";
+        private const string TokensUnreadableMessage = "[NotificationHostView] notification enter/exit/shift tokens are unreadable; showing rows without enter or exit motion";
 
         private readonly NotificationModel _model;
         private readonly INotificationTextLookup _textLookup;
@@ -42,20 +43,8 @@ namespace Client.Ui.Screens.Notification
             pickingMode = PickingMode.Ignore;
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-
-            // 内容名・アイテム名は解決済みの文字列で UiText に入るので、言語が変わったら行ごとに解き直す
-            // Content and item names enter the UiText as resolved strings, so re-resolve every row when the language changes
-            RegisterCallback<AttachToPanelEvent>(attachEvent => _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts()));
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
-
-            #region Internal
-
-            void ReapplyTexts()
-            {
-                foreach (var shown in _shownRows.Values) shown.View.SetText(TextOf(shown.View.Row));
-            }
-
-            #endregion
         }
 
         public void Render(NotificationListViewModel viewModel)
@@ -74,14 +63,12 @@ namespace Client.Ui.Screens.Notification
             foreach (var row in viewModel.Rows) ShowRow(row);
 
             #region Internal
-
             void ShowRow(NotificationRow row)
             {
                 if (_shownRows.TryGetValue(row.Id, out var shown))
                 {
                 // silent-ok: Render は毎回全行を渡すので、生存尺が回り直していない行は触らない / 合流の再生は L1「合流で生存尺が回り直し…」が確かめる
                 if (shown.LifetimeEpoch == row.LifetimeEpoch) return;
-
                 // 合流で生存尺が回り直したら、文を差し替えて 2 本を頭から再生する（行の要素と位置は保つ）
                 // When a merge restarts the lifetime, swap the text and replay both tweens from the head (keeping the element and position)
                 shown.StopLifetime();
@@ -89,7 +76,6 @@ namespace Client.Ui.Screens.Notification
                 StartLifetime(shown, row);
                 return;
                 }
-
                 // 新着は最上段へ（Web の column-reverse と同じ見え方）。登録してから生存を回し、除去の再入が必ず行を見つけるようにする
                 // The newest goes on top (same look as the Web column-reverse); register before starting the lifetime so a re-entrant removal always finds the row
                 var added = new NotificationShownRow(new NotificationRowView());
@@ -110,12 +96,19 @@ namespace Client.Ui.Screens.Notification
                 _shownRows.Remove(id);
                 }
             }
-
             #endregion
         }
 
         private void StartLifetime(NotificationShownRow shown, NotificationRow row)
         {
+            // パネルに載っていない間は動きを始めない（再アタッチが頭から回す）。行は書き口に残り、戻したときに表示される
+            // Do not start motion while off the panel (re-attach restarts from the head); the row stays in the model and shows on return
+            if (panel == null)
+            {
+                Debug.LogWarning($"[NotificationHostView] notification {row.Id} held while detached; it shows when the host is attached again");
+                shown.SetLifetime(row.LifetimeEpoch, null, null);
+                return;
+            }
             // 退場の終わりで行を書き口から除く。除去と退場が同じパネルの時計に乗る（除去の経路はこれだけ。D-2）
             // Remove the row through the write side at the exit end, so removal and exit share the panel clock (the only removal path, D-2)
             var handle = NotificationRowLifetime.Play(shown.View, _timing);
@@ -130,24 +123,44 @@ namespace Client.Ui.Screens.Notification
             return NotificationText.Resolve(row.Content, _textLookup);
         }
 
+        private void OnAttachToPanel(AttachToPanelEvent attachEvent)
+        {
+            _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts());
+            ReapplyTexts();
+            // 外れている間の言語切替は上の ReapplyTexts で行の文へ反映する。外れると動きが止まるので、まだ Model に残る行は新しいハンドルで生存を頭から回し直す（Web の再マウントで CSS アニメが頭から回るのと同じ。止まった動きの再生し直しの口は持たない。A-267）
+            // A language change while detached is applied to the row texts by the ReapplyTexts above. Detaching stopped the motions, so rows still in the model restart their lifetime from the head with a new handle (like the Web remount restarting the CSS animation; no replay port on the stopped motion; A-267)
+            foreach (var shown in _shownRows.Values)
+            {
+                shown.StopLifetime();
+                StartLifetime(shown, shown.View.Row);
+            }
+        }
+
+        // 内容名・アイテム名は解決済みの文字列で UiText に入るので、言語が変わったら行ごとに解き直す
+        // Content and item names enter the UiText as resolved strings, so re-resolve every row when the language changes
+        private void ReapplyTexts()
+        {
+            foreach (var shown in _shownRows.Values) shown.View.SetText(TextOf(shown.View.Row));
+        }
+
         private void OnDetachFromPanel(DetachFromPanelEvent detachEvent)
         {
             _languageSubscription?.Dispose();
-
             // 外れると行の動きが止まり退場の終わりが来ない＝行が Model に残る。常駐のホストが外れるのは Dispose だけのはずなので、それ以外で起きたら開発者に知らせる
             // Detaching stops the row motions, so no exit end comes and rows stay in the model; a resident host should only detach on Dispose, so tell developers otherwise
-            if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop and they will not be removed");
+            if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop; their lifetimes restart from the head if the host is attached again");
         }
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            // 読めないトークンは Reader が LogError を出す。通知を届けるのを優先し、出入り無し（尺 0・ずれ 0）で出す
-            // The reader logs unreadable tokens; delivering the notification comes first, so show it without enter/exit (0 durations, 0 shift)
+            // 読めないトークンは出入り無しで出す
+            // Unreadable token shows without enter/exit; delivery comes first
             var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-enter-duration", out var enter);
             var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-exit-duration", out var exit);
             var hasShift = UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-shift", out var shift);
             if (UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-screen-left", out var screenLeft)) _screenLeftPixels = screenLeft;
             ApplyScreenLeft();
+            if (!(hasEnter && hasExit && hasShift)) Debug.LogError(TokensUnreadableMessage);
             _timing = hasEnter && hasExit && hasShift
                 ? new NotificationRowTiming(enter, exit, NotificationModel.DisplayMilliseconds, shift)
                 : new NotificationRowTiming(0f, 0f, NotificationModel.DisplayMilliseconds, 0f);

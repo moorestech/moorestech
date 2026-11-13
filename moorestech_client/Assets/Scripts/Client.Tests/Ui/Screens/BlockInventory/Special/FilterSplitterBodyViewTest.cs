@@ -38,7 +38,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void 左押下は設定を送り掴みが空なら操作の側で良性に断る()
         {
             var view = Render();
-            Commands.SetNextResult(new Client.Ui.State.Commands.UiCommandRejected(Client.Ui.State.Commands.UiCommandRejectReason.FilterSplitterGrabEmpty, string.Empty));
+            Commands.SetNextResult(Client.Ui.State.Commands.UiCommandRejected.Of(Client.Ui.State.Commands.UiCommandRejectReason.FilterSplitterGrabEmpty));
             simulate.Click(Find<VisualElement>(view, "filter-slot-1-0"), MouseButton.LeftMouse);
             CollectionAssert.AreEqual(new[] { "filter_splitter.set_filter_item 1 0 set" }, Commands.Issued);
             CollectionAssert.IsEmpty(ShownToasts, "掴みが空は良性（Web の noop）");

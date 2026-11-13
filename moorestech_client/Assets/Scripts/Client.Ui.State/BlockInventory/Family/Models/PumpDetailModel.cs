@@ -1,7 +1,9 @@
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockInventory.Common;
+using Client.Ui.State.Diagnostics;
 using Game.Block.Interface.State;
 using UniRx;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.State.BlockInventory.Family.Models
@@ -13,6 +15,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
     public sealed class PumpDetailModel : IPumpDetailModel, IInitializable
     {
         private readonly OpenBlockDetailTracker _tracker;
+        private readonly AnomalyReportGate _conversionAnomalyGate = new();
         private readonly ReactiveProperty<SectionContent<PumpDetail>> _current = new(SectionContent<PumpDetail>.Absent);
 
         public IReadOnlyReactiveProperty<SectionContent<PumpDetail>> Current => _current;
@@ -35,6 +38,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
             if (block == null)
             {
+                _conversionAnomalyGate.Clear();
                 _current.Value = SectionContent<PumpDetail>.Absent;
                 return;
             }
@@ -43,15 +47,18 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             var pump = block.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
             if (pump == null)
             {
+                _conversionAnomalyGate.Clear();
                 _current.Value = SectionContent<PumpDetail>.Absent;
                 return;
             }
 
-            // 偽なら変換側が理由をログへ出す
-            // When the conversion returns false it has already logged why (the quiet wait carries its own silent-ok)
+            // 偽の理由は変換が異常として返すので、同じ間は 1 回だけ出す（異常なしの偽は変換側の silent-ok の静かな待ち）
+            // The reason for false comes back as an anomaly, reported once while it persists (a false without anomaly is the conversion's silent-ok wait)
             var common = block.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
-            var built = PumpDetailConversion.TryBuild(pump, block.BlockMasterElement.BlockParam, common, out var detail);
-            _current.Value = built ? SectionContent<PumpDetail>.Present(detail) : SectionContent<PumpDetail>.Absent;
+            var reading = PumpDetailConversion.Build(pump, block.BlockMasterElement.BlockParam, common);
+            var anomaly = reading.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
+            if (_conversionAnomalyGate.ShouldReport(anomaly)) Debug.LogError(anomaly);
+            _current.Value = reading.TryGetDetail(out var detail) ? SectionContent<PumpDetail>.Present(detail) : SectionContent<PumpDetail>.Absent;
         }
     }
 }

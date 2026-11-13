@@ -44,7 +44,7 @@ namespace Client.Ui.State.Research.Tree
             // Nodes without state are all-unmet
             ResearchNodeState StateOf(Guid guid)
             {
-                // silent-ok: 取り直しの前は全ノードが未着で Web の橋と同じ既定（受信前は詳細の理由文を出さない） / 欠落は ResearchTreeModel が突入時と受信ごとに LogWarning へ出す
+                // silent-ok: 取り直しの前は全ノードが未着で Web の橋と同じ既定（受信前は詳細の理由文を出さない） / 欠落は ResearchTreeModel が受信済みの突入時と受信ごとに LogWarning へ出す
                 return states.TryGetValue(guid, out var state) ? state : ResearchNodeState.UnresearchableAllReasons;
             }
 

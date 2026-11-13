@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using Client.Ui.Content;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Fluid;
+using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.SectionStack;
 
 namespace Client.Ui.Screens.BlockInventory.Fluid
@@ -24,7 +27,7 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
 
         public IBlockInventorySection Create(SectionStackSectionMount mount)
         {
-            if (mount.Config.Fluid is DetailsSectionStackFluid details) return new FluidDetailsSectionPresenter(new FluidInventoryContents(details.RowId, _content), _fluids);
+            if (mount.Config.Fluid is DetailsSectionStackFluid details) return new DetailSectionPresenter<IReadOnlyList<BlockFluidSlotState>>(new FluidDetailsSectionSource(_fluids), new FluidInventoryContents(details.RowId, _content));
             return new NotApplicableSection();
         }
     }

@@ -1,10 +1,12 @@
 using Client.Localization;
 using Client.Ui.Content;
 using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Context
@@ -25,14 +27,20 @@ namespace Client.Ui.Screens.BlockInventory.Context
             name = "machine-input-stall-section-view";
         }
 
-        public void Render(ContextEntry<MachineInputStall> entry)
+        public void Render(SectionContent<MachineInputStall> entry)
         {
-            if (entry is UnavailableContextEntry<MachineInputStall> unavailable)
+            if (entry.TryGetUnavailable(out var fetchState))
             {
-                _unavailable.RenderInto(this, unavailable.FetchState);
+                _unavailable.RenderInto(this, fetchState);
                 return;
             }
-            var stall = ((FetchedContextEntry<MachineInputStall>)entry).Value;
+            // 取得不可でも在るでもない（欄が無い）まま届くのは結線の誤りなので知らせて戻る
+            // Neither unavailable nor present (absent) means a wiring mistake, so report it and return
+            if (!entry.TryGetPresent(out var stall))
+            {
+                Debug.LogError("[MachineInputStallSectionView] Render called with an absent entry; the caller must hide absent sections");
+                return;
+            }
             var itemName = _content.ItemName(stall.WaitingItemId).Resolve();
             _stall.Render(new UiText(MachineInputStallLogic.MessageKey(stall.Reason), new[] { new LocalizationTextParam("itemName", itemName) }), true);
             ContextRowList.MountOnly(this, _stall);

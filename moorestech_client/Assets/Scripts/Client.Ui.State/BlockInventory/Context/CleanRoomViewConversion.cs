@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Ui.State.BlockDetail.CleanRoom;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
@@ -18,9 +19,9 @@ namespace Client.Ui.State.BlockInventory.Context
     {
         // 部屋欄を状態詳細から決める静的関数
         // Decides the room entry from target kind, fetch state and operability; static function split from the model
-        public static ContextEntry<CleanRoomFetchedDetail> Build(CleanRoomDetailTarget target, BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomOperabilityStateDetail operability)
+        public static SectionContent<CleanRoomFetchedDetail> Build(CleanRoomDetailTarget target, BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomOperabilityStateDetail operability)
         {
-            if (target == CleanRoomDetailTarget.None) return ContextEntry<CleanRoomFetchedDetail>.Absent;
+            if (target == CleanRoomDetailTarget.None) return SectionContent<CleanRoomFetchedDetail>.Absent;
 
             // 未取得は取得状態の 1 行
             // Not fetched yields the fetch-state line for any target, in the Web host's order
@@ -30,23 +31,23 @@ namespace Client.Ui.State.BlockInventory.Context
             // 室内機械の停止理由は状態詳細から
             // A fetched interior machine's halt reason comes from its state detail; no entry until present
             // silent-ok: 稼働可否の状態詳細が届く前は欄を出さない（Web ホストと同じ） / 届けば状態変化の購読で出る
-            if (operability == null) return ContextEntry<CleanRoomFetchedDetail>.Absent;
+            if (operability == null) return SectionContent<CleanRoomFetchedDetail>.Absent;
             if (!Enum.IsDefined(typeof(CleanRoomOperability), operability.Operability))
             {
                 Debug.LogWarning($"Unreadable clean-room operability: {operability.Operability}");
-                return ContextEntry<CleanRoomFetchedDetail>.Absent;
+                return SectionContent<CleanRoomFetchedDetail>.Absent;
             }
-            if (!TryGetHaltReason(operability.Operability, out var haltReason)) return ContextEntry<CleanRoomFetchedDetail>.Absent;
+            if (!TryGetHaltReason(operability.Operability, out var haltReason)) return SectionContent<CleanRoomFetchedDetail>.Absent;
             return Convert(fetchState, view, haltReason);
         }
 
-        private static ContextEntry<CleanRoomFetchedDetail> Convert(BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason)
+        private static SectionContent<CleanRoomFetchedDetail> Convert(BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason)
         {
-            if (fetchState != BlockInfoFetchState.Fetched) return ContextEntry<CleanRoomFetchedDetail>.Unavailable(fetchState);
+            if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<CleanRoomFetchedDetail>.Unavailable(fetchState);
             switch (view)
             {
                 case CleanRoomEnclosedView enclosed:
-                    return ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Enclosed(Room(enclosed.Room), haltReason));
+                    return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(Room(enclosed.Room), haltReason));
                 case CleanRoomNotEnclosedView notEnclosed:
                     return Leak(notEnclosed.Leak);
             }
@@ -54,25 +55,25 @@ namespace Client.Ui.State.BlockInventory.Context
             // 未知の照会の型は欄を出さず開発者へ知らせる（購読の中で投げると購読ごと止まる。D-6）
             // An unknown query view hides the entry and tells developers (throwing inside the subscription would kill it; D-6)
             Debug.LogError($"[CleanRoomViewConversion] unsupported room query view: {view.GetType().Name}");
-            return ContextEntry<CleanRoomFetchedDetail>.Absent;
+            return SectionContent<CleanRoomFetchedDetail>.Absent;
 
             #region Internal
 
-            ContextEntry<CleanRoomFetchedDetail> Leak(CleanRoomLeakView leak)
+            SectionContent<CleanRoomFetchedDetail> Leak(CleanRoomLeakView leak)
             {
                 switch (leak)
                 {
                     case CleanRoomOpeningsLeakView openings:
-                        return ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Openings(openings.TotalOpeningCount, haltReason));
+                        return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Openings(openings.TotalOpeningCount, haltReason));
                     case CleanRoomNoEnclosureLeakView _:
-                        return ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.NoEnclosure(haltReason));
+                        return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.NoEnclosure(haltReason));
                     case CleanRoomTooLargeLeakView tooLarge:
-                        return ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.TooLarge(tooLarge.MaxRoomVolume, haltReason));
+                        return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.TooLarge(tooLarge.MaxRoomVolume, haltReason));
                     case CleanRoomDetectionPendingLeakView _:
-                        return ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Detecting(haltReason));
+                        return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Detecting(haltReason));
                 }
                 Debug.LogError($"[CleanRoomViewConversion] unsupported leak kind: {leak.GetType().Name}");
-                return ContextEntry<CleanRoomFetchedDetail>.Absent;
+                return SectionContent<CleanRoomFetchedDetail>.Absent;
             }
 
             static CleanRoomSummary Room(CleanRoomSummaryMessagePack room)

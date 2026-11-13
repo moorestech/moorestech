@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Client.Tests.Ui.Content;
+using Client.Tests.Ui.Screens.Hotbar;
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
 using Client.Ui.Screens.BuildMenu;
@@ -27,6 +28,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
         private const int SettleFrameMilliseconds = 50;
 
         protected RecordingBuildMenuCommands Commands { get; private set; }
+        protected RecordingHotbarCommands HotbarCommands { get; private set; }
         protected BuildMenuSessionStore Session { get; private set; }
         protected BuildMenuCategoryScrollTracker Tracker { get; private set; }
         protected BuildMenuView View { get; private set; }
@@ -43,9 +45,10 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             Content = new GameContentPresentation(new FakeContentTextureSource(Texture2D.whiteTexture, Texture2D.whiteTexture, Texture2D.whiteTexture));
             Commands = new RecordingBuildMenuCommands();
+            HotbarCommands = new RecordingHotbarCommands();
             Session = new BuildMenuSessionStore();
             Tracker = new BuildMenuCategoryScrollTracker(Session);
-            View = Mount(new BuildMenuView(Commands, Content, BuildMenuSamples.Icons(Content), Toaster, Session, Tracker));
+            View = Mount(new BuildMenuView(Commands, HotbarCommands, Content, BuildMenuSamples.Icons(Content), Toaster, Session, Tracker));
         }
 
         // 本番の Presenter と同じ順（描いてから出す）で開く

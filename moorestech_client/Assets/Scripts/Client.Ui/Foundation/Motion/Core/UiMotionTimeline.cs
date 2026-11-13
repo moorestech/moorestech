@@ -4,12 +4,12 @@ using UniRx;
 namespace Client.Ui.Foundation.Motion.Core
 {
     /// <summary>
-    /// 注入された時計で 1 つの動きを進める純粋な走行器。再生し直し・取り消し・完了の通知を持つ
-    /// Pure runner that advances one animation with an injected clock; supports restart, cancel and completion notification
+    /// 注入時計で 1 つの動きを進める走行器
+    /// Runner advancing one animation by an injected clock
     /// </summary>
     /// <remarks>
-    /// 取り消しは通知しない。完了は 1 回だけ OnNext → OnCompleted する（以後の再生し直しは通知されない）
-    /// Cancel does not notify; completion emits OnNext then OnCompleted once (later restarts are not notified)
+    /// 取消は通知しない。完了は 1 回だけ通知する
+    /// Cancel is silent; completion notifies once
     /// </remarks>
     public sealed class UiMotionTimeline
     {

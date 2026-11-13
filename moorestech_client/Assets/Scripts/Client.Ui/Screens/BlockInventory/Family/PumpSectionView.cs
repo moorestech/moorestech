@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
@@ -24,7 +23,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
         private readonly MachineStateRow _stateRow = new("pump-state-label", "pump-power-rate");
         private readonly UiGroup _fluids = new(UiGap.Xs) { name = "pump-pumping-fluids" };
         private readonly LackHighlightText _noVein = new("pump-no-vein", LackHighlightTextSize.Sm);
-        private readonly List<(FluidId FluidId, PerMinuteRateRow Row)> _rows = new();
+        private readonly KeyedRowList<FluidId, PerMinuteRateRow> _rows = new();
         private readonly GameContentPresentation _content;
 
         public VisualElement Root => _root;
@@ -56,27 +55,21 @@ namespace Client.Ui.Screens.BlockInventory.Family
             var hasTargets = 0 < detail.PumpingFluids.Count;
             _root.SetItemShown(_fluids, hasTargets);
             _root.SetItemShown(_noVein, !hasTargets);
-            if (!SameFluids()) Rebuild();
-            for (var i = 0; i < _rows.Count; i++) _rows[i].Row.Render(detail.PumpingFluids[i].AmountPerMinute);
+            if (_rows.ClearIfKeysChanged(FluidIds())) Rebuild();
+            for (var i = 0; i < _rows.Count; i++) _rows.RowAt(i).Render(detail.PumpingFluids[i].AmountPerMinute);
 
             #region Internal
 
-            // 件数と添字ごとの id 一致で比べる（MinerSectionView.SameItems と同じ規則。片方を変えたら両方直す）
-            // Compare by count and per-index id (same rule as MinerSectionView.SameItems; change both together)
-            bool SameFluids()
+            FluidId[] FluidIds()
             {
-                if (detail.PumpingFluids.Count != _rows.Count) return false;
-                for (var i = 0; i < _rows.Count; i++)
-                {
-                    if (detail.PumpingFluids[i].FluidId != _rows[i].FluidId) return false;
-                }
-                return true;
+                var ids = new FluidId[detail.PumpingFluids.Count];
+                for (var i = 0; i < ids.Length; i++) ids[i] = detail.PumpingFluids[i].FluidId;
+                return ids;
             }
 
             void Rebuild()
             {
                 _fluids.ClearItems();
-                _rows.Clear();
                 foreach (var fluid in detail.PumpingFluids)
                 {
                     var icon = new GameIcon();
@@ -84,7 +77,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
                     icon.SetIcon(_content.Fluid(fluid.FluidId), GameIconFallback.None);
                     var row = new PerMinuteRateRow(icon);
                     _fluids.AddItem(row);
-                    _rows.Add((fluid.FluidId, row));
+                    _rows.Add(fluid.FluidId, row);
                 }
             }
 

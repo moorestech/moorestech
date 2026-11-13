@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.Foundation.Tooltip;
 using Client.Ui.State.BuildMenu.Entries;
+using Client.Ui.State.Hotbar;
 using Client.Ui.State.Text;
 using UniRx;
 
@@ -26,7 +27,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
         public SlotFrame Frame { get; }
 
-        public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler)
+        public BuildMenuEntrySlot(BuildMenuEntryViewModel entry, GameContentPresentation content, PlacementTargetIcons icons, IBuildMenuEntryHandler handler, IHotbarCommands hotbarCommands)
         {
             _content = content;
             _icons = icons;
@@ -39,7 +40,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
             // 左はドラッグ源（タップ＝選択）、右は BP だけ削除、ホバーは詳細の sticky
             // Left is the drag source (tap selects), right deletes blueprints only, hover feeds the sticky detail
-            UiDragDrop.MarkSource(Frame, new BuildMenuEntryDragPayload(_targetId, handler));
+            UiDragDrop.MarkSource(Frame, new BuildMenuEntryDragPayload(_targetId, handler, hotbarCommands));
             var isBlueprint = entry.CanDeleteBlueprint;
             Frame.OnSlotGestured.Subscribe(gesture =>
             {

@@ -8,6 +8,7 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Tooltip;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.BlockInventory.Machine;
+using Client.Ui.State.Recipe.Logic;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -78,7 +79,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 var time = new LocalizedLabel { name = "machine-selected-recipe-time", pickingMode = PickingMode.Ignore };
                 time.AddToClassList(UiTypographyClass.TextSm);
                 time.AddToClassList(UiTypographyClass.TextDimmed);
-                time.SetText(MachineRecipeNames.Duration(recipe.Time));
+                time.SetText(RecipeDurationText.Create(recipe.Time));
                 _group.AddItem(time);
             }
 

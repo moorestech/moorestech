@@ -40,9 +40,9 @@ namespace Client.Ui.State.BlockInventory.Special.Text
         public static UiText ElectricToGearOutputMode(ElectricToGearOutputMode mode)
         {
             return With(LocalizationKeys.Ui.BlockInventory.ElectricToGearOutputMode,
-                Param("rpm", JsNumberText.Number(mode.Rpm)),
-                Param("torque", JsNumberText.Number(mode.Torque)),
-                Param("power", JsNumberText.Number(mode.RequiredPower)));
+                Param("rpm", UiNumberFormat.JsString(mode.Rpm)),
+                Param("torque", UiNumberFormat.JsString(mode.Torque)),
+                Param("power", UiNumberFormat.JsString(mode.RequiredPower)));
         }
 
         public static UiText ElectricToGearConsumedPower(ElectricToGearDetail detail)

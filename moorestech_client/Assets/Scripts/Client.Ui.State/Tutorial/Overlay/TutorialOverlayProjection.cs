@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Tutorial;
+using UnityEngine;
 
 namespace Client.Ui.State.Tutorial.Overlay
 {
@@ -26,6 +27,13 @@ namespace Client.Ui.State.Tutorial.Overlay
                             break;
                         case TutorialDragGuideElementData dragGuide:
                             dragGuides.Add(new TutorialDragGuideCue(TutorialElementKey.Of(session.TutorialSessionId, dragGuide.ElementId), dragGuide.FromAnchorId, dragGuide.ToAnchorId));
+                            break;
+                        // keyControl は KeyControlHintProjection の持ち物なのでここでは読まない
+                        // keyControl belongs to KeyControlHintProjection, so it is not read here
+                        case TutorialKeyControlElementData _:
+                            break;
+                        default:
+                            Debug.LogError($"[TutorialOverlayProjection] unsupported tutorial element: {element.GetType().Name}");
                             break;
                     }
                 }

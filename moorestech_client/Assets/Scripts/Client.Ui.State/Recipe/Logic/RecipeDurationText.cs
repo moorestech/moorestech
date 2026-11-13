@@ -1,4 +1,3 @@
-using System.Globalization;
 using Client.Localization;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -13,7 +12,7 @@ namespace Client.Ui.State.Recipe.Logic
     {
         public static UiText Create(double seconds)
         {
-            return new UiText(LocalizationKeys.Ui.Recipe.Duration, new[] { new LocalizationTextParam("seconds", seconds.ToString("R", CultureInfo.InvariantCulture)) });
+            return new UiText(LocalizationKeys.Ui.Recipe.Duration, new[] { new LocalizationTextParam("seconds", UiNumberFormat.JsString(seconds)) });
         }
     }
 }

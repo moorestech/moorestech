@@ -102,15 +102,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         {
             switch (webSource)
             {
-                case "gear": return new VisualElement[] { RenderInto(new GearSectionView(), SpecialDetailSamples.GearMachine) };
+                case "gear": return new VisualElement[] { RenderSection(new GearSectionView(), SpecialDetailSamples.GearMachineGear) };
                 case "filterSplitter": return new VisualElement[] { RenderFilterSplitter() };
-                case "electricToGear": return new VisualElement[] { RenderInto(new ElectricToGearBodyView(Kit(null)), SpecialDetailSamples.Only(SpecialDetailSamples.ElectricToGear)) };
-                case "network": return new VisualElement[] { RenderInto(new ElectricNetworkSectionView(), SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork)), RenderInto(new GearNetworkSectionView(), SpecialDetailSamples.GearMachine) };
+                case "electricToGear": return new VisualElement[] { RenderSection(new ElectricToGearBodyView(Kit(null)), SpecialDetailSamples.Only(SpecialDetailSamples.ElectricToGear)) };
+                case "network": return new VisualElement[] { RenderSection(new ElectricNetworkSectionView(), SpecialDetailSamples.PoleNetwork), RenderSection(new GearNetworkSectionView(), SpecialDetailSamples.GearMachineNetwork) };
                 default: throw new System.ArgumentOutOfRangeException(nameof(webSource), webSource, "Web の sources の鍵に対応する View が無い");
             }
         }
 
-        private VisualElement RenderInto<TView>(TView view, SpecialBlockDetailViewModel detail) where TView : VisualElement, ISpecialDetailRenderer
+        private VisualElement RenderSection<TView, TDetail>(TView view, TDetail detail) where TView : VisualElement, ISpecialSectionRenderer<TDetail>
         {
             Mount(view);
             view.Render(NoSlots, detail);

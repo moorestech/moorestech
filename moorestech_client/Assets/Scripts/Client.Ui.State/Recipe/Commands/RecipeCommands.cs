@@ -37,7 +37,7 @@ namespace Client.Ui.State.Recipe.Commands
             UiCommandResult Reject(UiCommandRejectReason reason)
             {
                 Debug.LogWarning($"[{CommandName}] rejected: {UiCommandRejectReasonTraits.ToWireCode(reason)} recipe={recipeGuid}");
-                return new UiCommandRejected(reason, "");
+                return UiCommandRejected.Of(reason);
             }
 
             #endregion

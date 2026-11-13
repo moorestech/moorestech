@@ -1,43 +1,46 @@
-using System.Collections.Generic;
 using Client.Ui.Components.NodeGraph;
 using NUnit.Framework;
-using UniRx;
 using UnityEngine;
 
 namespace Client.Tests.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ビューポートの復元・初回の中央寄せ・ホイールの基準・寸法の追従（Web TreeViewViewportState.test.ts の 1〜6 件目の写し）
-    /// Viewport restore, initial centering, wheel anchoring and resize-follow (copy of tests 1–6 of the Web TreeViewViewportState.test.ts)
+    /// 視点の保持・中央寄せ・ホイール基準・寸法追従
+    /// Viewport holding, centering, wheel anchor, resize-follow
     /// </summary>
     /// <remarks>
-    /// Web の viewportKey ごとの Map は画面の State が持つ。ここでは画面の役を「OnViewportChanged の最後の値を控え、作り直しで RestoreViewport へ渡す」で写す
-    /// The Web per-viewportKey Map is held by the screen State; here the screen's role is "keep the last OnViewportChanged value and pass it to RestoreViewport on rebuild"
+    /// Web の Map は View の出し入れで写す
+    /// Web Map is played by hiding and re-showing the View
     /// </remarks>
     public class NodeGraphViewViewportStateTest : NodeGraphTestStage
     {
         /// <web-test file="src/shared/treeView/TreeViewViewportState.test.ts">restores the panned viewport after unmount and remount with the same key</web-test>
         [Test]
-        public void 流れた最後の値で作り直すとパンしたビューポートを復元する()
+        public void 隠して戻してもパンしたビューポートのまま()
         {
             var host = MountHost(400f, 300f);
-            var first = MountView(host);
-            var held = new List<NodeGraphViewport>();
-            first.OnViewportChanged.Subscribe(held.Add);
-            first.SetGraph(OneNode(NodeGraphFocus.None));
+            var view = MountView(host);
+            view.SetGraph(OneNode(NodeGraphFocus.None));
             simulate.FrameUpdate();
-            Drag(ContentOrigin(first) + new Vector2(10f, 10f), new Vector2(10f, 5f));
-            first.RemoveFromHierarchy();
-            Assert.IsNotEmpty(held, "panning emits the viewport");
+            Drag(ContentOrigin(view) + new Vector2(10f, 10f), new Vector2(10f, 5f));
+            AssertViewport(10f, 5f, 1f, ReadViewport(view));
 
-            // 画面の役: 最後の値を新しいビューへ戻す。戻した値は流れない
-            // Screen role: restore the last value into the new view; the restored value is not emitted
-            var emittedAfterRestore = new List<NodeGraphViewport>();
-            var second = MountRestoredView(host, held[held.Count - 1], emittedAfterRestore);
-            second.SetGraph(OneNode(NodeGraphFocus.None));
+            HideAndShow(host, 300f);
+            AssertViewport(10f, 5f, 1f, ReadViewport(view));
+        }
+
+        /// <web-test file="src/shared/treeView/TreeViewViewportState.test.ts">keeps the restored viewport across a size change</web-test>
+        [Test]
+        public void 隠している間に寸法が変わっても戻したとき中心を合わせ直さない()
+        {
+            var host = MountHost(400f, 300f);
+            var view = MountView(host);
+            view.SetGraph(OneNode(NodeGraphFocus.At(Vector2.zero)));
             simulate.FrameUpdate();
-            AssertViewport(10f, 5f, 1f, ReadViewport(second));
-            Assert.IsEmpty(emittedAfterRestore, "restore and mount emit nothing");
+            AssertViewport(0f, -50f, 1f, ReadViewport(view));
+
+            HideAndShow(host, 265f);
+            AssertViewport(0f, -50f, 1f, ReadViewport(view));
         }
 
         /// <web-test file="src/shared/treeView/TreeViewViewportState.test.ts">centers the initial focus point when nothing is stored</web-test>
@@ -66,9 +69,13 @@ namespace Client.Tests.Ui.Components.NodeGraph
 
         /// <web-test file="src/shared/treeView/TreeViewViewportState.test.ts">prefers the stored viewport over initial-focus centering</web-test>
         [Test]
-        public void 戻したビューポートを初回の中央寄せより優先する()
+        public void 保持したビューポートを初回の中央寄せより優先する()
         {
-            var view = MountRestoredView(MountHost(400f, 300f), new NodeGraphViewport(30f, 40f, 1f), new List<NodeGraphViewport>());
+            var host = MountHost(400f, 300f);
+            var view = MountView(host);
+            Drag(ContentOrigin(view) + new Vector2(10f, 10f), new Vector2(30f, 40f));
+            HideAndShow(host, 300f);
+
             view.SetGraph(OneNode(NodeGraphFocus.At(Vector2.zero)));
             simulate.FrameUpdate();
             AssertViewport(30f, 40f, 1f, ReadViewport(view));

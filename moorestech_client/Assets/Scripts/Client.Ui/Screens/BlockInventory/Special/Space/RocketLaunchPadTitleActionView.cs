@@ -13,7 +13,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// 発射台の題の操作。合図待ちの段階だけ建造/発射のボタンを 1 つ出す（Web RocketLaunchPadCommandAction）
     /// Launch pad title action; shows the single build or launch button only while waiting for a command (Web RocketLaunchPadCommandAction)
     /// </summary>
-    public sealed class RocketLaunchPadTitleActionView : VisualElement, ISpecialDetailRenderer
+    public sealed class RocketLaunchPadTitleActionView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         public const string CommandName = "rocket_launch_pad.command";
 
@@ -26,14 +26,12 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             name = "rocket-launch-pad-title-action";
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             // 合図待ちでなければ題の操作ごと隠す（Web は null。手動の操作を持たない段階）。根は alpha の題の操作の器の唯一の子で UiGapContainer の項目ではないので自分で隠してよい（区画とは違う）
             // Hide the whole action outside command waits (Web returns null); the root is the only child of alpha's title-action holder, not a UiGapContainer item, so it may hide itself (unlike sections)
             var hasButton = detail.TryGetRocketLaunchPad(out var rocket) && rocket.TryGetCommandButton(out var button) ? Show(button) : HideAll();
             SpecialViewParts.SetShown(this, hasButton);
-
-            return true;
 
             #region Internal
 

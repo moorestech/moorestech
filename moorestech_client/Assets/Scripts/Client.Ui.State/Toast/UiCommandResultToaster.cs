@@ -10,6 +10,8 @@ namespace Client.Ui.State.Toast
     /// </summary>
     public sealed class UiCommandResultToaster
     {
+        private const string CodeParamName = "code";
+
         private readonly GameUiToastFeed _toasts;
 
         public UiCommandResultToaster(GameUiToastFeed toasts)
@@ -23,11 +25,17 @@ namespace Client.Ui.State.Toast
             // Acceptance notices are per screen
             if (result is not UiCommandRejected rejected) return;
 
-            // コマンド名と失敗コードをログへ
-            // Log command name and failure code
-            Debug.LogWarning($"[UiCommandResultToaster] {commandName} failed: {rejected.ToWireCode()}");
+            // 名前・コード・診断を 1 行でログへ
+            // Log name, code and diagnostic in one line
+            var wireCode = rejected.ToWireCode();
+            Debug.LogWarning($"[UiCommandResultToaster] {commandName} failed: {rejected.ToLogText()}");
             if (UiCommandRejectReasonTraits.IsBenign(rejected.Reason)) return;
-            _toasts.Show(Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(rejected.Reason)), GameUiToastVariant.Error);
+
+            // 失敗コードは常に {code} へ
+            // Always pass the failure code as {code} (A-261)
+            var key = UiCommandRejectReasonTraits.ToLocalizationKey(rejected.Reason);
+            var text = Localize.GetFormatted(key, new[] { new LocalizationTextParam(CodeParamName, wireCode) });
+            _toasts.Show(text, GameUiToastVariant.Error);
         }
     }
 }

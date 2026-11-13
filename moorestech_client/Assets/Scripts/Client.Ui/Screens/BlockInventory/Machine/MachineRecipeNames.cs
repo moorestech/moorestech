@@ -26,13 +26,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             };
         }
 
-        // レシピ秒の文。数値をそのまま差す
-        // Recipe seconds text; seconds are interpolated as the plain number like Web, same format on rows and header
-        public static UiText Duration(double seconds)
-        {
-            return new UiText(LocalizationKeys.Ui.BlockInventory.RecipeDuration, new[] { new LocalizationTextParam("seconds", seconds.ToString(CultureInfo.InvariantCulture)) });
-        }
-
         // 選択行の名前。複数なら他 N 件
         // Selection row name; several products add "and N more" so the name matches the icon row
         public static UiText Row(MachineRecipeSelectionRow row, GameContentPresentation content)

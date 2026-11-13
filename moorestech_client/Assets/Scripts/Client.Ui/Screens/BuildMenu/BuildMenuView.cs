@@ -4,6 +4,7 @@ using Client.Ui.Screens.BuildMenu.Parts;
 using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Session;
+using Client.Ui.State.Hotbar;
 using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine.UIElements;
@@ -29,7 +30,7 @@ namespace Client.Ui.Screens.BuildMenu
         private string _query;
         private bool _shown;
 
-        public BuildMenuView(IBuildMenuCommands commands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker)
+        public BuildMenuView(IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker)
         {
             _session = session;
             _tracker = tracker;
@@ -41,7 +42,7 @@ namespace Client.Ui.Screens.BuildMenu
             // Build the three columns' parts and lay them on the skeleton
             var detail = new BuildMenuDetailSidebar(content, icons);
             _actions = new BuildMenuEntryActions(commands, toaster, session, detail);
-            _list = new BuildMenuCategoryList(content, icons, _actions);
+            _list = new BuildMenuCategoryList(content, icons, _actions, hotbarCommands);
             _skeleton = new BuildMenuPanelSkeleton(_sidebar, _list, detail);
             Add(_skeleton.Band);
             _scrollBinding = new BuildMenuScrollBinding(_skeleton.Scroll, _list, tracker);

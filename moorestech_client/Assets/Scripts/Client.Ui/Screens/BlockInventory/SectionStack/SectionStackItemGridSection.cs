@@ -37,8 +37,12 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
         {
             _panels.Current.Subscribe(current =>
             {
-                // silent-ok: 別のパネルへ替わる途中の値は描かない / BodyHost が同じフレームで Detach して新しい区画を作る
-                if (!(current is OpenBlockInventoryPanel open) || !open.IsSamePanel(panel)) return;
+                // silent-ok: 別のパネルへ替わる途中の値は描かず偽へ倒す / BodyHost が同じフレームで Detach して新しい区画を作る
+                if (!(current is OpenBlockInventoryPanel open) || !open.IsSamePanel(panel))
+                {
+                    _isApplicable.Value = false;
+                    return;
+                }
                 _isApplicable.Value = _config is ShownSectionStackItemGrid shown && (shown.RenderEmpty || 0 < open.ItemSlots.Count);
                 if (_isApplicable.Value) _grid.Render(open.ItemSlots, BlockDetailMath.AllSlotIndices(open.ItemSlots.Count));
             }).AddTo(_subscriptions);
@@ -46,7 +50,10 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
 
         public void Detach()
         {
+            // 外れたら偽へ戻す（前のパネルの適用可否を次のパネルへ持ち越さない）
+            // Reset to false when detached so the previous panel's applicability is not carried over
             _subscriptions.Clear();
+            _isApplicable.Value = false;
         }
     }
 }

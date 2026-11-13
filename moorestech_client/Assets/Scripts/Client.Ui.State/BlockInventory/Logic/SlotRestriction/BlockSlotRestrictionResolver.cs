@@ -17,7 +17,7 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
             // 取得失敗は候補探索の前に返す
             // Propagate fetch failure before looking up candidate slots
             if (block is OpenFailedBlockSlotInput) return BlockSlotRestriction.InventoryOpenFailed;
-            if (!(block is OpenBlockSlotInput open)) return BlockSlotRestriction.Unrestricted;
+            var open = (OpenBlockSlotInput)block;
 
             // 入れ口固定の種別は出力枠へ入れない
             // Fixed-inlet types never insert into their output slots

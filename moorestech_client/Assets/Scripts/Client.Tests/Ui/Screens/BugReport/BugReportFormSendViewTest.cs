@@ -118,7 +118,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
             Type("nice");
             simulate.Click(SendButton());
-            Commands.CompleteSubmit(new UiCommandRejected(UiCommandRejectReason.CaptureRefused, ""));
+            Commands.CompleteSubmit(UiCommandRejected.Of(UiCommandRejectReason.CaptureRefused));
 
             Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.CaptureRefused), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);

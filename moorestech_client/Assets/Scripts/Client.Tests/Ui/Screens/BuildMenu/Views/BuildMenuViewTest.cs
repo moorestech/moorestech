@@ -73,12 +73,12 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 
             // BP が既に無いのは良性（Web の BENIGN_ERRORS）。要求の失敗はトーストする
             // A blueprint already gone is benign (the Web BENIGN_ERRORS); a failed request is toasted
-            Commands.SetDeleteResult(new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteNotFound, ""));
+            Commands.SetDeleteResult(UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteNotFound));
             simulate.Click(Entry("blueprint", StarterBase), MouseButton.RightMouse);
             Settle();
             Assert.AreEqual(0, ShownToasts.Count);
 
-            Commands.SetDeleteResult(new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteRequestFailed, ""));
+            Commands.SetDeleteResult(UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteRequestFailed));
             simulate.Click(Entry("blueprint", StarterBase), MouseButton.RightMouse);
             Settle();
             Assert.AreEqual(1, ShownToasts.Count);

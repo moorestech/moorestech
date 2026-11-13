@@ -35,29 +35,18 @@ namespace Client.Tests.Ui.Screens.Hotbar
 
         /// <web-test file="e2e/tests/hotbar/hotbar.spec.ts">ビルドメニューエントリを空き枠へドラッグするとhotbar.assign{slot,id}を送る</web-test>
         [Test]
-        public void ビルドメニューの源を空き枠へ落とすと割当を送りタップは出さない()
+        public void ビルドメニューの源を空き枠へ落とすと枠への落としを渡しタップは出さない()
         {
-            // 画面の左上に本物のエントリの源を単独で置く（パネル越しの結線は S3-ladder。計画 D-16）
-            // Put the real entry source alone at the top-left (wiring through the panel is S3-ladder; plan D-16)
-            var entry = new VisualElement { name = "build-menu-entry-alone" };
-            entry.style.position = Position.Absolute;
-            entry.style.left = 10;
-            entry.style.top = 10;
-            entry.style.width = 60;
-            entry.style.height = 60;
-            rootVisualElement.Add(entry);
             var entryHandler = new RecordingBuildMenuEntryHandler();
-            UiDragDrop.MarkSource(entry, new BuildMenuEntryDragPayload(EntryId, entryHandler));
-            simulate.FrameUpdate();
-
+            var entry = MountEntryAlone(entryHandler);
             Drag(entry.worldBound.center, Slot(1).worldBound.center);
-            CollectionAssert.AreEqual(new[] { $"assign:1:{EntryId:D}" }, _commands.Calls);
+            CollectionAssert.AreEqual(new[] { $"entry:{EntryId:D}->slot:1" }, _commands.Calls);
             CollectionAssert.IsEmpty(entryHandler.Selected);
         }
 
         /// <web-test file="e2e/tests/hotbar/hotbar.spec.ts">未解決の割当枠は使用不可表示になり、枠外ドラッグで外せる</web-test>
         [Test]
-        public void 未解決の割当枠は白面のまま減光され枠外へ落とすと解除を送る()
+        public void 未解決の割当枠は白面のまま減光され枠外へ落とすと枠外への落としを渡す()
         {
             var slot4 = Slot(4);
             Assert.IsTrue(slot4.parent.ClassListContains("hotbar-hud__cell--unresolved"));
@@ -66,24 +55,51 @@ namespace Client.Tests.Ui.Screens.Hotbar
             Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--hotbar-unresolved-opacity"), CultureInfo.InvariantCulture), HotbarGroupOpacity.Read(slot4.parent), 0.001f);
 
             Drag(slot4.worldBound.center, new Vector2(slot4.worldBound.center.x, 5f));
-            CollectionAssert.AreEqual(new[] { "clear:4" }, _commands.Calls);
+            CollectionAssert.AreEqual(new[] { "slot:4->outside" }, _commands.Calls);
         }
 
         /// <web-test file="e2e/tests/hotbar/hotbar.spec.ts">枠外へドラッグするとhotbar.clear{slot}を送る</web-test>
         [Test]
-        public void 割当済みの枠を画面の上端へ落とすと解除を送る()
+        public void 割当済みの枠を画面の上端へ落とすと枠外への落としを渡す()
         {
             var slot0 = Slot(0);
             Drag(slot0.worldBound.center, new Vector2(slot0.worldBound.center.x, 5f));
-            CollectionAssert.AreEqual(new[] { "clear:0" }, _commands.Calls);
+            CollectionAssert.AreEqual(new[] { "slot:0->outside" }, _commands.Calls);
         }
 
+        // 隙間は枠外（解除）でなく列の隙間として渡す。何もしないことは HotbarDropResolverTest が固定する
+        // The gap goes as the row gap, not outside (clear); HotbarDropResolverTest pins that it does nothing
         [Test]
-        public void 枠の間の隙間で離すと何も送らない()
+        public void 枠の間の隙間で離すと列の隙間への落としを渡す()
         {
             var gap = new Vector2(Slot(1).worldBound.xMax + 2.5f, Slot(1).worldBound.center.y);
             Drag(Slot(0).worldBound.center, gap);
-            CollectionAssert.IsEmpty(_commands.Calls);
+            CollectionAssert.AreEqual(new[] { "slot:0->gap" }, _commands.Calls);
+        }
+
+        [Test]
+        public void ビルドメニューの源を枠の間の隙間で離すと列の隙間への落としを渡す()
+        {
+            var entry = MountEntryAlone(new RecordingBuildMenuEntryHandler());
+            var gap = new Vector2(Slot(1).worldBound.xMax + 2.5f, Slot(1).worldBound.center.y);
+            Drag(entry.worldBound.center, gap);
+            CollectionAssert.AreEqual(new[] { $"entry:{EntryId:D}->gap" }, _commands.Calls);
+        }
+
+        // 左上に本物のエントリ源を単独で置く
+        // Put the real entry source alone at top-left
+        private VisualElement MountEntryAlone(RecordingBuildMenuEntryHandler entryHandler)
+        {
+            var entry = new VisualElement { name = "build-menu-entry-alone" };
+            entry.style.position = Position.Absolute;
+            entry.style.left = 10;
+            entry.style.top = 10;
+            entry.style.width = 60;
+            entry.style.height = 60;
+            rootVisualElement.Add(entry);
+            UiDragDrop.MarkSource(entry, new BuildMenuEntryDragPayload(EntryId, entryHandler, _commands));
+            simulate.FrameUpdate();
+            return entry;
         }
 
         private SlotFrame Slot(int index)

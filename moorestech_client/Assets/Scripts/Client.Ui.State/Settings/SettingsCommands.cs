@@ -31,7 +31,7 @@ namespace Client.Ui.State.Settings
         public UiCommandResult SetLanguage(string languageCode)
         {
             if (Localize.TrySetChosenLanguage(languageCode)) return UiCommandAccepted.Instance;
-            return new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, "");
+            return UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage);
         }
     }
 }

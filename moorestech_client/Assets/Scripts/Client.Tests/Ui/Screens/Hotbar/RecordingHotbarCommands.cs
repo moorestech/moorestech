@@ -8,9 +8,9 @@ namespace Client.Tests.Ui.Screens.Hotbar
 {
     /// <summary>
     /// 呼ばれた操作を文字列で記録する
-    /// Records the called operations as strings
+    /// Records called operations as strings
     /// </summary>
-    internal sealed class RecordingHotbarCommands : IHotbarCommands
+    public sealed class RecordingHotbarCommands : IHotbarCommands
     {
         public readonly List<string> Calls = new();
 
@@ -20,16 +20,30 @@ namespace Client.Tests.Ui.Screens.Hotbar
             return UiCommandAccepted.Instance;
         }
 
-        public void Apply(HotbarDropAction action)
+        public void Drop(HotbarDragSource source, HotbarDropTarget target)
         {
-            Calls.Add(action switch
+            Calls.Add($"{SourceText(source)}->{TargetText(target)}");
+        }
+
+        private static string SourceText(HotbarDragSource source)
+        {
+            return source switch
             {
-                HotbarAssignAction assign => $"assign:{assign.SlotIndex}:{assign.TargetId:D}",
-                HotbarSwapAction swap => $"swap:{swap.FromSlotIndex}:{swap.ToSlotIndex}",
-                HotbarClearAction clear => $"clear:{clear.SlotIndex}",
-                HotbarNoDropAction => "none",
-                _ => throw new ArgumentOutOfRangeException(nameof(action), action, null),
-            });
+                BuildMenuEntryDragSource entry => $"entry:{entry.TargetId:D}",
+                HotbarSlotDragSource slot => $"slot:{slot.SlotIndex}",
+                _ => throw new ArgumentOutOfRangeException(nameof(source), source, null),
+            };
+        }
+
+        private static string TargetText(HotbarDropTarget target)
+        {
+            return target switch
+            {
+                HotbarSlotDropTarget slot => $"slot:{slot.SlotIndex}",
+                OutsideHotbarDropTarget => "outside",
+                HotbarRowGapDropTarget => "gap",
+                _ => throw new ArgumentOutOfRangeException(nameof(target), target, null),
+            };
         }
     }
 }
