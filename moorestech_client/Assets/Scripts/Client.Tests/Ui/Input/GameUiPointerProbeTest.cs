@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.Input
             UiLayerStack.Build(rootVisualElement);
             simulate.FrameUpdate();
 
-            Assert.IsNull(new GameUiPointerProbe(panel).PickAtPanel(PanelCenter));
+            Assert.IsNull(new GameUiPointerProbe(rootVisualElement).PickAtPanel(PanelCenter));
         }
 
         [Test]
@@ -46,7 +46,7 @@ namespace Client.Tests.Ui.Input
 
             // 箱の外は層だけなので null
             // Null outside the box where only layers remain
-            var probe = new GameUiPointerProbe(panel);
+            var probe = new GameUiPointerProbe(rootVisualElement);
             Assert.AreSame(box, probe.PickAtPanel(PanelCenter));
             Assert.IsNull(probe.PickAtPanel(new Vector2(10, 10)));
         }
@@ -64,7 +64,7 @@ namespace Client.Tests.Ui.Input
             stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(box);
             simulate.FrameUpdate();
 
-            Assert.AreSame(child, new GameUiPointerProbe(panel).PickAtPanel(PanelCenter));
+            Assert.AreSame(child, new GameUiPointerProbe(rootVisualElement).PickAtPanel(PanelCenter));
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace Client.Tests.Ui.Input
             stack.GetLayer(UiLayer.Modal, UiFamily.Viewport).Add(CreateCenteredBox(PickingMode.Ignore));
             simulate.FrameUpdate();
 
-            Assert.IsNull(new GameUiPointerProbe(panel).PickAtPanel(PanelCenter));
+            Assert.IsNull(new GameUiPointerProbe(rootVisualElement).PickAtPanel(PanelCenter));
         }
 
         private static VisualElement CreateCenteredBox(PickingMode pickingMode)

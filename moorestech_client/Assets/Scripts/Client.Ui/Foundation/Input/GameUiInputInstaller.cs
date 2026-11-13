@@ -12,10 +12,12 @@ namespace Client.Ui.Foundation.Input
     public class GameUiInputInstaller : IInitializable, IDisposable
     {
         private readonly GameUiRoot _gameUiRoot;
+        private readonly GameUiPointerProbe _pointerProbe;
 
-        public GameUiInputInstaller(GameUiRoot gameUiRoot)
+        public GameUiInputInstaller(GameUiRoot gameUiRoot, GameUiPointerProbe pointerProbe)
         {
             _gameUiRoot = gameUiRoot;
+            _pointerProbe = pointerProbe;
         }
 
         public void Initialize()
@@ -26,7 +28,7 @@ namespace Client.Ui.Foundation.Input
             // Without an attached panel neither Pick nor input works, so stop at startup
             if (root.panel == null) throw new InvalidOperationException("[GameUiInput] GameUi root is not attached to a panel");
             GameUiInputRules.Attach(root);
-            UiInputExclusivity.SetGameUiPointerProbe(new GameUiPointerProbe(root.panel));
+            UiInputExclusivity.SetGameUiPointerProbe(_pointerProbe);
         }
 
         public void Dispose()

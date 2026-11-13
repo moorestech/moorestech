@@ -1,5 +1,4 @@
 using Client.Ui.Foundation.Input;
-using Client.Ui.Foundation.Root;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -7,18 +6,18 @@ namespace Client.Ui.Screens.Inventory.Wheel
 {
     public sealed class EquipmentWheelPointerPicker : IEquipmentWheelPointerPicker
     {
-        private readonly GameUiRoot _root;
+        private readonly GameUiPointerProbe _probe;
 
-        public EquipmentWheelPointerPicker(GameUiRoot root)
+        public EquipmentWheelPointerPicker(GameUiPointerProbe probe)
         {
-            _root = root;
+            _probe = probe;
         }
 
         public VisualElement PickAt(Vector2 screenPosition)
         {
-            // 拾いと座標換算は Foundation の probe の 1 か所に任せる（ルートのパネル接続は入力の導入が起動で確かめる）
-            // Picking and conversion live in the Foundation probe (the input installer checks the root's panel at startup)
-            return new GameUiPointerProbe(_root.GetRootElement().panel).PickAt(screenPosition);
+            // 拾いと座標換算は DI の 1 つの probe に任せる（ルートのパネル接続は入力の導入が起動で確かめる）
+            // Picking and conversion live in the single DI probe (the input installer checks the root's panel at startup)
+            return _probe.PickAt(screenPosition);
         }
     }
 }
