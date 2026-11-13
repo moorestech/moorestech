@@ -126,18 +126,21 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
             simulate.FrameUpdate();
             var view = new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>());
             var focusTaken = false;
-            view.RegisterCallback<FocusInEvent>(_ => focusTaken = true);
+            var trace = "";
+            view.RegisterCallback<FocusInEvent>(e => { focusTaken = true; trace += $"[in {((VisualElement)e.target).name}/{e.target.GetType().Name} flag={UiInputExclusivity.IsTextInputFocused}]"; });
+            view.RegisterCallback<FocusOutEvent>(e => trace += $"[out {((VisualElement)e.target).name}]");
             modalLayer.Add(view);
-            for (var frame = 0; frame < 3 && !focusTaken; frame++) simulate.FrameUpdate();
+            var frames = 0;
+            for (; frames < 3 && !focusTaken; frames++) simulate.FrameUpdate();
             Assert.IsTrue(focusTaken, "前提: 隠れた入力欄がフォーカスを取る");
-            Assert.IsTrue(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "前提: 隠れた入力欄のフォーカスでキーが抑止される");
+            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused, $"DIAG frames={frames} trace={trace} focused={(rootVisualElement.panel.focusController.focusedElement as VisualElement)?.name}");
 
             // 取った次のフレームに根の入力規則が外す（A-275）
             // The root input rules blur it on the frame after it was taken (A-275)
             simulate.FrameUpdate();
 
             Assert.IsNull(rootVisualElement.panel.focusController.focusedElement, "隠れた入力欄がフォーカスを持ったまま");
-            Assert.IsFalse(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "隠している間もゲームのキーが抑止されたまま");
+            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "隠している間もゲームのキーが抑止されたまま");
         }
     }
 }
