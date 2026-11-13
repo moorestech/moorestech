@@ -21,11 +21,11 @@
 }
 
 .bug-report__field-label {
-    margin-bottom: 16px;
+    margin-bottom: var(--mantine-spacing-md);
 }
 
 .bug-report__status {
-    margin-top: 16px;
+    margin-top: var(--mantine-spacing-md);
 }
 
 /* 外側の箱の寸法をトークンで決める。中の TextField と入力要素を箱いっぱいに伸ばすのは GameTextField の USS */
@@ -34,7 +34,7 @@
     flex-shrink: 0;
     width: var(--bug-report-textarea-width);
     height: var(--bug-report-textarea-height);
-    margin-top: 16px;
+    margin-top: var(--mantine-spacing-md);
 }
 
 .bug-report__recovery {
@@ -44,5 +44,5 @@
 /* 送信・再送・書き出しは FormButton（Mantine Button filled）。行の間は Web の子画面 Stack gap=md の 16px */
 /* Send, resend and export are FormButton (Mantine Button filled); rows are 16px apart like the Web sub-page Stack gap=md */
 .bug-report .bug-report__button {
-    margin-top: 16px;
+    margin-top: var(--mantine-spacing-md);
 }

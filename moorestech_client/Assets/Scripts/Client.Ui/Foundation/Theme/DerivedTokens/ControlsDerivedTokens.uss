@@ -15,6 +15,11 @@
     /* C2-b: Mantine Button Subtle hover; outside the Mantine generator, so it is hand-written here under the Web name */
     --mantine-color-blue-light-hover: rgba(34, 139, 230, 0.2); /* web: dark の rgba(34, 139, 230, 0.2) */
 
+    /* I-fix6: GameTextField の寸法。Web は要素ごとの calc で出すので、UITK が使う形で前計算する */
+    /* I-fix6: GameTextField sizes; the Web derives them with per-element calc, so they are precomputed for the form UITK uses */
+    --input-padding-sm: 12px; /* web: Mantine Input の --input-padding = calc(var(--input-height) / 3)。size sm の --input-height-sm 36px で 12px */
+    --game-text-field-focus-ring-inset: -1.56575px; /* web: textAreaField の :focus-visible の outline var(--bevel-1)＋outline-offset var(--bevel-1)。輪の外縁は箱から -(--bevel-1 0.782875px × 2) */
+
     /* C2-c: GameScrollView のバーの幅（Mantine ScrollArea の既定 0.75rem）・つまみのホバー・ShortcutHintLabel の kbd と文の間（設計書 A-34・A-35） */
     /* C2-c: GameScrollView bar width (Mantine ScrollArea default 0.75rem), thumb hover, and the kbd-to-text gap of ShortcutHintLabel (design A-34, A-35) */
     --scrollarea-scrollbar-size: 12px; /* web: Mantine ScrollArea の scrollbarSize の既定。画面は祖先で上書きする */
