@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Linq;
 using Client.Game.Common;
@@ -68,7 +67,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var isInitialized = false;
                 using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => isInitialized = true);
                 await LoadMainGame();
-                await UniTask.WaitUntil(() => isInitialized).Timeout(TimeSpan.FromSeconds(InitializationTimeoutSeconds));
+                await UniTask.WaitUntil(() => isInitialized).Timeout(System.TimeSpan.FromSeconds(InitializationTimeoutSeconds));
                 var ground = TestPlayerGround.Create();
 
                 // 起動ログを流してから想定外のエラーを拾う（VContainer の解決失敗もここで落ちる）
