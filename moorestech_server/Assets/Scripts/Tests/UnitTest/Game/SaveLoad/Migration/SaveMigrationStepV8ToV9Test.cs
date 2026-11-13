@@ -159,7 +159,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
         [Test]
         public void 版8のセーブは連鎖で現在版まで変換されるTest()
         {
-            var result = SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9(), new SaveMigrationStepV9ToV10(), new SaveMigrationStepV10ToV11() }).Migrate(MasterV8Save());
+            var result = SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9(), new SaveMigrationStepV9ToV10(), new SaveMigrationStepV10ToV11(), new SaveMigrationStepV11ToV12() }).Migrate(MasterV8Save());
 
             Assert.IsTrue(result.CanLoad, result.BlockedReason);
             Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, result.Save["worldVersion"].Value<int>());
