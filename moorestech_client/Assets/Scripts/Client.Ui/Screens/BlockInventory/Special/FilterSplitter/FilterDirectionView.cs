@@ -1,7 +1,7 @@
-using Client.Ui.Content;
 using System.Collections.Generic;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Slots;
+using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Special.Registration;

@@ -1,9 +1,9 @@
 using Client.Input;
 using Client.Input.Pointer;
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.State.Inventory.Equipment;
 using Client.Ui.State.Inventory.Logic;
 using UniRx;
-using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.Screens.Inventory.Wheel
@@ -15,25 +15,20 @@ namespace Client.Ui.Screens.Inventory.Wheel
     public sealed class EquipmentWheelInput : IInitializable
     {
         private readonly InputSystemPointerWheelStream _wheel;
-        private readonly InputSystemPointerPositionStream _positions;
+        private readonly IUiScreenPointer _pointer;
         private readonly IEquipmentWheelPointerPicker _picker;
         private readonly EquipmentWheelRouter _router;
-        private Vector2 _pointerOnScreen;
 
-        public EquipmentWheelInput(InputSystemPointerWheelStream wheel, InputSystemPointerPositionStream positions, IEquipmentWheelPointerPicker picker, EquipmentWheelRouter router)
+        public EquipmentWheelInput(InputSystemPointerWheelStream wheel, IUiScreenPointer pointer, IEquipmentWheelPointerPicker picker, EquipmentWheelRouter router)
         {
             _wheel = wheel;
-            _positions = positions;
+            _pointer = pointer;
             _picker = picker;
             _router = router;
         }
 
         public void Initialize()
         {
-            // 位置は変わった時だけ届くので、起動時の値を一度読む（前例 InputSystemUiScreenPointer.CurrentPointerOnScreen）
-            // Positions arrive only on change, so read the startup value once (precedent InputSystemUiScreenPointer.CurrentPointerOnScreen)
-            _pointerOnScreen = (Vector2)HybridInput.GetMousePosition();
-            _positions.OnPointerScreenPositionChanged.Subscribe(position => _pointerOnScreen = position);
             _wheel.OnWheelNotchesScrolled.Subscribe(OnWheel);
 
             #region Internal
@@ -42,7 +37,9 @@ namespace Client.Ui.Screens.Inventory.Wheel
             {
                 // ロック中はカーソルが画面中央に固定され HUD の上に来ない。ロックの正本は InputManager（A-134）
                 // While locked the cursor stays centred and never over a HUD; InputManager owns the lock state (A-134)
-                var overBlockingUi = !InputManager.IsCursorLocked && EquipmentWheelPickJudge.IsBlockingUi(_picker.PickAt(_pointerOnScreen));
+                // ポインタは掴み絵・ツールチップと同じ Foundation の口からホイールの時点で読む（A-133）
+                // Read the pointer at wheel time from the same Foundation port as the grab picture and tooltip (A-133)
+                var overBlockingUi = !InputManager.IsCursorLocked && EquipmentWheelPickJudge.IsBlockingUi(_picker.PickAt(_pointer.CurrentPointerOnScreen()));
                 _router.Route(EquipmentWheelNotchScale.ToDownwardPixels(notchesUp), WheelDeltaUnit.Pixel, overBlockingUi);
             }
 

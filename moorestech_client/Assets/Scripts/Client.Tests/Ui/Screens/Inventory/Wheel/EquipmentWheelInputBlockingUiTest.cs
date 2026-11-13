@@ -3,6 +3,7 @@ using Client.Input.Pointer;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Equipment;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Input.Pointer;
 using Client.Ui.Screens.Inventory.Wheel;
 using NUnit.Framework;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
             _port = new FakeEquipmentSelectionPort(3);
             var router = new EquipmentWheelRouterFixture(_host, UIStateEnum.GameScreen, _port).Router;
             var picker = new PanelWheelPointerPicker(rootVisualElement);
-            new EquipmentWheelInput(new InputSystemPointerWheelStream(), new InputSystemPointerPositionStream(), picker, router).Initialize();
+            new EquipmentWheelInput(new InputSystemPointerWheelStream(), new InputSystemUiScreenPointer(new InputSystemPointerPositionStream()), picker, router).Initialize();
         }
 
         [TearDown]
@@ -62,8 +63,8 @@ namespace Client.Tests.Ui.Screens.Inventory.Wheel
         private VisualElement AddBox(bool passthrough)
         {
             var box = new VisualElement { pickingMode = PickingMode.Position };
-            // 箱を原点から離す。初期ポインタ(0,0)が箱の中に入ると、位置の購読を落としても緑になるため
-            // Keep the box away from the origin; a box under the initial pointer (0,0) would stay green even without the position subscription
+            // 箱を原点から離す。初期ポインタ(0,0)が箱の中に入ると、ホイールの時点の位置を読み落としても緑になるため
+            // Keep the box away from the origin; a box under the initial pointer (0,0) would stay green even if the wheel-time position read were dropped
             box.style.position = Position.Absolute;
             box.style.left = 300;
             box.style.top = 300;
