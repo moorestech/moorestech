@@ -13,17 +13,27 @@ namespace Client.Tests.EditModeInPlayingTest.Util.World
     {
         private const float GroundedTimeoutSeconds = 5f;
 
+        // 落下復帰の閾値(-50)より上で、地表探査の届く範囲の内側
+        // Above the fall-recovery threshold (-50) and inside the ground probe range
+        private const float MinGroundTopY = -40f;
+
         public static GameObject Create()
         {
-            var position = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+            var playerController = PlayerSystemContainer.Instance.PlayerObjectController;
+            var position = playerController.Position;
             var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ground.name = "TestPlayerGround";
             ground.layer = LayerConst.GroundLayer;
 
-            // 足元を覆い重力は通常どおり
-            // Cover the feet; gravity stays normal
-            ground.transform.position = new Vector3(position.x, Mathf.Floor(position.y) - 0.5f, position.z);
+            // 落下復帰の繰り返しで落下速度が積もり探査範囲の外まで落ちうるため、足場の高さに下限を設ける
+            // Repeated fall recovery accumulates fall speed and can drop the player below the probe range, so clamp the ground height
+            var groundTopY = Mathf.Max(Mathf.Floor(position.y), MinGroundTopY);
+            ground.transform.position = new Vector3(position.x, groundTopY - 0.5f, position.z);
             ground.transform.localScale = new Vector3(12f, 1f, 12f);
+
+            // 足場より下にいるときだけ足場の上へ戻す。足と足場が重なると接地しないため少し上に置く
+            // Lift the player onto the ground only when below it; place slightly above since overlapping feet ignore the ground
+            if (position.y < groundTopY) playerController.SetPlayerPosition(new Vector3(position.x, groundTopY + 0.1f, position.z));
             Physics.SyncTransforms();
             return ground;
         }
