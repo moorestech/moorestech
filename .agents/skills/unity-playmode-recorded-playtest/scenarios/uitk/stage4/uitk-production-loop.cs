@@ -117,7 +117,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.WaitForItemCount(kilnInventory, log, 1, null, 10f, "石窯の入力に原木が入る（サーバー）");
     // 残りの原木を掴み右ドラッグで空き 3 枠へ配る
     // Grab the remaining logs and right-drag them across three empty slots
-    p.Note("右ドラッグで配る");
     await p.ClickUi(MainSlotOf(log));
     await p.Until(() => Ops().ReadGrab().ItemId == log, 5f, "残りの原木を掴む（クライアントの grab）");
     var grabbed = Ops().ReadGrab().Count;
@@ -138,6 +137,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     // Shift-take the output, close and sort
     var ingotsBefore = PlaytestItemOps.CountItemClientSide(ingot);
     await ShiftClickOn("machine-output-slot-0");
+    p.Note($"取り出し直後: grab={Ops().ReadGrab()} 持ち物のインゴット={PlaytestItemOps.CountItemClientSide(ingot)}（前 {ingotsBefore}） main={string.Join(",", Main().Where(x => !x.IsEmpty))}");
     await p.Until(() => ingotsBefore < PlaytestItemOps.CountItemClientSide(ingot), 10f, "Shiftで青銅インゴットを取り出す");
     await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
