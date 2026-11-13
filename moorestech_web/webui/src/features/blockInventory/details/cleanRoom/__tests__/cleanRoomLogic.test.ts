@@ -6,7 +6,6 @@ import { cleanRoomDisplay } from "../cleanRoomLogic";
 const room: CleanRoomSummaryData = {
   headline: "class",
   className: "A",
-  concentration: 0.12345,
   airChangeRate: 2.5,
   volume: 74,
   airFilters: [{ x: 1, y: 33, z: 5, powerRatio: 0.756, filterItemCount: 5, filterRemainingRatio: 0.5 }],
@@ -17,14 +16,14 @@ describe("cleanRoomDisplay", () => {
     const view = cleanRoomDisplay({ fetchState: "fetched", kind: "enclosed", room });
     expect(view.headline).toEqual({ key: L.ui.blockInventory.cleanRoomClass, params: { className: "A" } });
     expect(view.headlineInsufficient).toBe(false);
-    expect(view.air).toEqual({ key: L.ui.blockInventory.cleanRoomAir, params: { concentration: "0.123", airChangeRate: "2.500" } });
+    expect(view.air).toEqual({ key: L.ui.blockInventory.cleanRoomAir, params: { airChangeRate: "2.500" } });
     expect(view.filters).toEqual([{ key: L.ui.blockInventory.cleanRoomFilter, params: { index: "1", power: "76", count: "5", remaining: "50" } }]);
     expect(view.noFilter).toBeNull();
     expect(view.haltReason).toBeNull();
   });
 
   it("Outの部屋は赤で示し、清浄機が無ければその旨を出す", () => {
-    const outRoom: CleanRoomSummaryData = { headline: "classOut", concentration: 3, airChangeRate: 0, volume: 74, airFilters: [] };
+    const outRoom: CleanRoomSummaryData = { headline: "classOut", airChangeRate: 0, volume: 74, airFilters: [] };
     const view = cleanRoomDisplay({ fetchState: "fetched", kind: "enclosed", room: outRoom, haltReason: "classOut" });
     expect(view.headline).toEqual({ key: L.ui.blockInventory.cleanRoomClassOut });
     expect(view.headlineInsufficient).toBe(true);
