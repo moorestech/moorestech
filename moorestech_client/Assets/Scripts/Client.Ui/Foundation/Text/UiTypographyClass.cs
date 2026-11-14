@@ -24,6 +24,7 @@ namespace Client.Ui.Foundation.Text
         public const string TitleOrder3 = "title--order-3";
         public const string TitleOrder4 = "title--order-4";
         public const string TitleHeadingFace = "title--heading-face";
+        public const string TitleHeadingFaceLatin = "title--heading-face-latin";
         public const string KeyHintText = "key-hint-text";
     }
 }

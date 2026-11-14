@@ -52,8 +52,7 @@
     --title-heading-latin-letter-spacing: -3.4px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 34px で 0.034em 狭い（Mac の Chrome の実測） */
     --title-order-1-row-height: 44.2px;
     --title-heading-cjk-font-size: 31.45px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 34px の 0.925 倍（NotoSansJP 比） */
-    --title-order-1-font-size: 34px;
-    font-size: var(--title-order-1-font-size);
+    font-size: 34px;
     min-height: var(--title-order-1-row-height);
     --localized-label-line-box: var(--title-order-1-row-height);
 }
@@ -129,9 +128,12 @@
 
 /* Mantine の Title は本文の字体を継がず --mantine-font-family-headings（OS の字体の 700）で描く。参照を撮った Mac の Chrome では欧文が SF Pro の 700、和文が .Hiragino Kaku Gothic Interface W6。Windows の CEF では Web 自体の字体が変わる（LX-183）。Title で描く題（Modal.Title は除く）に付ける（設計書 A-220） */
 /* 欧文は Bold の字形で字送りを SF Pro に寄せる（光学サイズで大きさごとに違うので値は Title の段が持つ）。和文は NotoSansJP Bold を字の大きさの 0.925 倍で描き、W6 の字の面・字送りに合わせる（字間は詰めない。線の太さは資産の regularStyleWeight −0.45 で SDF の面を細らせて寄せる）。UITK の letter-spacing は 1px が字の大きさの 1/100 */
+/* 英語固定の題は title--heading-face-latin を付ける（ロケールによらず欧文の Bold。和文の規則は当たらない） */
+/* A title fixed to English takes title--heading-face-latin (Latin Bold regardless of locale; the CJK rule does not apply) */
 /* Mantine Title ignores the body face and draws with --mantine-font-family-headings (the OS face at 700); on the Mac Chrome that shot the reference that is SF Pro 700 for Latin and .Hiragino Kaku Gothic Interface W6 for CJK, and the Web face itself changes on Windows CEF (LX-183); attach it to titles drawn with Title, not Modal.Title (design A-220) */
 /* Latin takes the Bold face with SF Pro's advance (optical sizing differs per size, so each Title order holds the value); CJK draws NotoSansJP Bold at 0.925x the size to match the W6 glyph face and advance (no tightening; the asset regularStyleWeight -0.45 thins the SDF face toward the W6 stroke); UITK letter-spacing 1px is 1/100 of the font size */
-.title--heading-face {
+.title--heading-face,
+.title--heading-face-latin {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset"); /* look-exception: LX-183 */
     letter-spacing: var(--title-heading-latin-letter-spacing);
 }
