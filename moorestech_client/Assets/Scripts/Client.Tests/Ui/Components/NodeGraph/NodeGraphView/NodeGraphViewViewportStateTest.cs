@@ -29,7 +29,6 @@ namespace Client.Tests.Ui.Components.NodeGraph
             AssertViewport(10f, 5f, 1f, ReadViewport(view));
         }
 
-        /// <web-test file="src/shared/treeView/TreeViewViewportState.test.ts">keeps the restored viewport across a size change</web-test>
         [Test]
         public void 隠している間に寸法が変わっても戻したとき中心を合わせ直さない()
         {

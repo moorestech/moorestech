@@ -176,6 +176,8 @@
 | 4 | a97575e5b5 | 捨てた | 旧 R1 の Web 全面 unmount（UITK が主パネルを出す間 webUiSuspended で App を外す）。全体スイッチ（albof.17）で UITK 側は Web ホストを起動しなくなり休止の仕組みごと要らないので、W0-switch で外して master と同じ Web に戻した |
 | 4 | 5722dd7da8 | 捨てた | S2-ladder が Web のレシピ一覧のセル・クラフトボタンに data-testid を足した変更。直後の 2329963ff0 で戻し（R3。feature/uitk の Web は触らない）、2 つを合わせた Web の差は 0。UITK 側に写すものが無い |
 | 4 | 2329963ff0 | 捨てた | 5722dd7da8 の data-testid の追加を戻した revert（R3）。2 つを合わせた Web の差は 0 で、UITK 側に写すものが無い |
+| 4 | 1cd4cf6d91 | 写した | I-fix5 R-12 の拒否理由の改名（ui.commandRejected.machineRecipeInvalid・machineRecipeLocked → recipeInvalid・recipeLocked。wire は据え置き）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。束 4 の行は i18n（全束）の持ち物として記帳する（I-fix5・I-fix6 は束 1〜3 だけ記帳していたので S4-gamma の取り込みで補った）。Web は使わない。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 4 | b770f91312 | 写した | I-fix6 R-26・R-27 の拒否理由の改名（ui.commandRejected.trainInvalidBlockType・buildMenuCloseRefused → blockTypeMismatch・screenCloseRefused。wire は据え置き）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。束 4 の行は i18n（全束）の持ち物として記帳する。Web は使わない。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 
 ## 参照キャプチャ
 
