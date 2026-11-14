@@ -10,7 +10,6 @@ using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Readings;
 using Client.Game.InGame.BugReport.Recording;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
