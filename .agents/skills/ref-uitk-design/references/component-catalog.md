@@ -78,7 +78,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | `FluidSlotRow` | 液体スロットの列＋進捗矢印 | `FluidSlotRow(string testid)`／`SetFluids(IReadOnlyList<FluidSlotContent> fluids)`／`SetProgress(float ratio01)`／`ClearProgress()` | `UiGroup(UiGap.Xs)`。子の testid は固定の `fluid-slot`・`progress-arrow-bar`。0 マスは `display: none` | blockInventory | C4-a | `W/shared/ui/FluidSlotRow` | 新規（`Slots/Fluid/FluidSlotRow/`） |
 | `SlotAmountFormat`（static。`Client.Ui.State/Text/SlotAmountFormat.cs`） | 量の短縮表記 | `static string Format(double amount)` | — | research・blockInventory・液体スロット・素材ツールチップ | L0-s3 が作る（`slotAmountFormat.test.ts` 7 件も L0-s3）。C3-a は使うだけ `[A-19]` | `W/shared/ui/slotAmountFormat.ts` | 新規 |
 
-世界の上に直に置く画面（ホットバー）も、面の上と同じトークンをそのまま使う（UI は sRGB 空間で合成するので地で値を変えない。設計書 [A-184]）。
+世界の上に直に置く画面（ホットバー）も、面の α・減光は Web の値のまま書く（sRGB 合成〈A-180〉で地によらず Web と同じになる）。重なる子を持つ群の減光は要素の `opacity` でなく `filter: opacity()` で群に掛ける `[A-222]`。群は Foundation の `PixelFilterGroup` にし、filter はその群に書く（宿主に直に書くと倍率 1.5 以上でぼける）`[A-226]`。
 
 ## 4 操作部品族（`Components/Controls/`）
 
