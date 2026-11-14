@@ -56,6 +56,30 @@ if [[ "$RUNNER_STATUS" -ne 2 || "$SCENARIO_CALLS" -ne 0 || "$BOOT_CALLS" -ne 1 |
     FAILURES=$((FAILURES + 1))
 fi
 
+# 回収分岐: boot の再送が already playing → 起動前と別の置き場なら WARN で続行、同じ・取得失敗なら NG で止める
+# Recovery branch: resend says already playing -> a different pre-boot dir continues with WARN; same or failed lookup stops with NG
+echo '{"Success": true, "Result": "ERROR: already playing"}' > "$WORK_DIR/already-playing.json"
+echo '{"Success": true}' > "$WORK_DIR/run/result.json"
+printf '{"Success": true, "Result": "%s"}\n' "$WORK_DIR/run" > "$WORK_DIR/success.json"
+FAKE_ULOOP_BOOT_RESPONSE="$WORK_DIR/already-playing.json" FAKE_SESSION_DIR_BEFORE_BOOT="$WORK_DIR/old-session" run_runner "$WORK_DIR/success.json"
+if [[ "$RUNNER_OUTPUT" != *"WARN: boot reply was lost"* || "$RUNNER_OUTPUT" == *"NG: boot failed"* ]]; then
+    echo "FAIL: recovery with a different pre-boot dir"
+    echo "$RUNNER_OUTPUT"
+    FAILURES=$((FAILURES + 1))
+fi
+FAKE_ULOOP_BOOT_RESPONSE="$WORK_DIR/already-playing.json" FAKE_SESSION_DIR_BEFORE_BOOT="$FAKE_SESSION_DIR" run_runner "$WORK_DIR/success.json"
+if [[ "$RUNNER_STATUS" -ne 1 || "$RUNNER_OUTPUT" != *"NG: boot failed: ERROR: already playing"* ]]; then
+    echo "FAIL: same pre-boot dir must stay NG status=$RUNNER_STATUS"
+    echo "$RUNNER_OUTPUT"
+    FAILURES=$((FAILURES + 1))
+fi
+EDC_RETRY_INTERVAL_SECONDS=0 FAKE_ULOOP_BOOT_RESPONSE="$WORK_DIR/already-playing.json" FAKE_SESSION_DIR_BEFORE_FAIL=1 run_runner "$WORK_DIR/success.json"
+if [[ "$RUNNER_STATUS" -ne 1 || "$RUNNER_OUTPUT" != *"NG: boot failed: ERROR: already playing"* || "$RUNNER_OUTPUT" == *"WARN: boot reply was lost"* ]]; then
+    echo "FAIL: failed pre-boot lookup must not recover status=$RUNNER_STATUS"
+    echo "$RUNNER_OUTPUT"
+    FAILURES=$((FAILURES + 1))
+fi
+
 # preflight のドライランがコンパイル失敗: run-scenario は 2 を通し、boot にもシナリオにも進まない
 # Preflight dry-run compile error: run-scenario passes 2 through and reaches neither boot nor the scenario
 FAKE_ULOOP_DRYRUN_RESPONSE="$SCRIPT_DIR/fixtures/edc-compile-error-response.json" run_runner "$SCRIPT_DIR/fixtures/edc-compile-error-response.json"

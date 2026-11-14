@@ -94,7 +94,9 @@ else
     MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
     BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
 fi
-SESSION_DIR_BEFORE_BOOT=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return Client.Playtest.Core.PlaytestPaths.SessionDirectory;' | json_get Result)
+SESSION_DIR_BEFORE_BOOT_RESPONSE=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return Client.Playtest.Core.PlaytestPaths.SessionDirectory;')
+SESSION_DIR_BEFORE_BOOT_STATUS=$?
+SESSION_DIR_BEFORE_BOOT=$(printf '%s' "$SESSION_DIR_BEFORE_BOOT_RESPONSE" | json_get Result)
 BOOT_RESPONSE=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" "$BOOT_CODE")
 BOOT_STATUS=$?
 # 起動コード片がコンパイルできないときは理由を出して止める（PlayMode に入っていないので停止は不要）
@@ -105,11 +107,11 @@ if [[ "$BOOT_STATUS" -eq 2 ]]; then
     exit 2
 fi
 SESSION_DIR=$(echo "$BOOT_RESPONSE" | json_get Result)
-# 1 回目の応答が PlayMode 突入で空になり再送が "already playing" を返したときは、直前に停止を確かめているので 1 回目の起動の置き場を SessionState から取る
-# 起動前と同じ置き場なら 1 回目は起動していないので NG のまま止める
-# If the first reply was lost to the PlayMode entry and the resend says "already playing", take the first boot's dir from SessionState (we confirmed stopped just before)
-# The same dir as before the boot means the first attempt never booted, so stay NG
-if [[ "$SESSION_DIR" == "ERROR: already playing" ]]; then
+# 1 回目の応答が PlayMode 突入で空になり再送が "already playing" を返したときは、直前に停止を発行しているので 1 回目の起動の置き場を SessionState から取る
+# 起動前の置き場の取得に失敗していたら比べられないので回収せず NG のまま止める。起動前と同じ置き場でも 1 回目は起動していないので NG
+# If the first reply was lost to the PlayMode entry and the resend says "already playing", take the first boot's dir from SessionState (we issued a stop just before)
+# If the pre-boot dir lookup failed we cannot compare, so do not recover and stay NG; the same dir as before the boot also means no boot happened, so NG
+if [[ "$SESSION_DIR" == "ERROR: already playing" && "$SESSION_DIR_BEFORE_BOOT_STATUS" -eq 0 ]]; then
     RECOVERED_DIR=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return Client.Playtest.Core.PlaytestPaths.SessionDirectory;' | json_get Result)
     if [[ -n "$RECOVERED_DIR" && "$RECOVERED_DIR" != "$SESSION_DIR_BEFORE_BOOT" ]]; then
         echo "WARN: boot reply was lost on PlayMode entry; using the session dir of that boot: $RECOVERED_DIR"
