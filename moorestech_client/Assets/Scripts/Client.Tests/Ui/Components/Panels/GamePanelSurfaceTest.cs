@@ -2,6 +2,7 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Theme;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -14,6 +15,7 @@ namespace Client.Tests.Ui.Components.Panels
     public class GamePanelSurfaceTest : UiTestHost
     {
         private const float ContentHeight = 40f;
+        private const string KnobSheetPath = "Assets/Scripts/Client.Tests/Ui/Components/Panels/PanelKnobOverrides.uss";
 
         /// <web-test file="src/shared/ui/GamePanel/hudVariantDesign.test.ts">hudのpaddingセレクタは.panelより詳細度で勝ち、import順に依存しない</web-test>
         [Test]
@@ -85,6 +87,26 @@ namespace Client.Tests.Ui.Components.Panels
             Assert.AreEqual(0f, sideFade, 0.0001f);
             Assert.IsTrue(UssCustomStyleReader.TryReadPixels(face, "--game-panel-bottom-fade", out var bottomFade));
             Assert.AreEqual(0f, bottomFade, 0.0001f);
+        }
+
+        [Test]
+        public void 置く側がルートのつまみを変えると面が4値を受け直す()
+        {
+            var host = new VisualElement();
+            host.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(KnobSheetPath));
+            host.AddToClassList("test-knob-surface");
+            host.Add(new GamePanelSurface("test-knob-surface", GamePanelSurfaceKind.Hud));
+            rootVisualElement.Add(host);
+            simulate.FrameUpdate();
+
+            var face = host.Q(className: "game-panel-surface__face").customStyle;
+            Assert.IsTrue(UssCustomStyleReader.TryReadColor(face, "--game-panel-face", out var faceColor));
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--gauge-track"), faceColor, "--game-panel-face");
+            foreach (var (knob, expected) in new[] { ("--game-panel-edge-fade", 3f), ("--game-panel-top-fade", 0f), ("--game-panel-bottom-fade", 5f) })
+            {
+                Assert.IsTrue(UssCustomStyleReader.TryReadPixels(face, knob, out var fade), knob);
+                Assert.AreEqual(expected, fade, 0.0001f, knob);
+            }
         }
 
         [Test]

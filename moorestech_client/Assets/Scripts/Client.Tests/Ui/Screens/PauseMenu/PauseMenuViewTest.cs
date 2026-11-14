@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
+using Client.Tests.Ui.Components;
 using Client.Tests.Ui.Screens.Settings;
 using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
@@ -85,6 +86,18 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             var buttons = _view.Query<Button>().ToList();
             Assert.AreEqual(0f, buttons[0].resolvedStyle.marginTop);
             for (var i = 1; i < buttons.Count; i++) Assert.AreEqual(16f, buttons[i].resolvedStyle.marginTop, buttons[i].name);
+        }
+
+        [Test]
+        public void ボタンの幅は整理ボタンの既定幅でなく本文の並びが決める()
+        {
+            // Web pauseMenu/style.module.css の --panel-action-button-width: auto。既定幅のままだと長い名前が折り返す
+            // Web pauseMenu/style.module.css --panel-action-button-width: auto; the default width would wrap long labels
+            var defaultWidth = ThemeTokenFile.ResolvePixels("--panel-action-button-width");
+            foreach (var button in _view.Query<Button>().ToList())
+            {
+                Assert.Greater(Mathf.Abs(button.resolvedStyle.width - defaultWidth), 0.5f, $"{button.name} width {button.resolvedStyle.width}");
+            }
         }
 
         [Test]

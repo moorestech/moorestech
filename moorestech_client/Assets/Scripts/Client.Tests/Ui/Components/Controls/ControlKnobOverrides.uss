@@ -5,6 +5,12 @@
     --icon-button-icon-size: var(--skit-tool-button-size);
 }
 
+/* IconButton の図形の色をルートのつまみで変える（Web SkitToolbar.module.css の .toolButton の color と同じ 2 クラスの上書き） */
+/* Recolours the IconButton glyph through the root knob (the same two-class override as the Web SkitToolbar.module.css .toolButton color) */
+.control-knob-override .control-icon-button-color-probe {
+    --icon-button-color: var(--select-cyan);
+}
+
 /* RecipeListScrollView の行の間隔（MachineRecipeSelectionList の listGap）と bleed の上書き */
 /* RecipeListScrollView row gap (the MachineRecipeSelectionList listGap) and bleed overrides */
 .control-recipe-list-machine-probe {

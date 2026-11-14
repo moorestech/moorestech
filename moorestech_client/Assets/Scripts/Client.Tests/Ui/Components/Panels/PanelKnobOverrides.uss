@@ -15,3 +15,12 @@
     --paper-face: var(--mantine-color-dark-8);
     --paper-radius: 10px;
 }
+
+/* GamePanelSurface の面の 4 値を部品ルートのつまみで渡す（種別の 1 クラスへ 2 クラスで勝つ。スキットの選択肢の板と同じ形） */
+/* Passes the GamePanelSurface face's four values through the component root knobs (two classes beat the one-class kind, as the skit choice plate does) */
+.test-knob-surface > .game-panel-surface {
+    --game-panel-surface-face: var(--gauge-track);
+    --game-panel-surface-edge-fade: 3px;
+    --game-panel-surface-top-fade: 0px;
+    --game-panel-surface-bottom-fade: 5px;
+}

@@ -1,5 +1,8 @@
+using Client.Tests.Ui.Components;
 using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Skit.Parts.Choices;
 using NUnit.Framework;
 using UnityEngine.UIElements;
@@ -45,6 +48,45 @@ namespace Client.Tests.Ui.Screens.Skit
             Assert.AreEqual(1280f - 5.3f, routeA.xMax, 0.5f);
             Assert.AreEqual(720f - 204f - 0.7f, routeA.yMax, 0.5f);
             Assert.AreEqual(routeA.yMin - 14.7f, routeB.yMax, 0.5f);
+        }
+
+        [Test]
+        public void 板はボタンいっぱいに敷き左右だけフェードし押している間は面をシアン寄りにする()
+        {
+            // Web .choice は素の button で既定テーマのボタンの規則を受けず、板は .choice::before（GamePanel の variant ではない）
+            // The Web .choice is a bare button free of the default theme's button rules, and its plate is .choice::before (not a GamePanel variant)
+            var routeA = Find<Button>(_choices, "skit-choice-route-a");
+            var plate = routeA.Q<GamePanelSurface>();
+            Assert.IsFalse(routeA.ClassListContains(Button.ussClassName));
+            Assert.IsTrue(plate.ClassListContains("game-panel-surface--hud"));
+            Assert.AreEqual(routeA.worldBound.width, plate.worldBound.width, 0.5f);
+            Assert.AreEqual(routeA.worldBound.height, plate.worldBound.height, 0.5f);
+            Assert.AreEqual(routeA.worldBound.x, plate.worldBound.x, 0.5f);
+            Assert.AreEqual(0f, plate.resolvedStyle.paddingLeft);
+            var face = plate.Q(className: "game-panel-surface__face");
+            AssertFace(face, "--gauge-track");
+            foreach (var (knob, token) in new (string, string)[] { ("--game-panel-edge-fade", "--skit-choice-edge-fade"), ("--game-panel-top-fade", null), ("--game-panel-bottom-fade", null) })
+            {
+                Assert.IsTrue(UssCustomStyleReader.TryReadPixels(face.customStyle, knob, out var fade), knob);
+                Assert.AreEqual(token == null ? 0f : ThemeTokenFile.ResolvePixels(token), fade, 0.0001f, knob);
+            }
+
+            simulate.MouseDown(routeA.worldBound.center);
+            simulate.FrameUpdate();
+            AssertFace(face, "--skit-choice-active-face");
+            simulate.MouseUp(routeA.worldBound.center);
+            simulate.FrameUpdate();
+            AssertFace(face, "--gauge-track");
+
+            #region Internal
+
+            static void AssertFace(VisualElement faceElement, string token)
+            {
+                Assert.IsTrue(UssCustomStyleReader.TryReadColor(faceElement.customStyle, "--game-panel-face", out var color), token);
+                ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor(token), color, token);
+            }
+
+            #endregion
         }
 
         [Test]

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Client.Tests.Ui.Conventions
@@ -29,6 +31,12 @@ namespace Client.Tests.Ui.Conventions
         private static readonly Regex UxmlText = new(@"(?<![\w:-])text\s*=\s*""([^""]*)""");
         private static readonly Regex UxmlName = new(@"(?<![\w:-])name\s*=\s*""([^""]+)""");
         private static readonly Regex UxmlStyle = new(@"(?<![\w:-])style\s*=\s*""([^""]*)""");
+        private static readonly Regex RuleBlock = new(@"([^{}]+)\{([^{}]*)\}");
+        private static readonly Regex ClassToken = new(@"\.([-\w]+)");
+        private static readonly Regex CustomPropertyDeclaration = new(@"(--[-\w]+)\s*:");
+        private static readonly Regex Combinator = new(@"[\s>+~]+");
+        private const string UnityButtonClassName = "unity-button";
+        private const string InnerPartSeparator = "__";
 
         public static List<UiStyleViolation> CheckUss(string ussText, bool allowColorLiterals)
         {
@@ -74,6 +82,74 @@ namespace Client.Tests.Ui.Conventions
                 CheckDeclarations(violations, text, match.Groups[1].Value, match.Groups[1].Index, false);
             }
             return violations;
+        }
+
+        // 部品 USS が書く内側クラス（持ち主が Foundation の USS のクラスなら除く）と、内側でだけ宣言する --持ち主-… のつまみを集める
+        // Collects inner classes from component USS (minus those whose owner is a Foundation USS class) and --owner-… knobs declared only on inner parts
+        public static void CollectComponentInnerParts(IEnumerable<string> componentUssTexts, IEnumerable<string> foundationUssTexts, HashSet<string> innerClasses, HashSet<string> innerKnobs)
+        {
+            var foundationClasses = new HashSet<string>(foundationUssTexts.SelectMany(text => SelectorClasses(BlankOut(text, UssComment))));
+            var rootKnobs = new HashSet<string>();
+            foreach (var text in componentUssTexts)
+            {
+                foreach (Match block in RuleBlock.Matches(BlankOut(text, UssComment)))
+                {
+                    foreach (var selector in block.Groups[1].Value.Split(','))
+                    {
+                        innerClasses.UnionWith(ClassNames(selector).Where(name => name.Contains(InnerPartSeparator) && !foundationClasses.Contains(Owner(name))));
+
+                        // 主語（最後の複合）が内側クラスで、名前が --持ち主- で始まるつまみだけを内側のつまみに数える
+                        // Only knobs on an inner-class subject (last compound) whose name starts with --owner- count as inner knobs
+                        var subjectOwners = ClassNames(Combinator.Split(selector.Trim()).Last()).Where(name => name.Contains(InnerPartSeparator)).Select(Owner).ToList();
+                        foreach (Match declaration in CustomPropertyDeclaration.Matches(block.Groups[2].Value))
+                        {
+                            var property = declaration.Groups[1].Value;
+                            if (subjectOwners.Any(owner => property.StartsWith($"--{owner}-", StringComparison.Ordinal))) innerKnobs.Add(property);
+                            else rootKnobs.Add(property);
+                        }
+                    }
+                }
+            }
+
+            // ルートでも宣言するつまみは置く側が上書きしてよい
+            // Knobs also declared on a root are fair game for callers
+            innerKnobs.ExceptWith(rootKnobs);
+        }
+
+        // 画面 USS のセレクタが部品の内側クラス・.unity-button を書くか、規則が内側のつまみを宣言したら違反にする
+        // A screen USS violates when a selector names a component inner class or .unity-button, or a rule declares an inner knob
+        public static List<UiStyleViolation> CheckScreenUss(string ussText, HashSet<string> innerClasses, HashSet<string> innerKnobs)
+        {
+            var text = BlankOut(ussText, UssComment);
+            var violations = new List<UiStyleViolation>();
+            foreach (Match block in RuleBlock.Matches(text))
+            {
+                foreach (Match token in ClassToken.Matches(block.Groups[1].Value))
+                {
+                    var name = token.Groups[1].Value;
+                    if (name == UnityButtonClassName || innerClasses.Contains(name)) violations.Add(Violation(text, block.Groups[1].Index + token.Index, UiStyleRule.ComponentInnerSelector, token.Value));
+                }
+                foreach (Match declaration in CustomPropertyDeclaration.Matches(block.Groups[2].Value))
+                {
+                    if (innerKnobs.Contains(declaration.Groups[1].Value)) violations.Add(Violation(text, block.Groups[2].Index + declaration.Index, UiStyleRule.ComponentInnerKnob, declaration.Value));
+                }
+            }
+            return violations;
+        }
+
+        private static IEnumerable<string> SelectorClasses(string text)
+        {
+            return RuleBlock.Matches(text).Cast<Match>().SelectMany(block => ClassNames(block.Groups[1].Value));
+        }
+
+        private static IEnumerable<string> ClassNames(string selector)
+        {
+            return ClassToken.Matches(selector).Cast<Match>().Select(match => match.Groups[1].Value);
+        }
+
+        private static string Owner(string innerClassName)
+        {
+            return innerClassName.Substring(0, innerClassName.IndexOf(InnerPartSeparator, StringComparison.Ordinal));
         }
 
         private static void CheckDeclarations(List<UiStyleViolation> violations, string fullText, string declarations, int offset, bool allowColorLiterals)

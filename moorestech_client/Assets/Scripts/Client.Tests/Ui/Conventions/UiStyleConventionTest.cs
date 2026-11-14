@@ -45,6 +45,40 @@ namespace Client.Tests.Ui.Conventions
             Assert.IsEmpty(report, string.Join(Environment.NewLine, report));
         }
 
+        [Test]
+        public void ScreenUssDoesNotOverrideComponentInnerParts()
+        {
+            var innerClasses = new HashSet<string>();
+            var innerKnobs = new HashSet<string>();
+            UiStyleConventionRules.CollectComponentInnerParts(ReadAllUss("Components"), ReadAllUss("Foundation"), innerClasses, innerKnobs);
+
+            // 既知の内側クラスとつまみを拾えなければ集め方を間違えているので、空振りで緑にしない
+            // Missing a known inner class or knob means the collection is wrong, so do not pass vacuously
+            Assert.Contains("icon-button__glyph", innerClasses.ToList());
+            Assert.Contains("--icon-button-glyph-color", innerKnobs.ToList());
+            var screenFiles = Directory.GetFiles(Path.Combine(ClientUiDirectory, "Screens"), "*.uss", SearchOption.AllDirectories);
+            Assert.IsNotEmpty(screenFiles);
+            var report = screenFiles.SelectMany(path => UiStyleConventionRules.CheckScreenUss(File.ReadAllText(path), innerClasses, innerKnobs).Select(v => $"{path}: {v}")).ToList();
+            Assert.IsEmpty(report, string.Join(Environment.NewLine, report));
+        }
+
+        [Test]
+        public void ScreenOverrideOfComponentInnerPartIsCaught()
+        {
+            // 部品 chip の内側クラス・.unity-button・内側だけのつまみは落とし、ルートのつまみと Foundation の内側は通す
+            // Catch chip's inner class, .unity-button and inner-only knob; let the root knob and a Foundation inner class pass
+            const string component = ".chip.unity-button { --chip-color: red; }\n.chip .chip__face {\n    --chip-face-color: var(--chip-color);\n}\n.chip > .group__content { left: 0; }";
+            const string foundation = ".group { left: 0; }\n.group__content { left: 0; }";
+            const string screen = ".a .chip__face { width: 0; }\n.a .chip.unity-button { width: 0; }\n.a .b {\n    --chip-face-color: red;\n    --chip-color: red;\n}\n.a > .group__content { left: 0; }";
+            var innerClasses = new HashSet<string>();
+            var innerKnobs = new HashSet<string>();
+            UiStyleConventionRules.CollectComponentInnerParts(new[] { component }, new[] { foundation }, innerClasses, innerKnobs);
+            var violations = UiStyleConventionRules.CheckScreenUss(screen, innerClasses, innerKnobs);
+
+            var expected = new[] { (UiStyleRule.ComponentInnerSelector, 1), (UiStyleRule.ComponentInnerSelector, 2), (UiStyleRule.ComponentInnerKnob, 4) };
+            CollectionAssert.AreEquivalent(expected, violations.Select(v => (v.Rule, v.Line)), string.Join(", ", violations));
+        }
+
         [TestCase(".a {\n    color: #ff0000;\n}", UiStyleRule.ColorLiteral, 2)]
         [TestCase(".a { background-color: rgba(0, 0, 0, 0.5); }", UiStyleRule.ColorLiteral, 1)]
         [TestCase(".a { border-color: rgb(1, 2, 3); }", UiStyleRule.ColorLiteral, 1)]
@@ -93,6 +127,11 @@ namespace Client.Tests.Ui.Conventions
             Assert.IsEmpty(UiStyleConventionRules.CheckUss(tokens, true));
             Assert.AreEqual(2, UiStyleConventionRules.CheckUss(tokens, false).Count(v => v.Rule == UiStyleRule.ColorLiteral));
             Assert.IsTrue(UiStyleConventionRules.CheckUss(":root { z-index: 1; }", true).Any(v => v.Rule == UiStyleRule.ZIndex));
+        }
+
+        private static IEnumerable<string> ReadAllUss(string layerDirectory)
+        {
+            return Directory.GetFiles(Path.Combine(ClientUiDirectory, layerDirectory), "*.uss", SearchOption.AllDirectories).Select(File.ReadAllText);
         }
     }
 }

@@ -125,6 +125,27 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(33.3f, button.Q<IconButtonCloseGlyph>().resolvedStyle.width, 0.5f);
         }
 
+        [Test]
+        public void 置く側がルートの色のつまみを変えると図形が受け直し有効時のホバーはそれに勝つ()
+        {
+            // スキットのツールと同じく、置く側の 2 クラスの規則がボタン自身の --icon-button-color を変える
+            // As with the skit tools, the caller's two-class rule changes --icon-button-color on the button itself
+            var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(KnobOverridePath);
+            var screenRoot = new VisualElement();
+            screenRoot.styleSheets.Add(sheet);
+            screenRoot.AddToClassList("control-knob-override");
+            _rulesRoot.Add(screenRoot);
+            var button = AddButton(screenRoot);
+            button.AddToClassList("control-icon-button-color-probe");
+            simulate.FrameUpdate();
+            var glyph = button.Q(className: IconButton.GlyphUssClassName);
+            AssertColor(Rgba(0, 221, 255, 1f), GlyphColor(glyph), "--select-cyan");
+
+            simulate.MouseMove(button.worldBound.center);
+            simulate.FrameUpdate();
+            AssertColor(Hex("#FFFFFF"), GlyphColor(glyph), "hover");
+        }
+
         private IconButton AddButton(VisualElement parent)
         {
             var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));

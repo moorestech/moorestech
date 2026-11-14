@@ -27,6 +27,12 @@ namespace Client.Tests.Ui.Conventions
         // 同じ UXML の中で name が重複（testid と Q(name) が曖昧になる）
         // A name repeated within one UXML (makes the testid and Q(name) ambiguous)
         DuplicateName,
+        // 画面 USS のセレクタが部品の内側クラス（__ 付き）か .unity-button を含む（部品はルートのつまみで変える。D-12）
+        // A screen USS selector names a component's inner class (with __) or .unity-button (components change through root knobs; D-12)
+        ComponentInnerSelector,
+        // 画面 USS が部品の内側要素のつまみ（--部品名-… を内側でだけ宣言するもの）を書く（D-12）
+        // A screen USS writes a knob of a component's inner element (a --component-… property declared only on inner parts; D-12)
+        ComponentInnerKnob,
     }
 
     /// <summary>
