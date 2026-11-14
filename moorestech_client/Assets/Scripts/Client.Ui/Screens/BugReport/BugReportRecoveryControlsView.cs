@@ -31,11 +31,8 @@ namespace Client.Ui.Screens.BugReport
             _resendButton.OnClicked.Subscribe(_ => commands.ResendFailedReports());
             _exportButton = CreateButton("bug-report-export-unsent", LocalizationKeys.Ui.BugReport.ExportUnsent);
             _exportButton.OnClicked.Subscribe(_ => commands.ExportUnsentReports());
-            _exportStatus = new LocalizedLabel { name = "bug-report-export-status" };
+            _exportStatus = new LocalizedLabel(UiText.Empty) { name = "bug-report-export-status" };
             _exportStatus.AddToClassList("bug-report__status");
-            // Idle は空文で隠す。文なしで載せない
-            // Idle holds empty text and hides; never attach textless
-            _exportStatus.SetText(UiText.FromVerbatim(string.Empty));
             Add(_resendButton);
             Add(_exportButton);
             Add(_exportStatus);

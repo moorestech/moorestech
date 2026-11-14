@@ -34,7 +34,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             _connect = new PanelActionButton("space-elevator-connect", new UiText(LocalizationKeys.Ui.BlockInventory.SpaceElevatorConnect), kit.OsCursor);
 
             _loading.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.DetailLoading));
-            SpecialViewParts.SeedEmptyText(_status);
             _connect.OnClicked.Subscribe(_ => kit.Run(CommandName, kit.Commands.ConnectSpaceElevator()));
             _section.AddItem(_status);
             _section.AddItem(_pool);

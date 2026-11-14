@@ -93,9 +93,8 @@ namespace Client.Ui.Screens.Skit.Parts.Window
 
         private static LocalizedLabel CreateText(string testid, string className)
         {
-            var label = new LocalizedLabel { name = testid, pickingMode = PickingMode.Ignore };
+            var label = new LocalizedLabel(UiText.Empty) { name = testid, pickingMode = PickingMode.Ignore };
             label.AddToClassList(className);
-            label.SetText(UiText.FromVerbatim(string.Empty));
             return label;
         }
     }

@@ -11,12 +11,11 @@ namespace Client.Ui.Screens.Skit.Parts.Window
     /// </summary>
     public sealed class SkitBackgroundLine : LocalizedLabel
     {
-        public SkitBackgroundLine()
+        public SkitBackgroundLine() : base(UiText.Empty)
         {
             name = "background-skit";
             AddToClassList("skit-background-line");
             pickingMode = PickingMode.Ignore;
-            SetText(UiText.FromVerbatim(string.Empty));
             UiDisplay.SetShown(this, false);
         }
 

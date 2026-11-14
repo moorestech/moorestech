@@ -18,7 +18,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
         public const string ClassName = "lack-highlight-text";
         internal const string InsufficientClassName = "lack-highlight-text--insufficient";
 
-        public LackHighlightText(string testid, LackHighlightTextSize size)
+        public LackHighlightText(string testid, LackHighlightTextSize size) : base(UiText.Empty)
         {
             // testid は Web の任意 prop と同じく省略できる
             // The testid is optional, as the Web prop is

@@ -11,17 +11,9 @@ namespace Client.Ui.Screens.BlockInventory.Special
     {
         public static LocalizedLabel Label(string testid, params string[] classes)
         {
-            var label = new LocalizedLabel { name = testid };
+            var label = new LocalizedLabel(UiText.Empty) { name = testid };
             foreach (var className in classes) label.AddToClassList(className);
-            SeedEmptyText(label);
             return label;
-        }
-
-        // 区画は詳細の前から載るので、載せたときの「文なし」の報告を避けるため空の原文で初期化する（前例 FluidInventoryRow）
-        // Sections mount before their detail arrives, so start from an empty verbatim text to avoid the attached-without-text report (precedent FluidInventoryRow)
-        public static void SeedEmptyText(LocalizedLabel label)
-        {
-            label.SetText(UiText.FromVerbatim(string.Empty));
         }
     }
 }

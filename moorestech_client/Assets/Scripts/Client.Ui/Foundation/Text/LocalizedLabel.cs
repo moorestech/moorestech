@@ -52,6 +52,13 @@ namespace Client.Ui.Foundation.Text
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
         }
 
+        // 最初の文を持って作る。詳細より先に載る行は空の UiText.Empty で作り、載せたときの「文なし」の報告を避ける
+        // Create with an initial text; rows mounted before their detail start from UiText.Empty to avoid the attached-without-text report
+        public LocalizedLabel(UiText initial) : this()
+        {
+            SetText(initial);
+        }
+
         // 解決した原文。text は行送りの印と行末の約物の詰めの改行を含む表示文なので、文の中身はこちらで読む
         // The resolved source text; text is the display text with the line-height tag and trim newlines, so read the words here
         public string SourceText { get; private set; }
