@@ -3,6 +3,7 @@ using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.Items;
 using Client.Ui.State.Train.Platform;
+using Client.WebUiHost.Game.Actions;
 using Game.Block.Blocks.TrainRail;
 using Mooresmaster.Model.BlocksModule;
 
@@ -36,7 +37,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             var body = TrainPlatformDetailReader.Read(blockType, param, stationName, transfer, NoItemSlots, NoFluids);
             dto.TrainStation = body.StationName.TryGetPresent(out var name) ? new TrainStationDetailDto { Name = name } : null;
             dto.TrainPlatform = body.Mode.TryGetPresent(out var mode)
-                ? new TrainPlatformDetailDto { Mode = ToWireMode(mode), ItemSlotCount = body.ItemSlots.IsPresent ? ReadItemSlotCount(param) : null }
+                ? new TrainPlatformDetailDto { Mode = TrainPlatformTransferModeWire.ToWire(mode), ItemSlotCount = body.ItemSlots.IsPresent ? ReadItemSlotCount(param) : null }
                 : null;
 
             #region Internal
@@ -54,11 +55,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             }
 
             #endregion
-        }
-
-        private static string ToWireMode(TrainPlatformTransferMode mode)
-        {
-            return mode == TrainPlatformTransferMode.LoadToTrain ? "loadToTrain" : "unloadToPlatform";
         }
     }
 }

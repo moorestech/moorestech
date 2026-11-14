@@ -2,8 +2,8 @@ using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
+using Client.Ui.State.Train.Platform;
 using Cysharp.Threading.Tasks;
-using Game.Block.Blocks.TrainRail;
 using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Game.Actions
@@ -26,8 +26,7 @@ namespace Client.WebUiHost.Game.Actions
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return ActionResult.Fail("invalid_payload");
-            var mode = ParseMode(payload["mode"]);
-            if (mode == null) return ActionResult.Fail("invalid_mode");
+            if (!TrainPlatformTransferModeWire.TryParse(payload["mode"], out var mode)) return ActionResult.Fail("invalid_mode");
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source)
                 return ActionResult.Fail("block_not_open");
             if (!source.TryGetBlockIdentity(out _, out var blockTypeName)) return ActionResult.Fail("block_not_open");
@@ -37,21 +36,10 @@ namespace Client.WebUiHost.Game.Actions
             // Send the target through the existing protocol and keep the later StateDetail as the view source of truth
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(
                 source.BlockPosition,
-                mode.Value,
+                TrainPlatformTransferModeConversion.ToServer(mode),
                 CancellationToken.None);
             if (response == null || !response.Success) return ActionResult.Fail("mode_request_failed");
             return ActionResult.Success();
-        }
-
-        private static TrainPlatformTransferComponent.TransferMode? ParseMode(JToken token)
-        {
-            if (token is not JValue { Type: JTokenType.String } value) return null;
-            return (string)value switch
-            {
-                "loadToTrain" => TrainPlatformTransferComponent.TransferMode.LoadToTrain,
-                "unloadToPlatform" => TrainPlatformTransferComponent.TransferMode.UnloadToPlatform,
-                _ => null,
-            };
         }
 
         private static bool IsTrainPlatform(string blockType)
