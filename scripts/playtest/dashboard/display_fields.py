@@ -85,3 +85,47 @@ def web_ui_health(raw: dict, source: Path) -> dict:
         warn("webUiHealth.secondsSinceLastWebMessage が無いか数でないため読めないと表示する", source)
         return {"status": "unreadable"}
     return {"status": "recorded", "hostStartup": host, "cefProcess": cef, "secondsSinceLastWebMessage": seconds}
+
+
+# manifest v7 の gameUiExceptions の見本の上限（C# の GameUiExceptionTally.SampleLimit と同じ値）
+# Sample cap of manifest v7 gameUiExceptions (same value as C# GameUiExceptionTally.SampleLimit)
+GAME_UI_EXCEPTION_SAMPLE_LIMIT = 5
+
+
+def game_ui_exceptions(raw: dict, source: Path) -> dict:
+    """manifest v7 の gameUiExceptions を表示用に読む。webUiHealth と同じく status 1 項目で欄なし・不明・読めない・記録ありを決める
+    Reads manifest v7 gameUiExceptions for display; as with webUiHealth, one status decides absent/unknown/unreadable/recorded"""
+    # キーの無い v6 以前の箱だけが欄なし。dict でない・集合外の status は契約の破れなので読めない扱いにする
+    # Only a v6-or-older box without the key is absent; a non-dict or an off-contract status breaks the contract and reads as unreadable
+    if "gameUiExceptions" not in raw:
+        return {"status": "absent"}
+    value = raw["gameUiExceptions"]
+    if not isinstance(value, dict) or value.get("status") not in ("recorded", "unknown"):
+        warn(f"gameUiExceptions が契約の形でない（{value!r}）ため読めないと表示する", source)
+        return {"status": "unreadable"}
+    # unknown は数えていない箱。件数を 0 件と読ませない
+    # unknown is an uncounted box; never let it read as zero
+    if value["status"] == "unknown":
+        return {"status": "unknown"}
+    count = value.get("count")
+    samples = value.get("samples")
+    if not isinstance(count, int) or isinstance(count, bool) or not isinstance(samples, list):
+        warn(f"gameUiExceptions の count が整数でないか samples が配列でない（count={count!r}）ため読めないと表示する", source)
+        return {"status": "unreadable"}
+    return {"status": "recorded", "count": count, "samples": game_ui_exception_samples(samples, source)}
+
+
+def game_ui_exception_samples(samples: list, source: Path) -> list[dict]:
+    """見本を最大 5 件、tick・message・frame の 3 項目で返す。形の崩れた見本は件数をログに出して除く
+    Returns up to five samples as tick/message/frame; malformed samples are dropped with a logged count"""
+    picked = []
+    for sample in samples[:GAME_UI_EXCEPTION_SAMPLE_LIMIT]:
+        if not isinstance(sample, dict) or not isinstance(sample.get("message"), str) or not isinstance(sample.get("frame"), str):
+            continue
+        tick = sample.get("tick")
+        picked.append({"tick": tick if isinstance(tick, int) and not isinstance(tick, bool) else None,
+                       "message": sample["message"], "frame": sample["frame"]})
+    dropped = min(len(samples), GAME_UI_EXCEPTION_SAMPLE_LIMIT) - len(picked)
+    if dropped:
+        warn(f"gameUiExceptions.samples の形の崩れた見本 {dropped}件を表示から除く", source)
+    return picked

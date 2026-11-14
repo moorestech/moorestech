@@ -94,6 +94,15 @@ function webUiHealthRows(health) {
     ["最後のWS受信", seconds == null ? "一度も受信していない" : `${seconds.toFixed(1)}秒前`]];
 }
 
+// UI の例外の行。欄なし・不明・読めないを 0 件と取り違えないよう status だけで分岐し、見本は frame を 1 行ずつ出す
+// UI exception rows; branching only on status keeps absent/unknown/unreadable apart from zero, and each sample shows its frame on its own row
+const GAME_UI_EXCEPTION_BLANKS = { absent: "記録なし（v6 以前）", unknown: "不明（数えていない）", unreadable: "読めない（ダッシュボードのログ）" };
+function gameUiExceptionRows(value) {
+  const blank = GAME_UI_EXCEPTION_BLANKS[value.status];
+  if (blank) return [["UI の例外", blank]];
+  return [["UI の例外", `${value.count} 件`], ...value.samples.map((sample, index) => [`見本 ${index + 1}`, sample.frame])];
+}
+
 // 詳細は「誰が・どのビルドで・どんな状態で・どう扱われたか」の4群に分けて並べる
 // Details are grouped as who, which build, what state, and how it was handled
 function infoGroups(report) {
@@ -110,7 +119,8 @@ function infoGroups(report) {
       ["画面", report.uiState || "不明"],
       ["tick", report.reportTick ?? "不明"],
       ["録画", report.videoSeconds ? `${report.videoSeconds.toFixed(0)}秒` : "なし"],
-      ...webUiHealthRows(report.webUiHealth)]],
+      ...webUiHealthRows(report.webUiHealth),
+      ...gameUiExceptionRows(report.gameUiExceptions)]],
     ["取り扱い", [
       ["遠隔実行", report.remoteExecReason ? `${report.remoteExec}（${report.remoteExecReason}）` : (report.remoteExec || "不明")],
       ["報告ID", h("code", null, report.id)]]],

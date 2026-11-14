@@ -97,3 +97,9 @@
 | 5 | `src/features/eventLanguageGate/EventLanguageGate.test.ts` | 選択が受理されなければ辞書非依存リテラルの失敗行を出す | 捨てる | UITK の言語の一覧はどれも選べる（一覧と辞書の言語の列が一致しないと生成でビルドが止まり、mod は知らない言語を例外で拒否する）ので、本番の押下で `UnknownLanguage` は返らず失敗の 1 行の状態が無い。拒否が返れば View がログに残す。S5-gate D-6 | #1661 |
 | 5 | `src/features/eventLanguageGate/EventLanguageGate.test.ts` | 選択済みの拒否は受け付け済みとして押下不可のまま辞書非依存の1行を出す | 捨てる | UITK は受理の同期の通知でその押下の中でゲートを外すので、選び終えたゲートへ押下が届かず `LanguageAlreadySelected` は本番で返らない（Web は action の往復の間に二度目の押下が届く）。S5-gate D-6・D-8 | #1661 |
 | 5 | `src/features/eventLanguageGate/useLanguageSelectionAnswer.test.ts` | アンマウント後に受理が解決しても閉じない見張りを張らない | 捨てる | UITK の選択は同じプロセスで同期に受理し、受理の通知（`OnWaitingChanged`）でその場でゲートを外すので、応答待ちも 10 秒の閉じない見張りも無い（Web は action の往復と topic の配信が別経路なので見張りを持つ）。S5-gate D-6・D-8 | #1661 |
+| 5 | `e2e/tests/regression/connection.spec.ts` | 切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する | 捨てる | UITK には Web↔C# の WS が無く切断・復元の状態が起きない（設計書 A-38・実行計画 E-17） | <PR> |
+| 5 | `e2e/tests/regression/connection.spec.ts` | inventory未受信中はconnecting placeholderを表示する | 捨てる | UITK に「未受信」の状態が無い（設計書 A-13） | <PR> |
+| 5 | `e2e/tests/regression/connection.spec.ts` | WS切断時は再接続バナーをz-reconnect層に表示する | 捨てる | 同 A-38・E-17 | <PR> |
+| 5 | `src/shared/i18n/allScreensI18n.test.ts` | fetches fallback only once while also loading source for the fallback locale | 捨てる | UITK の辞書は起動時に同期で読み込み、HTTP 取得・取得の世代・topic 待ちが無い（設計書 A-38） | <PR> |
+| 5 | `src/shared/i18n/allScreensI18n.test.ts` | waits for the localization topic before the first dictionary fetch | 捨てる | 同上（A-38） | <PR> |
+| 5 | `src/shared/i18n/allScreensI18n.test.ts` | keeps the newest locale when StrictMode cleanup aborts an older dictionary generation | 捨てる | 同上（A-38） | <PR> |
