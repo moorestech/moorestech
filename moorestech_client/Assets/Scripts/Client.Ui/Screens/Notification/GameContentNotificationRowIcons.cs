@@ -1,6 +1,7 @@
 using Client.Ui.Content;
 using Client.Ui.Foundation.Icons;
 using Client.Ui.State.Notification.Text;
+using Core.Master;
 using UnityEngine;
 
 namespace Client.Ui.Screens.Notification
