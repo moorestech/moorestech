@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Theme.Mesh;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -58,15 +59,10 @@ namespace Client.Ui.Screens.Skit.Parts.Window
                 var vertex = new Vector2(12f, top + 7f);
                 var halfStroke = _stroke * 0.5f;
                 painter.BeginPath();
-                painter.MoveTo(ExtendedEnd(new Vector2(5f, top), vertex, halfStroke) * scale);
+                painter.MoveTo(Painter2DSquareCap.Extend(new Vector2(5f, top), vertex, halfStroke) * scale);
                 painter.LineTo(vertex * scale);
-                painter.LineTo(ExtendedEnd(new Vector2(19f, top), vertex, halfStroke) * scale);
+                painter.LineTo(Painter2DSquareCap.Extend(new Vector2(19f, top), vertex, halfStroke) * scale);
                 painter.Stroke();
-            }
-
-            Vector2 ExtendedEnd(Vector2 end, Vector2 from, float length)
-            {
-                return end + (end - from).normalized * length;
             }
 
             #endregion

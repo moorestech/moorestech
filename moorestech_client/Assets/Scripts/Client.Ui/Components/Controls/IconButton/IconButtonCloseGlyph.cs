@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Theme.Mesh;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -53,21 +54,8 @@ namespace Client.Ui.Components.Controls
             painter.lineWidth = _strokeWidth * scale;
             painter.lineCap = LineCap.Butt;
             painter.BeginPath();
-            for (var i = 0; i < StrokeEnds.Length; i += 2) AddSquareCappedSegment(painter, StrokeEnds[i] * scale, StrokeEnds[i + 1] * scale, painter.lineWidth / 2f);
+            for (var i = 0; i < StrokeEnds.Length; i += 2) Painter2DSquareCap.AddSegment(painter, StrokeEnds[i] * scale, StrokeEnds[i + 1] * scale, painter.lineWidth / 2f);
             painter.Stroke();
-
-            #region Internal
-
-            // Painter2D に square の端が無いので、両端を線幅の半分だけ線の向きへ延ばして同じ形にする
-            // Painter2D has no square cap, so extend both ends by half the stroke width along the line to match
-            void AddSquareCappedSegment(Painter2D target, Vector2 from, Vector2 to, float halfWidth)
-            {
-                var direction = (to - from).normalized;
-                target.MoveTo(from - direction * halfWidth);
-                target.LineTo(to + direction * halfWidth);
-            }
-
-            #endregion
         }
     }
 }

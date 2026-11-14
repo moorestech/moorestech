@@ -77,7 +77,7 @@ namespace Client.Tests.Ui.Components.Gauges
             Assert.AreEqual(0.45f * 0.158655f, _vertices[6 * Corners].tint.a / 255f, AlphaTolerance);
             Assert.Less(_vertices[8 * Corners].tint.a / 255f, 0.019f + AlphaTolerance);
             Assert.AreEqual(119f * Scale + (Scale + 2f) * 1.6810f, _vertices[8 * Corners + 3].position.x, 0.001f);
-            for (var ring = 1; ring <= ProgressArrowGlyphShadowMesh.RingCount; ring++)
+            for (var ring = 1; ring <= ShadowRingMeshWriter.RingCount; ring++)
                 Assert.Less(_vertices[ring * Corners].tint.a, _vertices[(ring - 1) * Corners].tint.a, $"ring {ring}");
         }
 
@@ -114,7 +114,7 @@ namespace Client.Tests.Ui.Components.Gauges
         [Test]
         public void 色は影の色のままで輪ごとに同じ濃さ()
         {
-            for (var ring = 0; ring <= ProgressArrowGlyphShadowMesh.RingCount; ring++)
+            for (var ring = 0; ring <= ShadowRingMeshWriter.RingCount; ring++)
             for (var corner = 0; corner < Corners; corner++)
             {
                 var tint = _vertices[ring * Corners + corner].tint;

@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Theme.Mesh;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -82,20 +83,7 @@ namespace Client.Ui.Screens.Shell
             // Wind clockwise in screen space (y down), the same as GamePanelFace
             void WriteIndices()
             {
-                for (var row = 0; row < Rows; row++)
-                for (var column = 0; column < Columns; column++)
-                {
-                    var topLeft = (ushort)(row * Stride + column);
-                    var topRight = (ushort)(topLeft + 1);
-                    var bottomLeft = (ushort)(topLeft + Stride);
-                    var bottomRight = (ushort)(bottomLeft + 1);
-                    mesh.SetNextIndex(topLeft);
-                    mesh.SetNextIndex(topRight);
-                    mesh.SetNextIndex(bottomRight);
-                    mesh.SetNextIndex(topLeft);
-                    mesh.SetNextIndex(bottomRight);
-                    mesh.SetNextIndex(bottomLeft);
-                }
+                GridMeshIndexWriter.WriteQuads(mesh, Rows, Columns, Stride);
             }
 
             #endregion

@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Theme.Mesh;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -72,19 +73,16 @@ namespace Client.Ui.Components.Controls
             void WriteIndices()
             {
                 for (var column = 0; column < ColumnCount - 1; column++)
-                    WriteQuad(column * 6, column, column + 1, ColumnCount + column, ColumnCount + column + 1);
-                WriteQuad((ColumnCount - 1) * 6, LeftBorderFirstVertex, LeftBorderFirstVertex + 1, LeftBorderFirstVertex + 2, LeftBorderFirstVertex + 3);
-                WriteQuad((ColumnCount - 1) * 6 + 6, RightBorderFirstVertex, RightBorderFirstVertex + 1, RightBorderFirstVertex + 2, RightBorderFirstVertex + 3);
+                    GridMeshIndexWriter.QuadIndices(0, column, ColumnCount).WriteTo(indices, column * GridQuadIndices.IndexCount);
+                WriteBandQuad((ColumnCount - 1) * GridQuadIndices.IndexCount, LeftBorderFirstVertex);
+                WriteBandQuad(ColumnCount * GridQuadIndices.IndexCount, RightBorderFirstVertex);
             }
 
-            void WriteQuad(int offset, int topLeft, int topRight, int bottomLeft, int bottomRight)
+            // 枠の帯の頂点は WriteBand の順（左上・右上・左下・右下）
+            // Border band vertices follow WriteBand (top-left, top-right, bottom-left, bottom-right)
+            void WriteBandQuad(int offset, int first)
             {
-                indices[offset] = (ushort)topLeft;
-                indices[offset + 1] = (ushort)topRight;
-                indices[offset + 2] = (ushort)bottomRight;
-                indices[offset + 3] = (ushort)topLeft;
-                indices[offset + 4] = (ushort)bottomRight;
-                indices[offset + 5] = (ushort)bottomLeft;
+                new GridQuadIndices((ushort)first, (ushort)(first + 1), (ushort)(first + 3), (ushort)(first + 2)).WriteTo(indices, offset);
             }
 
             Vertex MakeVertex(float x, float y, Color tint)

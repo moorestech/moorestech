@@ -1,4 +1,5 @@
 using Client.Ui.Components.Recipe;
+using Client.Ui.Foundation.Rendering;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -23,7 +24,7 @@ namespace Client.Tests.Ui.Components.Recipe
             var vertices = new Vertex[RecipeRowFrameShadowMesh.GlowVertexCount];
             var indices = new ushort[RecipeRowFrameShadowMesh.GlowIndexCount];
             RecipeRowFrameShadowMesh.BuildGlow(new Rect(10f, 10f, 100f, 20f), 1f, new Color(0f, 0.804f, 1f, 0.25f), vertices, indices);
-            var outer = RecipeRowFrameShadowMesh.RingCount * 4;
+            var outer = ShadowRingMeshWriter.RingCount * 4;
             Assert.AreEqual(new Vector3(10f, 10f, Vertex.nearZ), vertices[0].position);
             Assert.AreEqual(new Vector3(8f, 8f, Vertex.nearZ), vertices[outer].position);
             Assert.AreEqual(new Vector3(112f, 32f, Vertex.nearZ), vertices[outer + 2].position);
@@ -44,7 +45,7 @@ namespace Client.Tests.Ui.Components.Recipe
             var vertices = new Vertex[RecipeRowFrameShadowMesh.BarShadowVertexCount];
             var indices = new ushort[RecipeRowFrameShadowMesh.BarShadowIndexCount];
             RecipeRowFrameShadowMesh.BuildBarShadow(new Rect(0f, 0f, 9f, 1f), 1f, new Color(0.184f, 0.737f, 1f, 0.3f), vertices, indices);
-            var outer = RecipeRowFrameShadowMesh.RingCount * 4;
+            var outer = ShadowRingMeshWriter.RingCount * 4;
 
             // 内端は太さの半分の手前（0.49px 内側）で止まり、上下が入れ替わらない
             // The inner end stops 0.49px inside (short of half the thickness), so top and bottom never swap
@@ -56,7 +57,7 @@ namespace Client.Tests.Ui.Components.Recipe
             // A 1px bar with σ 1px uses the two-edge difference Φ(-d/σ)−Φ(-(d+1)/σ): core (0.49px inside) about 0.383, edge about 0.341, outer rim Φ(-2)−Φ(-3) (about 0.0214)
             Assert.AreEqual(0.3f * 0.38291f, vertices[0].tint.a / 255f, Tolerance);
             Assert.Greater(vertices[0].tint.a, 0, "bracket shadow core survives the 8-bit quantum");
-            Assert.AreEqual(0.3f * 0.34134f, vertices[RecipeRowFrameShadowMesh.RingCount / 2 * 4].tint.a / 255f, Tolerance);
+            Assert.AreEqual(0.3f * 0.34134f, vertices[ShadowRingMeshWriter.RingCount / 2 * 4].tint.a / 255f, Tolerance);
             Assert.AreEqual(Mathf.RoundToInt(0.3f * 0.0214f * 255f), vertices[outer].tint.a, "bracket shadow rim stays at two 8-bit steps");
             CollectionAssert.AreEquivalent(new ushort[] { 0, 1, 2, 0, 2, 3 }, new[] { indices[0], indices[1], indices[2], indices[3], indices[4], indices[5] });
             AssertIndicesInRange(indices, RecipeRowFrameShadowMesh.BarShadowVertexCount);

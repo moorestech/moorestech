@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Theme.Mesh;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -100,20 +101,7 @@ namespace Client.Ui.Components.Panels
             // Wind clockwise in screen space (y down)
             void WriteIndices()
             {
-                for (var row = 0; row < GridLineCount - 1; row++)
-                for (var column = 0; column < GridLineCount - 1; column++)
-                {
-                    var topLeft = (ushort)(row * GridLineCount + column);
-                    var topRight = (ushort)(topLeft + 1);
-                    var bottomLeft = (ushort)(topLeft + GridLineCount);
-                    var bottomRight = (ushort)(bottomLeft + 1);
-                    mesh.SetNextIndex(topLeft);
-                    mesh.SetNextIndex(topRight);
-                    mesh.SetNextIndex(bottomRight);
-                    mesh.SetNextIndex(topLeft);
-                    mesh.SetNextIndex(bottomRight);
-                    mesh.SetNextIndex(bottomLeft);
-                }
+                GridMeshIndexWriter.WriteQuads(mesh, GridLineCount - 1, GridLineCount - 1, GridLineCount);
             }
 
             #endregion

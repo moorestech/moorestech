@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Theme.Mesh;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -120,12 +121,7 @@ namespace Client.Ui.Components.Recipe
                     mesh.SetNextVertex(new Vertex { position = new Vector3(rect.xMax, rect.yMin, Vertex.nearZ), tint = tint });
                     mesh.SetNextVertex(new Vertex { position = new Vector3(rect.xMax, rect.yMax, Vertex.nearZ), tint = tint });
                     mesh.SetNextVertex(new Vertex { position = new Vector3(rect.xMin, rect.yMax, Vertex.nearZ), tint = tint });
-                    mesh.SetNextIndex(first);
-                    mesh.SetNextIndex((ushort)(first + 1));
-                    mesh.SetNextIndex((ushort)(first + 2));
-                    mesh.SetNextIndex(first);
-                    mesh.SetNextIndex((ushort)(first + 2));
-                    mesh.SetNextIndex((ushort)(first + 3));
+                    new GridQuadIndices(first, (ushort)(first + 1), (ushort)(first + 2), (ushort)(first + 3)).WriteTo(mesh);
                     written += 4;
                 }
             }

@@ -12,6 +12,14 @@ namespace Client.Ui.Foundation.Rendering
     /// </remarks>
     public static class ShadowRingMeshWriter
     {
+        // 縁の内外を刻む輪の段数（GamePanelFace の SegmentsPerFade と同じ 8 段）
+        // Number of rings stepping across the edge (eight, the same as GamePanelFace.SegmentsPerFade)
+        public const int RingCount = 8;
+
+        // 細い形の輪が中心線を越えて裏返らないよう、中心の縫い目から空ける余白（px）
+        // Gap in px from the centre seam that keeps a thin shape's rings from crossing it and flipping
+        public const float CenterMargin = 0.01f;
+
         public static void WriteBands(Vertex[] vertices, ushort[] indices, ref int cursor, int ringCount, int cornersPerRing)
         {
             // 隣り合う輪の辺を四角で結ぶ
