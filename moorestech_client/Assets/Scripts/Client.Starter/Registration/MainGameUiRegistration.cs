@@ -71,6 +71,7 @@ namespace Client.Starter.Registration
             // Screen registration section: add one call per line
             PauseMenuGameUiRegistration.Register(builder);
             ToastGameUiRegistration.Register(builder);
+            HotbarGameUiRegistration.Register(builder);
             HudGameUiRegistration.Register(builder);
             ContentGameUiRegistration.Register(builder);
             ModeHudGameUiRegistration.Register(builder);
@@ -85,7 +86,6 @@ namespace Client.Starter.Registration
             BlockInventorySpecialGameUiRegistration.Register(builder);
             RecipeGameUiRegistration.Register(builder);
             BuildMenuGameUiRegistration.Register(builder);
-            HotbarGameUiRegistration.Register(builder);
             ModalGameUiRegistration.Register(builder);
             NotificationGameUiRegistration.Register(builder);
             SkitGameUiRegistration.Register(builder);
