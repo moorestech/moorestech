@@ -50,6 +50,10 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
             yield return new ExitPlayMode();
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
 
+            // 往復の間は Error ログでも落とす。PlayMode 中だけ無視を許す
+            // Fail on Error logs during the round-trip; the ignore applies only while in PlayMode
+            LogAssert.ignoreFailingMessages = false;
+
             // 保存値を退避してから、ドメインを読み直さない Edit モードで言語を往復する。残った購読の例外は呼び出し元へそのまま上がる
             // Preserve the persisted value, then round-trip the language in edit mode without a domain reload; a leftover subscription's exception surfaces here
             _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
