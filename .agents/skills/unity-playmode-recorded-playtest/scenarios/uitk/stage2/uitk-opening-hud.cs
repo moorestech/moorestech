@@ -88,13 +88,12 @@ return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
     var first = MasterHolder.ChallengeMaster.GetCategoryInitialChallenges(category.CategoryGuid).Single();
     var pinTutorial = first.Tutorials.Single(t => t.TutorialType == TutorialsElement.TutorialTypeConst.mapObjectPin);
     var treeGuids = MasterHolder.ChallengeMaster.ResolvePinTargets((MapObjectPinTutorialParam)pinTutorial.TutorialParam);
-    // 地図物は少しずつ生成されるので、全部出てから探す（途中だと遠くの背の高い木を選び照準が画面外へ出る）
-    // Map objects instantiate progressively, so search after all exist (mid-way picks a far tall tree and aims off-screen)
-    var mapObjects = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
-    await p.Until(() => mapObjects.IsAllInstantiated.Value, 60f, "地図物が全部生成された");
-    var tree = mapObjects.SearchNearestMapObject(treeGuids, p.PlayerPosition);
+    var tree = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SearchNearestMapObject(treeGuids, p.PlayerPosition);
     p.Assert(tree != null, $"ピン先（{treeGuids.Count} 種）の最寄りの木が見つかった");
-    var treeCenter = tree.GetComponentInChildren<Collider>(true).bounds.center;
+    // 地図物は少しずつ生成され選ばれる木は進み具合で変わるので、背の高い木でも画面に入るよう根元 +1.2m の幹を狙う
+    // Map objects instantiate progressively so the picked tree varies; aim at the trunk 1.2m above the root so tall trees stay on screen
+    var treeBounds = tree.GetComponentInChildren<Collider>(true).bounds;
+    var treeAimPoint = new Vector3(treeBounds.center.x, Mathf.Clamp(tree.transform.position.y + 1.2f, treeBounds.min.y, treeBounds.max.y), treeBounds.center.z);
     await p.Until(() => Camera.main != null, 10f, "MainCameraの起動");
     var forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
     if (forward.sqrMagnitude < 0.1f) forward = Vector3.forward;
@@ -102,11 +101,11 @@ return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
     // Warp 5m short of the tree and hold W until inside reach (2m)
     p.WarpPlayer(tree.transform.position - forward * 5f + Vector3.up * 0.5f);
     await p.WaitSeconds(0.5f);
-    await p.AimAt(treeCenter);
+    await p.AimAt(treeAimPoint);
     SemanticInput.KeyDown(Key.W);
     await p.Until(() => Vector3.Distance(Flat(p.PlayerPosition), Flat(tree.transform.position)) < 1.6f, 10f, "歩いて木に寄った");
     SemanticInput.KeyUp(Key.W);
-    await p.AimAt(treeCenter);
+    await p.AimAt(treeAimPoint);
     var selector = new InteractTargetSelector();
     await p.Until(() => ReferenceEquals(selector.Scan().Primary, tree), 10f, "本番の選定器が木を選んだ");
     SemanticInput.KeyDown(Key.F);
@@ -194,6 +193,7 @@ return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
         }
         return element != null;
     }
+
     Vector3 Flat(Vector3 position) => new(position.x, 0f, position.z);
     #endregion
 });
