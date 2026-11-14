@@ -80,6 +80,6 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
         // Materials use fixture itemId 1 (count, held); the detail stays on the hint, so they never show
         private static IReadOnlyList<BuildMenuMaterialRow> Rows() => Array.Empty<BuildMenuMaterialRow>();
 
-        private static IReadOnlyList<BuildMenuMaterialRow> Rows(int count, int held) => new[] { new BuildMenuMaterialRow(new ItemId(1), new BuildMenuRequiredItem(Guid.Empty, count, held, held < count)) };
+        private static IReadOnlyList<BuildMenuMaterialRow> Rows(int count, int held) => new[] { new BuildMenuMaterialRow(new ItemId(1), new BuildMenuRequiredItem(Guid.Empty, count, held)) };
     }
 }

@@ -119,7 +119,7 @@ namespace Client.Tests.Ui.State.BuildMenu
                 Assert.AreEqual(dto.SubCategoryGuid, entry.Catalog.SubCategoryGuid.ToString("D"));
                 Assert.AreEqual(dto.PaymentWaived, entry.Catalog.PaymentWaived);
                 Assert.AreEqual(dto.SetPlacement != null, entry.SetPlacement is BuildMenuSetPlacementAvailable, dto.Id);
-                CollectionAssert.AreEqual(dto.RequiredItems.Select(item => (item.ItemId, item.Count, item.Held, item.Lacking)), entry.Materials.Select(line => (line.Row.ItemId.AsPrimitive(), line.Row.Item.Count, line.Row.Item.Held, line.Row.Item.Lacking)), dto.Id);
+                CollectionAssert.AreEqual(dto.RequiredItems.Select(item => (item.ItemId, item.Count, item.Held, item.Lacking)), entry.Materials.Select(line => (line.Row.ItemId.AsPrimitive(), line.Row.Item.Count, line.Row.Item.Held, line.Row.Item.Held < line.Row.Item.Count)), dto.Id);
             }
             return entries;
 

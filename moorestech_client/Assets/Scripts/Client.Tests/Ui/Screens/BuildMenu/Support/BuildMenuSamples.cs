@@ -88,7 +88,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
 
         public static BuildMenuMaterialRow Material(ItemId itemId, int count, int held)
         {
-            return new BuildMenuMaterialRow(itemId, new BuildMenuRequiredItem(Guid.NewGuid(), count, held, held < count));
+            return new BuildMenuMaterialRow(itemId, new BuildMenuRequiredItem(Guid.NewGuid(), count, held));
         }
     }
 }

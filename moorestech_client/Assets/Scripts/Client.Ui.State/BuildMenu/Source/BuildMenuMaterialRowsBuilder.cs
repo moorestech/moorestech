@@ -36,7 +36,7 @@ namespace Client.Ui.State.BuildMenu.Source
             var rows = new List<BuildMenuMaterialRow>();
             foreach (var (itemId, held, required) in requirements)
             {
-                var item = new BuildMenuRequiredItem(MasterHolder.ItemMaster.GetItemGuid(itemId), required, held, held < required);
+                var item = new BuildMenuRequiredItem(MasterHolder.ItemMaster.GetItemGuid(itemId), required, held);
                 rows.Add(new BuildMenuMaterialRow(itemId, item));
             }
             return rows;
