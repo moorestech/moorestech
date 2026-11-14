@@ -33,9 +33,11 @@ namespace Client.Ui.Foundation.Composite
         {
             // silent-ok: 生成失敗は Initialize の例外として初期化の失敗（MainGameSceneLoadedHandler の LogError。RT を作れないときはアプリ終了、それ以外はメインメニュー）になり Tick は回らない / 開発者は Console の最初の例外で、プレイヤーはアプリの終了かメインメニューへ戻ることで気づく
             if (_panelTarget == null) return;
+
+            // 作れない大きさは SyncToSize が LogError を出して前の RT のまま戻る（ここで投げると VContainer の Tick ループごと止まる）
+            // For an uncreatable size SyncToSize logs an error and keeps the previous RT (throwing here would stop VContainer's whole Tick loop)
             _panelTarget.SyncToSize(Screen.width, Screen.height);
             UiSrgbCompositeSource.ReportWhenNotComposited();
         }
-
     }
 }
