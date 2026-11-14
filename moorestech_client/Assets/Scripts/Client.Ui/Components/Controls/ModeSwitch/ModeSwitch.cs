@@ -41,6 +41,40 @@ namespace Client.Ui.Components.Controls
                 _buttons.Add(button);
                 Add(button);
             }
+
+            #region Internal
+
+            Button CreateOptionButton(ModeSwitchOption<TValue> option, bool following, IUiOsCursor osCursor)
+            {
+                var button = new Button { name = option.Testid, focusable = false };
+                button.AddToClassList("mode-switch__option");
+
+                // 2 つ目以降に間隔のクラス
+                // Spacing class from the second option on
+                if (following) button.AddToClassList("mode-switch__option--following");
+
+                // Web の box-shadow の輪は面の外へ出した子で描く（ModeSwitchRing）
+                // The Web box-shadow ring is a child pushed outside the face (ModeSwitchRing)
+                button.Add(new ModeSwitchRing());
+
+                // 文は辞書の切替で解き直すラベルに載せる
+                // The label re-resolves on dictionary switches
+                var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
+                label.AddToClassList("mode-switch__label");
+                label.SetText(option.Label);
+                button.Add(label);
+
+                var value = option.Value;
+                button.clicked += () => _onOptionSelected.OnNext(value);
+
+                // Web の cursor: pointer（ModeSwitch/style.module.css:27。IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
+                // Web cursor: pointer (ModeSwitch/style.module.css:27, IconButton/style.module.css:9 and others); the part requests it itself (A-247)
+                _hovers.Add(new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
+                return button;
+
+            }
+
+            #endregion
         }
 
         public void SetSelected(TValue value)
@@ -107,36 +141,6 @@ namespace Client.Ui.Components.Controls
             }
             index = -1;
             return false;
-        }
-
-        private Button CreateOptionButton(ModeSwitchOption<TValue> option, bool following, IUiOsCursor osCursor)
-        {
-            var button = new Button { name = option.Testid, focusable = false };
-            button.AddToClassList("mode-switch__option");
-
-            // 2 つ目以降に間隔のクラス
-            // Spacing class from the second option on
-            if (following) button.AddToClassList("mode-switch__option--following");
-
-            // Web の box-shadow の輪は面の外へ出した子で描く（ModeSwitchRing）
-            // The Web box-shadow ring is a child pushed outside the face (ModeSwitchRing)
-            button.Add(new ModeSwitchRing());
-
-            // 文は辞書の切替で解き直すラベルに載せる
-            // The label re-resolves on dictionary switches
-            var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-            label.AddToClassList("mode-switch__label");
-            label.SetText(option.Label);
-            button.Add(label);
-
-            var value = option.Value;
-            button.clicked += () => _onOptionSelected.OnNext(value);
-
-            // Web の cursor: pointer（ModeSwitch/style.module.css:27。IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
-            // Web cursor: pointer (ModeSwitch/style.module.css:27, IconButton/style.module.css:9 and others); the part requests it itself (A-247)
-            _hovers.Add(new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
-            return button;
-
         }
     }
 }

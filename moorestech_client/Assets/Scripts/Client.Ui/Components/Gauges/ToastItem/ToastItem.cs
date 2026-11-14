@@ -28,18 +28,22 @@ namespace Client.Ui.Components.Gauges
             var label = new WrapSafeLabel(text) { pickingMode = PickingMode.Ignore };
             label.AddToClassList("toast-item__text");
             Add(label);
-        }
 
-        private static string ToneClassName(ToastItemTone tone)
-        {
-            // 全値を列挙・未知は停止
-            // List every value; fail on unknown
-            return tone switch
+            #region Internal
+
+            static string ToneClassName(ToastItemTone tone)
             {
-                ToastItemTone.Info => "toast-item--info",
-                ToastItemTone.Error => "toast-item--error",
-                _ => throw new ArgumentOutOfRangeException(nameof(tone), tone, null),
-            };
+                // 全値を列挙・未知は停止
+                // List every value; fail on unknown
+                return tone switch
+                {
+                    ToastItemTone.Info => "toast-item--info",
+                    ToastItemTone.Error => "toast-item--error",
+                    _ => throw new ArgumentOutOfRangeException(nameof(tone), tone, null),
+                };
+            }
+
+            #endregion
         }
     }
 }
