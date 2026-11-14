@@ -20,7 +20,7 @@ using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Ui.State.Recipe.Catalog;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -136,10 +136,10 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(MachineUpgradeTopic.TopicName, new MachineUpgradeTopic(hub, resolver.Resolve<IModuleSlotStackLimitLookup>()));
             // アイテムリストトピックを登録
             // Register the item-list topic
-            var recipeContainer = ClientDIContext.DIContainer
+            var recipeViewerItemCatalog = ClientDIContext.DIContainer
                 .DIContainerResolver
-                .Resolve<ItemRecipeViewerDataContainer>();
-            var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
+                .Resolve<RecipeViewerItemCatalog>();
+            var itemListTopic = new RecipeViewerItemListTopic(hub, recipeViewerItemCatalog);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
             // 研究ツリートピック登録
             // Register the research-tree topic

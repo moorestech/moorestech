@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Ui.State.Recipe.Catalog;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Core.Master;
 using Cysharp.Threading.Tasks;
-using Mooresmaster.Model.ItemsModule;
 using Server.Event.EventReceive;
-using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -21,20 +18,16 @@ namespace Client.WebUiHost.Game.Topics
         public const string TopicName = "recipe_viewer.item_list";
 
         private readonly WebSocketHub _hub;
-        private readonly ItemRecipeViewerDataContainer _recipeContainer;
+        private readonly RecipeViewerItemCatalog _catalog;
         private readonly IDisposable _subscription;
 
-        // 未知のRecipeViewTypeの警告ログを1回に抑制するためのフラグ
-        // Flag to emit the unknown-RecipeViewType warning only once
-        private bool _unknownViewTypeWarned;
-
-        public RecipeViewerItemListTopic(WebSocketHub hub, ItemRecipeViewerDataContainer recipeContainer)
+        public RecipeViewerItemListTopic(WebSocketHub hub, RecipeViewerItemCatalog catalog)
         {
             _hub = hub;
-            _recipeContainer = recipeContainer;
+            _catalog = catalog;
 
-            // アンロックイベントで再配信する。判定は評価器が最新のアンロック状態を参照する
-            // Republish on unlock events; the evaluator reads the latest unlock state during the check
+            // アンロックイベントで再配信する。判定は Catalog が最新のアンロック状態を参照する
+            // Republish on unlock events; the catalog reads the latest unlock state during the check
             _subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => _hub.Publish(TopicName, BuildJson()));
         }
 
@@ -50,37 +43,11 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            // GetItemAllIds の列挙順を維持して表示対象のみ詰める
-            // Keep GetItemAllIds enumeration order and collect only visible items
+            // 表示判定・並び・未知の型の警告は State の Catalog に任せ、ここでは DTO へ写すだけ
+            // The State catalog owns visibility, order and the unknown-type warning; this only maps to the DTO
             var dto = new RecipeViewerItemListDto { ItemIds = new List<int>() };
-            foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
-            {
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                if (!IsShow(itemId, itemMaster)) continue;
-                dto.ItemIds.Add(itemId.AsPrimitive());
-            }
+            foreach (var itemId in _catalog.BuildVisibleItems()) dto.ItemIds.Add(itemId.AsPrimitive());
             return WebUiJson.Serialize(dto);
-
-            #region Internal
-
-            // 表示判定は共有評価器へ委譲。未知タイプはtopicでは例外禁止のため非表示＋警告1回に倒す（uGUIからの逸脱）
-            // Visibility is delegated to the shared evaluator; unknown types fall back to hidden + one warning since topics must not throw (deviation from uGUI)
-            bool IsShow(ItemId itemId, ItemMasterElement itemMaster)
-            {
-                var visibility = _recipeContainer.EvaluateVisibility(itemId, itemMaster);
-                if (visibility == RecipeViewerItemVisibility.UnknownType)
-                {
-                    if (!_unknownViewTypeWarned)
-                    {
-                        _unknownViewTypeWarned = true;
-                        Debug.LogWarning($"[WebUiHost] Unknown RecipeViewType: {itemMaster.RecipeViewType}");
-                    }
-                    return false;
-                }
-                return visibility == RecipeViewerItemVisibility.Show;
-            }
-
-            #endregion
         }
     }
 
