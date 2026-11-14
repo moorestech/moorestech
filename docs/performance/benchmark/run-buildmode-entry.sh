@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# windows-desktop でベースラインワールドを1回読み込み、定常後にプレイヤーを決まった位置（622.21, 82.99, 420.90）へ移して、Transform 内訳と、設置モードに入る瞬間（出入り4回＋最後にもう1回入る）を測る
+# windows-desktop でベースラインワールドを1回読み込み、定常後にプレイヤーを決まった位置（622.21, 82.99, 420.90）と視点（三人称 3.5m・下へ 2.52°・方位 321.86°）へ合わせて、Transform 内訳と、設置モードに入る瞬間（出入り4回＋最後にもう1回入る）を測る
 # 遷移は buildmode-probe-start.cs が PlayerLoop の中で起こす（スニペット実行の停止で溜まった受信イベントが落ち着いてから）。詳細は README
 # usage: run-buildmode-entry.sh <label>  結果は results/<日時>_<label>_buildmode.txt
 # Load the baseline world once on windows-desktop; after the steady state, take the Transform breakdown and the build-mode entry probe (4 enter/exit cycles plus a final enter)
