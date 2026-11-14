@@ -3,7 +3,6 @@ using Client.Game.InGame.Context;
 using Client.Input;
 using Client.Ui.State.Recipe.Catalog;
 using Client.Ui.State.Train.Platform.Edit;
-using Client.Ui.State.Train.TimetableEdit.Send;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -14,14 +13,14 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
 {
     /// <summary>
-    /// Web の系の起動で、Web ホストが呼ぶ State のインスタンス 3 型が DI から解決できることを確かめる（CEF・hub の有無に依らない。D-36）
-    /// Verifies a Web boot can resolve the three State instance types the Web host calls (independent of CEF or the hub; D-36)
+    /// Web の系の起動で、Web ホストが呼ぶ State のインスタンス 2 型が DI から解決できることを確かめる（CEF・hub の有無に依らない。D-36）
+    /// Verifies a Web boot can resolve the two State instance types the Web host calls (independent of CEF or the hub; D-36)
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class WebUiSystemStateRegistrationTest : UiSystemPlayModeTestBase
     {
         [UnityTest]
-        public IEnumerator Webの系でWebホストが呼ぶStateの3型が解決できる()
+        public IEnumerator Webの系でWebホストが呼ぶStateのインスタンスが解決できる()
         {
             SelectUiSystemBeforePlayMode(UiSystem.Web);
             EnterPlayModeUtil();
@@ -47,7 +46,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
                 // A missing registration turns this red with a VContainer exception
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 Assert.IsNotNull(resolver.Resolve<RecipeViewerItemCatalog>(), "RecipeViewerItemCatalog が解決できない");
-                Assert.IsNotNull(resolver.Resolve<ITrainTimetableCommands>(), "ITrainTimetableCommands が解決できない");
                 Assert.IsNotNull(resolver.Resolve<ITrainBlockCommands>(), "ITrainBlockCommands が解決できない");
             }
 
