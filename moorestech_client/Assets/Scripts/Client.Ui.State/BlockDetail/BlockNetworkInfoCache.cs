@@ -135,6 +135,21 @@ namespace Client.Ui.State.BlockDetail
                 };
             }
 
+            async UniTaskVoid FetchFilterSplitter(Vector3Int pos, CancellationToken ct)
+            {
+                var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateGetRequest(pos);
+                var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, ct);
+                if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
+                // 取得失敗（未配置/別ブロック）は空スナップショットで上書きせず Warning を出して破棄する（uGUI と同じガード）
+                // Discard fetch failures with a warning instead of overwriting with an empty snapshot (same guard as uGUI)
+                if (response == null || !response.Success)
+                {
+                    Debug.LogWarning($"[BlockNetworkInfoCache] filter splitter fetch failed at {pos}: response={(response == null ? "null" : "Success=false")}");
+                    return;
+                }
+                ApplyFilterSplitterSnapshot(response);
+            }
+
             #endregion
         }
 
@@ -167,21 +182,6 @@ namespace Client.Ui.State.BlockDetail
         {
             FilterSplitter = response;
             _onUpdated.OnNext(Unit.Default);
-        }
-
-        private async UniTaskVoid FetchFilterSplitter(Vector3Int pos, CancellationToken ct)
-        {
-            var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateGetRequest(pos);
-            var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, ct);
-            if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
-            // 取得失敗（未配置/別ブロック）は空スナップショットで上書きせず Warning を出して破棄する（uGUI と同じガード）
-            // Discard fetch failures with a warning instead of overwriting with an empty snapshot (same guard as uGUI)
-            if (response == null || !response.Success)
-            {
-                Debug.LogWarning($"[BlockNetworkInfoCache] filter splitter fetch failed at {pos}: response={(response == null ? "null" : "Success=false")}");
-                return;
-            }
-            ApplyFilterSplitterSnapshot(response);
         }
     }
 }

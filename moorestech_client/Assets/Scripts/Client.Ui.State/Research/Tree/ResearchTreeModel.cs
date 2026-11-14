@@ -84,14 +84,18 @@ namespace Client.Ui.State.Research.Tree
         {
             if (!_screenShown) return; // silent-ok: 閉画面では組まない / 次の表示の突入で最新を組み、録画 uitk-research-tree の開き直しの段が見る
             Rebuild();
-        }
 
-        private void Rebuild()
-        {
-            // 所持数はメインの枠だけで数える（Web の buildOwnedCounts(inventory.mainSlots)。読み口は持ち物の操作と同じ）
-            // Owned counts come from the main slots only (the Web buildOwnedCounts(inventory.mainSlots); same read port as inventory operations)
-            var owned = OwnedItemCounts.Build(_inventoryOperations.ReadSnapshot().MainSlots);
-            _current.Value = ResearchTreeViewModelFactory.Create(_catalog.Nodes, _store.NodeStates, _store.HasReceivedNodeStates, owned, _selection.Current.Value);
+            #region Internal
+
+            void Rebuild()
+            {
+                // 所持数はメインの枠だけで数える（Web の buildOwnedCounts(inventory.mainSlots)。読み口は持ち物の操作と同じ）
+                // Owned counts come from the main slots only (the Web buildOwnedCounts(inventory.mainSlots); same read port as inventory operations)
+                var owned = OwnedItemCounts.Build(_inventoryOperations.ReadSnapshot().MainSlots);
+                _current.Value = ResearchTreeViewModelFactory.Create(_catalog.Nodes, _store.NodeStates, _store.HasReceivedNodeStates, owned, _selection.Current.Value);
+            }
+
+            #endregion
         }
     }
 }

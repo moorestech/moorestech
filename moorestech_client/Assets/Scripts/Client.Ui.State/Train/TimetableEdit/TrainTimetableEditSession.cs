@@ -67,49 +67,61 @@ namespace Client.Ui.State.Train.TimetableEdit
             _phase = new SendingPhase(nextStops);
             Publish();
             SendAsync(nextStops).Forget();
+
+            #region Internal
+
+            async UniTaskVoid SendAsync(IReadOnlyList<TimetableEditStop> stops)
+            {
+                var result = await _commands.Replace(TimetableEditLogic.ToReplacePayload(stops));
+
+                // 拒否のトーストは閉じた後でも出す（Web useImmediateTimetable と同じ）。表示は別の列車を動かさないよう捨てる
+                // A refusal toasts even after close (like Web useImmediateTimetable); the display update is discarded so it cannot touch another train
+                if (result is UiCommandRejected) _toaster.Report(ReplaceCommandName, result);
+                if (_closed)
+                {
+                    var summary = result is UiCommandRejected rejected ? $"rejected {rejected.ToWireCode()}" : "accepted";
+                    Debug.LogWarning($"[TrainTimetableEdit] result after close discarded: {summary}");
+                    return;
+                }
+
+                // 拒否か、公開が先に届いていれば解く。まだなら時間切れを仕掛けて公開を待つ
+                // Release on refusal or when the publication already arrived; otherwise arm the timeout and wait
+                if (result is UiCommandRejected || TimetableEditLogic.SameStopOrder(stops, Server.Stops)) BackToIdle();
+                else ArmAwaitingPublication(stops);
+                Publish();
+
+                #region Internal
+
+                void ArmAwaitingPublication(IReadOnlyList<TimetableEditStop> stops)
+                {
+                    // 段階を先に入れてから時間切れを仕掛ける。タイマーが同期で発火しても BackToIdle がこの段階を見て Idle へ戻せる（D-36）
+                    // Enter the phase before arming the timeout so a synchronously firing timer still finds this phase and returns to Idle (D-36)
+                    var awaiting = new AwaitingPublicationPhase(stops);
+                    _phase = awaiting;
+                    awaiting.Arm(_timer.After(PublicationTimeout).Subscribe(_ => ReleaseMissingPublication()));
+
+                    #region Internal
+
+                    void ReleaseMissingPublication()
+                    {
+                        Debug.LogWarning($"[TrainTimetableEdit] publication did not arrive within {PublicationTimeout.TotalMilliseconds}ms; showing the server order");
+                        BackToIdle();
+                        Publish();
+                    }
+
+                    #endregion
+                }
+
+                #endregion
+            }
+
+            #endregion
         }
 
         public void Close()
         {
             _closed = true;
             BackToIdle();
-        }
-
-        private async UniTaskVoid SendAsync(IReadOnlyList<TimetableEditStop> stops)
-        {
-            var result = await _commands.Replace(TimetableEditLogic.ToReplacePayload(stops));
-
-            // 拒否のトーストは閉じた後でも出す（Web useImmediateTimetable と同じ）。表示は別の列車を動かさないよう捨てる
-            // A refusal toasts even after close (like Web useImmediateTimetable); the display update is discarded so it cannot touch another train
-            if (result is UiCommandRejected) _toaster.Report(ReplaceCommandName, result);
-            if (_closed)
-            {
-                var summary = result is UiCommandRejected rejected ? $"rejected {rejected.ToWireCode()}" : "accepted";
-                Debug.LogWarning($"[TrainTimetableEdit] result after close discarded: {summary}");
-                return;
-            }
-
-            // 拒否か、公開が先に届いていれば解く。まだなら時間切れを仕掛けて公開を待つ
-            // Release on refusal or when the publication already arrived; otherwise arm the timeout and wait
-            if (result is UiCommandRejected || TimetableEditLogic.SameStopOrder(stops, Server.Stops)) BackToIdle();
-            else ArmAwaitingPublication(stops);
-            Publish();
-        }
-
-        private void ArmAwaitingPublication(IReadOnlyList<TimetableEditStop> stops)
-        {
-            // 段階を先に入れてから時間切れを仕掛ける。タイマーが同期で発火しても BackToIdle がこの段階を見て Idle へ戻せる（D-36）
-            // Enter the phase before arming the timeout so a synchronously firing timer still finds this phase and returns to Idle (D-36)
-            var awaiting = new AwaitingPublicationPhase(stops);
-            _phase = awaiting;
-            awaiting.Arm(_timer.After(PublicationTimeout).Subscribe(_ => ReleaseMissingPublication()));
-        }
-
-        private void ReleaseMissingPublication()
-        {
-            Debug.LogWarning($"[TrainTimetableEdit] publication did not arrive within {PublicationTimeout.TotalMilliseconds}ms; showing the server order");
-            BackToIdle();
-            Publish();
         }
 
         private void BackToIdle()

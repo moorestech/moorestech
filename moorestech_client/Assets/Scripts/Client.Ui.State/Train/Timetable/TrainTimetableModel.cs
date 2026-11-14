@@ -67,6 +67,28 @@ namespace Client.Ui.State.Train.Timetable
             // silent-ok: 中身が同じ状態は配り直さない / 表示が変わらないので見ている人に差は無く、行の作り直しも起きない（R-5）
             if (TrainTimetableViewState.IsSameState(_current.Value, next)) return;
             _current.Value = next;
+
+            #region Internal
+
+            TrainTimetableViewState Build(long trainCarInstanceId)
+            {
+                // 優先順: 列車不明>不可>取得中>無>用意済
+                // Priority: no train, unavailable, in flight, no cache, ready
+                if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, _cache, out var trainUnitInstanceId))
+                {
+                    _missingCarReport.ReportMissing(trainCarInstanceId);
+                    return TrainTimetableViewState.Unavailable;
+                }
+                _missingCarReport.Clear();
+                if (_fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
+                if (_fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
+                if (!_timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;
+                return _readyDataFactory.TryCreate(timetable, TrainTimetableStationCatalog.ReadSorted(_blocks), out var data)
+                    ? TrainTimetableViewState.Ready(data)
+                    : TrainTimetableViewState.Unavailable;
+            }
+
+            #endregion
         }
 
         private TrainTimetableViewState NoTrainOpen()
@@ -75,24 +97,6 @@ namespace Client.Ui.State.Train.Timetable
             // Clear flag while no car so it warns again
             _missingCarReport.Clear();
             return TrainTimetableViewState.Unavailable;
-        }
-
-        private TrainTimetableViewState Build(long trainCarInstanceId)
-        {
-            // 優先順: 列車不明>不可>取得中>無>用意済
-            // Priority: no train, unavailable, in flight, no cache, ready
-            if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, _cache, out var trainUnitInstanceId))
-            {
-                _missingCarReport.ReportMissing(trainCarInstanceId);
-                return TrainTimetableViewState.Unavailable;
-            }
-            _missingCarReport.Clear();
-            if (_fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
-            if (_fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
-            if (!_timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;
-            return _readyDataFactory.TryCreate(timetable, TrainTimetableStationCatalog.ReadSorted(_blocks), out var data)
-                ? TrainTimetableViewState.Ready(data)
-                : TrainTimetableViewState.Unavailable;
         }
     }
 }

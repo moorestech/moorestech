@@ -50,6 +50,16 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             if (!_state.TryGetSession(out _)) { NotOpen(SetAutoRunCommandName); return; }
             SendAutoRunAsync(enabled).Forget();
+
+            #region Internal
+
+            async UniTaskVoid SendAutoRunAsync(bool enabled)
+            {
+                var result = await _commands.SetAutoRun(enabled);
+                _toaster.Report(SetAutoRunCommandName, result);
+            }
+
+            #endregion
         }
 
         // 時刻表が開いていない操作は送らず、Web ホストが train_not_open を返してトーストするのと同じく拒否をトーストへ（D-32）
@@ -58,12 +68,6 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             var rejected = UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
             _toaster.Report(commandName, rejected);
-        }
-
-        private async UniTaskVoid SendAutoRunAsync(bool enabled)
-        {
-            var result = await _commands.SetAutoRun(enabled);
-            _toaster.Report(SetAutoRunCommandName, result);
         }
     }
 }

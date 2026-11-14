@@ -52,17 +52,21 @@ namespace Client.Ui.State.Train.Timetable
 
             data = new TrainTimetableReadyData(timetable.TrainUnitInstanceId, timetable.IsAutoRun, timetable.CurrentIndex, stops, stations);
             return true;
-        }
 
-        // 欠けの集合が前回と同じなら黙る。公開のたびに同じ警告を出さないため
-        // Stay quiet when the missing set is unchanged so each publish does not repeat the warning (same as the Web host)
-        private void WarnMissingStationsWhenChanged(TrainUnitInstanceId trainUnitInstanceId, HashSet<Vector3Int> missingStationPositions)
-        {
-            if (_lastWarnedMissingStationPositions.SetEquals(missingStationPositions)) return;
-            _lastWarnedMissingStationPositions.Clear();
-            _lastWarnedMissingStationPositions.UnionWith(missingStationPositions);
-            if (missingStationPositions.Count == 0) return;
-            Debug.LogWarning($"[TrainTimetableModel] station blocks not found for stops at {string.Join(", ", missingStationPositions)}; emitting empty names: {trainUnitInstanceId}");
+            #region Internal
+
+            // 欠けの集合が前回と同じなら黙る。公開のたびに同じ警告を出さないため
+            // Stay quiet when the missing set is unchanged so each publish does not repeat the warning (same as the Web host)
+            void WarnMissingStationsWhenChanged(TrainUnitInstanceId trainUnitInstanceId, HashSet<Vector3Int> missingStationPositions)
+            {
+                if (_lastWarnedMissingStationPositions.SetEquals(missingStationPositions)) return;
+                _lastWarnedMissingStationPositions.Clear();
+                _lastWarnedMissingStationPositions.UnionWith(missingStationPositions);
+                if (missingStationPositions.Count == 0) return;
+                Debug.LogWarning($"[TrainTimetableModel] station blocks not found for stops at {string.Join(", ", missingStationPositions)}; emitting empty names: {trainUnitInstanceId}");
+            }
+
+            #endregion
         }
     }
 }
