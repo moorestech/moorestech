@@ -59,6 +59,11 @@ jobs:
       - name: Test the test-name parity tool
         run: node --test tools/uitk/testNameParity/tests/*.test.mjs
 
+      # トークン変換器の書き出し・照合の自己テスト（依存なし）。master の PR でも走らせて破損を止める
+      # Self-tests of the token converters' write-or-check (no dependencies); run on master PRs too so breakage is caught
+      - name: Test the token converter write-or-check
+        run: node --test tools/uitk/webTokens/tests/*.test.mjs
+
       # 録画ランナー（EDC の分類・終了コード 2）の自己テスト。master の PR でも走らせて破損を止める
       # Self-tests of the recorded-playtest runner (EDC classification and exit code 2); run on master PRs too so breakage is caught
       - name: Test the playtest EDC client and runner exit codes

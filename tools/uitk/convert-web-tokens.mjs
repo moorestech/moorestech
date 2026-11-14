@@ -1,12 +1,13 @@
 // Web UI のトークン CSS 3 枚を UITK の USS 3 枚と除外表へ機械変換する（依存なし）
 // Mechanically converts the Web UI's 3 token CSS files into 3 UITK USS files plus an exclusion table (no dependencies)
-// 使い方: リポジトリ直下で `node tools/uitk/convert-web-tokens.mjs`
-// Usage: run `node tools/uitk/convert-web-tokens.mjs` from the repository root
-import { readFileSync, writeFileSync } from "node:fs";
+// 使い方: リポジトリ直下で `node tools/uitk/convert-web-tokens.mjs`（`--check` で書かずに照合）
+// Usage: run `node tools/uitk/convert-web-tokens.mjs` from the repository root (`--check` compares without writing)
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseRootTokens } from "./webTokens/parseCssTokens.mjs";
 import { createTokenConverter } from "./webTokens/convertTokenValue.mjs";
+import { writeOrCheck } from "./webTokens/writeOrCheck.mjs";
 
 const repositoryRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const sourceDirectory = "moorestech_web/webui/src/app";
@@ -76,6 +77,5 @@ function writeOutput(fileName, lines) {
   // 200 行を超える出力は規約違反なので書かずに止める
   // Output over 200 lines breaks the repository rule, so stop instead of writing it
   if (lines.length > maxLinesPerFile) throw new Error(`${fileName} would have ${lines.length} lines (max ${maxLinesPerFile})`);
-  writeFileSync(join(repositoryRoot, outputDirectory, fileName), `${lines.join("\n")}\n`);
-  console.log(`wrote ${outputDirectory}/${fileName} (${lines.length} lines)`);
+  writeOrCheck(repositoryRoot, `${outputDirectory}/${fileName}`, `${lines.join("\n")}\n`, process.argv.includes("--check"));
 }
