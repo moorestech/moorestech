@@ -262,6 +262,124 @@ namespace Client.Tests
             Assert.Greater(hits, 300);
         }
 
+        [Test]
+        public void MatchesPlainCellWalk_ExactlyIncludingTiesRemovalAndRange()
+        {
+            // 飛ばしを使わない1マスずつの走査を基準に、当たるかどうか・距離（ビット単位）・面が一致すること
+            // 辺・角の同値が起きるよう整数・半整数の始点と軸平行・45度の向きを多く混ぜ、撤去の後と有限の射程も試す
+            // Against a plain cell-by-cell walk without skipping, hit, distance (bit-exact) and face all match
+            // Integer and half-integer origins with axis-aligned and 45-degree directions are mixed in so edge and corner ties occur; removal and finite ranges are covered too
+            var random = new System.Random(4242);
+            var cells = new BlockOccupiedCellIndex();
+            var occupied = new HashSet<Vector3Int>();
+            var placed = new List<BlockPositionInfo>();
+            for (var cluster = 0; cluster < 8; cluster++)
+            {
+                var center = new Vector3Int(random.Next(-300, 300), random.Next(-60, 60), random.Next(-300, 300));
+                for (var i = 0; i < 25; i++)
+                {
+                    var size = new Vector3Int(random.Next(1, 4), random.Next(1, 4), random.Next(1, 4));
+                    var posInfo = new BlockPositionInfo(center + new Vector3Int(random.Next(-12, 12), random.Next(-4, 4), random.Next(-12, 12)), BlockDirection.North, size);
+                    if (OverlapsAny(occupied, posInfo)) continue;
+                    cells.Register(posInfo);
+                    placed.Add(posInfo);
+                    ForEachCell(posInfo, c => occupied.Add(c));
+                }
+            }
+
+            // 一部を撤去して、刈り込みと番号の使い直しの後の木でも走査させる
+            // Remove some blocks so the walk also runs on an octree after pruning and index reuse
+            for (var i = placed.Count - 1; i >= 0; i -= 3)
+            {
+                cells.Remove(placed[i]);
+                ForEachCell(placed[i], c => occupied.Remove(c));
+            }
+
+            var directions = new List<Vector3>
+            {
+                Vector3.right, Vector3.left, Vector3.up, Vector3.down, Vector3.forward, Vector3.back,
+                new Vector3(1, 1, 0).normalized, new Vector3(-1, 1, 0).normalized, new Vector3(1, -1, 0).normalized, new Vector3(0, 1, 1).normalized,
+                new Vector3(0, -1, -1).normalized, new Vector3(1, 0, 1).normalized, new Vector3(-1, 0, 1).normalized, new Vector3(1, 1, 1).normalized, new Vector3(-1, -1, 1).normalized,
+            };
+            var occupiedList = new List<Vector3Int>(occupied);
+            var hits = 0;
+            for (var i = 0; i < 4000; i++)
+            {
+                var target = occupiedList[random.Next(occupiedList.Count)];
+                var offset = new Vector3Int(random.Next(-200, 200), random.Next(-80, 80), random.Next(-200, 200));
+                var origin = (Vector3)(target + offset) + (random.Next(2) == 0 ? Vector3.zero : new Vector3(0.5f, 0.5f, 0.5f));
+                if (occupied.Contains(Vector3Int.FloorToInt(origin))) continue;
+                var direction = random.Next(3) == 0 ? ((Vector3)target + new Vector3(0.5f, 0.5f, 0.5f) - origin).normalized : directions[random.Next(directions.Count)];
+                var maxDistance = random.Next(4) == 0 ? Range(random, 1f, 300f) : float.PositiveInfinity;
+                var ray = new Ray(origin, direction);
+
+                var expectedHit = TryPlainCellWalk(cells, occupied, ray, maxDistance, out var expectedDistance, out var expectedSurface);
+                var actualHit = PlacementAimCellTracer.TryTrace(cells, ray, maxDistance, out var actualDistance, out var actualSurface);
+                Assert.AreEqual(expectedHit, actualHit, $"ray {i} {ray} max {maxDistance}");
+                if (!expectedHit) continue;
+                hits++;
+                Assert.AreEqual(expectedDistance, actualDistance, $"ray {i} {ray} max {maxDistance}");
+                Assert.AreEqual(expectedSurface, actualSurface, $"ray {i} {ray} max {maxDistance}");
+            }
+            Assert.Greater(hits, 500);
+        }
+
+        private static bool TryPlainCellWalk(BlockOccupiedCellIndex cells, HashSet<Vector3Int> occupied, Ray ray, float maxDistance, out float distance, out PreviewSurfaceType surfaceType)
+        {
+            // 始点のセルから1マスずつ進む素直な走査。射程は物理レイの距離と外接直方体の出口の近いほう、同値の組は最初の軸を面の軸にする
+            // Plain walk from the origin cell; range is the nearer of the physics distance and the bounding-box exit, and a tie group's first axis is the face axis
+            distance = 0f;
+            surfaceType = default;
+            cells.TryGetBounds(out var minCell, out var maxCell);
+            if (!PlacementAimBoxSlab.TryIntersect(ray, minCell, maxCell + Vector3Int.one, out _, out _, out var tExit, out _)) return false;
+            var tEnd = Mathf.Min(tExit, maxDistance);
+            var origin = ray.origin;
+            var direction = ray.direction;
+            var cell = Vector3Int.FloorToInt(origin);
+            var lastT = float.NegativeInfinity;
+            var faceAxis = -1;
+            var axisOrder = new[] { 1, 0, 2 };
+            while (true)
+            {
+                var best = -1;
+                var t = float.PositiveInfinity;
+                foreach (var axis in axisOrder)
+                {
+                    if (direction[axis] == 0f) continue;
+                    var boundary = direction[axis] > 0f ? cell[axis] + 1 : cell[axis];
+                    var candidate = (boundary - origin[axis]) / direction[axis];
+                    if (candidate < t)
+                    {
+                        t = candidate;
+                        best = axis;
+                    }
+                }
+                if (best < 0 || t > tEnd) return false;
+                cell[best] += direction[best] > 0f ? 1 : -1;
+                if (t != lastT) faceAxis = best;
+                lastT = t;
+                if (!occupied.Contains(cell)) continue;
+                distance = t;
+                surfaceType = PlacementAimBoxSlab.EnterFace(faceAxis, direction[faceAxis] > 0f);
+                return true;
+            }
+        }
+
+        private static bool OverlapsAny(HashSet<Vector3Int> occupied, BlockPositionInfo posInfo)
+        {
+            var overlaps = false;
+            ForEachCell(posInfo, c => overlaps |= occupied.Contains(c));
+            return overlaps;
+        }
+
+        private static void ForEachCell(BlockPositionInfo posInfo, System.Action<Vector3Int> action)
+        {
+            for (var x = posInfo.MinPos.x; x <= posInfo.MaxPos.x; x++)
+            for (var y = posInfo.MinPos.y; y <= posInfo.MaxPos.y; y++)
+            for (var z = posInfo.MinPos.z; z <= posInfo.MaxPos.z; z++)
+                action(new Vector3Int(x, y, z));
+        }
+
         private static bool TryNearestCellBox(List<Vector3Int> occupied, Ray ray, out float distance, out PreviewSurfaceType surfaceType)
         {
             distance = float.PositiveInfinity;

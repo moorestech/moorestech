@@ -75,6 +75,73 @@ namespace Client.Tests
         }
 
         [Test]
+        public void ProbeEmptyLevel_MatchesBruteForceAlongWalks()
+        {
+            // 足し引きした後の木で、近くへ歩きながら問い合わせ（直前の道を使い回す）、答えを総当たりで確かめる
+            // 返したノードは空で、その親は空でないこと（最も大きい空ノード）。0 なら 4×4×4 の葉に何かがあること
+            // On an octree after adds and removes, probe while walking to nearby cells (reusing the previous path) and verify by brute force
+            // The returned node is empty and its parent is not (the largest empty node); 0 means the 4x4x4 leaf holds something
+            var random = new System.Random(99);
+            var octree = new OccupiedCellOctree();
+            var occupied = new HashSet<Vector3Int>();
+            var cells = new List<Vector3Int>();
+            for (var i = 0; i < 1500; i++)
+            {
+                var cell = new Vector3Int(random.Next(-300, 300), random.Next(-40, 80), random.Next(-300, 300));
+                if (!occupied.Add(cell)) continue;
+                cells.Add(cell);
+                octree.Add(cell);
+            }
+            for (var i = 0; i < cells.Count; i += 4)
+            {
+                occupied.Remove(cells[i]);
+                octree.Remove(cells[i]);
+            }
+
+            // 問い合わせは足したセルの範囲（根の中）に限る。根の外は飛ばさない約束なので別扱い
+            // Probes stay within the span of added cells (inside the root); outside the root nothing is skipped by contract
+            var spanMin = cells[0];
+            var spanMax = cells[0];
+            foreach (var cell in cells)
+            {
+                spanMin = Vector3Int.Min(spanMin, cell);
+                spanMax = Vector3Int.Max(spanMax, cell);
+            }
+            var probe = new Vector3Int(0, 20, 0);
+            octree.ResetProbePath();
+            for (var i = 0; i < 4000; i++)
+            {
+                if (i % 200 == 0) octree.ResetProbePath();
+                probe = random.Next(10) == 0
+                    ? new Vector3Int(random.Next(-290, 290), random.Next(-35, 75), random.Next(-290, 290))
+                    : probe + new Vector3Int(random.Next(-1, 2), random.Next(-1, 2), random.Next(-1, 2));
+                probe = Vector3Int.Max(spanMin, Vector3Int.Min(spanMax, probe));
+
+                var level = octree.ProbeEmptyLevel(probe, out var isOccupied);
+                Assert.AreEqual(occupied.Contains(probe), isOccupied, $"occupied {probe}");
+                if (isOccupied) continue;
+                if (level > 0)
+                {
+                    Assert.IsFalse(AnyInNode(octree, occupied, probe, level), $"node level {level} at {probe} is not empty");
+                    Assert.IsTrue(AnyInNode(octree, occupied, probe, level + 1), $"parent of level {level} at {probe} is empty");
+                    continue;
+                }
+                Assert.IsTrue(AnyInNode(octree, occupied, probe, OccupiedCellOctree.LeafLevel), $"leaf at {probe} is empty but nothing was skipped");
+            }
+        }
+
+        private static bool AnyInNode(OccupiedCellOctree octree, HashSet<Vector3Int> occupied, Vector3Int cell, int level)
+        {
+            var size = 1 << level;
+            var min = new Vector3Int(octree.NodeStart(0, cell.x, level), octree.NodeStart(1, cell.y, level), octree.NodeStart(2, cell.z, level));
+            foreach (var c in occupied)
+            {
+                if (c.x >= min.x && c.y >= min.y && c.z >= min.z && c.x < min.x + size && c.y < min.y + size && c.z < min.z + size) return true;
+            }
+            return false;
+        }
+
+        [Test]
         public void ProbeEmptyLevel_ReportsLeafCellAndEmptyNodes()
         {
             // 埋まったセル・同じ葉の空セル・葉の無い 4×4×4・もっと大きい空ノードを見分けること

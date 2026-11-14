@@ -134,8 +134,8 @@ namespace Client.Game.InGame.Block.Index
         public int ProbeEmptyLevel(Vector3Int cell, out bool occupied)
         {
             occupied = false;
-            // 根の外は走査の入口のセルでしか起きないので、飛ばさずに1マス進ませる
-            // Outside the root only happens at the walk's entry cell, so let the walk step one cell
+            // 根の外は、走査の入口のセルか、外接直方体を出た直後（射程の終わり）のセルでしか起きないので、飛ばさずに1マス進ませる
+            // Outside the root only happens at the walk's entry cell or right after leaving the bounding box (end of range), so let the walk step one cell
             var rel = cell - _origin;
             if (_rootNode == NoChild || !IsInsideRoot(rel))
             {

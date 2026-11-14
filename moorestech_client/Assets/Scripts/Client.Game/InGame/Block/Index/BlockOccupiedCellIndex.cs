@@ -17,10 +17,16 @@ namespace Client.Game.InGame.Block.Index
 
         public void Register(BlockPositionInfo posInfo)
         {
-            // 占有する全セルをこのブロックに結ぶ
-            // Bind every occupied cell to this block
+            // 外接直方体は広げるだけで縮めない。木の拡張が例外で止まっても入ったセルが範囲外にならないよう、セルより先に広げる
+            // The bounding box only grows; widen it before the cells so cells already added stay inside even if the octree growth throws
             var min = posInfo.MinPos;
             var max = posInfo.MaxPos;
+            _minCell = _hasBounds ? Vector3Int.Min(_minCell, min) : min;
+            _maxCell = _hasBounds ? Vector3Int.Max(_maxCell, max) : max;
+            _hasBounds = true;
+
+            // 占有する全セルをこのブロックに結ぶ
+            // Bind every occupied cell to this block
             for (var x = min.x; x <= max.x; x++)
             for (var y = min.y; y <= max.y; y++)
             for (var z = min.z; z <= max.z; z++)
@@ -29,12 +35,6 @@ namespace Client.Game.InGame.Block.Index
                 if (!_blockByCell.ContainsKey(cell)) Octree.Add(cell);
                 _blockByCell[cell] = posInfo;
             }
-
-            // 外接直方体は広げるだけで縮めない
-            // The bounding box only grows and never shrinks
-            _minCell = _hasBounds ? Vector3Int.Min(_minCell, min) : min;
-            _maxCell = _hasBounds ? Vector3Int.Max(_maxCell, max) : max;
-            _hasBounds = true;
         }
 
         public void Remove(BlockPositionInfo posInfo)
