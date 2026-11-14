@@ -1,5 +1,5 @@
+using Client.Input.KeyPress;
 using Client.Ui.Screens.Recipe;
-using Client.Ui.Screens.Recipe.Input;
 using Client.Ui.State.Recipe.Catalog;
 using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Recipe.Screen;
@@ -22,9 +22,9 @@ namespace Client.Starter.Registration.GameUi.Screens
             builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
             builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();
 
-            // Esc の選択解除は UiRoutingState を直に受ける entry point（前例 ResearchSelectionStore）
-            // Esc clearing is an entry point taking UiRoutingState directly (precedent ResearchSelectionStore)
-            builder.Register<InputManagerCloseKeyProbe>(Lifetime.Singleton).As<IUiCloseKeyProbe>();
+            // Esc の選択解除は UiRoutingState と CloseUI の口を受ける entry point（前例 ResearchSelectionStore）
+            // Esc clearing is an entry point taking UiRoutingState and the CloseUI port (precedent ResearchSelectionStore)
+            builder.Register<CloseUiKeyPressSource>(Lifetime.Singleton).As<ICloseUiKeyPressSource>();
             builder.RegisterEntryPoint<RecipeSelectionCloseReset>();
 
             builder.RegisterEntryPoint<RecipeScreenPresenter>();

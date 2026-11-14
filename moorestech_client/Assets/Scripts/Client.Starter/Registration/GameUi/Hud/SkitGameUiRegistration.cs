@@ -1,3 +1,4 @@
+using Client.Input.KeyPress;
 using Client.Ui.Screens.Skit;
 using Client.Ui.Screens.WholeUiVisibility;
 using Client.Ui.State.Skit;
@@ -20,6 +21,9 @@ namespace Client.Starter.Registration.GameUi.Hud
             // 提示 Model は Presenter より先に初期化させる（View の最初の Render を復元として全文で出すため）
             // Initialize the presentation model before the presenter so the view's first Render is a restore shown whole
             builder.RegisterEntryPoint<SkitPresentationModel>().AsSelf();
+            // スキットの送りの Enter の口（抑止は InputKey が持つ）
+            // The skit-advance Enter port (suppression lives in the InputKey)
+            builder.Register<SkitAdvanceKeyPressSource>(Lifetime.Singleton).As<ISkitAdvanceKeyPressSource>();
             builder.RegisterEntryPoint<SkitScreenPresenter>();
         }
     }

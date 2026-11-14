@@ -1,4 +1,3 @@
-using Client.Input;
 using Client.Input.ArrowKeys;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Logic.Belt;
@@ -58,10 +57,10 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
 
         private void OnArrowPressed(HorizontalArrowKey key)
         {
-            // 入力欄にフォーカスがある・ベルトが無い・表示されていないなら切り替えない（Web の isTextInputElement・readActiveLayer）
-            // Do not switch while a text field has focus, without a belt or while hidden (Web isTextInputElement, readActiveLayer)
-            // silent-ok: ベルト以外のブロック・閉じた画面・入力中の矢印はこの区画の操作ではない / 切り替わらないなら L1 と録画（R-12）で気づく
-            if (_belt == null || UiInputExclusivity.IsTextInputFocused || !SpecialViewParts.IsDisplayedInHierarchy(_view)) return;
+            // ベルトが無い・表示されていないなら切り替えない（入力欄のフォーカス中は流れて来ない。Web の readActiveLayer）
+            // Do not switch without a belt or while hidden (nothing arrives while a text field has focus; Web readActiveLayer)
+            // silent-ok: ベルト以外のブロック・閉じた画面の矢印はこの区画の操作ではない / 切り替わらないなら L1 と録画（R-12）で気づく
+            if (_belt == null || !SpecialViewParts.IsDisplayedInHierarchy(_view)) return;
             _cursor.Step(_belt, key);
             Draw();
         }

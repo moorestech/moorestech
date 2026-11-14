@@ -1,4 +1,6 @@
+using System;
 using Client.Game.InGame.UI.UIState;
+using Client.Input.KeyPress;
 using Client.Skit.Skit;
 using Client.Skit.UI;
 using Client.Tests.Ui.Screens.Inventory.Support;
@@ -11,6 +13,7 @@ using Client.Ui.Screens.Skit.Parts.Window;
 using Client.Ui.State.Skit;
 using Client.Ui.State.WholeUiVisibility;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -100,8 +103,22 @@ namespace Client.Tests.Ui.Screens.Skit
             var wholeUi = new WholeUiVisibilityModel(_wholeUiSource);
             wholeUi.Initialize();
             var root = GameUiRootTestFactory.Create(_host, rootVisualElement);
-            new SkitScreenPresenter(root, routing, model, wholeUi, _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())).Initialize();
+            new SkitScreenPresenter(root, routing, model, wholeUi, _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()), new FakeSkitAdvanceKeyPressSource()).Initialize();
             simulate.FrameUpdate();
+        }
+
+        // Enter はテストが view.HandleEnterKey を直に呼ぶので、口は何も流さない
+        // Tests call view.HandleEnterKey directly, so the port publishes nothing
+        private sealed class FakeSkitAdvanceKeyPressSource : ISkitAdvanceKeyPressSource
+        {
+            private readonly Subject<Unit> _onPressed = new();
+
+            public IObservable<Unit> OnPressed => _onPressed;
+
+            public bool WasPressedThisFrame()
+            {
+                return false;
+            }
         }
     }
 }

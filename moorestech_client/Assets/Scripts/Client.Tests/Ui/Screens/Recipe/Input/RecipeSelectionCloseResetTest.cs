@@ -1,6 +1,5 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.Ui.Screens.Inventory.Support;
-using Client.Ui.Screens.Recipe.Input;
 using Client.Ui.State.Recipe.Screen;
 using Client.Ui.State.Routing;
 using Core.Master;
@@ -19,7 +18,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         private GameObject _host;
         private UIStateControl _control;
         private UiRoutingState _routing;
-        private FakeCloseKeyProbe _probe;
+        private FakeCloseUiKeyPressSource _probe;
         private RecipeItemSelection _selection;
         private RecipeSelectionCloseReset _reset;
 
@@ -28,7 +27,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         {
             _host = new GameObject("RecipeSelectionCloseResetTest");
             _routing = UiRoutingStateTestFactory.CreateSwitchable(_host, UIStateEnum.PlayerInventory, new[] { UIStateEnum.PlayerInventory, UIStateEnum.GameScreen }, out _control);
-            _probe = new FakeCloseKeyProbe();
+            _probe = new FakeCloseUiKeyPressSource();
             _selection = new RecipeItemSelection();
             _reset = new RecipeSelectionCloseReset(_routing, _probe, _selection);
             _reset.Initialize();

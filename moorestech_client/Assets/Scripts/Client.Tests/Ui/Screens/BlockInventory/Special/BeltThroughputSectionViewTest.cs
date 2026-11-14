@@ -1,4 +1,3 @@
-using Client.Input;
 using Client.Input.ArrowKeys;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Screens.BlockInventory.Special.Belt;
@@ -56,15 +55,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         }
 
         [Test]
-        public void 入力欄にフォーカスがある間とDetachの後は切り替えずDetachで既定へ戻る()
+        public void Detachの後は切り替えずDetachで既定へ戻る()
         {
             var (view, presenter) = Attach(SpecialDetailSamples.Only(SpecialDetailSamples.Belt));
             var before = TextOf(view, "belt-throughput-window");
-            UiInputExclusivity.SetGameUiTextInputFocused(true);
-            ArrowKeys.Press(HorizontalArrowKey.Right);
-            UiInputExclusivity.SetGameUiTextInputFocused(false);
-            Assert.AreEqual(before, TextOf(view, "belt-throughput-window"));
-
             ArrowKeys.Press(HorizontalArrowKey.Right);
             presenter.Detach();
             ArrowKeys.Press(HorizontalArrowKey.Right);

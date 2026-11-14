@@ -1,10 +1,10 @@
 using System;
-using Client.Ui.State.Recipe.Screen;
+using Client.Input.KeyPress;
 using Client.Ui.State.Routing;
 using UniRx;
 using VContainer.Unity;
 
-namespace Client.Ui.Screens.Recipe.Input
+namespace Client.Ui.State.Recipe.Screen
 {
     /// <summary>
     /// Esc（CloseUI）で画面が変わったら選択を外す（Web RecipeSelectionKeyHandler のゲーム層の Escape の写し）
@@ -13,11 +13,11 @@ namespace Client.Ui.Screens.Recipe.Input
     public sealed class RecipeSelectionCloseReset : IInitializable, IDisposable
     {
         private readonly UiRoutingState _routing;
-        private readonly IUiCloseKeyProbe _closeKey;
+        private readonly ICloseUiKeyPressSource _closeKey;
         private readonly RecipeItemSelection _selection;
         private IDisposable _subscription;
 
-        public RecipeSelectionCloseReset(UiRoutingState routing, IUiCloseKeyProbe closeKey, RecipeItemSelection selection)
+        public RecipeSelectionCloseReset(UiRoutingState routing, ICloseUiKeyPressSource closeKey, RecipeItemSelection selection)
         {
             _routing = routing;
             _closeKey = closeKey;
