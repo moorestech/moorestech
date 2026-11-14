@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Block.Index
 
         // 照準の走査が空の区画を飛ばすための八分木。ビットが立つセルと辞書にあるセルは常に一致させる
         // Octree the aim walk uses to skip empty regions; its set bits always match the cells in the dictionary
-        public OccupiedCellOctree Octree { get; private set; } = new();
+        internal OccupiedCellOctree Octree { get; private set; } = new();
 
         public void Register(BlockPositionInfo posInfo)
         {

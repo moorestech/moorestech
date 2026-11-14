@@ -8,14 +8,17 @@ namespace Client.Game.InGame.Block.Index
     /// 占有セルを持つ八分木。根は基準点からの相対座標で決め、外にセルが入ればその向きへ広げる
     /// Octree of occupied cells; the root is placed relative to an origin and grows toward cells added outside it
     /// </summary>
-    public sealed class OccupiedCellOctree
+    internal sealed class OccupiedCellOctree
     {
         // 段 L のノードは基準点からの相対座標で 2^L 立方体。段2が葉で 4×4×4 を ulong 1つのビットで持ち、段3以上は子8つの番号を持つ
         // A level-L node is a 2^L cube in origin-relative coordinates; level 2 leaves hold 4x4x4 as one ulong, levels 3+ hold eight child indices
         public const int LeafLevel = 2;
         private const int FirstRootLevel = LeafLevel + 1;
         private const int NoChild = -1;
-        private const int PathCapacity = 40;
+        // 根の大きさ 1 << 段数 が int に収まる上限。これを超えて広げるとノードの位置が桁あふれする
+        // Highest root level whose size 1 << level fits in an int; growing past it would overflow node positions
+        private const int MaxRootLevel = 30;
+        private const int PathCapacity = MaxRootLevel + 2;
 
         private int[] _children = new int[8 * 64];
         private int _nodeCount;
@@ -189,6 +192,9 @@ namespace Client.Game.InGame.Block.Index
         {
             // 各軸2倍に広げる。負の側へ広げる軸は基準点を根の大きさだけ下げ、古い根を上半分に置く（既存のノードはそのまま使える）
             // Double every axis; on axes grown to the negative side, lower the origin by the root size and put the old root in the upper half (existing nodes stay valid)
+            // 段数の上限を超えるほど離れたセルは扱えない（約10億マス離れた設置でしか起きない）
+            // Cells too far apart for the level cap cannot be held (only happens with placements about a billion cells apart)
+            if (_rootLevel >= MaxRootLevel) throw new InvalidOperationException($"Occupied cell octree cannot grow past level {MaxRootLevel} toward relative cell {rel} from origin {_origin}.");
             var size = 1 << _rootLevel;
             var slot = 0;
             for (var axis = 0; axis < 3; axis++)

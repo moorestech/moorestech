@@ -62,6 +62,19 @@ namespace Client.Tests
         }
 
         [Test]
+        public void GrowBeyondLevelCap_Throws()
+        {
+            // 根の大きさが int に収まる段まで（2^30）は広げられ、それを超えて離れたセルは黙って固まらずに例外になる
+            // The root grows up to the level whose size fits in an int (2^30); a cell farther away throws instead of hanging
+            var octree = new OccupiedCellOctree();
+            octree.Add(Vector3Int.zero);
+            octree.Add(new Vector3Int((1 << 30) - 1, 0, 0));
+            Assert.IsTrue(octree.Contains(new Vector3Int((1 << 30) - 1, 0, 0)));
+
+            Assert.Throws<System.InvalidOperationException>(() => octree.Add(new Vector3Int(1 << 30, 0, 0)));
+        }
+
+        [Test]
         public void ProbeEmptyLevel_ReportsLeafCellAndEmptyNodes()
         {
             // 埋まったセル・同じ葉の空セル・葉の無い 4×4×4・もっと大きい空ノードを見分けること

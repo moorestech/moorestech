@@ -155,10 +155,10 @@ namespace Client.Tests
         }
 
         [Test]
-        public void EdgeGraze_AcrossEmptyChunksIntoChunkCorner_StillPrefersY()
+        public void EdgeGraze_AcrossEmptyNodesIntoNodeCorner_StillPrefersY()
         {
-            // 空チャンクを飛ばしながら進み、(16,1) の辺で Y 越境（空チャンクの (15,0,5) へ）と X 越境（チャンク境界 x=16 を越えて (16,0,5) へ）が同じ t になる
-            // The ray skips empty chunks and reaches the (16,1) edge where the Y crossing (into empty-chunk cell (15,0,5)) and the X crossing (over chunk boundary x=16 into (16,0,5)) share t
+            // 空ノードを飛ばしながら進み、(16,1) の辺で Y 越境（空のセル (15,0,5) へ）と X 越境（木の基準点 x=16 のノード境界を越えて (16,0,5) へ）が同じ t になる
+            // The ray skips empty nodes and reaches the (16,1) edge where the Y crossing (into empty cell (15,0,5)) and the X crossing (over the node boundary at the octree origin x=16 into (16,0,5)) share t
             var cells = CreateUnitBlocks(new Vector3Int(16, 0, 5), new Vector3Int(-30, 50, 5));
 
             var ray = new Ray(new Vector3(-24f, 41f, 5.5f), new Vector3(1f, -1f, 0f).normalized);
@@ -168,10 +168,10 @@ namespace Client.Tests
         }
 
         [Test]
-        public void SparseBlocksAcrossChunks_MatchEveryCellBoxIntersection()
+        public void SparseBlocks_MatchEveryCellBoxIntersection()
         {
-            // チャンクをまたいでまばらに置いたブロックへ乱数のレイを撃ち、全占有セルの箱と1つずつ交差させた最も近い面と比べる
-            // Shoot random rays at blocks scattered across chunks and compare with the nearest face from intersecting every occupied cell box
+            // まばらに置いたブロックへ乱数のレイを撃ち、全占有セルの箱と1つずつ交差させた最も近い面と比べる
+            // Shoot random rays at scattered blocks and compare with the nearest face from intersecting every occupied cell box
             var random = new System.Random(12345);
             var cells = new BlockOccupiedCellIndex();
             var occupied = new List<Vector3Int>();
