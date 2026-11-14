@@ -10,7 +10,7 @@ system=$1; branch=$2; list=$3; out=$4; start=$5; count=$6
 case "$system" in GameUi|Web) ;; *) echo "system は GameUi か Web" >&2; exit 2;; esac
 logs="$(dirname "$out")/logs"
 mkdir -p "$logs"
-[ -f "$out" ] || printf "scenario\tsystem\texit\tseconds\trun_dir\n" > "$out"
+[ -f "$out" ] || printf "scenario\tsystem\texit\tseconds\trun_dir\tcommit\n" > "$out"
 
 tail -n +"$start" "$list" | head -n "$count" | while IFS= read -r scenario; do
   [ -z "$scenario" ] && continue
@@ -35,5 +35,9 @@ tail -n +"$start" "$list" | head -n "$count" | while IFS= read -r scenario; do
       echo "summary.json を読めない（winunity の終了コード $code のまま）: $dir" >> "$log"
     fi
   fi
-  printf "%s\t%s\t%s\t%s\t%s\n" "$scenario" "$system" "$code" "$(( $(date +%s) - began ))" "${dir:--}" >> "$out"
+  # 流した版を winunity の「branch ... @ <sha>」行から残す（同じ一覧でも前半と後半で HEAD が違いうるため）
+  # Record the commit from winunity's "branch ... @ <sha>" line, since one list may span different HEADs
+  # silent-ok: 行が無い（winunity が要約まで届かない）ときは - にする / TSV の commit 列の - で気づく
+  commit=$(grep -o '^branch .* @ [0-9a-f]*' "$log" | tail -1 | sed 's/.* @ //')
+  printf "%s\t%s\t%s\t%s\t%s\t%s\n" "$scenario" "$system" "$code" "$(( $(date +%s) - began ))" "${dir:--}" "${commit:--}" >> "$out"
 done
