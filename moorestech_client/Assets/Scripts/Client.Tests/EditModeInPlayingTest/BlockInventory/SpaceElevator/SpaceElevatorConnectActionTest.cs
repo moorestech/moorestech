@@ -5,7 +5,6 @@ using System.Threading;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using Core.Master;
@@ -51,11 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var target = await ServerBlockPlacement.PlaceAsync(master.Name, position, BlockDirection.North);
                 var decoy = await ServerBlockPlacement.PlaceAsync(master.Name, Vector3Int.zero, BlockDirection.North);
                 var view = await WaitBlockGameObjectSpawn(position);
-                // 設置照準の当たり判定も検査対象へ含める
-                // Include the placement-aim hit faces in the inspected hierarchy
-                Assert.IsNotNull(view.GetComponentInChildren<BlockPlacementHitFaces>(true));
                 var colliders = view.GetComponentsInChildren<Collider>(true);
-                Assert.Greater(colliders.Length, 1, "the placement-aim hit face colliders must participate in this regression test");
                 foreach (var candidate in colliders)
                     Debug.Log($"[SpaceElevatorCollider] name={candidate.name} type={candidate.GetType().Name} layer={candidate.gameObject.layer} enabled={candidate.enabled} active={candidate.gameObject.activeInHierarchy} clickable={BlockGameObjectColliderSetup.IsClickableCollider(view.transform, candidate)} parent={candidate.transform.parent.name}");
                 // 実配置でクリック・所有者・操作を検証
