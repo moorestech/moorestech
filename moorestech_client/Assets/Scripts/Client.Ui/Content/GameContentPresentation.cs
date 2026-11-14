@@ -28,6 +28,14 @@ namespace Client.Ui.Content
             return new UiIcon(_textures.ItemTexture(id), id.AsPrimitive().ToString(), name);
         }
 
+        // マスタに無い ID なら false（未知の ID を受けうる口だけが使う。他は Item を使い、無ければ例外で開発者が気づく）
+        // False for an id absent from the master (only for paths that may receive unknown ids; others use Item and throw so developers notice)
+        public bool TryItem(ItemId id, out UiIcon icon)
+        {
+            icon = MasterHolder.ItemMaster.ExistItemId(id) ? Item(id) : null;
+            return icon != null;
+        }
+
         public UiIcon Block(BlockId id)
         {
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(id).BlockGuid;

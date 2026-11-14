@@ -1,9 +1,11 @@
 using System;
 using System.Text.RegularExpressions;
+using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.Notification;
 using Client.Ui.Content;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification;
+using Core.Master;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -61,6 +63,21 @@ namespace Client.Tests.Ui.Screens.Notification
 
             Assert.AreEqual(2, host.childCount);
             StringAssert.Contains($"#{MissingItemId}", ConcatText(host[1]));
+        }
+
+        [Test]
+        public void TryItemはマスタに無いIDでfalseとnullを返しあるIDでItemと同じ絵を返す()
+        {
+            var texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
+            var content = new GameContentPresentation(new FakeContentTextureSource(texture, null, null));
+            var knownId = MasterHolder.ItemMaster.GetItemId(new Guid("00000000-0000-0000-1234-000000000001"));
+
+            Assert.IsFalse(content.TryItem(new ItemId(99999), out var missingIcon));
+            Assert.IsNull(missingIcon);
+            Assert.IsTrue(content.TryItem(knownId, out var icon));
+            Assert.AreSame(content.Item(knownId).Texture, icon.Texture);
+            Assert.AreEqual(content.Item(knownId).IdText, icon.IdText);
+            UnityEngine.Object.DestroyImmediate(texture);
         }
 
         private static string ConcatText(VisualElement root)
