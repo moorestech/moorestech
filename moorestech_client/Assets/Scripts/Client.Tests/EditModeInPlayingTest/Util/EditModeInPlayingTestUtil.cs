@@ -8,6 +8,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Starter;
+using Client.Tests.EditModeInPlayingTest.Util.Boot;
 using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -22,9 +23,7 @@ using Server.Boot.Args;
 using Server.Protocol.PacketResponse;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace Client.Tests.EditModeInPlayingTest.Util
 {
@@ -45,64 +44,25 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             AssetBundle.UnloadAllAssetBundles(true);
         }
         
+        // 初期化の完了（GameInitializedEvent）まで待ってから戻る
+        // Returns only after initialization completes (GameInitializedEvent)
         public static async UniTask LoadMainGame(string serverDirectory = null, string worldDirectory = null)
         {
-            await LoadMainGameWithMapMode(serverDirectory, worldDirectory, WorldMapMode.Template);
+            await MainGameTestBoot.BootUntilInitialized(serverDirectory, worldDirectory, WorldMapMode.Template);
         }
 
-        // 地形生成を伴うワールドで起動したいテスト向けにmapModeを明示する入口
-        // Entry point for tests that need to boot a world provisioned with a specific map mode
+        // 初期化の前で止まる起動（出展モードのゲートの待機中など）を見るテスト向けに、ローダーが出た時点で戻る入口
+        // Entry that returns once the loader appears, for tests observing a boot that halts before initialization (e.g. the exhibition gate)
+        public static async UniTask LoadMainGameUntilLoaderShown(string serverDirectory, string worldDirectory)
+        {
+            await MainGameTestBoot.BootUntilLoaderShown(serverDirectory, worldDirectory, WorldMapMode.Template);
+        }
+
+        // 地形生成を伴うワールドで起動したいテスト向けにmapModeを明示する入口。初期化の完了まで待つ
+        // Entry point for tests that need to boot a world provisioned with a specific map mode; waits for initialization
         public static async UniTask LoadMainGameWithMapMode(string serverDirectory, string worldDirectory, string mapMode)
         {
-            // テストごとに未使用の一時ワールドディレクトリを割り当てて隔離する
-            // Isolate each test with an unused temporary world directory
-            worldDirectory ??= Path.Combine(Path.GetTempPath(), $"moorestech_play_mode_test_{Guid.NewGuid()}");
-            serverDirectory ??= EditModeInPlayingTestServerDirectoryPath;
-
-            // 初期化シーンをロード
-            // Load the initialization scene
-            SceneManager.sceneLoaded += SetInitializeProperty;
-            SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
-            
-            // シーンのオブジェクトが初期化されるまで1フレーム待機
-            // Wait 1 frame for scene objects to initialize
-            await UniTask.Yield();
-            
-            await WaitStartServer();
-            
-            await UniTask.Delay(TimeSpan.FromSeconds(1));
-            
-            #region Internal
-            
-            // 初期化プロパティをセット
-            // Set the initialization properties
-            void SetInitializeProperty(Scene scene, LoadSceneMode mode)
-            {
-                SceneManager.sceneLoaded -= SetInitializeProperty;
-
-                var localProperties = InitializeProprieties.CreateLocalServer();
-                localProperties.CreateLocalServerArgs = CliConvert.Serialize(CreateServerSettings(worldDirectory, serverDirectory, mapMode));
-
-                var starter = GameObject.FindObjectOfType<InitializeScenePipeline>();
-                starter.SetProperty(localProperties);
-            }
-            
-            async UniTask WaitStartServer()
-            {
-                // GameInitializerSceneLoaderが表示されるか60秒のタイムアウトを待つ
-                // Wait for GameInitializerSceneLoader to appear or 15 seconds timeout
-                var timeout = UniTask.Delay(60000);
-                var waitForLoader = UniTask.WaitUntil(() => Object.FindObjectOfType<GameInitializerSceneLoader>() != null);
-                await UniTask.WhenAny(waitForLoader, timeout);
-                
-                
-                // タイムアウトしてるかどうかを判定
-                // Check if the timeout occurred
-                var loader = Object.FindObjectOfType<GameInitializerSceneLoader>();
-                Assert.IsNotNull(loader, "GameInitializerSceneLoader was not found within 60 seconds. This usually means the initialization failed.");
-            }
-            
-            #endregion
+            await MainGameTestBoot.BootUntilInitialized(serverDirectory, worldDirectory, mapMode);
         }
 
         // 既存のセーブデータをロードさせず、オートセーブも常時記録もしないようにする起動設定を作る

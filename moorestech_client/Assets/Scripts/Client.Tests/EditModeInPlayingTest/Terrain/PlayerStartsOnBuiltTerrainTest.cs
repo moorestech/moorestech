@@ -49,8 +49,6 @@ namespace Client.Tests.EditModeInPlayingTest
         // The height at which PlayerObjectController triggers fall recovery; dipping below it during startup means release into a terrain-less space
         private const float FallRecoveryThresholdY = -50f;
 
-        private const int InitializationTimeoutSeconds = 180;
-
         [UnityTest]
         public IEnumerator PlayerStandsAtHandshakePositionAndEveryWaitTargetIsRegistered()
         {
@@ -80,18 +78,17 @@ namespace Client.Tests.EditModeInPlayingTest
 
             async UniTask Body()
             {
-                // 初期化完了はGameInitializedEventでしか分からない。LoadMainGameは固定1秒で戻り地形構築の完了を待たない
-                // GameInitializedEvent is the only completion signal; LoadMainGame returns after a fixed second without waiting for the terrain build
-                var isInitialized = false;
-                using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => isInitialized = true);
+                // LoadMainGameWithMapMode は初期化の完了（GameInitializedEvent）まで待つので、戻るまでの間を追う
+                // LoadMainGameWithMapMode waits for initialization (GameInitializedEvent), so trace the interval until it returns
+                var isLoading = true;
 
-                // 地形構築より前に解放されていないことを見る。健全時は解放後を1フレームも観測せず、守備範囲は解放前区間に限られる
-                // Watches that nothing is released before the terrain is built; a healthy run observes no post-release frame, so its coverage is the pre-release interval only
-                var tracing = TraceLowestPlayerYUntilInitialized();
+                // 地形構築より前に解放されていないことを見る。解放後に観測するのは戻るまでの数フレームだけで、守備範囲は解放前区間に限られる
+                // Watches that nothing is released before the terrain is built; only the few frames until the return follow the release, so coverage is the pre-release interval
+                var tracing = TraceLowestPlayerYUntilLoaded();
 
                 var worldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_player_start_terrain_test_{Guid.NewGuid()}");
                 await LoadMainGameWithMapMode(null, worldDirectory, WorldMapMode.Generated);
-                await UniTask.WaitUntil(() => isInitialized).Timeout(TimeSpan.FromSeconds(InitializationTimeoutSeconds));
+                isLoading = false;
 
                 AssertPlayerStandsOnTerrain(await tracing);
                 AssertEveryProductionWaitTargetIsResolved();
@@ -102,10 +99,10 @@ namespace Client.Tests.EditModeInPlayingTest
                 Directory.Delete(GameSystemPaths.GetWorldCacheDirectory(worldId), true);
                 Directory.Delete(worldDirectory, true);
 
-                async UniTask<float> TraceLowestPlayerYUntilInitialized()
+                async UniTask<float> TraceLowestPlayerYUntilLoaded()
                 {
                     var lowestY = float.MaxValue;
-                    while (!isInitialized)
+                    while (isLoading)
                     {
                         // 自機はシーンロード後に生えるので、現れるまでは記録対象が無い
                         // The player appears only after the scene loads, so there is nothing to record until then

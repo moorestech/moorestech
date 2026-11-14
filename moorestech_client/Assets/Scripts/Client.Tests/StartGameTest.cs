@@ -68,14 +68,9 @@ namespace Client.Tests
             async UniTask SetUp()
             {
                 var initialDictionaryRevision = Localize.GetDictionaryRevision();
-                var loadTask = LoadMainGame();
-                var timeOuter = UniTask.Delay(TimeSpan.FromSeconds(30));
-
-                var result = await UniTask.WhenAny(loadTask, timeOuter);
-                if (result == 1)
-                {
-                   Assert.Fail("LoadMainGame timed out.");
-                }
+                // 時間切れは LoadMainGame が初期化の完了待ちの中で理由つきで落とす
+                // LoadMainGame itself fails with a reason when the initialization wait times out
+                await LoadMainGame();
 
                 // 起動後の辞書世代更新を待つ
                 // Wait until the production boot path composes mod dictionaries and publishes a new revision
