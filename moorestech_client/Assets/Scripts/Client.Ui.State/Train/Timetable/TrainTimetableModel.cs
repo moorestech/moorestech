@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
@@ -6,17 +5,14 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Ui.State.Train.Logic;
-using Game.Block.Blocks.TrainRail;
 using UniRx;
-using UnityEngine;
 using VContainer.Unity;
-using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 開いている貨車の時刻表を Web ホスト TrainTimetableDtoBuilder.Build と同じ優先で組む（D-2）
-    /// Builds the open car's timetable with the same priority as the Web host TrainTimetableDtoBuilder.Build (D-2)
+    /// 開いている貨車の時刻表を組む（駅一覧と用意済みの組み立ては Web ホスト TrainTimetableDtoBuilder.Build と同じ State の口）
+    /// Builds the open car's timetable (the station list and ready data come from the same State calls as the Web host TrainTimetableDtoBuilder.Build)
     /// </summary>
     public sealed class TrainTimetableModel : ITrainTimetableSource, IInitializable
     {
@@ -94,23 +90,9 @@ namespace Client.Ui.State.Train.Timetable
             if (_fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
             if (_fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
             if (!_timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;
-            return _readyDataFactory.TryCreate(timetable, ReadStations(), out var data)
+            return _readyDataFactory.TryCreate(timetable, TrainTimetableStationCatalog.ReadSorted(_blocks), out var data)
                 ? TrainTimetableViewState.Ready(data)
                 : TrainTimetableViewState.Unavailable;
-        }
-
-        // 駅ブロックの位置と駅名（サーバーの StateDetail。届く前は空名で並べる。Web ホストと同じ）
-        // Station block positions and names (a server StateDetail; empty until it arrives, same as the Web host)
-        private List<TrainTimetableStation> ReadStations()
-        {
-            var stations = new List<TrainTimetableStation>();
-            foreach (var block in _blocks.GetBlocksByBlockType(BlockTypeConst.TrainStation))
-            {
-                var name = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName;
-                // silent-ok: 駅名の StateDetail が届く前は空名で並べ、無名の駅の文言で出す（Web ホストと同じ）/ 届かないままなら駅一覧が無名のままで、録画 train/train-timetable-via-ui の「1駅目は北駅」の主張が落ちて開発者が気づく
-                stations.Add(new TrainTimetableStation(block.BlockPosInfo.OriginalPos, name ?? string.Empty));
-            }
-            return TrainTimetableStationCatalog.Sorted(stations);
         }
     }
 }

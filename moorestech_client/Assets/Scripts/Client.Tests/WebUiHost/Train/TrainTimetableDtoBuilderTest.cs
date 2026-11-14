@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Client.Ui.State.Train.Logic;
+using Client.Ui.State.Train.Timetable;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Core.Update;
 using Game.Train.Diagram;
@@ -13,54 +15,26 @@ namespace Client.Tests.WebUiHost
 {
     public class TrainTimetableDtoBuilderTest
     {
-        [Test]
-        public void StationNameFallsBackToEmptyStringNotNull()
-        {
-            var dto = TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, 2, 3), null);
-            Assert.AreEqual(string.Empty, dto.Name);
-            Assert.AreEqual(1, dto.Position.X);
-            Assert.AreEqual(2, dto.Position.Y);
-            Assert.AreEqual(3, dto.Position.Z);
-        }
-
-        [Test]
-        public void StationsAreSortedByPositionForStableUi()
-        {
-            var stations = new List<TrainTimetableStationDto>
-            {
-                TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(5, 0, 0), "b"),
-                TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, 0, 9), "a"),
-                TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, 0, 2), "c"),
-                TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, -2, 2), "d"),
-            };
-            TrainTimetableDtoBuilder.SortStations(stations);
-            Assert.AreEqual("d", stations[0].Name);
-            Assert.AreEqual("c", stations[1].Name);
-            Assert.AreEqual("a", stations[2].Name);
-            Assert.AreEqual("b", stations[3].Name);
-        }
-
-        // データストアの時刻表から停車駅の端・駅名・運転状態を写す
-        // Map stop sides, names, and run state from the datastore timetable
+        // State の組み立て器が作った時刻表から、停車駅の端・駅名・運転状態・駅一覧を wire の DTO へ写す
+        // Map stop sides, names, run state and the station list from the State-built timetable to the wire DTO
         [Test]
         public void StopsCarrySideAndNameFromDatastore()
         {
             var id = TrainUnitInstanceId.Create();
-            // 欠損警告の履歴を正常な時刻表で戻す
-            // Reset the missing-station warning history with a complete timetable
-            TrainTimetableDtoBuilder.CreateFromTimetable(new TrainTimetableSnapshot(id, false, -1, new TrainTimetableStop[0]), new List<TrainTimetableStationDto>());
+            var factory = new TrainTimetableReadyDataFactory();
             var stops = new[]
             {
                 new TrainTimetableStop(new Vector3Int(1, 0, 0), StationNodeSide.Front, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
                 new TrainTimetableStop(new Vector3Int(9, 0, 0), StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond),
             };
             var timetable = new TrainTimetableSnapshot(id, true, 1, stops);
-            var stations = new List<TrainTimetableStationDto> { TrainTimetableDtoBuilder.CreateStationDto(new Vector3Int(1, 0, 0), "north") };
+            var stations = new List<TrainTimetableStation> { new(new Vector3Int(1, 0, 0), "north") };
 
             // 駅ブロックが引けない停車駅は無言で空名にせず警告を出す
             // A stop whose station block is missing warns instead of silently going nameless
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableDto\] station blocks not found"));
-            var dto = TrainTimetableDtoBuilder.CreateFromTimetable(timetable, stations);
+            LogAssert.Expect(LogType.Warning, new Regex(@"station blocks not found"));
+            Assert.IsTrue(factory.TryCreate(timetable, stations, out var data));
+            var dto = TrainTimetableDtoBuilder.ToDto(data);
 
             Assert.That(dto.TrainUnitId, Is.EqualTo(id.ToString()));
             Assert.That(dto.IsAutoRun, Is.True);
@@ -70,7 +44,9 @@ namespace Client.Tests.WebUiHost
             Assert.That(dto.Stops[1].Side, Is.EqualTo("back"));
             Assert.That(dto.Stops[1].Name, Is.EqualTo(string.Empty));
             Assert.That(dto.Stops[1].Position.X, Is.EqualTo(9));
-            Assert.That(dto.Stations, Is.SameAs(stations));
+            Assert.That(dto.Stations.Count, Is.EqualTo(1));
+            Assert.That(dto.Stations[0].Name, Is.EqualTo("north"));
+            Assert.That(dto.Stations[0].Position.X, Is.EqualTo(1));
         }
     }
 }

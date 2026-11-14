@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む（Web ホスト CreateFromTimetable と同じ規則。D-2）
-    /// Builds the ready timetable from a snapshot and the station list (same rule as the Web host CreateFromTimetable; D-2)
+    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む唯一の口（UITK の TrainTimetableModel と Web ホストの TrainTimetableDtoBuilder が呼ぶ。DC-23 A）
+    /// The single builder of the ready timetable from a snapshot and the station list (called by the UITK TrainTimetableModel and the Web host TrainTimetableDtoBuilder; DC-23 A)
     /// </summary>
     public sealed class TrainTimetableReadyDataFactory
     {
@@ -54,7 +54,7 @@ namespace Client.Ui.State.Train.Timetable
             return true;
         }
 
-        // 欠けの集合が前回と同じなら黙る。公開のたびに同じ警告を出さないため（Web ホストと同じ）
+        // 欠けの集合が前回と同じなら黙る。公開のたびに同じ警告を出さないため
         // Stay quiet when the missing set is unchanged so each publish does not repeat the warning (same as the Web host)
         private void WarnMissingStationsWhenChanged(TrainUnitInstanceId trainUnitInstanceId, HashSet<Vector3Int> missingStationPositions)
         {
