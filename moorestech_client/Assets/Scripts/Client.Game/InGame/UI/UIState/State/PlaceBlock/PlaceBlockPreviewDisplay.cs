@@ -43,9 +43,9 @@ namespace Client.Game.InGame.UI.UIState.State.PlaceBlock
                     return;
                 }
 
-                // 設置中は当たり判定だけ残し、完了時に半径に従って描画する
-                // Keep only colliders during placement and render according to the radius on completion
-                block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.CollidersOnly);
+                // 設置中は隠し、完了時に半径に従って描画する
+                // Stay hidden during placement and render according to the radius on completion
+                block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.Hidden);
                 _subscriptions.Add(block.OnFinishedPlaceAnimation.Subscribe(_ =>
                     block.SetPreviewOnlyObjectsDisplay(PreviewOnlyObjectsDisplay.RenderedWithinPlayerRadius)));
             }
