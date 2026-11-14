@@ -1,0 +1,217 @@
+{
+ "cells": 138926,
+ "octBuildMs": 35.3,
+ "internalNodes": 3761,
+ "leaves": 7735,
+ "rootLevel": 14,
+ "origin": "(-8123, -949, -3850)",
+ "growths": 11,
+ "approxBytes": 182232,
+ "consistencyErrors": 0,
+ "worstRays": {
+  "x": {
+   "current": 0.0698,
+   "cellOnlySteps": 1057,
+   "brick256": {
+    "ms": 0.0108,
+    "probes": 40,
+    "skips": 19,
+    "steps": 19,
+    "same": true
+   },
+   "octCached": {
+    "ms": 0.0057,
+    "probes": 10,
+    "skips": 9,
+    "steps": 9,
+    "same": true
+   },
+   "octCachedNoSub": {
+    "ms": 0.0061,
+    "probes": 10,
+    "skips": 9,
+    "steps": 9,
+    "same": true
+   },
+   "octFromRoot": {
+    "ms": 0.0069,
+    "probes": 10,
+    "skips": 9,
+    "steps": 9,
+    "same": true
+   }
+  },
+  "z": {
+   "current": 0.0972,
+   "cellOnlySteps": 2871,
+   "brick256": {
+    "ms": 0.0954,
+    "probes": 362,
+    "skips": 180,
+    "steps": 180,
+    "same": true
+   },
+   "octCached": {
+    "ms": 0.0269,
+    "probes": 47,
+    "skips": 46,
+    "steps": 46,
+    "same": true
+   },
+   "octCachedNoSub": {
+    "ms": 0.0275,
+    "probes": 47,
+    "skips": 46,
+    "steps": 46,
+    "same": true
+   },
+   "octFromRoot": {
+    "ms": 0.0347,
+    "probes": 47,
+    "skips": 46,
+    "steps": 46,
+    "same": true
+   }
+  },
+  "diagA": {
+   "current": 0.2091,
+   "cellOnlySteps": 3926,
+   "brick256": {
+    "ms": 0.1202,
+    "probes": 364,
+    "skips": 181,
+    "steps": 181,
+    "same": true
+   },
+   "octCached": {
+    "ms": 0.0445,
+    "probes": 64,
+    "skips": 63,
+    "steps": 63,
+    "same": true
+   },
+   "octCachedNoSub": {
+    "ms": 0.0414,
+    "probes": 86,
+    "skips": 41,
+    "steps": 85,
+    "same": true
+   },
+   "octFromRoot": {
+    "ms": 0.0588,
+    "probes": 64,
+    "skips": 63,
+    "steps": 63,
+    "same": true
+   }
+  },
+  "diagB": {
+   "current": 0.241,
+   "cellOnlySteps": 3926,
+   "brick256": {
+    "ms": 0.0599,
+    "probes": 186,
+    "skips": 92,
+    "steps": 92,
+    "same": true
+   },
+   "octCached": {
+    "ms": 0.0297,
+    "probes": 43,
+    "skips": 42,
+    "steps": 42,
+    "same": true
+   },
+   "octCachedNoSub": {
+    "ms": 0.0299,
+    "probes": 43,
+    "skips": 42,
+    "steps": 42,
+    "same": true
+   },
+   "octFromRoot": {
+    "ms": 0.0363,
+    "probes": 43,
+    "skips": 42,
+    "steps": 42,
+    "same": true
+   }
+  },
+  "lowDiag": {
+   "current": 0.3322,
+   "cellOnlySteps": 3926,
+   "brick256": {
+    "ms": 0.1347,
+    "probes": 354,
+    "skips": 210,
+    "steps": 210,
+    "same": true
+   },
+   "octCached": {
+    "ms": 0.0412,
+    "probes": 59,
+    "skips": 58,
+    "steps": 58,
+    "same": true
+   },
+   "octCachedNoSub": {
+    "ms": 0.0423,
+    "probes": 59,
+    "skips": 58,
+    "steps": 58,
+    "same": true
+   },
+   "octFromRoot": {
+    "ms": 0.054,
+    "probes": 59,
+    "skips": 58,
+    "steps": 58,
+    "same": true
+   }
+  }
+ },
+ "realistic": {
+  "samples": 1000,
+  "hits": 154,
+  "mismatches": 0,
+  "current": {
+   "mean": 0.0162,
+   "p50": 0.0032,
+   "p90": 0.0384,
+   "p99": 0.2475,
+   "max": 0.3897
+  },
+  "brick256": {
+   "mean": 0.0044,
+   "p50": 0.0016,
+   "p90": 0.011,
+   "p99": 0.048,
+   "max": 0.0848
+  },
+  "octCached": {
+   "mean": 0.0031,
+   "p50": 0.0012,
+   "p90": 0.0058,
+   "p99": 0.0288,
+   "max": 0.0485
+  },
+  "octCachedNoSub": {
+   "mean": 0.003,
+   "p50": 0.0013,
+   "p90": 0.0057,
+   "p99": 0.027,
+   "max": 0.0428
+  },
+  "octFromRoot": {
+   "mean": 0.0039,
+   "p50": 0.0016,
+   "p90": 0.0085,
+   "p99": 0.0404,
+   "max": 0.0681
+  }
+ },
+ "randomCrossCheck": {
+  "hits": 2850,
+  "mismatches": 0
+ }
+}

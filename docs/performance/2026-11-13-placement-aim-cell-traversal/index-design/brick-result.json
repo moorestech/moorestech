@@ -1,0 +1,201 @@
+{
+ "bricks": 826,
+ "brickBuildMs": 22.8,
+ "brickBytes": 429520,
+ "worstRays": {
+  "x": {
+   "current": 0.0723,
+   "hashLevels4": {
+    "ms": 0.011,
+    "dictLookups": 50,
+    "skips": 10,
+    "steps": 10,
+    "sameAsCellWalk": true
+   },
+   "brick": {
+    "ms": 0.0327,
+    "dictLookups": 67,
+    "skips": 66,
+    "steps": 66,
+    "sameAsCellWalk": true
+   },
+   "brickLong": {
+    "ms": 0.0296,
+    "dictLookups": 67,
+    "skips": 66,
+    "steps": 66,
+    "sameAsCellWalk": true
+   },
+   "brick256Long": {
+    "ms": 0.0117,
+    "dictLookups": 40,
+    "skips": 19,
+    "steps": 19,
+    "sameAsCellWalk": true
+   }
+  },
+  "z": {
+   "current": 0.0984,
+   "hashLevels4": {
+    "ms": 0.1212,
+    "dictLookups": 614,
+    "skips": 150,
+    "steps": 150,
+    "sameAsCellWalk": true
+   },
+   "brick": {
+    "ms": 0.0807,
+    "dictLookups": 181,
+    "skips": 180,
+    "steps": 180,
+    "sameAsCellWalk": true
+   },
+   "brickLong": {
+    "ms": 0.0788,
+    "dictLookups": 181,
+    "skips": 180,
+    "steps": 180,
+    "sameAsCellWalk": true
+   },
+   "brick256Long": {
+    "ms": 0.0909,
+    "dictLookups": 362,
+    "skips": 180,
+    "steps": 180,
+    "sameAsCellWalk": true
+   }
+  },
+  "diagA": {
+   "current": 0.206,
+   "hashLevels4": {
+    "ms": 0.0886,
+    "dictLookups": 391,
+    "skips": 88,
+    "steps": 88,
+    "sameAsCellWalk": true
+   },
+   "brick": {
+    "ms": 0.1456,
+    "dictLookups": 246,
+    "skips": 245,
+    "steps": 245,
+    "sameAsCellWalk": true
+   },
+   "brickLong": {
+    "ms": 0.1403,
+    "dictLookups": 246,
+    "skips": 245,
+    "steps": 245,
+    "sameAsCellWalk": true
+   },
+   "brick256Long": {
+    "ms": 0.1164,
+    "dictLookups": 364,
+    "skips": 181,
+    "steps": 181,
+    "sameAsCellWalk": true
+   }
+  },
+  "diagB": {
+   "current": 0.2453,
+   "hashLevels4": {
+    "ms": 0.0655,
+    "dictLookups": 269,
+    "skips": 61,
+    "steps": 61,
+    "sameAsCellWalk": true
+   },
+   "brick": {
+    "ms": 0.1469,
+    "dictLookups": 246,
+    "skips": 245,
+    "steps": 245,
+    "sameAsCellWalk": true
+   },
+   "brickLong": {
+    "ms": 0.1427,
+    "dictLookups": 246,
+    "skips": 245,
+    "steps": 245,
+    "sameAsCellWalk": true
+   },
+   "brick256Long": {
+    "ms": 0.0611,
+    "dictLookups": 186,
+    "skips": 92,
+    "steps": 92,
+    "sameAsCellWalk": true
+   }
+  },
+  "lowDiag": {
+   "current": 0.347,
+   "hashLevels4": {
+    "ms": 0.1456,
+    "dictLookups": 468,
+    "skips": 117,
+    "steps": 117,
+    "sameAsCellWalk": true
+   },
+   "brick": {
+    "ms": 0.1656,
+    "dictLookups": 246,
+    "skips": 274,
+    "steps": 274,
+    "sameAsCellWalk": true
+   },
+   "brickLong": {
+    "ms": 0.155,
+    "dictLookups": 246,
+    "skips": 274,
+    "steps": 274,
+    "sameAsCellWalk": true
+   },
+   "brick256Long": {
+    "ms": 0.1312,
+    "dictLookups": 354,
+    "skips": 210,
+    "steps": 210,
+    "sameAsCellWalk": true
+   }
+  }
+ },
+ "realistic": {
+  "samples": 1000,
+  "mismatches": 0,
+  "current": {
+   "mean": 0.0159,
+   "p50": 0.003,
+   "p90": 0.0364,
+   "p99": 0.2413,
+   "max": 0.3773
+  },
+  "hashLevels4": {
+   "mean": 0.0075,
+   "p50": 0.0023,
+   "p90": 0.0134,
+   "p99": 0.0951,
+   "max": 0.1547
+  },
+  "brick": {
+   "mean": 0.005,
+   "p50": 0.0014,
+   "p90": 0.0104,
+   "p99": 0.0687,
+   "max": 0.1127
+  },
+  "brickLong": {
+   "mean": 0.0048,
+   "p50": 0.0013,
+   "p90": 0.0101,
+   "p99": 0.0669,
+   "max": 0.1098
+  },
+  "brick256Long": {
+   "mean": 0.0042,
+   "p50": 0.0015,
+   "p90": 0.0104,
+   "p99": 0.0452,
+   "max": 0.0808
+  }
+ }
+}
