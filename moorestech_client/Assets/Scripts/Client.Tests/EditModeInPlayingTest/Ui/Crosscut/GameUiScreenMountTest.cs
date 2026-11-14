@@ -116,7 +116,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
             var chrome = gameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport);
             AddIfEmpty(chrome.Q<HotbarHudView>(), "hotbar-hud__cell", "ホットバーの枠");
             AddIfEmpty(chrome.Q<EquipmentHudView>(), "equipment-hud__slot", "装備の枠");
-            AddIfEmpty(chrome.Q<KeyHintHudView>(), "key-hint-row", "キー操作ヒントの行");
+            AddIfEmpty(chrome.Q<KeyHintHudView>(), "key-hint-row-redcheck", "キー操作ヒントの行");
 
             #region Internal
 

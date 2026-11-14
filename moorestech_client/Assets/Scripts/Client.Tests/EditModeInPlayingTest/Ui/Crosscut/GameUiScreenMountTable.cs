@@ -85,7 +85,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
             new GameUiScreenMount(typeof(KeyControlHintView), UiLayer.Chrome, UiFamily.Viewport),
             new GameUiScreenMount(typeof(TutorialOverlayView), UiLayer.Tutorial, UiFamily.Viewport),
             new GameUiScreenMount(typeof(WorldPinOverlayView), UiLayer.WorldPin, UiFamily.Viewport),
-            new GameUiScreenMount(typeof(HotbarHudView), UiLayer.Chrome, UiFamily.Viewport),
+            new GameUiScreenMount(typeof(HotbarHudView), UiLayer.OverlayPanel, UiFamily.Viewport),
             new GameUiScreenMount(typeof(KeyHintHudView), UiLayer.Chrome, UiFamily.Viewport),
             new GameUiScreenMount(typeof(ModeHudView), UiLayer.OverlayPanel, UiFamily.Viewport),
             new GameUiScreenMount(typeof(NotificationHostView), UiLayer.BehindStage, UiFamily.Viewport),
