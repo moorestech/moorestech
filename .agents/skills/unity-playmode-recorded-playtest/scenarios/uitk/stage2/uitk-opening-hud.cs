@@ -88,7 +88,11 @@ return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
     var first = MasterHolder.ChallengeMaster.GetCategoryInitialChallenges(category.CategoryGuid).Single();
     var pinTutorial = first.Tutorials.Single(t => t.TutorialType == TutorialsElement.TutorialTypeConst.mapObjectPin);
     var treeGuids = MasterHolder.ChallengeMaster.ResolvePinTargets((MapObjectPinTutorialParam)pinTutorial.TutorialParam);
-    var tree = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SearchNearestMapObject(treeGuids, p.PlayerPosition);
+    // 地図物は少しずつ生成されるので、全部出てから探す（途中だと遠くの背の高い木を選び照準が画面外へ出る）
+    // Map objects instantiate progressively, so search after all exist (mid-way picks a far tall tree and aims off-screen)
+    var mapObjects = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
+    await p.Until(() => mapObjects.IsAllInstantiated.Value, 60f, "地図物が全部生成された");
+    var tree = mapObjects.SearchNearestMapObject(treeGuids, p.PlayerPosition);
     p.Assert(tree != null, $"ピン先（{treeGuids.Count} 種）の最寄りの木が見つかった");
     var treeCenter = tree.GetComponentInChildren<Collider>(true).bounds.center;
     await p.Until(() => Camera.main != null, 10f, "MainCameraの起動");
@@ -190,8 +194,6 @@ return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
         }
         return element != null;
     }
-
     Vector3 Flat(Vector3 position) => new(position.x, 0f, position.z);
-
     #endregion
 });
