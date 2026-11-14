@@ -26,7 +26,7 @@ if (!box.Ready) throw new System.Exception("READY failed");
 var boxManifest = JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(box.BundleDirectory, "manifest.json")));
 var webUiHealth = boxManifest["webUiHealth"];
 var secondsSinceWeb = webUiHealth?["secondsSinceLastWebMessage"];
-if ((int)boxManifest["schemaVersion"] != 6) throw new System.Exception("schemaVersion is not 6: " + boxManifest["schemaVersion"]);
+if ((int)boxManifest["schemaVersion"] != 7) throw new System.Exception("schemaVersion is not 7: " + boxManifest["schemaVersion"]);
 if ((string)webUiHealth?["hostStartup"] != "started") throw new System.Exception("hostStartup is not started: " + webUiHealth);
 if ((string)webUiHealth?["cefProcess"] != "observedAfterBrowserStart") throw new System.Exception("cefProcess is not observedAfterBrowserStart: " + webUiHealth);
 if (secondsSinceWeb == null || secondsSinceWeb.Type == JTokenType.Null || (double)secondsSinceWeb < 0 || (double)secondsSinceWeb >= 15) throw new System.Exception("secondsSinceLastWebMessage is out of [0,15): " + webUiHealth);

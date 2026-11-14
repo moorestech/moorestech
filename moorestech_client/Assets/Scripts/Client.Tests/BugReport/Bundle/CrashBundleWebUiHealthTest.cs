@@ -22,7 +22,7 @@ namespace Client.Tests.BugReport.Bundle
             {
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
                 var health = manifest["webUiHealth"];
-                Assert.AreEqual(6, (int)manifest["schemaVersion"]);
+                Assert.AreEqual(7, (int)manifest["schemaVersion"]);
                 Assert.AreEqual("unknown", (string)health["hostStartup"]);
                 Assert.AreEqual("unknown", (string)health["cefProcess"]);
                 Assert.AreEqual(JTokenType.Null, health["secondsSinceLastWebMessage"].Type);

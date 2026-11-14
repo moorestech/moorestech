@@ -29,7 +29,7 @@ namespace Client.Tests.BugReport.Bundle
             };
 
             var json = JObject.Parse(manifest.ToJson());
-            Assert.AreEqual(6, (int)json["schemaVersion"]);
+            Assert.AreEqual(7, (int)json["schemaVersion"]);
             Assert.AreEqual("skippedByEditorSwitch", (string)json["webUiHealth"]["hostStartup"]);
             Assert.AreEqual("lostRestarting", (string)json["webUiHealth"]["cefProcess"]);
             Assert.AreEqual(16.5, (double)json["webUiHealth"]["secondsSinceLastWebMessage"]);

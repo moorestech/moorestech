@@ -101,7 +101,7 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
         var webUiHealth = boxManifest["webUiHealth"];
         var secondsSinceWeb = webUiHealth?["secondsSinceLastWebMessage"];
         p.Note($"webUiHealth: {webUiHealth?.ToString(Newtonsoft.Json.Formatting.None)}");
-        p.Assert((int)boxManifest["schemaVersion"] == 6, "manifest の schemaVersion が 6");
+        p.Assert((int)boxManifest["schemaVersion"] == 7, "manifest の schemaVersion が 7");
         p.Assert((string)webUiHealth?["hostStartup"] == "started", "webUiHealth.hostStartup が started");
         p.Assert((string)webUiHealth?["cefProcess"] == "observedAfterBrowserStart", "webUiHealth.cefProcess が observedAfterBrowserStart");
         p.Assert(secondsSinceWeb != null && secondsSinceWeb.Type != Newtonsoft.Json.Linq.JTokenType.Null && (double)secondsSinceWeb >= 0 && (double)secondsSinceWeb < 15, "webUiHealth.secondsSinceLastWebMessage が 0 以上 15 未満");

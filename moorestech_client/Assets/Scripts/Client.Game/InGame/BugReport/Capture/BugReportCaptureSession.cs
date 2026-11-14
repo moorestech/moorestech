@@ -58,6 +58,7 @@ namespace Client.Game.InGame.BugReport.Capture
             TakeRecording(recording, data, _beginCount).Forget();
             CaptureScreenshot(data, _beginCount).Forget();
             data.Logs = _sources.Logs();
+            data.GameUiExceptions = _sources.GameUiExceptions();
             data.ClientState = _sources.ClientState();
             data.ReportTick = data.ClientState.Tick;
             data.WebUiHealth = _sources.WebUiHealth();

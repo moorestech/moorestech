@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
@@ -28,6 +29,8 @@ namespace Client.Tests.BugReport
         public UniTask<CapturedRecording> TakeRecordingAtCapture() => UniTask.FromResult(CapturedRecording.Unavailable("テスト用の取得元なので録画しない"));
 
         public IReadOnlyList<UnityLogEntry> Logs() => Array.Empty<UnityLogEntry>();
+
+        public GameUiExceptionReading GameUiExceptions() => new GameUiExceptionsUnknown();
 
         public ClientStateSnapshot ClientState() => new(Vector3.zero, Vector3.zero, Vector3.zero, "PauseMenu", 0, false, false);
 

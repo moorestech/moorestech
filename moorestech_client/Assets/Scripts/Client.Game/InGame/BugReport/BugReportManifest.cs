@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Client.Game.InGame.BugReport.BuildOrigin;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.WebUiHealth;
 using Game.Paths;
@@ -34,7 +35,9 @@ namespace Client.Game.InGame.BugReport
         // v5: the mark became always-present with three states (Disabled/Enabled/Unknown) so unknown is never flattened into disabled
         // v6: webUiHealth（Webホスト起動・CEFプロセス・最後のWS受信からの秒数の生の値）を常時非nullで追加
         // v6: added always-present webUiHealth (raw web host startup, CEF process and seconds since the last WS message)
-        public int SchemaVersion = 6;
+        // v7: gameUiExceptions（UI の例外の数と見本。数えていない箱は status だけの unknown）を常時非nullで追加
+        // v7: added always-present gameUiExceptions (UI exception count and samples; an uncounted box carries only status unknown)
+        public int SchemaVersion = 7;
         public string CreatedAt;
         public string Description;
 
@@ -74,6 +77,10 @@ namespace Client.Game.InGame.BugReport
         // 常時非null。値が取れない事実は欠損列でなく notAttempted/notObserved/null で表す（ADR 0057）
         // Always present; values that are unavailable read notAttempted/notObserved/null instead of a missing entry (ADR 0057)
         public WebUiHealthReading WebUiHealth = new();
+
+        // UI の例外の数と見本（A-244。Web の AppErrorBoundary の代わり）。v7 で追加、常に非 null。既定は数えていない箱
+        // Count and samples of UI exceptions (A-244, standing in for the Web AppErrorBoundary); added in v7, never null, defaulting to an uncounted box
+        public GameUiExceptionReading GameUiExceptions = new GameUiExceptionsUnknown();
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed

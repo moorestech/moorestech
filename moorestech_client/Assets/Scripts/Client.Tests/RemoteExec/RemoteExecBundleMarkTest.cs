@@ -67,7 +67,7 @@ namespace Client.Tests.RemoteExec
             RemoteExecBundleMark.ApplyForCurrentSession(manifest, _bundle);
             AssertCopiedLedger(manifest, source);
             var json = JObject.Parse(manifest.ToJson());
-            Assert.AreEqual(6, (int)json["schemaVersion"]);
+            Assert.AreEqual(7, (int)json["schemaVersion"]);
             Assert.AreEqual("Enabled", (string)json["remoteExec"]["state"]);
             Assert.AreEqual(JTokenType.Null, json["remoteExec"]["unknownReason"].Type);
         }

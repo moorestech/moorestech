@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
@@ -115,6 +116,7 @@ namespace Client.Game.InGame.BugReport.Capture
         public List<string> VideoSegmentFiles = new();
         public IReadOnlyList<FrameTickRow> FrameTicks;
         public IReadOnlyList<UnityLogEntry> Logs;
+        public GameUiExceptionReading GameUiExceptions = new GameUiExceptionsUnknown();
         public ClientStateSnapshot ClientState;
         // ポーズを開いた瞬間のWeb側の生の値。送信時に読むと送信actionの受信で停止の証拠が消える
         // The web side's raw values at pause-open; reading at send time lets the send action's receipt erase the stall evidence
@@ -189,6 +191,7 @@ namespace Client.Game.InGame.BugReport.Capture
         // Settles the recording boundary and takes that instant's segments and frame ticks in one go, never asking usability separately
         UniTask<CapturedRecording> TakeRecordingAtCapture();
         IReadOnlyList<UnityLogEntry> Logs();
+        GameUiExceptionReading GameUiExceptions();
         ClientStateSnapshot ClientState();
         WebUiHealthReading WebUiHealth();
         UniTask<string> CaptureScreenshot(string workDirectory);
