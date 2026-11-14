@@ -79,7 +79,23 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
             view.Render(Slots(true), SpecialBlockDetailViewModel.Empty);
             Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.DetailLoading).Resolve(), TextOf(view, "space-elevator-loading"));
             Assert.IsFalse(IsShown(Find<VisualElement>(view, "space-elevator-section")));
-            Assert.IsFalse(SpecialViewParts.IsDisplayedInHierarchy(Find<Button>(view, "space-elevator-connect")), "接続ボタンは隠れた区画の中にあり見えない");
+            Assert.IsFalse(IsDisplayedInHierarchy(Find<Button>(view, "space-elevator-connect")), "接続ボタンは隠れた区画の中にあり見えない");
+
+            #region Internal
+
+            // 自分から根まで display:none が無いか（隠れた区画の中の子は見えない）
+            // Whether nothing from itself to the root is display:none (children of a hidden section are not visible)
+            bool IsDisplayedInHierarchy(VisualElement element)
+            {
+                if (element.panel == null) return false;
+                for (var current = element; current != null; current = current.parent)
+                {
+                    if (current.resolvedStyle.display == DisplayStyle.None) return false;
+                }
+                return true;
+            }
+
+            #endregion
         }
     }
 }

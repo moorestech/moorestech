@@ -48,6 +48,8 @@ namespace Client.Ui.State.Train.Timetable
         {
             // Web ホスト BlockInventoryTopic と同じ契機: 画面の開閉（閉じると使えないへ倒れ、編集は閉じる）・中身の更新・時刻表の到着
             // Same triggers as the Web host BlockInventoryTopic: screen open/close (closing falls to unavailable and closes the edit), contents updates, timetable arrival
+            // UIStateEnum は契機だけで、判定は SubInventory の中身の源（列車）なので UiScreen を通さない（A-248）
+            // UIStateEnum is only the trigger; the decision is the SubInventory content source (a train), so UiScreen is not consulted (A-248)
             _uiStateControl.OnStateChanged.Subscribe(_ => Refresh());
             _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Refresh());
             _timetables.OnTimetableUpdated.Subscribe(_ => Refresh());

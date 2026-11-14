@@ -10,8 +10,10 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Tests.Common;
+using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Source;
+using Client.Ui.State.Routing;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.Extension;
@@ -21,6 +23,7 @@ using Game.PlacementTarget;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -32,11 +35,10 @@ namespace Client.Tests.Ui.State.BuildMenu
     /// </summary>
     public class BuildMenuModelTest
     {
-        private const string CurrentStateField = "<CurrentState>k__BackingField";
         private const int MaxFramesToRebuild = 30;
 
         private GameObject _controlObject;
-        private UIStateControl _control;
+        private UiRoutingState _routing;
         private LocalPlayerInventoryController _inventory;
         private PlacementTargetResolver _resolver;
         private BuildMenuModel _model;
@@ -50,15 +52,15 @@ namespace Client.Tests.Ui.State.BuildMenu
             Localize.Initialize();
             Localize.TrySetChosenLanguage("english");
 
-            // 開く遷移は BP ライブラリのサーバー往復を伴うので通さず、状態だけを差して源の変化の経路を見る（前例 BuildMenuTopicRepublishTest）
-            // Entering the menu round-trips the blueprint library to the server, so only the state is set to exercise the source-change path (precedent BuildMenuTopicRepublishTest)
+            // 開く遷移は BP ライブラリのサーバー往復を伴うので通さず、画面の値だけを差して源の変化の経路を見る（前例 BuildMenuTopicRepublishTest）
+            // Entering the menu round-trips the blueprint library to the server, so only the screen value is set to exercise the source-change path (precedent BuildMenuTopicRepublishTest)
             _controlObject = new GameObject("BuildMenuModelTest.Control");
-            _control = _controlObject.AddComponent<UIStateControl>();
+            _routing = UiRoutingStateTestFactory.Create(_controlObject, UIStateEnum.GameScreen);
             var blueprintLibrary = new ClientBlueprintLibrary();
             _resolver = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), blueprintLibrary, new AllPlacementTargetsUnlocked());
             _inventory = new LocalPlayerInventoryController(new LocalPlayerInventory(), new LocalPlayerEquipment());
             var wallet = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
-            _model = new BuildMenuModel(_control, _resolver, wallet, _inventory, blueprintLibrary, new BlueprintThumbnailContainer());
+            _model = new BuildMenuModel(_routing, _resolver, wallet, _inventory, blueprintLibrary, new BlueprintThumbnailContainer());
             _model.Initialize();
         }
 
@@ -67,7 +69,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         {
             // Model の購読はゲーム寿命で残るので、閉じた状態にして後のテストで組み直さないようにする
             // The model's subscriptions live for the game, so leave the state closed to keep later tests from rebuilding
-            TestReflection.SetField(_control, CurrentStateField, UIStateEnum.GameScreen);
+            SetScreenWithoutNotify(UiScreen.None);
             UnityEngine.Object.DestroyImmediate(_controlObject);
             Localize.Initialize();
         }
@@ -121,11 +123,19 @@ namespace Client.Tests.Ui.State.BuildMenu
         // Open, change the inventory, and wait for the end-of-frame rebuild
         private IEnumerator OpenAndHold(int slot, ItemId itemId, int count)
         {
-            TestReflection.SetField(_control, CurrentStateField, UIStateEnum.BuildMenu);
+            SetScreenWithoutNotify(UiScreen.BuildMenu);
             var before = _model.Current.Value;
             _inventory.SetMainItem(slot, ServerContext.ItemStackFactory.Create(itemId, count));
             for (var frame = 0; frame < MaxFramesToRebuild && ReferenceEquals(before, _model.Current.Value); frame++) yield return null;
             Assert.AreNotSame(before, _model.Current.Value, "開いている間の所持の変化で組み直されない");
+        }
+
+        // 購読へ通知せず routing の値だけを差す（開いた時の BP の取り直しを通さない）
+        // Set only routing's value without notifying subscribers (skips the blueprint refresh on open)
+        private void SetScreenWithoutNotify(UiScreen screen)
+        {
+            var current = TestReflection.GetField<ReactiveProperty<UiRoutingSnapshot>>(_routing, "_current");
+            TestReflection.SetField(current, "value", new UiRoutingSnapshot(screen));
         }
 
         private ItemId FirstMaterialItemId()

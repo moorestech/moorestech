@@ -56,7 +56,7 @@ namespace Client.Ui.Screens.Recipe
         {
             // 閉じると両 View が中身を捨てる／先頭へ戻す（長押しのエントリも木から外れて止まる）
             // Hiding makes both views drop their content or reset the scroll (the held entry leaves the tree and stops)
-            var shown = RecipeScreenModel.IsScreenShown(snapshot);
+            var shown = RecipeScreenVisibility.IsShown(snapshot);
             _viewer.SetShown(shown);
             _itemList.SetShown(shown);
         }

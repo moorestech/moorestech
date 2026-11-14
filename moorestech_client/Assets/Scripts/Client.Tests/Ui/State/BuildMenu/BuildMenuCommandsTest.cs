@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
+using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Routing;
@@ -27,6 +28,7 @@ namespace Client.Tests.Ui.State.BuildMenu
     {
         private GameObject _controlObject;
         private UIStateControl _control;
+        private UiRoutingState _routing;
         private FakeRequester _requester;
         private BuildMenuSelection _selection;
         private PlacementTargetResolver _resolver;
@@ -36,7 +38,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _controlObject = new GameObject("BuildMenuCommandsTest.Control");
-            _control = _controlObject.AddComponent<UIStateControl>();
+            _routing = UiRoutingStateTestFactory.CreateSwitchable(_controlObject, UIStateEnum.GameScreen, new[] { UIStateEnum.GameScreen, UIStateEnum.BuildMenu }, out _control);
             _requester = new FakeRequester();
             _selection = new BuildMenuSelection();
             _resolver = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), new ClientBlueprintLibrary(), new AllPlacementTargetsUnlocked());
@@ -138,12 +140,14 @@ namespace Client.Tests.Ui.State.BuildMenu
 
         private BuildMenuCommands CreateCommands(BlueprintDeleteResult deleteResult)
         {
-            return new BuildMenuCommands(_control, _requester, _resolver, _selection, new BlueprintDeleteServiceStub(deleteResult));
+            return new BuildMenuCommands(_routing, _requester, _resolver, _selection, new BlueprintDeleteServiceStub(deleteResult));
         }
 
+        // 実際の遷移で UiRoutingState まで写す（コマンドは画面の開閉を routing で読む。A-248）
+        // Transit for real so the change reaches UiRoutingState (the commands read open/closed through routing; A-248)
         private void SetState(UIStateEnum state)
         {
-            typeof(UIStateControl).GetProperty(nameof(UIStateControl.CurrentState)).SetValue(_control, state);
+            UiRoutingStateTestFactory.Transit(_control, state);
         }
 
         private sealed class FakeRequester : IUiStateTransitionRequester

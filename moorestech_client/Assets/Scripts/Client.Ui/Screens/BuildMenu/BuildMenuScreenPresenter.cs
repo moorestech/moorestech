@@ -4,6 +4,7 @@ using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.BuildMenu.CategoryScroll;
+using Client.Ui.State.BuildMenu;
 using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.BuildMenu.Session;
 using Client.Ui.State.BuildMenu.Source;
@@ -54,7 +55,7 @@ namespace Client.Ui.Screens.BuildMenu
             var tracker = new BuildMenuCategoryScrollTracker(_session);
             _view = new BuildMenuView(_commands, _hotbarCommands, _content, _icons, _toaster, _session, tracker);
             _gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(_view);
-            _routingState.Current.Select(snapshot => snapshot.Screen == UiScreen.BuildMenu).DistinctUntilChanged().Subscribe(SetShown).AddTo(_subscriptions);
+            _routingState.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(SetShown).AddTo(_subscriptions);
         }
 
         public void Dispose()

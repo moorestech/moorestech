@@ -51,6 +51,8 @@ namespace Client.Ui.State.KeyHints
 
         private KeyHintHudViewModel Build()
         {
+            // UiScreen に無い状態（全 state のキーヒント・DeleteBar）なので UIStateEnum を読む（A-248）
+            // These states (every state's key hints, DeleteBar) are not in UiScreen, so read UIStateEnum (A-248)
             var state = _uiStateControl.CurrentState;
             var hints = _uiStateDictionary.GetState(state).GetKeyHints();
             return KeyHintHudViewModel.Create(hints, state == UIStateEnum.DeleteBar, _blockingSkitPresence.IsBlocking.Value);

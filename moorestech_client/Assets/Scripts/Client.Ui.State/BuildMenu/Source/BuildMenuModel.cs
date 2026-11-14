@@ -3,9 +3,9 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Ui.State.BuildMenu.Entries;
+using Client.Ui.State.Routing;
 using Cysharp.Threading.Tasks;
 using Game.Construction;
 using UniRx;
@@ -19,7 +19,7 @@ namespace Client.Ui.State.BuildMenu.Source
     /// </summary>
     public sealed class BuildMenuModel : IInitializable
     {
-        private readonly UIStateControl _uiStateControl;
+        private readonly UiRoutingState _routing;
         private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly ConstructionWalletQuery _walletQuery;
         private readonly LocalPlayerInventoryController _inventoryController;
@@ -30,9 +30,9 @@ namespace Client.Ui.State.BuildMenu.Source
 
         public IReadOnlyReactiveProperty<BuildMenuViewModel> Current => _current;
 
-        public BuildMenuModel(UIStateControl uiStateControl, PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, LocalPlayerInventoryController inventoryController, ClientBlueprintLibrary blueprintLibrary, IBlueprintThumbnailLookup thumbnails)
+        public BuildMenuModel(UiRoutingState routing, PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, LocalPlayerInventoryController inventoryController, ClientBlueprintLibrary blueprintLibrary, IBlueprintThumbnailLookup thumbnails)
         {
-            _uiStateControl = uiStateControl;
+            _routing = routing;
             _placementTargetResolver = placementTargetResolver;
             _walletQuery = walletQuery;
             _inventoryController = inventoryController;
@@ -44,7 +44,7 @@ namespace Client.Ui.State.BuildMenu.Source
         {
             // 開いたときは BP ライブラリを取り直してから組む（Web の橋 BuildMenuTopic.OnStateChanged と同じ）
             // On open, refresh the blueprint library and rebuild (same as the Web bridge BuildMenuTopic.OnStateChanged)
-            _uiStateControl.OnStateChanged.Where(state => state == UIStateEnum.BuildMenu).Subscribe(_ =>
+            _routing.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Where(shown => shown).Subscribe(_ =>
             {
                 _blueprintLibrary.Refresh(CancellationToken.None).Forget();
                 ScheduleRebuild();
@@ -64,7 +64,7 @@ namespace Client.Ui.State.BuildMenu.Source
         {
             // silent-ok: 閉じている間の変化は捨てる / 次に開いたとき Initialize の購読が組み直す
             // silent-ok: changes while closed are dropped / the next open rebuilds through the Initialize subscription
-            if (_uiStateControl.CurrentState != UIStateEnum.BuildMenu) return;
+            if (!BuildMenuScreenVisibility.IsShown(_routing.Current.Value)) return;
             ScheduleRebuild();
         }
 

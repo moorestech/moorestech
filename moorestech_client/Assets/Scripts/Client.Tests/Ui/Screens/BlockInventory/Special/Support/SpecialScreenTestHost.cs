@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.UI.UIState;
 using Client.Input.ArrowKeys;
 using Client.Tests.Ui.Content;
+using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Content;
@@ -11,6 +13,7 @@ using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
+using Client.Ui.State.Routing;
 using Client.Ui.State.Text;
 using Mod.Loader;
 using NUnit.Framework;
@@ -29,11 +32,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
     {
         protected static readonly IReadOnlyList<SlotItem> NoSlots = Array.Empty<SlotItem>();
 
+        private UnityEngine.GameObject _routingHost;
+
         protected FakeSpecialBlockDetailModel Model { get; private set; }
         protected RecordingSpecialBlockCommands Commands { get; private set; }
         protected FakeArrowKeys ArrowKeys { get; private set; }
         protected FakePanelSource Panels { get; private set; }
         protected SpecialPresenters Presenters { get; private set; }
+        protected UIStateControl RoutingControl { get; private set; }
         protected RecordingBlockSlotCommands BlockSlots { get; private set; }
 
         [SetUp]
@@ -43,8 +49,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
             Commands = new RecordingSpecialBlockCommands();
             ArrowKeys = new FakeArrowKeys();
             Panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed));
-            Presenters = new SpecialPresenters(Model, Panels, ArrowKeys);
+
+            // 画面はブロックのパネル（SubInventory）から始め、ポーズを重ねる L1 のために PauseMenu へも切り替えられる
+            // The screen starts on the block panel (SubInventory) and can switch to PauseMenu for the L1 that overlays a pause
+            _routingHost = new UnityEngine.GameObject("SpecialScreenTestHost.Routing");
+            var routing = UiRoutingStateTestFactory.CreateSwitchable(_routingHost, UIStateEnum.SubInventory, new[] { UIStateEnum.SubInventory, UIStateEnum.PauseMenu }, out var routingControl);
+            RoutingControl = routingControl;
+            Presenters = new SpecialPresenters(Model, Panels, ArrowKeys, routing);
             BlockSlots = new RecordingBlockSlotCommands();
+        }
+
+        [TearDown]
+        public void TearDownSpecialHost()
+        {
+            UnityEngine.Object.DestroyImmediate(_routingHost);
         }
 
         // 本文の L1 が使う依存の束（格子は alpha の本物の工場に記録係の押下先を渡す。トーストは ScreenTestHost の係）

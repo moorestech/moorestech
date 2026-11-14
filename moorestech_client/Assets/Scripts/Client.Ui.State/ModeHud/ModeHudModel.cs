@@ -49,6 +49,8 @@ namespace Client.Ui.State.ModeHud
 
         private ModeHudViewModel Build()
         {
+            // UiScreen に無い状態（PlaceBlock・DeleteBar）なので UIStateEnum を読む（A-248）
+            // These states (PlaceBlock, DeleteBar) are not in UiScreen, so read UIStateEnum (A-248)
             return ModeHudViewModelFactory.Create(_uiStateControl.CurrentState, _placeSystemStateController.CurrentTarget, _placementHeightOffset.Value);
         }
     }

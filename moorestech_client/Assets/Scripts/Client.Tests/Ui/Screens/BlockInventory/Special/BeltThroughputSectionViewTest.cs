@@ -1,4 +1,6 @@
+using Client.Game.InGame.UI.UIState;
 using Client.Input.ArrowKeys;
+using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Screens.BlockInventory.Special.Belt;
 using Client.Ui.State.BlockInventory.Logic.Belt;
@@ -52,6 +54,24 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             StringAssert.Contains("89", first);
             ArrowKeys.Press(HorizontalArrowKey.Left);
             Assert.AreEqual(first, TextOf(view, "belt-throughput-window"));
+        }
+
+        [Test]
+        public void ポーズが上に重なる間は矢印で窓を切り替えずブロックのパネルへ戻ると切り替える()
+        {
+            // パネルを開いたまま最前の画面を PauseMenu にすると、背面のベルトの窓は動かない（X-audit c21-dc）
+            // With the panel still open and PauseMenu in front, the belt window behind stays put (X-audit c21-dc)
+            var (view, _) = Attach(SpecialDetailSamples.Only(SpecialDetailSamples.Belt));
+            var before = TextOf(view, "belt-throughput-window");
+            UiRoutingStateTestFactory.Transit(RoutingControl, UIStateEnum.PauseMenu);
+            ArrowKeys.Press(HorizontalArrowKey.Right);
+            Assert.AreEqual(before, TextOf(view, "belt-throughput-window"), "ポーズの背面で窓が切り替わった");
+
+            // ブロックのパネルへ戻ると同じ矢印で次の窓へ進む
+            // Back on the block panel, the same arrow moves to the next window
+            UiRoutingStateTestFactory.Transit(RoutingControl, UIStateEnum.SubInventory);
+            ArrowKeys.Press(HorizontalArrowKey.Right);
+            Assert.AreEqual(Resolved(BeltThroughputLogic.RowDisplay(SpecialDetailSamples.Belt.Windows[2]).Text), TextOf(view, "belt-throughput-window"));
         }
 
         [Test]

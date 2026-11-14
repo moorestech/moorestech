@@ -57,6 +57,8 @@ namespace Client.Ui.State.BlockInventory.Panel
                 // 画面の判定は UiRoutingState に一本化する。SubInventory かつサブインベントリがあるときだけ開く
                 // Screen decisions go through UiRoutingState only; open only in SubInventory with a sub-inventory present
                 var sub = _subInventoryState.CurrentSubInventory;
+                // パネルの状態を組む側で画面の開閉の読みではない（BlockInventoryScreenVisibility はこの結果を受ける。A-248）
+                // This builds the panel state rather than reading screen visibility (BlockInventoryScreenVisibility consumes this result; A-248)
                 if (_routing.Current.Value.Screen != UiScreen.SubInventory || sub == null) return BlockInventoryPanelState.Closed;
                 var slots = BlockInventoryPanelStateFactory.ToSlotItems(sub.SubInventory);
                 if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource train) return BlockInventoryPanelStateFactory.FromTrain(train.TrainCarInstanceId, slots, train.LastOpenMessage);

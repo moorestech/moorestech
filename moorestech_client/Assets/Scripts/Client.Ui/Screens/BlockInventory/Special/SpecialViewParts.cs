@@ -1,12 +1,11 @@
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
-using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Special
 {
     /// <summary>
-    /// 特殊族の View が共通に使う小さな手続き（文字の行・表示の出し入れ・表示中の判定）
-    /// Small helpers shared by the special views: text rows, display toggling and the displayed check
+    /// 特殊族の View が共通に使う小さな手続き（文字の行）
+    /// Small helpers shared by the special views: text rows
     /// </summary>
     public static class SpecialViewParts
     {
@@ -23,18 +22,6 @@ namespace Client.Ui.Screens.BlockInventory.Special
         public static void SeedEmptyText(LocalizedLabel label)
         {
             label.SetText(UiText.FromVerbatim(string.Empty));
-        }
-
-        // パネルに載り、自分から根まで display:none が無い（Web の「層が blockInventory」の代わり）
-        // Attached to a panel with no display:none from itself to the root (stands in for the Web "active layer is blockInventory")
-        public static bool IsDisplayedInHierarchy(VisualElement element)
-        {
-            if (element.panel == null) return false;
-            for (var current = element; current != null; current = current.parent)
-            {
-                if (current.resolvedStyle.display == DisplayStyle.None) return false;
-            }
-            return true;
         }
     }
 }
