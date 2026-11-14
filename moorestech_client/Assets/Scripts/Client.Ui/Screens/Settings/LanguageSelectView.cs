@@ -36,6 +36,17 @@ namespace Client.Ui.Screens.Settings
             _languages.OnOptionSelected.Subscribe(OnLanguageSelected);
             Add(_languages);
             Apply(initial);
+
+            #region Internal
+
+            static IReadOnlyList<ModeSwitchOption<string>> LanguageOptions()
+            {
+                return LanguageCatalog.Languages
+                    .Select(language => new ModeSwitchOption<string>($"language-select-option-{language.Code}", language.Code, UiText.FromVerbatim(language.DisplayName)))
+                    .ToList();
+            }
+
+            #endregion
         }
 
         public void Apply(SettingsViewModel model)
@@ -48,13 +59,6 @@ namespace Client.Ui.Screens.Settings
         private void OnLanguageSelected(string languageCode)
         {
             _toaster.Report(SetLocaleCommandName, _commands.SetLanguage(languageCode));
-        }
-
-        private static IReadOnlyList<ModeSwitchOption<string>> LanguageOptions()
-        {
-            return LanguageCatalog.Languages
-                .Select(language => new ModeSwitchOption<string>($"language-select-option-{language.Code}", language.Code, UiText.FromVerbatim(language.DisplayName)))
-                .ToList();
         }
     }
 }

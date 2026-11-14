@@ -46,6 +46,33 @@ namespace Client.Ui.Screens.Recipe
             new UiPressGesture(_scroll.contentViewport, new ItemListDragScroll(_scroll, selection));
             panel.Add(_scroll);
             Add(panel);
+
+            #region Internal
+
+            void ApplyClipClearance()
+            {
+                // Web の .scrollArea の calc の margin。USS に calc が無いので C# が当てる（前例 RecipeEntryList）
+                // The Web .scrollArea calc margins; USS has no calc, so C# applies them (precedent RecipeEntryList)
+                // 読めないときは UssCustomStyleReader が LogError を出し、余白は前の値のまま
+                // When unreadable UssCustomStyleReader logs an error and the spacing keeps its previous value
+                if (!UssCustomStyleReader.TryReadPixels(_scroll.customStyle, ClipInsetProperty, out var inset)) return;
+                if (!UssCustomStyleReader.TryReadPixels(_scroll.customStyle, MarginLeftBaseProperty, out var leftBase)) return;
+                if (!UssCustomStyleReader.TryReadPixels(_scroll.customStyle, MarginTopBaseProperty, out var topBase)) return;
+
+                // クリップ領域だけ逃げぶん外へ広げ、グリッドとつまみの位置は動かさない
+                // Widen only the clipping region by the clearance, keeping the grid and the thumb in place
+                _scroll.style.marginLeft = leftBase - inset;
+                _scroll.style.marginTop = topBase - inset;
+                _scroll.style.marginBottom = -inset;
+
+                // Web は視口の padding だが、UITK は視口の padding をスクロール範囲に入れないので中身の側に置く（D-47）
+                // The Web pads the viewport, but UITK leaves viewport padding out of the scroll range, so pad the content (D-47)
+                _scroll.contentContainer.style.paddingTop = inset;
+                _scroll.contentContainer.style.paddingBottom = inset;
+                _scroll.contentContainer.style.paddingLeft = inset;
+            }
+
+            #endregion
         }
 
         public void Render(ItemListViewModel vm)
@@ -102,29 +129,6 @@ namespace Client.Ui.Screens.Recipe
             {
                 if (_scroll.contentViewport.HasPointerCapture(pointerId)) _scroll.contentViewport.ReleasePointer(pointerId);
             }
-        }
-
-        private void ApplyClipClearance()
-        {
-            // Web の .scrollArea の calc の margin。USS に calc が無いので C# が当てる（前例 RecipeEntryList）
-            // The Web .scrollArea calc margins; USS has no calc, so C# applies them (precedent RecipeEntryList)
-            // 読めないときは UssCustomStyleReader が LogError を出し、余白は前の値のまま
-            // When unreadable UssCustomStyleReader logs an error and the spacing keeps its previous value
-            if (!UssCustomStyleReader.TryReadPixels(_scroll.customStyle, ClipInsetProperty, out var inset)) return;
-            if (!UssCustomStyleReader.TryReadPixels(_scroll.customStyle, MarginLeftBaseProperty, out var leftBase)) return;
-            if (!UssCustomStyleReader.TryReadPixels(_scroll.customStyle, MarginTopBaseProperty, out var topBase)) return;
-
-            // クリップ領域だけ逃げぶん外へ広げ、グリッドとつまみの位置は動かさない
-            // Widen only the clipping region by the clearance, keeping the grid and the thumb in place
-            _scroll.style.marginLeft = leftBase - inset;
-            _scroll.style.marginTop = topBase - inset;
-            _scroll.style.marginBottom = -inset;
-
-            // Web は視口の padding だが、UITK は視口の padding をスクロール範囲に入れないので中身の側に置く（D-47）
-            // The Web pads the viewport, but UITK leaves viewport padding out of the scroll range, so pad the content (D-47)
-            _scroll.contentContainer.style.paddingTop = inset;
-            _scroll.contentContainer.style.paddingBottom = inset;
-            _scroll.contentContainer.style.paddingLeft = inset;
         }
     }
 }

@@ -48,11 +48,15 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 if (gesture.Kind == SlotGestureKind.RightDown && isBlueprint) handler.OnBlueprintDeleteRequested(_targetId);
             });
             Render(entry);
-        }
 
-        private static string TestIdOf(BuildMenuEntryViewModel entry)
-        {
-            return $"build-menu-entry-{entry.KindName}-{entry.Catalog.TargetId:D}";
+            #region Internal
+
+            static string TestIdOf(BuildMenuEntryViewModel entry)
+            {
+                return $"build-menu-entry-{entry.KindName}-{entry.Catalog.TargetId:D}";
+            }
+
+            #endregion
         }
 
         public void Render(BuildMenuEntryViewModel entry)

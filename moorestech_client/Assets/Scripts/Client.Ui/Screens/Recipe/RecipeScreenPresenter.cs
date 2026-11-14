@@ -41,15 +41,19 @@ namespace Client.Ui.Screens.Recipe
             _routing.Current.Subscribe(ApplyScreen);
             _model.Viewer.Subscribe(_viewer.Render);
             _model.ItemList.Subscribe(_itemList.Render);
-        }
 
-        private void ApplyScreen(UiRoutingSnapshot snapshot)
-        {
-            // 閉じると両 View が中身を捨てる／先頭へ戻す（長押しのエントリも木から外れて止まる）
-            // Hiding makes both views drop their content or reset the scroll (the held entry leaves the tree and stops)
-            var shown = RecipeScreenVisibility.IsShown(snapshot);
-            _viewer.SetShown(shown);
-            _itemList.SetShown(shown);
+            #region Internal
+
+            void ApplyScreen(UiRoutingSnapshot snapshot)
+            {
+                // 閉じると両 View が中身を捨てる／先頭へ戻す（長押しのエントリも木から外れて止まる）
+                // Hiding makes both views drop their content or reset the scroll (the held entry leaves the tree and stops)
+                var shown = RecipeScreenVisibility.IsShown(snapshot);
+                _viewer.SetShown(shown);
+                _itemList.SetShown(shown);
+            }
+
+            #endregion
         }
     }
 }

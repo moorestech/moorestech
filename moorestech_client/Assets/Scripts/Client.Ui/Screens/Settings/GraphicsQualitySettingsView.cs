@@ -51,6 +51,20 @@ namespace Client.Ui.Screens.Settings
             }
 
             Apply(initial);
+
+            #region Internal
+
+            static IReadOnlyList<ModeSwitchOption<GraphicsQualityPreset>> PresetOptions()
+            {
+                return new List<ModeSwitchOption<GraphicsQualityPreset>>
+                {
+                    new("graphics-preset-high", GraphicsQualityPreset.High, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetHigh)),
+                    new("graphics-preset-medium", GraphicsQualityPreset.Medium, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetMedium)),
+                    new("graphics-preset-low", GraphicsQualityPreset.Low, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetLow)),
+                };
+            }
+
+            #endregion
         }
 
         public void Apply(SettingsViewModel model)
@@ -66,16 +80,6 @@ namespace Client.Ui.Screens.Settings
                 default: throw new System.ArgumentOutOfRangeException(nameof(model), model.Preset, null);
             }
             foreach (var itemSwitch in _itemSwitches) itemSwitch.Apply(model.Graphics);
-        }
-
-        private static IReadOnlyList<ModeSwitchOption<GraphicsQualityPreset>> PresetOptions()
-        {
-            return new List<ModeSwitchOption<GraphicsQualityPreset>>
-            {
-                new("graphics-preset-high", GraphicsQualityPreset.High, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetHigh)),
-                new("graphics-preset-medium", GraphicsQualityPreset.Medium, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetMedium)),
-                new("graphics-preset-low", GraphicsQualityPreset.Low, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetLow)),
-            };
         }
     }
 }

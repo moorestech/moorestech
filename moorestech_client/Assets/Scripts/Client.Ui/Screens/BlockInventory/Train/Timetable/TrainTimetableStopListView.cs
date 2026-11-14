@@ -58,58 +58,66 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             _list.Clear();
             for (var i = 0; i < model.Stops.Count; i++) _list.Add(CreateRow(model, i, unnamedStationName));
             _panel.Add(_list);
-        }
 
-        private VisualElement CreateRow(TrainTimetableSectionViewModel model, int index, string unnamedStationName)
-        {
-            var stop = model.Stops[index];
-            var row = new VisualElement { name = $"train-timetable-stop-{index}" };
-            row.AddToClassList("train-timetable__row");
-            row.EnableInClassList("train-timetable__row--following", 0 < index);
-            row.EnableInClassList("train-timetable-stop--current", model.CurrentIndex == index);
+            #region Internal
 
-            // ラベルは「番号. 駅名(座標)」。駅名の空は言語で変わるので Presenter が言語の変化で描き直す（D-10）
-            // The label is "index. station(coords)"; the Presenter re-renders on language change since the unnamed name localizes (D-10)
-            var station = TimetableEditLogic.StationLabel(new TrainTimetableStation(stop.Position, stop.Name), unnamedStationName).Resolve();
-            var label = new LocalizedLabel { name = $"train-timetable-stop-{index}-label" };
-            label.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.TimetableStopLabel, new[]
+            VisualElement CreateRow(TrainTimetableSectionViewModel model, int index, string unnamedStationName)
             {
-                new LocalizationTextParam("index", UiNumberFormat.Integer(index + 1)),
-                new LocalizationTextParam("station", station),
-            }));
-            label.AddToClassList("train-timetable__label");
+                var stop = model.Stops[index];
+                var row = new VisualElement { name = $"train-timetable-stop-{index}" };
+                row.AddToClassList("train-timetable__row");
+                row.EnableInClassList("train-timetable__row--following", 0 < index);
+                row.EnableInClassList("train-timetable-stop--current", model.CurrentIndex == index);
 
-            // 押下は行の番号つきで編集のコマンドへ。行を作り直すと古いボタンごと購読も捨てられる
-            // Presses go to the edit commands with the row index; rebuilding rows discards old buttons with their subscriptions
-            var up = Control($"train-timetable-stop-{index}-up", LocalizationKeys.Ui.BlockInventory.TimetableMoveUp, model.IsPending || index == 0);
-            var down = Control($"train-timetable-stop-{index}-down", LocalizationKeys.Ui.BlockInventory.TimetableMoveDown, model.IsPending || index == model.Stops.Count - 1);
-            var remove = Control($"train-timetable-stop-{index}-remove", LocalizationKeys.Ui.BlockInventory.TimetableRemove, model.IsPending);
-            up.OnClicked.Subscribe(_ => _commands.Move(index, StopMoveDirection.Up));
-            down.OnClicked.Subscribe(_ => _commands.Move(index, StopMoveDirection.Down));
-            remove.OnClicked.Subscribe(_ => _commands.Remove(index));
+                // ラベルは「番号. 駅名(座標)」。駅名の空は言語で変わるので Presenter が言語の変化で描き直す（D-10）
+                // The label is "index. station(coords)"; the Presenter re-renders on language change since the unnamed name localizes (D-10)
+                var station = TimetableEditLogic.StationLabel(new TrainTimetableStation(stop.Position, stop.Name), unnamedStationName).Resolve();
+                var label = new LocalizedLabel { name = $"train-timetable-stop-{index}-label" };
+                label.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.TimetableStopLabel, new[]
+                {
+                    new LocalizationTextParam("index", UiNumberFormat.Integer(index + 1)),
+                    new LocalizationTextParam("station", station),
+                }));
+                label.AddToClassList("train-timetable__label");
 
-            // 2 個目以降の操作に間のクラス（UITK の USS に兄弟の結合子が無いので C# で付ける。前例 ModeSwitch の --following）
-            // Gap class on the second and later controls (UITK USS has no sibling combinator; precedent ModeSwitch --following)
-            down.AddToClassList("train-timetable__control--following");
-            remove.AddToClassList("train-timetable__control--following");
-            var controls = new VisualElement();
-            controls.AddToClassList("train-timetable__controls");
-            controls.AddToClassList("train-timetable__row-end");
-            controls.Add(up);
-            controls.Add(down);
-            controls.Add(remove);
-            row.Add(label);
-            row.Add(controls);
-            return row;
-        }
+                // 押下は行の番号つきで編集のコマンドへ。行を作り直すと古いボタンごと購読も捨てられる
+                // Presses go to the edit commands with the row index; rebuilding rows discards old buttons with their subscriptions
+                var up = Control($"train-timetable-stop-{index}-up", LocalizationKeys.Ui.BlockInventory.TimetableMoveUp, model.IsPending || index == 0);
+                var down = Control($"train-timetable-stop-{index}-down", LocalizationKeys.Ui.BlockInventory.TimetableMoveDown, model.IsPending || index == model.Stops.Count - 1);
+                var remove = Control($"train-timetable-stop-{index}-remove", LocalizationKeys.Ui.BlockInventory.TimetableRemove, model.IsPending);
+                up.OnClicked.Subscribe(_ => _commands.Move(index, StopMoveDirection.Up));
+                down.OnClicked.Subscribe(_ => _commands.Move(index, StopMoveDirection.Down));
+                remove.OnClicked.Subscribe(_ => _commands.Remove(index));
 
-        private PanelActionButton Control(string testid, LocalizationKey label, bool disabled)
-        {
-            var button = new PanelActionButton(testid, new UiText(label), _osCursor);
+                // 2 個目以降の操作に間のクラス（UITK の USS に兄弟の結合子が無いので C# で付ける。前例 ModeSwitch の --following）
+                // Gap class on the second and later controls (UITK USS has no sibling combinator; precedent ModeSwitch --following)
+                down.AddToClassList("train-timetable__control--following");
+                remove.AddToClassList("train-timetable__control--following");
+                var controls = new VisualElement();
+                controls.AddToClassList("train-timetable__controls");
+                controls.AddToClassList("train-timetable__row-end");
+                controls.Add(up);
+                controls.Add(down);
+                controls.Add(remove);
+                row.Add(label);
+                row.Add(controls);
+                return row;
 
-            button.AddToClassList("train-timetable__control");
-            button.SetEnabled(!disabled);
-            return button;
+                #region Internal
+
+                PanelActionButton Control(string testid, LocalizationKey label, bool disabled)
+                {
+                    var button = new PanelActionButton(testid, new UiText(label), _osCursor);
+
+                    button.AddToClassList("train-timetable__control");
+                    button.SetEnabled(!disabled);
+                    return button;
+                }
+
+                #endregion
+            }
+
+            #endregion
         }
     }
 }

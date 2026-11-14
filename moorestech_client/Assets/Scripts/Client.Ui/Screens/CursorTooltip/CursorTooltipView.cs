@@ -62,12 +62,6 @@ namespace Client.Ui.Screens.CursorTooltip
             UiPickingIgnore.ApplyToSubtree(this);
         }
 
-        private void SetPointer(Vector2 screenPosition)
-        {
-            _pointerOnScreen = screenPosition;
-            Reposition();
-        }
-
         private void OnAttached(AttachToPanelEvent evt)
         {
             // 載る前のポインタを初期値にし、以後の移動は隠れている間も追う（Web の 7179.3 の (12,12) 固定を避ける）
@@ -83,6 +77,16 @@ namespace Client.Ui.Screens.CursorTooltip
             // When the stage scale changes, re-place the stored screen px with the current scale
             var scaleSubscription = _stageScale.Scale.Subscribe(_ => Reposition());
             _screenSubscriptions = new CompositeDisposable(pointerSubscription, anchorModeSubscription, scaleSubscription);
+
+            #region Internal
+
+            void SetPointer(Vector2 screenPosition)
+            {
+                _pointerOnScreen = screenPosition;
+                Reposition();
+            }
+
+            #endregion
         }
 
         private void Reposition()

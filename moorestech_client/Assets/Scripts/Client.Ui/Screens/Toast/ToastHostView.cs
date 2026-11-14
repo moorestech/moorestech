@@ -66,6 +66,18 @@ namespace Client.Ui.Screens.Toast
                 handle.Completed.Subscribe(_ => target.RemoveFromHierarchy());
             }
 
+            static ToastItemTone ToneOf(GameUiToastVariant variant)
+            {
+                // 全値を列挙・未知は停止
+                // List every value; fail on unknown
+                return variant switch
+                {
+                    GameUiToastVariant.Info => ToastItemTone.Info,
+                    GameUiToastVariant.Error => ToastItemTone.Error,
+                    _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null),
+                };
+            }
+
             #endregion
         }
 
@@ -85,18 +97,6 @@ namespace Client.Ui.Screens.Toast
             var waiting = _toastsWaitingForStyle.ToArray();
             _toastsWaitingForStyle.Clear();
             foreach (var toast in waiting) Push(toast);
-        }
-
-        private static ToastItemTone ToneOf(GameUiToastVariant variant)
-        {
-            // 全値を列挙・未知は停止
-            // List every value; fail on unknown
-            return variant switch
-            {
-                GameUiToastVariant.Info => ToastItemTone.Info,
-                GameUiToastVariant.Error => ToastItemTone.Error,
-                _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null),
-            };
         }
 
         private static UiMotionHandle Fade(VisualElement target, float from, float to, float milliseconds)

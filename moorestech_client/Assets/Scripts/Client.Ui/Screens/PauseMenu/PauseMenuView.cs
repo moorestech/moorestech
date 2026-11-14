@@ -97,6 +97,15 @@ namespace Client.Ui.Screens.PauseMenu
             _model.Skip(1).Subscribe(OnPauseMenuChanged).AddTo(_subscriptions);
             _settings.Skip(1).Subscribe(OnSettingsChanged).AddTo(_subscriptions);
             Localize.OnLanguageChanged.Subscribe(_ => UpdateLocaleMarker()).AddTo(_subscriptions);
+
+            #region Internal
+
+            void UpdateLocaleMarker()
+            {
+                _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
+            }
+
+            #endregion
         }
 
         private void OnPauseMenuChanged(PauseMenuViewModel model)
@@ -153,11 +162,6 @@ namespace Client.Ui.Screens.PauseMenu
             }
 
             #endregion
-        }
-
-        private void UpdateLocaleMarker()
-        {
-            _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
         }
     }
 }
