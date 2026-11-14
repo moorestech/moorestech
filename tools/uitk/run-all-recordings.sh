@@ -27,7 +27,13 @@ tail -n +"$start" "$list" | head -n "$count" | while IFS= read -r scenario; do
   dir=$(grep -o '\[mac\] results: .*' "$log" | tail -1 | sed 's/^\[mac\] results: //')
   # silent-ok: 置き場が無いときは winunity の終了コードのまま run_dir を - にする / Step 3 で TSV の - の行を log から読んで気づく
   if [ -n "$dir" ] && [ -f "$dir/summary.json" ]; then
-    code=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8-sig")); print(d["detail"]["exitCode"] if "exitCode" in (d.get("detail") or {}) else (0 if d["ok"] else 1))' "$dir/summary.json")
+    # summary.json を読めないときは winunity の終了コードのまま、理由を log へ残す（Step 3 で log を読んで気づく）
+    # If summary.json is unreadable keep winunity's exit code and note why in the log (noticed when Step 3 reads the log)
+    if parsed=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8-sig")); print(d["detail"]["exitCode"] if "exitCode" in (d.get("detail") or {}) else (0 if d["ok"] else 1))' "$dir/summary.json" 2>>"$log"); then
+      code=$parsed
+    else
+      echo "summary.json を読めない（winunity の終了コード $code のまま）: $dir" >> "$log"
+    fi
   fi
   printf "%s\t%s\t%s\t%s\t%s\n" "$scenario" "$system" "$code" "$(( $(date +%s) - began ))" "${dir:--}" >> "$out"
 done

@@ -26,18 +26,16 @@ namespace Client.Playtest.Operations
         }
     }
 
-    // ProfilerRecorder で UITK のパネル更新と描画の時間を測る（PoC と同じ測り方）
-    // Measures UITK panel update and repaint time with ProfilerRecorder (as the PoC did)
+    // パネル更新と描画の時間を測る
+    // Measures panel update and repaint time
     public static class PlaytestPanelCostRecorder
     {
-        // PlayerLoop の段のマーカー（PreLateUpdate.UIElementsUpdatePanels・PostLateUpdate.UIElementsRepaintPanels）を拾う
-        // Match the PlayerLoop stage markers (PreLateUpdate.UIElementsUpdatePanels, PostLateUpdate.UIElementsRepaintPanels)
+        // パネル更新と描画のマーカー
+        // Panel update and repaint markers
         private static readonly string[] MarkerKeywords = { "UIElementsUpdatePanels", "UIElementsRepaintPanels" };
 
         public static IReadOnlyList<ProfilerRecorderDescription> FindPanelMarkers()
         {
-            // 使えるマーカーから UIElements のパネル更新と描画を名前で拾う
-            // Pick UIElements panel update and repaint by name from the available markers
             var handles = new List<ProfilerRecorderHandle>();
             ProfilerRecorderHandle.GetAvailable(handles);
             return handles
@@ -55,8 +53,8 @@ namespace Client.Playtest.Operations
 
         public static async UniTask<PlaytestPanelCost> Measure(IReadOnlyList<ProfilerRecorderDescription> markers, int frames)
         {
-            // フレームごとにマーカーの和を取り、前のフレームの値を読む
-            // Sum the markers per frame, reading the previous frame's value
+            // 前フレームのマーカー和を読む
+            // Read the previous frame's marker sum
             var recorders = markers.Select(d => ProfilerRecorder.StartNew(d.Category, d.Name, 1)).ToList();
             var samplesMs = new List<double>(frames);
             await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);

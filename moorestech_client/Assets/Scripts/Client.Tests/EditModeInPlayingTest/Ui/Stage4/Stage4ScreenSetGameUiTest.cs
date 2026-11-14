@@ -20,8 +20,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
 {
     /// <summary>
-    /// 段階 4 の同時に出る組（持ち物・研究・機械）を実ゲームで巡る
-    /// Walks the stage-4 co-shown sets (inventory, research, machine) in the real game
+    /// 持ち物・研究・機械の組を巡る
+    /// Walks the inventory, research, machine sets
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class Stage4ScreenSetGameUiTest : UiSystemPlayModeTestBase
@@ -65,8 +65,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 var errors = new List<string>();
                 Application.logMessageReceived += CollectErrors;
 
-                // 持ち物 → 研究 → 機械 → 持ち物の順に本番の遷移で巡る
-                // Walk inventory -> research -> machine -> inventory through production transitions
+                // 本番の遷移で順に巡る
+                // Walk in order through production transitions
                 await TransitionTo(uiStateControl, UIStateEnum.PlayerInventory);
                 await WaitScreenSettled(root, UIStateEnum.PlayerInventory);
                 AssertScreenSet(root, UIStateEnum.PlayerInventory);
@@ -79,8 +79,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 AssertResearchTreeRightOfInventory(root);
                 await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
 
-                // 機械は F キーの注入で開き、閉じた後の持ち物に残骸が無いことを見る
-                // Open the machine by injected F and check the inventory has no leftovers after closing
+                // 閉じた後の残骸なしを見る
+                // Check no leftovers after closing
                 await InteractKeyBlockOpener.PlaceNearPlayerAndOpen(MachineBlockName);
                 await WaitScreenSettled(root, UIStateEnum.SubInventory);
                 AssertScreenSet(root, UIStateEnum.SubInventory);
@@ -136,35 +136,39 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 }
                 Assert.AreEqual(1, visible.Count, $"{state}: 見える {surface.Name} が {visible.Count} 個（全件 {Stage4ScreenSetProbe.CountByName(root, surface.Name)}）");
                 var shown = visible[0];
-                AssertColumn(state, surface, shown);
+                AssertColumn(surface, shown);
 
                 // 幕は入力を素通しするので Pick の照合から外す
                 // The backdrop lets input through, so skip it in the pick check
                 if (surface.Name == Stage4ExpectedSurfaces.Backdrop.Name) continue;
                 Assert.IsTrue(Stage4ScreenSetProbe.IsPickedAtCenter(shown), $"{state}: {surface.Name} の中心で {Stage4ScreenSetProbe.DescribePicked(shown)} が拾われた（覆われている）");
             }
-        }
 
-        // 列に載るべき面はその列の子孫に、列の外の面はどの列の子孫でもないことを見る
-        // A column surface must sit under its column; an outside surface must sit under no column
-        private static void AssertColumn(UIStateEnum state, Stage4Surface surface, VisualElement shown)
-        {
-            var inColumn = Stage4ScreenSetProbe.TryGetColumnName(shown, out var columnName);
-            if (!surface.ExpectsColumn)
+            #region Internal
+
+            // 列に載るべき面はその列の子孫に、列の外の面はどの列の子孫でもないことを見る
+            // A column surface must sit under its column; an outside surface must sit under no column
+            void AssertColumn(Stage4Surface surface, VisualElement shown)
             {
-                Assert.IsFalse(inColumn, $"{state}: {surface.Name} は列の外のはずが {columnName} にある");
-                return;
+                var inColumn = Stage4ScreenSetProbe.TryGetColumnName(shown, out var columnName);
+                if (!surface.ExpectsColumn)
+                {
+                    Assert.IsFalse(inColumn, $"{state}: {surface.Name} は列の外のはずが {columnName} にある");
+                    return;
+                }
+                Assert.IsTrue(inColumn, $"{state}: {surface.Name} がどの列にも無い（期待 {surface.ColumnName}）");
+                Assert.AreEqual(surface.ColumnName, columnName, $"{state}: {surface.Name} の列が違う");
             }
-            Assert.IsTrue(inColumn, $"{state}: {surface.Name} がどの列にも無い（期待 {surface.ColumnName}）");
-            Assert.AreEqual(surface.ColumnName, columnName, $"{state}: {surface.Name} の列が違う");
+
+            #endregion
         }
 
         private static void AssertResearchTreeRightOfInventory(VisualElement root)
         {
             // 研究エリアは持ち物の右に置かれ、左余白が畳まれる
             // The research area sits right of the inventory and the left padding collapses
-            var inventory = root.Q(Stage4ExpectedSurfaces.Inventory.Name).worldBound;
-            var research = root.Q(Stage4ExpectedSurfaces.ResearchTree.Name).worldBound;
+            var inventory = Stage4ScreenSetProbe.VisibleByName(root, Stage4ExpectedSurfaces.Inventory.Name)[0].worldBound;
+            var research = Stage4ScreenSetProbe.VisibleByName(root, Stage4ExpectedSurfaces.ResearchTree.Name)[0].worldBound;
             Assert.GreaterOrEqual(research.xMin, inventory.xMax - 0.5f, $"研究エリアの左端 {research.xMin} が持ち物の右端 {inventory.xMax} より左");
             Assert.IsNotNull(root.Q(className: LeftPaddingCollapsedClass), "ResearchTree で左余白を畳むクラスが付いていない");
         }

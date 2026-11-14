@@ -17,18 +17,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
 
         public static List<VisualElement> VisibleByName(VisualElement root, string name)
         {
-            // 同名の全件から見えるものだけを残す（DSL のロケータと同じ全件の照会）
-            // Keep only the visible ones among every same-named element (same full query as the DSL locator)
+            // 同名の全件から見えるものだけを残す（可視判定は DSL のロケータと同じ 1 か所を使う）
+            // Keep only the visible ones among every same-named element (visibility uses the DSL locator's single rule)
             var all = root.Query(name: name).ToList();
-            all.RemoveAll(element => !IsVisible(element));
+            all.RemoveAll(element => !GameUiElementQuery.IsVisible(element));
             return all;
-        }
-
-        // 見えるかの判定は DSL のロケータと同じ 1 か所を使う（InternalsVisibleTo("Client.Tests")）
-        // Use the DSL locator's single visibility rule (InternalsVisibleTo("Client.Tests"))
-        public static bool IsVisible(VisualElement element)
-        {
-            return GameUiElementQuery.IsVisible(element);
         }
 
         public static bool TryGetColumnName(VisualElement element, out string columnName)

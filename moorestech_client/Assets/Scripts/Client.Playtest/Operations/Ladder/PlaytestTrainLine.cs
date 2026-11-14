@@ -26,15 +26,13 @@ namespace Client.Playtest.Operations
     // The prepared line of two stations and a locomotive
     public sealed class PlaytestTrainLineSetup
     {
-        public readonly IBlock StationA;
         public readonly IBlock StationB;
         public readonly Vector3Int StationAPosition;
         public readonly Vector3Int StationBPosition;
         public readonly TrainUnit Train;
 
-        public PlaytestTrainLineSetup(IBlock stationA, IBlock stationB, Vector3Int stationAPosition, Vector3Int stationBPosition, TrainUnit train)
+        public PlaytestTrainLineSetup(IBlock stationB, Vector3Int stationAPosition, Vector3Int stationBPosition, TrainUnit train)
         {
-            StationA = stationA;
             StationB = stationB;
             StationAPosition = stationAPosition;
             StationBPosition = stationBPosition;
@@ -89,7 +87,7 @@ namespace Client.Playtest.Operations
 
             TrainUnit train = null;
             await p.RunOnServer("検証対象の列車を取得する", () => train = ServerContext.GetService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First());
-            return new PlaytestTrainLineSetup(stationA, stationB, stationAPosition, stationBPosition, train);
+            return new PlaytestTrainLineSetup(stationB, stationAPosition, stationBPosition, train);
 
             #region Internal
 
