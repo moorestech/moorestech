@@ -126,10 +126,13 @@ namespace Client.Tests.Ui.Screens.Notification
             // Lay out a host no rule matches first, then make sure a notification held afterwards is never silent
             var bare = new NotificationHostView(new NotificationModel(), new FakeNotificationTextLookup(), new FakeNotificationRowIcons());
             bare.RemoveFromClassList("notification-host");
+            // 門は預かりの有無に依らず配置の時点で 1 回出し、配置後の預かりは預かりの時点でも出す
+            // The gate logs once at layout regardless of holding, and a hold after layout logs at the hold too
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new Regex(@"^\[NotificationHostView\] custom style not resolved"));
             Mount(bare);
             AdvancePanel(0);
             AdvancePanel(0);
-            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new Regex(@"^\[NotificationHostView\] custom style not resolved"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new Regex(@"^\[NotificationHostView\] notification rows is held because"));
             bare.Render(new NotificationListViewModel(new System.Collections.Generic.List<NotificationRow> { new NotificationRow(1, 0, Earned(7, 1, "itemEarned.mined")) }));
         }
 

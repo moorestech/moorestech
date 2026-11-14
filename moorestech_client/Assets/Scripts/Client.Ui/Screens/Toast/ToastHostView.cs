@@ -4,10 +4,10 @@ using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.Foundation.Motion.Steps;
 using Client.Ui.Foundation.Motion.Tween;
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Theme.StyleResolution;
 using Client.Ui.State.Toast;
 using System.Collections.Generic;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Toast
@@ -21,9 +21,9 @@ namespace Client.Ui.Screens.Toast
         private const int VisibleMilliseconds = 3000;
 
         private readonly List<GameUiToast> _toastsWaitingForStyle = new();
+        private readonly UssStyleResolutionGate _gate;
         private float _enterMilliseconds;
         private float _exitMilliseconds;
-        private bool _styleResolved;
         private bool _durationsUnreadable;
 
         public ToastHostView()
@@ -31,22 +31,24 @@ namespace Client.Ui.Screens.Toast
             name = "toast-host";
             AddToClassList("toast-host");
             pickingMode = PickingMode.Ignore;
-            RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
+            _gate = new UssStyleResolutionGate(this, nameof(ToastHostView));
+            _gate.OnResolved.Subscribe(ReadDurations);
         }
 
         public void Push(GameUiToast toast)
         {
             // 出入り時間は USS の通知トークンから読むため、解決前の Push は解決後まで預かる
             // Fade durations come from the USS notification tokens, so a Push before resolution is held until it resolves
-            if (!_styleResolved)
+            if (!_gate.IsResolved)
             {
                 _toastsWaitingForStyle.Add(toast);
+                _gate.ReportHeldWhileUnresolved($"toast {toast.Text}");
                 return;
             }
 
             // トークンが読めなかったら黙って溜めず、薄れ無しで出して毎回 LogError で知らせる（送信結果などを利用者へ届けるのを優先）
             // With unreadable tokens never hoard silently: show without fades and LogError each time (delivering e.g. send results to the player comes first)
-            if (_durationsUnreadable) Debug.LogError($"[ToastHostView] toast fade tokens are unreadable; showing without fades: {toast.Text}");
+            if (_durationsUnreadable) _gate.ReportUnreadable(toast.Text);
 
             // 透明で足してから濃くし、表示時間のあとに薄れて外す
             // Add it transparent and fade it in, then fade it out and remove it after the display time
@@ -67,13 +69,12 @@ namespace Client.Ui.Screens.Toast
             #endregion
         }
 
-        private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
+        private void ReadDurations(ICustomStyle resolvedStyle)
         {
             // 「未解決」と「解決したが読めなかった」を分けて持つ。読めなければ Reader が LogError を出し、尺は 0（薄れ無し）にする
             // Keep "unresolved" apart from "resolved but unreadable"; when unreadable the reader logs an error and the durations become 0 (no fades)
-            var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--toast-host-enter-duration", out _enterMilliseconds);
-            var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--toast-host-exit-duration", out _exitMilliseconds);
-            _styleResolved = true;
+            var hasEnter = UssCustomStyleReader.TryReadMilliseconds(resolvedStyle, "--toast-host-enter-duration", out _enterMilliseconds);
+            var hasExit = UssCustomStyleReader.TryReadMilliseconds(resolvedStyle, "--toast-host-exit-duration", out _exitMilliseconds);
             _durationsUnreadable = !(hasEnter && hasExit);
             if (_durationsUnreadable)
             {

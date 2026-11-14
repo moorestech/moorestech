@@ -80,7 +80,7 @@ namespace Client.Tests.Ui.Screens.Notification
             var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(ProbePath);
             Assert.IsNotNull(sheet, ProbePath);
             LogAssert.Expect(LogType.Error, new Regex(@"\[UssCustomStyleReader\] --notification-host-enter-duration"));
-            LogAssert.Expect(LogType.Error, new Regex(@"^\[NotificationHostView\] notification enter/exit/shift tokens are unreadable"));
+            LogAssert.Expect(LogType.Error, new Regex(@"^\[NotificationHostView\] motion tokens are unreadable; showing without motion"));
             Host.styleSheets.Add(sheet);
             Host.AddToClassList("notification-host-unreadable-tokens-probe");
             AdvancePanel(0);

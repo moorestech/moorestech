@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Localization;
 using Client.Ui.Foundation.Theme;
+using Client.Ui.Foundation.Theme.StyleResolution;
 using Client.Ui.Screens.Notification.Parts;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Notification.Text;
@@ -19,19 +20,16 @@ namespace Client.Ui.Screens.Notification
     /// </summary>
     public sealed class NotificationHostView : VisualElement
     {
-        private const string StyleNotResolvedMessage = "[NotificationHostView] custom style not resolved after layout; is Notification.uss imported by GameUiTheme.tss and the notification-host class present?";
-        private const string TokensUnreadableMessage = "[NotificationHostView] notification enter/exit/shift tokens are unreadable; showing rows without enter or exit motion";
-
         private readonly NotificationModel _model;
         private readonly INotificationTextLookup _textLookup;
         private readonly INotificationRowIcons _icons;
         private readonly Dictionary<long, NotificationShownRow> _shownRows = new();
+        private readonly UssStyleResolutionGate _gate;
         private NotificationListViewModel _waitingForStyle;
         private NotificationRowTiming _timing;
         private IDisposable _languageSubscription;
         private float _stageScale = 1f;
         private float? _screenLeftPixels;
-        private bool _laidOutWithoutStyle;
 
         public NotificationHostView(NotificationModel model, INotificationTextLookup textLookup, INotificationRowIcons icons)
         {
@@ -41,8 +39,8 @@ namespace Client.Ui.Screens.Notification
             name = "notification-host";
             AddToClassList("notification-host");
             pickingMode = PickingMode.Ignore;
-            RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
-            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            _gate = new UssStyleResolutionGate(this, nameof(NotificationHostView));
+            _gate.OnResolved.Subscribe(ReadTiming);
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
@@ -51,11 +49,11 @@ namespace Client.Ui.Screens.Notification
         {
             // 尺はトークンから読むので、スタイル解決前の描画は解決後まで最新の 1 つを預かる
             // Durations come from tokens, so a render before style resolution keeps the latest one until it resolves
-            // silent-ok: パネルに付いてスタイルが解決するまでの一時的な預かり / 解決が来ないまま配置まで進んだら（tss の @import 漏れ等）OnGeometryChanged が LogError を出し、配置後に預かる分はここで LogError を出す
+            // silent-ok: 行の無い描画は預かっても失う通知が無い / 解決が来ないまま配置まで進めば門が配置の時点で LogError を出す
             if (_timing == null)
             {
                 _waitingForStyle = viewModel;
-                if (_laidOutWithoutStyle && 0 < viewModel.Rows.Count) Debug.LogError(StyleNotResolvedMessage);
+                if (0 < viewModel.Rows.Count) _gate.ReportHeldWhileUnresolved("notification rows");
                 return;
             }
 
@@ -151,33 +149,23 @@ namespace Client.Ui.Screens.Notification
             if (0 < _shownRows.Count) Debug.LogWarning($"[NotificationHostView] detached with {_shownRows.Count} rows; their exit motions stop; their lifetimes restart from the head if the host is attached again");
         }
 
-        private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
+        private void ReadTiming(ICustomStyle resolvedStyle)
         {
             // 読めないトークンは出入り無しで出す
             // Unreadable token shows without enter/exit; delivery comes first
-            var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-enter-duration", out var enter);
-            var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-exit-duration", out var exit);
-            var hasShift = UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-shift", out var shift);
-            if (UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-screen-left", out var screenLeft)) _screenLeftPixels = screenLeft;
+            var hasEnter = UssCustomStyleReader.TryReadMilliseconds(resolvedStyle, "--notification-host-enter-duration", out var enter);
+            var hasExit = UssCustomStyleReader.TryReadMilliseconds(resolvedStyle, "--notification-host-exit-duration", out var exit);
+            var hasShift = UssCustomStyleReader.TryReadPixels(resolvedStyle, "--notification-host-shift", out var shift);
+            if (UssCustomStyleReader.TryReadPixels(resolvedStyle, "--notification-host-screen-left", out var screenLeft)) _screenLeftPixels = screenLeft;
             ApplyScreenLeft();
-            if (!(hasEnter && hasExit && hasShift)) Debug.LogError(TokensUnreadableMessage);
+            if (!(hasEnter && hasExit && hasShift)) _gate.ReportUnreadable("notification rows show without enter or exit motion");
             _timing = hasEnter && hasExit && hasShift
                 ? new NotificationRowTiming(enter, exit, NotificationModel.DisplayMilliseconds, shift)
                 : new NotificationRowTiming(0f, 0f, NotificationModel.DisplayMilliseconds, 0f);
-            UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
             var waiting = _waitingForStyle;
             _waitingForStyle = null;
             if (waiting != null) Render(waiting);
-        }
-
-        // 配置まで進んでも画面 USS の受け直しが来ていなければ、預かった通知は出ない。無音にしないため開発者に知らせる（尺が決まると購読を外す）
-        // If layout ran but the screen USS custom properties never resolved, held notifications never show; tell developers (unsubscribed once durations are known)
-        private void OnGeometryChanged(GeometryChangedEvent geometryEvent)
-        {
-            if (_timing != null) return;
-            _laidOutWithoutStyle = true;
-            if (_waitingForStyle != null) Debug.LogError(StyleNotResolvedMessage);
         }
 
         // 舞台の倍率を受け、左端を実画面の px に保つ（Web .host の left: 1rem は --ui-scale の外。中身は PanelSettings の倍率で舞台と同率）
@@ -190,7 +178,7 @@ namespace Client.Ui.Screens.Notification
 
         private void ApplyScreenLeft()
         {
-            // silent-ok: 画面 USS の解決前は 16px が未知なので置かない / 読めなければ UssCustomStyleReader が LogError、解決しないまま行が来れば OnGeometryChanged が LogError
+            // silent-ok: 画面 USS の解決前は 16px が未知なので置かない / 読めなければ UssCustomStyleReader が LogError、解決しないまま配置まで進めば UssStyleResolutionGate が LogError
             if (_screenLeftPixels == null) return;
             style.left = _screenLeftPixels.Value / _stageScale;
         }
