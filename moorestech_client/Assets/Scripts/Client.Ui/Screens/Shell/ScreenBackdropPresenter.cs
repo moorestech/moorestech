@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
@@ -12,11 +11,10 @@ namespace Client.Ui.Screens.Shell
     /// 幕とヴィネットを起動時に最奥の層へ 1 回だけ載せ、画面ルータの判断で幕を出し入れする
     /// Mounts the dim and vignette once at startup in the back-most layer and toggles the dim on the screen router's decision
     /// </summary>
-    public sealed class ScreenBackdropPresenter : IInitializable, IDisposable
+    public sealed class ScreenBackdropPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly UiRoutingState _routingState;
-        private readonly CompositeDisposable _subscriptions = new();
         private ScreenBackdropView _view;
 
         public ScreenBackdropPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState)
@@ -34,7 +32,7 @@ namespace Client.Ui.Screens.Shell
 
             // ルータの値ごとに幕を出し入れする（前例 PauseMenuScreenPresenter と同じ形。結線は録画 uitk-hud が見る）
             // Toggle the dim on each router value (same shape as PauseMenuScreenPresenter; the recording uitk-hud checks the wiring)
-            _routingState.Current.Subscribe(snapshot => _view.SetBackdropShown(ShowsBackdropOn(snapshot))).AddTo(_subscriptions);
+            _routingState.Current.Subscribe(snapshot => _view.SetBackdropShown(ShowsBackdropOn(snapshot)));
 
             #region Internal
 
@@ -48,10 +46,5 @@ namespace Client.Ui.Screens.Shell
             #endregion
         }
 
-        public void Dispose()
-        {
-            _subscriptions.Dispose();
-            _view?.RemoveFromHierarchy();
-        }
     }
 }

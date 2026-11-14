@@ -1,4 +1,3 @@
-using System;
 using Server.Event.Notification;
 using UniRx;
 using VContainer.Unity;
@@ -9,11 +8,10 @@ namespace Client.Ui.State.Notification
     /// 通知の Feed を購読し、中身へ変換して書き口へ積む。購読前に来た除去告知は初期データから 1 回だけ積む
     /// Subscribes the notification feed and pushes converted contents through the write side; a prune notice that came before subscribing is pushed once from the initial data
     /// </summary>
-    public sealed class NotificationFeedRelay : IInitializable, IDisposable
+    public sealed class NotificationFeedRelay : IInitializable
     {
         private readonly NotificationFeed _feed;
         private readonly NotificationModel _model;
-        private IDisposable _subscription;
 
         public NotificationFeedRelay(NotificationFeed feed, NotificationModel model)
         {
@@ -27,7 +25,7 @@ namespace Client.Ui.State.Notification
             // Initial data and the subscription are taken in one synchronous span, so nothing is missed or doubled in between
             var initialNotice = _feed.SaveMigrationNotice;
             if (initialNotice != null) Push(initialNotice.Message);
-            _subscription = _feed.OnNotified.Subscribe(notification => Push(notification.Message));
+            _feed.OnNotified.Subscribe(notification => Push(notification.Message));
 
             #region Internal
 
@@ -43,9 +41,5 @@ namespace Client.Ui.State.Notification
             #endregion
         }
 
-        public void Dispose()
-        {
-            _subscription?.Dispose();
-        }
     }
 }

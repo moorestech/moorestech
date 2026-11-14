@@ -36,12 +36,6 @@ namespace Client.Tests.Ui.State.Notification
             _relay = new NotificationFeedRelay(_feed, _model);
         }
 
-        [TearDown]
-        public void DisposeRelay()
-        {
-            _relay.Dispose();
-        }
-
         /// <web-test file="src/features/notification/notificationStore.test.ts">snapshotで再着した同じseqの除去告知は1回だけ通す</web-test>
         [Test]
         public void 購読前に来た除去告知は初期データから1回だけ出る()

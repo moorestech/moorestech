@@ -36,7 +36,6 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
         [TearDown]
         public void TearDown()
         {
-            _reset.Dispose();
             Object.DestroyImmediate(_host);
         }
 
@@ -70,7 +69,6 @@ namespace Client.Tests.Ui.Screens.Recipe.Input
             var lateReset = new RecipeSelectionCloseReset(_routing, _probe, _selection);
             lateReset.Initialize();
             Assert.IsInstanceOf<ItemRecipeSelection>(_selection.Current.Value);
-            lateReset.Dispose();
         }
     }
 }

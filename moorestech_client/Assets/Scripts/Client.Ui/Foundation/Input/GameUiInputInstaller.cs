@@ -1,4 +1,3 @@
-using System;
 using Client.Input;
 using Client.Ui.Foundation.Root;
 using VContainer.Unity;
@@ -9,7 +8,7 @@ namespace Client.Ui.Foundation.Input
     /// GameUi のルートへ入力規則を付け、Pick の probe を入力排他へ登録する
     /// Attaches the input rules to the GameUi root and registers the Pick probe with the input exclusivity
     /// </summary>
-    public class GameUiInputInstaller : IInitializable, IDisposable
+    public class GameUiInputInstaller : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly GameUiPointerProbe _pointerProbe;
@@ -31,9 +30,5 @@ namespace Client.Ui.Foundation.Input
             UiInputExclusivity.SetGameUiPointerProbe(_pointerProbe);
         }
 
-        public void Dispose()
-        {
-            UiInputExclusivity.SetGameUiPointerProbe(null);
-        }
     }
 }

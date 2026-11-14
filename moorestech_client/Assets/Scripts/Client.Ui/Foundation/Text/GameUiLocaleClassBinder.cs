@@ -1,4 +1,3 @@
-using System;
 using Client.Localization;
 using Client.Ui.Foundation.Root;
 using UniRx;
@@ -10,10 +9,9 @@ namespace Client.Ui.Foundation.Text
     /// 言語変更に合わせてルートのロケールのクラスを付け替え、フォントの先頭を切り替える
     /// Re-applies the root locale class on language change to switch the leading font
     /// </summary>
-    public class GameUiLocaleClassBinder : IInitializable, IDisposable
+    public class GameUiLocaleClassBinder : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
-        private IDisposable _subscription;
 
         public GameUiLocaleClassBinder(GameUiRoot gameUiRoot)
         {
@@ -23,12 +21,7 @@ namespace Client.Ui.Foundation.Text
         public void Initialize()
         {
             Apply();
-            _subscription = Localize.OnLanguageChanged.Subscribe(_ => Apply());
-        }
-
-        public void Dispose()
-        {
-            _subscription?.Dispose();
+            Localize.OnLanguageChanged.Subscribe(_ => Apply());
         }
 
         private void Apply()

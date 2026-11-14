@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
@@ -12,12 +11,11 @@ namespace Client.Ui.Screens.Toast
     /// トースト層へ ToastHostView を常駐させ、GameUiToastFeed に出たトーストを積む
     /// Keeps a ToastHostView resident in the toast layer and pushes toasts that appear on GameUiToastFeed
     /// </summary>
-    public sealed class ToastLayerPresenter : IInitializable, IDisposable
+    public sealed class ToastLayerPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly GameUiToastFeed _toastFeed;
         private ToastHostView _host;
-        private IDisposable _subscription;
 
         public ToastLayerPresenter(GameUiRoot gameUiRoot, GameUiToastFeed toastFeed)
         {
@@ -29,13 +27,8 @@ namespace Client.Ui.Screens.Toast
         {
             _host = new ToastHostView();
             _gameUiRoot.GetLayer(UiLayer.Toast, UiFamily.Viewport).Add(_host);
-            _subscription = _toastFeed.OnToast.Subscribe(_host.Push);
+            _toastFeed.OnToast.Subscribe(_host.Push);
         }
 
-        public void Dispose()
-        {
-            _subscription?.Dispose();
-            _host?.RemoveFromHierarchy();
-        }
     }
 }

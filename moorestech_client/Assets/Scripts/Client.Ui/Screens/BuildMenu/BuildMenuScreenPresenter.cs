@@ -21,7 +21,7 @@ namespace Client.Ui.Screens.BuildMenu
     /// ビルドメニューの View を起動時に 1 回だけ載せ、画面ルータで出し入れし、出ている間だけ Model を購読する
     /// Mounts the build-menu view once at startup, shows or hides it on the screen router, and subscribes to the model only while shown
     /// </summary>
-    public sealed class BuildMenuScreenPresenter : IInitializable, IDisposable
+    public sealed class BuildMenuScreenPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly UiRoutingState _routingState;
@@ -33,7 +33,6 @@ namespace Client.Ui.Screens.BuildMenu
         private readonly UiCommandResultToaster _toaster;
         private readonly BuildMenuSessionStore _session;
         private readonly IUiOsCursor _osCursor;
-        private readonly CompositeDisposable _subscriptions = new();
         private IDisposable _modelSubscription;
         private BuildMenuView _view;
 
@@ -59,15 +58,7 @@ namespace Client.Ui.Screens.BuildMenu
             _view = new BuildMenuView(_commands, _hotbarCommands, _content, _icons, _toaster, _session, tracker, _osCursor);
 
             _gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(_view);
-            _routingState.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(SetShown).AddTo(_subscriptions);
-        }
-
-        public void Dispose()
-        {
-            _subscriptions.Dispose();
-            _modelSubscription?.Dispose();
-            _view?.SetShown(false);
-            _view?.RemoveFromHierarchy();
+            _routingState.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(SetShown);
         }
 
         private void SetShown(bool shown)

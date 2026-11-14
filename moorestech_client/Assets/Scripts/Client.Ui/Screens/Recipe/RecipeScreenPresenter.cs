@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.Recipe.Parts;
@@ -15,14 +14,13 @@ namespace Client.Ui.Screens.Recipe
     /// ビューアと一覧を起動時に舞台の Viewer・Items 列へ載せ、インベントリ画面のときだけ出す（Web App.tsx の screen === "playerInventory"）
     /// Mounts the viewer and list on the Viewer and Items stage columns at startup and shows them only on the inventory screen (Web App.tsx)
     /// </summary>
-    public sealed class RecipeScreenPresenter : IInitializable, IDisposable
+    public sealed class RecipeScreenPresenter : IInitializable
     {
         private readonly StageColumnsLayout _columns;
         private readonly UiRoutingState _routing;
         private readonly RecipeScreenModel _model;
         private readonly RecipeViewerView _viewer;
         private readonly ItemListView _itemList;
-        private readonly CompositeDisposable _subscriptions = new();
 
         public RecipeScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, RecipeScreenModel model, GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection)
         {
@@ -40,16 +38,9 @@ namespace Client.Ui.Screens.Recipe
             // Mount both views, subscribe to the screen first to settle visibility, then to the model (so nothing builds while hidden)
             _columns.Get(StageColumn.Viewer).Add(_viewer);
             _columns.Get(StageColumn.Items).Add(_itemList);
-            _routing.Current.Subscribe(ApplyScreen).AddTo(_subscriptions);
-            _model.Viewer.Subscribe(_viewer.Render).AddTo(_subscriptions);
-            _model.ItemList.Subscribe(_itemList.Render).AddTo(_subscriptions);
-        }
-
-        public void Dispose()
-        {
-            _subscriptions.Dispose();
-            _viewer.RemoveFromHierarchy();
-            _itemList.RemoveFromHierarchy();
+            _routing.Current.Subscribe(ApplyScreen);
+            _model.Viewer.Subscribe(_viewer.Render);
+            _model.ItemList.Subscribe(_itemList.Render);
         }
 
         private void ApplyScreen(UiRoutingSnapshot snapshot)

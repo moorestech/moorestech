@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
@@ -17,7 +16,7 @@ namespace Client.Ui.Screens.PauseMenu
     /// ポーズの View を起動時に 1 回だけ載せ、画面ルータの判断で表示・非表示を切り替える
     /// Mounts the pause-menu view once at startup and shows or hides it on the screen router's decision
     /// </summary>
-    public sealed class PauseMenuScreenPresenter : IInitializable, IDisposable
+    public sealed class PauseMenuScreenPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly UiRoutingState _routingState;
@@ -29,7 +28,6 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly IUiOsCursor _osCursor;
-        private readonly CompositeDisposable _subscriptions = new();
         private PauseMenuView _view;
 
         public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
@@ -56,8 +54,8 @@ namespace Client.Ui.Screens.PauseMenu
 
             // 開くたびに書きかけを空へ戻す（D-7）
             // Clear the draft on every open (D-7)
-            _pauseMenuModel.OnPauseMenuOpened.Subscribe(_ => _draft.Reset()).AddTo(_subscriptions);
-            _routingState.Current.Subscribe(snapshot => _view.SetShown(IsShownOn(snapshot))).AddTo(_subscriptions);
+            _pauseMenuModel.OnPauseMenuOpened.Subscribe(_ => _draft.Reset());
+            _routingState.Current.Subscribe(snapshot => _view.SetShown(IsShownOn(snapshot)));
 
             #region Internal
 
@@ -71,11 +69,5 @@ namespace Client.Ui.Screens.PauseMenu
             #endregion
         }
 
-        public void Dispose()
-        {
-            _subscriptions.Dispose();
-            _view?.SetShown(false);
-            _view?.RemoveFromHierarchy();
-        }
     }
 }

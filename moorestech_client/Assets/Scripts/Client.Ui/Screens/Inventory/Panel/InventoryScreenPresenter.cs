@@ -16,13 +16,12 @@ namespace Client.Ui.Screens.Inventory.Panel
     /// 持ち物パネルを載せ、掴める画面で購読して描く（A-92）
     /// Mounts the inventory panel and subscribes on grab screens (A-92)
     /// </summary>
-    public sealed class InventoryScreenPresenter : IInitializable, IDisposable
+    public sealed class InventoryScreenPresenter : IInitializable
     {
         private readonly StageColumnsLayout _columns;
         private readonly UiRoutingState _routing;
         private readonly PlayerInventoryPanelModel _model;
         private readonly InventoryView _view;
-        private IDisposable _routingSubscription;
         private IDisposable _modelSubscription;
 
         public InventoryScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
@@ -37,7 +36,7 @@ namespace Client.Ui.Screens.Inventory.Panel
         public void Initialize()
         {
             _columns.Get(StageColumn.Inv).Add(_view);
-            _routingSubscription = _routing.Current.Subscribe(snapshot => Apply(IsShownOn(snapshot.Screen)));
+            _routing.Current.Subscribe(snapshot => Apply(IsShownOn(snapshot.Screen)));
 
             #region Internal
 
@@ -47,7 +46,6 @@ namespace Client.Ui.Screens.Inventory.Panel
             {
                 return UiScreenTraitsTable.Get(screen).Grab;
             }
-
 
             void Apply(bool shown)
             {
@@ -63,11 +61,5 @@ namespace Client.Ui.Screens.Inventory.Panel
             #endregion
         }
 
-        public void Dispose()
-        {
-            _routingSubscription?.Dispose();
-            _modelSubscription?.Dispose();
-            _view.RemoveFromHierarchy();
-        }
     }
 }
