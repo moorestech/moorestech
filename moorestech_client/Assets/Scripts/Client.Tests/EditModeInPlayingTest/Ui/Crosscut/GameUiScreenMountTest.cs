@@ -8,6 +8,7 @@ using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.Hotbar;
 using Client.Ui.Screens.Inventory.Equipment;
 using Client.Ui.Screens.Inventory.Panel;

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.BlockInventory;
 using Client.Ui.Screens.BuildMenu;
 using Client.Ui.Screens.Challenge.CurrentHud;
