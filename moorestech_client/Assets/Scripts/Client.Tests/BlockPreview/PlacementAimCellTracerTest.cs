@@ -207,6 +207,61 @@ namespace Client.Tests
             Assert.Greater(hits, 500);
         }
 
+        [Test]
+        public void EdgeGraze_AtLargeNodeCorner_StillPrefersY()
+        {
+            // 木の基準点は最初のセル (64,0,5) なので x=64・y=0 はどの段でもノードの境目。外接直方体の中から空ノードを飛ばしてその辺を下から通り、Y の面（下面）を選ぶ
+            // The octree origin is the first cell (64,0,5), so x=64 and y=0 are node boundaries at every level; a ray from inside the bounds skips empty nodes, grazes that edge from below and picks the Y face (bottom)
+            var cells = CreateUnitBlocks(new Vector3Int(64, 0, 5), new Vector3Int(-1000, -300, 5));
+
+            var ray = new Ray(new Vector3(-136f, -200f, 5.5f), new Vector3(1f, 1f, 0f).normalized);
+            Assert.IsTrue(PlacementAimCellTracer.TryTrace(cells, ray, float.PositiveInfinity, out var distance, out var surface));
+            Assert.AreEqual(PreviewSurfaceType.XZ_Origin, surface);
+            Assert.AreEqual(200f * Mathf.Sqrt(2f), distance, 1e-2f);
+        }
+
+        [Test]
+        public void ClustersAcrossWideRange_MatchEveryCellBoxIntersection()
+        {
+            // 0 をまたぐ ±3000 の範囲に固まりを散らし、大きな空ノードを飛ばす長い線でも、全占有セルの箱との交差と一致すること
+            // Scatter clusters over ±3000 across zero; long rays that skip large empty nodes still match intersecting every occupied cell box
+            var random = new System.Random(777);
+            var cells = new BlockOccupiedCellIndex();
+            var occupied = new List<Vector3Int>();
+            for (var cluster = 0; cluster < 12; cluster++)
+            {
+                var center = new Vector3Int(random.Next(-3000, 3000), random.Next(-100, 200), random.Next(-3000, 3000));
+                for (var i = 0; i < 6; i++)
+                {
+                    var size = new Vector3Int(random.Next(1, 4), random.Next(1, 4), random.Next(1, 4));
+                    var posInfo = new BlockPositionInfo(center + new Vector3Int(random.Next(-20, 20), random.Next(-5, 5), random.Next(-20, 20)), BlockDirection.North, size);
+                    cells.Register(posInfo);
+                    for (var x = posInfo.MinPos.x; x <= posInfo.MaxPos.x; x++)
+                    for (var y = posInfo.MinPos.y; y <= posInfo.MaxPos.y; y++)
+                    for (var z = posInfo.MinPos.z; z <= posInfo.MaxPos.z; z++)
+                        occupied.Add(new Vector3Int(x, y, z));
+                }
+            }
+
+            var hits = 0;
+            for (var i = 0; i < 1500; i++)
+            {
+                var origin = new Vector3(Range(random, -3500f, 3500f), Range(random, -300f, 400f), Range(random, -3500f, 3500f));
+                if (cells.TryGetBlockAt(Vector3Int.FloorToInt(origin), out _)) continue;
+                var target = (Vector3)occupied[random.Next(occupied.Count)] + new Vector3(Range(random, -1f, 2f), Range(random, -1f, 2f), Range(random, -1f, 2f));
+                var ray = new Ray(origin, target - origin);
+
+                var expectedHit = TryNearestCellBox(occupied, ray, out var expectedDistance, out var expectedSurface);
+                var actualHit = PlacementAimCellTracer.TryTrace(cells, ray, float.PositiveInfinity, out var actualDistance, out var actualSurface);
+                Assert.AreEqual(expectedHit, actualHit, $"ray {i} {ray}");
+                if (!expectedHit) continue;
+                hits++;
+                Assert.AreEqual(expectedDistance, actualDistance, 1e-2f, $"ray {i} {ray}");
+                Assert.AreEqual(expectedSurface, actualSurface, $"ray {i} {ray}");
+            }
+            Assert.Greater(hits, 300);
+        }
+
         private static bool TryNearestCellBox(List<Vector3Int> occupied, Ray ray, out float distance, out PreviewSurfaceType surfaceType)
         {
             distance = float.PositiveInfinity;

@@ -50,8 +50,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             distance = 0f;
             surfaceType = default;
 
-            // 各軸の進む向きを用意する。次の境界までの距離は毎回セルから求め、空チャンクを飛ばした後も同じ値になるようにする
-            // Prepare per-axis steps; boundary times are recomputed from the cell each step so they match after skipping empty chunks
+            // 各軸の進む向きを用意する。次の境界までの距離は毎回セルから求め、空ノードを飛ばした後も同じ値になるようにする
+            // Prepare per-axis steps; boundary times are recomputed from the cell each step so they match after skipping empty nodes
             var origin = ray.origin;
             var direction = ray.direction;
             var step = Vector3Int.zero;
@@ -61,20 +61,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             }
             var lastT = float.NegativeInfinity;
             var faceAxis = -1;
+            var octree = cells.Octree;
+            octree.ResetProbePath();
+            var emptyLevel = octree.ProbeEmptyLevel(cell, out _);
 
             while (true)
             {
-                // 空のチャンクは出口の直前のセルまで飛ばす。出口が今の辺・角の組と同じ t なら組を崩さないよう飛ばさない
-                // Skip an empty chunk to the cell just before its exit, unless the exit shares the current edge/corner group's t
-                if (cells.IsChunkEmpty(cell))
+                // 今のセルを含む空のノードは出口の直前のセルまで飛ばす。出口が今の辺・角の組と同じ t なら組を崩さないよう飛ばさない
+                // Skip the empty node containing the cell to the cell just before its exit, unless the exit shares the current edge/corner group's t
+                if (emptyLevel > 0)
                 {
-                    var tChunkExit = ChunkExitTime(origin, direction, cell);
+                    var tNodeExit = NodeExitTime(octree, origin, direction, cell, emptyLevel);
                     // silent-ok: 射程内に占有セルが無いのは照準先にブロックが無い通常状態 / 呼び出し側が物理レイの結果へ戻す
                     // No occupied cell within range means no block on the aim path; the caller falls back to the physics result
-                    if (tChunkExit > tEnd) return false;
-                    if (tChunkExit > lastT)
+                    if (tNodeExit > tEnd) return false;
+                    if (tNodeExit > lastT)
                     {
-                        cell = CellJustBefore(ray, tChunkExit);
+                        cell = CellJustBefore(ray, tNodeExit);
                         lastT = float.NegativeInfinity;
                     }
                 }
@@ -100,25 +103,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
                 // 入ったセルが占有されていれば、入った向きの面を返す
                 // If the entered cell is occupied, return the face of the entering direction
-                if (!cells.TryGetBlockAt(cell, out _)) continue;
+                emptyLevel = octree.ProbeEmptyLevel(cell, out var occupied);
+                if (!occupied) continue;
                 distance = t;
                 surfaceType = PlacementAimBoxSlab.EnterFace(faceAxis, direction[faceAxis] > 0f);
                 return true;
             }
         }
 
-        private static float ChunkExitTime(Vector3 origin, Vector3 direction, Vector3Int cell)
+        private static float NodeExitTime(OccupiedCellOctree octree, Vector3 origin, Vector3 direction, Vector3Int cell, int level)
         {
-            // 進む向きにあるチャンク端のセルの境界のうち、最も近いものがチャンクの出口
-            // The chunk exit is the nearest boundary of the chunk's edge cells in the direction of travel
-            var size = 1 << BlockOccupiedCellIndex.ChunkShift;
+            // 進む向きにあるノード端のセルの境界のうち、最も近いものがノードの出口
+            // The node exit is the nearest boundary of the node's edge cells in the direction of travel
+            var size = 1 << level;
             var tExit = float.PositiveInfinity;
             for (var axis = 0; axis < 3; axis++)
             {
                 var d = direction[axis];
                 if (d == 0f) continue;
-                var chunkStart = (cell[axis] >> BlockOccupiedCellIndex.ChunkShift) * size;
-                var edgeCell = d > 0f ? chunkStart + size - 1 : chunkStart;
+                var nodeStart = octree.NodeStart(axis, cell[axis], level);
+                var edgeCell = d > 0f ? nodeStart + size - 1 : nodeStart;
                 tExit = Mathf.Min(tExit, NextBoundaryTime(origin[axis], d, edgeCell));
             }
             return tExit;

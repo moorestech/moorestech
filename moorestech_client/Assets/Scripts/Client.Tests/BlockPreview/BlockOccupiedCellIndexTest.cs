@@ -89,30 +89,24 @@ namespace Client.Tests
         }
 
         [Test]
-        public void IsChunkEmpty_FollowsRegisterAndRemove()
+        public void Octree_MatchesCellsThroughTakeoverAndRemove()
         {
-            // 負の座標のチャンク（-16..-1）と、重なって置き換わるセルの数え方を確かめる
-            // Check a negative-coordinate chunk (-16..-1) and counting when a cell is taken over by another block
+            // 別のブロックがセルを奪った後に元のブロックを外しても、奪ったセルは木に残る
+            // After another block takes a cell, removing the original block keeps the taken cell in the octree
             var index = new BlockOccupiedCellIndex();
             var a = new BlockPositionInfo(new Vector3Int(-1, 0, -16), BlockDirection.North, new Vector3Int(2, 1, 1));
             var b = new BlockPositionInfo(new Vector3Int(-1, 0, -16), BlockDirection.North, Vector3Int.one);
-            Assert.IsTrue(index.IsChunkEmpty(new Vector3Int(-16, 0, -1)));
-
             index.Register(a);
-            Assert.IsFalse(index.IsChunkEmpty(new Vector3Int(-16, 15, -1)));
-            Assert.IsFalse(index.IsChunkEmpty(new Vector3Int(0, 0, -16)));
-            Assert.IsTrue(index.IsChunkEmpty(new Vector3Int(-17, 0, -16)));
-            Assert.IsTrue(index.IsChunkEmpty(new Vector3Int(-1, 0, -17)));
+            Assert.IsTrue(index.Octree.Contains(new Vector3Int(-1, 0, -16)));
+            Assert.IsTrue(index.Octree.Contains(new Vector3Int(0, 0, -16)));
 
-            // b が (-1,0,-16) を奪ったあと a を外しても、b のセルが残るのでそのチャンクは空にならない
-            // After b takes (-1,0,-16), removing a keeps that chunk non-empty because b's cell remains
             index.Register(b);
             index.Remove(a);
-            Assert.IsFalse(index.IsChunkEmpty(new Vector3Int(-1, 0, -16)));
-            Assert.IsTrue(index.IsChunkEmpty(new Vector3Int(0, 0, -16)));
+            Assert.IsTrue(index.Octree.Contains(new Vector3Int(-1, 0, -16)));
+            Assert.IsFalse(index.Octree.Contains(new Vector3Int(0, 0, -16)));
 
             index.Remove(b);
-            Assert.IsTrue(index.IsChunkEmpty(new Vector3Int(-1, 0, -16)));
+            Assert.IsFalse(index.Octree.Contains(new Vector3Int(-1, 0, -16)));
         }
     }
 }
