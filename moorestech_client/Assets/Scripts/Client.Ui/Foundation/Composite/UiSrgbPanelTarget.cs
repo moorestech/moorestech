@@ -40,9 +40,19 @@ namespace Client.Ui.Foundation.Composite
             if (width <= 0 || height <= 0) return;
             if (_texture != null && _texture.width == width && _texture.height == height) return;
 
+            // 作れなかったら前の RT のまま投げる。差し替えないので次の呼びで寸法が合わず作り直しを試みる
+            // On failure keep the previous RT and throw; nothing is swapped, so the next call sees a size mismatch and retries
+            var candidate = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
+            if (!candidate.Create())
+            {
+                Release(candidate);
+                throw new UiSrgbPanelRenderTextureUnavailableException(width, height);
+            }
+
+            // 作れたときだけ差し替えて前を捨てる
+            // Swap only on success and drop the previous one
             var previous = _texture;
-            _texture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
-            if (!_texture.Create()) throw new UiSrgbPanelRenderTextureUnavailableException(width, height);
+            _texture = candidate;
             _settings.targetTexture = _texture;
             UiSrgbCompositeSource.SetTexture(_texture);
             if (previous != null) Release(previous);

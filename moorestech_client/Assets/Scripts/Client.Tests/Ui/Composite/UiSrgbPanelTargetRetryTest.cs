@@ -85,7 +85,7 @@ namespace Client.Tests.Ui.Composite
         // Accept Unity's error for the uncreatable RT and the EditMode Destroy error for the dropped RT
         private static void ExpectFailedCreation()
         {
-            LogAssert.Expect(LogType.Error, new Regex("RenderTexture|[Tt]exture"));
+            LogAssert.Expect(LogType.Error, new Regex(@"RenderTexture\.Create failed"));
             LogAssert.Expect(LogType.Error, EditModeDestroyError);
         }
 
