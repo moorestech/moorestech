@@ -1684,6 +1684,8 @@ wc -l moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs 
 ```
 
 Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStateRegistration.cs`（`GameUi/` 配下に 0 行）。`wc -l` がどちらも 200 未満
+
+> **実施時の改訂（コントローラー承認・D-36 の追記が本文より優先）**: 時刻表の action・駅名の 2 対は Web の wire（失敗理由を添えた文字列をトーストへ出す）と State（`block_not_open`・理由は Diagnostic）が違うため Step 1 に従い付け替えなかった。Web は `ITrainTimetableCommands` を呼ばないので `TrainTimetableCommands` は GameUi の系の登録のまま。両方の系へ移すのは `RecipeViewerItemCatalog`・`TrainBlockCommands` の 2 型で、上の grep は 2 行、L3 `WebUiSystemStateRegistrationTest` も 2 型を見る。`TrainWebUiActionRegistration.Register` は `ITrainTimetableCommands` を受けない。この 2 対の判定は X-5 で Web ホストを消すまで 2 か所に残る
 - [ ] **Step 3: テスト**: 対ごとに `winunity test uitk-lane/s5-crosscut --regex "^Client\.Tests\.WebUi\.|UiStateTransitionRules|RecipeCommands|CraftRecipeCatalog|RecipeViewerItemCatalog|TrainTimetable|TrainPlatform|TrainBlockCommands"` → 失敗 0。最後に `winunity test uitk-lane/s5-crosscut --regex "WebUiSystemStateRegistrationTest|WebUiSystemSkeletonTest|GameUiSkeletonTest"`（`--timeout 3600`。`GameUiSkeletonTest` は GameUi の系で登録を移した後も起動が通ることを見る）→ 失敗 0
 - [ ] **Step 4: 判断記録**: D-17 に「conductor 11-10 04:50 の『据え置き・X-5 で Web ホスト側を消す』を、この決定（DC-23 A）で覆す。X-5 は付け替え済みの Web ホストを消すだけ」を書く
 - [ ] **Step 5: コミット**: 対ごとに `refactor(webui-host): <対> の判定を State の <型> へ付け替える（DC-23 A。S5-crosscut T15）`
