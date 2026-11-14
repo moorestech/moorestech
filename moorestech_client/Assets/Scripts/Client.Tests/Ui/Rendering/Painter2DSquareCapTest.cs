@@ -1,8 +1,8 @@
-using Client.Ui.Foundation.Theme.Mesh;
+using Client.Ui.Foundation.Rendering;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.Ui.Theme.Mesh
+namespace Client.Tests.Ui.Rendering
 {
     public class Painter2DSquareCapTest
     {

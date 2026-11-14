@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Foundation.Theme.Mesh
+namespace Client.Ui.Foundation.Rendering
 {
     /// <summary>
     /// Painter2D に無い square の線端を、端を線幅の半分だけ線の向きへ延ばして作る（SVG stroke-linecap: square の写し）

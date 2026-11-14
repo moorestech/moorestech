@@ -1,6 +1,6 @@
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Foundation.Theme.Mesh
+namespace Client.Ui.Foundation.Rendering
 {
     /// <summary>
     /// 格子の頂点から四角を 2 枚の三角で書く唯一の並び（画面座標で時計回り。y は下向き）
@@ -49,22 +49,28 @@ namespace Client.Ui.Foundation.Theme.Mesh
 
         public void WriteTo(MeshWriteData mesh)
         {
-            mesh.SetNextIndex(TopLeft);
-            mesh.SetNextIndex(TopRight);
-            mesh.SetNextIndex(BottomRight);
-            mesh.SetNextIndex(TopLeft);
-            mesh.SetNextIndex(BottomRight);
-            mesh.SetNextIndex(BottomLeft);
+            for (var slot = 0; slot < IndexCount; slot++) mesh.SetNextIndex(IndexAt(slot));
         }
 
         public void WriteTo(ushort[] indices, int offset)
         {
-            indices[offset] = TopLeft;
-            indices[offset + 1] = TopRight;
-            indices[offset + 2] = BottomRight;
-            indices[offset + 3] = TopLeft;
-            indices[offset + 4] = BottomRight;
-            indices[offset + 5] = BottomLeft;
+            for (var slot = 0; slot < IndexCount; slot++) indices[offset + slot] = IndexAt(slot);
+        }
+
+        // 両方の書き口が回す唯一の並び
+        // The single ordering both writers iterate
+        private ushort IndexAt(int slot)
+        {
+            switch (slot)
+            {
+                case 0: return TopLeft;
+                case 1: return TopRight;
+                case 2: return BottomRight;
+                case 3: return TopLeft;
+                case 4: return BottomRight;
+                case 5: return BottomLeft;
+                default: throw new System.ArgumentOutOfRangeException(nameof(slot), slot, "GridQuadIndices has 6 slots");
+            }
         }
     }
 }

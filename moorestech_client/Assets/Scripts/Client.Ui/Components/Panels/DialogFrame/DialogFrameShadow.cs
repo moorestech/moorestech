@@ -1,7 +1,6 @@
 using Client.Ui.Foundation.Rendering;
 using System.Collections.Generic;
 using Client.Ui.Foundation.Theme;
-using Client.Ui.Foundation.Theme.Mesh;
 using UnityEngine;
 using UnityEngine.UIElements;
 

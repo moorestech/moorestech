@@ -23,7 +23,7 @@
 | R-3 | 束 5 の横断テストの写し | `i18n.spec` 2・`allScreensI18n` 3（残る 3 は R-2 の捨てる）・`uiState.spec` 5・`inputLayer.spec` 4・`textSelection` 2 の計 16 件に `/// <web-test file="…">…</web-test>` が付いた NUnit が緑。`test-name-parity.mjs --bundle 5 --emit-missing` の出力にこの 5 ファイルの行が 0 |
 | R-4 | DC-11 表示の出し入れ | `Foundation/Layout/UiDisplay.SetShown(VisualElement, bool)`（出すときは `StyleKeyword.Null`）が唯一の書き口、`UiDisplay.IsShownInline` が唯一の読み口。4 つの helper（`SpecialViewParts`:32・`SettingsSectionParts`:36・`BugReportRecoveryControlsView`:67-70 の `ShowIf`・`SkitToolbar`:90）を消し、`UiGapContainer`・`UiLayerStack`・`CursorTooltipView`・S5-challenge の `CurrentChallengeHudView`・`ChallengeListView` を含む直書き 77 か所（T2 の Files の全一覧。11-14 の実測 77 行 45 ファイル）を置換する。検査 `git grep -nE "style\.display[[:space:]]*=[^=]" -- 'moorestech_client/Assets/Scripts/Client.Ui/*.cs'` の結果が `Foundation/Layout/UiDisplay.cs` の 1 行だけ。読み `style\.display[[:space:]]*==` は 0 行（今は `UiGapContainer`:102・`ShortcutHintLabel`:90 の 2 行）。L1 `UiDisplayTest` 3 件 |
 | R-5 | DC-19 スクロールのクリップ逃げ | `Foundation/Layout/UiScrollClipInset`（`Apply` 4 辺・外と内を片側ずつ当てる `ApplyOuterMargin`／`ApplyInnerPadding`・左右だけの `ApplyHorizontal`）が唯一の式。4 実装（`RecipeEntryList`・`BuildMenuScrollClipInset`・`NodeGraphView`・`BlockInventoryNaturalScroll`）と `ResearchCalcKnobs.ApplyScrollBleed` が呼ぶ。`RecipeEntryList` は内側を部品の `RecipeListScrollView.SetClipPadding(float)` から当て、部品の内側の `contentContainer` を直に触らない。`ItemListView.ApplyClipClearance`（3 辺＋実測の基準値。Web の `ItemListPanel.module.css`:32-55 も別の式）は置き換えない（D-6）。L1 `UiScrollClipInsetTest` 3 件。並べ比べ（R-17）でスクロールの端が退行 0 |
-| R-6 | DC-27 描画ヘルパ | `Foundation/Theme/Mesh/GridMeshIndexWriter.WriteQuads`・`Painter2DSquareCap.AddSegment`・`ShadowRingMeshWriter.RingCount`／`CenterMargin` が唯一。格子の index 5 か所・square cap 2 か所・影の定数 2 部品が呼ぶ。L1 `GridMeshIndexWriterTest` 2 件・`Painter2DSquareCapTest` 1 件。部品の L1 と並べ比べが退行 0 |
+| R-6 | DC-27 描画ヘルパ | `Foundation/Rendering/GridMeshIndexWriter.WriteQuads`・`Painter2DSquareCap.AddSegment`・`ShadowRingMeshWriter.RingCount`／`CenterMargin` が唯一。格子の index 5 か所・square cap 2 か所・影の定数 2 部品が呼ぶ。L1 `GridMeshIndexWriterTest` 2 件・`Painter2DSquareCapTest` 1 件。部品の L1 と並べ比べが退行 0 |
 | R-7 | DC-28 B トークン待ちの宿主 | `Foundation/Theme/StyleResolution/UssStyleResolutionGate` が「解決待ち→解決の通知→配置後も未解決なら LogError」を持ち、`ToastHostView`・`NotificationHostView` が使う。読めないトークンの診断は両方が同じ文（`[<宿主>] … unreadable`）。L1 `UssStyleResolutionGateTest` 3 件、既存の Toast/Notification の L1 緑 |
 | R-8 | DC-10 画面がキーを受ける口 | `InputKey` のキーを画面へ渡す口は `Client.Input/KeyPress/IUiKeyPressSource`（`IObservable<Unit> OnPressed`・`bool WasPressedThisFrame()`）と唯一の実装 `InputKeyPressSource`（抽象。`InputKey` を読むのはここだけ）で、DI の鍵はキーごとの型 `ISkitAdvanceKeyPressSource`／`ICloseUiKeyPressSource`（実装 `SkitAdvanceKeyPressSource`・`CloseUiKeyPressSource`）。`SkitEnterKeySource`・`IUiCloseKeyProbe`・`InputManagerCloseKeyProbe` を消し、`RecipeSelectionCloseReset` を `Client.Ui.State/Recipe/Screen/` へ移す（駆動は旧の pull のまま。D-8）。矢印は A-162 のとおり `Client.Input/ArrowKeys/InputSystemArrowKeyStream` が流し、UI の入力マップと `.inputactions` は変えない。stream が押下の縁を `InputSuppressionFilter.FilterKeyPress` に 1 回通し、`BeltThroughputSectionPresenter` の `UiInputExclusivity.IsTextInputFocused` を消す。入力欄のフォーカス中に 3 口とも流れないことを L0 で固定（`UiKeyPressSourceSuppressionTest` 3 件・`InputSystemArrowKeyStreamTest` に 1 件） |
 | R-9 | DC-8 B 画面の表示判定 | 画面の開閉を読む State は `<機能>ScreenVisibility.IsShown(UiRoutingSnapshot …)` を通す（`BuildMenuScreenVisibility`・`RecipeScreenVisibility` を新設、`ResearchScreenVisibility`〈I-fix6 #1660〉・`BlockInventoryScreenVisibility`・`ChallengeScreenVisibility`〈S5-challenge #1663〉は既存）。`BuildMenuModel`・`BuildMenuCommands.IsBuildMenuOpen`・`ResearchNodeStateStore` が `UIStateControl.CurrentState` を読まない。`RecipeScreenModel.IsScreenShown` は消して `RecipeScreenVisibility.IsShown` へ移し、`RecipeScreenPresenter`:59 と Model の :82 はそれを呼ぶ（I-fix6 の依頼「Recipe の IsScreenShown」）。`snapshot.Screen == UiScreen.<画面>` の直書き（`BuildMenuScreenPresenter`:57。研究の 3 か所は I-fix6 が付け替え済み）も `<機能>ScreenVisibility` を呼ぶ（`git grep -nE "Screen [!=]= UiScreen\." -- 'moorestech_client/Assets/Scripts/Client.Ui*/*.cs'` が `*ScreenVisibility.cs` と、理由のコメント付きの `BlockInventoryPanelModel.cs`:60 だけ。11-14 は 6 行）。ベルトの区画の ←→ の表示判定は View の `SpecialViewParts.IsDisplayedInHierarchy`（resolvedStyle を親へ辿る）でなく `BlockInventoryScreenVisibility.IsShown` を読む（I-fix6 の依頼「ベルトの区画の表示判定」・X-audit c21-dc。T7 Step 3b）。`UiScreen` に無い状態（GameScreen・PlaceBlock 等）を読む箇所は理由の 1 行コメント付きで残す。既存の L0/L1 緑 |
@@ -150,7 +150,7 @@ S = `moorestech_client/Assets/Scripts`。持ち主が他レーンのファイル
 | `S/Client.Tests/Ui/Crosscut/` 一式（`GameUiExceptionLoggingTest`・`PresenterMountTest`・`Localization/`・`Input/`・`TextSelection/`） | 作る | 横断の L1。10 ファイルを超えたらサブディレクトリ |
 | `S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiScreenMountTest.cs`・`AllScreensLanguageSwitchTest.cs` | 作る | L3（Stage<n> はラダーのレーンの持ち物なので使わない） |
 | `S/Client.Ui/Foundation/Layout/UiDisplay.cs`・`UiScrollClipInset.cs` | 作る | DC-11・DC-19 |
-| `S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs` | 作る | DC-27 |
+| `S/Client.Ui/Foundation/Rendering/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs` | 作る | DC-27 |
 | `S/Client.Ui/Foundation/Theme/ShadowRingMeshWriter.cs` | 直す | `RingCount`・`CenterMargin` |
 | `S/Client.Ui/Foundation/Theme/StyleResolution/UssStyleResolutionGate.cs` | 作る | DC-28 B。`Foundation/Theme/` 直下は USS・txt を含めて 14 ファイルなのでサブディレクトリ（D-7 と同じ数え方） |
 | `S/Client.Input/KeyPress/IUiKeyPressSource.cs`・`InputKeyPressSource.cs`・`UiKeyPressSources.cs` | 作る | DC-10（口 1・実装 1・キーごとの型 2） |
@@ -907,20 +907,20 @@ Run: `winunity compile uitk-lane/s5-crosscut` → `winunity test uitk-lane/s5-cr
 ### Task 4: DC-27 描画ヘルパ（R-6）
 
 **Files:**
-- Create: `S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs`、Test: `S/Client.Tests/Ui/Theme/Mesh/GridMeshIndexWriterTest.cs`・`Painter2DSquareCapTest.cs`（既存の Theme の L1 `Client.Tests/Ui/Theme/` の下に、本体と同じ `Mesh/`。`Client.Tests/Ui/Foundation/` は無い）
+- Create: `S/Client.Ui/Foundation/Rendering/GridMeshIndexWriter.cs`・`Painter2DSquareCap.cs`、Test: `S/Client.Tests/Ui/Rendering/GridMeshIndexWriterTest.cs`・`Painter2DSquareCapTest.cs`（前例 `ShadowRingMeshWriterTest` と同じ置き場）
 - Modify: `Screens/Shell/ScreenVignette.cs`（:85-97）・`Components/Panels/GamePanel/GamePanelFace.cs`（:101-116）・`Components/Panels/DialogFrame/DialogFrameShadow.cs`（:108-120）・`Components/Controls/RecipeActionButton/RecipeActionFaceMesh.cs`（:74-87）・`Components/Recipe/RecipeRow/RecipeRowFrame.cs`（:123-128）・`Components/Controls/IconButton/IconButtonCloseGlyph.cs`（:63 のローカル関数）・`SkitAdvanceMarker.cs`（`ExtendedEnd`）・`Foundation/Theme/ShadowRingMeshWriter.cs`・`Components/Recipe/RecipeRow/RecipeRowFrameShadowMesh.cs`（:21,29）・`Components/Gauges/ProgressArrowGlyph/ProgressArrowGlyphShadowMesh.cs`（:19,29）
 
 **Interfaces:** Consumes: `MeshWriteData.SetNextIndex(ushort)`・`Painter2D.MoveTo/LineTo`。Produces: `GridMeshIndexWriter.WriteQuads(MeshWriteData mesh, int rows, int columns, int stride)`・`Painter2DSquareCap.AddSegment(Painter2D painter, Vector2 from, Vector2 to, float halfWidth)`・`Painter2DSquareCap.Extend(Vector2 end, Vector2 from, float length)`・`ShadowRingMeshWriter.RingCount`（8）・`ShadowRingMeshWriter.CenterMargin`（0.01f）
 
 - [x] **Step 1: 並びの照合**: 5 か所の index が「左上・右上・右下」「左上・右下・左下」（`GamePanelFace.cs`:106-115 の形）と同じかを読み、違う並び（`ItemHeaderRule`:67-72・`CrosshairShadowRing`:90-95 は起草時に別の並び）は置換しない。同じ並びのものだけを表にして D-7 に書く
-- [ ] **Step 2: L1（赤）**: `GridMeshIndexWriterTest` — 2×3 の格子（stride 4）で 36 個の index の最初の 6 個が `0,1,5,0,5,4`、最後の 6 個が `6,7,11,6,11,10`（`MeshWriteData` は `MeshGenerationContext` の外で作れないので、`WriteQuads` の内部の並びを `GridMeshIndexWriter.QuadIndices(int row, int column, int stride)`〈4 欄の `GridQuadIndices` 構造体を返す。`WriteTo(mesh)` が並び `TopLeft,TopRight,BottomRight,TopLeft,BottomRight,BottomLeft` を書く〉に出し、その 4 欄が `(0,1,5,4)` のように並ぶこと（6 個の並びは `WriteTo` が固定）を試す）。`Painter2DSquareCapTest` — `Extend(new Vector2(10,0), Vector2.zero, 2f)` が `(12,0)`
-- [ ] **Step 3: 作る**
+- [x] **Step 2: L1（赤）**: `GridMeshIndexWriterTest` — 2×3 の格子（stride 4）で 36 個の index の最初の 6 個が `0,1,5,0,5,4`、最後の 6 個が `6,7,11,6,11,10`（`MeshWriteData` は `MeshGenerationContext` の外で作れないので、`WriteQuads` の内部の並びを `GridMeshIndexWriter.QuadIndices(int row, int column, int stride)`〈4 欄の `GridQuadIndices` 構造体を返す。`WriteTo(mesh)` が並び `TopLeft,TopRight,BottomRight,TopLeft,BottomRight,BottomLeft` を書く〉に出し、その 4 欄が `(0,1,5,4)` のように並ぶこと（6 個の並びは `WriteTo` が固定）を試す）。`Painter2DSquareCapTest` — `Extend(new Vector2(10,0), Vector2.zero, 2f)` が `(12,0)`
+- [x] **Step 3: 作る**
 
 ```csharp
-// S/Client.Ui/Foundation/Theme/Mesh/GridMeshIndexWriter.cs
+// S/Client.Ui/Foundation/Rendering/GridMeshIndexWriter.cs
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Foundation.Theme.Mesh
+namespace Client.Ui.Foundation.Rendering
 {
     /// <summary>
     /// 格子の頂点から四角を 2 枚の三角で書く唯一の並び（画面座標で時計回り。y は下向き）
@@ -973,11 +973,11 @@ namespace Client.Ui.Foundation.Theme.Mesh
 ```
 
 ```csharp
-// S/Client.Ui/Foundation/Theme/Mesh/Painter2DSquareCap.cs
+// S/Client.Ui/Foundation/Rendering/Painter2DSquareCap.cs
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Foundation.Theme.Mesh
+namespace Client.Ui.Foundation.Rendering
 {
     /// <summary>
     /// Painter2D に無い square の線端を、端を線幅の半分だけ線の向きへ延ばして作る（SVG stroke-linecap: square の写し）
@@ -1005,7 +1005,7 @@ namespace Client.Ui.Foundation.Theme.Mesh
 
 Run: `winunity compile uitk-lane/s5-crosscut` → `winunity test uitk-lane/s5-crosscut --regex "GridMeshIndexWriterTest|Painter2DSquareCapTest|ScreenVignette|GamePanel|DialogFrame|RecipeAction|RecipeRow|IconButton|SkitAdvance|ProgressArrow"` → 失敗 0
 
-- [ ] **Step 4: コミット**: `refactor(uitk): 格子の index・square cap・影の輪の定数を Foundation/Theme/Mesh へ（DC-27。S5-crosscut T4）`
+- [x] **Step 4: コミット**: `refactor(uitk): 格子の index・square cap・影の輪の定数を Foundation/Theme/Mesh へ（DC-27。S5-crosscut T4）`
 
 ---
 
@@ -1923,7 +1923,8 @@ Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStat
     | `ResearchCalcKnobs.ApplyScrollBleed` | `--research-tree-scroll-bleed` | 左右 −bleed | 左右 bleed | 足さない | 呼び手が両方を渡す | `ApplyHorizontal` |
     | `RecipeEntryList` | `--recipe-entry-list-clip-inset`・`--recipe-entry-list-stack-gap` | 4 辺 −inset（自分）、上だけ `gap − inset` | 4 辺 inset（部品の内側の `GameScrollView.contentContainer`） | 上だけ gap を足す | 違う（外は自分・内は部品） | `ApplyOuterMargin` の後に上を書き直し、内は `RecipeListScrollView.SetClipPadding` |
     | `ItemListView` | `--…-clip-inset`・`-margin-left-base`・`-top-base` | 左 `leftBase − inset`・上 `topBase − inset`・下 −inset。右なし | 上・下・左 inset。右なし | 左・上に基準値 | — | 置き換えない |
-- D-7（agent 既定。gate の置き場は指揮の agent 既定（PLAN-W5 設計検査））: 格子の index と square cap と影の輪の定数は `Foundation/Theme/Mesh/`。Theme 直下は USS・txt を含めて 14 ファイル（.cs 4 本）で、USS もディレクトリの 10 ファイルに数えるので、`UssStyleResolutionGate` も直下に足さず `Foundation/Theme/StyleResolution/` に置く。並びの違う 2 か所は置換しない（T4 Step 1）
+- D-7（agent 既定。gate の置き場は指揮の agent 既定（PLAN-W5 設計検査））: 格子の index と square cap と影の輪の定数は `Foundation/Rendering/`（名前空間 `Client.Ui.Foundation.Rendering`、テストは `Client.Tests/Ui/Rendering/`）。Theme 直下は USS・txt を含めて 14 ファイル（.cs 4 本）で、USS もディレクトリの 10 ファイルに数えるので、`UssStyleResolutionGate` も直下に足さず `Foundation/Theme/StyleResolution/` に置く。並びの違う 2 か所は置換しない（T4 Step 1）
+  - レビューで置き場を `Foundation/Theme/Mesh/` から Rendering へ（前例 `ShadowRingMeshWriter`・`GaussianEdgeCoverage` が Rendering にあり、`Theme.Mesh` 名前空間が Theme 配下で `UnityEngine.Mesh` を隠すため）
   - T4 Step 1 の照合（実物）: 並び「左上・右上・右下」「左上・右下・左下」が同じで置換したもの — `ScreenVignette.cs`:85-97（格子 Rows×Columns・stride Columns+1）・`GamePanelFace.cs`:103-115（格子・stride GridLineCount）・`DialogFrameShadow.cs`:110-122（格子・stride xs.Length）・`RecipeActionFaceMesh.cs`:74-87（帯は 1 行の格子・stride ColumnCount、枠の帯 2 枚は頂点が左上・右上・左下・右下の順なので `new GridQuadIndices(first, first+1, first+3, first+2)`。書き先が `ushort[]` なので `GridQuadIndices.WriteTo(ushort[], int)` を足した）・`RecipeRowFrame.cs`:123-128（独立の四角。頂点は左上・右上・右下・左下の順なので `new GridQuadIndices(first, first+1, first+2, first+3)`）。置換しないもの — `ItemHeaderRule.cs`:67-72（a, a+2, a+1 / a+1, a+2, a+3。頂点が縦の対で並ぶ別の並び）・`CrosshairShadowRing.cs`:90-95（inner, outerNext, innerNext / inner, outer, outerNext。輪の並び）・`GamePanelCraftGrip.cs`:45-47（三角 1 枚）
   - 読み替え: `Foundation/Theme/ShadowRingMeshWriter.cs` → 実物は `Foundation/Rendering/ShadowRingMeshWriter.cs`（名前空間 `Client.Ui.Foundation.Rendering`）。置き場は動かさず定数をそこへ足した。2 部品の `RingCount`（public）と `BarCenterMargin`・`ShaftCenterMargin`（private）を消し、外から読むテスト 2 本（`RecipeRowFrameShadowMeshTest`・`ProgressArrowGlyphShadowMeshTest`）も `ShadowRingMeshWriter.RingCount` へ
 - D-8（agent 既定。設計書 §7.1 に A-246 を足す。A-162 を保つこと・駆動の比較・DI の形は指揮の agent 既定（PLAN-W5 設計検査））: 画面が `InputKey` のキーを受ける口は `IUiKeyPressSource`（`OnPressed`・`WasPressedThisFrame()`）1 本と唯一の実装 `InputKeyPressSource` で、抑止と ESC ラッチは `InputKey` の `InputSuppressionFilter` だけが持つ。棄却: 3 通りを ref-uitk-design に書いて残す（DC-10 B）— 抑止の持ち方が 2 通り残る。棄却: 4 つの口を持つ集約型を 1 つ注入 — 使わない口まで見える。

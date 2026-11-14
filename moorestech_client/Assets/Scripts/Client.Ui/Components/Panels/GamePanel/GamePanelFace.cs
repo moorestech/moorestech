@@ -1,5 +1,5 @@
 using Client.Ui.Foundation.Theme;
-using Client.Ui.Foundation.Theme.Mesh;
+using Client.Ui.Foundation.Rendering;
 using UnityEngine;
 using UnityEngine.UIElements;
 
