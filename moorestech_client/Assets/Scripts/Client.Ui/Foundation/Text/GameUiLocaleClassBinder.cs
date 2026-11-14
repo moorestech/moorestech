@@ -21,7 +21,10 @@ namespace Client.Ui.Foundation.Text
         public void Initialize()
         {
             Apply();
-            Localize.OnLanguageChanged.Subscribe(_ => Apply());
+
+            // 源は static で PlayMode を抜けても残るので、購読はルートの GameObject の破棄で解く
+            // The static source survives leaving play mode, so the subscription ends when the root GameObject is destroyed
+            Localize.OnLanguageChanged.Subscribe(_ => Apply()).AddTo(_gameUiRoot);
         }
 
         private void Apply()

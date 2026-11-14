@@ -17,6 +17,23 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
     [Category("CiShardClientPlay1")]
     public class GameUiStaticSubscriptionLifetimeTest : UiSystemPlayModeTestBase
     {
+        private bool _languageTouched;
+        private bool _hadSavedLanguageCode;
+        private string _savedLanguageCode;
+
+        [TearDown]
+        public void RestoreLanguage()
+        {
+            // 言語に触れた後だけ、保存値と有無を復元し言語状態を初期化する（赤で途中で抜けても戻す）
+            // Only after touching the language, restore value and presence and reset the state (even when a red run bails out)
+            if (!_languageTouched) return;
+            if (_hadSavedLanguageCode) PlayerPrefs.SetString(Localize.LanguagePreferenceKey, _savedLanguageCode);
+            else PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
+            PlayerPrefs.Save();
+            Localize.Initialize();
+            _languageTouched = false;
+        }
+
         [UnityTest]
         public IEnumerator PlayModeを抜けた後に言語を変えても破棄済みのUIを叩かない()
         {
@@ -36,17 +53,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
 
             // 保存値を退避してから、ドメインを読み直さない Edit モードで言語を往復する
             // Preserve the persisted value, then round-trip the language in edit mode without a domain reload
-            var hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
-            var savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
+            _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
+            _savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
+            _languageTouched = true;
             Localize.TrySetChosenLanguage("japanese");
             Localize.TrySetChosenLanguage("english");
-
-            // 保存値と有無を復元し、言語状態を初期化する
-            // Restore value and presence, then reset the language state
-            if (hadSavedLanguageCode) PlayerPrefs.SetString(Localize.LanguagePreferenceKey, savedLanguageCode);
-            else PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
-            PlayerPrefs.Save();
-            Localize.Initialize();
 
             LogAssert.NoUnexpectedReceived();
         }
