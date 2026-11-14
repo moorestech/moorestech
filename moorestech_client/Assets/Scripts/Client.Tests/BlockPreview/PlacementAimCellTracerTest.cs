@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Block.Index;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -151,6 +152,78 @@ namespace Client.Tests
             var ray = new Ray(new Vector3(8f, 3f, 0.5f), new Vector3(-1f, -1f, 0f).normalized);
             Assert.IsTrue(PlacementAimCellTracer.TryTrace(cells, ray, 100f, out _, out var surface));
             Assert.AreEqual(PreviewSurfaceType.XZ_Y, surface);
+        }
+
+        [Test]
+        public void EdgeGraze_AcrossEmptyChunksIntoChunkCorner_StillPrefersY()
+        {
+            // 空チャンクを飛ばしながら進み、(16,1) の辺で Y 越境（空チャンクの (15,0,5) へ）と X 越境（チャンク境界 x=16 を越えて (16,0,5) へ）が同じ t になる
+            // The ray skips empty chunks and reaches the (16,1) edge where the Y crossing (into empty-chunk cell (15,0,5)) and the X crossing (over chunk boundary x=16 into (16,0,5)) share t
+            var cells = CreateUnitBlocks(new Vector3Int(16, 0, 5), new Vector3Int(-30, 50, 5));
+
+            var ray = new Ray(new Vector3(-24f, 41f, 5.5f), new Vector3(1f, -1f, 0f).normalized);
+            Assert.IsTrue(PlacementAimCellTracer.TryTrace(cells, ray, float.PositiveInfinity, out var distance, out var surface));
+            Assert.AreEqual(PreviewSurfaceType.XZ_Y, surface);
+            Assert.AreEqual(40f * Mathf.Sqrt(2f), distance, 1e-3f);
+        }
+
+        [Test]
+        public void SparseBlocksAcrossChunks_MatchEveryCellBoxIntersection()
+        {
+            // チャンクをまたいでまばらに置いたブロックへ乱数のレイを撃ち、全占有セルの箱と1つずつ交差させた最も近い面と比べる
+            // Shoot random rays at blocks scattered across chunks and compare with the nearest face from intersecting every occupied cell box
+            var random = new System.Random(12345);
+            var cells = new BlockOccupiedCellIndex();
+            var occupied = new List<Vector3Int>();
+            for (var i = 0; i < 40; i++)
+            {
+                var size = new Vector3Int(random.Next(1, 3), random.Next(1, 3), random.Next(1, 3));
+                var posInfo = new BlockPositionInfo(new Vector3Int(random.Next(-80, 80), random.Next(0, 40), random.Next(-80, 80)), BlockDirection.North, size);
+                cells.Register(posInfo);
+                for (var x = posInfo.MinPos.x; x <= posInfo.MaxPos.x; x++)
+                for (var y = posInfo.MinPos.y; y <= posInfo.MaxPos.y; y++)
+                for (var z = posInfo.MinPos.z; z <= posInfo.MaxPos.z; z++)
+                    occupied.Add(new Vector3Int(x, y, z));
+            }
+
+            var hits = 0;
+            for (var i = 0; i < 3000; i++)
+            {
+                var origin = new Vector3(Range(random, -100f, 100f), Range(random, -10f, 60f), Range(random, -100f, 100f));
+                if (cells.TryGetBlockAt(Vector3Int.FloorToInt(origin), out _)) continue;
+                // 狙ったブロックの近くへ向け、当たるレイも十分に含める
+                // Aim near a chosen occupied cell so plenty of rays hit
+                var target = (Vector3)occupied[random.Next(occupied.Count)] + new Vector3(Range(random, -1f, 2f), Range(random, -1f, 2f), Range(random, -1f, 2f));
+                var ray = new Ray(origin, target - origin);
+
+                var expectedHit = TryNearestCellBox(occupied, ray, out var expectedDistance, out var expectedSurface);
+                var actualHit = PlacementAimCellTracer.TryTrace(cells, ray, float.PositiveInfinity, out var actualDistance, out var actualSurface);
+                Assert.AreEqual(expectedHit, actualHit, $"ray {i} {ray}");
+                if (!expectedHit) continue;
+                hits++;
+                Assert.AreEqual(expectedDistance, actualDistance, 1e-3f, $"ray {i} {ray}");
+                Assert.AreEqual(expectedSurface, actualSurface, $"ray {i} {ray}");
+            }
+            Assert.Greater(hits, 500);
+        }
+
+        private static bool TryNearestCellBox(List<Vector3Int> occupied, Ray ray, out float distance, out PreviewSurfaceType surfaceType)
+        {
+            distance = float.PositiveInfinity;
+            surfaceType = default;
+            foreach (var cell in occupied)
+            {
+                if (!PlacementAimBoxSlab.TryIntersect(ray, cell, cell + Vector3Int.one, out var tEnter, out var enterAxis, out _, out _)) continue;
+                if (tEnter <= 0f || tEnter >= distance) continue;
+                distance = tEnter;
+                surfaceType = PlacementAimBoxSlab.EnterFace(enterAxis, ray.direction[enterAxis] > 0f);
+            }
+            return !float.IsPositiveInfinity(distance);
+        }
+
+        private static float Range(System.Random random, float min, float max)
+        {
+            return min + (float)random.NextDouble() * (max - min);
         }
 
         private static BlockOccupiedCellIndex CreateUnitBlocks(Vector3Int first, Vector3Int second)
