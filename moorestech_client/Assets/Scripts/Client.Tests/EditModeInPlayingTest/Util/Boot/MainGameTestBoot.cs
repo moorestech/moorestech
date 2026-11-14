@@ -18,9 +18,9 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
     /// </summary>
     public static class MainGameTestBoot
     {
-        // Windows の負荷下では初期化が通常の 2〜3 倍かかり 60 秒を超えた実測があるため、地形生成の起動と同じ上限にそろえる
-        // Under Windows load initialization was measured at 2-3x its usual time, past 60 seconds, so this matches the generated-terrain boot bound
-        private const int InitializationTimeoutSeconds = 180;
+        // 負荷下の Windows では 60 秒で足りず、UTF 既定のテスト上限 180 秒（再読込を跨いで起動から数える）にローダー待ちと合わせて負けない値にする
+        // 60s fell short on loaded Windows; with the loader wait it must stay under UTF's default 180s per-test limit, counted from test start across reloads
+        internal const int InitializationTimeoutSeconds = 100;
         private const int LoaderTimeoutMilliseconds = 60000;
 
         public static async UniTask BootUntilInitialized(string serverDirectory, string worldDirectory, string mapMode)

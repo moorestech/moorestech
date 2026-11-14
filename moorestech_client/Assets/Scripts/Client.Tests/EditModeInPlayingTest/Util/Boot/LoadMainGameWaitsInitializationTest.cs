@@ -14,6 +14,8 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
     /// LoadMainGame は初期化の完了を待ってから戻る。戻った直後に足場を置くテストが自機の配置と競合しないため
     /// LoadMainGame returns only after initialization completes, so tests placing ground right after it never race the player placement
     /// </summary>
+    // 速い環境では待ちを外しても戻る前に初期化が終わり緑になりうる。遅い環境でだけ赤になる確率的な回帰検出
+    // On a fast machine initialization may finish before the return even without the wait, so this catches regressions only probabilistically on slow ones
     // shard割当はクラスと一緒に移動・改名される
     // The shard assignment travels with the class through moves and renames
     [Category("CiShardClientPlay3")]
@@ -48,7 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
 
                 // 戻りと完了の前後関係を秒で残す（負なら戻った後に完了した）
                 // Log the return-vs-completion gap in seconds (negative means completion came after the return)
-                await UniTask.WaitUntil(() => initializedAt >= 0f).Timeout(System.TimeSpan.FromSeconds(180));
+                await UniTask.WaitUntil(() => initializedAt >= 0f).Timeout(System.TimeSpan.FromSeconds(MainGameTestBoot.InitializationTimeoutSeconds));
                 Debug.Log($"[LoadMainGameWaitsInitializationTest] returnedAt - initializedAt = {returnedAt - initializedAt:F2}s");
                 Assert.IsTrue(initializedAtReturn, "LoadMainGame が GameInitializedEvent より先に戻った");
             }

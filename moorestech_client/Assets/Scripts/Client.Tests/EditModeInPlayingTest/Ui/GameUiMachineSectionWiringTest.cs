@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq;
-using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -25,7 +24,6 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UniRx;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;

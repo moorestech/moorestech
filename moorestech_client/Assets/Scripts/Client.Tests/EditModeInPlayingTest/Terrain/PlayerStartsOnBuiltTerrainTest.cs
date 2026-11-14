@@ -102,7 +102,9 @@ namespace Client.Tests.EditModeInPlayingTest
                 async UniTask<float> TraceLowestPlayerYUntilLoaded()
                 {
                     var lowestY = float.MaxValue;
-                    while (isLoading)
+                    // 起動が Assert.Fail で抜けると isLoading は残るので、PlayMode を出た時点でも止める
+                    // If the boot exits via Assert.Fail isLoading stays true, so also stop once PlayMode ends
+                    while (isLoading && Application.isPlaying)
                     {
                         // 自機はシーンロード後に生えるので、現れるまでは記録対象が無い
                         // The player appears only after the scene loads, so there is nothing to record until then

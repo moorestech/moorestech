@@ -2,12 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
-using Client.Starter;
 using Client.Tests.EditModeInPlayingTest.Util.Boot;
 using Core.Item.Interface;
 using Core.Master;
@@ -19,7 +17,6 @@ using Game.Context;
 using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Boot.Args;
 using Server.Protocol.PacketResponse;
 using UnityEditor;
 using UnityEngine;
@@ -56,6 +53,10 @@ namespace Client.Tests.EditModeInPlayingTest.Util
         public static async UniTask LoadMainGameUntilLoaderShown(string serverDirectory, string worldDirectory)
         {
             await MainGameTestBoot.BootUntilLoaderShown(serverDirectory, worldDirectory, WorldMapMode.Template);
+
+            // 以前の LoadMainGame と同じく、ローダーが出てから 1 秒置いて戻る
+            // Like the former LoadMainGame, wait 1 second after the loader appears before returning
+            await UniTask.Delay(TimeSpan.FromSeconds(1));
         }
 
         // 地形生成を伴うワールドで起動したいテスト向けにmapModeを明示する入口。初期化の完了まで待つ
