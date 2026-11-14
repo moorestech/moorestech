@@ -1,4 +1,6 @@
 using Client.Ui.State.Train;
+using Client.Ui.State.Train.Logic;
+using Client.Ui.State.Train.TimetableEdit.Send;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
@@ -6,7 +8,6 @@ using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Game.Train.Unit;
 using Newtonsoft.Json.Linq;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -34,7 +35,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 1件でも不正なら置換全体を拒否する
             // Reject the whole replacement if any stop is malformed
-            var stops = new List<TrainTimetableStop>(stopTokens.Count);
+            var stops = new List<TimetableReplaceStop>(stopTokens.Count);
             foreach (var token in stopTokens)
             {
                 if (!TrainTimetableStopParser.TryParse(token, out var stop))
@@ -42,9 +43,9 @@ namespace Client.WebUiHost.Game.Actions
                 stops.Add(stop);
             }
 
-            // 検証済みの編集だけをサーバーへ送る
-            // Send only validated edits to the server
-            var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateReplaceTimetableRequest(trainUnitId, stops);
+            // 検証済みの編集だけを、State と同じ固定の出発条件を付けてサーバーへ送る
+            // Send only validated edits to the server with the same fixed departure condition as State
+            var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateReplaceTimetableRequest(trainUnitId, TrainTimetableDeparture.ToServerStops(stops));
             var response = await ClientContext.VanillaApi.Response.Train.SendTrainScheduleEdit(request, CancellationToken.None);
             if (response == null || !response.Success) return TrainTimetableActionSupport.Reject($"replace_failed:{response?.FailureReason}");
             return ActionResult.Success();
