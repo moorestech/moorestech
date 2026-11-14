@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Recipe.Screen;
 using UnityEngine.UIElements;
@@ -130,20 +131,14 @@ namespace Client.Ui.Screens.Recipe.Parts
             if (!UssCustomStyleReader.TryReadPixels(customStyle, ClipInsetProperty, out var inset)) return;
             if (!UssCustomStyleReader.TryReadPixels(customStyle, StackGapProperty, out var gap)) return;
 
-            // 上は見出しとの Stack gap sm を足す（Web は Stack の margin-top gap と打ち消しの -inset の和）
-            // The top adds the Stack gap sm below the header (the Web sums the Stack margin-top gap and the cancelling -inset)
+            // 外へ広げる式は共有のもの。上だけ見出しとの Stack gap sm を足す（Web は Stack の margin-top gap と打ち消しの -inset の和）
+            // The outward formula is the shared one; only the top adds the Stack gap sm below the header (the Web sums the Stack margin-top gap and the cancelling -inset)
+            UiScrollClipInset.ApplyOuterMargin(this, inset);
             style.marginTop = gap - inset;
-            style.marginRight = -inset;
-            style.marginBottom = -inset;
-            style.marginLeft = -inset;
 
             // 余白は中身の側に置き、スクロールの範囲に下の逃げも入れる（視口に置くと最下段の下の逃げが範囲から落ちる）
             // Pad the content, not the viewport, so the scroll range includes the bottom clearance (viewport padding drops it from the range)
-            var content = _scroll.Q<GameScrollView>().contentContainer;
-            content.style.paddingTop = inset;
-            content.style.paddingRight = inset;
-            content.style.paddingBottom = inset;
-            content.style.paddingLeft = inset;
+            _scroll.SetClipPadding(inset);
         }
     }
 }

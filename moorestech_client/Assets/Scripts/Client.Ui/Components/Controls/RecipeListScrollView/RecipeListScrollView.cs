@@ -15,6 +15,7 @@ namespace Client.Ui.Components.Controls
         private const string BleedProperty = "--recipe-list-scroll-view-bleed";
         private const string ReserveProperty = "--recipe-list-scroll-view-reserve";
 
+        private readonly GameScrollView _scroll;
         private readonly VisualElement _leading;
         private readonly UiStack _list;
 
@@ -24,18 +25,25 @@ namespace Client.Ui.Components.Controls
 
             // 先頭の内容と列を 1 つのスクロールに入れる（Web の ScrollArea の子 2 つ）
             // Leading content and the list share one scroll (the Web ScrollArea's two children)
-            var scroll = new GameScrollView($"{listTestid}-scroll", GameScrollAxis.Vertical);
-            scroll.AddToClassList("recipe-list-scroll-view__scroll");
-            Add(scroll);
+            _scroll = new GameScrollView($"{listTestid}-scroll", GameScrollAxis.Vertical);
+            _scroll.AddToClassList("recipe-list-scroll-view__scroll");
+            Add(_scroll);
             _leading = new VisualElement();
             _leading.AddToClassList("recipe-list-scroll-view__leading");
-            scroll.Add(_leading);
+            _scroll.Add(_leading);
             // 行の列は Mantine の Stack の写し UiStack。間隔は USS で --ui-gap を --recipe-list-gap へ上書きする
             // The row list is UiStack (the Mantine Stack); USS overrides --ui-gap with --recipe-list-gap
             _list = new UiStack(UiGap.None) { name = listTestid };
             _list.AddToClassList("recipe-list-scroll-view__list");
-            scroll.Add(_list);
+            _scroll.Add(_list);
             _list.RegisterCallback<CustomStyleResolvedEvent>(_ => OnListStyleResolved());
+        }
+
+        // 縁取りの逃げを中身の側に当てる（外の margin は親の RecipeEntryList が持つ。D-6）
+        // Pads the content for the outline clearance (the parent RecipeEntryList owns the outer margin; D-6)
+        public void SetClipPadding(float inset)
+        {
+            UiScrollClipInset.ApplyInnerPadding(_scroll.contentContainer, inset);
         }
 
         public void SetLeadingContent(VisualElement content)

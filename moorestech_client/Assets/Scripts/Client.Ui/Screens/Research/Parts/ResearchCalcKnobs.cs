@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using UnityEngine.UIElements;
 
@@ -34,10 +35,7 @@ namespace Client.Ui.Screens.Research.Parts
             scroll.RegisterCallback<CustomStyleResolvedEvent>(_ =>
             {
                 if (!UssCustomStyleReader.TryReadPixels(scroll.customStyle, ScrollBleedProperty, out var bleed)) return;
-                scroll.style.marginLeft = -bleed;
-                scroll.style.marginRight = -bleed;
-                content.style.paddingLeft = bleed;
-                content.style.paddingRight = bleed;
+                UiScrollClipInset.ApplyHorizontal(scroll, content, bleed);
             });
         }
     }

@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using UnityEngine.UIElements;
 
@@ -30,14 +31,7 @@ namespace Client.Ui.Screens.BlockInventory
             {
                 // silent-ok: 読めなければ逃げ無しのまま / UssCustomStyleReader が LogError で知らせる
                 if (!UssCustomStyleReader.TryReadPixels(Root.customStyle, BodyBleedProperty, out var bleed)) return;
-                Root.style.marginTop = -bleed;
-                Root.style.marginRight = -bleed;
-                Root.style.marginBottom = -bleed;
-                Root.style.marginLeft = -bleed;
-                Root.contentContainer.style.paddingTop = bleed;
-                Root.contentContainer.style.paddingRight = bleed;
-                Root.contentContainer.style.paddingBottom = bleed;
-                Root.contentContainer.style.paddingLeft = bleed;
+                UiScrollClipInset.Apply(Root, Root.contentContainer, bleed);
             }
 
             #endregion

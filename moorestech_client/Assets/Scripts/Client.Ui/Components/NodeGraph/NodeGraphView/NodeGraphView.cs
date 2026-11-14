@@ -2,6 +2,7 @@ using System;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using UniRx;
 using UnityEngine;
@@ -138,14 +139,7 @@ namespace Client.Ui.Components.NodeGraph
             // Apply the clip clearance as padding plus an equal negative margin (the Web calc(-1 * inset); A-47)
             _clipInset = inset;
             _hasClipInset = true;
-            style.paddingLeft = inset;
-            style.paddingRight = inset;
-            style.paddingTop = inset;
-            style.paddingBottom = inset;
-            style.marginLeft = -inset;
-            style.marginRight = -inset;
-            style.marginTop = -inset;
-            style.marginBottom = -inset;
+            UiScrollClipInset.Apply(this, this, inset);
         }
 
         private void CenterOnInitialFocusOnce()
