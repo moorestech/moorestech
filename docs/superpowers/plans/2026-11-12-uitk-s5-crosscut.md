@@ -1934,6 +1934,23 @@ Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStat
   - 起草時の照合: `.inputactions` の UI マップの `CloseUI` は `<Keyboard>/escape`（T6 Step 1 の 2 件目の 3 つ目の assert が頼る）
 - D-9（agent 既定）: DC-16 は C を採る。`ItemSlotContent` は Web の props（`itemId`・`count?`・`ghost?`・`catalog`・`shortage`）と同じ平らな形で、`ItemSlotPresentation.From` が Web の式の写し。I-fix6 の A で組み立てが `SlotItemContent.From` を通るようになり症状は消える。B（sealed 派生）は Web の `count` の 3 状態と catalog の組み合わせを派生へ割ると型が Web の props から離れ、呼び出し 60 余を書き換えても見た目と挙動は変わらない
 - D-10（agent 既定。設計書 §7.1 に A-248 を足す。§1.1 の改訂案はメモ）: 画面の開閉は `UiRoutingState` と `<機能>ScreenVisibility.IsShown`。`UiScreen` に無い状態だけ `UIStateEnum` を読み、その行に理由を 1 行書く。T7 Step 1 の表をここへ足す。棄却: `UiScreenTraits` に画面ごとの真偽を足す（DC-8 C）— Routing に機能の語彙が増える
+  - T7 Step 1 の分類（実物 11-14）:
+
+    | 場所 | 読んでいた状態 | 分類 | 処遇 |
+    |---|---|---|---|
+    | `BuildMenu/Source/BuildMenuModel.cs`:47（開いた時の取り直し）・:67（開いている間の組み直し） | BuildMenu | `UiScreen` で言える | `BuildMenuScreenVisibility.IsShown` |
+    | `BuildMenu/Commands/BuildMenuCommands.cs`:71 `IsBuildMenuOpen` | BuildMenu | `UiScreen` で言える | `BuildMenuScreenVisibility.IsShown` |
+    | `Client.Ui/Screens/BuildMenu/BuildMenuScreenPresenter.cs`:57 | `UiScreen.BuildMenu` の直書き | `UiScreen` で言える | `BuildMenuScreenVisibility.IsShown` |
+    | `Research/ResearchNodeStateStore.cs`:41（突入の取り直し） | ResearchTree | `UiScreen` で言える | `ResearchScreenVisibility.IsShown`（I-fix6 の口） |
+    | `Recipe/Screen/RecipeScreenModel.cs`:82・`Client.Ui/Screens/Recipe/RecipeScreenPresenter.cs`:59 | `IsScreenShown`（PlayerInventory） | `UiScreen` で言える | `RecipeScreenVisibility.IsShown` へ移し Model の static を消す |
+    | `Client.Ui/Screens/BlockInventory/Special/Belt/BeltThroughputSectionPresenter.cs`:64 | View の resolvedStyle を親へ辿る | `UiScreen` で言える（SubInventory＋パネル） | `BlockInventoryScreenVisibility.IsShown`（Step 3b） |
+    | `BlockDetail/OpenBlockDetailTracker.cs`:58 | SubInventory | 画面の開閉でなく Web ホストと共有する追跡の寿命（`OnStateChanged` の中では routing が未更新のことがある） | 残す・理由 1 行 |
+    | `Hotbar/HotbarSelectRule.cs`:17・`Hotbar/HotbarCommands.cs`:32 | GameScreen・PlaceBlock | `UiScreen` に無い | 残す・理由 1 行 |
+    | `KeyHints/KeyHintHudModel.cs`:56-58 | 全 state のキーヒント・DeleteBar | `UiScreen` に無い | 残す・理由 1 行 |
+    | `ModeHud/ModeHudModel.cs`:54 | PlaceBlock・DeleteBar | `UiScreen` に無い | 残す・理由 1 行 |
+    | `Tutorial/KeyControlHint/KeyControlHintModel.cs`:43 | GameScreen 等（マスタが UIStateEnum の名前で指す） | `UiScreen` に無い | 残す・理由 1 行 |
+    | `Train/Timetable/TrainTimetableModel.cs`:53・`Train/OpenTrainTimetableTracker.cs`:40 | `OnStateChanged` を契機にだけ使う（判定は SubInventory の中身の源） | 判定に UIStateEnum を使わない | 残す・理由 1 行（`OpenTrainTimetableTracker`:74〈起草時 :72〉は `OpenTrainUnitResolver` で UIStateEnum を読まない） |
+    | `BlockInventory/Panel/BlockInventoryPanelModel.cs`:62 | `UiScreen.SubInventory` | パネルの状態を組む側（Visibility はこの結果を受ける） | 残す・理由 1 行（R-9 の grep の例外） |
 - D-11（agent 既定。設計書 §7.1 に A-247 を足す）: Web で `cursor: pointer` を持つ共通部品は部品が指を出す（§2.7 の「画面が付ける」を覆す。規則の改訂はこのレーンの計画どおりで、設計書への反映は指揮が docs PR で入れる。指揮の agent 既定（PLAN-W5 設計検査））。無効のボタンで指が出ない差が残れば LX-205
 - D-12（agent 既定。A-247 に含める。`SkitChoice` の判定と A-84 の改訂は指揮の agent 既定（PLAN-W5 設計検査））: 画面 USS は部品の内側クラス・`.unity-button` を書かず、部品ルートのつまみだけを上書きする。内側の要素が customStyle で読む値は、部品 USS がルートのつまみから受け直す（§3.2 の 7 と同じ形）。種別は X-audit DC-21 案 A の規則（Web shared/ui の variant と 1 対 1 なら記帳、無ければ画面側の USS へ移す）で判定した: Web の `GamePanelVariant` は `"default"`・`"craft"`・`"skit"`・`"hud"`（`shared/ui/GamePanel/index.tsx`:11）で、`Skit`・`Hud` は 1 対 1 なので残して記帳する。選択肢の板は Web では GamePanel でなく `SkitChoiceList.module.css` の `.choice::before` なので `SkitChoice` に当たる variant が無く、種別を消して画面の USS（`SkitChoices.uss` の `.skit-choice__plate`）へ移す。これは A-84 の「選択肢の板は `GamePanelSurface` の種別 `SkitChoice` で描く」と設計書 §2.2 の `GamePanelSurface` 行の `--skit-choice`・§2.7 の「面は `GamePanelSurface` の種別 `skit-choice` `[A-84]`」を改める（本文案はメモ。A-84 の棄却理由「板の面を Screens で描き直すと面の格子の描き方が 2 本になる」には当たらない: 描くのは `Hud` の骨格の `GamePanelFace` 1 本のまま）。`SkitChoiceButton` の `RemoveFromClassList(Button.ussClassName)` は前例 0 件の手で、理由は T10 Step 4（Web の `.choice` は素の button で既定テーマの `.unity-button` の規則を全部受けない。前例の 2 クラスの打ち消しは Components の USS の手で、画面 USS で書くと DC-21 の違反になる）。新しいつまみ `--icon-button-color`・`--game-panel-surface-*` は Web に同名の変数が無い（Web は `color` と `::before` の CSS）ので、部品名で始まる名前にした
 - D-13（agent 既定）: DC-28 は B。預かりと流し直しは宿主に残し、門は解決と診断だけを持つ（Self-Review 6）。門の「配置まで進んで未解決」の LogError は預かりの有無に依らない（旧の Notification は預かりがあるときだけ・旧の Toast は出さなかった。T5 Step 3 の下の挙動の変化と Step 4 のテストの組み直し。再評価の指摘を再現）。棄却: 旧の Notification に合わせ預かりがあるときだけ出す — Toast の無音の預かりが残り、@import 漏れに最初の要求まで気づけない
