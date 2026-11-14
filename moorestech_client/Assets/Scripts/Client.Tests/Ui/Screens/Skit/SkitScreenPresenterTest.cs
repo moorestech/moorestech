@@ -17,6 +17,7 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace Client.Tests.Ui.Screens.Skit
 {
