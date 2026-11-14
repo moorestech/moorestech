@@ -125,7 +125,7 @@ public sealed class IconButton : VisualElement
 - Commands は結果を返すだけで、トーストは呼び手の View が `UiCommandResultToaster.Report` で出す。Commands 内で Report してよいのは分割ドラッグ（`PlayerSlotDragCommands`。呼び手の View が居ない）と列車の編集（`TrainPlatformEditCommands`・`TrainTimetableEditCommands`／`Session`。閉じた後に戻った拒否もトーストする。S4-train D-39・D-40）だけ（設計書 A-262）
 - 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している（Web では pauseMenu 配下）。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない
 - View は C# で組む。UXML と UI Builder は使わない
-- 出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める
+- 出し分けは `UiRoutingState` と `UiScreenTraitsTable` で決め、画面の開閉を読む State は `<機能>ScreenVisibility.IsShown` を通す。`UiScreen` に無い状態だけ `UIStateEnum` を読み、その行に理由を 1 行書く（設計書 A-248）
 - 毎フレームの値（採掘の進捗など）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（設計書 A-57）。例外: 源の変化 1 件ごとに全エントリの VM を組み直す Model（`BuildMenuModel`）は、組み直しをフレーム末の 1 回に畳む（A-57）。View は `Update()` を持たない
 - USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける。付けないと、その中のアンカーを指すチュートリアル枠が容器の外へはみ出して描かれる（祖先クリップの判定は印のある容器しか見ない。設計書 A-65）
 
