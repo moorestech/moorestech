@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Ui.State.Recipe.Catalog;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.UnlockState;
 using Server.Event.EventReceive;
@@ -44,30 +44,22 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
+            // 解放済みの判定と並びは State の Catalog に任せ、ここでは DTO へ写すだけ
+            // The State catalog decides which recipes are unlocked and their order; this only maps them to DTOs
             var dto = new CraftRecipesDto { Recipes = new List<CraftRecipeDto>() };
-            var unlockInfos = _unlockStateData.CraftRecipeUnlockStateInfos;
-            foreach (var recipe in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
+            foreach (var recipe in CraftRecipeCatalog.BuildUnlocked(_unlockStateData))
             {
-                // dict に無いレシピはロック扱いに倒して例外を避ける
-                // Treat recipes missing from the dict as locked to avoid exceptions
-                if (!unlockInfos.TryGetValue(recipe.CraftRecipeGuid, out var unlockInfo)) continue;
-                if (!unlockInfo.IsUnlocked) continue;
-
                 var requiredItems = new List<RequiredItemDto>();
                 foreach (var requiredItem in recipe.RequiredItems)
                 {
-                    requiredItems.Add(new RequiredItemDto
-                    {
-                        ItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid).AsPrimitive(),
-                        Count = requiredItem.Count,
-                    });
+                    requiredItems.Add(new RequiredItemDto { ItemId = requiredItem.ItemId.AsPrimitive(), Count = requiredItem.Count });
                 }
 
                 dto.Recipes.Add(new CraftRecipeDto
                 {
-                    RecipeGuid = recipe.CraftRecipeGuid.ToString(),
-                    ResultItemId = MasterHolder.ItemMaster.GetItemId(recipe.CraftResultItemGuid).AsPrimitive(),
-                    ResultCount = recipe.CraftResultCount,
+                    RecipeGuid = recipe.RecipeGuid.ToString(),
+                    ResultItemId = recipe.ResultItemId.AsPrimitive(),
+                    ResultCount = recipe.ResultCount,
                     CraftTime = recipe.CraftTime,
                     RequiredItems = requiredItems,
                 });
