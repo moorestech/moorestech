@@ -5,7 +5,6 @@ using Client.Ui.State.Train.Platform;
 using Client.Ui.State.Train.Platform.Edit;
 using Client.Ui.State.Train.Timetable;
 using Client.Ui.State.Train.TimetableEdit;
-using Client.Ui.State.Train.TimetableEdit.Send;
 using VContainer;
 using VContainer.Unity;
 
@@ -35,10 +34,8 @@ namespace Client.Starter.Registration.GameUi.Screens
             builder.Register<TrainTimetableEditCommands>(Lifetime.Singleton).AsSelf();
             builder.Register<TrainPlatformEditCommands>(Lifetime.Singleton).AsSelf();
 
-            // サーバーへ送るコマンドと時間切れ
-            // Server-bound commands and the timeout
-            builder.Register<TrainTimetableCommands>(Lifetime.Singleton).As<ITrainTimetableCommands>();
-            builder.Register<TrainBlockCommands>(Lifetime.Singleton).As<ITrainBlockCommands>();
+            // 時間切れ（サーバーへ送るコマンドは Web と共有で MainGameUiStateRegistration）
+            // The timeout (server-bound commands are shared with Web, in MainGameUiStateRegistration)
             builder.Register<UniRxTrainTimetableWaitTimer>(Lifetime.Singleton).As<ITrainTimetableWaitTimer>();
 
             // alpha の拡張口への差し込み

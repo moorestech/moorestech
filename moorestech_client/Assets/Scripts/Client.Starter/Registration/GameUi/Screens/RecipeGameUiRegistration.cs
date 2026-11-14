@@ -1,6 +1,5 @@
 using Client.Input.KeyPress;
 using Client.Ui.Screens.Recipe;
-using Client.Ui.State.Recipe.Catalog;
 using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Recipe.Screen;
 using VContainer;
@@ -14,10 +13,9 @@ namespace Client.Starter.Registration.GameUi.Screens
     {
         public static void Register(ContainerBuilder builder)
         {
-            // State: 選択・カタログ・モデル・操作。モデルは Initialize で購読するので entry point（前例 ResearchTreeModel）
-            // State: selection, catalog, model and commands; the model subscribes in Initialize, so it is an entry point (precedent ResearchTreeModel)
+            // State: 選択・モデル・操作（カタログは Web と共有で MainGameUiStateRegistration）。モデルは Initialize で購読するので entry point（前例 ResearchTreeModel）
+            // State: selection, model and commands (the catalog is shared with Web, in MainGameUiStateRegistration); the model subscribes in Initialize, so it is an entry point (precedent ResearchTreeModel)
             builder.Register<RecipeItemSelection>(Lifetime.Singleton);
-            builder.Register<RecipeViewerItemCatalog>(Lifetime.Singleton);
             builder.RegisterEntryPoint<RecipeScreenModel>().AsSelf();
             builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
             builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();

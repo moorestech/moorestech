@@ -6,10 +6,13 @@ using Client.Ui.State.Challenge;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Notification;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Recipe.Catalog;
 using Client.Ui.State.Research;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Skit;
+using Client.Ui.State.Train.Platform.Edit;
+using Client.Ui.State.Train.TimetableEdit.Send;
 using VContainer;
 using VContainer.Unity;
 
@@ -65,6 +68,12 @@ namespace Client.Starter.Registration
             // Skit store and typed commands; Web actions and GameUi views share one failure mapping, so both systems register them; the presentation model is read only by GameUi, so SkitGameUiRegistration owns it (S2-skit D-54, D-82)
             builder.RegisterInstance(SkitPresentationStateStore.Instance);
             builder.Register<SkitCommands>(Lifetime.Singleton).As<ISkitCommands>();
+
+            // レシピ一覧の判定と列車のコマンド。Web ホストと GameUi の View が同じ判定を呼ぶので両方の系で登録する（DC-23 A・D-36）
+            // Recipe-list decision and train commands; the Web host and GameUi views call the same decisions, so both systems register them (DC-23 A, D-36)
+            builder.Register<RecipeViewerItemCatalog>(Lifetime.Singleton);
+            builder.Register<TrainTimetableCommands>(Lifetime.Singleton).As<ITrainTimetableCommands>();
+            builder.Register<TrainBlockCommands>(Lifetime.Singleton).As<ITrainBlockCommands>();
         }
     }
 }
