@@ -1,5 +1,7 @@
 using System;
 using Client.Game.InGame.Context;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Recipe.Commands;
 using Cysharp.Threading.Tasks;
 using Game.UnlockState;
 using Newtonsoft.Json.Linq;
@@ -29,13 +31,13 @@ namespace Client.WebUiHost.Game.Actions
 
             // 非文字列値でも例外を出さないよう JValue の中身を直接パターンマッチで取り出す
             // Pattern-match the raw JValue content so non-string values never throw
-            if (recipeGuidToken is not JValue { Value: string guidText }) return ActionResult.Fail("invalid_recipe");
-            if (!Guid.TryParse(guidText, out recipeGuid)) return ActionResult.Fail("invalid_recipe");
+            if (recipeGuidToken is not JValue { Value: string guidText }) return ActionResult.Fail(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.RecipeInvalid));
+            if (!Guid.TryParse(guidText, out recipeGuid)) return ActionResult.Fail(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.RecipeInvalid));
 
-            // 存在しないレシピと未解放レシピをここで弾く（サーバーはunlock検証を行わない）
-            // Reject unknown and locked recipes here; the server does not validate unlock state
-            if (!unlockStateData.CraftRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var unlockInfo)) return ActionResult.Fail("invalid_recipe");
-            if (!unlockInfo.IsUnlocked) return ActionResult.Fail("recipe_locked");
+            // 存在しないレシピと未解放レシピは State の判定で弾き、失敗コードは State の写像で綴る（サーバーはunlock検証を行わない）
+            // Unknown and locked recipes are rejected by the State check and spelled by the State mapping (the server does not validate unlock state)
+            var rejection = CraftRecipeUnlockCheck.Check(unlockStateData, recipeGuid);
+            if (rejection.HasValue) return ActionResult.Fail(UiCommandRejectReasonTraits.ToWireCode(rejection.Value));
 
             return ActionResult.Success();
         }
