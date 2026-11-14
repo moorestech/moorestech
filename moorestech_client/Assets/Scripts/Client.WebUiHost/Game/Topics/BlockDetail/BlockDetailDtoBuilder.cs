@@ -31,8 +31,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Belts: exit statistics counted by the client's replica
             BeltThroughputDetailDtoBuilder.Apply(dto, block, param, beltCache);
             GearToElectricDetailDtoBuilder.Apply(dto, block, param);
-            TrainPlatformDetailDtoBuilder.Apply(dto, block, param);
-            TrainStationDetailDtoBuilder.Apply(dto, block, param);
+            TrainPlatformDetailDtoBuilder.Apply(dto, block);
             // 部屋キャッシュと機械停止理由を反映
             // Apply the room cache and machine halt reason
             CleanRoomDetailDtoBuilder.Apply(dto, block, cache);

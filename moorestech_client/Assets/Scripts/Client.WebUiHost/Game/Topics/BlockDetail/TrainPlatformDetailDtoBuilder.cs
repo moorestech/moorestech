@@ -1,48 +1,64 @@
 using Client.Game.InGame.Block;
+using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.BlockInventory.Logic.Panel;
+using Client.Ui.State.Items;
+using Client.Ui.State.Train.Platform;
 using Game.Block.Blocks.TrainRail;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
     /// <summary>
-    /// 列車PFの状態と構成をDTOへ変換する
-    /// Converts train-platform transfer state and master-defined slot layout into the DTO
+    /// 駅・列車PFの駅名・移送モード・スロット構成をDTOへ変換する。有無の判定は State の TrainPlatformDetailReader が持つ（DC-23 A）
+    /// Converts a station/platform's name, transfer mode and slot layout into the DTO; State's TrainPlatformDetailReader owns the presence decisions (DC-23 A)
     /// </summary>
     public static class TrainPlatformDetailDtoBuilder
     {
-        public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param)
-        {
-            var state = block.GetStateDetail<TrainPlatformTransferStateDetail>(
-                TrainPlatformTransferStateDetail.BlockStateDetailKey);
-            if (state == null) return;
+        private static readonly SlotItem[] NoItemSlots = new SlotItem[0];
+        private static readonly BlockFluidSlotState[] NoFluids = new BlockFluidSlotState[0];
 
-            // 対象マスタ型だけをDTO化する
-            // Emit the capability only for supported master types to avoid showing it on ordinary blocks
-            dto.TrainPlatform = param switch
-            {
-                TrainItemPlatformBlockParam item => CreateItemDetail(state, item.ItemSlotCount),
-                TrainStationBlockParam station => CreateItemDetail(state, station.ItemSlotCount),
-                TrainFluidPlatformBlockParam => new TrainPlatformDetailDto { Mode = ToWireMode(state.Mode) },
-                _ => null,
-            };
+        public static void Apply(BlockInventoryDto dto, BlockGameObject block)
+        {
+            // 本文の種類は UITK のパネルと同じ登録表で決める（blockType を並べない）
+            // The body kind comes from the same registry as the UITK panel (no blockType list)
+            var blockType = block.BlockMasterElement.BlockType;
+            if (BlockComponentRegistry.Resolve(blockType).Body != BlockInventoryBodyKind.TrainPlatform) return;
+
+            var stationName = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey);
+            var transfer = block.GetStateDetail<TrainPlatformTransferStateDetail>(TrainPlatformTransferStateDetail.BlockStateDetailKey);
+            Fill(dto, blockType, block.BlockMasterElement.BlockParam, stationName, transfer);
         }
 
-        private static TrainPlatformDetailDto CreateItemDetail(
-            TrainPlatformTransferStateDetail state,
-            int itemSlotCount)
+        // 駅名行・移送行の有無は Reader に任せ、ここでは wire の形へ写すだけ（スロットの中身は別の DTO が運ぶので数だけ）
+        // The Reader decides the name and transfer rows; this only maps to the wire shape (slot contents travel in another DTO, so only the count)
+        public static void Fill(BlockInventoryDto dto, string blockType, IBlockParam param, TrainStationNameStateDetail stationName, TrainPlatformTransferStateDetail transfer)
         {
-            return new TrainPlatformDetailDto
+            var body = TrainPlatformDetailReader.Read(blockType, param, stationName, transfer, NoItemSlots, NoFluids);
+            dto.TrainStation = body.StationName.TryGetPresent(out var name) ? new TrainStationDetailDto { Name = name } : null;
+            dto.TrainPlatform = body.Mode.TryGetPresent(out var mode)
+                ? new TrainPlatformDetailDto { Mode = ToWireMode(mode), ItemSlotCount = body.ItemSlots.IsPresent ? ReadItemSlotCount(param) : null }
+                : null;
+
+            #region Internal
+
+            // スロット数はマスタの値。Reader がスロットありとするのは品物 PF と駅だけ
+            // The slot count is the master value; the Reader reports slots only for item platforms and stations
+            int? ReadItemSlotCount(IBlockParam blockParam)
             {
-                Mode = ToWireMode(state.Mode),
-                ItemSlotCount = itemSlotCount,
-            };
+                return blockParam switch
+                {
+                    TrainItemPlatformBlockParam item => item.ItemSlotCount,
+                    TrainStationBlockParam station => station.ItemSlotCount,
+                    _ => null,
+                };
+            }
+
+            #endregion
         }
 
-        private static string ToWireMode(TrainPlatformTransferComponent.TransferMode mode)
+        private static string ToWireMode(TrainPlatformTransferMode mode)
         {
-            return mode == TrainPlatformTransferComponent.TransferMode.LoadToTrain
-                ? "loadToTrain"
-                : "unloadToPlatform";
+            return mode == TrainPlatformTransferMode.LoadToTrain ? "loadToTrain" : "unloadToPlatform";
         }
     }
 }
