@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Input;
 using Client.Localization;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -91,13 +92,14 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
             return texts;
         }
 
-        // 英語の文の集合に入る text を持つ Label を「名前 文」で挙げる
-        // List Labels whose text is in the English set as "name text"
+        // 英語の文の集合に入る文を持つ Label を「名前 文」で挙げる。WrapSafeLabel の text は行送りのタグ付きなので文そのもので比べる
+        // List Labels whose words are in the English set as "name words"; a WrapSafeLabel's text carries the line-height tag, so compare its words
         private static string[] LabelsShowing(HashSet<string> englishTexts)
         {
             return GameUiRoot.Instance.GetRootElement().Query<Label>().ToList()
-                .Where(label => englishTexts.Contains(label.text))
-                .Select(label => $"'{label.name}' {label.text}")
+                .Select(label => (label.name, words: label is WrapSafeLabel wrapSafe ? wrapSafe.WordsText : label.text))
+                .Where(shown => englishTexts.Contains(shown.words))
+                .Select(shown => $"'{shown.name}' {shown.words}")
                 .ToArray();
         }
     }

@@ -3,6 +3,7 @@ using Client.Tests.Ui.Screens;
 using Client.Tests.Ui.Screens.PauseMenu;
 using Client.Tests.Ui.Screens.Settings;
 using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.Settings;
@@ -37,12 +38,12 @@ namespace Client.Tests.Ui.Crosscut.Localization
         [Test]
         public void 言語を切り替えると見出しが切替先の辞書の文になる()
         {
-            Assert.AreEqual(DictionaryText("english"), LanguageHeading().text);
+            Assert.AreEqual(DictionaryText("english"), LanguageHeading().SourceText);
 
             Assert.IsTrue(Localize.TrySetChosenLanguage("japanese"));
             simulate.FrameUpdate();
 
-            Assert.AreEqual(DictionaryText("japanese"), LanguageHeading().text);
+            Assert.AreEqual(DictionaryText("japanese"), LanguageHeading().SourceText);
             Assert.AreNotEqual(DictionaryText("english"), DictionaryText("japanese"), "英語と日本語の見出しが同じで切替を確かめられない");
         }
 
@@ -53,20 +54,20 @@ namespace Client.Tests.Ui.Crosscut.Localization
             simulate.Click(Find<Button>(_page, "language-select-option-japanese"));
             simulate.FrameUpdate();
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
-            Assert.AreEqual(DictionaryText("japanese"), LanguageHeading().text);
+            Assert.AreEqual(DictionaryText("japanese"), LanguageHeading().SourceText);
 
             simulate.Click(Find<Button>(_page, "language-select-option-english"));
             simulate.FrameUpdate();
             Assert.AreEqual("english", Localize.GetCurrentLanguageCode());
-            Assert.AreEqual(DictionaryText("english"), LanguageHeading().text);
+            Assert.AreEqual(DictionaryText("english"), LanguageHeading().SourceText);
             Assert.IsEmpty(ShownToasts, "言語の切替が拒否のトーストを出した");
         }
 
-        // 言語の節の見出しは設定ページの最初の節の題
-        // The language heading is the title of the settings page's first section
-        private Label LanguageHeading()
+        // 言語の節の見出しは設定ページの最初の節の題。text は行送りのタグ付きなので解決した文で比べる
+        // The language heading is the first section title; text carries the line-height tag, so compare the resolved words
+        private LocalizedLabel LanguageHeading()
         {
-            var heading = _page.Q<Label>(className: "settings-section__title");
+            var heading = _page.Q<LocalizedLabel>(className: "settings-section__title");
             Assert.IsNotNull(heading, "言語の節の見出しが無い");
             return heading;
         }
