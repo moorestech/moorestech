@@ -54,16 +54,19 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
         public void Detach()
         {
+            // 外れたら偽へ戻す（前のパネルの適用可否を次のパネルへ持ち越さない）
+            // Reset to false when detached so the previous panel's applicability is not carried over
             _subscriptions.Clear();
+            _isApplicable.Value = false;
         }
 
         private void Apply()
         {
             // 描いてから出す
             // Draw before showing; hide without drawing when not a machine
-            var machine = _machine.Current.Value;
-            if (machine.IsPresent) _view.Render(machine.Value, _mode.ShowsSelection(machine.Value));
-            _isApplicable.Value = machine.IsPresent;
+            var present = _machine.Current.Value.TryGetPresent(out var machine);
+            if (present) _view.Render(machine, _mode.ShowsSelection(machine));
+            _isApplicable.Value = present;
         }
     }
 }

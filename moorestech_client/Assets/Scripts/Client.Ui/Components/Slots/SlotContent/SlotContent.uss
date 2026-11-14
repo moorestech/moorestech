@@ -1,7 +1,10 @@
 /* web: moorestech_web/webui/src/shared/ui/slotContent.module.css の .icon・.count を写す。.iconTextOutlineLight は OutlinedCountLabel が写す */
 /* web: copies .icon and .count in moorestech_web/webui/src/shared/ui/slotContent.module.css; OutlinedCountLabel copies .iconTextOutlineLight */
+/* 個数の末尾の字間は既定 0。字間を em で上書きする置き場が .slot-content を前に置いたセレクタで受け直す */
+/* The count's trailing spacing defaults to 0; placements that override letter spacing in em re-declare it with a selector ending in .slot-content */
 .slot-content {
     flex-grow: 1;
+    --slot-content-count-trailing-spacing: 0px;
 }
 
 /* 絵は GameIcon の子が描くので、余白はこの包みに付けて絵を内側へ縮める */
@@ -29,4 +32,10 @@
 
 .slot-content--counted > .slot-content__count {
     display: flex;
+}
+
+/* Chrome の letter-spacing は最後の字の後ろにも字間を足すが UITK は足さないので、右寄せの字をその分だけ内へ寄せる（OutlinedCountLabel の padding 0 より強い 2 クラスで当てる） */
+/* Chrome adds letter spacing after the last glyph too while UITK does not, so the right-aligned glyphs move in by that much (two classes beat OutlinedCountLabel's padding 0) */
+.slot-content > .slot-content__count {
+    padding-right: var(--slot-content-count-trailing-spacing);
 }

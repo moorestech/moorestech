@@ -588,7 +588,7 @@ git commit -m "refactor: SubInventoryState が uGUI prefab を生成せず SubIn
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PauseMenu/PauseMenuStateService.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Inventory/PlayerInventoryStateEquipmentApplyTest.cs:80-92`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/RightShortPressTransitionTest.cs:56-98`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/RightShortPressTransitionTest.cs:56-98`
 
 **Interfaces:**
 - Produces: `PlayerInventoryState(LocalPlayerInventoryController, LocalPlayerEquipment, InitialHandshakeResponse, RightShortPressInputService)`
@@ -683,7 +683,7 @@ git commit -m "refactor: UIState の各 State から恒久非表示 uGUI ビュ�
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs:146`（`builder.RegisterComponent(buildMenuView).AsSelf().As<IBuildMenuView>();` → `builder.RegisterComponent(buildMenuView);`）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs`（`builder.Register<BuildMenuSelection>(Lifetime.Singleton);` を `RegisterUiAndPlayer` に追加）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/BuildMenuSelectionTest.cs`（新規）
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/RightShortPressTransitionTest.cs:71`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/RightShortPressTransitionTest.cs:71`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BuildMenuEntryDtoFactoryTest.cs:159-176`
 
 **Interfaces:**
@@ -964,7 +964,7 @@ git commit -m "refactor: 進捗バーの論理状態を ProgressBarState へ抽�
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:114`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs`（`GameObjectToolTipTargetController` の `[SerializeField]` と `RegisterComponent` 追加）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs`
-- Test: `Client.Tests/UIState/UIStateTestFixtureBase.cs:82-88`、`Client.Tests/Mining/MiningFocusStateTestFixture.cs`、`Client.Tests/Mining/MiningFocusStateTest.cs`、`Client.Tests/Interact/InteractControllerHighlightTest.cs`、`Client.Tests/Interact/TapInteractionDriverTest.cs`、`Client.Tests/Interact/InteractControllerDisableTest.cs`、`Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs`、`Client.Tests/UIState/RightShortPressTransitionTest.cs`、`Client.Tests/Mining/MiningEquipmentSwitchTest.cs`
+- Test: `Client.Tests/UIState/UIStateTestFixtureBase.cs:82-88`、`Client.Tests/Mining/MiningFocusStateTestFixture.cs`、`Client.Tests/Mining/MiningFocusStateTest.cs`、`Client.Tests/Interact/InteractControllerHighlightTest.cs`、`Client.Tests/Interact/TapInteractionDriverTest.cs`、`Client.Tests/Interact/InteractControllerDisableTest.cs`、`Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs`、`Client.Tests/UIState/Control/RightShortPressTransitionTest.cs`、`Client.Tests/Mining/MiningEquipmentSwitchTest.cs`
 
 **Interfaces:**
 - Produces: `MouseCursorTooltipState : IMouseCursorTooltip` — `IObservable<TooltipPresentation> OnPresentationChanged`, `TooltipPresentation GetPresentation()`, `Show(TooltipOwner, LocalizationKey)`, `Show(TooltipOwner, LocalizationKey, IReadOnlyList<string>)`, `Show(TooltipOwner, IReadOnlyList<TooltipLine>)`, `Hide(TooltipOwner)`。private フィールド名 `_currentOwner`（テストがリフレクションで読む）

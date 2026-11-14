@@ -50,14 +50,17 @@ namespace Client.Ui.Screens.BlockInventory.Train
 
             // 出さない部分は Stack から隠し、間の余白も詰める
             // Hidden parts leave the stack so their gaps collapse too
-            _stack.SetItemShown(_nameRow, open.StationName.IsPresent);
-            _stack.SetItemShown(_grid, open.ItemSlots.IsPresent);
+            var hasStationName = open.StationName.IsPresent;
+            var hasItemSlots = open.ItemSlots.TryGetPresent(out var itemSlots);
+            var hasMode = open.Mode.TryGetPresent(out var mode);
+            _stack.SetItemShown(_nameRow, hasStationName);
+            _stack.SetItemShown(_grid, hasItemSlots);
             _stack.SetItemShown(_fluids, 0 < open.Fluids.Count);
-            _stack.SetItemShown(_mode, open.Mode.IsPresent);
-            if (open.StationName.IsPresent) _nameRow.Render(stationNameInput);
-            if (open.ItemSlots.IsPresent) _grid.Render(open.ItemSlots.Value, BlockDetailMath.AllSlotIndices(open.ItemSlots.Value.Count));
+            _stack.SetItemShown(_mode, hasMode);
+            if (hasStationName) _nameRow.Render(stationNameInput);
+            if (hasItemSlots) _grid.Render(itemSlots, BlockDetailMath.AllSlotIndices(itemSlots.Count));
             _fluids.Render(open.Fluids);
-            if (open.Mode.IsPresent) _mode.Render(open.Mode.Value);
+            if (hasMode) _mode.Render(mode);
         }
     }
 }

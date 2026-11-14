@@ -31,7 +31,7 @@ namespace Client.Ui.Screens.BugReport
         private readonly ModeSwitch<PlaytestReportKind> _kindSwitch;
         private readonly GameTextField _description;
         private readonly LocalizedLabel _status;
-        private readonly Label _delivery;
+        private readonly LocalizedLabel _delivery;
         private readonly BugReportRecoveryControlsView _recovery;
         private readonly FormButton _sendButton;
         private BugReportCaptureStatus _capture;
@@ -68,7 +68,7 @@ namespace Client.Ui.Screens.BugReport
             // The status line joins the tree only when it has a sentence, never without a key
             _status = new LocalizedLabel { name = "bug-report-status" };
             _status.AddToClassList("bug-report__status");
-            _delivery = new Label { name = "bug-report-delivery" };
+            _delivery = new LocalizedLabel { name = "bug-report-delivery" };
             _delivery.AddToClassList("bug-report__status");
             Add(_delivery);
             _recovery = new BugReportRecoveryControlsView(commands);
@@ -87,7 +87,7 @@ namespace Client.Ui.Screens.BugReport
         public void Apply(PauseMenuViewModel model)
         {
             _capture = model.Capture;
-            _delivery.text = BugReportFormText.DescribeDelivery(model.Delivery);
+            _delivery.SetText(BugReportFormText.DescribeDelivery(model.Delivery));
             _recovery.Apply(model.Delivery, model.Export);
             Refresh();
         }

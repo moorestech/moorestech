@@ -4,6 +4,7 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine.UIElements;
@@ -29,12 +30,15 @@ namespace Client.Ui.Screens.PauseMenu
 
             // 節は本文の中で Stack gap=md に並べる
             // Sections stack with gap=md inside the body
-            var body = new GameScrollView("pause-menu-body");
+            // Web は本文の basis を内容の高さとして解き、溢れると戻るも行の箱まで縮める
+            // The Web resolves the body basis as its content height, so on overflow Back also shrinks to its line box
+            var body = new GameScrollView("pause-menu-body", GameScrollAxis.Vertical);
+            body.FollowContentHeightAsFlexBasis();
             _sections = new UiStack(UiGap.Md);
             body.Add(_sections);
             column.AddItem(body);
 
-            var back = new PanelActionButton("pause-menu-back", LocalizationKeys.Ui.PauseMenu.Back);
+            var back = new PanelActionButton("pause-menu-back", new UiText(LocalizationKeys.Ui.PauseMenu.Back));
             back.AddToClassList("pause-menu__back");
             TutorialAnchor.Mark(back, AnchorIds.PauseBackToTop);
             back.OnClicked.Subscribe(_ => commands.ShowPage(PauseMenuPage.Top));

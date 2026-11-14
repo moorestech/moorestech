@@ -1,23 +1,26 @@
 using System;
 using Client.Ui.Foundation.DragDrop;
+using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
 
 namespace Client.Ui.Screens.BuildMenu.Parts
 {
     /// <summary>
-    /// エントリのドラッグ源。タップは選択、落としはホットバーの受け口（IHotbarDropReceiver）へ渡す
-    /// Drag source of an entry; a tap selects, and a drop goes to the hotbar receiver (IHotbarDropReceiver)
+    /// エントリのドラッグ源。タップは選択、落としは受け口へ
+    /// Entry drag source; tap selects, drop goes to the receiver
     /// </summary>
     public sealed class BuildMenuEntryDragPayload : IUiDragPayload<IHotbarDropReceiver>
     {
         private readonly IBuildMenuEntryHandler _handler;
+        private readonly IHotbarCommands _hotbarCommands;
 
         private readonly BuildMenuEntryDragSource _source;
 
-        public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler)
+        public BuildMenuEntryDragPayload(Guid targetId, IBuildMenuEntryHandler handler, IHotbarCommands hotbarCommands)
         {
             _source = new BuildMenuEntryDragSource(targetId);
             _handler = handler;
+            _hotbarCommands = hotbarCommands;
         }
 
         public void OnTapped()
@@ -27,15 +30,16 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
         public void OnDropped(IHotbarDropReceiver receiver)
         {
-            // ホットバーの印へ源を渡す。別の型の落とし先は Foundation が飛ばし OnDroppedOutside になる。断った理由のログは受け手が出す（D-16）
-            // Hand the source to the hotbar mark; other target types are skipped by Foundation into OnDroppedOutside; the receiver logs any refusal (D-16)
+            // ホットバーの印へ源を渡す。他の型は枠外
+            // Pass source to hotbar mark; other types are outside
             receiver.Receive(_source);
         }
 
         public void OnDroppedOutside()
         {
-            // silent-ok: 正常操作の無操作でありガードの縮退ではない（Web の HotbarDropResolver も何もしない） / 遊ぶ人は何も起きないことで分かる
-            // silent-ok: a normal no-op, not a degraded guard (the Web HotbarDropResolver does nothing either) / the player sees nothing happened
+            // 枠外も正本へ渡す（D-11）
+            // Outside also goes to the rule source (D-11)
+            _hotbarCommands.Drop(_source, OutsideHotbarDropTarget.Instance);
         }
     }
 }

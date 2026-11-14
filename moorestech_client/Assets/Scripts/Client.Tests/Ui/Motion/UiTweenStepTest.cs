@@ -7,26 +7,11 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Motion
 {
     /// <summary>
-    /// 段階3以降で使う translate・scrollOffset の補間ステップが、進捗どおりの値を要素へ書くことを確かめる（L1）
-    /// Verifies the translate and scrollOffset tween steps used from stage 3 write values that follow the progress onto the element (L1)
+    /// 補間ステップが進捗どおり値を書く（L1）
+    /// Tween steps write progress values (L1)
     /// </summary>
     public class UiTweenStepTest : UiTestHost
     {
-        [TestCase(0f, 40f)]
-        [TestCase(0.5f, 20f)]
-        [TestCase(1f, 0f)]
-        [TestCase(1.25f, -10f)]
-        public void TranslateYは縦だけを補間し横は0に置く(float progress, float expectedY)
-        {
-            var target = new VisualElement();
-            new TranslateYTweenStep(target, 40f, 0f).Apply(progress);
-
-            var translate = target.style.translate.value;
-            Assert.AreEqual(0f, translate.x.value);
-            Assert.AreEqual(LengthUnit.Pixel, translate.y.unit);
-            Assert.AreEqual(expectedY, translate.y.value, 0.001f);
-        }
-
         [TestCase(0f, -12f)]
         [TestCase(0.5f, -6f)]
         [TestCase(1f, 0f)]

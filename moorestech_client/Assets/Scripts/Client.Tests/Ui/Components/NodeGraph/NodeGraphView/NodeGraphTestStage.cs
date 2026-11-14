@@ -60,14 +60,16 @@ namespace Client.Tests.Ui.Components.NodeGraph
             return Settle(host, new NodeGraphView("test-graph", OsCursor));
         }
 
-        protected NodeGraphView MountRestoredView(VisualElement host, NodeGraphViewport stored, List<NodeGraphViewport> emitted)
+        protected void HideAndShow(VisualElement host, float heightWhileHidden)
         {
-            // 画面の作り直しと同じく、作った直後に購読し、載せる前に保持した値へ戻す
-            // As a screen rebuilds: subscribe right after creation, then restore the held value before mounting
-            var view = new NodeGraphView("test-graph", OsCursor);
-            view.OnViewportChanged.Subscribe(emitted.Add);
-            view.RestoreViewport(stored);
-            return Settle(host, view);
+            // 画面を閉じて開き直す役: 隠している間に host の高さを変えてから表示へ戻す
+            // Role of closing and reopening a screen: change the host height while hidden, then show it again
+            host.style.display = DisplayStyle.None;
+            simulate.FrameUpdate();
+            host.style.height = heightWhileHidden;
+            host.style.display = DisplayStyle.Flex;
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
         }
 
         private NodeGraphView Settle(VisualElement host, NodeGraphView view)

@@ -1,4 +1,5 @@
 // moorestech_client/Assets/Scripts/Client.Ui/Components/Text/KeyCap/KeyCap.cs
+using Client.Ui.Foundation.Text.WrapSafe;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Text
@@ -7,7 +8,7 @@ namespace Client.Ui.Components.Text
     /// kbd 1 個。枠なし・高コントラスト色
     /// One kbd; no box, high-contrast color
     /// </summary>
-    public sealed class KeyCap : Label
+    public sealed class KeyCap : WrapSafeLabel
     {
         public KeyCap(string keyText)
         {

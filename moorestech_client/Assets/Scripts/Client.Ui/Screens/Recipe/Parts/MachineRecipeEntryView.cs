@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Client.Ui.Components.Recipe;
 using Client.Ui.Components.Slots;
+using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
-using Client.Ui.State.Items;
-using Client.Ui.State.Recipe.Data;
 using Client.Ui.State.Recipe.Logic;
 using Client.Ui.State.Recipe.Screen;
 using Core.Master;
@@ -34,7 +31,13 @@ namespace Client.Ui.Screens.Recipe.Parts
             // The row carries no progress and shows the recipe time (Web arrowValue null, duration recipe.time)
             var row = new RecipeRow($"machine-recipe-box-{guid}", $"machine-progress-arrow-{guid}", RecipeDurationText.Create(recipe.Time));
             row.SetIdle();
-            row.SetSlots(BuildSide(guid, recipe.InputItems, recipe.InputFluids, "input"), BuildSide(guid, recipe.OutputItems, recipe.OutputFluids, "output"));
+            // 共有の組み立てで枠を作り、アイテムだけ押下で選ぶ
+            // Slots come from the builder shared with the machine selection row; only items select on press (Web onLeftDown is on items only)
+            var materials = MachineRecipeRowContentBuilder.Materials(name, recipe, context.Content);
+            var results = MachineRecipeRowContentBuilder.Results(name, recipe, context.Content);
+            row.SetSlots(materials.Elements, results.Elements);
+            SubscribeItemPresses(materials);
+            SubscribeItemPresses(results);
 
             // 操作の欄は機械のアイコン・名前・継承バッジの縦積み（Web <Stack gap={2}>）
             // The action column stacks the machine icon, name and inheritance badge (Web <Stack gap={2}>)
@@ -57,24 +60,13 @@ namespace Client.Ui.Screens.Recipe.Parts
 
             #region Internal
 
-            IReadOnlyList<VisualElement> BuildSide(Guid guid, IReadOnlyList<ItemAmount> items, IReadOnlyList<RecipeFluidAmount> fluids, string side)
+            void SubscribeItemPresses(MachineRecipeSideSlots side)
             {
-                // アイテム（数付き・押すと選ぶ）の後ろに液体（量付き・遷移なし）
-                // Items (with counts, select on press) followed by fluids (with amounts, no navigation)
-                var slots = new List<VisualElement>(items.Count + fluids.Count);
-                for (var i = 0; i < items.Count; i++) slots.Add(CreateItemSlot(items[i], $"machine-recipe-box-{guid}-{side}-{i}"));
-                for (var i = 0; i < fluids.Count; i++) slots.Add(CreateFluidSlot(fluids[i], $"{name}-{side}-fluid-{i}"));
-                return slots;
-            }
-
-            ItemSlot CreateItemSlot(ItemAmount amount, string testid)
-            {
-                // 機械レシピは手で作らないので所持は見ず必要数だけ出す（Web count={r.count}）
-                // Machine recipes are not hand-crafted, so show only the required count (Web count={r.count})
-                var slot = new ItemSlot(testid);
-                slot.SetContent(new ItemSlotContent(_context.Content.Item(amount.ItemId), amount.Count, new ItemSlotMarks(false, false, false), null, null, null));
-                slot.OnSlotGestured.Subscribe(gesture => OnItemGestured(amount.ItemId, gesture));
-                return slot;
+                foreach (var item in side.Items)
+                {
+                    var itemId = item.ItemId;
+                    item.Slot.OnSlotGestured.Subscribe(gesture => OnItemGestured(itemId, gesture));
+                }
             }
 
             void OnItemGestured(ItemId itemId, SlotGesture gesture)
@@ -82,15 +74,6 @@ namespace Client.Ui.Screens.Recipe.Parts
                 // silent-ok: アイテムは左押下だけを受ける（Web は onLeftDown だけ渡す）/ MachineRecipeEntryViewTest の左押下の件が見る
                 if (gesture.Kind != SlotGestureKind.LeftDown) return;
                 _context.Selection.Select(itemId);
-            }
-
-            FluidAmountSlot CreateFluidSlot(RecipeFluidAmount fluid, string testid)
-            {
-                // 液体はレシピ一覧の遷移先を持たないので押下を購読しない（前例 MachineRecipeSelectionRow）
-                // Fluids have no recipe-list destination, so presses are not subscribed (precedent: MachineRecipeSelectionRow)
-                var slot = new FluidAmountSlot(testid);
-                slot.SetFluid(_context.Content.Fluid(fluid.FluidId), SlotAmountBadge.Show(fluid.Amount));
-                return slot;
             }
 
             #endregion

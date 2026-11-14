@@ -74,6 +74,8 @@
     width: auto;
 }
 
+/* 本文が溢れると Chrome と同じく本文（basis＝内容の高さ）と比で縮み、PanelActionButton の min-height（行の箱）で止まる */
+/* On body overflow it shrinks in ratio with the body (basis = content height) as Chrome does, stopping at the PanelActionButton min-height (line box) */
 .pause-menu__back {
-    flex-shrink: 0;
+    flex-shrink: 1;
 }

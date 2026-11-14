@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Filter;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using UniRx;
@@ -39,11 +40,16 @@ namespace Client.Ui.Components.Controls
             // GameUi never lets anything but text fields hold focus
             focusable = false;
 
+            // 面・文言の影・文言を 1 つの群に入れ、研究の無効の淡さを Web と同じく群に掛ける（A-222・A-226）。群は中身の大きさでボタンを広げる
+            // Face, label shadow and label share one group so research-disabled fading applies to the group as on the Web (A-222, A-226); the group sizes the button by its content
+            var group = new PixelFilterGroup(PixelFilterGroupFlow.Flow);
+            Add(group);
+
             // 面・文言の影・文言の順に重ねる（どれも押下を横取りしない）
             // Stack face, label shadow, then label (none steals the press)
-            Add(new RecipeActionButtonFace());
+            group.Add(new RecipeActionButtonFace());
             _labelShadow = new RecipeActionLabelShadow();
-            Add(_labelShadow);
+            group.Add(_labelShadow);
             _label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
             _label.AddToClassList(LabelUssClassName);
             // クラフトは 500 の字形を文言と影の字に渡し、研究は修飾クラスで研究の組（400 の既定の字・影なし）に切り替える
@@ -58,7 +64,7 @@ namespace Client.Ui.Components.Controls
                 _labelShadow.AddGlyphClass(UiTypographyClass.TextMedium);
             }
             SetLabel(label);
-            Add(_label);
+            group.Add(_label);
 
             // 押下は UniRx で外へ出す
             // Presses leave through UniRx

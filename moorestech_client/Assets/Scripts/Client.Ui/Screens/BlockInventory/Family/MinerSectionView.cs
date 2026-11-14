@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
@@ -20,7 +20,7 @@ namespace Client.Ui.Screens.BlockInventory.Family
         private readonly ProgressArrowBar _progress = new();
         private readonly PowerRateText _powerRate = new("miner-power-rate");
         private readonly UiGroup _items = new(UiGap.Xs) { name = "miner-mining-items" };
-        private readonly List<(ItemId ItemId, PerMinuteRateRow Row)> _rows = new();
+        private readonly KeyedRowList<ItemId, PerMinuteRateRow> _rows = new();
         private readonly GameContentPresentation _content;
 
         public VisualElement Root => _root;
@@ -46,36 +46,30 @@ namespace Client.Ui.Screens.BlockInventory.Family
 
             // 採掘中の品の並びが同じ間は行を残して毎分だけ描き直す（採掘中は毎 tick 届くので要素を捨てない。D-37）
             // Keep the rows and redraw only the rate while the mined items are the same (updates arrive every tick while mining; D-37)
-            if (!SameItems()) Rebuild();
-            for (var i = 0; i < _rows.Count; i++) _rows[i].Row.Render(detail.MiningItems[i].ItemsPerMinute);
+            if (_rows.ClearIfKeysChanged(ItemIds())) Rebuild();
+            for (var i = 0; i < _rows.Count; i++) _rows.RowAt(i).Render(detail.MiningItems[i].ItemsPerMinute);
 
             #region Internal
 
-            // 件数と添字ごとの id 一致で比べる（PumpSectionView.SameFluids と同じ規則。片方を変えたら両方直す）
-            // Compare by count and per-index id (same rule as PumpSectionView.SameFluids; change both together)
-            bool SameItems()
+            ItemId[] ItemIds()
             {
-                if (detail.MiningItems.Count != _rows.Count) return false;
-                for (var i = 0; i < _rows.Count; i++)
-                {
-                    if (detail.MiningItems[i].ItemId != _rows[i].ItemId) return false;
-                }
-                return true;
+                var ids = new ItemId[detail.MiningItems.Count];
+                for (var i = 0; i < ids.Length; i++) ids[i] = detail.MiningItems[i].ItemId;
+                return ids;
             }
 
             void Rebuild()
             {
                 _items.ClearItems();
-                _rows.Clear();
                 foreach (var item in detail.MiningItems)
                 {
                     // Web の採掘機の ItemSlot は testid を持たないが、UITK の枠は名前が要るので録画・テストの照準用に付ける
                     // The Web miner ItemSlot has no testid, but the UITK frame needs a name, so add one as an aim for recordings and tests
                     var slot = new ItemSlot($"miner-mining-item-{item.ItemId.AsPrimitive()}");
-                    slot.SetContent(new ItemSlotContent(_content.Item(item.ItemId), null, new ItemSlotMarks(false, false, false), null, null, null));
+                    slot.SetContent(SlotItemContent.ForItem(_content, item.ItemId, null));
                     var row = new PerMinuteRateRow(slot);
                     _items.AddItem(row);
-                    _rows.Add((item.ItemId, row));
+                    _rows.Add(item.ItemId, row);
                 }
             }
 

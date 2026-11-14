@@ -24,7 +24,36 @@ namespace Client.Tests.Input.Pointer
 
             Set(mouse.scroll, new Vector2(0f, -1f));
 
-            Assert.AreEqual(new[] { -1f }, received.ToArray());
+            Assert.AreEqual(new[] { -1f }, received.ConvertAll(wheel => wheel.notchesUp).ToArray());
+        }
+
+        [Test]
+        public void スクロールだけのイベントではデバイスの今の位置を添える()
+        {
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var received = Subscribe(new InputSystemPointerWheelStream());
+
+            // Set はその部分だけの DeltaStateEvent を積むので、ホイールのイベントは位置を含まない
+            // Set queues a DeltaStateEvent for that control only, so the wheel event carries no position
+            Set(mouse.position, new Vector2(50f, 60f));
+            Set(mouse.scroll, new Vector2(0f, -1f));
+
+            Assert.AreEqual(new[] { (-1f, new Vector2(50f, 60f)) }, received.ToArray());
+        }
+
+        [Test]
+        public void 位置とホイールが1つのイベントならそのイベントの位置を添える()
+        {
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var received = Subscribe(new InputSystemPointerWheelStream());
+
+            // onEvent はデバイスへ書き込む前に呼ばれるので、デバイスの今の値はまだ (10,20)
+            // onEvent runs before the device write, so the device value is still (10,20)
+            Set(mouse.position, new Vector2(10f, 20f));
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = new Vector2(300f, 400f), scroll = new Vector2(0f, -1f) });
+            InputSystem.Update();
+
+            Assert.AreEqual(new[] { (-1f, new Vector2(300f, 400f)) }, received.ToArray());
         }
 
         [Test]
@@ -70,9 +99,9 @@ namespace Client.Tests.Input.Pointer
             Assert.IsEmpty(received);
         }
 
-        private static List<float> Subscribe(InputSystemPointerWheelStream stream)
+        private static List<(float notchesUp, Vector2 screenPosition)> Subscribe(InputSystemPointerWheelStream stream)
         {
-            var received = new List<float>();
+            var received = new List<(float notchesUp, Vector2 screenPosition)>();
             stream.OnWheelNotchesScrolled.Subscribe(received.Add);
             return received;
         }

@@ -1,5 +1,7 @@
 /* 通知のホストと行。Web W/features/notification/style.module.css の写し。ホストは実画面の左端・縦の中央線から下へ積み、舞台と同率で拡縮する（層の族 Viewport ＋ PanelSettings の倍率） */
 /* Notification host and rows, copied from Web W/features/notification/style.module.css; the host stacks down from the vertical center at the left edge of the real screen and scales with the stage (Viewport family plus PanelSettings scaling) */
+/* 寸法と文字組みは Web も直書きで --notification-* が無いので同じ値を直書きする（ref-uitk-design §6） */
+/* Sizes and typography are literals in the Web too, with no --notification-* token, so the same values are written here (ref-uitk-design §6) */
 
 .notification-host {
     position: absolute;
@@ -59,9 +61,7 @@
     min-width: 0;
     margin: 0;
     padding: 0;
-    /* 行末の閉じ括弧を Chrome のように半角へ詰めないので、閉じ括弧が行末に来る日本語は Web より 1 行多く折れることがある */
-    /* Closing brackets at line end are not trimmed to half width as in Chrome, so Japanese text ending a line with one may wrap one line more than Web */
-    white-space: normal; /* look-exception: LX-40 */
+    white-space: normal;
     -unity-text-align: middle-left;
     font-size: 15px;
     /* 0.055em×15px=0.825px。UITK の letter-spacing の px は「文字の大きさ/100×値」で効くので 0.825÷0.15 */

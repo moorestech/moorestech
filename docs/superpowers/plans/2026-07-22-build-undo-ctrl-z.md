@@ -41,7 +41,7 @@ moorestech_client/Assets/Scripts/Client.Tests/BuildUndo/
 - `Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs` … 撤去記録フック
 - `Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs` / `DeleteObjectState.cs` … BuildUndoService駆動＋キー説明
 - `Client.Starter/MainGameStarter.cs` … DI登録
-- `Client.Tests/UIState/UIStateCameraInteractionTest.cs` / `UIStateFocusRestorationTest.cs` … ctor変更追従
+- `Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs` / `UIStateFocusRestorationTest.cs` … ctor変更追従
 
 ---
 
@@ -798,7 +798,7 @@ using追加: `using Client.Game.InGame.Block;` `using Client.Game.InGame.BlockSy
 
 - [ ] **Step 4: 既存テストのctor呼び出しを追従**
 
-`Client.Tests/UIState/UIStateCameraInteractionTest.cs:90` と `UIStateFocusRestorationTest.cs:78` の
+`Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs:90` と `UIStateFocusRestorationTest.cs:78` の
 `new DeleteObjectState(deleteObject, null, applier)` を
 `new DeleteObjectState(deleteObject, null, applier, new BuildOperationHistory())` に変更。
 両ファイルにusing追加: `using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;`
@@ -823,7 +823,7 @@ git commit -m "feat(client): 撤去バッチのUndo履歴記録"
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateCameraInteractionTest.cs` / `UIStateFocusRestorationTest.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs` / `UIStateFocusRestorationTest.cs`
 
 **Interfaces:**
 - Consumes: Task 2の `BuildUndoService.ManualUpdate()`

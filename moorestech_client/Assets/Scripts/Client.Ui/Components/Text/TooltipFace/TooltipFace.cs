@@ -96,7 +96,7 @@ namespace Client.Ui.Components.Text
             foreach (var child in Children())
             {
                 var label = (LocalizedLabel)child;
-                var naturalWidth = label.MeasureTextSize(label.text, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined).x;
+                var naturalWidth = label.MeasureSingleLineWidth();
                 if (innerMaxWidth < naturalWidth) wrapped = true;
             }
             EnableInClassList("tooltip-face--wrapped", wrapped);

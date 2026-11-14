@@ -503,16 +503,16 @@ ui.commandRejected.blockSlotUnavailable,The block slot is no longer available,Th
 ui.commandRejected.itemUnknownInSlot,This item is unknown to the client and cannot be moved with Shift,This item is unknown to the client and cannot be moved with Shift,このアイテムはクライアントが知らないため Shift で移動できません,Dieser Gegenstand ist dem Client unbekannt und kann nicht mit Shift verschoben werden,이 아이템은 클라이언트가 알 수 없어 Shift로 옮길 수 없습니다
 ui.commandRejected.researchFailed,Research failed,Research failed,研究に失敗しました,Forschung fehlgeschlagen,연구에 실패했습니다
 ui.commandRejected.blockNotOpen,The block is not open,The block is not open,ブロックが開いていません,Der Block ist nicht geöffnet,블록이 열려 있지 않습니다
-ui.commandRejected.machineRecipeInvalid,This recipe does not exist,This recipe does not exist,このレシピは存在しません,Dieses Rezept existiert nicht,이 레시피는 존재하지 않습니다
-ui.commandRejected.machineRecipeLocked,This recipe is not unlocked yet,This recipe is not unlocked yet,このレシピはまだ解放されていません,Dieses Rezept ist noch nicht freigeschaltet,이 레시피는 아직 해금되지 않았습니다
+ui.commandRejected.recipeInvalid,This recipe does not exist,This recipe does not exist,このレシピは存在しません,Dieses Rezept existiert nicht,이 레시피는 존재하지 않습니다
+ui.commandRejected.recipeLocked,This recipe is not unlocked yet,This recipe is not unlocked yet,このレシピはまだ解放されていません,Dieses Rezept ist noch nicht freigeschaltet,이 레시피는 아직 해금되지 않았습니다
 ui.commandRejected.machineRecipeRequestFailed,Could not change the recipe,Could not change the recipe,レシピを変更できませんでした,Das Rezept konnte nicht geändert werden,레시피를 변경할 수 없습니다
 ui.commandRejected.trainTimetableReplaceFailed,The timetable change was rejected,The timetable change was rejected,時刻表の変更が受け付けられませんでした,Die Fahrplanänderung wurde abgelehnt,시간표 변경이 거부되었습니다
 ui.commandRejected.trainAutoRunFailed,Could not switch auto-run,Could not switch auto-run,自動運転を切り替えられませんでした,Automatikbetrieb konnte nicht umgeschaltet werden,자동 운전을 전환하지 못했습니다
 ui.commandRejected.trainAutoRunNotApplied,Auto-run was not changed,Auto-run was not changed,自動運転は切り替わりませんでした,Der Automatikbetrieb wurde nicht geändert,자동 운전이 바뀌지 않았습니다
-ui.commandRejected.trainInvalidBlockType,This block cannot take this setting,This block cannot take this setting,このブロックにはこの設定ができません,Dieser Block unterstützt diese Einstellung nicht,이 블록에는 이 설정을 할 수 없습니다
+ui.commandRejected.blockTypeMismatch,This block does not support this operation,This block does not support this operation,このブロックではこの操作はできません,Dieser Block unterstützt diesen Vorgang nicht,이 블록에서는 이 작업을 할 수 없습니다
 ui.commandRejected.trainStationNameFailed,The station name was rejected,The station name was rejected,駅名が受け付けられませんでした,Der Bahnhofsname wurde abgelehnt,역 이름이 거부되었습니다
 ui.commandRejected.trainPlatformModeFailed,Could not switch loading and unloading,Could not switch loading and unloading,積込と卸しを切り替えられませんでした,Be- und Entladen konnte nicht umgeschaltet werden,적재와 하역을 전환하지 못했습니다
-ui.commandRejected.specialBlockRequestFailed,The block did not accept the operation,The block did not accept the operation,ブロックが操作を受け付けませんでした,Der Block hat die Aktion nicht angenommen,블록이 조작을 받아들이지 않았습니다
+ui.commandRejected.specialBlockRequestFailed,The block did not accept the operation ({code}),The block did not accept the operation ({code}),ブロックが操作を受け付けませんでした（{code}）,Der Block hat die Aktion nicht angenommen ({code}),블록이 조작을 받아들이지 않았습니다 ({code})
 ui.commandRejected.specialBlockCommandStale,The block has already changed,The block has already changed,ブロックの状態がすでに変わっています,Der Block hat sich bereits geändert,블록 상태가 이미 바뀌었습니다
 ui.commandRejected.filterSplitterGrabEmpty,Hold an item to set the filter,Hold an item to set the filter,フィルタに設定するアイテムを持ってください,Halte einen Gegenstand um den Filter zu setzen,필터에 설정할 아이템을 들어 주세요
 ui.commandRejected.buildMenuNotOpen,The build menu is not open,The build menu is not open,ビルドメニューが開いていません,Das Baumenü ist nicht geöffnet,건설 메뉴가 열려 있지 않습니다
@@ -521,7 +521,7 @@ ui.commandRejected.blueprintDeleteNotFound,The blueprint was already deleted,The
 ui.commandRejected.blueprintDeleteNotUnlocked,Blueprints are not unlocked yet,Blueprints are not unlocked yet,ブループリントはまだ解放されていません,Baupläne sind noch nicht freigeschaltet,설계도가 아직 해금되지 않았습니다
 ui.commandRejected.blueprintDeleteRequestFailed,Could not reach the server to delete the blueprint,Could not reach the server to delete the blueprint,ブループリントの削除をサーバーへ送れませんでした,Der Bauplan konnte nicht gelöscht werden (keine Serververbindung),설계도 삭제 요청을 서버에 보낼 수 없습니다
 ui.commandRejected.blueprintDeleteUnknown,Could not delete the blueprint,Could not delete the blueprint,ブループリントを削除できませんでした,Der Bauplan konnte nicht gelöscht werden,설계도를 삭제할 수 없습니다
-ui.commandRejected.buildMenuCloseRefused,Could not close the build menu right now,Could not close the build menu right now,今はビルドメニューを閉じられません,Das Baumenü kann gerade nicht geschlossen werden,지금은 건설 메뉴를 닫을 수 없습니다
+ui.commandRejected.screenCloseRefused,Could not close this screen right now,Could not close this screen right now,今はこの画面を閉じられません,Dieser Bildschirm kann gerade nicht geschlossen werden,지금은 이 화면을 닫을 수 없습니다
 ui.commandRejected.hotbarSelectNotAccepted,The hotbar cannot be selected on this screen,The hotbar cannot be selected on this screen,この画面ではホットバーを選べません,Die Schnellleiste kann auf diesem Bildschirm nicht ausgewählt werden,이 화면에서는 단축바를 선택할 수 없습니다
 ui.commandRejected.modalResponseStale,This dialog is already closed,This dialog is already closed,このダイアログはすでに閉じています,Dieser Dialog ist bereits geschlossen,이 대화 상자는 이미 닫혔습니다
 ui.commandRejected.skitIntentRejected,The conversation did not accept that operation,The conversation did not accept that operation,会話がその操作を受け付けませんでした,Das Gespräch hat diese Aktion nicht angenommen,대화가 그 조작을 받아들이지 않았습니다

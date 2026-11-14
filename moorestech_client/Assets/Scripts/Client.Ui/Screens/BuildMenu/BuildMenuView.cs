@@ -4,6 +4,8 @@ using Client.Ui.Screens.BuildMenu.Parts;
 using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Session;
+using Client.Ui.State.Hotbar;
+using Client.Ui.State.Routing;
 using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine.UIElements;
@@ -16,8 +18,6 @@ namespace Client.Ui.Screens.BuildMenu
     /// </summary>
     public sealed class BuildMenuView : VisualElement
     {
-        private const string CloseCommandName = "ui_state.request";
-
         private readonly BuildMenuSessionStore _session;
         private readonly BuildMenuCategoryScrollTracker _tracker;
         private readonly BuildMenuPanelSkeleton _skeleton;
@@ -29,7 +29,7 @@ namespace Client.Ui.Screens.BuildMenu
         private string _query;
         private bool _shown;
 
-        public BuildMenuView(IBuildMenuCommands commands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker)
+        public BuildMenuView(IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker)
         {
             _session = session;
             _tracker = tracker;
@@ -41,14 +41,14 @@ namespace Client.Ui.Screens.BuildMenu
             // Build the three columns' parts and lay them on the skeleton
             var detail = new BuildMenuDetailSidebar(content, icons);
             _actions = new BuildMenuEntryActions(commands, toaster, session, detail);
-            _list = new BuildMenuCategoryList(content, icons, _actions);
+            _list = new BuildMenuCategoryList(content, icons, _actions, hotbarCommands);
             _skeleton = new BuildMenuPanelSkeleton(_sidebar, _list, detail);
             Add(_skeleton.Band);
             _scrollBinding = new BuildMenuScrollBinding(_skeleton.Scroll, _list, tracker);
 
             // 閉じる・検索・押下・現在地の追従
             // Close, search, category presses and following the current category
-            _skeleton.CloseButton.OnClicked.Subscribe(_ => toaster.Report(CloseCommandName, commands.Close()));
+            _skeleton.CloseButton.OnClicked.Subscribe(_ => toaster.Report(UiStateTransitionRules.RequestCommandName, commands.Close()));
             _skeleton.Search.OnValueChanged.Subscribe(OnQueryChanged);
             _sidebar.OnCategorySelected.Subscribe(tracker.JumpTo);
             tracker.ActiveCategory.Subscribe(_sidebar.SetActive);
@@ -86,9 +86,6 @@ namespace Client.Ui.Screens.BuildMenu
             _shown = shown;
             if (!shown)
             {
-                // 入力欄にフォーカスが残ると隠しても入力中の扱いが残るので外す
-                // A focused field would stay counted as typing after hiding, so blur it
-                if (focusController?.focusedElement is VisualElement focused && Contains(focused)) focused.Blur();
                 // 位置を保存して視口を凍らせてから隠す（隠した ScrollView の位置は当てにならないため。D-7）
                 // Save the position and freeze the viewport before hiding, since a hidden ScrollView's offset is unreliable (D-7)
                 _scrollBinding.Detach();

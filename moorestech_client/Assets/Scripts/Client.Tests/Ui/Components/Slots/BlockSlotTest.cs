@@ -56,7 +56,7 @@ namespace Client.Tests.Ui.Components.Slots
 
             var frame = _slot.Q<SlotFrame>("research-block-12");
             Assert.IsFalse(frame.ClassListContains("slot-frame--filled"));
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-face"), frame.resolvedStyle.backgroundColor, "face");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--slot-frame-face"), frame.Q(className: "slot-frame__face").resolvedStyle.backgroundColor, "face");
             Assert.AreSame(SlotTestIcons.SharedTexture, frame.Q(className: "game-icon__image").resolvedStyle.backgroundImage.texture);
         }
 

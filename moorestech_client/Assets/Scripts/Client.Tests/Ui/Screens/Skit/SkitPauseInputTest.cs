@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
@@ -151,14 +150,16 @@ namespace Client.Tests.Ui.Screens.Skit
 
         private string BodyText()
         {
-            return Find<LocalizedLabel>(_view, "skit-body").text;
+            // 表示文は行送り・字間の印を前置するので、文の中身は原文で読む
+            // The display text prefixes line-height and spacing tags, so read the words from the source
+            return Find<LocalizedLabel>(_view, "skit-body").SourceText;
         }
 
-        // 本文の Label は行高のタグを前置するので、その前置きだけを許して全文と比べる。透明な残りも全文で終わるので末尾の一致では判定しない
-        // The body Label prefixes a line-height tag, so allow only that prefix against the full text; the transparent tail also ends with the full text, so a suffix match is not used
+        // 透明な残りも全文で終わるので末尾の一致では判定せず、全文と一致するかで見る
+        // The transparent tail also ends with the full text, so compare to the full text rather than by suffix
         private bool ShowsWholeBody()
         {
-            return Regex.IsMatch(BodyText(), "^(<line-height=[^>]*>)?" + Regex.Escape(SkitRichText.TypewriterBody(Body, Body.Length)) + "$");
+            return BodyText() == SkitRichText.TypewriterBody(Body, Body.Length);
         }
 
         private bool PicksInsideSkit(Vector2 point)

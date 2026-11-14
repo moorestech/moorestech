@@ -92,8 +92,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         [Test]
         public void モード切替の間隔と内側の余白と選択面は専用トークンで決まる()
         {
-            // Web の --mode-switch-selected-mix は USS に color-mix が無いので DerivedTokens の --mode-switch-selected-face に焼いてある
-            // The Web's --mode-switch-selected-mix is baked into DerivedTokens' --mode-switch-selected-face because USS has no color-mix
+            // Web の --mode-switch-selected-mix は USS に color-mix が無いので DerivedTokens/ControlsDerivedTokens.uss の --mode-switch-selected-face に焼いてある
+            // The Web's --mode-switch-selected-mix is baked into ControlsDerivedTokens.uss' --mode-switch-selected-face because USS has no color-mix
             var uss = File.ReadAllText(Path.Combine(Application.dataPath, ModeSwitchUss));
             foreach (var token in new[] { "var(--mode-switch-gap)", "var(--mode-switch-padding-block)", "var(--mode-switch-padding-inline)", "var(--mode-switch-selected-face)" }) StringAssert.Contains(token, uss);
         }
@@ -102,15 +102,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         {
             switch (webSource)
             {
-                case "gear": return new VisualElement[] { RenderInto(new GearSectionView(), SpecialDetailSamples.GearMachine) };
+                case "gear": return new VisualElement[] { RenderSection(new GearSectionView(), SpecialDetailSamples.GearMachineGear) };
                 case "filterSplitter": return new VisualElement[] { RenderFilterSplitter() };
-                case "electricToGear": return new VisualElement[] { RenderInto(new ElectricToGearBodyView(Kit(null)), SpecialDetailSamples.Only(SpecialDetailSamples.ElectricToGear)) };
-                case "network": return new VisualElement[] { RenderInto(new ElectricNetworkSectionView(), SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork)), RenderInto(new GearNetworkSectionView(), SpecialDetailSamples.GearMachine) };
+                case "electricToGear": return new VisualElement[] { RenderSection(new ElectricToGearBodyView(Kit(null)), SpecialDetailSamples.Only(SpecialDetailSamples.ElectricToGear)) };
+                case "network": return new VisualElement[] { RenderSection(new ElectricNetworkSectionView(), SpecialDetailSamples.PoleNetwork), RenderSection(new GearNetworkSectionView(), SpecialDetailSamples.GearMachineNetwork) };
                 default: throw new System.ArgumentOutOfRangeException(nameof(webSource), webSource, "Web の sources の鍵に対応する View が無い");
             }
         }
 
-        private VisualElement RenderInto<TView>(TView view, SpecialBlockDetailViewModel detail) where TView : VisualElement, ISpecialDetailRenderer
+        private VisualElement RenderSection<TView, TDetail>(TView view, TDetail detail) where TView : VisualElement, ISpecialSectionRenderer<TDetail>
         {
             Mount(view);
             view.Render(NoSlots, detail);

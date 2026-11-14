@@ -22,21 +22,19 @@ namespace Client.Ui.State.BlockInventory.Machine
         // Match instance ID so old values never apply
         public bool AppliesTo(OpenBlockInventoryPanel panel)
         {
-            var current = _model.Current.Value;
-            return current.IsPresent && current.Value.IsFor(panel);
+            return _model.Current.Value.TryGetPresent(out var machine) && machine.IsFor(panel);
         }
 
         public OpenBlockSlotInput Contribute(OpenBlockInventoryPanel panel, OpenBlockSlotInput input)
         {
             // AppliesTo を経ずに呼ばれ区画が無いときは束縛を足さない
             // Without a section (called past AppliesTo), add no binding
-            var current = _model.Current.Value;
-            if (!current.IsPresent)
+            if (!_model.Current.Value.TryGetPresent(out var machine))
             {
                 Debug.LogError($"[MachineSlotRestrictionContributor] Contribute called without a machine section (blockInstanceId={panel.BlockInstanceId}); input left unchanged");
                 return input;
             }
-            return input.WithMachine(current.Value.Detail.Binding);
+            return input.WithMachine(machine.Detail.Binding);
         }
     }
 }

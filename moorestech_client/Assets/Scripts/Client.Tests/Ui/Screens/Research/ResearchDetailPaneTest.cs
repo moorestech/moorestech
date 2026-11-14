@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
 using Client.Ui.Screens.Research.Parts;
@@ -68,7 +69,7 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.IsFalse(ResearchButton().enabledSelf);
             var reason = Find<Label>(rootVisualElement, "research-detail-reason");
             Assert.IsTrue(IsShown(reason));
-            Assert.AreEqual("Not enough research items.", Kit.PlainText(reason));
+            Assert.AreEqual("Not enough research items.", reason.PlainText());
             Click(Find<VisualElement>(rootVisualElement, "research-detail-close"));
             CollectionAssert.AreEqual(new[] { "close" }, _commands.Issued);
         }
@@ -143,7 +144,7 @@ namespace Client.Tests.Ui.Screens.Research
         {
             // キーの無いラベルを載せないよう、描いてから載せる
             // Render before mounting so no keyless label is attached
-            var pane = new ResearchDetailPane(_commands, _content);
+            var pane = new ResearchDetailPane(_commands, _content, Toaster);
             pane.Render(detail);
             Mount(pane);
             simulate.FrameUpdate();

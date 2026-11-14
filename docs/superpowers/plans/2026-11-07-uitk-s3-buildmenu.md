@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/buildMenu`（3 カラムのパネル・縦のカテゴリ切替・検索・全カテゴリを 1 本に並べたスクロールとスクロールスパイ・smooth scroll・詳細の sticky・BP の右クリック削除・不足ツールチップ・閉じて開き直したときの復元・ホットバーへのドラッグ源）を、C3-a・C3-b の部品と L0-s3 のロジック（`BuildMenuGrouping`・`BuildMenuShortage`・`BuildMenuSessionStore`・`BuildMenuCategoryScrollTracker`）で Web と同じ見た目の UITK 画面にし、Model を Web の topic の源（`PlacementTargetResolver`・`ConstructionWalletQuery`・`LocalPlayerInventoryController`・`ClientBlueprintLibrary`・`IBlueprintThumbnailLookup`）から直に購読して、L1・並べ比べ（720p・2560×1080）・録画（`misc/webui-buildmenu-click`・`connect/electric-wire-tool-*` 5 本・`building/blueprint-place-like-block`・新設 `uitk/uitk-build-menu`。全体スイッチ UITK）まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/buildMenu`（3 カラムのパネル・縦のカテゴリ切替・検索・全カテゴリを 1 本に並べたスクロールとスクロールスパイ・smooth scroll・詳細の sticky・BP の右クリック削除・不足ツールチップ・閉じて開き直したときの復元・ホットバーへのドラッグ源）を、C3-a・C3-b の部品と L0-s3 のロジック（`BuildMenuGrouping`・`BuildMenuShortage`・`BuildMenuSessionStore`・`BuildMenuCategoryScrollTracker`）で Web と同じ見た目の UITK 画面にし、Model を Web の topic の源（`PlacementTargetResolver`・`ConstructionWalletQuery`・`LocalPlayerInventoryController`・`ClientBlueprintLibrary`・`IBlueprintThumbnailLookup`）から直に購読して、L1・並べ比べ（720p・2560×1080）・録画（`misc/webui-buildmenu-click`・`connect/electric-wire-tool-*` 5 本・`building/blueprint-place-like-block`・新設 `uitk/stage3/uitk-build-menu`。全体スイッチ UITK）まで済ませて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。Model（`Client.Ui.State/BuildMenu/Source/BuildMenuModel`）は Client.Game の源を購読して不変の `BuildMenuViewModel` を `IReadOnlyReactiveProperty` で配る。エントリの組み立ては Web の橋 `BuildMenuEntryDtoFactory` の規則を State へ写した `BuildMenuEntryFactory`（橋のファイルは書かない）。検索と群分けの合成は純関数 `BuildMenuShownListComposer`（State）が持ち、View は `Render(BuildMenuViewModel)` と検索語の変化でそれを呼ぶ。View（`Client.Ui/Screens/BuildMenu`）は Model を知らず、操作は `IBuildMenuCommands`（選択・BP 削除・閉じる）を直接呼び、結果は `UiCommandResultToaster.Report` へ渡す。Presenter は起動時に 1 回だけ View を `UiLayer.Screen`・`UiFamily.Stage` へ載せ、`UiRoutingState.Current` で出し入れし、表示中だけ Model を購読する（前例 `PauseMenuScreenPresenter`）。スクロールスパイは L0-s3 の `BuildMenuCategoryScrollTracker` を View が `IBuildMenuScrollViewport` の実装 `BuildMenuScrollViewport`（`GameScrollView` の C3-b の口の上に組む。表示ごとに作り直す）で動かし、smooth scroll は `UiMotionPlayer`＋`ScrollOffsetTweenStep`。見た目の値は Web と同名のトークン（`Tokens.uss` の `--build-menu-*`・`--menu-upper-safe-area`・`--menu-lower-safe-area`・`--slot-size`・`--tutorial-anchor-clip-inset`）だけを使い、部品のつまみ（`--mode-switch-option-height`・`--icon-pad`）は画面のクラスで上書きする。
 
@@ -28,14 +28,14 @@
 | R-9 | 復元: 閉じて開き直すと検索語・スクロール位置・詳細の sticky が戻る | `BuildMenuRestoreTest` が緑（Web `buildMenuRestore.spec.ts` 1 件・regression 11 件目） |
 | R-10 | ドラッグ源: エントリを C3-b の `UiDragDrop.MarkSource` で源にし、タップは選択、落とし先の解決は S3-hotbar-modal へ渡す口を 1 か所にする | `BuildMenuDragSourceTest` が緑。落とし先の申告が `done.md` の「integrator への依頼」にある |
 | R-11 | L0-s3「後段レーンへ渡すもの」5 点（下の L-1〜L-5） | 各行の受け入れ基準 |
-| L-1 | スペーサ反映後の `GeometryChangedEvent` で `OnLayoutChanged()` を呼び、末尾ジャンプが末尾群の見出しへ届く | `BuildMenuScrollViewTest`「末尾カテゴリへジャンプしても見出しが視口上端に来る」と録画 `uitk/uitk-build-menu` の末尾ジャンプの主張が緑 |
+| L-1 | スペーサ反映後の `GeometryChangedEvent` で `OnLayoutChanged()` を呼び、末尾ジャンプが末尾群の見出しへ届く | `BuildMenuScrollViewTest`「末尾カテゴリへジャンプしても見出しが視口上端に来る」と録画 `uitk/stage3/uitk-build-menu` の末尾ジャンプの主張が緑 |
 | L-2 | `AppliedSpacerHeight` はレイアウト確定後の実寸を返し、反映後の高さで保存位置を復元する | `BuildMenuRestoreTest`「スペーサ反映後の高さで保存位置を復元する」が緑 |
 | L-3 | 復元前に ScrollView が `OnScrolled(0)` を流すと保存位置が 0 に潰れる（Web と同挙動）かを実機で確かめる | Task 8 Step 4 の実測値が `done.md`「証拠」と台帳「## 実測の結論」にあり、復元の主張（L1・録画）が緑 |
 | L-4 | 張り替え時に新しい視口へ `SpacerHeight.Value` を当て直す | `BuildMenuRestoreTest`「開き直した視口へ要求済みのスペーサ高を当て直す」が緑 |
 | L-5 | 検索語・入力文は非 null で渡す | `BuildMenuSearchViewTest`「検索欄を空にしても検索語は空文字で保存される」が緑 |
 | R-12 | 並べ比べ: 参照 `3-build-menu`（1280×720・2560×1080）と UITK を並べ、差の表を `done.md` に書く | 2 解像度の組（参照と同じ内容の DEMO の VM で撮る）が報告ページにあり、差の表の全行が「同じ／直した／LX-n」のどれか（中身を理由に「捨てる」にしない）。色の差は、所有レーンの直しを取り込んで撮り直し一致を確かめるか、LX に記帳できる性質のものを `LX-72`〜`LX-75` に記帳して閉じるかの 2 択で、どちらかが済むまで完了・マージしない |
 | R-13 | 登録: `MainGameUiRegistration` の画面登録区画に 1 行（`BuildMenuGameUiRegistration.Register(builder);`）、`GameUiTheme.tss` の `Screens` 区画に `@import` 1 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が緑 |
-| R-14 | 録画: `misc/webui-buildmenu-click`・`connect/electric-wire-tool-*` 5 本・`building/blueprint-place-like-block`・`uitk/uitk-build-menu` を全体スイッチ UITK で回す | 8 本の `result.json`（`blueprint-place-like-block` は D-18 の扱い）と mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-14 | 録画: `misc/webui-buildmenu-click`・`connect/electric-wire-tool-*` 5 本・`building/blueprint-place-like-block`・`uitk/stage3/uitk-build-menu` を全体スイッチ UITK で回す | 8 本の `result.json`（`blueprint-place-like-block` は D-18 の扱い）と mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-15 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑・未記帳 0 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -159,7 +159,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 - **申し送りの罠**（I-fix1・C3-a からの実測）: (a) 字間は px 表記でも UITK では「字の大きさ / 100 × 値」で効く。この画面の Web の CSS に字間は無いが、足すときは I-fix1 の換算トークンを `var()` で使い、換算値を直書きしない (b) ギャラリーの撮影は sRGB 合成で半透明が淡く出るので、色はランタイムの PanelSettings（`GameUiPanelSettings.asset` の複製）で撮って比べる（Task 10） (c) 暗い半透明の α は I-fix1（e26010aa0c）で指数 1.85 に選び直し済み。明るい半透明（`--mode-switch-selected-face` 等）は未実測なので、差の表で見た差を「未確認」に書き、直すなら integrator へ依頼する（トークン USS はこのレーンの持ち物でない）
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/BuildMenu/`（補助は `Support/`）・`S/Client.Tests/Ui/State/BuildMenu/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。テンプレート文字列も展開しない。実行計画 E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.(Ui\.(Screens\.BuildMenu|State\.BuildMenu|Conventions|Theme|Layers|Anchor|State\.Commands|State\.PauseMenuCommandsTest)|WebUi\.BuildMenuActionsTest)\.`（`PauseMenuCommandsTest` は namespace `Client.Tests.Ui.State` 直下なので名指しで入れる。S3-hotbar-modal と共有のテスト）。ドメインリロード中のエラーは 45 秒待って再試行
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは `GameUiTheme.tss` の `Screens` 区画の `@import` 1 行・`MainGameUiRegistration.cs` の画面登録区画の 1 行・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の enum 末尾と 3 つの switch の末尾（前例 S2-skit）・`Localization/localization.csv` の `ui.commandRejected.*` の末尾 6 行とその生成物 2 つ（`localizationKeys.ts`・`_CompileRequester.cs`。再生成だけ）・`S/Client.Ui.State/Client.Ui.State.asmdef` の参照 3 つ・`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の build menu の行の削除（在るときだけ）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の一覧のテスト（S3-hotbar-modal も同じテストを同じ名前へ置き換える。取り込みの衝突は `benign` の値の和を採る）・`MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行への `.As<IBlueprintDeleteService>()` 1 つ（D-35）・`ContentGameUiRegistration.cs` の末尾の `PlacementTargetIcons` の登録 1 行（D-42）・`S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs`・`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` への `TrainCarTexture`・`ConnectToolTexture` の追記（D-29。C3-a はマージ済みで W3 で後に走る C4-a〈液体の絵の出どころ〉が同じインターフェースへ追記しうる。取り込みの衝突は両方のメソッドを採る）。新設して持ち主になる共有の置き場は `S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（A-100）。持ち物は File Structure の「新規」の行と同じ: `S/Client.Ui/Screens/BuildMenu/**`・`S/Client.Ui.State/BuildMenu/**` への追加・`S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Tests/Ui/Screens/BuildMenu/**`・`S/Client.Tests/Ui/State/BuildMenu/**`・`S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs`・`tools/uitk/render-mock-placeholder-icons.mjs`（撮影の道具）・シナリオ `SKILL/scenarios/uitk/uitk-build-menu.cs`
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは `GameUiTheme.tss` の `Screens` 区画の `@import` 1 行・`MainGameUiRegistration.cs` の画面登録区画の 1 行・`S/Client.Ui.State/Commands/UiCommandRejectReason.cs` の enum 末尾と 3 つの switch の末尾（前例 S2-skit）・`Localization/localization.csv` の `ui.commandRejected.*` の末尾 6 行とその生成物 2 つ（`localizationKeys.ts`・`_CompileRequester.cs`。再生成だけ）・`S/Client.Ui.State/Client.Ui.State.asmdef` の参照 3 つ・`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の build menu の行の削除（在るときだけ）・`S/Client.Tests/Ui/State/PauseMenuCommandsTest.cs` の良性の一覧のテスト（S3-hotbar-modal も同じテストを同じ名前へ置き換える。取り込みの衝突は `benign` の値の和を採る）・`MainGameInteractionRegistration.cs` の `ClientBlueprintLibrary` の行への `.As<IBlueprintDeleteService>()` 1 つ（D-35）・`ContentGameUiRegistration.cs` の末尾の `PlacementTargetIcons` の登録 1 行（D-42）・`S/Client.Ui/Content/IGameContentTextureSource.cs`・`ClientContextContentTextureSource.cs`・`S/Client.Tests/Ui/Content/FakeContentTextureSource.cs` への `TrainCarTexture`・`ConnectToolTexture` の追記（D-29。C3-a はマージ済みで W3 で後に走る C4-a〈液体の絵の出どころ〉が同じインターフェースへ追記しうる。取り込みの衝突は両方のメソッドを採る）。新設して持ち主になる共有の置き場は `S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`（A-100）。持ち物は File Structure の「新規」の行と同じ: `S/Client.Ui/Screens/BuildMenu/**`・`S/Client.Ui.State/BuildMenu/**` への追加・`S/Client.Ui.State/PlacementTarget/**`・`S/Client.Ui.State/Hotbar/Logic/IHotbarDropReceiver.cs`・`S/Client.Ui/Content/PlacementTargetIcons.cs`・`S/Client.Tests/Ui/Screens/BuildMenu/**`・`S/Client.Tests/Ui/State/BuildMenu/**`・`S/Client.Starter/Registration/GameUi/BuildMenuGameUiRegistration.cs`・`tools/uitk/render-mock-placeholder-icons.mjs`（撮影の道具）・シナリオ `SKILL/scenarios/uitk/stage3/uitk-build-menu.cs`
 - **新しい共有の申告**（設計書 §5.1-2）: 新しい共有の型（他の画面も使う型・Foundation・Components）が要ると分かったら自分で作らず、`done.md` の「## integrator への依頼」に「<種別>: <名前>・使う画面・API 案・このレーンでの仮置き」を書く。例外（本体の決定）: 配置対象の絵の出どころ（`State/PlacementTarget/PlacementTargetIcon.cs`・`PlacementTargetIconResolver.cs`・`Ui/Content/PlacementTargetIcons.cs`）と落としの受け口（`State/Hotbar/Logic/IHotbarDropReceiver.cs`）は、S3-hotbar-modal が後からこのレーンのファイルを書き換えないよう、先に走るこのレーンが最終の置き場に作る。持ち主はこのレーン、S3-hotbar-modal は使うだけ。`done.md` には「作った・持ち主は S3-buildmenu」と書く（Task 1 Step 3 で雛形に書く: (1) 落としの受け口 `IHotbarDropReceiver`〈D-16〉 (2) 絵の出どころ 3 ファイル〈D-29〉 (3) 2560×1080 の参照の台帳記載〈撮ったときだけ〉）
 - **参照キャプチャ**: 1280×720 は `LOGS/uitk/reference-captures/web-869b2d4264/3-build-menu.png`（最新の 720p。`manifest.json`・`index.md`）、2560×1080 は `LOGS/uitk/reference-captures/web-0e81bbe3c3-2560x1080/3-build-menu.png`
 - **並べ比べの画像の原本**は worktree の gitignore 下 `moorestech_client/.uloop/outputs/compare/S3-buildmenu/` に置き、`moorestech_logs` へ入れない。`moorestech_logs` へ書く前に `LOGS/README.md` を読む
@@ -187,11 +187,11 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | 錨 `build-menu.entry-*` のチュートリアル強調 | S2-tutorial のマージ後に生きる | このレーンは `TutorialAnchor.Mark` で名前を付けるだけ。`TutorialAnchorCoveragePending.cs` に build menu の行があれば同じ PR で消す（Task 6 Step 6・Task 13 Step 2） |
 | 検索欄の入力中にゲームのキー（B で閉じる等）が動かない | C2-b の `GameTextField` のフォーカス中の入力遮断に依る | 確かめるのは S3-ladder（L1）。このレーンの録画は検索欄へ英字を打たず、L1 は `SetValueWithoutNotify`＋`OnValueChanged` で流す |
 | 録画 `building/blueprint-place-like-block` の BP 名入力（`modal-input`） | S3-hotbar-modal のマージまで死ぬ | BP 名のモーダルは S3-hotbar-modal の持ち物（W3 の順でこのレーンの後）。扱いは D-18 |
-| プレイテスト DSL の UI 経路（`p.ClickBuildMenuBlock`・`PlaytestBuildMenuOps` が待つ testid） | 生きる（確かめる） | DSL が待つ id は `build-menu-entry-<kind>-<TargetId>`。`BuildMenuEntrySlot.TestIdOf` の `TargetId` は配置対象の `Id`（Block は `BlockGuid`）と同値なので、DSL がマスタから引く Guid と一致する。Task 1 Step 1 で `PlaytestBuildMenuOps` の待つ id の組み立てを読んで照合し、録画 `misc/webui-buildmenu-click`・`uitk/uitk-build-menu` が通しで見る |
+| プレイテスト DSL の UI 経路（`p.ClickBuildMenuBlock`・`PlaytestBuildMenuOps` が待つ testid） | 生きる（確かめる） | DSL が待つ id は `build-menu-entry-<kind>-<TargetId>`。`BuildMenuEntrySlot.TestIdOf` の `TargetId` は配置対象の `Id`（Block は `BlockGuid`）と同値なので、DSL がマスタから引く Guid と一致する。Task 1 Step 1 で `PlaytestBuildMenuOps` の待つ id の組み立てを読んで照合し、録画 `misc/webui-buildmenu-click`・`uitk/stage3/uitk-build-menu` が通しで見る |
 | 開いたままの言語切替 | 生きる | Model が `Localize.OnLanguageChanged` で開いている間に VM を組み直し（Task 3）、見出しは `UiText`・ツールチップは組み直しで張り替わる（D-15）。L1 は持たず、Task 10 の撮影の後に言語を戻す操作で目視 |
-| パネルの上のホイールがカメラのズームへ漏れない | 生きる（C3-b・C2-b の入力の裁きに依る） | GameUi の入力の裁き（パネルの上のポインタはゲームのホイールを止める）に依る。このレーンは `GameScrollView` がホイールを受けることだけを使う。録画 `uitk/uitk-build-menu` の末尾ジャンプの後の手のスクロールで、カメラが動かないことを目視し `done.md` に書く |
+| パネルの上のホイールがカメラのズームへ漏れない | 生きる（C3-b・C2-b の入力の裁きに依る） | GameUi の入力の裁き（パネルの上のポインタはゲームのホイールを止める）に依る。このレーンは `GameScrollView` がホイールを受けることだけを使う。録画 `uitk/stage3/uitk-build-menu` の末尾ジャンプの後の手のスクロールで、カメラが動かないことを目視し `done.md` に書く |
 | 詳細の列の必要素材（`ItemSlot`）のツールチップ | 生きる | `ItemSlotShortage` に `MaterialTooltipText` を渡す（Task 6）。L1 は `BuildMenuDetailViewTest`（R-8） |
-| カテゴリ押下のジャンプ・スクロールスパイ・検索・閉じて開き直す復元 | 生きる | L1 の `BuildMenuScrollViewTest`・`BuildMenuSearchViewTest`・`BuildMenuRestoreTest`（R-3〜R-9）と録画 `uitk/uitk-build-menu` |
+| カテゴリ押下のジャンプ・スクロールスパイ・検索・閉じて開き直す復元 | 生きる | L1 の `BuildMenuScrollViewTest`・`BuildMenuSearchViewTest`・`BuildMenuRestoreTest`（R-3〜R-9）と録画 `uitk/stage3/uitk-build-menu` |
 
 ---
 
@@ -265,7 +265,7 @@ public enum BlueprintDeleteResult { Success, NotFound, NotUnlocked, RequestFaile
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuLayoutTest.cs` | `buildMenuLayout.spec.ts` 7 件・`placementIconCentering.spec.ts` のビルドメニュー側 1 件 | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuRestoreTest.cs` | `buildMenuRestore.spec.ts` 1 件、L-2・L-4・L-3 の観測（D-8）、末尾の群が視口より高い（スペーサ 0）ときの復元（D-43） | 新規 |
 | `S/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuDragSourceTest.cs` | タップ＝選択・受け口へ 1 回渡す・受け口でない落とし先は何もしない | 新規 |
-| `SKILL/scenarios/uitk/uitk-build-menu.cs` | 末尾ジャンプ・検索・閉じて開き直す復元・選択を UITK で通す録画 | 新規 |
+| `SKILL/scenarios/uitk/stage3/uitk-build-menu.cs` | 末尾ジャンプ・検索・閉じて開き直す復元・選択を UITK で通す録画 | 新規 |
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（L-3 の観測）、要れば「## 見た目の例外」末尾（LX-71〜LX-75） | 変更（共有区画） |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば build menu の行を消す | 変更（共有区画・在れば） |
 
@@ -1452,7 +1452,7 @@ namespace Client.Tests.Ui.State.BuildMenu
     }
 }
 ```
-（`using` に `Game.Block.Interface.Extension`〈`BeltConveyorPlacementUnlockSourceMap`〉ほか、前例 `BuildMenuEntryDtoFactoryTest.cs` の using を写して足す。ビルドメニュー中の `Close` の受理は `RequestTransition` が `UIStateDictionary` の無い `UIStateControl` で例外になり得るので L1 に持たず、録画 `uitk/uitk-build-menu` の閉じるボタンで見る。D-27）
+（`using` に `Game.Block.Interface.Extension`〈`BeltConveyorPlacementUnlockSourceMap`〉ほか、前例 `BuildMenuEntryDtoFactoryTest.cs` の using を写して足す。ビルドメニュー中の `Close` の受理は `RequestTransition` が `UIStateDictionary` の無い `UIStateControl` で例外になり得るので L1 に持たず、録画 `uitk/stage3/uitk-build-menu` の閉じるボタンで見る。D-27）
 
 - [ ] **Step 2: テストが落ちることを確かめる**
 
@@ -2909,8 +2909,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 
             simulate.Click(Find<Button>(View, "build-menu-close"));
 
-            // 遷移の結果パネルが隠れることは録画 uitk/uitk-build-menu が見る（D-27）
-            // The panel hiding after the transition is checked by the uitk/uitk-build-menu recording (D-27)
+            // 遷移の結果パネルが隠れることは録画 uitk/stage3/uitk-build-menu が見る（D-27）
+            // The panel hiding after the transition is checked by the uitk/stage3/uitk-build-menu recording (D-27)
             Assert.AreEqual(1, Commands.CloseCount);
         }
 
@@ -4714,10 +4714,10 @@ git commit -m "fix(uitk): ビルドメニューを Web との並べ比べで揃�
 
 ---
 
-### Task 11: unityプレイ録画テスト（完了条件の 7 本と `uitk/uitk-build-menu`）
+### Task 11: unityプレイ録画テスト（完了条件の 7 本と `uitk/stage3/uitk-build-menu`）
 
 **Files:**
-- Create: `SKILL/scenarios/uitk/uitk-build-menu.cs`
+- Create: `SKILL/scenarios/uitk/stage3/uitk-build-menu.cs`
 - Modify: 既存の 7 本は変えない（GameUi で落ちたら原因を直す。シナリオ側の直しが要るときだけ最小の分岐を足し、理由を `done.md` に書く）
 
 **Interfaces:**
@@ -4839,7 +4839,7 @@ Run:
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Current.ToString();'
 SKILL=.agents/skills/unity-playmode-recorded-playtest
-for s in uitk/uitk-build-menu misc/webui-buildmenu-click connect/electric-wire-tool-extend-chain-via-ui connect/electric-wire-tool-isolated-place-via-ui connect/electric-wire-tool-pole-cycle-rotate-via-ui connect/electric-wire-tool-pole-ghost-hide-paths-check connect/electric-wire-tool-pole-ghost-visibility-check; do
+for s in uitk/stage3/uitk-build-menu misc/webui-buildmenu-click connect/electric-wire-tool-extend-chain-via-ui connect/electric-wire-tool-isolated-place-via-ui connect/electric-wire-tool-pole-cycle-rotate-via-ui connect/electric-wire-tool-pole-ghost-hide-paths-check connect/electric-wire-tool-pole-ghost-visibility-check; do
   "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/$s.cs"
 done
 ```
@@ -4911,7 +4911,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
     "ホットバーへの落とし先と BP 名のモーダルは S3-hotbar-modal（受け口 IHotbarDropReceiver はこのレーンが作り、実装は S3-hotbar-modal）"
   ],
   "media": [
-    {"file": "<uitk-build-menu の recording.mp4>", "caption": "uitk/uitk-build-menu（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "<uitk-build-menu の recording.mp4>", "caption": "uitk/stage3/uitk-build-menu（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<webui-buildmenu-click の recording.mp4>", "caption": "misc/webui-buildmenu-click（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<web-869b2d4264/3-build-menu.png>", "caption": "Web 3-build-menu 1280×720", "group": "3-build-menu"},
     {"file": "<compare/S3-buildmenu/uitk-3-build-menu-1280x720.png>", "caption": "UITK 3-build-menu 1280×720", "group": "3-build-menu"},

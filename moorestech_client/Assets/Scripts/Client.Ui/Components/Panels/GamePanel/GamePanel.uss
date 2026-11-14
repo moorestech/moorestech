@@ -11,6 +11,11 @@
 
 .game-panel--default {
     padding: 8px 10px 10px 28px;
+    /* 下端のフェードは面（::before）と三角の帯（.bottomDeco）の mask が同じ calc(100% - 12px) を直書きするので、両方の親で 1 回だけ持つ */
+    /* customStyle は継がないので、面と帯はそれぞれ自分の規則で var() で受け直す */
+    /* The face (::before) and the triangle band (.bottomDeco) masks both write the literal calc(100% - 12px), so their parent holds it once */
+    /* customStyle does not inherit, so the face and the band each take it again with var() in their own rules */
+    --game-panel-default-bottom-fade: 12px;
 }
 
 /* craft は透明 1px の枠で外寸を保つ（Web の border: 1px solid transparent）。面はパネル自身の背景で、UITK も枠の下まで塗る（Web の background は border-box） */
@@ -36,7 +41,7 @@
     --game-panel-face: var(--surface-navy);
     --game-panel-edge-fade: var(--panel-edge-fade);
     --game-panel-top-fade: 11.742px;
-    --game-panel-bottom-fade: 12px;
+    --game-panel-bottom-fade: var(--game-panel-default-bottom-fade);
 }
 
 /* Web の inset 0 0 0 3.132px の暗い線（不透明）。UITK は枠幅を物理画素へ丸める（倍率 1 で 3px・1.5 で 3.333px） */
@@ -153,8 +158,8 @@
     --game-panel-rule-end: var(--game-panel-rule-bottom-end);
 }
 
-/* basis 0% で本文の高さを子孫の内容寸法へ依存させない（Web の .body と同じ方針） */
-/* Basis 0% keeps the body height independent of descendant content size (same policy as the Web .body) */
+/* basis 0% で本文の高さを子孫の内容寸法へ依存させない（Web の .body と同じ方針）。max-height で止まるときの飾り線の縮みは写さない（look-exception: LX-182） */
+/* Basis 0% keeps the body height independent of descendant content size (same policy as the Web .body); the deco-line shrink at max-height is not copied (look-exception: LX-182) */
 .game-panel__body {
     flex-grow: 1;
     flex-shrink: 1;
@@ -172,4 +177,8 @@
     left: 7%;
     height: 57px;
     --game-panel-deco: var(--game-panel-triangle-face);
+    --game-panel-bottom-fade: var(--game-panel-default-bottom-fade);
+    /* Web の .bottomDeco span の width: 68px（直書き）。個数 3 は Web の span の数で、C# の構造が持つ */
+    /* The Web .bottomDeco span width: 68px (literal); the count of 3 is the Web span count, held by the C# structure */
+    --game-panel-deco-triangle-width: 68px;
 }

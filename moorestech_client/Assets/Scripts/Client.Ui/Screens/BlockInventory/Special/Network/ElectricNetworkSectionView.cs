@@ -16,7 +16,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
     /// 電力網の集約の区画。消費者 0 は「需要なし」、他は集約の 1 行（Web ElectricNetworkSection）
     /// Electric network aggregate section; zero consumers shows "no demand", otherwise one summary row (Web ElectricNetworkSection)
     /// </summary>
-    public sealed class ElectricNetworkSectionView : VisualElement, ISpecialDetailRenderer
+    public sealed class ElectricNetworkSectionView : VisualElement, ISpecialSectionRenderer<ElectricNetworkDetail>
     {
         private readonly UiStack _stack = new(UiGap.Px2);
         private readonly LocalizedLabel _noDemand;
@@ -35,17 +35,12 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             Add(_stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, ElectricNetworkDetail network)
         {
-            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
-            // Without the detail draw nothing and return false so the caller hides the section
-            if (!detail.TryGetElectricNetwork(out var network)) return false;
-
             var noDemand = network.ConsumerCount == 0;
             _stack.SetItemShown(_noDemand, noDemand);
             _stack.SetItemShown(_summary, !noDemand);
             if (!noDemand) _summary.Render(SpecialDetailTexts.ElectricNetworkSummary(network), false);
-            return true;
         }
     }
 }

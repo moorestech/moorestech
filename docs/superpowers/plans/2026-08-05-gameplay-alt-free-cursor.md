@@ -696,7 +696,7 @@ git commit -m "Gameplayゾーンの左Altホールドと三人称照準ソース
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateCameraInteractionTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs`
 
 **Interfaces:**
 - Consumes: `UiStateCameraPolicyService.UpdateGameplayFreeCursorInput()`（Task 3）
@@ -704,7 +704,7 @@ git commit -m "Gameplayゾーンの左Altホールドと三人称照準ソース
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateCameraInteractionTest.cs` へ次のテストとヘルパを追加する。`using` に `using Client.Game.InGame.UI.UIState.State.SubInventory;` と `using Client.Game.InGame.Train.Unit;` が無ければ足す。
+`moorestech_client/Assets/Scripts/Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs` へ次のテストとヘルパを追加する。`using` に `using Client.Game.InGame.UI.UIState.State.SubInventory;` と `using Client.Game.InGame.Train.Unit;` が無ければ足す。
 
 ```csharp
         [Test]
@@ -786,7 +786,7 @@ Expected: 全PASS
 - [ ] **Step 6: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateCameraInteractionTest.cs
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs
 git commit -m "GameScreenStateから左Alt自由カーソルを委譲し操作説明を更新する"
 ```
 

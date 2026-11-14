@@ -7,14 +7,14 @@ using UnityEngine.InputSystem.LowLevel;
 namespace Client.Input.Pointer
 {
     /// <summary>
-    /// マウスのホイールが回った時だけ縦のノッチ数（上が正）を流す
-    /// Publishes the vertical notch count (up is positive) only when the mouse wheel turns
+    /// マウスのホイールが回った時だけ縦のノッチ数（上が正）と、そのイベントの時点のマウス位置（実画面 px・左下原点）を流す
+    /// Publishes the vertical notch count (up is positive) and the mouse position at that event (screen px, bottom-left) only when the wheel turns
     /// </summary>
     public sealed class InputSystemPointerWheelStream
     {
-        private readonly Subject<float> _onWheelNotchesScrolled = new();
+        private readonly Subject<(float notchesUp, Vector2 screenPosition)> _onWheelNotchesScrolled = new();
 
-        public IObservable<float> OnWheelNotchesScrolled => _onWheelNotchesScrolled;
+        public IObservable<(float notchesUp, Vector2 screenPosition)> OnWheelNotchesScrolled => _onWheelNotchesScrolled;
 
         public InputSystemPointerWheelStream()
         {
@@ -36,7 +36,17 @@ namespace Client.Input.Pointer
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) return;
             if (!Mouse.current.scroll.ReadValueFromEvent(eventPtr, out var scroll)) return;
             if (scroll.y == 0f) return;
-            _onWheelNotchesScrolled.OnNext(scroll.y);
+            _onWheelNotchesScrolled.OnNext((scroll.y, PositionAtEvent(eventPtr)));
+        }
+
+        private static Vector2 PositionAtEvent(InputEventPtr eventPtr)
+        {
+            // onEvent はイベントをデバイスへ書き込む前に呼ばれるので、デバイスの今の値はこのイベントの移動を含まない。位置はイベントから読む
+            // onEvent runs before the event is written to the device, so the device value lacks this event's move; read the position from the event
+            if (Mouse.current.position.ReadValueFromEvent(eventPtr, out var position)) return position;
+            // 位置を含まないのはスクロールだけの DeltaStateEvent。このイベントは位置を動かさず、先のイベントは書き込み済みなので、デバイスの今の値がこのイベントの後の位置と同じ
+            // Only a scroll-only DeltaStateEvent lacks position; it does not move the pointer and earlier events are already written, so the device value equals the position after this event
+            return Mouse.current.position.ReadValue();
         }
     }
 }

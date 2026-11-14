@@ -1,8 +1,10 @@
 using Game.Context;
 // 電線ツール延長モデルE2E(受け入れ1/2/5): 起点プレビュー線が電柱先端から出る・接続成功で起点が接続先へ移る・右クリックで起点解除
 // 検証項目: プレビュー端点=ElectricWireConnectionPointマーカー座標(ブロック中心/AABB上面ではない)、接続応答後の起点チェーン、右クリックでの起点解除
+// 旧 electric-wire-connect-via-ui から移した検証: 結線前は別の電力網・結線で統合・電柱を選んだ設置中の接続の見え方（廃止された電力範囲ボックスの後継の自動接続プレビュー線）
 // Electric wire tool extend-model E2E (acceptance 1/2/5): preview starts at the pole tip, origin chains to the connected target, right click releases the origin.
 // Verifies: preview endpoint equals the ElectricWireConnectionPoint marker (not the block center/AABB top), origin chaining after a successful response, and right-click origin release.
+// Moved from the old electric-wire-connect-via-ui: separate networks before wiring, merged by wiring, and the connection view while placing a pole (the auto-connect preview wire succeeding the removed energized-range boxes)
 using System;
 using System.Linq;
 using System.Reflection;
@@ -46,13 +48,7 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     await p.WaitSeconds(0.5f);
     // 開幕スキットを飛ばしGameScreenへ抜ける
     // Skip the opening skit and reach GameScreen
-    p.Note("開幕スキットをSkipインテントで飛ばす");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    await p.Until(() =>
-    {
-        var s = skitStore.GetCurrent();
-        return s != null && skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
-    }, 30f, "開幕スキットのSkipインテントが受理される");
+    await p.SkipOpeningSkitIfPlaying();
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     // 電柱の解放・建設コストと、電線ツールの解放・消費素材(銅のワイヤー)を用意する
     // Prepare pole unlock/cost and the wire tool unlock plus its material (銅のワイヤー)
@@ -71,6 +67,7 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     var poleAGo = await p.WaitBlockGameObject(poleAPos);
     var poleBGo = await p.WaitBlockGameObject(poleBPos);
     await p.WaitBlockGameObject(poleCPos);
+    p.Assert(!await SameSegment(poleAPos, poleBPos), "結線前は電柱A・Bが別の電力網");
     // 電線ツールの内部状態（起点・プレビュー端点）を読むための参照を用意する
     // Resolve references used to read the tool's internal state (origin, preview endpoints)
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
@@ -87,14 +84,7 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     Vector3 PreviewStart() => (Vector3)cachedStartField.GetValue(toolContext.WirePreview);
     Vector3 PreviewEnd() => (Vector3)cachedEndField.GetValue(toolContext.WirePreview);
     bool PreviewHasCache() => (bool)hasCacheField.GetValue(toolContext.WirePreview);
-    TextMeshPro FindLabel(string labelName) => UnityEngine.Object
-        .FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None)
-        .FirstOrDefault(t => t.gameObject.name == labelName);
-    bool PreviewActive()
-    {
-        var label = FindLabel("WireCostLabel");
-        return label != null && label.transform.parent != null && label.transform.parent.gameObject.activeInHierarchy;
-    }
+    bool PreviewActive() => UnityEngine.Object.FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(t => t.gameObject.name == "WireCostLabel") is { } label && label.transform.parent != null && label.transform.parent.gameObject.activeInHierarchy;
     // 電柱先端マーカーとAABB上面中央の座標差を先に記録する（どちらから線が出ているかの判定基準）
     // Record the tip marker and the AABB top center up front; they are the yardstick for where the wire starts
     Vector3 TipOf(BlockGameObject block) => block.GetComponentInChildren<ElectricWireConnectionPoint>(true).transform.position;
@@ -146,6 +136,9 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     await p.Until(() => Connected(poleAPos, poleBPos), 15f, "電柱A-Bがサーバー側で結線される");
     await p.Until(() => Origin() != null && Origin().BlockPosInfo.OriginalPos == poleBPos, 15f, "受け入れ2: 接続成功後に起点が接続先Bへ移る");
     p.Note("起点が接続先の電柱Bへチェーンした");
+    var merged = false;
+    for (var deadline = Time.realtimeSinceStartup + 10f; !merged && Time.realtimeSinceStartup < deadline;) merged = await SameSegment(poleAPos, poleBPos);
+    p.Assert(merged, "結線で電柱A・Bが同じ電力網に統合される");
     // ④電柱Cへ照準し、プレビュー線が(Aではなく)Bの先端から出ることで起点移動を裏取りする
     // Aim at pole C: the preview now starts at B's tip (not A's), corroborating the origin move
     await AimAtPole(poleCPos);
@@ -167,6 +160,15 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     await p.WaitSeconds(0.5f);
     await p.Screenshot("03-origin-released-by-right-click");
     p.Note("右クリックで起点が解除され、接続プレビューが消えた");
+    // ⑥電柱を選んだ通常設置で既存電柱の近くを狙うと、自動接続のプレビュー線が出る（廃止された電力範囲ボックスの後継）
+    // With a pole selected for normal placement, aiming near existing poles shows the auto-connect preview wire (successor of the removed energized-range boxes)
+    p.Note("電柱を選んで既存電柱の近くを狙い、自動接続のプレビュー線を確かめる");
+    await p.ExitToGameScreen();
+    await p.OpenBuildMenuAndSelectBlock("電柱");
+    await p.AimAt(new Vector3(8.5f, 32f, 7.5f));
+    await p.Until(() => GameObject.Find("AutoConnectWirePreview") is { } preview && preview.GetComponentsInChildren<Transform>().Any(t => t.name == "PreviewWireLine"), 10f, "電柱の設置中に既存電柱への自動接続プレビュー線が出る");
+    await p.Screenshot("04-pole-auto-connect-preview");
+    await p.ExitToGameScreen();
     #region Internal
     // 対象電柱のClickCollider中心へ照準する（装飾サブメッシュ回避）
     // Aim at the pole's ClickCollider center (avoids decorative sub-meshes)
@@ -178,16 +180,16 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
         await p.AimAt(clickCollider.bounds.center);
         await UniTask.DelayFrame(3);
     }
-    // 2つの電柱コネクタが相互に結線を保持していれば結線済みと判定する
+    // 2つの電柱コネクタのどちらかが相手との結線を持てば結線済みと判定する
     // Two poles count as connected when either connector holds the other
-    bool Connected(Vector3Int a, Vector3Int b)
+    bool Connected(Vector3Int a, Vector3Int b) => p.GetBlock(a)?.ComponentManager.GetComponent<IElectricWireConnector>() is { } ca && p.GetBlock(b)?.ComponentManager.GetComponent<IElectricWireConnector>() is { } cb && (ca.ContainsWireConnection(cb.BlockInstanceId) || cb.ContainsWireConnection(ca.BlockInstanceId));
+    // サーバーの確定済み電力網で2本が同じ網に属すかを tick 末尾で読む
+    // Read at the tick end whether the two poles belong to the same applied electric network on the server
+    async UniTask<bool> SameSegment(Vector3Int a, Vector3Int b)
     {
-        var blockA = p.GetBlock(a);
-        var blockB = p.GetBlock(b);
-        if (blockA == null || blockB == null) return false;
-        var ca = blockA.ComponentManager.GetComponent<IElectricWireConnector>();
-        var cb = blockB.ComponentManager.GetComponent<IElectricWireConnector>();
-        return ca.ContainsWireConnection(cb.BlockInstanceId) || cb.ContainsWireConnection(ca.BlockInstanceId);
+        var same = false;
+        await p.RunOnServer("電柱の電力網を読む", () => { var lookup = ServerContext.GetService<IElectricWireNetworkLookup>(); same = lookup.TryGetEnergySegment(p.GetBlock(a).BlockInstanceId, out var segmentA) && lookup.TryGetEnergySegment(p.GetBlock(b).BlockInstanceId, out var segmentB) && segmentA == segmentB; });
+        return same;
     }
     #endregion
 });

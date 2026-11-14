@@ -4,6 +4,7 @@ using Client.Game.InGame.BugReport.Submit;
 using Client.Localization;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.State.Commands;
+using Client.Ui.State.PauseMenu;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -55,8 +56,10 @@ namespace Client.Tests.Ui.State
             var result = commands.SubmitBugReport("説明", PlaytestReportKind.Feedback).GetAwaiter().GetResult();
 
             var rejected = AssertRejected(result, UiCommandRejectReason.CaptureRefused);
-            Assert.IsNotEmpty(rejected.Detail);
-            Assert.AreEqual(rejected.Detail, rejected.ToWireCode());
+            // 送信手続きの失敗コードはそのまま返る
+            // Submitter failure code is returned as is
+            Assert.IsNotEmpty(rejected.ToWireCode());
+            Assert.AreNotEqual(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.CaptureRefused), rejected.ToWireCode());
             Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
         }
 
@@ -92,7 +95,15 @@ namespace Client.Tests.Ui.State
         [TestCase("submit_in_flight", UiCommandRejectReason.CaptureRefused)]
         public void 送信手続きの失敗コードを拒否理由へ写す(string failureCode, UiCommandRejectReason expected)
         {
-            Assert.AreEqual(expected, UiCommandRejectReasonTraits.FromSubmitFailureCode(failureCode));
+            Assert.AreEqual(expected, PauseMenuCommands.FromSubmitFailureCode(failureCode));
+        }
+
+        [Test]
+        public void 書き出し失敗の既定の失敗コードは送信手続きの定数と一致する()
+        {
+            // 理由表は Client.Game を参照しないので綴りを写している。送信手続き側の改名で黙ってずれないよう見張る
+            // The reason table does not reference Client.Game and copies the spelling; guard it against a silent drift on the submitter side
+            Assert.AreEqual(BugReportSubmitResult.BundleWriteFailed, UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.BundleWriteFailed));
         }
 
         [Test]

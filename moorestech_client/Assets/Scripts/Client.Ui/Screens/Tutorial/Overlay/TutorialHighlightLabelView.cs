@@ -62,7 +62,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
                 // Unity は折り返した面を最長行の幅に縮めるが、Web は最大幅まで広がる。1 行の自然幅が内側を超えたら最大幅に固定する（前例 TooltipFace）
                 // Unity shrinks a wrapped face to its longest line while Web fills the max width; pin the max width when the one-line width exceeds the inner width (precedent TooltipFace)
                 var innerMaxWidth = _clip.Width - resolvedStyle.paddingLeft - resolvedStyle.paddingRight - resolvedStyle.borderLeftWidth - resolvedStyle.borderRightWidth;
-                var naturalWidth = MeasureTextSize(text, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined).x;
+                var naturalWidth = MeasureSingleLineWidth();
                 style.width = innerMaxWidth < naturalWidth ? new StyleLength(_clip.Width) : new StyleLength(StyleKeyword.Auto);
             }
 

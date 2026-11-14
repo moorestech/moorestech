@@ -2,6 +2,7 @@ using Client.Input.ArrowKeys;
 using Client.Ui.Screens.BlockInventory.Special.Belt;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Selectors;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Special.Registration
@@ -21,9 +22,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
             _arrowKeys = arrowKeys;
         }
 
-        public SpecialDetailPresenter Of<TView>(TView view) where TView : VisualElement, ISpecialDetailRenderer
+        // 本文・題の操作・区画（selector が詳細を取れたときだけ出す。View と selector は詳細の型で結ばれる。常に出す View は全体用の WholeSpecialDetailSelector と組む）
+        // Body, title action and section (shown only when the selector yields the detail; the view and selector are tied by the detail type; always-shown views pair with WholeSpecialDetailSelector)
+        public SpecialSectionPresenter<TDetail> Section<TView, TDetail>(TView view, ISpecialDetailSelector<TDetail> selector) where TView : VisualElement, ISpecialSectionRenderer<TDetail>
         {
-            return new SpecialDetailPresenter(view, view, _model, _panels);
+            return new SpecialSectionPresenter<TDetail>(view, view, selector, _model, _panels);
         }
 
         public BeltThroughputSectionPresenter Belt(BeltThroughputSectionView view)

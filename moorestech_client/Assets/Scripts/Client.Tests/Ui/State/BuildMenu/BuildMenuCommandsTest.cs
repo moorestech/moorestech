@@ -131,7 +131,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             var refused = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).Close();
 
             CollectionAssert.AreEqual(new[] { UIStateEnum.GameScreen }, _requester.Requested);
-            Assert.AreEqual(UiCommandRejectReason.BuildMenuCloseRefused, refused.Reason);
+            Assert.AreEqual(UiCommandRejectReason.ScreenCloseRefused, refused.Reason);
             Assert.AreEqual("transition_not_allowed", refused.ToWireCode());
             Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(refused.Reason));
         }

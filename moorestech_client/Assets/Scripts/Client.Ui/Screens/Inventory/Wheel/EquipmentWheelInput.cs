@@ -15,34 +15,29 @@ namespace Client.Ui.Screens.Inventory.Wheel
     public sealed class EquipmentWheelInput : IInitializable
     {
         private readonly InputSystemPointerWheelStream _wheel;
-        private readonly InputSystemPointerPositionStream _positions;
         private readonly IEquipmentWheelPointerPicker _picker;
         private readonly EquipmentWheelRouter _router;
-        private Vector2 _pointerOnScreen;
 
-        public EquipmentWheelInput(InputSystemPointerWheelStream wheel, InputSystemPointerPositionStream positions, IEquipmentWheelPointerPicker picker, EquipmentWheelRouter router)
+        public EquipmentWheelInput(InputSystemPointerWheelStream wheel, IEquipmentWheelPointerPicker picker, EquipmentWheelRouter router)
         {
             _wheel = wheel;
-            _positions = positions;
             _picker = picker;
             _router = router;
         }
 
         public void Initialize()
         {
-            // 位置は変わった時だけ届くので、起動時の値を一度読む（前例 InputSystemUiScreenPointer.CurrentPointerOnScreen）
-            // Positions arrive only on change, so read the startup value once (precedent InputSystemUiScreenPointer.CurrentPointerOnScreen)
-            _pointerOnScreen = (Vector2)HybridInput.GetMousePosition();
-            _positions.OnPointerScreenPositionChanged.Subscribe(position => _pointerOnScreen = position);
-            _wheel.OnWheelNotchesScrolled.Subscribe(OnWheel);
+            _wheel.OnWheelNotchesScrolled.Subscribe(wheel => OnWheel(wheel.notchesUp, wheel.screenPosition));
 
             #region Internal
 
-            void OnWheel(float notchesUp)
+            void OnWheel(float notchesUp, Vector2 screenPosition)
             {
                 // ロック中はカーソルが画面中央に固定され HUD の上に来ない。ロックの正本は InputManager（A-134）
                 // While locked the cursor stays centred and never over a HUD; InputManager owns the lock state (A-134)
-                var overBlockingUi = !InputManager.IsCursorLocked && EquipmentWheelPickJudge.IsBlockingUi(_picker.PickAt(_pointerOnScreen));
+                // 位置はホイールと同じイベントが運ぶ。デバイスの今の値はこのイベントの移動を含まず縁で 1 つ前の位置になる（A-133）
+                // The wheel's own event carries the position; the device value lacks this event's move and lags at the edge (A-133)
+                var overBlockingUi = !InputManager.IsCursorLocked && EquipmentWheelPickJudge.IsBlockingUi(_picker.PickAt(screenPosition));
                 _router.Route(EquipmentWheelNotchScale.ToDownwardPixels(notchesUp), WheelDeltaUnit.Pixel, overBlockingUi);
             }
 

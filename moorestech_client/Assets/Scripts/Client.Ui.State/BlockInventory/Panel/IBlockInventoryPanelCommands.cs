@@ -1,3 +1,5 @@
+using Client.Ui.State.Commands;
+
 namespace Client.Ui.State.BlockInventory.Panel
 {
     /// <summary>
@@ -6,6 +8,6 @@ namespace Client.Ui.State.BlockInventory.Panel
     /// </summary>
     public interface IBlockInventoryPanelCommands
     {
-        void Close();
+        UiCommandResult Close();
     }
 }

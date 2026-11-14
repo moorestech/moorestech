@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
 using Client.Ui.State.BlockInventory.Family;
 using Client.Ui.State.BlockInventory.Logic.Detail;
@@ -14,7 +13,6 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.State.BlockInventory.Family
 {
@@ -73,9 +71,10 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
         {
             var param = MasterHolder.BlockMaster.Blocks.Data.Select(b => b.BlockParam).OfType<ElectricPumpBlockParam>().First();
 
-            var built = PumpDetailConversion.TryBuild(PumpState(1.5), param, Common(), out var detail);
+            var reading = PumpDetailConversion.Build(PumpState(1.5), param, Common());
 
-            Assert.IsTrue(built);
+            Assert.IsTrue(reading.TryGetDetail(out var detail));
+            Assert.IsFalse(reading.TryGetAnomaly(out _));
             var electric = (ElectricPumpDetail)detail;
             Assert.AreEqual(MachineProcessDisplayState.Processing, electric.State);
             Assert.AreEqual(40, electric.CurrentPower, 1e-6);
@@ -89,22 +88,22 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
         {
             var param = MasterHolder.BlockMaster.Blocks.Data.Select(b => b.BlockParam).OfType<GearPumpBlockParam>().First();
 
-            var built = PumpDetailConversion.TryBuild(PumpState(1.5), param, null, out var detail);
+            var reading = PumpDetailConversion.Build(PumpState(1.5), param, null);
 
-            Assert.IsTrue(built);
+            Assert.IsFalse(reading.TryGetAnomaly(out _));
+            Assert.IsTrue(reading.TryGetDetail(out var detail));
             Assert.IsInstanceOf<GearPumpDetail>(detail);
             Assert.AreEqual(90, detail.PumpingFluids[0].AmountPerMinute, 1e-9);
         }
 
         [Test]
-        public void ポンプでないparamは偽でErrorログ()
+        public void ポンプでないparamは偽で異常を返しログは出さない()
         {
-            LogAssert.Expect(LogType.Error, new Regex("unsupported pump param"));
+            var reading = PumpDetailConversion.Build(PumpState(1.5), (IBlockParam)_minerParam, Common());
 
-            var built = PumpDetailConversion.TryBuild(PumpState(1.5), (IBlockParam)_minerParam, Common(), out var detail);
-
-            Assert.IsFalse(built);
-            Assert.IsNull(detail);
+            Assert.IsFalse(reading.TryGetDetail(out _));
+            Assert.IsTrue(reading.TryGetAnomaly(out var anomaly));
+            StringAssert.Contains("unsupported pump param", anomaly);
         }
 
         [Test]
@@ -114,16 +113,20 @@ namespace Client.Tests.Ui.State.BlockInventory.Family
 
             // silent-ok の検証。Error は落ちる
             // Verifies the silent-ok; Unity fails the test if an Error is logged
-            Assert.IsFalse(PumpDetailConversion.TryBuild(PumpState(1.5), param, null, out _));
+            var reading = PumpDetailConversion.Build(PumpState(1.5), param, null);
+            Assert.IsFalse(reading.TryGetDetail(out _));
+            Assert.IsFalse(reading.TryGetAnomaly(out _));
         }
 
         [Test]
-        public void 電気ポンプの状態文字列が読めないと偽でErrorログ()
+        public void 電気ポンプの状態文字列が読めないと偽で異常を返しログは出さない()
         {
             var param = MasterHolder.BlockMaster.Blocks.Data.Select(b => b.BlockParam).OfType<ElectricPumpBlockParam>().First();
-            LogAssert.Expect(LogType.Error, new Regex("unknown CurrentStateType"));
 
-            Assert.IsFalse(PumpDetailConversion.TryBuild(PumpState(1.5), param, MachineTestDetails.Common("Unknown", 1, 1), out _));
+            var reading = PumpDetailConversion.Build(PumpState(1.5), param, MachineTestDetails.Common("Unknown", 1, 1));
+            Assert.IsFalse(reading.TryGetDetail(out _));
+            Assert.IsTrue(reading.TryGetAnomaly(out var anomaly));
+            StringAssert.Contains("unknown CurrentStateType", anomaly);
         }
 
         [Test]

@@ -220,7 +220,7 @@ pwd
 git fetch origin
 git log --oneline -1 origin/feature/uitk
 git log --oneline --first-parent --merges origin/feature/uitk | grep -E "s4-(alpha|inventory|machine|train|research|recipe|special)|s2-tutorial|s2-ladder|s3-ladder|i-fix5|i-fix6" 
-ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs
+ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs
 grep -c "S4-" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
 git merge --no-ff --no-edit origin/feature/uitk
 ```
@@ -1878,7 +1878,7 @@ Expected: OK（`CS:` の行が 0）。I-fix5・I-fix6 のマージが入って�
 
 Run（2 回に分けて前景で。Bash の timeout は 600000）:
 ```bash
-printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs > moorestech_client/Temp/uitk-recordings/ladders.txt
+printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs > moorestech_client/Temp/uitk-recordings/ladders.txt
 ~/bin/winunity status
 tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 1 2
 tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 3 2

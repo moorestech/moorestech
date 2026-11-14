@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.State.Text;
 using UniRx;
 using UnityEngine.UIElements;
@@ -12,10 +13,10 @@ namespace Client.Ui.Components.Slots
     /// <remarks>
     /// UITK の outline は字の内外に半分ずつ掛かり細い字を塗りつぶすので、縁だけの Label を後ろに敷き、縁の無い字の Label を上に重ねる 2 層にする。
     /// 2 枚は置く側の要素の兄弟として足し、置き場のクラスを両方に付けて同じ箱にする（入れ子にすると幅の丸めが変わり字の画素がずれる）。
-    /// 字の色はつまみ --outlined-count-label-color（既定は DerivedTokens.uss）、大きさ（高さ＝字の大きさ）はつまみ --outlined-count-label-size を置き場のクラスで渡す。訳さない数字は UiText.FromVerbatim で渡す。
+    /// 字の色はつまみ --outlined-count-label-color（既定は DerivedTokens/SlotsDerivedTokens.uss）、大きさ（高さ＝字の大きさ）はつまみ --outlined-count-label-size を置き場のクラスで渡す。訳さない数字は UiText.FromVerbatim で渡す。
     /// A UITK outline straddles the glyph edge and floods thin glyphs, so a stroke-only Label sits behind an unoutlined glyph Label in two layers.
     /// Both are added as siblings into the placing element and both get the placement class so they share one box (nesting changes width rounding and shifts glyph pixels).
-    /// The glyph color comes through the --outlined-count-label-color knob (default in DerivedTokens.uss) and the size (height = font size) through --outlined-count-label-size set by the placement class; untranslated digits come in as UiText.FromVerbatim.
+    /// The glyph color comes through the --outlined-count-label-color knob (default in DerivedTokens/SlotsDerivedTokens.uss) and the size (height = font size) through --outlined-count-label-size set by the placement class; untranslated digits come in as UiText.FromVerbatim.
     /// </remarks>
     public sealed class OutlinedCountLabel
     {
@@ -36,7 +37,7 @@ namespace Client.Ui.Components.Slots
 
             Label CreateLayer(string layerClass)
             {
-                var layer = new Label { pickingMode = PickingMode.Ignore };
+                var layer = new WrapSafeLabel { pickingMode = PickingMode.Ignore };
                 layer.AddToClassList("outlined-count-label");
                 layer.AddToClassList(layerClass);
                 layer.AddToClassList(placementClass);

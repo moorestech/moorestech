@@ -13,7 +13,7 @@ namespace Client.Ui.State.SlotCommands
         public static UiCommandResult Reject(string where, ItemId itemId)
         {
             Debug.LogError($"[{where}] unknown ItemId {itemId} reached the slot planner; the allocation is skipped (client and server masters may differ)");
-            return new UiCommandRejected(UiCommandRejectReason.ItemUnknownInSlot, "");
+            return UiCommandRejected.Of(UiCommandRejectReason.ItemUnknownInSlot);
         }
     }
 }

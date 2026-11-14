@@ -1,0 +1,35 @@
+/* Panels 族（GamePanel・PaperSurface・HUD の見出しの面と装飾）の手書きの派生トークン。Web が color-mix・半透明・直書きで出す色と寸法を前計算し、各行に web の元の式と決め方を残す（設計書 §3.1） */
+/* Hand-written derived tokens of the Panels family (GamePanel, PaperSurface, HUD heading surfaces and decor); precomputes colors and sizes the Web derives with color-mix, translucency or literals, each row keeping the web source and how it was settled (design §3.1) */
+:root {
+    /* GamePanel（default）の文字・罫線・下部の三角。Web の GamePanel/style.module.css が直書きする色 */
+    --game-panel-text: #e8eaf0;
+    --game-panel-title-shadow: rgba(0, 0, 0, 0.35); /* web: GamePanel .title の text-shadow の色 */
+    --game-panel-rule-top-start: rgba(146, 148, 167, 0.42); /* web: .rule の上の線の始点 */
+    --game-panel-rule-top-peak: rgba(146, 148, 167, 0.59); /* web: 上の線の頂点 */
+    --game-panel-rule-top-end: rgba(146, 148, 167, 0.38); /* web: 上の線の終点 */
+    --game-panel-rule-bottom-start: rgba(128, 132, 159, 0.3); /* web: 下の線の始点 */
+    --game-panel-rule-bottom-peak: rgba(128, 132, 159, 0.42); /* web: 下の線の頂点 */
+    --game-panel-rule-bottom-end: rgba(128, 132, 159, 0.26); /* web: 下の線の終点 */
+    --game-panel-triangle-face: rgba(94, 100, 128, 0.2); /* web: 下部の三角の面 */
+
+    /* C2-a: 面・装飾（Panels・Decor）。つまみの既定は Web の var() のフォールバックか Mantine の既定、色は Web の CSS module の直書きを前計算した値（設計書 A-23・A-24・A-25） */
+    /* C2-a: surfaces and decor (Panels, Decor); knob defaults are the Web var() fallbacks or Mantine defaults, colors precompute literals in the Web CSS modules (design A-23, A-24, A-25) */
+    --panel-top: -8px; /* web: GamePanel/style.module.css の var(--panel-top, -8px) */
+    --panel-right: -3px; /* web: var(--panel-right, -3px) */
+    --panel-bottom: -8px; /* web: var(--panel-bottom, -8px) */
+    --panel-title-action-reserve: 99px; /* calc: var(--panel-action-button-width) + 12px */
+    --panel-left: -3px; /* web: var(--panel-left, -3px) */
+    --title-shift-x: 0px; /* web: .title の var(--title-shift-x, 0) */
+    --title-scale-x: 0.947; /* web: .title の var(--title-scale-x, 0.947) */
+    --title-scale-y: 0.947; /* web: .title の var(--title-scale-y, 0.947) */
+    --game-panel-craft-face: rgba(7, 9, 18, 0.8); /* web: .craft の background rgb(7 9 18 / 80%) */
+    --game-panel-craft-line: rgb(40, 42, 53); /* web: .craft の inset 0 0 0 3.132px rgb(40 42 53) */
+    --game-panel-craft-rim: rgba(146, 148, 167, 0.55); /* web: .craft の inset 0 0 0 3.524px rgb(146 148 167 / 55%) */
+    --paper-face: var(--mantine-color-body); /* web: Mantine Paper の background-color。Web に局所変数は無く、画面は background を直に上書きする（設計書 A-23） */
+    --paper-radius: var(--mantine-radius-sm); /* web: Mantine Paper の --paper-radius: var(--mantine-radius-default)。8.3.18 の既定 theme では sm と同じ 0.25rem */
+    --hud-label-font-size: var(--challenge-hud-label-font-size); /* web: CurrentChallengeHud.module.css .label。PlacementModeHud の --operation-hud-* は同値 */
+    --hud-label-letter-spacing: var(--challenge-hud-letter-spacing); /* web: 同上。値は字の大きさの 1/100 単位（12px で 1px）なので、--hud-label-font-size だけを上書きするときは字間も上書きする */
+    --hud-label-rule-gap: var(--challenge-hud-label-rule-gap); /* web: 同上 */
+    --hud-rule-list-gap: var(--challenge-hud-rule-list-gap); /* web: .objectives の margin-top */
+    --hud-rule-width: 100%; /* web: modeHud は FadeRule を幅いっぱい、challenge は .rule の --challenge-hud-rule-width（画面 USS が上書き） */
+}

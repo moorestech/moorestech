@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/recipe`（`ItemListPanel`＝6 列のアイテム一覧・掴みドラッグのスクロール・クラフト可能数のバッジ、`RecipeViewer`＝選んだアイテムの見出しと装飾線・クラフト優先の単一レシピ列・長押しクラフト・機械レシピの液体と機械名・レベル継承バッジ・Esc で選択解除）を、C4-c（`RecipeRow`・`RecipeActionButton`・`RecipeListScrollView`・`LevelInheritanceBadge`）・C3-a（`ItemSlot`・`SlotGrid`）・C4-a（`FluidAmountSlot`）・C2-a（`GamePanel`）・C2-c（`GameScrollView`）・C3-b（`UiPressGesture`・`HoverTooltipMark`）の部品で Web と同じ見た目の UITK 画面にし、C4-e の `StageColumnsLayout` の `Viewer`・`Items` 列へ載せ、L0・L1・並べ比べ（720p・2560×1080）・録画 `uitk/uitk-recipe-craft` まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/recipe`（`ItemListPanel`＝6 列のアイテム一覧・掴みドラッグのスクロール・クラフト可能数のバッジ、`RecipeViewer`＝選んだアイテムの見出しと装飾線・クラフト優先の単一レシピ列・長押しクラフト・機械レシピの液体と機械名・レベル継承バッジ・Esc で選択解除）を、C4-c（`RecipeRow`・`RecipeActionButton`・`RecipeListScrollView`・`LevelInheritanceBadge`）・C3-a（`ItemSlot`・`SlotGrid`）・C4-a（`FluidAmountSlot`）・C2-a（`GamePanel`）・C2-c（`GameScrollView`）・C3-b（`UiPressGesture`・`HoverTooltipMark`）の部品で Web と同じ見た目の UITK 画面にし、C4-e の `StageColumnsLayout` の `Viewer`・`Items` 列へ載せ、L0・L1・並べ比べ（720p・2560×1080）・録画 `uitk/stage4/uitk-recipe-craft` まで済ませて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State/Recipe/`）に、Web の topic の源（`CraftingRecipesTopic`・`RecipeViewerItemListTopic`・持ち物）を直に読むカタログ、選択（`RecipeItemSelection`）、組み立て（`RecipeViewModelFactory`・純関数）、それらを購読して不変の ViewModel を `IReadOnlyReactiveProperty` で配る `RecipeScreenModel`、操作 `IRecipeCommands.Craft(Guid)`（`UiCommandResult`）を置く。機械レシピの解放済み一覧の源は S4-alpha が `Client.Ui.State/Recipe/Source/` に作るものを使うだけ（指揮の割り当て。D-3）。View（`Client.Ui/Screens/Recipe/`）は `Render(vm)` で部品へ流し、エントリはレシピ GUID をキーに要素を使い回して長押しの状態を描き直しで失わない（Web の React の key と同じ）。長押しクラフトはパネルのスケジューラ（`schedule.Execute(...).Every(0)`）で `HoldCraftLogic` を回す画面の部品（`Screens/Recipe/Parts/CraftHoldDriver`）が持ち、`Update()` を使わない。一覧の掴みスクロールは `UiPressGesture` の受け手（`Parts/ItemListDragScroll`）が `UiDragThreshold.NextScrollTop` を当てる。Presenter は起動時に 1 回だけ 2 つの View を `StageColumnsLayout.Get(StageColumn.Viewer)`／`Get(StageColumn.Items)` へ載せ、`UiRoutingState` の画面が `PlayerInventory` のときだけ出す（Web `App.tsx` の `screen === "playerInventory"`）。
 
@@ -30,7 +30,7 @@
 | R-10 | Esc で選択を外す: 画面の遷移と同じフレームで `InputManager.UI.CloseUI` が押されていれば選択を外す（Web `RecipeSelectionKeyHandler` のゲーム層の Escape の写し） | `RecipeSelectionCloseResetTest` が緑。録画（R-13）の段 |
 | R-11 | スクロールとツールチップ・チュートリアル: 一覧・レシピ列はクリップ境界をハイライトの逃げ（`--tutorial-anchor-clip-inset`）ぶん外へ広げ、最上段のアンカーでもラベルが出る・隠れ始めたらラベルを引っ込め完全に隠れたら枠も消える（S2-tutorial の測定で判定）。スロットのツールチップは `HoverTooltipHost` の面で、祖先のスクロールで引っ込む | `RecipeTutorialClipTest`（Web `itemListScroll.spec.ts` 3〜5 件目・`recipeListScroll.spec.ts` 2 件目）・`RecipeSlotTooltipTest`（Web `slotTooltip.spec.ts` 2 件）が緑 |
 | R-12 | 並べ比べ: 参照 `4-player-inventory`・`4-item-list-large`・`5-tutorial-recipe-item`（1280×720・2560×1080）と、参照に無い「レシピ選択あり（クラフト 2 件＋機械 1 件・保持中・不足と無効）」を master の使い捨て worktree の mock-host で自分で撮った絵（E-22）を UITK と並べ、差の表を `done.md` に書く | 4 状態×2 解像度が報告ページにあり、差の表の全行に「同じ／直した／LX-n／捨てる」のどれかがある。720p で 2px を超える差は全部 LX-n か直した |
-| R-13 | 録画 `uitk/uitk-recipe-craft`（全体スイッチ UITK）: Tab でインベントリを開く → 一覧のセルを押して選ぶ → 一覧を掴んでドラッグしても選択が変わらない → 素材を持たせてクラフトボタンを長押しし素材が尽きるまでに 2 回以上クラフトされ持ち物が増える → ボタンの外へ出して止まる → Esc で閉じ、再度開くと未選択の案内が出る | `result.json` が `Success: true`、録画 mp4、`done.md` に UITK で回した証拠（Note の `系=GameUi`） |
+| R-13 | 録画 `uitk/stage4/uitk-recipe-craft`（全体スイッチ UITK）: Tab でインベントリを開く → 一覧のセルを押して選ぶ → 一覧を掴んでドラッグしても選択が変わらない → 素材を持たせてクラフトボタンを長押しし素材が尽きるまでに 2 回以上クラフトされ持ち物が増える → ボタンの外へ出して止まる → Esc で閉じ、再度開くと未選択の案内が出る | `result.json` が `Success: true`、録画 mp4、`done.md` に UITK で回した証拠（Note の `系=GameUi`） |
 | R-14 | 登録と共有区画: `MainGameUiRegistration` の画面登録区画に `RecipeGameUiRegistration.Register(builder);` の 1 行、`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行、`DerivedTokens.uss` 末尾に名札付きブロック「S4-recipe」、`handWrittenDerivedRows.mjs` の行と `translucent-tokens.md` の再生成、`localization.csv` に拒否文 2 行と `npm run gen:i18n`、`UiCommandRejectReason` の末尾 2 値と 3 switch、`TutorialAnchorCoveragePending.cs` から自分の 2 行を消す | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`・`TutorialAnchorCoverageTest`）が緑 |
 | R-15 | 写した Web テストは `/// <web-test>` で示し、写さないものだけ `docs/uitk/disposition.md` に理由つきの行を足す | `node tools/uitk/test-name-parity.mjs --bundle 4 --emit-missing` で recipe の行（下の表の 52 件）の未対応が 0。終了コードが 2 でない |
 | R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる → `moores-wt rm` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
@@ -312,7 +312,7 @@ namespace Client.Ui.State.Recipe.Source
 | `S/Client.Ui/Foundation/Anchor/TutorialAnchor.cs` | `Unmark` を足す（アンカーの付け替え） | 変更（Foundation。E-19 の前例。D-36。S2-tutorial の `MarkClipContainer` と同じファイルなので取り込み時は両方を採る） |
 | `S/Client.Tests/Ui/Input/GameUiInputRulesTest.cs` | 印付きの要素の L1 を 1 件 | 変更 |
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 自分の 2 行を消す | 変更（共有区画） |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-recipe-craft.cs` | 録画のシナリオ | 新規 |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-recipe-craft.cs` | 録画のシナリオ | 新規 |
 | `docs/uitk/TODO.md`・`docs/uitk/disposition.md` | 実測の結論・LX-131〜135・追従記録（`disposition.md` は部分移植の行があるときだけ） | 変更（共有区画） |
 | `LOGS/harness/uitk/S4-recipe/done.md` | 作業報告（repo 外） | 新規 |
 
@@ -3269,13 +3269,13 @@ git commit -m "fix(uitk): レシピ画面を Web との並べ比べで揃え、�
 ```
 （直しが無ければ台帳の「実測の結論」の 1 行と再生成だけをコミットする）
 
-### Task 12: unityプレイ録画テスト（`uitk/uitk-recipe-craft`）
+### Task 12: unityプレイ録画テスト（`uitk/stage4/uitk-recipe-craft`）
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-recipe-craft.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-recipe-craft.cs`
 
 **Interfaces:**
-- Consumes: プレイテスト DSL（`p.SetupDebugEnvironment`・`p.SkipOpeningSkitIfPlaying`・`p.ExitToGameScreen`・`p.PressKey`・`p.WaitUiState`・`p.ClickUi`・`p.UntilUiElement`・`p.Until`・`p.Screenshot`・`p.Note`・`p.Assert`・`PlaytestUiElementOps.FindUi`・`SemanticInput.MouseMoveTo`・`MouseButtonDown`・`MouseGlideTo`・`MouseButtonUp`）、前例 `SKILL/scenarios/uitk/uitk-grab-overlay.cs`（Tab で開く・系の主張）、`ILocalPlayerInventory`、`RecipeItemSelection`、`UiInputExclusivity.ActiveUiSystem`
+- Consumes: プレイテスト DSL（`p.SetupDebugEnvironment`・`p.SkipOpeningSkitIfPlaying`・`p.ExitToGameScreen`・`p.PressKey`・`p.WaitUiState`・`p.ClickUi`・`p.UntilUiElement`・`p.Until`・`p.Screenshot`・`p.Note`・`p.Assert`・`PlaytestUiElementOps.FindUi`・`SemanticInput.MouseMoveTo`・`MouseButtonDown`・`MouseGlideTo`・`MouseButtonUp`）、前例 `SKILL/scenarios/uitk/stage4/uitk-grab-overlay.cs`（Tab で開く・系の主張）、`ILocalPlayerInventory`、`RecipeItemSelection`、`UiInputExclusivity.ActiveUiSystem`
 - Produces: 録画 1 本（`result.json` が `Success: true`）
 
 - [ ] **Step 1: 録画を書く**
@@ -3297,7 +3297,7 @@ git commit -m "fix(uitk): レシピ画面を Web との並べ比べで揃え、�
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); return Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Current.ToString();'
 SKILL=.agents/skills/unity-playmode-recorded-playtest
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/uitk-recipe-craft.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage4/uitk-recipe-craft.cs"
 ```
 Expected: `result.json` が `Success: true`、Note に `系=GameUi`、録画 mp4 がある。失敗したら `result.json` と `uloop get-logs --project-path ./moorestech_client --log-type Error` を読み、原因を `done.md` に書いて直す（直したら L1 を回し、このステップの 2 行目から流し直す）
 
@@ -3309,7 +3309,7 @@ Expected: `result.json` が `Success: true`、Note に `系=GameUi`、録画 mp4
 
 `done.md` の「## 証拠」に `result.json` のパス・`Success`・録画 mp4 のパス・Note の `系=GameUi` を書く。録画の原本は gitignore 下のまま。テストで `Saves/` に作ったワールドは `list-work-saves.sh` で探して消す
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-recipe-craft.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-recipe-craft.cs
 git commit -m "test(uitk): レシピの選択・掴みスクロール・長押しクラフト・Esc の選択解除を UITK の録画で通す（S4-recipe）"
 ```
 
@@ -3372,10 +3372,10 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
   "summary": [
     "レシピビューア（Viewer 列）とアイテム一覧（Items 列）を UITK に移し、C4-c のレシピ部品・C3-a のスロット・C4-a の液体スロットで Web と同じ見た目にした",
     "長押しクラフトをパネルのスケジューラで回し、エントリを GUID で使い回して持ち物の変化で長押しが切れないようにした",
-    "一覧の掴みスクロール・Esc の選択解除・チュートリアルのアンカー 2 種を移し、録画 uitk/uitk-recipe-craft で通した"
+    "一覧の掴みスクロール・Esc の選択解除・チュートリアルのアンカー 2 種を移し、録画 uitk/stage4/uitk-recipe-craft で通した"
   ],
   "media": [
-    {"file": "<uitk-recipe-craft の recording.mp4>", "caption": "uitk/uitk-recipe-craft（UITK 側）", "group": "unityプレイ録画テスト"},
+    {"file": "<uitk-recipe-craft の recording.mp4>", "caption": "uitk/stage4/uitk-recipe-craft（UITK 側）", "group": "unityプレイ録画テスト"},
     {"file": "<web-a9d5123537/4-player-inventory.png>", "caption": "Web 4-player-inventory 1280×720", "group": "4-player-inventory"},
     {"file": "<compare/S4-recipe/uitk-4-player-inventory-1280x720.png>", "caption": "UITK 4-player-inventory 1280×720", "group": "4-player-inventory"},
     {"file": "<web-0e81bbe3c3-2560x1080/4-player-inventory.png>", "caption": "Web 4-player-inventory 2560×1080", "group": "4-player-inventory"},
@@ -3539,7 +3539,7 @@ bd close <id> --reason "S4-recipe を feature/uitk へマージ（PR #<番号>�
 
 ### 実行計画 §1.4 の S4-recipe 行の改め案
 
-`| S4-recipe | レシピビューアと一覧 | 4・W4 | C4-c・C4-e（`StageColumnsLayout`）・L0-s4a・C3-b（`UiPressGesture`・`HoverTooltipHost`）・L0-s3（`UiDragThreshold`）・C4-a（`FluidAmountSlot`）・S2-tutorial（`TutorialAnchorCoveragePending`・切り抜きの判定）・S4-alpha（機械レシピの源 `Client.Ui.State/Recipe/Source/`） | 要 | 単位 | RecipeViewer（`Viewer` 枠）・ItemListPanel（`Items` 枠 [A-45]。6 列・クラフトは `RecipeActionButton` [A-46]・長押しクラフト〈マウスと Enter〉は画面の部品がパネルのスケジューラで回す [A-166]・コンテナクエリは C4-c の `RecipeRow` が `GeometryChangedEvent` で持つ）。State は `Client.Ui.State/Recipe/{Catalog,Screen,Commands}`・Esc の選択解除は `Screens/Recipe/Input` [A-165]、エントリは GUID で使い回す [A-168]、Esc の選択解除 [A-169]、`GameScrollView` のつまみ 5 本 [A-167]。アンカー `recipe.craft-button`・`recipe.item-<itemId>`。写す: recipe 52（P19・C8・I1。L24 は L0-s4a 済み。Enter の長押しも写す〈`focusable=true` の例外 A-166〉）。パネルは `StageColumnsLayout.Get(StageColumn.Viewer)`／`Get(StageColumn.Items)` へ載せる [A-92]。録画 `uitk/uitk-recipe-craft`。計画 `P/2026-11-10-uitk-s4-recipe.md` |`
+`| S4-recipe | レシピビューアと一覧 | 4・W4 | C4-c・C4-e（`StageColumnsLayout`）・L0-s4a・C3-b（`UiPressGesture`・`HoverTooltipHost`）・L0-s3（`UiDragThreshold`）・C4-a（`FluidAmountSlot`）・S2-tutorial（`TutorialAnchorCoveragePending`・切り抜きの判定）・S4-alpha（機械レシピの源 `Client.Ui.State/Recipe/Source/`） | 要 | 単位 | RecipeViewer（`Viewer` 枠）・ItemListPanel（`Items` 枠 [A-45]。6 列・クラフトは `RecipeActionButton` [A-46]・長押しクラフト〈マウスと Enter〉は画面の部品がパネルのスケジューラで回す [A-166]・コンテナクエリは C4-c の `RecipeRow` が `GeometryChangedEvent` で持つ）。State は `Client.Ui.State/Recipe/{Catalog,Screen,Commands}`・Esc の選択解除は `Screens/Recipe/Input` [A-165]、エントリは GUID で使い回す [A-168]、Esc の選択解除 [A-169]、`GameScrollView` のつまみ 5 本 [A-167]。アンカー `recipe.craft-button`・`recipe.item-<itemId>`。写す: recipe 52（P19・C8・I1。L24 は L0-s4a 済み。Enter の長押しも写す〈`focusable=true` の例外 A-166〉）。パネルは `StageColumnsLayout.Get(StageColumn.Viewer)`／`Get(StageColumn.Items)` へ載せる [A-92]。録画 `uitk/stage4/uitk-recipe-craft`。計画 `P/2026-11-10-uitk-s4-recipe.md` |`
 
 DAG（§2）に `C4a --> Rec`・`S2t --> Rec`・`A --> Rec`（S4-alpha → S4-recipe）の辺を足す。W4 の枠では S4-recipe を S4-alpha の後に置く。
 

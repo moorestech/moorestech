@@ -24,10 +24,10 @@ namespace Client.Ui.State.Recipe.Commands
 
         public UiCommandResult Craft(Guid recipeGuid)
         {
-            // 解放表に無い GUID・未解放は送らずに断る（拒否理由は機械レシピと共用の既存値。D-40）
-            // Refuse unknown or locked GUIDs unsent; the reasons are the existing values shared with machine recipes (D-39)
-            if (!_unlockState.CraftRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var info)) return Reject(UiCommandRejectReason.MachineRecipeInvalid);
-            if (!info.IsUnlocked) return Reject(UiCommandRejectReason.MachineRecipeLocked);
+            // 未知・未解放の GUID は送らずに断る
+            // Refuse unknown or locked GUIDs without sending
+            if (!_unlockState.CraftRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var info)) return Reject(UiCommandRejectReason.RecipeInvalid);
+            if (!info.IsUnlocked) return Reject(UiCommandRejectReason.RecipeLocked);
 
             _sender.Send(recipeGuid);
             return UiCommandAccepted.Instance;
@@ -37,7 +37,7 @@ namespace Client.Ui.State.Recipe.Commands
             UiCommandResult Reject(UiCommandRejectReason reason)
             {
                 Debug.LogWarning($"[{CommandName}] rejected: {UiCommandRejectReasonTraits.ToWireCode(reason)} recipe={recipeGuid}");
-                return new UiCommandRejected(reason, "");
+                return UiCommandRejected.Of(reason);
             }
 
             #endregion

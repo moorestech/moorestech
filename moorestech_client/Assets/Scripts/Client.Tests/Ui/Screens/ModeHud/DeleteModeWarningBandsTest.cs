@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.Screens.ModeHud
             Assert.AreEqual(new Color(0f, 0f, 0f, 1f), bands[0].resolvedStyle.backgroundColor);
             Assert.IsTrue(bands[0].customStyle.TryGetValue(new CustomStyleProperty<Color>("--mode-hud-band-yellow"), out var yellow));
             Assert.AreEqual(new Color(1f, 187f / 255f, 36f / 255f, 1f), yellow);
-            Assert.IsTrue(Client.Ui.Screens.ModeHud.Parts.DegreeCustomStyle.TryReadDegrees(bands[0].customStyle, "--mode-hud-band-stripe-angle", out var angle));
+            Assert.IsTrue(Client.Ui.Foundation.Theme.UssCustomStyleReader.TryReadDegrees(bands[0].customStyle, "--mode-hud-band-stripe-angle", out var angle));
             Assert.AreEqual(117f, angle, 0.001f);
 
             // 錨 delete.hud は下の帯だけ

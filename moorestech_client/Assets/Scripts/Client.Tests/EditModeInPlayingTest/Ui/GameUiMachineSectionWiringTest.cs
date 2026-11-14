@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -24,6 +25,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UniRx;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
@@ -38,6 +40,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     public class GameUiMachineSectionWiringTest : UiSystemPlayModeTestBase
     {
         private const string MachineBlockName = "釜";
+        private const float InitializationTimeoutSeconds = 60f;
 
         [UnityTest]
         public IEnumerator UITK起動で機械の区画が解決し開き直すと開いた機械の値へ替わる()
@@ -59,7 +62,12 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
             async UniTask TestBody()
             {
+                // LoadMainGame は固定 1 秒で戻る。自機を保存座標へ置くのは初期化の完了直前なので、完了を待ってから足場を置く
+                // LoadMainGame returns after a fixed second; the player is placed just before initialization completes, so wait for it before placing the ground
+                var isInitialized = false;
+                using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => isInitialized = true);
                 await LoadMainGame();
+                await UniTask.WaitUntil(() => isInitialized).Timeout(System.TimeSpan.FromSeconds(InitializationTimeoutSeconds));
                 var ground = TestPlayerGround.Create();
 
                 // 起動ログを流してから想定外のエラーを拾う（VContainer の解決失敗もここで落ちる）
@@ -84,7 +92,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 // Opening the first machine shows its section and value
                 await OpenSubInventory(uiStateControl, first);
                 var firstPanel = await WaitMachinePresent(machine, panels);
-                Assert.Less(0, machine.Current.Value.Value.Rows.Count, "解放済みのレシピの行が無い");
+                Assert.IsTrue(machine.Current.Value.TryGetPresent(out var firstMachine));
+                Assert.Less(0, firstMachine.Rows.Count, "解放済みのレシピの行が無い");
                 Assert.IsTrue(IsMachineSectionShown(), "機械の区画が画面に出ていない");
 
                 // 開き直しで前の機械の値が残らない
@@ -92,7 +101,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var secondState = await BlockSubInventoryOpener.Open(second);
                 var secondPanel = await WaitMachinePresent(machine, panels);
                 Assert.AreNotEqual(firstPanel.BlockInstanceId, secondPanel.BlockInstanceId);
-                Assert.AreEqual(secondPanel.BlockInstanceId, machine.Current.Value.Value.BlockInstanceId, "前の機械の値が残っている");
+                Assert.IsTrue(machine.Current.Value.TryGetPresent(out var secondMachine));
+                Assert.AreEqual(secondPanel.BlockInstanceId, secondMachine.BlockInstanceId, "前の機械の値が残っている");
                 Assert.IsTrue(IsMachineSectionShown(), "開き直した機械の区画が画面に出ていない");
 
                 // 閉じると区画の値を手放す
@@ -153,7 +163,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
         {
             for (var i = 0; i < 300; i++)
             {
-                if (panels.Current.Value is OpenBlockInventoryPanel panel && machine.Current.Value.IsPresent && machine.Current.Value.Value.IsFor(panel)) return panel;
+                if (panels.Current.Value is OpenBlockInventoryPanel panel && machine.Current.Value.TryGetPresent(out var present) && present.IsFor(panel)) return panel;
                 await UniTask.Yield();
             }
             Assert.Fail("開いた機械の区画の値が届かない");

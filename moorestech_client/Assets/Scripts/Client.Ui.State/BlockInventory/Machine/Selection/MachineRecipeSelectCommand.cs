@@ -34,12 +34,12 @@ namespace Client.Ui.State.BlockInventory.Machine.Selection
             // 送れない要求は非良性の拒否で返す（Web と同じくトーストする。GUID はここでログへ出す。D-38）
             // Requests that cannot go return a non-benign rejection (toasts like Web; the GUID is logged here; D-38)
             if (_panelSource.Current.Value is not OpenBlockInventoryPanel panel || !panel.IsOpenWithoutError) return Reject(UiCommandRejectReason.BlockNotOpen, "");
-            if (!_unlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var unlock)) return Reject(UiCommandRejectReason.MachineRecipeInvalid, "");
-            if (!unlock.IsUnlocked) return Reject(UiCommandRejectReason.MachineRecipeLocked, "");
+            if (!_unlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var unlock)) return Reject(UiCommandRejectReason.RecipeInvalid, "");
+            if (!unlock.IsUnlocked) return Reject(UiCommandRejectReason.RecipeLocked, "");
 
             // 選択中と同じレシピは送らず受理
             // The already-selected recipe is accepted unsent, as Web onSelect; the mode closes on the request match
-            if (_machine.Current.Value.IsPresent && _machine.Current.Value.Value.Detail.Selection.Matches(recipeGuid)) return UiCommandAccepted.Instance;
+            if (_machine.Current.Value.TryGetPresent(out var machine) && machine.Detail.Selection.Matches(recipeGuid)) return UiCommandAccepted.Instance;
 
             // 応答はネットワーク由来なので null も拒否として扱う（Web ホストと同じ判定。例外は捕まえない）
             // The response comes from the network, so null also counts as a rejection (same check as the Web host; no exception is caught)
@@ -53,7 +53,7 @@ namespace Client.Ui.State.BlockInventory.Machine.Selection
             UiCommandResult Reject(UiCommandRejectReason reason, string serverReason)
             {
                 Debug.LogWarning($"[{CommandName}] rejected: {UiCommandRejectReasonTraits.ToWireCode(reason)} recipe={recipeGuid} server={serverReason}");
-                return new UiCommandRejected(reason, "");
+                return UiCommandRejected.Of(reason);
             }
 
             #endregion

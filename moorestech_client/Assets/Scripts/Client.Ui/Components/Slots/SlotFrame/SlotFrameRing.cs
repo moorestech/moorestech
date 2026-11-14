@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,6 +15,7 @@ namespace Client.Ui.Components.Slots
         private static readonly string[] BevelWidthProperties = { "--slot-frame-bevel-1", "--slot-frame-bevel-2", "--slot-frame-bevel-3" };
 
         private readonly VisualElement[] _bands = new VisualElement[BevelWidthProperties.Length];
+        private readonly StageScaleReadGuard _scaleReadGuard = new();
 
         public SlotFrameRing()
         {
@@ -44,11 +46,13 @@ namespace Client.Ui.Components.Slots
             {
                 // 読めないときは前の形のまま（LogError は Reader が出す）
                 // Keep the previous shape when unreadable (the Reader logs the error)
+                // 倍率を先に読み、旗戻しを見逃さない
+                // Read scale first so flag reset is not missed
+                if (!TryReadScale(out var pixelsPerPoint)) return;
                 if (!TryReadGrowsInward(out var growsInward)) return;
                 // 全層を読み切ってから書く。途中で読めない層があっても帯が新旧混在で残らない
                 // Read every layer before writing so an unreadable layer never leaves bands half old, half new
                 if (!TryReadBevelWidths(out var widths)) return;
-                var pixelsPerPoint = scaledPixelsPerPoint;
                 var rawCovered = 0f;
                 var snappedCovered = 0f;
                 for (var i = 0; i < _bands.Length; i++)
@@ -72,6 +76,13 @@ namespace Client.Ui.Components.Slots
                     rawCovered = Mathf.Max(rawCovered, width);
                     snappedCovered = snappedOuter;
                 }
+            }
+
+            bool TryReadScale(out float scale)
+            {
+                // 倍率は Measure だけが読む
+                // Only StageScaleMeasure reads the scale; warn once on entry
+                return _scaleReadGuard.TryRead(panel, "SlotFrameRing", "the bevel bands keep their previous shape", out scale);
             }
 
             bool TryReadBevelWidths(out float[] widths)

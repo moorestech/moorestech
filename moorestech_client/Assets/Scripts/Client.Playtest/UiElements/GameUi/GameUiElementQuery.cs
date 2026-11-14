@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using UnityEngine.UIElements;
 
 namespace Client.Playtest.UiElements.GameUi
@@ -33,13 +34,20 @@ namespace Client.Playtest.UiElements.GameUi
             string ReadText(VisualElement element)
             {
                 if (element is TextField field) return field.value;
-                if (element is TextElement textElement && !string.IsNullOrEmpty(textElement.text)) return textElement.text;
+                if (element is TextElement textElement && !string.IsNullOrEmpty(WordsOf(textElement))) return WordsOf(textElement);
 
                 // 箱と、文字を子のラベルへ持つボタンは子孫の文字を順に連結する（Web の textContent と同じ扱い）
                 // A container or a button whose text lives in a child label concatenates descendant texts in order, like the Web textContent
                 var builder = new StringBuilder();
-                foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(descendant.text);
+                foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(WordsOf(descendant));
                 return builder.ToString();
+            }
+
+            // 本番のラベルの text は表示用の印を含みうるので、Web の textContent に当たる WordsText を読む
+            // A production label's text may carry display tags, so read WordsText, the Web textContent counterpart
+            string WordsOf(TextElement textElement)
+            {
+                return textElement is WrapSafeLabel label ? label.WordsText : textElement.text;
             }
 
             // `--selected` のような修飾子クラスだけを状態名として返す

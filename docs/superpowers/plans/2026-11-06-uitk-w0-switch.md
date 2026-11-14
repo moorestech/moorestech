@@ -22,7 +22,7 @@
 8. L3 `GameUiSkeletonTest`・`PauseMenuGameUiTest`・`GameUiInputTest`（2 件）をスイッチ GameUi で、`WebUiSystemSkeletonTest` をスイッチ Web で緑にする。`UiOwnershipTableTest`・`WebSocketSuspendedUiStateRequestTest` は削除
 9. 旧 R1 の Web 側変更（`a97575e5b5`・`05b9bdefa8`・`1095cab8bf`・`ccb3d512f7`・`5421c7f9f0` の Web 部）を外し、`moorestech_web/` を取り込み済み master と同じにする（生成物 `src/shared/i18n/generated/localizationKeys.ts` だけは `3e946e4bd3` の C# 文言に連動するので残す）。受け入れ: `git diff --name-status $(git merge-base HEAD origin/master) HEAD -- moorestech_web` がその 1 行だけ
 10. 台帳 `docs/uitk/TODO.md` に、外した Web コミットを `捨てた（理由）` で記帳（`a97575e5b5`・`1095cab8bf`・`ccb3d512f7` を `写した`→`捨てた`、撤去コミットを新規行）、「通信失敗のトースト」行を結論で書き換え、R4 手順を全体スイッチの手順に置き換える。受け入れ: ローカル G1 が「束 1（暗転・起点 979725bcd1）: 未記帳 0 件」「違反なし」rc=0、G1 単体テスト 5 本 OK
-11. 録画: `uitk/uitk-lifeline`・`uitk/uitk-nested-pause-skit`・`uitk/uitk-nested-pause-train` をスイッチ GameUi で緑（ログに `[PlaytestUi] locator reads only the GameUi UI`）、`misc/pause-menu-hierarchy` をスイッチ Web で master と同じ合否。`uitk/uitk-pause-web-action-count` は役目（旧 R1 の実測）を終えたので削除
+11. 録画: `uitk/stage1/uitk-lifeline`・`uitk/stage1/uitk-nested-pause-skit`・`uitk/stage1/uitk-nested-pause-train` をスイッチ GameUi で緑（ログに `[PlaytestUi] locator reads only the GameUi UI`）、`misc/pause-menu-hierarchy` をスイッチ Web で master と同じ合否。`uitk/uitk-pause-web-action-count` は役目（旧 R1 の実測）を終えたので削除
 12. 回帰: `Client.Tests.Ui.*`・`Client.Tests.WebUi.*`・`Client.Tests.WebUiHost.*`・`Client.Tests.Playtest.*`・`Client.Tests.Input.*`・`Client.Tests.Player.TextInputMovementLockTest`・`Client.Tests.EditModeInPlayingTest.Hostless.*`・`Client.Tests.EditModeInPlayingTest.Ui.*` が緑
 13. moores-code-review → pr-independent-review（設計判断になった指摘だけユーザー裁定 1 回）→ `base=feature/uitk` の PR を agent がマージコミットで取り込む。bd `moorestech-albof.17` を閉じる
 - やらないこと: `UiInputExclusivity` の Web 側（`SetState`・無応答）の撤去（切替 PR の 5a）。`WebUiHostEditorSkip` の撤去（ホストレステストが使う。5a）。層 enum・`GameUiRoot.GetLayer(UiLayer, UiFamily)`・tss の束ね（F1）。master への PR。HUD など未移植画面の UITK 化（裁定「UITK の間、未実装の画面は使えない」）。prefab・シーンの編集（`MainGameUI.prefab` に残る `cefRawImage:` の行は Unity が次の保存で落とす。手で消さない）
@@ -98,7 +98,7 @@
 | テスト（L0/L1） | 下表 | — |
 | `moorestech_web/`（`localizationKeys.ts` を除く） | master 版へ戻す | 旧 R1 の Web 側 |
 | `docs/uitk/TODO.md` | Modify | 追従記録・通信失敗の行・R4 手順 |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs` | Modify（冒頭コメント） | 起動前の手順をスイッチへ |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs` | Modify（冒頭コメント） | 起動前の手順をスイッチへ |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-pause-web-action-count.cs` | Delete | 旧 R1 の実測 |
 
 テスト:
@@ -2204,7 +2204,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 6: unityプレイ録画テスト（UITK 側 3 本・Web 側 1 本）
 
 **Files:**
-- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs:3-4`
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs:3-4`
 - Delete: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-pause-web-action-count.cs`
 
 **Interfaces:**
@@ -2235,11 +2235,11 @@ Run（各コマンドは前景。録画は Bash の timeout 600000ms）:
 SKILL=.agents/skills/unity-playmode-recorded-playtest
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi); System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE", "http://127.0.0.1:9"); return Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Current.ToString();'
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/uitk-lifeline.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage1/uitk-lifeline.cs"
 uloop get-logs --project-path ./moorestech_client --search-text "[PlaytestUi] locator reads only" --max-count 5
 uloop get-logs --project-path ./moorestech_client --search-text "[UiSystem] this boot draws with" --max-count 5
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/uitk-nested-pause-skit.cs"
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/uitk-nested-pause-train.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage1/uitk-nested-pause-skit.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/uitk/stage1/uitk-nested-pause-train.cs"
 ```
 Expected: EDC が `GameUi` を返す。3 本の `result.json` が `Success`、`Asserts` が全部 `Passed`（`uitk-lifeline` の「Webホストは起動していない（hostless）」を含む）。ログに `[PlaytestUi] locator reads only the GameUi UI` と `[UiSystem] this boot draws with GameUi` がある（UITK のロケータで解決した証拠。plan §2.0-2）。`uitk-lifeline` は最後の「セーブして終了」で PlayMode が止まるので、save.json の更新時刻を同シナリオ冒頭コメントのとおり呼び出し側のシェルで確かめる。落ちたら、原因が UITK にまだ無い画面（裁定で使えない画面）に触る手順か、この作り直しの退行かを Unity ログと `Timeline` で切り分け、退行なら直して Task 2〜4 の該当テストを回し直す。未移植画面が原因ならシナリオを弱めず `done.md` の「要裁定」に書いて指揮へ報告
 

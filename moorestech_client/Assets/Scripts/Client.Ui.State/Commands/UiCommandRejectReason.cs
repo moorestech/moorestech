@@ -1,5 +1,4 @@
 using System;
-using Client.Game.InGame.BugReport.Submit;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.State.Commands
@@ -20,13 +19,13 @@ namespace Client.Ui.State.Commands
         ItemUnknownInSlot,
         ResearchFailed,
         BlockNotOpen,
-        MachineRecipeInvalid,
-        MachineRecipeLocked,
+        RecipeInvalid,
+        RecipeLocked,
         MachineRecipeRequestFailed,
         TrainTimetableReplaceFailed,
         TrainAutoRunFailed,
         TrainAutoRunNotApplied,
-        TrainInvalidBlockType,
+        BlockTypeMismatch,
         TrainStationNameFailed,
         TrainPlatformModeFailed,
         SpecialBlockRequestFailed,
@@ -38,7 +37,7 @@ namespace Client.Ui.State.Commands
         BlueprintDeleteNotUnlocked,
         BlueprintDeleteRequestFailed,
         BlueprintDeleteUnknown,
-        BuildMenuCloseRefused,
+        ScreenCloseRefused,
         HotbarSelectNotAccepted,
         ModalResponseStale,
         SkitIntentRejected,
@@ -70,13 +69,13 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.ItemUnknownInSlot => false,
                 UiCommandRejectReason.ResearchFailed => false,
                 UiCommandRejectReason.BlockNotOpen => false,
-                UiCommandRejectReason.MachineRecipeInvalid => false,
-                UiCommandRejectReason.MachineRecipeLocked => false,
+                UiCommandRejectReason.RecipeInvalid => false,
+                UiCommandRejectReason.RecipeLocked => false,
                 UiCommandRejectReason.MachineRecipeRequestFailed => false,
                 UiCommandRejectReason.TrainTimetableReplaceFailed => false,
                 UiCommandRejectReason.TrainAutoRunFailed => false,
                 UiCommandRejectReason.TrainAutoRunNotApplied => false,
-                UiCommandRejectReason.TrainInvalidBlockType => false,
+                UiCommandRejectReason.BlockTypeMismatch => false,
                 UiCommandRejectReason.TrainStationNameFailed => false,
                 UiCommandRejectReason.TrainPlatformModeFailed => false,
                 UiCommandRejectReason.SpecialBlockRequestFailed => false,
@@ -88,19 +87,12 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BlueprintDeleteNotUnlocked => false,
                 UiCommandRejectReason.BlueprintDeleteRequestFailed => false,
                 UiCommandRejectReason.BlueprintDeleteUnknown => false,
-                UiCommandRejectReason.BuildMenuCloseRefused => false,
+                UiCommandRejectReason.ScreenCloseRefused => false,
                 UiCommandRejectReason.HotbarSelectNotAccepted => true,
                 UiCommandRejectReason.ModalResponseStale => true,
                 UiCommandRejectReason.SkitIntentRejected => false,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
-        }
-
-        // 送信手続きの失敗コードを拒否理由へ写す。書き出し失敗以外の拒否はどれも確保セッションの拒否
-        // Maps the submitter's failure code to a reject reason; every refusal other than a write failure comes from the capture session
-        public static UiCommandRejectReason FromSubmitFailureCode(string failureCode)
-        {
-            return failureCode == BugReportSubmitResult.BundleWriteFailed ? UiCommandRejectReason.BundleWriteFailed : UiCommandRejectReason.CaptureRefused;
         }
 
         // GameUi のトーストに出す文言。Web の失敗コードは利用者に意味が通じないので表示には使わない
@@ -123,13 +115,13 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.ItemUnknownInSlot => LocalizationKeys.Ui.CommandRejected.ItemUnknownInSlot,
                 UiCommandRejectReason.ResearchFailed => LocalizationKeys.Ui.CommandRejected.ResearchFailed,
                 UiCommandRejectReason.BlockNotOpen => LocalizationKeys.Ui.CommandRejected.BlockNotOpen,
-                UiCommandRejectReason.MachineRecipeInvalid => LocalizationKeys.Ui.CommandRejected.MachineRecipeInvalid,
-                UiCommandRejectReason.MachineRecipeLocked => LocalizationKeys.Ui.CommandRejected.MachineRecipeLocked,
+                UiCommandRejectReason.RecipeInvalid => LocalizationKeys.Ui.CommandRejected.RecipeInvalid,
+                UiCommandRejectReason.RecipeLocked => LocalizationKeys.Ui.CommandRejected.RecipeLocked,
                 UiCommandRejectReason.MachineRecipeRequestFailed => LocalizationKeys.Ui.CommandRejected.MachineRecipeRequestFailed,
                 UiCommandRejectReason.TrainTimetableReplaceFailed => LocalizationKeys.Ui.CommandRejected.TrainTimetableReplaceFailed,
                 UiCommandRejectReason.TrainAutoRunFailed => LocalizationKeys.Ui.CommandRejected.TrainAutoRunFailed,
                 UiCommandRejectReason.TrainAutoRunNotApplied => LocalizationKeys.Ui.CommandRejected.TrainAutoRunNotApplied,
-                UiCommandRejectReason.TrainInvalidBlockType => LocalizationKeys.Ui.CommandRejected.TrainInvalidBlockType,
+                UiCommandRejectReason.BlockTypeMismatch => LocalizationKeys.Ui.CommandRejected.BlockTypeMismatch,
                 UiCommandRejectReason.TrainStationNameFailed => LocalizationKeys.Ui.CommandRejected.TrainStationNameFailed,
                 UiCommandRejectReason.TrainPlatformModeFailed => LocalizationKeys.Ui.CommandRejected.TrainPlatformModeFailed,
                 UiCommandRejectReason.SpecialBlockRequestFailed => LocalizationKeys.Ui.CommandRejected.SpecialBlockRequestFailed,
@@ -141,7 +133,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BlueprintDeleteNotUnlocked => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteNotUnlocked,
                 UiCommandRejectReason.BlueprintDeleteRequestFailed => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteRequestFailed,
                 UiCommandRejectReason.BlueprintDeleteUnknown => LocalizationKeys.Ui.CommandRejected.BlueprintDeleteUnknown,
-                UiCommandRejectReason.BuildMenuCloseRefused => LocalizationKeys.Ui.CommandRejected.BuildMenuCloseRefused,
+                UiCommandRejectReason.ScreenCloseRefused => LocalizationKeys.Ui.CommandRejected.ScreenCloseRefused,
                 UiCommandRejectReason.HotbarSelectNotAccepted => LocalizationKeys.Ui.CommandRejected.HotbarSelectNotAccepted,
                 UiCommandRejectReason.ModalResponseStale => LocalizationKeys.Ui.CommandRejected.ModalResponseStale,
                 UiCommandRejectReason.SkitIntentRejected => LocalizationKeys.Ui.CommandRejected.SkitIntentRejected,
@@ -149,8 +141,8 @@ namespace Client.Ui.State.Commands
             };
         }
 
-        // 理由ごとの Web の失敗コード。送信手続き由来の 2 種と SkitIntentRejected（store の失敗コード）は Detail が優先される（UiCommandRejected.ToWireCode）
-        // Web failure code per reason; for the two submitter-derived reasons and SkitIntentRejected (the store's failure code) the Detail wins (UiCommandRejected.ToWireCode)
+        // 理由ごとの Web 失敗コード。上書きがあればそちら優先
+        // Web failure code per reason; an override wins
         public static string ToWireCode(UiCommandRejectReason reason)
         {
             return reason switch
@@ -160,7 +152,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.UnknownLanguage => "unknown_locale",
                 UiCommandRejectReason.LanguageAlreadySelected => "already_selected",
                 UiCommandRejectReason.CaptureRefused => "capture_refused",
-                UiCommandRejectReason.BundleWriteFailed => BugReportSubmitResult.BundleWriteFailed,
+                UiCommandRejectReason.BundleWriteFailed => "bundle_write_failed",
                 UiCommandRejectReason.ItemSourceSlotEmpty => "empty_slot",
                 UiCommandRejectReason.ItemSourceCountShort => "insufficient_count",
                 UiCommandRejectReason.SplitGrabNotEmpty => "grab_not_empty",
@@ -169,13 +161,13 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.ItemUnknownInSlot => "unknown_item",
                 UiCommandRejectReason.ResearchFailed => "research_failed",
                 UiCommandRejectReason.BlockNotOpen => "block_not_open",
-                UiCommandRejectReason.MachineRecipeInvalid => "invalid_recipe",
-                UiCommandRejectReason.MachineRecipeLocked => "recipe_locked",
+                UiCommandRejectReason.RecipeInvalid => "invalid_recipe",
+                UiCommandRejectReason.RecipeLocked => "recipe_locked",
                 UiCommandRejectReason.MachineRecipeRequestFailed => "machine_recipe_request_failed",
                 UiCommandRejectReason.TrainTimetableReplaceFailed => "replace_failed",
                 UiCommandRejectReason.TrainAutoRunFailed => "set_auto_run_failed",
                 UiCommandRejectReason.TrainAutoRunNotApplied => "set_auto_run_not_applied",
-                UiCommandRejectReason.TrainInvalidBlockType => "invalid_block_type",
+                UiCommandRejectReason.BlockTypeMismatch => "invalid_block_type",
                 UiCommandRejectReason.TrainStationNameFailed => "set_name_failed",
                 UiCommandRejectReason.TrainPlatformModeFailed => "mode_request_failed",
                 UiCommandRejectReason.SpecialBlockRequestFailed => "special_block_request_failed",
@@ -187,7 +179,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.BlueprintDeleteNotUnlocked => "blueprint_delete_not_unlocked",
                 UiCommandRejectReason.BlueprintDeleteRequestFailed => "blueprint_delete_request_failed",
                 UiCommandRejectReason.BlueprintDeleteUnknown => "blueprint_delete_unknown",
-                UiCommandRejectReason.BuildMenuCloseRefused => "transition_not_allowed",
+                UiCommandRejectReason.ScreenCloseRefused => "transition_not_allowed",
                 UiCommandRejectReason.HotbarSelectNotAccepted => "invalid_state",
                 UiCommandRejectReason.ModalResponseStale => "no_pending_modal",
                 UiCommandRejectReason.SkitIntentRejected => "skit_intent_rejected",

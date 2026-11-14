@@ -1,13 +1,14 @@
 using System.Collections.Generic;
-using System.Globalization;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.SlotCommands.Block;
+using Client.Ui.State.Text;
 using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
@@ -83,7 +84,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 // 行の数が同じ間は行を残して数字だけ差し替える（加工中は毎 tick 届く。D-37）
                 // Keep the rows and swap only the numbers while the row count is unchanged (updates arrive every tick; D-37)
                 if (rates.Count != _perMinuteNumbers.Count) RebuildRows(rates.Count);
-                for (var i = 0; i < rates.Count; i++) _perMinuteNumbers[i].text = rates[i].ToString(CultureInfo.InvariantCulture);
+                for (var i = 0; i < rates.Count; i++) _perMinuteNumbers[i].text = UiNumberFormat.JsString(rates[i]);
                 _stack.SetItemShown(_perMinuteRows, 0 < rates.Count);
             }
 
@@ -99,7 +100,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                     var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
                     label.AddToClassList(UiTypographyClass.TextMd);
                     label.SetKey(LocalizationKeys.Ui.BlockInventory.ProductionPerMinute);
-                    var number = new Label { pickingMode = PickingMode.Ignore };
+                    var number = new WrapSafeLabel { pickingMode = PickingMode.Ignore };
                     number.AddToClassList(UiTypographyClass.TextMd);
                     row.AddItem(label);
                     row.AddItem(number);

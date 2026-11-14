@@ -13,7 +13,7 @@ namespace Client.Ui.Foundation.Stage.ScaleReading
     {
         private readonly VisualElement _root;
         private readonly ReactiveProperty<float> _scale = new(1f);
-        private bool _unreadableReported;
+        private readonly StageScaleReadGuard _readGuard = new();
 
         public IReadOnlyReactiveProperty<float> Scale => _scale;
 
@@ -36,15 +36,9 @@ namespace Client.Ui.Foundation.Stage.ScaleReading
 
         private void ReadOnce()
         {
-            if (!StageScaleMeasure.TryRead(_root.panel, out var scale))
-            {
-                // 読めない状態は毎フレーム続きうるので、最初の 1 回だけ開発者へ知らせる
-                // An unreadable state can last every frame, so tell the developer only the first time
-                if (_unreadableReported) return;
-                _unreadableReported = true;
-                Debug.LogError($"[StageScale] stage scale is unreadable; keeping {_scale.Value:0.###}");
-                return;
-            }
+            // 読めない状態は毎フレーム続きうるので、入ったとき 1 回だけ開発者へ知らせ、回復で旗を戻す
+            // An unreadable state can last every frame, so tell the developer once on entry and clear the flag on recovery
+            if (!_readGuard.TryRead(_root.panel, "StageScale", $"keeping {_scale.Value:0.###}", out var scale)) return;
             if (Mathf.Approximately(_scale.Value, scale)) return;
 
             // 解像度の変更は稀なので、変化を開発者のログに残す（録画の確認にも使う）

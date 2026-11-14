@@ -31,7 +31,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
             _input.AddToClassList("train-station-name__row-end");
             _input.AddToClassList("train-station-name__input");
             _input.OnValueChanged.Subscribe(commands.EditStationName);
-            var apply = new PanelActionButton("train-station-name-apply", LocalizationKeys.Ui.BlockInventory.StationNameApply);
+            var apply = new PanelActionButton("train-station-name-apply", new UiText(LocalizationKeys.Ui.BlockInventory.StationNameApply));
             apply.AddToClassList("train-station-name__row-end");
             apply.OnClicked.Subscribe(_ => commands.ApplyStationName());
             Add(label);

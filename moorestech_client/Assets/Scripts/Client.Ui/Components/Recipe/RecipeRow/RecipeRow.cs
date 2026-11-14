@@ -81,11 +81,5 @@ namespace Client.Ui.Components.Recipe
             _action.Add(action);
             _action.AddToClassList(ActionShownUssClassName);
         }
-
-        public void ClearAction()
-        {
-            _action.Clear();
-            _action.RemoveFromClassList(ActionShownUssClassName);
-        }
     }
 }

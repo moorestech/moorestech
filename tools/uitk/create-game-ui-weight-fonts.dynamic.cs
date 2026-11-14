@@ -1,7 +1,7 @@
-// GameUi の太さ違いの SDF FontAsset 4 つを作る。uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)" で実行する
-// 元の Font と fallback の FontAsset が全部読めてから作り、4 つとも作れてから古い asset を置き換える（途中で失敗しても既存の FontAsset を消さない）
-// Creates the four weight-variant GameUi SDF FontAssets; run with uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)"
-// Creation starts only after every source Font and fallback FontAsset loads, and old assets are replaced only after all four are created (a failure never deletes the existing FontAssets)
+// GameUi の見出し用の Bold の SDF FontAsset 3 つ（Mantine Title の題の字形。設計書 A-220）を作る。uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)" で実行する
+// 元の Font と fallback の FontAsset が全部読めてから作り、3 つとも作れてから古い asset を置き換える（途中で失敗しても既存の FontAsset を消さない）
+// Creates the three Bold GameUi SDF FontAssets for headings (the Mantine Title face, design A-220); run with uloop execute-dynamic-code --code "$(cat tools/uitk/create-game-ui-weight-fonts.dynamic.cs)"
+// Creation starts only after every source Font and fallback FontAsset loads, and old assets are replaced only after all three are created (a failure never deletes the existing FontAssets)
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -15,13 +15,12 @@ const int SamplingPointSize = 90;
 const string FontFolder = "Assets/Dependencies/Font";
 var specs = new[]
 {
-    (source: $"{FontFolder}/NotoSansKR-Bold.ttf", name: "GameUiKoreanBold SDF"),
     (source: $"{FontFolder}/NotoSansJP-Bold.ttf", name: "GameUiJapaneseBold SDF"),
     (source: $"{FontFolder}/NotoSans-Bold.ttf", name: "GameUiLatinBold SDF"),
-    (source: $"{FontFolder}/NotoSans-Medium.ttf", name: "GameUiLatinMedium SDF"),
+    (source: $"{FontFolder}/NotoSansKR-Bold.ttf", name: "GameUiKoreanBold SDF"),
 };
 
-// 元の Font と、Medium の fallback にする段階 1 の JP/KR を先に全部読む。欠けていれば何も消さずに止める
+// 元の Font と、fallback にする段階 1 の JP/KR（Medium）を先に全部読む。欠けていれば何も消さずに止める
 // Load every source Font and the stage-1 JP/KR fallbacks first; stop without deleting anything if one is missing
 var fonts = new List<Font>();
 foreach (var spec in specs)
@@ -35,8 +34,8 @@ if (japaneseMedium == null) return Abort($"fallback FontAsset not found: {Folder
 var koreanMedium = AssetDatabase.LoadAssetAtPath<FontAsset>($"{Folder}/GameUiKorean SDF.asset");
 if (koreanMedium == null) return Abort($"fallback FontAsset not found: {Folder}/GameUiKorean SDF.asset (run create-game-ui-fonts.dynamic.cs first)");
 
-// 4 つを一時パスへ作る。1 つでも作れなければ作った一時ファイルを消して止める
-// Create all four at temporary paths; if any fails, delete the temporaries and stop
+// 3 つを一時パスへ作る。1 つでも作れなければ作った一時ファイルを消して止める
+// Create all three at temporary paths; if any fails, delete the temporaries and stop
 var created = new List<FontAsset>();
 for (var i = 0; i < specs.Length; i++)
 {
@@ -48,21 +47,24 @@ for (var i = 0; i < specs.Length; i++)
     }
     created.Add(asset);
 }
-var koreanBold = created[0];
-var japaneseBold = created[1];
-var latinBold = created[2];
-var latinMedium = created[3];
+var japaneseBold = created[0];
+var latinBold = created[1];
+var koreanBold = created[2];
 
-// 太字は太字どうしでたどる。Medium の Latin は段階 1 の JP/KR（Medium）へ落とす
-// Bold falls back within bold faces; the Medium Latin falls back to the stage-1 JP/KR (Medium)
+// 和文の題の字形は韓国語の字を KR Bold で描く（Mac の Chrome の Apple SD Gothic Neo Bold と太さが揃う。設計書 A-220）。欧文の題は段階 1 の JP/KR（Medium）へ落とす
+// The CJK heading face draws Hangul with KR Bold (matching Apple SD Gothic Neo Bold in Mac Chrome, design A-220); the Latin heading falls back to the stage-1 JP/KR (Medium)
 japaneseBold.fallbackFontAssetTable = new List<FontAsset> { koreanBold };
-latinBold.fallbackFontAssetTable = new List<FontAsset> { japaneseBold, koreanBold };
-latinMedium.fallbackFontAssetTable = new List<FontAsset> { japaneseMedium, koreanMedium };
+koreanBold.fallbackFontAssetTable = new List<FontAsset>();
+latinBold.fallbackFontAssetTable = new List<FontAsset> { japaneseMedium, koreanMedium };
+// 和文の題は Bold の 0.925 倍が W6 より太いので SDF の面を細らせる（LX-181 の実測値）。韓国語の字も同じ比で揃える
+// The CJK heading at Bold 0.925x is heavier than W6, so thin the SDF face (LX-181 measured value); Hangul matches by the same ratio
+japaneseBold.regularStyleWeight = -0.45f;
+koreanBold.regularStyleWeight = -0.45f;
 foreach (var asset in created) { asset.ClearFontAssetData(true); EditorUtility.SetDirty(asset); }
 AssetDatabase.SaveAssets();
 
 // 全部作れたので古い asset を消し、一時パスから本来の名前へ移す
-// All four exist, so delete the old assets and move the temporaries to their real names
+// All exist, so delete the old assets and move the temporaries to their real names
 foreach (var spec in specs)
 {
     var finalPath = FinalPath(spec.name);
@@ -74,7 +76,7 @@ foreach (var spec in specs)
 // 作り直すと GUID が変わるので、フォントを指す Typography.uss を読み直す
 // Recreation changes the GUIDs, so reimport Typography.uss which points at the fonts
 AssetDatabase.ImportAsset("Assets/Scripts/Client.Ui/Foundation/Theme/Typography.uss", ImportAssetOptions.ForceUpdate);
-return $"latinBold={AssetDatabase.GetAssetPath(latinBold)} japaneseBold={AssetDatabase.GetAssetPath(japaneseBold)} koreanBold={AssetDatabase.GetAssetPath(koreanBold)} latinMedium={AssetDatabase.GetAssetPath(latinMedium)}";
+return $"latinBold={AssetDatabase.GetAssetPath(latinBold)} japaneseBold={AssetDatabase.GetAssetPath(japaneseBold)} koreanBold={AssetDatabase.GetAssetPath(koreanBold)}";
 
 string FinalPath(string assetName) => $"{Folder}/{assetName}.asset";
 string TemporaryPath(string assetName) => $"{Folder}/{assetName}.creating.asset";

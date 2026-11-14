@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Client.Localization;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.Text;
@@ -31,8 +30,8 @@ namespace Client.Ui.Screens.BlockInventory.Parts.Rows
             var text = new UiText(LocalizationKeys.Ui.BlockInventory.PowerRateSummary, new[]
             {
                 new LocalizationTextParam("rate", UiNumberFormat.Integer(percent)),
-                new LocalizationTextParam("current", currentPower.ToString(CultureInfo.InvariantCulture)),
-                new LocalizationTextParam("required", requestPower.ToString(CultureInfo.InvariantCulture)),
+                new LocalizationTextParam("current", UiNumberFormat.JsString(currentPower)),
+                new LocalizationTextParam("required", UiNumberFormat.JsString(requestPower)),
             });
             _text.Render(text, highlightShortage && rate < 1);
         }

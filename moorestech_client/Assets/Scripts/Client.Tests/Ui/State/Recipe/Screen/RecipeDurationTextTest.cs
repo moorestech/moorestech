@@ -37,6 +37,8 @@ namespace Client.Tests.Ui.State.Recipe.Screen
         [TestCase(2d, "2 seconds")]
         [TestCase(0.4d, "0.4 seconds")]
         [TestCase(1.25d, "1.25 seconds")]
+        [TestCase(0.1d + 0.2d, "0.30000000000000004 seconds")]
+        [TestCase(1e21d, "1e+21 seconds")]
         public void 秒数をJSの数の文字化と同じ書式でui_recipe_durationへ入れる(double seconds, string expected)
         {
             Assert.AreEqual(expected, RecipeDurationText.Create(seconds).Resolve());

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
@@ -97,6 +98,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         public BlockInventoryView View { get; private set; }
         public RecordingPanelCommands Commands { get; private set; }
         public StageColumnsLayout Stage { get; private set; }
+        public List<GameUiToast> ShownToasts { get; } = new();
 
         private BlockInventoryTestShell(BlockInventoryView view, RecordingPanelCommands commands, StageColumnsLayout stage)
         {
@@ -120,7 +122,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             var stage = new StageColumnsLayout();
             host.rootVisualElement.Add(stage);
             var commands = new RecordingPanelCommands();
-            var view = new BlockInventoryView(stage, commands);
+            var toasts = new GameUiToastFeed();
+            var view = new BlockInventoryView(stage, commands, new UiCommandResultToaster(toasts));
             var bodyHost = new BlockInventoryBodyHost(parts, view);
             stage.Get(StageColumn.Viewer).Add(view);
 
@@ -133,7 +136,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
                 view.Render(presentation.State, presentation.Layout);
                 bodyHost.Apply(shown ? presentation.State : BlockInventoryPanelState.Closed, presentation.Layout);
             });
-            return new BlockInventoryTestShell(view, commands, stage);
+            var shell = new BlockInventoryTestShell(view, commands, stage);
+            toasts.OnToast.Subscribe(shell.ShownToasts.Add);
+            return shell;
         }
 
         public GamePanel Panel()
@@ -147,15 +152,22 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         }
     }
 
-    // 閉じるの回数だけを数える記録係
-    // Recorder that only counts close requests
+    // 閉じるの回数を数え、返す結果だけテストから差し替えられる記録係
+    // Recorder that counts close requests; only the returned result can be swapped by tests
     public sealed class RecordingPanelCommands : IBlockInventoryPanelCommands
     {
+        private UiCommandResult _closeResult = UiCommandAccepted.Instance;
         public int CloseCount { get; private set; }
 
-        public void Close()
+        public void SetCloseResult(UiCommandResult result)
+        {
+            _closeResult = result;
+        }
+
+        public UiCommandResult Close()
         {
             CloseCount++;
+            return _closeResult;
         }
     }
 

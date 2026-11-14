@@ -20,13 +20,6 @@ namespace Client.Ui.Components.Controls
         private float _borderWidth;
         private bool _hasTokens;
 
-        // 最後に描いた 3 色と描いた回数（L1 がホバーで描き直されたことを読む）
-        // The last drawn three colors and the draw count (the L1 reads them to see the hover repaint)
-        internal Color LastDrawnStartForTest { get; private set; }
-        internal Color LastDrawnMiddleForTest { get; private set; }
-        internal Color LastDrawnEndForTest { get; private set; }
-        internal int DrawCountForTest { get; private set; }
-
         public RecipeActionButtonFace()
         {
             AddToClassList(UssClassName);
@@ -63,10 +56,6 @@ namespace Client.Ui.Components.Controls
             var mesh = context.Allocate(_vertices.Length, _indices.Length);
             mesh.SetAllVertices(_vertices);
             mesh.SetAllIndices(_indices);
-            LastDrawnStartForTest = _start;
-            LastDrawnMiddleForTest = _middle;
-            LastDrawnEndForTest = _end;
-            DrawCountForTest++;
         }
     }
 }

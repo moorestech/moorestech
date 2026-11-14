@@ -27,7 +27,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         private readonly LackHighlightText _status = new("space-elevator-status", LackHighlightTextSize.Sm);
         private readonly LocalizedLabel _pool = SpecialViewParts.Label("space-elevator-pool", UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
         private readonly GaugeBar _progress = new("space-elevator-progress");
-        private readonly PanelActionButton _connect = new("space-elevator-connect", LocalizationKeys.Ui.BlockInventory.SpaceElevatorConnect);
+        private readonly PanelActionButton _connect = new("space-elevator-connect", new UiText(LocalizationKeys.Ui.BlockInventory.SpaceElevatorConnect));
 
         public SpaceElevatorSectionView(SpecialViewKit kit)
         {

@@ -46,7 +46,7 @@ spec: docs/plans/map-autogen-world-design.md
 - [ ] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Player/PlayerRuntimeStartGateTest.cs` を新規作成する。
-`PlayerObjectController` はシリアライズ参照を持つため、テスト側でGameObjectを組み立てて private field へリフレクション注入する（`Client.Tests/UIState/UIStateCameraInteractionTest.cs` の `SetField` と同じ手法）。
+`PlayerObjectController` はシリアライズ参照を持つため、テスト側でGameObjectを組み立てて private field へリフレクション注入する（`Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs` の `SetField` と同じ手法）。
 
 ```csharp
 using System.Reflection;

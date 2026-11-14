@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Ui.State.Research.Commands
@@ -11,8 +12,8 @@ namespace Client.Ui.State.Research.Commands
     {
         void ToggleNodeSelection(Guid researchGuid);
         void CloseDetail();
-        // 結果のトーストまで受け持つ
-        // Also reports the result as a toast
-        UniTask CompleteResearch(Guid researchGuid);
+        // 結果を返すだけ。トーストは View（A-262）
+        // Only returns the result; the view toasts it (A-262)
+        UniTask<UiCommandResult> CompleteResearch(Guid researchGuid);
     }
 }

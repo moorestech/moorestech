@@ -1,0 +1,60 @@
+/* Controls 族（PanelActionButton・ModeSwitch・GameScrollView・Mantine の既定コントロール・DialogFrame とモーダル）の手書きの派生トークン。Web が color-mix・半透明・直書きで出す色と寸法を前計算し、各行に web の元の式と決め方を残す（設計書 §3.1） */
+/* Hand-written derived tokens of the Controls family (PanelActionButton, ModeSwitch, GameScrollView, Mantine default controls, DialogFrame and the modal); precomputes colors and sizes the Web derives with color-mix, translucency or literals, each row keeping the web source and how it was settled (design §3.1) */
+:root {
+    /* PanelActionButton・ModeSwitch の Web の color-mix(in srgb, var(--gauge-track), var(--bevel-c2) N%) を前計算した面と、PanelActionButton の文字の縁 */
+    --panel-action-hover-face: rgba(35, 38, 51, 0.844); /* web: color-mix 22% = rgba(35, 38, 51, 0.844) */
+    --mode-switch-selected-face: rgba(43, 46, 59, 0.86); /* web: color-mix 30% = rgba(43, 46, 59, 0.86) */
+    --panel-action-text-outline: rgba(0, 0, 0, 0.7); /* web: rgb(0 0 0 / 70%) */
+    --panel-action-text-outline-width: 0.05px; /* web: 4 方向 0.3px の text-shadow。影は字の外だけを暗くするが UITK の縁取りは縁の内側にも掛かり面を削るので、字の濃さの和が Web と揃う幅（1280・2560 の実測で Web の 0.97〜1.08 倍。0.3px では 0.80〜0.86 倍） */
+    --panel-action-button-min-content-height: 23.25px; /* web: Chrome の min-height: auto＝文字の行の箱（15px × --mantine-line-height 1.55）。縦の並びが溢れるとボタンはここまで縮む */
+
+    /* Mantine ScrollArea の暗色のつまみ */
+    --theme-scroller-thumb-face: rgba(255, 255, 255, 0.4); /* web: rgba(255, 255, 255, 0.4) */
+
+    /* C2-b: Mantine Button の Subtle のホバー。Mantine の生成器の対象外なのでここに Web と同名で手書きする */
+    /* C2-b: Mantine Button Subtle hover; outside the Mantine generator, so it is hand-written here under the Web name */
+    --mantine-color-blue-light-hover: rgba(34, 139, 230, 0.2); /* web: dark の rgba(34, 139, 230, 0.2) */
+
+    /* I-fix6: GameTextField の寸法。Web は要素ごとの calc で出すので、UITK が使う形で前計算する */
+    /* I-fix6: GameTextField sizes; the Web derives them with per-element calc, so they are precomputed for the form UITK uses */
+    --game-text-field-padding-x-sm: 12px; /* calc: var(--input-height-sm) / 3; web: Mantine Input の要素ごとの --input-padding = calc(var(--input-height) / 3) */
+    --game-text-field-focus-ring-inset: -1.56575px; /* calc: -(var(--bevel-1) * 2); web: textAreaField の :focus-visible の outline var(--bevel-1)＋outline-offset var(--bevel-1) */
+
+    /* C2-c: GameScrollView のバーの幅（Mantine ScrollArea の既定 0.75rem）・つまみのホバー・ShortcutHintLabel の kbd と文の間（設計書 A-34・A-35） */
+    /* C2-c: GameScrollView bar width (Mantine ScrollArea default 0.75rem), thumb hover, and the kbd-to-text gap of ShortcutHintLabel (design A-34, A-35) */
+    --scrollarea-scrollbar-size: 12px; /* web: Mantine ScrollArea の scrollbarSize の既定。画面は祖先で上書きする */
+    --game-scroll-view-thumb-hover: rgb(133, 135, 141); /* web: rgba(255, 255, 255, 0.5) を溝（--gauge-track）とポーズの面へ重ねて前計算 */
+    --shortcut-hint-label-gap: 0px; /* web: 置く側の flex の gap。既定 0（KeyControlHint が --tutorial-key-hint-kbd-gap に上書き） */
+
+    /* C3-b: 相互作用（ModeSwitch の選択肢の高さ・DialogFrame・モーダルの幕）。つまみの既定は Web の var() のフォールバックか Mantine Modal の既定（設計書 A-52） */
+    /* C3-b: interaction (ModeSwitch option height, DialogFrame, modal backdrop); knob defaults are the Web var() fallbacks or Mantine Modal defaults (design A-52) */
+    --mode-switch-option-height: 34.8px; /* web: ModeSwitch .option の var(--mode-switch-option-height, auto)。auto の実寸＝padding-block 5px×2＋本文の行 16px×1.55（C2-c の実測）。ビルドメニューは --build-menu-category-height へ上書き */
+    --modal-size: 440px; /* web: Mantine Modal の --modal-size（size 既定 md = 27.5rem）。ModalHost の w={320} は Mantine の content の flex: 0 0 var(--modal-size) に負け、参照 3-modal の実寸は 440px */
+    --modal-radius: var(--mantine-radius-default); /* web: Mantine Modal の --modal-radius の既定 */
+    --mb-padding: var(--mantine-spacing-md); /* web: Mantine ModalBase の --mb-padding（padding 既定 md）。題の行の余白 */
+    --dialog-frame-header-min-height: 60px; /* web: Mantine ModalBase の header の min-height: 60px（直書き） */
+    --dialog-frame-body-padding: var(--mantine-spacing-lg); /* web: ModalHost の Modal.Body p="lg" */
+    --dialog-frame-face: var(--mantine-color-body); /* web: Mantine ModalBase の content の背景（参照 3-modal の面 rgb(36,36,36)） */
+    --modal-backdrop-face: rgba(0, 0, 0, 0.6); /* web: Modal.Overlay backgroundOpacity={0.6} の #000 */
+    --modal-shadow-1-y: 1px; /* web: Mantine Modal の box-shadow（--mantine-shadow-xl）の層 1「0 1px 3px rgba(0,0,0,0.05)」（@mantine/core 8.3.18 の既定・--mantine-scale 1） */
+    --modal-shadow-1-blur: 3px;
+    --modal-shadow-1-spread: 0px;
+    --modal-shadow-1-color: rgba(0, 0, 0, 0.05); /* web: rgba(0,0,0,0.05) */
+    --modal-shadow-2-y: 36px; /* web: 層 2「0 36px 28px -7px rgba(0,0,0,0.05)」 */
+    --modal-shadow-2-blur: 28px;
+    --modal-shadow-2-spread: -7px;
+    --modal-shadow-2-color: rgba(0, 0, 0, 0.05); /* web: rgba(0,0,0,0.05) */
+    --modal-shadow-3-y: 17px; /* web: 層 3「0 17px 17px -7px rgba(0,0,0,0.04)」 */
+    --modal-shadow-3-blur: 17px;
+    --modal-shadow-3-spread: -7px;
+    --modal-shadow-3-color: rgba(0, 0, 0, 0.04); /* web: rgba(0,0,0,0.04) */
+
+    /* GameScrollView の溝・つまみ・縦バーの逃げと内側余白の比の既定（A-167）。祖先の上書きを潰さないよう :root に置く */
+    /* GameScrollView track, thumb, vertical bar insets and inner padding ratio defaults (A-167); on :root so ancestor overrides are not shadowed */
+    --game-scroll-view-track-face: var(--gauge-track); /* GameScrollView の溝の既定。要素に書くと祖先の上書きを潰すので :root に置く（A-167） */
+    --game-scroll-view-thumb-face: var(--bevel-c2); /* GameScrollView のつまみの既定 */
+    --game-scroll-view-scrollbar-inset-top: 0px; /* GameScrollView の縦バーの上の逃げの既定 */
+    --game-scroll-view-scrollbar-inset-bottom: 0px; /* 同じく下の逃げの既定 */
+    --game-scroll-view-scrollbar-inset-right: 0px; /* 同じく右の逃げの既定 */
+    --game-scroll-view-scrollbar-padding-ratio: 0.2; /* web: Mantine ScrollArea のバーの padding = size / 5。縦バーの内側余白＝幅×比 */
+}

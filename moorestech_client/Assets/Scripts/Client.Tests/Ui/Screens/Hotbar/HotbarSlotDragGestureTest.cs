@@ -41,7 +41,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             _entry.style.height = 60;
             rootVisualElement.Add(_entry);
             _entryHandler = new RecordingBuildMenuEntryHandler();
-            UiDragDrop.MarkSource(_entry, new BuildMenuEntryDragPayload(EntryId, _entryHandler));
+            UiDragDrop.MarkSource(_entry, new BuildMenuEntryDragPayload(EntryId, _entryHandler, _commands));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
         }
@@ -59,37 +59,37 @@ namespace Client.Tests.Ui.Screens.Hotbar
 
         /// <web-test file="src/features/hotbar/useHotbarDragSource.test.ts">閾値を超えるとドラッグへ確定しonTapは発火しない</web-test>
         [Test]
-        public void 閾値を超えるとドラッグになり自分の枠で離しても選択しない()
+        public void 閾値を超えるとドラッグになり自分の枠で離すと選択でなく自分への落としを渡す()
         {
             var slot0 = Slot(0).worldBound.center;
             Press(slot0, slot0 + new Vector2(20f, 0f));
-            CollectionAssert.AreEqual(new[] { "none" }, _commands.Calls);
+            CollectionAssert.AreEqual(new[] { "slot:0->slot:0" }, _commands.Calls);
         }
 
         /// <web-test file="src/features/hotbar/useHotbarDragSource.test.ts">枠外(elementFromPointが枠を返さない)へドラッグして離すとhotbar.clearをdispatchする</web-test>
         [Test]
-        public void 枠の無い所へ落とすと解除する()
+        public void 枠の無い所へ落とすと枠外への落としを渡す()
         {
             Press(Slot(0).worldBound.center, new Vector2(640f, 100f));
-            CollectionAssert.AreEqual(new[] { "clear:0" }, _commands.Calls);
+            CollectionAssert.AreEqual(new[] { "slot:0->outside" }, _commands.Calls);
         }
 
         /// <web-test file="src/features/hotbar/useHotbarDragSource.test.ts">data-hotbar-slot-index付きの枠へドラッグして離すとhotbar.swapをdispatchする</web-test>
         [Test]
-        public void 別の枠や番号タブの上へ落とすと入れ替える()
+        public void 別の枠や番号タブの上へ落とすとその枠への落としを渡す()
         {
             Press(Slot(0).worldBound.center, Slot(2).worldBound.center);
             var tab = Slot(6).parent.Q(className: HotbarNumberTab.ClassName);
             Press(Slot(0).worldBound.center, tab.worldBound.center);
-            CollectionAssert.AreEqual(new[] { "swap:0:2", "swap:0:6" }, _commands.Calls);
+            CollectionAssert.AreEqual(new[] { "slot:0->slot:2", "slot:0->slot:6" }, _commands.Calls);
         }
 
         /// <web-test file="src/features/hotbar/useHotbarDragSource.test.ts">ビルドメニューエントリを枠へドラッグして離すとhotbar.assignをdispatchする</web-test>
         [Test]
-        public void エントリを枠へ落とすと割当てる()
+        public void エントリを枠へ落とすとその枠への落としを渡す()
         {
             Press(_entry.worldBound.center, Slot(5).worldBound.center);
-            CollectionAssert.AreEqual(new[] { $"assign:5:{EntryId:D}" }, _commands.Calls);
+            CollectionAssert.AreEqual(new[] { $"entry:{EntryId:D}->slot:5" }, _commands.Calls);
             CollectionAssert.IsEmpty(_entryHandler.Selected);
         }
 

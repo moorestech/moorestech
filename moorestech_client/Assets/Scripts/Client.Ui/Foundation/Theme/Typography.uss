@@ -7,13 +7,13 @@
 }
 
 .game-ui-locale--cjk {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset"); /* look-exception: LX-186 */
 }
 
-/* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0 で、行の高さは USS に無いので min-height = 字 × line-height */
-/* Title は Web と同じ px。Web は Regular 1 字形で題を描き、GameUi は Bold の字形（約 3.3% em ずつ字送りが広い）なので letter-spacing で詰めて題の幅を Web に寄せる（設計書 A-37）。UITK の letter-spacing は px と書いても字の大きさの 1/100 単位で効くので、4 段とも同じ -3.6 で、Regular と幅が 3% 以内になる（C2-c Task 11 の実測） */
-/* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0, and USS has no line-height so min-height = size x line-height */
-/* Titles use the Web px; the Web draws titles with its single Regular face while GameUi uses Bold (about 3.3% em wider per glyph), so letter-spacing tightens the title width to the Web's (design A-37); UITK applies letter-spacing in 1/100 of the font size even when written as px, so one -3.6 for all four steps keeps the width within 3% of Regular (measured in C2-c Task 11) */
+/* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0。USS に line-height は無いので、1 行は min-height＝字×line-height、LocalizedLabel は --localized-label-line-box で行送りと高さ（行数×行の高さ）を Web と同じにする（設計書 A-221） */
+/* 和文の字の高さ 1.448em を画素へ切り上げると sm 21px・xs 18px になり Web（20.3・16.8）より高いので、高さは字でなく行の箱で決める */
+/* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0. USS has no line-height, so one line uses min-height = size x line-height and LocalizedLabel gets the Web pitch and height (lines x line height) from --localized-label-line-box (design A-221) */
+/* The CJK glyph extent 1.448em ceiled to pixels gives sm 21px and xs 18px, taller than the Web (20.3, 16.8), so height comes from the line box, not the glyphs */
 .text--xs,
 .text--sm,
 .text--md,
@@ -28,50 +28,60 @@
 }
 
 .text--xs {
+    --text-xs-row-height: 16.8px;
     font-size: var(--mantine-font-size-xs);
-    min-height: 16.8px;
+    min-height: var(--text-xs-row-height);
+    --localized-label-line-box: var(--text-xs-row-height);
 }
 
 .text--sm {
+    --text-sm-row-height: 20.3px;
     font-size: var(--mantine-font-size-sm);
-    min-height: 20.3px;
+    min-height: var(--text-sm-row-height);
+    --localized-label-line-box: var(--text-sm-row-height);
 }
 
 .text--md {
+    --text-md-row-height: 24.8px;
     font-size: var(--mantine-font-size-md);
-    min-height: 24.8px;
+    min-height: var(--text-md-row-height);
+    --localized-label-line-box: var(--text-md-row-height);
 }
 
 .title--order-1 {
+    --title-heading-latin-letter-spacing: -3.4px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 34px で 0.034em 狭い（Mac の Chrome の実測） */
     --title-order-1-row-height: 44.2px;
+    --title-heading-cjk-font-size: 31.45px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 34px の 0.925 倍（NotoSansJP 比） */
     font-size: 34px;
     min-height: var(--title-order-1-row-height);
+    --localized-label-line-box: var(--title-order-1-row-height);
 }
 
 .title--order-2 {
+    --title-heading-latin-letter-spacing: -3.2px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 26px で 0.032em 狭い（Mac の Chrome の実測） */
     --title-order-2-row-height: 35.1px;
+    --title-heading-cjk-font-size: 24.05px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 26px の 0.925 倍（NotoSansJP 比） */
     font-size: 26px;
     min-height: var(--title-order-2-row-height);
+    --localized-label-line-box: var(--title-order-2-row-height);
 }
 
 .title--order-3 {
+    --title-order-3-row-height: 30.8px;
+    --title-heading-latin-letter-spacing: -3.3px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 22px で 0.033em 狭い（Mac の Chrome の実測） */
+    --title-heading-cjk-font-size: 20.35px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 22px の 0.925 倍（NotoSansJP 比） */
     font-size: 22px;
-    min-height: 30.8px;
+    min-height: var(--title-order-3-row-height);
+    --localized-label-line-box: var(--title-order-3-row-height);
 }
 
 .title--order-4 {
+    --title-order-4-row-height: 26.1px;
+    --title-heading-latin-letter-spacing: -2px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 18px で 0.020em 狭い（Mac の Chrome の実測） */
+    --title-heading-cjk-font-size: 16.65px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 18px の 0.925 倍（NotoSansJP 比） */
     font-size: 18px;
-    min-height: 26.1px;
-}
-
-/* 4 段の字間は 1 つの名前で持つ。祖先から上書きするつまみではないので、題のクラス自身で宣言する */
-/* The four steps share one named spacing; it is not an ancestor-overridable knob, so the title classes declare it themselves */
-.title--order-1,
-.title--order-2,
-.title--order-3,
-.title--order-4 {
-    --title-letter-spacing: -3.6px;
-    letter-spacing: var(--title-letter-spacing);
+    min-height: var(--title-order-4-row-height);
+    --localized-label-line-box: var(--title-order-4-row-height);
 }
 
 .text--dimmed {
@@ -113,42 +123,26 @@
     text-shadow: var(--key-hint-text-shadow-face); /* look-exception: LX-86 */
 }
 
-/* Mantine の Title（700）と fw={500}/{700}、keyHintText（500）の太さ。合成の太字は使わず太さ違いの字形を当てる（設計書 A-36） */
-/* Weights of Mantine Title (700), fw={500}/{700} and keyHintText (500); weight-variant faces are used instead of synthetic bold (design A-36) */
-.title--order-1,
-.title--order-2,
-.title--order-3,
-.title--order-4,
-.text--bold {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset");
+/* 太さ。Web は欧文を Regular（MooresUI）、和文ロケールを NotoSansJP の Medium（欧文の字も含む）の各 1 字形だけ読み込み font-synthesis: none なので、fw={700}・fw={500}・keyHintText（500）・Modal.Title もその字形で描く。text--bold・text--medium・key-hint-text と title--order-N だけの題は字形を替えず親の字形（欧文 Regular・和文 Medium）を継ぐ。Mantine の Title だけは下の title--heading-face（設計書 A-220）。合成の太字は使わない */
+/* Weights: the Web loads one face each, Regular for Latin (MooresUI) and NotoSansJP Medium (Latin glyphs included) for CJK locales, with font-synthesis: none, so fw={700}, fw={500}, keyHintText (500) and Modal.Title draw with that face; text--bold, text--medium, key-hint-text and plain title--order-N keep the inherited face (Latin Regular, CJK Medium); only Mantine Title takes title--heading-face below (design A-220); no synthetic bold */
+
+/* Mantine の Title は本文の字体を継がず --mantine-font-family-headings（OS の字体の 700）で描く。参照を撮った Mac の Chrome では欧文が SF Pro の 700、和文が .Hiragino Kaku Gothic Interface W6。Windows の CEF では Web 自体の字体が変わる（LX-183）。Title で描く題（Modal.Title は除く）に付ける（設計書 A-220） */
+/* 欧文は Bold の字形で字送りを SF Pro に寄せる（光学サイズで大きさごとに違うので値は Title の段が持つ）。和文は NotoSansJP Bold を字の大きさの 0.925 倍で描き、W6 の字の面・字送りに合わせる（字間は詰めない。線の太さは資産の regularStyleWeight −0.45 で SDF の面を細らせて寄せる）。UITK の letter-spacing は 1px が字の大きさの 1/100 */
+/* Mantine Title ignores the body face and draws with --mantine-font-family-headings (the OS face at 700); on the Mac Chrome that shot the reference that is SF Pro 700 for Latin and .Hiragino Kaku Gothic Interface W6 for CJK, and the Web face itself changes on Windows CEF (LX-183); attach it to titles drawn with Title, not Modal.Title (design A-220) */
+/* Latin takes the Bold face with SF Pro's advance (optical sizing differs per size, so each Title order holds the value); CJK draws NotoSansJP Bold at 0.925x the size to match the W6 glyph face and advance (no tightening; the asset regularStyleWeight -0.45 thins the SDF face toward the W6 stroke); UITK letter-spacing 1px is 1/100 of the font size */
+.title--heading-face {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset"); /* look-exception: LX-183 */
+    letter-spacing: var(--title-heading-latin-letter-spacing);
 }
 
-.text--medium,
-.key-hint-text {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinMedium%20SDF.asset");
-}
-
-/* look-exception: LX-171 */
-/* CJK のロケールは段階 1 と同じく JP の字形を先頭にする（JP/KR は元から Medium なので 500 は段階 1 の JP のまま） */
-/* CJK locales lead with the JP face as in stage 1 (JP/KR are already Medium, so 500 stays on the stage-1 JP face) */
-.game-ui-locale--cjk .title--order-1,
-.game-ui-locale--cjk .title--order-2,
-.game-ui-locale--cjk .title--order-3,
-.game-ui-locale--cjk .title--order-4,
-.game-ui-locale--cjk .text--bold {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapaneseBold%20SDF.asset");
-}
-
-.game-ui-locale--cjk .text--medium,
-.game-ui-locale--cjk .key-hint-text {
-    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
-}
-
-/* 和文は字送りが全角 1 字で Web の Medium と GameUi の Bold が同じ幅なので、題の字間を詰めない（C2-c Task 11 の実測） */
-/* CJK glyphs advance one full em, so the Web Medium and GameUi Bold widths match and titles are not tightened (measured in C2-c Task 11) */
-.game-ui-locale--cjk .title--order-1,
-.game-ui-locale--cjk .title--order-2,
-.game-ui-locale--cjk .title--order-3,
-.game-ui-locale--cjk .title--order-4 {
+.game-ui-locale--cjk .title--heading-face {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapaneseBold%20SDF.asset"); /* look-exception: LX-181 */
+    font-size: var(--title-heading-cjk-font-size);
     letter-spacing: 0;
+}
+
+/* WrapSafeLabel は測りの来ない固定の箱でも字の大きさ・字間の変化に気づくため、カスタムプロパティを 1 つ持って CustomStyleResolvedEvent を毎回の解決で受ける（設計書 A-224・bd moorestech-fcpzz） */
+/* WrapSafeLabel carries one custom property so every style resolution sends CustomStyleResolvedEvent and a fixed box with no measure still notices font size and spacing changes (design A-224, bd moorestech-fcpzz) */
+.wrap-safe-label {
+    --wrap-safe-label-style-probe: 1;
 }

@@ -29,7 +29,7 @@ namespace Client.Ui.Editor.Gallery.Entries.NodeGraph
             var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(SheetPath);
             if (sheet == null) Debug.LogError($"[UiGallery] sample sheet not found: {SheetPath}");
             else frame.styleSheets.Add(sheet);
-            var view = new NodeGraphView("gallery-node-graph", new ProcessUiOsCursor());
+            var view = new NodeGraphView("gallery-node-graph", new ProcessUiOsCursor(new UnityUiOsCursorApplier()));
             frame.Add(view);
             view.SetGraph(new NodeGraphContent(new[]
             {

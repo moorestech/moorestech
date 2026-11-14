@@ -17,7 +17,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// 発射台の本文: 資材・積荷の群、状態文、進捗、出力の群（サーバーの絶対添字のまま）。詳細の未着は取得待ち（Web RocketLaunchPadInventory）
     /// Launch pad body: material and payload groups, status, progress, output group (server absolute indices); pending detail shows loading (Web RocketLaunchPadInventory)
     /// </summary>
-    public sealed class RocketLaunchPadBodyView : VisualElement, ISpecialDetailRenderer
+    public sealed class RocketLaunchPadBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
         private readonly LocalizedLabel _loading = SpecialViewParts.Label("rocket-launch-pad-loading", UiTypographyClass.TextSm, UiTypographyClass.TextMuted);
         private readonly UiStack _view = new(UiGap.Sm) { name = "rocket-launch-pad-view" };
@@ -46,19 +46,19 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             Add(_view);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetRocketLaunchPad(out var rocket);
             SpecialViewParts.SetShown(_loading, !present);
             SpecialViewParts.SetShown(_view, present);
-            if (!present) return true;
+            // silent-ok: 詳細の未着は「状態の取得を待っています」を出したまま / 録画（R-12）の発射台の段で気づく
+            if (!present) return;
 
             _material.Render(itemSlots, rocket.MaterialSlots);
             _payload.Render(itemSlots, rocket.PayloadSlots);
             _output.Render(itemSlots, rocket.OutputSlots(itemSlots.Count));
             _status.SetText(new UiText(rocket.StatusKey));
             _progress.SetValue(rocket.Progress);
-            return true;
         }
     }
 }

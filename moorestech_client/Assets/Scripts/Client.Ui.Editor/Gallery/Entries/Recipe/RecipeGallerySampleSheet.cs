@@ -138,7 +138,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Recipe
             for (var i = 0; i < count; i++)
             {
                 var slot = new ItemSlot($"{prefix}-{i}");
-                slot.SetContent(new ItemSlotContent(SlotGallerySampleSheet.Icon($"{prefix}-{i}", $"Item {i + 1}"), amount, new ItemSlotMarks(false, false, false), null, null, null));
+                slot.SetContent(new ItemSlotContent(SlotGallerySampleSheet.Icon($"{prefix}-{i}", $"Item {i + 1}"), amount, ItemSlotMarks.None, null, null, null));
                 slots.Add(slot);
             }
             return slots;

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.Screens.BlockInventory.Parts.Rows;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.Items;
 using Client.Ui.State.SlotCommands.Block;
@@ -20,7 +22,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
         private readonly IBlockSlotCommands _commands;
         private readonly UiCommandResultToaster _toaster;
         private readonly GameContentPresentation _content;
-        private readonly List<(int Index, ItemSlot Slot)> _slots = new();
+        private readonly KeyedRowList<int, ItemSlot> _slots = new();
         private readonly CompositeDisposable _subscriptions = new();
 
         public SlotGrid Grid { get; }
@@ -38,34 +40,21 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
         {
             // 加工中は状態更新が毎 tick 届くので、番地が変わったときだけ作り直す（ダブルクリックの数え直しを防ぐ）
             // Updates arrive every tick while processing, so rebuild only when the indices change (avoids resetting the double-click count)
-            if (!SameIndices()) Rebuild();
-            for (var i = 0; i < _slots.Count; i++) _slots[i].Slot.SetContent(MachineSlotContents.For(ReadSlot(_slots[i].Index), bound[i], showsRequirement, _content));
+            if (_slots.ClearIfKeysChanged(BoundIndices())) Rebuild();
+            for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(MachineSlotContents.For(BlockSlotIndexReader.Read(itemSlots, _slots.KeyAt(i), nameof(MachineSlotBand), _slotTestidPrefix), bound[i], showsRequirement, _content));
 
             #region Internal
 
-            bool SameIndices()
+            int[] BoundIndices()
             {
-                if (bound.Count != _slots.Count) return false;
-                for (var i = 0; i < bound.Count; i++)
-                {
-                    if (bound[i].Index != _slots[i].Index) return false;
-                }
-                return true;
-            }
-
-            // 番地外は BlockItemGrid.ReadSlot と同じく LogError して空で描く
-            // Out-of-range indices log an error and draw empty, as BlockItemGrid.ReadSlot
-            SlotItem ReadSlot(int index)
-            {
-                if (0 <= index && index < itemSlots.Count) return itemSlots[index];
-                UnityEngine.Debug.LogError($"[MachineSlotBand] {_slotTestidPrefix}: slot index {index} is out of range (slot count {itemSlots.Count}); drawn as empty");
-                return default;
+                var indices = new int[bound.Count];
+                for (var i = 0; i < indices.Length; i++) indices[i] = bound[i].Index;
+                return indices;
             }
 
             void Rebuild()
             {
                 Grid.ClearItems();
-                _slots.Clear();
                 _subscriptions.Clear();
                 for (var position = 0; position < bound.Count; position++)
                 {
@@ -75,7 +64,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
                     var blockSlot = bound[position].Index;
                     slot.OnSlotGestured.Subscribe(gesture => BlockSlotGestureCommands.Run(_commands, _toaster, blockSlot, gesture)).AddTo(_subscriptions);
                     Grid.AddItem(slot);
-                    _slots.Add((blockSlot, slot));
+                    _slots.Add(blockSlot, slot);
                 }
                 Grid.SetColumns(Math.Max(1, bound.Count));
             }

@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Filter;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -24,15 +25,23 @@ namespace Client.Ui.Components.Slots
             name = testid;
             AddToClassList("slot-frame");
 
-            // 帯 → リング → 中身の順に重ねる（Web の重なり）
-            // Stack trim, ring, content in order (the Web layering)
+            // 面・帯・リング・中身を 1 つの群に入れ、不足の淡さを Web と同じく群に掛ける（A-222・A-226）。当たり判定は枠自身の箱
+            // Face, trim, ring and content share one group so insufficient fading applies to the group as on the Web (A-222, A-226); hit testing stays on the frame box
+            var group = new PixelFilterGroup(PixelFilterGroupFlow.Fill);
+            hierarchy.Add(group);
+
+            // 面 → 帯 → リング → 中身の順に重ねる（Web の重なり）
+            // Stack face, trim, ring, content in order (the Web layering)
+            var face = new VisualElement { pickingMode = PickingMode.Ignore };
+            face.AddToClassList("slot-frame__face");
+            group.Add(face);
             var selectedTrim = new VisualElement { pickingMode = PickingMode.Ignore };
             selectedTrim.AddToClassList("slot-frame__selected-trim");
-            hierarchy.Add(selectedTrim);
-            hierarchy.Add(new SlotFrameRing());
+            group.Add(selectedTrim);
+            group.Add(new SlotFrameRing());
             _content = new VisualElement { pickingMode = PickingMode.Ignore };
             _content.AddToClassList("slot-frame__content");
-            hierarchy.Add(_content);
+            group.Add(_content);
 
             // 押下・進入・離脱・クリックを身振りへ訳す
             // Translate press, enter, leave and click into gestures

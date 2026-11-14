@@ -2,6 +2,7 @@ using System.Linq;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Input;
 using Client.Localization;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.Settings;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
@@ -46,7 +47,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.AreEqual("japanese", _commands.Issued.Single().LanguageCode);
             Assert.IsEmpty(ShownToasts);
 
-            _commands.SetLanguageResult(new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, ""));
+            _commands.SetLanguageResult(UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage));
             simulate.Click(Find<Button>(view, "language-select-option-japanese"));
             Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.UnknownLanguage), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
@@ -125,7 +126,7 @@ namespace Client.Tests.Ui.Screens.Settings
         public void 数値項目と地形は対応する値で送る()
         {
             var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands));
-            Assert.AreEqual("5000m", Find<Button>(view, "graphics-draw-distance-5000").Q<Label>().text);
+            Assert.AreEqual("5000m", Find<Button>(view, "graphics-draw-distance-5000").Q<Label>().PlainText());
             simulate.Click(Find<Button>(view, "graphics-draw-distance-5000"));
             simulate.Click(Find<Button>(view, "graphics-render-scale-50"));
             simulate.Click(Find<Button>(view, "graphics-terrain-coarse"));
@@ -161,7 +162,7 @@ namespace Client.Tests.Ui.Screens.Settings
                 "graphics-preset", "graphics-draw-distance", "graphics-shadows", "graphics-render-scale", "graphics-ssao",
                 "graphics-postProcessing", "graphics-effects", "graphics-mapObjects", "graphics-terrain", "graphics-ocean",
             }, switches);
-            Assert.AreEqual("Shadows", view.Query<Label>(className: "settings-section__caption").ToList()[2].text);
+            Assert.AreEqual("Shadows", view.Query<Label>(className: "settings-section__caption").ToList()[2].PlainText());
         }
 
         private static SettingsViewModel Settings(GraphicsQualityPresetChoice preset, bool graphicsRecovered, SprintInputMode sprintMode, bool sprintRecovered)

@@ -37,7 +37,7 @@ feature/uitk 上の最終形のファイル（`git show origin/feature/uitk:<pat
 - 変更 `S/Client.WebUiHost/Cef/WebUiCefNavigator.cs`（`url` の null 判定の後で `ObserveCefRuntime()`）
 - 変更 `S/Client.Starter/Registration/PlaytestRecordRegistration.cs`（`IWebUiHealthProbe` を登録）、`MainGameUiRegistration.cs`（`RegisterEntryPoint<WebUiSilenceWatcher>()`。**段階 1 で新設したファイル**）
 - テスト: `S/Client.Tests/BugReport/Bundle/{FixedWebUiHealthProbe,WebUiHealthManifestTest}.cs`、`S/Client.Tests/BugReport/LastSession/CrashBundleWebUiHealthTest.cs`、`S/Client.Tests/Ui/Input/UiInputExclusivityWebSilenceTest.cs`。既存テストの更新は `BugReportManifestTest.cs`（キー一覧に `webUiHealth`）、`RemoteExecBundleMarkTest.cs`（5→6）、`BugReportBundleWriterIdentityTest.cs`（ctor 3 か所）、`DeveloperReportRealReceiverCheck.cs`（ctor）、`Ui/State/PauseMenuCommandsTestFactory.cs`（ctor。段階 1 のファイル）
-- シナリオ: `.agents/skills/unity-playmode-recorded-playtest/scenarios/playtest-receiver/developer-report-interrupt.cs:13`（ctor を変更）、`scenarios/uitk/uitk-lifeline.cs:81`（`webUiHealth` があることを assert。UITK 専用）
+- シナリオ: `.agents/skills/unity-playmode-recorded-playtest/scenarios/playtest-receiver/developer-report-interrupt.cs:13`（ctor を変更）、`scenarios/uitk/stage1/uitk-lifeline.cs:81`（`webUiHealth` があることを assert。UITK 専用）
 
 ## 2. master に無い依存（段階 1 の基盤への依存）
 

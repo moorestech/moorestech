@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Composite;
 using NUnit.Framework;
 using UnityEngine;
@@ -21,6 +22,7 @@ namespace Client.Tests.Ui.Composite
         [TestCase(0.22f, 0.22f, 0.22f, 0.22f)]
         public void 世界の上の半透明はWebのsRGBのoverと同じ色になる(float red, float green, float blue, float alpha)
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             var pixel = Composite(new Color(red, green, blue, alpha));
             var worldSrgb = Mathf.LinearToGammaSpace(0.5f);
             Assert.AreEqual(Mathf.Round((red + (1f - alpha) * worldSrgb) * 255f), pixel.r, 1, "R");
@@ -31,6 +33,7 @@ namespace Client.Tests.Ui.Composite
         [Test]
         public void UIの無い画素は書かれず元の色が残る()
         {
+            GraphicsDeviceRequirement.IgnoreWhenNoGraphicsDevice();
             var pixel = Composite(new Color(0f, 0f, 0f, 0f));
             var expected = (Color32)Sentinel;
             Assert.AreEqual(expected.r, pixel.r, 1, "R");

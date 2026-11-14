@@ -32,10 +32,7 @@ namespace Client.Playtest.Operations
             // 安定中心へ実マウス経路でクリック
             // Click the settled center through the real mouse path
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
-            LogResolved(target);
-            await SemanticInput.MouseGlideTo(target.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
-            await UniTask.DelayFrame(1);
+            await GlideToSettledCenter(testid, deadline);
             UiElementScreenPointResolver.RemainingSeconds(deadline, testid);
             await SemanticInput.Click();
         }
@@ -45,10 +42,7 @@ namespace Client.Playtest.Operations
             // クリック同様の安定中心へ移動のみ
             // Only move to the center using the click stability check
             var deadline = Time.realtimeSinceStartup + ActionTimeoutSeconds;
-            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
-            LogResolved(target);
-            await SemanticInput.MouseGlideTo(target.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
-            await UniTask.DelayFrame(1);
+            await GlideToSettledCenter(testid, deadline);
         }
 
         public static async UniTask WaitUiElement(string testid, float timeoutSeconds)
@@ -136,6 +130,23 @@ namespace Client.Playtest.Operations
         public static UniTask SetText(string testid, string text, float timeoutSeconds)
         {
             return PlaytestTextInputOps.SetText(testid, text, timeoutSeconds);
+        }
+
+        private static async UniTask GlideToSettledCenter(string testid, float deadline)
+        {
+            // 動かしている間に矩形が動いたら（中身の文の長さでパネルの幅が変わる等）、落ち着いた矩形の中心へ向け直す。期限切れは RemainingSeconds が投げる
+            // If the rect moves during the glide (a panel resized by its text length, etc.), re-aim at the settled rect's center; RemainingSeconds throws on expiry
+            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+            while (true)
+            {
+                LogResolved(target);
+                await SemanticInput.MouseGlideTo(target.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
+                await UniTask.DelayFrame(1);
+                var settled = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+                if (settled.ScreenRect == target.ScreenRect) return;
+                Debug.Log($"[PlaytestUi] {testid} moved during the glide {target.ScreenRect} -> {settled.ScreenRect}; re-aiming");
+                target = settled;
+            }
         }
 
         private static void LogResolved(UiElementSnapshot snapshot)

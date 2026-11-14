@@ -80,7 +80,7 @@ namespace Client.Ui.Screens.Research.Parts
         {
             var slot = new ItemSlot(frameTestid);
             slot.AddToClassList("research-tree__slot");
-            slot.SetContent(new ItemSlotContent(content.Item(itemId), count, new ItemSlotMarks(false, false, false), null, null, null));
+            slot.SetContent(SlotItemContent.ForItem(content, itemId, count));
             return slot;
         }
 

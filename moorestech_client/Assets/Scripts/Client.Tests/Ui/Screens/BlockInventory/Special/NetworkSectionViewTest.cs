@@ -6,7 +6,9 @@ using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.BlockInventory.Special.Selectors;
 using Client.Ui.State.BlockInventory.Special.Text;
 using Client.Ui.State.Items;
 using Core.Master;
@@ -27,11 +29,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void 需要0は需要なしを出し他は集約の1行を出す()
         {
             var view = Mount(new ElectricNetworkSectionView());
-            view.Render(NoSlots, SpecialDetailSamples.Only(new ElectricNetworkDetail(240, 0, 0, 1)));
+            view.Render(NoSlots, new ElectricNetworkDetail(240, 0, 0, 1));
             Assert.IsTrue(IsShown(Find<Label>(view, "electric-network-no-demand")));
             Assert.IsFalse(IsShown(Find<VisualElement>(view, "electric-network-summary")));
 
-            view.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
+            view.Render(NoSlots, SpecialDetailSamples.PoleNetwork);
             Assert.IsFalse(IsShown(Find<Label>(view, "electric-network-no-demand")));
             Assert.AreEqual(Resolved(SpecialDetailTexts.ElectricNetworkSummary(SpecialDetailSamples.PoleNetwork)), TextOf(view, "electric-network-summary"));
         }
@@ -40,11 +42,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void 歯車網は集約と止まっていれば停止理由を出す()
         {
             var view = Mount(new GearNetworkSectionView());
-            view.Render(NoSlots, SpecialDetailSamples.Only(new GearNetworkDetail(20, 30, GearNetworkStopReasonKind.OverRequirePower)));
+            view.Render(NoSlots, new GearNetworkDetail(20, 30, GearNetworkStopReasonKind.OverRequirePower));
             Assert.IsTrue(IsShown(Find<Label>(view, "gear-stop-reason")));
             Assert.IsTrue(Find<Label>(view, "gear-stop-reason").ClassListContains("text--insufficient"));
 
-            view.Render(NoSlots, SpecialDetailSamples.Only(new GearNetworkDetail(20, 10, GearNetworkStopReasonKind.None)));
+            view.Render(NoSlots, new GearNetworkDetail(20, 10, GearNetworkStopReasonKind.None));
             Assert.IsFalse(IsShown(Find<Label>(view, "gear-stop-reason")));
         }
 
@@ -52,7 +54,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void Presenterは組み直しの外で届いた詳細で出し入れを知らせ自分のdisplayを触らずDetachの後は描かない()
         {
             var view = new ElectricNetworkSectionView();
-            var presenter = Presenters.Of(view);
+            var presenter = Presenters.Section(view, new ElectricNetworkDetailSelector());
             Mount(presenter.Root);
             presenter.Attach(OpenPanel("ElectricPole"));
             Assert.IsFalse(presenter.IsApplicable.Value);
@@ -65,7 +67,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             Assert.IsFalse(presenter.IsApplicable.Value, "集約が消えたら隠す側へ変わる");
             Assert.AreEqual(StyleKeyword.Null, view.style.display.keyword, "区画は自分の display を触らない（出し入れは親の SetItemShown）");
 
+            Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             presenter.Detach();
+            Assert.IsFalse(presenter.IsApplicable.Value, "Detach で偽へ戻る（前のパネルの出し入れを持ち越さない）");
+            Model.Set(SpecialBlockDetailViewModel.Empty);
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             Assert.IsFalse(presenter.IsApplicable.Value, "Detach の後は購読しない");
         }
@@ -74,7 +79,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         public void Presenterは同じパネルの枠の変化を流し別のパネルの値は描かない()
         {
             var view = new RecordingRenderer();
-            var presenter = Presenters.Of(view);
+            var presenter = Presenters.Section(view, new WholeSpecialDetailSelector());
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             presenter.Attach(OpenPanel("ElectricPole"));
             Panels.State.Value = BlockInventoryTestPanels.OfType("ElectricPole", new SlotItem(new ItemId(1), 3));
@@ -93,13 +98,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
 
         // 渡された枠を覚えるだけの View
         // A view that only remembers the slots it was given
-        private sealed class RecordingRenderer : VisualElement, ISpecialDetailRenderer
+        private sealed class RecordingRenderer : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
         {
             public IReadOnlyList<SlotItem> LastSlots { get; private set; }
-            public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+            public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
             {
                 LastSlots = itemSlots;
-                return true;
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
 using Client.Ui.State.Text;
@@ -41,7 +42,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
 
             BlockInventoryPanelErrorText.TryGetLocalizationKey(error, out var key);
             var row = Find<Label>(shell.View, "train-inventory-error");
-            Assert.AreEqual(new UiText(key).Resolve(), row.text);
+            Assert.AreEqual(new UiText(key).Resolve(), row.PlainText());
             Assert.IsNull(shell.View.Q("block-inventory-error"));
             // Web の素の div と同じ本文の既定（16px・左の余白 0）で題の左端に揃う
             // Same body default as the Web bare div (16px, no left inset), aligned with the title's left edge

@@ -1,4 +1,5 @@
 using Client.Tests.Ui.Screens;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Parts.Rows;
@@ -22,7 +23,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
             var label = view.Q<Label>("power");
             // 12.5% は JS の Math.round と同じく 13 へ上がる
             // 12.5% rounds up to 13 like JS Math.round
-            Assert.AreEqual("Power 13% (1/8)", label.text);
+            Assert.AreEqual("Power 13% (1/8)", label.PlainText());
             Assert.IsTrue(label.ClassListContains(LackHighlightText.InsufficientClassName));
         }
 
@@ -58,7 +59,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
             var row = new PerMinuteRateRow(new VisualElement());
             row.Render(12.34);
             Mount(row);
-            Assert.AreEqual("12.3/min", row.Q<Label>().text);
+            Assert.AreEqual("12.3/min", row.Q<Label>().PlainText());
         }
     }
 }

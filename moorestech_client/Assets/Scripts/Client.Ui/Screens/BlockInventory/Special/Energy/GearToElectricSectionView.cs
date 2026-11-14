@@ -18,7 +18,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
     /// 回転発電機の区画。状態の行はホバーで計測時期を説明し、停止は不足トーン（Web GearToElectricSection）
     /// GearToElectric section; the state row explains measurement timing on hover and a stop uses the shortage tone (Web GearToElectricSection)
     /// </summary>
-    public sealed class GearToElectricSectionView : VisualElement, ISpecialDetailRenderer
+    public sealed class GearToElectricSectionView : VisualElement, ISpecialSectionRenderer<GearToElectricDetail>
     {
         private readonly LackHighlightText _state = new("gear-to-electric-state", LackHighlightTextSize.Sm);
         private readonly LocalizedLabel _supplied = SpecialViewParts.Label("gear-to-electric-supplied-power", UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
@@ -35,18 +35,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             Add(stack);
         }
 
-        public bool Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, GearToElectricDetail generator)
         {
-            // 詳細が無ければ描かずに偽を返し、呼び手が区画を隠す
-            // Without the detail draw nothing and return false so the caller hides the section
-            if (!detail.TryGetGearToElectric(out var generator)) return false;
-
             // 状態の文と不足トーンは L0 の表で決める
             // The state sentence and shortage tone come from the L0 table
             var display = BlockDetailStateDisplay.GearToElectric(generator.State);
             _state.Render(new UiText(display.LabelKey), display.Insufficient);
             _supplied.SetText(SpecialDetailTexts.GearToElectricSuppliedPower(generator));
-            return true;
         }
     }
 }

@@ -71,5 +71,19 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsFalse(SendButton().enabledSelf);
             StringAssert.Contains("impressions", Status().text);
         }
+
+        [Test]
+        public void 見出しと記述欄と状態行とボタンの縦の間はMantineのspacing_mdの16px()
+        {
+            // 未解決の var() は UITK が黙って 0 にするので、4 か所が --mantine-spacing-md の 16px に解決されることを見る
+            // UITK silently turns an unresolved var() into 0, so check all four resolve to the 16px of --mantine-spacing-md
+            const float mantineSpacingMd = 16f;
+            View.Apply(Model(BugReportCaptureStatus.Ready, "video"));
+            simulate.FrameUpdate();
+            Assert.AreEqual(mantineSpacingMd, View.Q<Label>(className: "bug-report__field-label").resolvedStyle.marginBottom, 0.01f);
+            Assert.AreEqual(mantineSpacingMd, Description().parent.resolvedStyle.marginTop, 0.01f);
+            Assert.AreEqual(mantineSpacingMd, Status().resolvedStyle.marginTop, 0.01f);
+            Assert.AreEqual(mantineSpacingMd, SendButton().resolvedStyle.marginTop, 0.01f);
+        }
     }
 }

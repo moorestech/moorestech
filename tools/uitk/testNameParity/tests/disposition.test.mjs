@@ -24,7 +24,7 @@ test("処遇の表の行を読み、テスト名の \\| を | に戻し、記録
     ...head,
     "| 1 | `src/features/toast/toastStore.test.ts` | a \\| b | 捨てる | 通信の契約は UITK に無い | — |",
     "| 1 | `e2e/tests/regression/actionErrors.spec.ts` | * | 捨てる | 通信失敗のトーストは撤去まで Web に残る | #1600 |",
-    "| 1 | `e2e/tests/system/pauseMenu.spec.ts` | x | 録画 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs` | — |",
+    "| 1 | `e2e/tests/system/pauseMenu.spec.ts` | x | 録画 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs` | — |",
     "| 1 | `src/features/settings/SprintModeSelect.test.ts` | y | 写す予定 | moorestech-abcd.1 | — |",
     "| 1 | `src/features/toast/ToastHost.test.tsx` | z | 目視 | 1-toast https://example.invalid/uitk-toast.png | — |",
   ].join("\n");

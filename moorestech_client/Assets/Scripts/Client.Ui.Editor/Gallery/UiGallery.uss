@@ -1,7 +1,7 @@
 /* 部品ギャラリーの並べ方。地の色は Web の body と同じ Mantine の暗色の面 */
 /* Layout of the component gallery; the backdrop is the Mantine dark body, as on the Web */
-/* Editor の既定シートは文字生成を advanced にするが、本番のランタイムパネルは既定の standard で、GameUi の SDF フォントは advanced だと描かれない。本番と同じ standard に戻す */
-/* The Editor default sheet switches text generation to advanced, but the production runtime panel keeps the standard default and the GameUi SDF fonts draw nothing under advanced, so restore standard */
+/* Editor の既定シートは文字生成を advanced にするが、本番のランタイムパネルは既定の standard で、プロジェクト設定の Enable Advanced Text が切ってあるので advanced では字が描かれない。本番と同じ standard に戻す */
+/* The Editor default sheet switches text generation to advanced, but the production runtime panel keeps the standard default and the project setting Enable Advanced Text is off, so advanced draws no glyphs; restore standard */
 .ui-gallery {
     -unity-text-generator: standard;
     flex-grow: 1;

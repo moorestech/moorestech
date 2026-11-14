@@ -59,6 +59,24 @@ namespace Client.Tests.Ui.Components.Slots
         }
 
         [Test]
+        public void 同じ列数を渡し直しても行もマスも作り直さない()
+        {
+            // スタイルの再解決のたびに列数が渡し直されても、マスが付け直されてドラッグの捕捉や :hover が外れない
+            // Re-passing the column count on every style resolve must not re-parent cells and drop drag capture or :hover
+            var (grid, cells) = Mount(null, 5, 12);
+            var firstRow = grid[1];
+            var tracks = grid[0];
+            grid.SetColumns(5);
+            simulate.FrameUpdate();
+
+            Assert.AreSame(tracks, grid[0]);
+            Assert.AreSame(firstRow, grid[1]);
+            Assert.AreSame(firstRow, cells[0].parent);
+            Assert.AreEqual(5, tracks.childCount);
+            Assert.Throws<ArgumentOutOfRangeException>(() => grid.SetColumns(0));
+        }
+
+        [Test]
         public void 祖先で列と行の間隔を別々に上書きできる()
         {
             var (_, cells) = Mount("slot-knob-item-list", 5, 10);
@@ -100,6 +118,18 @@ namespace Client.Tests.Ui.Components.Slots
             var (grid, _) = Mount(null, 5, 1);
 
             Assert.AreEqual(5 * ThemeTokenFile.ResolvePixels("--slot-size") + 4 * ThemeTokenFile.ResolvePixels("--slot-grid-gap"), grid.layout.width, WidthTolerance);
+        }
+
+        [Test]
+        public void 隙間を指しても格子自身が当たる()
+        {
+            // 2 枠の中心は枠の間の隙間に落ちる（Web の grid の div は隙間でも elementFromPoint に当たる）
+            // The centre of two cells falls in the gap between them (the Web grid div is hit by elementFromPoint there too)
+            var (grid, cells) = Mount(null, 2, 2);
+            var gapCenter = new UnityEngine.Vector2((cells[0].worldBound.xMax + cells[1].worldBound.xMin) / 2f, cells[0].worldBound.center.y);
+
+            Assert.AreSame(grid, grid.panel.Pick(gapCenter));
+            Assert.AreSame(grid, grid.panel.Pick(grid.worldBound.center));
         }
 
         [Test]

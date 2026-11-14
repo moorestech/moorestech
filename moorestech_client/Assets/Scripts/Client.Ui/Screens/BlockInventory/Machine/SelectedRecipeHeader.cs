@@ -8,6 +8,7 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Tooltip;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.BlockInventory.Machine;
+using Client.Ui.State.Recipe.Logic;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -22,8 +23,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
     /// </summary>
     public sealed class SelectedRecipeHeader : VisualElement
     {
-        private static readonly ItemSlotMarks NoMarks = new(false, false, false);
-
         private readonly UiGroup _group = new(UiGap.Xs);
         private readonly Subject<Unit> _pressed = new();
         private readonly GameContentPresentation _content;
@@ -78,7 +77,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 var time = new LocalizedLabel { name = "machine-selected-recipe-time", pickingMode = PickingMode.Ignore };
                 time.AddToClassList(UiTypographyClass.TextSm);
                 time.AddToClassList(UiTypographyClass.TextDimmed);
-                time.SetText(MachineRecipeNames.Duration(recipe.Time));
+                time.SetText(RecipeDurationText.Create(recipe.Time));
                 _group.AddItem(time);
             }
 
@@ -90,7 +89,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 {
                     case ItemRecipeDisplaySubject item:
                         var itemSlot = new ItemSlot("machine-selected-recipe-item");
-                        itemSlot.SetContent(new ItemSlotContent(_content.Item(item.ItemId), null, NoMarks, null, null, null));
+                        itemSlot.SetContent(SlotItemContent.ForItem(_content, item.ItemId, null));
                         return itemSlot;
                     case FluidRecipeDisplaySubject fluid:
                         var fluidSlot = new FluidAmountSlot("machine-selected-recipe-fluid");

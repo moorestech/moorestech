@@ -16,7 +16,13 @@
     --hotbar-hud-number-tab-overhang: var(--hotbar-number-tab-overhang);
 }
 
-.hotbar-hud__row--select-disabled {
+/* 枠は列の群の中に横へ並ぶ */
+/* Cells line up horizontally inside the row group */
+.hotbar-hud__row > .pixel-filter-group > .pixel-filter-group__content {
+    flex-direction: row;
+}
+
+.hotbar-hud__row--select-disabled > .pixel-filter-group {
     filter: opacity(var(--hotbar-select-disabled-opacity));
 }
 
@@ -46,7 +52,7 @@
     margin-left: 0;
 }
 
-.hotbar-hud__cell--unresolved {
+.hotbar-hud__cell--unresolved > .pixel-filter-group {
     filter: opacity(var(--hotbar-unresolved-opacity));
 }
 

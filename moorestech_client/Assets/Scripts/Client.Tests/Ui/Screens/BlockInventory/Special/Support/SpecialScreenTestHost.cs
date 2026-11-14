@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Input.ArrowKeys;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Content;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.SectionStack;
@@ -79,7 +80,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         protected static string TextOf(VisualElement root, string testid)
         {
-            return Find<Label>(root, testid).text;
+            return Find<Label>(root, testid).PlainText();
         }
 
         protected static string Resolved(UiText text)

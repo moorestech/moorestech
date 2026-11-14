@@ -7,7 +7,6 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Research.Tree;
 using Client.Ui.State.Text;
-using Core.Master;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -60,10 +59,9 @@ namespace Client.Ui.Screens.Research.Parts
             EnableInClassList("research-tree__card--locked", card.CardState.Locked);
             EnableInClassList("research-tree__card--selected", card.Selected);
             _name.SetText(UiText.FromContent(ContentLocalizationKeys.ResearchName(card.Guid)));
-            // アイコン未設定のノードは空の ID なので null のアイコンにする（Item は空の ID で例外）
-            // A node without an icon has the empty id, so pass a null icon (Item throws on it)
-            var icon = card.IconItemId == ItemMaster.EmptyItemId ? null : content.Item(card.IconItemId);
-            _icon.SetContent(new ItemSlotContent(icon, null, new ItemSlotMarks(false, false, false), null, null, null));
+            // アイコン未設定のノードは空の ID なので空きマスになる
+            // A node without an icon has the empty id, so it becomes an empty cell
+            _icon.SetContent(SlotItemContent.ForOptionalItem(content, card.IconItemId));
             _state.SetText(new UiText(card.StateLabelKey));
         }
     }

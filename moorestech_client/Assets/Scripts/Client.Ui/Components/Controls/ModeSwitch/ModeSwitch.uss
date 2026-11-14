@@ -1,7 +1,7 @@
 /* ModeSwitch。寸法と色は moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css を写す */
-/* box-shadow のリングは USS に無いので bevel-1 幅の枠線で描く。選択面の color-mix は DerivedTokens.uss の前計算トークンで受ける */
+/* box-shadow の輪は USS に無いので、面の外へ出した絡まない子（ModeSwitchRing・.mode-switch__ring）の枠線で描く。面の箱と送りは Web と同じで、輪はレイアウトに入らない。選択面の color-mix は DerivedTokens/ControlsDerivedTokens.uss の前計算トークンで受ける */
 /* ModeSwitch; sizes and colors copy moorestech_web/webui/src/shared/ui/ModeSwitch/style.module.css */
-/* USS has no box-shadow, so the ring is a bevel-1 border; the selected face's color-mix comes from a precomputed DerivedTokens.uss token */
+/* USS has no box-shadow, so the ring is the border of a non-picking child (ModeSwitchRing, .mode-switch__ring) pushed outside the face; the face box and pitch match the Web and the ring stays out of layout; the selected face's color-mix comes from a precomputed DerivedTokens/ControlsDerivedTokens.uss token */
 
 .mode-switch {
     flex-direction: row;
@@ -27,9 +27,8 @@
     height: var(--mode-switch-option-height);
     margin: 0;
     padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
-    border-width: var(--bevel-1); /* look-exception: LX-3 */
+    border-width: 0;
     border-radius: var(--bevel-1);
-    border-color: var(--mode-switch-option-ring);
     background-color: var(--mode-switch-option-face);
     color: var(--mode-switch-option-text);
     opacity: 1;
@@ -41,8 +40,15 @@
 .mode-switch .mode-switch__option:hover,
 .mode-switch .mode-switch__option:active {
     translate: 0 0;
-    border-color: var(--mode-switch-option-ring);
     background-color: var(--mode-switch-option-face);
+}
+
+/* Web の box-shadow 0 0 0 var(--bevel-1) の輪。位置・幅・角丸・被覆は ModeSwitchRing が --bevel-1 と倍率から決める。面の外へ広がり、スクロールの視口では Web と同じく左右が切れる */
+/* The Web box-shadow 0 0 0 var(--bevel-1) ring; ModeSwitchRing sets position, width, radius and coverage from --bevel-1 and the scale; it spreads outside the face and, like the Web, its sides are clipped by a scroll viewport */
+.mode-switch__ring {
+    --mode-switch-ring-width: var(--bevel-1);
+    position: absolute;
+    border-color: var(--mode-switch-option-ring);
 }
 
 /* 縦はサイドバーの並び。パネル高に合わせて伸ばさない */
@@ -65,9 +71,12 @@
 .mode-switch .mode-switch__option--selected,
 .mode-switch .mode-switch__option--selected:hover,
 .mode-switch .mode-switch__option--selected:active {
-    border-color: var(--mode-switch-option-ring-selected);
     background-color: var(--mode-switch-option-face-selected);
     color: var(--mode-switch-option-text-selected);
+}
+
+.mode-switch__option--selected > .mode-switch__ring {
+    border-color: var(--mode-switch-option-ring-selected);
 }
 
 /* 全体の無効は選択中も含めて、選択肢ごとの無効はその 1 つだけを従属テキストへ減衰させる。既定テーマの半透明化はしない */

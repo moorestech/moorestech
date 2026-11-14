@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Web 版の `features/blockInventory` の外殻（`BlockInventoryPanel.tsx`: viewer 枠の上端揃え・大型パネル・自然高のスクロール器・`--block-panel-*` の余白・閉じるボタンと tutorial anchor・取得失敗と列車のエラー文）と、blockType → 本文の解決（`blockComponentRegistry`）、標準の本文 `SectionStackView`（区画の固定順）、`BlockItemGrid`・`LackHighlightText`・rows、スロット操作の解釈（ブロック側とプレイヤー側の両方）を、C3-a・C3-b・C4-e の部品と口、L0-s4a・L0-s4b のロジックで Web と同じ見た目・同じ操作の UITK 画面にする。後続の S4-inventory・S4-machine・S4-train・S4-special が自分のディレクトリと自分の登録ファイルだけで差し込める拡張口 6 つ（本文・題の操作・区画・列車の本文・大型パネル判定の寄与・Shift 配分の宛先の束縛の寄与）と、型付きのスロット操作コマンド（`IPlayerSlotCommands`・`IBlockSlotCommands`）、解放状態つきの機械レシピ一覧の源（`UnlockedMachineRecipeSource`）を作り、L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/uitk-block-inventory`・`uitk/uitk-lifeline`）まで済ませて `feature/uitk` へ取り込む。
+**Goal:** Web 版の `features/blockInventory` の外殻（`BlockInventoryPanel.tsx`: viewer 枠の上端揃え・大型パネル・自然高のスクロール器・`--block-panel-*` の余白・閉じるボタンと tutorial anchor・取得失敗と列車のエラー文）と、blockType → 本文の解決（`blockComponentRegistry`）、標準の本文 `SectionStackView`（区画の固定順）、`BlockItemGrid`・`LackHighlightText`・rows、スロット操作の解釈（ブロック側とプレイヤー側の両方）を、C3-a・C3-b・C4-e の部品と口、L0-s4a・L0-s4b のロジックで Web と同じ見た目・同じ操作の UITK 画面にする。後続の S4-inventory・S4-machine・S4-train・S4-special が自分のディレクトリと自分の登録ファイルだけで差し込める拡張口 6 つ（本文・題の操作・区画・列車の本文・大型パネル判定の寄与・Shift 配分の宛先の束縛の寄与）と、型付きのスロット操作コマンド（`IPlayerSlotCommands`・`IBlockSlotCommands`）、解放状態つきの機械レシピ一覧の源（`UnlockedMachineRecipeSource`）を作り、L0/L1・並べ比べ（720p・2560×1080）・録画（新設 `uitk/stage4/uitk-block-inventory`・`uitk/stage1/uitk-lifeline`）まで済ませて `feature/uitk` へ取り込む。
 
 **Architecture:** 画面レーン（単位エージェント・Editor 要）。State（`Client.Ui.State`）に 4 つの塊を置く。(1) パネルの状態 `BlockInventoryPanelModel`（`SubInventoryState`・`UiRoutingState`・`OpenBlockDetailTracker` を購読し、識別子・エラー・枠だけの不変 union を配る、Web ホスト `BlockInventoryTopic`・`BlockInventoryDtoFactory`・`TrainInventoryDtoFactory` と同じ規則で開閉・source・エラー・スロットを組む。`Client.WebUiHost` は参照しない）と大きさの判定 `BlockInventoryPanelLayoutModel`（列車は常に大、ブロックは寄与の口 `IBlockInventoryLargePanelRule` のどれかが真なら大〈取得失敗は小〉。状態と大きさの組 `BlockInventoryPanelPresentation` を 1 本で配る）。(2) スロット操作: ブロック側は L0-s4a の `BlockSlotPlanner` の計画を、プレイヤー側は C4-e の `PlayerSlotActionPlanner` の計画を、`PlannedItemActionRunner` が `PlayerItemActionConversion.TryConvert` で振り分け、true は C4-e の `PlayerItemActionExecutor`、false は新設のブロック側実行器 `BlockItemActionExecutor`（`IBlockInventoryOperations` の本番 `LocalBlockInventoryOperations` が結合インベントリの番地 `MainSlotCount + slot` でコントローラを呼ぶ。Web ホスト `BlockInventoryActions.cs` と同じ規則）へ渡す。Shift の断りは Web と同じ messageId で `ClientLocalNotificationSource` へ通知し開発者ログへも出す。(3) Shift 配分の宛先の束縛は L0-s4b の `BlockSlotRestrictionResolver` に、寄与の口 `IBlockSlotRestrictionContributor`（機械・ロケット・宇宙エレベーターの束縛は持ち主のレーンが足す）で組んだ入力を渡す。(4) 機械レシピの源 `UnlockedMachineRecipeSource`（`Client.Ui.State/Recipe/Source/`。Web ホスト `MachineRecipesTopic` と同じ規則・同じ再構築の契機）。View 側（`Client.Ui/Screens/BlockInventory/`）は `BlockInventoryScreenPresenter` が起動時に 1 回だけ外殻 `BlockInventoryView` を `StageColumnsLayout.Get(StageColumn.Viewer)` へ載せ [A-45]、`UiRoutingState.Current` とパネルの状態で出し入れし（前例 `PauseMenuScreenPresenter`）、大きさで寸法を変える。差し込む部分は「Presenter ＋ View」で、Presenter が自分の Model を購読する（§4.2）。本文は `BlockInventoryPartRegistry` が `BlockComponentRegistry.Resolve(blockType).Body` で引き、無ければ alpha の既定 `SectionStackBody`。拡張口は VContainer の同一インターフェイスの複数登録を `IReadOnlyList<T>` で受ける形（前例 `INestedPauseScreenState`・`ITutorialViewManager`。D-1）。見た目の値は Web と同名のトークン（`--block-panel-bottom-safe-area`・`--block-panel-right-safe-area`・`--block-panel-body-bleed`・`--menu-upper-safe-area`・`--menu-lower-safe-area`・`--inventory-panel-width`・`--stage-column-gap`・`--stage-padding-left/right`・`--panel-edge-fade`・`--bevel-3`・`--panel-action-button-width`）だけを使い、`calc()` の寸法（帯の高さ 482・大型の幅 740.108753）は C# が舞台の寸法と、画面のクラスで受け直したトークンから導く [A-47]。
 
@@ -17,7 +17,7 @@
 
 | ID | 要件 | 受け入れ基準 |
 |---|---|---|
-| R-1 | パネルの状態: `UiRoutingState.Current.Value.Screen == UiScreen.SubInventory` かつ `SubInventoryState.CurrentSubInventory != null` のときだけ開く。source が列車（`TrainSubInventorySource`）なら `OpenTrainInventoryPanel`（エラーは `LastOpenMessage` から ContainerMissing / TrainCarMissing / OpenFailed）、ブロックなら `OpenBlockDetailTracker.TrackedBlock` から `OpenBlockInventoryPanel`（`SubInventoryModel.Result != Success` で OpenFailed。blockType・blockGuid・BlockId・BlockInstanceId・位置・スロット・`BlockComponentRegistry.Resolve` の結果。`BlockGameObject` や列車の源は載せない）。追跡ブロックが無ければ閉。再計算の契機は Web ホストと同じ（状態遷移・`OnSubInventoryUpdated`・追跡替え・追跡ブロックの状態変化） | `BlockInventoryPanelStateFactoryTest` が緑。録画 `uitk/uitk-block-inventory` で開閉が主張どおり |
+| R-1 | パネルの状態: `UiRoutingState.Current.Value.Screen == UiScreen.SubInventory` かつ `SubInventoryState.CurrentSubInventory != null` のときだけ開く。source が列車（`TrainSubInventorySource`）なら `OpenTrainInventoryPanel`（エラーは `LastOpenMessage` から ContainerMissing / TrainCarMissing / OpenFailed）、ブロックなら `OpenBlockDetailTracker.TrackedBlock` から `OpenBlockInventoryPanel`（`SubInventoryModel.Result != Success` で OpenFailed。blockType・blockGuid・BlockId・BlockInstanceId・位置・スロット・`BlockComponentRegistry.Resolve` の結果。`BlockGameObject` や列車の源は載せない）。追跡ブロックが無ければ閉。再計算の契機は Web ホストと同じ（状態遷移・`OnSubInventoryUpdated`・追跡替え・追跡ブロックの状態変化） | `BlockInventoryPanelStateFactoryTest` が緑。録画 `uitk/stage4/uitk-block-inventory` で開閉が主張どおり |
 | R-2 | 外殻: `StageColumnsLayout.Get(StageColumn.Viewer)` へ載る `block-inventory`（`data-large` 相当のクラス `block-inventory--large`）。`GamePanel(block-inventory-panel, Default)`。下の余白 `--block-panel-bottom-safe-area`、小型は右の余白 `--block-panel-right-safe-area`、最大高は帯の高さ（舞台の高さ − `--menu-upper-safe-area` − `--menu-lower-safe-area`）、大型は右の余白を上書きせず（`GamePanel` 既定の 10px）、幅 = 舞台の幅 − `--stage-padding-left` − `--stage-padding-right` − `--inventory-panel-width` − `--stage-column-gap`・高さ = 帯の高さ。寸法は C# が `.block-inventory` で受け直したトークンから導く [A-47]。出し分けは `BlockInventoryScreenPresenter` が `UiRoutingState` で `SetShown` | `BlockInventoryDesignTest`（alpha 分 タグ 6 種・メソッド 7 本）・`BlockInventoryPanelBandTest` が緑。並べ比べ R-14 |
 | R-3 | 題: ブロックは `ContentLocalizationKeys.BlockName(blockGuid)`、列車は `ui.blockInventory.trainInventory`。言語を変えると題が描き直される。題の操作（ロケット）はブロック・エラー無し・登録ありのときだけ `GamePanel.SetTitleAction` で出す（器 `block-inventory-title-action` を 1 回渡して中身を付け替える。D-17）。題の右の逃げ `calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))`（12px。計 99px）は `GamePanel` に口が無いので integrator へ依頼する（Task 1 Step 3） | `BlockInventoryLocalizationTest`「blockGuidの導出キーを…」と `BlockInventoryTitleActionTest` が緑 |
 | R-4 | 閉じる: `IconButton(block-inventory-close, IconButtonCloseGlyph)`、位置は top `--bevel-3`・right `--panel-edge-fade`、錨 `AnchorIds.InventoryCloseButton`（`TutorialAnchor.Mark`）。押すと `IBlockInventoryPanelCommands.Close()` が `Client.Ui.State/Routing/` の `IUiStateTransitionRequester.RequestTransition(GameScreen)` を呼ぶ（Web `ui_state.request gameScreen` と同じ許可表・入れ子ポーズの扱い） | `BlockInventoryPanelFlowTest`「ブロックを閉じると panel が消える」・`BlockInventoryPanelCommandsTest`・`UiStateTransitionRulesTest` が緑 |
@@ -33,7 +33,7 @@
 | R-14 | 並べ比べ: 参照 `4-block-chest`・`4-block-generic`・`4-block-tank`（液体の区画が空なので差は液体の行だけ。LX に記帳しない・S4-machine の比較へ回す）・`4-block-trainError` を 1280×720・2560×1080 で撮り、差の表を `done.md` に書く | 差の表の全行が「同じ／直した／LX-106〜LX-110／他レーン持ち（区画が空・Inv 列の持ち物パネルが未着）」のどれか |
 | R-15 | 登録: `MainGameUiRegistration` の共有サービスの並びにブロックインベントリの共有サービス、画面登録区画に `BlockInventoryGameUiRegistration.Register(builder);` を 1 行、`MainGameModelRegistration` に `IItemStackLevelLookup` を 1 行、`GameUiTheme.tss` の `Screens` 区画に `@import` を 3 行 | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
 | R-16 | 写すテスト（実物で数え直した alpha 分 23 件。下の「写すテスト」表）を `<web-test>` で写す。写した件は `docs/uitk/disposition.md` に書かない（書くと parity が終了コード 2）。`node tools/uitk/test-name-parity.mjs --bundle 4` で alpha のファイルの未対応 0（他レーンの持ち分は未対応のまま残ってよい） | parity の終了コードが 2 でなく、出力に alpha のファイル（`blockInventory.spec.ts`・`blockInventoryGestures.spec.ts`・`blockRegistryCoverage.spec.ts`・`BlockInventoryPanel.localization.test.ts`・`LackHighlightText/index.test.ts`）の未対応が無い |
-| R-17 | 録画: `uitk/uitk-block-inventory`（新設。チェストを開く・左で掴む〈`grab-overlay` が出る〉・右で分割・ダブルで集める・Shift で main へ・閉じる・エラー無し。ブロック側の枠の操作で完結し、main の枠の Shift は S4-inventory の完了条件へ渡す）と `uitk/uitk-lifeline` を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
+| R-17 | 録画: `uitk/stage4/uitk-block-inventory`（新設。チェストを開く・左で掴む〈`grab-overlay` が出る〉・右で分割・ダブルで集める・Shift で main へ・閉じる・エラー無し。ブロック側の枠の操作で完結し、main の枠の Shift は S4-inventory の完了条件へ渡す）と `uitk/stage1/uitk-lifeline` を全体スイッチ UITK で回す | 2 本の `result.json` が PASS、mp4、`done.md` に `UiInputExclusivity.ActiveUiSystem` の値 |
 | R-18 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`LOGS/harness/uitk/S4-alpha/done.md` の 1 行目が「状態: 完了」 |
 
 **やらないこと（スコープ境界）**
@@ -192,7 +192,7 @@ Web の実物を開いて数え直した（`grep -nE "^\s*(it|test)(\.each)?\("`
 | Web ファイル（`W/` から） | テスト名（第 1 引数） | 写す人 | alpha の NUnit |
 |---|---|---|---|
 | `e2e/tests/block/blockInventory.spec.ts` | chest の block inventory パネルが描画される | alpha | `BlockInventoryPanelFlowTest` |
-| 同 | filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る | alpha | `BlockSlotCommandsTest`（送る移動）＋録画 `uitk/uitk-block-inventory` 手順 3（`grab-overlay` が `grab-overlay--shown` で display Flex・掴みが 10。Task 11） |
+| 同 | filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る | alpha | `BlockSlotCommandsTest`（送る移動）＋録画 `uitk/stage4/uitk-block-inventory` 手順 3（`grab-overlay` が `grab-overlay--shown` で display Flex・掴みが 10。Task 11） |
 | 同 | ブロックを閉じると panel が消える | alpha | `BlockInventoryPanelFlowTest` |
 | `e2e/tests/block/blockInventoryGestures.spec.ts` | 空手の右クリックで block_inventory.split を送り grab に半分入る | alpha | `BlockSlotCommandsTest` |
 | 同 | grab 保持中の右クリックで block スロットへ1個置く | alpha | `BlockSlotCommandsTest` |
@@ -279,7 +279,7 @@ Client.Ui（`Client.Ui/Screens/BlockInventory/`）
 - `Screens/BlockInventory/SectionStack/SectionStackViewTest.cs`・`SectionStackRegressionTest.cs`・`SectionStackSlotRegistryTest.cs`・`FakeSection.cs`
 - `Screens/BlockInventory/Parts/LackHighlightTextTest.cs`・`BlockInventoryRowsTest.cs`
 
-録画: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-inventory.cs`
+録画: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-block-inventory.cs`
 
 変更（共有区画への追記だけ）:
 - `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs` — 共有サービスの並びにブロックインベントリの共有サービス、画面登録区画の末尾に 1 行
@@ -4551,11 +4551,11 @@ git commit -m "docs(uitk): ブロックインベントリの並べ比べの差�
 ### Task 11: 録画
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-inventory.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-block-inventory.cs`
 
 - [ ] **Step 1: シナリオを書く**
 
-前例 `scenarios/uitk/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContainer` から型を引く）に従い、次を順に主張する:
+前例 `scenarios/uitk/stage4/uitk-grab-overlay.cs` の形（`UiSystemEditorSwitch.Set(UiSystem.GameUi)`・`ClientDIContainer` から型を引く）に従い、次を順に主張する:
 1. `SetupFlatGround` → `PlaceBlockDirect("木のチェスト", pos, BlockDirection.North)` → `WaitBlockGameObject` → `RunOnServer("木材 10 をチェストへ入れる", () => chest.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, PlaytestItemOps.ResolveItemId("木材"), 10))`（前例 `scenarios/tier9/tier9-3-yield-ui.cs:107`・`misc/cleanroom-v2.cs:52`。`GiveItem` はプレイヤーへ渡すだけなので使わない）
 2. `PressInteract` → `WaitUiState(UIStateEnum.SubInventory)` → `block-inventory` が出る・題がチェストの名前（`Screenshot`）
 3. `chest-grid-slot-0` を左押下 → 掴みに 10・枠が空（`PlayerGrabModel`）、`grab-overlay` が `grab-overlay--shown` を持ち display Flex（Web `blockInventory.spec` 2 件目の「grab オーバーレイが出る」を主張する。前例 `uitk-grab-overlay.cs:113`）→ 同じ枠へ左押下で戻す
@@ -4569,13 +4569,13 @@ git commit -m "docs(uitk): ブロックインベントリの並べ比べの差�
 
 - [ ] **Step 2: 回す**
 
-Run: unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh uitk/uitk-block-inventory` と `uitk/uitk-lifeline`
+Run: unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh uitk/stage4/uitk-block-inventory` と `uitk/stage1/uitk-lifeline`
 Expected: 2 本の `result.json` が PASS、mp4 がある。`done.md`「証拠」に result.json のパス・mp4・`UiInputExclusivity.ActiveUiSystem` の値（GameUi）を書く。生の録画は worktree の gitignore 下に置き、`LOGS` へはスクショ 3 枚までと報告だけ
 
 - [ ] **Step 3: コミット**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-block-inventory.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-block-inventory.cs
 git commit -m "test(uitk): ブロックインベントリの録画シナリオを足す（S4-alpha）
 
 <実行ホストの指示する帰属行>"

@@ -98,18 +98,18 @@ namespace Client.Tests.Ui.State
         [Test]
         public void 件数既知の配送状況を種別ごとの文にする()
         {
-            Assert.AreEqual("未送信: 開発者トークンが未設定です（この機材に3件保存）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenMissing, Counts(3, 0))));
-            Assert.AreEqual("未送信: 開発者トークンを読めません（この機材に3件保存）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, Counts(3, 0))));
-            Assert.AreEqual("未送信: build-infoとSteamの送信条件を確認してください（この機材に3件保存）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DistributionUnavailable, Counts(3, 0))));
-            Assert.AreEqual("送信待ち 3件", BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Counts(3, 0))));
-            Assert.AreEqual("受け口に拒否されました。トークン失効の可能性があります（送信待ち3件）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryRefused(Counts(3, 0))));
-            Assert.AreEqual("すべての報告を送信しました", BugReportFormText.DescribeDelivery(PlaytestDeliveryAllSent.Instance));
+            Assert.AreEqual("未送信: 開発者トークンが未設定です（この機材に3件保存）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenMissing, Counts(3, 0))).Resolve());
+            Assert.AreEqual("未送信: 開発者トークンを読めません（この機材に3件保存）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, Counts(3, 0))).Resolve());
+            Assert.AreEqual("未送信: build-infoとSteamの送信条件を確認してください（この機材に3件保存）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DistributionUnavailable, Counts(3, 0))).Resolve());
+            Assert.AreEqual("送信待ち 3件", BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Counts(3, 0))).Resolve());
+            Assert.AreEqual("受け口に拒否されました。トークン失効の可能性があります（送信待ち3件）", BugReportFormText.DescribeDelivery(new PlaytestDeliveryRefused(Counts(3, 0))).Resolve());
+            Assert.AreEqual("すべての報告を送信しました", BugReportFormText.DescribeDelivery(PlaytestDeliveryAllSent.Instance).Resolve());
         }
 
         [Test]
         public void 失敗件数があれば配送の行へ追記する()
         {
-            Assert.AreEqual("送信待ち 0件 / 送信できない報告 2件", BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Counts(0, 2))));
+            Assert.AreEqual("送信待ち 0件 / 送信できない報告 2件", BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Counts(0, 2))).Resolve());
         }
 
         /// <web-test file="src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts">件数不明でも配送理由 %j を保持する</web-test>
@@ -117,11 +117,11 @@ namespace Client.Tests.Ui.State
         public void 件数不明でも配送理由を保ち完了や0件にしない()
         {
             const string inventory = "配送保留: 保存済み報告を読み取れません（access denied）";
-            Assert.AreEqual(inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Unavailable())));
-            Assert.AreEqual("受け口に拒否されました。トークン失効の可能性があります / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryRefused(Unavailable())));
-            Assert.AreEqual("未送信: 開発者トークンが未設定です / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenMissing, Unavailable())));
-            Assert.AreEqual("未送信: 開発者トークンを読めません / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, Unavailable())));
-            Assert.AreEqual("未送信: build-infoとSteamの送信条件を確認してください / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DistributionUnavailable, Unavailable())));
+            Assert.AreEqual(inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Unavailable())).Resolve());
+            Assert.AreEqual("受け口に拒否されました。トークン失効の可能性があります / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryRefused(Unavailable())).Resolve());
+            Assert.AreEqual("未送信: 開発者トークンが未設定です / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenMissing, Unavailable())).Resolve());
+            Assert.AreEqual("未送信: 開発者トークンを読めません / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DeveloperTokenUnreadable, Unavailable())).Resolve());
+            Assert.AreEqual("未送信: build-infoとSteamの送信条件を確認してください / " + inventory, BugReportFormText.DescribeDelivery(new PlaytestDeliveryLocalOnly(PlaytestLocalOnlyReason.DistributionUnavailable, Unavailable())).Resolve());
         }
 
         [Test]
@@ -156,9 +156,10 @@ namespace Client.Tests.Ui.State
         [Test]
         public void 書き出しの進行を文にしidleは出さない()
         {
-            Assert.IsNull(BugReportFormText.DescribeExport(PlaytestExportIdle.Instance));
-            Assert.AreEqual("報告を書き出しています…", BugReportFormText.DescribeExport(PlaytestExportRunning.Instance));
-            Assert.AreEqual("書き出せませんでした: desktop folder unavailable", BugReportFormText.DescribeExport(new PlaytestExportFailed("desktop folder unavailable")));
+            Assert.IsFalse(BugReportFormText.TryDescribeExport(PlaytestExportIdle.Instance, out var idleLine));
+            Assert.IsNull(idleLine);
+            Assert.AreEqual("報告を書き出しています…", ExportLine(PlaytestExportRunning.Instance).Resolve());
+            Assert.AreEqual("書き出せませんでした: desktop folder unavailable", ExportLine(new PlaytestExportFailed("desktop folder unavailable")).Resolve());
         }
 
         [Test]
@@ -169,9 +170,30 @@ namespace Client.Tests.Ui.State
             Assert.AreEqual(
                 "17件を /exports/unsent-reports.zip に書き出しました。Googleドライブ等に上げて、共有リンクを開発者へ送ってください"
                 + " / 1件は入れられませんでした: reports/x/video.mp4 (IOException) / 上のフォルダを手動で開いてください",
-                BugReportFormText.DescribeExport(done));
+                ExportLine(done).Resolve());
             var clean = new PlaytestExportDone("/z.zip", 1, Array.Empty<PlaytestExportMissing>(), true);
-            Assert.AreEqual("1件を /z.zip に書き出しました。Googleドライブ等に上げて、共有リンクを開発者へ送ってください", BugReportFormText.DescribeExport(clean));
+            Assert.AreEqual("1件を /z.zip に書き出しました。Googleドライブ等に上げて、共有リンクを開発者へ送ってください", ExportLine(clean).Resolve());
+        }
+
+        [Test]
+        public void 配送行と書き出し行は言語を切り替えると新しい言語の文になる()
+        {
+            var delivery = BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Counts(0, 2)));
+            var export = ExportLine(new PlaytestExportDone("/z.zip", 1, Array.Empty<PlaytestExportMissing>(), false));
+            var japaneseDelivery = delivery.Resolve();
+            var japaneseExport = export.Resolve();
+
+            Localize.TrySetChosenLanguage("english");
+
+            Assert.AreNotEqual(japaneseDelivery, delivery.Resolve());
+            Assert.AreNotEqual(japaneseExport, export.Resolve());
+            Assert.IsTrue(delivery.Resolve().Contains(" / "));
+        }
+
+        private static UiText ExportLine(PlaytestExportStatus export)
+        {
+            Assert.IsTrue(BugReportFormText.TryDescribeExport(export, out var line));
+            return line;
         }
     }
 }

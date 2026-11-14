@@ -16,7 +16,8 @@ namespace Client.Tests.Ui.Theme.Calc
     public class CalcConstantRecheckTest
     {
         private const string ThemeDirectory = "moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme";
-        private static readonly string[] TokenFiles = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss", "DerivedTokens.uss", "SkitDerivedTokens.uss" };
+        private const string DerivedTokenDirectory = "DerivedTokens";
+        private static readonly string[] GeneratedTokenFiles = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss", "MantineTokens.uss" };
         private static readonly Regex Declaration = new(@"^\s*(--[\w-]+)\s*:\s*([^;]+);(?:\s*/\*\s*(.*?)\s*\*/)?", RegexOptions.Multiline);
         private const string CalcCommentPrefix = "calc: ";
 
@@ -25,9 +26,13 @@ namespace Client.Tests.Ui.Theme.Calc
         {
             var declared = new Dictionary<string, string>();
             var calcRows = new List<(string name, string value, string expression)>();
-            foreach (var fileName in TokenFiles)
+            // 生成物と派生トークンの全ファイル
+            // The generated files and every hand-written derived token file split per family
+            var derivedFiles = Directory.GetFiles(Path.Combine(RepositoryRoot(), ThemeDirectory, DerivedTokenDirectory), "*.uss").OrderBy(path => path);
+            var tokenPaths = GeneratedTokenFiles.Select(fileName => Path.Combine(RepositoryRoot(), ThemeDirectory, fileName)).Concat(derivedFiles);
+            foreach (var path in tokenPaths)
             {
-                foreach (Match match in Declaration.Matches(File.ReadAllText(Path.Combine(RepositoryRoot(), ThemeDirectory, fileName))))
+                foreach (Match match in Declaration.Matches(File.ReadAllText(path)))
                 {
                     declared[match.Groups[1].Value] = match.Groups[2].Value.Trim();
                     var comment = match.Groups[3].Value;

@@ -341,7 +341,7 @@ git commit -m "feat: 走りのトグル/ホールド判定と方式の保存を�
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Player/PlayerObjectController.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Fakes/FakePlayerObjectController.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Player/SprintToggleInputTest.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateSprintToggleDeclarationTest.cs`（前例 `Client.Tests/UIState/UIStateMovementLockDeclarationTest.cs` と同じ骨格の全件表テスト）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateSprintToggleDeclarationTest.cs`（前例 `Client.Tests/UIState/Control/UIStateMovementLockDeclarationTest.cs` と同じ骨格の全件表テスト）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Player/PlayerMovementUiLockTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Player/TextInputMovementLockTest.cs`（Setup でホールドを明示）
 
 **Interfaces:**

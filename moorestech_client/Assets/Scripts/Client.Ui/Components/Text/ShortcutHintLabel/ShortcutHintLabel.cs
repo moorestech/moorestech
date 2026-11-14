@@ -1,5 +1,6 @@
 // moorestech_client/Assets/Scripts/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.cs
 using Client.Ui.Foundation.Text;
+using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.State.Text;
 using UniRx;
 using UnityEngine;
@@ -45,7 +46,7 @@ namespace Client.Ui.Components.Text
 
             Label CreateText()
             {
-                var label = new Label { pickingMode = PickingMode.Ignore };
+                var label = new WrapSafeLabel { pickingMode = PickingMode.Ignore };
                 label.AddToClassList("shortcut-hint-label__text");
                 return label;
             }

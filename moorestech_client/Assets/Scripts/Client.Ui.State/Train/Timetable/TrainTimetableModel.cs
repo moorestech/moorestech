@@ -28,6 +28,7 @@ namespace Client.Ui.State.Train.Timetable
         private readonly BlockGameObjectDataStore _blocks;
         private readonly OpenTrainTimetableTracker _tracker;
         private readonly TrainTimetableReadyDataFactory _readyDataFactory = new();
+        private readonly TrainTimetableMissingCarReport _missingCarReport = new();
         private readonly ReactiveProperty<TrainTimetableViewState> _current = new(TrainTimetableViewState.Unavailable);
 
         public IReadOnlyReactiveProperty<TrainTimetableViewState> Current => _current;
@@ -64,10 +65,18 @@ namespace Client.Ui.State.Train.Timetable
         {
             var next = _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource source
                 ? Build(source.TrainCarInstanceId)
-                : TrainTimetableViewState.Unavailable;
+                : NoTrainOpen();
             // silent-ok: 中身が同じ状態は配り直さない / 表示が変わらないので見ている人に差は無く、行の作り直しも起きない（R-5）
             if (TrainTimetableViewState.IsSameState(_current.Value, next)) return;
             _current.Value = next;
+        }
+
+        private TrainTimetableViewState NoTrainOpen()
+        {
+            // 貨車が無い間は旗を戻し再警告に備える
+            // Clear flag while no car so it warns again
+            _missingCarReport.Clear();
+            return TrainTimetableViewState.Unavailable;
         }
 
         private TrainTimetableViewState Build(long trainCarInstanceId)
@@ -76,9 +85,10 @@ namespace Client.Ui.State.Train.Timetable
             // Priority: no train, unavailable, in flight, no cache, ready
             if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, _cache, out var trainUnitInstanceId))
             {
-                Debug.LogWarning($"[TrainTimetableModel] Missing car snapshot: {trainCarInstanceId}");
+                _missingCarReport.ReportMissing(trainCarInstanceId);
                 return TrainTimetableViewState.Unavailable;
             }
+            _missingCarReport.Clear();
             if (_fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
             if (_fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
             if (!_timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;

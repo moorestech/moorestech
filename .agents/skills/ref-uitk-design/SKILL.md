@@ -94,11 +94,11 @@ public sealed class IconButton : VisualElement
 |---|---|---|
 | `Tokens.uss`・`SlotTokens.uss`・`SkitTokens.uss` | `W/app/tokens.css`・`slotTokens.css`・`skitTokens.css` | 生成物。手で直さず、リポジトリ直下で `node tools/uitk/convert-web-tokens.mjs`。名前の一致は `WebTokenParityTest` |
 | `MantineTokens.uss`〔F1〕 | Mantine の暗色テーマの `--mantine-*` | 生成物。手で直さない |
-| `DerivedTokens.uss`〔F1〕 | Web の `color-mix`・`rgb(from …)`・半透明・直書きの色 | 手で書く。各行に `/* web: 元の式 決め方 */` |
+| `DerivedTokens/*.uss`〔F1〕 | Web の `color-mix`・`rgb(from …)`・半透明・直書きの色 | 手で書く。各行に `/* web: 元の式 決め方 */` |
 | `Theme.uss` | Mantine の既定コントロール | 既定コントロールを `--mantine-*` で塗る〔F1〕 |
 | `Typography.uss`（クラスの拡充は〔C2-c〕）・`Layout.uss`〔C2-c〕 | Mantine の Text/Title・Stack/Group | カタログの「文字・装飾族」 |
 
-- 部品・画面の USS の色は `var(--…)` だけ。`#hex`・`rgb()` は `UiStyleConventionTest` が落とす。新しい色が要るときは `DerivedTokens.uss`〔F1〕に元の式と決め方を付けて足す
+- 部品・画面の USS の色は `var(--…)` だけ。`#hex`・`rgb()` は `UiStyleConventionTest` が落とす。新しい色が要るときは `Foundation/Theme/DerivedTokens/` の族のファイル（`<族>DerivedTokens.uss`。Panels・Controls・Text・Slots・Gauges・Recipe・Screens・Skit）に元の式と決め方を付けて足す。ファイルを足すときは tss の Foundation/Theme 区画と `UiStyleConventionRules.ColorLiteralExemptUssFileNames` にも足す〔F1・A-228〕
 - 寸法は Web がトークンで書く値はトークン、Web が直書きする値は同じ直書きで写す
 - 半透明は Web の α・opacity をそのまま使う（GameUi は sRGB 空間で合成する。A-180〜A-184）。決め方は `references/css-to-uss.md` の「半透明」
 - 文字の大きさは Web と同じ px にする。13px 下限は外す（設計書 [A-39]。`TokenFloorAndTranslucencyTest` の下限は F1 が外す〔F1〕。F1 の取り込み前は下限テストが残る）
@@ -122,17 +122,19 @@ public sealed class IconButton : VisualElement
 | `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report` |
 | `S/Client.Ui/Screens/<機能>/<機能>.uss` | 配置とつまみの上書きだけ |
 
+- Commands は結果を返すだけで、トーストは呼び手の View が `UiCommandResultToaster.Report` で出す。Commands 内で Report してよいのは分割ドラッグ（`PlayerSlotDragCommands`。呼び手の View が居ない）と列車の編集（`TrainPlatformEditCommands`・`TrainTimetableEditCommands`／`Session`。閉じた後に戻った拒否もトーストする。S4-train D-39・D-40）だけ（設計書 A-262）
 - 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している（Web では pauseMenu 配下）。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない
 - View は C# で組む。UXML と UI Builder は使わない
 - 出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める
-- 毎フレームの値（採掘の進捗など）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（設計書 A-57）。View は `Update()` を持たない
+- 毎フレームの値（採掘の進捗など）は Presenter が源の変化通知を購読して View へ流し、フレーム末への間引きはしない（設計書 A-57）。例外: 源の変化 1 件ごとに全エントリの VM を組み直す Model（`BuildMenuModel`）は、組み直しをフレーム末の 1 回に畳む（A-57）。View は `Update()` を持たない
 - USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける。付けないと、その中のアンカーを指すチュートリアル枠が容器の外へはみ出して描かれる（祖先クリップの判定は印のある容器しか見ない。設計書 A-65）
 
 ## 9. 動き
 
 - 入退場とホバーは USS の `transition`。追加した直後のクラスの付け外しは補間されないので `GeometryChangedEvent` を契機にする。`height: auto` は補間できないので px に固定してから動かす
 - ループ・キーフレーム・smooth scroll・慣性は `UiMotionPlayer`（`S/Client.Ui/Foundation/Motion/`）の Step で書く。足りない Step は使う段のレーンが足す
-- 尺と曲線はトークンに置き、既存の値を参照する（通知の生存 7000ms・入場 160ms・退場 200ms・脈動 1200ms）
+- 出入りと動きの尺・曲線はトークンに置き、既存の値を参照する（`--notification-enter-duration` 160ms・`--notification-exit-duration` 200ms・`--tutorial-pulse-duration` 1200ms）。表示の生存のようなロジックの尺はトークンに置かず、Model の定数を正にする（通知は `NotificationModel.DisplayMilliseconds`。View はそこから動きの長さを決める。設計書 A-67）
+- CSS の `ease-out`・`ease-in` は `UiEasing.CssEaseOut`・`CssEaseIn`、横の移動は `TranslateXTweenStep`（`EaseOutCubic` で代用しない。設計書 A-69）
 - テストのために尺を 0 にする抜け道を作らない。テストは時計（`IUiMotionClock`）を進める
 
 ## 10. 入力
@@ -169,7 +171,7 @@ public sealed class IconButton : VisualElement
 | L1 画面 | View＋Model＋Commands の結線 | `ScreenTestHost`・`FakeModel<T>`・`CommandRecorder<T>` | `S/Client.Tests/Ui/Screens/<機能>/` | Web のコンポーネントテストと e2e のうちブラウザ固有でない全件 |
 | L2 | 規約 | `UiStyleConventionTest` ほか | `S/Client.Tests/Ui/Conventions/` | 規約を足したら違反の文字列のケースを 1 つ |
 | L3 | 実ゲームの結線 | EditModeInPlayingTest | `S/Client.Tests/EditModeInPlayingTest/Ui/` | 段ごとに 1 本（スイッチ UITK で開く・閉じる） |
-| L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/` | `origin/master:docs/uitk-migration/plan.md` §4.4 のラダー |
+| L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/<段>/`（`stage1`〜`stage4` はその段のレーン〈C2〜C4 は段 2〜4〉・`integrator` は I-fix・I-blend。1 ディレクトリ 10 本まで） | `origin/master:docs/uitk-migration/plan.md` §4.4 のラダー |
 
 - 回し方: `uloop compile --project-path ./moorestech_client` → L0〜L2 は `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\."`。L3 は別に `--filter-value "^Client\.Tests\.EditModeInPlayingTest\.Ui\."` で回す（PlayMode 遷移でドメインリロードが入る）
 - 写したテストと Web の元テストの対応は `docs/uitk/disposition.md` に書く

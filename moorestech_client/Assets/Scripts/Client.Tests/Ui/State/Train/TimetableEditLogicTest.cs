@@ -27,8 +27,8 @@ namespace Client.Tests.Ui.State.Train
             var d0 = TimetableEditLogic.AddStop(new List<TimetableEditStop>(), A);
             var d1 = TimetableEditLogic.AddStop(d0, B);
             Assert.AreEqual(1, d0.Count);
-            Assert.AreEqual("1,0,1", TimetableEditLogic.StationKey(d1[0].Position));
-            Assert.AreEqual("2,0,2", TimetableEditLogic.StationKey(d1[1].Position));
+            Assert.AreEqual(A.Position, d1[0].Position);
+            Assert.AreEqual(B.Position, d1[1].Position);
             AssertStop(BStop, TimetableEditLogic.MoveStop(d1, 1, StopMoveDirection.Up)[0]);
 
             // 端を越える移動は警告を出して同じインスタンスを返す

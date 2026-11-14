@@ -57,6 +57,7 @@ namespace Client.Ui.Screens.PauseMenu
             _title = new LocalizedLabel();
             _title.AddToClassList("pause-menu__title");
             _title.AddToClassList(UiTypographyClass.TitleOrder1);
+            _title.AddToClassList(UiTypographyClass.TitleHeadingFace);
             _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
             panel.Add(_title);
 
@@ -74,7 +75,6 @@ namespace Client.Ui.Screens.PauseMenu
         public void SetShown(bool shown)
         {
             if (shown == (_subscriptions != null)) return;
-            if (!shown) BlurFocusedDescendant();
             style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
             if (!shown)
             {
@@ -153,13 +153,6 @@ namespace Client.Ui.Screens.PauseMenu
         private void UpdateLocaleMarker()
         {
             _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
-        }
-
-        // 入力欄にフォーカスがあるまま隠すと、非表示のまま入力中の扱いが残りキーが効かなくなる
-        // Hiding with a text field still focused would leave it counted as typing and keep world keys suppressed
-        private void BlurFocusedDescendant()
-        {
-            if (focusController?.focusedElement is VisualElement focused && Contains(focused)) focused.Blur();
         }
     }
 }

@@ -35,8 +35,8 @@ namespace Client.Ui.State.BuildMenu.Commands
         {
             // メニューが先に閉じた・対象が消えた古いクリックは良性の拒否（トーストは Toaster が抑えログだけ残す）
             // Stale clicks after the menu closed or the target vanished are benign rejections (the toaster only logs them)
-            if (!IsBuildMenuOpen()) return new UiCommandRejected(UiCommandRejectReason.BuildMenuNotOpen, "");
-            if (!_placementTargetResolver.TryResolve(targetId, out var target)) return new UiCommandRejected(UiCommandRejectReason.UnknownBuildMenuEntry, "");
+            if (!IsBuildMenuOpen()) return UiCommandRejected.Of(UiCommandRejectReason.BuildMenuNotOpen);
+            if (!_placementTargetResolver.TryResolve(targetId, out var target)) return UiCommandRejected.Of(UiCommandRejectReason.UnknownBuildMenuEntry);
             _buildMenuSelection.SetSelectedTarget(target);
             return UiCommandAccepted.Instance;
         }
@@ -49,10 +49,10 @@ namespace Client.Ui.State.BuildMenu.Commands
             return result switch
             {
                 BlueprintDeleteResult.Success => UiCommandAccepted.Instance,
-                BlueprintDeleteResult.NotFound => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteNotFound, ""),
-                BlueprintDeleteResult.NotUnlocked => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteNotUnlocked, ""),
-                BlueprintDeleteResult.Unknown => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteUnknown, ""),
-                BlueprintDeleteResult.RequestFailed => new UiCommandRejected(UiCommandRejectReason.BlueprintDeleteRequestFailed, ""),
+                BlueprintDeleteResult.NotFound => UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteNotFound),
+                BlueprintDeleteResult.NotUnlocked => UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteNotUnlocked),
+                BlueprintDeleteResult.Unknown => UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteUnknown),
+                BlueprintDeleteResult.RequestFailed => UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteRequestFailed),
                 _ => throw new ArgumentOutOfRangeException(nameof(result), result, null),
             };
         }
@@ -61,8 +61,8 @@ namespace Client.Ui.State.BuildMenu.Commands
         {
             // 閉じた後の再送は良性、許可表に拒まれた遷移は閉じられなかった非良性の拒否
             // A resend after close is benign; a transition refused by the allow table is a non-benign close refusal
-            if (!IsBuildMenuOpen()) return new UiCommandRejected(UiCommandRejectReason.BuildMenuNotOpen, "");
-            if (!_transitionRequester.RequestTransition(UIStateEnum.GameScreen)) return new UiCommandRejected(UiCommandRejectReason.BuildMenuCloseRefused, "");
+            if (!IsBuildMenuOpen()) return UiCommandRejected.Of(UiCommandRejectReason.BuildMenuNotOpen);
+            if (!_transitionRequester.RequestTransition(UIStateEnum.GameScreen)) return UiCommandRejected.Of(UiCommandRejectReason.ScreenCloseRefused);
             return UiCommandAccepted.Instance;
         }
 

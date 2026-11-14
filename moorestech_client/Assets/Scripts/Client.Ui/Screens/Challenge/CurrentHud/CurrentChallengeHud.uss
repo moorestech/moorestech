@@ -13,6 +13,8 @@
     --hud-rule-width: var(--challenge-hud-rule-width);
 }
 
+/* 目標の間隔は UiStack の --ui-gap。C# は段を持たず（UiGap.None）、2 クラスで Layout.uss の .ui-stack--gap-none に勝つ */
+/* Objective spacing is UiStack's --ui-gap; C# holds no step (UiGap.None) and two classes beat .ui-stack--gap-none in Layout.uss */
 .current-challenge-hud .current-challenge-hud__objectives {
     --ui-gap: var(--challenge-hud-objective-gap);
 }

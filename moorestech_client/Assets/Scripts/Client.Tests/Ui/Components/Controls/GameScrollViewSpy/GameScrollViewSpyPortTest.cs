@@ -22,7 +22,7 @@ namespace Client.Tests.Ui.Components.Controls.GameScrollViewSpy
         [SetUp]
         public void MountScrollView()
         {
-            _scrollView = new GameScrollView("spy-port-scroll");
+            _scrollView = new GameScrollView("spy-port-scroll", GameScrollAxis.Vertical);
             // 部品の USS は flex-grow: 1 なので、列のルートでは高さ 200 が親いっぱい（720）に伸びる。伸びを止めて 200 に固定する
             // The component USS has flex-grow: 1, which stretches height 200 to the parent (720) in a column root; stop the grow to pin 200
             _scrollView.style.flexGrow = 0;

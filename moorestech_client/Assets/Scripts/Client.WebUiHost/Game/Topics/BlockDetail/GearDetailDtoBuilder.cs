@@ -1,4 +1,6 @@
+using System;
 using Client.Game.InGame.Block;
+using Client.Ui.State.BlockInventory.Common;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
@@ -28,31 +30,39 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         /// </summary>
         public static GearDetailDto BuildGearDetail(GearStateDetail gear, object param)
         {
+            // 役割と消費は UITK と同じ所で読む
+            // Read role and consumption at the same place as UITK
+            var drive = GearDriveConversion.Read(gear, param);
             var gearDto = new GearDetailDto
             {
                 CurrentRpm = gear.CurrentRpm,
                 CurrentTorque = gear.CurrentTorque,
             };
-
-            // 発電機の枝は基準RPMをwireから省く
-            // The generator branch omits base RPM from the wire
-            if (gear.Role == GearRole.Generator)
+            switch (drive.Kind)
             {
-                gearDto.Role = GeneratorRole;
-                return gearDto;
+                case GearDriveKind.Generator:
+                    // 発電機の枝は基準RPMをwireから省く
+                    // The generator branch omits base RPM from the wire
+                    gearDto.Role = GeneratorRole;
+                    return gearDto;
+                case GearDriveKind.Consumer:
+                    gearDto.Role = ConsumerRole;
+                    // 種別が Consumer なので必ず取れる
+                    // The kind is Consumer, so it is always available
+                    drive.TryGetConsumption(out var consumption);
+                    gearDto.BaseRpm = (float)consumption.GearConsumption.BaseRpm;
+                    return gearDto;
+                case GearDriveKind.InconsistentConsumer:
+                    // サーバーが消費側と言うのにマスタが消費パラメータを持たないのは不整合。歯車行を出さずログする
+                    // A server-declared consumer without a consumption param in master is inconsistent; skip the gear rows and log it
+                    drive.TryGetAnomaly(out var anomaly);
+                    Debug.LogError($"[GearDetailDtoBuilder] {anomaly}; gear rows are omitted");
+                    return null;
+                default:
+                    // 歯車の状態は Apply があるときだけ
+                    // Pass gear state only when Apply exists
+                    throw new ArgumentOutOfRangeException(nameof(gear), drive.Kind, "BuildGearDetail needs a gear state detail");
             }
-
-            // サーバーが消費側と言うのにマスタが消費パラメータを持たないのは不整合。歯車行を出さずログする
-            // A server-declared consumer without a consumption param in master is inconsistent; skip the gear rows and log it
-            if (param is not IGearConsumptionParam consumptionParam)
-            {
-                Debug.LogError($"[GearDetailDtoBuilder] Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam; gear rows are omitted");
-                return null;
-            }
-
-            gearDto.Role = ConsumerRole;
-            gearDto.BaseRpm = (float)consumptionParam.GearConsumption.BaseRpm;
-            return gearDto;
         }
     }
 }

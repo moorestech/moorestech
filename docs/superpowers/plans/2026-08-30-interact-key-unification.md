@@ -1063,7 +1063,7 @@ git commit -m "feat: ブロックと列車にITapInteractableを実装"
 - Modify: `Client.Starter/Registration/MainGameInteractionRegistration.cs:118-120`
 - Modify: `Client.Starter/MainGameStarter.cs:68-71`（`miningController` フィールド削除）＋ GameSystem.prefab のコンポーネント除去（uloop）
 - Delete: `Client.Game/InGame/Mining/MiningController.cs`、`UIState/State/SubInventory/GameScreenSubInventoryInteractService.cs`、`Train/Unit/RideVehicleInputService.cs`、`Client.Tests/Mining/MiningAimTest.cs`（各.metaも）
-- Modify: `Client.Tests/UIState/UIStateCameraInteractionTest.cs:127-134`、`Client.Tests/UIState/UIStateFocusRestorationTest.cs:28`、`Client.Tests/Mining/Outcrop/OutcropMiningAimTest.cs`（`MiningController`→`InteractTargetSelector`）
+- Modify: `Client.Tests/UIState/CameraPolicy/UIStateCameraInteractionTest.cs:127-134`、`Client.Tests/UIState/Control/UIStateFocusRestorationTest.cs:28`、`Client.Tests/Mining/Outcrop/OutcropMiningAimTest.cs`（`MiningController`→`InteractTargetSelector`）
 - Test: `Client.Tests/Interact/InteractTargetSelectorTest.cs`、`Client.Tests/Interact/TapInteractionDriverTest.cs`、`Client.Tests/Interact/InteractControllerHighlightTest.cs`
 
 **Interfaces:**

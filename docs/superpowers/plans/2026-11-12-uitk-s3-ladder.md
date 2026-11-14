@@ -419,11 +419,11 @@ git commit -m "test(uitk): ビルドメニューの検索欄の入力中のキ�
 
 **Interfaces:**
 - Consumes: `PlaytestRunner.Run`・`p.SetupDebugEnvironment`・`p.SkipOpeningSkitIfPlaying`・`p.ExitToGameScreen`・`p.PressKey`・`p.WaitUiState`・`p.ClickUi`・`p.SetText(testid, text)`・`p.Hotbar.UnlockBlueprint()`・`p.WarpPlayer`・`p.AimAt`・`p.ClickPlace`・`p.UntilUiElement`・`p.WaitForBlueprint`・`p.WaitBlockGameObject`・`p.Screenshot`・`p.PlayerPosition`・`p.CurrentUiState`、`PlaytestUiElementOps.FindUi`、`SemanticInput.*`、`PlaytestBuildMenuOps.BuildMenuBlockTestId(string)`、`BlueprintCopyPasteScenarioChecks.SelectEntry(categoryTestId, entryTestId)`（自分で B を押す）、`ClientHotbarDatastore.Assignments`
-- Produces: `scenarios/uitk/stage3/uitk-build-bp.cs`（ラダー 3。S4-gamma・X-prerun が毎回流す。S4-gamma 計画の `scenarios/uitk/uitk-build-bp.cs` の読み替えを `done.md` の依頼に書く）
+- Produces: `scenarios/uitk/stage3/uitk-build-bp.cs`（ラダー 3。S4-gamma・X-prerun が毎回流す。S4-gamma 計画の `scenarios/uitk/stage3/uitk-build-bp.cs` の読み替えを `done.md` の依頼に書く）
 
 - [ ] **Step 1: シナリオを書く**
 
-前例 `scenarios/uitk/uitk-hotbar-and-bp-modal.cs` の冒頭（系の主張・入力の準備）と `CenterOf`・`DragAsync`・`HoldKeyAsync` を写す。1 本 200 行未満。
+前例 `scenarios/uitk/stage3/uitk-hotbar-and-bp-modal.cs` の冒頭（系の主張・入力の準備）と `CenterOf`・`DragAsync`・`HoldKeyAsync` を写す。1 本 200 行未満。
 
 ```csharp
 // ラダー 3: B → 検索 → エントリをホットバーへドラッグ → 選んで設置 → BP をコピーして名前を付ける（GameUi。S3-ladder）
@@ -757,7 +757,7 @@ Expected: 全 PASS（件数を `done.md` へ）。
 
 - [ ] **Step 2: ラダー**
 
-GameUi で `uitk/uitk-lifeline.cs`・`uitk/stage3/uitk-build-bp.cs`（`uitk/uitk-opening-hud.cs` があればそれも）を流す。Expected: 全部 `Success: true`・ErrorLogs 0。ラダー 2 が無ければ R-5 のとおり「要裁定」へ。
+GameUi で `uitk/stage1/uitk-lifeline.cs`・`uitk/stage3/uitk-build-bp.cs`（`uitk/uitk-opening-hud.cs` があればそれも）を流す。Expected: 全部 `Success: true`・ErrorLogs 0。ラダー 2 が無ければ R-5 のとおり「要裁定」へ。
 
 - [ ] **Step 3: コミットは無し**（記録のみ）
 
@@ -808,6 +808,6 @@ GameUi で `uitk/uitk-lifeline.cs`・`uitk/stage3/uitk-build-bp.cs`（`uitk/uitk
 ## 設計書・実行計画へ反映する行（integrator への依頼の案。このレーンは書かない）
 
 - A-210: 段階 3 の横断の L1（パネル越しの D&D は `Screens/BuildMenu/BuildMenuToHotbarDragTest`・検索欄の受入は `Screens/BuildMenu/BuildMenuSearchInputGuardTest` と `UIState/BuildMenu/BuildMenuStateTextInputGuardTest`）
-- A-211: ラダー 3 `uitk-build-bp` の置き場 `scenarios/uitk/stage3/` と中身。S4-gamma 計画の `scenarios/uitk/uitk-build-bp.cs` を読み替える
+- A-211: ラダー 3 `uitk-build-bp` の置き場 `scenarios/uitk/stage3/` と中身。S4-gamma 計画の `scenarios/uitk/stage3/uitk-build-bp.cs` を読み替える
 - A-212: 電柱のホイールの換算（Task 7 の結果で書く）
 - 実行計画 §1.4 の S3-ladder 行の「codex-audit」を「独立評価（opus 2 体）」に読み替えた記録

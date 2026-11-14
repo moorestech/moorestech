@@ -34,7 +34,7 @@
 | R-14 | テストの名前: 写した 5 件に `<web-test>`。このレーンの持ち分（challenge.spec の 3 件・challengeLogic.test の 2 件）は処遇の行を足さない | `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing` で持ち分の未対応 0。終了コードが 2 でない |
 | R-15 | 記帳: 台帳の「## 実測の結論」の末尾にカードの高さの実測 1 行、「## 未撮影」にカテゴリ列の横バーの 1 行（見た目の例外は足さない。LX-200〜202 は並べ比べの差の予備）。設計書 §7.1 に入った A-240・A-241（`GameScrollView` の横向きは A-241 に入れた。A-35 を縦に限る改めと §2.7 の行の書き換えを含む）を実装と照らし、食い違いは `done.md` の「integrator への依頼」へ | `done.md` に照らした結果。台帳の 2 行 |
 | R-16 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑 → `gh pr merge --merge`（録画・L1 が他レーンの原因で赤のまま残ったら、マージせず `done.md` を「状態: 停止（<名前> が <持ち主> の原因で赤）」にして指揮へ報告する。基準を緩めず、赤を残してマージしない）→ Editor を閉じる・bd を閉じる・`done.md` → `cmux wait-for -S uitk-s5-challenge` | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
-| R-17 | 部品 `GameScrollView` の横向き（Components の変更）: ctor を `GameScrollView(string testid, GameScrollAxis axis)` にし、`Horizontal` は横の `ScrollView`。バーは中身が見える幅を越えたときだけ本文の下の流れに出し、縦のバーは出さない。太さ・溝・つまみは縦と同じつまみ。縦の振る舞いは今のまま、呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数を作らない）。`Theme.uss` は変えない | `GameScrollViewHorizontalTest`（L1）の 2 件が緑。既存の `GameScrollViewTest`・`GameScrollViewKnobTest`・`GameScrollViewSpyPortTest`・`RecipeListScrollViewTest` と呼び出し側の画面の L1 が緑 |
+| R-17 | 部品 `GameScrollView` の横向き（Components の変更）: ctor を `GameScrollView(string testid, GameScrollAxis axis)` にし、`Horizontal` は横の `ScrollView`。バーは中身が見える幅を越えたときだけ本文の下の流れに出し、縦のバーは出さない。太さ・溝・つまみは縦と同じつまみ。縦の振る舞いは今のまま、呼び出し側 13 か所は `GameScrollAxis.Vertical` を明示する（デフォルト引数を作らない）。`Theme.uss` は変えない。横向きは縦ホイールで送らず横 delta だけ（Web の overflow-x: auto に合わせる） | `GameScrollViewHorizontalTest`（L1）の 3 件が緑。既存の `GameScrollViewTest`・`GameScrollViewKnobTest`・`GameScrollViewSpyPortTest`・`RecipeListScrollViewTest` と呼び出し側の画面の L1 が緑 |
 
 **やらないこと（スコープ境界）**
 
@@ -3814,6 +3814,10 @@ worktree の `moores-wt rm` は指揮が行う（このレーンは行わない�
 - **D-27 設計書の A 行は入ったものを照らす**（指揮の agent 既定（PLAN-W5 評価））: 設計書 §7.1 の A-240・A-241 は入り済みなので、`done.md` の雛形は「足す」でなく「設計書に入った A-240・A-241 を実装と照らす」にした。A-240 の本文（視点は View の寿命）・A-191 と §2 の OS カーソルの行の改めは notes から指揮が設計書へ写す。`GameScrollView` の横向きは A-241 に入れた。A-35 を縦に限る改めと §2.7 の行の書き換えを含む（指揮の agent 既定（PLAN-W5 評価））。実行計画 §6.1 の LX-200 は既に「予備」に直っている
 - **D-28 第 3 バケツは本 PR 外のリファクタ提案に置く**（指揮の agent 既定（PLAN-W5 評価））: Web の橋 `ChallengeDtoBuilder.BuildTree` と State の工場の同じ規則、研究の `ResearchNodeCardSet` の bool 返し、研究の `ResearchTreeView.Render` の渡し直しの式の 3 つは、この PR では直さず「## 本PR外のリファクタ提案」に 1 行ずつ書いた（このレーンの持ち物でなく、研究の挙動に触れるため）
 - **D-29 `GameScrollView` の向きは enum で持つ 1 型、横で縦の口を呼んでも止めない**（指揮の agent 既定（PLAN-W5 評価））: 軸を `GameScrollAxis` で持つ 1 型にしたのは、USS・つまみ・バーの有無の式を縦と横で共有し、横の使い手がチャレンジのカテゴリ列の 1 つだけだから（横を別の型にすると式とつまみの受け口が 2 本になる。A-167）。本番ブロックの `_axis == GameScrollAxis.Horizontal` の分岐（5 回）はどれも軸を選ぶだけ。横のインスタンスで縦の口（`SetScrollOffset`・`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop`）を呼んでも止めないのは、横の使い手がその口を呼ばず、呼んでも縦のバーの値を読み書きするだけで誤動作に至る入力が組めないから（ガードとテストを足さない）
+- **D-30 moores-code-review の設計判断の裁定**（指揮の agent 既定（S5-challenge moores-code-review））: D2 案A — `GameScrollView` の縦専用の口（`SetScrollOffset`・`GetViewportHeight`・`GetContentHeight`・`TryGetContentTop`・`OnContentLayoutChanged`）を横で呼ぶと `Debug.LogError` で理由を出して何もしない（fail-closed のログ。横は寸法の通知の発火元を繋がない）。D-29 の「止めない」を改める。公開シグネチャは不変、L1 `GameScrollViewHorizontalTest` で固定
+  - D3 案A — 横向きのホイールは Shift が立っていて横量が 0 なら縦量を横量に使う（Chromium の Shift+ホイール）。L1 で Shift+縦 1 ノッチ 60px を固定
+  - D4 案A — `ChallengeListModel` が選択ありの表示を組んだとき、選択ストアが同じ Guid でなければ 1 回 `Select` して暗黙の先頭を確定する（Web の sticky。配信は選択の購読の組み直しの 1 回だけ）。離脱時の None 戻し・開き直しで先頭（D-2）は変えない。L0 `ChallengeListModelTest` で固定
+  - D5 案B — 部品 `NodeGraphView` は変えず、外している間の寸法変化で付け直したときに中心を保ち直す帰結（D-1）を見た目の例外 LX-200 に記帳し、L1 `ChallengeListViewportTest` で固定
 
 ### 評価の指摘の処遇
 

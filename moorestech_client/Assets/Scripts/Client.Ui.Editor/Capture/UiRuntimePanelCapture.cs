@@ -30,11 +30,14 @@ namespace Client.Ui.Editor.Capture
 
         // 読める Texture2D を返す。破棄は呼び手
         // Returns a readable Texture2D; the caller disposes it
-        public static Texture2D Render(VisualElement content, int width, int height, Color ground, UiCaptureLocalization localization)
+        public static Texture2D Render(VisualElement content, int width, int height, Color ground, UiCaptureBackdrop backdrop, UiCaptureLocalization localization)
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("[UiRuntimePanelCapture] EditMode only; use ScreenCapture in PlayMode");
             var source = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
             if (source == null) throw new InvalidOperationException($"[UiRuntimePanelCapture] missing {PanelSettingsPath}");
+
+            // 動的フォントの atlas はここで空にしない。撮影の途中で空にすると先の字の描画が破棄済みの atlas を引いて落ちる（GameUiFontAtlasReset がドメインの読み込みで空にする）
+            // Do not empty the dynamic font atlases here; emptying mid-session makes earlier text layouts hit destroyed atlases (GameUiFontAtlasReset empties them on domain load)
 
             // 実行時パネルの描画口は internal なので反射で引く。一時リソースを作る前に解決し、見つからなければ Unity の更新で口が変わったので止める
             // The runtime panel render entry points are internal, so resolve them via reflection before creating temp resources; stop if a Unity update renamed them
@@ -91,6 +94,9 @@ namespace Client.Ui.Editor.Capture
                 var groundElement = new VisualElement();
                 groundElement.style.flexGrow = 1;
                 groundElement.style.backgroundColor = ground;
+                // 地の画像と外殻を中身より先に敷く（後に足した子ほど手前）
+                // Lay the ground image and shell before the content (later children draw in front)
+                backdrop.ApplyTo(groundElement);
                 groundElement.Add(content);
                 return groundElement;
             }
@@ -122,9 +128,9 @@ namespace Client.Ui.Editor.Capture
 
         // PNG に書いてパスを返す。上下は画面と同じ（C3-a）
         // Writes a PNG and returns its path; upright like the screen (C3-a)
-        public static string CaptureToPng(VisualElement content, int width, int height, Color ground, UiCaptureLocalization localization, string pngPath)
+        public static string CaptureToPng(VisualElement content, int width, int height, Color ground, UiCaptureBackdrop backdrop, UiCaptureLocalization localization, string pngPath)
         {
-            var texture = Render(content, width, height, ground, localization);
+            var texture = Render(content, width, height, ground, backdrop, localization);
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(pngPath)));
             File.WriteAllBytes(pngPath, texture.EncodeToPNG());
             Object.DestroyImmediate(texture);

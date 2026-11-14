@@ -1,5 +1,6 @@
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockDetail.CleanRoom;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Game.Block.Interface.State;
 using UniRx;
@@ -46,26 +47,26 @@ namespace Client.Ui.State.BlockInventory.Context
 
             #region Internal
 
-            ContextEntry<CleanRoomFetchedDetail> BuildCleanRoom()
+            SectionContent<CleanRoomFetchedDetail> BuildCleanRoom()
             {
                 // 部屋を追わないなら取得状態も読まない
                 // Not following rooms skips the fetch state too
-                if (_cache.CleanRoomTarget == CleanRoomDetailTarget.None) return ContextEntry<CleanRoomFetchedDetail>.Absent;
+                if (_cache.CleanRoomTarget == CleanRoomDetailTarget.None) return SectionContent<CleanRoomFetchedDetail>.Absent;
                 var fetchState = _cache.GetCleanRoom(out var view);
                 var operability = block.GetStateDetail<CleanRoomOperabilityStateDetail>(CleanRoomOperabilityStateDetail.BlockStateDetailKey);
                 return CleanRoomViewConversion.Build(_cache.CleanRoomTarget, fetchState, view, operability);
             }
 
-            ContextEntry<CleanRoomYieldFetched> Yield()
+            SectionContent<CleanRoomYieldFetched> Yield()
             {
-                if (_cache.CleanRoomTarget != CleanRoomDetailTarget.Machine) return ContextEntry<CleanRoomYieldFetched>.Absent;
+                if (_cache.CleanRoomTarget != CleanRoomDetailTarget.Machine) return SectionContent<CleanRoomYieldFetched>.Absent;
                 var fetchState = _cache.GetCleanRoomYield(out var view);
                 return ContextViewConversion.Yield(fetchState, view);
             }
 
-            ContextEntry<MachineInputStall> Stall()
+            SectionContent<MachineInputStall> Stall()
             {
-                if (!_cache.IsTrackingMachineInputStall) return ContextEntry<MachineInputStall>.Absent;
+                if (!_cache.IsTrackingMachineInputStall) return SectionContent<MachineInputStall>.Absent;
                 var fetchState = _cache.GetMachineInputStall(out var view);
                 return ContextViewConversion.Stall(fetchState, view);
             }

@@ -8,6 +8,7 @@ using Client.Ui.Screens.Hotbar.Parts;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
 using Client.Ui.State.Toast;
+using Client.Ui.Foundation.Filter;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Hotbar
@@ -24,6 +25,7 @@ namespace Client.Ui.Screens.Hotbar
         private readonly PlacementTargetIcons _icons;
         private readonly UiCommandResultToaster _toaster;
         private readonly VisualElement _row;
+        private readonly PixelFilterGroup _rowGroup;
         private readonly HotbarCalcKnobs _calcKnobs;
         private readonly List<HotbarCell> _cells = new();
 
@@ -44,10 +46,15 @@ namespace Client.Ui.Screens.Hotbar
             _row = new VisualElement { name = "hotbar-grid" };
             _row.AddToClassList("hotbar-hud__row");
             WheelPassthroughMark.Mark(_row);
-            UiDragDrop.MarkTarget<IHotbarDropReceiver>(_row, HotbarRowGapDropMark.Instance);
+            UiDragDrop.MarkTarget<IHotbarDropReceiver>(_row, new HotbarRowGapDropMark(commands));
             TutorialAnchor.Mark(_row, AnchorIds.HotbarHud);
             _calcKnobs = new HotbarCalcKnobs(_row);
             Add(_row);
+
+            // 枠は群に入れ、受理外の減光を Web と同じく列の群に掛ける（A-222・A-226）。隙間の当たりは列自身
+            // Cells go in a group so select-disabled dimming applies to the row group as on the Web (A-222, A-226); gaps still hit the row itself
+            _rowGroup = new PixelFilterGroup(PixelFilterGroupFlow.Flow);
+            _row.Add(_rowGroup);
         }
 
         // 退いた帯の中で掴んだままの押下を捨てる（残ると離した時に枠外ドロップとして割当が解除される）
@@ -76,13 +83,13 @@ namespace Client.Ui.Screens.Hotbar
             // Match the cell count to the assignment length (normally once at boot); re-apply the tab overhang after rebuilding
             void RebuildCells(int count)
             {
-                _row.Clear();
+                _rowGroup.Clear();
                 _cells.Clear();
                 for (var i = 0; i < count; i++)
                 {
                     var cell = new HotbarCell(i, _commands, _icons, _toaster);
                     _cells.Add(cell);
-                    _row.Add(cell);
+                    _rowGroup.Add(cell);
                 }
                 _calcKnobs.ApplyToRebuiltTabs();
             }

@@ -1,5 +1,7 @@
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Context;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using NUnit.Framework;
@@ -15,7 +17,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
     {
         private const string InsufficientClass = "lack-highlight-text--insufficient";
 
-        private CleanRoomSectionView Render(ContextEntry<CleanRoomFetchedDetail> entry)
+        private CleanRoomSectionView Render(SectionContent<CleanRoomFetchedDetail> entry)
         {
             var view = new CleanRoomSectionView();
             view.Render(entry);
@@ -29,7 +31,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         {
             var filters = new[] { new CleanRoomAirFilter(1, 2, 0.5), new CleanRoomAirFilter(0.5, 1, 0.25) };
             var summary = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 100, 20, filters);
-            var view = Render(ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.ClassOut)));
+            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.ClassOut)));
 
             CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-air-filter-1", "clean-room-halt-reason" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
             Assert.IsFalse(view.Q<VisualElement>("clean-room-headline").ClassListContains(InsufficientClass));
@@ -41,7 +43,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         public void 清浄機が無い部屋はその旨を赤で出す()
         {
             var summary = new CleanRoomSummary(CleanRoomHeadline.Class("A"), 0, 0, new CleanRoomAirFilter[0]);
-            var view = Render(ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.None)));
+            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.None)));
 
             CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air", "clean-room-no-filter" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
             Assert.IsTrue(view.Q<VisualElement>("clean-room-no-filter").ClassListContains(InsufficientClass));
@@ -51,23 +53,23 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         [Test]
         public void 隙間がある部屋は件数の見出しだけを赤で出す()
         {
-            var view = Render(ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Openings(2, CleanRoomHaltReason.None)));
+            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Openings(2, CleanRoomHaltReason.None)));
 
             CollectionAssert.AreEqual(new[] { "clean-room-headline" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
             var headline = view.Q<Label>("clean-room-headline");
             Assert.IsTrue(headline.ClassListContains(InsufficientClass));
-            Assert.AreEqual("Not sealed: 2 gaps", headline.text);
+            Assert.AreEqual("Not sealed: 2 gaps", headline.PlainText());
         }
 
         /// <web-test file="src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomSection.test.ts">取得できていない間は欄の名前と取得状態の1行だけを描き、部屋の値を出さない</web-test>
         [Test]
         public void 取得できていない間は欄の名前と取得状態の1行だけ()
         {
-            var view = Render(ContextEntry<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.TransportFailed));
+            var view = Render(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.TransportFailed));
 
             CollectionAssert.AreEqual(new[] { "clean-room-fetch-state" }, ShownNames(view));
             Assert.IsNull(view.Q<VisualElement>("clean-room-section"));
-            Assert.AreEqual("Room: no reply from the server (retrying)", view.Q<Label>("clean-room-fetch-state").text);
+            Assert.AreEqual("Room: no reply from the server (retrying)", view.Q<Label>("clean-room-fetch-state").PlainText());
         }
     }
 }

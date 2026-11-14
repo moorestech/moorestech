@@ -37,7 +37,10 @@ namespace Client.Ui.Screens.BlockInventory.Context
 
         public void Detach()
         {
+            // 外れたら偽へ戻す（前のパネルの適用可否を次のパネルへ持ち越さない）
+            // Reset to false when detached so the previous panel's applicability is not carried over
             _subscriptions.Clear();
+            _isApplicable.Value = false;
         }
 
         private void Refresh()

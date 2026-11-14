@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Client.Tests.Ui.Screens.BuildMenu.Support;
+using Client.Tests.Ui.Screens.Hotbar;
 using Client.Ui.Screens.BuildMenu.Parts;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Logic;
@@ -21,7 +22,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         {
             var viewModel = BuildMenuSamples.Create();
             var shown = BuildMenuShownListComposer.Compose(viewModel, "");
-            var list = Mount(new BuildMenuCategoryList(null, BuildMenuSamples.Icons(null), new RecordingBuildMenuEntryHandler()));
+            var list = Mount(new BuildMenuCategoryList(null, BuildMenuSamples.Icons(null), new RecordingBuildMenuEntryHandler(), new RecordingHotbarCommands()));
 
             list.Render(shown.Groups, viewModel);
             list.SetSpacerHeight(123f);
@@ -43,7 +44,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
         [Test]
         public void 群が空でもスペーサだけを出す()
         {
-            var list = Mount(new BuildMenuCategoryList(null, BuildMenuSamples.Icons(null), new RecordingBuildMenuEntryHandler()));
+            var list = Mount(new BuildMenuCategoryList(null, BuildMenuSamples.Icons(null), new RecordingBuildMenuEntryHandler(), new RecordingHotbarCommands()));
 
             list.Render(Array.Empty<BuildMenuCategoryGroup>(), BuildMenuViewModel.Empty);
             list.SetSpacerHeight(42f);

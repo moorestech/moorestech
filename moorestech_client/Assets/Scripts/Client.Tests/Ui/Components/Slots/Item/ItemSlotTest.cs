@@ -56,7 +56,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         public void 表示中のアイコンの名前を枠のツールチップに使う()
         {
             var icon = SlotTestIcons.WithTexture("1", "Iron Plate");
-            _slot.SetContent(new ItemSlotContent(icon, 3, new ItemSlotMarks(false, false, false), null, null, null));
+            _slot.SetContent(new ItemSlotContent(icon, 3, ItemSlotMarks.None, null, null, null));
 
             Assert.IsTrue(HoverTooltipMark.TryFindMarked(_frame.contentContainer, out var marked, out var text));
             Assert.AreSame(_frame, marked);
@@ -75,14 +75,14 @@ namespace Client.Tests.Ui.Components.Slots.Item
             // Web の 40% そのままのトークンの値になる
             // Resolves to the token holding the Web 40% as is
             Assert.IsTrue(_frame.ClassListContains("slot-frame--insufficient"));
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), _frame.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), GroupOpacity.Read(_frame), 0.001f);
         }
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">不足状態の省略時はdata属性を付けない</web-test>
         [Test]
         public void 不足でなければ状態のクラスを付けない()
         {
-            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, new ItemSlotMarks(false, false, false), null, null, null));
+            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, ItemSlotMarks.None, null, null, null));
 
             Assert.IsFalse(_frame.ClassListContains("slot-frame--insufficient"));
         }
@@ -91,7 +91,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         [Test]
         public void 四桁の個数は千区切りで描く()
         {
-            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1500, new ItemSlotMarks(false, false, false), null, null, null));
+            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1500, ItemSlotMarks.None, null, null, null));
             simulate.FrameUpdate();
 
             var count = _slot.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
@@ -102,8 +102,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
         [Test]
         public void 空きマスにしたら絵とツールチップを外す()
         {
-            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 2, new ItemSlotMarks(false, false, false), null, null, null));
-            _slot.SetContent(new ItemSlotContent(null, null, new ItemSlotMarks(false, false, false), null, null, null));
+            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 2, ItemSlotMarks.None, null, null, null));
+            _slot.SetContent(new ItemSlotContent(null, null, ItemSlotMarks.None, null, null, null));
             simulate.FrameUpdate();
 
             Assert.IsFalse(HoverTooltipMark.TryFindMarked(_frame.contentContainer, out _, out _));
@@ -114,8 +114,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
         [Test]
         public void 名前の無い絵に替えたら文の無い印を残さずツールチップを外す()
         {
-            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 2, new ItemSlotMarks(false, false, false), null, null, null));
-            _slot.SetContent(new ItemSlotContent(new UiIcon(SlotTestIcons.SharedTexture, "1", null), 2, new ItemSlotMarks(false, false, false), null, null, null));
+            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 2, ItemSlotMarks.None, null, null, null));
+            _slot.SetContent(new ItemSlotContent(new UiIcon(SlotTestIcons.SharedTexture, "1", null), 2, ItemSlotMarks.None, null, null, null));
             simulate.FrameUpdate();
 
             Assert.IsFalse(HoverTooltipMark.TryFindMarked(_frame.contentContainer, out _, out _));
@@ -126,7 +126,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         public void ゴーストは枠に状態を付けて中身だけを透かす()
         {
             var ghost = new ItemSlotGhost(SlotTestIcons.WithTexture("2", "Copper"), 3);
-            _slot.SetContent(new ItemSlotContent(null, null, new ItemSlotMarks(false, false, false), null, ghost, null));
+            _slot.SetContent(new ItemSlotContent(null, null, ItemSlotMarks.None, null, ghost, null));
             simulate.FrameUpdate();
 
             Assert.IsTrue(_frame.ClassListContains("slot-frame--ghost"));

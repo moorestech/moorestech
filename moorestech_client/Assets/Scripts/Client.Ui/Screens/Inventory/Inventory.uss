@@ -31,6 +31,12 @@
     margin-left: -0.549px;
 }
 
+/* 字間 0.12em の最後の字の後ろの字間（0.12 × 12.337807px。Chrome は足し UITK は足さない） */
+/* The trailing 0.12em gap after the last glyph (0.12 x 12.337807px; Chrome adds it, UITK does not) */
+.inventory-view__grid .slot-content {
+    --slot-content-count-trailing-spacing: 1.480537px;
+}
+
 .equipment-hud {
     position: absolute;
     right: var(--equipment-right);
