@@ -76,6 +76,26 @@ namespace Client.Tests.Ui.Text.Typography
             Assert.AreEqual(0f, heading.resolvedStyle.letterSpacing, 0.001f);
         }
 
+        // 英語固定の題は和文ロケールでも欧文の Bold で描き、title--heading-face は和文の字形になる（LX-183）
+        // An English-fixed title keeps Latin Bold even in CJK locales while title--heading-face turns Japanese (LX-183)
+        [TestCase(UiTypographyClass.TitleOrder1)]
+        public void CJKのロケールでも英語固定の見出しは欧文のBoldで描く(string className)
+        {
+            var locale = new VisualElement();
+            locale.AddToClassList(GameUiLocaleClass.CjkClassName);
+            rootVisualElement.Add(locale);
+            var latinFixed = Mount(locale, className, GapSample);
+            latinFixed.AddToClassList(UiTypographyClass.TitleHeadingFaceLatin);
+            var localized = Mount(locale, className, GapSample);
+            localized.AddToClassList(UiTypographyClass.TitleHeadingFace);
+            simulate.FrameUpdate();
+
+            Assert.AreEqual("GameUiLatinBold SDF", latinFixed.resolvedStyle.unityFontDefinition.fontAsset.name);
+            Assert.AreEqual(34f, latinFixed.resolvedStyle.fontSize, 0.01f);
+            Assert.AreEqual(-3.4f, latinFixed.resolvedStyle.letterSpacing, 0.01f);
+            Assert.AreEqual("GameUiJapaneseBold SDF", localized.resolvedStyle.unityFontDefinition.fontAsset.name);
+        }
+
         private (Label spaced, Label unspaced) MountHeadingPair(VisualElement parent, string className, string text)
         {
             var spaced = Mount(parent, className, text);

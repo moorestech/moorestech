@@ -9,6 +9,7 @@ using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
+using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -25,6 +26,9 @@ return PlaytestRunner.Run("uitk-build-bp", options, async p =>
     // 1. Assert the UI system and prepare input (precedent uitk-hotbar-and-bp-modal)
     p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
     p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 日本語名「石窯」で検索するので言語を japanese に決める（PlayerPrefs は他の実行と共有され英語のまま来ることがある。前例 uitk-block-inventory）
+    // Search by the Japanese name, so pin the language to japanese (PlayerPrefs is shared and may arrive as English; precedent uitk-block-inventory)
+    p.Assert(Localize.TrySetChosenLanguage("japanese"), "言語を japanese にできる");
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

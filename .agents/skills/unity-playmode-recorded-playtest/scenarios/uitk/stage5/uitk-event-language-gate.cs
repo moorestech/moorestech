@@ -98,6 +98,14 @@ return PlaytestRunner.Run("uitk-event-language-gate", options, async p =>
     p.Assert(captureLanguageRestored, $"撮影の後に撮影の前の言語 {languageBefore} へ戻せる");
     p.Note($"撮影の後の言語={Localize.GetCurrentLanguageCode()}（戻せた={captureLanguageRestored}）");
 
+    // DI 前は背景のまま入力が無効になる（既定の背景動作）ので、押す前に注入をゲームへ通す（prepare-editor-input.edc と同じ設定）
+    // Before DI an unfocused Editor leaves devices disabled (default background behavior), so route injection to the game before pressing (same as prepare-editor-input.edc)
+    UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior = UnityEngine.InputSystem.InputSettings.BackgroundBehavior.IgnoreFocus;
+    UnityEngine.InputSystem.InputSystem.settings.editorInputBehaviorInPlayMode = UnityEngine.InputSystem.InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    Client.Playtest.Input.SemanticInput.EnsureDevices();
+    UnityEngine.InputSystem.InputSystem.EnableDevice(UnityEngine.InputSystem.Mouse.current);
+    p.Assert(UnityEngine.InputSystem.Mouse.current.enabled, "押す前にマウスが有効");
+
     // 日本語を押すと、その場でゲートが外れて初期化が進む
     // Pressing Japanese removes the gate at once and initialization proceeds
     await p.ClickUi("event-language-gate-option-japanese");
@@ -119,6 +127,9 @@ return PlaytestRunner.Run("uitk-event-language-gate", options, async p =>
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     await UniTask.DelayFrame(3);
     await p.SkipOpeningSkitIfPlaying();
+    // 非前面の Editor は CPU が絞られ、飛ばした後の Story を抜けるのに ExitToGameScreen の 10 秒を超えうるので先に待つ
+    // An unfocused Editor is CPU-throttled and leaving Story after the skip can exceed ExitToGameScreen's 10 s, so wait first
+    await p.Until(() => p.CurrentUiState != Client.Game.InGame.UI.UIState.UIStateEnum.Story, 60, "スキットを飛ばした後に Story を抜ける");
     await p.ExitToGameScreen();
     await p.Screenshot("03-after-gate-game-screen-1280x720");
 

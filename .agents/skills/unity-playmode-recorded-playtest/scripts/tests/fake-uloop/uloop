@@ -19,6 +19,12 @@ case "$COMMAND" in
         echo '{"Success": true}' ;;
     execute-dynamic-code)
         if [[ "$CODE" == *"PlaytestRunner.Run"* ]]; then cat "$FAKE_ULOOP_SCENARIO_RESPONSE"
+        elif [[ "$CODE" == *"PlaytestPaths.SessionDirectory"* ]]; then
+            # 置き場の取得: 起動前は FAKE_SESSION_DIR_BEFORE_BOOT、起動後（呼び出しログに boot がある）は FAKE_SESSION_DIR
+            # Dir lookup: FAKE_SESSION_DIR_BEFORE_BOOT before boot, FAKE_SESSION_DIR once the call log has the boot
+            if grep -q 'PrepareAndEnterPlayMode\|PrepareWorldAndEnterPlayMode' "$FAKE_ULOOP_CALL_LOG"; then printf '{"Success": true, "Result": "%s"}\n' "$FAKE_SESSION_DIR"
+            elif [[ -n "${FAKE_SESSION_DIR_BEFORE_FAIL:-}" ]]; then echo '{"Success": false, "ErrorMessage": "fake uloop: reloading"}'
+            else printf '{"Success": true, "Result": "%s"}\n' "${FAKE_SESSION_DIR_BEFORE_BOOT:-}"; fi
         elif [[ "$CODE" == *"pong:"* ]]; then echo '{"Success": true, "Result": "pong:False"}'
         elif [[ "$CODE" == *"master-load-ok"* && -n "${FAKE_ULOOP_DRYRUN_RESPONSE:-}" ]]; then cat "$FAKE_ULOOP_DRYRUN_RESPONSE"
         elif [[ "$CODE" == *"PrepareAndEnterPlayMode"* && -n "${FAKE_ULOOP_BOOT_RESPONSE:-}" ]]; then cat "$FAKE_ULOOP_BOOT_RESPONSE"
