@@ -144,13 +144,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             return await BlockSubInventoryOpener.Open(block);
         }
 
-        private static async UniTask TransitionTo(UIStateControl uiStateControl, UIStateEnum state)
-        {
-            uiStateControl.RequestTransition(state);
-            for (var i = 0; i < 120 && uiStateControl.CurrentState != state; i++) await UniTask.Yield();
-            Assert.AreEqual(state, uiStateControl.CurrentState, $"{state} へ遷移していない");
-        }
-
         // 開いたパネルと同じ個体の機械の値が届くまで待つ
         // Wait until the machine value for the same instance as the open panel arrives
         private static async UniTask<OpenBlockInventoryPanel> WaitMachinePresent(IMachineSectionModel machine, IBlockInventoryPanelSource panels)
