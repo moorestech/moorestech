@@ -3,6 +3,7 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Inventory.Parts;
@@ -35,7 +36,7 @@ namespace Client.Ui.Screens.Inventory.Panel
         private int _columns;
         private bool _columnsResolved;
 
-        public InventoryView(PlayerSlotGestureRouter gestures, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster)
+        public InventoryView(PlayerSlotGestureRouter gestures, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             _gestures = gestures;
             _content = content;
@@ -46,7 +47,8 @@ namespace Client.Ui.Screens.Inventory.Panel
             var panel = new GamePanel("inventory-panel", GamePanelFrame.Default);
             panel.AddToClassList("inventory-view__panel");
             panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
-            var sortButton = new PanelActionButton("inventory-sort", new UiText(LocalizationKeys.Ui.Inventory.Sort));
+            var sortButton = new PanelActionButton("inventory-sort", new UiText(LocalizationKeys.Ui.Inventory.Sort), osCursor);
+
             sortButton.OnClicked.Subscribe(_ => toaster.Report(InventorySortCommands.CommandName, sort.Sort()));
             panel.SetTitleAction(sortButton);
 

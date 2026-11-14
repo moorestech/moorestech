@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Train.Timetable;
 using Client.Ui.State.Text;
@@ -21,7 +22,7 @@ namespace Client.Ui.Screens.BlockInventory.Train
         public TrainTimetableAreaView Timetable { get; }
         public IObservable<TrainInventoryTab> OnTabSelected => _tabs.OnOptionSelected;
 
-        public TrainInventoryBodyView(TrainInventoryContentsView contents, TrainTimetableAreaView timetable)
+        public TrainInventoryBodyView(TrainInventoryContentsView contents, TrainTimetableAreaView timetable, IUiOsCursor osCursor)
         {
             name = "train-inventory-body";
             AddToClassList("train-body");
@@ -31,7 +32,8 @@ namespace Client.Ui.Screens.BlockInventory.Train
             {
                 new ModeSwitchOption<TrainInventoryTab>("train-tab-inventory", TrainInventoryTab.Inventory, new UiText(LocalizationKeys.Ui.BlockInventory.TrainTabInventory)),
                 new ModeSwitchOption<TrainInventoryTab>("train-tab-timetable", TrainInventoryTab.Timetable, new UiText(LocalizationKeys.Ui.BlockInventory.TrainTabTimetable)),
-            });
+            }, osCursor);
+
 
             // 時刻表は持ち物タブのあいだも作ったまま隠す（Web の hidden。D-5）
             // The timetable stays built but hidden on the inventory tab (Web hidden; D-5)

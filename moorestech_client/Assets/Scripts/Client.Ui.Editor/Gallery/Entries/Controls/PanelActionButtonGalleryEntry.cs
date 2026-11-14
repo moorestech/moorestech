@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
@@ -15,7 +16,8 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
         public VisualElement CreateSample()
         {
             var sample = new VisualElement();
-            sample.Add(new PanelActionButton("gallery-panel-action-button", new UiText(LocalizationKeys.Ui.PauseMenu.Settings)));
+            sample.Add(new PanelActionButton("gallery-panel-action-button", new UiText(LocalizationKeys.Ui.PauseMenu.Settings), new ProcessUiOsCursor(new UnityUiOsCursorApplier())));
+
             return sample;
         }
     }

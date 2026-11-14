@@ -1,4 +1,5 @@
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
@@ -19,21 +20,24 @@ namespace Client.Ui.Screens.BlockInventory.Train
         private readonly TrainPlatformEditCommands _commands;
         private readonly BlockItemGridFactory _gridFactory;
         private readonly GameContentPresentation _content;
+        private readonly IUiOsCursor _osCursor;
 
         public BlockInventoryBodyKind Kind => BlockInventoryBodyKind.TrainPlatform;
 
-        public TrainPlatformBodyFactory(ITrainPlatformBodySource source, TrainPlatformEditModel edit, TrainPlatformEditCommands commands, BlockItemGridFactory gridFactory, GameContentPresentation content)
+        public TrainPlatformBodyFactory(ITrainPlatformBodySource source, TrainPlatformEditModel edit, TrainPlatformEditCommands commands, BlockItemGridFactory gridFactory, GameContentPresentation content, IUiOsCursor osCursor)
         {
             _source = source;
             _edit = edit;
             _commands = commands;
             _gridFactory = gridFactory;
             _content = content;
+            _osCursor = osCursor;
         }
 
         public IBlockInventoryPart Create(BlockInventoryBodyMount mount)
         {
-            var view = new TrainPlatformBodyView(_gridFactory.Create("train-platform-item-slots"), new FluidInventoryContents("train-platform-fluid-slots", _content), _commands);
+            var view = new TrainPlatformBodyView(_gridFactory.Create("train-platform-item-slots"), new FluidInventoryContents("train-platform-fluid-slots", _content), _commands, _osCursor);
+
             return new TrainPlatformBodyPresenter(view, _source, _edit);
         }
     }

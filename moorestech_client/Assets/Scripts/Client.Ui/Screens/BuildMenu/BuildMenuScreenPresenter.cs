@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
@@ -31,11 +32,12 @@ namespace Client.Ui.Screens.BuildMenu
         private readonly PlacementTargetIcons _icons;
         private readonly UiCommandResultToaster _toaster;
         private readonly BuildMenuSessionStore _session;
+        private readonly IUiOsCursor _osCursor;
         private readonly CompositeDisposable _subscriptions = new();
         private IDisposable _modelSubscription;
         private BuildMenuView _view;
 
-        public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session)
+        public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, IUiOsCursor osCursor)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
@@ -46,6 +48,7 @@ namespace Client.Ui.Screens.BuildMenu
             _icons = icons;
             _toaster = toaster;
             _session = session;
+            _osCursor = osCursor;
         }
 
         public void Initialize()
@@ -53,7 +56,8 @@ namespace Client.Ui.Screens.BuildMenu
             // 載せるのはここで 1 回だけ。トラッカーは View と同じ寿命（D-22）
             // Mount exactly once here; the tracker lives as long as the view (D-22)
             var tracker = new BuildMenuCategoryScrollTracker(_session);
-            _view = new BuildMenuView(_commands, _hotbarCommands, _content, _icons, _toaster, _session, tracker);
+            _view = new BuildMenuView(_commands, _hotbarCommands, _content, _icons, _toaster, _session, tracker, _osCursor);
+
             _gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(_view);
             _routingState.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(SetShown).AddTo(_subscriptions);
         }

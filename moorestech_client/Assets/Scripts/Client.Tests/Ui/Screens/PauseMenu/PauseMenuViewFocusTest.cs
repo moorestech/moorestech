@@ -1,7 +1,9 @@
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Input;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
 using NUnit.Framework;
@@ -33,7 +35,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             GameUiInputRules.Attach(container);
             var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.BugReport));
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            var view = new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft());
+            var view = new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             container.Add(view);
             view.SetShown(true);
             simulate.FrameUpdate();

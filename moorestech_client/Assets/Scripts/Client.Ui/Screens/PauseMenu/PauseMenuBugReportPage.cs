@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
@@ -15,10 +16,11 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly PauseMenuSubPageView _subPage;
         private readonly BugReportFormView _form;
 
-        public PauseMenuBugReportPage(PauseMenuViewModel model, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
+        public PauseMenuBugReportPage(PauseMenuViewModel model, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
         {
-            _subPage = new PauseMenuSubPageView(commands);
-            _form = new BugReportFormView(model, commands, toasts, toaster, draft);
+            _subPage = new PauseMenuSubPageView(commands, osCursor);
+            _form = new BugReportFormView(model, commands, toasts, toaster, draft, osCursor);
+
             _subPage.AddSection(_form);
         }
 

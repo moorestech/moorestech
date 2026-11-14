@@ -5,9 +5,11 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Panel;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Inventory.Panel;
 using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Panel;
@@ -41,7 +43,7 @@ namespace Client.Tests.Ui.Screens.Inventory
             _commands = new RecordingPlayerSlotCommands();
             _sort = new RecordingInventorySortCommands();
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture));
-            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_commands, Toaster), _sort, content, Toaster));
+            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_commands, Toaster), _sort, content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
         }
 

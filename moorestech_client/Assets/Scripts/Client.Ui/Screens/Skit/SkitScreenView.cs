@@ -44,7 +44,8 @@ namespace Client.Ui.Screens.Skit
             _window = new SkitDialogueWindow(osCursor);
             _choices = new SkitChoiceList(commands, toaster, osCursor);
             _backgroundLine = new SkitBackgroundLine();
-            _toolbar = new SkitToolbar(commands, toaster);
+            _toolbar = new SkitToolbar(commands, toaster, osCursor);
+
             Add(_window);
             Add(_choices);
             Add(_backgroundLine);

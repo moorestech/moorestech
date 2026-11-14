@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Foundation.Text;
@@ -35,7 +36,7 @@ namespace Client.Ui.Screens.BlockInventory
         private readonly BlockInventoryNaturalScroll _naturalScroll;
         private LocalizedLabel _error;
 
-        public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster)
+        public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             // 外殻: block-inventory（Viewer 列の子）> GamePanel(block-inventory-panel, Default) > [エラー行, 本文の器]、閉じるは外殻に絶対配置
             // Shell: block-inventory (Viewer column child) > GamePanel(block-inventory-panel, Default) > [error row, body holder]; close is absolutely placed on the shell
@@ -55,7 +56,8 @@ namespace Client.Ui.Screens.BlockInventory
 
             // 閉じるは Web と同じく外殻の右上に重ねる。自要素のクリックの結線で、拒否はビルドメニューと同じく Report する（前例 BuildMenuView）
             // Close overlays the shell's top-right as on the Web; wiring its own click, with refusals reported as the build menu does (precedent BuildMenuView)
-            _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph());
+            _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph(), osCursor);
+
             _close.AddToClassList("block-inventory__close");
             TutorialAnchor.Mark(_close, AnchorIds.InventoryCloseButton);
             _close.OnClicked.Subscribe(_ => toaster.Report(UiStateTransitionRules.RequestCommandName, commands.Close()));

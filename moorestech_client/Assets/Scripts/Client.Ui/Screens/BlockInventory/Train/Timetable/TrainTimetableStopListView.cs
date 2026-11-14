@@ -2,6 +2,7 @@ using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.Logic;
@@ -20,13 +21,15 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     {
         private const string ListTestId = "train-timetable-stops";
         private readonly TrainTimetableEditCommands _commands;
+        private readonly IUiOsCursor _osCursor;
         private readonly GamePanel _panel;
         private readonly LocalizedLabel _empty;
         private readonly VisualElement _list;
 
-        public TrainTimetableStopListView(TrainTimetableEditCommands commands)
+        public TrainTimetableStopListView(TrainTimetableEditCommands commands, IUiOsCursor osCursor)
         {
             _commands = commands;
+            _osCursor = osCursor;
 
             // Craft 枠に見出し（内側余白は器、文字の型はラベル）・飾り線・列（空なら文言）
             // A craft frame with the heading (padding on the wrapper, type on the label), the fade rule and the list or empty text
@@ -100,9 +103,10 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             return row;
         }
 
-        private static PanelActionButton Control(string testid, LocalizationKey label, bool disabled)
+        private PanelActionButton Control(string testid, LocalizationKey label, bool disabled)
         {
-            var button = new PanelActionButton(testid, new UiText(label));
+            var button = new PanelActionButton(testid, new UiText(label), _osCursor);
+
             button.AddToClassList("train-timetable__control");
             button.SetEnabled(!disabled);
             return button;

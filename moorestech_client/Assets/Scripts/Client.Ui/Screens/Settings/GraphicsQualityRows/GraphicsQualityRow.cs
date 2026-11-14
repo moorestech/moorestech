@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
@@ -16,7 +17,7 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
     public interface IGraphicsQualityRow
     {
         LocalizationKey Caption { get; }
-        IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands);
+        IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands, IUiOsCursor osCursor);
     }
 
     public interface IGraphicsQualityRowSwitch
@@ -45,9 +46,10 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
         public abstract TValue Read(GraphicsQualitySettings settings);
         public abstract GraphicsQualitySettings With(GraphicsQualitySettings settings, TValue value);
 
-        public IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands)
+        public IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands, IUiOsCursor osCursor)
         {
-            return new GraphicsQualityRowSwitch<TValue>(this, new ModeSwitch<TValue>(Testid, ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, Options), commands);
+            return new GraphicsQualityRowSwitch<TValue>(this, new ModeSwitch<TValue>(Testid, ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, Options, osCursor), commands);
+
         }
     }
 

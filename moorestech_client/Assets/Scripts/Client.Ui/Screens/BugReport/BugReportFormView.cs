@@ -3,6 +3,7 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
@@ -37,7 +38,7 @@ namespace Client.Ui.Screens.BugReport
         private BugReportCaptureStatus _capture;
         private bool _sending;
 
-        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
+        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
         {
             _commands = commands;
             _toasts = toasts;
@@ -51,7 +52,8 @@ namespace Client.Ui.Screens.BugReport
             kindCaption.AddToClassList("bug-report__field-label");
             kindCaption.SetKey(LocalizationKeys.Ui.Playtest.ReportKind.Label);
             Add(kindCaption);
-            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, KindOptions());
+            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, KindOptions(), osCursor);
+
             _kindSwitch.OnOptionSelected.Subscribe(OnKindSelected);
             Add(_kindSwitch);
 

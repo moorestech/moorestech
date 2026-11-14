@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Panel;
@@ -24,12 +25,13 @@ namespace Client.Ui.Screens.Inventory.Panel
         private IDisposable _routingSubscription;
         private IDisposable _modelSubscription;
 
-        public InventoryScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster)
+        public InventoryScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             _columns = columns;
             _routing = routing;
             _model = model;
-            _view = new InventoryView(new PlayerSlotGestureRouter(commands, toaster), sort, content, toaster);
+            _view = new InventoryView(new PlayerSlotGestureRouter(commands, toaster), sort, content, toaster, osCursor);
+
         }
 
         public void Initialize()

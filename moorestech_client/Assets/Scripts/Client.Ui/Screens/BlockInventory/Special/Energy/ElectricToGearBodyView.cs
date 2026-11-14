@@ -68,7 +68,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
                 var options = new List<ModeSwitchOption<int>>();
                 for (var i = 0; i < source.OutputModes.Count; i++) options.Add(new ModeSwitchOption<int>($"electric-to-gear-mode-{i}", i, SpecialDetailTexts.ElectricToGearOutputMode(source.OutputModes[i])));
                 _modeHolder.Clear();
-                _modes = new ModeSwitch<int>("electric-to-gear-modes", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, options);
+                _modes = new ModeSwitch<int>("electric-to-gear-modes", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, options, _kit.OsCursor);
+
                 _modes.OnOptionSelected.Subscribe(index => _kit.Run(CommandName, _kit.Commands.SetElectricToGearMode(index)));
                 _modeHolder.Add(_modes);
             }

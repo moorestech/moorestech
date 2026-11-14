@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
@@ -27,10 +28,11 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly GameUiToastFeed _toasts;
         private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
+        private readonly IUiOsCursor _osCursor;
         private readonly CompositeDisposable _subscriptions = new();
         private PauseMenuView _view;
 
-        public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
+        public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
@@ -41,13 +43,15 @@ namespace Client.Ui.Screens.PauseMenu
             _toasts = toasts;
             _toaster = toaster;
             _draft = draft;
+            _osCursor = osCursor;
         }
 
         public void Initialize()
         {
             // 載せるのはここで 1 回だけ。View は隠れた状態で生まれる
             // Mount exactly once here; the view is born hidden
-            _view = new PauseMenuView(_pauseMenuModel.Current, _settingsModel.Current, _commands, _settingsCommands, _toasts, _toaster, _draft);
+            _view = new PauseMenuView(_pauseMenuModel.Current, _settingsModel.Current, _commands, _settingsCommands, _toasts, _toaster, _draft, _osCursor);
+
             _gameUiRoot.GetLayer(UiLayer.PauseMenu, UiFamily.Stage).Add(_view);
 
             // 開くたびに書きかけを空へ戻す（D-7）

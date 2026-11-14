@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Ui.Components.Controls;
@@ -17,12 +18,14 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
             // 横・縦（1 つ無効）・タブの 3 本
             // Horizontal, vertical (one disabled), and tablist
             var column = new VisualElement();
-            var horizontal = new ModeSwitch<string>("gallery-mode-switch", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, Options("gallery-mode-switch"));
+            var osCursor = new ProcessUiOsCursor(new UnityUiOsCursorApplier());
+            var horizontal = new ModeSwitch<string>("gallery-mode-switch", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, Options("gallery-mode-switch"), osCursor);
             horizontal.SetSelected("a");
-            var vertical = new ModeSwitch<string>("gallery-mode-switch-vertical", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, Options("gallery-mode-switch-vertical"));
+            var vertical = new ModeSwitch<string>("gallery-mode-switch-vertical", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, Options("gallery-mode-switch-vertical"), osCursor);
             vertical.SetSelected("b");
             vertical.SetOptionEnabled("c", false);
-            var tablist = new ModeSwitch<string>("gallery-mode-switch-tablist", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Tablist, Options("gallery-mode-switch-tablist"));
+            var tablist = new ModeSwitch<string>("gallery-mode-switch-tablist", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Tablist, Options("gallery-mode-switch-tablist"), osCursor);
+
             tablist.SetSelected("a");
             column.Add(horizontal);
             column.Add(vertical);

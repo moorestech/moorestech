@@ -6,6 +6,7 @@ using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Panels;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.BlockInventory;
 using Client.Ui.Screens.BlockInventory.Parts;
@@ -123,7 +124,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             host.rootVisualElement.Add(stage);
             var commands = new RecordingPanelCommands();
             var toasts = new GameUiToastFeed();
-            var view = new BlockInventoryView(stage, commands, new UiCommandResultToaster(toasts));
+            var view = new BlockInventoryView(stage, commands, new UiCommandResultToaster(toasts), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+
             var bodyHost = new BlockInventoryBodyHost(parts, view);
             stage.Get(StageColumn.Viewer).Add(view);
 

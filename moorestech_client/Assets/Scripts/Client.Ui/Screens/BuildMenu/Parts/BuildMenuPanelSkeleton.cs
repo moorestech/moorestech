@@ -1,5 +1,6 @@
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
@@ -22,7 +23,7 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         private readonly LocalizedLabel _noResults = new() { name = "build-menu-no-results" };
         private readonly BuildMenuCategoryList _list;
 
-        public BuildMenuPanelSkeleton(BuildMenuCategorySidebar sidebar, BuildMenuCategoryList list, BuildMenuDetailSidebar detail)
+        public BuildMenuPanelSkeleton(BuildMenuCategorySidebar sidebar, BuildMenuCategoryList list, BuildMenuDetailSidebar detail, IUiOsCursor osCursor)
         {
             _list = list;
 
@@ -69,7 +70,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
 
             // 閉じるは Web と同じく GamePanel の本文の子（top・right は題の下の本文から測る）。列の後に足して前面へ重ねる（Web の z-index の代わり）
             // The close button is a child of the GamePanel body as on the Web (top/right measured from the body under the title); added after the columns so it draws in front (instead of the Web z-index)
-            CloseButton = new IconButton("build-menu-close", new IconButtonCloseGlyph());
+            CloseButton = new IconButton("build-menu-close", new IconButtonCloseGlyph(), osCursor);
+
             CloseButton.AddToClassList("build-menu__close");
             frame.Add(CloseButton);
             SetNoResults(false);

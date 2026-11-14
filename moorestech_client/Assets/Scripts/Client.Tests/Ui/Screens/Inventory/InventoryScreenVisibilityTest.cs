@@ -6,7 +6,9 @@ using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory;
 using Client.Tests.Ui.State.Inventory.Equipment;
 using Client.Tests.Ui.State.Inventory.Panel;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.Inventory.Equipment;
 using Client.Ui.Screens.Inventory.Panel;
@@ -56,7 +58,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         {
             var columns = new StageColumnsLayout();
             rootVisualElement.Add(columns);
-            new InventoryScreenPresenter(columns, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, new RecordingInventorySortCommands(), Content(), Toaster).Initialize();
+            new InventoryScreenPresenter(columns, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, new RecordingInventorySortCommands(), Content(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())).Initialize();
             _operations.SetMain(0, new SlotItem(MasterHolder.ItemMaster.GetItemId(WoodGuid), 7));
             simulate.FrameUpdate();
 

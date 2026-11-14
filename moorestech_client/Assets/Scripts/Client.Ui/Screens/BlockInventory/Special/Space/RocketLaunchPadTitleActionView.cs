@@ -52,7 +52,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 
             PanelActionButton CreateButton(RocketCommandButton source)
             {
-                var created = new PanelActionButton($"rocket-launch-pad-{source.Command.ToString().ToLowerInvariant()}", new UiText(source.LabelKey));
+                var created = new PanelActionButton($"rocket-launch-pad-{source.Command.ToString().ToLowerInvariant()}", new UiText(source.LabelKey), _kit.OsCursor);
+
                 created.OnClicked.Subscribe(_ => _kit.Run(CommandName, _kit.Commands.SendRocketCommand(source.Command)));
                 Add(created);
                 return created;

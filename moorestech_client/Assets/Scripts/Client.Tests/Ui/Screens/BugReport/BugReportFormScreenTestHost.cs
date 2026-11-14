@@ -3,7 +3,9 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.PauseMenu;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.PauseMenu;
 using NUnit.Framework;
@@ -28,7 +30,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             // Mount after the base SetUp
             Commands = new RecordingPauseMenuCommands();
             Draft = new BugReportDraft();
-            View = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), Commands, Toasts, Toaster, Draft));
+            View = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), Commands, Toasts, Toaster, Draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
         }
 
         protected static PauseMenuViewModel Model(string captureKind, params string[] missing)

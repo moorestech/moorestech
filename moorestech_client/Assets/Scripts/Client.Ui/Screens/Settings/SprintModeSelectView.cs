@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Text;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace Client.Ui.Screens.Settings
         private readonly VisualElement _recovered;
         private readonly ModeSwitch<SprintInputMode> _modes;
 
-        public SprintModeSelectView(SettingsViewModel initial, ISettingsCommands commands)
+        public SprintModeSelectView(SettingsViewModel initial, ISettingsCommands commands, IUiOsCursor osCursor)
         {
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.SprintMode));
@@ -31,7 +32,8 @@ namespace Client.Ui.Screens.Settings
                 new("sprint-mode-option-toggle", SprintInputMode.Toggle, new UiText(LocalizationKeys.Ui.Settings.SprintModeToggle)),
                 new("sprint-mode-option-hold", SprintInputMode.Hold, new UiText(LocalizationKeys.Ui.Settings.SprintModeHold)),
             };
-            _modes = new ModeSwitch<SprintInputMode>("sprint-mode-select", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options);
+            _modes = new ModeSwitch<SprintInputMode>("sprint-mode-select", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options, osCursor);
+
             _modes.OnOptionSelected.Subscribe(commands.SetSprintInputMode);
             Add(_modes);
             Apply(initial);

@@ -27,10 +27,12 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         private readonly LackHighlightText _status = new("space-elevator-status", LackHighlightTextSize.Sm);
         private readonly LocalizedLabel _pool = SpecialViewParts.Label("space-elevator-pool", UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
         private readonly GaugeBar _progress = new("space-elevator-progress");
-        private readonly PanelActionButton _connect = new("space-elevator-connect", new UiText(LocalizationKeys.Ui.BlockInventory.SpaceElevatorConnect));
+        private readonly PanelActionButton _connect;
 
         public SpaceElevatorSectionView(SpecialViewKit kit)
         {
+            _connect = new PanelActionButton("space-elevator-connect", new UiText(LocalizationKeys.Ui.BlockInventory.SpaceElevatorConnect), kit.OsCursor);
+
             _loading.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.DetailLoading));
             SpecialViewParts.SeedEmptyText(_status);
             _connect.OnClicked.Subscribe(_ => kit.Run(CommandName, kit.Commands.ConnectSpaceElevator()));

@@ -1,4 +1,6 @@
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Skit.Parts.Toolbar;
 using NUnit.Framework;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
@@ -20,7 +22,7 @@ namespace Client.Tests.Ui.Screens.Skit
         public void MountToolbar()
         {
             _commands = new RecordingSkitCommands();
-            _toolbar = Mount(new SkitToolbar(_commands, Toaster));
+            _toolbar = Mount(new SkitToolbar(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
         }
 
         [Test]

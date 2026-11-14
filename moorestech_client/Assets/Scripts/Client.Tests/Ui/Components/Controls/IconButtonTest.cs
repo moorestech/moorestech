@@ -1,7 +1,9 @@
 using Client.Input;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
 using UniRx;
@@ -125,7 +127,7 @@ namespace Client.Tests.Ui.Components.Controls
 
         private IconButton AddButton(VisualElement parent)
         {
-            var button = new IconButton(TestId, new IconButtonCloseGlyph());
+            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             parent.Add(button);
             simulate.FrameUpdate();
             return button;

@@ -43,7 +43,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
             // Options follow the Web filterModes order; a press sends the target mode explicitly
             var options = new List<ModeSwitchOption<FilterSplitterMode>>();
             foreach (var mode in Modes) options.Add(new ModeSwitchOption<FilterSplitterMode>($"filter-mode-{directionIndex}-{mode}", mode, new UiText(FilterSplitterLogic.ModeKey(mode))));
-            _mode = new ModeSwitch<FilterSplitterMode>($"filter-mode-{directionIndex}", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options);
+            _mode = new ModeSwitch<FilterSplitterMode>($"filter-mode-{directionIndex}", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options, kit.OsCursor);
+
             _mode.OnOptionSelected.Subscribe(mode => _kit.Run(SetModeCommandName, _kit.Commands.SetFilterMode(_directionIndex, mode)));
 
             stack.AddItem(output);

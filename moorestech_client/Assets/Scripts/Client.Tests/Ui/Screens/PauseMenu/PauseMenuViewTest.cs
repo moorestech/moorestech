@@ -6,8 +6,10 @@ using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
@@ -35,7 +37,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft));
+            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
             simulate.FrameUpdate();
         }

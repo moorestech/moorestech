@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
@@ -19,7 +20,7 @@ namespace Client.Ui.Screens.PauseMenu
     {
         private readonly UiStack _sections;
 
-        public PauseMenuSubPageView(IPauseMenuCommands commands)
+        public PauseMenuSubPageView(IPauseMenuCommands commands, IUiOsCursor osCursor)
         {
             // 本文のスクロールと戻るを Stack gap=md で縦に並べる
             // Stack the scrolling body and Back with Stack gap=md
@@ -38,7 +39,8 @@ namespace Client.Ui.Screens.PauseMenu
             body.Add(_sections);
             column.AddItem(body);
 
-            var back = new PanelActionButton("pause-menu-back", new UiText(LocalizationKeys.Ui.PauseMenu.Back));
+            var back = new PanelActionButton("pause-menu-back", new UiText(LocalizationKeys.Ui.PauseMenu.Back), osCursor);
+
             back.AddToClassList("pause-menu__back");
             TutorialAnchor.Mark(back, AnchorIds.PauseBackToTop);
             back.OnClicked.Subscribe(_ => commands.ShowPage(PauseMenuPage.Top));

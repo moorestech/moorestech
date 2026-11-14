@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using UniRx;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace Client.Ui.Components.Controls
 
         public IObservable<TValue> OnOptionSelected => _onOptionSelected;
 
-        public ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options)
+        public ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options, IUiOsCursor osCursor)
         {
             name = testid;
             _options = options;
@@ -35,7 +36,7 @@ namespace Client.Ui.Components.Controls
 
             for (var i = 0; i < options.Count; i++)
             {
-                var button = CreateOptionButton(options[i], 0 < i);
+                var button = CreateOptionButton(options[i], 0 < i, osCursor);
                 _buttons.Add(button);
                 Add(button);
             }
@@ -98,7 +99,7 @@ namespace Client.Ui.Components.Controls
             return false;
         }
 
-        private Button CreateOptionButton(ModeSwitchOption<TValue> option, bool following)
+        private Button CreateOptionButton(ModeSwitchOption<TValue> option, bool following, IUiOsCursor osCursor)
         {
             var button = new Button { name = option.Testid, focusable = false };
             button.AddToClassList("mode-switch__option");
@@ -120,6 +121,10 @@ namespace Client.Ui.Components.Controls
 
             var value = option.Value;
             button.clicked += () => _onOptionSelected.OnNext(value);
+
+            // Web の cursor: pointer（ModeSwitch/style.module.css:27。IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
+            // Web cursor: pointer (ModeSwitch/style.module.css:27, IconButton/style.module.css:9 and others); the part requests it itself (A-247)
+            new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
             return button;
         }
     }

@@ -1,3 +1,5 @@
+using Client.Tests.Ui.TestDoubles;
+using Client.Ui.Foundation.Input.OsCursor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,7 +71,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
         // Dependency bundle for body L1 tests (alpha's real grid factory with the recording press target; toasts from ScreenTestHost)
         protected SpecialViewKit Kit(GameContentPresentation presentation)
         {
-            return new SpecialViewKit(Commands, presentation, Toaster, new BlockItemGridFactory(BlockSlots, presentation, Toaster));
+            return new SpecialViewKit(Commands, presentation, Toaster, new BlockItemGridFactory(BlockSlots, presentation, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+
         }
 
         // 本物の区画の工場 5 つ（alpha の標準の本文に差す統合 L1 用）
