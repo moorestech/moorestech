@@ -35,12 +35,21 @@
 | R-15 | DC-30 A トークン値の CI | `convert-web-tokens.mjs`・`convert-mantine-tokens.mjs` が `--check`（書かずに差があれば exit 1）を持ち、`run_test.yml` の webui-test が base（か head）が `feature/uitk` の PR でだけ両方を回す（G1 と同じ条件）。依存の無い `node --test tools/uitk/webTokens/tests/*.test.mjs`（2 件）は `uitk-web-follow-gate.yml` の自己テストの job に並べる。手元で両方 `--check` が exit 0 |
 | R-16 | DC-31 A Presenter の結線 | L1 `PresenterMountTest`（本番の `UiLayerStack`・`GameUiRootTestFactory`・切り替えられる `UiRoutingState`）が `uiState.spec` の 5 件を写して緑。L3 `GameUiScreenMountTest` が実ゲームの起動後に、全画面の View が Presenter の決めた層（`GameUiRoot.GetLayer(UiLayer, UiFamily)`）に 1 つだけあり、Render が届いていること（ホットバーの枠の数が 0 でない・持ち物を開くと枠が 0 でない）を見る（DI 登録漏れ・層の取り違え・購読の消し忘れの網）。段ごとの L3 は各ラダーのレーンの物を数える（D-14） |
 | R-17 | 比較撮影と独立評価 | 1-pause-top・2-skit-choices・2-skit-text・2-challenge-hud-multiple-long・3-build-menu・3-modal・4-item-list-large・4-research・4-block-chest・4-block-machine・1-toast・2-notifications・5-japanese-inventory・1-bug-report・2-world-pin-offscreen・5-tutorial-outline-label・2-train-hud・2-tooltip・2-key-control-hint・2-progress-labeled・3-hotbar-equipment-empty・1-settings・4-block-train・4-block-trainTimetable・4-block-trainPlatform・4-block-electricToGear・4-block-filterSplitter・4-block-electricPole・4-block-spaceElevator と recipe の `4-recipe-selected-craft`（`web-9ce5557bdb-s4-recipe`）を 1280×720 と 2560×1080 で撮り、参照と並べて opus の評価役 2 体が別々に判定。再現した差は直すか LX-205〜206 に記帳。`done.md`「差の表」に全行の処遇 |
-| R-18 | DC-32 A Presenter の型 | ゲーム寿命の Presenter・Relay・Binder・Installer・Applier 18 本と `RecipeSelectionCloseReset` から例外なく（X-audit DC-32 の 19 本。実物でも 19 本） `IDisposable` を外し、`Dispose` を呼ぶテストの 4 行（`RecipeSelectionCloseResetTest.cs`:40・:74 を含む）を消す（D-16）。S5-gate の DI 前の土台 `GameUiPreDiFoundation` もこの 2 型の `Dispose` を呼ばない形で、どちらが先に入ってもコンパイルが通る（T0 Step 3 で照合）。設計書 §4.2 の型の改訂案をメモへ |
+| R-18 | DC-32 A Presenter の型 | ゲーム寿命の Presenter・Relay・Binder・Installer・Applier 18 本と `RecipeSelectionCloseReset` から例外なく（X-audit DC-32 の 19 本。実物でも 19 本） `IDisposable` を外し、`Dispose` を呼ぶテストの 4 行（`RecipeSelectionCloseResetTest.cs`:40・:74 を含む）を消す（D-16）。S5-gate の DI 前の土台 `GameUiPreDiFoundation` もこの 2 型の `Dispose` を呼ばない形で、どちらが先に入ってもコンパイルが通る（11-14 に照合済み: `GameUiPreDiFoundation.cs` に `Dispose` の呼び出し 0 件）。static の源への購読の寿命は T24（D-38）。設計書 §4.2 の型の改訂案をメモへ |
 | R-19 | DC-23 A Web ホストの判定 | `UiStateActions.IsAllowed` を消して `UiStateTransitionRules.IsAllowed` を呼ぶ、`CraftActions`・`CraftingRecipesTopic`・`RecipeViewerItemListTopic`・列車の 7 組（s4-train 計画「## 本 PR 外のリファクタ提案」の 1〜8 行目）が State の Catalog・Commands・変換を呼ぶ。付け替え先のうちインスタンスの 3 型（`RecipeViewerItemCatalog`・`ITrainTimetableCommands`・`ITrainBlockCommands`）は両方の系で走る `MainGameUiStateRegistration` で登録し（D-36）、L3 `WebUiSystemStateRegistrationTest` 1 件が Web の系の起動で 3 型の解決を見る（CEF の有無に依らない）。`Client.Tests/WebUi/` の既存テスト緑、Web 系の録画（R-21）が退行 0 |
 | R-20 | AC-5・Warning | AC-5 の 48 件（除外 3 件は D-18）を単一参照のローカル関数へ移す。`BugReportFormView` の 3 件（:107・:173・:185）は I-fix6（DC-22 の持ち主）の取り込み後の実物で、移しても 200 行未満に収まるときだけ移し、収まらなければ新しい型を作らず落として `done.md` に理由を書く（D-24）。Warning の S5-crosscut 候補 4 行を拾う／見送るで 1 行ずつ処遇（c22-si×2・c46-cc は拾う、c63-cc は見送る） |
 | R-21 | 録画 | 反映後のバイナリで、GameUi のラダー 1〜5（`uitk-lifeline`・`stage2/uitk-opening-hud`・`stage3/uitk-build-bp`・`stage4/uitk-production-loop`・`stage4/uitk-research-train`）と横断の録画 9 本（T20 Step 2）が `Success: true`。Web 系で `misc/ui-state-transition-matrix`・`misc/localization-language-switch-via-ui`・`train/fluid-inventory-via-interact`・`train/train-timetable-via-ui`・`train/train-station-default-name`・`playtest-receiver/developer-report-delivery`・`playtest-receiver/developer-report-interrupt`（manifest v7。`webUiHealth` が Web ホストの起動を見るので Web の系）が CEF の出る環境なら `Success: true`（出なければ RendererUnavailable の行を証拠に「未確認」） |
 | R-22 | 指揮の割り当ての完了 | DC-8 B・DC-10 A・DC-11 A・DC-12 A・DC-16 C・DC-18 A・DC-19 A・DC-21 A（Timetable.uss の PanelActionButton 無効の上書きは I-fix5 のため除く）・DC-23 A・DC-27 A・DC-28 B・DC-30 A・DC-31 A・DC-32 A・DC-34 A・AC-5・Warning の候補が、`done.md`「割り当ての処遇」の表で全行「やった（Task n・証拠）／見送った（理由）」 |
 | R-23 | 申し送りの処遇 | 「## 申し送りの処遇」の全行が `done.md` に写る |
+| R-24 | 指揮の持ち物 1 の残り（X-audit・I-fix6 の依頼のうち計画に無かった 4 つ） | `done.md`「割り当ての処遇」に 4 行: Recipe の IsScreenShown → やった（T7。`RecipeScreenVisibility`・`RecipeScreenModel.IsScreenShown` が 0 件）／ベルトの区画の表示判定 → やった（T7 Step 3b。`IsDisplayedInHierarchy` が 0 件・L1 1 件）／DC-16 案 B → 見送った（X-audit の推奨は A〈I-fix6〉と C〈T8〉で、B は呼び出し 32 の書き換えで見た目と挙動が変わらない。D-9）／DC-37 → 済み（S5-gate #1661 の案 A。`Client.Ui/Screens/EventMode/EventLanguageGatePresenter.cs`・`EventLanguageGateView.cs`。残りは S5-gate の並べ比べ・録画で S5-rec の持ち物） |
+| R-25 | 持ち物 2: L3 の一覧に `ChallengeListView` | T14 の `GameUiScreenMountTest` の表に `(ChallengeListView, UiLayer.OverlayPanel, UiFamily.Stage)` の行があり、緑（S5-challenge done.md の依頼） |
+| R-26 | 持ち物 3: L3 の遷移待ちの集約（S2-ladder W-5） | `UiSystemPlayModeTestBase` に `protected static async UniTask TransitionTo(UIStateControl, UIStateEnum)`（120 フレームまで待つポーリング版）が 1 本あり、`GameUiSkeletonTest`・`Stage2HudGameUiTest`・`Stage4ScreenSetGameUiTest`・`GameUiMachineSectionWiringTest` の private 版 4 本が 0 件（`git grep -n "private static async UniTask TransitionTo" -- moorestech_client/Assets/Scripts/Client.Tests` が 0 行）。4 本の L3 が緑（T27） |
+| R-27 | 持ち物 4: 部品カタログと設計書 §2 の食い違い | GamePanel `SetTitleActionReserve`・FluidSlot の ghost の不透明度は済み（I-fix5 #1665 の a8cf87752d で両方とも実物〈`GamePanel.cs`:133・`FluidSlot.uss`:59 の `--slot-ghost-opacity`〉に揃い、11-14 の差分 0）。残る §2.3 ホットバーの地の文を、正本のカタログ（設計書 §2 冒頭の A-257）側で実物〈`HotbarHud.uss`:21-26,55-56 の `PixelFilterGroup` と `filter: opacity()`〉どおりに直す。`diff` で設計書 §2.3 の段落とカタログ §3 の段落が一致（T28） |
+| R-28 | 持ち物 5: `LoadMainGame` と自機配置の競合 | `EditModeInPlayingTestUtil.LoadMainGame` が `GameInitializedEvent` を待ってから戻る（初期化が来なければ時間切れで Assert の文）。初期化の前で止まる起動を見るテスト（`EventLanguageGateCursorTest` ほか）は別の入口を呼ぶ。`TestPlayerGround` を使う 6 本（I-fix6 の 5 本＋`GameUiMachineSectionWiringTest`）が自前の待ちを持たず緑。L3 `LoadMainGameWaitsInitializationTest` 1 件（戻った時点で初期化済み）（T23） |
+| R-29 | 持ち物 6: テストの順序依存（古い言語の購読の NRE） | 修正前の版で再現コマンド（T24 Step 1）が `GameUiRoot.SetRootClassEnabled` の NRE を出すことを `results.xml` の行で記録し、修正後の版の同じコマンドで失敗 0。L3 `GameUiStaticSubscriptionLifetimeTest` 1 件（PlayMode を抜けた後に言語を変えても例外が出ない）（T24） |
+| R-30 | 持ち物 7: Chrome 層の中の順 | `MainGameUiRegistration` で `HotbarGameUiRegistration` が `HudGameUiRegistration` より前。`ModeHudHotbarStackingTest` に登録順の assert 1 件（キー操作ヒントがホットバーより後の兄弟＝前に描かれる。Web keyHint z31 > hotbar z30）。L3 `GameUiScreenMountTest` に同じ層の中の順の 1 行（T25） |
+| R-31 | 持ち物 8: sRGB 合成の RT の作り直しの失敗 | `UiSrgbPanelTarget` が RT の作成に失敗したら失敗した RT を捨てて前の RT と `UiSrgbCompositeSource` を保ったまま例外を投げ、次の同じ大きさの呼び出しで作り直しを試みる。L1 `UiSrgbPanelTargetRetryTest` 2 件（失敗の後に前の RT のまま・次の呼び出しも例外＝再試行する）（T26） |
+| R-32 | 持ち物 9: 通知 4 件とキー操作ヒントの列の重なり | 同じシナリオを `--ui-system GameUi` と `--ui-system Web` で撮った PNG の組（1280×720・2560×1080）と、通知の行・ヒントの行の外接の実測を `done.md`「差の表」に 1 行。Web と違えば共通の層（配置の式）で直して撮り直し、同じなら disposition か台帳「## 実測の結論」に記帳（T29） |
 
 ### やらないこと
 
@@ -48,7 +57,7 @@
 - DC-37（S5-gate）、DC-15・DC-29・DC-33・DC-5 B（X-5）、DC-8 A・DC-16 A・DC-28 A・DC-9・DC-13・DC-14・DC-17・DC-20・DC-22・DC-24・DC-25・DC-26（I-fix6）
 - `Timetable.uss` の PanelActionButton 無効時の上書きの除去（I-fix5）
 - Web ホストの削除（X-5。このレーンは付け替えまで）
-- `Screens/Challenge/`（S5-challenge）・言語ゲートと `Client.Ui.State/EventMode`・`Client.Starter/EventMode`（S5-gate）の新しいファイル。既存の `Screens/Challenge/CurrentHud/` は取り込み後に置換だけ当てる（D-20）
+- `Screens/Challenge/`（S5-challenge）・言語ゲートと `Client.Ui.State/EventMode`・`Client.Starter/EventMode`（S5-gate）の新しいファイル。取り込み済みの `Screens/Challenge/`（`CurrentHud/`・`Tree/`）と `Screens/EventMode/` には横断の置換（T2・T9・T13）だけ当てる（D-20）
 - 束 5 の暗転・突き合わせの締め・並べ比べの締め（S5-ladder）
 - Codex（指揮の指示。§5・§3.3 の codex-audit は opus の subagent 2 体の独立評価で代える）
 
@@ -60,7 +69,7 @@
 - コンパイル: `winunity compile uitk-lane/s5-crosscut`（.cs を触ったタスクは毎回。push してから）。テスト: `winunity test uitk-lane/s5-crosscut --regex "<正規表現>"`（EditModeInPlayingTest の L3 も同じ口。Cursor 等 batchmode で動かないものだけ `--editor`）。失敗は `results.xml` と `log-excerpt.txt` で読む
 - 録画: `winunity play uitk-lane/s5-crosscut .agents/skills/unity-playmode-recorded-playtest/scenarios/<path>.cs --ui-system GameUi`（Web は `--ui-system Web`。全体スイッチは winunity が立てる）。uitk-* のシナリオは冒頭の `UiSystemEditorSwitch.Set(UiSystem.GameUi)` も持つ。日本語の表示文字列を主張するシナリオは言語を自分で決める（Windows の PlayerPrefs は全 worktree 共通）。まとめて流すのは `tools/uitk/run-all-recordings.sh <GameUi|Web> <branch> <list.txt> <out.tsv> <start-line> <count>`（中で winunity play）。missing script が出たら `../moorestech_logs/harness/uitk/winunity-play-fix.md` の手順 2
 - **.meta が要る新規ファイル（.cs・.uss・ディレクトリ）**: Mac では作らない。`winunity` に .meta の持ち帰りの口は無い（`~/bin/winunity` は `summary.json` 等と `play/`・`outputs/` だけを scp する）ので、新規ファイルを足したコミットを push → `winunity compile uitk-lane/s5-crosscut` を流した直後に、Windows の worktree（`C:/dev/worktrees/moorestech/uitk-lane-s5-crosscut`。名前はブランチの `/` を `-` にしたもの）から `scp winbuild:C:/dev/worktrees/moorestech/uitk-lane-s5-crosscut/<repo 相対パス>.meta <同じ repo 相対パス>.meta` で取り、`.meta` だけのコミットにする（前例 I-fix6 の eab8fd68f4）。次の winunity の実行は準備で `git clean -fdq` を流して未追跡の .meta を消すので、取るのは次の実行より前。取り忘れて消えたら、もう一度 `winunity compile` を流して取り直す（GUID は作り直しになるが、まだコミットしていない .meta なので参照は無い）。ファイルを動かす・消すときは .meta も一緒に `git mv`・`git rm`
-- 番号: 設計書の行は A-244〜A-248、見た目の例外は LX-205〜LX-206 だけ（[A-13]・[A-38] は参照のみ）。使わなかった番号は `done.md` に「未使用」と書く
+- 番号: 設計書の行は A-244〜A-248、見た目の例外は LX-205〜LX-206（[A-13]・[A-38] は参照のみ）。11-14 の追記分は A-280（D-38）・A-281（D-39）・LX-240（D-42 の予備）。足りなければ A-282〜A-289・LX-241〜LX-249（A-270〜A-279 は他レーンが使用済み）。使わなかった番号は `done.md` に「未使用」と書く
 - 共有区画は追記だけ: tss の族別区画・`MainGameUiRegistration` の画面登録区画・`localization.csv`・台帳 `docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`docs/uitk/disposition.md` の `## 処遇` の末尾。取り込みの衝突は両方の行を採る
 - 比較撮影の出力は `moorestech_client/.uloop/outputs/compare/S5-crosscut/`。使い捨ての撮影スクリプトを書かない（部品・EditMode は `Client.Ui.Editor.Capture.UiRuntimePanelCapture.CaptureToPng(VisualElement, int, int, Color32, UiCaptureLocalization, string)`、画面・PlayMode は `GameViewResolution.Set`／`PlaytestGameViewOps.SetResolution(ct, w, h)`）。手順の正本は `.agents/skills/ref-uitk-design/references/compare-procedure.md`
 - 参照キャプチャ: `../moorestech_logs/uitk/reference-captures/web-8a585f742a/`（1280×720）と `web-8a585f742a-2560x1080/`（recipe だけ `web-9ce5557bdb-s4-recipe`／`-2560x1080`）
@@ -112,7 +121,16 @@
 | X-audit `done.md` 割り振り | DC-8 B・DC-10・DC-11・DC-12・DC-16 B/C・DC-18・DC-19・DC-21・DC-23・DC-27・DC-28 B・DC-30・DC-31・DC-32・DC-34・AC-5（全対象） | やる（R-22 の表） |
 | X-audit Warning | S5-crosscut 候補 4 行（c22-si 表示 helper・c22-si 空ラベル・c46-cc 研究の現在画面の読み・c63-cc readonly と `{ get; }`） | 拾う 3・見送る 1（T16・D-19） |
 | s4-train 計画「## 本 PR 外のリファクタ提案」 | Web ホストと State の写しの 9 項目 | 1〜8 行目をやる（T15）。9 行目は記録だけの行（新設しなかった旨）なので処遇不要 |
-| 他レーンの `done.md` | X-audit 以外に S5-crosscut 宛ての依頼 | 無し（起草時の grep。T0 Step 4 で最新を見直す） |
+| 他レーンの `done.md` | X-audit 以外に S5-crosscut 宛ての依頼 | 11-14 の見直しで増えた分は指揮の持ち物 2〜9 として下の行に入れた |
+| 指揮（brief 11-14）持ち物 1 | X-audit・I-fix6 の依頼のうち計画に無かった Recipe の IsScreenShown・ベルトの区画の表示判定・DC-16 案 B・DC-37 | やる 2（T7・T7 Step 3b）・見送る 1（DC-16 B。D-43）・済み 1（DC-37。S5-gate #1661）（R-24） |
+| S5-challenge done.md:66 | `GameUiScreenMountTest` の一覧に `ChallengeListView` | やる（T14 Step 2。R-25） |
+| S2-ladder done.md:177 | W-5 L3 の固定 3 フレームの TransitionTo 3 本の集約 | やる（T27。R-26） |
+| PLAN-W5 done.md:55 | 部品カタログと設計書 §2 の食い違い 3 行 | 2 行は済み（I-fix5 #1665）・1 行やる（T28。R-27） |
+| I-fix6 done.md「integrator への依頼」 | `TestPlayerGround` を使う 5 本の `LoadMainGame` の競合 | やる（T23。R-28） |
+| I-fix6 done.md「integrator への依頼」 | GameUi の PlayMode テストの後の `GameUiLocaleClassBinder` の古い購読の NRE | やる（T24。R-29） |
+| S5-challenge done.md:67-68 | Chrome 層の中の順（keyHint z31 > hotbar z30） | やる（T25。R-30） |
+| S5-gate done.md:51 | bug-pass W1: sRGB 合成の RT の作成失敗で `_texture` が差し替わり再試行しない | やる（T26。R-31） |
+| S2-ladder done.md:88,117 | 通知 4 件とキー操作ヒントの列が両系で重なる | やる（T29。R-32） |
 
 ## File Structure
 
@@ -152,6 +170,13 @@ S = `moorestech_client/Assets/Scripts`。持ち主が他レーンのファイル
 | `tools/uitk/webTokens/writeOrCheck.mjs`・`tools/uitk/webTokens/tests/writeOrCheck.test.mjs` | 作る | DC-30 |
 | `tools/uitk/convert-web-tokens.mjs`・`convert-mantine-tokens.mjs`・`.github/workflows/run_test.yml`（webui-test に `--check` の step）・`.github/workflows/uitk-web-follow-gate.yml`（自己テストの job に `node --test`） | 直す | `--check` と CI（D-23） |
 | `docs/uitk/disposition.md`（`## 処遇` の末尾）・`docs/uitk/TODO.md`（「## 実測の結論」「## 見た目の例外」末尾） | 追記 | R-2・R-17 |
+| `S/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtil.cs`・`Util/Boot/MainGameTestBoot.cs`・`Util/Boot/LoadMainGameWaitsInitializationTest.cs` | 直す・作る | T23（`LoadMainGame` が初期化を待つ） |
+| `S/Client.Ui/Foundation/Text/GameUiLocaleClassBinder.cs`（ほか T24 Step 1 の再現に出た型）・`S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiStaticSubscriptionLifetimeTest.cs` | 直す・作る | T24（static の購読を GameUiRoot の寿命へ） |
+| `S/Client.Starter/Registration/MainGameUiRegistration.cs`・`S/Client.Tests/Ui/Screens/ModeHud/ModeHudHotbarStackingTest.cs` | 直す | T25（登録の順） |
+| `S/Client.Ui/Foundation/Composite/UiSrgbPanelTarget.cs`・`GameUiSrgbCompositeInstaller.cs`・`S/Client.Tests/Ui/Composite/UiSrgbPanelTargetRetryTest.cs` | 直す・作る | T26 |
+| `S/Client.Tests/EditModeInPlayingTest/Ui/UiSystemPlayModeTestBase.cs` と L3 4 本 | 直す | T27 |
+| `.agents/skills/ref-uitk-design/references/component-catalog.md` | 直す | T28（§3 の 1 段落） |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-notification-keyhint-overlap.cs` | 作る | T29（両系で流す） |
 | `../moorestech_logs/harness/uitk/S5-crosscut/done.md` | 作る | 報告 |
 
 ---
@@ -1725,6 +1750,95 @@ Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStat
 
 ---
 
+### 指揮の持ち物 2〜9 のタスク（T23〜T29。11-14 追記）
+
+実行順は番号でなく文書の並び（T18 の後・T19 の前）。持ち物 1 は T7（Recipe の IsScreenShown・ベルト）と R-24 の表、持ち物 2 は T14 Step 2 の表に入れた。どのタスクも .cs を触ったら push → `winunity compile uitk-lane/s5-crosscut`、新規ファイルの .meta は Global Constraints の手順で Windows から取る。
+
+### Task 23: `LoadMainGame` が初期化の完了を待つ（R-28。持ち物 5）
+
+**Files:**
+- Modify: `S/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtil.cs`（:48 `LoadMainGame`・:55-104 `LoadMainGameWithMapMode`。今 197 行で足すと 200 を超えるので、起動の手順〈:55-104〉を `S/Client.Tests/EditModeInPlayingTest/Util/Boot/MainGameTestBoot.cs`〈作る〉へ移し、Util は委ねるだけにする）
+- Modify（自前の待ちを外す）: `EditModeInPlayingTest/Ui/GameUiMachineSectionWiringTest.cs`:65-70・`Terrain/PlayerStartsOnBuiltTerrainTest.cs`:83-93
+- Modify（初期化の前で止まる起動を見る。別の入口へ）: `EditModeInPlayingTest/Boot/EventLanguageGateCursorTest.cs`:86（ゲートの待機中を見るので初期化は来ない）。他の呼び手 40 余は `git grep -n "LoadMainGame" -- moorestech_client/Assets/Scripts/Client.Tests` で全部見て、`GameInitializedEvent` が来ない前提のもの（出展モード・ゲート・初期化失敗の経路）だけを別の入口へ替える
+- 対象の 5 本（I-fix6 の依頼）: `BlockInventory/MachineModuleSlotRoundTripTest.cs`:67・`BlockInventory/MachineRecipeSelectRoundTripTest.cs`:60・`BugReport/BugReportBundleWriteTest.cs`:45,128・`BugReport/BugReportRepeatSubmitTest.cs`:37・`Hostless/WebUiHostlessStateAvailabilityTest.cs`:51（どれも `LoadMainGame` の直後に `TestPlayerGround.Create()`。コードは変えず、Util の直しで競合が消える）
+- Test: `S/Client.Tests/EditModeInPlayingTest/Util/Boot/LoadMainGameWaitsInitializationTest.cs`（作る）
+
+**Interfaces:** Consumes: `Client.Game.Common.GameInitializedEvent.OnGameInitialized`（`Client.Game/Common/GameInitializedEvent.cs`:16）・前例の待ち方 `GameUiMachineSectionWiringTest.cs`:67-70（購読してから起動し `WaitUntil(...).Timeout(...)`）。Produces: `LoadMainGame(string, string)`（同じ署名。初期化の完了まで待つ）・`LoadMainGameUntilLoaderShown(string serverDirectory, string worldDirectory)`（今の挙動。初期化の前で止まる起動用。デフォルト引数を付けない）
+
+- [ ] **Step 1: 赤**: `LoadMainGameWaitsInitializationTest`（`[UnityTest]`。editmode-in-playing-test スキルの形）: `GameInitializedEvent` を購読してから `await LoadMainGame();`、戻った直後に「初期化済み」を Assert。push → `winunity test uitk-lane/s5-crosscut --class Client.Tests.EditModeInPlayingTest.Util.Boot.LoadMainGameWaitsInitializationTest` が赤（Windows が速く初期化が 1 秒以内に終わって緑なら、戻った時点から初期化までの時間を `Debug.Log` で出させ、その行を `done.md` に書いて次へ進む。CI では 4 回観測済み〈I-fix6 done.md〉）
+- [ ] **Step 2: 直す**: 起動の手順を `MainGameTestBoot` へ移し、`LoadMainGame` は「シーンを読む前に `GameInitializedEvent.OnGameInitialized.Take(1)` を購読 → 起動 → `WaitUntil(初期化済み).Timeout(60 秒)`」（時間切れは `Assert.Fail("GameInitializedEvent が 60 秒以内に来ない。初期化が失敗したか、ゲートで止まっている")`）。固定 1 秒の `UniTask.Delay`（:72）は消す。`LoadMainGameUntilLoaderShown` は今の挙動を残す（ゲートの待機中を見るテストだけが呼ぶ）。`GameUiMachineSectionWiringTest`・`PlayerStartsOnBuiltTerrainTest` の自前の購読と待ちを消す
+- [ ] **Step 3: 緑**: push → `winunity test uitk-lane/s5-crosscut --regex "LoadMainGameWaitsInitializationTest|MachineModuleSlotRoundTripTest|MachineRecipeSelectRoundTripTest|BugReportBundleWriteTest|BugReportRepeatSubmitTest|WebUiHostlessStateAvailabilityTest|GameUiMachineSectionWiringTest|PlayerStartsOnBuiltTerrainTest|EventLanguageGateCursorTest"` → 失敗 0。続けて `winunity test-all uitk-lane/s5-crosscut` の `summary-all.txt` で EditModeInPlayingTest の失敗が増えていない（既知の失敗は I-fix6 done.md の一覧と照合）。`wc -l` で触ったファイルが 200 行未満
+- [ ] **Step 4: コミット**: `test(uitk): LoadMainGame が GameInitializedEvent を待ってから戻る（I-fix6 の依頼。S5-crosscut T23）`
+
+### Task 24: GameUi の PlayMode テストの後の古い言語の購読（R-29。持ち物 6。T13 の後）
+
+**Files:** Modify: `S/Client.Ui/Foundation/Text/GameUiLocaleClassBinder.cs`（:26 の購読）と、同じく静的な源を購読するゲーム寿命の型で Step 1 の再現に出たもの（候補: `Foundation/Input/ImeCompositionModeApplier.cs` の `UiInputExclusivity` の購読・`Foundation/Composite/GameUiSrgbCompositeInstaller.cs` の `UiSrgbCompositeSource`）。Test: `S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiStaticSubscriptionLifetimeTest.cs`（作る）
+
+**Interfaces:** Consumes: UniRx の `AddTo(this IDisposable, Component)`（GameObject の破棄で購読を解く）・`GameUiRoot`（`Foundation/Root/GameUiRoot.cs`:13 の MonoBehaviour。`SetRootClassEnabled`:55-58 が `uiDocument.rootVisualElement` を読む）・`Localize.OnLanguageChanged`（static）。Produces: なし（購読の寿命だけ）
+
+原因の見立て（推測。Step 1 で確かめる）: S5-gate #1661 から `GameUiLocaleClassBinder` は DI の外の `GameUiPreDiFoundation`（`Client.Starter/GameUiPreDiFoundation.cs`:35,45）が作り、誰も `Dispose` しない（T13 で `IDisposable` 自体も外す）。static の `Localize.OnLanguageChanged` の購読が PlayMode を抜けても残り、後の EditMode の L1 が言語を変えると破棄済みの `GameUiRoot` の `SetRootClassEnabled` を呼んで NRE が連鎖する（I-fix6 done.md「テストの順序依存」・S5-gate done.md:32 の「初期化失敗→メインメニュー復帰で言語変更の例外」と同じ根）
+
+- [ ] **Step 1: 再現（修正前の版で）**: T13 まで入れた版を push し、`winunity test uitk-lane/s5-crosscut --regex '^Client\.Tests\.(EditModeInPlayingTest\.Ui\.GameUiSkeletonTest|EventMode\.|Ui\.Screens\.EventMode\.)'`（NUnit は名前順に流すので PlayMode の L3 が先に走る）。`results.xml` に `GameUiLocaleClassBinder` → `GameUiRoot.SetRootClassEnabled` の `NullReferenceException` の行が出ることを記録する。出なければ `--regex '^Client\.Tests\.(EditModeInPlayingTest\.Ui\.|EventMode\.|Ui\.)'`（I-fix6 は feature/uitk で 21 本中 16 本を観測）へ広げ、再現したコマンドと行を `done.md` に書く。NRE のスタックに出た型を Files の候補から確定する
+- [ ] **Step 2: 赤**: `GameUiStaticSubscriptionLifetimeTest`（`[UnityTest]`・`UiSystemPlayModeTestBase` を継ぎ GameUi で起動）: `LoadMainGame`（T23 の後の形）→ `ExitPlayMode` → `Localize.TrySetChosenLanguage` で日本語と英語を往復 → `LogAssert.NoUnexpectedReceived()`。後始末で言語と PlayerPrefs を戻す（前例 `LocalizedLabelTest`:23-41）
+- [ ] **Step 3: 直す**: Step 1 で確定した型の static の源への購読に `.AddTo(_gameUiRoot)` を付け、`GameUiRoot` の GameObject の破棄（PlayMode を抜ける・シーンを畳む）で解く。`IDisposable` と `Dispose` は戻さない（T13・D-16。終わらせ方の持ち主は GameObject の寿命）。`GameUiRoot` を受けていない型は ctor で受ける（DI は登録済み・`GameUiPreDiFoundation` は手元の `gameUiRoot` を渡す）
+- [ ] **Step 4: 緑**: push → Step 1 と同じコマンドで失敗 0・`winunity test uitk-lane/s5-crosscut --class Client.Tests.EditModeInPlayingTest.Ui.Crosscut.GameUiStaticSubscriptionLifetimeTest` 緑。コミット `fix(uitk): 静的な源への購読を GameUiRoot の寿命に結び、PlayMode の後の言語変更の NRE を止める（I-fix6 の依頼。S5-crosscut T24）`
+
+### Task 25: Chrome 層の中の順を Web の z に合わせる（R-30。持ち物 7）
+
+**Files:** Modify: `S/Client.Starter/Registration/MainGameUiRegistration.cs`（:88 の `HotbarGameUiRegistration.Register(builder);` を :74 の `HudGameUiRegistration.Register(builder);` の前へ）・`S/Client.Tests/Ui/Screens/ModeHud/ModeHudHotbarStackingTest.cs`（登録順の assert を 1 件足す）・`S/Client.Tests/EditModeInPlayingTest/Ui/Crosscut/GameUiScreenMountTest.cs`（T14。層の中の順の 1 行）
+
+**Interfaces:** Consumes: VContainer の入口は登録順に `Initialize` され、層へ `Add` した順に兄弟が並ぶ（後の兄弟が前に描かれる）。Web `App.tsx`:110-124 の `viewportOverlay` の中は keyHint z31（`keyHint.module.css`:12）＞ hotbar・equipment・currentChallenge・keyControlHint z30（同じ z は DOM 順）＞ progress（z-stage-screen）
+
+- [ ] **Step 1: 赤**: `ModeHudHotbarStackingTest` に `キー操作ヒントはホットバーより後に登録され前に描かれる`（前例は ce775a0197 で消えた `操作モードHUDの登録はホットバーより先で帯が前の兄弟になる` と同じく `MainGameUiRegistration.cs` の本文で `HotbarGameUiRegistration.Register(builder);` の位置 < `HudGameUiRegistration.Register(builder);` の位置を見る）。コメントは「入口は登録順に Initialize され、層へ足した順に兄弟が並ぶ。Web はヒント z31 > ホットバー z30」の 2 行だけで、消えた版の :43-44 にあった「同じ登録口の GameUiSrgbCompositeInstaller もこの順に頼る」は書かない（合成は S5-gate で `GameUiPreDiFoundation` へ移り、もう登録口に無い）
+- [ ] **Step 2: 直す**: 登録の行を移す（画面登録区画は共有。行の移動だけで他の行を変えない）。移すと Chrome の中の順は Hotbar → KeyHint → Progress → CurrentChallenge → KeyControlHint → Equipment になる。KeyHint > Hotbar（持ち物の対象）と Equipment > Hotbar は Web と同じ。CurrentChallenge・KeyControlHint・Progress とホットバーの前後は Web と違うまま残るが、通常の配置で重ならない（S5-challenge done.md:67）ので記帳だけ（`done.md`「差の表」に 1 行）
+- [ ] **Step 3: L3 の 1 行**: T14 の `GameUiScreenMountTest` の (b) に「Chrome/Viewport の層で `KeyHintHudView` の兄弟の位置 > `HotbarHudView` の位置」を足す（実ゲームで登録順の結果を見る）
+- [ ] **Step 4**: push → `winunity test uitk-lane/s5-crosscut --regex "ModeHudHotbarStackingTest|GameUiScreenMountTest|Stage2HudGameUiTest"` → 失敗 0（`Stage2HudGameUiTest` の既存失敗「削除の帯がホットバーと同じ層に無い」は I-fix6 done.md の既知の失敗で、増えていないことだけ見る）。並べ比べ（T19）の `2-tooltip`・`2-key-control-hint` でヒントの字がスロットの上に出る（S2-ladder の差 A-2）。コミット `fix(uitk): ホットバーの登録をキー操作ヒントより前にし Web の z の順に揃える（S5-challenge D1。S5-crosscut T25）`
+
+### Task 26: sRGB 合成の RT の作り直しに失敗したら前の RT へ戻す（R-31。持ち物 8）
+
+**Files:** Modify: `S/Client.Ui/Foundation/Composite/UiSrgbPanelTarget.cs`（:37-48 `SyncToScreenSize`）・`GameUiSrgbCompositeInstaller.cs`（:36 の呼び）。Test: `S/Client.Tests/Ui/Composite/UiSrgbPanelTargetRetryTest.cs`（作る。`Client.Ui` は `InternalsVisibleTo("Client.Tests")` 済み）
+
+**Interfaces:** Consumes: `UiSrgbCompositeSource.TryGetTexture(out RenderTexture)`（`UiSrgbCompositeSource.cs`:47）・`UiSrgbPanelRenderTextureUnavailableException`・本番の `Assets/UI Toolkit/GameUi/GameUiPanelSettings.asset`（前例 `UiSrgbCompositeSetupTest.cs`:19-26）。Produces: `internal void SyncToSize(int width, int height)`（画面の大きさは呼び手の Installer が `Screen.width`・`Screen.height` で渡す。最小化の 0 の扱いは今の :40 のまま）
+
+故障（S5-gate bug-pass W1・`UiSrgbPanelTarget.cs`:42-44 で読んだ）: `_texture` を新しい RT に差し替えてから `Create()` を見るので、失敗すると `_texture` が作れなかった RT のまま残り、次の Tick の :41 の寸法一致で再試行しない（画面の大きさを変えた後の UI が古い RT の大きさに止まる）
+
+- [ ] **Step 1: 赤**: 2 件。`UIDocument` に本番の PanelSettings の複製を当てて `UiSrgbPanelTarget` を作り（作るときに今の画面の大きさで 1 枚目ができる）、(1) `SyncToSize(100000, 100000)`（最大のテクスチャの大きさを超えて `Create()` が false）が `UiSrgbPanelRenderTextureUnavailableException` を投げ、その後も `UiSrgbCompositeSource.TryGetTexture` が 1 枚目の RT を返す、(2) 同じ `SyncToSize(100000, 100000)` をもう一度呼ぶと再び例外（寸法一致で黙って戻らない＝作り直しを試みる）。`Create()` の失敗で Unity が出すエラーログは `LogAssert.Expect` で受ける。Windows（d3d12）で `Create()` が false にならず例外が出ないときは、その観測を `done.md` に書き、大きさを 0 以外で作れない値（例 `SystemInfo.maxTextureSize * 2`）に替えて同じ 2 件を組む。後始末で `Dispose` を呼ぶ
+- [ ] **Step 2: 直す**: 新しい RT はローカル変数で作り、`Create()` が false なら `Release` して `_texture`・`_settings.targetTexture`・`UiSrgbCompositeSource` を前のままにして throw。通ったときだけ差し替えて前を `Release`。`SyncToScreenSize()` を `SyncToSize(int, int)` にし、Installer の Tick（:36）が `Screen.width`・`Screen.height` を渡す。silent-ok のコメント（:39）は最小化の行に残す
+- [ ] **Step 3**: push → `winunity compile uitk-lane/s5-crosscut` → `winunity test uitk-lane/s5-crosscut --regex "UiSrgbPanelTargetRetryTest|UiSrgbComposite|InitializationFailureRouteTest"` → 失敗 0。コミット `fix(uitk): sRGB 合成の RT を作れなければ前の RT のまま投げ、次の Tick で作り直す（S5-gate bug-pass W1。S5-crosscut T26）`
+
+### Task 27: L3 の遷移待ちを `UiSystemPlayModeTestBase` のポーリング版へ（R-26。持ち物 3）
+
+**Files:** Modify: `S/Client.Tests/EditModeInPlayingTest/Ui/UiSystemPlayModeTestBase.cs`（26 行。S4-gamma #1668 の置き場のまま）・`GameUiSkeletonTest.cs`:101-108・`Stage2/Stage2HudGameUiTest.cs`:155-162・`Stage4/Stage4ScreenSetGameUiTest.cs`:176-183（固定 `UniTask.DelayFrame(3)` の 3 本）・`GameUiMachineSectionWiringTest.cs`:153-158（ポーリング版の前例。これも基底へ寄せる）
+
+**Interfaces:** Produces: `protected static async UniTask TransitionTo(UIStateControl uiStateControl, UIStateEnum state)`（`RequestTransition` の後、`CurrentState == state` まで最大 120 フレーム待ち、来なければ `Assert.AreEqual` の文で落ちる。前例 `GameUiMachineSectionWiringTest.cs`:155-157）
+
+- [ ] **Step 1**: 基底に上の 1 本を足し（`using Client.Game.InGame.UI.UIState;`・`Cysharp.Threading.Tasks`）、4 本の private 版を消して呼び手はそのまま基底を呼ぶ。上限のフレーム数は名前付き定数（`TransitionWaitFrameLimit = 120`）
+- [ ] **Step 2**: push → `winunity test uitk-lane/s5-crosscut --regex "GameUiSkeletonTest|Stage2HudGameUiTest|Stage4ScreenSetGameUiTest|GameUiMachineSectionWiringTest"` → 増えた失敗 0（`Stage2HudGameUiTest` の既知の失敗 1 件は I-fix6 done.md と照合）。`git grep -n "private static async UniTask TransitionTo" -- moorestech_client/Assets/Scripts/Client.Tests` が 0 行。コミット `test(uitk): L3 の遷移待ちを UiSystemPlayModeTestBase のポーリング版 1 本へ（S2-ladder W-5。S5-crosscut T27）`
+
+### Task 28: 部品カタログ §3 のホットバーの地の文を実物に合わせる（R-27。持ち物 4）
+
+**Files:** Modify: `.agents/skills/ref-uitk-design/references/component-catalog.md`（§3 スロット族の末尾の段落 :81）
+
+- [ ] **Step 1: 照合（11-14 に実施済みの記録）**: 3 行のうち GamePanel の行（設計書 :160・カタログ :53）と FluidSlot の行（設計書 :183・カタログ :76）は `diff <(sed -n 160p 設計書 | tr '|' '\n') <(sed -n 53p カタログ | tr '|' '\n')` で差 0（I-fix5 #1665 の a8cf87752d「設計書 §2 とカタログの食い違い（GamePanel・FluidSlot…）を揃える」）。実物も一致（`GamePanel.cs`:133 `SetTitleActionReserve(bool)`・`FluidSlot.uss`:59 と `SlotFrame.uss`:114 が `--slot-ghost-opacity`〈`SlotTokens.uss`:11 の 0.35〉。A-99 の改め〈A-184〉どおり）。残るのは §2.3 ホットバーの地の文: 設計書 :188 は「Web の値のまま書く（A-180）・群の減光は `filter: opacity()`（A-222）・群は `PixelFilterGroup`（A-226）」、カタログ :81 は「面の上と同じトークンをそのまま使う（A-184）」だけで A-222・A-226 が無い。実物は設計書の側（`HotbarHud.uss`:21-26,55-56 が `.pixel-filter-group` に `filter: opacity(var(--hotbar-…-opacity))`、`HotbarHudView.cs` が `PixelFilterGroup` を使う）
+- [ ] **Step 2: 直す**: 切替の後の正本はカタログ（設計書 §2 冒頭の A-257「この節は移行の経緯として残し、カタログへ写し直さない」）なので、カタログ :81 の段落を設計書 :188 の段落と同じ文にする（設計書は触らない）。確かめ: `diff <(sed -n 188p docs/uitk-migration/execution/component-architecture.md) <(sed -n 81p .agents/skills/ref-uitk-design/references/component-catalog.md)` が差 0
+- [ ] **Step 3: コミット**: `docs(skill): 部品カタログのホットバーの地の文を PixelFilterGroup と filter の実物に合わせる（PLAN-W5 の申し送り。S5-crosscut T28）`
+
+### Task 29: 通知 4 件とキー操作ヒントの列の重なりを Web と並べる（R-32。持ち物 9）
+
+**Files:** Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-notification-keyhint-overlap.cs`（両方の系で流すので冒頭で `UiSystemEditorSwitch.Set` を呼ばない。系は winunity の `--ui-system` が立てる）。直すときだけ Modify: 共通の層（`S/Client.Ui/Screens/Notification/Notification.uss`・`NotificationHostView.cs` の配置、Web 側は触らない）。記帳: `docs/uitk/TODO.md`「## 実測の結論」か `docs/uitk/disposition.md`
+
+**Interfaces:** Consumes: 4 件の通知の作り方（`scenarios/uitk/stage2/uitk-notification-compare.cs`:42-45 の 4 つの `NotificationMessagePack` と :95 の `ClientDIContext.ClientLocalNotificationSource.Notify`）・`PlaytestGameViewOps.SetResolution(ct, w, h)`・`p.Screenshot`・Web の配置（`moorestech_web/webui/src/features/notification/style.module.css`:3-17 の `top: 50%`・下へ積む・`z-viewport-behind-stage`、`features/keyHint/keyHint.module.css`:3-13 の `bottom: 8px`・`gap: 10px`・`z-stage-overlay-panel-chrome`）
+
+事前の読み（推測）: S2-ladder done.md:88 は実ゲームの両系（gu・gw）で通知 1 件の枠とヒントの上端が 1px 内で一致し、4 件の Web は未撮影。Web の CSS も「通知の列は画面の縦中央から下へ・ヒントの列は下端から上へ」で、ヒントの行が 5 行を超えると 4 件目と重なる形なので、同じになる見込み。参照キャプチャ `2-notifications.png` のヒントは 2 行で重ならないが、実ゲームのヒントの行数と違う（モックの状態）ので比べる相手にしない
+
+- [ ] **Step 1: シナリオ**: 開始直後の GameScreen（実ゲームのキー操作ヒントがそのまま出ている状態）で言語を日本語に決め（Windows の PlayerPrefs は全 worktree 共通。終わりに戻す）、4 件を Notify、入りの tween が終わり不透明になるまで待って（S2-ladder 1 回目の失敗の教訓）1280×720 と 2560×1080 で撮る。GameUi の系では通知の行（`NotificationRowView`）とヒントの行（`KeyHintHudView` の子）の `worldBound` を `p.Note` に出す
+- [ ] **Step 2: 両系で流す**: push → `winunity play uitk-lane/s5-crosscut .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/uitk-notification-keyhint-overlap.cs --ui-system GameUi`、続けて同じものを `--ui-system Web`（CEF の絵がゲーム画面に重なる系。S2-ladder の gw と同じ撮り方）。Web で CEF が出ない（`log-excerpt.txt` に RendererUnavailable）ときは Web の行を「未確認」として理由を書き、Step 3 は CSS の式（ヒントの上端 = 720 − 8 − 行数×行高 − (行数−1)×10、通知 4 件の下端 = 360 + 4 行の高さ + 3×10）で GameUi の実測の行数と行高を入れた計算値と並べる
+- [ ] **Step 3: 並べる**: 2 枚の PNG の組（`play/` のスクショ）で、通知の 4 行の外接・ヒントの行の外接・重なる y の範囲・2〜4 件目の通知文の上にヒントの字があるかを画素で測り、`done.md`「差の表」に 1 行（両系の値を並べる）
+- [ ] **Step 4: 処遇**: Web と違う（Web では重ならない・重ね順が逆）なら、違いの出る共通の層（通知の宿主の配置か、ヒントの列の配置）を Web の式どおりに直して撮り直す。Web も同じなら、直さず台帳「## 実測の結論」に「通知 4 件とキー操作ヒントは Web も重なる（ADR 0017 の背面配置どおり。実測 <値>）」の 1 行を足し、disposition には書かない（テスト名の処遇ではないため）。Web が未確認なら「要裁定」でなく「未完了」に書く
+- [ ] **Step 5: コミット**: `test(uitk): 通知 4 件とキー操作ヒントの重なりを両系で撮るシナリオを足し、結論を台帳へ（S2-ladder 表 D。S5-crosscut T29）`。録画・スクショは報告ページに載せる分だけ残す
+
+---
+
 ### Task 19: 比較撮影と独立評価（R-17）
 
 **Files:** 出力 `moorestech_client/.uloop/outputs/compare/S5-crosscut/`（コミットしない）・台帳 `docs/uitk/TODO.md`（「## 実測の結論」「## 見た目の例外」の末尾）
@@ -1780,7 +1894,7 @@ Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStat
 
 設計検査（配置・型閉包）の反映後にやり直した。
 
-1. **Requirements coverage**: R-1→T1、R-2→T1 Step 7-8、R-3→T14・T18、R-4→T2（S5-challenge の 3 行も T2 で置換）、R-5→T3、R-6→T4、R-7→T5、R-8→T6、R-9→T7（研究の 3 か所は I-fix6 の結果次第で T7 Step 3）、R-10・R-11→T8、R-12→T9、R-13→T10、R-14→T11、R-15→T12、R-16→T14、R-17→T19、R-18→T13、R-19→T15、R-20→T16・T17（`BugReportFormView` の 3 件は D-24 の条件付き）、R-21→T20（反映後の再走は T21）、R-22→T22 Step 5、R-23→T0 Step 4・T22 Step 5。死活表の 22 行は各行の根拠がどれかのタスクの Step（L1・録画・並べ比べの状態）に載っている（足した検証: T6 Step 1 の CloseUI と矢印の抑止の L0、T10 Step 3 の IconButton の色の L1、T10 Step 4 の面の値の L1、T19 の 2-challenge-hud-multiple-long・3-modal・4-block-machine、T20 Step 3 の列車の Web 録画 2 本）
+1. **Requirements coverage**: R-1→T1、R-2→T1 Step 7-8、R-3→T14・T18、R-4→T2（S5-challenge の 3 行も T2 で置換）、R-5→T3、R-6→T4、R-7→T5、R-8→T6、R-9→T7（研究の 3 か所は I-fix6 の結果次第で T7 Step 3）、R-10・R-11→T8、R-12→T9、R-13→T10、R-14→T11、R-15→T12、R-16→T14、R-17→T19、R-18→T13、R-19→T15、R-20→T16・T17（`BugReportFormView` の 3 件は D-24 の条件付き）、R-21→T20（反映後の再走は T21）、R-22→T22 Step 5、R-23→T0 Step 4・T22 Step 5、R-24→T7・T7 Step 3b・D-43、R-25→T14 Step 2、R-26→T27、R-27→T28、R-28→T23、R-29→T24、R-30→T25、R-31→T26、R-32→T29（11-14 追記）。死活表の 22 行は各行の根拠がどれかのタスクの Step（L1・録画・並べ比べの状態）に載っている（足した検証: T6 Step 1 の CloseUI と矢印の抑止の L0、T10 Step 3 の IconButton の色の L1、T10 Step 4 の面の値の L1、T19 の 2-challenge-hud-multiple-long・3-modal・4-block-machine、T20 Step 3 の列車の Web 録画 2 本）
 2. **Placeholder scan**: 実物の名前が起草時に確かめられないもの（`UiTestStyleSheets.TryCompile`・`FakeUiOsCursorApplier` の記録名・`RecipeListScrollView` の内側のフィールド（起草時はローカル変数なのでフィールドを足す）・I-fix6 の型と行）は、探す grep と読み替えの書き先（判断記録の末尾）を書いた。R-4・T2 Step 5 の検査は git grep の ERE で効く `[[:space:]]` に直し、起草時に 76 行を数えて対象を全部 T2 の Files に書いた（以前の `\s` の形は 0 行を返し検査が空振りしていた）。「適切に」「必要なら」で閉じたステップは無い
 3. **Type consistency（Produces／Consumes の閉包）**: T1 `GameUiExceptionReading`（抽象・`readonly Status`）／`GameUiExceptionsRecorded(int, IReadOnlyList<GameUiExceptionSample>)`／`GameUiExceptionsUnknown()`／`GameUiExceptionTally.Add`・`Snapshot`・`TryFindFirstUiFrame`・`SampleLimit`／`IBugReportCaptureSources.GameUiExceptions()`・`BugReportCapturedData.GameUiExceptions`／`BugReportManifestReadings.Apply`・`MarkGameUiExceptionsUnknown` は Step 2 のテスト・Step 3 の本体・Step 4 の Writer と確保の口・Interfaces で同じ名前。T6 `IUiKeyPressSource`（`OnPressed`・`WasPressedThisFrame`）・`ISkitAdvanceKeyPressSource`／`ICloseUiKeyPressSource`・`InputKeyPressSource`（抽象）・`SkitAdvanceKeyPressSource()`／`CloseUiKeyPressSource()`・`RecipeSelectionCloseReset(UiRoutingState, ICloseUiKeyPressSource, RecipeItemSelection)` は Step 1 のテスト・Step 2・Step 3 の DI・Step 4 の偽物で一致し、T13（`RecipeSelectionCloseReset` の IDisposable）・T18（Esc の L3 は `CloseUI.SetKeyDownForTest`）が同じ形を前提にする。T5 `UssStyleResolutionGate`（namespace `Client.Ui.Foundation.Theme.StyleResolution`）は T5 Step 3 と T17 の `ToastHostView` で一致。T15 `CraftRecipeUnlockCheck.Check(IGameUnlockStateData, Guid) : UiCommandRejectReason?` は File Structure・T15 の Files・本体・2 つの呼び手で一致し、wire は既存の `UiCommandRejectReasonTraits.ToWireCode` だけが綴る。`UiDisplay.SetShown`/`IsShownInline`（T2→T16 以降）、`UiScrollClipInset.Apply`/`ApplyOuterMargin`/`ApplyInnerPadding`/`ApplyHorizontal`・`RecipeListScrollView.SetClipPadding`（T3）、`GridMeshIndexWriter.WriteQuads`/`QuadIndices`・`Painter2DSquareCap.AddSegment`/`Extend`（T4）は変更なし。既存 API（`UnityLogEntry` の 5 引数 ctor・`InputKey.OnGetKeyDown`/`GetKeyDown`/`SetKeyDownForTest`・`InputSuppressionFilter.FilterKeyPress`〈internal、同じ asmdef から呼ぶ〉・`UiInputExclusivity.ConsumeEscapeThisFrame`/`ClearEscapeLatchForTest`・`UiOsCursorHoverRequest` の 4 引数・`GameUiRootTestFactory.Create`・`UiRoutingStateTestFactory.CreateSwitchable`・`Localize.TrySetChosenLanguage`・`WebUiHealthReading`:33-37 の属性）は実物の file:line で照合した。File Structure に無い新しいファイルは無い（`CraftRecipeUnlockCheck.cs`・`UiText.cs` を載せ、`BugReportFormSender.cs` は「作らない」の行）
 4. **保留・縮退経路**: (a) `UssStyleResolutionGate` の預かりは「解決が来る」で解け、来ないまま配置へ進めば LogError（最小構成: 1 件の Push・0 件の Render。配置前は黙り、配置後は必ず出る。T5 Step 1 の 3 件目が両方を見る）。(b) `gameUiExceptions` の unknown は確保時に数え手の値を取れなかったとき（記録を集めない起動）とクラッシュの箱だけで、どちらも `MarkGameUiExceptionsUnknown` を通るので `missing` に必ず行が立ち、件数の欄そのものが無い（T1 Step 2 の 5 件目）。件数はログの環（2000 件）でなく受けた時点の通算なので、環が溢れても 0 件に縮まない（T1 Step 2 の 2 件目）。クラッシュ箱は恒久に unknown で、それを 0 件と読ませない表示（ダッシュボードの unknown）を対で試す。(c) 矢印は入力欄のフォーカス中に `InputSuppressionFilter` が止め、止めたことを `[UiInputProbe]` のログで出す（無音の縮退にならない）。(d) `RecipeSelectionCloseReset` は旧と同じ pull なので、押下と遷移の順序による取りこぼしは新しく生まれない（D-8）
@@ -1835,7 +1949,47 @@ Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStat
 - D-35（agent 既定）: `TryFindFirstUiFrame` は行頭（呼ばれたメソッドの型）が `Client.Ui.` の行だけを UI のフレームにする。棄却: 行のどこかに `Client.Ui.` を含めば数える — Unity のスタックの行は `Type:Method (args)` の形で、UI の型を引数に取るだけの UI でないフレームまで数える（設計検査の再検査の備考）。2 件目の L1（UniRx の購読の中の例外）は 1 件目と同じ UITK の配送から投げる形で、配送元が UITK でない経路（パケット受信・モデル更新から UI の購読が走る）の例外がログへ出るかは呼び手（PlayerLoop・UniTask の未観測例外の口）に依る。このレーンの L1 では固定せず、T19 Step 4 で台帳「## 実測の結論」へ T1 の実測と並べて「UITK 以外の配送元は未固定」と 1 行書く
 - D-36（指揮の agent 既定（PLAN-W5 再評価））: T15 の付け替え先のうちインスタンスの 3 型（`RecipeViewerItemCatalog`・`TrainTimetableCommands`・`TrainBlockCommands`）は、両方の系で走る `MainGameUiStateRegistration` で登録し、Web の Binder は `resolver.Resolve` で受ける。DC-23 A（付け替える）は保つ。実物で再現した故障: Web の系では `MainGameUiRegistration.cs`:34 の `if (uiSystem != UiSystem.GameUi) return;` で抜けるので、3 型を登録する `RecipeGameUiRegistration.cs`:20・`BlockInventoryTrainGameUiRegistration.cs`:40-41 は走らず、Binder が Resolve すると Web の系の起動で VContainer の解決が落ちる（S5-gate の Task 5 の後も `MainGameUiRegistration` は GameUi の系でだけ呼ばれるので同じ）。採る理由: 前例がある（`MainGameUiStateRegistration.cs`:57-67 の `PauseMenuCommands`・`SettingsCommands`・`SkitCommands` は「Web のアダプタと GameUi の View が同じものを使うので両方の系で登録する」。S2-skit D-54）。3 型の依存は両方の系で登録済みで、Singleton なので Web の系で Resolve されるまで作られず、GameUi の系の挙動は変わらない。棄却: (a) 付け替えるのを DI に依らない static の純関数に限る — 列車の拒否の文字列・`AppliedIsAutoRun`・駅名の検査はインスタンスの `TrainTimetableCommands`・`TrainBlockCommands` の中にあり、static に限ると列車の 2 対（s4-train 提案の 3・7 行目）が付け替えから落ちて判定が 2 か所に残る（DC-23 A の目的を外す）。(b) Binder で `new` して組む — 同じ型が DI の外にもう 1 つでき（`TrainTimetableFetcher` の共有の前提が見えなくなる）、Binder が 199 行から 200 行を超える。(c) GameUi 側と両方の系で 2 回登録する — `Resolve<I>` が後勝ちになり、どちらが使われるかが登録順に依る。気づく経路: L3 `WebUiSystemStateRegistrationTest`（Web の系の DI を CEF・hub の有無に依らず見る。Web の録画は CEF が出ない環境で「未確認」になりうるので、それだけに頼らない）と T15 Step 2b の grep（登録が `MainGameUiStateRegistration` の 1 か所）
 
-読み替え（T0 Step 3 で足す）:
+- D-37（agent 既定。11-14 追記）: `LoadMainGame` は `GameInitializedEvent` を待ってから戻る（I-fix6 の提案どおり）。初期化の前で止まる起動（出展モードのゲートの待機など）を見るテストだけが今の挙動の `LoadMainGameUntilLoaderShown` を呼ぶ。棄却: 5 本それぞれに `GameUiMachineSectionWiringTest` の待ちを写す — 同じ競合が `LoadMainGame` の次の呼び手にも残る。棄却: 固定の待ちを延ばす — 遅い CI で同じ形で落ちる。`EditModeInPlayingTestUtil.cs` は 197 行なので起動の手順を `Util/Boot/MainGameTestBoot.cs` へ出す
+- D-38（agent 既定。設計書 §7.1 に A-280 を足す）: static の源（`Localize.OnLanguageChanged`・`UiInputExclusivity` 等、ゲームより長生きするもの）を購読するゲーム寿命の型は、購読を `AddTo(gameUiRoot)` で `GameUiRoot` の GameObject の寿命に結ぶ。`IDisposable` は持たない（T13・D-16 のまま。終わらせ方の持ち主は GameObject）。これで Editor の PlayMode の後（I-fix6 の順序依存）と、初期化失敗でメインメニューへ戻った後（S5-gate done.md:32・D-22）の古い購読が解ける。D-22 の負債のうち「静的な源を前回の型が握ったまま」はこの形で閉じ、残るのは sRGB の static RT（`UiSrgbCompositeSource`）を T24 Step 1 の再現に出たときだけ同じ形で直す範囲。棄却: `GameUiPreDiFoundation` に Dispose を持たせ `MainGameStarter.OnDestroy` で呼ぶ — 指揮の裁定 1（Dispose しない形）と T13 に反する（S5-gate done.md:32 で取り消した案）
+- D-39（agent 既定。設計書 §7.1 に A-281 を足す）: 同じ層の中の前後は入口の登録順（層へ `Add` した順）で決まるので、`MainGameUiRegistration` の画面登録区画は Web の z の順（同じ z は DOM 順）に並べる。今回はキー操作ヒント（z31）とホットバー（z30）だけを直し、通常の配置で重ならない組（チャレンジ HUD・チュートリアルのキー操作・採掘ゲージとホットバー）は差の表に記帳する。棄却: 層の中に z を持つ仕組みを足す — UITK に z-index が無く、層をさらに割るとホットバーとヒントが Web の viewportOverlay の 1 つの積み重ね文脈から外れる（ce775a0197 で同じ層へ寄せた理由）
+- D-40（agent 既定）: `UiSrgbPanelTarget` の大きさの合わせは `SyncToSize(int width, int height)`（internal）にし、画面の大きさは Installer が渡す。テストのためだけの口ではなく、本番の呼び手も同じ口を通る（AGENTS.md のテスト専用 public に当たらない）。失敗時は前の RT・`targetTexture`・`UiSrgbCompositeSource` を保ってから投げる（S5-gate bug-pass W1 の最小の直し）
+- D-41（agent 既定）: 部品カタログと設計書 §2 の食い違いは、切替の後の正本であるカタログ側を実物に合わせて直す（設計書 §2 冒頭の A-257）。GamePanel・FluidSlot の 2 行は I-fix5 #1665 で揃い済み
+- D-42（agent 既定）: 通知 4 件とキー操作ヒントの重なりは、同じ実ゲームの状態を両系で撮って比べる（参照キャプチャ `2-notifications` はヒントが 2 行のモックで状態が違う）。Web も重なるなら台帳「## 実測の結論」に記帳して直さない（ADR 0017 の背面配置どおり）。Web と違えば共通の層を直す。直さない差が出たら LX-240 に記帳する
+- D-43（agent 既定）: 持ち物 1 の DC-16 案 B（ItemSlotContent の sealed 派生）は採らない。X-audit の推奨は A（I-fix6）で、S5-crosscut の B/C のうち C（T8）を採った理由は D-9。DC-37 は S5-gate #1661 が推奨の案 A で済ませた（EventLanguageGate の Presenter/View が Client.Ui/Screens/EventMode に在る）ので、このレーンのタスクにしない
+- D-44（指揮の指示 11-14）: Unity は Windows の `winunity` だけで回し、Mac の Editor を起動しない（Global Constraints の読み替え）。新規ファイルの .meta は winunity に持ち帰りの口が無いので、`winunity compile` の直後に Windows の worktree から scp で取る（前例 I-fix6 eab8fd68f4）
+
+読み替え（T0 Step 3 で足す。11-14 に HEAD bf791cbecd の実物で照合。以降のタスクはこの読み替えで進める）:
+
+- I-fix6 DC-8 A の研究の 3 か所 → 済み（#1660。`Client.Ui/Screens/Research/ResearchTreePresenter.cs`:48・`Client.Ui.State/Research/Tree/ResearchTreeModel.cs`:50・`Research/Tree/ResearchSelectionStore.cs`:29 が `ResearchScreenVisibility.IsShown`〈`Client.Ui.State/Research/ResearchScreenVisibility.cs`:9-13〉を呼ぶ）。T7 Step 3 から外した
+- `ItemSlotMarks.None`（DC-16 A）→ 済み（`Client.Ui/Components/Slots/ItemSlot/ItemSlotMarks.cs`:11）
+- Toast の診断を写した `NotificationHostView`（DC-28 A）→ 済み（`NotificationHostView.cs`:23 `TokensUnreadableMessage`・:163）。T5 の行 → 取り込み後の実物（198 行。購読 :44-45・預かり :54・`OnCustomStyleResolved` :154-168・`OnGeometryChanged` :176-）。`ToastHostView.cs` の読めない診断は :48-49・:73
+- `PanelActionButton`／`HudSectionHeading` の `UiText` 化（DC-17 A）→ 済み（`PanelActionButton(string testid, UiText label)` `PanelActionButton.cs`:19・`HudSectionHeading(string labelTestid, UiText label)` `HudSectionHeading.cs`:21）。T9 の Produces の `<I-fix6 後のラベルの型>` → `UiText`
+- `BugReportFormText`（DC-22 A）→ `Client.Ui.State/PauseMenu/BugReportFormText.cs`（181 行）。`DescribeDelivery(PlaytestDeliveryStatus) : UiText`（:43）・`DescribeExport` → `TryDescribeExport(PlaytestExportStatus, out UiText)`（:67）。T17 の `BugReportFormText.cs:101,112,123,133,143` → 今の private static は :107,112,117,128,139,149,159,171,176（T17 Step 1 で単一参照を引き直す）
+- `UiText.Join` → `UiText.Join(string separator, IReadOnlyList<UiText> parts)`（`Client.Ui.State/Text/UiText.cs`:57。123 行）
+- `IBlockInventoryPanelCommands.Close()`（DC-13 A）→ `UiCommandResult Close()`（`IBlockInventoryPanelCommands.cs`:11）
+- `BugReportFormView.cs` → 194 行。AC-5 の 3 件 → `SendAsync`:107・`ShowStatus`:173・`KindOptions`:185。`#region Internal` の 3〜4 行を足して 198 行前後で 200 未満に収まる見込み（D-24 の条件は T17 Step 2 の `wc -l` で決める）
+- `BugReportRecoveryControlsView`:63 → `ShowIf` :67-70（display は :69。72 行）
+- `UiCommandRejectReason.RecipeInvalid`/`RecipeLocked`（I-fix5 の改名）→ 済み（`UiCommandRejectReason.cs`:22-23）。T15 の `ToWireCode`（:154-174）→ :146-、wire は :164-165 の `invalid_recipe`・`recipe_locked`
+- `MachineRecipeRowContentBuilder` → `Client.Ui/Content/MachineRecipeRowContentBuilder.cs`（I-fix5 の移動済み）
+- `LocalizedLabel` の ctor → 引数なしの `LocalizedLabel()` だけ（`Client.Ui/Foundation/Text/LocalizedLabel.cs`:42）。T16 の `LocalizedLabel(UiText initial)` は新設のまま
+- `DerivedTokens.uss` → `Foundation/Theme/DerivedTokens/` の 8 本（Controls・Gauges・Panels・Recipe・Screens・Skit・Slots・Text）。`Foundation/Theme/` 直下は今 10 ファイル＋サブディレクトリ 1 で、D-7（直下に足さない）はそのまま
+- `PauseMenuView.cs` → 158 行。display は :72,78。T17 の `PauseMenuView.cs:160→SetShown` は行が無いので T17 Step 1 で引き直す
+- S4-gamma のツール → `tools/uitk/list-recordings.sh <GameUi|Web>`・`tools/uitk/run-all-recordings.sh <GameUi|Web> <branch> <list.txt> <out.tsv> <start-line> <count>`（中で winunity play）。ラダー 4・5 → `scenarios/uitk/stage4/uitk-production-loop.cs`・`uitk-research-train.cs`。`UiSystemPlayModeTestBase` → `Client.Tests/EditModeInPlayingTest/Ui/UiSystemPlayModeTestBase.cs`（26 行。`SelectUiSystemBeforePlayMode`:15・`RestoreDefaultUiSystem`:21）
+- S2-ladder の `scenarios/uitk/stage2/uitk-opening-hud.cs` → 在る（D-21 は不要）
+- S5-gate の `GameUiPreDiFoundation` → 済み（`Client.Starter/GameUiPreDiFoundation.cs`:34-35 で 2 型を new・:44-45 で Initialize し、`Dispose` の呼び出しは 0 件。T13 とどちらが先でもコンパイルが通る）。2 型の static 購読の寿命は T24
+- S5-challenge の `ChallengeListView` → 在る（`Client.Ui/Screens/Challenge/Tree/ChallengeListView.cs`。載せ先は `ChallengeListPresenter.cs`:41 の `UiLayer.OverlayPanel`・`UiFamily.Stage`）。T14 の表へ入れた。`ChallengeScreenVisibility`（`Client.Ui.State/Challenge/ChallengeScreenVisibility.cs`:13）も在る
+- I-fix5 10n の録画の置き場 → 済み（`scenarios/uitk/stage<n>/`）。uitk-lifeline → stage1／uitk-opening-hud・uitk-skit・uitk-skit-choice-pause-cursor・uitk-notification-compare・uitk-tutorial-cues・uitk-skit-compare・uitk-hud・uitk-mode-hud-and-tooltip → stage2／uitk-build-bp・uitk-build-menu → stage3／uitk-production-loop・uitk-research-train・uitk-recipe-craft・uitk-block-special-panels・uitk-research-tree・uitk-train-inventory → stage4。Web の系の 7 本は `misc/`・`train/`・`playtest-receiver/` のまま。T20 を書き換えた
+- 入力（T6）→ `CloseUI` の binding は `<Keyboard>/escape` のまま（`Assets/Asset/Common/moorestechInputSettings.inputactions`:531,535）。`InputSuppressionFilter` は internal のまま（`Client.Input/InputSuppressionFilter.cs`:13）。`PublishEdge` は `InputSystemArrowKeyStream.cs`:36-37 の呼びと :41 のローカル関数。消す 3 ファイル（`SkitEnterKeySource.cs`・`IUiCloseKeyProbe.cs`・`InputManagerCloseKeyProbe.cs`）と `FakeCloseKeyProbe.cs` は在る
+- T7 → `BuildMenuScreenPresenter`:54 → :57。`RecipeScreenModel.IsScreenShown` :105 → :103-108（呼びは `RecipeScreenModel.cs`:82・`RecipeScreenPresenter.cs`:59）。`BuildMenuModel`:47,67・`BuildMenuCommands`:71・`ResearchNodeStateStore`:21,31,50-54 は起草時のまま
+- T2 → 直書き 76 行 44 ファイル → 77 行 45 ファイル（S5-challenge の `ChallengeListView`:70 が増え、他は行がずれた）。T2 の Files と R-4 を書き換えた
+- T3 → `GameScrollView(string testid, GameScrollAxis axis)`（`GameScrollView.cs`:37）が今の ctor。`RecipeListScrollView.cs`:27 は `GameScrollAxis.Vertical` 付きのローカル変数、`RecipeEntryList.cs`:142 の `_scroll.Q<GameScrollView>().contentContainer` はそのまま（149 行）
+- T13 → 外す 19 本（18＋`RecipeSelectionCloseReset`）は実物も 19 本（`CurrentChallengeHudPresenter.cs`:15 を含む）。Dispose を呼ぶテストの 4 行は同じ行（`NotificationLayeringTest.cs`:43・`NotificationFeedRelayTest.cs`:42・`RecipeSelectionCloseResetTest.cs`:40,74）。静的な源の 3 型を new するテストは 0 件
+- T1 → 起草時から変わらず（`BugReportManifest.cs`:37 は `SchemaVersion = 6`・`WebUiHealth` :76、`BugReportBundleWriter.cs` 200 行で webUiHealth は :69-77、`CrashBundleWriter.cs`:57、`BugReportCaptureStatus.cs` 196 行〈:117・:191〉、`BugReportCaptureSession.cs`:60、`PlaytestRecordRegistration.cs`:44、録画シナリオは `developer-report-delivery.cs`:104 の `== 6`・`developer-report-interrupt.cs`:29 の `!= 6`）
+- 持ち物 4 → GamePanel・FluidSlot の 2 行は済み（I-fix5 #1665 a8cf87752d）。残る §2.3 ホットバーの地の文は T28
+- 持ち物 7 の「`ModeHudHotbarStackingTest.cs`:43-44 の古いコメント」→ 今の :43-44 は assert で、そのコメントは無い。ce775a0197 で消えた登録順の assert の版の :43-44（「同じ登録口の GameUiSrgbCompositeInstaller もこの順に頼る」）を指す。T25 で assert を戻すときにその文を書かない
+- 持ち物 8 → `UiSrgbPanelTarget.cs`:42-44（`_texture` を先に差し替えてから `Create()` を見る）。S5-gate done.md:51 の bug-pass W1 と同じ。T26
+- 他レーンの S5-crosscut 宛ての依頼（T0 Step 4）→ I-fix6・S5-challenge・S5-gate・S2-ladder の done.md のものは指揮の持ち物 1〜9 に全部入っている（「申し送りの処遇」に行を足した）
+
 
 評価の指摘の処遇（独立評価 2 体・予測レビュー・設計検査の再検査。再現したものは計画へ反映済み、ここには再現しなかったものと、反映の場所だけを 1 行ずつ）:
 
@@ -1848,7 +2002,7 @@ Expected: grep が 3 行ちょうどで、どれも `Registration/MainGameUiStat
 
 ## 設計書・実行計画へ反映する行
 
-- 設計書 §7.1: A-244（D-1）・A-245（D-5・D-6・D-25）・A-246（D-8。A-162 の「受け手が入力欄のフォーカスを確かめる」の部分を改める）・A-247（D-11・D-12。A-84 の「選択肢の板は `GamePanelSurface` の種別 `SkitChoice` で描く」の部分を改める）・A-248（D-10・D-16 の型）。本文の案は scratchpad の `notes-s5-crosscut.md`
+- 設計書 §7.1: A-280（D-38）・A-281（D-39）（11-14 追記）・A-244（D-1）・A-245（D-5・D-6・D-25）・A-246（D-8。A-162 の「受け手が入力欄のフォーカスを確かめる」の部分を改める）・A-247（D-11・D-12。A-84 の「選択肢の板は `GamePanelSurface` の種別 `SkitChoice` で描く」の部分を改める）・A-248（D-10・D-16 の型）。本文の案は scratchpad の `notes-s5-crosscut.md`
 - 設計書 §7.1 の既存行の改め: A-162（D-8）・A-84（D-12）の改め方の本文案は同メモ
 - 設計書 §1.1（D-10）・§2.2 の `GamePanelSurface` 行（D-12。`--skit-choice` を消す）・§2.7 の OS カーソルの行（D-11）と「1 feature だけが使うもの」の選択肢の板の文（D-12）・§3.2 の 2（D-12）・§4.2 の型（D-16）・部品カタログの ItemSlot の行（D-9）の改訂案は同メモ
 - 実行計画 §6.1 の表に S5-crosscut の行（同メモ）
