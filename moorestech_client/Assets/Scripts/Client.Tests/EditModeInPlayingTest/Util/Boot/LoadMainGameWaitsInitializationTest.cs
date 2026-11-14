@@ -40,19 +40,16 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
             {
                 // 起動より前に購読し、戻った時点で完了の通知が来ているかを見る
                 // Subscribe before booting and check that completion has arrived by the time it returns
-                var isInitialized = false;
-                using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => isInitialized = true);
+                var initializedAt = -1f;
+                using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => initializedAt = Time.realtimeSinceStartup);
                 await LoadMainGame();
-                var initializedAtReturn = isInitialized;
+                var returnedAt = Time.realtimeSinceStartup;
+                var initializedAtReturn = initializedAt >= 0f;
 
-                // 赤のときに戻ってから完了までの遅れを残す
-                // When red, log how long completion lagged behind the return
-                if (!initializedAtReturn)
-                {
-                    var returnedAt = Time.realtimeSinceStartup;
-                    await UniTask.WaitUntil(() => isInitialized).Timeout(System.TimeSpan.FromSeconds(180));
-                    Debug.Log($"[LoadMainGameWaitsInitializationTest] initialized {Time.realtimeSinceStartup - returnedAt:F2}s after LoadMainGame returned");
-                }
+                // 戻りと完了の前後関係を秒で残す（負なら戻った後に完了した）
+                // Log the return-vs-completion gap in seconds (negative means completion came after the return)
+                await UniTask.WaitUntil(() => initializedAt >= 0f).Timeout(System.TimeSpan.FromSeconds(180));
+                Debug.Log($"[LoadMainGameWaitsInitializationTest] returnedAt - initializedAt = {returnedAt - initializedAt:F2}s");
                 Assert.IsTrue(initializedAtReturn, "LoadMainGame が GameInitializedEvent より先に戻った");
             }
 
