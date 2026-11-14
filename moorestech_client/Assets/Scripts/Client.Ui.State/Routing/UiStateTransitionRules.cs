@@ -3,8 +3,8 @@ using Client.Game.InGame.UI.UIState;
 namespace Client.Ui.State.Routing
 {
     /// <summary>
-    /// 現状態から要求できる遷移の表（Web ホスト RequestUiStateActionHandler.IsAllowed の写し。重複は D-5 と同じ扱い）
-    /// Table of transitions requestable from the current state (port of the Web host IsAllowed; duplication handled as in D-5)
+    /// 現状態から要求できる遷移の唯一の表（UITK の遷移要求と Web ホストの ui_state.request が呼ぶ。DC-23 A）
+    /// The single table of transitions requestable from the current state (called by the UITK transition requester and the Web host ui_state.request; DC-23 A)
     /// </summary>
     public static class UiStateTransitionRules
     {

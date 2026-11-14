@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.UI.UIState;
+using Client.Ui.State.Routing;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -46,27 +47,9 @@ namespace Client.WebUiHost.Game.Actions
             }
 
             var requested = Enum.Parse<UIStateEnum>(stateName);
-            if (!IsAllowed(uiStateControl.CurrentState, requested)) return ActionResult.Fail("transition_not_allowed");
+            if (!UiStateTransitionRules.IsAllowed(uiStateControl.CurrentState, requested)) return ActionResult.Fail("transition_not_allowed");
             uiStateControl.RequestTransition(requested);
             return ActionResult.Success();
-        }
-
-        public static bool IsAllowed(UIStateEnum current, UIStateEnum requested)
-        {
-            if (current == requested) return true;
-            return current switch
-            {
-                UIStateEnum.GameScreen => requested == UIStateEnum.PlayerInventory,
-                UIStateEnum.PlayerInventory => requested == UIStateEnum.GameScreen,
-                UIStateEnum.SubInventory => requested == UIStateEnum.GameScreen,
-                UIStateEnum.BuildMenu => requested == UIStateEnum.GameScreen,
-                // C1/C2で追加されたWeb画面の閉じ操作。Story/PauseMenu中の強制遷移は引き続き拒否
-                // Close paths for the C1/C2 web screens; forced transitions during Story/PauseMenu stay rejected
-                UIStateEnum.ResearchTree => requested == UIStateEnum.GameScreen,
-                UIStateEnum.ChallengeList => requested == UIStateEnum.GameScreen,
-                UIStateEnum.PauseMenu => requested == UIStateEnum.GameScreen,
-                _ => false,
-            };
         }
     }
 }
