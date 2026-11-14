@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Ui.Components.Text;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.Pulse;
@@ -30,7 +31,7 @@ namespace Client.Ui.Screens.Tutorial.KeyControlHint
             pickingMode = PickingMode.Ignore;
             _pulse = new TutorialPulseBinding(this);
             RegisterCallback<CustomStyleResolvedEvent>(evt => OnCustomStyleResolved(evt.customStyle));
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void Render(KeyControlHintViewModel model)
@@ -41,7 +42,7 @@ namespace Client.Ui.Screens.Tutorial.KeyControlHint
             while (model.Hints.Count < _rows.Count) RemoveLastRow();
             for (var i = 0; i < model.Hints.Count; i++) _rows[i].SetHint(model.Hints[i].Text, model.Hints[i].KeyName);
             ApplyRowGap();
-            style.display = model.Hints.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+            UiDisplay.SetShown(this, model.Hints.Count != 0);
 
             #region Internal
 

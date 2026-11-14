@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.BlockInventory.Logic.Panel;
@@ -65,12 +66,12 @@ namespace Client.Ui.Screens.BlockInventory
 
             // 生成直後は隠し、Presenter の SetShown が出す（前例 PauseMenuView）
             // Start hidden; the presenter's SetShown reveals it (precedent PauseMenuView)
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
 
         public void Render(BlockInventoryPanelState state, BlockInventoryPanelLayout layout)
@@ -113,7 +114,7 @@ namespace Client.Ui.Screens.BlockInventory
                 var error = ((OpenInventoryPanel)state).Error;
                 if (!BlockInventoryPanelErrorText.TryGetLocalizationKey(error, out var key))
                 {
-                    if (_error != null) _error.style.display = DisplayStyle.None;
+                    if (_error != null) UiDisplay.SetShown(_error, false);
                     return;
                 }
                 if (_error == null)
@@ -126,7 +127,7 @@ namespace Client.Ui.Screens.BlockInventory
                 }
                 _error.name = state is OpenTrainInventoryPanel ? TrainErrorName : BlockErrorName;
                 _error.SetKey(key);
-                _error.style.display = DisplayStyle.Flex;
+                UiDisplay.SetShown(_error, true);
 
                 // 文を入れてから初めて載せる
                 // Mount only after the text is set

@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Components.Slots;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Notification.Content;
@@ -53,11 +54,11 @@ namespace Client.Ui.Screens.Notification
             switch (row.Content.Icon)
             {
                 case ItemNotificationIcon itemIcon:
-                    _iconSlot.style.display = DisplayStyle.Flex;
+                    UiDisplay.SetShown(_iconSlot, true);
                     _icon.SetIcon(icons.ItemIcon(itemIcon.ItemId), GameIconFallback.IdText);
                     break;
                 case NoNotificationIcon:
-                    _iconSlot.style.display = DisplayStyle.None;
+                    UiDisplay.SetShown(_iconSlot, false);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(row), row.Content.Icon.GetType().Name, null);

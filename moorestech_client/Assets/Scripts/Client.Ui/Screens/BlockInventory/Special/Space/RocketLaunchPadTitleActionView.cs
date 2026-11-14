@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
@@ -32,20 +33,20 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             // 合図待ちでなければ題の操作ごと隠す（Web は null。手動の操作を持たない段階）。根は alpha の題の操作の器の唯一の子で UiGapContainer の項目ではないので自分で隠してよい（区画とは違う）
             // Hide the whole action outside command waits (Web returns null); the root is the only child of alpha's title-action holder, not a UiGapContainer item, so it may hide itself (unlike sections)
             var hasButton = detail.TryGetRocketLaunchPad(out var rocket) && rocket.TryGetCommandButton(out var button) ? Show(button) : HideAll();
-            SpecialViewParts.SetShown(this, hasButton);
+            UiDisplay.SetShown(this, hasButton);
 
             #region Internal
 
             bool Show(RocketCommandButton shown)
             {
                 if (!_buttons.ContainsKey(shown.Command)) _buttons[shown.Command] = CreateButton(shown);
-                foreach (var pair in _buttons) SpecialViewParts.SetShown(pair.Value, pair.Key == shown.Command);
+                foreach (var pair in _buttons) UiDisplay.SetShown(pair.Value, pair.Key == shown.Command);
                 return true;
             }
 
             bool HideAll()
             {
-                foreach (var pair in _buttons) SpecialViewParts.SetShown(pair.Value, false);
+                foreach (var pair in _buttons) UiDisplay.SetShown(pair.Value, false);
                 return false;
             }
 

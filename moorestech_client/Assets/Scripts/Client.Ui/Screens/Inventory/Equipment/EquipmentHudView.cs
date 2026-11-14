@@ -4,6 +4,7 @@ using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Panel;
@@ -48,7 +49,7 @@ namespace Client.Ui.Screens.Inventory.Equipment
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
 
         public void Render(PlayerInventoryViewModel viewModel)

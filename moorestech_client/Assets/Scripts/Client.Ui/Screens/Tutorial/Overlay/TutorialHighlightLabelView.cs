@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Client.Ui.State.Tutorial.Logic;
@@ -33,7 +34,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             _clip = clip;
             _gap = gap;
             style.maxWidth = clip.Width;
-            style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(this, true);
             ApplyPlacement();
         }
 
@@ -42,7 +43,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             // 木からは外さず隠すだけにする（載せ直しで同じ矩形だと GeometryChangedEvent が来ず、Visible に戻せなくなる）
             // Hide without removing from the tree (a re-attach at the same rect fires no GeometryChangedEvent, so it could never become Visible again)
             style.visibility = Visibility.Hidden;
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         private void ApplyPlacement()

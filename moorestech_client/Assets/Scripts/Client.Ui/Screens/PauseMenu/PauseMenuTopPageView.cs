@@ -59,7 +59,7 @@ namespace Client.Ui.Screens.PauseMenu
 
         public void ApplyPauseMenu(PauseMenuViewModel model)
         {
-            _disconnected.style.display = model.Disconnected ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_disconnected, model.Disconnected);
         }
 
         public void ApplySettings(SettingsViewModel model)

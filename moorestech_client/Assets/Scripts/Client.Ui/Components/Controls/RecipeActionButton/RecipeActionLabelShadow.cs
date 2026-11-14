@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Text;
@@ -60,7 +61,7 @@ namespace Client.Ui.Components.Controls
 
             // 幅 0 は影なし。重ねたままだと字の縁の画素が影の色で暗むので描かない
             // Zero width means no shadow; stacking the copies would darken the glyph edges, so skip drawing
-            style.display = 0f < offset ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, 0f < offset);
 
             for (var i = 0; i < _glyphs.Length; i++)
             {

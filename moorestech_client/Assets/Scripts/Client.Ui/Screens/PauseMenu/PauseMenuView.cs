@@ -3,6 +3,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.PauseMenu;
@@ -69,13 +70,13 @@ namespace Client.Ui.Screens.PauseMenu
 
             // 生成直後は隠しておき、ルータの判断で SetShown が表示する
             // Start hidden; SetShown reveals it on the router's decision
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void SetShown(bool shown)
         {
             if (shown == (_subscriptions != null)) return;
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
             if (!shown)
             {
                 // 隠している間はモデルを購読しない

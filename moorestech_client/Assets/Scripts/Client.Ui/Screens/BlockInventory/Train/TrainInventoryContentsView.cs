@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Logic.Detail;
@@ -27,8 +28,8 @@ namespace Client.Ui.Screens.BlockInventory.Train
         public void Render(TrainInventoryBodyViewModel model)
         {
             var hasFluids = 0 < model.Fluids.Count;
-            _grid.style.display = hasFluids ? DisplayStyle.None : DisplayStyle.Flex;
-            _fluids.style.display = hasFluids ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_grid, !hasFluids);
+            UiDisplay.SetShown(_fluids, hasFluids);
             if (hasFluids) _fluids.Render(model.Fluids);
             else _grid.Render(model.ItemSlots, BlockDetailMath.AllSlotIndices(model.ItemSlots.Count));
         }

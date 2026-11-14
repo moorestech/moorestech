@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Train.Timetable;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.Inventory;
@@ -45,8 +46,8 @@ namespace Client.Ui.Screens.BlockInventory.Train
         public void RenderTab(TrainInventoryTab tab)
         {
             _tabs.SetSelected(tab);
-            Contents.style.display = tab == TrainInventoryTab.Inventory ? DisplayStyle.Flex : DisplayStyle.None;
-            Timetable.style.display = tab == TrainInventoryTab.Timetable ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(Contents, tab == TrainInventoryTab.Inventory);
+            UiDisplay.SetShown(Timetable, tab == TrainInventoryTab.Timetable);
         }
     }
 }

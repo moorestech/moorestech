@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Challenge.Parts;
 using Client.Ui.State.Challenge.Commands;
@@ -67,7 +68,7 @@ namespace Client.Ui.Screens.Challenge.Tree
         {
             // 隠す間も要素を残し、控えた各カテゴリの View の視点を保つ（Foundation の UiDisplay があればその 1 行に替える）
             // Keep the element while hidden so every kept category view keeps its viewport (replace with the Foundation UiDisplay line when it exists)
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
     }
 }

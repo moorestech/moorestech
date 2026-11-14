@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Skit;
 using Client.Ui.State.Toast;
 using UniRx;
@@ -52,10 +53,10 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             // Tools on window surfaces; restore only on the hidden-UI surface
             _model = model;
             var controlsShown = model.Surface == SkitSurface.Window || model.Surface == SkitSurface.ToolbarOnly;
-            SetShown(_auto, controlsShown);
-            SetShown(_skip, controlsShown);
-            SetShown(_hideUi, controlsShown);
-            SetShown(_showUi, model.Surface == SkitSurface.RestoreOnly);
+            UiDisplay.SetShown(_auto, controlsShown);
+            UiDisplay.SetShown(_skip, controlsShown);
+            UiDisplay.SetShown(_hideUi, controlsShown);
+            UiDisplay.SetShown(_showUi, model.Surface == SkitSurface.RestoreOnly);
 
             // 押せるかは許可で決め、自動 ON だけシアン
             // Pressability follows allowance; only auto ON is cyan
@@ -83,11 +84,6 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             button.EnableInClassList(LeadToolUssClassName, lead);
             Add(button);
             return button;
-        }
-
-        private static void SetShown(VisualElement element, bool shown)
-        {
-            element.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

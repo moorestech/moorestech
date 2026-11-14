@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.Foundation.Motion.Tween;
 using Client.Ui.Foundation.Theme;
@@ -39,7 +40,7 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
         public void Show(TutorialDragGuidePlacement placement)
         {
             _placement = placement;
-            style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(this, true);
             ApplyPlacement();
             // 隠れていた後の表示は 1 周の始めから流す（Web は出し直しで keyframes が 0% から始まる）
             // After being hidden, start the loop from its beginning (Web restarts the keyframes at 0% on re-show)
@@ -51,7 +52,7 @@ namespace Client.Ui.Screens.Tutorial.DragGuide
         public void HideGuide()
         {
             _shown = false;
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
             StopLoop();
         }
 

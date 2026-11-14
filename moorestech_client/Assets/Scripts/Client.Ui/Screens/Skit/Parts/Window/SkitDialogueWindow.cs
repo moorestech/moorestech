@@ -2,6 +2,7 @@ using System;
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using UniRx;
@@ -64,7 +65,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
 
         public void SetSpeaker(string speaker)
@@ -79,7 +80,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
 
         public void SetAdvanceMarkerShown(bool shown)
         {
-            _advanceMarker.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_advanceMarker, shown);
         }
 
         // ポーズ中は文の区画も拾わず、クリックは背後の何にも当たらない（Web の .inputBlocked）。乗っていた指は PointerLeave を待たずに外す

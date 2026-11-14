@@ -49,7 +49,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
             // 詳細の未着は Web と同じく本文を空にする（Web は詳細無しで null）
             // Without detail the body stays empty, as the Web returns null
             var present = detail.TryGetElectricToGear(out var electricToGear);
-            SpecialViewParts.SetShown(_stack, present);
+            UiDisplay.SetShown(_stack, present);
             // silent-ok: 詳細の未着は本文を空のまま（Web と同じ） / 届かないままなら録画（R-12）の回転生成機の段で気づく
             if (!present) return;
 

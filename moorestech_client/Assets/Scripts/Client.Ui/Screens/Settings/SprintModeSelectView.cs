@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Input;
@@ -38,7 +39,7 @@ namespace Client.Ui.Screens.Settings
 
         public void Apply(SettingsViewModel model)
         {
-            SettingsSectionParts.ShowIf(_recovered, model.SprintRecovered);
+            UiDisplay.SetShown(_recovered, model.SprintRecovered);
             _modes.SetSelected(model.SprintMode);
         }
     }

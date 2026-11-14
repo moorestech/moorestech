@@ -11,10 +11,10 @@ namespace Client.Ui.Foundation.Layout
     /// <remarks>
     /// 余白はインラインで当てる。部品が 2 クラスで当てる margin: 0（PanelActionButton）に負けないため
     /// The space is applied inline so it beats the two-class margin: 0 of components such as PanelActionButton
-    /// 表示切替は SetItemShown
-    /// Toggle children with SetItemShown
-    /// 継承の Add/Insert で入れた子と、style.display を直書きした表示切替は間隔の対象外
-    /// Children added via the inherited Add/Insert and display written directly to style are outside the spacing
+    /// 表示切替は SetItemShown（規則は UiDisplay.SetShown と同じで、間隔も当て直す）
+    /// Toggle children with SetItemShown (same rule as UiDisplay.SetShown, and it re-applies the spacing)
+    /// 継承の Add/Insert で入れた子は間隔の対象外
+    /// Children added via the inherited Add/Insert are outside the spacing
     /// </remarks>
     public abstract class UiGapContainer : VisualElement
     {
@@ -52,9 +52,7 @@ namespace Client.Ui.Foundation.Layout
 
         public void SetItemShown(VisualElement item, bool shown)
         {
-            // 表示は USS 側へ戻す（Flex を明示で書くと USS の display 指定を上書きするため）
-            // Show by handing display back to USS (an explicit Flex would override a USS display)
-            item.style.display = shown ? new StyleEnum<DisplayStyle>(StyleKeyword.Null) : DisplayStyle.None;
+            UiDisplay.SetShown(item, shown);
             ApplyLeadingSpaces();
         }
 
@@ -99,7 +97,7 @@ namespace Client.Ui.Foundation.Layout
             var foundFirstShown = false;
             foreach (var item in _items)
             {
-                if (item.style.display == DisplayStyle.None) continue;
+                if (!UiDisplay.IsShownInline(item)) continue;
                 ApplyItemSpace(item, !foundFirstShown, _gapPixels);
                 foundFirstShown = true;
             }

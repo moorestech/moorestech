@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Tutorial.Logic;
@@ -37,7 +38,7 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             // 層の寸法が変わったら端クランプを置き直す（Web useViewportSize）
             // Re-clamp the edge arrows when the layer size changes (Web useViewportSize)
             RegisterCallback<GeometryChangedEvent>(_ => Render(_current));
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void Render(WorldPinViewModel model)
@@ -51,7 +52,7 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
                 if (cue is WorldPinCue.OnScreen onScreen) ShowMarker(onScreen);
                 else ShowArrow((WorldPinCue.OffScreen)cue);
             }
-            style.display = model.Pins.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+            UiDisplay.SetShown(this, model.Pins.Count != 0);
 
             #region Internal
 

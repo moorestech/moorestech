@@ -49,8 +49,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetRocketLaunchPad(out var rocket);
-            SpecialViewParts.SetShown(_loading, !present);
-            SpecialViewParts.SetShown(_view, present);
+            UiDisplay.SetShown(_loading, !present);
+            UiDisplay.SetShown(_view, present);
             // silent-ok: 詳細の未着は「状態の取得を待っています」を出したまま / 録画（R-12）の発射台の段で気づく
             if (!present) return;
 

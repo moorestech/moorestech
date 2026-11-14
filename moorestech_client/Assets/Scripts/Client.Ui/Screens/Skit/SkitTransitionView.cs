@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Skit
@@ -13,12 +14,12 @@ namespace Client.Ui.Screens.Skit
             name = "skit-transition";
             AddToClassList("skit-transition");
             pickingMode = PickingMode.Ignore;
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
     }
 }

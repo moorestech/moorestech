@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Skit;
 using Client.Ui.State.Toast;
 using UniRx;
@@ -28,14 +29,14 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
             _osCursor = osCursor;
             AddToClassList("skit-choices");
             pickingMode = PickingMode.Ignore;
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void Render(SkitViewModel model)
         {
             _model = model;
             if (!SameChoices(model.Choices)) Rebuild(model.Choices);
-            style.display = 0 < model.Choices.Count ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, 0 < model.Choices.Count);
 
             #region Internal
 

@@ -47,8 +47,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             // 詳細の未着は取得待ちだけを出し、接続の操作を出さない
             // Pending detail shows only the loading line, without the connect operation
             var present = detail.TryGetSpaceElevator(out var elevator);
-            SpecialViewParts.SetShown(_loading, !present);
-            SpecialViewParts.SetShown(_section, present);
+            UiDisplay.SetShown(_loading, !present);
+            UiDisplay.SetShown(_section, present);
             if (!present) return;
 
             var display = elevator.StatusDisplay;

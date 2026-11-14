@@ -1,5 +1,6 @@
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -78,8 +79,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
         // The no-results label replaces the list (the Web ternary; D-28)
         public void SetNoResults(bool showsNoResults)
         {
-            _noResults.style.display = showsNoResults ? DisplayStyle.Flex : DisplayStyle.None;
-            _list.style.display = showsNoResults ? DisplayStyle.None : DisplayStyle.Flex;
+            UiDisplay.SetShown(_noResults, showsNoResults);
+            UiDisplay.SetShown(_list, !showsNoResults);
         }
     }
 }

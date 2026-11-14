@@ -1,4 +1,5 @@
 using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Recipe.Parts;
 using Client.Ui.State.Recipe.Screen;
@@ -56,8 +57,8 @@ namespace Client.Ui.Screens.Recipe
             // No selection shows the hint only; a selection switches the height and shows the content (Web height 300 / 432.983)
             var selected = vm as RecipeViewerItemSelected;
             EnableInClassList(SelectedClass, selected != null);
-            _hint.style.display = selected == null ? DisplayStyle.Flex : DisplayStyle.None;
-            _content.style.display = selected == null ? DisplayStyle.None : DisplayStyle.Flex;
+            UiDisplay.SetShown(_hint, selected == null);
+            UiDisplay.SetShown(_content, selected != null);
             if (selected == null)
             {
                 ForgetShownContent();
@@ -103,7 +104,7 @@ namespace Client.Ui.Screens.Recipe
         public void SetShown(bool shown)
         {
             _shown = shown;
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
             if (shown)
             {
                 // 出し直したら覚えた VM で組む（持ち物の再取得など別の契機を待たない）

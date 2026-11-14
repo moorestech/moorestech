@@ -50,7 +50,7 @@ namespace Client.Ui.Screens.TrainHud
 
         public void Render(TrainRidingHudViewModel model)
         {
-            _paper.style.display = model.Shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_paper, model.Shown);
 
             // 隠す間も文は入れておく（文の無い LocalizedLabel は載った 1 フレーム後に LogError を出す）
             // Keep a text even while hidden (a LocalizedLabel without one logs an error a frame after attaching)

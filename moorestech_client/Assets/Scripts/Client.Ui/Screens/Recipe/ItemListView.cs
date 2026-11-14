@@ -4,6 +4,7 @@ using Client.Ui.Components.Panels;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Input.Gesture;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Recipe.Parts;
 using Client.Ui.State.Recipe.Screen;
@@ -85,7 +86,7 @@ namespace Client.Ui.Screens.Recipe
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
 
             // 出すときは何も戻さない（戻すのは閉じる側）
             // Showing resets nothing (the hide side does)

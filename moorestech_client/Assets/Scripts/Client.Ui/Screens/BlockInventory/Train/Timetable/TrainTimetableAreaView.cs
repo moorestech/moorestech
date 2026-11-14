@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Train.TimetableEdit;
 using Mooresmaster.Localization.Generated;
@@ -62,8 +63,8 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 
         private void Show(VisualElement message)
         {
-            _loading.style.display = message == _loading ? DisplayStyle.Flex : DisplayStyle.None;
-            _unavailable.style.display = message == _unavailable ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_loading, message == _loading);
+            UiDisplay.SetShown(_unavailable, message == _unavailable);
         }
 
         private static LocalizedLabel Message(string testid, LocalizationKey key)

@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
@@ -52,8 +53,8 @@ namespace Client.Ui.Screens.Settings
 
         public void Apply(SettingsViewModel model)
         {
-            SettingsSectionParts.ShowIf(_recovered, model.GraphicsRecovered);
-            SettingsSectionParts.ShowIf(_custom, model.Preset == GraphicsQualityPresetChoice.Custom);
+            UiDisplay.SetShown(_recovered, model.GraphicsRecovered);
+            UiDisplay.SetShown(_custom, model.Preset == GraphicsQualityPresetChoice.Custom);
             switch (model.Preset)
             {
                 case GraphicsQualityPresetChoice.High: _preset.SetSelected(GraphicsQualityPreset.High); break;

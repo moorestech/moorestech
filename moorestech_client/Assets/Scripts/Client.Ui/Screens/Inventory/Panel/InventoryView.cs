@@ -3,6 +3,7 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Actions;
@@ -88,7 +89,7 @@ namespace Client.Ui.Screens.Inventory.Panel
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
 
         private void ReadColumns()

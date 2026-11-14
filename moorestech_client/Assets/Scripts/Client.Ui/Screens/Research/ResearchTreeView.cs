@@ -3,6 +3,7 @@ using Client.Ui.Components.NodeGraph;
 using Client.Ui.Components.Panels;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Research.Parts;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
@@ -88,7 +89,7 @@ namespace Client.Ui.Screens.Research
         {
             // 隠す間も要素を残し視野を保つ
             // Keep the element hidden to keep the viewport
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
     }
 }

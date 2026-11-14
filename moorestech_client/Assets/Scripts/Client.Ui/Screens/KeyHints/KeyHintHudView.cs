@@ -30,13 +30,13 @@ namespace Client.Ui.Screens.KeyHints
             _rows = new UiStack(UiGap.Xs);
             _rows.pickingMode = PickingMode.Ignore;
             Add(_rows);
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
         }
 
         public void Render(KeyHintHudViewModel model)
         {
-            style.display = model.Shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, model.Shown);
             _deleteMode = model.DeleteMode;
             if (_hasTokens) ApplyBottom();
 

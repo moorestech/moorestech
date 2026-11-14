@@ -36,12 +36,12 @@ namespace Client.Ui.Screens.Challenge.CurrentHud
             surface.Add(heading);
             Add(surface);
             IgnorePicking();
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void Render(CurrentChallengeHudViewModel model)
         {
-            style.display = model.Shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, model.Shown);
             _objectives.ClearItems();
             foreach (var objective in model.Objectives)
             {

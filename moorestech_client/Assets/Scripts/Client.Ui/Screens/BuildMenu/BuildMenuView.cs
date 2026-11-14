@@ -1,4 +1,5 @@
 using Client.Ui.Content;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BuildMenu.CategoryScroll;
 using Client.Ui.Screens.BuildMenu.Parts;
 using Client.Ui.State.BuildMenu.Commands;
@@ -55,7 +56,7 @@ namespace Client.Ui.Screens.BuildMenu
 
             // 生成直後は隠す（SetShownで出す）
             // Start hidden; the presenter's SetShown reveals it
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
 
             #region Internal
 
@@ -89,7 +90,7 @@ namespace Client.Ui.Screens.BuildMenu
                 // 位置を保存して視口を凍らせてから隠す（隠した ScrollView の位置は当てにならないため。D-7）
                 // Save the position and freeze the viewport before hiding, since a hidden ScrollView's offset is unreliable (D-7)
                 _scrollBinding.Detach();
-                style.display = DisplayStyle.None;
+                UiDisplay.SetShown(this, false);
                 return;
             }
 
@@ -97,7 +98,7 @@ namespace Client.Ui.Screens.BuildMenu
             // On every open restore the session query, show, then attach a fresh viewport (D-7)
             _query = _session.Current.Query;
             _skeleton.Search.SetValueWithoutNotify(_query);
-            style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(this, true);
             RenderShownList();
             _scrollBinding.Attach();
         }

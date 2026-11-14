@@ -25,13 +25,6 @@ namespace Client.Ui.Screens.BlockInventory.Special
             label.SetText(UiText.FromVerbatim(string.Empty));
         }
 
-        // 子の出し入れ。UiGapContainer の項目（SetItemShown を使う）と SectionStack の項目としての区画の根には使わない。本文の唯一の子として包む区画にはよい
-        // Toggles a child; not for UiGapContainer items (use SetItemShown) or section roots as SectionStack items; fine for a section wrapped as a body's only child
-        public static void SetShown(VisualElement element, bool shown)
-        {
-            element.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
-        }
-
         // パネルに載り、自分から根まで display:none が無い（Web の「層が blockInventory」の代わり）
         // Attached to a panel with no display:none from itself to the root (stands in for the Web "active layer is blockInventory")
         public static bool IsDisplayedInHierarchy(VisualElement element)

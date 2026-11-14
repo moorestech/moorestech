@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Tutorial.Logic;
 using UnityEngine;
@@ -43,12 +44,12 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             style.top = spot.Top;
             style.translate = new Translate(Length.Percent(-50), Length.Percent(-50));
             style.rotate = new Rotate(Angle.Degrees(spot.AngleDegrees));
-            style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(this, true);
         }
 
         public void HideArrow()
         {
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void Discard()

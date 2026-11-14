@@ -4,6 +4,7 @@ using Client.Ui.Content;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Hotbar.Parts;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
@@ -70,7 +71,7 @@ namespace Client.Ui.Screens.Hotbar
         {
             // 退く間は帯ごと隠す
             // Hide the whole band while retreating
-            style.display = viewModel.Visible ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, viewModel.Visible);
             if (!viewModel.Visible) ReleaseCaptureInsideBand();
             _row.EnableInClassList(SelectDisabledClass, !viewModel.SelectAccepted);
 
