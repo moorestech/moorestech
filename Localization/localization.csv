@@ -451,7 +451,7 @@ ui.blockInventory.beltThroughputWindow,Last {seconds}s: {count} / {max} items ({
 ui.blockInventory.beltThroughputMeasuring,Last {seconds}s: measuring,Last {seconds}s: measuring,直近{seconds}秒: 計測中,Letzte {seconds}s: wird gemessen,최근 {seconds}초: 측정 중
 ui.blockInventory.cleanRoomClass,Room class {className},Room class {className},部屋のクラス {className},Raumklasse {className},방 등급 {className}
 ui.blockInventory.cleanRoomClassOut,Room below class,Room below class,部屋はクラス未達,Raum unter Klasse,방 등급 미달
-ui.blockInventory.cleanRoomAir,Concentration {concentration} / Air changes {airChangeRate}/s,Concentration {concentration} / Air changes {airChangeRate}/s,濃度 {concentration} / 換気 {airChangeRate}回/秒,Konzentration {concentration} / Luftwechsel {airChangeRate}/s,농도 {concentration} / 환기 {airChangeRate}회/초
+ui.blockInventory.cleanRoomAir,Air changes {airChangeRate}/s,Air changes {airChangeRate}/s,換気 {airChangeRate}回/秒,Luftwechsel {airChangeRate}/s,환기 {airChangeRate}회/초
 ui.blockInventory.cleanRoomFilter,Purifier {index}: power {power}% / filters {count} / life {remaining}%,Purifier {index}: power {power}% / filters {count} / life {remaining}%,清浄機{index}: 電力 {power}% / フィルター {count}個 / 残量 {remaining}%,Luftreiniger {index}: Strom {power} % / Filter {count} / Lebensdauer {remaining} %,공기청정기 {index}: 전력 {power}% / 필터 {count}개 / 잔량 {remaining}%
 ui.blockInventory.cleanRoomNoFilter,No purifier in this room,No purifier in this room,この部屋に清浄機がありません,Kein Luftreiniger in diesem Raum,이 방에 공기청정기가 없습니다
 ui.blockInventory.cleanRoomNotSealed,Not sealed: {count} gaps,Not sealed: {count} gaps,密閉されていません: 隙間 {count} か所,Nicht abgedichtet: {count} Lücken,밀폐되지 않음: 틈 {count}곳

@@ -1,12 +1,12 @@
 # ISaveMigrationStep のテンプレート
 
-実装済みの実例が `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV1ToV2.cs`
+実装済みの実例が `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V1ToV2/SaveMigrationStepV1ToV2.cs`
 にある（版1→版2: `world[].state` のJSON文字列をオブジェクトへ展開し、`currentTick`・`randomState`・
 `miningCooldowns` を補う）。**新しいステップを書くときはまずそのファイルを読み、下の骨格へ写す。**
 
 ## 1. ステップ本体
 
-`Game.SaveLoad/Migration/Steps/SaveMigrationStepV<n>ToV<n+1>.cs`:
+`Game.SaveLoad/Migration/Steps/V<n>ToV<n+1>/SaveMigrationStepV<n>ToV<n+1>.cs`（版フォルダに本体1本と、その版だけで使う部品を置く。複数の版で使う部品は `Steps/Shared/`）:
 
 ```csharp
 using System;
@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps
+namespace Game.SaveLoad.Migration.Steps.V2ToV3
 {
     /// <summary>版2のセーブを版3へ上げる。<何をするか1行></summary>
     /// <summary>Raises a version 2 save to version 3: <one line in English></summary>
@@ -95,16 +95,18 @@ namespace Game.SaveLoad.Migration.Steps
 
 ## 2. 登録
 
-`moorestech_server/Assets/Scripts/Server.Boot/MoorestechServerDIContainerGenerator.cs` の
-`SaveMigrationChain` 登録行（セーブ系登録ブロック内）へ足す:
+`moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs` の
+`SaveMigrationChain` 登録行（セーブ系登録ブロック内）へ足し、版フォルダの namespace を `using` する:
 
 ```csharp
-services.AddSingleton(new SaveMigrationChain(new ISaveMigrationStep[]
-{
-    new SaveMigrationStepV1ToV2(),
-    new SaveMigrationStepV2ToV3(),
-}, WorldSaveAllInfo.CurrentVersion));
+using Game.SaveLoad.Migration.Steps.V1ToV2;
+using Game.SaveLoad.Migration.Steps.V2ToV3;
+
+services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3() }));
 ```
+
+全連鎖を組むテスト（`SaveMigrationChainTest`・`SaveLoadPreparerTestFixture`・`SaveMigrationStepV7ToV8Test`・`SaveMigrationStepV8ToV9Test`）の
+`ForCurrentVersion` にも同じく足す。足し忘れるとそのテストが構築時の `ArgumentException` で落ちる。
 
 同じPRで `WorldSaveAllInfo.CurrentVersion`（`Game.SaveLoad/Json/WorldVersions/`）を1つ上げる。
 上げ忘れる（またはステップを足し忘れる）と、`SaveMigrationChain` の構築検証が
@@ -113,15 +115,15 @@ services.AddSingleton(new SaveMigrationChain(new ISaveMigrationStep[]
 
 ## 3. テスト
 
-`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationStepV<n>ToV<n+1>Test.cs`。
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/Migration/V<n>ToV<n+1>/SaveMigrationStepV<n>ToV<n+1>Test.cs`。
 既存の `SaveMigrationStepV1ToV2Test.cs` が雛形で、次の観点を1本ずつ持つ:
 
 ```csharp
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V2ToV3;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace Tests.UnitTest.Game.SaveLoad
+namespace Tests.UnitTest.Game.SaveLoad.Migration.V2ToV3
 {
     public class SaveMigrationStepV2ToV3Test
     {
@@ -163,6 +165,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 - **前の版のセーブクラスを参照しない。** 変換は `JObject` の上だけで行う。`WorldSaveAllInfo` を
   旧版形状で読もうとすると、次の形式変更のたびに過去のステップが壊れる。
 - **冪等にする。** 既にキーが在るときは足さない・上書きしない。バックアップから戻して再実行する運用がある。
-- **`Migration/` 直下は10ファイル上限に近い。** ステップは必ず `Migration/Steps/` へ置く。
+- **`Migration/` と `Migration/Steps/` の直下には置かない。** ステップは必ず `Migration/Steps/V<n>ToV<n+1>/` へ置く（直下は1ディレクトリ10ファイル上限に掛かる）。
 - **新規サーバー側 `.cs` を足した直後は Unity 再起動が要る**（`uloop launch ./moorestech_client --restart`）。
   file: パッケージ参照のため Refresh では検出されない。

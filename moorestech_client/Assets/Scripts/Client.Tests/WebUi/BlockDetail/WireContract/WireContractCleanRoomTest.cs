@@ -39,7 +39,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // 密閉済みでOutの部屋にいる停止中の機械は、機械用の口で停止理由を渡す
             // A halted machine in a sealed but Out room passes its halt reason through the machine entry point
             var filter = new CleanRoomAirFilterMessagePack(new Vector3IntMessagePack(1, 33, 5), 1d, 10d, 5, 0.5d);
-            var room = CleanRoomSummaryMessagePack.CreateOut(1.5d, 0.25d, 74, new List<CleanRoomAirFilterMessagePack> { filter });
+            var room = CleanRoomSummaryMessagePack.CreateOut(0.25d, 74, new List<CleanRoomAirFilterMessagePack> { filter });
             var view = new CleanRoomEnclosedView(room);
 
             var dto = new BlockInventoryDto
@@ -82,7 +82,7 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             // 分類済みの部屋は、見出しの種別 class とクラス名を持つ
             // A classified room carries the class headline kind and its class name
-            var room = CleanRoomSummaryMessagePack.CreateClassified("A", 0, 0.1d, 2d, 26, new List<CleanRoomAirFilterMessagePack>());
+            var room = CleanRoomSummaryMessagePack.CreateClassified("A", 0, 2d, 26, new List<CleanRoomAirFilterMessagePack>());
             var dto = CleanRoomDetailDtoBuilder.BuildForAirFilter(new CleanRoomEnclosedView(room));
             Assert.AreEqual("enclosed", dto.Kind);
             Assert.AreEqual("class", dto.Room.Headline);

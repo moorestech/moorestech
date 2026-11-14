@@ -20,7 +20,6 @@ function cleanRoomMachineWith(airFilterCount: number, identifier: string, select
       room: {
         headline: "class",
         className: "ISO 5",
-        concentration: 1.2,
         airChangeRate: 0.8,
         volume: 74,
         airFilters: Array.from({ length: airFilterCount }, (_, index) => airFilterAt(index + 1)),
