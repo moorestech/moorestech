@@ -29,19 +29,20 @@ namespace Client.Ui.Foundation.Composite
             _settings.clearColor = true;
             _settings.colorClearValue = Color.clear;
             document.panelSettings = _settings;
-            SyncToScreenSize();
+            SyncToSize(Screen.width, Screen.height);
         }
 
         // 画面の大きさが変わったら RT を作り直す（Unity に画面の大きさの変化通知は無い）
         // Recreate the RT when the screen size changed (Unity has no screen-size change notification)
-        public void SyncToScreenSize()
+        internal void SyncToSize(int width, int height)
         {
             // silent-ok: 最小化中は描く物が無く前の RT を使い続けてよい / 復帰時に通常経路で作り直す
-            if (Screen.width <= 0 || Screen.height <= 0) return;
-            if (_texture != null && _texture.width == Screen.width && _texture.height == Screen.height) return;
+            if (width <= 0 || height <= 0) return;
+            if (_texture != null && _texture.width == width && _texture.height == height) return;
+
             var previous = _texture;
-            _texture = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
-            if (!_texture.Create()) throw new UiSrgbPanelRenderTextureUnavailableException(Screen.width, Screen.height);
+            _texture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
+            if (!_texture.Create()) throw new UiSrgbPanelRenderTextureUnavailableException(width, height);
             _settings.targetTexture = _texture;
             UiSrgbCompositeSource.SetTexture(_texture);
             if (previous != null) Release(previous);

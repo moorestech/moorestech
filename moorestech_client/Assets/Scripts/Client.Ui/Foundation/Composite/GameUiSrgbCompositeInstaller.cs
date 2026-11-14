@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Root;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.Foundation.Composite
@@ -32,7 +33,7 @@ namespace Client.Ui.Foundation.Composite
         {
             // silent-ok: 生成失敗は Initialize の例外として初期化の失敗（MainGameSceneLoadedHandler の LogError。RT を作れないときはアプリ終了、それ以外はメインメニュー）になり Tick は回らない / 開発者は Console の最初の例外で、プレイヤーはアプリの終了かメインメニューへ戻ることで気づく
             if (_panelTarget == null) return;
-            _panelTarget.SyncToScreenSize();
+            _panelTarget.SyncToSize(Screen.width, Screen.height);
             UiSrgbCompositeSource.ReportWhenNotComposited();
         }
 
