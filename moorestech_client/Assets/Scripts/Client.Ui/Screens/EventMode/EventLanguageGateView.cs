@@ -65,6 +65,9 @@ namespace Client.Ui.Screens.EventMode
             {
                 var title = new LocalizedLabel { name = TitleTestId, pickingMode = PickingMode.Ignore };
                 title.AddToClassList(UiTypographyClass.TitleOrder1);
+                // Web は Mantine Title なので見出しの字体で描く（LX-183。前例 PauseMenuView）
+                // The Web uses Mantine Title, so draw with the heading face (LX-183; precedent PauseMenuView)
+                title.AddToClassList(UiTypographyClass.TitleHeadingFace);
                 title.AddToClassList(UiTypographyClass.TextWhite);
                 title.AddToClassList(UiTypographyClass.TextCenter);
                 title.AddToClassList("event-language-gate__title");

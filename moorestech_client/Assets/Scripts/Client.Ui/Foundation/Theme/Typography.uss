@@ -52,7 +52,8 @@
     --title-heading-latin-letter-spacing: -3.4px; /* web: SF Pro の 700 は NotoSans Bold より字送りが 34px で 0.034em 狭い（Mac の Chrome の実測） */
     --title-order-1-row-height: 44.2px;
     --title-heading-cjk-font-size: 31.45px; /* web: .Hiragino Kaku Gothic Interface W6 の字の面と字送りは 34px の 0.925 倍（NotoSansJP 比） */
-    font-size: 34px;
+    --title-order-1-font-size: 34px;
+    font-size: var(--title-order-1-font-size);
     min-height: var(--title-order-1-row-height);
     --localized-label-line-box: var(--title-order-1-row-height);
 }

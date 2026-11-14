@@ -37,3 +37,11 @@
     flex-shrink: 0;
     height: var(--title-order-1-row-height);
 }
+
+/* 見出しは英語固定なので和文ロケールでも欧文の Bold で描く（Web の -apple-system は欧文の字を SF Pro 700 で受け、Hiragino へ落ちない。和文の .title--heading-face を打ち消す） */
+/* The heading is always English, so keep the Latin Bold face even in CJK locales (the Web's -apple-system takes Latin glyphs in SF Pro 700, never Hiragino; overrides the CJK .title--heading-face) */
+.game-ui-locale--cjk .event-language-gate__title.title--heading-face {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset"); /* look-exception: LX-183 */
+    font-size: var(--title-order-1-font-size);
+    letter-spacing: var(--title-heading-latin-letter-spacing);
+}
