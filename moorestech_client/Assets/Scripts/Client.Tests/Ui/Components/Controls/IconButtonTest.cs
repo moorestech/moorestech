@@ -126,7 +126,7 @@ namespace Client.Tests.Ui.Components.Controls
         }
 
         [Test]
-        public void 置く側がルートの色のつまみを変えると図形が受け直し有効時のホバーはそれに勝つ()
+        public void 置く側がルートの色のつまみを変えると図形が受け直す()
         {
             // スキットのツールと同じく、置く側の 2 クラスの規則がボタン自身の --icon-button-color を変える
             // As with the skit tools, the caller's two-class rule changes --icon-button-color on the button itself
@@ -141,9 +141,8 @@ namespace Client.Tests.Ui.Components.Controls
             var glyph = button.Q(className: IconButton.GlyphUssClassName);
             AssertColor(Rgba(0, 221, 255, 1f), GlyphColor(glyph), "--select-cyan");
 
-            simulate.MouseMove(button.worldBound.center);
-            simulate.FrameUpdate();
-            AssertColor(Hex("#FFFFFF"), GlyphColor(glyph), "hover");
+            // 祖先に付けた試験の USS は詳細度に関わらずテーマより強いので、置く側の上でのホバーの勝ち負けはテーマの中で SkitToolbarViewTest が見る
+            // A test USS on an ancestor outranks the theme regardless of specificity, so hover over a caller's colour is checked inside the theme by SkitToolbarViewTest
         }
 
         private IconButton AddButton(VisualElement parent)

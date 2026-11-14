@@ -49,6 +49,18 @@ namespace Client.Tests.Ui.Screens.Skit
         }
 
         [Test]
+        public void 有効なツールのホバーは自動ONのシアンにも勝って高コントラストになる()
+        {
+            // IconButton の :hover:enabled（2 クラス＋2 擬似）が画面の --icon-button-color（2 クラス）に勝つ（Web の :not(:disabled):hover）
+            // IconButton's :hover:enabled (two classes plus two pseudo-classes) beats the screen's --icon-button-color (two classes), as the Web :not(:disabled):hover does
+            _toolbar.Render(SkitTestData.Controls(4, true, false, true, false, false, SkitTestData.TextIntents));
+            simulate.FrameUpdate();
+            simulate.MouseMove(Find<IconButton>(_toolbar, "skit-tool-auto").worldBound.center);
+            simulate.FrameUpdate();
+            AssertColor(Hex("#FFFFFF"), GlyphColor("skit-tool-auto"), "hover");
+        }
+
+        [Test]
         public void 許可の無い操作とスキップ中のスキップは押せない()
         {
             _toolbar.Render(SkitTestData.Controls(5, true, false, false, true, false, new[] { "skip" }));
