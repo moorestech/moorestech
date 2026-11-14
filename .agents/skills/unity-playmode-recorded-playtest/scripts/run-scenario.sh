@@ -111,11 +111,21 @@ SESSION_DIR=$(echo "$BOOT_RESPONSE" | json_get Result)
 # 起動前の置き場の取得に失敗していたら比べられないので回収せず NG のまま止める。起動前と同じ置き場でも 1 回目は起動していないので NG
 # If the first reply was lost to the PlayMode entry and the resend says "already playing", take the first boot's dir from SessionState (we issued a stop just before)
 # If the pre-boot dir lookup failed we cannot compare, so do not recover and stay NG; the same dir as before the boot also means no boot happened, so NG
-if [[ "$SESSION_DIR" == "ERROR: already playing" && "$SESSION_DIR_BEFORE_BOOT_STATUS" -eq 0 ]]; then
-    RECOVERED_DIR=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return Client.Playtest.Core.PlaytestPaths.SessionDirectory;' | json_get Result)
-    if [[ -n "$RECOVERED_DIR" && "$RECOVERED_DIR" != "$SESSION_DIR_BEFORE_BOOT" ]]; then
-        echo "WARN: boot reply was lost on PlayMode entry; using the session dir of that boot: $RECOVERED_DIR"
-        SESSION_DIR="$RECOVERED_DIR"
+if [[ "$SESSION_DIR" == "ERROR: already playing" ]]; then
+    if [[ "$SESSION_DIR_BEFORE_BOOT_STATUS" -ne 0 ]]; then
+        # 起動前の置き場が無く比べられないので回収せず理由を出す
+        # No pre-boot dir to compare against, so skip recovery and say why
+        echo "WARN: pre-boot session dir lookup failed (status=$SESSION_DIR_BEFORE_BOOT_STATUS); not recovering the lost boot reply"
+    else
+        RECOVERED_DIR=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return Client.Playtest.Core.PlaytestPaths.SessionDirectory;' | json_get Result)
+        if [[ -n "$RECOVERED_DIR" && "$RECOVERED_DIR" != "$SESSION_DIR_BEFORE_BOOT" ]]; then
+            echo "WARN: boot reply was lost on PlayMode entry; using the session dir of that boot: $RECOVERED_DIR"
+            SESSION_DIR="$RECOVERED_DIR"
+        else
+            # 取り直しが空か起動前と同じなら 1 回目は起動していないので回収せず理由を出す
+            # Empty or unchanged dir means the first boot never happened, so skip recovery and say why
+            echo "WARN: recovered session dir is empty or unchanged ($RECOVERED_DIR); not recovering"
+        fi
     fi
 fi
 # Windows(git bash)ではUnityが "C:\..." 形式の絶対パスを返すので、ドライブ文字始まりも絶対パスとして扱う

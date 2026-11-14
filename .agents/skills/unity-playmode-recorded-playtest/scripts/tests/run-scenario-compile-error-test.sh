@@ -62,19 +62,19 @@ echo '{"Success": true, "Result": "ERROR: already playing"}' > "$WORK_DIR/alread
 echo '{"Success": true}' > "$WORK_DIR/run/result.json"
 printf '{"Success": true, "Result": "%s"}\n' "$WORK_DIR/run" > "$WORK_DIR/success.json"
 FAKE_ULOOP_BOOT_RESPONSE="$WORK_DIR/already-playing.json" FAKE_SESSION_DIR_BEFORE_BOOT="$WORK_DIR/old-session" run_runner "$WORK_DIR/success.json"
-if [[ "$RUNNER_OUTPUT" != *"WARN: boot reply was lost"* || "$RUNNER_OUTPUT" == *"NG: boot failed"* ]]; then
-    echo "FAIL: recovery with a different pre-boot dir"
+if [[ "$RUNNER_STATUS" -ne 0 || "$SCENARIO_CALLS" -ne 1 || "$RUNNER_OUTPUT" != *"WARN: boot reply was lost"* || "$RUNNER_OUTPUT" == *"NG: boot failed"* ]]; then
+    echo "FAIL: recovery with a different pre-boot dir status=$RUNNER_STATUS calls=$SCENARIO_CALLS"
     echo "$RUNNER_OUTPUT"
     FAILURES=$((FAILURES + 1))
 fi
 FAKE_ULOOP_BOOT_RESPONSE="$WORK_DIR/already-playing.json" FAKE_SESSION_DIR_BEFORE_BOOT="$FAKE_SESSION_DIR" run_runner "$WORK_DIR/success.json"
-if [[ "$RUNNER_STATUS" -ne 1 || "$RUNNER_OUTPUT" != *"NG: boot failed: ERROR: already playing"* ]]; then
+if [[ "$RUNNER_STATUS" -ne 1 || "$RUNNER_OUTPUT" != *"NG: boot failed: ERROR: already playing"* || "$RUNNER_OUTPUT" != *"WARN: recovered session dir is empty or unchanged"* ]]; then
     echo "FAIL: same pre-boot dir must stay NG status=$RUNNER_STATUS"
     echo "$RUNNER_OUTPUT"
     FAILURES=$((FAILURES + 1))
 fi
 EDC_RETRY_INTERVAL_SECONDS=0 FAKE_ULOOP_BOOT_RESPONSE="$WORK_DIR/already-playing.json" FAKE_SESSION_DIR_BEFORE_FAIL=1 run_runner "$WORK_DIR/success.json"
-if [[ "$RUNNER_STATUS" -ne 1 || "$RUNNER_OUTPUT" != *"NG: boot failed: ERROR: already playing"* || "$RUNNER_OUTPUT" == *"WARN: boot reply was lost"* ]]; then
+if [[ "$RUNNER_STATUS" -ne 1 || "$RUNNER_OUTPUT" != *"NG: boot failed: ERROR: already playing"* || "$RUNNER_OUTPUT" == *"WARN: boot reply was lost"* || "$RUNNER_OUTPUT" != *"WARN: pre-boot session dir lookup failed"* ]]; then
     echo "FAIL: failed pre-boot lookup must not recover status=$RUNNER_STATUS"
     echo "$RUNNER_OUTPUT"
     FAILURES=$((FAILURES + 1))
