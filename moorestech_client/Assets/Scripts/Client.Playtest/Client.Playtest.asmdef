@@ -10,6 +10,7 @@
         "Client.Mod",
         "Client.Input",
         "Client.Ui",
+        "Client.Ui.State",
         "Client.Ui.Editor",
         "Client.WebUiHost",
         "CefUnity.Runtime",

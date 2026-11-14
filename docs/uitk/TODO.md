@@ -27,7 +27,7 @@
 | 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 暗転 | 979725bcd1 | `uitk-lifeline` |
 | 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | 暗転 | 0e81bbe3c3 | `uitk-opening-hud` |
 | 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | 暗転 | 0e81bbe3c3 | `uitk-build-bp` |
-| 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | Web | — | `uitk-production-loop`・`uitk-research-train` |
+| 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | 暗転 | 0e81bbe3c3 | `uitk-production-loop`・`uitk-research-train` |
 | 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | Web | — | `uitk-challenge-gate` |
 
 ## 行
@@ -157,6 +157,27 @@
 | 1 | 237eb39440 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 | 1 | 52015d7931 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 | 3 | 77f336e432 | 写した | S2-skit の会話の拒否の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 4 | 77f336e432 | 写した | S2-skit の会話の拒否の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 4 | 1eef8ca521 | 写した | 同じコミットの localization.csv と C#（ホットバーの受理外のタップ・古いモーダル応答の拒否理由 2 値の文言。UiCommandRejectReasonTraits） |
+| 4 | 5bf23c60a7 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 4 | 680f4c12d5 | 写した | 同じコミットの localization.csv と C#（ビルドメニューの拒否理由 6 値の文言。UiCommandRejectReasonTraits） |
+| 4 | 18ae2ca640 | 写した | S4-special の特殊族の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 4 | 7ec6e61825 | 写した | S4-machine の拒否理由（ui.commandRejected.blockNotOpen・machineRecipeInvalid・machineRecipeLocked・machineRecipeRequestFailed）の localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 4 | 52015d7931 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv への追加に連動）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 4 | bc47bb655a | 写した | S4-alpha 自身の localization.csv への追加（ui.commandRejected.blockSlotUnavailable）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。写し先は同じコミットの localization.csv と C# |
+| 4 | 4052bf3372 | 写した | C4-e の持ち物・分割の拒否理由の文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits と CSV |
+| 4 | 42279a73e4 | 写した | 同じコミットの localization.csv と C#（albof.16.2 の拒否理由の文言） |
+| 4 | f044f5f5c4 | 捨てた | W0-switch（albof.17）の撤去コミット。旧 R1 の Web 側変更（a97575e5b5・05b9bdefa8・1095cab8bf・ccb3d512f7・5421c7f9f0）を外し、取り込み済み master と同じ Web に戻した（生成物 localizationKeys.ts は 3e946e4bd3 のまま）。UITK 側に写すものが無い |
+| 4 | 3e946e4bd3 | 写した | D-8 の拒否理由ごとのトースト文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits.ToLocalizationKey と localization.csv の文言 |
+| 4 | 5421c7f9f0 | 捨てた | 旧 R1（画面別の Web 休止）の入力排他フックを src/shared/uiState/inputExclusivity/ へ移した自動修正。全体スイッチの作り直し（W0-switch・albof.17）で旧 R1 の Web 側変更ごと外して master と同じ Web に戻すので、UITK 側に写すものが無い |
+| 4 | ccb3d512f7 | 捨てた | 旧 R1 の休止解除後に DOM 変化ごとにポインタを当たり判定し直す処理。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
+| 4 | 1095cab8bf | 捨てた | 旧 R1 の休止解除時の入力状態の送り直し。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
+| 4 | 05b9bdefa8 | 捨てた | Web が休止・カットシーンから描画を再開するときの stage 倍率の測り直しで、Web 自身の描画再開にだけ要る。UITK 側に写すものが無い |
+| 4 | a97575e5b5 | 捨てた | 旧 R1 の Web 全面 unmount（UITK が主パネルを出す間 webUiSuspended で App を外す）。全体スイッチ（albof.17）で UITK 側は Web ホストを起動しなくなり休止の仕組みごと要らないので、W0-switch で外して master と同じ Web に戻した |
+| 4 | 5722dd7da8 | 捨てた | S2-ladder が Web のレシピ一覧のセル・クラフトボタンに data-testid を足した変更。直後の 2329963ff0 で戻し（R3。feature/uitk の Web は触らない）、2 つを合わせた Web の差は 0。UITK 側に写すものが無い |
+| 4 | 2329963ff0 | 捨てた | 5722dd7da8 の data-testid の追加を戻した revert（R3）。2 つを合わせた Web の差は 0 で、UITK 側に写すものが無い |
+| 4 | 1cd4cf6d91 | 写した | I-fix5 R-12 の拒否理由の改名（ui.commandRejected.machineRecipeInvalid・machineRecipeLocked → recipeInvalid・recipeLocked。wire は据え置き）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。束 4 の行は i18n（全束）の持ち物として記帳する（I-fix5・I-fix6 は束 1〜3 だけ記帳していたので S4-gamma の取り込みで補った）。Web は使わない。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
+| 4 | b770f91312 | 写した | I-fix6 R-26・R-27 の拒否理由の改名（ui.commandRejected.trainInvalidBlockType・buildMenuCloseRefused → blockTypeMismatch・screenCloseRefused。wire は据え置き）に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ。束 4 の行は i18n（全束）の持ち物として記帳する。Web は使わない。写し先は同じコミットの localization.csv と C# UiCommandRejectReasonTraits |
 
 ## 参照キャプチャ
 
@@ -176,6 +197,7 @@ Web 版の全画面と主要な状態（移行後も「意図した見た目」�
 - I-fix5 のワールドピンの前後の自撮り（R-7）: 撮影元 uitk-lane/i-fix5 `56317252a7` の `moorestech_web/webui`（Web の中身は feature/uitk のまま。z 層と App の DOM 構造は master と同じ）を mock-host（MOCK_DEMO=1）の `/__block?type=machine`・`/__research` と `/__worldpin` で 1280×720 に撮った。撮影 id は `web-blockpanel-pin-1280x720`（ブロックのパネル＋ピン）・`web-researchdetail-pin-1280x720`（研究の詳細＋ピン）で、どちらもピンがパネルの前に出る。置き場は `uitk/reference-captures/self-ifix5-worldpin/`（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/self-ifix5-worldpin ）
 - 束 2 の最新の参照（S2-ladder）: 撮影元 8a585f742a（Web の src は origin/master 8d1c7fbda9 まで不変）
 - 各行の `参照キャプチャ` 列は撮影 id（PNG は `<id>.png`、動画は `<id>.webm`）。束を切り替える前に撮り直したら、ここの撮影元と置き場を新しい方へ書き換える
+- 段階 4 の自撮りの参照（E-22。1280×720 の参照に無い状態を各レーンが自分で撮った。S4-machine は報告ページの並べ比べ、S4-recipe・S4-research は master 9ce5557bdb の mock-host）: S4-machine 報告ページ https://review.moores.tech/pr/1640/report/ （実体 `~/hermes-agent/data/services/pr-review/reports/pr-1640/`。`4-block-machineShortInput`・`4-block-machineFilledOutput`・清浄室 12）、S4-recipe `moorestech_logs` の `uitk/reference-captures/web-9ce5557bdb-s4-recipe/`・`web-9ce5557bdb-s4-recipe-2560x1080/`（`4-recipe-selected-craft`・`4-recipe-selected-machine`・`4-recipe-holding`）、S4-research `uitk/reference-captures/web-9ce5557bdb-research-detail/`・`web-9ce5557bdb-research-detail-2560x1080/`（詳細ペイン `4-research-detail-{ready,lacking,completed}`）。撮影表 `referenceShots.ts` には足していない（Web の撮影の基盤は束 5 の持ち物）
 
 ## 未撮影
 
@@ -293,6 +315,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 - S2-skit `white-space: pre-wrap`: USS の取り込みで警告が出ず、そのまま使える（Task 8 の Editor.log に `white-space` の警告なし）。連続する空白が保たれることは画素で見ていない
 - S2-skit Enter の送り（Task 11）: 入力アセットの `SkitAdvance`（`InputManager.UI.SkitAdvance`）の Enter は注入入力で届き、UITK の会話窓が送る。Space では送らない（録画 `uitk-skit`・winunity run 20261112-071418 の「Enter で送られた」「Space では送らない」が PASS）
 - S2-skit 会話窓の 1 行目の高さ: 1 行の話者（28.7px）は字形の既定の行の高さで Web の line-height 34.44px より高く、並べ比べ（1280×720）で話者の字が 5px・罫線が 8px・本文の字が 7px Web より下にあった。話者の上下の margin から差の半分 3.77px を引き（`Skit.uss`）、本文に 0.4px の上下 padding を足して、話者・罫線・本文・送りの印・背景の 1 行が 1280×720 で 1px 以内・2560×1080 で 1 論理 px 以内（録画 `uitk-skit-compare`・winunity run 20261112-091619 以降。差の表は `moorestech_logs/harness/uitk/S2-skit/done.md`）
+- 段階 4 の UI の CPU 時間（S4-gamma、55f3089244、Windows・RTX2060・Editor〈winunity play の GUI Editor の PlayMode〉・1920×1080・全体スイッチ UITK、ProfilerRecorder で PreLateUpdate.UIElementsUpdatePanels+PostLateUpdate.UIElementsRepaintPanels の和を各 240 フレーム。測定時は他レーンの GUI Editor 2 本が並走・CPU 負荷 62%。winunity run 20261113-151222-uitk-lane-s4-gamma）: GameScreen 平均 0.458ms／p95 0.561ms、PlayerInventory 平均 0.863ms／p95 1.002ms、ResearchTree 平均 1.401ms／p95 1.816ms。目安 1ms 以下（PoC 0.27ms）に超えた: 超えたのは ResearchTree の平均と p95、PlayerInventory の p95（平均は収まった）。未確認として bd moorestech-albof.67.3。プレイヤービルドでは測っていない
 - S5-challenge カードの高さ（`NodeGraphView.uss` の包みの高さ 0 の削除の事後承認）: チャレンジのカードは包みの中で中身なりの高さ（L1 `ChallengeListViewTest` で上下の余白 24＋3 行。録画 `uitk-challenge-list` の進行中のカード 240×108〈日本語・概要 2 行〉、Web の 1 行の 86 に概要 1 行 20.3 を足した 106.2 と 1.8px 差）。部品は変えていない。同じ並べ比べで、和文の題（Title order=2）の字の自然な高さ 38px がカテゴリ列を Web より 3px 押し下げていたので、`ChallengeList.uss` で題の行を `--title-order-2-row-height`（35.1px）に固定した（前例 `Settings.uss`。カテゴリのボタンは 1280×720 で y219〜254 と Web と同じ・2560×1080 で 1 物理 px 差。winunity run 20261113-142506）
 
 ## 壊れた録画の割り振り（bd moorestech-wwxy）

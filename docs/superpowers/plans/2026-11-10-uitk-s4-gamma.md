@@ -2,11 +2,22 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** S4 の 7 レーン（alpha・inventory・machine・train・research・recipe・special）が `feature/uitk` に入った後、全体スイッチ UITK で「持ち物・研究・機械が同時に出る組」が実ゲームで正しい列に 1 つずつ出て覆い合わないことを L3 で固定し、ラダー `uitk-production-loop`・`uitk-research-train` を作ってラダー 1〜5 を緑にし、全録画（全本の 2 回目）を UITK 側と Web 側で流して分類し、マスタのアンカー 9 件の実ゲームでの解決・`UIElementsUpdatePanels`＋`UIElementsRepaintPanels` の CPU 時間・束 4 の突き合わせ差分 0・G1 未記帳 0・波の並べ比べの codex-audit を台帳と `done.md` に残して `feature/uitk` へ取り込む。
+**Goal:** S4 の 7 レーン（alpha・inventory・machine・train・research・recipe・special）が `feature/uitk` に入った後、全体スイッチ UITK で「持ち物・研究・機械が同時に出る組」が実ゲームで正しい列に 1 つずつ出て覆い合わないことを L3 で固定し、ラダー `uitk-production-loop`・`uitk-research-train` を作ってラダー 1〜5 を緑にし、全録画（全本の 2 回目）を UITK 側と Web 側で流して分類し、マスタのアンカー 9 件の実ゲームでの解決・`UIElementsUpdatePanels`＋`UIElementsRepaintPanels` の CPU 時間・束 4 の突き合わせ差分 0・G1 未記帳 0・波の並べ比べの独立評価（opus の subagent 2 体）を台帳と `done.md` に残して `feature/uitk` へ取り込む。
 
-**Architecture:** integrator のレーン（`int`。Editor 要）。新しく書くのは「検査する側」だけで、画面・部品・Foundation・State のコードは書かない。L3 は `Client.Tests/EditModeInPlayingTest/Ui/Stage4/` に、面の見え方を読む純粋な関数 `Stage4ScreenSetProbe` と期待の表 `Stage4ExpectedSurfaces` を置き、`Stage4ScreenSetGameUiTest` が本番の遷移（`UIStateControl.RequestTransition`・F キーの注入）で画面を巡って照合する。ラダー・アンカー・CPU・撮影は DSL のシナリオ（`scenarios/uitk/`）で、列車線の準備だけ `Client.Playtest/Operations/Ladder/PlaytestTrainLine` に切り出す（シナリオを 200 行未満に保つため）。全録画は `tools/uitk/run-all-recordings.sh` が 1 本ずつ `run-scenario.sh` を回して TSV に残し、分類と持ち主への回送は人手（このレーンの subagent）が `done.md` に書く。不具合は直さず、持ち主のレーン（取り込み済みなら I-fix）へ bd と依頼文で回して待つ。
+**Architecture:** integrator のレーン（`int`。Unity は Windows の `~/bin/winunity` だけで回し、Mac の Editor は起動しない。D-26）。新しく書くのは「検査する側」だけで、画面・部品・Foundation・State のコードは書かない。L3 は `Client.Tests/EditModeInPlayingTest/Ui/Stage4/` に、面の見え方を読む純粋な関数 `Stage4ScreenSetProbe` と期待の表 `Stage4ExpectedSurfaces` を置き、`Stage4ScreenSetGameUiTest` が本番の遷移（`UIStateControl.RequestTransition`・F キーの注入）で画面を巡って照合する。ラダー・アンカー・CPU・撮影は DSL のシナリオ（`scenarios/uitk/stage4/`）で、列車線の準備だけ `Client.Playtest/Operations/Ladder/PlaytestTrainLine` に切り出す（シナリオを 200 行未満に保つため）。全録画は `tools/uitk/run-all-recordings.sh` が 1 本ずつ `winunity play` を回して TSV に残し、分類と持ち主への回送は人手（このレーンの subagent）が `done.md` に書く。不具合は直さず、I-fix6（bd moorestech-albof.61）の範囲なら bd と依頼文で回し、範囲外なら `done.md`「integrator への依頼」に書き、**待たずに先へ進む**（D-28）。
 
-**Tech Stack:** Unity 6 / UI Toolkit（`Client.Ui`・`Client.Ui.State`）、NUnit（EditModeInPlayingTest）、プレイテスト DSL（`Client.Playtest`・`.agents/skills/unity-playmode-recorded-playtest`）、`Unity.Profiling.ProfilerRecorder`、Node（`tools/uitk/test-name-parity.mjs`）、Python（`.github/scripts/check-uitk-web-follow.py`）、bash、codex-audit（gpt-6-astra）、bd。
+**Tech Stack:** Unity 6 / UI Toolkit（`Client.Ui`・`Client.Ui.State`）、NUnit（EditModeInPlayingTest）、プレイテスト DSL（`Client.Playtest`・`.agents/skills/unity-playmode-recorded-playtest`）、`~/bin/winunity`（Windows・RTX2060 の Unity 中継）、`Unity.Profiling.ProfilerRecorder`、Node（`tools/uitk/test-name-parity.mjs`）、Python（`.github/scripts/check-uitk-web-follow.py`）、bash、opus の subagent（並べ比べの独立評価。Codex は使わない。D-27）、bd。
+
+### 計画の更新（2026-11-13。マージ済みレーンの結果と winunity 実行への差し替え）
+
+この計画は S4 の各レーンのマージ前に起草した。着手の前に、マージ済みの S4-alpha・inventory・machine・train・research・recipe・special・S2-ladder・S3-ladder・I-fix3・I-fix4・X-audit の `done.md` と `conductor.md`、`origin/feature/uitk` 46fb246ea3（S2-ladder #1657 のマージ。以後 4667f0ce9b〈PLAN-W5 の docs のみ〉まで進んでいる）の実物と照らして次を差し替えた。判断は判断記録 D-26〜D-31。
+
+- Unity の実行手段を全部 `winunity` に（Mac の Editor・`uloop`・`run-scenario.sh`・`moores-wt` の Editor を使わない。D-26）
+- 並べ比べの codex-audit を opus の subagent 2 体の独立評価に（D-27）
+- 不具合の回し先を I-fix6 か `done.md`「integrator への依頼」にし、「状態: 停止で待つ」をやめて先へ進む。I-fix5・I-fix6 が直している最中のものは再走をマージ後に回す（D-28）
+- 番号: 設計書 §7.1 の A-175〜A-179 は、この計画の起草版の行を指揮が既に写している（`component-architecture.md` 638〜642 行）。改めの行は予備 A-270〜A-279 から取る。台帳の LX-141〜LX-145 は未使用なのでそのまま使う（D-29）
+- 照合表・束ねる完了条件の表・束 4 の突き合わせの表を実物と各 `done.md` に合わせた。束 4 の突き合わせは今の時点で差分 0（下の表）
+- Task 3〜8 のコード片を今の API に合わせた（`VanillaApi.Response.Train.PlaceTrainOnRail`・駅の向きと back 側の結線・開幕スキットの待ち・時刻表の保留の待ち。D-30）
 
 設計の出所: 実行計画 `docs/uitk-migration/execution/execution-plan.md` §1.4 の S4-gamma 行（完了条件の原文:「同時に出る組（playerInventory・subInventory・researchTree）の L3、ラダー `uitk-production-loop`・`uitk-research-train` を作りラダー 1〜5 緑（4 が production-loop・5 が research-train）、UITK 側で全録画（全本の 2 回目）、マスタのアンカー 9 件が実ゲームで解決、`UIElementsUpdatePanels`＋`RepaintPanels` を台帳に 1 回記録、束 4 の突き合わせ差分 0・G1 0・codex-audit」、依存「S4-* 全部」）、統合計画 `docs/uitk-migration/plan.md` §2.0・§2.5・§4.4・§4.5・§4.7、設計書 `docs/uitk-migration/execution/component-architecture.md` §3.3・§3.4。
 
@@ -18,31 +29,35 @@
 | R-2 | ラダー 4 `uitk-production-loop` を作る | 全体スイッチ UITK・Web ホスト無しで、Tab → アイテム一覧で木の板を選ぶ → クラフトを長押しして木の板が 2 枚以上増える → 青銅インゴットのレシピをサーバー直で解放し、石窯を置き F で開いてレシピを選ぶ → Shift＋クリックで青銅鉱石の粉を入れる・原木を右クリックで半分掴んで入力枠へ置く・右ドラッグで手持ちの空き枠へ配る → 開いたまま青銅インゴットが出力枠に現れる（機械 UI を開いたまま中身が更新される録画。§2.5）→ Shift で取り出す → 整理、が `result.json` `Success: true`。録画 mp4 がある |
 | R-3 | ラダー 5 `uitk-research-train` を作る | 全体スイッチ UITK で、研究素材を渡す → 研究ツリーを開き `原始研究1` のノード → 研究ボタンで完了（サーバーの完了を待つ）→ 駅 2 基の線を準備 → 駅を F で開き駅名を日本語で `SetText`・確定し、サーバーの駅名が変わる → 機関車を開き時刻表に 2 駅を足し（サーバー 2 件）・自動運転を入れて走り出す、が `Success: true` |
 | R-4 | ラダー 1〜5 が UITK で緑 | `uitk-lifeline`・`uitk-opening-hud`・`uitk-build-bp`・`uitk-production-loop`・`uitk-research-train` の 5 本が同じ HEAD の全体スイッチ UITK で `Success: true`（4 と 5 が §2.5 の「ラダー 2 本」） |
-| R-5 | 全録画の 2 回目 | `scenarios/` の全本を UITK 側で流し、1 本 1 行の結果（exit・秒・run dir）と分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／不具合）を `done.md` と台帳「## 実測の結論」に残す。不具合 0 件（見つかったものは持ち主の修正が入って再走で PASS）。Web 側も全本を流し、段階の前と同じ合否（S4 前のコミットとの差分 0。落ちたものは既存か退行かを分けて記録） |
+| R-5 | 全録画の 2 回目 | `scenarios/` の全本（起草時 114 本 → 2026-11-13 の実測 137 本の `.cs`）を UITK 側で `winunity play` で流し、1 本 1 行の結果（exit・秒・winunity の run dir）と分類（PASS／束 5 未移植／wwxy／前提つき／Web 専用／Mac 専用／修正中〈I-fix5・I-fix6〉／不具合）を `done.md` と台帳「## 実測の結論」に残す。見つけた不具合は持ち主（I-fix6 か integrator への依頼）へ回した bd と依頼文があること（修正の取り込みは待たない。D-28）。Web 側も全本を流し、段階の前と同じ合否（S4 前のコミットとの差。落ちたものは既存か退行かを分けて記録し、退行は回す） |
 | R-6 | マスタのアンカー 9 件が実ゲームで解決 | `uitk-master-anchors` がピン先マスタの `uiHighLight` を集めて 9 件であることを確かめ、各アンカーをその画面で `TutorialAnchorRegistry.Resolve` が `Unique` で引け、`AddOutlineHighlight` の枠（`tutorial-outline`）がアンカーの中心から 5px 以内に出て、`CompleteTutorial` で消えることを PASS。`recipe.item-<itemId>` も 1 件見る |
-| R-7 | CPU 時間を台帳に 1 回記録 | `uitk-stage4-panel-cost` が GameScreen・PlayerInventory・ResearchTree の各 240 フレームで `UIElementsUpdatePanels`＋`UIElementsRepaintPanels` の平均・p95・最大を Note に出し、台帳「## 実測の結論」へ 1 行（HEAD・Editor/プレイヤーの別・解像度・値・目安 1ms 以下か）を書く。1ms を超えたら要裁定ではなく「未確認」と bd に記録（目安であって合否ではない。plan §2.5） |
-| R-8 | 束 4 の突き合わせ差分 0 | `node tools/uitk/test-name-parity.mjs --bundle 4` が終了コード 0。持ち主の無い `e2e/mock-host/detailActions.test.ts` 3 件に処遇の行を足し、`docs/uitk/disposition.md`「## 突き合わせの記録」に 1 行足す |
+| R-7 | CPU 時間を台帳に 1 回記録 | `uitk-stage4-panel-cost` が GameScreen・PlayerInventory・ResearchTree の各 240 フレームで `UIElementsUpdatePanels`＋`UIElementsRepaintPanels` の平均・p95・最大を Note に出し、台帳「## 実測の結論」へ 1 行（HEAD・**Windows・RTX2060・Editor**（`winunity play` の GUI Editor の PlayMode）・解像度・値・目安 1ms 以下か）を書く。1ms を超えたら要裁定ではなく「未確認」と bd に記録（目安であって合否ではない。plan §2.5） |
+| R-8 | 束 4 の突き合わせ差分 0 | `node tools/uitk/test-name-parity.mjs --bundle 4` が終了コード 0（2026-11-13 の実測で既に 0。持ち主の無かった `e2e/mock-host/detailActions.test.ts` 3 件は S4-machine が処遇「捨てる」で記帳済み〈`disposition.md` 89〜91 行・S4-machine D-11〉）。最終 HEAD で流し直し、`docs/uitk/disposition.md`「## 突き合わせの記録」に 1 行足す |
 | R-9 | G1 0 | 束 4 の状態が `暗転`・起点あり、`check-uitk-web-follow.py --base origin/master --head HEAD` の出力の「束 4（暗転・起点 …）: 未記帳 0 件」。PR の `UITK Web follow gate (G1)` が `pass` |
-| R-10 | 波の並べ比べと codex-audit | S4 の各レーンが報告ページに出した Web／UITK の組と、gamma が撮る合成の組（同時に出る 3 画面 × 1280×720・2560×1080）を codex-audit（画像付き）にかけ、指摘を台帳の LX 行と照合する。再現できた指摘だけを持ち主（I-fix）へ回し、記帳が要るものは LX-141〜145 の文面を `done.md` に書いて渡す |
+| R-10 | 波の並べ比べと独立評価 | S4 の各レーンが報告ページに出した Web／UITK の組と、gamma が撮る合成の組（同時に出る 3 画面 × 1280×720・2560×1080）を、opus の subagent 2 体に別々に判定させ（画像を Read で見せる。Codex は使わない。D-27）、指摘を台帳の LX 行と照合する。別の subagent が再現できた指摘だけを持ち主（I-fix6 か integrator への依頼）へ回し、記帳が要るものは LX-141〜145 の文面を `done.md` に書いて渡す |
 | R-11 | 回ってきた件を拾う | 下の「束ねる完了条件と回ってきた件」の表の各行に、処理（済み／I-fix へ回した bd／据え置きと帰結）を `done.md`「## 回ってきた件」で 1 行ずつ付ける。C4-e の残り（D-36 など）は Task 5 の観察で再判定する |
-| R-12 | 設計書・実行計画へ反映する行 | 末尾の「## 設計書・実行計画へ反映する行」（A-175〜A-179、§1.4 の改め案、§6.1 の行）を指揮が写せる形で置く |
-| R-13 | 最終の対 | moores-code-review → pr-create（`base=feature/uitk`、報告ページ）→ `origin/feature/uitk` の取り込みと compile・テスト → G1 緑で `gh pr merge --merge` |
+| R-12 | 設計書・実行計画へ反映する行 | 末尾の「## 設計書・実行計画へ反映する行」（A-175〜A-179 は写し済み。改めの A-270〜A-272、§5 の改め案、§6.1 の行）を指揮が写せる形で置く |
+| R-13 | 最終の対 | moores-code-review → pr-create（`base=feature/uitk`、報告ページ）→ `origin/feature/uitk` の取り込みと `winunity compile`・テスト → G1 緑で `gh pr merge --merge` → `winunity editor-stop` → `done.md` を書いて moorestech_logs でコミット・push → `cmux wait-for -S uitk-s4-gamma`。worktree の片付けは指揮 |
 
 ### 束ねる完了条件と回ってきた件
 
-各レーンの計画（`docs/superpowers/plans/2026-11-10-uitk-s4-<lane>.md`。alpha・inventory・machine・train は PLAN-W4a の worktree〈de6f077a83 以降〉で起草、recipe・research・special はこの worktree）から写した。どれもマージ前の計画なので、Task 1 Step 3 でマージ済みの `done.md` と照らして差を足す。
+各レーンの計画から写した起草版の表を、2026-11-13 にマージ済みの各 `done.md`（`moorestech_logs/harness/uitk/<レーン>/done.md`）と `origin/feature/uitk` の実物で更新した。「済み（証拠）」の行は Task 11 で実物を grep し直して `done.md`「## 回ってきた件」に写すだけにする。「進行中（I-fix5／I-fix6）」の行は両レーンの計画が受け持っているので gamma は回さず、マージ後の再走だけを持つ。
 
-| レーン | 完了条件（計画から） | gamma へ回した件・gamma が拾う件 | gamma での扱い |
+| レーン（PR・マージ） | 完了の結果（`done.md`） | gamma へ回った件・gamma が拾う件 | gamma での扱い |
 |---|---|---|---|
-| S4-alpha | ブロック UI の汎用族の UITK 化（`block-inventory`・`block-inventory-panel`・`block-inventory-close`・`<testId>-slot-<index>`）、SubInventory で `StageColumn.Viewer` 列、SlotCommands（`Client.Ui.State/SlotCommands/`） | integrator への依頼 (a) `Registration/GameUi/` のサブディレクトリ化、(b) `GamePanel` の題の右の逃げ 99px、(c) `SlotCommands` を設計書 §2 の State の表へ（A-142 の下書き） | (a) Task 1 Step 4 で直下と `Screens/` の本数を数え、alpha の `BlockInventoryGameUiRegistration.cs` 以外の S4 の画面の登録が `Screens/` にあるかを見る（E-1）。外れていれば bd を立て I-fix へ回す（gamma は他レーンの登録ファイルを動かさない。D-4）。(b) Task 13 の比べ方で special のロケットの差として照合し、未処理なら LX の文面を書く。(c) 設計書の行の有無だけ確かめる |
-| S4-inventory | InventoryPanel・EquipmentPanel（`inventory-panel`・`inventory-sort`・`main-slot-<i>`・`equipment-slots`）、アンカーの印付け | 依頼 `TutorialAnchor.Unmark`（D-8）・`GameUiPointerProbe.PickAt`（D-11） | Foundation の口なので gamma は作らない。Task 11 で状態を確かめ、未処理なら bd を I-fix へ（無くても動く形で書かれているので段階 4 の完了は妨げない。帰結: 画面側の写しが 2 か所残る） |
-| S4-machine | 機械の詳細・清浄室・流体枠・レシピ選択（`MachineRecipeSelectionRow` 等） | 依頼: `Client.Ui.State.asmdef` の参照、撮影表への 15 枚の追加（E-22 の自撮り） | asmdef は取り込み済みかを見るだけ。撮影表への追加は integrator の共有区画なので Task 11 で `docs/uitk/TODO.md`「## 参照キャプチャ」に自撮りの置き場を 1 行で記す |
-| S4-train | 列車の本文（`train-tab-inventory`・`train-tab-timetable`）・時刻表の即時編集（適用ボタンを消し、保留中は `train-timetable-section--busy`）・駅名（`train-station-name-input`＋`train-station-name-apply`）・プラットフォーム。録画 `train-timetable-via-ui`・`train-station-default-name` を直す | integrator への依頼 (a) `PanelActionButton` の無効の見た目（画面のつまみで上書き中。D-11）、(b) 自撮りの参照（駅名の行・Loading/Unavailable・保留中・液体貨車）の撮影表への追加、(c) `Registration/GameUi/` の再編先 | (a) Task 11 で状態を確かめ、未処理なら bd を I-fix へ。(b) Task 11 Step 2 の参照の記載に含める。(c) S4-alpha の (a) と同じ扱い。ラダー 5 は即時送信の形で書く（Task 6） |
-| S4-research | 研究ツリー（`research-tree`・`research-panel`・`research-viewport`・`research-node-<guid>`・`research-button-<guid>`・`research-detail-pane`）、録画 `uitk-research-tree`・`tier9-5` | L3 は「S4-ladder」＝gamma。D-9 `NodeGraphView` の `MarkClipContainer` は integrator への依頼（E-1・A-65 で子を切る容器へ印を付けるのは画面のレーンの義務）。tier9-5 が Web 前提の操作で落ちたら既存シナリオの横断は gamma。詳細ペインの自撮りの参照の台帳記載 | L3 は Task 3。`MarkClipContainer` は義務（E-1・A-65）なので、Task 11 Step 1 で研究の視口に印が無ければ bd を I-fix へ回し、入るまで「状態: 停止」で待つ（研究ノードのアンカーの画面外・切り抜きの判定の前提。D-19）。tier9-5 は Task 9 の全録画で分類（不具合なら research か I-fix へ）。参照の記載は Task 11 |
-| S4-recipe | ビューア・アイテム一覧（`recipe-viewer`・`item-list-panel`・`item-list-scroll`・`item-list-cell-<id>`・`craft-button-<guid>`・`craft-recipe-box-<guid>`・`recipe-entry-list`）、長押しクラフト、アンカー `recipe.craft-button`・`recipe.item-<itemId>` | D-20: ビューア＋機械 UI＋インベントリの L3 は gamma。D-9 `GameScrollView` のつまみ 5 本を設計書へ。自撮りの参照の台帳記載。部分移植の残り（`MachineRecipeEntry` の alt・`slotTooltip`） | L3 は Task 3（同時には出ないので、画面を行き来して残骸が出ないことで見る。D-3）。つまみは末尾の「設計書へ反映する行」に 1 行。参照は Task 11。部分移植の残りは Task 10 の parity で処遇の表にあるかを見る |
-| S4-special | 特殊族（電柱・歯車変換・フィルター分配・ロケット・宇宙エレベーター・ベルト） | D-19: L3 は gamma。D-23（alpha の「出し入れをやり直す口」）・D-26（パネルの InstanceId）は integrator への依頼。部分移植の残り（filterSplitter の 3 件目など） | 特殊族は同時に出る組の L3 の対象外（SubInventory の 1 例として `釜` を見る。D-3）。D-23・D-26 は Task 11 で状態を確かめ未処理なら bd。部分移植の残りは Task 10 |
-| C4-e（申し送り） | 掴み・分割ドラッグの State | D-5（Web ホストと State が持ち物の規則を二重に持つ。撤去まで据え置き）、D-8 `IPlayerSlotDragCommands`、D-29（LateTick で確定）、D-36（`BeginSplitDrag` の先行確定で計画の snapshot がずれうる。alpha の着地で表に出る）、D-37（マウスのリセットで session を捨てる）、bug-pass の Warning (a)〜(e)、`DiscardStaleSession`、outbox の箱、albof.40、掴み絵の撮影 id | D-36・Warning (a)(b)(e) は Task 5 の右ドラッグ配りと連続の分割で観察し、`done.md`「## 回ってきた件」に「再現した／しなかった（証拠）」で書く。再現したら bd を I-fix へ。D-5 は据え置き（帰結: 撤去 5c まで規則が 2 か所。X レーンで Web 側ごと消える）。albof.40・撮影 id は状態を確かめるだけ |
-| conductor.md | Editor は同時 2 本、winunity が使える、CI `client-remainder` の `UnityCursorTooltipScreenTest` 1 件は既存の失敗 | — | Global Constraints に写した |
+| S4-alpha（#1635 3adc572293） | 完了。録画 uitk-block-inventory 28/28・uitk-lifeline 5/5、LX 不使用 | (a) `Registration/GameUi/` の再編、(b) `GamePanel` の題の右の逃げ 99px、(c) `SlotCommands` を設計書 §2 へ（A-142）、(d) 注入した Shift が UITK に届かない、(e) `UiRuntimePanelCapture.Render` の辞書の初期化の口、(f) `SlotCommands/Block`・`BlockInventory/Panel`・`ItemMove/` が 10 ファイル | (a) 済み（I-fix4 3e。直下は `Hud/`・`Screens/`・`Shared/` の 3 ディレクトリだけ、`Screens/` は 10 本で上限ちょうど。gamma は足さない）。(b) 済み（I-fix4 3c `GamePanel.SetTitleActionReserve`。S4-special が 99px を実測）。(c) 済み（設計書 235 行・A-142 605 行）。(d) 済み（I-fix4 優先 3 `UitkModifierKeys`。実キーの経路は I-fix4「未完了」のまま＝Task 11 で状態を写すだけ）。(e) 済み（I-fix4 3d `UiCaptureLocalization`）。(f) 状態を写すだけ（後続が足すときの注意。gamma は足さない） |
+| S4-inventory（#1638 a3d29bb175） | 完了。録画 uitk-inventory-equipment 18/18・uitk-grab-overlay 15/15、LX 不使用 | `TutorialAnchor.Unmark`・`GameUiPointerProbe.PickAt`・トークン `--hotbar-slot-frame-face` の改名・`SlotItem → ItemSlotContent` の写しの統合・`NodeGraphView.WebWheelDeltaPerNotch` を `WebWheelScale` へ・`WheelPassthroughMark` の持ち主の向き・`CoversGameLayer` の列・`Client.Tests/Ui/Screens/Inventory/` が 10 ファイル | `Unmark`・`PickAt`・写しの統合は済み（I-fix4 3a・3b・3f）。`EquipmentWheelPointerPicker` の probe の DI は I-fix5 R-14 が進行中。残り（トークン改名・WebWheelScale・CoversGameLayer）は Task 11 Step 1 の grep で状態を見て、未処理なら `done.md`「integrator への依頼」へ（I-fix6 の範囲〈X-audit の AC/DC〉に無いため） |
+| S4-machine（#1640 8311fbd1f4） | 完了。新設録画 3 本 PASS。既存録画 5 本は UITK で FAIL（tier9-1b・tier9-3・cleanroom-room-usability = マスタのクリーンルームパネル 5x1x5 化 bd albof.50、tier9-6 = S4-special 持ち、t31r3b = 前提セーブ無し） | `Client.Ui.State.asmdef` の参照（済み）、撮影表への自撮り 15 枚の追加、`text--xs/sm` が日本語で約 1px 高い、ワールドピンが閉じるボタンに重なる、`detailActions.test.ts` 3 件の処遇（S4-machine D-11 で「捨てる」記帳済み） | 撮影表・`text--*`・ワールドピンの層は I-fix5 が進行中（R-16・R-1・R-7）。クリーンルームの録画 3 本は I-fix5 R-15 が進行中なので、Task 9 で落ちたら「修正中（I-fix5）」に分類し、再走は I-fix5 のマージ後（D-28）。t31r3b は「前提つき」 |
+| S4-train（#1642 0cb1fb9aea） | 完了。uitk-train-inventory 26/26・train-timetable-via-ui 21/21（GameUi・Web とも）。train-station-default-name（Web）は地図の既定名の変化で FAIL | (a) `PanelActionButton` の無効の見た目、(b) 自撮り 6 場面の撮影表、(c) 登録の再編（済み）、(d) 駅名欄で Esc 1 回でフォーカスが外れない、(e) train-station-default-name の期待値、(f) 参照 a9d5123537 の撮り直し、(g) ワールドピンの重なり | (a)(d) は I-fix5 R-8・R-9 が進行中。(b)(f) は I-fix5 R-16 が進行中。(g) は I-fix5 R-7。(e) は I-fix5・I-fix6 の範囲に無いので、Task 9 で落ちたら「既存」に分類して `done.md`「integrator への依頼」へ。ラダー 5 は即時送信の形で書き、保留の待ちは `train-timetable-section--busy` を使わない（I-fix6 R-10 がこのクラスを消す。D-30） |
+| S4-research（#1641 5a060f8b0a） | 完了。uitk-research-tree・tier9-5 とも Success（研究ノードのアンカー一意 74/74） | D-9 の `MarkClipContainer`（**済み**: `NodeGraphView.cs:49`。視口の testid は `research-viewport`）、層の順（ワールドピンが詳細ペインに重なる）、詳細ペインの参照の台帳記載、ItemSlot の不足の淡さ（bd albof.51）、`NodeGraphView.uss` の高さ 0 の削除の事後承認 | `MarkClipContainer` は済みなので Task 7 の前で止まらない（D-19 は満たされている）。層・参照の記載・不足の淡さは I-fix5（R-7・R-16・R-6）が進行中。事後承認は `done.md`「integrator への依頼」へ写すだけ |
+| S4-recipe（#1643 533bba0b05） | 完了。uitk-recipe-craft 19/19。LX-131・132・135 を記帳 | D-9 の `GameScrollView` のつまみ 6 本を設計書 §2.4 へ、`MachineRecipeRowContentBuilder` の共有（D4）、タッチのタップ、`MachineRecipeInvalid/Locked` の改名、自撮り参照 `web-9ce5557bdb-s4-recipe*` の台帳記載、LX-131・132、`RecipeRow` の秒数の 1 物理画素切れ。未完了: タッチ・OS の実キー Enter/Tab | つまみの行は末尾の「設計書へ反映する行」に写す。D4・タッチ・改名・参照・LX-131/132・秒数は I-fix5（R-13・R-11・R-12・R-16・R-4・R-5）が進行中。部分移植の残り（`MachineRecipeEntry` の alt・`slotTooltip` の Mantine 比較）は処遇の表の有無を Task 10 で見るだけ（parity は差分 0） |
+| S4-special（#1648 dcd93cff97） | 完了（未完了あり）。録画 5 本（uitk-block-special-panels・tier9-4b・tier9-6・tier9-4・rotary-generator-ui）のレビュー反映後の流し直しが winunity の環境障害（bd albof.54.5。winunity-play-fix.md で解決済み）で未実施 | `text--sm/xs` の高さ、`PanelActionButton` の無効表示、撮影表、レーン外の 3 件（bd albof.54.2 SlotGrid の偶数枠の中心・54.3 `hotbar-slot-N`・54.4 昇降開始でパネル幅が変わる）、電柱の電力網の行が出ない（bd albof.54.1） | 録画 5 本の流し直しと 54.2〜54.4 は I-fix5 R-10・R-15 が進行中。Task 9 で同じ箇所で落ちたら「修正中（I-fix5）」で再走はマージ後。54.1 は I-fix5・I-fix6 の範囲に無いので、Task 9 で電柱の録画が落ちたら `done.md`「integrator への依頼」へ |
+| S2-ladder（#1657 46fb246ea3） | 完了。ラダー 1〜3（uitk-lifeline 5/5・`stage2/uitk-opening-hud` 21/21・`stage3/uitk-build-bp` 13/13）を s2-ladder 5c6239e6f3 の GameUi で Success。winunity に `play --ui-system`・`edc`・`test-all`・`test --editor` の結果回収を足した | 表 D 1 行目（通知とキーヒントの重なり）・W-5（L3 の遷移待ちの集約）・master の Web に `data-testid` を足す件（不採用） | 指揮が次の I-fix の積み残しへ回し済み。gamma は Task 12 でラダー 1〜3 を最終 HEAD で流し直すだけ。L3 は S2-ladder の `Stage2HudGameUiTest` と同じく開幕スキットを飛ばしてから巡る（D-30） |
+| S3-ladder（#1650 0f32e0a537） | 完了。束 3 を暗転（起点 0e81bbe3c3）。ラダー 3 は `scenarios/uitk/stage3/uitk-build-bp.cs`。参照を 8a585f742a で撮り直し | ラダー 3 のパスの読み替え（反映済み）、A-36 の改め（I-fix5 R-3）、`scenarios/uitk/` 直下 26 本・`Client.Tests/UIState/` 直下 11 本の 10 超え（I-fix の範囲）、Web 系の録画には同梱 Node が要る | パスはこの計画で直した。10 超えは gamma のファイルを `stage4/` に置いて増やさないだけ（直下の再編は integrator への依頼のまま）。Node は winunity の prepare が `setup.ps1` を流す（S2-ladder） |
+| I-fix3（#1629）・I-fix4（#1639） | 完了。I-fix4 が alpha・inventory・train の依頼の多く（3a〜3k）を入れた | I-fix4 の未完了: 実キーの Shift の経路・フォントの断片（albof.39）・W6（S4-recipe で閉じた）。I-fix4 の依頼: 録画シナリオ uitk-* は `UiSystemEditorSwitch.Set(UiSystem.GameUi)` が要る | `winunity play --ui-system GameUi` が切り替えて `Current` を確かめる（S2-ladder）。残りは状態を写すだけ |
+| X-audit（PR #1656） | 完了。設計判断 DC-1〜38 と未適用 AC を I-fix6 へ | gamma への割り振りは無い。I-fix6 R-10（`train-timetable-section--busy` を消す）が gamma のラダー 5 に効く | ラダー 5 の保留の待ちをクライアントの時刻表の駅数に替えた（D-30） |
+| C4-e（申し送り） | — | D-5（Web ホストと State が持ち物の規則を二重に持つ。撤去まで据え置き）、D-8 `IPlayerSlotDragCommands`、D-29（LateTick で確定）、D-36（`BeginSplitDrag` の先行確定で計画の snapshot がずれうる）、D-37（マウスのリセットで session を捨てる）、bug-pass の Warning (a)〜(e)、`DiscardStaleSession`、outbox の箱、albof.40、掴み絵の撮影 id | D-36・Warning (a)(b)(e) は Task 5 の右ドラッグ配りと連続の分割で観察し、`done.md`「## 回ってきた件」に「再現した／しなかった（証拠）」で書く。再現したら bd を立てて `done.md`「integrator への依頼」へ（I-fix6 の範囲外）。D-5 は据え置き（帰結: 撤去 5c まで規則が 2 か所。X レーンで Web 側ごと消える）。albof.40・撮影 id は状態を確かめるだけ |
+| conductor.md | Mac の Editor は 1 本まで（I-fix5 が使用中）で、gamma は Windows（winunity）だけ。winunity は最大 4 本・GUI Editor のジョブ（play・edc・`--editor`・test-all）は Windows 全体で 1 本。CI `client-remainder` の `UnityCursorTooltipScreenTest` 1 件は既存の失敗。並べ比べは opus 2 体 | — | Global Constraints に写した |
 
 ### マスタのアンカー 9 件（ピン先 `moorestech_master` e0c913033c の `challenges.json` の `uiHighLight`。実物で確かめた）
 
@@ -60,45 +75,48 @@
 
 チャレンジ 2 は同じチャレンジに `itemViewHighLight`（41e0a6e4）も持つが、これは `uiHighLight` ではないので 9 件に入れない。ピンが変わっていたら Task 7 のシナリオがマスタから集め直すので、表は Task 7 Step 3 の Note と照らして `done.md` に写す。
 
-### 束 4 の突き合わせ（2026-11-10 起草時に `node tools/uitk/test-name-parity.mjs --bundle 4` を流した実測）
+### 束 4 の突き合わせ（2026-11-13 に `node tools/uitk/test-name-parity.mjs --bundle 4` を流した実測。HEAD 46fb246ea3）
 
-Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot のツールチップ、S4-inventory）／未対応 258。未対応はすべて S4 の各レーンの計画の持ち分で、レーンのマージで消える見込み。持ち主の無いものは 1 ファイルだけ。
+`束 4: Web 457 件 / 写した 434 / 処遇 23 / 写す予定 0 / 未対応 0`、終了コード 0（差分 0）。
 
-| 持ち主 | 未対応のファイル（件数） |
-|---|---|
-| S4-alpha（分け合うファイルあり） | `blockInventory.spec` 3・`blockInventoryGestures` 5・`blockRegistryCoverage` 1・`BlockInventoryPanel.localization` 2・`LackHighlightText` 2、分け合う `regression/sectionStack` 1（machine 1）・`SectionStackView.test` 8（machine 7・alpha 1）・`blockInventoryDesign` 16（machine 10・train 2・alpha 4） |
-| S4-inventory | `inventory.spec` 4・`equipment.spec` 11・`InventoryPanel/index.test` 2・`EquipmentPanel/index.test` 14 |
-| S4-machine | `blockDetails` 8（special と分け合う）・`machineGestures` 3・`machineRecipe` 10・`machineRequiredCount` 4・`cleanRoom/*` 8・`fluidSlot` 5・`MachineSection` 9・`SelectedRecipeHeader` 2・`ModuleSlotStackLimitText` 2・`CleanRoomSection` 4・`CleanRoomYield` 3・`MachineInputStall` 3・`MachineRecipeSelectionRow` 5 |
-| S4-special | `electricPole` 1・`electricToGear` 1・`filterSplitter` 3・`spaceElevator/*` 8・`GearToElectric` 7＋i18n 1・`BeltThroughput` 3・`Gear` 3・`RocketLaunchPad` 6・`SpaceElevator*` 5 |
-| S4-train | `trainPlatform` 2・`train.spec` 1・`train/timetable` 2・`TrainInventoryBody` 1・`TrainTimetableImmediate` 8・`TrainTimetableSection` 5・`TrainPlatformInventory` 1 |
-| S4-recipe | `recipe.spec` 9・`itemListScroll` 6・`recipeListScroll` 2・`slotTooltip` 2・`useDragScroll` 2・`CraftRecipeEntry` 3・`MachineRecipeEntry.fluids` 1・`MachineRecipeEntry.localization` 1・`RecipeContent` 2 |
-| S4-research | `research.spec` 12・`researchMachineUpgradeUnlock` 1・`researchViewport` 5・`tmp-icon-click` 1（research が「捨てる」）・`ResearchDetailPane` 11・`ResearchNodeCard` 2・`ResearchTreePanel` 2 |
-| **持ち主が無い（gamma）** | `e2e/mock-host/detailActions.test.ts` 3 件 → Task 10 で処遇「捨てる」（mock-host の詳細操作の結線は Web の検証基盤で、UITK の写し先が無い。理由を行に書く） |
+起草時（2026-11-10・91e3f7f5c5）は 写した 189／処遇 9／写す予定 1／未対応 258 で、S4 の 7 レーンのマージで未対応が消えた（S4-recipe の時点 9e2228c658 で 371／22／2／62）。起草時に「持ち主が無い」とした `e2e/mock-host/detailActions.test.ts` 3 件は S4-machine が処遇「捨てる」で記帳した（`docs/uitk/disposition.md` 89〜91 行・S4-machine D-11）ので、gamma が足す処遇の行は無い。Task 10 は最終 HEAD で流し直して「## 突き合わせの記録」に 1 行足すだけにする。
 
 ### やらないこと
 
-- 画面・部品・Foundation・State・トークン USS・登録ファイルの中身を書き換えない。不具合と不足は持ち主か I-fix へ回す（Task 9・11 の手順）
-- `.cs` を書くのは新規 7 ファイル（L3 の 3 本・`PlaytestTrainLine`・`PlaytestPanelCostRecorder`・`PlaytestAnchorChecks`・`PlaytestTrainStationSnapshots`）だけ。既存の `.cs` は変えない
-- 壊れている 10 本（bd moorestech-wwxy。束 4 の `misc/research-node-state-label.cs`・`tutorial-research-renumber.cs` は X-prerun）を直さない。全録画では「wwxy」に分類する
+- 画面・部品・Foundation・State・トークン USS・登録ファイルの中身を書き換えない。不具合と不足は I-fix6 か `done.md`「integrator への依頼」へ回す（Task 9・11 の手順）
+- `.cs` を書くのは新規 7 ファイル（L3 の 3 本・`PlaytestTrainLine`・`PlaytestPanelCostRecorder`・`PlaytestAnchorChecks`・`PlaytestTrainStationSnapshots`）と `Client.Playtest.asmdef` の 1 行だけ。既存の `.cs` は変えない
+- 壊れている録画（bd moorestech-wwxy）のうち X-prerun の 2 本（`tutorial-research-renumber.cs`・`misc/research-node-state-label.cs`）を直さない。全録画では「wwxy」に分類する
 - ラダー 6 `uitk-challenge-gate` と束 5 の画面（チャレンジ一覧・言語ゲート）を作らない
 - 束 4 を `切替済み` にしない（切替 PR で全束一度）
-- 録画・Unity のログ・テスト結果 xml を `moorestech_logs` に置かない（worktree の gitignore 下に置き、`done.md` に要約だけ）
+- 録画・Unity のログ・テスト結果 xml を `moorestech_logs` に置かない（winunity の run dir `~/.cache/winunity/runs/<runId>/` か worktree の gitignore 下に置き、`done.md` に要約だけ）
+- Mac の Unity Editor を起動しない（`uloop launch`・`moores-wt new` の Editor 付き・`run-scenario.sh` を使わない）。Unity が要るものは全部 `winunity`。どうしても Mac が要るもの（IME の `.sh` 等）は `done.md`「未完了」に回す（指揮が Mac の Editor を回す）
+- 修正の取り込みを「状態: 停止」で待たない（D-28）
+- worktree を片付けない（`moores-wt rm` は指揮が行う）
 
 ## Global Constraints
 
-- 土台: `origin/feature/uitk`（起草時 635d55f8e4。S2-tutorial #1627 は入っている）。ラダーの番号はこの計画では plan §4.4 の表の順（1 lifeline・2 opening-hud・3 build-bp・4 production-loop・5 research-train・6 challenge-gate）で呼ぶ。plan §2.6 は challenge-gate を「ラダー 5」と呼ぶので、食い違うときはシナリオ名が正。S4 の 7 レーン・S2-tutorial（PR #1627）・S2-ladder・S3-ladder が入っていることが着手の前提（Task 1 Step 1）。worktree は `moores-wt new uitk-lane/s4-gamma --from origin/feature/uitk`（環境ローカル規約）
-- Editor: Mac mini で同時 2 本まで（conductor.md）。自分の worktree の Editor だけを使い、起動・停止前に `moores-wt status` で所有者を確かめる。Web 側の全録画は Windows の `~/bin/winunity`（compile・test・play を ssh で回す）でも流してよい
-- 全体スイッチ: PlayMode を止めてから `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'`（Web 側は `UiSystem.Web`）。値は起動ごとに 1 回読まれ、Editor を閉じると Web に戻る
-- 受け口: 録画の前に Editor プロセスへ `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` を立てる（`uitk-lifeline` の冒頭の検査がこれを要求する。本番の受け口へ送らない）
-- シナリオの起動: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh <project> <scenario.cs> [master-dir]`。終了コード 0 成功／1 失敗／2 コンパイル不可。出力に `run dir: <path>`。失敗すると PlayMode が残るので、次の起動の前に `uloop control-play-mode --project-path ./moorestech_client --action Stop`
-- テスト: `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "<完全名>"`。L3 は PlayMode 遷移でドメインリロードを起こすので、直後の「Unity is reloading」は 45 秒待って再試行
+- 土台: `origin/feature/uitk`（起草時 635d55f8e4 → 更新時 46fb246ea3。S4 の 7 レーン・S2-tutorial #1627・S2-ladder #1657・S3-ladder #1650・I-fix3 #1629・I-fix4 #1639・X-audit #1656 が入っている。以後 4667f0ce9b〈PLAN-W5 の docs〉まで進んでいる）。ラダーの番号は plan §4.4 の表の順（1 lifeline・2 opening-hud・3 build-bp・4 production-loop・5 research-train・6 challenge-gate）。ラダーのパスは実物で 1 `scenarios/uitk/uitk-lifeline.cs`・2 `scenarios/uitk/stage2/uitk-opening-hud.cs`・3 `scenarios/uitk/stage3/uitk-build-bp.cs`・4/5 は gamma が `scenarios/uitk/stage4/` に作る。ラダー 1〜3 は S2-ladder が s2-ladder 5c6239e6f3 の GameUi で緑を確認済み（winunity run 20261112-204926・205549・205802）。worktree はこの環境で `~/hermes-agent/data/worktrees/moorestech/uitk-s4-gamma`（ブランチ `uitk-lane/s4-gamma`）
+- **Unity は Windows（RTX2060）の `~/bin/winunity` だけで回す（D-26）。** Mac の Editor は全体で 1 本までで I-fix5 が使っている。使うコマンド（引数なしで `~/bin/winunity` を流すと usage が出る）:
+  - `winunity compile <branch>`（batchmode）
+  - `winunity test <branch> (--regex R | --class C) [--platform PlayMode] [--editor] [--timeout SEC]`（EditModeInPlayingTest は `--editor` で GUI Editor＋uloop。件数が返らないときは TestResults.xml から回収する〈S2-ladder〉）
+  - `winunity play <branch> <scenario.cs> --ui-system GameUi|Web`（流す前に PlayMode を止め、全体スイッチを立てて `Current` を確かめる。GUI Editor は `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9` 付きで起きる。シナリオのファイルは Mac から送られるので未 push でも流れるが、シナリオが使う `.cs`〈Task 4 の口・L3〉は push 済みのブランチにあること）
+  - `winunity edc <branch> <code.cs>`・`winunity test-all <branch>`・`winunity status`・`winunity editor-stop <name>`
+  - 結果は `~/.cache/winunity/runs/<runId>/`（標準出力の最後の方に `[mac] results: <dir>`）。play は `summary.json`（`ok`・`detail.exitCode`・`detail.playDir`〈Windows 側のパス〉・`unitySeconds`）・`scenario.log`・`play/result.json`（`Success`・`Asserts`・`ErrorLogs`・`Screenshots`・`RecordingPath`）・`play/recording.mp4`・`play/*.png`。終了コードは `summary.json` の `ok`（偽で 1）
+  - ブランチは push 済みが前提（Windows 側が GitHub から取る）。`.cs` を変えたら `git push` してから回す
+  - 枠: Windows 全体で最大 4 本、GUI Editor を使うジョブ（play・edc・`--editor`・test-all）は 1 本、同じ worktree は 1 本。埋まっていれば空くまで最大 3 時間待つ。batchmode の compile・test は気にせず投げてよい。全録画は GUI 枠を長く握るので、`winunity status` で I-fix5・I-fix6 の GUI ジョブが無いのを見てから小分けで流す
+  - play が `missing script`／`game not ready`／`InitializationFailed` で止まったら、`~/hermes-agent/data/repos/moorestech_logs/harness/uitk/winunity-play-fix.md` の手順 2（`winunity edc <branch> <code.cs>` で `CompilationPipeline.RequestScriptCompilation(RequestScriptCompilationOptions.CleanBuildCache)` を流す。3 分強かかる）を 1 回流してから流し直す。S2-ladder も `TimelinePlayer` の missing で 1 回これを要した
+  - `uloop`・`run-scenario.sh`・`moores-wt` の Editor・`uloop execute-dynamic-code` の全体スイッチの手順は使わない
+- Windows でどうしても回らないもの（Mac の IME を叩く `scenarios/uitk/uitk-c2b-ime-mac-keys.sh` と、それを前提にする `uitk-c2b-ime-mac.cs` など）は `done.md`「未完了」に「Mac が要る」と書いて指揮へ回し、gamma は先へ進む
+- テスト: L3 は `winunity test uitk-lane/s4-gamma --class Client.Tests.EditModeInPlayingTest.Ui.Stage4.Stage4ScreenSetGameUiTest --editor --timeout 900`。他レーンの L3 と同時に走ると時間切れになりうる（S2-ladder で `GameUiMachineSectionWiringTest` が並走負荷で 180 秒切れ→単体で PASS）。時間切れは単体で 1 回流し直してから判定する
 - AGENTS.md の規約: 1 ファイル 200 行未満、1 ディレクトリ 10 ファイルまで、partial 禁止、`Func<>` を自分の型の引数・フィールドに使わない（DSL の既存 API `p.Until(Func<bool>, …)` へラムダを渡すのは既存の呼び出しで、新しい型は作らない）、イベントは UniRx、try-catch 禁止（`finally` で購読を外すのは可）、日英 2 行コメント、デフォルト引数禁止、初期化は `Initialize`、fail-closed はログへ、単純な getter/setter プロパティ禁止
-- テスト名は日本語の文。L3 は `[Category("CiShardClientPlay1")]`、`UiSystemPlayModeTestBase` を継承し `GameUiSkeletonTest` と同じ遷移（`SelectUiSystemBeforePlayMode(UiSystem.GameUi)` → `EnterPlayModeUtil()` → `yield return new EnterPlayMode(expectDomainReload: true)` → `LogAssert.ignoreFailingMessages = true` → 本体 → `ExitPlayMode` → `SessionState.SetBool("DebugObjectsBootstrap_Disabled", false)`）
-- 他レーンのファイルを書かない。gamma が書く共有区画は integrator の持ち分のうち `docs/uitk/TODO.md`（束の表の束 4 の行・「## 追従記録」の束 4 の行・「## 実測の結論」・「## 参照キャプチャ」の追記・「## 見た目の例外」の LX-141〜145 を書くのは I-fix）と `docs/uitk/disposition.md`（処遇の表の行と「## 突き合わせの記録」）だけ
-- 番号: 設計書 §7.1 は A-175〜A-179、台帳は LX-141〜LX-145 だけを使う
-- 報告: `../moorestech_logs/harness/uitk/S4-gamma/done.md`（1 行目は「状態: 進行中／停止／完了」）。`moorestech_logs` で作業する前に同 repo の `README.md` を読む
-- CI の `Unity Test - client-remainder` で落ちる `UnityCursorTooltipScreenTest` 1 件は既存の失敗。マージの条件は G1 緑と、それ以外の必須ジョブの緑
+- テスト名は日本語の文。L3 は `[Category("CiShardClientPlay1")]`、`UiSystemPlayModeTestBase` を継承し `Stage2HudGameUiTest` と同じ遷移（`SelectUiSystemBeforePlayMode(UiSystem.GameUi)` → `EnterPlayModeUtil()` → `yield return new EnterPlayMode(expectDomainReload: true)` → `LogAssert.ignoreFailingMessages = true` → 本体〈`LoadMainGame` → `EditorBackgroundInputScope.Open()` → `PlaytestSetup.CreateFlatGroundAndWarp()` → `PlaytestSkitOps.SkipOpeningSkitIfPlaying(5f)`〉 → `ExitPlayMode` → `SessionState.SetBool("DebugObjectsBootstrap_Disabled", false)`）
+- 他レーンのファイルを書かない。gamma が書く共有区画は integrator の持ち分のうち `docs/uitk/TODO.md`（束の表の束 4 の行・「## 追従記録」の束 4 の行・「## 実測の結論」・「## 参照キャプチャ」の追記。「## 見た目の例外」の LX-141〜145 を書くのは I-fix）と `docs/uitk/disposition.md`（「## 突き合わせの記録」）だけ
+- **共有ファイルは自分の行だけ足す。** I-fix5（文字組み・半透明・層・部品の直し）と I-fix6（X-audit の設計判断の反映）が並走中で、`UiCommandRejectReason.cs`・`localization.csv`・`Client.Starter/Registration/GameUi/`・`MainGameUiRegistration.cs`・tss・asmdef・台帳 `docs/uitk/TODO.md`・設計書 `component-architecture.md` を両レーンも触る。gamma が触るのは `Client.Playtest.asmdef` の 1 行・台帳の束 4 の行と自分の追記・`disposition.md` の記録の 1 行だけで、取り込みの衝突は両方の行を採る
+- 番号: 設計書 §7.1 の A-175〜A-179 はこの計画の起草版の行として写し済み（改めない）。この更新で足す行は予備 A-270〜A-279、台帳は LX-141〜LX-145（未使用。足りなければ予備 LX-230〜LX-239）を使う（D-29）
+- 報告: `~/hermes-agent/data/repos/moorestech_logs/harness/uitk/S4-gamma/done.md`（1 行目は「状態: 進行中／停止（理由）／完了」。骨組みは作成済み）。`moorestech_logs` で作業する前に同 repo の `README.md` を読む。`done.md` のコミット・push は Task 15 の最後に moorestech_logs 側で行う
+- CI の `Unity Test - client-remainder` で落ちる `UnityCursorTooltipScreenTest` 1 件は既存の失敗。マージの条件は G1 緑
 - 新しい共有の申告: 検査用の口（`PlaytestTrainLine`・`PlaytestPanelCostRecorder`・`PlaytestAnchorChecks`）のうち、列車線と CPU 時間は DSL の Operations の新しいサブディレクトリ `Ladder/`（段の締めのラダーの準備と計測。名前空間は `ServerSnapshots/`・`ScenarioChecks/` と同じ平らな `Client.Playtest.Operations`）、アンカーの照合はシナリオ用の照合の前例 `ScenarioChecks/`（`PlaytestPlacementGuideChecks`）に置き、既存の Operations のファイルは変えない。サーバーの値は `ServerSnapshots/` の待ち（既存の `WaitForItemCount` 等と、足す `PlaytestTrainStationSnapshots`）で読み、メインスレッドから直に読まない。`RunOnServer` は書き込みにだけ使う。既存の `PlaytestDriver` に足したくなったら足さずに `done.md`「integrator への依頼」へ書く（`PlaytestDriver` は 199 行。A-111 の前例）
+- 止まらない: 止まるのは解決不能な障害か取り返し不能な破壊的操作だけ。不具合・追従漏れ・写し漏れ・Mac が要るものは bd と依頼文に書き出して先へ進む（D-28）。利用上限の表示を理由に止まらず、API が実際に拒否したときだけ `done.md` に書いて止まる。止まるときも `done.md` に理由を書いてから `cmux wait-for -S uitk-s4-gamma` を 1 回流す
 
 ## 設計検査記録
 
@@ -106,6 +124,7 @@ Web 457 件／写した 189／処遇 9／写す予定 1（albof.29、itemSlot �
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱3・第3バケツ0 / Key? の不在を判別子に使う形を直し、ADR との食い違い 3 件（LX の追記者・並べ比べの判定者・MarkClipContainer の義務）を D-17〜D-19 で裁き、弱 3 件は D-20 でこのまま。シミュレーター反映後に変えた範囲を fresh-context で再検査（強1・弱4）し、駅名の待ちを ServerSnapshots の前例の形へ、枠の測り方を自分の入れ物と切り抜き後の見える範囲へ、§3.3 の改め案を足して全件直した。独立評価 2 体（opus 7 件・codex 4 件）の指摘を直した範囲を fresh-context で再検査（Phase 1〜2.6 の発火 0、故障シナリオ強1・弱4: 比較元の引き方・分岐点の引き方・枠の session の入れ替わり・D-23 の前提・消える worktree への grep）し全件直した
 - 2 周目の独立評価の指摘（opus N1〜N4・codex 1〜2）と指揮の追加（登録ファイルの `Screens/`）を直した範囲を fresh-context で再検査: 6 件は実コードと照らして解消を確認、新規 1 件（参照の撮り直しで `capture.ts` の viewport が 1280×720 固定・node_modules 無し）を pnpm install/build・UITK_REFERENCE_OUT・使い捨て worktree 内だけの viewport 書き換えで直した
 - 3 周目の独立評価の指摘（codex: `resolvedStyle.overflow` が `IResolvedStyle` に無くコンパイルできない／opus: alpha の直下の 1 本の除外・`manifest.json` の viewport・`moores-wt rm` の名前と `--prune-branch`）を直した: 自前のクリップ判定を消して本番の `TutorialAncestorClipWalker.ClipOf`（public static）へ寄せ、`Client.Playtest.asmdef` に `Client.Ui.State` を足す（実物で公開範囲・asmdef の参照・循環の無さを確かめた）
+- 2026-11-13 の更新（マージ済みレーンの `done.md` と winunity への差し替え）: 変えた範囲（Requirements R-5・R-7・R-8・R-10・R-12・R-13、束ねる表、束 4 の表、やらないこと、Global Constraints、File Structure、Task 1〜15、判断記録 D-26〜D-31、未確認、設計書へ反映する行）について実施済み / 検査したもの: Task 3〜8 のコード片が使う型・メソッドの実在と公開範囲（`grep` で 60 件余り。`GameUiElementQuery.IsVisible` は internal＋`InternalsVisibleTo("Client.Tests")`、`TutorialAncestorClipWalker.ClipOf`・`TutorialClipRect.Expand/ContainsRect`・`TutorialAnchorResolution.Unique.Element`・`TutorialPresentationStateStore.AddOutlineHighlight`・`TrainStationComponent.StationName` は public、`PlaytestSkitOps.SkipOpeningSkitIfPlaying(float)`・`EditorBackgroundInputScope.Open()`・`PlaytestSetup.CreateFlatGroundAndWarp()` は実在）、testid とファイル数（照合表）、全体の手順と Global Constraints・やらないこと・File Structure の食い違い / 直したもの 6 件: `ClientContext.VanillaApi.Response.PlaceTrainOnRail` → `.Response.Train.PlaceTrainOnRail`、駅の向き North → South と back 側の結線・車両の back 側の置き方（前例 `train-timetable-via-ui.cs`）、駅を開く狙い方（前例 `uitk-train-inventory.cs` の `OpenStation`。Alt を押したまま狙う）、時刻表の保留の待ち `train-timetable-section--busy`（I-fix6 R-10 で消える）→ クライアントの時刻表の駅数、L3 に開幕スキットの待ちと背景入力の scope（前例 `Stage2HudGameUiTest`）、全体スイッチの確かめを `WebUiHost.Hub == null` から `UiInputExclusivity.ActiveUiSystem` へ（S2-ladder の前例）。Phase 1〜2.6 の新しい発火は 0（新しい型・置き場・共有の口は増やしていない。`run-all-recordings.sh` の中身を winunity へ替えただけ）
 
 ---
 
@@ -117,9 +136,9 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 |---|---|---|
 | 全体スイッチ Web での全画面 | 生きる | 本番コードを変えない。Web 側の全録画（Task 9 Step 4）が段階の前と同じ合否を確かめる |
 | 全体スイッチ UITK での全画面 | 生きる | 同上。L3・ラダー・全録画で確かめる側 |
-| 既存の録画シナリオ 114 本 | 生きる | 既存のシナリオを書き換えない（新規 5 本だけ）。DSL の既存 Operations も変えない |
+| 既存の録画シナリオ（2026-11-13 で 137 本の `.cs`） | 生きる | 既存のシナリオを書き換えない（新規 5 本だけ）。DSL の既存 Operations も変えない |
 | `docs/uitk/TODO.md` を読む G1 | 生きる | 束 4 の行の状態・起点と追従記録の行を足すだけ。書式は「## 読み方と運用」に従い、`check-uitk-web-follow.py` をローカルで回して確かめる（Task 2） |
-| `test-name-parity.mjs` を読む L2 | 生きる | 処遇の表に行を足すだけ。終了コード 2（書式の誤り）でないことを Task 10 で確かめる |
+| `test-name-parity.mjs` を読む L2 | 生きる | 「## 突き合わせの記録」に 1 行足すだけ（処遇の表は触らない）。終了コード 0 を Task 10 で確かめる |
 | `tools/uitk/testNameParity/ledgerBundles.mjs`（台帳の束の表・`## 行` を読む） | 生きる | Task 2 で束 4 の状態の列だけを `暗転` にし、行の形は変えない。Task 10・Task 15 Step 2 で parity を流して読めることを見る |
 | `LookExceptionLedgerTest`（台帳の `## 見た目の例外` を読む） | 生きる | gamma はその節を書かない（LX の行と印は I-fix が置く）。Task 12 の取り込み後のテストで巻き込まれていないことを見る |
 
@@ -127,10 +146,10 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 
 | パス | 新規/変更 | 責務 |
 |---|---|---|
-| `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4/Stage4ScreenSetGameUiTest.cs` | 新規 | L3。本番の遷移で 4 画面を巡り、各画面で `Stage4ScreenSetProbe` の照合を呼ぶ。Error ログを数える |
+| `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4/Stage4ScreenSetGameUiTest.cs` | 新規 | L3。開幕スキットを飛ばしてから本番の遷移で 4 画面を巡り、各画面で `Stage4ScreenSetProbe` の照合を呼ぶ。Error ログを数える（前例 `Ui/Stage2/Stage2HudGameUiTest`・`Stage2HudSurfaces`） |
 | `…/Ui/Stage4/Stage4ScreenSetProbe.cs` | 新規 | 根の木から面を名前で引き、見えているか・どの列の子孫か・同名の数・中心の Pick を返す純粋な関数 |
 | `…/Ui/Stage4/Stage4ExpectedSurfaces.cs` | 新規 | 画面ごとに見えるべき面と、面ごとの列の名前（Web の `App.tsx` と `UiScreenTraitsTable` から写した表） |
-| `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestTrainLine.cs` | 新規 | 駅 2 基・結線・機関車の解放と設置・燃料・列車の取得（既存 `train-timetable-via-ui.cs` の準備の写し。駅名は付けない） |
+| `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/PlaytestTrainLine.cs` | 新規 | 駅 2 基・結線（front と back の両側）・機関車の解放と back 側への設置・燃料・列車の取得と、駅・車両を F で開く狙い方（既存 `train/train-timetable-via-ui.cs` と `uitk/uitk-train-inventory.cs` の準備の写し。駅名は付けない） |
 | `…/Operations/Ladder/PlaytestPanelCostRecorder.cs` | 新規 | `ProfilerRecorder` で UI のマーカーを N フレーム読み、平均・p95・最大を返す |
 | `…/Operations/ScenarioChecks/PlaytestAnchorChecks.cs` | 新規 | マスタの `uiHighLight` を集め、アンカーの解決と枠の位置を確かめる |
 | `moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef` | 変更 | references に `Client.Ui.State` を足す（アンカーの見える範囲を本番の `TutorialAncestorClipWalker.ClipOf` で求め、その戻り値の型 `TutorialClipRect` が `Client.Ui.State` にあるため。Task 4 Step 3 の注記） |
@@ -140,12 +159,12 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 | `…/scenarios/uitk/stage4/uitk-master-anchors.cs` | 新規 | アンカー 9 件 |
 | `…/scenarios/uitk/stage4/uitk-stage4-panel-cost.cs` | 新規 | CPU 時間（録画しない） |
 | `…/scenarios/uitk/stage4/uitk-stage4-wave-shots.cs` | 新規 | 同時に出る 3 画面の撮影（録画しない。1280×720 と 2560×1080） |
-| `tools/uitk/run-all-recordings.sh` | 新規 | 一覧のシナリオを順に `run-scenario.sh` で流し、1 本 1 行の TSV を書く |
+| `tools/uitk/run-all-recordings.sh` | 新規 | 一覧のシナリオを開始行から N 本だけ順に `winunity play <branch> <scenario> --ui-system <系>` で流し、1 本 1 行の TSV（scenario・system・exit・seconds・run_dir＝winunity の Mac 側の結果ディレクトリ）を書く |
 | `tools/uitk/list-recordings.sh` | 新規 | 系ごとの全本の一覧を作る（wwxy のうち X-prerun が直す行を除き、Web では UITK 専用の `scenarios/uitk/` も除く。外した名前は標準エラーへ） |
 | `docs/uitk/TODO.md` | 変更（共有区画） | 束 4 の行（暗転・起点）、「## 追従記録」の束 4 の行、「## 実測の結論」の 3 行（CPU・全録画 UITK・全録画 Web）、「## 参照キャプチャ」の自撮りの置き場 |
-| `docs/uitk/disposition.md` | 変更（共有区画） | `detailActions.test.ts` 3 件の処遇の行、「## 突き合わせの記録」の 1 行 |
+| `docs/uitk/disposition.md` | 変更（共有区画） | 「## 突き合わせの記録」の 1 行（`detailActions.test.ts` 3 件の処遇は S4-machine が記帳済み） |
 
-ディレクトリのファイル数: `Ui/Stage4/` 3、`Operations/Ladder/` 2、`Operations/ScenarioChecks/` 1→2、`Operations/ServerSnapshots/` 8→9、`scenarios/uitk/stage4/` 5（gamma の新規シナリオは全部ここ。`scenarios/uitk/` 直下は起草時 10 本で、そこへは足さない。D-24）。`tools/uitk/` は Task 1 Step 4 で数え、10 を超えるなら `tools/uitk/recordings/` へ 2 本を置く。
+ディレクトリのファイル数（2026-11-13 の実測）: `EditModeInPlayingTest/Ui/` 直下は `.cs` 10 本と `Stage2/` で、gamma は新しい `Ui/Stage4/` に 3 本。`Operations/` 直下 10 本（足さない）・`Operations/Ladder/` 無し→2、`Operations/ScenarioChecks/` 1→2、`Operations/ServerSnapshots/` 8→9、`Operations/Ui/` 10（足さない）。`scenarios/uitk/` 直下は `.cs` 27 本＋`.sh` 1 本（既に 10 超え。S3-ladder が integrator へ依頼済み）で、gamma の新規シナリオは全部 `scenarios/uitk/stage4/` に 5 本（D-24）。`tools/uitk/` はファイル 6 本＋ディレクトリ 2 で、2 本足して 8＋2（10 以下なのでそのまま置く）。
 
 **他レーンとの所有の境界**: L3 は他レーンの View・USS を読むだけ（名前とクラス）。シナリオは他レーンの testid を `ClickUi`・`UntilUiElement` で使うだけ。名前が計画と違っていたら Task 1 Step 2 の照合表で読み替え、gamma のファイルの側を直す（他レーンへ名前の変更を求めない。D-5）。
 
@@ -156,86 +175,93 @@ gamma は検査する側のファイルだけを足し、本番のコードに�
 ### Task 1: 前提の確認・照合表・記録の準備
 
 **Files:**
-- Create（repo 外）: `../moorestech_logs/harness/uitk/S4-gamma/done.md`
+- Modify（repo 外）: `~/hermes-agent/data/repos/moorestech_logs/harness/uitk/S4-gamma/done.md`（骨組みは作成済み。書くだけで、コミット・push は Task 15 の最後）
 
 **Interfaces:**
 - Consumes: `origin/feature/uitk` の HEAD
-- Produces: `done.md` の骨組み、照合表（計画の名前 → 実物の名前）、`$MACHINE_BLOCK_PLAYTEST`（ピン先マスタの石窯の名前。既定 `石窯`）、bd の issue `<bd>`
+- Produces: `done.md` の照合表・回ってきた件の下書き、bd の issue `<bd>`、Windows の worktree（`winunity compile` の 1 回目で作られる）
 
-- [ ] **Step 1: 前提のレーンが入っているかを確かめる**
+前提の確認と照合は 2026-11-13 の計画の更新で済ませた（下の照合表と「束ねる完了条件と回ってきた件」の表）。Task 1 は着手時の HEAD で同じものが変わっていないことを確かめ、`done.md` に写す。
+
+照合表（計画の名前 → 実物。2026-11-13・46fb246ea3）:
+
+| 計画の名前 | 実物（ファイル:行） | 読み替え |
+|---|---|---|
+| `inventory-panel`・`inventory-sort`・`main-slot-<i>` | `Client.Ui/Screens/Inventory/Panel/InventoryView.cs`（`main-slot-{index}` は 78 行） | 無し |
+| `equipment-slots` | `Client.Ui/Screens/Inventory/Equipment/EquipmentHudView.cs` | 無し |
+| `recipe-viewer`・`item-list-panel`・`item-list-scroll` | `Client.Ui/Screens/Recipe/RecipeViewerView.cs`・`ItemListView.cs` | 無し |
+| `item-list-cell-<itemId>` | `Client.Ui/Screens/Recipe/Parts/ItemListCellView.cs:22`（`itemId.AsPrimitive()`） | 無し |
+| `craft-button-<guid>`・`craft-recipe-box-<guid>` | `Client.Ui/Screens/Recipe/Parts/CraftRecipeEntryView.cs` | 無し |
+| `research-tree`・`research-panel` | `Client.Ui/Screens/Research/ResearchTreeView.cs:33・42` | 無し |
+| `research-viewport` | `Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.cs:45`（`$"{testIdPrefix}-viewport"`、prefix `research`。49 行で `TutorialAnchor.MarkClipContainer(this)`） | 無し（文字列の直書きは無いので grep は `-viewport` で引く） |
+| `research-node-<guid>`・`research-button-<guid>`・`research-detail-pane` | `Client.Ui/Screens/Research/Parts/ResearchNodeCard.cs`・`ResearchDetailActions.cs`・`ResearchDetailPane.cs` | 無し |
+| `block-inventory`・`block-inventory-panel`・`block-inventory-close` | `Client.Ui/Screens/BlockInventory/BlockInventoryView.cs` | 無し |
+| `machine-recipe-<guid>` | `Client.Ui/Screens/BlockInventory/Machine/RecipeSelection/MachineRecipeSelectionRowView.cs:32` | 無し |
+| `machine-input-slots`・`machine-output-slots`・`machine-input-slot-<i>`・`machine-output-slot-<i>` | `Client.Ui/Screens/BlockInventory/Machine/MachineProcessRow.cs:26-27`、枠は `Machine/Slots/MachineSlotBand.cs:74`（`{prefix}-{position}`。帯の中の 0 始まりの位置） | 無し |
+| `train-station-name-input`・`train-station-name-apply` | `Client.Ui/Screens/BlockInventory/Train/Parts/TrainStationNameRow.cs` | 無し |
+| `train-tab-timetable` | `Client.Ui/Screens/BlockInventory/Train/TrainInventoryBodyView.cs` | 無し |
+| `train-timetable-section`・`train-timetable-auto-run-on`・`train-timetable-stop-<i>`・`train-timetable-station-{x}_{y}_{z}-add` | `Train/Timetable/TrainTimetableSectionView.cs`・`TrainTimetableStopListView.cs`・`TrainTimetableStationListView.cs` | 保留の印 `train-timetable-section--busy`（`TrainTimetableSectionView.cs:20`）は I-fix6 R-10 が消すので使わない（D-30） |
+| `stage-column-inv`・`stage-column-viewer`・`stage-column-items`・`stage-columns--left-padding-collapsed` | `Client.Ui/Foundation/Stage/Columns/StageColumnsLayout.cs` | 無し |
+| `screen-backdrop` | `Client.Ui/Screens/Shell/ScreenBackdropView.cs` | 無し |
+| `tutorial-outline`・`tutorial-outline__ring` | `Client.Ui/Screens/Tutorial/Overlay/TutorialOutlineView.cs` | 無し |
+| `challenge-hud` | `Client.Ui/Screens/Challenge/CurrentHud/CurrentChallengeHudView.cs` | 無し |
+| アンカー `challenge.current-hud`・`recipe.craft-button`・`research.node-`・`recipe.item-` | `Client.Game/InGame/Tutorial/UIHighlight/AnchorIds.cs:21・22・40・41`（`RecipeItem(int)` は 55 行） | 無し |
+| 研究ツリーを開くキー | `R`（`scenarios/uitk/uitk-research-tree.cs:52`） | 無し |
+| `TrainStationComponent.StationName` | `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/TrainStationComponent.cs:10`（`{ get; private set; }`） | 無し |
+| `ClientContext.VanillaApi.Response.PlaceTrainOnRail` | `ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail`（`VanillaApiWithResponse.cs:18`） | Task 4 のコードで直した |
+| マスタの `石窯`・`蒸気機関車駅` | `moorestech_master` e0c913033c の `blocks.json` 96・4315 行 | 無し（ピンは `.moorestech-external-revisions.json` で e0c913033c のまま） |
+| L3 の機械 `釜` | テスト mod。前例 `GameUiMachineSectionWiringTest.cs:40` | 無し |
+
+- [ ] **Step 1: 着手時の HEAD で前提が変わっていないことを確かめる**
 
 Run:
 ```bash
 pwd
 git fetch origin
-git log --oneline --merges origin/feature/uitk | grep -E "s4-(alpha|inventory|machine|train|research|recipe|special)|s2-tutorial|s2-ladder|s3-ladder" 
-ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ | grep -E "uitk-(lifeline|opening-hud|build-bp)\.cs"
-test -f moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs && grep -c "S4-" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
+git log --oneline -1 origin/feature/uitk
+git log --oneline --first-parent --merges origin/feature/uitk | grep -E "s4-(alpha|inventory|machine|train|research|recipe|special)|s2-tutorial|s2-ladder|s3-ladder|i-fix5|i-fix6" 
+ls .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs
+grep -c "S4-" moorestech_client/Assets/Scripts/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs
+git merge --no-ff --no-edit origin/feature/uitk
 ```
-Expected: マージコミットが 10 本（S4 の 7・S2-tutorial・S2-ladder・S3-ladder）、ラダーのシナリオ 3 本がある、`TutorialAnchorCoveragePending.cs` に `S4-` の持ち主の行が 0（S4 の各レーンが自分の行を消している）。どれかが欠けていたら `done.md` の 1 行目を「状態: 停止」にし、欠けたものを書いて指揮へ返す（S2-ladder・S3-ladder は実行計画の DAG で S4-gamma の依存に無いが、ラダー 1〜5 緑に要る。末尾の §1.4 の改め案）。Pending の行が残っていたら、その持ち主のレーンへの依頼として `done.md`「integrator への依頼」に書き、Task 7 はその行のアンカーを「持ち主の未処理」として扱う
+Expected: S4 の 7 本・S2-tutorial・S2-ladder・S3-ladder のマージがある、ラダー 1〜3 のシナリオ 3 本がある、`TutorialAnchorCoveragePending.cs` の `S4-` は 0（残りは S5-challenge の 3 行）。I-fix5・I-fix6 のマージが入っていれば、`done.md`「## 証拠」にそのマージの SHA を書き、「束ねる完了条件と回ってきた件」の表で「進行中（I-fix5／I-fix6）」とした行を「済み」と読み替える（Task 9 の「修正中」の分類も不要になる）。取り込みのマージがあれば push する
 
-- [ ] **Step 2: 計画の名前と実物の名前を照合する**
+- [ ] **Step 2: 照合表を実物で確かめ直す**
 
 Run:
 ```bash
-for n in inventory-panel inventory-sort equipment-slots recipe-viewer item-list-panel item-list-scroll craft-button- craft-recipe-box- research-tree research-panel research-viewport research-node- research-button- research-detail-pane block-inventory block-inventory-close train-station-name-input train-station-name-apply train-tab-timetable train-timetable-auto-run-on stage-column-inv stage-column-viewer stage-column-items stage-columns--left-padding-collapsed screen-backdrop tutorial-outline challenge-hud; do
-  printf "%s\t%s\n" "$n" "$(git grep -l -- "\"$n" -- 'moorestech_client/Assets/Scripts/Client.Ui*' | head -2 | tr '\n' ' ')"
+for n in inventory-panel inventory-sort equipment-slots recipe-viewer item-list-panel item-list-scroll craft-button- craft-recipe-box- research-tree research-panel research-node- research-button- research-detail-pane block-inventory block-inventory-panel block-inventory-close machine-recipe- machine-input-slots machine-output-slots train-station-name-input train-station-name-apply train-tab-timetable train-timetable-section train-timetable-auto-run-on train-timetable-stop- train-timetable-station- stage-column-inv stage-column-viewer stage-column-items stage-columns--left-padding-collapsed screen-backdrop tutorial-outline challenge-hud item-list-cell- main-slot-; do
+  printf "%s\t%s\n" "$n" "$(git grep -l -F -- "\"$n" -- 'moorestech_client/Assets/Scripts/Client.Ui*' | head -2 | tr '\n' ' ')"
 done
-grep -rn "item-list-cell-\|main-slot-\|-slot-\"" moorestech_client/Assets/Scripts/Client.Ui/Screens | head
+grep -n "testIdPrefix}-viewport\|MarkClipContainer" moorestech_client/Assets/Scripts/Client.Ui/Components/NodeGraph/NodeGraphView/NodeGraphView.cs
+grep -n "BusyClass" moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Train/Timetable/TrainTimetableSectionView.cs
 ```
-Expected: 各名前が 1 か所以上で見つかる。見つからない名前は実物の名前を探し、`done.md`「## 照合表」に「計画の名前 → 実物の名前（ファイル:行）」で書き、Task 3〜8 のコード片を実物の名前で写す（gamma のファイルの側を直す。D-5）。時刻表の適用ボタン `train-timetable-apply` は S4-train が消している（起草版 R-9。在れば Task 6 の即時送信の待ちは不要になるので S4-train の `done.md` と照らす）
+Expected: 各名前が 1 か所以上で見つかり、上の照合表と同じファイルを指す。違えば実物の名前を探し、`done.md`「## 照合表」に「計画の名前 → 実物の名前（ファイル:行）」で書き、Task 3〜8 のコード片を実物の名前で写す（gamma のファイルの側を直す。D-5）。`BusyClass` が無くなっていても Task 6 は使わないので影響しない
 
-- [ ] **Step 3: 各レーンの `done.md` から回ってきた件を集める**
+- [ ] **Step 3: 回ってきた件を done.md に写す**
 
-Run:
+上の「束ねる完了条件と回ってきた件」の表の行を `done.md`「## 回ってきた件」に 1 行ずつ写す（処理の欄は Task 11 で埋める）。各レーンの `done.md` を読み直す必要があれば:
 ```bash
-for l in S4-alpha S4-inventory S4-machine S4-train S4-research S4-recipe S4-special C4-e; do
-  f=../moorestech_logs/harness/uitk/$l/done.md
-  echo "=== $l $(head -1 $f 2>/dev/null)"
-  grep -n -A12 "## integrator への依頼\|## 部分移植の残り\|gamma\|S4-ladder\|## 未確認" $f 2>/dev/null | head -60
+for l in S4-alpha S4-inventory S4-machine S4-train S4-research S4-recipe S4-special S2-ladder S3-ladder I-fix3 I-fix4; do
+  f=~/hermes-agent/data/repos/moorestech_logs/harness/uitk/$l/done.md
+  echo "=== $l $(head -1 $f)"
+  grep -n -A12 "## integrator への依頼\|## 未完了\|gamma" $f | grep -v "^[0-9]*-|" | head -40
 done
 ```
-Expected: 各レーンが「状態: 完了」。「束ねる完了条件と回ってきた件」の表に無い件があれば `done.md`「## 回ってきた件」に足す（S4-train の行はここで埋める）
+Expected: 全レーンが「状態: 完了」。表に無い件があれば `done.md`「## 回ってきた件」に足す
 
-- [ ] **Step 4: 数と前提の値を確かめる**
-
-Run:
-```bash
-ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc -l
-ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l
-ls tools/uitk/ | wc -l
-ls moorestech_client/Assets/Scripts/Client.Playtest/Operations/
-grep -n "\"石窯\"\|\"蒸気機関車駅\"" -r ../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json | head -3
-grep -n "ProfilerRecorder\|UIElementsUpdatePanels\|RepaintPanels" -r docs/uitk-migration/poc | head -5
-git grep -n "MarkClipContainer" -- moorestech_client/Assets/Scripts/Client.Ui | head -5
-```
-Expected: W4 以降の画面の登録ファイルは `Registration/GameUi/Screens/` に置く決まり（実行計画 E-1。S4-alpha で直下が 10 本になったため）。直下は S4-alpha の `BlockInventoryGameUiRegistration.cs` を含めて 10 本まで（E-1 が認めた 1 本）、`Screens/` も 10 本以下で、それ以外の S4 のレーンが足した画面の登録ファイルが `Screens/` にあること。alpha の 1 本の他に S4 の画面の登録ファイルが直下に増えている、またはどちらかが 10 を超えていれば bd を立てて I-fix へ回す（gamma は動かさない。D-4）。`tools/uitk/` が 8 以下なら Task 9 の 2 本をそのまま置き、9 以上なら `tools/uitk/recordings/` に置いて以後のパスを読み替える。`Operations/` に `Ladder/` が無いこと。マスタに `石窯` と `蒸気機関車駅` がある（名前が違えば照合表へ）。`MarkClipContainer` の印が研究の視口（`NodeGraphView` か `research-viewport`）に付いている。無ければ bd を I-fix へ回し、Task 7（アンカー）の前で「状態: 停止」にして待つ（E-1・A-65 の義務。D-19）
-
-- [ ] **Step 5: bd と done.md の骨組みを作る**
+- [ ] **Step 4: bd を作り、Windows の worktree を用意する**
 
 Run:
 ```bash
-bd create "UITK S4-gamma: 段階 4 の締め（L3・ラダー 4/5・全録画・アンカー 9 件・CPU・束 4 parity・codex-audit）" --parent moorestech-albof -t task
+bd create "UITK S4-gamma: 段階 4 の締め（L3・ラダー 4/5・全録画・アンカー 9 件・CPU・束 4 parity・独立評価）" --parent moorestech-albof -t task
 bd update <bd> --claim
-mkdir -p ../moorestech_logs/harness/uitk/S4-gamma
+git push -u origin uitk-lane/s4-gamma
+~/bin/winunity compile uitk-lane/s4-gamma
 ```
-`done.md` を次の骨組みで作る:
-```markdown
-状態: 進行中
-# S4-gamma
-- bd: <bd>
-- 土台: origin/feature/uitk <HEAD 10 桁>
-## 照合表
-## 回ってきた件
-## 証拠
-## 全録画の結果
-## 差の表
-## 要裁定
-## integrator への依頼
-## 未確認
-```
+Expected: `winunity compile` が OK（Windows の worktree `C:\dev\worktrees\moorestech\uitk-lane-s4-gamma` が作られ、Library が用意される。1 回目は prepare に数分かかる）。`done.md` の「- bd:」「- 土台:」を埋める（骨組みに無ければ 1 行目の次に足す）
 
-- [ ] **Step 6: コミットは無し**（記録は repo 外）
+- [ ] **Step 5: コミットは無し**（記録は repo 外）
 
 ---
 
@@ -259,7 +285,7 @@ Expected: S4-alpha が着手時に `暗転` と起点を書いていればその
 
 Run:
 ```bash
-grep -n "束 4.*起点\|暗転の起点" ../moorestech_logs/harness/uitk/conductor.md | tail -3
+grep -n "束 4.*起点\|暗転の起点" ~/hermes-agent/data/repos/moorestech_logs/harness/uitk/conductor.md | tail -3
 for lane in alpha inventory machine train research recipe special; do
   m=$(git log --first-parent --merges --format=%H origin/feature/uitk --grep "from moorestech/uitk-lane/s4-$lane" | tail -1)
   first=$(git rev-list --reverse --first-parent "$m^2" --not "$m^1" | head -1)
@@ -273,7 +299,7 @@ Expected: 7 行と、それらの master 側の点の共通の祖先（最も古
 - [ ] **Step 3: G1 をローカルで回して未記帳を記帳する**
 
 Run: `python3 .github/scripts/check-uitk-web-follow.py --base origin/master --head HEAD`
-Expected: 「束 4（暗転・起点 <起点>）: 未記帳 k 件」。k が 1 以上なら、出たコミットごとに `git show --stat <sha> -- moorestech_web/webui` を読み、UITK 側に同じ変更があれば `写した`（写し先のファイル）、Web の検証基盤や Web 専用の結線なら `捨てた`（理由）で「## 追従記録」に `| 4 | <sha 10 桁> | 写した | <写し先> |` の形で足す。UITK 側に写すべき変更がまだ無ければ、それは追従漏れの不具合なので持ち主の画面のレーン（取り込み済みなら I-fix）へ bd と依頼文で回し、記帳せずに待つ（追従は未移植の実装より先。台帳の運用）。足したら同じコマンドで「未記帳 0 件」を見る
+Expected: 「束 4（暗転・起点 <起点>）: 未記帳 k 件」。k が 1 以上なら、出たコミットごとに `git show --stat <sha> -- moorestech_web/webui` を読み、UITK 側に同じ変更があれば `写した`（写し先のファイル）、Web の検証基盤や Web 専用の結線なら `捨てた`（理由）で「## 追従記録」に `| 4 | <sha 10 桁> | 写した | <写し先> |` の形で足す。UITK 側に写すべき変更がまだ無ければ、それは追従漏れの不具合なので bd を `--parent <bd>` で立て、I-fix6 の範囲（X-audit の AC/DC）に無いので `done.md`「integrator への依頼」に（コミット・Web の差分・写し先の画面）を書き、記帳はせずに Task 3 へ進む（待たない。D-28）。追従漏れが残ると G1 が赤のままでマージできないので、Task 15 Step 2 の時点でまだ残っていれば `done.md` の 1 行目を「状態: 停止（G1 の追従漏れ k 件の修正待ち）」にして合図を送る（これは解決不能な障害として止まる唯一の箇所）。足したら同じコマンドで「未記帳 0 件」を見る
 
 - [ ] **Step 4: コミットする**
 
@@ -292,7 +318,7 @@ git commit -m "docs(uitk): 束 4 を暗転にして追従を記帳する（S4-ga
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4/Stage4ScreenSetGameUiTest.cs`
 
 **Interfaces:**
-- Consumes: `GameUiRoot.Instance.GetRootElement()`、`UIStateControl.RequestTransition(UIStateEnum)`・`CurrentState`、`InteractKeyBlockOpener.PlaceNearPlayerAndOpen(string)`・`CloseToGameScreen()`、`UiSystemPlayModeTestBase.SelectUiSystemBeforePlayMode(UiSystem)`、`EditModeInPlayingTestUtil.LoadMainGame()`・`EnterPlayModeUtil()`
+- Consumes: `GameUiRoot.Instance.GetRootElement()`、`UIStateControl.RequestTransition(UIStateEnum)`・`CurrentState`、`InteractKeyBlockOpener.PlaceNearPlayerAndOpen(string)`・`CloseToGameScreen()`（`Client.Tests.EditModeInPlayingTest.BlockInventory`）、`UiSystemPlayModeTestBase.SelectUiSystemBeforePlayMode(UiSystem)`、`EditModeInPlayingTestUtil.LoadMainGame()`・`EnterPlayModeUtil()`、`EditorBackgroundInputScope.Open()`（`Client.Tests.EditModeInPlayingTest.Ui`）、`PlaytestSetup.CreateFlatGroundAndWarp()`（`Client.Playtest.Operations`）・`PlaytestSkitOps.SkipOpeningSkitIfPlaying(float)`（`Client.Playtest.Operations.Ui`）、`UiInputExclusivity.ActiveUiSystem`（`Client.Input`）。前例は S2-ladder の `Ui/Stage2/Stage2HudGameUiTest.cs`（開幕スキットを飛ばしてから巡る）
 - Produces: `Stage4ExpectedSurfaces.Expected(UIStateEnum)`（`IReadOnlyList<Stage4Surface>`）・`Stage4ExpectedSurfaces.All`、`Stage4Surface.InColumn(string name, string columnName)`・`Stage4Surface.OutsideColumns(string name)`（`Name`・`ExpectsColumn`・`ColumnName`）、`Stage4ScreenSetProbe.IsVisible(VisualElement)`・`VisibleByName(VisualElement root, string name)`（`List<VisualElement>`）・`TryGetColumnName(VisualElement, out string)`・`CountByName(VisualElement root, string name)`・`IsPickedAtCenter(VisualElement)`
 
 期待の表は Web の `App.tsx`（InventoryPanel は `screenAllowsGrab`、RecipeViewer と ItemListPanel は `playerInventory`、ResearchTreePanel は `researchTree`、BlockInventoryPanel は SubInventory、Equipment は `alwaysOnHud`）と `UiScreenTraitsTable`（PlayerInventory・SubInventory は grab・backdrop・alwaysOnHud、ResearchTree は grab・backdrop で alwaysOnHud なし、GameScreen は alwaysOnHud）から写す。列の名前の空文字は「どの列の子孫でもない」（研究エリアは `OverlayPanel`/`Stage` 層、装備は `Chrome`/`Viewport` 層、幕は幕の層）。
@@ -446,6 +472,8 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
+using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
 using Client.Tests.EditModeInPlayingTest.BlockInventory;
 using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
@@ -468,6 +496,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
     {
         private const string MachineBlockName = "釜";
         private const string LeftPaddingCollapsedClass = "stage-columns--left-padding-collapsed";
+        private const float OpeningSkitStartWaitSeconds = 5f;
 
         [UnityTest]
         public IEnumerator 持ち物と研究と機械の画面を行き来しても各面が自分の列に1つだけ見え覆われない()
@@ -493,6 +522,14 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 await UniTask.DelayFrame(5);
                 var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
                 var root = GameUiRoot.Instance.GetRootElement();
+                using var backgroundInput = EditorBackgroundInputScope.Open();
+                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
+
+                // 開幕スキットを飛ばしてゲーム画面から巡る（Stage2HudGameUiTest と同じ前段）
+                // Skip the opening skit and start from the game screen (same prelude as Stage2HudGameUiTest)
+                await PlaytestSetup.CreateFlatGroundAndWarp();
+                await PlaytestSkitOps.SkipOpeningSkitIfPlaying(OpeningSkitStartWaitSeconds);
+                Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "開幕スキットを飛ばした後にゲーム画面でない");
                 var errors = new List<string>();
                 Application.logMessageReceived += CollectErrors;
 
@@ -615,20 +652,20 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
 
 - [ ] **Step 4: コンパイルしてテストを回す**
 
-Run:
-```bash
-uloop compile --project-path ./moorestech_client
-uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.EditModeInPlayingTest.Ui.Stage4.Stage4ScreenSetGameUiTest" --timeout-seconds 900
-```
-Expected: `ErrorCount: 0`、1 件 PASS。落ちたら、メッセージの面・画面・拾われた要素で原因を分ける: (1) 照合表の名前の違い → Task 1 Step 2 の表で gamma の表を直す、(2) 面が重なる・列が違う・残骸が残る・Error ログ → 持ち主のレーン（取り込み済みなので I-fix）への不具合。bd を `--parent <bd>` で立て、再現の手順（このテストの名前・落ちた行・メッセージ）を書いて指揮へ依頼し、`done.md`「## 差の表」に書いて修正が入るまで待つ（テストを緩めない）。入ったら `git merge --no-ff origin/feature/uitk` で取り込み、同じコマンドで再走
-
-- [ ] **Step 5: コミットする**
-
+Run（`.cs` を書いたら先にコミットして push する。Windows は push 済みのブランチを取る）:
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4
-git commit -m "test(uitk): 段階 4 の同時に出る組を実ゲームで巡る L3 を足す（S4-gamma）" -- moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4
+COMMIT_MSG="test(uitk): 段階 4 の同時に出る組を実ゲームで巡る L3 を足す（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4
+git push
+~/bin/winunity compile uitk-lane/s4-gamma
+~/bin/winunity test uitk-lane/s4-gamma --class Client.Tests.EditModeInPlayingTest.Ui.Stage4.Stage4ScreenSetGameUiTest --editor --timeout 900
 ```
-（`.meta` は Unity が作ったものをそのまま含める）
+Expected: compile が OK（`CS:` の行が 0）、test が `tests: total 1 passed 1`。落ちたら、メッセージの面・画面・拾われた要素で原因を分ける: (1) 照合表の名前の違い → Task 1 Step 2 の表で gamma の表を直す、(2) 時間切れ → 他の GUI ジョブとの並走を `winunity status` で見て単体で 1 回流し直す、(3) 面が重なる・列が違う・残骸が残る・Error ログ → 不具合。bd を `--parent <bd>` で立て、I-fix5（層・部品）・I-fix6（X-audit の項目）の計画の Requirements に同じ箇所があれば「修正中（I-fix5／I-fix6）」として `done.md`「## 差の表」に書き、無ければ `done.md`「integrator への依頼」に再現の手順（このテストの名前・落ちた行・メッセージ・winunity の run dir）を書く。テストは緩めず、待たずに Task 4 へ進む（D-28）。Task 12 でもう一度流し、その時点の結果を証拠にする
+
+`.meta`: Mac で Unity を開かないので、新しいフォルダとファイルの `.meta` は Windows の worktree の Unity が作る（手作成は禁止）。Task 15 Step 2 の後に Task 15 Step 2b の手順で Windows から取ってコミットする（D-26）
+
+- [ ] **Step 5: コミットは Step 4 で済んでいる**（直したら同じ形でコミットして push する）
 
 ---
 ### Task 4: 検査用の DSL の口（`Client.Playtest/Operations/Ladder/`）
@@ -641,20 +678,23 @@ git commit -m "test(uitk): 段階 4 の同時に出る組を実ゲームで巡�
 - Modify: `moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef`（references に `"Client.Ui.State"` を 1 行足す）
 
 **Interfaces:**
-- Consumes: `PlaytestDriver`（`SetupFlatGround`・`WarpPlayer`・`PlaceBlockDirect`・`WaitBlockGameObject`・`GetBlock`・`RunOnServer`・`Until`・`Assert`・`GiveItemDirect`・`SendCommand`・`WaitSeconds`・`AimAt`）、`RailComponent`・`TrainStationComponent`・`StationNodeRole`、`ClientContext.VanillaApi.Response.PlaceTrainOnRail`、`ITrainUnitLookupDatastore`、`MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements`、`TutorialsElement.TutorialTypeConst.uiHighLight`・`UiHighLightTutorialParam.HighLightAnchorId`、`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`ITutorialView.CompleteTutorial()`、`TutorialAnchorRegistry.Resolve(VisualElement, string)`、`TutorialAncestorClipWalker.ClipOf(VisualElement, VisualElement)` → `TutorialClipRect`（`ContainsRect`・`Left`/`Top`/`Right`/`Bottom`）、`GameUiRoot.Instance.GetRootElement()`、`ProfilerRecorderHandle.GetAvailable`・`ProfilerRecorder.StartNew`
+- Consumes: `PlaytestDriver`（`SetupFlatGround`・`WarpPlayer`・`PlaceBlockDirect`・`WaitBlockGameObject`・`GetBlock`・`RunOnServer`・`Until`・`Assert`・`GiveItemDirect`・`SendCommand`・`WaitSeconds`・`AimAt`）、`RailComponent`・`TrainStationComponent`・`StationNodeRole`、`ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail`、`ClientDIContext.BlockGameObjectDataStore`、`MapObjectGameObjectDatastore.SetActive(bool)`、`SemanticInput.KeyDown/KeyUp`、`PressInteract`・`WaitUiState`・`UntilUiElement`、`ITrainUnitLookupDatastore`、`MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements`、`TutorialsElement.TutorialTypeConst.uiHighLight`・`UiHighLightTutorialParam.HighLightAnchorId`、`TutorialPresentationStateStore.Instance.AddOutlineHighlight(string, Guid)`・`ITutorialView.CompleteTutorial()`、`TutorialAnchorRegistry.Resolve(VisualElement, string)`、`TutorialAncestorClipWalker.ClipOf(VisualElement, VisualElement)` → `TutorialClipRect`（`ContainsRect`・`Left`/`Top`/`Right`/`Bottom`）、`GameUiRoot.Instance.GetRootElement()`、`ProfilerRecorderHandle.GetAvailable`・`ProfilerRecorder.StartNew`
 - Produces:
-  - `PlaytestTrainLineSetup`（`IBlock StationA`・`IBlock StationB`・`Vector3Int StationAPosition`・`StationBPosition`・`TrainUnit Train`）、`PlaytestTrainLine.Build(PlaytestDriver p, Vector3Int stationAPosition, Vector3Int stationBPosition)` → `UniTask<PlaytestTrainLineSetup>`、`PlaytestTrainLine.AimAtCar(PlaytestDriver p)`、`PlaytestTrainLine.AimAtStation(PlaytestDriver p, Vector3Int stationPosition)`
+  - `PlaytestTrainLineSetup`（`IBlock StationA`・`IBlock StationB`・`Vector3Int StationAPosition`・`StationBPosition`・`TrainUnit Train`）、`PlaytestTrainLine.Build(PlaytestDriver p, Vector3Int stationAPosition, Vector3Int stationBPosition)` → `UniTask<PlaytestTrainLineSetup>`、`PlaytestTrainLine.OpenCar(PlaytestDriver p)`（狙って F で開き SubInventory を待つ）、`PlaytestTrainLine.OpenStation(PlaytestDriver p, Vector3Int stationPosition)`（同じく駅を開き `train-station-name-section` を待つ）
   - `PlaytestTrainStationSnapshots.ReadStationName(this PlaytestDriver driver, IBlock station)` → `UniTask<string>`、`PlaytestTrainStationSnapshots.WaitForStationName(this PlaytestDriver driver, IBlock station, string expected, float timeoutSeconds, string label)`
   - `PlaytestPanelCost`（`int Frames`・`double MeanMs`・`P95Ms`・`MaxMs`・`string Markers`）、`PlaytestPanelCostRecorder.FindPanelMarkers()` → `IReadOnlyList<ProfilerRecorderDescription>`、`PlaytestPanelCostRecorder.Measure(IReadOnlyList<ProfilerRecorderDescription> markers, int frames)` → `UniTask<PlaytestPanelCost>`
   - `PlaytestMasterAnchor`（`string AnchorId`・`Guid TutorialGuid`・`Guid ChallengeGuid`・`string ChallengeTitle`）、`PlaytestAnchorChecks.CollectUiHighlightAnchors()` → `IReadOnlyList<PlaytestMasterAnchor>`、`PlaytestAnchorChecks.CheckOutlineOnAnchor(PlaytestDriver p, PlaytestMasterAnchor anchor)` → `UniTask`（照合は `p.Assert` で記録する）
 
-- [ ] **Step 1: 列車線の準備を書く**（既存 `scenarios/train/train-timetable-via-ui.cs` の準備の写し。既存シナリオは変えない）
+- [ ] **Step 1: 列車線の準備を書く**（既存 `scenarios/train/train-timetable-via-ui.cs` の準備と `scenarios/uitk/uitk-train-inventory.cs` の駅を開く手順の写し。既存シナリオは変えない。2026-11-13 に前例と照らして、駅の向き・back 側の結線と車両の置き方・`Response.Train`・岩を消す・駅を開く狙い方を直した。D-30）
 
 ```csharp
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.UI.UIState;
+using Client.Playtest.Input;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.TrainRail;
@@ -666,6 +706,7 @@ using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Game.UnlockState;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VContainer;
 using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarEntityObject;
 
@@ -691,18 +732,22 @@ namespace Client.Playtest.Operations
         }
     }
 
-    // ラダーの列車の前段（駅の結線・機関車の設置・燃料）をサーバー直で組む。駅名は UI で付けるので付けない
-    // Builds the ladder's train prelude server-side; station names are left for the UI
+    // ラダーの列車の前段（駅の結線・機関車の設置・燃料）をサーバー直で組み、駅と車両を F で開く。駅名は UI で付けるので付けない
+    // Builds the ladder's train prelude server-side and opens stations and cars with F; station names are left for the UI
     public static class PlaytestTrainLine
     {
         private const string StationBlockName = "蒸気機関車駅";
 
         public static async UniTask<PlaytestTrainLineSetup> Build(PlaytestDriver p, Vector3Int stationAPosition, Vector3Int stationBPosition)
         {
-            // 駅 2 基を置き、A 出口→B 入口・B 出口→A 入口を結線する
-            // Place two stations and connect A exit to B entry and B exit to A entry
-            await p.PlaceBlockDirect(StationBlockName, stationAPosition, BlockDirection.North);
-            await p.PlaceBlockDirect(StationBlockName, stationBPosition, BlockDirection.North);
+            // スポーン付近の岩が駅の南端に重なり照準を遮るので、マップオブジェクトを消す（前例 train-timetable-via-ui）
+            // A rock near the spawn blocks the aim at the station's south end, so hide map objects (as train-timetable-via-ui)
+            Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
+
+            // 駅 2 基を南向きに置き、front と back の両側で A→B・B→A を結線する（ConnectNode は片方向。docs/train/TrainSystemNotes.md）
+            // Place two south-facing stations and connect A->B and B->A on both the front and back sides (ConnectNode is one-way)
+            await p.PlaceBlockDirect(StationBlockName, stationAPosition, BlockDirection.South);
+            await p.PlaceBlockDirect(StationBlockName, stationBPosition, BlockDirection.South);
             await p.WaitBlockGameObject(stationAPosition);
             await p.WaitBlockGameObject(stationBPosition);
             var stationA = p.GetBlock(stationAPosition);
@@ -714,17 +759,19 @@ namespace Client.Playtest.Operations
             {
                 ExitOf(railsA).FrontNode.ConnectNode(EntryOf(railsB).FrontNode);
                 ExitOf(railsB).FrontNode.ConnectNode(EntryOf(railsA).FrontNode);
+                EntryOf(railsB).BackNode.ConnectNode(ExitOf(railsA).BackNode);
+                EntryOf(railsA).BackNode.ConnectNode(ExitOf(railsB).BackNode);
             });
 
-            // 機関車を解放して駅 A の構内へ置き、燃料を入れる
-            // Unlock a locomotive, place it inside station A and fuel it
+            // 機関車を解放して駅 A の back 側の停車位置へ置き、燃料を入れる（UI の停車駅は back 側で、反転せず北の B へ向かう）
+            // Unlock a locomotive, place it back-side at station A's stop and fuel it (UI stops use the back side; it heads north to B)
             var clientUnlockState = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
             var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => 0 < c.TractionForce);
             await p.RunOnServer("機関車を解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(carMaster.TrainCarGuid));
             await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(carMaster.TrainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロック同期");
             foreach (var required in carMaster.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
-            var railPosition = new RailPosition(new List<IRailNode> { ExitOf(railsA).FrontNode, EntryOf(railsA).FrontNode }, TrainLengthConverter.ToRailUnits(carMaster.Length), 0);
-            var placed = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(railPosition, carMaster.TrainCarGuid, CancellationToken.None);
+            var railPosition = new RailPosition(new List<IRailNode> { EntryOf(railsA).BackNode, ExitOf(railsA).BackNode }, TrainLengthConverter.ToRailUnits(carMaster.Length), 0);
+            var placed = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(railPosition, carMaster.TrainCarGuid, CancellationToken.None);
             p.Assert(placed != null && placed.Success, $"車両設置成功 (failure={placed?.FailureType})");
             await p.Until(() => SpawnedCar() != null, 15f, "車両entity出現");
             p.SendCommand("addFuelToAllTrainCarsCommand");
@@ -742,40 +789,37 @@ namespace Client.Playtest.Operations
             #endregion
         }
 
-        public static async UniTask AimAtCar(PlaytestDriver p)
+        public static async UniTask OpenCar(PlaytestDriver p)
         {
-            // 駅の外の後端（南）側から F の届く 2m 以内で車両の上寄りを狙う
-            // Aim high on the car from outside the station's rear (south) end within the 2m F reach
-            Collider rear = null;
-            foreach (var collider in SpawnedCar().GetComponentsInChildren<Collider>(true))
-            {
-                if (rear == null || collider.bounds.min.z < rear.bounds.min.z) rear = collider;
-            }
-            var bounds = rear.bounds;
-            p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1.2f));
+            // 駅の外の後端（南）側から F の届く 2m 以内で車両の上寄りを狙って開く（下端の HUD に照準が重なると走査が空になる）
+            // Open the car aiming high from outside the station's rear (south) end within the 2m F reach (aiming over the bottom HUD empties the scan)
+            var rear = SpawnedCar().GetComponentsInChildren<Collider>(true).OrderBy(collider => collider.bounds.min.z).First().bounds;
+            p.WarpPlayer(new Vector3(rear.center.x, 33.5f, rear.min.z - 1.2f));
             await p.WaitSeconds(1f);
-            await p.AimAt(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f));
+            await p.AimAt(new Vector3(rear.center.x, rear.max.y - 0.3f, rear.min.z + 0.3f));
             await p.WaitSeconds(0.5f);
+            await p.PressInteract();
+            await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         }
 
-        public static async UniTask AimAtStation(PlaytestDriver p, Vector3Int stationPosition)
+        public static async UniTask OpenStation(PlaytestDriver p, Vector3Int stationPosition)
         {
-            // 駅の外の南側から駅の南端の上寄りを狙う（構内に車両が無い駅で使う）
-            // Aim high on the station's south end from outside (use on a station without a car)
-            var bounds = await StationBounds(p, stationPosition);
-            p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1.2f));
-            await p.WaitSeconds(1f);
-            await p.AimAt(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f));
-            await p.WaitSeconds(0.5f);
-        }
-
-        private static async UniTask<Bounds> StationBounds(PlaytestDriver p, Vector3Int stationPosition)
-        {
-            var blockObject = await p.WaitBlockGameObject(stationPosition);
-            var colliders = blockObject.GetComponentsInChildren<Collider>(true);
+            // 駅の外の南側からコライダーへ照準を合わせて開く（前例 uitk-train-inventory の OpenStation。Alt でカーソルを外したまま狙う）
+            // Open the station aiming at its collider from outside the south side (as uitk-train-inventory's OpenStation; aim with Alt held)
+            var colliders = new List<Collider>();
+            await p.Until(() => 0 < (colliders = ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(stationPosition).GetComponentsInChildren<Collider>(true)
+                .Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger && c.bounds.size != Vector3.zero).ToList()).Count, 10f, "駅のColliderが復帰する");
             var bounds = colliders[0].bounds;
             foreach (var collider in colliders) bounds.Encapsulate(collider.bounds);
-            return bounds;
+            p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1f));
+            await UniTask.DelayFrame(10);
+            SemanticInput.KeyDown(Key.LeftAlt);
+            await UniTask.DelayFrame(2);
+            await p.AimAt(new Vector3(bounds.center.x, 32.4f, bounds.min.z + 0.1f));
+            await p.PressInteract();
+            await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+            SemanticInput.KeyUp(Key.LeftAlt);
+            await p.UntilUiElement("train-station-name-section", 10f);
         }
 
         private static TrainCarEntityObject SpawnedCar() => Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
@@ -1005,21 +1049,21 @@ namespace Client.Playtest.Operations
 ```
 見える範囲は自前で求めない（USS の `overflow` は `IResolvedStyle` に無く C# から読めない。設計書 component-architecture.md の MarkClipContainer の項）。本番の枠と同じ `TutorialAncestorClipWalker.ClipOf(VisualElement, VisualElement)`（public static。ScrollView の viewport・`MarkClipContainer` の印・インラインの `overflow` で判定）を使うので、`Client.Playtest.asmdef` の references に `Client.Ui.State`（`TutorialClipRect` の在りか）を足す。`tutorial-outline` は大きさの無い absolute の入れ物で（`TutorialOverlay.uss`・`TutorialOverlayView.cs`）、箱の位置と大きさは子の `tutorial-outline__ring`（クラス）が持つ（`TutorialOutlineView.cs`。S2-tutorial のテストも子で測る）。出現・消滅は入れ物の有無で、中心は ring の `worldBound` で見る。`TutorialPresentationStateStore` の名前空間は `Client.Game.InGame.Tutorial`（起草時の実物）。
 
-- [ ] **Step 4: コンパイルして行数を見る**
+- [ ] **Step 4: 行数を見て、コミット・push してコンパイルする**
 
 Run:
 ```bash
-uloop compile --project-path ./moorestech_client
-wc -l moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs
-```
-Expected: `ErrorCount: 0`、3 本とも 200 行未満。`Func<>`・`partial`・`try` が無いことを `grep -n "Func<\|partial \|try" moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs` が 0 件で見る
-
-- [ ] **Step 5: コミットする**
-
-```bash
+wc -l moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs
+grep -n "Func<\|partial \|try" moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder/*.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs
 git add moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks/PlaytestAnchorChecks.cs moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots/PlaytestTrainStationSnapshots.cs
-git commit -m "feat(playtest): ラダー用の列車線・駅名の待ち・CPU 時間・アンカー照合の口を足す（S4-gamma）" -- moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots
+COMMIT_MSG="feat(playtest): ラダー用の列車線・駅名の待ち・CPU 時間・アンカー照合の口を足す（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- moorestech_client/Assets/Scripts/Client.Playtest/Client.Playtest.asmdef moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks moorestech_client/Assets/Scripts/Client.Playtest/Operations/ServerSnapshots
+git push
+~/bin/winunity compile uitk-lane/s4-gamma
 ```
+Expected: 4 本とも 200 行未満、grep は 0 件、`winunity compile` が OK（`CS:` の行が 0）。エラーが出たら直して同じ形でコミット・push して流し直す
+
+- [ ] **Step 5: コミットは Step 4 で済んでいる**
 
 ---
 
@@ -1039,13 +1083,14 @@ git commit -m "feat(playtest): ラダー用の列車線・駅名の待ち・CPU 
 ```csharp
 // ラダー4 uitk-production-loop: Tab→長押しクラフト→石窯に掴み・Shift・右ドラッグで入れる→開いたまま出来上がりを見る→取り出す→整理（UITKだけ）
 // Ladder 4 uitk-production-loop: Tab -> hold-craft -> load a stone kiln by grab, Shift and right-drag -> watch output while open -> take out -> sort (UITK only)
-// 実行前にPlayModeを止め、execute-dynamic-codeで UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+// winunity play <branch> <このファイル> --ui-system GameUi で流す（全体スイッチは winunity が立てて Current を確かめる）
+// Run with winunity play <branch> <this file> --ui-system GameUi (winunity sets the whole-UI switch and checks Current)
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -1075,6 +1120,7 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
+    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi（UITK側）");
     p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（UITK側）");
 
     var log = PlaytestItemOps.ResolveItemId("原木");
@@ -1083,6 +1129,11 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     var ingot = PlaytestItemOps.ResolveItemId("青銅インゴット");
     await p.GiveItem("原木", 12);
     await p.GiveItem("青銅鉱石の粉", 4);
+
+    // 掴みの申し送り（C4-e D-36・Warning）の警告を数え、終わりに Note へ出す
+    // Count the grab hand-off warnings (C4-e D-36 and Warnings) and note them at the end
+    var splitDragWarnings = 0;
+    Application.logMessageReceived += CountSplitDragWarnings;
 
     // Tab で持ち物を開き、木の板を選んで長押しでクラフトする
     // Open the inventory with Tab, select planks and hold to craft
@@ -1167,8 +1218,16 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     await p.ClickUi("inventory-sort");
     await p.Until(() => Local()[0].Id != ItemMaster.EmptyItemId, 10f, "整理で先頭の枠が埋まる");
     await p.Screenshot("06-sorted");
+    Application.logMessageReceived -= CountSplitDragWarnings;
+    p.Note($"split-drag-warnings={splitDragWarnings}（[SplitDrag]・stale・DiscardStaleSession を含む Warning/Error）");
 
     #region Internal
+
+    void CountSplitDragWarnings(string condition, string stackTrace, LogType type)
+    {
+        if (type == LogType.Log) return;
+        if (condition.Contains("[SplitDrag]") || condition.Contains("stale") || condition.Contains("DiscardStaleSession")) splitDragWarnings++;
+    }
 
     ILocalPlayerInventory Local() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
     string MainSlotOf(ItemId id) => $"main-slot-{Enumerable.Range(0, Local().MainSlotCount).First(i => Local()[i].Id == id)}";
@@ -1207,23 +1266,22 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
 ```
 石窯の中身は既存の `PlaytestBlockSnapshots.WaitForItemCount`（サーバーのスレッドで複製して読む）で待つ。`ItemId.AsPrimitive()`（PlaytestItemOps と同じ）・`ItemMaster.EmptyItemId` の綴りは Task 1 Step 2 で `item-list-cell-` の作り方と一緒に確かめる。入力・出力の枠の名前 `machine-input-slot-<i>`・`machine-output-slot-<i>` とレシピ選択の行 `machine-recipe-<guid>` は S4-machine の起草版（R-5・R-14）の名前で、照合表の実物へ読み替える。石窯のレシピ（e0c913033c）は 6 本とも `initialUnlocked: false`、青銅インゴット `af78bd9a` の `inputItems` は [青銅鉱石の粉, 原木] の順。未選択の機械は入力を受けず（`.decisions/2026-08-30-レシピ未選択の機械は入力を一切受け入れない.md`）、入力枠はレシピの素材順に固定される（`.decisions/2026-08-30-機械入力スロットはサーバー側でもレシピ素材順に固定する.md`）ので、解放 → 選択 → 粉を 1 枠目・原木を 2 枠目の順にする（D-21）。左クリックの掴みは全量なので、原木は右クリックの半分掴みで置き、右ドラッグ配りの分を手持ちに残す
 
-- [ ] **Step 2: 系を UITK にして流す**
+- [ ] **Step 2: winunity で流す**
 
-Run:
+Run（Task 4 の口が push 済みであること）:
 ```bash
-uloop control-play-mode --project-path ./moorestech_client --action Stop
-uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE","http://127.0.0.1:9"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'
-.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs
+wc -l .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs
+~/bin/winunity play uitk-lane/s4-gamma .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs --ui-system GameUi
 ```
-Expected: 終了コード 0、`run dir` の `result.json` が `Success: true`、`recording.mp4` がある。`wc -l` で 200 行未満
+Expected: 200 行未満。winunity が OK、`[mac] results: <dir>` の `<dir>/play/result.json` が `Success: true`・`ErrorLogs` 空、`<dir>/play/recording.mp4` がある。`missing script`・`game not ready` で止まったら Global Constraints の winunity-play-fix 手順 2 を 1 回流してから流し直す
 
 - [ ] **Step 3: 掴みの申し送りを観察する（C4-e D-36・Warning (a)(b)(e)）**
 
-録画の 03 の前後を見て、右ドラッグ配りの後の掴みの数（クライアントの掴みとサーバーの掴みが同じか）を `done.md`「## 回ってきた件」の D-36 の行に書く。続けて同じシナリオをもう 1 回流し、`uloop get-logs --project-path ./moorestech_client --log-type Warning` に `[SplitDrag]`・`stale`・`DiscardStaleSession` の行が出たかを数えて同じ行に書く（再現したら bd を `--parent <bd>` で立て、手順と行を添えて I-fix へ回す。gamma は直さない）
+`<dir>/play/` の 04-right-drag のスクショと録画の 03〜04 の間を見て、右ドラッグ配りの後の掴みの数（クライアントの掴みとサーバーの掴みが同じか）を `done.md`「## 回ってきた件」の D-36 の行に書く。続けて同じ winunity play をもう 1 回流し、2 回の `result.json` の Note の `split-drag-warnings=` と `ErrorLogs` を同じ行に書く（再現したら bd を `--parent <bd>` で立て、手順と行を添えて `done.md`「integrator への依頼」へ。I-fix6 の範囲に無い。gamma は直さず、待たない）
 
-- [ ] **Step 4: 失敗したら持ち主へ回す**
+- [ ] **Step 4: 失敗したら回して先へ進む**
 
-`result.json` の `Assertions` の落ちた行と `uloop get-logs --log-type Error` を読み、(1) 名前の違い → 照合表を直してシナリオを直す、(2) UI の不具合（クリックが届かない・数が合わない・出力が描き直されない）→ 持ち主（I-fix）への bd と依頼文、`done.md`「## 差の表」に記録して待つ。入ったら取り込んで Step 2 を流し直す
+`result.json` の `Asserts` の落ちた行・`ErrorLogs`・`scenario.log` を読み、(1) 名前の違い → 照合表を直してシナリオを直し流し直す、(2) UI の不具合（クリックが届かない・数が合わない・出力が描き直されない）→ bd を `--parent <bd>` で立て、I-fix5・I-fix6 の計画の Requirements に同じ箇所があれば「修正中（I-fix5／I-fix6）」として `done.md`「## 差の表」に、無ければ `done.md`「integrator への依頼」に（シナリオのパス・落ちた assert・`ErrorLogs`・winunity の run dir）を書く。待たずに次の Task へ進み、Task 12 で最終 HEAD の結果を証拠にする（D-28）
 
 - [ ] **Step 5: コミットする**
 
@@ -1240,7 +1298,7 @@ git commit -m "test(uitk): ラダー 4 uitk-production-loop を足す（S4-gamma
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs`
 
 **Interfaces:**
-- Consumes: Task 4 の `PlaytestTrainLine.Build`・`AimAtCar`・`AimAtStation`・`PlaytestTrainLineSetup`、`PlaytestResearchSnapshots.WaitForResearch`、`ReadTrainState`・`WaitForTrainState`、照合表の名前（`research-node-<guid>`・`research-button-<guid>`・`train-station-name-input`・`train-station-name-apply`・`train-tab-timetable`・`train-timetable-station-{x}_{y}_{z}-add`・`train-timetable-stop-{i}`・`train-timetable-auto-run-on`）
+- Consumes: Task 4 の `PlaytestTrainLine.Build`・`OpenCar`・`OpenStation`・`PlaytestTrainLineSetup`・`PlaytestTrainStationSnapshots.WaitForStationName`、`PlaytestResearchSnapshots.WaitForResearch`、`ReadTrainState`・`WaitForTrainState`、`IClientTrainTimetableLookup.TryGet`（`Client.Game.InGame.Train.Timetable`）、照合表の名前（`research-node-<guid>`・`research-button-<guid>`・`train-station-name-input`・`train-station-name-apply`・`train-tab-timetable`・`train-timetable-section`・`train-timetable-station-{x}_{y}_{z}-add`・`train-timetable-stop-{i}`・`train-timetable-auto-run-on`）
 - Produces: シナリオ `uitk-research-train`
 
 原始研究 1（`858bcb10-b8ba-478e-9bc5-473ca61281a2`）の消費は 木の板 3・木の棒 3・砕いた石材 2、前提なし（e0c913033c）。
@@ -1250,17 +1308,20 @@ git commit -m "test(uitk): ラダー 4 uitk-production-loop を足す（S4-gamma
 ```csharp
 // ラダー5 uitk-research-train: 研究を1つ完了→駅名を日本語で付ける（SetText）→時刻表を組んで自動運転を入れる（UITKだけ）
 // Ladder 5 uitk-research-train: finish one research -> name a station in Japanese (SetText) -> build a timetable and turn auto-run on (UITK only)
-// 実行前にPlayModeを止め、execute-dynamic-codeで UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+// winunity play <branch> <このファイル> --ui-system GameUi で流す（全体スイッチは winunity が立てて Current を確かめる）
+// Run with winunity play <branch> <this file> --ui-system GameUi (winunity sets the whole-UI switch and checks Current)
 using System;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.WebUiHost.Boot;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("uitk-research-train", options, async p =>
@@ -1276,6 +1337,7 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
+    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi（UITK側）");
     p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（UITK側）");
 
     // 研究素材を渡し、研究ツリーで原始研究1を完了する
@@ -1302,9 +1364,7 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     // 駅 B を開き、駅名を日本語で入れて確定する
     // Open station B, type a Japanese name and confirm
     p.Note("駅名を日本語で付ける");
-    await PlaytestTrainLine.AimAtStation(p, line.StationBPosition);
-    await p.PressInteract();
-    await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+    await PlaytestTrainLine.OpenStation(p, line.StationBPosition);
     await p.SetText("train-station-name-input", "南駅");
     await p.ClickUi("train-station-name-apply");
     await p.WaitForStationName(line.StationB, "南駅", 10f, "サーバーの駅名が南駅になる");
@@ -1315,19 +1375,18 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     // 機関車を開き、時刻表に 2 駅を足して自動運転を入れる
     // Open the locomotive, add both stations to the timetable and turn auto-run on
     p.Note("時刻表を組んで自動運転");
-    await PlaytestTrainLine.AimAtCar(p);
-    await p.PressInteract();
-    await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+    await PlaytestTrainLine.OpenCar(p);
     await p.ClickUi("train-tab-timetable");
+    await p.UntilUiElement("train-timetable-section", 10f);
     var a = line.StationAPosition;
     var b = line.StationBPosition;
     await p.ClickUi($"train-timetable-station-{a.x}_{a.y}_{a.z}-add");
     await p.WaitForTrainState(line.Train, 1, null, null, 10f, "サーバーの時刻表が1駅になる");
-    await WaitTimetableIdle();
+    await p.Until(() => ClientTimetableStopCount() == 1, 10f, "クライアントの時刻表が1駅になる（保留が解ける）");
     await p.ClickUi($"train-timetable-station-{b.x}_{b.y}_{b.z}-add");
     await p.WaitForTrainState(line.Train, 2, null, null, 10f, "サーバーの時刻表が2駅になる");
+    await p.Until(() => ClientTimetableStopCount() == 2, 10f, "クライアントの時刻表が2駅になる（保留が解ける）");
     await p.UntilUiElement("train-timetable-stop-1", 5f);
-    await WaitTimetableIdle();
     await p.ClickUi("train-timetable-auto-run-on");
     await p.WaitForTrainState(line.Train, null, true, null, 10f, "サーバーの自動運転がON");
     await p.Screenshot("03-timetable");
@@ -1339,39 +1398,31 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
 
     #region Internal
 
-    // 即時送信の保留（--busy）が解けるまで待つ。保留中の追加は捨てられる（S4-train R-9）
-    // Wait until the immediate-send hold (--busy) clears; additions during the hold are dropped (S4-train R-9)
-    async UniTask WaitTimetableIdle()
-    {
-        for (var i = 0; i < 50; i++)
-        {
-            var section = await PlaytestUiElementOps.FindUi("train-timetable-section");
-            if (section.IsFound && !section.HasStateFlag("train-timetable-section--busy")) return;
-            await p.WaitSeconds(0.2f);
-        }
-        p.Assert(false, "時刻表の保留が10秒で解けない");
-    }
+    // クライアントの時刻表の停車駅数。公開が届くと保留が解ける（前例 train-timetable-via-ui。保留の印のクラスは I-fix6 R-10 で消える）
+    // Stop count of the client timetable; the hold clears when the publish arrives (as train-timetable-via-ui; the hold class goes away in I-fix6 R-10)
+    int ClientTimetableStopCount() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IClientTrainTimetableLookup>().TryGet(line.Train.TrainUnitInstanceId, out var snapshot) ? snapshot.Stops.Count : 0;
 
     #endregion
 });
 ```
-S4-train の計画（PLAN-W4a の起草版）では、駅名は `GameTextField(train-station-name-input)`＋`PanelActionButton(train-station-name-apply)` で送り（R-12）、時刻表は適用ボタンを消して追加ごとに即送信し、保留中は `train-timetable-section--busy` で次の追加を捨てる（R-9）。上のコードはその形。`TrainStationComponent.StationName`（起草時の実物）、研究ツリーを開くキー（`R`）、`HasStateFlag` がクラスの印を状態として返すかは Task 1 Step 2・3 の照合表で確かめる。サーバーの駅名は `PlaytestTrainStationSnapshots.WaitForStationName`（サーバーの tick で複製して読む）で待つ
+S4-train の実物（#1642）では、駅名は `GameTextField(train-station-name-input)`＋`PanelActionButton(train-station-name-apply)` で送り、時刻表は追加ごとに即送信し、保留中は全操作を封じる（`TrainTimetableSectionView.Render` の `model.IsPending`）。保留の印のクラス `train-timetable-section--busy` は I-fix6 R-10（AC-20）が消すので使わず、前例 `train/train-timetable-via-ui.cs` と同じくクライアントの時刻表の駅数（`IClientTrainTimetableLookup`）が増えるのを待つ（D-30）。駅は前例 `uitk/uitk-train-inventory.cs` の `OpenStation` と同じ狙い方（Alt を押したまま南の外から狙う）で `PlaytestTrainLine.OpenStation` が開く。サーバーの駅名は `PlaytestTrainStationSnapshots.WaitForStationName`（サーバーの tick で複製して読む）で待つ。研究ツリーを開くキーは `R`（`uitk-research-tree.cs:52`）
 
-- [ ] **Step 2: 系を UITK にして流す**
+- [ ] **Step 2: winunity で流す**
 
 Run:
 ```bash
-uloop control-play-mode --project-path ./moorestech_client --action Stop
-uloop execute-dynamic-code --project-path ./moorestech_client --code 'System.Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE","http://127.0.0.1:9"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'
-.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs
+wc -l .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs
+~/bin/winunity play uitk-lane/s4-gamma .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs --ui-system GameUi
 ```
-Expected: 終了コード 0、`Success: true`、`recording.mp4` がある。落ちたら Task 5 Step 4 と同じ手順で分けて回す
+Expected: 200 行未満、`<dir>/play/result.json` が `Success: true`、`recording.mp4` がある。落ちたら Task 5 Step 4 と同じ手順で分けて回し、待たずに次へ進む
 
 - [ ] **Step 3: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs
-git commit -m "test(uitk): ラダー 5 uitk-research-train を足す（S4-gamma）" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs
+COMMIT_MSG="test(uitk): ラダー 5 uitk-research-train を足す（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs
+git push
 ```
 
 ---
@@ -1452,17 +1503,19 @@ return PlaytestRunner.Run("uitk-master-anchors", options, async p =>
 ```
 アンカーの文字列は `AnchorIds` の定数と同じ（`challenge.current-hud`・`recipe.craft-button`・`research.node-`。`AnchorIds.cs` で実物を確かめる）。マスタ外の `recipe.item-<itemId>` は `AnchorIds.RecipeItem(int)` の書式で、タイトルにマスタ外と明記して 9 件と混ぜない
 
-- [ ] **Step 2: 流す**
+- [ ] **Step 2: winunity で流す**
 
-Run: Task 5 Step 2 の 3 行の最後のパスを `uitk-master-anchors.cs` にして流す
-Expected: `Success: true`。Note に 9 行（上の「マスタのアンカー 9 件」の表と同じ）。落ちたら先に gamma の照合の誤りでないかを見る（自分の枠を取り違えていないか〈増えた 1 件の特定〉・照合の最中に本番のチャレンジが進んで枠の session が入れ替わっていないか〈`AddOutlineHighlight` は直近の `BeginSession` の session に入る。Note のチャレンジの進行と照らす〉・アンカーの画面の開き方・名前の照合）。gamma の誤りなら gamma のファイルを直して流し直す。アンカーが `Missing`・`Duplicate` なら持ち主（`TutorialAnchorCoveragePending` の旧表の持ち主。取り込み済みなら I-fix）へ bd と依頼文で回して待つ。枠の中心が 5px を超えてずれたら S2-tutorial の枠の位置の不具合として同じく回す
+Run: `~/bin/winunity play uitk-lane/s4-gamma .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-master-anchors.cs --ui-system GameUi`
+Expected: `<dir>/play/result.json` が `Success: true`。Note に 9 行（上の「マスタのアンカー 9 件」の表と同じ）。落ちたら先に gamma の照合の誤りでないかを見る（自分の枠を取り違えていないか〈増えた 1 件の特定〉・照合の最中に本番のチャレンジが進んで枠の session が入れ替わっていないか〈`AddOutlineHighlight` は直近の `BeginSession` の session に入る。Note のチャレンジの進行と照らす〉・アンカーの画面の開き方・名前の照合）。gamma の誤りなら gamma のファイルを直して流し直す。アンカーが `Missing`・`Duplicate` か、枠の中心が 5px を超えてずれたら、bd を `--parent <bd>` で立て、I-fix6 の範囲（アンカー・枠は X-audit の項目にあれば）なら「修正中（I-fix6）」、無ければ `done.md`「integrator への依頼」に書き、待たずに次へ進む（D-28）。研究の視口の `MarkClipContainer` は入っている（`NodeGraphView.cs:49`）ので、ここで止まる理由にならない（D-19 の改め）
 
 - [ ] **Step 3: 表を done.md に写してコミットする**
 
 Note の 9 行を `done.md`「## 証拠」に「# / チャレンジ / anchorId / 解決 / 枠の中心のずれ px / スクショ」の表で写す。続けて:
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-master-anchors.cs
-git commit -m "test(uitk): マスタのアンカー 9 件を実ゲームで解決するシナリオを足す（S4-gamma）" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-master-anchors.cs
+COMMIT_MSG="test(uitk): マスタのアンカー 9 件を実ゲームで解決するシナリオを足す（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-master-anchors.cs
+git push
 ```
 
 ---
@@ -1551,20 +1604,28 @@ return PlaytestRunner.Run("uitk-stage4-panel-cost", options, async p =>
 ```
 （`PlaytestGameViewOps` の名前空間は `Client.Playtest.Operations.Ui`。Task 1 Step 2 の grep で実物に合わせる）
 
-- [ ] **Step 2: 流して台帳に書く**
+- [ ] **Step 2: Windows の GUI Editor で流して台帳に書く**
 
-Run: Task 5 Step 2 の 3 行の最後のパスを `uitk-stage4-panel-cost.cs` にして流し、`grep "panel-cost" <run dir>/result.json`
-Expected: `Success: true`、3 行。台帳「## 実測の結論」の末尾に次の 1 行を足す:
-```markdown
-- 段階 4 の UI の CPU 時間（S4-gamma、<HEAD 10 桁>、Editor の PlayMode・1920×1080・全体スイッチ UITK、ProfilerRecorder で <markers> の和を各 240 フレーム）: GameScreen 平均 <x>ms／p95 <y>ms、PlayerInventory 平均 <x>ms／p95 <y>ms、ResearchTree 平均 <x>ms／p95 <y>ms。目安 1ms 以下（PoC 0.27ms）に <収まった／超えた: 超えたのは …>。プレイヤービルドでは測っていない
+Run（Task 4 の `PlaytestPanelCostRecorder` が push 済みであること。GUI 枠に他のジョブが居ないのを `~/bin/winunity status` で見てから流す。並走すると CPU 時間が膨らむ）:
+```bash
+~/bin/winunity status
+~/bin/winunity play uitk-lane/s4-gamma .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-panel-cost.cs --ui-system GameUi
+grep -o 'panel-cost [^"]*' <dir>/play/result.json
 ```
+Expected: `Success: true`、3 行。台帳「## 実測の結論」の末尾に次の 1 行を足す（条件は「Windows・RTX2060・Editor」。Mac では測らない。A-271）:
+```markdown
+- 段階 4 の UI の CPU 時間（S4-gamma、<HEAD 10 桁>、Windows・RTX2060・Editor〈winunity play の GUI Editor の PlayMode〉・1920×1080・全体スイッチ UITK、ProfilerRecorder で <markers> の和を各 240 フレーム）: GameScreen 平均 <x>ms／p95 <y>ms、PlayerInventory 平均 <x>ms／p95 <y>ms、ResearchTree 平均 <x>ms／p95 <y>ms。目安 1ms 以下（PoC 0.27ms）に <収まった／超えた: 超えたのは …>。プレイヤービルドでは測っていない
+```
+Game ビューの大きさが 1920×1080 にならなかった（Note の `{Screen.width}x{Screen.height}` が違う）ときは、その値をそのまま台帳の行に書く（GUI Editor の画面の大きさに縛られる）。
 1ms を超えた画面があれば bd を `--parent <bd>` で立て（性能の調査。持ち主はその画面のレーン → I-fix）、`done.md`「## 未確認」に書く（合否ではない。plan §2.5 の目安）
 
 - [ ] **Step 3: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-panel-cost.cs docs/uitk/TODO.md
-git commit -m "docs(uitk): 段階 4 の UI の CPU 時間を測って台帳に記録する（S4-gamma）" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-panel-cost.cs docs/uitk/TODO.md
+COMMIT_MSG="docs(uitk): 段階 4 の UI の CPU 時間を測って台帳に記録する（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-panel-cost.cs docs/uitk/TODO.md
+git push
 ```
 
 ---
@@ -1576,8 +1637,8 @@ git commit -m "docs(uitk): 段階 4 の UI の CPU 時間を測って台帳に�
 - Modify: `docs/uitk/TODO.md`（「## 実測の結論」に 2 行）
 
 **Interfaces:**
-- Consumes: `run-scenario.sh`、台帳「## 壊れた録画の割り振り（bd moorestech-wwxy）」の表
-- Produces: `tools/uitk/list-recordings.sh <GameUi|Web>`（標準出力に 1 行 1 本のシナリオのパス、標準エラーに外した名前と理由）、`tools/uitk/run-all-recordings.sh <GameUi|Web> <list.txt> <out.tsv> <開始行> <本数>`（TSV に `scenario system exit seconds run_dir` を追記）。結果の TSV は worktree の gitignore 下 `moorestech_client/Temp/uitk-recordings/` に置く
+- Consumes: `~/bin/winunity play`・`status`・`rm`、台帳「## 壊れた録画の割り振り（bd moorestech-wwxy）」の表
+- Produces: `tools/uitk/list-recordings.sh <GameUi|Web>`（標準出力に 1 行 1 本のシナリオのパス、標準エラーに外した名前と理由）、`tools/uitk/run-all-recordings.sh <GameUi|Web> <branch> <list.txt> <out.tsv> <開始行> <本数>`（`winunity play` を 1 本ずつ呼び、TSV に `scenario system exit seconds run_dir` を追記。`run_dir` は Mac 側の `~/.cache/winunity/runs/<runId>`）。結果の TSV と各本の winunity の出力は worktree の gitignore 下 `moorestech_client/Temp/uitk-recordings/` に置く（D-31）
 
 - [ ] **Step 1: 一覧を作るスクリプトを書く**
 
@@ -1618,95 +1679,104 @@ find "$root" -name '*.cs' | sort | while read -r path; do
 done
 ```
 
-- [ ] **Step 2: 順に流すスクリプトを書く**
+- [ ] **Step 2: 順に流すスクリプトを書く**（winunity play の上に組む。D-31）
 
 ```bash
 #!/usr/bin/env bash
-# 一覧のシナリオを開始行から N 本だけ順に流し、1本1行で TSV に追記する（Bash の前景の上限に収めるため小分けにする）
-# Runs N listed scenarios from a start line and appends one TSV row each (chunked to fit a foreground shell limit)
+# 一覧のシナリオを開始行から N 本だけ winunity play で順に流し、1本1行で TSV に追記する（GUI 枠を長く握らないよう小分けにする）
+# Runs N listed scenarios from a start line via winunity play and appends one TSV row each (chunked so the GUI slot is not held long)
 set -u
-if [ $# -ne 5 ]; then
-  echo "usage: $0 <GameUi|Web> <list.txt> <out.tsv> <start-line> <count>" >&2
+if [ $# -ne 6 ]; then
+  echo "usage: $0 <GameUi|Web> <branch> <list.txt> <out.tsv> <start-line> <count>" >&2
   exit 2
 fi
-system=$1; list=$2; out=$3; start=$4; count=$5
+system=$1; branch=$2; list=$3; out=$4; start=$5; count=$6
 case "$system" in GameUi|Web) ;; *) echo "system は GameUi か Web" >&2; exit 2;; esac
-project=./moorestech_client
-runner=.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh
-switch_code="System.Environment.SetEnvironmentVariable(\"MOORESTECH_PLAYTEST_RECEIVER_BASE\",\"http://127.0.0.1:9\"); Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.$system);"
-
-mkdir -p "$(dirname "$out")"
+logs="$(dirname "$out")/logs"
+mkdir -p "$logs"
 [ -f "$out" ] || printf "scenario\tsystem\texit\tseconds\trun_dir\n" > "$out"
 
 tail -n +"$start" "$list" | head -n "$count" | while IFS= read -r scenario; do
   [ -z "$scenario" ] && continue
 
-  # 前の失敗が残した PlayMode を止め、系と受け口を立て直す
-  # Stop any PlayMode a previous failure left and reset the system and receiver
-  # silent-ok: 止める PlayMode が無いときの失敗は正常 / 系の切替の失敗は下の switch-failed 行で TSV に残る
-  uloop control-play-mode --project-path "$project" --action Stop >/dev/null 2>&1 || true
-  if ! uloop execute-dynamic-code --project-path "$project" --code "$switch_code" >/dev/null; then
-    printf "%s\t%s\t%s\t%s\t%s\n" "$scenario" "$system" "switch-failed" 0 "-" >> "$out"
-    continue
-  fi
-
-  # 1 本流して終了コード・秒・run dir を残す
-  # Run one scenario and record its exit code, seconds and run dir
+  # 1 本流す。系の切替と Current の確認は winunity がする。ssh が一覧を読まないよう標準入力を切る
+  # Run one scenario; winunity sets the system and checks Current. Detach stdin so ssh does not eat the list
   began=$(date +%s)
-  log=$(mktemp)
-  "$runner" "$project" "$scenario" > "$log" 2>&1
+  log="$logs/$(basename "$scenario" .cs)-$system.log"
+  "$HOME/bin/winunity" play "$branch" "$scenario" --ui-system "$system" > "$log" 2>&1 < /dev/null
   code=$?
-  dir=$(grep -o 'run dir: .*' "$log" | tail -1 | sed 's/^run dir: //')
+
+  # 結果の置き場を拾い、summary.json の終了コードで上書きする
+  # Pick up the result dir and take the exit code from summary.json
+  dir=$(grep -o '\[mac\] results: .*' "$log" | tail -1 | sed 's/^\[mac\] results: //')
+  # silent-ok: 置き場が無いときは winunity の終了コードのまま run_dir を - にする / Step 3 で TSV の - の行を log から読んで気づく
+  if [ -n "$dir" ] && [ -f "$dir/summary.json" ]; then
+    code=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["detail"]["exitCode"] if "exitCode" in d.get("detail", {}) else (0 if d["ok"] else 1))' "$dir/summary.json")
+  fi
   printf "%s\t%s\t%s\t%s\t%s\n" "$scenario" "$system" "$code" "$(( $(date +%s) - began ))" "${dir:--}" >> "$out"
-  rm -f "$log"
 done
 ```
-`chmod +x tools/uitk/list-recordings.sh tools/uitk/run-all-recordings.sh`。Task 1 Step 4 で `tools/uitk/` が 9 以上だったら `tools/uitk/recordings/` に置き、以後のパスを読み替える
+`chmod +x tools/uitk/list-recordings.sh tools/uitk/run-all-recordings.sh`。`tools/uitk/` は 2026-11-13 の実測で 6 ファイル＋2 ディレクトリなので、2 本足して 10 以下に収まる（超えるときは `tools/uitk/recordings/` に置き、以後のパスを読み替える）。書いたらコミットして push する（Step 6 の形で先に 2 本だけ）
 
 - [ ] **Step 3: UITK 側の全本を流す**
 
-Run（前景で。1 回の呼び出しが 600 秒に収まるよう 3 本ずつ。1 本で 600 秒を超えたシナリオは次から 1 本ずつ）:
+Run（前景で。1 本 2〜3 分なので 1 回の呼び出しは 2 本まで〈Bash の timeout は 600000 を指定〉。1 本で 300 秒を超えたシナリオがあれば次から 1 本ずつ。呼ぶ前に毎回 `~/bin/winunity status` で GUI 枠を見て、I-fix5・I-fix6 の GUI ジョブが走っていれば、その間は batchmode の作業〈Task 10・11〉を先にやる）:
 ```bash
 mkdir -p moorestech_client/Temp/uitk-recordings
 tools/uitk/list-recordings.sh GameUi > moorestech_client/Temp/uitk-recordings/list.txt 2> moorestech_client/Temp/uitk-recordings/list-excluded.txt
 wc -l moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/list-excluded.txt
-tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/gameui.tsv 1 3
-tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/gameui.tsv 4 3
+~/bin/winunity status
+tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/gameui.tsv 1 2
+tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/list.txt moorestech_client/Temp/uitk-recordings/gameui.tsv 3 2
 ```
-（開始行を 3 ずつ進めて一覧の最後まで。`Temp/` は Unity の gitignore 下）
-Expected: TSV の行数が一覧の本数と同じ。終了コード 0 以外の行ごとに `result.json` と `uloop get-logs --log-type Error` の該当部分を読み、次の 6 つに分ける:
+（開始行を 2 ずつ進めて一覧の最後まで。137 本前後で 5〜7 時間。`Temp/` は Unity の gitignore 下）。`missing script`・`game not ready`・`InitializationFailed` が続けて出たら Global Constraints の winunity-play-fix 手順 2 を 1 回流してから、その行から流し直す（`MapObjectHpBarView.SetHp` の NRE で `InitializationFailed` になるのは既知の bd moorestech-albof.54.5。その行は `修正中（I-fix5）` に分ける）
+Expected: TSV の行数が一覧の本数と同じ。終了コード 0 以外の行ごとに `<run_dir>/play/result.json`（`Asserts`・`ErrorLogs`）と `<run_dir>/scenario.log` を読み（`run_dir` が `-` の行は `moorestech_client/Temp/uitk-recordings/logs/` の log）、次の 8 つに分ける:
 - `PASS`（0）
 - `束 5 未移植`（チャレンジ一覧・言語ゲート・Web の横断層に触れて止まる。plan §2.0 の段階 4 の終わりでは対象外の束）
 - `wwxy`（X-prerun が直す行は一覧から外れ `list-excluded.txt` に名前が残る。S2/S3-ladder が直した行は流れるので、落ちたら `不具合` として扱う）
-- `前提つき`（`playtest-receiver`・IME の `.sh` など、run-scenario.sh 単体では前提が立たないもの。そのシナリオのヘッダの手順で 1 回流し直して PASS／不具合に振り直す）
+- `前提つき`（シナリオのヘッダに `winunity play` だけでは立たない前提〈別プロセス・外部の受け口〉を書いたもの。そのヘッダの手順を `winunity edc` で立てて 1 回流し直し、PASS／不具合に振り直す）
+- `Mac 専用`（Mac の IME を叩く `scenarios/uitk/uitk-c2b-ime-mac-keys.sh` を前提にする `uitk-c2b-ime-mac.cs` など、Windows で回らないもの。`done.md`「未完了」に「Mac が要る」と書いて指揮へ回す）
 - `Web 専用`（CEF・Web の DOM そのものを見るもの。例 `cef-webui-showcase`）
-- `不具合`（UITK 側の画面・操作の誤り）
+- `修正中（I-fix5／I-fix6）`（落ちた箇所が I-fix5・I-fix6 の計画の Requirements に入っているもの。例: S4-special の録画 5 本・cleanroom 3 本〈albof.50〉・train-inventory の 3 手目は I-fix5 R-15。両レーンのマージ後に、その行だけ同じスクリプトで流し直す〈一覧を `grep` で作り直す〉）
+- `不具合`（上のどれでもない UITK 側の画面・操作の誤り）
 
-`不具合` は 1 本ずつ bd を `--parent <bd>` で立て、持ち主（その画面のレーン。取り込み済みなら I-fix）への依頼文（シナリオのパス・落ちた assert・Error の行・run dir の録画）を指揮へ返し、`done.md` の 1 行目を「状態: 停止（全録画の不具合 n 件の修正待ち）」にして待つ。修正が入ったら `git merge --no-ff origin/feature/uitk` で取り込み、`不具合` の行だけを同じスクリプトで流し直す（一覧を `grep` で作り直す）。不具合が 0 になったら次へ
+`不具合` は 1 本ずつ bd を `--parent <bd>` で立て、I-fix6 の範囲（X-audit の DC/AC の項目）なら bd moorestech-albof.61 へ、それ以外は `done.md`「integrator への依頼」へ、シナリオのパス・落ちた assert・`ErrorLogs`・run dir を書く。待たずに一覧の最後まで流し切る（D-28）。直しが feature/uitk に入ったら `git merge --no-ff origin/feature/uitk` で取り込み、`不具合`・`修正中` の行だけを流し直して分類を書き換える
 
 - [ ] **Step 4: Web 側の全本を流し、段階の前と比べる**
 
 Run:
 ```bash
 tools/uitk/list-recordings.sh Web > moorestech_client/Temp/uitk-recordings/list-web.txt 2> moorestech_client/Temp/uitk-recordings/list-web-excluded.txt
+tools/uitk/run-all-recordings.sh Web uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/list-web.txt moorestech_client/Temp/uitk-recordings/web.tsv 1 2
 ```
-のあと、Step 3 と同じ小分けで `Web` を `moorestech_client/Temp/uitk-recordings/web.tsv` へ流す（`scenarios/uitk/` は UITK 専用で外れる。D-23。Windows で流すなら `~/bin/winunity` の play で同じ一覧を回し、TSV を同じ形で作る）
-Expected: 終了コード 0 以外の行を、S4 前の feature/uitk（最初に入った S4 のマージの 1 番目の親: `git rev-parse "$(git log --first-parent --merges --reverse --format=%H origin/feature/uitk --grep 'from moorestech/uitk-lane/s4-' | head -1)^1"`。レーン側の取り込みのマージに当たらないよう `--first-parent` と PR のマージの題で絞る）の使い捨て worktree（`moores-wt new uitk-tmp/s4-gamma-webbase --from <その SHA>`。Editor が 2 本を超えるなら winunity）で同じシナリオだけ Web で流し直し、`既存`（S4 前も落ちる）か `退行`（S4 前は通る）に分ける。S4 前のコミットに無いシナリオ（S4 のレーンが足したもの）は `比較不能（新設）`、あるが中身が変わったもの（`git diff --quiet <比較元> HEAD -- <シナリオ>` が差ありを返す。S4 のレーンがロケータ等を書き換えた）は `比較不能（変更）` とし、その画面の持ち主の録画（PR の報告ページ）で見たことを書く。`退行` は Step 3 の `不具合` と同じ手順で回して待つ。使い捨て worktree は流し終えたら `moores-wt rm uitk-tmp/s4-gamma-webbase --prune-branch` で畳む
+（Step 3 と同じ小分けで最後まで。`scenarios/uitk/` は UITK 専用で外れる。D-23。Windows の worktree の Web ホストは prepare が `setup.ps1` で用意する〈S2-ladder〉）
+Expected: 終了コード 0 以外の行を、S4 前の feature/uitk（最初に入った S4 のマージの 1 番目の親: `git rev-parse "$(git log --first-parent --merges --reverse --format=%H origin/feature/uitk --grep 'from moorestech/uitk-lane/s4-' | head -1)^1"`。レーン側の取り込みのマージに当たらないよう `--first-parent` と PR のマージの題で絞る）で同じシナリオだけ Web で流し直し、`既存`（S4 前も落ちる）か `退行`（S4 前は通る）に分ける。winunity は push 済みのブランチを取るので、その SHA を一時ブランチで push して流し、終わったら畳む:
+```bash
+base=$(git rev-parse "$(git log --first-parent --merges --reverse --format=%H origin/feature/uitk --grep 'from moorestech/uitk-lane/s4-' | head -1)^1")
+git push origin "$base:refs/heads/uitk-tmp/s4-gamma-webbase"
+tools/uitk/run-all-recordings.sh Web uitk-tmp/s4-gamma-webbase moorestech_client/Temp/uitk-recordings/web-failed.txt moorestech_client/Temp/uitk-recordings/web-base.tsv 1 2
+# 最後まで流したら
+~/bin/winunity rm uitk-tmp-s4-gamma-webbase
+git push origin --delete uitk-tmp/s4-gamma-webbase
+```
+（`web-failed.txt` は `web.tsv` の終了コード 0 以外の行の scenario 列。`winunity rm` の名前は `winunity status` に出る worktree 名で読み替える）。S4 前のコミットに無いシナリオ（S4 のレーンが足したもの）は `比較不能（新設）`、あるが中身が変わったもの（`git diff --quiet "$base" HEAD -- <シナリオ>` が差ありを返す。S4 のレーンがロケータ等を書き換えた）は `比較不能（変更）` とし、その画面の持ち主の録画（PR の報告ページ）で見たことを書く。`退行` は Step 3 の `不具合` と同じ手順で回し、待たない
 
 - [ ] **Step 5: 台帳と done.md に書く**
 
 `done.md`「## 全録画の結果」に 2 つの TSV を「シナリオ / UITK の分類 / Web の分類 / 秒」の表で写す（run dir は書かない）。台帳「## 実測の結論」の末尾に 2 行:
 ```markdown
-- 全録画の 2 回目・UITK 側（S4-gamma、<HEAD 10 桁>、全体スイッチ GameUi）: <n> 本中 PASS <a>・束 5 未移植 <b>・前提つき（流し直して PASS）<c>・Web 専用 <d>・不具合 0（途中で見つけた <k> 件は bd <ids> で直して再走 PASS）。X-prerun が直す wwxy の <w> 本は対象外（名前は list-excluded.txt）
-- 全録画の 2 回目・Web 側（S4-gamma、<HEAD 10 桁>、`scenarios/uitk/` の UITK 専用は除く）: <n> 本中 PASS <a>・既存の失敗 <e>（S4 前 <SHA 10 桁> でも落ちる: <シナリオ名>）・比較不能（新設）<f>・比較不能（変更）<g>・退行 0
+- 全録画の 2 回目・UITK 側（S4-gamma、<HEAD 10 桁>、Windows・RTX2060・Editor〈winunity play〉・全体スイッチ GameUi）: <n> 本中 PASS <a>・束 5 未移植 <b>・前提つき（流し直して PASS）<c>・Mac 専用 <m>（未完了）・Web 専用 <d>・修正中（I-fix5／I-fix6。マージ後に再走）<r>・不具合 <k>（bd <ids>）。X-prerun が直す wwxy の <w> 本は対象外（名前は list-excluded.txt）
+- 全録画の 2 回目・Web 側（S4-gamma、<HEAD 10 桁>、Windows・RTX2060・Editor〈winunity play〉、`scenarios/uitk/` の UITK 専用は除く）: <n> 本中 PASS <a>・既存の失敗 <e>（S4 前 <SHA 10 桁> でも落ちる: <シナリオ名>）・比較不能（新設）<f>・比較不能（変更）<g>・退行 <k>（bd <ids>）
 ```
-`Saves/` に作ったワールドを `list-work-saves.sh` で探して消す
+`不具合`・`退行`・`修正中` が 0 でない間は、その件数と bd を同じ行に書いたまま先へ進む（段を締めるのは指揮。D-28）。テストのワールドは Windows の worktree の `Saves/` にでき、Mac の `list-work-saves.sh` では見えないので、`done.md`「未完了」に「Windows の worktree の Saves/ の片付けは指揮」と書く
 
 - [ ] **Step 6: コミットする**
 
 ```bash
 git add tools/uitk/list-recordings.sh tools/uitk/run-all-recordings.sh docs/uitk/TODO.md
-git commit -m "test(uitk): 全録画の 2 回目を UITK と Web で流し台帳に記録する（S4-gamma）" -- tools/uitk/list-recordings.sh tools/uitk/run-all-recordings.sh docs/uitk/TODO.md
+COMMIT_MSG="test(uitk): 全録画の 2 回目を UITK と Web で流し台帳に記録する（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- tools/uitk/list-recordings.sh tools/uitk/run-all-recordings.sh docs/uitk/TODO.md
+git push
 ```
 
 ---
@@ -1714,37 +1784,26 @@ git commit -m "test(uitk): 全録画の 2 回目を UITK と Web で流し台帳
 ### Task 10: 束 4 の突き合わせ差分 0
 
 **Files:**
-- Modify: `docs/uitk/disposition.md`（処遇の表に 3 行・「## 突き合わせの記録」に 1 行）
+- Modify: `docs/uitk/disposition.md`（「## 突き合わせの記録」に 1 行）
 
 **Interfaces:**
 - Consumes: `node tools/uitk/test-name-parity.mjs --bundle 4 [--emit-missing]`（終了コード 0 差分 0／1 差分あり／2 書式の誤り）
-- Produces: 束 4 の差分 0
+- Produces: 束 4 の差分 0 の記録
 
-- [ ] **Step 1: 今の差分を出す**
+2026-11-13 の実測（46fb246ea3）で `束 4: Web 457 件 / 写した 434 / 処遇 23 / 写す予定 0 / 未対応 0`・終了コード 0。起草時に gamma が処遇を書く予定だった `e2e/mock-host/detailActions.test.ts` の 3 件は S4-machine が `disposition.md` に書いた（S4-machine D-11）。gamma が書くのは最終の HEAD での記録の 1 行だけ。
 
-Run: `node tools/uitk/test-name-parity.mjs --bundle 4 --emit-missing`
-Expected: 未対応は `e2e/mock-host/detailActions.test.ts` の 3 件だけ。ほかのファイルが残っていたら、残ったテスト名ごとに持ち主を決める（`grep -rn "<テスト名>" docs/superpowers/plans`（S4 の 7 計画はマージ済みでこの repo にある） で各レーンの計画の写す表・`<web-test>` を引く。ファイル単位の表は分け合うファイルがあるので使わない）。持ち主のレーンの写し漏れなので、bd を `--parent <bd>` で立てて I-fix へ回し（gamma は他レーンのテストを書かない）、修正の取り込み後にもう一度流す
-
-- [ ] **Step 2: 持ち主の無い 3 件に処遇を書く**
-
-`docs/uitk/disposition.md`「## 処遇」の表の束 4 の行の並びに 3 行足す（PR 列は Task 15 Step 1 で PR 番号に書き換える）:
-```markdown
-| 4 | `e2e/mock-host/detailActions.test.ts` | setはrecipeGuidを選択状態へ反映する | 捨てる | mock-host（Web の検証基盤の偽ホスト）が機械のレシピ選択の detail action を受けて自分の状態を書き換える契約。UITK は mock-host を持たず、レシピ選択は S4-machine の State がサーバーへ型付きのコマンドで送る（偽ホストの写し先が無い） | #<PR番号> |
-| 4 | `e2e/mock-host/detailActions.test.ts` | recipeGuidなしsetとclearは空GUIDへ戻す | 捨てる | 同上（偽ホストの状態の契約） | #<PR番号> |
-| 4 | `e2e/mock-host/detailActions.test.ts` | 対象machineがないblockと未知operationを拒否する | 捨てる | 同上。UITK の操作は型で操作の種類を閉じ、未知の operation の文字列が届く経路が無い | #<PR番号> |
-```
-（テスト名はファイルの `it("…")` の文字列をそのまま。`--emit-missing` の出力と 1 字ずつ照らす）
-
-- [ ] **Step 3: 差分 0 を見て記録する**
+- [ ] **Step 1: 最終の HEAD で差分 0 を見て記録する**
 
 Run: `node tools/uitk/test-name-parity.mjs --bundle 4; echo "exit=$?"`
-Expected: `exit=0`。出力の件数を「## 突き合わせの記録」に `| <今日> | 4 | <HEAD 10 桁> | <Web> | <写した> | <処遇> | <写す予定> | 0 |` で足す。写す予定（albof.29）が残っていても未対応 0 なら差分 0 の扱い（写す予定は差分として数える書式なので、1 以上なら終了コード 1 になる。そのときは albof.29 の状態を見て、S4-inventory が閉じていなければ I-fix へ回して待つ）
+Expected: `exit=0`。出力の件数を「## 突き合わせの記録」に `| <今日> | 4 | <HEAD 10 桁> | <Web> | <写した> | <処遇> | <写す予定> | 0 |` で足す。`exit=1` なら `--emit-missing` で残ったテスト名を出し、`grep -rn "<テスト名>" docs/superpowers/plans` で持ち主のレーンの計画を引いて、写し漏れとして bd を `--parent <bd>` で立て `done.md`「integrator への依頼」へ書く（gamma は他レーンのテストを書かない。待たない）
 
-- [ ] **Step 4: コミットする**
+- [ ] **Step 2: コミットする**
 
 ```bash
 git add docs/uitk/disposition.md
-git commit -m "docs(uitk): 束 4 の突き合わせを差分 0 にする（S4-gamma）" -- docs/uitk/disposition.md
+COMMIT_MSG="docs(uitk): 束 4 の突き合わせ差分 0 を記録する（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- docs/uitk/disposition.md
+git push
 ```
 
 ---
@@ -1771,7 +1830,7 @@ ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/*.cs | wc
 ls moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/*.cs | wc -l
 grep -n "A-142\|SlotCommands" docs/uitk-migration/execution/component-architecture.md | head -3
 ```
-Expected: 各件が入っているかが分かる。「束ねる完了条件と回ってきた件」の表の行ごとに、`done.md`「## 回ってきた件」へ「済み（ファイル:行）」か「未処理 → bd <id>（I-fix へ。帰結: …）」を書く。未処理のものは段階 4 の完了条件に入らない（ラダー・L3・録画が緑なら完了）ので、gamma は止まらず bd を立てるだけにする（D-6）。ただし `MarkClipContainer` は Task 1 Step 4 で見た義務で、ここでは入っていることを確かめ直すだけ（D-19）
+Expected: 2026-11-13 の時点で `Unmark`・`PickAt`・登録の `Screens/` の再編・題の逃げは I-fix4 が、`MarkClipContainer` は S4-research が入れている（`NodeGraphView.cs:49`）。着手時にも同じであることを見る。「束ねる完了条件と回ってきた件」の表の行ごとに、`done.md`「## 回ってきた件」へ「済み（ファイル:行）」「修正中（I-fix5／I-fix6 の R-n）」か「未処理 → bd <id>（integrator への依頼。帰結: …）」を書く。未処理のものは段階 4 の完了条件に入らない（ラダー・L3・録画が緑なら完了）ので、gamma は止まらず bd を立てるだけにする（D-6・D-28）
 
 - [ ] **Step 2: 自撮りの参照の置き場を台帳に記す**
 
@@ -1788,7 +1847,9 @@ Task 5 Step 3 の観察を元に、C4-e の D-36・D-37・Warning (a)(b)(e)・`D
 
 ```bash
 git add docs/uitk/TODO.md
-git commit -m "docs(uitk): 段階 4 の自撮りの参照の置き場を台帳に記す（S4-gamma）" -- docs/uitk/TODO.md
+COMMIT_MSG="docs(uitk): 段階 4 の自撮りの参照の置き場を台帳に記す（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- docs/uitk/TODO.md
+git push
 ```
 
 ---
@@ -1808,38 +1869,40 @@ Run:
 ```bash
 git fetch origin
 git merge --no-ff --no-edit origin/feature/uitk
-uloop compile --project-path ./moorestech_client
+git push
+~/bin/winunity compile uitk-lane/s4-gamma
 ```
-Expected: `ErrorCount: 0`
+Expected: OK（`CS:` の行が 0）。I-fix5・I-fix6 のマージが入っていれば、Task 9 の `修正中` の行をここで流し直す（Task 9 Step 3 の最後の段落）
 
 - [ ] **Step 2: ラダー 5 本を順に流す**
 
-Run:
+Run（2 回に分けて前景で。Bash の timeout は 600000）:
 ```bash
-printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs > moorestech_client/Temp/uitk-recordings/ladders.txt
-tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 1 2
-tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 3 2
-tools/uitk/run-all-recordings.sh GameUi moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 5 1
+printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage2/uitk-opening-hud.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage3/uitk-build-bp.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-production-loop.cs .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-research-train.cs > moorestech_client/Temp/uitk-recordings/ladders.txt
+~/bin/winunity status
+tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 1 2
+tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 3 2
+tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/ladders.txt moorestech_client/Temp/uitk-recordings/ladders.tsv 5 1
 ```
-Expected: 5 行とも exit 0。`uitk-lifeline` はセーブして終了で PlayMode が止まるので、そのヘッダの「呼び出し側のシェルで save.json の更新を確かめる」を同じ手順で見る。落ちたら Task 5 Step 4 の手順
+Expected: 5 行とも exit 0、各 run dir の `play/result.json` が `Success: true`。`uitk-lifeline` はセーブして終了で PlayMode が止まる。S2-ladder と同じく `result.json` の `Success` と録画の最後で判定する（save.json は Windows 側にあり、ヘッダの「呼び出し側のシェルで確かめる」は winunity では見られないので `done.md`「未完了」に書く）。落ちたら Task 5 Step 4 の手順（回して待たない）
 
 - [ ] **Step 3: L3 を回す**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.EditModeInPlayingTest\.Ui\.(Stage4\.|GameUiSkeletonTest)" --timeout-seconds 1200`
-Expected: PASS。`done.md`「## 証拠」に HEAD・5 本の run dir の名前・L3 の件数を書く
+Run: `~/bin/winunity test uitk-lane/s4-gamma --regex "Client\.Tests\.EditModeInPlayingTest\.Ui\.(Stage4\.|GameUiSkeletonTest)" --editor --timeout 1200`
+Expected: 全件 PASS（件数が返らないときは run dir の TestResults.xml から数える）。時間切れは単体で 1 回流し直してから判定する。`done.md`「## 証拠」に HEAD・5 本の run dir の名前・L3 の件数を書く
 
 - [ ] **Step 4: コミットは無し**（取り込みのマージコミットは Step 1 で積まれる）
 
 ---
 
-### Task 13: 波の並べ比べと codex-audit
+### Task 13: 波の並べ比べと独立評価（opus 2 体）
 
 **Files:**
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-wave-shots.cs`
 
 **Interfaces:**
 - Consumes: `PlaytestGameViewOps.SetResolution(CancellationToken, int, int)`、`p.Screenshot(string)`、照合表の名前
-- Produces: 同時に出る 3 画面 × 2 解像度の Web／UITK の組、codex-audit の結果（`done.md`「## 差の表」）
+- Produces: 同時に出る 3 画面 × 2 解像度の Web／UITK の組、opus 2 体の独立評価の結果（`done.md`「## 差の表」）
 
 - [ ] **Step 1: 撮影のシナリオを書く**（系に依らない testid だけを使い、Web と UITK で同じ流れを撮る）
 
@@ -1928,8 +1991,13 @@ return PlaytestRunner.Run("uitk-stage4-wave-shots", options, async p =>
 
 - [ ] **Step 2: 両方の系で撮る**
 
-Run: `printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-wave-shots.cs > moorestech_client/Temp/uitk-recordings/wave.txt` のあと、`tools/uitk/run-all-recordings.sh GameUi … wave.tsv 1 1` と `tools/uitk/run-all-recordings.sh Web … wave.tsv 1 1`
-Expected: 2 行とも exit 0。各 run dir に 6 枚。`moorestech_client/Temp/uitk-recordings/compare/{web,uitk}/` へ名前を揃えて写す
+Run:
+```bash
+printf '%s\n' .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-wave-shots.cs > moorestech_client/Temp/uitk-recordings/wave.txt
+tools/uitk/run-all-recordings.sh GameUi uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/wave.txt moorestech_client/Temp/uitk-recordings/wave.tsv 1 1
+tools/uitk/run-all-recordings.sh Web uitk-lane/s4-gamma moorestech_client/Temp/uitk-recordings/wave.txt moorestech_client/Temp/uitk-recordings/wave.tsv 1 1
+```
+Expected: 2 行とも exit 0。各 run dir の `play/` に 6 枚。`moorestech_client/Temp/uitk-recordings/compare/{web,uitk}/` へ名前を揃えて写す。Game ビューを 2560×1080 にできず Note の大きさが違ったら、その組は撮れた大きさで並べ、`done.md`「未完了」に「2560×1080 は Windows の GUI Editor で撮れず」と書く
 
 - [ ] **Step 2b: 正本の参照キャプチャを並べる**
 
@@ -1946,19 +2014,21 @@ Web の見た目の正本は参照キャプチャ（設計書 §3.3）で、段�
 
 各 S4 レーンの PR の報告ページの実体 `~/hermes-agent/data/services/pr-review/reports/pr-<N>/`（PR 番号は各 `done.md`「## 証拠」）の manifest から `group` ごとの Web／UITK の組のパスを集め、`compare/lanes.md` に「group / Web / UITK / 解像度」で並べる（コピーしない。パスだけ）
 
-- [ ] **Step 4: codex-audit にかける**
+- [ ] **Step 4: opus の subagent 2 体に独立に評価させる**
 
-codex-audit スキル（既定 gpt-6-astra）に、Step 2b の 3 列の組と Step 3 の組の画像を渡し、次を頼む:「段階 4（持ち物・掴み・レシピ・ブロック UI 全族・研究）の参照キャプチャ（mock-host で撮った意図した見た目の正本）・Web の実ゲーム（CEF）・UITK の実ゲームを並べた。(1) 参照と UITK の差は、添付の状態の差（compare/states.md）に依らない配置・色の系統・装飾・文字の大きさ・余白だけを挙げて。(2) CEF と UITK の差（同じ実ゲームの状態）を全部挙げて。(3) 分け方: CEF と UITK が揃って参照と違うものは『参照の版の差か状態の差』、CEF だけが参照とも UITK とも違うものは『CEF 由来の候補』（同じ状態の CEF と UITK の組で裏取りできたものだけを CEF 由来とする）、UITK だけが違うものは『UITK の差』。配置・色の系統・装飾の有無・文字の大きさ・欠けている要素・重なり・はみ出しの差を、組ごとに『差／重さ（一目で分かるか）／どちらが正しいか』で挙げて。台帳の見た目の例外 LX-106〜LX-140 の文面（添付）に当たる差は『記帳済み LX-n』と書いて除いて。合否の目安は 720p で 2px」。台帳「## 見た目の例外」の LX-106〜140 の行を本文に添える
+経緯を渡さない opus の subagent を 2 体、互いの結果を見せずに立てる（D-27）。どちらにも同じ依頼文を渡し、画像は Read で見させる（パスの一覧を渡す）:「段階 4（持ち物・掴み・レシピ・ブロック UI 全族・研究）の参照キャプチャ（mock-host で撮った意図した見た目の正本）・Web の実ゲーム（CEF）・UITK の実ゲームを並べた。画像は次のパスを Read で開いて見て: <Step 2b の 3 列の組と Step 3 の組の絶対パス>。(1) 参照と UITK の差は、添付の状態の差（compare/states.md）に依らない配置・色の系統・装飾・文字の大きさ・余白だけを挙げて。(2) CEF と UITK の差（同じ実ゲームの状態）を全部挙げて。(3) 分け方: CEF と UITK が揃って参照と違うものは『参照の版の差か状態の差』、CEF だけが参照とも UITK とも違うものは『CEF 由来の候補』（同じ状態の CEF と UITK の組で裏取りできたものだけを CEF 由来とする）、UITK だけが違うものは『UITK の差』。配置・色の系統・装飾の有無・文字の大きさ・欠けている要素・重なり・はみ出しの差を、組ごとに『差／重さ（一目で分かるか）／どちらが正しいか』で挙げて。台帳の見た目の例外 LX-106〜LX-140 の文面（添付）に当たる差は『記帳済み LX-n』と書いて除いて。合否の目安は 720p で 2px。結果は <scratchpad>/wave-eval-<1|2>.md に書き、返答は 3 行で」。台帳「## 見た目の例外」の LX-106〜140 の行（I-fix5・I-fix6 が足した行があればそれも）を本文に添える。2 体の結果は、両方が挙げた差と片方だけが挙げた差に分けて Step 5 へ渡す
 
 - [ ] **Step 5: 指摘を再現してから回す**
 
-指摘ごとに、別の subagent（fresh-context）に該当の組の画像と指摘文だけを渡し「この差は画像で確かめられるか。px で測って」と再現させ、再現できたものだけを `done.md`「## 差の表」に「画面 / 差 / 測った値 / CEF 由来か / 持ち主 / 処理の案」で残し、指揮へ判定を求める（設計書 §3.3: 並べ比べの判定は指揮。gamma は codex-audit を回して再現と案までを持つ。D-18）。指揮の判定ごとに、(1) 直す → 持ち主（I-fix）への bd と依頼文、(2) 例外にする（「同じにするための対応が大きいか、ブラウザの癖の再現が要り、かつ差が一目で分からない」ものだけ。台帳の運用）→ gamma の範囲の LX-141〜145 から番号を取り、文面（ID・画面・差・同じにしない理由・推奨案・撮影・出所）を `done.md` に書いて I-fix へ渡す。台帳の行とコード側の印 `/* look-exception: LX-n */` は、`LookExceptionLedgerTest` が両方の一致を同じ HEAD で見るので、差のあるファイルを直す I-fix の PR で一緒に入れる（D-17）。再現しなかったものは「再現せず」と 1 行で残す。直すものが残る間は「状態: 停止」で待ち、入ったら Step 2 を流し直して該当の組だけ再判定する
+指摘ごとに、評価の 2 体とは別の subagent（fresh-context・opus）に該当の組の画像のパスと指摘文だけを渡し「この差は画像を Read で開いて確かめられるか。px で測って」と再現させ、再現できたものだけを `done.md`「## 差の表」に「画面 / 差 / 測った値 / CEF 由来か / 挙げた評価役（両方／片方）/ 持ち主 / 処理の案」で残し、指揮へ判定を求める（設計書 §3.3: 並べ比べの判定は指揮。gamma は独立評価を回して再現と案までを持つ。D-18・D-27）。指揮の判定ごとに、(1) 直す → 持ち主（I-fix）への bd と依頼文、(2) 例外にする（「同じにするための対応が大きいか、ブラウザの癖の再現が要り、かつ差が一目で分からない」ものだけ。台帳の運用）→ gamma の範囲の LX-141〜145 から番号を取り、文面（ID・画面・差・同じにしない理由・推奨案・撮影・出所）を `done.md` に書いて I-fix へ渡す。台帳の行とコード側の印 `/* look-exception: LX-n */` は、`LookExceptionLedgerTest` が両方の一致を同じ HEAD で見るので、差のあるファイルを直す I-fix の PR で一緒に入れる（D-17）。直す差の持ち主は、I-fix5（層・部品・文字組み・半透明）か I-fix6（X-audit の項目）の Requirements に同じ箇所があればそのレーン、無ければ `done.md`「integrator への依頼」。再現しなかったものは「再現せず」と 1 行で残す。判定と直しは待たずに Task 14 へ進む（D-28）。直しが入ったのが Task 15 の取り込みの前なら、Step 2 を流し直して該当の組だけ再判定する
 
 - [ ] **Step 6: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-wave-shots.cs
-git commit -m "test(uitk): 段階 4 の波の撮影シナリオを足す（S4-gamma）" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-wave-shots.cs
+COMMIT_MSG="test(uitk): 段階 4 の波の撮影シナリオを足す（S4-gamma）"
+git commit -m "$COMMIT_MSG" -- .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/uitk-stage4-wave-shots.cs
+git push
 ```
 
 ---
@@ -1978,21 +2048,23 @@ git commit -m "test(uitk): 段階 4 の波の撮影シナリオを足す（S4-ga
 
 - [ ] **Step 2: 自動適用があれば検査と録画を回し直してコミットする**
 
-自動適用が L3・`Operations/Ladder/`・`PlaytestAnchorChecks`・シナリオ・スクリプトに触れたら、反映後のバイナリで Task 12 Step 2〜3 を再走する（ユニットテストの通過は代替にならない）。続けて:
+自動適用が L3・`Operations/Ladder/`・`PlaytestAnchorChecks`・シナリオ・スクリプトに触れたら、コミット・push してから `~/bin/winunity compile` と Task 12 Step 2〜3 を再走する（ユニットテストの通過は代替にならない）。続けて:
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4 moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk tools/uitk docs/uitk
-git commit -m "fix(uitk): S4-gamma の moores-code-review 反映
+COMMIT_MSG="fix(uitk): S4-gamma の moores-code-review 反映
 
-<実行ホストの指示する帰属行>" -- moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4 moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk tools/uitk docs/uitk
+<実行ホストの指示する帰属行>"
+git commit -m "$COMMIT_MSG" -- moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Ui/Stage4 moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ladder moorestech_client/Assets/Scripts/Client.Playtest/Operations/ScenarioChecks .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk tools/uitk docs/uitk
 ```
-（自動適用が無ければコミットしない）
+（その後 `git push`。自動適用が無ければコミットしない）
 
 ---
 
-### Task 15: feature/uitk への PR・取り込み・マージ・片付け（必須）
+### Task 15: feature/uitk への PR・取り込み・マージ・締め（必須）
 
 **Files:**
-- Modify: `docs/uitk/disposition.md`（Task 10 の 3 行の `#<PR番号>`）
+- Create（Windows の Unity が作ったもの）: gamma が足したフォルダ・ファイルの `.meta`
+- Modify（repo 外）: `done.md`
 
 **Interfaces:**
 - Consumes: Task 14 後の HEAD
@@ -2000,7 +2072,7 @@ git commit -m "fix(uitk): S4-gamma の moores-code-review 反映
 
 - [ ] **Step 1: pr-create スキルで `base=feature/uitk` の PR を作る**
 
-push して PR を作る（`gh pr create --base feature/uitk`）。作ったら Task 10 の 3 行の `#<PR番号>` を実際の番号に書き換えてコミット・push する。PR 本文の先頭行は報告ページ `# https://review.moores.tech/pr/<番号>/report/` だけ。報告ページは `~/hermes-agent/data/services/pr-review/publish/README.md` の手順で、manifest は次の形（`file` は絶対パス。並べ比べは Web を先に同じ `group` へ置く）:
+push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の先頭行は報告ページ `# https://review.moores.tech/pr/<番号>/report/` だけ。報告ページは `~/hermes-agent/data/services/pr-review/publish/README.md` の手順で、manifest は次の形（`file` は絶対パス。並べ比べは Web を先に同じ `group` へ置く）:
 ```json
 {
   "head": "<HEAD 10 桁>",
@@ -2027,13 +2099,13 @@ push して PR を作る（`gh pr create --base feature/uitk`）。作ったら 
     {"file": "<compare/uitk/4-wave-researchTree-2560x1080.png>", "caption": "UITK 研究 2560×1080", "group": "4-wave-researchTree"}
   ],
   "verification": [
-    "Unityコンパイル: エラー0",
+    "Unityコンパイル（Windows・winunity compile）: エラー0",
     "L3 Stage4ScreenSetGameUiTest: PASS",
     "ラダー 1〜5（lifeline・opening-hud・build-bp・production-loop・research-train）: 同じ HEAD の全体スイッチ UITK で PASS",
     "全録画 2 回目: UITK <n> 本（不具合 0）・Web <n> 本（退行 0）",
     "マスタのアンカー 9 件: 全件 Unique・枠の中心のずれ <最大>px",
     "CPU: UIElementsUpdatePanels＋RepaintPanels 平均 <x>ms（目安 1ms）",
-    "test-name-parity 束 4: 差分 0、G1 束 4 未記帳 0、codex-audit: 再現した差 <k> 件（処理は done.md）"
+    "test-name-parity 束 4: 差分 0、G1 束 4 未記帳 0、opus 2 体の独立評価: 再現した差 <k> 件（処理は done.md）"
   ],
   "notes": ["分類の表・差の表・回ってきた件は moorestech_logs/harness/uitk/S4-gamma/done.md"]
 }
@@ -2046,45 +2118,69 @@ Run:
 ```bash
 git fetch origin
 git merge --no-ff --no-edit origin/feature/uitk
-uloop compile --project-path ./moorestech_client
-uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.EditModeInPlayingTest\.Ui\.Stage4\." --timeout-seconds 900
+git push
+~/bin/winunity compile uitk-lane/s4-gamma
+~/bin/winunity test uitk-lane/s4-gamma --regex "Client\.Tests\.EditModeInPlayingTest\.Ui\.Stage4\." --editor --timeout 900
 python3 .github/scripts/check-uitk-web-follow.py --base origin/master --head HEAD
 node tools/uitk/test-name-parity.mjs --bundle 4
-git push
 gh pr checks <PR番号>
 ```
-Expected: `ErrorCount: 0`・PASS、「束 4（暗転・起点 …）: 未記帳 0 件」、parity 終了コード 0。共有区画（`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の表）の衝突は両方の行を採る。取り込みが画面・部品・入力に触れていれば Task 12 Step 2 を再走する。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）。`Unity Test - client-remainder` の `UnityCursorTooltipScreenTest` 1 件の失敗は既存
+Expected: compile が OK・test が PASS、「束 4（暗転・起点 …）: 未記帳 0 件」、parity 終了コード 0。共有区画（`docs/uitk/TODO.md` の節の末尾・`docs/uitk/disposition.md` の表・I-fix5／I-fix6 と重なる共有ファイル）の衝突は両方の行を採る。取り込みが画面・部品・入力に触れていれば Task 12 Step 2 を再走する。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）。`Unity Test - client-remainder` の `UnityCursorTooltipScreenTest` 1 件の失敗は既存。G1 が赤のままならマージせず、`done.md` に理由を書いて Step 4 の `cmux wait-for` で止まる
+
+- [ ] **Step 2b: `.meta` を Windows から取ってコミットする**
+
+Mac では Unity を開かないので、gamma が足したフォルダ・`.cs` の `.meta` は Windows の worktree の Unity（Step 2 の compile）が作る。手で作らない（D-26。前例 S2-ladder c69492dba5）:
+```bash
+git status --short --untracked-files=all | grep -v '\.meta$'
+for p in $(git diff --name-only --diff-filter=A origin/feature/uitk...HEAD | grep -v '\.meta$' | grep '^moorestech_client/Assets/'); do
+  for m in "$p.meta" "$(dirname "$p").meta"; do
+    [ -f "$m" ] || scp "winbuild:C:/dev/worktrees/moorestech/uitk-lane-s4-gamma/$m" "$m"
+  done
+done
+git status --short -- '*.meta'
+```
+Expected: `Stage4/`・`Operations/Ladder/` のフォルダと、足した `.cs` ごとに `.meta` がそろう（`Assets/` の外の `scenarios/`・`tools/` には `.meta` が要らない）。取れないもの（Windows 側に無い）があれば `~/bin/winunity compile uitk-lane/s4-gamma` をもう一度流してから取り直す。続けて:
+```bash
+git add -- $(git status --short -- '*.meta' | awk '{print $2}')
+COMMIT_MSG="chore(uitk): S4-gamma が足したファイルの .meta（Windows の Unity が生成したもの）を足す"
+git commit -m "$COMMIT_MSG" -- $(git diff --cached --name-only)
+git push
+```
 
 - [ ] **Step 3: マージコミットで取り込む**
 
 Run: `gh pr merge <PR番号> --merge`
 Expected: マージされ、`git fetch origin && git log -1 --format='%H %P' origin/feature/uitk` の親が 2 つ（Squash しない）
 
-- [ ] **Step 4: bd を閉じ、報告を締め、worktree を畳む**
+- [ ] **Step 4: bd を閉じ、Editor を止め、報告を締める**
 
 Run:
 ```bash
 bd close <bd> --reason "PR #<番号> を feature/uitk へマージ（段階 4 の締め: L3・ラダー 4/5・全録画 2 回目・アンカー 9 件・CPU・束 4 parity 0・G1 0）"
 git status --short
 git log origin/uitk-lane/s4-gamma..HEAD
+~/bin/winunity editor-stop uitk-lane-s4-gamma
 ```
-Expected: closed、`git status --short` と `git log` が空。`done.md` の 1 行目を「状態: 完了」にし、「## 証拠」に PR 番号・マージコミット・G1 のジョブ URL・報告ページの URL を足す。テストで `Saves/` に作ったワールドが残っていないことを確かめてから:
+Expected: closed、`git status --short` と `git log` が空、Windows の GUI Editor が止まる（名前は `winunity status` の表示で読み替える）。`done.md` の 1 行目を「状態: 完了」にし、「## 証拠」に PR 番号・マージコミット・G1 のジョブ URL・報告ページの URL を足し、「未完了」（Mac 専用・save.json・Windows の Saves/ 等）と「integrator への依頼」を見直す。続けて moorestech_logs 側でコミット・push し、指揮へ知らせる:
 ```bash
-cd <メインのクローンの絶対パス>
-moores-wt rm uitk-lane/s4-gamma --prune-branch
-moores-wt status
+cd ~/hermes-agent/data/repos/moorestech_logs
+git add harness/uitk/S4-gamma/done.md
+COMMIT_MSG="harness(uitk): S4-gamma の done.md"
+git commit -m "$COMMIT_MSG" -- harness/uitk/S4-gamma/done.md
+git push
+cmux wait-for -S uitk-s4-gamma
 ```
-Expected: worktree と Editor が畳まれる（未コミット・未 push で拒否されたら残りを片付けてからもう一度。`--force` は使わない）
+worktree は片付けない（`moores-wt rm` は指揮が行う）
 
 ---
 
 ## Self-Review
 
-1. **Requirements coverage**: R-1 → Task 3（`Stage4ScreenSetGameUiTest`）・Task 12 Step 3、R-2 → Task 5、R-3 → Task 4 Step 1・Task 6、R-4 → Task 12 Step 2、R-5 → Task 9、R-6 → Task 4 Step 3・Task 7、R-7 → Task 4 Step 2・Task 8、R-8 → Task 10、R-9 → Task 2・Task 15 Step 2、R-10 → Task 13、R-11 → Task 1 Step 3・Task 5 Step 3・Task 11、R-12 → 末尾の節、R-13 → Task 14・15。§1.4 の句: 同時に出る組の L3（Task 3）・ラダー 2 本（Task 5・6）・ラダー 1〜5 緑（Task 12）・全録画の 2 回目（Task 9）・アンカー 9 件（Task 7）・CPU の台帳 1 回（Task 8）・束 4 差分 0（Task 10）・G1 0（Task 2・15）・codex-audit（Task 13）。plan §2.5 の「機械 UI を開いたまま中身が更新される録画」は Task 5 の 04、「UITK の掴みのコードが Web に依存しない」は Task 5 が Web ホスト無し（`WebUiHost.Hub == null`）で掴み・Shift・右ドラッグを通すことで見る。§6.2 の必須: 使う部品と API（Global Constraints・各 Task の Interfaces）、つまみ（gamma は部品のつまみを使わない。recipe D-9 の 5 本は末尾の設計書の行）、写すテストと `<web-test>`（gamma が写すテストは無い。持ち主の無い 3 件は処遇「捨てる」。D-7）、720p と 2560×1080（Task 13）、録画（Task 5・6・7・9）、登録の 1 行（gamma は登録しない。D-1）、新しい共有の申告（Global Constraints）、File Structure（他レーンと重ねない）。漏れなし
+1. **Requirements coverage**: R-1 → Task 3（`Stage4ScreenSetGameUiTest`）・Task 12 Step 3、R-2 → Task 5、R-3 → Task 4 Step 1・Task 6、R-4 → Task 12 Step 2、R-5 → Task 9、R-6 → Task 4 Step 3・Task 7、R-7 → Task 4 Step 2・Task 8、R-8 → Task 10、R-9 → Task 2・Task 15 Step 2、R-10 → Task 13、R-11 → Task 1 Step 3・Task 5 Step 3・Task 11、R-12 → 末尾の節、R-13 → Task 14・15。§1.4 の句: 同時に出る組の L3（Task 3）・ラダー 2 本（Task 5・6）・ラダー 1〜5 緑（Task 12）・全録画の 2 回目（Task 9）・アンカー 9 件（Task 7）・CPU の台帳 1 回（Task 8）・束 4 差分 0（Task 10）・G1 0（Task 2・15）・並べ比べの独立評価（Task 13。opus 2 体。D-27）。plan §2.5 の「機械 UI を開いたまま中身が更新される録画」は Task 5 の 04、「UITK の掴みのコードが Web に依存しない」は Task 5 が Web ホスト無し（`WebUiHost.Hub == null`）で掴み・Shift・右ドラッグを通すことで見る。§6.2 の必須: 使う部品と API（Global Constraints・各 Task の Interfaces）、つまみ（gamma は部品のつまみを使わない。recipe D-9 の 5 本は末尾の設計書の行）、写すテストと `<web-test>`（gamma が写すテストは無い。持ち主の無い 3 件は処遇「捨てる」。D-7）、720p と 2560×1080（Task 13）、録画（Task 5・6・7・9）、登録の 1 行（gamma は登録しない。D-1）、新しい共有の申告（Global Constraints）、File Structure（他レーンと重ねない）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<PR番号>`・`<番号>`・`<HEAD 10 桁>`・`<起点>`・`<SHA 10 桁>`・`<n>`・`<x>`・`<y>`・`<置き場>`・manifest の `<… のパス>` は実行時にしか決まらず、取り方を同じタスクに書いた。他レーンの名前（testid・USS のクラス・スロットの名前）は計画から写した想定で、Task 1 Step 2 の照合表で実物に読み替える手順を書いた。「TBD」「適切に」は無い
-3. **Type consistency**: `Stage4Surface.InColumn(string, string)`・`Stage4Surface.OutsideColumns(string)`・`Stage4ExpectedSurfaces.Expected(UIStateEnum)`・`All`・`Inventory`/`RecipeViewer`/`ItemList`/`BlockInventory`/`ResearchTree`/`Equipment`/`Backdrop`、`Stage4ScreenSetProbe.CountByName`・`VisibleByName`・`IsVisible`・`TryGetColumnName`・`IsPickedAtCenter`・`DescribePicked`、`PlaytestTrainLineSetup`（`StationA`・`StationB`・`StationAPosition`・`StationBPosition`・`Train`）・`PlaytestTrainLine.Build`・`AimAtCar`・`AimAtStation`、`PlaytestTrainStationSnapshots.ReadStationName`・`WaitForStationName`、`PlaytestPanelCost`（`Frames`・`MeanMs`・`P95Ms`・`MaxMs`・`Markers`）・`PlaytestPanelCostRecorder.FindPanelMarkers`・`ListUiElementsMarkerNames`・`Measure`、`PlaytestMasterAnchor`（`AnchorId`・`TutorialGuid`・`ChallengeGuid`・`ChallengeTitle`）・`PlaytestAnchorChecks.CollectUiHighlightAnchors`・`CheckOutlineOnAnchor` は定義（Task 3・4）と使用（Task 5〜8・13）で同じ綴り。スクリプトの引数 `run-all-recordings.sh <GameUi|Web> <list> <out> <start> <count>`・`list-recordings.sh <GameUi|Web>` は Task 9・12・13 で同じ。全シナリオの `using` に、拡張メソッド（`PressInteract`・`WaitForItemCount` 等）と口の名前空間 `Client.Playtest.Operations` がある
-4. **保留・縮退経路**: (a) 前提のレーンが欠ける → Task 1 Step 1 で「状態: 停止」と指揮への返却（解消の主体は指揮。最小構成: S2-ladder・S3-ladder が DAG に無く着手時に未マージ → 改め案で辺を足す）。(b) 不具合・退行・写し漏れ → bd と依頼文で I-fix へ、「状態: 停止」で待ち、取り込み後に該当分だけ再走（解消の主体は I-fix。gamma は直さないので、待つ間に gamma が自分で解消できる経路は無いことを明記した）。(c) マーカー 0 本 → シナリオが一覧を Note に出して `Success: false`（気づく経路は result.json）。(d) 依頼の未処理（Foundation の口・登録の再編）→ 完了条件に入れず bd だけ（D-6。帰結を `done.md` に書く）。`MarkClipContainer` だけは義務なので止まって待つ（D-19）。(e) 系の切替の失敗 → TSV に `switch-failed` 行（スクリプトの `silent-ok` は止める PlayMode が無いときの `Stop` の失敗だけ）。(f) 1ms 超 → 合否にせず bd と「未確認」（plan §2.5 の目安）
-5. **「決定的にする」を根拠にした選択**: 無し（全録画の順はファイル名順だが、各本の前で PlayMode を止めて系を立て直すので順に依らない）
+3. **Type consistency**: `Stage4Surface.InColumn(string, string)`・`Stage4Surface.OutsideColumns(string)`・`Stage4ExpectedSurfaces.Expected(UIStateEnum)`・`All`・`Inventory`/`RecipeViewer`/`ItemList`/`BlockInventory`/`ResearchTree`/`Equipment`/`Backdrop`、`Stage4ScreenSetProbe.CountByName`・`VisibleByName`・`IsVisible`・`TryGetColumnName`・`IsPickedAtCenter`・`DescribePicked`、`PlaytestTrainLineSetup`（`StationA`・`StationB`・`StationAPosition`・`StationBPosition`・`Train`）・`PlaytestTrainLine.Build`・`OpenCar`・`OpenStation`、`PlaytestTrainStationSnapshots.ReadStationName`・`WaitForStationName`、`PlaytestPanelCost`（`Frames`・`MeanMs`・`P95Ms`・`MaxMs`・`Markers`）・`PlaytestPanelCostRecorder.FindPanelMarkers`・`ListUiElementsMarkerNames`・`Measure`、`PlaytestMasterAnchor`（`AnchorId`・`TutorialGuid`・`ChallengeGuid`・`ChallengeTitle`）・`PlaytestAnchorChecks.CollectUiHighlightAnchors`・`CheckOutlineOnAnchor` は定義（Task 3・4）と使用（Task 5〜8・13）で同じ綴り。スクリプトの引数 `run-all-recordings.sh <GameUi|Web> <branch> <list> <out> <start> <count>`・`list-recordings.sh <GameUi|Web>` は Task 9・12・13 で同じ。全シナリオの `using` に、拡張メソッド（`PressInteract`・`WaitForItemCount` 等）と口の名前空間 `Client.Playtest.Operations` がある
+4. **保留・縮退経路**: (a) 前提のレーンが欠ける → Task 1 Step 1 で「状態: 停止」と指揮への返却（解消の主体は指揮。最小構成: S2-ladder・S3-ladder が DAG に無く着手時に未マージ → 改め案で辺を足す）。(b) 不具合・退行・写し漏れ → bd を立て、I-fix6 の範囲なら albof.61、それ以外は `done.md`「integrator への依頼」へ書いて待たずに先へ進み、取り込み後に該当分だけ再走（解消の主体は I-fix・指揮。D-28）。I-fix5・I-fix6 が直している最中のものは「修正中」として両レーンのマージ後に再走。(c) マーカー 0 本 → シナリオが一覧を Note に出して `Success: false`（気づく経路は result.json）。(d) 依頼の未処理（Foundation の口・登録の再編）→ 完了条件に入れず bd だけ（D-6。帰結を `done.md` に書く）。`MarkClipContainer` は入っている（D-19 の改め）。(e) winunity の結果の置き場が拾えない → TSV の `run_dir` が `-` になり、終了コードは winunity のもの（スクリプトの `silent-ok` はこの 1 か所。Task 9 Step 3 で `-` の行を log から読む）。Windows で回らないもの → `done.md`「未完了」（D-26）。(f) 1ms 超 → 合否にせず bd と「未確認」（plan §2.5 の目安）
+5. **「決定的にする」を根拠にした選択**: 無し（全録画の順はファイル名順だが、`winunity play` が各本の前で PlayMode を止めて系を立て直すので順に依らない）
 6. **呼び出し側への責務漏出**: アンカーの集め方と照合は `PlaytestAnchorChecks` の 1 か所、列車線の準備は `PlaytestTrainLine` の 1 か所、CPU の測り方は `PlaytestPanelCostRecorder` の 1 か所、面の読み方は `Stage4ScreenSetProbe` の 1 か所。石窯を狙って開く 4 行は Task 5 と Task 13 の 2 か所に現れる（D-9 で据え置きの理由を書いた）
 
 ---
@@ -2112,24 +2208,29 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | D-15 | ラダーとアンカー・撮影は録画の DSL、同時に出る組は L3 で見る | 同時に出る組は「木の構造（列・数・Pick）」の照合で、L3 が速く CI でも回る。ラダーは実操作の流れで、録画が要る（unityプレイ録画テスト） | 全部を録画で: CI で回らない。全部を L3 で: 掴み・長押し・F の流れの録画が残らない |
 | D-16 | 列車線の準備と CPU 時間の計測は `Operations/Ladder/`（新しい役割のサブディレクトリ。名前空間は平らな `Client.Playtest.Operations`）、アンカーの照合は前例の `ScenarioChecks/`、サーバーの値は `ServerSnapshots/` の待ち（既存の `WaitForItemCount`、足す `PlaytestTrainStationSnapshots.WaitForStationName`）で読み、`RunOnServer` は書き込みにだけ使う。品目は `PlaytestItemOps.ResolveItemId`、見えるかは `GameUiElementQuery.IsVisible` を使う。出所: 設計検査（Phase 1〜2.5） | 既存のサブディレクトリは役割で分かれ（`ServerSnapshots`・`ScenarioChecks`・`Ui`）、準備と計測はどれにも当たらない。`Operations/` 直下は既に 10 本。サーバーの値をメインスレッドから読むと tick と競合する（bd moorestech-xyuaf.2.10） | 全部 `Ladder/` に置く: アンカーの照合は `ScenarioChecks` と同じ役割。`Operations/` 直下に置く: 11 本目になる。品目と見え方を自前で書く: 既存の 1 か所と判定が割れる |
 | D-17 | LX の番号は gamma の範囲（LX-141〜145）から取るが、台帳の行は gamma でなく差のあるファイルを直す I-fix がコードの印と同じ PR で入れる。出所: 設計検査 Phase 2.6（検査7。設計書 §3.4「台帳の末尾へレーンが追記」との食い違い） | `LookExceptionLedgerTest` は「印の ID が台帳にある」「台帳の ID が印のどこかにある」を同じ HEAD で照合するので、行だけ先に入れると gamma の PR が赤になる。gamma は差のあるファイル（他レーンの画面）を書かない（D-1）。§3.4 の「レーン」を「印を置くレーン」と読む改め案を末尾の設計書の行に足す | gamma が台帳の行だけ入れる: 照合テストが落ちる。gamma が印も置く: 他レーンのファイルを書く |
-| D-18 | codex-audit を回し、指摘を再現して処理の案を付けるまでが gamma、直すか例外にするかの判定は指揮。出所: 設計検査 Phase 2.6（検査7。設計書 §3.3「指揮（判定）」と実行計画 §5「段の締めで codex-audit」の食い違い） | 両方を満たす読み方: 回すのは段の締め（§5・§1.4）、判定は指揮（§3.3）。gamma は int のレーンで指揮と同じ場にいるので判定待ちは短い | gamma が判定まで持つ: §3.3 と食い違う |
-| D-19 | `MarkClipContainer`（研究の視口に子を切る容器の印）は D-6 から外し、無ければ I-fix へ回して入るまで止まる。出所: 設計検査 Phase 2.6（検査7。E-1・A-65 の義務） | 印が無いと、研究ノードのアンカーが視口で切られて見えなくても枠が出る（チュートリアルの枠の前提を欠く）。R-6 の判定の前提なので完了条件に入る | 未処理でも進める: A-65 の義務を段の締めで見逃す |
+| D-18 | 並べ比べの評価（2026-11-13 に codex-audit から opus 2 体の独立評価へ。D-27）を回し、指摘を再現して処理の案を付けるまでが gamma、直すか例外にするかの判定は指揮。出所: 設計検査 Phase 2.6（検査7。設計書 §3.3「指揮（判定）」と実行計画 §5「段の締めで codex-audit」の食い違い） | 両方を満たす読み方: 回すのは段の締め（§5・§1.4）、判定は指揮（§3.3）。gamma は int のレーンで指揮と同じ場にいるので判定待ちは短い | gamma が判定まで持つ: §3.3 と食い違う |
+| D-19 | `MarkClipContainer`（研究の視口に子を切る容器の印）は D-6 から外し、無ければ I-fix へ回して入るまで止まる。2026-11-13 の改め: S4-research が入れた（`NodeGraphView.cs:49`）ので止まる場面は無く、確かめ直すだけにする。出所: 設計検査 Phase 2.6（検査7。E-1・A-65 の義務） | 印が無いと、研究ノードのアンカーが視口で切られて見えなくても枠が出る（チュートリアルの枠の前提を欠く）。R-6 の判定の前提なので完了条件に入る | 未処理でも進める: A-65 の義務を段の締めで見逃す |
 | D-20 | 型の弱い指摘（検査5 の弱 3 件）はこのままにする。(a) 面の列を `StageColumn` でなく名前の文字列で持つのは、L3 が木を名前で読む側で、enum から名前への写しは `StageColumnsLayout` の中にしか無いから（写しを作ると 2 か所になる）。空文字は「列の外」の 1 値だけで、`Stage4ExpectedSurfaces` の表の中に閉じる。(b) マーカー名・アンカー名の接頭辞の一致は、正本（Editor の版・マスタ）が文字列で、決め打ちしない方が版の違いで黙らない（D-13・A-178）。(c) `PlaceTrainOnRail` の応答の `?.` は Assert の文面の中だけで、null も失敗も同じ「設置失敗」で止まる。出所: 設計検査 Phase 2.6（弱）→ agent 既定 | — | 列を enum にする: 名前の写しが L3 に増える |
 | D-21 | ラダー 4 は青銅インゴットのレシピをサーバー直（`UnlockMachineRecipe`）で解放し、UI でレシピを選んでから入れる。出所: シミュレーター予測（ユーザー裁定 `.decisions/2026-08-30-レシピ未選択の機械は入力を一切受け入れない.md`・`機械入力スロットはサーバー側でもレシピ素材順に固定する.md` との照合）→ agent 既定 | 石窯のレシピは全部未解放で、未選択の機械は入力を受けない。plan §4.4 のラダー 4 の内容に研究は無く、研究の流れはラダー 5 が持つ。選択の操作は S4-machine の UI を踏むのでラダーに含める | 研究で解放する: ラダー 5 と流れが重なり、ラダー 4 が研究ツリーに依存する。初めから解放済みのマスタを使う: ピン先マスタと別のデータになる |
 | D-22 | 束 4 の暗転の起点は、S4 の 7 レーンのうち最も早く分岐したレーンの分岐点で取り込み済みだった master（指揮の記録があればそれ）。出所: 独立評価（opus 3） | 台帳の運用は「束のレーンを始めたときの最新の master」。S4 は alpha 列と research 列が並走し、どのレーンも暗転を書いていないので、最初に始めたレーンの時点が起点。後の点を取ると、その間に入った Web 変更が G1 の追従から漏れる | alpha のマージの直前の master: research 列が先に始めた分の Web 変更が漏れる |
 | D-23 | 全録画は系ごとに一覧を分ける。`scenarios/uitk/` 配下は UITK のレーンが全体スイッチ GameUi で流す前提で作ったもの（多くは `WebUiHost.Hub == null` を要求し、要求しないものも UITK のロケータの名前で書かれている）として Web の一覧から外し（外した本数と名前は `list-web-excluded.txt` から `done.md` へ）、Web の退行の比較は S4 前のコミットにもあるシナリオだけで行う（無いものは「比較不能（新設）」）。wwxy の表から外すのは直すレーンが X-prerun の行と、ファイルが消えた行だけ。出所: 独立評価（codex 2・opus 5） | UITK 専用を Web で流すと正常な Web 起動を失敗にする。比較元に無いシナリオでは既存か退行かを分けられない。S2-ladder・S3-ladder が直した 8 本は表に残っても流すべき | 全本を両方の系で流す: 偽の失敗が出る。表の全行を外す: 直った 8 本が黙って抜ける |
 | D-24 | gamma の新規シナリオ 5 本は `scenarios/uitk/stage4/` にまとめる。出所: 独立評価（codex 4） | AGENTS.md の 10 ファイル上限に、アセンブリに入らないことを理由にした例外は無い。`scenarios/uitk/` は起草時 10 本で、そこへ足すと超える。他レーンのファイルは動かさない | `scenarios/uitk/` 直下: 上限を超える（旧 D-8 は撤回） |
 | D-25 | 並べ比べの組は「参照キャプチャ（mock-host の正本。束 4 の起点を含む段 4 の頭の撮り直し、無ければ gamma が撮り直す）／Web の実ゲーム（CEF）／UITK の実ゲーム」の 3 列にする。参照とは状態に依らない配置・装飾だけを比べ、状態に依る差は同じ状態の CEF と UITK の組で比べる。「CEF 由来」はその組で裏取りできた差に限る。出所: 独立評価（opus 4・2 周目 opus N1・codex 2） | 設計書 §3.3 で Web の見た目の正本は参照キャプチャ。CEF 由来の不具合は UITK 切替まで直さない裁定があり、CEF だけと比べると崩れを写したまま差 0 になる | CEF の実ゲームだけと比べる: 正本と結び付かない |
+| D-26 | Unity の実行（compile・test・play・edc・test-all）は Windows（RTX2060）の `~/bin/winunity` だけで回し、Mac の Editor・`uloop`・`run-scenario.sh` を使わない。`.meta` は Windows の Unity が作ったものを `scp` で取ってコミットする。Windows で回らないもの（Mac の IME を叩く `.sh` 等）は `done.md`「未完了」に回す。出所: 指揮の依頼（2026-11-13） | Mac の Editor は全体で 1 本までで I-fix5 が使っている。winunity は GUI 枠 1・batchmode 枠 4 で並走を捌き、結果を `~/.cache/winunity/runs/<runId>/` に持ち帰る。S2-ladder が同じ形でラダー 1〜3 を緑にした前例がある | Mac の Editor を足す: メモリと I-fix5 の Editor と競合する。`.meta` を手で作る: 規約で禁止 |
+| D-27 | 並べ比べの評価は codex-audit でなく、経緯を渡さない opus の subagent 2 体に互いの結果を見せず同じ依頼文で評価させ、画像は Read で開かせる。再現は 3 体目の subagent。出所: 指揮の依頼（2026-11-13） | 2 体の独立評価で、片方だけが挙げた差も再現の対象に入り見落としが減る。評価役が画像を自分で開くので、要約された説明に引っ張られない | codex-audit のまま: 指揮の依頼と違う。1 体で: 評価役の癖がそのまま結果になる |
+| D-28 | 不具合・退行・写し漏れは、I-fix6（bd moorestech-albof.61）の範囲ならそこへ、それ以外は `done.md`「integrator への依頼」へ書き、修正を待たずに先へ進む。I-fix5・I-fix6 が直している最中のものは「修正中」として両レーンのマージ後に再走する。出所: 指揮の依頼（2026-11-13） | I-fix5・I-fix6 が並走中で、待つと gamma の残りの検査（L3・全録画・並べ比べ）が全部止まる。段を締める判定は指揮が持つ | 起草版の「状態: 停止で待つ」: 並走の間ずっと止まる |
+| D-29 | 番号: 設計書 §7.1 の A-175〜A-179 は起草版の行として指揮が写し済みなので改めず、この更新で足す行は予備 A-270〜A-279 から取る。台帳の LX-141〜145 は未使用なのでそのまま使い、足りなければ予備 LX-230〜LX-239。出所: 指揮の依頼（2026-11-13）と `component-architecture.md` 638〜642 行の実測 | 写し済みの行を同じ番号で書き換えると、設計書と計画のどちらが正か分からなくなる | A-175〜179 を書き換える: 写し済みの行と食い違う |
+| D-30 | Task 3〜8 のコード片を 2026-11-13 の実物に合わせる: `VanillaApi.Response.Train.PlaceTrainOnRail`、駅は南向きで front・back の両側を結線し車両は back 側に置く、駅と車両は前例の狙い方で開く（`OpenStation`・`OpenCar`）、L3 は開幕スキットを飛ばしてから巡る、時刻表の保留はクラス `train-timetable-section--busy` でなくクライアントの時刻表の駅数で待つ。出所: 計画の更新での実物との照合（前例 `train-timetable-via-ui.cs`・`uitk-train-inventory.cs`・`Stage2HudGameUiTest.cs`） | 起草版の API 名・置き方はマージ前の計画から写したもので、実物と違う。busy クラスは I-fix6 R-10（AC-20）が消すので、それを待つとラダー 5 が I-fix6 のマージで壊れる | busy クラスを待つ: I-fix6 のマージで消える。起草版のまま: コンパイルが通らない・車両が反対向きに走る |
+| D-31 | 全録画の `run-all-recordings.sh` は `winunity play` を 1 本ずつ呼ぶ形に書き直し、引数にブランチを足す（`<GameUi\|Web> <branch> <list> <out> <start> <count>`）。終了コードは `summary.json`、結果は run dir の `play/result.json`。1 回の前景の呼び出しは 2 本まで。Web 側の S4 前との比較は、S4 前の SHA を一時ブランチ `uitk-tmp/s4-gamma-webbase` で push して流し、終わったら `winunity rm` と push の取り消しで畳む。出所: 指揮の依頼（2026-11-13）と winunity の実物 | winunity は系の切替と `Current` の確認、受け口の環境変数を自分で立てるので、スクリプトが uloop で立て直す必要が無い。push 済みのブランチしか取れないので比較元も push が要る | `moores-wt new` で S4 前の worktree を作る: Mac の Editor が要る |
 
 ランタイムの挙動（UI・入力）を確かめるので、unityプレイ録画テスト（Task 5・6・7・9・12）と EditModeInPlayingTest（Task 3）を入れた。
 
 ## 未確認
 
-- S4-train の駅名の確定（`train-station-name-apply`）と時刻表の即時送信・保留の印（`train-timetable-section--busy`）は起草版の計画から写した。マージ後の実物で Task 1 Step 2 の照合をする
-- S2-ladder・S3-ladder の計画は未起草（§1.4 で ○）。ラダー 2・3 のシナリオ名（`uitk-opening-hud`・`uitk-build-bp`）は plan §4.4 の名前で、実物は Task 1 Step 1 で確かめる
 - `UIElementsUpdatePanels`・`UIElementsRepaintPanels` の実際のマーカー名（Editor の版で `UIElements.UpdatePanels` のように変わりうる）。Task 4 は名前に「UIElements」と「UpdatePanels／RepaintPanels」を含むものを拾い、0 本なら一覧を出して止まる
-- 石窯の入力・出力の枠の名前（`machine-input-slots` の子のスロットの名前）。S4-machine のマージ後に照合
-- 研究ツリーを開くキーが `R` か（`uitk-research-tree` の録画の操作を Task 1 Step 3 で読む）
+- Windows の GUI Editor の Game ビューを 1920×1080・2560×1080 にできるか（Task 8・13）。できなければ撮れた大きさで記録し `done.md`「未完了」に書く
+- `winunity play` で `MapObjectHpBarView.SetHp` の NRE による `InitializationFailed`（bd moorestech-albof.54.5）がどの程度の頻度で出るか。全録画の `修正中` の行数に効く
+- 起草時に未確認だった駅名・時刻表の名前、ラダー 2・3 のパス、石窯の枠の名前、研究ツリーのキーは 2026-11-13 に実物で照合した（Task 1 の照合表）
 
 ## 本PR外のリファクタ提案
 
@@ -2142,7 +2243,7 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 
 指揮が設計書・実行計画へ写す。gamma は直接編集しない。
 
-### 設計書 §7.1（A-175〜A-179）
+### 設計書 §7.1（A-175〜A-179。指揮が `component-architecture.md` 638〜642 行へ写し済み）
 
 | ID | 判断 | 却下した案と理由 |
 |---|---|---|
@@ -2152,7 +2253,15 @@ Expected: worktree と Editor が畳まれる（未コミット・未 push で�
 | A-178 | UI の CPU 時間は `ProfilerRecorder` で名前に `UIElements` と `UpdatePanels`／`RepaintPanels` を含むマーカーを拾って和を取り、Editor の PlayMode・1920×1080 で画面ごとに 240 フレームの平均・p95・最大を台帳に書く。1ms は目安で合否にしない（S4-gamma） | マーカー名を決め打ちする: Editor の版で名前が変わると 0 を測って気づかない。合否にする: plan §2.5 は目安 |
 | A-179 | 段の締めの並べ比べは、各レーンの報告ページの Web／UITK の組と、締めのレーンが同じ実ゲームの状態を両方の系で撮った組（同時に出る画面 × 1280×720・2560×1080）を codex-audit にかけ、記帳済みの LX を除いて差を出させ、別の subagent が画像で再現した差だけを持ち主へ回す。直すか例外にするかは指揮が判定し、例外にする差は締めのレーンが範囲の番号で LX の文面を書き、台帳の行とコードの印は差のあるファイルを直すレーン（I-fix）が同じ PR で置く（S4-gamma） | mock-host の参照だけと比べる: 実ゲームの同時表示の重なりが見えない。指摘をそのまま回す: 再現しない指摘で持ち主の手が止まる |
 
-§3.4 の「`LX-n` の番号は…台帳「## 見た目の例外」の末尾へレーンが追記する」に「（段の締めが範囲を持つ例外は、印を置くレーン〈I-fix〉が台帳の行と印を同じ PR で入れる。`LookExceptionLedgerTest` が同じ HEAD で両方を照合するため）」を足す案（D-17）。§3.3 の「指揮は波ごとに codex-audit にかける」を「段の締めのレーンが波ごとに codex-audit を回して再現と処理の案を出し、指揮が判定する」へ改める案（D-18。実行計画 §5 の「段の締め（S4-gamma）で codex-audit にかける」と揃える）。§3.3（比べ方）に A-179 を 1 行で足す案: 「段の締めは、同じ実ゲームの状態を両方の系で撮る撮影シナリオ（`scenarios/uitk/uitk-stage<N>-wave-shots.cs`）を持つ」。
+2026-11-13 の更新で足す行（予備 A-270〜A-279。D-29）:
+
+| ID | 判断 | 却下した案と理由 |
+|---|---|---|
+| A-270 | A-179 の改め: 段の締めの並べ比べの評価は codex-audit でなく、経緯を渡さない opus の subagent 2 体が互いの結果を見ずに画像を Read で開いて評価し、両方・片方の指摘を別の subagent が画像で再現したものだけを持ち主へ回す（S4-gamma） | codex-audit 1 本: 評価役の癖がそのまま結果になる。指摘をそのまま回す: 再現しない指摘で持ち主の手が止まる |
+| A-271 | A-178 の改め: UI の CPU 時間は Windows・RTX2060 の GUI Editor（`winunity play`）の PlayMode で測り、台帳の行の条件に「Windows・RTX2060・Editor」と書く（S4-gamma） | Mac の Editor で測る: Editor の本数の上限と並走の負荷で値が揺れ、条件が行ごとに変わる |
+| A-272 | 段の締めの Unity の実行（コンパイル・L3・ラダー・全録画・撮影）は `winunity` で Windows に投げ、全録画は `winunity play` を 1 本ずつ呼ぶ `tools/uitk/run-all-recordings.sh` で TSV に残す。Windows で回らないものは報告の「未完了」に回す（S4-gamma） | 締めのレーンが Mac の Editor を立てる: 並走中のレーンと Editor の上限を取り合う |
+
+§3.4 の「`LX-n` の番号は…台帳「## 見た目の例外」の末尾へレーンが追記する」に「（段の締めが範囲を持つ例外は、印を置くレーン〈I-fix〉が台帳の行と印を同じ PR で入れる。`LookExceptionLedgerTest` が同じ HEAD で両方を照合するため）」を足す案（D-17）。§3.3 の「指揮は波ごとに codex-audit にかける」を「段の締めのレーンが波ごとに opus の subagent 2 体の独立評価を回して再現と処理の案を出し、指揮が判定する」へ改める案（D-18・D-27・A-270）。実行計画 §5 の「段の締め（S4-gamma）で codex-audit にかける」も「opus 2 体の独立評価にかける」へ改める案。§3.3（比べ方）に A-179 を 1 行で足す案: 「段の締めは、同じ実ゲームの状態を両方の系で撮る撮影シナリオ（`scenarios/uitk/uitk-stage<N>-wave-shots.cs`）を持つ」。
 
 S4-recipe の D-9（`GameScrollView` のつまみ 5 本）は S4-recipe の計画の「設計書へ」の行が正本で、gamma は写すだけ（指揮が S4-recipe の割り当て行と一緒に入れる）。
 
@@ -2172,4 +2281,4 @@ S4-recipe の D-9（`GameScrollView` のつまみ 5 本）は S4-recipe の計�
 
 | レーン | 設計書 §7.1 | 台帳 `LX-n` |
 |---|---|---|
-| S4-gamma（`P/2026-11-10-uitk-s4-gamma.md`） | A-175〜A-179 | LX-141〜145（段階 4 の波の並べ比べで再現した差のうち例外にするものの予約。文面は gamma が書き、行と印は I-fix が置く） |
+| S4-gamma（`P/2026-11-10-uitk-s4-gamma.md`） | A-175〜A-179（写し済み）・A-270〜A-272（2026-11-13 の更新。予備 A-273〜A-279） | LX-141〜145（段階 4 の波の並べ比べで再現した差のうち例外にするものの予約。文面は gamma が書き、行と印は I-fix が置く） |
