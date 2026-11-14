@@ -1,45 +1,33 @@
 using System;
-using System.Linq;
-using System.Text.RegularExpressions;
-using Client.Game.InGame.BugReport;
 using NUnit.Framework;
 using UniRx;
-using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Crosscut
 {
-    // AppErrorBoundary の代わりの前提: UI の例外は握られずに LogType.Exception で出て、バグ報告のログ環が拾う
-    // Premise standing in for AppErrorBoundary: UI exceptions are never swallowed, surface as LogType.Exception and land in the bug-report log ring
+    // AppErrorBoundary の代わりの前提: UI の例外は配送が握らず投げ直す。本番では PlayerLoop が LogType.Exception でログへ出し、数え手が拾う
+    // Premise standing in for AppErrorBoundary: UI dispatch never swallows exceptions but rethrows them; in production the PlayerLoop logs them as LogType.Exception for the tally
     public class GameUiExceptionLoggingTest : Client.Tests.Ui.Screens.ScreenTestHost
     {
         [Test]
-        public void UIのクリックの中の例外はExceptionでログに出て環に入る()
+        public void UIのクリックの中の例外は配送が握らず投げ直す()
         {
-            var ring = new UnityLogRing();
-            ring.Initialize();
             var button = Mount(new ThrowingButton());
-            LogAssert.Expect(LogType.Exception, new Regex("GameUiExceptionProbe"));
-            simulate.Click(button.worldBound.center);
-            var entry = ring.Dump().Last(log => log.Type == LogType.Exception);
-            StringAssert.Contains("GameUiExceptionProbe", entry.Message);
-            StringAssert.Contains("Client.Tests.Ui.Crosscut", entry.StackTrace);
+            var exception = Assert.Throws<InvalidOperationException>(() => simulate.Click(button.worldBound.center));
+            StringAssert.Contains("GameUiExceptionProbe click", exception.Message);
+            StringAssert.Contains("Client.Tests.Ui.Crosscut", exception.StackTrace);
         }
 
         [Test]
-        public void UniRxの購読の中の例外はExceptionでログに出る()
+        public void UniRxの購読の中の例外もUIの配送が握らず投げ直す()
         {
-            var ring = new UnityLogRing();
-            ring.Initialize();
             var subject = new Subject<Unit>();
             subject.Subscribe(_ => throw new InvalidOperationException("GameUiExceptionProbe rx"));
-            LogAssert.Expect(LogType.Exception, new Regex("GameUiExceptionProbe rx"));
-            // UniRx は onError 未指定の例外を投げ直す。UI のイベント配送の中で投げ直されたものは UITK がログへ出す
-            // UniRx rethrows when no onError is given; rethrown inside UI event dispatch, UITK logs it
+            // UniRx は onError 未指定の例外を投げ直し、UITK の配送もそれを握らない
+            // UniRx rethrows when no onError is given, and UITK dispatch does not swallow it either
             var button = Mount(new Button(() => subject.OnNext(Unit.Default)) { name = "rx-probe" });
-            simulate.Click(button.worldBound.center);
-            Assert.IsTrue(ring.Dump().Any(log => log.Type == LogType.Exception && log.Message.Contains("GameUiExceptionProbe rx")));
+            var exception = Assert.Throws<InvalidOperationException>(() => simulate.Click(button.worldBound.center));
+            StringAssert.Contains("GameUiExceptionProbe rx", exception.Message);
         }
 
         private sealed class ThrowingButton : Button
