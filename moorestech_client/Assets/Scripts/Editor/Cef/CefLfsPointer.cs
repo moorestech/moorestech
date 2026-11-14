@@ -20,10 +20,11 @@ namespace Client.Editor
         // Windows MAX_PATH; Mono's FileStream cannot open longer paths without the extended-length prefix
         private const int WindowsMaxPath = 260;
         private const string WindowsExtendedPathPrefix = @"\\?\";
+        private const string WindowsExtendedUncPrefix = @"\\?\UNC\";
 
         public static bool IsPointerFile(string filePath)
         {
-            var openablePath = ToOpenablePath(filePath);
+            var openablePath = ToOpenablePath();
             if (!File.Exists(openablePath)) return false;
             if (MaximumPointerFileSize < new FileInfo(openablePath).Length) return false;
 
@@ -35,17 +36,22 @@ namespace Client.Editor
             var bytesRead = stream.Read(prefix, 0, prefix.Length);
 
             return Encoding.ASCII.GetString(prefix, 0, bytesRead) == LfsPointerHeader;
-        }
 
-        // Windows で MAX_PATH を超える絶対パスにだけ拡張パス接頭辞を付ける（osx-arm64 の .app 内は worktree 名しだいで超える）
-        // Prefix only over-MAX_PATH absolute paths on Windows (files inside the osx-arm64 .app exceed it depending on the worktree name)
-        private static string ToOpenablePath(string filePath)
-        {
-            if (Path.DirectorySeparatorChar != '\\') return filePath;
+            #region Internal
 
-            var fullPath = Path.GetFullPath(filePath);
-            if (fullPath.Length < WindowsMaxPath || fullPath.StartsWith(WindowsExtendedPathPrefix)) return fullPath;
-            return WindowsExtendedPathPrefix + fullPath;
+            // MAX_PATH超の絶対パスだけ拡張接頭辞を付ける
+            // Prefix only over-MAX_PATH absolute paths on Windows with the extended-length prefix
+            string ToOpenablePath()
+            {
+                if (Path.DirectorySeparatorChar != '\\') return filePath;
+
+                var fullPath = Path.GetFullPath(filePath).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                if (fullPath.Length < WindowsMaxPath || fullPath.StartsWith(WindowsExtendedPathPrefix, StringComparison.Ordinal)) return fullPath;
+                if (fullPath.StartsWith(@"\\", StringComparison.Ordinal)) return WindowsExtendedUncPrefix + fullPath.Substring(2);
+                return WindowsExtendedPathPrefix + fullPath;
+            }
+
+            #endregion
         }
     }
 }
