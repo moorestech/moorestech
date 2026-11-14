@@ -72,17 +72,49 @@ namespace Client.Tests.Ui.Components.Controls.PointerCursor
         }
 
         [Test]
-        public void 無効のIconButtonに乗っても既定のまま()
+        public void 無効のIconButtonもWebと同じく指を出す()
         {
-            // UITK の無効の要素はポインタの事象を受けないので指が出ない。Web は :disabled でも指のまま（LX-205 の差）
-            // Disabled UITK elements receive no pointer events, so no pointer; the Web keeps the pointer on :disabled (the LX-205 gap)
+            // Web の IconButton は :disabled でも cursor: pointer のまま。UITK の無効の要素もポインタの事象を受けるので同じになる
+            // The Web IconButton keeps cursor: pointer when :disabled; disabled UITK elements still get pointer events, so it matches
             var button = Mount(new IconButton("pointer-icon-button-disabled", new IconButtonCloseGlyph(), _osCursor));
             button.SetEnabled(false);
             simulate.FrameUpdate();
-            simulate.MouseMove(Outside);
-            simulate.MouseMove(button.worldBound.center);
-            Assert.AreEqual(UiOsCursorShape.Default, _applier.Current);
+            AssertPointerWhileHovered(button);
         }
+
+        [Test]
+        public void ModeSwitchの無効の選択肢は指を出さず乗ったまま無効にすると外す()
+        {
+            // Web の無効の選択肢は pointer-events: none で cursor: default（ModeSwitch/style.module.css:50-53）
+            // Web disabled options are pointer-events: none with cursor: default (ModeSwitch/style.module.css:50-53)
+            var options = new List<ModeSwitchOption<int>>
+            {
+                new("pointer-mode-a", 1, new UiText(LocalizationKeys.Ui.PauseMenu.Settings)),
+                new("pointer-mode-b", 2, new UiText(LocalizationKeys.Ui.PauseMenu.Back)),
+            };
+            var modeSwitch = Mount(new ModeSwitch<int>("pointer-mode-switch", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options, _osCursor));
+            var second = modeSwitch.Q<Button>("pointer-mode-b");
+            simulate.MouseMove(Outside);
+            simulate.MouseMove(second.worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _applier.Current, "pointer before disabling");
+
+            // 乗ったまま無効にすると外れ、出入りし直しても既定のまま
+            // Disabling while hovered withdraws it, and re-entering keeps the default
+            modeSwitch.SetOptionEnabled(2, false);
+            simulate.FrameUpdate();
+            Assert.AreEqual(UiOsCursorShape.Default, _applier.Current, "withdrawn on disable");
+            simulate.MouseMove(Outside);
+            simulate.MouseMove(second.worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Default, _applier.Current, "no pointer on a disabled option");
+
+            // 全体の無効でも同じ
+            // Same for whole-switch disabling
+            modeSwitch.SetEnabledAll(false);
+            simulate.MouseMove(Outside);
+            simulate.MouseMove(modeSwitch.Q<Button>("pointer-mode-a").worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Default, _applier.Current, "no pointer while the whole switch is disabled");
+        }
+
 
         private T Mount<T>(T element) where T : VisualElement
         {

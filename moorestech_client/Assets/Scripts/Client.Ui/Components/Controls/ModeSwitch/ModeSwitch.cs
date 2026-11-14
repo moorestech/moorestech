@@ -20,6 +20,7 @@ namespace Client.Ui.Components.Controls
 
         private readonly IReadOnlyList<ModeSwitchOption<TValue>> _options;
         private readonly List<Button> _buttons = new();
+        private readonly List<UiOsCursorHoverRequest> _hovers = new();
         private readonly HashSet<int> _disabledOptionIndexes = new();
         private readonly Subject<TValue> _onOptionSelected = new();
         private bool _enabledAll = true;
@@ -83,7 +84,16 @@ namespace Client.Ui.Components.Controls
         {
             // 無効のボタンは clicked を出さない（Web の disabled と同じ）
             // Disabled buttons raise no clicked (same as the Web disabled)
-            for (var i = 0; i < _buttons.Count; i++) _buttons[i].SetEnabled(_enabledAll && !_disabledOptionIndexes.Contains(i));
+            for (var i = 0; i < _buttons.Count; i++)
+            {
+                var enabled = _enabledAll && !_disabledOptionIndexes.Contains(i);
+                _buttons[i].SetEnabled(enabled);
+
+                // Web の無効の選択肢は pointer-events: none（ModeSwitch/style.module.css:50-53）。UITK の無効の要素はポインタの事象を受け続けるので、拾わず指も外す
+                // Web disabled options are pointer-events: none (ModeSwitch/style.module.css:50-53); disabled UITK elements still get pointer events, so stop picking and drop the pointer
+                _buttons[i].pickingMode = enabled ? PickingMode.Position : PickingMode.Ignore;
+                if (!enabled) _hovers[i].Release();
+            }
         }
 
         // 値の比較はこの 1 か所だけ（SetSelected・SetOptionEnabled が共有する）
@@ -124,8 +134,9 @@ namespace Client.Ui.Components.Controls
 
             // Web の cursor: pointer（ModeSwitch/style.module.css:27。IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
             // Web cursor: pointer (ModeSwitch/style.module.css:27, IconButton/style.module.css:9 and others); the part requests it itself (A-247)
-            new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            _hovers.Add(new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
             return button;
+
         }
     }
 }
