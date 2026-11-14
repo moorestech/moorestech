@@ -49,17 +49,14 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
 
             yield return new ExitPlayMode();
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
-            LogAssert.ignoreFailingMessages = false;
 
-            // 保存値を退避してから、ドメインを読み直さない Edit モードで言語を往復する
-            // Preserve the persisted value, then round-trip the language in edit mode without a domain reload
+            // 保存値を退避してから、ドメインを読み直さない Edit モードで言語を往復する。残った購読の例外は呼び出し元へそのまま上がる
+            // Preserve the persisted value, then round-trip the language in edit mode without a domain reload; a leftover subscription's exception surfaces here
             _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
             _savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
             _languageTouched = true;
-            Localize.TrySetChosenLanguage("japanese");
-            Localize.TrySetChosenLanguage("english");
-
-            LogAssert.NoUnexpectedReceived();
+            Assert.IsTrue(Localize.TrySetChosenLanguage("japanese"), "日本語へ切り替わらない");
+            Assert.IsTrue(Localize.TrySetChosenLanguage("english"), "英語へ切り替わらない");
         }
     }
 }
