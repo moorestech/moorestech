@@ -1,8 +1,8 @@
 /* S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolbar.uss */
 /* web: moorestech_web/webui/src/features/skit/controls/SkitToolbar.module.css の .toolbar・.toolButton と skitTokens.css の --skit-tool-icon-shadow */
-/* 実画面の右上に並ぶ面を持たないツール。IconButton の寸法をボタン枠と同寸へ局所上書きし、図形の色は状態ごとに IconButton の図形のつまみで渡す */
+/* 実画面の右上に並ぶ面を持たないツール。IconButton の寸法をボタン枠と同寸へ局所上書きし、図形の色は状態ごとに IconButton のルートの色のつまみで渡す */
 /* web: moorestech_web/webui/src/features/skit/controls/SkitToolbar.module.css .toolbar and .toolButton, plus --skit-tool-icon-shadow in skitTokens.css */
-/* Faceless tools in the screen's top-right; IconButton's size is locally overridden to the frame size and the glyph color is passed per state through IconButton's glyph knob */
+/* Faceless tools in the screen's top-right; IconButton's size is locally overridden to the frame size and the glyph color is passed per state through IconButton's root colour knob */
 
 .skit-toolbar {
     position: absolute;
@@ -33,20 +33,22 @@
     height: var(--skit-tool-button-size);
 }
 
-/* 通常の色。IconButton の .icon-button .icon-button__glyph（2 クラス）へ 3 クラスで勝つ。有効時のホバーは IconButton の 4 つ（:hover:enabled）が --text-high-contrast にし、自動 ON の上でも白になる（Web の :not(:disabled):hover が [data-enabled] より強いのと同じ） */
-/* Normal colour; three classes beat IconButton's two-class .icon-button .icon-button__glyph. Enabled hover is IconButton's four-part :hover:enabled rule (--text-high-contrast), which also wins over auto-on, as the Web :not(:disabled):hover beats [data-enabled] */
-.skit-toolbar .skit-toolbar__tool .skit-tool-glyph {
-    --icon-button-glyph-color: var(--text-high-contrast);
+/* 通常の色は IconButton のルートのつまみで渡す（Web SkitToolbar.module.css の .toolButton の color）。IconButton の既定（2 クラス）とは同じ詳細度で、tss で後に読む画面の USS が勝つ */
+/* 有効時のホバーは IconButton の :hover:enabled（2 クラス＋2 擬似）が --text-high-contrast にし、自動 ON の上でも白になる（Web の :not(:disabled):hover が [data-enabled] より強いのと同じ） */
+/* The normal colour goes through IconButton's root knob (Web SkitToolbar.module.css .toolButton color); it ties IconButton's two-class default, and this screen USS wins by loading later in the tss */
+/* Enabled hover is IconButton's :hover:enabled (two classes plus two pseudo-classes) setting --text-high-contrast, which also wins over auto-on, as the Web :not(:disabled):hover beats [data-enabled] */
+.skit-toolbar .skit-toolbar__tool {
+    --icon-button-color: var(--text-high-contrast);
 }
 
-/* 自動送り ON だけシアンで灯す（同じ 3 つで後に置く） */
-/* Only auto-advance ON lights cyan (same three parts, placed later) */
-.skit-toolbar .skit-toolbar__tool--active .skit-tool-glyph {
-    --icon-button-glyph-color: var(--select-cyan);
+/* 自動送り ON だけシアンで灯す（同じ 2 クラスで後に置く） */
+/* Only auto-advance ON lights cyan (same two classes, placed later) */
+.skit-toolbar .skit-toolbar__tool--active {
+    --icon-button-color: var(--select-cyan);
 }
 
-/* 押せないツールは従属テキストへ減衰させる。4 つで自動 ON にも勝つ（Web の :disabled が後に来て勝つのと同じ） */
-/* Unpressable tools fade to secondary text; four parts beat auto-on too (as the later Web :disabled wins) */
-.skit-toolbar .skit-toolbar__tool:disabled .skit-tool-glyph {
-    --icon-button-glyph-color: var(--text-muted);
+/* 押せないツールは従属テキストへ減衰させる。2 クラス＋擬似で自動 ON にも勝つ（Web の :disabled が後に来て勝つのと同じ） */
+/* Unpressable tools fade to secondary text; two classes plus a pseudo-class beat auto-on too (as the later Web :disabled wins) */
+.skit-toolbar .skit-toolbar__tool:disabled {
+    --icon-button-color: var(--text-muted);
 }

@@ -68,10 +68,10 @@
     white-space: normal;
 }
 
-/* 横幅は本文の並びが決める。整理ボタン用の既定幅では長いメニュー名が折り返す */
-/* The body column owns the width; the sort button's default width wraps long menu labels */
-.pause-menu .panel-action-button.unity-button {
-    width: auto;
+/* 横幅は本文の並びが決める。整理ボタン用の既定幅では長いメニュー名が折り返す（Web の --panel-action-button-width: auto） */
+/* The body column owns the width; the sort button's default width wraps long menu labels (Web --panel-action-button-width: auto) */
+.pause-menu .panel-action-button {
+    --panel-action-button-width: auto;
 }
 
 /* 本文が溢れると Chrome と同じく本文（basis＝内容の高さ）と比で縮み、PanelActionButton の min-height（行の箱）で止まる */

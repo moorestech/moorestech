@@ -8,6 +8,5 @@ namespace Client.Ui.Components.Panels
     {
         Hud,
         Skit,
-        SkitChoice,
     }
 }
