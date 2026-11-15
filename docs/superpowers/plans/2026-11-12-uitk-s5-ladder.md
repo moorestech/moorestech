@@ -175,6 +175,8 @@
 | S5-rec done「integrator への依頼」 | PlayMode の後の Edit モードの残った購読で `GameUiLocaleClassBinder.Apply` が NRE（運転役の言語の復元も同じ） | やる（Task 5 Step 2 の注意・Task 10 の既知の落ち。直すのは土台の持ち主へ回す） |
 | S5-rec done「integrator への依頼」 | dev-server-reaper が `uloop launch` の Editor に receipt を付けない | やらない（Mac の Editor を使わないので当たらない） |
 | S5-rec done「integrator への依頼」・未確認 | レビューの残り Warning・`EventLanguageGateCursorTest` が GameUi で落ちる・和文ロケールの他の見出しの欧文 | 回す（X-prerun・持ち主）。`EventLanguageGateCursorTest` は Task 10 の既知の落ち |
+| PLAN-W5 done「要裁定」4（S5-ladder D-14） | 画質の連続操作のテスト（Task 3 の 5）は本番で落ちる見込み。落ちたら本番の巻き戻りの修正をどのレーンに回すかを裁定に上げる | やる（Task 3 Step 2 で判定し、落ちたら `done.md`「要裁定」へ。2026-11-15 Task 0 Step 4 で追加） |
+| PLAN-W6 done 未決・X-prerun D-56・D-57 | 並べ比べの `5-challenge-list` の参照は日本語（`topicFixtures.ts:44`）で、英語の UITK と組にすると言語の違う組になる | やる（Task 9 の担当へ。組 2 の `5-challenge-list` は日本語で撮るか、英語で撮るなら `done.md`「integrator への依頼」に X-prerun D-57 の 1 行。2026-11-15 Task 0 Step 4 で追加） |
 | X-5a 計画 S-12 | `exhibition-mode-run.sh` の形（Mac の運転役の usage と武装の EDC）を前提にしている | 回す（`done.md`「integrator への依頼」に、武装と復元が `driver/*.edc` の `--code-file` になったこと・Windows の運転役が増えたことを書く） |
 
 ## File Structure
