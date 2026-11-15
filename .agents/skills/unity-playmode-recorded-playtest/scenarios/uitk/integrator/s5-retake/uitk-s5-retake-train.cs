@@ -151,19 +151,15 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
         return train;
     }
 
-    // 後ろの車体の後端を狙う（前例 uitk-train-inventory の AimAtCar）
-    // Aim at the rear end of the car body (precedent AimAtCar in uitk-train-inventory)
+    // 橋脚の上の車体は地面から届かないので、車体の中心の 2m 手前へ移って中心を狙う（前例 stage1/uitk-nested-pause-train の乗車）
+    // A car on piers is out of reach from the ground, so move 2 m short of its centre and aim at it (precedent: boarding in stage1/uitk-nested-pause-train)
     async UniTask AimAtCar()
     {
-        Collider rear = null;
-        foreach (var collider in SpawnedCar().GetComponentsInChildren<Collider>(true)) if (rear == null || collider.bounds.min.z < rear.bounds.min.z) rear = collider;
-        var bounds = rear.bounds;
-        p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1.2f));
+        var collider = SpawnedCar().GetComponentInChildren<Collider>();
+        p.Note($"車体 bounds min={collider.bounds.min} max={collider.bounds.max}");
+        p.WarpPlayer(collider.bounds.center + new Vector3(0f, 0f, -2f));
         await p.WaitSeconds(1f);
-        // 橋脚の上の車体は高いので、上端でなく下端の少し上を狙う（上端は配置カメラの外へ出る）
-        // The car on piers stands high, so aim just above its bottom, not its top (the top leaves the placement camera)
-        p.Note($"車体の後端 bounds min={bounds.min} max={bounds.max}");
-        await p.AimAt(new Vector3(bounds.center.x, Mathf.Min(bounds.max.y - 0.3f, bounds.min.y + 0.5f), bounds.min.z + 0.3f));
+        await p.AimAt(collider.bounds.center);
     }
 
     TrainCarEntityObject SpawnedCar() => Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
