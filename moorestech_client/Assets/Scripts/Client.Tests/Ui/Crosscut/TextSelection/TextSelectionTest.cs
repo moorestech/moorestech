@@ -59,7 +59,7 @@ namespace Client.Tests.Ui.Crosscut.TextSelection
             AssertNoSelectableLabel(View, "ビルドメニュー");
             AssertNoSelectableLabel(_pauseMenu, "ポーズメニューのトップ");
 
-            // 設定のページへ描き直した後の文も選択できない
+            // 設定ページ描き直し後の文も選択不可
             // Copy redrawn for the settings page is unselectable too
             _pauseModel.Set(FakePauseMenuModel.Page(PauseMenuPage.Settings));
             simulate.FrameUpdate();

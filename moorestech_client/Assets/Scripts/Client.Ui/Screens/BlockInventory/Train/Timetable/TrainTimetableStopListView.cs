@@ -102,19 +102,15 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
                 row.Add(label);
                 row.Add(controls);
                 return row;
+            }
 
-                #region Internal
+            PanelActionButton Control(string testid, LocalizationKey label, bool disabled)
+            {
+                var button = new PanelActionButton(testid, new UiText(label), _osCursor);
 
-                PanelActionButton Control(string testid, LocalizationKey label, bool disabled)
-                {
-                    var button = new PanelActionButton(testid, new UiText(label), _osCursor);
-
-                    button.AddToClassList("train-timetable__control");
-                    button.SetEnabled(!disabled);
-                    return button;
-                }
-
-                #endregion
+                button.AddToClassList("train-timetable__control");
+                button.SetEnabled(!disabled);
+                return button;
             }
 
             #endregion

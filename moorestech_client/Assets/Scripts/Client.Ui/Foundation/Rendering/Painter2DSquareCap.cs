@@ -15,7 +15,7 @@ namespace Client.Ui.Foundation.Rendering
             painter.LineTo(Extend(to, from, halfWidth));
         }
 
-        // end を from から離れる向きへ length だけ延ばす
+        // end を from から離れる向きへ延ばす
         // Extends end by length, away from from
         public static Vector2 Extend(Vector2 end, Vector2 from, float length)
         {

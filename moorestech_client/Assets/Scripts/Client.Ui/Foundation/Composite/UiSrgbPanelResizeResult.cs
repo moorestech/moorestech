@@ -6,7 +6,7 @@ namespace Client.Ui.Foundation.Composite
     /// </summary>
     internal enum UiSrgbPanelResizeResult
     {
-        // 大きさが同じか最小化中で、RT をそのまま使う
+        // 同じ大きさか最小化中は RT を保つ
         // Same size or minimised; the current RT stays
         Unchanged,
 

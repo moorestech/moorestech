@@ -77,19 +77,19 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
                 Assert.IsEmpty(leftovers, $"日本語へ切り替えても英語の文が残る Label: {string.Join(", ", leftovers)}");
             }
 
-            #endregion
-        }
-
-        private static HashSet<string> EnglishTextsDifferingFromJapanese()
-        {
-            Assert.IsTrue(Localize.TryGetDictionary("english", out var english), "英語の辞書が無い");
-            Assert.IsTrue(Localize.TryGetDictionary("japanese", out var japanese), "日本語の辞書が無い");
-            var texts = new HashSet<string>();
-            foreach (var pair in english)
+            static HashSet<string> EnglishTextsDifferingFromJapanese()
             {
-                if (japanese.TryGetValue(pair.Key, out var japaneseText) && japaneseText != pair.Value) texts.Add(pair.Value);
+                Assert.IsTrue(Localize.TryGetDictionary("english", out var english), "英語の辞書が無い");
+                Assert.IsTrue(Localize.TryGetDictionary("japanese", out var japanese), "日本語の辞書が無い");
+                var texts = new HashSet<string>();
+                foreach (var pair in english)
+                {
+                    if (japanese.TryGetValue(pair.Key, out var japaneseText) && japaneseText != pair.Value) texts.Add(pair.Value);
+                }
+                return texts;
             }
-            return texts;
+
+            #endregion
         }
 
         // 英語の文の集合に入る文を持つ Label を「名前 文」で挙げる。WrapSafeLabel の text は行送りのタグ付きなので文そのもので比べる

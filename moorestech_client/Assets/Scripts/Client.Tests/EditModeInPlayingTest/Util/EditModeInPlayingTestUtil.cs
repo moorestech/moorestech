@@ -41,7 +41,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             AssetBundle.UnloadAllAssetBundles(true);
         }
         
-        // 初期化の完了（GameInitializedEvent）まで待ってから戻る
+        // GameInitializedEvent まで待って戻る
         // Returns only after initialization completes (GameInitializedEvent)
         public static async UniTask LoadMainGame(string serverDirectory = null, string worldDirectory = null)
         {

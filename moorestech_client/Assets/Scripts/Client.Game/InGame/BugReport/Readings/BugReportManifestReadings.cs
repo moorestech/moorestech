@@ -25,8 +25,7 @@ namespace Client.Game.InGame.BugReport.Readings
                 if (data.WebUiHealth == null)
                 {
                     Debug.LogError("[BugReport] 確保データにWebホスト・CEFの値が無い。webUiHealth は unknown で出す");
-                    manifest.WebUiHealth = WebUiHealthReading.UnknownForPreviousSession();
-                    manifest.AddMissing("webUiHealth", "確保データにWebホスト・CEFの値が無い");
+                    MarkWebUiHealthUnknown(manifest, "確保データにWebホスト・CEFの値が無い");
                     return;
                 }
                 manifest.WebUiHealth = data.WebUiHealth;
@@ -45,6 +44,14 @@ namespace Client.Game.InGame.BugReport.Readings
             }
 
             #endregion
+        }
+
+        // 不明の Web ホスト・CEF の値の唯一の書き方。不明の値と欠損の行を必ず組で書く
+        // The only way to write an unknown web host/CEF value; the unknown value and the gap entry always go together
+        public static void MarkWebUiHealthUnknown(BugReportManifest manifest, string reason)
+        {
+            manifest.WebUiHealth = WebUiHealthReading.UnknownForPreviousSession();
+            manifest.AddMissing("webUiHealth", reason);
         }
 
         // 数えていない箱の唯一の書き方。0 件と読ませないよう、不明の値と欠損の行を必ず組で書く（欠損は AddMissing が開発者ログにも出す）

@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.Layout
             simulate.FrameUpdate();
             Assert.AreEqual(DisplayStyle.None, element.resolvedStyle.display);
 
-            // 状態クラスを外すと USS の既定に戻って出る
+            // 状態クラスを外すと USS 既定で出る
             // Removing the state class falls back to the USS default and shows it
             element.RemoveFromClassList("ui-display-probe--hidden");
             simulate.FrameUpdate();

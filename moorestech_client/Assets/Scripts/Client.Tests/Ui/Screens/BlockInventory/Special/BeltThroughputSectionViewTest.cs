@@ -67,7 +67,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             ArrowKeys.Press(HorizontalArrowKey.Right);
             Assert.AreEqual(before, TextOf(view, "belt-throughput-window"), "ポーズの背面で窓が切り替わった");
 
-            // ブロックのパネルへ戻ると同じ矢印で次の窓へ進む
+            // パネルへ戻ると同じ矢印で次の窓へ
             // Back on the block panel, the same arrow moves to the next window
             UiRoutingStateTestFactory.Transit(RoutingControl, UIStateEnum.SubInventory);
             ArrowKeys.Press(HorizontalArrowKey.Right);

@@ -49,7 +49,6 @@ namespace Client.Starter.Registration
             // ブロックインベントリの共有サービス: パネルの状態・遷移要求・スロット操作の型付きコマンド・ブロックの枠の並び・解放済み機械レシピ（S4 の各レーンが ctor で受ける）
             // Block-inventory shared services: panel state, transition requests, typed slot commands, block slot grids and unlocked machine recipes (taken by the S4 lanes' ctors)
             builder.RegisterEntryPoint<BlockInventoryPanelModel>().As<IBlockInventoryPanelSource>();
-            builder.Register<UiStateControlTransitionRequester>(Lifetime.Singleton).As<IUiStateTransitionRequester>();
             builder.RegisterEntryPoint<UnlockedMachineRecipeSource>().AsSelf();
             builder.Register<SubInventoryRawSlots>(Lifetime.Singleton).As<IRawSubInventorySlots>();
             builder.Register<BlockSlotReader>(Lifetime.Singleton);

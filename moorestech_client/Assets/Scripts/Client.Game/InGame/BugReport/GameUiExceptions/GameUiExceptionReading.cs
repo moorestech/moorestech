@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
         }
     }
 
-    // セッション通算で数えた箱。0 件は「数えて無かった」という実値
+    // 通算で数えた箱。0 件は「数えて無かった」という実値
     // A box counted over the whole session; zero is the real value "counted, none found"
     public sealed class GameUiExceptionsRecorded : GameUiExceptionReading
     {

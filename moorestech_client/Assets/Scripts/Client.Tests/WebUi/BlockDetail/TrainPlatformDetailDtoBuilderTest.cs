@@ -67,7 +67,7 @@ namespace Client.Tests.WebUi.BlockDetail
             return MasterHolder.BlockMaster.GetBlockMaster(blockId);
         }
 
-        // 駅は転送行と駅名行を同時に持つ。wire形状ごと固定する
+        // 駅は転送行と駅名行を持つ。wire形状を固定
         // A station carries both the transfer row and the name row; this pins the whole wire shape
         [Test]
         public void TrainStationFixtureMatchesDto()

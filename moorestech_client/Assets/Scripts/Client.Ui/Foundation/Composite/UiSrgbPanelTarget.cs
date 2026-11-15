@@ -42,7 +42,7 @@ namespace Client.Ui.Foundation.Composite
         internal UiSrgbPanelResizeResult SyncToSize(int width, int height)
         {
             // silent-ok: 同じ大きさの失敗は前回 LogError 済みで、毎フレーム Create を叩くと Unity のエラーが溢れる / 開発者は最初の LogError で気づき、大きさが変われば再び試す
-            if (width > 0 && width == _failedWidth && height == _failedHeight) return UiSrgbPanelResizeResult.SkippedFailedSize;
+            if (0 < width && width == _failedWidth && height == _failedHeight) return UiSrgbPanelResizeResult.SkippedFailedSize;
 
             var result = Resize(width, height);
             if (result == UiSrgbPanelResizeResult.CreationFailed) Debug.LogError($"[UiSrgbPanelTarget] failed to create the {width}x{height} panel RT; keeping the previous RT and retrying when the screen size changes");

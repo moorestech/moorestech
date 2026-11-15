@@ -123,7 +123,7 @@ namespace Client.Tests.Ui.Composite
             AssertCurrentTexture(_first);
         }
 
-        // 合成元と PanelSettings の描き先の両方が期待の RT を指す
+        // 合成元と描き先が期待の RT を指す
         // Both the composite source and the PanelSettings target point at the expected RT
         private void AssertCurrentTexture(RenderTexture expected)
         {

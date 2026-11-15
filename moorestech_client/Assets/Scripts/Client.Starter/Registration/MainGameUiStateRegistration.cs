@@ -56,6 +56,10 @@ namespace Client.Starter.Registration
             // Screen router; shared by both systems
             builder.RegisterEntryPoint<UiRoutingState>().AsSelf();
 
+            // 遷移要求。Web の ui_state.request と GameUi の各画面が同じ要求の流れ（入れ子ポーズ・遷移表・拒否ログ）を通るので両方の系で登録する
+            // Transition requests; the Web ui_state.request and the GameUi screens share one request flow (nested pause, transition table, refusal log), so both systems register it
+            builder.Register<UiStateControlTransitionRequester>(Lifetime.Singleton).As<IUiStateTransitionRequester>();
+
             // ポーズと設定の状態と型付きコマンド。Web のアダプタと GameUi の View が同じものを使うので両方の系で登録する
             // Pause and settings state and typed commands; Web adapters and GameUi views share them, so both systems register them
             builder.Register<PauseMenuCommands>(Lifetime.Singleton).As<IPauseMenuCommands>();

@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Train.Timetable;
+using Client.Game.InGame.Train.Unit;
 using Client.Ui.State.Diagnostics;
 using Client.Ui.State.Train.Logic;
 using Game.Train.RailGraph;
@@ -14,8 +17,35 @@ namespace Client.Ui.State.Train.Timetable
     /// </summary>
     public sealed class TrainTimetableReadyDataFactory
     {
-        private readonly HashSet<Vector3Int> _lastWarnedMissingStationPositions = new();
+        private readonly Dictionary<TrainUnitInstanceId, HashSet<Vector3Int>> _lastWarnedMissingStationPositions = new();
         private readonly Dictionary<TrainUnitInstanceId, AnomalyReportGate> _unknownSideGates = new();
+        private readonly TrainTimetableMissingCarReport _missingCarReport = new();
+
+        // 開いている貨車の時刻表の状態の唯一の優先順（UITK の TrainTimetableModel と Web ホストの TrainTimetableDtoBuilder が呼ぶ）。列車不明>不可>取得中>無>用意済
+        // The single priority order of the open car's timetable state (called by the UITK TrainTimetableModel and the Web host TrainTimetableDtoBuilder): no train, unavailable, in flight, no cache, ready
+        public TrainTimetableViewState Build(long trainCarInstanceId, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher, BlockGameObjectDataStore blocks)
+        {
+            if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, cache, out var trainUnitInstanceId))
+            {
+                _missingCarReport.ReportMissing(trainCarInstanceId);
+                return TrainTimetableViewState.Unavailable;
+            }
+            _missingCarReport.Clear();
+            if (fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
+            if (fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
+            if (!timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;
+            return TryCreate(timetable, TrainTimetableStationCatalog.ReadSorted(blocks), out var data)
+                ? TrainTimetableViewState.Ready(data)
+                : TrainTimetableViewState.Unavailable;
+        }
+
+        // 貨車が無い間は旗を戻し再警告に備える
+        // Clear the flag while no car is open so it warns again
+        public void ClearMissingCarReport()
+        {
+            _missingCarReport.Clear();
+        }
+
 
         public bool TryCreate(TrainTimetableSnapshot timetable, IReadOnlyList<TrainTimetableStation> stations, out TrainTimetableReadyData data)
         {
@@ -55,14 +85,17 @@ namespace Client.Ui.State.Train.Timetable
 
             #region Internal
 
-            // 欠けの集合が前回と同じなら黙る。公開のたびに同じ警告を出さないため
-            // Stay quiet when the missing set is unchanged so each publish does not repeat the warning (same as the Web host)
+            // 欠けの集合が同じ列車の前回と同じなら黙る。旗は列車ごとに欠けの間だけ持ち、別の列車を挟んでも警告が出直さない
+            // Stay quiet when the missing set equals the same train's last one; the flag is per train and only while stations are missing, so interleaving trains does not re-warn
             void WarnMissingStationsWhenChanged(TrainUnitInstanceId trainUnitInstanceId, HashSet<Vector3Int> missingStationPositions)
             {
-                if (_lastWarnedMissingStationPositions.SetEquals(missingStationPositions)) return;
-                _lastWarnedMissingStationPositions.Clear();
-                _lastWarnedMissingStationPositions.UnionWith(missingStationPositions);
-                if (missingStationPositions.Count == 0) return;
+                if (missingStationPositions.Count == 0)
+                {
+                    _lastWarnedMissingStationPositions.Remove(trainUnitInstanceId);
+                    return;
+                }
+                if (_lastWarnedMissingStationPositions.TryGetValue(trainUnitInstanceId, out var lastWarned) && lastWarned.SetEquals(missingStationPositions)) return;
+                _lastWarnedMissingStationPositions[trainUnitInstanceId] = missingStationPositions;
                 Debug.LogWarning($"[TrainTimetableModel] station blocks not found for stops at {string.Join(", ", missingStationPositions)}; emitting empty names: {trainUnitInstanceId}");
             }
 

@@ -31,6 +31,19 @@ namespace Client.Tests.BugReport.Bundle
             Assert.AreEqual("Client.Ui.Screens.Probe.OnClick () (at Assets/Probe.cs:1)", recorded.Samples[0].Frame);
         }
 
+        // 配布ビルドの行頭 at 付きの形と、空の stackTrace でも落ちずに判定する
+        // Judges the Player build's "at "-prefixed lines and an empty stackTrace without throwing
+        [Test]
+        public void 配布ビルド形のスタックを数え空のスタックは数えない()
+        {
+            var tally = new GameUiExceptionTally();
+            tally.Add(LogType.Exception, "player boom", "  at Client.Ui.Screens.Probe.OnClick () [0x00000] in <hash>:0");
+            tally.Add(LogType.Exception, "no stack", null);
+            var recorded = tally.Snapshot();
+            Assert.AreEqual(1, recorded.Count);
+            Assert.AreEqual("player boom", recorded.Samples[0].Message);
+        }
+
         // 環（2000 件で古い順に捨てる）が溢れても、序盤の UI の例外は数と見本に残る（0 件と読ませない）
         // Even after the ring (dropping the oldest past 2000) overflows, an early UI exception stays in the count and samples (never reads as zero)
         [Test]

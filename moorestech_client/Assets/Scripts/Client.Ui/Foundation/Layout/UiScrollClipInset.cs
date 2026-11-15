@@ -14,7 +14,7 @@ namespace Client.Ui.Foundation.Layout
             ApplyInnerPadding(inner, inset);
         }
 
-        // 外の要素と内の要素の持ち主が違うとき用（内は部品が自分の口から当てる）
+        // 外と内の持ち主が違うとき用
         // For when the outer and inner elements have different owners (the component applies the inner side through its own port)
         public static void ApplyOuterMargin(VisualElement outer, float inset)
         {

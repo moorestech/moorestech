@@ -1,6 +1,6 @@
 namespace Client.Input.KeyPress
 {
-    // スキットの送りの Enter（テンキーの Enter を含む。A-83）
+    // スキット送りの Enter（テンキー含む。A-83）
     // Skit-advance Enter, including the keypad Enter (A-83)
     public sealed class SkitAdvanceKeyPressSource : InputKeyPressSource, ISkitAdvanceKeyPressSource
     {

@@ -54,10 +54,21 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
         // The single test for a UI exception; when found, returns the first UI frame line. Only the line head (the called method's type) counts, so a line merely taking a UI type as an argument does not
         public static bool TryFindFirstUiFrame(string stackTrace, out string frame)
         {
+            // 例外ログの stackTrace は外部値で空もありうる。空は UI のフレーム無しとして数えない
+            // The exception log's stackTrace is an external value and may be empty; empty means no UI frame
+            if (string.IsNullOrEmpty(stackTrace))
+            {
+                frame = null;
+                return false;
+            }
+
             foreach (var line in stackTrace.Split('\n'))
             {
+                // 配布ビルドは行頭に at が付く形で届くので落としてから比べる
+                // Player builds deliver lines prefixed with "at ", so strip it before comparing
                 var trimmed = line.Trim();
-                if (!trimmed.StartsWith(UiNamespaceMarker)) continue;
+                var head = trimmed.StartsWith("at ") ? trimmed.Substring(3) : trimmed;
+                if (!head.StartsWith(UiNamespaceMarker)) continue;
                 frame = trimmed;
                 return true;
             }

@@ -12,7 +12,7 @@ namespace Client.Ui.State.Train.Timetable
     /// </summary>
     public static class TrainTimetableStationCatalog
     {
-        // 駅ブロックの位置と駅名（サーバーの StateDetail）を並べて返す
+        // 駅ブロックの位置と駅名を並べて返す
         // Returns station block positions and names (a server StateDetail), sorted
         public static List<TrainTimetableStation> ReadSorted(BlockGameObjectDataStore blocks)
         {

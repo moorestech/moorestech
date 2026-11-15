@@ -2,6 +2,7 @@ using System.Collections;
 using Client.Game.InGame.Context;
 using Client.Input;
 using Client.Ui.State.Recipe.Catalog;
+using Client.Ui.State.Routing;
 using Client.Ui.State.Train.Platform.Edit;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -47,6 +48,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 Assert.IsNotNull(resolver.Resolve<RecipeViewerItemCatalog>(), "RecipeViewerItemCatalog が解決できない");
                 Assert.IsNotNull(resolver.Resolve<ITrainBlockCommands>(), "ITrainBlockCommands が解決できない");
+                Assert.IsNotNull(resolver.Resolve<IUiStateTransitionRequester>(), "IUiStateTransitionRequester が解決できない");
             }
 
             #endregion

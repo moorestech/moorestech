@@ -77,17 +77,13 @@ namespace Client.Ui.Screens.Modal
                 // Focus the field when shown (Web autoFocus); styles are unresolved right after attaching, so apply next frame
                 input.RegisterCallback<AttachToPanelEvent>(_ => input.schedule.Execute(() => input.Field.Focus()));
                 return input;
+            }
 
-                #region Internal
-
-                void CancelIfEscapeBlurred()
-                {
-                    // silent-ok: ESC 以外の外れ（クリック・閉じたとき）と変換中の ESC は取り消さない / ModalScreenPresenterTest「入力欄のESCは1回で取り消す」「欄の外を押しても閉じない」「変換中のESCでは取り消さない」が見る
-                    if (!UiInputExclusivity.IsEscapeBlurredTextFieldThisFrame) return;
-                    Respond(ModalResponse.Cancel(_request));
-                }
-
-                #endregion
+            void CancelIfEscapeBlurred()
+            {
+                // silent-ok: ESC 以外の外れ（クリック・閉じたとき）と変換中の ESC は取り消さない / ModalScreenPresenterTest「入力欄のESCは1回で取り消す」「欄の外を押しても閉じない」「変換中のESCでは取り消さない」が見る
+                if (!UiInputExclusivity.IsEscapeBlurredTextFieldThisFrame) return;
+                Respond(ModalResponse.Cancel(_request));
             }
 
             #endregion

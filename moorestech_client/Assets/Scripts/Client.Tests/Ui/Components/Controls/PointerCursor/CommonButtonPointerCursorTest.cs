@@ -98,7 +98,7 @@ namespace Client.Tests.Ui.Components.Controls.PointerCursor
             simulate.MouseMove(second.worldBound.center);
             Assert.AreEqual(UiOsCursorShape.Pointer, _applier.Current, "pointer before disabling");
 
-            // 乗ったまま無効にすると外れ、出入りし直しても既定のまま
+            // 乗ったまま無効にすると外れ既定のまま
             // Disabling while hovered withdraws it, and re-entering keeps the default
             modeSwitch.SetOptionEnabled(2, false);
             simulate.FrameUpdate();

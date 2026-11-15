@@ -34,7 +34,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
 
             // 時間切れは理由つきで落とす。ゲートで止まる起動は BootUntilLoaderShown を使う
             // Fail with a reason on timeout; a boot that stops at a gate uses BootUntilLoaderShown instead
-            var timedOut = await UniTask.WaitUntil(() => isInitialized).TimeoutWithoutException(TimeSpan.FromSeconds(InitializationTimeoutSeconds));
+            var timedOut = await UniTask.WaitUntil(() => isInitialized).TimeoutWithoutException(TimeSpan.FromSeconds(InitializationTimeoutSeconds), DelayType.Realtime);
             if (timedOut) Assert.Fail($"GameInitializedEvent が {InitializationTimeoutSeconds} 秒以内に来ない。初期化が失敗したか、ゲートで止まっている");
         }
 
@@ -50,7 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
             SceneManager.sceneLoaded += SetInitializeProperty;
             SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
 
-            // シーンのオブジェクトが初期化されるまで1フレーム待機
+            // シーンの初期化まで1フレーム待つ
             // Wait 1 frame for scene objects to initialize
             await UniTask.Yield();
 
@@ -75,7 +75,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
             {
                 // GameInitializerSceneLoaderが表示されるか60秒のタイムアウトを待つ
                 // Wait for GameInitializerSceneLoader to appear or the 60 second timeout
-                var timeout = UniTask.Delay(LoaderTimeoutMilliseconds);
+                var timeout = UniTask.Delay(LoaderTimeoutMilliseconds, DelayType.Realtime);
                 var waitForLoader = UniTask.WaitUntil(() => Object.FindObjectOfType<GameInitializerSceneLoader>() != null);
                 await UniTask.WhenAny(waitForLoader, timeout);
 

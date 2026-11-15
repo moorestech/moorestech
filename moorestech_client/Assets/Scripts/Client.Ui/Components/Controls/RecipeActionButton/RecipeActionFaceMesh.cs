@@ -78,7 +78,7 @@ namespace Client.Ui.Components.Controls
                 WriteBandQuad(ColumnCount * GridQuadIndices.IndexCount, RightBorderFirstVertex);
             }
 
-            // 枠の帯の頂点は WriteBand の順（左上・右上・左下・右下）
+            // 帯の頂点は WriteBand の順
             // Border band vertices follow WriteBand (top-left, top-right, bottom-left, bottom-right)
             void WriteBandQuad(int offset, int first)
             {

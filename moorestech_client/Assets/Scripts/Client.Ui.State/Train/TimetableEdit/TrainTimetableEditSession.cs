@@ -89,30 +89,22 @@ namespace Client.Ui.State.Train.TimetableEdit
                 if (result is UiCommandRejected || TimetableEditLogic.SameStopOrder(stops, Server.Stops)) BackToIdle();
                 else ArmAwaitingPublication(stops);
                 Publish();
+            }
 
-                #region Internal
+            void ArmAwaitingPublication(IReadOnlyList<TimetableEditStop> stops)
+            {
+                // 段階を先に入れてから時間切れを仕掛ける。タイマーが同期で発火しても BackToIdle がこの段階を見て Idle へ戻せる（D-36）
+                // Enter the phase before arming the timeout so a synchronously firing timer still finds this phase and returns to Idle (D-36)
+                var awaiting = new AwaitingPublicationPhase(stops);
+                _phase = awaiting;
+                awaiting.Arm(_timer.After(PublicationTimeout).Subscribe(_ => ReleaseMissingPublication()));
+            }
 
-                void ArmAwaitingPublication(IReadOnlyList<TimetableEditStop> stops)
-                {
-                    // 段階を先に入れてから時間切れを仕掛ける。タイマーが同期で発火しても BackToIdle がこの段階を見て Idle へ戻せる（D-36）
-                    // Enter the phase before arming the timeout so a synchronously firing timer still finds this phase and returns to Idle (D-36)
-                    var awaiting = new AwaitingPublicationPhase(stops);
-                    _phase = awaiting;
-                    awaiting.Arm(_timer.After(PublicationTimeout).Subscribe(_ => ReleaseMissingPublication()));
-
-                    #region Internal
-
-                    void ReleaseMissingPublication()
-                    {
-                        Debug.LogWarning($"[TrainTimetableEdit] publication did not arrive within {PublicationTimeout.TotalMilliseconds}ms; showing the server order");
-                        BackToIdle();
-                        Publish();
-                    }
-
-                    #endregion
-                }
-
-                #endregion
+            void ReleaseMissingPublication()
+            {
+                Debug.LogWarning($"[TrainTimetableEdit] publication did not arrive within {PublicationTimeout.TotalMilliseconds}ms; showing the server order");
+                BackToIdle();
+                Publish();
             }
 
             #endregion

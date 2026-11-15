@@ -28,7 +28,7 @@ namespace Client.Tests.Ui.Crosscut.Localization
         [SetUp]
         public void MountSettingsPage()
         {
-            // 言語の選択は本物のコマンドで Localize まで通す
+            // 言語選択は本物のコマンドで通す
             // Language choices go through the real commands all the way to Localize
             var settings = new PauseMenuSettingsPage(FakeSettingsModel.Default(), new RecordingPauseMenuCommands(), new SettingsCommands(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _page = Mount(settings.Root);

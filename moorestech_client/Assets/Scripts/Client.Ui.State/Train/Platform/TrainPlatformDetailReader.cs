@@ -26,9 +26,21 @@ namespace Client.Ui.State.Train.Platform
 
             // スロットは移送の状態があり、かつ品物の PF・駅のときだけ
             // Item slots only with a transfer state on an item platform or station
-            var hasItemSlots = transfer != null && param is TrainItemPlatformBlockParam or TrainStationBlockParam;
+            var hasItemSlots = transfer != null && TryReadItemSlotCount(param, out _);
             var slotsPart = hasItemSlots ? SectionContent<IReadOnlyList<SlotItem>>.Present(itemSlots) : SectionContent<IReadOnlyList<SlotItem>>.Absent;
             return new OpenTrainPlatformBody(namePart, slotsPart, fluids, mode);
+        }
+
+        // スロットを持つ型の唯一の列挙。数はマスタの値で、品物 PF と駅だけが持つ
+        // The single list of slot-bearing types; the count is the master value, held only by item platforms and stations
+        public static bool TryReadItemSlotCount(IBlockParam param, out int count)
+        {
+            switch (param)
+            {
+                case TrainItemPlatformBlockParam item: count = item.ItemSlotCount; return true;
+                case TrainStationBlockParam station: count = station.ItemSlotCount; return true;
+                default: count = 0; return false;
+            }
         }
     }
 }

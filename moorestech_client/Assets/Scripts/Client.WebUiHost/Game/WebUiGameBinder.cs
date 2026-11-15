@@ -2,6 +2,7 @@ using Client.Ui.State.BlockDetail;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Research;
+using Client.Ui.State.Routing;
 using Client.Game.InGame.Train.Timetable;
 using Client.Ui.State.Train;
 using Client.Ui.State.Train.Platform.Edit;
@@ -168,7 +169,7 @@ namespace Client.WebUiHost.Game
             InventoryWebUiActionRegistration.Register(hub, controller, subInventoryState);
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
-            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
+            hub.RegisterAction(new RequestUiStateActionHandler(resolver.Resolve<IUiStateTransitionRequester>()));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchNodeStateStore));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockNetworkInfoCache));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockNetworkInfoCache));

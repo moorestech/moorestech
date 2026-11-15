@@ -53,34 +53,26 @@ namespace Client.Ui.State.Train.TimetableEdit
                 CloseSession();
                 IsLoading = state is LoadingTrainTimetableViewState;
                 _onTimetableAreaInputChanged.OnNext(Unit.Default);
+            }
 
-                #region Internal
-
-                void ReceiveReady(TrainTimetableReadyData data)
+            void ReceiveReady(TrainTimetableReadyData data)
+            {
+                // 列車が替わったら編集を作り直し（Web の key=trainUnitId）、同じ列車ならサーバーの並びを編集へ渡す（表示の変化はセッションの通知で流れる）
+                // A different train rebuilds the session (Web key=trainUnitId); the same train hands the server order to the session (its notification carries the change)
+                if (_session == null || !_session.Server.TrainUnitInstanceId.Equals(data.TrainUnitInstanceId))
                 {
-                    // 列車が替わったら編集を作り直し（Web の key=trainUnitId）、同じ列車ならサーバーの並びを編集へ渡す（表示の変化はセッションの通知で流れる）
-                    // A different train rebuilds the session (Web key=trainUnitId); the same train hands the server order to the session (its notification carries the change)
-                    if (_session == null || !_session.Server.TrainUnitInstanceId.Equals(data.TrainUnitInstanceId))
-                    {
-                        OpenSession(data);
-                        return;
-                    }
-                    _session.ReceiveServer(data);
-
-                    #region Internal
-
-                    void OpenSession(TrainTimetableReadyData data)
-                    {
-                        CloseSession();
-                        _session = new TrainTimetableEditSession(_commands, _timer, _toaster, data);
-                        _sessionSubscription.Disposable = _session.OnDisplayChanged.Subscribe(_ => _onTimetableAreaInputChanged.OnNext(Unit.Default));
-                        _onTimetableAreaInputChanged.OnNext(Unit.Default);
-                    }
-
-                    #endregion
+                    OpenSession(data);
+                    return;
                 }
+                _session.ReceiveServer(data);
+            }
 
-                #endregion
+            void OpenSession(TrainTimetableReadyData data)
+            {
+                CloseSession();
+                _session = new TrainTimetableEditSession(_commands, _timer, _toaster, data);
+                _sessionSubscription.Disposable = _session.OnDisplayChanged.Subscribe(_ => _onTimetableAreaInputChanged.OnNext(Unit.Default));
+                _onTimetableAreaInputChanged.OnNext(Unit.Default);
             }
 
             #endregion

@@ -111,7 +111,7 @@ namespace Client.Tests.Ui.Conventions
                 }
             }
 
-            // ルートでも宣言するつまみは置く側が上書きしてよい
+            // ルートのつまみは置く側が上書きしてよい
             // Knobs also declared on a root are fair game for callers
             innerKnobs.ExceptWith(rootKnobs);
         }

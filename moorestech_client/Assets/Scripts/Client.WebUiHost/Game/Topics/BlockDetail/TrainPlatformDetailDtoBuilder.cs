@@ -32,29 +32,13 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         // 駅名行・移送行の有無は Reader に任せ、ここでは wire の形へ写すだけ（スロットの中身は別の DTO が運ぶので数だけ）
         // The Reader decides the name and transfer rows; this only maps to the wire shape (slot contents travel in another DTO, so only the count)
-        public static void Fill(BlockInventoryDto dto, string blockType, IBlockParam param, TrainStationNameStateDetail stationName, TrainPlatformTransferStateDetail transfer)
+        internal static void Fill(BlockInventoryDto dto, string blockType, IBlockParam param, TrainStationNameStateDetail stationName, TrainPlatformTransferStateDetail transfer)
         {
             var body = TrainPlatformDetailReader.Read(blockType, param, stationName, transfer, NoItemSlots, NoFluids);
             dto.TrainStation = body.StationName.TryGetPresent(out var name) ? new TrainStationDetailDto { Name = name } : null;
             dto.TrainPlatform = body.Mode.TryGetPresent(out var mode)
-                ? new TrainPlatformDetailDto { Mode = TrainPlatformTransferModeWire.ToWire(mode), ItemSlotCount = body.ItemSlots.IsPresent ? ReadItemSlotCount(param) : null }
+                ? new TrainPlatformDetailDto { Mode = TrainPlatformTransferModeWire.ToWire(mode), ItemSlotCount = body.ItemSlots.IsPresent && TrainPlatformDetailReader.TryReadItemSlotCount(param, out var itemSlotCount) ? itemSlotCount : (int?)null }
                 : null;
-
-            #region Internal
-
-            // スロット数はマスタの値。Reader がスロットありとするのは品物 PF と駅だけ
-            // The slot count is the master value; the Reader reports slots only for item platforms and stations
-            int? ReadItemSlotCount(IBlockParam blockParam)
-            {
-                return blockParam switch
-                {
-                    TrainItemPlatformBlockParam item => item.ItemSlotCount,
-                    TrainStationBlockParam station => station.ItemSlotCount,
-                    _ => null,
-                };
-            }
-
-            #endregion
         }
     }
 }

@@ -4,7 +4,6 @@ using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Readings;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
@@ -55,8 +54,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 落ちたセッションのWebホスト・CEFの値は残っていない。今回起動の値や既定値を載せると別セッションの事実になるので不明と書く
             // The crashed session's web host and CEF values were not kept; this boot's values or defaults would be another session's facts, so unknown is written
-            manifest.WebUiHealth = WebUiHealthReading.UnknownForPreviousSession();
-            manifest.AddMissing("webUiHealth", "前回セッションのWebホスト・CEFの値は記録していない");
+            BugReportManifestReadings.MarkWebUiHealthUnknown(manifest, "前回セッションのWebホスト・CEFの値は記録していない");
 
             // 落ちたセッションのログは前回の Player.log にしか無く、ここでは数えない。0 件と読ませないよう不明と欠損を組で書く
             // The crashed session's log lives only in the previous Player.log and is not counted here; write unknown and the gap together so it never reads as zero

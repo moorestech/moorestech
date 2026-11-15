@@ -32,7 +32,7 @@ namespace Client.WebUiHost.Game.Topics
             {
                 dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });
             }
-            // 貨車の液体の空/中身ありは State の写しで決める
+            // 液体の空/有りは State の写しで決める
             // State's conversion decides whether each car fluid is empty or filled
             FluidSlotDtoBuilder.AppendStates(dto.FluidSlots, TrainCarFluidConversion.ToFluids(inventory.Fluids));
             return dto;

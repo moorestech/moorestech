@@ -72,20 +72,16 @@ namespace Client.Ui.State.PauseMenu
                     case PlaytestDeliveryLocalOnly localOnly: return new[] { new UiText(LocalOnlyUnknownKey(localOnly.Reason)), inventoryLine };
                     default: return new[] { inventoryLine };
                 }
+            }
 
-                #region Internal
-
-                static LocalizationKey LocalOnlyUnknownKey(PlaytestLocalOnlyReason reason)
+            static LocalizationKey LocalOnlyUnknownKey(PlaytestLocalOnlyReason reason)
+            {
+                switch (reason)
                 {
-                    switch (reason)
-                    {
-                        case PlaytestLocalOnlyReason.DeveloperTokenMissing: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenMissingUnknown;
-                        case PlaytestLocalOnlyReason.DeveloperTokenUnreadable: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenUnreadableUnknown;
-                        default: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyDistributionUnavailableUnknown;
-                    }
+                    case PlaytestLocalOnlyReason.DeveloperTokenMissing: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenMissingUnknown;
+                    case PlaytestLocalOnlyReason.DeveloperTokenUnreadable: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenUnreadableUnknown;
+                    default: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyDistributionUnavailableUnknown;
                 }
-
-                #endregion
             }
 
             static UiText DescribeKnownCounts(PlaytestDeliveryStatus delivery, PlaytestOutboxDeliveryCounts counts)
@@ -97,20 +93,16 @@ namespace Client.Ui.State.PauseMenu
                     case PlaytestDeliveryLocalOnly localOnly: return new UiText(LocalOnlyKnownKey(localOnly.Reason), countParams);
                     default: return new UiText(LocalizationKeys.Ui.BugReport.DeliveryPending, countParams);
                 }
+            }
 
-                #region Internal
-
-                static LocalizationKey LocalOnlyKnownKey(PlaytestLocalOnlyReason reason)
+            static LocalizationKey LocalOnlyKnownKey(PlaytestLocalOnlyReason reason)
+            {
+                switch (reason)
                 {
-                    switch (reason)
-                    {
-                        case PlaytestLocalOnlyReason.DeveloperTokenMissing: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenMissing;
-                        case PlaytestLocalOnlyReason.DeveloperTokenUnreadable: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenUnreadable;
-                        default: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyDistributionUnavailable;
-                    }
+                    case PlaytestLocalOnlyReason.DeveloperTokenMissing: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenMissing;
+                    case PlaytestLocalOnlyReason.DeveloperTokenUnreadable: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyTokenUnreadable;
+                    default: return LocalizationKeys.Ui.BugReport.DeliveryLocalOnlyDistributionUnavailable;
                 }
-
-                #endregion
             }
 
             #endregion
