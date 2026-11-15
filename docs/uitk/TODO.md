@@ -28,7 +28,7 @@
 | 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | 暗転 | 0e81bbe3c3 | `uitk-opening-hud` |
 | 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | 暗転 | 0e81bbe3c3 | `uitk-build-bp` |
 | 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | 暗転 | 0e81bbe3c3 | `uitk-production-loop`・`uitk-research-train` |
-| 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | Web | — | `uitk-challenge-gate` |
+| 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | 暗転 | 0e81bbe3c3 | `uitk-challenge-gate` |
 
 ## 行
 
