@@ -1,6 +1,7 @@
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.Logic;
@@ -18,12 +19,14 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     public sealed class TrainTimetableStationListView : VisualElement
     {
         private readonly TrainTimetableEditCommands _commands;
+        private readonly IUiOsCursor _osCursor;
         private readonly LocalizedLabel _empty;
         private readonly VisualElement _list;
 
-        public TrainTimetableStationListView(TrainTimetableEditCommands commands)
+        public TrainTimetableStationListView(TrainTimetableEditCommands commands, IUiOsCursor osCursor)
         {
             _commands = commands;
+            _osCursor = osCursor;
             var panel = new GamePanel("train-timetable-stations-panel", GamePanelFrame.Craft);
             _list = new VisualElement { name = "train-timetable-stations" };
             _list.AddToClassList("train-timetable__list");
@@ -47,30 +50,35 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
                 return;
             }
             for (var i = 0; i < model.Stations.Count; i++) _list.Add(CreateRow(model.Stations[i], 0 < i, model.IsPending, unnamedStationName));
-        }
 
-        private VisualElement CreateRow(TrainTimetableStation station, bool following, bool disabled, string unnamedStationName)
-        {
-            // testid は座標を _ でつなぐ（負号はそのまま。例 -8_0_3）
-            // The testid joins coordinates with _ and keeps minus signs (e.g. -8_0_3)
-            var key = $"{station.Position.x}_{station.Position.y}_{station.Position.z}";
-            var row = new VisualElement();
-            row.AddToClassList("train-timetable__row");
-            row.EnableInClassList("train-timetable__row--following", following);
-            var label = new LocalizedLabel();
-            label.SetText(TimetableEditLogic.StationLabel(station, unnamedStationName));
-            label.AddToClassList("train-timetable__label");
+            #region Internal
 
-            // 押下は行の駅のまま編集のコマンドへ。行を作り直すと古いボタンごと購読も捨てられる
-            // Presses go to the edit commands with the row's station; rebuilding rows discards old buttons with their subscriptions
-            var add = new PanelActionButton($"train-timetable-station-{key}-add", new UiText(LocalizationKeys.Ui.BlockInventory.TimetableAdd));
-            add.AddToClassList("train-timetable__control");
-            add.AddToClassList("train-timetable__row-end");
-            add.SetEnabled(!disabled);
-            add.OnClicked.Subscribe(_ => _commands.Add(station));
-            row.Add(label);
-            row.Add(add);
-            return row;
+            VisualElement CreateRow(TrainTimetableStation station, bool following, bool disabled, string unnamedStationName)
+            {
+                // testid は座標を _ でつなぐ（負号はそのまま。例 -8_0_3）
+                // The testid joins coordinates with _ and keeps minus signs (e.g. -8_0_3)
+                var key = $"{station.Position.x}_{station.Position.y}_{station.Position.z}";
+                var row = new VisualElement();
+                row.AddToClassList("train-timetable__row");
+                row.EnableInClassList("train-timetable__row--following", following);
+                var label = new LocalizedLabel();
+                label.SetText(TimetableEditLogic.StationLabel(station, unnamedStationName));
+                label.AddToClassList("train-timetable__label");
+
+                // 押下は行の駅のまま編集のコマンドへ。行を作り直すと古いボタンごと購読も捨てられる
+                // Presses go to the edit commands with the row's station; rebuilding rows discards old buttons with their subscriptions
+                var add = new PanelActionButton($"train-timetable-station-{key}-add", new UiText(LocalizationKeys.Ui.BlockInventory.TimetableAdd), _osCursor);
+
+                add.AddToClassList("train-timetable__control");
+                add.AddToClassList("train-timetable__row-end");
+                add.SetEnabled(!disabled);
+                add.OnClicked.Subscribe(_ => _commands.Add(station));
+                row.Add(label);
+                row.Add(add);
+                return row;
+            }
+
+            #endregion
         }
     }
 }

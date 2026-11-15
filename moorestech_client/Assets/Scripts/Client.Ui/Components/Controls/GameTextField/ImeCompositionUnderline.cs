@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Controls
@@ -32,7 +33,7 @@ namespace Client.Ui.Components.Controls
             _line.AddToClassList(UssClassName);
             _line.style.position = Position.Absolute;
             _line.style.height = Thickness;
-            _line.style.display = DisplayStyle.None;
+            UiDisplay.SetShown(_line, false);
             _textElement.hierarchy.parent.Add(_line);
         }
 
@@ -57,7 +58,7 @@ namespace Client.Ui.Components.Controls
         {
             if (compositionString.Length == 0)
             {
-                _line.style.display = DisplayStyle.None;
+                UiDisplay.SetShown(_line, false);
                 return;
             }
 
@@ -79,7 +80,7 @@ namespace Client.Ui.Components.Controls
             // 解決済みの文字色を写す
             // Copy the resolved text color
             _line.style.backgroundColor = _textElement.resolvedStyle.color;
-            _line.style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(_line, true);
         }
     }
 }

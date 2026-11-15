@@ -1,4 +1,6 @@
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BuildMenu.CategoryScroll;
 using Client.Ui.Screens.BuildMenu.Parts;
 using Client.Ui.State.BuildMenu.Commands;
@@ -21,7 +23,7 @@ namespace Client.Ui.Screens.BuildMenu
         private readonly BuildMenuSessionStore _session;
         private readonly BuildMenuCategoryScrollTracker _tracker;
         private readonly BuildMenuPanelSkeleton _skeleton;
-        private readonly BuildMenuCategorySidebar _sidebar = new();
+        private readonly BuildMenuCategorySidebar _sidebar;
         private readonly BuildMenuCategoryList _list;
         private readonly BuildMenuEntryActions _actions;
         private readonly BuildMenuScrollBinding _scrollBinding;
@@ -29,7 +31,7 @@ namespace Client.Ui.Screens.BuildMenu
         private string _query;
         private bool _shown;
 
-        public BuildMenuView(IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker)
+        public BuildMenuView(IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker, IUiOsCursor osCursor)
         {
             _session = session;
             _tracker = tracker;
@@ -39,10 +41,12 @@ namespace Client.Ui.Screens.BuildMenu
 
             // 3 列の部品を作り、骨へ並べる
             // Build the three columns' parts and lay them on the skeleton
+            _sidebar = new BuildMenuCategorySidebar(osCursor);
             var detail = new BuildMenuDetailSidebar(content, icons);
             _actions = new BuildMenuEntryActions(commands, toaster, session, detail);
             _list = new BuildMenuCategoryList(content, icons, _actions, hotbarCommands);
-            _skeleton = new BuildMenuPanelSkeleton(_sidebar, _list, detail);
+            _skeleton = new BuildMenuPanelSkeleton(_sidebar, _list, detail, osCursor);
+
             Add(_skeleton.Band);
             _scrollBinding = new BuildMenuScrollBinding(_skeleton.Scroll, _list, tracker);
 
@@ -55,7 +59,7 @@ namespace Client.Ui.Screens.BuildMenu
 
             // 生成直後は隠す（SetShownで出す）
             // Start hidden; the presenter's SetShown reveals it
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
 
             #region Internal
 
@@ -89,7 +93,7 @@ namespace Client.Ui.Screens.BuildMenu
                 // 位置を保存して視口を凍らせてから隠す（隠した ScrollView の位置は当てにならないため。D-7）
                 // Save the position and freeze the viewport before hiding, since a hidden ScrollView's offset is unreliable (D-7)
                 _scrollBinding.Detach();
-                style.display = DisplayStyle.None;
+                UiDisplay.SetShown(this, false);
                 return;
             }
 
@@ -97,7 +101,7 @@ namespace Client.Ui.Screens.BuildMenu
             // On every open restore the session query, show, then attach a fresh viewport (D-7)
             _query = _session.Current.Query;
             _skeleton.Search.SetValueWithoutNotify(_query);
-            style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(this, true);
             RenderShownList();
             _scrollBinding.Attach();
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
@@ -60,6 +61,13 @@ namespace Client.Starter.Registration
         public WebUiHealthReading WebUiHealth()
         {
             return new WebUiHealthReading { HostStartup = WebUiHostStartupState.Unknown, CefProcess = CefProcessState.Unknown, SecondsSinceLastWebMessage = null };
+        }
+
+        // この起動は UI の例外を数えないので、0 件を名乗らず「不明」で返す
+        // This boot counts no UI exceptions, so it answers unknown rather than claiming zero
+        public GameUiExceptionReading GameUiExceptions()
+        {
+            return new GameUiExceptionsUnknown();
         }
 
         public UniTask<string> CaptureScreenshot(string workDirectory)

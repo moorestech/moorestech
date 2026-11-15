@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.Timetable;
 using Client.Ui.State.Train;
+using Client.Ui.State.Train.Inventory;
 using Client.Game.InGame.Train.Unit;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Client.Game.InGame.UI.Inventory;
@@ -31,7 +32,9 @@ namespace Client.WebUiHost.Game.Topics
             {
                 dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });
             }
-            FluidSlotDtoBuilder.Append(dto.FluidSlots, inventory.Fluids);
+            // 液体の空/有りは State の写しで決める
+            // State's conversion decides whether each car fluid is empty or filled
+            FluidSlotDtoBuilder.AppendStates(dto.FluidSlots, TrainCarFluidConversion.ToFluids(inventory.Fluids));
             return dto;
         }
 

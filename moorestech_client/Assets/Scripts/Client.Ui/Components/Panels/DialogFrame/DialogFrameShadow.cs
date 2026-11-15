@@ -106,20 +106,7 @@ namespace Client.Ui.Components.Panels
             // Wind clockwise in screen space (y down; right then down), the same as GamePanelFace and CrosshairShadowRing
             void WriteIndices()
             {
-                for (var row = 0; row < ys.Length - 1; row++)
-                for (var column = 0; column < xs.Length - 1; column++)
-                {
-                    var topLeft = (ushort)(row * xs.Length + column);
-                    var topRight = (ushort)(topLeft + 1);
-                    var bottomLeft = (ushort)(topLeft + xs.Length);
-                    var bottomRight = (ushort)(bottomLeft + 1);
-                    mesh.SetNextIndex(topLeft);
-                    mesh.SetNextIndex(topRight);
-                    mesh.SetNextIndex(bottomRight);
-                    mesh.SetNextIndex(topLeft);
-                    mesh.SetNextIndex(bottomRight);
-                    mesh.SetNextIndex(bottomLeft);
-                }
+                GridMeshIndexWriter.WriteQuads(mesh, ys.Length - 1, xs.Length - 1, xs.Length);
             }
 
             #endregion

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Special.Selectors;
 using Client.Ui.State.BlockInventory.Special.Details;
@@ -29,7 +30,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             // Sections never touch their own display, so the wrapping body decides with the selector and toggles it (Web ElectricNetworkSection returns null)
             var shows = _networkSelector.TryGet(detail, out var network);
             if (shows) _network.Render(itemSlots, network);
-            SpecialViewParts.SetShown(_network, shows);
+            UiDisplay.SetShown(_network, shows);
         }
     }
 }

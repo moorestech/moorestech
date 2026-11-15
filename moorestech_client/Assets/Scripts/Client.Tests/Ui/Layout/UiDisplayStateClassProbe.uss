@@ -1,0 +1,6 @@
+/* L1 の出し入れ検査用。部品の状態クラスが USS で隠す要素を、UiDisplay.SetShown(true) が出してしまわないかを見る */
+/* For the L1 show/hide check; verifies UiDisplay.SetShown(true) does not reveal an element its component state class hides in USS */
+
+.ui-display-probe--hidden {
+    display: none;
+}

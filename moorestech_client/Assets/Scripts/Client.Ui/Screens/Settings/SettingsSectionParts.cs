@@ -31,11 +31,6 @@ namespace Client.Ui.Screens.Settings
             return note;
         }
 
-        public static void ShowIf(VisualElement element, bool visible)
-        {
-            element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-        }
-
         private static LocalizedLabel Create(LocalizationKey key, string className, string typographyClass)
         {
             // 画面のクラスは検索とテスト用、見た目は Typography のクラスが持つ

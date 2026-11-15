@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.UIState;
+using Client.Ui.State.Routing;
 using Cysharp.Threading.Tasks;
 using Game.Research;
 using UniRx;
@@ -18,7 +18,7 @@ namespace Client.Ui.State.Research
     /// </summary>
     public sealed class ResearchNodeStateStore : IInitializable
     {
-        private readonly UIStateControl _uiStateControl;
+        private readonly UiRoutingState _routing;
         private readonly LocalPlayerInventoryController _inventoryController;
         private readonly Subject<Unit> _onNodeStatesChanged = new();
         private CancellationTokenSource _cts;
@@ -28,9 +28,9 @@ namespace Client.Ui.State.Research
         public bool HasReceivedNodeStates { get; private set; }
         public IObservable<Unit> OnNodeStatesChanged => _onNodeStatesChanged;
 
-        public ResearchNodeStateStore(UIStateControl uiStateControl, LocalPlayerInventoryController inventoryController)
+        public ResearchNodeStateStore(UiRoutingState routing, LocalPlayerInventoryController inventoryController)
         {
-            _uiStateControl = uiStateControl;
+            _routing = routing;
             _inventoryController = inventoryController;
         }
 
@@ -38,7 +38,7 @@ namespace Client.Ui.State.Research
         {
             // ResearchTree突入で取り直し
             // Refetch on entering ResearchTree
-            _uiStateControl.OnStateChanged.Subscribe(OnStateChanged);
+            _routing.Current.Select(ResearchScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(OnScreenShownChanged);
 
             // 充足の正本はサーバーstateなので、所持が動いたら研究画面表示中は取り直す
             // Server state owns sufficiency, so refetch on inventory moves while the research screen is up
@@ -47,11 +47,11 @@ namespace Client.Ui.State.Research
 
             #region Internal
 
-            void OnStateChanged(UIStateEnum state)
+            void OnScreenShownChanged(bool shown)
             {
                 // 突入時のみ取り直す（uGUIと同じ）
                 // Refetch only on entry (same as uGUI)
-                _researchScreenActive = state == UIStateEnum.ResearchTree;
+                _researchScreenActive = shown;
                 if (!_researchScreenActive) return; // silent-ok: 閉画面では取得不要 / 次回突入で最新状態を取得する
                 StartRefresh();
             }

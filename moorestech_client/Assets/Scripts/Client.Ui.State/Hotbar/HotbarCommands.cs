@@ -27,6 +27,8 @@ namespace Client.Ui.State.Hotbar
         {
             // 受けない状態のタップは積まずに良性の拒否を返す（Web の invalid_state と同じ。画面は列の減光で示し、ログはトースト口が出す）
             // A tap in a non-accepting state is not queued and returns a benign rejection (Web invalid_state; the row dims and the toaster logs it)
+            // UiScreen に無い状態（GameScreen・PlaceBlock）なので UIStateEnum を読む（A-248）
+            // These states (GameScreen, PlaceBlock) are not in UiScreen, so read UIStateEnum (A-248)
             if (!HotbarSelectRule.Accepts(_uiStateControl.CurrentState)) return UiCommandRejected.Of(UiCommandRejectReason.HotbarSelectNotAccepted);
             _datastore.EnqueueSelectRequest(slotIndex);
             return UiCommandAccepted.Instance;

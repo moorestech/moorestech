@@ -27,7 +27,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             name = "gear-network-section";
             AddToClassList("special-section");
             _summary = new LackHighlightText("gear-network-summary", LackHighlightTextSize.Xs);
-            SpecialViewParts.SeedEmptyText(_summary);
             _stopReason = SpecialViewParts.Label("gear-stop-reason", UiTypographyClass.TextXs, UiTypographyClass.TextInsufficient);
             _stack.AddItem(_summary);
             _stack.AddItem(_stopReason);

@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.Screens.Hotbar;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BuildMenu;
 using Client.Ui.Screens.BuildMenu.CategoryScroll;
 using Client.Ui.State.BuildMenu.Entries;
@@ -48,7 +50,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             HotbarCommands = new RecordingHotbarCommands();
             Session = new BuildMenuSessionStore();
             Tracker = new BuildMenuCategoryScrollTracker(Session);
-            View = Mount(new BuildMenuView(Commands, HotbarCommands, Content, BuildMenuSamples.Icons(Content), Toaster, Session, Tracker));
+            View = Mount(new BuildMenuView(Commands, HotbarCommands, Content, BuildMenuSamples.Icons(Content), Toaster, Session, Tracker, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+
         }
 
         // 本番の Presenter と同じ順（描いてから出す）で開く

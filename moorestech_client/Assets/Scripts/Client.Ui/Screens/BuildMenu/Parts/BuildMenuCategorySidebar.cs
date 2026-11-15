@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.BuildMenu.Entries;
 using UniRx;
 using UnityEngine.UIElements;
@@ -15,14 +16,16 @@ namespace Client.Ui.Screens.BuildMenu.Parts
     public sealed class BuildMenuCategorySidebar : VisualElement
     {
         private readonly Subject<Guid> _onCategorySelected = new();
+        private readonly IUiOsCursor _osCursor;
         private IReadOnlyList<Guid> _categories = Array.Empty<Guid>();
         private ModeSwitch<Guid> _switch;
         private IDisposable _switchSubscription;
 
         public IObservable<Guid> OnCategorySelected => _onCategorySelected;
 
-        public BuildMenuCategorySidebar()
+        public BuildMenuCategorySidebar(IUiOsCursor osCursor)
         {
+            _osCursor = osCursor;
             AddToClassList("build-menu__sidebar");
         }
 
@@ -45,7 +48,8 @@ namespace Client.Ui.Screens.BuildMenu.Parts
                 // 選択肢の文は VM の見出しの名前。高さのつまみは画面のクラスで上書きする（D-26）
                 // Option labels are the view model's heading names; the height knob is overridden through the screen class (D-26)
                 var options = _categories.Select(guid => new ModeSwitchOption<Guid>($"build-menu-category-{guid:D}", guid, viewModel.HeadingNameOf(guid))).ToList();
-                _switch = new ModeSwitch<Guid>("build-menu-sidebar", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, options);
+                _switch = new ModeSwitch<Guid>("build-menu-sidebar", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, options, _osCursor);
+
                 _switch.AddToClassList("build-menu__category-switch");
                 _switchSubscription = _switch.OnOptionSelected.Subscribe(_onCategorySelected.OnNext);
                 Add(_switch);

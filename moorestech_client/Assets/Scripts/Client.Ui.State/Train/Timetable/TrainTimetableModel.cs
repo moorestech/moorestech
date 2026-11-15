@@ -1,22 +1,17 @@
-using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
-using Client.Ui.State.Train.Logic;
-using Game.Block.Blocks.TrainRail;
 using UniRx;
-using UnityEngine;
 using VContainer.Unity;
-using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 開いている貨車の時刻表を Web ホスト TrainTimetableDtoBuilder.Build と同じ優先で組む（D-2）
-    /// Builds the open car's timetable with the same priority as the Web host TrainTimetableDtoBuilder.Build (D-2)
+    /// 開いている貨車の時刻表を組む（駅一覧と用意済みの組み立ては Web ホスト TrainTimetableDtoBuilder.Build と同じ State の口）
+    /// Builds the open car's timetable (the station list and ready data come from the same State calls as the Web host TrainTimetableDtoBuilder.Build)
     /// </summary>
     public sealed class TrainTimetableModel : ITrainTimetableSource, IInitializable
     {
@@ -28,7 +23,6 @@ namespace Client.Ui.State.Train.Timetable
         private readonly BlockGameObjectDataStore _blocks;
         private readonly OpenTrainTimetableTracker _tracker;
         private readonly TrainTimetableReadyDataFactory _readyDataFactory = new();
-        private readonly TrainTimetableMissingCarReport _missingCarReport = new();
         private readonly ReactiveProperty<TrainTimetableViewState> _current = new(TrainTimetableViewState.Unavailable);
 
         public IReadOnlyReactiveProperty<TrainTimetableViewState> Current => _current;
@@ -48,6 +42,8 @@ namespace Client.Ui.State.Train.Timetable
         {
             // Web ホスト BlockInventoryTopic と同じ契機: 画面の開閉（閉じると使えないへ倒れ、編集は閉じる）・中身の更新・時刻表の到着
             // Same triggers as the Web host BlockInventoryTopic: screen open/close (closing falls to unavailable and closes the edit), contents updates, timetable arrival
+            // UIStateEnum は契機だけで、判定は SubInventory の中身の源（列車）なので UiScreen を通さない（A-248）
+            // UIStateEnum is only the trigger; the decision is the SubInventory content source (a train), so UiScreen is not consulted (A-248)
             _uiStateControl.OnStateChanged.Subscribe(_ => Refresh());
             _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Refresh());
             _timetables.OnTimetableUpdated.Subscribe(_ => Refresh());
@@ -64,7 +60,7 @@ namespace Client.Ui.State.Train.Timetable
         private void Refresh()
         {
             var next = _subInventoryState.CurrentSubInventorySource is TrainSubInventorySource source
-                ? Build(source.TrainCarInstanceId)
+                ? _readyDataFactory.Build(source.TrainCarInstanceId, _cache, _timetables, _fetcher, _blocks)
                 : NoTrainOpen();
             // silent-ok: 中身が同じ状態は配り直さない / 表示が変わらないので見ている人に差は無く、行の作り直しも起きない（R-5）
             if (TrainTimetableViewState.IsSameState(_current.Value, next)) return;
@@ -75,40 +71,8 @@ namespace Client.Ui.State.Train.Timetable
         {
             // 貨車が無い間は旗を戻し再警告に備える
             // Clear flag while no car so it warns again
-            _missingCarReport.Clear();
+            _readyDataFactory.ClearMissingCarReport();
             return TrainTimetableViewState.Unavailable;
-        }
-
-        private TrainTimetableViewState Build(long trainCarInstanceId)
-        {
-            // 優先順: 列車不明>不可>取得中>無>用意済
-            // Priority: no train, unavailable, in flight, no cache, ready
-            if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, _cache, out var trainUnitInstanceId))
-            {
-                _missingCarReport.ReportMissing(trainCarInstanceId);
-                return TrainTimetableViewState.Unavailable;
-            }
-            _missingCarReport.Clear();
-            if (_fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
-            if (_fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
-            if (!_timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;
-            return _readyDataFactory.TryCreate(timetable, ReadStations(), out var data)
-                ? TrainTimetableViewState.Ready(data)
-                : TrainTimetableViewState.Unavailable;
-        }
-
-        // 駅ブロックの位置と駅名（サーバーの StateDetail。届く前は空名で並べる。Web ホストと同じ）
-        // Station block positions and names (a server StateDetail; empty until it arrives, same as the Web host)
-        private List<TrainTimetableStation> ReadStations()
-        {
-            var stations = new List<TrainTimetableStation>();
-            foreach (var block in _blocks.GetBlocksByBlockType(BlockTypeConst.TrainStation))
-            {
-                var name = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey)?.StationName;
-                // silent-ok: 駅名の StateDetail が届く前は空名で並べ、無名の駅の文言で出す（Web ホストと同じ）/ 届かないままなら駅一覧が無名のままで、録画 train/train-timetable-via-ui の「1駅目は北駅」の主張が落ちて開発者が気づく
-                stations.Add(new TrainTimetableStation(block.BlockPosInfo.OriginalPos, name ?? string.Empty));
-            }
-            return TrainTimetableStationCatalog.Sorted(stations);
         }
     }
 }

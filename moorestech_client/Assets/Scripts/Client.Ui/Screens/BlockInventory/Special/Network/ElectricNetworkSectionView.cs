@@ -29,7 +29,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             _noDemand = SpecialViewParts.Label("electric-network-no-demand", UiTypographyClass.TextXs, UiTypographyClass.TextMuted);
             _noDemand.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.NoDemand));
             _summary = new LackHighlightText("electric-network-summary", LackHighlightTextSize.Xs);
-            SpecialViewParts.SeedEmptyText(_summary);
             _stack.AddItem(_noDemand);
             _stack.AddItem(_summary);
             Add(_stack);

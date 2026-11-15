@@ -18,7 +18,7 @@ namespace Client.Ui.State.Recipe.Catalog
             var result = new List<CraftRecipeData>();
             foreach (var recipe in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
             {
-                // silent-ok: 解放表に無いレシピは Web の topic と同じくロック扱い / 一覧に出ないことを CraftRecipeCatalogTest と録画 uitk-recipe-craft が見る
+                // silent-ok: 解放表に無いレシピはロック扱い（Web の topic もこの Catalog を通る） / 一覧に出ないことを CraftRecipeCatalogTest と録画 uitk-recipe-craft が見る
                 if (!infos.TryGetValue(recipe.CraftRecipeGuid, out var info) || !info.IsUnlocked) continue;
 
                 // 素材と結果を ItemId へ引き直す

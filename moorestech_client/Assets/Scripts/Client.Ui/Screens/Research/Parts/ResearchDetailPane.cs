@@ -2,6 +2,7 @@ using System;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
@@ -95,7 +96,7 @@ namespace Client.Ui.Screens.Research.Parts
             if (!_hasRendered || _renderedGuid != detail.Guid) _scroll.SetScrollOffset(0f);
             _hasRendered = true;
             _renderedGuid = detail.Guid;
-            style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(this, true);
             _name.SetText(UiText.FromContent(ContentLocalizationKeys.ResearchName(detail.Guid)));
             _description.SetText(UiText.FromContent(ContentLocalizationKeys.ResearchDescription(detail.Guid)));
             _consume.Render(detail.ConsumeSlots);
@@ -107,7 +108,7 @@ namespace Client.Ui.Screens.Research.Parts
         {
             // 次に出すときは頭から（同じノードでも）
             // The next show starts from the top, even for the same node
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
             _hasRendered = false;
         }
     }

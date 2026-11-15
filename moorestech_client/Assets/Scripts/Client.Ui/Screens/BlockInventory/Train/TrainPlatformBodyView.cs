@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
@@ -21,13 +22,14 @@ namespace Client.Ui.Screens.BlockInventory.Train
         private readonly FluidInventoryContents _fluids;
         private readonly TrainPlatformModeSection _mode;
 
-        public TrainPlatformBodyView(BlockItemGrid grid, FluidInventoryContents fluids, TrainPlatformEditCommands commands)
+        public TrainPlatformBodyView(BlockItemGrid grid, FluidInventoryContents fluids, TrainPlatformEditCommands commands, IUiOsCursor osCursor)
         {
             name = "train-platform-view";
-            _nameRow = new TrainStationNameRow(commands);
+            _nameRow = new TrainStationNameRow(commands, osCursor);
             _grid = grid;
             _fluids = fluids;
-            _mode = new TrainPlatformModeSection(commands);
+            _mode = new TrainPlatformModeSection(commands, osCursor);
+
             _stack.AddItem(_nameRow);
             _stack.AddItem(_grid);
             _stack.AddItem(_fluids);

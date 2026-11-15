@@ -16,17 +16,12 @@ namespace Client.Ui.Components.Gauges
     /// </remarks>
     internal static class ProgressArrowGlyphShadowMesh
     {
-        public const int RingCount = 8;
-        public const int VertexCount = (RingCount + 1) * ProgressArrowGlyphPath.VertexCount;
-        public const int IndexCount = ProgressArrowGlyphPath.FillTriangleIndexCount + RingCount * ProgressArrowGlyphPath.VertexCount * 6;
+        public const int VertexCount = (ShadowRingMeshWriter.RingCount + 1) * ProgressArrowGlyphPath.VertexCount;
+        public const int IndexCount = ProgressArrowGlyphPath.FillTriangleIndexCount + ShadowRingMeshWriter.RingCount * ProgressArrowGlyphPath.VertexCount * 6;
 
         // にじみの刻み幅（片側 2σ）
         // Blur span (2σ each side)
         private const float SigmaSpan = 2f;
-
-        // 中心線から内側止めまでの距離（px）
-        // Distance in px from centre line to the inward stop
-        private const float ShaftCenterMargin = 0.01f;
 
         public static void Build(float scale, float silhouetteOutset, float offsetY, float blur, Color shadowColor, Vertex[] vertices, ushort[] indices)
         {
@@ -37,7 +32,7 @@ namespace Client.Ui.Components.Gauges
             WriteRingVertices();
             var cursor = 0;
             WriteCore();
-            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, RingCount, ProgressArrowGlyphPath.VertexCount);
+            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, ShadowRingMeshWriter.RingCount, ProgressArrowGlyphPath.VertexCount);
 
             #region Internal
 
@@ -45,14 +40,14 @@ namespace Client.Ui.Components.Gauges
             // Offset per ring; alpha from coverage
             void WriteRingVertices()
             {
-                for (var k = 0; k <= RingCount; k++)
+                for (var k = 0; k <= ShadowRingMeshWriter.RingCount; k++)
                 {
-                    var fromEdge = (2f * k / RingCount - 1f) * SigmaSpan * sigma;
+                    var fromEdge = (2f * k / ShadowRingMeshWriter.RingCount - 1f) * SigmaSpan * sigma;
                     // 縁を輪で刻む近似で、先端の角は丸まらず 2σ の外の裾も無い（look-exception: LX-56）
                     // Ring approximation of the edge: the tip corner is not rounded and there is no tail beyond 2σ (look-exception: LX-56)
                     // 小寸法で軸の半高より内へずらすと軸の輪が裏返り影が二重に乗るので、中心線の手前で止める
                     // At small sizes an inward offset past the shaft half-height flips the ring and doubles the shadow, so stop short of the centre line
-                    var distance = Mathf.Max(silhouetteOutset + fromEdge, ShaftCenterMargin - ProgressArrowGlyphPath.ShaftHalfHeight * scale);
+                    var distance = Mathf.Max(silhouetteOutset + fromEdge, ShadowRingMeshWriter.CenterMargin - ProgressArrowGlyphPath.ShaftHalfHeight * scale);
                     ProgressArrowGlyphPath.WriteOffset(scale, distance, new Vector2(0f, offsetY), ring);
                     var tint = shadowColor;
                     // 濃さは形全体で一律の Web α（Web は描いた画素の α で溝・線の下が淡い。look-exception: LX-57）

@@ -3,7 +3,9 @@ using System.Linq;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Panel;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Inventory.Panel;
 using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Actions;
@@ -37,7 +39,7 @@ namespace Client.Tests.Ui.Screens.Inventory
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
             _fixture = new InventoryScreenFixture(36, 3, Toaster);
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture));
-            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_fixture.Commands, Toaster), new RecordingInventorySortCommands(), content, Toaster));
+            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_fixture.Commands, Toaster), new RecordingInventorySortCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
             _fixture.Model.Current.Subscribe(_view.Render);
         }

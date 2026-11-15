@@ -6,8 +6,8 @@ using Game.Block.Interface.State;
 namespace Client.Ui.State.Train.Inventory
 {
     /// <summary>
-    /// 貨車の液体を描画値へ写す。S4-machine のタンクの写しを入力側だけで使い、写しを 2 か所に持たない
-    /// Maps car fluids to draw values by reusing the S4-machine tank conversion with inputs only, so the mapping lives in one place
+    /// 貨車の液体を描画値へ写す唯一の口（UITK の TrainInventoryBodyModel と Web ホストの TrainInventoryDtoFactory が呼ぶ。DC-23 A）。S4-machine のタンクの写しを入力側だけで使う
+    /// The single mapping of car fluids to draw values (called by the UITK TrainInventoryBodyModel and the Web host TrainInventoryDtoFactory; DC-23 A), reusing the S4-machine tank conversion with inputs only
     /// </summary>
     public static class TrainCarFluidConversion
     {

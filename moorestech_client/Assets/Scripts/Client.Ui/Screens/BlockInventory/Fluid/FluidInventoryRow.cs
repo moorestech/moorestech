@@ -50,10 +50,9 @@ namespace Client.Ui.Screens.BlockInventory.Fluid
 
         private static LocalizedLabel Text()
         {
-            // 空の液体の行では文を一度も当てないので、載せたときの「文なし」の報告を避けるため空の原文で初期化する
-            // An empty-fluid row never sets text, so start from an empty verbatim text to avoid the attached-without-text report
-            var label = new LocalizedLabel();
-            label.SetText(UiText.FromVerbatim(string.Empty));
+            // 空の液体の行では文を一度も当てないので、空の原文で作る
+            // An empty-fluid row never sets text, so create it with empty text
+            var label = new LocalizedLabel(UiText.Empty);
             label.AddToClassList(UiTypographyClass.TextSm);
             return label;
         }

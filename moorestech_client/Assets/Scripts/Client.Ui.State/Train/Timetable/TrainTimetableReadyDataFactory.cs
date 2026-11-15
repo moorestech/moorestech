@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Train.Timetable;
+using Client.Game.InGame.Train.Unit;
 using Client.Ui.State.Diagnostics;
 using Client.Ui.State.Train.Logic;
 using Game.Train.RailGraph;
@@ -9,13 +12,40 @@ using UnityEngine;
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む（Web ホスト CreateFromTimetable と同じ規則。D-2）
-    /// Builds the ready timetable from a snapshot and the station list (same rule as the Web host CreateFromTimetable; D-2)
+    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む唯一の口（UITK の TrainTimetableModel と Web ホストの TrainTimetableDtoBuilder が呼ぶ。DC-23 A）
+    /// The single builder of the ready timetable from a snapshot and the station list (called by the UITK TrainTimetableModel and the Web host TrainTimetableDtoBuilder; DC-23 A)
     /// </summary>
     public sealed class TrainTimetableReadyDataFactory
     {
-        private readonly HashSet<Vector3Int> _lastWarnedMissingStationPositions = new();
+        private readonly Dictionary<TrainUnitInstanceId, HashSet<Vector3Int>> _lastWarnedMissingStationPositions = new();
         private readonly Dictionary<TrainUnitInstanceId, AnomalyReportGate> _unknownSideGates = new();
+        private readonly TrainTimetableMissingCarReport _missingCarReport = new();
+
+        // 開いている貨車の時刻表の状態の唯一の優先順（UITK の TrainTimetableModel と Web ホストの TrainTimetableDtoBuilder が呼ぶ）。列車不明>不可>取得中>無>用意済
+        // The single priority order of the open car's timetable state (called by the UITK TrainTimetableModel and the Web host TrainTimetableDtoBuilder): no train, unavailable, in flight, no cache, ready
+        public TrainTimetableViewState Build(long trainCarInstanceId, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher, BlockGameObjectDataStore blocks)
+        {
+            if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, cache, out var trainUnitInstanceId))
+            {
+                _missingCarReport.ReportMissing(trainCarInstanceId);
+                return TrainTimetableViewState.Unavailable;
+            }
+            _missingCarReport.Clear();
+            if (fetcher.IsUnavailable(trainUnitInstanceId)) return TrainTimetableViewState.Unavailable;
+            if (fetcher.IsFetchInFlight(trainUnitInstanceId)) return TrainTimetableViewState.Loading;
+            if (!timetables.TryGet(trainUnitInstanceId, out var timetable)) return TrainTimetableViewState.Loading;
+            return TryCreate(timetable, TrainTimetableStationCatalog.ReadSorted(blocks), out var data)
+                ? TrainTimetableViewState.Ready(data)
+                : TrainTimetableViewState.Unavailable;
+        }
+
+        // 貨車が無い間は旗を戻し再警告に備える
+        // Clear the flag while no car is open so it warns again
+        public void ClearMissingCarReport()
+        {
+            _missingCarReport.Clear();
+        }
+
 
         public bool TryCreate(TrainTimetableSnapshot timetable, IReadOnlyList<TrainTimetableStation> stations, out TrainTimetableReadyData data)
         {
@@ -52,17 +82,24 @@ namespace Client.Ui.State.Train.Timetable
 
             data = new TrainTimetableReadyData(timetable.TrainUnitInstanceId, timetable.IsAutoRun, timetable.CurrentIndex, stops, stations);
             return true;
-        }
 
-        // 欠けの集合が前回と同じなら黙る。公開のたびに同じ警告を出さないため（Web ホストと同じ）
-        // Stay quiet when the missing set is unchanged so each publish does not repeat the warning (same as the Web host)
-        private void WarnMissingStationsWhenChanged(TrainUnitInstanceId trainUnitInstanceId, HashSet<Vector3Int> missingStationPositions)
-        {
-            if (_lastWarnedMissingStationPositions.SetEquals(missingStationPositions)) return;
-            _lastWarnedMissingStationPositions.Clear();
-            _lastWarnedMissingStationPositions.UnionWith(missingStationPositions);
-            if (missingStationPositions.Count == 0) return;
-            Debug.LogWarning($"[TrainTimetableModel] station blocks not found for stops at {string.Join(", ", missingStationPositions)}; emitting empty names: {trainUnitInstanceId}");
+            #region Internal
+
+            // 欠けの集合が同じ列車の前回と同じなら黙る。旗は列車ごとに欠けの間だけ持ち、別の列車を挟んでも警告が出直さない
+            // Stay quiet when the missing set equals the same train's last one; the flag is per train and only while stations are missing, so interleaving trains does not re-warn
+            void WarnMissingStationsWhenChanged(TrainUnitInstanceId trainUnitInstanceId, HashSet<Vector3Int> missingStationPositions)
+            {
+                if (missingStationPositions.Count == 0)
+                {
+                    _lastWarnedMissingStationPositions.Remove(trainUnitInstanceId);
+                    return;
+                }
+                if (_lastWarnedMissingStationPositions.TryGetValue(trainUnitInstanceId, out var lastWarned) && lastWarned.SetEquals(missingStationPositions)) return;
+                _lastWarnedMissingStationPositions[trainUnitInstanceId] = missingStationPositions;
+                Debug.LogWarning($"[TrainTimetableModel] station blocks not found for stops at {string.Join(", ", missingStationPositions)}; emitting empty names: {trainUnitInstanceId}");
+            }
+
+            #endregion
         }
     }
 }

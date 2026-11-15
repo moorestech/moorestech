@@ -33,6 +33,17 @@ namespace Client.Ui.State.Train.Platform.Edit
         public void ApplyStationName()
         {
             ApplyAsync(_state.Draft, _state.Draft.Input).Forget();
+
+            #region Internal
+
+            async UniTaskVoid ApplyAsync(TrainStationNameDraft draftAtSend, string name)
+            {
+                var result = await _commands.SetStationName(name);
+                _toaster.Report(SetNameCommandName, result);
+                if (result is UiCommandRejected) _state.RevertIfCurrent(draftAtSend);
+            }
+
+            #endregion
         }
 
         // 選択は替えず目標のモードを送るだけ。結果は公開で反映され、拒否だけトーストへ
@@ -40,19 +51,16 @@ namespace Client.Ui.State.Train.Platform.Edit
         public void SelectTransferMode(TrainPlatformTransferMode mode)
         {
             SendModeAsync(mode).Forget();
-        }
 
-        private async UniTaskVoid ApplyAsync(TrainStationNameDraft draftAtSend, string name)
-        {
-            var result = await _commands.SetStationName(name);
-            _toaster.Report(SetNameCommandName, result);
-            if (result is UiCommandRejected) _state.RevertIfCurrent(draftAtSend);
-        }
+            #region Internal
 
-        private async UniTaskVoid SendModeAsync(TrainPlatformTransferMode mode)
-        {
-            var result = await _commands.SetTransferMode(mode);
-            _toaster.Report(SetModeCommandName, result);
+            async UniTaskVoid SendModeAsync(TrainPlatformTransferMode mode)
+            {
+                var result = await _commands.SetTransferMode(mode);
+                _toaster.Report(SetModeCommandName, result);
+            }
+
+            #endregion
         }
     }
 }

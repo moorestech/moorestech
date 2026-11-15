@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Localization;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -120,7 +122,7 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
                 new("option-b", 2, new UiText(LocalizationKeys.Ui.PauseMenu.Back)),
                 new("option-c", 3, UiText.FromVerbatim("300m")),
             };
-            var modeSwitch = new ModeSwitchInt("mode-switch-test", orientation, ModeSwitchRole.Group, options);
+            var modeSwitch = new ModeSwitchInt("mode-switch-test", orientation, ModeSwitchRole.Group, options, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _subscription = modeSwitch.OnOptionSelected.Subscribe(value => _selected.Add(value));
             rootVisualElement.Add(modeSwitch);
             simulate.FrameUpdate();

@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using UniRx;
@@ -16,7 +17,7 @@ namespace Client.Ui.Components.Controls
 
         public IObservable<Unit> OnClicked => _onClicked;
 
-        public PanelActionButton(string testid, UiText label)
+        public PanelActionButton(string testid, UiText label, IUiOsCursor osCursor)
         {
             name = testid;
             AddToClassList("panel-action-button");
@@ -33,6 +34,10 @@ namespace Client.Ui.Components.Controls
             localizedLabel.AddToClassList("panel-action-button__label");
             localizedLabel.SetText(label);
             Add(localizedLabel);
+
+            // Web の cursor: pointer（PanelActionButton/style.module.css:15）。部品が自分で出す（A-247）
+            // Web cursor: pointer (PanelActionButton/style.module.css:15); the part requests it itself (A-247)
+            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
     }
 }

@@ -30,6 +30,19 @@ namespace Client.Ui.State.Train.Platform.Edit
         {
             _panels.Current.Subscribe(ReceivePanel);
             _bodies.Current.Subscribe(_ => SyncDraft());
+
+            #region Internal
+
+            void ReceivePanel(BlockInventoryPanelState panel)
+            {
+                // silent-ok: 同じパネルの再配信では下書きを保つ / 打ちかけの入力を消さないため。別のパネルは下で作り直す
+                if (panel.IsSamePanel(_panel)) return;
+                _panel = panel;
+                Draft = new TrainStationNameDraft();
+                SyncDraft();
+            }
+
+            #endregion
         }
 
         public void Edit(string input)
@@ -49,15 +62,6 @@ namespace Client.Ui.State.Train.Platform.Edit
             }
             Draft.Reject();
             _input.Value = Draft.Input;
-        }
-
-        private void ReceivePanel(BlockInventoryPanelState panel)
-        {
-            // silent-ok: 同じパネルの再配信では下書きを保つ / 打ちかけの入力を消さないため。別のパネルは下で作り直す
-            if (panel.IsSamePanel(_panel)) return;
-            _panel = panel;
-            Draft = new TrainStationNameDraft();
-            SyncDraft();
         }
 
         private void SyncDraft()

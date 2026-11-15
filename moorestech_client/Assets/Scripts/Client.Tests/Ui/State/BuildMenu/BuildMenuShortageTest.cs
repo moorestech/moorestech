@@ -12,8 +12,8 @@ namespace Client.Tests.Ui.State.BuildMenu
 {
     public class BuildMenuShortageTest
     {
-        private static readonly BuildMenuRequiredItem Lacking = new(new Guid("50000000-0000-4000-8000-000000000001"), 4, 1, true);
-        private static readonly BuildMenuRequiredItem Enough = new(new Guid("50000000-0000-4000-8000-000000000002"), 2, 9, false);
+        private static readonly BuildMenuRequiredItem Lacking = new(new Guid("50000000-0000-4000-8000-000000000001"), 4, 1);
+        private static readonly BuildMenuRequiredItem Enough = new(new Guid("50000000-0000-4000-8000-000000000002"), 2, 9);
 
         [Test]
         public void 免除なしのエントリでは足りない素材だけが不足になる()

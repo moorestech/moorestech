@@ -12,6 +12,8 @@ namespace Client.Ui.State.Hotbar
         // Only the two states with a consumer; queuing elsewhere fires the moment that screen closes
         public static bool Accepts(UIStateEnum uiState)
         {
+            // UiScreen に無い状態（GameScreen・PlaceBlock）なので UIStateEnum を読む（A-248）
+            // These states (GameScreen, PlaceBlock) are not in UiScreen, so read UIStateEnum (A-248)
             return uiState == UIStateEnum.GameScreen || uiState == UIStateEnum.PlaceBlock;
         }
     }

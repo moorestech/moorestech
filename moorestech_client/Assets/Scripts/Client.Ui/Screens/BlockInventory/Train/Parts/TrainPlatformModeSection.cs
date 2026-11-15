@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.Platform;
 using Client.Ui.State.Train.Platform.Edit;
@@ -16,7 +17,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
     {
         private readonly ModeSwitch<TrainPlatformTransferMode> _mode;
 
-        public TrainPlatformModeSection(TrainPlatformEditCommands commands)
+        public TrainPlatformModeSection(TrainPlatformEditCommands commands, IUiOsCursor osCursor)
         {
             // 選択肢の testid は Web に無いので -load / -unload を足す（D-7）
             // Web options carry no testids, so -load / -unload are added (D-7)
@@ -25,7 +26,8 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
             {
                 new ModeSwitchOption<TrainPlatformTransferMode>("train-platform-mode-load", TrainPlatformTransferMode.LoadToTrain, new UiText(LocalizationKeys.Ui.BlockInventory.TrainPlatformLoad)),
                 new ModeSwitchOption<TrainPlatformTransferMode>("train-platform-mode-unload", TrainPlatformTransferMode.UnloadToPlatform, new UiText(LocalizationKeys.Ui.BlockInventory.TrainPlatformUnload)),
-            });
+            }, osCursor);
+
             _mode.OnOptionSelected.Subscribe(mode => commands.SelectTransferMode(mode));
             Add(_mode);
         }

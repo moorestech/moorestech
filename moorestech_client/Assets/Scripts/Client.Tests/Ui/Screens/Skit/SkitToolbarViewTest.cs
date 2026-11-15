@@ -1,4 +1,6 @@
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Skit.Parts.Toolbar;
 using NUnit.Framework;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
@@ -20,7 +22,7 @@ namespace Client.Tests.Ui.Screens.Skit
         public void MountToolbar()
         {
             _commands = new RecordingSkitCommands();
-            _toolbar = Mount(new SkitToolbar(_commands, Toaster));
+            _toolbar = Mount(new SkitToolbar(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
         }
 
         [Test]
@@ -44,6 +46,18 @@ namespace Client.Tests.Ui.Screens.Skit
             Assert.AreEqual(new SkitCommandRecord(SkitCommandKind.SetAuto, SkitTestData.SessionId, 4, null, false), _commands.Issued[0], "自動 ON から押すと OFF を送る");
             Assert.AreEqual(new SkitCommandRecord(SkitCommandKind.Skip, SkitTestData.SessionId, 4, null, false), _commands.Issued[1]);
             Assert.AreEqual(new SkitCommandRecord(SkitCommandKind.SetUiHidden, SkitTestData.SessionId, 4, null, true), _commands.Issued[2]);
+        }
+
+        [Test]
+        public void 有効なツールのホバーは自動ONのシアンにも勝って高コントラストになる()
+        {
+            // IconButton の :hover:enabled（2 クラス＋2 擬似）が画面の --icon-button-color（2 クラス）に勝つ（Web の :not(:disabled):hover）
+            // IconButton's :hover:enabled (two classes plus two pseudo-classes) beats the screen's --icon-button-color (two classes), as the Web :not(:disabled):hover does
+            _toolbar.Render(SkitTestData.Controls(4, true, false, true, false, false, SkitTestData.TextIntents));
+            simulate.FrameUpdate();
+            simulate.MouseMove(Find<IconButton>(_toolbar, "skit-tool-auto").worldBound.center);
+            simulate.FrameUpdate();
+            AssertColor(Hex("#FFFFFF"), GlyphColor("skit-tool-auto"), "hover");
         }
 
         [Test]

@@ -168,7 +168,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             // Swap through the real BlockInventoryBodyHost (if it reused the body across panels the timetable tab would stay selected)
             var stage = new StageColumnsLayout();
             Mount(stage);
-            var view = new BlockInventoryView(stage, new RecordingPanelCommands(), Toaster);
+            var view = new BlockInventoryView(stage, new RecordingPanelCommands(), Toaster, _bodies.OsCursor);
+
             stage.Get(StageColumn.Viewer).Add(view);
             view.SetShown(true);
             var standard = new SectionStackBodyFactory(BlockInventoryTestParts.Grids(), new SectionStackSlotRegistry(new ISectionStackSectionFactory[0]), new FakePanelSource(_bodies.Panel));

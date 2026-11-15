@@ -8,8 +8,8 @@ namespace Client.Ui.State.Recipe.Commands
     /// Port for recipe-screen operations; unknown or locked recipes return a non-benign rejection unsent
     /// </summary>
     /// <remarks>
-    /// 呼び出し元（レシピビューア）は解放済みの GUID しか渡さないが、検証は Web の CraftExecuteActionHandler と同じものを持つ。食い違えば拒否のトーストと LogWarning で見える
-    /// Callers (the recipe viewer) pass only unlocked GUIDs, but validation mirrors the Web CraftExecuteActionHandler; a mismatch shows as a rejection toast and a LogWarning
+    /// UITK のレシピビューアと Web の craft.execute（CraftExecuteActionHandler）の両方がこの口を呼ぶ。検査・送信・拒否ログは実装 1 本が持ち、Web は失敗コードへ写すだけ
+    /// Both the UITK recipe viewer and the Web craft.execute (CraftExecuteActionHandler) call this port; the one implementation owns checking, sending and refusal logs, and Web only maps the failure code
     /// </remarks>
     public interface IRecipeCommands
     {

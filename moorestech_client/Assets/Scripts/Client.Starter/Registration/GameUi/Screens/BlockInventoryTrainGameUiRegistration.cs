@@ -35,10 +35,9 @@ namespace Client.Starter.Registration.GameUi.Screens
             builder.Register<TrainTimetableEditCommands>(Lifetime.Singleton).AsSelf();
             builder.Register<TrainPlatformEditCommands>(Lifetime.Singleton).AsSelf();
 
-            // サーバーへ送るコマンドと時間切れ
-            // Server-bound commands and the timeout
+            // 時刻表をサーバーへ送るコマンドと時間切れ（駅・PF のコマンドは Web と共有で MainGameUiStateRegistration）
+            // Timetable server-bound commands and the timeout (station/platform commands are shared with Web, in MainGameUiStateRegistration)
             builder.Register<TrainTimetableCommands>(Lifetime.Singleton).As<ITrainTimetableCommands>();
-            builder.Register<TrainBlockCommands>(Lifetime.Singleton).As<ITrainBlockCommands>();
             builder.Register<UniRxTrainTimetableWaitTimer>(Lifetime.Singleton).As<ITrainTimetableWaitTimer>();
 
             // alpha の拡張口への差し込み

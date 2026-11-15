@@ -39,7 +39,7 @@ namespace Client.Tests.WebUiHost
             var token = JObject.FromObject(new { x = 1, y = 2, z = 3, side });
             Assert.That(TrainTimetableStopParser.TryParse(token, out var stop), Is.True);
             Assert.That(stop.Side, Is.EqualTo(expected));
-            Assert.That(stop.StationPosition, Is.EqualTo(new Vector3Int(1, 2, 3)));
+            Assert.That(stop.Position, Is.EqualTo(new Vector3Int(1, 2, 3)));
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace Client.Tests.WebUiHost
         {
             var token = JObject.FromObject(new { x = int.MinValue, y = -5, z = int.MaxValue, side = "front" });
             Assert.That(TrainTimetableStopParser.TryParse(token, out var stop), Is.True);
-            Assert.That(stop.StationPosition, Is.EqualTo(new Vector3Int(int.MinValue, -5, int.MaxValue)));
+            Assert.That(stop.Position, Is.EqualTo(new Vector3Int(int.MinValue, -5, int.MaxValue)));
         }
     }
 }

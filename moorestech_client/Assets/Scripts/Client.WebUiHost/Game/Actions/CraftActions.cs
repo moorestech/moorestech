@@ -1,58 +1,47 @@
 using System;
-using Client.Game.InGame.Context;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Recipe.Commands;
 using Cysharp.Threading.Tasks;
-using Game.UnlockState;
 using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Game.Actions
 {
     /// <summary>
-    /// craft.execute: 指定レシピのワンクリッククラフトをサーバーへ送信する
-    /// craft.execute: send a one-click craft request for the given recipe
+    /// craft.execute: payload の recipeGuid を読み、検査・送信・拒否ログは State の IRecipeCommands へ委ねる
+    /// craft.execute: read the payload recipeGuid and delegate checking, sending and refusal logging to the State IRecipeCommands
     /// </summary>
     public class CraftExecuteActionHandler : IActionHandler
     {
         public string ActionType => "craft.execute";
 
-        private readonly IGameUnlockStateData _unlockStateData;
+        private readonly IRecipeCommands _commands;
 
-        public CraftExecuteActionHandler(IGameUnlockStateData unlockStateData)
+        public CraftExecuteActionHandler(IRecipeCommands commands)
         {
-            _unlockStateData = unlockStateData;
-        }
-
-        // recipeGuid のパース・実在・解放を判定する純関数。成功時のみ recipeGuid を返す
-        // Pure function validating recipeGuid parse/existence/unlock; yields recipeGuid only on success
-        public static ActionResult ResolveCraftRecipe(JToken recipeGuidToken, IGameUnlockStateData unlockStateData, out Guid recipeGuid)
-        {
-            recipeGuid = Guid.Empty;
-
-            // 非文字列値でも例外を出さないよう JValue の中身を直接パターンマッチで取り出す
-            // Pattern-match the raw JValue content so non-string values never throw
-            if (recipeGuidToken is not JValue { Value: string guidText }) return ActionResult.Fail("invalid_recipe");
-            if (!Guid.TryParse(guidText, out recipeGuid)) return ActionResult.Fail("invalid_recipe");
-
-            // 存在しないレシピと未解放レシピをここで弾く（サーバーはunlock検証を行わない）
-            // Reject unknown and locked recipes here; the server does not validate unlock state
-            if (!unlockStateData.CraftRecipeUnlockStateInfos.TryGetValue(recipeGuid, out var unlockInfo)) return ActionResult.Fail("invalid_recipe");
-            if (!unlockInfo.IsUnlocked) return ActionResult.Fail("recipe_locked");
-
-            return ActionResult.Success();
+            _commands = commands;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
-            // recipeGuid の検証は純関数へ集約。失敗結果はそのまま返す
-            // Recipe validation is centralized in the pure function; return its failure as-is
-            var resolveResult = ResolveCraftRecipe(payload["recipeGuid"], _unlockStateData, out var recipeGuid);
-            if (!resolveResult.Ok) return UniTask.FromResult(resolveResult);
+            // 非文字列値でも例外を出さないよう JValue の中身を直接パターンマッチで取り出す
+            // Pattern-match the raw JValue content so non-string values never throw
+            if (payload["recipeGuid"] is not JValue { Value: string guidText }) return UniTask.FromResult(InvalidRecipe());
+            if (!Guid.TryParse(guidText, out var recipeGuid)) return UniTask.FromResult(InvalidRecipe());
 
-            // 素材所持チェックはサーバー側で行われるためここでは送信のみ
-            // Material checks happen server-side; just send the request here
-            ClientContext.VanillaApi.SendOnly.Craft(recipeGuid);
-            return UniTask.FromResult(ActionResult.Success());
+            // 実在・解放の検査と送信は UITK と同じ型付きコマンド 1 本を通す
+            // Existence/unlock checks and sending go through the one typed command shared with UITK
+            return UniTask.FromResult(ActionResult.FromCommandResult(_commands.Craft(recipeGuid)));
+
+            #region Internal
+
+            ActionResult InvalidRecipe()
+            {
+                return ActionResult.Fail(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.RecipeInvalid));
+            }
+
+            #endregion
         }
     }
 }

@@ -1,7 +1,9 @@
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Train.Fakes;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.Train;
@@ -28,12 +30,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public TrainTimetableEditCommands TimetableEditCommands { get; }
         public TrainPlatformEditModel PlatformEdit { get; }
         public TrainPlatformEditCommands PlatformEditCommands { get; }
+        public UiOsCursorRequestStack OsCursor { get; }
 
         public TrainTestBodies(UiCommandResultToaster toaster, BlockInventoryPanelState panel)
         {
             // 本番と同じく器が源を一度だけ購読し、Model とコマンドは器を共有する
             // As in production the holders subscribe to their sources once, and models and commands share them
             Panel = new ReactiveProperty<BlockInventoryPanelState>(panel);
+            OsCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier());
             var panels = new FakePanelSource(Panel);
             var timetableState = new TrainTimetableEditState(Sources, TimetableCommands, new ManualTrainTimetableWaitTimer(), toaster);
             TimetableEdit = new TrainTimetableEditModel(timetableState);
@@ -48,7 +52,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
 
         public TrainInventoryBodyFactory TrainBodyFactory(BlockItemGridFactory grids, GameContentPresentation content)
         {
-            return new TrainInventoryBodyFactory(Sources, TimetableEdit, TimetableEditCommands, Sources, TimetableCommands, grids, content);
+            return new TrainInventoryBodyFactory(Sources, TimetableEdit, TimetableEditCommands, Sources, TimetableCommands, grids, content, OsCursor);
         }
 
         public ITrainInventoryPart CreateTrainBody(BlockItemGridFactory grids, GameContentPresentation content)
@@ -58,7 +62,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
 
         public IBlockInventoryPart CreatePlatformBody(BlockItemGridFactory grids, GameContentPresentation content)
         {
-            return new TrainPlatformBodyFactory(Sources, PlatformEdit, PlatformEditCommands, grids, content).Create(new BlockInventoryBodyMount(false));
+            return new TrainPlatformBodyFactory(Sources, PlatformEdit, PlatformEditCommands, grids, content, OsCursor).Create
+(new BlockInventoryBodyMount(false));
         }
     }
 

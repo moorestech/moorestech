@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Input.OsCursor;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -23,7 +24,7 @@ namespace Client.Ui.Components.Controls
 
         public IObservable<Unit> OnClicked => _clicked;
 
-        public IconButton(string testid, VisualElement glyph)
+        public IconButton(string testid, VisualElement glyph, IUiOsCursor osCursor)
         {
             name = testid;
             AddToClassList(UssClassName);
@@ -41,6 +42,10 @@ namespace Client.Ui.Components.Controls
             // 押下は UniRx で外へ出す
             // Presses leave through UniRx
             clicked += () => _clicked.OnNext(Unit.Default);
+
+            // Web の cursor: pointer（IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
+            // Web cursor: pointer (IconButton/style.module.css:9 and others); the part requests it itself (A-247)
+            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
     }
 }

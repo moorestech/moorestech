@@ -3,7 +3,9 @@ using Client.Game.InGame.UI.UIState;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Panel;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.Inventory.Equipment;
@@ -42,7 +44,7 @@ namespace Client.Tests.Ui.Screens.Inventory
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture));
             var gestures = new PlayerSlotGestureRouter(_fixture.Commands, Toaster);
             var layers = UiLayerStack.Build(rootVisualElement);
-            _inventory = new InventoryView(gestures, new RecordingInventorySortCommands(), content, Toaster);
+            _inventory = new InventoryView(gestures, new RecordingInventorySortCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             layers.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(_inventory);
             _equipment = new EquipmentHudView(gestures, content);
             layers.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_equipment);

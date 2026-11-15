@@ -1,90 +1,63 @@
 using System;
-using System.Collections.Generic;
+using Client.Tests.Ui.Screens.Recipe;
+using Client.Ui.State.Commands;
 using Client.WebUiHost.Game.Actions;
-using Core.Master;
-using Game.UnlockState;
-using Game.UnlockState.States;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace Client.Tests.WebUi
 {
     /// <summary>
-    /// craft.execute の recipeGuid 解決ゲート（不正/未存在/ロック/成功）の純関数テスト
-    /// Pure-function tests for craft.execute's recipeGuid resolution gate (malformed/unknown/locked/success)
+    /// craft.execute が payload を読み、実在・解放の検査と送信を IRecipeCommands へ委ねることのテスト（検査そのものは RecipeCommandsTest）
+    /// Tests that craft.execute reads the payload and delegates existence/unlock checks and sending to IRecipeCommands (the checks themselves live in RecipeCommandsTest)
     /// </summary>
     public class CraftActionTest
     {
-        // 不正な形式の guid は invalid_recipe
-        // A malformed guid resolves to invalid_recipe
-        [Test]
-        public void ResolveCraftRecipeMalformedGuidReturnsInvalidRecipe()
+        // 不正な形式・非文字列の guid はコマンドを呼ばずに invalid_recipe
+        // A malformed or non-string guid yields invalid_recipe without calling the command
+        [TestCase("not-a-guid")]
+        [TestCase(42)]
+        public void 不正なrecipeGuidはコマンドを呼ばずにinvalid_recipeを返す(object rawGuid)
         {
-            var unlock = new StubUnlockStateData(new Dictionary<Guid, CraftRecipeUnlockStateInfo>());
-            var result = CraftExecuteActionHandler.ResolveCraftRecipe(new JValue("not-a-guid"), unlock, out _);
+            var commands = new RecordingRecipeCommands();
+            var result = Execute(commands, new JValue(rawGuid));
+
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("invalid_recipe", result.Error);
+            Assert.IsEmpty(commands.Crafted);
         }
 
-        // 実在しない guid は invalid_recipe
-        // An unknown guid resolves to invalid_recipe
+        // 読めた guid はコマンドへ渡し、受理は成功になる
+        // A parsed guid is handed to the command and acceptance becomes success
         [Test]
-        public void ResolveCraftRecipeUnknownGuidReturnsInvalidRecipe()
+        public void 読めたrecipeGuidはコマンドへ渡して受理を成功で返す()
         {
-            var unlock = new StubUnlockStateData(new Dictionary<Guid, CraftRecipeUnlockStateInfo>());
             var guid = Guid.NewGuid();
-            var result = CraftExecuteActionHandler.ResolveCraftRecipe(new JValue(guid.ToString()), unlock, out _);
-            Assert.IsFalse(result.Ok);
-            Assert.AreEqual("invalid_recipe", result.Error);
-        }
+            var commands = new RecordingRecipeCommands();
+            var result = Execute(commands, new JValue(guid.ToString()));
 
-        // ロック中の guid は recipe_locked（guid はパース成功する）
-        // A locked guid resolves to recipe_locked (the guid still parses)
-        [Test]
-        public void ResolveCraftRecipeLockedReturnsRecipeLocked()
-        {
-            var guid = Guid.NewGuid();
-            var infos = new Dictionary<Guid, CraftRecipeUnlockStateInfo> { { guid, new CraftRecipeUnlockStateInfo(guid, false) } };
-            var unlock = new StubUnlockStateData(infos);
-            var result = CraftExecuteActionHandler.ResolveCraftRecipe(new JValue(guid.ToString()), unlock, out var parsed);
-            Assert.IsFalse(result.Ok);
-            Assert.AreEqual("recipe_locked", result.Error);
-            Assert.AreEqual(guid, parsed);
-        }
-
-        // 解放済みの guid は成功し、パース済み guid を返す
-        // An unlocked guid succeeds and returns the parsed guid
-        [Test]
-        public void ResolveCraftRecipeUnlockedReturnsSuccess()
-        {
-            var guid = Guid.NewGuid();
-            var infos = new Dictionary<Guid, CraftRecipeUnlockStateInfo> { { guid, new CraftRecipeUnlockStateInfo(guid, true) } };
-            var unlock = new StubUnlockStateData(infos);
-            var result = CraftExecuteActionHandler.ResolveCraftRecipe(new JValue(guid.ToString()), unlock, out var parsed);
             Assert.IsTrue(result.Ok);
             Assert.IsNull(result.Error);
-            Assert.AreEqual(guid, parsed);
+            CollectionAssert.AreEqual(new[] { guid }, commands.Crafted);
         }
 
-        /// <summary>
-        /// クラフトレシピの解放状態だけを差し込むテスト用スタブ
-        /// Test stub that injects only craft-recipe unlock state
-        /// </summary>
-        private class StubUnlockStateData : IGameUnlockStateData
+        // コマンドの拒否は State の失敗コードの綴りのまま返る
+        // A command refusal comes back spelled as the State failure code
+        [Test]
+        public void コマンドの拒否はStateの失敗コードで返す()
         {
-            public StubUnlockStateData(IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> craftRecipeUnlockStateInfos)
-            {
-                CraftRecipeUnlockStateInfos = craftRecipeUnlockStateInfos;
-            }
+            var commands = new RecordingRecipeCommands();
+            commands.SetResult(UiCommandRejected.Of(UiCommandRejectReason.RecipeLocked));
+            var result = Execute(commands, new JValue(Guid.NewGuid().ToString()));
 
-            public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos { get; }
-            public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos { get; } = new Dictionary<ItemId, ItemUnlockStateInfo>();
-            public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos { get; } = new Dictionary<Guid, ChallengeCategoryUnlockStateInfo>();
-            public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos { get; } = new Dictionary<Guid, MachineRecipeUnlockStateInfo>();
-            public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos { get; } = new Dictionary<Guid, BlockUnlockStateInfo>();
-            public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos { get; } = new Dictionary<Guid, TrainCarUnlockStateInfo>();
-            public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos { get; } = new Dictionary<Guid, ConnectToolUnlockStateInfo>();
-            public bool IsBlueprintUnlocked { get; } = false;
+            Assert.IsFalse(result.Ok);
+            Assert.AreEqual("recipe_locked", result.Error);
+        }
+
+        private static ActionResult Execute(RecordingRecipeCommands commands, JToken recipeGuid)
+        {
+            var payload = new JObject { ["recipeGuid"] = recipeGuid };
+            return new CraftExecuteActionHandler(commands).ExecuteAsync(payload).GetAwaiter().GetResult();
         }
     }
 }

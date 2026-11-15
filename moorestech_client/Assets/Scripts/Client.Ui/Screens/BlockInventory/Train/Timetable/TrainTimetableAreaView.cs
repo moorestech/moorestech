@@ -1,3 +1,5 @@
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Train.TimetableEdit;
 using Mooresmaster.Localization.Generated;
@@ -12,15 +14,17 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
     public sealed class TrainTimetableAreaView : VisualElement
     {
         private readonly TrainTimetableEditCommands _commands;
+        private readonly IUiOsCursor _osCursor;
         private readonly LocalizedLabel _loading;
         private readonly LocalizedLabel _unavailable;
         private TrainTimetableSectionView _section;
         private ReadyTrainTimetableArea _sectionArea;
 
-        public TrainTimetableAreaView(TrainTimetableEditCommands commands)
+        public TrainTimetableAreaView(TrainTimetableEditCommands commands, IUiOsCursor osCursor)
         {
             name = "train-timetable-area";
             _commands = commands;
+            _osCursor = osCursor;
             _loading = Message("train-timetable-loading", LocalizationKeys.Ui.BlockInventory.TimetableLoading);
             _unavailable = Message("train-timetable-unavailable", LocalizationKeys.Ui.BlockInventory.TimetableUnavailable);
             Add(_loading);
@@ -42,7 +46,8 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             if (_section == null || !_sectionArea.IsSameTrain(ready))
             {
                 RemoveSection();
-                _section = new TrainTimetableSectionView(_commands);
+                _section = new TrainTimetableSectionView(_commands, _osCursor);
+
                 Add(_section);
             }
             _sectionArea = ready;
@@ -62,8 +67,8 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 
         private void Show(VisualElement message)
         {
-            _loading.style.display = message == _loading ? DisplayStyle.Flex : DisplayStyle.None;
-            _unavailable.style.display = message == _unavailable ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_loading, message == _loading);
+            UiDisplay.SetShown(_unavailable, message == _unavailable);
         }
 
         private static LocalizedLabel Message(string testid, LocalizationKey key)

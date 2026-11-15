@@ -1,5 +1,5 @@
-using System;
 using Client.Ui.Foundation.Root;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Ui.Foundation.Composite
@@ -12,7 +12,7 @@ namespace Client.Ui.Foundation.Composite
     /// Web の系では作られないので RT も合成パスも無い。GameUi の系では DI より前に GameUiPreDiFoundation が作って Initialize し、DI へは ITickable として渡す（S5-gate D-2）。パネルを差し替えるので root.panel を控える入口より先に立つ
     /// Never built in the Web system, so neither the RT nor the composite passes exist; in the GameUi system GameUiPreDiFoundation builds and initializes it before DI and hands it to DI as an ITickable (S5-gate D-2); it swaps the panel, so it starts before entry points that keep root.panel
     /// </remarks>
-    public sealed class GameUiSrgbCompositeInstaller : IInitializable, ITickable, IDisposable
+    public sealed class GameUiSrgbCompositeInstaller : IInitializable, ITickable
     {
         private readonly GameUiRoot _gameUiRoot;
         private UiSrgbPanelTarget _panelTarget;
@@ -33,15 +33,11 @@ namespace Client.Ui.Foundation.Composite
         {
             // silent-ok: 生成失敗は Initialize の例外として初期化の失敗（MainGameSceneLoadedHandler の LogError。RT を作れないときはアプリ終了、それ以外はメインメニュー）になり Tick は回らない / 開発者は Console の最初の例外で、プレイヤーはアプリの終了かメインメニューへ戻ることで気づく
             if (_panelTarget == null) return;
-            _panelTarget.SyncToScreenSize();
-            UiSrgbCompositeSource.ReportWhenNotComposited();
-        }
 
-        public void Dispose()
-        {
-            // silent-ok: 生成失敗は Initialize の例外として VContainer が LogException 済み / 開発者は Console の最初の例外で気づく
-            if (_panelTarget == null) return;
-            _panelTarget.Dispose();
+            // 作れない大きさは SyncToSize が LogError を出して前の RT のまま戻る（ここで投げると VContainer の Tick ループごと止まる）
+            // For an uncreatable size SyncToSize logs an error and keeps the previous RT (throwing here would stop VContainer's whole Tick loop)
+            _panelTarget.SyncToSize(Screen.width, Screen.height);
+            UiSrgbCompositeSource.ReportWhenNotComposited();
         }
     }
 }

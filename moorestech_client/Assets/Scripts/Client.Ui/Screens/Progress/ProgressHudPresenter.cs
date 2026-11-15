@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
@@ -12,12 +11,11 @@ namespace Client.Ui.Screens.Progress
     /// 採掘進捗を起動時に実画面の Chrome 層へ載せ、ProgressBarState の変化で出し入れと進捗を押す
     /// Mounts the mining progress on the viewport Chrome layer at startup and pushes visibility and progress on ProgressBarState changes
     /// </summary>
-    public sealed class ProgressHudPresenter : IInitializable, IDisposable
+    public sealed class ProgressHudPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly ProgressBarState _progressBarState;
         private ProgressHudView _view;
-        private IDisposable _subscription;
 
         public ProgressHudPresenter(GameUiRoot gameUiRoot, ProgressBarState progressBarState)
         {
@@ -32,7 +30,7 @@ namespace Client.Ui.Screens.Progress
             _view = new ProgressHudView();
             _gameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_view);
             Apply();
-            _subscription = _progressBarState.OnProgressChanged.Subscribe(_ => Apply());
+            _progressBarState.OnProgressChanged.Subscribe(_ => Apply());
 
             #region Internal
 
@@ -43,12 +41,6 @@ namespace Client.Ui.Screens.Progress
             }
 
             #endregion
-        }
-
-        public void Dispose()
-        {
-            _subscription?.Dispose();
-            _view?.RemoveFromHierarchy();
         }
 
     }

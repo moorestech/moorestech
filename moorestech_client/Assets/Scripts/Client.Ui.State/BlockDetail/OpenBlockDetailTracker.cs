@@ -53,6 +53,8 @@ namespace Client.Ui.State.BlockDetail
         // Track only when the source is a block
         private void Refresh()
         {
+            // 画面の開閉ではなく Web ホストと共有する詳細の追跡の寿命で、OnStateChanged の中では UiRoutingState が未更新のことがあるので UIStateEnum を読む（A-248）
+            // This is the detail-tracking lifetime shared with the Web host, not screen visibility, and UiRoutingState may be stale inside OnStateChanged, so read UIStateEnum (A-248)
             var open = _uiStateControl.CurrentState == UIStateEnum.SubInventory && _subInventoryState.CurrentSubInventory != null;
             if (open && _subInventoryState.CurrentSubInventorySource is BlockSubInventorySource blockSource && _blockGameObjectDataStore.TryGetBlockGameObject(blockSource.BlockPosition, out var block))
             {

@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq;
-using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -25,7 +24,6 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UniRx;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
@@ -40,7 +38,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     public class GameUiMachineSectionWiringTest : UiSystemPlayModeTestBase
     {
         private const string MachineBlockName = "釜";
-        private const float InitializationTimeoutSeconds = 60f;
 
         [UnityTest]
         public IEnumerator UITK起動で機械の区画が解決し開き直すと開いた機械の値へ替わる()
@@ -62,12 +59,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
             async UniTask TestBody()
             {
-                // LoadMainGame は固定 1 秒で戻る。自機を保存座標へ置くのは初期化の完了直前なので、完了を待ってから足場を置く
-                // LoadMainGame returns after a fixed second; the player is placed just before initialization completes, so wait for it before placing the ground
-                var isInitialized = false;
-                using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => isInitialized = true);
+                // LoadMainGame は初期化の完了（自機を保存座標へ置いた後）まで待つので、戻った直後に足場を置ける
+                // LoadMainGame waits for initialization (after the player is placed), so the ground can be placed right after it returns
                 await LoadMainGame();
-                await UniTask.WaitUntil(() => isInitialized).Timeout(System.TimeSpan.FromSeconds(InitializationTimeoutSeconds));
                 var ground = TestPlayerGround.Create();
 
                 // 起動ログを流してから想定外のエラーを拾う（VContainer の解決失敗もここで落ちる）
@@ -148,13 +142,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
             await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
             return await BlockSubInventoryOpener.Open(block);
-        }
-
-        private static async UniTask TransitionTo(UIStateControl uiStateControl, UIStateEnum state)
-        {
-            uiStateControl.RequestTransition(state);
-            for (var i = 0; i < 120 && uiStateControl.CurrentState != state; i++) await UniTask.Yield();
-            Assert.AreEqual(state, uiStateControl.CurrentState, $"{state} へ遷移していない");
         }
 
         // 開いたパネルと同じ個体の機械の値が届くまで待つ

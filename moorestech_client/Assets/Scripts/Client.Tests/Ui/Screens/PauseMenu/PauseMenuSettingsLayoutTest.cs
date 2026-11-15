@@ -4,7 +4,9 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Input;
 using Client.Localization;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
@@ -49,7 +51,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _settings = new FakeSettingsModel(FakeSettingsModel.Default());
             _commands = new RecordingPauseMenuCommands();
             _settingsCommands = new RecordingSettingsCommands();
-            _view = Mount(new PauseMenuView(_model.Current, _settings.Current, _commands, _settingsCommands, Toasts, Toaster, new BugReportDraft()));
+            _view = Mount(new PauseMenuView(_model.Current, _settings.Current, _commands, _settingsCommands, Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
             simulate.FrameUpdate();
         }

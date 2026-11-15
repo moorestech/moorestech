@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.UI.UIState;
+using Client.Ui.State.Routing;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -13,11 +14,11 @@ namespace Client.WebUiHost.Game.Actions
     {
         public string ActionType => "ui_state.request";
 
-        private readonly UIStateControl _uiStateControl;
+        private readonly IUiStateTransitionRequester _requester;
 
-        public RequestUiStateActionHandler(UIStateControl uiStateControl)
+        public RequestUiStateActionHandler(IUiStateTransitionRequester requester)
         {
-            _uiStateControl = uiStateControl;
+            _requester = requester;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -25,48 +26,13 @@ namespace Client.WebUiHost.Game.Actions
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
             if (payload["state"] is not JValue { Type: JTokenType.String } stateValue) return UniTask.FromResult(ActionResult.Fail("invalid_state"));
 
-            return UniTask.FromResult(RequestState(_uiStateControl, (string)stateValue));
-        }
-
-        // Web起点のUIState遷移はこの1本に集める。別経路から状態機械へ書くと現stateの検査を素通りする
-        // Every web-initiated UI-state transition funnels through here; another path would bypass the current-state checks
-        private static ActionResult RequestState(UIStateControl uiStateControl, string stateName)
-        {
-            // Webから要求できるのは GameScreen / PlayerInventory のみ（SubInventoryは対象ブロックが必要）
-            // The web may request only GameScreen / PlayerInventory (SubInventory needs a target block)
-            if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return ActionResult.Fail("unsupported_state");
-
-            // 入れ子ポーズを持つ画面のGameScreen要求は、その入れ子だけを閉じて画面自体は維持する（ADR 0035）
-            // A GameScreen request on a nested-pause screen closes only that nested pause and keeps the screen itself (ADR 0035)
-            if (stateName == nameof(UIStateEnum.GameScreen) && uiStateControl.GetCurrentNestedPauseScreen() is { } nestedScreen)
-            {
-                // 閉じるものが無い要求は成功に見せず拒否する
-                // A request with nothing to close is rejected instead of reported as success
-                return nestedScreen.RequestClosePauseMenu() ? ActionResult.Success() : ActionResult.Fail("transition_not_allowed");
-            }
+            // Webから要求できるのは GameScreen / PlayerInventory のみ（SubInventoryは対象ブロックが必要）。遷移の規則は requester が持つ
+            // The web may request only GameScreen / PlayerInventory (SubInventory needs a target block); the requester owns the transition rules
+            var stateName = (string)stateValue;
+            if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return UniTask.FromResult(ActionResult.Fail("unsupported_state"));
 
             var requested = Enum.Parse<UIStateEnum>(stateName);
-            if (!IsAllowed(uiStateControl.CurrentState, requested)) return ActionResult.Fail("transition_not_allowed");
-            uiStateControl.RequestTransition(requested);
-            return ActionResult.Success();
-        }
-
-        public static bool IsAllowed(UIStateEnum current, UIStateEnum requested)
-        {
-            if (current == requested) return true;
-            return current switch
-            {
-                UIStateEnum.GameScreen => requested == UIStateEnum.PlayerInventory,
-                UIStateEnum.PlayerInventory => requested == UIStateEnum.GameScreen,
-                UIStateEnum.SubInventory => requested == UIStateEnum.GameScreen,
-                UIStateEnum.BuildMenu => requested == UIStateEnum.GameScreen,
-                // C1/C2で追加されたWeb画面の閉じ操作。Story/PauseMenu中の強制遷移は引き続き拒否
-                // Close paths for the C1/C2 web screens; forced transitions during Story/PauseMenu stay rejected
-                UIStateEnum.ResearchTree => requested == UIStateEnum.GameScreen,
-                UIStateEnum.ChallengeList => requested == UIStateEnum.GameScreen,
-                UIStateEnum.PauseMenu => requested == UIStateEnum.GameScreen,
-                _ => false,
-            };
+            return UniTask.FromResult(_requester.RequestTransition(requested) ? ActionResult.Success() : ActionResult.Fail("transition_not_allowed"));
         }
     }
 }

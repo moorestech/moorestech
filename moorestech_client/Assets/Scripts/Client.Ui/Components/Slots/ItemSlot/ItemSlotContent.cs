@@ -7,6 +7,10 @@ namespace Client.Ui.Components.Slots
     /// ItemSlot の入力値（Web の props）
     /// Input values of an ItemSlot (the Web props)
     /// </summary>
+    /// <remarks>
+    /// 優先: 実物 &gt; ゴースト。白面は実物だけで決める（ItemSlotPresentation.From）。Web の props と同じ平らな形で、Fluid の sealed 派生とは揃えない（D-9）
+    /// Priority: real item &gt; ghost. The white face is decided by the real item only (ItemSlotPresentation.From). Flat like the Web props, deliberately not aligned with the sealed Fluid derivations (D-9)
+    /// </remarks>
     public sealed class ItemSlotContent
     {
         // null は空きマス（Web の itemId 0）

@@ -1,7 +1,9 @@
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.Ui.Screens.PauseMenu;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
 using NUnit.Framework;
@@ -22,7 +24,7 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.BugReport));
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft()));
+            _view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
             Find<TextField>(_view, "bug-report-description").value = "body";
             simulate.FrameUpdate();

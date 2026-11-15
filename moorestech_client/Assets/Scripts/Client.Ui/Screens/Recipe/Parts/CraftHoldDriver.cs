@@ -56,6 +56,24 @@ namespace Client.Ui.Screens.Recipe.Parts
             _elapsed = 0;
             _row.SetProgress(0f);
             _tick = _scheduleOwner.schedule.Execute(Tick).Every(0);
+
+            #region Internal
+
+            void Tick(TimerState timer)
+            {
+                // 1 フレームの経過は上限で頭打ち（タブ復帰などの大きな飛びで連続クラフトしない）
+                // Cap one frame at the limit so a large jump never crafts several times
+                var delta = Math.Min(timer.deltaTime / 1000.0, HoldCraftLogic.MaxFrameDeltaSeconds);
+
+                // 回っている間は必ず作れる（作れないと Start せず、作れなくなると SetRecipe が止める）。Web の待機の分岐は届かないので写さない
+                // While ticking it is always craftable (Start refuses otherwise and SetRecipe stops it), so the Web's unreachable idle branch is not ported
+                var step = HoldCraftLogic.Advance(_elapsed, delta, _craftTime);
+                _elapsed = step.Elapsed;
+                if (step.DidCraft) _toaster.Report(RecipeCommands.CommandName, _commands.Craft(_recipeGuid));
+                _row.SetProgress((float)HoldCraftLogic.Progress(_elapsed, _craftTime));
+            }
+
+            #endregion
         }
 
         public void Stop()
@@ -66,20 +84,6 @@ namespace Client.Ui.Screens.Recipe.Parts
             _tick = null;
             _elapsed = 0;
             _row.SetProgress(0f);
-        }
-
-        private void Tick(TimerState timer)
-        {
-            // 1 フレームの経過は上限で頭打ち（タブ復帰などの大きな飛びで連続クラフトしない）
-            // Cap one frame at the limit so a large jump never crafts several times
-            var delta = Math.Min(timer.deltaTime / 1000.0, HoldCraftLogic.MaxFrameDeltaSeconds);
-
-            // 回っている間は必ず作れる（作れないと Start せず、作れなくなると SetRecipe が止める）。Web の待機の分岐は届かないので写さない
-            // While ticking it is always craftable (Start refuses otherwise and SetRecipe stops it), so the Web's unreachable idle branch is not ported
-            var step = HoldCraftLogic.Advance(_elapsed, delta, _craftTime);
-            _elapsed = step.Elapsed;
-            if (step.DidCraft) _toaster.Report(RecipeCommands.CommandName, _commands.Craft(_recipeGuid));
-            _row.SetProgress((float)HoldCraftLogic.Progress(_elapsed, _craftTime));
         }
     }
 }

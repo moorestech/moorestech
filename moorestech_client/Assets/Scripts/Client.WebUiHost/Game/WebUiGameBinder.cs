@@ -2,8 +2,10 @@ using Client.Ui.State.BlockDetail;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Research;
+using Client.Ui.State.Routing;
 using Client.Game.InGame.Train.Timetable;
 using Client.Ui.State.Train;
+using Client.Ui.State.Train.Platform.Edit;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.FluidNetwork;
@@ -20,7 +22,8 @@ using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Ui.State.Recipe.Catalog;
+using Client.Ui.State.Recipe.Commands;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -122,25 +125,17 @@ namespace Client.WebUiHost.Game
             // ゲーム内ツールチップ状態を Web へ接続する
             // Connect the in-game tooltip state to the web
             hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, resolver.Resolve<MouseCursorTooltipState>()));
-            // クラフトレシピトピックを登録
-            // Register the craft-recipes topic
+            // レシピ画面のtopic/actionをまとめて登録（前例 C4WebUiRegistration）
+            // Register the recipe-screen topics/actions together (precedent: C4WebUiRegistration)
             var unlockStateData = ClientDIContext.DIContainer
                 .DIContainerResolver
                 .Resolve<IGameUnlockStateData>();
-            var craftingRecipesTopic = new CraftingRecipesTopic(hub, unlockStateData);
-            hub.RegisterTopic(CraftingRecipesTopic.TopicName, craftingRecipesTopic);
+            RecipeWebUiRegistration.Register(hub, unlockStateData, resolver.Resolve<RecipeViewerItemCatalog>(), resolver.Resolve<IRecipeCommands>());
             // 機械レシピとスロット上限の配信登録
             // Register machine-recipe and slot-limit topics
             var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData, resolver.Resolve<ILevelInheritanceCraftCapLookup>());
             hub.RegisterTopic(MachineRecipesTopic.TopicName, machineRecipesTopic);
             hub.RegisterTopic(MachineUpgradeTopic.TopicName, new MachineUpgradeTopic(hub, resolver.Resolve<IModuleSlotStackLimitLookup>()));
-            // アイテムリストトピックを登録
-            // Register the item-list topic
-            var recipeContainer = ClientDIContext.DIContainer
-                .DIContainerResolver
-                .Resolve<ItemRecipeViewerDataContainer>();
-            var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
-            hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
             // 研究ツリートピック登録
             // Register the research-tree topic
             var researchNodeStateStore = resolver.Resolve<ResearchNodeStateStore>();
@@ -173,10 +168,9 @@ namespace Client.WebUiHost.Game
             LocalizationActions.Register(hub, resolver.Resolve<ISettingsCommands>());
             SettingsActions.Register(hub, resolver.Resolve<ISettingsCommands>());
             InventoryWebUiActionRegistration.Register(hub, controller, subInventoryState);
-            hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
-            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
+            hub.RegisterAction(new RequestUiStateActionHandler(resolver.Resolve<IUiStateTransitionRequester>()));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchNodeStateStore));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockNetworkInfoCache));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockNetworkInfoCache));
@@ -184,7 +178,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new SpaceElevatorConnectActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             hub.RegisterAction(new RocketLaunchPadCommandActionHandler(subInventoryState));
-            TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);
+            TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher, resolver.Resolve<ITrainBlockCommands>());
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuSelection));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             var pauseMenuCommands = resolver.Resolve<IPauseMenuCommands>();

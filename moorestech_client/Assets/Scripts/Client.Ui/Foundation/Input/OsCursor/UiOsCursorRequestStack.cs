@@ -39,18 +39,22 @@ namespace Client.Ui.Foundation.Input.OsCursor
             if (top == _applied) return;
             _applied = top;
             _applier.Apply(top);
-        }
 
-        private UiOsCursorShape FindTopShape()
-        {
-            // 高い層が勝ち、同じ層は後から積んだ方が勝つ（>= で後ろを選ぶ）
-            // A higher layer wins and within a layer the later request wins (>= picks the later one)
-            ShapeRequest top = null;
-            foreach (var request in _requests)
+            #region Internal
+
+            UiOsCursorShape FindTopShape()
             {
-                if (top == null || top.Layer <= request.Layer) top = request;
+                // 高い層が勝ち、同じ層は後から積んだ方が勝つ（>= で後ろを選ぶ）
+                // A higher layer wins and within a layer the later request wins (>= picks the later one)
+                ShapeRequest top = null;
+                foreach (var request in _requests)
+                {
+                    if (top == null || top.Layer <= request.Layer) top = request;
+                }
+                return top?.Shape ?? UiOsCursorShape.Default;
             }
-            return top?.Shape ?? UiOsCursorShape.Default;
+
+            #endregion
         }
 
         private sealed class ShapeRequest : IDisposable

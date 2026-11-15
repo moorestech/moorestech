@@ -45,7 +45,9 @@ namespace Client.Input.ArrowKeys
                 var pressed = 0.5f <= value;
                 var edge = pressed && !wasPressed;
                 wasPressed = pressed;
-                if (edge) _onArrowPressed.OnNext(arrow);
+                // 入力欄のフォーカス中の抑止は InputKey と同じ判定へ通す（止めたときのログも InputSuppressionFilter が出す。A-246）
+                // Text-field suppression goes through the same decision as InputKey (InputSuppressionFilter also logs when it blocks; A-246)
+                if (edge && InputSuppressionFilter.FilterKeyPress(true, InputSuppressionScope.Keyboard, false)) _onArrowPressed.OnNext(arrow);
             }
 
             #endregion

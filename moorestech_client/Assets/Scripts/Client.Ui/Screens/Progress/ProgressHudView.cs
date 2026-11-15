@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Progress
@@ -33,7 +34,7 @@ namespace Client.Ui.Screens.Progress
 
         public void SetShown(bool shown)
         {
-            _column.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_column, shown);
         }
 
         public void SetProgress(float progress01)

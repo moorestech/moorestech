@@ -2,10 +2,11 @@
 // Writes the values Mantine's dark theme resolves for --mantine-* and the component size variables (Button, Input) into MantineTokens.uss (design §3.1, C4)
 // 使い方: リポジトリ直下で `pnpm --dir moorestech_web/webui install --frozen-lockfile && node tools/uitk/convert-mantine-tokens.mjs`
 // Usage: from the repository root, `pnpm --dir moorestech_web/webui install --frozen-lockfile && node tools/uitk/convert-mantine-tokens.mjs`
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createTokenConverter } from "./webTokens/convertTokenValue.mjs";
+import { writeOrCheck } from "./webTokens/writeOrCheck.mjs";
 import { mantineTokenNames, readMantineRawTokens, resolveVarChain } from "./webTokens/mantineTokens.mjs";
 
 const repositoryRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -43,5 +44,4 @@ for (const name of mantineTokenNames()) {
 lines.push("}");
 
 if (lines.length > maxLinesPerFile) throw new Error(`${outputPath} would have ${lines.length} lines (max ${maxLinesPerFile})`);
-writeFileSync(join(repositoryRoot, outputPath), `${lines.join("\n")}\n`);
-console.log(`wrote ${outputPath} (${lines.length} lines)`);
+writeOrCheck(repositoryRoot, outputPath, `${lines.join("\n")}\n`, process.argv.includes("--check"));

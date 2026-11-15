@@ -18,27 +18,22 @@ namespace Client.Ui.Components.Recipe
     /// </remarks>
     internal static class RecipeRowFrameShadowMesh
     {
-        public const int RingCount = 8;
-        public const int GlowVertexCount = (RingCount + 1) * 4;
-        public const int GlowIndexCount = RingCount * 4 * 6;
-        public const int BarShadowVertexCount = (RingCount + 1) * 4;
-        public const int BarShadowIndexCount = 6 + RingCount * 4 * 6;
-
-        // 1px の棒の輪を内側へ裏返さない止め（px）
-        // Stop that keeps a 1px bar's rings from flipping inward (px)
-        private const float BarCenterMargin = 0.01f;
+        public const int GlowVertexCount = (ShadowRingMeshWriter.RingCount + 1) * 4;
+        public const int GlowIndexCount = ShadowRingMeshWriter.RingCount * 4 * 6;
+        public const int BarShadowVertexCount = (ShadowRingMeshWriter.RingCount + 1) * 4;
+        public const int BarShadowIndexCount = 6 + ShadowRingMeshWriter.RingCount * 4 * 6;
 
         public static void BuildGlow(Rect borderBox, float sigma, Color glowColor, Vertex[] vertices, ushort[] indices)
         {
             // 線の箱の縁（被覆率 0.5）から外へ 2σ まで刻む
             // Step outward from the border box edge (coverage 0.5) to 2σ
-            for (var k = 0; k <= RingCount; k++)
+            for (var k = 0; k <= ShadowRingMeshWriter.RingCount; k++)
             {
-                var distance = 2f * sigma * k / RingCount;
+                var distance = 2f * sigma * k / ShadowRingMeshWriter.RingCount;
                 WriteRing(vertices, k * 4, Grow(borderBox, distance), Tint(glowColor, GaussianEdgeCoverage.At(distance, sigma)));
             }
             var cursor = 0;
-            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, RingCount, 4);
+            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, ShadowRingMeshWriter.RingCount, 4);
         }
 
         public static void BuildBarShadow(Rect bar, float sigma, Color shadowColor, Vertex[] vertices, ushort[] indices)
@@ -46,10 +41,10 @@ namespace Client.Ui.Components.Recipe
             // 縁の内外 2σ を刻む。内側は棒の太さの半分の手前で止める（前例の中心線の手前で止める形）
             // Step 2σ inside and outside the edge; inward steps stop short of half the bar thickness (the precedent's stop before the centre line)
             var thickness = Mathf.Min(bar.width, bar.height);
-            var innerLimit = BarCenterMargin - thickness * 0.5f;
-            for (var k = 0; k <= RingCount; k++)
+            var innerLimit = ShadowRingMeshWriter.CenterMargin - thickness * 0.5f;
+            for (var k = 0; k <= ShadowRingMeshWriter.RingCount; k++)
             {
-                var fromEdge = Mathf.Max((2f * k / RingCount - 1f) * 2f * sigma, innerLimit);
+                var fromEdge = Mathf.Max((2f * k / ShadowRingMeshWriter.RingCount - 1f) * 2f * sigma, innerLimit);
                 WriteRing(vertices, k * 4, Grow(bar, fromEdge), Tint(shadowColor, BarEdgeCoverage(fromEdge)));
             }
 
@@ -58,7 +53,7 @@ namespace Client.Ui.Components.Recipe
             var cursor = 0;
             ShadowRingMeshWriter.WriteClockwise(vertices, indices, ref cursor, 0, 1, 2);
             ShadowRingMeshWriter.WriteClockwise(vertices, indices, ref cursor, 0, 2, 3);
-            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, RingCount, 4);
+            ShadowRingMeshWriter.WriteBands(vertices, indices, ref cursor, ShadowRingMeshWriter.RingCount, 4);
 
             #region Internal
 

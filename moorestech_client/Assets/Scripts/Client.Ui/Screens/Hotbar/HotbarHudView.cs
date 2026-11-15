@@ -4,6 +4,7 @@ using Client.Ui.Content;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Hotbar.Parts;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
@@ -57,20 +58,11 @@ namespace Client.Ui.Screens.Hotbar
             _row.Add(_rowGroup);
         }
 
-        // 退いた帯の中で掴んだままの押下を捨てる（残ると離した時に枠外ドロップとして割当が解除される）
-        // Drop a press still captured inside the retreated band (otherwise releasing it fires an outside drop and clears the assignment)
-        private void ReleaseCaptureInsideBand()
-        {
-            var capturing = panel?.GetCapturingElement(PointerId.mousePointerId) as VisualElement;
-            if (capturing == null || !Contains(capturing)) return;
-            capturing.ReleasePointer(PointerId.mousePointerId);
-        }
-
         public void Render(HotbarViewModel viewModel)
         {
             // 退く間は帯ごと隠す
             // Hide the whole band while retreating
-            style.display = viewModel.Visible ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, viewModel.Visible);
             if (!viewModel.Visible) ReleaseCaptureInsideBand();
             _row.EnableInClassList(SelectDisabledClass, !viewModel.SelectAccepted);
 
@@ -92,6 +84,15 @@ namespace Client.Ui.Screens.Hotbar
                     _rowGroup.Add(cell);
                 }
                 _calcKnobs.ApplyToRebuiltTabs();
+            }
+
+            // 退いた帯の中で掴んだままの押下を捨てる（残ると離した時に枠外ドロップとして割当が解除される）
+            // Drop a press still captured inside the retreated band (otherwise releasing it fires an outside drop and clears the assignment)
+            void ReleaseCaptureInsideBand()
+            {
+                var capturing = panel?.GetCapturingElement(PointerId.mousePointerId) as VisualElement;
+                if (capturing == null || !Contains(capturing)) return;
+                capturing.ReleasePointer(PointerId.mousePointerId);
             }
 
             #endregion

@@ -28,7 +28,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
         public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetFilterSplitter(out var filter);
-            SpecialViewParts.SetShown(_stack, present);
+            UiDisplay.SetShown(_stack, present);
             // silent-ok: 詳細の未着は本文を空のまま（Web と同じ） / 届かないままなら録画（R-12）の振り分け機の段で気づく
             if (!present) return;
 

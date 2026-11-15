@@ -122,5 +122,18 @@ namespace Client.Tests.Ui.Text
             rootVisualElement.Add(label);
             simulate.FrameUpdate();
         }
+
+        [Test]
+        public void 空のUiTextで作ったラベルは載せても文なしの警告を出さずtextが空()
+        {
+            // 空の原文で作れば、詳細より先に載せても「文なし」の報告は出ない
+            // Created from the empty text, mounting before any detail arrives raises no attached-without-text report
+            var label = new LocalizedLabel(UiText.Empty) { name = "seeded-empty" };
+            rootVisualElement.Add(label);
+            simulate.FrameUpdate();
+
+            LogAssert.NoUnexpectedReceived();
+            Assert.AreEqual(string.Empty, label.text);
+        }
     }
 }

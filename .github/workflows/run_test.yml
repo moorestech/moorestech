@@ -53,6 +53,19 @@ jobs:
           "$pnpm_binary" --dir webui exec tsc -p e2e/tsconfig.json --noEmit
           "$pnpm_binary" --dir webui exec vitest run
 
+      # UITK のトークンが Web の CSS の変換と一致するか（DC-30）。G1 と同じく feature/uitk への PR と切替 PR だけで課す
+      # Whether the UITK tokens match the conversion of the Web CSS (DC-30); like G1, enforced only on PRs into feature/uitk and the switch PR
+      - name: Check UITK tokens against the Web CSS
+        if: github.base_ref == 'feature/uitk' || github.head_ref == 'feature/uitk'
+        shell: bash
+        working-directory: moorestech_web
+        run: |
+          shopt -s nullglob
+          candidates=(node/*/pnpm)
+          pnpm_binary="$PWD/${candidates[0]}"
+          "$pnpm_binary" --dir webui exec node ../../tools/uitk/convert-web-tokens.mjs --check
+          "$pnpm_binary" --dir webui exec node ../../tools/uitk/convert-mantine-tokens.mjs --check
+
   # shard集合の正本はresolverの配列1箇所。matrixをそこから生成し、両者の乖離が起こりえない形にする。
   # The shard set has a single source in the resolver's arrays; generating the matrix from it makes divergence impossible.
   resolve_unity_test_shards:

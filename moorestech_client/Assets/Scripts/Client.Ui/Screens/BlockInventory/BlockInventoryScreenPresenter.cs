@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.State.BlockInventory.Panel;
@@ -20,8 +21,9 @@ namespace Client.Ui.Screens.BlockInventory
         private readonly BlockInventoryPartRegistry _parts;
         private readonly IBlockInventoryPanelCommands _commands;
         private readonly UiCommandResultToaster _toaster;
+        private readonly IUiOsCursor _osCursor;
 
-        public BlockInventoryScreenPresenter(StageColumnsLayout stage, UiRoutingState routing, BlockInventoryPanelLayoutModel layout, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster)
+        public BlockInventoryScreenPresenter(StageColumnsLayout stage, UiRoutingState routing, BlockInventoryPanelLayoutModel layout, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             _stage = stage;
             _routing = routing;
@@ -29,11 +31,13 @@ namespace Client.Ui.Screens.BlockInventory
             _parts = parts;
             _commands = commands;
             _toaster = toaster;
+            _osCursor = osCursor;
         }
 
         public void Initialize()
         {
-            var view = new BlockInventoryView(_stage, _commands, _toaster);
+            var view = new BlockInventoryView(_stage, _commands, _toaster, _osCursor);
+
             var host = new BlockInventoryBodyHost(_parts, view);
             _stage.Get(StageColumn.Viewer).Add(view);
 

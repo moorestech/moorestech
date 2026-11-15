@@ -1,4 +1,5 @@
 using Client.Localization;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UniRx;
@@ -115,6 +116,25 @@ namespace Client.Tests.Localization.Resolution
             Assert.AreEqual(0, eventCount);
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
             Assert.IsFalse(PlayerPrefs.HasKey(Localize.LanguagePreferenceKey));
+        }
+
+        /// <web-test file="src/shared/i18n/allScreensI18n.test.ts">marks a failed requested locale without replacing the previous ready dictionary</web-test>
+        [Test]
+        public void RejectedCodeAfterChoosingJapaneseKeepsJapaneseDictionary()
+        {
+            Assert.IsTrue(Localize.TrySetChosenLanguage("japanese"));
+            var eventCount = 0;
+            using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
+
+            // 選べない言語の要求は拒否のログだけを残し、直前の日本語の辞書を差し替えない
+            // A request for an unselectable language only logs the rejection and keeps the previous Japanese dictionary
+            LogAssert.Expect(LogType.Warning, "[Localize] language rejected: unsupported code klingon");
+            Assert.IsFalse(Localize.TrySetChosenLanguage("klingon"));
+
+            Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
+            Assert.AreEqual("ローカルでプレイ", Localize.Get(LocalizationKeys.Ui.MainMenu.PlayLocally));
+            Assert.AreEqual(0, eventCount);
+            Assert.AreEqual("japanese", PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
         }
 
         private sealed class FixedSource : IUnchosenLanguageSource

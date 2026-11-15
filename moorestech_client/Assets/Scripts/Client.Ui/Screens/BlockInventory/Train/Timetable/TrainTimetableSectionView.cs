@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
@@ -21,7 +22,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
         private readonly TrainTimetableStopListView _stops;
         private readonly TrainTimetableStationListView _stations;
 
-        public TrainTimetableSectionView(TrainTimetableEditCommands commands)
+        public TrainTimetableSectionView(TrainTimetableEditCommands commands, IUiOsCursor osCursor)
         {
             name = "train-timetable-section";
             AddToClassList("train-timetable");
@@ -37,7 +38,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             {
                 new ModeSwitchOption<bool>("train-timetable-auto-run-on", true, new UiText(LocalizationKeys.Ui.BlockInventory.TimetableAutoRunOn)),
                 new ModeSwitchOption<bool>("train-timetable-auto-run-off", false, new UiText(LocalizationKeys.Ui.BlockInventory.TimetableAutoRunOff)),
-            });
+            }, osCursor);
             _autoRun.AddToClassList("train-timetable__row-end");
             _autoRun.OnOptionSelected.Subscribe(enabled => commands.SetAutoRun(enabled));
             autoRunRow.Add(autoRunLabel);
@@ -46,8 +47,9 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
             _autoRunUnavailable.SetKey(LocalizationKeys.Ui.BlockInventory.TimetableAutoRunUnavailable);
             _autoRunUnavailable.AddToClassList(UiTypographyClass.TextSm);
 
-            _stops = new TrainTimetableStopListView(commands);
-            _stations = new TrainTimetableStationListView(commands);
+            _stops = new TrainTimetableStopListView(commands, osCursor);
+            _stations = new TrainTimetableStationListView(commands, osCursor);
+
             _stack.AddItem(autoRunRow);
             _stack.AddItem(_autoRunUnavailable);
             _stack.AddItem(_stops);

@@ -2,7 +2,9 @@ using System.Linq;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Input;
 using Client.Localization;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Settings;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
@@ -31,7 +33,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 言語は配信順のoptionsを縦に並べ現在値を選択する()
         {
-            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster));
+            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             var expected = LanguageCatalog.Languages.Select(language => $"language-select-option-{language.Code}").ToArray();
             CollectionAssert.AreEqual(expected, Find<VisualElement>(view, "language-select").Query<Button>().ToList().Select(button => button.name));
             Assert.IsTrue(Find<VisualElement>(view, "language-select").ClassListContains("mode-switch--vertical"));
@@ -42,7 +44,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 言語を選ぶとSetLanguageを出し拒否ならエラーのトーストを出す()
         {
-            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster));
+            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             simulate.Click(Find<Button>(view, "language-select-option-japanese"));
             Assert.AreEqual("japanese", _commands.Issued.Single().LanguageCode);
             Assert.IsEmpty(ShownToasts);
@@ -59,7 +61,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 走りはtopicの現在値を選択しホールド選択を設定actionへ送る()
         {
-            var view = Mount(new SprintModeSelectView(FakeSettingsModel.Default(), _commands));
+            var view = Mount(new SprintModeSelectView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.IsTrue(IsSelected(view, "sprint-mode-option-toggle"));
             simulate.Click(Find<Button>(view, "sprint-mode-option-hold"));
             Assert.AreEqual(SprintInputMode.Hold, _commands.Issued.Single().SprintMode);
@@ -75,7 +77,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 走りの復旧記録を表示し解除のtopicで消す()
         {
-            var view = Mount(new SprintModeSelectView(Settings(GraphicsQualityPresetChoice.Medium, false, SprintInputMode.Toggle, true), _commands));
+            var view = Mount(new SprintModeSelectView(Settings(GraphicsQualityPresetChoice.Medium, false, SprintInputMode.Toggle, true), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.IsTrue(IsShown(Find<Label>(view, "sprint-mode-recovered")));
             view.Apply(FakeSettingsModel.Default());
             Assert.IsFalse(IsShown(Find<Label>(view, "sprint-mode-recovered")));
@@ -85,7 +87,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void プリセットと一致するときはその値を選択しカスタム表示を出さない()
         {
-            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands));
+            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.IsTrue(IsSelected(view, "graphics-preset-medium"));
             Assert.AreEqual(1, SelectedCount(Find<VisualElement>(view, "graphics-preset")));
             Assert.IsFalse(IsShown(Find<Label>(view, "graphics-preset-custom")));
@@ -96,7 +98,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void カスタムのときは無選択にしてカスタム表示を1件出す()
         {
-            var view = Mount(new GraphicsQualitySettingsView(Settings(GraphicsQualityPresetChoice.Custom, false, SprintInputMode.Toggle, false), _commands));
+            var view = Mount(new GraphicsQualitySettingsView(Settings(GraphicsQualityPresetChoice.Custom, false, SprintInputMode.Toggle, false), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.AreEqual(0, SelectedCount(Find<VisualElement>(view, "graphics-preset")));
             Assert.IsTrue(IsShown(Find<Label>(view, "graphics-preset-custom")));
             Assert.AreEqual(1, view.Query<Label>("graphics-preset-custom").ToList().Count);
@@ -107,7 +109,7 @@ namespace Client.Tests.Ui.Screens.Settings
         public void 項目変更は今の設定値の1項目だけを差し替えプリセット選択はプリセット名を送る()
         {
             var current = GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium);
-            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands));
+            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.IsTrue(IsSelected(view, current.ShadowsEnabled ? "graphics-shadows-on" : "graphics-shadows-off"));
 
             simulate.Click(Find<Button>(view, current.ShadowsEnabled ? "graphics-shadows-off" : "graphics-shadows-on"));
@@ -125,7 +127,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 数値項目と地形は対応する値で送る()
         {
-            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands));
+            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.AreEqual("5000m", Find<Button>(view, "graphics-draw-distance-5000").Q<Label>().PlainText());
             simulate.Click(Find<Button>(view, "graphics-draw-distance-5000"));
             simulate.Click(Find<Button>(view, "graphics-render-scale-50"));
@@ -139,7 +141,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 画質の復旧表示を解除通知まで保持し同値選択も送る()
         {
-            var view = Mount(new GraphicsQualitySettingsView(Settings(GraphicsQualityPresetChoice.Medium, true, SprintInputMode.Toggle, false), _commands));
+            var view = Mount(new GraphicsQualitySettingsView(Settings(GraphicsQualityPresetChoice.Medium, true, SprintInputMode.Toggle, false), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             Assert.IsTrue(IsShown(Find<Label>(view, "graphics-recovered")));
 
             // 選択中の中を押しても送る（復旧の確認になる）
@@ -155,7 +157,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 画質の項目の並びとtestidはWebと同じ()
         {
-            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands));
+            var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             var switches = view.Query<VisualElement>(className: "mode-switch").ToList().Select(element => element.name);
             CollectionAssert.AreEqual(new[]
             {

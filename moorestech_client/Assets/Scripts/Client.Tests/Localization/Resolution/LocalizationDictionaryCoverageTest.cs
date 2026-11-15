@@ -34,6 +34,7 @@ namespace Client.Tests.Localization.Resolution
             AssertResolves(LocalizationKeys.Ui.MainMenu.ConnectFailed);
         }
 
+        /// <web-test file="src/shared/i18n/allScreensI18n.test.ts">requires non-empty Source and every language cell for every generated key</web-test>
         [Test]
         public void EveryVanillaKeyHasNonEmptyTextInEveryLanguage()
         {
@@ -51,6 +52,18 @@ namespace Client.Tests.Localization.Resolution
                     Assert.IsTrue(hasKey, $"{languageCode}:{key}");
                     Assert.IsNotEmpty(text, $"{languageCode}:{key}");
                 }
+            }
+        }
+
+        /// <web-test file="src/shared/i18n/allScreensI18n.test.ts">requires non-empty Source and every language cell for every generated key</web-test>
+        [Test]
+        public void EveryVanillaKeyHasNonEmptySourceText()
+        {
+            // 生成キーの正準である Source の文が空のキーを残さない
+            // No generated key may keep an empty Source text, the canonical column
+            foreach (var pair in VanillaLocalizationTable.SourceTexts)
+            {
+                Assert.IsNotEmpty(pair.Value, pair.Key);
             }
         }
 

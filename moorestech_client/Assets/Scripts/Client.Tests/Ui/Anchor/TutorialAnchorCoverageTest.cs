@@ -8,7 +8,9 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.Ui.Screens;
 using Client.Tests.Ui.Screens.PauseMenu;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
 using NUnit.Framework;
@@ -77,7 +79,7 @@ namespace Client.Tests.Ui.Anchor
             // The top page carries the frame and four buttons; opening a sub-page adds Back-to-top
             var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            var view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft()));
+            var view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             view.SetShown(true);
             simulate.FrameUpdate();
             AssertUnique(AnchorIds.PauseMenu, AnchorIds.PauseSave, AnchorIds.PauseBack, AnchorIds.PauseSettings, AnchorIds.PauseBugReport);

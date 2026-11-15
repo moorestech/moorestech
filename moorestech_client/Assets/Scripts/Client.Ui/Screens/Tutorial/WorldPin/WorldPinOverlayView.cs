@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Tutorial.Logic;
@@ -37,7 +38,25 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             // 層の寸法が変わったら端クランプを置き直す（Web useViewportSize）
             // Re-clamp the edge arrows when the layer size changes (Web useViewportSize)
             RegisterCallback<GeometryChangedEvent>(_ => Render(_current));
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
+
+            #region Internal
+
+            void ReadKnobs(ICustomStyle customStyle)
+            {
+                // 寸法と色はトークンを画面ルートで受け直した変数から読み、読めたら描き直す（読めなければ Reader が LogError）
+                // Read sizes and colors from the screen root's re-declared tokens and redraw (the reader logs an error when unreadable)
+                var hasMargin = UssCustomStyleReader.TryReadPixels(customStyle, "--world-pin-view-edge-margin", out _edgeMargin);
+                var hasSize = UssCustomStyleReader.TryReadPixels(customStyle, "--world-pin-view-arrow-size", out _arrowSize);
+                var hasFace = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-face", out _face);
+                var hasStroke = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-stroke", out _stroke);
+                var hasFill = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-arrow-fill", out _arrowFill);
+                var hasShadow = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-arrow-shadow", out _arrowShadow);
+                _knobsResolved = hasMargin && hasSize && hasFace && hasStroke && hasFill && hasShadow;
+                Render(_current);
+            }
+
+            #endregion
         }
 
         public void Render(WorldPinViewModel model)
@@ -51,7 +70,7 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
                 if (cue is WorldPinCue.OnScreen onScreen) ShowMarker(onScreen);
                 else ShowArrow((WorldPinCue.OffScreen)cue);
             }
-            style.display = model.Pins.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+            UiDisplay.SetShown(this, model.Pins.Count != 0);
 
             #region Internal
 
@@ -107,20 +126,6 @@ namespace Client.Ui.Screens.Tutorial.WorldPin
             }
 
             #endregion
-        }
-
-        private void ReadKnobs(ICustomStyle customStyle)
-        {
-            // 寸法と色はトークンを画面ルートで受け直した変数から読み、読めたら描き直す（読めなければ Reader が LogError）
-            // Read sizes and colors from the screen root's re-declared tokens and redraw (the reader logs an error when unreadable)
-            var hasMargin = UssCustomStyleReader.TryReadPixels(customStyle, "--world-pin-view-edge-margin", out _edgeMargin);
-            var hasSize = UssCustomStyleReader.TryReadPixels(customStyle, "--world-pin-view-arrow-size", out _arrowSize);
-            var hasFace = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-face", out _face);
-            var hasStroke = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-stroke", out _stroke);
-            var hasFill = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-arrow-fill", out _arrowFill);
-            var hasShadow = UssCustomStyleReader.TryReadColor(customStyle, "--world-pin-view-arrow-shadow", out _arrowShadow);
-            _knobsResolved = hasMargin && hasSize && hasFace && hasStroke && hasFill && hasShadow;
-            Render(_current);
         }
     }
 }

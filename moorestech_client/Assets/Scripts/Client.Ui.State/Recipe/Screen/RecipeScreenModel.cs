@@ -79,7 +79,7 @@ namespace Client.Ui.State.Recipe.Screen
             {
                 // 表示の突入で 1 回組む（閉じている間に捨てた変化をここで取り込む）
                 // Build once on entering the screen (picks up the changes dropped while closed)
-                _screenShown = IsScreenShown(snapshot);
+                _screenShown = RecipeScreenVisibility.IsShown(snapshot);
                 RebuildWhileShown();
             }
 
@@ -98,13 +98,6 @@ namespace Client.Ui.State.Recipe.Screen
             }
 
             #endregion
-        }
-
-        // レシピ画面が出ているかの唯一の判定（Model の組み直しと Presenter の出し入れが共有する。Web App.tsx の screen === "playerInventory"）
-        // The single check for whether the recipe screen is shown (shared by the Model rebuild and the Presenter visibility; Web App.tsx)
-        public static bool IsScreenShown(UiRoutingSnapshot snapshot)
-        {
-            return snapshot.Screen == UiScreen.PlayerInventory;
         }
 
         private void Rebuild()

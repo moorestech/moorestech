@@ -76,6 +76,10 @@ namespace Client.Ui.State.Text
             return new UiText(UiTextSource.Verbatim, default, Array.Empty<LocalizationTextParam>(), default, text, null, null);
         }
 
+        // 文を載せる前から載せておく空の原文。載せたときの「文なし」の報告を避ける
+        // An empty verbatim text to seed a label before real text arrives, avoiding the attached-without-text report
+        public static readonly UiText Empty = FromVerbatim(string.Empty);
+
         // 引数を先頭に 1 つ足した写しを返す。同名の引数は置き換える
         // Returns a copy with one param prepended; a same-named param is replaced
         public UiText WithLeadingParam(string name, string value)

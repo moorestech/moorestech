@@ -1,6 +1,7 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.CommonHud
@@ -33,7 +34,7 @@ namespace Client.Ui.Screens.CommonHud
 
         public void SetShown(bool shown)
         {
-            _crosshair.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_crosshair, shown);
         }
     }
 }

@@ -1,4 +1,5 @@
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Registry;
@@ -23,8 +24,9 @@ namespace Client.Ui.Screens.BlockInventory.Train
         private readonly ITrainTimetableCommands _timetableCommands;
         private readonly BlockItemGridFactory _gridFactory;
         private readonly GameContentPresentation _content;
+        private readonly IUiOsCursor _osCursor;
 
-        public TrainInventoryBodyFactory(ITrainInventoryBodySource body, TrainTimetableEditModel timetable, TrainTimetableEditCommands timetableEdit, ITrainTimetableSource timetableSource, ITrainTimetableCommands timetableCommands, BlockItemGridFactory gridFactory, GameContentPresentation content)
+        public TrainInventoryBodyFactory(ITrainInventoryBodySource body, TrainTimetableEditModel timetable, TrainTimetableEditCommands timetableEdit, ITrainTimetableSource timetableSource, ITrainTimetableCommands timetableCommands, BlockItemGridFactory gridFactory, GameContentPresentation content, IUiOsCursor osCursor)
         {
             _body = body;
             _timetable = timetable;
@@ -33,12 +35,14 @@ namespace Client.Ui.Screens.BlockInventory.Train
             _timetableCommands = timetableCommands;
             _gridFactory = gridFactory;
             _content = content;
+            _osCursor = osCursor;
         }
 
         public ITrainInventoryPart Create()
         {
             var contents = new TrainInventoryContentsView(_gridFactory.Create("train-inventory-slots"), new FluidInventoryContents("train-inventory-fluids", _content));
-            var view = new TrainInventoryBodyView(contents, new TrainTimetableAreaView(_timetableEdit));
+            var view = new TrainInventoryBodyView(contents, new TrainTimetableAreaView(_timetableEdit, _osCursor), _osCursor);
+
             return new TrainInventoryBodyPresenter(view, _body, _timetable, _timetableSource, _timetableCommands);
         }
     }

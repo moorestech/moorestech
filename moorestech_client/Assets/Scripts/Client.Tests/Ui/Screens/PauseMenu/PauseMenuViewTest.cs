@@ -5,9 +5,12 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
+using Client.Tests.Ui.Components;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
@@ -35,7 +38,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft));
+            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
             simulate.FrameUpdate();
         }
@@ -83,6 +86,18 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             var buttons = _view.Query<Button>().ToList();
             Assert.AreEqual(0f, buttons[0].resolvedStyle.marginTop);
             for (var i = 1; i < buttons.Count; i++) Assert.AreEqual(16f, buttons[i].resolvedStyle.marginTop, buttons[i].name);
+        }
+
+        [Test]
+        public void ボタンの幅は整理ボタンの既定幅でなく本文の並びが決める()
+        {
+            // Web pauseMenu/style.module.css の --panel-action-button-width: auto。既定幅のままだと長い名前が折り返す
+            // Web pauseMenu/style.module.css --panel-action-button-width: auto; the default width would wrap long labels
+            var defaultWidth = ThemeTokenFile.ResolvePixels("--panel-action-button-width");
+            foreach (var button in _view.Query<Button>().ToList())
+            {
+                Assert.Greater(Mathf.Abs(button.resolvedStyle.width - defaultWidth), 0.5f, $"{button.name} width {button.resolvedStyle.width}");
+            }
         }
 
         [Test]

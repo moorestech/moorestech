@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
@@ -12,12 +11,11 @@ namespace Client.Ui.Screens.CommonHud
     /// クロスヘアを起動時に舞台の層へ載せ、CrosshairVisibility の変化で出し入れする
     /// Mounts the crosshair on the stage layer at startup and toggles it on CrosshairVisibility changes
     /// </summary>
-    public sealed class CrosshairHudPresenter : IInitializable, IDisposable
+    public sealed class CrosshairHudPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly CrosshairVisibility _crosshairVisibility;
         private CrosshairHudView _view;
-        private IDisposable _subscription;
 
         public CrosshairHudPresenter(GameUiRoot gameUiRoot, CrosshairVisibility crosshairVisibility)
         {
@@ -32,13 +30,8 @@ namespace Client.Ui.Screens.CommonHud
             _view = new CrosshairHudView();
             _gameUiRoot.GetLayer(UiLayer.ViewportStage, UiFamily.Stage).Add(_view);
             _view.SetShown(_crosshairVisibility.IsVisible());
-            _subscription = _crosshairVisibility.OnVisibleChanged.Subscribe(_view.SetShown);
+            _crosshairVisibility.OnVisibleChanged.Subscribe(_view.SetShown);
         }
 
-        public void Dispose()
-        {
-            _subscription?.Dispose();
-            _view?.RemoveFromHierarchy();
-        }
     }
 }
