@@ -70,10 +70,15 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
             await p.PlaceBlockDirect("貨物プラットフォーム", platformPos, BlockDirection.North);
             var platformObject = await p.WaitBlockGameObject(platformPos);
             await p.Until(() => !platformObject.IsPlayingPlaceAnimation, 30f, "貨物プラットフォームの設置演出");
-            p.WarpPlayer(new Vector3(platformPos.x + 3.5f, 32.5f, platformPos.z - 0.7f));
-            await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "貨物プラットフォームの前に着地");
+            // 当たり判定の箱の南面の手前から狙う（前例 uitk-train-inventory の OpenStation）
+            // Aim from just south of the collider box (precedent OpenStation in uitk-train-inventory)
+            var colliders = platformObject.GetComponentsInChildren<Collider>(true).Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger && c.bounds.size != Vector3.zero).ToList();
+            var bounds = colliders[0].bounds; foreach (var collider in colliders) bounds.Encapsulate(collider.bounds);
+            p.Note($"貨物プラットフォームの当たり判定 min={bounds.min} max={bounds.max}");
+            p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1f));
+            await UniTask.DelayFrame(10);
             SemanticInput.KeyDown(Key.LeftAlt);
-            await p.AimAt(new Vector3(platformPos.x + 3.5f, platformPos.y + 0.4f, platformPos.z + 1.5f));
+            await p.AimAt(new Vector3(bounds.center.x, Mathf.Min(bounds.max.y - 0.1f, 32.4f), bounds.min.z + 0.1f));
             await p.PressInteract();
             await p.WaitUiState(UIStateEnum.SubInventory, 10f);
             SemanticInput.KeyUp(Key.LeftAlt);
