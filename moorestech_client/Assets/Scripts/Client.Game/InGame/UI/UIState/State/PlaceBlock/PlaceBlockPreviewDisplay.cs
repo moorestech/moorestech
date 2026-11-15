@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Block.Preview;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State.PlaceBlock
@@ -18,6 +19,10 @@ namespace Client.Game.InGame.UI.UIState.State.PlaceBlock
 
         public void OnEnter()
         {
+            // 設置モード中だけ、照準が占有セルを走査する
+            // The aim traverses occupied cells only while in placement mode
+            PlacementAimTargetCells.Enable(_blockGameObjectDataStore.OccupiedCells);
+
             // 入場時の既設ブロックも設置途中なら完了まで描画を待つ
             // Existing blocks entering mid-placement also wait for completion before rendering
             foreach (var block in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -50,6 +55,10 @@ namespace Client.Game.InGame.UI.UIState.State.PlaceBlock
 
         public void OnExit()
         {
+            // 設置モードを出たら照準は物理レイの結果だけに戻る
+            // Leaving placement mode returns the aim to the physics ray result only
+            PlacementAimTargetCells.Disable();
+
             // 退出後にアニメーション完了が表示を再開しないよう購読を外す
             // Unsubscribe so animation completion cannot re-enable display after leaving
             foreach (var subscription in _subscriptions) subscription.Dispose();

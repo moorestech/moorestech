@@ -6,7 +6,6 @@ using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.Block.Preview.PlacementFrame;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.NearestSearch;
@@ -86,9 +85,6 @@ namespace Client.Game.InGame.Block
             // IBlockGameObjectInnerComponentおよび、継承しているBlockStateChangeProcessorsの初期化
             // Initialize IBlockGameObjectInnerComponent and inherited BlockStateChangeProcessors
             foreach (var state in gameObject.GetComponentsInChildren<IBlockGameObjectInnerComponent>()) state.Initialize(this);
-            // 設置照準の当たり判定を作る。表示切り替えの対象に入るよう、プレビュー限定の収集より先に置く
-            // Create the placement-aim hit faces before collecting preview-only objects so the display switch includes them
-            BlockPlacementHitFaces.Create(transform, blockMasterElement.BlockSize, posInfo.BlockDirection);
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
             _previewOnlyObjectsView = new BlockPreviewOnlyObjectsView(BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false));

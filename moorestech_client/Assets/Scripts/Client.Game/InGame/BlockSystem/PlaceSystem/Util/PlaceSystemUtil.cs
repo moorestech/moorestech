@@ -85,34 +85,47 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             pos = Vector3Int.zero;
             hitPoint = default;
-            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surfaceType)) return false;
-            hitPoint = hit.point;
+            if (!TryRaycastPlacementSurface(mainCamera, out hitPoint, out surfaceType)) return false;
 
-            pos = CalcPlacePointBySize(rotatedSize, hit.point, heightOffset, surfaceType);
+            pos = CalcPlacePointBySize(rotatedSize, hitPoint, heightOffset, surfaceType);
             return true;
         }
 
         public static bool TryGetRayHitPosition(Camera mainCamera, out Vector3 pos, out PreviewSurfaceType? surfaceType)
         {
             pos = Vector3Int.zero;
-            if (!TryRaycastPlacementSurface(mainCamera, out var hit, out surfaceType)) return false;
+            if (!TryRaycastPlacementSurface(mainCamera, out var hitPoint, out surfaceType)) return false;
 
-            pos = hit.point;
+            pos = hitPoint;
             return true;
         }
 
-        internal static bool TryRaycastPlacementSurface(Camera mainCamera, out RaycastHit hit, out PreviewSurfaceType? surfaceType)
+        internal static bool TryRaycastPlacementSurface(Camera mainCamera, out Vector3 hitPoint, out PreviewSurfaceType? surfaceType)
         {
+            hitPoint = default;
             surfaceType = null;
             var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
 
-            //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
-            // 地面か、ブロックの設置用当たり判定に当たった時だけ設置面とする
-            // Only the ground or a block's placement hit faces count as a placement surface
-            if (hit.transform.TryGetComponent<GroundGameObject>(out _)) return true;
-            if (!hit.transform.TryGetComponent<BlockPlacementHitFaces>(out var hitFaces)) return false;
-            surfaceType = hitFaces.GetSurfaceType(hit.collider);
+            // 物理レイが当たった距離を、占有セル走査の上限にする
+            // The physics hit distance bounds the occupied-cell traversal
+            var physicsHit = Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask);
+            var maxDistance = physicsHit ? hit.distance : float.PositiveInfinity;
+
+            // 設置モード中は、それより手前で最初に入るブロックの面を設置面とする（ADR 0100）
+            // In placement mode, the first block face entered before that becomes the placement surface (ADR 0100)
+            var cells = PlacementAimTargetCells.Current;
+            if (cells != null && PlacementAimCellTracer.TryTrace(cells, ray, maxDistance, out var distance, out var face))
+            {
+                hitPoint = ray.GetPoint(distance);
+                surfaceType = face;
+                return true;
+            }
+
+            // それ以外は地面に当たった時だけ設置面とする
+            // Otherwise only the ground counts as a placement surface
+            // silent-ok: 照準が地面にもブロックにも当たらないのは操作中の通常状態 / プレビューが出ないことでプレイヤーが気づく
+            if (!physicsHit || !hit.transform.TryGetComponent<GroundGameObject>(out _)) return false;
+            hitPoint = hit.point;
             return true;
         }
 

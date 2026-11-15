@@ -42,6 +42,20 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
         }
 
         [Test]
+        public void RayEntryPassesThroughBlocksOutsidePlacementMode()
+        {
+            // 索引にブロックがあっても、設置モード外（走査対象なし）なら照準は素通りして地面に当たる（ADR 0100 決定6）
+            // Even with a block in the index, outside placement mode (no traversal target) the aim passes through to the ground (ADR 0100 decision 6)
+            CreateFace();
+            PlacementAimTargetCells.Disable();
+            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, 0, BlockDirection.North, CreateWidePole(), out var cell, out var surfaceType);
+
+            Assert.AreEqual(FootprintGroundedCellResult.Resolved, result);
+            Assert.IsNull(surfaceType);
+            Assert.AreEqual(new Vector3Int(500, 22, 599), cell);
+        }
+
+        [Test]
         public void BoolEntryReportsMissingGround()
         {
             RemoveFootprintGround();
