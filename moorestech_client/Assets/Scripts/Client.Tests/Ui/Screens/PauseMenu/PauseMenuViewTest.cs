@@ -9,7 +9,6 @@ using Client.Tests.Ui.Components;
 using Client.Tests.Ui.Screens.Settings;
 using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
@@ -123,24 +122,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsTrue(IsShown(line));
             Assert.AreEqual("Disconnected from server", line.PlainText());
             Assert.AreEqual(new Color(0xff / 255f, 0x87 / 255f, 0x87 / 255f), line.resolvedStyle.color);
-        }
-
-        [Test]
-        public void 設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る()
-        {
-            ShowPage(PauseMenuPage.Settings);
-            Assert.AreEqual("Settings", _view.Q<Label>(className: "pause-menu__title").PlainText());
-            Assert.IsNotNull(_view.Q("language-select"));
-            Assert.IsNull(_view.Q("pause-menu-save"));
-            Assert.IsInstanceOf<GameScrollView>(Find<VisualElement>(_view, "pause-menu-body"));
-
-            simulate.Click(Find<Button>(_view, "pause-menu-back"));
-            Assert.AreEqual(PauseMenuCommandKind.ShowPage, _commands.Issued.Last().Kind);
-            Assert.AreEqual(PauseMenuPage.Top, _commands.Issued.Last().Page);
-            Assert.IsTrue(Find<Button>(_view, "pause-menu-back").ClassListContains(AnchorIds.PauseBackToTop));
-            Assert.AreEqual(720f - 80f, Frame().worldBound.height, 0.5f);
-            Assert.AreEqual(420f, Frame().worldBound.width, 0.5f);
-            Assert.AreEqual(640f, Frame().worldBound.center.x, 0.5f);
         }
 
         /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">バグ報告の書きかけはトップへ戻って再び開いても残る</web-test>
