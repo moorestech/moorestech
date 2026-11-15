@@ -62,10 +62,20 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
         // 2. Put a locomotive on a ground station rail (precedent stage4/uitk-train-inventory)
         var train = await PlaceLocomotive();
 
-        // 3. GameUi だけ: 貨物プラットフォームと、機関車の持ち物タブ（空 → 物あり）
-        // 3. GameUi only: the cargo platform and the locomotive inventory tab (empty, then filled)
+        // 3. GameUi だけ: 機関車の持ち物タブ（空 → 物あり）と貨物プラットフォーム
+        // 3. GameUi only: the locomotive inventory tab (empty, then filled) and the cargo platform
         if (system == UiSystem.GameUi)
         {
+            await AimAtCar();
+            await p.PressInteract();
+            await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+            await p.Until(() => Shown("train-inventory-body"), 15f, "train-inventory-body が出る");
+            p.Assert(GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-tab-inventory").ClassListContains("mode-switch__option--selected"), "持ち物タブが選ばれている");
+            await ShootBoth("4-block-trainTimetable");
+            await p.RunOnServer("機関車の枠 0・1 に物を入れる", () => { var container = (ItemTrainCarContainer)train.Cars[0].Container; container.SetItem(0, PlaytestItemOps.ResolveItemId("原木"), 24); container.SetItem(1, PlaytestItemOps.ResolveItemId("石"), 8); });
+            await p.Until(() => GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-inventory-slots-slot-1")?.Query<Label>().ToList().Any(l => l.text.Contains("8")) == true, 10f, "枠 1 に 8 個が出る");
+            await ShootBoth("4-block-train");
+            await Close();
             var platformPos = new Vector3Int(-20, 32, -20);
             await p.PlaceBlockDirect("貨物プラットフォーム", platformPos, BlockDirection.North);
             var platformObject = await p.WaitBlockGameObject(platformPos);
@@ -84,16 +94,6 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
             SemanticInput.KeyUp(Key.LeftAlt);
             await p.Until(() => Shown("train-platform-view"), 15f, "train-platform-view が出る");
             await ShootBoth("4-block-trainPlatform");
-            await Close();
-            await AimAtCar();
-            await p.PressInteract();
-            await p.WaitUiState(UIStateEnum.SubInventory, 10f);
-            await p.Until(() => Shown("train-inventory-body"), 15f, "train-inventory-body が出る");
-            p.Assert(GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-tab-inventory").ClassListContains("mode-switch__option--selected"), "持ち物タブが選ばれている");
-            await ShootBoth("4-block-trainTimetable");
-            await p.RunOnServer("機関車の枠 0・1 に物を入れる", () => { var container = (ItemTrainCarContainer)train.Cars[0].Container; container.SetItem(0, PlaytestItemOps.ResolveItemId("原木"), 24); container.SetItem(1, PlaytestItemOps.ResolveItemId("石"), 8); });
-            await p.Until(() => GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-inventory-slots-slot-1")?.Query<Label>().ToList().Any(l => l.text.Contains("8")) == true, 10f, "枠 1 に 8 個が出る");
-            await ShootBoth("4-block-train");
             await Close();
         }
 
