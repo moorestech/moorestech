@@ -41,7 +41,7 @@ return PlaytestRunner.Run("uitk-inventory-equipment", new PlaytestRunOptions { R
     var operations = resolver.Resolve<IPlayerInventoryOperations>();
     var equipment = resolver.Resolve<LocalPlayerEquipment>();
     var wheelNotches = new List<float>();
-    var wheelSubscription = resolver.Resolve<InputSystemPointerWheelStream>().OnWheelNotchesScrolled.Subscribe(wheelNotches.Add);
+    var wheelSubscription = resolver.Resolve<InputSystemPointerWheelStream>().OnWheelNotchesScrolled.Subscribe(wheel => wheelNotches.Add(wheel.notchesUp));
     try
     {
         p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, $"全体スイッチが UITK（UiInputExclusivity.ActiveUiSystem={UiInputExclusivity.ActiveUiSystem}）");
