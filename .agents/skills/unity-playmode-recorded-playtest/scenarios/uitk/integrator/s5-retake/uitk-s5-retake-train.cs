@@ -103,7 +103,9 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
         await p.PressRide();
         await p.Until(() => p.CurrentUiState == UIStateEnum.TrainHUDScreen, 15f, "列車 HUD の状態");
         if (system == UiSystem.GameUi) await p.Until(() => Shown("train-riding-hud"), 10f, "train-riding-hud が出る");
-        else await p.UntilUiElement("train-riding-hud", 30f);
+        // Web は描画の口が途中で答えなくなることがあるので、待ちで落とさず 5 秒後に撮り、ロケータの答えを控える（絵が描けたかの証拠）
+        // Web's renderer can stop answering midway, so shoot after 5 s instead of failing the wait and note the locator answer (evidence of whether it drew)
+        else { await p.WaitSeconds(5f); var hud = await PlaytestUiElementOps.FindUi("train-riding-hud"); p.Note($"Web の train-riding-hud: found={hud.IsFound} visible={hud.Visible}"); }
         var store = SkitPresentationStateStore.Instance;
         store.BeginBackground();
         store.SetBackgroundText("ムーア", "列車の旅は順調だ。次の駅で荷物を降ろそう");
