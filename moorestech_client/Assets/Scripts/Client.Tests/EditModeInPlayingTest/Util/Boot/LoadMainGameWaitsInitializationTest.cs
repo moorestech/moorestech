@@ -50,7 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util.Boot
 
                 // 戻りと完了の前後関係を秒で残す（負なら戻った後に完了した）
                 // Log the return-vs-completion gap in seconds (negative means completion came after the return)
-                await UniTask.WaitUntil(() => 0f <= initializedAt).Timeout(System.TimeSpan.FromSeconds(MainGameTestBoot.InitializationTimeoutSeconds));
+                await UniTask.WaitUntil(() => 0f <= initializedAt).Timeout(System.TimeSpan.FromSeconds(MainGameTestBoot.InitializationTimeoutSeconds), DelayType.Realtime);
                 Debug.Log($"[LoadMainGameWaitsInitializationTest] returnedAt - initializedAt = {returnedAt - initializedAt:F2}s");
                 Assert.IsTrue(initializedAtReturn, "LoadMainGame が GameInitializedEvent より先に戻った");
             }
