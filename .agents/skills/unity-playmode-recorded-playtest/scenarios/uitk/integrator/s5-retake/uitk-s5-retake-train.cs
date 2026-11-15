@@ -123,7 +123,9 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
 
     async UniTask<TrainUnit> PlaceLocomotive()
     {
-        var (a, b) = (new Vector3Int(10, 32, 6), new Vector3Int(10, 32, 22));
+        // 機関車（長さ 20）が載るよう橋脚の間を 44 空ける
+        // Space the piers 44 apart so the locomotive (length 20) fits
+        var (a, b) = (new Vector3Int(10, 32, 0), new Vector3Int(10, 32, 44));
         foreach (var position in new[] { a, b })
         {
             var detail = new RailBridgePierComponentStateDetail(RailComponent.ToVector3(BlockDirection.North));
@@ -134,7 +136,7 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
             await p.WaitBlockGameObject(position);
         }
         var (railA, railB) = (p.GetBlock(a).GetComponent<RailComponent>(), p.GetBlock(b).GetComponent<RailComponent>());
-        var master = MasterHolder.TrainUnitMaster.Train.TrainCars.First(car => 0 < car.TractionForce && car.Length <= 7);
+        var master = MasterHolder.TrainUnitMaster.Train.TrainCars.First(car => 0 < car.TractionForce);
         await p.RunOnServer("レール 2 本を接続して機関車を解放する", () =>
         {
             railA.FrontNode.ConnectNode(railB.FrontNode); railB.BackNode.ConnectNode(railA.BackNode);
