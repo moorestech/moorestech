@@ -21,6 +21,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.EnergySystem;
 using Game.UnlockState;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
