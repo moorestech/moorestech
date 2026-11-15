@@ -54,6 +54,26 @@ namespace Client.Tests.WebUi.BlockDetail
 
             Assert.AreEqual(1, dto.FluidSlots.Count);
             Assert.AreEqual("", dto.FluidSlots[0].FluidGuid);
+            Assert.AreEqual(FluidMaster.EmptyFluidId.AsPrimitive(), dto.FluidSlots[0].FluidId);
+            Assert.AreEqual(0.0, dto.FluidSlots[0].Amount, 0.001);
+            Assert.AreEqual(100.0, dto.FluidSlots[0].Capacity, 0.001);
+        }
+
+        // 空の液体のタンクは量が非 0 で届いても量 0・空 Guid になる（空の判定は State の BlockFluidSlotConversion 1 本）
+        // An empty-fluid tank becomes amount 0 with an empty GUID even if a non-zero amount arrives (one State empty check)
+        [Test]
+        public void EmptyFluidTankMapsToZeroAmount()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var detail = new FluidMachineInventoryStateDetail(new List<FluidMessagePack>(), new List<FluidMessagePack> { new(FluidMaster.EmptyFluidId, 5.0, 1000.0) });
+            var state = new BlockState(new Dictionary<string, byte[]> { { FluidMachineInventoryStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail) } });
+            var dto = Apply(ForUnitTestModBlockId.TestTrainFluidPlatform, state, new FluidNetworkClientCache());
+
+            Assert.AreEqual(1, dto.FluidSlots.Count);
+            Assert.AreEqual(FluidMaster.EmptyFluidId.AsPrimitive(), dto.FluidSlots[0].FluidId);
+            Assert.AreEqual(0.0, dto.FluidSlots[0].Amount, 0.001);
+            Assert.AreEqual(1000.0, dto.FluidSlots[0].Capacity, 0.001);
+            Assert.AreEqual("", dto.FluidSlots[0].FluidGuid);
         }
 
         // 複製にノードが無い座標(パイプ以外・複製未到着)は液体スロットを足さない

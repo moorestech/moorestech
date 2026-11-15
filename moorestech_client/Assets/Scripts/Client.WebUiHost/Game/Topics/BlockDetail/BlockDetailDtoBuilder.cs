@@ -1,4 +1,5 @@
 using Client.Ui.State.BlockDetail;
+using Client.Ui.State.BlockInventory.Fluid;
 using System.Collections.Generic;
 using Game.Block.Interface.Component;
 using Client.Game.InGame.BeltTransport;
@@ -101,18 +102,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // 液体スロット: FluidMachineInventory StateDetail（入力→出力の順で連結）
             // Fluid slots: the FluidMachineInventory state detail (inputs then outputs)
             var fluid = block.GetStateDetail<FluidMachineInventoryStateDetail>(FluidMachineInventoryStateDetail.BlockStateDetailKey);
-            if (fluid != null)
-            {
-                FluidSlotDtoBuilder.Append(dto.FluidSlots, fluid.InputTanks);
-                FluidSlotDtoBuilder.Append(dto.FluidSlots, fluid.OutputTanks);
-            }
+            // 空/中身ありの判定は UITK と同じ State の BlockFluidSlotConversion 1 本に寄せる
+            // The empty/filled decision goes through the one State BlockFluidSlotConversion shared with UITK
+            if (fluid != null) FluidSlotDtoBuilder.AppendStates(dto.FluidSlots, BlockFluidSlotConversion.FromTanks(fluid.InputTanks, fluid.OutputTanks));
 
             // パイプの中身はクライアントの流体複製から読む。複製にノードがある座標だけがパイプ
             // Pipe contents come from the client's fluid replica; only a position with a replica node is a pipe
             if (fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out var pipeNode))
             {
                 var network = fluidCache.Replica.Network;
-                FluidSlotDtoBuilder.Append(dto.FluidSlots, new List<FluidMessagePack> { new(network.NodeFluidIds[pipeNode], FluidUnits.ToAmount(network.NodeAmounts[pipeNode]), FluidUnits.ToAmount(network.NodeCapacities[pipeNode])) });
+                var pipeSlot = BlockFluidSlotConversion.FromPipeNode(network.NodeFluidIds[pipeNode].AsPrimitive(), FluidUnits.ToAmount(network.NodeAmounts[pipeNode]), FluidUnits.ToAmount(network.NodeCapacities[pipeNode]));
+                FluidSlotDtoBuilder.AppendStates(dto.FluidSlots, new[] { pipeSlot });
             }
 
             ApplyNetworkCaches(dto, cache);
