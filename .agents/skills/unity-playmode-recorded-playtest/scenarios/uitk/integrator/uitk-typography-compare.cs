@@ -17,6 +17,7 @@ using Client.Playtest.Overlay;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Context;
+using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Client.Ui.State.Text;
@@ -144,7 +145,7 @@ return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
     {
         var filters = Enumerable.Range(0, FilterCount).Select(_ => new CleanRoomAirFilter(1, 5, 0.5)).ToArray();
         var room = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 1.2, 0.8, filters);
-        Root().Q<CleanRoomSectionView>().Render(ContextEntry<CleanRoomFetchedDetail>.Fetched(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None)));
+        Root().Q<CleanRoomSectionView>().Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None)));
         var title = Root().Q("block-inventory").Q<LocalizedLabel>(className: "game-panel__title");
         title.SetText(UiText.FromVerbatim(shootingLanguage == "japanese" ? "電気機械" : "Electric Machine"));
     }
