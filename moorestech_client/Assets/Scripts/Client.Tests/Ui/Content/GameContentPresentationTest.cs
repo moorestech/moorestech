@@ -59,6 +59,7 @@ namespace Client.Tests.Ui.Content
         }
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">item master のGuidから辞書名をtooltipと代替テキストへ使う</web-test>
+        /// <web-test file="src/shared/i18n/itemName/useItemName.test.ts">解決できれば表示名を返す</web-test>
         [Test]
         public void アイテムはIDの文字とテクスチャとGUIDから導いた辞書名を持つ()
         {
@@ -70,6 +71,22 @@ namespace Client.Tests.Ui.Content
             Assert.AreSame(_texture, icon.Texture);
             Assert.AreEqual("Test Plate", icon.Label.Resolve());
             Assert.AreEqual("Test Plate", content.ItemName(itemId).Resolve());
+        }
+
+        /// <web-test file="src/shared/i18n/itemName/useItemName.test.ts">itemIdからGuidを引き対象言語名を解決する</web-test>
+        /// <web-test file="src/shared/i18n/itemName/useItemName.test.ts">辞書更新で再描画し同じGuidを新しい言語名へ切り替える</web-test>
+        [Test]
+        public void アイテム名は選択言語の名前を解き言語切替で新しい言語名へ変わる()
+        {
+            var content = new GameContentPresentation(new FakeContentTextureSource(_texture, null, null));
+            var itemName = content.ItemName(MasterHolder.ItemMaster.GetItemId(ItemGuid));
+
+            // 日本語では対象言語の名前、英語へ切り替えると同じ UiText が英語名を返す
+            // Japanese yields the target-language name; after switching to English the same UiText yields the English name
+            Assert.IsTrue(Localize.TrySetChosenLanguage("japanese"));
+            Assert.AreEqual("テスト鉄板", itemName.Resolve());
+            Assert.IsTrue(Localize.TrySetChosenLanguage("english"));
+            Assert.AreEqual("Test Plate", itemName.Resolve());
         }
 
         [Test]

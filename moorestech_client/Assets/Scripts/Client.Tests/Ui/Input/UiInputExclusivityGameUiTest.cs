@@ -66,6 +66,28 @@ namespace Client.Tests.Ui.Input
             Assert.IsTrue(UiInputExclusivity.IsEscapeConsumedThisFrame);
         }
 
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">updates pointer and text focus as independent axes</web-test>
+        [Test]
+        public void TextFocusAndPointerOccupancyAreIndependentAxes()
+        {
+            // 文字入力の旗を立ててもポインタの占有は変わらない
+            // Raising the text-input flag leaves pointer occupancy untouched
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
+            Assert.IsFalse(UiInputExclusivity.IsPointerOverGameUi(Vector2.zero));
+
+            // ポインタが乗っても文字入力の旗は保たれる
+            // The text-input flag survives the pointer coming over the UI
+            UiInputExclusivity.SetGameUiPointerProbe(new FixedProbe(true));
+            Assert.IsTrue(UiInputExclusivity.IsPointerOverGameUi(Vector2.zero));
+            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
+
+            // 旗を下ろしてもポインタは乗ったまま
+            // Lowering the flag keeps the pointer over the UI
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
+            Assert.IsTrue(UiInputExclusivity.IsPointerOverGameUi(Vector2.zero));
+            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
+        }
+
         [Test]
         public void PointerProbeRegistrationAndRelease()
         {

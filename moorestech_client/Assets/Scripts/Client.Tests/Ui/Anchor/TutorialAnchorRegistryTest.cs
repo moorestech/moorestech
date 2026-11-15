@@ -40,6 +40,7 @@ namespace Client.Tests.Ui.Anchor
             Assert.IsInstanceOf<TutorialAnchorResolution.Missing>(TutorialAnchorRegistry.Resolve(rootVisualElement, "pause.menu"));
         }
 
+        /// <web-test file="src/shared/tutorialAnchor/resolveAnchor.test.ts">rejects duplicate anchors instead of choosing one</web-test>
         [Test]
         public void SameIdOnTwoElementsResolvesAsDuplicate()
         {
@@ -56,6 +57,8 @@ namespace Client.Tests.Ui.Anchor
             Assert.AreEqual(2, ((TutorialAnchorResolution.Duplicate)result).Count);
         }
 
+        /// <web-test file="src/shared/tutorialAnchor/resolveAnchor.test.ts">matches anchors as whitespace-separated tokens</web-test>
+        /// <web-test file="src/shared/tutorialAnchor/tutorialAnchor.test.ts">joins multiple anchor ids with a single space</web-test>
         [Test]
         public void ElementWithTwoIdsResolvesUniqueByEither()
         {

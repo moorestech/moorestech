@@ -77,6 +77,22 @@ namespace Client.Tests.Ui.Layers
             StringAssert.DoesNotContain("z-index", rule.Groups[1].Value, ".viewport got a z-index; re-check whether the Portal group (UiLayer.WorldPin and later) still outranks every viewport layer");
         }
 
+        /// <web-test file="src/app/zLayerTokens.test.ts">通知が沈む背面層はディムより前・stageより後ろに立つ</web-test>
+        /// <web-test file="src/app/zLayerTokens.test.ts">常駐HUD層はscreen層より前に立ち、ツールチップはさらに前に立つ</web-test>
+        /// <web-test file="src/app/zLayerTokens.test.ts">ポーズメニューは.viewportOverlay一式より前・ツールチップより後ろに立つ</web-test>
+        /// <web-test file="src/app/zLayerTokens.test.ts">モーダルはトーストより前に立つ</web-test>
+        /// <web-test file="src/app/zLayerTokens.test.ts">全画面ゲートは再接続オーバーレイより前に立つ</web-test>
+        /// <web-test file="src/app/zLayerTokens.test.ts">stageとディムの層序は生値でなくトークンを参照する</web-test>
+        [Test]
+        public void StageAndBackdropZIndexReferenceViewportTokens()
+        {
+            // 合成キーは .stage とディムの z をトークンの値とみなすので、Web 側が生値に戻ると層序が実物とずれる
+            // The composite key takes token values as the .stage and dim z, so raw values on the Web side would desync the order
+            var text = CommentPattern.Replace(File.ReadAllText(Path.Combine(RepositoryRoot(), AppStylesPath)), "");
+            StringAssert.Contains("z-index: var(--z-viewport-stage)", text);
+            StringAssert.Contains("z-index: var(--z-viewport-backdrop)", text);
+        }
+
         [Test]
         public void CompositeStackingKeyIncreasesInEnumOrder()
         {

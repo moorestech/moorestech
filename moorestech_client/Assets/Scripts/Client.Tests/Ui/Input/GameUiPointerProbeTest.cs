@@ -77,6 +77,25 @@ namespace Client.Tests.Ui.Input
             Assert.IsNull(new GameUiPointerProbe(rootVisualElement).PickAtPanel(PanelCenter));
         }
 
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">transparent surface passes through while a child panel captures the pointer</web-test>
+        [Test]
+        public void IgnorePickedSurfacePassesThroughWhileChildPanelIsPicked()
+        {
+            // 全面の透明な面は拾わず、その上の子パネルだけが拾われる
+            // The full-size transparent surface is never picked; only the child panel on it is
+            var stack = UiLayerStack.Build(rootVisualElement);
+            var surface = new VisualElement { name = "probe-surface", pickingMode = PickingMode.Ignore };
+            surface.StretchToParentSize();
+            var panelBox = CreateCenteredBox(PickingMode.Position);
+            surface.Add(panelBox);
+            stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(surface);
+            simulate.FrameUpdate();
+
+            var probe = new GameUiPointerProbe(rootVisualElement);
+            Assert.AreSame(panelBox, probe.PickAtPanel(PanelCenter));
+            Assert.IsNull(probe.PickAtPanel(new Vector2(10, 10)));
+        }
+
         private static VisualElement CreateCenteredBox(PickingMode pickingMode)
         {
             var box = new VisualElement { name = "probe-box", pickingMode = pickingMode };

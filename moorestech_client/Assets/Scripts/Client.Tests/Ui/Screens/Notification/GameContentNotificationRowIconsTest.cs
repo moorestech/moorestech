@@ -65,6 +65,7 @@ namespace Client.Tests.Ui.Screens.Notification
             StringAssert.Contains($"#{MissingItemId}", ConcatText(host[1]));
         }
 
+        /// <web-test file="src/shared/i18n/itemName/useItemName.test.ts">未知のitemIdではnullを返す</web-test>
         [Test]
         public void TryItemはマスタに無いIDでfalseとnullを返しあるIDでItemと同じ絵を返す()
         {

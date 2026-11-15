@@ -4,6 +4,7 @@ using Client.Ui.Components.Slots;
 using Client.Ui.State.Text;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -23,6 +24,7 @@ namespace Client.Tests.Ui.Components.Slots.CountLabel
             LogAssert.NoUnexpectedReceived();
         }
 
+        /// <web-test file="src/app/iconTextOutlineDesign.test.ts">共有クラスがそれぞれ反対色の縁トークンだけを引く</web-test>
         [Test]
         public void 縁の色は既定で白い縁のトークンになる()
         {
@@ -31,6 +33,7 @@ namespace Client.Tests.Ui.Components.Slots.CountLabel
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-light"), stroke.resolvedStyle.unityTextOutlineColor, "outline");
         }
 
+        /// <web-test file="src/app/iconTextOutlineDesign.test.ts">共有クラスがそれぞれ反対色の縁トークンだけを引く</web-test>
         [Test]
         public void 祖先で縁の色のつまみを上書きすると暗い縁になり字の色は変わらない()
         {
@@ -39,6 +42,17 @@ namespace Client.Tests.Ui.Components.Slots.CountLabel
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-dark"), stroke.resolvedStyle.unityTextOutlineColor, "outline");
             var glyph = stroke.parent.Q<Label>(className: "outlined-count-label--glyph");
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), glyph.resolvedStyle.color, "glyph");
+        }
+
+        /// <web-test file="src/app/iconTextOutlineDesign.test.ts">縁の太さと色を固定長トークンへ集約する</web-test>
+        [Test]
+        public void 縁の太さと色は固定長の2pxと白と黒のトークンに集まる()
+        {
+            // 太さは字の大きさに比例しない固定長
+            // The width is a fixed length that does not scale with the font size
+            Assert.AreEqual("2px", ThemeTokenFile.Resolve("--icon-text-stroke-width"));
+            ThemeTokenFile.AssertSameColor(Color.white, ThemeTokenFile.ResolveColor("--icon-text-stroke-light"), "light");
+            ThemeTokenFile.AssertSameColor(Color.black, ThemeTokenFile.ResolveColor("--icon-text-stroke-dark"), "dark");
         }
 
         private Label MountStroke(string knobClass)
