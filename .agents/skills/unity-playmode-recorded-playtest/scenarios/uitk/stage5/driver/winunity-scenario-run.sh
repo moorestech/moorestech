@@ -20,10 +20,18 @@ TOKEN="s5ladder-$(date +%Y%m%d-%H%M%S)-$$"
 RESULT=0
 RUN_DIR=""
 
-# コード片を GUI Editor で 1 回流し、出力を見せて残す（語の判定は呼び手が grep で行う。終了コードは EDC が走ったかしか表さない）
-# Run one snippet in the GUI Editor, show and keep the output (callers grep for the word; the exit code only says EDC ran)
+# コード片を GUI Editor で流し、出力を見せて残す（語の判定は呼び手が grep で行う。終了コードは EDC が走ったかしか表さない）
+# 起こした直後の Editor はコンパイル・リロードで受けた要求を切ることがあるので、uloop が再試行可と言う間は 45 秒おきに最大 3 回流す（どのコード片も何度流しても同じ結果）
+# Run a snippet in the GUI Editor, show and keep the output (callers grep for the word; the exit code only says EDC ran)
+# A freshly started Editor can drop an accepted request while compiling/reloading, so retry every 45 s up to 3 times while uloop says retryable (every snippet here is idempotent)
 edc_words() {
-  "$WINUNITY" edc "$BRANCH" "$1" --name "$NAME" > "$WORK/$2.txt" 2>&1
+  local attempt
+  for attempt in 1 2 3; do
+    "$WINUNITY" edc "$BRANCH" "$1" --name "$NAME" > "$WORK/$2.txt" 2>&1
+    grep -q '"Retryable": true' "$WORK/$2.txt" || break
+    echo "[driver] $2 EDC was dropped by the Editor (attempt $attempt): $(grep -o '"ErrorCode": "[^"]*"' "$WORK/$2.txt" | head -1)" >&2
+    [ "$attempt" -lt 3 ] && sleep 45
+  done
   cat "$WORK/$2.txt"
 }
 
