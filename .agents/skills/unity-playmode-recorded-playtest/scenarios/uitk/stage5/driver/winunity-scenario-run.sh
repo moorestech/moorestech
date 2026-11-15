@@ -35,11 +35,17 @@ edc_words() {
   cat "$WORK/$2.txt"
 }
 
-# EDC の出力から uloop の Result の値だけを取る（無ければ出力の最後の行）
-# Take only uloop's Result value from an EDC output (the output's last line when there is none)
+# EDC の出力から uloop の Result の値だけを取る（無ければ空。失敗応答に載る自分のソースの語を成功と読まないため）
+# Take only uloop's Result value from an EDC output (empty when there is none, so source text echoed in a failure response is never read as success)
+edc_value() {
+  grep -o '"Result"[[:space:]]*:[[:space:]]*"[^"]*"' "$WORK/$1.txt" | tail -1 | sed 's/^"Result"[[:space:]]*:[[:space:]]*"//; s/"$//'
+}
+
+# 表示用: Result の値、無ければ出力の最後の行
+# For display: the Result value, or the output's last line when there is none
 edc_result() {
   local value
-  value=$(grep -o '"Result"[[:space:]]*:[[:space:]]*"[^"]*"' "$WORK/$1.txt" | tail -1 | sed 's/^"Result"[[:space:]]*:[[:space:]]*"//; s/"$//')
+  value=$(edc_value "$1")
   if [ -n "$value" ]; then echo "$value"; else tail -1 "$WORK/$1.txt"; fi
 }
 
@@ -50,7 +56,7 @@ on_exit() {
   echo "[driver] disarm and restore the language"
   edc_words "$HERE/exhibition-disarm.edc" disarm >/dev/null
   echo "[driver] disarm: $(edc_result disarm)"
-  if grep -q 'language-untouched\|language-restored' "$WORK/disarm.txt"; then exit "$code"; fi
+  case "$(edc_value disarm)" in *language-untouched*|*language-restored*) exit "$code" ;; esac
   echo "ERROR: disarm or language restore failed; language-before.txt kept on Windows: $(edc_result disarm)"
   exit 1
 }
@@ -64,7 +70,7 @@ UnityEngine.Debug.Log("[S5LadderLogMark] $TOKEN");
 return "log-marked " + UnityEngine.Application.consoleLogPath;
 EOF
 edc_words "$WORK/mark.edc" mark >/dev/null
-grep -q 'log-marked' "$WORK/mark.txt" || { cat "$WORK/mark.txt"; echo "NG: could not write the log mark"; exit 1; }
+case "$(edc_value mark)" in log-marked*) ;; *) { cat "$WORK/mark.txt"; echo "NG: could not write the log mark"; exit 1; } ;; esac
 echo "[driver] $(edc_result mark)"
 
 # 2. 出展モードなら武装する。PlayMode が残っていたら止めてから武装し直す（武装しないまま通常の起動で流さない）
@@ -72,7 +78,7 @@ echo "[driver] $(edc_result mark)"
 if [ "$MODE" = exhibition ]; then
   trap on_exit EXIT
   edc_words "$HERE/exhibition-arm.edc" arm >/dev/null
-  if ! grep -q 'exhibition-armed' "$WORK/arm.txt" && grep -q 'already playing' "$WORK/arm.txt"; then
+  if [ "$(edc_value arm)" != exhibition-armed ] && [[ "$(edc_value arm)" == *'already playing'* ]]; then
     echo "[driver] PlayMode is still running; stopping it before re-arming"
     printf '%s\n' 'UnityEditor.EditorApplication.ExitPlaymode();' 'return "stop-requested";' > "$WORK/stop-play.edc"
     edc_words "$WORK/stop-play.edc" stop-play >/dev/null
@@ -81,10 +87,10 @@ if [ "$MODE" = exhibition ]; then
     for _ in 1 2 3; do
       sleep 30
       edc_words "$HERE/exhibition-arm.edc" arm >/dev/null
-      grep -q 'exhibition-armed' "$WORK/arm.txt" && break
+      [ "$(edc_value arm)" = exhibition-armed ] && break
     done
   fi
-  grep -q 'exhibition-armed' "$WORK/arm.txt" || { echo "NG: exhibition mode was not armed: $(edc_result arm)"; exit 1; }
+  [ "$(edc_value arm)" = exhibition-armed ] || { echo "NG: exhibition mode was not armed: $(edc_result arm)"; exit 1; }
   echo "[driver] $(edc_result arm)"
 fi
 

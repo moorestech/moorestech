@@ -70,15 +70,15 @@ namespace Client.Tests.Ui.Screens.BugReport
         [Test]
         public void 応答待ちが終わってもホスト送信中は種別と本文を保護しreadyで解く()
         {
-            // 感想を送り、ローカルの応答より先にホストが送信中になる
-            // Send impressions; the host turns to submitting before the local reply returns
+            // 応答前にホストが送信中へ
+            // Host submits before the local reply
             simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
             Type("感想");
             simulate.Click(SendButton());
             View.Apply(Model(BugReportCaptureStatus.Submitting));
 
-            // ローカルの応答が失敗で終わっても、ホスト送信中のロックと文言は残る
-            // Even after the local reply ends in failure, the host-submitting lock and label remain
+            // 応答失敗でもロックと文言が残る
+            // Lock and label remain after reply failure
             Commands.CompleteSubmit(UiCommandRejected.Of(UiCommandRejectReason.CaptureRefused));
             Assert.IsFalse(Find<Button>(View, "bug-report-kind-bug").enabledSelf);
             Assert.IsFalse(Find<Button>(View, "bug-report-kind-feedback").enabledSelf);

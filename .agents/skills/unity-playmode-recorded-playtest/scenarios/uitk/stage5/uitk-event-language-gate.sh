@@ -6,4 +6,5 @@
 #
 # usage: uitk-event-language-gate.sh <unity-project-path>
 HERE="$(cd "$(dirname "$0")" && pwd)"
+[ "$#" -eq 1 ] || { echo "usage: uitk-event-language-gate.sh <unity-project-path>"; exit 2; }
 exec bash "$HERE/exhibition-mode-run.sh" "$1" GameUi "$HERE/uitk-event-language-gate.cs"

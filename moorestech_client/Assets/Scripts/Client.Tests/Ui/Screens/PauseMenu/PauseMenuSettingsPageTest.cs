@@ -52,8 +52,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.AreEqual(1, _view.Query<GraphicsQualitySettingsView>().ToList().Count);
             Assert.IsNotNull(_view.Q("graphics-preset"));
 
-            // 戻るはトップへの切り替えを送り、枠は Web と同じ寸法で中央に置かれる
-            // Back requests the top page, and the frame keeps the Web size centred
+            // 戻るは切替を送り枠は中央に置く
+            // Back requests a switch, frame is centred
             simulate.Click(Find<Button>(_view, "pause-menu-back"));
             Assert.AreEqual(PauseMenuCommandKind.ShowPage, _commands.Issued.Last().Kind);
             Assert.AreEqual(PauseMenuPage.Top, _commands.Issued.Last().Page);
@@ -61,20 +61,24 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.AreEqual(720f - 80f, Frame().worldBound.height, 0.5f);
             Assert.AreEqual(420f, Frame().worldBound.width, 0.5f);
             Assert.AreEqual(640f, Frame().worldBound.center.x, 0.5f);
-        }
 
-        private VisualElement Frame()
-        {
-            return Find<VisualElement>(_view, "pause-menu");
-        }
+            #region Internal
 
-        private void ShowPage(PauseMenuPage page)
-        {
-            // スクロールバーの出し入れで 2 回目のレイアウトが走るので、2 フレーム進めて落ち着かせる
-            // Showing or hiding the scroller triggers a second layout, so advance two frames to settle
-            _model.Set(FakePauseMenuModel.Page(page));
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
+            VisualElement Frame()
+            {
+                return Find<VisualElement>(_view, "pause-menu");
+            }
+
+            void ShowPage(PauseMenuPage page)
+            {
+                // スクロールバーの出し入れで 2 回目のレイアウトが走るので、2 フレーム進めて落ち着かせる
+                // Showing or hiding the scroller triggers a second layout, so advance two frames to settle
+                _model.Set(FakePauseMenuModel.Page(page));
+                simulate.FrameUpdate();
+                simulate.FrameUpdate();
+            }
+
+            #endregion
         }
     }
 }

@@ -81,8 +81,8 @@ namespace Client.Tests.Ui.Input
         [Test]
         public void IgnorePickedSurfacePassesThroughWhileChildPanelIsPicked()
         {
-            // 全面の透明な面は拾わず、その上の子パネルだけが拾われる
-            // The full-size transparent surface is never picked; only the child panel on it is
+            // 透明な全面は拾わず子パネルを拾う
+            // Skip the transparent full surface, pick the child panel
             var stack = UiLayerStack.Build(rootVisualElement);
             var surface = new VisualElement { name = "probe-surface", pickingMode = PickingMode.Ignore };
             surface.StretchToParentSize();

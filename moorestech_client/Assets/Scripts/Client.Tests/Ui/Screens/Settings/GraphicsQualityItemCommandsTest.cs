@@ -48,34 +48,38 @@ namespace Client.Tests.Ui.Screens.Settings
             var sent = _commands.Issued.Single();
             Assert.AreEqual(SettingsCommandKind.SetGraphicsQuality, sent.Kind);
             Assert.AreEqual(ExpectedAfterPress(Medium, optionTestid), sent.Graphics, $"{optionTestid} が別の項目か別の値を送った");
-        }
 
-        // 選択肢をスクロールで見える位置へ出してから押す
-        // Scroll the option into view before pressing it
-        private void Press(string optionTestid)
-        {
-            var option = Find<Button>(_view, optionTestid);
-            _scroll.ScrollTo(option);
-            simulate.FrameUpdate();
-            simulate.FrameUpdate();
-            simulate.Click(option);
-        }
+            #region Internal
 
-        // GraphicsQualityItemRows を通さず、testid から期待の値を独立に組む
-        // Build the expected value from the testid independently of GraphicsQualityItemRows
-        private static GraphicsQualitySettings ExpectedAfterPress(GraphicsQualitySettings settings, string optionTestid)
-        {
-            return optionTestid switch
+            // 選択肢をスクロールで見える位置へ出してから押す
+            // Scroll the option into view before pressing it
+            void Press(string targetTestid)
             {
-                "graphics-render-scale-75" => settings.WithRenderScale(GraphicsRenderScale.Percent75),
-                "graphics-terrain-coarse" => settings.WithTerrainDetail(GraphicsTerrainDetail.Coarse),
-                "graphics-ssao-off" => settings.WithSsaoEnabled(false),
-                "graphics-postProcessing-off" => settings.WithPostProcessingEnabled(false),
-                "graphics-effects-off" => settings.WithEffectsEnabled(false),
-                "graphics-mapObjects-off" => settings.WithMapObjectsVisible(false),
-                "graphics-ocean-off" => settings.WithOceanVisible(false),
-                _ => throw new ArgumentOutOfRangeException(nameof(optionTestid), optionTestid, null),
-            };
+                var option = Find<Button>(_view, targetTestid);
+                _scroll.ScrollTo(option);
+                simulate.FrameUpdate();
+                simulate.FrameUpdate();
+                simulate.Click(option);
+            }
+
+            // GraphicsQualityItemRows を通さず、testid から期待の値を独立に組む
+            // Build the expected value from the testid independently of GraphicsQualityItemRows
+            GraphicsQualitySettings ExpectedAfterPress(GraphicsQualitySettings settings, string targetTestid)
+            {
+                return targetTestid switch
+                {
+                    "graphics-render-scale-75" => settings.WithRenderScale(GraphicsRenderScale.Percent75),
+                    "graphics-terrain-coarse" => settings.WithTerrainDetail(GraphicsTerrainDetail.Coarse),
+                    "graphics-ssao-off" => settings.WithSsaoEnabled(false),
+                    "graphics-postProcessing-off" => settings.WithPostProcessingEnabled(false),
+                    "graphics-effects-off" => settings.WithEffectsEnabled(false),
+                    "graphics-mapObjects-off" => settings.WithMapObjectsVisible(false),
+                    "graphics-ocean-off" => settings.WithOceanVisible(false),
+                    _ => throw new ArgumentOutOfRangeException(nameof(targetTestid), targetTestid, null),
+                };
+            }
+
+            #endregion
         }
     }
 }

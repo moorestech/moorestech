@@ -52,16 +52,16 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             simulate.Click(Find<Button>(_view, $"language-select-option-{locale}"));
             Assert.IsNotNull(_view.Q($"pause-menu-locale-{locale}"), "言語の切り替えが画面に届かない");
 
-            // トップへ戻ってバグ報告を開くと送信ボタンはバグの文言
-            // Back to the top and into the bug report, the send button reads the bug label
+            // トップ復帰でバグ文言に戻る
+            // Back to top restores the bug label
             simulate.Click(Find<Button>(_view, "pause-menu-back"));
             ShowPage(PauseMenuPage.Top);
             simulate.Click(Find<Button>(_view, "pause-menu-open-bug-report"));
             ShowPage(PauseMenuPage.BugReport);
             Assert.AreEqual(bug, SendLabel());
 
-            // 感想へ切り替えて送ると、ボタンと完了のトーストが感想の文言になる
-            // Switching to impressions and sending uses the impressions labels on the button and the toast
+            // 感想送信でボタンと通知が感想文言
+            // Impressions send uses impressions labels
             simulate.Click(Find<Button>(_view, "bug-report-kind-feedback"));
             Assert.AreEqual(send, SendLabel());
             Find<TextField>(_view, "bug-report-description").value = "feedback label QA";

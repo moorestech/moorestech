@@ -77,8 +77,8 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             tracker.SetSubscribedAnchors(Ids("pause.save", "pause.back"));
             simulate.FrameUpdate();
 
-            // 未発見は見つからない側、面積0は見つかったが隠れている側に分かれる
-            // Missing falls on the not-found side, zero-area on the found-but-hidden side
+            // 未発見と面積0を別側へ分ける
+            // Missing and zero-area fall on separate sides
             tracker.TryGet("pause.save", out var missing);
             tracker.TryGet("pause.back", out var zeroArea);
             Assert.IsInstanceOf<TutorialAnchorState.NotFound>(missing);

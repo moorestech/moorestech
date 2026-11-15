@@ -123,10 +123,10 @@ return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Reco
         // 撮影の前の言語へ戻す
         // Restore the pre-shoot language
         overlay.enabled = true;
-        await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
         var restored = Localize.TrySetChosenLanguage(languageBefore);
         p.Note($"撮影の前の言語={languageBefore}（戻せた={restored}）");
         p.Assert(restored, $"撮影の前の言語 {languageBefore} へ戻せる");
+        await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     }
 
     #region Internal

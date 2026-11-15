@@ -49,8 +49,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             Type("broken belt");
             View.Apply(new PauseMenuViewModel(PauseMenuPage.BugReport, false, FakePauseMenuModel.Capture(BugReportCaptureStatus.NoSession), delivery, PlaytestExportIdle.Instance));
 
-            // 配送の行と、送れない理由の状態行 1 本が両方出て、送信は押せない
-            // Both the delivery line and one status line with the blocking reason show, and send is disabled
+            // 配送行と状態行が出て送信は不可
+            // Delivery and status lines show, send disabled
             var deliveryLine = Find<Label>(View, "bug-report-delivery");
             Assert.IsTrue(IsShown(deliveryLine));
             Assert.AreEqual(expected, deliveryLine.PlainText());
@@ -67,8 +67,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             ApplyDelivery(new PlaytestDeliveryPending(Counts(0, 2)));
 
-            // 失敗件数が数字で残り、未翻訳キーと旧い再送復旧の案内が出ない
-            // The failed count stays as a number, with no untranslated key and no old resend-recovery guidance
+            // 失敗件数が残り旧案内は出ない
+            // Failed count stays, old guidance absent
             var text = Find<Label>(View, "bug-report-delivery").PlainText();
             StringAssert.Contains("2", text);
             StringAssert.DoesNotContain(UntranslatedKeyPrefix, text);
@@ -82,8 +82,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxInventoryUnavailable("access denied")));
 
-            // 読めなかった理由が残り、0 件や未翻訳キーにならない
-            // The unreadable reason stays, never turning into zero counts or an untranslated key
+            // 理由が残り0件にならない
+            // Reason stays, never zero counts
             var text = Find<Label>(View, "bug-report-delivery").PlainText();
             StringAssert.Contains("access denied", text);
             StringAssert.DoesNotContain("0", text);

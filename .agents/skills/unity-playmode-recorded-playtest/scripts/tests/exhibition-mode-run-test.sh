@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DRIVER="$SCRIPT_DIR/../../scenarios/uitk/stage5/exhibition-mode-run.sh"
 WORK="$(mktemp -d)"
 FAILURES=0
-mkdir -p "$WORK/bin" "$WORK/project"
+mkdir -p "$WORK/bin" "$WORK/project"; : > "$WORK/x.cs"
 export FAKE_ULOOP_CALL_LOG="$WORK/calls.log"
 
 # 偽 uloop: --code-file はファイル名で、--code は中身で応答を選び、呼ばれた順に 1 行ずつ記録する
@@ -22,8 +22,8 @@ done
 echo "${FILE:-code: ${CODE:0:60}}" >> "$FAKE_ULOOP_CALL_LOG"
 case "$FILE" in
   exhibition-arm.edc) printf '{"Success": true, "Result": "%s"}\n' "$FAKE_ARM_RESULT" ;;
-  exhibition-disarm.edc) printf '{"Success": true, "Result": "%s"}\n' "$FAKE_DISARM_RESULT" ;;
-  "") echo '{"Success": true, "Result": "switched"}' ;;
+  exhibition-disarm.edc) [ -n "${FAKE_DISARM_RAW:-}" ] && { printf '%s\n' "$FAKE_DISARM_RAW"; exit 0; }; printf '{"Success": true, "Result": "%s"}\n' "$FAKE_DISARM_RESULT" ;;
+  "") [ -n "${FAKE_SWITCH_RAW:-}" ] && { printf '%s\n' "$FAKE_SWITCH_RAW"; exit 0; }; echo '{"Success": true, "Result": "switched"}' ;;
   *) echo '{"Success": false, "ErrorMessage": "fake uloop: unexpected code file"}'; exit 1 ;;
 esac
 FAKE
@@ -65,6 +65,21 @@ mkdir -p "$(dirname "$NOTE")"; echo japanese > "$NOTE"
 export FAKE_DISARM_RESULT="disarmed / language-restore-failed (japanese; note kept: x)"
 expect "restore failed keeps the note" 1 "ERROR: .*kept" "" "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
 if [ ! -f "$NOTE" ]; then echo "FAIL: language-before.txt was removed"; FAILURES=$((FAILURES + 1)); fi
+
+# 5. 失敗応答（Success=false・Result 無し・UpdatedCode に自分のソース）の語を成功と読まない
+# 5. A failure response (Success=false, no Result, our source in UpdatedCode) is never read as success
+export FAKE_DISARM_RAW='{"Success": false, "UpdatedCode": "return \"language-untouched\";"}'
+expect "restore failure echoing source" 1 "ERROR: .*kept" "" "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
+unset FAKE_DISARM_RAW
+export FAKE_DISARM_RESULT="disarmed / language-untouched"
+export FAKE_SWITCH_RAW='{"Success": false, "UpdatedCode": "return \"switched\";"}'
+expect "switch failure echoing source" 1 "NG: could not switch" 2 "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
+unset FAKE_SWITCH_RAW
+
+# 6. 存在しない project・シナリオは uloop を呼ばずに 2
+# 6. A missing project or scenario exits 2 without calling uloop
+expect "missing project" 2 "NG: project not found" 0 "" "$WORK/none" GameUi "$WORK/x.cs"
+expect "missing scenario" 2 "NG: scenario not found" 0 "" "$WORK/project" GameUi "$WORK/none.cs"
 
 rm -rf "$WORK"
 if [ "$FAILURES" -ne 0 ]; then echo "exhibition-mode-run-test: $FAILURES failure(s)"; exit 1; fi

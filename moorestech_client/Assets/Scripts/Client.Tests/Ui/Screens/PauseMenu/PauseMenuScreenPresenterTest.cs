@@ -35,8 +35,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         [SetUp]
         public void MountPresenter()
         {
-            // ゲーム画面とポーズの間を行き来できるルータと、本物のページ状態の上の PauseMenuModel で組む
-            // Build over a router moving between the game screen and the pause, and a PauseMenuModel on a real page state
+            // 行き来できるルータと本物のページ状態で組む
+            // Build on a router and a real page state
             _host = new GameObject("pause-menu-presenter");
             var routing = UiRoutingStateTestFactory.CreateSwitchable(_host, UIStateEnum.GameScreen, new[] { UIStateEnum.GameScreen, UIStateEnum.PauseMenu }, out _control);
             _pauseMenuState = new PauseMenuStateService();
@@ -70,8 +70,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsTrue(IsShown(view), "ポーズへ遷移しても画面が出ない");
             Assert.IsNotNull(view.Q("pause-menu"));
 
-            // セーブとセーブして終了を順に押すと、それぞれのコマンドが 1 回ずつ出る
-            // Pressing save then save-and-quit issues each command once
+            // 各ボタンでコマンドが1回ずつ出る
+            // Each button issues its command once
             simulate.Click(Find<Button>(view, "pause-menu-save"));
             simulate.Click(Find<Button>(view, "pause-menu-save-and-quit"));
             CollectionAssert.AreEqual(new[] { PauseMenuCommandKind.Save, PauseMenuCommandKind.SaveAndQuit }, _commands.Issued.Select(record => record.Kind));
@@ -90,8 +90,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Find<TextField>(view, "bug-report-description").value = "ベルトが止まる";
             Assert.AreEqual("ベルトが止まる", _draft.Description);
 
-            // 閉じてから開き直し、バグ報告へ進むと本文も種別も既定へ戻っている
-            // Close, reopen and go to the bug report: the description and kind are back to defaults
+            // 開き直すと本文と種別が既定へ戻る
+            // Reopening resets description and kind
             UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
             Assert.IsFalse(IsShown(view), "閉じても画面が残る");
             OpenPause();
@@ -102,8 +102,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.AreEqual("Send bug report", Find<FormButton>(view, "bug-report-send").Q<Label>().PlainText());
         }
 
-        // 本番の PauseMenuState.OnEnter と同じく、遷移したら開いたことを知らせる
-        // Announce the open after the transition, as the production PauseMenuState.OnEnter does
+        // 遷移後に開いたことを通知する
+        // Announce the open after the transition
         private void OpenPause()
         {
             UiRoutingStateTestFactory.Transit(_control, UIStateEnum.PauseMenu);
@@ -111,8 +111,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             simulate.FrameUpdate();
         }
 
-        // ページの切り替えは本物のページ状態へ入れ、PauseMenuModel 経由で View に届ける
-        // Page changes go into the real page state and reach the view through PauseMenuModel
+        // ページ切替は本物の状態経由で届ける
+        // Page changes reach the view via the real state
         private void ShowPage(PauseMenuPage page)
         {
             _pauseMenuState.ShowPage(page);

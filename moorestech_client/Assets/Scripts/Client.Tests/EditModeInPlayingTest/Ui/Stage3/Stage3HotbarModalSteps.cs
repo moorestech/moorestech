@@ -28,8 +28,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
 
         public static async UniTask AssignFirstUnlockedBlock(IObjectResolver resolver)
         {
-            // ビルドメニューと同じ供給源の最初の解放済みブロックを割り当て、サーバーのエコーを待つ
-            // Assign the first unlocked block from the build menu's source and wait for the server echo
+            // 先頭の解放済みブロックを割当てエコー待ち
+            // Assign first unlocked block, await echo
             var block = new List<PlacementTargetEntry>();
             foreach (var entry in resolver.Resolve<PlacementTargetResolver>().UnlockedEntries())
             {
@@ -60,8 +60,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
 
         public static async UniTask RoundTripInputModal(ModalRequestService modalService, VisualElement root)
         {
-            // 入力付きモーダルを出し、1 つだけ見えて前面にあり、入力欄があることを見る
-            // Show an input modal; it shows once, sits in front and has an input field
+            // 入力付きモーダルの見え方を検査
+            // Check how the input modal shows
             var (_, response) = modalService.RequestInputModal("t", "m", "OK");
             await WaitModalCount(root, 1);
             var modal = Stage4ScreenSetProbe.VisibleByName(root, Stage3ExpectedSurfaces.Modal);
@@ -88,7 +88,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
             Assert.AreEqual(0, Stage4ScreenSetProbe.VisibleByName(root, Stage3ExpectedSurfaces.Modal).Count, "確定の後もモーダルが残る");
         }
 
-        public static async UniTask WaitModalCount(VisualElement root, int count)
+        private static async UniTask WaitModalCount(VisualElement root, int count)
         {
             for (var i = 0; i < MaxWaitFrames && Stage4ScreenSetProbe.VisibleByName(root, Stage3ExpectedSurfaces.Modal).Count != count; i++) await UniTask.Yield();
         }

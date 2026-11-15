@@ -153,8 +153,8 @@ namespace Client.Tests.Ui.Screens.BugReport
         [Test]
         public void 感想の送信中は表示とロックを保ち完了は送信開始時の種別で伝える()
         {
-            // 感想を送ると、応答待ちの間は感想の書き出し中の表示とロックが出る
-            // Sending impressions shows the impressions writing label and the lock while awaiting the reply
+            // 応答待ちは書き出し中表示とロック
+            // Awaiting reply shows writing label and lock
             simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
             Type("感想");
             simulate.Click(SendButton());
@@ -163,8 +163,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsFalse(Find<Button>(View, "bug-report-kind-feedback").enabledSelf);
             Assert.IsFalse(Find<Button>(View, "bug-report-kind-bug").enabledSelf);
 
-            // 応答待ちの間に下書きの種別がバグへ変わっても、完了は感想として伝える
-            // Even if the draft kind turns to bug while awaiting, completion is reported as impressions
+            // 待機中に種別が変わっても感想で完了
+            // Completion stays impressions if kind changes
             Draft.SetKind(PlaytestReportKind.Bug);
             Commands.CompleteSubmit(UiCommandAccepted.Instance);
             var submit = Commands.Issued.Single();

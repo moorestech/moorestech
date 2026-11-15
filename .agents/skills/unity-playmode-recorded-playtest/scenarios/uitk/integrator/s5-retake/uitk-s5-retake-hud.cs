@@ -114,15 +114,14 @@ return PlaytestRunner.Run("uitk-s5-retake-hud", options, async p =>
     }
     finally
     {
+        // 7. 撮影の前の言語へ戻す（解像度の復元より先。キャンセルで SetResolution が投げても戻せるように）
+        // 7. Restore the pre-shoot language before the resolution so a cancelled SetResolution cannot skip it
         overlay.enabled = true;
+        var restored = Localize.TrySetChosenLanguage(languageBefore);
+        p.Note($"撮影の前の言語={languageBefore}（戻せた={restored}）");
+        p.Assert(restored, $"撮影の前の言語 {languageBefore} へ戻せる");
         await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     }
-
-    // 7. 撮影の前の言語へ戻す
-    // 7. Restore the pre-shoot language
-    var restored = Localize.TrySetChosenLanguage(languageBefore);
-    p.Note($"撮影の前の言語={languageBefore}（戻せた={restored}）");
-    p.Assert(restored, $"撮影の前の言語 {languageBefore} へ戻せる");
 
     #region Internal
 

@@ -65,8 +65,8 @@ namespace Client.Tests.Ui.Screens.BugReport
         [TestCaseSource(nameof(LanguageCodes))]
         public void 各言語の本番辞書で救出ボタン2つと書き出し中の文言が未翻訳キーにならない(string languageCode)
         {
-            // 失敗ありの書き出し中で、再送・書き出し・書き出し状況の 3 つを出す
-            // Exporting with failures shows all three: resend, export and the export status
+            // 失敗時は再送・書き出し・状況の3つ
+            // With failures: resend, export, status
             Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(1, 16)), PlaytestExportRunning.Instance);
             var texts = new[]
@@ -89,8 +89,8 @@ namespace Client.Tests.Ui.Screens.BugReport
         [TestCaseSource(nameof(LanguageCodes))]
         public void 各言語の本番辞書で書き出しの完了と失敗の文言が差し込み値を保ち未翻訳キーにならない(string languageCode)
         {
-            // 完了・欠落・開けなかった案内を 1 行にした文に、差し込み値が全部残る
-            // The done, missing and not-revealed sentence keeps every inserted value
+            // 3種の案内文に差し込み値が残る
+            // All three sentences keep inserted values
             Assert.IsTrue(Localize.TrySetChosenLanguage(languageCode), $"言語 {languageCode} へ切り替えられる");
             var missing = new[] { new PlaytestExportMissing("reports/x/video.mp4", "IOException") };
             ApplyDelivery(new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(1, 16)), new PlaytestExportDone("/exports/unsent-reports.zip", 17, missing, false));

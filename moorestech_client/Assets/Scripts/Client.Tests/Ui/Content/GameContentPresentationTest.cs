@@ -81,8 +81,8 @@ namespace Client.Tests.Ui.Content
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, null, null));
             var itemName = content.ItemName(MasterHolder.ItemMaster.GetItemId(ItemGuid));
 
-            // 日本語では対象言語の名前、英語へ切り替えると同じ UiText が英語名を返す
-            // Japanese yields the target-language name; after switching to English the same UiText yields the English name
+            // 日本語は対象言語名、英語切替で英語名
+            // Japanese gives target name, English gives English name
             Assert.IsTrue(Localize.TrySetChosenLanguage("japanese"));
             Assert.AreEqual("テスト鉄板", itemName.Resolve());
             Assert.IsTrue(Localize.TrySetChosenLanguage("english"));

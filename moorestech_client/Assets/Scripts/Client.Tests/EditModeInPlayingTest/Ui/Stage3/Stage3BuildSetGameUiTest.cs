@@ -23,8 +23,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
 {
     /// <summary>
-    /// ビルドメニュー・ホットバーの選択・モーダルを本番の遷移で巡る（段階 3 の L3）
-    /// Walks the build menu, hotbar selection and modal through production transitions (stage-3 L3)
+    /// ビルド・ホットバー・モーダルを巡る
+    /// Walks build menu, hotbar and modal
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class Stage3BuildSetGameUiTest : UiSystemPlayModeTestBase
@@ -60,8 +60,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
                 using var backgroundInput = EditorBackgroundInputScope.Open();
                 Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
 
-                // 開幕スキットを飛ばしてゲーム画面から巡る（Stage2・Stage4 と同じ前段）
-                // Skip the opening skit and start from the game screen (same prelude as Stage2 and Stage4)
+                // 開幕スキットを飛ばして巡る
+                // Skip the opening skit and walk through
                 await PlaytestSetup.CreateFlatGroundAndWarp();
                 await PlaytestSkitOps.SkipOpeningSkitIfPlaying(OpeningSkitStartWaitSeconds);
                 Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "開幕スキットを飛ばした後にゲーム画面でない");
@@ -82,16 +82,16 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
 
                 async UniTask Cycle()
                 {
-                    // ゲーム画面 → B でビルドメニュー → B で閉じる
-                    // Game screen, B opens the build menu, B closes it
+                    // B でビルドメニューを開閉
+                    // B opens and closes the build menu
                     await AssertScreenSettled(root, UIStateEnum.GameScreen);
                     await TapKeyUntilState(uiStateControl, Key.B, UIStateEnum.BuildMenu);
                     await AssertScreenSettled(root, UIStateEnum.BuildMenu);
                     await TapKeyUntilState(uiStateControl, Key.B, UIStateEnum.GameScreen);
                     await AssertScreenSettled(root, UIStateEnum.GameScreen);
 
-                    // 枠 1 に割り当てて 2 で選ぶと印が付き、Esc で戻ると外れる
-                    // Assign slot 1 and pick it with 2 to mark it; Esc back removes the mark
+                    // 枠1割当→2で選択→Escで解除
+                    // Assign slot 1, pick with 2, Esc clears
                     await Stage3HotbarModalSteps.AssignFirstUnlockedBlock(resolver);
                     await TapKeyUntilState(uiStateControl, Key.Digit2, UIStateEnum.PlaceBlock);
                     await AssertScreenSettled(root, UIStateEnum.PlaceBlock);

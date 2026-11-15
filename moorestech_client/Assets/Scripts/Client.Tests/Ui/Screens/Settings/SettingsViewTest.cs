@@ -93,8 +93,8 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.IsTrue(IsSelected(view, "sprint-mode-option-hold"));
             Assert.IsFalse(IsSelected(view, "sprint-mode-option-toggle"));
 
-            // toggle を押すと走りの設定コマンドが toggle で 1 回出る
-            // Pressing toggle issues the sprint setting command once with toggle
+            // toggle 押下で設定コマンド1回
+            // Toggle press issues the setting command once
             simulate.Click(Find<Button>(view, "sprint-mode-option-toggle"));
             Assert.AreEqual(SettingsCommandKind.SetSprintInputMode, _commands.Issued.Single().Kind);
             Assert.AreEqual(SprintInputMode.Toggle, _commands.Issued.Single().SprintMode);
