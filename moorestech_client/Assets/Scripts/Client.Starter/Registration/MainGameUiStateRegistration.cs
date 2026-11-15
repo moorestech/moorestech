@@ -7,6 +7,7 @@ using Client.Ui.State.Modal;
 using Client.Ui.State.Notification;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Recipe.Catalog;
+using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Research;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Settings;
@@ -76,6 +77,11 @@ namespace Client.Starter.Registration
             // Recipe-list decision and station/platform commands; the Web host and GameUi views call the same decisions, so both systems register them (DC-23 A, D-36)
             builder.Register<RecipeViewerItemCatalog>(Lifetime.Singleton);
             builder.Register<TrainBlockCommands>(Lifetime.Singleton).As<ITrainBlockCommands>();
+
+            // クラフトの操作。Web の craft.execute と GameUi のレシピ画面が同じ検査・送信・拒否ログを通るので両方の系で登録する
+            // Craft commands; the Web craft.execute and the GameUi recipe screen share one check, send and refusal log, so both systems register them
+            builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
+            builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();
         }
     }
 }

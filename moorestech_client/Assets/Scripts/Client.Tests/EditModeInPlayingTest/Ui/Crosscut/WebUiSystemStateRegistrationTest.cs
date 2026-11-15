@@ -2,6 +2,7 @@ using System.Collections;
 using Client.Game.InGame.Context;
 using Client.Input;
 using Client.Ui.State.Recipe.Catalog;
+using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Train.Platform.Edit;
 using Cysharp.Threading.Tasks;
@@ -14,8 +15,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
 {
     /// <summary>
-    /// Web の系の起動で、Web ホストが呼ぶ State のインスタンス 2 型が DI から解決できることを確かめる（CEF・hub の有無に依らない。D-36）
-    /// Verifies a Web boot can resolve the two State instance types the Web host calls (independent of CEF or the hub; D-36)
+    /// Web の系の起動で、Web ホストが呼ぶ State のインスタンスが DI から解決できることを確かめる（CEF・hub の有無に依らない。D-36）
+    /// Verifies a Web boot can resolve the State instance types the Web host calls (independent of CEF or the hub; D-36)
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class WebUiSystemStateRegistrationTest : UiSystemPlayModeTestBase
@@ -49,6 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
                 Assert.IsNotNull(resolver.Resolve<RecipeViewerItemCatalog>(), "RecipeViewerItemCatalog が解決できない");
                 Assert.IsNotNull(resolver.Resolve<ITrainBlockCommands>(), "ITrainBlockCommands が解決できない");
                 Assert.IsNotNull(resolver.Resolve<IUiStateTransitionRequester>(), "IUiStateTransitionRequester が解決できない");
+                Assert.IsNotNull(resolver.Resolve<IRecipeCommands>(), "IRecipeCommands が解決できない");
             }
 
             #endregion

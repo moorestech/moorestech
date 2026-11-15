@@ -23,6 +23,7 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Ui.State.Recipe.Catalog;
+using Client.Ui.State.Recipe.Commands;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -129,7 +130,7 @@ namespace Client.WebUiHost.Game
             var unlockStateData = ClientDIContext.DIContainer
                 .DIContainerResolver
                 .Resolve<IGameUnlockStateData>();
-            RecipeWebUiRegistration.Register(hub, unlockStateData, resolver.Resolve<RecipeViewerItemCatalog>());
+            RecipeWebUiRegistration.Register(hub, unlockStateData, resolver.Resolve<RecipeViewerItemCatalog>(), resolver.Resolve<IRecipeCommands>());
             // 機械レシピとスロット上限の配信登録
             // Register machine-recipe and slot-limit topics
             var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData, resolver.Resolve<ILevelInheritanceCraftCapLookup>());
