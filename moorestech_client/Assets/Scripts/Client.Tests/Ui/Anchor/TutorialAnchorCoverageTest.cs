@@ -19,26 +19,19 @@ using UnityEngine;
 namespace Client.Tests.Ui.Anchor
 {
     /// <summary>
-    /// アンカー id ごとに UITK の印付けか未移植の表のどちらか一方にだけ載ることと、ポーズのアンカーが解けることを確かめる（L1・plan §4.5）
-    /// Verifies each anchor id is either marked in UITK or listed as pending (never both, never neither) and that pause anchors resolve (L1, plan §4.5)
+    /// アンカー id ごとに UITK の印が付いていることと、ポーズのアンカーが解けることを確かめる（L1・plan §4.5）
+    /// Verifies every anchor id is marked in UITK and that pause anchors resolve (L1, plan §4.5)
     /// </summary>
     public class TutorialAnchorCoverageTest : ScreenTestHost
     {
         [Test]
-        public void 全てのアンカーIDは印付けか未移植の表のどちらか一方にだけ載る()
+        public void 全てのアンカーIDはUITKで印が付いている()
         {
+            // 印の無いアンカーは UITK で枠が永久に出ない。未移植の表は段階 5 で空になり消した
+            // An unmarked anchor never shows its outline in UITK; the pending table emptied in stage 5 and was removed
             var marked = MarkedAnchorIds();
-            var problems = new List<string>();
-            foreach (var anchorId in AllAnchorIds())
-            {
-                // 印も表も無ければ枠が永久に出ない。両方にあれば表の消し忘れ
-                // Neither means the outline never shows; both means a stale table row
-                var isMarked = marked.Contains(anchorId);
-                var isPending = TutorialAnchorCoveragePending.Owners.ContainsKey(anchorId);
-                if (!isMarked && !isPending) problems.Add($"{anchorId}: UITK で印が無く、未移植の表にも無い");
-                if (isMarked && isPending) problems.Add($"{anchorId}: 印が付いたので未移植の表から {TutorialAnchorCoveragePending.Owners[anchorId]} の行を消す");
-            }
-            CollectionAssert.IsEmpty(problems);
+            var unmarked = AllAnchorIds().Where(anchorId => !marked.Contains(anchorId)).ToList();
+            CollectionAssert.IsEmpty(unmarked, "UITK で TutorialAnchor.Mark の無いアンカー");
 
             #region Internal
 
