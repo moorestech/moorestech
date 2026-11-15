@@ -61,7 +61,7 @@ return PlaytestRunner.Run("uitk-hotbar-unlock-resolve", options, async p =>
     // 2. The wheel over the row passes through to equipment (premise #8; the real master has one equipment slot, so check the judgment and stream, not a selection change)
     var picker = resolver.Resolve<IEquipmentWheelPointerPicker>();
     var notches = new List<float>();
-    using var wheelSubscription = resolver.Resolve<InputSystemPointerWheelStream>().OnWheelNotchesScrolled.Subscribe(notches.Add);
+    using var wheelSubscription = resolver.Resolve<InputSystemPointerWheelStream>().OnWheelNotchesScrolled.Subscribe(wheel => notches.Add(wheel.notchesUp));
     SemanticInput.KeyDown(Key.LeftAlt);
     await p.WaitSeconds(0.5f);
     foreach (var testid in new[] { "hotbar-slot-0", "hotbar-slot-5" })
