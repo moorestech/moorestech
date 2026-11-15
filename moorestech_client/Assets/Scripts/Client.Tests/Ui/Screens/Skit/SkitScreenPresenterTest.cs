@@ -115,11 +115,6 @@ namespace Client.Tests.Ui.Screens.Skit
             private readonly Subject<Unit> _onPressed = new();
 
             public IObservable<Unit> OnPressed => _onPressed;
-
-            public bool WasPressedThisFrame()
-            {
-                return false;
-            }
         }
     }
 }
