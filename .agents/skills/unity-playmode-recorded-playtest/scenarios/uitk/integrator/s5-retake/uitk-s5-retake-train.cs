@@ -29,7 +29,6 @@ using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Game.UnlockState;
-using MessagePack;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -59,8 +58,8 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
     overlay.enabled = false;
     try
     {
-        // 2. 橋脚 2 本のレールに機関車を置く（前例 stage1/uitk-nested-pause-train・stage4/uitk-train-inventory）
-        // 2. Put a locomotive on a two-pier rail (precedents stage1/uitk-nested-pause-train, stage4/uitk-train-inventory)
+        // 2. 地面の駅のレールに機関車を置く（前例 stage4/uitk-train-inventory）
+        // 2. Put a locomotive on a ground station rail (precedent stage4/uitk-train-inventory)
         var train = await PlaceLocomotive();
 
         // 3. GameUi だけ: 貨物プラットフォームと、機関車の持ち物タブ（空 → 物あり）
@@ -120,46 +119,42 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
 
     #region Internal
 
+    // 地面の駅 2 基を結線し、駅 A の構内に機関車を置く（前例 stage4/uitk-train-inventory。地面のレールなので乗車・開くが届く）
+    // Link two ground stations and put a locomotive inside station A (precedent stage4/uitk-train-inventory; ground rails keep boarding and opening in reach)
     async UniTask<TrainUnit> PlaceLocomotive()
     {
-        // 機関車（長さ 20）が載るよう橋脚の間を 44 空ける
-        // Space the piers 44 apart so the locomotive (length 20) fits
-        var (a, b) = (new Vector3Int(10, 32, 0), new Vector3Int(10, 32, 44));
-        foreach (var position in new[] { a, b })
-        {
-            var detail = new RailBridgePierComponentStateDetail(RailComponent.ToVector3(BlockDirection.North));
-            var parameters = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(detail)) };
-            var placed = false;
-            await p.RunOnServer($"レール橋脚を配置 {position}", () => placed = ServerContext.WorldBlockDatastore.TryAddBlock(PlaytestBlockOps.ResolveBlockId("レール橋脚"), position, BlockDirection.North, parameters, out _));
-            p.Assert(placed, $"レール橋脚を配置 {position}");
-            await p.WaitBlockGameObject(position);
-        }
-        var (railA, railB) = (p.GetBlock(a).GetComponent<RailComponent>(), p.GetBlock(b).GetComponent<RailComponent>());
+        Vector3Int stationAPos = new(10, 32, 4), stationBPos = new(10, 32, 64);
+        foreach (var position in new[] { stationAPos, stationBPos }) { await p.PlaceBlockDirect("蒸気機関車駅", position, BlockDirection.South); await p.WaitBlockGameObject(position); }
+        List<RailComponent> railsA = p.GetBlock(stationAPos).GetComponents<RailComponent>(), railsB = p.GetBlock(stationBPos).GetComponents<RailComponent>();
+        RailComponent ExitOf(List<RailComponent> rails) => rails.First(r => r.FrontNode.StationRef.NodeRole == StationNodeRole.Exit);
+        RailComponent EntryOf(List<RailComponent> rails) => rails.First(r => r.FrontNode.StationRef.NodeRole == StationNodeRole.Entry);
         var master = MasterHolder.TrainUnitMaster.Train.TrainCars.First(car => 0 < car.TractionForce);
-        await p.RunOnServer("レール 2 本を接続して機関車を解放する", () =>
+        await p.RunOnServer("駅 2 基を結線して機関車を解放する", () =>
         {
-            railA.FrontNode.ConnectNode(railB.FrontNode); railB.BackNode.ConnectNode(railA.BackNode);
+            ExitOf(railsA).FrontNode.ConnectNode(EntryOf(railsB).FrontNode); ExitOf(railsB).FrontNode.ConnectNode(EntryOf(railsA).FrontNode);
+            EntryOf(railsB).BackNode.ConnectNode(ExitOf(railsA).BackNode); EntryOf(railsA).BackNode.ConnectNode(ExitOf(railsB).BackNode);
             ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
         });
         foreach (var required in master.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
-        var railPosition = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
+        var railPosition = new RailPosition(new List<IRailNode> { EntryOf(railsA).BackNode, ExitOf(railsA).BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
         var response = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(railPosition, master.TrainCarGuid, CancellationToken.None);
-        p.Assert(response != null && response.Success, "機関車を本番プロトコルで配置できる");
+        p.Assert(response != null && response.Success, $"機関車を本番プロトコルで配置できる (failure={response?.FailureType})");
         await p.Until(() => SpawnedCar() != null, 15f, "機関車のクライアント表示");
         TrainUnit train = null;
         await p.RunOnServer("列車を取得する", () => train = ServerContext.GetService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First());
         return train;
     }
 
-    // 橋脚の上の車体は地面から届かないので、車体の中心の 2m 手前へ移って中心を狙う（前例 stage1/uitk-nested-pause-train の乗車）
-    // A car on piers is out of reach from the ground, so move 2 m short of its centre and aim at it (precedent: boarding in stage1/uitk-nested-pause-train)
+    // 後ろの車体の後端を狙う（前例 uitk-train-inventory の AimAtCar）
+    // Aim at the rear end of the car body (precedent AimAtCar in uitk-train-inventory)
     async UniTask AimAtCar()
     {
-        var collider = SpawnedCar().GetComponentInChildren<Collider>();
-        p.Note($"車体 bounds min={collider.bounds.min} max={collider.bounds.max}");
-        p.WarpPlayer(collider.bounds.center + new Vector3(0f, 0f, -2f));
+        Collider rear = null;
+        foreach (var collider in SpawnedCar().GetComponentsInChildren<Collider>(true)) if (rear == null || collider.bounds.min.z < rear.bounds.min.z) rear = collider;
+        var bounds = rear.bounds;
+        p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1.2f));
         await p.WaitSeconds(1f);
-        await p.AimAt(collider.bounds.center);
+        await p.AimAt(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f));
     }
 
     TrainCarEntityObject SpawnedCar() => Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
