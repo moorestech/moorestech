@@ -81,7 +81,6 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
             await p.Until(() => Shown("train-platform-view"), 15f, "train-platform-view が出る");
             await ShootBoth("4-block-trainPlatform");
             await Close();
-
             await AimAtCar();
             await p.PressInteract();
             await p.WaitUiState(UIStateEnum.SubInventory, 10f);
@@ -161,11 +160,13 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
         var bounds = rear.bounds;
         p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1.2f));
         await p.WaitSeconds(1f);
-        await p.AimAt(new Vector3(bounds.center.x, bounds.max.y - 0.3f, bounds.min.z + 0.3f));
+        // 橋脚の上の車体は高いので、上端でなく下端の少し上を狙う（上端は配置カメラの外へ出る）
+        // The car on piers stands high, so aim just above its bottom, not its top (the top leaves the placement camera)
+        p.Note($"車体の後端 bounds min={bounds.min} max={bounds.max}");
+        await p.AimAt(new Vector3(bounds.center.x, Mathf.Min(bounds.max.y - 0.3f, bounds.min.y + 0.5f), bounds.min.z + 0.3f));
     }
 
     TrainCarEntityObject SpawnedCar() => Object.FindObjectsByType<TrainCarEntityObject>(FindObjectsSortMode.None).FirstOrDefault();
-
     async UniTask Close()
     {
         await p.ClickUi("block-inventory-close");
