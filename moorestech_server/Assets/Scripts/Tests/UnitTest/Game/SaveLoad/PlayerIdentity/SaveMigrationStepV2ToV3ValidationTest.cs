@@ -1,4 +1,4 @@
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V2ToV3;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 

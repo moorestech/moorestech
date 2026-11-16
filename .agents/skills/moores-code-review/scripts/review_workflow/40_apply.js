@@ -23,7 +23,7 @@ let postCheckSelection = null
     `手順: (0) 何も編集する前に \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s0\` を実行する（作業ツリーの snapshot。HEAD/index/作業ツリーは変わらない。Step 6.5-2.5 の反映 diff の基点）。続けて ${recordStep('s0')} を実行する。`,
     BUG_PASS
       ? '(1) integrated.md の採用Critical（bug-pass では全件が自動適用可・修正方針は症状を消す最小の変更）を適用する。design.md は書かない。'
-      : '(1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用せず design.md（症状→原因→推奨と選択肢。コードを開かずに選べる形。0件なら「なし」）へ書く。',
+      : `(1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用しない。design.md は自分で書かず \`python3 ${A.designFromIntegratedScript} build --integrated ${A.runDir}/integrated.md --out ${A.runDir}/design.md\` で作る（integrated.md の設計判断を原文のまま転記する。推奨・選択肢・できあがる形を書き換えない）。適用中に新たに設計判断へ回した件だけ、design.md 末尾の「## apply で追加した設計判断」見出しの下へ「なし」を置き換えて追記する（integration-rules §4 の案文規則どおり。各案に増える依存・残る負債を書く）。`,
     '(2) .cs を変えたら `uloop compile --project-path <Repo root>/moorestech_client` でエラー0を確認する（Editor不在で実行不能なら compile=skipped と返す）。',
     `(3) final.diff を書き、\`python3 ${A.deterministicChecksScript} <final.diff> --repo-root <Repo root>\` を ${A.runDir}/checks-final.json へ書く（--context は渡さない）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
     `(3.5) ${snapshotS1} を実行し、出力 JSON の scope を refix_scope に、files/source_files の要約を refix_note に返す（反映 diff は親が applied-diff-correctness で再レビューする）。スクリプトが失敗したら refix_scope=error とし stderr を refix_note に書く（黙って source/none にしない）。`,

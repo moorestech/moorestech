@@ -60,7 +60,6 @@ namespace Client.Game.InGame.Playtest.Progress
         {
             _sessionCancellation.Cancel();
             _sessionCancellation.Dispose();
-            if (_started) _uiStateControl.OnStateChanged -= OnUiStateChanged;
             _eventSubscriptions.Dispose();
             GameShutdownEvent.UnregisterParticipant(this);
             _writer.Dispose();
@@ -109,7 +108,7 @@ namespace Client.Game.InGame.Playtest.Progress
             _writer.WriteHeader(CreateHeader());
             ProgressWorldPlayTimeQuery.FillAsync(_writer, _sessionCancellation.Token).Forget(ProgressWorldPlayTimeQuery.LogFailure);
 
-            _uiStateControl.OnStateChanged += OnUiStateChanged;
+            _uiStateControl.OnStateChanged.Subscribe(OnUiStateChanged).AddTo(_eventSubscriptions);
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(ResearchCompleteEventPacket.EventTag, OnResearchCompleted));
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnChallengeCompleted));
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(CraftCompletedEventPacket.EventTag, OnCraftCompleted));

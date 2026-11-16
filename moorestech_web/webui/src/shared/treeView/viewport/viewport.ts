@@ -36,6 +36,16 @@ export function centerViewportOn(
   };
 }
 
+// 寸法変化の前後で中央の点を動かさない平行移動。拡縮はそのまま保つ
+// Translation that keeps the center point fixed across a size change; the scale is kept as is
+export function shiftViewportForResize(current: ViewportTransform, previousSize: ViewportSize, nextSize: ViewportSize): ViewportTransform {
+  return {
+    x: current.x + (nextSize.width - previousSize.width) / 2,
+    y: current.y + (nextSize.height - previousSize.height) / 2,
+    scale: current.scale,
+  };
+}
+
 // 慣性パン定数(速度=px/ms)
 // Inertial-pan constants (velocity in px/ms)
 // τ=325msはiOS系スクロール減衰の標準値。上限3px/msで最大滑走距離は3×325≒975pxに収まる

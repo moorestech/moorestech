@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
             // Failure responses are discarded by SendOnly, so deliver the reason via the notification service
             if (!response.Success)
             {
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.railEdit.{response.FailureReason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.railEdit.{response.FailureReason}", new Dictionary<string, string>()));
             }
 
             return response;

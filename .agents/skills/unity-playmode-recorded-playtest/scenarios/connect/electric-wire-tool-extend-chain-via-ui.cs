@@ -17,7 +17,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Common.Debug;
 using Client.Playtest.Input;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.EnergySystem;
@@ -100,7 +100,7 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     // 電線ツールをビルドメニュー(ツール>接続)から選択する
     // Select the wire tool from the build menu (ツール > 接続)
     p.Note("ビルドメニューのツールカテゴリから電線接続ツールを選ぶ");
-    p.Assert(CefScreenMapper.IsWebUiAvailable(), "Web UI(CEF)が利用可能");
+    p.Assert(PlaytestUiLocatorSession.Locator.IsAvailable(), "UIの描画系が利用可能");
     for (var attempt = 0; attempt < 3 && p.CurrentUiState != UIStateEnum.BuildMenu; attempt++)
     {
         await p.PressKey(p.CurrentUiState == UIStateEnum.PlaceBlock ? Key.Tab : Key.B);
@@ -108,9 +108,9 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
         while (Time.realtimeSinceStartup < openDeadline && p.CurrentUiState != UIStateEnum.BuildMenu) await UniTask.DelayFrame(5);
     }
     p.Assert(p.CurrentUiState == UIStateEnum.BuildMenu, "ビルドメニューが開く");
-    await p.UntilWebUiElement("build-menu-panel", 15f);
-    await p.ClickWebUi("build-menu-category-d1000000-0000-4000-8000-000000000009");
-    await p.ClickWebUi($"build-menu-entry-connectTool-{wireToolGuid:D}");
+    await p.UntilUiElement("build-menu-panel", 15f);
+    await p.ClickUi("build-menu-category-d1000000-0000-4000-8000-000000000009");
+    await p.ClickUi($"build-menu-entry-connectTool-{wireToolGuid:D}");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
     p.Assert((placeController.CurrentTarget as ConnectToolPlacementTarget)?.ConnectToolGuid == wireToolGuid, "電線接続ツールが選択される");
     await p.Screenshot("00-wire-tool-selected");

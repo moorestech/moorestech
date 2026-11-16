@@ -6,6 +6,7 @@ import {
   centerViewportOn,
   clampPanVelocity,
   decayPanVelocity,
+  shiftViewportForResize,
   zoomViewportAt,
 } from "./viewport";
 
@@ -34,6 +35,18 @@ describe("centerViewportOn", () => {
     // The transformed point lands at the center
     expect(result.x + 100 * 2).toBe(200);
     expect(result.y + 100 * 2).toBe(150);
+  });
+});
+
+describe("shiftViewportForResize", () => {
+  it("縮んだぶんの半分だけ平行移動し、中央に見えていた点を中央に保つ", () => {
+    const before = centerViewportOn({ x: 200, y: 200 }, { width: 1248, height: 484 }, 1);
+    const after = shiftViewportForResize(before, { width: 1248, height: 484 }, { width: 1248, height: 449 });
+    expect(after).toEqual(centerViewportOn({ x: 200, y: 200 }, { width: 1248, height: 449 }, 1));
+  });
+
+  it("拡縮率は変えない", () => {
+    expect(shiftViewportForResize({ x: 10, y: 20, scale: 1.5 }, { width: 100, height: 100 }, { width: 140, height: 60 })).toEqual({ x: 30, y: 0, scale: 1.5 });
   });
 });
 

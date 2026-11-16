@@ -42,31 +42,12 @@ namespace Game.Block.Interface
         /// </summary>
         public static Vector3Int CalcBlockMaxPos(Vector3Int originPos, BlockDirection direction, Vector3Int blockSize)
         {
-            var addPos = Vector3Int.zero;
-            switch (direction)
+            var addPos = direction switch
             {
-                case BlockDirection.UpNorth:
-                case BlockDirection.UpSouth:
-                case BlockDirection.DownNorth:
-                case BlockDirection.DownSouth:
-                    addPos = new Vector3Int(blockSize.x, blockSize.z, blockSize.y);
-                    break;
-                case BlockDirection.UpEast:
-                case BlockDirection.UpWest:
-                case BlockDirection.DownEast:
-                case BlockDirection.DownWest:
-                    addPos = new Vector3Int(blockSize.y, blockSize.z, blockSize.x);
-                    break;
-                
-                case BlockDirection.North:
-                case BlockDirection.South:
-                    addPos = new Vector3Int(blockSize.x, blockSize.y, blockSize.z);
-                    break;
-                case BlockDirection.East:
-                case BlockDirection.West:
-                    addPos = new Vector3Int(blockSize.z, blockSize.y, blockSize.x);
-                    break;
-            }
+                BlockDirection.North or BlockDirection.South => new Vector3Int(blockSize.x, blockSize.y, blockSize.z),
+                BlockDirection.East or BlockDirection.West => new Vector3Int(blockSize.z, blockSize.y, blockSize.x),
+                _ => throw new System.ArgumentOutOfRangeException(nameof(direction), direction, null),
+            };
             
             // block sizeは1からとなっているが、ここで求めるのはブロックが占める範囲の最大値なので、-1している
             return addPos + originPos - Vector3Int.one;

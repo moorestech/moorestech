@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Game.CleanRoom;
 using Game.CleanRoom.Util;
 using NUnit.Framework;
 
@@ -7,81 +5,49 @@ namespace Tests.UnitTest.Game
 {
     public class CleanRoomPurityLogicTest
     {
-        [Test]
-        public void IntegrateTickConvergesToEquilibriumConcentrationTest()
-        {
-            // A=16, nq=5, V=75 の反復で濃度 C=N/V が平衡値 A/nq=3.2 に収束する
-            // Iterating with A=16, nq=5, V=75 converges concentration C=N/V to A/nq=3.2
-            var impurity = 0.0;
-            for (var i = 0; i < 1000; i++)
-                impurity = CleanRoomPurityLogic.IntegrateTick(impurity, 75, 16.0, 5.0, 0.1);
+        private static readonly double[] RequiredAirChangeRates = { 0.0167, 0.0083, 0.0042, 0.0014 };
 
-            Assert.AreEqual(3.2, impurity / 75, 0.01);
+        [Test]
+        public void InsufficientAirChangeRateIsOutTest()
+        {
+            // 届かなければOut（行数）
+            // Falling short of every row's required rate yields Out (the row count)
+            var index = CleanRoomPurityLogic.DecideThresholdIndex(4, 0.0010, RequiredAirChangeRates);
+            Assert.AreEqual(4, index);
         }
 
         [Test]
-        public void IntegrateTickWithoutRemovalIncreasesMonotonicallyTest()
+        public void PromotionRequiresOnePointTwoFiveTimesRequiredRateTest()
         {
-            // 除去0なら流入分だけ毎tick単調増加する
-            // With zero removal the count grows monotonically by the inflow
-            var impurity = 0.0;
-            for (var i = 0; i < 100; i++)
-            {
-                var next = CleanRoomPurityLogic.IntegrateTick(impurity, 10, 0.5, 0.0, 0.05);
-                Assert.Greater(next, impurity);
-                impurity = next;
-            }
+            // Out(4) から B(1) へ: 0.0083 ちょうどでは届かず C(2) 止まり、0.0083×1.25 以上で B になる
+            // From Out(4) to B(1): exactly 0.0083 stops at C(2); 0.0083 x 1.25 or more reaches B
+            Assert.AreEqual(2, CleanRoomPurityLogic.DecideThresholdIndex(4, 0.0083, RequiredAirChangeRates));
+            Assert.AreEqual(1, CleanRoomPurityLogic.DecideThresholdIndex(4, 0.0083 * 1.25, RequiredAirChangeRates));
         }
 
         [Test]
-        public void IntegrateTickNeverGoesNegativeTest()
+        public void CurrentClassIsKeptAtExactRequiredRateTest()
         {
-            // 過大な除去でも0でクランプされ負にならない
-            // Excessive removal clamps at zero and never goes negative
-            var result = CleanRoomPurityLogic.IntegrateTick(1.0, 1, 0.0, 1000.0, 1.0);
-            Assert.AreEqual(0.0, result);
+            // 現クラスは素の必要値で維持
+            // The current class is kept at its raw required rate without the promotion margin
+            Assert.AreEqual(1, CleanRoomPurityLogic.DecideThresholdIndex(1, 0.0083, RequiredAirChangeRates));
         }
 
         [Test]
-        public void DecideThresholdIndexHysteresisTest()
+        public void LowerAirChangeRateDemotesImmediatelyTest()
         {
-            var rows = new List<CleanRoomThresholdRow>
-            {
-                new(10, 0.017),
-                new(50, 0.0083),
-            };
-
-            // 現在B: C=9 は昇格マージン（C≤8 かつ ACH≥0.02125）を満たさずBのまま
-            // At B, C=9 misses the promotion margin (C≤8 and ACH≥0.02125), so it stays B
-            Assert.AreEqual(1, CleanRoomPurityLogic.DecideThresholdIndex(1, 9.0, 0.02, rows));
-
-            // 現在B: C=7.9, ACH=0.022 は昇格条件を満たしAへ昇格する
-            // At B, C=7.9 with ACH=0.022 satisfies the promotion margin and promotes to A
-            Assert.AreEqual(0, CleanRoomPurityLogic.DecideThresholdIndex(1, 7.9, 0.022, rows));
-
-            // 現在A: C=10.5 は素の閾値でAを外れBへ降格する
-            // At A, C=10.5 fails the raw threshold and demotes to B
-            Assert.AreEqual(1, CleanRoomPurityLogic.DecideThresholdIndex(0, 10.5, 0.02, rows));
-
-            // どの行も満たさなければ Out（rows.Count）になる
-            // When no row is satisfied the result is Out (rows.Count)
-            Assert.AreEqual(2, CleanRoomPurityLogic.DecideThresholdIndex(1, 100.0, 0.0, rows));
+            // 下回ったら1つ降格
+            // Dropping below the required rate demotes to the next row in the same decision
+            Assert.AreEqual(2, CleanRoomPurityLogic.DecideThresholdIndex(1, 0.0082, RequiredAirChangeRates));
         }
 
         [Test]
-        public void ZeroVolumeConcentrationAndAirChangeRateAreZeroTest()
+        public void ZeroVolumeAirChangeRateIsZeroTest()
         {
-            // 体積0の部屋は濃度・換気回数とも0になり、NaN や無限大を判定へ渡さない
-            // A zero-volume room yields zero concentration and air change rate, never passing NaN or infinity to the decision
-            Assert.AreEqual(0d, CleanRoomPurityLogic.Concentration(5d, 0));
-            Assert.AreEqual(0d, CleanRoomPurityLogic.AirChangeRate(3d, 0));
-            Assert.AreEqual(3d, CleanRoomPurityLogic.Concentration(30d, 10), 1e-9);
+            // 体積0は換気回数0（NaN回避）
+            // A zero-volume room yields a zero air change rate, never passing NaN or infinity to the decision
+            Assert.AreEqual(0d, CleanRoomPurityLogic.AirChangeRate(5d, 0));
             Assert.AreEqual(0.5d, CleanRoomPurityLogic.AirChangeRate(5d, 10), 1e-9);
-
-            // 換気0はどの行の必要換気回数も満たさないので、体積0の部屋は Out のまま
-            // Zero air change satisfies no row's required rate, so a zero-volume room stays Out
-            var rows = new List<CleanRoomThresholdRow> { new(10, 0.017), new(50, 0.0083) };
-            Assert.AreEqual(rows.Count, CleanRoomPurityLogic.DecideThresholdIndex(rows.Count, 0d, 0d, rows));
         }
     }
 }

@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             var leak = CleanRoomLeakMessagePack.CreateNoEnclosure();
             leak.Kind = (CleanRoomLeakResponseKind)999;
             Assert.IsFalse(leak.TryGetView(out _));
-            var room = CleanRoomSummaryMessagePack.CreateOut(0, 0, 1, new List<CleanRoomAirFilterMessagePack>());
+            var room = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>());
             response = GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(room);
             room.ClassKind = (CleanRoomClassResponseKind)999;
             Assert.AreEqual(BlockInfoReadResult.Unreadable, response.TryReadView(out _));

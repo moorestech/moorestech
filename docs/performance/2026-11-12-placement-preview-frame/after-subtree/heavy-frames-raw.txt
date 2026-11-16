@@ -1,0 +1,191 @@
+=== frame 102 13365ms
+  --- Server.Boot.dll!Server.Boot::ServerStarter.Start() [Invoke] total=12507ms self=11239ms
+    self=   530ms total=   530ms calls=15492300  GC.Alloc
+    self=   340ms total=   359ms calls=    5307  Mono.JIT
+    self=   117ms total=   117ms calls=       5  GC.Collect
+    self=   102ms total=   102ms calls=     749  UnityEngine.CoreModule.dll!UnityEngine::StackTraceUtility.ExtractStackTrace() [Invoke]
+    self=    90ms total=   194ms calls=     749  LogStringToConsole
+    self=     9ms total=    55ms calls=     249  MessagePack.dll!::FormatterCache`1..cctor()
+    self=     2ms total=     2ms calls=     749  UnityEngine.CoreModule.dll!UnityEngine::Application.CallLogCallback() [Invoke]
+    self=     1ms total=     1ms calls=      93  mscorlib.dll!System.Collections.Generic::List`1..cctor()
+    self=     0ms total=     1ms calls=       1  MessagePack.dll!MessagePack.Internal::BuiltinResolverGetFormatterHelper..cctor()
+    self=     0ms total=     0ms calls=      60  MessagePack.dll!::<>c..cctor()
+    self=     0ms total=     1ms calls=      18  Game.Block.dll!::FormatterCache`1..cctor()
+    self=     0ms total=     0ms calls=       1  MessagePack.dll!MessagePack::FormatterResolverExtensions..cctor()
+    self=     0ms total=     1ms calls=       1  Game.SaveLoad.dll!Game.SaveLoad.Migration.Steps.V8ToV9::WaferGradeRemovalTable..cctor()
+    self=     0ms total=     1ms calls=       1  Game.SaveLoad.dll!Game.SaveLoad.Migration.Steps.V7ToV8::ZeroCostTier9ResearchResetTable..cctor()
+    self=     0ms total=     0ms calls=       3  Game.Block.dll!Game.Block.Component::BlockConnectorComponent`2..cctor()
+    self=     0ms total=     0ms calls=      10  mscorlib.dll!System::EmptyArray`1..cctor()
+    self=     0ms total=     1ms calls=       9  Server.Util.dll!::FormatterCache`1..cctor()
+    self=     0ms total=     0ms calls=       1  MessagePack.dll!MessagePack.Formatters::DynamicObjectTypeFallbackFormatter..cctor()
+    self=     0ms total=     0ms calls=       3  UniRx.dll!UniRx::Stubs`1..cctor()
+    self=     0ms total=     1ms calls=       7  Game.Block.Interface.dll!::FormatterCache`1..cctor()
+    self=     0ms total=     0ms calls=       7  Game.Fluid.dll!::FormatterCache`1..cctor()
+    self=     0ms total=     0ms calls=      12  Game.Block.dll!::<>c..cctor()
+    self=     0ms total=     1ms calls=       5  Server.Event.dll!::FormatterCache`1..cctor()
+    self=     0ms total=     0ms calls=       1  MessagePack.dll!MessagePack.Internal::DynamicGenericResolverGetFormatterHelper..cctor()
+    self=     0ms total=     0ms calls=      16  mscorlib.dll!System.Collections.Generic::ArraySortHelper`1..cctor()
+    self=     0ms total=     0ms calls=      12  System.Core.dll!System.Linq::EmptyPartition`1..cctor()
+    self=     0ms total=     0ms calls=       1  Server.Util.dll!::GeneratedMessagePackResolverGetFormatterHelper..cctor()
+    self=     0ms total=     0ms calls=       7  Game.SaveLoad.dll!::<>c..cctor()
+    self=     0ms total=     0ms calls=       1  Server.Event.dll!::GeneratedMessagePackResolverGetFormatterHelper..cctor()
+    self=     0ms total=     0ms calls=       1  Game.Block.dll!::GeneratedMessagePackResolverGetFormatterHelper..cctor()
+  --- Unity.ResourceManager.dll!UnityEngine.ResourceManagement.Util::DelayedActionManager.LateUpdate() [Invoke] total=703ms self=338ms
+    self=   319ms total=   319ms calls=     123  SpriteMeshGenerator.TraceShape
+    self=    30ms total=    31ms calls=     369  Mono.JIT
+    self=     4ms total=     5ms calls=       2  Loading.LoadFileHeaders
+    self=     4ms total=     4ms calls=      30  ReadObjectFromSerializedFile
+    self=     3ms total=     3ms calls=     123  SpriteMeshGenerator.Decompose
+    self=     1ms total=     1ms calls=   30204  GC.Alloc
+    self=     1ms total=     1ms calls=     123  Texture.AwakeFromLoad
+    self=     1ms total=     1ms calls=     137  File.Read
+    self=     0ms total=     0ms calls=       1  UnityEngine.CoreModule.dll!UnityEngine::StackTraceUtility.ExtractStackTrace() [Invoke]
+    self=     0ms total=     1ms calls=       1  LogStringToConsole
+    self=     0ms total=     0ms calls=     123  Gfx.EndAsyncJobFrame
+    self=     0ms total=     0ms calls=       4  UniTask.dll!Cysharp.Threading.Tasks.Internal::StatePool`2..cctor()
+    self=     0ms total=     0ms calls=     505  AssetDatabase.GetGUIDFromAssetPathV2
+    self=     0ms total=     0ms calls=       6  UniTask.dll!Cysharp.Threading.Tasks.CompilerServices::AsyncUniTask`2..cctor()
+    self=     0ms total=     0ms calls=     123  SpriteMeshGenerator.Simplify
+    self=     0ms total=     0ms calls=       1  UniTask.dll!Cysharp.Threading.Tasks.Internal::ArrayPool`1..cctor()
+    self=     0ms total=     0ms calls=       1  Client.Localization.dll!Client.Localization::LocalizationTextInterpolator..cctor()
+    self=     0ms total=     9ms calls=       4  IntegrateAllThreadedObjects
+    self=     0ms total=     0ms calls=       2  File.Open
+    self=     0ms total=    18ms calls=       4  Loading.ReadObject
+    self=     0ms total=     1ms calls=     137  AsyncReadManager.SyncRequest
+    self=     0ms total=     0ms calls=       6  mscorlib.dll!System.Collections.Generic::List`1..cctor()
+    self=     0ms total=     0ms calls=       1  UniTask.dll!Cysharp.Threading.Tasks.Internal::StatePool`3..cctor()
+    self=     0ms total=     0ms calls=       2  GameObject.AddComponent
+    self=     0ms total=     0ms calls=       2  UniTask.dll!Cysharp.Threading.Tasks.CompilerServices::AsyncUniTask`1..cctor()
+    self=     0ms total=     0ms calls=      13  UniTask.dll!::<>c..cctor()
+    self=     0ms total=     4ms calls=      30  Loading.ReadObjectThreaded
+    self=     0ms total=     0ms calls=       1  LargeAllocation.Alloc
+    self=     0ms total=     0ms calls=     335  AssetDatabase.GetPathFromAssetGuidV2
+    self=     0ms total=     9ms calls=      30  Loading.AwakeFromLoad
+=== frame 373 4655ms
+=== frame 589 26399ms
+  --- UnityEngine.CoreModule.dll!UnityEngine.SceneManagement::SceneManager.Internal_SceneLoaded() [Invoke] total=10528ms self=4280ms
+    self=  1480ms total=  1647ms calls=   20133  Instantiate.Produce
+    self=  1450ms total=  1613ms calls=  246207  GameObject.AddComponent
+    self=   796ms total=   810ms calls=   20133  Instantiate.Copy
+    self=   675ms total=   702ms calls=   20133  Instantiate.Awake
+    self=   577ms total=   578ms calls=   57508  GameObject.ActivateAwakeRecursively
+    self=   489ms total=   502ms calls=  239209  GetComponentNullErrorMessage
+    self=   246ms total=   246ms calls= 5485268  GC.Alloc
+    self=   117ms total=   124ms calls=    1931  Mono.JIT
+    self=    64ms total=   119ms calls=   15082  TransformHandle.SetParent
+    self=    63ms total=    63ms calls=       2  GC.Collect
+    self=    46ms total=  3206ms calls=   20133  Instantiate
+    self=    36ms total=    42ms calls=   67127  Client.Game.dll!Client.Game.InGame.Block::BlockGameObjectChild..ctor() [Invoke]
+    self=    35ms total=    38ms calls=   15082  Client.Game.dll!Client.Game.InGame.Block::BlockGameObject..ctor() [Invoke]
+    self=    31ms total=    35ms calls=      11  TransformHandle.SetHierarchyCapacity
+    self=    29ms total=    50ms calls=  135738  SceneVisibilityState.IsFlagSetInParents
+    self=    25ms total=    25ms calls=   35221  gameObjectChangedScene.Invoke
+    self=    19ms total=    47ms calls=   45246  SceneDataContainer.TransformHierarchyChangedSetParentCallback
+    self=    15ms total=    15ms calls=  229177  SortingGroup.UpdateRenderer
+    self=    14ms total=    15ms calls=   15082  Client.Game.dll!Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject::BlockPlacementHitFaces..ctor() [Invoke]
+    self=    13ms total=    13ms calls=  141063  Scripting.GetRequiredComponents
+    self=    11ms total=    11ms calls=  241009  GetComponentNullErrorWrapper
+    self=    11ms total=    12ms calls=   10789  Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor..ctor() [Invoke]
+    self=     9ms total=    10ms calls=   15243  Client.Game.dll!Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject::PreviewOnlyObject..ctor() [Invoke]
+    self=     8ms total=     9ms calls=   10793  Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessorSimulator..ctor() [Invoke]
+    self=     8ms total=     8ms calls=       8  LargeAllocation.Free
+    self=     8ms total=     8ms calls=   15085  UniRx.dll!UniRx.Triggers::ObservableDestroyTrigger..ctor() [Invoke]
+    self=     8ms total=     8ms calls=  141063  Scripting.GetParentTypeDisallowingMultipleInclusion
+    self=     6ms total=     6ms calls=   12561  Client.Game.dll!Client.Game.InGame.Block.Interact::BlockInteractable..ctor() [Invoke]
+    self=     5ms total=   564ms calls=   56750  GameObject.Deactivate
+    self=     5ms total=     5ms calls=   28583  Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::TransformRotationInfo..ctor() [Invoke]
+  --- PacketExchange.RouteResponse total=8671ms self=4828ms
+    self=  1041ms total=  1102ms calls=     407  BlockState.Deserialize
+    self=   576ms total=   725ms calls=   74793  BlockState.Processor.ElectricWireStateChangeProcessor
+    self=   575ms total=   575ms calls=     918  Physics.BakePhysXCollisionMeshData
+    self=   279ms total=   290ms calls=   78320  BlockState.Processor.CommonMachineBlockStateChangeProcessor
+    self=   248ms total=   256ms calls=  134188  BlockState.Processor.GearStateChangeProcessor
+    self=   167ms total=   175ms calls=    3026  Instantiate.Produce
+    self=   135ms total=   135ms calls= 3204945  GC.Alloc
+    self=   128ms total=   129ms calls=    3026  Instantiate.Copy
+    self=   120ms total=   175ms calls=   15473  GameObject.AddComponent
+    self=   112ms total=   116ms calls=   67227  BlockState.Processor.GearBeltConveyorStateChangeProcessor
+    self=    73ms total=    74ms calls=     994  Mono.JIT
+    self=    71ms total=    84ms calls=    3026  Instantiate.Awake
+    self=    62ms total=    65ms calls=   11891  GameObject.ActivateAwakeRecursively
+    self=    53ms total=    53ms calls=       1  GC.Collect
+    self=    38ms total=    41ms calls=    1804  UnityEditor.CoreModule.dll!UnityEditor::MaterialEditor.ApplyMaterialPropertyDrawersFromNative() [Invoke]
+    self=    37ms total=    39ms calls=   20852  BlockState.Processor.SteamEngineEffectStateChangeProcessor
+    self=    17ms total=    17ms calls=    4465  CopyChannels
+    self=    16ms total=    16ms calls=    5624  GetComponentNullErrorMessage
+    self=    10ms total=    10ms calls=    1246  Mesh.CreateMesh
+    self=    10ms total=    35ms calls=    6298  TransformHandle.SetParent
+    self=    10ms total=    10ms calls=      20  UnityEngine.CoreModule.dll!UnityEngine::StackTraceUtility.ExtractStackTrace() [Invoke]
+    self=     9ms total=    21ms calls=   71319  SceneVisibilityState.IsFlagSetInParents
+    self=     7ms total=    17ms calls=      20  LogStringToConsole
+    self=     6ms total=   395ms calls=    3026  Instantiate
+    self=     6ms total=     6ms calls=     708  Physics.HandleColliderHierarchyChanges
+    self=     6ms total=     6ms calls=    8429  gameObjectChangedScene.Invoke
+    self=     5ms total=    14ms calls=   18894  SceneDataContainer.TransformHierarchyChangedSetParentCallback
+    self=     3ms total=     3ms calls=   37725  SortingGroup.UpdateRenderer
+    self=     2ms total=     2ms calls=     898  Client.Game.dll!Client.Game.InGame.Train.RailGraph::BezierRailMesh.Awake() [Invoke]
+    self=     2ms total=     6ms calls=      26  BlockState.Processor.GearChainPoleStateChangeProcessor
+=== frame 590 1536ms
+  --- VContainerStartup total=836ms self=0ms
+    self=   668ms total=   836ms calls=       1  UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]
+    self=   121ms total=   127ms calls=   15106  GameObject.AddComponent
+    self=    29ms total=    29ms calls=  639149  GC.Alloc
+    self=    12ms total=    12ms calls=     125  Mono.JIT
+    self=     3ms total=     3ms calls=   15094  Client.Game.dll!Client.Game.InGame.GraphicsQuality.Appliers::EffectsQualitySwitch..ctor() [Invoke]
+    self=     1ms total=     1ms calls=   15106  Scripting.GetParentTypeDisallowingMultipleInclusion
+    self=     1ms total=     1ms calls=   15106  Scripting.GetRequiredComponents
+    self=     1ms total=     1ms calls=       6  Instantiate.Copy
+    self=     0ms total=     0ms calls=       2  Unity.RenderPipelines.Universal.Runtime.dll!UnityEngine.Rendering.Universal::UniversalRendererData.OnEnable() [Invoke]
+    self=     0ms total=     0ms calls=       3  Unity.RenderPipelines.Universal.Runtime.dll!UnityEngine.Rendering.Universal::ScriptableRendererFeature.OnEnable() [Invoke]
+    self=     0ms total=     0ms calls=       6  Instantiate.Produce
+    self=     0ms total=     0ms calls=       1  mscorlib.dll!System.Collections.Generic::List`1..cctor()
+    self=     0ms total=     0ms calls=       1  UniRx.dll!UniRx::Stubs`1..cctor()
+    self=     0ms total=     0ms calls=      12  GetComponentNullErrorMessage
+    self=     0ms total=     0ms calls=       1  UniTask.dll!Cysharp.Threading.Tasks.CompilerServices::AsyncUniTask`1..cctor()
+    self=     0ms total=     0ms calls=       2  Loading.ReadObject
+    self=     0ms total=     1ms calls=       6  Instantiate.Awake
+    self=     0ms total=     0ms calls=      48  GetComponentNullErrorWrapper
+    self=     0ms total=     0ms calls=       1  Unity.RenderPipelines.Universal.Runtime.dll!UnityEngine.Rendering.Universal::UniversalRenderPipelineAsset.OnBeforeSerialize() [Invoke]
+    self=     0ms total=     2ms calls=       6  Instantiate
+    self=     0ms total=     0ms calls=       2  Unity.RenderPipelines.Universal.Runtime.dll!UnityEngine.Rendering.Universal::UniversalRendererData..ctor() [Invoke]
+    self=     0ms total=     0ms calls=       1  Client.PlaytestReceiver.dll!Client.PlaytestReceiver.Upload::PlaytestOutboxAccess..cctor()
+    self=     0ms total=     0ms calls=       2  Unity.RenderPipelines.Universal.Runtime.dll!UnityEngine.Rendering.Universal::UniversalRendererData.UnityEngine.ISerializationCallbackReceiver.OnBeforeSerialize() [Invoke]
+    self=     0ms total=     0ms calls=       2  Unity.RenderPipelines.Core.Runtime.dll!UnityEngine.Rendering::SerializedDictionary`4.OnBeforeSerialize() [Invoke]
+    self=     0ms total=     0ms calls=       1  Client.Game.dll!::<>c..cctor()
+    self=     0ms total=     0ms calls=      12  UniRx.dll!UniRx.Triggers::ObservableDestroyTrigger..ctor() [Invoke]
+    self=     0ms total=     0ms calls=       2  Unity.RenderPipelines.Universal.Runtime.dll!UnityEngine.Rendering.Universal::RenderObjects..ctor() [Invoke]
+    self=     0ms total=     0ms calls=       2  Unity.RenderPipelines.Core.Runtime.dll!UnityEngine.Rendering::SerializedDictionary`2..ctor() [Invoke]
+    self=     0ms total=     0ms calls=       1  Unity.RenderPipelines.Universal.Runtime.dll!UnityEngine.Rendering.Universal::UniversalRenderPipelineAsset..ctor() [Invoke]
+    self=     0ms total=     0ms calls=       1  UniTask.dll!::<>c..cctor()
+=== frame 591 1009ms
+  --- Unity.ResourceManager.dll!UnityEngine.ResourceManagement.Util::DelayedActionManager.LateUpdate() [Invoke] total=685ms self=20ms
+    self=   524ms total=   542ms calls=       1  Physics.CreatePhysXHeightField
+    self=    52ms total=    52ms calls=     209  File.Read
+    self=    16ms total=    67ms calls=     662  ReadObjectFromSerializedFile
+    self=    15ms total=    16ms calls=     187  Mono.JIT
+    self=    13ms total=    13ms calls=       1  Physics.CreatePhysXHeightFieldSamplesJob
+    self=    11ms total=    11ms calls=       1  Terrain.UpdateHolesTexture
+    self=     4ms total=     4ms calls=       2  LargeAllocation.Free
+    self=     4ms total=     9ms calls=      81  Loading.LoadFileHeaders
+    self=     3ms total=     3ms calls=     504  GameObject.AddComponent
+    self=     2ms total=     4ms calls=      50  Instantiate.Awake
+    self=     2ms total=     2ms calls=      50  Instantiate.Produce
+    self=     2ms total=     2ms calls=      81  File.Open
+    self=     2ms total=     2ms calls=       1  TransformHandle.SetHierarchyCapacity
+    self=     1ms total=     1ms calls=       4  Physics.BakePhysXCollisionMeshData
+    self=     1ms total=   658ms calls=     119  Loading.ReadObject
+    self=     1ms total=     1ms calls=       1  Idle
+    self=     1ms total=    37ms calls=     119  IntegrateAllThreadedObjects
+    self=     1ms total=     1ms calls=     500  GetComponentNullErrorMessage
+    self=     1ms total=    56ms calls=     209  AsyncReadManager.SyncRequest
+    self=     1ms total=     1ms calls=       8  UnityEditor.CoreModule.dll!UnityEditor::MaterialEditor.ApplyMaterialPropertyDrawersFromNative() [Invoke]
+    self=     1ms total=     1ms calls=       3  UnityEngine.CoreModule.dll!UnityEngine.Rendering::GraphicsSettings.GetDefaultShader() [Invoke]
+    self=     1ms total=     1ms calls=      71  File.Close
+    self=     1ms total=     1ms calls=      50  Instantiate.Copy
+    self=     1ms total=   610ms calls=     662  Loading.ReadObjectThreaded
+    self=     0ms total=    35ms calls=     662  Loading.AwakeFromLoad
+    self=     0ms total=     2ms calls=     119  Loading.LoadRemainingPreallocatedObjects
+    self=     0ms total=     0ms calls=    5621  GC.Alloc
+    self=     0ms total=     0ms calls=       1  Shader.ParseMainThread
+    self=     0ms total=     0ms calls=      45  Texture.AwakeFromLoad
+    self=     0ms total=     0ms calls=       7  LargeAllocation.Alloc

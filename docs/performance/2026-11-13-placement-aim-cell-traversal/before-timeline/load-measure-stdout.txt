@@ -1,0 +1,12 @@
+timeline started
+enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+  5s renderers=0
+  21s renderers=0
+  27s renderers=20
+  37s renderers=0
+  66s renderers=207128
+  71s renderers=205131
+  77s renderers=217524
+  83s renderers=217527
+stable=1 elapsed=83s
+logs=1268 samples=21

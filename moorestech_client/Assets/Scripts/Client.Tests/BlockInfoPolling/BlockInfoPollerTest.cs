@@ -12,6 +12,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Client.Ui.State.BlockDetail.MachineInput;
 
 namespace Client.Tests.BlockInfoPolling
 {

@@ -4,26 +4,17 @@ using UnityEngine;
 namespace Game.Block.Interface
 {
     /// <summary>
-    ///     3次元的な方向に配置するため、上、下、通常の設置×4方向の向きが必要になる
-    ///     UpNorthは、ブロックを上方向にした後、通常の設置をした時の下の面が北向きになることを意味する
-    ///     DownNorthは、ブロックを下方向にした後、通常の設置をした時の下の面が北向きになることを意味する
+    ///     ブロックの水平4方向の向き。上下に回した設置は無い
+    ///     The block's four horizontal headings; there is no up/down placement
     /// </summary>
+    // North=0..West=3 は時計回りで、セーブ形式の契約（整数で保存）
+    // North=0..West=3 run clockwise and are a save-format contract (stored as integers)
     public enum BlockDirection
     {
-        UpNorth,
-        UpEast,
-        UpSouth,
-        UpWest,
-        
         North,
         East,
         South,
         West,
-        
-        DownNorth,
-        DownEast,
-        DownSouth,
-        DownWest,
     }
     
     public delegate Vector3Int BlockPosConvertAction(Vector3Int pos);
@@ -34,15 +25,6 @@ namespace Game.Block.Interface
         {
             switch (direction)
             {
-                case BlockDirection.UpNorth:
-                    return Quaternion.Euler(-90, 0, 0);
-                case BlockDirection.UpEast:
-                    return Quaternion.Euler(-90, 0, 90);
-                case BlockDirection.UpSouth:
-                    return Quaternion.Euler(-90, 0, 180);
-                case BlockDirection.UpWest:
-                    return Quaternion.Euler(-90, 0, 270);
-                
                 case BlockDirection.North:
                     return Quaternion.Euler(0, 0, 0);
                 case BlockDirection.East:
@@ -51,16 +33,6 @@ namespace Game.Block.Interface
                     return Quaternion.Euler(0, 180, 0);
                 case BlockDirection.West:
                     return Quaternion.Euler(0, 270, 0);
-                
-                case BlockDirection.DownNorth:
-                    return Quaternion.Euler(90, 0, 180);
-                case BlockDirection.DownEast:
-                    return Quaternion.Euler(90, 0, 90);
-                case BlockDirection.DownSouth:
-                    return Quaternion.Euler(90, 0, 0);
-                case BlockDirection.DownWest:
-                    return Quaternion.Euler(90, 0, 270);
-                
                 default:
                     throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
             }
@@ -101,71 +73,26 @@ namespace Game.Block.Interface
         
         public static Vector3Int GetBlockModelOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
         {
-                var addPos = Vector3Int.zero;
-                switch (blockDirection)
-                {
-                    case BlockDirection.UpNorth:
-                        addPos = new Vector3Int(0, 0, size.y);
-                        break;
-                    case BlockDirection.UpEast:
-                        addPos = new Vector3Int(size.y, 0, size.x);
-                        break;
-                    // 回したモデルの最小隅が占有範囲の最小セルに来る原点にする
-                    // Place the origin so the rotated model's min corner lands on the occupied range's min cell
-                    case BlockDirection.UpSouth:
-                        addPos = new Vector3Int(size.x, 0, 0);
-                        break;
-                    case BlockDirection.UpWest:
-                        addPos = new Vector3Int(0, 0, 0);
-                        break;
-                    
-                    case BlockDirection.North:
-                        addPos = new Vector3Int(0, 0, 0);
-                        break;
-                    case BlockDirection.East:
-                        addPos = new Vector3Int(0, 0, size.x);
-                        break;
-                    case BlockDirection.South:
-                        addPos = new Vector3Int(size.x, 0, size.z);
-                        break;
-                    case BlockDirection.West:
-                        addPos = new Vector3Int(size.z, 0, 0);
-                        break;
-                    
-                    case BlockDirection.DownNorth:
-                        addPos = new Vector3Int(size.x, size.z, size.y);
-                        break;
-                    case BlockDirection.DownEast:
-                        addPos = new Vector3Int(size.y, size.z, 0);
-                        break;
-                    case BlockDirection.DownSouth:
-                        addPos = new Vector3Int(0, size.z, 0);
-                        break;
-                    case BlockDirection.DownWest:
-                        addPos = new Vector3Int(0, size.z, size.x);
-                        break;
-                }
-                
-                return pos + addPos;
+            var addPos = blockDirection switch
+            {
+                BlockDirection.North => new Vector3Int(0, 0, 0),
+                BlockDirection.East => new Vector3Int(0, 0, size.x),
+                BlockDirection.South => new Vector3Int(size.x, 0, size.z),
+                BlockDirection.West => new Vector3Int(size.z, 0, 0),
+                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null),
+            };
+            return pos + addPos;
         }
         
         public static Vector3Int GetBlockDirectionOffset(this BlockDirection blockDirection)
         {
             return blockDirection switch
             {
-                BlockDirection.UpNorth => new Vector3Int(0, 0, 1),
-                BlockDirection.UpEast => new Vector3Int(1, 0, 1),
-                BlockDirection.UpSouth => new Vector3Int(1, 0, 0),
-                BlockDirection.UpWest => new Vector3Int(0, 0, 0),
                 BlockDirection.North => new Vector3Int(0, 0, 0),
                 BlockDirection.East => new Vector3Int(0, 0, 1),
                 BlockDirection.South => new Vector3Int(1, 0, 1),
                 BlockDirection.West => new Vector3Int(1, 0, 0),
-                BlockDirection.DownNorth => new Vector3Int(1, 1, 1),
-                BlockDirection.DownEast => new Vector3Int(1, 1, 0),
-                BlockDirection.DownSouth => new Vector3Int(0, 1, 0),
-                BlockDirection.DownWest => new Vector3Int(0, 1, 1),
-                _ => Vector3Int.zero
+                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null),
             };
         }
     }

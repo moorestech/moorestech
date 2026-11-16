@@ -87,7 +87,7 @@ describe("ResearchDetailPane", () => {
     }));
     const slot = renderer.root.findByType("mock-item-slot" as never);
     expect(slot.props.insufficient).toBe(true);
-    expect(slot.props.shortage).toEqual({ ownedCount: 0, requiredCount: 2, tooltipKey: "ui.research.consumeItemTooltip" });
+    expect(slot.props.shortage).toEqual({ ownedCount: 0, requiredCount: 2, lacking: true, tooltipKey: "ui.research.consumeItemTooltip" });
   });
 
   it("所持数が足りていればinsufficient=falseで所持/必要をスロットへ渡す", () => {
@@ -96,7 +96,7 @@ describe("ResearchDetailPane", () => {
     }));
     const slot = renderer.root.findByType("mock-item-slot" as never);
     expect(slot.props.insufficient).toBe(false);
-    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 2, tooltipKey: "ui.research.consumeItemTooltip" });
+    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 2, lacking: false, tooltipKey: "ui.research.consumeItemTooltip" });
   });
 
   it("所持数未受信中(owned=null)は不足表示も所持/必要も出さない", () => {
@@ -171,7 +171,7 @@ describe("ResearchDetailPane", () => {
     }));
     const slot = renderer.root.findByType("mock-item-slot" as never);
     expect(slot.props.insufficient).toBe(false);
-    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 2, tooltipKey: "ui.research.consumeItemTooltip" });
+    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 2, lacking: false, tooltipKey: "ui.research.consumeItemTooltip" });
   });
 
   it("スロット上限と製作上限の解放を「その他」の行に出す", () => {

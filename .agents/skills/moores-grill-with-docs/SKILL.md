@@ -8,20 +8,15 @@ description: |
   3. 「grillして」「grill-with-docsで」「ブレストして」と言われた時
   対象外: 調査・質問への回答・明示されたクラッシュ/コンパイルエラー修正・レビュー依頼
 hooks:
-  PostToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: "bash .claude/skills/user-simulator/scripts/shadow-gate.sh track"
   Stop:
     - hooks:
         - type: command
-          command: "bash .claude/skills/user-simulator/scripts/shadow-gate.sh stop"
+          command: "node .dev-hooks/logs-hook.mjs record-deviations"
 ---
 
 Run a `/grilling` session, using the `/domain-modeling` skill.
 
-設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する（旧brainstormingから移設。user-simulatorの知識indexも同ファイルを参照している）。
+設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する。
 
 ## HARD GATE（実装着手の禁止）
 
@@ -62,6 +57,17 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 意図取り違えの較正実例・レイアウト裁定の特化ガイド: [references/adjudication-fidelity.md](references/adjudication-fidelity.md)
 
+### 1.6 問いと推奨の作り方
+
+- **困りごとを平文で先に書く。** 質問文は、何ができない・何が変わるかを平文 1 文で書いてから聞く。型名・ID・内部語を問いに出さない（内部語のままの問いは通じず、拒否されて聞き直しになるため）。
+- **足し方の変種だけで並べない。** 前提・依存・既存要素の扱いを問うときは、足す・待つ・残す案に加え、外す・置き換える・手元の素材や最小の構造を自分で入れて依存を断つ案を選択肢に入れる（ユーザーは枠外の自由記述で構造ごと組み替えて答えるため）。
+- **互換だけが理由の分岐は聞かない。** 旧セーブ・旧挙動との互換だけが理由の分岐（互換シム・既存ワールドへの遡及・まだ誰も到達していない進行段の扱い）は質問にせず、「手当てしない」を agent前提として ADR に書く。セーブ形式を変えるなら AGENTS.md どおり移行を同梱する（到達者のいない状況の問いは問いごと退けられるため）。
+- **完遂を後回しにする案を推奨にしない。** 初版は妥協して後で改善する・上限や予算で打ち切る・数日待つ案を推奨にしない。対象範囲を絞る案は推奨にしてよい（前者は一貫して退けられ、後者は受け入れられるため）。
+- **一本化の後に残置・折衷を推奨にしない。** 「全部〜へ寄せる・一本にする」裁定の後の問いでは、旧経路の要素を元の場所に残す案や折衷案を推奨にせず、寄せる案と消す案を並べる（二経路の併存は続けて退けられるため）。
+- **依頼外の既存を変える案を推奨にしない。** 依頼の本筋でない既存挙動・既存プロダクションコード・別機能を変える案は推奨にせず、推奨が既存経路に手を入れるなら「既存は変えず新規側だけで足す」案を並べる。依頼された設計そのものは AGENTS.md「変更の波及を恐れない」に従う（依頼外の処理を変えないことが本筋の整合より優先されるため）。
+- **依頼原文の指定どおりに推奨を作る。** 依頼原文が範囲（全部・〜以下）・参照先・文言を指定しているときは、その字義どおりの範囲で推奨を作る。前例や整合を理由に縮めたり例外を作ったりした案を推奨にしない。
+- **ゲームの量は整った最小形だけを推奨にしない。** 量・比率・時間・種類数を問うときは、均等な比・短めの時間・メモどおりの種類数だけでなく、手応えを増やす案（比のばらつき・長めの時間・似た概念を畳む）を並べる（手応えの側が選ばれるため）。
+
 ### 1.7 Codex 独立質問の消し込み（ADR確定後・moores-writing-plans 直前。必須）
 
 自分の質問集合には盲点がある。同じ課題を Codex に独立に質問生成させると、自分が聞かず agent 前提で埋めていた分岐が残問として出てくる。moores-writing-plans へ渡す前に、個人スキル `codex-audit` の `scripts/codex-open-questions.mjs`（同スキルの Base directory 基準。通常 `~/.agents/skills/codex-audit/`。repo には同名スキルを置かない — `.decisions/2026-10-06-repoスキルは個人版と同名にしない.md`） で **Codex に独立した質問リストを作らせ、既に答えた質問を消し込み、残った質問だけをユーザーに聞く**。
@@ -82,16 +88,8 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 ### 2. 出口の一本化（moores-writing-plans へ直行）
 
 設計・ADRが確定し、§1.7 の Codex 独立質問の消し込みと残問の裁定まで終えたら、終端状態は「**同一セッションでの moores-writing-plans スキル起動**」のみ。spec等の中間文書は書かない — 要件は会話コンテキスト経由でplan先頭の `## Requirements` セクションへ流れ込む。他スキル・実装への分岐は禁止。
-moores-writing-plans 側の user-simulator による plan review（sim-gate配線）は既存のまま維持する。
-設計フェーズでは user-simulator を自動起動しない（大きな設計で必要な場合のみユーザーが手動起動する）。
 
-### 3. セッション終了時の自動シャドー採点（shadow-gate配線）
+### 3. 推奨の印と、推奨から外れた回答の記録
 
-設計成果物（設計doc/plan）を書き終えたら、セッションを終える前に user-simulator の **shadowモード**
-（`.claude/skills/user-simulator/modes/shadow/protocol.md`）で自セッションのtranscriptを盲検採点する。
-インライン予測はしないので設計対話中の体感遅延はゼロ。採点はセッション末尾に1回だけ行う。
-
-- 発動はfrontmatter hooksの shadow-gate（Stop関所）が機械的に保証する。設計doc書き込みで武装し、
-  `user-simulator/datasets/` への格納で解除される（ブロックメッセージに自transcriptパスが入る）
-- 予測体は **model: opus必須明示**・1質問1エージェント・バックグラウンド起動可
-- 採点・永続化・misses.md記録まで shadowモード手順のとおり実施してからセッションを終了する
+- 推奨できる質問では、推奨の選択肢を先頭に置き、ラベル末尾に `(推奨)` を付ける。推奨を決められない質問には印を付けない（印の無い質問は外れの記録から外れる）
+- 推奨付き質問への回答と質問の拒否は、frontmatter の Stop hook（`record-deviations`）が logs repo に自動で記録する。外れがたまると別セッションが理由を推測し、質問の作り方の欠陥をこのスキル本文へ戻す。記録のためにセッション中で何かする必要は無い

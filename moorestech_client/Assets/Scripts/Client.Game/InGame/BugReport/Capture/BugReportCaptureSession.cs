@@ -60,6 +60,7 @@ namespace Client.Game.InGame.BugReport.Capture
             data.Logs = _sources.Logs();
             data.ClientState = _sources.ClientState();
             data.ReportTick = data.ClientState.Tick;
+            data.WebUiHealth = _sources.WebUiHealth();
             // 取れなかったカメラ・プレイヤーは原点という実値ではなく欠損として残す
             // A camera or player that could not be read is recorded as missing, never as a real position at the origin
             if (!data.ClientState.HasCamera) data.AddMissing("cameraState", "メインカメラが無く、カメラの位置と向きを確保できなかった");

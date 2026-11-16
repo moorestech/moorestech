@@ -78,7 +78,7 @@ namespace Tests.UnitTest.Game
 
             for (int i = 0; i < 4; i++)
             {
-                var direction = (BlockDirection)4 + i;
+                var direction = (BlockDirection)i;
                 var (stationBlockA, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                     env,
                     ForUnitTestModBlockId.TestTrainStation,

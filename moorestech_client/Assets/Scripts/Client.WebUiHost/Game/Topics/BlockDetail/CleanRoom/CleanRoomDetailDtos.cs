@@ -76,29 +76,27 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
         // Headline が class のときだけ
         // Only when Headline is class
         public readonly string ClassName;
-        public readonly double Concentration;
         public readonly double AirChangeRate;
         public readonly int Volume;
         public readonly IReadOnlyList<CleanRoomAirFilterDto> AirFilters;
 
-        private CleanRoomSummaryDto(string headline, string className, double concentration, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterDto> airFilters)
+        private CleanRoomSummaryDto(string headline, string className, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterDto> airFilters)
         {
             Headline = headline;
             ClassName = className;
-            Concentration = concentration;
             AirChangeRate = airChangeRate;
             Volume = volume;
             AirFilters = airFilters;
         }
 
-        public static CleanRoomSummaryDto CreateClass(string className, double concentration, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterDto> airFilters)
+        public static CleanRoomSummaryDto CreateClass(string className, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterDto> airFilters)
         {
-            return new CleanRoomSummaryDto("class", className, concentration, airChangeRate, volume, airFilters);
+            return new CleanRoomSummaryDto("class", className, airChangeRate, volume, airFilters);
         }
 
-        public static CleanRoomSummaryDto CreateClassOut(double concentration, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterDto> airFilters)
+        public static CleanRoomSummaryDto CreateClassOut(double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterDto> airFilters)
         {
-            return new CleanRoomSummaryDto("classOut", null, concentration, airChangeRate, volume, airFilters);
+            return new CleanRoomSummaryDto("classOut", null, airChangeRate, volume, airFilters);
         }
     }
 

@@ -42,11 +42,14 @@ namespace Client.Tests.Player
             InputSystem.Update();
 
             _playerRoot = new GameObject("TextInputMovementLockTestPlayer");
+            _playerRoot.SetActive(false);
             _playerRoot.AddComponent<CharacterController>();
             _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_playerRoot);
             var thirdPersonController = _playerRoot.AddComponent<ThirdPersonController>();
             _controller = _playerRoot.AddComponent<PlayerObjectController>();
             typeof(PlayerObjectController).GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_controller, thirdPersonController);
+            _playerRoot.SetActive(true);
+            TestReflection.InvokePrivate(_controller, "Awake");
             _controller.Initialize(Vector3.zero, Vector3.zero);
 
             _textInputFocused = new ReactiveProperty<bool>(false);
@@ -111,11 +114,14 @@ namespace Client.Tests.Player
         public void 購読前から文字入力中なら初期化の時点で止まる()
         {
             var playerRoot = new GameObject("TextInputMovementLockTestLatePlayer");
+            playerRoot.SetActive(false);
             playerRoot.AddComponent<CharacterController>();
             var inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(playerRoot);
             var thirdPersonController = playerRoot.AddComponent<ThirdPersonController>();
             var controller = playerRoot.AddComponent<PlayerObjectController>();
             typeof(PlayerObjectController).GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(controller, thirdPersonController);
+            playerRoot.SetActive(true);
+            TestReflection.InvokePrivate(controller, "Awake");
             controller.Initialize(Vector3.zero, Vector3.zero);
 
             new TextInputMovementLockApplier(controller).Initialize(new ReactiveProperty<bool>(true));

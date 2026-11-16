@@ -1,6 +1,5 @@
 {
-  "autoMemoryEnabled": true,
-  "autoMemoryDirectory": "./.claude/memory",
+  "autoMemoryEnabled": false,
   "statusLine": {
     "type": "command",
     "command": "node .claude/statusline.jsc"

@@ -3,7 +3,7 @@ export { LocalizedShortcutHint } from "./LocalizedShortcutHint";
 export * from "./contentKeys";
 export { DictionaryIndependentText } from "./dictionaryIndependentText";
 export { L } from "./generated/localizationKeys";
-export { buildPositionalInterpolationValues, isTranslationKey, translateExternalKey, useI18n } from "./i18nStore";
+export { isTranslationKey, translateExternalKey, useI18n } from "./i18nStore";
 export { useItemDisplayName, useItemNameResolver } from "./itemName/useItemName";
 export type { ContentLocalizationKey } from "./contentKeys";
 export type { InterpolationValues, Translation, TranslationDictionary, TranslationKey } from "./i18nStore";

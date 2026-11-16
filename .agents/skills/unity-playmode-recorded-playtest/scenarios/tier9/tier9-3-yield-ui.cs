@@ -9,7 +9,7 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Core.Inventory;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -139,8 +139,8 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         // 抽選欄と行を待ち、行の表示文字列を記録して撮り、Tab で閉じる
         // Wait for the section and rows, log each row's text, shoot, close with Tab
         await OpenMachineUi(machine);
-        await p.UntilWebUiElement("clean-room-yield-section", 10f);
-        foreach (var rowTestId in rowTestIds) { await p.UntilWebUiElement(rowTestId, 10f); p.Note($"{rowTestId}: {(await PlaytestDomQuery.Query(rowTestId, 2f)).Text}"); }
+        await p.UntilUiElement("clean-room-yield-section", 10f);
+        foreach (var rowTestId in rowTestIds) { await p.UntilUiElement(rowTestId, 10f); p.Note($"{rowTestId}: {(await PlaytestUiElementOps.FindUi(rowTestId)).Text}"); }
         await p.Screenshot(screenshotName);
         await p.PressKey(Key.Tab);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -150,12 +150,12 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         // 部屋欄が出た状態で、抽選欄も取得中表示も3秒続けて無いことを見る（部屋欄が見つかることで問い合わせ自体の成立も確かめる）
         // With the room section shown, see neither the draw section nor its fetch line for 3 straight seconds (finding the room section proves the query works)
         await OpenMachineUi(machine);
-        await p.UntilWebUiElement("clean-room-section", 10f);
+        await p.UntilUiElement("clean-room-section", 10f);
         var (deadline, absentSince) = (Time.realtimeSinceStartup + 15f, -1f);
         while (Time.realtimeSinceStartup < deadline && (absentSince < 0f || Time.realtimeSinceStartup - absentSince < 3f))
         {
-            var roomFound = (await PlaytestDomQuery.Query("clean-room-section", 2f)).Found;
-            var yieldFound = (await PlaytestDomQuery.Query("clean-room-yield-section", 2f)).Found || (await PlaytestDomQuery.Query("clean-room-yield-fetch-state", 2f)).Found;
+            var roomFound = (await PlaytestUiElementOps.FindUi("clean-room-section")).IsFound;
+            var yieldFound = (await PlaytestUiElementOps.FindUi("clean-room-yield-section")).IsFound || (await PlaytestUiElementOps.FindUi("clean-room-yield-fetch-state")).IsFound;
             absentSince = roomFound && !yieldFound ? (absentSince < 0f ? Time.realtimeSinceStartup : absentSince) : -1f;
         }
         p.Assert(absentSince >= 0f && Time.realtimeSinceStartup - absentSince >= 3f, $"{machine.BlockMasterElement.Name}（トランジスタ設置）は役割なしで抽選欄が出ない");

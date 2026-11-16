@@ -15,7 +15,7 @@ namespace Client.Playtest.WebUi
     ///     Client.Playtest is an editor-only asmdef whose MonoBehaviours cannot attach to runtime GameObjects,
     ///     so this runs as a static class driven by a UniTask per-frame loop instead.
     /// </summary>
-    public static class CefInputForwarder
+    internal static class CefInputForwarder
     {
         private static bool _running;
         private static Vector2 _lastScreenPosition;

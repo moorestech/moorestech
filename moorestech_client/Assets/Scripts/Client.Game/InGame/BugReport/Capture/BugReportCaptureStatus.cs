@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BugReport.Recording;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using UniRx;
@@ -115,6 +116,9 @@ namespace Client.Game.InGame.BugReport.Capture
         public IReadOnlyList<FrameTickRow> FrameTicks;
         public IReadOnlyList<UnityLogEntry> Logs;
         public ClientStateSnapshot ClientState;
+        // ポーズを開いた瞬間のWeb側の生の値。送信時に読むと送信actionの受信で停止の証拠が消える
+        // The web side's raw values at pause-open; reading at send time lets the send action's receipt erase the stall evidence
+        public WebUiHealthReading WebUiHealth;
         public string ScreenshotPath;
         public List<MissingItem> Missing = new();
 
@@ -186,6 +190,7 @@ namespace Client.Game.InGame.BugReport.Capture
         UniTask<CapturedRecording> TakeRecordingAtCapture();
         IReadOnlyList<UnityLogEntry> Logs();
         ClientStateSnapshot ClientState();
+        WebUiHealthReading WebUiHealth();
         UniTask<string> CaptureScreenshot(string workDirectory);
     }
 }

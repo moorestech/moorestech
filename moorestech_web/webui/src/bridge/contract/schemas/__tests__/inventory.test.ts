@@ -32,8 +32,8 @@ describe("FluidSlotDataSchema", () => {
 
 describe("CleanRoomDetailDataSchema", () => {
   const airFilters = [{ x: 1, y: 33, z: 5, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 }];
-  const room = { headline: "class", className: "A", concentration: 0.1, airChangeRate: 2, volume: 74, airFilters };
-  const outRoom = { headline: "classOut", concentration: 0.1, airChangeRate: 2, volume: 74, airFilters };
+  const room = { headline: "class", className: "A", airChangeRate: 2, volume: 74, airFilters };
+  const outRoom = { headline: "classOut", airChangeRate: 2, volume: 74, airFilters };
 
   // 種別ごとに必要なフィールドだけを受け、別種別のフィールドの混入は拒否する
   // Each kind accepts only its own fields and rejects fields of another kind

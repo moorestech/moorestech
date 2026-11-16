@@ -119,6 +119,8 @@
   /* 10列化で持ち物パネルの幅を9列×1.3倍時(473.9px)のまま保つ値。広げると固定幅stageから右のクラフトパネルが溢れる（ユーザー裁定 2026-10-06） */
   /* Keeps the 10-column panel at the 9-column x1.3 width (473.9px); widening it overflows the craft panel off the fixed-width stage (user ruling 2026-10-06) */
   --inventory-slot-scale: 1.1678;
+  /* src/features/inventory/inventoryGridColumns.ts の INVENTORY_GRID_COLUMNS と同値で、必ず同時に変える */
+  /* Must equal INVENTORY_GRID_COLUMNS in src/features/inventory/inventoryGridColumns.ts and change together with it */
   --inventory-columns: 10;
   /* 持ち物パネルの幅。InventoryPanelのインラインstyleと研究パネルの左端導出が同じ値を見る */
   /* The inventory panel width; InventoryPanel's inline style and the research panel's left edge share this one value */

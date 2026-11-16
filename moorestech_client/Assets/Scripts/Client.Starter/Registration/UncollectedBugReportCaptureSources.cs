@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Recording;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -52,6 +53,13 @@ namespace Client.Starter.Registration
         public ClientStateSnapshot ClientState()
         {
             return new ClientStateSnapshot(Vector3.zero, Vector3.zero, Vector3.zero, "", 0, false, false);
+        }
+
+        // Webホストを観測しない起動なので、観測値を名乗らず「不明」で返す
+        // This boot observes no web host, so it answers unknown rather than claiming an observed value
+        public WebUiHealthReading WebUiHealth()
+        {
+            return new WebUiHealthReading { HostStartup = WebUiHostStartupState.Unknown, CefProcess = CefProcessState.Unknown, SecondsSinceLastWebMessage = null };
         }
 
         public UniTask<string> CaptureScreenshot(string workDirectory)

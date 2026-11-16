@@ -23,22 +23,36 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
 
             // 内部セル解決を迂回せず公開レイ入口を検証する
             // Verify the public ray entry rather than invoking internal cell resolution
-            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, offset, BlockDirection.North, master, out var cell, out var surface);
+            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, offset, BlockDirection.North, master, out var cell, out var surfaceType);
 
             Assert.AreEqual(FootprintGroundedCellResult.Resolved, result);
             Assert.AreEqual(new Vector3Int(500, expectedY, 599), cell);
-            Assert.IsNull(surface);
+            Assert.IsNull(surfaceType);
         }
 
         [Test]
         public void RayEntryPreservesBlockFaceCellAndOffset()
         {
             var face = CreateFace();
-            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, 2, BlockDirection.North, CreateWidePole(), out var cell, out var surface);
+            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, 2, BlockDirection.North, CreateWidePole(), out var cell, out var surfaceType);
 
             Assert.AreEqual(FootprintGroundedCellResult.Resolved, result);
-            Assert.AreSame(face, surface);
+            Assert.AreEqual(face, surfaceType);
             Assert.AreEqual(new Vector3Int(500, 27, 599), cell);
+        }
+
+        [Test]
+        public void RayEntryPassesThroughBlocksOutsidePlacementMode()
+        {
+            // 索引にブロックがあっても、設置モード外（走査対象なし）なら照準は素通りして地面に当たる（ADR 0100 決定6）
+            // Even with a block in the index, outside placement mode (no traversal target) the aim passes through to the ground (ADR 0100 decision 6)
+            CreateFace();
+            PlacementAimTargetCells.Disable();
+            var result = PlaceSystemUtil.ResolveFootprintGroundedRayHitBlockPosition(PlacementCamera, 0, BlockDirection.North, CreateWidePole(), out var cell, out var surfaceType);
+
+            Assert.AreEqual(FootprintGroundedCellResult.Resolved, result);
+            Assert.IsNull(surfaceType);
+            Assert.AreEqual(new Vector3Int(500, 22, 599), cell);
         }
 
         [Test]

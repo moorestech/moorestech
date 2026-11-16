@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Tests.UnitTest.Game.BlockGeometry
 {
     /// <summary>
-    ///     全12向きで、回したモデルの箱とローカルセルの換算がブロックの占有範囲に一致することを確かめる
-    ///     Verifies for all 12 directions that the rotated model box and the local-cell conversion match the occupied range
+    ///     全4向きでモデル箱と占有範囲の換算一致を検証
+    ///     Verify model box and occupied range conversion match for all 4 directions
     /// </summary>
     public class BlockDirectionModelOriginTest
     {

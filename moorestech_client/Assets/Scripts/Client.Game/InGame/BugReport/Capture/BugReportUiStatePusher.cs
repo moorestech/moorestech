@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.UIState;
+using UniRx;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.BugReport.Capture
@@ -19,7 +20,7 @@ namespace Client.Game.InGame.BugReport.Capture
         public void Initialize()
         {
             _sources.SetCurrentUiState(_uiStateControl.CurrentState);
-            _uiStateControl.OnStateChanged += _sources.SetCurrentUiState;
+            _uiStateControl.OnStateChanged.Subscribe(_sources.SetCurrentUiState);
         }
     }
 }

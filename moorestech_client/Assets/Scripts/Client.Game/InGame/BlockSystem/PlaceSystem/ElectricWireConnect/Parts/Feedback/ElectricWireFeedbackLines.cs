@@ -1,3 +1,4 @@
+using Client.Localization;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -38,7 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.F
                 return false;
             }
 
-            line = new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { totalWireCost.ToString() });
+            line = new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { new LocalizationTextParam("count", totalWireCost.ToString()) });
             return true;
         }
     }

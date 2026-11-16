@@ -13,7 +13,6 @@ const CleanRoomAirFilterDataSchema = z.object({
   filterRemainingRatio: z.number().min(0).max(1),
 }).strict();
 const cleanRoomSummaryCommon = {
-  concentration: z.number().nonnegative(),
   airChangeRate: z.number().nonnegative(),
   volume: z.number().int().nonnegative(),
   airFilters: z.array(CleanRoomAirFilterDataSchema),

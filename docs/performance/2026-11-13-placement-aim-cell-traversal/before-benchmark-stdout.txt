@@ -1,0 +1,31 @@
+[bench] スニペットを転送
+[bench] 計測対象のコミットを記録
+[bench] ベースラインワールド 2026-10-22-world_1 を作業用フォルダへ複製
+[bench] PlayMode 開始
+  started world=C:\moorestech-perf\work\current wasMinimized=False
+[bench] 定常状態（Renderer 数の変化が5秒で0.1%以内）を待つ
+  renderers=4
+  renderers=0
+  renderers=207128
+  renderers=215163
+  renderers=217529
+  renderers=217525
+[bench] 計測 1/3
+  [bench] fps 計測（Profiler なし、10秒）
+  [bench] Profiler 計測（6秒）
+  [bench] 受信イベント計測（6秒）
+[bench] 保存: /Users/juha/Documents/GitHub/moorestech/docs/performance/benchmark/results/2026-11-13T2353_before-aim-traversal_110ccc5674_r1.json
+[bench] fps=26.61  PlayerLoop=30.9ms  events/s=59
+[bench] 計測 2/3
+  [bench] fps 計測（Profiler なし、10秒）
+  [bench] Profiler 計測（6秒）
+  [bench] 受信イベント計測（6秒）
+[bench] 保存: /Users/juha/Documents/GitHub/moorestech/docs/performance/benchmark/results/2026-11-13T2353_before-aim-traversal_110ccc5674_r2.json
+[bench] fps=26.47  PlayerLoop=30.0ms  events/s=56
+[bench] 計測 3/3
+  [bench] fps 計測（Profiler なし、10秒）
+  [bench] Profiler 計測（6秒）
+  [bench] 受信イベント計測（6秒）
+[bench] 保存: /Users/juha/Documents/GitHub/moorestech/docs/performance/benchmark/results/2026-11-13T2353_before-aim-traversal_110ccc5674_r3.json
+[bench] fps=27.18  PlayerLoop=31.4ms  events/s=62
+[bench] 後片付け

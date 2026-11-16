@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "label": "before-placement-frame",
+  "measuredAt": "2026-11-12T1252",
+  "repeat": {
+    "index": 3,
+    "of": 3,
+    "sameWorldLoad": true
+  },
+  "host": "windows-desktop",
+  "commit": "b6b549239b3750fe46fee573bb0adf2145fc9522",
+  "branch": "HEAD",
+  "trackedChangesOnHost": 0,
+  "baselineWorld": {
+    "name": "2026-10-22-world_1",
+    "saveJsonSha256": "6BF6222FFCDA5CD068F10E48EB73BC68F2D1128DB10E084360FE7738184A5445"
+  },
+  "windows": {
+    "fpsSeconds": 10,
+    "profilerSeconds": 6,
+    "eventSeconds": 6
+  },
+  "environment": {
+    "unityVersion": "6000.3.8f1",
+    "codeOptimization": "Debug",
+    "quality": "High",
+    "vSyncCount": 1,
+    "targetFrameRate": 60,
+    "cameraPixels": "1920x1080",
+    "gpu": "NVIDIA GeForce RTX 3060 Ti",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700",
+    "editorWindowMinimized": false,
+    "editorWindowForeground": true,
+    "userIdleSeconds": 162
+  },
+  "scene": {
+    "renderers": 217525,
+    "gameObjects": 315903,
+    "frameCount": 2609
+  },
+  "fps": {
+    "frames": 258,
+    "seconds": 10.557,
+    "fps": 24.438,
+    "frameMsAvg": 40.919
+  },
+  "profiler": {
+    "frames": 116,
+    "frameMs": {
+      "avg": 44.203,
+      "p50": 41.934,
+      "p95": 56.279,
+      "max": 107.122
+    },
+    "markers": {
+      "PlayerLoop": {
+        "totalMs": 34.011,
+        "selfMs": 0.001,
+        "calls": 3.0
+      },
+      "RenderPlayModeViewCameras": {
+        "totalMs": 10.38,
+        "selfMs": 0.085,
+        "calls": 1.0
+      },
+      "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": {
+        "totalMs": 9.955,
+        "selfMs": 6.467,
+        "calls": 62.6
+      },
+      "WaitForJobGroupID": {
+        "totalMs": 9.019,
+        "selfMs": 0.751,
+        "calls": 22.9
+      },
+      "EditorLoop": {
+        "totalMs": 8.964,
+        "selfMs": 8.964,
+        "calls": 4.0
+      },
+      "Idle": {
+        "totalMs": 4.142,
+        "selfMs": 4.142,
+        "calls": 14.0
+      },
+      "Update.ScriptRunBehaviourUpdate": {
+        "totalMs": 4.108,
+        "selfMs": 0.001,
+        "calls": 1.0
+      },
+      "BehaviourUpdate": {
+        "totalMs": 4.107,
+        "selfMs": 0.825,
+        "calls": 1.0
+      },
+      "UniTaskLoopRunnerYieldUpdate": {
+        "totalMs": 3.351,
+        "selfMs": 0.0,
+        "calls": 1.0
+      },
+      "PacketExchange.DispatchReceivedPackets": {
+        "totalMs": 3.342,
+        "selfMs": 0.004,
+        "calls": 1.0
+      },
+      "PacketExchange.RouteEvent": {
+        "totalMs": 3.264,
+        "selfMs": 0.408,
+        "calls": 2.3
+      },
+      "PostLateUpdate.UpdateAllSkinnedMeshes": {
+        "totalMs": 2.799,
+        "selfMs": 0.057,
+        "calls": 1.0
+      },
+      "MeshSkinning.Update": {
+        "totalMs": 2.742,
+        "selfMs": 1.063,
+        "calls": 1.0
+      },
+      "Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]": {
+        "totalMs": 2.673,
+        "selfMs": 2.673,
+        "calls": 1070.0
+      },
+      "FixedUpdate.PhysicsFixedUpdate": {
+        "totalMs": 2.075,
+        "selfMs": 0.003,
+        "calls": 2.2
+      },
+      "TransformChangeSystem": {
+        "totalMs": 2.001,
+        "selfMs": 0.896,
+        "calls": 48.2
+      },
+      "PostLateUpdate.UpdateAllRenderers": {
+        "totalMs": 1.952,
+        "selfMs": 0.006,
+        "calls": 1.0
+      },
+      "MeshSkinning.SkinOnGPU": {
+        "totalMs": 1.53,
+        "selfMs": 1.036,
+        "calls": 1.0
+      },
+      "BlockState.Deserialize": {
+        "totalMs": 1.23,
+        "selfMs": 1.156,
+        "calls": 0.6
+      },
+      "Profiler.FlushMemoryCounters": {
+        "totalMs": 0.972,
+        "selfMs": 0.972,
+        "calls": 1.0
+      },
+      "ExecuteRenderQueueJob": {
+        "totalMs": 0.926,
+        "selfMs": 0.925,
+        "calls": 1.6
+      },
+      "QueuePrepareIntegrateMainThreadObjects": {
+        "totalMs": 0.806,
+        "selfMs": 0.806,
+        "calls": 2.0
+      },
+      "UpdateRendererBoundingVolumes": {
+        "totalMs": 0.743,
+        "selfMs": 0.743,
+        "calls": 2.4
+      },
+      "BlockState.Processor.ElectricWireStateChangeProcessor": {
+        "totalMs": 0.729,
+        "selfMs": 0.68,
+        "calls": 101.7
+      },
+      "SRPBatcher.Flush": {
+        "totalMs": 0.636,
+        "selfMs": 0.636,
+        "calls": 5.7
+      },
+      "MeshSkinning.GPUBatchedSkin": {
+        "totalMs": 0.494,
+        "selfMs": 0.358,
+        "calls": 1.0
+      },
+      "PhysX.FinalizeUpdateTask": {
+        "totalMs": 0.406,
+        "selfMs": 0.406,
+        "calls": 2.2
+      },
+      "BlockState.Processor.CommonMachineBlockStateChangeProcessor": {
+        "totalMs": 0.375,
+        "selfMs": 0.362,
+        "calls": 108.7
+      },
+      "BlockState.Processor.GearStateChangeProcessor": {
+        "totalMs": 0.326,
+        "selfMs": 0.318,
+        "calls": 176.4
+      },
+      "GC.Alloc": {
+        "totalMs": 0.224,
+        "selfMs": 0.224,
+        "calls": 5531.9
+      },
+      "BlockState.Processor.GearBeltConveyorStateChangeProcessor": {
+        "totalMs": 0.146,
+        "selfMs": 0.142,
+        "calls": 85.2
+      },
+      "PacketExchange.Deserialize.EventStream": {
+        "totalMs": 0.059,
+        "selfMs": 0.058,
+        "calls": 2.3
+      },
+      "BlockState.Processor.SteamEngineEffectStateChangeProcessor": {
+        "totalMs": 0.049,
+        "selfMs": 0.048,
+        "calls": 28.6
+      },
+      "PacketExchange.ReadPacketHeader": {
+        "totalMs": 0.015,
+        "selfMs": 0.015,
+        "calls": 2.3
+      }
+    }
+  },
+  "events": {
+    "seconds": 6.552,
+    "eventsPerSecond": 60.6,
+    "payloadBytesPerSecond": 866006,
+    "blockStatesPerSecond": 4500.6,
+    "blockStateSenders": 270,
+    "byKind": {
+      "blockState|CommonMachine+ElectricWire+MachineBlock": {
+        "perSecond": 1552.6,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|FuelGearGenerator+GearStateData+PowerGenerator": {
+        "perSecond": 750.0,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+GearStateData+MachineBlock": {
+        "perSecond": 631.6,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+ElectricWire+FluidMachineInventory+MachineBlock": {
+        "perSecond": 380.8,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|ElectricWire+GearStateData+GearToElectricGenerator": {
+        "perSecond": 329.1,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|未分類": {
+        "perSecond": 326.3,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+ElectricWire+FluidMachineInventory+Pump": {
+        "perSecond": 120.9,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|ElectricWire+FluidMachineInventory+PowerGenerator": {
+        "perSecond": 100.1,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+CommonMiner+GearStateData": {
+        "perSecond": 98.6,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+CommonMiner+ElectricWire": {
+        "perSecond": 75.6,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|FluidMachineInventory+TrainPlatformTransfer": {
+        "perSecond": 74.5,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|ElectricToGearGenerator+ElectricWire+GearStateData": {
+        "perSecond": 30.2,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|FluidMachineInventory+GearStateData+Pump": {
+        "perSecond": 30.2,
+        "payloadBytesPerSecond": 0
+      },
+      "va:event:trainUnitTickDiffBundle": {
+        "perSecond": 15.3,
+        "payloadBytesPerSecond": 1125
+      },
+      "va:event:beltTransportTickDiff": {
+        "perSecond": 15.1,
+        "payloadBytesPerSecond": 1891
+      },
+      "va:event:fluidNetworkTickDiff": {
+        "perSecond": 15.1,
+        "payloadBytesPerSecond": 2860
+      },
+      "va:event:blockStatesTickBundle": {
+        "perSecond": 15.1,
+        "payloadBytesPerSecond": 860130
+      }
+    }
+  }
+}

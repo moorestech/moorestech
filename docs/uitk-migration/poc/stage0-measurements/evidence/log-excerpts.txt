@@ -1,0 +1,9 @@
+# Unity Console からの抜粋（実測セッション中に uloop get-logs / uloop execute-dynamic-code で読んだ行。Console は PlayMode 開始でクリアされるため転記）
+## 入力デバイスの状態（S3 実行前の診断、2026-10-26 01:0x 台、Editor 非前面）
+focused=False bg=ResetAndDisableNonBackgroundDevices editorBg=PointersAndKeyboardsRespectGameViewFocus kb=False mouse=False mousePos=(0.00, 0.00) devices=3
+## 上書き後（S1 撮り直し run 20261026_040840）
+[S1S2] devices before override: focused=True kb=True mouse=True after: kb=True
+## Mac 配布ビルド相当（BuildWithoutExit, 出力 scratchpad/builds/mac）
+Build Finish Time : 10/26/2026 3:59:05 AM
+Build Summary TotalSize :3211595421
+Build Result :Succeeded

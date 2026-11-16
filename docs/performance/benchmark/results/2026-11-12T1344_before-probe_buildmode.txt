@@ -1,0 +1,132 @@
+commit=b6b549239b3750fe46fee573bb0adf2145fc9522
+== go-breakdown
+ok
+transforms=971657 activeInHierarchy=315899
+ALL BLOCKS blocks=15082 gameObjects=901548 renderers=411178 colliders=163208
+-- top groups (gameObjects / renderers / colliders)
+ 267264  115200   55296  Block:鉄の歯車ベルトコンベア
+ 148896   85728   15792  Block:基本土台
+ 147582   64733   28479  Block:直線歯車ベルトコンベア
+  70272   21960   10248  Block:木のシャフト
+  51254   21966    8368  Block:鋼鉄のパイプ
+  35366   14817    8898  Root:Environment/OtherEnvironment
+  28368   12411    4137  Block:鉄のパイプ
+  23234   18533   18533  Root:GameSystem/OutcropGameObjectDatastore
+  18383   11119    2314  Block:電気汎用工作装置
+  16928    5888    3680  Block:木のシャフトボックス
+  14388    6976    3924  Block:鉄の歯車ベルトコンベア分岐機
+  13467    5025    2412  Block:木の歯車
+  12182    3840    5006  Block:電柱
+  10036    4439    1930  Block:鉄の上り歯車ベルトコンベア
+   9834    4768    2682  Block:歯車コンベア分岐機
+   7956    5304     832  Block:蒸気機関
+   6806    2905    1577  Block:石窯
+   6240    2760    1200  Block:下り歯車ベルトコンベア
+   5929    2541    1210  Block:ベルトコンベア
+   5766    2914    1209  Block:原始的な粉砕機
+   5408    2392    1040  Block:鉄の下り歯車ベルトコンベア
+   4530    3340     590  Block:化学プラント
+   4368    3120       0  Root:BeltMergeCellCovers/metal
+   4218    2413     836  Block:ふいご付き精錬炉
+   3900    1725     750  Block:上り歯車ベルトコンベア
+   3698    1204     860  Block:レール橋脚
+   3600    1650    1050  Block:鉄のコンベアチェスト
+   3280    1680    1040  Block:原始的な加工機
+   2990    2273     211  Block:ガソリンエンジン発電機
+   2531     915     784  Block:電気炉
+-- components
+  441536  MeshRenderer
+    4725  SkinnedMeshRenderer
+  191676  Collider
+   31507  MeshCollider
+      13  Rigidbody
+     187  Animator
+     278  VisualEffect
+       0  ParticleSystem
+       4  Light
+    1269  Canvas
+  375094  MonoBehaviour(all)
+-- MonoBehaviour types top 20
+   90492  BlockPreviewBoundingBoxSurface
+   67127  BlockGameObjectChild
+   31015  PreviewOnlyObject
+   18533  OutcropRayTarget
+   15221  RendererShaderAnimation
+   15099  ObservableDestroyTrigger
+   15094  EffectsQualitySwitch
+   15082  BlockGameObject
+   15082  BlockPreviewBoundingBox
+   14160  IgnoreRendererMaterialReplacer
+   12561  BlockInteractable
+   11023  GearStateChangeProcessorSimulator
+   10789  GearStateChangeProcessor
+    8370  GearBeltConveyorStateChangeProcessor
+    5051  InventoryConnectorLineView
+    3900  Image
+    2725  OutcropGameObject
+    1870  FluidPipeWaterLevelView
+    1841  GearConnectorView
+    1772  TextMeshPro
+renderers(active)=217523 enabled=215223 isVisible=20684
+== placement-frame-count steady
+{"blocks":15082,"BlockPreviewBoundingBox":{"total":15082,"underBlock":15082,"activeInHierarchy":0,"rendered":0},"BlockPreviewBoundingBoxSurface":{"total":90492,"underBlock":90492,"activeInHierarchy":0,"rendered":0},"BlockPlacementHitFaces":null,"PreviewOnlyObject":{"total":31015,"underBlock":30325,"activeInHierarchy":0,"rendered":0}}
+== buildmode-probe
+probe installed frame=1489 lastFrame=875
+error=
+enter@200=1101.77ms state=PlaceBlock controlMedianMs=37.6 frameMs[k..k+5]=1340 89 63 38 45 45 excessMs=1393.4
+exit@275=287.60ms state=GameScreen controlMedianMs=40.2 frameMs[k..k+5]=397 58 65 55 34 38 excessMs=406.3
+enter@350=1204.16ms state=PlaceBlock controlMedianMs=38.6 frameMs[k..k+5]=1654 84 59 63 49 50 excessMs=1728.5
+exit@425=295.96ms state=GameScreen controlMedianMs=41.4 frameMs[k..k+5]=406 73 107 58 49 35 excessMs=479.6
+enter@500=1086.97ms state=PlaceBlock controlMedianMs=39.8 frameMs[k..k+5]=1289 79 50 48 37 39 excessMs=1303.9
+exit@575=293.78ms state=GameScreen controlMedianMs=42.1 frameMs[k..k+5]=410 66 48 47 50 34 excessMs=401.4
+enter@650=1091.86ms state=PlaceBlock controlMedianMs=39.9 frameMs[k..k+5]=1278 87 54 53 34 40 excessMs=1305.9
+exit@725=286.08ms state=GameScreen controlMedianMs=41.4 frameMs[k..k+5]=393 66 56 46 50 49 excessMs=411.1
+enter@800=1065.95ms state=PlaceBlock controlMedianMs=40.5 frameMs[k..k+5]=1268 74 41 44 49 33 excessMs=1266.3
+profiler frame=2 Probe.EnterTransition sampleMs=1101.8 frameMs=1328.6
+  inside(self top10): GameObject.ActivateAwakeRecursively=1008.0ms; SortingGroup.UpdateRenderer=12.2ms; GameObject.Activate=6.0ms; Mono.JIT=5.2ms; GC.Alloc=1.2ms; GameObject.Deactivate=0.2ms; TextureStreamingManager.RemoveRenderer=0.1ms; UniTask.dll!Cysharp.Threading.Tasks.CompilerServices::AsyncUniTaskVoid`1..cctor()=0.1ms; UniTask.dll!::<>c..cctor()=0.0ms; Component.SetGameObject=0.0ms; 
+  +1 frameMs=97.2 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=28.6ms; EditorLoop=14.4ms; PhysX.FinalizeUpdateTask=6.2ms; BlockState.Deserialize=5.1ms; BlockState.Processor.ElectricWireStateChangeProcessor=2.9ms; Idle=2.7ms; 
+  +2 frameMs=64.0 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=18.2ms; EditorLoop=9.5ms; Idle=4.1ms; PhysX.FinalizeUpdateTask=3.2ms; BlockState.Deserialize=2.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; 
+  +3 frameMs=40.6 self top6: EditorLoop=8.7ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=4.8ms; Idle=3.2ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; PhysX.FinalizeUpdateTask=2.3ms; ExecuteRenderQueueJob=1.7ms; 
+profiler frame=16 Probe.ExitTransition sampleMs=287.6 frameMs=395.3
+  inside(self top10): GameObject.ActivateAwakeRecursively=228.5ms; GameObject.Deactivate=4.6ms; Mono.JIT=1.3ms; TextureStreamingManager.RemoveRenderer=0.1ms; GC.Alloc=0.0ms; 
+  +1 frameMs=62.9 self top6: EditorLoop=14.3ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=11.3ms; Idle=3.5ms; Physics.SwapPhysXBuffersJob=2.8ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; BlockState.Deserialize=2.1ms; 
+  +2 frameMs=62.2 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=12.0ms; EditorLoop=9.8ms; Idle=6.0ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=3.6ms; Profiler.CollectUIStats=2.8ms; BlockState.Deserialize=2.1ms; 
+  +3 frameMs=54.7 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=10.4ms; EditorLoop=8.8ms; Idle=4.2ms; Physics.SwapPhysXBuffersJob=2.7ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.7ms; BlockState.Deserialize=2.1ms; 
+profiler frame=30 Probe.EnterTransition sampleMs=1204.2 frameMs=1648.2
+  inside(self top10): GameObject.ActivateAwakeRecursively=1028.8ms; SortingGroup.UpdateRenderer=12.6ms; GameObject.Activate=6.2ms; GC.Alloc=1.3ms; GameObject.Deactivate=0.2ms; TextureStreamingManager.RemoveRenderer=0.1ms; Component.SetGameObject=0.0ms; 
+  +1 frameMs=88.4 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=25.4ms; EditorLoop=12.5ms; BlockState.Deserialize=5.9ms; PhysX.FinalizeUpdateTask=4.0ms; BlockState.Processor.ElectricWireStateChangeProcessor=3.5ms; PxScene.simulate=3.2ms; 
+  +2 frameMs=60.9 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=16.3ms; EditorLoop=8.6ms; Idle=3.2ms; PhysX.FinalizeUpdateTask=2.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; BlockState.Deserialize=2.0ms; 
+  +3 frameMs=63.2 self top6: EditorLoop=18.8ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=9.8ms; Idle=3.7ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=3.0ms; PhysX.FinalizeUpdateTask=2.1ms; BlockState.Deserialize=2.0ms; 
+profiler frame=44 Probe.ExitTransition sampleMs=296.0 frameMs=407.6
+  inside(self top10): GameObject.ActivateAwakeRecursively=238.1ms; GameObject.Deactivate=5.0ms; TextureStreamingManager.RemoveRenderer=0.1ms; GC.Alloc=0.0ms; 
+  +1 frameMs=72.3 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=19.1ms; EditorLoop=9.3ms; BlockState.Deserialize=4.3ms; Idle=4.0ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.5ms; BlockState.Processor.ElectricWireStateChangeProcessor=2.4ms; 
+  +2 frameMs=109.6 self top6: EditorLoop=72.8ms; Idle=4.2ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=3.1ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=2.9ms; Physics.SwapPhysXBuffersJob=2.3ms; MeshSkinning.Update=2.1ms; 
+  +3 frameMs=57.5 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=10.2ms; EditorLoop=8.5ms; Idle=4.0ms; BlockState.Deserialize=3.9ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; BlockState.Processor.ElectricWireStateChangeProcessor=2.2ms; 
+profiler frame=58 Probe.EnterTransition sampleMs=1087.0 frameMs=1279.6
+  inside(self top10): GameObject.ActivateAwakeRecursively=999.2ms; SortingGroup.UpdateRenderer=12.5ms; GameObject.Activate=6.0ms; GC.Alloc=1.1ms; GameObject.Deactivate=0.2ms; TextureStreamingManager.RemoveRenderer=0.1ms; Component.SetGameObject=0.0ms; 
+  +1 frameMs=85.7 self top6: EditorLoop=16.2ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=14.5ms; ScheduleGeometryJobs=7.0ms; PhysX.FinalizeUpdateTask=5.6ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=3.7ms; PxScene.simulate=2.2ms; 
+  +2 frameMs=52.3 self top6: EditorLoop=8.6ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=8.5ms; Idle=3.5ms; PhysX.FinalizeUpdateTask=2.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; BlockState.Deserialize=2.0ms; 
+  +3 frameMs=48.7 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=8.6ms; EditorLoop=8.1ms; Idle=3.4ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; BlockState.Deserialize=1.9ms; ExecuteRenderQueueJob=1.8ms; 
+profiler frame=72 Probe.ExitTransition sampleMs=293.8 frameMs=408.2
+  inside(self top10): GameObject.ActivateAwakeRecursively=235.3ms; GameObject.Deactivate=4.8ms; TextureStreamingManager.RemoveRenderer=0.1ms; GC.Alloc=0.0ms; 
+  +1 frameMs=68.5 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=21.5ms; EditorLoop=9.6ms; Idle=3.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.5ms; ExecuteRenderQueueJob=2.1ms; BlockState.Deserialize=2.0ms; 
+  +2 frameMs=47.4 self top6: EditorLoop=9.4ms; Idle=5.3ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.8ms; BlockState.Deserialize=2.0ms; MeshSkinning.SkinOnGPU=2.0ms; Profiler.FlushMemoryCounters=1.9ms; 
+  +3 frameMs=48.2 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=11.2ms; EditorLoop=8.1ms; Idle=5.3ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; Physics.SwapPhysXBuffersJob=1.5ms; Profiler.FlushMemoryCounters=1.3ms; 
+profiler frame=86 Probe.EnterTransition sampleMs=1091.9 frameMs=1272.9
+  inside(self top10): GameObject.ActivateAwakeRecursively=1004.1ms; SortingGroup.UpdateRenderer=12.4ms; GameObject.Activate=6.0ms; GC.Alloc=1.1ms; GameObject.Deactivate=0.2ms; TextureStreamingManager.RemoveRenderer=0.1ms; Component.SetGameObject=0.0ms; 
+  +1 frameMs=88.4 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=29.4ms; EditorLoop=15.8ms; PhysX.FinalizeUpdateTask=3.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.9ms; PxScene.simulate=2.3ms; BlockState.Deserialize=1.8ms; 
+  +2 frameMs=57.1 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=11.4ms; EditorLoop=8.7ms; Idle=3.9ms; PhysX.FinalizeUpdateTask=2.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; ExecuteRenderQueueJob=1.9ms; 
+  +3 frameMs=51.6 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=9.4ms; EditorLoop=8.4ms; Idle=4.4ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; BlockState.Deserialize=1.8ms; PhysX.FinalizeUpdateTask=1.6ms; 
+profiler frame=100 Probe.ExitTransition sampleMs=286.1 frameMs=397.3
+  inside(self top10): GameObject.ActivateAwakeRecursively=228.3ms; GameObject.Deactivate=4.6ms; TextureStreamingManager.RemoveRenderer=0.1ms; GC.Alloc=0.0ms; 
+  +1 frameMs=67.3 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=18.5ms; EditorLoop=13.6ms; Idle=3.0ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.5ms; BlockState.Deserialize=2.0ms; ExecuteRenderQueueJob=1.8ms; 
+  +2 frameMs=58.0 self top6: EditorLoop=8.2ms; Profiler.CollectUIStats=7.8ms; Idle=4.8ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=3.5ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=3.4ms; WaitForJobGroupID=2.0ms; 
+  +3 frameMs=44.3 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=11.0ms; EditorLoop=7.1ms; Idle=3.9ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.6ms; ExecuteRenderQueueJob=1.8ms; MeshSkinning.Update=1.2ms; 
+profiler frame=114 Probe.EnterTransition sampleMs=1066.0 frameMs=1262.1
+  inside(self top10): GameObject.ActivateAwakeRecursively=979.4ms; SortingGroup.UpdateRenderer=12.3ms; GameObject.Activate=6.0ms; GC.Alloc=1.1ms; GameObject.Deactivate=0.2ms; TextureStreamingManager.RemoveRenderer=0.1ms; Component.SetGameObject=0.0ms; 
+  +1 frameMs=78.2 self top6: EditorLoop=15.4ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=13.9ms; PhysX.FinalizeUpdateTask=4.4ms; BlockState.Deserialize=3.9ms; BlockState.Processor.ElectricWireStateChangeProcessor=2.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.5ms; 
+  +2 frameMs=45.3 self top6: EditorLoop=7.5ms; Idle=4.8ms; PhysX.FinalizeUpdateTask=3.1ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.5ms; BlockState.Deserialize=1.9ms; ExecuteRenderQueueJob=1.8ms; 
+  +3 frameMs=42.0 self top6: UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=9.0ms; EditorLoop=7.2ms; Idle=2.7ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.4ms; ExecuteRenderQueueJob=1.7ms; SRPBatcher.Flush=1.4ms; 
+-- placement-frame-count in-buildmode
+{"blocks":15082,"BlockPreviewBoundingBox":{"total":15082,"underBlock":15082,"activeInHierarchy":15082,"rendered":177},"BlockPreviewBoundingBoxSurface":{"total":90492,"underBlock":90492,"activeInHierarchy":90492,"rendered":0},"BlockPlacementHitFaces":null,"PreviewOnlyObject":{"total":31019,"underBlock":30325,"activeInHierarchy":25371,"rendered":349}}
+exit requested frame=2633

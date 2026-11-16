@@ -17,7 +17,7 @@ function Harness({ onEvent }: { onEvent: (count: number) => void }) {
 
 function earn(seq: number, count: number) {
   return deliverTopicPayload(Topics.notification, seq, {
-    seq, category: "itemEarned", messageId: "itemEarned.mined", messageParams: [], itemId: 5, count,
+    seq, category: "itemEarned", messageId: "itemEarned.mined", messageParams: {}, itemId: 5, count,
   });
 }
 

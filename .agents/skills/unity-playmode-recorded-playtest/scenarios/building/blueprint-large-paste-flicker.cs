@@ -73,7 +73,7 @@ return PlaytestRunner.Run("blueprint-large-paste-flicker", options, async p =>
     await p.AimAt(new Vector3(9.5f, 33f, 9.95f));
     await UniTask.DelayFrame(3);
     await p.ClickPlace();
-    await p.UntilWebUiElement("modal-input", 10f);
+    await p.UntilUiElement("modal-input", 10f);
     p.Assert(isNameOpen, "名前入力が開く");
     nameState.Confirm("large-chest-bp");
     var largeBp = await p.WaitForBlueprint("large-chest-bp", true, 15f, "BP『large-chest-bp』が登録される");

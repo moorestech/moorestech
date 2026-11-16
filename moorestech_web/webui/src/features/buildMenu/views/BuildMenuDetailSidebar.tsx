@@ -34,16 +34,19 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
                   : t(L.ui.buildMenu.requiredItems)}
               </span>
               <SlotGrid cols={3}>
-                {entry.requiredItems.map((item, index) => (
+                {entry.requiredItems.map((item, index) => {
+                  const lacking = isItemInsufficient(entry, item);
+                  return (
                   // 不足の表示はホストのlackingと支払い免除の合成。所持と必要の比較をここでやり直さない
                   // The display shortage composes the host's lacking with the payment waiver; no owned-vs-required comparison happens here
                   <ItemSlot
                     key={`${item.itemId}-${index}`}
                     itemId={item.itemId}
-                    insufficient={isItemInsufficient(entry, item)}
-                    shortage={{ ownedCount: item.held, requiredCount: item.count, tooltipKey: L.ui.buildMenu.materialTooltip }}
+                    insufficient={lacking}
+                    shortage={{ ownedCount: item.held, requiredCount: item.count, lacking, tooltipKey: L.ui.buildMenu.materialTooltip }}
                   />
-                ))}
+                  );
+                })}
               </SlotGrid>
             </>
           )}

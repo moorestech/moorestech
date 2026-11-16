@@ -1,0 +1,156 @@
+using Client.Game.InGame.Block.Index;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using UnityEngine;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
+{
+    /// <summary>
+    /// 照準レイに沿って占有セルをたどり、最初に入るブロックの面を求める（ADR 0100）
+    /// Walks occupied cells along the aim ray and resolves the face of the first block entered (ADR 0100)
+    /// </summary>
+    public static class PlacementAimCellTracer
+    {
+        public static bool TryTrace(BlockOccupiedCellIndex cells, Ray ray, float maxDistance, out float distance, out PreviewSurfaceType surfaceType)
+        {
+            distance = 0f;
+            surfaceType = default;
+
+            // 占有セル全体の外接直方体とレイの区間を求める
+            // Clip the ray against the bounding box of all occupied cells
+            // silent-ok: ブロックが無い・照準が外れているのは操作中の通常状態 / 呼び出し側が物理レイの結果へ戻す
+            // No blocks or a missed aim is a normal aim state; the caller falls back to the physics result
+            if (!cells.TryGetBounds(out var minCell, out var maxCell)) return false;
+            if (!PlacementAimBoxSlab.TryIntersect(ray, minCell, maxCell + Vector3Int.one, out var tEnter, out _, out var tExit, out _)) return false;
+            var tEnd = Mathf.Min(tExit, maxDistance);
+
+            // 始点がブロックの内側なら、そのブロックから出る面を返す
+            // When the origin is inside a block, return the face it exits through
+            var startCell = Vector3Int.FloorToInt(ray.origin);
+            if (cells.TryGetBlockAt(startCell, out var startBlock))
+            {
+                // 始点がこの箱の内側にあるので交差は必ず成立し、結果は捨ててよい
+                // The origin lies inside this box, so the intersection always succeeds and the result can be ignored
+                PlacementAimBoxSlab.TryIntersect(ray, startBlock.MinPos, startBlock.MaxPos + Vector3Int.one, out _, out _, out var tLeave, out var exitAxis);
+                // silent-ok: 射程内でブロックから出ないのは照準先にブロックが無い通常状態 / 呼び出し側が物理レイの結果へ戻す
+                // Not leaving the block within range means no block on the aim path; the caller falls back to the physics result
+                if (tLeave > tEnd) return false;
+                distance = tLeave;
+                surfaceType = PlacementAimBoxSlab.ExitFace(exitAxis, ray.direction[exitAxis] > 0f);
+                return true;
+            }
+
+            // 外から入るときは入る直前のセルから走査し、入口の辺・角も走査の同値規則にまかせる
+            // From outside, walk from the cell just before entry so entry edges and corners follow the walk's tie rule
+            var firstCell = tEnter > 0f ? CellJustBefore(ray, tEnter) : startCell;
+            return TryWalk(cells, ray, firstCell, tEnd, out distance, out surfaceType);
+        }
+
+        private static bool TryWalk(BlockOccupiedCellIndex cells, Ray ray, Vector3Int cell, float tEnd, out float distance, out PreviewSurfaceType surfaceType)
+        {
+            distance = 0f;
+            surfaceType = default;
+
+            // 各軸の進む向きを用意する。次の境界までの距離は毎回セルから求め、空ノードを飛ばした後も同じ値になるようにする
+            // Prepare per-axis steps; boundary times are recomputed from the cell each step so they match after skipping empty nodes
+            var origin = ray.origin;
+            var direction = ray.direction;
+            var step = Vector3Int.zero;
+            for (var axis = 0; axis < 3; axis++)
+            {
+                if (direction[axis] != 0f) step[axis] = direction[axis] > 0f ? 1 : -1;
+            }
+            var lastT = float.NegativeInfinity;
+            var faceAxis = -1;
+            var octree = cells.Octree;
+            octree.ResetProbePath();
+            var emptyLevel = octree.ProbeEmptyLevel(cell, out _);
+
+            while (true)
+            {
+                // 今のセルを含む空のノードは出口の直前のセルまで飛ばす。出口が今の辺・角の組と同じ t なら組を崩さないよう飛ばさない
+                // Skip the empty node containing the cell to the cell just before its exit, unless the exit shares the current edge/corner group's t
+                if (emptyLevel > 0)
+                {
+                    var tNodeExit = NodeExitTime(octree, origin, direction, cell, emptyLevel);
+                    // silent-ok: 射程内に占有セルが無いのは照準先にブロックが無い通常状態 / 呼び出し側が物理レイの結果へ戻す
+                    // No occupied cell within range means no block on the aim path; the caller falls back to the physics result
+                    if (tNodeExit > tEnd) return false;
+                    if (tNodeExit > lastT)
+                    {
+                        cell = CellJustBefore(ray, tNodeExit);
+                        lastT = float.NegativeInfinity;
+                    }
+                }
+
+                // 次の境界が最も近い軸へ進む（同値は Y → X → Z）
+                // Step along the axis with the nearest boundary (ties: Y -> X -> Z)
+                var tMax = Vector3.positiveInfinity;
+                for (var axis = 0; axis < 3; axis++)
+                {
+                    if (step[axis] != 0) tMax[axis] = NextBoundaryTime(origin[axis], direction[axis], cell[axis]);
+                }
+                var nextAxis = PlacementAimBoxSlab.NearestAxis(tMax);
+                var t = tMax[nextAxis];
+                // silent-ok: 射程内に占有セルが無いのは照準先にブロックが無い通常状態 / 呼び出し側が物理レイの結果へ戻す
+                // No occupied cell within range means no block on the aim path; the caller falls back to the physics result
+                if (float.IsInfinity(t) || t > tEnd) return false;
+                cell[nextAxis] += step[nextAxis];
+
+                // 同じ t の越境（辺・角）の組は NearestAxis が Y → X → Z の順に返すので、組の最初の軸を面の軸にする
+                // NearestAxis returns a same-t group (edge or corner) in Y -> X -> Z order, so the group's first axis is the face axis
+                if (t != lastT) faceAxis = nextAxis;
+                lastT = t;
+
+                // 入ったセルが占有されていれば、入った向きの面を返す
+                // If the entered cell is occupied, return the face of the entering direction
+                emptyLevel = octree.ProbeEmptyLevel(cell, out var occupied);
+                if (!occupied) continue;
+                distance = t;
+                surfaceType = PlacementAimBoxSlab.EnterFace(faceAxis, direction[faceAxis] > 0f);
+                return true;
+            }
+        }
+
+        private static float NodeExitTime(OccupiedCellOctree octree, Vector3 origin, Vector3 direction, Vector3Int cell, int level)
+        {
+            // 進む向きにあるノード端のセルの境界のうち、最も近いものがノードの出口
+            // The node exit is the nearest boundary of the node's edge cells in the direction of travel
+            var size = 1 << level;
+            var tExit = float.PositiveInfinity;
+            for (var axis = 0; axis < 3; axis++)
+            {
+                var d = direction[axis];
+                if (d == 0f) continue;
+                var nodeStart = octree.NodeStart(axis, cell[axis], level);
+                var edgeCell = d > 0f ? nodeStart + size - 1 : nodeStart;
+                tExit = Mathf.Min(tExit, NextBoundaryTime(origin[axis], d, edgeCell));
+            }
+            return tExit;
+        }
+
+        private static Vector3Int CellJustBefore(Ray ray, float t)
+        {
+            var origin = ray.origin;
+            var direction = ray.direction;
+            var cell = Vector3Int.FloorToInt(ray.GetPoint(t));
+            for (var axis = 0; axis < 3; axis++)
+            {
+                var d = direction[axis];
+                if (d == 0f) continue;
+
+                // 境界の時刻で寄せ、次の境界が t 以上・手前の境界が t 未満のセルにする（境界ちょうどは手前側）
+                // Snap by boundary times so the next boundary is at or after t and the previous one before t (exact boundary stays behind)
+                var step = d > 0f ? 1 : -1;
+                while (NextBoundaryTime(origin[axis], d, cell[axis]) < t) cell[axis] += step;
+                while (NextBoundaryTime(origin[axis], d, cell[axis] - step) >= t) cell[axis] -= step;
+            }
+            return cell;
+        }
+
+        private static float NextBoundaryTime(float origin, float direction, int cell)
+        {
+            var boundary = direction > 0f ? cell + 1 : cell;
+            return (boundary - origin) / direction;
+        }
+    }
+}

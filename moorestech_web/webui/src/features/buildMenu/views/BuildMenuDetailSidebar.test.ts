@@ -40,7 +40,7 @@ describe("BuildMenuDetailSidebar", () => {
     const slot = renderer.root.findByType("mock-item-slot" as never);
 
     expect(slot.props.insufficient).toBe(true);
-    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 5, tooltipKey: "ui.buildMenu.materialTooltip" });
+    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 5, lacking: true, tooltipKey: "ui.buildMenu.materialTooltip" });
     // countバッジ廃止・所持/必要へ置換
     // The count badge is gone, replaced by owned/required text
     expect(slot.props.count).toBeUndefined();

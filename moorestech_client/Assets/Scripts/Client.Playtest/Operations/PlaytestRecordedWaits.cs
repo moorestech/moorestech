@@ -61,12 +61,12 @@ namespace Client.Playtest.Operations
             return blockGameObject;
         }
 
-        public static async UniTask UntilWebUiElement(PlaytestReporter reporter, string testid, float timeoutSeconds)
+        public static async UniTask UntilUiElement(PlaytestReporter reporter, string testid, float timeoutSeconds)
         {
-            // DOM要素待ちを待機表示し、成功後も録画用の操作間隔を確保する
-            // Show DOM waiting and retain the recording pace after success
-            var waitEntry = reporter.BeginWait($"Web UI要素待ち: {testid}");
-            await PlaytestWebUiOps.WaitWebUiElement(testid, timeoutSeconds);
+            // UI要素待ちを待機表示し、成功後も録画用の操作間隔を確保する
+            // Show UI element waiting and retain the recording pace after success
+            var waitEntry = reporter.BeginWait($"UI要素待ち: {testid}");
+            await PlaytestUiElementOps.WaitUiElement(testid, timeoutSeconds);
             reporter.EndWait(waitEntry);
             await UniTask.Delay(TimeSpan.FromSeconds(PlaytestReporter.ActionIntervalSeconds), ignoreTimeScale: true);
         }

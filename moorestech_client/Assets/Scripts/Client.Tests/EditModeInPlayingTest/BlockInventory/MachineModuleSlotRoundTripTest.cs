@@ -2,6 +2,7 @@ using System.Collections;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util.World;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -64,54 +65,72 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
+                var ground = TestPlayerGround.Create();
 
-                // 機械を設置し、クライアント側のBlockGameObjectがスポーンするまで待機
-                // Place the machine and wait until the client-side BlockGameObject spawns.
-                var pos = new Vector3Int(0, 0, 0);
-                PlaceBlock(MachineBlockName, pos, BlockDirection.North);
-                var blockGameObject = await WaitBlockGameObjectSpawn(pos);
-
-                // サブインベントリでスロット数を確認
-                // Open the sub inventory and verify the unified input+output+module slot count.
-                var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
-                Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, subInventoryState.CurrentSubInventory.Count, "unified slot count mismatch");
-
-                // モジュールアイテムをプレイヤーへ付与し、付与先のメインスロット番号を特定する
-                // Give the player a module item and locate the main inventory slot it landed in.
-                await GiveItem(ModuleItemName, 1);
-                var moduleItemId = FindItemId(ModuleItemName);
-                var playerInventory = await ClientContext.VanillaApi.Response.Inventory.GetMyPlayerInventory(CancellationToken.None);
-                var mainSlot = playerInventory.MainInventory.FindIndex(item => item.Id == moduleItemId);
-                Assert.GreaterOrEqual(mainSlot, 0, "module item not found in player main inventory");
-
-                // 既存の移動プロトコル（InventoryType.Block＋スロット番号）でモジュールスロットへ装着する
-                // Equip into the module slot via the existing move protocol (InventoryType.Block + slot number).
-                ClientContext.VanillaApi.SendOnly.ItemMove(1, ItemMoveType.SwapSlot,
-                    InventoryIdentifierMessagePack.CreateMainMessage(), mainSlot,
-                    InventoryIdentifierMessagePack.CreateBlockMessage(pos), ModuleRangeStart);
-
-                // 既存のインベントリ取得プロトコルへ装着が反映されるまでポーリングして確認
-                // Poll the existing inventory request protocol until the equip is reflected.
-                var blockIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
-                var inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(blockIdentifier, CancellationToken.None);
-                for (var i = 0; i < 30 && inventoryResponse.Items[ModuleRangeStart].Id != moduleItemId; i++)
-                {
-                    await UniTask.Delay(100);
-                    inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(blockIdentifier, CancellationToken.None);
-                }
-                Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, inventoryResponse.Items.Count, "request protocol slot count mismatch");
-                Assert.AreEqual(moduleItemId, inventoryResponse.Items[ModuleRangeStart].Id, "module not equipped into the module slot");
-                Assert.AreEqual(1, inventoryResponse.Items[ModuleRangeStart].Count);
-
-                // 再オープンでも装着維持を確認
-                // Close and reopen the sub inventory and verify the equip persists.
-                BlockSubInventoryOpener.Close(subInventoryState);
+                // 実足場を置き、起動ログ排出後に想定外エラーを検出
+                // Place real ground, then detect unexpected errors after draining startup logs
                 await UniTask.Yield();
-                var reopened = await BlockSubInventoryOpener.Open(blockGameObject);
-                Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, reopened.CurrentSubInventory.Count);
-                Assert.AreEqual(moduleItemId, reopened.CurrentSubInventory.SubInventory[ModuleRangeStart].Id, "module lost after reopen");
+                LogAssert.ignoreFailingMessages = false;
+                try
+                {
+                    await TestPlayerGround.AssertGroundedAsync();
+                    // 機械設置しスポーン待ち
+                    // Place the machine and wait for spawn
+                    var pos = new Vector3Int(0, 0, 0);
+                    PlaceBlock(MachineBlockName, pos, BlockDirection.North);
+                    var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
-                BlockSubInventoryOpener.Close(reopened);
+                    // サブインベントリでスロット数を確認
+                    // Open the sub inventory and verify the unified input+output+module slot count.
+                    var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
+                    Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, subInventoryState.CurrentSubInventory.Count, "unified slot count mismatch");
+
+                    // モジュール付与し枠番号特定
+                    // Give a module and locate its slot
+                    await GiveItem(ModuleItemName, 1);
+                    var moduleItemId = FindItemId(ModuleItemName);
+                    var playerInventory = await ClientContext.VanillaApi.Response.Inventory.GetMyPlayerInventory(CancellationToken.None);
+                    var mainSlot = playerInventory.MainInventory.FindIndex(item => item.Id == moduleItemId);
+                    Assert.GreaterOrEqual(mainSlot, 0, "module item not found in player main inventory");
+
+                    // 既存プロトコルで装着
+                    // Equip via the existing move protocol
+                    ClientContext.VanillaApi.SendOnly.ItemMove(1, ItemMoveType.SwapSlot,
+                        InventoryIdentifierMessagePack.CreateMainMessage(), mainSlot,
+                        InventoryIdentifierMessagePack.CreateBlockMessage(pos), ModuleRangeStart);
+
+                    // 装着反映をポーリング確認
+                    // Poll until the equip is reflected
+                    var blockIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
+                    var inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(blockIdentifier, CancellationToken.None);
+                    for (var i = 0; i < 30 && inventoryResponse.Items[ModuleRangeStart].Id != moduleItemId; i++)
+                    {
+                        await UniTask.Delay(100);
+                        inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(blockIdentifier, CancellationToken.None);
+                    }
+                    Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, inventoryResponse.Items.Count, "request protocol slot count mismatch");
+                    Assert.AreEqual(moduleItemId, inventoryResponse.Items[ModuleRangeStart].Id, "module not equipped into the module slot");
+                    Assert.AreEqual(1, inventoryResponse.Items[ModuleRangeStart].Count);
+
+                    // 再オープンでも装着維持を確認
+                    // Close and reopen the sub inventory and verify the equip persists.
+                    BlockSubInventoryOpener.Close(subInventoryState);
+                    await UniTask.Yield();
+                    var reopened = await BlockSubInventoryOpener.Open(blockGameObject);
+                    Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, reopened.CurrentSubInventory.Count);
+                    Assert.AreEqual(moduleItemId, reopened.CurrentSubInventory.SubInventory[ModuleRangeStart].Id, "module lost after reopen");
+
+                    BlockSubInventoryOpener.Close(reopened);
+
+                    // 元の機能検証後に、保存と終了参加者の完了を待つ
+                    // Await saving and shutdown participants after the original functional checks
+                    await AssertIntentionalShutdownFlushedAsync("MachineModuleShutdown");
+                }
+                finally
+                {
+                    Object.DestroyImmediate(ground);
+                    LogAssert.ignoreFailingMessages = true;
+                }
             }
 
             // 名前からアイテムIDを引く

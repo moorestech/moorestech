@@ -83,7 +83,7 @@ export const slotActions: SlotActions = {
 function notifyBlockedShift(reason: "noAcceptingBlockSlot" | "inventoryOpenFailed" | "detailLoading", itemId: number, blockIdentifier: string | null) {
   const messageIds = { noAcceptingBlockSlot: "denied.inventoryMoveSlotRejected", inventoryOpenFailed: "denied.inventoryOpenFailed", detailLoading: "denied.inventoryDetailLoading" };
   console.warn(`[inventory.shift_move] not sent: ${reason} block=${blockIdentifier ?? "(closed)"} item=${itemId}`);
-  useNotificationStore.getState().addNotification({ category: "operationDenied", messageId: messageIds[reason], messageParams: [], itemId: null });
+  useNotificationStore.getState().addNotification({ category: "operationDenied", messageId: messageIds[reason], messageParams: {}, itemId: null });
 }
 
 // 枠数が縮んだ直後の stale クリックは対象が存在しないため undefined を返し、呼び出し側が無操作で降りる

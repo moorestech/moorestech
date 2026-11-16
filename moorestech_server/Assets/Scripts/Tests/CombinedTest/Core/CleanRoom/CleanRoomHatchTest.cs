@@ -99,28 +99,6 @@ namespace Tests.CombinedTest.Core.CleanRoom
         }
 
         [Test]
-        public void ThroughputWindowDecaysToZeroTest()
-        {
-            CreateServer();
-
-            var hatch = PlaceBlock(ForUnitTestModBlockId.CleanRoomItemHatchId, new Vector3Int(0, 0, 0));
-            PlaceBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1));
-
-            // 1個搬送した直後はレートが正になる
-            // Right after one transfer the throughput must be positive
-            var hatchInventory = hatch.GetComponent<IBlockInventory>();
-            hatchInventory.InsertItem(ServerContext.ItemStackFactory.Create(new ItemId(1), 1), InsertItemContext.Empty);
-            GameUpdater.UpdateOneTick();
-            var hatchThroughput = hatch.GetComponent<ICleanRoomItemHatch>();
-            Assert.Greater(hatchThroughput.RecentThroughputPerSecond, 0);
-
-            // 20tick無搬送でリング窓が流れ切りレートは0に戻る
-            // After 20 idle ticks the ring window drains and the rate returns to zero
-            for (var i = 0; i < 20; i++) GameUpdater.UpdateOneTick();
-            Assert.AreEqual(0, hatchThroughput.RecentThroughputPerSecond);
-        }
-
-        [Test]
         public void ItemHatchSaveLoadRestoresTransitBufferTest()
         {
             CreateServer();

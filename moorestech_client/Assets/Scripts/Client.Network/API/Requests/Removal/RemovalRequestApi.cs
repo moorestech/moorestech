@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Game.Train.Unit;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace Client.Network.API.Requests.Removal
 {
     // 既存の個別撤去応答を要求元へ返す
     // Return existing individual removal responses to their requester
-    public sealed class RemovalRequestApi
+    public sealed class RemovalRequestApi : ITrainCarRemovalSender
     {
         private readonly PacketExchangeManager _exchange;
         public RemovalRequestApi(PacketExchangeManager exchange) { _exchange = exchange; }
@@ -29,6 +30,14 @@ namespace Client.Network.API.Requests.Removal
         {
             var request = GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateDisconnectRequest(from, to);
             return _exchange.GetFinalPacketResponse<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(request, ct);
+        }
+
+        // 応答喪失で車両が永久に撤去待ちにならないよう、期限付きで待つ
+        // Wait with the shared deadline so a lost response never leaves a car pending forever
+        public UniTask<(RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack response, PacketWaitCompletionReason reason)> RemoveTrain(TrainCarInstanceId id, CancellationToken ct)
+        {
+            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(id.AsPrimitive());
+            return _exchange.GetPacketResponseWithReason<RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack>(request, ct);
         }
     }
 }

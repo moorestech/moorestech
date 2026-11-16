@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.Feedback;
@@ -48,7 +49,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             AutoConnectNoticeLines.Report(true, 2, false, 7, Array.Empty<ConstructionMaterialShortage>(), feedback);
 
-            CollectionAssert.AreEqual(new[] { "7" }, feedback.Lines[0].TextParams);
+            CollectionAssert.AreEqual(new[] { new LocalizationTextParam("count", "7") }, feedback.Lines[0].TextParams);
         }
 
         // 近傍走査は「配線される相手が1件も無い」ときだけ意味を持つ

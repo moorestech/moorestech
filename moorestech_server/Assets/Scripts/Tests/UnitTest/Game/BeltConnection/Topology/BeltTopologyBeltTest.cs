@@ -130,14 +130,6 @@ namespace Tests.UnitTest.Game.BeltConnection.Topology
         }
 
         [Test]
-        public void NonHorizontalBeltIsExcludedWithoutWarning()
-        {
-            var world = NewWorld();
-            Place(world, ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.UpNorth);
-            Assert.IsEmpty(BeltTopologyBuilder.Build(world));
-        }
-
-        [Test]
         public void PlacementOrderDoesNotChangeResult()
         {
             var positions = new[] { new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 1), new Vector3Int(-1, 0, 1), new Vector3Int(0, 0, 2) };

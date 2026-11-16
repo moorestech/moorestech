@@ -44,7 +44,7 @@ function enclosedRows(room: CleanRoomSummaryData): Omit<CleanRoomDisplay, "haltR
   return {
     headline: roomHeadline(room),
     headlineInsufficient: room.headline === "classOut",
-    air: { key: L.ui.blockInventory.cleanRoomAir, params: { concentration: room.concentration.toFixed(3), airChangeRate: room.airChangeRate.toFixed(3) } },
+    air: { key: L.ui.blockInventory.cleanRoomAir, params: { airChangeRate: room.airChangeRate.toFixed(3) } },
     filters,
     noFilter: filters.length === 0 ? { key: L.ui.blockInventory.cleanRoomNoFilter } : null,
   };

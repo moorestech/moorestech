@@ -36,8 +36,8 @@
         "VContainer",
         "Game.PlacementTarget",
         "Client.PlaytestReceiver",
-        "Client.RemoteExec",
-        "Client.ExternalProcess"
+        "Client.ExternalProcess",
+        "Client.Ui.State"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

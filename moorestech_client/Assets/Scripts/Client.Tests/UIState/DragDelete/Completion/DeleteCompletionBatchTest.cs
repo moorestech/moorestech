@@ -49,7 +49,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             selection.OnDeleteCompleted.Subscribe(results.Add);
             selection.ApplyBoxTargets(new[] { recorded, car }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
-            car.Complete(DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld);
+            car.Complete(DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Delete.UnknownError);
             recorded.Complete(DeleteCompletionKind.Succeeded, null);
             Assert.IsTrue(history.TryPop(out _));
             car.Complete(DeleteCompletionKind.Succeeded, null);

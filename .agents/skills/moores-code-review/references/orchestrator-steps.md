@@ -61,6 +61,8 @@ python3 .claude/skills/moores-code-review/scripts/codex_preflight.py   # {"statu
 
 exit 0 なら以下の `codex` を出力の `codex` 実体パスに読み替えて起動する。exit 10/11 なら3本ともスキップし、**理由（バイナリ不在 / `$CODEX_HOME/auth.json` 不在）を区別して**最終報告と `integrated.md` の系統別回収状況に明記する（「不在」と一括りにしない）。
 
+判定のあと、結果を台帳へ1行足す: `python3 .claude/skills/moores-code-review/scripts/codex_skip_ledger.py record --ledger ../moorestech_logs/harness/moores-code-review/codex-skips.tsv --status <preflight の status。起動したら ok> --target <ブランチ名>`（`../moorestech_logs` はメインクローンの兄弟。worktree からはメインクローン基準の絶対パスで渡す）。ユーザーが Codex の利用を止めているなら `--status user_disabled`。Workflow の Codex 完了待ちで枠切れ・認証失効（codex_recover.py の 5 など）になったら、同じコマンドで `quota` / `auth_expired` を追記する。出力が `alert: true`（連続2回以上のスキップ）なら、Step 7 の報告冒頭と PR 本文に「Codex が N 回連続で抜けている（since・statuses）。`codex login` か枠の回復が必要」と書く（`user_disabled` だけの連続なら「ユーザー指示で停止中」でよい）。
+
 3種のテンプレートを埋めて監査プロンプトを `$RUNDIR` に書き、**3本ともバックグラウンドで並列起動する**:
 
 1. **俯瞰監査** — `scripts/codex-audit-template.md`（3観点同梱。ユーザーが観点を指定したらここに差し替える）→ `<$RUNDIRの実値>/codex-audit.md`

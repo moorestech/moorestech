@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
-using Client.WebUiHost.Game.Topics;
+using Client.Ui.State.Research;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -15,11 +15,11 @@ namespace Client.WebUiHost.Game.Actions
     {
         public string ActionType => "research.complete";
 
-        private readonly ResearchTopic _researchTopic;
+        private readonly ResearchNodeStateStore _store;
 
-        public ResearchCompleteActionHandler(ResearchTopic researchTopic)
+        public ResearchCompleteActionHandler(ResearchNodeStateStore store)
         {
-            _researchTopic = researchTopic;
+            _store = store;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -33,7 +33,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 成否に関わらず最新全ノード状態を配信し、Web を正しい状態へ収束させる
             // Publish the latest node states regardless of success so the web converges to the true state
-            _researchTopic.ApplyNodeStates(response.NodeState.ToDictionary());
+            _store.ApplyNodeStates(response.NodeState.ToDictionary());
             return response.Success ? ActionResult.Success() : ActionResult.Fail("research_failed");
         }
     }

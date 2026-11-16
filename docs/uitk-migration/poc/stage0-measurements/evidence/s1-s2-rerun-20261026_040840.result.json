@@ -1,0 +1,119 @@
+{
+    "RunName": "uitk-s1-s2",
+    "Success": true,
+    "Error": "",
+    "StartedAt": "2026-10-26T04:09:18.1466060+09:00",
+    "FinishedAt": "2026-10-26T04:09:50.9458010+09:00",
+    "Asserts": [
+        {
+            "Label": "framereader a_game",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader b_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader c_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader d_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader e_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader f_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader g_game",
+            "Passed": true,
+            "Message": "condition met"
+        }
+    ],
+    "Timeline": [
+        "    0.3s [NOTE] [Playtest] env config: FreeBlockPlacement=True, CreateFlatGround=True, SpawnPosition=(0.00, 33.50, 0.00)",
+        "    0.3s [STEP] デバッグ環境をセットアップ",
+        "    1.0s [STEP] 開幕スキットを再生中なら飛ばす",
+        "    6.1s [NOTE] control without probe: before Tab state=GameScreen",
+        "    6.1s [STEP] キー入力: Tab",
+        "    6.7s [WAIT] 1.5秒",
+        "    8.3s [NOTE] control without probe: after Tab state=PlayerInventory",
+        "    8.3s [STEP] スクリーンショット: 00_control_noprobe_tab",
+        "    8.3s [STEP] キー入力: Tab",
+        "    9.0s [WAIT] 1秒",
+        "   10.0s [NOTE] control without probe: after 2nd Tab state=GameScreen",
+        "   10.0s [WAIT] 1.5秒",
+        "   11.5s [STEP] スクリーンショット: 00_warmup",
+        "   11.7s [NOTE] a_game front=10 back=-10 state=GameScreen F1226",
+        "   11.7s [WAIT] 1秒",
+        "   12.7s [WAIT] framereader a_game",
+        "   12.8s [PASS] framereader a_game",
+        "   12.8s [STEP] スクリーンショット: a_game_screencapture_F1258",
+        "   12.9s [WAIT] 1秒",
+        "   13.8s [STEP] キー入力: Tab",
+        "   14.5s [WAIT] 1.5秒",
+        "   16.1s [NOTE] with probe: after Tab state=PlayerInventory",
+        "   16.2s [NOTE] b_inv front=10 back=-10 state=PlayerInventory F1360",
+        "   16.2s [WAIT] 1秒",
+        "   17.2s [WAIT] framereader b_inv",
+        "   17.3s [PASS] framereader b_inv",
+        "   17.3s [STEP] スクリーンショット: b_inv_screencapture_F1392",
+        "   17.5s [WAIT] 1秒",
+        "   18.6s [NOTE] c_inv front=-1 back=-10 state=PlayerInventory F1428",
+        "   18.6s [WAIT] 1秒",
+        "   19.6s [WAIT] framereader c_inv",
+        "   19.6s [PASS] framereader c_inv",
+        "   19.6s [STEP] スクリーンショット: c_inv_screencapture_F1460",
+        "   19.7s [WAIT] 1秒",
+        "   20.8s [NOTE] d_inv front=0 back=-10 state=PlayerInventory F1496",
+        "   20.8s [WAIT] 1秒",
+        "   21.8s [WAIT] framereader d_inv",
+        "   21.9s [PASS] framereader d_inv",
+        "   21.9s [STEP] スクリーンショット: d_inv_screencapture_F1528",
+        "   22.0s [WAIT] 1秒",
+        "   23.1s [NOTE] e_inv front=10 back=1 state=PlayerInventory F1564",
+        "   23.1s [WAIT] 1秒",
+        "   24.1s [WAIT] framereader e_inv",
+        "   24.2s [PASS] framereader e_inv",
+        "   24.2s [STEP] スクリーンショット: e_inv_screencapture_F1596",
+        "   24.3s [WAIT] 1秒",
+        "   25.5s [NOTE] f_inv front=1 back=-1 state=PlayerInventory F1632",
+        "   25.5s [WAIT] 1秒",
+        "   26.5s [WAIT] framereader f_inv",
+        "   26.5s [PASS] framereader f_inv",
+        "   26.5s [STEP] スクリーンショット: f_inv_screencapture_F1664",
+        "   26.6s [WAIT] 1秒",
+        "   27.6s [STEP] キー入力: Tab",
+        "   28.3s [WAIT] 1秒",
+        "   29.5s [NOTE] g_game front=10 back=-10 state=GameScreen F1750",
+        "   29.5s [WAIT] 1秒",
+        "   30.5s [WAIT] framereader g_game",
+        "   30.6s [PASS] framereader g_game",
+        "   30.6s [STEP] スクリーンショット: g_game_screencapture_F1782",
+        "   30.6s [WAIT] 1秒"
+    ],
+    "ErrorLogs": [],
+    "Screenshots": [
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/00_control_noprobe_tab.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/00_warmup.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/a_game_screencapture_F1258.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/b_inv_screencapture_F1392.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/c_inv_screencapture_F1460.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/d_inv_screencapture_F1528.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/e_inv_screencapture_F1596.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/f_inv_screencapture_F1664.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/g_game_screencapture_F1782.png"
+    ],
+    "RecordingPath": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_040840/uitk-s1-s2/recording.mp4"
+}

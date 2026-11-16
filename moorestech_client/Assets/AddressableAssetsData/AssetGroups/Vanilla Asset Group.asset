@@ -20,6 +20,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 005a3285083744ccb82e57e41ea75752
+    m_Address: Vanilla/Material/CleanRoomDebug/Item
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 00d3e489e4c7543e1acb9743df4c6ba2
     m_Address: Vanilla/Environment/Rock/MesaDesert/StrateCliff_2
     m_ReadOnly: 0
@@ -117,6 +122,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0a577e00dc0e74ecd904ee712f7b2606
     m_Address: Vanilla/Block/BigGear
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0b5eab5bdf85c4080b075deaccb3cb2b
+    m_Address: Vanilla/Material/CleanRoomDebug/Packaging
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -232,6 +242,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 19d78660b83304b7393b0f7aebc2fb03
     m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Copper
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a537770afde549d3879e1a27566c3f4
+    m_Address: Vanilla/Texture/CleanRoomDebug/Door
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -475,6 +490,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 332b25efdfde947839fdc0559fefd073
+    m_Address: Vanilla/Block/DataCenter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 34085e491884c46d3b0c5effc9b179e4
     m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_2
     m_ReadOnly: 0
@@ -507,6 +527,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 35e588632b9ea984baf4cb1175c069ee
     m_Address: Vanilla/Train/Locomotive_CombinedStaticMeshes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3647ccb8f57d9492686e9e4b7af11b5c
+    m_Address: Vanilla/Material/CleanRoomDebug/Floor
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -552,6 +577,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3bad25b0c048c4dbf847950e9479f0bc
     m_Address: Vanilla/Skit/test
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3c087383f75f64888843eba6884395a6
+    m_Address: Vanilla/Block/CleanRoomPipeHatch
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -611,7 +641,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4371bce4ddd5a48a8b81019f38070956
-    m_Address: Vanilla/Block/PackagingMachine
+    m_Address: Vanilla/Block/CleanRoomMachine/PackagingMachine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -705,6 +735,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4da6dfcee230d4f059bd9774b47efa94
+    m_Address: Vanilla/Texture/CleanRoomDebug/Floor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4dcc21f34746c4a98b3f6376016a7762
     m_Address: Vanilla/Environment/Tree/Mountains/Pine3
     m_ReadOnly: 0
@@ -772,6 +807,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5282662dbab1b4c49bfe5ca0e6343139
     m_Address: Vanilla/Environment/Terrain/Layer/Redwood/Mud_darker
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 53d8a918fbf844254adb46ec6f5a2f7d
+    m_Address: Vanilla/Texture/CleanRoomDebug/Item
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -850,6 +890,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 59fdbd59c244140d99c452e695b8cfa1
+    m_Address: Vanilla/Block/CleanRoomItemHatch
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5a77ed9a5ab3444bdaaa17a7e6ae5797
     m_Address: Vanilla/Block/Util/InventoryConnectorLineView
     m_ReadOnly: 0
@@ -877,6 +922,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5d884e7556f41f74f85a834f48830b6e
     m_Address: Vanilla/Block/itemshooter straight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e90edc6c8ff54e34899786fdef56a63
+    m_Address: Vanilla/Material/DataCenter/DataCenter_Body
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -971,7 +1021,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 68f05911895f8453b873f0496ee29851
-    m_Address: Vanilla/Block/DepositionTool
+    m_Address: Vanilla/Block/CleanRoomMachine/DepositionTool
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6942eaf018bc14d029488330e555d228
+    m_Address: Vanilla/Material/CleanRoomDebug/Door
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -982,6 +1037,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69bff051f43e249698dd333128d43e16
     m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69f258fd472914be1877d025aae3d569
+    m_Address: Vanilla/Block/ElectricPrecisionAssembler
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1007,6 +1067,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6cf497b4abc9242a9abec5053e4e76a9
     m_Address: Vanilla/Block/Old/3x3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6d0e426294aeb45b4af1e22504cf961f
+    m_Address: Vanilla/Material/CleanRoomDebug/Wafer
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1046,7 +1111,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 740323bcfd07d434389cadbedcb9c3da
-    m_Address: Vanilla/Block/EuvLithographyTool
+    m_Address: Vanilla/Block/CleanRoomMachine/EuvLithographyTool
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1146,7 +1211,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ede0827486e84fa4b0d892f1de2671c
-    m_Address: Vanilla/Block/WaferSlicer
+    m_Address: Vanilla/Block/CleanRoomMachine/WaferSlicer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f0b25d568f174d6cad1ac38509c668e
+    m_Address: Vanilla/Texture/CleanRoomDebug/Dicing
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1290,6 +1360,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c0c9a9a95f35415082f8a4aec5f03e9
+    m_Address: Vanilla/Texture/CleanRoomDebug/Wafer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8cf55c07f16014690a41d5d8ecb00da2
     m_Address: Vanilla/Skit/skits/200_star_background
     m_ReadOnly: 0
@@ -1340,6 +1415,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 900f016eaa99f43e4a6573707322123f
+    m_Address: Vanilla/Texture/CleanRoomDebug/Wall
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 902a1603b5ba5408da896342632f966b
+    m_Address: Vanilla/Texture/CleanRoomDebug/Packaging
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 904e9f242c01f4df6abaa76169d87431
     m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_2
     m_ReadOnly: 0
@@ -1387,6 +1472,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 92a4831244ea0448d8fe1a82bb13aacf
     m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9389e6c6f20f04c3eb1a93c95a28e598
+    m_Address: Vanilla/Texture/CleanRoomDebug/Pipe
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1445,6 +1535,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 98a9b03639ad54abea65431649c26435
+    m_Address: Vanilla/Block/CleanRoomBlock
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 993e71dd9c6b24893b2ae97dfb5842d9
     m_Address: Vanilla/Block/OilWell
     m_ReadOnly: 0
@@ -1482,6 +1577,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9c9401b0d7dea44f98ef759ef5209322
     m_Address: Vanilla/Block/CleanRoomDoor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9ccaf242039a84236a9040614e967b73
+    m_Address: Vanilla/Material/CleanRoomDebug/Wall
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9ce68bdecdc874370a5d42a9949d5a19
+    m_Address: Vanilla/Block/CleanRoomWallPanel
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1695,6 +1800,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ad27a47fe24c14aae85943f9f2efe867
+    m_Address: Vanilla/Texture/CleanRoomDebug/Block
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ad41348a8f5fb4af29d2993d54ea8691
     m_Address: Vanilla/Environment/Vein/Fluid/Oil
     m_ReadOnly: 0
@@ -1710,6 +1820,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ade6253a65b8042749b2f78757ac9c68
+    m_Address: Vanilla/Texture/CleanRoomDebug/Euv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: aec28d5cf61a6ce4db83c4c669c55eb7
     m_Address: Vanilla/Block/campfier
     m_ReadOnly: 0
@@ -1720,6 +1835,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: afc61f134dca04fdfa9ab30a13698eeb
+    m_Address: Vanilla/Block/CleanRoomAirFilter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: afdf32511134a431382b36284c50846b
     m_Address: Vanilla/Environment/Tree/Savanna/Bush2
     m_ReadOnly: 0
@@ -1727,6 +1847,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b0277322f588d40c09561e0211f97871
     m_Address: Vanilla/Environment/Plant/MesaDesert/WildflowersYellow1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0a8d8401366d457ab6a8da1a388b42b
+    m_Address: Vanilla/Material/CleanRoomDebug/Dicing
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1880,6 +2005,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: beebdab24967246c9ac094a3b965d5d9
+    m_Address: Vanilla/Material/CleanRoomDebug/Euv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bf61998599293402a9a8317983fb6a09
     m_Address: Vanilla/Block/Station_Cargo
     m_ReadOnly: 0
@@ -1962,6 +2092,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c95e87d74013e4bc1898135420e4215b
     m_Address: Vanilla/Environment/Bush
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c997a0f1d5969482893945b0f14ef5e2
+    m_Address: Vanilla/Material/CleanRoomDebug/Deposition
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2055,18 +2190,33 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d4ed75c5ca3934e66936c73b968cfd8b
+    m_Address: Vanilla/Material/CleanRoomDebug/Air
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d53243d74377b724f9ad131c7510fa39
     m_Address: Vanilla/Block/gear belt conveyor up
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d5ab86121b2e345d883cef0e0f73d963
+    m_Address: Vanilla/Material/CleanRoomDebug/Block
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d5d931df902dd433297c3f889acbc99a
-    m_Address: Vanilla/Block/DicingSaw
+    m_Address: Vanilla/Block/CleanRoomMachine/DicingSaw
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d608bd17f9587487ab66d6adb08fc735
     m_Address: Vanilla/Skit/commands
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6196946866ce4befa561e261de63d34
+    m_Address: Vanilla/Material/CleanRoomDebug/Pipe
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2102,6 +2252,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d83514a389dfe4f7e9da9d2375529bcd
     m_Address: Vanilla/Block/Hydrogen_reduction_furnace
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d944d46c4e2074b14bc1a9258c91bc4d
+    m_Address: Vanilla/Texture/CleanRoomDebug/Deposition
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2147,6 +2302,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dc6116d42d12ea04c8eccb7c41618a1e
     m_Address: Vanilla/Block/Old/btc miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dca0d1184dac74fe2b0bd6365f58097b
+    m_Address: Vanilla/Texture/CleanRoomDebug/Air
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2267,6 +2427,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: eb13dc58daae64bf78b6824a6f7d9634
     m_Address: Vanilla/Environment/Rock/Oasis/RubbleSparse_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ebbe55ab1f7084d66998beb3f39414b3
+    m_Address: Vanilla/Material/DataCenter/DataCenter_Lamp
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Group, Title } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import { TreeView } from "@/shared/treeView";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { challengeCategoryNameKey, L, useI18n } from "@/shared/i18n";
 import ChallengeNodeCard from "./ChallengeNodeCard";
+import { findChallengeInitialFocusNode } from "./challengeLogic";
 import styles from "./style.module.css";
 
 export default function ChallengePanel() {
@@ -13,6 +14,9 @@ export default function ChallengePanel() {
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
   const selected = categories.find((category) => category.guid === selectedGuid) ?? categories[0];
   const { t } = useI18n();
+  // 各カテゴリの初回訪問で進行中へ寄せ、再訪は保存視点を戻す
+  // Center on in-progress on a category's first visit; revisits restore the stored view
+  const initialFocus = useMemo(() => findChallengeInitialFocusNode(selected?.nodes ?? [])?.position ?? null, [selected]);
 
   useEffect(() => {
     if (selected && selected.guid !== selectedGuid) setSelectedGuid(selected.guid);
@@ -29,7 +33,7 @@ export default function ChallengePanel() {
           </Button>
         ))}
       </Group>
-      {selected && <TreeView nodes={selected.nodes} getId={(node) => node.guid} getPosition={(node) => node.position}
+      {selected && <TreeView key={selected.guid} viewportKey={`challenge-${selected.guid}`} initialFocus={initialFocus} nodes={selected.nodes} getId={(node) => node.guid} getPosition={(node) => node.position}
         getPrevIds={(node) => node.prevGuids} testIdPrefix="challenge"
         renderNode={(node, point) => <ChallengeNodeCard node={node} left={point.x} top={point.y} />} />}
     </section>

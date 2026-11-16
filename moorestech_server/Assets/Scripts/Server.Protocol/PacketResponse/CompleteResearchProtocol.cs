@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
 
             // 失敗は通知基盤で知らせる
             // Report failure via the notification service
-            if (!isSuccess && !alreadyCompleted) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
+            if (!isSuccess && !alreadyCompleted) _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", new Dictionary<string, string>()));
 
             return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString(), nodeStates);
         }

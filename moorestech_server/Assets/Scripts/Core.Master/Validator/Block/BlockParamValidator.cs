@@ -138,6 +138,14 @@ namespace Core.Master.Validator.Block
                     {
                         logs += $"[BlockMaster] Name:{block.Name} has invalid FilterItemGuid:{cleanRoomAirFilter.FilterItemGuid}\n";
                     }
+
+                    // フィルター寿命が0以下・非有限だと消費周期が定まらないので起動時に弾く
+                    // A non-positive or non-finite filter life leaves the consumption period undefined, so reject it at startup
+                    var filterLifeSeconds = (double)cleanRoomAirFilter.FilterLifeSeconds;
+                    if (!(0 < filterLifeSeconds) || double.IsInfinity(filterLifeSeconds))
+                    {
+                        logs += $"[BlockMaster] Name:{block.Name} has filterLifeSeconds:{cleanRoomAirFilter.FilterLifeSeconds} that is not positive and finite\n";
+                    }
                 }
             }
 

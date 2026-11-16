@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Block.Interact
 
         // 読まれるのは対象が変わった瞬間だけなので、購読で保持せずその場で解決する（言語切替も自動で乗る）
         // Read only when the target changes, so it resolves on the spot instead of caching through a subscription, which also picks up a language switch
-        public IReadOnlyList<string> HintParams => new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid)) };
+        public IReadOnlyList<LocalizationTextParam> HintParams => new[] { new LocalizationTextParam("name", Localize.GetContent(ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid))) };
 
         internal BlockOpenInteractAction(BlockGameObject blockGameObject)
         {

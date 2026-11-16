@@ -18,11 +18,7 @@ namespace CommandForgeGenerator.Command
                 duration = 0;
             }
             
-            var mode = storyContext.GetService<SkitPresentationMode>();
-            if (mode.WebUiEnabled)
-                SkitPresentationStateStore.Instance.SetTransitionVisible(Enabled);
-            else
-                storyContext.GetSkitUI().ShowTransition(Enabled, duration);
+            SkitPresentationStateStore.Instance.SetTransitionVisible(Enabled);
             await UniTask.Delay((int)(duration * 1000), isSkip);
             return null;
         }

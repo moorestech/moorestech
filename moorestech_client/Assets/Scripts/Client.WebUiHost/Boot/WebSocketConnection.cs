@@ -15,6 +15,7 @@ namespace Client.WebUiHost.Boot
     internal sealed class WebSocketConnection
     {
         public WebSocket WebSocket { get; }
+        public readonly Guid Id;
 
         // 受信スレッドの subscribe と メインスレッドの Publish が同時に触るため並行辞書にする
         // Subscribed from the receive thread and read by main-thread Publish, so use a concurrent dict
@@ -29,12 +30,13 @@ namespace Client.WebUiHost.Boot
         private readonly SemaphoreSlim _sendLock = new(1, 1);
         private readonly CancellationTokenSource _stopCts = new();
 
-        public WebSocketConnection(WebSocket webSocket)
+        public WebSocketConnection(WebSocket webSocket, Guid id)
         {
             WebSocket = webSocket;
+            Id = id;
         }
 
-        public void EnqueueSend(string msg) => _sendChannel.Writer.TryWrite(msg);
+        public bool EnqueueSend(string msg) => _sendChannel.Writer.TryWrite(msg);
 
         // 停止中の接続は受け取れない。捨てたことは呼び出し側がログへ出す
         // A stopping connection cannot take it; the caller logs what was dropped

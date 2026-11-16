@@ -99,6 +99,13 @@ export const modalSample = {
   variant: "confirm",
 } satisfies ModalRequest;
 
+// BP名入力を既存の確認fixtureと独立させる
+// Keep blueprint naming separate from the existing confirmation fixture
+export const blueprintNameModal = {
+  id: "blueprint-name", title: "ブループリント名", message: "ブループリントの名前を入力してください",
+  buttonText: "保存", variant: "confirm", input: true,
+} satisfies ModalRequest;
+
 // 進捗HUDは用途別scenarioで明示表示し、テスト間の状態漏れを防ぐ
 // Show progress HUDs through explicit scenarios so their state cannot leak between tests
 export const progressSample = {

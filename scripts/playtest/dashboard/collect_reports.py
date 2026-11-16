@@ -15,7 +15,7 @@ from pathlib import Path
 
 import digest_schema as schema
 from digest_collect import jst_date
-from display_fields import pick, warn
+from display_fields import pick, warn, web_ui_health
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from safe_segment import is_safe_segment  # noqa: E402
@@ -74,6 +74,7 @@ def base_row(box: Path, meta: dict | None) -> dict:
         "readyAt": ready_at, "date": jst_date(ready_at),
         "media": [name for name in MEDIA_FILES if (box / name).is_file() or name in remote],
         "problem": None, "kind": "", "description": "", "buildLabel": "",
+        "webUiHealth": {"status": "unreadable"},
     }
 
 
@@ -120,6 +121,9 @@ def display_manifest(raw: dict, source: Path) -> dict:
         "reportTick": pick(raw, "reportTick", (int,), source),
         "uiState": pick(raw, "clientState.uiState", (str,), source) or "",
         "commit": commit,
+        # CEF 停止の記録（manifest v6）。判定せず生の値を出す
+        # CEF stall record (manifest v6); raw values with no verdict
+        "webUiHealth": web_ui_health(raw, source),
     }
 
 

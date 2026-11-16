@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { computeTreeCanvasBounds, lineBetween, toTreeCanvasPoint } from "./treeGeometry";
 import type { TreePoint } from "./treeGeometry";
 import { NODE_ID_ATTRIBUTE, useTreePanGesture } from "./useTreePanGesture";
-import { centerViewportOn, loadStoredViewport, saveStoredViewport, toContentBox, toCssScale, usePanInertia, zoomViewportAt } from "./viewport";
+import { centerViewportOn, loadStoredViewport, saveStoredViewport, toContentBox, toCssScale, useKeepViewCenterOnResize, usePanInertia, zoomViewportAt } from "./viewport";
 import styles from "./TreeView.module.css";
 
 type Props<T> = {
@@ -39,6 +39,7 @@ export default function TreeView<T>(props: Props<T>) {
     setViewport((current) => ({ ...current, x: current.x + dx, y: current.y + dy }));
   }, []);
   const inertia = usePanInertia(panBy);
+  useKeepViewCenterOnResize(viewportElement, setViewport, storedAtMount === null);
   const bounds = useMemo(
     () => computeTreeCanvasBounds(nodes.map((node) => ({ id: getId(node), ...getPosition(node) })), 200),
     [nodes, getId, getPosition],

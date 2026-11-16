@@ -1,0 +1,18 @@
+var paths = UnityEditor.AssetDatabase.FindAssets("t:Prefab", new[] {"Assets/AddressableResources/Block/CleanRoomMachine"});
+var utility = new UnityEditor.PreviewRenderUtility();
+var rows = new System.Collections.Generic.List<object>();
+foreach (var guid in paths) {
+ var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+ var root = UnityEngine.Object.Instantiate(UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>(path));
+ root.transform.position=UnityEngine.Vector3.zero;
+ utility.AddSingleGO(root);
+ var renderers = new System.Collections.Generic.List<object>();
+ foreach (var r in root.GetComponentsInChildren<UnityEngine.Renderer>(true)) { renderers.Add(new { name=r.name, type=r.GetType().Name, min=r.bounds.min.ToString("F4"), max=r.bounds.max.ToString("F4"), pos=r.transform.position.ToString("F4") }); }
+ var colliders = new System.Collections.Generic.List<object>();
+ foreach (var c in root.GetComponentsInChildren<UnityEngine.BoxCollider>(true)) { colliders.Add(new { name=c.name, pos=c.transform.TransformPoint(c.center).ToString("F4"), size=UnityEngine.Vector3.Scale(c.size,c.transform.lossyScale).ToString("F4") }); }
+ var nodes = new System.Collections.Generic.List<object>();
+ foreach (var t in root.GetComponentsInChildren<UnityEngine.Transform>(true)) { nodes.Add(new {name=t.name, pos=t.position.ToString("F4"), scale=t.lossyScale.ToString("F4")}); }
+ rows.Add(new {path,renderers,colliders,nodes});
+}
+utility.Cleanup();
+return Newtonsoft.Json.JsonConvert.SerializeObject(rows);

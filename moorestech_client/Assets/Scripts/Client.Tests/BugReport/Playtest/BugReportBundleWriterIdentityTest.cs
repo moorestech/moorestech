@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.RemoteExec;
 using Client.RemoteExec.Access;
 using Client.Tests.RemoteExec;
@@ -27,7 +28,7 @@ namespace Client.Tests.BugReport
         public async Task WriteAsync経由でsteamIdがmanifestへ渡りbuildInfoがnullでも壊れない()
         {
             var writer = new BugReportBundleWriter(new FakeIdentity());
-            var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new() };
+            var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new(), WebUiHealth = new WebUiHealthReading() };
 
             var result = await writer.WriteAsync(data, "identity配線テスト", PlaytestReportKind.Bug);
             try
@@ -58,7 +59,7 @@ namespace Client.Tests.BugReport
             try
             {
                 var writer = new BugReportBundleWriter(new FakeIdentity());
-                var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new() };
+                var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new(), WebUiHealth = new WebUiHealthReading() };
 
                 var result = await writer.WriteAsync(data, "遠隔実行印配線テスト", PlaytestReportKind.Bug);
                 try
@@ -92,7 +93,7 @@ namespace Client.Tests.BugReport
                 Directory.CreateDirectory(RemoteExecAccessFile.DirectoryPath);
                 File.WriteAllText(RemoteExecLedger.CurrentPath, "current-session-ledger");
                 var writer = new BugReportBundleWriter(new FakeIdentity());
-                var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new() };
+                var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new(), WebUiHealth = new WebUiHealthReading() };
                 result = await writer.WriteAsync(data, "台帳配線テスト", PlaytestReportKind.Bug);
 
                 Assert.IsTrue(result.Ready);

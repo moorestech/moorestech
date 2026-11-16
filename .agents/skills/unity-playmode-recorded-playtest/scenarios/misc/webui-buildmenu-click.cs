@@ -24,13 +24,13 @@ return PlaytestRunner.Run("webui-buildmenu-click", options, async p =>
     // Open the menu with B and wait until the React panel is genuinely clickable
     p.Note("Bキーでビルドメニューを開き、DOM要素の表示を確認する");
     await p.PressKey(Key.B);
-    await p.UntilWebUiElement("build-menu-panel", 15f);
+    await p.UntilUiElement("build-menu-panel", 15f);
 
     // 全カテゴリが1本のスクロールに並ぶため、対象カテゴリ見出しを押してベルトのセクションを視界へ入れる
     // Every category shares a single scroll list, so click the category header to bring the belt section into view
     var beltMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("ベルトコンベア"));
     var (beltCategoryGuid, _) = MasterHolder.BuildMenuCategoryMaster.GetGuidPair(beltMaster.Category, beltMaster.SubCategory);
-    await p.ClickWebUi($"build-menu-category-{beltCategoryGuid:D}");
+    await p.ClickUi($"build-menu-category-{beltCategoryGuid:D}");
 
     // BlockId由来のtestidを使ってベルトをクリックし、設置モードへの遷移を検証する
     // Click the belt by its BlockId-derived testid and verify the transition into placement mode

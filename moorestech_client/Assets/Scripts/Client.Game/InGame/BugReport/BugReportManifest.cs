@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -31,7 +32,9 @@ namespace Client.Game.InGame.BugReport
         // v4: added remote execution mark + ledgers (ADR 0057)
         // v5: 印を3状態(Disabled/Enabled/Unknown)の常時非nullへ。不明を無効へ潰さない
         // v5: the mark became always-present with three states (Disabled/Enabled/Unknown) so unknown is never flattened into disabled
-        public int SchemaVersion = 5;
+        // v6: webUiHealth（Webホスト起動・CEFプロセス・最後のWS受信からの秒数の生の値）を常時非nullで追加
+        // v6: added always-present webUiHealth (raw web host startup, CEF process and seconds since the last WS message)
+        public int SchemaVersion = 6;
         public string CreatedAt;
         public string Description;
 
@@ -67,6 +70,10 @@ namespace Client.Game.InGame.BugReport
         // 常時非null。有効と不明の報告は取り込み側のバグ判定と通常集計から除く
         // Always present; ingestion excludes both enabled and unknown reports from bug triage and normal counts
         public RemoteExecManifestMark RemoteExec = RemoteExecManifestMark.Disabled();
+
+        // 常時非null。値が取れない事実は欠損列でなく notAttempted/notObserved/null で表す（ADR 0057）
+        // Always present; values that are unavailable read notAttempted/notObserved/null instead of a missing entry (ADR 0057)
+        public WebUiHealthReading WebUiHealth = new();
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed

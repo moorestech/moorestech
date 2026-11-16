@@ -43,7 +43,7 @@ namespace Client.WebUiHost.Boot
 
             // セーフティネット: Vite が残っていたら SessionState の記録から特定して kill
             // Safety net: if any Vite is still alive, resolve it from the SessionState record and kill
-            ViteProcessKiller.KillAnyLingering();
+            VitePidTracker.KillAnyLingering();
         }
     }
 }

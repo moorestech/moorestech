@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V3ToV4;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 

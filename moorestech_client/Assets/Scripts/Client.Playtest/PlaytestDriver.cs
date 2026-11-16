@@ -115,11 +115,14 @@ namespace Client.Playtest
             await GiveConstructionCost(blockName, blockCount);
         }
         public async UniTask PressKey(Key key) => await _reporter.Act($"キー入力: {key}", () => SemanticInput.TapKey(key));
-        public async UniTask ClickWebUi(string testid) => await _reporter.Act($"Web UIクリック: {testid}", () => PlaytestWebUiOps.ClickWebUi(testid));
-        public async UniTask HoverWebUi(string testid) => await _reporter.Act($"Web UIホバー: {testid}", () => PlaytestWebUiOps.HoverWebUi(testid));
-        public async UniTask UntilWebUiElement(string testid, float timeoutSeconds) => await PlaytestRecordedWaits.UntilWebUiElement(_reporter, testid, timeoutSeconds);
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
-        public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
+        public async UniTask ClickUi(string testid) => await _reporter.Act($"UIクリック: {testid}", () => PlaytestUiElementOps.ClickUi(testid));
+        public async UniTask HoverUi(string testid) => await _reporter.Act($"UIホバー: {testid}", () => PlaytestUiElementOps.HoverUi(testid));
+        public async UniTask UntilUiElement(string testid, float timeoutSeconds) => await PlaytestRecordedWaits.UntilUiElement(_reporter, testid, timeoutSeconds);
+        // テキスト欄の値を置き換える（IMEは通さない）
+        // Replace a text field's value (bypassing IME)
+        public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestBuildMenuOps.BuildMenuBlockTestId(blockName));
+        public async UniTask CloseBuildMenuPanel() => await ClickUi("build-menu-close");
         public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await PlaytestRecordedWaits.WaitUiState(_reporter, state, timeoutSeconds);
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName));
         // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
@@ -143,20 +146,16 @@ namespace Client.Playtest
             await ClickPlace();
             await Until(() => PlaytestBlockOps.GetBlock(origin) != null, 15f, $"UI設置反映: {blockName} at {origin}");
         }
-        public async UniTask DragPlaceViaUi(string blockName, Vector3Int fromOrigin, Vector3Int toOrigin)
+        // ベルトの2クリック設置と、Ctrl+クリックの分岐設置。手順はPlaytestBeltRouteOps
+        // Two-click belt placement and Ctrl+click branch placement; the steps live in PlaytestBeltRouteOps
+        public async UniTask RoutePlaceViaUi(string blockName, Vector3Int fromOrigin, BlockDirection startDirection, Vector3Int toOrigin, BlockDirection endDirection) => await PlaytestBeltRouteOps.RoutePlaceViaUi(this, blockName, fromOrigin, startDirection, toOrigin, endDirection);
+        public async UniTask BranchPlaceViaUi(string blockName, Vector3Int beltCell, bool useAlternateExit, BlockDirection exitDirection, Vector3Int toOrigin, BlockDirection endDirection) => await PlaytestBeltRouteOps.BranchPlaceViaUi(this, blockName, beltCell, useAlternateExit, exitDirection, toOrigin, endDirection);
+        // 地形オブジェクトを隠す。足場(y=32)は地形の山の中にあり、そのままでは設置物が録画に写らない
+        // Hides terrain objects; the scaffold (y=32) sits inside a terrain mound, so placed blocks would not show on recordings
+        public void HideMapObjects()
         {
-            // ドラッグ設置（ベルト等の経路設置）。方向はドラッグ経路から自動解決される
-            // Drag placement (belt runs, etc.); direction is auto-resolved from the drag path
-            await OpenBuildMenuAndSelectBlock(blockName);
-            var fromAim = PlaytestUiOps.PlaceAimPoint(blockName, fromOrigin, BlockDirection.North);
-            var toAim = PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North);
-            _reporter.Step($"ドラッグ設置: {blockName} {fromOrigin}->{toOrigin}");
-            // ドラッグ直後に0.5秒アイドルさせると、続く連続ドラッグの始点タイルが設置されない実バグがあるため、
-            // このアクションだけは通常のActではなくインターバル無しで実行する（既存ゲームロジックの制約）
-            // Idling 0.5s right after a drag corrupts the next consecutive drag's start-cell placement (a real
-            // in-game bug), so skip the usual Act interval for this action only (constraint of existing game logic)
-            await PlaytestUiOps.DragPlace(fromAim, toAim);
-            await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UIドラッグ設置反映: {blockName} {fromOrigin}->{toOrigin}");
+            _reporter.Step("地形オブジェクトを隠す");
+            PlaytestSetup.SetMapObjectsVisible(false);
         }
         public void SendCommand(string command)
         {

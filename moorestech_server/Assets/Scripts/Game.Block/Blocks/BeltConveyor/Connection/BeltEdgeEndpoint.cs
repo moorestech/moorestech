@@ -8,10 +8,6 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
     {
         internal static List<BeltEdge> GetEdges(BlockPositionInfo position, BeltConveyorSlopeType slope)
         {
-            // 水平姿勢だけが共有edgeを持つ。縦置きはプレイヤーが普通に置けるのでログなしで空にする
-            // Only horizontal orientations get shared edges; players can place belts vertically, so return none silently
-            if (position.BlockDirection is not (BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West)) return new List<BeltEdge>();
-
             var cell = position.OriginalPos;
             var forward = position.BlockDirection.ConvertLocalCell(Vector3Int.forward);
             var result = new List<BeltEdge>();

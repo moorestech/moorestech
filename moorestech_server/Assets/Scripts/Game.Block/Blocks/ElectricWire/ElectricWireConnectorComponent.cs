@@ -16,10 +16,9 @@ namespace Game.Block.Blocks.ElectricWire
 {
     public class ElectricWireConnectorComponent : IElectricWireConnector, IBlockSaveState, IPostBlockLoad, IBlockStateObservable, IGetRefundItemsInfo
     {
-        private readonly int _maxWireConnectionCount;
-
         public BlockInstanceId BlockInstanceId { get; }
-        public bool IsWireConnectionFull => _maxWireConnectionCount <= _wireConnections.Count;
+        public int MaxWireConnectionCount { get; }
+        public bool IsWireConnectionFull => MaxWireConnectionCount <= _wireConnections.Count;
 
         // このブロックが持つ電力上の役割。必ず消費・発電・送電のいずれかに紐づく
         // Electric role of this block; always tied to a consumer, generator or transformer
@@ -41,7 +40,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             // 基本状態を初期化する
             // Initialize base state
-            _maxWireConnectionCount = maxWireConnectionCount;
+            MaxWireConnectionCount = maxWireConnectionCount;
             BlockInstanceId = blockInstanceId;
             EnergyRole = energyRole;
 
@@ -61,7 +60,7 @@ namespace Game.Block.Blocks.ElectricWire
             // 新しい接続先を記録する
             // Store new partner connection
             if (_wireConnections.ContainsKey(partnerId)) return false;
-            if (_maxWireConnectionCount <= _wireConnections.Count) return false;
+            if (MaxWireConnectionCount <= _wireConnections.Count) return false;
             var connector = ElectricWireConnectionRestorer.ResolveTarget(BlockInstanceId, partnerId);
             if (connector == null) return false;
             _wireConnections.Add(partnerId, (connector, connectionRecord));
@@ -107,7 +106,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             _wireConnections.Clear();
 
-            if (!ElectricWireConnectionRestorer.Restore(data, BlockInstanceId, _maxWireConnectionCount, _wireConnections)) return;
+            if (!ElectricWireConnectionRestorer.Restore(data, BlockInstanceId, MaxWireConnectionCount, _wireConnections)) return;
 
             // 復元接続をエネルギー網へ反映
             // Reflect restored wire connections into the energy network

@@ -26,7 +26,7 @@ function idsOf(root: ReturnType<typeof render>): string[] {
 
 describe("CleanRoomSection", () => {
   it("密閉済みの部屋は見出し・空気・清浄機・停止理由の順に描く", () => {
-    const room = { headline: "classOut" as const, concentration: 1, airChangeRate: 0.5, volume: 74, airFilters: [{ x: 1, y: 33, z: 5, powerRatio: 1, filterItemCount: 0, filterRemainingRatio: 0 }] };
+    const room = { headline: "classOut" as const, airChangeRate: 0.5, volume: 74, airFilters: [{ x: 1, y: 33, z: 5, powerRatio: 1, filterItemCount: 0, filterRemainingRatio: 0 }] };
     const root = render({ fetchState: "fetched", kind: "enclosed", room, haltReason: "classOut" });
     expect(idsOf(root)).toEqual(["clean-room-section", "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-halt-reason"]);
     expect(root.findByProps({ "data-testid": "clean-room-headline" }).props["data-insufficient"]).toBe(true);
@@ -34,7 +34,7 @@ describe("CleanRoomSection", () => {
   });
 
   it("清浄機が無い部屋はその旨を赤で出す", () => {
-    const room = { headline: "class" as const, className: "A", concentration: 0, airChangeRate: 0, volume: 26, airFilters: [] };
+    const room = { headline: "class" as const, className: "A", airChangeRate: 0, volume: 26, airFilters: [] };
     const root = render({ fetchState: "fetched", kind: "enclosed", room });
     expect(idsOf(root)).toEqual(["clean-room-section", "clean-room-headline", "clean-room-air", "clean-room-no-filter"]);
     expect(root.findByProps({ "data-testid": "clean-room-no-filter" }).props["data-insufficient"]).toBe(true);

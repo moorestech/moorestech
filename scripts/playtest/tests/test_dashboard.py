@@ -90,6 +90,23 @@ class DashboardCollectTest(unittest.TestCase):
                                                       "repository": {"commit": "24226d1ac30574f2c74e75cc179f6be4d6884d54"}})
         self.assertEqual(self.reports_by_id()["20260913_repo"]["commit"], "24226d1ac30574f2c74e75cc179f6be4d6884d54")
 
+    def test_web_ui_health_status_separates_absent_unknown_never_received_off_contract_and_null(self):
+        def health(host, cef, seconds):
+            return {"hostStartup": host, "cefProcess": cef, "secondsSinceLastWebMessage": seconds}
+        boxes = {"20260913_web": health("started", "lostRestarting", 16.5), "20260913_never": health("started", "observedAfterBrowserStart", None),
+                 "20260913_crash": health("unknown", "unknown", None), "20260913_typo": health("started", "lostRestartng", 1.0),
+                 "20260913_null": None, "20260913_text": "started"}
+        for report_id, value in boxes.items():
+            self.add_report("7656005", report_id, {"kind": "bug", "remoteExec": DISABLED_MARK, "webUiHealth": value})
+        self.add_report("7656005", "20260913_noweb", {"kind": "bug", "remoteExec": DISABLED_MARK})
+        rows = {report_id: row["webUiHealth"] for report_id, row in self.reports_by_id().items() if report_id.startswith("20260913_")}
+        self.assertEqual(rows["20260913_web"], {"status": "recorded", "hostStartup": "started", "cefProcess": "lostRestarting", "secondsSinceLastWebMessage": 16.5})
+        self.assertEqual(rows["20260913_never"], {"status": "recorded", "hostStartup": "started", "cefProcess": "observedAfterBrowserStart", "secondsSinceLastWebMessage": None})
+        self.assertEqual(rows["20260913_crash"], {"status": "unknown"})
+        self.assertEqual(rows["20260913_typo"], {"status": "unreadable"})
+        self.assertEqual(rows["20260913_noweb"], {"status": "absent"})
+        self.assertEqual((rows["20260913_null"], rows["20260913_text"]), ({"status": "unreadable"}, {"status": "unreadable"}))
+
     def test_sessions_keep_remote_exec_flag_and_count_invalid(self):
         box = self.root / "harness/playtest/progress/7656009/20260913_bad"
         write_ingest(box / "ingest.json", {"kind": "progress", "steamId": "7656009", "id": "20260913_bad",

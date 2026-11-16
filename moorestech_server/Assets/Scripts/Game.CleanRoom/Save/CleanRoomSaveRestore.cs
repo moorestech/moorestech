@@ -13,7 +13,6 @@ namespace Game.CleanRoom.Save
             // Save by cell set and threshold class name instead of volatile room IDs
             return rooms.Select(room => new CleanRoomSaveData
             {
-                ImpurityCount = room.ImpurityCount,
                 ClassName = room.ThresholdIndex < MasterHolder.CleanRoomMaster.Thresholds.Count ? MasterHolder.CleanRoomMaster.Thresholds[room.ThresholdIndex].ClassName : null,
                 Cells = room.Cells.Select(cell => new CleanRoomCellSaveJsonObject { X = cell.x, Y = cell.y, Z = cell.z }).ToList(),
             }).ToList();
@@ -31,15 +30,14 @@ namespace Game.CleanRoom.Save
                 var room = FindBestOverlapRoom(record, out var overlap);
                 if (room == null || overlap == 0) continue;
 
-                // 同じ現行部屋へ集約された保存レコードは不純物を合算する
-                // Sum impurity for all saved records that map to the same current room
+                // 同じ現行部屋へ集約された保存レコードは、重なりが最大のもののクラスを採る
+                // Among saved records mapped to the same current room, take the class of the largest overlap
                 if (!selections.TryGetValue(room, out var selection))
                 {
-                    selections[room] = new RestoreSelection(record.ImpurityCount, record.ClassName, overlap);
+                    selections[room] = new RestoreSelection(record.ClassName, overlap);
                     continue;
                 }
 
-                selection.ImpurityCount += record.ImpurityCount;
                 if (overlap > selection.BestOverlap)
                 {
                     selection.ClassName = record.ClassName;
@@ -51,7 +49,6 @@ namespace Game.CleanRoom.Save
             // Overwrite only matched rooms; unmatched rooms keep their freshly detected defaults
             foreach (var selection in selections)
             {
-                selection.Key.SetImpurity(selection.Value.ImpurityCount);
                 var thresholdIndex = ResolveThresholdIndex(selection.Value.ClassName);
                 selection.Key.SetThresholdIndex(thresholdIndex);
             }
@@ -89,13 +86,11 @@ namespace Game.CleanRoom.Save
 
         private class RestoreSelection
         {
-            public double ImpurityCount;
             public string ClassName;
             public int BestOverlap;
 
-            public RestoreSelection(double impurityCount, string className, int bestOverlap)
+            public RestoreSelection(string className, int bestOverlap)
             {
-                ImpurityCount = impurityCount;
                 ClassName = className;
                 BestOverlap = bestOverlap;
             }
