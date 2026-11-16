@@ -15,7 +15,6 @@ using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
-using Client.Playtest.Operations.Ui;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Challenge;
@@ -76,10 +75,9 @@ return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record
         // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る
         // 4. Reach the game screen and check no web host started
         await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-        // Game View を表へ出し、Story のままなら飛ばし直してゲーム画面へ着く（回数は Note に残す）
-        // Bring the Game View front and skip again while in Story until the game screen (rounds go to the Note)
-        var skitSkipRounds = await PlaytestSkitOps.SkipOpeningSkitUntilGameScreen();
-        p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
+        // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
+        // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
+        await p.SkipOpeningSkitUntilLeftStory();
         await p.ExitToGameScreen();
         p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
 

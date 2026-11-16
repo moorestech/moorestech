@@ -25,18 +25,11 @@ namespace Client.Playtest
     /// </summary>
     public class PlaytestDriver
     {
-        // 開幕スキットのSkip受理待ちと、その後のGameScreen到達待ちの上限
-        // Timeouts for the opening skit's skip acceptance and the subsequent arrival at GameScreen
-        private const float SkitSkipTimeoutSeconds = 30f;
-        private const float SkitSkipUiStateTimeoutSeconds = 15f;
-        // 任意スキップの上限は飛ばし直しの関数と同じ値を使う
-        // The optional skip bound shares the value used by the retrying skip
-        private const float OptionalSkitSkipTimeoutSeconds = PlaytestSkitOps.OptionalSkipTimeoutSeconds;
-
         public readonly CancellationToken CancellationToken;
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
         private readonly PlaytestReporter _reporter;
+        private readonly PlaytestSkitDriver _skit;
         // ホットバー操作のサブファサード
         // Sub-facade for hotbar operations (EnterBuildMode/ExitBuildMode/AssignHotbar/UnlockConnectTool)
         public PlaytestHotbarDriver Hotbar { get; }
@@ -46,6 +39,7 @@ namespace Client.Playtest
             _result = result;
             _runDirectory = runDirectory;
             _reporter = new PlaytestReporter(result);
+            _skit = new PlaytestSkitDriver(_reporter);
             Hotbar = new PlaytestHotbarDriver(_reporter, cancellationToken);
         }
         // AIナレーション用。今から何をするか・何が起きたかを動画とTimelineに残す
@@ -127,10 +121,13 @@ namespace Client.Playtest
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName));
         // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
         // Skips the opening skit and lands on the game screen; the precondition for every hotbar and build-menu operation
-        public async UniTask SkipOpeningSkit() => await _reporter.Act("開幕スキットをSkipインテントで飛ばす", () => PlaytestSkitOps.SkipOpeningSkit(SkitSkipTimeoutSeconds, SkitSkipUiStateTimeoutSeconds));
+        public async UniTask SkipOpeningSkit() => await _skit.SkipOpeningSkit();
         // スキットが再生されないワールドでも落ちない版。再生されていれば飛ばし、されていなければそのまま進む
         // Variant that tolerates worlds without an opening skit: skips it when it plays, moves on when it does not
-        public async UniTask SkipOpeningSkitIfPlaying() => await _reporter.Act("開幕スキットを再生中なら飛ばす", () => PlaytestSkitOps.SkipOpeningSkitIfPlaying(OptionalSkitSkipTimeoutSeconds));
+        public async UniTask SkipOpeningSkitIfPlaying() => await _skit.SkipOpeningSkitIfPlaying();
+        // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける。回数は Note opening-skit-skip-rounds に残す
+        // Brings the Game View front and re-skips while in Story until it leaves; the rounds go to Note opening-skit-skip-rounds
+        public async UniTask<int> SkipOpeningSkitUntilLeftStory() => await _skit.SkipOpeningSkitUntilLeftStory();
         public async UniTask ExitToGameScreen() => await _reporter.Act("ゲーム画面へ戻る", PlaytestUiOps.ExitToGameScreen);
         public async UniTask AimAt(Vector3 worldPosition) => await _reporter.Act($"照準: {worldPosition}", () => PlaytestUiOps.AimAtWorldPosition(worldPosition));
         // 指定originに設置されるよう接地面上のフットプリント中心へ照準する（向きはNorth前提）

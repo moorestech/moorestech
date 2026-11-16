@@ -15,8 +15,6 @@ namespace Client.Playtest.Operations.Ui
         // 再生されないワールドでも待ちすぎないための、任意スキップの上限
         // Upper bound for the optional skip so worlds without a skit do not stall
         public const float OptionalSkipTimeoutSeconds = 10f;
-        private const int MaxSkipRounds = 4;
-        private const float GameScreenPollSeconds = 5f;
         private const float TimeScaleResumeTimeoutSeconds = 10f;
 
         // 開幕スキット表示中はホットバー入力もビルドメニューもポーズメニューも通らないため、全シナリオ共通の前提として飛ばす
@@ -66,9 +64,9 @@ namespace Client.Playtest.Operations.Ui
             Debug.Log(skitSkipped ? "[Playtest] 開幕スキットをSkipインテントで飛ばした" : "[Playtest] 開幕スキットは再生されなかった");
         }
 
-        // Game View を表へ出して開幕スキットを飛ばし、ゲーム画面に着くまで飛ばし直す。戻り値は飛ばした回数
-        // Bring the Game View to front, skip the opening skit and retry until the game screen; returns the rounds used
-        public static async UniTask<int> SkipOpeningSkitUntilGameScreen()
+        // Game View を表へ出し、Story の間だけ開幕スキットを飛ばし直す。Story を離れたら回した回数を返す
+        // Bring the Game View front and re-skip the opening skit only while in Story; return the rounds once it leaves Story
+        public static async UniTask<int> SkipOpeningSkitUntilLeftStory(int maxRounds, float pollSeconds)
         {
             // 裏タブの Game View は描画されず timeScale=0 のまま Skip 送りが止まるので、表へ出して時間が進むのを待つ
             // A Game View behind a tab never renders and skip stalls at timeScale=0, so bring it front and wait for time to run
@@ -80,15 +78,30 @@ namespace Client.Playtest.Operations.Ui
                 await UniTask.Yield();
             }
 
-            // 重い機械では 1 回の Skip で終わらないので、Story のままなら最大 MaxSkipRounds 回まで飛ばし直す
-            // On a loaded machine one skip may not end it, so retry up to MaxSkipRounds while still in Story
-            for (var round = 1; round <= MaxSkipRounds; round++)
+            // 飛ばした後も Story のままなら、pollSeconds 待って飛ばし直す
+            // If still in Story after a skip, wait up to pollSeconds and skip again
+            for (var round = 1; round <= maxRounds; round++)
             {
                 await SkipOpeningSkitIfPlaying(OptionalSkipTimeoutSeconds);
-                if (await PlaytestUiOps.PollUiState(UIStateEnum.GameScreen, GameScreenPollSeconds)) return round;
-                Debug.LogWarning($"[Playtest] 開幕スキットを飛ばして {GameScreenPollSeconds}s 待ってもゲーム画面に着かない（{round}/{MaxSkipRounds} 回目、今 {PlaytestUiOps.CurrentUiState()}）");
+                if (await WaitLeftStory()) return round;
+                Debug.LogWarning($"[Playtest] 開幕スキットを飛ばして {pollSeconds}s 待っても Story のまま（{round}/{maxRounds} 回目）");
             }
-            throw new TimeoutException($"開幕スキットを {MaxSkipRounds} 回飛ばしてもゲーム画面に着かない（今 {PlaytestUiOps.CurrentUiState()}）");
+            throw new TimeoutException($"開幕スキットを {maxRounds} 回飛ばしても Story を抜けない（1 回 {pollSeconds}s 待ち）");
+
+            #region Internal
+
+            async UniTask<bool> WaitLeftStory()
+            {
+                var deadline = Time.realtimeSinceStartup + pollSeconds;
+                while (Time.realtimeSinceStartup < deadline)
+                {
+                    if (PlaytestUiOps.CurrentUiState() != UIStateEnum.Story) return true;
+                    await UniTask.DelayFrame(5);
+                }
+                return PlaytestUiOps.CurrentUiState() != UIStateEnum.Story;
+            }
+
+            #endregion
         }
     }
 }

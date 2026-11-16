@@ -25,10 +25,9 @@ return PlaytestRunner.Run("uitk-stage4-panel-cost", options, async p =>
     PlaytestGameViewOps.BringToFront();
     await p.Until(() => 0f < Time.timeScale, 10f, "Game View の描画が始まり timeScale が戻る");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    // Game View を表へ出し、Story のままなら飛ばし直してゲーム画面へ着く（回数は Note に残す）
-    // Bring the Game View front and skip again while in Story until the game screen (rounds go to the Note)
-    var skitSkipRounds = await PlaytestSkitOps.SkipOpeningSkitUntilGameScreen();
-    p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
+    // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
+    // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
     await p.ExitToGameScreen();
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1920, 1080);
 

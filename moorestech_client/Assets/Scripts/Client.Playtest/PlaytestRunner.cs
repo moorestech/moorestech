@@ -44,8 +44,7 @@ namespace Client.Playtest
                 using var lifetime = new CancellationTokenSource();
                 // シナリオが替える InputSystem の設定を控え、成否によらず終わりに戻す（設定はアセットなので Play を止めても残る）
                 // Snapshot InputSystem settings the scenario may change and restore them at the end (they are an asset and outlive Play)
-                var savedBackgroundBehavior = InputSystem.settings.backgroundBehavior;
-                var savedEditorInputBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
+                var savedInputSettings = (InputSystem.settings.backgroundBehavior, InputSystem.settings.editorInputBehaviorInPlayMode);
                 var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                 try
                 {
@@ -81,8 +80,7 @@ namespace Client.Playtest
                 // 成否にかかわらず転送を止めて設定を戻し、次回実行へ照会応答も入力設定も持ち越さない
                 // Stop forwarding and restore settings regardless of outcome so neither lookups nor input settings carry over
                 PlaytestUiLocatorSession.Stop();
-                InputSystem.settings.backgroundBehavior = savedBackgroundBehavior;
-                InputSystem.settings.editorInputBehaviorInPlayMode = savedEditorInputBehavior;
+                (InputSystem.settings.backgroundBehavior, InputSystem.settings.editorInputBehaviorInPlayMode) = savedInputSettings;
 
                 // 後始末して結果を書き出す（result.jsonの出現が完走シグナル）
                 // Clean up and write the result (result.json's appearance signals completion)

@@ -61,10 +61,9 @@ return PlaytestRunner.Run("uitk-stage5-compare", options, async p =>
     // 3. ゲーム画面へ進み、参照に無い背景スキットの字幕とチュートリアルの枠を消す（前例 uitk-challenge-list）
     // 3. Reach the game screen and drop the background-skit subtitle and tutorial outlines absent from the reference (precedent uitk-challenge-list)
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    // Game View を表へ出し、Story のままなら飛ばし直してゲーム画面へ着く（回数は Note に残す）
-    // Bring the Game View front and skip again while in Story until the game screen (rounds go to the Note)
-    var skitSkipRounds = await PlaytestSkitOps.SkipOpeningSkitUntilGameScreen();
-    p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
+    // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
+    // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
     await p.ExitToGameScreen();
     var backgroundSkit = Object.FindFirstObjectByType<Client.Game.InGame.BackgroundSkit.BackgroundSkitManager>(FindObjectsInactive.Include);
     await p.Until(() => !backgroundSkit.IsPlayingSkit, 120f, "背景スキットが終わる");

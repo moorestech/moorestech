@@ -58,6 +58,7 @@ fi
 
 # 回収分岐: boot の再送が already playing → 起動前と別の置き場なら WARN で続行、同じ・取得失敗なら NG で止める
 # Recovery branch: resend says already playing -> a different pre-boot dir continues with WARN; same or failed lookup stops with NG
+# PlaytestBoot.AlreadyPlayingReply と同じ文字列 / same string as PlaytestBoot.AlreadyPlayingReply
 echo '{"Success": true, "Result": "ERROR: already playing"}' > "$WORK_DIR/already-playing.json"
 echo '{"Success": true}' > "$WORK_DIR/run/result.json"
 printf '{"Success": true, "Result": "%s"}\n' "$WORK_DIR/run" > "$WORK_DIR/success.json"

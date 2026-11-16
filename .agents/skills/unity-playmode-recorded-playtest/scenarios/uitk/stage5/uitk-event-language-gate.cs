@@ -126,10 +126,9 @@ return PlaytestRunner.Run("uitk-event-language-gate", options, async p =>
     p.Assert(followed, $"選択の後も合成の RT が解像度に追従する ({panelSettings.targetTexture.width}x{panelSettings.targetTexture.height} / {Screen.width}x{Screen.height})");
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     await UniTask.DelayFrame(3);
-    // Game View を表へ出し、Story のままなら飛ばし直してゲーム画面へ着く（回数は Note に残す）
-    // Bring the Game View front and skip again while in Story until the game screen (rounds go to the Note)
-    var skitSkipRounds = await PlaytestSkitOps.SkipOpeningSkitUntilGameScreen();
-    p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
+    // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
+    // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
     await p.ExitToGameScreen();
     await p.Screenshot("03-after-gate-game-screen-1280x720");
 

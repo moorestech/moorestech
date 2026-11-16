@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest.UiElements.GameUi;
+using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Screens.Hotbar;
+using Client.Ui.Screens.ModeHud;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 
@@ -27,42 +30,20 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
             }
         }
 
-        // 削除の帯（操作モード HUD・OverlayPanel）の層はホットバー（Chrome）の層より前の兄弟。ホットバーが帯の上に描かれる（Web の App.tsx の順）
-        // The delete bands' layer (mode HUD, OverlayPanel) is an earlier sibling than the hotbar's (Chrome), so the hotbar draws over them (Web App.tsx order)
+        // 削除の帯（操作モード HUD・OverlayPanel）の層はホットバー（Chrome）の層より root の前。ホットバーが帯の上に描かれる（Web の App.tsx の順）
+        // The delete bands' layer (mode HUD, OverlayPanel) precedes the hotbar's (Chrome) under the root, so the hotbar draws over them (Web App.tsx order)
         public static void AssertDeleteBandsBeforeHotbar(VisualElement root)
         {
-            var hotbar = root.Q<VisualElement>(name: "hotbar-hud");
-            var bands = root.Q<VisualElement>(name: Stage2HudSurfaces.DeleteModeWarning.Name);
-            Assert.IsNotNull(hotbar, "hotbar-hud が木に無い");
-            Assert.IsNotNull(bands, "削除の帯が木に無い");
+            Assert.IsNotNull(root.Q<VisualElement>(name: "hotbar-hud"), "hotbar-hud が木に無い");
+            Assert.IsNotNull(root.Q<VisualElement>(name: Stage2HudSurfaces.DeleteModeWarning.Name), "削除の帯が木に無い");
 
-            // 共通の祖先の直下まで両方を辿り、兄弟の順で前後を比べる
-            // Climb both to just under their common ancestor and compare sibling order
-            var common = CommonAncestor(hotbar, bands);
-            Assert.IsNotNull(common, "削除の帯とホットバーに共通の祖先が無い");
-            var hotbarBranch = BranchUnder(common, hotbar);
-            var bandsBranch = BranchUnder(common, bands);
-            Assert.AreNotSame(hotbarBranch, bandsBranch, "削除の帯とホットバーが同じ枝にある（別の層の想定）");
-            Assert.Less(common.IndexOf(bandsBranch), common.IndexOf(hotbarBranch), "削除の帯の層がホットバーの層より後ろの兄弟（帯がホットバーの上に描かれる）");
-
-            #region Internal
-
-            VisualElement CommonAncestor(VisualElement a, VisualElement b)
-            {
-                for (var candidate = a.parent; candidate != null; candidate = candidate.parent)
-                {
-                    if (candidate.Contains(b)) return candidate;
-                }
-                return null;
-            }
-
-            VisualElement BranchUnder(VisualElement ancestor, VisualElement element)
-            {
-                while (element.parent != ancestor) element = element.parent;
-                return element;
-            }
-
-            #endregion
+            // 前例 ModeHudHotbarStackingTest の IndexOfLayer と同じく、層の親の root での順を比べる
+            // Same as ModeHudHotbarStackingTest's IndexOfLayer: compare the layer parents' order under the root
+            var bandsLayerIndex = root.IndexOf(GameUiRoot.Instance.GetLayer(ModeHudPresenter.HostLayer, UiFamily.Viewport).parent);
+            var hotbarLayerIndex = root.IndexOf(GameUiRoot.Instance.GetLayer(HotbarHudPresenter.HostLayer, UiFamily.Viewport).parent);
+            Assert.GreaterOrEqual(bandsLayerIndex, 0, "削除の帯の層が root の直下に無い");
+            Assert.GreaterOrEqual(hotbarLayerIndex, 0, "ホットバーの層が root の直下に無い");
+            Assert.Less(bandsLayerIndex, hotbarLayerIndex, "削除の帯の層がホットバーの層より root の後ろ（帯がホットバーの上に描かれる）");
         }
 
         // 表の ByClass に従って引き、どれかが見えていれば真（判定は DSL の GameUiElementQuery）
