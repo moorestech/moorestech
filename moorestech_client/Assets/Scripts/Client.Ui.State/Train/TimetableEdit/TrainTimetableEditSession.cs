@@ -133,8 +133,9 @@ namespace Client.Ui.State.Train.TimetableEdit
 
         private static bool HasSameTimetable(TrainTimetableReadyData previous, TrainTimetableReadyData next)
         {
-            return previous.IsAutoRun == next.IsAutoRun && previous.CurrentIndex == next.CurrentIndex
-                   && TimetableEditLogic.SameStopOrder(previous.Stops, next.Stops);
+            // 走行位置（CurrentIndex）は編集の結果ではないので比べない。発車しただけの公開で保留が解けると古い並びへ戻るため
+            // CurrentIndex is not an edit result, so leave it out; a departure-only publication must not release the hold and revert to the old order
+            return previous.IsAutoRun == next.IsAutoRun && TimetableEditLogic.SameStopOrder(previous.Stops, next.Stops);
         }
 
         private void BackToIdle()
