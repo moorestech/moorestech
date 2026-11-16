@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using System.IO;
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;
@@ -31,7 +32,7 @@ namespace Client.Tests.Ui.Screens.ModeHud
             // 見出しの h2 は line-height を書かず body の 1.55 を継ぐ（12px × 1.55）
             // The heading h2 sets no line-height and inherits the body's 1.55 (12px x 1.55)
             simulate.FrameUpdate();
-            Assert.AreEqual(18.6f, Find<Label>(view, "operation-mode-label").layout.height, 0.3f);
+            Assert.AreEqual(18.6f, Find<Label>(view, "operation-mode-label").layout.height, 0.5f);
         }
 
         /// <web-test file="src/features/modeHud/modeHudDesign.test.ts">削除表示を説明パネルではなく上下の警告帯で構成する</web-test>

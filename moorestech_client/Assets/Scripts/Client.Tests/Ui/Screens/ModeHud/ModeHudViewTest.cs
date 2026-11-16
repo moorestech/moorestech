@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Tests.Ui.Components;
 using Client.Ui.Components.Panels;
@@ -52,7 +53,7 @@ namespace Client.Tests.Ui.Screens.ModeHud
             // 題 12px・text-muted・字間 1px
             // Title 12px, text-muted, 1px spacing
             var label = Find<Label>(_view, "operation-mode-label");
-            Assert.AreEqual("Placement Mode", label.text);
+            Assert.AreEqual("Placement Mode", label.PlainText());
             Assert.AreEqual(12f, label.resolvedStyle.fontSize, 0.01f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--text-muted"), label.resolvedStyle.color, "label");
             Assert.AreEqual(8.333f, label.resolvedStyle.letterSpacing, 0.01f);

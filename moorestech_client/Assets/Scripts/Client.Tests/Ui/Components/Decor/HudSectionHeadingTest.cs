@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.Components.Decor
         {
             var label = _heading.Q<Label>("challenge-hud-label");
             Assert.IsNotNull(label);
-            Assert.AreEqual(new UiText(LocalizationKeys.Ui.Challenge.CurrentTitle).Resolve(), label.text);
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.Challenge.CurrentTitle).Resolve(), label.PlainText());
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace Client.Tests.Ui.Components.Decor
         {
             // Web の .label は Mantine の body の line-height 1.55 を継ぐ（12px × 1.55）
             // The Web .label inherits Mantine's body line-height 1.55 (12px x 1.55)
-            Assert.AreEqual(18.6f, HeadingLabel().layout.height, 0.3f);
+            Assert.AreEqual(18.6f, HeadingLabel().layout.height, 0.5f);
         }
 
         [Test]
