@@ -45,6 +45,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         [Test]
         public void 舞台が安全帯より狭い間は警告を1回だけ出し_回復後に狭まると再び出す()
         {
+            // 試験のブロックは三層とも名前を持たないので、欠けの警告が 1 回出る
+            // The test block has no name in any layer, so the missing-text warning fires once
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[Localize\] missing text in every layer: block\."));
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Chest()), new FakeLargePanelRule(true));
             simulate.FrameUpdate();
 

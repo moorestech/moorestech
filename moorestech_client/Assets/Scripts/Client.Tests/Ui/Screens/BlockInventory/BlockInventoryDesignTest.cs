@@ -126,6 +126,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         [TestCase(27, 10)]
         public void 項目グリッドの列数は枠数に追従し持ち物の列数で止まる(int slotCount, int expectedColumns)
         {
+            // 試験のブロックは三層とも名前を持たないので、欠けの警告が 1 回出る
+            // The test block has no name in any layer, so the missing-text warning fires once
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[Localize\] missing text in every layer: block\."));
             var slots = Enumerable.Repeat(new SlotItem(new ItemId(1), 1), slotCount).ToArray();
             var shell = Open(BlockInventoryTestPanels.ChestWithSlots(slots));
             simulate.FrameUpdate();
