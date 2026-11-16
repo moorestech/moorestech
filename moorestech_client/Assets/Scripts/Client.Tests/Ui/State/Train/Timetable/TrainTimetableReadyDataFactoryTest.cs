@@ -56,6 +56,25 @@ namespace Client.Tests.Ui.State.Train.Timetable
         }
 
         [Test]
+        public void 未知のSideで捨てた後に届き直した列車は同じ欠けでも警告し直す()
+        {
+            var factory = new TrainTimetableReadyDataFactory();
+            var missing = Snapshot(StopAt(new Vector3Int(99, 0, 0)));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableModel\] station blocks not found.*99"));
+            Assert.IsTrue(factory.TryCreate(missing, Stations, out _));
+
+            // 未知の端で一度捨てると、欠けの旗も下りる
+            // Discarding once for an unknown side also lowers the missing-station flag
+            LogAssert.Expect(LogType.Error, new Regex(@"\[TrainTimetableModel\] discarding timetable with unknown side"));
+            Assert.IsFalse(factory.TryCreate(Snapshot(new TrainTimetableStop(TrainTestData.North.Position, (StationNodeSide)99, TrainDiagram.DepartureConditionType.WaitForTicks, 20)), Stations, out _));
+
+            // 同じ欠けで戻ると警告がもう一度出る（出なければ Expect が満たされず落ちる）
+            // Coming back with the same missing set warns again (the Expect fails otherwise)
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableModel\] station blocks not found.*99"));
+            Assert.IsTrue(factory.TryCreate(missing, Stations, out _));
+        }
+
+        [Test]
         public void 中身が同じ用意済みは流し直さず読込中と使えないは同じ値で流さない()
         {
             // 貨車の中身の更新だけでは時刻表の行を作り直さない（R-5）

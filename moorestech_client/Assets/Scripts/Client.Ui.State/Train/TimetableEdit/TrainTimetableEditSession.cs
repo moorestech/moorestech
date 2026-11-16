@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Client.Ui.State.Train.TimetableEdit
 {
     /// <summary>
-    /// 時刻表の即時編集。編集を即送り、受理と同じ並びの公開が揃うまで表示を保留する（Web useImmediateTimetable の写し）
-    /// Immediate timetable editing: sends each edit at once and holds the display until acceptance and a matching publication (copy of Web useImmediateTimetable)
+    /// 時刻表の即時編集。編集を即送り、受理とその後の最初の公開が揃うまで表示を保留する（Web useImmediateTimetable の写し）
+    /// Immediate timetable editing: sends each edit at once and holds the display until acceptance and the next publication (copy of Web useImmediateTimetable)
     /// </summary>
     public sealed class TrainTimetableEditSession
     {
@@ -45,10 +45,10 @@ namespace Client.Ui.State.Train.TimetableEdit
 
         public void ReceiveServer(TrainTimetableReadyData server)
         {
-            // 受理済み保留は同並びの公開で解く
-            // Accepted pending releases on matching publication
+            // 受理の後に届いた最初の公開で保留を解く。並びの一致は待たず、表示の正は公開のまま
+            // The first publication after acceptance releases the hold without waiting for a matching order; the publication stays the display truth
             Server = server;
-            if (_phase is AwaitingPublicationPhase awaiting && TimetableEditLogic.SameStopOrder(awaiting.Stops, server.Stops)) BackToIdle();
+            if (_phase is AwaitingPublicationPhase) BackToIdle();
             Publish();
         }
 

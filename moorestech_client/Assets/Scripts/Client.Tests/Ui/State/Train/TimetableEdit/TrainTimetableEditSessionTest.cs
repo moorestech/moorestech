@@ -91,6 +91,27 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             Assert.IsEmpty(_timer.RequestedDelays);
         }
 
+        [Test]
+        public void 別の要因の公開が先に届いても受理の後の公開で解く()
+        {
+            // 送信中に別の要因の公開が先に届き、受理の時点では並びが合わない
+            // A publication from another cause arrives during sending, so the order does not match at acceptance
+            var added = Added(_server, Unnamed);
+            _session.Replace(added);
+            _session.ReceiveServer(Ready(Unit1, false, Added(NoStops, Unnamed)));
+            _commands.Accept();
+            Assert.IsTrue(_session.IsPending);
+
+            // 受理の後に届いた最初の公開で、並びが違っても時間切れを待たずに解き、公開の並びを出す
+            // The first publication after acceptance releases at once even with a different order, showing the published order
+            var published = Added(Added(NoStops, Unnamed), North);
+            _session.ReceiveServer(Ready(Unit1, false, published));
+            Assert.IsFalse(_session.IsPending);
+            CollectionAssert.AreEqual(published, _session.DisplayedStops);
+            _timer.Elapse();
+            Assert.IsFalse(_session.IsPending);
+        }
+
         /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">reverts rejected edits to the newest authority and allows another edit</web-test>
         [Test]
         public void 拒否は最新のサーバーの並びへ戻し次の編集を受ける()

@@ -1,19 +1,20 @@
 using Client.Game.InGame.Train.Timetable;
+using Client.Tests.Ui.State.Train.Fakes;
 using Client.Ui.State.Train;
 using Game.Train.Unit;
 using NUnit.Framework;
 
 namespace Client.Tests.WebUiHost.Train
 {
-    // 送信境界を直接呼ぶ形に戻したため、送信なしのラッチだけを固定する
-    // Sending now follows the precedent of calling ClientContext.VanillaApi directly, so only the send-free latches are pinned
+    // 送信なしのラッチだけを固定する（送信の回数は TrainTimetableFetchLatchReleaseTest が偽の送信口で見る）
+    // Pins only the send-free latches (send counts are checked with the fake sender in TrainTimetableFetchLatchReleaseTest)
     public class TrainTimetableFetcherTest
     {
         [Test]
         public void NothingIsUnavailableOrInFlightBeforeTheTabOpens()
         {
             var datastore = new ClientTrainTimetableDatastore();
-            var fetcher = new TrainTimetableFetcher(datastore, datastore);
+            var fetcher = new TrainTimetableFetcher(datastore, datastore, new FakeTrainTimetableRequestSender());
             var id = TrainUnitInstanceId.Create();
 
             Assert.That(fetcher.IsUnavailable(id), Is.False);
@@ -24,11 +25,11 @@ namespace Client.Tests.WebUiHost.Train
         public void TrainChangeBeforeTheTabOpensDoesNotFetch()
         {
             var datastore = new ClientTrainTimetableDatastore();
-            var fetcher = new TrainTimetableFetcher(datastore, datastore);
+            var fetcher = new TrainTimetableFetcher(datastore, datastore, new FakeTrainTimetableRequestSender());
             var id = TrainUnitInstanceId.Create();
 
-            // ガードが外れると通信境界に触れて落ちる
-            // If the tab-closed guard broke, this would reach the transport boundary and throw
+            // ガードが外れると取得中が立つ
+            // If the tab-closed guard broke, the fetch would be in flight
             fetcher.FollowOpenTrainChange(id);
 
             Assert.That(fetcher.IsFetchInFlight(id), Is.False);
@@ -38,7 +39,7 @@ namespace Client.Tests.WebUiHost.Train
         public void CloseBeforeAnyRequestIsSafe()
         {
             var datastore = new ClientTrainTimetableDatastore();
-            var fetcher = new TrainTimetableFetcher(datastore, datastore);
+            var fetcher = new TrainTimetableFetcher(datastore, datastore, new FakeTrainTimetableRequestSender());
             var id = TrainUnitInstanceId.Create();
 
             fetcher.Close();
