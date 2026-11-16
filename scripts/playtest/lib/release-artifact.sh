@@ -32,7 +32,40 @@ for key, env in (("steamBuildLabel", "BUILD_LABEL"), ("commit", "COMMIT"), ("bra
 release_require_windows_artifact() {
     local build_dir="$1"
     release_require_paths "$build_dir/moorestech.exe" "$build_dir/game/mods" "$build_dir/moorestech_Data/StreamingAssets/build-info.json"
+    release_require_no_cef_files "$build_dir"
     release_require_build_info "$build_dir/moorestech_Data/StreamingAssets/build-info.json" StandaloneWindows64
+}
+
+# CEF ランタイムに固有の名前。撤去後の成果物に 1 つでもあれば古い Library か取り違えの混入
+# Names unique to the CEF runtime; any hit in a post-removal artifact means a stale Library or a mixed-up build
+CEF_RUNTIME_NAME_PATTERNS=(
+    "cef-unity-*"
+    "cef_unity_*"
+    "libcef*"
+    "CefUnity.*"
+    "chrome_elf.dll"
+    "icudtl.dat"
+    "v8_context_snapshot.bin"
+    "chrome_*_percent.pak"
+)
+
+# 成果物の下に CEF のファイルが 1 つも無いことを確かめる（統合計画 §5.1-1）
+# Check that no CEF file remains anywhere under the artifact (integration plan §5.1-1)
+release_require_no_cef_files() {
+    local root="$1" pattern found find_failed
+    for pattern in "${CEF_RUNTIME_NAME_PATTERNS[@]}"; do
+        # find の失敗（読めないディレクトリ等）は見落としなので、空の結果を「CEF 0」と読まない
+        # A find failure (e.g. an unreadable directory) hides files, so an empty result must not read as "no CEF"
+        if found="$(find "$root" -iname "$pattern" -print -quit)"; then find_failed=0; else find_failed=1; fi
+        if [ -n "$found" ]; then
+            echo "ERROR: 成果物に CEF のファイルが残っています（${pattern}）: ${found}" >&2
+            exit 4
+        fi
+        if [ "$find_failed" -ne 0 ]; then
+            echo "ERROR: 成果物の CEF の検査で find が失敗しました（${pattern}）。見落としを避けて止めます: ${root}" >&2
+            exit 4
+        fi
+    done
 }
 
 # Mac 成果物に必ず入っている相対パス。検査項目の追加はここ 1 箇所で済ませる
@@ -46,22 +79,12 @@ MAC_REQUIRED_RELATIVE_PATHS=(
 )
 
 release_require_mac_artifact() {
-    local build_dir="$1" app="$1/moorestech.app" archs executable relative_path helper_executable
+    local build_dir="$1" app="$1/moorestech.app" archs executable relative_path
     for relative_path in "${MAC_REQUIRED_RELATIVE_PATHS[@]}"; do
         release_require_paths "$build_dir/$relative_path"
     done
 
-    # CEF helper が無いと Web UI がまるごと起動しないため、実在と実行権まで見る
-    # Without the CEF helper the whole Web UI fails to start, so check that it exists and can run
-    helper_executable="$(find "$app" -type f -path '*/cef-unity-server.app/Contents/MacOS/cef-unity-server' -print -quit 2>/dev/null)"
-    if [ -z "$helper_executable" ]; then
-        echo "ERROR: Mac成果物にCEF helper (cef-unity-server.app) がありません: ${app}" >&2
-        exit 4
-    fi
-    if [ ! -x "$helper_executable" ]; then
-        echo "ERROR: Mac成果物のCEF helperに実行権がありません: ${helper_executable}" >&2
-        exit 4
-    fi
+    release_require_no_cef_files "$build_dir"
     # 展示会用の再起動ループが混ざっていたら用途の取り違え
     # An exhibition restart loop means the build purpose was mixed up
     if [ -e "$build_dir/start-gamescom-loop.command" ]; then
@@ -72,9 +95,9 @@ release_require_mac_artifact() {
         echo "ERROR: Mac成果物の署名検証に失敗しました: ${app}" >&2
         exit 4
     fi
-    # 本体・録画用ffmpeg・CEF helperをApple Silicon専用に揃える
-    # Match the player, the recording ffmpeg and the CEF helper to Apple Silicon only
-    for executable in "$app/Contents/MacOS/moorestech" "$app/Contents/MacOS/ffmpeg" "$helper_executable"; do
+    # 本体と録画用ffmpegをApple Silicon専用に揃える
+    # Match the player and the recording ffmpeg to Apple Silicon only
+    for executable in "$app/Contents/MacOS/moorestech" "$app/Contents/MacOS/ffmpeg"; do
         if ! archs="$("$LIPO_BIN" -archs "$executable")"; then
             echo "ERROR: Mac成果物のアーキテクチャを取得できません: ${executable}" >&2
             exit 4

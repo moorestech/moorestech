@@ -24,6 +24,31 @@ for expected_path in "moorestech.app/Contents/MacOS/moorestech" "moorestech.app/
     esac
 done
 
+# CEF の名前の列そのものが縮んでいないことを先に確かめる（縮小改変を緑にしないため）
+# Check the sourced CEF name list itself has not shrunk, so a removal cannot pass silently
+for expected_pattern in "cef-unity-*" "cef_unity_*" "libcef*" "CefUnity.*" "chrome_elf.dll" "icudtl.dat" "v8_context_snapshot.bin" "chrome_*_percent.pak"; do
+    case " ${CEF_RUNTIME_NAME_PATTERNS[*]} " in
+      *" $expected_pattern "*) ;;
+      *) fail "CEF_RUNTIME_NAME_PATTERNS lost $expected_pattern";;
+    esac
+done
+
+# find が失敗する成果物（読めないディレクトリ）は「CEF 0」と見なさず exit 4 で止める
+# An artifact whose find fails (unreadable directory) is not read as CEF-free and stops with exit 4
+if [ "$(id -u)" -ne 0 ]; then
+    UNREADABLE_ROOT="$(mktemp -d)"
+    mkdir -p "$UNREADABLE_ROOT/locked"
+    chmod 000 "$UNREADABLE_ROOT/locked"
+    OUTPUT=$( (release_require_no_cef_files "$UNREADABLE_ROOT") 2>&1 ); STATUS=$?
+    chmod 755 "$UNREADABLE_ROOT/locked"; rm -rf "$UNREADABLE_ROOT"
+    [ "$STATUS" -eq 4 ] || fail "find failure under the artifact did not exit 4 (got $STATUS)"
+    case "$OUTPUT" in *'find が失敗'*) ;; *) fail "find failure reason was absent: $OUTPUT";; esac
+else
+    # root では chmod 000 でも読めてしまい失敗を作れないので、飛ばしたことを出す
+    # As root chmod 000 stays readable, so the failure cannot be staged; say it was skipped
+    echo "SKIP: find failure case needs a non-root user"
+fi
+
 # 同じ worktree から Windows、Mac の順に OS 別ディレクトリへ焼く
 # Build Windows then Mac from one worktree into separate directories
 make_sandbox
@@ -53,9 +78,8 @@ grep -Fqx "$(printf '\t"contentroot" "%s/build-mac"' "$special_run")" "$special_
 # Mac failures do not reach steamcmd and still remove the worktree
 FAILURE_CASES=("mac-build UNITY_MAC_EXIT=1" "codesign CODESIGN_EXIT=1" "universal LIPO_ARCHS=x86_64_arm64" \
     "intel LIPO_ARCHS=x86_64" "ffmpeg-architecture LIPO_FFMPEG_ARCHS=x86_64" \
-    "helper-architecture LIPO_HELPER_ARCHS=x86_64" "helper-not-executable MAC_HELPER_NOT_EXECUTABLE=1" \
     "event-script MAC_LEAKS_EVENT_SCRIPT=1" "mac-target BUILD_INFO_TARGET_MAC=StandaloneWindows64" \
-    "missing-cef-helper MAC_MISSING_PATH=moorestech.app/Contents/PlugIns/cef-unity-server.app")
+    "mac-leaks-cef MAC_LEAKS_CEF=1")
 for required_path in "${MAC_REQUIRED_RELATIVE_PATHS[@]}"; do
     FAILURE_CASES+=("missing-$required_path MAC_MISSING_PATH=$required_path")
 done
@@ -86,20 +110,18 @@ for missing_path in "${MAC_REQUIRED_RELATIVE_PATHS[@]}"; do
     case "$OUTPUT" in *"成果物に "*"/$missing_path "*) ;; *) fail "missing Mac $missing_path path was absent";; esac
 done
 
-# CEF helper の欠落・非実行・非arm64は理由を名指しする
-# A missing, non-executable or non-arm64 CEF helper names its reason
+# CEF のファイルが残った Mac 成果物は理由とパスを名指しする
+# A Mac artifact that still carries a CEF file names the reason and the path
 make_sandbox
-OUTPUT=$(MAC_MISSING_PATH=moorestech.app/Contents/PlugIns/cef-unity-server.app run_target); STATUS=$?
-[ "$STATUS" -eq 4 ] || fail "missing CEF helper did not exit 4 (got $STATUS)"
-case "$OUTPUT" in *'CEF helper'*) ;; *) fail "missing CEF helper reason was absent";; esac
+OUTPUT=$(MAC_LEAKS_CEF=1 run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "leaked Mac CEF helper did not exit 4 (got $STATUS)"
+case "$OUTPUT" in *'CEF のファイル'*'cef-unity-server'*) ;; *) fail "leaked Mac CEF helper reason or path was absent";; esac
+# CEF の無い成功系では lipo が CEF helper を見に行かない
+# On a CEF-free success run, lipo never inspects a CEF helper
 make_sandbox
-OUTPUT=$(MAC_HELPER_NOT_EXECUTABLE=1 run_target); STATUS=$?
-[ "$STATUS" -eq 4 ] || fail "non-executable CEF helper did not exit 4 (got $STATUS)"
-case "$OUTPUT" in *'実行権'*) ;; *) fail "non-executable CEF helper reason was absent";; esac
-make_sandbox
-OUTPUT=$(LIPO_HELPER_ARCHS=x86_64 run_target); STATUS=$?
-[ "$STATUS" -eq 4 ] || fail "non-arm64 CEF helper did not exit 4 (got $STATUS)"
-case "$OUTPUT" in *'cef-unity-server'*) ;; *) fail "non-arm64 CEF helper was not named";; esac
+OUTPUT=$(run_target); STATUS=$?
+[ "$STATUS" -eq 0 ] || fail "CEF-free Mac run exited $STATUS: $OUTPUT"
+grep -q '^lipo .*cef-unity-server' "$SANDBOX/calls.log" && fail "lipo still inspected a CEF helper"
 
 # Mac depot ID が欠落・非数字ならビルド前に exit 2
 # A missing or nonnumeric Mac depot ID exits 2 before building
