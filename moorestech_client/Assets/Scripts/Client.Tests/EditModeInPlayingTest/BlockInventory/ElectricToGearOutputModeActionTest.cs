@@ -3,6 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util.World;
 using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
@@ -36,7 +37,6 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         public IEnumerator 出力モード選択がサーバーのSelectedIndexへ届く()
         {
             EnterPlayModeUtil();
-            BlockActionSceneIsolation.Prepare();
 
             // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
@@ -61,15 +61,22 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
-                BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
-                // 検出境界を保存終了まで保つ
-                // Keep error detection until shutdown saves
+
+                // 開いた画面は届く範囲を外れると閉じるので、足場を置く前に自機を対象の -x の隣へ移す
+                // The opened screen closes once out of reach, so move the player next to the target on -x before placing the ground
+                var pos = new Vector3Int(0, 0, 0);
+                PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(pos + new Vector3(-1.5f, 0.1f, 0.5f));
+                var ground = TestPlayerGround.Create();
+
+                // 実足場を置き、起動ログ排出後に想定外エラーを検出する
+                // Place real ground, then detect unexpected errors after draining startup logs
+                await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
                 {
+                    await TestPlayerGround.AssertGroundedAsync();
                     // ブロック配置し初期選択0を確認
                     // Place the block and confirm initial selection 0
-                    var pos = new Vector3Int(0, 0, 0);
                     var serverBlock = await ServerBlockPlacement.PlaceAsync(BlockName, pos, BlockDirection.North);
                     var component = serverBlock.GetComponent<ElectricToGearGeneratorComponent>();
                     Assert.AreEqual(0, component.SelectedIndex);
@@ -77,10 +84,6 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     var blockGameObject = await WaitBlockGameObjectSpawn(pos);
                     // UITK のパネルは画面が SubInventory のときだけ開くので、先に遷移してから実プレイと同じ文脈で開く（前例 GameUiMachineSectionWiringTest。文脈なしのエラーログが 1 回出る）
                     // The UITK panel opens only on the SubInventory screen, so transition first and reopen with the real-play context (precedent GameUiMachineSectionWiringTest; one no-context error log)
-                    // 開いた画面は届く範囲を外れると閉じるので、自機を対象の -x の隣（隔離シーンの床の上）へ移す
-                    // The opened screen closes once out of reach, so move the player next to the target on -x (onto the isolated scene's floor)
-                    PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(pos + new Vector3(-1.5f, 0.1f, 0.5f));
-                    await UniTask.Yield();
                     var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
                     LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
                     await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
@@ -106,14 +109,12 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 }
                 finally
                 {
+                    Object.DestroyImmediate(ground);
                     LogAssert.ignoreFailingMessages = true;
                 }
             }
 
             #endregion
         }
-
-        [TearDown]
-        public void ResetSceneIsolation() => BlockActionSceneIsolation.Reset();
     }
 }

@@ -8,7 +8,6 @@ using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Routing;
-using Client.WebUiHost.Cef;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -60,10 +59,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 AssertAllLayersExist(gameUiRoot);
 
-                // UITK の起動に Web ホストと CEF は無い（Web ホストのファイルは 5b・5c まで残る）
-                // A UITK boot has no web host or CEF (the web host files remain until 5b and 5c)
+                // UITK の起動に Web ホストは無い（Web ホストのファイルは 5c まで残る）
+                // A UITK boot has no web host (the web host files remain until 5c)
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホスト（WS の受け口）が起動している");
-                Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsSortMode.None).Length, "CEF のブラウザ（RawImage と同じ GameObject）が有効のまま");
 
                 // ルータは UIState だけで画面を決める
                 // The router decides the screen from UIState alone

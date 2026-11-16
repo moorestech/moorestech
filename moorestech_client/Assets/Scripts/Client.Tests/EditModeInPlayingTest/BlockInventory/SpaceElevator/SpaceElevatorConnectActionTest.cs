@@ -9,6 +9,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util.World;
 using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
@@ -31,7 +32,6 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         public IEnumerator RegisteredActionUsesOpenCoordinatesAndReturnsAllThreeResults()
         {
             EnterPlayModeUtil();
-            BlockActionSceneIsolation.Prepare();
             // PlayMode遷移はUnityTest直下に置く
             // Keep the PlayMode transition directly inside the UnityTest
             yield return new EnterPlayMode(expectDomainReload: true);
@@ -46,13 +46,20 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 var directory = SpaceElevatorActionTestMod.Create();
                 await LoadMainGame(directory, null);
-                BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
-                // 起動後の例外をテスト失敗として扱う
-                // Fail the test on exceptions after startup
+
+                // 開いた画面は届く範囲を外れると閉じるので、足場を置く前に自機を対象の -x の隣へ移す
+                // The opened screen closes once out of reach, so move the player next to the target on -x before placing the ground
+                var position = new Vector3Int(20, 0, 4);
+                PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(position + new Vector3(-1.5f, 0.1f, 0.5f));
+                var ground = TestPlayerGround.Create();
+
+                // 実足場を置き、起動ログ排出後の例外をテスト失敗として扱う
+                // Place real ground, then fail the test on exceptions after draining startup logs
+                await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
+                await TestPlayerGround.AssertGroundedAsync();
                 var master = MasterHolder.BlockMaster.GetBlockAllIds().Select(id => MasterHolder.BlockMaster.GetBlockMaster(id))
                     .Single(b => b.BlockParam is SpaceElevatorBaseBlockParam);
-                var position = new Vector3Int(20, 0, 4);
                 var target = await ServerBlockPlacement.PlaceAsync(master.Name, position, BlockDirection.North);
                 var decoy = await ServerBlockPlacement.PlaceAsync(master.Name, Vector3Int.zero, BlockDirection.North);
                 var view = await WaitBlockGameObjectSpawn(position);
@@ -81,10 +88,6 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Debug.Log($"[SpaceElevatorClick] total={colliders.Length} clickable=1 layer={collider.gameObject.layer} owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
                 // UITK のパネルは画面が SubInventory のときだけ開くので、先に遷移してから実プレイと同じ文脈で開く（前例 GameUiMachineSectionWiringTest。文脈なしのエラーログが 1 回出る）
                 // The UITK panel opens only on the SubInventory screen, so transition first and reopen with the real-play context (precedent GameUiMachineSectionWiringTest; one no-context error log)
-                // 開いた画面は届く範囲を外れると閉じるので、自機を対象の -x の隣（隔離シーンの床の上）へ移す
-                // The opened screen closes once out of reach, so move the player next to the target on -x (onto the isolated scene's floor)
-                PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(position + new Vector3(-1.5f, 0.1f, 0.5f));
-                await UniTask.Yield();
                 var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
                 LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
                 await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
@@ -120,6 +123,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var refundedState = await SpaceElevatorServerTestState.ReadAsync(decoy, decoy);
                 Assert.AreEqual(supplied, refundedState.PoolAmount);
                 Assert.IsFalse(refundedState.DecoyConnected);
+                Object.DestroyImmediate(ground);
                 Directory.Delete(directory, true);
             }
 
@@ -134,8 +138,5 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             }
             #endregion
         }
-
-        [TearDown]
-        public void ResetSceneIsolation() => BlockActionSceneIsolation.Reset();
     }
 }
