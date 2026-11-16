@@ -18,7 +18,7 @@
 - 取り込みで `e2e/` の下に新しい spec・fixture・撮影スクリプトが入ったら、その画面の行の `Web パス` に足す。足さないと受け皿の「Web の検証基盤」（束 5）の持ち物になり、その束の切替で記帳を求められない（G1 は `e2e/` の網羅を検査しない）
 - セルに `|` を書かない。空欄は `—`
 - 全体スイッチ（計画 §3.3 R1〜R4）で描く系を選ぶ: PlayMode を止めた状態で Unity のメニュー `moorestech/UI System/GameUi (UITK)`（戻すときは `moorestech/UI System/Web`）を選ぶか、`uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'` を実行してから PlayMode に入る。値は起動ごとに 1 回だけ読まれ、Editor を閉じると既定の Web に戻る。GameUi の起動では Web ホストと CEF を起動せず、UITK にまだ無い画面は使えない（裁定）
-- 束を切り替える前（その段の ladder）に `node tools/uitk/test-name-parity.mjs --bundle <束>` で Web テスト名の差分 0 を見る。書式と処遇の表は `docs/uitk/disposition.md`
+- 束を切り替える前（その段の ladder）に `node tools/uitk/test-name-parity.mjs --bundle <束>` で Web テスト名の差分 0 を見る。Web を消した後（X-5c 以後）は `--web-rev 6248097123` を付ける（`moorestech_web/` を消す前の Web のツリー。削除の親 `0beb563f74` と同じツリー。付けないと全束 0 件で exit 2）。書式と処遇の表は `docs/uitk/disposition.md`
 
 ## 束
 
