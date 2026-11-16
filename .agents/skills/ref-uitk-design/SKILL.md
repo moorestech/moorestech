@@ -73,6 +73,7 @@ public sealed class IconButton : VisualElement
 - 子を受ける部品（枠・スクロール）は `contentContainer` を返し、外は `Add` で入れる
 - 色・寸法を C# に書かない。描画で値が要るときは部品の USS で `--<部品>-<名>: var(--トークン);` と受け直し、`CustomStyleResolvedEvent` の中で `UssCustomStyleReader.TryReadColor`・`TryReadPixels` で読む（前例 `S/Client.Ui/Components/Panels/GamePanel/GamePanelFace.cs`）
 - `Update()` を使わない。変化は Set の呼び出しか Model の購読で受ける
+- ctor で要素へ登録する UI のイベントのハンドラは、同クラスの private メソッドを method group で渡してよい（`RegisterCallback<TEvent>(OnX)`・`generateVisualContent += DrawX`。自分への登録も、`UiPressGesture` のように他の要素への登録も同じ）。ラムダで書いてもよい
 - AGENTS.md のとおり 1 ファイル 200 行・1 ディレクトリ 10 ファイル・`partial` と `Func<>` の禁止・日英 2 行のコメント
 
 ## 5. USS の書き方
