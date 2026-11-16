@@ -16,7 +16,6 @@ namespace Client.Tests.Ui.Input
     public class GameUiInputRulesTest : UiTestHost
     {
         private static readonly Regex ButtonFocusWarning = new(@"^\[GameUiInput\] non text-field, unmarked element took focus and was blurred: Button 'rules-button'$");
-
         private VisualElement _rulesRoot;
 
         [SetUp]
@@ -25,11 +24,7 @@ namespace Client.Tests.Ui.Input
             // 基底はルートのコールバックをテスト間で消さないので、テストごとの器に付けて基底の Clear で一緒に捨てる
             // The base keeps root callbacks across tests, so attach to a per-test container that the base Clear discards
             _rulesRoot = new VisualElement { name = "rules-root", pickingMode = PickingMode.Ignore };
-            _rulesRoot.style.position = Position.Absolute;
-            _rulesRoot.style.left = 0;
-            _rulesRoot.style.top = 0;
-            _rulesRoot.style.right = 0;
-            _rulesRoot.style.bottom = 0;
+            _rulesRoot.StretchToParentSize();
             rootVisualElement.Add(_rulesRoot);
             GameUiInputRules.Attach(_rulesRoot);
         }
@@ -41,6 +36,7 @@ namespace Client.Tests.Ui.Input
             UiInputExclusivity.ClearEscapeLatchForTest();
         }
 
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">recognizes editable text controls but not ordinary buttons</web-test>
         [Test]
         public void TextFieldFocusRaisesFlagAndLeavingClearsIt()
         {
@@ -123,6 +119,8 @@ namespace Client.Tests.Ui.Input
             LogAssert.NoUnexpectedReceived();
         }
 
+        /// <web-test file="e2e/tests/regression/inputLayer.spec.ts">ボタンにフォーカスしてSpaceを押してもclickせずキーハンドラにも届かない</web-test>
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">Spaceは文字入力欄以外で封じ、Reactハンドラへも渡さない</web-test>
         [Test]
         public void NavigationSubmitDoesNotClickFocusedButton()
         {
@@ -138,6 +136,8 @@ namespace Client.Tests.Ui.Input
             Assert.AreEqual(0, clickCount);
         }
 
+        /// <web-test file="e2e/tests/regression/inputLayer.spec.ts">Tabはブラウザのフォーカスを動かさない</web-test>
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">Tabは文字入力中でも封じるが、伝播は止めない</web-test>
         [Test]
         public void NavigationMoveNextDoesNotMoveFocus()
         {

@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.State.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,17 +24,29 @@ namespace Client.Ui.Screens.Settings
         private readonly UiCommandResultToaster _toaster;
         private readonly ModeSwitch<string> _languages;
 
-        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, UiCommandResultToaster toaster)
+        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             _commands = commands;
             _toaster = toaster;
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.Language));
 
-            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, LanguageOptions());
+            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, LanguageOptions(), osCursor);
+
             _languages.OnOptionSelected.Subscribe(OnLanguageSelected);
             Add(_languages);
             Apply(initial);
+
+            #region Internal
+
+            static IReadOnlyList<ModeSwitchOption<string>> LanguageOptions()
+            {
+                return LanguageCatalog.Languages
+                    .Select(language => new ModeSwitchOption<string>($"language-select-option-{language.Code}", language.Code, UiText.FromVerbatim(language.DisplayName)))
+                    .ToList();
+            }
+
+            #endregion
         }
 
         public void Apply(SettingsViewModel model)
@@ -46,13 +59,6 @@ namespace Client.Ui.Screens.Settings
         private void OnLanguageSelected(string languageCode)
         {
             _toaster.Report(SetLocaleCommandName, _commands.SetLanguage(languageCode));
-        }
-
-        private static IReadOnlyList<ModeSwitchOption<string>> LanguageOptions()
-        {
-            return LanguageCatalog.Languages
-                .Select(language => new ModeSwitchOption<string>($"language-select-option-{language.Code}", language.Code, UiText.FromVerbatim(language.DisplayName)))
-                .ToList();
         }
     }
 }

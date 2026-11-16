@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.Anchor
 {
@@ -16,18 +17,21 @@ namespace Client.Tests.Ui.Anchor
     {
         private const string WebAnchorIdsPath = "moorestech_web/webui/src/shared/tutorialAnchor/anchorIds.ts";
 
+        /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">static IDs match the shared fixture exactly</web-test>
         [Test]
         public void StaticIdsMatchWeb()
         {
             CollectionAssert.AreEquivalent(ReadWebValues("TutorialAnchorIds"), AnchorIds.StaticIds);
         }
 
+        /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">dynamic ID prefixes match the shared fixture exactly</web-test>
         [Test]
         public void DynamicPrefixesMatchWeb()
         {
             CollectionAssert.AreEquivalent(ReadWebValues("TutorialAnchorDynamicPrefixes"), AnchorIds.DynamicPrefixes);
         }
 
+        /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">lowercases guid-suffixed IDs and keeps the numeric suffixes intact</web-test>
         [Test]
         public void GeneratorsMatchWebFormats()
         {
@@ -37,6 +41,19 @@ namespace Client.Tests.Ui.Anchor
             Assert.AreEqual("challenge.node-abc", AnchorIds.ChallengeNode("ABC"));
             Assert.AreEqual("inventory.item-abc", AnchorIds.InventoryItem("ABC"));
             Assert.AreEqual("equipment.slot-3", AnchorIds.EquipmentSlot(3));
+        }
+
+        /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">rejects whitespace in the generated ID</web-test>
+        [Test]
+        public void WhitespaceInGeneratedIdLogsError()
+        {
+            // 空白入りIDはクラス名トークンとして解決しないので、生成時にエラーログで開発者へ知らせる
+            // A whitespace-bearing ID never resolves as a class token, so generation reports it to developers via an error log
+            LogAssert.Expect(LogType.Error, new Regex(@"\[AnchorIds\] anchor id must not contain whitespace: ""inventory\.item-a0000000-0000-4000-8000-000000000001 extra"""));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[AnchorIds\] anchor id must not contain whitespace: ""build-menu\.entry-block-iron chest"""));
+            AnchorIds.InventoryItem("a0000000-0000-4000-8000-000000000001 extra");
+            AnchorIds.BuildMenuEntry("block", "iron chest");
+            LogAssert.NoUnexpectedReceived();
         }
 
         private static List<string> ReadWebValues(string objectName)

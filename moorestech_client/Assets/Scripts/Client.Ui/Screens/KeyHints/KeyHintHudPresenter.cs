@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
@@ -12,7 +11,7 @@ namespace Client.Ui.Screens.KeyHints
     /// キーヒントを起動時に実画面の Chrome 層へ載せ、Model の変化を View へ押す
     /// Mounts the key hints on the viewport Chrome layer at startup and pushes Model changes to the View
     /// </summary>
-    public sealed class KeyHintHudPresenter : IInitializable, IDisposable
+    public sealed class KeyHintHudPresenter : IInitializable
     {
         internal const UiLayer HostLayer = UiLayer.Chrome;
         internal const UiFamily HostFamily = UiFamily.Viewport;
@@ -20,7 +19,6 @@ namespace Client.Ui.Screens.KeyHints
         private readonly GameUiRoot _gameUiRoot;
         private readonly KeyHintHudModel _model;
         private KeyHintHudView _view;
-        private IDisposable _subscription;
 
         public KeyHintHudPresenter(GameUiRoot gameUiRoot, KeyHintHudModel model)
         {
@@ -34,13 +32,8 @@ namespace Client.Ui.Screens.KeyHints
             // On the Web it sits in viewportOverlay (the real viewport) at z stage-overlay-panel-chrome
             _view = new KeyHintHudView();
             _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(_view);
-            _subscription = _model.Current.Subscribe(_view.Render);
+            _model.Current.Subscribe(_view.Render);
         }
 
-        public void Dispose()
-        {
-            _subscription?.Dispose();
-            _view?.RemoveFromHierarchy();
-        }
     }
 }

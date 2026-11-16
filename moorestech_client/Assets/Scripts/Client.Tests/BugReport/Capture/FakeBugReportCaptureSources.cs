@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
@@ -88,6 +90,8 @@ namespace Client.Tests.BugReport.Capture
             return new StagedServerCapture(StagingDirectory, StagedSnapshots, StagedPacketLogs, StagingMissing);
         }
         public IReadOnlyList<UnityLogEntry> Logs() => new List<UnityLogEntry>();
+        public GameUiExceptionReading GameUiExceptionsReading = new GameUiExceptionsRecorded(0, Array.Empty<GameUiExceptionSample>());
+        public GameUiExceptionReading GameUiExceptions() => GameUiExceptionsReading;
         public void SetCurrentUiState(UIStateEnum uiState) => CurrentUiState = uiState;
         public ClientStateSnapshot ClientState() => new(Vector3.zero, Vector3.zero, Vector3.zero, CurrentUiState.ToString(), 2, HasCamera, HasPlayer);
         public WebUiHealthReading WebUiHealth() => WebUiHealthReading;

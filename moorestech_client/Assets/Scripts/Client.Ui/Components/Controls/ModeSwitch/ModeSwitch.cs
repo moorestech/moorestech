@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using UniRx;
 using UnityEngine;
@@ -19,13 +20,14 @@ namespace Client.Ui.Components.Controls
 
         private readonly IReadOnlyList<ModeSwitchOption<TValue>> _options;
         private readonly List<Button> _buttons = new();
+        private readonly List<UiOsCursorHoverRequest> _hovers = new();
         private readonly HashSet<int> _disabledOptionIndexes = new();
         private readonly Subject<TValue> _onOptionSelected = new();
         private bool _enabledAll = true;
 
         public IObservable<TValue> OnOptionSelected => _onOptionSelected;
 
-        public ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options)
+        public ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options, IUiOsCursor osCursor)
         {
             name = testid;
             _options = options;
@@ -35,10 +37,44 @@ namespace Client.Ui.Components.Controls
 
             for (var i = 0; i < options.Count; i++)
             {
-                var button = CreateOptionButton(options[i], 0 < i);
+                var button = CreateOptionButton(options[i], 0 < i, osCursor);
                 _buttons.Add(button);
                 Add(button);
             }
+
+            #region Internal
+
+            Button CreateOptionButton(ModeSwitchOption<TValue> option, bool following, IUiOsCursor osCursor)
+            {
+                var button = new Button { name = option.Testid, focusable = false };
+                button.AddToClassList("mode-switch__option");
+
+                // 2 つ目以降に間隔のクラス
+                // Spacing class from the second option on
+                if (following) button.AddToClassList("mode-switch__option--following");
+
+                // Web の box-shadow の輪は面の外へ出した子で描く（ModeSwitchRing）
+                // The Web box-shadow ring is a child pushed outside the face (ModeSwitchRing)
+                button.Add(new ModeSwitchRing());
+
+                // 文は辞書の切替で解き直すラベルに載せる
+                // The label re-resolves on dictionary switches
+                var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
+                label.AddToClassList("mode-switch__label");
+                label.SetText(option.Label);
+                button.Add(label);
+
+                var value = option.Value;
+                button.clicked += () => _onOptionSelected.OnNext(value);
+
+                // Web の cursor: pointer（ModeSwitch/style.module.css:27。IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
+                // Web cursor: pointer (ModeSwitch/style.module.css:27, IconButton/style.module.css:9 and others); the part requests it itself (A-247)
+                _hovers.Add(new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
+                return button;
+
+            }
+
+            #endregion
         }
 
         public void SetSelected(TValue value)
@@ -82,7 +118,16 @@ namespace Client.Ui.Components.Controls
         {
             // 無効のボタンは clicked を出さない（Web の disabled と同じ）
             // Disabled buttons raise no clicked (same as the Web disabled)
-            for (var i = 0; i < _buttons.Count; i++) _buttons[i].SetEnabled(_enabledAll && !_disabledOptionIndexes.Contains(i));
+            for (var i = 0; i < _buttons.Count; i++)
+            {
+                var enabled = _enabledAll && !_disabledOptionIndexes.Contains(i);
+                _buttons[i].SetEnabled(enabled);
+
+                // Web の無効の選択肢は pointer-events: none（ModeSwitch/style.module.css:50-53）。UITK の無効の要素はポインタの事象を受け続けるので、拾わず指も外す
+                // Web disabled options are pointer-events: none (ModeSwitch/style.module.css:50-53); disabled UITK elements still get pointer events, so stop picking and drop the pointer
+                _buttons[i].pickingMode = enabled ? PickingMode.Position : PickingMode.Ignore;
+                if (!enabled) _hovers[i].Release();
+            }
         }
 
         // 値の比較はこの 1 か所だけ（SetSelected・SetOptionEnabled が共有する）
@@ -96,31 +141,6 @@ namespace Client.Ui.Components.Controls
             }
             index = -1;
             return false;
-        }
-
-        private Button CreateOptionButton(ModeSwitchOption<TValue> option, bool following)
-        {
-            var button = new Button { name = option.Testid, focusable = false };
-            button.AddToClassList("mode-switch__option");
-
-            // 2 つ目以降に間隔のクラス
-            // Spacing class from the second option on
-            if (following) button.AddToClassList("mode-switch__option--following");
-
-            // Web の box-shadow の輪は面の外へ出した子で描く（ModeSwitchRing）
-            // The Web box-shadow ring is a child pushed outside the face (ModeSwitchRing)
-            button.Add(new ModeSwitchRing());
-
-            // 文は辞書の切替で解き直すラベルに載せる
-            // The label re-resolves on dictionary switches
-            var label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-            label.AddToClassList("mode-switch__label");
-            label.SetText(option.Label);
-            button.Add(label);
-
-            var value = option.Value;
-            button.clicked += () => _onOptionSelected.OnNext(value);
-            return button;
         }
     }
 }

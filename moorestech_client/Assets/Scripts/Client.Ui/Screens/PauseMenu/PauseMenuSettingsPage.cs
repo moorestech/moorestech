@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Settings;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
@@ -17,12 +18,13 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly SprintModeSelectView _sprint;
         private readonly GraphicsQualitySettingsView _graphics;
 
-        public PauseMenuSettingsPage(SettingsViewModel settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, UiCommandResultToaster toaster)
+        public PauseMenuSettingsPage(SettingsViewModel settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
-            _subPage = new PauseMenuSubPageView(commands);
-            _language = new LanguageSelectView(settings, settingsCommands, toaster);
-            _sprint = new SprintModeSelectView(settings, settingsCommands);
-            _graphics = new GraphicsQualitySettingsView(settings, settingsCommands);
+            _subPage = new PauseMenuSubPageView(commands, osCursor);
+            _language = new LanguageSelectView(settings, settingsCommands, toaster, osCursor);
+            _sprint = new SprintModeSelectView(settings, settingsCommands, osCursor);
+            _graphics = new GraphicsQualitySettingsView(settings, settingsCommands, osCursor);
+
             _subPage.AddSection(_language);
             _subPage.AddSection(_sprint);
             _subPage.AddSection(_graphics);

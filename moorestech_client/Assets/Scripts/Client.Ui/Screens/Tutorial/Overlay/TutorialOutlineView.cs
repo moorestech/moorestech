@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Tutorial.Pulse;
 using Client.Ui.State.Text;
 using Client.Ui.State.Tutorial.Logic;
@@ -61,7 +62,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             // 拡縮の中心は箱の中心（Web は .highlight 自身の中心）
             // Scale around the box center (Web scales .highlight around its own center)
             _clip.style.transformOrigin = new TransformOrigin(new Length(box.CenterX - left), new Length(box.CenterY - top));
-            _clip.style.display = DisplayStyle.Flex;
+            UiDisplay.SetShown(_clip, true);
 
             #region Internal
 
@@ -96,7 +97,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
 
         public void HideRing()
         {
-            _clip.style.display = DisplayStyle.None;
+            UiDisplay.SetShown(_clip, false);
             Label.HideLabel();
         }
     }

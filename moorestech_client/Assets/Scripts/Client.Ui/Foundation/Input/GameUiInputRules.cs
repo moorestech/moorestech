@@ -75,6 +75,19 @@ namespace Client.Ui.Foundation.Input
                 _lastRefusedFocus = null;
             }
 
+            static void BlurNonTextFieldFocus(VisualElement root)
+            {
+                // silent-ok: 外す前にフォーカスが入力欄・印付き・無しへ移っていれば外すものが無い / 入力欄以外へのフォーカスは OnFocusIn の LogWarning で既に記録済み
+                // silent-ok: if focus already moved to a text field, a marked element or nowhere there is nothing to blur / the non-text-field focus was already logged by OnFocusIn
+                if (root.focusController?.focusedElement is not VisualElement focused || MayKeepFocus(focused)) return;
+                focused.Blur();
+            }
+
+            static string DescribeElement(VisualElement element)
+            {
+                return element == null ? "(null)" : $"{element.GetType().Name} '{element.name}'";
+            }
+
             #endregion
         }
 
@@ -116,14 +129,18 @@ namespace Client.Ui.Foundation.Input
             root.focusController.IgnoreEvent(evt);
             UiInputExclusivity.MarkEscapeBlurredTextFieldThisFrame();
             focused.Blur();
-        }
 
-        // 入力欄が ESC を使ったことをワールド側（ポーズ・閉じる）へ知らせ、変換中でないか返す
-        // Tell the world side (pause / close) that a text field used this ESC, and return whether no IME composition is in progress
-        private static bool ConsumeEscapeOutsideComposition()
-        {
-            UiInputExclusivity.ConsumeEscapeThisFrame();
-            return string.IsNullOrEmpty(UnityEngine.Input.compositionString);
+            #region Internal
+
+            // 入力欄が ESC を使ったことをワールド側（ポーズ・閉じる）へ知らせ、変換中でないか返す
+            // Tell the world side (pause / close) that a text field used this ESC, and return whether no IME composition is in progress
+            static bool ConsumeEscapeOutsideComposition()
+            {
+                UiInputExclusivity.ConsumeEscapeThisFrame();
+                return string.IsNullOrEmpty(UnityEngine.Input.compositionString);
+            }
+
+            #endregion
         }
 
         private static void CancelNavigation(EventBase evt)
@@ -131,14 +148,6 @@ namespace Client.Ui.Foundation.Input
             evt.StopImmediatePropagation();
             var root = (VisualElement)evt.currentTarget;
             root.focusController.IgnoreEvent(evt);
-        }
-
-        private static void BlurNonTextFieldFocus(VisualElement root)
-        {
-            // silent-ok: 外す前にフォーカスが入力欄・印付き・無しへ移っていれば外すものが無い / 入力欄以外へのフォーカスは OnFocusIn の LogWarning で既に記録済み
-            // silent-ok: if focus already moved to a text field, a marked element or nowhere there is nothing to blur / the non-text-field focus was already logged by OnFocusIn
-            if (root.focusController?.focusedElement is not VisualElement focused || MayKeepFocus(focused)) return;
-            focused.Blur();
         }
 
         // 入力欄と印付きだけがフォーカスを保ってよい
@@ -157,11 +166,6 @@ namespace Client.Ui.Foundation.Input
                 if (current is TextField) return true;
             }
             return false;
-        }
-
-        private static string DescribeElement(VisualElement element)
-        {
-            return element == null ? "(null)" : $"{element.GetType().Name} '{element.name}'";
         }
     }
 }

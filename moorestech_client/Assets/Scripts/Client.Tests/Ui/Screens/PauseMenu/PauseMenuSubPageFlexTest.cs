@@ -1,6 +1,8 @@
 using Client.Localization;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.PauseMenu;
 using NUnit.Framework;
 using UnityEngine.UIElements;
@@ -34,7 +36,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             host.style.width = 300f;
             host.style.maxHeight = HostMaxHeight;
             host.style.flexDirection = FlexDirection.Column;
-            var subPage = new PauseMenuSubPageView(new RecordingPauseMenuCommands());
+            var subPage = new PauseMenuSubPageView(new RecordingPauseMenuCommands(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _section = new VisualElement();
             _section.style.flexShrink = 0f;
             subPage.AddSection(_section);

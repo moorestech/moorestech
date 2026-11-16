@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
@@ -14,7 +13,7 @@ namespace Client.Ui.Screens.Notification
     /// 背面の層（舞台の裏）の実画面の族へ通知のホストを常駐させ、読み口の行の一覧を描かせ、書き口をホストへ渡す（Web App.tsx の stage より前の NotificationHost）
     /// Keeps the notification host resident in the viewport family of the behind-stage layer, renders the read side's rows and hands the write side to the host (Web App.tsx NotificationHost before the stage)
     /// </summary>
-    public sealed class NotificationLayerPresenter : IInitializable, IDisposable
+    public sealed class NotificationLayerPresenter : IInitializable
     {
         internal const UiLayer HostLayer = UiLayer.BehindStage;
         internal const UiFamily HostFamily = UiFamily.Viewport;
@@ -25,8 +24,6 @@ namespace Client.Ui.Screens.Notification
         private readonly INotificationRowIcons _icons;
         private readonly StageScaleSource _stageScaleSource;
         private NotificationHostView _host;
-        private IDisposable _subscription;
-        private IDisposable _scaleSubscription;
 
         public NotificationLayerPresenter(GameUiRoot gameUiRoot, NotificationModel model, INotificationTextLookup textLookup, INotificationRowIcons icons, StageScaleSource stageScaleSource)
         {
@@ -43,15 +40,9 @@ namespace Client.Ui.Screens.Notification
             // Contents scale with the stage via PanelSettings; only the unscaled left edge follows StageScaleSource to stay 16 real px (Web left: 1rem + contents scale(var(--ui-scale)))
             _host = new NotificationHostView(_model, _textLookup, _icons);
             _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(_host);
-            _scaleSubscription = _stageScaleSource.Scale.Subscribe(_host.SetStageScale);
-            _subscription = _model.Current.Subscribe(_host.Render);
+            _stageScaleSource.Scale.Subscribe(_host.SetStageScale);
+            _model.Current.Subscribe(_host.Render);
         }
 
-        public void Dispose()
-        {
-            _subscription?.Dispose();
-            _scaleSubscription?.Dispose();
-            _host?.RemoveFromHierarchy();
-        }
     }
 }

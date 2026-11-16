@@ -7,8 +7,8 @@ using Game.Train.Unit;
 namespace Client.Ui.State.Train.TimetableEdit.Send
 {
     /// <summary>
-    /// UI が送る停車駅に固定の出発条件を付ける（Web ホスト TrainTimetableStopParser と同じ規則。D-2）
-    /// Attaches the fixed departure condition to stops sent from the UI (same rule as the Web host TrainTimetableStopParser; D-2)
+    /// UI が送る停車駅に固定の出発条件を付ける唯一の口（UITK の TrainTimetableCommands と Web ホストの train_timetable.replace が呼ぶ。DC-23 A）
+    /// The single place attaching the fixed departure condition to UI-sent stops (called by the UITK TrainTimetableCommands and the Web host train_timetable.replace; DC-23 A)
     /// </summary>
     public static class TrainTimetableDeparture
     {

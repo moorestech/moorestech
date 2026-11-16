@@ -1,5 +1,6 @@
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.Submit;
@@ -39,9 +40,10 @@ namespace Client.Starter.Registration
                 return;
             }
 
-            // バグ報告の常時記録（ログリング・録画リング）と確保の起点
-            // Always-on capture for bug reports (log ring, frame recording ring) and the capture triggers
+            // バグ報告の常時記録（ログリング・UI の例外の数え手・録画リング）と確保の起点
+            // Always-on capture for bug reports (log ring, UI exception tally, frame recording ring) and the capture triggers
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
+            builder.RegisterEntryPoint<GameUiExceptionTally>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
             builder.Register<IWebUiHealthProbe, WebUiHealthProbe>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);

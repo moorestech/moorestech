@@ -1,4 +1,5 @@
 // moorestech_client/Assets/Scripts/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.cs
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Text.WrapSafe;
 using Client.Ui.State.Text;
@@ -77,7 +78,7 @@ namespace Client.Ui.Components.Text
             void ShowText(Label label, string value)
             {
                 label.text = value;
-                label.style.display = value.Length == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+                UiDisplay.SetShown(label, value.Length != 0);
             }
 
             void MarkFollowingItems()
@@ -87,7 +88,7 @@ namespace Client.Ui.Components.Text
                 var foundFirstShown = false;
                 foreach (var item in Children())
                 {
-                    if (item.style.display == DisplayStyle.None) continue;
+                    if (!UiDisplay.IsShownInline(item)) continue;
                     item.EnableInClassList(FollowingClass, foundFirstShown);
                     foundFirstShown = true;
                 }

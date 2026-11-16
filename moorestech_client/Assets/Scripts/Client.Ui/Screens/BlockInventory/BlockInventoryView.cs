@@ -2,6 +2,8 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.BlockInventory.Logic.Panel;
@@ -34,7 +36,7 @@ namespace Client.Ui.Screens.BlockInventory
         private readonly BlockInventoryNaturalScroll _naturalScroll;
         private LocalizedLabel _error;
 
-        public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster)
+        public BlockInventoryView(StageColumnsLayout stage, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             // 外殻: block-inventory（Viewer 列の子）> GamePanel(block-inventory-panel, Default) > [エラー行, 本文の器]、閉じるは外殻に絶対配置
             // Shell: block-inventory (Viewer column child) > GamePanel(block-inventory-panel, Default) > [error row, body holder]; close is absolutely placed on the shell
@@ -54,7 +56,8 @@ namespace Client.Ui.Screens.BlockInventory
 
             // 閉じるは Web と同じく外殻の右上に重ねる。自要素のクリックの結線で、拒否はビルドメニューと同じく Report する（前例 BuildMenuView）
             // Close overlays the shell's top-right as on the Web; wiring its own click, with refusals reported as the build menu does (precedent BuildMenuView)
-            _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph());
+            _close = new IconButton("block-inventory-close", new IconButtonCloseGlyph(), osCursor);
+
             _close.AddToClassList("block-inventory__close");
             TutorialAnchor.Mark(_close, AnchorIds.InventoryCloseButton);
             _close.OnClicked.Subscribe(_ => toaster.Report(UiStateTransitionRules.RequestCommandName, commands.Close()));
@@ -65,12 +68,12 @@ namespace Client.Ui.Screens.BlockInventory
 
             // 生成直後は隠し、Presenter の SetShown が出す（前例 PauseMenuView）
             // Start hidden; the presenter's SetShown reveals it (precedent PauseMenuView)
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
 
         public void Render(BlockInventoryPanelState state, BlockInventoryPanelLayout layout)
@@ -113,7 +116,7 @@ namespace Client.Ui.Screens.BlockInventory
                 var error = ((OpenInventoryPanel)state).Error;
                 if (!BlockInventoryPanelErrorText.TryGetLocalizationKey(error, out var key))
                 {
-                    if (_error != null) _error.style.display = DisplayStyle.None;
+                    if (_error != null) UiDisplay.SetShown(_error, false);
                     return;
                 }
                 if (_error == null)
@@ -126,7 +129,7 @@ namespace Client.Ui.Screens.BlockInventory
                 }
                 _error.name = state is OpenTrainInventoryPanel ? TrainErrorName : BlockErrorName;
                 _error.SetKey(key);
-                _error.style.display = DisplayStyle.Flex;
+                UiDisplay.SetShown(_error, true);
 
                 // 文を入れてから初めて載せる
                 // Mount only after the text is set

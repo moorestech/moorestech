@@ -83,7 +83,9 @@ namespace Client.Tests.EditModeInPlayingTest
                 // Always restore the env vars and subscription; leaving them would boot later tests in exhibition mode
                 try
                 {
-                    await LoadMainGame();
+                    // ゲートの待機中は初期化が来ないので、ローダーが出た時点で戻る入口を使う
+                    // Initialization never arrives while the gate waits, so use the entry that returns once the loader appears
+                    await LoadMainGameUntilLoaderShown(null, null);
                     await WaitMainGameActive();
                     for (var frame = 0; frame < SettleFrameCount; frame++) await UniTask.Yield();
 

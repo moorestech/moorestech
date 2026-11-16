@@ -15,7 +15,7 @@ from pathlib import Path
 
 import digest_schema as schema
 from digest_collect import jst_date
-from display_fields import pick, warn, web_ui_health
+from display_fields import game_ui_exceptions, pick, warn, web_ui_health
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from safe_segment import is_safe_segment  # noqa: E402
@@ -75,6 +75,7 @@ def base_row(box: Path, meta: dict | None) -> dict:
         "media": [name for name in MEDIA_FILES if (box / name).is_file() or name in remote],
         "problem": None, "kind": "", "description": "", "buildLabel": "",
         "webUiHealth": {"status": "unreadable"},
+        "gameUiExceptions": {"status": "unreadable"},
     }
 
 
@@ -124,6 +125,9 @@ def display_manifest(raw: dict, source: Path) -> dict:
         # CEF 停止の記録（manifest v6）。判定せず生の値を出す
         # CEF stall record (manifest v6); raw values with no verdict
         "webUiHealth": web_ui_health(raw, source),
+        # UI の例外の数と見本（manifest v7）
+        # UI exception count and samples (manifest v7)
+        "gameUiExceptions": game_ui_exceptions(raw, source),
     }
 
 

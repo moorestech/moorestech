@@ -48,7 +48,7 @@ namespace Client.Ui.Content
         // The face and detail draw the name themselves, so no fallback text is carried
         private static UiIcon Textured(Texture2D texture, Guid id)
         {
-            return new UiIcon(texture, id.ToString("D"), UiText.FromVerbatim(string.Empty));
+            return new UiIcon(texture, id.ToString("D"), UiText.Empty);
         }
     }
 }

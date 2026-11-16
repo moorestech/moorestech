@@ -1,4 +1,3 @@
-using System;
 using Client.Input;
 using UniRx;
 using UnityEngine;
@@ -10,9 +9,8 @@ namespace Client.Ui.Foundation.Input
     /// 入力欄フォーカスで IME を On/Off する
     /// Switch IME On/Off by text field focus
     /// </summary>
-    public class ImeCompositionModeApplier : IInitializable, IDisposable
+    public class ImeCompositionModeApplier : IInitializable
     {
-        private IDisposable _subscription;
 
         public void Initialize()
         {
@@ -22,14 +20,9 @@ namespace Client.Ui.Foundation.Input
 
             // メインスレッドで適用し、TextField のフォーカスアウトで Auto に戻る処理より後に効かせる
             // Apply on the main thread so it lands after TextField's focus-out reset to Auto
-            _subscription = UiInputExclusivity.TextInputFocused
+            UiInputExclusivity.TextInputFocused
                 .ObserveOnMainThread()
                 .Subscribe(Apply);
-        }
-
-        public void Dispose()
-        {
-            _subscription?.Dispose();
         }
 
         private static void Apply(bool textInputFocused)

@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Client.Ui.State.Train.Platform.Edit;
@@ -16,7 +17,7 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
     {
         private readonly GameTextField _input;
 
-        public TrainStationNameRow(TrainPlatformEditCommands commands)
+        public TrainStationNameRow(TrainPlatformEditCommands commands, IUiOsCursor osCursor)
         {
             name = "train-station-name-section";
             AddToClassList("train-station-name");
@@ -31,7 +32,8 @@ namespace Client.Ui.Screens.BlockInventory.Train.Parts
             _input.AddToClassList("train-station-name__row-end");
             _input.AddToClassList("train-station-name__input");
             _input.OnValueChanged.Subscribe(commands.EditStationName);
-            var apply = new PanelActionButton("train-station-name-apply", new UiText(LocalizationKeys.Ui.BlockInventory.StationNameApply));
+            var apply = new PanelActionButton("train-station-name-apply", new UiText(LocalizationKeys.Ui.BlockInventory.StationNameApply), osCursor);
+
             apply.AddToClassList("train-station-name__row-end");
             apply.OnClicked.Subscribe(_ => commands.ApplyStationName());
             Add(label);

@@ -1,3 +1,5 @@
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
@@ -22,7 +24,7 @@ namespace Client.Ui.Screens.Settings
         private readonly VisualElement _custom;
         private readonly List<IGraphicsQualityRowSwitch> _itemSwitches = new();
 
-        public GraphicsQualitySettingsView(SettingsViewModel initial, ISettingsCommands commands)
+        public GraphicsQualitySettingsView(SettingsViewModel initial, ISettingsCommands commands, IUiOsCursor osCursor)
         {
             _commands = commands;
             AddToClassList("settings-section");
@@ -33,7 +35,7 @@ namespace Client.Ui.Screens.Settings
             // カスタムはどの選択肢にも一致しないので無選択にし、1 行で知らせる
             // Custom matches no option, so it shows no selection plus a one-line notice
             Add(SettingsSectionParts.Caption(LocalizationKeys.Ui.Settings.GraphicsPreset));
-            _preset = new ModeSwitch<GraphicsQualityPreset>("graphics-preset", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, PresetOptions());
+            _preset = new ModeSwitch<GraphicsQualityPreset>("graphics-preset", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, PresetOptions(), osCursor);
             _preset.OnOptionSelected.Subscribe(_commands.ApplyGraphicsPreset);
             Add(_preset);
             _custom = SettingsSectionParts.Note("graphics-preset-custom", LocalizationKeys.Ui.Settings.GraphicsPresetCustom);
@@ -42,18 +44,33 @@ namespace Client.Ui.Screens.Settings
             foreach (var row in GraphicsQualityItemRows.All)
             {
                 Add(SettingsSectionParts.Caption(row.Caption));
-                var itemSwitch = row.CreateSwitch(_commands);
+                var itemSwitch = row.CreateSwitch(_commands, osCursor);
+
                 _itemSwitches.Add(itemSwitch);
                 Add(itemSwitch.Element);
             }
 
             Apply(initial);
+
+            #region Internal
+
+            static IReadOnlyList<ModeSwitchOption<GraphicsQualityPreset>> PresetOptions()
+            {
+                return new List<ModeSwitchOption<GraphicsQualityPreset>>
+                {
+                    new("graphics-preset-high", GraphicsQualityPreset.High, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetHigh)),
+                    new("graphics-preset-medium", GraphicsQualityPreset.Medium, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetMedium)),
+                    new("graphics-preset-low", GraphicsQualityPreset.Low, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetLow)),
+                };
+            }
+
+            #endregion
         }
 
         public void Apply(SettingsViewModel model)
         {
-            SettingsSectionParts.ShowIf(_recovered, model.GraphicsRecovered);
-            SettingsSectionParts.ShowIf(_custom, model.Preset == GraphicsQualityPresetChoice.Custom);
+            UiDisplay.SetShown(_recovered, model.GraphicsRecovered);
+            UiDisplay.SetShown(_custom, model.Preset == GraphicsQualityPresetChoice.Custom);
             switch (model.Preset)
             {
                 case GraphicsQualityPresetChoice.High: _preset.SetSelected(GraphicsQualityPreset.High); break;
@@ -63,16 +80,6 @@ namespace Client.Ui.Screens.Settings
                 default: throw new System.ArgumentOutOfRangeException(nameof(model), model.Preset, null);
             }
             foreach (var itemSwitch in _itemSwitches) itemSwitch.Apply(model.Graphics);
-        }
-
-        private static IReadOnlyList<ModeSwitchOption<GraphicsQualityPreset>> PresetOptions()
-        {
-            return new List<ModeSwitchOption<GraphicsQualityPreset>>
-            {
-                new("graphics-preset-high", GraphicsQualityPreset.High, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetHigh)),
-                new("graphics-preset-medium", GraphicsQualityPreset.Medium, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetMedium)),
-                new("graphics-preset-low", GraphicsQualityPreset.Low, new UiText(LocalizationKeys.Ui.Settings.GraphicsPresetLow)),
-            };
         }
     }
 }

@@ -17,6 +17,8 @@ namespace Client.Ui.Foundation.Composite
     {
         private readonly PanelSettings _settings;
         private RenderTexture _texture;
+        private int _failedWidth;
+        private int _failedHeight;
 
         public UiSrgbPanelTarget(UIDocument document)
         {
@@ -29,22 +31,54 @@ namespace Client.Ui.Foundation.Composite
             _settings.clearColor = true;
             _settings.colorClearValue = Color.clear;
             document.panelSettings = _settings;
-            SyncToScreenSize();
+
+            // 初回に作れなければ起動の失敗として投げる（S5-gate D-18）
+            // Failing the first creation throws as a boot failure (S5-gate D-18)
+            if (Resize(Screen.width, Screen.height) == UiSrgbPanelResizeResult.CreationFailed) throw new UiSrgbPanelRenderTextureUnavailableException(Screen.width, Screen.height);
         }
 
-        // 画面の大きさが変わったら RT を作り直す（Unity に画面の大きさの変化通知は無い）
-        // Recreate the RT when the screen size changed (Unity has no screen-size change notification)
-        public void SyncToScreenSize()
+        // 画面の大きさが変わったら RT を作り直す。作れなくても投げない（Tick の例外は VContainer の Tick ループごと止めるため）
+        // Recreate the RT when the screen size changed; never throws (an exception from Tick stops VContainer's whole Tick loop)
+        internal UiSrgbPanelResizeResult SyncToSize(int width, int height)
         {
+            // silent-ok: 同じ大きさの失敗は前回 LogError 済みで、毎フレーム Create を叩くと Unity のエラーが溢れる / 開発者は最初の LogError で気づき、大きさが変われば再び試す
+            if (0 < width && width == _failedWidth && height == _failedHeight) return UiSrgbPanelResizeResult.SkippedFailedSize;
+
+            var result = Resize(width, height);
+            if (result == UiSrgbPanelResizeResult.CreationFailed) Debug.LogError($"[UiSrgbPanelTarget] failed to create the {width}x{height} panel RT; keeping the previous RT and retrying when the screen size changes");
+            return result;
+        }
+
+        private UiSrgbPanelResizeResult Resize(int width, int height)
+        {
+            // 失敗の記録は直前に試した大きさの分だけ持つ（大きさが変わればまた試す）
+            // The failure record covers only the size tried last (a changed size is tried again)
+            _failedWidth = 0;
+            _failedHeight = 0;
+
             // silent-ok: 最小化中は描く物が無く前の RT を使い続けてよい / 復帰時に通常経路で作り直す
-            if (Screen.width <= 0 || Screen.height <= 0) return;
-            if (_texture != null && _texture.width == Screen.width && _texture.height == Screen.height) return;
+            if (width <= 0 || height <= 0) return UiSrgbPanelResizeResult.Unchanged;
+            if (_texture != null && _texture.width == width && _texture.height == height) return UiSrgbPanelResizeResult.Unchanged;
+
+            // 作れなかったら前の RT のまま、失敗した大きさを覚えて返す
+            // On failure keep the previous RT and remember the failed size
+            var candidate = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
+            if (!candidate.Create())
+            {
+                Release(candidate);
+                _failedWidth = width;
+                _failedHeight = height;
+                return UiSrgbPanelResizeResult.CreationFailed;
+            }
+
+            // 作れたときだけ差し替えて前を捨てる
+            // Swap only on success and drop the previous one
             var previous = _texture;
-            _texture = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { name = "GameUiSrgbPanel" };
-            if (!_texture.Create()) throw new UiSrgbPanelRenderTextureUnavailableException(Screen.width, Screen.height);
+            _texture = candidate;
             _settings.targetTexture = _texture;
             UiSrgbCompositeSource.SetTexture(_texture);
             if (previous != null) Release(previous);
+            return UiSrgbPanelResizeResult.Recreated;
         }
 
         public void Dispose()

@@ -1,6 +1,7 @@
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
@@ -30,11 +31,8 @@ namespace Client.Ui.Screens.BugReport
             _resendButton.OnClicked.Subscribe(_ => commands.ResendFailedReports());
             _exportButton = CreateButton("bug-report-export-unsent", LocalizationKeys.Ui.BugReport.ExportUnsent);
             _exportButton.OnClicked.Subscribe(_ => commands.ExportUnsentReports());
-            _exportStatus = new LocalizedLabel { name = "bug-report-export-status" };
+            _exportStatus = new LocalizedLabel(UiText.Empty) { name = "bug-report-export-status" };
             _exportStatus.AddToClassList("bug-report__status");
-            // Idle は空文で隠す。文なしで載せない
-            // Idle holds empty text and hides; never attach textless
-            _exportStatus.SetText(UiText.FromVerbatim(string.Empty));
             Add(_resendButton);
             Add(_exportButton);
             Add(_exportStatus);
@@ -45,15 +43,15 @@ namespace Client.Ui.Screens.BugReport
             // 書き出し中は二重に走らせないよう両方とも押せなくする
             // Both buttons are disabled while exporting so neither starts a second run
             var exporting = export is PlaytestExportRunning;
-            ShowIf(_resendButton, BugReportFormText.ShowResend(delivery));
-            ShowIf(_exportButton, BugReportFormText.ShowExport(delivery));
+            UiDisplay.SetShown(_resendButton, BugReportFormText.ShowResend(delivery));
+            UiDisplay.SetShown(_exportButton, BugReportFormText.ShowExport(delivery));
             _resendButton.SetEnabled(!exporting);
             _exportButton.SetEnabled(!exporting);
 
             // Idle は隠し、他は文を入れる
             // Idle hides the line; others set the sentence
             var hasLine = BugReportFormText.TryDescribeExport(export, out var line);
-            ShowIf(_exportStatus, hasLine);
+            UiDisplay.SetShown(_exportStatus, hasLine);
             if (hasLine) _exportStatus.SetText(line);
         }
 
@@ -62,11 +60,6 @@ namespace Client.Ui.Screens.BugReport
             var button = new FormButton(testid, new UiText(label), FormButtonVariant.Filled);
             button.AddToClassList("bug-report__button");
             return button;
-        }
-
-        private static void ShowIf(VisualElement element, bool visible)
-        {
-            element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

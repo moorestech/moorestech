@@ -10,8 +10,8 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 namespace Client.Ui.State.Train.Platform.Edit
 {
     /// <summary>
-    /// 駅名・移送モードをサーバーへ送る（Web ホスト TrainStationActions・TrainPlatformActions と同じ規則。D-2）
-    /// Sends station names and transfer modes to the server (same rules as the Web host TrainStationActions and TrainPlatformActions; D-2)
+    /// 駅名・移送モードをサーバーへ送る。移送モードは Web ホストの train_platform.set_transfer_mode もここを呼ぶ（DC-23 A）。駅名は Web ホスト TrainStationActions と同じ規則（wire の失敗理由の添え方が違うので付け替えない。D-17）
+    /// Sends station names and transfer modes to the server; the Web host train_platform.set_transfer_mode also calls the transfer mode here (DC-23 A); station names follow the same rules as the Web host TrainStationActions (not rerouted because the wire suffixes the failure reason; D-17)
     /// </summary>
     public sealed class TrainBlockCommands : ITrainBlockCommands
     {

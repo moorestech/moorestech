@@ -5,9 +5,11 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
+using Client.Tests.Ui.Components;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
@@ -35,7 +37,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft));
+            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
             simulate.FrameUpdate();
         }
@@ -86,6 +88,18 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         }
 
         [Test]
+        public void ボタンの幅は整理ボタンの既定幅でなく本文の並びが決める()
+        {
+            // Web pauseMenu/style.module.css の --panel-action-button-width: auto。既定幅のままだと長い名前が折り返す
+            // Web pauseMenu/style.module.css --panel-action-button-width: auto; the default width would wrap long labels
+            var defaultWidth = ThemeTokenFile.ResolvePixels("--panel-action-button-width");
+            foreach (var button in _view.Query<Button>().ToList())
+            {
+                Assert.Greater(Mathf.Abs(button.resolvedStyle.width - defaultWidth), 0.5f, $"{button.name} width {button.resolvedStyle.width}");
+            }
+        }
+
+        [Test]
         public void トップの題とアンカーはWebと同じ綴り()
         {
             Assert.AreEqual("Pause Menu", _view.Q<Label>(className: "pause-menu__title").PlainText());
@@ -108,24 +122,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsTrue(IsShown(line));
             Assert.AreEqual("Disconnected from server", line.PlainText());
             Assert.AreEqual(new Color(0xff / 255f, 0x87 / 255f, 0x87 / 255f), line.resolvedStyle.color);
-        }
-
-        [Test]
-        public void 設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る()
-        {
-            ShowPage(PauseMenuPage.Settings);
-            Assert.AreEqual("Settings", _view.Q<Label>(className: "pause-menu__title").PlainText());
-            Assert.IsNotNull(_view.Q("language-select"));
-            Assert.IsNull(_view.Q("pause-menu-save"));
-            Assert.IsInstanceOf<GameScrollView>(Find<VisualElement>(_view, "pause-menu-body"));
-
-            simulate.Click(Find<Button>(_view, "pause-menu-back"));
-            Assert.AreEqual(PauseMenuCommandKind.ShowPage, _commands.Issued.Last().Kind);
-            Assert.AreEqual(PauseMenuPage.Top, _commands.Issued.Last().Page);
-            Assert.IsTrue(Find<Button>(_view, "pause-menu-back").ClassListContains(AnchorIds.PauseBackToTop));
-            Assert.AreEqual(720f - 80f, Frame().worldBound.height, 0.5f);
-            Assert.AreEqual(420f, Frame().worldBound.width, 0.5f);
-            Assert.AreEqual(640f, Frame().worldBound.center.x, 0.5f);
         }
 
         /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">バグ報告の書きかけはトップへ戻って再び開いても残る</web-test>

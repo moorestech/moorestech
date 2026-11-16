@@ -1,4 +1,5 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using UnityEngine.UIElements;
 
@@ -28,16 +29,7 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 
                 // 外へ広げた分だけ内側を空け、格子の位置と寸法を変えない（Web: margin calc(-1 * inset)・padding inset）
                 // Pad inward by what was widened outward so the grid keeps its position and size (Web: margin calc(-1 * inset), padding inset)
-                var outer = scroll.style;
-                outer.marginLeft = -inset;
-                outer.marginTop = -inset;
-                outer.marginRight = -inset;
-                outer.marginBottom = -inset;
-                var content = scroll.contentContainer.style;
-                content.paddingLeft = inset;
-                content.paddingTop = inset;
-                content.paddingRight = inset;
-                content.paddingBottom = inset;
+                UiScrollClipInset.Apply(scroll, scroll.contentContainer, inset);
             }
 
             #endregion

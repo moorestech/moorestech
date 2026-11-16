@@ -34,7 +34,6 @@ namespace Client.Ui.Components.Panels
                 {
                     GamePanelSurfaceKind.Hud => "game-panel-surface--hud",
                     GamePanelSurfaceKind.Skit => "game-panel-surface--skit",
-                    GamePanelSurfaceKind.SkitChoice => "game-panel-surface--skit-choice",
                     _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
                 };
             }

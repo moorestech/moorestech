@@ -1,4 +1,5 @@
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Layout;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Shell
@@ -20,7 +21,7 @@ namespace Client.Ui.Screens.Shell
             Add(new ScreenVignette());
             _backdrop = new VisualElement { name = "screen-backdrop" };
             _backdrop.AddToClassList("screen-shell__backdrop");
-            _backdrop.style.display = DisplayStyle.None;
+            UiDisplay.SetShown(_backdrop, false);
             Add(_backdrop);
 
             // 部分木ごと入力を取らない（Web の .viewport と .backdrop は pointer-events: none）
@@ -32,7 +33,7 @@ namespace Client.Ui.Screens.Shell
         // Passive; ScreenBackdropPresenter decides on which screens it shows (design §4.4, A-44)
         public void SetBackdropShown(bool shown)
         {
-            _backdrop.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_backdrop, shown);
         }
     }
 }

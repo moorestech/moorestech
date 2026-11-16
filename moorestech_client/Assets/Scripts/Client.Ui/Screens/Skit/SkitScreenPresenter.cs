@@ -1,3 +1,4 @@
+using Client.Input.KeyPress;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
@@ -24,8 +25,9 @@ namespace Client.Ui.Screens.Skit
         private readonly ISkitCommands _commands;
         private readonly UiCommandResultToaster _toaster;
         private readonly IUiOsCursor _osCursor;
+        private readonly ISkitAdvanceKeyPressSource _skitAdvance;
 
-        public SkitScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, SkitPresentationModel model, WholeUiVisibilityModel wholeUiVisibility, ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public SkitScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, SkitPresentationModel model, WholeUiVisibilityModel wholeUiVisibility, ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor, ISkitAdvanceKeyPressSource skitAdvance)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
@@ -34,6 +36,7 @@ namespace Client.Ui.Screens.Skit
             _commands = commands;
             _toaster = toaster;
             _osCursor = osCursor;
+            _skitAdvance = skitAdvance;
         }
 
         public void Initialize()
@@ -54,7 +57,7 @@ namespace Client.Ui.Screens.Skit
             });
             _routingState.Current.Subscribe(snapshot => view.SetInteractive(AcceptsSkitInput(snapshot)));
             _wholeUiVisibility.IsShown.Subscribe(view.SetWholeUiShown);
-            SkitEnterKeySource.ObservePressed().Subscribe(_ => view.HandleEnterKey());
+            _skitAdvance.OnPressed.Subscribe(_ => view.HandleEnterKey());
 
             #region Internal
 

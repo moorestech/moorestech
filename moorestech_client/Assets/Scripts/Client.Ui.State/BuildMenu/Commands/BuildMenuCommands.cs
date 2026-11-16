@@ -16,15 +16,15 @@ namespace Client.Ui.State.BuildMenu.Commands
     /// </summary>
     public sealed class BuildMenuCommands : IBuildMenuCommands
     {
-        private readonly UIStateControl _uiStateControl;
+        private readonly UiRoutingState _routing;
         private readonly IUiStateTransitionRequester _transitionRequester;
         private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly BuildMenuSelection _buildMenuSelection;
         private readonly IBlueprintDeleteService _blueprintDeleteService;
 
-        public BuildMenuCommands(UIStateControl uiStateControl, IUiStateTransitionRequester transitionRequester, PlacementTargetResolver placementTargetResolver, BuildMenuSelection buildMenuSelection, IBlueprintDeleteService blueprintDeleteService)
+        public BuildMenuCommands(UiRoutingState routing, IUiStateTransitionRequester transitionRequester, PlacementTargetResolver placementTargetResolver, BuildMenuSelection buildMenuSelection, IBlueprintDeleteService blueprintDeleteService)
         {
-            _uiStateControl = uiStateControl;
+            _routing = routing;
             _transitionRequester = transitionRequester;
             _placementTargetResolver = placementTargetResolver;
             _buildMenuSelection = buildMenuSelection;
@@ -68,7 +68,7 @@ namespace Client.Ui.State.BuildMenu.Commands
 
         private bool IsBuildMenuOpen()
         {
-            return _uiStateControl.CurrentState == UIStateEnum.BuildMenu;
+            return BuildMenuScreenVisibility.IsShown(_routing.Current.Value);
         }
     }
 }

@@ -54,6 +54,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         }
 
         /// <web-test file="e2e/tests/block/blockInventory.spec.ts">ブロックを閉じると panel が消える</web-test>
+        /// <web-test file="e2e/tests/uiState.spec.ts">ブロックパネルの✕で ui_state.request(GameScreen) を送り画面が閉じる</web-test>
         [Test]
         public void 閉じるを押すと遷移を頼み状態が閉になると消える()
         {

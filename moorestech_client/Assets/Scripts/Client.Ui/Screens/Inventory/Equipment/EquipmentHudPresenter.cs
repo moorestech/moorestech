@@ -17,13 +17,12 @@ namespace Client.Ui.Screens.Inventory.Equipment
     /// 装備 HUD を Chrome 層へ載せ、掴める画面でだけクリックを受ける（A-57）
     /// Mounts the equipment HUD on the chrome layer and clicks only on grab screens (A-57)
     /// </summary>
-    public sealed class EquipmentHudPresenter : IInitializable, IDisposable
+    public sealed class EquipmentHudPresenter : IInitializable
     {
         private readonly GameUiRoot _root;
         private readonly UiRoutingState _routing;
         private readonly PlayerInventoryPanelModel _model;
         private readonly EquipmentHudView _view;
-        private IDisposable _routingSubscription;
         private IDisposable _modelSubscription;
 
         public EquipmentHudPresenter(GameUiRoot root, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, GameContentPresentation content, UiCommandResultToaster toaster)
@@ -37,7 +36,7 @@ namespace Client.Ui.Screens.Inventory.Equipment
         public void Initialize()
         {
             _root.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_view);
-            _routingSubscription = _routing.Current.Subscribe(snapshot => Apply(UiScreenTraitsTable.Get(snapshot.Screen)));
+            _routing.Current.Subscribe(snapshot => Apply(UiScreenTraitsTable.Get(snapshot.Screen)));
 
             #region Internal
 
@@ -55,11 +54,5 @@ namespace Client.Ui.Screens.Inventory.Equipment
             #endregion
         }
 
-        public void Dispose()
-        {
-            _routingSubscription?.Dispose();
-            _modelSubscription?.Dispose();
-            _view.RemoveFromHierarchy();
-        }
     }
 }

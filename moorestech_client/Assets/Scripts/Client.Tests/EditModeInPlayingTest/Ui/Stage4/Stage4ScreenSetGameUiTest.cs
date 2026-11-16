@@ -172,14 +172,5 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
             Assert.GreaterOrEqual(research.xMin, inventory.xMax - 0.5f, $"研究エリアの左端 {research.xMin} が持ち物の右端 {inventory.xMax} より左");
             Assert.IsNotNull(root.Q(className: LeftPaddingCollapsedClass), "ResearchTree で左余白を畳むクラスが付いていない");
         }
-
-        private static async UniTask TransitionTo(UIStateControl uiStateControl, UIStateEnum state)
-        {
-            // 遷移要求は次の Update で消費される
-            // The transition request is consumed in the next Update
-            uiStateControl.RequestTransition(state);
-            await UniTask.DelayFrame(3);
-            Assert.AreEqual(state, uiStateControl.CurrentState, $"{state} へ遷移していない");
-        }
     }
 }

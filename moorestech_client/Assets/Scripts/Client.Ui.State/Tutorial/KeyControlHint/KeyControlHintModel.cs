@@ -38,6 +38,8 @@ namespace Client.Ui.State.Tutorial.KeyControlHint
 
         private void Rebuild()
         {
+            // UiScreen に無い状態（GameScreen 等。マスタが UIStateEnum の名前で指す）なので UIStateEnum を読む（A-248）
+            // These states (GameScreen etc.; the master names them by UIStateEnum) are not in UiScreen, so read UIStateEnum (A-248)
             _current.Value = _projection.Project(_store.GetCurrent(), _uiStateControl.CurrentState, _blockingSkit.IsBlocking.Value);
         }
     }

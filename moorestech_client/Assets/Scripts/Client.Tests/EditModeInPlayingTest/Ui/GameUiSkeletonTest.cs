@@ -98,15 +98,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             }
         }
 
-        private static async UniTask TransitionTo(UIStateControl uiStateControl, UIStateEnum state)
-        {
-            // 遷移要求は次の Update で消費される
-            // The transition request is consumed in the next Update
-            uiStateControl.RequestTransition(state);
-            await UniTask.DelayFrame(3);
-            Assert.AreEqual(state, uiStateControl.CurrentState, $"{state} へ遷移していない");
-        }
-
         private static async UniTask AssertEmptyPanelDoesNotTakePointer(GameUiRoot gameUiRoot)
         {
             // 背面の Editor・CI の batchmode でも注入マウスが届く設定にする

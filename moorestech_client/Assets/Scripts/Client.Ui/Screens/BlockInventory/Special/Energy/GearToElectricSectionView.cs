@@ -27,7 +27,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
         {
             name = "gear-to-electric-section";
             AddToClassList("special-section");
-            SpecialViewParts.SeedEmptyText(_state);
             HoverTooltipMark.Mark(_state, new UiText(LocalizationKeys.Ui.BlockInventory.GearToElectricMeasurementTiming));
             var stack = new UiStack(UiGap.Px2);
             stack.AddItem(_state);

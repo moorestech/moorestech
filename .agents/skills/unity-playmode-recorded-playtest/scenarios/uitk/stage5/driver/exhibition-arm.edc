@@ -1,0 +1,3 @@
+// 次の起動 1 回だけを出展モードにする。Play 中は "ERROR: already playing" を返し武装しない（運転役が語で判定する）
+// Arm exhibition mode for the next boot only; during Play it returns "ERROR: already playing" without arming (the driver judges by the word)
+return Client.Playtest.Boot.PlaytestEventLanguageGateBoot.ArmForNextBoot();

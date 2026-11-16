@@ -12,8 +12,8 @@
     align-items: flex-end;
 }
 
-/* .unity-button の既定（1 クラス）へ 2 クラスで勝ち、面・枠・余白を消す */
-/* Two classes beat the .unity-button default (one class) and clear its face, border and padding */
+/* ボタンは既定テーマのボタンのクラスを外した素の button（Web .choice）。寸法と文字だけを持つ */
+/* The button drops the default theme's button class to stay a bare button (Web .choice), holding only its size and text */
 .skit-choices .skit-choice {
     width: var(--skit-choice-width);
     height: var(--skit-choice-height);
@@ -31,16 +31,27 @@
     margin-bottom: 0;
 }
 
-/* Web の .choice は素の button（background: none・押下の沈み無し）なので、既定テーマ（Theme.uss）のホバーの面と押下の translate を打ち消す */
-/* The Web .choice is a bare button (background: none, no press sink), so cancel the default theme's (Theme.uss) hover face and press translate */
-.skit-choices .skit-choice.unity-button:hover,
-.skit-choices .skit-choice.unity-button:active {
-    background-color: transparent;
-    translate: 0 0;
+/* 板は持ち主のボタンいっぱいに敷き、左右だけ水平フェード（Web .choice::before）。面の値は部品ルートのつまみで渡す */
+/* The plate fills the owner button and fades only left and right (Web .choice::before); face values go through the component root knobs */
+.skit-choices .skit-choice__plate {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 0;
+    --game-panel-surface-face: var(--gauge-track);
+    --game-panel-surface-edge-fade: var(--skit-choice-edge-fade);
+    --game-panel-surface-top-fade: 0px;
+    --game-panel-surface-bottom-fade: 0px;
 }
 
-/* 板の面（左右のフェード・押下の面）は部品 GamePanelSurface の種別 SkitChoice が持つ（D-37） */
-/* The plate face (side fades and pressed face) belongs to the GamePanelSurface SkitChoice kind (D-37) */
+/* 押している間は面をシアン寄りに（Web .choice:active::before） */
+/* Push the face toward cyan while pressed (Web .choice:active::before) */
+.skit-choices .skit-choice:active > .skit-choice__plate {
+    --game-panel-surface-face: var(--skit-choice-active-face);
+}
+
 
 /* 上下の線は板端でなく内側に引き、フェード帯の上も全不透明で描く */
 /* The rules run inset from the plate edge and stay fully opaque over the fade band */

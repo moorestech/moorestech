@@ -1,4 +1,5 @@
 using Client.Ui.State.Train;
+using Client.Ui.State.Train.Platform.Edit;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;
@@ -12,9 +13,9 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public static class TrainWebUiActionRegistration
     {
-        public static void Register(WebSocketHub hub, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, TrainTimetableFetcher timetableFetcher)
+        public static void Register(WebSocketHub hub, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, TrainTimetableFetcher timetableFetcher, ITrainBlockCommands trainBlockCommands)
         {
-            hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));
+            hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(trainBlockCommands));
             hub.RegisterAction(new TrainTimetableOpenActionHandler(subInventoryState, trainUnitClientCache, timetableFetcher));
             hub.RegisterAction(new TrainTimetableReplaceActionHandler(subInventoryState, trainUnitClientCache));
             hub.RegisterAction(new TrainTimetableSetAutoRunActionHandler(subInventoryState, trainUnitClientCache));

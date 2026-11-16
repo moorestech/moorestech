@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.MaterialTooltip;
 using Client.Ui.State.Research.Tree;
@@ -38,7 +39,7 @@ namespace Client.Ui.Screens.Research.Parts
         {
             // 消費の無いノードは節ごと出さない
             // Nodes without consumption hide the whole section
-            style.display = slots.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+            UiDisplay.SetShown(this, slots.Count != 0);
             while (_slots.Count < slots.Count)
             {
                 var slot = new ItemSlot($"research-consume-slot-{_slots.Count}");
@@ -49,7 +50,7 @@ namespace Client.Ui.Screens.Research.Parts
             for (var i = 0; i < _slots.Count; i++)
             {
                 var shown = i < slots.Count;
-                _slots[i].style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+                UiDisplay.SetShown(_slots[i], shown);
                 if (shown) _slots[i].SetContent(ContentOf(slots[i]));
             }
 

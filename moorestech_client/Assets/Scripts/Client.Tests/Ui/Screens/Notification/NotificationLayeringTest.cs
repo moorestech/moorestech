@@ -38,9 +38,8 @@ namespace Client.Tests.Ui.Screens.Notification
         }
 
         [TearDown]
-        public void DisposePresenter()
+        public void ReleasePresenter()
         {
-            _presenter?.Dispose();
             _presenter = null;
             Object.DestroyImmediate(_gameObject);
         }

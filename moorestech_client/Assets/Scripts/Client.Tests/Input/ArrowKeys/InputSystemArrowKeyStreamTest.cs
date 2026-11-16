@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Input;
 using Client.Input.ArrowKeys;
 using NUnit.Framework;
 using UniRx;
@@ -12,6 +13,12 @@ namespace Client.Tests.Input.ArrowKeys
     /// </summary>
     public class InputSystemArrowKeyStreamTest : InputTestFixture
     {
+        public override void TearDown()
+        {
+            UiInputExclusivity.SetState(false, false);
+            base.TearDown();
+        }
+
         [Test]
         public void 左右の矢印の押下だけを1回ずつ流す()
         {
@@ -40,6 +47,22 @@ namespace Client.Tests.Input.ArrowKeys
             Press(keyboard.rightArrowKey);
 
             Assert.AreEqual(2, pressed.Count);
+        }
+
+        [Test]
+        public void 入力欄にフォーカスがある間は矢印を流さない()
+        {
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            var pressed = new List<HorizontalArrowKey>();
+            new InputSystemArrowKeyStream().OnArrowPressed.Subscribe(pressed.Add);
+
+            UiInputExclusivity.SetState(false, true);
+            Press(keyboard.rightArrowKey);
+            Release(keyboard.rightArrowKey);
+            UiInputExclusivity.SetState(false, false);
+            Press(keyboard.leftArrowKey);
+
+            CollectionAssert.AreEqual(new[] { HorizontalArrowKey.Left }, pressed);
         }
     }
 }

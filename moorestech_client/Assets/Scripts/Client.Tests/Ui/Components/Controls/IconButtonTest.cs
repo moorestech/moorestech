@@ -1,7 +1,9 @@
 using Client.Input;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
 using UniRx;
@@ -123,9 +125,42 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(33.3f, button.Q<IconButtonCloseGlyph>().resolvedStyle.width, 0.5f);
         }
 
+        [Test]
+        public void 置く側がルートの色のつまみを変えると図形が受け直す()
+        {
+            // スキットのツールと同じく、置く側の 2 クラスの規則がボタン自身の --icon-button-color を変える
+            // As with the skit tools, the caller's two-class rule changes --icon-button-color on the button itself
+            var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(KnobOverridePath);
+            var screenRoot = new VisualElement();
+            screenRoot.styleSheets.Add(sheet);
+            screenRoot.AddToClassList("control-knob-override");
+            _rulesRoot.Add(screenRoot);
+            var button = AddButton(screenRoot);
+            button.AddToClassList("control-icon-button-color-probe");
+            simulate.FrameUpdate();
+            var glyph = button.Q(className: IconButton.GlyphUssClassName);
+            AssertColor(Rgba(0, 221, 255, 1f), GlyphColor(glyph), "--select-cyan");
+
+            // 祖先に付けた試験の USS は詳細度に関わらずテーマより強いので、置く側の上でのホバーの勝ち負けはテーマの中で SkitToolbarViewTest が見る
+            // A test USS on an ancestor outranks the theme regardless of specificity, so hover over a caller's colour is checked inside the theme by SkitToolbarViewTest
+        }
+
+        /// <web-test file="src/shared/ui/IconButton/index.test.ts">children省略時は既定の×を描き、渡された場合はそれを描く</web-test>
+        [Test]
+        public void 渡した図形を子として描き既定の閉じる図形を足さない()
+        {
+            var glyph = new VisualElement();
+            var button = new IconButton(TestId, glyph, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _rulesRoot.Add(button);
+            simulate.FrameUpdate();
+
+            Assert.IsTrue(button.Contains(glyph));
+            Assert.IsNull(button.Q<IconButtonCloseGlyph>());
+        }
+
         private IconButton AddButton(VisualElement parent)
         {
-            var button = new IconButton(TestId, new IconButtonCloseGlyph());
+            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             parent.Add(button);
             simulate.FrameUpdate();
             return button;

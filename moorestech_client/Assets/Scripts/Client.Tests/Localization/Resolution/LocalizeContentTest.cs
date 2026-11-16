@@ -55,6 +55,7 @@ namespace Client.Tests.Localization.Resolution
             Localize.Initialize();
         }
 
+        /// <web-test file="src/shared/i18n/itemName/useItemName.test.ts">対象言語が空なら英語辞書へフォールバックする</web-test>
         [Test]
         public void GetContentResolvesTargetThenEnglishThenSourceThenMarker()
         {

@@ -3,6 +3,7 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.Tests.Ui.Screens.PauseMenu;
+using Client.Tests.Ui.TestHost;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
@@ -125,6 +126,52 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.AreEqual("nice", Draft.Description);
             Assert.AreEqual(PlaytestReportKind.Feedback, Draft.Kind);
             Assert.IsTrue(SendButton().enabledSelf);
+        }
+
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts">感想でも欠損時は従来の通知を出す</web-test>
+        [Test]
+        public void 感想でも欠損があれば送信成功時に欠損のエラーのトーストを出す()
+        {
+            // 欠損ありで感想を送る。状態行が増えて送信ボタンがずれるので 1 フレーム進めてから押す
+            // Send impressions with a gap; the extra status line shifts the send button, so advance a frame first
+            View.Apply(Model(BugReportCaptureStatus.Ready, "video"));
+            simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
+            Type("感想");
+            simulate.FrameUpdate();
+            simulate.Click(SendButton());
+            Commands.CompleteSubmit(UiCommandAccepted.Instance);
+
+            // 感想の完了ではなく欠損のエラーを 1 件出す
+            // Show one gap error instead of the impressions completion
+            Assert.AreEqual(PlaytestReportKind.Feedback, Commands.Issued.Single().ReportKind);
+            Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
+            Assert.AreEqual("Missing: video", ShownToasts.Single().Text);
+            Assert.AreNotEqual(Localize.Get(LocalizationKeys.Ui.FeedbackReport.Sent), ShownToasts.Single().Text);
+        }
+
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts">感想送信中の表示とロックを保ち、送信開始時の種別で完了を伝える</web-test>
+        [Test]
+        public void 感想の送信中は表示とロックを保ち完了は送信開始時の種別で伝える()
+        {
+            // 応答待ちは書き出し中表示とロック
+            // Awaiting reply shows writing label and lock
+            simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
+            Type("感想");
+            simulate.Click(SendButton());
+            Assert.AreEqual("Writing the impressions…", Status().PlainText());
+            Assert.IsFalse(SendButton().enabledSelf);
+            Assert.IsFalse(Find<Button>(View, "bug-report-kind-feedback").enabledSelf);
+            Assert.IsFalse(Find<Button>(View, "bug-report-kind-bug").enabledSelf);
+
+            // 待機中に種別が変わっても感想で完了
+            // Completion stays impressions if kind changes
+            Draft.SetKind(PlaytestReportKind.Bug);
+            Commands.CompleteSubmit(UiCommandAccepted.Instance);
+            var submit = Commands.Issued.Single();
+            Assert.AreEqual("感想", submit.Description);
+            Assert.AreEqual(PlaytestReportKind.Feedback, submit.ReportKind);
+            Assert.AreEqual(GameUiToastVariant.Info, ShownToasts.Single().Variant);
+            Assert.AreEqual("Impressions saved to outbox", ShownToasts.Single().Text);
         }
     }
 }

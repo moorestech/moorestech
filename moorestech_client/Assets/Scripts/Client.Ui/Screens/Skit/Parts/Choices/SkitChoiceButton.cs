@@ -26,12 +26,16 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
             name = $"skit-choice-{item.ChoiceId}";
             focusable = false;
             text = string.Empty;
+            // Web .choice は素の button なので、既定テーマのボタンの面・枠・余白・ホバー・押下の沈みを受けない（画面 USS で .unity-button を打ち消さない。D-12）
+            // The Web .choice is a bare button, so it takes none of the default theme's button face, border, padding, hover or press sink (no .unity-button cancels in screen USS; D-12)
+            RemoveFromClassList(Button.ussClassName);
             AddToClassList("skit-choice");
             EnableInClassList("skit-choice--lead", lead);
 
-            // 面は部品の種別 SkitChoice（左右だけの水平フェードと押下の面）。入力はこのボタンが受けるので板と本文の箱は拾わせない（D-37）
-            // The face is the SkitChoice kind (side-only fade and pressed face); this button takes input, so neither the plate nor its body box is pickable (D-37)
-            var plate = new GamePanelSurface($"skit-choice-{item.ChoiceId}-plate", GamePanelSurfaceKind.SkitChoice);
+            // 面は Hud の骨格に画面のつまみ（左右だけの水平フェードと押下の面）を渡す。入力はこのボタンが受けるので板と本文の箱は拾わせない（D-12）
+            // The face is the Hud skeleton fed screen knobs (side-only fade and pressed face); this button takes input, so neither the plate nor its body box is pickable (D-12)
+            var plate = new GamePanelSurface($"skit-choice-{item.ChoiceId}-plate", GamePanelSurfaceKind.Hud);
+            plate.AddToClassList("skit-choice__plate");
             plate.pickingMode = PickingMode.Ignore;
             plate.contentContainer.pickingMode = PickingMode.Ignore;
             Add(plate);

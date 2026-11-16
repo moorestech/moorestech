@@ -20,16 +20,20 @@ namespace Client.Ui.State.Hotbar
             _slotIndex = slotIndex;
         }
 
-        private static HotbarSelection Of(int slotIndex)
-        {
-            return new HotbarSelection(true, slotIndex);
-        }
-
         // 光らせる枠は設置対象の持ち主が持つ由来から導く（表示と実対象が構造的に一致する。Web HotbarTopic と同じ）
         // The highlighted slot derives from the origin the placement owner holds, so display and target agree (same as Web HotbarTopic)
         public static HotbarSelection FromOrigin(PlacementOrigin origin)
         {
             return origin.TryGetHotbarSlot(out var slot) ? Of(slot) : None;
+
+            #region Internal
+
+            static HotbarSelection Of(int slotIndex)
+            {
+                return new HotbarSelection(true, slotIndex);
+            }
+
+            #endregion
         }
 
         public bool IsSlot(int slotIndex)

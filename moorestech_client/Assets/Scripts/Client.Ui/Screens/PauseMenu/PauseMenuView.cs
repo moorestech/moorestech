@@ -3,6 +3,8 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.PauseMenu;
@@ -27,13 +29,14 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly GameUiToastFeed _toasts;
         private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
+        private readonly IUiOsCursor _osCursor;
         private readonly LocalizedLabel _title;
         private readonly VisualElement _pageHost;
         private CompositeDisposable _subscriptions;
         private PauseMenuPage _shownPage;
         private IPauseMenuPage _currentPage;
 
-        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
+        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
         {
             _model = model;
             _settings = settings;
@@ -42,6 +45,7 @@ namespace Client.Ui.Screens.PauseMenu
             _toasts = toasts;
             _toaster = toaster;
             _draft = draft;
+            _osCursor = osCursor;
             AddToClassList("pause-menu");
 
             // 自身は層いっぱいの透明な置き場で、testid とアンカーは Web と同じく見える枠に付ける
@@ -69,13 +73,13 @@ namespace Client.Ui.Screens.PauseMenu
 
             // 生成直後は隠しておき、ルータの判断で SetShown が表示する
             // Start hidden; SetShown reveals it on the router's decision
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void SetShown(bool shown)
         {
             if (shown == (_subscriptions != null)) return;
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
             if (!shown)
             {
                 // 隠している間はモデルを購読しない
@@ -93,6 +97,15 @@ namespace Client.Ui.Screens.PauseMenu
             _model.Skip(1).Subscribe(OnPauseMenuChanged).AddTo(_subscriptions);
             _settings.Skip(1).Subscribe(OnSettingsChanged).AddTo(_subscriptions);
             Localize.OnLanguageChanged.Subscribe(_ => UpdateLocaleMarker()).AddTo(_subscriptions);
+
+            #region Internal
+
+            void UpdateLocaleMarker()
+            {
+                _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
+            }
+
+            #endregion
         }
 
         private void OnPauseMenuChanged(PauseMenuViewModel model)
@@ -125,19 +138,20 @@ namespace Client.Ui.Screens.PauseMenu
             void BuildTop()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
-                Show(new PauseMenuTopPageView(_commands));
+                Show(new PauseMenuTopPageView(_commands, _osCursor));
             }
 
             void BuildSettings()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
-                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toaster));
+                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toaster, _osCursor));
             }
 
             void BuildBugReport()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.BugReport);
-                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _toaster, _draft));
+                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _toaster, _draft, _osCursor));
+
             }
 
             void Show(IPauseMenuPage page)
@@ -148,11 +162,6 @@ namespace Client.Ui.Screens.PauseMenu
             }
 
             #endregion
-        }
-
-        private void UpdateLocaleMarker()
-        {
-            _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
         }
     }
 }

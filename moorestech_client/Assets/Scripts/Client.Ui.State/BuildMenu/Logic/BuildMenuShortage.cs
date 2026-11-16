@@ -10,7 +10,7 @@ namespace Client.Ui.State.BuildMenu.Logic
         // A displayed shortage means the material is short and the payment is not waived
         public static bool IsItemInsufficient(BuildMenuCatalogEntry entry, BuildMenuRequiredItem item)
         {
-            return !entry.PaymentWaived && item.Lacking;
+            return !entry.PaymentWaived && item.Held < item.Count;
         }
     }
 }

@@ -1,4 +1,6 @@
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Skit;
 using Client.Ui.State.Toast;
 using UniRx;
@@ -24,7 +26,7 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
         private readonly IconButton _showUi;
         private SkitViewModel _model = SkitViewModel.Empty;
 
-        public SkitToolbar(ISkitCommands commands, UiCommandResultToaster toaster)
+        public SkitToolbar(ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
             _commands = commands;
             _toaster = toaster;
@@ -33,10 +35,10 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
 
             // 自動送りの ON/OFF は色替えで示す
             // Auto-advance on/off is shown by color swap
-            _auto = AddTool("skit-tool-auto", SkitToolGlyphShape.Auto, true);
-            _skip = AddTool("skit-tool-skip", SkitToolGlyphShape.Skip, false);
-            _hideUi = AddTool("skit-tool-hide-ui", SkitToolGlyphShape.HideUi, false);
-            _showUi = AddTool("skit-show-ui", SkitToolGlyphShape.ShowUi, true);
+            _auto = AddTool("skit-tool-auto", SkitToolGlyphShape.Auto, true, osCursor);
+            _skip = AddTool("skit-tool-skip", SkitToolGlyphShape.Skip, false, osCursor);
+            _hideUi = AddTool("skit-tool-hide-ui", SkitToolGlyphShape.HideUi, false, osCursor);
+            _showUi = AddTool("skit-show-ui", SkitToolGlyphShape.ShowUi, true, osCursor);
 
             // 押下時の session・版を付けて送る
             // Send with the session and revision at press
@@ -52,10 +54,10 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             // Tools on window surfaces; restore only on the hidden-UI surface
             _model = model;
             var controlsShown = model.Surface == SkitSurface.Window || model.Surface == SkitSurface.ToolbarOnly;
-            SetShown(_auto, controlsShown);
-            SetShown(_skip, controlsShown);
-            SetShown(_hideUi, controlsShown);
-            SetShown(_showUi, model.Surface == SkitSurface.RestoreOnly);
+            UiDisplay.SetShown(_auto, controlsShown);
+            UiDisplay.SetShown(_skip, controlsShown);
+            UiDisplay.SetShown(_hideUi, controlsShown);
+            UiDisplay.SetShown(_showUi, model.Surface == SkitSurface.RestoreOnly);
 
             // 押せるかは許可で決め、自動 ON だけシアン
             // Pressability follows allowance; only auto ON is cyan
@@ -76,18 +78,14 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             _showUi.pickingMode = mode;
         }
 
-        private IconButton AddTool(string testid, SkitToolGlyphShape shape, bool lead)
+        private IconButton AddTool(string testid, SkitToolGlyphShape shape, bool lead, IUiOsCursor osCursor)
         {
-            var button = new IconButton(testid, new SkitToolGlyph(shape));
+            var button = new IconButton(testid, new SkitToolGlyph(shape), osCursor);
+
             button.AddToClassList(ToolUssClassName);
             button.EnableInClassList(LeadToolUssClassName, lead);
             Add(button);
             return button;
-        }
-
-        private static void SetShown(VisualElement element, bool shown)
-        {
-            element.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

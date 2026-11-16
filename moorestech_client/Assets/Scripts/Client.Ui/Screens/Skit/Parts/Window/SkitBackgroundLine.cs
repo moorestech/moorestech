@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using UnityEngine.UIElements;
@@ -10,13 +11,12 @@ namespace Client.Ui.Screens.Skit.Parts.Window
     /// </summary>
     public sealed class SkitBackgroundLine : LocalizedLabel
     {
-        public SkitBackgroundLine()
+        public SkitBackgroundLine() : base(UiText.Empty)
         {
             name = "background-skit";
             AddToClassList("skit-background-line");
             pickingMode = PickingMode.Ignore;
-            SetText(UiText.FromVerbatim(string.Empty));
-            style.display = DisplayStyle.None;
+            UiDisplay.SetShown(this, false);
         }
 
         public void SetLine(string speaker, string body, int visibleCodePoints)
@@ -26,7 +26,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
 
         public void SetShown(bool shown)
         {
-            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(this, shown);
         }
     }
 }

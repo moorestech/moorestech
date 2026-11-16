@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Client.Common;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Context;
@@ -29,17 +30,19 @@ namespace Client.Game.InGame.BugReport.Capture
         private readonly UnityLogRing _logRing;
         private readonly PlayerSystemContainer _playerSystemContainer;
         private readonly IWebUiHealthProbe _webUiHealth;
+        private readonly GameUiExceptionTally _tally;
 
         // 画面はUIStateControlを見に行かず押し込んでもらう。見に行くと確保元→UI状態機械→ポーズ→確保元で生成が循環する
         // The screen is pushed in rather than read from UIStateControl; reading it would loop sources to the UI state machine and back
         private UIStateEnum _currentUiState = UIStateEnum.GameScreen;
 
-        public BugReportCaptureSources(GameFrameRecorder recorder, UnityLogRing logRing, PlayerSystemContainer playerSystemContainer, IWebUiHealthProbe webUiHealth)
+        public BugReportCaptureSources(GameFrameRecorder recorder, UnityLogRing logRing, PlayerSystemContainer playerSystemContainer, IWebUiHealthProbe webUiHealth, GameUiExceptionTally tally)
         {
             _recorder = recorder;
             _logRing = logRing;
             _playerSystemContainer = playerSystemContainer;
             _webUiHealth = webUiHealth;
+            _tally = tally;
         }
 
         public void SetCurrentUiState(UIStateEnum uiState)
@@ -98,6 +101,11 @@ namespace Client.Game.InGame.BugReport.Capture
         public WebUiHealthReading WebUiHealth()
         {
             return _webUiHealth.Read();
+        }
+
+        public GameUiExceptionReading GameUiExceptions()
+        {
+            return _tally.Snapshot();
         }
 
         public async UniTask<string> CaptureScreenshot(string workDirectory)

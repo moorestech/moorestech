@@ -1,6 +1,7 @@
 using Client.Ui.Components.Text;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Input.Pointer;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.State.CursorTooltip;
 using UniRx;
@@ -32,7 +33,7 @@ namespace Client.Ui.Screens.CursorTooltip
             AddToClassList("cursor-tooltip");
             _face = new TooltipFace("cursor-tooltip", TooltipFaceLook.Cursor);
             _face.AddToClassList("cursor-tooltip__face");
-            _face.style.display = DisplayStyle.None;
+            UiDisplay.SetShown(_face, false);
             Add(_face);
             IgnorePicking();
 
@@ -47,7 +48,7 @@ namespace Client.Ui.Screens.CursorTooltip
         public void Render(CursorTooltipViewModel viewModel)
         {
             _visible = viewModel.Visible;
-            _face.style.display = _visible ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_face, _visible);
             if (!_visible) return;
             _face.SetLines(viewModel.Lines);
             IgnorePicking();
@@ -59,12 +60,6 @@ namespace Client.Ui.Screens.CursorTooltip
         private void IgnorePicking()
         {
             UiPickingIgnore.ApplyToSubtree(this);
-        }
-
-        private void SetPointer(Vector2 screenPosition)
-        {
-            _pointerOnScreen = screenPosition;
-            Reposition();
         }
 
         private void OnAttached(AttachToPanelEvent evt)
@@ -82,6 +77,16 @@ namespace Client.Ui.Screens.CursorTooltip
             // When the stage scale changes, re-place the stored screen px with the current scale
             var scaleSubscription = _stageScale.Scale.Subscribe(_ => Reposition());
             _screenSubscriptions = new CompositeDisposable(pointerSubscription, anchorModeSubscription, scaleSubscription);
+
+            #region Internal
+
+            void SetPointer(Vector2 screenPosition)
+            {
+                _pointerOnScreen = screenPosition;
+                Reposition();
+            }
+
+            #endregion
         }
 
         private void Reposition()

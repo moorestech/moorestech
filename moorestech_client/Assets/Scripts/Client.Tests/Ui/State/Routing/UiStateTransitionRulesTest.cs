@@ -1,7 +1,5 @@
-using System;
 using Client.Game.InGame.UI.UIState;
 using Client.Ui.State.Routing;
-using Client.WebUiHost.Game.Actions;
 using NUnit.Framework;
 
 namespace Client.Tests.Ui.State.Routing
@@ -21,20 +19,6 @@ namespace Client.Tests.Ui.State.Routing
         public void 表に無い現状態からは拒む(UIStateEnum current)
         {
             Assert.IsFalse(UiStateTransitionRules.IsAllowed(current, UIStateEnum.GameScreen));
-        }
-
-        [Test]
-        public void 写し元の表と全組で一致する()
-        {
-            // 片方の表だけ直すと赤になる（D-58）
-            // Editing only one table turns this red (D-58)
-            foreach (UIStateEnum current in Enum.GetValues(typeof(UIStateEnum)))
-            {
-                foreach (UIStateEnum requested in Enum.GetValues(typeof(UIStateEnum)))
-                {
-                    Assert.AreEqual(RequestUiStateActionHandler.IsAllowed(current, requested), UiStateTransitionRules.IsAllowed(current, requested), $"{current} -> {requested}");
-                }
-            }
         }
     }
 }

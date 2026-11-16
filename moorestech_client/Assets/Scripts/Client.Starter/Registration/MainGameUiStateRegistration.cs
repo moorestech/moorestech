@@ -6,10 +6,13 @@ using Client.Ui.State.Challenge;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Notification;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Recipe.Catalog;
+using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Research;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Skit;
+using Client.Ui.State.Train.Platform.Edit;
 using VContainer;
 using VContainer.Unity;
 
@@ -54,6 +57,10 @@ namespace Client.Starter.Registration
             // Screen router; shared by both systems
             builder.RegisterEntryPoint<UiRoutingState>().AsSelf();
 
+            // 遷移要求。Web の ui_state.request と GameUi の各画面が同じ要求の流れ（入れ子ポーズ・遷移表・拒否ログ）を通るので両方の系で登録する
+            // Transition requests; the Web ui_state.request and the GameUi screens share one request flow (nested pause, transition table, refusal log), so both systems register it
+            builder.Register<UiStateControlTransitionRequester>(Lifetime.Singleton).As<IUiStateTransitionRequester>();
+
             // ポーズと設定の状態と型付きコマンド。Web のアダプタと GameUi の View が同じものを使うので両方の系で登録する
             // Pause and settings state and typed commands; Web adapters and GameUi views share them, so both systems register them
             builder.Register<PauseMenuCommands>(Lifetime.Singleton).As<IPauseMenuCommands>();
@@ -65,6 +72,16 @@ namespace Client.Starter.Registration
             // Skit store and typed commands; Web actions and GameUi views share one failure mapping, so both systems register them; the presentation model is read only by GameUi, so SkitGameUiRegistration owns it (S2-skit D-54, D-82)
             builder.RegisterInstance(SkitPresentationStateStore.Instance);
             builder.Register<SkitCommands>(Lifetime.Singleton).As<ISkitCommands>();
+
+            // レシピ一覧の判定と駅・PF のコマンド。Web ホストと GameUi の View が同じ判定を呼ぶので両方の系で登録する（DC-23 A・D-36）
+            // Recipe-list decision and station/platform commands; the Web host and GameUi views call the same decisions, so both systems register them (DC-23 A, D-36)
+            builder.Register<RecipeViewerItemCatalog>(Lifetime.Singleton);
+            builder.Register<TrainBlockCommands>(Lifetime.Singleton).As<ITrainBlockCommands>();
+
+            // クラフトの操作。Web の craft.execute と GameUi のレシピ画面が同じ検査・送信・拒否ログを通るので両方の系で登録する
+            // Craft commands; the Web craft.execute and the GameUi recipe screen share one check, send and refusal log, so both systems register them
+            builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
+            builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();
         }
     }
 }

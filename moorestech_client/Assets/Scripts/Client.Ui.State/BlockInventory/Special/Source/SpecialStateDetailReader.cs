@@ -27,17 +27,21 @@ namespace Client.Ui.State.BlockInventory.Special.Source
         public static GearToElectricDetail GearToElectric(GearToElectricGeneratorBlockStateDetail state, double maxGeneratedPower)
         {
             return new GearToElectricDetail(ToDisplayState(state.GenerationState), UiNumberFormat.FromServerFloat(state.GeneratedElectricPower), maxGeneratedPower);
-        }
 
-        private static GearToElectricDisplayState ToDisplayState(GearToElectricGenerationState state)
-        {
-            return state switch
+            #region Internal
+
+            static GearToElectricDisplayState ToDisplayState(GearToElectricGenerationState state)
             {
-                GearToElectricGenerationState.Generating => GearToElectricDisplayState.Generating,
-                GearToElectricGenerationState.Idle => GearToElectricDisplayState.Idle,
-                GearToElectricGenerationState.Stopped => GearToElectricDisplayState.Stopped,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, "未知の回転発電機の状態"),
-            };
+                return state switch
+                {
+                    GearToElectricGenerationState.Generating => GearToElectricDisplayState.Generating,
+                    GearToElectricGenerationState.Idle => GearToElectricDisplayState.Idle,
+                    GearToElectricGenerationState.Stopped => GearToElectricDisplayState.Stopped,
+                    _ => throw new ArgumentOutOfRangeException(nameof(state), state, "未知の回転発電機の状態"),
+                };
+            }
+
+            #endregion
         }
 
         public static GearDetail Generator(GearStateDetail gear)

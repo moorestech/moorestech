@@ -60,22 +60,33 @@ namespace Client.Ui.Screens.Modal
             // Listen for backdrop presses only while attached; focus-less ESC is not heard here (the existing game input path cancels; plan D-11, design A-83)
             RegisterCallback<AttachToPanelEvent>(OnAttached);
             RegisterCallback<DetachFromPanelEvent>(OnDetached);
-        }
 
-        private GameTextField CreateInput()
-        {
-            var input = new GameTextField("modal-input", false, GameTextFieldLook.MantineInput);
-            input.AddToClassList("modal-view__input");
-            input.OnValueChanged.Subscribe(SetEnteredText);
+            #region Internal
 
-            // 入力欄の ESC は GameUiInputRules が消費してフォーカスを外す。その外れを見て 1 回で取り消す（Web の Mantine と同じ 1 回。計画 D-11）
-            // GameUiInputRules consumes ESC in the field and drops focus; seeing that blur, cancel in one press (one press like Mantine on the Web; plan D-11)
-            input.Field.RegisterCallback<FocusOutEvent>(_ => CancelIfEscapeBlurred());
+            GameTextField CreateInput()
+            {
+                var input = new GameTextField("modal-input", false, GameTextFieldLook.MantineInput);
+                input.AddToClassList("modal-view__input");
+                input.OnValueChanged.Subscribe(SetEnteredText);
 
-            // 表示時に入力欄へフォーカス（Web autoFocus）。載った直後はスタイルが未解決なので次のフレームで当てる
-            // Focus the field when shown (Web autoFocus); styles are unresolved right after attaching, so apply next frame
-            input.RegisterCallback<AttachToPanelEvent>(_ => input.schedule.Execute(() => input.Field.Focus()));
-            return input;
+                // 入力欄の ESC は GameUiInputRules が消費してフォーカスを外す。その外れを見て 1 回で取り消す（Web の Mantine と同じ 1 回。計画 D-11）
+                // GameUiInputRules consumes ESC in the field and drops focus; seeing that blur, cancel in one press (one press like Mantine on the Web; plan D-11)
+                input.Field.RegisterCallback<FocusOutEvent>(_ => CancelIfEscapeBlurred());
+
+                // 表示時に入力欄へフォーカス（Web autoFocus）。載った直後はスタイルが未解決なので次のフレームで当てる
+                // Focus the field when shown (Web autoFocus); styles are unresolved right after attaching, so apply next frame
+                input.RegisterCallback<AttachToPanelEvent>(_ => input.schedule.Execute(() => input.Field.Focus()));
+                return input;
+            }
+
+            void CancelIfEscapeBlurred()
+            {
+                // silent-ok: ESC 以外の外れ（クリック・閉じたとき）と変換中の ESC は取り消さない / ModalScreenPresenterTest「入力欄のESCは1回で取り消す」「欄の外を押しても閉じない」「変換中のESCでは取り消さない」が見る
+                if (!UiInputExclusivity.IsEscapeBlurredTextFieldThisFrame) return;
+                Respond(ModalResponse.Cancel(_request));
+            }
+
+            #endregion
         }
 
         private void OnAttached(AttachToPanelEvent evt)
@@ -105,13 +116,6 @@ namespace Client.Ui.Screens.Modal
                 return;
             }
             Respond(ModalResponse.Confirm(_request, _confirmedText));
-        }
-
-        private void CancelIfEscapeBlurred()
-        {
-            // silent-ok: ESC 以外の外れ（クリック・閉じたとき）と変換中の ESC は取り消さない / ModalScreenPresenterTest「入力欄のESCは1回で取り消す」「欄の外を押しても閉じない」「変換中のESCでは取り消さない」が見る
-            if (!UiInputExclusivity.IsEscapeBlurredTextFieldThisFrame) return;
-            Respond(ModalResponse.Cancel(_request));
         }
 
         private void Respond(ModalResponse response)

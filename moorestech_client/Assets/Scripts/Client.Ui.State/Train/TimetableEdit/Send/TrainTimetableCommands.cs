@@ -11,8 +11,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.Train.TimetableEdit.Send
 {
     /// <summary>
-    /// 時刻表の取得依頼・置換・自動運転をサーバーへ送る（Web ホスト TrainTimetableActions と同じ規則。D-2）
-    /// Sends timetable fetch requests, replaces and auto-run toggles to the server (same rules as the Web host TrainTimetableActions; D-2)
+    /// 時刻表の取得依頼・置換・自動運転をサーバーへ送る（Web ホスト TrainTimetableActions と同じ規則。Web の wire は失敗理由を添え train_not_open を返すので付け替えない。D-17）
+    /// Sends timetable fetch requests, replaces and auto-run toggles to the server (same rules as the Web host TrainTimetableActions; not rerouted because the Web wire suffixes failure reasons and returns train_not_open; D-17)
     /// </summary>
     public sealed class TrainTimetableCommands : ITrainTimetableCommands
     {

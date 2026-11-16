@@ -1,10 +1,10 @@
-using Client.Input;
 using Client.Input.ArrowKeys;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Logic.Belt;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Routing;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -19,6 +19,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
         private readonly BeltThroughputSectionView _view;
         private readonly ISpecialBlockDetailModel _model;
         private readonly IHorizontalArrowKeySource _arrowKeys;
+        private readonly UiRoutingState _routing;
+        private readonly IBlockInventoryPanelSource _panelSource;
         private readonly BeltWindowCursor _cursor = new();
         private readonly ReactiveProperty<bool> _isApplicable = new(false);
         private readonly CompositeDisposable _subscriptions = new();
@@ -27,11 +29,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
         public VisualElement Root => _view;
         public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
 
-        public BeltThroughputSectionPresenter(BeltThroughputSectionView view, ISpecialBlockDetailModel model, IHorizontalArrowKeySource arrowKeys)
+        public BeltThroughputSectionPresenter(BeltThroughputSectionView view, ISpecialBlockDetailModel model, IHorizontalArrowKeySource arrowKeys, UiRoutingState routing, IBlockInventoryPanelSource panelSource)
         {
             _view = view;
             _model = model;
             _arrowKeys = arrowKeys;
+            _routing = routing;
+            _panelSource = panelSource;
         }
 
         public void Attach(OpenBlockInventoryPanel panel)
@@ -58,10 +62,10 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
 
         private void OnArrowPressed(HorizontalArrowKey key)
         {
-            // 入力欄にフォーカスがある・ベルトが無い・表示されていないなら切り替えない（Web の isTextInputElement・readActiveLayer）
-            // Do not switch while a text field has focus, without a belt or while hidden (Web isTextInputElement, readActiveLayer)
-            // silent-ok: ベルト以外のブロック・閉じた画面・入力中の矢印はこの区画の操作ではない / 切り替わらないなら L1 と録画（R-12）で気づく
-            if (_belt == null || UiInputExclusivity.IsTextInputFocused || !SpecialViewParts.IsDisplayedInHierarchy(_view)) return;
+            // ベルトが無い・最前の画面がブロックのパネルでないなら切り替えない（Web の readActiveLayer() === "blockInventory"。ポーズ等が上に重なると背面は動かない）
+            // Do not switch without a belt or unless the front screen is the block panel (Web readActiveLayer() === "blockInventory"; nothing moves behind a pause overlay)
+            // silent-ok: ベルト以外のブロック・閉じた画面・重なった画面の矢印はこの区画の操作ではない / 切り替わらないなら L1 と録画（R-12）で気づく
+            if (_belt == null || !BlockInventoryScreenVisibility.IsShown(_routing.Current.Value, _panelSource.Current.Value)) return;
             _cursor.Step(_belt, key);
             Draw();
         }

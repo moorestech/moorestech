@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Stage;
 using UnityEngine.UIElements;
 
@@ -63,17 +64,9 @@ namespace Client.Ui.Foundation.Layers
         // Body of HideAll: shows or hides every layer at once through the root's display; elements stay in the hierarchy, so subscriptions, typed values and motion survive (A-80)
         public void SetAllLayersVisible(bool visible)
         {
-            if (visible)
-            {
-                // 戻すときはインライン指定を外す
-                // When restoring, drop the inline value
-                _root.style.display = StyleKeyword.Null;
-                return;
-            }
-
             // 隠れた要素のフォーカスは UITK 自身が外すので、ここでは Blur しない（Web の focus fixup と同じ。A-275）
             // UITK itself blurs the focus of a hidden element, so nothing blurs here (same as the Web focus fixup; A-275)
-            _root.style.display = DisplayStyle.None;
+            UiDisplay.SetShown(_root, visible);
         }
     }
 }

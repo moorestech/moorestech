@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Components.Controls;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Logic;
@@ -58,7 +59,7 @@ namespace Client.Ui.Screens.Research.Parts
             // 理由は状態受信後の未完了かつ不可のみ（受信前の既定は嘘の理由になる）
             // Reason only after states arrive, when not completed and unavailable (the pre-receipt default would lie)
             var showsReason = nodeStatesReceived && !button.Completed && !button.Interactable;
-            _reason.style.display = showsReason ? DisplayStyle.Flex : DisplayStyle.None;
+            UiDisplay.SetShown(_reason, showsReason);
             _reason.SetText(new UiText(button.TooltipKey));
         }
     }

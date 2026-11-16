@@ -1,8 +1,10 @@
 using Client.Input;
 using Client.Localization;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -43,7 +45,7 @@ namespace Client.Tests.Ui.Components.Controls
             // LocalizedLabel looks up the dictionary on attach, so load it first
             Localize.Initialize();
 
-            _button = new PanelActionButton(TestId, new UiText(LocalizationKeys.Ui.PauseMenu.Settings));
+            _button = new PanelActionButton(TestId, new UiText(LocalizationKeys.Ui.PauseMenu.Settings), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
             _clickCount = 0;
             _button.OnClicked.Subscribe(_ => _clickCount++);
             rulesRoot.Add(_button);
