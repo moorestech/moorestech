@@ -6,6 +6,7 @@ using Client.Ui.State.Notification;
 using Client.Ui.State.Notification.Content;
 using Client.Ui.State.Notification.Params;
 using Core.Master;
+using MessagePack;
 using NUnit.Framework;
 using Server.Event.Notification;
 using UnityEngine;
@@ -61,6 +62,39 @@ namespace Client.Tests.Ui.State.Notification
             Assert.AreEqual(2, Rows.Count);
             var researchCount = Rows[1].Content.MessageParams.OfType<TextNotificationParam>().Single(param => param.Name == "researchCount");
             Assert.AreEqual("6", researchCount.Value);
+        }
+
+        [Test]
+        public void サーバー経由の除去告知は購読の前でも初期データとして残り1行で出る()
+        {
+            var vanillaApiEvent = new CapturingVanillaApiEvent();
+            var feed = new NotificationFeed(vanillaApiEvent, new ClientLocalNotificationSource());
+            feed.Initialize();
+            vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateSaveMigrationPruned(3, 4, 5)));
+            var model = new NotificationModel();
+
+            new NotificationFeedRelay(feed, model).Initialize();
+
+            Assert.AreEqual(1, feed.SaveMigrationNotice.Seq);
+            Assert.AreEqual(3, feed.SaveMigrationNotice.Message.MessageParams.Count);
+            Assert.AreEqual(1, model.Current.Value.Rows.Count);
+        }
+
+        [Test]
+        public void 除去告知以外は揮発でサーバー経由もローカル経由も購読の前のものは出ない()
+        {
+            var vanillaApiEvent = new CapturingVanillaApiEvent();
+            var localSource = new ClientLocalNotificationSource();
+            var feed = new NotificationFeed(vanillaApiEvent, localSource);
+            feed.Initialize();
+            vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", new Dictionary<string, string>())));
+            localSource.Notify(NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new Dictionary<string, string> { ["count"] = "2" }));
+            var model = new NotificationModel();
+
+            new NotificationFeedRelay(feed, model).Initialize();
+
+            Assert.IsNull(feed.SaveMigrationNotice);
+            Assert.AreEqual(0, model.Current.Value.Rows.Count);
         }
 
         [Test]

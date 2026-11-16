@@ -64,6 +64,18 @@ namespace Client.Tests.EventMode
             Assert.AreEqual(0, changedCount);
         }
 
+        // 言語が選ばれ済みで起動したときは待たずに開いている
+        // A gate started with the language already chosen is open without waiting
+        [Test]
+        public void 待たずに始めたゲートは待ち合わせが即完了し選択は選択済みで拒否する()
+        {
+            var gate = new EventLanguageGate(false);
+
+            Assert.IsFalse(gate.IsWaitingSelection);
+            Assert.AreEqual(UniTaskStatus.Succeeded, gate.WaitForSelectionAsync().Status);
+            Assert.AreEqual(UiCommandRejectReason.LanguageAlreadySelected, ((UiCommandRejected)gate.SelectLanguage("japanese")).Reason);
+        }
+
         [Test]
         public void 選択で待機変化が一度だけ通知される()
         {
