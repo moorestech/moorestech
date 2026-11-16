@@ -93,11 +93,6 @@ namespace Client.Game.InGame.Tutorial
             Publish();
         }
 
-        public bool HasSessionId(string sessionId)
-        {
-            return _sessions.Any(session => session.TutorialSessionId == sessionId);
-        }
-
         public void RemoveElement(string sessionId, string elementId)
         {
             var session = _sessions.Find(value => value.TutorialSessionId == sessionId);
