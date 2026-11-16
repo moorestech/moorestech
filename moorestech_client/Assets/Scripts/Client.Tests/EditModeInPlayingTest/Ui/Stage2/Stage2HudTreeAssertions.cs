@@ -3,6 +3,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.Hotbar;
 using Client.Ui.Screens.ModeHud;
 using NUnit.Framework;
