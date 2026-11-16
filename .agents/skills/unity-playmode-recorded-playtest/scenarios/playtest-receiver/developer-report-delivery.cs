@@ -19,8 +19,21 @@ using UniRx;
 // 録画前にGameViewへフォーカスし単体入力を実測する
 // Focus GameView and verify one input before recording
 Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView").Focus();
+// 非前面の Editor でも注入入力が届くよう焦点無視へ切り替える（前例 uitk-lifeline）
+// Ignore focus so injected input reaches an unfocused Editor (precedent uitk-lifeline)
+InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+Client.Playtest.Input.SemanticInput.EnsureDevices();
+InputSystem.EnableDevice(Keyboard.current);
+InputSystem.EnableDevice(Mouse.current);
 await UniTask.DelayFrame(3);
 var control = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+// 開幕スキット中（Story）は Esc でポーズが開かないので、先に飛ばしてゲーム画面に着くのを待つ
+// Esc cannot open the pause during the opening skit (Story), so skip it first and wait for the game screen
+await Client.Playtest.Operations.Ui.PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
+var gameScreenDeadline = Time.realtimeSinceStartup + 30f;
+while (control.CurrentState != UIStateEnum.GameScreen && Time.realtimeSinceStartup < gameScreenDeadline) await UniTask.Yield();
+if (control.CurrentState != UIStateEnum.GameScreen) throw new System.Exception("Escape入力の事前検証の前にゲーム画面へ着かない: " + control.CurrentState);
 await Client.Playtest.Input.SemanticInput.TapKey(Key.Escape);
 await UniTask.DelayFrame(3);
 if (control.CurrentState != UIStateEnum.PauseMenu) throw new System.Exception("Escape入力の事前検証が失敗しました");
