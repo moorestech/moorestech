@@ -32,33 +32,23 @@
 | 2026-11-12 | 2 | 080539a95d | 115 | 111 | 4 | 0 | 0 |
 | 2026-11-13 | 4 | c440f807cd | 457 | 434 | 23 | 0 | 0 |
 | 2026-11-14 | 4 | f5d0e71e61 | 457 | 434 | 23 | 0 | 0 |
+| 2026-11-15 | 1 | 4fc636d56d | 66 | 57 | 9 | 0 | 0 |
+| 2026-11-15 | 2 | 4fc636d56d | 115 | 111 | 4 | 0 | 0 |
+| 2026-11-15 | 3 | 4fc636d56d | 99 | 99 | 0 | 0 | 0 |
+| 2026-11-15 | 4 | 4fc636d56d | 457 | 434 | 23 | 0 | 0 |
+| 2026-11-15 | 5 | 4fc636d56d | 528 | 243 | 285 | 0 | 0 |
 
 ## 処遇
 
 | 束 | Web のファイル | Web のテスト名 | 処遇 | 証跡のパスか理由 | PR |
 |---|---|---|---|---|---|
 | 1 | `e2e/tests/regression/actionErrors.spec.ts` | * | 捨てる | WS の action（block_inventory.split）の失敗コードに対するトーストの契約。UITK のコマンドは WS を通らず、通信失敗のトーストは撤去まで Web 側に残る（台帳「agent 既定」の通信失敗のトースト） | #1596 |
-| 1 | `e2e/tests/system/feedbackReportLabels.spec.ts` | 感想送信のボタンと完了通知: ${label.locale} | 写す予定 | moorestech-albof.21（4 言語の本番辞書で感想の送信ボタンと完了トーストの文言を見る。録画 `scenarios/misc/feedback-report-labels.cs` は日本語のボタンだけで完了通知と他言語を見ない） | #1596 |
-| 1 | `e2e/tests/system/pauseMenu.spec.ts` | PauseMenu遷移で表示しセーブとセーブして終了actionを送る | 写す予定 | moorestech-albof.21（PauseMenu の UI 状態へ遷移して画面が出て、セーブとセーブして終了のコマンドが出ることを一続きで見るテストが無い。PauseMenuViewTest は表示済みの View でコマンドの種類だけを見て遷移を通らず、録画 `scenarios/uitk/stage1/uitk-lifeline.cs` は 2 つを押すだけで結果を assert しない） | #1596 |
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップから設定画面へ進み言語を選べ、戻るでトップへ戻る | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs（設定へ進み日本語を選んでロケール印を待ち、戻るでトップへ戻る） | #1596 |
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップからバグ報告画面へ進み送信すると成功を表示する | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs（バグ報告へ進み本文を入れて送り、トーストと outbox の新しい箱を確かめ、トップのセーブを待つ） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | 送信状況 %j と送信可否を同時に表示する | 写す予定 | moorestech-albof.21（文言は BugReportFormTextTest にあるが、配送の行と状態の行を同じ画面に同時に出す View のテストが無い） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | %s辞書で配送不能件数と復旧案内を出す | 写す予定 | moorestech-albof.21（4 言語の本番辞書。UITK は日本語だけ） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | %s辞書で件数不明を完了や0件にしない | 写す予定 | moorestech-albof.21（4 言語の本番辞書。UITK は日本語だけ） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/hostSubmissionLock.test.ts` | 応答待ちが終了してもホスト送信中は感想の種別と本文を保護する | 写す予定 | moorestech-albof.21（BugReportFormViewTest はホスト Submitting を Apply するだけ。送信→ホスト submitting→ローカル応答の終了後もロックが残り成功トーストを出さず、ready で解けることを見るテストが無い） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/productionSendingLabels.test.ts` | ${locale}: ${kind}のホスト送信表示は本番CSVを使う | 写す予定 | moorestech-albof.21（4 言語の本番辞書の文言。UITK はキーの選び分けだけを見る） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts` | %s辞書でボタン2つと書き出し中の文言が未翻訳キーにならない | 写す予定 | moorestech-albof.21（4 言語。汎用の LocalizationDictionaryCoverageTest は空訳だけを見る） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts` | %s辞書で完了・欠落・開けなかった案内・失敗の文言が未翻訳キーにならない | 写す予定 | moorestech-albof.21（4 言語で差し込み値が残ること。UITK は日本語だけ） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts` | 感想でも欠損時は従来の通知を出す | 写す予定 | moorestech-albof.21（欠損のエラーのトーストは種別バグでしか見ていない） | #1596 |
-| 1 | `src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts` | 感想送信中の表示とロックを保ち、送信開始時の種別で完了を伝える | 写す予定 | moorestech-albof.21（送信中に下書きの種別が変わっても完了は送信開始時の種別で伝えることを見るテストが無い） | #1596 |
-| 1 | `src/features/pauseMenu/PauseMenuPanel.test.ts` | パネルを外して付け直すと書きかけは空になる | 写す予定 | moorestech-albof.21（ポーズを開くたびに PauseMenuScreenPresenter が書きかけを Reset するが、それを見るテストが無い） | #1596 |
-| 1 | `src/features/pauseMenu/PauseMenuPanel.test.ts` | 設定画面は言語選択と戻るボタンを出し、戻るはtopへのshow_pageを送る | 写す予定 | moorestech-albof.21（PauseMenuViewTest は言語選択と戻るだけを見る。Web が見る sprint-mode-select と graphics-quality-settings が設定画面に出ることを見るテストが無い） | #1596 |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | 拒否理由と対象項目を表示文言へ解決する | 捨てる | WS の失敗コード（invalid_graphics_quality:invalid_type:…）を文言へ解く契約。UITK の SetGraphicsQuality は型付きの値を受け結果を返さず、拒否の経路が無い | #1596 |
-| 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | topicを固定したまま連続操作とpreset直後に%sを送る | 写す予定 | moorestech-albof.21（モデルが更新されない間の連続操作とプリセット直後の操作で、前の操作を巻き戻さず今の項目を送ることを見るテストが無い） | #1596 |
-| 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | %sの操作値を送る | 写す予定 | moorestech-albof.21（オンオフ 5 項目〈ssao・postProcessing・effects・mapObjects・ocean〉の testid と送る項目の対応〈GraphicsQualityItemRows の表〉を View で押して見るテストが無い。GraphicsQualityRowsTest は行を自作し表を通らず、SettingsViewTest は描画倍率と地形だけ） | #1596 |
+| 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | topicを固定したまま連続操作とpreset直後に%sを送る | 捨てる | UITK は画質の全項目を送り、送った同じ呼び出しの中で SettingsModel から View の Apply まで回るので、モデルが追いつかない間の連続操作が起きない（`GraphicsQualityPreference.cs:41` の Subject.OnNext → `SettingsModel.cs:23,32-34` → `PauseMenuView.cs:98,117-119` → `GraphicsQualitySettingsView.Apply`。偽のモデルで連続操作を写した NUnit は 9 件とも落ちた〈winunity run 20261115-141909〉が、本番では起きない。S5-ladder D-14） | #1674 |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | topic未着では項目を描かない | 捨てる | UITK の SettingsModel は生成時に設定値を同期で持ち、topic 未着の状態が無い | #1596 |
 | 1 | `src/features/settings/LanguageSelect.test.ts` | 一覧が届くまでは辞書非依存リテラルの読み込み中を出しModeSwitchを描かない | 捨てる | UITK の言語一覧は LanguageCatalog の静的な表で、配信待ちの状態が無い | #1596 |
-| 1 | `src/features/settings/SprintModeSelect.test.ts` | holdの初期表示からtoggleを選択できる | 写す予定 | moorestech-albof.21（hold で開いた画面から toggle を押して SetSprintInputMode(Toggle) が出ることを見るテストが無い） | #1596 |
 | 1 | `src/features/settings/SprintModeSelect.test.ts` | topic未着では選択を描かない | 捨てる | UITK の SettingsModel は生成時に設定値を同期で持ち、topic 未着の状態が無い | #1596 |
 | 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | blockInventoryレイヤーのEscapeでGameScreen遷移を要求する | 捨てる | UITK では UIState（`SubInventoryState` の `CloseUI`）が ESC で閉じる。Web は CEF がキーを取るために持つ判断（L0-s4b D-7） | #1599 |
 | 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | modalレイヤーではEscapeでも遷移を要求しない | 捨てる | 同上。モーダル上の ESC は UIState の遷移規則が持つ（L0-s4b D-7） | #1599 |
@@ -103,3 +93,65 @@
 | 5 | `src/shared/i18n/allScreensI18n.test.ts` | fetches fallback only once while also loading source for the fallback locale | 捨てる | UITK の辞書は起動時に同期で読み込み、HTTP 取得・取得の世代・topic 待ちが無い（設計書 A-38） | #1673 |
 | 5 | `src/shared/i18n/allScreensI18n.test.ts` | waits for the localization topic before the first dictionary fetch | 捨てる | 同上（A-38） | #1673 |
 | 5 | `src/shared/i18n/allScreensI18n.test.ts` | keeps the newest locale when StrictMode cleanup aborts an older dictionary generation | 捨てる | 同上（A-38） | #1673 |
+| 5 | `src/bridge/contract/__tests__/blockInventoryValidators.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/actionNames.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/contentGuidContracts.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/eventLanguageGateContract.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/__tests__/buildMenu.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/__tests__/contentIdentity.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/__tests__/guidValidation.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/__tests__/inventory.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/__tests__/presentation.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/__tests__/ui.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/rocketLaunchPad/index.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/schemas/spaceElevator/index.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/validators.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/wireContract.machineUpgrade.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/wireContract.research.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/wireContract.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/contract/wireContract.trainTimetable.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/playtest/domQueryResponder.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/playtest/domSetTextResponder.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/playtest/playtestTopicResponder.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/store/fluidMasterStore.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/store/itemMasterStore.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/store/languageList/languageListStore.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/store/topicEventDelivery.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/store/topicStore.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/transport/actions.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/transport/httpEndpoints.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/transport/subscriptionManager.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `src/bridge/transport/tests/webSocketClient.test.ts` | * | 捨てる | Web と C# の間の WS/HTTP の契約・検証・購読・ストア・DOM 照会の応答。UITK は同じプロセスで `Client.Ui.State` のモデルを直に読み、通信層を持たない（設計書 A-13）。UITK 側の DSL の照会は `Client.Tests/Ui/Dsl/` が持つ。切替で bridge ごと消える | #1674 |
+| 5 | `e2e/mock-host/tests/httpHandler.test.ts` | * | 捨てる | Web の検証基盤（mock-host の HTTP 応答）。UITK は mock-host を使わない | #1674 |
+| 5 | `e2e/mock-host/tests/spaceElevatorConnect.test.ts` | * | 捨てる | mock-host の模擬サーバーの挙動。UITK は本物のサーバーにつなぎ、mock-host を使わない | #1674 |
+| 5 | `e2e/tests/reference/captureReadiness.spec.ts` | * | 捨てる | Web の参照キャプチャの撮影の準備の検査。UITK の撮影は `UiRuntimePanelCapture`・`PlaytestGameViewOps`（compare-procedure.md §3） | #1674 |
+| 5 | `e2e/uitk-reference/captureLifecycle.test.ts` | * | 捨てる | 同上（Web の撮影ツールの後始末と manifest） | #1674 |
+| 5 | `src/shared/i18n/localizationKeysFreshness.test.ts` | * | 捨てる | TS の生成物 `localizationKeys.ts` の鮮度と CSV の構文解析。C# 側は SourceGenerator が毎ビルド CSV から生成し古くならない | #1674 |
+| 5 | `src/shared/i18n/provider/dictionaryRetry.test.ts` | * | 捨てる | 辞書の HTTP 取得の再試行。UITK は辞書を同じプロセスで同期に読み、取得が無い（設計書 A-38） | #1674 |
+| 5 | `src/shared/i18n/provider/dictionaryGeneration.test.ts` | * | 捨てる | 同上（取得の世代の入れ替え） | #1674 |
+| 5 | `src/shared/i18n/noJsxVisibleLiteral.test.ts` | * | 捨てる | JSX の見える文字の lint。UITK の同じ規則は UXML 側の `Client.Tests/Ui/Text/UxmlLiteralTextTest` が持ち、JSX の構文は無い | #1674 |
+| 5 | `src/app/App.architecture.test.ts` | * | 捨てる | React の App の構成の制約（辞書エラーのリロード・画面固有のクロームを持たない）。UITK は辞書エラーを作らず（設計書 A-38）、層の向きは `Client.Tests/Ui/Conventions/UiLayerDependencyDirectionTest` が持つ | #1674 |
+| 5 | `src/shared/uiState/activeLayer.test.ts` | Enterなど他のキーは封じない | 捨てる | ブラウザ既定動作の封じ対象を Tab・Space に絞る DOM の許可リストの主張で、UITK にはブラウザ既定動作が無く、ルートは Enter 由来の決定を含むナビゲーションを全部打ち消し Enter は各画面が自前で扱う（`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` の Attach） | #1674 |
+| 5 | `src/shared/uiState/activeLayer.test.ts` | 文字を打てるinput typeは文字入力欄として数える | 捨てる | DOM の要素の種類の判定。UITK の文字入力は `TextField` のフォーカスだけで決まる（`GameUiInputRules.IsInsideTextField`） | #1674 |
+| 5 | `src/shared/uiState/activeLayer.test.ts` | 押すだけのinput typeと未知のtypeは文字入力欄にしない | 捨てる | DOM の要素の種類の判定。UITK の文字入力は `TextField` のフォーカスだけで決まる（`GameUiInputRules.IsInsideTextField`） | #1674 |
+| 5 | `src/shared/uiState/activeLayer.test.ts` | contenteditableは有効な値のときだけ文字入力欄になる | 捨てる | DOM の要素の種類の判定。UITK の文字入力は `TextField` のフォーカスだけで決まる（`GameUiInputRules.IsInsideTextField`） | #1674 |
+| 5 | `src/shared/i18n/contentKeys.test.ts` | merges content keys into the translation key contract | 捨てる | TS の型の和（ContentLocalizationKey を TranslationKey へ代入できること）の検査で、UITK は導出キーを C# の型 `ContentLocalizationKey`（`Mooresmaster.Localization.Generated`）で持ち型の和の契約が無い | #1674 |
+| 5 | `src/shared/i18n/contentKeys.test.ts` | re-exports the generated builders through the i18n barrel | 捨てる | TS のモジュール構成（i18n の barrel からの再輸出）の検査で、UITK の生成コードは `ContentLocalizationKeys` 1 か所から直に使い再輸出の層が無い | #1674 |
+| 5 | `src/shared/i18n/contentKeys.test.ts` | rejects strings outside the content key grammar | 捨てる | `@ts-expect-error` による TS の型レベルの文法検査で、UITK は文字列を受けず Guid を引数に取る生成メソッド（`ContentLocalizationKeys.ItemName(Guid)` 等）だけでキーを作るため文法外の文字列を渡す口が無い | #1674 |
+| 5 | `src/shared/i18n/diagnostics/translationWarnings.test.ts` | warns once per missing key until dictionaries change | 捨てる | React の再描画で同じ警告が繰り返される問題への世代ごとの重複抑止で、UITK は解決を描画のたびに呼ばず、欠けたキーの警告自体も持たない（`Client.Localization/LocalizationTextResolver.cs` は印を返すだけ） | #1674 |
+| 5 | `src/shared/i18n/diagnostics/translationWarnings.test.ts` | keeps missing-key warnings isolated between old and current translators | 捨てる | React の translator の世代（旧翻訳器と現行翻訳器）ごとの警告の分離で、UITK には translator の世代が無く `Localize` の単一の公開 snapshot から解く | #1674 |
+| 5 | `src/shared/i18n/diagnostics/translationWarnings.test.ts` | deduplicates each key and placeholder across renders and isolates generations | 捨てる | React の再描画で同じ警告が繰り返される問題への重複抑止で、UITK は解決を描画のたびに呼ばない（値の無い枠は `LocalizationTextInterpolator` が呼ばれるたびに LogError し、その挙動は `LocalizeGetFormattedTest` が持つ） | #1674 |
+| 5 | `src/shared/i18n/itemName/useItemName.test.ts` | マスタ未着ではnullを返す | 捨てる | UITK にマスタ未受信の状態が無い（マスタは起動時に同期で持つ。設計書 A-13） | #1674 |
+| 5 | `src/shared/i18n/itemName/useItemName.test.ts` | 辞書とマスタが同じ再描画ではresolver参照を維持する | 捨てる | React の再描画の最適化（hook が返す resolver の参照の同一性）で、UITK に再描画ごとに作り直す resolver が無い | #1674 |
+| 5 | `src/shared/i18n/itemName/useItemName.test.ts` | マスタ未着ではid表示へ落とす | 捨てる | UITK にマスタ未受信の状態が無い（設計書 A-13） | #1674 |
+| 5 | `src/shared/i18n/useI18n.test.ts` | starts uninitialized with no dictionary content | 捨てる | React の辞書の取得状態。UITK は起動時に同期で辞書を持ち、取得の状態が無い（A-38） | #1674 |
+| 5 | `src/shared/i18n/useI18n.test.ts` | does not warn or show a missing marker before the first dictionary generation is ready | 捨てる | React の辞書の取得状態。UITK は起動時に同期で辞書を持ち、取得の状態が無い（A-38） | #1674 |
+| 5 | `src/shared/i18n/useI18n.test.ts` | exposes an error status when the very first dictionary load fails | 捨てる | React の辞書の取得状態。UITK は起動時に同期で辞書を持ち、取得の状態が無い（A-38） | #1674 |
+| 5 | `src/shared/i18n/useI18n.test.ts` | keeps translations empty and silent after the very first load failed | 捨てる | React の辞書の取得状態。UITK は起動時に同期で辞書を持ち、取得の状態が無い（A-38） | #1674 |
+| 5 | `src/shared/i18n/useI18n.test.ts` | keeps the last ready generation while exposing a later load failure | 捨てる | React の辞書の取得状態（言語切替時の非同期取得の失敗）。UITK は全言語の辞書を起動時に同期で持ち、言語切替に取得が無い（A-38） | #1674 |
+| 5 | `src/shared/i18n/useI18n.test.ts` | warns once per generation for an unknown external localized key | 捨てる | 外部文字列キーの世代ごとの警告で、UITK の外部キーの口 `Localize.GetLegacy` は印を返すだけで警告も世代ごとの重複抑止も持たない（`Client.Localization/Localize.cs`） | #1674 |
+| 5 | `src/shared/i18n/useI18n.test.ts` | narrows only generated keys at an external string boundary | 捨てる | TS の型の絞り込み（`isTranslationKey` の type guard）で、UITK は生成キーを C# の `LocalizationKeys` の型で持ち、外部文字列を生成キーへ絞る実行時の判定が無い | #1674 |
+| 5 | `src/app/iconTextOutlineDesign.test.ts` | 縁を真のストロークで描く共有クラスを2本だけ持つ | 捨てる | CSS の共有クラスの数（paint-order・-webkit-text-stroke の 2 本）の規則で、UITK は `OutlinedCountLabel` 1 つが縁を持ち色は `--outlined-count-label-stroke` のつまみで切り替える（`Client.Ui/Components/Slots/OutlinedCountLabel/OutlinedCountLabel.uss`）ので同じ構造が無い | #1674 |
+| 5 | `src/shared/tutorialAnchor/tutorialAnchor.test.ts` | creates only the tutorial contract attribute | 捨てる | DOM の属性（data-tutorial-anchor 1 つだけ）の書式で、UITK はクラス名で印を付ける（`Client.Ui/Foundation/Anchor/TutorialAnchor.cs`。印付けは `TutorialAnchorRegistryTest.MarkedElementResolvesAsUnique` が見る） | #1674 |
+| 5 | `src/shared/tutorialAnchor/tutorialAnchor.test.ts` | builds a whitespace token match selector | 捨てる | CSS の属性セレクタ（`~=`）の組み立てで、UITK はクラス名の照会で解決しセレクタ文字列を作らない（`Client.Ui/Foundation/Anchor/TutorialAnchorRegistry.cs`） | #1674 |
+| 5 | `src/shared/ui/IconButton/index.test.ts` | aria-label、testId、tutorial向け残余propsをbuttonへ渡す | 捨てる | DOM の属性（aria-label・data-testid・残余 props・type=button）の受け渡しで、UITK の IconButton は残余の属性を受けない（testid の name と押下は `IconButtonTest.クリックで押下を1回流しキーと決定では押されずフォーカスを持たない` が見る） | #1674 |

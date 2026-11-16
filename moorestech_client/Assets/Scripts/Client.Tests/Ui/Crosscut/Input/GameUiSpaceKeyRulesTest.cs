@@ -38,6 +38,7 @@ namespace Client.Tests.Ui.Crosscut.Input
         }
 
         /// <web-test file="e2e/tests/regression/inputLayer.spec.ts">checkboxではSpaceでトグルせず、contenteditableには空白が入る</web-test>
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">文字入力欄のSpaceは空白入力として通す</web-test>
         [Test]
         public void SpaceDoesNotFlipToggleButTypesBlankIntoTextField()
         {

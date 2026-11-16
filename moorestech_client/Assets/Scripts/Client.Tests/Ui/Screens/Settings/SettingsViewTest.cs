@@ -83,6 +83,23 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.IsFalse(IsShown(Find<Label>(view, "sprint-mode-recovered")));
         }
 
+        /// <web-test file="src/features/settings/SprintModeSelect.test.ts">holdの初期表示からtoggleを選択できる</web-test>
+        [Test]
+        public void 走りはholdの初期表示からtoggleを選択できる()
+        {
+            // hold で開くと hold だけが選ばれている
+            // Opening on hold selects only hold
+            var view = Mount(new SprintModeSelectView(Settings(GraphicsQualityPresetChoice.Medium, false, SprintInputMode.Hold, false), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            Assert.IsTrue(IsSelected(view, "sprint-mode-option-hold"));
+            Assert.IsFalse(IsSelected(view, "sprint-mode-option-toggle"));
+
+            // toggle 押下で設定コマンド1回
+            // Toggle press issues the setting command once
+            simulate.Click(Find<Button>(view, "sprint-mode-option-toggle"));
+            Assert.AreEqual(SettingsCommandKind.SetSprintInputMode, _commands.Issued.Single().Kind);
+            Assert.AreEqual(SprintInputMode.Toggle, _commands.Issued.Single().SprintMode);
+        }
+
         /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">プリセットと一致するときはその値を選択しカスタム表示を出さない</web-test>
         [Test]
         public void プリセットと一致するときはその値を選択しカスタム表示を出さない()

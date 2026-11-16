@@ -37,36 +37,42 @@ namespace Client.Tests.Ui.Routing
             }
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">PlayerInventory はインベントリ画面</web-test>
         [Test]
         public void PlayerInventoryはインベントリ画面()
         {
             Assert.AreEqual(UiScreen.PlayerInventory, UiScreenRouting.Resolve(UIStateEnum.PlayerInventory, null));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">SubInventory はブロック画面</web-test>
         [Test]
         public void SubInventoryはブロック画面()
         {
             Assert.AreEqual(UiScreen.SubInventory, UiScreenRouting.Resolve(UIStateEnum.SubInventory, null));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">BuildMenu は buildMenu 画面に解決される</web-test>
         [Test]
         public void BuildMenuはbuildMenu画面に解決される()
         {
             Assert.AreEqual(UiScreen.BuildMenu, UiScreenRouting.Resolve(UIStateEnum.BuildMenu, null));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">ChallengeList は challengeList 画面に解決される</web-test>
         [Test]
         public void ChallengeListはchallengeList画面に解決される()
         {
             Assert.AreEqual(UiScreen.ChallengeList, UiScreenRouting.Resolve(UIStateEnum.ChallengeList, null));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">PauseMenu は pauseMenu 画面に解決される</web-test>
         [Test]
         public void PauseMenuはpauseMenu画面に解決される()
         {
             Assert.AreEqual(UiScreen.PauseMenu, UiScreenRouting.Resolve(UIStateEnum.PauseMenu, null));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">TrainHUDScreen は入れ子stateでHUDとPauseを分ける</web-test>
         [Test]
         public void TrainHUDScreenは入れ子stateでHUDとPauseを分ける()
         {
@@ -74,6 +80,7 @@ namespace Client.Tests.Ui.Routing
             Assert.AreEqual(UiScreen.TrainPause, UiScreenRouting.Resolve(UIStateEnum.TrainHUDScreen, NestedPauseSubStateEnum.PauseMenuScreen));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">Story は入れ子のPauseMenuScreenだけをskitPause画面にする（語彙は列車HUDと共通）</web-test>
         [Test]
         public void Storyは入れ子のPauseMenuScreenだけをskitPause画面にする()
         {
@@ -82,12 +89,14 @@ namespace Client.Tests.Ui.Routing
             Assert.AreEqual(UiScreen.None, UiScreenRouting.Resolve(UIStateEnum.Story, null));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">PlaceBlock は画面を占有しないHUD stateとして扱う</web-test>
         [Test]
         public void PlaceBlockは画面を占有しないHUD_stateとして扱う()
         {
             Assert.AreEqual(UiScreen.None, UiScreenRouting.Resolve(UIStateEnum.PlaceBlock, null));
         }
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">GameScreen・未受信・未知state はパネル無し</web-test>
         [Test]
         public void GameScreenはパネル無し()
         {
@@ -110,6 +119,12 @@ namespace Client.Tests.Ui.Routing
             { UiScreen.SkitPause, new[] { false, true, false, true, true, false } },
         };
 
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">%s の grab 成立可否は %s</web-test>
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">%s の常時表示HUD可否は %s</web-test>
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">%s のスキット入力受理可否は %s</web-test>
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">%s のポーズメニュー表示可否は %s</web-test>
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">%s の背景ディム表示可否は %s</web-test>
+        /// <web-test file="src/shared/uiState/uiScreenRouting.test.ts">%s の乗車HUD表示可否は %s</web-test>
         [Test]
         public void 全画面の性質がWebの表と一致する()
         {

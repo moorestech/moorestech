@@ -145,6 +145,19 @@ namespace Client.Tests.Ui.Components.Controls
             // A test USS on an ancestor outranks the theme regardless of specificity, so hover over a caller's colour is checked inside the theme by SkitToolbarViewTest
         }
 
+        /// <web-test file="src/shared/ui/IconButton/index.test.ts">children省略時は既定の×を描き、渡された場合はそれを描く</web-test>
+        [Test]
+        public void 渡した図形を子として描き既定の閉じる図形を足さない()
+        {
+            var glyph = new VisualElement();
+            var button = new IconButton(TestId, glyph, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _rulesRoot.Add(button);
+            simulate.FrameUpdate();
+
+            Assert.IsTrue(button.Contains(glyph));
+            Assert.IsNull(button.Q<IconButtonCloseGlyph>());
+        }
+
         private IconButton AddButton(VisualElement parent)
         {
             var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));

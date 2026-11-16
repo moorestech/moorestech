@@ -10,6 +10,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
 {
     public class TutorialAnchorTrackerTest : TutorialOverlayTestHost
     {
+        /// <web-test file="src/shared/tutorialAnchor/resolveAnchor.test.ts">reports a unique visible anchor as ready</web-test>
         [Test]
         public void 載っているアンカーはreadyで矩形と画面のclipを持つ()
         {
@@ -64,6 +65,26 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             tracker.TryGet("pause.back", out var b);
             tracker.TryGet("pause.settings", out var c);
             Assert.AreEqual((TutorialAnchorReason.DisplayNone, TutorialAnchorReason.ZeroArea, TutorialAnchorReason.OutsideViewport), (a.Reason, b.Reason, c.Reason));
+        }
+
+        /// <web-test file="src/shared/tutorialAnchor/resolveAnchor.test.ts">distinguishes missing and zero-area anchors</web-test>
+        [Test]
+        public void 未発見はNotFoundで面積0はHiddenと種類を分けて持つ()
+        {
+            MountAnchor(rootVisualElement, "pause.back", 0, 0, 0, 10);
+            var tracker = CreateTracker();
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TutorialAnchorTracker\] anchor is missing: pause\.save"));
+            tracker.SetSubscribedAnchors(Ids("pause.save", "pause.back"));
+            simulate.FrameUpdate();
+
+            // 未発見と面積0を別側へ分ける
+            // Missing and zero-area fall on separate sides
+            tracker.TryGet("pause.save", out var missing);
+            tracker.TryGet("pause.back", out var zeroArea);
+            Assert.IsInstanceOf<TutorialAnchorState.NotFound>(missing);
+            Assert.AreEqual(TutorialAnchorReason.Missing, missing.Reason);
+            Assert.IsInstanceOf<TutorialAnchorState.Hidden>(zeroArea);
+            Assert.AreEqual(TutorialAnchorReason.ZeroArea, zeroArea.Reason);
         }
 
         [Test]

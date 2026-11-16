@@ -16,7 +16,6 @@ namespace Client.Tests.Ui.Input
     public class GameUiInputRulesTest : UiTestHost
     {
         private static readonly Regex ButtonFocusWarning = new(@"^\[GameUiInput\] non text-field, unmarked element took focus and was blurred: Button 'rules-button'$");
-
         private VisualElement _rulesRoot;
 
         [SetUp]
@@ -37,6 +36,7 @@ namespace Client.Tests.Ui.Input
             UiInputExclusivity.ClearEscapeLatchForTest();
         }
 
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">recognizes editable text controls but not ordinary buttons</web-test>
         [Test]
         public void TextFieldFocusRaisesFlagAndLeavingClearsIt()
         {
@@ -120,6 +120,7 @@ namespace Client.Tests.Ui.Input
         }
 
         /// <web-test file="e2e/tests/regression/inputLayer.spec.ts">ボタンにフォーカスしてSpaceを押してもclickせずキーハンドラにも届かない</web-test>
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">Spaceは文字入力欄以外で封じ、Reactハンドラへも渡さない</web-test>
         [Test]
         public void NavigationSubmitDoesNotClickFocusedButton()
         {
@@ -136,6 +137,7 @@ namespace Client.Tests.Ui.Input
         }
 
         /// <web-test file="e2e/tests/regression/inputLayer.spec.ts">Tabはブラウザのフォーカスを動かさない</web-test>
+        /// <web-test file="src/shared/uiState/activeLayer.test.ts">Tabは文字入力中でも封じるが、伝播は止めない</web-test>
         [Test]
         public void NavigationMoveNextDoesNotMoveFocus()
         {
