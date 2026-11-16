@@ -54,6 +54,7 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
             // 和文の題の行は Web の Title order=2（26px×1.35）で、カテゴリ列はその直下（字の自然な高さ 38px で下へずれない）
             // The Japanese title row is the Web Title order=2 (26px x 1.35) and the category row sits right below it (not pushed down by the 38px natural glyph height)
             var title = _view.Q<Label>(className: "challenge-list__title");
+            Assert.IsTrue(title.ClassListContains(Client.Ui.Foundation.Text.UiTypographyClass.TitleHeadingFace), "題は Mantine の Title の字体（A-220）");
             Assert.AreEqual(35.1f, title.layout.height, 0.5f, "題の行の高さ");
             Assert.AreEqual(title.worldBound.yMax, Find<VisualElement>(rootVisualElement, "challenge-categories").worldBound.yMin, 0.5f, "カテゴリ列の上端");
 

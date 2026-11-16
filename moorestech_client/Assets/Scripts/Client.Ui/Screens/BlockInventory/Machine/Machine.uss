@@ -5,7 +5,10 @@
     min-height: 0;
 }
 
+/* Mantine ScrollArea（scrollbars 既定 xy）の縦バーは bottom: var(--sa-corner-width)。角の幅は縦バーの幅 12px（横バーが無くても入る。前例 ItemList.uss） */
+/* Mantine ScrollArea (default scrollbars xy) puts the vertical bar at bottom: var(--sa-corner-width); the corner is the bar's 12px width even with no horizontal bar (precedent ItemList.uss) */
 .machine-section__inventory-scroll {
+    --game-scroll-view-scrollbar-inset-bottom: var(--scrollarea-scrollbar-size);
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 0;
@@ -36,6 +39,13 @@
     flex-direction: row;
     justify-content: flex-start;
     margin-left: 16px;
+}
+
+/* Web の grid の項目は min-width: auto で中身より縮まない。帯の格子を縮めず、測った幅を両側の min-width にする（MachineProcessRow） */
+/* Web grid items keep min-width: auto and never shrink below content; keep the band grids unshrunk so their measured width feeds both sides' min-width (MachineProcessRow) */
+.machine-process-row__input > *,
+.machine-process-row__output > * {
+    flex-shrink: 0;
 }
 
 /* UiStack は子の marginTop を gap で上書きするので、mt=xs は器の内側の余白で写す */

@@ -39,11 +39,11 @@
     background-color: var(--toast-item-strip-error);
 }
 
-/* 本文は Notification の description（14px・行高 1.55）。右に xs の 10px を空ける */
-/* The body is the Notification description (14px, line height 1.55) with an xs 10px right margin */
+/* 本文は Notification の description（font-size sm 14px・line-height sm 1.45 = 20.3px）。右に xs の 10px を空ける */
+/* The body is the Notification description (font-size sm 14px, line-height sm 1.45 = 20.3px) with an xs 10px right margin */
 .toast-item__text {
     flex-shrink: 1;
-    min-height: 22px;
+    min-height: 20.3px;
     margin: 0 10px 0 0;
     padding: 0;
     color: var(--toast-item-text);

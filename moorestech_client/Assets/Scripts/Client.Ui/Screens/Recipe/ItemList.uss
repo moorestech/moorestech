@@ -40,7 +40,7 @@
 /* GRID_STYLE; letter-spacing 0.12em is 12px in UITK's "font size / 100 x value" unit (A-70) */
 .item-list #item-list-grid {
     --slot-size: 46.144px;
-    --slot-grid-gap: 8.656px;
+    --slot-grid-gap: 8.656px; /* look-exception: LX-143 */
     --slot-grid-row-gap: 8.896px;
     --icon-pad: 5px;
     --count-bottom: -1px;

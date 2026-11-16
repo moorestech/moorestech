@@ -72,7 +72,7 @@
     max-width: 100%;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* look-exception: LX-142 */
     font-size: 14px;
     --research-card-name-line-height: 21.7px;
     min-height: var(--research-card-name-line-height);

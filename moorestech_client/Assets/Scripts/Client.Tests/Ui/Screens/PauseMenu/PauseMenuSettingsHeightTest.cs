@@ -58,6 +58,16 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             AssertNear(LanguageSectionHeight + SprintSectionHeight + GraphicsSectionHeight + StackGap * 2, body.contentContainer.layout.height, "body content height");
         }
 
+        [Test]
+        public void 本文の縦バーは下に角の幅12pxを空ける()
+        {
+            // Mantine ScrollArea（scrollbars 既定 xy）の縦バーは bottom: var(--sa-corner-width)＝12px。つまみの長さが Web と揃う
+            // The Mantine ScrollArea (default scrollbars xy) vertical bar has bottom: var(--sa-corner-width) = 12px, so the thumb length matches the Web
+            MountSettings("japanese");
+            var body = Find<GameScrollView>(_view, "pause-menu-body");
+            Assert.AreEqual(12f, body.worldBound.yMax - body.verticalScroller.worldBound.yMax, 0.5f);
+        }
+
         private void MountSettings(string languageCode)
         {
             // 言語を先に決めてから載せ、字形（CJK/Latin）を最初のレイアウトに入れる
