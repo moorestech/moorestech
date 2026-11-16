@@ -5,7 +5,10 @@
     min-height: 0;
 }
 
+/* Mantine ScrollArea（scrollbars 既定 xy）の縦バーは bottom: var(--sa-corner-width)。角の幅は縦バーの幅 12px（横バーが無くても入る。前例 ItemList.uss） */
+/* Mantine ScrollArea (default scrollbars xy) puts the vertical bar at bottom: var(--sa-corner-width); the corner is the bar's 12px width even with no horizontal bar (precedent ItemList.uss) */
 .machine-section__inventory-scroll {
+    --game-scroll-view-scrollbar-inset-bottom: var(--scrollarea-scrollbar-size);
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 0;

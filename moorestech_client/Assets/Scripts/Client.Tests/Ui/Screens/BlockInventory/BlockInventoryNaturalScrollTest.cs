@@ -63,6 +63,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             var scroll = shell.View.Q<GameScrollView>(NaturalScrollName);
             Assert.AreEqual(Band, shell.Panel().layout.height, 0.01f);
             Assert.Greater(scroll.GetContentHeight(), scroll.GetViewportHeight());
+            // 縦バーは Mantine の角の幅 12px を下に空ける（Web の溝の下端）
+            // The vertical bar leaves Mantine's 12px corner below it (the Web track bottom)
+            Assert.AreEqual(12f, scroll.worldBound.yMax - scroll.verticalScroller.worldBound.yMax, 0.5f);
         }
 
         [Test]

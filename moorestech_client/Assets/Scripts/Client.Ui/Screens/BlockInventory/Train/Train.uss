@@ -6,7 +6,10 @@
     min-height: 0;
 }
 
+/* Mantine ScrollArea（scrollbars 既定 xy）の縦バーは bottom: var(--sa-corner-width)＝縦バーの幅 12px（前例 ItemList.uss） */
+/* Mantine ScrollArea (default scrollbars xy) puts the vertical bar at bottom: var(--sa-corner-width) = the bar's 12px width (precedent ItemList.uss) */
 .train-body__scroll {
+    --game-scroll-view-scrollbar-inset-bottom: var(--scrollarea-scrollbar-size);
     flex-grow: 1;
     min-height: 0;
     margin-top: var(--mode-switch-gap);
