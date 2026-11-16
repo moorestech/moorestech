@@ -42,7 +42,6 @@
         "Server.Event",
         "Game.PlayerInventory.Interface",
         "CommandForgeGeneratorUtil.Editor",
-        "Client.WebUiHost",
         "Client.Build.Policy",
         "Client.Playtest",
         "Client.Playtest.Overlay",

@@ -12,7 +12,6 @@
         "Client.Ui",
         "Client.Ui.State",
         "Client.Ui.Editor",
-        "Client.WebUiHost",
         "Server.Boot",
         "Server.Protocol",
         "Core.Master",
