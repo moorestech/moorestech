@@ -1,9 +1,8 @@
 // 通知の並べ比べ撮影: GameUi（UITK）の本番の通知の層に参照 2-notifications と同じ 4 行（獲得・研究完了・アイテム解放・拒否）を日本語で出し、Game View の実画面を 1280×720 と 2560×1080 で撮る
-// 参照は mock-host の画面なので、背面の層に参照と同じ橙の地を敷き、行のアイコンを mock-host の仮アイコン（demoAssets.ts の placeholderIcon）・文を参照と同じ文（Item 2 +5・最初の研究）に差し替える。行の段組・色・寸法は本番のまま
+// 参照は mock-host の画面なので、行のアイコンを mock-host の仮アイコン（demoAssets.ts の placeholderIcon）・文を参照と同じ文（Item 2 +5・最初の研究）に差し替える。行の段組・色・寸法は本番のまま。参照の橙の地は Web の撤去（X-5c）で読めなくなったので敷かず、行の背後は世界のまま撮る
 // Notification comparison shots: show the same four rows as reference 2-notifications (earned, research completed, item unlocked, denied) in Japanese on the production notification layer and shoot the real Game View at 1280x720 and 2560x1080
-// The reference is a mock-host screen, so lay the same orange ground behind and swap row icons for the mock-host placeholder icons (demoAssets.ts placeholderIcon) and texts for the reference texts (Item 2 +5, 最初の研究); row layout, colors and sizes stay production
+// The reference is a mock-host screen, so swap row icons for the mock-host placeholder icons (demoAssets.ts placeholderIcon) and texts for the reference texts (Item 2 +5, 最初の研究); row layout, colors and sizes stay production. The reference's orange ground became unreadable with the Web removal (X-5c), so it is not laid and the world stays behind the rows
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Localization;
@@ -41,20 +40,7 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
     var denied = NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", new Dictionary<string, string>());
     var placeholderIcons = new Dictionary<int, Texture2D> { [1] = PlaceholderIcon(1), [2] = PlaceholderIcon(2) };
 
-    // 世界の代わりに参照と同じ橙の地（W/public/mock-orange-gradient.png を center/cover）を背面の層の一番下に敷く
-    // Lay the reference's orange ground (W/public/mock-orange-gradient.png, center/cover) at the bottom of the behind-stage layer instead of the world
     var layer = GameUiRoot.Instance.GetLayer(UiLayer.BehindStage, UiFamily.Viewport);
-    var ground = new VisualElement { name = "compare-mock-ground", pickingMode = PickingMode.Ignore };
-    var groundTexture = new Texture2D(2, 2);
-    groundTexture.LoadImage(File.ReadAllBytes(Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "moorestech_web", "webui", "public", "mock-orange-gradient.png"))));
-    ground.style.position = Position.Absolute;
-    ground.style.left = 0f;
-    ground.style.top = 0f;
-    ground.style.right = 0f;
-    ground.style.bottom = 0f;
-    ground.style.backgroundImage = groundTexture;
-    ground.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Cover);
-    layer.Insert(0, ground);
 
     // 行に重なる操作の案内（参照の状態より行が多い）と、DSL の操作ログ（OnGUI）を撮る間だけ隠す
     // Hide the key hints overlapping the rows (more lines than the reference state) and the DSL action log (OnGUI) while shooting
@@ -73,11 +59,9 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
     finally
     {
         await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
-        ground.RemoveFromHierarchy();
         keyHints.style.display = StyleKeyword.Null;
         actionLog.enabled = true;
         Localize.TrySetChosenLanguage("english");
-        Object.Destroy(groundTexture);
         foreach (var icon in placeholderIcons.Values) Object.Destroy(icon);
     }
 
