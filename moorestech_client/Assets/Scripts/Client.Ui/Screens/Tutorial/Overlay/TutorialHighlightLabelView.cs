@@ -1,3 +1,4 @@
+using System;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
@@ -60,11 +61,14 @@ namespace Client.Ui.Screens.Tutorial.Overlay
 
             void PinWidthWhenWrapped()
             {
-                // Unity は折り返した面を最長行の幅に縮めるが、Web は最大幅まで広がる。1 行の自然幅が内側を超えたら最大幅に固定する（前例 TooltipFace）
-                // Unity shrinks a wrapped face to its longest line while Web fills the max width; pin the max width when the one-line width exceeds the inner width (precedent TooltipFace)
-                var innerMaxWidth = _clip.Width - resolvedStyle.paddingLeft - resolvedStyle.paddingRight - resolvedStyle.borderLeftWidth - resolvedStyle.borderRightWidth;
+                // Web の面は position: fixed なので、折り返しの上限は器の幅と「置き場の幅 − 枠の左端」の小さい方（shrink-to-fit。枠の左端は Web の初回の left。置き場は置き場いっぱいの .tutorial-outline）
+                // The Web face is position: fixed, so it wraps at the smaller of the clip width and "holder width - ring left" (shrink-to-fit; the ring left is Web's first-pass left; the holder is the full-size .tutorial-outline)
+                var wrapLimit = Math.Min(_clip.Width, parent.contentRect.width - _box.Left);
+                // Unity は折り返した面を最長行の幅に縮めるが、Web は上限まで広がる。1 行の自然幅が内側を超えたら上限に固定する（前例 TooltipFace）
+                // Unity shrinks a wrapped face to its longest line while Web fills the limit; pin the limit when the one-line width exceeds the inner width (precedent TooltipFace)
+                var innerMaxWidth = wrapLimit - resolvedStyle.paddingLeft - resolvedStyle.paddingRight - resolvedStyle.borderLeftWidth - resolvedStyle.borderRightWidth;
                 var naturalWidth = MeasureSingleLineWidth();
-                style.width = innerMaxWidth < naturalWidth ? new StyleLength(_clip.Width) : new StyleLength(StyleKeyword.Auto);
+                style.width = innerMaxWidth < naturalWidth ? new StyleLength(wrapLimit) : new StyleLength(StyleKeyword.Auto);
             }
 
             #endregion

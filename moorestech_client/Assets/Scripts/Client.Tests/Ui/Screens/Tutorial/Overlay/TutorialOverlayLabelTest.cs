@@ -62,13 +62,16 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         [Test]
         public void 右端を越えるラベルはclipへ押し戻し器より広ければ折り返して左端に揃える()
         {
-            MountAnchor(rootVisualElement, "pause.save", 1220, 100, 40, 40);
+            var anchor = MountAnchor(rootVisualElement, "pause.save", 1220, 100, 40, 40);
             var shortText = new TutorialOutlineCue.Labeled("s1", "o1", "pause.save", 8, UiText.FromVerbatim("右端のラベル"));
             _model.Set(new TutorialOverlayViewModel(new[] { shortText }, System.Array.Empty<TutorialDragGuideCue>()));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             Assert.LessOrEqual(Shown<TutorialHighlightLabelView>().Single().worldBound.xMax, 1280.5f);
 
+            // 器より広い文は、枠の左端が器の左端にあるとき器の幅で折り返して左端に揃う（右寄りの枠は置き場の残りで折り返す。下の別テスト）
+            // A label wider than the container wraps at the container width at the left edge when the ring starts there (a ring near the right wraps at the holder's remainder; see the next test)
+            anchor.style.left = 8f;
             var longText = new TutorialOutlineCue.Labeled("s1", "o1", "pause.save", 8, UiText.FromVerbatim(string.Concat(Enumerable.Repeat("とても長いチュートリアルの説明文", 12))));
             _model.Set(new TutorialOverlayViewModel(new[] { longText }, System.Array.Empty<TutorialDragGuideCue>()));
             simulate.FrameUpdate();
@@ -79,6 +82,23 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             // As on Web, a wrapped face fills the container width (Unity shrinks to the longest line by default, shifting the left edge by glyph width)
             Assert.AreEqual(1280f, wrapped.worldBound.width, 0.5f);
             Assert.Greater(wrapped.worldBound.height, 30f);
+        }
+
+        [Test]
+        public void 右寄りの枠のラベルは置き場の残りの幅で折り返し枠の左端から出る()
+        {
+            // Web の面は position: fixed なので、置き場の幅 1280 − 枠の左端 1034 = 246 で縮んで 2 行になる（金槌のセルの吹き出しの実測）
+            // The Web face is position: fixed, so it shrinks to holder 1280 - ring left 1034 = 246 and wraps to two lines (the measured hammer-cell callout)
+            MountAnchor(rootVisualElement, "pause.save", 1042, 600, 40, 40);
+            var text = new TutorialOutlineCue.Labeled("s1", "o1", "pause.save", 8, UiText.FromVerbatim("ハンマーをクラフトしてホットバーの空いている枠へ入れよう"));
+            _model.Set(new TutorialOverlayViewModel(new[] { text }, System.Array.Empty<TutorialDragGuideCue>()));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            var label = Shown<TutorialHighlightLabelView>().Single();
+            Assert.AreEqual(1034f, label.worldBound.xMin, 0.5f, $"label rect {label.worldBound}");
+            Assert.AreEqual(1280f - 1034f, label.worldBound.width, 0.5f, $"label rect {label.worldBound}");
+            Assert.Greater(label.worldBound.height, 40f, $"2 行に折り返す {label.worldBound}");
         }
 
         /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">anchor未解決の枠線はラベルも描かない</web-test>
