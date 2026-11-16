@@ -28,6 +28,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         [TestCase(2, 2, 0)]
         [TestCase(1, 1, 2)]
         [TestCase(3, 1, 0)]
+        [TestCase(2, 2, 4)]
         public void 自然高の機械は左右の帯が重ならず枠が潰れずパネルの内側に収まる(int inputCount, int outputCount, int moduleCount)
         {
             var shell = OpenMachine(inputCount, outputCount, moduleCount, false);
