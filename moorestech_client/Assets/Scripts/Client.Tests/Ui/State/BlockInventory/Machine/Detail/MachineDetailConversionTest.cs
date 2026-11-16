@@ -81,6 +81,17 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Detail
             Assert.AreEqual(0, detail.RunningRecipeOutputs.Count);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void 受信した出力詰まりを詳細へ写す(bool outputSpaceShort)
+        {
+            var machine = MachineTestDetails.Machine(Guid.Empty, Guid.Empty, outputSpaceShort);
+
+            Assert.IsTrue(MachineDetailConversion.TryBuild(MachineTestDetails.Common(VanillaMachineBlockStateConst.IdleState, 3, 5), machine, Param, false, out var detail));
+
+            Assert.AreEqual(outputSpaceShort, detail.OutputSpaceShort);
+        }
+
         [Test]
         public void 加工中レシピの秒と出力を写し状態と電力と進捗も写す()
         {
