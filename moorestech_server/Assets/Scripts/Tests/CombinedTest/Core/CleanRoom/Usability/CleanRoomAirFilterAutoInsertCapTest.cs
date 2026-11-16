@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Inventory;
 using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Chest;
@@ -6,6 +7,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.Util.InventoryService;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
@@ -47,6 +49,11 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             Assert.IsTrue(blockInventory.InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 3) }));
             Assert.IsFalse(blockInventory.InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 4) }));
 
+            // 複数スタックは合計で判定する
+            // Several stacks are judged by their total
+            Assert.IsFalse(blockInventory.InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 2), factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 2) }));
+            Assert.IsTrue(blockInventory.InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 1), factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 2) }));
+
             // 2個入っていれば残り1個分だけ
             // With two loaded, only one more fits
             inventory.SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, 2);
@@ -66,11 +73,26 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             Assert.AreEqual(0, inventory.InsertItem(factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 10)).Count);
             Assert.AreEqual(0, inventory.InsertItem(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 2) }).Count);
             Assert.AreEqual(12, inventory.GetItem(0).Count);
-            Assert.IsTrue(((global::Core.Inventory.IOpenableInventory)inventory).InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 5) }));
+            Assert.IsTrue(((IOpenableInventory)inventory).InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 5) }));
 
             // 手で超過後は搬入を全量返す
             // After a manual overfill, block inflow comes back whole
             Assert.AreEqual(1, inventory.InsertItem(factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 1), InsertItemContext.Empty).Count);
+        }
+
+        [Test]
+        public void PlayerBulkMoveIgnoresCapTest()
+        {
+            CleanRoomHatchTest.CreateServer();
+            var inventory = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0)).GetComponent<IOpenableBlockInventoryComponent>();
+
+            // プレイヤー一括移動の実入口で5個とも入る
+            // The player's bulk-move entry moves all five
+            var player = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 1);
+            player.SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, 5);
+            InventoryItemInsertService.Insert(player, 0, inventory, 5);
+            Assert.AreEqual(5, inventory.GetItem(0).Count);
+            Assert.AreEqual(0, player.GetItem(0).Count);
         }
 
         [Test]
