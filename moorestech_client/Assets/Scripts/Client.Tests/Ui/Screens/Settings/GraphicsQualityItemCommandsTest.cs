@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using System;
@@ -27,7 +28,7 @@ namespace Client.Tests.Ui.Screens.Settings
             // 末尾の行が 720px の外へ出ても押せるよう、スクロールに入れて載せる
             // Mount inside a scroller so the last rows stay pressable beyond the 720px panel
             _commands = new RecordingSettingsCommands();
-            _view = new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _view = new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             _scroll = new ScrollView(ScrollViewMode.Vertical);
             _scroll.style.height = 720f;
             _scroll.Add(_view);

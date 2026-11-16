@@ -24,7 +24,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Panels
             // Inventory panel (4-player-inventory)
             var inventory = new GamePanel("gallery-game-panel-inventory", GamePanelFrame.Default);
             inventory.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
-            inventory.SetTitleAction(new PanelActionButton("gallery-game-panel-sort", new UiText(LocalizationKeys.Ui.Inventory.Sort), new ProcessUiOsCursor(new UnityUiOsCursorApplier())));
+            inventory.SetTitleAction(new PanelActionButton("gallery-game-panel-sort", new UiText(LocalizationKeys.Ui.Inventory.Sort), GalleryOsCursor.Create()));
 
             row.Add(PanelsAndDecorSampleSheet.Cell(inventory, "gallery-samples__inventory"));
 

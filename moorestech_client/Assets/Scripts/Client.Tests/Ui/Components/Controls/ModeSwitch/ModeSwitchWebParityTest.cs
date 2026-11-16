@@ -184,7 +184,7 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
                 new("mode-a", "a", UiText.FromVerbatim("Mode A")),
                 new("mode-b", "b", UiText.FromVerbatim("Mode B")),
             };
-            var modeSwitch = new ModeSwitchString("mode-switch-parity", orientation, role, options, new Client.Ui.Foundation.Input.OsCursor.UiOsCursorRequestStack(new TestDoubles.FakeUiOsCursorApplier()));
+            var modeSwitch = new ModeSwitchString("mode-switch-parity", orientation, role, options, new Client.Ui.Foundation.Input.OsCursor.UiOsCursorRequestStack(new TestDoubles.FakeUiOsCursorApplier(), new Client.Tests.Ui.Screens.GrabOverlay.FakeUiScreenPointer(1f)));
             _subscription = modeSwitch.OnOptionSelected.Subscribe(_selected.Add);
             rootVisualElement.Add(modeSwitch);
             simulate.FrameUpdate();

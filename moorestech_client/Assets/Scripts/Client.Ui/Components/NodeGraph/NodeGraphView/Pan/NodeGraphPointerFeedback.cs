@@ -25,7 +25,7 @@ namespace Client.Ui.Components.NodeGraph
 
             // 掴む手の出入り・取り外し・大きさ 0 での解放は Foundation の部品に任せ、ここはパン中の握った手だけ持つ
             // The Foundation part handles the grab hand's enter, leave, detach and zero size; this owns only the grabbing hand while panning
-            _hover = new UiOsCursorHoverRequest(viewport, osCursor, UiOsCursorShape.Grab, UiOsCursorLayer.Surface);
+            _hover = osCursor.CreateHoverRequest(viewport, UiOsCursorShape.Grab, UiOsCursorLayer.Surface);
             viewport.RegisterCallback<DetachFromPanelEvent>(_ => StopPanning());
         }
 

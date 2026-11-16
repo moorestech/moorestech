@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.Tests.Ui.Screens.Settings;
@@ -75,7 +76,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Localize.TrySetChosenLanguage(languageCode);
             var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Settings));
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             simulate.FrameUpdate();
             simulate.FrameUpdate();

@@ -61,7 +61,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.RecipeSelection
 
             // 押せる印の指は要素の層で要求する
             // Whole-row pointer is requested on the element layer; USS cursor does nothing at runtime (web .row cursor: pointer)
-            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            osCursor.CreateHoverRequest(this, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
 
         public void SetSelected(bool selected)

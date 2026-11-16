@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
         private readonly List<int> _selected = new();
         private IDisposable _subscription;
         private FakeUiOsCursorApplier _cursorApplier;
+        private FakeUiScreenPointer _screenPointer;
 
         [SetUp]
         public void LoadDictionaryAndClearSelected()
@@ -121,6 +123,7 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
             var modeSwitch = AddSwitch(ModeSwitchOrientation.Horizontal);
             var optionB = Option(modeSwitch, "option-b");
             simulate.MouseMove(optionB.worldBound.center);
+            _screenPointer.SetCurrent(optionB.worldBound.center);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ると指");
 
             // 無効で指を外し、戻すと出し直す
@@ -146,7 +149,8 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
                 new("option-c", 3, UiText.FromVerbatim("300m")),
             };
             _cursorApplier = new FakeUiOsCursorApplier();
-            var modeSwitch = new ModeSwitchInt("mode-switch-test", orientation, ModeSwitchRole.Group, options, new UiOsCursorRequestStack(_cursorApplier));
+            _screenPointer = new FakeUiScreenPointer(1f);
+            var modeSwitch = new ModeSwitchInt("mode-switch-test", orientation, ModeSwitchRole.Group, options, new UiOsCursorRequestStack(_cursorApplier, _screenPointer));
             _subscription = modeSwitch.OnOptionSelected.Subscribe(value => _selected.Add(value));
             rootVisualElement.Add(modeSwitch);
             simulate.FrameUpdate();

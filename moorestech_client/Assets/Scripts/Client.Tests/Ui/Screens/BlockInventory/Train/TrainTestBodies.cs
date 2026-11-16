@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.Content;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Train.Fakes;
@@ -37,7 +38,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             // 本番と同じく器が源を一度だけ購読し、Model とコマンドは器を共有する
             // As in production the holders subscribe to their sources once, and models and commands share them
             Panel = new ReactiveProperty<BlockInventoryPanelState>(panel);
-            OsCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier());
+            OsCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
             var panels = new FakePanelSource(Panel);
             var timetableState = new TrainTimetableEditState(Sources, TimetableCommands, new ManualTrainTimetableWaitTimer(), toaster);
             TimetableEdit = new TrainTimetableEditModel(timetableState);

@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Tests.Ui.TestDoubles;
@@ -128,7 +129,7 @@ namespace Client.Tests.Ui.Filter
         private VisualElement MountModeSwitchRing()
         {
             var options = new List<ModeSwitchOption<int>> { new("option-a", 1, UiText.FromVerbatim("A")), new("option-b", 2, UiText.FromVerbatim("B")) };
-            var modeSwitch = new ModeSwitch<int>("mode-switch-scale-test", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var modeSwitch = new ModeSwitch<int>("mode-switch-scale-test", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             rootVisualElement.Add(modeSwitch);
             simulate.FrameUpdate();
             return modeSwitch.Q(className: "mode-switch__ring");

@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Localization;
 using Client.Tests.Ui.Screens;
 using Client.Tests.Ui.Screens.PauseMenu;
@@ -30,7 +31,7 @@ namespace Client.Tests.Ui.Crosscut.Localization
         {
             // 言語選択は本物のコマンドで通す
             // Language choices go through the real commands all the way to Localize
-            var settings = new PauseMenuSettingsPage(FakeSettingsModel.Default(), new RecordingPauseMenuCommands(), new SettingsCommands(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var settings = new PauseMenuSettingsPage(FakeSettingsModel.Default(), new RecordingPauseMenuCommands(), new SettingsCommands(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             _page = Mount(settings.Root);
         }
 

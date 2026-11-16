@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.IO;
 using System.Linq;
@@ -79,7 +80,7 @@ namespace Client.Tests.Ui.Screens.Inventory
             var pointerRoot = new VisualElement { name = "tooltip-pointer-root" };
             pointerRoot.StretchToParentSize();
             rootVisualElement.Add(pointerRoot);
-            var view = new InventoryView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands(), Toaster), new RecordingInventorySortCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var view = new InventoryView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands(), Toaster), new RecordingInventorySortCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             pointerRoot.Add(view);
             var layer = new VisualElement { pickingMode = PickingMode.Ignore };
             layer.StretchToParentSize();

@@ -46,7 +46,7 @@ namespace Client.Ui.Components.Controls
 
             // Web の cursor: pointer（IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
             // Web cursor: pointer (IconButton/style.module.css:9 and others); the part requests it itself (A-247)
-            _hover = new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            _hover = osCursor.CreateHoverRequest(this, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
 
         // 押せるかを拾いと指の要求へ揃える

@@ -1,4 +1,5 @@
 using System;
+using Client.Ui.Foundation.Input.Pointer;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Input.OsCursor
@@ -11,18 +12,17 @@ namespace Client.Ui.Foundation.Input.OsCursor
     {
         private readonly VisualElement _element;
         private readonly IUiOsCursor _cursor;
+        private readonly IUiScreenPointer _pointer;
         private readonly UiOsCursorShape _shape;
         private readonly UiOsCursorLayer _layer;
         private IDisposable _request;
-        // 押せない間だけパネルの移動でポインタ位置を追う
-        // Track pointer position via panel moves only while unpressable
-        private VisualElement _suspendedPanelRoot;
-        private bool _pointerOverWhileSuspended;
+        private bool _isSuspended;
 
-        public UiOsCursorHoverRequest(VisualElement element, IUiOsCursor cursor, UiOsCursorShape shape, UiOsCursorLayer layer)
+        public UiOsCursorHoverRequest(VisualElement element, IUiOsCursor cursor, IUiScreenPointer pointer, UiOsCursorShape shape, UiOsCursorLayer layer)
         {
             _element = element;
             _cursor = cursor;
+            _pointer = pointer;
             _shape = shape;
             _layer = layer;
 
@@ -47,32 +47,27 @@ namespace Client.Ui.Foundation.Input.OsCursor
             _request = null;
         }
 
-        // 押せなくしたときに呼ぶ。要求を外し移動で追う
-        // Call when unpressable: withdraw the request, track via moves
+        // 押せなくしたときに呼ぶ。要求を外す
+        // Call when unpressable: withdraw the request
         public void Suspend()
         {
-            // silent-ok: 押せない間の重ね呼びは追跡を張り直さない / 正常系
-            if (_suspendedPanelRoot != null) return;
-            _pointerOverWhileSuspended = _request != null;
+            _isSuspended = true;
             Release();
-            _suspendedPanelRoot = _element.panel?.visualTree;
-            _suspendedPanelRoot?.RegisterCallback<PointerMoveEvent>(OnPanelPointerMoveWhileSuspended, TrickleDown.TrickleDown);
         }
 
-        // 押せる戻しで呼ぶ。乗ったままなら指を出し直す
-        // Call when pressable again: re-request the hand if still hovered
+        // 押せる戻しで呼ぶ。拾わない間の移動は事象で届かないので、その時点の実位置が要素の上なら指を出し直す
+        // Call when pressable again: moves while unpickable send no event, so re-request the hand when the actual position is over the element now
         public void Resume()
         {
             // silent-ok: 押せるままの重ね呼びは何もしない / 正常系
-            if (_suspendedPanelRoot == null) return;
-            _suspendedPanelRoot.UnregisterCallback<PointerMoveEvent>(OnPanelPointerMoveWhileSuspended, TrickleDown.TrickleDown);
-            _suspendedPanelRoot = null;
-            if (_pointerOverWhileSuspended) Hold();
-        }
+            if (!_isSuspended) return;
+            _isSuspended = false;
 
-        private void OnPanelPointerMoveWhileSuspended(PointerMoveEvent evt)
-        {
-            _pointerOverWhileSuspended = _element.worldBound.Contains(evt.position);
+            // silent-ok: パネルから外れた間の再開は位置を測れず、載せ直しの Enter が出し直す / 外れた要素は指を出さないのが正常
+            var panel = _element.panel;
+            if (panel == null) return;
+            var onPanel = _pointer.ScreenToPanel(panel, _pointer.CurrentPointerOnScreen());
+            if (_element.worldBound.Contains(onPanel)) Hold();
         }
 
         private void OnPointerEnter(PointerEnterEvent evt)

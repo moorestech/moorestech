@@ -69,7 +69,7 @@ namespace Client.Ui.Components.Controls
 
                 // Web の cursor: pointer（ModeSwitch/style.module.css:27。IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
                 // Web cursor: pointer (ModeSwitch/style.module.css:27, IconButton/style.module.css:9 and others); the part requests it itself (A-247)
-                _hovers.Add(new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
+                _hovers.Add(osCursor.CreateHoverRequest(button, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
                 return button;
 
             }

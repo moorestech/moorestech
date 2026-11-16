@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
@@ -26,7 +27,7 @@ namespace Client.Tests.Ui.Screens.Skit
         {
             _commands = new RecordingSkitCommands();
             _cursorApplier = new FakeUiOsCursorApplier();
-            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier)));
+            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f))));
         }
 
         /// <web-test file="e2e/tests/skit.spec.ts">blocking skit reveals, advances, and selects by choiceId</web-test>

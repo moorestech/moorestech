@@ -44,7 +44,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
             // 押せる印の指は USS の cursor がランタイムで効かないので OS カーソルへ要素の層で要求する（web: SelectedRecipeHeader の cursor: pointer）
             // USS cursor does nothing at runtime, so the pressable pointer is requested on the element layer (web: SelectedRecipeHeader cursor: pointer)
-            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            osCursor.CreateHoverRequest(this, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
 
         public void Render(MachineRecipeSelectionRow row, MachineSectionViewModel viewModel)

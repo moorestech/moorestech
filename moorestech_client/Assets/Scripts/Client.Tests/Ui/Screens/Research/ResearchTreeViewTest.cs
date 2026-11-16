@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Content;
@@ -41,7 +42,7 @@ namespace Client.Tests.Ui.Screens.Research
 
             // 本番と同じ層へ載せる
             // Mount on the production layer
-            _view = new ResearchTreeView(_commands, _content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _view = new ResearchTreeView(_commands, _content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             _view.Render(Kit.Tree(ResearchSelection.None));
             _view.SetShown(true);
             _layers = UiLayerStack.Build(rootVisualElement);

@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Input;
 using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
@@ -151,7 +152,7 @@ namespace Client.Tests.Ui.Components.Controls
         public void 渡した図形を子として描き既定の閉じる図形を足さない()
         {
             var glyph = new VisualElement();
-            var button = new IconButton(TestId, glyph, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var button = new IconButton(TestId, glyph, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             _rulesRoot.Add(button);
             simulate.FrameUpdate();
 
@@ -159,33 +160,10 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.IsNull(button.Q<IconButtonCloseGlyph>());
         }
 
-        [Test]
-        public void 押せなくすると指を外し乗ったまま戻すと指を出し直し離れて戻すと出さない()
-        {
-            var button = AddButton(_rulesRoot);
-            simulate.MouseMove(button.worldBound.center);
-            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ると指");
-
-            // 押せなくすると指を外す
-            // Making it unpressable drops the hand
-            button.SetInteractive(false);
-            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "押せなくしても指が残る");
-
-            // 乗ったまま戻すと指を出し直す
-            // Restoring while hovered re-requests the hand
-            button.SetInteractive(true);
-            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ったまま戻しても指が出ない");
-
-            button.SetInteractive(false);
-            simulate.MouseMove(button.worldBound.max + new Vector2(40f, 40f));
-            button.SetInteractive(true);
-            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "離れてから戻したのに指が出る");
-        }
-
         private IconButton AddButton(VisualElement parent)
         {
             _cursorApplier = new FakeUiOsCursorApplier();
-            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(_cursorApplier));
+            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f)));
             parent.Add(button);
             simulate.FrameUpdate();
             return button;

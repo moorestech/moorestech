@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Localization;
 using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
@@ -36,7 +37,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             host.style.width = 300f;
             host.style.maxHeight = HostMaxHeight;
             host.style.flexDirection = FlexDirection.Column;
-            var subPage = new PauseMenuSubPageView(new RecordingPauseMenuCommands(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var subPage = new PauseMenuSubPageView(new RecordingPauseMenuCommands(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             _section = new VisualElement();
             _section.style.flexShrink = 0f;
             subPage.AddSection(_section);
