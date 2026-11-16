@@ -143,8 +143,8 @@ release_require_private_assets() {
     release_require_ffmpeg_source "$private_root/ffmpeg/macos-arm64" ffmpeg
 }
 
-# ffmpeg実体とLICENSEを検査する。LFS判定はCefLfsPointerと同じ1024バイト以下・先頭version https://git-lfs
-# Check ffmpeg and LICENSE; match CefLfsPointer's 1024-byte LFS threshold and version https://git-lfs prefix
+# ffmpeg実体とLICENSEを検査する。LFS判定はLfsPointerFileと同じ1024バイト以下・先頭version https://git-lfs
+# Check ffmpeg and LICENSE; match LfsPointerFile's 1024-byte LFS threshold and version https://git-lfs prefix
 release_require_ffmpeg_source() {
     local ffmpeg_dir="$1" executable="$2"
     if [ ! -f "$ffmpeg_dir/$executable" ] || { [ "$(wc -c <"$ffmpeg_dir/$executable")" -le 1024 ] &&

@@ -1,5 +1,4 @@
 using System.IO;
-using Client.Editor;
 using Client.Game.InGame.BugReport.Recording;
 using Client.ExternalProcess;
 using UnityEditor;
@@ -84,7 +83,7 @@ namespace Client.Editor.Build.Bundlers
 
                 // 未取得のLFSポインタは実行できないため拒否する
                 // Reject an unresolved LFS pointer, which cannot execute
-                if (!File.Exists(sourceExecutable) || CefLfsPointer.IsPointerFile(sourceExecutable))
+                if (!File.Exists(sourceExecutable) || LfsPointerFile.IsPointerFile(sourceExecutable))
                 {
                     Fail($"ffmpeg executable is missing or an LFS pointer: {sourceExecutable}");
                     return false;

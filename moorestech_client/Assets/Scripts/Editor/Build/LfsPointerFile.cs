@@ -2,13 +2,13 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Client.Editor
+namespace Client.Editor.Build
 {
     /// <summary>
-    /// Git LFS未解決のポインタファイルかを判定する（実体と殻の唯一の判定点）
-    /// Decides whether a file is an unresolved Git LFS pointer; the single place that tells husk from payload
+    /// Git LFS未解決のポインタファイルかを判定する（C#の同梱処理の判定点。配布前検査release-preflight.shに同じ基準の写しがある）
+    /// Decides whether a file is an unresolved Git LFS pointer for the C# bundlers; release-preflight.sh mirrors the same rule
     /// </summary>
-    public static class CefLfsPointer
+    public static class LfsPointerFile
     {
         // ポインタファイルは数百バイトなので、これを超える実体は読まずに除外する
         // A pointer file is a few hundred bytes, so anything larger is excluded without reading

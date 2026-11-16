@@ -1,9 +1,7 @@
 #if UNITY_EDITOR
-using Client.ExternalProcess;
-using Client.WebUiHost.Common;
 using UnityEditor;
 
-namespace Client.WebUiHost.Editor
+namespace Client.ExternalProcess.Editor
 {
     /// <summary>
     /// エディタロード時点で自プロセスの汚染envを浄化する
@@ -14,8 +12,8 @@ namespace Client.WebUiHost.Editor
     {
         static EnvironmentScrubOnEditorLoad()
         {
-            // PlayMode前のネイティブspawn（CEF等）にも綺麗なenvironを保証する
-            // Guarantees a clean environ even for native spawns (e.g. CEF) before PlayMode
+            // PlayMode前にEditorから起こす子プロセスやネイティブプラグインにも綺麗なenvironを保証する
+            // Guarantees a clean environ for child processes and native plugins the editor starts before PlayMode
             SanitizedProcessEnvironment.SanitizeCurrentProcess();
         }
     }
