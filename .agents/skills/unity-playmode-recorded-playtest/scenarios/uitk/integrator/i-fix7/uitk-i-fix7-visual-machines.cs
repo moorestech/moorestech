@@ -1,7 +1,7 @@
 // I-fix7 V の撮り直し: 機械 4 種（石窯・原始的な加工機・電気炉・核融合炉）とチャレンジ一覧を日本語で 1280×720 と 2560×1080 に撮る
 // I-fix7 V retake: shoot four machines (stone kiln, primitive gear machine, electric furnace, fusion reactor) and the challenge list in Japanese at 1280x720 and 2560x1080
-// 実行は winunity play <branch> <この .cs> --ui-system GameUi --name <name>。GameUi の系だけを撮る
-// Run via winunity play <branch> <this .cs> --ui-system GameUi --name <name>; shoots the GameUi system only
+// 実行は winunity play <branch> <この .cs> --ui-system GameUi|Web --name <name>。Web では同じ状態の Web 版を web-live の名で撮る（加工行の記録は GameUi だけ）
+// Run via winunity play <branch> <this .cs> --ui-system GameUi|Web --name <name>; on Web it shoots the same state as web-live (the process-row note is GameUi only)
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
@@ -67,7 +67,7 @@ return PlaytestRunner.Run("uitk-i-fix7-visual-machines", new PlaytestRunOptions 
         {
             await Place(machine.Name, machine.Origin);
             await Open(machine.Name, machine.Origin, machine.Width, machine.Depth, 0.6f, machine.Body);
-            NoteProcessRow(machine.Name);
+            if (system == UiSystem.GameUi) NoteProcessRow(machine.Name);
             await ShootBoth(machine.ShotId);
             await Close();
         }
