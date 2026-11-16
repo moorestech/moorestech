@@ -1,28 +1,34 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
-using Client.WebUiHost.Game.Topics;
-using Client.WebUiHost.Game.Topics.MachineUpgrade;
+using Client.Ui.State.BlockInventory.Machine;
+using Client.Ui.State.BlockInventory.Machine.Selection;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Recipe.Data;
+using Client.Ui.State.Recipe.Source;
+using Client.Ui.State.Research.Catalog;
+using Client.Ui.State.Research.Logic;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.Research;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.TestTools;
+using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 {
     /// <summary>
-    ///     研究の解放がイベント→クライアントのミラー→Web UIの配信まで届くことを、実ゲームの起動経路で確かめる
-    ///     Verifies, through the real game boot, that research unlocks reach the Web UI topics via events and client mirrors
+    ///     研究の解放がイベント→クライアントのミラー→UITK のモデルまで届くことを、実ゲームの起動経路で確かめる
+    ///     Verifies, through the real game boot, that research unlocks reach the UITK models via events and client mirrors
     /// </summary>
     // shard割当はクラスと一緒に移動・改名される
     // The shard assignment travels with the class through moves and renames
@@ -62,103 +68,93 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 await LoadMainGame();
 
-                // 手の届く所に機械を置いてFで開き、Web UIと同じ登録済みハンドラで継承レシピを選ぶ
-                // Place the machine within reach, open it with F, then select the inheritance recipe through the Web UI's registered handler
+                // 手の届く所に機械を置いてFで開き、画面の行と同じ UITK のコマンドで継承レシピを選ぶ
+                // Place the machine within reach, open it with F, then select the inheritance recipe through the UITK command the screen's row uses
                 await InteractKeyBlockOpener.PlaceNearPlayerAndOpen(MachineBlockName);
-                var select = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = InheritRecipeGuid.ToString() });
-                Assert.IsTrue(select.Ok, $"select action failed: {select.Error}");
+                var select = await Resolver().Resolve<IMachineRecipeSelectCommand>().Select(InheritRecipeGuid);
+                Assert.IsInstanceOf<UiCommandAccepted>(select, $"select command was rejected: {(select as UiCommandRejected)?.ToLogText()}");
 
                 // 研究前: スロット上限3・製作上限Lv1・継承元スロットは3変種を受け付ける
                 // Before research: slot limit 3, craft cap Lv1, and the source slot accepts all three variants
-                Assert.AreEqual(3, await ModuleSlotStackLimit());
-                var levelInheritance = (await InheritRecipe())["levelInheritance"];
-                Assert.AreEqual("inheritUpToUnlocked", levelInheritance["kind"].Value<string>());
-                Assert.AreEqual(1, levelInheritance["maxCraftableLevel"].Value<int>());
+                Assert.AreEqual(3, ModuleSlotStackLimit());
+                var levelInheritance = InheritRecipeLevelInheritance();
+                Assert.IsTrue(levelInheritance.CappedAtUnlockedLevel, "the inheritance recipe is not capped at the unlocked level");
+                Assert.AreEqual(1, levelInheritance.MaxCraftableLevel);
                 Assert.AreEqual(3, await SourceSlotAcceptedCount());
 
-                // 研究完了後に両トピックの再配信待ち
-                // Wait for both topics to republish after research completes
+                // 研究完了後に両モデルの作り直しを待つ
+                // Wait for both models to rebuild after research completes
                 var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
                 Assert.IsTrue(ServerContext.GetService<IResearchDataStore>().CompleteResearch(MachineUpgradeResearchGuid, playerId), "research did not complete");
 
-                var stackLimit = await ModuleSlotStackLimit();
-                for (var i = 0; i < 50 && stackLimit != 6; i++)
-                {
-                    await UniTask.Delay(100);
-                    stackLimit = await ModuleSlotStackLimit();
-                }
-                Assert.AreEqual(6, stackLimit, "slot limit did not reach the Web UI topic");
+                for (var i = 0; i < 50 && ModuleSlotStackLimit() != 6; i++) await UniTask.Delay(100);
+                Assert.AreEqual(6, ModuleSlotStackLimit(), "slot limit did not reach the machine section model");
 
-                var maxCraftableLevel = (await InheritRecipe())["levelInheritance"]["maxCraftableLevel"].Value<int>();
-                for (var i = 0; i < 50 && maxCraftableLevel != 2; i++)
-                {
-                    await UniTask.Delay(100);
-                    maxCraftableLevel = (await InheritRecipe())["levelInheritance"]["maxCraftableLevel"].Value<int>();
-                }
-                Assert.AreEqual(2, maxCraftableLevel, "craft cap did not reach the Web UI topic");
+                for (var i = 0; i < 50 && InheritRecipeLevelInheritance().MaxCraftableLevel != 2; i++) await UniTask.Delay(100);
+                Assert.AreEqual(2, InheritRecipeLevelInheritance().MaxCraftableLevel, "craft cap did not reach the unlocked machine recipe source");
 
-                // 研究ノードの配信に解放2種の中身が載る（研究画面「解放: その他」の元データ。スロット上限はレベル1の上限値6）
-                // The research node payload carries both unlocks (the source of the research screen's "Unlocks: Others"; the slot limit is level 1's value 6)
-                var upgradeNode = await ResearchNode();
-                CollectionAssert.AreEqual(new[] { 6 }, upgradeNode["unlockModuleSlotStackLimits"].ToObject<int[]>());
-                var craftCap = (JObject)((JArray)upgradeNode["unlockLevelInheritanceCraftCaps"])[0];
+                // 研究ノードの定義に解放2種の中身が載る（研究画面「解放: その他」の元データ。スロット上限はレベル1の上限値6）
+                // The research node definition carries both unlocks (the source of the research screen's "Unlocks: Others"; the slot limit is level 1's value 6)
+                var upgradeUnlocks = ResearchNodeUnlocks();
+                CollectionAssert.AreEqual(new[] { 6 }, upgradeUnlocks.ModuleSlotStackLimits);
+                var craftCap = upgradeUnlocks.LevelInheritanceCraftCaps[0];
                 var productLv1ItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-e0de-000000000021")).AsPrimitive();
-                Assert.AreEqual(productLv1ItemId, craftCap["itemId"].Value<int>());
-                Assert.AreEqual(2, craftCap["level"].Value<int>());
+                Assert.AreEqual(productLv1ItemId, craftCap.ItemId.AsPrimitive());
+                Assert.AreEqual(2, craftCap.Level);
 
                 await InteractKeyBlockOpener.CloseToGameScreen();
             }
 
-            // 登録済みtopicのsnapshotをJSONで読む
-            // Read a registered topic's snapshot as JSON
-            async UniTask<JObject> Snapshot(string topicName)
+            IObjectResolver Resolver()
             {
-                var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
-                Assert.IsNotNull(hub, "WebUiHost hub is not running");
-                var handler = hub.ResolveTopic(topicName);
-                Assert.IsNotNull(handler, $"topic '{topicName}' is not registered by WebUiGameBinder");
-                return JObject.Parse(await handler.GetSnapshotJsonAsync());
+                return ClientDIContext.DIContainer.DIContainerResolver;
             }
 
-            async UniTask<int> ModuleSlotStackLimit()
+            // 開いている機械の区画の値を読む（開いていなければ落とす）
+            // Read the open machine section's value (fail when none is open)
+            MachineSectionViewModel MachineSection()
             {
-                return (await Snapshot(MachineUpgradeTopic.TopicName))["moduleSlotStackLimit"].Value<int>();
+                Assert.IsTrue(Resolver().Resolve<IMachineSectionModel>().Current.Value.TryGetPresent(out var machine), "the machine section is not open");
+                return machine;
             }
 
-            async UniTask<JObject> ResearchNode()
+            int ModuleSlotStackLimit()
             {
-                foreach (var node in (JArray)(await Snapshot(ResearchTopic.TopicName))["nodes"])
+                return MachineSection().ModuleStackLimit;
+            }
+
+            // 解放済みの機械レシピから継承レシピのレベル継承を引く
+            // Look up the inheritance recipe's level inheritance among the unlocked machine recipes
+            LevelInheritanceMapping InheritRecipeLevelInheritance()
+            {
+                foreach (var recipe in Resolver().Resolve<UnlockedMachineRecipeSource>().Current.Value)
                 {
-                    if (node["guid"].Value<string>() == MachineUpgradeResearchGuid.ToString()) return (JObject)node;
+                    if (recipe.RecipeGuid != InheritRecipeGuid) continue;
+                    Assert.IsInstanceOf<LevelInheritanceMapping>(recipe.LevelInheritance, "the inheritance recipe carries no level inheritance");
+                    return (LevelInheritanceMapping)recipe.LevelInheritance;
                 }
-                Assert.Fail("machine upgrade research is not in research.tree");
+                Assert.Fail("inheritance recipe is not in the unlocked machine recipes");
                 return null;
             }
 
-            async UniTask<JObject> InheritRecipe()
+            ResearchUnlockSet ResearchNodeUnlocks()
             {
-                foreach (var recipe in (JArray)(await Snapshot(MachineRecipesTopic.TopicName))["recipes"])
+                foreach (var node in Resolver().Resolve<ResearchNodeCatalog>().Nodes)
                 {
-                    if (recipe["recipeGuid"].Value<string>() == InheritRecipeGuid.ToString("D")) return (JObject)recipe;
+                    if (node.Guid == MachineUpgradeResearchGuid) return node.Unlocks;
                 }
-                Assert.Fail("inheritance recipe is not in crafting.machine_recipes");
+                Assert.Fail("machine upgrade research is not in the research node catalog");
                 return null;
             }
 
-            // 開いている機械の配信に選択レシピの束縛が載るまで待ち、継承元スロットの受け付けID数を返す
-            // Wait until the open machine's payload carries the selected recipe's binding and return the source slot's accepted ID count
+            // 開いている機械の区画に選択レシピの束縛が載るまで待ち、継承元スロットの受け付けID数を返す
+            // Wait until the open machine section carries the selected recipe's binding and return the source slot's accepted ID count
             async UniTask<int> SourceSlotAcceptedCount()
             {
-                var current = await Snapshot(BlockInventoryTopic.TopicName);
-                for (var i = 0; i < 50 && !HasSlotBinding(current); i++)
-                {
-                    await UniTask.Delay(100);
-                    current = await Snapshot(BlockInventoryTopic.TopicName);
-                }
-                Assert.IsTrue(current["open"].Value<bool>(), $"block_inventory.current is not open: {current}");
-                Assert.IsTrue(HasSlotBinding(current), $"slot bindings never arrived after selecting the recipe: {current}");
-                var acceptedItemIds = ((JArray)current["machine"]["slotBindings"][0]["acceptedItemIds"]).ToObject<int[]>();
-                Debug.Log($"[MachineUpgradeWebUiTopicTest] block_inventory.current open={current["open"]} acceptedItemIds=[{string.Join(",", acceptedItemIds)}]");
+                for (var i = 0; i < 50 && !HasSlotBinding(); i++) await UniTask.Delay(100);
+                Assert.IsTrue(HasSlotBinding(), "slot bindings never arrived in the machine section after selecting the recipe");
+                var acceptedItemIds = MachineSection().Detail.Binding.SlotBindings[0].AcceptedItemIds.Select(id => id.AsPrimitive()).ToArray();
+                Debug.Log($"[MachineUpgradeWebUiTopicTest] machine section acceptedItemIds=[{string.Join(",", acceptedItemIds)}]");
 
                 // 受け付けるのは継承元ファミリーの素材Lv1..3そのもの
                 // The accepted IDs are exactly the source family's material Lv1..3
@@ -169,9 +165,9 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 return acceptedItemIds.Length;
             }
 
-            bool HasSlotBinding(JObject current)
+            bool HasSlotBinding()
             {
-                return current["machine"]?["slotBindings"] is JArray { Count: > 0 };
+                return Resolver().Resolve<IMachineSectionModel>().Current.Value.TryGetPresent(out var machine) && 0 < machine.Detail.Binding.SlotBindings.Count;
             }
 
             #endregion
