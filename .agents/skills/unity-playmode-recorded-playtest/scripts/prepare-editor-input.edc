@@ -1,4 +1,3 @@
-using System.Linq;
 using Client.Playtest.Input;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,11 +8,7 @@ if (!Application.isPlaying) return "ERROR: PlayMode 中に流す（Edit モー�
 
 // 前面を取らずGameViewを表タブにして、入力の送信先を確定する。
 // Make GameView the visible tab without taking the foreground so injected input has a defined target.
-var gameView = Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
-var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
-var dock = typeof(UnityEditor.EditorWindow).GetField("m_Parent", flags).GetValue(gameView);
-var tabs = (System.Collections.IList)dock.GetType().GetField("m_Panes", flags).GetValue(dock);
-dock.GetType().GetProperty("selected", flags).SetValue(dock, tabs.IndexOf(gameView));
+Client.Playtest.Operations.Ui.PlaytestGameViewOps.BringToFront();
 
 // 背景中もInputSystemの注入をGameViewへ届ける。
 // Route InputSystem injection to GameView even while unfocused.
