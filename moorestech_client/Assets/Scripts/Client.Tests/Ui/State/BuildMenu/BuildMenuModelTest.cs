@@ -52,8 +52,8 @@ namespace Client.Tests.Ui.State.BuildMenu
             Localize.Initialize();
             Localize.TrySetChosenLanguage("english");
 
-            // 開く遷移は BP ライブラリのサーバー往復を伴うので通さず、画面の値だけを差して源の変化の経路を見る（前例 BuildMenuTopicRepublishTest）
-            // Entering the menu round-trips the blueprint library to the server, so only the screen value is set to exercise the source-change path (precedent BuildMenuTopicRepublishTest)
+            // 開く遷移は BP ライブラリのサーバー往復を伴うので通さず、画面の値だけを差して源の変化の経路を見る
+            // Entering the menu round-trips the blueprint library to the server, so only the screen value is set to exercise the source-change path
             _controlObject = new GameObject("BuildMenuModelTest.Control");
             _routing = UiRoutingStateTestFactory.Create(_controlObject, UIStateEnum.GameScreen);
             var blueprintLibrary = new ClientBlueprintLibrary();

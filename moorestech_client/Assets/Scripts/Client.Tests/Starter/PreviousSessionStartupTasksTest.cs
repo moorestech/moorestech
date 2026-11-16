@@ -35,8 +35,8 @@ namespace Client.Tests.Starter
             GameShutdownEvent.ResetForNewSession();
         }
 
-        // 収集同意（リモート接続なら集めない）と独立に終了印を書く。WebUiHostの起動有無は条件にしない（ADR 0065）
-        // Exit marks are written regardless of collection consent (a remote connection collects nothing); whether WebUiHost started is no condition (ADR 0065)
+        // 収集同意（リモート接続なら集めない）と独立に終了印を書く。UI の起動有無は条件にしない（ADR 0065）
+        // Exit marks are written regardless of collection consent (a remote connection collects nothing); whether the UI started is no condition (ADR 0065)
         [TestCase(false)]
         [TestCase(true)]
         public void BeginCurrentSessionMarks_WritesCleanBeforeHostOrConsent(bool isRemoteConnection)

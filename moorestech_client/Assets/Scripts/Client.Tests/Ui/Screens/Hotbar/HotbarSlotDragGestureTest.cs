@@ -29,7 +29,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
         {
             _commands = new RecordingHotbarCommands();
             _view = Mount(new HotbarHudView(_commands, HotbarTestPresentation.Create(), Toaster));
-            _view.Render(HotbarViewModelSamples.WebFixture());
+            _view.Render(HotbarViewModelSamples.ReferenceFixture());
 
             // 左上にエントリの源を単独で置く
             // The entry source alone at the top-left
@@ -122,7 +122,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             var outside = new Vector2(640f, 100f);
             simulate.MouseDown(slot0, MouseButton.LeftMouse);
             simulate.MouseMove(Vector2.Lerp(slot0, outside, 0.5f));
-            _view.Render(HotbarViewModelSamples.WebFixture(true, false));
+            _view.Render(HotbarViewModelSamples.ReferenceFixture(true, false));
             simulate.MouseMove(outside);
             simulate.MouseUp(outside, MouseButton.LeftMouse);
             simulate.FrameUpdate();

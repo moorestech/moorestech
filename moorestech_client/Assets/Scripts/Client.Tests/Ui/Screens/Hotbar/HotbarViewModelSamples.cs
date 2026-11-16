@@ -13,7 +13,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
     {
         public static readonly Guid UnresolvedId = new("0d3c2b1a-9f8e-4d7c-b6a5-948372615041");
 
-        public static HotbarViewModel WebFixture(bool selectAccepted, bool visible)
+        public static HotbarViewModel ReferenceFixture(bool selectAccepted, bool visible)
         {
             var slots = Enumerable.Repeat<HotbarSlotViewModel>(HotbarEmptySlot.Instance, 9).ToArray();
             slots[0] = HotbarTestPresentation.PicturedBlueprint();
@@ -21,9 +21,9 @@ namespace Client.Tests.Ui.Screens.Hotbar
             return new HotbarViewModel(slots, HotbarSelection.FromOrigin(PlacementOrigin.FromHotbarSlot(0)), selectAccepted, visible);
         }
 
-        public static HotbarViewModel WebFixture()
+        public static HotbarViewModel ReferenceFixture()
         {
-            return WebFixture(true, true);
+            return ReferenceFixture(true, true);
         }
     }
 }

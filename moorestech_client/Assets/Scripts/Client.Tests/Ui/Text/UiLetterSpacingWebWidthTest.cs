@@ -27,8 +27,8 @@ namespace Client.Tests.Ui.Text
 
             // Web は 0.055em × 25px = 1.375px を字ごとに足す
             // The Web adds 0.055em x 25px = 1.375px per glyph
-            var webGapPixels = 0.055f * spaced.resolvedStyle.fontSize;
-            Assert.AreEqual(webGapPixels * GapCount, spaced.layout.width - unspaced.layout.width, 1f, $"{spaced.layout.width} vs {unspaced.layout.width}");
+            var referenceGapPixels = 0.055f * spaced.resolvedStyle.fontSize;
+            Assert.AreEqual(referenceGapPixels * GapCount, spaced.layout.width - unspaced.layout.width, 1f, $"{spaced.layout.width} vs {unspaced.layout.width}");
         }
 
         [TestCase("--challenge-hud-letter-spacing", "--challenge-hud-label-font-size")]
@@ -40,8 +40,8 @@ namespace Client.Tests.Ui.Text
             var unspaced = MountLabel(fontSize, 0f);
             simulate.FrameUpdate();
 
-            const float webGapPixels = 1f;
-            Assert.AreEqual(webGapPixels * GapCount, spaced.layout.width - unspaced.layout.width, 1f, $"{spaced.layout.width} vs {unspaced.layout.width}");
+            const float referenceGapPixels = 1f;
+            Assert.AreEqual(referenceGapPixels * GapCount, spaced.layout.width - unspaced.layout.width, 1f, $"{spaced.layout.width} vs {unspaced.layout.width}");
         }
 
         private Label MountKeyHint()

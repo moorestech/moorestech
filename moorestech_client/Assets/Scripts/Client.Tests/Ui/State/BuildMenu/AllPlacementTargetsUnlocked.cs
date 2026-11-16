@@ -8,8 +8,8 @@ using Game.UnlockState.States;
 namespace Client.Tests.Ui.State.BuildMenu
 {
     /// <summary>
-    /// ブロック・車両・接続ツール・BP を全解放するスタブ（前例 BuildMenuEntryDtoFactoryTest の写し）
-    /// Stub that unlocks every block, train car, connect tool, and blueprint (copy of the BuildMenuEntryDtoFactoryTest precedent)
+    /// ブロック・車両・接続ツール・BP を全解放するスタブ
+    /// Stub that unlocks every block, train car, connect tool, and blueprint
     /// </summary>
     internal sealed class AllPlacementTargetsUnlocked : IGameUnlockStateData
     {

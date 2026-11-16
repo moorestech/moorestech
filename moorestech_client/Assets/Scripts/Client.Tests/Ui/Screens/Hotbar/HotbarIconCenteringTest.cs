@@ -19,7 +19,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
         public void ホットバーのアイコンは枠の中央に描かれる()
         {
             var view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(), Toaster));
-            view.Render(HotbarViewModelSamples.WebFixture());
+            view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -48,7 +48,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             // A blueprint icon has reference equality, so the model's rebuilt VM is pushed on each recapture; here we check the pushed VM swaps the picture (plan D-19)
             var thumbnails = HotbarTestPresentation.CreateThumbnails();
             var view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(thumbnails), Toaster));
-            view.Render(HotbarViewModelSamples.WebFixture());
+            view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             thumbnails.TryGet(HotbarTestPresentation.PicturedBlueprintId, out var first);
             Assert.AreSame(first, IconTexture(view));
@@ -57,7 +57,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             // A recapture is a second Add for the same Guid
             var recaptured = HotbarTestPresentation.CreateSquare(new Color32(51, 153, 204, 255));
             thumbnails.Add(HotbarTestPresentation.PicturedBlueprintId, recaptured);
-            view.Render(HotbarViewModelSamples.WebFixture());
+            view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             Assert.AreNotSame(first, IconTexture(view));
             Assert.AreSame(recaptured, IconTexture(view));

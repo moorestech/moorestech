@@ -103,7 +103,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         {
             var hotbar = new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(), Toaster);
             _viewport.Add(hotbar);
-            hotbar.Render(HotbarViewModelSamples.WebFixture());
+            hotbar.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             return hotbar;

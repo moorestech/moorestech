@@ -23,7 +23,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
         {
             _commands = new RecordingHotbarCommands();
             _view = Mount(new HotbarHudView(_commands, HotbarTestPresentation.Create(), Toaster));
-            _view.Render(HotbarViewModelSamples.WebFixture());
+            _view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             simulate.FrameUpdate();
         }
@@ -85,7 +85,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
         {
             // Web .hotbarFrame[data-select-disabled] の opacity。タップは操作へ渡し、HotbarCommands が規則で捨てて理由を残す
             // Web .hotbarFrame[data-select-disabled] opacity; the tap reaches the operation and HotbarCommands drops it by the rule with a reason
-            _view.Render(HotbarViewModelSamples.WebFixture(false, true));
+            _view.Render(HotbarViewModelSamples.ReferenceFixture(false, true));
             simulate.FrameUpdate();
             var row = Find<VisualElement>(_view, "hotbar-grid");
             Assert.IsTrue(row.ClassListContains("hotbar-hud__row--select-disabled"));
@@ -98,9 +98,9 @@ namespace Client.Tests.Ui.Screens.Hotbar
         {
             // 会話窓が残ることは S2-skit が見る（計画 D-15）
             // That the dialogue window stays is checked by S2-skit (plan D-15)
-            _view.Render(HotbarViewModelSamples.WebFixture(true, false));
+            _view.Render(HotbarViewModelSamples.ReferenceFixture(true, false));
             Assert.IsFalse(IsShown(_view));
-            _view.Render(HotbarViewModelSamples.WebFixture());
+            _view.Render(HotbarViewModelSamples.ReferenceFixture());
             Assert.IsTrue(IsShown(_view));
         }
     }

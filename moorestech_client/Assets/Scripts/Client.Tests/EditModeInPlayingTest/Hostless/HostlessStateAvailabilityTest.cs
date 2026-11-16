@@ -17,10 +17,10 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
     /// States resolve from DI on a normal UITK boot
     /// </summary>
     [Category("CiShardClientPlay2")]
-    public class WebUiHostlessStateAvailabilityTest
+    public class HostlessStateAvailabilityTest
     {
         [UnityTest]
-        public IEnumerator Webホストを起動しなくても移した状態がDIから取れる()
+        public IEnumerator 通常の起動で移した状態がDIから取れる()
         {
             EnterPlayModeUtil();
 

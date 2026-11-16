@@ -17,7 +17,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
     {
         private const float HostMaxHeight = 300f;
         private const float StackGapMd = 16f;
-        private const float WebLineHeight = 1.55f;
+        private const float ReferenceLineHeight = 1.55f;
         private const float PixelSnapTolerance = 1f;
 
         private VisualElement _section;
@@ -61,7 +61,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             // 溢れたとき: 戻るは min-height（字の大きさ×1.55）で止まり、残りを本文が受ける
             // On overflow Back stops at its min-height (font size x 1.55) and the body takes the rest
             SetSectionHeight(600f);
-            var lineBox = _back.resolvedStyle.fontSize * WebLineHeight;
+            var lineBox = _back.resolvedStyle.fontSize * ReferenceLineHeight;
             Assert.AreEqual(lineBox, _back.resolvedStyle.minHeight.value, 0.01f, "--panel-action-button-min-content-height = font size x --mantine-line-height");
             Assert.AreEqual(lineBox, _back.layout.height, PixelSnapTolerance);
             Assert.AreEqual(HostMaxHeight - StackGapMd - _back.layout.height, _body.layout.height, PixelSnapTolerance);

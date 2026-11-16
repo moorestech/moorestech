@@ -11,8 +11,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Http
 {
-    // 受け口への実HTTP。HttpClientは接続を使い回すため1本を持ち回る（前例 Client.WebUiHost/Vite/ViteHealthProbe.cs）
-    // Real HTTP to the receiver; a single HttpClient is reused for connection pooling (precedent: ViteHealthProbe)
+    // 受け口への実HTTP。HttpClientは接続を使い回すため1本を持ち回る
+    // Real HTTP to the receiver; a single HttpClient is reused for connection pooling
     public sealed class PlaytestReceiverClient : IPlaytestReceiverApi
     {
         private static readonly HttpClient Client = CreateClient();

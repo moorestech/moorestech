@@ -76,8 +76,8 @@ namespace Client.Tests.Ui.Screens.Skit
             // 生の素の Label は字の大きさ 21.3px を 21 物理 px へ丸めた送りで組む。LocalizedLabel は Web の送りへ戻すので、その比だけ広い（設計書 A-225）
             // The raw plain Label lays out at 21.3px rounded to 21 physical px; LocalizedLabel returns to the Web advance, so it is wider by exactly that ratio (design A-225)
             var fontSize = reference.resolvedStyle.fontSize;
-            var webWidth = reference.contentRect.width * fontSize / (float)System.Math.Round(fontSize, System.MidpointRounding.AwayFromZero);
-            Assert.AreEqual(webWidth, full, 1f, "全文の幅が生の文の Web の送りと違う");
+            var referenceWidth = reference.contentRect.width * fontSize / (float)System.Math.Round(fontSize, System.MidpointRounding.AwayFromZero);
+            Assert.AreEqual(referenceWidth, full, 1f, "全文の幅が生の文の Web の送りと違う");
         }
 
         private LocalizedLabel MountBody(string richText, float width)

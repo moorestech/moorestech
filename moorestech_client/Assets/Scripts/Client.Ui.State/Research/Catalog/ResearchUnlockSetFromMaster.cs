@@ -29,8 +29,8 @@ namespace Client.Ui.State.Research.Catalog
             GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel,
         };
 
-        // 解放はされるが研究画面に出さない種別（Web の ResearchUnlockGameActionCoverageTest の非表示台帳と同じ 7 種）
-        // Kinds unlocked but not shown on the research screen (same seven as the Web ResearchUnlockGameActionCoverageTest hidden ledger)
+        // 解放はされるが研究画面に出さない種別（7 種。台帳の数は ResearchUnlockGameActionLedgerTest が GameActionType 全数と突き合わせる）
+        // Kinds unlocked but not shown on the research screen (seven; ResearchUnlockGameActionLedgerTest reconciles the ledger with every GameActionType)
         internal static readonly IReadOnlyCollection<string> HiddenGameActionTypes = new HashSet<string>
         {
             GameActionElement.GameActionTypeConst.unlockCraftRecipe,

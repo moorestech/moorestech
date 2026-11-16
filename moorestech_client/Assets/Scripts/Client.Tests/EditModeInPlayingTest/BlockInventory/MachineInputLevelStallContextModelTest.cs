@@ -33,7 +33,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
     // shard割当はクラスと一緒に移動・改名される
     // The shard assignment travels with the class through moves and renames
     [Category("CiShardClientPlay2")]
-    public class MachineInputLevelStallWebUiTopicTest
+    public class MachineInputLevelStallContextModelTest
     {
         private const string MachineBlockName = "石の粉砕機";
         private static readonly Guid CrusherInheritRecipeGuid = Guid.Parse("00000000-0000-4000-8000-0000e0de0002");
@@ -41,7 +41,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         private static readonly Guid SourceLv2ItemGuid = Guid.Parse("00000000-0000-0000-e0de-000000000012");
 
         [UnityTest]
-        public IEnumerator 製作上限を超える素材がベルトで届くと止まった理由が配信に載り研究で消える()
+        public IEnumerator 製作上限を超える素材がベルトで届くと止まった理由がブロックの欄のモデルに載り研究で消える()
         {
             EnterPlayModeUtil();
 

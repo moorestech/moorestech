@@ -29,7 +29,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     public class PauseMenuGameUiTest
     {
         [UnityTest]
-        public IEnumerator UITK側でEscからポーズが出て設定へ行き来して閉じられWebの値を読まない()
+        public IEnumerator UITK側でEscからポーズが出て設定へ行き来して閉じられる()
         {
             EnterPlayModeUtil();
 

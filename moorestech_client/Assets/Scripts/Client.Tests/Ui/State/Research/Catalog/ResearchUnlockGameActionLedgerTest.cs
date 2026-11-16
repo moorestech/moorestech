@@ -8,8 +8,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.Research.Catalog
 {
     /// <summary>
-    /// UITK の研究画面の表示/非表示台帳を GameActionType 全数と突き合わせる（前例 ResearchUnlockGameActionCoverageTest）
-    /// Reconciles the UITK research screen's shown/hidden ledger with every GameActionType (precedent ResearchUnlockGameActionCoverageTest)
+    /// UITK の研究画面の表示/非表示台帳を GameActionType 全数と突き合わせる
+    /// Reconciles the UITK research screen's shown/hidden ledger with every GameActionType
     /// </summary>
     public class ResearchUnlockGameActionLedgerTest
     {

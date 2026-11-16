@@ -48,8 +48,8 @@ namespace Client.Tests.Ui.Screens.Inventory
         [Test]
         public void 下へ1ノッチ目では進まず2ノッチ目で1段進む()
         {
-            // Web の本番（CEF の 60px/ノッチ・100px で 1 段・段が出たら端数を捨てる）と同じ刻み（D-10）
-            // Same cadence as the production Web (CEF 60px per notch, 100px per step, remainder dropped on a step; D-10)
+            // 参照の刻み（60px/ノッチ・100px で 1 段・段が出たら端数を捨てる）と同じ（D-10）
+            // Same cadence as the reference (60px per notch, 100px per step, remainder dropped on a step; D-10)
             var wheel = Wheel(UIStateEnum.GameScreen);
             var oneNotchDown = EquipmentWheelNotchScale.ToDownwardPixels(-1f);
             WheelAt(wheel, OverWorld, oneNotchDown);

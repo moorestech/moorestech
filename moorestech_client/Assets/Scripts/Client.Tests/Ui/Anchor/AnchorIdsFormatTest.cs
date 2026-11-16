@@ -12,7 +12,7 @@ namespace Client.Tests.Ui.Anchor
     /// AnchorIds の一覧が定数を過不足なく含み、生成する id の書式が決まった形になることを確かめる（L0）
     /// Verifies the AnchorIds lists hold exactly their constants and generated ids keep their fixed formats (L0)
     /// </summary>
-    public class AnchorIdsWebParityTest
+    public class AnchorIdsFormatTest
     {
         [Test]
         public void StaticIdsListEveryNonPrefixConstant()
@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Anchor
 
         /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">lowercases guid-suffixed IDs and keeps the numeric suffixes intact</web-test>
         [Test]
-        public void GeneratorsMatchWebFormats()
+        public void GeneratorsMatchAnchorIdFormats()
         {
             Assert.AreEqual("research.node-abc", AnchorIds.ResearchNode("ABC"));
             Assert.AreEqual("recipe.item-42", AnchorIds.RecipeItem(42));

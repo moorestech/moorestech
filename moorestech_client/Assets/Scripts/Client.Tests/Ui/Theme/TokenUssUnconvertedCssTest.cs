@@ -8,7 +8,7 @@ namespace Client.Tests.Ui.Theme
     /// UITK のトークン USS に USS が解釈しない CSS 構文が残っていないことを確かめる（L2）
     /// Verifies the UITK token USS holds no CSS syntax that USS cannot parse (L2)
     /// </summary>
-    public class WebTokenParityTest
+    public class TokenUssUnconvertedCssTest
     {
         private const string UssTokenDirectory = "moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme";
         private static readonly string[] UssTokenFiles = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss" };

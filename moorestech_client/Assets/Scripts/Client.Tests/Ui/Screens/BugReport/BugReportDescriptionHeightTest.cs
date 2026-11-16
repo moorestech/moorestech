@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.Screens.BugReport
     /// </summary>
     public class BugReportDescriptionHeightTest : ScreenTestHost
     {
-        private const float WebTextareaHeight = 72f;
+        private const float ReferenceTextareaHeight = 72f;
 
         private PauseMenuView _view;
 
@@ -37,9 +37,9 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             var field = Find<TextField>(_view, "bug-report-description");
             Assert.IsTrue(field.multiline);
-            Assert.AreEqual(WebTextareaHeight, field.parent.layout.height, 0.5f);
-            Assert.AreEqual(WebTextareaHeight, field.layout.height, 0.5f);
-            Assert.AreEqual(WebTextareaHeight, field.Q(className: "unity-base-text-field__input").layout.height, 0.5f);
+            Assert.AreEqual(ReferenceTextareaHeight, field.parent.layout.height, 0.5f);
+            Assert.AreEqual(ReferenceTextareaHeight, field.layout.height, 0.5f);
+            Assert.AreEqual(ReferenceTextareaHeight, field.Q(className: "unity-base-text-field__input").layout.height, 0.5f);
         }
 
         [Test]
@@ -58,8 +58,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             var field = Find<TextField>(_view, "bug-report-description");
             Assert.Greater(body.contentViewport.layout.height, 0f);
             Assert.Greater(body.contentContainer.layout.height, body.contentViewport.layout.height);
-            Assert.AreEqual(WebTextareaHeight, field.parent.layout.height, 0.5f);
-            Assert.AreEqual(WebTextareaHeight, field.Q(className: "unity-base-text-field__input").layout.height, 0.5f);
+            Assert.AreEqual(ReferenceTextareaHeight, field.parent.layout.height, 0.5f);
+            Assert.AreEqual(ReferenceTextareaHeight, field.Q(className: "unity-base-text-field__input").layout.height, 0.5f);
         }
     }
 }

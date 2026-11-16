@@ -33,14 +33,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
     // shard割当はクラスと一緒に移動・改名される
     // The shard assignment travels with the class through moves and renames
     [Category("CiShardClientPlay2")]
-    public class MachineUpgradeWebUiTopicTest
+    public class MachineUpgradeSectionModelTest
     {
         private const string MachineBlockName = "キャンプファイア";
         private static readonly Guid InheritRecipeGuid = Guid.Parse("00000000-0000-4000-8000-0000e0de0001");
         private static readonly Guid MachineUpgradeResearchGuid = Guid.Parse("e0de0000-0000-4000-8000-000000000001");
 
         [UnityTest]
-        public IEnumerator 研究でスロット上限と製作上限がWebUIの配信へ届く()
+        public IEnumerator 研究でスロット上限と製作上限が機械の欄のモデルへ届く()
         {
             EnterPlayModeUtil();
 
@@ -154,7 +154,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 for (var i = 0; i < 50 && !HasSlotBinding(); i++) await UniTask.Delay(100);
                 Assert.IsTrue(HasSlotBinding(), "slot bindings never arrived in the machine section after selecting the recipe");
                 var acceptedItemIds = MachineSection().Detail.Binding.SlotBindings[0].AcceptedItemIds.Select(id => id.AsPrimitive()).ToArray();
-                Debug.Log($"[MachineUpgradeWebUiTopicTest] machine section acceptedItemIds=[{string.Join(",", acceptedItemIds)}]");
+                Debug.Log($"[MachineUpgradeSectionModelTest] machine section acceptedItemIds=[{string.Join(",", acceptedItemIds)}]");
 
                 // 受け付けるのは継承元ファミリーの素材Lv1..3そのもの
                 // The accepted IDs are exactly the source family's material Lv1..3

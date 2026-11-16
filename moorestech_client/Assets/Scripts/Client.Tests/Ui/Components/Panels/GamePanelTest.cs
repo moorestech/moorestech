@@ -20,7 +20,7 @@ namespace Client.Tests.Ui.Components.Panels
     {
         // Web の .panel の padding: 8px 10px 10px 28px の左右
         // Left and right of the Web .panel padding: 8px 10px 10px 28px
-        private const float WebHorizontalPadding = 28f + 10f;
+        private const float ReferenceHorizontalPadding = 28f + 10f;
 
         private GamePanel _panel;
 
@@ -119,7 +119,7 @@ namespace Client.Tests.Ui.Components.Panels
             _panel.Add(new Label("line 1"));
             simulate.FrameUpdate();
             var body = _panel.Q(className: "game-panel__body");
-            Assert.AreEqual(_panel.layout.width - WebHorizontalPadding, body.layout.width, 1f);
+            Assert.AreEqual(_panel.layout.width - ReferenceHorizontalPadding, body.layout.width, 1f);
             Assert.Greater(body.layout.height, 0f);
         }
 

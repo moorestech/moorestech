@@ -10,8 +10,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
     /// </summary>
     public static class TrainTestText
     {
-        // テスト用 mod の水。液体の Guid の定数クラスは無いので前例（FluidMasterEndpointTest.TestWaterFluidGuid）と同じく直書きする
-        // The test mod's water; there is no fluid Guid constants class, so it is written inline like the precedent FluidMasterEndpointTest.TestWaterFluidGuid
+        // テスト用 mod の水。液体の Guid の定数クラスは無いので直書きする
+        // The test mod's water; there is no fluid Guid constants class, so it is written inline
         public static readonly Guid WaterFluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         // 要素とその子孫のうち見えている文字を空白でつなぐ（空の液体の行は文を消さず隠すので、隠れた文は数えない。Web は DOM から外す）
