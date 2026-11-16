@@ -72,6 +72,9 @@ namespace Client.Ui.State.Train.Timetable
                         _unknownSideGates[timetable.TrainUnitInstanceId] = unknownSideGate;
                     }
                     if (unknownSideGate.ShouldReport(unknownSide)) Debug.LogError(unknownSide);
+                    // 捨てた時刻表は欠けの比較の元にしない。届き直したら同じ欠けでも警告し直す
+                    // A discarded timetable is no baseline for missing stations, so a re-delivered one warns again even with the same set
+                    _lastWarnedMissingStationPositions.Remove(timetable.TrainUnitInstanceId);
                     return false;
                 }
                 if (!stationNames.TryGetValue(stop.StationPosition, out var name)) missingStationPositions.Add(stop.StationPosition);

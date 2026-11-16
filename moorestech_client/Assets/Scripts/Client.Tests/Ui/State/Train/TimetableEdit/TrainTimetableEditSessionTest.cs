@@ -91,6 +91,22 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             Assert.IsEmpty(_timer.RequestedDelays);
         }
 
+        [Test]
+        public void 送信中に別の要因で時刻表の公開が先に届いても受理の時点で解き公開の並びを出す()
+        {
+            // 送信中に時刻表の中身が替わった公開が先に届いていれば、受理で時間切れを待たずに解く
+            // A timetable-changing publication that arrived during sending releases at acceptance without waiting for the timeout
+            var added = Added(_server, Unnamed);
+            _session.Replace(added);
+            var published = Added(NoStops, Unnamed);
+            _session.ReceiveServer(Ready(Unit1, false, published));
+            _commands.Accept();
+
+            Assert.IsFalse(_session.IsPending);
+            CollectionAssert.AreEqual(published, _session.DisplayedStops);
+            Assert.IsEmpty(_timer.RequestedDelays);
+        }
+
         /// <web-test file="src/features/blockInventory/train/TrainTimetableImmediate.test.ts">reverts rejected edits to the newest authority and allows another edit</web-test>
         [Test]
         public void 拒否は最新のサーバーの並びへ戻し次の編集を受ける()

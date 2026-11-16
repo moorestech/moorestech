@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -124,7 +125,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             host.rootVisualElement.Add(stage);
             var commands = new RecordingPanelCommands();
             var toasts = new GameUiToastFeed();
-            var view = new BlockInventoryView(stage, commands, new UiCommandResultToaster(toasts), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var view = new BlockInventoryView(stage, commands, new UiCommandResultToaster(toasts), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
 
             var bodyHost = new BlockInventoryBodyHost(parts, view);
             stage.Get(StageColumn.Viewer).Add(view);

@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using System;
@@ -71,7 +72,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
         // Dependency bundle for body L1 tests (alpha's real grid factory with the recording press target; toasts from ScreenTestHost)
         protected SpecialViewKit Kit(GameContentPresentation presentation)
         {
-            return new SpecialViewKit(Commands, presentation, Toaster, new BlockItemGridFactory(BlockSlots, presentation, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            return new SpecialViewKit(Commands, presentation, Toaster, new BlockItemGridFactory(BlockSlots, presentation, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
 
         }
 

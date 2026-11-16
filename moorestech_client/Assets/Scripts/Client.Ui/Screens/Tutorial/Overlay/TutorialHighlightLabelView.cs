@@ -33,7 +33,7 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             _box = box;
             _clip = clip;
             _gap = gap;
-            style.maxWidth = clip.Width;
+            style.maxWidth = WrapLimit();
             UiDisplay.SetShown(this, true);
             ApplyPlacement();
         }
@@ -44,6 +44,14 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             // Hide without removing from the tree (a re-attach at the same rect fires no GeometryChangedEvent, so it could never become Visible again)
             style.visibility = Visibility.Hidden;
             UiDisplay.SetShown(this, false);
+        }
+
+        // 置き場に載る前は器の幅で縛る
+        // Before joining the holder, bound by the clip width
+        private float WrapLimit()
+        {
+            var holderWidth = parent == null ? float.PositiveInfinity : parent.contentRect.width;
+            return TutorialHighlightLabelPlacement.WrapLimit(_box, _clip, holderWidth);
         }
 
         private void ApplyPlacement()
@@ -60,11 +68,13 @@ namespace Client.Ui.Screens.Tutorial.Overlay
 
             void PinWidthWhenWrapped()
             {
-                // Unity は折り返した面を最長行の幅に縮めるが、Web は最大幅まで広がる。1 行の自然幅が内側を超えたら最大幅に固定する（前例 TooltipFace）
-                // Unity shrinks a wrapped face to its longest line while Web fills the max width; pin the max width when the one-line width exceeds the inner width (precedent TooltipFace)
-                var innerMaxWidth = _clip.Width - resolvedStyle.paddingLeft - resolvedStyle.paddingRight - resolvedStyle.borderLeftWidth - resolvedStyle.borderRightWidth;
+                var wrapLimit = WrapLimit();
+                style.maxWidth = wrapLimit;
+                // Unity は折り返した面を最長行の幅に縮めるが、Web は上限まで広がる。1 行の自然幅が内側を超えたら上限に固定する（前例 TooltipFace）
+                // Unity shrinks a wrapped face to its longest line while Web fills the limit; pin the limit when the one-line width exceeds the inner width (precedent TooltipFace)
+                var innerMaxWidth = wrapLimit - resolvedStyle.paddingLeft - resolvedStyle.paddingRight - resolvedStyle.borderLeftWidth - resolvedStyle.borderRightWidth;
                 var naturalWidth = MeasureSingleLineWidth();
-                style.width = innerMaxWidth < naturalWidth ? new StyleLength(_clip.Width) : new StyleLength(StyleKeyword.Auto);
+                style.width = innerMaxWidth < naturalWidth ? new StyleLength(wrapLimit) : new StyleLength(StyleKeyword.Auto);
             }
 
             #endregion

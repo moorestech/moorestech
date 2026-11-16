@@ -12,10 +12,14 @@
     --tutorial-attention-pulse-period: var(--tutorial-pulse-duration);
 }
 
+/* 置き場いっぱいに張り、ラベルが折り返しの上限に使う置き場の幅（Web の position: fixed の包含ブロック）を持たせる */
+/* Spans the whole holder so the label can read the holder width it wraps against (the containing block of Web's position: fixed) */
 .tutorial-outline {
     position: absolute;
     left: 0;
     top: 0;
+    right: 0;
+    bottom: 0;
 }
 
 /* Web の clip-path の代わりに、箱を inset で縮めた容器で切る。拡縮は容器ごと（ADR 0039 の「clip も一緒に呼吸する」） */

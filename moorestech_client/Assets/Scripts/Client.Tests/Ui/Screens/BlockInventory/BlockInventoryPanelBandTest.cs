@@ -22,6 +22,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         {
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Chest()), new FakeLargePanelRule(true));
             simulate.FrameUpdate();
+            // 試験のブロックは三層とも名前を持たないので、開くと欠けの警告が 1 回出る
+            // The test block has no name in any layer, so opening it warns once about the missing text
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[Localize\] missing text in every layer: block\."));
 
             // 舞台を縮め、期待値は舞台の解決済みの寸法から同じ式で出す
             // Shrink the stage and derive the expectation from its resolved size with the same formula
@@ -47,6 +50,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         {
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Chest()), new FakeLargePanelRule(true));
             simulate.FrameUpdate();
+            // 試験のブロックは三層とも名前を持たないので、開くと欠けの警告が 1 回出る
+            // The test block has no name in any layer, so opening it warns once about the missing text
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[Localize\] missing text in every layer: block\."));
 
             // 安全帯より低く縮め、入口で 1 回
             // Shrink below safe area; once on entry

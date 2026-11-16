@@ -34,6 +34,7 @@ namespace Client.Ui.Screens.Challenge.Tree
             // Stack title, category row and graph host
             var title = new LocalizedLabel();
             title.AddToClassList(UiTypographyClass.TitleOrder2);
+            title.AddToClassList(UiTypographyClass.TitleHeadingFace);
             title.AddToClassList("challenge-list__title");
             title.SetText(new UiText(LocalizationKeys.Ui.Challenge.Title));
             Add(title);

@@ -23,5 +23,5 @@
     margin-bottom: 0;
     margin-left: var(--tutorial-key-hint-kbd-gap);
     padding: 0;
-    -unity-text-align: middle-left;
+    -unity-text-align: middle-left; /* look-exception: LX-141 */
 }

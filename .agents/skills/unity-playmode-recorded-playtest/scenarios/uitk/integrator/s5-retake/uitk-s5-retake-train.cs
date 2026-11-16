@@ -55,8 +55,8 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
     overlay.enabled = false;
     try
     {
-        // 2. 地面の駅のレールに機関車を置く（前例 stage4/uitk-train-inventory）
-        // 2. Put a locomotive on a ground station rail (precedent stage4/uitk-train-inventory)
+        // 2. 地面の駅のレールに機関車を置く（前例 stage4/block/uitk-train-inventory）
+        // 2. Put a locomotive on a ground station rail (precedent stage4/block/uitk-train-inventory)
         var train = await PlaceLocomotive();
 
         // 3. 機関車の持ち物タブ（空 → 物あり）と貨物プラットフォーム
@@ -117,8 +117,8 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
 
     #region Internal
 
-    // 地面の駅 2 基を結線し、駅 A の構内に機関車を置く（前例 stage4/uitk-train-inventory。地面のレールなので乗車・開くが届く）
-    // Link two ground stations and put a locomotive inside station A (precedent stage4/uitk-train-inventory; ground rails keep boarding and opening in reach)
+    // 地面の駅 2 基を結線し、駅 A の構内に機関車を置く（前例 stage4/block/uitk-train-inventory。地面のレールなので乗車・開くが届く）
+    // Link two ground stations and put a locomotive inside station A (precedent stage4/block/uitk-train-inventory; ground rails keep boarding and opening in reach)
     async UniTask<TrainUnit> PlaceLocomotive()
     {
         Vector3Int stationAPos = new(10, 32, 4), stationBPos = new(10, 32, 64);

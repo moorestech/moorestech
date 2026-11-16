@@ -30,6 +30,7 @@ on_exit() {
 }
 trap on_exit EXIT
 
+# PlaytestBoot.AlreadyPlayingReply と同じ文字列 / same string as PlaytestBoot.AlreadyPlayingReply
 # 武装できたかは EDC の戻り値の語で見る（終了コードは EDC が走ったかだけ。Play 中なら ArmForNextBoot は "ERROR: already playing" を返す）
 # Judge arming by the word EDC returns (the exit code only says EDC ran; during Play, ArmForNextBoot returns "ERROR: already playing")
 armed=$(uloop execute-dynamic-code --project-path "$PROJECT" --code-file "$HERE/driver/exhibition-arm.edc" 2>&1)

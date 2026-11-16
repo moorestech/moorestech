@@ -16,16 +16,9 @@ using UnityEngine.InputSystem;
 using VContainer;
 using UniRx;
 
-// 録画前にGameViewへフォーカスし単体入力を実測する
-// Focus GameView and verify one input before recording
-Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView").Focus();
-// 非前面の Editor でも注入入力が届くよう焦点無視へ切り替える（前例 uitk-lifeline）
-// Ignore focus so injected input reaches an unfocused Editor (precedent uitk-lifeline)
-InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-Client.Playtest.Input.SemanticInput.EnsureDevices();
-InputSystem.EnableDevice(Keyboard.current);
-InputSystem.EnableDevice(Mouse.current);
+// 録画前に前面を取らず入力を整え単体入力を実測する
+// Prepare input without the foreground and verify one input before recording
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 await UniTask.DelayFrame(3);
 var control = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
 // 開幕スキット中（Story）は Esc でポーズが開かないので、先に飛ばしてゲーム画面に着くのを待つ

@@ -127,27 +127,34 @@ namespace Client.Playtest.Operations.Ui
         }
 
 #if UNITY_EDITOR
-        // Editor が背面になるとデバイスが無効になるため、注入前にEditorの入力環境を整える
-        // Devices are disabled while the Editor is in the background; restore the Editor input environment before injection
-        public static async UniTask FocusGameViewAndEnableInput(PlaytestDriver driver)
+        // OS の前面を取らずに注入入力を受ける形へ整える。EditorWindow.Focus は Editor を前面へ出し、並走する別 Editor のフォーカスも奪う
+        // Prepare injected input without taking the OS foreground; EditorWindow.Focus raises the Editor and steals focus from a parallel Editor
+        public static void PrepareBackgroundInput()
         {
-            foreach (var windowType in new[] { "SceneHierarchyWindow", "GameView" })
-            {
-                var type = typeof(UnityEditor.EditorWindow).Assembly.GetType($"UnityEditor.{windowType}");
-                driver.Assert(type != null, $"環境: Editorウィンドウ型が見つからない: {windowType}");
-                var window = UnityEditor.EditorWindow.GetWindow(type);
-                driver.Assert(window != null, $"環境: Editorウィンドウを取得できない: {windowType}");
-                window.Focus();
-                await UniTask.DelayFrame(5);
-            }
-
-            // キー・マウス有効化失敗を準備段階で示す
-            // Report keyboard or mouse activation failures during setup
+            // Edit モードの設定書き換えは PlayMode 終了で戻らないので PlayMode 中に限る
+            // Settings written in Edit mode are not restored on PlayMode exit, so require PlayMode
+            if (!Application.isPlaying) throw new InvalidOperationException("[PlaytestUiOps] PrepareBackgroundInput は PlayMode 中のみ");
+            // 表タブ化し全入力を GameView へ流す
+            // Show the tab and route all input to Game View
+            PlaytestGameViewOps.BringToFront();
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            // 焦点喪失で無効化済みのデバイスは設定だけでは戻らないので、有効済みでも無条件で有効化する（有効済みなら何もしない）
+            // Devices disabled on focus loss are not restored by settings alone, so enable unconditionally (a no-op when enabled)
             SemanticInput.EnsureDevices();
-            foreach (var device in InputSystem.devices)
-                if (!device.enabled) InputSystem.EnableDevice(device);
-            await driver.Until(() => Application.isFocused && Keyboard.current.enabled && Mouse.current.enabled,
-                10f, "環境: GameViewがプレイフォーカスを持ちキーボードとマウスが有効");
+            foreach (var device in InputSystem.devices) InputSystem.EnableDevice(device);
+        }
+
+        // 前面を取らず入力を整え有効化まで待つ
+        // Prepare input without foreground and wait until enabled
+        public static async UniTask PrepareBackgroundInputAndWaitEnabled(PlaytestDriver driver)
+        {
+            // タブ切替が描画と Screen へ反映されるまで数フレーム待つ
+            // Wait a few frames for the tab switch to reach rendering and Screen
+            PrepareBackgroundInput();
+            await UniTask.DelayFrame(5);
+            await driver.Until(() => Keyboard.current.enabled && Mouse.current.enabled,
+                10f, "環境: キーボードとマウスが有効（焦点無視・前面を取らない）");
         }
 #endif
     }

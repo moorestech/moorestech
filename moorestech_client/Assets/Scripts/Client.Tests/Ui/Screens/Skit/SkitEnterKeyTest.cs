@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Skit;
@@ -22,7 +23,7 @@ namespace Client.Tests.Ui.Screens.Skit
         public void MountScreen()
         {
             _commands = new RecordingSkitCommands();
-            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
         }
 
         /// <web-test file="e2e/tests/skit.spec.ts">会話窓にフォーカスがあってもSpaceでは送らずEnterで送る</web-test>

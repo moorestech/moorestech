@@ -35,7 +35,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     // 地形(メサ・岩・木)は足場を突き抜けて立ち位置・照準・画面を狂わせ、原点の遠い大物ほど遅れて生成されるので、スキットと同じ経路で地形の表示と生成を止める
     // Terrain (mesas, rocks, trees) pokes through the scaffold and skews footing, aim and view, with large far-origin pieces spawning late, so stop terrain display and spawning via the skit path
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     // 開始位置(0,33.5,0)は壁の角になるので、建てる前に室外へ退く。床は室外まで北向き(水平)の 5x1x5 のパネルを x-4..10・z-6..8 に 3x3 枚敷く
     // The spawn (0,33.5,0) becomes a wall corner, so step outside first; the floor is 3x3 north-facing (flat) 5x1x5 panels over x-4..10 / z-6..8 reaching outdoors
     p.WarpPlayer(outsidePosition);

@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Input.OsCursor
 {
@@ -13,5 +14,9 @@ namespace Client.Ui.Foundation.Input.OsCursor
     public interface IUiOsCursor
     {
         IDisposable Request(UiOsCursorShape shape, UiOsCursorLayer layer);
+
+        // 要素に紐づく要求の口。実画面ポインタの読み手はこの口が持つので、部品へ渡し回さない
+        // Entry for element-bound requests; this port owns the screen pointer reader so parts need not thread it
+        UiOsCursorHoverRequest CreateHoverRequest(VisualElement element, UiOsCursorShape shape, UiOsCursorLayer layer);
     }
 }

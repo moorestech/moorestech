@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.Text.RegularExpressions;
 using Client.Game.Localization;
@@ -73,7 +74,7 @@ namespace Client.Tests.Ui.Screens.Challenge.Tree
         // Render the list onto the OverlayPanel/Stage layer (precedent ResearchTreePresenter)
         public static ChallengeListView MountList(UiLayerStack layers, IChallengeListCommands commands)
         {
-            var view = new ChallengeListView(commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var view = new ChallengeListView(commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             view.Render(Tree(ChallengeCategorySelection.None));
             view.SetShown(true);
             layers.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);

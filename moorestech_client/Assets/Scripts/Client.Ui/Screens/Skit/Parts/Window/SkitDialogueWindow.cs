@@ -47,7 +47,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
 
             // 押せる印の指は文の区画で要求する（Web .window の cursor: pointer。ポーズでは SetInteractive が外す）
             // The pointer finger is requested on the text section (Web .window cursor: pointer; SetInteractive withdraws it on pause)
-            _sectionHover = new UiOsCursorHoverRequest(_section, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            _sectionHover = osCursor.CreateHoverRequest(_section, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
 
             // Web と同順に積む
             // Stack in Web order
@@ -83,12 +83,13 @@ namespace Client.Ui.Screens.Skit.Parts.Window
             UiDisplay.SetShown(_advanceMarker, shown);
         }
 
-        // ポーズ中は文の区画も拾わず、クリックは背後の何にも当たらない（Web の .inputBlocked）。乗っていた指は PointerLeave を待たずに外す
-        // While paused the text section stops picking too, so a click hits nothing behind (Web .inputBlocked); a held finger is withdrawn without waiting for PointerLeave
+        // ポーズ中は文の区画も拾わず、クリックは背後の何にも当たらない（Web の .inputBlocked）。乗っていた指は PointerLeave を待たずに外し、戻したとき乗っていれば出し直す
+        // While paused the text section stops picking too, so a click hits nothing behind (Web .inputBlocked); a held finger is withdrawn without waiting for PointerLeave and re-requested on restore when hovered
         public void SetInteractive(bool interactive)
         {
             _section.pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
-            if (!interactive) _sectionHover.Release();
+            if (interactive) _sectionHover.Resume();
+            else _sectionHover.Suspend();
         }
 
         private static LocalizedLabel CreateText(string testid, string className)

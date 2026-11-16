@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Localization;
 using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
@@ -85,8 +86,8 @@ namespace Client.Tests.Ui.Layout
             // LocalizedLabel looks up the dictionary on attach, so load it first
             Localize.Initialize();
             var stack = new UiStack(UiGap.Md);
-            var first = new PanelActionButton("layout-a", new UiText(LocalizationKeys.Ui.PauseMenu.Back), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
-            var second = new PanelActionButton("layout-b", new UiText(LocalizationKeys.Ui.PauseMenu.Back), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var first = new PanelActionButton("layout-a", new UiText(LocalizationKeys.Ui.PauseMenu.Back), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
+            var second = new PanelActionButton("layout-b", new UiText(LocalizationKeys.Ui.PauseMenu.Back), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             stack.AddItem(first);
             stack.AddItem(second);
             rootVisualElement.Add(stack);

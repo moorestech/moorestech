@@ -28,11 +28,26 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
             // 左右を等幅で伸ばし矢印を中央に固定
             // Stretch both side boxes equally to pin the arrow at the centre (Web grid 1fr auto 1fr)
-            Add(Side("machine-process-row__input", _input));
+            var inputSide = Side("machine-process-row__input", _input);
+            var outputSide = Side("machine-process-row__output", _output);
+            Add(inputSide);
             Add(_arrow);
-            Add(Side("machine-process-row__output", _output));
+            Add(outputSide);
+
+            // Web の 1fr は minmax(auto, 1fr) で、列は中身より狭くならず内容で決まる面では両列が広い方の中身の幅に揃う。両側の min-width を帯の広い方の幅にして写す
+            // Web 1fr is minmax(auto, 1fr): a column never shrinks below its content, and in a content-sized panel both columns match the wider content; port it as both sides' min-width set to the wider band
+            _input.Grid.RegisterCallback<GeometryChangedEvent>(_ => MatchSideMinWidth());
+            _output.Grid.RegisterCallback<GeometryChangedEvent>(_ => MatchSideMinWidth());
 
             #region Internal
+
+            void MatchSideMinWidth()
+            {
+                var widest = System.Math.Max(_input.Grid.layout.width, _output.Grid.layout.width);
+                if (UnityEngine.Mathf.Approximately(inputSide.resolvedStyle.minWidth.value, widest)) return;
+                inputSide.style.minWidth = widest;
+                outputSide.style.minWidth = widest;
+            }
 
             static VisualElement Side(string className, MachineSlotBand band)
             {

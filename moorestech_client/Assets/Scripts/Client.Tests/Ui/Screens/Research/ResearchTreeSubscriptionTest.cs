@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState;
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory;
 using Client.Tests.Ui.TestDoubles;
@@ -48,7 +49,7 @@ namespace Client.Tests.Ui.Screens.Research
             var model = new ResearchTreeModel(_catalog, _store, selection, new RecordingPlayerInventoryOperations(9, 2), routing);
             model.Initialize();
             var root = GameUiRootTestFactory.Create(_host, rootVisualElement);
-            new ResearchTreePresenter(root, model, routing, new RecordingResearchTreeCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())).Initialize();
+            new ResearchTreePresenter(root, model, routing, new RecordingResearchTreeCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
             simulate.FrameUpdate();
         }
 

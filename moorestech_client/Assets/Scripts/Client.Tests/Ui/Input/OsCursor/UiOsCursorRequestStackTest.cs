@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace Client.Tests.Ui.Input.OsCursor
         public void CreateStack()
         {
             _applier = new FakeUiOsCursorApplier();
-            _stack = new UiOsCursorRequestStack(_applier);
+            _stack = new UiOsCursorRequestStack(_applier, new FakeUiScreenPointer(1f));
         }
 
         [Test]

@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
@@ -21,7 +22,7 @@ namespace Client.Tests.Ui.Input.OsCursor
         {
             ProcessUiOsCursor.DropProcessStack();
             var applier = new FakeUiOsCursorApplier();
-            var cursor = new ProcessUiOsCursor(applier);
+            var cursor = new ProcessUiOsCursor(applier, new FakeUiScreenPointer(1f));
             ProcessUiOsCursor.DropProcessStack();
 
             using var request = cursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
@@ -34,7 +35,7 @@ namespace Client.Tests.Ui.Input.OsCursor
         {
             ProcessUiOsCursor.DropProcessStack();
             var newApplier = new FakeUiOsCursorApplier();
-            var cursor = new ProcessUiOsCursor(newApplier);
+            var cursor = new ProcessUiOsCursor(newApplier, new FakeUiScreenPointer(1f));
             var stale = cursor.Request(UiOsCursorShape.Grab, UiOsCursorLayer.Surface);
             ProcessUiOsCursor.DropProcessStack();
             using var fresh = cursor.Request(UiOsCursorShape.Pointer, UiOsCursorLayer.Element);

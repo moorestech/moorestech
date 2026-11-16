@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System.Linq;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Tutorial.UIHighlight;
@@ -34,7 +35,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         {
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
-            _view = Mount(new PauseMenuView(_commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _view = Mount(new PauseMenuView(_commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();

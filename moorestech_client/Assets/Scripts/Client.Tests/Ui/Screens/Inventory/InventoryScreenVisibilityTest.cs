@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.Linq;
 using Client.Game.InGame.UI.UIState;
@@ -58,7 +59,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         {
             var columns = new StageColumnsLayout();
             rootVisualElement.Add(columns);
-            new InventoryScreenPresenter(columns, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, new RecordingInventorySortCommands(), Content(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())).Initialize();
+            new InventoryScreenPresenter(columns, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, new RecordingInventorySortCommands(), Content(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
             _operations.SetMain(0, new SlotItem(MasterHolder.ItemMaster.GetItemId(WoodGuid), 7));
             simulate.FrameUpdate();
 

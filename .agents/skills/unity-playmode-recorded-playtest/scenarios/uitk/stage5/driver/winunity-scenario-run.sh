@@ -64,6 +64,7 @@ on_exit() {
 if [ "$MODE" = exhibition ]; then
   trap on_exit EXIT
   edc_words "$HERE/exhibition-arm.edc" arm >/dev/null
+  # PlaytestBoot.AlreadyPlayingReply と同じ文字列 / same string as PlaytestBoot.AlreadyPlayingReply
   if [ "$(edc_value arm)" != exhibition-armed ] && [[ "$(edc_value arm)" == *'already playing'* ]]; then
     echo "[driver] PlayMode is still running; stopping it before re-arming"
     printf '%s\n' 'UnityEditor.EditorApplication.ExitPlaymode();' 'return "stop-requested";' > "$WORK/stop-play.edc"

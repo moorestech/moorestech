@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Panels;
@@ -24,7 +25,7 @@ namespace Client.Tests.Ui.Screens.Skit
         {
             _commands = new RecordingSkitCommands();
             _cursorApplier = new FakeUiOsCursorApplier();
-            _choices = Mount(new SkitChoiceList(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier)));
+            _choices = Mount(new SkitChoiceList(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f))));
             _choices.Render(SkitTestData.Choices(7, SkitTestData.ChoiceIntents));
             simulate.FrameUpdate();
         }

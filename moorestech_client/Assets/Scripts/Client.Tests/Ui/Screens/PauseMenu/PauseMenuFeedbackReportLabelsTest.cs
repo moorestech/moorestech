@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System.Linq;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
@@ -31,7 +32,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             // 言語の選択は本物の SettingsCommands に通し、Localize の言語を実際に切り替える
             // Language choices go through the real SettingsCommands so Localize actually switches
             _commands = new RecordingPauseMenuCommands();
-            _view = Mount(new PauseMenuView(_commands, new SettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _view = Mount(new PauseMenuView(_commands, new SettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();

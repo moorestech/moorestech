@@ -64,7 +64,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
         {
             var view = MountView(MountHost(400f, 300f));
             var card = Card("card-a");
-            new UiOsCursorHoverRequest(card, OsCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            OsCursor.CreateHoverRequest(card, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
             view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, card) }, NodeGraphFocus.None));
             simulate.FrameUpdate();
             var onCard = card.worldBound.center;
@@ -130,7 +130,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
             var host = MountHost(400f, 300f);
             var view = MountView(host);
             var card = Card("card-a");
-            new UiOsCursorHoverRequest(card, OsCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            OsCursor.CreateHoverRequest(card, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
             view.SetGraph(new NodeGraphContent(new[] { Node("a", 0f, 0f, card) }, NodeGraphFocus.None));
             simulate.FrameUpdate();
             simulate.MouseMove(new Vector2(5f, 5f));

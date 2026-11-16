@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.Linq;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
@@ -36,7 +37,7 @@ namespace Client.Tests.Ui.Crosscut.TextSelection
         {
             // ビルドメニューは基底が組む。持ち物とポーズメニューを並べて載せる
             // The base assembles the build menu; mount the inventory and the pause menu beside it
-            var cursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier());
+            var cursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
             OpenMenu(BuildMenuSamples.Create());
 
             _inventory = Mount(new InventoryView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands(), Toaster), new RecordingInventorySortCommands(), Content, Toaster, cursor));

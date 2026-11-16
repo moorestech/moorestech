@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.State.BlockInventory.Family;
 using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
@@ -36,7 +37,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var factories = new ISectionStackSectionFactory[]
             {
-                new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())),
+                new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))),
                 new MinerSectionFactory(Content, _miner),
             };
             var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", factories);

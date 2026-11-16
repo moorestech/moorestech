@@ -13,6 +13,7 @@ using Client.Ui.State.Routing;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Skit;
 using Client.Ui.State.Train.Platform.Edit;
+using Client.Ui.State.Train.Timetable.Send;
 using VContainer;
 using VContainer.Unity;
 
@@ -45,6 +46,7 @@ namespace Client.Starter.Registration
 
             // 時刻表取得と所属列車追跡
             // Timetable fetch and owning-train tracking
+            builder.Register<VanillaApiTrainTimetableRequestSender>(Lifetime.Singleton).As<ITrainTimetableRequestSender>();
             builder.Register<TrainTimetableFetcher>(Lifetime.Singleton);
             builder.RegisterEntryPoint<OpenTrainTimetableTracker>().AsSelf();
 

@@ -71,8 +71,9 @@ return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record
         // 4. ゲーム画面まで進む。非前面の Editor は Story を抜けるのが遅いので先に待つ
         // 4. Reach the game screen; an unfocused Editor leaves Story slowly, so wait for it first
         await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-        await p.SkipOpeningSkitIfPlaying();
-        await p.Until(() => p.CurrentUiState != UIStateEnum.Story, 60f, "スキットを飛ばした後に Story を抜ける");
+        // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
+        // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
+        await p.SkipOpeningSkitUntilLeftStory();
         await p.ExitToGameScreen();
 
         // 5. 解放済みの先頭カテゴリと最初の進行中を源から引く（uitk-challenge-list と同じ引き方）

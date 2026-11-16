@@ -20,6 +20,9 @@ namespace Client.Ui.Screens.BlockInventory
         {
             Root = new GameScrollView("block-inventory-natural-scroll", GameScrollAxis.Vertical);
             Root.AddToClassList(ClassName);
+            // Web の .scroll の flex: 1（basis 0%）は内容で高さが決まる面の中では内容の高さに解かれる。basis を中身の高さへ追従させ、帯の高さに届いたときだけ縮める（前例 PauseMenuSubPageView）
+            // Web .scroll flex: 1 (basis 0%) resolves to the content height inside a content-sized panel; track the content height as the basis so it shrinks only at the band height (precedent PauseMenuSubPageView)
+            Root.FollowContentHeightAsFlexBasis();
 
             // USS に calc() が無いので、受け直した逃げの幅を C# で負号付きのマージンと正の内側余白に当てる
             // USS has no calc(), so C# applies the re-declared bleed as a negative margin and a positive inner padding

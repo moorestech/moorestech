@@ -23,6 +23,13 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             return new TutorialLabelPosition(left, top);
         }
 
+        // 折り返しの上限。Web の面は position: fixed なので、器の幅と「置き場の幅 − 枠の左端」の小さい方で縮む（枠の左端は Web の初回の left）
+        // Wrap limit; the Web face is position: fixed, so it shrinks to the smaller of the clip width and "holder width - ring left" (the ring left is Web's first-pass left)
+        public static float WrapLimit(TutorialClipRect box, TutorialClipRect clip, float holderWidth)
+        {
+            return Math.Min(clip.Width, holderWidth - box.Left);
+        }
+
         // アンカー自身がクリップで欠けていればラベルを出さない（Web renderOutline）
         // Skip the label while the anchor itself is partly clipped (Web renderOutline)
         public static bool ShowsLabel(TutorialClipRect anchorRect, TutorialClipRect clip)

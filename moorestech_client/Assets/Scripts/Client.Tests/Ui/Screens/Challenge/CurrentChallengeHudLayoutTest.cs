@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Mooresmaster.Localization.Generated;
 using System.Linq;
 using Client.Game.InGame.Tutorial.UIHighlight;
@@ -56,7 +57,7 @@ namespace Client.Tests.Ui.Screens.Challenge
 
             // 題は辞書の文で内部キーを出さない。目標は渡した文
             // The title is dictionary text without internal keys; the objective is the given text
-            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.Challenge.CurrentTitle), label.text);
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.Challenge.CurrentTitle), label.PlainText());
             StringAssert.DoesNotContain("[!", label.text);
             CollectionAssert.AreEqual(new[] { "石を採掘する" }, ChallengeHudTestText.Objectives(_view));
 

@@ -25,6 +25,8 @@ namespace Client.Ui.Screens.Toast
         private float _enterMilliseconds;
         private float _exitMilliseconds;
         private bool _durationsUnreadable;
+        private float? _screenInsetPixels;
+        private float _stageScale = 1f;
 
         public ToastHostView()
         {
@@ -88,6 +90,8 @@ namespace Client.Ui.Screens.Toast
             var hasEnter = UssCustomStyleReader.TryReadMilliseconds(resolvedStyle, "--toast-host-enter-duration", out _enterMilliseconds);
             var hasExit = UssCustomStyleReader.TryReadMilliseconds(resolvedStyle, "--toast-host-exit-duration", out _exitMilliseconds);
             _durationsUnreadable = !(hasEnter && hasExit);
+            if (UssCustomStyleReader.TryReadPixels(resolvedStyle, "--toast-host-screen-inset", out var screenInset)) _screenInsetPixels = screenInset;
+            ApplyScreenInset();
             if (_durationsUnreadable)
             {
                 _enterMilliseconds = 0f;
@@ -97,6 +101,22 @@ namespace Client.Ui.Screens.Toast
             var waiting = _toastsWaitingForStyle.ToArray();
             _toastsWaitingForStyle.Clear();
             foreach (var toast in waiting) Push(toast);
+        }
+
+        // 舞台の倍率を受け、右下の余白を実画面の px に保つ
+        // Take the stage scale and keep the bottom-right inset in real-screen px
+        public void SetStageScale(float stageScale)
+        {
+            _stageScale = stageScale;
+            ApplyScreenInset();
+        }
+
+        private void ApplyScreenInset()
+        {
+            // silent-ok: USS の解決前は 16px が未知なので USS の right/bottom のまま / 読めなければ UssCustomStyleReader が LogError を出す
+            if (_screenInsetPixels == null) return;
+            style.right = _screenInsetPixels.Value / _stageScale;
+            style.bottom = _screenInsetPixels.Value / _stageScale;
         }
 
         private static UiMotionHandle Fade(VisualElement target, float from, float to, float milliseconds)

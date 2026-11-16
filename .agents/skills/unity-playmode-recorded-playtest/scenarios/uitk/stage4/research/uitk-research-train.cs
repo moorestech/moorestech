@@ -29,12 +29,9 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     PlaytestGameViewOps.BringToFront();
     await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    // 重い機械では1回の Skip で開幕スキットが終わらないことがあるので、Story のままなら飛ばし直し回数を Note に残す（前例 uitk-production-loop）
-    // On a loaded machine one skip may not end the opening skit, so skip again while in Story and note the rounds (precedent uitk-production-loop)
-    var skitSkipRounds = 1;
-    await p.SkipOpeningSkitIfPlaying();
-    while (skitSkipRounds < 4 && !await PlaytestUiOps.PollUiState(UIStateEnum.GameScreen, 5f)) { skitSkipRounds++; await p.SkipOpeningSkitIfPlaying(); }
-    p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
+    // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
+    // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
     await p.ExitToGameScreen();
 
     // 研究素材を渡し、研究ツリーで原始研究1を完了する

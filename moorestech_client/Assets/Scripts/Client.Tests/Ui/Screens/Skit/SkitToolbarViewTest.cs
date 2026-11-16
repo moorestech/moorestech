@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input.OsCursor;
@@ -22,7 +23,7 @@ namespace Client.Tests.Ui.Screens.Skit
         public void MountToolbar()
         {
             _commands = new RecordingSkitCommands();
-            _toolbar = Mount(new SkitToolbar(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _toolbar = Mount(new SkitToolbar(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
         }
 
         [Test]

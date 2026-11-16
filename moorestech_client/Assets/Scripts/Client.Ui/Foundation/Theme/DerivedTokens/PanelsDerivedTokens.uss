@@ -30,6 +30,7 @@
     --hud-label-font-size: var(--challenge-hud-label-font-size); /* web: CurrentChallengeHud.module.css .label。PlacementModeHud の --operation-hud-* は同値 */
     --hud-label-letter-spacing: var(--challenge-hud-letter-spacing); /* web: 同上。値は字の大きさの 1/100 単位（12px で 1px）なので、--hud-label-font-size だけを上書きするときは字間も上書きする */
     --hud-label-rule-gap: var(--challenge-hud-label-rule-gap); /* web: 同上 */
+    --hud-label-line-box: 18.6px; /* web: .label（challenge は div・modeHud は h2）は line-height を書かず Mantine の body の --mantine-line-height 1.55 を継ぐ。12px × 1.55。modeHud の --operation-hud-label-font-size も 12px で同値 */
     --hud-rule-list-gap: var(--challenge-hud-rule-list-gap); /* web: .objectives の margin-top */
     --hud-rule-width: 100%; /* web: modeHud は FadeRule を幅いっぱい、challenge は .rule の --challenge-hud-rule-width（画面 USS が上書き） */
 }
