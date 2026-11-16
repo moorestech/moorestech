@@ -14,7 +14,7 @@ namespace Client.Playtest.Operations.Ui
     {
         // 再生されないワールドでも待ちすぎないための、任意スキップの上限
         // Upper bound for the optional skip so worlds without a skit do not stall
-        public const float OptionalSkipTimeoutSeconds = 10f;
+        internal const float OptionalSkipTimeoutSeconds = 10f;
         private const float TimeScaleResumeTimeoutSeconds = 10f;
 
         // 開幕スキット表示中はホットバー入力もビルドメニューもポーズメニューも通らないため、全シナリオ共通の前提として飛ばす

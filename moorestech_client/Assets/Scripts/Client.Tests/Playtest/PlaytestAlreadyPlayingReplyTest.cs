@@ -12,6 +12,7 @@ namespace Client.Tests.Playtest
     public class PlaytestAlreadyPlayingReplyTest
     {
         private const string RunScenarioScriptPath = ".agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh";
+        private const string WinunityScriptPath = ".agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage5/driver/winunity-scenario-run.sh";
 
         [Test]
         public void run_scenarioは定数と同じ文字列で再送の応答を見分ける()
@@ -22,6 +23,17 @@ namespace Client.Tests.Playtest
             var script = File.ReadAllText(Path.Combine(repoRoot, RunScenarioScriptPath));
             var quotedReply = $"\"{PlaytestBoot.AlreadyPlayingReply}\"";
             StringAssert.Contains($"== {quotedReply} ]]", script, $"run-scenario.sh が {quotedReply} と完全一致で比べていない（PlaytestBoot.AlreadyPlayingReply とずれた）");
+        }
+
+        [Test]
+        public void winunityの台本は定数を含む部分一致で再送の応答を見分ける()
+        {
+            // winunity 側は部分一致で比べるので、定数がその部分文字列を含み続けること
+            // The winunity script matches by substring, so the constant must keep containing it
+            var repoRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
+            var script = File.ReadAllText(Path.Combine(repoRoot, WinunityScriptPath));
+            StringAssert.Contains("*'already playing'*", script, "winunity-scenario-run.sh の部分一致の書式が変わった");
+            StringAssert.Contains("already playing", PlaytestBoot.AlreadyPlayingReply, "PlaytestBoot.AlreadyPlayingReply が winunity の部分一致文字列を含まなくなった");
         }
     }
 }
