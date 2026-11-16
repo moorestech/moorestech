@@ -74,7 +74,9 @@ return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestR
     p.Assert(wired, "電線 発電機→清浄機");
     #endregion
     #region (1) 密閉部屋でクラスが付く / Class is assigned in the sealed room
-    await p.WaitForCleanRoomClass(purifierBlock, 0, 20f, "密閉部屋がクラスA(閾値行0)になった");
+    // 清浄機1台・空きセル145では換気約0.034/秒で、Bの昇格0.036に届かずCになる
+    // One purifier over 145 free cells gives ~0.034/s, short of B promotion 0.036, so the room is C
+    await p.WaitForCleanRoomClass(purifierBlock, 2, 20f, "密閉部屋がクラスC(閾値行2)になった");
     var (className, volume, airChangeRate) = ("", 0, 0d);
     await p.RunOnServer("部屋のクラス名・空きセル数・換気回数を読む", () =>
     {
