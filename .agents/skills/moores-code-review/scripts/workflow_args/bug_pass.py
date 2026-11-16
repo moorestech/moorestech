@@ -35,8 +35,6 @@ BUG_PASS_REVIEWERS = {
     "core-any-removed-invariant": "削除・置換した行が守っていたガード・不変条件の消失（退行）",
     "core-cs-async-cancellation": "await 中に持ち主が破棄されても止まらない非同期処理（破棄後アクセス・二重実行）",
     "core-cs-result-state-propagation": "失敗分岐が成功・空ペイロードに潰れて呼び出し側が誤った結果で進む経路",
-    "core-ts_tsx-result-state-propagation": "同上の webui 版（fetch 結果→表示分岐で失敗が消える経路）",
-    "core-ts_tsx-react-antipattern": "フック・状態更新のバグ直結パターン（古い状態・無限再描画・戻れない画面）",
     "moores-any-server-state-sync": "サーバー状態がクライアントへ届かない・古いまま残る同期経路の欠落",
 }
 # 全文精読の正しさ系2観点。チャンク内一貫性（重複・非対称）は構造系なので外す

@@ -12,15 +12,15 @@ KEPT = [
     "moorestech_client/Assets/Scripts/Client.Game/Foo.cs",
     "moorestech_client/Assets/Dependencies/StarterAssets/Scripts/PlayerInput.cs",
     "moorestech_client/Assets/packages.config",
-    "moorestech_web/webui/src/app/Panel.tsx",
+    "tools/example/src/app/Panel.tsx",
     "docs/adr/0001-sample.md",
 ]
 EXCLUDED = [
     "moorestech_client/Assets/Packages/Microsoft.CodeAnalysis.Common.4.14.0/lib/netstandard2.0/Microsoft.CodeAnalysis.xml",
     "moorestech_client/Assets/Packages/Lib.Harmony.2.4.2/lib/net48/0Harmony.dll",
     "moorestech_client/Packages/packages-lock.json",
-    "moorestech_web/webui/pnpm-lock.yaml",
-    "moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts",
+    "tools/example/pnpm-lock.yaml",
+    "tools/example/src/shared/i18n/generated/localizationKeys.ts",
     "moorestech_client/Assets/Scripts/Client.Tests/unity-playmode-recorded-playtest/Scenario.cs",
     "moorestech_client/Assets/Scripts/Client.Game/Foo.cs.meta",
     "moorestech_client/Assets/Asset/Block/Belt.prefab",
