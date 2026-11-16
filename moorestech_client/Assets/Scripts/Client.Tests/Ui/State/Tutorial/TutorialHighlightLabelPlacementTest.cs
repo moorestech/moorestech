@@ -40,6 +40,16 @@ namespace Client.Tests.Ui.State.Tutorial
         }
 
         [Test]
+        public void 折り返しの上限は器の幅と置き場の幅から枠の左端を引いた残りの小さい方()
+        {
+            // 1280 の右寄りの枠は残り 246 で折り返し、左寄りなら器の幅のまま
+            // A ring near the right of 1280 wraps at the remaining 246; one near the left keeps the clip width
+            Assert.AreEqual(246f, TutorialHighlightLabelPlacement.WrapLimit(new TutorialClipRect(1034, 600, 1090, 656), Clip, 1280f));
+            Assert.AreEqual(1280f, TutorialHighlightLabelPlacement.WrapLimit(new TutorialClipRect(0, 600, 56, 656), Clip, 1280f));
+            Assert.AreEqual(400f, TutorialHighlightLabelPlacement.WrapLimit(new TutorialClipRect(300, 100, 356, 156), new TutorialClipRect(0, 0, 400, 720), 1280f));
+        }
+
+        [Test]
         public void アンカーがclipで欠けていればラベルを出さない()
         {
             Assert.IsTrue(TutorialHighlightLabelPlacement.ShowsLabel(new TutorialClipRect(10, 10, 50, 50), Clip));
