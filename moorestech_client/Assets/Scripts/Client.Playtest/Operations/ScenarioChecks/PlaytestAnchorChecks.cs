@@ -5,7 +5,6 @@ using Client.Game.InGame.Tutorial;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Screens.Tutorial.Anchor;
-using Client.Ui.State.Tutorial.Logic;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;

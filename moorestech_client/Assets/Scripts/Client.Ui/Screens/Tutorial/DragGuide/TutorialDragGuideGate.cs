@@ -1,4 +1,5 @@
-namespace Client.Ui.State.Tutorial.Logic
+using Client.Ui.Screens.Tutorial.Anchor;
+namespace Client.Ui.Screens.Tutorial.DragGuide
 {
     /// <summary>
     /// ドラッグ誘導を出してよいかの門と移動量。Web の DragGuide の写し

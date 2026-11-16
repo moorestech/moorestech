@@ -1,6 +1,6 @@
 using System;
 
-namespace Client.Ui.State.BuildMenu.Logic
+namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 {
     /// <summary>
     /// カテゴリ見出しの上端（スクロール内容の座標）

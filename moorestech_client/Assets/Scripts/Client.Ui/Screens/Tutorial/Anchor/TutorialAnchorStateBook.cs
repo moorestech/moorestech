@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.Anchor
 {
     /// <summary>
     /// 購読中のアンカーの最新の解決結果を持ち、同値の再解決を捨てる

@@ -1,5 +1,4 @@
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.State.Tutorial.Logic;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Tutorial.Anchor

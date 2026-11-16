@@ -1,7 +1,8 @@
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.Anchor;
+using Client.Ui.Screens.Tutorial.Overlay;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.Tutorial
+namespace Client.Tests.Ui.Screens.Tutorial.Highlight
 {
     /// <summary>
     /// 枠の inset が、クリップの外へ出た辺だけを切り、見えない枠を描かないことを確かめる（L0）

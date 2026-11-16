@@ -1,4 +1,4 @@
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.Anchor
 {
     /// <summary>
     /// 1 つのアンカーの解決結果。ready だけが矩形と祖先クリップを持ち、未解決は理由だけを持つ

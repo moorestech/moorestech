@@ -1,7 +1,7 @@
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.WorldPin;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.Tutorial
+namespace Client.Tests.Ui.Screens.Tutorial.WorldPin
 {
     /// <summary>
     /// 画面外ピンの矢印が先に当たる辺でクランプされ、角度が atan2 の度になることを確かめる（L0）

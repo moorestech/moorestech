@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Client.Ui.Screens.Tutorial.DragGuide;
 using Client.Ui.Screens.Tutorial.Overlay;
-using Client.Ui.State.Tutorial.Logic;
 using Client.Ui.State.Tutorial.Overlay;
 using NUnit.Framework;
 using UnityEngine;

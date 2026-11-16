@@ -1,6 +1,7 @@
 using System;
+using Client.Ui.Screens.Tutorial.Anchor;
 
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.Overlay
 {
     /// <summary>
     /// ハイライトのラベル面の置き場所。Web の HighlightLabel の配置の写し

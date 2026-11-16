@@ -1,4 +1,4 @@
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.Anchor
 {
     /// <summary>
     /// アンカーの解決状態の理由。状態の理由を表す唯一の enum（Web の resolveAnchor の理由に対応）

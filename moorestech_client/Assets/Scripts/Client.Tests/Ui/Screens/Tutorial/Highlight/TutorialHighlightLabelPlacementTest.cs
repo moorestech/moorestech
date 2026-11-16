@@ -1,7 +1,8 @@
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.Anchor;
+using Client.Ui.Screens.Tutorial.Overlay;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.Tutorial
+namespace Client.Tests.Ui.Screens.Tutorial.Highlight
 {
     /// <summary>
     /// ラベル面が枠の下を既定に、収まる側へ反転し、clip の内へ収まることを確かめる（L0）

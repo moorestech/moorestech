@@ -1,6 +1,6 @@
 using System;
 
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.WorldPin
 {
     /// <summary>
     /// 画面外ピンの矢印を画面端へクランプする位置と角度。Web の WorldPinOverlay の EdgeArrow の写し

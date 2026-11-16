@@ -3,7 +3,7 @@ using System.Linq;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.DragGuide;
 using Client.Ui.Screens.Tutorial.Pulse;
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.Anchor;
 using Client.Ui.State.Tutorial.Overlay;
 using UnityEngine.UIElements;
 

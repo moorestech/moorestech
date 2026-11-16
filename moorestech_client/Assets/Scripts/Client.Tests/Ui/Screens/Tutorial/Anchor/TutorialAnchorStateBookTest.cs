@@ -1,7 +1,7 @@
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.Anchor;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.Tutorial
+namespace Client.Tests.Ui.Screens.Tutorial.Anchor
 {
     /// <summary>
     /// アンカーの状態の帳簿が、同値の再解決を捨て、clip の変化と購読外しを拾うことを確かめる（L0）

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Client.Ui.State.BuildMenu.Logic
+namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 {
     /// <summary>
     /// 1 本スクロールの判定（Web buildMenuScrollSpy.ts の写し）。視口に依存しない

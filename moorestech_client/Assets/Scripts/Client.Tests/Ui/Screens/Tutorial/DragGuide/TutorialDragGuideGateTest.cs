@@ -1,7 +1,8 @@
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.Anchor;
+using Client.Ui.Screens.Tutorial.DragGuide;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.Tutorial
+namespace Client.Tests.Ui.Screens.Tutorial.DragGuide
 {
     /// <summary>
     /// ドラッグ誘導が両端 ready かつ起点が見えている時だけ出て、移動量が中心間になることを確かめる（L0）

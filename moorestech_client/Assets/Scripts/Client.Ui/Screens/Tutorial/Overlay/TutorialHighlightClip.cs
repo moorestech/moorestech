@@ -1,6 +1,7 @@
 using System;
+using Client.Ui.Screens.Tutorial.Anchor;
 
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.Overlay
 {
     /// <summary>
     /// 枠に当てる祖先クリップの inset 計算。Web の clipPathInset の写し

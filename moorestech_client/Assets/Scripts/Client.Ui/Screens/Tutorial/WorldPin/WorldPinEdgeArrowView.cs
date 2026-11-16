@@ -1,7 +1,6 @@
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Tutorial.Pulse;
-using Client.Ui.State.Tutorial.Logic;
 using UnityEngine;
 using UnityEngine.UIElements;
 

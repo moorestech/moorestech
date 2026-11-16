@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.Anchor;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;

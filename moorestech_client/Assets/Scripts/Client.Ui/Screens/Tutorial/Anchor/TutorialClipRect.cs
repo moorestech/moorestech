@@ -1,6 +1,6 @@
 using System;
 
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.Anchor
 {
     /// <summary>
     /// 画面座標の矩形（左上原点・パネル単位）。Web の ClipRect の写しで、値で比べる

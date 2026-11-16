@@ -3,7 +3,6 @@ using System.Linq;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.Tutorial.Pulse;
-using Client.Ui.State.Tutorial.Logic;
 using Client.Ui.State.Tutorial.WorldPin;
 using UnityEngine;
 using UnityEngine.UIElements;

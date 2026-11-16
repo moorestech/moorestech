@@ -1,4 +1,4 @@
-namespace Client.Ui.State.Tutorial.Logic
+namespace Client.Ui.Screens.Tutorial.Anchor
 {
     /// <summary>
     /// アンカーの最新の解決結果を読む口。帳簿と追跡器が実装し、View が持つ

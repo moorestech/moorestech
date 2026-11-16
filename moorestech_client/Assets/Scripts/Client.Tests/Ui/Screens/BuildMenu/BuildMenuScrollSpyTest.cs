@@ -1,8 +1,8 @@
 using System;
-using Client.Ui.State.BuildMenu.Logic;
+using Client.Ui.Screens.BuildMenu.CategoryScroll;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.BuildMenu
+namespace Client.Tests.Ui.Screens.BuildMenu
 {
     public class BuildMenuScrollSpyTest
     {

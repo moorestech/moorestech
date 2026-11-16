@@ -2,7 +2,6 @@ using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.Foundation.Motion.Tween;
 using Client.Ui.Foundation.Theme;
-using Client.Ui.State.Tutorial.Logic;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Tutorial.DragGuide

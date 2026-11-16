@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.State.Tutorial.Logic;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
