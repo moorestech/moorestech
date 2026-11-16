@@ -38,10 +38,7 @@ namespace Client.Tests.Ui.State.BuildMenu.Source
         }
 
         [TearDown]
-        public void TearDown()
-        {
-            _debugScope.End();
-        }
+        public void TearDown() => _debugScope.End();
 
         [Test]
         public void BPエントリの必要素材はBP全ブロック分で所持0なら不足Test()
@@ -144,7 +141,6 @@ namespace Client.Tests.Ui.State.BuildMenu.Source
             blueprint.Chains.Add(new BlueprintLineJsonObject(0, 1, chainGuid));
             blueprint.Chains.Add(new BlueprintLineJsonObject(1, 0, chainGuid));
             var entry = CreateEntry(blueprint);
-
             // 受理される一本だけを表示し、完全免除にもならない
             // Show only the accepted chain and keep its payment requirement
             Assert.IsFalse(entry.Catalog.PaymentWaived);
