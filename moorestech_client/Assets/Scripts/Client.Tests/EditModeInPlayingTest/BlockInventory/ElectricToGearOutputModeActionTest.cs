@@ -1,10 +1,12 @@
 using System.Collections;
+using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Ui.State.BlockInventory.Special.Commands;
+using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -71,10 +73,11 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     var blockGameObject = await WaitBlockGameObjectSpawn(pos);
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                    // 登録ハンドラで行2を選択
-                    // Select row 2 via the registered handler
-                    var result = await WebUiActionInvoker.ExecuteAsync("electric_to_gear.set_output_mode", new JObject { ["modeIndex"] = 2 });
-                    Assert.IsTrue(result.Ok, $"action failed: {result.Error}");
+                    // UITK の特殊族のコマンドで出力モードを選ぶ（画面のボタンと同じ口）
+                    // Pick the output mode through the UITK special-family command (the same port the screen's button uses)
+                    var commands = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ISpecialBlockCommands>();
+                    var result = await commands.SetElectricToGearMode(2);
+                    Assert.IsInstanceOf<UiCommandAccepted>(result, $"output mode command was rejected: {(result as UiCommandRejected)?.ToLogText()}");
 
                     // 往復後の選択2を確認
                     // Confirm selection 2 after the round-trip

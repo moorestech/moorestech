@@ -7,11 +7,12 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Ui.State.BlockInventory.Special.Commands;
+using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -76,25 +77,24 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Debug.Log($"[SpaceElevatorClick] total={colliders.Length} clickable=1 layer={collider.gameObject.layer} owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
-                // 実Binder・API・応答を通す
-                // Exercise the real binder, API and server response
-                var insufficient = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
-                Assert.IsFalse(insufficient.Ok);
-                Assert.AreEqual("insufficient_cable", insufficient.Error);
+                // UITK の特殊族のコマンド・API・応答を通す
+                // Exercise the UITK special-family command, API and server response
+                var commands = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ISpecialBlockCommands>();
+                var insufficient = await commands.ConnectSpaceElevator();
+                AssertRejected(insufficient, UiCommandRejectReason.SpecialBlockRequestFailed, "insufficient_cable");
                 var param = (SpaceElevatorBaseBlockParam)master.BlockParam;
                 var insufficientState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(0, insufficientState.PoolAmount);
                 Assert.IsFalse(insufficientState.TargetConnected);
                 var supplied = await SpaceElevatorServerTestState.SupplyCableAsync(param);
-                var connected = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
-                Assert.IsTrue(connected.Ok, connected.Error);
+                var connected = await commands.ConnectSpaceElevator();
+                Assert.IsInstanceOf<UiCommandAccepted>(connected, (connected as UiCommandRejected)?.ToLogText());
                 var connectedState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.IsTrue(connectedState.TargetConnected);
                 Assert.IsFalse(connectedState.DecoyConnected, "request used the decoy coordinates");
                 Assert.AreEqual(supplied - param.CablesPerElevator, connectedState.PoolAmount);
-                var already = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
-                Assert.IsFalse(already.Ok);
-                Assert.AreEqual("already_connected", already.Error);
+                var already = await commands.ConnectSpaceElevator();
+                AssertRejected(already, UiCommandRejectReason.SpecialBlockCommandStale, "already_connected");
                 var alreadyState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(connectedState.PoolAmount, alreadyState.PoolAmount);
                 BlockSubInventoryOpener.Close(subInventory);
@@ -107,6 +107,16 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreEqual(supplied, refundedState.PoolAmount);
                 Assert.IsFalse(refundedState.DecoyConnected);
                 Directory.Delete(directory, true);
+            }
+
+            // 拒否の理由と、サーバーの結果を写した失敗コードを見る
+            // Check the rejection reason and the failure code mapped from the server result
+            void AssertRejected(UiCommandResult result, UiCommandRejectReason reason, string wireCode)
+            {
+                Assert.IsInstanceOf<UiCommandRejected>(result, $"expected {wireCode} but the command was accepted");
+                var rejected = (UiCommandRejected)result;
+                Assert.AreEqual(reason, rejected.Reason);
+                Assert.AreEqual(wireCode, rejected.ToWireCode());
             }
             #endregion
         }

@@ -1,14 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.World;
+using Client.Ui.State.BlockInventory.Machine.Selection;
+using Client.Ui.State.Commands;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Mooresmaster.Model.MachineRecipesModule;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -86,18 +88,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                    // 登録ハンドラで1件目を選択
-                    // Select the first recipe via the registered handler
+                    // UITK のレシピ選択コマンドで1件目を選ぶ（画面の行と同じ口）
+                    // Select the first recipe through the UITK recipe-select command (the same port the screen's row uses)
                     var targetGuid = blockRecipes[0].MachineRecipeGuid;
-                    var setResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
-                    Assert.IsTrue(setResult.Ok, $"select action failed: {setResult.Error}");
+                    var setResult = await ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMachineRecipeSelectCommand>().Select(targetGuid);
+                    Assert.IsInstanceOf<UiCommandAccepted>(setResult, $"select command was rejected: {(setResult as UiCommandRejected)?.ToLogText()}");
                     Assert.AreEqual(targetGuid, processor.SelectedRecipeGuid, "selected recipe did not reach the server");
 
-                    // 解除も同じ経路で往復することを確認する
-                    // Confirm clearing round-trips through the same path.
-                    var clearResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "clear" });
-                    Assert.IsTrue(clearResult.Ok, $"clear action failed: {clearResult.Error}");
-                    Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "clear did not reach the server");
+                    // 解除は Web の画面も送らず（送り手は set だけ）、UITK にも口が無い
+                    // Neither the web screen (it only sends set) nor UITK offers a clear, so it is not exercised here
 
                     BlockSubInventoryOpener.Close(subInventoryState);
 
