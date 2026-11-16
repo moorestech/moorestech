@@ -22,7 +22,7 @@ return PlaytestRunner.Run("master-quick-fixes-oilwell-kiln", options, async p =>
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == Client.Game.InGame.UI.UIState.UIStateEnum.GameScreen && Camera.main != null, 15f, "GameScreen に戻った");
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
 
     // 油井を北向きに置き、出力口 offset [1,1,8] の外側 (1,33,9) にパイプをつなぐ
     // Place the oil well facing north and attach a pipe just outside the outlet offset [1,1,8] at (1,33,9)

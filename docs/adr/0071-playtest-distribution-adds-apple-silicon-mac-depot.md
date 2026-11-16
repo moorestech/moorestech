@@ -1,7 +1,7 @@
 # 0071. 配布ビルドにApple Silicon向けmac depotを加え、ビルド要求を用途enumで表す
 
 日付: 2026-09-26
-状態: 採択（ADR 0061 の「配布はWindowsのみ」を拡張する。`.decisions/2026-08-02-PlayerBuildRequestは3boolのまま維持する.md` を置き換える）
+状態: 採択（ADR 0061 の「配布はWindowsのみ」を拡張する。`.decisions/2026-08-02-PlayerBuildRequestは3boolのまま維持する.md` を置き換える）（2026-11-16 ADR 0101 で改訂: UITK 切替）
 
 ## Context
 
@@ -76,3 +76,7 @@ ADR 0061 の配布工程（`scripts/playtest/release-playtest.sh`）は Windows 
 - Steamworks 側の設定と env の追加が済むまで、配布コマンドは両 OS とも止まる。
 - Mac 版の起動不良は自動では止まらず、`playtest` 反映前の人の確認だけが関門になる。
 - Steam 以外の経路（zip 等）で `.app` を渡すと Gatekeeper に止められる。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で改訂。arm64 専用の根拠だった CEF の Mac ランタイムは無くなった。arm64 固定は、録画用の ffmpeg を arm64 版だけ同梱していることを理由に残る（Universal にするなら x64 の ffmpeg が要る）。成果物の検査は CEF helper の実在・実行権・lipo から「CEF のファイルが 0」へ変わり（`release-artifact.sh`）、:63-66 の `Client.WebUiHost` の注は対象ごと無くなる。

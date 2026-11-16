@@ -43,3 +43,7 @@ PlayMode録画テスト `cursor-tooltip-follows-crosshair.cs` による対照実
 したがって本ADRが症状として述べた「ロック中に凍結した**古い座標**が送られ続ける」は、スキット経路については成り立たない。実際に起きているのは「Web側 `CursorTooltip` の `pointer` state が読み込み以来の初期値 `{x:0,y:0}` のままで、`clampTooltipPosition` が下限 (12,12) を返す」＝**一度も座標を受け取っていない**状態である。
 
 この残存症状の是正はWeb側（再mount時／初回にUnityから現在カーソル位置をプッシュする等）に属し、設計判断を要するため本PRのスコープ外とした。追跡: bead `moorestech-7179`。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で改訂。理由の「Web の CursorTooltip・GrabOverlay が凍った座標を追う」は CEF 撤去で無くなった。UITK のツールチップはロック中にポインタを使わず画面中央を指す（`CursorTooltipScreenAnchor`）。ロックの前に中央へ寄せる決定は、ロック解除後のカーソルの出る位置を中央に揃えるために残る（`InputManager.MouseCursorVisible`）。

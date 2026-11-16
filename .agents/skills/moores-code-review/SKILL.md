@@ -3,7 +3,7 @@ name: moores-code-review
 description: |
   moorestechのPR作成前・マージ前レビューを単体で完結させる統合スキル。5系統を並列実行する:
   ①決定論チェック（汎用+moorestech固有の機械判定）②reviewer群（moores-*: ドメイン境界・サーバー状態同期3点セット・
-  DataStore分離・マスタデータ防御・型構造・前例一致などmoorestech固有の設計規約／core-*: 汎用コード品質の採用実績ある観点＋webui向けts/tsx設計観点）
+  DataStore分離・マスタデータ防御・型構造・前例一致などmoorestech固有の設計規約／core-*: 汎用コード品質の採用実績ある観点＋ts/tsx設計観点）
   ③Codex外部監査 ④Fable全般レビュー ⑤分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
   指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
   設計判断だけ末尾でAskUserQuestion。moorestech固有の設計規約と汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
@@ -23,7 +23,7 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 **Codex（Workflow ツールも Agent ツールも無いホスト）で実行している場合は、先に `references/codex-host.md` を Read してそれに従う**（Step 3.5〜6.5 は Workflow の代わりに `scripts/codex_workflow_runner/run.mjs` で回す。選ばれた系統を自分で代行・要約・領域分割に置き換えるのは禁止）。Claude はこのファイルを読まない。
 
-系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②reviewer 41本（moores-* 12・core-* 29） ③Codex外部監査3本 ④Fable全般 ⑤分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。裁定反映の後に Step 7.5 の bug-pass（正しさ系だけ・同じ Workflow を `mode=bug-pass` で）。
+系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②reviewer 39本（moores-* 12・core-* 27） ③Codex外部監査3本 ④Fable全般 ⑤分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。裁定反映の後に Step 7.5 の bug-pass（正しさ系だけ・同じ Workflow を `mode=bug-pass` で）。
 
 ## Workflow実行（既定）
 

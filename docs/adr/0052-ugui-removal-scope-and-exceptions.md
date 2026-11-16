@@ -1,7 +1,7 @@
 # 0052. uGUIは移行済み画面UIの残骸を全削除し、例外4種はuGUIのまま残す
 
 日付: 2026-09-05
-状態: 採択
+状態: 採択（2026-11-16 ADR 0101 で改訂: UITK 切替）
 
 ## Context
 
@@ -56,3 +56,7 @@ Web UI（CEF / moorestech_web/webui）への画面UI移行は完了し、`docs/w
 - `com.unity.ugui` と TMP は残るため、Editor/ビルドサイズ・パッケージ構成は変わらない。cef-unity は無改変
 - 例外4種はそれぞれ「Web化」「UI Toolkit化」の余地を残したまま現状維持となる。MainMenu/ローディングの UI Toolkit 化は別ADRで扱う
 - 削除対象 prefab / シーンの Missing 参照掃除は Unity Editor 経由（uloop execute-dynamic-code）でのみ行う
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で改訂。例外 1（CEF 描画面）は CEF とともに無くなり、uGUI のまま残す例外は 3 種（メインメニューとロード、HP バー、デバッグ UI）になった。画面 UI は UITK 一本で、新規の画面 uGUI の追加禁止は G2（`UguiScreenViewGateAuditTest`）で守る。例外 2 の理由「CEF の起動はゲーム内に限定」は無くなったが、例外 2 は統合計画 §5.2 の別判断まで残る。

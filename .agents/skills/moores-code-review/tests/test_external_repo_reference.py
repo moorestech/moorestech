@@ -15,7 +15,7 @@ import checks_external_repo  # noqa: E402
 from patch_util import parse_patch  # noqa: E402
 
 CLIENT_TEST = "moorestech_client/Assets/Scripts/Client.Tests/UnitTest/MapPreview/PreviewTest.cs"
-WEBUI = "moorestech_web/webui/e2e/mock-host/assets/demoAssets.ts"
+TS_SOURCE = "tools/example/src/demoAssets.ts"
 
 
 def _patch(body: str, path: str = CLIENT_TEST) -> str:
@@ -42,7 +42,7 @@ class ExternalRepoReferenceTest(unittest.TestCase):
 
     def test_ts_reference_is_confirmed(self):
         body = 'const dir = resolve(process.cwd(), "../../../moorestech_master/server_v8/mods");'
-        self.assertEqual([1], _lines(body, WEBUI))
+        self.assertEqual([1], _lines(body, TS_SOURCE))
 
     def test_comments_are_clean(self):
         body = ("// PersonalAssetsはCIに無いので公開フィクスチャを使う\n"

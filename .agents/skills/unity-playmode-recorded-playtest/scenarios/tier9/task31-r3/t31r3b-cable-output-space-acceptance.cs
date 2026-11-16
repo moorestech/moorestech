@@ -29,11 +29,7 @@ using VContainer;
 
 // 非前面Editorでも注入入力が届くよう、ハーネス限定で入力デバイスを有効化する
 // Enable input devices for this harness only so injected input reaches an unfocused Editor
-InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-SemanticInput.EnsureDevices();
-InputSystem.EnableDevice(Keyboard.current);
-InputSystem.EnableDevice(Mouse.current);
-UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.EditorWindow).Assembly.GetType("UnityEditor.GameView")).Focus();
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 
 return PlaytestRunner.Run("t31r3b-acceptance", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 420f }, async p =>
 {

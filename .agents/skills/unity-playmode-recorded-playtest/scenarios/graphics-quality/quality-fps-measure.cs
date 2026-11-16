@@ -20,15 +20,14 @@ using VContainer;
 
 // 録画前に単体キー入力とデバイスを実確認する
 // Probe one key action and devices before recording
-var viewFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
-var activeGameView = Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
-var dock = typeof(UnityEditor.EditorWindow).GetField("m_Parent", viewFlags).GetValue(activeGameView);
-var tabs = (System.Collections.IList)dock.GetType().GetField("m_Panes", viewFlags).GetValue(dock);
-dock.GetType().GetProperty("selected", viewFlags).SetValue(dock, tabs.IndexOf(activeGameView));
-activeGameView.Focus();
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 await UniTask.DelayFrame(3);
 Debug.Log($"[INPUT] focus={Application.isFocused} background={InputSystem.settings.backgroundBehavior} keyboard={Keyboard.current.enabled} mouse={Mouse.current.enabled}");
 if (!Keyboard.current.enabled || !Mouse.current.enabled) throw new System.InvalidOperationException("Input devices disabled");
+// 開幕スキット中は Esc でポーズが開かないので、入力確認の前に飛ばしてゲーム画面へ抜ける
+// The opening skit swallows Esc, so skip it and reach the game screen before the input probe
+await Client.Playtest.Operations.Ui.PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
+await UniTask.WaitUntil(() => PlaytestUiOps.CurrentUiState() == UIStateEnum.GameScreen).Timeout(System.TimeSpan.FromSeconds(15));
 await SemanticInput.TapKey(Key.Escape);
 await UniTask.WaitUntil(() => PlaytestUiOps.CurrentUiState() == UIStateEnum.PauseMenu).Timeout(System.TimeSpan.FromSeconds(15));
 await SemanticInput.TapKey(Key.Escape);
@@ -111,7 +110,9 @@ return PlaytestRunner.Run("quality-fps-measure", new PlaytestRunOptions { Record
         Debug.Log(metrics);
         p.Note(metrics);
         p.Assert(distance > 30f, $"歩行距離30m超: {distance:F2}m");
-        p.Assert(focusedFrames == dts.Count, $"全計測フレーム前面: {focusedFrames}/{dts.Count}");
+        // 非前面のまま測る（前面を取らない）ので、前面だったフレーム数は記録だけにする
+        // Measured without the foreground, so frames that had focus are only recorded
+        p.Note($"前面フレーム {focusedFrames}/{dts.Count}");
         p.Assert(placed, "60秒内に新規ブロックの設置アニメ完了");
         p.Assert(avg >= 20f, $"平均20fps以上: {avg:F3}");
         await p.Screenshot("02-after-measurement");

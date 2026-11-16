@@ -1,7 +1,7 @@
 # 0042. 機械UIをレシピ選択/インベントリの2モードへ分け、スロット固定とゴーストスロットを入れる
 
 日付: 2026-08-30
-状態: 採択
+状態: 採択（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 
 ## Context
 
@@ -61,3 +61,7 @@
 - ワイヤ: `MachineDetailDto` は選択レシピGUIDを既に持つため、ゴースト内容（素材・生産物・液体・必要数）はクライアントが `crafting.machine_recipes` トピックから解決する。スロット表示数はレシピから決まる。
 - Web UI: `MachineSection` からタブを除去し2モードの状態機械へ。`MachineRecipeSelectionTab`（ホバー詳細＋グリッド）は行リストへ置換。`MachineInventoryBody` はレシピ分スロット＋ゴースト描画。`SlotFrame` に `data-ghost`。`webui-design` §8.7 を実装より先に改訂。e2e `machineRecipe.spec.ts` / `machineGestures.spec.ts` とunitテストを新仕様へ更新。
 - チュートリアル: 機械UIをアンカーする誘導（`inventory.item-` 等）があればtestId変更に追従。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。2 モードの往復・レシピ分のスロット・ゴースト・名前付きの行リストは UITK で保つ。ゴーストは `MachineSlotGhosts`（状態）と `ItemSlotGhost`（部品）、行は共有の `RecipeRow`。

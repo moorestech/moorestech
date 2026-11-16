@@ -18,7 +18,7 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkit();
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(2.5f, 33.5f, -2f));
 
     // 準備: 木のチェストを一列に3つ直置き

@@ -25,7 +25,7 @@ Git LFS をインストールした後、Unityで開く**前に**OS別のセッ�
 
 スクリプトは Git LFS を設定し、CEF の UPM キャッシュを再生成可能な状態にします。
 Unity 起動時にも LFS ポインタの残存を検査し、問題があれば同じ復旧コマンドを Console に表示します。
-方式の詳細と clean worktree 手順は `docs/webui/design/cef-binary-integration.md` を参照してください。
+方式の詳細と clean worktree 手順は `docs/archive/webui/design/cef-binary-integration.md` を参照してください。
 
 # コーディングエージェントの使用について
 
