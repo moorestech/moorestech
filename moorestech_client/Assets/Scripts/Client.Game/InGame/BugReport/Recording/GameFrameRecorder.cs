@@ -91,8 +91,8 @@ namespace Client.Game.InGame.BugReport.Recording
             if (!IsRecording || _readbackInFlight || Time.unscaledTime < _nextCaptureTime) return;
             _nextCaptureTime = Time.unscaledTime + 1f / Fps;
 
-            // 取るのはUI合成後の画面。カメラを描き直すとWeb UI(CEF)もUIも映らない
-            // The source is the screen after UI composition; re-rendering the camera shows neither the Web UI (CEF) nor the UI
+            // 取るのはUI合成後の画面。カメラを描き直すとUIが映らない
+            // The source is the screen after UI composition; re-rendering the camera does not show the UI
             var frameTexture = _screenFrameReader.CaptureScaledScreen();
 
             _readbackInFlight = true;

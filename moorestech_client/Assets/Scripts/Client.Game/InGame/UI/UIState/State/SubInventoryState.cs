@@ -65,8 +65,8 @@ namespace Client.Game.InGame.UI.UIState.State
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
                 CurrentSubInventory.SetItem(packet.Slot, item);
 
-                // 外部購読者(Web UI等)へ通知
-                // Notify external subscribers (e.g. Web UI)
+                // 外部購読者(UIの画面等)へ通知
+                // Notify external subscribers (e.g. UI screens)
                 _onSubInventoryUpdated.OnNext(Unit.Default);
             }
             else if (disposition == InventoryEventDisposition.Remove)

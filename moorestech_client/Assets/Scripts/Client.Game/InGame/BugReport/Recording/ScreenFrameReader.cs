@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.Recording
 {
-    // UI合成後の画面を固定解像度のRenderTextureへ写す。カメラを描き直すとWeb UI(CEF)もUIも映らない（前例 PlaytestScreenshot）
-    // Copies the screen after UI composition into a fixed-size RenderTexture; re-rendering the camera shows neither the Web UI (CEF) nor the UI (cf. PlaytestScreenshot)
+    // UI合成後の画面を固定解像度のRenderTextureへ写す。カメラを描き直すとUIが映らない（前例 PlaytestScreenshot）
+    // Copies the screen after UI composition into a fixed-size RenderTexture; re-rendering the camera does not show the UI (cf. PlaytestScreenshot)
     public sealed class ScreenFrameReader : IDisposable
     {
         private readonly RenderTexture _scaledTexture;

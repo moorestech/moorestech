@@ -18,8 +18,8 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
         public IReadOnlyList<IItemStack> Slots => _slots;
         public int SelectedIndex { get; private set; }
 
-        // サーバー確定値が届くたびに進む世代番号。WebUIが楽観選択を確定へ収束させる判定に使う
-        // Revision that advances on every server-confirmed value; the web UI converges optimistic selection with it
+        // サーバー確定値が届くたびに進む世代番号。UIが楽観選択を確定へ収束させる判定に使う
+        // Revision that advances on every server-confirmed value; the UI converges optimistic selection with it
         public int SelectionConfirmationRevision { get; private set; }
 
         /// <summary>

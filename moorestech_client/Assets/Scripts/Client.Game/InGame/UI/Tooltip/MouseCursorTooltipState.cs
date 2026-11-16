@@ -7,8 +7,8 @@ using UniRx;
 namespace Client.Game.InGame.UI.Tooltip
 {
     /// <summary>
-    ///     カーソル付近に出す文言の所有者付き表示状態。描画は Web UI が tooltip topic 経由で行う
-    ///     Owner-tracked state of the cursor tooltip; the Web UI renders it through the tooltip topic
+    ///     カーソル付近に出す文言の所有者付き表示状態。描画はUIが行う
+    ///     Owner-tracked state of the cursor tooltip; the UI renders it
     /// </summary>
     public class MouseCursorTooltipState : IMouseCursorTooltip
     {

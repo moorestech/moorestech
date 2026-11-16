@@ -12,9 +12,9 @@ namespace Client.Tests.Localization.Display
 {
     /// <summary>
     /// ADR 0052でuGUIのまま残した例外シーン（MainMenu / GameInitialaizer のローディング表示）の翻訳配線を守る。
-    /// Web UIホスト起動前に動くためWeb側の代替が無く、配線が切れても無言で文字が消えるだけになる。
+    /// ゲーム内 UI（UI Toolkit）の外で動くため代替が無く、配線が切れても無言で文字が消えるだけになる。
     /// Guards the translation wiring of the scenes ADR 0052 keeps on uGUI (MainMenu and the GameInitialaizer loading display).
-    /// They run before the Web UI host starts, so there is no web fallback and broken wiring only makes text vanish silently.
+    /// They run outside the in-game UI (UI Toolkit), so there is no fallback and broken wiring only makes text vanish silently.
     /// </summary>
     public class ExceptionSceneLocalizedTextTest
     {

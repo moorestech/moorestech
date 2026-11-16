@@ -114,8 +114,8 @@ namespace Client.Tests
 
             try
             {
-                // 画面文字列はWeb UIが持つため、本シーンには翻訳付きTMPを置かない（ADR 0052）
-                // Screen strings live in the Web UI, so this scene carries no localized TMP (ADR 0052)
+                // 画面文字列はUI Toolkitの画面が持つため、本シーンには翻訳付きTMPを置かない（ADR 0052）
+                // Screen strings live in the UI Toolkit screens, so this scene carries no localized TMP (ADR 0052)
                 // 全体検索の反転ではなくシーン内を直接数えることで、対象0件でも真になるvacuousな緑を作らない
                 // Counting inside the scene instead of inverting a global search avoids a vacuous pass when nothing is found
                 var sceneLocalizedTexts = new List<string>();

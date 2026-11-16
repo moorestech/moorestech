@@ -7,8 +7,8 @@ namespace Client.Game.InGame.UI.Tooltip
 {
     public interface IMouseCursorTooltip
     {
-        // 現在の表示内容を読む（Web UIブリッジが表示行を写すのに使う）
-        // Reads the current presentation, which the Web UI bridge mirrors onto its tooltip topic
+        // 現在の表示内容を読む（UIが表示行を写すのに使う）
+        // Reads the current presentation, which the UI mirrors into its tooltip
         public TooltipPresentation GetPresentation();
         IObservable<TooltipPresentation> OnPresentationChanged { get; }
 

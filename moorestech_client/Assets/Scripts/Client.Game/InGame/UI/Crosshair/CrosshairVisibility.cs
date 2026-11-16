@@ -4,8 +4,8 @@ using UniRx;
 namespace Client.Game.InGame.UI.Crosshair
 {
     /// <summary>
-    ///     一人称視点の画面中央クロスヘアの表示フラグ。描画は Web UI が担う
-    ///     Visibility flag of the first-person center crosshair; the Web UI renders it
+    ///     一人称視点の画面中央クロスヘアの表示フラグ。描画は CrosshairHudPresenter が担う
+    ///     Visibility flag of the first-person center crosshair; CrosshairHudPresenter renders it
     /// </summary>
     public class CrosshairVisibility
     {

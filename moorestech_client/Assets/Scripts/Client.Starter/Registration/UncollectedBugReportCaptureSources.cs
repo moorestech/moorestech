@@ -16,7 +16,7 @@ namespace Client.Starter.Registration
     /// </summary>
     internal sealed class UncollectedBugReportCaptureSources : IBugReportCaptureSources
     {
-        private const string Reason = "この起動はプレイテストの記録を集めない（リモート接続またはWebUI無し）";
+        private const string Reason = "この起動はプレイテストの記録を集めない（リモート接続）";
 
         // 確保の起点を登録していないため本来は呼ばれない。呼ばれたら配線の変化なので無音にしない
         // No capture trigger is registered, so this is normally never called; a call means the wiring changed and is never silent

@@ -33,8 +33,6 @@ namespace Client.Tests.BugReport
         }
 
         [TestCase("remote")]
-        [TestCase("webui-not-ready")]
-        [TestCase("webui-failed")]
         public void LocalCleanThenUnrecordedCrash_DoesNotSalvageLocalFiles(string unrecordedBoot)
         {
             // 正常終了の消費後も元資料は残る

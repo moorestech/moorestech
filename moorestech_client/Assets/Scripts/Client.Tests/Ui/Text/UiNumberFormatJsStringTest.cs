@@ -58,10 +58,10 @@ namespace Client.Tests.Ui.Text
         }
 
         [Test]
-        public void サーバーfloatはWebUiJsonが書くRの表記のdoubleになり電力が長い桁で出ない()
+        public void サーバーfloatはRの表記のdoubleになり電力が長い桁で出ない()
         {
-            // float 33.333332f をそのまま double にすると 33.33333206176758、Web は WebUiJson が書く R 表記（Mono は G7 で往復しなければ G9）を読むので 33.3333321
-            // A raw double of 33.333332f is 33.33333206176758; the Web reads the R form WebUiJson writes (Mono: G7 if it round-trips, else G9), 33.3333321
+            // float 33.333332f をそのまま double にすると 33.33333206176758、撤去前の Web 版はホストの JSON が書く R 表記（Mono は G7 で往復しなければ G9）を読むので 33.3333321
+            // A raw double of 33.333332f is 33.33333206176758; the pre-removal Web read the R form its host JSON wrote (Mono: G7 if it round-trips, else G9), 33.3333321
             Assert.AreEqual("33.3333321", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(33.333332f)));
             Assert.AreEqual("0.1", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(0.1f)));
             Assert.AreEqual("-12.5", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(-12.5f)));

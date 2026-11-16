@@ -34,8 +34,8 @@ namespace Client.Game.InGame.Block
         public BlockInteractable Interactable { get; private set; }
         public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
         private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
-        // 状態受信直後に発火（WebUIが購読）
-        // Fires right after a state arrives from the server; WebUI republishing subscribes to it
+        // 状態受信直後に発火（開いているブロック詳細が購読）
+        // Fires right after a state arrives from the server; the open block detail subscribes to it
         public IObservable<BlockStateMessagePack> OnBlockStateChanged => _onBlockStateChanged;
         private readonly Subject<BlockStateMessagePack> _onBlockStateChanged = new();
         private RendererShaderAnimation _rendererShaderAnimation;

@@ -110,8 +110,8 @@ namespace Client.Game.InGame.Tutorial
             return new TutorialOverlayElementView(this, session.TutorialSessionId, element.ElementId);
         }
 
-        // WebUIモード外ではBeginSessionを経ず追加されるため、challenge無しsessionで受ける
-        // Outside web UI mode elements arrive without BeginSession, so accept them into a challenge-less session
+        // BeginSessionより前に足された要素も落とさず、challenge無しsessionで受ける
+        // Elements added before any BeginSession are kept in a challenge-less session instead of being dropped
         private TutorialSessionData GetOrCreateApplyTarget()
         {
             var session = _sessions.Find(value => value.ChallengeId == _applyTargetChallengeId);

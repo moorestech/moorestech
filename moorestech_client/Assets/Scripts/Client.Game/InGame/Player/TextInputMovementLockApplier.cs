@@ -5,7 +5,7 @@ namespace Client.Game.InGame.Player
 {
     /// <summary>
     /// 文字入力中は自機の移動を止める
-    /// Stops player movement while a Web UI text field owns focus
+    /// Stops player movement while a UI text field owns focus
     /// </summary>
     public class TextInputMovementLockApplier
     {

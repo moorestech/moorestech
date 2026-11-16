@@ -12,8 +12,8 @@ namespace Client.Game.InGame.Tutorial
     }
 
     /// <summary>
-    /// ワールド座標をWeb UI向けの正規化スクリーン座標へ射影する。座標の正はUnity側で、Webは受信値を描くだけ。
-    /// Projects a world position into normalized screen coordinates for the Web UI; Unity owns the math, the web only renders.
+    /// ワールド座標をUI向けの正規化スクリーン座標へ射影する。座標の正はここで、UIは受け取った値を描くだけ。
+    /// Projects a world position into normalized screen coordinates for the UI; this owns the math, the UI only renders.
     /// </summary>
     public static class WorldPinScreenProjection
     {

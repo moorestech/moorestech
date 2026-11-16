@@ -11,8 +11,8 @@ using VContainer.Unity;
 namespace Client.Starter.Registration
 {
     /// <summary>
-    /// バグ報告の確保と進行記録の登録。集めない起動（リモート接続・WebUI無し）では記録を取る側を一切登録しない。
-    /// Registers bug-report capture and the progress record; boots that collect nothing (remote connection, no web UI) register none of the recording side.
+    /// バグ報告の確保と進行記録の登録。集めない起動（リモート接続）では記録を取る側を一切登録しない。
+    /// Registers bug-report capture and the progress record; boots that collect nothing (remote connection) register none of the recording side.
     /// </summary>
     internal static class PlaytestRecordRegistration
     {

@@ -168,8 +168,8 @@ namespace Client.Tests.Ui.Components.Controls
             simulate.ScrollWheel(new Vector2(0f, WheelEvent.scrollDeltaPerTick), _view.contentViewport.worldBound.center);
             Settle();
 
-            // 正本は CefUnity の ScrollInputPipeline.WheelPixelsPerStep（Tests から参照できないためリテラルで照合）
-            // The source of truth is CefUnity's ScrollInputPipeline.WheelPixelsPerStep (not referenceable from Tests, so compared as a literal)
+            // 撤去前の Web 版の 1 ノッチの量（ScrollInputPipeline.WheelPixelsPerStep）をリテラルで照合する
+            // Compared as a literal against the pre-removal Web per-notch amount (ScrollInputPipeline.WheelPixelsPerStep)
             Assert.AreEqual(60f, _view.scrollOffset.y, 0.5f);
         }
 

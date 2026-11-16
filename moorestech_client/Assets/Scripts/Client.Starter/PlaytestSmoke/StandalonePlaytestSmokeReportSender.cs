@@ -11,8 +11,8 @@ namespace Client.Starter.PlaytestSmoke
     /// <summary>
     /// 通し検証の報告送信（ポーズ確保と同順で送信）
     /// The smoke run's report send (same order as the pause-menu capture/submit)
-    /// WebUIのクリック経路は配布ビルドで叩けないので、送信actionと共有する BugReportSubmitter を直接呼ぶ
-    /// The web UI click path cannot be driven in a player build, so this calls the BugReportSubmitter the submit action shares
+    /// UIのクリック経路は配布ビルドで叩けないので、送信actionと共有する BugReportSubmitter を直接呼ぶ
+    /// The UI click path cannot be driven in a player build, so this calls the BugReportSubmitter the submit action shares
     /// </summary>
     internal sealed class StandalonePlaytestSmokeReportSender
     {
