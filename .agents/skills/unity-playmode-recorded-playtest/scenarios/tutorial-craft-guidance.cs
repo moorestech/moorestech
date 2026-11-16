@@ -2,15 +2,14 @@
 // Scenario: run the second challenge's (planks) craft guidance: Tab key hint -> plank outline -> craft button outline after selecting -> hold to craft and complete -> third hint
 // クラフトボタンのアンカーは木の板を選んだ後にしか付かない（RecipeViewModelFactory・CraftRecipeEntryView。マスタの誘導も「①クリック → ②長押し」）
 // The craft button anchor exists only after selecting the plank (RecipeViewModelFactory, CraftRecipeEntryView; the master guidance is also "1 click -> 2 hold")
-// 研究の説明文の確認は外した。詳細欄はノードを選ばないと出ず、uitk-research-tree が両系で見る（D-9）
-// The research description check moved out: the detail pane needs a selected node and uitk-research-tree covers it on both systems (D-9)
+// 研究の説明文の確認は外した。詳細欄はノードを選ばないと出ず、uitk-research-tree が見る（D-9）
+// The research description check moved out: the detail pane needs a selected node and uitk-research-tree covers it (D-9)
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -26,10 +25,8 @@ using UnityEngine.UIElements;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("tutorial-craft-guidance", options, async p =>
 {
-    // 系の記録と入力の準備（前例 uitk-skit）
-    // Record the UI system and prepare input (precedent uitk-skit)
-    p.Note($"系={UiInputExclusivity.ActiveUiSystem}");
-    var isGameUi = UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi;
+    // 入力の準備（前例 uitk-skit）
+    // Prepare input (precedent uitk-skit)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
@@ -68,13 +65,12 @@ return PlaytestRunner.Run("tutorial-craft-guidance", options, async p =>
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.PlayerInventory, 15f);
     await p.Until(() => HasOutline(plankAnchor), 15f, $"store に木の板の枠（{plankAnchor}）がある");
-    if (isGameUi) await p.Until(() => TutorialAnchorRegistry.Resolve(Root(), plankAnchor) is TutorialAnchorResolution.Unique, 10f, $"UITK で {plankAnchor} のアンカーが一意");
+    await p.Until(() => TutorialAnchorRegistry.Resolve(Root(), plankAnchor) is TutorialAnchorResolution.Unique, 10f, $"UITK で {plankAnchor} のアンカーが一意");
     await p.Screenshot("02-plank-outline");
 
-    // 4. GameUi は木の板を押して枠を確かめ長押しで 1 枚作る。Web は R3 で testid を足せずセルとボタンを引けないため store の枠だけ見る
-    // 4. GameUi presses the plank, checks the outline and holds for one; Web cannot get testids under R3, so it checks only the store outline
-    if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi) await SelectPlankAndHoldCraft();
-    else await p.Until(() => HasOutline(AnchorIds.RecipeCraftButton), 15f, "store にクラフトボタンの枠がある");
+    // 4. 木の板を押して枠を確かめ長押しで 1 枚作る
+    // 4. Press the plank, check the outline and hold to craft one
+    await SelectPlankAndHoldCraft();
 
     // 5. 残りの木の板はクラフト要求で作る
     // 5. Craft the remaining planks by request

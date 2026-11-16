@@ -1,5 +1,5 @@
-// クロスヘアは両系で CrosshairVisibility を読み、GameUi では UITK の crosshair 要素の可視も照会する（Web の Crosshair には testid が無い。S3-ladder）
-// The crosshair is read from CrosshairVisibility on both systems; GameUi also queries the visible UITK crosshair element (the Web Crosshair has no testid, S3-ladder)
+// クロスヘアは CrosshairVisibility を読み、UITK の crosshair 要素の可視も照会する（S3-ladder）
+// The crosshair is read from CrosshairVisibility and the visible UITK crosshair element is also queried (S3-ladder)
 // FPS/TPS 視点切替: ゲーム画面・建設中のどこでも V で切り替わり、建設モード突入でカメラ距離/ピッチが変わらず、FPS が削除モード・ゲーム画面復帰後も保たれることを見る
 // FPS/TPS toggle: V switches anywhere (game screen and build states), entering build mode keeps camera distance/pitch, and FPS survives the delete state and returning to the game screen
 using Client.Game.InGame.Control;
@@ -8,7 +8,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -40,8 +39,6 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     var viewModeController = ClientDIContext.DIContainer.DIContainerResolver.Resolve<PlayerViewModeController>();
     var playerRenderers = ((MonoBehaviour)PlayerSystemContainer.Instance.PlayerObjectController).GetComponentsInChildren<Renderer>(true);
     var crosshair = ClientDIContext.DIContainer.DIContainerResolver.Resolve<CrosshairVisibility>();
-    var queriesUitkCrosshair = UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi;
-    p.Note($"系={UiInputExclusivity.ActiveUiSystem}。クロスヘアは CrosshairVisibility{(queriesUitkCrosshair ? " と UITK の crosshair 要素" : " だけ（Web の Crosshair には testid が無い）")}で判定する");
 
     // 1: ゲーム画面の初期状態は三人称（クロスヘア無し・自機表示）
     // 1: The game screen starts in third-person (no crosshair, player visible)
@@ -192,7 +189,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     async UniTask AssertCrosshair(bool expected, string label)
     {
         p.Assert(crosshair.IsVisible() == expected, $"{label}（CrosshairVisibility={crosshair.IsVisible()}）");
-        if (queriesUitkCrosshair) p.Assert((await PlaytestUiElementOps.FindUi("crosshair")).IsFound == expected, $"{label}（UITK の crosshair 要素）");
+        p.Assert((await PlaytestUiElementOps.FindUi("crosshair")).IsFound == expected, $"{label}（UITK の crosshair 要素）");
     }
 
     #endregion

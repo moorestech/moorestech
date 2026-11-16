@@ -49,7 +49,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
         UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>().SetActive(false);
         // ===== 駅2基とレール =====
         // ===== Two stations and rails =====
-        p.Note($"駅2基を直設置し、A出口→B入口、B出口→A入口を結線する（描画系={Client.Input.UiInputExclusivity.ActiveUiSystem}）");
+        p.Note($"駅2基を直設置し、A出口→B入口、B出口→A入口を結線する");
         var stationAPos = new Vector3Int(10, 32, 4);
         var stationBPos = new Vector3Int(10, 32, 64);
         await p.PlaceBlockDirect("蒸気機関車駅", stationAPos, BlockDirection.South);
@@ -171,8 +171,8 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
     void CountWarnings(string condition, string stackTrace, LogType type)
     {
         if (condition.Contains("Hash mismatch detected")) mismatchCount++;
-        // Web 系の拒否と UITK 系の拒否の Warning を同じ数え方で数え、両系で 0 件を主張する
-        // Count Web-side and UITK-side rejection warnings the same way so both systems assert zero
+        // 編集の拒否と UITK のコマンド結果の Warning を数え、0 件を主張する
+        // Count edit-rejection and UITK command-result warnings so the scenario asserts zero
         if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected") || condition.Contains("[UiCommandResultToaster] train_")) rejectCount++;
         if (condition.Contains("[TrainTimetableFetcher] requesting timetable")) timetableRequestCount++;
     }

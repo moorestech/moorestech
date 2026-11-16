@@ -7,7 +7,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using CefUnity.Runtime;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
@@ -16,7 +15,6 @@ using Game.MapGeneration.Surface;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("vein-terrain-seed196-reload-verify", options, async p =>
@@ -24,7 +22,6 @@ return PlaytestRunner.Run("vein-terrain-seed196-reload-verify", options, async p
     await BringGameViewToFront();
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 20f, "GameScreenに到達");
-    await HideDeadCefOverlay();
 
     // 保存前に書いた期待値を読む。無ければgameplay-saveが完走していないので以降は無意味
     // Read the expectations written before saving; without them gameplay-save never finished and nothing below means anything
@@ -97,18 +94,6 @@ return PlaytestRunner.Run("vein-terrain-seed196-reload-verify", options, async p
         var owner = terrains.Where(t => t.transform.position.x <= x && x <= t.transform.position.x + t.terrainData.size.x && t.transform.position.z <= z && z <= t.transform.position.z + t.terrainData.size.z)
             .OrderBy(t => t.transform.position.x).ThenBy(t => t.transform.position.z).FirstOrDefault();
         return owner == null ? float.NaN : owner.SampleHeight(new Vector3(x, 0f, z)) + owner.transform.position.y;
-    }
-
-    async UniTask HideDeadCefOverlay()
-    {
-        // GameScreen到達後3秒でもCEFが一度も描画しないとき(既知 moorestech-wsnf)だけ、全画面の白RawImageをシナリオ側で隠して実プレイ視点を録る
-        // Only when CEF has not painted once 3 s after GameScreen (known moorestech-wsnf), hide the white full-screen RawImage scenario-side
-        var (cef, deadline) = (CefUnityBrowserSample.DiagnosticsInstance, Time.realtimeSinceStartup + 3f);
-        while (cef != null && cef.DiagnosticsTexturesApplied == 0 && Time.realtimeSinceStartup < deadline) await UniTask.Yield();
-        var overlay = cef == null ? null : cef.GetComponentInChildren<RawImage>(true);
-        if (overlay == null || 0 < cef.DiagnosticsTexturesApplied || !overlay.isActiveAndEnabled) { p.Note($"[env] CEFは描画中かオーバーレイ無し textures={(cef == null ? 0 : cef.DiagnosticsTexturesApplied)}"); return; }
-        overlay.enabled = false;
-        p.Note("[env] CEF起動失敗(既知 moorestech-wsnf)のため白オーバーレイを非表示にした");
     }
 
     async UniTask BringGameViewToFront()
