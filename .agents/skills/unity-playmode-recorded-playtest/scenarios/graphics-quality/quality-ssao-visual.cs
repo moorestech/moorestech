@@ -16,6 +16,10 @@ Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 await UniTask.DelayFrame(3);
 Debug.Log($"[INPUT] focus={Application.isFocused} background={InputSystem.settings.backgroundBehavior} keyboard={Keyboard.current.enabled} mouse={Mouse.current.enabled}");
 if (!Keyboard.current.enabled || !Mouse.current.enabled) throw new System.InvalidOperationException("Input devices disabled");
+// 開幕スキット中は Esc でポーズが開かないので、入力確認の前に飛ばしてゲーム画面へ抜ける
+// The opening skit swallows Esc, so skip it and reach the game screen before the input probe
+await Client.Playtest.Operations.Ui.PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
+await UniTask.WaitUntil(() => PlaytestUiOps.CurrentUiState() == UIStateEnum.GameScreen).Timeout(System.TimeSpan.FromSeconds(15));
 await SemanticInput.TapKey(Key.Escape);
 await UniTask.WaitUntil(() => PlaytestUiOps.CurrentUiState() == UIStateEnum.PauseMenu).Timeout(System.TimeSpan.FromSeconds(15));
 await SemanticInput.TapKey(Key.Escape);
