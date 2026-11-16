@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Client.Playtest.Core;
+using Client.Playtest.Input;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
 using Client.Playtest.UiElements;
@@ -45,6 +46,12 @@ namespace Client.Playtest
                 // シナリオが替える InputSystem の設定を控え、成否によらず終わりに戻す（設定はアセットなので Play を止めても残る）
                 // Snapshot InputSystem settings the scenario may change and restore them at the end (they are an asset and outlive Play)
                 var savedInputSettings = (InputSystem.settings.backgroundBehavior, InputSystem.settings.editorInputBehaviorInPlayMode);
+
+                // 注入入力が非前面の Editor でも Game View へ届くよう、台本の前に Runner が入れる（前の実行の残りに頼らない）
+                // The Runner sets this before the scenario so injected input reaches the Game View even in a background Editor (no reliance on a previous run's leftovers)
+                InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+                SemanticInput.EnsureDevices();
                 var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                 try
                 {
