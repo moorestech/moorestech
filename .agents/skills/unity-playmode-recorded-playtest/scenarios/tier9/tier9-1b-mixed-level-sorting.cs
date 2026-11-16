@@ -39,7 +39,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     // 地形(メサ・岩)は足場を突き抜けて照準と画面を狂わせるので、cleanroom-room-usability と同じく地形の表示と生成を止める
     // Terrain (mesas, rocks) pokes through the scaffold and skews aim and view, so stop its display and spawning like cleanroom-room-usability
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(6.5f, 33.2f, 1.5f));
     var ipaId = MasterHolder.FluidMaster.GetFluidId(MasterHolder.FluidMaster.Fluids.Data.First(f => f.Name == "イソプロピルアルコール").FluidGuid);
     var consumers = new List<IBlock>();

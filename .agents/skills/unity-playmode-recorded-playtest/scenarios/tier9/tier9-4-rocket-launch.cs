@@ -37,7 +37,7 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     // 地形(メサ・岩)が台の手前に湧いて照準と画面を塞ぐので、地形の表示と生成を止める
     // Terrain (mesas, rocks) spawns in front of the pad and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(5f, 32.5f, -14f));
 
     // ロケット技術を前提ごと完了扱いにする（発射台と資材のレシピが解放される）

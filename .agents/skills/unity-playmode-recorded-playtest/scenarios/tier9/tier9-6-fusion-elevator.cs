@@ -40,7 +40,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // 地形(メサ・岩)が炉と拠点の手前に湧いて照準と画面を塞ぐので、地形の表示と生成を止める
     // Terrain (mesas, rocks) spawns in front of the reactor and base and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(0f, 32.5f, -15f));
     var deuteriumId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("01a167e9-21b2-7bb0-b6a3-0f17d349704e"));
     var cableId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"));

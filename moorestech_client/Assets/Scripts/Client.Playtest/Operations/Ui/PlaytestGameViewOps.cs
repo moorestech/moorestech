@@ -36,10 +36,13 @@ namespace Client.Playtest.Operations.Ui
                 throw new InvalidOperationException("[PlaytestGameViewOps] GameView is not docked (EditorWindow.m_Parent is null); cannot select its tab");
             }
 
+            // 最大化中の Game View はタブの無い窓に載り既に表なので、選ぶタブが無いことを残して続ける
+            // A maximized Game View sits in a tabless host and is already visible, so note it and continue
             var panesField = dockArea.GetType().GetField("m_Panes", flags);
             if (panesField == null)
             {
-                throw new InvalidOperationException("[PlaytestGameViewOps] DockArea.m_Panes not found; Unity internals changed, cannot select the GameView tab");
+                Debug.Log($"[PlaytestGameViewOps] GameView host {dockArea.GetType().Name} has no tabs (maximized); nothing to select");
+                return;
             }
             var selectedProperty = dockArea.GetType().GetProperty("selected", flags);
             if (selectedProperty == null)

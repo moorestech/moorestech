@@ -150,21 +150,28 @@ namespace Client.Playtest.Operations.Ui
         // Prepare injected input without taking the OS foreground; EditorWindow.Focus raises the Editor and steals focus from a parallel Editor
         public static void PrepareBackgroundInput()
         {
-            // Game View を表タブにし、焦点の有無に関わらず全入力を Game View へ流す
-            // Select the Game View tab and route all input to it regardless of focus
+            // Edit モードの設定書き換えは PlayMode 終了で戻らないので PlayMode 中に限る
+            // Settings written in Edit mode are not restored on PlayMode exit, so require PlayMode
+            if (!Application.isPlaying) throw new InvalidOperationException("[PlaytestUiOps] PrepareBackgroundInput は PlayMode 中のみ");
+            // 表タブ化し全入力を GameView へ流す
+            // Show the tab and route all input to Game View
             PlaytestGameViewOps.BringToFront();
             InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
             InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            // 焦点喪失で無効化済みのデバイスは設定だけでは戻らないので、有効済みでも無条件で有効化する（有効済みなら何もしない）
+            // Devices disabled on focus loss are not restored by settings alone, so enable unconditionally (a no-op when enabled)
             SemanticInput.EnsureDevices();
-            foreach (var device in InputSystem.devices)
-                if (!device.enabled) InputSystem.EnableDevice(device);
+            foreach (var device in InputSystem.devices) InputSystem.EnableDevice(device);
         }
 
-        // 前面を取らずに入力を整え、キーとマウスが有効になるまで待つ（失敗は準備段階で示す）
-        // Prepare input without the foreground and wait until keyboard and mouse are enabled (fails during setup)
-        public static async UniTask PrepareBackgroundGameViewInput(PlaytestDriver driver)
+        // 前面を取らず入力を整え有効化まで待つ
+        // Prepare input without foreground and wait until enabled
+        public static async UniTask PrepareBackgroundInputAndWaitEnabled(PlaytestDriver driver)
         {
+            // タブ切替が描画と Screen へ反映されるまで数フレーム待つ
+            // Wait a few frames for the tab switch to reach rendering and Screen
             PrepareBackgroundInput();
+            await UniTask.DelayFrame(5);
             await driver.Until(() => Keyboard.current.enabled && Mouse.current.enabled,
                 10f, "環境: キーボードとマウスが有効（焦点無視・前面を取らない）");
         }

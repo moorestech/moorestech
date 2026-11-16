@@ -35,7 +35,7 @@ return PlaytestRunner.Run("tier9-8-data-center", new PlaytestRunOptions { Record
     // 地形が機械の手前に湧いて照準と画面を塞ぐので、地形の表示と生成を止める
     // Terrain spawns in front of the machine and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(1.5f, 32.5f, -8f));
 
     // GPU設計とその前提を完了扱いにし、データセンターが解放されたことを確かめる

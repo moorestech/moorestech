@@ -106,7 +106,9 @@ return PlaytestRunner.Run("quality-fps-measure", new PlaytestRunOptions { Record
         Debug.Log(metrics);
         p.Note(metrics);
         p.Assert(distance > 30f, $"歩行距離30m超: {distance:F2}m");
-        p.Assert(focusedFrames == dts.Count, $"全計測フレーム前面: {focusedFrames}/{dts.Count}");
+        // 非前面のまま測る（前面を取らない）ので、前面だったフレーム数は記録だけにする
+        // Measured without the foreground, so frames that had focus are only recorded
+        p.Note($"前面フレーム {focusedFrames}/{dts.Count}");
         p.Assert(placed, "60秒内に新規ブロックの設置アニメ完了");
         p.Assert(avg >= 20f, $"平均20fps以上: {avg:F3}");
         await p.Screenshot("02-after-measurement");

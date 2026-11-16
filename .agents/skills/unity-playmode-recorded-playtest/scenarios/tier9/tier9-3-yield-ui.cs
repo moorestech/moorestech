@@ -36,7 +36,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     // 地形(メサ・岩)は足場を突き抜けて照準と画面を狂わせるので、cleanroom-room-usability と同じく地形の表示と生成を止める
     // Terrain (mesas, rocks) pokes through the scaffold and skews aim and view, so stop its display and spawning like cleanroom-room-usability
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     var consumers = new List<IBlock>();
 
     // 半導体製造の研究を前提ごと完了扱いにする

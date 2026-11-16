@@ -19,7 +19,7 @@ return PlaytestRunner.Run("build-undo-ctrl-z", options, async p =>
     // Ground + warp + free placement
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkit();
-    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
 
     // 設置カメラは北向き・浅いピッチのため、設置セルの南側に立つ
     // The placement camera faces north at a shallow pitch, so stand south of the target cell

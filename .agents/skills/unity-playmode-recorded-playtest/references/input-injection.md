@@ -69,7 +69,7 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 ## de-risk probe（長いシナリオ・録画前の必須ゲート）
 
-録画前に`InputSystem.settings.backgroundBehavior`、`Application.isFocused`、`Keyboard.current.enabled`、`Mouse.current.enabled`を読み、単体入力1つで期待状態が成立するか確認する。入力デバイスが無効なら`uloop focus-window`でEditorを前面化し、Editor経由で`GameView.Focus()`した後、有効状態を再確認して`QueueStateEvent`を使う。OS入力シミュレーションは使わない。背景動作を求められた場合は、背景のまま入力デバイスが有効で操作が成立することを実測する。前面での成功は背景動作の証拠にしない。
+録画前に`InputSystem.settings.backgroundBehavior`、`Application.isFocused`、`Keyboard.current.enabled`、`Mouse.current.enabled`を読み、単体入力1つで期待状態が成立するか確認する。入力デバイスが無効なら`PlaytestUiOps.PrepareBackgroundInput()`（または`scripts/prepare-editor-input.edc`）を呼び、背景のまま`Keyboard.current.enabled`・`Mouse.current.enabled`と単体入力1つの成立を確かめてから`QueueStateEvent`を使う。`uloop focus-window`・`EditorWindow.Focus()`は使わない（並走Editorのフォーカスを奪う）。`Application.isFocused`は読むが合否条件にしない。OS入力シミュレーションは使わない。背景動作を求められた場合は、背景のまま入力デバイスが有効で操作が成立することを実測する。前面での成功は背景動作の証拠にしない。
 1点注入→0.5秒→内部状態read。ダメなら (a)フォーカスとデバイス有効状態 (b)`Mouse.current.position`が注入値か実OSカーソルか (c)無マスクraycastの当たりlayer (d)狙い座標 (e)OS simulate-*汚染 の順で切り分け。
 
 ## カメラと視界（照準の前提）
