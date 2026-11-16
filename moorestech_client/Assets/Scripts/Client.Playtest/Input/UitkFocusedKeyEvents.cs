@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Input;
 using Client.Ui.Foundation.Root;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -96,8 +95,8 @@ namespace Client.Playtest.Input
             {
                 // silent-ok: 修飾キーは UitkModifierKeys が別経路で届ける / その経路の LogError が欠落を知らせる
                 if (UitkModifierKeys.IsModifier(key)) return;
-                // silent-ok: Web 系・GameUi 未生成・フォーカス無しでは実キーも入力欄へ届かない / 入力欄の ESC は録画の Assert（モーダルが閉じる）が見る
-                if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi || GameUiRoot.Instance == null) return;
+                // silent-ok: GameUi 未生成・フォーカス無しでは実キーも入力欄へ届かない / 入力欄の ESC は録画の Assert（モーダルが閉じる）が見る
+                if (GameUiRoot.Instance == null) return;
                 var panel = GameUiRoot.Instance.GetRootElement().panel;
                 if (panel?.focusController.focusedElement is not VisualElement focused) return;
 

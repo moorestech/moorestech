@@ -77,9 +77,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "UITK 側で Web のポインタ占有が通った");
                 UiInputExclusivity.SetState(false, false);
 
-                // ロケータは GameUi だけで探す
-                // The locator looks up with GameUi only
-                await AssertDslLocatorReadsOnlyGameUi();
+                // DSL のロケータは UITK のパネルを探す
+                // The DSL locator looks up the UITK panel
+                await AssertDslLocatorFindsGameUi();
 
                 // 設定ボタンで設定ページへ
                 // Settings button opens the settings page
@@ -102,17 +102,15 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             #endregion
         }
 
-        private static async UniTask AssertDslLocatorReadsOnlyGameUi()
+        // DSL のロケータで UITK のポーズの設定ボタンが見つかる
+        // The DSL locator finds the UITK pause settings button
+        private static async UniTask AssertDslLocatorFindsGameUi()
         {
             // try/finally はセッションを必ず閉じるためで、例外は握らない
             // try/finally only guarantees the session closes; no exception is swallowed
-            // 選んだ系は ctor のログで確かめる（ロケータの具象型へキャストしない）
-            // The chosen system is confirmed by the ctor log (no cast to the concrete locator type)
-            LogAssert.Expect(LogType.Log, "[PlaytestUi] locator reads only the GameUi UI");
             PlaytestUiLocatorSession.Start();
             try
             {
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 var snapshot = await PlaytestUiLocatorSession.Locator.Find("pause-menu-open-settings", 5f);
                 Assert.AreEqual(UiElementLookupStatus.Found, snapshot.Status, "DSL のロケータで設定ボタンが見つからない");
             }
