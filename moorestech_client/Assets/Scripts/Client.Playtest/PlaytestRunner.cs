@@ -6,6 +6,7 @@ using Client.Playtest.Recording;
 using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Client.Playtest
 {
@@ -41,6 +42,10 @@ namespace Client.Playtest
                 // Wait for game initialization, then start recording and run the scenario
                 PlaytestRecorder recorder = null;
                 using var lifetime = new CancellationTokenSource();
+                // シナリオが替える InputSystem の設定を控え、成否によらず終わりに戻す（設定はアセットなので Play を止めても残る）
+                // Snapshot InputSystem settings the scenario may change and restore them at the end (they are an asset and outlive Play)
+                var savedBackgroundBehavior = InputSystem.settings.backgroundBehavior;
+                var savedEditorInputBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
                 var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                 try
                 {
@@ -73,9 +78,11 @@ namespace Client.Playtest
                     lifetime.Cancel();
                 }
 
-                // 成否にかかわらず転送を止め、次回実行へ照会応答を持ち越さない
-                // Stop forwarding and discard pending lookups regardless of success or failure
+                // 成否にかかわらず転送を止めて設定を戻し、次回実行へ照会応答も入力設定も持ち越さない
+                // Stop forwarding and restore settings regardless of outcome so neither lookups nor input settings carry over
                 PlaytestUiLocatorSession.Stop();
+                InputSystem.settings.backgroundBehavior = savedBackgroundBehavior;
+                InputSystem.settings.editorInputBehaviorInPlayMode = savedEditorInputBehavior;
 
                 // 後始末して結果を書き出す（result.jsonの出現が完走シグナル）
                 // Clean up and write the result (result.json's appearance signals completion)

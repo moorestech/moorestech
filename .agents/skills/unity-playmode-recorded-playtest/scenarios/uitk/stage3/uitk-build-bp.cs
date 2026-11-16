@@ -37,7 +37,10 @@ return PlaytestRunner.Run("uitk-build-bp", options, async p =>
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var hotbar = resolver.Resolve<ClientHotbarDatastore>();
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkitIfPlaying();
+    // Game View を表へ出し、Story のままなら飛ばし直してゲーム画面へ着く（回数は Note に残す）
+    // Bring the Game View front and skip again while in Story until the game screen (rounds go to the Note)
+    var skitSkipRounds = await PlaytestSkitOps.SkipOpeningSkitUntilGameScreen();
+    p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
     await p.ExitToGameScreen();
 
     // 2. B で開き、検索欄の入力中は W で動かず、ESC はフォーカスだけ外し、外した後の W では動く

@@ -29,9 +29,9 @@ namespace Client.Playtest
         // Timeouts for the opening skit's skip acceptance and the subsequent arrival at GameScreen
         private const float SkitSkipTimeoutSeconds = 30f;
         private const float SkitSkipUiStateTimeoutSeconds = 15f;
-        // 再生されないワールドでも待ちすぎないための、任意スキップの上限
-        // Upper bound for the optional skip so worlds without a skit do not stall
-        private const float OptionalSkitSkipTimeoutSeconds = 10f;
+        // 任意スキップの上限は飛ばし直しの関数と同じ値を使う
+        // The optional skip bound shares the value used by the retrying skip
+        private const float OptionalSkitSkipTimeoutSeconds = PlaytestSkitOps.OptionalSkipTimeoutSeconds;
 
         public readonly CancellationToken CancellationToken;
         private readonly PlaytestResult _result;

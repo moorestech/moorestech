@@ -15,6 +15,7 @@ using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
+using Client.Playtest.Operations.Ui;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Challenge;
@@ -72,11 +73,13 @@ return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record
         await p.Until(() => initialized, 180f, "選択の後に初期化が完了する");
         p.Assert(Localize.GetCurrentLanguageCode() == "japanese", "日本語で始まる");
 
-        // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る。非前面の Editor は Story を抜けるのが遅いので先に待つ
-        // 4. Reach the game screen and check no web host started; an unfocused Editor leaves Story slowly, so wait for it first
+        // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る
+        // 4. Reach the game screen and check no web host started
         await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-        await p.SkipOpeningSkitIfPlaying();
-        await p.Until(() => p.CurrentUiState != UIStateEnum.Story, 60f, "スキットを飛ばした後に Story を抜ける");
+        // Game View を表へ出し、Story のままなら飛ばし直してゲーム画面へ着く（回数は Note に残す）
+        // Bring the Game View front and skip again while in Story until the game screen (rounds go to the Note)
+        var skitSkipRounds = await PlaytestSkitOps.SkipOpeningSkitUntilGameScreen();
+        p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
         await p.ExitToGameScreen();
         p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
 

@@ -126,10 +126,10 @@ return PlaytestRunner.Run("uitk-event-language-gate", options, async p =>
     p.Assert(followed, $"選択の後も合成の RT が解像度に追従する ({panelSettings.targetTexture.width}x{panelSettings.targetTexture.height} / {Screen.width}x{Screen.height})");
     await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     await UniTask.DelayFrame(3);
-    await p.SkipOpeningSkitIfPlaying();
-    // 非前面の Editor は CPU が絞られ、飛ばした後の Story を抜けるのに ExitToGameScreen の 10 秒を超えうるので先に待つ
-    // An unfocused Editor is CPU-throttled and leaving Story after the skip can exceed ExitToGameScreen's 10 s, so wait first
-    await p.Until(() => p.CurrentUiState != Client.Game.InGame.UI.UIState.UIStateEnum.Story, 60, "スキットを飛ばした後に Story を抜ける");
+    // Game View を表へ出し、Story のままなら飛ばし直してゲーム画面へ着く（回数は Note に残す）
+    // Bring the Game View front and skip again while in Story until the game screen (rounds go to the Note)
+    var skitSkipRounds = await PlaytestSkitOps.SkipOpeningSkitUntilGameScreen();
+    p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
     await p.ExitToGameScreen();
     await p.Screenshot("03-after-gate-game-screen-1280x720");
 

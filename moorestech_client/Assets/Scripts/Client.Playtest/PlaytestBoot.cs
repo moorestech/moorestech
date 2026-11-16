@@ -14,10 +14,13 @@ namespace Client.Playtest
     public static class PlaytestBoot
     {
         private const string GameInitializerScenePath = "Assets/Scenes/Game/GameInitialaizer.unity";
+        // PlayMode 中に起動を頼まれたときの応答。run-scenario.sh 等のシェルがこの文字列で回収の分岐をする
+        // Reply when asked to boot during PlayMode; shell drivers such as run-scenario.sh branch on this exact string
+        public const string AlreadyPlayingReply = "ERROR: already playing";
 
         public static string PrepareAndEnterPlayMode(string serverDirectory, bool noSave)
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return "ERROR: already playing";
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return AlreadyPlayingReply;
 
             PlaytestBootLifecycle.PrepareLegacyBootSession(serverDirectory, noSave);
             EnterPlayMode();
@@ -26,7 +29,7 @@ namespace Client.Playtest
 
         public static string PrepareWorldAndEnterPlayMode(string serverDirectory, string worldDirectory, string mapMode, int seed)
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return "ERROR: already playing";
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return AlreadyPlayingReply;
             if (string.IsNullOrWhiteSpace(serverDirectory)) return "ERROR: server directory is required";
             if (string.IsNullOrWhiteSpace(worldDirectory)) return "ERROR: world directory is required";
             if (string.IsNullOrWhiteSpace(mapMode)) return "ERROR: map mode is required";

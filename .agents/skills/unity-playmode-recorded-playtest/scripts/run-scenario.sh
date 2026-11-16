@@ -111,6 +111,7 @@ SESSION_DIR=$(echo "$BOOT_RESPONSE" | json_get Result)
 # 起動前の置き場の取得に失敗していたら比べられないので回収せず NG のまま止める。起動前と同じ置き場でも 1 回目は起動していないので NG
 # If the first reply was lost to the PlayMode entry and the resend says "already playing", take the first boot's dir from SessionState (we issued a stop just before)
 # If the pre-boot dir lookup failed we cannot compare, so do not recover and stay NG; the same dir as before the boot also means no boot happened, so NG
+# PlaytestBoot.AlreadyPlayingReply と同じ文字列 / same string as PlaytestBoot.AlreadyPlayingReply
 if [[ "$SESSION_DIR" == "ERROR: already playing" ]]; then
     if [[ "$SESSION_DIR_BEFORE_BOOT_STATUS" -ne 0 ]]; then
         # 起動前の置き場が無く比べられないので回収せず理由を出す
