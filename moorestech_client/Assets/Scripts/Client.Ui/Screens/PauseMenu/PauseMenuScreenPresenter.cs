@@ -1,3 +1,4 @@
+using Client.Localization;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
@@ -13,8 +14,8 @@ using VContainer.Unity;
 namespace Client.Ui.Screens.PauseMenu
 {
     /// <summary>
-    /// ポーズの View を起動時に 1 回だけ載せ、画面ルータの判断で表示・非表示を切り替える
-    /// Mounts the pause-menu view once at startup and shows or hides it on the screen router's decision
+    /// ポーズの View を起動時に 1 回だけ載せ、画面ルータの判断で表示・非表示を切り替え、表示中だけ Model・設定・言語を購読する（§4.2 の ①）
+    /// Mounts the pause-menu view once at startup, shows or hides it on the screen router's decision and follows the models and language only while shown (§4.2 type 1)
     /// </summary>
     public sealed class PauseMenuScreenPresenter : IInitializable
     {
@@ -28,6 +29,7 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly IUiOsCursor _osCursor;
+        private readonly SerialDisposable _shownSubscription = new();
         private PauseMenuView _view;
 
         public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
@@ -48,14 +50,16 @@ namespace Client.Ui.Screens.PauseMenu
         {
             // 載せるのはここで 1 回だけ。View は隠れた状態で生まれる
             // Mount exactly once here; the view is born hidden
-            _view = new PauseMenuView(_pauseMenuModel.Current, _settingsModel.Current, _commands, _settingsCommands, _toasts, _toaster, _draft, _osCursor);
+            _view = new PauseMenuView(_commands, _settingsCommands, _toasts, _toaster, _draft, _osCursor);
 
             _gameUiRoot.GetLayer(UiLayer.PauseMenu, UiFamily.Stage).Add(_view);
 
             // 開くたびに書きかけを空へ戻す（D-7）
             // Clear the draft on every open (D-7)
             _pauseMenuModel.OnPauseMenuOpened.Subscribe(_ => _draft.Reset());
-            _routingState.Current.Subscribe(snapshot => _view.SetShown(IsShownOn(snapshot)));
+            // ルータの通知は画面が変わらなくても来るので同じ値を弾く（出ている間に頁を作り直すと入力中の欄を失う）
+            // Router notices arrive even when the screen is unchanged, so drop repeats (rebuilding while shown loses the field being typed)
+            _routingState.Current.Select(IsShownOn).DistinctUntilChanged().Subscribe(SetShown);
 
             #region Internal
 
@@ -64,6 +68,25 @@ namespace Client.Ui.Screens.PauseMenu
             bool IsShownOn(UiRoutingSnapshot snapshot)
             {
                 return UiScreenTraitsTable.Get(snapshot.Screen).PauseMenu;
+            }
+
+            void SetShown(bool shown)
+            {
+                if (!shown)
+                {
+                    _shownSubscription.Disposable = Disposable.Empty;
+                    _view.SetShown(false);
+                    return;
+                }
+
+                // 最新値で 1 回描き直してから、変化だけを購読する
+                // Redraw once from the latest values, then subscribe to changes only
+                _view.SetShown(true);
+                _view.Redraw(_pauseMenuModel.Current.Value, _settingsModel.Current.Value);
+                _shownSubscription.Disposable = new CompositeDisposable(
+                    _pauseMenuModel.Current.Skip(1).Subscribe(_view.RenderPauseMenu),
+                    _settingsModel.Current.Skip(1).Subscribe(_view.RenderSettings),
+                    Localize.OnLanguageChanged.Subscribe(_ => _view.RenderLocaleMarker()));
             }
 
             #endregion

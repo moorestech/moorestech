@@ -20,18 +20,16 @@ namespace Client.Tests.Ui.Screens.PauseMenu
     /// </summary>
     public class PauseMenuSettingsPageTest : ScreenTestHost
     {
-        private FakePauseMenuModel _model;
         private RecordingPauseMenuCommands _commands;
         private PauseMenuView _view;
 
         [SetUp]
         public void MountPauseMenu()
         {
-            _model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
             _commands = new RecordingPauseMenuCommands();
-            var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _view = Mount(new PauseMenuView(_commands, new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
+            _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();
         }
 
@@ -73,7 +71,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             {
                 // スクロールバーの出し入れで 2 回目のレイアウトが走るので、2 フレーム進めて落ち着かせる
                 // Showing or hiding the scroller triggers a second layout, so advance two frames to settle
-                _model.Set(FakePauseMenuModel.Page(page));
+                _view.RenderPauseMenu(FakePauseMenuModel.Page(page));
                 simulate.FrameUpdate();
                 simulate.FrameUpdate();
             }

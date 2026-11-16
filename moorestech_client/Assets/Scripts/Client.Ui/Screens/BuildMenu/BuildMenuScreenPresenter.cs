@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layers;
@@ -33,7 +32,7 @@ namespace Client.Ui.Screens.BuildMenu
         private readonly UiCommandResultToaster _toaster;
         private readonly BuildMenuSessionStore _session;
         private readonly IUiOsCursor _osCursor;
-        private IDisposable _modelSubscription;
+        private readonly SerialDisposable _modelSubscription = new();
         private BuildMenuView _view;
 
         public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, IUiOsCursor osCursor)
@@ -65,8 +64,7 @@ namespace Client.Ui.Screens.BuildMenu
         {
             // 出ている間だけ購読する。開いた直後は前回の VM を 1 回描き、同じフレーム末の組み直しで最新に描き直す（D-19）
             // Subscribe only while shown; on open it renders the previous model once, then the same frame's end-of-frame rebuild redraws the latest (D-19)
-            _modelSubscription?.Dispose();
-            _modelSubscription = shown ? _model.Current.Subscribe(_view.Render) : null;
+            _modelSubscription.Disposable = shown ? _model.Current.Subscribe(_view.Render) : Disposable.Empty;
             _view.SetShown(shown);
         }
     }

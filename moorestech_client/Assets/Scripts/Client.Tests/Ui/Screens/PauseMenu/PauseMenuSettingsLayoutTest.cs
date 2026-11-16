@@ -25,8 +25,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
     public class PauseMenuSettingsLayoutTest : ScreenTestHost
     {
         private readonly Vector2 _logicalSize;
-        private FakePauseMenuModel _model;
-        private FakeSettingsModel _settings;
         private RecordingPauseMenuCommands _commands;
         private RecordingSettingsCommands _settingsCommands;
         private PauseMenuView _view;
@@ -47,12 +45,11 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         [SetUp]
         public void MountPauseMenu()
         {
-            _model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
-            _settings = new FakeSettingsModel(FakeSettingsModel.Default());
             _commands = new RecordingPauseMenuCommands();
             _settingsCommands = new RecordingSettingsCommands();
-            _view = Mount(new PauseMenuView(_model.Current, _settings.Current, _commands, _settingsCommands, Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            _view = Mount(new PauseMenuView(_commands, _settingsCommands, Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
             _view.SetShown(true);
+            _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();
         }
 
@@ -91,7 +88,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         public void 復旧表示は枠内に収まり同値操作を送り解除通知で消える()
         {
             Localize.TrySetChosenLanguage("japanese");
-            _settings.Set(new SettingsViewModel(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium), GraphicsQualityPresetChoice.Medium, true, SprintInputMode.Toggle, false, "japanese"));
+            _view.RenderSettings(new SettingsViewModel(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium), GraphicsQualityPresetChoice.Medium, true, SprintInputMode.Toggle, false, "japanese"));
             ShowSettings();
 
             var body = Find<GameScrollView>(_view, "pause-menu-body");
@@ -117,7 +114,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsTrue(record.Graphics.ShadowsEnabled);
             Assert.IsTrue(IsShown(notice));
 
-            _settings.Set(FakeSettingsModel.Default());
+            _view.RenderSettings(FakeSettingsModel.Default());
             simulate.FrameUpdate();
             Assert.IsFalse(IsShown(notice));
         }
@@ -150,7 +147,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
 
         private void ShowSettings()
         {
-            _model.Set(FakePauseMenuModel.Page(PauseMenuPage.Settings));
+            _view.RenderPauseMenu(FakePauseMenuModel.Page(PauseMenuPage.Settings));
             Settle();
         }
 

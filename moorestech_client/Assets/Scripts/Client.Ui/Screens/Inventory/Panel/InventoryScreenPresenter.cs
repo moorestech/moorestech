@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Stage.Columns;
@@ -22,7 +21,7 @@ namespace Client.Ui.Screens.Inventory.Panel
         private readonly UiRoutingState _routing;
         private readonly PlayerInventoryPanelModel _model;
         private readonly InventoryView _view;
-        private IDisposable _modelSubscription;
+        private readonly SerialDisposable _modelSubscription = new();
 
         public InventoryScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
@@ -36,7 +35,7 @@ namespace Client.Ui.Screens.Inventory.Panel
         public void Initialize()
         {
             _columns.Get(StageColumn.Inv).Add(_view);
-            _routing.Current.Subscribe(snapshot => Apply(IsShownOn(snapshot.Screen)));
+            _routing.Current.Select(snapshot => IsShownOn(snapshot.Screen)).DistinctUntilChanged().Subscribe(Apply);
 
             #region Internal
 
@@ -52,10 +51,7 @@ namespace Client.Ui.Screens.Inventory.Panel
                 // 出す間だけ購読し、隠すと購読を外す（§4.2）
                 // Subscribe only while shown and drop the subscription when hidden (§4.2)
                 _view.SetShown(shown);
-                if (shown && _modelSubscription == null) _modelSubscription = _model.Current.Subscribe(_view.Render);
-                if (shown || _modelSubscription == null) return;
-                _modelSubscription.Dispose();
-                _modelSubscription = null;
+                _modelSubscription.Disposable = shown ? _model.Current.Subscribe(_view.Render) : Disposable.Empty;
             }
 
             #endregion
