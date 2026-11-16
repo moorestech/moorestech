@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using NUnit.Framework;
@@ -10,25 +9,25 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.Anchor
 {
     /// <summary>
-    /// AnchorIds が Web の anchorIds.ts と一致することを確かめる（L0。共存中の同期で、Web 撤去時に消す）
-    /// Verifies AnchorIds matches Web's anchorIds.ts (L0; a coexistence sync, removed with the Web UI)
+    /// AnchorIds の一覧が定数を過不足なく含み、生成する id の書式が決まった形になることを確かめる（L0）
+    /// Verifies the AnchorIds lists hold exactly their constants and generated ids keep their fixed formats (L0)
     /// </summary>
     public class AnchorIdsWebParityTest
     {
-        private const string WebAnchorIdsPath = "moorestech_web/webui/src/shared/tutorialAnchor/anchorIds.ts";
-
-        /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">static IDs match the shared fixture exactly</web-test>
         [Test]
-        public void StaticIdsMatchWeb()
+        public void StaticIdsListEveryNonPrefixConstant()
         {
-            CollectionAssert.AreEquivalent(ReadWebValues("TutorialAnchorIds"), AnchorIds.StaticIds);
+            // 一覧から漏れた固定 id は TutorialAnchor.IsAnchorId が印を外し損ねる
+            // A static id missing from the list is never recognized by TutorialAnchor.IsAnchorId
+            CollectionAssert.AreEquivalent(Constants().Where(field => !field.Name.EndsWith("Prefix")).Select(Value), AnchorIds.StaticIds);
         }
 
-        /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">dynamic ID prefixes match the shared fixture exactly</web-test>
         [Test]
-        public void DynamicPrefixesMatchWeb()
+        public void DynamicPrefixesListEveryPrefixConstant()
         {
-            CollectionAssert.AreEquivalent(ReadWebValues("TutorialAnchorDynamicPrefixes"), AnchorIds.DynamicPrefixes);
+            // 一覧から漏れた接頭辞は生成した id の印を外し損ねる
+            // A prefix missing from the list leaves generated ids unrecognized
+            CollectionAssert.AreEquivalent(Constants().Where(field => field.Name.EndsWith("Prefix")).Select(Value), AnchorIds.DynamicPrefixes);
         }
 
         /// <web-test file="src/shared/tutorialAnchor/anchorIds.test.ts">lowercases guid-suffixed IDs and keeps the numeric suffixes intact</web-test>
@@ -56,18 +55,14 @@ namespace Client.Tests.Ui.Anchor
             LogAssert.NoUnexpectedReceived();
         }
 
-        private static List<string> ReadWebValues(string objectName)
+        private static FieldInfo[] Constants()
         {
-            var root = Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
-            var text = File.ReadAllText(Path.Combine(root, WebAnchorIdsPath));
+            return typeof(AnchorIds).GetFields(BindingFlags.Public | BindingFlags.Static).Where(field => field.IsLiteral).ToArray();
+        }
 
-            // オブジェクトリテラルの本体から "..." の値だけを拾う
-            // Pick only the quoted values from the object literal body
-            var body = Regex.Match(text, objectName + @" = \{(.*?)\} as const", RegexOptions.Singleline);
-            Assert.IsTrue(body.Success, $"{objectName} not found in {WebAnchorIdsPath}");
-            var values = Regex.Matches(body.Groups[1].Value, "\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
-            Assert.IsNotEmpty(values);
-            return values;
+        private static string Value(FieldInfo field)
+        {
+            return (string)field.GetRawConstantValue();
         }
     }
 }

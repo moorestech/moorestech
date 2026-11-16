@@ -1,19 +1,14 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Text.RegularExpressions;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace Client.Tests.Ui.State.BlockInventory.Panel
 {
     /// <summary>
-    /// Web の blockComponentRegistry.test.ts の写し（L0）。登録一覧は Web の registeredBlockTypes.ts と突き合わせる（共存中の同期。Web 撤去時に一覧を C# 側へ移す）
-    /// Port of Web blockComponentRegistry.test.ts (L0); the registered list is matched against Web registeredBlockTypes.ts (a coexistence sync, moved to C# when the Web UI goes)
+    /// Web の blockComponentRegistry.test.ts の写し（L0）。登録の取りこぼしは BlockRegistryCoverageTest が見る
+    /// Port of Web blockComponentRegistry.test.ts (L0); missed registrations are caught by BlockRegistryCoverageTest
     /// </summary>
     public class BlockComponentRegistryTest
     {
-        private const string WebRegisteredBlockTypesPath = "moorestech_web/webui/src/features/blockInventory/registry/registeredBlockTypes.ts";
         private static readonly BlockInventoryBodyKind Fallback = BlockComponentRegistry.Resolve("unknown").Body;
 
         /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">標準ビューのblockTypeは単一のフォールバックへ統合する</web-test>
@@ -90,28 +85,6 @@ namespace Client.Tests.Ui.State.BlockInventory.Panel
         {
             Assert.IsTrue(BlockComponentRegistry.Registered.ContainsKey(blockType));
             Assert.AreNotEqual(BlockInventoryBodyKind.SectionStack, BlockComponentRegistry.Resolve(blockType).Body);
-        }
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">網羅e2eが参照する登録blockType一覧と実レジストリを一致させる</web-test>
-        [Test]
-        public void 登録一覧がWebのregisteredBlockTypesと一致する()
-        {
-            CollectionAssert.AreEquivalent(ReadWebRegisteredBlockTypes(), BlockComponentRegistry.Registered.Keys);
-        }
-
-        private static List<string> ReadWebRegisteredBlockTypes()
-        {
-            // repo 直下からの相対パスで Web の一覧を読む（前例 AnchorIdsWebParityTest）
-            // Read the Web list by its repo-relative path (precedent: AnchorIdsWebParityTest)
-            var root = Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
-            var text = File.ReadAllText(Path.Combine(root, WebRegisteredBlockTypesPath));
-            var body = Regex.Match(text, @"registeredBlockTypes = \[(.*?)\] as const", RegexOptions.Singleline);
-            Assert.IsTrue(body.Success, $"registeredBlockTypes not found in {WebRegisteredBlockTypesPath}");
-
-            var types = new List<string>();
-            foreach (Match match in Regex.Matches(body.Groups[1].Value, "\"([^\"]+)\"")) types.Add(match.Groups[1].Value);
-            Assert.IsNotEmpty(types);
-            return types;
         }
     }
 }

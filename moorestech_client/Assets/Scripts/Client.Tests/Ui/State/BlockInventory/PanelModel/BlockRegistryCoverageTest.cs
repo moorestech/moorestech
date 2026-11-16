@@ -9,12 +9,12 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 {
     /// <summary>
-    /// v8 マスタで開ける全 blockType が専用本文か意図的な標準表示のどちらかに分類される（Web の fixture をそのまま読む）
-    /// Every openable v8 blockType is classified as a dedicated body or an intentional standard view (reads the Web fixture as-is)
+    /// v8 マスタで開ける全 blockType が専用本文か意図的な標準表示のどちらかに分類される（Web から写した fixture を読む）
+    /// Every openable v8 blockType is classified as a dedicated body or an intentional standard view (reads the fixture copied from the Web)
     /// </summary>
     public class BlockRegistryCoverageTest
     {
-        private const string FixturePath = "moorestech_web/webui/e2e/fixtures/v8-block-ui-registry.json";
+        private const string FixturePath = "Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/Fixtures/v8-block-ui-registry.json";
         private static readonly HashSet<string> IntentionalGeneric = new()
         {
             "Chest", "CleanRoomAirFilter", "CleanRoomMachine", "ElectricGenerator", "ElectricMachine", "ElectricMiner", "ElectricPump",
@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [Test]
         public void 開ける全blockTypeが登録か意図的な標準表示に分類される()
         {
-            var json = File.ReadAllText(Path.Combine(Application.dataPath, "..", "..", FixturePath));
+            var json = File.ReadAllText(Path.Combine(Application.dataPath, FixturePath));
             var openable = JArray.Parse(json).Where(e => (bool)e["openable"]).Select(e => (string)e["blockType"]).Distinct();
             var missing = openable.Where(t => !BlockComponentRegistry.Registered.ContainsKey(t) && !IntentionalGeneric.Contains(t)).ToArray();
             CollectionAssert.IsEmpty(missing);

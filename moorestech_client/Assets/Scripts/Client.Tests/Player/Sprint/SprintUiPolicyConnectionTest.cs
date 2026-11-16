@@ -1,15 +1,12 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.Topics;
-using Newtonsoft.Json.Linq;
 using UnityEngine.TestTools;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Input;
 using Client.Tests.Common;
+using Client.Ui.State.Settings;
 using NUnit.Framework;
 using StarterAssets;
 using UnityEngine;
@@ -107,15 +104,14 @@ namespace Client.Tests.Player
         }
 
         [Test]
-        public async Task 復旧通知だけを解除してもESC前の歩きを保持する()
+        public void 復旧通知だけを解除してもESC前の歩きを保持する()
         {
             PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, "2");
             LogAssert.Expect(LogType.Warning, new Regex("Unknown saved sprint mode"));
             Assert.AreEqual(SprintInputMode.Toggle, SprintInputModePreference.Current);
-            var hub = new WebSocketHub();
-            using var topic = new SprintInputModeTopic(hub);
-            var recovered = JObject.Parse(await topic.GetSnapshotJsonAsync());
-            Assert.IsTrue(recovered["recoveredInvalidPreference"].Value<bool>());
+            var settings = new SettingsModel();
+            settings.Initialize();
+            Assert.IsTrue(settings.Current.Value.SprintRecovered);
 
             // 歩きへ変えてからESC相当の入力無効を挟む
             // Start walking, then disable input as when opening ESC
@@ -123,11 +119,11 @@ namespace Client.Tests.Player
             _inputs.SprintInput(false);
             Assert.IsFalse(_inputs.sprint);
             _inputs.SetInputEnable(false);
-            var revision = hub.GetTopicRevision(SprintInputModeTopic.TopicName);
             SprintInputModePreference.SetMode(SprintInputMode.Toggle);
-            var acknowledged = JObject.Parse(await topic.GetSnapshotJsonAsync());
-            Assert.IsFalse(acknowledged["recoveredInvalidPreference"].Value<bool>());
-            Assert.AreEqual(revision + 1, hub.GetTopicRevision(SprintInputModeTopic.TopicName));
+
+            // 設定モデルは保存の通知で組み直し、復旧印が下りる
+            // The settings model rebuilds on the save notification and drops the recovery flag
+            Assert.IsFalse(settings.Current.Value.SprintRecovered);
             _inputs.SetInputEnable(true);
             Assert.IsFalse(_inputs.sprint);
         }

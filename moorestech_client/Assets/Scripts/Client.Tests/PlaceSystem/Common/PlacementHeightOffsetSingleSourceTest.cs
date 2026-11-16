@@ -3,51 +3,54 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.Topics;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Newtonsoft.Json.Linq;
+using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State;
+using Client.Tests.UIState.Fakes;
+using Client.Ui.State.ModeHud;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.Common
 {
     /// <summary>
-    ///     実値とHUD表示が同一ソースであることを検証
-    ///     Verifies the actual height and the HUD share one source
+    ///     実値と UITK の HUD の表示モデルが同一ソースであることを検証
+    ///     Verifies the actual height and the UITK HUD view model share one source
     /// </summary>
     public class PlacementHeightOffsetSingleSourceTest
     {
+        private GameObject _controlObject;
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_controlObject != null) UnityEngine.Object.DestroyImmediate(_controlObject);
+        }
+
         [Test]
         public void ドラッグ中の高さ変更は解放で開始値へ戻り表示も同じ値になる()
         {
             var heightOffset = new PlacementHeightOffset();
             var dragState = new CommonBlockPlaceDragState(heightOffset);
-            var hub = new WebSocketHub();
-            var topic = new PlacementModeTopic(hub, CreateController(heightOffset), heightOffset);
-            try
-            {
-                dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
+            var hud = new ModeHudModel(CreatePlaceBlockUiState(), CreateController(heightOffset), heightOffset);
+            hud.Initialize();
 
-                var revisionBeforeAdjust = hub.GetTopicRevision(PlacementModeTopic.TopicName);
-                heightOffset.Adjust(2);
+            dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
+            heightOffset.Adjust(2);
 
-                // ドラッグ中の値がsnapshotへ現れ、購読がpushしたことをrevision増分で固定する
-                // The in-drag value reaches the snapshot, pinning that the subscription pushed it via the revision bump
-                Assert.AreEqual(2, ReadHeight(topic), "the in-drag height did not reach the shared snapshot value");
-                Assert.AreEqual(dragState.HeightOffset, ReadHeight(topic));
-                Assert.Greater(hub.GetTopicRevision(PlacementModeTopic.TopicName), revisionBeforeAdjust, "PlacementModeTopic did not push on height change");
+            // 表示モデルの高さが源と設置の高さに一致する
+            // The view model height matches the source and the placement height
+            Assert.AreEqual(2, ((ModeHudPlacement)hud.Current.Value).Height, "the in-drag height did not reach the HUD view model");
+            Assert.AreEqual(heightOffset.Value, ((ModeHudPlacement)hud.Current.Value).Height);
+            Assert.AreEqual(dragState.HeightOffset, ((ModeHudPlacement)hud.Current.Value).Height);
 
-                dragState.EndDrag();
+            dragState.EndDrag();
 
-                Assert.AreEqual(0, dragState.HeightOffset);
-                Assert.AreEqual(0, ReadHeight(topic), "the HUD kept the in-drag height after the drag restored it");
-            }
-            finally
-            {
-                topic.Dispose();
-            }
+            Assert.AreEqual(0, dragState.HeightOffset);
+            Assert.AreEqual(0, ((ModeHudPlacement)hud.Current.Value).Height, "the HUD kept the in-drag height after the drag restored it");
         }
 
         [Test]
@@ -107,10 +110,20 @@ namespace Client.Tests.PlaceSystem.Common
             return new PlaceSystemStateController(new EmptySelector(), new NullPresenter(), heightOffset);
         }
 
-        private static int ReadHeight(PlacementModeTopic topic)
+        // 設置モードを初期状態にした UIStateControl（前例 UIStateControlTest の組み方）
+        // A UIStateControl starting in placement mode (built like the UIStateControlTest precedent)
+        private UIStateControl CreatePlaceBlockUiState()
         {
-            var json = JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
-            return json["height"]!.Value<int>();
+            var dictionary = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
+            var field = typeof(UIStateDictionary).GetField("_stateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
+            var states = (Dictionary<UIStateEnum, IUIState>)field.GetValue(dictionary);
+            states[UIStateEnum.PlaceBlock] = new IdleUIState();
+
+            _controlObject = new GameObject("UIStateControl");
+            var control = _controlObject.AddComponent<UIStateControl>();
+            control.Construct(dictionary, new FakePlayerObjectController());
+            control.Initialize(UIStateEnum.PlaceBlock, new UITransitContext(UIStateEnum.PlaceBlock));
+            return control;
         }
 
         // ManualUpdateを一切駆動しないため、EmptyPlaceSystemが読まれるだけの空セレクタ
@@ -119,6 +132,18 @@ namespace Client.Tests.PlaceSystem.Common
         {
             public IPlaceSystem EmptyPlaceSystem { get; } = new EmptyPlaceSystem();
             public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context) => EmptyPlaceSystem;
+        }
+
+        // 遷移せず何もしない設置モードの状態
+        // A placement-mode state that never transitions and does nothing
+        private class IdleUIState : IUIState
+        {
+            public void OnEnter(UITransitContext context) { }
+            public UITransitContext GetNextUpdate() => null;
+            public void OnExit() { }
+            public bool LocksPlayerMovement() => false;
+            public bool AllowsSprintToggle() => true;
+            public IReadOnlyList<KeyHint> GetKeyHints() => Array.Empty<KeyHint>();
         }
 
         private class NullPresenter : IPlacementFeedbackPresenter
