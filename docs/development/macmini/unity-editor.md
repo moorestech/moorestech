@@ -7,7 +7,7 @@ Mac mini 自宅サーバー固有の事情。索引は `CLAUDE.local.macmini.md`
 - 原因: launchd の `com.sakastudio.dev-server-reaper`（`StartInterval 3600`、毎時1回・分は起動時刻次第で固定でない）が「生きた所有者の居ない Unity」を刈る。証跡は `~/Library/Logs/dev-server-reaper.log` の `REAPED pid=... (no live registered launcher for Unity process in <worktree>)`
 - 刈られない条件は2つだけ。(1) 起動から 30 分未満（`MIN_AGE_MIN=30`）、(2) `~/Library/Caches/dev-server-reaper-unity-owners.json` の所有 receipt が、生きた所有者エージェントと一致する
 - PATH 上の `uloop`（`~/.local/bin/uloop`）は所有ラッパーへの symlink で、`uloop launch`（`moores-wt new` 経由を含む）が receipt を書く。`ls -la ~/.local/bin/uloop` が生バイナリになっていたら、v3 インストーラに上書きされている（下の「uloop CLI の配置」で戻す）。その間に起動した Editor は起動 30 分超で刈られる
-- ラッパーを通らずに起動した Editor を守るときだけ、receipt を手で1件追記する。キーは `owner_pid`（自分の claude プロセス。コマンドラインに `--session-id`/`--resume` があるもの）、`owner_session_id`、`owner_start_token`、`project_path`（`.../moorestech_client`）、`unity_pid`、`unity_start_token`、`registered_at`（epoch 秒）の全部。start token は `LC_ALL=C ps -p <PID> -o lstart=` の出力そのもの（ロケールが違うと一致しない）。必須キーが欠けた receipt は reaper が malformed として扱う
+- ラッパーを通らずに起動した Editor を守るときだけ、receipt を手で1件追記する。キーは `owner_pid`（自分の claude プロセス。コマンドラインに `--session-id`/`--resume` があるもの）、`owner_session_id`、`owner_start_token`、`project_path`（`.../moorestech_client`）、`unity_pid`、`unity_start_token`、`registered_at`（epoch 秒）の全部。start token は `LC_ALL=C ps -p <PID> -o lstart=` の出力の前後の空白・改行を除いた文字列（reaper は strip して比べる。ロケールが違うと一致しない）。必須キーが欠けた receipt は reaper が malformed として扱う
 - 登録できたかは `~/bin/dev-server-reaper-unity.py` の `protected_unity_from_receipts` を import して保護集合に入るかで確かめる。`--mode list` の dry-run は証明にならない（30 分未満の Editor は receipt と無関係に候補外）
 - 刈られるとテスト実行中の EditModeInPlayingTest が他テストの `sceneLoaded` ハンドラ由来の NRE で落ち、プロダクトのバグに見える。長時間の検証の前に receipt を確かめる
 
