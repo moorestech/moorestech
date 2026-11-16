@@ -20,6 +20,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
@@ -28,12 +29,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     /// Verifies the skeleton wiring on a UITK boot
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class GameUiSkeletonTest : UiSystemPlayModeTestBase
+    public class GameUiSkeletonTest
     {
         [UnityTest]
         public IEnumerator UITK側の骨組みが層を持ちWebホスト無しで入力素通しが実ゲームで効く()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -60,11 +60,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 AssertAllLayersExist(gameUiRoot);
 
-                // UITK 起動に Web ホストと CEF は無い
-                // A UITK boot has no web host or CEF
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
+                // UITK の起動に Web ホストと CEF は無い（Web ホストのファイルは 5b・5c まで残る）
+                // A UITK boot has no web host or CEF (the web host files remain until 5b and 5c)
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホスト（WS の受け口）が起動している");
-                Assert.IsTrue(Client.WebUiHost.Boot.WebUiHost.HostSkippedThisBoot, "Web ホストを飛ばした起動の状態が立っていない");
                 Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsSortMode.None).Length, "CEF のブラウザ（RawImage と同じ GameObject）が有効のまま");
 
                 // ルータは UIState だけで画面を決める
@@ -144,7 +142,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             var picked = panel.Pick(panelPosition);
             var isOverGameObject = EventSystem.current.IsPointerOverGameObject();
             var isOverAnyUi = UiPointerHitTest.IsPointerOverAnyUi();
-            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState} system={UiInputExclusivity.ActiveUiSystem}");
+            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState}");
             return (picked, isOverGameObject, isOverAnyUi);
         }
     }

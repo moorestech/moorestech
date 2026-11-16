@@ -5,7 +5,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
-using Client.Input;
 using Client.Tests.EditModeInPlayingTest.BlockInventory;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using Client.Ui.Foundation.Root;
@@ -27,6 +26,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
@@ -35,14 +35,13 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     /// Machine sections resolve; reopening leaves no previous value
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class GameUiMachineSectionWiringTest : UiSystemPlayModeTestBase
+    public class GameUiMachineSectionWiringTest
     {
         private const string MachineBlockName = "釜";
 
         [UnityTest]
         public IEnumerator UITK起動で機械の区画が解決し開き直すと開いた機械の値へ替わる()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // EnterPlayMode は直下で呼ぶ

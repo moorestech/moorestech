@@ -19,7 +19,7 @@ namespace Client.Tests.Ui.Crosscut.Input
 
         public override void TearDown()
         {
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             UiInputExclusivity.ClearEscapeLatchForTest();
             InputManager.UI.CloseUI.SetKeyDownForTest(false);
             TestReflection.ResetInputManagerCache();
@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.Crosscut.Input
             InputSystem.Update();
             Release(keyboard.enterKey);
             InputSystem.Update();
-            UiInputExclusivity.SetState(false, true);
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
             Press(keyboard.enterKey);
             InputSystem.Update();
             Assert.AreEqual(1, presses);
@@ -54,9 +54,9 @@ namespace Client.Tests.Ui.Crosscut.Input
             var closeKey = new CloseUiKeyPressSource();
             InputManager.UI.CloseUI.SetKeyDownForTest(true);
             Assert.IsTrue(closeKey.WasPressedThisFrame());
-            UiInputExclusivity.SetState(false, true);
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
             Assert.IsFalse(closeKey.WasPressedThisFrame());
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             UiInputExclusivity.ConsumeEscapeThisFrame();
             Assert.IsFalse(closeKey.WasPressedThisFrame(), "CloseUI が ESC に割り当てられていればラッチで止まる");
         }
@@ -67,7 +67,7 @@ namespace Client.Tests.Ui.Crosscut.Input
             var first = new SkitAdvanceKeyPressSource();
             var second = new SkitAdvanceKeyPressSource();
             InputManager.UI.SkitAdvance.SetKeyDownForTest(true);
-            UiInputExclusivity.SetState(false, true);
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
             Assert.IsFalse(first.WasPressedThisFrame());
             Assert.IsFalse(second.WasPressedThisFrame());
             InputManager.UI.SkitAdvance.SetKeyDownForTest(false);

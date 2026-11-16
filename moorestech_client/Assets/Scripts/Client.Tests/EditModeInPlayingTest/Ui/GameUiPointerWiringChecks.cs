@@ -76,7 +76,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             Assert.AreEqual(CursorLockMode.None, UnityEngine.Cursor.lockState, "カーソルがロックされていて判定が空振りになる");
             var overGameUi = UiInputExclusivity.IsPointerOverGameUi(position);
             var overAnyUi = UiPointerHitTest.IsPointerOverAnyUi();
-            Debug.Log($"[GameUiInputWiring] pointer after removal overGameUi={overGameUi} overAnyUi={overAnyUi} webPointer={UiInputExclusivity.IsPointerOverWebUi}");
+            Debug.Log($"[GameUiInputWiring] pointer after removal overGameUi={overGameUi} overAnyUi={overAnyUi}");
             Assert.IsFalse(overGameUi, "要素を外しても probe が GameUi を拾う");
             Assert.IsFalse(overAnyUi, "要素を外しても IsPointerOverAnyUi が true");
         }

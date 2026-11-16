@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Client.Ui.Foundation.Layers;
@@ -29,7 +28,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
     /// On a real GameUi boot, checks every presenter's view sits once in its tabled layer and that Render arrived through the subscription (DC-31 A)
     /// </summary>
     [Category("CiShardClientPlay3")]
-    public class GameUiScreenMountTest : UiSystemPlayModeTestBase
+    public class GameUiScreenMountTest
     {
         private const float OpeningSkitStartWaitSeconds = 5f;
         private const int InventoryRenderWaitFrameLimit = 120;
@@ -37,7 +36,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
         [UnityTest]
         public IEnumerator 全画面のViewが表どおりの層に1つずつ載り起動直後のHUDと開いた持ち物が描かれる()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -59,7 +57,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 var uiStateControl = resolver.Resolve<UIStateControl>();
                 var gameUiRoot = GameUiRoot.Instance;
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
 
                 // 開幕スキットを飛ばしてゲーム画面の HUD を見る（Stage4ScreenSetGameUiTest と同じ前段）
                 // Skip the opening skit and inspect the game-screen HUD (same prelude as Stage4ScreenSetGameUiTest)

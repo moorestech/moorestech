@@ -25,14 +25,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     /// Verifies in the real game that GameUi input handling (navigation blocking and so on) works
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class GameUiInputTest : UiSystemPlayModeTestBase
+    public class GameUiInputTest
     {
         [UnityTest]
         public IEnumerator UI資産の差し替え前後でWASDと矢印とSpaceとEnterがナビゲーションイベントを出すかを数える()
         {
-            // UITK で起動する
-            // Boot with UITK
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -81,9 +78,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
         [UnityTest]
         public IEnumerator 実ゲームでGameUiの入力欄がフォーカスとIMEとESCとポインタとDSLに結線されている()
         {
-            // UITK で起動する
-            // Boot with UITK
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -114,7 +108,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 var fieldCenter = await GameUiPointerWiringChecks.LocatorFindsFieldAndPointerIsOverIt(fieldA);
                 await GameUiTextFieldWiringChecks.FocusMovesBetweenFieldsAndBlurs(fieldA, fieldB, uiStateControl);
-                await GameUiTextFieldWiringChecks.WebTextInputIsIgnoredInGameUiSystem();
                 await GameUiTextFieldWiringChecks.EscapeLatchHoldsOnlyItsOwnFrame();
                 await GameUiPointerWiringChecks.PointerIsNotOverAfterRemoval(box, fieldCenter);
             }

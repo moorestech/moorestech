@@ -16,21 +16,10 @@ namespace Client.WebUiHost.Cef
 
         private void Awake()
         {
-            // Editor スイッチで Web ホストを起動しなかった起動では CEF を作らず、絵（同じ GameObject の RawImage）も入力の受け手も残さない（plan §3.3 R1）
-            // On a boot where the Editor switch skipped the web host, create no CEF and leave neither the picture (the RawImage on this GameObject) nor an input receiver (plan §3.3 R1)
-            if (Boot.WebUiHost.HostSkippedThisBoot)
-            {
-                Debug.Log("[WebUiHost] the web host was skipped by the Editor switch; the CEF browser object stays inactive");
-                gameObject.SetActive(false);
-                return;
-            }
-#if UNITY_EDITOR_LINUX
-            // GameCI非互換のCEFを停止
-            // Linux Editor CEF lacks ABI compatibility with GameCI glibc, so disable only the presentation layer
-            var browser = GetComponent<CefUnityBrowserSample>();
-            if (browser != null) browser.enabled = false;
-            enabled = false;
-#endif
+            // X-5a 以降 Web ホストは起動しない。5b が prefab から外すまで CEF を作らず、絵（同じ GameObject の RawImage）も入力の受け手も残さない
+            // After X-5a the web host never starts; until 5b removes this from the prefab, create no CEF and leave neither the picture (the RawImage here) nor an input receiver
+            Debug.Log("[WebUiCefNavigator] the web host never starts after the UITK cutover; the CEF browser object stays inactive");
+            gameObject.SetActive(false);
         }
 
         private void Start()

@@ -21,7 +21,6 @@
         "Unity.TextMeshPro",
         "Unity.ResourceManager",
         "Server.Util",
-        "Client.WebUiHost",
         "UniRx",
         "Game.Train",
         "Game.PlayerRiding.Interface",

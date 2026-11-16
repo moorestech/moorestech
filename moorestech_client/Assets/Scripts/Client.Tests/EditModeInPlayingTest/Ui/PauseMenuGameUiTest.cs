@@ -2,7 +2,6 @@ using System.Collections;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Input;
 using Client.Playtest.Input;
 using Client.Playtest.UiElements;
 using Client.Playtest.UiElements.GameUi;
@@ -27,12 +26,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     /// Verifies pause display and settings round-trip on UITK (R-7 L3)
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class PauseMenuGameUiTest : UiSystemPlayModeTestBase
+    public class PauseMenuGameUiTest
     {
         [UnityTest]
         public IEnumerator UITK側でEscからポーズが出て設定へ行き来して閉じられWebの値を読まない()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -59,7 +57,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 // Web ホスト無し。入力は GameUi だけ読む
                 // No web host; input reads GameUi only
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
 
                 // Esc で UITK のポーズが出る
@@ -69,13 +66,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen, "ルータの画面がポーズでない");
                 Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.PauseMenu, UiFamily.Stage).Q("pause-menu"), "UiLayer.PauseMenu に pause-menu が無い");
                 Assert.IsTrue(Find("pause-menu").Visible, "UITK のポーズが見えない");
-
-                // Web の値は占有にならない（R2）
-                // Web values never occupy (R2)
-                UiInputExclusivity.SetState(true, true);
-                Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "UITK 側で Web の入力欄フォーカスが通った");
-                Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "UITK 側で Web のポインタ占有が通った");
-                UiInputExclusivity.SetState(false, false);
 
                 // DSL のロケータは UITK のパネルを探す
                 // The DSL locator looks up the UITK panel

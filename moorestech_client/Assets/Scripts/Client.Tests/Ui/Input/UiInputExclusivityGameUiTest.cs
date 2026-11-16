@@ -1,11 +1,12 @@
+using Client.Game.InGame.Control;
 using Client.Input;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Client.Tests.Ui.Input
 {
-    // GameUi の系の入力占有を確かめる
-    // Verifies input occupancy in the GameUi system
+    // GameUi の入力占有を確かめる
+    // Verifies the GameUi input occupancy
     public class UiInputExclusivityGameUiTest
     {
         private class FixedProbe : IGameUiPointerProbe
@@ -15,20 +16,13 @@ namespace Client.Tests.Ui.Input
             public bool IsPointerOverGameUi(Vector2 screenPosition) => _result;
         }
 
-        [SetUp]
-        public void SetUp()
-        {
-            UiInputExclusivity.SetActiveUiSystem(UiSystem.GameUi);
-        }
-
         [TearDown]
         public void TearDown()
         {
-            UiInputExclusivity.SetState(false, false);
             UiInputExclusivity.SetGameUiTextInputFocused(false);
             UiInputExclusivity.SetGameUiPointerProbe(null);
             UiInputExclusivity.ClearEscapeLatchForTest();
-            UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
+            InputManager.MouseCursorVisible(true);
         }
 
         [Test]
@@ -42,20 +36,17 @@ namespace Client.Tests.Ui.Input
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
         }
 
+        // 判定はロック状態の正本を読む。batchmode でも Cursor.lockState を読まないので CI で効く（UiInputExclusivityActiveSystemTest から移した）
+        // The check reads the lock-state source of truth, so it holds in batchmode CI where Cursor.lockState stays None (moved from UiInputExclusivityActiveSystemTest)
         [Test]
-        public void WebFocusIsNotReadInGameUiSystem()
+        public void ロック中はUIの上に乗っていても乗っていないと答える()
         {
-            // GameUi では Web の値を読まない
-            // GameUi does not read web values
-            UiInputExclusivity.SetState(false, true);
-            Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
-            Assert.IsFalse(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard));
+            UiInputExclusivity.SetGameUiPointerProbe(new FixedProbe(true));
+            InputManager.MouseCursorVisible(false);
+            Assert.IsFalse(UiPointerHitTest.IsPointerOverAnyUi());
 
-            // Web の false で GameUi の欄は残る
-            // Web false keeps the GameUi field focus
-            UiInputExclusivity.SetGameUiTextInputFocused(true);
-            UiInputExclusivity.SetState(false, false);
-            Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
+            InputManager.MouseCursorVisible(true);
+            Assert.IsTrue(UiPointerHitTest.IsPointerOverAnyUi());
         }
 
         [Test]

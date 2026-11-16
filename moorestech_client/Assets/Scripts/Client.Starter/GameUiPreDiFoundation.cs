@@ -9,12 +9,12 @@ using VContainer.Unity;
 namespace Client.Starter
 {
     /// <summary>
-    /// GameUi の系で DI より前に 1 本だけ立てる土台（sRGB 合成・ロケールのクラス・倍率の見張り）。DI 前の画面は倍率の読み口を使い、DI へは作り済みのまま渡す
+    /// DI より前に 1 本だけ立てる GameUi の土台（sRGB 合成・ロケールのクラス・倍率の見張り）。DI 前の画面は倍率の読み口を使い、DI へは作り済みのまま渡す
     /// The GameUi foundation built once before DI (sRGB composite, locale class, scale watch); pre-DI screens read its scale source and DI receives it as built
     /// </summary>
     /// <remarks>
-    /// 出展モードか否かで DI の登録の形を分けないため、GameUi の系では常にここで立てる（A-183・A-75 の置き場を改めた。S5-gate D-2）。ゲーム寿命なので破棄の口を持たない（ゲームはメインメニューへ戻らない。AGENTS.md の既知の制約）
-    /// Always built here in the GameUi system so DI registration never splits by exhibition mode (relocates A-183 and A-75; S5-gate D-2); it lives as long as the game, so it has no disposal (the game never returns to the main menu; AGENTS.md known constraint)
+    /// 出展モードか否かで DI の登録の形を分けないため、常にここで立てる（A-183・A-75 の置き場を改めた。S5-gate D-2）。ゲーム寿命なので破棄の口を持たない（ゲームはメインメニューへ戻らない。AGENTS.md の既知の制約）
+    /// Always built here so DI registration never splits by exhibition mode (relocates A-183 and A-75; S5-gate D-2); it lives as long as the game, so it has no disposal (the game never returns to the main menu; AGENTS.md known constraint)
     /// </remarks>
     internal sealed class GameUiPreDiFoundation
     {

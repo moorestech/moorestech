@@ -47,8 +47,8 @@ namespace Client.Starter.Initialization
         {
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
-            // DI 前に土台を 1 本立てる。言語ゲートの画面は GameUi の系だけ返る
-            // Build one foundation before DI; the language-gate screen comes back only in the GameUi system
+            // DI 前に土台を 1 本立て、その上の言語ゲートの画面を受け取る。言語ゲートも DI もこの土台を使う
+            // Build one foundation before DI and take the language-gate screen on it; both the gate and DI use this foundation
             var gameUiLanguageGateScreen = starter.PrepareUiBeforeDi();
 
             // 出展モードは言語が決まるまで開始を止める。スキットとチュートリアルが英語で走り出す前に挟む
@@ -59,7 +59,6 @@ namespace Client.Starter.Initialization
 
             var resolver = starter.StartGame(_serverResult.HandshakeResponse, _serverResult.SaveGenerationWaiter, _collectsPlaytestRecords);
             new ClientDIContext(new DIContainer(resolver));
-            WebUiHost.Game.WebUiGameBinder.Bind();
 
             // ホットバー初期割当はhandshakeへ同梱済み。メインインベントリと同様イベント購読開始前に適用する
             // The initial hotbar assignments ride along with the handshake; applied before event dispatch starts, same as the main inventory

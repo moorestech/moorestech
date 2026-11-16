@@ -62,7 +62,7 @@ namespace Client.Tests.Player
             Object.DestroyImmediate(_playerRoot);
             if (_hadSavedMode) PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, _savedMode);
             else PlayerPrefs.DeleteKey(SprintInputModePreference.PreferenceKey);
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
@@ -134,16 +134,16 @@ namespace Client.Tests.Player
         [Test]
         public void フォーカス状態は購読時の現在値と変化した時だけ流れる()
         {
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             var received = new List<bool>();
             var subscription = UiInputExclusivity.TextInputFocused.Subscribe(received.Add);
 
-            // ポインタだけの変化や同値の再送では流さず、切断時リセットの解除は流す
-            // Pointer-only changes and same-value resends stay silent; the disconnect reset's release is published
-            UiInputExclusivity.SetState(true, false);
-            UiInputExclusivity.SetState(true, true);
-            UiInputExclusivity.SetState(false, true);
-            UiInputExclusivity.SetState(false, false);
+            // 同値の再送では流さず、変化した時だけ流す
+            // Same-value resends stay silent; only changes are published
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             subscription.Dispose();
 
             // 購読した瞬間に現在値のfalseが届くので先頭に乗る

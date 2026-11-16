@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using Client.Input;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
@@ -28,9 +26,6 @@ namespace Client.WebUiHost.Boot
         // Parse the received JSON and route by op; parse failure is caught at the boundary to keep the connection alive
         public async UniTask DispatchAsync(WebSocketConnection conn, string json)
         {
-            // 中身を問わず受信の事実を残す。JSが止まりWSだけ残る経路をここで見分ける（§3.11）
-            // Record every receipt regardless of content; this tells apart a stopped JS whose WS stays open (§3.11)
-            UiInputExclusivity.RecordWebMessageReceived(Stopwatch.GetTimestamp());
             if (!WebUiJson.TryDeserialize<WsClientMessage>(json, out var msg) || msg.Op == null) return;
 
             switch (msg.Op)
@@ -53,7 +48,9 @@ namespace Client.WebUiHost.Boot
                     if (!conn.EnqueueAction(msg)) UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' dropped: connection stopping");
                     break;
                 case "input_state":
-                    UiInputExclusivity.SetState(msg.PointerOverUi, msg.TextInputFocused);
+                    // X-5a 以降は Web ホストを起動しないので届かない。届いたら起動の配線が戻った印として残す
+                    // After X-5a the web host never starts, so this never arrives; if it does, log it as a sign the boot wiring came back
+                    UnityEngine.Debug.LogWarning("[WebSocketHub] input_state ignored: the web host does not start after the UITK cutover");
                     break;
                 case "ping":
                     conn.EnqueueSend(WebSocketEnvelope.BuildControl("pong"));

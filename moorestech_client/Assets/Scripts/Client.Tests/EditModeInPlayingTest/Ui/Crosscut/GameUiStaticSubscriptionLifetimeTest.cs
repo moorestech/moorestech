@@ -1,5 +1,4 @@
 using System.Collections;
-using Client.Input;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -15,7 +14,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
     /// Verifies subscriptions to static sources stop touching the destroyed UI after leaving a GameUi play mode
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class GameUiStaticSubscriptionLifetimeTest : UiSystemPlayModeTestBase
+    public class GameUiStaticSubscriptionLifetimeTest
     {
         private bool _languageTouched;
         private bool _hadSavedLanguageCode;
@@ -37,7 +36,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
         [UnityTest]
         public IEnumerator PlayModeを抜けた後に言語を変えても破棄済みのUIを叩かない()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと

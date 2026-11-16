@@ -5,7 +5,6 @@ using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 #if UNITY_EDITOR
-using Client.Starter.Initialization.Boot;
 using UnityEditor;
 #endif
 using UnityEngine.TestTools;
@@ -14,8 +13,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Hostless
 {
     /// <summary>
-    /// Web無しでもDIから状態が取れる
-    /// States resolve from DI without the web host
+    /// UITK の通常の起動で DI から状態が取れる
+    /// States resolve from DI on a normal UITK boot
     /// </summary>
     [Category("CiShardClientPlay2")]
     public class WebUiHostlessStateAvailabilityTest
@@ -24,9 +23,6 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
         public IEnumerator Webホストを起動しなくても移した状態がDIから取れる()
         {
             EnterPlayModeUtil();
-#if UNITY_EDITOR
-            WebUiHostEditorSkip.Apply();
-#endif
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function
@@ -58,9 +54,6 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 try
                 {
                     await TestPlayerGround.AssertGroundedAsync();
-                    // Hub=null経路を前提に固定
-                    // Pin the hub-null path as a precondition
-                    Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "Editor限定スイッチを付けたのにWebホストが起動した");
                     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                     Assert.IsNotNull(resolver);
                     await ModalStateProbe.AssertAvailableAsync(resolver);

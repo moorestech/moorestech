@@ -4,7 +4,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
@@ -20,6 +19,7 @@ using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Ui.Stage2.Stage2HudTreeAssertions;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
 {
@@ -28,7 +28,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
     /// Checks stage-2 HUD layer mounting and switching (R-4 L3)
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class Stage2HudGameUiTest : UiSystemPlayModeTestBase
+    public class Stage2HudGameUiTest
     {
         // 開幕スキットの再生開始を待つ期限（無ければこの秒数で抜ける）
         // Deadline for an opening skit to start (returns after this when none plays)
@@ -37,7 +37,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
         [UnityTest]
         public IEnumerator UITK側で段階2のHUDが各層に1つずつ載り画面遷移とCtrlUで出て消える()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -65,7 +64,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
 
                 // Web ホスト無しで GameUi のみ動く
                 // Only GameUi runs, no web host
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
 
                 // テストワールドには地面が無いため足場へ立たせる（落下復帰の Error を出さない）

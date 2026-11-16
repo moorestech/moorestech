@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
@@ -27,7 +26,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
     /// Walks build menu, hotbar and modal
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class Stage3BuildSetGameUiTest : UiSystemPlayModeTestBase
+    public class Stage3BuildSetGameUiTest
     {
         private const float OpeningSkitStartWaitSeconds = 5f;
         // 遷移・開閉の動き・サーバーのエコーを待つ上限のフレーム数（どれも数十フレームで終わる）
@@ -37,7 +36,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
         [UnityTest]
         public IEnumerator ビルドメニューとホットバーの選択とモーダルを行き来しても各面が1つだけ見え覆われず閉じると残らない()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -58,7 +56,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
                 var uiStateControl = resolver.Resolve<UIStateControl>();
                 var root = GameUiRoot.Instance.GetRootElement();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
 
                 // 開幕スキットを飛ばして巡る
                 // Skip the opening skit and walk through

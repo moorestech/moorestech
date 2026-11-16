@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Input;
 using Client.Localization;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text.WrapSafe;
@@ -20,13 +19,12 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
     /// Verifies in the real GameUi game that no Label under the root keeps English copy the frame after switching to Japanese (L3; port of the Web allScreensI18n.test)
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class AllScreensLanguageSwitchTest : UiSystemPlayModeTestBase
+    public class AllScreensLanguageSwitchTest
     {
         /// <web-test file="src/shared/i18n/allScreensI18n.test.ts">re-renders translated screen copy after localization.current changes with no legacy screen exemptions</web-test>
         [UnityTest]
         public IEnumerator 日本語へ切り替えるとどの画面のLabelにも英語の文が残らない()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
