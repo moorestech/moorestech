@@ -45,8 +45,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         [Test]
         public void 舞台が安全帯より狭い間は警告を1回だけ出し_回復後に狭まると再び出す()
         {
-            // 試験のブロックは三層とも名前を持たないので、欠けの警告が 1 回出る
-            // The test block has no name in any layer, so the missing-text warning fires once
+            // 期待は届く順に消化されるので、区画の情報ログ → 名前の無い試験ブロックの欠けの警告の順に並べる
+            // Expectations are consumed in arrival order: the section info log, then the missing-name warning for the unnamed test block
+            LogAssert.Expect(LogType.Log, new Regex(@"\[BlockInventory\] 区画の登録が無い Slot"));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[Localize\] missing text in every layer: block\."));
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.Chest()), new FakeLargePanelRule(true));
             simulate.FrameUpdate();
