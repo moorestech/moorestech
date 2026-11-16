@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Interface.Component;
 using Game.Context;
 using static Game.Block.Interface.BlockException;
@@ -73,9 +75,30 @@ namespace Game.Block.Blocks.CleanRoom
             return _filterSlot.InsertItem(itemStack);
         }
 
+        // 自動搬入は使用中を含めスロット表示で3個まで（ADR 0095）
+        // Automated inflow stops at three in the slot, the one in use included (ADR 0095)
+        private const int AutoInsertFilterLimit = MachineInputSlotBinding.AutoInsertCraftCount;
+
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
         {
-            return InsertItem(itemStack);
+            CheckDestroy(this);
+
+            // silent-ok: フィルター以外は受け取らず全量を差し戻す / ベルトの出口に品が留まって詰まるのをプレイヤーが見て気づく
+            // silent-ok: non-filters are handed back whole / the player sees the item parked and clogging at the belt exit
+            if (!IsFilterOrEmpty(itemStack) || itemStack.Count == 0) return itemStack;
+
+            // 上限までの分だけスロットへ渡し、残りは搬入元へ返す
+            // Hand the slot only what fits under the cap and return the rest to the source
+            var acceptable = Math.Min(itemStack.Count, AutoInsertAcceptableCount());
+            // silent-ok: 3個に達したら搬入を止める / 品がベルト出口・チェストに留まり、プレイヤーがスロットの3個と並べて見て気づく
+            // silent-ok: inflow stops at three / the item parks at the belt exit or chest and the player sees it next to the slot's three
+            if (acceptable <= 0) return itemStack;
+
+            // 前例（VanillaMachineInputSimulationUtil）と同じく SubItem で分け、品のメタデータを保つ
+            // Split with SubItem like the precedent (VanillaMachineInputSimulationUtil) to keep item metadata
+            var portion = acceptable == itemStack.Count ? itemStack : itemStack.SubItem(itemStack.Count - acceptable);
+            var slotRemainder = _filterSlot.InsertItem(portion);
+            return itemStack.SubItem(acceptable - slotRemainder.Count);
         }
 
         public IItemStack InsertItem(ItemId itemId, int count)
@@ -113,6 +136,21 @@ namespace Game.Block.Blocks.CleanRoom
             return _filterSlot.InsertionCheck(itemStacks);
         }
 
+        // ベルトの振り分け判定は自動搬入と同じ上限を参照する
+        // Belt routing checks the same cap as automated insertion
+        bool IBlockInventory.InsertionCheck(List<IItemStack> itemStacks)
+        {
+            CheckDestroy(this);
+            var total = 0;
+            foreach (var itemStack in itemStacks)
+            {
+                if (!IsFilterOrEmpty(itemStack)) return false;
+                total += itemStack.Count;
+            }
+
+            return total <= AutoInsertAcceptableCount() && _filterSlot.InsertionCheck(itemStacks);
+        }
+
         public int GetSlotSize()
         {
             CheckDestroy(this);
@@ -135,6 +173,13 @@ namespace Game.Block.Blocks.CleanRoom
         private bool IsFilterOrEmpty(IItemStack itemStack)
         {
             return itemStack.Id == ItemMaster.EmptyItemId || itemStack.Id == _filterItemId;
+        }
+
+        // 上限までに残っている受け入れ数。空スロットの Count は0
+        // How many more filters fit under the cap; an empty slot counts 0
+        private int AutoInsertAcceptableCount()
+        {
+            return AutoInsertFilterLimit - _filterSlot.GetItem(0).Count;
         }
     }
 }
