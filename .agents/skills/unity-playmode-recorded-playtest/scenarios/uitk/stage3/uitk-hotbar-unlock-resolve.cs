@@ -15,6 +15,7 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Screens.Hotbar.Parts;
 using Client.Ui.Screens.Inventory.Wheel;
 using Client.Ui.State.Hotbar;
 using Common.Debug;
@@ -61,7 +62,7 @@ return PlaytestRunner.Run("uitk-hotbar-unlock-resolve", options, async p =>
     // 2. The wheel over the row passes through to equipment (premise #8; the real master has one equipment slot, so check the judgment and stream, not a selection change)
     var picker = resolver.Resolve<IEquipmentWheelPointerPicker>();
     var notches = new List<float>();
-    using var wheelSubscription = resolver.Resolve<InputSystemPointerWheelStream>().OnWheelNotchesScrolled.Subscribe(notches.Add);
+    using var wheelSubscription = resolver.Resolve<InputSystemPointerWheelStream>().OnWheelNotchesScrolled.Subscribe(wheel => notches.Add(wheel.notchesUp));
     SemanticInput.KeyDown(Key.LeftAlt);
     await p.WaitSeconds(0.5f);
     foreach (var testid in new[] { "hotbar-slot-0", "hotbar-slot-5" })
@@ -116,7 +117,9 @@ return PlaytestRunner.Run("uitk-hotbar-unlock-resolve", options, async p =>
 
     VisualElement Row() => GameUiRoot.Instance.GetRootElement().Q<VisualElement>("hotbar-grid");
 
-    VisualElement Cell(int index) => GameUiRoot.Instance.GetRootElement().Q<VisualElement>($"hotbar-slot-{index}").parent;
+    // 枠と番号タブは減光の群（PixelFilterGroup）の中にあるので、未解決の印を持つ枠の箱（HotbarCell）まで辿る
+    // The frame and number tab sit inside the dimming group (PixelFilterGroup), so walk up to the cell box (HotbarCell) that carries the unresolved mark
+    VisualElement Cell(int index) => GameUiRoot.Instance.GetRootElement().Q<VisualElement>($"hotbar-slot-{index}").GetFirstAncestorOfType<HotbarCell>();
 
     async UniTask<Vector2> CenterOf(string testid) => (await PlaytestUiElementOps.FindUi(testid)).ScreenRect.center;
 
