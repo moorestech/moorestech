@@ -82,7 +82,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         private static string Chain(VisualElement element)
         {
             var parts = new System.Collections.Generic.List<string>();
-            for (var e = element; e != null && parts.Count < 16; e = e.parent)
+            for (var e = element; e != null && parts.Count < 18; e = e.hierarchy.parent)
             {
                 parts.Add($"{e.name}[{string.Join(".", e.GetClasses())}] h={e.layout.height:0.#} shrink={e.resolvedStyle.flexShrink} basis={e.resolvedStyle.flexBasis} minH={e.resolvedStyle.minHeight} maxH={e.resolvedStyle.maxHeight}");
             }
