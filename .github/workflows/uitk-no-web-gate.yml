@@ -1,0 +1,38 @@
+name: UITK No-Web Gate
+# 本体（G4）は base が master の PR（切替 PR と切替の後の全 PR）だけで走る。自己テストは全 PR で走る（feature/uitk 向けでも、スクリプトの破損を止める）
+# The gate itself runs only on PRs into master (the switch PR and later); its self-test runs on every PR so script breakage is caught early
+on:
+  pull_request: {}
+
+# PR更新時に同一PRの古い実行をキャンセルする
+# Cancel outdated runs of the same PR on update
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # 撤去後のゲート G4。撤去した UI の語が許可リストの外で 0 件かを見る（語の一覧は uitk_no_web/scan.py）。repo 全体の状態を見るので並走レーンの PR では走らせない
+  # Post-removal gate G4: tokens of the removed UI must be zero outside the allowlist (token list in uitk_no_web/scan.py); reads whole-repo state, so not run on parallel lane PRs
+  uitk-no-web-gate:
+    name: UITK no-Web gate (G4)
+    if: github.base_ref == 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run G4 against this pull request
+        run: python3 .github/scripts/check-uitk-no-web.py --root .
+
+  # G4 自身の単体テスト。if を付けず全 PR で走らせ、スクリプトの破損を feature/uitk の PR で止める（合成の repo だけを読み、実 repo の状態は見ない。G1 の自己テストと同じ形）
+  # Unit tests of G4 itself. No if, so it runs on every PR and catches script breakage on feature/uitk PRs (reads only synthetic repos, like the G1 self-test)
+  uitk-no-web-gate-selftest:
+    name: UITK no-Web gate self-test (G4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test the gate itself
+        run: python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_no_web.py' -v
