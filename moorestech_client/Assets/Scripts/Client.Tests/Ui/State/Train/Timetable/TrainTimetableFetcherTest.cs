@@ -3,7 +3,7 @@ using Client.Ui.State.Train;
 using Game.Train.Unit;
 using NUnit.Framework;
 
-namespace Client.Tests.WebUiHost.Train
+namespace Client.Tests.Ui.State.Train.Timetable
 {
     // 送信境界を直接呼ぶ形に戻したため、送信なしのラッチだけを固定する
     // Sending now follows the precedent of calling ClientContext.VanillaApi directly, so only the send-free latches are pinned

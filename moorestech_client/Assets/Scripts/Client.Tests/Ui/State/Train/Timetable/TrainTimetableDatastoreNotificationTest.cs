@@ -8,7 +8,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Tests.WebUiHost.Train
+namespace Client.Tests.Ui.State.Train.Timetable
 {
     public class TrainTimetableDatastoreNotificationTest
     {

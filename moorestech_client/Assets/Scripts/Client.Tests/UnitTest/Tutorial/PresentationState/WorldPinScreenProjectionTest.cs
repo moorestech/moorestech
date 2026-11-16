@@ -2,7 +2,7 @@ using Client.Game.InGame.Tutorial;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.WebUi
+namespace Client.Tests.UnitTest.Tutorial.PresentationState
 {
     public class WorldPinScreenProjectionTest
     {

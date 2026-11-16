@@ -4,7 +4,8 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Construction;
-using Client.WebUiHost.Game.Topics.BuildMenu;
+using Client.Ui.State.BuildMenu.Entries;
+using Client.Ui.State.BuildMenu.Source;
 using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
@@ -19,7 +20,7 @@ using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Client.Tests.WebUi
+namespace Client.Tests.Ui.State.BuildMenu.Source
 {
     public class BlueprintBuildMenuMaterialTest
     {
@@ -50,16 +51,16 @@ namespace Client.Tests.WebUi
             var block = ForUnitTestModBlockId.BlockId;
             var costs = MasterHolder.BlockMaster.GetBlockMaster(block).RequiredItems;
             Assert.IsNotEmpty(costs);
-            var dto = CreateDto(CreateBlueprint(block, block));
-            Assert.AreEqual(costs.Length, dto.RequiredItems.Count);
+            var entry = CreateEntry(CreateBlueprint(block, block));
+            Assert.AreEqual(costs.Length, entry.Materials.Count);
             foreach (var cost in costs)
             {
-                var row = dto.RequiredItems.Single(item => item.ItemId == MasterHolder.ItemMaster.GetItemId(cost.ItemGuid).AsPrimitive());
-                Assert.AreEqual(cost.Count * 2, row.Count);
-                Assert.AreEqual(0, row.Held);
-                Assert.IsTrue(row.Lacking);
+                var row = entry.Materials.Single(line => line.Row.ItemId == MasterHolder.ItemMaster.GetItemId(cost.ItemGuid));
+                Assert.AreEqual(cost.Count * 2, row.Row.Item.Count);
+                Assert.AreEqual(0, row.Row.Item.Held);
+                Assert.IsTrue(row.IsInsufficient);
             }
-            Assert.IsFalse(dto.PaymentWaived);
+            Assert.IsFalse(entry.Catalog.PaymentWaived);
         }
 
         [Test]
@@ -67,9 +68,9 @@ namespace Client.Tests.WebUi
         {
             var block = ForUnitTestModBlockId.GearBeltConveyor;
             _remaining.Apply(block, 3);
-            var dto = CreateDto(CreateBlueprint(block, block, block));
-            Assert.IsEmpty(dto.RequiredItems);
-            Assert.IsNull(dto.SetPlacement);
+            var entry = CreateEntry(CreateBlueprint(block, block, block));
+            Assert.IsEmpty(entry.Materials);
+            Assert.AreSame(BuildMenuSetPlacementNone.Instance, entry.SetPlacement);
         }
 
         [Test]
@@ -77,11 +78,11 @@ namespace Client.Tests.WebUi
         {
             var block = ForUnitTestModBlockId.GearBeltConveyor;
             _remaining.Apply(block, 2);
-            var dto = CreateDto(CreateBlueprint(block, block, block));
+            var entry = CreateEntry(CreateBlueprint(block, block, block));
             var costs = MasterHolder.BlockMaster.GetBlockMaster(block).RequiredItems;
             Assert.IsNotEmpty(costs);
             foreach (var cost in costs)
-                Assert.AreEqual(cost.Count, dto.RequiredItems.Single(item => item.ItemId == MasterHolder.ItemMaster.GetItemId(cost.ItemGuid).AsPrimitive()).Count);
+                Assert.AreEqual(cost.Count, entry.Materials.Single(line => line.Row.ItemId == MasterHolder.ItemMaster.GetItemId(cost.ItemGuid)).Row.Item.Count);
         }
 
         [Test]
@@ -89,16 +90,16 @@ namespace Client.Tests.WebUi
         {
             var block = ForUnitTestModBlockId.GearBeltConveyor;
             _remaining.Apply(block, 1);
-            var dto = CreateDto(CreateBlueprint(block, ForUnitTestModBlockId.TestGearBeltConveyorUp));
+            var entry = CreateEntry(CreateBlueprint(block, ForUnitTestModBlockId.TestGearBeltConveyorUp));
             var costs = MasterHolder.BlockMaster.GetBlockMaster(block).RequiredItems;
             Assert.IsNotEmpty(costs);
-            Assert.AreEqual(costs.Length, dto.RequiredItems.Count);
+            Assert.AreEqual(costs.Length, entry.Materials.Count);
             foreach (var cost in costs)
             {
-                var row = dto.RequiredItems.Single(item => item.ItemId == MasterHolder.ItemMaster.GetItemId(cost.ItemGuid).AsPrimitive());
-                Assert.AreEqual(cost.Count, row.Count, "共有財布を一度だけ使い補充1セットを要求する");
-                Assert.AreEqual(0, row.Held);
-                Assert.IsTrue(row.Lacking);
+                var row = entry.Materials.Single(line => line.Row.ItemId == MasterHolder.ItemMaster.GetItemId(cost.ItemGuid));
+                Assert.AreEqual(cost.Count, row.Row.Item.Count, "共有財布を一度だけ使い補充1セットを要求する");
+                Assert.AreEqual(0, row.Row.Item.Held);
+                Assert.IsTrue(row.IsInsufficient);
             }
         }
 
@@ -106,10 +107,12 @@ namespace Client.Tests.WebUi
         public void 無料設置中のBPエントリは支払い免除Test()
         {
             DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, true);
-            var dto = CreateDto(CreateBlueprint(ForUnitTestModBlockId.BlockId));
-            Assert.IsTrue(dto.PaymentWaived);
-            Assert.IsNotEmpty(dto.RequiredItems);
-            Assert.IsTrue(dto.RequiredItems.All(item => item.Lacking));
+            var entry = CreateEntry(CreateBlueprint(ForUnitTestModBlockId.BlockId));
+            Assert.IsTrue(entry.Catalog.PaymentWaived);
+            Assert.IsNotEmpty(entry.Materials);
+            // 免除でも素材の行は所持と必要の事実のまま（所持 0 なので全部足りない）
+            // Even when waived the rows keep the held/required facts (nothing held, so every row falls short)
+            Assert.IsTrue(entry.Materials.All(line => line.Row.Item.Held < line.Row.Item.Count));
         }
 
         [Test]
@@ -121,14 +124,14 @@ namespace Client.Tests.WebUi
             blueprint.Chains.Add(new BlueprintLineJsonObject(0, 1, chainGuid));
             Assert.IsTrue(ConnectToolCostCalculator.TryCalculate(chainGuid, 10, out var costs));
             Assert.IsNotEmpty(costs);
-            var dto = CreateDto(blueprint);
-            Assert.IsFalse(dto.PaymentWaived);
-            Assert.AreEqual(costs.Count, dto.RequiredItems.Count);
+            var entry = CreateEntry(blueprint);
+            Assert.IsFalse(entry.Catalog.PaymentWaived);
+            Assert.AreEqual(costs.Count, entry.Materials.Count);
             foreach (var cost in costs)
             {
-                var row = dto.RequiredItems.Single(item => item.ItemId == cost.ItemId.AsPrimitive());
-                Assert.AreEqual(cost.Count, row.Count);
-                Assert.IsTrue(row.Lacking);
+                var row = entry.Materials.Single(line => line.Row.ItemId == cost.ItemId);
+                Assert.AreEqual(cost.Count, row.Row.Item.Count);
+                Assert.IsTrue(row.IsInsufficient);
             }
         }
 
@@ -140,15 +143,15 @@ namespace Client.Tests.WebUi
             var chainGuid = Guid.Parse("c0000000-0000-0000-0000-000000000003");
             blueprint.Chains.Add(new BlueprintLineJsonObject(0, 1, chainGuid));
             blueprint.Chains.Add(new BlueprintLineJsonObject(1, 0, chainGuid));
-            var dto = CreateDto(blueprint);
+            var entry = CreateEntry(blueprint);
 
             // 受理される一本だけを表示し、完全免除にもならない
             // Show only the accepted chain and keep its payment requirement
-            Assert.IsFalse(dto.PaymentWaived);
+            Assert.IsFalse(entry.Catalog.PaymentWaived);
             Assert.IsTrue(ConnectToolCostCalculator.TryCalculate(chainGuid, 10, out var costs));
             foreach (var cost in costs)
             {
-                Assert.AreEqual(cost.Count, dto.RequiredItems.Single(row => row.ItemId == cost.ItemId.AsPrimitive()).Count);
+                Assert.AreEqual(cost.Count, entry.Materials.Single(line => line.Row.ItemId == cost.ItemId).Row.Item.Count);
             }
         }
 
@@ -164,22 +167,22 @@ namespace Client.Tests.WebUi
             Assert.IsTrue(BlueprintPasteCopyBuilder.BuildUnobstructed(blueprint).Lines.Single().IsConnectable);
             Assert.IsTrue(ConnectToolCostCalculator.TryCalculate(wireGuid, 2, out var costs));
             Assert.IsNotEmpty(costs);
-            var dto = CreateDto(blueprint);
+            var entry = CreateEntry(blueprint);
             foreach (var cost in costs)
             {
                 var blockCost = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPoleId).RequiredItems
                     .Where(item => MasterHolder.ItemMaster.GetItemId(item.ItemGuid) == cost.ItemId).Sum(item => item.Count) * 2;
                 Assert.AreEqual(cost.Count + blockCost,
-                    dto.RequiredItems.Single(item => item.ItemId == cost.ItemId.AsPrimitive()).Count);
+                    entry.Materials.Single(line => line.Row.ItemId == cost.ItemId).Row.Item.Count);
             }
             DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, true);
-            Assert.IsTrue(CreateDto(blueprint).PaymentWaived);
+            Assert.IsTrue(CreateEntry(blueprint).Catalog.PaymentWaived);
         }
 
-        private BuildMenuEntryDto CreateDto(BlueprintJsonObject blueprint)
+        private BuildMenuEntryViewModel CreateEntry(BlueprintJsonObject blueprint)
         {
             var target = new BlueprintPlacementTarget(blueprint.BlueprintGuid, blueprint.Name, blueprint);
-            return BuildMenuEntryDtoFactory.CreateDtos(new IPlacementTarget[] { target },
+            return BuildMenuEntryFactory.CreateEntries(new IPlacementTarget[] { target },
                 new ConstructionWalletQuery(_remaining), Array.Empty<IItemStack>(), new BlueprintThumbnailContainer())[0];
         }
 

@@ -10,7 +10,7 @@ using Server.Util.MessagePack;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Tests.WebUi.Challenge
+namespace Client.Tests.Ui.State.Challenge
 {
     public class ChallengeProgressStateTest
     {

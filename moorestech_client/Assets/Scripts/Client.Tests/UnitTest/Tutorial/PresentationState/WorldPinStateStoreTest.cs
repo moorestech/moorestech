@@ -1,7 +1,7 @@
 using Client.Game.InGame.Tutorial;
 using NUnit.Framework;
 
-namespace Client.Tests.WebUi
+namespace Client.Tests.UnitTest.Tutorial.PresentationState
 {
     public class WorldPinStateStoreTest
     {

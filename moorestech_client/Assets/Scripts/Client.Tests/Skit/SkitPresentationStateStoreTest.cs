@@ -7,7 +7,7 @@ using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UniRx;
 
-namespace Client.Tests.WebUi
+namespace Client.Tests.Skit
 {
     public class SkitPresentationStateStoreTest
     {

@@ -3,7 +3,7 @@ using Game.Gear.Common;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 
-namespace Client.Tests.WebUi.BlockDetail
+namespace Client.Tests.Ui.State.BlockDetail
 {
     /// <summary>
     ///     網に属さない応答（Info=null）を消失でなく取得済みの値として返すことを固定する（通信失敗の null とは別扱い）
