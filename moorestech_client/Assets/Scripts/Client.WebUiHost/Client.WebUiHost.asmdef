@@ -2,7 +2,6 @@
     "name": "Client.WebUiHost",
     "rootNamespace": "Client.WebUiHost",
     "references": [
-        "CefUnity.Runtime",
         "Client.Common",
         "Common.Debug",
         "Client.Game",
