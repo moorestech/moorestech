@@ -79,8 +79,8 @@ return PlaytestRunner.Run("delete-hold-text-focus", new PlaytestRunOptions { Rec
     p.Note($"再入場: rawF={Keyboard.current.fKey.isPressed} progress={progress.CurrentProgress:F3} focus={UiInputExclusivity.IsTextInputFocused}");
     p.Assert(p.GetBlock(b) != null, "進捗途中ではBを残す");
     var dom = await PlaytestUiElementOps.FindUi("progress-bar");
-    p.Note($"進捗DOM: found={dom.IsFound} visible={dom.Visible} hit={dom.Clickable}");
-    p.Assert(dom.IsFound && dom.Visible, "表示専用の進捗DOMが可視");
+    p.Note($"進捗の要素: found={dom.IsFound} visible={dom.Visible} hit={dom.Clickable}");
+    p.Assert(dom.IsFound && dom.Visible, "表示専用の進捗の要素が可視");
     await p.Screenshot("03-reentry-progress");
     await p.Until(() => p.GetBlock(b) == null, 15f, "Fを離さずBの撤去まで完了");
     SemanticInput.KeyUp(Key.F);

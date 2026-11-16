@@ -29,8 +29,8 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
         (await PlaytestUiElementOps.FindUi("blocking-skit")).IsFound, 30);
     p.Assert(skitShown, "開幕スキット(blocking-skit)がWeb HUDに表示された");
 
-    // 受理されるまでSkipを試み、終了はskip自身では満たせないDOM消失で確かめる
-    // Retry Skip until accepted, then confirm the end by the DOM disappearing, which skip itself cannot satisfy
+    // 受理されるまでSkipを試み、終了はskip自身では満たせない要素の消失で確かめる
+    // Retry Skip until accepted, then confirm the end by the element disappearing, which skip itself cannot satisfy
     p.Note("Skipインテントで開幕スキットを飛ばす");
     var skipAccepted = await PollUntil(() =>
     {

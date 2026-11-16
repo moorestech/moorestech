@@ -55,8 +55,8 @@ return PlaytestRunner.Run("right-short-press-cancel", options, async p =>
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "パネル外右短押しでインベントリが閉じる");
     await p.Screenshot("03-inventory-closed");
 
-    // パネル上（スロット）の右クリックがUIを閉じないことの検証は、この環境でWeb UIのインベントリDOMが出ないため未実施
-    // Verifying that a right click on a panel slot keeps the UI open is not run here: the Web UI inventory DOM never appears in this environment
+    // パネル上（スロット）の右クリックがUIを閉じないことの検証は未実施
+    // Verifying that a right click on a panel slot keeps the UI open is not run here
     // 環境不具合は別issue moorestech-vq8w で追跡する
     // The environment defect is tracked separately as issue moorestech-vq8w
 });

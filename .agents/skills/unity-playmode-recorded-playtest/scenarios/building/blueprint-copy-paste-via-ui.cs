@@ -1,6 +1,6 @@
 using Game.Context;
-// ⚠ 旧uGUI版（BuildMenuView等）を置き換えたWeb UI版。名前入力の文字打ちだけは状態へ直接書く（Webモーダルの文字入力はDSL未対応）
-// Web-UI rewrite replacing the old uGUI scenario; only the name text is written to the state directly (DSL cannot type into the web modal)
+// ⚠ 旧uGUI版（BuildMenuView等）を置き換えた版。名前入力の文字打ちだけは状態へ直接書く（モーダルの文字入力は DSL で打たない）
+// Rewrite replacing the old uGUI scenario; only the name text is written to the state directly (the DSL does not type into the modal)
 // 検証: 1クリック始点/終点・E高さ・取消で終点選択へ戻る・幕の上の右短押しでは閉じない・側面ヒットの始点セル・範囲内0の拒否・貼り付けE・ドラッグ列5個・サムネイル
 // Checks one-click bounds, height, cancellation, no close on a right press over the backdrop, side hits, empty ranges, drag paste, and thumbnails
 using System.Linq;

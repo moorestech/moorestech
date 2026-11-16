@@ -1,8 +1,8 @@
 // 時刻表UI経路の通し検証: 駅2基・レール・機関車を置き、Fで車両を開き時刻表タブから1駅ずつ追加し、時刻表に載るのを待つ→自動運転ON→走行→OFF→停止。
-// 駅名はサーバー直で付け、時刻表タブの表示に名前が出ることを確認する（CEFへキー入力は転送されないため入力欄の打鍵はしない）。
+// 駅名はサーバー直で付け、時刻表タブの表示に名前が出ることを確認する（入力欄の打鍵はしない）。
 // 時刻表の取得は列車インベントリを開いただけでは起きず、時刻表タブを選んだときに1回だけ起き、開き直すと再取得されることも確かめる。
 // Timetable UI end-to-end: place two stations, rails and a locomotive, open the car with F, add the stations one at a time waiting until each lands in the timetable, turn auto-run on, watch it move, turn it off and watch it stop.
-// Station names are set server-side and verified in the tab (keystrokes are not forwarded to CEF, so the name input is not typed).
+// Station names are set server-side and verified in the tab (the name input is not typed).
 // It also checks that opening the train inventory alone does not fetch the timetable, selecting the tab fetches it once, and reopening fetches it again.
 using System.Collections.Generic;
 using System.Linq;

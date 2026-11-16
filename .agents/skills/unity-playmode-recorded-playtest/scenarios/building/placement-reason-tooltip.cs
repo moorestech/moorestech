@@ -56,11 +56,11 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     p.Assert(probe.HasTextParam("ui.tooltip.placeMaterialShortage", "ownedCount", "1") && probe.HasTextParam("ui.tooltip.placeMaterialShortage", "requiredCount", "3"), "素材不足行が「所持1/必要3」である");
     await p.Screenshot("01-material-shortage");
 
-    // Unity側の行だけでなくWeb UIまで描画が通っていることを、確実に表示中のこの瞬間に確認する
-    // Confirm the lines reach the actual Web UI rendering, checked at this moment when the tooltip is certainly shown
+    // Unity側の行だけでなく UITK の描画まで通っていることを、確実に表示中のこの瞬間に確認する
+    // Confirm the lines reach the actual UITK rendering, checked at this moment when the tooltip is certainly shown
     var tooltipDom = await PlaytestUiElementOps.FindUi("cursor-tooltip");
-    p.Note($"[Web UI DOM] found={tooltipDom.IsFound} text={tooltipDom.Text}");
-    p.Assert(tooltipDom.IsFound && !string.IsNullOrWhiteSpace(tooltipDom.Text), "Web UIのcursor-tooltipが実際に描画されている");
+    p.Note($"[UITK 要素] found={tooltipDom.IsFound} text={tooltipDom.Text}");
+    p.Assert(tooltipDom.IsFound && !string.IsNullOrWhiteSpace(tooltipDom.Text), "UITK のカーソルツールチップが実際に描画されている");
 
     SemanticInput.MouseButtonUp(0);
     await UniTask.DelayFrame(10);

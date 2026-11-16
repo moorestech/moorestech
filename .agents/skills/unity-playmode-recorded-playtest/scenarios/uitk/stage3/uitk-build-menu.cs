@@ -82,8 +82,8 @@ return PlaytestRunner.Run("uitk-build-menu", options, async p =>
     p.Assert(Math.Abs(Scroll().scrollOffset.y - filteredOffset) <= 1f, $"スクロール位置が戻る（{filteredOffset} → {Scroll().scrollOffset.y}）");
     await p.Screenshot("04-restored");
 
-    // 検索を空に戻すと末尾付近に居るので、ベルトのカテゴリへ跳んでから選ぶ（前例 webui-buildmenu-click）
-    // Clearing the search leaves us near the end, so jump to the belt's category before selecting (precedent webui-buildmenu-click)
+    // 検索を空に戻すと末尾付近に居るので、ベルトのカテゴリへ跳んでから選ぶ
+    // Clearing the search leaves us near the end, so jump to the belt's category before selecting
     await p.SetText("build-menu-search", "");
     var beltMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("ベルトコンベア"));
     var (beltCategoryGuid, _) = MasterHolder.BuildMenuCategoryMaster.GetGuidPair(beltMaster.Category, beltMaster.SubCategory);

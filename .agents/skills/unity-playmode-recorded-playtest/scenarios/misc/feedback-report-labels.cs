@@ -1,5 +1,5 @@
-// 感想とバグの送信ボタンを実機CEFで描画し、種別切替を録画する
-// Render feedback and bug send labels in real CEF and record kind switching
+// 感想とバグの送信ボタンを UITK で描画し、種別切替を録画する
+// Render feedback and bug send labels in UITK and record kind switching
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;

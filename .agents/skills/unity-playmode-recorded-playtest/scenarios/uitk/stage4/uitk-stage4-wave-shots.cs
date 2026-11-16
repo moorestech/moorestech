@@ -95,8 +95,8 @@ return PlaytestRunner.Run("uitk-stage4-wave-shots", options, async p =>
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 
-    // カーソルをパネル外へ逃がし、操作オーバーレイを消して落ち着かせてから撮る（前例 uitk-stage3-compare。Web は CEF の描画が遅れる）
-    // Move the cursor off panels, hide the operation overlay and settle before shooting (precedent uitk-stage3-compare; Web paints late via CEF)
+    // カーソルをパネル外へ逃がし、操作オーバーレイを消して落ち着かせてから撮る（前例 uitk-stage3-compare）
+    // Move the cursor off panels, hide the operation overlay and settle before shooting (precedent uitk-stage3-compare)
     async UniTask Shoot(string shotId)
     {
         SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.03f, Screen.height * 0.5f));

@@ -35,7 +35,7 @@ return PlaytestRunner.Run("research-node-state-label", options, async p =>
     await p.PressKey(Key.R);
     await p.Until(() => p.CurrentUiState == UIStateEnum.ResearchTree, 10f, "研究ツリーへ遷移");
 
-    // 3状態が実際にWeb UIへ描かれるまで待ってから撮る。出ていなければ落ちるので画像が証跡として機能する
+    // 3状態が実際に UITK へ描かれるまで待ってから撮る。出ていなければ落ちるので画像が証跡として機能する
     // Wait until all three labels actually render before capturing, so a missing state fails instead of yielding a hollow screenshot
     await AssertStateLabel(research1, "完了済み");
     await AssertStateLabel(research2, "研究可能");
@@ -48,7 +48,7 @@ return PlaytestRunner.Run("research-node-state-label", options, async p =>
     async UniTask AssertStateLabel(Guid researchGuid, string expectedLabel)
     {
         var dom = await Client.Playtest.Operations.PlaytestUiElementOps.FindUi($"research-node-state-{researchGuid}");
-        p.Note($"[Web UI DOM] {researchGuid} found={dom.IsFound} text={dom.Text}");
+        p.Note($"[UITK 要素] {researchGuid} found={dom.IsFound} text={dom.Text}");
         p.Assert(dom.IsFound && dom.Text == expectedLabel, $"{researchGuid} の状態ラベルが「{expectedLabel}」で描画されている");
     }
 

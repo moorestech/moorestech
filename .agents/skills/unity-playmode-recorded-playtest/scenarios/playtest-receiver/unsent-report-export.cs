@@ -1,5 +1,5 @@
-// 送信できない報告の行と再送・書き出しボタンを実機CEFで描画し、書き出しのzipを確かめる
-// Render the failed-report row with resend/export buttons in real CEF and verify the exported zip
+// 送信できない報告の行と再送・書き出しボタンを UITK で描画し、書き出しのzipを確かめる
+// Render the failed-report row with resend/export buttons in UITK and verify the exported zip
 //
 // 前提: PlayModeに入る前に実outboxへ偽の箱 99991231_000000_recoveryplaytest（READY・UPLOAD_FAILED本文"playtest"・payload.txt）を1つ置く。
 // 本文"playtest"は IsCompletionHold・BugReportBoxFilePolicy.CanResumeHold に当たらず、起動時の送信はこの箱を飛ばす。
@@ -77,8 +77,8 @@ return PlaytestRunner.Run("unsent-report-export", new PlaytestRunOptions { Recor
     await p.ClickUi("pause-menu-open-bug-report");
     await p.UntilUiElement("bug-report-description", 15f);
 
-    // 配送状況の行と、その下の2つのボタンをDOMで確かめる
-    // Verify the delivery row and the two buttons below it through the DOM
+    // 配送状況の行と、その下の2つのボタンを要素で確かめる
+    // Verify the delivery row and the two buttons below it through the elements
     p.Note("配送状況に送信できない報告1件と、再送・書き出しの2ボタンが出ることを確かめます");
     await PlaytestUiElementOps.WaitUiTextContains("bug-report-delivery", "送信できない報告 1件", 60f);
     await p.UntilUiElement("bug-report-resend-failed", 15f);
