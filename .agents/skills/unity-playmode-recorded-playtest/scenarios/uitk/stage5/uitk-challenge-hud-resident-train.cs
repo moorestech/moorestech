@@ -1,7 +1,5 @@
 // 進行中チャレンジ HUD を列車の入れ子ポーズで UITK（GameUi）に通す（Web challenge.spec の TrainHUDScreen＋PauseMenuScreen・pause-menu）: ゲーム画面と同じ位置・寸法のまま、ポーズの中身より上
 // Runs the current-challenge HUD through the train nested pause on UITK (GameUi) (Web challenge.spec TrainHUDScreen + PauseMenuScreen, pause-menu): same rect as the game screen, above the pause content
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,7 +7,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -33,8 +30,6 @@ using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarE
 
 return PlaytestRunner.Run("uitk-challenge-hud-resident-train", new PlaytestRunOptions { Record = true }, async p =>
 {
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
     // Ignore focus so injected input reaches a background Editor
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;

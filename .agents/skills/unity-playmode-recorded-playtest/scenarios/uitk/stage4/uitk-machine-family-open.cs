@@ -1,12 +1,9 @@
 // ポンプ・タンク・パイプ・歯車の機械・歯車の採掘機・発電機を UITK（GameUi）で開き、各区画が出て Error が 0 件、歯車駆動の電力率が不足の赤にならないことを通す（S4-machine）
 // Opens a pump, tank, pipe, gear machine, gear miner and generator on UITK (GameUi): each section shows, zero errors, and gear-driven power rates never turn shortage-red (S4-machine)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -40,7 +37,6 @@ return PlaytestRunner.Run("uitk-machine-family-open", new PlaytestRunOptions { R
     Application.logMessageReceived += CountErrors;
     try
     {
-        p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, $"全体スイッチが UITK（UiInputExclusivity.ActiveUiSystem={UiInputExclusivity.ActiveUiSystem}）");
         InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         SemanticInput.EnsureDevices();

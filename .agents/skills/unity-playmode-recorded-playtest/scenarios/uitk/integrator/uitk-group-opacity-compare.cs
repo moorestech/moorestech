@@ -1,11 +1,8 @@
 // 群の淡さ（研究の素材不足の枠・研究ボタンの無効）を Game View の実画面で 1280×720・2560×1080 に撮る。群の filter と旧来の要素の opacity を撮り分ける
 // Shoots group fading (research cost slot shortage, disabled research button) on the real Game View at 1280x720 and 2560x1080, with the group filter and the old element opacity
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -22,7 +19,6 @@ using UnityEngine.UIElements;
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-group-opacity-compare", options, async p =>
 {
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

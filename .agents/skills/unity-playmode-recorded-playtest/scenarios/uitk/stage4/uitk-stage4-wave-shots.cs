@@ -1,9 +1,8 @@
-// 段階4の波の撮影: 持ち物・機械・研究の同時に出る組を 1280x720 と 2560x1080 で撮る（録画しない。系は呼び出し側が選ぶ）
-// Stage-4 wave shots: capture the co-shown inventory, machine and research sets at 1280x720 and 2560x1080 (no recording; caller picks the system)
-// winunity play <branch> <このファイル> --ui-system GameUi|Web で両系を流し、play/ の 6 枚を名前で並べる
-// Run with winunity play <branch> <this file> --ui-system GameUi|Web on both systems and pair the six play/ shots by name
+// 段階4の波の撮影: 持ち物・機械・研究の同時に出る組を 1280x720 と 2560x1080 で撮る（録画しない）
+// Stage-4 wave shots: capture the co-shown inventory, machine and research sets at 1280x720 and 2560x1080 (no recording)
+// winunity play <branch> <このファイル> で流し、play/ に 6 枚を名前つきで撮る
+// Run with winunity play <branch> <this file> and get the six named shots in play/
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -19,7 +18,6 @@ return PlaytestRunner.Run("uitk-stage4-wave-shots", options, async p =>
 {
     // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
     // Ignore focus so injected input reaches a background Editor
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

@@ -1,7 +1,7 @@
 // S5-crosscut T19 の撮り直し（列車族）: 貨物プラットフォーム・機関車の持ち物タブ（空と物あり）と、乗車中の列車 HUD に背景の会話の字幕を出したままを日本語で 1280×720 と 2560×1080 に撮る（S5-ladder）
 // S5-crosscut T19 retake (train family): shoot the cargo platform, the locomotive inventory tab (empty and filled) and the riding train HUD with a background-skit subtitle in Japanese at 1280x720 and 2560x1080 (S5-ladder)
-// 実行は stage5/driver/winunity-scenario-run.sh <branch> <GameUi|Web> normal <この .cs> <name> から。Web の系は R4 の列車 HUD＋字幕だけを撮る（ブロック画面の段を飛ばす）
-// Run via stage5/driver/winunity-scenario-run.sh <branch> <GameUi|Web> normal <this .cs> <name>; on Web only the R4 train HUD with subtitle is shot (block-screen steps are skipped)
+// 実行は stage5/driver/winunity-scenario-run.sh <branch> normal <この .cs> <name> から
+// Run via stage5/driver/winunity-scenario-run.sh <branch> normal <this .cs> <name>
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,7 +9,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -36,11 +35,9 @@ using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarE
 
 return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f }, async p =>
 {
-    // 1. 系の記録・入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
-    // 1. Record the system, input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
-    var system = UiInputExclusivity.ActiveUiSystem;
-    var shotPrefix = system == UiSystem.GameUi ? "uitk" : "web-live";
-    p.Note($"系={system}");
+    // 1. 入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
+    // 1. Input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
+    var shotPrefix = "uitk";
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
@@ -62,50 +59,44 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
         // 2. Put a locomotive on a ground station rail (precedent stage4/uitk-train-inventory)
         var train = await PlaceLocomotive();
 
-        // 3. GameUi だけ: 機関車の持ち物タブ（空 → 物あり）と貨物プラットフォーム
-        // 3. GameUi only: the locomotive inventory tab (empty, then filled) and the cargo platform
-        if (system == UiSystem.GameUi)
-        {
-            await AimAtCar();
-            await p.PressInteract();
-            await p.WaitUiState(UIStateEnum.SubInventory, 10f);
-            await p.Until(() => Shown("train-inventory-body"), 15f, "train-inventory-body が出る");
-            p.Assert(GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-tab-inventory").ClassListContains("mode-switch__option--selected"), "持ち物タブが選ばれている");
-            await ShootBoth("4-block-trainTimetable");
-            await p.RunOnServer("機関車の枠 0・1 に物を入れる", () => { var container = (ItemTrainCarContainer)train.Cars[0].Container; container.SetItem(0, PlaytestItemOps.ResolveItemId("原木"), 24); container.SetItem(1, PlaytestItemOps.ResolveItemId("石"), 8); });
-            await p.Until(() => GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-inventory-slots-slot-1")?.Query<Label>().ToList().Any(l => l.text.Contains("8")) == true, 10f, "枠 1 に 8 個が出る");
-            await ShootBoth("4-block-train");
-            await Close();
-            var platformPos = new Vector3Int(-20, 32, -20);
-            await p.PlaceBlockDirect("貨物プラットフォーム", platformPos, BlockDirection.North);
-            var platformObject = await p.WaitBlockGameObject(platformPos);
-            await p.Until(() => !platformObject.IsPlayingPlaceAnimation, 30f, "貨物プラットフォームの設置演出");
-            // 当たり判定の箱の南面の手前から狙う（前例 uitk-train-inventory の OpenStation）
-            // Aim from just south of the collider box (precedent OpenStation in uitk-train-inventory)
-            var colliders = platformObject.GetComponentsInChildren<Collider>(true).Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger && c.bounds.size != Vector3.zero).ToList();
-            var bounds = colliders[0].bounds; foreach (var collider in colliders) bounds.Encapsulate(collider.bounds);
-            p.Note($"貨物プラットフォームの当たり判定 min={bounds.min} max={bounds.max}");
-            p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1f));
-            await UniTask.DelayFrame(10);
-            SemanticInput.KeyDown(Key.LeftAlt);
-            await p.AimAt(new Vector3(bounds.center.x, Mathf.Min(bounds.max.y - 0.1f, 32.4f), bounds.min.z + 0.1f));
-            await p.PressInteract();
-            await p.WaitUiState(UIStateEnum.SubInventory, 10f);
-            SemanticInput.KeyUp(Key.LeftAlt);
-            await p.Until(() => Shown("train-platform-view"), 15f, "train-platform-view が出る");
-            await ShootBoth("4-block-trainPlatform");
-            await Close();
-        }
+        // 3. 機関車の持ち物タブ（空 → 物あり）と貨物プラットフォーム
+        // 3. The locomotive inventory tab (empty, then filled) and the cargo platform
+        await AimAtCar();
+        await p.PressInteract();
+        await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+        await p.Until(() => Shown("train-inventory-body"), 15f, "train-inventory-body が出る");
+        p.Assert(GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-tab-inventory").ClassListContains("mode-switch__option--selected"), "持ち物タブが選ばれている");
+        await ShootBoth("4-block-trainTimetable");
+        await p.RunOnServer("機関車の枠 0・1 に物を入れる", () => { var container = (ItemTrainCarContainer)train.Cars[0].Container; container.SetItem(0, PlaytestItemOps.ResolveItemId("原木"), 24); container.SetItem(1, PlaytestItemOps.ResolveItemId("石"), 8); });
+        await p.Until(() => GameUiRoot.Instance.GetRootElement().Q<VisualElement>("train-inventory-slots-slot-1")?.Query<Label>().ToList().Any(l => l.text.Contains("8")) == true, 10f, "枠 1 に 8 個が出る");
+        await ShootBoth("4-block-train");
+        await Close();
+        var platformPos = new Vector3Int(-20, 32, -20);
+        await p.PlaceBlockDirect("貨物プラットフォーム", platformPos, BlockDirection.North);
+        var platformObject = await p.WaitBlockGameObject(platformPos);
+        await p.Until(() => !platformObject.IsPlayingPlaceAnimation, 30f, "貨物プラットフォームの設置演出");
+        // 当たり判定の箱の南面の手前から狙う（前例 uitk-train-inventory の OpenStation）
+        // Aim from just south of the collider box (precedent OpenStation in uitk-train-inventory)
+        var colliders = platformObject.GetComponentsInChildren<Collider>(true).Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger && c.bounds.size != Vector3.zero).ToList();
+        var bounds = colliders[0].bounds; foreach (var collider in colliders) bounds.Encapsulate(collider.bounds);
+        p.Note($"貨物プラットフォームの当たり判定 min={bounds.min} max={bounds.max}");
+        p.WarpPlayer(new Vector3(bounds.center.x, 33.5f, bounds.min.z - 1f));
+        await UniTask.DelayFrame(10);
+        SemanticInput.KeyDown(Key.LeftAlt);
+        await p.AimAt(new Vector3(bounds.center.x, Mathf.Min(bounds.max.y - 0.1f, 32.4f), bounds.min.z + 0.1f));
+        await p.PressInteract();
+        await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+        SemanticInput.KeyUp(Key.LeftAlt);
+        await p.Until(() => Shown("train-platform-view"), 15f, "train-platform-view が出る");
+        await ShootBoth("4-block-trainPlatform");
+        await Close();
 
-        // 4. 乗車して列車 HUD を出し、背景の会話の字幕を出したまま撮る（R4。両系）
-        // 4. Ride, show the train HUD and shoot it with a background-skit subtitle up (R4; both systems)
+        // 4. 乗車して列車 HUD を出し、背景の会話の字幕を出したまま撮る（R4）
+        // 4. Ride, show the train HUD and shoot it with a background-skit subtitle up (R4)
         await AimAtCar();
         await p.PressRide();
         await p.Until(() => p.CurrentUiState == UIStateEnum.TrainHUDScreen, 15f, "列車 HUD の状態");
-        if (system == UiSystem.GameUi) await p.Until(() => Shown("train-riding-hud"), 10f, "train-riding-hud が出る");
-        // Web は描画の口が途中で答えなくなることがあるので、待ちで落とさず 5 秒後に撮り、ロケータの答えを控える（絵が描けたかの証拠）
-        // Web's renderer can stop answering midway, so shoot after 5 s instead of failing the wait and note the locator answer (evidence of whether it drew)
-        else { await p.WaitSeconds(5f); var hud = await PlaytestUiElementOps.FindUi("train-riding-hud"); p.Note($"Web の train-riding-hud: found={hud.IsFound} visible={hud.Visible}"); }
+        await p.Until(() => Shown("train-riding-hud"), 10f, "train-riding-hud が出る");
         var store = SkitPresentationStateStore.Instance;
         store.BeginBackground();
         store.SetBackgroundText("ムーア", "列車の旅は順調だ。次の駅で荷物を降ろそう");
@@ -179,7 +170,7 @@ return PlaytestRunner.Run("uitk-s5-retake-train", new PlaytestRunOptions { Recor
             await PlaytestGameViewOps.SetResolution(p.CancellationToken, w, h);
             await UniTask.DelayFrame(3);
             p.Assert(Screen.width == w && Screen.height == h, $"Screen が {w}x{h} (実際 {Screen.width}x{Screen.height})");
-            await p.WaitSeconds(system == UiSystem.GameUi ? 0.5f : 2f);
+            await p.WaitSeconds(0.5f);
             await p.Screenshot($"{shotPrefix}-{stateId}-{w}x{h}");
         }
         await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);

@@ -1,13 +1,12 @@
-// 段階 5 の並べ比べ（組 2）: 出展モードで起動し、言語ゲートとチャレンジ一覧を同じ実ゲームの状態で 1280×720 と 2560×1080 に撮る。全体スイッチの両系で同じ手順が通る（S5-ladder）
-// Stage 5 comparison (set 2): boot in exhibition mode and shoot the language gate and challenge list in the same real game state at 1280x720 and 2560x1080; the same steps pass on both UI systems (S5-ladder)
-// 実行は stage5/driver/winunity-scenario-run.sh <branch> <GameUi|Web> exhibition <この .cs> <name> から。参照（web-8a585f742a）の画面の字は日本語なので、撮る間は日本語にしてゲートでも日本語を選ぶ
-// Run via stage5/driver/winunity-scenario-run.sh <branch> <GameUi|Web> exhibition <this .cs> <name>; the reference (web-8a585f742a) shows Japanese, so shoot in Japanese and choose Japanese at the gate
+// 段階 5 の並べ比べ（組 2）: 出展モードで起動し、言語ゲートとチャレンジ一覧を同じ実ゲームの状態で 1280×720 と 2560×1080 に撮る（S5-ladder）
+// Stage 5 comparison (set 2): boot in exhibition mode and shoot the language gate and challenge list in the same real game state at 1280x720 and 2560x1080 (S5-ladder)
+// 実行は stage5/driver/winunity-scenario-run.sh <branch> exhibition <この .cs> <name> から。参照（web-8a585f742a）の画面の字は日本語なので、撮る間は日本語にしてゲートでも日本語を選ぶ
+// Run via stage5/driver/winunity-scenario-run.sh <branch> exhibition <this .cs> <name>; the reference (web-8a585f742a) shows Japanese, so shoot in Japanese and choose Japanese at the gate
 using System.IO;
 using System.Linq;
 using Client.Game.Common;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -25,11 +24,9 @@ using UnityEngine.InputSystem;
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 500f };
 return PlaytestRunner.Run("uitk-stage5-compare", options, async p =>
 {
-    // 1. 系を記録し、撮影名の頭を系で分ける。入力の準備
-    // 1. Record the system and prefix shot names by it; prepare input
-    var system = UiInputExclusivity.ActiveUiSystem;
-    var shotPrefix = system == UiSystem.GameUi ? "uitk" : "web-live";
-    p.Note($"系={system}");
+    // 1. 撮影名の頭を決め、入力の準備
+    // 1. Fix the shot-name prefix and prepare input
+    var shotPrefix = "uitk";
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

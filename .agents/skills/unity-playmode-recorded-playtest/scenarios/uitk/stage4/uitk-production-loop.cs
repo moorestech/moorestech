@@ -1,13 +1,12 @@
 // ラダー4 uitk-production-loop: Tab→長押しクラフト→石窯に掴み・Shift・右ドラッグで入れる→開いたまま出来上がりを見る→取り出す→整理（UITKだけ）
 // Ladder 4 uitk-production-loop: Tab -> hold-craft -> load a stone kiln by grab, Shift and right-drag -> watch output while open -> take out -> sort (UITK only)
-// winunity play <branch> <このファイル> --ui-system GameUi で流す（全体スイッチは winunity が立てて Current を確かめる）
-// Run with winunity play <branch> <this file> --ui-system GameUi (winunity sets the whole-UI switch and checks Current)
+// winunity play <branch> <このファイル> で流す
+// Run with winunity play <branch> <this file>
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -16,7 +15,6 @@ using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Drag;
 using Client.Ui.State.Items;
-using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -50,8 +48,6 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
     while (skitSkipRounds < 4 && !await PlaytestUiOps.PollUiState(UIStateEnum.GameScreen, 5f)) { skitSkipRounds++; await p.SkipOpeningSkitIfPlaying(); }
     p.Note($"opening-skit-skip-rounds={skitSkipRounds}");
     await p.ExitToGameScreen();
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi（UITK側）");
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（UITK側）");
     var log = PlaytestItemOps.ResolveItemId("原木");
     var plank = PlaytestItemOps.ResolveItemId("木の板");
     var bronzeDust = PlaytestItemOps.ResolveItemId("青銅鉱石の粉");

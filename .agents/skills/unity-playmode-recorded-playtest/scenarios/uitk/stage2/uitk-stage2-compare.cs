@@ -1,5 +1,5 @@
-// 束 2 の並べ比べ（組 2）: 同じ実ゲームの状態を GameUi と Web の両系で作り参照と同じ撮影 id で 1280×720 と 2560×1080 に撮る。winunity play <branch> <this> --ui-system GameUi|Web で流し、UITK の木の照会は GameUi の回だけ。2-train-hud は乗車で分岐 1 しか出ないので撮らず、通知とスキットは uitk-notification-compare・uitk-skit-compare が受け持つ
-// Bundle-2 comparison (group 2): build the same real game states on GameUi and Web and shoot them under the reference ids at 1280x720 and 2560x1080; run with winunity play <branch> <this> --ui-system GameUi|Web, UITK tree queries only on the GameUi pass. 2-train-hud is skipped (riding shows only one branch); notifications and skits belong to uitk-notification-compare and uitk-skit-compare
+// 束 2 の並べ比べ（組 2）: 同じ実ゲームの状態を作り参照と同じ撮影 id で 1280×720 と 2560×1080 に撮る。winunity play <branch> <this> か run-scenario.sh で流す。2-train-hud は乗車で分岐 1 しか出ないので撮らず、通知とスキットは uitk-notification-compare・uitk-skit-compare が受け持つ
+// Bundle-2 comparison (group 2): build the same real game states and shoot them under the reference ids at 1280x720 and 2560x1080; run with winunity play <branch> <this> or run-scenario.sh. 2-train-hud is skipped (riding shows only one branch); notifications and skits belong to uitk-notification-compare and uitk-skit-compare
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
@@ -7,7 +7,6 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -15,7 +14,6 @@ using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Client.Playtest.Overlay;
 using Client.Ui.Foundation.Root;
-using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
@@ -28,10 +26,8 @@ using Object = UnityEngine.Object;
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
 {
-    // 系の主張: 起動した系とホストの有無が噛み合う（両系で同じ手順を流すので系そのものは固定しない）
-    // Assert the system matches the host presence (both systems run the same steps, so the system itself is not pinned)
-    var isGameUi = UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi;
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
+    // 入力の準備
+    // Prepare input
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
@@ -41,7 +37,6 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
     // A Game View behind another tab never renders and screenshots come out empty, so bring it to front
     PlaytestGameViewOps.BringToFront();
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    p.Assert(isGameUi == (WebUiHost.Hub == null), isGameUi ? "GameUi の回は Web ホストが無い" : "Web の回は Web ホストがある");
     // 参照は日本語で撮る。他のシナリオ（uitk-notification-compare）が Editor の言語を英語で残すので、撮る前に固定する
     // References are in Japanese; another scenario (uitk-notification-compare) leaves the Editor in English, so pin it before shooting
     Localize.TrySetChosenLanguage("japanese");
@@ -104,8 +99,8 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await p.Screenshot($"{res}-2-world-pin-onscreen");
         p.WarpPlayer(tree.transform.position + forward * 6f + Vector3.up * 0.5f);
         await p.Until(() => WorldPinStateStore.Instance.GetCurrent().Pins.Any(pin => !pin.OnScreen), 10f, "ピンが画面外");
-        // store の判定が先に変わり Web は橋と CEF を通って遅れて描くので、落ち着かせてから両系の矢印の要素を確かめて撮る
-        // The store flips first and Web draws later via the bridge and CEF, so let it settle and confirm the arrow element on both systems
+        // store の判定が先に変わり描画は遅れて追いつくので、落ち着かせてから矢印の要素を確かめて撮る
+        // The store flips first and drawing catches up later, so let it settle and confirm the arrow element
         await p.WaitSeconds(0.5f);
         await UntilShown($"world-pin-arrow-{PinId()}", "");
         await p.Screenshot($"{res}-2-world-pin-offscreen");
@@ -165,8 +160,8 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         SemanticInput.MouseMoveTo(new Vector2(2f, Screen.height - 2f));
         tooltip.Show(owner, LocalizationKeys.Ui.Tooltip.WorldTarget);
         await UntilShown("cursor-tooltip", Localize.Get(LocalizationKeys.Ui.Tooltip.WorldTarget));
-        // Web は文言が先に届きポインタの位置が遅れて CEF へ着くので、ツールチップが左上のポインタの所へ来るまで待つ
-        // On Web the text lands before the pointer position reaches CEF, so wait until the tooltip sits at the top-left pointer
+        // 文言が先に届きポインタの位置が遅れて着くことがあるので、ツールチップが左上のポインタの所へ来るまで待つ
+        // The text can land before the pointer position, so wait until the tooltip sits at the top-left pointer
         var tooltipDeadline = Time.realtimeSinceStartup + 10f;
         for (var tip = await PlaytestUiElementOps.FindUi("cursor-tooltip"); Screen.width / 4f < tip.ScreenRect.center.x && Time.realtimeSinceStartup < tooltipDeadline; tip = await PlaytestUiElementOps.FindUi("cursor-tooltip")) await UniTask.DelayFrame(1);
         p.Assert((await PlaytestUiElementOps.FindUi("cursor-tooltip")).ScreenRect.center.x < Screen.width / 4f, "ツールチップが左上のポインタの所");
@@ -179,16 +174,15 @@ return PlaytestRunner.Run("uitk-stage2-compare", options, async p =>
         await p.PressKey(Key.Tab);
         await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     }
-    // UITK の木の矩形（パネル座標）を記録する。Web の回は UITK の木が無いので測らない
-    // Record a UITK tree rect in panel coordinates; the Web pass has no UITK tree, so skip it
+    // UITK の木の矩形（パネル座標）を記録する
+    // Record a UITK tree rect in panel coordinates
     void NoteRect(string res, string name)
     {
-        if (!isGameUi) return;
         var element = GameUiRoot.Instance.GetRootElement().Q(name);
         p.Note($"矩形 {res} {name} {(element == null ? "none" : element.worldBound.ToString())}");
     }
-    // 両系の locator で見えて文言を含むまで待つ。出なければ例外で落ち、状態の出来ていない画像を撮らない
-    // Wait until visible with the text on both locators; a timeout throws so no shot is taken of an unbuilt state
+    // locator で見えて文言を含むまで待つ。出なければ例外で落ち、状態の出来ていない画像を撮らない
+    // Wait until visible with the text on the locator; a timeout throws so no shot is taken of an unbuilt state
     async UniTask UntilShown(string testid, string text)
     {
         await PlaytestUiElementOps.WaitUiTextContains(testid, text, 10f);

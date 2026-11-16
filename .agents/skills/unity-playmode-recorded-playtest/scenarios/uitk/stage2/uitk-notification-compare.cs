@@ -1,9 +1,7 @@
 // 通知の並べ比べ撮影: GameUi（UITK）の本番の通知の層に参照 2-notifications と同じ 4 行（獲得・研究完了・アイテム解放・拒否）を日本語で出し、Game View の実画面を 1280×720 と 2560×1080 で撮る
 // 参照は mock-host の画面なので、背面の層に参照と同じ橙の地を敷き、行のアイコンを mock-host の仮アイコン（demoAssets.ts の placeholderIcon）・文を参照と同じ文（Item 2 +5・最初の研究）に差し替える。行の段組・色・寸法は本番のまま
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
 // Notification comparison shots: show the same four rows as reference 2-notifications (earned, research completed, item unlocked, denied) in Japanese on the production notification layer and shoot the real Game View at 1280x720 and 2560x1080
 // The reference is a mock-host screen, so lay the same orange ground behind and swap row icons for the mock-host placeholder icons (demoAssets.ts placeholderIcon) and texts for the reference texts (Item 2 +5, 最初の研究); row layout, colors and sizes stay production
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,7 +18,6 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification.Content;
 using Client.Ui.State.Text;
-using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Server.Event.Notification;
@@ -33,7 +30,6 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（GameUi）");
 
     // 参照の元データ（W/e2e/mock-host/topics/topicControls.ts の通知の 4 つ）と同じ順・同じ中身。研究完了はアイテム 1 のアイコン付き
     // Same order and contents as the reference source data (the four notification controls in topicControls.ts); research completed carries the item 1 icon

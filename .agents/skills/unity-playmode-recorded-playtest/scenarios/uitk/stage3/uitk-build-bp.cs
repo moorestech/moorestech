@@ -1,7 +1,5 @@
 // ラダー 3: B → 検索 → エントリをホットバーへドラッグ → 選んで設置 → BP をコピーして名前を付ける（GameUi。S3-ladder）
 // Ladder 3: B -> search -> drag an entry onto the hotbar -> select and place -> copy a blueprint and name it (GameUi, S3-ladder)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
@@ -22,10 +20,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("uitk-build-bp", options, async p =>
 {
-    // 1. 系の主張と入力の準備（前例 uitk-hotbar-and-bp-modal）
-    // 1. Assert the UI system and prepare input (precedent uitk-hotbar-and-bp-modal)
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 1. 入力の準備（前例 uitk-hotbar-and-bp-modal）
+    // 1. Prepare input (precedent uitk-hotbar-and-bp-modal)
     // 日本語名「石窯」で検索するので言語を japanese に決める（PlayerPrefs は他の実行と共有され英語のまま来ることがある。前例 uitk-block-inventory）
     // Search by the Japanese name, so pin the language to japanese (PlayerPrefs is shared and may arrive as English; precedent uitk-block-inventory)
     p.Assert(Localize.TrySetChosenLanguage("japanese"), "言語を japanese にできる");

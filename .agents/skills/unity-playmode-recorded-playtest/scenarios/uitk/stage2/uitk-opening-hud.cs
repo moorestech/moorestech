@@ -1,5 +1,5 @@
-// ラダー 2 uitk-opening-hud: Web ホスト無しで、開幕スキットを送って飛ばす → 目標 HUD の枠 → 歩いて伐採（ゲージと獲得通知）→ 数字キーで選んで設置を UITK だけで通す
-// Ladder 2 uitk-opening-hud: with no web host, advance and skip the opening skit -> outline on the objective HUD -> walk and chop (gauge and earned notification) -> pick with a digit key and place, using UITK alone
+// ラダー 2 uitk-opening-hud: 開幕スキットを送って飛ばす → 目標 HUD の枠 → 歩いて伐採（ゲージと獲得通知）→ 数字キーで選んで設置を UITK だけで通す
+// Ladder 2 uitk-opening-hud: advance and skip the opening skit -> outline on the objective HUD -> walk and chop (gauge and earned notification) -> pick with a digit key and place, using UITK alone
 // 100_start_game に選択肢は無い。選択肢は uitk-skit-choice-pause-cursor.cs（sample_short）が受け持つ（D-2）
 // 100_start_game has no choices; uitk-skit-choice-pause-cursor.cs (sample_short) covers them (D-2)
 // 枠は先頭チャレンジの tutorial で、伐採で原木 3 個に届くと消えるので採掘の前に見る（D-3）
@@ -13,7 +13,6 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -23,7 +22,6 @@ using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification.Content;
-using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -36,10 +34,8 @@ using UnityEngine.UIElements;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
 {
-    // 系の主張と入力の準備（前例 uitk-skit）
-    // Assert the UI system and prepare input (precedent uitk-skit)
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 入力の準備（前例 uitk-skit）
+    // Prepare input (precedent uitk-skit)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
@@ -50,7 +46,6 @@ return PlaytestRunner.Run("uitk-opening-hud", options, async p =>
     Client.Playtest.Operations.Ui.PlaytestGameViewOps.BringToFront();
     await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
     var store = SkitPresentationStateStore.Instance;
     var root = GameUiRoot.Instance.GetRootElement();
 

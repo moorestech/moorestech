@@ -1,12 +1,9 @@
 // ブロックインベントリの特殊族（フィルター分岐器・回転生成機・電柱・ベルト・歯車・燃料式風車・宇宙エレベーター拠点）を UITK（GameUi）で開いて操作する（S4-special）
 // Opens and operates the block-inventory special family (filter splitter, electric-to-gear, pole, belt, gear, fuel windmill, space elevator base) on UITK (GameUi) (S4-special)
-// 実行前に PlayMode を止め、execute-dynamic-code で Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
 using System.Linq;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -31,7 +28,6 @@ using UnityEngine.UIElements;
 
 return PlaytestRunner.Run("uitk-block-special-panels", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f }, async p =>
 {
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, $"全体スイッチが UITK（{UiInputExclusivity.ActiveUiSystem}）");
     p.Note("系=GameUi");
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;

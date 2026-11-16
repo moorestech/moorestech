@@ -1,14 +1,13 @@
 // S5-crosscut T19 の撮り直し（ブロック画面・レシピ）: フィルター分岐器（10 枠）・チェスト・機械・電柱・宇宙エレベーター拠点・レシピのクラフト選択を日本語で 1280×720 と 2560×1080 に撮る（S5-ladder）
 // S5-crosscut T19 retake (block screens and recipe): shoot the filter splitter (10 slots), chest, machine, pole, space elevator base and recipe craft selection in Japanese at 1280x720 and 2560x1080 (S5-ladder)
-// 実行は stage5/driver/winunity-scenario-run.sh <branch> <GameUi|Web> normal <この .cs> <name> から。Web の系は R9 のフィルター分岐器だけを撮って終える（先に撮る並び）
-// Run via stage5/driver/winunity-scenario-run.sh <branch> <GameUi|Web> normal <this .cs> <name>; on Web only the R9 filter splitter is shot (it comes first)
+// 実行は stage5/driver/winunity-scenario-run.sh <branch> normal <この .cs> <name> から
+// Run via stage5/driver/winunity-scenario-run.sh <branch> normal <this .cs> <name>
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -32,11 +31,9 @@ using VContainer;
 
 return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f }, async p =>
 {
-    // 1. 系の記録・入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
-    // 1. Record the system, input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
-    var system = UiInputExclusivity.ActiveUiSystem;
-    var shotPrefix = system == UiSystem.GameUi ? "uitk" : "web-live";
-    p.Note($"系={system}");
+    // 1. 入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
+    // 1. Input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
+    var shotPrefix = "uitk";
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
@@ -54,13 +51,12 @@ return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Reco
     overlay.enabled = false;
     try
     {
-        // 2. フィルター分岐器（マスタの 10 枠のまま。R9 は両系で撮る）
-        // 2. Filter splitter (the master's 10 slots; R9 is shot on both systems)
+        // 2. フィルター分岐器（マスタの 10 枠のまま。R9）
+        // 2. Filter splitter (the master's 10 slots; R9)
         await Place("フィルター分岐器", new Vector3Int(-22, 32, -20));
         await Open("フィルター分岐器", new Vector3Int(-22, 32, -20), 1, 1, 0.4f, "filter-splitter");
         await ShootBoth("4-block-filterSplitter");
         await Close();
-        if (system != UiSystem.GameUi) return;
 
         // 3. 木のチェスト（2 枠に物を入れる。参照と同じ形）
         // 3. Wooden chest with items in two slots (same shape as the reference)
@@ -151,7 +147,7 @@ return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Reco
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        if (system == UiSystem.GameUi) await p.Until(() => Shown(bodyTestId), 15f, $"{blockName}: {bodyTestId} が出る");
+        await p.Until(() => Shown(bodyTestId), 15f, $"{blockName}: {bodyTestId} が出る");
         else await p.UntilUiElement(bodyTestId, 30f);
         await p.WaitSeconds(1f);
     }
@@ -170,7 +166,7 @@ return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Reco
             await PlaytestGameViewOps.SetResolution(p.CancellationToken, w, h);
             await UniTask.DelayFrame(3);
             p.Assert(Screen.width == w && Screen.height == h, $"Screen が {w}x{h} (実際 {Screen.width}x{Screen.height})");
-            await p.WaitSeconds(system == UiSystem.GameUi ? 0.5f : 2f);
+            await p.WaitSeconds(0.5f);
             await p.Screenshot($"{shotPrefix}-{stateId}-{w}x{h}");
         }
         await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);

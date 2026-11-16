@@ -1,12 +1,11 @@
 // 出展モードの言語ゲート（UITK）: 出展モードで起動し、DI より前の全画面ゲートを 1280×720 と 2560×1080 で撮り、日本語を選んで初期化まで通す
 // Exhibition language gate (UITK): boot in exhibition mode, capture the pre-DI full-screen gate at 1280x720 and 2560x1080, choose Japanese and run through initialization
-// 実行は同じディレクトリの uitk-event-language-gate.sh から（全体スイッチ GameUi と出展モードの武装を済ませてから run-scenario.sh を流す）
-// Run via uitk-event-language-gate.sh in this directory (it sets the GameUi switch and arms exhibition mode before run-scenario.sh)
+// 実行は同じディレクトリの uitk-event-language-gate.sh から（出展モードの武装を済ませてから run-scenario.sh を流す）
+// Run via uitk-event-language-gate.sh in this directory (it arms exhibition mode before run-scenario.sh)
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Client.Game.Common;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Operations.Ui;
@@ -21,8 +20,6 @@ using UnityEngine.UIElements;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("uitk-event-language-gate", options, async p =>
 {
-    p.Note($"系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi");
     var initialized = false;
     var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => initialized = true);
 

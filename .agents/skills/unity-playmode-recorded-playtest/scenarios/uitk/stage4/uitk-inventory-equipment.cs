@@ -1,7 +1,5 @@
 // 持ち物パネルと装備 HUD（S4-inventory）を UITK（GameUi）で開き、整理・装備への出し入れ・ホイール・チェストへの Shift 移動を通す
 // Opens the inventory panel and equipment HUD (S4-inventory) on UITK (GameUi) and runs sort, equipment moves, the wheel and Shift move into a chest
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 // 実マスタの装備枠は 1（equipmentSlotCount: 1）なので、ホイールは Web と同じく選択を動かさないこと・印の判定が本番の拾いを通ることを主張する
 // The real master has one equipment slot (equipmentSlotCount: 1), so the wheel asserts Web-equal no-op selection and that the mark judgment runs on the real pick
 using System.Collections.Generic;
@@ -9,7 +7,6 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Input.Pointer;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -44,7 +41,6 @@ return PlaytestRunner.Run("uitk-inventory-equipment", new PlaytestRunOptions { R
     var wheelSubscription = resolver.Resolve<InputSystemPointerWheelStream>().OnWheelNotchesScrolled.Subscribe(wheel => wheelNotches.Add(wheel.notchesUp));
     try
     {
-        p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, $"全体スイッチが UITK（UiInputExclusivity.ActiveUiSystem={UiInputExclusivity.ActiveUiSystem}）");
         InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         SemanticInput.EnsureDevices();

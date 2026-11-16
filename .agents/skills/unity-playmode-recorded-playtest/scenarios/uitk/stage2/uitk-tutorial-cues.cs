@@ -1,7 +1,7 @@
-// S2-tutorial: Web ホスト無しで、ワールドピン・キー操作ヒント・強調枠とラベル・DragGuide を UITK で出して録画し、追従と動きを実測する
-// S2-tutorial: with no web host, show the world pin, key-control hint, outline with label and DragGuide in UITK, record them and measure tracking and motion
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立て、MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 を Editor へ立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode, call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code and set MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 in the Editor before run-scenario.sh
+// S2-tutorial: ワールドピン・キー操作ヒント・強調枠とラベル・DragGuide を UITK で出して録画し、追従と動きを実測する
+// S2-tutorial: show the world pin, key-control hint, outline with label and DragGuide in UITK, record them and measure tracking and motion
+// 実行前に PlayMode を止め、MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 を Editor へ立ててから run-scenario.sh を呼ぶ
+// Stop PlayMode and set MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 in the Editor before run-scenario.sh
 // 撮影は 1280×720 の 1 回だけ。Web との並べ比べは L1 の fixture が持ち、このスクショは実プレイの自己確認
 // Captured once at 1280x720; the side-by-side with Web lives in the L1 fixtures, these shots are a real-play self check
 using System;
@@ -16,7 +16,6 @@ using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Root;
-using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -39,7 +38,6 @@ return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（全体スイッチ UITK）");
     var root = GameUiRoot.Instance.GetRootElement();
     p.Assert(root.Q("tutorial-overlay") != null && root.Q("key-control-hint-hud") != null && root.Q("world-pin-overlay") != null, "Tutorial の 3 画面が DI で組まれて木に載っている");
 

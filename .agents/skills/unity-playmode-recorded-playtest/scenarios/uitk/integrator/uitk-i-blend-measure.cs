@@ -1,9 +1,9 @@
 // 半透明の合成方式の実測（I-blend）: 世界の上と UI の面の上に Web の半透明色の見本を置き、sRGB 合成（新）と Linear 合成＋補正 α（旧）で撮る
 // 各方式で見本を隠した画（地）と見せた画を撮り、Web の式（sRGB の over）との差は撮った PNG から外で計算する。フレーム時間と RT のメモリも記録する
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立て、Editor を前面に出してから run-scenario.sh を呼ぶ
+// 実行前に PlayMode を止め、Editor を前面に出してから run-scenario.sh を呼ぶ
 // Measures the translucency blend methods (I-blend): Web translucent swatches over the world and over UI faces, captured with sRGB blending (new) and Linear blending with corrected alpha (old)
 // Each method captures the ground (swatches hidden) and the swatches shown; the error against the Web formula (sRGB over) is computed offline from the PNGs, and frame times and RT memory are logged
-// Stop PlayMode, set UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code and focus the Editor before run-scenario.sh
+// Stop PlayMode and focus the Editor before run-scenario.sh
 using System.Linq;
 using System.Reflection;
 using Client.Playtest;

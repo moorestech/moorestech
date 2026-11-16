@@ -1,7 +1,5 @@
 // ホットバーの列の上のホイール素通し・選択を受けない画面での入替・未解決枠のドラッグ・解放の直後の解決を UITK（GameUi）で通す（S3-hotbar-modal・D-18）
 // Runs the hotbar row's wheel pass-through, swap on a non-accepting screen, dragging an unresolved slot and resolve-right-after-unlock on UITK (GameUi) (S3-hotbar-modal, D-18)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +7,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UnlockState;
-using Client.Input;
 using Client.Input.Pointer;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -32,10 +29,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 240f };
 return PlaytestRunner.Run("uitk-hotbar-unlock-resolve", options, async p =>
 {
-    // 1. 系の主張と入力の準備。サーバーは未解放の割当を拒むので、無料設置の間に割り当ててから無料設置を切る（前例 placement-reason-tooltip）
-    // 1. Assert the UI system and prepare input; the server refuses locked assignments, so assign under free placement and then turn it off (precedent placement-reason-tooltip)
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 1. 入力の準備。サーバーは未解放の割当を拒むので、無料設置の間に割り当ててから無料設置を切る（前例 placement-reason-tooltip）
+    // 1. Prepare input; the server refuses locked assignments, so assign under free placement and then turn it off (precedent placement-reason-tooltip)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
