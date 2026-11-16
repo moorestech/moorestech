@@ -2,8 +2,10 @@ using System.Collections;
 using Client.Common;
 using Client.Game.Common;
 using Client.Tests.EventMode;
-using Client.Tests.WebUi.Gate;
-using Client.WebUiHost.Game.EventMode;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
+using Client.Ui.Screens.EventMode;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UniRx;
@@ -11,7 +13,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using Cursor = UnityEngine.Cursor;
 
 namespace Client.Tests.EditModeInPlayingTest
 {
@@ -91,10 +95,8 @@ namespace Client.Tests.EditModeInPlayingTest
 
                     // ゲートで待機中であること（Startは走り終え、UIStateはまだ無い）を前提として固定する
                     // Pin the precondition that the gate is waiting: Start has run and no UIState exists yet
-                    var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
-                    Assert.IsNotNull(hub, "WebUiHost hub is not running; the language gate cannot be shown");
                     Assert.IsFalse(gameInitialized, "言語を選んでいないのに初期化が完了した");
-                    StartGateTopicAssert.AssertWaiting(hub, EventLanguageGateTopic.TopicName, true);
+                    Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport).Q(EventLanguageGateView.RootTestId), "UITK の言語ゲートが出ていない");
 
                     // 待機中は実カーソルが見える
                     // The real cursor is visible while waiting

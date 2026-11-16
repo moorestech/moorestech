@@ -6,9 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Localization;
 using Client.Starter.EventMode;
-using Client.Tests.WebUi.Gate;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
@@ -47,26 +44,10 @@ namespace Client.Tests.EventMode
         [Test]
         public void 出展モードでなければ即座に完了し監視も作らない()
         {
-            var task = EventModeStartGate.WaitOnWebAsync(new WebSocketHub(), EventExhibitionSettings.FromEnvironment(), new EventIdleQuitWatcherArmer(), CancellationToken.None);
+            var task = EventModeStartGate.WaitOnGameUiAsync(EventExhibitionSettings.FromEnvironment(), new EventModeStartGateGameUiTest.RecordingGateScreen(new List<string>()), new EventIdleQuitWatcherArmer(), CancellationToken.None);
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
             Assert.AreEqual(0, Object.FindObjectsByType<EventIdleQuitWatcher>(FindObjectsSortMode.None).Length);
-        }
-
-        // 通常モードでも言語ゲートのtopicは登録する。Web側は無条件に購読し、未登録だとWS再接続後にrestoringが解けず全UIが操作不能になる
-        // The language-gate topic is registered even outside exhibition mode; the web subscribes unconditionally, and a missing topic leaves restoring stuck after a WS reconnect
-        [Test]
-        public void 出展モードでなくても言語ゲートのtopicとactionを待機なしで登録する()
-        {
-            var hub = new WebSocketHub();
-
-            var calls = new List<string>();
-            var task = EventModeStartGate.WaitOnWebAsync(hub, EventExhibitionSettings.FromEnvironment(), new EventModeStartGateGameUiTest.RecordingArmer(calls), CancellationToken.None);
-
-            Assert.IsTrue(task.Status.IsCompletedSuccessfully());
-            StartGateTopicAssert.AssertWaiting(hub, EventLanguageGateTopic.TopicName, false);
-            Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
-            CollectionAssert.IsEmpty(calls);
         }
 
         // PRの中核である「言語選択を待ってから武装する」順序を、武装窓口の呼ばれ方で押さえる
