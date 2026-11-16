@@ -61,6 +61,12 @@
     flex-direction: column;
 }
 
+/* 子画面の本文は Mantine ScrollArea の既定 scrollbars="xy"。縦バーは bottom: var(--sa-corner-width) で、角の幅は縦バーの幅 12px（横バーが無くても入る。前例 ItemList.uss） */
+/* The sub-page body is a Mantine ScrollArea with the default scrollbars="xy"; the vertical bar has bottom: var(--sa-corner-width), and the corner is the bar's 12px width even with no horizontal bar (precedent ItemList.uss) */
+.pause-menu__sub-page-column {
+    --game-scroll-view-scrollbar-inset-bottom: var(--scrollarea-scrollbar-size);
+}
+
 .pause-menu__disconnected {
     margin: 0 0 16px 0;
     padding: 0;
