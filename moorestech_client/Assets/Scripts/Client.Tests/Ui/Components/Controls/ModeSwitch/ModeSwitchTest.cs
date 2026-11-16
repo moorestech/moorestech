@@ -25,6 +25,7 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
 
         private readonly List<int> _selected = new();
         private IDisposable _subscription;
+        private FakeUiOsCursorApplier _cursorApplier;
 
         [SetUp]
         public void LoadDictionaryAndClearSelected()
@@ -114,6 +115,28 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
             Assert.AreEqual("300m", Option(modeSwitch, "option-c").Q<Label>().text);
         }
 
+        [Test]
+        public void 乗ったまま無効にすると指を外し有効へ戻すと指を出し直す()
+        {
+            var modeSwitch = AddSwitch(ModeSwitchOrientation.Horizontal);
+            var optionB = Option(modeSwitch, "option-b");
+            simulate.MouseMove(optionB.worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ると指");
+
+            // 無効にすると指を外し、乗ったまま有効へ戻すとマウスを動かさずに出し直す
+            // Disabling drops the hand; re-enabling while hovered re-requests it without moving the mouse
+            modeSwitch.SetOptionEnabled(2, false);
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "無効にしても指が残る");
+            modeSwitch.SetOptionEnabled(2, true);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ったまま有効へ戻しても指が出ない");
+
+            // 別の選択肢の切替は乗っていない選択肢の指を出さない
+            // Toggling another option never shows the hand for an option not hovered
+            modeSwitch.SetOptionEnabled(3, false);
+            modeSwitch.SetOptionEnabled(3, true);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current);
+        }
+
         private ModeSwitchInt AddSwitch(ModeSwitchOrientation orientation)
         {
             var options = new List<ModeSwitchOption<int>>
@@ -122,7 +145,8 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
                 new("option-b", 2, new UiText(LocalizationKeys.Ui.PauseMenu.Back)),
                 new("option-c", 3, UiText.FromVerbatim("300m")),
             };
-            var modeSwitch = new ModeSwitchInt("mode-switch-test", orientation, ModeSwitchRole.Group, options, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _cursorApplier = new FakeUiOsCursorApplier();
+            var modeSwitch = new ModeSwitchInt("mode-switch-test", orientation, ModeSwitchRole.Group, options, new UiOsCursorRequestStack(_cursorApplier));
             _subscription = modeSwitch.OnOptionSelected.Subscribe(value => _selected.Add(value));
             rootVisualElement.Add(modeSwitch);
             simulate.FrameUpdate();

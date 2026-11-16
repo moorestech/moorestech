@@ -21,6 +21,7 @@ namespace Client.Ui.Components.Controls
         public const string GlyphStrokeProperty = "--icon-button-glyph-stroke";
 
         private readonly Subject<Unit> _clicked = new();
+        private readonly UiOsCursorHoverRequest _hover;
 
         public IObservable<Unit> OnClicked => _clicked;
 
@@ -45,7 +46,16 @@ namespace Client.Ui.Components.Controls
 
             // Web の cursor: pointer（IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
             // Web cursor: pointer (IconButton/style.module.css:9 and others); the part requests it itself (A-247)
-            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            _hover = new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+        }
+
+        // 押せるかを拾いと指の要求で揃えて切り替える。押せなくすれば指を外し、戻したとき乗っていれば指を出し直す
+        // Switch pressability for picking and the pointer request together: dropping it withdraws the hand, restoring it re-requests when hovered
+        public void SetInteractive(bool interactive)
+        {
+            pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
+            if (interactive) _hover.Resume();
+            else _hover.Suspend();
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Client.Tests.Ui.Components.Controls
         private const string KnobOverridePath = "Assets/Scripts/Client.Tests/Ui/Components/Controls/ControlKnobOverrides.uss";
 
         private VisualElement _rulesRoot;
+        private FakeUiOsCursorApplier _cursorApplier;
 
         [SetUp]
         public void AttachRules()
@@ -158,9 +159,33 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.IsNull(button.Q<IconButtonCloseGlyph>());
         }
 
+        [Test]
+        public void 押せなくすると指を外し乗ったまま戻すと指を出し直し離れて戻すと出さない()
+        {
+            var button = AddButton(_rulesRoot);
+            simulate.MouseMove(button.worldBound.center);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ると指");
+
+            // 押せなくすると、ポインタを動かさなくても指を外す
+            // Making it unpressable drops the hand without moving the pointer
+            button.SetInteractive(false);
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "押せなくしても指が残る");
+
+            // 乗ったまま戻すと、Enter を待たずに指を出し直す
+            // Restoring while still hovered re-requests the hand without an Enter
+            button.SetInteractive(true);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ったまま戻しても指が出ない");
+
+            button.SetInteractive(false);
+            simulate.MouseMove(button.worldBound.max + new Vector2(40f, 40f));
+            button.SetInteractive(true);
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "離れてから戻したのに指が出る");
+        }
+
         private IconButton AddButton(VisualElement parent)
         {
-            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _cursorApplier = new FakeUiOsCursorApplier();
+            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(_cursorApplier));
             parent.Add(button);
             simulate.FrameUpdate();
             return button;

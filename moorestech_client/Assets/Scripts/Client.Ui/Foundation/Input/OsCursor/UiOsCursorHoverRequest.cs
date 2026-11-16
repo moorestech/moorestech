@@ -14,6 +14,10 @@ namespace Client.Ui.Foundation.Input.OsCursor
         private readonly UiOsCursorShape _shape;
         private readonly UiOsCursorLayer _layer;
         private IDisposable _request;
+        // 押せない間（Suspend〜Resume）だけ、ポインタが要素の上にあるかをパネルの移動で追う
+        // Only while unpressable (Suspend to Resume), follow whether the pointer is over the element via panel moves
+        private VisualElement _suspendedPanelRoot;
+        private bool _pointerOverWhileSuspended;
 
         public UiOsCursorHoverRequest(VisualElement element, IUiOsCursor cursor, UiOsCursorShape shape, UiOsCursorLayer layer)
         {
@@ -41,6 +45,34 @@ namespace Client.Ui.Foundation.Input.OsCursor
         {
             _request?.Dispose();
             _request = null;
+        }
+
+        // 押せなくした（pickingMode を外した）ときに呼ぶ。要求を外し、要素はもう出入りを受けないのでパネルの移動で乗っているかを追う
+        // Call when the element stops picking: withdraw the request and, since it no longer gets enter/leave, follow hovering via panel moves
+        public void Suspend()
+        {
+            // silent-ok: 押せない間の重ね呼びは追跡を張り直さない / 正常系
+            if (_suspendedPanelRoot != null) return;
+            _pointerOverWhileSuspended = _request != null;
+            Release();
+            _suspendedPanelRoot = _element.panel?.visualTree;
+            _suspendedPanelRoot?.RegisterCallback<PointerMoveEvent>(OnPanelPointerMoveWhileSuspended, TrickleDown.TrickleDown);
+        }
+
+        // 押せるへ戻したときに呼ぶ。ポインタが乗ったままなら Enter を待たずに指の要求を出し直す
+        // Call when the element picks again: if the pointer is still over it, re-request without waiting for an Enter
+        public void Resume()
+        {
+            // silent-ok: 押せるままの重ね呼びは何もしない / 正常系
+            if (_suspendedPanelRoot == null) return;
+            _suspendedPanelRoot.UnregisterCallback<PointerMoveEvent>(OnPanelPointerMoveWhileSuspended, TrickleDown.TrickleDown);
+            _suspendedPanelRoot = null;
+            if (_pointerOverWhileSuspended) Hold();
+        }
+
+        private void OnPanelPointerMoveWhileSuspended(PointerMoveEvent evt)
+        {
+            _pointerOverWhileSuspended = _element.worldBound.Contains(evt.position);
         }
 
         private void OnPointerEnter(PointerEnterEvent evt)
