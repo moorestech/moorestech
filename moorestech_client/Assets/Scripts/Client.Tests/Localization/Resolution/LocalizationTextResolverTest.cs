@@ -129,8 +129,8 @@ namespace Client.Tests.Localization.Resolution
             var warnings = 0;
             Application.logMessageReceived += CountWarning;
 
-            // 同じ版で 2 回引いても警告は 1 回、新しい版（snapshot）では同じキーでもう 1 回
-            // Two lookups on the same revision warn once; a new revision (snapshot) warns again for the same key
+            // 同版は警告 1 回、新版は再警告
+            // Same revision warns once; a new revision warns again
             LogAssert.Expect(LogType.Warning, warning);
             LocalizationTextResolver.Resolve(revision1, "japanese", "test.missing");
             LocalizationTextResolver.Resolve(revision1, "japanese", "test.missing");

@@ -5,13 +5,13 @@ using Cysharp.Threading.Tasks;
 namespace Client.Playtest
 {
     /// <summary>
-    ///     開幕スキットを飛ばす口の部品。PlaytestDriver が委ねる
-    ///     Opening-skit skip ports that PlaytestDriver delegates to
+    ///     開幕スキットを飛ばす部品
+    ///     Component that skips the opening skit
     /// </summary>
     internal class PlaytestSkitDriver
     {
-        // 開幕スキットのSkip受理待ちと、その後のGameScreen到達待ちの上限
-        // Timeouts for the opening skit's skip acceptance and the subsequent arrival at GameScreen
+        // Skip受理とGameScreen到達の待ち上限
+        // Wait limits for skip acceptance and reaching GameScreen
         private const float SkitSkipTimeoutSeconds = 30f;
         private const float SkitSkipUiStateTimeoutSeconds = 15f;
         // 重い機械では 1 回の Skip で終わらないので、Story のままなら飛ばし直す回数と 1 回ごとの待ち

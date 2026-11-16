@@ -8,8 +8,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Tests.Ui.State.Train.Fakes
 {
     /// <summary>
-    /// 時刻表の取り寄せを数えるだけの偽物。応答は返さず保留のまま（取得中のラッチを見るテスト用）
-    /// Fake that only counts timetable requests; responses stay pending (for tests that inspect the in-flight latch)
+    /// 取り寄せを数えるだけの偽物（応答は保留）
+    /// Fake that only counts requests (responses stay pending)
     /// </summary>
     public sealed class FakeTrainTimetableRequestSender : ITrainTimetableRequestSender
     {

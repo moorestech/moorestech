@@ -125,8 +125,8 @@ namespace Client.Playtest
         // スキットが再生されないワールドでも落ちない版。再生されていれば飛ばし、されていなければそのまま進む
         // Variant that tolerates worlds without an opening skit: skips it when it plays, moves on when it does not
         public async UniTask SkipOpeningSkitIfPlaying() => await _skit.SkipOpeningSkitIfPlaying();
-        // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける。回数は Note opening-skit-skip-rounds に残す
-        // Brings the Game View front and re-skips while in Story until it leaves; the rounds go to Note opening-skit-skip-rounds
+        // Story を抜けるまで Skip し、回数を Note へ残す
+        // Skip until leaving Story; record the rounds in Note
         public async UniTask<int> SkipOpeningSkitUntilLeftStory() => await _skit.SkipOpeningSkitUntilLeftStory();
         public async UniTask ExitToGameScreen() => await _reporter.Act("ゲーム画面へ戻る", PlaytestUiOps.ExitToGameScreen);
         public async UniTask AimAt(Vector3 worldPosition) => await _reporter.Act($"照準: {worldPosition}", () => PlaytestUiOps.AimAtWorldPosition(worldPosition));

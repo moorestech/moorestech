@@ -49,8 +49,8 @@ namespace Client.Ui.Components.Controls
             _hover = new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
 
-        // 押せるかを拾いと指の要求で揃えて切り替える。押せなくすれば指を外し、戻したとき乗っていれば指を出し直す
-        // Switch pressability for picking and the pointer request together: dropping it withdraws the hand, restoring it re-requests when hovered
+        // 押せるかを拾いと指の要求へ揃える
+        // Align pressability with picking and the hand request
         public void SetInteractive(bool interactive)
         {
             pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;

@@ -6,8 +6,8 @@ using NUnit.Framework;
 
 namespace Client.Tests.WebUiHost.Train
 {
-    // 送信なしのラッチだけを固定する（送信の回数は TrainTimetableFetchLatchReleaseTest が偽の送信口で見る）
-    // Pins only the send-free latches (send counts are checked with the fake sender in TrainTimetableFetchLatchReleaseTest)
+    // 送信なしのラッチだけを固定する
+    // Pins only the send-free latches
     public class TrainTimetableFetcherTest
     {
         [Test]

@@ -18,8 +18,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
     /// <summary>
-    /// 加工行の左右の帯が中身より狭くならない（Web の grid 1fr＝minmax(auto,1fr)）。自然高の面は中身の幅まで広がる
-    /// The process row's side bands never shrink below their content (Web grid 1fr = minmax(auto,1fr)); a natural-height panel grows to the content width
+    /// 左右の帯が中身より狭くならない（Web の 1fr）
+    /// Side bands never shrink below their content (Web 1fr)
     /// </summary>
     public class MachineProcessRowWidthTest : MachineScreenTestHost
     {
@@ -41,21 +41,21 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var panelBody = shell.Panel().contentContainer.worldBound;
             var measured = $"panel={shell.Panel().worldBound} body={panelBody} row={row.worldBound} input={input.worldBound} inputGrid={inputGrid.worldBound} arrow={arrow.worldBound} output={output.worldBound} outputGrid={outputGrid.worldBound}";
 
-            // 帯は中身より狭くならず、矢印をまたいで重ならない
-            // Each band is at least as wide as its content and never crosses the arrow
+            // 帯は中身より狭くならず重ならない
+            // Bands stay at least content-wide and never overlap
             Assert.GreaterOrEqual(input.layout.width + PixelSnap, inputGrid.layout.width, measured);
             Assert.GreaterOrEqual(output.layout.width + PixelSnap, outputGrid.layout.width, measured);
             Assert.LessOrEqual(inputGrid.worldBound.xMax, arrow.worldBound.xMin + PixelSnap, measured);
             Assert.GreaterOrEqual(outputGrid.worldBound.xMin + PixelSnap, arrow.worldBound.xMax, measured);
             Assert.LessOrEqual(outputGrid.worldBound.xMax, panelBody.xMax + PixelSnap, measured);
 
-            // 左右は等幅で矢印が行の中央（1fr auto 1fr）
-            // Both sides keep equal width with the arrow at the row centre (1fr auto 1fr)
+            // 左右等幅で矢印が中央
+            // Equal side widths with the arrow centred
             Assert.AreEqual(input.layout.width, output.layout.width, PixelSnap, measured);
             Assert.AreEqual(row.worldBound.center.x, arrow.worldBound.center.x, PixelSnap, measured);
 
-            // 枠は --slot-size の正方形のまま
-            // Every frame stays a --slot-size square
+            // 枠は slot-size の正方形
+            // Frames stay slot-size squares
             var slotSize = ThemeTokenFile.ResolvePixels("--slot-size");
             var moduleFrames = moduleCount == 0 ? Enumerable.Empty<SlotFrame>() : shell.View.Q("machine-module-slots").Query<SlotFrame>().ToList();
             foreach (var frame in row.Query<SlotFrame>().ToList().Concat(moduleFrames))
@@ -78,8 +78,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             Assert.AreEqual(row.worldBound.center.x, arrow.worldBound.center.x, PixelSnap);
         }
 
-        // 失敗したときに祖先の高さと縮み方を並べる（縦に潰れる元を探す）
-        // On failure list each ancestor's height and shrink settings (to find where the vertical squeeze starts)
+        // 失敗時に祖先の高さと縮み方を並べる
+        // On failure list ancestors' heights and shrink settings
         private static string Chain(VisualElement element)
         {
             var parts = new System.Collections.Generic.List<string>();
@@ -90,8 +90,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             return string.Join(" < ", parts);
         }
 
-        // 文脈と機械の区画を本物の外殻に載せ、レシピの有無で小型・大型を決める
-        // Mount the context and machine sections in the real shell; recipes decide small or large
+        // 機械の区画を外殻に載せ、レシピで小型・大型を決める
+        // Mount machine sections in the shell; recipes pick small or large
         private BlockInventoryTestShell OpenMachine(int inputCount, int outputCount, int moduleCount, bool withRecipe)
         {
             var layout = new MachineSlotLayout(inputCount, outputCount, moduleCount);

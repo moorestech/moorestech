@@ -123,15 +123,15 @@ namespace Client.Tests.Ui.Components.Controls.ModeSwitch
             simulate.MouseMove(optionB.worldBound.center);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ると指");
 
-            // 無効にすると指を外し、乗ったまま有効へ戻すとマウスを動かさずに出し直す
-            // Disabling drops the hand; re-enabling while hovered re-requests it without moving the mouse
+            // 無効で指を外し、戻すと出し直す
+            // Disabling drops the hand; re-enabling re-requests it
             modeSwitch.SetOptionEnabled(2, false);
             Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "無効にしても指が残る");
             modeSwitch.SetOptionEnabled(2, true);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ったまま有効へ戻しても指が出ない");
 
-            // 別の選択肢の切替は乗っていない選択肢の指を出さない
-            // Toggling another option never shows the hand for an option not hovered
+            // 他選択肢の切替は指を出さない
+            // Toggling another option never shows the hand
             modeSwitch.SetOptionEnabled(3, false);
             modeSwitch.SetOptionEnabled(3, true);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current);

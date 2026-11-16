@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Client.Ui.State.Train
 {
-    // 手元に正しい時刻表が届いたら取得不可・取得中のラッチを下ろし、購読側に知らせる
-    // A delivered timetable lowers the unavailable and in-flight latches and tells subscribers
+    // 時刻表が届いたらラッチを下ろし通知する
+    // On delivery, lower the latches and notify
     internal sealed class TrainTimetableDeliveredLatchRelease
     {
         private readonly IClientTrainTimetableLookup _timetableLookup;

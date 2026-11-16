@@ -7,8 +7,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.Train.Timetable.Send
 {
     /// <summary>
-    /// 本番の時刻表の取り寄せ（ClientContext の応答付き API）
-    /// Production timetable request via the ClientContext request-response API
+    /// 本番の時刻表取り寄せ
+    /// Production timetable request
     /// </summary>
     public sealed class VanillaApiTrainTimetableRequestSender : ITrainTimetableRequestSender
     {

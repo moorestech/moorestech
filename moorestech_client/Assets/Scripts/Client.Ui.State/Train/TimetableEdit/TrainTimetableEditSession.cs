@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Client.Ui.State.Train.TimetableEdit
 {
     /// <summary>
-    /// 時刻表の即時編集。編集を即送り、受理とその後の最初の公開が揃うまで表示を保留する（Web useImmediateTimetable の写し）
-    /// Immediate timetable editing: sends each edit at once and holds the display until acceptance and the next publication (copy of Web useImmediateTimetable)
+    /// 時刻表の即時編集（Web useImmediateTimetable の写し）
+    /// Immediate timetable editing (copy of Web useImmediateTimetable)
     /// </summary>
     public sealed class TrainTimetableEditSession
     {

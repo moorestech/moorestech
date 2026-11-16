@@ -46,8 +46,8 @@ namespace Client.Ui.Screens.Tutorial.Overlay
             UiDisplay.SetShown(this, false);
         }
 
-        // 置き場（置き場いっぱいの .tutorial-outline）に載る前は器の幅だけで縛る
-        // Before joining the holder (the full-size .tutorial-outline), bound by the clip width alone
+        // 置き場に載る前は器の幅で縛る
+        // Before joining the holder, bound by the clip width
         private float WrapLimit()
         {
             var holderWidth = parent == null ? float.PositiveInfinity : parent.contentRect.width;

@@ -10,8 +10,8 @@ namespace Client.Localization
             string currentLanguageCode,
             string key)
         {
-            // 対象言語から英語、Sourceの順に空でない文言を解決する
-            // Resolve non-empty text from target, English, then Source in order
+            // 言語→英語→Sourceの順に解決
+            // Resolve in order: language, English, Source
             if (TryGetText(snapshot.Languages[currentLanguageCode], key, out var currentText)) return currentText;
             if (TryGetText(snapshot.Languages[Localize.DefaultLanguageCode], key, out var englishText)) return englishText;
             if (TryGetText(snapshot.SourceTexts, key, out var sourceText)) return sourceText;

@@ -14,8 +14,8 @@ namespace Client.Ui.Foundation.Input.OsCursor
         private readonly UiOsCursorShape _shape;
         private readonly UiOsCursorLayer _layer;
         private IDisposable _request;
-        // 押せない間（Suspend〜Resume）だけ、ポインタが要素の上にあるかをパネルの移動で追う
-        // Only while unpressable (Suspend to Resume), follow whether the pointer is over the element via panel moves
+        // 押せない間だけパネルの移動でポインタ位置を追う
+        // Track pointer position via panel moves only while unpressable
         private VisualElement _suspendedPanelRoot;
         private bool _pointerOverWhileSuspended;
 
@@ -47,8 +47,8 @@ namespace Client.Ui.Foundation.Input.OsCursor
             _request = null;
         }
 
-        // 押せなくした（pickingMode を外した）ときに呼ぶ。要求を外し、要素はもう出入りを受けないのでパネルの移動で乗っているかを追う
-        // Call when the element stops picking: withdraw the request and, since it no longer gets enter/leave, follow hovering via panel moves
+        // 押せなくしたときに呼ぶ。要求を外し移動で追う
+        // Call when unpressable: withdraw the request, track via moves
         public void Suspend()
         {
             // silent-ok: 押せない間の重ね呼びは追跡を張り直さない / 正常系
@@ -59,8 +59,8 @@ namespace Client.Ui.Foundation.Input.OsCursor
             _suspendedPanelRoot?.RegisterCallback<PointerMoveEvent>(OnPanelPointerMoveWhileSuspended, TrickleDown.TrickleDown);
         }
 
-        // 押せるへ戻したときに呼ぶ。ポインタが乗ったままなら Enter を待たずに指の要求を出し直す
-        // Call when the element picks again: if the pointer is still over it, re-request without waiting for an Enter
+        // 押せる戻しで呼ぶ。乗ったままなら指を出し直す
+        // Call when pressable again: re-request the hand if still hovered
         public void Resume()
         {
             // silent-ok: 押せるままの重ね呼びは何もしない / 正常系

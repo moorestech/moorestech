@@ -64,8 +64,8 @@ namespace Client.Playtest.Operations.Ui
             Debug.Log(skitSkipped ? "[Playtest] 開幕スキットをSkipインテントで飛ばした" : "[Playtest] 開幕スキットは再生されなかった");
         }
 
-        // Game View を表へ出し、Story の間だけ開幕スキットを飛ばし直す。Story を離れたら回した回数を返す
-        // Bring the Game View front and re-skip the opening skit only while in Story; return the rounds once it leaves Story
+        // Story中だけスキットを飛ばし直し、回数を返す
+        // Re-skip the skit only while in Story; return the round count
         public static async UniTask<int> SkipOpeningSkitUntilLeftStory(int maxRounds, float pollSeconds)
         {
             // 裏タブの Game View は描画されず timeScale=0 のまま Skip 送りが止まるので、表へ出して時間が進むのを待つ
@@ -78,8 +78,8 @@ namespace Client.Playtest.Operations.Ui
                 await UniTask.Yield();
             }
 
-            // 飛ばした後も Story のままなら、pollSeconds 待って飛ばし直す
-            // If still in Story after a skip, wait up to pollSeconds and skip again
+            // Storyのままなら待って飛ばし直す
+            // If still in Story, wait and skip again
             for (var round = 1; round <= maxRounds; round++)
             {
                 await SkipOpeningSkitIfPlaying(OptionalSkipTimeoutSeconds);

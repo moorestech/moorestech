@@ -38,8 +38,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
             Assert.IsNotNull(root.Q<VisualElement>(name: "hotbar-hud"), "hotbar-hud が木に無い");
             Assert.IsNotNull(root.Q<VisualElement>(name: Stage2HudSurfaces.DeleteModeWarning.Name), "削除の帯が木に無い");
 
-            // 前例 ModeHudHotbarStackingTest の IndexOfLayer と同じく、層の親の root での順を比べる
-            // Same as ModeHudHotbarStackingTest's IndexOfLayer: compare the layer parents' order under the root
+            // 層の親の root での順を比べる（前例 IndexOfLayer）
+            // Compare layer parents' order under the root (precedent IndexOfLayer)
             var bandsLayerIndex = root.IndexOf(GameUiRoot.Instance.GetLayer(ModeHudPresenter.HostLayer, UiFamily.Viewport).parent);
             var hotbarLayerIndex = root.IndexOf(GameUiRoot.Instance.GetLayer(HotbarHudPresenter.HostLayer, UiFamily.Viewport).parent);
             Assert.GreaterOrEqual(bandsLayerIndex, 0, "削除の帯の層が root の直下に無い");

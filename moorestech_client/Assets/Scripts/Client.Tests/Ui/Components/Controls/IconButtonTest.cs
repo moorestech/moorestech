@@ -166,13 +166,13 @@ namespace Client.Tests.Ui.Components.Controls
             simulate.MouseMove(button.worldBound.center);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ると指");
 
-            // 押せなくすると、ポインタを動かさなくても指を外す
-            // Making it unpressable drops the hand without moving the pointer
+            // 押せなくすると指を外す
+            // Making it unpressable drops the hand
             button.SetInteractive(false);
             Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "押せなくしても指が残る");
 
-            // 乗ったまま戻すと、Enter を待たずに指を出し直す
-            // Restoring while still hovered re-requests the hand without an Enter
+            // 乗ったまま戻すと指を出し直す
+            // Restoring while hovered re-requests the hand
             button.SetInteractive(true);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "乗ったまま戻しても指が出ない");
 

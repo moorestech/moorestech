@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Tests.Playtest
 {
     /// <summary>
-    /// 起動の応答「already playing」の定数と run-scenario.sh の比較文字列が同じであることを固定する（L0）
-    /// Pins that the "already playing" boot reply constant matches the string run-scenario.sh compares against (L0)
+    /// already playing 定数と run-scenario.sh の一致を固定（L0）
+    /// Pins the already-playing constant to run-scenario.sh (L0)
     /// </summary>
     public class PlaytestAlreadyPlayingReplyTest
     {
