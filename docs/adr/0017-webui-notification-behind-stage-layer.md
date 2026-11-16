@@ -33,4 +33,4 @@
 
 ## 改訂（UITK 切替）
 
-2026-11-16 ADR 0101 で読み替え。背面 viewport 族は UITK の `UiLayer.BehindStage` の Viewport 族で、層の順の検査は `UiLayerOrderTest`。トーストを最前面（`UiLayer.Toast`）に分ける形も同じ。
+2026-11-16 ADR 0101 で読み替え。背面 viewport 族は UITK の `UiLayer.BehindStage` の Viewport 族で、層の順の検査は `UiLayerStackTest`。トーストを最前面（`UiLayer.Toast`）に分ける形も同じ。
