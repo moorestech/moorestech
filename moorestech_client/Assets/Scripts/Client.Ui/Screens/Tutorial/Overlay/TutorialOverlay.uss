@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/features/tutorial/overlay/style.module.css（.overlay・.highlight・.highlightLabel）。--ui-scale の掛け算はパネル単位＝stage px なので要らない */
-/* web: moorestech_web/webui/src/features/tutorial/overlay/style.module.css (.overlay, .highlight, .highlightLabel); no --ui-scale since panel units are stage px */
+/* web: web@6248097123/src/features/tutorial/overlay/style.module.css（.overlay・.highlight・.highlightLabel）。--ui-scale の掛け算はパネル単位＝stage px なので要らない */
+/* web: web@6248097123/src/features/tutorial/overlay/style.module.css (.overlay, .highlight, .highlightLabel); no --ui-scale since panel units are stage px */
 .tutorial-overlay {
     position: absolute;
     left: 0;

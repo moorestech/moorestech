@@ -14,8 +14,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジ一覧（題・ボタン列・グラフ）。web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
-    /// Challenge list (title, buttons, graph); web: moorestech_web/webui/src/features/challenge/ChallengePanel.tsx
+    /// チャレンジ一覧（題・ボタン列・グラフ）。web: web@6248097123/src/features/challenge/ChallengePanel.tsx
+    /// Challenge list (title, buttons, graph); web: web@6248097123/src/features/challenge/ChallengePanel.tsx
     /// </summary>
     public sealed class ChallengeListView : VisualElement
     {

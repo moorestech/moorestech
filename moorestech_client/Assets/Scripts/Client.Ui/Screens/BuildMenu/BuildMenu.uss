@@ -1,7 +1,7 @@
-/* web: moorestech_web/webui/src/features/buildMenu/style.module.css（.panelBand・.panel・.close・.columns・.sidebar・.main・.detail 系・見出し・.categoryGroup・.section・.gridArea・.trailingSpacer）と BuildMenuPanel.tsx の並び */
+/* web: web@6248097123/src/features/buildMenu/style.module.css（.panelBand・.panel・.close・.columns・.sidebar・.main・.detail 系・見出し・.categoryGroup・.section・.gridArea・.trailingSpacer）と BuildMenuPanel.tsx の並び */
 /* UITK に gap が無いので、Web の gap は 2 つ目以降の子の上（縦）か左（横）の余白で写す。.slotIcon・.slotLabel は Web で使われていない規則なので写さず、マスの絵の余白は --icon-pad で 4px にする（面 = --slot-size − 8px。D-5） */
 /* スクロールの負の外余白・中身の内余白は BuildMenuScrollClipInset.cs が --build-menu-scroll-clip-inset から導き、縦バーの inset はここで GameScrollView のつまみを上書きする（[A-47]・D-5・D-51）。Web の .main の gap 8px は検索の下の余白で写し、スクロールの負の上余白と足し合わせる（D-36） */
-/* Copies style.module.css of moorestech_web/webui/src/features/buildMenu (.panelBand, .panel, .close, .columns, .sidebar, .main, the .detail family, headings, .categoryGroup, .section, .gridArea, .trailingSpacer) and the BuildMenuPanel.tsx order */
+/* Copies style.module.css of web@6248097123/src/features/buildMenu (.panelBand, .panel, .close, .columns, .sidebar, .main, the .detail family, headings, .categoryGroup, .section, .gridArea, .trailingSpacer) and the BuildMenuPanel.tsx order */
 /* UITK has no gap, so Web gaps become top (vertical) or left (horizontal) margins on every child after the first. .slotIcon and .slotLabel are unused in the Web and not copied; the slot picture inset is --icon-pad 4px (face = --slot-size - 8px, D-5) */
 /* BuildMenuScrollClipInset.cs derives the scroll's negative margin and content padding from --build-menu-scroll-clip-inset, and this file overrides the GameScrollView bar inset knobs ([A-47], D-5, D-51); the Web .main 8px gap is a bottom margin on the search that adds up with the scroll's negative top margin (D-36) */
 

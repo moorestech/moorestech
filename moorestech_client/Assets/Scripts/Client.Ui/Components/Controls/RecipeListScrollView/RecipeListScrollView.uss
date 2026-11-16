@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/shared/ui/RecipeListScrollArea/{index.tsx,style.module.css}（土台の .scroll は panelBodyScrollArea と同じで GameScrollView が持つ） */
-/* web: moorestech_web/webui/src/shared/ui/RecipeListScrollArea/{index.tsx,style.module.css} (the base .scroll matches panelBodyScrollArea and lives in GameScrollView) */
+/* web: web@6248097123/src/shared/ui/RecipeListScrollArea/{index.tsx,style.module.css}（土台の .scroll は panelBodyScrollArea と同じで GameScrollView が持つ） */
+/* web: web@6248097123/src/shared/ui/RecipeListScrollArea/{index.tsx,style.module.css} (the base .scroll matches panelBodyScrollArea and lives in GameScrollView) */
 .recipe-list-scroll-view {
     --scrollarea-scrollbar-size: var(--recipe-list-scrollbar-reserve);
     flex-grow: 1;

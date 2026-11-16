@@ -41,8 +41,8 @@
     --shortage-count-font-size: 15px;
 }
 
-/* ホットバー（W/features/hotbar/HotbarPanel/style.module.css の .cell をそのまま写す） */
-/* The hotbar (copies .cell in W/features/hotbar/HotbarPanel/style.module.css) */
+/* ホットバー（web@6248097123/src/features/hotbar/HotbarPanel/style.module.css の .cell をそのまま写す） */
+/* The hotbar (copies .cell in web@6248097123/src/features/hotbar/HotbarPanel/style.module.css) */
 .slot-gallery__hotbar {
     --slot-size: var(--hotbar-slot-size);
     --icon-pad: 5px;

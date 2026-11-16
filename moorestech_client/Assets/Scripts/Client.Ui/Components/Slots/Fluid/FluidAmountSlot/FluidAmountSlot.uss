@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/shared/ui/FluidAmountSlot/style.module.css の .amount（composes count）と .amount.amount を写す。.icon は SlotContent が写す */
-/* web: copies .amount (composes count) and .amount.amount in moorestech_web/webui/src/shared/ui/FluidAmountSlot/style.module.css; SlotContent copies .icon */
+/* web: web@6248097123/src/shared/ui/FluidAmountSlot/style.module.css の .amount（composes count）と .amount.amount を写す。.icon は SlotContent が写す */
+/* web: copies .amount (composes count) and .amount.amount in web@6248097123/src/shared/ui/FluidAmountSlot/style.module.css; SlotContent copies .icon */
 
 /* 帯は枠幅の右寄せ。はみ出しても切らない（右寄せの帯は左へ溢れ、切ると先頭の桁が無言で消える） */
 /* The band spans the frame right-aligned and never clips (it overflows leftward, and clipping silently drops leading digits) */

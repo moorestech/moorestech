@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css（.label・.rule・.objectives）と features/modeHud/style.module.css（.label・.details） */
+/* web: web@6248097123/src/features/challenge/CurrentChallengeHud.module.css（.label・.rule・.objectives）と features/modeHud/style.module.css（.label・.details） */
 /* 2 画面の同形の CSS を 1 部品にまとめ、違いはつまみで受ける。項目どうしの間隔と本文の文字は画面が持つ */
-/* web: moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css (.label, .rule, .objectives) and features/modeHud/style.module.css (.label, .details) */
+/* web: web@6248097123/src/features/challenge/CurrentChallengeHud.module.css (.label, .rule, .objectives) and features/modeHud/style.module.css (.label, .details) */
 /* Merges the two screens' identical CSS into one component with knobs for the differences; item spacing and body text stay with the screens */
 
 .hud-section-heading {

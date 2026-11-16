@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/features/recipe/views/LevelInheritanceBadge.tsx（Mantine Text size="xs" c="dimmed"。字の組は Typography.uss の text--xs・text--dimmed） */
-/* web: moorestech_web/webui/src/features/recipe/views/LevelInheritanceBadge.tsx (Mantine Text size="xs" c="dimmed"; typography comes from text--xs and text--dimmed in Typography.uss) */
+/* web: web@6248097123/src/features/recipe/views/LevelInheritanceBadge.tsx（Mantine Text size="xs" c="dimmed"。字の組は Typography.uss の text--xs・text--dimmed） */
+/* web: web@6248097123/src/features/recipe/views/LevelInheritanceBadge.tsx (Mantine Text size="xs" c="dimmed"; typography comes from text--xs and text--dimmed in Typography.uss) */
 .level-inheritance-badge {
     display: none;
 }

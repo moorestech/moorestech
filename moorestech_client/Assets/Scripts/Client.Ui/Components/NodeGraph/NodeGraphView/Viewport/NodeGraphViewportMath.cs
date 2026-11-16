@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ズーム・中央寄せ・寸法変化の平行移動。web: moorestech_web/webui/src/shared/treeView/viewport/viewport.ts
-    /// Zoom, centering and resize translation; web: moorestech_web/webui/src/shared/treeView/viewport/viewport.ts
+    /// ズーム・中央寄せ・寸法変化の平行移動。web: web@6248097123/src/shared/treeView/viewport/viewport.ts
+    /// Zoom, centering and resize translation; web: web@6248097123/src/shared/treeView/viewport/viewport.ts
     /// </summary>
     internal static class NodeGraphViewportMath
     {

@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/features/recipe/views/RecipeBox.module.css の .recipeBox・.recipeMaterials・.recipeResult・.recipeArrowCol・.recipeDuration・.recipeActionSlot と ::before/::after（components.md §8.17） */
-/* web: .recipeBox, .recipeMaterials, .recipeResult, .recipeArrowCol, .recipeDuration, .recipeActionSlot and ::before/::after in moorestech_web/webui/src/features/recipe/views/RecipeBox.module.css (components.md §8.17) */
+/* web: web@6248097123/src/features/recipe/views/RecipeBox.module.css の .recipeBox・.recipeMaterials・.recipeResult・.recipeArrowCol・.recipeDuration・.recipeActionSlot と ::before/::after（components.md §8.17） */
+/* web: .recipeBox, .recipeMaterials, .recipeResult, .recipeArrowCol, .recipeDuration, .recipeActionSlot and ::before/::after in web@6248097123/src/features/recipe/views/RecipeBox.module.css (components.md §8.17) */
 .recipe-row {
     --recipe-row-border-width: 1px;
     flex-direction: row;

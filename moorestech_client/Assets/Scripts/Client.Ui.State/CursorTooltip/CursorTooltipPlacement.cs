@@ -8,8 +8,8 @@ namespace Client.Ui.State.CursorTooltip
     /// </summary>
     public static class CursorTooltipPlacement
     {
-        // web: moorestech_web/webui/src/shared/tooltip/tooltipPosition.ts の OFFSET。実画面 px で効く
-        // web: OFFSET in moorestech_web/webui/src/shared/tooltip/tooltipPosition.ts; applies in screen pixels
+        // web: web@6248097123/src/shared/tooltip/tooltipPosition.ts の OFFSET。実画面 px で効く
+        // web: OFFSET in web@6248097123/src/shared/tooltip/tooltipPosition.ts; applies in screen pixels
         internal const float Offset = 12f;
 
         internal static Vector2 Clamp(Vector2 pointer, Vector2 size, Vector2 viewport)

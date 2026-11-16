@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/features/skit/controls/SkitChoiceList.module.css の .choices・.choice・.marker・.choiceLabel */
+/* web: web@6248097123/src/features/skit/controls/SkitChoiceList.module.css の .choices・.choice・.marker・.choiceLabel */
 /* 会話窓の上・右端に下から積む固定寸法の板。面は左右だけフェードし、上下の線と菱形はホバーでシアン、押下で面をシアン寄りにする */
-/* web: moorestech_web/webui/src/features/skit/controls/SkitChoiceList.module.css .choices, .choice, .marker and .choiceLabel */
+/* web: web@6248097123/src/features/skit/controls/SkitChoiceList.module.css .choices, .choice, .marker and .choiceLabel */
 /* Fixed-size plates stacked upward above the window at its right edge; the face fades at the sides only, rules and diamonds turn cyan on hover, and pressing pushes the face toward cyan */
 
 .skit-choices {

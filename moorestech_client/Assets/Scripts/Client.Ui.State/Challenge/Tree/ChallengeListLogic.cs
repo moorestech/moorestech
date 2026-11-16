@@ -5,8 +5,8 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Ui.State.Challenge.Tree
 {
     /// <summary>
-    /// チャレンジ一覧の判断（注目点・状態の文言）。web: moorestech_web/webui/src/features/challenge/challengeLogic.ts・ChallengeNodeCard.tsx
-    /// Challenge list decisions (focus, state label); web: moorestech_web/webui/src/features/challenge/challengeLogic.ts and ChallengeNodeCard.tsx
+    /// チャレンジ一覧の判断（注目点・状態の文言）。web: web@6248097123/src/features/challenge/challengeLogic.ts・ChallengeNodeCard.tsx
+    /// Challenge list decisions (focus, state label); web: web@6248097123/src/features/challenge/challengeLogic.ts and ChallengeNodeCard.tsx
     /// </summary>
     public static class ChallengeListLogic
     {

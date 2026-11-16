@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/shared/ui/GameIcon/style.module.css の .fallback・.fallbackText と <img> の object-fit: contain を写す。大きさと余白は置く側（SlotContent 等）が決める */
-/* web: copies .fallback and .fallbackText in moorestech_web/webui/src/shared/ui/GameIcon/style.module.css and the <img> object-fit: contain; the owner (SlotContent etc.) sets size and padding */
+/* web: web@6248097123/src/shared/ui/GameIcon/style.module.css の .fallback・.fallbackText と <img> の object-fit: contain を写す。大きさと余白は置く側（SlotContent 等）が決める */
+/* web: copies .fallback and .fallbackText in web@6248097123/src/shared/ui/GameIcon/style.module.css and the <img> object-fit: contain; the owner (SlotContent etc.) sets size and padding */
 .game-icon {
     flex-direction: column;
 }

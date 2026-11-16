@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/features/research/style.module.css（.detailPane〜.unlockFluidAmount）。詳細ペイン・節・解放物・研究ボタンのつまみの上書き */
-/* web: moorestech_web/webui/src/features/research/style.module.css (.detailPane to .unlockFluidAmount); detail pane, sections, unlocks and research button knob overrides */
+/* web: web@6248097123/src/features/research/style.module.css（.detailPane〜.unlockFluidAmount）。詳細ペイン・節・解放物・研究ボタンのつまみの上書き */
+/* web: web@6248097123/src/features/research/style.module.css (.detailPane to .unlockFluidAmount); detail pane, sections, unlocks and research button knob overrides */
 
 /* 詳細ペイン: エリアの右上 12px・幅 300。高さの上限はエリア − 24（置き場の上下 12 で写す） */
 /* Detail pane: 12px from the area's top right, 300 wide; the height cap is area − 24 (the host's 12px top/bottom) */

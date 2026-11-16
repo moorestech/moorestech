@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/shared/ui/FluidSlot/style.module.css の .slot・.fill・.icon・.amount・[data-ghost] と app/tokens.css の .iconTextOutlineDark を写す。フィルの高さと色は Web と同じくインライン */
-/* web: copies .slot, .fill, .icon, .amount and [data-ghost] in moorestech_web/webui/src/shared/ui/FluidSlot/style.module.css and .iconTextOutlineDark in app/tokens.css; fill height and color are inline as on the Web */
+/* web: web@6248097123/src/shared/ui/FluidSlot/style.module.css の .slot・.fill・.icon・.amount・[data-ghost] と app/tokens.css の .iconTextOutlineDark を写す。フィルの高さと色は Web と同じくインライン */
+/* web: copies .slot, .fill, .icon, .amount and [data-ghost] in web@6248097123/src/shared/ui/FluidSlot/style.module.css and .iconTextOutlineDark in app/tokens.css; fill height and color are inline as on the Web */
 .fluid-slot {
     width: 48px;
     height: 48px;

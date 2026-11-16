@@ -1,4 +1,4 @@
-/* 出展モードの言語ゲート。寸法は moorestech_web/webui/src/features/eventLanguageGate/style.module.css と EventLanguageGate.tsx の Overlay を写す */
+/* 出展モードの言語ゲート。寸法は web@6248097123/src/features/eventLanguageGate/style.module.css と EventLanguageGate.tsx の Overlay を写す */
 /* 面は層いっぱいの不透明の黒、中身は UiScreenPixelScope の中で実画面 px のまま中央に置く（Web はゲートの中身に --ui-scale を掛けない） */
 /* The exhibition language gate; sizes copy style.module.css and the Overlay in EventLanguageGate.tsx */
 /* The face is an opaque black filling the layer; the contents sit centred in real-screen px inside UiScreenPixelScope (the Web never applies --ui-scale inside the gate) */

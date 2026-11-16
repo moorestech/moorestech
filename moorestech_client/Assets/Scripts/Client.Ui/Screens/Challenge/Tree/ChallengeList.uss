@@ -1,7 +1,7 @@
-/* web: moorestech_web/webui/src/features/challenge/style.module.css（.panel・.categories・.node・.locked・.current・.completed）と ChallengePanel.tsx・ChallengeNodeCard.tsx の Mantine の既定（Title order 2・Group gap md・Button sm・Paper・Text） */
+/* web: web@6248097123/src/features/challenge/style.module.css（.panel・.categories・.node・.locked・.current・.completed）と ChallengePanel.tsx・ChallengeNodeCard.tsx の Mantine の既定（Title order 2・Group gap md・Button sm・Paper・Text） */
 /* outline は拾わない子の輪で写す。gap は UiGroup が配る。translate(-50%, -50%) はここ、scale(UIScale) は C# がカードの style へ当てる。カードの根で flex-shrink を書かない（C4-d D-23） */
 /* カテゴリ列の横スクロールとバーは GameScrollView の横向きが持つ。部品の内側のクラス（__ 付き）はここに書かない */
-/* web: moorestech_web/webui/src/features/challenge/style.module.css (.panel, .categories, .node, .locked, .current, .completed) and the Mantine defaults in ChallengePanel.tsx and ChallengeNodeCard.tsx (Title order 2, Group gap md, Button sm, Paper, Text) */
+/* web: web@6248097123/src/features/challenge/style.module.css (.panel, .categories, .node, .locked, .current, .completed) and the Mantine defaults in ChallengePanel.tsx and ChallengeNodeCard.tsx (Title order 2, Group gap md, Button sm, Paper, Text) */
 /* The outline becomes a non-picking child ring; UiGroup hands out the gap; translate(-50%, -50%) lives here and C# applies scale(UIScale) to the card style; the card root never sets flex-shrink (C4-d D-23) */
 /* GameScrollView's horizontal mode owns the category row scrolling and bar; component inner classes (with __) are never written here */
 

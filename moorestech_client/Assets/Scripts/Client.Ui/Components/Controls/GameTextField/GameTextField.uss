@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/shared/ui/textAreaField.module.css と features/buildMenu/style.module.css の .searchInput（同じ宣言・components.md §8.9）／Mantine TextInput（@mantine/core 8.3.18 styles/Input.css の dark・sm） */
-/* web: moorestech_web/webui/src/shared/ui/textAreaField.module.css and features/buildMenu/style.module.css .searchInput (identical, components.md §8.9) / Mantine TextInput (@mantine/core 8.3.18 styles/Input.css, dark, sm) */
+/* web: web@6248097123/src/shared/ui/textAreaField.module.css と features/buildMenu/style.module.css の .searchInput（同じ宣言・components.md §8.9）／Mantine TextInput（@mantine/core 8.3.18 styles/Input.css の dark・sm） */
+/* web: web@6248097123/src/shared/ui/textAreaField.module.css and features/buildMenu/style.module.css .searchInput (identical, components.md §8.9) / Mantine TextInput (@mantine/core 8.3.18 styles/Input.css, dark, sm) */
 
 /* 寸法は持たない。幅と高さは置く側が外側の箱に付け、中の TextField と入力要素を箱いっぱいに伸ばす */
 /* No dimensions here; the caller sizes the outer box, and the inner TextField and input stretch to fill it */

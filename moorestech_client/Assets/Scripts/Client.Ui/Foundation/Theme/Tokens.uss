@@ -1,5 +1,5 @@
-/* Generated from moorestech_web/webui/src/app/tokens.css — do not edit by hand. */
-/* Regenerate: node tools/uitk/convert-web-tokens.mjs */
+/* トークンの正本。値はこのファイルで直す（出所 web: web@6248097123/src/app/tokens.css。生成器は切替で撤去した） */
+/* Source of truth for the tokens; edit values here (source web: web@6248097123/src/app/tokens.css; the generator was deleted at the switch) */
 :root {
     --screen-vignette-width: 82%;
     --screen-vignette-height: 86%;

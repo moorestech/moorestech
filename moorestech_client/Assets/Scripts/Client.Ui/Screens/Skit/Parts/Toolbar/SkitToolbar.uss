@@ -1,7 +1,7 @@
 /* S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolbar.uss */
-/* web: moorestech_web/webui/src/features/skit/controls/SkitToolbar.module.css の .toolbar・.toolButton と skitTokens.css の --skit-tool-icon-shadow */
+/* web: web@6248097123/src/features/skit/controls/SkitToolbar.module.css の .toolbar・.toolButton と skitTokens.css の --skit-tool-icon-shadow */
 /* 実画面の右上に並ぶ面を持たないツール。IconButton の寸法をボタン枠と同寸へ局所上書きし、図形の色は状態ごとに IconButton のルートの色のつまみで渡す */
-/* web: moorestech_web/webui/src/features/skit/controls/SkitToolbar.module.css .toolbar and .toolButton, plus --skit-tool-icon-shadow in skitTokens.css */
+/* web: web@6248097123/src/features/skit/controls/SkitToolbar.module.css .toolbar and .toolButton, plus --skit-tool-icon-shadow in skitTokens.css */
 /* Faceless tools in the screen's top-right; IconButton's size is locally overridden to the frame size and the glyph color is passed per state through IconButton's root colour knob */
 
 .skit-toolbar {

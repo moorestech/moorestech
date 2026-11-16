@@ -1,6 +1,6 @@
-/* ポーズ画面の枠と並び。寸法は moorestech_web/webui/src/features/pauseMenu/style.module.css の .panel / .page を写す */
+/* ポーズ画面の枠と並び。寸法は web@6248097123/src/features/pauseMenu/style.module.css の .panel / .page を写す */
 /* 最大高（--pause-menu-max-height = ステージ高 − 80px）は、層いっぱいの置き場の上下 40px の余白と枠の max-height 100% で作る */
-/* Pause-menu frame and layout; sizes copy .panel / .page in moorestech_web/webui/src/features/pauseMenu/style.module.css */
+/* Pause-menu frame and layout; sizes copy .panel / .page in web@6248097123/src/features/pauseMenu/style.module.css */
 /* The max height (--pause-menu-max-height = stage height - 80px) comes from the full-layer host's 40px top and bottom padding plus the frame's max-height 100% */
 
 /* 置き場は層いっぱいに広げ、枠を上下左右の中央へ置く */

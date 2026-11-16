@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/features/modeHud/style.module.css（.placementHud・.label・.details・.detail・.deleteModeWarning・.band。.warning は写さない D-7）と app/tokens.css の keyHintText */
+/* web: web@6248097123/src/features/modeHud/style.module.css（.placementHud・.label・.details・.detail・.deleteModeWarning・.band。.warning は写さない D-7）と app/tokens.css の keyHintText */
 /* 部品（GamePanel・HudSectionHeading）の見た目はつまみで変え、部品のクラスは書かない */
-/* web: moorestech_web/webui/src/features/modeHud/style.module.css (.placementHud, .label, .details, .detail, .deleteModeWarning, .band; .warning is not ported, D-7) and keyHintText in app/tokens.css */
+/* web: web@6248097123/src/features/modeHud/style.module.css (.placementHud, .label, .details, .detail, .deleteModeWarning, .band; .warning is not ported, D-7) and keyHintText in app/tokens.css */
 /* Component looks (GamePanel, HudSectionHeading) change only through knobs; component classes are not written here */
 
 /* 画面ルート: 実画面いっぱい（Viewport 族）・HudSectionHeading のつまみを --operation-hud-* で受ける */

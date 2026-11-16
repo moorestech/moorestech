@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/features/research/style.module.css（.researchArea〜.nodeState のエリアとカード。詳細ペインは ResearchDetailPane.uss）。data 属性は修飾クラス、gap は子の margin、calc() は ResearchCalcKnobs、outline は拾わない子の輪で写す */
-/* web: moorestech_web/webui/src/features/research/style.module.css (.researchArea to .nodeState: area and cards; the detail pane is in ResearchDetailPane.uss); data attributes become modifier classes, gap becomes child margins, calc() goes to ResearchCalcKnobs, and the outline is a non-picking child ring */
+/* web: web@6248097123/src/features/research/style.module.css（.researchArea〜.nodeState のエリアとカード。詳細ペインは ResearchDetailPane.uss）。data 属性は修飾クラス、gap は子の margin、calc() は ResearchCalcKnobs、outline は拾わない子の輪で写す */
+/* web: web@6248097123/src/features/research/style.module.css (.researchArea to .nodeState: area and cards; the detail pane is in ResearchDetailPane.uss); data attributes become modifier classes, gap becomes child margins, calc() goes to ResearchCalcKnobs, and the outline is a non-picking child ring */
 
 /* 研究エリア: 上右下は舞台の端、left は C# が持ち物の幅と列の間隔の和で当てる（A-92） */
 /* Research area: top/right/bottom at the stage edges; C# sets left to inventory width plus column gap (A-92) */

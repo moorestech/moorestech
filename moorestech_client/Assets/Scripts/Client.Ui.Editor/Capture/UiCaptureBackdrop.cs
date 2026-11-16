@@ -10,9 +10,9 @@ namespace Client.Ui.Editor.Capture
     /// </summary>
     /// <remarks>
     /// 地の画像が無いときは Render の ground の色が地。画像の破棄は呼び手
-    /// Web の DEMO の地は moorestech_web/webui/public/mock-orange-gradient.png
+    /// Web の DEMO の地は web@6248097123/public/mock-orange-gradient.png
     /// Without an image the ground is Render's ground colour; the caller disposes the image
-    /// The Web DEMO ground is moorestech_web/webui/public/mock-orange-gradient.png
+    /// The Web DEMO ground is web@6248097123/public/mock-orange-gradient.png
     /// </remarks>
     public sealed class UiCaptureBackdrop
     {
