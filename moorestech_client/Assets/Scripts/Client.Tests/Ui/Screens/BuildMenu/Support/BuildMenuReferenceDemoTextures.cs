@@ -27,7 +27,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             for (var seed = 1; seed <= maxSeed; seed++)
             {
                 var path = Path.Combine(directory, $"block-{seed}.png");
-                if (!File.Exists(path)) throw new FileNotFoundException("Run tools/uitk/render-mock-placeholder-icons.mjs first (Task 10 Step 2b)", path);
+                if (!File.Exists(path)) throw new FileNotFoundException("並べ比べの見本の絵が無い。撤去前のコミット（X-5c の削除の親。docs/uitk/disposition.md「## 突き合わせの記録」の X-5c の束 1 の行のうち、コミットの列が 10 桁の SHA だけの行のコミット）の worktree で `node tools/uitk/render-mock-placeholder-icons.mjs` を回して作る", path);
                 var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                 texture.LoadImage(File.ReadAllBytes(path));
                 _bySeed[seed] = texture;

@@ -11,7 +11,6 @@ TEST_ROOTS = (
     "moorestech_client/Assets/Scripts/Client.Tests/",
     "moorestech_server/Assets/Scripts/Tests/",
     "moorestech_server/Assets/Scripts/Tests.Module/",
-    "moorestech_web/webui/e2e/",
 )
 FORBIDDEN = (
     (re.compile(r"\bPinnedMasterRepository\b"), "pinned master repository helper"),
@@ -34,7 +33,7 @@ def tracked_test_sources(root: Path) -> list[Path]:
         capture_output=True,
         text=True,
     )
-    return [Path(line) for line in result.stdout.splitlines() if line.endswith((".cs", ".ts", ".tsx"))]
+    return [Path(line) for line in result.stdout.splitlines() if line.endswith(".cs")]
 
 
 def tracked_assets(root: Path) -> tuple[dict[str, Path], dict[str, Path]]:
