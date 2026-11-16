@@ -67,8 +67,8 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     await PlaytestUiElementOps.WaitUiTextContains("placement-mode-hud", "風力掘削機", 15f);
     await p.Screenshot("04-placement-hud-japanese");
 
-    // 英語へ切替え、辞書revisionのpushだけでWebの表示名が張り替わることを確認する
-    // Switch to English and confirm the web display names re-render from the dictionary revision push alone
+    // 英語へ切替え、辞書revisionのpushだけでUIの表示名が張り替わることを確認する
+    // Switch to English and confirm the UI display names re-render from the dictionary revision push alone
     p.Note("Englishへ切り替える");
     await p.ExitToGameScreen();
     await SwitchLocale("english");
@@ -86,16 +86,16 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     await PlaytestUiElementOps.WaitUiTextContains("placement-mode-hud", "Wind Drill", 15f);
     await p.Screenshot("06-placement-hud-english");
 
-    // 車両はmod辞書に訳が無いため、English時も原文へフォールバックするのが期待動作
-    // Train cars have no mod translations, so falling back to the source text under English is expected
-    p.Note("未翻訳の車両名はEnglishでも原文へフォールバックする");
+    // 車両名はmod辞書の英訳で解決される（localization.csvにtrainCarの英訳がある）
+    // Train car names resolve via the mod dictionary's English translation (localization.csv has the trainCar entry)
+    p.Note("車両名はEnglishでmod辞書の英訳へ解決される");
     await p.ExitToGameScreen();
     await OpenBuildMenu();
     await p.ClickUi(transportCategoryTestId);
     await p.HoverUi(steamLocomotiveTestId);
     await p.Screenshot("07-traincar-steam-english");
-    p.Assert(Localize.GetContent(ContentLocalizationKeys.TrainCarName(steamLocomotiveGuid)) == "蒸気機関車",
-        "未翻訳の車両名はEnglishでも原文へフォールバックする");
+    p.Assert(Localize.GetContent(ContentLocalizationKeys.TrainCarName(steamLocomotiveGuid)) == "Steam Locomotive",
+        "車両名はEnglishでmod辞書の英訳へ解決される");
 
     p.Note("日本語へ戻して往復を閉じる");
     await p.PressKey(Key.B);

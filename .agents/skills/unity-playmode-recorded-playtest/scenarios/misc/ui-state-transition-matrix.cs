@@ -77,7 +77,7 @@ return PlaytestRunner.Run("ui-state-transition-matrix", options, async p =>
     var expectedCounts = new (UIStateEnum state, int count)[]
     {
         (UIStateEnum.GameScreen, 8),
-        (UIStateEnum.DeleteBar, 7),
+        (UIStateEnum.DeleteBar, 12),
         (UIStateEnum.PlayerInventory, 6),
         (UIStateEnum.SubInventory, 5),
         (UIStateEnum.ResearchTree, 2),

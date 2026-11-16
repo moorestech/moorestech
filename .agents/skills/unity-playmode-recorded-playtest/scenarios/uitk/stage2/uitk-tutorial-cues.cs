@@ -97,8 +97,7 @@ return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
     // Sample one DragGuide loop (3.2s) every frame and measure fps over the same window
     var guide = root.Q("tutorial-drag-guide");
     var samples = new System.Collections.Generic.List<(float t, float opacity, float y)>();
-    var frameStart = Time.frameCount;
-    var sampleStart = Time.realtimeSinceStartup;
+    var (frameStart, sampleStart) = (Time.frameCount, Time.realtimeSinceStartup);
     // 動きはパネルの時計（録画中は Recorder の固定 30fps に従う）で進むので、標本の時刻も同じ unscaledTime で取る
     // Motion runs on the panel clock (fixed 30fps under the Recorder), so sample times use the same unscaledTime
     var guideClockStart = Time.unscaledTime;
@@ -147,10 +146,7 @@ return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
 
     // 名前かクラスで引き、祖先まで display が Flex か
     // Look up by name or class and check the element and its ancestors are Flex
-    bool IsShown(string nameOrClass)
-    {
-        return IsShownElement(root.Q(nameOrClass) ?? root.Q(className: nameOrClass));
-    }
+    bool IsShown(string nameOrClass) => IsShownElement(root.Q(nameOrClass) ?? root.Q(className: nameOrClass));
 
     bool IsShownElement(VisualElement element)
     {
@@ -163,17 +159,22 @@ return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
 
     float CenterGap() => Vector2.Distance(ring.worldBound.center, anchor.worldBound.center);
 
-    // 1.3s〜の窓でクラスの最初の要素の scale の最小・最大を毎フレーム測る
-    // Measure the min and max scale of the first element with the class every frame over a window
+    // 窓の間、クラスの最初の要素の scale の最小・最大を毎フレーム測る。要素が外れたフレームは数えず Note に出す
+    // Measure the min and max scale of the first element with the class each frame; frames without it are skipped and noted
     async UniTask<(float min, float max)> ScaleRange(string className, float seconds)
     {
-        var (min, max) = (2f, 0f);
+        var (min, max, found, missing) = (2f, 0f, 0, 0);
         for (var start = Time.realtimeSinceStartup; Time.realtimeSinceStartup - start < seconds;)
         {
-            var scale = root.Q(className: className).resolvedStyle.scale.value.x;
-            (min, max) = (Mathf.Min(min, scale), Mathf.Max(max, scale));
+            float? scale = root.Q(className: className)?.resolvedStyle.scale.value.x;
+            if (scale.HasValue) (min, max, found) = (Mathf.Min(min, scale.Value), Mathf.Max(max, scale.Value), found + 1);
+            else missing++;
             await UniTask.Yield();
         }
+        // 一度も見つからなければ脈を測れないので落とす
+        // Fail when the element never appeared, as the pulse cannot be measured
+        p.Note($"scale-range-missing-frames {className}={missing} found={found}");
+        p.Assert(found > 0, $"{className} が {seconds}s の窓の間に一度も木に無い（scale を測れない）");
         return (min, max);
     }
 
