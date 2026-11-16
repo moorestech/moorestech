@@ -1,3 +1,4 @@
+using System;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Decor;
 using Client.Ui.Components.Panels;
@@ -55,9 +56,9 @@ namespace Client.Ui.Screens.BlockInventory.Train.Timetable
 
             VisualElement CreateRow(TrainTimetableStation station, bool following, bool disabled, string unnamedStationName)
             {
-                // testid は座標を _ でつなぐ（負号はそのまま。例 -8_0_3）
-                // The testid joins coordinates with _ and keeps minus signs (e.g. -8_0_3)
-                var key = $"{station.Position.x}_{station.Position.y}_{station.Position.z}";
+                // testid は座標を _ でつなぐ（負号はそのまま。例 -8_0_3）。文化圏の負号に左右されないよう不変の書式で組む
+                // The testid joins coordinates with _ and keeps minus signs (e.g. -8_0_3), formatted invariantly so the culture's negative sign never leaks in
+                var key = FormattableString.Invariant($"{station.Position.x}_{station.Position.y}_{station.Position.z}");
                 var row = new VisualElement();
                 row.AddToClassList("train-timetable__row");
                 row.EnableInClassList("train-timetable__row--following", following);
