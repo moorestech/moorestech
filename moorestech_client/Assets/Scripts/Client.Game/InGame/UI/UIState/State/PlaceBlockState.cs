@@ -103,8 +103,8 @@ namespace Client.Game.InGame.UI.UIState.State
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
 
-            // キー/Web選択を共通3分岐へ
-            // Route a digit-key or web-originated tap into the shared 3-way branch (same slot / different slot / empty slot)
+            // キー/UI選択を共通3分岐へ
+            // Route a digit-key or UI-originated tap into the shared 3-way branch (same slot / different slot / empty slot)
             var hotbarTapOutcome = _hotbarInputService.ResolveBuildModeTap(out var hotbarTapTransit);
             switch (hotbarTapOutcome)
             {

@@ -13,7 +13,7 @@ namespace Client.Playtest.UiElements
     {
         // 切替後は描く系が UITK だけなのでロケータも 1 本
         // After the cutover UITK is the only drawing system, so there is one locator
-        public static IUiElementLocator Locator { get; private set; } = new GameUiElementLocator();
+        public static GameUiElementLocator Locator { get; } = new GameUiElementLocator();
         private static int _generation;
         private static bool _active;
 

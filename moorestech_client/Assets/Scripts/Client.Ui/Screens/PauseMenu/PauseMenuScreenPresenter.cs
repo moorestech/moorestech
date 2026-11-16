@@ -63,8 +63,8 @@ namespace Client.Ui.Screens.PauseMenu
 
             #region Internal
 
-            // ポーズを持つ画面の列挙は traits 表に任せる。どちらの系で描くかは composition root が登録の有無で決める（設計書 C10・[A-16]）
-            // The traits table enumerates pause screens; which system draws is decided by the composition root through registration (design C10, [A-16])
+            // ポーズを持つ画面の列挙は traits 表に任せる。描くかどうかは composition root が登録の有無で決める（設計書 C10・[A-16]）
+            // The traits table enumerates pause screens; whether this draws is decided by the composition root through registration (design C10, [A-16])
             bool IsShownOn(UiRoutingSnapshot snapshot)
             {
                 return UiScreenTraitsTable.Get(snapshot.Screen).PauseMenu;

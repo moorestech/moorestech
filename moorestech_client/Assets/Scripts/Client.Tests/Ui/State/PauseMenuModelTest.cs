@@ -46,8 +46,8 @@ namespace Client.Tests.Ui.State
         {
             var model = PauseMenuModelTestFactory.Create(new PauseMenuStateService());
 
-            // 待ち・拒否・全送信と順に変えるたびに同じものが載る
-            // Each change through pending, refused and all-sent lands as the same value
+            // 状態を順に変えても同じものが載る
+            // Each status change lands as the same value
             foreach (var status in new PlaytestDeliveryStatus[] { new PlaytestDeliveryPending(new PlaytestOutboxDeliveryCounts(2, 3)), new PlaytestDeliveryRefused(new PlaytestOutboxDeliveryCounts(1, 4)), PlaytestDeliveryAllSent.Instance })
             {
                 PlaytestDeliveryStatusBoard.Set(status);

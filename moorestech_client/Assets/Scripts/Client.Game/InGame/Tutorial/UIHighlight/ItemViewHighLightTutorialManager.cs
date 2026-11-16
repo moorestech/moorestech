@@ -13,8 +13,8 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             var highlightParam = (ItemViewHighLightTutorialParam)tutorial.TutorialParam;
 
-            // アイテムハイライトもWebオーバーレイのDOMハイライトのみで表示する
-            // Item highlighting is rendered exclusively via the web overlay's DOM highlight
+            // アイテムハイライトもUITKオーバーレイのハイライトのみで表示する
+            // Item highlighting is rendered exclusively via the UITK overlay highlight
             var itemId = MasterHolder.ItemMaster.GetItemId(highlightParam.HighLightItemGuid).AsPrimitive();
             var anchorId = AnchorIds.RecipeItem(itemId);
             return TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchorId, tutorial.TutorialGuid);

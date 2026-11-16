@@ -19,8 +19,8 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly NestedPauseSubStateController _subStateController;
         private readonly Subject<Unit> _onPresentationChanged = new();
 
-        // Web配信用の入れ子state窓口
-        // Window for the web side to publish the nested state
+        // UITK配信用の入れ子state窓口
+        // Window for the UITK side to publish the nested state
         public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
         public IObservable<NestedPauseSubStateEnum> OnSubStateChanged => _subStateController.OnStateChanged;

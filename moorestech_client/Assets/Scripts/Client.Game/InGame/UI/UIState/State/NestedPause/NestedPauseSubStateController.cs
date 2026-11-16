@@ -49,8 +49,8 @@ namespace Client.Game.InGame.UI.UIState.State.NestedPause
             return _states[CurrentState].LocksPlayerMovement();
         }
         
-        // Web側の閉じ要求。実際に閉じたときだけtrueを返す
-        // Close request from the web side. Returns true only when the pause menu actually closed
+        // UITK側の閉じ要求。実際に閉じたときだけtrueを返す
+        // Close request from the UITK side. Returns true only when the pause menu actually closed
         public bool RequestClosePauseMenu()
         {
             if (CurrentState != NestedPauseSubStateEnum.PauseMenuScreen) return false;

@@ -63,8 +63,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.PauseMenu, UiFamily.Stage).Q("pause-menu"), "UiLayer.PauseMenu に pause-menu が無い");
                 Assert.IsTrue(Find("pause-menu").Visible, "UITK のポーズが見えない");
 
-                // DSL のロケータは UITK のパネルを探す
-                // The DSL locator looks up the UITK panel
+                // ロケータはUITKパネルを探す
+                // The locator looks up the UITK panel
                 await AssertDslLocatorFindsGameUi();
 
                 // 設定ボタンで設定ページへ

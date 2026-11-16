@@ -22,8 +22,8 @@ namespace Client.Playtest.UiElements
         // Unity screen coordinates (bottom-left origin, pixels)
         public readonly Rect ScreenRect;
         public readonly string Text;
-        // Webはdata-*属性、UITKはUSSクラスから作る状態名
-        // State names built from data-* attributes on Web and USS classes on UITK
+        // UITKのUSSクラスから作る状態名
+        // State names built from USS classes
         public readonly IReadOnlyCollection<string> StateFlags;
 
         private UiElementSnapshot(string testid, UiElementLookupStatus status, bool visible, bool clickable, Rect screenRect, string text, IReadOnlyCollection<string> stateFlags)

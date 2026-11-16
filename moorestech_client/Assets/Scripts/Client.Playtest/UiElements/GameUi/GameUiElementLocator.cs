@@ -11,7 +11,7 @@ namespace Client.Playtest.UiElements.GameUi
     /// 拡張点: 照会・可視・被覆・文字入力の判定を足すときは GameUiElementQuery に足す（パネルを引数で受ける純粋な関数のまま保ち、L1 で UiTestHost のパネルに対して試す）。座標の換算は GameUiScreenMapper が持つ
     /// Extension: add lookup, visibility, cover or text-input rules to GameUiElementQuery (keep it a pure function over a passed panel root, tested at L1 against the UiTestHost panel); coordinate mapping lives in GameUiScreenMapper
     /// </remarks>
-    internal sealed class GameUiElementLocator : IUiElementLocator
+    public sealed class GameUiElementLocator
     {
         // UITK はプロセス内なので WS の受け口も入力転送も要らない
         // UITK lives in-process, so there is no WS receiver or input forwarding to open

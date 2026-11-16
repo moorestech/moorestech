@@ -56,8 +56,8 @@ namespace Client.Game.InGame.Tutorial
             entry.Destroy();
             _entries.Remove(tutorialGuid);
             
-            // ワールドピンは冪等に除去（未配信でも安全）
-            // Removing the world pin is idempotent, safe even when never published
+            // ワールドピンを冪等に除去
+            // Remove the world pin idempotently
             WorldPinStateStore.Instance.RemovePin(entry.WorldPinId);
         }
         

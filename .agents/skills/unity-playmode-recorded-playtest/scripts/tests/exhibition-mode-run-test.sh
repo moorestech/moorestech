@@ -23,7 +23,6 @@ echo "${FILE:-code: ${CODE:0:60}}" >> "$FAKE_ULOOP_CALL_LOG"
 case "$FILE" in
   exhibition-arm.edc) printf '{"Success": true, "Result": "%s"}\n' "$FAKE_ARM_RESULT" ;;
   exhibition-disarm.edc) [ -n "${FAKE_DISARM_RAW:-}" ] && { printf '%s\n' "$FAKE_DISARM_RAW"; exit 0; }; printf '{"Success": true, "Result": "%s"}\n' "$FAKE_DISARM_RESULT" ;;
-  "") [ -n "${FAKE_SWITCH_RAW:-}" ] && { printf '%s\n' "$FAKE_SWITCH_RAW"; exit 0; }; echo '{"Success": true, "Result": "switched"}' ;;
   *) echo '{"Success": false, "ErrorMessage": "fake uloop: unexpected code file"}'; exit 1 ;;
 esac
 FAKE
@@ -47,40 +46,35 @@ expect() {
   fi
 }
 
-# 1・2. 引数の数・系の誤りは uloop を 1 回も呼ばずに 2
-# 1-2. A wrong argument count or system exits 2 without calling uloop
+# 1. 引数の数の誤りは uloop を 1 回も呼ばずに 2
+# 1. A wrong argument count exits 2 without calling uloop
 export FAKE_ARM_RESULT="exhibition-armed" FAKE_DISARM_RESULT="disarmed / language-untouched"
-expect "two arguments" 2 "usage:" 0 "" "$WORK/project" GameUi
-expect "system Classic" 2 "NG: UI system" 0 "" "$WORK/project" Classic "$WORK/x.cs"
+expect "one argument" 2 "usage:" 0 "" "$WORK/project"
 
 # 3. 武装の語が外れたら流さず 1。終わり方によらず最後に Disarm が流れる
 # 3. A missed arming word exits 1 without running; Disarm still runs last however it ends
 # PlaytestBoot.AlreadyPlayingReply と同じ文字列 / same string as PlaytestBoot.AlreadyPlayingReply
 export FAKE_ARM_RESULT="ERROR: already playing"
-expect "arm refused while playing" 1 "NG: exhibition mode was not armed" "" "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
+expect "arm refused while playing" 1 "NG: exhibition mode was not armed" "" "exhibition-disarm.edc" "$WORK/project" "$WORK/x.cs"
 
 # 4. 復元の語が外れたら ERROR と kept を出し、控えを残す
 # 4. A missed restore word prints ERROR and kept, and keeps the note
 NOTE="$WORK/project/PlaytestResults/scratch/event-language-gate/language-before.txt"
 mkdir -p "$(dirname "$NOTE")"; echo japanese > "$NOTE"
 export FAKE_DISARM_RESULT="disarmed / language-restore-failed (japanese; note kept: x)"
-expect "restore failed keeps the note" 1 "ERROR: .*kept" "" "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
+expect "restore failed keeps the note" 1 "ERROR: .*kept" "" "exhibition-disarm.edc" "$WORK/project" "$WORK/x.cs"
 if [ ! -f "$NOTE" ]; then echo "FAIL: language-before.txt was removed"; FAILURES=$((FAILURES + 1)); fi
 
 # 5. 失敗応答（Success=false・Result 無し・UpdatedCode に自分のソース）の語を成功と読まない
 # 5. A failure response (Success=false, no Result, our source in UpdatedCode) is never read as success
 export FAKE_DISARM_RAW='{"Success": false, "UpdatedCode": "return \"language-untouched\";"}'
-expect "restore failure echoing source" 1 "ERROR: .*kept" "" "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
+expect "restore failure echoing source" 1 "ERROR: .*kept" "" "exhibition-disarm.edc" "$WORK/project" "$WORK/x.cs"
 unset FAKE_DISARM_RAW
-export FAKE_DISARM_RESULT="disarmed / language-untouched"
-export FAKE_SWITCH_RAW='{"Success": false, "UpdatedCode": "return \"switched\";"}'
-expect "switch failure echoing source" 1 "NG: could not switch" 2 "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
-unset FAKE_SWITCH_RAW
 
 # 6. 存在しない project・シナリオは uloop を呼ばずに 2
 # 6. A missing project or scenario exits 2 without calling uloop
-expect "missing project" 2 "NG: project not found" 0 "" "$WORK/none" GameUi "$WORK/x.cs"
-expect "missing scenario" 2 "NG: scenario not found" 0 "" "$WORK/project" GameUi "$WORK/none.cs"
+expect "missing project" 2 "NG: project not found" 0 "" "$WORK/none" "$WORK/x.cs"
+expect "missing scenario" 2 "NG: scenario not found" 0 "" "$WORK/project" "$WORK/none.cs"
 
 rm -rf "$WORK"
 if [ "$FAILURES" -ne 0 ]; then echo "exhibition-mode-run-test: $FAILURES failure(s)"; exit 1; fi

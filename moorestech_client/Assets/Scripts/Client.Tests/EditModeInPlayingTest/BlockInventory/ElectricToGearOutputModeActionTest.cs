@@ -68,8 +68,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(pos + new Vector3(-1.5f, 0.1f, 0.5f));
                 var ground = TestPlayerGround.Create();
 
-                // 実足場を置き、起動ログ排出後に想定外エラーを検出する
-                // Place real ground, then detect unexpected errors after draining startup logs
+                // 実足場を置き想定外エラーを検出
+                // Place real ground and detect unexpected errors
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
@@ -89,8 +89,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                    // UITK の特殊族のコマンドで出力モードを選ぶ（画面のボタンと同じ口）
-                    // Pick the output mode through the UITK special-family command (the same port the screen's button uses)
+                    // 特殊族コマンドで出力モードを選ぶ
+                    // Pick the output mode via the special-family command
                     var commands = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ISpecialBlockCommands>();
                     var result = await commands.SetElectricToGearMode(2);
                     Assert.IsInstanceOf<UiCommandAccepted>(result, $"output mode command was rejected: {(result as UiCommandRejected)?.ToLogText()}");

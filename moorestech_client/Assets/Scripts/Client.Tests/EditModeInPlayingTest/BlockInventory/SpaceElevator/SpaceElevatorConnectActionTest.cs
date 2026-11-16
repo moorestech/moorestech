@@ -53,8 +53,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(position + new Vector3(-1.5f, 0.1f, 0.5f));
                 var ground = TestPlayerGround.Create();
 
-                // 実足場を置き、起動ログ排出後の例外をテスト失敗として扱う
-                // Place real ground, then fail the test on exceptions after draining startup logs
+                // 実足場を置き例外を失敗扱い
+                // Place real ground and fail on exceptions
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 await TestPlayerGround.AssertGroundedAsync();
@@ -93,8 +93,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
-                // UITK の特殊族のコマンド・API・応答を通す
-                // Exercise the UITK special-family command, API and server response
+                // 特殊族のコマンド・応答を通す
+                // Exercise the special-family command and response
                 var commands = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ISpecialBlockCommands>();
                 var insufficient = await commands.ConnectSpaceElevator();
                 AssertRejected(insufficient, UiCommandRejectReason.SpecialBlockRequestFailed, "insufficient_cable");

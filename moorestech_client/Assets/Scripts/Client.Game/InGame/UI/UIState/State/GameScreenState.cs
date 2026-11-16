@@ -56,8 +56,8 @@ namespace Client.Game.InGame.UI.UIState.State
             if (_placementTargetPickService.TryPickTargetUnderCursor(isPointerOverUi, out var pickedTarget))
                 return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.NonHotbar)));
 
-            // キー/Web選択で建築モードへ遷移
-            // A digit key or a web-originated selection enters build mode holding the assigned placement target
+            // キー/UI選択で建築モードへ遷移
+            // A digit key or a UI-originated selection enters build mode holding the assigned placement target
             var hotbarTapOutcome = _hotbarInputService.ResolveGameScreenTap(out var hotbarTransit);
             switch (hotbarTapOutcome)
             {

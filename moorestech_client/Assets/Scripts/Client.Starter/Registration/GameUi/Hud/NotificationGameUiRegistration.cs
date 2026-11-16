@@ -6,8 +6,8 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi.Hud
 {
-    // 通知（GameUi）の登録。Feed は両方の系で MainGameUiStateRegistration が登録済み
-    // Registers GameUi notifications; the feed is already registered for both systems by MainGameUiStateRegistration
+    // 通知（GameUi）の登録。Feed は MainGameUiStateRegistration が登録済み
+    // Registers GameUi notifications; the feed is already registered by MainGameUiStateRegistration
     internal static class NotificationGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)

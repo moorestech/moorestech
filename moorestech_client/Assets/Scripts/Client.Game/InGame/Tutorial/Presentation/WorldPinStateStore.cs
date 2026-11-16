@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Tutorial
 {
     /// <summary>
-    /// ワールドピンの射影結果を保持しWebへ配信する。毎フレーム呼ばれても変化があった時だけpublishする。
-    /// Holds projected world pins for the web; publishes only when a frame actually changes the state.
+    /// ワールドピンの射影結果を保持しUITK側へ配信する。毎フレーム呼ばれても変化があった時だけpublishする。
+    /// Holds projected world pins for the UITK side; publishes only when a frame actually changes the state.
     /// </summary>
     public class WorldPinStateStore
     {

@@ -14,8 +14,8 @@ namespace Client.Starter.Registration.GameUi.Screens
     {
         public static void Register(ContainerBuilder builder)
         {
-            // セッションはメニューを閉じても残す（Web の module 変数と同じ寿命）
-            // The session outlives each close (same lifetime as the Web module variable)
+            // セッションはメニューを閉じても残す
+            // The session outlives each close
             builder.Register<BuildMenuSessionStore>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BuildMenuModel>().AsSelf();
 

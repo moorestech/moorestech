@@ -66,3 +66,4 @@ jobs:
           set -e
           bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/edc-client-test.sh
           bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/run-scenario-compile-error-test.sh
+          bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/exhibition-mode-run-test.sh

@@ -129,7 +129,7 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverUi`してからScreenshotする。
 カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移で視点は変わらないため、
 シナリオ側での追加のカメラ待ちは不要。
-仕組み: DSL は `IUiElementLocator`（`PlaytestUiLocatorSession.Locator`）だけを見る。ロケータは GameUi のパネルを `name` で照会し、可視・覆われていないかを `panel.Pick` で確かめ、パネル座標を画面座標へ直して `SemanticInput` で注入する。
+仕組み: DSL は `GameUiElementLocator`（`PlaytestUiLocatorSession.Locator`）だけを見る。ロケータは GameUi のパネルを `name` で照会し、可視・覆われていないかを `panel.Pick` で確かめ、パネル座標を画面座標へ直して `SemanticInput` で注入する。
 解決した要素は `[PlaytestUi] <testid> resolved` のログに出る。UITK の SetText は TextField の `value` へ代入して ChangeEvent を流す（`maxLength` 超過は切って ValueMismatch）。
 
 ### 検証・待機・記録

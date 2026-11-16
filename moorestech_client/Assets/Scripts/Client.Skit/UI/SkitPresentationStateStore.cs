@@ -156,8 +156,8 @@ namespace Client.Skit.UI
             Publish();
         }
 
-        // ポーズ中は許可intentを空へ畳み、Web由来の全操作を既存のAllowedIntents判定1箇所で止める
-        // While paused the allowed intents collapse to empty, so the existing AllowedIntents check alone stops every web-side operation
+        // ポーズ中は許可intentを空へ畳み、UI由来の全操作を既存のAllowedIntents判定1箇所で止める
+        // While paused the allowed intents collapse to empty, so the existing AllowedIntents check alone stops every UI-originated operation
         public void SetInputSuspended(bool suspended)
         {
             // silent-ok: 同じ値の再設定は許可intentが変わらない / 変われば購読側が次のsnapshotで見る

@@ -39,8 +39,8 @@ namespace Client.Tests.Ui.State.Recipe.Source
             CollectionAssert.AreEqual(new[] { ForUnitTestLevelInheritanceIds.CappedTarget(1), ForUnitTestLevelInheritanceIds.CappedTarget(2), ForUnitTestLevelInheritanceIds.CappedTarget(3) }, before.TargetItemIds);
             Assert.AreEqual(1, before.MaxCraftableLevel);
 
-            // 上限を 2 へ上げると最高レベルも 2 になる
-            // Raising the cap to 2 raises the max level to 2
+            // 上限2で最高Lvも2
+            // Cap 2 gives max level 2
             _serviceProvider.GetService<ILevelInheritanceCraftCapUnlocker>().ApplyUnlockLevelInheritanceCraftLevelAction(MasterHolder.ResearchMaster.GetResearch(ForUnitTestLevelInheritanceIds.CraftCapResearchGuid).ClearedActions.items[0]);
             Assert.AreEqual(2, ((LevelInheritanceMapping)MachineRecipeLevelInheritanceConversion.Convert(recipe, craftCapLookup)).MaxCraftableLevel);
         }

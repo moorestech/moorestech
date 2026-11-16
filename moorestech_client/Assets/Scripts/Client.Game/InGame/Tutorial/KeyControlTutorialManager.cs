@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial
 {
-    // uiState判定はWeb側。値そのまま公開
-    // uiState matching is web-side; this just publishes values
+    // uiState判定はUITK側（Client.Ui）。値そのまま公開
+    // uiState matching is on the UITK side (Client.Ui); this just publishes values
     public class KeyControlTutorialManager : MonoBehaviour, ITutorialViewManager
     {
         public string TutorialType => TutorialsElement.TutorialTypeConst.keyControl;

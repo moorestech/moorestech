@@ -96,8 +96,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                    // UITK のレシピ選択コマンドで1件目を選ぶ（画面の行と同じ口）
-                    // Select the first recipe through the UITK recipe-select command (the same port the screen's row uses)
+                    // レシピ選択コマンドで1件目を選ぶ
+                    // Select the first recipe via the recipe-select command
                     var targetGuid = blockRecipes[0].MachineRecipeGuid;
                     var setResult = await ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMachineRecipeSelectCommand>().Select(targetGuid);
                     Assert.IsInstanceOf<UiCommandAccepted>(setResult, $"select command was rejected: {(setResult as UiCommandRejected)?.ToLogText()}");

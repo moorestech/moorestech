@@ -15,8 +15,8 @@ namespace Client.Game.InGame.Tutorial
         public TutorialOverlayElementData[] Elements;
     }
 
-    // kindを判別子にした単一要素列。Web側はdiscriminatedUnionで同じ形を受ける
-    // A single element list discriminated by kind; the web side receives the same shape as a discriminatedUnion
+    // kindを判別子にした単一要素列。UITK側のオーバーレイが同じ形を受ける
+    // A single element list discriminated by kind; the UITK overlay receives the same shape
     public abstract class TutorialOverlayElementData
     {
         public string Kind;
@@ -53,8 +53,8 @@ namespace Client.Game.InGame.Tutorial
         public string ToAnchorId;
     }
 
-    // キー操作ヒント。判定はWeb側で行う
-    // Key-control hint; the web side decides matching
+    // キー操作ヒント。判定はUITK側で行う
+    // Key-control hint; the UITK side decides matching
     public class TutorialKeyControlElementData : TutorialOverlayElementData
     {
         public const string KindName = "keyControl";

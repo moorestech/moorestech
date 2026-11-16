@@ -84,8 +84,8 @@ namespace Client.Editor.Build
 
             if (report.summary.result != BuildResult.Succeeded) return PlayerBuildOutcome.PlayerBuildFailed;
 
-            // 動作に必要な遠隔実行のHarmony・録画用ffmpeg・ゲームデータを同梱する
-            // Bundle the remote-exec Harmony, the recording ffmpeg and the game data the player needs to run
+            // Harmony・ffmpeg・ゲームデータを同梱
+            // Bundle Harmony, ffmpeg and the game data
             RemoteExecHarmonyBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
             FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
             if (policy.BundlesLocalGameData)

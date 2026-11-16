@@ -64,8 +64,8 @@ namespace Client.Tests.EventMode
             Assert.AreEqual(0, changedCount);
         }
 
-        // 言語が選ばれ済みで起動したときは待たずに開いている
-        // A gate started with the language already chosen is open without waiting
+        // 選択済み起動は待たず開く
+        // Started with a language chosen, it opens without waiting
         [Test]
         public void 待たずに始めたゲートは待ち合わせが即完了し選択は選択済みで拒否する()
         {

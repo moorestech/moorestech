@@ -7,8 +7,8 @@ using UnityEngine.InputSystem.LowLevel;
 namespace Client.Input.ArrowKeys
 {
     /// <summary>
-    /// キーボードの ← / → が押された瞬間に 1 回流す（UI のフォーカスに依らない。Web の window keydown の代わり）
-    /// Publishes once at the moment ← or → is pressed, independent of UI focus (stands in for Web window keydown)
+    /// キーボードの ← / → が押された瞬間に 1 回流す（UI のフォーカスに依らない）
+    /// Publishes once at the moment ← or → is pressed, independent of UI focus
     /// </summary>
     public sealed class InputSystemArrowKeyStream : IHorizontalArrowKeySource
     {
