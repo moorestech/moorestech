@@ -15,7 +15,7 @@
 }
 
 .slot-grid__row > .slot-grid__cell {
-    margin-left: var(--slot-grid-gap);
+    margin-left: var(--slot-grid-gap); /* look-exception: LX-144 */
 }
 
 .slot-grid__row > .slot-grid__cell--row-start {
@@ -32,7 +32,7 @@
 .slot-grid__track {
     width: var(--slot-size);
     height: 0;
-    margin-left: var(--slot-grid-gap);
+    margin-left: var(--slot-grid-gap); /* look-exception: LX-144 */
 }
 
 .slot-grid__track--row-start {

@@ -6,7 +6,7 @@
     right: 0;
     bottom: var(--hotbar-bottom);
     flex-direction: row;
-    justify-content: center;
+    justify-content: center; /* look-exception: LX-270 */
     align-items: flex-end;
 }
 
