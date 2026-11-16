@@ -55,10 +55,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var pauseMenuState = resolver.Resolve<PauseMenuStateService>();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
 
-                // Web ホスト無し。入力は GameUi だけ読む
-                // No web host; input reads GameUi only
-                Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
-
                 // Esc で UITK のポーズが出る
                 // Esc shows the UITK pause
                 await PressEscape();

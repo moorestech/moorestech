@@ -62,10 +62,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage2
                 var root = GameUiRoot.Instance.GetRootElement();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
 
-                // Web ホスト無しで GameUi のみ動く
-                // Only GameUi runs, no web host
-                Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
-
                 // テストワールドには地面が無いため足場へ立たせる（落下復帰の Error を出さない）
                 // The test world has no ground, so stand on a scaffold (avoids fall-recovery errors)
                 await PlaytestSetup.CreateFlatGroundAndWarp();

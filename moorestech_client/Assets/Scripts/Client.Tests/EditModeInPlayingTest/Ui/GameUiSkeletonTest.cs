@@ -59,10 +59,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 AssertAllLayersExist(gameUiRoot);
 
-                // UITK の起動に Web ホストは無い（Web ホストのファイルは 5c まで残る）
-                // A UITK boot has no web host (the web host files remain until 5c)
-                Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホスト（WS の受け口）が起動している");
-
                 // ルータは UIState だけで画面を決める
                 // The router decides the screen from UIState alone
                 await TransitionTo(uiStateControl, UIStateEnum.PauseMenu);

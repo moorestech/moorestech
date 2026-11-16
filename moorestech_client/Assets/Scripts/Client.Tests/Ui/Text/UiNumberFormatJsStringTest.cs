@@ -1,5 +1,4 @@
 using System.Globalization;
-using Client.WebUiHost.Common;
 using Client.Ui.State.Text;
 using NUnit.Framework;
 
@@ -11,9 +10,6 @@ namespace Client.Tests.Ui.Text
     /// </summary>
     public class UiNumberFormatJsStringTest
     {
-        private class FloatHolder { public float Value; }
-        private class DoubleHolder { public double Value; }
-
         private CultureInfo _savedCulture;
 
         [SetUp]
@@ -90,18 +86,6 @@ namespace Client.Tests.Ui.Text
             // 12.35f is 12.3 on Web (toFixed(1))
             Assert.AreEqual("12.4", UiNumberFormat.Fixed(12.35f, 1));
             Assert.AreEqual("12.3", UiNumberFormat.Fixed(UiNumberFormat.FromServerFloat(12.35f), 1));
-        }
-
-        [TestCase(100000.05f)]
-        [TestCase(33.333332f)]
-        [TestCase(12.35f)]
-        public void サーバーfloatはWebUiJsonのJSONをdoubleで読んだ値と一致する(float value)
-        {
-            // Web は WebUiJson が書いた float の表記を double で読むので、その値と FromServerFloat が同じになる
-            // The Web reads the float text WebUiJson wrote as a double, so FromServerFloat must equal that value
-            var json = WebUiJson.Serialize(new FloatHolder { Value = value });
-            var webValue = WebUiJson.Deserialize<DoubleHolder>(json).Value;
-            Assert.AreEqual(webValue, UiNumberFormat.FromServerFloat(value));
         }
 
         [Test]

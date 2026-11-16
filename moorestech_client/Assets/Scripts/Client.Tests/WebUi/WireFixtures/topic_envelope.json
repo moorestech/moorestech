@@ -1,9 +1,0 @@
-{
-  "op": "event",
-  "topic": "ui.progress",
-  "revision": 42,
-  "data": {
-    "visible": true,
-    "progress": 0.5
-  }
-}
