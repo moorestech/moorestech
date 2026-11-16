@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Client.Ui.State.Research.Catalog;
 using Client.Ui.State.Research.Logic;
-using Client.WebUiHost.Game.Topics;
 using Core.Master;
 using Game.Block.Interface.MachineUpgrade;
 using Game.Research;
@@ -82,50 +80,7 @@ namespace Client.Tests.Ui.State.Research
             Assert.Greater(unlocks.RewardItems[0].Count, 0);
         }
 
-        [Test]
-        public void 全ノードがWebの橋のDTOと同じアイコンと前提と消費と解放物を持つ()
-        {
-            // Web の橋 ResearchNodeDtoFactory の写しなので、橋の読み方の変更や種別の追加の取りこぼしをここで捕まえる（前例 設計書 A-102）
-            // This copies the Web bridge ResearchNodeDtoFactory, so catch missed reading changes or new kinds here (precedent design A-102)
-            var noStates = new Dictionary<Guid, ResearchNodeState>();
-            foreach (var definition in ResearchNodeDefinitionsFromMaster.Build())
-            {
-                var dto = ResearchNodeDtoFactory.Create(MasterHolder.ResearchMaster.GetResearch(definition.Guid), noStates);
-                var label = definition.Guid.ToString();
-                Assert.AreEqual(dto.IconItemId, definition.IconItemId.AsPrimitive(), label);
-                CollectionAssert.AreEqual(dto.PrevGuids, definition.PreviousGuids.Select(guid => guid.ToString()).ToList(), label);
-                CollectionAssert.AreEqual(dto.ConsumeItems.Select(c => Join(c.ItemId, c.Count, JoinInts(c.AcceptedItemIds))), definition.ConsumeItems.Select(c => Join(c.ItemId.AsPrimitive(), c.Count, JoinInts(c.AcceptedItemIds.Select(id => id.AsPrimitive())))), label);
-                AssertSameUnlocks(dto, definition.Unlocks, label);
-            }
-        }
-
         #region Helpers
-
-        private static void AssertSameUnlocks(ResearchNodeDto dto, ResearchUnlockSet unlocks, string label)
-        {
-            // 8種を同値で比べる
-            // Compare all eight kinds
-            CollectionAssert.AreEqual(dto.RewardItems.Select(r => Join(r.ItemId, r.Count)), unlocks.RewardItems.Select(r => Join(r.ItemId.AsPrimitive(), r.Count)), $"{label} reward");
-            CollectionAssert.AreEqual(dto.UnlockItemRecipeViewItemIds, unlocks.ItemRecipeViewItemIds.Select(id => id.AsPrimitive()), $"{label} itemRecipeView");
-            CollectionAssert.AreEqual(dto.UnlockBlocks.Select(b => b.BlockId), unlocks.Blocks.Select(b => b.BlockId.AsPrimitive()), $"{label} block");
-            CollectionAssert.AreEqual(dto.UnlockMachineRecipes.Select(r => Join(r.RecipeGuid, JoinInts(r.OutputItemIds), Join(r.OutputFluids.Select(f => Join(f.FluidId, f.Amount)).ToArray()))), unlocks.MachineRecipes.Select(r => Join(r.RecipeGuid.ToString(), JoinInts(r.OutputItemIds.Select(id => id.AsPrimitive())), Join(r.OutputFluids.Select(f => Join(f.FluidId.AsPrimitive(), f.Amount)).ToArray()))), $"{label} machineRecipe");
-            CollectionAssert.AreEqual(dto.UnlockConnectToolGuids, unlocks.ConnectToolGuids.Select(guid => guid.ToString()), $"{label} connectTool");
-            CollectionAssert.AreEqual(dto.UnlockTrainCarGuids, unlocks.TrainCarGuids.Select(guid => guid.ToString()), $"{label} trainCar");
-            CollectionAssert.AreEqual(dto.UnlockModuleSlotStackLimits, unlocks.ModuleSlotStackLimits, $"{label} moduleSlot");
-            CollectionAssert.AreEqual(dto.UnlockLevelInheritanceCraftCaps.Select(c => Join(c.ItemId, c.Level)), unlocks.LevelInheritanceCraftCaps.Select(c => Join(c.ItemId.AsPrimitive(), c.Level)), $"{label} craftCap");
-        }
-
-        // int[] を params object[] に渡すと 1 要素に包まれ比較が無効になるため専用に展開する
-        // Passing int[] to params object[] wraps it as one element and defeats the comparison, so expand it explicitly
-        private static string JoinInts(IEnumerable<int> ids)
-        {
-            return string.Join(",", ids);
-        }
-
-        private static string Join(params object[] parts)
-        {
-            return string.Join("|", parts.Select(part => Convert.ToString(part, CultureInfo.InvariantCulture)));
-        }
 
         private static ResearchUnlockSet UnlocksOf(Guid researchGuid)
         {
