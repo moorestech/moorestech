@@ -1,6 +1,6 @@
 # 0037 序盤原始研究のSE: 結果音は通知イベント・Web操作音は sound.play アクション
 
-- Status: Accepted
+- Status: Accepted（2026-11-16 ADR 0101 で改訂: UITK 切替）
 - Date: 2026-08-27
 - 関連: `.decisions/2026-08-26-Web操作音はC#へsound.playを送って鳴らす.md` / `2026-08-26-sound.playの引数は用途名enumにする.md` / `2026-08-26-研究結果音は通知イベント経由で鳴らす.md` / `2026-08-26-同一SE種別は短時間クールダウンで重複再生を抑える.md` / `2026-08-26-研究SEのクリップはエージェントがフリー素材で用意する.md` / `2026-08-27-sound.playは共通UI部品にも今回入れる.md`
 
@@ -44,3 +44,7 @@ Web・UIステート・通知トピックは「用途名を渡す」ことだけ
 - `actionContract.ts` / `Client.WebUiHost/Game/Actions/` に `sound.play` ハンドラ新設（既存 `IActionHandler` 同型）
 - `NotificationTopic` が SE を鳴らす副作用を持つ。テストは通知→SE種別の対応表を検証
 - Prefab の AudioClip 配線は `uloop execute-dynamic-code` 経由（手編集禁止）
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で改訂。決定 1（Web から `sound.play` を送る経路）と決定 6（Web の共通部品からの送信）は Web とともに無くなった。音を鳴らすときは UITK のビューがサウンドのサービスを直接呼ぶ（`plan.md` §2.2）。この ADR は実装されておらず、2026-11-06 の裁定でポーズのボタンに操作音は付けない。

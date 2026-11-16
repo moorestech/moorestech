@@ -1,6 +1,6 @@
 # ADR 0039: チュートリアル誘導表示を原色赤＋拡縮ループにする
 
-- Status: Accepted
+- Status: Accepted（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 - Date: 2026-08-28
 - 関連: ADR 0029（キーヒント様式）, .decisions/2026-08-22-キーヒント赤字はチュートリアルHUD限定とする.md,
   .decisions/2026-08-20-keyControlはキーキャップ付きHUDヒントとしてWebで復活させる.md
@@ -106,3 +106,7 @@ CSS Modules は `animation` 宣言の中の識別子もローカルスコープ�
 `e2e/support/pulseFreeze.ts` の `freezeAttentionPulse(page)` で誘導表示の脈動だけを `currentTime = 0` で pause し、
 `scale(1)` の静止位相で測る。**尺をゼロへ落とす抜け道は作らない**（webui-design §6 と両立させるため、止めるのは位相だけ）。
 出所: ユーザー裁定 2026-08-28 AskUserQuestion結果「計測直前に位相を0で止める」（棄却: スイート全体で `animation: none` / 許容値を1.5px→3.0pxへ緩和）
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。原色赤と拡縮ループ（1.08／1.03／1200ms）は UITK で保つ。値の正本は `TutorialAttentionPulse` と `Tokens.uss`。CSS 固有の §3 の合成・§5 の CSS Modules・§6 のキーフレーム・§8 の Playwright の位相固定は前提ごと無くなり、テストは尺を 0 にせず `IUiMotionClock` で位相を進める。

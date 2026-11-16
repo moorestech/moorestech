@@ -1,7 +1,7 @@
 # 0051. ポンプUIを採掘機と同格にし、鉱脈判定・設置制限も採掘機と同規則にする
 
 日付: 2026-09-05
-状態: 採択
+状態: 採択（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 
 ## Context
 
@@ -42,3 +42,7 @@
 - Web UI: `PumpSection` 新設、`SectionStackView` 設定追加、`blockRegistryCoverage` の fixture/allowlist 更新、e2e/unit テスト追加
 - マスタ（moorestech_master）: 油井・歯車ポンプの `blockUIAddressablesPath` を埋める。PRとピン更新
 - 用語集: 「汲み上げ対象」「内部タンク」「公称生成速度」を追加
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。ポンプの小型パネルと鉱脈の警告行は UITK の `PumpSectionView`（状態は `PumpDetail`）で出し、ブロック種別ごとの構成は `SectionStackConfigTable`。ユーザー裁定の部分（UI の範囲・鉱脈判定）は Web に依らない。

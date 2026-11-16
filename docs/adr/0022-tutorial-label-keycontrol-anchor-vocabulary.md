@@ -1,6 +1,6 @@
 # 0022: 初期チュートリアルの提示強化（枠線ラベル・キー操作ヒント・アンカー語彙拡張・石の斧モデル）
 
-- Status: Accepted
+- Status: Accepted（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 - Date: 2026-08-20
 
 ## Context
@@ -75,3 +75,7 @@ ADR 0016 でチュートリアル提示を WebUI 経路へ統一し、枠線ハ�
 - schema 変更（keyName 必須・uiState enum）により `challenges.yml` 由来の生成コードが変わる。マスタ側 keyControl 3件への keyName 追記だけは本体と同一マージ単位で入れ、残りの文言・誘導追記は本体マージ後に行う。
 - Web のアンカー属性がトークン列になるため、`resolveTutorialAnchor` と既存テストが追従する。
 - マスタ側の後続追記（本体3PRマージ後）: 小石の HUD 枠線文言「左上で現在の目標を確認する」、石器を作るの文言「①石器を選択」「②クラフトボタンを長押し」と keyControl(Tab)、木を伐採の keyControl(Tab)＋uiDragGuide、木の板の keyControl(Tab)、原始研究1の keyControl(R; GameScreen / PlayerInventory)、石の斧の handGrabModel。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。枠線のラベル・keyControl のキーキャップ付きヒント・アンカー語彙は UITK で保つ。ラベルは `TutorialHighlightLabelView`、ヒントの uiState 一致判定は Web 側ではなく `Client.Ui.State/Tutorial/KeyControlHint/`、アンカー ID の正本は C# の `AnchorIds`（`anchorIds.ts` との突き合わせは無くなる）。

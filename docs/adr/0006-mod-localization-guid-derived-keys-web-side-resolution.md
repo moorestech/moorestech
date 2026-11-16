@@ -1,7 +1,7 @@
 # 0006: mod同梱辞書とGuid導出キー、名前解決のWeb側統一
 
 日付: 2026-07-29
-状態: 採択
+状態: 採択（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 
 ## 背景
 
@@ -41,3 +41,7 @@
 - skit本文・背景本文・選択肢・上書き話者名はCommandForge command schemaの正確なプロパティ名をfieldに使い、同じcommandIdからキーを導出する。Webは従来どおりUnityからpush済み表示文字列を受け取る。
 - `Client.Skit` へ `Localize` を直接依存させない。汎用層にresolver interfaceを置き、`Client.Game`側のAddressables loader/具体resolverをStoryContextへ登録する。
 - modMeta.json の id 空文字（スキーマ required 違反）はキー設計と無関係になったが、別途修理する。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。決定 5 の「Web の辞書で解決」は「UITK のビュー側（`GameContentPresentation` が Guid から導出キーを引く）で解決」と読む。DTO が Guid とキーだけを運ぶ原則は保つ。決定 4 の `/api/i18n` 配信は Web とともに無くなり、合成済み辞書の正本がクライアントの Localize にある点は変わらない。
