@@ -59,8 +59,8 @@
 `CleanRoomAirFilterInventoryComponent.cs` に `using Game.Block.Blocks.Machine.Inventory.Input;` と `using System;` を足し、`InsertItem(IItemStack itemStack, InsertItemContext context)` を置き換え、`IBlockInventory.InsertionCheck` の明示実装と上限算出を足す:
 
 ```csharp
-        // 自動搬入は使用中を含めスロット表示で3個まで（ADR 0095）
-        // Automated inflow stops at three in the slot, the one in use included (ADR 0095)
+        // 自動搬入は使用中を含めスロット表示で3個まで（ADR 0101）
+        // Automated inflow stops at three in the slot, the one in use included (ADR 0101)
         private const int AutoInsertFilterLimit = MachineInputSlotBinding.AutoInsertCraftCount;
 
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
@@ -230,7 +230,7 @@ Expected: ErrorCount 0 / 新規4件と既存 `CleanRoomAirFilterInsertionTest`�
 - [ ] **Step 5: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterInventoryComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomAirFilterAutoInsertCapTest.cs docs/adr/0095-purifier-filter-auto-insert-capped-at-three.md ".decisions/2026-11-16-空気清浄機のフィルターの自動搬入は3個で止める.md" docs/superpowers/plans/2026-11-16-purifier-filter-auto-insert-cap.md
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterInventoryComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomAirFilterAutoInsertCapTest.cs docs/adr/0101-purifier-filter-auto-insert-capped-at-three.md ".decisions/2026-11-16-空気清浄機のフィルターの自動搬入は3個で止める.md" docs/superpowers/plans/2026-11-16-purifier-filter-auto-insert-cap.md
 git commit -m "空気清浄機のフィルターのブロック経由の自動搬入を3個で止める"
 ```
 （テストの .meta は Unity が生成したものをコミットする。手で作らない）
@@ -312,7 +312,7 @@ git commit -m "清浄機のフィルター自動搬入上限の録画シナリ�
 
 ## 判断記録（ADR）
 
-- 設計 ADR: `docs/adr/0095-purifier-filter-auto-insert-capped-at-three.md`／裁定: `.decisions/2026-11-16-空気清浄機のフィルターの自動搬入は3個で止める.md`
+- 設計 ADR: `docs/adr/0101-purifier-filter-auto-insert-capped-at-three.md`／裁定: `.decisions/2026-11-16-空気清浄機のフィルターの自動搬入は3個で止める.md`
 - 上限を掛ける経路は `IBlockInventory` の2メソッドだけ（`InsertItem(stack, context)`・`IBlockInventory.InsertionCheck` 明示実装）。出所: agent前提（`VanillaMachineBlockInventoryComponent.cs` の同じ経路分け）
 - 定数は `MachineInputSlotBinding.AutoInsertCraftCount` を `public const` にして参照する。清浄機が機械の入力束縛クラスを参照する依存が1本増える。出所: agent前提（既存定数と同じ意味の閾値は既存を参照する規約）
 - 上限超えの拒否は `silent-ok` で書く（機械側 `MachineInputBlockInflow.Insert` の同種拒否と同じ扱い。品が搬入元に留まり目で見える）。出所: agent前提

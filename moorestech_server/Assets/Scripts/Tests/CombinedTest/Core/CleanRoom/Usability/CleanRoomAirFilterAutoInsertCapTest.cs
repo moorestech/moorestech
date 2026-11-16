@@ -21,8 +21,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             var inventory = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 0)).GetComponent<IOpenableBlockInventoryComponent>();
             var factory = ServerContext.ItemStackFactory;
 
-            // 空のスロットへ5個入れると3個だけ入り2個返る
-            // Inserting five into an empty slot takes three and returns two
+            // 空へ5個入れると3個入り2個返る
+            // Five into empty takes three, returns two
             var remainder = inventory.InsertItem(factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 5), InsertItemContext.Empty);
             Assert.AreEqual(2, remainder.Count);
             Assert.AreEqual(ForUnitTestItemId.TestCleanRoomFilter, remainder.Id);
@@ -68,7 +68,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             Assert.AreEqual(12, inventory.GetItem(0).Count);
             Assert.IsTrue(((global::Core.Inventory.IOpenableInventory)inventory).InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 5) }));
 
-            // 手で3個を超えて入れた後は、ブロックからの搬入を全量返す
+            // 手で超過後は搬入を全量返す
             // After a manual overfill, block inflow comes back whole
             Assert.AreEqual(1, inventory.InsertItem(factory.Create(ForUnitTestItemId.TestCleanRoomFilter, 1), InsertItemContext.Empty).Count);
         }
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
         {
             CleanRoomHatchTest.CreateServer();
 
-            // 北向きにチェスト→ベルト→清浄機。5個流す
+            // 北向きチェスト→ベルト→清浄機。5個流す
             // Chest, belt and purifier northbound; send five
             var source = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1)).GetComponent<VanillaChestComponent>();
             CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 0));
