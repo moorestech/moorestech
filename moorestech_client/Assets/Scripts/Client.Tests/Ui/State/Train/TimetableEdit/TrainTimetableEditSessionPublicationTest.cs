@@ -74,9 +74,15 @@ namespace Client.Tests.Ui.State.Train.TimetableEdit
             Assert.IsTrue(_session.IsPending);
             Assert.AreEqual(1, _timer.RequestedDelays.Count);
 
-            // 自動運転の切替だけの公開も時刻表の中身が替わった公開に数える
-            // A publication that only flips auto-run also counts as the timetable changing
+            // 自動運転の切替だけの公開は保留を解かず、時間切れも増えない
+            // A publication that only flips auto-run keeps the hold and adds no timeout
             _session.ReceiveServer(new TrainTimetableReadyData(Unit1, true, 0, _server, new List<TrainTimetableStation> { North }));
+            Assert.IsTrue(_session.IsPending);
+            Assert.AreEqual(1, _timer.RequestedDelays.Count);
+
+            // 並びの替わった公開で解ける
+            // A publication changing the order releases it
+            _session.ReceiveServer(Ready(Unit1, true, added));
             Assert.IsFalse(_session.IsPending);
         }
     }

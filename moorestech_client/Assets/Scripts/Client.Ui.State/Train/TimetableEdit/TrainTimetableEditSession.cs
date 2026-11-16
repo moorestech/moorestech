@@ -45,9 +45,9 @@ namespace Client.Ui.State.Train.TimetableEdit
 
         public void ReceiveServer(TrainTimetableReadyData server)
         {
-            // 時刻表の中身が替わった公開だけが保留を解く。駅一覧・駅名・貨車だけの組み直しは Server を差し替えるだけで、新しい時刻表の到着とは数えない
-            // Only a publication that changed the timetable releases the hold; a rebuild from stations, names or cars only swaps Server and does not count as the new timetable arriving
-            var changedTimetable = !HasSameTimetable(Server, server);
+            // 停車駅の並びが替わった公開だけが保留を解く。自動運転・走行位置・駅一覧・駅名・貨車の変化は編集の結果ではないので Server を差し替えるだけにする
+            // Only a publication that changed the stop order releases the hold; auto-run, position, stations, names or cars are not edit results, so they only swap Server
+            var changedTimetable = !HasSameStopOrder(Server, server);
             Server = server;
             if (changedTimetable) ReleaseForPublication();
             Publish();
@@ -131,11 +131,11 @@ namespace Client.Ui.State.Train.TimetableEdit
             BackToIdle();
         }
 
-        private static bool HasSameTimetable(TrainTimetableReadyData previous, TrainTimetableReadyData next)
+        private static bool HasSameStopOrder(TrainTimetableReadyData previous, TrainTimetableReadyData next)
         {
-            // 走行位置（CurrentIndex）は編集の結果ではないので比べない。発車しただけの公開で保留が解けると古い並びへ戻るため
-            // CurrentIndex is not an edit result, so leave it out; a departure-only publication must not release the hold and revert to the old order
-            return previous.IsAutoRun == next.IsAutoRun && TimetableEditLogic.SameStopOrder(previous.Stops, next.Stops);
+            // 並びだけを見る。自動運転・走行位置は編集の結果ではなく、その公開で保留が解けると古い並びへ戻るため
+            // Compare only the stop order; auto-run and position are not edit results, and releasing on them would revert to the old order
+            return TimetableEditLogic.SameStopOrder(previous.Stops, next.Stops);
         }
 
         private void BackToIdle()
