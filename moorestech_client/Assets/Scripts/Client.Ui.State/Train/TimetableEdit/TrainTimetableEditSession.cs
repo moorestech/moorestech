@@ -45,11 +45,24 @@ namespace Client.Ui.State.Train.TimetableEdit
 
         public void ReceiveServer(TrainTimetableReadyData server)
         {
-            // 受理の後に届いた最初の公開で保留を解く。並びの一致は待たず、表示の正は公開のまま
-            // The first publication after acceptance releases the hold without waiting for a matching order; the publication stays the display truth
+            // 時刻表の中身が替わった公開だけが保留を解く。駅一覧・駅名・貨車だけの組み直しは Server を差し替えるだけで、新しい時刻表の到着とは数えない
+            // Only a publication that changed the timetable releases the hold; a rebuild from stations, names or cars only swaps Server and does not count as the new timetable arriving
+            var changedTimetable = !HasSameTimetable(Server, server);
             Server = server;
-            if (_phase is AwaitingPublicationPhase) BackToIdle();
+            if (changedTimetable) ReleaseForPublication();
             Publish();
+
+            #region Internal
+
+            void ReleaseForPublication()
+            {
+                // 受理の後なら解き、送信中なら受理の時点で解くために記録する
+                // After acceptance release now; while sending, record it so acceptance releases
+                if (_phase is AwaitingPublicationPhase) BackToIdle();
+                else if (_phase is SendingPhase sending) sending.MarkPublicationReceived();
+            }
+
+            #endregion
         }
 
         public void Replace(IReadOnlyList<TimetableEditStop> nextStops)
@@ -64,14 +77,16 @@ namespace Client.Ui.State.Train.TimetableEdit
             // silent-ok: 並びが変わらない編集は送る意味が無い / 表示も変わらないので操作した人が見て分かる（Web と同じ）
             if (TimetableEditLogic.SameStopOrder(nextStops, Server.Stops)) return;
 
-            _phase = new SendingPhase(nextStops);
+            var sending = new SendingPhase(nextStops);
+            _phase = sending;
             Publish();
-            SendAsync(nextStops).Forget();
+            SendAsync(sending).Forget();
 
             #region Internal
 
-            async UniTaskVoid SendAsync(IReadOnlyList<TimetableEditStop> stops)
+            async UniTaskVoid SendAsync(SendingPhase sending)
             {
+                var stops = sending.Stops;
                 var result = await _commands.Replace(TimetableEditLogic.ToReplacePayload(stops));
 
                 // 拒否のトーストは閉じた後でも出す（Web useImmediateTimetable と同じ）。表示は別の列車を動かさないよう捨てる
@@ -84,9 +99,9 @@ namespace Client.Ui.State.Train.TimetableEdit
                     return;
                 }
 
-                // 拒否か、公開が先に届いていれば解く。まだなら時間切れを仕掛けて公開を待つ
-                // Release on refusal or when the publication already arrived; otherwise arm the timeout and wait
-                if (result is UiCommandRejected || TimetableEditLogic.SameStopOrder(stops, Server.Stops)) BackToIdle();
+                // 拒否か、送信中に時刻表の公開が先に届いていれば解く。まだなら時間切れを仕掛けて公開を待つ
+                // Release on refusal or when a timetable publication arrived while sending; otherwise arm the timeout and wait
+                if (result is UiCommandRejected || sending.PublicationReceived) BackToIdle();
                 else ArmAwaitingPublication(stops);
                 Publish();
             }
@@ -116,6 +131,12 @@ namespace Client.Ui.State.Train.TimetableEdit
             BackToIdle();
         }
 
+        private static bool HasSameTimetable(TrainTimetableReadyData previous, TrainTimetableReadyData next)
+        {
+            return previous.IsAutoRun == next.IsAutoRun && previous.CurrentIndex == next.CurrentIndex
+                   && TimetableEditLogic.SameStopOrder(previous.Stops, next.Stops);
+        }
+
         private void BackToIdle()
         {
             if (_phase is AwaitingPublicationPhase awaiting) awaiting.Disarm();
@@ -132,48 +153,6 @@ namespace Client.Ui.State.Train.TimetableEdit
             };
             IsPending = _phase is not IdlePhase;
             _onDisplayChanged.OnNext(Unit.Default);
-        }
-
-        // 編集の段階: 待ちなし・送信中・受理後の公開待ち
-        // Edit phases: idle, sending, and awaiting publication after acceptance
-        private abstract class EditPhase { }
-
-        private sealed class IdlePhase : EditPhase
-        {
-            public static readonly IdlePhase Instance = new();
-        }
-
-        private sealed class SendingPhase : EditPhase
-        {
-            public IReadOnlyList<TimetableEditStop> Stops { get; }
-
-            public SendingPhase(IReadOnlyList<TimetableEditStop> stops)
-            {
-                Stops = stops;
-            }
-        }
-
-        private sealed class AwaitingPublicationPhase : EditPhase
-        {
-            public IReadOnlyList<TimetableEditStop> Stops { get; }
-            private IDisposable _timeout = Disposable.Empty;
-
-            public AwaitingPublicationPhase(IReadOnlyList<TimetableEditStop> stops)
-            {
-                Stops = stops;
-            }
-
-            // 段階に入った後で時間切れの購読を受け取る（同期発火で既に Idle なら、受け取る購読は発火済みで捨ててよい）
-            // Receives the timeout subscription after the phase is entered (if a synchronous fire already went Idle, the finished subscription is harmless)
-            public void Arm(IDisposable timeout)
-            {
-                _timeout = timeout;
-            }
-
-            public void Disarm()
-            {
-                _timeout.Dispose();
-            }
         }
     }
 }
