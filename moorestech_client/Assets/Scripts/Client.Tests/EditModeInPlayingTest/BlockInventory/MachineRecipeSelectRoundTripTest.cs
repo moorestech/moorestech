@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using Client.Ui.State.BlockInventory.Machine.Selection;
@@ -19,6 +20,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 {
@@ -87,6 +89,11 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                         if (recipe.BlockGuid == blockGuid) blockRecipes.Add(recipe);
                     Assert.AreEqual(2, blockRecipes.Count, "test master data recipe count mismatch");
 
+                    // UITK のパネルは画面が SubInventory のときだけ開くので、先に遷移してから実プレイと同じ文脈で開く（前例 GameUiMachineSectionWiringTest。文脈なしのエラーログが 1 回出る）
+                    // The UITK panel opens only on the SubInventory screen, so transition first and reopen with the real-play context (precedent GameUiMachineSectionWiringTest; one no-context error log)
+                    var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+                    LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
+                    await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
                     // UITK のレシピ選択コマンドで1件目を選ぶ（画面の行と同じ口）
@@ -100,6 +107,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     // Neither the web screen (it only sends set) nor UITK offers a clear, so it is not exercised here
 
                     BlockSubInventoryOpener.Close(subInventoryState);
+                    await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
 
                     // 元の機能検証後に、保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original functional checks

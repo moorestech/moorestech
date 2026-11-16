@@ -6,6 +6,8 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.Commands;
@@ -18,6 +20,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 {
@@ -76,6 +79,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreSame(view.Interactable, child.Interactable);
                 Assert.IsNotEmpty(view.Interactable.Actions);
                 Debug.Log($"[SpaceElevatorClick] total={colliders.Length} clickable=1 layer={collider.gameObject.layer} owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
+                // UITK のパネルは画面が SubInventory のときだけ開くので、先に遷移してから実プレイと同じ文脈で開く（前例 GameUiMachineSectionWiringTest。文脈なしのエラーログが 1 回出る）
+                // The UITK panel opens only on the SubInventory screen, so transition first and reopen with the real-play context (precedent GameUiMachineSectionWiringTest; one no-context error log)
+                // 開いた画面は届く範囲を外れると閉じるので、自機を対象の -x の隣（隔離シーンの床の上）へ移す
+                // The opened screen closes once out of reach, so move the player next to the target on -x (onto the isolated scene's floor)
+                PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(position + new Vector3(-1.5f, 0.1f, 0.5f));
+                await UniTask.Yield();
+                var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+                LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
+                await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
                 // UITK の特殊族のコマンド・API・応答を通す
@@ -99,6 +111,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var alreadyState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(connectedState.PoolAmount, alreadyState.PoolAmount);
                 BlockSubInventoryOpener.Close(subInventory);
+                await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
 
                 // 正規撤去の返却を検証する
                 // Verify refunds through the normal removal request

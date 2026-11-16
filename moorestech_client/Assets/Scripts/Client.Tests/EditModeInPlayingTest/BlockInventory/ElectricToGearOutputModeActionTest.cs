@@ -1,5 +1,7 @@
 using System.Collections;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.Commands;
@@ -15,6 +17,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 {
@@ -72,6 +75,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     Assert.AreEqual(0, component.SelectedIndex);
 
                     var blockGameObject = await WaitBlockGameObjectSpawn(pos);
+                    // UITK のパネルは画面が SubInventory のときだけ開くので、先に遷移してから実プレイと同じ文脈で開く（前例 GameUiMachineSectionWiringTest。文脈なしのエラーログが 1 回出る）
+                    // The UITK panel opens only on the SubInventory screen, so transition first and reopen with the real-play context (precedent GameUiMachineSectionWiringTest; one no-context error log)
+                    // 開いた画面は届く範囲を外れると閉じるので、自機を対象の -x の隣（隔離シーンの床の上）へ移す
+                    // The opened screen closes once out of reach, so move the player next to the target on -x (onto the isolated scene's floor)
+                    PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(pos + new Vector3(-1.5f, 0.1f, 0.5f));
+                    await UniTask.Yield();
+                    var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+                    LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
+                    await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
                     // UITK の特殊族のコマンドで出力モードを選ぶ（画面のボタンと同じ口）
@@ -86,6 +98,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     Assert.AreEqual(2, component.SelectedIndex, "row select did not reach server SelectedIndex");
 
                     BlockSubInventoryOpener.Close(subInventoryState);
+                    await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
 
                     // assert後に保存・終了待ち
                     // After asserts, await save and shutdown
