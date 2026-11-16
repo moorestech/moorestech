@@ -1,3 +1,4 @@
+using Client.Tests.Ui.TestHost;
 using Mooresmaster.Localization.Generated;
 using System.Linq;
 using Client.Localization;
@@ -74,7 +75,7 @@ namespace Client.Tests.Ui.Screens.Challenge
             Localize.TrySetChosenLanguage("japanese");
             simulate.FrameUpdate();
             Assert.AreEqual(Localize.Get(key), ChallengeHudTestText.Objectives(_view).Single());
-            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.Challenge.CurrentTitle), _view.Q<Label>("challenge-hud-label").text);
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.Challenge.CurrentTitle), _view.Q<Label>("challenge-hud-label").PlainText());
             Assert.AreNotEqual("Riding Train", ChallengeHudTestText.Objectives(_view).Single());
         }
 

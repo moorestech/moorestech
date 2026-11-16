@@ -2,8 +2,11 @@
 /* web: Mantine Notifications bottom-right stack (the ToastHostView container); fade durations re-read the notification tokens */
 .toast-host {
     position: absolute;
-    right: 16px;
-    bottom: 16px;
+    right: var(--toast-host-screen-inset);
+    bottom: var(--toast-host-screen-inset);
+    /* web: .host の bottom/right: 1rem。scale(var(--ui-scale)) の外なので C# が舞台の倍率で割り実画面の 16px に保つ */
+    /* web: .host bottom/right: 1rem; outside scale(var(--ui-scale)), so C# divides by the stage scale to keep 16 real px */
+    --toast-host-screen-inset: 16px;
     flex-direction: column;
     align-items: flex-end;
     --toast-host-enter-duration: var(--notification-enter-duration);

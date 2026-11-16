@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System.Collections.Generic;
 using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
@@ -32,7 +33,7 @@ namespace Client.Tests.Ui.Components.NodeGraph
             // 要求スタックは本物、当て先だけ記録する偽物にする
             // Use the real request stack with a recording fake applier
             AppliedCursor = new FakeUiOsCursorApplier();
-            OsCursor = new UiOsCursorRequestStack(AppliedCursor);
+            OsCursor = new UiOsCursorRequestStack(AppliedCursor, new FakeUiScreenPointer(1f));
         }
 
         [TearDown]

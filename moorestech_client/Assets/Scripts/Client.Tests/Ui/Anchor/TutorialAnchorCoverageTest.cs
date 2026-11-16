@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -72,7 +73,7 @@ namespace Client.Tests.Ui.Anchor
             // The top page carries the frame and four buttons; opening a sub-page adds Back-to-top
             var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            var view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            var view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             view.SetShown(true);
             simulate.FrameUpdate();
             AssertUnique(AnchorIds.PauseMenu, AnchorIds.PauseSave, AnchorIds.PauseBack, AnchorIds.PauseSettings, AnchorIds.PauseBugReport);

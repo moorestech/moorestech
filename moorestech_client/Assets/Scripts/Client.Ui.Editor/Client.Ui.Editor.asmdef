@@ -4,6 +4,7 @@
     "references": [
         "Client.Ui",
         "Client.Ui.State",
+        "Client.Input",
         "Client.Localization",
         "UniRx"
     ],

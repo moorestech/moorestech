@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.UI.UIState;
@@ -124,7 +125,7 @@ namespace Client.Tests.Ui.Crosscut
             _columns = new StageColumnsLayout();
             rootVisualElement.Add(_columns);
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture));
-            var osCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier());
+            var osCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
             var inventory = new RecordingPlayerInventoryOperations(36, 3);
 
             MountInventory();

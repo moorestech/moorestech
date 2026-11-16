@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using Client.Game.InGame.UI.UIState;
 using Client.Input.KeyPress;
@@ -104,7 +105,7 @@ namespace Client.Tests.Ui.Screens.Skit
             var wholeUi = new WholeUiVisibilityModel(_wholeUiSource);
             wholeUi.Initialize();
             var root = GameUiRootTestFactory.Create(_host, rootVisualElement);
-            new SkitScreenPresenter(root, routing, model, wholeUi, _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()), new FakeSkitAdvanceKeyPressSource()).Initialize();
+            new SkitScreenPresenter(root, routing, model, wholeUi, _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)), new FakeSkitAdvanceKeyPressSource()).Initialize();
             simulate.FrameUpdate();
         }
 

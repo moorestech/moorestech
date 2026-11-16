@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Text;
@@ -21,13 +22,15 @@ namespace Client.Tests.Ui.Screens.Skit
         private RecordingSkitCommands _commands;
         private SkitScreenView _view;
         private FakeUiOsCursorApplier _cursorApplier;
+        private FakeUiScreenPointer _screenPointer;
 
         [SetUp]
         public void MountScreen()
         {
             _commands = new RecordingSkitCommands();
             _cursorApplier = new FakeUiOsCursorApplier();
-            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier)));
+            _screenPointer = new FakeUiScreenPointer(1f);
+            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier, _screenPointer)));
         }
 
         /// <web-test file="e2e/tests/skitPauseInput.spec.ts">ポーズ中は会話窓とツールを実クリックしても全文表示も操作も出さず、再開後は操作できる</web-test>
@@ -136,6 +139,29 @@ namespace Client.Tests.Ui.Screens.Skit
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current);
             _view.SetInteractive(false);
             Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "会話窓の指がポーズ直後に残る");
+        }
+
+        [Test]
+        public void ポーズ中に動かず戻すと会話窓と選択肢も指が戻り離れて戻すと戻らない()
+        {
+            _view.Render(SkitTestData.Choices(1, SkitTestData.ChoiceIntents));
+            simulate.FrameUpdate();
+            var choice = Find<Button>(_view, "skit-choice-route-a").worldBound.center;
+            simulate.MouseMove(choice);
+            _screenPointer.SetCurrent(choice);
+
+            // 乗ったままポーズして戻すと、ツールバーと同じく出し直す
+            // Pausing and restoring while hovered re-requests the hand, like the toolbar
+            _view.SetInteractive(false);
+            _view.SetInteractive(true);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "選択肢が乗ったまま戻して指が出ない");
+
+            // ポーズ中に事象なしで離れてから戻すと出さない
+            // Moving away without an event while paused then restoring requests nothing
+            _view.SetInteractive(false);
+            _screenPointer.SetCurrent(new UnityEngine.Vector2(1f, 1f));
+            _view.SetInteractive(true);
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "離れてから戻したのに指が出る");
         }
 
         // 復元後、別 session で打ち出しを進める

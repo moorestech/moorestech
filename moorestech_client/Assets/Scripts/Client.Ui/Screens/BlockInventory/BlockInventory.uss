@@ -37,7 +37,10 @@
     right: var(--panel-edge-fade);
 }
 
+/* Mantine ScrollArea（scrollbars 既定 xy）の縦バーは bottom: var(--sa-corner-width)。角の幅は縦バーの幅 12px（横バーが無くても入る。前例 ItemList.uss） */
+/* Mantine ScrollArea (default scrollbars xy) puts the vertical bar at bottom: var(--sa-corner-width); the corner is the bar's 12px width even with no horizontal bar (precedent ItemList.uss) */
 .block-inventory__natural-scroll {
+    --game-scroll-view-scrollbar-inset-bottom: var(--scrollarea-scrollbar-size);
     --block-inventory-body-bleed: var(--block-panel-body-bleed);
     flex-grow: 1;
     flex-shrink: 1;

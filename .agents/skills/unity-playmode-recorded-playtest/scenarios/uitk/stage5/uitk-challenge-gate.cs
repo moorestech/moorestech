@@ -72,11 +72,12 @@ return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record
         await p.Until(() => initialized, 180f, "選択の後に初期化が完了する");
         p.Assert(Localize.GetCurrentLanguageCode() == "japanese", "日本語で始まる");
 
-        // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る。非前面の Editor は Story を抜けるのが遅いので先に待つ
-        // 4. Reach the game screen and check no web host started; an unfocused Editor leaves Story slowly, so wait for it first
+        // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る
+        // 4. Reach the game screen and check no web host started
         await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-        await p.SkipOpeningSkitIfPlaying();
-        await p.Until(() => p.CurrentUiState != UIStateEnum.Story, 60f, "スキットを飛ばした後に Story を抜ける");
+        // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
+        // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
+        await p.SkipOpeningSkitUntilLeftStory();
         await p.ExitToGameScreen();
         p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
 

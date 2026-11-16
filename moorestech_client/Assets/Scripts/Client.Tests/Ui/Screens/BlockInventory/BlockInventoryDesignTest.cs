@@ -129,6 +129,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             var slots = Enumerable.Repeat(new SlotItem(new ItemId(1), 1), slotCount).ToArray();
             var shell = Open(BlockInventoryTestPanels.ChestWithSlots(slots));
             simulate.FrameUpdate();
+            // 試験のブロックは三層とも名前を持たないので、開くと欠けの警告が 1 回出る
+            // The test block has no name in any layer, so opening it warns once about the missing text
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[Localize\] missing text in every layer: block\."));
             var items = shell.View.Q("chest-grid").Query<ItemSlot>().ToList();
             Assert.AreEqual(slotCount, items.Count);
             var firstRowTop = items[0].worldBound.yMin;

@@ -1,11 +1,9 @@
-using System.Text.RegularExpressions;
 using Client.Game.InGame.Train.Timetable;
 using Client.Ui.State.Train;
 using Client.Tests.Ui.State.Train.Fakes;
 using Game.Train.Unit;
 using NUnit.Framework;
 using UniRx;
-using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.State.Train.Timetable
 {
@@ -15,14 +13,16 @@ namespace Client.Tests.Ui.State.Train.Timetable
         public void 取得中に時刻表が届くとラッチを下ろして購読側へ知らせる()
         {
             var datastore = new ClientTrainTimetableDatastore();
-            var fetcher = new TrainTimetableFetcher(datastore, datastore);
+            var sender = new FakeTrainTimetableRequestSender();
+            var fetcher = new TrainTimetableFetcher(datastore, datastore, sender);
             var releasedCount = 0;
             fetcher.OnFetchLatchReleased.Subscribe(_ => releasedCount++);
 
-            // 送信境界（ClientContext.VanillaApi）はテストに無く、取得の非同期側は落ちる。ここで見るのは同期で立つラッチと push の経路だけ
-            // The transport (ClientContext.VanillaApi) is absent in tests so the async fetch throws; only the synchronous latch and the push path are checked here
-            LogAssert.Expect(UnityEngine.LogType.Exception, new Regex("NullReferenceException"));
+            // 偽の送信口は応答を返さないので、取得中のまま 1 回だけ送られる
+            // The fake sender never responds, so the fetch stays in flight after exactly one send
             fetcher.RequestForOpenedTab(TrainTestData.Unit1);
+            Assert.AreEqual(1, sender.SentTrainUnitInstanceIds.Count);
+            Assert.AreEqual(TrainTestData.Unit1, sender.SentTrainUnitInstanceIds[0]);
             Assert.IsTrue(fetcher.IsFetchInFlight(TrainTestData.Unit1));
             Assert.AreEqual(0, releasedCount);
 
@@ -37,6 +37,11 @@ namespace Client.Tests.Ui.State.Train.Timetable
             datastore.Apply(Snapshot());
             datastore.Remove(TrainTestData.Unit1);
             Assert.AreEqual(1, releasedCount);
+
+            // 同じ列車の重複要求は送り直さない
+            // A duplicate request for the same train is not sent again
+            fetcher.RequestForOpenedTab(TrainTestData.Unit1);
+            Assert.AreEqual(1, sender.SentTrainUnitInstanceIds.Count);
             fetcher.Close();
         }
 

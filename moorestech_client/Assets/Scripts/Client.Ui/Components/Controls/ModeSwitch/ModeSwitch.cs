@@ -69,7 +69,7 @@ namespace Client.Ui.Components.Controls
 
                 // Web の cursor: pointer（ModeSwitch/style.module.css:27。IconButton/style.module.css:9 ほか）。部品が自分で出す（A-247）
                 // Web cursor: pointer (ModeSwitch/style.module.css:27, IconButton/style.module.css:9 and others); the part requests it itself (A-247)
-                _hovers.Add(new UiOsCursorHoverRequest(button, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
+                _hovers.Add(osCursor.CreateHoverRequest(button, UiOsCursorShape.Pointer, UiOsCursorLayer.Element));
                 return button;
 
             }
@@ -123,10 +123,11 @@ namespace Client.Ui.Components.Controls
                 var enabled = _enabledAll && !_disabledOptionIndexes.Contains(i);
                 _buttons[i].SetEnabled(enabled);
 
-                // Web の無効の選択肢は pointer-events: none（ModeSwitch/style.module.css:50-53）。UITK の無効の要素はポインタの事象を受け続けるので、拾わず指も外す
-                // Web disabled options are pointer-events: none (ModeSwitch/style.module.css:50-53); disabled UITK elements still get pointer events, so stop picking and drop the pointer
+                // Web の無効の選択肢は pointer-events: none（ModeSwitch/style.module.css:50-53）。UITK の無効の要素はポインタの事象を受け続けるので、拾わず指も外し、戻したとき乗っていれば出し直す
+                // Web disabled options are pointer-events: none (ModeSwitch/style.module.css:50-53); stop picking and drop the hand, re-requesting it on restore when hovered
                 _buttons[i].pickingMode = enabled ? PickingMode.Position : PickingMode.Ignore;
-                if (!enabled) _hovers[i].Release();
+                if (enabled) _hovers[i].Resume();
+                else _hovers[i].Suspend();
             }
         }
 

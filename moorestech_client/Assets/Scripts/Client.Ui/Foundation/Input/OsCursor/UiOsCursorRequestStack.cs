@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Client.Ui.Foundation.Input.Pointer;
+using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Input.OsCursor
 {
@@ -10,12 +12,14 @@ namespace Client.Ui.Foundation.Input.OsCursor
     public sealed class UiOsCursorRequestStack : IUiOsCursor
     {
         private readonly IUiOsCursorApplier _applier;
+        private readonly IUiScreenPointer _screenPointer;
         private readonly List<ShapeRequest> _requests = new();
         private UiOsCursorShape _applied = UiOsCursorShape.Default;
 
-        public UiOsCursorRequestStack(IUiOsCursorApplier applier)
+        public UiOsCursorRequestStack(IUiOsCursorApplier applier, IUiScreenPointer screenPointer)
         {
             _applier = applier;
+            _screenPointer = screenPointer;
         }
 
         public IDisposable Request(UiOsCursorShape shape, UiOsCursorLayer layer)
@@ -24,6 +28,11 @@ namespace Client.Ui.Foundation.Input.OsCursor
             _requests.Add(request);
             ApplyTopIfChanged();
             return request;
+        }
+
+        public UiOsCursorHoverRequest CreateHoverRequest(VisualElement element, UiOsCursorShape shape, UiOsCursorLayer layer)
+        {
+            return new UiOsCursorHoverRequest(element, this, _screenPointer, shape, layer);
         }
 
         private void Withdraw(ShapeRequest request)

@@ -3,6 +3,7 @@ using System.Reflection;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,7 +15,15 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("ui-state-transition-matrix", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkit();
+    // 非前面の Editor でも注入した入力を Game View へ通す（Runner が終わりに元の設定へ戻す）
+    // Route injected input to the Game View even when the Editor is unfocused (the Runner restores the original settings afterwards)
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    // 非前面の Editor では 1 回の Skip で Story を抜けきらないので、抜けるまで飛ばし直してからゲーム画面へ（回数は Driver が Note に残す）
+    // An unfocused Editor may stay in Story after one skip, so re-skip until it leaves, then land on the game screen (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
+    await p.ExitToGameScreen();
 
     var control = Object.FindFirstObjectByType<UIStateControl>();
     var log = new List<string>();
@@ -77,7 +86,7 @@ return PlaytestRunner.Run("ui-state-transition-matrix", options, async p =>
     var expectedCounts = new (UIStateEnum state, int count)[]
     {
         (UIStateEnum.GameScreen, 8),
-        (UIStateEnum.DeleteBar, 7),
+        (UIStateEnum.DeleteBar, 12),
         (UIStateEnum.PlayerInventory, 6),
         (UIStateEnum.SubInventory, 5),
         (UIStateEnum.ResearchTree, 2),

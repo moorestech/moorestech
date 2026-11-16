@@ -16,7 +16,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
         public VisualElement CreateSample()
         {
             var sample = new VisualElement();
-            sample.Add(new PanelActionButton("gallery-panel-action-button", new UiText(LocalizationKeys.Ui.PauseMenu.Settings), new ProcessUiOsCursor(new UnityUiOsCursorApplier())));
+            sample.Add(new PanelActionButton("gallery-panel-action-button", new UiText(LocalizationKeys.Ui.PauseMenu.Settings), GalleryOsCursor.Create()));
 
             return sample;
         }

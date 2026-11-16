@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System;
 using System.Collections.Generic;
 using Client.Tests.Ui.Content;
@@ -50,7 +51,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             Commands = new RecordingBlockSlotCommands();
             RecipeSelect = new RecordingRecipeSelectCommand();
             AppliedCursor = new FakeUiOsCursorApplier();
-            OsCursor = new UiOsCursorRequestStack(AppliedCursor);
+            OsCursor = new UiOsCursorRequestStack(AppliedCursor, new FakeUiScreenPointer(1f));
         }
 
         [TearDown]

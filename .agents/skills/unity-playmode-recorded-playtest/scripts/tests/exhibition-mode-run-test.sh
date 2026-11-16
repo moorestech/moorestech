@@ -55,6 +55,7 @@ expect "system Classic" 2 "NG: UI system" 0 "" "$WORK/project" Classic "$WORK/x.
 
 # 3. 武装の語が外れたら流さず 1。終わり方によらず最後に Disarm が流れる
 # 3. A missed arming word exits 1 without running; Disarm still runs last however it ends
+# PlaytestBoot.AlreadyPlayingReply と同じ文字列 / same string as PlaytestBoot.AlreadyPlayingReply
 export FAKE_ARM_RESULT="ERROR: already playing"
 expect "arm refused while playing" 1 "NG: exhibition mode was not armed" "" "exhibition-disarm.edc" "$WORK/project" GameUi "$WORK/x.cs"
 

@@ -1,5 +1,7 @@
 using System;
+using Client.Ui.Foundation.Input.Pointer;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Input.OsCursor
 {
@@ -13,10 +15,12 @@ namespace Client.Ui.Foundation.Input.OsCursor
         private static int _generation;
 
         private readonly IUiOsCursorApplier _applier;
+        private readonly IUiScreenPointer _screenPointer;
 
-        public ProcessUiOsCursor(IUiOsCursorApplier applier)
+        public ProcessUiOsCursor(IUiOsCursorApplier applier, IUiScreenPointer screenPointer)
         {
             _applier = applier;
+            _screenPointer = screenPointer;
             // 生成時に既定を当てて OS カーソルと記録を揃える
             // Apply the default at creation so the OS cursor and the record agree
             _processStack ??= CreateProcessStack();
@@ -30,12 +34,17 @@ namespace Client.Ui.Foundation.Input.OsCursor
             return new GenerationGuardedRequest(_generation, _processStack.Request(shape, layer));
         }
 
+        public UiOsCursorHoverRequest CreateHoverRequest(VisualElement element, UiOsCursorShape shape, UiOsCursorLayer layer)
+        {
+            return new UiOsCursorHoverRequest(element, this, _screenPointer, shape, layer);
+        }
+
         private UiOsCursorRequestStack CreateProcessStack()
         {
             // 既定を当ててから記録（既定）と揃えたスタックを作る
             // Apply the default, then create a stack whose record (default) matches
             _applier.Apply(UiOsCursorShape.Default);
-            return new UiOsCursorRequestStack(_applier);
+            return new UiOsCursorRequestStack(_applier, _screenPointer);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

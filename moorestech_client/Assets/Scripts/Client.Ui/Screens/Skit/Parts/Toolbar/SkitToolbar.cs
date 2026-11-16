@@ -71,11 +71,10 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
         // While paused none of the four pick, leaving only the display (Web .inputBlocked)
         public void SetInteractive(bool interactive)
         {
-            var mode = interactive ? PickingMode.Position : PickingMode.Ignore;
-            _auto.pickingMode = mode;
-            _skip.pickingMode = mode;
-            _hideUi.pickingMode = mode;
-            _showUi.pickingMode = mode;
+            _auto.SetInteractive(interactive);
+            _skip.SetInteractive(interactive);
+            _hideUi.SetInteractive(interactive);
+            _showUi.SetInteractive(interactive);
         }
 
         private IconButton AddTool(string testid, SkitToolGlyphShape shape, bool lead, IUiOsCursor osCursor)

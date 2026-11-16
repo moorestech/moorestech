@@ -57,15 +57,16 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
 
             // 押せる印の指は要素の層で要求する（Web .choice の cursor: pointer。ポーズ中は Ignore で PointerEnter が来ず出ない）
             // The pointer finger is requested on the element layer (Web .choice cursor: pointer; while paused Ignore sends no PointerEnter so none shows)
-            _hover = new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            _hover = osCursor.CreateHoverRequest(this, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
 
-        // ポーズ中は拾わない（Web の pointer-events: none）。乗っていた指は PointerLeave を待たずに外す
-        // Not pickable while paused (Web pointer-events: none); a held finger is withdrawn without waiting for PointerLeave
+        // ポーズ中は拾わない（Web の pointer-events: none）。乗っていた指は PointerLeave を待たずに外し、戻したとき乗っていれば出し直す
+        // Not pickable while paused (Web pointer-events: none); a held finger is withdrawn without waiting for PointerLeave and re-requested on restore when hovered
         public void SetInteractive(bool interactive)
         {
             pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
-            if (!interactive) _hover.Release();
+            if (interactive) _hover.Resume();
+            else _hover.Suspend();
         }
 
         private static VisualElement CreateDecor(string className)

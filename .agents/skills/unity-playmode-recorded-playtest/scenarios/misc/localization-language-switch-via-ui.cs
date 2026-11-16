@@ -3,6 +3,7 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
@@ -26,10 +27,18 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
 {
     p.Note("デバッグ環境を整え、全ブロックを解放した状態で言語切替を検証する");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    // 非前面の Editor でも注入した入力を Game View へ通す（Runner が終わりに元の設定へ戻す）
+    // Route injected input to the Game View even when the Editor is unfocused (the Runner restores the original settings afterwards)
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
 
     // 開幕スキット(Story)中はポーズメニューもビルドメニューも開けないためSkipインテントで抜ける
     // The opening skit (Story) blocks both the pause menu and the build menu, so skip it via the intent path
-    await p.SkipOpeningSkit();
+    // 非前面の Editor では 1 回の Skip で Story を抜けきらないので、抜けるまで飛ばし直してからゲーム画面へ（回数は Driver が Note に残す）
+    // An unfocused Editor may stay in Story after one skip, so re-skip until it leaves, then land on the game screen (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
+    await p.ExitToGameScreen();
 
     // ロケールはPlayerPrefsへ永続化されるため、前回ランの残留を潰してから日本語で始める
     // The locale persists in PlayerPrefs, so clear any carry-over from the previous run and start in Japanese
@@ -67,8 +76,8 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     await PlaytestUiElementOps.WaitUiTextContains("placement-mode-hud", "風力掘削機", 15f);
     await p.Screenshot("04-placement-hud-japanese");
 
-    // 英語へ切替え、辞書revisionのpushだけでWebの表示名が張り替わることを確認する
-    // Switch to English and confirm the web display names re-render from the dictionary revision push alone
+    // 英語へ切替え、辞書revisionのpushだけでUIの表示名が張り替わることを確認する
+    // Switch to English and confirm the UI display names re-render from the dictionary revision push alone
     p.Note("Englishへ切り替える");
     await p.ExitToGameScreen();
     await SwitchLocale("english");
@@ -86,16 +95,16 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     await PlaytestUiElementOps.WaitUiTextContains("placement-mode-hud", "Wind Drill", 15f);
     await p.Screenshot("06-placement-hud-english");
 
-    // 車両はmod辞書に訳が無いため、English時も原文へフォールバックするのが期待動作
-    // Train cars have no mod translations, so falling back to the source text under English is expected
-    p.Note("未翻訳の車両名はEnglishでも原文へフォールバックする");
+    // 車両名はmod辞書の英訳で解決される（localization.csvにtrainCarの英訳がある）
+    // Train car names resolve via the mod dictionary's English translation (localization.csv has the trainCar entry)
+    p.Note("車両名はEnglishでmod辞書の英訳へ解決される");
     await p.ExitToGameScreen();
     await OpenBuildMenu();
     await p.ClickUi(transportCategoryTestId);
     await p.HoverUi(steamLocomotiveTestId);
     await p.Screenshot("07-traincar-steam-english");
-    p.Assert(Localize.GetContent(ContentLocalizationKeys.TrainCarName(steamLocomotiveGuid)) == "蒸気機関車",
-        "未翻訳の車両名はEnglishでも原文へフォールバックする");
+    p.Assert(Localize.GetContent(ContentLocalizationKeys.TrainCarName(steamLocomotiveGuid)) == "Steam Locomotive",
+        "車両名はEnglishでmod辞書の英訳へ解決される");
 
     p.Note("日本語へ戻して往復を閉じる");
     await p.PressKey(Key.B);

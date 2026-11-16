@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Input;
 using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
@@ -23,6 +24,7 @@ namespace Client.Tests.Ui.Components.Controls
         private const string KnobOverridePath = "Assets/Scripts/Client.Tests/Ui/Components/Controls/ControlKnobOverrides.uss";
 
         private VisualElement _rulesRoot;
+        private FakeUiOsCursorApplier _cursorApplier;
 
         [SetUp]
         public void AttachRules()
@@ -150,7 +152,7 @@ namespace Client.Tests.Ui.Components.Controls
         public void 渡した図形を子として描き既定の閉じる図形を足さない()
         {
             var glyph = new VisualElement();
-            var button = new IconButton(TestId, glyph, new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            var button = new IconButton(TestId, glyph, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             _rulesRoot.Add(button);
             simulate.FrameUpdate();
 
@@ -160,7 +162,8 @@ namespace Client.Tests.Ui.Components.Controls
 
         private IconButton AddButton(VisualElement parent)
         {
-            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier()));
+            _cursorApplier = new FakeUiOsCursorApplier();
+            var button = new IconButton(TestId, new IconButtonCloseGlyph(), new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f)));
             parent.Add(button);
             simulate.FrameUpdate();
             return button;

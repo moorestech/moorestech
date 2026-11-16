@@ -37,7 +37,7 @@ namespace Client.Ui.Components.Controls
 
             // Web の cursor: pointer（PanelActionButton/style.module.css:15）。部品が自分で出す（A-247）
             // Web cursor: pointer (PanelActionButton/style.module.css:15); the part requests it itself (A-247)
-            new UiOsCursorHoverRequest(this, osCursor, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
+            osCursor.CreateHoverRequest(this, UiOsCursorShape.Pointer, UiOsCursorLayer.Element);
         }
     }
 }

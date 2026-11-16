@@ -18,7 +18,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
             // 横・縦（1 つ無効）・タブの 3 本
             // Horizontal, vertical (one disabled), and tablist
             var column = new VisualElement();
-            var osCursor = new ProcessUiOsCursor(new UnityUiOsCursorApplier());
+            var osCursor = GalleryOsCursor.Create();
             var horizontal = new ModeSwitch<string>("gallery-mode-switch", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, Options("gallery-mode-switch"), osCursor);
             horizontal.SetSelected("a");
             var vertical = new ModeSwitch<string>("gallery-mode-switch-vertical", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, Options("gallery-mode-switch-vertical"), osCursor);

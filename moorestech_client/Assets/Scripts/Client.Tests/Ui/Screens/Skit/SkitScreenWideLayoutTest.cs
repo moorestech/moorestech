@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Skit;
@@ -41,7 +42,7 @@ namespace Client.Tests.Ui.Screens.Skit
         [Test]
         public void 横長画面で会話帯を全幅に広げツールを実画面右上へ固定する()
         {
-            var view = Mount(new SkitScreenView(new RecordingSkitCommands(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier())));
+            var view = Mount(new SkitScreenView(new RecordingSkitCommands(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             view.Render(SkitTestData.Text(SkitTestData.SessionId, 1, "Blocking message", SkitTestData.TextIntents));
             simulate.FrameUpdate();
 

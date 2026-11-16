@@ -1,3 +1,4 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using System.Collections.Generic;
 using Client.Localization;
 using Client.Tests.Ui.TestDoubles;
@@ -31,7 +32,7 @@ namespace Client.Tests.Ui.Components.Controls.PointerCursor
             // Real request stack with a recording applier; LocalizedLabel reads the dictionary on attach, so load it first
             Localize.Initialize();
             _applier = new FakeUiOsCursorApplier();
-            _osCursor = new UiOsCursorRequestStack(_applier);
+            _osCursor = new UiOsCursorRequestStack(_applier, new FakeUiScreenPointer(1f));
             _host = new VisualElement { name = "pointer-cursor-host" };
             _host.style.position = Position.Absolute;
             _host.style.left = 40;

@@ -112,5 +112,29 @@ namespace Client.Tests.Ui.Screens.Toast
             Assert.Greater(_host.worldBound.xMax, root.xMax - 40f);
             Assert.Greater(_host.worldBound.yMax, root.yMax - 40f);
         }
+
+        [Test]
+        public void 右下の余白は舞台の倍率の外で実画面の16px()
+        {
+            // Web の .host の bottom/right: 1rem は scale(var(--ui-scale)) の外。倍率 1.5 なら論理 px は 16/1.5
+            // Web .host bottom/right: 1rem sit outside scale(var(--ui-scale)); at scale 1.5 the logical px is 16/1.5
+            _host.Push(new GameUiToast("inset", GameUiToastVariant.Info));
+            simulate.FrameUpdateMs(0);
+            _host.SetStageScale(1.5f);
+            simulate.FrameUpdateMs(0);
+            var root = rootVisualElement.worldBound;
+            Assert.AreEqual(16f / 1.5f, root.xMax - _host.worldBound.xMax, 0.5f);
+            Assert.AreEqual(16f / 1.5f, root.yMax - _host.worldBound.yMax, 0.5f);
+        }
+
+        [Test]
+        public void 一行のトーストの高さはdescriptionの行の箱20_3と上下の余白と線()
+        {
+            // Mantine の Notification: padding xs 10px ×2・線 1px ×2・description は sm 14px × line-height sm 1.45
+            // Mantine Notification: padding xs 10px x2, 1px rule x2, description is sm 14px x line-height sm 1.45
+            _host.Push(new GameUiToast("one line", GameUiToastVariant.Info));
+            simulate.FrameUpdateMs(0);
+            Assert.AreEqual(20.3f + 20f + 2f, _host[0].layout.height, 0.3f);
+        }
     }
 }

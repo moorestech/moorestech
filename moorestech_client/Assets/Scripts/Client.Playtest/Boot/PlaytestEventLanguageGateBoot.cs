@@ -32,7 +32,7 @@ namespace Client.Playtest.Boot
         // Puts only the next PlaytestBoot boot into exhibition mode (call via execute-dynamic-code before run-scenario.sh)
         public static string ArmForNextBoot()
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return "ERROR: already playing";
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return PlaytestBoot.AlreadyPlayingReply;
             SessionState.SetBool(ArmedKey, true);
             return "exhibition-armed";
         }
