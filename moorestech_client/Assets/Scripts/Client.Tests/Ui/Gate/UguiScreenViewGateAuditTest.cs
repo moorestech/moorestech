@@ -4,13 +4,13 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.WebUi.Gate
+namespace Client.Tests.Ui.Gate
 {
     /// <summary>
     /// uGUI再流入の決定論チェック。スクリーンスペースuGUI領域の全.csが分類済みで、除外以外がuGUIを参照しないことを機械判定する。
     /// Deterministic re-entry check: every screen-space uGUI .cs must be classified, and non-excluded files must not reference uGUI.
     /// </summary>
-    public class WebUiGateAuditTest
+    public class UguiScreenViewGateAuditTest
     {
         // uGUI 参照の検出語。UIElements を部分一致で拾わないようセミコロンまで含める
         // uGUI reference tokens; the trailing semicolon keeps UIElements out of the match
@@ -22,7 +22,7 @@ namespace Client.Tests.WebUi.Gate
         // Enumerate all .cs files under the scan roots (excluding .meta)
         private static IEnumerable<string> EnumerateTargetFiles()
         {
-            foreach (var root in WebUiGateClassification.ScanRoots)
+            foreach (var root in UguiScreenViewGateClassification.ScanRoots)
             {
                 var abs = Path.Combine(ScriptsRoot, root);
                 if (!Directory.Exists(abs)) continue;
@@ -40,10 +40,10 @@ namespace Client.Tests.WebUi.Gate
 
         // 最長一致ルールを解決する。未分類ならnull
         // Resolve the longest-prefix rule; null when unclassified
-        private static WebUiGateClassification.Rule? Resolve(string relativePath)
+        private static UguiScreenViewGateClassification.Rule? Resolve(string relativePath)
         {
-            WebUiGateClassification.Rule? best = null;
-            foreach (var rule in WebUiGateClassification.Rules)
+            UguiScreenViewGateClassification.Rule? best = null;
+            foreach (var rule in UguiScreenViewGateClassification.Rules)
             {
                 if (!Matches(relativePath, rule.PathPrefix)) continue;
                 if (best == null || rule.PathPrefix.Length > best.Value.PathPrefix.Length) best = rule;
@@ -66,7 +66,7 @@ namespace Client.Tests.WebUi.Gate
         {
             var unclassified = EnumerateTargetFiles().Where(f => Resolve(f) == null).ToList();
             Assert.IsEmpty(unclassified,
-                "未分類のスクリーンスペースuGUIファイルがあります。WebUiGateClassification.Rules へ処遇（ゲート/Phase/除外）を追加してください:\n" +
+                "未分類のスクリーンスペースuGUIファイルがあります。UguiScreenViewGateClassification.Rules へ処遇（ゲート/Phase/除外）を追加してください:\n" +
                 string.Join("\n", unclassified));
         }
 
@@ -80,7 +80,7 @@ namespace Client.Tests.WebUi.Gate
             {
                 var rule = Resolve(relativePath);
                 if (rule == null) continue;
-                if (rule.Value.RuleCategory == WebUiGateClassification.Category.Excluded) continue;
+                if (rule.Value.RuleCategory == UguiScreenViewGateClassification.Category.Excluded) continue;
 
                 var text = File.ReadAllText(Path.Combine(ScriptsRoot, relativePath));
                 foreach (var token in UguiTokens)
@@ -90,7 +90,7 @@ namespace Client.Tests.WebUi.Gate
             }
 
             Assert.IsEmpty(violations,
-                "除外に分類されていないファイルがスクリーンスペースuGUIを参照しています。Web UIへ寄せるか、分類をExcludedへ改めてください:\n" +
+                "除外に分類されていないファイルがスクリーンスペースuGUIを参照しています。UITK（Client.Ui）へ寄せるか、分類をExcludedへ改めてください:\n" +
                 string.Join("\n", violations));
         }
 
@@ -100,7 +100,7 @@ namespace Client.Tests.WebUi.Gate
         public void AllRulesMatchExistingFiles()
         {
             var files = EnumerateTargetFiles().ToList();
-            var stale = WebUiGateClassification.Rules
+            var stale = UguiScreenViewGateClassification.Rules
                 .Where(rule => !files.Any(f => Matches(f, rule.PathPrefix)))
                 .Select(rule => rule.PathPrefix)
                 .ToList();

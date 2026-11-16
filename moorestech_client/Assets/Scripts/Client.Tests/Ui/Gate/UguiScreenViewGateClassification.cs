@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Client.Tests.WebUi.Gate
+namespace Client.Tests.Ui.Gate
 {
     /// <summary>
     /// スクリーンスペースuGUIビューの処遇分類。新規uGUI追加時は必ずここへ分類を追加する（未分類はテスト失敗）。
@@ -8,7 +8,7 @@ namespace Client.Tests.WebUi.Gate
     /// Disposition classification for screen-space uGUI views; new uGUI files must be classified here (unclassified fails the test).
     /// The migrated screen uGUI is fully deleted per ADR 0052; this classification remains as a safety net against new additions.
     /// </summary>
-    public static class WebUiGateClassification
+    public static class UguiScreenViewGateClassification
     {
         public enum Category
         {
@@ -53,6 +53,7 @@ namespace Client.Tests.WebUi.Gate
             "Client.CutScene",
             "Client.DebugSystem",
             "Client.Ui.State",
+            "Client.Ui",
         };
 
         // 最長一致で適用する分類ルール。ファイル指定がディレクトリ指定より優先される
@@ -69,13 +70,14 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Crosshair", Category.Infra, "クロスヘア表示可否の論理状態"),
             new Rule("Client.Game/InGame/UI/ProgressBar", Category.Infra, "進捗の論理状態（ui.progressのデータ源）"),
             new Rule("Client.Game/InGame/UI/Tooltip", Category.Infra, "ツールチップの論理状態"),
-            new Rule("Client.Game/InGame/UI/Notification", Category.Infra, "通知の論理状態とイベント発行元（表示は描画側が担当）"),
-            new Rule("Client.Ui.State", Category.Infra, "UITKとWebが共に読む画面状態（表示は描画側が担当）"),
+            new Rule("Client.Game/InGame/UI/Notification", Category.Infra, "通知の論理状態とイベント発行元（表示は Client.Ui の通知が担当）"),
+            new Rule("Client.Ui.State", Category.Infra, "UITK（Client.Ui）が読む画面状態（表示は Client.Ui が担当）"),
+            new Rule("Client.Ui", Category.Infra, "UITK の描画層（uGUI を参照しない）"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.Infra, "終了経路・切断状態・セーブ要求（uGUI非依存）"),
-            new Rule("Client.Game/InGame/BackgroundSkit", Category.Infra, "音声再生専用オーケストレータ。文字表示はWeb UI側が担う"),
+            new Rule("Client.Game/InGame/BackgroundSkit", Category.Infra, "音声再生専用オーケストレータ。文字表示は Client.Ui のスキット画面が担う"),
             new Rule("Client.Game/Skit/Localization", Category.Infra, "通常スキットの辞書読込・合成・解決基盤（画面表示なし）"),
             new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),
-            new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "DOMハイライト一本化済み"),
+            new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "ハイライトは Client.Ui のチュートリアルの枠が描く"),
 
             // --- 移行対象外 / Excluded
             new Rule("Client.Game/InGame/Mining", Category.Excluded, "採掘FSM（進捗は ProgressBarState→ui.progress）"),
