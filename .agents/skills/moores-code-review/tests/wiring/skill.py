@@ -110,11 +110,11 @@ class SkillWiringTest(unittest.TestCase):
                             f"reviewers/{f.name} にfrontmatterが無くselectorから発見できない")
 
     def test_reviewer_names_follow_origin_language_convention(self):
-        # 旧lenses/統合後の命名規約: <moores|core>-<cs|any>-<観点>
-        # Naming after the lenses/ merge: <moores|core>-<cs|any>-<topic>
+        # 旧lenses/統合後の命名規約: <moores|core>-<cs|ts_tsx|any>-<観点>
+        # Naming after the lenses/ merge: <moores|core>-<cs|ts_tsx|any>-<topic>
         self.assertFalse((SKILL_DIR / "lenses").exists(), "lenses/ が復活している（reviewers/ へ統合済み）")
         for f in (SKILL_DIR / "reviewers").glob("*.md"):
-            self.assertRegex(f.stem, r"^(moores|core)-(cs|any)-[a-z0-9-]+$",
+            self.assertRegex(f.stem, r"^(moores|core)-(cs|ts_tsx|any)-[a-z0-9-]+$",
                              f"reviewers/{f.name} が <出自>-<言語>-<観点> 命名に従っていない")
 
     def test_reviewer_model_overrides_name_existing_reviewers(self):

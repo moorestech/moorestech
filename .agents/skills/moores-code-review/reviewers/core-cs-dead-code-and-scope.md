@@ -36,6 +36,7 @@ patch が大きくても、**ファイル分割して subagent へレビュー�
 ### 2. 参照数 1 箇所の private 補助メソッド (スコープ縮小機会)
 - レッドフラグ: private メソッドを Grep して参照が 1 箇所のみ、20 行以下、呼び出し元メソッドの文脈でのみ意味を持つ
 - 直し方: 呼び出し元メソッドの `#region Internal` ブロック内にローカル関数として移動し、元の private メソッドを削除する。複数 helper が同じ public entry / constructor からのみ呼ばれる場合は、その public entry / constructor の単一 `#region Internal` に全 helper を並べる。
+- 例外（UITK のイベント登録）: コンストラクタで要素へ `RegisterCallback<TEvent>(OnX)`・`generateVisualContent += DrawX` と method group で渡す、同クラスの private のハンドラ（参照は登録の 1 か所だけ）は指摘しない。`VisualElement` 派生が自分へ登録するものと、派生でない部品が他の要素へ登録するものの両方。ローカル関数・ラムダで書いたものも指摘しない（`core-cs-region-internal.md` と同じ扱い）
 - 禁止: reviewer が明示していない class-level `const` / field / property を local function 内へ移動してスコープ縮小しない。§2 の修正対象は private helper の本体と、その helper 呼び出しに必要な引数削除だけに限る。
 
 ### 3. インターフェース実装に「テスト専用」「使用禁止」等の制限的ラベル

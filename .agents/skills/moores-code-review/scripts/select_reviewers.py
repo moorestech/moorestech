@@ -16,7 +16,7 @@ Usage: python3 select_reviewers.py [PATCH_PATH]   (省略時は stdin)
 reviewers/*.md は2系統を同じ規則で扱う（旧 lenses/ は 2026-09-23 に統合）:
   - moores-<lang>-* … moorestech 固有の設計規約（実PRレビュー指摘由来）
   - core-<lang>-*   … 汎用のコード品質観点
-<lang> は拡張子ゲートの言語（cs）。拡張子ゲートを持たないものは any。
+<lang> は拡張子ゲートの言語（cs / ts_tsx）。拡張子ゲートを持たないものは any。
 
 先頭YAMLの各グループはAND結合（グループ内はOR、空グループは制約なし）:
     ---

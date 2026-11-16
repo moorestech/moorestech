@@ -3,7 +3,7 @@ name: moores-code-review
 description: |
   moorestechのPR作成前・マージ前レビューを単体で完結させる統合スキル。5系統を並列実行する:
   ①決定論チェック（汎用+moorestech固有の機械判定）②reviewer群（moores-*: ドメイン境界・サーバー状態同期3点セット・
-  DataStore分離・マスタデータ防御・型構造・前例一致などmoorestech固有の設計規約／core-*: 汎用コード品質の採用実績ある観点）
+  DataStore分離・マスタデータ防御・型構造・前例一致などmoorestech固有の設計規約／core-*: 汎用コード品質の採用実績ある観点＋ts/tsx設計観点）
   ③Codex外部監査 ④Fable全般レビュー ⑤分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
   指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
   設計判断だけ末尾でAskUserQuestion。moorestech固有の設計規約と汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
@@ -23,7 +23,7 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 **Codex（Workflow ツールも Agent ツールも無いホスト）で実行している場合は、先に `references/codex-host.md` を Read してそれに従う**（Step 3.5〜6.5 は Workflow の代わりに `scripts/codex_workflow_runner/run.mjs` で回す。選ばれた系統を自分で代行・要約・領域分割に置き換えるのは禁止）。Claude はこのファイルを読まない。
 
-系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②reviewer 29本（moores-* 12・core-* 17） ③Codex外部監査3本 ④Fable全般 ⑤分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。裁定反映の後に Step 7.5 の bug-pass（正しさ系だけ・同じ Workflow を `mode=bug-pass` で）。
+系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②reviewer 39本（moores-* 12・core-* 27） ③Codex外部監査3本 ④Fable全般 ⑤分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。裁定反映の後に Step 7.5 の bug-pass（正しさ系だけ・同じ Workflow を `mode=bug-pass` で）。
 
 ## Workflow実行（既定）
 
@@ -131,7 +131,7 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 2. **保留した設計判断と `[解釈]` Warning だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ。`[解釈]` Warning の設問の症状は「依頼の意図が逆だった場合に起きること」）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
    - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`moores-subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは本体の最小Edit or fix subagent（`sonnet`）。
    - **裁定反映 diff の再レビュー（Refix・Step 6 と同じ手順）**: 裁定を適用する**前**に `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root "$(pwd)" --run-dir $RUNDIR --name w7-s0` を取り、続けて `python3 .claude/skills/moores-code-review/scripts/applied_diff_checks.py record --repo-root "$(pwd)" --run-dir $RUNDIR --name w7-s0 --if-missing`（反映前の録画シナリオ診断）を記録し、適用後に `--name w7-s1` → `refix_snapshot.py diff --from w7-s0 --to w7-s1 --out $RUNDIR/refix/w7-round1.diff` で反映 diff と `scope` を得て、その diff に `references/orchestrator-steps.md` の「反映 diff の機械的動作確認」を回す（`check --from w7-s0 --to w7-s1` で録画シナリオ全件の反映前後のコンパイル診断を比べ、増えた診断だけ追従修正・セーブ往復テスト。直し直すたびに取る `w7-round<N>.diff` にも `--from w7-s<N-1> --to w7-s<N>` で回す）。`source` なら `post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約＋`Refix of : design.md の該当裁定`・Patch path = その diff・報告先 `agents/refix-correctness-w7-r1.md`）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Refix フェーズが同じ手順を回す）。Critical は直して `w7-s2` を取り直し直した差分だけで再実行（最大3周。機械的でなければ再度 AskUserQuestion）、上限超過・適用0件は未収束として報告冒頭に明記、Warning/Info は最終報告へ。`non-source`/`none` なら起動せず報告に1行。
-   - **設計判断を反映した diff の構造レビュー**: 上の反映 diff が型・スキーマ・公開シグネチャを新設または変更していれば、`reviewers/core-cs-centralization-duplication.md` を同じ diff・同じ5行契約で opus 1体起動する（報告先 `agents/refix-structure-w7-r1.md`）。裁定を反映した diff は新しい設計そのものだが、applied-diff-correctness は設計に言及しない。Critical は上と同じ扱い、`設計判断: あり` は最終報告へ案の形ごと載せる。**特定の指摘の再発防止ではなく、反映diffに残る設計欠陥一般への網として入れている**（reviewer の焦点は毎回揺れるので、1回の検出を当てにしない）。
+   - **設計判断を反映した diff の構造レビュー**: 上の反映 diff が型・スキーマ・公開シグネチャを新設または変更していれば、`reviewers/core-cs-centralization-duplication.md`（`.ts`/`.tsx` のみなら `core-ts_tsx-centralization-duplication.md`）を同じ diff・同じ5行契約で opus 1体起動する（報告先 `agents/refix-structure-w7-r1.md`）。裁定を反映した diff は新しい設計そのものだが、applied-diff-correctness は設計に言及しない。Critical は上と同じ扱い、`設計判断: あり` は最終報告へ案の形ごと載せる。**特定の指摘の再発防止ではなく、反映diffに残る設計欠陥一般への網として入れている**（reviewer の焦点は毎回揺れるので、1回の検出を当てにしない）。
    - **載せてよいのは本質的な設計判断のみ**（アーキテクチャ・パターン選択・スコープ影響・両立不能な指摘・サブエージェントの `設計判断: あり`）。載せない対象は `references/integration-rules.md` §4 の「AskUserQuestionに載せるの禁止」に従う。
    - **design.md に無い選択肢を本体が足すのも禁止** — 「現状維持」「別issueへ」を付け足さない。推奨は design.md の「（推奨）」に揃える（推奨の決め方の正本は `references/integration-rules.md` §4）。
    - **設問は「症状 → 原因 → 推奨」の順**。書き出しはコードを読まなくても分かるゲーム上・開発上の症状、原因は1〜2行、推奨を第1選択肢に置き末尾に `（推奨）`、各選択肢に症状が消える理由を1行。観点名・レビュアー名・「N系統一致」は設問の主役にせず報告本文へ。症状を1文で書けない指摘は設問にせず Warning へ落とす。判定基準: **その設問だけを読んだ人が、コードを開かずに選べるか**。

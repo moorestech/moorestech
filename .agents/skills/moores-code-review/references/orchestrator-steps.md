@@ -5,9 +5,9 @@ moores-code-review の実行本体。**既定ではこの手順書の Step 3.5�
 ## 5系統の構成
 
 1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・server_realtime_api・server_elapsed_time・init_method_naming・schema_optional_true・event_tag_sync・try_catch_boundary）。0トークン。
-2. **reviewer群**（`reviewers/`・29本）— 命名は `<出自>-<言語>-<観点>`。言語は拡張子ゲート（`cs`、ゲート無しは `any`）。発火条件は各ファイル先頭YAML、モデルは `scripts/model_map.json`、選択は `select_reviewers.py` の1本。
+2. **reviewer群**（`reviewers/`・39本）— 命名は `<出自>-<言語>-<観点>`。言語は拡張子ゲート（`cs`/`ts_tsx`、ゲート無しは `any`）。発火条件は各ファイル先頭YAML、モデルは `scripts/model_map.json`、選択は `select_reviewers.py` の1本。
    - **`moores-*`（12本）** — moorestech固有の設計規約。
-   - **`core-*`（17本）** — 言語横断のコード品質。採用実績のある観点のみ採録（除外した観点は `scripts/model_map.json` の `_excluded_from_port`）。
+   - **`core-*`（27本）** — 言語横断のコード品質。採用実績のある観点のみ採録（除外した観点は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`moores-cs-*` 5本の **ts/tsx翻案版**を採録し、`.ts`/`.tsx` 差分（`tools/playtest-receiver/` など）にも同じ意味構造の検査を当てる（`_ts_lens_ports`）。
 3. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
 4. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
 5. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止。

@@ -31,6 +31,7 @@ from workflow_args.systems import SCRIPTS
 # 誤動作を直接狩る reviewer だけ。構造・規約・命名・重複・抽象化・前例一致・効率・テスト品質・依頼解釈は外す
 # Only reviewers that hunt wrong behavior; structure/convention/naming/duplication/abstraction/precedent/cost/test-quality/intent are out
 BUG_PASS_REVIEWERS = {
+    "core-ts_tsx-result-state-propagation": "同上の TS 版（fetch 結果→表示分岐で失敗が消える経路）",
     "core-any-callsite-tracer": "変更関数の呼び出し元を全数追い、新しい事前条件・戻り値変化で呼び出し側が壊れないか",
     "core-any-removed-invariant": "削除・置換した行が守っていたガード・不変条件の消失（退行）",
     "core-cs-async-cancellation": "await 中に持ち主が破棄されても止まらない非同期処理（破棄後アクセス・二重実行）",
