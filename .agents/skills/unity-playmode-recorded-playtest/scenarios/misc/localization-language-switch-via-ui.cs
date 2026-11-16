@@ -3,6 +3,7 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
@@ -26,6 +27,11 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
 {
     p.Note("デバッグ環境を整え、全ブロックを解放した状態で言語切替を検証する");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    // 非前面の Editor でも注入した入力を Game View へ通す（Runner が終わりに元の設定へ戻す）
+    // Route injected input to the Game View even when the Editor is unfocused (the Runner restores the original settings afterwards)
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
 
     // 開幕スキット(Story)中はポーズメニューもビルドメニューも開けないためSkipインテントで抜ける
     // The opening skit (Story) blocks both the pause menu and the build menu, so skip it via the intent path
