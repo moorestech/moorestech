@@ -40,10 +40,10 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 ## 画面UI（ボタン・スロット）のクリック
 
-移行済みのゲーム内画面UI（ビルドメニュー・インベントリ等）はWeb UI一本（ADR 0052）で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は無い。ADR 0052の例外4種（MainMenu/ローディング・mapObject HPバー・デバッグUI・CEF描画面）はuGUIのまま。
+移行済みのゲーム内画面UI（ビルドメニュー・インベントリ等）は UITK（`Client.Ui`）一本で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は無い。ADR 0052の例外（MainMenu/ローディング・mapObject HPバー・デバッグUI）はuGUIのまま。
 
-- 画面UIの要素は `data-testid` で指定し、DSLの `ClickUi(testid)` / `HoverUi(testid)` / `UntilUiElement(testid, timeout)` / `SetText(testid, text)` を使う（ロケータが要素を解決→注入マウス。Web 版は DOM 矩形→座標逆変換→入力転送。write-scenario.mdのUI操作参照）
-- ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。UIの描画系が15秒以内に使えなければ例外）
+- 画面UIの要素は testid（UITK の要素の `name`）で指定し、DSLの `ClickUi(testid)` / `HoverUi(testid)` / `UntilUiElement(testid, timeout)` / `SetText(testid, text)` を使う（ロケータが要素を解決→注入マウス。write-scenario.mdのUI操作参照）
+- ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。15秒以内に要素が見つからなければ例外）
 - uGUI型（`BuildMenuView`/`ItemSlotView`/`CommonSlotView`/`BlueprintNameInputView`/`CrosshairView`）を参照する旧シナリオはコンパイルできない。雛形にしない
 
 ## ワールドクリックの座標

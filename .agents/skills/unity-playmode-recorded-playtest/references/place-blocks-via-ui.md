@@ -36,8 +36,8 @@ await p.ExitToGameScreen();
 - UI状態遷移: GameScreen --B--> BuildMenu --スロットクリック--> PlaceBlock。
   **PlaceBlock中のBはGameScreenへ抜ける。メニュー再オープンはTab**（`OpenBuildMenuAndSelectBlock`が自動で使い分け）
 - ビルドメニューのスロット選択は**UIロケータ経由のクリック経路のみ**
-  （ロケータが要素を解決→注入マウス。Web 版は DOM 矩形→座標逆変換→入力転送。write-scenario.mdのUI操作参照）。
-  画面UIはWeb UI一本（ADR 0052）でuGUI経路は撤去済み。UIの描画系が15秒以内に使えなければ`PlaytestBuildMenuOps`が例外を投げる
+  （ロケータが要素を解決→注入マウス。write-scenario.mdのUI操作参照）。
+  画面UIはUITK一本（ADR 0052）でuGUI経路は撤去済み。要素が15秒以内に見つからなければ`PlaytestBuildMenuOps`が例外を投げる
 - 照準は `PlaytestUiOps.PlaceAimPoint`（`Client.Playtest.Operations.Ui`名前空間。参照時は
   `using Client.Playtest.Operations.Ui;` が必要） = CalcPlacePointの逆算。**接地面上のフットプリント中心**
   （`origin + rotatedSize/2` のx,z、y=origin.y）を狙えば指定originに置かれる

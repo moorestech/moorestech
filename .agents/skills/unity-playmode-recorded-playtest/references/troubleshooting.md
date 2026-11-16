@@ -34,7 +34,7 @@ uloop get-logs --project-path <client> --log-type Exception 2>&1 | grep -o '"Mes
 - **頻度上位だけ見ない**: NRE/MapObjectスパムに埋もれ、真犯人が「100件上限でカット」されて上位に出ないことがある。
   容疑キーワードで的打ちする: `uloop get-logs --log-type Error --search-text "BlockElement"` 等
 - Error型とException型は**別枠。両方見る**
-- 進行地点の特定には最新のLog型ログ（`[WebUiHost] ready`等）が有効
+- 進行地点の特定には最新のLog型ログ（`[Playtest]`・`[PlaytestUi]` 等）が有効
 
 ## 3. クリック/操作が効かない（Untilタイムアウト）
 
@@ -101,7 +101,6 @@ EditModeInPlayingTestを一括実行すると、後半のテストが
 
 - PlayMode中のスキーマ再コンパイル発火→ドメインリロードで初期化破壊。worktree初回はPlayMode前に`uloop compile`
 - `.moorestech-external-revisions.json` / `_CompileRequester.cs` はUnityが自動書き換え。スキーマ未更新なら`git checkout --`
-- worktreeに`moorestech_web/node/`が無くWebUiHostがエラーを出すが**初期化は継続する**（無視可）
 - 論理座標とView層`BlockGameObject.OriginalPos`は回転・footprint origin規約でズレうる。View層APIにはView層の座標
 - `control-play-mode --action` は Play/Stop/Pause のみ。再生確認はEDCで`isPlaying`を読む
 - 撮り損ねた瞬間は二度と撮れない。中間状態は録画（Record=true）で押さえ、スクショは節目の証拠用
