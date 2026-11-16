@@ -114,11 +114,11 @@ patch が `.decisions/` または `docs/adr/` 配下のファイルを追加・�
 
 ## 他 reviewer との関係 (重要)
 
-本 reviewer の Critical は **依頼動詞の達成** のみを判定する。`ts_tsx-component-colocation` / `any-schema-design` などの他 reviewer が出した Critical (ディレクトリ化勧告 / schema 形式変更 など) を **打ち消したり最小化したりしない**。
+本 reviewer の Critical は **依頼動詞の達成** のみを判定する。`cs-centralization-duplication` / `any-schema-design` などの他 reviewer が出した Critical (共通化勧告 / schema 形式変更 など) を **打ち消したり最小化したりしない**。
 
 main agent への影響:
-- 本 reviewer が「動詞 X を実装すべき」と Critical 化した場合、その動詞 X を達成するための編集は **他 reviewer の Critical (例: ディレクトリ化 / colocation) と両立する形** で行う
-- 例: 「別ファイルに切り出す」を Critical 化したケースで、`ts_tsx-component-colocation` がディレクトリ化を Critical 化していたら、両方を満たす編集 (`<Component>/index.tsx` + `<Component>/<SubComponent>.tsx` + `<Component>/<helper>.ts` 等のディレクトリ化 + 別ファイル切り出し) を行う
+- 本 reviewer が「動詞 X を実装すべき」と Critical 化した場合、その動詞 X を達成するための編集は **他 reviewer の Critical (例: 共通化 / schema 形式) と両立する形** で行う
+- 例: 「別ファイルに切り出す」を Critical 化したケースで、`cs-centralization-duplication` が既存の共通サービスへの委譲を Critical 化していたら、両方を満たす編集 (新しいファイルへ切り出しつつ、重複していたロジックは共通サービスへ委譲) を行う
 - 動詞達成だけを単独で満たして他 reviewer の指摘を捨てる「最小実装倒れ」は禁止
 
 ## 出力フォーマット

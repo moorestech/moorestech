@@ -78,11 +78,6 @@ def domain_key(path: str) -> str:
             if idx + 1 < len(parts) - 1:
                 head = parts[idx + 1]
                 return SEAM_DOMAINS.get(head, head)
-    # webuiは src 直下の1階層をドメインとする / webui: one level under src
-    if "webui" in parts:
-        idx = parts.index("webui")
-        sub = parts[idx + 1 : idx + 3]
-        return "webui/" + (sub[0] if len(sub) > 1 else "")
     # その他はパス先頭2要素 / otherwise first two path components
     return "/".join(parts[:2]) if len(parts) > 2 else (str(PurePosixPath(path).parent) or "root")
 

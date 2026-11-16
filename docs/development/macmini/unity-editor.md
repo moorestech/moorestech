@@ -30,12 +30,6 @@ Mac mini 自宅サーバー固有の事情。索引は `CLAUDE.local.macmini.md`
 - 並列セッションが同じファイルを上書きする。読む前に XML の `start-time` が自分の run の時刻か確かめ、残したい結果はすぐ scratchpad へコピーする
 - PlayMode 遷移テストの結果待ちは、このファイルの更新（`start-time` が自分の run）を待つ
 
-## Steam 版 moorestech が動いていると Web UI が出ない
-- 症状: PlayMode で `[CefUnity] Init failed ... (code -6)` が出て、Web UI（インベントリ等）が一切描画されない。続く `WebUiCefNavigator` の NRE は付随症状
-- 原因: Steam 版と Editor が CEF キャッシュ `$TMPDIR/cef_unity_cache` を共有するとみられる
-- 対処: Steam 版を終了するか、Editor を `TMPDIR=/tmp/<短い名前>/ uloop launch ...` で起動し直す。uloop もソケットを TMPDIR に置くので、以降の uloop 呼び出しにも同じ TMPDIR を付ける。TMPDIR を引き継がない子エージェント（Workflow 等）へ渡す前には既定の TMPDIR で起動し直す
-- Web UI が出ていない PlayMode で「メニュー中の挙動」を検証しない（実プレイと条件が違う）
-
 ## 新規 worktree の Editor が Safe Mode になる
 - `moores-wt new` はメイン checkout の `moorestech-client-private` を fetch せず clonefile で複製する。メイン側が古いと、新 worktree でアセンブリ二重定義 → Safe Mode → uloop のソケットが出ない
 - 対処は uloop-troubleshooting.md の Safe Mode 節（その worktree の private を ff 更新し、自分の Editor を再起動）。メインの private を更新すれば根治するが、共有状態なので他セッションへの影響を確かめてから行う

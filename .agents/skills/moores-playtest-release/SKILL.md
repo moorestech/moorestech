@@ -81,7 +81,7 @@ python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-
 
 - 手順 4 の Mac 確認がまだなのにユーザーが反映を指示したときだけ、後者を使う。その場合は「Mac は未確認」と報告する。
 - スクリプトは次の 2 点を確かめてから `SetAppBuildLive` を呼び、読み戻しで一致を確かめて `released.json` を書く。ログに `[verify] passed` があること。コミットは release.log の `commit=` から読む。`released.json` は次回のパッチノートで比較元になる。
-- Steamworks Web UI での手作業は不要。
+- Steamworks の管理画面での手作業は不要。
 
 ## Gotchas
 

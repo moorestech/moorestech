@@ -21,8 +21,8 @@ keywords:
 cwd を読み、本番コードに dev/test/debug コードが混入しているパターンを返す。
 
 ## 検査対象の絞り込み
-1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更されたファイルから `src/` 配下 (テストファイル `*.test.*` / `e2e/` / Storybook 設定 / `vite.config.ts` を除く) の `.ts` / `.tsx` に絞る
-2. エントリポイント (`main.tsx`, `App.tsx`) とルーティング設定ファイルは、文脈把握のために Read してよい。
+1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更されたファイルから `src/` 配下 (テストファイル `*.test.*` / `test/` / `vitest.config.ts` を除く) の `.ts` / `.tsx` に絞る
+2. エントリポイント (`index.ts` など) とルーティング設定ファイルは、文脈把握のために Read してよい。
 
 ## patch スコープ厳守 (重要)
 Critical 対象は原則として **patch の追加行 (`+`)** が新規に持ち込んだ dev/test 混入に限る。ただし `console.log` / `console.debug` は例外で、patch が触った production `.ts` / `.tsx` ファイルの最終内容に素の debug log が残っていれば Critical 化する。差分行の変更により既存 debug log の引数や周辺コードを触った場合も、提示前に削除する。

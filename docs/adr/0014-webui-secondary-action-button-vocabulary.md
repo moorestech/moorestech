@@ -17,3 +17,7 @@
 - `GamePanel` は `titleAction?: ReactNode` という汎用スロットを持つ。ドメイン語彙は持ち込まない。
 - `PauseMenuPanel` / `ChallengePanel` / `ModalHost` には素の Mantine `Button` が残る。同語彙へ寄せる候補だが**今回は着手しない**（見た目が変わる範囲を依頼のスコープに留めるため）。
   出所: ユーザー裁定 2026-08-17（Q6「他のButtonは今回触らない」を承諾）
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。副次アクションの押しボタンは UITK の `PanelActionButton`、置き場は `GamePanel.SetTitleAction`（題の行の右端）だけ。

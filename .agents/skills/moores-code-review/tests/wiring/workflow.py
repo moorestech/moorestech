@@ -65,7 +65,6 @@ class WorkflowWiringTest(unittest.TestCase):
             (run_dir / "checks.json").write_text(json.dumps({
                 "deterministic": {"confirmed": [], "candidates": {}},
                 "dead_member": {"status": "skipped", "candidates": []},
-                "ts_dead_code": {"status": "skipped", "candidates": []},
                 "reviewers": [{"path": str(moores_rev), "model": "fable"},
                               {"path": str(rev), "model": "opus"}],
                 "verifiers_to_launch": [{"verifier": "verifiers/comparison-operator-verifier.md",
@@ -98,7 +97,6 @@ class WorkflowWiringTest(unittest.TestCase):
             (run_dir / "checks.json").write_text(json.dumps({
                 "deterministic": {"confirmed": [], "candidates": {}},
                 "dead_member": {"status": "skipped", "candidates": []},
-                "ts_dead_code": {"status": "skipped", "candidates": []},
                 "reviewers": [{"error": "select_reviewers失敗: boom"}],
                 "verifiers_to_launch": [],
                 "summary": {"errors": []},

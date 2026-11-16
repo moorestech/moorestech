@@ -1,7 +1,7 @@
 # ADR 0035: スキット中のポーズメニュー表示（入れ子サブステート）
 
 ## Status
-Accepted (2026-08-26)
+Accepted (2026-08-26)（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 
 ## Context
 `SkitState.GetNextUpdate()` はスキット終了しか監視せず、`InputManager.UI.OpenMenu`(Esc) を無視するためスキット中にポーズメニュー（セーブ・終了等）を開けない。
@@ -42,3 +42,7 @@ C#: `SkitPlayingSubState` のwebガード撤去／`SkitState.SubState`・`OnPres
 - 閉じ要求は実際に閉じたときだけ `true`。閉じるものが無い要求は `transition_not_allowed` で拒否する
 - Web: `UiStateDataSchema.subState` は `z.string().optional()`（未知値の解釈は `screenForUiState` のfail-safe）。skitPause 中は `SkitPresentation` を `pointer-events: none` にして表示と自動送りだけ継続させる
 - 到達不能だったuGUI会話UI復帰枝（`SkitUITools.IsUIHidden`/`ShowUI`・`SkitUI.ShowHiddenUI`）は削除し、`SkitManager.TryRestoreHiddenSkitUi` は store 一本で判定する
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。入れ子のポーズと背後再生の決定は UITK で保つ。Web の `uiScreenRouting`・`UiStateTopic` の subState 配信は `UiScreenRouting.Resolve`（`UiScreen.SkitPause`）と `UiRoutingState` に置き換わり、Web 契約を寛容にする項目は契約ごと無くなった。

@@ -59,3 +59,7 @@ walk は feature の知識を持たず、`data-tutorial-anchor` が付いた任�
 - **`renderOutline` の戻り値契約が変わった。** 従来は「`status: "ready"` ⇒ `[data-kind="outline"]` の DOM 要素が存在する」だったが、祖先クリップとの交差が空のとき `null` を返して要素ごと描かなくなったため、正しくは「ready かつ可視 ⇒ 要素が存在する」である。DOM存在をready の代理として見ているテスト・監視コードはこの契約変更を踏まえること。
 
 出所: ユーザー裁定 2026-08-20「一旦そこ許容して実際の見た目をしりたい」・2026-08-20 レビュー裁定（C7実測・D2案A/W17）
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。祖先のクリップに合わせて枠を切り、完全に隠れたら描かない決定は UITK で保つ。祖先の矩形の交差は `TutorialAncestorClipWalker`、切る容器の印は `TutorialAnchor.MarkClipContainer`、検査は `TutorialOverlayClipTest`。

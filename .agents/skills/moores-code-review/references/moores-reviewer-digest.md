@@ -17,14 +17,13 @@
 13. **時間はティック** — サーバのゲームロジックの経過時間は`GameUpdater`のティック加算のみ。`Time.deltaTime`/`Stopwatch`/`DateTime`差分で経過時間を測らない。`DateTime`は実世界日時の記録（セーブ作成日時等）に限り可。
 14. **非同期の寿命** — 受け取れる`CancellationToken`は呼び出し鎖の端まで貫通させる。`await`明けに破棄済みオブジェクトへ触らない。
 15. **デフォルト解決は所有者内で** — 「未指定ならデフォルト」の解決を呼び出し側に漏らしていないか。`public const Default*` 公開＋呼び出し側 `?? X.Default` は責務漏れ。デフォルトはprivateで所有者に置き、APIをnullable化して内部で一箇所解決。
-16. **コード内前提の無審査** — 既存コメント（`// 〜のため`）・既存定数（`mah`・固定px・閾値）・「前回イテレーションで決めた値」を所与として受け取り「据え置きで正しい」と書いていないか。前提は審査対象。その値を**何が決めるべきか（責務）**と前例同形性を1行で確認してから据え置く。「総量が不変」「N段が収まる」は中身の量の話であり箱の責務の根拠にならない（実装者ループ側の規約は ref-webui-design §0.4.5）。
+16. **コード内前提の無審査** — 既存コメント（`// 〜のため`）・既存定数（`mah`・固定px・閾値）・「前回イテレーションで決めた値」を所与として受け取り「据え置きで正しい」と書いていないか。前提は審査対象。その値を**何が決めるべきか（責務）**と前例同形性を1行で確認してから据え置く。「総量が不変」「N段が収まる」は中身の量の話であり箱の責務の根拠にならない（実装者ループ側の規約は ref-uitk-design の `references/compare-procedure.md` §7）。
 
 ## UITK（`Client.Ui`・`Client.Ui.State`・USS・tss を触るときだけ。作り方の正本は `.claude/skills/ref-uitk-design/SKILL.md`）
 
 17. **PickingMode の既定** — 層コンテナ・ルート・幕・描くだけの子（Painter2D・頂点カラー・装飾・文字だけの Label）が `PickingMode.Ignore` か。押せない要素が Pick を受けると、ワールドのクリックとパネル外の右短押しが効かなくなる。逆に押せる要素を Ignore にしていないか。
-18. **全体スイッチ〔W0-switch〕の片側読み** — 入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）・DSL のロケータ・アンカーの解決が、全体スイッチの系の値だけを読んでいるか。Web と UITK の値を論理和にしていないか。Presenter・View・部品がスイッチを読んでいないか（分岐は composition root の 1 か所）。
-19. **トークンの直書き** — 部品・画面の USS と C# に色（`#hex`・`rgb()`・`new Color(`）を直に書いていないか。色は `var(--…)`、C# が色・寸法を要るときは部品の USS で受け直して `UssCustomStyleReader` で読む。Web の値を写した半透明は Web の α のままか（補正・地での選び分けをしていないか）。Web がトークンで書く寸法を数値で書いていないか。
-20. **イベントの出し方** — 部品・View が `Button.clicked`・`Action`・`event`・コールバック引数で操作を外へ出していないか。`IObservable<T> On<変化対象><過去分詞>`（UniRx の `Subject`）へ。`clicked` は部品の内側で `Subject` へ流すときだけ使う。
-21. **部品の中身を外から塗る** — 画面の USS や別の部品の USS が他部品の子クラス（`__`）・状態クラス（`--`）を書いていないか、C# から他部品の子へ `style.*`・`AddToClassList` していないか。外から変えてよいのはつまみ（Web の局所上書き変数と同じ名前のカスタムプロパティ）だけ。
-22. **層の依存方向** — `Components/` が `Client.Game`・`MasterHolder`・`Client.Ui.State` の機能別の型・`Client.Ui.Content`〔C3-a〕・`Client.Ui.Screens` を参照していないか。`Content/` が `Screens` を、`Screens/<機能>` が別の `Screens/<機能>` を、`Client.Ui.State` が `UnityEngine.UIElements` を参照していないか。部品が ItemId などの ID を受けていたら、解決を Content へ移す。
-23. **tss の束ね漏れ** — 新しい USS が `GameUiTheme.tss` の自分の族の区画に `@import` されているか、消した USS の `@import` が残っていないか。漏れると見た目が無言で崩れる。
+18. **トークンの直書き** — 部品・画面の USS と C# に色（`#hex`・`rgb()`・`new Color(`）を直に書いていないか。色は `var(--…)`、C# が色・寸法を要るときは部品の USS で受け直して `UssCustomStyleReader` で読む。半透明の α を補正・地で選び分けていないか。トークンのある寸法を数値で書いていないか。
+19. **イベントの出し方** — 部品・View が `Button.clicked`・`Action`・`event`・コールバック引数で操作を外へ出していないか。`IObservable<T> On<変化対象><過去分詞>`（UniRx の `Subject`）へ。`clicked` は部品の内側で `Subject` へ流すときだけ使う。
+20. **部品の中身を外から塗る** — 画面の USS や別の部品の USS が他部品の子クラス（`__`）・状態クラス（`--`）を書いていないか、C# から他部品の子へ `style.*`・`AddToClassList` していないか。外から変えてよいのはつまみ（部品の USS が受け直すカスタムプロパティ）だけ。
+21. **層の依存方向** — `Components/` が `Client.Game`・`MasterHolder`・`Client.Ui.State` の機能別の型・`Client.Ui.Content`・`Client.Ui.Screens` を参照していないか。`Content/` が `Screens` を、`Screens/<機能>` が別の `Screens/<機能>` を、`Client.Ui.State` が `UnityEngine.UIElements` を参照していないか。部品が ItemId などの ID を受けていたら、解決を Content へ移す。
+22. **tss の束ね漏れ** — 新しい USS が `GameUiTheme.tss` の自分の族の区画に `@import` されているか、消した USS の `@import` が残っていないか。漏れると見た目が無言で崩れる。

@@ -25,3 +25,7 @@
 
 - Unity 側から Web ツールチップの文字サイズを個別に制御する手段は無くなる。将来サイズ差が必要になったら、寸法値ではなく用途名（variant）を wire に載せ、実寸は Web 側トークンで決める。
 - 契約変更のため、`validators` / `wireContract` テスト・`e2e/mock-host` の topic 生成・`CursorTooltip.test.ts` を一括更新する（後方互換は取らない）。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。書式の持ち主は UITK の CursorTooltip（`TooltipFace`）で、値は `Tokens.uss` の `--tooltip-*` が唯一の正。状態の側（`Client.Ui.State/CursorTooltip`）は寸法を持たない。

@@ -5,9 +5,9 @@ moores-code-review の実行本体。**既定ではこの手順書の Step 3.5�
 ## 5系統の構成
 
 1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・server_realtime_api・server_elapsed_time・init_method_naming・schema_optional_true・event_tag_sync・try_catch_boundary）。0トークン。
-2. **reviewer群**（`reviewers/`・41本）— 命名は `<出自>-<言語>-<観点>`。言語は拡張子ゲート（`cs`/`ts_tsx`、ゲート無しは `any`）。発火条件は各ファイル先頭YAML、モデルは `scripts/model_map.json`、選択は `select_reviewers.py` の1本。
+2. **reviewer群**（`reviewers/`・39本）— 命名は `<出自>-<言語>-<観点>`。言語は拡張子ゲート（`cs`/`ts_tsx`、ゲート無しは `any`）。発火条件は各ファイル先頭YAML、モデルは `scripts/model_map.json`、選択は `select_reviewers.py` の1本。
    - **`moores-*`（12本）** — moorestech固有の設計規約。
-   - **`core-*`（29本）** — 言語横断のコード品質。採用実績のある観点のみ採録（除外した観点は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`moores-cs-*` 5本（moores-cs-speculative-abstraction・moores-cs-type-driven-structure・moores-cs-hardcoded-content-enumeration・moores-cs-default-resolution-ownership・moores-cs-implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`）。
+   - **`core-*`（27本）** — 言語横断のコード品質。採用実績のある観点のみ採録（除外した観点は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`moores-cs-*` 5本の **ts/tsx翻案版**を採録し、`.ts`/`.tsx` 差分（`tools/playtest-receiver/` など）にも同じ意味構造の検査を当てる（`_ts_lens_ports`）。
 3. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
 4. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
 5. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止。
@@ -20,7 +20,7 @@ moores-code-review の実行本体。**既定ではこの手順書の Step 3.5�
 python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/checks.json
 ```
 
-出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`ts_dead_code`（Step 2.6の節を参照）・`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
+出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
 
 `deterministic` 節の解釈:
 
@@ -28,7 +28,6 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制しない（AskUserQuestion の扱いは `references/integration-rules.md` §4 に従う）。
 - **既に規約超過しているディレクトリへの1〜2ファイル追加も努力目標** — `dir-file-limit` のうち、そのディレクトリが本ブランチ以前から10ファイルを超えていた場合は `file-too-long` と同様に扱う。報告のWarning備考に1行のみ載せ、**AskUserQuestionには載せない**。本ブランチが新規に作ったディレクトリが超過した場合のみCriticalとして扱う。
 - **テストコードは200行/10ファイル規約の適用外** — `*Test(s).cs`・`*.test.ts(x)`・`*.spec.ts`・`Tests`系/`e2e`/`tests`ディレクトリ配下は `file-too-long`/`dir-file-limit` の対象外（スクリプトが除外済み）。
-- **webui（`moorestech_web/webui`）は分割を実施する** — 上の適用外・努力目標の扱いと異なり、webuiでは e2e/tests 含め10ファイル超過を検出したら機能別サブディレクトリへの分割を修正として実施する（報告止まりにしない）。前例: e2e/tests を research/ inventory/ recipe/ へ分割。playwright testDir は再帰globのため設定変更不要。
 - **`candidates.comparison_operator`** — 1件以上あればStep 3で比較演算子verifier（sonnet）を並列起動。0件なら起動しない。
 - **`candidates.try_catch_boundary`** — 1件以上あればStep 4でtry-catch境界verifier（opus）を並列起動。0件なら起動しない。**根拠コメントの実在を免除として扱ってはならない**（コメントがあるだけの try-catch は `confirmed` のまま。許可された境界3種を主張しているものだけがこの候補に降り、verifierが実コードで裁定する）。
 - **`candidates.server_elapsed_time`** — 1件以上あればStep 4でサーバDateTime用途verifier（sonnet）を並列起動。0件なら起動しない。サーバ`Game.*`の`DateTime.Now/UtcNow`は「セーブへの実世界時刻記録（正当）」と「ゲーム進行の経過時間ゲート（違反）」が同じ実装形になるため、確定検出にせずverifierが用途を裁定する。
@@ -43,13 +42,6 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。rule別の裁定手順はverifier側に書いてある。
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
 - **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）、または dotnet 不在（`note` に「dotnet不在」と出る。PATH/`DOTNET_ROOT`/`~/.dotnet` で解決できなかった）。どちらも縮退として報告に1行明記し（理由は `note` を転記）、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
-
-## Step 2.6: webui死コード・テスト専用参照ゲート（knip） ①.6
-
-**check_all.py が同時実行済み**（出力JSONの `ts_dead_code` 節。単体で再実行したい時だけ `scripts/ts_dead_code_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `moorestech_web/webui` の knip（設定は `webui/knip.json` が正）で、**patchが触った .ts/.tsx のもの**を `candidates.ts_dead_code` として出す。C#側 DeadMemberAudit（Step 2.5）のts/tsx対称形。rule: `ts-dead-file` / `ts-dead-export`（参照ゼロ）、`ts-nonproduction-file` / `ts-nonproduction-export`（テスト・e2e・開発コードからのみ参照）。
-
-- **`status: ok`** — candidatesが1件以上あればStep 4でts死コードverifier（sonnet・`verifiers/ts-dead-code-verifier.md`）を並列起動。0件なら起動しない。
-- **`status: skipped`** — webuiのts/tsx変更なし（knip自体を実行しない・0秒）、またはknip未インストール（後者は報告に1行明記）。
 
 ## Step 3: Codex外部監査を3本バックグラウンド起動する ②
 
@@ -135,7 +127,6 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 5. **try-catch境界verifier**（Step 2の `candidates.try_catch_boundary` が1件以上のときだけ・`model: "opus"`）— 同じ4行契約で `verifiers/try-catch-boundary-verifier.md` を渡す。
 6. **サーバDateTime用途verifier**（Step 2の `candidates.server_elapsed_time` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/server-elapsed-time-verifier.md` を渡す。
 7. **死にメンバーverifier**（Step 2.5の `candidates.dead_member` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/dead-member-verifier.md` を渡す（候補JSONのパスをpromptに含める）。ILに現れない経路（UnityEvent配線・プレイテストDSL・文字列リフレクション）の実在だけをrgで裁く。
-8. **ts死コードverifier**（Step 2.6の `candidates.ts_dead_code` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/ts-dead-code-verifier.md` を渡す。import graphに現れない経路（動的import・C#側からの文字列ブリッジ・生成コード）の実在だけをrgで裁く。
 
 **回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約（正本は `references/output-contract.md`。Workflow 既定では `build_workflow_args.py` が書く）を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** `agents/` 配下のファイル群の回収・照合はStep 5のintegratorが行う（オーケストレータはgrep・集計しない）。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。
 
@@ -192,7 +183,6 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
    - スキップしたガードは最終報告に「post-checks: <名前> 発火条件未達でスキップ」と1行明記する（黙って縮退しない）。
 4. **rationale-guardのCriticalはescalate**（自動復元しない）— 削除コメント再挿入は設計判断。復元タグ案を添えてStep 7へ。
 5. **convention-guardはラベル分岐（Step 7へは送らない）** — `機械的` は §5 のもと自動適用、`要判断` は**ガード自身の裁定で完結**させる（短縮案が意図を保てるなら適用、例外該当なら残置。結果は報告に1行）。同一行で衝突したら**根拠保全を優先**。
-   - **webui（`moorestech_web/webui`）では `要判断` も短縮を適用する** — 数値詳細・数式・設計意図が落ちる場合でも文字数規約を優先して短縮する（詳細はコードとテスト本体が担う）。残置してよいのは「なぜ必要か」型の純粋な根拠コメント（定数選定根拠・防止目的）のみ。
 6. 全ガードが `Critical: なし` で再チェックも増分ゼロなら何もせず完了（委譲時はここで親へ返答する）。
 
 ## 反映 diff の機械的動作確認（Step 6 自動適用・Refix の直し直し・Step 7 裁定反映・Step 7.5 bug-pass の反映で共通）

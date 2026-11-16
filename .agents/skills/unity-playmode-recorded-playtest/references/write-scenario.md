@@ -95,7 +95,7 @@ PlaceBlock中のスポイトは照準がカーソル追従のためAltは不要�
 | `ClickUi(testid)` | `testid` の要素中心へ注入マウスを滑走→クリック。2 回照会の矩形一致（レイアウト安定）＋被覆チェック込み。要素出現まで内部リトライ（15s） |
 | `HoverUi(testid)` | 同解決でポインタ移動のみ（ツールチップ検証等） |
 | `UntilUiElement(testid, timeout)` | 要素が可視かつクリック可能（遮蔽なし）になるまで待つ |
-| `SetText(testid, text)` | テキスト欄の値を置き換えて変更イベントを流す（IME は通さない。Web は input/textarea、段階1以降の UITK は TextField）。欄の出現・有効化まで内部リトライ（15s） |
+| `SetText(testid, text)` | テキスト欄の値を置き換えて変更イベントを流す（IME は通さない。対象は UITK の TextField）。欄の出現・有効化まで内部リトライ（15s） |
 | `ClickBuildMenuBlock(blockName)` | ビルドメニューのブロックスロットを1行でクリック（testid `build-menu-entry-block-{BlockGuid}` を自動解決） |
 | `CloseBuildMenuPanel()` | ビルドメニューの閉じるボタン（`build-menu-close`）をクリック |
 | `PlaytestUiElementOps.FindUi(testid)` | 1 回照会して `UiElementSnapshot` を返す（`IsFound`・`Visible`・`Clickable`・`ScreenRect`〈Unity スクリーン座標・左下原点〉・`Text`・`HasStateFlag(name)`）。待たない |
@@ -119,18 +119,18 @@ finally
 
 Run内の説明文入力は、欄をクリックした直後に `await p.SetText("bug-report-description", description);` を使う。設置理由の表示観測のように長いシナリオ固有処理は `PlacementReasonTooltipScenarioProbe` の使用例を参照できる。これはEditor専用の観測補助で、Driverの汎用UI入力は上のAPIを使う。
 
-状態フラグ: Web は `data-testid` 以外の `data-*` 属性のうち値が空か `true` のもの（`data-selected="true"` → `HasStateFlag("selected")`）。UITK（GameUi）は USS クラスのうち `--` を含むもの（`slot--selected` → `HasStateFlag("slot--selected")`）。
+状態フラグは USS クラスのうち `--` を含むもの。クラス名全体を渡す（`slot--selected` → `HasStateFlag("slot--selected")`）。
 シナリオは描画系の内部型を直接参照せず、照会と入力に上の API を使う。
-同じtestidが複数あるとFind/SetTextはAmbiguousで失敗する。SetTextはDOMを書き換える前に拒否する。ロケータを直接使う場合はFind(testid, remainingSeconds)、SetText(testid, text, remainingSeconds)へ残予算を必ず渡す。Web通信上限は既存3秒との小さい方。Stop後の旧SetText再試行は終了する。
+同じtestidが複数あるとFind/SetTextはAmbiguousで失敗する。SetTextは値を書き換える前に拒否する。ロケータを直接使う場合はFind(testid, remainingSeconds)、SetText(testid, text, remainingSeconds)へ残予算を必ず渡す。Stop後の旧SetText再試行は終了する。
 
-testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
+testidは `moorestech_client/Assets/Scripts/Client.Ui/**` の部品の ctor（`name = testid`）を grep して実在を確かめる。ビルドメニューのエントリは
 `build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/blueprintCopy/blueprint、
 idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestBuildMenuOps.BuildMenuBlockTestId(名前)`で組み立てる）。
 表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverUi`してからScreenshotする。
 カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移で視点は変わらないため、
 シナリオ側での追加のカメラ待ちは不要。
-仕組み: DSL は `IUiElementLocator`（`PlaytestUiLocatorSession.Locator`）だけを見る。Web 版は DOM 矩形を WS 往復（`playtest.dom_query`）で取得し、Unity スクリーン座標へ逆変換して `SemanticInput` で注入する。注入マウスはプレイテスト専用の入力転送経路を通る（パッケージの legacy Input 転送は注入不感のため）。文字入力は `playtest.dom_set_text` の往復でネイティブ setter＋`input` イベント。解決した要素は `[PlaytestUi] <testid> resolved` のログに出る。
-ロケータは UITK（GameUi のパネルを `name` で照会。testid は要素の `name`）を先に探し、無ければ Web を探す。同じ testid が UITK と Web の両方で見つかると Ambiguous で失敗する（`resolved in both game UI and web UI` のエラーログ）。UITK の SetText は TextField の `value` へ代入して ChangeEvent を流す（`maxLength` 超過は切って ValueMismatch）。
+仕組み: DSL は `IUiElementLocator`（`PlaytestUiLocatorSession.Locator`）だけを見る。ロケータは GameUi のパネルを `name` で照会し、可視・覆われていないかを `panel.Pick` で確かめ、パネル座標を画面座標へ直して `SemanticInput` で注入する。
+解決した要素は `[PlaytestUi] <testid> resolved` のログに出る。UITK の SetText は TextField の `value` へ代入して ChangeEvent を流す（`maxLength` 超過は切って ValueMismatch）。
 
 ### 検証・待機・記録
 | API | 用途 |
@@ -175,4 +175,3 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 「前提手順の連鎖 / 各操作の呼び出し経路（legacy Input直読みの有無をgrep）/ 絶対座標とconnector offsetの表 /
 API実在確認 / Step単位の実行計画」を調査・出力させてから書く。
 
-CEF向け要求は実際のCEF起動へ対応付けた接続だけに配信する。外部ブラウザが表示されていてもCEFのIsAvailableにはならない。不正応答は契約例外となりresult.Errorへ理由が残る。
