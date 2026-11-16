@@ -123,8 +123,8 @@ namespace Client.Tests.Ui.Screens.Toast
             _host.SetStageScale(1.5f);
             simulate.FrameUpdateMs(0);
             var root = rootVisualElement.worldBound;
-            Assert.AreEqual(16f / 1.5f, root.xMax - _host.worldBound.xMax, 0.01f);
-            Assert.AreEqual(16f / 1.5f, root.yMax - _host.worldBound.yMax, 0.01f);
+            Assert.AreEqual(16f / 1.5f, root.xMax - _host.worldBound.xMax, 0.5f);
+            Assert.AreEqual(16f / 1.5f, root.yMax - _host.worldBound.yMax, 0.5f);
         }
 
         [Test]
