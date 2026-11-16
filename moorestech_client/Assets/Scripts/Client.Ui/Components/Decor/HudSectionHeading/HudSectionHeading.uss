@@ -16,6 +16,11 @@
     color: var(--text-muted);
     font-size: var(--hud-label-font-size);
     letter-spacing: var(--hud-label-letter-spacing);
+    /* 行の箱は継いだ line-height 1.55（設計書 A-221 の写し方。字は箱の縦中央） */
+    /* The line box is the inherited line-height 1.55 (design A-221; glyphs sit at the box's vertical centre) */
+    min-height: var(--hud-label-line-box);
+    --localized-label-line-box: var(--hud-label-line-box);
+    -unity-text-align: middle-left;
     -unity-font-style: normal;
     white-space: normal;
 }
