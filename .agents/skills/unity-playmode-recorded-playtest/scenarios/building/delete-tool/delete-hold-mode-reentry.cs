@@ -19,7 +19,7 @@ return PlaytestRunner.Run("delete-hold-mode-reentry", new PlaytestRunOptions { R
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkit();
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
     p.WarpPlayer(new Vector3(2.5f, 33.5f, -2f));
     var a = new Vector3Int(2,32,4); var b = new Vector3Int(4,32,4);
     foreach (var cell in new[] { a, b })

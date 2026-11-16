@@ -12,12 +12,7 @@ using Game.Block.Interface;
 
 // 録画前に入力とGameViewを実確認する
 // Probe input and Game View before starting the recording
-var viewFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
-var activeGameView = Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
-var dock = typeof(UnityEditor.EditorWindow).GetField("m_Parent", viewFlags).GetValue(activeGameView);
-var tabs = (System.Collections.IList)dock.GetType().GetField("m_Panes", viewFlags).GetValue(dock);
-dock.GetType().GetProperty("selected", viewFlags).SetValue(dock, tabs.IndexOf(activeGameView));
-activeGameView.Focus();
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 await UniTask.DelayFrame(3);
 Debug.Log($"[INPUT] focus={Application.isFocused} background={InputSystem.settings.backgroundBehavior} keyboard={Keyboard.current.enabled} mouse={Mouse.current.enabled}");
 if (!Keyboard.current.enabled || !Mouse.current.enabled) throw new System.InvalidOperationException("Input devices disabled");

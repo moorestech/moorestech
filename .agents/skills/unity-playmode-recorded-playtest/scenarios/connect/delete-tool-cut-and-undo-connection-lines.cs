@@ -40,7 +40,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     await p.SkipOpeningSkitIfPlaying();
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
 
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
     foreach (var tool in new[] { "電線", "歯車チェーン" }) await p.Hotbar.UnlockConnectTool(tool);
     foreach (var block in new[] { "電柱", "歯車チェーンポール" }) await p.PrepareBlockForUiPlacement(block, 5);
     foreach (var item in new[] { "銅のワイヤー", "鉄のワイヤー" }) await p.GiveItem(item, 64);

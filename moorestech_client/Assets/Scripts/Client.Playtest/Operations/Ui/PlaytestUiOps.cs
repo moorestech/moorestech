@@ -146,27 +146,27 @@ namespace Client.Playtest.Operations.Ui
             }
         }
 #if UNITY_EDITOR
-        // CEF等へフォーカスが移るとデバイスが無効になるため、注入前にEditorの入力環境を整える
-        // Losing focus to CEF can disable devices; restore the Editor input environment before injection
-        public static async UniTask FocusGameViewAndEnableInput(PlaytestDriver driver)
+        // OS の前面を取らずに注入入力を受ける形へ整える。EditorWindow.Focus は Editor を前面へ出し、並走する別 Editor のフォーカスも奪う
+        // Prepare injected input without taking the OS foreground; EditorWindow.Focus raises the Editor and steals focus from a parallel Editor
+        public static void PrepareBackgroundInput()
         {
-            foreach (var windowType in new[] { "SceneHierarchyWindow", "GameView" })
-            {
-                var type = typeof(UnityEditor.EditorWindow).Assembly.GetType($"UnityEditor.{windowType}");
-                driver.Assert(type != null, $"環境: Editorウィンドウ型が見つからない: {windowType}");
-                var window = UnityEditor.EditorWindow.GetWindow(type);
-                driver.Assert(window != null, $"環境: Editorウィンドウを取得できない: {windowType}");
-                window.Focus();
-                await UniTask.DelayFrame(5);
-            }
-
-            // キー・マウス有効化失敗を準備段階で示す
-            // Report keyboard or mouse activation failures during setup
+            // Game View を表タブにし、焦点の有無に関わらず全入力を Game View へ流す
+            // Select the Game View tab and route all input to it regardless of focus
+            PlaytestGameViewOps.BringToFront();
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             SemanticInput.EnsureDevices();
             foreach (var device in InputSystem.devices)
                 if (!device.enabled) InputSystem.EnableDevice(device);
-            await driver.Until(() => Application.isFocused && Keyboard.current.enabled && Mouse.current.enabled,
-                10f, "環境: GameViewがプレイフォーカスを持ちキーボードとマウスが有効");
+        }
+
+        // 前面を取らずに入力を整え、キーとマウスが有効になるまで待つ（失敗は準備段階で示す）
+        // Prepare input without the foreground and wait until keyboard and mouse are enabled (fails during setup)
+        public static async UniTask PrepareBackgroundGameViewInput(PlaytestDriver driver)
+        {
+            PrepareBackgroundInput();
+            await driver.Until(() => Keyboard.current.enabled && Mouse.current.enabled,
+                10f, "環境: キーボードとマウスが有効（焦点無視・前面を取らない）");
         }
 #endif
     }

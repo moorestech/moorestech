@@ -40,7 +40,7 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     // 地形(メサ・岩)が工作装置の手前に湧いて照準と画面を塞ぐので、地形の表示と生成を止める
     // Terrain (mesas, rocks) spawns in front of the workshop and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundGameViewInput(p);
     p.WarpPlayer(new Vector3(1.5f, 32.5f, -8f));
 
     // 品質モジュールLv2 を名指しし、製作上限2の解放対象を確かめ、前提だけを完了扱いにする。GPULv1 の上限2は GPULv2 研究が解放する
