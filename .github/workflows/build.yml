@@ -182,8 +182,8 @@ jobs:
         platform:
           # ==========================================
           # プラットフォームの追加/削除でビルド対象を切り替え可能
-          # LinuxクライアントはCEFネイティブランタイム不在で必ず失敗するため除外（.decisions/2026-08-02）
-          # The Linux client is excluded because the CEF native runtime does not exist for it (.decisions/2026-08-02)
+          # Linuxクライアントは配布対象外のため除外（再開は統合計画 §5.2 で別に判断する。.decisions/2026-08-02）
+          # The Linux client is excluded because it is not distributed (resuming it is decided separately under integration plan §5.2)
           # ==========================================
           - name: StandaloneWindows64
             buildMethod: Client.Editor.Build.BuildPipeline.WindowsBuildFromGithubAction

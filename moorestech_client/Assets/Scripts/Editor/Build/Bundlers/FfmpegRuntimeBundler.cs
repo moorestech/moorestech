@@ -43,8 +43,8 @@ namespace Client.Editor.Build.Bundlers
 
             void BundleWindows()
             {
-                // CEFと同じPluginsへ置く
-                // Place it in Plugins/x86_64 beside the CEF runtime
+                // Windowsのネイティブプラグイン置き場（Plugins/x86_64）へ置く
+                // Place it in the Windows native plugin directory (Plugins/x86_64)
                 var destinationDirectory = WindowsPlayerPluginsDirectory.Resolve(playerOutputPath);
                 if (!Directory.Exists(destinationDirectory))
                 {

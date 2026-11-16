@@ -51,16 +51,13 @@ namespace Client.Editor.Build
         [MenuItem("moorestech/Build/LinuxBuild")]
         public static void LinuxBuild()
         {
-            // LinuxはCEFネイティブランタイムが無く同梱検証で必ず失敗するため、着手前に明示して同意を取る
-            // Linux has no CEF native runtime and always fails bundling, so state it and confirm before starting
-            var continuesAnyway = EditorUtility.DisplayDialog(
+            // Linuxクライアントは配布対象外のため、入口は意図的に失敗させてダイアログで明示する（.decisions/2026-08-02）
+            // The Linux client is not distributed, so this entry fails on purpose and says so in a dialog
+            EditorUtility.DisplayDialog(
                 "Linux Build",
-                "LinuxにはCEFネイティブランタイムが提供されていないため、同梱検証で必ず失敗します。それでも実行しますか？",
-                "実行する",
-                "やめる");
-            if (!continuesAnyway) return;
-
-            BuildInteractive(BuildTarget.StandaloneLinux64, AsksDevelopmentBuild());
+                "Linuxクライアントは配布対象外のため、このメニューは意図的に失敗します（再開は統合計画 §5.2 で別に判断します）。",
+                "閉じる");
+            Debug.LogError("[BuildMenu] LinuxBuild は配布対象外のため意図的に失敗させました（再開は統合計画 §5.2 で別に判断する）");
         }
 
         private static bool AsksDevelopmentBuild()
