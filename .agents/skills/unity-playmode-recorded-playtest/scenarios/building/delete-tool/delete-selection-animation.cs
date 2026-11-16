@@ -22,7 +22,7 @@ return PlaytestRunner.Run("delete-selection-animation", new PlaytestRunOptions {
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkit();
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(2.5f, 33.5f, -2f));
     foreach (var cancelEarly in new[] { false, true })
     {

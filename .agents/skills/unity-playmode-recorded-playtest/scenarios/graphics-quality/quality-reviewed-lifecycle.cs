@@ -15,8 +15,7 @@ using VContainer.Unity;
 
 // 追加した判定経路を実ワールドの個体で録画する
 // Record the revised decision paths on a real world instance
-var gameView = Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
-gameView.Focus();
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 await UniTask.DelayFrame(3);
 var hadPreference = PlayerPrefs.HasKey("GraphicsQuality");
 var savedPreference = PlayerPrefs.GetString("GraphicsQuality");

@@ -16,9 +16,9 @@ using UnityEngine.InputSystem;
 using VContainer;
 using UniRx;
 
-// 録画前にGameViewへフォーカスし単体入力を実測する
-// Focus GameView and verify one input before recording
-Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView").Focus();
+// 録画前に前面を取らず入力を整え単体入力を実測する
+// Prepare input without the foreground and verify one input before recording
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 await UniTask.DelayFrame(3);
 var control = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
 await Client.Playtest.Input.SemanticInput.TapKey(Key.Escape);
