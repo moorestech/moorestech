@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Client.Localization;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Localization.Resolution
 {
@@ -42,6 +44,7 @@ namespace Client.Tests.Localization.Resolution
                 new Dictionary<string, string>(),
                 new Dictionary<string, string>());
 
+            LogAssert.Expect(LogType.Warning, "[Localize] missing text in every layer: test.key");
             var result = LocalizationTextResolver.Resolve(snapshot, "japanese", "test.key");
 
             Assert.AreEqual("[!test.key]", result);
@@ -105,9 +108,49 @@ namespace Client.Tests.Localization.Resolution
                 new Dictionary<string, string> { { "test.key", "" } },
                 new Dictionary<string, string> { { "test.key", "" } });
 
+            LogAssert.Expect(LogType.Warning, "[Localize] missing text in every layer: test.key");
             var result = LocalizationTextResolver.Resolve(snapshot, "japanese", "test.key");
 
             Assert.AreEqual("[!test.key]", result);
+        }
+
+        /// <web-test file="src/shared/i18n/useI18n.test.ts">warns once per generation for an unknown external localized key</web-test>
+        [Test]
+        public void EveryLayerMissingWarnsOncePerRevisionAndKey()
+        {
+            // 自前の snapshot だけを引くので、他テストの報告済みに左右されない
+            // Only this test's own snapshots are used, so other tests' reports do not interfere
+            var empty = new Dictionary<string, string>();
+            var revision1 = CreateSnapshot(empty, empty, empty);
+            var revision2 = CreateSnapshot(empty, empty, empty);
+            const string warning = "[Localize] missing text in every layer: test.missing";
+            // LogAssert は予期しない警告では落ちないので、回数は受信の購読で数える
+            // LogAssert does not fail on unexpected warnings, so count them via the log subscription
+            var warnings = 0;
+            Application.logMessageReceived += CountWarning;
+
+            // 同じ版で 2 回引いても警告は 1 回、新しい版（snapshot）では同じキーでもう 1 回
+            // Two lookups on the same revision warn once; a new revision (snapshot) warns again for the same key
+            LogAssert.Expect(LogType.Warning, warning);
+            LocalizationTextResolver.Resolve(revision1, "japanese", "test.missing");
+            LocalizationTextResolver.Resolve(revision1, "japanese", "test.missing");
+            var afterSameRevision = warnings;
+            LogAssert.Expect(LogType.Warning, warning);
+            LocalizationTextResolver.Resolve(revision2, "japanese", "test.missing");
+            Application.logMessageReceived -= CountWarning;
+            LogAssert.NoUnexpectedReceived();
+
+            Assert.AreEqual(1, afterSameRevision, "同じ版×キーで警告が 1 回でない");
+            Assert.AreEqual(2, warnings, "版が上がっても同じキーの警告が出直さない");
+
+            #region Internal
+
+            void CountWarning(string condition, string stackTrace, LogType type)
+            {
+                if (type == LogType.Warning && condition == warning) warnings++;
+            }
+
+            #endregion
         }
 
         private static PublishedLocalizationDictionarySnapshot CreateSnapshot(
