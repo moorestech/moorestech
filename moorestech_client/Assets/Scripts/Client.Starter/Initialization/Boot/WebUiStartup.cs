@@ -1,8 +1,6 @@
 using System;
 using System.Threading;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Input;
-using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -17,13 +15,12 @@ namespace Client.Starter.Initialization.Boot
             // A GameUi boot and a marked boot skip the web host along the startup-failure path (plan §2.1 0-10, §3.3 R1); the mark is always consumed so it never leaks into the next boot
             var skipMarked = WebUiHostEditorSkip.ConsumeSkipMark();
             var skipHost = uiSystem == UiSystem.GameUi || skipMarked;
-            // 飛ばしたかは WebUiHost の起動の状態へ押し込む（CEF の生成可否が読む）。診断記録は別に残す
-            // Push whether the host was skipped into WebUiHost's boot state (CEF creation reads it); the diagnostic record is kept separately
+            // 飛ばしたかは WebUiHost の起動の状態へ押し込む（CEF の生成可否が読む）
+            // Push whether the host was skipped into WebUiHost's boot state (CEF creation reads it)
             Client.WebUiHost.Boot.WebUiHost.SetHostSkippedThisBoot(skipHost);
             if (skipHost)
             {
                 Debug.LogWarning($"[WebUiHost] Editor限定スイッチによりWebホストを起動しません（uiSystem={uiSystem} skipMark={skipMarked}、Hub=nullで続行）");
-                WebUiHealthRecorder.RecordHostStartup(WebUiHostStartupState.SkippedByEditorSwitch);
                 return false;
             }
 #endif
@@ -35,13 +32,11 @@ namespace Client.Starter.Initialization.Boot
             {
                 var started = await Client.WebUiHost.Boot.WebUiHost.StartAsync(exitToken);
                 if (!started) Debug.LogError("[WebUiHost] 起動が完了しなかったため、Web UIなしで続行します");
-                WebUiHealthRecorder.RecordHostStartup(started ? WebUiHostStartupState.Started : WebUiHostStartupState.Failed);
                 return started;
             }
             catch (Exception e) when (e is not OperationCanceledException)
             {
                 Debug.LogError($"[WebUiHost] 外部プロセスまたはHTTP待受の起動に失敗したため、Web UIなしで続行します: {e}");
-                WebUiHealthRecorder.RecordHostStartup(WebUiHostStartupState.Failed);
                 return false;
             }
         }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState;
@@ -10,7 +9,6 @@ using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Routing;
 using Client.WebUiHost.Cef;
-using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -67,7 +65,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホスト（WS の受け口）が起動している");
                 Assert.IsTrue(Client.WebUiHost.Boot.WebUiHost.HostSkippedThisBoot, "Web ホストを飛ばした起動の状態が立っていない");
-                Assert.AreEqual(WebUiHostStartupState.SkippedByEditorSwitch, WebUiHealthRecorder.HostStartup, "診断記録にスイッチで飛ばしたことが残っていない");
                 Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsSortMode.None).Length, "CEF のブラウザ（RawImage と同じ GameObject）が有効のまま");
 
                 // ルータは UIState だけで画面を決める

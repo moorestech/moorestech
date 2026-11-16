@@ -4,9 +4,7 @@ using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.Submit;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Playtest.Progress;
-using Client.WebUiHost.Health;
 using VContainer;
 using VContainer.Unity;
 
@@ -45,7 +43,6 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<GameUiExceptionTally>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
-            builder.Register<IWebUiHealthProbe, WebUiHealthProbe>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
             builder.RegisterEntryPoint<BugReportUiStatePusher>();
