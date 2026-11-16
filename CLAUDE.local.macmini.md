@@ -53,8 +53,8 @@ moores-wt status [--json]
 
 ## 詰まったら読む（Mac mini固有。詳細は `docs/development/macmini/`）
 
-- Editorがログを残さず消えた（dev-server-reaper・所有receiptの手動登録）、uloop CLIの配置、Editorの前面/非前面とCPU絞り、TestResults.xmlのマシン共通パス、Steam版起動中のCEF初期化失敗、新規worktreeのSafe Mode → `docs/development/macmini/unity-editor.md`
-- moores-wtの癖（非ログインシェルでの失敗・`--from`の既定・既存ローカルブランチ流用・`rm`後の残骸）、checkoutの書き込み対策、新規worktreeの録画前提、無人実装の`/goal` → `docs/development/macmini/worktree-and-automation.md`
+- Editorがログを残さず消えた（dev-server-reaper・所有receiptの手動登録）、uloop CLIの配置、Editorの前面/非前面とCPU絞り、TestResults.xmlのマシン共通パス、新規worktreeのSafe Mode → `docs/development/macmini/unity-editor.md`
+- moores-wtの癖（非ログインシェルでの失敗・`--from`の既定・既存ローカルブランチ流用・`rm`後の残骸）、checkoutの書き込み対策、無人実装の`/goal` → `docs/development/macmini/worktree-and-automation.md`
 - 環境に依存しない一般則は AGENTS.md「詰まったら読む」から辿る
 
 # その他

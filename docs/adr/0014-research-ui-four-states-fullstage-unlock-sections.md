@@ -1,7 +1,7 @@
 # 0014. 研究UIは枠色4状態・持ち物の右を占有・種類別解放物表示にする
 
 日付: 2026-08-18（決定2を2026-08-19に差し替え）
-状態: 採択
+状態: 採択（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 
 ## 文脈
 
@@ -39,3 +39,7 @@ Web UIの研究ツリー画面には3つの問題がある。
 - ResearchTopic のDTO契約が拡張されるため、Unityホスト側（Client.WebUiHost）とWeb側の両方が変わる。
 - サーバー側（Game.Research）のロジック・プロトコルは変更しない。
 - 決定2の差し替えに伴い、`uiScreenRouting` へ常時表示HUDの描画可否を返す画面述語が1本増える。ホットバーの役割（保持するのは配置対象のみで持ち物アイテムは入らない・割当元はビルドメニューのエントリだけ）をコード側コメントへ明文化する作業を bd moorestech-4ed として同PRで併走させる。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。4 状態の枠色・研究パネルの占有・持ち物の左寄せ・ホットバーと装備 HUD を出さないことは UITK でも保つ。webui-design §1・§5 は visual-vocabulary §1・§5 に、`uiScreenRouting.ts` の画面述語は `UiScreenTraits`（`CollapsesStageLeftPadding` ほか）にある。

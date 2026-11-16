@@ -18,9 +18,6 @@ Mac mini 自宅サーバー固有の事情。索引は `CLAUDE.local.macmini.md`
 - worktree の checkout は約 4.3GB（うち `moorestech_client/Assets/Dependencies` が 3.1GB）を SSD に書く。対策済みの経路は `moores-wt new`（`worktree add --no-checkout` → 追跡ファイルを clonefile(2) → `reset` / `checkout -- .` / `clean` で HEAD に揃える）か、Dependencies を外す非 cone の sparse-checkout
 - 規則: 新しい worktree 生成経路を足すときは、このどちらかに乗せる。手書きの `git worktree add` は書き込み対策が効かない。`git -C <repo> worktree add <path>` の相対パスは `<repo>` 起点で解決されるので、必ず絶対パスで渡す
 
-## 新規 worktree で録画シナリオを回す前
-- `moores-wt new` は `moorestech_web/node`（同梱 Node）と `moorestech_web/webui/node_modules` を用意しない。run-scenario.sh の前に `moorestech_web/setup.sh`（またはメインから `cp -Rc moorestech_web/node`）と `pnpm install --frozen-lockfile` を済ませる。詳細は worktree-and-review-pitfalls.md の録画シナリオ節
-
 ## 無人・夜間に plan を実装させるとき
 - 別ペインのエージェントに plan を丸ごと任せるときは、指示文に「ユーザーへ一切質問しない（AskUserQuestion 禁止）。設計判断は自分で裁定し、根拠と却下案を ADR / PR 本文へ記録して完走する」を入れ、続けて `/goal <plan の全タスク完了 + PR 作成 + 質問せず完走>` を送る。ペインのフッタに `◎ /goal active` が出たことを確かめる
 - 質問禁止は指示文に書くだけでは守られない。`/goal` は毎ターン後に条件充足を判定して作業を続けさせるので、構造的に塞げる

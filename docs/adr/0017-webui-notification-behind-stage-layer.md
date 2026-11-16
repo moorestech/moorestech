@@ -30,3 +30,7 @@
 - `ToastHost`（右下・ブリッジのエラー/契約違反通知）は `--z-portal-toast` のまま最前面に残す。障害表出は何を開いていても見えるべき系統として、ゲーム内通知とは層序を分ける。
   出所: ユーザー裁定 2026-08-18（Q「Toastは前面のまま」）
 - `--z-portal-toast` の利用者は `ToastHost` のみになる。`zLayerTokens.test.ts` の tooltip < toast の関係は Toast 側の要件として維持する。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。背面 viewport 族は UITK の `UiLayer.BehindStage` の Viewport 族で、層の順の検査は `UiLayerStackTest`。トーストを最前面（`UiLayer.Toast`）に分ける形も同じ。

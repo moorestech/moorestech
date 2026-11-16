@@ -31,3 +31,7 @@
 ## リンク
 - `.decisions/2026-10-18-パイプタンク液体PFのUIはWebUIに液体名と量容量の表示だけ足す.md`
 - `.decisions/2026-10-18-CEFを撤去しUI-Toolkitへ全面移行する.md`
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。決定 1 の作り直しは済んだ。パイプ・タンク・液体 PF の液体表示は UITK の `SectionStackConfigTable` の液体の節（`FluidDetailsSectionFactory`）で出し、部品は機械 UI と同じ液体スロット。決定 2〜7 は Web に依らない。
