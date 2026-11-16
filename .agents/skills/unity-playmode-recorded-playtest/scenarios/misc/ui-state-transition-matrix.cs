@@ -14,7 +14,10 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("ui-state-transition-matrix", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    await p.SkipOpeningSkit();
+    // 非前面の Editor では 1 回の Skip で Story を抜けきらないので、抜けるまで飛ばし直してからゲーム画面へ（回数は Driver が Note に残す）
+    // An unfocused Editor may stay in Story after one skip, so re-skip until it leaves, then land on the game screen (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
+    await p.ExitToGameScreen();
 
     var control = Object.FindFirstObjectByType<UIStateControl>();
     var log = new List<string>();

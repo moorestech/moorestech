@@ -29,7 +29,10 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
 
     // 開幕スキット(Story)中はポーズメニューもビルドメニューも開けないためSkipインテントで抜ける
     // The opening skit (Story) blocks both the pause menu and the build menu, so skip it via the intent path
-    await p.SkipOpeningSkit();
+    // 非前面の Editor では 1 回の Skip で Story を抜けきらないので、抜けるまで飛ばし直してからゲーム画面へ（回数は Driver が Note に残す）
+    // An unfocused Editor may stay in Story after one skip, so re-skip until it leaves, then land on the game screen (the Driver notes the rounds)
+    await p.SkipOpeningSkitUntilLeftStory();
+    await p.ExitToGameScreen();
 
     // ロケールはPlayerPrefsへ永続化されるため、前回ランの残留を潰してから日本語で始める
     // The locale persists in PlayerPrefs, so clear any carry-over from the previous run and start in Japanese
