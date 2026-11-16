@@ -41,6 +41,13 @@
     margin-left: 16px;
 }
 
+/* Web の grid の項目は min-width: auto で中身より縮まない。帯の格子を縮めず、測った幅を両側の min-width にする（MachineProcessRow） */
+/* Web grid items keep min-width: auto and never shrink below content; keep the band grids unshrunk so their measured width feeds both sides' min-width (MachineProcessRow) */
+.machine-process-row__input > *,
+.machine-process-row__output > * {
+    flex-shrink: 0;
+}
+
 /* UiStack は子の marginTop を gap で上書きするので、mt=xs は器の内側の余白で写す */
 /* UiStack overwrites a child's marginTop with the gap, so mt=xs is ported as the box's inner padding */
 .machine-module-band-wrap {

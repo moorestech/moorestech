@@ -67,6 +67,7 @@ return PlaytestRunner.Run("uitk-i-fix7-visual-machines", new PlaytestRunOptions 
         {
             await Place(machine.Name, machine.Origin);
             await Open(machine.Name, machine.Origin, machine.Width, machine.Depth, 0.6f, machine.Body);
+            NoteProcessRow(machine.Name);
             await ShootBoth(machine.ShotId);
             await Close();
         }
@@ -146,6 +147,20 @@ return PlaytestRunner.Run("uitk-i-fix7-visual-machines", new PlaytestRunOptions 
         if (element == null || element.panel == null) return false;
         for (var e = element; e != null; e = e.parent) if (e.resolvedStyle.display == DisplayStyle.None) return false;
         return true;
+    }
+
+    // 加工行の帯・格子・枠の幅と祖先の幅を記録する（帯が潰れる元を実画面で切り分ける）
+    // Record the widths of the process row's bands, grids, frames and ancestors (to locate the squeeze in the real game)
+    void NoteProcessRow(string blockName)
+    {
+        var root = GameUiRoot.Instance.GetRootElement();
+        var row = root.Q<VisualElement>("machine-process-row");
+        if (row == null) { p.Note($"{blockName}: 加工行なし"); return; }
+        var grid = row.Q<VisualElement>("machine-input-slots");
+        var frames = string.Join(",", grid.Query<VisualElement>(className: "slot-frame").ToList().Select(f => $"{f.layout.width:0.#}"));
+        var chain = new System.Collections.Generic.List<string>();
+        for (var e = grid; e != null && chain.Count < 14; e = e.hierarchy.parent) chain.Add($"{e.name}[{string.Join(".", e.GetClasses().Take(2))}] w={e.layout.width:0.#} minW={e.resolvedStyle.minWidth} shrink={e.resolvedStyle.flexShrink} basis={e.resolvedStyle.flexBasis}");
+        p.Note($"{blockName}: frames={frames} / {string.Join(" < ", chain)}");
     }
 
     string Text(string testid) => (GameUiRoot.Instance.GetRootElement().Q<VisualElement>(testid) as TextElement)?.text ?? "";
