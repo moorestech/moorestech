@@ -30,14 +30,14 @@ namespace CommandForgeGenerator.Command
 
             // 全文snapshotをpushし、Unity側のintentを待つ
             // Push the full snapshot and wait for a Unity-owned intent
-            return await ExecuteWebPresentationAsync(
+            return await ExecutePresentationAsync(
                 line.SpeakerName,
                 line.DisplayBody,
                 skitActionContext);
 
             #region Internal
 
-            async UniTask<CommandResultContext> ExecuteWebPresentationAsync(
+            async UniTask<CommandResultContext> ExecutePresentationAsync(
                 string speakerName,
                 string displayBody,
                 ISkitActionContext actionContext)

@@ -40,9 +40,9 @@ namespace Client.Ui.Components.Controls
             name = testid;
             AddToClassList("game-scroll-view");
             AddToClassList(axis == GameScrollAxis.Horizontal ? "game-scroll-view--horizontal" : "game-scroll-view--vertical");
-            // Web（CEF）の 1 ノッチの px（A-71）を UITK の WheelEvent の行へ直す
-            // Convert the Web (CEF) pixels per notch (A-71) into UITK WheelEvent lines
-            mouseWheelScrollSize = WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+            // ホイール 1 ノッチの px（A-71）を UITK の WheelEvent の行へ直す
+            // Convert the pixels per wheel notch (A-71) into UITK WheelEvent lines
+            mouseWheelScrollSize = WheelNotchPixels.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
             if (axis == GameScrollAxis.Horizontal) UseOnlyHorizontalWheelDelta();
 
             // バーの有無は向きの軸の流れの寸法で決める。Auto は子の変形（押下の 1px 沈み）まで数えて押す間だけバーを出す
@@ -81,10 +81,10 @@ namespace Client.Ui.Components.Controls
                 // Treat Shift+vertical wheel as a horizontal amount (Chromium's Shift+wheel; a real horizontal delta wins where one arrives)
                 var horizontalDelta = evt.shiftKey && evt.delta.x == 0f ? evt.delta.y : evt.delta.x;
 
-                // 横量 1 ノッチを Web の 1 ノッチの px（A-71）で送る。動いたときだけ祖先へ渡さない（縦量は祖先のスクロールへ抜ける）
-                // Scroll one horizontal notch by the Web pixels per notch (A-71); stop propagation only when it moved (vertical deltas pass on to ancestor scrolling)
+                // 横量 1 ノッチをホイール 1 ノッチの px（A-71）で送る。動いたときだけ祖先へ渡さない（縦量は祖先のスクロールへ抜ける）
+                // Scroll one horizontal notch by the pixels per wheel notch (A-71); stop propagation only when it moved (vertical deltas pass on to ancestor scrolling)
                 var before = horizontalScroller.value;
-                horizontalScroller.value = before + horizontalDelta * WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+                horizontalScroller.value = before + horizontalDelta * WheelNotchPixels.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
                 if (!Mathf.Approximately(before, horizontalScroller.value)) evt.StopPropagation();
             }
 

@@ -225,9 +225,9 @@ ui.mainMenu.serverPortPlaceholder,Port,Port,ポート,Port,포트
 ui.blueprint.nameInputTitle,Enter Blueprint Name,Enter Blueprint Name,ブループリント名を入力,Bauplannamen eingeben,설계도 이름 입력
 ui.blueprint.nameInputPlaceholder,Enter a name...,Enter a name...,名前を入力...,Namen eingeben …,이름을 입력하세요...
 ui.blueprint.nameInputConfirm,Register,Register,登録,Registrieren,등록
-ui.blueprint.webModalTitle,Blueprint Name,Blueprint Name,ブループリント名,Bauplanname,설계도 이름
-ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Enter a name for the blueprint you want to save,保存するブループリントの名前を入力してください,Geben Sie einen Namen für den zu speichernden Bauplan ein,저장할 설계도의 이름을 입력하세요
-ui.blueprint.webModalConfirm,Save,Save,保存,Speichern,저장
+ui.blueprint.nameModalTitle,Blueprint Name,Blueprint Name,ブループリント名,Bauplanname,설계도 이름
+ui.blueprint.nameModalMessage,Enter a name for the blueprint you want to save,Enter a name for the blueprint you want to save,保存するブループリントの名前を入力してください,Geben Sie einen Namen für den zu speichernden Bauplan ein,저장할 설계도의 이름을 입력하세요
+ui.blueprint.nameModalConfirm,Save,Save,保存,Speichern,저장
 ui.tooltip.pickUpInteract,Press F to pick up,Press F to pick up,Fで取得,F drücken zum Aufnehmen,F를 눌러 줍기
 ui.tooltip.requiredItems,Requires: {items},Requires: {items},このアイテムが必要です: {items},Benötigt: {items},필요: {items}
 ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません,Kann nicht von Hand abgebaut werden,맨손으로는 채굴할 수 없습니다

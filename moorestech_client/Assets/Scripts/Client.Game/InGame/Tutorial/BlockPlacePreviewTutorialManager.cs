@@ -56,15 +56,15 @@ namespace Client.Game.InGame.Tutorial
             entry.Destroy();
             _entries.Remove(tutorialGuid);
             
-            // Webピンは冪等に除去（未配信でも安全）
-            // Removing the web pin is idempotent, safe even when never published
-            WorldPinStateStore.Instance.RemovePin(entry.WebPinId);
+            // ワールドピンは冪等に除去（未配信でも安全）
+            // Removing the world pin is idempotent, safe even when never published
+            WorldPinStateStore.Instance.RemovePin(entry.WorldPinId);
         }
         
         private void Update()
         {
-            // Webへ射影配信する（3Dプレビュー自体はUnity側に残置し、矢印/ピンのみWeb化）
-            // Project and publish to the web overlay (the 3D preview stays in Unity; only the arrow/pin moves to web)
+            // ワールドピンへ射影配信する（3Dプレビューはゴーストのまま、矢印/ピンだけをワールドピンで描く）
+            // Project and publish to the world pins (the 3D preview stays a ghost; only the arrow/pin is drawn as a world pin)
             if (_entries.Count == 0) return;
             
             var camera = CameraManager.MainCamera.Camera;
@@ -76,7 +76,7 @@ namespace Client.Game.InGame.Tutorial
                 if (entry.TargetCell == null || entry.PreviewObject == null) continue;
                 
                 var projection = WorldPinScreenProjection.Project(camera, entry.PreviewObject.transform.position);
-                WorldPinStateStore.Instance.SetPin(entry.WebPinId, pair.Key, projection);
+                WorldPinStateStore.Instance.SetPin(entry.WorldPinId, pair.Key, projection);
             }
         }
         
@@ -136,7 +136,7 @@ namespace Client.Game.InGame.Tutorial
             foreach (var entry in _entries.Values)
             {
                 entry.Destroy();
-                WorldPinStateStore.Instance.RemovePin(entry.WebPinId);
+                WorldPinStateStore.Instance.RemovePin(entry.WorldPinId);
             }
             _entries.Clear();
             

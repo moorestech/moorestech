@@ -39,8 +39,8 @@ namespace Client.Ui.State.Blueprint
                     return;
                 }
 
-                // 状態側クローズ（確定/キャンセル/Disable）でwebモーダルも畳む（解決済みならno-op）
-                // State-side close (confirm/cancel/Disable) also dismisses the web modal (no-op when already resolved)
+                // 状態側クローズ（確定/キャンセル/Disable）で名前入力のモーダルも畳む（解決済みならno-op）
+                // State-side close (confirm/cancel/Disable) also dismisses the name-input modal (no-op when already resolved)
                 _modalService.CancelPendingRequest();
             }
 
@@ -49,9 +49,9 @@ namespace Client.Ui.State.Blueprint
                 // 要求時点の言語で文言を解決してpushし、要求IDは戻り値で受け取る（呼んだ後の Pending は同期購読者が差し替え得る）
                 // Resolve texts in the request-time language and push; take the id from the return value, as a synchronous subscriber may replace Pending after the call
                 var (requestId, response) = _modalService.RequestInputModal(
-                    Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalTitle),
-                    Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalMessage),
-                    Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalConfirm));
+                    Localize.Get(LocalizationKeys.Ui.Blueprint.NameModalTitle),
+                    Localize.Get(LocalizationKeys.Ui.Blueprint.NameModalMessage),
+                    Localize.Get(LocalizationKeys.Ui.Blueprint.NameModalConfirm));
                 var (result, text) = await response;
 
                 // 確定は空白のみを弾いて状態へ書き戻す（描き手の確定無効化と同じ規則 ModalLogic.HasConfirmableText の二重防御）

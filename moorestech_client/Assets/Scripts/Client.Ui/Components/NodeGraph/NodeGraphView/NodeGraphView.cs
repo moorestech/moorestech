@@ -102,11 +102,11 @@ namespace Client.Ui.Components.NodeGraph
             evt.StopPropagation();
             _pan.CancelGlide();
 
-            // カーソルを内容 box の座標へ直し、1 ノッチを Web の deltaY（WebWheelScale。A-71・A-118）へ換算してズームする（横成分は無視）
-            // Convert the cursor to content-box coordinates, scale one notch to the Web deltaY (WebWheelScale; A-71, A-118), and zoom (horizontal ignored)
+            // カーソルを内容 box の座標へ直し、1 ノッチをホイールの px（WheelNotchPixels。A-71・A-118）へ換算してズームする（横成分は無視）
+            // Convert the cursor to content-box coordinates, scale one notch to wheel pixels (WheelNotchPixels; A-71, A-118), and zoom (horizontal ignored)
             var cursor = this.WorldToLocal(evt.mousePosition) - contentRect.position;
-            var webDeltaY = evt.delta.y * WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
-            SetViewport(NodeGraphViewportMath.ZoomAt(_viewport, cursor, webDeltaY));
+            var wheelPixelsY = evt.delta.y * WheelNotchPixels.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+            SetViewport(NodeGraphViewportMath.ZoomAt(_viewport, cursor, wheelPixelsY));
         }
 
         private void OnGeometryChanged(GeometryChangedEvent evt)

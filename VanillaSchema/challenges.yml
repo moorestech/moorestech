@@ -279,7 +279,7 @@ properties:
                 properties:
                 - key: highLightAnchorId
                   type: string
-                  default: web anchor id
+                  default: anchor id
                 - key: highLightText
                   type: string
                   default: highlight text
@@ -323,10 +323,10 @@ properties:
                 properties:
                 - key: fromAnchorId
                   type: string
-                  default: from web anchor id
+                  default: from anchor id
                 - key: toAnchorId
                   type: string
-                  default: to web anchor id
+                  default: to anchor id
               - when: veinRestrictedPlacement
                 type: object
                 properties:
@@ -406,8 +406,8 @@ properties:
                       - East
                       - South
                       - West
-                # 連結ゴースト群の上に出すWebピンの文言
-                # Wording of the web pins shown over the chain ghosts
+                # 連結ゴースト群の上に出すワールドピンの文言
+                # Wording of the world pins shown over the chain ghosts
                 - key: message
                   type: string
                   default: Place these together with the block

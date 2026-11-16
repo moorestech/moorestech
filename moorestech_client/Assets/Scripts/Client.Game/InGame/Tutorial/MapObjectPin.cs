@@ -12,9 +12,9 @@ namespace Client.Game.InGame.Tutorial
 {
     public class MapObjectPin : MonoBehaviour, ITutorialWorldPin
     {
-        // WebオーバーレイでのピンID。MapObjectPinはシーンに1つなので固定IDでよい
-        // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
-        private const string WebPinId = "map-object-pin";
+        // ワールドピンのID。MapObjectPinはシーンに1つなので固定IDでよい
+        // World-pin id; a single scene instance suffices, so the id is fixed
+        private const string WorldPinId = "map-object-pin";
 
         // 未適用・完了後の空候補。毎フレームの探索でnull分岐を持たずに済む
         // Empty candidates before apply and after completion, so the per-frame search needs no null branch
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Tutorial
             // 追えなければ配信するべき座標が無いので止める
             // Nothing to publish when tracking failed, so stop here
             if (!TryTrackNearestMapObject()) return;
-            PublishWebWorldPin();
+            PublishWorldPin();
 
             #region Internal
 
@@ -91,13 +91,13 @@ namespace Client.Game.InGame.Tutorial
                 Debug.LogError($"未破壊のMapObject（tutorialGuid={_pinTutorialGuid}、候補{_targetMapObjectGuids.Count}件）が存在しません");
             }
 
-            void PublishWebWorldPin()
+            void PublishWorldPin()
             {
                 var camera = CameraManager.MainCamera.Camera;
                 if (!camera) return;
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
-                WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+                WorldPinStateStore.Instance.SetPin(WorldPinId, _pinTutorialGuid, projection);
                 _publishing = true;
             }
 
@@ -111,8 +111,8 @@ namespace Client.Game.InGame.Tutorial
             _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
             _missingReported = false;
 
-            // 追跡と射影配信のみ行う（表示はWebオーバーレイが担う）
-            // Only tracking and projection publishing happen here; display lives on the web overlay
+            // 追跡と射影配信のみ行う（表示はワールドピンの描画側が担う）
+            // Only tracking and projection publishing happen here; display lives on the world-pin view
             SetActive(true);
 
             return this;
@@ -129,7 +129,7 @@ namespace Client.Game.InGame.Tutorial
         private void RemoveWorldPin()
         {
             _publishing = false;
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            WorldPinStateStore.Instance.RemovePin(WorldPinId);
         }
 
         public string TutorialType => TutorialsElement.TutorialTypeConst.mapObjectPin;
@@ -149,8 +149,8 @@ namespace Client.Game.InGame.Tutorial
             Visibility.EndSkitSuppress();
         }
 
-        // スキットの一時抑止でもWebピンを確実に消す
-        // Temporary skit suppression must also clear the web pin
+        // スキットの一時抑止でもワールドピンを確実に消す
+        // Temporary skit suppression must also clear the world pin
         private void OnDisable()
         {
             RemoveWorldPin();

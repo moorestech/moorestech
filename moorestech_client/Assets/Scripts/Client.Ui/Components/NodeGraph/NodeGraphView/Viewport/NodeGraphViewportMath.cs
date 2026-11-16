@@ -14,11 +14,11 @@ namespace Client.Ui.Components.NodeGraph
         public const float MaxScale = 2.5f;
         public const float WheelZoomSensitivity = 0.0015f;
 
-        public static NodeGraphViewport ZoomAt(NodeGraphViewport viewport, Vector2 cursor, float webDeltaY)
+        public static NodeGraphViewport ZoomAt(NodeGraphViewport viewport, Vector2 cursor, float wheelPixelsY)
         {
             // 倍率を指数で動かし、カーソルの下のワールドの点を固定する
             // Move the scale exponentially and keep the world point under the cursor fixed
-            var scale = Mathf.Clamp(viewport.Scale * Mathf.Exp(-webDeltaY * WheelZoomSensitivity), MinScale, MaxScale);
+            var scale = Mathf.Clamp(viewport.Scale * Mathf.Exp(-wheelPixelsY * WheelZoomSensitivity), MinScale, MaxScale);
             var worldX = (cursor.x - viewport.X) / viewport.Scale;
             var worldY = (cursor.y - viewport.Y) / viewport.Scale;
             return new NodeGraphViewport(cursor.x - worldX * scale, cursor.y - worldY * scale, scale);
