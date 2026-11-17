@@ -8,6 +8,7 @@ using Client.Ui.State.Challenge.Tree;
 using Client.Ui.State.Challenge.Tree.Selection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Kit = Client.Tests.Ui.Screens.Challenge.Tree.ChallengeListScreenTestKit;
 using Source = Client.Tests.Ui.State.Challenge.ChallengeProgressStateTestSource;
 
