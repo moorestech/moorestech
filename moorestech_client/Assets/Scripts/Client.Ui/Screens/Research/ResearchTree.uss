@@ -57,21 +57,27 @@
     border-color: var(--text-default);
 }
 
-/* 選択の輪: Web の outline 2px（枠の外）。Yoga の絶対配置は親の padding 辺が基準なので枠 1px ぶん更に外へ */
-/* Selection ring: the Web 2px outline outside the border; Yoga absolute offsets start at the padding edge, so go 1px further out */
+/* 選択の輪: Web の outline 2px（枠の外）。カード自身は枠を持たず（枠は __card-face）、padding 辺が面の枠の外辺なので 2px だけ外へ */
+/* Selection ring: the Web 2px outline outside the border; the card has no border (it is on __card-face), so its padding edge is the face's outer edge and 2px out suffices */
 .research-tree__card-ring {
     display: none;
     position: absolute;
-    left: -3px;
-    top: -3px;
-    right: -3px;
-    bottom: -3px;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
     border-width: 2px;
     border-color: var(--text-high-contrast);
 }
 
 .research-tree__card--selected > .research-tree__card-ring {
     display: flex;
+}
+
+/* 輪は群の外の子を持たない単独の要素なので、要素の opacity で群と同じ淡さになる（A-222） */
+/* The ring is a lone childless element outside the group, so element opacity matches the group's fade (A-222) */
+.research-tree__card--locked > .research-tree__card-ring {
+    opacity: var(--research-node-locked-opacity);
 }
 
 /* 名前と状態の行の高さは Web が Mantine の body から継ぐ 1.55（14px×1.55＝21.7px・12px×1.55＝18.6px）。1 行の nowrap なので前例 TooltipFace の 1 行目と同じく min-height だけで写す。Web の半行間に合わせ文字は縦中央（行送りの指定は text へ line-height タグを足すため使わない） */

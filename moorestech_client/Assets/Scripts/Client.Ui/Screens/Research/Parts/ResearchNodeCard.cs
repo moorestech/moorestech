@@ -53,8 +53,8 @@ namespace Client.Ui.Screens.Research.Parts
             Add(_icon);
             Add(_state);
 
-            // 選択の輪は枠の外へはみ出すので群の外に置く（群の filter は自分の箱の内側だけを描く）
-            // The selection ring sits outside the border, so it stays out of the group (the group filter draws only inside its own box)
+            // 選択の輪は枠の外へはみ出すので群の外に置き、ロックの淡さは USS が輪自身の opacity で当てる（群の filter は自分の箱の内側だけを描く）
+            // The ring sits outside the border, so it stays out of the group and USS fades it by its own opacity when locked (the group filter draws only inside its own box)
             hierarchy.Add(ring);
 
             // 文字は拾わない。アイコンは Web の ItemSlot と同じくホバーで名前を出すので拾い、押下は祖先のカードの包みへ浮かぶ（C4-d は対象の祖先から包みを探す）

@@ -26,6 +26,7 @@ namespace Client.Ui.Screens.BlockInventory
         private bool _columnGapResolved;
         private bool _large;
         private bool _stageTooSmallReported;
+        private bool _stageTooNarrowReported;
 
         public BlockInventoryPanelBand(StageColumnsLayout stage, VisualElement shell)
         {
@@ -87,7 +88,12 @@ namespace Client.Ui.Screens.BlockInventory
             // Large spans viewer..items (Web .panelLarge calc); natural is content-wide up to the viewer track's remainder (minus the empty items track's two gaps), never spreading past the stage like the Web auto track with justify-self: start fit-content
             var largeWidth = style.width - style.paddingLeft - style.paddingRight - _inventoryWidth - _columnGap;
             _shell.style.width = _large ? new StyleLength(largeWidth) : new StyleLength(StyleKeyword.Auto);
-            _shell.style.maxWidth = _large ? new StyleLength(StyleKeyword.None) : new StyleLength(UnityEngine.Mathf.Max(0f, largeWidth - _columnGap));
+            var naturalMaxWidth = largeWidth - _columnGap;
+            // 舞台が狭すぎて上限が負になるときは 0 に丸め、高さと同じく 1 回だけ警告する
+            // When the stage is too narrow the cap goes negative; clamp to 0 and warn once like the height
+            if (!_large && naturalMaxWidth < 0f && !_stageTooNarrowReported) UnityEngine.Debug.LogWarning($"[BlockInventoryPanelBand] stage width {style.width} leaves no room for a natural panel (inventory {_inventoryWidth}, gap {_columnGap}); max width clamped to 0");
+            _stageTooNarrowReported = !_large && naturalMaxWidth < 0f;
+            _shell.style.maxWidth = _large ? new StyleLength(StyleKeyword.None) : new StyleLength(UnityEngine.Mathf.Max(0f, naturalMaxWidth));
         }
     }
 }
