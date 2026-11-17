@@ -31,7 +31,7 @@ namespace Client.Ui.Foundation.Text
         // Whether to trim: has closing marks and no rich-text tags; a tagged text is left untrimmed since TextCore's tag recognition cannot be mirrored and glyph indices could drift
         public static bool CanTrim(string source)
         {
-            // silent-ok: rich text の文（会話の本文の打ち出し等）は詰めずに 1 行多く折れうる / 台帳 docs/uitk/TODO.md の LX-180 が例外として持つ
+            // silent-ok: rich text の文（会話の本文の打ち出し等）は詰めずに 1 行多く折れうる / docs/uitk/look-exceptions.md の LX-180 が例外として持つ
             if (0 <= source.IndexOf('<')) return false; // look-exception: LX-180
             foreach (var c in source)
             {

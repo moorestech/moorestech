@@ -45,7 +45,7 @@ USS に無い表現（影・グラデ・マスク・grid・状態など）を描
 | CSS | USS での扱い |
 |---|---|
 | `-webkit-text-stroke`（アイコン上の数の縁、ADR 0033） | `Components/Slots/OutlinedCountLabel` を使う（縁だけの Label を後ろに敷き、縁の無い字の Label を上に重ねる 2 層）。`-unity-text-outline` は字の内外に半分ずつ掛かり 12〜19px の細い字を塗りつぶすので、字の上に直に掛けない。縁の値は `--icon-text-stroke-*`（設計書 [A-110]） |
-| `text-shadow` | 単一の影は `text-shadow` でそのまま写す（前例 `GamePanel.uss` の題）。USS の text-shadow は 1 本だけなので、複数方向の影は `-unity-text-outline` で近似し例外に記帳する（前例 `PanelActionButton`。台帳の `LX-n` に記帳済み） |
+| `text-shadow` | 単一の影は `text-shadow` でそのまま写す（前例 `GamePanel.uss` の題）。USS の text-shadow は 1 本だけなので、複数方向の影は `-unity-text-outline` で近似し例外に記帳する（前例 `PanelActionButton`。`docs/uitk/look-exceptions.md` の `LX-n` に記帳済み） |
 | `font-weight: bold`・`font-synthesis` | 合成の太字は使わない。Mantine の `Title` で描く題だけ `title--heading-face` の Bold（SDF アセット、`Typography.uss`）を使う（`Modal.Title` は除く）。`fw` 指定・`text--bold` は字形を替えない |
 | `font-size`（Mantine の `size`） | 既存の画面と同じ px。13px 下限は無い（設計書 [A-39]） |
 | `text-overflow: ellipsis` | `overflow: hidden`・`white-space: nowrap`・`text-overflow: ellipsis` |
@@ -63,7 +63,7 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 | 三角・矢印・SVG の `path` | Painter2D の `MoveTo`/`LineTo`/`Fill` | `GamePanelBottomDeco`・`ProgressArrowGlyph` |
 | `box-shadow`（外側のにじみ） | 面の外周に、内側の α から外側の 0 へ落ちる頂点カラーの帯を張る | —（GamePanel の外周の影は元の CSS でも出ないので描かない。設計書 [A-22]） |
 | `box-shadow: inset` 2 層（ベベル） | border の入れ子（子要素 2 つに border を 1 本ずつ） | `SlotFrame` |
-| `outline`・ring | border の入れ子で近似し、差があれば記帳する | `ModeSwitch`（差は台帳の `LX-n` に記帳済み） |
+| `outline`・ring | border の入れ子で近似し、差があれば記帳する | `ModeSwitch`（差は`docs/uitk/look-exceptions.md` の `LX-n` に記帳済み） |
 | `filter: drop-shadow` | 図形の輪郭を少し太らせた α の帯を先に描く | `ProgressArrowGlyph` |
 | `repeating-linear-gradient`（斜線帯） | Painter2D で平行四辺形を繰り返し塗る | 削除モードの帯（modeHud の画面に置く。S2-mode-tooltip が作る） |
 | `background-image`（UI 装飾の画像） | 使わない。図形で描く | — |

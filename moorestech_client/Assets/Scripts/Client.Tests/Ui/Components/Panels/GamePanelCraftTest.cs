@@ -12,8 +12,8 @@ namespace Client.Tests.Ui.Components.Panels
     /// Verifies the GamePanel (craft) face, two inset rings, grip and padding match the Web .craft (L1)
     /// </summary>
     /// <remarks>
-    /// 面はパネル自身の背景で、UITK が枠の下まで塗ることは RenderTexture への描画で実測した（docs/uitk/TODO.md「C2-a craft の枠」）
-    /// The face is the panel's own background; UITK painting it under the border was measured by rendering to a RenderTexture (docs/uitk/TODO.md "C2-a craft の枠")
+    /// 面はパネル自身の背景で、UITK が枠の下まで塗ることは RenderTexture への描画で実測した（docs/uitk/measurements.md「C2-a craft の枠」）
+    /// The face is the panel's own background; UITK painting it under the border was measured by rendering to a RenderTexture (docs/uitk/measurements.md "C2-a craft の枠")
     /// </remarks>
     public class GamePanelCraftTest : UiTestHost
     {

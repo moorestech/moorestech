@@ -95,8 +95,8 @@ namespace Client.Tests.Ui.Components.Recipe
             var row = Mount(list, 1, 1, 600f);
             Assert.AreEqual(32f, Bound(row, "m-0").width, 0.5f);
 
-            // 5.6px の padding はレイアウトが倍率 1 の物理画素へ丸めて 6px になる（台帳「実測の結論」C2-a craft の枠・LX-42 と同じ丸め）
-            // The 5.6px padding is rounded by layout to physical pixels at scale 1, giving 6px (same rounding as the ledger's C2-a craft frame and LX-42)
+            // 5.6px の padding はレイアウトが倍率 1 の物理画素へ丸めて 6px になる（docs/uitk/measurements.md の C2-a craft の枠・LX-42 と同じ丸め）
+            // The 5.6px padding is rounded by layout to physical pixels at scale 1, giving 6px (same rounding as the C2-a craft frame in docs/uitk/measurements.md and LX-42)
             Assert.AreEqual(Mathf.Round(5.6f), row.resolvedStyle.paddingTop, 0.01f);
         }
 
