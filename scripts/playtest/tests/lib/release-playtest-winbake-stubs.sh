@@ -27,9 +27,19 @@ case "\$cmd" in
     # A Windows bake carries no executable bits, so the fake Mac artifact has none either
     MAC_NOT_EXECUTABLE=1 MOORESTECH_BUILD_OUTPUT="\$job/build-mac" MOORESTECH_STEAM_BUILD_LABEL="\$label" MOORESTECH_BUILD_BRANCH="\$branch" "$sandbox/bin/unity" -executeMethod MacOsSteamPlaytestBuild
     if [ "\${WINBAKE_FAIL:-0}" = 0 ]; then ok=true; err=null; else ok=false; err='"Unity failed"'; fi
+    [ "\${WINBAKE_VANISH:-0}" = 0 ] || exit 0
     printf '{"ok":%s,"error":%s}' "\$ok" "\$err" >"\$job/result.json"
     ;;
-  *result.json*) echo "ssh \$host poll" >>"$sandbox/calls.log"; echo done ;;
+  *result.json*)
+    # 焼きの台本が result.json を書かずに消えた場合は gone を返し、確かめ直しも失敗させる
+    # When the bake script vanished without result.json, answer gone and fail the recheck too
+    echo "ssh \$host poll" >>"$sandbox/calls.log"
+    result="\$(ls "$sandbox"/winhost/jobs/*/result.json 2>/dev/null | head -n 1)"
+    case "\$cmd" in
+      *"exit 0 } else"*) [ -n "\$result" ] ;;
+      *) if [ -n "\$result" ]; then echo done; else echo gone; fi ;;
+    esac
+    ;;
   "tar -cf - -C "*)
     remote="\$(printf '%s' "\$cmd" | sed -n 's/^tar -cf - -C "\(.*\)" \.\$/\1/p')"
     echo "ssh \$host tar \$(basename "\$remote")" >>"$sandbox/calls.log"

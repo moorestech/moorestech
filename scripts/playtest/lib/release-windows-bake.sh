@@ -46,8 +46,16 @@ release_bake_on_windows() {
     # Wait for result.json, echoing the tail of progress.txt along the way
     deadline=$((SECONDS + WINBAKE_TIMEOUT_SECONDS))
     while :; do
-        state="$(winbake_ssh "powershell -NoProfile -Command \"if (Test-Path '$job_dir/result.json') { 'done' } else { Get-Content '$job_dir/progress.txt' -Tail 1 -ErrorAction SilentlyContinue }\"" | tr -d '\r')" || state="(ssh failed; retrying)"
+        # 焼きの PowerShell が result.json を書かずに消えていたら（構文エラー・強制終了）待ち続けずに止める。自分の PID は除く
+        # Stop instead of waiting on when the bake PowerShell vanished without result.json (parse error, killed); exclude our own PID
+        state="$(winbake_ssh "powershell -NoProfile -Command \"if (Test-Path '$job_dir/result.json') { 'done' } elseif (-not (Get-CimInstance Win32_Process -Filter \\\"Name='powershell.exe'\\\" | Where-Object { \$_.ProcessId -ne \$PID -and \$_.CommandLine -like '*$args_b64*' })) { 'gone' } else { 'running: ' + (Get-Content '$job_dir/progress.txt' -Tail 1 -ErrorAction SilentlyContinue) }; exit 0\"" | tr -d '\r')" || state="(ssh failed; retrying)"
         [ "$state" = done ] && break
+        if [ "$state" = gone ]; then
+            sleep 5
+            winbake_ssh "powershell -NoProfile -Command \"if (Test-Path '$job_dir/result.json') { exit 0 } else { exit 1 }\"" && break
+            echo "ERROR: Windows の焼きが result.json を書かずに終わりました（台本の構文エラーか強制終了）: $MOORESTECH_WINBUILD_HOST:$job_dir" >&2
+            exit 3
+        fi
         echo "[release-playtest] windows bake: $state"
         if [ "$SECONDS" -gt "$deadline" ]; then
             echo "ERROR: Windows の焼きが ${WINBAKE_TIMEOUT_SECONDS} 秒で終わりませんでした: $MOORESTECH_WINBUILD_HOST:$job_dir" >&2

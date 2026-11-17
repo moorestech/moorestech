@@ -1,4 +1,4 @@
-# 配布ビルド機（Windows）で、指定コミットの Windows 版と Mac 版を batchmode の Unity で焼く。Mac 側の lib/release-windows-bake.sh が起動する
+﻿# 配布ビルド機（Windows）で、指定コミットの Windows 版と Mac 版を batchmode の Unity で焼く。Mac 側の lib/release-windows-bake.sh が起動する
 # 引数は base64 JSON（commit・masterPin・privatePin・label・branch・targets・jobDir）。結果は jobDir の result.json、途中経過は progress.txt
 # worktree は release-bake 1 本を使い回し（Library を持ち越すため）、同時に 2 本は焼かない（bake.lock を排他で握る）
 # Bakes the Windows and Mac players of a commit with batchmode Unity on the Windows build machine; started by lib/release-windows-bake.sh on the Mac

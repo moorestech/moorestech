@@ -54,6 +54,14 @@ case "$OUTPUT" in *"Unity failed"*) ;; *) fail "the bake failure reason was not 
 grep -q 'ssh winbuild tar' "$SANDBOX/calls.log" && fail "artifacts were fetched after a failed bake"
 grep -q '^steamcmd' "$SANDBOX/calls.log" && fail "steamcmd ran after a failed bake"
 
+# 焼きの台本が result.json を書かずに消えたら、上限まで待たずに理由を出して止まる
+# A bake script that vanished without result.json stops with a reason instead of waiting out the limit
+make_winbake_sandbox
+OUTPUT=$(WINBAKE_VANISH=1 run_winbake); STATUS=$?
+[ "$STATUS" -eq 3 ] || fail "a vanished bake did not exit 3 (got $STATUS)"
+case "$OUTPUT" in *"result.json を書かずに"*) ;; *) fail "a vanished bake was not explained: $OUTPUT";; esac
+grep -q '^steamcmd' "$SANDBOX/calls.log" && fail "steamcmd ran after a vanished bake"
+
 # 持ち帰った成果物の取り違え（ターゲット違い）は Mac の検査で止まる
 # A mixed-up fetched artifact (wrong target) is stopped by the Mac-side inspection
 make_winbake_sandbox
