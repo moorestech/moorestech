@@ -5,6 +5,7 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Block.Preview;
+using Client.Game.InGame.Block.Preview.PlacementFrame;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.NearestSearch;
@@ -87,22 +88,18 @@ namespace Client.Game.InGame.Block
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
             _previewOnlyObjectsView = new BlockPreviewOnlyObjectsView(BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false));
-            
+            // 枠の辺は描画指示が来た時だけプールから借りる
+            // Frame edges are rented from the pool only on a render instruction
+            _previewOnlyObjectsView.Add(new BlockPreviewEdgeFrameLease(this));
+
             // 初期状態を要求。返答はtick末尾の束で届く
             // Ask the server for the initial block state; the reply arrives via BlockStateEventHandler in the tick-end bundle
             RequestInitialBlockState();
-            // バウンディングボックス用オブジェクトを作成
-            // Create a bounding box object
-            AddBoundingBox().Forget();
             #region Internal
-            
+
             void RequestInitialBlockState()
             {
                 ClientContext.VanillaApi.SendOnly.RequestBlockState(BlockPosInfo.OriginalPos);
-            }
-            async UniTask AddBoundingBox()
-            {
-                _previewOnlyObjectsView.Add(await BlockPreviewBoundingBoxLoader.LoadAsync(this, blockMasterElement, posInfo, this.GetCancellationTokenOnDestroy()));
             }
             #endregion
         }

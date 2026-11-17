@@ -1057,9 +1057,9 @@ properties:
             schemaId: items
             foreignKeyIdPath: /data/[*]/itemGuid
             displayElementPath: /data/[*]/name
-        - key: filterCapacity
+        - key: filterLifeSeconds
           type: number
-          default: 5000
+          default: 12
         - key: maxWireConnectionCount
           type: integer
           default: 2

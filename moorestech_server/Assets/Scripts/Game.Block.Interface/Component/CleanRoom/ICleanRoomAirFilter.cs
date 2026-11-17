@@ -1,8 +1,8 @@
 namespace Game.Block.Interface.Component
 {
     /// <summary>
-    ///     部屋内部に設置され空気中の不純物を除去する清浄機コンポーネント
-    ///     Air purifier component placed inside a room to remove airborne impurities
+    ///     部屋内部に設置され換気回数で部屋のクラスを上げる清浄機コンポーネント
+    ///     Air purifier component placed inside a room that raises the room class through its air change rate
     /// </summary>
     public interface ICleanRoomAirFilter : IBlockComponent
     {
@@ -10,12 +10,16 @@ namespace Game.Block.Interface.Component
         // Effective removal volume q per second reflecting power ratio and filter presence
         double RemovalVolumePerSecond { get; }
 
-        // 今tickに除去した不純物量をフィルター摩耗として押し込む
-        // Push the impurity removed this tick into the filter as wear
-        void ApplyRemovedImpurity(double removed);
-
         // UI表示用に電力割合・フィルター数・残り寿命を読む
         // Read the power ratio, filter count and remaining life for UI display
         CleanRoomAirFilterStatus GetStatus();
+
+        // 成立した部屋に属しているかを判定段から受け取る。属している間だけフィルターを消費する
+        // Receive from the clean-room pass whether it serves a detected room; filters are consumed only while serving
+        void SetServingRoom(bool isServingRoom);
+
+        // 判定段から最後に受け取った在室。セーブされ、ロード時に判定段の前tick集合を作り直すのに使う
+        // The serving state last received from the pass; it is saved and rebuilds the pass's previous-tick set on load
+        bool IsServingRoom { get; }
     }
 }

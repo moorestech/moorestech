@@ -2,6 +2,7 @@ using Client.Game.InGame.Entity.Removal;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.Notification;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Preview.PlacementFrame;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using VContainer;
 using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
@@ -20,6 +21,7 @@ namespace Client.Game.InGame.Context
         public static ConnectionLineRegistry ConnectionLineRegistry { get; private set; }
         public static ClientLocalNotificationSource ClientLocalNotificationSource { get; private set; }
         public static IBlueprintThumbnailLookup BlueprintThumbnailLookup { get; private set; }
+        public static BlockPreviewEdgeFramePool BlockPreviewEdgeFramePool { get; private set; }
 
         public ClientDIContext(DIContainer diContainer)
         {
@@ -31,6 +33,7 @@ namespace Client.Game.InGame.Context
             BlockAttachedConnectionResolver = diContainer.DIContainerResolver.Resolve<BlockAttachedConnectionResolver>();
             BuildOperationHistory = diContainer.DIContainerResolver.Resolve<BuildOperationHistory>();
             BlueprintThumbnailLookup = diContainer.DIContainerResolver.Resolve<IBlueprintThumbnailLookup>();
+            BlockPreviewEdgeFramePool = diContainer.DIContainerResolver.Resolve<BlockPreviewEdgeFramePool>();
         }
     }
 }

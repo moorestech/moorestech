@@ -3,7 +3,17 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration;
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V1ToV2;
+using Game.SaveLoad.Migration.Steps.V2ToV3;
+using Game.SaveLoad.Migration.Steps.V3ToV4;
+using Game.SaveLoad.Migration.Steps.V4ToV5;
+using Game.SaveLoad.Migration.Steps.V5ToV6;
+using Game.SaveLoad.Migration.Steps.V6ToV7;
+using Game.SaveLoad.Migration.Steps.V7ToV8;
+using Game.SaveLoad.Migration.Steps.V8ToV9;
+using Game.SaveLoad.Migration.Steps.V9ToV10;
+using Game.SaveLoad.Migration.Steps.V10ToV11;
+using Game.SaveLoad.Migration.Steps.V11ToV12;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -134,7 +144,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         // The production configuration; building it also verifies the real step set matches the current version
         private static SaveMigrationChain CurrentVersionChain()
         {
-            return SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9(), new SaveMigrationStepV9ToV10(), new SaveMigrationStepV10ToV11() });
+            return SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9(), new SaveMigrationStepV9ToV10(), new SaveMigrationStepV10ToV11(), new SaveMigrationStepV11ToV12() });
         }
 
         // テスト専用の疑似ステップ。適用順の記録とJSONへの痕跡付けだけを行う

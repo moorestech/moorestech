@@ -9,7 +9,7 @@
 # ⚠ Run the regression suite after ANY change under scripts/; wiring into
 #   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
 # =====================================================================
-"""moores-writing-plans の判断台帳関所（sim-gate.sh前例踏襲）。
+"""moores-writing-plans の判断台帳関所。
 
 track: plan（docs/superpowers/plans/*.md）へのWrite/Editを状態ファイルに記録
 stop : 対象は track 分 ∪ plan_discovery.py が拾った当セッション作成・変更plan（Bash作成も・2026-10-07）。
@@ -131,8 +131,8 @@ def main() -> int:
     raw = "" if sys.stdin.isatty() else sys.stdin.read()
     if not raw.strip():
         return 0
-    # hooks stdin は外部境界のためJSON不正は素通し（sim-gate.shのfail-open前例に一致）
-    # Hook stdin is an external boundary; malformed JSON falls open like sim-gate.sh
+    # hooks stdin は外部境界のためJSON不正は素通し
+    # Hook stdin is an external boundary; malformed JSON falls open
     try:
         data = json.loads(raw)
     except ValueError:

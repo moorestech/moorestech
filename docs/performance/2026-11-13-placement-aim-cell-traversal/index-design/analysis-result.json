@@ -1,0 +1,315 @@
+{
+ "blocks": 15082,
+ "occupiedCells": 138926,
+ "boundsMin": "(49, 0, -384)",
+ "boundsMax": "(1104, 113, 2485)",
+ "maxBlockSize": "(11, 16, 7)",
+ "volumeHistogram": {
+  "1": 11939,
+  "2": 7,
+  "4": 29,
+  "5": 139,
+  "9": 115,
+  "18": 146,
+  "24": 71,
+  "25": 2256,
+  "27": 72,
+  "36": 25,
+  "45": 4,
+  "48": 114,
+  "49": 16,
+  "63": 19,
+  "80": 11,
+  "140": 8,
+  "165": 52,
+  "216": 7,
+  "320": 8,
+  "455": 11,
+  "567": 3,
+  "1056": 25,
+  "1232": 5
+ },
+ "cellsByY8": {
+  "0": 16,
+  "56": 44,
+  "64": 5357,
+  "72": 8016,
+  "80": 26786,
+  "88": 49488,
+  "96": 32992,
+  "104": 15879,
+  "112": 348
+ },
+ "nonEmptyNodes3D": {
+  "2": 31548,
+  "4": 8418,
+  "8": 2460,
+  "16": 826,
+  "32": 351,
+  "64": 129,
+  "128": 50,
+  "256": 23,
+  "512": 10
+ },
+ "nonEmptyColumnsXZ": {
+  "1": 66751,
+  "2": 18490,
+  "4": 5468,
+  "8": 1781,
+  "16": 658,
+  "32": 289,
+  "64": 124,
+  "128": 50,
+  "256": 23
+ },
+ "lookupNs": {
+  "hashSet": 179.9,
+  "indexTryGetBlockAt": 237.8,
+  "indexIsChunkEmpty": 85.5,
+  "intArray": 20.4,
+  "hits": 1075
+ },
+ "worstRays": {
+  "x": {
+   "realTryTraceMs": 0.0712,
+   "cellOnly": {
+    "ms": 0.4305,
+    "lookups": 1057,
+    "skips": 0,
+    "steps": 1057,
+    "hit": false
+   },
+   "s16": {
+    "ms": 0.0526,
+    "lookups": 133,
+    "skips": 66,
+    "steps": 66,
+    "hit": false
+   },
+   "s4_16_64_256": {
+    "ms": 0.0106,
+    "lookups": 50,
+    "skips": 10,
+    "steps": 10,
+    "hit": false
+   },
+   "s2to256": {
+    "ms": 0.0127,
+    "lookups": 66,
+    "skips": 7,
+    "steps": 7,
+    "hit": false
+   },
+   "s8_64_512": {
+    "ms": 0.0135,
+    "lookups": 59,
+    "skips": 16,
+    "steps": 16,
+    "hit": false
+   },
+   "s16_256": {
+    "ms": 0.0136,
+    "lookups": 59,
+    "skips": 19,
+    "steps": 19,
+    "hit": false
+   }
+  },
+  "z": {
+   "realTryTraceMs": 0.096,
+   "cellOnly": {
+    "ms": 0.3365,
+    "lookups": 2871,
+    "skips": 0,
+    "steps": 2871,
+    "hit": false
+   },
+   "s16": {
+    "ms": 0.0869,
+    "lookups": 361,
+    "skips": 180,
+    "steps": 180,
+    "hit": false
+   },
+   "s4_16_64_256": {
+    "ms": 0.1145,
+    "lookups": 614,
+    "skips": 150,
+    "steps": 150,
+    "hit": false
+   },
+   "s2to256": {
+    "ms": 0.092,
+    "lookups": 606,
+    "skips": 87,
+    "steps": 87,
+    "hit": false
+   },
+   "s8_64_512": {
+    "ms": 0.1862,
+    "lookups": 883,
+    "skips": 290,
+    "steps": 290,
+    "hit": false
+   },
+   "s16_256": {
+    "ms": 0.1115,
+    "lookups": 542,
+    "skips": 180,
+    "steps": 180,
+    "hit": false
+   }
+  },
+  "diagA": {
+   "realTryTraceMs": 0.215,
+   "cellOnly": {
+    "ms": 1.1494,
+    "lookups": 3926,
+    "skips": 0,
+    "steps": 3926,
+    "hit": false
+   },
+   "s16": {
+    "ms": 0.1938,
+    "lookups": 491,
+    "skips": 245,
+    "steps": 245,
+    "hit": false
+   },
+   "s4_16_64_256": {
+    "ms": 0.0924,
+    "lookups": 391,
+    "skips": 88,
+    "steps": 88,
+    "hit": false
+   },
+   "s2to256": {
+    "ms": 0.0815,
+    "lookups": 437,
+    "skips": 57,
+    "steps": 57,
+    "hit": false
+   },
+   "s8_64_512": {
+    "ms": 0.1372,
+    "lookups": 509,
+    "skips": 153,
+    "steps": 153,
+    "hit": false
+   },
+   "s16_256": {
+    "ms": 0.1505,
+    "lookups": 545,
+    "skips": 181,
+    "steps": 181,
+    "hit": false
+   }
+  },
+  "diagB": {
+   "realTryTraceMs": 0.2519,
+   "cellOnly": {
+    "ms": 1.6391,
+    "lookups": 3926,
+    "skips": 0,
+    "steps": 3926,
+    "hit": false
+   },
+   "s16": {
+    "ms": 0.2222,
+    "lookups": 491,
+    "skips": 245,
+    "steps": 245,
+    "hit": false
+   },
+   "s4_16_64_256": {
+    "ms": 0.0657,
+    "lookups": 269,
+    "skips": 61,
+    "steps": 61,
+    "hit": false
+   },
+   "s2to256": {
+    "ms": 0.0604,
+    "lookups": 298,
+    "skips": 37,
+    "steps": 37,
+    "hit": false
+   },
+   "s8_64_512": {
+    "ms": 0.0939,
+    "lookups": 344,
+    "skips": 106,
+    "steps": 106,
+    "hit": false
+   },
+   "s16_256": {
+    "ms": 0.0828,
+    "lookups": 278,
+    "skips": 92,
+    "steps": 92,
+    "hit": false
+   }
+  }
+ },
+ "realistic": {
+  "samples": 1000,
+  "noPhysicsHit": 163,
+  "traceHits": 154,
+  "cellsWalked": {
+   "mean": 72,
+   "p50": 5,
+   "p90": 147,
+   "p99": 1164,
+   "max": 2509
+  },
+  "physicsRaycastMs": {
+   "mean": 0.0078,
+   "p50": 0.0012,
+   "p90": 0.0115,
+   "p99": 0.1252,
+   "max": 0.599
+  },
+  "realTryTraceMs": {
+   "mean": 0.017,
+   "p50": 0.0032,
+   "p90": 0.0396,
+   "p99": 0.2474,
+   "max": 0.4188
+  },
+  "s16Ms": {
+   "mean": 0.0128,
+   "p50": 0.0021,
+   "p90": 0.0306,
+   "p99": 0.2068,
+   "max": 0.3136
+  },
+  "s4_16_64_256Ms": {
+   "mean": 0.0073,
+   "p50": 0.0021,
+   "p90": 0.0134,
+   "p99": 0.098,
+   "max": 0.1587
+  },
+  "s2to256Ms": {
+   "mean": 0.0074,
+   "p50": 0.0027,
+   "p90": 0.0147,
+   "p99": 0.086,
+   "max": 0.146
+  },
+  "s8_64_512Ms": {
+   "mean": 0.0081,
+   "p50": 0.0018,
+   "p90": 0.0157,
+   "p99": 0.1176,
+   "max": 0.1874
+  },
+  "s16_256Ms": {
+   "mean": 0.012,
+   "p50": 0.0024,
+   "p90": 0.0236,
+   "p99": 0.1865,
+   "max": 0.3147
+  }
+ }
+}

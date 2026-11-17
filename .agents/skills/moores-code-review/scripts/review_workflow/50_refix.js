@@ -42,7 +42,7 @@ if (apply) {
     // bug-pass yields no design items: fix §4-type findings with the minimal symptom-removing change; escalate only what cannot be fixed
     const designRule = BUG_PASS
       ? '§4 の設計判断に当たる件も design.md へ回さず、§4 の推奨規則（報告された症状を消す最小の変更）で直す。最小の変更でも直せないものと「裁定そのものが誤り」型だけ escalated に数え、warnings に1行で書く（親は Warning として報告する）。'
-      : '§4 の設計判断に当たる件と「裁定そのものが誤り」型は適用せず design.md へ追記し escalated に数える（Step 7 で AskUserQuestion に載る）。'
+      : '§4 の設計判断に当たる件と「裁定そのものが誤り」型は適用せず design.md 末尾の「## apply で追加した設計判断」見出しの下へ追記し（それより上の転記部分は書き換えない）escalated に数える（Step 7 で AskUserQuestion に載る）。'
     const fixPrompt = [
       `Read this : ${A.integrationRulesPath}（§3〜§5 の適用区分・安全規則）— 反映 diff 再レビューの Critical を直し直す係。`,
       `Refix report : ${entry.report}`,

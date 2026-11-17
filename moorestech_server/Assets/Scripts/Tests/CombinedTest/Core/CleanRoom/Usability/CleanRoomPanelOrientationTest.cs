@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // 清浄機1台へ給電しフィルターで回す
             // Power one purifier and run it with a filter
             var airFilter = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(3, 1, 3));
-            airFilter.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, 5);
+            airFilter.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, 20);
             ElectricWireTestUtil.WirePower(airFilter.BlockPositionInfo.OriginalPos, new Vector3Int(30, 0, 30), 100f);
             for (var i = 0; i < 2000; i++) GameUpdater.UpdateOneTick();
 

@@ -8,7 +8,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Fluid;
-using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Migration.Steps.V7ToV8;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Tests.Module.TestMod;

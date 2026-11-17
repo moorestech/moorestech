@@ -18,12 +18,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste
             origin = default;
             surfaceKind = PlacementHitSurfaceKind.Ground;
             if (!PlaceSystemUtil.TryGetRayHitPlacePointBySize(camera, footprintSize, heightOffset,
-                    out anchor, out var surface, out var hitPoint)) return false;
+                    out anchor, out var surfaceType, out var hitPoint)) return false;
 
             // 通常設置の原点へBP固有の側面補正だけ適用する
             // Apply only the blueprint side-face adjustment to the shared origin
-            surfaceKind = surface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace;
-            anchor = AlignSideFace(anchor, hitPoint, surface == null ? null : surface.PreviewSurfaceType, heightOffset);
+            surfaceKind = PlaceSystemUtil.ToHitSurfaceKind(surfaceType);
+            anchor = AlignSideFace(anchor, hitPoint, surfaceType, heightOffset);
             return TryResolveFootprintOrigin(anchor, footprintSize, heightOffset, surfaceKind, out origin);
         }
 

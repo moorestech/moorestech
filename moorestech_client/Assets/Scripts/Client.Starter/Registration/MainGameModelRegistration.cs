@@ -6,6 +6,7 @@ using Client.Game.InGame.FluidNetwork.Network;
 using Client.Game.InGame.Block.GearRotation;
 using Client.Game.InGame.GraphicsQuality.Appliers;
 using Client.Game.InGame.Block.Preview;
+using Client.Game.InGame.Block.Preview.PlacementFrame;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.LastSession;
@@ -116,6 +117,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
             builder.Register<BlockPreviewRadiusCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockPreviewRadiusRegisterService>();
+            builder.Register<BlockPreviewEdgeFramePool>(Lifetime.Singleton);
             builder.Register<GearRotationCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<GearRotationCullingRegisterService>();
             builder.RegisterEntryPoint<RenderPipelineQualityApplier>();

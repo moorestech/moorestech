@@ -18,31 +18,29 @@ namespace Server.Protocol.PacketResponse
         // ClassName and ThresholdIndex are written only when Classified; only TryGetClass reads them
         [Key(1)] public string ClassName { get; set; }
         [Key(2)] public int ThresholdIndex { get; set; }
-        [Key(3)] public double Concentration { get; set; }
-        [Key(4)] public double AirChangeRate { get; set; }
-        [Key(5)] public int Volume { get; set; }
-        [Key(6)] public List<CleanRoomAirFilterMessagePack> AirFilters { get; set; }
+        [Key(3)] public double AirChangeRate { get; set; }
+        [Key(4)] public int Volume { get; set; }
+        [Key(5)] public List<CleanRoomAirFilterMessagePack> AirFilters { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CleanRoomSummaryMessagePack() { }
 
-        private CleanRoomSummaryMessagePack(CleanRoomClassResponseKind classKind, double concentration, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
+        private CleanRoomSummaryMessagePack(CleanRoomClassResponseKind classKind, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
         {
             ClassKind = classKind;
-            Concentration = concentration;
             AirChangeRate = airChangeRate;
             Volume = volume;
             AirFilters = airFilters;
         }
 
-        public static CleanRoomSummaryMessagePack CreateClassified(string className, int thresholdIndex, double concentration, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
+        public static CleanRoomSummaryMessagePack CreateClassified(string className, int thresholdIndex, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
         {
-            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Classified, concentration, airChangeRate, volume, airFilters) { ClassName = className, ThresholdIndex = thresholdIndex };
+            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Classified, airChangeRate, volume, airFilters) { ClassName = className, ThresholdIndex = thresholdIndex };
         }
 
-        public static CleanRoomSummaryMessagePack CreateOut(double concentration, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
+        public static CleanRoomSummaryMessagePack CreateOut(double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
         {
-            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Out, concentration, airChangeRate, volume, airFilters);
+            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Out, airChangeRate, volume, airFilters);
         }
 
         // Out なら false。判別子の読み分けはここだけで行う

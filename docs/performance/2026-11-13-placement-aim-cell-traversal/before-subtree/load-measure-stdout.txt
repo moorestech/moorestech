@@ -1,0 +1,10 @@
+profiler started
+enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+  16s renderers=4
+  25s renderers=0
+  55s renderers=207128
+  60s renderers=208645
+  66s renderers=217504
+  72s renderers=217502
+stable=1 elapsed=72s
+written 15379

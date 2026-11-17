@@ -5291,7 +5291,7 @@
         "requiredPower": 100,
         "removalVolumePerSecond": 5,
         "filterItemGuid": "6e355e23-8e9e-46d2-9405-b0e6bb612890",
-        "filterCapacity": 5000,
+        "filterLifeSeconds": 12,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
         "connectionHeightRange": 9,

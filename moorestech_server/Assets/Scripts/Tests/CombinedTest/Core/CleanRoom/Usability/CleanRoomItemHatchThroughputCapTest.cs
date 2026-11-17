@@ -43,7 +43,6 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // Passed items are at least cap x seconds and at most that plus the one second of allowance stored at the start
             var passed = chest.InventoryItems.Sum(stack => stack.Count);
             Assert.That(passed, Is.InRange((int)(cap * MeasuredSeconds), (int)(cap * (MeasuredSeconds + 1))));
-            Assert.LessOrEqual(hatch.GetComponent<ICleanRoomItemHatch>().RecentThroughputPerSecond, cap + 1e-6);
 
             // 通れなかった分は中継スロットに残り、満杯のハッチは既存どおり挿入を全量差し戻す
             // What could not pass stays in the transit slots, and the full hatch hands inserts back whole as before

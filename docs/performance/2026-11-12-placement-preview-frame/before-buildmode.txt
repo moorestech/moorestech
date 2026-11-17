@@ -1,0 +1,93 @@
+commit=b6b549239b3750fe46fee573bb0adf2145fc9522
+== go-breakdown
+ok
+transforms=971661 activeInHierarchy=315903
+ALL BLOCKS blocks=15082 gameObjects=901548 renderers=411178 colliders=163208
+-- top groups (gameObjects / renderers / colliders)
+ 267264  115200   55296  Block:鉄の歯車ベルトコンベア
+ 148896   85728   15792  Block:基本土台
+ 147582   64733   28479  Block:直線歯車ベルトコンベア
+  70272   21960   10248  Block:木のシャフト
+  51254   21966    8368  Block:鋼鉄のパイプ
+  35366   14817    8898  Root:Environment/OtherEnvironment
+  28368   12411    4137  Block:鉄のパイプ
+  23234   18533   18533  Root:GameSystem/OutcropGameObjectDatastore
+  18383   11119    2314  Block:電気汎用工作装置
+  16928    5888    3680  Block:木のシャフトボックス
+  14388    6976    3924  Block:鉄の歯車ベルトコンベア分岐機
+  13467    5025    2412  Block:木の歯車
+  12182    3840    5006  Block:電柱
+  10036    4439    1930  Block:鉄の上り歯車ベルトコンベア
+   9834    4768    2682  Block:歯車コンベア分岐機
+   7956    5304     832  Block:蒸気機関
+   6806    2905    1577  Block:石窯
+   6240    2760    1200  Block:下り歯車ベルトコンベア
+   5929    2541    1210  Block:ベルトコンベア
+   5766    2914    1209  Block:原始的な粉砕機
+   5408    2392    1040  Block:鉄の下り歯車ベルトコンベア
+   4530    3340     590  Block:化学プラント
+   4368    3120       0  Root:BeltMergeCellCovers/metal
+   4218    2413     836  Block:ふいご付き精錬炉
+   3900    1725     750  Block:上り歯車ベルトコンベア
+   3698    1204     860  Block:レール橋脚
+   3600    1650    1050  Block:鉄のコンベアチェスト
+   3280    1680    1040  Block:原始的な加工機
+   2990    2273     211  Block:ガソリンエンジン発電機
+   2531     915     784  Block:電気炉
+-- components
+  441538  MeshRenderer
+    4725  SkinnedMeshRenderer
+  191676  Collider
+   31507  MeshCollider
+      13  Rigidbody
+     187  Animator
+     278  VisualEffect
+       0  ParticleSystem
+       4  Light
+    1269  Canvas
+  375096  MonoBehaviour(all)
+-- MonoBehaviour types top 20
+   90492  BlockPreviewBoundingBoxSurface
+   67127  BlockGameObjectChild
+   31015  PreviewOnlyObject
+   18533  OutcropRayTarget
+   15221  RendererShaderAnimation
+   15099  ObservableDestroyTrigger
+   15094  EffectsQualitySwitch
+   15082  BlockGameObject
+   15082  BlockPreviewBoundingBox
+   14160  IgnoreRendererMaterialReplacer
+   12561  BlockInteractable
+   11023  GearStateChangeProcessorSimulator
+   10789  GearStateChangeProcessor
+    8370  GearBeltConveyorStateChangeProcessor
+    5051  InventoryConnectorLineView
+    3900  Image
+    2725  OutcropGameObject
+    1870  FluidPipeWaterLevelView
+    1841  GearConnectorView
+    1772  TextMeshPro
+renderers(active)=217525 enabled=215225 isVisible=20687
+== placement-frame-count steady
+{"blocks":15082,"BlockPreviewBoundingBox":{"total":15082,"underBlock":15082,"activeInHierarchy":0},"BlockPreviewBoundingBoxSurface":{"total":90492,"underBlock":90492,"activeInHierarchy":0},"BlockPlacementHitFaces":null,"PreviewOnlyObject":{"total":31015,"underBlock":30325,"activeInHierarchy":0}}
+== buildmode 1
+entered request frame=1466
+profiler stopped frame=1495
+{"frames":29,"maxFrameMs":386.9,"totalMs":2131.6,"frameMsList":"387 85 79 56 56 47 52 37 41 54 56 41 63 65 41 53 52 40 55 51 62 73 45 45 67 114 88 169 56","top":"BlockState.Deserialize=86.3ms; Unaccounted time between: Profiler.SessionMetadata and PlayerLoop=68.0ms; BlockState.Processor.ElectricWireStateChangeProcessor=45.9ms; BlockState.Processor.CommonMachineBlockStateChangeProcessor=27.4ms; BlockState.Processor.GearStateChangeProcessor=22.6ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=21.2ms; PacketExchange.RouteEvent=17.3ms; Mono.JIT=15.1ms; GC.Alloc=13.0ms; BlockState.Processor.GearBeltConveyorStateChangeProcessor=10.1ms; EditorLoop=8.6ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=5.1ms; WaitForJobGroupID=4.9ms; BlockState.Processor.SteamEngineEffectStateChangeProcessor=3.7ms; PhysX.FinalizeUpdateTask=3.5ms; ","transitionUIStateUpdateMs":16.2,"transitionFrameMs":386.9,"transitionTop":"BlockState.Deserialize=86.3ms; Unaccounted time between: Profiler.SessionMetadata and PlayerLoop=68.0ms; BlockState.Processor.ElectricWireStateChangeProcessor=45.9ms; BlockState.Processor.CommonMachineBlockStateChangeProcessor=27.4ms; BlockState.Processor.GearStateChangeProcessor=22.6ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=21.2ms; PacketExchange.RouteEvent=17.3ms; Mono.JIT=15.1ms; GC.Alloc=13.0ms; BlockState.Processor.GearBeltConveyorStateChangeProcessor=10.1ms; "}
+-- placement-frame-count in-buildmode
+{"blocks":15082,"BlockPreviewBoundingBox":{"total":15082,"underBlock":15082,"activeInHierarchy":15082},"BlockPreviewBoundingBoxSurface":{"total":90492,"underBlock":90492,"activeInHierarchy":90492},"BlockPlacementHitFaces":null,"PreviewOnlyObject":{"total":31019,"underBlock":30325,"activeInHierarchy":25375}}
+exit requested frame=1563
+== buildmode 2
+entered request frame=1647
+profiler stopped frame=1678
+{"frames":31,"maxFrameMs":290.3,"totalMs":1877.6,"frameMsList":"290 79 74 52 55 41 41 52 44 50 51 40 49 48 63 52 35 41 42 52 40 40 44 58 55 56 44 55 119 57 57","top":"BlockState.Deserialize=84.4ms; BlockState.Processor.ElectricWireStateChangeProcessor=43.0ms; BlockState.Processor.CommonMachineBlockStateChangeProcessor=26.4ms; BlockState.Processor.GearStateChangeProcessor=21.4ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=20.7ms; PacketExchange.RouteEvent=16.5ms; GC.Alloc=12.3ms; BlockState.Processor.GearBeltConveyorStateChangeProcessor=9.3ms; EditorLoop=8.7ms; WaitForJobGroupID=5.8ms; Unaccounted time between: Profiler.SessionMetadata and PlayerLoop=5.3ms; PhysX.FinalizeUpdateTask=4.5ms; BlockState.Processor.SteamEngineEffectStateChangeProcessor=3.3ms; PhysX.NpScene.execution=2.9ms; Idle=2.3ms; ","transitionUIStateUpdateMs":0.5,"transitionFrameMs":40.2,"transitionTop":"EditorLoop=7.8ms; Idle=5.1ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=2.8ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.6ms; PhysX.FinalizeUpdateTask=2.2ms; Profiler.FlushMemoryCounters=1.1ms; MeshSkinning.Update=1.0ms; Physics.SwapPhysXBuffersJob=1.0ms; MeshSkinning.SkinOnGPU=1.0ms; BehaviourUpdate=0.9ms; "}
+-- placement-frame-count in-buildmode
+{"blocks":15082,"BlockPreviewBoundingBox":{"total":15082,"underBlock":15082,"activeInHierarchy":15082},"BlockPreviewBoundingBoxSurface":{"total":90492,"underBlock":90492,"activeInHierarchy":90492},"BlockPlacementHitFaces":null,"PreviewOnlyObject":{"total":31019,"underBlock":30325,"activeInHierarchy":25375}}
+exit requested frame=1744
+== buildmode 3
+entered request frame=1827
+profiler stopped frame=1860
+{"frames":33,"maxFrameMs":349.2,"totalMs":1954.7,"frameMsList":"349 74 72 54 55 39 44 43 52 53 46 56 55 49 57 50 37 40 53 51 51 39 42 46 56 47 53 54 42 47 64 44 43","top":"BlockState.Deserialize=82.0ms; Unaccounted time between: Profiler.SessionMetadata and PlayerLoop=65.8ms; BlockState.Processor.ElectricWireStateChangeProcessor=43.6ms; BlockState.Processor.CommonMachineBlockStateChangeProcessor=25.5ms; BlockState.Processor.GearStateChangeProcessor=22.4ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=19.9ms; PacketExchange.RouteEvent=17.3ms; GC.Alloc=12.1ms; BlockState.Processor.GearBeltConveyorStateChangeProcessor=10.3ms; EditorLoop=8.8ms; PhysX.FinalizeUpdateTask=4.3ms; BlockState.Processor.SteamEngineEffectStateChangeProcessor=3.4ms; Idle=2.8ms; PxScene.simulate=2.5ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.2ms; ","transitionUIStateUpdateMs":0.7,"transitionFrameMs":43.5,"transitionTop":"EditorLoop=8.9ms; UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]=4.0ms; Idle=3.1ms; Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]=2.9ms; PhysX.FinalizeUpdateTask=2.8ms; ExecuteRenderQueueJob=1.7ms; Physics.SwapPhysXBuffersJob=1.4ms; Profiler.FlushMemoryCounters=1.2ms; MeshSkinning.Update=1.1ms; BehaviourUpdate=1.0ms; "}
+-- placement-frame-count in-buildmode
+{"blocks":15082,"BlockPreviewBoundingBox":{"total":15082,"underBlock":15082,"activeInHierarchy":15082},"BlockPreviewBoundingBoxSurface":{"total":90492,"underBlock":90492,"activeInHierarchy":90492},"BlockPlacementHitFaces":null,"PreviewOnlyObject":{"total":31019,"underBlock":30325,"activeInHierarchy":25375}}
+exit requested frame=1928

@@ -1,8 +1,9 @@
-using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Construction;
 using Client.Tests.PlaceSystem.TrainCostIntegration;
+using Game.Block.Interface;
 using Game.Construction;
 using UnityEngine;
 
@@ -47,16 +48,21 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
             Physics.SyncTransforms();
         }
 
-        protected BlockPreviewBoundingBoxSurface CreateFace()
+        public override void TearDown()
         {
-            var face = CreateObject("BlockFace");
-            face.layer = LayerConst.BlockBoundingBoxLayer;
-            face.transform.position = new Vector3(501.5f, 24.5f, 600.5f);
-            face.AddComponent<BoxCollider>().size = new Vector3(10, 1, 10);
-            var surface = face.AddComponent<BlockPreviewBoundingBoxSurface>();
-            surface.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Y, null);
-            Physics.SyncTransforms();
-            return surface;
+            // 照準の走査対象を設置モード外の状態へ戻す
+            // Return the aim traversal target to the outside-placement-mode state
+            PlacementAimTargetCells.Disable();
+            base.TearDown();
+        }
+
+        protected PreviewSurfaceType CreateFace()
+        {
+            // 上面y=25がカメラ真下で地面20.2より手前に来る、10マス角のブロックを占有セルへ登録する
+            // Register a 10-cell block whose top face y=25 sits right below the camera, in front of the ground at 20.2
+            Blocks.OccupiedCells.Register(new BlockPositionInfo(new Vector3Int(496, 15, 595), BlockDirection.North, new Vector3Int(10, 10, 10)));
+            PlacementAimTargetCells.Enable(Blocks.OccupiedCells);
+            return PreviewSurfaceType.XZ_Y;
         }
     }
 }
