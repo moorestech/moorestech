@@ -49,8 +49,8 @@ CEF_RUNTIME_NAME_PATTERNS=(
     "chrome_*_percent.pak"
 )
 
-# 成果物の下に CEF のファイルが 1 つも無いことを確かめる（統合計画 §5.1-1）
-# Check that no CEF file remains anywhere under the artifact (integration plan §5.1-1)
+# 成果物の下に CEF のファイルと撤去前の Web UI が 1 つも無いことを確かめる（統合計画 §5.1-1）
+# Check that no CEF file nor pre-removal Web UI remains anywhere under the artifact (integration plan §5.1-1)
 release_require_no_cef_files() {
     local root="$1" pattern found find_failed
     for pattern in "${CEF_RUNTIME_NAME_PATTERNS[@]}"; do
@@ -66,6 +66,17 @@ release_require_no_cef_files() {
             exit 4
         fi
     done
+    # 撤去前のビルドが残した Web の成果物も同じく混入。find の失敗は見落としとして止める
+    # Web output left by a pre-removal build is a leak too; a find failure stops as a possible miss
+    if found="$(find "$root" -path "*/StreamingAssets/WebUi" -print -quit)"; then find_failed=0; else find_failed=1; fi
+    if [ -n "$found" ]; then
+        echo "ERROR: 成果物に撤去前の Web UI（StreamingAssets/WebUi）が残っています。Assets/StreamingAssets/WebUi を消して焼き直してください: ${found}" >&2
+        exit 4
+    fi
+    if [ "$find_failed" -ne 0 ]; then
+        echo "ERROR: 成果物の StreamingAssets/WebUi の検査で find が失敗しました。見落としを避けて止めます: ${root}" >&2
+        exit 4
+    fi
 }
 
 # Mac 成果物に必ず入っている相対パス。検査項目の追加はここ 1 箇所で済ませる

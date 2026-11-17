@@ -125,6 +125,9 @@ namespace Client.Editor.Build
                 case PlayerBuildOutcome.MacSigningFailed:
                     EditorUtility.DisplayDialog("Build Failed", "Mac成果物のad-hoc署名に失敗しました。Consoleのエラーを確認してください。", "OK");
                     break;
+                case PlayerBuildOutcome.PreRemovalStreamingAssetsCleanupFailed:
+                    EditorUtility.DisplayDialog("Build Failed", "撤去前のビルドが残したStreamingAssetsの成果物を消せませんでした。Consoleのエラーを確認してください。", "OK");
+                    break;
             }
         }
     }

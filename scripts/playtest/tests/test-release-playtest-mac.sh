@@ -49,6 +49,17 @@ else
     echo "SKIP: find failure case needs a non-root user"
 fi
 
+# 撤去前のビルドが残した StreamingAssets/WebUi は Windows・Mac どちらの置き場でも exit 4 でパスを名指しする
+# Leftover StreamingAssets/WebUi from a pre-removal build exits 4 naming the path in both Windows and Mac layouts
+for webui_dir in "moorestech_Data/StreamingAssets/WebUi" "moorestech.app/Contents/Resources/Data/StreamingAssets/WebUi"; do
+    WEBUI_ROOT="$(mktemp -d)"
+    mkdir -p "$WEBUI_ROOT/$webui_dir"
+    OUTPUT=$( (release_require_no_cef_files "$WEBUI_ROOT") 2>&1 ); STATUS=$?
+    rm -rf "$WEBUI_ROOT"
+    [ "$STATUS" -eq 4 ] || fail "leftover $webui_dir did not exit 4 (got $STATUS)"
+    case "$OUTPUT" in *'撤去前の Web UI'*"$webui_dir"*) ;; *) fail "leftover $webui_dir reason or path was absent: $OUTPUT";; esac
+done
+
 # 同じ worktree から Windows、Mac の順に OS 別ディレクトリへ焼く
 # Build Windows then Mac from one worktree into separate directories
 make_sandbox

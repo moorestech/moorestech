@@ -25,6 +25,10 @@ namespace Client.Editor.Build
             // Bundling and check policy derive from the purpose alone
             var policy = BuildPurposeRules.Resolve(request.Purpose, request.LocalDevelopmentChoosesDevelopment);
 
+            // 撤去前のビルドが残した Web の成果物は StreamingAssets ごと焼かれるので先に消す
+            // Leftover pre-removal Web output would be baked with StreamingAssets, so remove it first
+            if (!PreRemovalStreamingAssetsCleaner.RemoveLeftovers()) return PlayerBuildOutcome.PreRemovalStreamingAssetsCleanupFailed;
+
             var buildOptions = new BuildPlayerOptions
             {
                 target = request.Target,
