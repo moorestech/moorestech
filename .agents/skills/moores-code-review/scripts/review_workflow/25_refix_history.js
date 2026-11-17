@@ -1,5 +1,5 @@
-// 同じ実行内の Critical だけを保持し、再発の参照先と連続性を検査する。
-// Keep Critical history within this run and validate recurrence references and adjacency.
+// 同じ実行内の指摘（Critical と Warning）を保持し、再発の参照先と連続性を検査する。
+// Keep findings (Critical and Warning) within this run and validate recurrence references and adjacency.
 const refixHistory = []
 const REFIX_REPORT_SCHEMA = {
   ...REPORT_SCHEMA,
@@ -22,14 +22,21 @@ function trackRefix(result, round, history) {
     if (finding.recurs_from !== null) {
       const previous = history.find((h) => h.round === finding.recurs_from && h.id === finding.id)
       if (!previous) {
-        // 履歴は Critical だけを持つので、前周の Warning を指す Warning の再発は昇格させずログに残して続ける。
-        // History holds only Criticals, so a Warning recurring from a prior Warning is logged and not promoted.
+        // 参照先が無い Warning は昇格させずログに残して続け、参照先が無い Critical は契約違反として止める。
+        // A Warning with no reference is logged and kept; a Critical with no reference is a contract breach.
         if (finding.severity === 'Warning') {
           log(`Refix r${round}: Warning→Warning の再発は昇格しない ${finding.recurs_from}:${finding.id}`)
           finding.recurs_from = null
           continue
         }
         throw new Error(`Refix r${round}: 再発の参照先が無い ${finding.recurs_from}:${finding.id}`)
+      }
+      // 前周 Warning からの再発は今回の重さのまま扱い、昇格も stuck も数えない。
+      // A recurrence of a prior Warning keeps its current severity and counts neither promotion nor stuck.
+      if (previous.severity !== 'Critical') {
+        log(`Refix r${round}: 前周 Warning からの再発は昇格しない ${finding.recurs_from}:${finding.id}`)
+        finding.recurs_from = null
+        continue
       }
       if (finding.severity === 'Warning') promoted++
       finding.severity = 'Critical'
@@ -42,6 +49,6 @@ function trackRefix(result, round, history) {
   const count = result.findings.filter((f) => f.severity === 'Critical').length
   if (count !== result.critical_count + promoted) throw new Error(`Refix r${round}: Critical 件数と findings が不一致`)
   result.critical_count = count
-  for (const f of result.findings.filter((f) => f.severity === 'Critical')) history.push({ round: `r${round}`, ...f })
+  for (const f of result.findings) history.push({ round: `r${round}`, ...f })
   return { stuck, promoted }
 }
