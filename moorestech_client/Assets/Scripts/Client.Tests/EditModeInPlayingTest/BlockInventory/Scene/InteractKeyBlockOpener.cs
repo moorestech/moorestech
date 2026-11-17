@@ -42,7 +42,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
             // プレイヤーの北へブロック中心を配置。カメラ向きに依らず、周辺の配置がプレイヤーと重ならない位置関係を固定する
             // Place the block center north of the player; fixed regardless of camera yaw so nearby setups never overlap the player
-            var pos = OriginAheadOfPlayer();
+            var pos = OriginNorthOfPlayer();
             PlaceBlock(blockName, pos, BlockDirection.North);
             var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
@@ -76,7 +76,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
             #region Internal
 
-            Vector3Int OriginAheadOfPlayer()
+            Vector3Int OriginNorthOfPlayer()
             {
                 var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var blockSize = (Vector3)MasterHolder.BlockMaster.GetBlockMaster(FindBlockIdByName(blockName)).BlockSize;
