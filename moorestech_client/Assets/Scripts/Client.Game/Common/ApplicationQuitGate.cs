@@ -40,7 +40,7 @@ namespace Client.Game.Common
             }
             Debug.Log("終了要求を保留し、書き出しの完了を待ってから終了します");
             _quitInProgress = true;
-            QuitAfterCallbackReturnsAsync().Forget(GameShutdownEvent.LogShutdownFailure);
+            QuitAfterCallbackReturnsAsync().Forget(LogFailureAndAllowQuit);
             return false;
 
             #region Internal
@@ -51,6 +51,15 @@ namespace Client.Game.Common
             {
                 await UniTask.Yield();
                 await QuitAfterFlushAsync(GameShutdownReason.IntentionalExit);
+            }
+
+            // 終了口が例外で抜けても保留を残さない。残すと以後の×ボタンがすべて保留され閉じなくなる
+            // Never leave the hold behind when the exit path throws; otherwise every later close button is held and the app never closes
+            static void LogFailureAndAllowQuit(System.Exception exception)
+            {
+                GameShutdownEvent.LogShutdownFailure(exception);
+                Debug.LogError("終了処理が例外で止まったため、書き出しの完了を待たずにアプリを終了します");
+                AllowQuitAndExit();
             }
 
             #endregion
@@ -70,6 +79,11 @@ namespace Client.Game.Common
             // 終了口へ届いたことを残す。届かないまま残留したときに、どこで止まったかを Player.log で切り分けられる
             // Record reaching the exit, so a lingering process can be bisected in Player.log
             Debug.Log($"書き出しを待ち終えたためアプリを終了します reason:{reason} flush:{flushResult}");
+            AllowQuitAndExit();
+        }
+
+        private static void AllowQuitAndExit()
+        {
             _quitAllowed = true;
             Application.Quit();
 #if UNITY_EDITOR
