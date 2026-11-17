@@ -68,9 +68,9 @@ namespace Client.Editor.Build
             // Editor全体の設定を書き換えるため、復元を飛ばす離脱点を間に挟まない位置に置く
             // It rewrites an Editor-wide setting, so nothing that could exit early sits between the pin and the restore
             var pinsAppleSilicon = policy.PinsAppleSilicon && request.Target == BuildTarget.StandaloneOSX;
-            if (pinsAppleSilicon && MacPlayerArchitecture.PinAppleSilicon() == MacArchitecturePinResult.UnsupportedHost)
+            if (pinsAppleSilicon && MacPlayerArchitecture.PinAppleSilicon() == MacArchitecturePinResult.MacBuildSupportMissing)
             {
-                Debug.LogError(MacPlayerArchitecture.UnsupportedHostReason);
+                Debug.LogError(MacPlayerArchitecture.MacBuildSupportMissingReason);
                 return PlayerBuildOutcome.MacArchitecturePinFailed;
             }
 

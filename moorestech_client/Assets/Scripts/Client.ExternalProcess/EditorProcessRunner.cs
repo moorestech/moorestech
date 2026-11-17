@@ -21,6 +21,13 @@ namespace Client.ExternalProcess
         // Callers never copy this: .NET Standard 2.1 has no permission API, so granting the executable bit delegates to an external command
         public static bool MarkExecutable(string filePath, string workingDirectory)
         {
+            // Windowsのファイルシステムに実行権は無い。Macへ運ぶ配布スクリプトが付け直し、配布前の検査が実行権を見る
+            // Windows file systems have no executable bit; the release script re-adds it on the Mac and its pre-upload check inspects it
+            if (UnityEngine.Application.platform == UnityEngine.RuntimePlatform.WindowsEditor)
+            {
+                Debug.Log($"[EditorProcessRunner] Windows host has no executable bit; the Mac-side release script sets it: {filePath}");
+                return true;
+            }
             return Run("/bin/chmod", $"+x \"{filePath}\"", workingDirectory, "") == 0;
         }
 
