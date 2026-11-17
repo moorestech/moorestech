@@ -12,6 +12,7 @@ using Client.Playtest.Input;
 using Client.Playtest.Overlay;
 using Client.Playtest.Operations;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEditor;
