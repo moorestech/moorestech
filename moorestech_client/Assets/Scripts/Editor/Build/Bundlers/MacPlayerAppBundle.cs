@@ -11,11 +11,6 @@ namespace Client.Editor.Build.Bundlers
     {
         public static string ResolveContentsDirectory(string appPath) => Path.Combine(appPath, "Contents");
 
-        // Unityは.appの名前と同じ名前で本体をContents/MacOSへ置く
-        // Unity places the player executable in Contents/MacOS under the same name as the .app
-        public static string ResolvePlayerExecutablePath(string appPath) =>
-            Path.Combine(ResolveContentsDirectory(appPath), "MacOS", Path.GetFileNameWithoutExtension(appPath.TrimEnd('/', '\\')));
-
         public static string ResolveBundledFfmpegPath(string appPath) =>
             Path.Combine(ResolveContentsDirectory(appPath), FfmpegLocator.BundledMacExecutableRelativePath);
 

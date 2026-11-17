@@ -35,7 +35,7 @@ namespace Client.Editor.Build
             var signed = Application.platform == RuntimePlatform.OSXEditor
                 ? SignWithAppleCodesign(appPath, bundledFfmpeg)
                 : SignWithRcodesign(appPath, bundledFfmpeg);
-            if (signed) Debug.Log($"[MacAppAdHocSigner] ad-hoc signed and verified: {appPath}");
+            if (signed) Debug.Log($"[MacAppAdHocSigner] ad-hoc signed: {appPath}");
             return signed;
         }
 
@@ -84,17 +84,9 @@ namespace Client.Editor.Build
                 return Fail($"rcodesign failed for app: {appPath}");
             }
 
-            // 本体とffmpegの署名を確かめる。.app全体の封印はMac側のcodesign --verifyが配布前に見る
-            // Verify the player and ffmpeg signatures; the whole-app seal is checked by codesign --verify on the Mac before distribution
-            var playerExecutable = MacPlayerAppBundle.ResolvePlayerExecutablePath(appPath);
-            if (Rcodesign($"verify \"{playerExecutable}\"") != 0)
-            {
-                return Fail($"rcodesign verification failed: {playerExecutable}");
-            }
-            if (File.Exists(bundledFfmpeg) && Rcodesign($"verify \"{bundledFfmpeg}\"") != 0)
-            {
-                return Fail($"rcodesign verification failed: {bundledFfmpeg}");
-            }
+            // rcodesign verify はCMSの無いad-hoc署名を検証できないため、ここでは確かめない。配布前にMac側でcodesign --verify --deep --strictが必ず見る
+            // rcodesign verify cannot check an ad-hoc signature without CMS, so it is skipped here; codesign --verify --deep --strict on the Mac always checks before distribution
+            Debug.Log($"[MacAppAdHocSigner] rcodesign signed {appPath} (bundled ffmpeg present: {File.Exists(bundledFfmpeg)}); its verification runs as codesign --verify on the Mac");
             return true;
 
             #region Internal
