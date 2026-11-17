@@ -5,5 +5,4 @@ uGUI から Web UI（CEF＋React）への移行は終わっている。当時の
 Web UI から UI Toolkit への移行（裁定 `.decisions/2026-10-18-CEFを撤去しUI-Toolkitへ全面移行する.md`）は次を読む。
 
 - 計画: `docs/uitk-migration/README.md` → `plan.md`
-- 台帳（束・所有者・追従記録・参照キャプチャ）: `docs/uitk/TODO.md`
-- 写さないテストの処遇: `docs/uitk/disposition.md`
+- 今の UITK の文書の入口: `docs/uitk/README.md`（移行中の台帳と写さないテストの処遇は消した。読み方は同 README）

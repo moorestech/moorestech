@@ -26,8 +26,8 @@ jobs:
       - name: Run G4 against this pull request
         run: python3 .github/scripts/check-uitk-no-web.py --root .
 
-  # G4 自身の単体テスト。if を付けず全 PR で走らせ、スクリプトの破損を feature/uitk の PR で止める（合成の repo だけを読み、実 repo の状態は見ない。G1 の自己テストと同じ形）
-  # Unit tests of G4 itself. No if, so it runs on every PR and catches script breakage on feature/uitk PRs (reads only synthetic repos, like the G1 self-test)
+  # G4 自身の単体テスト。if を付けず全 PR で走らせ、スクリプトの破損を feature/uitk の PR で止める（合成の repo だけを読み、実 repo の状態は見ない）
+  # Unit tests of G4 itself. No if, so it runs on every PR and catches script breakage on feature/uitk PRs (reads only synthetic repos)
   uitk-no-web-gate-selftest:
     name: UITK no-Web gate self-test (G4)
     runs-on: ubuntu-latest
