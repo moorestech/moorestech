@@ -64,8 +64,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             return shell;
         }
 
-        // 枠の数とレシピの有無を指定した室内機械。レシピが無ければ選択の行が無く小型（自然高）になる
-        // The interior machine with the given slot layout; without recipes there are no selection rows, so it is natural-height
+        // 枠数とレシピ有無を指定する室内機械
+        // The interior machine with the given slot layout and recipe presence
         protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount, MachineSlotLayout layout, bool withRecipes)
         {
             var slots = Enumerable.Repeat(new SlotItem(new ItemId(0), 0), layout.Input + layout.Output + layout.Module).ToArray();

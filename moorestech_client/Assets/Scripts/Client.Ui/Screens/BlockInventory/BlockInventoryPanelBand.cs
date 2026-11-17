@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory
 {
     /// <summary>
-    /// 帯の高さ・大型の幅・小型の最大幅を舞台の寸法とトークンから導く（Web の calc() と grid の列幅を C# で解く。A-47）
-    /// Derives the band height, the large width and the natural max width from the stage size and tokens (solves the Web calc() and grid track width in C#; A-47)
+    /// 帯の高さと大小パネルの幅を導く（A-47）
+    /// Derives the band height and the large/natural panel widths (A-47)
     /// </summary>
     public sealed class BlockInventoryPanelBand
     {
