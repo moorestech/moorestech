@@ -24,11 +24,11 @@
 
 | 束 | 中身 | 状態 | 暗転の起点 | 物差し |
 |---|---|---|---|---|
-| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 暗転 | 979725bcd1 | `uitk-lifeline` |
-| 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | 暗転 | 0e81bbe3c3 | `uitk-opening-hud` |
-| 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | 暗転 | 0e81bbe3c3 | `uitk-build-bp` |
-| 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | 暗転 | 0e81bbe3c3 | `uitk-production-loop`・`uitk-research-train` |
-| 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | 暗転 | 0e81bbe3c3 | `uitk-challenge-gate` |
+| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 切替済み | 979725bcd1 | `uitk-lifeline` |
+| 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | 切替済み | 0e81bbe3c3 | `uitk-opening-hud` |
+| 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | 切替済み | 0e81bbe3c3 | `uitk-build-bp` |
+| 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | 切替済み | 0e81bbe3c3 | `uitk-production-loop`・`uitk-research-train` |
+| 5 | 最後の束と撤去（チャレンジ一覧・言語ゲート・チュートリアル枠・Web の横断層） | 切替済み | 0e81bbe3c3 | `uitk-challenge-gate` |
 
 ## 行
 
@@ -36,54 +36,54 @@
 
 | 行 | 種別 | 束 | 所有者 | Web パス | agent 既定 | 実測の結論 | 参照キャプチャ |
 |---|---|---|---|---|---|---|---|
-| pauseMenu（ポーズ・バグ報告・入れ子のポーズ） | 機能 | 1 | Web | `src/features/pauseMenu/` `e2e/tests/system/pauseMenu.spec.ts` `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` `e2e/tests/system/feedbackReportLabels.spec.ts` `e2e/mock-host/pauseMenuActions.ts` `e2e/mock-host/topics/pauseMenuControls.ts` | 裁定 2=A（第一弾は命綱） | UITK のポーズ（PlayMode・ScreenCapture・フレーム番号と時刻の透かし入り）: トップ 1280×720 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png 、2560×1080 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-2560x1080/fix-pause-top-2560x1080.png 、バグ報告 1280×720 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-bug-report-720p/fix-pause-bug-report-720p.png 、2560×1080 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-bug-report-2560x1080/fix-pause-bug-report-2560x1080.png 。面の決め方は `.agents/skills/ref-uitk-design/references/css-to-uss.md` §6 | 1-pause-top 1-pause-disconnected 1-pause-delivery-pending 1-pause-in-skit 1-pause-in-train 1-bug-report |
-| settings（画質・言語・ダッシュ方式） | 機能 | 1 | Web | `src/features/settings/` | 裁定 2=A | — | 1-settings 1-settings-graphics-recovered |
-| toast | 機能 | 1 | Web | `src/features/toast/` `e2e/tests/regression/actionErrors.spec.ts` | 裁定 2=A。見た目は Web 版と同じ（2026-11-06 裁定） | — | 1-toast |
-| commonHud（クロスヘア） | 機能 | 2 | Web | `src/features/commonHud/` `e2e/tests/system/commonHud.spec.ts` | — | — | 2-game-hud |
-| keyHint | 機能 | 2 | Web | `src/features/keyHint/` | — | — | 未撮影 |
-| modeHud（配置 HUD・削除モードの帯） | 機能 | 2 | Web | `src/features/modeHud/` `e2e/tests/modeHud/` `e2e/support/operationHudAssertions.ts` | — | — | 2-placement 2-placement-unavailable 2-placement-connect-tool 2-delete-bar |
-| progress（採掘ゲージ） | 機能 | 2 | Web | `src/features/progress/` `e2e/tests/progress.spec.ts` `e2e/capture-mining-progress.ts` | — | — | 2-mining 2-progress-labeled |
-| trainHud（乗車中の分岐表示） | 機能 | 2 | Web | `src/features/trainHud/` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 2-train-hud |
-| notification（獲得通知） | 機能 | 2 | Web | `src/features/notification/` `e2e/tests/notification/` `e2e/captures/capture-connection-line-notifications.ts` | 確認=演出は実時間 | — | 2-notifications 動画 2-notification-enter-aggregate-exit |
-| skit（会話窓・選択肢・ツールバー・暗転） | 機能 | 2 | Web | `src/features/skit/` `src/app/skitTokens.css` `e2e/tests/skit.spec.ts` `e2e/mock-host/skitActions.ts` `e2e/capture-skit.ts` | 確認=演出は実時間 | — | 2-skit-text 2-skit-choices 2-skit-transition |
-| challenge: CurrentChallengeHud | 機能 | 2 | Web | `src/features/challenge/CurrentChallengeHud.tsx` `src/features/challenge/CurrentChallengeHud.module.css` `e2e/tests/challenge/` `e2e/challenge-hud/` `e2e/support/challengeHudAssertions.ts` | — | — | 2-challenge-hud-multiple-long |
-| tutorial: KeyControlHintHud | 機能 | 2 | Web | `src/features/tutorial/KeyControlHintHud.tsx` `src/features/tutorial/KeyControlHintHud.test.ts` `src/features/tutorial/keyControlHint.module.css` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/index.ts` `e2e/tests/system/tutorial.spec.ts` | 確認=演出は実時間 | — | 2-key-control-hint 動画 2-key-control-hint-pulse |
-| tutorial: WorldPinOverlay | 機能 | 2 | Web | `src/features/tutorial/WorldPinOverlay.tsx` `src/features/tutorial/worldPin.module.css` `e2e/tests/system/worldPin.spec.ts` `e2e/capture-world-pin-arrow.ts` | 確認=演出は実時間 | — | 2-world-pin-onscreen 2-world-pin-offscreen 動画 2-world-pin-pulse |
-| CursorTooltip | 共通部品 | 2 | Web | `src/shared/tooltip/` | — | — | 2-tooltip 2-tooltip-multiline |
-| オーバーレイ: 背景スキット | オーバーレイ | 2 | Web | `src/app/App.tsx` `e2e/tests/phaseC4.spec.ts` | 前回は状態機械だけで洗い出して見落とした（`docs/uitk-migration/research/understand-shipping.md` §6.2） | — | 2-skit-background |
-| オーバーレイ: Ctrl+U の全体非表示 | オーバーレイ | 2 | Web | `src/app/App.tsx` | — | — | 未撮影（下表） |
-| オーバーレイ: カットシーン中の退避 | オーバーレイ | 2 | Web | `src/app/App.tsx` | — | — | 未撮影（下表） |
-| オーバーレイ: 背面の通知層（stage の裏） | オーバーレイ | 2 | Web | `src/app/App.tsx` | — | — | 未撮影 |
-| オーバーレイ: カーソル追従（ツールチップ・掴みの絵） | オーバーレイ | 2 4 | Web | `src/app/App.tsx` | — | — | 未撮影 |
-| オーバーレイ: 常駐 HUD の可否（ホットバー・装備） | オーバーレイ | 3 4 | Web | `src/app/App.tsx` | — | — | 未撮影 |
-| オーバーレイ: 画面のマウント点と背景ディム | オーバーレイ | 1 2 3 4 5 | Web | `src/app/App.tsx` `src/app/App.module.css` `src/app/App.architecture.test.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 未撮影（下表） |
-| オーバーレイ: 再接続・辞書エラー・エラー境界 | オーバーレイ | 5 | Web | `src/app/App.tsx` `src/app/AppErrorBoundary.tsx` `e2e/tests/regression/connection.spec.ts` | — | — | 5-reconnect |
-| buildMenu | 機能 | 3 | Web | `src/features/buildMenu/` `e2e/tests/regression/buildMenu.spec.ts` `e2e/tests/regression/buildMenuLayout.spec.ts` `e2e/capture-buildmenu.ts` `e2e/mock-host/fixtures/buildMenuFixtures.ts` | — | — | 3-build-menu |
-| hotbar | 機能 | 3 | Web | `src/features/hotbar/` `e2e/tests/hotbar/` `e2e/mock-host/fixtures/hotbarFixtures.ts` | — | — | 3-hotbar-equipment-empty |
-| modal（BP 名入力） | 機能 | 3 | Web | `src/features/modal/` `e2e/tests/modal.spec.ts` | — | — | 3-modal |
-| placementTarget（配置対象の表示名） | 共通部品 | 2 3 4 | Web | `src/shared/placementTarget/` | — | — | 未撮影 |
-| pointerGesture（押下・ドラッグの判定） | 共通部品 | 3 4 5 | Web | `src/shared/pointerGesture/` | — | — | 未撮影 |
-| inventory（インベントリ・装備・掴み） | 機能 | 4 | Web | `src/features/inventory/` `e2e/tests/inventory/` `e2e/mock-host/inventoryModel.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 4-player-inventory 4-player-inventory-full |
-| recipe（レシピ・アイテム一覧・長押しクラフト） | 機能 | 4 | Web | `src/features/recipe/` `e2e/tests/recipe/` `e2e/mock-host/fixtures/recipeFixtures.ts` `e2e/craft-chrome/` `e2e/support/craftChromeAssertions.ts` | 確認=演出は実時間 | — | 4-item-list-large |
-| blockInventory（汎用族・特殊族・列車族） | 機能 | 4 | Web | `src/features/blockInventory/` `e2e/tests/block/` `e2e/tests/train/` `e2e/tests/train.spec.ts` `e2e/tests/regression/sectionStack.spec.ts` `e2e/mock-host/fixtures/blocks/` `e2e/mock-host/blockDetailFixtures.ts` `e2e/mock-host/detailActions.ts` `e2e/mock-host/detailActions.test.ts` `e2e/mock-host/train/` `e2e/mock-host/fixtures/trainInventoryFixtures.ts` `e2e/capture-machine-qa.ts` `e2e/capture-train-timetable.ts` `e2e/fixtures/` | — | — | 4-block-chest 4-block-tank 4-block-machine 4-block-gearMachine 4-block-generator 4-block-miner 4-block-filterSplitter 4-block-gearMiner 4-block-pump 4-block-pumpNoVein 4-block-gearPump 4-block-generic 4-block-gearGenerator 4-block-electricToGear 4-block-train 4-block-trainTimetable 4-block-trainError 4-block-trainPlatform 4-block-trainFluidPlatform 4-block-electricPole 4-block-train-timetable-tab 4-block-machine-recipe-selection |
-| blockInventory 特殊族: ロケット（Tier9 #1551） | 機能 | 4 | Web | `src/features/blockInventory/details/rocket/` | — | — | 未撮影（下表） |
-| blockInventory 特殊族: 宇宙エレベーター（Tier9 #1552） | 機能 | 4 | Web | `src/features/blockInventory/details/spaceElevator/` | — | — | 未撮影（下表） |
-| research（研究ツリー・詳細ペイン） | 機能 | 4 | Web | `src/features/research/` `e2e/tests/research/` `e2e/mock-host/researchFixtures.ts` `e2e/capture-research-qa.ts` `e2e/support/panSettle.ts` | — | — | 4-research |
-| tutorial: DragGuide（インベントリ内） | 機能 | 4 | Web | `src/features/tutorial/overlay/DragGuide.tsx` `src/features/tutorial/overlay/style.module.css` `src/features/tutorial/overlay/TutorialOverlay.tsx` `src/features/tutorial/overlay/TutorialOverlay.test.ts` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/index.ts` | 確認=演出は実時間 | — | 動画 4-drag-guide |
-| itemMove（掴みの計画） | 共通部品 | 4 | Web | `src/shared/itemMove/` `e2e/tests/regression/itemSlot.spec.ts` | — | — | 未撮影 |
-| ownedCounts | 共通部品 | 4 | Web | `src/shared/ownedCounts.ts` `src/shared/ownedCounts.test.ts` | — | — | 未撮影 |
-| treeView（パン・ズーム・線） | 共通部品 | 4 5 | Web | `src/shared/treeView/` | — | — | 未撮影 |
-| challenge: ChallengePanel | 機能 | 5 | Web | `src/features/challenge/` `e2e/tests/challenge.spec.ts` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 5-challenge-list |
-| eventLanguageGate（出展モードの言語選択） | 機能 | 5 | Web | `src/features/eventLanguageGate/` | S5-gate D-1（DI 前に GameUiRoot をそのまま使う）・D-5（辞書を通さない見出しは C# 定数 1 つ）・D-6（結末の 1 行は本番で見えないので写さない） | — | 5-event-language-gate |
-| tutorial: TutorialOverlay（ハイライト枠） | 機能 | 5 | Web | `src/features/tutorial/` `e2e/tests/system/tutorial.spec.ts` `e2e/tests/system/tutorialHighlightClip.spec.ts` `e2e/support/pulseFreeze.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/overlay/style.module.css` `src/features/tutorial/overlay/TutorialOverlay.tsx` `src/features/tutorial/overlay/TutorialOverlay.test.ts` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `src/features/tutorial/index.ts` | 確認=演出は実時間 | — | 5-tutorial-outline-label 5-tutorial-recipe-item 5-tutorial-research-node 動画 5-tutorial-pulse |
-| tutorialAnchor（アンカーの登録と解決） | 共通部品 | 1 2 3 4 5 | Web | `src/shared/tutorialAnchor/` | — | — | 未撮影 |
-| shared/ui（枠・スロット・ボタン・ゲージ） | 共通部品 | 1 2 3 4 5 | Web | `src/shared/ui/` `src/shared/clamp01.ts` `src/shared/clamp01.test.ts` `src/shared/materialTooltipText.ts` `src/app/slotTokens.css` `src/app/iconTextOutlineDesign.test.ts` `e2e/capture-iconbutton.ts` `e2e/capture-icon-text-outline.ts` `e2e/support/layoutAssertions.ts` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 未撮影 |
-| i18n | 横断 | 1 2 3 4 5 | Web | `src/shared/i18n/` `scripts/` `e2e/tests/system/i18n.spec.ts` `e2e/mock-host/localization/` `e2e/mock-host/topics/dictionaryControl.ts` | — | — | 5-japanese-inventory |
-| uiState（画面ルーティング・入力排他） | 横断 | 1 2 3 4 5 | Web | `src/shared/uiState/` `e2e/tests/uiState.spec.ts` `e2e/tests/regression/inputLayer.spec.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 未撮影 |
-| uiScale（stage の一様拡縮） | 横断 | 2 5 | Web | `src/shared/uiScale/` `e2e/tests/system/portalLayerScaling.spec.ts` `e2e/captures/portal-scaling.ts` | — | — | 未撮影 |
-| bridge（通信・契約・ストア） | 横断 | 5 | Web | `src/bridge/` | 裁定 3=(a) `HttpListener`（Web ホストの撤去と同じ段階） | — | 未撮影 |
-| アプリ殻（起動・トークン・層） | 横断 | 5 | Web | `src/app/` `src/main.tsx` `src/vite-env.d.ts` `index.html` `e2e/tests/system/textSelection.spec.ts` | — | — | 未撮影 |
-| Web の検証基盤（mock-host・Playwright・撮影） | 横断 | 5 | Web | `e2e/` | — | — | 未撮影 |
+| pauseMenu（ポーズ・バグ報告・入れ子のポーズ） | 機能 | 1 | UITK | `src/features/pauseMenu/` `e2e/tests/system/pauseMenu.spec.ts` `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` `e2e/tests/system/feedbackReportLabels.spec.ts` `e2e/mock-host/pauseMenuActions.ts` `e2e/mock-host/topics/pauseMenuControls.ts` | 裁定 2=A（第一弾は命綱） | UITK のポーズ（PlayMode・ScreenCapture・フレーム番号と時刻の透かし入り）: トップ 1280×720 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png 、2560×1080 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-2560x1080/fix-pause-top-2560x1080.png 、バグ報告 1280×720 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-bug-report-720p/fix-pause-bug-report-720p.png 、2560×1080 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-bug-report-2560x1080/fix-pause-bug-report-2560x1080.png 。面の決め方は `.agents/skills/ref-uitk-design/references/css-to-uss.md` §6 | 1-pause-top 1-pause-disconnected 1-pause-delivery-pending 1-pause-in-skit 1-pause-in-train 1-bug-report |
+| settings（画質・言語・ダッシュ方式） | 機能 | 1 | UITK | `src/features/settings/` | 裁定 2=A | — | 1-settings 1-settings-graphics-recovered |
+| toast | 機能 | 1 | UITK | `src/features/toast/` `e2e/tests/regression/actionErrors.spec.ts` | 裁定 2=A。見た目は Web 版と同じ（2026-11-06 裁定） | — | 1-toast |
+| commonHud（クロスヘア） | 機能 | 2 | UITK | `src/features/commonHud/` `e2e/tests/system/commonHud.spec.ts` | — | — | 2-game-hud |
+| keyHint | 機能 | 2 | UITK | `src/features/keyHint/` | — | — | 未撮影 |
+| modeHud（配置 HUD・削除モードの帯） | 機能 | 2 | UITK | `src/features/modeHud/` `e2e/tests/modeHud/` `e2e/support/operationHudAssertions.ts` | — | — | 2-placement 2-placement-unavailable 2-placement-connect-tool 2-delete-bar |
+| progress（採掘ゲージ） | 機能 | 2 | UITK | `src/features/progress/` `e2e/tests/progress.spec.ts` `e2e/capture-mining-progress.ts` | — | — | 2-mining 2-progress-labeled |
+| trainHud（乗車中の分岐表示） | 機能 | 2 | UITK | `src/features/trainHud/` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 2-train-hud |
+| notification（獲得通知） | 機能 | 2 | UITK | `src/features/notification/` `e2e/tests/notification/` `e2e/captures/capture-connection-line-notifications.ts` | 確認=演出は実時間 | — | 2-notifications 動画 2-notification-enter-aggregate-exit |
+| skit（会話窓・選択肢・ツールバー・暗転） | 機能 | 2 | UITK | `src/features/skit/` `src/app/skitTokens.css` `e2e/tests/skit.spec.ts` `e2e/mock-host/skitActions.ts` `e2e/capture-skit.ts` | 確認=演出は実時間 | — | 2-skit-text 2-skit-choices 2-skit-transition |
+| challenge: CurrentChallengeHud | 機能 | 2 | UITK | `src/features/challenge/CurrentChallengeHud.tsx` `src/features/challenge/CurrentChallengeHud.module.css` `e2e/tests/challenge/` `e2e/challenge-hud/` `e2e/support/challengeHudAssertions.ts` | — | — | 2-challenge-hud-multiple-long |
+| tutorial: KeyControlHintHud | 機能 | 2 | UITK | `src/features/tutorial/KeyControlHintHud.tsx` `src/features/tutorial/KeyControlHintHud.test.ts` `src/features/tutorial/keyControlHint.module.css` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/index.ts` `e2e/tests/system/tutorial.spec.ts` | 確認=演出は実時間 | — | 2-key-control-hint 動画 2-key-control-hint-pulse |
+| tutorial: WorldPinOverlay | 機能 | 2 | UITK | `src/features/tutorial/WorldPinOverlay.tsx` `src/features/tutorial/worldPin.module.css` `e2e/tests/system/worldPin.spec.ts` `e2e/capture-world-pin-arrow.ts` | 確認=演出は実時間 | — | 2-world-pin-onscreen 2-world-pin-offscreen 動画 2-world-pin-pulse |
+| CursorTooltip | 共通部品 | 2 | UITK | `src/shared/tooltip/` | — | — | 2-tooltip 2-tooltip-multiline |
+| オーバーレイ: 背景スキット | オーバーレイ | 2 | UITK | `src/app/App.tsx` `e2e/tests/phaseC4.spec.ts` | 前回は状態機械だけで洗い出して見落とした（`docs/uitk-migration/research/understand-shipping.md` §6.2） | — | 2-skit-background |
+| オーバーレイ: Ctrl+U の全体非表示 | オーバーレイ | 2 | UITK | `src/app/App.tsx` | — | — | 未撮影（下表） |
+| オーバーレイ: カットシーン中の退避 | オーバーレイ | 2 | UITK | `src/app/App.tsx` | — | — | 未撮影（下表） |
+| オーバーレイ: 背面の通知層（stage の裏） | オーバーレイ | 2 | UITK | `src/app/App.tsx` | — | — | 未撮影 |
+| オーバーレイ: カーソル追従（ツールチップ・掴みの絵） | オーバーレイ | 2 4 | UITK | `src/app/App.tsx` | — | — | 未撮影 |
+| オーバーレイ: 常駐 HUD の可否（ホットバー・装備） | オーバーレイ | 3 4 | UITK | `src/app/App.tsx` | — | — | 未撮影 |
+| オーバーレイ: 画面のマウント点と背景ディム | オーバーレイ | 1 2 3 4 5 | UITK | `src/app/App.tsx` `src/app/App.module.css` `src/app/App.architecture.test.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 未撮影（下表） |
+| オーバーレイ: 再接続・辞書エラー・エラー境界 | オーバーレイ | 5 | UITK | `src/app/App.tsx` `src/app/AppErrorBoundary.tsx` `e2e/tests/regression/connection.spec.ts` | — | — | 5-reconnect |
+| buildMenu | 機能 | 3 | UITK | `src/features/buildMenu/` `e2e/tests/regression/buildMenu.spec.ts` `e2e/tests/regression/buildMenuLayout.spec.ts` `e2e/capture-buildmenu.ts` `e2e/mock-host/fixtures/buildMenuFixtures.ts` | — | — | 3-build-menu |
+| hotbar | 機能 | 3 | UITK | `src/features/hotbar/` `e2e/tests/hotbar/` `e2e/mock-host/fixtures/hotbarFixtures.ts` | — | — | 3-hotbar-equipment-empty |
+| modal（BP 名入力） | 機能 | 3 | UITK | `src/features/modal/` `e2e/tests/modal.spec.ts` | — | — | 3-modal |
+| placementTarget（配置対象の表示名） | 共通部品 | 2 3 4 | UITK | `src/shared/placementTarget/` | — | — | 未撮影 |
+| pointerGesture（押下・ドラッグの判定） | 共通部品 | 3 4 5 | UITK | `src/shared/pointerGesture/` | — | — | 未撮影 |
+| inventory（インベントリ・装備・掴み） | 機能 | 4 | UITK | `src/features/inventory/` `e2e/tests/inventory/` `e2e/mock-host/inventoryModel.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 4-player-inventory 4-player-inventory-full |
+| recipe（レシピ・アイテム一覧・長押しクラフト） | 機能 | 4 | UITK | `src/features/recipe/` `e2e/tests/recipe/` `e2e/mock-host/fixtures/recipeFixtures.ts` `e2e/craft-chrome/` `e2e/support/craftChromeAssertions.ts` | 確認=演出は実時間 | — | 4-item-list-large |
+| blockInventory（汎用族・特殊族・列車族） | 機能 | 4 | UITK | `src/features/blockInventory/` `e2e/tests/block/` `e2e/tests/train/` `e2e/tests/train.spec.ts` `e2e/tests/regression/sectionStack.spec.ts` `e2e/mock-host/fixtures/blocks/` `e2e/mock-host/blockDetailFixtures.ts` `e2e/mock-host/detailActions.ts` `e2e/mock-host/detailActions.test.ts` `e2e/mock-host/train/` `e2e/mock-host/fixtures/trainInventoryFixtures.ts` `e2e/capture-machine-qa.ts` `e2e/capture-train-timetable.ts` `e2e/fixtures/` | — | — | 4-block-chest 4-block-tank 4-block-machine 4-block-gearMachine 4-block-generator 4-block-miner 4-block-filterSplitter 4-block-gearMiner 4-block-pump 4-block-pumpNoVein 4-block-gearPump 4-block-generic 4-block-gearGenerator 4-block-electricToGear 4-block-train 4-block-trainTimetable 4-block-trainError 4-block-trainPlatform 4-block-trainFluidPlatform 4-block-electricPole 4-block-train-timetable-tab 4-block-machine-recipe-selection |
+| blockInventory 特殊族: ロケット（Tier9 #1551） | 機能 | 4 | UITK | `src/features/blockInventory/details/rocket/` | — | — | 未撮影（下表） |
+| blockInventory 特殊族: 宇宙エレベーター（Tier9 #1552） | 機能 | 4 | UITK | `src/features/blockInventory/details/spaceElevator/` | — | — | 未撮影（下表） |
+| research（研究ツリー・詳細ペイン） | 機能 | 4 | UITK | `src/features/research/` `e2e/tests/research/` `e2e/mock-host/researchFixtures.ts` `e2e/capture-research-qa.ts` `e2e/support/panSettle.ts` | — | — | 4-research |
+| tutorial: DragGuide（インベントリ内） | 機能 | 4 | UITK | `src/features/tutorial/overlay/DragGuide.tsx` `src/features/tutorial/overlay/style.module.css` `src/features/tutorial/overlay/TutorialOverlay.tsx` `src/features/tutorial/overlay/TutorialOverlay.test.ts` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/index.ts` | 確認=演出は実時間 | — | 動画 4-drag-guide |
+| itemMove（掴みの計画） | 共通部品 | 4 | UITK | `src/shared/itemMove/` `e2e/tests/regression/itemSlot.spec.ts` | — | — | 未撮影 |
+| ownedCounts | 共通部品 | 4 | UITK | `src/shared/ownedCounts.ts` `src/shared/ownedCounts.test.ts` | — | — | 未撮影 |
+| treeView（パン・ズーム・線） | 共通部品 | 4 5 | UITK | `src/shared/treeView/` | — | — | 未撮影 |
+| challenge: ChallengePanel | 機能 | 5 | UITK | `src/features/challenge/` `e2e/tests/challenge.spec.ts` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 5-challenge-list |
+| eventLanguageGate（出展モードの言語選択） | 機能 | 5 | UITK | `src/features/eventLanguageGate/` | S5-gate D-1（DI 前に GameUiRoot をそのまま使う）・D-5（辞書を通さない見出しは C# 定数 1 つ）・D-6（結末の 1 行は本番で見えないので写さない） | — | 5-event-language-gate |
+| tutorial: TutorialOverlay（ハイライト枠） | 機能 | 5 | UITK | `src/features/tutorial/` `e2e/tests/system/tutorial.spec.ts` `e2e/tests/system/tutorialHighlightClip.spec.ts` `e2e/support/pulseFreeze.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/overlay/style.module.css` `src/features/tutorial/overlay/TutorialOverlay.tsx` `src/features/tutorial/overlay/TutorialOverlay.test.ts` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `src/features/tutorial/index.ts` | 確認=演出は実時間 | — | 5-tutorial-outline-label 5-tutorial-recipe-item 5-tutorial-research-node 動画 5-tutorial-pulse |
+| tutorialAnchor（アンカーの登録と解決） | 共通部品 | 1 2 3 4 5 | UITK | `src/shared/tutorialAnchor/` | — | — | 未撮影 |
+| shared/ui（枠・スロット・ボタン・ゲージ） | 共通部品 | 1 2 3 4 5 | UITK | `src/shared/ui/` `src/shared/clamp01.ts` `src/shared/clamp01.test.ts` `src/shared/materialTooltipText.ts` `src/app/slotTokens.css` `src/app/iconTextOutlineDesign.test.ts` `e2e/capture-iconbutton.ts` `e2e/capture-icon-text-outline.ts` `e2e/support/layoutAssertions.ts` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 未撮影 |
+| i18n | 横断 | 1 2 3 4 5 | UITK | `src/shared/i18n/` `scripts/` `e2e/tests/system/i18n.spec.ts` `e2e/mock-host/localization/` `e2e/mock-host/topics/dictionaryControl.ts` | — | — | 5-japanese-inventory |
+| uiState（画面ルーティング・入力排他） | 横断 | 1 2 3 4 5 | UITK | `src/shared/uiState/` `e2e/tests/uiState.spec.ts` `e2e/tests/regression/inputLayer.spec.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 未撮影 |
+| uiScale（stage の一様拡縮） | 横断 | 2 5 | UITK | `src/shared/uiScale/` `e2e/tests/system/portalLayerScaling.spec.ts` `e2e/captures/portal-scaling.ts` | — | — | 未撮影 |
+| bridge（通信・契約・ストア） | 横断 | 5 | UITK | `src/bridge/` | 裁定 3=(a) `HttpListener`（Web ホストの撤去と同じ段階） | — | 未撮影 |
+| アプリ殻（起動・トークン・層） | 横断 | 5 | UITK | `src/app/` `src/main.tsx` `src/vite-env.d.ts` `index.html` `e2e/tests/system/textSelection.spec.ts` | — | — | 未撮影 |
+| Web の検証基盤（mock-host・Playwright・撮影） | 横断 | 5 | UITK | `e2e/` | — | — | 未撮影 |
 ## 追従記録
 
 暗転の起点より後に、暗転中の束の Web パスを触ったコミットの処遇。コミットは 10 桁以上。`捨てた` には理由が要る。
