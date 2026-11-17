@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 指定コミットからWindowsとMac（Apple Silicon）の配布ビルドを焼き、Steamへ上げてWindowsを検証する
 # Bake Windows and Mac (Apple Silicon) from a commit, upload to Steam and verify Windows
+# 標準経路は配布ビルド機（Windows）で焼く release-playtest-windows.sh。これは配布ビルド機が使えないときの予備経路
+# The standard route is release-playtest-windows.sh on the Windows build machine; this is the fallback when that machine is unavailable
 #
 # usage: release-playtest.sh <commit>
 # <commit> は SHA か origin/<branch> を渡す。ローカルブランチ名（master 等）は fetch で進まず古いコミットを焼くため使わない

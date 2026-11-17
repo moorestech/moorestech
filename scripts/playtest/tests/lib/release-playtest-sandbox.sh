@@ -82,6 +82,11 @@ case "\$*" in
   "-C $SANDBOX/wt/$PRIVATE_REL status --porcelain")
     [ "\${PRIVATE_DIRTY:-0}" = "0" ] || echo "?? stray.txt"
     ;;
+  *" show "*":.moorestech-external-revisions.json")
+    # Windows で焼く経路は worktree を作らず、要求コミットのピンを配布元 clone から読む
+    # The Windows bake route makes no worktree and reads the requested commit's pins from the release clone
+    printf '{"repositories":[{"key":"moorestech_master","relativePath":"../moorestech_master","commitHash":"%s"},{"key":"moorestech_client_private","relativePath":"%s","commitHash":"%s"}]}' "$PINNED_MASTER" "$PRIVATE_REL" "$PINNED_PRIVATE"
+    ;;
   *"rev-parse"*|*" show "*|*" status "*)
     echo "unexpected git target: \$*" >&2
     exit 128

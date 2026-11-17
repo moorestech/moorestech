@@ -17,6 +17,7 @@ case "\$*" in
     app="\$out/moorestech.app"
     mkdir -p "\$app/Contents/MacOS" "\$app/Contents/Resources/Data/StreamingAssets" "\$out/game/mods"
     touch "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg" "\$app/Contents/Resources/ffmpeg-LICENSE.txt"
+    [ "\${MAC_NOT_EXECUTABLE:-0}" != "0" ] || chmod +x "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg"
     # 反転した検査のため、指定されたときだけ CEF helper を残す
     # Leave a CEF helper only when asked, to exercise the inverted check
     if [ "\${MAC_LEAKS_CEF:-0}" != "0" ]; then

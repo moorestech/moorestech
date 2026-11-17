@@ -5,11 +5,12 @@ description: moorestech のプレイテスト配布を通しで行う。最新 o
 
 # moores-playtest-release
 
-工程の正本は `scripts/playtest/README.md` と `scripts/playtest/release-playtest.sh`。このスキルは、標準スクリプトが止まる Steam 認証、Mac 版の確認、反映、パッチノートを補う。パッチノートだけを頼まれたら手順 3 だけを行う。スクリプトのパスは本体 clone 直下からの相対で書いている（`.agents/skills/moores-playtest-release/scripts/`）。
+工程の正本は `scripts/playtest/README.md` と `scripts/playtest/release-playtest-windows.sh`（Windows 版・Mac 版とも配布ビルド機〈Windows〉で焼く標準経路）。配布ビルド機が使えないときだけ Mac で焼く `scripts/playtest/release-playtest.sh` を使う。このスキルは、標準スクリプトが止まる Steam 認証、Mac 版の確認、反映、パッチノートを補う。パッチノートだけを頼まれたら手順 3 だけを行う。スクリプトのパスは本体 clone 直下からの相対で書いている（`.agents/skills/moores-playtest-release/scripts/`）。
 
 ## 前提条件
 
-- Mac mini の本体 clone（`~/hermes-agent/data/repos/moorestech`）から実行する。worktree はスクリプトが作る。
+- Mac mini の本体 clone（`~/hermes-agent/data/repos/moorestech`）から実行する。標準経路は Windows 側の `C:\dev\worktrees\moorestech\release-bake` を使い回して焼き（Library を持ち越すため）、予備経路は Mac に worktree を作る。
+- 標準経路は env.sh の `MOORESTECH_WINBUILD_HOST`（配布ビルド機の ssh 宛先）と、Windows 側の Unity 6000.3.8f1 の Mac Build Support（Mono）・`C:\dev\tools\rcodesign\apple-codesign-0.29.0-x86_64-pc-windows-msvc\rcodesign.exe` が要る。
 - `~/hermes-agent/data/services/playtest/env.sh` に次の変数がある。README に載っている変数と `MOORESTECH_STEAM_OP_HELPER`（1Password ラッパーのパス）、`MOORESTECH_STEAM_OP_ITEM`（Steam 資格の項目 ID）。このファイルは並列セッションと共有しているので、`>` で作り直さず追記する。
 - 成果物は `~/hermes-agent/data/services/playtest/runs/<label>/` に置く。label は `playtest-YYYYMMDD-HHMM`。
 
@@ -26,7 +27,7 @@ cd ~/hermes-agent/data/repos/moorestech && git fetch -q origin
 . ~/hermes-agent/data/services/playtest/env.sh
 export MOORESTECH_STEAM_BUILD_LABEL=playtest-$(date +%Y%m%d-%H%M)
 RUNS=~/hermes-agent/data/services/playtest/runs
-scripts/playtest/release-playtest.sh "$(git rev-parse origin/master)" > $RUNS/$MOORESTECH_STEAM_BUILD_LABEL.release.log 2>&1   # Bash の run_in_background で起動
+scripts/playtest/release-playtest-windows.sh "$(git rev-parse origin/master)" > $RUNS/$MOORESTECH_STEAM_BUILD_LABEL.release.log 2>&1   # Bash の run_in_background で起動
 ```
 
 - 渡すのは SHA か `origin/master`。ローカルの `master` は渡さない（fetch で進まないので古いコミットを焼く）。
@@ -35,7 +36,7 @@ scripts/playtest/release-playtest.sh "$(git rev-parse origin/master)" > $RUNS/$M
 
 ### 2. アップロード（steamcmd が `Invalid Password` で止まったとき）
 
-`release-playtest.sh` はビルド前に保存資格を確認する。ビルド中に資格が失効すると、完了後のログインで落ちることがある。ログに `Cached credentials not found` → `ERROR (Invalid Password)` と出た場合がそれで、promotion.md は作られず、worktree も削除済みで終わっている。成果物は run-dir に残っているので、再ビルドはしない。代わりに次を Bash の run_in_background で起動する。
+どちらの経路もビルド前に保存資格を確認する。ビルド中に資格が失効すると、完了後のログインで落ちることがある。ログに `Cached credentials not found` → `ERROR (Invalid Password)` と出た場合がそれで、promotion.md は作られず、worktree も削除済みで終わっている。成果物は run-dir に残っているので、再ビルドはしない。代わりに次を Bash の run_in_background で起動する。
 
 ```bash
 .agents/skills/moores-playtest-release/scripts/upload_and_verify.sh $RUNS/<label> > $RUNS/<label>.upload-verify.log 2>&1   # run_in_background
