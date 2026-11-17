@@ -20,6 +20,10 @@ namespace Client.Tests.UnitTest.Tutorial
         private static readonly Guid ChallengeGuid = Guid.Parse("00000000-0000-0000-4567-000000000001");
         private const string MapPinId = "map-object-pin";
         private const string VeinPinId = "vein-pin";
+        // 本番の tutorialGuid はマスタの GUID 文字列。GUID でない値はピンの射影が LogError で弾く
+        // Production tutorialGuid is a master GUID string; a non-GUID value is rejected by the pin projection with LogError
+        private const string MapPinTutorialGuid = "00000000-0000-0000-4567-0000000000a1";
+        private const string VeinPinTutorialGuid = "00000000-0000-0000-4567-0000000000a2";
 
         private ChallengeMaster _originalChallengeMaster;
         private GameObject _root;
@@ -94,8 +98,8 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             var veinPin = _root.AddComponent<VeinPin>();
             var tutorial = MasterHolder.ChallengeMaster.GetChallenge(ChallengeGuid).Tutorials[0];
-            WorldPinStateStore.Instance.SetPin(MapPinId, "map", new WorldPinProjection { OnScreen = true });
-            WorldPinStateStore.Instance.SetPin(VeinPinId, "vein", new WorldPinProjection { OnScreen = true });
+            WorldPinStateStore.Instance.SetPin(MapPinId, MapPinTutorialGuid, new WorldPinProjection { OnScreen = true });
+            WorldPinStateStore.Instance.SetPin(VeinPinId, VeinPinTutorialGuid, new WorldPinProjection { OnScreen = true });
 
             veinPin.ApplyTutorial(tutorial);
             veinPin.CompleteTutorial();
