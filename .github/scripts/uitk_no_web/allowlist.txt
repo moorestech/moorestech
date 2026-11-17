@@ -23,6 +23,8 @@ path scripts/playtest/tests/test-release-playtest.sh # 配布物に CEF のフ�
 path scripts/playtest/tests/lib/release-playtest-build-stubs.sh # 配布物に CEF のファイルが 0 であることの検査の契約テストのスタブ（統合計画 §5.1-1。X-5b）
 line scripts/playtest/README.md release_require_no_cef_files # 配布物に CEF のファイルが 0 であることの検査の説明（統合計画 §5.1-1。X-5b）
 path moorestech_client/Assets/Scripts/Editor/Build/PreRemovalStreamingAssetsCleaner.cs # 撤去前のビルドが残した StreamingAssets/WebUi をビルド前に消す（X-5a 最終レビュー D2）
+path moorestech_client/Assets/Scripts/Editor/Build/PreRemovalStreamingAssetsCleanupBuildHook.cs # 同じ掃除を BuildPipeline を通らないビルドにも掛ける入口（X-switch-pr R-6 C12）
+path moorestech_client/Assets/Scripts/Client.Tests/LeftoverDirectoryRemovalTest.cs # 同じ掃除（StreamingAssets/WebUi の残骸の削除）のテスト（X-switch-pr R-6 C12）
 line .gitignore ^moorestech_client/Assets/StreamingAssets/WebUi(/|\.meta)$ # 撤去前の作業コピーに残る dist と .meta を無視する行（X-5c が残す。消すと untracked に戻り git add -A で入る。X-cleanup が .gitignore の行と同じ PR で消す）
 line .gitignore ^/moorestech_web/$ # 撤去前の作業コピーに残る node・dist の残骸を無視する行（X-5c が足す。X-cleanup が .gitignore の行と同じ PR で消す）
 line .gitignore 撤去前の作業コピーに残る残骸を無視する # 上の 3 行の見出しの日本語のコメント（X-5c が書く。X-cleanup が .gitignore の行と同じ PR で消す）
