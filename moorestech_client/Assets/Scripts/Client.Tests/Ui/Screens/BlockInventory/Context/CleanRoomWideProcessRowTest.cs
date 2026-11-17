@@ -1,5 +1,6 @@
 using Client.Tests.Ui.Components;
 using Client.Ui.Components.Gauges;
+using Client.Ui.Foundation.Stage.Columns;
 using Client.Ui.Screens.BlockInventory;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using NUnit.Framework;
@@ -23,6 +24,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             // Same as the precision cutter: 1 input, 6 outputs, 3 modules; without recipes it is the natural-height panel
             var shell = OpenCleanRoomMachine(2, new MachineSlotLayout(1, 6, 3), withRecipes);
             Assert.AreEqual(withRecipes, shell.View.ClassListContains(BlockInventoryView.LargeClassName), "large only with recipe rows");
+
+            // 本番と同じく持ち物パネルの幅を左の列に置く（SubInventory では持ち物が左に開いている）
+            // Put an inventory-panel-wide box in the left column as in production (SubInventory shows the inventory on the left)
+            var inventory = new VisualElement();
+            inventory.style.width = ThemeTokenFile.ResolvePixels("--inventory-panel-width");
+            inventory.style.height = 100f;
+            shell.Stage.Get(StageColumn.Inv).Add(inventory);
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
             var stage = shell.Stage.worldBound;
             var row = shell.View.Q("machine-process-row");
             var input = row.Q(className: "machine-process-row__input");
