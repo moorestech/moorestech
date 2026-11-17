@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Client.Playtest.Core;
 using Client.Playtest.Input;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
 using Client.Playtest.UiElements;
@@ -55,10 +56,9 @@ namespace Client.Playtest
                 {
                     // 例外でも走行中フラグと入力設定の復元を通すため try の中で準備する
                     // Prepare inside the try so an exception still reaches the running-flag and settings restore
-                    SemanticInput.EnsureDevices();
                     // 非前面で焦点喪失時に無効化済みのデバイスは IgnoreFocus だけでは戻らず、注入した状態事象が捨てられるので有効化し直す
                     // Devices already disabled on focus loss are not revived by IgnoreFocus alone and drop injected state events, so re-enable them
-                    foreach (var device in InputSystem.devices) InputSystem.EnableDevice(device);
+                    PlaytestUiOps.EnableInjectedInputDevices();
                     if (!Keyboard.current.enabled || !Mouse.current.enabled) Debug.LogError($"[PlaytestRunner] injected input will be dropped: keyboard enabled={Keyboard.current.enabled}, mouse enabled={Mouse.current.enabled} after EnableDevice");
                     var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);

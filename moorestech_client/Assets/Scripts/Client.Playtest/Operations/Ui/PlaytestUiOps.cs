@@ -139,8 +139,13 @@ namespace Client.Playtest.Operations.Ui
             PlaytestGameViewOps.BringToFront();
             InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
             InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-            // 焦点喪失で無効化済みのデバイスは設定だけでは戻らないので、有効済みでも無条件で有効化する（有効済みなら何もしない）
-            // Devices disabled on focus loss are not restored by settings alone, so enable unconditionally (a no-op when enabled)
+            EnableInjectedInputDevices();
+        }
+
+        // 焦点喪失で無効化済みのデバイスは設定だけでは戻らないので、有効済みでも無条件で有効化する（有効済みなら何もしない）
+        // Devices disabled on focus loss are not restored by settings alone, so enable unconditionally (a no-op when enabled)
+        public static void EnableInjectedInputDevices()
+        {
             SemanticInput.EnsureDevices();
             foreach (var device in InputSystem.devices) InputSystem.EnableDevice(device);
         }

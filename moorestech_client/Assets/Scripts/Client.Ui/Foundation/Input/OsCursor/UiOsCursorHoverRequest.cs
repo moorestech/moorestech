@@ -53,34 +53,38 @@ namespace Client.Ui.Foundation.Input.OsCursor
         {
             if (pressable) Resume();
             else Suspend();
-        }
 
-        // 押せなくしたときに呼ぶ。要求を外す
-        // Call when unpressable: withdraw the request
-        private void Suspend()
-        {
-            _isSuspended = true;
-            Release();
-        }
+            #region Internal
 
-        // 押せる戻しで呼ぶ。拾わない間の移動は事象で届かないので、その時点の実位置が要素の上なら指を出し直す
-        // Call when pressable again: moves while unpickable send no event, so re-request the hand when the actual position is over the element now
-        private void Resume()
-        {
-            // silent-ok: 押せるままの重ね呼びは何もしない / 正常系
-            if (!_isSuspended) return;
-            _isSuspended = false;
+            // 押せなくしたときに呼ぶ。要求を外す
+            // Call when unpressable: withdraw the request
+            void Suspend()
+            {
+                _isSuspended = true;
+                Release();
+            }
 
-            // silent-ok: パネルから外れた間の再開は位置を測れず、載せ直しの Enter が出し直す / 外れた要素は指を出さないのが正常
-            var panel = _element.panel;
-            if (panel == null) return;
-            var onPanel = _pointer.ScreenToPanel(panel, _pointer.CurrentPointerOnScreen());
-            // silent-ok: 要素の外なら指を出さないのが正常 / 次の Enter で取る
-            if (!_element.worldBound.Contains(onPanel)) return;
-            // 覆われていれば Hold せず UITK の Enter を待つ（覆いの下の要素へ指を取らない）
-            // When covered, do not Hold and wait for UITK's Enter (never take the hand for an element underneath a cover)
-            var picked = panel.Pick(onPanel);
-            if (picked != null && (picked == _element || _element.Contains(picked))) Hold();
+            // 押せる戻しで呼ぶ。拾わない間の移動は事象で届かないので、その時点の実位置が要素の上なら指を出し直す
+            // Call when pressable again: moves while unpickable send no event, so re-request the hand when the actual position is over the element now
+            void Resume()
+            {
+                // silent-ok: 押せるままの重ね呼びは何もしない / 正常系
+                if (!_isSuspended) return;
+                _isSuspended = false;
+
+                // silent-ok: パネルから外れた間の再開は位置を測れず、載せ直しの Enter が出し直す / 外れた要素は指を出さないのが正常
+                var panel = _element.panel;
+                if (panel == null) return;
+                var onPanel = _pointer.ScreenToPanel(panel, _pointer.CurrentPointerOnScreen());
+                // silent-ok: 要素の外なら指を出さないのが正常 / 次の Enter で取る
+                if (!_element.worldBound.Contains(onPanel)) return;
+                // 覆われていれば Hold せず UITK の Enter を待つ（覆いの下の要素へ指を取らない）
+                // When covered, do not Hold and wait for UITK's Enter (never take the hand for an element underneath a cover)
+                var picked = panel.Pick(onPanel);
+                if (picked != null && (picked == _element || _element.Contains(picked))) Hold();
+            }
+
+            #endregion
         }
 
         private void OnPointerEnter(PointerEnterEvent evt)
