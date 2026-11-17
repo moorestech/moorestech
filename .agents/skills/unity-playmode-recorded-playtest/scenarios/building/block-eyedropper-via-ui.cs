@@ -21,6 +21,10 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
 {
     await p.SetupFlatGround();
+    // 開幕スキット中は主カメラが無いので、飛ばして GameScreen へ戻ってから向きを読む
+    // The main camera is absent during the opening skit, so skip it and return to GameScreen before reading the facing
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
     p.WarpPlayer(new Vector3(0f, 33.5f, 0f));
     await p.WaitSeconds(0.5f);
 

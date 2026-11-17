@@ -12,8 +12,9 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("right-short-press-cancel", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    // 開幕スキットはこのプレイテスト起動では再生されず(mode=none)Skipインテントが拒否されるため、GameScreen到達だけを待つ
-    // The opening skit never starts on this playtest boot (mode=none) and rejects the skip intent, so wait only for GameScreen
+    // 開幕スキットが流れていれば飛ばしてから GameScreen を待つ
+    // Skip the opening skit if it is playing, then wait for GameScreen
+    await p.SkipOpeningSkitIfPlaying();
     await p.WaitUiState(UIStateEnum.GameScreen, 30f);
 
     // 三人称の右ドラッグは押下と同時にカーソルロックへ切り替わり、その1フレームだけ注入した押下が実マウス状態で上書きされて
