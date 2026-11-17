@@ -1,7 +1,10 @@
+using System.Collections;
 using Client.Game.Common;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Starter
 {
@@ -116,6 +119,31 @@ namespace Client.Tests.Starter
 
             Assert.AreEqual(ShutdownFlushResult.Flushed, shutdown.GetAwaiter().GetResult());
             Assert.AreEqual(1, participant.FlushCallCount);
+        }
+
+        [UnityTest]
+        public IEnumerator WantsToQuit_WithNoParticipantDuringLoad_AllowsQuitOnlyAfterCallbackReturns()
+        {
+            // ロード中（内蔵サーバーの参加者が未登録）の終了要求。書き出しが同期で終わっても、閉じる許可は wantsToQuit を抜けた後に出す
+            // A quit request while loading (embedded server participant not yet registered); even when the flush completes synchronously, closing is allowed only after wantsToQuit returns
+            GameShutdownEvent.ResetForNewSession();
+            var firstRequestAllowed = ApplicationQuitGate.OnApplicationWantsToQuit();
+            var allowedWithinSameCallback = ApplicationQuitGate.OnApplicationWantsToQuit();
+
+            // 1フレーム後に終了口へ届き、Unity が出し直す終了要求は通る
+            // A frame later the exit is reached, and the quit request Unity reissues passes
+            var deadline = Time.realtimeSinceStartup + 5f;
+            var allowedAfterFrames = false;
+            while (!allowedAfterFrames && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+                allowedAfterFrames = ApplicationQuitGate.OnApplicationWantsToQuit();
+            }
+            GameShutdownEvent.ResetForNewSession();
+
+            Assert.IsFalse(firstRequestAllowed, "最初の終了要求を保留せずに通した");
+            Assert.IsFalse(allowedWithinSameCallback, "フレームを跨がずに終了口まで進んだ（wantsToQuit の中で Application.Quit を呼ぶため取り消され、アプリが閉じない）");
+            Assert.IsTrue(allowedAfterFrames, "保留した終了要求が5秒以内に終了口へ届かなかった（アプリが閉じない）");
         }
 
         // 完了タイミングをテストが握る参加者。PlayerLoop無しのEditModeでも決定的に進められる
