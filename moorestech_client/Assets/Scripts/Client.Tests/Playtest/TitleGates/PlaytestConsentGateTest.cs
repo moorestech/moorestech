@@ -10,11 +10,34 @@ namespace Client.Tests.Playtest.TitleGates
     // Pins that exactly one acknowledgement takes effect and releases the wait (the same contract as the ADR 0040 language gate and CrashReportGate)
     public class PlaytestConsentGateTest
     {
+        // 実機の既読フラグを控える。無ければ null
+        // The machine's real read flag saved before the test; null when it did not exist
+        private byte[] _originalFlagBytes;
+
+        // 既読フラグの置き場は実機の BugReports なので、元の有無と中身を控えてから消す
+        // The read flag lives in the machine's BugReports, so save whether it existed and its bytes before removing it
         [SetUp]
-        [TearDown]
-        public void RemoveFlag()
+        public void SaveAndRemoveFlag()
         {
-            if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
+            var path = PlaytestConsentFlag.FilePath;
+            _originalFlagBytes = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            if (_originalFlagBytes != null) File.Delete(path);
+        }
+
+        // テストが作った印は消し、元からあった印は中身ごと戻す
+        // Remove a mark the test created and put back a pre-existing mark byte for byte
+        [TearDown]
+        public void RestoreFlag()
+        {
+            var path = PlaytestConsentFlag.FilePath;
+            if (_originalFlagBytes == null)
+            {
+                if (File.Exists(path)) File.Delete(path);
+                return;
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllBytes(path, _originalFlagBytes);
         }
 
         [Test]

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.Common;
+using Client.Input;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Hotbar;
@@ -48,6 +49,10 @@ namespace Client.Tests.UIState
             // UI上判定はEventSystem.currentを引くため、テスト毎に空のEventSystemを立てる
             // The over-UI check reads EventSystem.current, so give every test its own empty EventSystem
             _eventSystem = CreateObject("EventSystem", true).AddComponent<EventSystem>();
+
+            // UI上判定は静的な GameUi の probe も引く。前のテストがゲームを起動して残した probe（パネルの外れたルート）を外す
+            // The over-UI check also reads the static GameUi probe; drop one left by an earlier test that booted the game (its root has no panel)
+            UiInputExclusivity.SetGameUiPointerProbe(null);
         }
 
         public override void TearDown()
