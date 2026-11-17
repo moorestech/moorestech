@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory
 {
     /// <summary>
-    /// 帯の高さと大型の幅を舞台の寸法とトークンから導く（Web の calc() を C# で解く。A-47）
-    /// Derives the band height and large width from the stage size and tokens (solves the Web calc() in C#; A-47)
+    /// 帯の高さ・大型の幅・小型の最大幅を舞台の寸法とトークンから導く（Web の calc() と grid の列幅を C# で解く。A-47）
+    /// Derives the band height, the large width and the natural max width from the stage size and tokens (solves the Web calc() and grid track width in C#; A-47)
     /// </summary>
     public sealed class BlockInventoryPanelBand
     {
@@ -80,9 +80,14 @@ namespace Client.Ui.Screens.BlockInventory
             _shell.style.maxHeight = band;
             _shell.style.height = _large ? new StyleLength(band) : new StyleLength(StyleKeyword.Auto);
 
-            // silent-ok: 幅のトークンが未解決の間は大型の幅を当てない / 同上の再適用と LogError
+            // silent-ok: 幅のトークンが未解決の間は幅を当てない / 同上の再適用と LogError
             if (!_inventoryWidthResolved || !_columnGapResolved) return;
-            _shell.style.width = _large ? new StyleLength(style.width - style.paddingLeft - style.paddingRight - _inventoryWidth - _columnGap) : new StyleLength(StyleKeyword.Auto);
+
+            // 大型は viewer〜items の 2 列ぶん（Web .panelLarge の calc）。小型は viewer の列の残り（空の items の列と列の間 2 つを除く）までの中身の幅で、Web の auto の列と justify-self: start の fit-content と同じく舞台の外へ広がらない
+            // Large spans viewer..items (Web .panelLarge calc); natural is content-wide up to the viewer track's remainder (minus the empty items track's two gaps), never spreading past the stage like the Web auto track with justify-self: start fit-content
+            var largeWidth = style.width - style.paddingLeft - style.paddingRight - _inventoryWidth - _columnGap;
+            _shell.style.width = _large ? new StyleLength(largeWidth) : new StyleLength(StyleKeyword.Auto);
+            _shell.style.maxWidth = _large ? new StyleLength(StyleKeyword.None) : new StyleLength(UnityEngine.Mathf.Max(0f, largeWidth - _columnGap));
         }
     }
 }

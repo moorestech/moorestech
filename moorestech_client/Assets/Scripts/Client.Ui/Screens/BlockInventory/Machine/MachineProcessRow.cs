@@ -33,19 +33,31 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             Add(_arrow);
             Add(outputSide);
 
-            // Web の 1fr は minmax(auto, 1fr) で、列は中身より狭くならず内容で決まる面では両列が広い方の中身の幅に揃う。両側の min-width を帯の広い方の幅にして写す
-            // Web 1fr is minmax(auto, 1fr): a column never shrinks below its content, and in a content-sized panel both columns match the wider content; port it as both sides' min-width set to the wider band
-            _input.Grid.RegisterCallback<GeometryChangedEvent>(_ => MatchSideMinWidth());
-            _output.Grid.RegisterCallback<GeometryChangedEvent>(_ => MatchSideMinWidth());
+            // Web の 1fr は minmax(auto, 1fr): 列は自分の中身より狭くならず、収まる面では両列が等幅（中身で決まる面では広い方の中身の幅）。収まらない面では広い側が中身の幅に留まり狭い側が残りを取る
+            // Web 1fr is minmax(auto, 1fr): a column never shrinks below its own content, both columns are equal when they fit (the wider content in a content-sized panel), and when they do not fit the wider side stays content-wide while the narrower takes the rest
+            _input.Grid.RegisterCallback<GeometryChangedEvent>(_ => MatchSideWidths());
+            _output.Grid.RegisterCallback<GeometryChangedEvent>(_ => MatchSideWidths());
 
             #region Internal
 
-            void MatchSideMinWidth()
+            void MatchSideWidths()
             {
-                var widest = System.Math.Max(_input.Grid.layout.width, _output.Grid.layout.width);
-                if (UnityEngine.Mathf.Approximately(inputSide.resolvedStyle.minWidth.value, widest)) return;
-                inputSide.style.minWidth = widest;
-                outputSide.style.minWidth = widest;
+                // 基準の幅を両側とも広い方の中身にして等幅で伸び縮みさせ、下限は各自の中身にする（Yoga は下限に当たった側を止めて残りを他方へ回す）
+                // Both sides take the wider content as their basis so they grow and shrink equally, floored at their own content (Yoga freezes a side at its floor and gives the rest to the other)
+                var inputWidth = _input.Grid.layout.width;
+                var outputWidth = _output.Grid.layout.width;
+                var widest = System.Math.Max(inputWidth, outputWidth);
+                SetSideWidth(inputSide, inputWidth, widest);
+                SetSideWidth(outputSide, outputWidth, widest);
+            }
+
+            static void SetSideWidth(VisualElement side, float content, float basis)
+            {
+                // 同じ値の付け直しは配置を回し続けるので当てない
+                // Skip re-applying equal values, which would keep the layout looping
+                if (UnityEngine.Mathf.Approximately(side.resolvedStyle.minWidth.value, content) && UnityEngine.Mathf.Approximately(side.resolvedStyle.flexBasis.value, basis)) return;
+                side.style.minWidth = content;
+                side.style.flexBasis = basis;
             }
 
             static VisualElement Side(string className, MachineSlotBand band)
