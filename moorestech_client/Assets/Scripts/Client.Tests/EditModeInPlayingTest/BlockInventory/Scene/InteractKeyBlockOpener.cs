@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using Client.Tests.EditModeInPlayingTest.Util.World;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -37,10 +38,11 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             // テストワールドには地面が無いため、録画と同じ足場へプレイヤーを立たせる
             // The test world has no ground, so stand the player on the same scaffold the recordings use
             await PlaytestSetup.CreateFlatGroundAndWarp();
+            await TestPlayerGround.AssertGroundedAsync();
 
-            // 視線の水平前方へブロック中心を配置
-            // Place the block center ahead along the horizontal view
-            var pos = OriginAheadOfPlayer();
+            // プレイヤーの北へブロック中心を配置。カメラ向きに依らず、周辺の配置がプレイヤーと重ならない位置関係を固定する
+            // Place the block center north of the player; fixed regardless of camera yaw so nearby setups never overlap the player
+            var pos = OriginNorthOfPlayer();
             PlaceBlock(blockName, pos, BlockDirection.North);
             var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
@@ -74,13 +76,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
             #region Internal
 
-            Vector3Int OriginAheadOfPlayer()
+            Vector3Int OriginNorthOfPlayer()
             {
                 var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
                 var blockSize = (Vector3)MasterHolder.BlockMaster.GetBlockMaster(FindBlockIdByName(blockName)).BlockSize;
-                var center = playerPosition + forward * BlockCenterDistanceFromPlayer;
-                return Vector3Int.FloorToInt(new Vector3(center.x - blockSize.x / 2f, playerPosition.y, center.z - blockSize.z / 2f));
+                var center = playerPosition + Vector3.forward * BlockCenterDistanceFromPlayer;
+                // 接地後のyは上面をわずかに下回りFloorで1段沈むため、高さは足場の上面で決める
+                // A grounded player's y sits just below the top and floors one cell down, so the height comes from the scaffold top
+                return Vector3Int.FloorToInt(new Vector3(center.x - blockSize.x / 2f, PlaytestSetup.GroundTopY, center.z - blockSize.z / 2f));
             }
 
             #endregion
